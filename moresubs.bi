@@ -11,10 +11,11 @@ DECLARE SUB delitem (it as integer, amount as integer)
 DECLARE SUB doswap (s as integer, d as integer)
 DECLARE SUB drawsay ()
 DECLARE SUB party_change_updates ()
-DECLARE SUB evalherotag ()
-DECLARE SUB evalitemtag
+DECLARE SUB evalherotags ()
+DECLARE SUB evalitemtags ()
 DECLARE FUNCTION findhero (who as integer, f as integer, l as integer, d as integer) as integer
 DECLARE SUB heroswap (iAll as integer)
+DECLARE SUB settag (BYVAL tagnum as integer, BYVAL value as integer = 4444)
 DECLARE FUNCTION istag (num as integer, zero as integer) as integer
 DECLARE SUB loaddoor (map as integer)
 DECLARE SUB minimap (x as integer, y as integer)

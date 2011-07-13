@@ -101,23 +101,23 @@ END IF '---end if > 0
 party_change_updates
 END SUB
 
-SUB doihavebits
-dim her as herodef
-FOR i = 0 TO small(gen(genMaxHero), 59)
- loadherodata @her, i
- herobits(i, 0) = her.have_tag    'have hero tag
- herobits(i, 1) = her.alive_tag   'is alive tag
- herobits(i, 2) = her.leader_tag  'is leader tag
- herobits(i, 3) = her.active_tag  'is in active party tag
-NEXT i
-DIM item_data(dimbinsize(binITM)) AS INTEGER
-FOR i = 0 TO gen(genMaxItem)
- loaditemdata item_data(), i
- itembits(i, 0) = item_data(74)   'when have tag
- itembits(i, 1) = item_data(75)   'is in inventory
- itembits(i, 2) = item_data(76)   'is equiped tag
- itembits(i, 3) = item_data(77)   'is equiped by hero in active party
-NEXT i
+SUB load_special_tag_caches
+ DIM her AS herodef
+ FOR i AS INTEGER = 0 TO small(gen(genMaxHero), 59)
+  loadherodata @her, i
+  herotags(i).have_tag = her.have_tag
+  herotags(i).alive_tag = her.alive_tag
+  herotags(i).leader_tag = her.leader_tag
+  herotags(i).active_tag = her.active_tag
+ NEXT i
+ DIM item_data(dimbinsize(binITM)) AS INTEGER
+ FOR i AS INTEGER = 0 TO gen(genMaxItem)
+  loaditemdata item_data(), i
+  itemtags(i).have_tag = item_data(74)
+  itemtags(i).in_inventory_tag = item_data(75)
+  itemtags(i).is_equipped_tag = item_data(76)
+  itemtags(i).is_actively_equipped_tag = item_data(77)
+ NEXT i
 END SUB
 
 SUB embedtext (text$, limit=0)
@@ -956,14 +956,14 @@ SELECT CASE AS CONST id
   IF valid_item(retvals(0)) THEN
    IF retvals(1) >= 1 THEN
     getitem retvals(0) + 1, retvals(1)
-    evalitemtag
+    evalitemtags
    END IF
   END IF
  CASE 18'--delete item
   IF valid_item(retvals(0)) THEN
    IF retvals(1) >= 1 THEN
     delitem retvals(0) + 1, retvals(1)
-    evalitemtag
+    evalitemtags
    END IF
   END IF
  CASE 19'--leader
@@ -2423,7 +2423,7 @@ SELECT CASE AS CONST id
     END WITH
    END IF
    update_inventory_caption retvals(0)
-   evalitemtag
+   evalitemtags
   END IF
  CASE 442'--item count in slot
   IF valid_item_slot(retvals(0)) THEN
@@ -2451,7 +2451,7 @@ SELECT CASE AS CONST id
     END WITH
    END IF
    update_inventory_caption retvals(0)
-   evalitemtag
+   evalitemtags
   END IF
  CASE 444 '--put sprite, place sprite
   IF valid_plotsprite(retvals(0)) THEN

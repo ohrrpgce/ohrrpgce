@@ -156,8 +156,8 @@ DO
    END IF '-------END IF HERO-------------------------------------
    'the last thing to do is re-eval the item and hero tags in case
    'something changed
-   evalherotag
-   evalitemtag
+   evalherotags
+   evalitemtags
   ELSE ' WHEN CANNOT AFFORD------------------------------------
    menusound gen(genCantBuySFX)
    acol = 3
@@ -999,7 +999,7 @@ IF carray(ccUse) > 1  AND inventory(ic).used THEN
   'DECREMENT ITEM-----------
   dummy = consumeitem(ic)
   'UPDATE ITEM POSESSION TAGS--------
-  evalitemtag
+  evalitemtags
   'REFRESH DISPLAY--------
   GOSUB refreshs
   GOSUB sellinfostr
@@ -1474,7 +1474,7 @@ DO
      MenuSound gen(genAcceptSFX)
     END IF
     'UPDATE ITEM POSSESSION BITSETS
-    evalitemtag
+    evalitemtags
    END IF
    IF st.slot = 5 THEN
     MenuSound gen(genCancelSFX)
@@ -1484,7 +1484,7 @@ DO
     NEXT i
     equip_menu_setup st, menu()
     'UPDATE ITEM POSSESSION BITSETS
-    evalitemtag
+    evalitemtags
    END IF
    IF st.slot = 6 THEN carray(ccUse) = 0: EXIT DO
   END IF
@@ -1583,7 +1583,7 @@ LOOP
 freepage page
 freepage holdscreen
 MenuSound gen(genCancelSFX)
-evalitemtag
+evalitemtags
 END SUB
 
 SUB equip_menu_setup (BYREF st AS EquipMenuState, menu$())

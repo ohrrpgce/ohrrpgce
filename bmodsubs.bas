@@ -112,7 +112,7 @@ ELSE
  END IF
 END IF
 'Update tags, this may matter for attack chaining
-evalitemtag
+evalitemtags
 END FUNCTION
 
 SUB control

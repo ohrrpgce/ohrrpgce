@@ -623,6 +623,23 @@ Type HeroDef
 	hand_b_y as integer
 End Type
 
+'This caches the tags needed by evalherotag
+TYPE HeroTagsCache
+	have_tag as integer
+	alive_tag as integer
+	leader_tag as integer
+	active_tag as integer
+END TYPE
+
+'This is part of the UDT for items, which hasn't been written yet
+'It caches the tags needed by evalitemtag
+TYPE ItemTagsCache
+	have_tag         as integer
+	in_inventory_tag as integer
+	is_equipped_tag  as integer
+	is_actively_equipped_tag as integer
+END TYPE
+
 TYPE EnemyStealDef
   thievability as integer
   item as integer

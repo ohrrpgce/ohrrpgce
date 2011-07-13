@@ -37,6 +37,10 @@ EXTERN gam AS GameState
 EXTERN txt AS TextBoxState
 EXTERN tag() as integer
 
+'Special tags (immutable data)
+EXTERN herotags() as HeroTagsCache
+EXTERN itemtags() as ItemTagsCache
+
 'Vehicle globals
 EXTERN vstate AS VehicleState
 
@@ -49,8 +53,6 @@ EXTERN lmp() as integer
 EXTERN bmenu() as integer
 EXTERN spell() as integer
 EXTERN exlev() as integer
-EXTERN herobits() as integer
-EXTERN itembits() as integer
 EXTERN hmask() as integer
 
 'Map state globals

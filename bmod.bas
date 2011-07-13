@@ -553,7 +553,7 @@ SUB battle_attack_do_inflict(targ AS INTEGER, tcount AS INTEGER, BYREF attack AS
       getitem(.id, abs(.number))
      END IF
      'Update tags when items have changed because it could affect chain conditionals
-     evalitemtag
+     evalitemtags
     END IF
    END WITH
   NEXT i
@@ -568,7 +568,7 @@ SUB battle_attack_do_inflict(targ AS INTEGER, tcount AS INTEGER, BYREF attack AS
  IF bslot(bat.acting).consume_item >= 0 THEN
   IF consumeitem(bslot(bat.acting).consume_item) THEN
    setbit bat.iuse(), 0, bslot(bat.acting).consume_item, 0
-   evalitemtag
+   evalitemtags
   END IF
   bslot(bat.acting).consume_item = -1
  END IF

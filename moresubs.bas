@@ -399,73 +399,70 @@ IF txt.box.choice_enabled THEN
 END IF
 END SUB
 
-SUB evalherotag ()
+SUB evalherotags ()
+ DIM AS INTEGER i, id
+ DIM leaderid AS INTEGER = -1
+ FOR i = 3 TO 0 STEP -1
+  IF hero(i) > 0 THEN leaderid = hero(i) - 1
+ NEXT i
 
-DIM leader AS INTEGER = -1
-FOR i = 3 TO 0 STEP -1
- IF hero(i) > 0 THEN leader = hero(i) - 1
-NEXT i
-
-FOR i = 0 TO small(gen(genMaxHero), UBOUND(herobits, 1)) '--for each available hero
- 'unset all tags, including ones used on heroes not in the party 
- FOR j = 0 TO 3
-  IF herobits(i, j) > 1 THEN setbit tag(), 0, herobits(i, j), 0
- NEXT j
+ FOR i = 0 TO small(gen(genMaxHero), UBOUND(herotags, 1)) '--for each available hero
+  'unset all tags, including ones used on heroes not in the party 
+  settag herotags(i).have_tag, NO
+  settag herotags(i).alive_tag, NO
+  settag herotags(i).leader_tag, NO
+  settag herotags(i).active_tag, NO
+ NEXT i
  'scan party
- FOR j = 0 TO UBOUND(hero)
-  IF hero(j) - 1 = i THEN
-   IF herobits(i, 0) > 1 THEN setbit tag(), 0, herobits(i, 0), 1 '---HAVE HERO
-   IF herobits(i, 1) > 1 AND gam.hero(j).stat.cur.hp THEN setbit tag(), 0, herobits(i, 1), 1 '---IS ALIVE
-   IF herobits(i, 2) > 1 AND i = leader THEN setbit tag(), 0, herobits(i, 2), 1 '---IS LEADER
-   IF herobits(i, 3) > 1 AND j < 4 THEN setbit tag(), 0, herobits(i, 3), 1 '---IN PARTY
+ FOR i = 0 TO UBOUND(hero)
+  id = hero(i) - 1
+  IF id >= 0 THEN
+   settag herotags(id).have_tag, YES
+   IF gam.hero(i).stat.cur.hp > 0 THEN settag herotags(id).alive_tag, YES
+   IF id = leaderid THEN settag herotags(id).leader_tag, YES
+   IF i < 4 THEN settag herotags(id).active_tag, YES
   END IF
- NEXT j
-NEXT i
-
+ NEXT i
 END SUB
 
 'Call this after a change to the party
 SUB party_change_updates
  vishero
- evalherotag
+ evalherotags
  'FIXME: process indirect effects of tag changes
 END SUB
 
-SUB evalitemtag
+SUB evalitemtags
+ DIM AS INTEGER i, j, k, id
 
-FOR i = 0 TO maxMaxItems
- 'clear all four bits
- FOR j = 0 TO 3
-  IF itembits(i, j) > 1 THEN setbit tag(), 0, itembits(i, j), 0
- NEXT j
-NEXT i
+ FOR i = 0 TO maxMaxItems
+  'clear all four tags
+  settag itemtags(i).have_tag, NO
+  settag itemtags(i).in_inventory_tag, NO
+  settag itemtags(i).is_equipped_tag, NO
+  settag itemtags(i).is_actively_equipped_tag, NO
+ NEXT i
 
-'search inventory slots
-FOR j = 0 TO last_inv_slot()
- 'get item ID
- id = inventory(j).id
- IF inventory(j).used THEN 'there is an item in this slot
-  IF itembits(id, 0) > 1 THEN setbit tag(), 0, itembits(id, 0), 1 'you have it
-  IF itembits(id, 1) > 1 THEN setbit tag(), 0, itembits(id, 1), 1 'it is in your inventory
- END IF
-NEXT j
-
-FOR j = 0 TO 40 'search hero list
- FOR k = 0 TO 4 'search equipment slots
-  id = eqstuf(j, k) - 1
-  IF id >= 0 THEN ' there is an item equipped in this slot
-   IF itembits(id, 0) > 1 THEN setbit tag(), 0, itembits(id, 0), 1 'you have it
-   IF itembits(id, 2) > 1 THEN setbit tag(), 0, itembits(id, 2), 1 'it is equipped
-   IF j < 4 AND itembits(id, 3) > 1 THEN setbit tag(), 0, itembits(id, 3), 1   'it is equipped by an active hero
+ 'search inventory slots
+ FOR j = 0 TO last_inv_slot()
+  'get item ID
+  id = inventory(j).id
+  IF inventory(j).used THEN 'there is an item in this slot
+   settag itemtags(id).have_tag, YES
+   settag itemtags(id).in_inventory_tag, YES
   END IF
- NEXT k
-NEXT j
+ NEXT j
 
-'itembits(n,0)      when have tag
-'itembits(n,1)      is in inventory
-'itembits(n,2)      is equiped tag
-'itembits(n,3)      is equiped by hero in active party
-
+ FOR j = 0 TO 40 'search hero list
+  FOR k = 0 TO 4 'search equipment slots
+   id = eqstuf(j, k) - 1
+   IF id >= 0 THEN ' there is an item equipped in this slot
+    settag itemtags(id).have_tag, YES
+    settag itemtags(id).is_equipped_tag, YES
+    IF j < 4 THEN settag itemtags(id).is_actively_equipped_tag, YES
+   END IF
+  NEXT k
+ NEXT j
 END SUB
 
 FUNCTION findhero (who as integer, f as integer, l as integer, d as integer) as integer
@@ -675,6 +672,17 @@ FOR i = 0 TO 3
 NEXT i
 IF hero(acsr) AND ecsr < 0 THEN info$ = names(acsr) ELSE info$ = ""
 RETRACE
+END SUB
+
+'Either pass a tag number and specify YES/NO, or pass just a tag number; +ve/-ve indicates value
+SUB settag (BYVAL tagnum as integer, BYVAL value as integer = 4444)
+ IF value <> 4444 THEN
+  IF ABS(tagnum) > 1 THEN setbit tag(), 0, ABS(tagnum), value
+ ELSEIF tagnum < -1 THEN
+  setbit tag(), 0, ABS(tagnum), NO
+ ELSEIF tagnum > 1 THEN
+  setbit tag(), 0, tagnum, YES
+ END IF
 END SUB
 
 FUNCTION istag (num as integer, zero as integer) as integer

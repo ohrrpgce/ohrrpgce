@@ -102,7 +102,9 @@ DIM txt AS TextBoxState
 DIM gen(360)
 DIM tag(127)
 
-DIM hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), exlev(40, 1), names(40), herobits(59, 3), itembits(maxMaxItems, 3)
+DIM herotags(59) as HeroTagsCache, itemtags(maxMaxItems) as ItemTagsCache
+
+DIM hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), exlev(40, 1), names(40)
 DIM eqstuf(40, 4)
 DIM catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), hmask(3)
 DIM herow(3) as GraphicPair
@@ -461,8 +463,8 @@ ELSE
  prepare_map
 END IF
 
-doihavebits
-evalherotag
+load_special_tag_caches  'Load herotags and itemtags, which are immutable
+evalherotags
 needf = 1
 force_npc_check = YES
 
@@ -1465,7 +1467,7 @@ WITH scrat(nowscript)
      i = retvals(0)
      unequip i, bound(retvals(1) - 1, 0, 4), gam.hero(i).def_wep, 1
     END IF
-    evalitemtag
+    evalitemtags
    CASE 24'--force equip
     IF valid_hero_party(retvals(0)) THEN
      i = retvals(0)
@@ -1474,7 +1476,7 @@ WITH scrat(nowscript)
       doequip retvals(2) + 1, i, bound(retvals(1) - 1, 0, 4), gam.hero(i).def_wep
      END IF
     END IF
-    evalitemtag
+    evalitemtags
    CASE 32'--show backdrop
     gen(genScrBackdrop) = bound(retvals(0) + 1, 0, gen(genNumBackdrops))
     correctbackdrop
@@ -2283,8 +2285,8 @@ SUB player_menu_keys ()
    menusound gen(genCancelSFX)
    fatal = checkfordeath
    'update any change tags
-   evalherotag
-   evalitemtag
+   evalherotags
+   evalitemtags
    visnpc
    IF esc_menu >= 0 THEN
     add_menu esc_menu
@@ -2412,8 +2414,8 @@ FUNCTION activate_menu_item(mi AS MenuDefItem, BYVAL menuslot AS INTEGER, BYVAL 
   END IF
  END IF
  IF updatetags THEN
-  evalherotag
-  evalitemtag
+  evalherotags
+  evalitemtags
   visnpc
  END IF
  IF open_other_menu >= 0 THEN
@@ -2720,8 +2722,8 @@ SUB prepare_map (afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
  txt.sayer = -1
 
  'Why are these here? Seems like superstition
- evalherotag
- evalitemtag
+ evalherotags
+ evalitemtags
  DIM rsr AS INTEGER
  IF afterbat = NO THEN
   IF gmap(7) > 0 THEN
@@ -2930,8 +2932,8 @@ SUB advance_text_box ()
    EXIT SUB
   END IF
  END IF
- evalitemtag
- evalherotag
+ evalitemtags
+ evalherotags
  '---DONE EVALUATING CONDITIONALS--------
  vishero
  visnpc
@@ -3378,8 +3380,8 @@ SUB usenpc(BYVAL cause AS INTEGER, BYVAL npcnum AS INTEGER)
   txt.sayer = npcnum
   loadsay npcs(id).textbox
  END IF
- evalherotag
- evalitemtag
+ evalherotags
+ evalitemtags
  IF txt.id = -1 THEN
   visnpc
  END IF
