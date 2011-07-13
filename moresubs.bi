@@ -14,7 +14,7 @@ DECLARE SUB party_change_updates ()
 DECLARE SUB evalherotags ()
 DECLARE SUB evalitemtags ()
 DECLARE FUNCTION findhero (who as integer, f as integer, l as integer, d as integer) as integer
-DECLARE SUB heroswap (iAll as integer)
+DECLARE SUB hero_swap_menu (iAll as integer)
 DECLARE SUB settag (BYVAL tagnum as integer, BYVAL value as integer = 4444)
 DECLARE FUNCTION istag (num as integer, zero as integer) as integer
 DECLARE SUB loaddoor (map as integer)

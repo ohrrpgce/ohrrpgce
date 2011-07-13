@@ -152,20 +152,19 @@ NEXT i
 END SUB
 
 SUB innRestore ()
-
-FOR i = 0 TO 3
- IF hero(i) > 0 THEN '--hero exists
-  IF gam.hero(i).stat.cur.hp <= 0 AND readbit(gen(), 101, 4) THEN
-   '--hero is dead and inn-revive is disabled
-  ELSE
-   '--normal revive
-   gam.hero(i).stat.cur.hp = gam.hero(i).stat.max.hp
-   gam.hero(i).stat.cur.mp = gam.hero(i).stat.max.mp
-   resetlmp i, gam.hero(i).lev
+ FOR i AS INTEGER = 0 TO 3
+  IF hero(i) > 0 THEN '--hero exists
+   IF gam.hero(i).stat.cur.hp <= 0 AND readbit(gen(), 101, 4) THEN
+    '--hero is dead and inn-revive is disabled
+   ELSE
+    '--normal revive
+    gam.hero(i).stat.cur.hp = gam.hero(i).stat.max.hp
+    gam.hero(i).stat.cur.mp = gam.hero(i).stat.max.mp
+    resetlmp i, gam.hero(i).lev
+   END IF
   END IF
- END IF
-NEXT i
-
+ NEXT i
+ party_change_updates
 END SUB
 
 SUB setmapxy

@@ -155,7 +155,7 @@ DO
     END IF
    END IF '-------END IF HERO-------------------------------------
    'the last thing to do is re-eval the item and hero tags in case
-   'something changed
+   'something changed: we do this immediately because the tags affect purchaseability
    evalherotags
    evalitemtags
   ELSE ' WHEN CANNOT AFFORD------------------------------------
@@ -243,6 +243,7 @@ palette16_unload(@hirepal)
 freepage page
 freepage holdscreen
 menusound gen(genCancelSFX)
+evalitemtags
 party_change_updates
 EXIT SUB
 
@@ -439,6 +440,9 @@ ELSE
  delitem toequip, 1
 END IF
 
+evalitemtags
+evalherotags  'You could kill someone, right?
+tag_updates
 END SUB
 
 SUB getitem (getit, num)
@@ -944,6 +948,9 @@ LOOP
 freepage page
 freepage holdscreen
 menusound gen(genCancelSFX)
+
+evalitemtags
+tag_updates
 EXIT SUB
 
 sellinfostr:
@@ -1348,6 +1355,9 @@ IF where = 0 AND resetdw THEN
  doequip defwep, who, where, defwep
 END IF
 
+evalitemtags
+evalherotags  'You could kill someone, right?
+tag_updates
 END SUB
 
 '======== FIXME: move this up as code gets cleaned up ===========
@@ -1391,6 +1401,10 @@ FUNCTION outside_battle_cure (atk AS INTEGER, target AS INTEGER, attacker AS INT
   're-check validify of target
   getOOBtarg 1, target, atk, YES
  END IF
+ fatal = checkfordeath
+ evalherotags
+ evalitemtags
+ tag_updates
  RETURN didcure
 END FUNCTION
 
@@ -1583,7 +1597,7 @@ LOOP
 freepage page
 freepage holdscreen
 MenuSound gen(genCancelSFX)
-evalitemtags
+'tags handled in unequip, doequip
 END SUB
 
 SUB equip_menu_setup (BYREF st AS EquipMenuState, menu$())
@@ -1790,6 +1804,11 @@ FUNCTION items_menu () as integer
  carray(ccMenu) = 0
  freepage istate.page
  freepage holdscreen
+
+ fatal = checkfordeath
+ evalherotags
+ evalitemtags
+ tag_updates
 END FUNCTION
 
 SUB items_menu_paint (istate AS ItemsMenuState, iuse() AS INTEGER, permask() AS INTEGER)
@@ -2511,6 +2530,10 @@ SUB spells_menu (who AS INTEGER)
  freepage sp.page
  freepage holdscreen
 
+ fatal = checkfordeath
+ evalherotags
+ evalitemtags
+ tag_updates
 END SUB
 
 SUB spells_menu_paint (BYREF sp AS SpellsMenuState)

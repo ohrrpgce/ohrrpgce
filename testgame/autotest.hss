@@ -444,6 +444,7 @@ script, scroll through menu, menu, numitems, begin
       select menu item(menu item by slot(menu, random(0, numitems -- 1))), w
     )
   )
+  set menu max rows(menu, 0)
 end
 
 script, menu scroll tests, begin

@@ -13,6 +13,13 @@ WHAT IS NEW?
       battles [Ralph]
     * In the map editor, tile 0 on map layers did not correctly become
       transparent after swapping map layers [Ralph]
+    * Fixed a whole lot of things which failed to immediately update
+      tags they were meant to (eg. the "unequip" and "items menu"
+      commands). Also tag changes didn't immediately update disabled
+      menu items and often didn't update disabled NPCs [Ralph]
+    * Menus didn't resize or scroll properly/immediately after items
+      were added/removed/enabled/disabled/selected, and similarly
+      the "set menu max rows" command was broken [Ralph]
 
   * New Plotscripting Stuff
     * Slice velocity commands to make a slice move automatically at

@@ -142,6 +142,8 @@ IF readbit(her.bits(), 0, 24) THEN
  renamehero slot, NO
 END IF
 
+'--update tags
+party_change_updates
 END SUB
 
 FUNCTION atlevel (now as integer, a0 as integer, a99 as integer) as integer
@@ -427,9 +429,10 @@ END SUB
 
 'Call this after a change to the party
 SUB party_change_updates
- vishero
  evalherotags
- 'FIXME: process indirect effects of tag changes
+ evalitemtags  'Because of items with 'actively equipped' tags
+ vishero
+ tag_updates
 END SUB
 
 SUB evalitemtags
@@ -473,7 +476,7 @@ NEXT i
 findhero = result
 END FUNCTION
 
-SUB heroswap (iAll)
+SUB hero_swap_menu (iAll as integer)
 '--Preserve background for display beneath the hero swapper
 DIM page AS INTEGER
 DIM holdscreen AS INTEGER
@@ -600,6 +603,8 @@ FOR t = 4 TO 5: carray(t) = 0: NEXT t
 MenuSound gen(genCancelSFX)
 freepage page
 freepage holdscreen
+
+party_change_updates
 EXIT SUB
 
 refreshemenu:
@@ -1850,7 +1855,7 @@ DO
    minimap catx(0), caty(0)
   END IF
   IF menuid(st.pt) = 7 THEN '--TEAM
-   heroswap 1
+   hero_swap_menu 1
   END IF
   IF menuid(st.pt) = 4 THEN '--EQUIP
    w = onwho(readglobalstring$(108, "Equip Who?", 20), 0)
@@ -1901,6 +1906,9 @@ LOOP
 FOR t = 4 TO 5: carray(t) = 0: NEXT t
 freepage page
 freepage holdscreen
+
+evalitemtags
+party_change_updates
 EXIT SUB
 
 initshop:
@@ -1991,6 +1999,7 @@ DO
  dowait
 LOOP
 freepage page
+party_change_updates
 END FUNCTION
 
 SUB tagdisplay
@@ -2001,11 +2010,11 @@ st.last = 1999
 IF keyval(scCtrl) > 0 THEN
  IF keyval(scNumpadMinus) > 1 OR keyval(scMinus) > 1 THEN
   settag st.pt, NO
-  visnpc
+  tag_updates
  END IF
  IF keyval(scNumpadPlus) > 1 OR keyval(scPlus) > 1 THEN
   settag st.pt, YES
-  visnpc
+  tag_updates
  END IF
 ELSE
  IF usemenu(st, scMinus, scPlus) = 0 THEN

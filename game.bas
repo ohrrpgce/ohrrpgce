@@ -643,7 +643,7 @@ DO
     IF batform >= 0 THEN 'and if the randomly selected battle is valid
      'trigger a normal random battle
      fatal = 0
-     gam.wonbattle = battle(batform, fatal)
+     gam.wonbattle = battle(batform)
      prepare_map YES
      needf = 2
     END IF
@@ -1419,7 +1419,7 @@ IF wantdoor > 0 THEN
 END IF
 IF wantbattle > 0 THEN
  fatal = 0
- gam.wonbattle = battle(wantbattle - 1, fatal)
+ gam.wonbattle = battle(wantbattle - 1)
  wantbattle = 0
  prepare_map YES
  gam.random_battle_countdown = range(100, 60)
@@ -1467,7 +1467,6 @@ WITH scrat(nowscript)
      i = retvals(0)
      unequip i, bound(retvals(1) - 1, 0, 4), gam.hero(i).def_wep, 1
     END IF
-    evalitemtags
    CASE 24'--force equip
     IF valid_hero_party(retvals(0)) THEN
      i = retvals(0)
@@ -1476,7 +1475,6 @@ WITH scrat(nowscript)
       doequip retvals(2) + 1, i, bound(retvals(1) - 1, 0, 4), gam.hero(i).def_wep
      END IF
     END IF
-    evalitemtags
    CASE 32'--show backdrop
     gen(genScrBackdrop) = bound(retvals(0) + 1, 0, gen(genNumBackdrops))
     correctbackdrop
@@ -1495,7 +1493,6 @@ WITH scrat(nowscript)
    CASE 37'--use shop
     IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxShop) THEN
      shop retvals(0), needf
-     reloadnpc
     END IF
    CASE 55'--get default weapon
     IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
@@ -1622,6 +1619,7 @@ WITH scrat(nowscript)
     minimap catx(0), caty(0)
    CASE 153'--items menu
     wantbox = items_menu
+    'Note script not put into wait state if a textbox is shown
    CASE 155, 170'--save menu
     'ID 155 is a backcompat hack
     scriptret = picksave(0) + 1
@@ -2283,11 +2281,6 @@ SUB player_menu_keys ()
    esc_menu = menus(topmenu).esc_menu - 1
    remove_menu topmenu
    menusound gen(genCancelSFX)
-   fatal = checkfordeath
-   'update any change tags
-   evalherotags
-   evalitemtags
-   visnpc
    IF esc_menu >= 0 THEN
     add_menu esc_menu
    END IF
@@ -2342,19 +2335,19 @@ FUNCTION activate_menu_item(mi AS MenuDefItem, BYVAL menuslot AS INTEGER, BYVAL 
        END IF
       CASE 1 ' spell
        slot = onwho(readglobalstring$(106, "Whose Spells?", 20), 0)
-       IF slot >= 0 THEN spells_menu slot : updatetags = YES
+       IF slot >= 0 THEN spells_menu slot
       CASE 2 ' status
        slot = onwho(readglobalstring$(104, "Whose Status?", 20), 0)
-       IF slot >= 0 THEN status slot : updatetags = YES
+       IF slot >= 0 THEN status slot
       CASE 3 ' equip
        slot = onwho(readglobalstring$(108, "Equip Whom?", 20), 0)
-       IF slot >= 0 THEN equip slot : updatetags = YES
+       IF slot >= 0 THEN equip slot
       CASE 4 ' order
-       heroswap 0 : updatetags = YES
+       hero_swap_menu 0
       CASE 5 ' team
-       heroswap 1 : updatetags = YES
+       hero_swap_menu 1
       CASE 6 ' order/team
-       heroswap readbit(gen(), genBits, 5) : updatetags = YES
+       hero_swap_menu readbit(gen(), genBits, 5)
       CASE 7,12 ' map
        minimap catx(0), caty(0)
       CASE 8,13 ' save
@@ -2412,11 +2405,6 @@ FUNCTION activate_menu_item(mi AS MenuDefItem, BYVAL menuslot AS INTEGER, BYVAL 
    END IF
   END IF
  END IF
- IF updatetags THEN
-  evalherotags
-  evalitemtags
-  visnpc
- END IF
  IF open_other_menu >= 0 THEN
   add_menu open_other_menu
  END IF
@@ -2425,8 +2413,19 @@ FUNCTION activate_menu_item(mi AS MenuDefItem, BYVAL menuslot AS INTEGER, BYVAL 
   loadsay menu_text_box
   menu_text_box = 0
  END IF
+ IF updatetags THEN
+  evalherotags
+  evalitemtags
+  tag_updates
+ END IF
  RETURN activated
 END FUNCTION
+
+'Call this any time a tag is changed!
+SUB tag_updates
+ visnpc
+ check_menu_tags
+END SUB
 
 SUB check_menu_tags ()
  DIM i AS INTEGER
@@ -2720,9 +2719,6 @@ SUB prepare_map (afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
  END IF
  txt.sayer = -1
 
- 'Why are these here? Seems like superstition
- evalherotags
- evalitemtags
  DIM rsr AS INTEGER
  IF afterbat = NO THEN
   IF gmap(7) > 0 THEN
@@ -2877,7 +2873,7 @@ SUB advance_text_box ()
  '---SPAWN BATTLE--------
  IF istag(txt.box.battle_tag, 0) THEN
   fatal = 0
-  gam.wonbattle = battle(txt.box.battle, fatal)
+  gam.wonbattle = battle(txt.box.battle)
   prepare_map YES
   gam.random_battle_countdown = range(100, 60)
   needf = 1
@@ -2891,7 +2887,6 @@ SUB advance_text_box ()
  IF istag(txt.box.shop_tag, 0) THEN
   IF txt.box.shop > 0 THEN
    shop txt.box.shop - 1, needf
-   reloadnpc
   END IF
   DIM inn AS INTEGER = 0
   IF txt.box.shop < 0 THEN
@@ -2929,11 +2924,13 @@ SUB advance_text_box ()
    EXIT SUB
   END IF
  END IF
+ '---DONE EVALUATING CONDITIONALS--------
+ 'Lots of things in this sub directly or indirectly affects tags. Many of the functions
+ 'called make sure the proper effects occur themselves, but we do it all again for simplicity
  evalitemtags
  evalherotags
- '---DONE EVALUATING CONDITIONALS--------
+ tag_updates
  vishero
- visnpc
  IF txt.sayer >= 0 AND txt.old_dir <> -1 THEN
   IF npc(txt.sayer).id > 0 THEN
    IF npcs(npc(txt.sayer).id - 1).facetype = 1 THEN  '"Face Player"
@@ -3337,7 +3334,10 @@ SUB usenpc(BYVAL cause AS INTEGER, BYVAL npcnum AS INTEGER)
 
  '---Item from NPC---
  DIM getit AS INTEGER = npcs(id).item
- IF getit THEN getitem getit, 1
+ IF getit THEN
+  getitem getit, 1
+  evalitemtags
+ END IF
  '---DIRECTION CHANGING-----------------------
  txt.old_dir = -1
  IF cause <> 2 AND npcs(id).facetype <> 2 THEN  'not "Do not face player"
@@ -3377,11 +3377,8 @@ SUB usenpc(BYVAL cause AS INTEGER, BYVAL npcnum AS INTEGER)
   txt.sayer = npcnum
   loadsay npcs(id).textbox
  END IF
- evalherotags
- evalitemtags
- IF txt.id = -1 THEN
-  visnpc
- END IF
+ 'Several different ways to modify tags in this sub
+ tag_updates
 END SUB
 
 FUNCTION want_to_check_for_walls(BYVAL who AS INTEGER) AS INTEGER

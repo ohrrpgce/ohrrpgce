@@ -228,7 +228,6 @@ SELECT CASE AS CONST id
    IF slot >= 0 THEN
     'retvals(0) is the real hero id, addhero subtracts the 1 again
     addhero retvals(0) + 1, slot
-    party_change_updates
    END IF
    scriptret = slot
   END IF
@@ -246,7 +245,6 @@ SELECT CASE AS CONST id
     IF hero(o) = 0 THEN
      doswap i, o
      IF herocount(3) = 0 THEN forceparty
-     party_change_updates
      EXIT FOR
     END IF
    NEXT o
@@ -257,7 +255,6 @@ SELECT CASE AS CONST id
    FOR o = 0 TO 3
     IF hero(o) = 0 THEN
      doswap i, o
-     party_change_updates
      EXIT FOR
     END IF
    NEXT o
@@ -276,6 +273,10 @@ SELECT CASE AS CONST id
     gam.hero(slot).lev = retvals(2)
    ELSE
     gam.hero(slot).stat.cur.sta(i) = retvals(2)
+    IF i = 0 THEN
+     evalherotags
+     tag_updates
+    END IF
    END IF
   ELSE
    IF i = 13 THEN
@@ -290,7 +291,6 @@ SELECT CASE AS CONST id
   END IF
  CASE 89'--swap by position
   doswap bound(retvals(0), 0, 40), bound(retvals(1), 0, 40)
-  party_change_updates
  CASE 110'--set hero picture
   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
    i = bound(retvals(0), 0, 40)
@@ -355,9 +355,9 @@ SELECT CASE AS CONST id
    NEXT i
   END IF
  CASE 157'--order menu
-  heroswap 0
+  hero_swap_menu 0
  CASE 158'--team menu
-  heroswap 1
+  hero_swap_menu 1
  CASE 183'--set hero level (who, what, allow forgetting spells)
   IF retvals(0) >= 0 AND retvals(0) <= 40 AND retvals(1) >= 0 THEN  'we should make the regular level limit customisable anyway
    gam.hero(retvals(0)).lev_gain = retvals(1) - gam.hero(retvals(0)).lev
@@ -372,6 +372,8 @@ SELECT CASE AS CONST id
    IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
     giveheroexperience retvals(0), retvals(1)
     updatestatslevelup retvals(0), 0
+    evalherotags  'could revive a dead hero, I think
+    tag_updates
    END IF
   ELSE
    'This sets the level gain and learnt spells and calls updatestatslevelup for every hero
@@ -878,7 +880,8 @@ SELECT CASE AS CONST id
  CASE 179'--writegmap
   IF retvals(0) >= 0 AND retvals(0) <= 19 THEN
    gmap(retvals(0)) = retvals(1)
-   IF retvals(0) = 5 THEN setoutside -1  'hint: always use the wrapper
+   IF retvals(0) = 2 OR retvals(0) = 3 THEN check_menu_tags  'save and minimap menu options
+   IF retvals(0) = 5 THEN setoutside -1  'hint: always use the wrapper in plotscr.hsd
    IF retvals(0) = 6 AND gmap(5) = 2 THEN setoutside retvals(1)
    IF retvals(0) = 16 THEN refresh_walkabout_layer_sort()
   END IF
@@ -950,13 +953,14 @@ SELECT CASE AS CONST id
  CASE 13'--set tag
   IF retvals(0) > 1 AND retvals(0) < 2000 THEN  'there are actually 2048 tags
    setbit tag(), 0, retvals(0), retvals(1)
-   visnpc
+   tag_updates
   END IF
  CASE 17'--get item
   IF valid_item(retvals(0)) THEN
    IF retvals(1) >= 1 THEN
     getitem retvals(0) + 1, retvals(1)
     evalitemtags
+    tag_updates
    END IF
   END IF
  CASE 18'--delete item
@@ -964,6 +968,7 @@ SELECT CASE AS CONST id
    IF retvals(1) >= 1 THEN
     delitem retvals(0) + 1, retvals(1)
     evalitemtags
+    tag_updates
    END IF
   END IF
  CASE 19'--leader
@@ -2424,6 +2429,7 @@ SELECT CASE AS CONST id
    END IF
    update_inventory_caption retvals(0)
    evalitemtags
+   tag_updates
   END IF
  CASE 442'--item count in slot
   IF valid_item_slot(retvals(0)) THEN
@@ -2452,6 +2458,7 @@ SELECT CASE AS CONST id
    END IF
    update_inventory_caption retvals(0)
    evalitemtags
+   tag_updates
   END IF
  CASE 444 '--put sprite, place sprite
   IF valid_plotsprite(retvals(0)) THEN
@@ -3545,15 +3552,8 @@ DIM j AS INTEGER
 DIM rsr AS INTEGER
 
 DO '--This loop is where we find which box will be displayed right now
- gen(genTextboxBackdrop) = 0
- txt.choice_cursor = 0
-
  '--load data from the textbox lump
  LoadTextBox txt.box, box_id
-
- FOR j = 0 TO 7
-  embedtext txt.box.text(j), 38
- NEXT j
 
  '-- evaluate "instead" conditionals
  IF istag(txt.box.instead_tag, 0) THEN
@@ -3576,10 +3576,18 @@ LOOP
 '--Store box ID number for later reference
 txt.id = box_id
 
+gen(genTextboxBackdrop) = 0
+txt.choice_cursor = 0
+
+FOR j = 0 TO 7
+ embedtext txt.box.text(j), 38
+NEXT j
+
 '-- set tags indicating the text box has been seen.
 IF istag(txt.box.settag_tag, 0) THEN
  settag txt.box.settag1
  settag txt.box.settag2
+ tag_updates
 END IF
 
 '--make a sound if the choicebox is enabled

@@ -10,7 +10,7 @@
 #INCLUDE "udts.bi"
 #INCLUDE "battle_udts.bi"
 
-declare function battle (form as integer, fatal as integer) as integer
+declare function battle (form as integer) as integer
 declare function checknorunbit (bslot() as battlesprite) as integer
 DECLARE SUB checkTagCond (t AS AttackDataTag, check AS INTEGER)
 declare function focuscost (cost as integer, focus as integer) as integer

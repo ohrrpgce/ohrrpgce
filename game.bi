@@ -39,6 +39,7 @@ declare function menus_allow_gameplay () as integer
 declare function menus_allow_player () as integer
 declare sub player_menu_keys ()
 declare sub check_menu_tags ()
+declare sub tag_updates ()
 declare function game_usemenu (state as menustate) as integer
 declare function find_menu_id (id as integer) as integer
 declare function find_menu_handle (handle) as integer

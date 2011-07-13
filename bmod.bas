@@ -82,7 +82,7 @@ REM $STATIC
 
 OPTION EXPLICIT
 
-FUNCTION battle (form, fatal) as integer
+FUNCTION battle (form) as integer
  battle = 1 'default return value
 
  DIM formdata(40)
@@ -203,6 +203,9 @@ FUNCTION battle (form, fatal) as integer
  LOOP
  IF fatal THEN battle = 0
  battle_cleanup bat, bslot()
+ evalherotags
+ evalitemtags
+ tag_updates
 END FUNCTION
 
 SUB battle_init(BYREF bat AS BattleState, bslot() AS BattleSprite)
