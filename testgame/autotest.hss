@@ -73,6 +73,96 @@ end
 ########################################################################
 
 script, hero tests, begin
+  hero caterpillar tests
+end
+
+## Party management
+#delete hero (who)
+#find hero (who)
+#hero by rank (where)
+#hero by slot (where)
+#rank in caterpillar (who)
+#get hero name (ID, hero)
+#set hero name (ID, hero)
+#lock hero (who)
+#unlock hero (who)
+#swap in hero (who)
+#swap out hero (who)
+
+## caterpillar
+#check hero wall (who,direction)
+#get hero speed (who)
+#hero direction (who)
+#hero frame (who)
+#hero is walking (who)
+#hero pixel X (who)
+#hero pixel Y (who)
+#hero X (who)
+#hero Y (who)
+#put hero (who, x, y)
+#suspend hero walls
+#resume hero walls
+#set hero frame (who, frame)
+#set hero position (who, x, y)
+#set hero speed (who, speed)
+#set hero z (who, z)
+#walk hero to x (who,x)
+#walk hero to y (who,x)
+
+## spell lists
+#can learn spell (hero,attack)
+#forget spell (hero,attack)
+#knows spell (hero,attack)
+#read spell (hero,list,slot)
+#teach spell (hero,attack)
+#write spell (hero,list,slot,attack)
+
+## Equipment
+#check equipment (hero,slot)
+#equip where (hero,item)
+#force equip (hero,slot,item)
+#get default weapon (hero)
+#set default weapon (hero,item)
+#unequip (hero,slot)
+
+## Exp and Levels
+#get hero level (who)
+#set hero level (who, level, forgetspells)
+#give experience (hero,amount)
+#hero levelled (who)
+#set dead heroes gain experience (state)
+#spells learned (hero,number)
+#spells learnt (hero,number)
+#experience to level (level)
+#experience to next level (who)
+#get level cap
+#set level cap (cap)
+#set experience (who, experience, allowforget)
+#total experience (who)
+#update level up learning(who, allowforget)
+
+## Stats
+#get hero stat (who,stat,type)
+#set hero stat (who,stat,value,type)
+#get hero stat cap (stat)
+#set capped hero stat (who,stat,value,type)
+#get level MP (who, mp level slot)
+#set level MP (who, mp level slot, new value)
+
+## Appearance
+#get hero palette (who,type)
+#get hero picture (who,type)
+#reset hero palette (who,type)
+#reset hero picture (who,type)
+#set hero palette (who,palette,type)
+#set hero picture (who,picture,type)
+
+## Misc
+#hero base elemental resist as int (who, element)
+#hero total elemental resist as int (who, element)
+#set hero base elemental resist (who, element, percent)
+
+script, hero caterpillar tests, begin
   $0="hero tests"
   add hero(1)
   add hero(2)
@@ -757,14 +847,11 @@ end
 #camera pixel Y
 #cancel key
 #cancel map name display
-#can learn spell (hero,attack)
 #case(value)
 #center slice (handle)
 #center string at (ID, x, y)
 #change NPC ID (reference,new ID)
 #change tileset (tileset, layer)
-#check equipment (hero,slot)
-#check hero wall (who,direction)
 #check NPC wall (who, direction)
 #check parentage (handle, parent handle)
 #check tag (tag)
@@ -796,7 +883,6 @@ end
 #define constant (number,name)
 #delete char (ID, position)
 #delete enemy from formation (formation, slot)
-#delete hero (who)
 #delete item (item,number)
 #delete map state (whichdata)
 #delete save (slot)
@@ -814,12 +900,9 @@ end
 #else
 #end
 #number == number
-#equip where (hero,item)
 #exit returning(value)
 #exit script
 #expand string(ID)
-#experience to level (level)
-#experience to next level (who)
 #number ^ power
 #export globals (slot, first, last)
 #extended scancodes enabled
@@ -831,7 +914,6 @@ end
 #fill parent (handle, true_or_false)
 #find colliding slice (parent, slice, number, check descendants)
 #find enemy in formation (formation, enemy id, copy number)
-#find hero (who)
 #first child(handle)
 #first container child(handle)
 #first rect child(handle)
@@ -839,8 +921,6 @@ end
 #five
 #focus camera (x,y,speed)
 #for(counter,start,finish,step) do(commands)
-#force equip (hero,slot,item)
-#forget spell (hero,attack)
 #formation probability (formation set, formation)
 #formation set frequency (formation set)
 #formation slot enemy (formation, slot)
@@ -858,7 +938,6 @@ end
 #get count
 #get damage cap
 #get death script
-#get default weapon (hero)
 #get each step script
 #get ellipse border col (handle)
 #get ellipse fill col (handle)
@@ -871,20 +950,11 @@ end
 #get global string (ID, global)
 #get grid columns (handle)
 #get grid rows (handle)
-#get hero level (who)
-#get hero name (ID, hero)
-#get hero palette (who,type)
-#get hero picture (who,type)
-#get hero speed (who)
-#get hero stat (who,stat,type)
-#get hero stat cap (stat)
 #get instead of battle script
 #get inventory size
 #get item (item,number)
 #get item name (ID, item)
 #get left padding (handle)
-#get level cap
-#get level MP (who, mp level slot)
 #get load script
 #get map edge mode
 #get map name (ID, map)
@@ -925,7 +995,6 @@ end
 #get wrap(handle)
 #get zone extra (zone id, extra num)
 #get zone name (string id, zone id)
-#give experience (hero,amount)
 #globals to string(ID, starting global, length)
 #global variable (id,name)
 #number >> number
@@ -933,18 +1002,6 @@ end
 #greyscale palette (first, last)
 #grid is shown (handle)
 #harm tile
-#hero base elemental resist as int (who, element)
-#hero by rank (where)
-#hero by slot (where)
-#hero direction (who)
-#hero frame (who)
-#hero is walking (who)
-#hero levelled (who)
-#hero pixel X (who)
-#hero pixel Y (who)
-#hero total elemental resist as int (who, element)
-#hero X (who)
-#hero Y (who)
 #hide battle health meter (state)
 #hide battle ready meter (state)
 #hide string (ID)
@@ -966,7 +1023,6 @@ end
 #Key Constants
 #key is pressed (scancode)
 #keyval (scancode)
-#knows spell (hero,attack)
 #last ascii
 #last child(handle)
 #last formation
@@ -993,7 +1049,6 @@ end
 #load tileset (tileset, layer)
 #load walkabout sprite (num, palette)
 #load weapon sprite (num, palette)
-#lock hero (who)
 #value && value
 #value || value
 #value ^^ value
@@ -1056,7 +1111,6 @@ end
 #party money
 #pause sound (num)
 #pay money (amount)
-#pick hero
 #place sprite
 #play song (song)
 #play sound (num,loop,preempt)
@@ -1064,7 +1118,6 @@ end
 #positionstring (ID, x, y)
 #previous sibling(handle)
 #put camera (x,y)
-#put hero (who, x, y)
 #put mouse (X, Y)
 #put npc (who,x,y)
 #put slice (handle, X, Y)
@@ -1072,7 +1125,6 @@ end
 #put sprite (handle, x, y)
 #random (lownumber, highnumber)
 #random formation (formation set)
-#rank in caterpillar (who)
 #read attack name (ID, attack)
 #read color (index, element)
 #read enemy data (enemyid, data)
@@ -1080,12 +1132,9 @@ end
 #read map block (x,y,layer)
 #read NPC (who,NPCstat)
 #read pass block (x,y)
-#read spell (hero,list,slot)
 #read timer (id)
 #read zone (zone id, x, y)
 #realign slice (handle, horiz align, vert align, horiz anchor, vert anchor)
-#rename hero(who)
-#rename hero by slot(who)
 #replace attack sprite (handle, num, palette)
 #replace backdrop sprite (handle, num)
 #replace border sprite (handle, num, palette)
@@ -1098,12 +1147,9 @@ end
 #replace walkabout sprite (handle, num, palette)
 #replace weapon sprite (handle, num, palette)
 #reset game
-#reset hero palette (who,type)
-#reset hero picture (who,type)
 #reset map state (whichdata)
 #reset palette
 #resume box advance
-#resume hero walls
 #resume map music
 #resume NPCs
 #resume NPC walls
@@ -1131,40 +1177,25 @@ end
 #set ambient music (song)
 #set battle wait mode (state)
 #set bottom padding (handle, pixels)
-#set capped hero stat (who,stat,value,type)
 #set caterpillar mode (state)
 #set color(index, value)
 #set damage cap (cap)
 #set days of play (days)
-#set dead heroes gain experience (state)
 #set death script (id)
 #set debug keys disable (state)
-#set default weapon (hero,item)
 #set each step script (id)
 #set ellipse border col (handle, color)
 #set ellipse fill col (handle, color)
 #set enemy appearance (enemyid, appearance,value)
 #set enemy name (enemyid, stringid)
 #set enemy stat(enemy, stat, value)
-#set experience (who, experience, allowforget)
 #set foot offset (offset)
 #set formation background (formation, background, animation frames, animation ticks)
 #set formation song (formation, song)
-#set full hero swap mode (state)
 #set grid columns (handle, columns)
 #set grid rows (handle, rows)
 #set harm tile damage (amount)
 #set harm tile flash (color)
-#set hero base elemental resist (who, element, percent)
-#set hero frame (who, frame)
-#set hero level (who, level, forgetspells)
-#set hero name (ID, hero)
-#set hero palette (who,palette,type)
-#set hero picture (who,picture,type)
-#set hero position (who, x, y)
-#set hero speed (who, speed)
-#set hero stat (who,stat,value,type)
-#set hero z (who, z)
 #set horiz align (handle, edge)
 #set horiz anchor (handle, edge)
 #set hours of play (hours)
@@ -1174,8 +1205,6 @@ end
 #set item count in slot (slot, count)
 #set item in slot (slot, item)
 #set left padding (handle, pixels)
-#set level cap (cap)
-#set level MP (who, mp level slot, new value)
 #set load script (id)
 #set map edge mode (mode, default tile)
 #set minutes of play (min)
@@ -1277,8 +1306,6 @@ end
 #sound is playing (num)
 #south
 #south wall
-#spells learned (hero,number)
-#spells learnt (hero,number)
 #spells menu (who)
 #sprite frame count (handle)
 #sprite is horiz flipped (handle)
@@ -1303,7 +1330,6 @@ end
 #suspend box advance
 #suspend catapillar
 #suspend caterpillar
-#suspend hero walls
 #suspend map music
 #suspend NPCs
 #suspend NPC walls
@@ -1315,8 +1341,6 @@ end
 #suspend timers
 #swap by name (name,name)
 #swap by position (position,position)
-#swap in hero (who)
-#swap out hero (who)
 #switch(expression)
 #system day
 #system hour
@@ -1324,7 +1348,6 @@ end
 #system month
 #system second
 #system year
-#teach spell (hero,attack)
 #team menu
 #teleport to map (map, x, y)
 #nine
@@ -1336,17 +1359,13 @@ end
 #timer flag: critical
 #timer flag: menu
 #timer: game over
-#total experience (who)
 #trace (string)
 #trace value (expression, ...)
 #trim string (ID, start, length)
 #true
 #tweak palette (red, green, blue, first, last)
 #two
-#unequip (hero,slot)
-#unlock hero (who)
 #up
-#update level up learning(who, allowforget)
 #update palette
 #up key
 #use door (number)
@@ -1367,8 +1386,6 @@ end
 #wait for scancode (key)
 #wait for slice (handle)
 #wait for text box
-#walk hero to x (who,x)
-#walk hero to y (who,x)
 #walk NPC (who, direction, distance)
 #walk NPC to X (who, X)
 #walk NPC to Y (who, Y)
@@ -1381,7 +1398,6 @@ end
 #write global (id,value)
 #write map block (x,y,value,layer)
 #write pass block (x,y,value)
-#write spell (hero,list,slot,attack)
 #write zone (zone id, x, y, value)
 #x axis
 #value,xor,value
@@ -1390,12 +1406,16 @@ end
 #zero
 #zone at spot (x, y, count)
 #zone number of tiles (zone id)
+#add enemy to formation (formation, enemy id, x, y, slot)
 
 ########################################################################
-### COMMANDS THAT THIS SCRIPT MAKES NO ATTEMPT TO TEST
+### INTERACTIVE COMMANDS THAT THIS SCRIPT MAKES NO ATTEMPT TO TEST
 #
-#add enemy to formation (formation, enemy id, x, y, slot)
 #equip menu (who)
 #items menu
 #load menu (reallyload)
 #main menu
+#pick hero
+#rename hero(who)
+#rename hero by slot(who)
+#set full hero swap mode (state)
