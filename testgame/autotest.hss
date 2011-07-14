@@ -89,26 +89,6 @@ end
 #swap in hero (who)
 #swap out hero (who)
 
-## caterpillar
-#check hero wall (who,direction)
-#get hero speed (who)
-#hero direction (who)
-#hero frame (who)
-#hero is walking (who)
-#hero pixel X (who)
-#hero pixel Y (who)
-#hero X (who)
-#hero Y (who)
-#put hero (who, x, y)
-#suspend hero walls
-#resume hero walls
-#set hero frame (who, frame)
-#set hero position (who, x, y)
-#set hero speed (who, speed)
-#set hero z (who, z)
-#walk hero to x (who,x)
-#walk hero to y (who,x)
-
 ## spell lists
 #can learn spell (hero,attack)
 #forget spell (hero,attack)
@@ -163,38 +143,130 @@ end
 #set hero base elemental resist (who, element, percent)
 
 script, hero caterpillar tests, begin
-  $0="hero tests"
+  variable(i)
+  $0="hero caterpillar tests"
   add hero(1)
   add hero(2)
-  walk hero(me, north, 3) # hit wall
-  wait for hero(me), w
-  walk hero(me, west, 2)
-  wait for hero(me), w
-  walk hero(me, south, 2)
-  wait for hero(me), w
-  walk hero(me, east, 2)
-  wait for hero(me), w
-  walk hero # default args
-  wait for hero(me), w
-  walk hero(me, east, 3)
-  wait for hero(me), w
   add hero(3)
-  w
+
+  $10="leader, cater=ON"
+  do hero cater tests(me)
+  
   suspend caterpillar
-  variable(i)
   for(i, 0, 3) do(
-    walk hero(i, south, 1)
-    wait for hero(i), w
-    set hero direction(i, west)
-    walk hero(i, north, 1)
-    wait for hero(i)
+    $10="hero "
+    append number(10, i)
+    $10=", cater=OFF"
+    do hero cater tests(i)
   )
-  for(i, 0, 3) do(
-    set hero direction(i, i)
-  )
-  w
   resume caterpillar
+  $10=""
+
 end
+
+script, do hero cater tests, who, begin
+  variable(d)
+  set hero position(who, 7, 7), w
+  assert(hero x(who) == 7)
+  assert(hero y(who) == 7)
+  walk hero(who, south, 2)
+  wait for hero(who), w
+  assert(hero y(who) == 9)
+  assert(hero direction(who) == south)
+  walk hero(who, west, 2)
+  wait for hero(who), w
+  assert(hero x(who) == 5)
+  assert(hero direction(who) == west)
+  walk hero(who, north, 1)
+  wait for hero(who), w
+  assert(hero y(who) == 8)
+  assert(hero direction(who) == north)
+  walk hero(who, east, 1)
+  wait for hero(who), w
+  assert(hero x(who) == 6)
+  assert(hero direction(who) == east)
+  # spin
+  for(d, north, west) do(
+    set hero direction(who, d), w
+    assert(hero direction(who) == d)
+  )
+  # moonwalk
+  for(d, north, west) do(
+    walk hero(who, ((d + 2) ,mod, 4))
+    set hero direction(who, d)
+    wait for hero(who), w
+    assert(hero direction(who) == d)
+  )
+  # walk into wall
+  walk hero(who, north, 3) # should only make it 2 tiles
+  wait for hero(who)
+  assert(hero Y(who) == 6)
+  # check walls
+  expect hero walls(who, true, false, false, false)
+  walk hero(who, west, 1)
+  wait for hero(who), w
+  walk hero(who, north, 1)
+  wait for hero(who), w
+  expect hero walls(who, false, true, false, false)
+  walk hero(who, north, 2)
+  wait for hero(who), w
+  walk hero(who, east, 1)
+  wait for hero(who), w
+  expect hero walls(who, false, false, true, false)
+  walk hero(who, east, 5)
+  wait for hero(who), w
+  expect hero walls(who, true, true, false, false)
+  # speed test time!
+  set hero speed(who, 2)
+  walk hero(who, south, 1)
+  w(9), assert(hero is walking(who))
+  w(1), assert(hero is walking(who) == false)
+  set hero speed(who, 4)
+  walk hero(who, south, 1)
+  w(4), assert(hero is walking(who))
+  w(1), assert(hero is walking(who) == false)
+  set hero speed(who, 5)
+  walk hero(who, south, 1)
+  w(3), assert(hero is walking(who))
+  w(1), assert(hero is walking(who) == false)
+  set hero speed(who, 10)
+  walk hero(who, south, 1)
+  w(1), assert(hero is walking(who))
+  w(1), assert(hero is walking(who) == false)
+  set hero speed(who, 20)
+  walk hero(who, south, 1)
+  w(1), assert(hero is walking(who) == false)
+  walk hero(who, west, 1), w
+  walk hero(who, north, 2), w(2)
+  assert(hero x(who) == 10)
+  assert(hero y(who) == 6)
+  set hero speed(who)
+  walk hero(who, west, 3)
+  wait for hero(who)
+  #FIXME: should probably test misaligned walking too
+end
+
+script, expect hero walls, who, wn, we, ws, ww, begin
+  assert(check hero wall(who, north) == wn)
+  assert(check hero wall(who, east) == we)
+  assert(check hero wall(who, south) == ws)
+  assert(check hero wall(who, west) == ww)
+end
+
+## caterpillar
+#get hero speed (who)
+#hero frame (who)
+#hero is walking (who)
+#hero pixel X (who)
+#hero pixel Y (who)
+#put hero
+#suspend hero walls
+#resume hero walls
+#set hero frame (who, frame)
+#set hero speed (who, speed)
+#set hero z (who, z)
+#walk hero to x (who,x)
+#walk hero to y (who,x)
 
 ########################################################################
 

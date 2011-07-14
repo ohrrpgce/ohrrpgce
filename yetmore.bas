@@ -3418,6 +3418,8 @@ FUNCTION wrappass (byval x as integer, byval y as integer, byref xgo as integer,
   END IF
  NEXT i
  
+ 'debug "wrappass x=" & x & " y=" & y & " xgo=" & xgo & " ygo=" & ygo & " p=" & p & " north=" & pd(0) & " east=" & pd(1) & " south=" & pd(2) & " west=" & pd(3)
+ 
  IF ygo > 0 ANDALSO movdivis(ygo) ANDALSO ((p AND passNorthWall) = passNorthWall ORELSE (pd(0) AND passSouthWall) = passSouthWall ORELSE (isveh ANDALSO vehpass(vstate.dat.blocked_by, pd(0), 0))) THEN ygo = 0: wrappass = 1
  IF ygo < 0 ANDALSO movdivis(ygo) ANDALSO ((p AND passSouthWall) = passSouthWall ORELSE (pd(2) AND passNorthWall) = passNorthWall ORELSE (isveh ANDALSO vehpass(vstate.dat.blocked_by, pd(2), 0))) THEN ygo = 0: wrappass = 1
  IF xgo > 0 ANDALSO movdivis(xgo) ANDALSO ((p AND passWestWall) = passWestWall   ORELSE (pd(3) AND passEastWall) = passEastWall   ORELSE (isveh ANDALSO vehpass(vstate.dat.blocked_by, pd(3), 0))) THEN xgo = 0: wrappass = 1

@@ -1690,16 +1690,16 @@ WITH scrat(nowscript)
     ELSEIF retvals(0) < 256 AND retvals(1) >= 0 AND retvals(1) <= UBOUND(maptiles) THEN
      scriptret = tilesets(retvals(1))->tastuf(((retvals(0) - 160) \ 48) * 20) + (retvals(0) - 160) MOD 48
     END IF
-   CASE 258'--checkherowall
+   CASE 258'--check hero wall
     IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
      DIM AS INTEGER tempxgo = 0, tempygo = 0
      IF retvals(1) = 0 THEN tempygo = 20
      IF retvals(1) = 1 THEN tempxgo = -20
      IF retvals(1) = 2 THEN tempygo = -20
      IF retvals(1) = 3 THEN tempxgo = 20
-     scriptret = wrappass(catx(retvals(0) * 5) \ 20, catx(retvals(0) * 5) \ 20, tempxgo, tempygo, 0)
+     scriptret = wrappass(catx(retvals(0) * 5) \ 20, caty(retvals(0) * 5) \ 20, tempxgo, tempygo, 0)
     END IF
-   CASE 259'--checkNPCwall
+   CASE 259'--check NPC wall
     npcref = getnpcref(retvals(0), 0)
     IF npcref >= 0 THEN
      'Only check walls for NPC who actually exists
