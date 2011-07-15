@@ -22,6 +22,8 @@ WHAT IS NEW?
     * Menus didn't resize or scroll properly/immediately after items
       were added/removed/enabled/disabled/selected, and similarly
       the "set menu max rows" command was broken [Ralph]
+    * You can now type negative numbers more naturally. No need to
+      type a positive number and toggle it negative [James]
 
   * New Plotscripting Stuff
     * Slice velocity commands to make a slice move automatically at

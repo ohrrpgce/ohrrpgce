@@ -59,6 +59,9 @@ DIM orig_dir AS STRING
 'Used on Mac to point to the app bundle Resources directory
 DIM data_dir AS STRING
 
+'Used by intgrabber, reset by usemenu
+DIM negative_zero AS INTEGER = NO
+
 #IFDEF IS_CUSTOM
  'show/fatalerror option (Custom only): have we started editing?
  'If not, we should cleanup working.tmp instead of preserving it
@@ -1176,9 +1179,21 @@ FUNCTION intgrabber (BYREF n AS LONGINT, BYVAL min AS LONGINT, BYVAL max AS LONG
    END IF
   NEXT
 
+  IF old = 0 ANDALSO n <> 0 ANDALSO negative_zero THEN sign = -1
+
   IF min < 0 AND max > 0 THEN
-   IF keyval(scMinus) > 1 OR keyval(scNumpadMinus) > 1 THEN sign = sign * -1: typed = YES
-   IF (keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1) AND sign < 0 THEN sign = sign * -1: typed = YES
+   IF keyval(scMinus) > 1 OR keyval(scNumpadMinus) > 1 THEN
+    IF n = 0 THEN
+     negative_zero = YES
+    ELSE
+     sign = sign * -1
+     typed = YES
+    END IF
+   END IF
+   IF (keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1) AND sign < 0 THEN
+    sign = sign * -1
+    typed = YES
+   END IF
   END IF
   IF min < 0 AND (sign < 0 OR max = 0) THEN n = -n
   'CLIPBOARD
@@ -1193,6 +1208,8 @@ FUNCTION intgrabber (BYREF n AS LONGINT, BYVAL min AS LONGINT, BYVAL max AS LONG
  END IF
 
  IF typed = NO AND autoclamp = NO THEN n = old
+
+ IF typed = YES THEN negative_zero = NO
 
  IF returninput THEN
   RETURN typed

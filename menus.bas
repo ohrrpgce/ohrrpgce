@@ -98,6 +98,7 @@ FUNCTION usemenu (BYREF pt, BYREF top, BYVAL first, BYVAL last, BYVAL size, BYVA
  IF oldptr = pt AND oldtop = top THEN
   RETURN NO
  ELSE
+  negative_zero = NO 'Reset for intgrabber
   RETURN YES
  END IF
 END FUNCTION
@@ -153,6 +154,7 @@ FUNCTION usemenu (state as MenuState, menudata() as SimpleMenu, BYVAL deckey as 
   IF oldptr = .pt AND oldtop = .top THEN
    RETURN NO
   ELSE
+   negative_zero = NO 'Reset for intgrabber
    RETURN YES
   END IF
  END WITH
@@ -209,6 +211,7 @@ FUNCTION usemenu (state as MenuState, enabled() as INTEGER, BYVAL deckey as inte
   IF oldptr = .pt AND oldtop = .top THEN
    RETURN NO
   ELSE
+   negative_zero = NO 'Reset for intgrabber
    RETURN YES
   END IF
  END WITH
