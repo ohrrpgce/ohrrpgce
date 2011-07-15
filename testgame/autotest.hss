@@ -166,6 +166,21 @@ end
 
 script, do hero cater tests, who, begin
   variable(d)
+  walk hero to x (who, 8), w
+  wait for hero(who)
+  assert(hero x(who) == 8)
+  walk hero to y(who, 10), w
+  wait for hero(who)
+  assert(hero y(who) == 10)
+  walk hero to x(who, 9), w
+  wait for hero(who)
+  assert(hero x(who) == 9)
+  walk hero to y(who, 8), w
+  wait for hero(who)
+  assert(hero y(who) == 8)
+  walk hero to x (who, 6), w
+  wait for hero(who)
+  assert(hero x(who) == 6)
   set hero position(who, 7, 7), w
   assert(hero x(who) == 7)
   assert(hero y(who) == 7)
@@ -218,22 +233,27 @@ script, do hero cater tests, who, begin
   expect hero walls(who, true, true, false, false)
   # speed test time!
   set hero speed(who, 2)
+  assert(get hero speed(who) == 2)
   walk hero(who, south, 1)
   w(9), assert(hero is walking(who))
   w(1), assert(hero is walking(who) == false)
   set hero speed(who, 4)
+  assert(get hero speed(who) == 4)
   walk hero(who, south, 1)
   w(4), assert(hero is walking(who))
   w(1), assert(hero is walking(who) == false)
   set hero speed(who, 5)
+  assert(get hero speed(who) == 5)
   walk hero(who, south, 1)
   w(3), assert(hero is walking(who))
   w(1), assert(hero is walking(who) == false)
   set hero speed(who, 10)
+  assert(get hero speed(who) == 10)
   walk hero(who, south, 1)
   w(1), assert(hero is walking(who))
   w(1), assert(hero is walking(who) == false)
   set hero speed(who, 20)
+  assert(get hero speed(who) == 20)
   walk hero(who, south, 1)
   w(1), assert(hero is walking(who) == false)
   walk hero(who, west, 1), w
@@ -241,9 +261,34 @@ script, do hero cater tests, who, begin
   assert(hero x(who) == 10)
   assert(hero y(who) == 6)
   set hero speed(who)
+  assert(get hero speed(who) == 4)
   walk hero(who, west, 3)
   wait for hero(who)
   #FIXME: should probably test misaligned walking too
+  # frame
+  variable(fr)
+  for(fr, 1, 8) do(
+    set hero frame(who, (fr ,mod, 2))
+    assert(hero frame(who) == (fr ,mod, 2))
+    w(fr)
+  )
+  #pixel pos
+  variable(px, py)
+  px := hero pixel x(who)
+  assert(px == 140)
+  py := hero pixel y(who)
+  assert(py == 120)
+  variable(ix, iy)
+  for(iy, 0, 5) do(
+    for(ix, 0, 5) do(
+      put hero(who, 105 + ix, 105 + iy)
+      assert(hero pixel x(who) == 105 + ix)
+      assert(hero pixel y(who) == 105 + iy)
+      w
+    )
+  )
+  put hero(who, px, py), w
+    
 end
 
 script, expect hero walls, who, wn, we, ws, ww, begin
@@ -254,19 +299,11 @@ script, expect hero walls, who, wn, we, ws, ww, begin
 end
 
 ## caterpillar
-#get hero speed (who)
-#hero frame (who)
-#hero is walking (who)
-#hero pixel X (who)
-#hero pixel Y (who)
-#put hero
 #suspend hero walls
 #resume hero walls
 #set hero frame (who, frame)
 #set hero speed (who, speed)
 #set hero z (who, z)
-#walk hero to x (who,x)
-#walk hero to y (who,x)
 
 ########################################################################
 
