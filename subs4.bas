@@ -1094,10 +1094,11 @@ SUB generate_battlesystem_menu(menu() as string)
  menu(13) = " ...swapped-out and locked: " & gen(genLockedReserveXP) & "%"
  menu(14) = "Hero Weak state below: " & gen(genHeroWeakHP) & "% " & statnames(statHP)
  menu(15) = "Enemy Weak state below: " & gen(genEnemyWeakHP) & "% " & statnames(statHP)
+ menu(16) = "View Experience Chart..."
 END SUB
 
 SUB battleoptionsmenu ()
- CONST maxMenu = 15
+ CONST maxMenu = 16
  DIM menu(maxMenu) AS STRING
  DIM min(maxMenu), max(maxMenu)
  DIM index(maxMenu)
@@ -1157,6 +1158,7 @@ SUB battleoptionsmenu ()
    IF state.pt = 0 THEN EXIT DO
    IF state.pt = 1 THEN statcapsmenu
    IF state.pt = 2 THEN equipmergemenu
+   IF state.pt = 16 THEN experience_chart
 
    IF min(state.pt) = 32 AND max(state.pt) = 255 THEN  'Character field
     DIM d as string = charpicker

@@ -1,0 +1,3 @@
+The experience chart lets you see how much experience heroes must earn to reach each level.
+
+The experience formula is not yet customizable.

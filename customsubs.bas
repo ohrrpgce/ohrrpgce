@@ -3800,3 +3800,69 @@ SUB get_menu_hotkeys (menu() as string, byval menumax as integer, menukeys() as 
   'debug "hotkeys from '" & menu(i) & "' -> '" & menukeys(i) & "'"
  NEXT
 END SUB
+
+SUB experience_chart ()
+
+ DIM exp_first_level AS INTEGER = 30
+ DIM exp_multiplier AS SINGLE = 1.2
+ DIM exp_adder AS INTEGER = 5
+ DIM exp_uppercap AS INTEGER = 1000000
+
+ STATIC hero_count AS INTEGER = 4
+ STATIC enemy_id AS INTEGER = 0
+ DIM enemy AS EnemyDef
+
+ DIM menu(101) AS STRING
+ menu(0) = "Previous menu..."
+ DIM startfrom AS INTEGER = 2
+ DIM state AS MenuState
+ WITH state
+  .size = 24
+  .last = UBOUND(menu)
+  .need_update = YES
+ END WITH
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "experience_chart"
+  usemenu state
+  IF enter_or_space() THEN
+   IF state.pt = 0 THEN EXIT DO
+  END IF
+  IF state.pt = 1 THEN
+   IF intgrabber(enemy_id, 0, gen(genMaxEnemy)) THEN state.need_update = YES
+  END IF
+  IF state.pt = 2 THEN
+   IF intgrabber(hero_count, 1, 4) THEN state.need_update = YES
+  END IF
+
+  IF state.need_update THEN
+   loadenemydata enemy, enemy_id
+   menu(1) = "Compared to enemy: " & enemy_id & " " & enemy.name & " (" & enemy.reward.exper & ")"
+   menu(2) = "Distributed to a party of: " & hero_count & " heroes"
+   DIM killcount AS STRING
+   DIM req AS INTEGER = exp_first_level
+   FOR lev AS INTEGER = 1 TO 99
+    IF enemy.reward.exper > 0 THEN
+     killcount = STR(ceiling(req / enemy.reward.exper * hero_count))
+    ELSE
+     killcount = "infinite"
+    END IF
+    menu(startfrom + lev) = "Level " & lev & " exp:" & req & " = " & enemy.name & "*" & killcount
+    req = req * exp_multiplier + exp_adder
+    req = small(req, exp_uppercap)
+   NEXT lev
+   state.need_update = NO
+  END IF
+
+  clearpage vpage
+  draw_fullscreen_scrollbar state, , vpage
+  standardmenu menu(), state, 0, 0, vpage, 0, , 40
+  setvispage vpage
+  dowait
+ LOOP 
+END SUB
