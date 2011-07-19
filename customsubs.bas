@@ -3808,13 +3808,17 @@ SUB experience_chart ()
  DIM exp_adder AS INTEGER = 5
  DIM exp_uppercap AS INTEGER = 1000000
 
+ DIM mode AS INTEGER = 0
  STATIC hero_count AS INTEGER = 4
  STATIC enemy_id AS INTEGER = 0
  DIM enemy AS EnemyDef
 
- DIM menu(101) AS STRING
+ STATIC form_id AS INTEGER = 0
+ DIM formdata(40) AS INTEGER
+
+ DIM menu(102) AS STRING
  menu(0) = "Previous menu..."
- DIM startfrom AS INTEGER = 2
+ DIM startfrom AS INTEGER = 3
  DIM state AS MenuState
  WITH state
   .size = 24
@@ -3834,25 +3838,52 @@ SUB experience_chart ()
    IF state.pt = 0 THEN EXIT DO
   END IF
   IF state.pt = 1 THEN
-   IF intgrabber(enemy_id, 0, gen(genMaxEnemy)) THEN state.need_update = YES
+   IF intgrabber(mode, 0, 1) THEN state.need_update = YES
   END IF
   IF state.pt = 2 THEN
+   IF mode = 0 THEN
+    IF intgrabber(enemy_id, 0, gen(genMaxEnemy)) THEN state.need_update = YES
+   ELSEIF mode = 1 THEN
+    IF intgrabber(form_id, 0, gen(genMaxFormation)) THEN state.need_update = YES
+   END IF
+  END IF
+  IF state.pt = 3 THEN
    IF intgrabber(hero_count, 1, 4) THEN state.need_update = YES
   END IF
 
   IF state.need_update THEN
-   loadenemydata enemy, enemy_id
-   menu(1) = "Compared to enemy: " & enemy_id & " " & enemy.name & " (" & enemy.reward.exper & ")"
-   menu(2) = "Distributed to a party of: " & hero_count & " heroes"
+   DIM test_exp AS INTEGER = 0
+   DIM test_name AS STRING
+   IF mode = 0 THEN
+    loadenemydata enemy, enemy_id
+    menu(1) = "Compare mode: Enemy"
+    menu(2) = "Compared to enemy: " & enemy_id & " " & enemy.name & " (" & enemy.reward.exper & " exp)"
+    test_exp = enemy.reward.exper
+    test_name = enemy.name
+   ELSEIF mode = 1 THEN
+    setpicstuf formdata(), 80, -1
+    loadset game & ".for", form_id, 0
+    test_exp = 0
+    FOR i AS INTEGER = 0 TO 8
+     IF formdata(i * 4) > 0 THEN
+      loadenemydata enemy, formdata(i * 4) - 1
+      test_exp += enemy.reward.exper
+     END IF
+    NEXT i
+    menu(1) = "Compare mode: Formation"
+    menu(2) = "Compared to formation: " & form_id & " (" & test_exp & " exp)"
+    test_name = "Formation" & form_id
+   END IF
+   menu(3) = "Distributed to a party of: " & hero_count & " heroes"
    DIM killcount AS STRING
    DIM req AS INTEGER = exp_first_level
    FOR lev AS INTEGER = 1 TO 99
-    IF enemy.reward.exper > 0 THEN
-     killcount = STR(ceiling(req / enemy.reward.exper * hero_count))
+    IF test_exp > 0 THEN
+     killcount = STR(ceiling(req / test_exp * hero_count))
     ELSE
      killcount = "infinite"
     END IF
-    menu(startfrom + lev) = "Level " & lev & " exp:" & req & " = " & enemy.name & "*" & killcount
+    menu(startfrom + lev) = "Level " & lev & " exp:" & req & " = " & test_name & "*" & killcount
     req = req * exp_multiplier + exp_adder
     req = small(req, exp_uppercap)
    NEXT lev
