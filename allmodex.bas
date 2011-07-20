@@ -1868,6 +1868,10 @@ FUNCTION loadmxs (fil as string, BYVAL record as integer, BYVAL dest as Frame pt
 	dim plane as integer
 
 	if NOT fileisreadable(fil) then return 0
+	if record < 0 then
+		debug "loadmxs: attempted to read a negative record number " & record
+		return dest
+	end if
 	f = freefile
 	open fil for binary access read as #f
 
@@ -2401,6 +2405,7 @@ SUB loadset (fil as string, BYVAL i as integer, BYVAL l as integer)
 	dim sptr as ubyte ptr
 
 	if NOT fileisreadable(fil) then exit sub
+	if i < 0 then debug "loadset: attempt to read index " & i & " of """ & fil & """": exit sub
 	f = freefile
 	open fil for binary access read as #f
 
