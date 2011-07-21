@@ -73,21 +73,10 @@ end
 ########################################################################
 
 script, hero tests, begin
+  hero party management tests
   hero caterpillar tests
+  hero exp and levels tests
 end
-
-## Party management
-#delete hero (who)
-#find hero (who)
-#hero by rank (where)
-#hero by slot (where)
-#rank in caterpillar (who)
-#get hero name (ID, hero)
-#set hero name (ID, hero)
-#lock hero (who)
-#unlock hero (who)
-#swap in hero (who)
-#swap out hero (who)
 
 ## spell lists
 #can learn spell (hero,attack)
@@ -104,22 +93,6 @@ end
 #get default weapon (hero)
 #set default weapon (hero,item)
 #unequip (hero,slot)
-
-## Exp and Levels
-#get hero level (who)
-#set hero level (who, level, forgetspells)
-#give experience (hero,amount)
-#hero levelled (who)
-#set dead heroes gain experience (state)
-#spells learned (hero,number)
-#spells learnt (hero,number)
-#experience to level (level)
-#experience to next level (who)
-#get level cap
-#set level cap (cap)
-#set experience (who, experience, allowforget)
-#total experience (who)
-#update level up learning(who, allowforget)
 
 ## Stats
 #get hero stat (who,stat,type)
@@ -142,12 +115,124 @@ end
 #hero total elemental resist as int (who, element)
 #set hero base elemental resist (who, element, percent)
 
+# Because I don't want to bother with having an HSI file right now
+
+define constant(
+0,hero:Freki
+1,hero:Helga
+2,hero:Olaf
+3,hero:Frumpy
+4,hero:Styrge
+5,hero:Kitt
+)
+
+script, hero party management tests, begin
+  $0="hero party management tests"
+  assert(room in active party == 3)
+  add hero(hero:Helga)
+  add hero(hero:Olaf)
+  add hero(hero:Frumpy)
+  assert(room in active party == 0)
+  assert(hero by rank(0) == hero:Freki)
+  assert(hero by rank(1) == hero:Helga)
+  assert(hero by rank(2) == hero:Olaf)
+  assert(hero by rank(3) == hero:Frumpy)
+  # with a full party, hero by rank and hero by slot should returnt he same values
+  assert(hero by rank(0) == hero by slot(0))
+  assert(hero by rank(1) == hero by slot(1))
+  assert(hero by rank(2) == hero by slot(2))
+  assert(hero by rank(3) == hero by slot(3))
+  # now delete the leader
+  delete hero(hero:Freki)
+  assert(room in active party == 1)
+  assert(hero by rank(0) == 1)
+  assert(hero by rank(1) == 2)
+  assert(hero by rank(2) == 3)
+  assert(hero by rank(3) == -1)
+  assert(hero by slot(0) == -1)
+  assert(hero by slot(1) == 1)
+  assert(hero by slot(2) == 2)
+  assert(hero by slot(3) == 3)
+  # add a different leader
+  add hero(hero:Styrge)
+  assert(hero by slot(0) == hero:Styrge)
+  # test find hero
+  assert(find hero(hero:Freki)  == -1)
+  assert(find hero(hero:Helga)  == 1)
+  assert(find hero(hero:Olaf)   == 2)
+  assert(find hero(hero:Frumpy) == 3)
+  assert(find hero(hero:Styrge) == 0)
+  # test rank in caterpillar
+  assert(rank in caterpillar(hero:Freki)  == -1)
+  assert(rank in caterpillar(hero:Helga)  == 1)
+  assert(rank in caterpillar(hero:Olaf)   == 2)
+  assert(rank in caterpillar(hero:Frumpy) == 3)
+  assert(rank in caterpillar(hero:Styrge) == 0)
+  # Add a hero to the reserve
+  add hero(hero:Kitt)
+  assert(room in active party == 0)
+  variable(slot)
+  slot := find hero(hero:Kitt)
+  assert(slot >= 4)
+  assert(rank in caterpillar(hero:Kitt) == -1)
+  assert(hero by slot(slot) == hero:Kitt) # this command needs to work on reserve slots
+  assert(hero by rank(4) == -1) # this command should not work on reserve slots
+  # names
+  $1="Styrge"
+  get hero name(2, 0)
+  assert(string compare(1, 2))
+  $1="Helga"
+  get hero name(2, 1)
+  assert(string compare(1, 2))
+  $1="Olaf"
+  get hero name(2, 2)
+  assert(string compare(1, 2))
+  $1="Frumpy"
+  get hero name(2, 3)
+  assert(string compare(1, 2))
+  $1="Kitt"
+  get hero name(2, find hero(hero:Kitt))
+  assert(string compare(1, 2))
+  $1="Kittzilla"
+  set hero name(1, find hero(hero:Kitt))
+  get hero name(2, find hero(hero:Kitt))
+  assert(string compare(1, 2))
+  # Swapping
+  swap out hero(hero:Helga)
+  assert(hero by slot(1) == -1)
+  assert(find hero(hero:Helga) >= 4)
+  swap in hero(hero:Kitt)
+  assert(hero by slot(1) == hero:Kitt)
+  assert(find hero(hero:Kitt) >> 0 && find hero(hero:Kitt) <= 3)
+  swap by position(0, 3) # swap Styrge and Frumpy
+  assert(hero by slot(0) == hero:Frumpy)
+  assert(hero by slot(3) == hero:Styrge)
+  swap by position(3, find hero(hero:Helga)) # swap Styrge and Helga
+  assert(hero by slot(3) == hero:Helga)
+  assert(find hero(hero:Styrge) >= 4)
+  swap by name(hero:Kitt, hero:Styrge)
+  assert(hero by slot(1) == hero:Styrge)
+  assert(find hero(hero:Kitt) >= 4)
+  swap out hero(hero by slot(0)) # swap out frumpy
+  assert(hero by slot(0) == -1)
+  # restore numeric order
+  add hero(hero:Freki) # Freki
+  assert(hero by slot(0) == hero:Freki)
+  swap by position(1, find hero(hero:Helga))
+  assert(hero by slot(1) == hero:Helga)
+  swap by position(2, find hero(hero:Olaf))
+  assert(hero by slot(2) == hero:Olaf)
+  swap by position(3, find hero(hero:Frumpy))
+  assert(hero by slot(3) == hero:Frumpy)
+end
+
+## Party management
+#lock hero (who)
+#unlock hero (who)
+
 script, hero caterpillar tests, begin
   variable(i)
   $0="hero caterpillar tests"
-  add hero(1)
-  add hero(2)
-  add hero(3)
 
   $10="leader, cater=ON"
   do hero cater tests(me)
@@ -304,6 +389,41 @@ end
 #set hero frame (who, frame)
 #set hero speed (who, speed)
 #set hero z (who, z)
+
+script, hero exp and levels tests, begin
+  $0="hero exp and levels tests"
+  assert(experience to level(1) == 30)
+  assert(experience to level(2) == 71)
+  assert(experience to level(3) == 125)
+  assert(experience to level(4) == 195)
+  assert(experience to level(5) == 284)
+  assert(experience to level(6) == 396)
+  assert(experience to level(7) == 535)
+  assert(experience to level(8) == 707)
+  assert(experience to level(9) == 918)
+  assert(experience to level(10) == 1176)
+  assert(experience to level(11) == 1491)
+  assert(experience to level(12) == 1874)
+  assert(experience to level(13) == 2339)
+  assert(experience to level(14) == 2902)
+  assert(experience to level(15) == 3583)
+end
+
+## Exp and Levels
+#get hero level (who)
+#set hero level (who, level, forgetspells)
+#give experience (hero,amount)
+#hero levelled (who)
+#set dead heroes gain experience (state)
+#spells learned (hero,number)
+#spells learnt (hero,number)
+#experience to level (level)
+#experience to next level (who)
+#get level cap
+#set level cap (cap)
+#set experience (who, experience, allowforget)
+#total experience (who)
+#update level up learning(who, allowforget)
 
 ########################################################################
 
@@ -1273,7 +1393,6 @@ end
 #right
 #right button
 #right key
-#room in active party
 #run script by ID (id, argument1, argument2, argument3...)
 #save in slot (slot)
 #save map state (whichdata, customid)
@@ -1448,8 +1567,6 @@ end
 #suspend random enemies
 #suspend random enemys
 #suspend timers
-#swap by name (name,name)
-#swap by position (position,position)
 #switch(expression)
 #system day
 #system hour
