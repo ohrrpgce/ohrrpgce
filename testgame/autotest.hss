@@ -391,6 +391,7 @@ end
 #set hero z (who, z)
 
 script, hero exp and levels tests, begin
+  variable(i)
   $0="hero exp and levels tests"
   assert(experience to level(1) == 30)
   assert(experience to level(2) == 71)
@@ -407,22 +408,60 @@ script, hero exp and levels tests, begin
   assert(experience to level(13) == 2339)
   assert(experience to level(14) == 2902)
   assert(experience to level(15) == 3583)
+  assert(experience to level(99) == 50183838)
+  assert(get hero level(0) == 0)
+  # level setting
+  for(i, 1, 99) do(
+    set hero level(0, i)
+    assert(get hero level(0) == i)
+    assert(total experience(0) == experience to level(i))
+  )
+  # level-based spell learning/forgetting
+  set hero level(0, 9)
+  assert(knows spell (0, 2) == false) # Freki should not have L.10 Wolf at level 9
+  set hero level(0, 10)
+  assert(knows spell (0, 2) == true) # Freki should learn L.10 Wolf at level 10
+  set hero level(0, 0, false)
+  assert(get hero level(0) == 0)
+  assert(hero levelled(0) == -10)
+  assert(knows spell (0, 2) == true) # Freki should not forget L.10 Wolf because of how we deleveled
+  update level up learning(0, true)
+  assert(knows spell (0, 2) == false) # Now Freki should forget L.10 Wolf.
+  # experience
+  assert(experience to next level(0) == 30)
+  give experience(0, 5)
+  assert(hero levelled(0) == 0)
+  assert(experience to next level(0) == 25)
+  give experience(0, 25)
+  assert(get hero level(0) == 1)
+  assert(hero levelled(0) == 1)
+  assert(experience to next level(0) == 41)
+  give experience(0, -1) # de-level should not work with this command, but experience will go down
+  assert(get hero level(0) == 1)
+  assert(hero levelled(0) == 0)
+  assert(experience to next level(0) == 42)
+  give experience(0, 42)
+  assert(get hero level(0) == 2)
+  assert(hero levelled(0) == 1)
+  set hero level(0, 9)
+  give experience(0, experience to next level(0))
+  assert(get hero level(0) == 10)
+  assert(hero levelled(0) == 1)
+  assert(spells learned(0, get count) == 1)
+  assert(spells learned(0, 0) == 2)
+  assert(spells learnt(0, 0) == 1) #deprecated, but why not test it?
+  give experience(0, 1) # should not cause levelling
+  assert(hero levelled == 0)
+  assert(spells learned(0, get count) == 0)
+  # reset
+  set hero level(0, 0, true)
 end
 
 ## Exp and Levels
-#get hero level (who)
-#set hero level (who, level, forgetspells)
-#give experience (hero,amount)
-#hero levelled (who)
 #set dead heroes gain experience (state)
 #spells learned (hero,number)
-#spells learnt (hero,number)
-#experience to level (level)
-#experience to next level (who)
 #get level cap
 #set level cap (cap)
-#set experience (who, experience, allowforget)
-#total experience (who)
 #update level up learning(who, allowforget)
 
 ########################################################################
