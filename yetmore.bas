@@ -362,7 +362,7 @@ SELECT CASE AS CONST id
   IF retvals(0) >= 0 AND retvals(0) <= 40 AND retvals(1) >= 0 THEN  'we should make the regular level limit customisable anyway
    gam.hero(retvals(0)).lev_gain = retvals(1) - gam.hero(retvals(0)).lev
    gam.hero(retvals(0)).lev = retvals(1)
-   exlev(retvals(0), 1) = exptolevel(retvals(1))
+   exlev(retvals(0), 1) = exptolevel(retvals(1) + 1)
    exlev(retvals(0), 0) = 0  'XP attained towards the next level
    updatestatslevelup retvals(0), retvals(2) 'updates stats and spells
   END IF
@@ -398,17 +398,10 @@ SELECT CASE AS CONST id
   END IF
  CASE 269'--totalexperience
   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
-   scriptret = 0
-   FOR i = 0 TO gam.hero(retvals(0)).lev - 1
-    scriptret += exptolevel(i)
-   NEXT
-   scriptret += exlev(retvals(0), 0)
+   scriptret = hero_total_exp(retvals(0))
   END IF
- CASE 270'--experiencetolevel
-  scriptret = 0
-  FOR i = 0 TO retvals(0) - 1
-   scriptret += exptolevel(i)
-  NEXT
+ CASE 270'--experience to level
+  scriptret = total_exp_to_level(retvals(0))
  CASE 271'--experiencetonextlevel
   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
    scriptret = exlev(retvals(0), 1) - exlev(retvals(0), 0)

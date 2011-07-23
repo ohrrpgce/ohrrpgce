@@ -114,7 +114,7 @@ resetlmp slot, her.def_level
 gam.hero(slot).lev = her.def_level
 gam.hero(slot).lev_gain = 0
 exlev(slot, 0) = 0
-exlev(slot, 1) = exptolevel(her.def_level)
+exlev(slot, 1) = exptolevel(her.def_level + 1)
 
 '--clear learnmask slots (just to be really thorough)
 FOR i = slot * 6 TO slot * 6 + 5
