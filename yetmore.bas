@@ -747,6 +747,9 @@ SUB playtimer
    IF gen(genDays) < 32767 THEN gen(genDays) = gen(genDays) + 1
   WEND
  END IF
+ IF autosnap > 0 ANDALSO (get_tickcount MOD autosnap) = 0 THEN
+  write_checkpoint
+ END IF
 END SUB
 
 FUNCTION partybyrank (byval slot as integer) as integer

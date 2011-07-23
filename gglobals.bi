@@ -26,6 +26,7 @@ EXTERN fatal as integer
 EXTERN err_suppress_lvl as integer
 EXTERN backcompat_sound_slot_mode as integer
 EXTERN backcompat_sound_slots() as integer
+EXTERN autosnap as integer
 
 'Input handling globals
 EXTERN as integer carray(), csetup()

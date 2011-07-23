@@ -1924,6 +1924,10 @@ SUB setwait (BYVAL t as integer, BYVAL flagt as integer = 0)
 	waitset = 1
 end SUB
 
+FUNCTION get_tickcount() as integer
+ return tickcount
+END FUNCTION
+
 FUNCTION dowait () as integer
 'wait until alarm time set in setwait()
 'returns true if the flag time has passed (since the last time it was passed)

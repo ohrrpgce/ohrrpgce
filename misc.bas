@@ -78,6 +78,7 @@ function usage_setoption(opt as string, arg as string) as integer
 		help = help & "-log foldername     Log debug messages to a specific folder" & LINE_END
 #IFDEF IS_GAME
 		help = help & "-full-upgrade       Upgrade game data completely, as Custom does" & LINE_END
+		help = help & "-autosnap N         Automatically save a screen snapshot every N ticks" & LINE_END
 #ENDIF
 		help = help & "-recordinput file   Record keyboard input to a file" & LINE_END
 		help = help & "-replayinput file   Replay keyboard input from a previously recorded file" & LINE_END

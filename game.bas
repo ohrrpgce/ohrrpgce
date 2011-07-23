@@ -72,6 +72,7 @@ mersenne_twister TIMER
 
 DIM autotestmode AS INTEGER = NO
 DIM speedcontrol AS INTEGER = 55
+DIM autosnap AS INTEGER = 0
 
 orig_dir = CURDIR()
 processcommandline

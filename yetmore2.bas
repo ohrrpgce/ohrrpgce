@@ -774,12 +774,20 @@ FUNCTION game_setoption(opt as string, arg as string) as integer
   ELSE
    RETURN 1
   END IF
- END IF
- IF opt = "autotest" THEN
+ ELSEIF opt = "autotest" THEN
   debug "Autotesting mode enabled!"
   autotestmode = YES
   enable_speed_control NO
   RETURN 1 'arg not used
+ ELSEIF opt = "autosnap" then
+  IF is_int(arg) THEN
+   autosnap = str2int(arg)
+   debug "Autosnap mode enabled every " & autosnap & " ticks"
+   RETURN 2
+  ELSE
+   debug "WARNING: autosnap argument was ignored because it should be followed by an integer"
+   RETURN 1
+  END IF
  END IF
  RETURN 0
 END FUNCTION
