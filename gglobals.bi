@@ -53,7 +53,6 @@ EXTERN eqstuf() as integer
 EXTERN lmp() as integer
 EXTERN bmenu() as integer
 EXTERN spell() as integer
-EXTERN exlev() as integer
 EXTERN hmask() as integer
 
 'Map state globals

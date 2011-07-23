@@ -44,6 +44,8 @@ TYPE HeroState
  stat AS HeroStats
  lev AS INTEGER
  lev_gain AS INTEGER
+ exp_cur AS INTEGER
+ exp_next AS INTEGER
  wep_pic AS INTEGER
  wep_pal AS INTEGER
  battle_pic AS INTEGER

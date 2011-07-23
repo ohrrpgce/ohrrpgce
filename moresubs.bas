@@ -113,8 +113,8 @@ resetlmp slot, her.def_level
 '--setup experience
 gam.hero(slot).lev = her.def_level
 gam.hero(slot).lev_gain = 0
-exlev(slot, 0) = 0
-exlev(slot, 1) = exptolevel(her.def_level + 1)
+gam.hero(slot).exp_cur = 0
+gam.hero(slot).exp_next = exptolevel(her.def_level + 1)
 
 '--clear learnmask slots (just to be really thorough)
 FOR i = slot * 6 TO slot * 6 + 5
@@ -333,11 +333,6 @@ FOR i = 0 TO 7
  SWAP lmp(s, i), lmp(d, i)
 NEXT i
 
-'---Experience
-FOR i = 0 TO 1
- SWAP exlev(s, i), exlev(d, i)
-NEXT i
-
 '--Learnt spells flags
 FOR i = 0 TO 5
  SWAP learnmask(s * 6 + i), learnmask(d * 6 + i)
@@ -354,7 +349,7 @@ NEXT i
 '--set tags, reload hero pictures and palettes, etc
 party_change_updates
 
-'hero(40), bmenu(40,5), spell(40,3,23), lmp(40,7), exlev(40,1), names(40), eqstuf(40,4)
+'hero(40), bmenu(40,5), spell(40,3,23), lmp(40,7), names(40), eqstuf(40,4)
 END SUB
 
 SUB drawsay ()
@@ -1126,9 +1121,8 @@ FOR i = 0 TO 40
  NEXT o
 NEXT i
 FOR i = 0 TO 40
- FOR o = 0 TO 1
-  exlev(i, o) = 0
- NEXT o
+ gam.hero(i).exp_cur = 0
+ gam.hero(i).exp_next = 0
 NEXT i
 FOR i = 0 TO 40
  names(i) = ""

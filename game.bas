@@ -105,7 +105,7 @@ DIM tag(127)
 
 DIM herotags(59) as HeroTagsCache, itemtags(maxMaxItems) as ItemTagsCache
 
-DIM hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), exlev(40, 1), names(40)
+DIM hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), names(40)
 DIM eqstuf(40, 4)
 DIM catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), hmask(3)
 DIM herow(3) as GraphicPair  'FIXME: these are only used in the various hero pickers

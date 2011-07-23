@@ -48,7 +48,7 @@ declare function hero_total_exp (hero_slot as integer) as integer
 declare sub updatestatslevelup (i as integer, allowforget as integer)
 declare sub learn_spells_for_current_level(BYVAL who AS INTEGER, BYVAL allowforget AS INTEGER)
 declare sub giveheroexperience (i as integer, exper as integer)
-declare sub setheroexperience (byval who as integer, byval amount as integer, byval allowforget as integer, exlev() as integer)
+declare sub setheroexperience (byval who as integer, byval amount as integer, byval allowforget as integer)
 declare function visibleandalive (o as integer, bslot() as battlesprite) as integer
 declare sub writestats (bslot() AS BattleSprite)
 

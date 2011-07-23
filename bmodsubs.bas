@@ -786,7 +786,7 @@ FUNCTION total_exp_to_level (level as integer) as integer
 END FUNCTION
 
 FUNCTION hero_total_exp (hero_slot as integer) as integer
- RETURN total_exp_to_level(gam.hero(hero_slot).lev) + exlev(hero_slot, 0)
+ RETURN total_exp_to_level(gam.hero(hero_slot).lev) + gam.hero(hero_slot).exp_cur
 END FUNCTION
 
 SUB updatestatslevelup (i as integer, allowforget as integer)
@@ -889,23 +889,23 @@ SUB giveheroexperience (i as integer, exper as integer)
  'reset levels gained
  gam.hero(i).lev_gain = 0
  IF hero(i) > 0 AND gam.hero(i).lev < gen(genLevelCap) THEN
-  exlev(i, 0) += exper
+  gam.hero(i).exp_cur += exper
   'levelups
-  WHILE exlev(i, 0) >= exlev(i, 1)
-   exlev(i, 0) -= exlev(i, 1)
+  WHILE gam.hero(i).exp_cur >= gam.hero(i).exp_next
+   gam.hero(i).exp_cur -= gam.hero(i).exp_next
    gam.hero(i).lev += 1 'current level
    gam.hero(i).lev_gain += 1 'levelup counter
-   exlev(i, 1) = exptolevel(gam.hero(i).lev + 1)
+   gam.hero(i).exp_next = exptolevel(gam.hero(i).lev + 1)
    IF gam.hero(i).lev >= gen(genLevelCap) THEN
     'You can't gain experience once you've hit the level cap
-    exlev(i, 0) = 0
+    gam.hero(i).exp_cur = 0
     EXIT WHILE
    END IF
   WEND
  END IF
 END SUB
 
-SUB setheroexperience (BYVAL who AS INTEGER, BYVAL amount AS INTEGER, BYVAL allowforget AS INTEGER, exlev() AS INTEGER)
+SUB setheroexperience (BYVAL who AS INTEGER, BYVAL amount AS INTEGER, BYVAL allowforget AS INTEGER)
  'unlike giveheroexperience, this can cause delevelling
  DIM orig_lev AS INTEGER = gam.hero(who).lev
  DIM total AS INTEGER = 0
@@ -917,7 +917,7 @@ SUB setheroexperience (BYVAL who AS INTEGER, BYVAL amount AS INTEGER, BYVAL allo
  IF total > amount THEN
   'losing levels; lvl up from level 0
   gam.hero(who).lev = 0
-  exlev(who, 1) = exptolevel(1)
+  gam.hero(who).exp_next = exptolevel(1)
   lostlevels = YES
  ELSE
   'set spell learnt bits correctly
@@ -925,7 +925,7 @@ SUB setheroexperience (BYVAL who AS INTEGER, BYVAL amount AS INTEGER, BYVAL allo
   orig_lev = 0
   lostlevels = NO
  END IF
- exlev(who, 0) = 0
+ gam.hero(who).exp_cur = 0
  giveheroexperience who, amount
  updatestatslevelup who, allowforget
  gam.hero(who).lev_gain -= orig_lev

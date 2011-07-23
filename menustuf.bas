@@ -1163,7 +1163,7 @@ DO
  edgeprint level_caption & " " & gam.hero(pt).lev, 142 - LEN(level_caption & " " & gam.hero(pt).lev) * 4, 30, uilook(uiText), page
  IF gam.hero(pt).lev < gen(genLevelCap) THEN
   'Can't level further, so hide experience required
-  temp$ = (exlev(pt, 1) - exlev(pt, 0)) & " " & exper_caption & " " & readglobalstring$(47, "for next", 10) & " " & level_caption
+  temp$ = (gam.hero(pt).exp_next - gam.hero(pt).exp_cur) & " " & exper_caption & " " & readglobalstring$(47, "for next", 10) & " " & level_caption
   edgeprint temp$, 142 - LEN(temp$) * 4, 40, uilook(uiText), page
  END IF
 

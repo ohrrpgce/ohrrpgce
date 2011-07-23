@@ -537,8 +537,8 @@ SUB gamestate_party_from_reload(BYVAL parent AS Reload.NodePtr)
      
       .lev = GetChildNodeInt(slot, "lev")
       .lev_gain = GetChildNodeInt(slot, "lev_gain")
-      exlev(i, 0) = GetChildNodeInt(slot, "exp")
-      exlev(i, 1) = GetChildNodeInt(slot, "exp_next")
+      .exp_cur = GetChildNodeInt(slot, "exp")
+      .exp_next = GetChildNodeInt(slot, "exp_next")
       .def_wep = GetChildNodeInt(slot, "def_wep")
 
       ch = GetChildByName(slot, "wep")
@@ -1015,8 +1015,8 @@ SUB gamestate_party_to_reload(BYVAL parent AS Reload.NodePtr)
   
   SetChildNode(slot, "lev", gam.hero(i).lev)
   SetChildNode(slot, "lev_gain", gam.hero(i).lev_gain)
-  SetChildNode(slot, "exp", exlev(i, 0))
-  SetChildNode(slot, "exp_next", exlev(i, 1))
+  SetChildNode(slot, "exp", gam.hero(i).exp_cur)
+  SetChildNode(slot, "exp_next", gam.hero(i).exp_next)
   SetChildNode(slot, "def_wep", gam.hero(i).def_wep)
   
   ch = SetChildNode(slot, "wep")
@@ -1487,7 +1487,8 @@ FOR i = 0 TO 40
    IF buffer(z) > 0 THEN exp_str &= CHR(buffer(z))
    z = z + 1
   NEXT j
-  exlev(i, o) = str2int(exp_str)
+  IF o = 0 THEN gam.hero(i).exp_cur = str2int(exp_str)
+  IF o = 1 THEN gam.hero(i).exp_next = str2int(exp_str)
  NEXT o
 NEXT i
 show_load_index z, "names"
