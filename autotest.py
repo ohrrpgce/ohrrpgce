@@ -284,7 +284,7 @@ class AutoTest(object):
             (prefix, ext) = os.path.splitext(rpg)
             ohrkey = prefix + ".ohrkey"
             if os.path.isfile(ohrkey):
-                replay = "-replayinput '%s'" % (ohrkey)
+                replay = "-autosnap 1 -replayinput '%s'" % (ohrkey)
         cmd = "%s -z 1 -autotest %s '%s'" % (self.plat.game, replay, rpg)
         run_command(cmd, 1)
         move_pattern("checkpoint*.bmp", dump_dir)
