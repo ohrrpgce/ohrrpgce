@@ -453,16 +453,66 @@ script, hero exp and levels tests, begin
   give experience(0, 1) # should not cause levelling
   assert(hero levelled == 0)
   assert(spells learned(0, get count) == 0)
+  # split experience
+  set hero level(0, 0, true)
+  give experience(party, 30)
+  assert(hero levelled(0) == 0)
+  assert(total experience(0) == 8)
+  assert(total experience(1) == 8)
+  assert(total experience(2) == 8)
+  assert(total experience(3) == 8)
+  give experience(party, 88)
+  assert(get hero level(0) == 1)
+  assert(get hero level(1) == 1)
+  assert(get hero level(2) == 1)
+  assert(get hero level(3) == 1)
+  assert(total experience(find hero(hero:Kitt)) == 0) # outside of the party
+  # experience for dead heroes
+  set hero level(0, 0, true)
+  set hero level(1, 0, true)
+  set hero level(2, 0, true)
+  set hero level(3, 0, true)
+  set hero stat(2, 0, 0) # kill Olaf
+  set dead heroes gain experience (false)
+  give experience(party, 120)
+  assert(total experience(0) == 40)
+  assert(total experience(1) == 40)
+  assert(total experience(2) == 0)
+  assert(total experience(3) == 40)
+  set hero level(0, 0, true)
+  set hero level(1, 0, true)
+  set hero level(2, 0, true)
+  set hero level(3, 0, true)
+  set dead heroes gain experience (true)
+  give experience(party, 120)
+  assert(total experience(0) == 30)
+  assert(total experience(1) == 30)
+  assert(total experience(2) == 30)
+  assert(total experience(3) == 30)
+  set hero level(0, 0, true)
+  set hero level(1, 0, true)
+  set hero level(2, 0, true)
+  set hero level(3, 0, true)
+  set hero stat(2, 0, get hero stat(2, 0, maximum stat)) # revive Olaf
+  # level caps
+  set hero level(0, 1)
+  assert(get level cap == 99)
+  set level cap(2)
+  assert(get level cap == 2)
+  give experience(0, 41)
+  assert(get hero level(0) == 2)
+  assert(total experience(0) == 71)
+  assert(experience to next level(0) == 54) # being at the level cap does not alter the exp to next level
+  give experience(0, 10000000)
+  assert(hero levelled(0) == 0)
+  assert(get hero level(0) == 2)
+  set level cap(99)
   # reset
   set hero level(0, 0, true)
+  set hero level(1, 0, true)
+  set hero level(2, 0, true)
+  set hero level(3, 0, true)
 end
-
-## Exp and Levels
-#set dead heroes gain experience (state)
-#spells learned (hero,number)
-#get level cap
-#set level cap (cap)
-#update level up learning(who, allowforget)
 
 ########################################################################
 
