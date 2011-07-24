@@ -42,8 +42,6 @@ declare sub battle_target_arrows (d as integer, axis as integer, bslot() as batt
 declare function targetmaskcount (tmask() as integer) as integer
 declare sub traceshow (s as string)
 declare function trytheft (BYREF bat AS BattleState, who as integer, targ as integer, attack as AttackData, bslot() as BattleSprite) as integer
-declare function exptolevel (level as integer) as integer
-declare function total_exp_to_level (level as integer) as integer
 declare function hero_total_exp (hero_slot as integer) as integer
 declare sub updatestatslevelup (i as integer, allowforget as integer)
 declare sub learn_spells_for_current_level(BYVAL who AS INTEGER, BYVAL allowforget AS INTEGER)

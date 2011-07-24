@@ -3803,10 +3803,10 @@ END SUB
 
 SUB experience_chart ()
 
- DIM exp_first_level AS INTEGER = 30
- DIM exp_multiplier AS SINGLE = 1.2
- DIM exp_adder AS INTEGER = 5
- DIM exp_uppercap AS INTEGER = 1000000
+ 'DIM exp_first_level AS INTEGER = 30
+ 'DIM exp_multiplier AS SINGLE = 1.2
+ 'DIM exp_adder AS INTEGER = 5
+ 'DIM exp_uppercap AS INTEGER = 1000000
 
  DIM mode AS INTEGER = 0
  STATIC hero_count AS INTEGER = 4
@@ -3816,9 +3816,9 @@ SUB experience_chart ()
  STATIC form_id AS INTEGER = 0
  DIM formdata(40) AS INTEGER
 
- DIM menu(102) AS STRING
- menu(0) = "Previous menu..."
  DIM startfrom AS INTEGER = 3
+ DIM menu(startfrom + gen(genLevelCap)) AS STRING
+ menu(0) = "Previous menu..."
  DIM state AS MenuState
  WITH state
   .size = 24
@@ -3838,12 +3838,12 @@ SUB experience_chart ()
    IF state.pt = 0 THEN EXIT DO
   END IF
   IF state.pt = 1 THEN
-   IF intgrabber(mode, 0, 1) THEN state.need_update = YES
+   IF intgrabber(mode, 0, 2) THEN state.need_update = YES
   END IF
   IF state.pt = 2 THEN
-   IF mode = 0 THEN
+   IF mode = 1 THEN
     IF intgrabber(enemy_id, 0, gen(genMaxEnemy)) THEN state.need_update = YES
-   ELSEIF mode = 1 THEN
+   ELSEIF mode = 2 THEN
     IF intgrabber(form_id, 0, gen(genMaxFormation)) THEN state.need_update = YES
    END IF
   END IF
@@ -3855,12 +3855,15 @@ SUB experience_chart ()
    DIM test_exp AS INTEGER = 0
    DIM test_name AS STRING
    IF mode = 0 THEN
+    menu(1) = "Preview mode: Total Exp."
+    menu(2) = "Compared to N/A"
+   ELSEIF mode = 1 THEN
     loadenemydata enemy, enemy_id
-    menu(1) = "Compare mode: Enemy"
+    menu(1) = "Preview mode: Enemy"
     menu(2) = "Compared to enemy: " & enemy_id & " " & enemy.name & " (" & enemy.reward.exper & " exp)"
     test_exp = enemy.reward.exper
     test_name = enemy.name
-   ELSEIF mode = 1 THEN
+   ELSEIF mode = 2 THEN
     setpicstuf formdata(), 80, -1
     loadset game & ".for", form_id, 0
     test_exp = 0
@@ -3875,17 +3878,20 @@ SUB experience_chart ()
     test_name = "Formation" & form_id
    END IF
    menu(3) = "Distributed to a party of: " & hero_count & " heroes"
+   DIM suffix AS STRING
    DIM killcount AS STRING
-   DIM req AS INTEGER = exp_first_level
-   FOR lev AS INTEGER = 1 TO 99
-    IF test_exp > 0 THEN
-     killcount = STR(ceiling(req / test_exp * hero_count))
+   FOR lev AS INTEGER = 1 TO gen(genLevelCap)
+    IF mode = 0 THEN
+     suffix = "total " & total_exp_to_level(lev)
     ELSE
-     killcount = "infinite"
+     IF test_exp > 0 THEN
+      killcount = STR(ceiling(exptolevel(lev) / test_exp * hero_count))
+     ELSE
+      killcount = "infinite"
+     END IF
+     suffix = "= " & test_name & "*" & killcount
     END IF
-    menu(startfrom + lev) = "Level " & lev & " exp:" & req & " = " & test_name & "*" & killcount
-    req = req * exp_multiplier + exp_adder
-    req = small(req, exp_uppercap)
+    menu(startfrom + lev) = "Level " & lev & " +" & exptolevel(lev) & " " & suffix
    NEXT lev
    state.need_update = NO
   END IF

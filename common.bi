@@ -215,6 +215,8 @@ DECLARE SUB unload_sprite_and_pal (BYREF img AS GraphicPair)
 'strgrabber has separate versions in customsubs.bas and yetmore2.bas
 DECLARE FUNCTION strgrabber (s AS STRING, BYVAL maxl AS INTEGER) AS INTEGER
 
+DECLARE FUNCTION exptolevel (level as integer) as integer
+DECLARE FUNCTION total_exp_to_level (level as integer) as integer
 
 'Global variables
 EXTERN sourcerpg as string

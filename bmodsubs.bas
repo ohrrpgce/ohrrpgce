@@ -764,27 +764,6 @@ FUNCTION trytheft (BYREF bat AS BattleState, who as integer, targ as integer, at
  RETURN NO '--return false by default
 END FUNCTION
 
-FUNCTION exptolevel (level as integer) as integer
-' HINT: Customisation goes here :)
-
- IF level = 0 THEN RETURN 0
- DIM exper as integer = 30
- FOR o as integer = 2 TO level
-  exper = exper * 1.2 + 5
-  'FIXME: arbitrary experience cap should be removable
-  IF exper > 1000000 THEN exper = 1000000
- NEXT
- RETURN exper
-END FUNCTION
-
-FUNCTION total_exp_to_level (level as integer) as integer
- DIM total AS INTEGER = 0
- FOR i AS INTEGER = 1 TO level
-  total += exptolevel(i)
- NEXT
- RETURN total
-END FUNCTION
-
 FUNCTION hero_total_exp (hero_slot as integer) as integer
  RETURN total_exp_to_level(gam.hero(hero_slot).lev) + gam.hero(hero_slot).exp_cur
 END FUNCTION
