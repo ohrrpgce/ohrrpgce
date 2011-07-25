@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Na 2011-07-25 Add -x option for Hamster Whisper's benefit
 --3N  2011-07-12 Add assert
 --3Ma 2010-10-21 Correctly strip \r to fix newlines ... again.
 --3M  2010-05-02 abs, sign, sqrt; fix error reporting
@@ -115,15 +116,17 @@ constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="N "
+constant COMPILER_SUB_VERSION="Na"
 constant COPYRIGHT_DATE="2002"
 
---these constants are color-flags.
-constant COLYEL=239 + YELLOW
-constant COLRED=239 + RED
-constant COLPNK=239 + BRIGHT_RED
-constant COLWHI=239 + WHITE
-constant COLBWHI=239 + BRIGHT_WHITE
+--these constants are color-flags. May add more colors, up to 254
+constant COLYEL=239
+constant COLRED=240
+constant COLPNK=241
+constant COLWHI=242
+constant COLBWHI=243
+--Euphoria's color constants vary depending on the platform, so we avoid them
+constant HS_TO_EU_COLORS={YELLOW, RED, BRIGHT_RED, WHITE, BRIGHT_WHITE}
 
 constant LEX_CHAR=0
 constant LEX_SPACE=1
@@ -298,6 +301,7 @@ sequence all_scripts      all_scripts={}
 sequence current_script   current_script=""   --name of current script
 integer cur_script_num    cur_script_num=0    --index into script_cmd of current script
 integer colors_enabled    colors_enabled=true
+integer simple_colorcodes simple_colorcodes=false
 integer error_file        error_file=false
 sequence used_globals     used_globals={}
 sequence used_locals      used_locals={}
@@ -352,18 +356,22 @@ end function
 procedure color_print(sequence s,sequence printf_args)
   sequence buffer
   s=sprintf(s,printf_args)
-  buffer=""
-  for i=1 to length(s) do
-    if s[i]<=254 and s[i]>=239 then
-      puts(stdout,buffer)
-      buffer=""
-      if colors_enabled then
-        text_color(s[i]-239)
+  if simple_colorcodes then
+    buffer=s
+  else
+    buffer=""
+    for i=1 to length(s) do
+      if s[i]<=254 and s[i]>=239 then
+        puts(stdout,buffer)
+        buffer=""
+        if colors_enabled then
+          text_color(HS_TO_EU_COLORS[s[i]-238])
+        end if
+      else  
+        buffer&=s[i]
       end if
-    else  
-      buffer&=s[i]
-    end if
-  end for 
+    end for
+  end if
   if length(buffer) then
     puts(stdout,buffer)
   end if
@@ -568,20 +576,22 @@ procedure check_arg_count(sequence args)
   if length(args)=2 then
     wrap_print("HamsterSpeak semicompiler v%d%s (C)%s James Paige&Hamster Republic Productions\n",{COMPILER_VERSION,COMPILER_SUB_VERSION,COPYRIGHT_DATE})
     wrap_print("Please read LICENSE.txt for GPL License details and disclaimer of liability",{})
-    wrap_print(COLYEL&"%s [-acdfknstwuyz] source.hss [dest.hs]"&COLWHI&"\n\n",{hs_upper(file_only(args[2]))})
-    color_print("   -c colors will be disabled\n",{})
-    color_print("   -d dump debug report to hs_debug.txt\n",{})
-    color_print("   -f fast mode. disables some optimization\n",{})
+    wrap_print(COLYEL&"%s [-acdfknstwuxyz] source.hss [dest.hs]"&COLWHI&"\n\n",{hs_upper(file_only(args[2]))})
+    color_print("   -f fast mode. Disables some optimization\n",{})
     color_print("   -k do not wait for a keypress when finished\n",{})
-    color_print("   -n don't add debug info (including copy of the source code)\n",{})
-    color_print("   -s print the name of each script as it is compiled\n",{})
-    color_print("     -a same as -s, but including autonumbered scripts\n",{})
-    color_print("   -t print detailed timing info (for HSpeak developers)\n",{})
+    color_print("   -n don't add debug info, or a copy of the source code, to .hs file\n",{})
     color_print("   -w suppress minor warnings\n",{})
     color_print("   -u show warnings for unused variables\n",{})
     color_print("   -y overwrite the destination file without asking\n",{})
+    color_print("\nAdvanced options (not intended for normal use):\n",{})
+    color_print("   -c colors will be disabled\n",{})
+    color_print("   -d dump debug report to hs_debug.txt\n",{})
+    color_print("   -s print the name of each script as it is compiled\n",{})
+    color_print("     -a same as -s, but including autonumbered scripts\n",{})
+    color_print("   -t print detailed timing info (for HSpeak developers)\n",{})
+    color_print("   -x used by Hamster Whisper for piped output\n",{})
     color_print("   -z write error messages to hs_error.htm\n",{})
-    wrap_print("\nFor more info about Hamsterspeak visit "&COLBWHI&"http://HamsterRepublic.com/ohrrpgce"&COLWHI&"\n",{})
+    wrap_print("\nFor more info about HamsterSpeak visit "&COLBWHI&"http://HamsterRepublic.com/ohrrpgce"&COLWHI&"\n",{})
     wrap_print("\nThis is a command-line program. You should either run it from the command-line (DOS prompt) or you should drag and drop your script file onto it.\n",{})
     opt_wait_for_key()
     abort(0)
@@ -660,6 +670,10 @@ procedure init()
   end if
   if find('c',optlist) then
     colors_enabled=false
+  end if
+  --used by Hamster Whisper. Note: overrides -c
+  if find('x',optlist) then
+    simple_colorcodes=true
   end if
   --the semi-undocumented command line argument -z writes a file called
   --hs_error.htm formatted for HssEd to read
