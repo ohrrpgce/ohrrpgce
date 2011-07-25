@@ -493,13 +493,13 @@ class HWhisper(object):
         self.window.set_sensitive(False)
         # switch working directory
         os.chdir(os.path.dirname(hspeak))
-        # call the compiler
+        # call the compiler (we use -c for old versions of HSpeak and -x for new versions)
         if is_windows():
-            command_line = [hspeak, "-yk", self.doc.filename]
+            command_line = [hspeak, "-ykcx", self.doc.filename]
             p = subprocess.Popen(command_line, stdout=subprocess.PIPE)
         else:
             # I have no dang idea why the win32 method above doesn't work on Linux :(
-            command_line = "'%s' -yk '%s'" % (hspeak, self.doc.filename)
+            command_line = "'%s' -ykcx '%s'" % (hspeak, self.doc.filename)
             p = subprocess.Popen(command_line, shell=True, stdout=subprocess.PIPE)
         while p.returncode is None:
           #sts = os.waitpid(p.pid, 0)
@@ -519,47 +519,22 @@ class HWhisper(object):
         self.update_status()
 
     def parse_compiler_output_colors(self, text):
-        ESC = chr(27)
-        seqmap = {}
-        seqmap["white"] = ESC+"[1m"+ESC+"[37m"
-        seqmap["grey"] = ESC+"[22m"+ESC+"[37m"
-        seqmap["red"] = ESC+"[22m"+ESC+"[31m"
-        seqmap["pink"] = ESC+"[1m"+ESC+"[31m"
-        seqmap["yellow"] = ESC+"[1m"+ESC+"[33m"
+        colormap = {239:"yellow", 240:"red", 241:"pink", 242:"grey", 243:"white"}
         buff = self.console.get_buffer()
         buff.set_text("")
         mark = buff.get_insert()
         iter = buff.get_iter_at_mark(mark)
         str = ""
-        escseq = ""
-        mode = 0
         colortag = "grey"
         for i in xrange(len(text)):
-            output = False
-            char = text[i]
-            if mode == 0: #gathering a string segment
-                if char == ESC:
-                    escseq = char
-                    mode = 1
-                    output = True
-                else:
-                    str += char
-            elif mode == 1: #gathering the escape sequence
-                if char in ESC+"[1237m":
-                    escseq += char
-                    for (color, code) in seqmap.iteritems():
-                        if escseq == code:
-                            colortag = color
-                            mode = 0
-                else:
-                    print "Unexpected char %s in escape sequence" % (char)
-                    colortag = "grey"
-                    mode = 0
-            if output:
-                # Append the string segment with the chosen color
+            char = ord(text[i])
+            if char >= 239 and char <= 243:
+                # Append the string segment with the previous color
                 buff.insert_with_tags_by_name(iter, str, colortag)
                 str = ""
-                output = False
+                colortag = colormap[char]
+            else:
+                str += text[i]
         # Append the final segment of the string
         buff.insert_with_tags_by_name(iter, str, colortag)
 
