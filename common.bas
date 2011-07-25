@@ -3178,6 +3178,12 @@ IF getfixbit(fixDefaultLevelCap) = 0 THEN
  gen(genLevelCap) = 99
 END IF
 
+IF getfixbit(fixDefaultMaxLevel) = 0 THEN
+ upgrade_message "Set max level to 99..."
+ setfixbit(fixDefaultMaxLevel, 1)
+ gen(genMaxLevel) = 99
+END IF
+
 IF getfixbit(fixOldElementalFailBit) = 0 THEN
  upgrade_message "Enabling 'Simulate old fail vs. element resist bit' bitset"
  setfixbit(fixOldElementalFailBit, 1)

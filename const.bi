@@ -92,7 +92,7 @@ CONST genMaxBoxBorder = 83      'max box border number in .PT7
 CONST genMaxPortrait = 84       'max portrait graphic number in .PT8
 CONST genMaxInventory = 85      'max available inventory slot (0 means use inventoryMax)
 CONST genErrorLevel = 86        'value to set err_suppress_lvl to, if nonzero
-CONST genLevelCap = 87          'Default maximum level (0 to 99)
+CONST genLevelCap = 87          'Default maximum level (0 to genMaxLevel) (not to be confused with genMaxLevel)
 CONST genEquipMergeFormula = 88 'Formula to use to calculate effective hero elemental resists
 CONST genNumElements = 89       'Number of elements used
 CONST genUnlockedReserveXP = 90 '% experience gained by unlocked reserve heroes
@@ -131,7 +131,8 @@ CONST genDamageDisplayRise = 187 'number of pixels that damage display rises
 CONST genHeroWeakHP = 188       '%HP for heroes to use Weak state
 CONST genEnemyWeakHP = 189      '%HP for enemies to use Desperation AI
 CONST genAutosortScheme = 190   'Method used to autosort inventory
-'191 to 198 unused
+CONST genMaxLevel = 191         'Maximum level (not to be confused with changeable genLevelCap)
+'192 to 198 unused
 '199 to 359 used to be the scattertable for PW2, now zeroed out
 '360 to 499 unused
 
@@ -165,16 +166,17 @@ CONST fixHeroPortrait = 10       'Initialize hero portrait data
 CONST fixTextBoxPortrait = 11    'Initialize text box portrait data
 CONST fixNPCLocationFormat = 12  'FIXME: not implemented ... can't remember....
 CONST fixInitDamageDisplay = 13  'Initialize damage display time and distance
-CONST fixDefaultLevelCap = 14    'Set level cap to 99
+CONST fixDefaultLevelCap = 14    'Set level cap to 99 (not to be confused with max level)
 CONST fixHeroElementals = 15     'Set the hero elemental data from the old weak/strong/absorb bits
 CONST fixOldElementalFailBit = 16'Turned on the 'Simulate old fail vs. element resist bit' bitset
 CONST fixAttackElementFails = 17 'Initialized all 64 attack elemental fail conditions
 CONST fixEnemyElementals = 18    'Set enemy elemental resists from old weak/strong/absorb/enemytype bits
 CONST fixItemElementals = 19     'Set equipment elemental resists from old weak/strong/absorb bits
 CONST fixNumElements = 20        'Set genNumElements to 16
-CONST fixRemoveDamageMP = 21      'Removed the obsolete Damage MP attack bit
+CONST fixRemoveDamageMP = 21     'Removed the obsolete Damage MP attack bit
+CONST fixDefaultMaxLevel = 22    'Set max level to 99 (not to be confused with level cap)
 
-CONST sizefixbits = 21 ' *** Update this when adding fix bits ***
+CONST sizefixbits = 22 ' *** Update this when adding fix bits ***
 
 '---Sizes (replaceable with variables when suitable)
 CONST max_npc_defs = 500 'max number of NPC IDs definable in Custom

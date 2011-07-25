@@ -1094,11 +1094,11 @@ SUB generate_battlesystem_menu(menu() as string)
  menu(13) = " ...swapped-out and locked: " & gen(genLockedReserveXP) & "%"
  menu(14) = "Hero Weak state below: " & gen(genHeroWeakHP) & "% " & statnames(statHP)
  menu(15) = "Enemy Weak state below: " & gen(genEnemyWeakHP) & "% " & statnames(statHP)
- menu(16) = "View Experience Chart..."
+ menu(17) = "View Experience Chart..."
 END SUB
 
 SUB battleoptionsmenu ()
- CONST maxMenu = 16
+ CONST maxMenu = 17
  DIM menu(maxMenu) AS STRING
  DIM min(maxMenu), max(maxMenu)
  DIM index(maxMenu)
@@ -1118,6 +1118,7 @@ SUB battleoptionsmenu ()
  flusharray enabled(), UBOUND(enabled), YES
  enabled(3) = NO
  enabled(11) = NO
+ enabled(16) = NO
  index(4) = genNumElements
  min(4) = 1
  max(4) = 64
@@ -1158,7 +1159,7 @@ SUB battleoptionsmenu ()
    IF state.pt = 0 THEN EXIT DO
    IF state.pt = 1 THEN statcapsmenu
    IF state.pt = 2 THEN equipmergemenu
-   IF state.pt = 16 THEN experience_chart
+   IF state.pt = 17 THEN experience_chart
 
    IF min(state.pt) = 32 AND max(state.pt) = 255 THEN  'Character field
     DIM d as string = charpicker
@@ -1186,7 +1187,7 @@ SUB battleoptionsmenu ()
 END SUB
 
 SUB statcapsmenu
- CONST maxMenu = 14
+ CONST maxMenu = 15
  DIM m(maxMenu) AS STRING
  DIM max(maxMenu)
  DIM index(maxMenu)
@@ -1201,6 +1202,7 @@ SUB statcapsmenu
   index(i) = genStatCap + (i - 2)
  NEXT
  index(14) = genLevelCap
+ index(15) = genMaxLevel
 
  max(1) = 32767
  FOR i = 2 to 3 'shut up (~snicker~)
@@ -1211,7 +1213,8 @@ SUB statcapsmenu
  NEXT
  max(12) = 100 'MP~
  max(13) = 20  'Extra Hits
- max(14) = 99  'Level cap
+ max(14) = gen(genMaxLevel)  'Level cap is capped to Max Level
+ max(15) = 99  'Max Level is capped to 99
  DO
   setwait 55
   setkeys
@@ -1231,7 +1234,10 @@ SUB statcapsmenu
     m(2 + i) = statnames(i) + " Cap: "
     IF gen(genStatCap + i) = 0 THEN m(2 + i) = m(2 + i) + "None" ELSE m(2 + i) = m(2 + i) & gen(genStatCap + i)
    NEXT
-   m(14) = "Level Cap: " & gen(genLevelCap)
+   IF gen(genLevelCap) > gen(genMaxLevel) THEN gen(genLevelCap) = gen(genMaxLevel)
+   max(14) = gen(genMaxLevel)
+   m(14) = "Initial Level Cap: " & gen(genLevelCap)
+   m(15) = "Maximum Level: " & gen(genMaxLevel)
   END IF
 
   clearpage vpage
