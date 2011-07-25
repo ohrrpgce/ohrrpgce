@@ -864,10 +864,18 @@ SUB learn_spells_for_current_level(BYVAL who AS INTEGER, BYVAL allowforget AS IN
  
 END SUB
 
+FUNCTION allowed_to_gain_levels(heroslot AS INTEGER) AS INTEGER
+ IF heroslot < 0 THEN RETURN NO 'out of range
+ IF heroslot > UBOUND(gam.hero) THEN RETURN NO ' out of range
+ IF hero(heroslot) <= 0 THEN RETURN NO ' no hero in this slot
+ IF gam.hero(heroslot).lev >= current_max_level THEN RETURN NO
+ RETURN YES
+END FUNCTION
+
 SUB giveheroexperience (i as integer, exper as integer)
  'reset levels gained
  gam.hero(i).lev_gain = 0
- IF hero(i) > 0 AND gam.hero(i).lev < gen(genLevelCap) THEN
+ IF allowed_to_gain_levels(i) THEN
   gam.hero(i).exp_cur += exper
   'levelups
   WHILE gam.hero(i).exp_cur >= gam.hero(i).exp_next
@@ -875,7 +883,7 @@ SUB giveheroexperience (i as integer, exper as integer)
    gam.hero(i).lev += 1 'current level
    gam.hero(i).lev_gain += 1 'levelup counter
    gam.hero(i).exp_next = exptolevel(gam.hero(i).lev + 1)
-   IF gam.hero(i).lev >= gen(genLevelCap) THEN
+   IF gam.hero(i).lev >= current_max_level THEN
     'You can't gain experience once you've hit the level cap
     gam.hero(i).exp_cur = 0
     EXIT WHILE

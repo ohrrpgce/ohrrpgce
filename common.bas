@@ -4321,3 +4321,7 @@ FUNCTION total_exp_to_level (level as integer) as integer
  NEXT
  RETURN total
 END FUNCTION
+
+FUNCTION current_max_level() AS INTEGER
+ RETURN small(gen(genLevelCap), gen(genMaxLevel))
+END FUNCTION

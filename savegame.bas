@@ -308,6 +308,8 @@ SUB gamestate_state_from_reload(BYVAL parent AS Reload.NodePtr)
 
  gen(genDamageCap) = GetChildNodeInt(node, "damage_cap")
  gen(genLevelCap) = GetChildNodeInt(node, "level_cap", 99)
+ gen(genLevelCap) = small(gen(genLevelCap), gen(genMaxLevel))
+ 
 
  ch = GetChildByName(node, "stats")
  rsav_check_children_names(ch, "stat")

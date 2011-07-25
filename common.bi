@@ -217,6 +217,7 @@ DECLARE FUNCTION strgrabber (s AS STRING, BYVAL maxl AS INTEGER) AS INTEGER
 
 DECLARE FUNCTION exptolevel (level as integer) as integer
 DECLARE FUNCTION total_exp_to_level (level as integer) as integer
+DECLARE FUNCTION current_max_level() AS INTEGER
 
 'Global variables
 EXTERN sourcerpg as string
