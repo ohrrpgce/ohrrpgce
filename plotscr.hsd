@@ -900,7 +900,7 @@ script, get level cap, begin
 end
 
 script, set level cap, hsd:cap, begin
-  if(hsd:cap >= 0 && hsd:cap <= 99) then(writegeneral(87, hsd:cap))
+  if(hsd:cap >= 0 && hsd:cap <= readgeneral(191)) then(writegeneral(87, hsd:cap))
 end
 
 #--------------------------------------------------------------------------
