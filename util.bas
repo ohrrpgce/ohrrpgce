@@ -1267,14 +1267,14 @@ SUB dlist_swap (byref this as DoubleList(Any), byval item1 as any ptr, byref tha
 END SUB
 
 FUNCTION dlist_find (byref this as DoubleList(Any), byval item as any ptr) as integer
-  dim n as integer = 1
+  dim n as integer = 0
   dim lit as any ptr = this.first
   while lit
     if lit = item then return n
     n += 1
     lit = DLFOLLOW(lit)->next
   wend
-  return 0
+  return -1
 END FUNCTION
 
 FUNCTION dlist_walk (byref this as DoubleList(Any), byval item as any ptr, byval n as integer) as any ptr

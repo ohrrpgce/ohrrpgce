@@ -525,6 +525,8 @@ define function, begin
 514,getellipsebordercol,1,0      #change border color
 515,getellipsefillcol,1,0        #change fill color
 516,_checkpoint,0                #dumps checkpoint screenshot for automated testing. Only works when run with the -autotest command line argument
+517,menuitembytrueslot,2,0,0     #return a menu item handle, based on the order in Custom (menu handle, slot no.)
+518,menuitemtrueslot,1,0         #slot no. of a menu item as it appears in Custom (menu item handle)
 end
 
 #--------------------------------------------------------------------------

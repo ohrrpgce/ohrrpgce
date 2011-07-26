@@ -1945,6 +1945,22 @@ WITH scrat(nowscript)
       scriptret = 1
      END IF
     END IF
+   CASE 517'--menu item by true slot
+    menuslot = find_menu_handle(retvals(0))
+    IF valid_menuslot(menuslot) THEN
+     DIM menuitem AS MenuDefItem ptr = dlist_nth(menus(menuslot).itemlist, retvals(1))
+     IF menuitem THEN
+      scriptret = menuitem->handle
+     ELSE
+      scriptret = 0
+     END IF
+    END IF
+   CASE 518'--menu item true slot
+    mislot = find_menu_item_handle(retvals(0), menuslot)
+    IF valid_menuslot_and_mislot(menuslot, mislot) THEN
+     scriptret = dlist_find(menus(menuslot).itemlist, menus(menuslot).items[mislot])
+     IF scriptret < 0 THEN scripterr "menuitemtrueslot: dlist corruption", 7
+    END IF
     
    CASE ELSE '--try all the scripts implemented in subs (insanity!)
     scriptnpc cmdid

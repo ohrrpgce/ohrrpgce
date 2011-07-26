@@ -1631,28 +1631,48 @@ end</example>
 		<command id="firstmenuitem">
 			<canon>first menu item(menu handle)</canon>
 			<shortname>first menu item</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return a menu item handle for the menu item at the top of the menu.</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), return a menu item handle for the menu item at the top of the menu.</description>
+		</command>
+
+		<command id="menuitembytrueslot">
+			<canon>menu item by true slot(menu handle, slot)</canon>
+			<shortname>menu item by true slot</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), return a menu item handle for the menu item at the position specified by <p>slot</p>. The first slot in the menu is 0. This command uses the ordering of menu items as they appear in the Menu Editor in Custom.  The "true order" doesn't change as menu items are hidden or unhidden.</description>
+			<seealso>
+				<ref>menuitembyslot</ref>
+			</seealso>
+		</command>
+		<command id="menuitemtrueslot">
+			<canon>menu item true slot(menu item handle)</canon>
+			<shortname>menu item true slot</shortname>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>addmenuitem</ref>), return the slot number of the menu item, as it appears in Custom. The first slot in the menu is 0. The "true order" doesn't change as menu items are hidden or unhidden.</description>
+			<seealso>
+				<ref>menuitemslot</ref>
+				<ref>menuitembytrueslot</ref>
+			</seealso>
 		</command>
 		<command id="menuitembyslot">
 			<canon>menu item by slot(menu handle, slot, visible only)</canon>
 			<shortname>menu item by slot</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return a menu item handle for the menu item at the position specified by <p>slot</p>. The first slot in the menu is 0. You can optionally include invisible items by using the optional argument <p>visible only</p>, which defaults to <ref>true</ref>. Note that invisible menu items are always at the end of the menu, after the last visible menu item</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), return a menu item handle for the menu item at the position specified by <p>slot</p>. The first slot in the menu is 0. You can optionally include invisible items by using the optional argument <p>visible only</p>, which defaults to <ref>true</ref>. Note that invisible menu items are always at the end of the menu, after the last visible menu item -- menu items are NOT in the same order as they appear in the Menu Editor in Custom! This means menu item slot numbers change as menu items are hidden or unhidden. Use <ref>menuitembytrueslot</ref> if you want to use the order in Custom.</description>
 			<seealso>
 				<ref>menuitemslot</ref>
+				<ref>menuitembytrueslot</ref>
 			</seealso>
 		</command>
 		<command id="menuitemslot">
 			<canon>menu item slot(menu item handle)</canon>
 			<shortname>menu item slot</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>addmenuitem</ref>), return a the slot number of the menu item. The first slot in the menu is 0.</description>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>addmenuitem</ref>), return a the slot number of the menu item. The first slot in the menu is 0. Menu item slot numbers change as menu items are hidden or unhidden. Use <ref>menuitemtrueslot</ref> if you want to know the slot number as it appears in Custom.</description>
 			<seealso>
 				<ref>menuitembyslot</ref>
+				<ref>menuitemtrueslot</ref>
 			</seealso>
 		</command>
 		<command id="nextmenuitem">
 			<canon>next menu item(menu item handle, visible only)</canon>
 			<shortname>next menu item</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Return a menu item handle for the menu item below the specified one, or <ref>false</ref> there is no next menu item. You can optionally include invisible items by using the optional argument <p>visible only</p>, which defaults to <ref>true</ref>. Note that invisible menu items are always at the end of the menu, after the last visible menu item</description>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), return a menu item handle for the menu item below the specified one, or <ref>false</ref> there is no next menu item. You can optionally include invisible items by using the optional argument <p>visible only</p>, which defaults to <ref>true</ref>. Note that invisible menu items are always at the end of the menu, after the last visible menu item. See <ref>menuitembytrueslot</ref> if that's undesirable.</description>
 			<example>variable(mi)
 mi := first menu item
 while(mi) do, begin
@@ -1664,7 +1684,7 @@ end
 		<command id="previousmenuitem">
 			<canon>previous menu item(menu item handle, visible only)</canon>
 			<shortname>previous menu item</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Return a menu item handle for the menu item above the specified one, or <ref>false</ref> there is no previous menu item. You can optionally include invisible items by using the optional argument <p>visible only</p>, which defaults to <ref>true</ref>. Note that invisible menu items are always at the end of the menu, after the last visible menu item</description>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), return a menu item handle for the menu item above the specified one, or <ref>false</ref> there is no previous menu item. You can optionally include invisible items by using the optional argument <p>visible only</p>, which defaults to <ref>true</ref>. Note that invisible menu items are always at the end of the menu, after the last visible menu item. See <ref>menuitembytrueslot</ref> if that's undesirable.</description>
 			<example>variable(m)
 m := previous menu item(selected menu item)</example>
 		</command>

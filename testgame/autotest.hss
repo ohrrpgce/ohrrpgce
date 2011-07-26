@@ -873,6 +873,8 @@ script, menu scroll tests, begin
     assert (menu item slot(mi) == numitems)
     assert (menu item by slot(main, numitems, true) == mi)
     assert (menu item by slot(main, numitems, false) == mi)
+    assert (menu item true slot(mi) == numitems)
+    assert (menu item by true slot(main, numitems) == mi)
     next := next menu item(mi, false)
     if (next) then (
       assert (mi == previous menu item(next))
@@ -889,6 +891,8 @@ script, menu scroll tests, begin
   assert (menu item by slot(main, numitems, true) == 0)
   assert (menu item by slot(main, numitems, false) == 0)
   assert (menu item by slot(main, -1) == 0)
+  assert (menu item by true slot(main, -1) == 0)
+  assert (menu item by true slot(main, numitems) == 0)
 
   # test "select menu item"
   mi := first menu item(main)
@@ -941,6 +945,13 @@ script, menu scroll tests, begin
   if (menu item by slot(main, numitems -- 2, false) <> hidden2) then ($0="hidden items out of order", crash)
   if (menu item by slot(main, numitems -- 1, false) <> hidden3) then ($0="hidden items out of order", crash)
   assert (menu item by slot(main, numitems, false) == 0)
+
+  # 5. check "true order" hasn't changed
+  for (i, 0, num items -- 1) do (
+    mi := menu item by true slot(main, i)
+    assert (menu item true slot(mi) == i)
+    assert (get menu item extra(mi, 0) == i)
+  )
 
   # test scrolling again
   scroll through menu(main, numitems -- 3)

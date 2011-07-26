@@ -199,14 +199,14 @@ declare sub dlist_remove (byref this as DoubleList(Any), byval item as any ptr)
 'swap the positions of two items, already in (possibly different) lists
 declare sub dlist_swap (byref this as DoubleList(Any), byval item1 as any ptr, byref that as DoubleList(Any), byval item2 as any ptr)
 
-'returns 1-based index of item in the list, or 0 if not found
+'returns 0-based index of item in the list, or -1 if not found
 declare function dlist_find (byref this as DoubleList(Any), byval item as any ptr) as integer
 
 'Move along a list n spaces: positive is forward, negative backwards. Returns NULL past either end
 declare function dlist_walk (byref this as DoubleList(Any), byval startitem as any ptr, byval n as integer) as any ptr
 
-'the nth item in a list, counting from 1. NULL past end
-#define dlist_nth(this, n) dlist_walk((this), NULL, (n)-1)
+'the nth item in a list, counting from 0. NULL past end
+#define dlist_nth(this, n) dlist_walk((this), NULL, n)
 
 'declare sub dlist_print (byref this as DoubleList(Any))
 

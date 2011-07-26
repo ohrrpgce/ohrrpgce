@@ -35,6 +35,7 @@ WHAT IS NEW?
     * New "Ellipse" slice type, and related commands [James, Ralph]
     * "NPCstat: default movement zone" constant for "read/alter npc"
     * "assert" [Ralph]
+    * "menu item true slot", "menu item by true slot" [Ralph]
 
   * Vikings of Midgard
 
