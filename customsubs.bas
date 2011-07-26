@@ -3817,7 +3817,7 @@ SUB experience_chart ()
  DIM formdata(40) AS INTEGER
 
  DIM startfrom AS INTEGER = 3
- DIM menu(startfrom + current_max_level) AS STRING
+ DIM menu(startfrom + gen(genMaxLevel)) AS STRING
  menu(0) = "Previous menu..."
  DIM state AS MenuState
  WITH state
@@ -3880,7 +3880,7 @@ SUB experience_chart ()
    menu(3) = "Distributed to a party of: " & hero_count & " heroes"
    DIM suffix AS STRING
    DIM killcount AS STRING
-   FOR lev AS INTEGER = 1 TO current_max_level
+   FOR lev AS INTEGER = 1 TO gen(genMaxLevel)
     IF mode = 0 THEN
      suffix = "total " & total_exp_to_level(lev)
     ELSE
