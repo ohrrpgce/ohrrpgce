@@ -907,7 +907,7 @@ SELECT CASE b(17)
  CASE 1 ' Is a hero
   last = 19
   max(4) = gen(genMaxHero): IF b(18) > gen(genMaxHero) THEN b(18) = 0
-  max(19) = 99 ' Hero experience level
+  max(19) = gen(genMaxLevel) ' Hero experience level
  CASE 2 ' Is ... something else?
   last = 18
   max(4) = 999

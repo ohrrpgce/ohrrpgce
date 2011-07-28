@@ -2,7 +2,6 @@
 #define MORESUBS_BI
 
 DECLARE SUB addhero (who as integer, slot as integer, forcelevel as integer=-1)
-DECLARE FUNCTION atlevel (now as integer, a0 as integer, a99 as integer) as integer
 DECLARE FUNCTION averagelev () as integer
 DECLARE SUB calibrate
 DECLARE FUNCTION consumeitem (index as integer) as integer

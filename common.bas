@@ -4325,3 +4325,9 @@ END FUNCTION
 FUNCTION current_max_level() AS INTEGER
  RETURN small(gen(genLevelCap), gen(genMaxLevel))
 END FUNCTION
+
+FUNCTION atlevel (lev as integer, a0 as integer, aMax as integer) as integer
+ 'Stat at a given level, according to an arbitrary curve between two points.
+  IF lev < 0 THEN RETURN 0
+  RETURN (.8 + lev / 50) * lev * ((aMax - a0) / 275.222) + a0 + .1
+END FUNCTION

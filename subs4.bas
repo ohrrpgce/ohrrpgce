@@ -1214,7 +1214,7 @@ SUB statcapsmenu
  max(12) = 100 'MP~
  max(13) = 20  'Extra Hits
  max(14) = gen(genMaxLevel)  'Level cap is capped to Max Level
- max(15) = 99  'Max Level is capped to 99
+ max(15) = 99  'Max Level is capped to 99 ... FIXME: this could go higher!
  DO
   setwait 55
   setkeys

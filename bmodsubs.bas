@@ -788,11 +788,11 @@ SUB updatestatslevelup (i as integer, allowforget as integer)
 
   'update stats
   DIM n0 AS INTEGER
-  DIM n99 AS INTEGER
+  DIM nMax AS INTEGER
   FOR o AS INTEGER = 0 TO 11
    n0 = her.Lev0.sta(o)
-   n99 = her.LevMax.sta(o)
-   gam.hero(i).stat.max.sta(o) += (atlevel(gam.hero(i).lev, n0, n99) - atlevel(gam.hero(i).lev - gam.hero(i).lev_gain, n0, n99))
+   nMax = her.LevMax.sta(o)
+   gam.hero(i).stat.max.sta(o) += (atlevel(gam.hero(i).lev, n0, nMax) - atlevel(gam.hero(i).lev - gam.hero(i).lev_gain, n0, nMax))
  
    'simulate ancient levelup bug
    IF readbit(gen(), genBits, 9) = 1 THEN

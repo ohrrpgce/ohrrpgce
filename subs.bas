@@ -1345,7 +1345,7 @@ DO
   changed = 0
   IF (bctr AND 1) = 1 THEN ' odd numbers are level 0
    IF intgrabber(her.Lev0.sta((bctr - 1) \ 2), min(bctr), max(bctr), scLeftCaret, scRightCaret) THEN changed = -1
-  ELSE' even numbers are level 99
+  ELSE' even numbers are max level
    IF intgrabber(her.LevMax.sta((bctr - 2) \ 2), min(bctr), max(bctr), scLeftCaret, scRightCaret) THEN changed = -1
   END IF
   IF changed THEN GOSUB smi
@@ -1356,7 +1356,7 @@ DO
  printstr bmenu(0), 8, 0, dpage
  textcolor uilook(uiDescription), 0
  printstr "LEVEL ZERO", 8, 12, dpage
- printstr "LEVEL NINETY-NINE", 160, 12, dpage
+ printstr "LEVEL " & gen(genMaxLevel), 160, 12, dpage
  FOR i = 0 TO 11
   textcolor uilook(uiMenuItem), 0
   IF 1 + i * 2 = bctr THEN textcolor uilook(uiSelectedItem + tog), 0
@@ -1479,15 +1479,18 @@ graph:
 o = INT((bctr - 1) / 2)
 textcolor uilook(uiMenuItem), 0
 printstr statnames(o), 310 - LEN(statnames(o)) * 8, 180, dpage
-FOR i = 0 TO 99 STEP 4
- ii = (.8 * i / 50) * i
+stepper = ceil(gen(genMaxLevel) / 25)
+FOR i = 0 TO gen(genMaxLevel) STEP stepper
  n0 = her.Lev0.sta(o)
- n99 = her.LevMax.sta(o)
- ii = ii * ((n99 - n0) / 100) + n0
- ii = large(ii, 0)
- j = (ii) * (100 / max(bctr))
- rectangle 290 + (i / 4), 176 - j, 1, j + 1, uilook(uiMenuItem), dpage
+ nMax = her.LevMax.sta(o)
+ j = atlevel(i, n0, nMax) * (100 / max(bctr))
+ rectangle 290 + (i / stepper), 176 - j, 1, j + 1, uilook(uiMenuItem), dpage
 NEXT i
+IF keyval(scLeftShift) > 1 THEN
+ debug "0=" & atlevel(0, n0, nMax) & " max(" & gen(genMaxLevel) & ")=" & atlevel(gen(genMaxLevel), n0, nMax) & " 99=" & atlevel(99, n0, nMax)
+END IF
+IF keyval(scZ) > 1 THEN gen(genMaxLevel) -= 1 : debug "gen(genMaxLevel)=" & gen(genMaxLevel)
+IF keyval(scX) > 1 THEN gen(genMaxLevel) += 1 : debug "gen(genMaxLevel)=" & gen(genMaxLevel)
 RETRACE
 
 smi:
