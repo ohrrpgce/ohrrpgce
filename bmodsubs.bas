@@ -791,7 +791,7 @@ SUB updatestatslevelup (i as integer, allowforget as integer)
   DIM n99 AS INTEGER
   FOR o AS INTEGER = 0 TO 11
    n0 = her.Lev0.sta(o)
-   n99 = her.Lev99.sta(o)
+   n99 = her.LevMax.sta(o)
    gam.hero(i).stat.max.sta(o) += (atlevel(gam.hero(i).lev, n0, n99) - atlevel(gam.hero(i).lev - gam.hero(i).lev_gain, n0, n99))
  
    'simulate ancient levelup bug

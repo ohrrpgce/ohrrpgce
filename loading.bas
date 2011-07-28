@@ -1328,22 +1328,22 @@ end sub
 
 'this differs from the above because it loads two interleaved blocks of stats,
 'such as those found in the hero definitions.
-Sub LoadStats2(fh as integer, lev0 as stats ptr, lev99 as stats ptr)
+Sub LoadStats2(fh as integer, lev0 as stats ptr, levMax as stats ptr)
 	dim as integer i
-	if lev0 = 0 or lev99 = 0 then exit sub
+	if lev0 = 0 or levMax = 0 then exit sub
 	for i = 0 to 11
 		lev0->sta(i) = readShort(fh)
-		lev99->sta(i) = readShort(fh)
+		levMax->sta(i) = readShort(fh)
 	next i
 end sub
 
 'save interleaved stat blocks
-Sub SaveStats2(fh as integer, lev0 as stats ptr, lev99 as stats ptr)
-	if lev0 = 0 or lev99 = 0 then exit sub
+Sub SaveStats2(fh as integer, lev0 as stats ptr, levMax as stats ptr)
+	if lev0 = 0 or levMax = 0 then exit sub
 	dim as integer i
 	for i = 0 to 11
 		writeShort(fh,-1,lev0->sta(i))
-		writeShort(fh,-1,lev99->sta(i))
+		writeShort(fh,-1,levMax->sta(i))
 	next i
 end sub
 
@@ -1366,7 +1366,7 @@ Sub DeSerHeroDef(filename as string, hero as herodef ptr, record as integer)
 		.walk_sprite_pal   = readshort(f)
 		.def_level         = readshort(f)
 		.def_weapon        = readshort(f)
-		LoadStats2(f, @.Lev0, @.Lev99)
+		LoadStats2(f, @.Lev0, @.LevMax)
 		'get #f,, .spell_lists()
 		for i = 0 to 3
 			for j = 0 to 23 'have to do it this way in case FB reads arrays the wrong way
@@ -1422,7 +1422,7 @@ Sub SerHeroDef(filename as string, hero as herodef ptr, record as integer)
 		writeshort(f,-1,.walk_sprite_pal)
 		writeshort(f,-1,.def_level)
 		writeshort(f,-1,.def_weapon)
-		SaveStats2(f, @.Lev0, @.Lev99)
+		SaveStats2(f, @.Lev0, @.LevMax)
 		'get #f,, .spell_lists()
 		for i = 0 to 3
 			for j = 0 to 23 'have to do it this way in case FB reads arrays the wrong way

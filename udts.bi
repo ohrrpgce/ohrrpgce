@@ -607,7 +607,7 @@ Type HeroDef
 	def_level as integer
 	def_weapon as integer
 	Lev0 as stats
-	Lev99 as stats
+	LevMax as stats
 	spell_lists(3,23) as SpellList
 	elementals(maxElements - 1) as single
 	bits(2) as integer

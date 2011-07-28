@@ -66,7 +66,7 @@ eqstuf(slot, 0) = her.def_weapon + 1
 WITH gam.hero(slot).stat
  '--fill in stats
  FOR i = 0 TO 11
-  .cur.sta(i) = atlevel(her.def_level, her.Lev0.sta(i), her.Lev99.sta(i)) + wbuf(54 + i)
+  .cur.sta(i) = atlevel(her.def_level, her.Lev0.sta(i), her.LevMax.sta(i)) + wbuf(54 + i)
   .max.sta(i) = .cur.sta(i)
  NEXT i
 END WITH

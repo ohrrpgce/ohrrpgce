@@ -344,7 +344,7 @@ IF b(itemno * recordsize + 17) = 1 THEN
  loadherodata @her, b(itemno * recordsize + 18)
  loaditemdata wbuf(), her.def_weapon
  IF her.def_level < 0 THEN her.def_level = averagelev
- eqinfo$ = (atlevel(her.def_level, her.lev0.hp, her.lev99.hp) + wbuf(54 + 0)) & " " & statnames(statHP)
+ eqinfo$ = (atlevel(her.def_level, her.lev0.hp, her.levMax.hp) + wbuf(54 + 0)) & " " & statnames(statHP)
  showhero = her.sprite
  
  'Load the sprite for the hireable hero

@@ -1346,7 +1346,7 @@ DO
   IF (bctr AND 1) = 1 THEN ' odd numbers are level 0
    IF intgrabber(her.Lev0.sta((bctr - 1) \ 2), min(bctr), max(bctr), scLeftCaret, scRightCaret) THEN changed = -1
   ELSE' even numbers are level 99
-   IF intgrabber(her.Lev99.sta((bctr - 2) \ 2), min(bctr), max(bctr), scLeftCaret, scRightCaret) THEN changed = -1
+   IF intgrabber(her.LevMax.sta((bctr - 2) \ 2), min(bctr), max(bctr), scLeftCaret, scRightCaret) THEN changed = -1
   END IF
   IF changed THEN GOSUB smi
  END IF
@@ -1369,7 +1369,7 @@ DO
  IF (bctr - 1) \ 2 = 8 THEN 'Speed
   textcolor uilook(uiDescription), 0
   printstr "Lev0:  1 turn every " & speed_estimate(her.Lev0.spd), 0, 182, dpage
-  printstr "Lev99: 1 turn every " & speed_estimate(her.Lev99.spd), 0, 190, dpage
+  printstr "Lev" & gen(genMaxLevel) & ": 1 turn every " & speed_estimate(her.LevMax.spd), 0, 190, dpage
  END IF
  SWAP vpage, dpage
  setvispage vpage
@@ -1482,7 +1482,7 @@ printstr statnames(o), 310 - LEN(statnames(o)) * 8, 180, dpage
 FOR i = 0 TO 99 STEP 4
  ii = (.8 * i / 50) * i
  n0 = her.Lev0.sta(o)
- n99 = her.Lev99.sta(o)
+ n99 = her.LevMax.sta(o)
  ii = ii * ((n99 - n0) / 100) + n0
  ii = large(ii, 0)
  j = (ii) * (100 / max(bctr))
@@ -1493,7 +1493,7 @@ RETRACE
 smi:
 FOR i = 0 TO 11
  bmenu(i * 2 + 1) = statnames(i) & " " & her.Lev0.sta(i)
- bmenu(i * 2 + 2) = statnames(i) & " " & her.Lev99.sta(i)
+ bmenu(i * 2 + 2) = statnames(i) & " " & her.LevMax.sta(i)
 NEXT i
 RETRACE
 
