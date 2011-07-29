@@ -29,6 +29,7 @@ plotscript, run all tests, begin
   seed random(4444)
   math tests
   hero tests
+  npc tests
   menu tests
   textbox tests
   battle tests
@@ -724,6 +725,45 @@ script, hero stat growth test, begin
   )
   set hero level(0, 0, true)
   show no value, w
+end
+
+########################################################################
+
+script, npc tests, begin
+  npc movement tests(1)
+  npc movement tests(NPC reference(1))
+end
+
+script, npc movement tests, n, begin
+  $0="npc movement tests"
+  $10="n=", append number(10, n)
+  show string(0)
+  
+  # assert starting pos
+  assert(npc X(n) == 3)
+  assert(npc Y(n) == 5)
+  # walk in a circle, testing speed
+  set npc speed(n, 4)
+  walk npc(n, south, 1), w
+  wait for npc(n)
+  assert(npc Y(n) == 6)
+  set NPC speed(n, 5)
+  walk npc(n, east, 1), w
+  wait for npc(n)
+  assert(npc X(n) == 4)
+  set NPC speed(n, 10)
+  walk npc(n, north, 1), w
+  wait for npc(n)
+  assert(npc Y(n) == 5)
+  set NPC speed(n, 2)
+  walk npc(n, west, 1), w
+  wait for npc(n)
+  assert(npc X(n) == 3)
+  set npc speed(n, 4)
+  
+  set npc position(n, 3, 5)
+  
+  show no value
 end
 
 ########################################################################
