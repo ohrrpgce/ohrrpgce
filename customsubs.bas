@@ -14,6 +14,7 @@
 #include "cglobals.bi"
 #include "reload.bi"
 #include "slices.bi"
+#include "string.bi"
 
 #include "customsubs.bi"
 
@@ -3899,6 +3900,85 @@ SUB experience_chart ()
   clearpage vpage
   draw_fullscreen_scrollbar state, , vpage
   standardmenu menu(), state, 0, 0, vpage, 0, , 40
+  setvispage vpage
+  dowait
+ LOOP 
+END SUB
+
+SUB stat_growth_chart ()
+ 'midpoint should stored in gen()
+ DIM midpoint AS DOUBLE = 0.3219  'default to current
+ DIM midpoint_repr AS STRING = format_percent(midpoint, 3)
+
+ DIM menu(2) AS STRING
+ menu(0) = "Previous menu..."
+ DIM state AS MenuState
+ WITH state
+  .size = 24
+  .last = UBOUND(menu)
+  .need_update = YES
+ END WITH
+
+ DIM preview_lev AS INTEGER = gen(genMaxLevel) \ 2
+
+ 'Position and size of the graph
+ DIM rect AS RectType
+ rect.x = 150
+ rect.y = 40
+ rect.wide = 150
+ rect.high = 140
+ DIM origin_y = rect.y + rect.high
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "stat_growth"
+  usemenu state
+  IF enter_or_space() THEN
+   IF state.pt = 0 THEN EXIT DO
+  END IF
+  IF state.pt = 1 THEN
+   state.need_update = percent_grabber(midpoint, midpoint_repr, -0.2, 1.2, 3)
+  ELSEIF state.pt = 2 THEN
+   state.need_update = intgrabber(preview_lev, 0, gen(genMaxLevel))
+  END IF
+
+  IF state.need_update THEN
+   menu(1) = "Fix value at level " & FORMAT(gen(genMaxLevel) / 2, ".#") & " : " & midpoint_repr
+   menu(2) = "Preview: at level " & preview_lev & " = " & FORMAT(atlevel_quadratic(preview_lev, 0, 100, midpoint), ".##") & "%"  ' of Level" & gen(genMaxLevel) & " value"
+   state.need_update = NO
+  END IF
+
+  'Draw screen
+  clearpage vpage
+  standardmenu menu(), state, 0, 0, vpage, 0, , 40
+
+  'Draw a 150x150 graph
+  'axes
+  drawline rect.x, origin_y, rect.x, rect.y, uilook(uiDisabledItem), vpage
+  drawline rect.x, origin_y, rect.x + rect.wide, origin_y, uilook(uiDisabledItem), vpage
+  'line (drawn so that if genMaxLevel is small, you get a lot of steps, and never sloped line segments)
+  DIM lasty AS DOUBLE
+  FOR x AS INTEGER = 0 TO rect.wide - 1
+   DIM lev AS INTEGER = INT((gen(genMaxLevel) + 1) * x / rect.wide)  'floor
+   DIM y AS DOUBLE = atlevel_quadratic(lev, 0, rect.high - 1, midpoint)
+   IF x = 0 THEN lasty = y
+   drawline x + rect.x, origin_y - y, x + rect.x, origin_y - lasty, uilook(uiHighlight), vpage
+   lasty = y
+  NEXT
+
+  'Draw crosshair
+  DIM crosshair_lev AS DOUBLE
+  IF state.pt = 2 THEN crosshair_lev = preview_lev ELSE crosshair_lev = gen(genMaxLevel) / 2
+  DIM AS DOUBLE crosshairx, crosshairy  'in pixels
+  crosshairx = rect.wide * crosshair_lev / gen(genMaxLevel)
+  crosshairy = atlevel_quadratic(crosshair_lev, 0, rect.high - 1, midpoint)
+  drawline rect.x + crosshairx - 3, origin_y - crosshairy, rect.x + crosshairx + 3, origin_y - crosshairy, uilook(uiHighlight2), vpage
+  drawline rect.x + crosshairx, origin_y - crosshairy - 3, rect.x + crosshairx, origin_y - crosshairy + 3, uilook(uiHighlight2), vpage
+
   setvispage vpage
   dowait
  LOOP 

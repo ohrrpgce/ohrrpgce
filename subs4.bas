@@ -1095,10 +1095,11 @@ SUB generate_battlesystem_menu(menu() as string)
  menu(14) = "Hero Weak state below: " & gen(genHeroWeakHP) & "% " & statnames(statHP)
  menu(15) = "Enemy Weak state below: " & gen(genEnemyWeakHP) & "% " & statnames(statHP)
  menu(17) = "View Experience Chart..."
+ menu(18) = "Stat Growth Options..."
 END SUB
 
 SUB battleoptionsmenu ()
- CONST maxMenu = 17
+ CONST maxMenu = 18
  DIM menu(maxMenu) AS STRING
  DIM min(maxMenu), max(maxMenu)
  DIM index(maxMenu)
@@ -1160,6 +1161,7 @@ SUB battleoptionsmenu ()
    IF state.pt = 1 THEN statcapsmenu
    IF state.pt = 2 THEN equipmergemenu
    IF state.pt = 17 THEN experience_chart
+   IF state.pt = 18 THEN stat_growth_chart
 
    IF min(state.pt) = 32 AND max(state.pt) = 255 THEN  'Character field
     DIM d as string = charpicker

@@ -4331,3 +4331,15 @@ FUNCTION atlevel (lev as integer, a0 as integer, aMax as integer) as integer
   IF lev < 0 THEN RETURN 0
   RETURN (.8 + lev / 50) * lev * ((aMax - a0) / 275.222) + a0 + .1
 END FUNCTION
+
+FUNCTION atlevel_quadratic (BYVAL lev as double, BYVAL a0 as double, BYVAL aMax as double, BYVAL midpercent as double) as double
+  'Stat at a given level, according to an arbitrary curve between two points.
+  'CHECKME: Is it actually alright to return a double?
+  IF lev < 0 THEN RETURN 0
+  IF gen(genMaxLevel) <= 0 THEN RETURN aMax
+  DIM AS DOUBLE a, b  'quadratic coefficients (c=0 fixed)
+  b = 4 * midpercent - 1
+  a = 1 - b
+  DIM AS DOUBLE x = lev / gen(genMaxLevel)
+  RETURN (a * x^2 + b * x) * (aMax - a0) + a0 + .1
+END FUNCTION

@@ -219,6 +219,7 @@ DECLARE FUNCTION exptolevel (level as integer) as integer
 DECLARE FUNCTION total_exp_to_level (level as integer) as integer
 DECLARE FUNCTION current_max_level() AS INTEGER
 DECLARE FUNCTION atlevel (lev as integer, a0 as integer, aMax as integer) as integer
+DECLARE FUNCTION atlevel_quadratic (BYVAL lev as double, BYVAL a0 as double, BYVAL aMax as double, BYVAL midpercent as double) as double
 
 'Global variables
 EXTERN sourcerpg as string
