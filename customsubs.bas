@@ -14,7 +14,6 @@
 #include "cglobals.bi"
 #include "reload.bi"
 #include "slices.bi"
-#include "string.bi"
 
 #include "customsubs.bi"
 
@@ -3908,7 +3907,7 @@ END SUB
 SUB stat_growth_chart ()
  'midpoint should stored in gen()
  DIM midpoint AS DOUBLE = 0.3219  'default to current
- DIM midpoint_repr AS STRING = format_percent(midpoint, 3)
+ DIM midpoint_repr AS STRING = format_percent(midpoint, 4)
 
  DIM menu(2) AS STRING
  menu(0) = "Previous menu..."
@@ -3941,14 +3940,14 @@ SUB stat_growth_chart ()
    IF state.pt = 0 THEN EXIT DO
   END IF
   IF state.pt = 1 THEN
-   state.need_update = percent_grabber(midpoint, midpoint_repr, -0.2, 1.2, 3)
+   state.need_update = percent_grabber(midpoint, midpoint_repr, -0.1, 1.2, 4)
   ELSEIF state.pt = 2 THEN
    state.need_update = intgrabber(preview_lev, 0, gen(genMaxLevel))
   END IF
 
   IF state.need_update THEN
-   menu(1) = "Fix value at level " & FORMAT(gen(genMaxLevel) / 2, ".#") & " : " & midpoint_repr
-   menu(2) = "Preview: at level " & preview_lev & " = " & FORMAT(atlevel_quadratic(preview_lev, 0, 100, midpoint), ".##") & "%"  ' of Level" & gen(genMaxLevel) & " value"
+   menu(1) = "Fix value at level " & (gen(genMaxLevel) / 2) & " : " & midpoint_repr
+   menu(2) = "Preview: at level " & preview_lev & " = " & format_percent(atlevel_quadratic(preview_lev, 0, 1000000, midpoint) / 1000000, 4)  ' of Level" & gen(genMaxLevel) & " value"
    state.need_update = NO
   END IF
 
@@ -3964,7 +3963,7 @@ SUB stat_growth_chart ()
   DIM lasty AS DOUBLE
   FOR x AS INTEGER = 0 TO rect.wide - 1
    DIM lev AS INTEGER = INT((gen(genMaxLevel) + 1) * x / rect.wide)  'floor
-   DIM y AS DOUBLE = atlevel_quadratic(lev, 0, rect.high - 1, midpoint)
+   DIM y AS DOUBLE = atlevel_quadratic(lev, 0, rect.high * 100, midpoint) / 100
    IF x = 0 THEN lasty = y
    drawline x + rect.x, origin_y - y, x + rect.x, origin_y - lasty, uilook(uiHighlight), vpage
    lasty = y
@@ -3975,7 +3974,7 @@ SUB stat_growth_chart ()
   IF state.pt = 2 THEN crosshair_lev = preview_lev ELSE crosshair_lev = gen(genMaxLevel) / 2
   DIM AS DOUBLE crosshairx, crosshairy  'in pixels
   crosshairx = rect.wide * crosshair_lev / gen(genMaxLevel)
-  crosshairy = atlevel_quadratic(crosshair_lev, 0, rect.high - 1, midpoint)
+  crosshairy = atlevel_quadratic(crosshair_lev, 0, rect.high * 100, midpoint) / 100
   drawline rect.x + crosshairx - 3, origin_y - crosshairy, rect.x + crosshairx + 3, origin_y - crosshairy, uilook(uiHighlight2), vpage
   drawline rect.x + crosshairx, origin_y - crosshairy - 3, rect.x + crosshairx, origin_y - crosshairy + 3, uilook(uiHighlight2), vpage
 
