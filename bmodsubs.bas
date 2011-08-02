@@ -670,16 +670,21 @@ SUB setbatcap (BYREF bat AS BattleState, cap as string, captime as integer, capd
  bat.caption_delay = capdelay
 END SUB
 
-SUB battle_target_arrows_mask (inrange() as integer, d as integer, axis as integer, bslot() AS BattleSprite, targ AS TargettingState)
- DIM distance AS INTEGER
+'This picks out the targets which are within a 90 degree wide sector
+SUB battle_target_arrows_sector_mask (inrange() as integer, d as integer, axis as integer, bslot() AS BattleSprite, targ AS TargettingState, foredistance() as integer, sidedistance() as integer)
+ DIM AS INTEGER xdistance, ydistance
  FOR i AS INTEGER = 0 TO 11
   IF targ.mask(i) THEN
+   ydistance = (bslot(i).y - bslot(targ.pointer).y) * d
+   xdistance = (bslot(i).x - bslot(targ.pointer).x) * d
    IF axis THEN
-    distance = (bslot(i).y - bslot(targ.pointer).y) * d
+    foredistance(i) = ydistance
+    sidedistance(i) = xdistance
    ELSE
-    distance = (bslot(i).x - bslot(targ.pointer).x) * d
+    foredistance(i) = xdistance
+    sidedistance(i) = ydistance
    END IF
-   IF distance > 0 THEN
+   IF foredistance(i) > 0 AND ABS(sidedistance(i)) <= foredistance(i) THEN
     setbit inrange(), 0, i, 1
    END IF
   END IF
@@ -687,28 +692,49 @@ SUB battle_target_arrows_mask (inrange() as integer, d as integer, axis as integ
 END SUB
 
 SUB battle_target_arrows (d as integer, axis as integer, bslot() AS BattleSprite, BYREF targ AS TargettingState, allow_spread as integer=0)
+ DIM newptr AS INTEGER = targ.pointer
+
+ 'first, special case for target at same position at current
+ DIM idx AS INTEGER = targ.pointer
+ FOR i AS INTEGER = 1 TO 11
+  idx += d  'search through slots according to direction, but don't loop
+  IF idx < 0 OR idx > UBOUND(bslot) THEN EXIT FOR
+  IF bslot(idx).x = bslot(targ.pointer).x AND bslot(idx).y = bslot(targ.pointer).y THEN
+   targ.pointer = idx
+   EXIT SUB
+  END IF
+ NEXT
+
+ '--look for a nearby target within a 90 degree wide "sector" in the right direction
+ DIM AS INTEGER foredistance(11), sidedistance(11)
  DIM inrange(0)
  inrange(0) = 0
- battle_target_arrows_mask inrange(), d, axis, bslot(), targ
+ battle_target_arrows_sector_mask inrange(), d, axis, bslot(), targ, foredistance(), sidedistance()
  IF inrange(0) THEN
-  DIM best AS INTEGER = 999
-  DIM newptr AS INTEGER = targ.pointer
-  DIM distance AS INTEGER
+  DIM best AS INTEGER = 99999
   FOR i AS INTEGER = 0 TO 11
    IF readbit(inrange(), 0, i) THEN
-    IF axis THEN
-     distance = (bslot(i).y - bslot(targ.pointer).y) * d
-    ELSE
-     distance = (bslot(i).x - bslot(targ.pointer).x) * d
-    END IF
-    IF distance < best THEN
-     best = distance
+    IF foredistance(i) < best THEN
+     best = foredistance(i)
      newptr = i
     END IF
    END IF
   NEXT i
-  targ.pointer = newptr
- ELSE
+ END IF
+ IF newptr = targ.pointer THEN
+  DIM bestangle AS DOUBLE = 999.
+  DIM angle AS DOUBLE
+  FOR i AS INTEGER = 0 TO 11
+   IF targ.mask(i) AND foredistance(i) > 0 THEN
+    angle = ABS(ATAN2(sidedistance(i), foredistance(i)))
+    IF angle < bestangle THEN
+     bestangle = angle
+     newptr = i
+    END IF
+   END IF
+  NEXT i
+ END IF 
+ IF newptr = targ.pointer THEN
   IF allow_spread = YES AND targ.opt_spread = 1 THEN
    FOR i AS INTEGER = 0 TO 11
     targ.selected(i) = targ.mask(i)
@@ -716,6 +742,7 @@ SUB battle_target_arrows (d as integer, axis as integer, bslot() AS BattleSprite
    targ.opt_spread = 2
   END IF
  END IF
+ targ.pointer = newptr
 END SUB
 
 FUNCTION targetmaskcount (tmask() as integer) as integer
