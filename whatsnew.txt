@@ -9,6 +9,7 @@ WHAT IS NEW?
       tree with the slice collection editor [Ralph]
     * A general game option to change how the inventory Autosort
       option works [Ralph]
+    * Master Palettes menu: added export option [Ralph]
 
   * Bugfixes
     * Wrong names used for reserve party heroes who level during

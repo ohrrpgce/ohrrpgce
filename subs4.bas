@@ -8,6 +8,7 @@ DEFINT A-Z
 
 #include "config.bi"
 #include "allmodex.bi"
+#include "gfx_newRenderPlan.bi"  'for Surface
 #include "common.bi"
 #include "bcommon.bi"
 #include "customsubs.bi"
@@ -17,6 +18,9 @@ DEFINT A-Z
 #include "scrconst.bi"
 #include "uiconst.bi"
 #include "loading.bi"
+
+'FIXME: Not yet exposed in allmodex.bi
+declare sub surface_export_bmp24 (f as string, byval surf as Surface Ptr)
 
 'local subs and functions
 DECLARE SUB generalscriptsmenu ()
@@ -756,8 +760,32 @@ RETRACE
 
 END SUB
 
+SUB export_master_palette ()
+ DIM filename as string
+
+ filename = inputfilename("Name of 24 bit BMP file to export to?", ".bmp", "", "input_file_export_masterpal")
+ IF filename = "" THEN EXIT SUB
+ filename &= ".bmp"
+
+ 'FIXME: use this once rasterizer is always linked and Staging surfaces added
+ 'DIM outsurf as Surface ptr
+ 'gfx_surfaceCreate(16, 16, SF_32bit, SU_Staging, @outsurf)
+
+ DIM outsurf as Surface
+ outsurf.width = 16
+ outsurf.height = 16
+ outsurf.format = SF_32bit
+ outsurf.pColorData = ALLOCATE(16 * 16 * 4)
+ FOR i as integer = 0 TO 255
+  outsurf.pColorData[i] = master(i).col
+ NEXT
+ surface_export_bmp24(filename, @outsurf)
+ 'gfx_surfaceDestroy(outsurf)
+ DEALLOCATE(outsurf.pColorData)
+END SUB
+
 SUB masterpalettemenu
-DIM menu(7) AS STRING, oldpal
+DIM menu(8) AS STRING, oldpal
 
 csr = 1
 palnum = activepalette
@@ -816,17 +844,19 @@ DO
      GOSUB buildmenu
     END IF
   CASE 3
-    ui_color_editor palnum
+    export_master_palette
   CASE 4
+    ui_color_editor palnum
+  CASE 5
     nearestui activepalette, master(), uilook()
     SaveUIColors uilook(), palnum
-  CASE 5
+  CASE 6
     LoadUIColors uilook(), activepalette
     SaveUIColors uilook(), palnum
-  CASE 6
+  CASE 7
     gen(genMasterPal) = palnum
     GOSUB buildmenu
-  CASE 7
+  CASE 8
     activepalette = palnum
     GOSUB buildmenu
   END SELECT
@@ -835,7 +865,7 @@ DO
  'draw the menu
  clearpage dpage
  FOR i = 0 TO UBOUND(menu)
-  IF (i = 6 AND palnum = gen(genMasterPal)) OR ((i = 4 OR i = 5 OR i = 7) AND palnum = activepalette) THEN
+  IF (i = 7 AND palnum = gen(genMasterPal)) OR ((i = 5 OR i = 6 OR i = 8) AND palnum = activepalette) THEN
    col = uilook(uiDisabledItem)
    IF csr = i THEN col = uilook(uiSelectedDisabled + tog)
   ELSE
@@ -849,7 +879,7 @@ DO
  FOR i = 0 TO 255
   rectangle 34 + (i MOD 16) * 16, 78 + (i \ 16) * 7, 12, 5, i, dpage
  NEXT
- IF csr = 3 OR csr = 4 OR csr = 5 THEN
+ IF csr = 4 OR csr = 5 OR csr = 6 THEN
   FOR i = 0 TO uiColors
    drawbox 33 + (uilook(i) MOD 16) * 16, 77 + (uilook(i) \ 16) * 7, 14, 7, uilook(uiHighlight + tog), 1, dpage
   NEXT
@@ -872,18 +902,19 @@ buildmenu:
 menu(0) = "Previous Menu"
 menu(1) = "<- Master Palette " & palnum & " ->"
 menu(2) = "Replace this Master Palette"
-menu(3) = "Edit User Interface Colors..."
-menu(4) = "Nearest-match active palette's UI colors"
-menu(5) = "Copy active palette's UI data"
+menu(3) = "Export this palette"
+menu(4) = "Edit User Interface Colors..."
+menu(5) = "Nearest-match active palette's UI colors"
+menu(6) = "Copy active palette's UI data"
 IF palnum = gen(genMasterPal) THEN
- menu(6) = "Current default in-game Master Palette"
+ menu(7) = "Current default in-game Master Palette"
 ELSE
- menu(6) = "Set as in-game Master Palette"
+ menu(7) = "Set as in-game Master Palette"
 END IF
 IF palnum = activepalette THEN
- menu(7) = "Current active editing palette"
+ menu(8) = "Current active editing palette"
 ELSE
- menu(7) = "Set as active editing palette"
+ menu(8) = "Set as active editing palette"
 END IF
 RETRACE
 

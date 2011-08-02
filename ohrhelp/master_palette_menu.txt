@@ -6,7 +6,7 @@ The active editing palette is the master palette being used for the current edit
 
 You can replace the selected palette, or add a new one by pressing Right at the last palette.
 
-Master palettes can be imported either from a 256-color .BMP file of any size, a 16x16 24-bit color .BMP where each pixel is a color, or the old uneditable .MAS format.
+Master palettes can be imported either from a 256-color .BMP file of any size, a 16x16 24-bit color .BMP where each pixel is a color, or the old uneditable .MAS format. The Export option on this menu saves a palette as a 16x16 24-bit .BMP.
 
 Each color used as a UI color is highlighted when selecting a relevant menu option.
 
