@@ -1200,9 +1200,9 @@ FOR i = 0 TO lev
 NEXT i
 END SUB
 
-FUNCTION runscript (id as integer, index as integer, newcall as integer, er as string, trigger as integer) as integer
-'newcall: whether his script is triggered rather than called from a script, and
-'therefore whether "no double-triggering" should take effect.
+FUNCTION runscript (id as integer, index as integer, newcall as integer, double_trigger_check as integer, er as string, trigger as integer) as integer
+'newcall: whether his script is triggered rather than called from a script
+'double_trigger_check: whether "no double-triggering" should take effect
 
 IF trigger <> 0 THEN n = decodetrigger(id, trigger) ELSE n = id
 
@@ -1217,7 +1217,7 @@ IF index > 127 THEN
  EXIT FUNCTION
 END IF
 
-IF newcall AND index > 0 THEN
+IF double_trigger_check AND index > 0 THEN
  IF n = scrat(index - 1).id AND readbit(gen(), 101, 10) = 0 THEN
   'fail quietly
   '--scripterr "script " & n & " is already running"
@@ -1271,7 +1271,7 @@ WITH scrat(index)
   heap(.heap + i) = 0
  NEXT i
 
- '--suspend the previous script...Why was I doing this?
+ '--suspend the previous script
  IF newcall AND index > 0 THEN
   scrat(index - 1).state *= -1
  END IF
@@ -1853,7 +1853,7 @@ DO
     END IF
     IF storebuf(19) > 0 THEN
      '--Run animation for Inn
-     rsr = runscript(storebuf(19), nowscript + 1, -1, "inn", plottrigger)
+     rsr = runscript(storebuf(19), nowscript + 1, YES, NO, "inn", plottrigger)
      IF rsr = 1 THEN
       EXIT DO
      END IF

@@ -459,7 +459,7 @@ ELSE
  clearpage 1
  addhero 1, 0
  IF gen(genNewGameScript) > 0 THEN
-  runscript(gen(genNewGameScript), nowscript + 1, -1, "newgame", plottrigger)
+  runscript(gen(genNewGameScript), nowscript + 1, YES, YES, "newgame", plottrigger)
  END IF
  prepare_map
 END IF
@@ -650,7 +650,7 @@ DO
     END IF
    ELSE
     'trigger the instead-of-battle script
-    rsr = runscript(gmap(13), nowscript + 1, -1, "rand-battle", plottrigger)
+    rsr = runscript(gmap(13), nowscript + 1, YES, YES, "rand-battle", plottrigger)
     IF rsr = 1 THEN
      setScriptArg 0, batform
      setScriptArg 1, temp
@@ -665,7 +665,7 @@ DO
   txt.showing = NO
   txt.fully_shown = NO
   IF gen(genGameoverScript) > 0 THEN
-   rsr = runscript(gen(genGameoverScript), nowscript + 1, -1, "death", plottrigger)
+   rsr = runscript(gen(genGameoverScript), nowscript + 1, YES, NO, "death", plottrigger)
    IF rsr = 1 THEN
     fatal = 0
     needf = 2
@@ -744,7 +744,7 @@ SUB doloadgame(BYVAL load_slot AS INTEGER)
  init_default_text_colors
  IF gen(genLoadGameScript) > 0 THEN
   DIM rsr AS INTEGER
-  rsr = runscript(gen(genLoadGameScript), nowscript + 1, -1, "loadgame", plottrigger)
+  rsr = runscript(gen(genLoadGameScript), nowscript + 1, YES, YES, "loadgame", plottrigger)
   IF rsr = 1 THEN
    '--pass save slot as argument
    IF load_slot = 32 THEN
@@ -983,7 +983,7 @@ SUB update_heroes(BYVAL force_npc_check AS INTEGER=NO)
   END IF
   IF gmap(14) > 0 THEN
    DIM rsr AS INTEGER
-   rsr = runscript(gmap(14), nowscript + 1, -1, "eachstep", plottrigger)
+   rsr = runscript(gmap(14), nowscript + 1, YES, YES, "eachstep", plottrigger)
    IF rsr = 1 THEN
     setScriptArg 0, catx(0) \ 20
     setScriptArg 1, caty(0) \ 20
@@ -2173,7 +2173,7 @@ SUB dotimer(byval l as integer)
             end if
 
             if .trigger > -1 then 'plotscript
-              rsr = runscript(.trigger, nowscript + 1, -1, "timer", 0)
+              rsr = runscript(.trigger, nowscript + 1, YES, NO, "timer", 0)
               IF rsr = 1 THEN
                 setScriptArg 0, i
               END IF
@@ -2243,7 +2243,7 @@ SUB remove_menu (slot AS INTEGER, BYVAL run_on_close AS INTEGER=YES)
  END IF
  IF menus(topmenu).on_close <> 0 AND run_on_close THEN
   DIM rsr AS INTEGER
-  rsr = runscript(menus(topmenu).on_close, nowscript + 1, -1, "menu on-close", plottrigger)
+  rsr = runscript(menus(topmenu).on_close, nowscript + 1, YES, YES, "menu on-close", plottrigger)
  END IF
  ClearMenuData menus(topmenu)
  topmenu = topmenu - 1
@@ -2393,7 +2393,7 @@ FUNCTION activate_menu_item(mi AS MenuDefItem, BYVAL menuslot AS INTEGER, BYVAL 
      menu_text_box = .sub_t
     CASE 4 ' Run Script
      DIM rsr AS INTEGER
-     rsr = runscript(.sub_t, nowscript + 1, newcall, "menuitem", plottrigger)
+     rsr = runscript(.sub_t, nowscript + 1, newcall, newcall, "menuitem", plottrigger)
      IF rsr = 1 THEN
       IF menus(topmenu).allow_gameplay THEN
        'Normally, pass a menu item handle
@@ -2741,14 +2741,14 @@ SUB prepare_map (afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
  DIM rsr AS INTEGER
  IF afterbat = NO THEN
   IF gmap(7) > 0 THEN
-   rsr = runscript(gmap(7), nowscript + 1, -1, "map", plottrigger)
+   rsr = runscript(gmap(7), nowscript + 1, YES, YES, "map", plottrigger)
    IF rsr = 1 THEN
     setScriptArg 0, gmap(8)
    END IF
   END IF
  ELSE
   IF gmap(12) > 0 THEN
-   rsr = runscript(gmap(12), nowscript + 1, -1, "afterbattle", plottrigger)
+   rsr = runscript(gmap(12), nowscript + 1, YES, NO, "afterbattle", plottrigger)
    IF rsr = 1 THEN
     '--afterbattle script gets one arg telling if you won or ran
     setScriptArg 0, gam.wonbattle
@@ -2937,7 +2937,7 @@ SUB advance_text_box ()
  '---JUMP TO NEXT TEXT BOX--------
  IF istag(txt.box.after_tag, 0) THEN
   IF txt.box.after < 0 THEN
-   runscript(-txt.box.after, nowscript + 1, -1, "textbox", plottrigger)
+   runscript(-txt.box.after, nowscript + 1, YES, YES, "textbox", plottrigger)
   ELSE
    loadsay txt.box.after
    EXIT SUB
@@ -3370,7 +3370,7 @@ SUB usenpc(BYVAL cause AS INTEGER, BYVAL npcnum AS INTEGER)
  END IF
  IF npcs(id).script > 0 THEN
   '--summon a script directly from an NPC
-  DIM rsr AS INTEGER = runscript(npcs(id).script, nowscript + 1, -1, "NPC", plottrigger)
+  DIM rsr AS INTEGER = runscript(npcs(id).script, nowscript + 1, YES, YES, "NPC", plottrigger)
   IF rsr = 1 THEN
    setScriptArg 0, npcs(id).scriptarg
    setScriptArg 1, (npcnum + 1) * -1 'reference

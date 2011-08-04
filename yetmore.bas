@@ -695,7 +695,7 @@ SUB onkeyscript (byval scriptnum as integer)
  END IF
 
  IF doit THEN
-  runscript scriptnum, nowscript + 1, -1, "on-key", plottrigger
+  runscript scriptnum, nowscript + 1, YES, YES, "on-key", plottrigger
  END IF
 
 END SUB
@@ -1292,7 +1292,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 176'--run script by id
   DIM rsr AS INTEGER
-  rsr = runscript(retvals(0), nowscript + 1, 0, "indirect", plottrigger) 'possible to get ahold of triggers
+  rsr = runscript(retvals(0), nowscript + 1, NO, NO, "indirect", plottrigger) 'possible to get ahold of triggers
   IF rsr = 1 THEN
    '--fill heap with return values
    FOR i AS INTEGER = 1 TO scrat(nowscript - 1).curargc - 1  'flexible argument number! (note that argc has been saved here by runscript)
@@ -3218,7 +3218,7 @@ IF vstate.init_dismount THEN '--dismount---------------
  END IF
 END IF
 IF vstate.trigger_cleanup THEN '--clear
- IF vstate.dat.on_dismount < 0 THEN runscript(ABS(vstate.dat.on_dismount), nowscript + 1, -1, "vehicle on-dismount", plottrigger)
+ IF vstate.dat.on_dismount < 0 THEN runscript(ABS(vstate.dat.on_dismount), nowscript + 1, YES, YES, "vehicle on-dismount", plottrigger)
  IF vstate.dat.on_dismount > 0 THEN loadsay vstate.dat.on_dismount
  settag vstate.dat.riding_tag, NO
  IF vstate.dat.dismount_ahead = YES AND vstate.dat.pass_walls_while_dismounting = NO THEN
@@ -3269,7 +3269,7 @@ IF vstate.active = YES AND vehicle_is_animating() = NO THEN
       '--dismount
       vehicle_graceful_dismount
      CASE IS > 0
-      runscript(button(i), nowscript + 1, -1, "vehicle button" & i, plottrigger)
+      runscript(button(i), nowscript + 1, YES, YES, "vehicle button" & i, plottrigger)
     END SELECT
    END IF
   NEXT i
@@ -3532,7 +3532,7 @@ SUB vehscramble(BYREF mode_val AS INTEGER, BYVAL trigger_cleanup AS INTEGER, BYV
  NEXT i
  IF tmp = 4 THEN
   mode_val = NO
-  IF vstate.dat.on_mount < 0 THEN runscript(ABS(vstate.dat.on_mount), nowscript + 1, -1, "vehicle on-mount", plottrigger)
+  IF vstate.dat.on_mount < 0 THEN runscript(ABS(vstate.dat.on_mount), nowscript + 1, YES, YES, "vehicle on-mount", plottrigger)
   IF vstate.dat.on_mount > 0 THEN loadsay vstate.dat.on_mount
   herospeed(0) = vstate.dat.speed
   IF herospeed(0) = 3 THEN herospeed(0) = 10
@@ -3558,7 +3558,7 @@ DO '--This loop is where we find which box will be displayed right now
  IF istag(txt.box.instead_tag, 0) THEN
   '--do something else instead
   IF txt.box.instead < 0 THEN
-   rsr = runscript(-txt.box.instead, nowscript + 1, -1, "instead", plottrigger)
+   rsr = runscript(-txt.box.instead, nowscript + 1, YES, YES, "instead", plottrigger)
    txt.sayer = -1
    EXIT SUB
   ELSE

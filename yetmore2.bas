@@ -80,7 +80,7 @@ IF vstate.active THEN
   loadsay vstate.dat.on_dismount
  END IF
  IF vstate.dat.on_dismount < 0 THEN
-  rsr = runscript(ABS(vstate.dat.on_dismount), nowscript + 1, -1, "dismount", plottrigger)
+  rsr = runscript(ABS(vstate.dat.on_dismount), nowscript + 1, YES, YES, "dismount", plottrigger)
  END IF
  settag vstate.dat.riding_tag, NO
  herospeed(0) = vstate.old_speed

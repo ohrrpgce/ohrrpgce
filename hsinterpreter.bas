@@ -144,7 +144,7 @@ DO
       END SELECT
       '.state = streturn'---return
      CASE tyscript
-      rsr = runscript(curcmd->value, nowscript + 1, 0, "indirect", 0)
+      rsr = runscript(curcmd->value, nowscript + 1, NO, NO, "indirect", 0)
       IF rsr = 1 THEN
        '--fill heap with return values
        FOR i = .curargc - 1 TO 0 STEP -1   '--be VERY careful... runscript set curargc, WITH points to nowscript-1
