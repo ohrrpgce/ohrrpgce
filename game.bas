@@ -1328,7 +1328,7 @@ WITH scrat(nowscript)
      END IF
     CASE 4'--wait for NPC
      npcref = getnpcref(.waitarg, 0)
-     IF npcref >= 0 THEN
+     IF npcref >= 0 ANDALSO .waitarg2 = gam.map.id THEN
       IF npc(npcref).xgo = 0 AND npc(npcref).ygo = 0 THEN
        .state = streturn
       END IF

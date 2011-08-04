@@ -911,9 +911,10 @@ SELECT CASE AS CONST id
    scrat(nowscript).waitarg = retvals(0)
    scrat(nowscript).state = stwait
   END IF
- CASE 4'--wait for NPC
+ CASE 4'--waitforNPC
   IF retvals(0) >= -300 AND retvals(0) <= UBOUND(npcs) THEN
    scrat(nowscript).waitarg = retvals(0)
+   scrat(nowscript).waitarg2 = gam.map.id
    scrat(nowscript).state = stwait
   END IF
  CASE 5'--suspend npcs

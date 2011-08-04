@@ -345,7 +345,8 @@ TYPE ScriptInst
   curargn as integer    'current arg for current statement
   depth as integer      'stack depth of current script
   id as integer         'id number of current script
-  waitarg as integer    'wait state argument
+  waitarg as integer    'wait state argument 1
+  waitarg2 as integer   'wait state argument 2
 
   'these 3 items are only current/correct for inactive scripts. The active script's current
   'command is pointed to by the curcmd (ScriptCommand ptr) global, and copied here
