@@ -81,5 +81,7 @@ DECLARE SUB create_walkabout_shadow (BYVAL walkabout_cont AS Slice Ptr)
 DECLARE SUB delete_walkabout_shadow (BYVAL walkabout_cont AS Slice Ptr)
 DECLARE SUB reset_game_state ()
 DECLARE SUB cleanup_game_slices ()
+DECLARE FUNCTION hero_layer() AS Slice Ptr
+DECLARE FUNCTION npc_layer() AS Slice Ptr
 
 #ENDIF

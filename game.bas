@@ -49,6 +49,10 @@ DECLARE SUB doloadgame(BYVAL load_slot AS INTEGER)
 DECLARE SUB reset_game_final_cleanup()
 DECLARE FUNCTION should_skip_this_timer(byval l as integer, t as PlotTimer) AS INTEGER
 DECLARE SUB update_menu_states ()
+DECLARE SUB reparent_hero_slices()
+DECLARE SUB orphan_hero_slices()
+DECLARE SUB reparent_npc_slices()
+DECLARE SUB orphan_npc_slices()
 
 REMEMBERSTATE
 
@@ -2770,9 +2774,35 @@ SUB reset_game_state ()
  'If we are resetting, the old slices will have already been destroyed
  'by cleanup_game_slices() so we just re-assign gam.caterp()
  FOR i AS INTEGER = 0 TO UBOUND(gam.caterp)
-  gam.caterp(i) = create_walkabout_slices(SliceTable.HeroLayer)
+  gam.caterp(i) = create_walkabout_slices(hero_layer())
  NEXT i
 END SUB
+
+FUNCTION hero_layer() AS Slice Ptr
+ DIM layer AS Slice Ptr
+ IF gmap(16) = 2 THEN ' heroes and NPCs together
+  layer = SliceTable.Walkabout
+ ELSE ' heroes and NPCs on separate layers
+  layer = SliceTable.HeroLayer
+ END IF
+ IF layer = 0 THEN
+  debug "Warning: null hero layer, gmap(16)=" & gmap(16)
+ END IF
+ RETURN layer
+END FUNCTION
+
+FUNCTION npc_layer() AS Slice Ptr
+ DIM layer AS Slice Ptr
+ IF gmap(16) = 2 THEN ' heroes and NPCs together
+  layer = SliceTable.Walkabout
+ ELSE ' heroes and NPCs on separate layers
+  layer = SliceTable.NPCLayer
+ END IF
+ IF layer = 0 THEN
+  debug "Warning: null npc layer, gmap(16)=" & gmap(16)
+ END IF
+ RETURN layer
+END FUNCTION
 
 FUNCTION create_walkabout_slices(byval parent as Slice Ptr) AS Slice Ptr
  DIM sl AS Slice Ptr
@@ -3146,8 +3176,6 @@ SUB recreate_map_slices()
  'this destroys and re-creates the map slices. it should only happen when
  'moving from one map to another, but not when a battle ends. (same as when
  'the map autorun script is triggered)
- 'The newly recreated map slices will not be usable until refresh_map_slice()
- 'is called a little later in the map loading process
   
  'First free all NPC slices because we can't guarantee that they will be
  'freed when the map slices are freed, even though in normal circumstances
@@ -3162,9 +3190,7 @@ SUB recreate_map_slices()
 
   'Orphan the hero slices to prevent them from being destroyed when we
   'destroy the map layers
-  FOR i AS INTEGER = 0 TO UBOUND(gam.caterp)
-   OrphanSlice gam.caterp(i)
-  NEXT i
+  orphan_hero_slices
 
   'Free the map slices
   FOR i AS INTEGER = 0 TO UBOUND(SliceTable.MapLayer)
@@ -3182,14 +3208,40 @@ SUB recreate_map_slices()
   SetupMapSlices UBOUND(maptiles)
 
   'Reparent the hero slices to the new map
-  FOR i AS INTEGER = 0 TO UBOUND(gam.caterp)
-   SetSliceParent gam.caterp(i), SliceTable.HeroLayer
-  NEXT i
+  reparent_hero_slices
   
   refresh_map_slice_tilesets
   visnpc
  END IF
  refresh_map_slice
+END SUB
+
+SUB reparent_hero_slices()
+ FOR i AS INTEGER = 0 TO UBOUND(gam.caterp)
+  SetSliceParent gam.caterp(i), hero_layer()
+ NEXT i
+END SUB
+
+SUB orphan_hero_slices()
+ FOR i AS INTEGER = 0 TO UBOUND(gam.caterp)
+  OrphanSlice gam.caterp(i)
+ NEXT i
+END SUB
+
+SUB reparent_npc_slices()
+ FOR i AS INTEGER = 0 TO UBOUND(npc)
+  IF npc(i).sl THEN
+   SetSliceParent npc(i).sl, npc_layer()
+  END IF
+ NEXT i
+END SUB
+
+SUB orphan_npc_slices()
+ FOR i AS INTEGER = 0 TO UBOUND(npc)
+  IF npc(i).sl THEN
+   OrphanSlice npc(i).sl
+  END IF
+ NEXT i
 END SUB
 
 SUB refresh_map_slice()
@@ -3261,14 +3313,39 @@ SUB refresh_map_slice_tilesets()
 END SUB
 
 SUB refresh_walkabout_layer_sort()
- IF gmap(16) = 1 THEN
-  SliceTable.HeroLayer->Sorter = 0
-  SliceTable.NPCLayer->Sorter = 1
+ orphan_hero_slices
+ orphan_npc_slices
+ IF gmap(16) = 2 THEN ' Heroes and NPCs Together
+  DeleteSlice @SliceTable.HeroLayer
+  DeleteSlice @SliceTable.NPCLayer
+  SliceTable.Walkabout->AutoSort = slAutoSortY
  ELSE
-  SliceTable.NPCLayer->Sorter = 0
-  SliceTable.HeroLayer->Sorter = 1
+  'Hero and NPC in separate layers
+  SliceTable.Walkabout->AutoSort = slAutoSortNone
+  IF SliceTable.HeroLayer = 0 THEN
+   '--create the hero layer if it is needed
+   SliceTable.HeroLayer = NewSliceOfType(slContainer, SliceTable.Walkabout, SL_HERO_LAYER)
+   SliceTable.HeroLayer->Fill = YES
+   SliceTable.HeroLayer->Protect = YES
+   SliceTable.HeroLayer->AutoSort = slAutoSortY
+  END IF
+  IF SliceTable.NPCLayer = 0 THEN
+   SliceTable.NPCLayer = NewSliceOfType(slContainer, SliceTable.Walkabout, SL_NPC_LAYER)
+   SliceTable.NPCLayer->Fill = YES
+   SliceTable.NPCLayer->Protect = YES
+   SliceTable.NPCLayer->AutoSort = slAutoSortCustom
+  END IF
+  IF gmap(16) = 1 THEN
+   SliceTable.HeroLayer->Sorter = 0
+   SliceTable.NPCLayer->Sorter = 1
+  ELSE
+   SliceTable.NPCLayer->Sorter = 0
+   SliceTable.HeroLayer->Sorter = 1
+  END IF
+  CustomSortChildSlices SliceTable.Walkabout, YES
  END IF
- CustomSortChildSlices SliceTable.Walkabout, YES
+ reparent_hero_slices
+ reparent_npc_slices
 END SUB
 
 FUNCTION vehicle_is_animating() AS INTEGER

@@ -617,7 +617,7 @@ SUB visnpc()
   IF npc(i).id > 0 THEN
    '--NPC exists and is visible
    IF npc(i).sl = 0 THEN
-    npc(i).sl = create_walkabout_slices(SliceTable.NPCLayer)
+    npc(i).sl = create_walkabout_slices(npc_layer())
     'debug "npc(" & i & ").sl=" & npc(i).sl & " [visnpc]"
    END IF
    '--set sprite
@@ -3038,7 +3038,7 @@ SELECT CASE AS CONST id
      'debug "delete npc sl " & i & "[create npc(" & retvals(0) & ")]"
      DeleteSlice @npc(i).sl
     END IF
-    npc(i).sl = create_walkabout_slices(SliceTable.NPCLayer)
+    npc(i).sl = create_walkabout_slices(npc_layer())
     set_walkabout_sprite npc(i).sl, npcs(npc_id).picture, npcs(npc_id).palette
     set_walkabout_vis npc(i).sl, YES
     'debug "npc(" & i & ").sl=" & npc(i).sl & " [create npc(" & retvals(0) & ")]"
