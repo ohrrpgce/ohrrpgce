@@ -2876,6 +2876,15 @@ SELECT CASE AS CONST id
   ELSE
    debug "_checkpoint ignored"
   END IF
+ CASE 519 '--get hero slice
+  IF bound_arg(retvals(0), 0, 3, "caterpillar slot") THEN
+   scriptret = find_plotslice_handle(gam.caterp(retvals(0)))
+  END IF
+ CASE 520 '--get NPC slice
+  DIM npcref as integer = get_valid_npc(retvals(0))
+  IF npcref >= 0 THEN
+   scriptret = find_plotslice_handle(npc(npcref).sl)
+  END IF
 END SELECT
 
 END SUB

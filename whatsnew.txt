@@ -37,6 +37,7 @@ WHAT IS NEW?
     * "NPCstat: default movement zone" constant for "read/alter npc"
     * "assert" [Ralph]
     * "menu item true slot", "menu item by true slot" [Ralph]
+    * "get hero slice" and "get NPC slice" commands [James]
 
   * Vikings of Midgard
 

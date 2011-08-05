@@ -2427,6 +2427,22 @@ lookup slice(sl:map layer7)
 				<ref>getslicelookup</ref>
 			</seealso>
 		</command>
+		<command id="getheroslice">
+			<canon>get hero slice (who)</canon>
+			<shortname>get hero slice</shortname>
+			<description>Get the slice for a hero walkabout. The argument is the hero's position in the walkabout caterpillar. You will not be able to manually reposition this slice. The main purpose of getting this slice is so you can access the sprite slice attached to it, or if you want to attach other slices to a hero walkabout.</description>
+			<seealso>
+				<ref>getnpcslice</ref>
+			</seealso>
+		</command>
+		<command id="getnpcslice">
+			<canon>get npc slice (npc)</canon>
+			<shortname>get npc slice</shortname>
+			<description>Get the slice for an NPC walkabout. The argument is the NPC id or an <ref>NPC reference</ref>. You will not be able to manually reposition this slice. The main purpose of getting this slice is so you can access the sprite slice attached to it, or if you want to attach other slices to an NPC.</description>
+			<seealso>
+				<ref>getheroslice</ref>
+			</seealso>
+		</command>
 		<command id="createcontainer">
 			<canon>create container (width, height)</canon>
 			<shortname>create container</shortname>

@@ -632,6 +632,9 @@
 		<a href="#about-getheropicture">get hero picture (who,type)</a><br>
 		
 	
+		<a href="#about-getheroslice">get hero slice (who)</a><br>
+		
+	
 		<a href="#about-getherospeed">get hero speed (who)</a><br>
 		
 	
@@ -756,6 +759,9 @@
 		
 	
 		<a href="#about-getnpcobstructs">get NPC obstructs (who)</a><br>
+		
+	
+		<a href="#about-getnpcslice">get npc slice (npc)</a><br>
 		
 	
 		<a href="#about-getnpcusable">get NPC usable (who)</a><br>
@@ -1094,7 +1100,13 @@
 		<a href="#about-menuitembyslot">menu item by slot(menu handle, slot, visible only)</a><br>
 		
 	
+		<a href="#about-menuitembytrueslot">menu item by true slot(menu handle, slot)</a><br>
+		
+	
 		<a href="#about-menuitemslot">menu item slot(menu item handle)</a><br>
+		
+	
+		<a href="#about-menuitemtrueslot">menu item true slot(menu item handle)</a><br>
 		
 	
 		
@@ -4638,31 +4650,59 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">first menu item(menu handle)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Return a menu item handle for the menu item at the top of the menu.<br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return a menu item handle for the menu item at the top of the menu.<br>
 			
 			
+		</tt></p>
+		<a name="about-menuitembytrueslot"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">menu item by true slot(menu handle, slot)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return a menu item handle for the menu item at the position specified by <span class="param">slot</span>. The first slot in the menu is 0. This command uses the ordering of menu items as they appear in the Menu Editor in Custom.  The "true order" doesn't change as menu items are hidden or unhidden.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-menuitembyslot" class="ref">menu item by slot</a></li></ul>
+		</tt></p>
+		<a name="about-menuitemtrueslot"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">menu item true slot(menu item handle)</font></b><br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-addmenuitem" class="ref">add menu item</a>), return the slot number of the menu item, as it appears in Custom. The first slot in the menu is 0. The "true order" doesn't change as menu items are hidden or unhidden.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-menuitemslot" class="ref">menu item slot</a>, </li>
+<li><a href="#about-menuitembytrueslot" class="ref">menu item by true slot</a></li>
+</ul>
 		</tt></p>
 		<a name="about-menuitembyslot"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">menu item by slot(menu handle, slot, visible only)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Return a menu item handle for the menu item at the position specified by <span class="param">slot</span>. The first slot in the menu is 0. You can optionally include invisible items by using the optional argument <span class="param">visible only</span>, which defaults to <a href="#about-booleanconstants" class="ref">true</a>. Note that invisible menu items are always at the end of the menu, after the last visible menu item<br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return a menu item handle for the menu item at the position specified by <span class="param">slot</span>. The first slot in the menu is 0. You can optionally include invisible items by using the optional argument <span class="param">visible only</span>, which defaults to <a href="#about-booleanconstants" class="ref">true</a>. Note that invisible menu items are always at the end of the menu, after the last visible menu item -- menu items are NOT in the same order as they appear in the Menu Editor in Custom! This means menu item slot numbers change as menu items are hidden or unhidden. Use <a href="#about-menuitembytrueslot" class="ref">menu item by true slot</a> if you want to use the order in Custom.<br>
 			
-			<br>See also: <ul class="seealso"><li><a href="#about-menuitemslot" class="ref">menu item slot</a></li></ul>
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-menuitemslot" class="ref">menu item slot</a>, </li>
+<li><a href="#about-menuitembytrueslot" class="ref">menu item by true slot</a></li>
+</ul>
 		</tt></p>
 		<a name="about-menuitemslot"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">menu item slot(menu item handle)</font></b><br>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-addmenuitem" class="ref">add menu item</a>), return a the slot number of the menu item. The first slot in the menu is 0.<br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-addmenuitem" class="ref">add menu item</a>), return a the slot number of the menu item. The first slot in the menu is 0. Menu item slot numbers change as menu items are hidden or unhidden. Use <a href="#about-menuitemtrueslot" class="ref">menu item true slot</a> if you want to know the slot number as it appears in Custom.<br>
 			
-			<br>See also: <ul class="seealso"><li><a href="#about-menuitembyslot" class="ref">menu item by slot</a></li></ul>
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-menuitembyslot" class="ref">menu item by slot</a>, </li>
+<li><a href="#about-menuitemtrueslot" class="ref">menu item true slot</a></li>
+</ul>
 		</tt></p>
 		<a name="about-nextmenuitem"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">next menu item(menu item handle, visible only)</font></b><br>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), Return a menu item handle for the menu item below the specified one, or <a href="#about-booleanconstants" class="ref">false</a> there is no next menu item. You can optionally include invisible items by using the optional argument <span class="param">visible only</span>, which defaults to <a href="#about-booleanconstants" class="ref">true</a>. Note that invisible menu items are always at the end of the menu, after the last visible menu item<br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), return a menu item handle for the menu item below the specified one, or <a href="#about-booleanconstants" class="ref">false</a> there is no next menu item. You can optionally include invisible items by using the optional argument <span class="param">visible only</span>, which defaults to <a href="#about-booleanconstants" class="ref">true</a>. Note that invisible menu items are always at the end of the menu, after the last visible menu item. See <a href="#about-menuitembytrueslot" class="ref">menu item by true slot</a> if that's undesirable.<br>
 			<pre>variable(mi)
 mi := first menu item
 while(mi) do, begin
@@ -4676,7 +4716,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">previous menu item(menu item handle, visible only)</font></b><br>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), Return a menu item handle for the menu item above the specified one, or <a href="#about-booleanconstants" class="ref">false</a> there is no previous menu item. You can optionally include invisible items by using the optional argument <span class="param">visible only</span>, which defaults to <a href="#about-booleanconstants" class="ref">true</a>. Note that invisible menu items are always at the end of the menu, after the last visible menu item<br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), return a menu item handle for the menu item above the specified one, or <a href="#about-booleanconstants" class="ref">false</a> there is no previous menu item. You can optionally include invisible items by using the optional argument <span class="param">visible only</span>, which defaults to <a href="#about-booleanconstants" class="ref">true</a>. Note that invisible menu items are always at the end of the menu, after the last visible menu item. See <a href="#about-menuitembytrueslot" class="ref">menu item by true slot</a> if that's undesirable.<br>
 			<pre>variable(m)
 m := previous menu item(selected menu item)</pre>
 			
@@ -5740,6 +5780,22 @@ lookup slice(sl:map layer7)
 <a href="#about-lookupslice" class="ref">lookup slice</a>, </li>
 <li><a href="#about-getslicelookup" class="ref">get slice lookup</a></li>
 </ul>
+		</tt></p>
+		<a name="about-getheroslice"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get hero slice (who)</font></b><br>
+			Get the slice for a hero walkabout. The argument is the hero's position in the walkabout caterpillar. You will not be able to manually reposition this slice. The main purpose of getting this slice is so you can access the sprite slice attached to it, or if you want to attach other slices to a hero walkabout.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-getnpcslice" class="ref">get npc slice</a></li></ul>
+		</tt></p>
+		<a name="about-getnpcslice"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get npc slice (npc)</font></b><br>
+			Get the slice for an NPC walkabout. The argument is the NPC id or an <a href="#NPC%20reference" class="undef">NPC reference</a>. You will not be able to manually reposition this slice. The main purpose of getting this slice is so you can access the sprite slice attached to it, or if you want to attach other slices to an NPC.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-getheroslice" class="ref">get hero slice</a></li></ul>
 		</tt></p>
 		<a name="about-createcontainer"></a>
 		<p>
@@ -10678,7 +10734,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 739 commands in this file, of which 56 are only references to other commands.</p>
+	<p>Stats: There are 743 commands in this file, of which 56 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

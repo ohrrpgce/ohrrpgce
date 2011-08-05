@@ -527,6 +527,8 @@ define function, begin
 516,_checkpoint,0                #dumps checkpoint screenshot for automated testing. Only works when run with the -autotest command line argument
 517,menuitembytrueslot,2,0,0     #return a menu item handle, based on the order in Custom (menu handle, slot no.)
 518,menuitemtrueslot,1,0         #slot no. of a menu item as it appears in Custom (menu item handle)
+519,getheroslice,1,0             #get the slice representing a hero walkabout
+520,getNPCslice,1,0              #get the slice representing an NPC walkabout
 end
 
 #--------------------------------------------------------------------------
