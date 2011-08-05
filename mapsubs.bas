@@ -1900,7 +1900,7 @@ SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER)
  gdmax(13) = 32767:               gdmin(13) = 0
  gdmax(14) = 32767:               gdmin(14) = 0
  gdmax(15) = 32767:               gdmin(15) = 0
- gdmax(16) = 1:                   gdmin(16) = 0
+ gdmax(16) = 2:                   gdmin(16) = 0
  gdmax(17) = 2:                   gdmin(17) = 0
  gdmax(18) = 2:                   gdmin(18) = 0
 
@@ -1923,8 +1923,8 @@ SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER)
   gmapscr(i) = scriptname(gmap(gmapscrof(i)), plottrigger)
  NEXT i
 
- 'default out-of-bounds hero/npc draw order
- IF gmap(16) > 1 THEN gmap(16) = 0
+ 'default out-of-bounds walkabout layering to prevent crashes on corrupted general map data
+ IF gmap(16) > gdmax(16) THEN gmap(16) = 2
  
  FOR i AS INTEGER = 1 TO UBOUND(gdmenu)
   'Safety-bounding of gmap data, prevents crashes in cases of corruption
@@ -2030,11 +2030,11 @@ SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER)
        caption = "down " & gmap(i) & " pixels"
      END SELECT
     CASE 16 'hero/npc draw order
-     IF gmap(i) = 1 THEN
-      caption = "NPCs over Heroes"
-     ELSE
-      caption = "Heroes over NPCs"
-     END IF
+     SELECT CASE gmap(i)
+      CASE 0: caption = "Heroes over NPCs"
+      CASE 1: caption = "NPCs over Heroes"
+      CASE 2: caption = "Together (reccomended)"
+     END SELECT
     CASE 17, 18 'NPC and Tile data saving
      SELECT CASE gmap(i)
       CASE 0
@@ -2281,19 +2281,26 @@ SUB mapedit_makelayermenu(BYREF st AS MapEditState, menu() AS SimpleMenu, state 
   mapedit_makelayermenu_layer st, menu(), gmap(), visible(), itemsinfo(), slot, i, needdefault
  NEXT
 
- menu(slot).enabled = NO
- menu(slot).col = uilook(uiSelectedDisabled)
- slot += 1
- menu(slot).enabled = NO
- menu(slot).col = uilook(uiSelectedDisabled)
- slot += 1
- IF gmap(16) = 0 THEN
-  menu(slot - 2).text = "NPCs layer"
-  menu(slot - 1).text = "Heroes layer"
- ELSE
-  menu(slot - 2).text = "Heroes layer"
-  menu(slot - 1).text = "NPCs layer"
- END IF   
+ IF gmap(16) = 2 THEN '--keep heroes and NPCs together
+  menu(slot).enabled = NO
+  menu(slot).col = uilook(uiSelectedDisabled)
+  menu(slot).text = "Heroes & NPCs layer"
+  slot += 1
+ ELSE '--heroes and NPCs on different layers
+  menu(slot).enabled = NO
+  menu(slot).col = uilook(uiSelectedDisabled)
+  slot += 1
+  menu(slot).enabled = NO
+  menu(slot).col = uilook(uiSelectedDisabled)
+  slot += 1
+  IF gmap(16) = 0 THEN
+   menu(slot - 2).text = "NPCs layer"
+   menu(slot - 1).text = "Heroes layer"
+  ELSE
+   menu(slot - 2).text = "Heroes layer"
+   menu(slot - 1).text = "NPCs layer"
+  END IF
+ END IF
 
  FOR i AS INTEGER = gmap(31) TO UBOUND(map)
   IF selectedlayer = i AND resetpt THEN state.pt = slot + 1
@@ -2408,6 +2415,7 @@ SUB new_blank_map (BYREF st AS MapEditState, map() AS TileMap, pass AS TileMap, 
  cleantilemap emap, 64, 64
  CleanZoneMap zmap, 64, 64
  flusharray gmap(), -1, 0
+ gmap(16) = 2 'Walkabout Layering: Together
  CleanNPCL st.npc_inst()
  CleanNPCD st.npc_def()
  st.num_npc_defs = 1
