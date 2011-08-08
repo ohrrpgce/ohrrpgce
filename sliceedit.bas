@@ -273,6 +273,7 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
      slice_editor_load edslice, slice_editor_filename(ses)
      state.need_update = YES
      '--Force immediate menu refresh
+     dowait
      CONTINUE DO
     END IF
    END IF
