@@ -1707,7 +1707,7 @@ SUB change_foe_stat(BYREF bspr AS BattleSprite, stat_num AS INTEGER, new_max AS 
     IF .max.sta(stat_num) > 0 THEN
      .cur.sta(stat_num) = CINT(new_max / .max.sta(stat_num) * .cur.sta(stat_num))
     ELSE
-     .cur.sta(stat_num) = 0
+     .cur.sta(stat_num) = new_max
     END IF
    CASE 3 '--keep old current, crop to new max
     .cur.sta(stat_num) = small(.cur.sta(stat_num), new_max)
