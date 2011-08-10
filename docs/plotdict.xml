@@ -234,7 +234,7 @@ wait for camera # wait until he&apos;s on screen</example>
 		<command id="waitforall">
 			<canon>wait for all</canon>
 			<shortname>wait for all</shortname>
-			<description>Waits for any camera motion to stop, waits for all heroes to stop walking, and if <ref>suspendnpcs</ref> is active, waits for all NPCs to stop walking.</description>
+			<description>Waits for any camera motion to stop, waits for all heroes to stop walking, and if <ref>suspendnpcs</ref> is active, waits for all NPCs to stop walking. Warning! In all versions older than July 6 2011, <p>wait for all</p> did not correctly wait for NPC movement. It was effectively broken, since it did not actually wait for all movement. Also be aware that <p>wait for all</p> does NOT wait for text boxes.</description>
 			<example># do a bunch of things all at once
 wait for all # wait until everything is done</example>
 		</command>
