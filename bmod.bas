@@ -2141,7 +2141,8 @@ SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS I
   '--skip turn
   bat.next_hero = bat.hero_turn
   bat.hero_turn = -1
-  menusound gen(genCancelSFX)
+  'Don't loop the sound effect while holding down Menu to allow time to pass
+  IF carray(ccMenu) AND 4 THEN menusound gen(genCancelSFX)
   EXIT SUB
  END IF
  usemenusounds
