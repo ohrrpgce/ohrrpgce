@@ -5,6 +5,7 @@ cf. SConstruct, ohrbuild.py
 """
 import os
 import platform
+import shutil
 from ohrbuild import basfile_scan, verprint
 
 win32 = False
@@ -109,8 +110,9 @@ if CXX:
 commonenv = env.Clone ()
 
 base_modules = []   # modules shared by all utilities (except bam2mid)
-common_modules = []  # modules, in addition to base_objects, shared by Game and Custom 
-common_objects = []
+shared_modules = []  # freebasic modules shared by, but with separate builds, for Game and Custom 
+common_modules = []  # other modules (in any language) shared by Game and Custom
+common_objects = []  # other objects shared by Game and Custom
 
 libraries = []
 libpaths = []
@@ -129,26 +131,26 @@ used_music = []
 
 ### Add various modules to build, conditional on OHRGFX and OHRMUSIC
 
-gfx_map = {'fb': {'common_modules': 'gfx_fb.bas', 'libraries': 'fbgfx'},
-           'alleg' : {'common_modules': 'gfx_alleg.bas', 'libraries': 'alleg'},
-           'sdl' : {'common_modules': 'gfx_sdl.bas', 'libraries': 'SDL'},
+gfx_map = {'fb': {'shared_modules': 'gfx_fb.bas', 'libraries': 'fbgfx'},
+           'alleg' : {'shared_modules': 'gfx_alleg.bas', 'libraries': 'alleg'},
+           'sdl' : {'shared_modules': 'gfx_sdl.bas', 'libraries': 'SDL'},
            'directx' : {}, # nothing needed
            'sdlpp': {}     # nothing needed
            }
 
 music_map = {'native':
-                 {'common_modules': 'music_native.bas',
-                  'common_objects': os.path.join ('audwrap','audwrap.cpp'),
+                 {'shared_modules': 'music_native.bas',
+                  'common_modules': os.path.join ('audwrap','audwrap.cpp'),
                   'libraries': 'audiere'},
              'native2':
-                 {'common_modules': 'music_native2.bas',
-                  'common_objects': os.path.join ('audwrap','audwrap.cpp'),
+                 {'shared_modules': 'music_native2.bas',
+                  'common_modules': os.path.join ('audwrap','audwrap.cpp'),
                   'libraries': 'audiere'},
              'sdl':
-                 {'common_modules': 'music_sdl.bas sdl_lumprwops.bas',
+                 {'shared_modules': 'music_sdl.bas sdl_lumprwops.bas',
                   'libraries': 'SDL SDL_mixer', 'libpaths': 'win32'},
              'silence':
-                 {'common_modules': 'music_silence.bas'}
+                 {'shared_modules': 'music_silence.bas'}
             }
 
 tmp = globals ()
@@ -179,7 +181,7 @@ verprint (used_gfx, used_music, svn, git, fbc)
 
 base_modules += ['util.bas', 'blit.c', 'base64.c', 'array.c', 'vector.bas']
 
-common_modules += ['allmodex',
+shared_modules += ['allmodex',
                    'backends',
                    'lumpfile',
                    'misc',
@@ -217,14 +219,27 @@ game_modules = ['game',
                 'hsinterpreter']
 
 if 'raster' in ARGUMENTS:
-    common_objects += ['rasterizer.cpp', 'matrixMath.cpp', 'gfx_newRenderPlan.cpp']
+    def run_gcc(query):
+        from subprocess import Popen, PIPE
+        f = Popen ("gcc " + query, stdout = PIPE, stderr = PIPE)
+        return f.stdout.read().strip()
+
+    common_modules += ['rasterizer.cpp', 'matrixMath.cpp', 'gfx_newRenderPlan.cpp']
     commonenv['FBFLAGS'] += ['-d', 'USE_RASTERIZER']
+
+if win32:
+    if not os.path.isfile('libgcc_s.a'):
+        shutil.copy(run_gcc("-print-file-name=libgcc_s.a"), ".")
+    if not os.path.isfile('libstdc++.a'):
+        shutil.copy(run_gcc("-print-file-name=libstdc++.a"), ".")
+    commonenv['FBLIBS'] += ['-l','gcc_s','-l','stdc++']
 
 # Note that base_objects are not built in commonenv!
 base_objects = [env.Object(a) for a in base_modules]
-common_objects = base_objects + [commonenv.Object(a) for a in common_objects]
+common_objects += base_objects + [commonenv.Object(a) for a in common_modules]
 # Plus unique module included by utilities but not Game or Custom
 base_objects.append (env.Object ('common_base.bas'))
+
 
 gameenv = commonenv.Clone (VAR_PREFIX = 'game-', FBFLAGS = commonenv['FBFLAGS'] + \
                       ['-d','IS_GAME', '-m','game'])
@@ -236,13 +251,13 @@ editenv = commonenv.Clone (VAR_PREFIX = 'edit-', FBFLAGS = commonenv['FBFLAGS'] 
 gamesrc = common_objects[:]
 for item in game_modules:
     gamesrc.append (gameenv.BASO (item))
-for item in common_modules:
+for item in shared_modules:
     gamesrc.append (gameenv.VARIANT_BASO (item))
 
 editsrc = common_objects[:]
 for item in edit_modules:
     editsrc.append (editenv.BASO (item))
-for item in common_modules:
+for item in shared_modules:
     editsrc.append (editenv.VARIANT_BASO (item))
 
 # For reload utilities
