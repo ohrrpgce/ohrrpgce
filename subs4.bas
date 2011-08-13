@@ -1295,12 +1295,12 @@ FUNCTION merge_elementals_example(byval exampleno as integer, example() as singl
  RETURN ret
 END FUNCTION
 
-SUB generate_equipmerge_preview(BYVAL formula as integer, menu() as string, greyed_out() as integer)
+SUB generate_equipmerge_preview(BYVAL formula as integer, menu() as string, greyed_out() as integer, ex9() as single)
  FOR i as integer = 1 TO 3
   greyed_out(i) = YES
  NEXT
  greyed_out(1 + gen(genEquipMergeFormula)) = NO
- FOR i as integer = 4 TO 21
+ FOR i as integer = 4 TO UBOUND(menu)
   menu(i) = ""
  NEXT
 
@@ -1314,7 +1314,7 @@ SUB generate_equipmerge_preview(BYVAL formula as integer, menu() as string, grey
  DIM ex5(3) as single = {-1, 1.5, 2, _NaN}
  DIM ex6(3) as single = {-1, -1, -1, _NaN}
  DIM ex7(3) as single = {2, 0.5, 0.5, _NaN}
- DIM ex8(3) as single = {RND, 3*RND-1.5, 1+RND, _NaN}
+ DIM ex8(3) as single = {1, -1.2, -1.2, _NaN}
  IF formula = -1 THEN
   menu(9) = "Select a formula to see examples"
  ELSE
@@ -1326,6 +1326,7 @@ SUB generate_equipmerge_preview(BYVAL formula as integer, menu() as string, grey
   ex6(3) = equip_elemental_merge(ex6(), formula)
   ex7(3) = equip_elemental_merge(ex7(), formula)
   ex8(3) = equip_elemental_merge(ex8(), formula)
+  ex9(3) = equip_elemental_merge(ex9(), formula)
 
   menu(9) = "Examples:"
   menu(10) = "        Hero   Equip1   Equip2   Result"
@@ -1337,22 +1338,26 @@ SUB generate_equipmerge_preview(BYVAL formula as integer, menu() as string, grey
   menu(16) = merge_elementals_example(6, ex6(), formula)
   menu(17) = merge_elementals_example(7, ex7(), formula)
   menu(18) = merge_elementals_example(8, ex8(), formula)
+  menu(19) = merge_elementals_example(9, ex9(), formula)
 
   IF formula = 2 THEN
-   menu(20) = "(Equipment values are displayed"
-   menu(21) = "differently when this is chosen)"
+   menu(21) = "(Equipment values are displayed"
+   menu(22) = "differently when this is chosen)"
   END IF
  END IF
 END SUB
 
 SUB equipmergemenu
- DIM menu(21) as string
- DIM greyed_out(21) as integer 
+ DIM menu(22) as string
+ DIM greyed_out(22) as integer
  DIM st as MenuState
  st.size = 24
  st.last = 3
  st.need_update = YES
  DIM tog as integer
+
+ 'Random example which changes on entering the menu
+ DIM ex9(3) as single = {RND, 3*RND-1.5, 1+RND}
 
  menu(0) = "Previous Menu"
  menu(1) = "Old awful formula (multiplication-like)"
@@ -1375,7 +1380,7 @@ SUB equipmergemenu
   IF usemenu(st) THEN st.need_update = YES
 
   IF st.need_update THEN
-   generate_equipmerge_preview st.pt - 1, menu(), greyed_out()
+   generate_equipmerge_preview st.pt - 1, menu(), greyed_out(), ex9()
    st.need_update = NO
   END IF
 
