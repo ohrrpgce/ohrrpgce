@@ -219,15 +219,15 @@ game_modules = ['game',
                 'hsinterpreter']
 
 if 'raster' in ARGUMENTS:
+    common_modules += ['rasterizer.cpp', 'matrixMath.cpp', 'gfx_newRenderPlan.cpp']
+    commonenv['FBFLAGS'] += ['-d', 'USE_RASTERIZER']
+
+if win32:
     def run_gcc(query):
         from subprocess import Popen, PIPE
         f = Popen ("gcc " + query, stdout = PIPE, stderr = PIPE)
         return f.stdout.read().strip()
 
-    common_modules += ['rasterizer.cpp', 'matrixMath.cpp', 'gfx_newRenderPlan.cpp']
-    commonenv['FBFLAGS'] += ['-d', 'USE_RASTERIZER']
-
-if win32:
     if not os.path.isfile('libgcc_s.a'):
         shutil.copy(run_gcc("-print-file-name=libgcc_s.a"), ".")
     if not os.path.isfile('libstdc++.a'):
