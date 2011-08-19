@@ -388,7 +388,7 @@ int channel_input_line(PipeState **channelp, FBSTRING *output) {
 
 //Partial implementation. Doesn't return a useful process handle
 ProcessHandle open_process (FBSTRING *program, FBSTRING *args) {
-	char *buf = malloc(strlen(program->data) + strlen(args->data) + 1);
+	char *buf = malloc(strlen(program->data) + strlen(args->data) + 2);
 	sprintf(buf, "%s %s", program->data, args->data);
 	popen(buf, "r");  //No intention to read or write
 	free(buf);
