@@ -16,6 +16,12 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/index.php/Bugzilla.html
 ------------------------------------------------------------------------------
 
+2011-08-20:
+You'll notice a new option, "Test Game" in Custom. You should definitely
+read the help file that pops up. Please note that there are probably lots
+of new bugs that occur in Game when running it like this. In addition to
+all the things that won't reload because they're not implemented yet!
+
 2011-06-18:
 NPCs and heroes are now drawn using slices!, and starting today you can
 actually parent other slices to them and have everything display properly.

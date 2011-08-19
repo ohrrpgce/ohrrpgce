@@ -1,0 +1,34 @@
+You're running your game in live preview mode. Please read this help file!
+
+You can edit and play your game at the same time, and your edits come into effect instantly... that's the idea anyway. This feature is very experimental and VERY unfinished, so many of your edits will have no effect (see the list below) and there are lots of caveats:
+
+-Using this option does NOT save your game! You still have to do that manually!
+-Reloading will not happen while you are in some menus in Game.
+-Game can't reload data until Custom saves it. As a general rule of thumb you'll either need to exit whatever menu you're using in Custom for changes to be saved, or change record (eg. switch to a different enemy, hero, textbox...)
+-If Custom freezes, try killing Game.
+-Resizing a map while you're on it is a bad idea; it's not handled correctly.
+
+You can press Ctrl+S in the map editor proper and maptile editor to force immediate saving of data. While on a map, press the new F5 debug key for lots of options about reloading map state.
+
+Instant reloading of the following things currently works:
+-All map data, including NPCs, general map settings, and doors
+-Sprites and tilesets
+-16 color palettes
+-Music
+-Attacks, as long as they haven't been queued already (?)
+-Preference bitsets and other General Game Data
+-Unequipped items (stat bonuses and the like are read from file when you equip them)
+
+The following things do not currently reload immediately/at all:
+-Hero definitions for heroes which are already in the party (problem with saved games too)
+-Shop stocks (problem with saved games too)
+-Sound effects (not with music_sdl anyway)
+-Scripts
+-Font
+-Master palette
+-Global text strings
+-Enemies (leave and re-enter the battle first)
+-Formations (ditto)
+-Default palettes (which palette is the default for a sprite)
+-Backdrops
+-Equipped items

@@ -4059,5 +4059,6 @@ SUB spawn_game_menu
   notification "Game is already running! Running multiple test copies of a game is not yet supported."
  ELSE
   spawn_game
+  show_help "test_game"
  END IF
 END SUB

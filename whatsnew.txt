@@ -10,12 +10,15 @@ WHAT IS NEW?
     * A general game option to change how the inventory Autosort
       option works [Ralph]
     * Master Palettes menu: added export option [Ralph]
-    * New debug key: press F5 in-game to access a menu where you can
-      reload various game data. Most useful when live-previewing a
-      game. The old F5 and Ctrl+F5 debug keys (free camera movement)
-      have been changed to F7 and Ctrl+F7. [Ralph]
-    * In the map editor, moved Ctrl+S (paint the screen) to Ctrl+W
-      (ie. paint the "window"); Ctrl+S is now immediate save. [Ralph]
+    * Play-as-you-edit, AKA live previewing of games, with a new
+      "Test Game" option in Custom. **Very unfinished!**  [Ralph]
+      * New debug key: press F5 in-game to access a menu where you can
+        reload various game data. Most useful when live-previewing a
+        game. The old F5 and Ctrl+F5 debug keys (free camera movement)
+        have been changed to F7 and Ctrl+F7. [Ralph]
+      * Ctrl+S in the map and tileset editors immediately saves.
+        (Moved old Ctrl+S (paint the screen) to Ctrl+W (ie. paint the
+        "window")) [Ralph]
 
   * Bugfixes
     * Wrong names used for reserve party heroes who level during
