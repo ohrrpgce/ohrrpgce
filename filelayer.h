@@ -7,12 +7,16 @@
 
 #include "fb/fb_stub.h"
 #include <string>
+#include "os.h"
 
 using namespace std;
 
 
 struct FileInfo {
 	string name;
+	bool dirty;
+
+	FileInfo() : dirty(false) {};
 };
 
 extern "C" {
@@ -23,6 +27,7 @@ extern "C" {
   void debugc(char *msg, int errorlevel);
 
   void set_OPEN_hook_filter(FnStringPredicate lumpfile_filter);
+  void set_lump_updates_channel(IPCChannel channel);
 
 }
 

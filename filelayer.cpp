@@ -11,10 +11,22 @@
 map<FB_FILE *, FileInfo> openfiles;
 typedef map<FB_FILE *, FileInfo>::iterator openfiles_iterator_t;
 
+IPCChannel lump_updates_channel;
+
+
 int file_wrapper_close(FB_FILE *handle) {
+	assert(openfiles.count(handle));
 	FileInfo &info = openfiles[handle];
 	//fprintf(stderr, "closing %s\n", info.name.c_str());
+	if (info.dirty && lump_updates_channel != NULL_CHANNEL) {
+		//fprintf(stderr, "%s was dirty\n", info.name.c_str());
+		char buf[256];
+		int len = snprintf(buf, 256, "M %s\n", info.name.c_str());
+		if (len > 255) len = 255;
+		channel_write(lump_updates_channel, buf, len);
+	}
 	openfiles.erase(handle);
+
 	return fb_DevFileClose(handle);  
 }
 
@@ -34,7 +46,10 @@ int file_wrapper_read(FB_FILE *handle, void *value, size_t *pValuelen) {
 }
 
 int file_wrapper_write(FB_FILE *handle, const void *value, size_t valuelen) {
-	// Nothing here
+	assert(openfiles.count(handle));
+	FileInfo &info = openfiles[handle];
+	info.dirty = true;
+
 	return fb_DevFileWrite(handle, value, valuelen);
 }
 
@@ -100,3 +115,6 @@ void set_OPEN_hook_filter(FnStringPredicate lumpfile_filter) {
 	__fb_ctx.pfnDevOpenHook = OPEN_hook;
 }
 
+void set_lump_updates_channel(IPCChannel channel) {
+	lump_updates_channel = channel;
+}
