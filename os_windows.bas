@@ -359,16 +359,36 @@ end function
 
 'Returns 0 on failure.
 'If successful, you should call cleanup_process with the handle after you don't need it any longer.
+'This is for gui processes
+function open_process (program as string, args as string) as ProcessHandle
+	dim argstemp as string = """" + program + """ " + args
+	dim flags as integer = 0
+	dim sinfo as STARTUPINFO
+	sinfo.cb = sizeof(STARTUPINFO)
+	dim pinfop as ProcessHandle = Callocate(sizeof(PROCESS_INFORMATION))
+	if CreateProcess(strptr(program), strptr(argstemp), NULL, NULL, 0, flags, NULL, NULL, @sinfo, pinfop) = 0 then
+		dim errstr as string = get_windows_error()
+		debug "CreateProcess(" & program & ", " & args & ") failed: " & errstr
+		Deallocate(pinfop)
+		return 0
+	else
+		return pinfop
+	end if
+end function
+
+'Returns 0 on failure.
+'If successful, you should call cleanup_process with the handle after you don't need it any longer.
 'This is currently designed for running console applications. Could be
 'generalised in future as needed.
 function open_console_process (program as string, args as string) as ProcessHandle
-	dim argstemp as string = args
+	dim argstemp as string = """" + program + """ " + args
 	dim flags as integer = 0
 	dim sinfo as STARTUPINFO
 	sinfo.cb = sizeof(STARTUPINFO)
 	'The following console-specific stuff is what prevents bug 826 from occurring
 	sinfo.dwFlags = STARTF_USESHOWWINDOW OR STARTF_USEPOSITION
-	sinfo.wShowWindow = 4 'SW_SHOWNOACTIVATE  'Don't activate window, but do show (not defined, probably we excluded too much of windows.bi)
+	'sinfo.wShowWindow = 4 'SW_SHOWNOACTIVATE  'Don't activate window, but do show (not defined, probably we excluded too much of windows.bi)
+	sinfo.wShowWindow = 1 'SW_SHOWNORMAL  'Show and activate windows
 	sinfo.dwX = 5  'Try to move the window out of the way so that it doesn't cover our window
 	sinfo.dwY = 5
 

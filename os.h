@@ -12,13 +12,15 @@ extern "C" {
 
 #ifdef _WIN32
 
-typedef int IPCChannel;  //dummy values
+typedef int IPCChannel;  //dummy types
 #define NULL_CHANNEL 0
+typedef void *ProcessHandle;
 
 #else
 
 typedef FILE *IPCChannel;
 #define NULL_CHANNEL NULL
+typedef int ProcessHandle;  //dummy type
 
 #endif
 
@@ -38,6 +40,12 @@ void channel_close(IPCChannel *channelp);
 int channel_wait_for_client_connection(IPCChannel *channel, int timeout_ms);
 int channel_write(IPCChannel *channel, const char *buf, int buflen);
 int channel_input_line(IPCChannel *channel, FBSTRING *output);
+
+ProcessHandle open_process (FBSTRING *program, FBSTRING *args);
+ProcessHandle open_console_process (FBSTRING *program, FBSTRING *args);
+int process_running (ProcessHandle process, int *exitcode);
+void kill_process (ProcessHandle process);
+void cleanup_process (ProcessHandle *processp);
 
 #ifdef __cplusplus
 }

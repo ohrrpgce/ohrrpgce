@@ -67,6 +67,7 @@ DIM homedir as string
 DIM workingdir as string
 DIM app_dir as string
 DIM slave_channel as IPCChannel = NULL_CHANNEL
+DIM slave_process as ProcessHandle = 0
 
 'Local variables (declaring these up here is often necessary due to gosubs)
 DIM font(1024), joy(4)
@@ -608,6 +609,7 @@ SYSTEM
 
 finis:
 IF slave_channel <> NULL_CHANNEL THEN channel_close slave_channel
+IF slave_process <> 0 THEN cleanup_process @slave_channel
 closemusic
 'catch sprite leaks
 sprite_empty_cache

@@ -4002,15 +4002,15 @@ SUB spawn_game
  END IF
  debuginfo "Successfully opened IPC channel " + channel_name
 
- DIM cmdline as string
- cmdline = exepath & SLASH & GAMEEXE
- IF isfile(cmdline) = NO THEN
+ DIM executable as string
+ executable = exepath & SLASH & GAMEEXE
+ IF isfile(executable) = NO THEN
   notification "Couldn't find " & GAMEEXE
   EXIT SUB
  END IF
- cmdline += " -slave " & channel_name
+ slave_process = open_process(executable, "-slave " & channel_name)
  'Have to specify either input or output, though we won't (can't?) use it
- IF OPEN PIPE(cmdline FOR OUTPUT AS #fh) THEN
+ IF slave_process = 0 THEN
   notification "Couldn't run " & GAMEEXE
   EXIT SUB
  END IF
@@ -4019,6 +4019,7 @@ SUB spawn_game
  IF channel_wait_for_client_connection(slave_channel, 1000) = 0 THEN
   notification "Couldn't connect to " & GAMEEXE
   channel_close slave_channel
+  cleanup_process @slave_process
   EXIT SUB
  END IF
 
@@ -4030,6 +4031,7 @@ SUB spawn_game
   'good idea to test writing is working at least once
   notification "Channel write failure; aborting"
   channel_close slave_channel
+  cleanup_process @slave_process
   EXIT SUB
  END IF
  tmp = "G " & sourcerpg & !"\n"

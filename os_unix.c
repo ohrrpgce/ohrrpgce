@@ -13,8 +13,6 @@
 #include "common.h"
 #include "os.h"
 
-typedef int ProcessHandle;
-
 
 static long long milliseconds() {
 	struct timeval tv;
@@ -262,15 +260,23 @@ int channel_input_line(IPCChannel *channel, FBSTRING *output) {
 //==========================================================================================
 
 
+//Partial implementation. Doesn't return a useful process handle
+ProcessHandle open_process (FBSTRING *program, FBSTRING *args) {
+	char *buf = malloc(strlen(program->data) + strlen(args->data) + 1);
+	sprintf("%s %s", program->data, args->data);
+	popen(buf, "r");  //No intention to read or write
+	free(buf);
+	fb_hStrDelTemp(program);
+	fb_hStrDelTemp(args);
+	return -1;  //nonzero
+}
+
 //Returns 0 on failure.
 //If successful, you should call cleanup_process with the handle after you don't need it any longer.
 //This is currently designed for running console applications. Could be
 //generalised in future as needed.
 ProcessHandle open_console_process (FBSTRING *program, FBSTRING *args) {
-	//Unimplemented and not yet used
-	fb_hStrDelTemp(program);
-	fb_hStrDelTemp(args);
-	return 0;
+	return open_process(program, args);
 }
 
 //If exitcode is nonnull and the process exited, the exit code will be placed in it
@@ -286,4 +292,5 @@ void kill_process (ProcessHandle process) {
 //Cleans up resources associated with a ProcessHandle
 void cleanup_process (ProcessHandle *processp) {
 	//Unimplemented and not yet used
+	*processp = 0;
 }

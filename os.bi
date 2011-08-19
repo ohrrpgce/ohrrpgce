@@ -54,6 +54,7 @@ declare function channel_write (byref channel as IPCChannel, byval buf as byte p
 declare function channel_input_line (byref channel as IPCChannel, line_in as string) as integer
 
 
+declare function open_process (program as string, args as string) as ProcessHandle
 declare function open_console_process (program as string, args as string) as ProcessHandle
 declare function process_running (byval process as ProcessHandle, byval exitcode as integer ptr = NULL) as integer
 declare sub kill_process (byval process as ProcessHandle)
