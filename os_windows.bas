@@ -311,7 +311,7 @@ end function
 function channel_write_line (byref channel as NamedPipeInfo ptr, buf as string) as integer
 	'Temporarily replace NULL byte with a newline
 	buf[LEN(buf)] = 10
-	dim ret as integer = channel_write(channel, @buf(0), LEN(buf) + 1)
+	dim ret as integer = channel_write(channel, @buf[0], LEN(buf) + 1)
 	buf[LEN(buf)] = 0
 	return ret
 end function
