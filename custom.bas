@@ -71,6 +71,9 @@ DIM app_dir as string
 DIM slave_channel as IPCChannel = NULL_CHANNEL
 DIM slave_process as ProcessHandle = 0
 
+EXTERN running_as_slave AS INTEGER
+DIM running_as_slave AS INTEGER = NO  'This is just for the benefit of gfx_sdl
+
 'Local variables (declaring these up here is often necessary due to gosubs)
 DIM font(1024), joy(4)
 DIM menu(22) AS STRING

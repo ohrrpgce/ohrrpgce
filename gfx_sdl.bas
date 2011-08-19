@@ -21,6 +21,9 @@ include_windows_bi()
 #endif
 '/
 
+'Not extern C
+EXTERN running_as_slave AS INTEGER
+
 EXTERN "C"
 
 'why is this missing from crt.bi?
@@ -45,7 +48,6 @@ DECLARE SUB sdlCocoaHideOthers()
 DECLARE SUB sdlCocoaMinimise()
 
 #ENDIF
-
 
 DIM SHARED zoom AS INTEGER = 2
 DIM SHARED zoom_has_been_changed AS INTEGER = NO
@@ -233,7 +235,12 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
   'putenv("SDL_DISABLE_LOCK_KEYS=1") 'SDL 1.2.14
   'putenv("SDL_NO_LOCK_KEYS=1")      'SDL SVN between 1.2.13 and 1.2.14
 
-  putenv("SDL_VIDEO_CENTERED=1")
+  IF running_as_slave = NO THEN   'Don't display the window straight on top of Custom's
+    putenv("SDL_VIDEO_CENTERED=1")
+  ELSE
+    putenv("SDL_VIDEO_CENTERED=0")
+    putenv("SDL_VIDEO_WINDOW_POS=5,5")
+  END IF
 
   DIM ver as SDL_version ptr = SDL_Linked_Version()
   *info_buffer = MID("SDL " & ver->major & "." & ver->minor & "." & ver->patch, 1, info_buffer_size)
