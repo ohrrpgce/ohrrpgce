@@ -60,4 +60,6 @@ declare sub autotarget OVERLOAD (who, atk AS AttackData, bslot() AS BattleSprite
 
 declare function find_preferred_target (tmask() as integer, who as integer, atk as AttackData, bslot() AS BattleSprite) as integer
 
+declare sub try_to_reload_files_inbattle ()
+
 #ENDIF

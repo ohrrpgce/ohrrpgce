@@ -81,6 +81,8 @@ DIM autosnap AS INTEGER = 0
 DIM running_as_slave AS INTEGER = NO
 DIM custom_version AS STRING  'when running as slave
 DIM master_channel AS IPCChannel = NULL_CHANNEL  'when running as slave
+DIM modified_lumps AS STRING VECTOR  'when running as slave
+v_new modified_lumps
 
 orig_dir = CURDIR()
 processcommandline
@@ -406,11 +408,7 @@ fadeout 0, 0, 0
 needf = 1
 
 setfont font()
-setpicstuf buffer(), 50, -1
-FOR i = 0 TO 254
- loadset game + ".efs", i, 0
- gam.foe_freq(i) = buffer(0)
-NEXT i
+load_fset_frequencies
 loadglobalstrings
 getstatnames statnames()
 j = 0
@@ -506,6 +504,7 @@ setkeys
 DO
  'DEBUG debug "top of master loop"
  setwait speedcontrol
+ IF running_as_slave THEN try_to_reload_files_onmap
  setkeys
  mouse = readmouse  'didn't bother to check havemouse()
  tog = tog XOR 1

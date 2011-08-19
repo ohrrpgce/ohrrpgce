@@ -47,6 +47,10 @@ DECLARE FUNCTION game_setoption(opt as string, arg as string) as integer
 DECLARE SUB handshake_with_master ()
 DECLARE SUB show_wrong_spawned_version_error ()
 DECLARE SUB check_game_custom_versions_match ()
+DECLARE SUB receive_file_updates ()
+DECLARE SUB try_to_reload_files_onmap ()
 DECLARE FUNCTION compatpage() as integer
+DECLARE SUB load_fset_frequencies ()
+
 
 #endif

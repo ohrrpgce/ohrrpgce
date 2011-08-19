@@ -19,6 +19,7 @@ DEFINT A-Z
 #include "battle_udts.bi"
 #include "moresubs.bi"
 #include "menustuf.bi"
+#include "yetmore2.bi"
 
 DECLARE SUB confirm_auto_spread (who as integer, tmask() as integer, bslot() AS BattleSprite, t() AS INTEGER)
 DECLARE SUB confirm_auto_focus (who as integer, tmask() as integer, atk as AttackData, bslot() AS BattleSprite, t() AS INTEGER)
@@ -1715,4 +1716,31 @@ SUB change_foe_stat(BYREF bspr AS BattleSprite, stat_num AS INTEGER, new_max AS 
   '--always use new max stat
   .max.sta(stat_num) = new_max
  END WITH
+END SUB
+
+'There's no need to handle any lumps here which don't have effect on battles such as map data
+SUB try_to_reload_files_inbattle ()
+ receive_file_updates
+
+ DIM i as integer = 0
+ WHILE i < v_len(modified_lumps)
+  DIM handled as integer = NO
+  DIM base as string = trimextension(modified_lumps[i])
+  DIM extn as string = justextension(modified_lumps[i])
+
+  IF is_int(extn) OR LEFT(base, 4) = "song" THEN                     '.## and song##.xxx (music)
+   IF base = "song" + STR(presentsong) OR extn = STR(presentsong) THEN
+    pausesong
+    playsongnum presentsong
+   END IF
+   handled = YES
+
+  END IF
+
+  IF handled THEN
+   v_delete_slice modified_lumps, i, i + 1
+  ELSE
+   i += 1
+  END IF
+ WEND
 END SUB

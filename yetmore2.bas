@@ -342,6 +342,8 @@ cleanuptemp
 IF NOT running_as_slave THEN killdir tmpdir + "playing.tmp"
 killdir tmpdir
 
+v_free modified_lumps
+
 'DEBUG debug "Restore Old Graphics Mode"
 restoremode
 'DEBUG debug "Terminate NOW (boom!)"
@@ -874,6 +876,77 @@ SUB handshake_with_master ()
  set_OPEN_hook_filter @inworkingdir, NO
 END SUB
 
+'Checks to see which lumps have been updated by the master process
+SUB receive_file_updates ()
+ DIM line_in as string
+ DIM pieces() as string
+
+ WHILE channel_input_line(master_channel, line_in)
+  IF LEFT(line_in, 2) = "M " THEN
+   line_in = MID(line_in, 3)
+   DIM at as integer = v_find(modified_lumps, line_in)
+   IF at = -1 THEN
+    v_append modified_lumps, line_in
+   END IF
+  ELSE
+   debug "Did not understand message from Custom: " & line_in
+  END IF
+  debuginfo "msg from Custom: " & line_in
+ WEND
+END SUB
+
+SUB try_to_reload_files_onmap ()
+ receive_file_updates
+
+ STATIC ignorable_extns_(...) as string*3 => {"mn", "tmn"}
+ STATIC ignorable_extns as string vector
+ IF ignorable_extns = NULL THEN
+  v_new ignorable_extns
+  FOR i as integer = 0 TO UBOUND(ignorable_extns_)
+   v_append(ignorable_extns, ignorable_extns_(i))
+  NEXT
+ END IF
+
+ DIM i as integer = 0
+ WHILE i < v_len(modified_lumps)
+  DIM handled as integer = NO
+  DIM base as string = trimextension(modified_lumps[i])
+  DIM extn as string = justextension(modified_lumps[i])
+
+  IF v_find(ignorable_extns, extn) > -1 THEN
+   handled = YES
+
+  ELSEIF extn = "efs" THEN                                                '.EFS
+   load_fset_frequencies
+   handled = YES
+
+  ELSEIF modified_lumps[i] = trimpath(maplumpname(gam.map.id, "e")) THEN '.E##
+   IF foemaph THEN CLOSE #foemaph
+   foemaph = FREEFILE
+   OPEN maplumpname(gam.map.id, "e") FOR BINARY ACCESS READ AS #foemaph
+   handled = YES
+
+  ELSEIF is_int(extn) _
+         OR (LEFT(base, 4) = "song" ANDALSO is_int(MID(base, 5))) THEN   '.## and song##.xxx (music)
+   IF base = "song" + STR(presentsong) OR extn = STR(presentsong) THEN
+    pausesong
+    playsongnum presentsong
+   END IF
+   handled = YES
+
+  ELSE
+   debuginfo "did not reload " & modified_lumps[i]
+   handled = YES
+  END IF
+
+  IF handled THEN
+   v_delete_slice modified_lumps, i, i + 1
+  ELSE
+   i += 1
+  END IF
+ WEND
+END SUB
+
 'return a video page which is a view on vpage that is 320x200 (or smaller) and centred
 FUNCTION compatpage() as integer
  DIM fakepage AS INTEGER
@@ -883,3 +956,11 @@ FUNCTION compatpage() as integer
  frame_unload @centreview
  RETURN fakepage
 END FUNCTION
+
+SUB load_fset_frequencies ()
+ DIM buf(24) as integer
+ FOR i as integer = 0 TO 254
+  loadrecord buf(), game + ".efs", 25, i
+  gam.foe_freq(i) = buf(0)
+ NEXT i
+END SUB

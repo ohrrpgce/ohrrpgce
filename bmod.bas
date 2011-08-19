@@ -117,6 +117,7 @@ FUNCTION battle (form) as integer
  setkeys
  DO
   setwait speedcontrol
+  IF running_as_slave THEN try_to_reload_files_inbattle
   setkeys
   bat.tog XOR= 1
   playtimer

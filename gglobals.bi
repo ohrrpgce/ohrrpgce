@@ -31,6 +31,7 @@ EXTERN autosnap as integer
 EXTERN running_as_slave as integer
 EXTERN custom_version as string
 EXTERN master_channel as IPCChannel
+EXTERN modified_lumps as string vector
 'EXTERN delayed_startup_error as string
 
 'Input handling globals
