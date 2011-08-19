@@ -172,6 +172,7 @@ type BufferedFile
 	len as uinteger      'total length of the file
 	buf as ubyte ptr     'of size BF_BUFSIZE
 	bufStart as uinteger 'offset of the buffer in the file. The buffer always extends to the end
+	filename as zstring ptr  'manually allocated!
 end type
 
 #define BF_BUFSIZE   (64 * 1024)

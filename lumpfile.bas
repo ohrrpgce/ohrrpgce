@@ -1079,6 +1079,8 @@ function Buffered_open (filename as string) as BufferedFile ptr
 		end if
 
 		.buf = allocate(BF_BUFSIZE)
+		.filename = allocate(len(filename) + 1)
+		strcpy(.filename, strptr(filename))
 	end with
 
 	return bfile
@@ -1090,7 +1092,9 @@ sub Buffered_close (byval bfile as BufferedFile ptr)
 			fput .fh, .bufStart + 1, .buf, .len - .bufStart
 		end if
 		close .fh
+		send_lump_modified_msg(.filename)
 		deallocate(.buf)
+		deallocate(.filename)
 	end with
 	deallocate(bfile)
 end sub

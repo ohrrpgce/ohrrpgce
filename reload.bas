@@ -644,6 +644,7 @@ sub SerializeBin(file as string, byval doc as DocPtr)
 		debug "SerializeBin: could not rename " & file & ".tmp (exists=" & isfile(file & ".tmp") & ") to " & file & " (exists=" & isfile(file) & ")"
 		exit sub  'don't delete the data
 	end if
+	send_lump_modified_msg(file)
 	safekill file & ".tmp"
 end sub
 
