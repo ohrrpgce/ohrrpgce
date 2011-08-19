@@ -397,6 +397,14 @@ ProcessHandle open_process (FBSTRING *program, FBSTRING *args) {
 	return -1;  //nonzero
 }
 
+//Run a (hidden) commandline program and open a pipe which writes to its stdin & reads from stdout
+//Returns 0 on failure.
+//If successful, you should call cleanup_process with the handle after you don't need it any longer.
+ProcessHandle open_piped_process (FBSTRING *program, FBSTRING *args, IPCChannel *iopipe) {
+	//Unimplemented
+	return 0;
+}
+
 //Returns 0 on failure.
 //If successful, you should call cleanup_process with the handle after you don't need it any longer.
 //This is currently designed for running console applications. Could be

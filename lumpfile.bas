@@ -1213,7 +1213,12 @@ function channel_wait_for_msg(byref channel as IPCChannel, wait_for_prefix as st
 	dim timeout as double = TIMER + timeout_ms / 1000
 
 	do
+		line_in = ""
 		while channel_input_line(channel, line_in) = 0
+			if channel = NULL_CHANNEL then
+				debug "channel_wait_for_msg: channel closed"
+				return NO
+			end if
 			sleep 10
 			if TIMER > timeout then
 				debuginfo "channel_wait_for_msg timed out"

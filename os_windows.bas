@@ -17,18 +17,19 @@ option explicit
 
 
 'FormatMessage is such an awfully complex function
-function get_windows_error () as string
-	dim errcode as integer = GetLastError()
+function get_windows_error (byval errcode as integer) as string
 	dim strbuf as string * 256
 	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, errcode, 0, strptr(strbuf), 255, NULL)
 	return strbuf
 end function
 
+#define error_string get_windows_error(GetLastError())
+
 private function get_file_handle (byval fh as CFILE_ptr) as HANDLE
 	return cast(HANDLE, _get_osfhandle(_fileno(fh)))
 end function
 
-private function file_handle_to_FILE (byval fhandle as HANDLE, funcname as string) as FILE ptr
+private function file_handle_to_read_FILE (byval fhandle as HANDLE, funcname as string) as FILE ptr
 	dim fd as integer = _open_osfhandle(cast(integer, fhandle), 0)
 	if fd = -1 then
 		debug funcname + ": _open_osfhandle failed"
@@ -90,14 +91,14 @@ end function
 sub setwriteable (fname as string)
 	dim attr as integer = GetFileAttributes(strptr(fname))
 	if attr = INVALID_FILE_ATTRIBUTES then
-		dim errstr as string = get_windows_error()
+		dim errstr as string = error_string
 		debug "GetFileAttributes(" & fname & ") failed: " & errstr
 		exit sub
 	end if
 	attr = attr and not FILE_ATTRIBUTE_READONLY
 	'attr = attr or FILE_ATTRIBUTE_TEMPORARY  'Try to avoid writing to harddisk
 	if SetFileAttributes(strptr(fname), attr) = 0 then
-		dim errstr as string = get_windows_error()
+		dim errstr as string = error_string
 		debug "SetFileAttributes(" & fname & ") failed: " & errstr
 	end if
 end sub
@@ -127,7 +128,7 @@ private function lock_file_base (byval fh as CFILE_ptr, byval timeout_ms as inte
 			return YES
 		end if
 		if GetLastError() <> ERROR_IO_PENDING then
-			dim errstr as string = get_windows_error()
+			dim errstr as string = error_string
 			debug funcname & ": LockFile() failed: " & errstr
 			return NO
 		end if
@@ -161,10 +162,11 @@ end function
 
 
 type NamedPipeInfo
-  fh as HANDLE
-  cfile as FILE ptr
-  available as integer
-  readamount as integer
+  fh as HANDLE         'Write end of the pipe. Used for writing
+  readfh as HANDLE     'Read end of the pipe. Not used. Probably equal to fh
+  cfile as FILE ptr    'stdio FILE wrapper around read end of the pipe. Used for reading only
+  available as integer   'Total amount seen on readfh
+  readamount as integer  'Total amount read from cfile
   hasconnected as integer
   overlappedop as OVERLAPPED
 end type
@@ -180,7 +182,7 @@ function channel_open_server (byref channel as NamedPipeInfo ptr, chan_name as s
 	pipeh = CreateNamedPipe(strptr(chan_name), PIPE_ACCESS_DUPLEX OR FILE_FLAG_OVERLAPPED, _
 	                        PIPE_TYPE_BYTE OR PIPE_READMODE_BYTE, 1, 4096, 4096, 0, NULL)
 	if pipeh = -1 then
-		dim errstr as string = get_windows_error()
+		dim errstr as string = error_string
 		debug "Could not open IPC channel: " + errstr
 		return NO
 	end if
@@ -188,6 +190,7 @@ function channel_open_server (byref channel as NamedPipeInfo ptr, chan_name as s
 	dim pipeinfo as NamedPipeInfo ptr
 	pipeinfo = New NamedPipeInfo
 	pipeinfo->fh = pipeh
+	pipeinfo->readfh = pipeh
 
 	'create a "manual-reset event object", required for ConnectNamedPipe
 	dim event as HANDLE
@@ -201,14 +204,14 @@ function channel_open_server (byref channel as NamedPipeInfo ptr, chan_name as s
 	if errcode = ERROR_PIPE_CONNECTED then
 		pipeinfo->hasconnected = YES
 	elseif errcode <> ERROR_IO_PENDING then
-		dim errstr as string = get_windows_error()
+		dim errstr as string = error_string
 		debug "ConnectNamedPipe error: " + errstr
 		channel_delete(pipeinfo)
 		return NO
 	end if
 
 	dim cfile as FILE ptr
-	cfile = file_handle_to_FILE(pipeh, "channel_open_server")
+	cfile = file_handle_to_read_FILE(pipeh, "channel_open_server")
 	if cfile = NULL then
 		channel_delete(pipeinfo)
 		return NO
@@ -232,7 +235,7 @@ function channel_wait_for_client_connection (byref channel as NamedPipeInfo ptr,
 		elseif res = WAIT_OBJECT_0 then
 			channel->hasconnected = YES
 		else
-			dim errstr as string = get_windows_error()
+			dim errstr as string = error_string
 			debug "error waiting for channel connection: " + errstr
 			return NO
 		end if
@@ -249,14 +252,14 @@ function channel_open_client (byref channel as NamedPipeInfo ptr, chan_name as s
 	pipeh = CreateFile(strptr(chan_name), GENERIC_READ OR GENERIC_WRITE, 0, NULL, _
 	                   OPEN_EXISTING, 0, NULL)
 	if pipeh = -1 then
-		dim errstr as string = get_windows_error()
+		dim errstr as string = error_string
 		debug "channel_open_client: could not open: " + errstr
 		return NO
 	end if
 
 	'This is a hack; see channel_read_input_line
 	dim cfile as FILE ptr
-	cfile = file_handle_to_FILE(pipeh, "channel_open_client")
+	cfile = file_handle_to_read_FILE(pipeh, "channel_open_client")
 	if cfile = NULL then
 		CloseHandle(pipeh)
 		return NO
@@ -265,6 +268,7 @@ function channel_open_client (byref channel as NamedPipeInfo ptr, chan_name as s
 	dim pipeinfo as NamedPipeInfo ptr
 	pipeinfo = New NamedPipeInfo
 	pipeinfo->fh = pipeh
+	pipeinfo->readfh = pipeh
 	pipeinfo->cfile = cfile
 	channel = pipeinfo
 	return YES
@@ -273,8 +277,9 @@ end function
 private sub channel_delete (byval channel as NamedPipeInfo ptr)
 	with *channel
 		if .cfile then
-			fclose(.cfile)  'Closes .fh too
-			.fh = NULL
+			fclose(.cfile)  'Closes .readfh too
+			if .readfh = .fh then .fh = NULL
+			.readfh = NULL
 		end if
 		if .fh then CloseHandle(.fh)
 		if .overlappedop.hEvent then CloseHandle(.overlappedop.hEvent)
@@ -297,12 +302,12 @@ function channel_write (byref channel as NamedPipeInfo ptr, byval buf as any ptr
 	res = WriteFile(channel->fh, buf, buflen, @written, NULL)
 	if res = 0 or written < buflen then
 		'should actually check errno instead; hope this works
-		dim errstr as string = get_windows_error()
+		dim errstr as string = error_string
 		debuginfo "channel_write error (closing) (wrote " & written & " of " & buflen & "): " & errstr
 		channel_close(channel)
 		return NO
 	end if
-	'debuginfo "channel_write: " & written & " of " & buflen & " " & get_windows_error()
+	'debuginfo "channel_write: " & written & " of " & buflen & " " & error_string
 	return YES
 end function
 
@@ -328,8 +333,8 @@ function channel_input_line (byref channel as NamedPipeInfo ptr, line_in as stri
 	if channel->readamount >= channel->available then
 		'recheck whether more data is available
 		dim bytesbuffered as integer
-		if PeekNamedPipe(channel->fh, NULL, 0, NULL, @bytesbuffered, NULL) = 0 then
-			dim errstr as string = get_windows_error()
+		if PeekNamedPipe(channel->readfh, NULL, 0, NULL, @bytesbuffered, NULL) = 0 then
+			dim errstr as string = error_string
 			debuginfo "PeekNamedPipe error (closing) : " + errstr
 			channel_close(channel)
 			return 0
@@ -346,7 +351,7 @@ function channel_input_line (byref channel as NamedPipeInfo ptr, line_in as stri
 	do
 		res = fgets(@buf(0), 512, channel->cfile)
 		if res = NULL then
-			dim errstr as string = get_windows_error()
+			dim errstr as string = error_string
 			debuginfo "pipe read error (closing): " + errstr  'should actually check errno instead; hope this works
 			channel_close(channel)
 			return 0
@@ -378,13 +383,81 @@ function open_process (program as string, args as string) as ProcessHandle
 	sinfo.cb = sizeof(STARTUPINFO)
 	dim pinfop as ProcessHandle = Callocate(sizeof(PROCESS_INFORMATION))
 	if CreateProcess(strptr(program), strptr(argstemp), NULL, NULL, 0, flags, NULL, NULL, @sinfo, pinfop) = 0 then
-		dim errstr as string = get_windows_error()
+		dim errstr as string = error_string
 		debug "CreateProcess(" & program & ", " & args & ") failed: " & errstr
 		Deallocate(pinfop)
 		return 0
 	else
 		return pinfop
 	end if
+end function
+
+'Run a (hidden) commandline program and open a pipe which writes to its stdin & reads from stdout
+'Returns 0 on failure.
+'If successful, you should call cleanup_process with the handle after you don't need it any longer.
+function open_piped_process (program as string, args as string, byval iopipe as NamedPipeInfo ptr ptr) as ProcessHandle
+	dim argstemp as string = """" + program + """ " + args
+	dim flags as integer = 0
+	dim pinfop as ProcessHandle  'PROCESS_INFORMATION ptr
+	dim sinfo as STARTUPINFO
+	dim pipeinfo as NamedPipeInfo ptr
+
+	if *iopipe then
+		debug "Error: open_piped_process found open IPCChannel argument"
+		channel_close *iopipe
+	end if
+
+	dim pipename as string
+	pipename = "\\.\pipe\AnonPipe." & (100000 * RND)
+
+	dim as NamedPipeInfo ptr serverpipe, clientpipe
+
+	if channel_open_write(serverpipe, pipename) = NO then
+		debug "open_piped_process failed."
+		goto error_out
+	end if
+
+	if channel_open_read(clientpipe, pipename) = NO then
+		debug "open_piped_process failed."
+		goto error_out
+	end if
+
+	'Make this pipe handle inheritable
+	if SetHandleInformation(clientpipe->fh, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT) = 0 then
+		dim errstr as string = error_string
+		debug "SetHandleInformation failure: " & errstr
+		goto error_out
+	end if
+
+	sinfo.cb = sizeof(STARTUPINFO)
+	'sinfo.hStdError = clientpipe->fh
+	sinfo.hStdOutput = clientpipe->fh
+	sinfo.hStdInput = clientpipe->fh
+	sinfo.dwFlags or= STARTF_USESTDHANDLES 'OR STARTF_USESHOWWINDOW
+	'(Apparently this flag doesn't work unless you also set standard input and output handle)
+	flags or= CREATE_NO_WINDOW
+
+	pinfop = Callocate(sizeof(PROCESS_INFORMATION))
+	if CreateProcess(strptr(program), strptr(argstemp), NULL, NULL, 1, flags, NULL, NULL, @sinfo, pinfop) = 0 then
+		dim errstr as string = error_string
+		debug "CreateProcess(" & program & ", " & args & ") failed: " & errstr
+		goto error_out
+	end if
+
+	'Get rid of unneeded handle
+	channel_close(clientpipe)
+	clientpipe = NULL
+
+	*iopipe = serverpipe
+
+	return pinfop
+
+ error_out:
+	if clientpipe then channel_close(clientpipe)
+	if serverpipe then channel_close(serverpipe)
+	if pinfop then Deallocate(pinfop)
+	return 0
+
 end function
 
 'Returns 0 on failure.
@@ -405,7 +478,7 @@ function open_console_process (program as string, args as string) as ProcessHand
 
 	dim pinfop as ProcessHandle = Callocate(sizeof(PROCESS_INFORMATION))
 	if CreateProcess(strptr(program), strptr(argstemp), NULL, NULL, 0, flags, NULL, NULL, @sinfo, pinfop) = 0 then
-		dim errstr as string = get_windows_error()
+		dim errstr as string = error_string
 		debug "CreateProcess(" & program & ", " & args & ") failed: " & errstr
 		Deallocate(pinfop)
 		return 0
@@ -419,13 +492,14 @@ function process_running (byval process as ProcessHandle, byval exitcode as inte
 	if process = NULL then return NO
 	dim waitret as integer = WaitForSingleObject(process->hProcess, 0)
         if waitret = WAIT_FAILED then
-		dim errstr as string = get_windows_error()
+		dim errstr as string = error_string
 		debug "process_running failed: " & errstr
 		return NO
 	end if
 	if exitcode <> NULL and waitret = 0 then
 		if GetExitCodeProcess(process->hProcess, exitcode) = 0 then
-			debuginfo "GetExitCodeProcess failed: " & get_windows_error()
+			dim errstr as string = error_string
+			debuginfo "GetExitCodeProcess failed: " & errstr
 		end if
 	end if
 	return (waitret = WAIT_TIMEOUT)
@@ -435,7 +509,8 @@ sub kill_process (byval process as ProcessHandle)
 	if process = NULL then exit sub
 	'Isn't there some way to signal the process to quit? This kills it immediately.
 	if TerminateProcess(process->hProcess, 1) = 0 then
-		debug "TerminateProcess failed: " & get_windows_error()
+		dim errstr as string = error_string
+		debug "TerminateProcess failed: " & errstr
 	end if
 
 	'And now we wait for the process to die: it might have files open that we want to delete.
@@ -446,7 +521,7 @@ sub kill_process (byval process as ProcessHandle)
 	dim waitret as integer = WaitForSingleObject(process->hProcess, 500)  'wait up to 500ms
         if waitret <> 0 then
 		dim errstr as string
-		if waitret = WAIT_FAILED then errstr = get_windows_error()
+		if waitret = WAIT_FAILED then errstr = error_string
 		debug "couldn't wait for process to quit: " & waitret & " " & errstr
 	end if
 end sub
