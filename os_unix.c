@@ -7,14 +7,10 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+#include "common.h"
 #include "os.h"
 
 typedef int ProcessHandle;
-
-// common.bas
-void debugc(char *msg, int errorlevel);
-// array.c
-void debuginfo(char *msg, ...);  //errorlevel 1
 
 
 //==========================================================================================

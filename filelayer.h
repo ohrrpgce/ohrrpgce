@@ -23,9 +23,6 @@ extern "C" {
 
   typedef FBCALL int (*FnStringPredicate)(FBSTRING *filename);
 
-  // common.bas
-  void debugc(char *msg, int errorlevel);
-
   void set_OPEN_hook_filter(FnStringPredicate lumpfile_filter);
   void set_lump_updates_channel(IPCChannel channel);
 

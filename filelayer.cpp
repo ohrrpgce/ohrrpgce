@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <cassert>
 #include <map>
+#include "common.h"
 
 map<FB_FILE *, FileInfo> openfiles;
 typedef map<FB_FILE *, FileInfo>::iterator openfiles_iterator_t;

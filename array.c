@@ -11,21 +11,7 @@
 #else
 #include <alloca.h>
 #endif
-
-/* Several other C/C++ compilers, like Comeau C++, also have good gcc compatibility. Change this.
-   Apparently the Intel compiler defines __GNUC__ */
-#if defined(__GNUC__) || defined(__IBMC__) || defined(__INTEL_COMPILER)
-# define pure __attribute__ ((__pure__))
-# define format_chk(fmt_arg) __attribute__ ((__format__ (__printf__, fmt_arg, fmt_arg + 1)))
-# define noreturn __attribute__ ((__noreturn__))
-# define warn_unused_result __attribute__ ((__warn_unused_result__))
-#else
-# define pure
-# define format_chk(fmt_arg)
-# define noreturn
-//# define inline
-#endif
-
+#include "common.h"
 
 
 struct FBSTRING;
@@ -60,44 +46,31 @@ typedef struct _array_header {
 } array_header;
 
 
-
-
-// common.bas
-void debugc(char *msg, int errorlevel);
-
-// libfb.a
-void (*fb_ErrorThrowAt(int line_num, const char *mod_name, void *res_label, void *resnext_label))(void) noreturn;
-
-static void _throw_error(int linenum, char *msg, ...) format_chk(2) noreturn;
-void debuginfo(char *msg, ...) format_chk(1);
 void array_free(array_t *array);
 
-#define throw_error(...) _throw_error(__LINE__, __VA_ARGS__)
 
-
-
-
-void _throw_error(int linenum, char *msg, ...) {
+void _throw_error(const char *srcfile, int linenum, char *msg, ...) {
 	va_list vl;
 	va_start(vl, msg);
 	char buf[256];
-	int emitted = sprintf(buf, "On line %d in %s: ", linenum, __FILE__);
+	int emitted = sprintf(buf, "On line %d in %s: ", linenum, srcfile);
 	vsprintf(buf + emitted, msg, vl);
 	va_end(vl);
 	debugc(buf, 6);  // fatal
 	// Ah, what the heck, shouldn't run, but I already wrote it (NULLs indicate no RESUME support)
-	void (*handler)() = fb_ErrorThrowAt(linenum, __FILE__, NULL, NULL);
+	void (*handler)() = fb_ErrorThrowAt(linenum, srcfile, NULL, NULL);
 	handler();
 }
 
-void debuginfo(char *msg, ...) {
+void debug(int errorlevel, const char *msg, ...) {
 	va_list vl;
 	va_start(vl, msg);
 	char buf[256];
 	vsprintf(buf, msg, vl);
 	va_end(vl);
-	debugc(buf, 1);  // debuginfo
+	debugc(buf, errorlevel);
 }
+
 
 /* ifdef VALGRIND_ARRAYS, then two bytes before the start of an array hold an id
    which points to an entry in header_table. Otherwise the array_header is placed
