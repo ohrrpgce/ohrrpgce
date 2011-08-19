@@ -1,6 +1,6 @@
-This menu displays the status of the current map.
+This debug menu displays the modified status of things on the current map, and lets you reset/reload them. The displayed statuses might not be accurate, especially if saved map states are used.
 
-Reload map: This deletes any saved map data, and then reloads a map (as if reentering it).
+Reload map: This deletes all saved map data, and then reloads the map (as if reentering it --- for example, the map autorun script is run.)
 
 If live-previewing a game, several additional options appear for how to handle edits you make in Custom. These options affect all maps. You can press LEFT and RIGHT to change them. The different settings are:
 
@@ -12,10 +12,16 @@ Reload: Always:
  Always immediately reload this data,
  overwriting any changes by scripts.
 
-Reload: If no script changes:
+Reload: If no in-game changes:
  If a script modifies this,
  automatically reloading is disabled.
 
-Reload: Merge script changes:
+Reload: Merge in-game changes:
  Changes made by scripts and made in
- Custom are combined.
+ Custom are combined. If used for NPC
+ locations, then only NPCs which have
+ been placed/moved/repositioned in
+ the map editor are updated. (Note
+ that moving an NPC can change its
+ reference number, leading to odd
+ results.)

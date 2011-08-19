@@ -43,7 +43,7 @@ DECLARE SUB deletemapstate (byval mapnum as integer, byval killmask as integer, 
 DECLARE FUNCTION gmap_index_affects_tiles(byval index as integer) as integer
 DECLARE SUB reloadmap_gmap_no_tilesets()
 DECLARE SUB reloadmap_npcd()
-DECLARE SUB reloadmap_npcl()
+DECLARE SUB reloadmap_npcl(byval merge as integer)
 DECLARE SUB reloadmap_tilemap_and_tilesets(byval merge as integer)
 DECLARE SUB reloadmap_passmap(byval merge as integer)
 DECLARE SUB reloadmap_foemap()

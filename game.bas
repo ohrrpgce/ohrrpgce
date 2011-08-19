@@ -147,6 +147,8 @@ lump_reloading.maptiles.mode = loadmodeAlways
 lump_reloading.passmap.mode = loadmodeAlways
 lump_reloading.foemap.mode = loadmodeAlways
 lump_reloading.zonemap.mode = loadmodeAlways
+lump_reloading.npcl.mode = loadmodeMerge
+lump_reloading.npcd.mode = loadmodeAlways
 
 'Menu Data
 DIM menu_set AS MenuSet
@@ -1590,6 +1592,7 @@ WITH scrat(nowscript)
        change_npc_def_pal npcid, retvals(2)
       END IF
       IF writesafe THEN SetNPCD(npcs(npcid), retvals(1), retvals(2))
+      lump_reloading.npcd.dirty = YES
      END IF
     END IF
    CASE 79'--show no value

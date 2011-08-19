@@ -251,6 +251,7 @@ SUB make_map_backups
  'This back-ups certain map lumps so that when live previewing a game, changes can be three-way merged
  writeablecopyfile maplumpname(gam.map.id, "t"), tmpdir & "mapbackup.t"
  writeablecopyfile maplumpname(gam.map.id, "p"), tmpdir & "mapbackup.p"
+ writeablecopyfile maplumpname(gam.map.id, "l"), tmpdir & "mapbackup.l"
  'Global lump which doesn't need to be backed up on every map change... actually maybe doing that interferes
  'with merging? Well, putting this here keeps things simple
  writeablecopyfile game + ".map", tmpdir & "mapbackup.map"
@@ -743,19 +744,42 @@ SUB reloadmap_gmap_no_tilesets()
  END IF
 END SUB
 
-'NOT FINISHED
-SUB reloadmap_npcl()
+SUB reloadmap_npcl(byval merge as integer)
+ lump_reloading.npcl.changed = NO
+ 
  'Delete saved state to prevent regressions
  safekill mapstatetemp(gam.map.id, "map") + "_l.reld.tmp"
 
- LoadNPCL maplumpname(gam.map.id, "l"), npc()
+ DIM filename as string = maplumpname(gam.map.id, "l")
+ IF merge THEN
+  DIM npcnew(UBOUND(npc)) as NPCInst
+  DIM npcbase(UBOUND(npc)) as NPCInst
+  LoadNPCL filename, npcnew()
+  LoadNPCL tmpdir + "mapbackup.l", npcbase()
+
+  FOR i as integer = 0 TO UBOUND(npc)
+   IF memcmp(@npcnew(i), @npcbase(i), SIZEOF(NPCInst)) THEN
+    'If an NPC was removed in Custom, and meanwhile it's been replaced in-game, then
+    'don't overwrite it.
+    IF npc(i).id <> npcbase(i).id AND npcnew(i).id = 0 THEN CONTINUE FOR
+    'Otherwise Custom has priority
+    DeleteSlice @npc(i).sl  
+    npc(i) = npcnew(i)
+   END IF
+  NEXT
+ ELSE
+  LoadNPCL filename, npc()
+  writeablecopyfile filename, tmpdir + "mapbackup.l"
+ END IF
 
  'Evaluate whether NPCs should appear or disappear based on tags
  visnpc
 END SUB
 
-'NOT FINISHED
 SUB reloadmap_npcd()
+ lump_reloading.npcd.changed = NO
+ lump_reloading.npcd.dirty = NO
+
  'Delete saved state to prevent regressions
  safekill mapstatetemp(gam.map.id, "map") + "_n.tmp"
 
@@ -1141,7 +1165,7 @@ SUB inspect_MAP_lump()
    IF .gmap.dirty THEN
     IF .gmap.mode = loadmodeAlways THEN reloadmap_gmap_no_tilesets
    ELSE
-    IF .gmap.mode >= loadmodeAlways THEN reloadmap_gmap_no_tilesets
+    IF .gmap.mode <> loadmodeNever THEN reloadmap_gmap_no_tilesets
    END IF
   END IF      
 
@@ -1150,27 +1174,21 @@ END SUB
 
 'Check whether a lump is a (supported) map lump, and if so return YES and reload it if needed.
 'Also updates lump_reloading flags and deletes mapstate data as required.
-'Currently supports: T, P, E, Z
-'Missing: N, L, D, DOX
-'Elsewhere: MAP
-'Not going to bother with: MN
+'Currently supports: T, P, E, Z, N, L
+'Elsewhere: MAP, DOX
+'Not going to bother with: MN, D
 FUNCTION try_reload_map_lump(base as string, extn as string) as integer
  DIM typecode as string
  DIM mapnum as integer = -1
 
- IF extn = "dox" THEN
-  'these affect multiple maps (keep mapnum = -1)
-  typecode = extn
- ELSE
-  'Check for .X## and map###.X
-  DIM extnnum as integer = -1
-  IF LEN(extn) = 3 THEN extnnum = str2int(MID(extn, 2), -1)
-  DIM basenum as integer = str2int(base, -1)
-  '--Don't bother to actually check base=archinym
-  mapnum = IIF(basenum >= 100 AND extnnum = -1, basenum, extnnum)
-  IF mapnum = -1 THEN RETURN NO
-  typecode = LEFT(extn, 1)
- END IF
+ 'Check for .X## and map###.X
+ DIM extnnum as integer = -1
+ IF LEN(extn) = 3 THEN extnnum = str2int(MID(extn, 2), -1)
+ DIM basenum as integer = str2int(base, -1)
+ '--Don't bother to actually check base=archinym
+ mapnum = IIF(basenum >= 100 AND extnnum = -1, basenum, extnnum)
+ IF mapnum = -1 THEN RETURN NO
+ typecode = LEFT(extn, 1)
 
  WITH lump_reloading
 
@@ -1190,15 +1208,19 @@ FUNCTION try_reload_map_lump(base as string, extn as string) as integer
      IF .foemap.mode <> loadmodeNever THEN safekill statefile
     CASE "z"
      IF .foemap.mode <> loadmodeNever THEN safekill statefile
+    CASE "l"
+     IF .npcl.mode <> loadmodeNever THEN safekill statefile
+    CASE "n"
+     IF .npcd.mode <> loadmodeNever THEN safekill statefile
     CASE ELSE
      RETURN NO
    END SELECT
 
-   'If this is a lump for a specific map other than the current, stop.
-   IF mapnum <> -1 THEN RETURN YES
+   'This is a lump for a specific map other than the current, stop.
+   RETURN YES
   END IF
 
-  'This is (also) one of the current map's lumps
+  'This is one of the current map's lumps
 
   SELECT CASE typecode
    CASE "t"  '--all modes supported
@@ -1207,7 +1229,7 @@ FUNCTION try_reload_map_lump(base as string, extn as string) as integer
      IF .maptiles.mode = loadmodeAlways THEN reloadmap_tilemap_and_tilesets NO
      IF .maptiles.mode = loadmodeMerge THEN reloadmap_tilemap_and_tilesets YES
     ELSE
-     IF .maptiles.mode >= loadmodeAlways THEN reloadmap_tilemap_and_tilesets NO
+     IF .maptiles.mode <> loadmodeNever THEN reloadmap_tilemap_and_tilesets NO
     END IF
 
    CASE "p"  '--all modes supported
@@ -1216,7 +1238,7 @@ FUNCTION try_reload_map_lump(base as string, extn as string) as integer
      IF .passmap.mode = loadmodeAlways THEN reloadmap_passmap NO
      IF .passmap.mode = loadmodeMerge THEN reloadmap_passmap YES
     ELSE
-     IF .passmap.mode >= loadmodeAlways THEN reloadmap_passmap NO
+     IF .passmap.mode <> loadmodeNever THEN reloadmap_passmap NO
     END IF
 
    CASE "e"  '--never/always only
@@ -1228,10 +1250,22 @@ FUNCTION try_reload_map_lump(base as string, extn as string) as integer
     IF .zonemap.dirty THEN
      IF .zonemap.mode = loadmodeAlways THEN reloadmap_zonemap
     ELSE
-     IF .zonemap.mode >= loadmodeAlways THEN reloadmap_zonemap
+     IF .zonemap.mode <> loadmodeNever THEN reloadmap_zonemap
     END IF
 
-   CASE ELSE  'not yet implemented
+   CASE "l"  '--never/always/merge only
+    .npcl.changed = YES
+    IF .npcl.mode <> loadmodeNever THEN reloadmap_npcl (.npcl.mode = loadmodeMerge)
+
+   CASE "n"  '--never/always/if unchanged only
+    .npcd.changed = YES
+    IF .npcd.dirty THEN
+     IF .npcd.mode = loadmodeAlways THEN reloadmap_npcd
+    ELSE
+     IF .npcd.mode <> loadmodeNever THEN reloadmap_npcd
+    END IF
+
+   CASE ELSE  '???
     RETURN NO
 
   END SELECT
@@ -1243,7 +1277,7 @@ END FUNCTION
 SUB try_to_reload_files_onmap ()
  receive_file_updates
 
- STATIC ignorable_extns_(...) as string*3 => {"mn", "tmn"}
+ STATIC ignorable_extns_(...) as string*3 => {"mn", "tmn", "d", "dor"}
  STATIC ignorable_extns as string vector
  IF ignorable_extns = NULL THEN
   v_new ignorable_extns
@@ -1269,7 +1303,11 @@ SUB try_to_reload_files_onmap ()
    inspect_MAP_lump
    handled = YES
 
-  ELSEIF try_reload_map_lump(base, extn) THEN                             '.T, .P, .E, .Z
+  ELSEIF extn = "dox" THEN                                                '.DOX
+   DeSerDoors(game + ".dox", gam.map.door(), gam.map.id)
+   handled = YES
+
+  ELSEIF try_reload_map_lump(base, extn) THEN                             '.T, .P, .E, .Z, .N, .L
    handled = YES
 
   ELSEIF is_int(extn) _
@@ -1315,8 +1353,8 @@ END SUB
 FUNCTION lump_reload_mode_to_string (byval mode as integer) as string
  IF mode = loadmodeNever THEN RETURN "Never"
  IF mode = loadmodeAlways THEN RETURN "Always"
- IF mode = loadmodeIfUnchanged THEN RETURN "If no script changes"
- IF mode = loadmodeMerge THEN RETURN "Merge script changes"
+ IF mode = loadmodeIfUnchanged THEN RETURN "If no in-game changes"
+ IF mode = loadmodeMerge THEN RETURN "Merge in-game changes"
 END FUNCTION
 
 SUB LPM_append_reload_mode_item (menu as MenuDef, what as string, info as LumpReloadState, byval extradata as integer = 0)
@@ -1324,7 +1362,7 @@ SUB LPM_append_reload_mode_item (menu as MenuDef, what as string, info as LumpRe
  menu.last->extra(0) = extradata
 END SUB
 
-SUB LPM_append_force_reload_item (menu as MenuDef, tooltips() as string, what as string, info as LumpReloadState, byval extradata as integer = 0)
+SUB LPM_append_force_reload_item (menu as MenuDef, tooltips() as string, what as string, info as LumpReloadState, byval extradata as integer = 0, byval ignore_dirtiness as integer = NO)
  append_menu_item menu, "Force reload of " + what
  menu.last->extra(0) = extradata
  REDIM PRESERVE tooltips(menu.numitems - 1)
@@ -1334,7 +1372,7 @@ SUB LPM_append_force_reload_item (menu as MenuDef, tooltips() as string, what as
   menu.last->disabled = YES
  ELSE
   tmp = "Modified by"
-  IF info.dirty THEN
+  IF info.dirty AND ignore_dirtiness = NO THEN
    tmp += " scripts"
    IF info.changed THEN tmp += ", by"
   END IF
@@ -1358,12 +1396,16 @@ SUB LPM_update (menu1 as MenuDef, st1 as MenuState, tooltips() as string)
    LPM_append_reload_mode_item menu1, "wallmap", .passmap, 12
    LPM_append_reload_mode_item menu1, "foemap", .foemap, 13
    LPM_append_reload_mode_item menu1, "zonemap", .zonemap, 14
+   LPM_append_reload_mode_item menu1, "npc locations", .npcl, 15
+   LPM_append_reload_mode_item menu1, "npc defs.", .npcd, 16
   END IF
   LPM_append_force_reload_item menu1, tooltips(), "general map data", .gmap, 100
   LPM_append_force_reload_item menu1, tooltips(), "tiles", .maptiles, 101
   LPM_append_force_reload_item menu1, tooltips(), "wallmap", .passmap, 102
   LPM_append_force_reload_item menu1, tooltips(), "foemap", .foemap, 103
   LPM_append_force_reload_item menu1, tooltips(), "zones", .zonemap, 104
+  LPM_append_force_reload_item menu1, tooltips(), "npc locations", .npcl, 105, YES  'NPCL is virtually always dirty
+  LPM_append_force_reload_item menu1, tooltips(), "npc definitions", .npcd, 106
 
   init_menu_state st1, menu1
   REDIM PRESERVE tooltips(menu1.numitems - 1)
@@ -1408,13 +1450,17 @@ SUB live_preview_menu ()
    CASE 10  '--gmap reload mode
     st1.need_update = intgrabber(lump_reloading.gmap.mode, 0, 2)  '3 --merging not implemented
    CASE 11  '--tile reload mode
-    st1.need_update = intgrabber(lump_reloading.maptiles.mode, 0, 3)
+    st1.need_update = intgrabber(lump_reloading.maptiles.mode, -1, 2)
    CASE 12  '--wallmap reload mode
-    st1.need_update = intgrabber(lump_reloading.passmap.mode, 0, 3)
+    st1.need_update = intgrabber(lump_reloading.passmap.mode, -1, 2)
    CASE 13  '--foemap reload mode
     st1.need_update = intgrabber(lump_reloading.foemap.mode, 0, 1)  'Not even possible to modify, so don't confuse people
    CASE 14  '--zones reload mode
     st1.need_update = intgrabber(lump_reloading.zonemap.mode, 0, 2)  'Can't merge zones
+   CASE 15  '--npcl reload mode
+    st1.need_update = intgrabber(lump_reloading.npcl.mode, -1, 1)
+   CASE 16  '--npcd reload mode
+    st1.need_update = intgrabber(lump_reloading.npcd.mode, 0, 2)
    CASE 100  '--force gmap reload
     IF carray(ccUse) > 1 THEN
      reloadmap_gmap_no_tilesets
@@ -1434,6 +1480,14 @@ SUB live_preview_menu ()
    CASE 104  '--force zonemap reload
     IF carray(ccUse) > 1 THEN
      reloadmap_zonemap
+    END IF
+   CASE 105  '--force npcl reload
+    IF carray(ccUse) > 1 THEN
+     reloadmap_npcl NO
+    END IF
+   CASE 106  '--force npcd reload
+    IF carray(ccUse) > 1 THEN
+     reloadmap_npcd
     END IF
   END SELECT
 

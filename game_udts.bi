@@ -163,8 +163,10 @@ TYPE LumpReloadOptions
   gmap     AS LumpReloadState
   maptiles AS LumpReloadState
   passmap  AS LumpReloadState
-  foemap   AS LumpReloadState
+  foemap   AS LumpReloadState  '.dirty ignored: can't be modified
   zonemap  AS LumpReloadState
+  npcl     AS LumpReloadState  '.dirty ignored: nearly always dirty
+  npcd     AS LumpReloadState
 END TYPE
 
 #ENDIF
