@@ -3553,9 +3553,13 @@ FUNCTION getmusictype (file as string) as integer
 END FUNCTION
 
 'not to be used outside of the sprite functions
+declare sub frame_delete_members(byval f as frame ptr)
 declare sub frame_freemem(byval f as frame ptr)
 declare sub Palette16_delete(byval f as Palette16 ptr ptr)
 declare sub spriteset_freemem(byval sprset as SpriteSet ptr)
+'Assumes pitch == w
+declare sub frame_add_mask(byval fr as frame ptr, byval clr as integer = 0)
+
 
 'The sprite cache holds Frame ptrs, which may also be Frame arrays and SpriteSets. Since
 'each SpriteSet is associated with a unique Frame array, we don't need a separate cache
@@ -3632,6 +3636,85 @@ sub sprite_purge_cache(byval minkey as integer, byval maxkey as integer, leakmsg
 		end if
 		pt = nextpt
 	wend
+end sub
+
+'Unlike sprite_purge_cache, this reloads (in-use) sprites from file, without changing the pointers
+'to them. Any sprite that's not actually in use is removed from the cache as it's unnecessary to reload.
+sub sprite_update_cache(byval minkey as integer, byval maxkey as integer)
+	dim iterstate as integer = 0
+	dim as SpriteCacheEntry ptr pt, nextpt
+
+	nextpt = NULL
+	pt = hash_iter(sprcache, iterstate, nextpt)
+	while pt
+		nextpt = hash_iter(sprcache, iterstate, nextpt)
+
+		if pt->hashed.hash < minkey or pt->hashed.hash > maxkey then
+			pt = nextpt
+			continue while
+		end if
+
+		'recall that the cache counts as a reference
+		if pt->p->refcount <> 1 then
+			dim newframe as Frame ptr = NULL
+
+			if pt->hashed.hash >= 100000000 then
+				'Tileset
+
+				dim mxs as Frame ptr
+				mxs = loadmxs(game + ".til", pt->hashed.hash - 100000000)
+				if mxs <> NULL then newframe = frame_to_tileset(mxs)
+				frame_unload @mxs
+			else
+				'.PT# file
+
+				dim ptno as integer = pt->hashed.hash \ 1000000
+				dim rec as integer = pt->hashed.hash MOD 1000000
+				with sprite_sizes(ptno)
+					newframe = frame_load(game + ".pt" & ptno, rec, .frames, .size.w, .size.h)
+				end with
+			end if
+
+			if newframe <> NULL then
+				if newframe->arraylen <> pt->p->arraylen then
+					fatalerror "sprite_update_cache: wrong number of frames!"
+				else
+					'Transplant the data from the new Frame into the old Frame, so that no
+					'pointers need to be updated. pt (the SpriteCacheEntry) doesn't need to
+					'to be modified at all
+
+					dim refcount as integer = pt->p->refcount
+					dim wantmask as integer = (pt->p->mask <> NULL)
+					'Remove the host's previous organs
+					frame_delete_members pt->p
+					'Insert the new organs
+					memcpy(pt->p, newframe, sizeof(Frame) * newframe->arraylen)
+					'Having removed everything from the donor, dispose of it
+					Deallocate(newframe)
+					'Fix the bits we just clobbered
+					pt->p->cached = 1
+					pt->p->refcount = refcount
+					pt->p->cacheentry = pt
+					'Make sure we don't crash if we were using a mask (might be the wrong mask though)
+					if wantmask then frame_add_mask pt->p
+
+				end if
+			end if
+		else
+			sprite_remove_cache(pt)
+		end if
+		pt = nextpt
+	wend
+end sub
+
+'Reload all graphics from one .PT# file
+sub sprite_update_cache_pt(byval ptno as integer)
+	sprite_update_cache(1000000 * ptno, 1000000 * (ptno + 1) - 1)
+end sub
+
+'Reload all tilesets
+sub sprite_update_cache_tilesets()
+	sprite_update_cache(100000000, 100000000 + 32767)
 end sub
 
 'Attempt to completely empty the sprite cache, detecting memory leaks
@@ -3820,12 +3903,7 @@ function frame_new_view(byval spr as Frame ptr, byval x as integer, byval y as i
 	return ret
 end function
 
-' unconditionally frees a sprite from memory. 
-' You should never need to call this: use frame_unload
-' Should only be called on the head of an array (and not a view, obv)!
-' Warning: not all code calls frame_freemem to free sprites! Grrr!
-private sub frame_freemem(byval f as frame ptr)
-	if f = 0 then exit sub
+private sub frame_delete_members(byval f as frame ptr)
 	if f->arrayelem then debug "can't free arrayelem!": exit sub
 	for i as integer = 0 to f->arraylen - 1
 		deallocate(f[i].image)
@@ -3839,6 +3917,15 @@ private sub frame_freemem(byval f as frame ptr)
 		f->sprset->frames = NULL
 		spriteset_freemem f->sprset
 	end if
+end sub
+
+' unconditionally frees a sprite from memory. 
+' You should never need to call this: use frame_unload
+' Should only be called on the head of an array (and not a view, obv)!
+' Warning: not all code calls frame_freemem to free sprites! Grrr!
+private sub frame_freemem(byval f as frame ptr)
+	if f = 0 then exit sub
+	frame_delete_members f
 	deallocate(f)
 end sub
 
@@ -3901,7 +3988,10 @@ function frame_load(fi as string, byval rec as integer, byval num as integer, by
 	dim recsize as integer = frsize * num
 	
 	'make sure the file is real
-	if not isfile(fi) then return 0
+	if not isfile(fi) then
+		debug "frame_load: can't read " + fi
+		return 0
+	end if
 	
 	'now, we can load the sprite
 	dim f as integer = freefile
@@ -4038,6 +4128,19 @@ function frame_is_valid(byval p as frame ptr) as integer
 	return ret
 end function
 
+'Add a mask. NOTE: Only valid on Frames with pitch == w!
+'clr: is true, blank mask, otherwise copy image
+sub frame_add_mask(byval fr as frame ptr, byval clr as integer = 0)
+	if fr->mask then exit sub
+	if clr = 0 then
+		fr->mask = allocate(fr->w * fr->h)
+		'we can just copy .image in one go, since we just ensured it's contiguous
+		memcpy(fr->mask, fr->image, fr->w * fr->h)
+	else
+		fr->mask = callocate(fr->w * fr->h)
+	end if
+end sub
+
 'for a copy you intend to modify. Otherwise use frame_reference
 'note: does not copy frame arrays, only single frames
 function frame_duplicate(byval p as frame ptr, byval clr as integer = 0, byval addmask as integer = 0) as frame ptr
@@ -4087,13 +4190,7 @@ function frame_duplicate(byval p as frame ptr, byval clr as integer = 0, byval a
 			ret->mask = callocate(ret->w * ret->h)
 		end if
 	elseif addmask then
-		if clr = 0 then
-			ret->mask = allocate(ret->w * ret->h)
-			'we can just copy .image in one go, since we just ensured it's contiguous
-			memcpy(ret->mask, ret->image, ret->w * ret->h)
-		else
-			ret->mask = callocate(ret->w * ret->h)
-		end if
+		frame_add_mask ret, clr
 	end if
 	
 	return ret
@@ -4782,7 +4879,7 @@ sub palette16_unload(byval p as palette16 ptr ptr)
 	*p = 0
 end sub
 
-'update a .pal-loaded palette even while in use elsewhere. Notice that sprites don't have anything like this.
+'update a .pal-loaded palette even while in use elsewhere.
 sub Palette16_update_cache(fil as string, byval num as integer)
 	dim oldpal as Palette16 ptr
 	dim hashstring as string

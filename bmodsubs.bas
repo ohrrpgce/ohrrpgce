@@ -1732,11 +1732,10 @@ SUB try_to_reload_files_inbattle ()
   DIM base as string = trimextension(modified_lumps[i])
   DIM extn as string = justextension(modified_lumps[i])
 
-  IF is_int(extn) OR LEFT(base, 4) = "song" THEN                     '.## and song##.xxx (music)
-   IF base = "song" + STR(presentsong) OR extn = STR(presentsong) THEN
-    pausesong
-    playsongnum presentsong
-   END IF
+  IF try_reload_gfx_lump(extn) THEN                                       '.PT#, .TIL
+   handled = YES
+
+  ELSEIF try_reload_music_lump(base, extn) THEN                           '.## and song##.xxx (music)
    handled = YES
 
   END IF

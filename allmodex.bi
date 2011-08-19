@@ -176,6 +176,8 @@ declare function frame_rotated_270(byval spr as Frame ptr) as Frame ptr
 declare function frame_duplicate(byval p as frame ptr, byval clr as integer = 0, byval addmask as integer = 0) as frame ptr
 declare sub frame_clear(byval spr as frame ptr, byval colour as integer = 0)
 declare sub sprite_empty_cache()
+declare sub sprite_update_cache_pt(byval ptno as integer)
+declare sub sprite_update_cache_tilesets()
 declare sub tileset_empty_cache()
 declare function frame_is_valid(byval p as frame ptr) as integer
 declare sub sprite_debug_cache()

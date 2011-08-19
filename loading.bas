@@ -11,12 +11,16 @@
 #include "allmodex.bi"
 #include "reload.bi"
 #include "reloadext.bi"
+#include "os.bi"
 
 USING RELOAD
 USING RELOAD.EXT
 
 option explicit
 
+#IFDEF IS_CUSTOM
+EXTERN slave_channel as IPCChannel
+#ENDIF
 
 '==========================================================================================
 '                                      Helper Functions
@@ -2269,6 +2273,9 @@ IF foffset >= 0 THEN '--never write a negative file offset
 END IF
 
 Palette16_update_cache f, foffset
+#IFDEF IS_CUSTOM
+ IF slave_channel <> NULL_CHANNEL THEN channel_write_line slave_channel, "PAL " & foffset
+#ENDIF
 END SUB
 
 

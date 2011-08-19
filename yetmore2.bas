@@ -1109,11 +1109,17 @@ SUB receive_file_updates ()
    IF at = -1 THEN
     v_append modified_lumps, line_in
    END IF
+
   ELSEIF LEFT(line_in, 3) = "CM " THEN  'please close music file
    DIM songnum as integer = str2int(MID(line_in, 4))
    IF songnum = presentsong THEN music_stop
    'Send confirmation
    channel_write_line(master_channel, line_in)
+
+  ELSEIF LEFT(line_in, 4) = "PAL " THEN  'palette changed (path of least resistance...)
+   DIM palnum as integer = str2int(MID(line_in, 5))
+   palette16_update_cache(game + ".pal", palnum)
+
   ELSEIF LEFT(line_in, 1) = "Q" THEN   'quit!
    music_stop
    'DIR might be holding a handle for the last directory on which it was run, which could prevent
@@ -1125,7 +1131,9 @@ SUB receive_file_updates ()
    channel_write_line(master_channel, "Q ")
    channel_close(master_channel)
    EXIT WHILE
+
   ELSEIF LEFT(line_in, 2) = "P " THEN   'ping
+
   ELSE
    debug "Did not understand message from Custom: " & line_in
   END IF
@@ -1180,6 +1188,19 @@ SUB inspect_MAP_lump()
 
  END WITH
 END SUB
+
+'Check whether a lump is a .PT# or .TIL lump. Reload them. MXS (backdrops) are quite different
+'because they don't go in the sprite cache: need different handling in and out of battles
+FUNCTION try_reload_gfx_lump(extn as string)
+ IF extn = "til" THEN
+  sprite_update_cache_tilesets
+  RETURN YES
+ ELSEIF LEFT(extn, 2) = "pt" THEN
+  DIM ptno as integer = str2int(MID(extn, 3), -1)
+  IF ptno >= 0 THEN sprite_update_cache_pt(ptno)
+ END IF
+ RETURN NO
+END FUNCTION
 
 'Check whether a lump is a (supported) map lump, and if so return YES and reload it if needed.
 'Also updates lump_reloading flags and deletes mapstate data as required.
@@ -1291,6 +1312,20 @@ FUNCTION try_reload_map_lump(base as string, extn as string) as integer
 
 END FUNCTION
 
+'Returns true (and reloads as needed) if this file is a music file (.## or song##.xxx)
+FUNCTION try_reload_music_lump(base as string, extn as string) as integer
+ DIM songnum as integer = str2int(extn, -1)
+ IF songnum = -1 THEN
+  IF LEFT(base, 4) = "song" THEN songnum = str2int(MID(base, 5))
+ END IF
+ IF songnum = -1 THEN RETURN NO
+ IF songnum = presentsong THEN
+  pausesong
+  playsongnum presentsong
+ END IF
+ RETURN YES
+END FUNCTION
+
 SUB try_to_reload_files_onmap ()
  receive_file_updates
 
@@ -1312,6 +1347,9 @@ SUB try_to_reload_files_onmap ()
   IF v_find(ignorable_extns, extn) > -1 THEN
    handled = YES
 
+  ELSEIF try_reload_gfx_lump(extn) THEN                                   '.PT#, .TIL
+   handled = YES
+
   ELSEIF extn = "efs" THEN                                                '.EFS
    load_fset_frequencies
    handled = YES
@@ -1327,12 +1365,7 @@ SUB try_to_reload_files_onmap ()
   ELSEIF try_reload_map_lump(base, extn) THEN                             '.T, .P, .E, .Z, .N, .L
    handled = YES
 
-  ELSEIF is_int(extn) _
-         OR (LEFT(base, 4) = "song" ANDALSO is_int(MID(base, 5))) THEN    '.## and song##.xxx (music)
-   IF base = "song" + STR(presentsong) OR extn = STR(presentsong) THEN
-    pausesong
-    playsongnum presentsong
-   END IF
+  ELSEIF try_reload_music_lump(base, extn) THEN                           '.## and song##.xxx (music)
    handled = YES
 
   ELSE
