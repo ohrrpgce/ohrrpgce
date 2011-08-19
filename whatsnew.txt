@@ -14,6 +14,8 @@ WHAT IS NEW?
       reload various game data. Most useful when live-previewing a
       game. The old F5 and Ctrl+F5 debug keys (free camera movement)
       have been changed to F7 and Ctrl+F7. [Ralph]
+    * In the map editor, moved Ctrl+S (paint the screen) to Ctrl+W
+      (ie. paint the "window"); Ctrl+S is now immediate save. [Ralph]
 
   * Bugfixes
     * Wrong names used for reserve party heroes who level during

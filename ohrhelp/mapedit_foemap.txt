@@ -53,11 +53,13 @@ CTRL+P - Paint on Tilemap tool:
 
 Also,
 
-CTRL+S paints the tiles on-screen with the currently selected formation set number.
+CTRL+W paints the tiles visible in the window/screen with the currently selected formation set number.
 
 CTRL+Z undoes a change to the tilemap, wallmap, foemap or zonemap. Changes to NPCs and doors are not undoable. The undo history buffer is near-infinite, but certain things cause it to be cleared: resizing the map, deleting or swapping map layers, erasing map data, and leaving the map editor.
 
 CTRL+Y redoes an undone change.
+
+CTRL+S immediately saves, useful when live-previewing a game.
 
 To remove random battles from a tile, press DELETE (or change the formation set number to 0).
 

@@ -529,6 +529,9 @@ DO
      NEXT tx
     END IF
   END SELECT
+  IF slave_channel <> NULL_CHANNEL THEN     'If live previewing, give quick feedback
+   mapedit_savemap st, mapnum, map(), pass, emap, zmap, gmap(), doors(), link(), mapname
+  END IF
  END IF
  IF st.menustate.pt = 14 THEN strgrabber mapname, 39
  mapeditmenu(14) = "Map name:" + mapname
@@ -652,6 +655,11 @@ DO
   END IF
   st.reset_tool = YES
   st.tool_hold = NO
+ END IF
+
+ IF keyval(scCtrl) > 0 AND keyval(scS) > 1 THEN
+  'Instant save, mostly for live previewing, but maybe you're paranoid...
+  mapedit_savemap st, mapnum, map(), pass, emap, zmap, gmap(), doors(), link(), mapname
  END IF
 
  IF keyval(scCtrl) > 0 AND keyval(scL) > 1 THEN mapedit_layers st, gmap(), visible(), map()  'ctrl-L
@@ -1042,7 +1050,7 @@ DO
    st.brush(st, st.x, st.y, 0, map(), pass, emap, zmap)
   END IF
 
-  IF keyval(scS) > 1 AND keyval(scCtrl) > 0 THEN  'Ctrl+S  Paint the screen
+  IF keyval(scW) > 1 AND keyval(scCtrl) > 0 THEN  'Ctrl+W  Paint the window/screen
    FOR tx = 0 TO 15
     FOR ty = 0 TO 8
      st.brush(st, st.mapx \ 20 + tx, st.mapy \ 20 + ty, st.tool_value, map(), pass, emap, zmap)

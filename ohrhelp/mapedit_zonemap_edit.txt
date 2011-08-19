@@ -50,13 +50,15 @@ CTRL+P - Paint on Tilemap tool:
 
 Also,
 
-CTRL+S paints (adds or removes) the  tiles on-screen to/from the zone.
+CTRL+W paints (adds or removes) the tiles visible in the window/screen to/from the zone.
 
 If the current tool isn't the Draw tool, press + or - to toggle whether you are adding or removing tiles.
 
 CTRL+Z undoes a change to the tilemap, wallmap, foemap or zonemap. Changes to NPCs and doors are not undoable. The undo history buffer is near-infinite, but certain things cause it to be cleared: resizing the map, deleting or swapping map layers, erasing map data, and leaving the map editor.
 
 CTRL+Y redoes an undone change.
+
+CTRL+S immediately saves, useful when live-previewing a game.
 
 Pressing DELETE removes the selected tile from the zone.
 

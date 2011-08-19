@@ -63,4 +63,6 @@ CTRL+Z undoes a change to the tilemap, wallmap, foemap or zonemap. Changes to NP
 
 CTRL+Y redoes an undone change.
 
+CTRL+S immediately saves, useful when live-previewing a game.
+
 TAB toggles a blue rectangle that shows roughly what area of the map you are currently looking at.
