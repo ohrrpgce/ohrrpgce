@@ -15,7 +15,7 @@ FBFLAGS = os.environ.get ('FBFLAGS', []) + ['-mt','-g']
 #CC and CXX are probably not needed anymore
 CC = ''
 CXX = ''
-CFLAGS = '-g --std=c99'.split ()
+CFLAGS = '-g -Wall --std=c99'.split ()
 CXXFLAGS = '-g -Wall -Wno-non-virtual-dtor'.split ()
 C_opt = True    # compile with -O2?
 FB_exx = True   # compile with -exx?

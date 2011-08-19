@@ -18,7 +18,9 @@ typedef void *ProcessHandle;
 
 #else
 
-typedef FILE *IPCChannel;
+struct PipeState;
+typedef struct PipeState PipeState;
+typedef PipeState *IPCChannel;
 #define NULL_CHANNEL NULL
 typedef int ProcessHandle;  //dummy type
 
@@ -34,8 +36,8 @@ int test_locked(const char *filename, int writable);
 
 
 //FBSTRING *channel_pick_name(const char *id, const char *tempdir, const char *rpg);
-int channel_open_read(IPCChannel *result, FBSTRING *name);
-int channel_open_write(IPCChannel *result, FBSTRING *name);
+int channel_open_client(IPCChannel *result, FBSTRING *name);
+int channel_open_server(IPCChannel *result, FBSTRING *name);
 void channel_close(IPCChannel *channelp);
 int channel_wait_for_client_connection(IPCChannel *channel, int timeout_ms);
 int channel_write(IPCChannel *channel, const char *buf, int buflen);

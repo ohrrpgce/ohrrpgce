@@ -4001,7 +4001,7 @@ SUB spawn_game
  DIM fh as integer = FREEFILE
  DIM channel_name as string
  channel_name = pick_channel_name()
- IF channel_open_write(slave_channel, channel_name) = NO THEN
+ IF channel_open_server(slave_channel, channel_name) = NO THEN
   notification "Couldn't open channel"
   EXIT SUB
  END IF

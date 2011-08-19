@@ -172,8 +172,8 @@ end type
 
 declare sub channel_delete (byval channel as NamedPipeInfo ptr)
 
-function channel_open_write (byref channel as NamedPipeInfo ptr, chan_name as string) as integer
-	if channel <> NULL then debug "channel_open_write: forgot to close" : channel_close(channel)
+function channel_open_server (byref channel as NamedPipeInfo ptr, chan_name as string) as integer
+	if channel <> NULL then debug "channel_open_server: forgot to close" : channel_close(channel)
 
 	dim pipeh as HANDLE
 	'asynchronous named pipe with 4096 byte read & write buffers
@@ -208,7 +208,7 @@ function channel_open_write (byref channel as NamedPipeInfo ptr, chan_name as st
 	end if
 
 	dim cfile as FILE ptr
-	cfile = file_handle_to_FILE(pipeh, "channel_open_write")
+	cfile = file_handle_to_FILE(pipeh, "channel_open_server")
 	if cfile = NULL then
 		channel_delete(pipeinfo)
 		return NO
@@ -242,21 +242,21 @@ function channel_wait_for_client_connection (byref channel as NamedPipeInfo ptr,
 end function
 
 'Returns true on success
-function channel_open_read (byref channel as NamedPipeInfo ptr, chan_name as string) as integer
-	if channel <> NULL then debug "channel_open_read: forgot to close" : channel_close(channel)
+function channel_open_client (byref channel as NamedPipeInfo ptr, chan_name as string) as integer
+	if channel <> NULL then debug "channel_open_client: forgot to close" : channel_close(channel)
 
 	dim pipeh as HANDLE
 	pipeh = CreateFile(strptr(chan_name), GENERIC_READ OR GENERIC_WRITE, 0, NULL, _
 	                   OPEN_EXISTING, 0, NULL)
 	if pipeh = -1 then
 		dim errstr as string = get_windows_error()
-		debug "channel_open_read: could not open: " + errstr
+		debug "channel_open_client: could not open: " + errstr
 		return NO
 	end if
 
 	'This is a hack; see channel_read_input_line
 	dim cfile as FILE ptr
-	cfile = file_handle_to_FILE(pipeh, "channel_open_read")
+	cfile = file_handle_to_FILE(pipeh, "channel_open_client")
 	if cfile = NULL then
 		CloseHandle(pipeh)
 		return NO

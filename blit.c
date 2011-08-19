@@ -213,7 +213,7 @@ void smoothzoomblit_8_to_8bit(unsigned char *srcbuffer, unsigned char *destbuffe
 			pstep = 1;
 		else
 			pstep = 2;
-		char *sptr1, *sptr2, *sptr3;
+		unsigned char *sptr1, *sptr2, *sptr3;
 		for (fy = 1; fy <= high - 2; fy += pstep) {
 			sptr1 = destbuffer + pitch * (fy - 1) + 1;  //(1,0)
 			sptr2 = sptr1 + pitch; //(1,1)
@@ -279,7 +279,7 @@ void smoothzoomblit_8_to_32bit(unsigned char *srcbuffer, unsigned int *destbuffe
 			pstep = 1;
 		else
 			pstep = 2;
-		int *sptr1, *sptr2, *sptr3;
+		unsigned int *sptr1, *sptr2, *sptr3;
 		for (fy = 1; fy <= (high - 2); fy += pstep) {
 			sptr1 = destbuffer + pitch * (fy - 1) + 1;  //(1,0)
 			sptr2 = sptr1 + pitch; //(1,1)
@@ -317,7 +317,7 @@ void smoothzoomblit_32_to_32bit(unsigned int *srcbuffer, unsigned int *destbuffe
 	int i, j;
 	int wide = w * zoom, high = h * zoom;
 
-	sptr = (int*)destbuffer;
+	sptr = (unsigned int*)destbuffer;
 
 	for (j = 0; j <= h - 1; j++) {
 		for (i = 0; i <= w - 1; i++) {

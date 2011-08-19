@@ -5,9 +5,12 @@
 #define _BSD_SOURCE  // for usleep
 //fb_stub.h MUST be included first, to ensure fb_off_t is 64 bit
 #include "fb/fb_stub.h"
+#include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <signal.h>
 #include <sys/file.h>
+#include <sys/stat.h>
 #include <sys/time.h>
 #include <errno.h>
 #include "common.h"
@@ -175,84 +178,198 @@ void unlock_file(FILE *fh) {
 //	  FBSTRING *ret;
 //}
 
-//Returns true on success
-int channel_open_read(IPCChannel *result, FBSTRING *name) {
-  int fd = open(name->data, O_RDONLY | O_NONBLOCK);
-  if (fd == -1) {
-    debugc(strerror(errno), 2);
-    *result = NULL;
-    return 0;
-  }
-  *result = fdopen(fd, "r");
-  if (!*result) {
-    debugc(strerror(errno), 2);
-    return 0;
-  }
-  setvbuf(*result, NULL, _IOLBF, 4096);  // set line buffered
-  return 1;
+//Size of a PipeState read buffer in bytes
+#define PIPEBUFSZ 2048
+
+struct PipeState {
+	char *filename;
+	int fd;
+	char *buf;
+	int readamnt;   //Next byte to be read from buffer
+	int usedamnt;   //Total amount of data in buffer, including already read
+};
+
+static PipeState *channel_new(int fd) {
+	PipeState *ret = malloc(sizeof(PipeState));
+	ret->fd = fd;
+	ret->buf = malloc(PIPEBUFSZ);
+	ret->readamnt = ret->usedamnt = 0;
+	ret->filename = NULL;
+	return ret;
+}
+
+static void channel_delete(PipeState *state) {
+	if (!state) return;
+	free(state->buf);
+	free(state->filename);
+	free(state);
 }
 
 //Returns true on success
-int channel_open_write(IPCChannel *result, FBSTRING *name) {
-  *result = fopen(name->data, "w");
-  if (!*result) {
-    debugc(strerror(errno), 2);
-    return 0;
-  }
-  setvbuf(*result, NULL, _IOLBF, 4096);  // set line buffered
-  return 1;
+int channel_open_server(PipeState **result, FBSTRING *name) {
+	*result = NULL;
+	remove(name->data);
+	int res = mkfifo(name->data, 0777);
+	if (res == -1) {
+		debug(2, "mkfifo(%s) failed: %s", name->data, strerror(errno));
+		return 0;
+	}
+	PipeState *ret = channel_new(-1);
+	ret->filename = malloc(strlen(name->data) + 1);
+	strcpy(ret->filename, name->data);
+
+	// If a FIFO is opened for write in non-blocking mode and it hasn't been opened for read
+	// yet, then the open fails. So we have to wait for the client to connect first:
+	// see channel_wait_for_client_connection
+
+        // write() normally throws a SIGPIPE on broken pipe; ignore those and receive EPIPE instead
+        signal(SIGPIPE, SIG_IGN);
+
+	*result = ret;
+	return 1;
+}
+
+//Returns true on success
+int channel_open_client(PipeState **result, FBSTRING *name) {
+	int fd = open(name->data, O_RDONLY | O_NONBLOCK);
+	if (fd == -1) {
+		debugc(strerror(errno), 2);
+		*result = NULL;
+		return 0;
+	}
+	*result = channel_new(fd);
+	return 1;
 }
 
 //Returns true on success, false on error or timeout
-int channel_wait_for_client_connection(IPCChannel *channel, int timeout_ms) {
-  // Not implemented
-  return 1;
+int channel_wait_for_client_connection(PipeState **channelp, int timeout_ms) {
+	PipeState *chan = *channelp;
+
+	if (!chan) return 0;
+
+	long long timeout = milliseconds() + timeout_ms;
+
+	do {
+		int fd = open(chan->filename, O_WRONLY | O_NONBLOCK);
+		if (fd != -1) {
+			chan->fd = fd;
+			return 1;
+		}
+		if (errno != ENXIO && errno != EINTR) {	
+			debug(2, "channel_open_server(%s) error: %s", chan->filename, strerror(errno));
+			channel_close(channelp);
+			return 0;
+		}
+		usleep(10000);
+	} while (milliseconds() < timeout);
+	debug(2, "timeout while waiting for client connection to %s", chan->filename);
+	channel_close(channelp);
+	return 0;
 }
 
-void channel_close(IPCChannel *channel) {
-  fclose(*channel);
-  *channel = NULL;
+void channel_close(PipeState **channelp) {
+	if (!*channelp) return;
+	if ((*channelp)->fd != -1) close((*channelp)->fd);
+	channel_delete(*channelp);
+	*channelp = NULL;
 }
 
 //Returns true on success
-int channel_write(IPCChannel *channel, const char *buf, int buflen) {
-  if (fwrite(buf, buflen, 1, *channel) == 0) {
-    // whole write didn't occur  FIXME: this doesn't seem correct
-    debuginfo("channel_write failed: %s\n", strerror(errno));
-    //if (errno == EAGAIN || errno == EWOULDBLOCK)
-    return 0;
-  }
+int channel_write(PipeState **channelp, const char *buf, int buflen) {
+	if (!*channelp) return 0;
+
+	int fd = (*channelp)->fd;
+	if (fd == -1) {
+		debug(3, "channel_write: no file descriptor! (forgot channel_wait_for_client_connection?)");
+		return 0;
+	}
+	int written = 0;
+	while (written < buflen) {
+		int res = write(fd, buf + written, buflen - written);
+		if (res == -1) {
+			if (errno == EINTR)
+				continue;
+			if (errno == EPIPE)
+				//Reading end closed
+				debuginfo("channel_write: pipe closed.");
+			else
+				debug(2, "channel_write: error: %s", strerror(errno));
+			channel_close(channelp);
+			return 0;
+		}
+		written += res;
+	}
+	return 1;
 }
 
 //Returns true on reading a line
-int channel_input_line(IPCChannel *channel, FBSTRING *output) {
-  FILE *f = *channel;
-  int size = 0, readsize;
-  do {
-    if (!fb_hStrRealloc(output, size + 512, 1))  // set size, preserving existing
-      return 0;
-    if (fgets(output->data + size, 513, f) == NULL) {
-      if (errno == EAGAIN || errno == EWOULDBLOCK) {
-        // not sinister
-      } else {
-        debugc("pipe closed\n", 2);
-      }
+int channel_input_line(PipeState **channelp, FBSTRING *output) {
+	if (!*channelp) return 0;
 
-      fb_StrDelete(output);
-      return 0;
-    }
-    //fb_hStrCopy(output->data + size, buf, 512);
-    readsize = strlen(output->data + size);
-    size += readsize;
-  } while (readsize == 512);
-  if (size > 0) size--;  //trim off the newline
+	int wait_times = 0;
+	PipeState *chan = *channelp;
+	char *nl = NULL;
+	int outlen = 0;
+	for (;;) {
+		// First try to fulfill the request from buffer
+		int copylen = chan->readamnt - chan->usedamnt;
+		if (copylen > 0) {
+			nl = memchr(chan->buf + chan->usedamnt, '\n', copylen);
+			if (nl)
+				copylen = nl - (chan->buf + chan->usedamnt);
+			if (!fb_hStrRealloc(output, outlen + copylen, 1))  // set length, preserving existing
+				return 0;
+			memcpy(output->data + outlen, chan->buf + chan->usedamnt, copylen);
+			outlen += copylen;
+			chan->usedamnt += copylen;
+			if (nl) {
+				chan->usedamnt++;
+				return 1;
+			}
+			// Otherwise, have used up all buffered data
+		}
 
-  if (!fb_hStrRealloc(output, size, 1))
-    return 0;
-  return 1;
-  //fb_StrAssign(output, -1, buf, strlen(buf), 0);
-  //fb_hStrCopy(output->data + size, buf, 512);
+		// Read into buffer
+		int res = read(chan->fd, chan->buf, PIPEBUFSZ);
+		if (res == 0) {
+			// EOF: write end of pipe has closed
+			debuginfo("channel_input_line: pipe closed");
+			channel_close(channelp);
+			goto cutshort;
+		}
+		if (res == -1) {
+			if (errno == EINTR)
+				continue;
+			if (errno == EAGAIN || errno == EWOULDBLOCK) {
+				// No more data available yet 
+				if (outlen) {
+					// Strange -- expected newline! Lets wait for a bit
+					if (!wait_times)
+						debug(2, "channel_read_input: unexpected blocking input");
+					if (wait_times++ > 20)
+						goto cutshort;
+					usleep(1000);
+					continue;
+				}
+				// not sinister
+			} else {
+				debug(2, "channel_input_line: pipe closed due to error %s\n", strerror(errno));
+				channel_close(channelp);
+			}
+			goto cutshort;
+		}
+		chan->readamnt = res;
+		chan->usedamnt = 0;
+	}
+
+ cutshort:
+	if (!outlen)
+		// We haven't called fb_hStrRealloc, so haven't overwritten the old contents of output
+		fb_StrDelete(output);
+	return (outlen > 0);
 }
+//fb_StrAssign(output, -1, buf, strlen(buf), 0);
+//fb_hStrCopy(output->data + outlen, buf, 512);
 
 
 //==========================================================================================
@@ -263,7 +380,7 @@ int channel_input_line(IPCChannel *channel, FBSTRING *output) {
 //Partial implementation. Doesn't return a useful process handle
 ProcessHandle open_process (FBSTRING *program, FBSTRING *args) {
 	char *buf = malloc(strlen(program->data) + strlen(args->data) + 1);
-	sprintf("%s %s", program->data, args->data);
+	sprintf(buf, "%s %s", program->data, args->data);
 	popen(buf, "r");  //No intention to read or write
 	free(buf);
 	fb_hStrDelTemp(program);
