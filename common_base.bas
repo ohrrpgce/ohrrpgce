@@ -6,6 +6,10 @@
 'Currently mostly replacements for common.bas functions.
 
 #include "common_base.bi"
+#include "file.bi"
+
+EXTERN workingdir as string
+DIM workingdir as string
 
 DIM cleanup_function as sub ()
 
@@ -54,3 +58,12 @@ FUNCTION rightafter (s as string, d as string) as string
   NEXT i
   RETURN ""
 END FUNCTION
+
+EXTERN "C"
+FUNCTION copyfile(source as string, destination as string) as integer
+  RETURN filecopy(source, destination) = 0
+END FUNCTION
+
+SUB send_lump_modified_msg(byval filename as zstring ptr)
+END SUB
+END EXTERN
