@@ -27,7 +27,7 @@ extern "C" {
   void send_lump_modified_msg(const char *filename);
   int copyfile(FBSTRING *source, FBSTRING *destination);
   void set_OPEN_hook_filter(FnOpenCallback lumpfile_filter, int lump_writes_allowed);
-  void set_lump_updates_channel(IPCChannel channel);
+  void set_lump_updates_channel(IPCChannel *channel);
 
 }
 

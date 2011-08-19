@@ -129,10 +129,6 @@ extern "C" {
 #define NULL     0
 #endif
 
-#ifndef FBCALL
-# define FBCALL
-#endif /* !defined FBCALL */
-
 #ifndef FB_LOCK
     /** Acquire a global semaphore (recursive mutex).
      */
@@ -204,7 +200,8 @@ extern "C" {
 
 ////// The following has been added to replace dependance on fb_unix.h, etc (bad idea?)
 
-#ifdef TARGET_WINDOWS
+//#ifdef TARGET_WINDOWS
+#if defined(_WIN32) || defined(WIN32)
 
   //fb_win32.h
 # include <stdio.h>
@@ -214,12 +211,16 @@ extern "C" {
    typedef off64_t fb_off_t;
 # endif
 
+# define FBCALL __stdcall
+
 #else 
 
  //fb_unix.h (actually, _FILE_OFFSET_BITS is apparently a linux-specific mess?)
 # define _FILE_OFFSET_BITS 64
 # include <sys/types.h>
   typedef off_t fb_off_t;
+
+# define FBCALL
 
 #endif
 

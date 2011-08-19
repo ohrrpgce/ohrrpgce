@@ -4,6 +4,7 @@
 #include "config.bi"
 include_windows_bi()
 #include "os.bi"
+#include "crt/string.bi"
 #include "crt/limits.bi"
 #include "crt/stdio.bi"
 #include "crt/io.bi"
@@ -22,6 +23,28 @@ function get_windows_error () as string
 	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, errcode, 0, strptr(strbuf), 255, NULL)
 	return strbuf
 end function
+
+private function get_file_handle (byval fh as CFILE_ptr) as HANDLE
+	return cast(HANDLE, _get_osfhandle(_fileno(fh)))
+end function
+
+private function file_handle_to_FILE (byval fhandle as HANDLE, funcname as string) as FILE ptr
+	dim fd as integer = _open_osfhandle(cast(integer, fhandle), 0)
+	if fd = -1 then
+		debug funcname + ": _open_osfhandle failed"
+		CloseHandle(fhandle)
+		return NULL
+	end if
+
+	dim fh as FILE ptr = _fdopen(fd, "r+")
+	if fh = NULL then
+		debug funcname + ": _fdopen failed"
+		_close(fd)
+		return NULL
+	end if
+	return fh
+end function
+
 
 extern "C"
 
@@ -82,25 +105,25 @@ end sub
 'A file copy function which deals safely with the case where the file is open already.
 function copy_file_replacing(byval source as zstring ptr, byval destination as zstring ptr) as integer
 	'Haven't yet decided how to handle this on Windows...
-	return filecopy(source, destination)
+	return filecopy(source, destination) = 0
 end function
 
 
-'Advisory locking (actually mandatory on Windows).
+'==========================================================================================
+'                                    Advisory locking
+'==========================================================================================
+' (Actually mandatory on Windows)
 
-private function get_file_handle (byval fh as CFILE_ptr) as HANDLE
-	return cast(HANDLE, _get_osfhandle(_fileno(fh)))
-end function
 	
 private function lock_file_base (byval fh as CFILE_ptr, byval timeout_ms as integer, byval flag as integer, funcname as string) as integer
 	dim fhandle as HANDLE = get_file_handle(fh)
 	dim timeout as integer = GetTickCount() + timeout_ms
-	dim overlappedinfo as OVERLAPPED
-	overlappedinfo.hEvent = 0
-	overlappedinfo.offset = 0  'specify beginning of file
-	overlappedinfo.offsetHigh = 0
+	dim overlappedop as OVERLAPPED
+	overlappedop.hEvent = 0
+	overlappedop.offset = 0  'specify beginning of file
+	overlappedop.offsetHigh = 0
 	do
-		if (LockFileEx(fhandle, LOCKFILE_FAIL_IMMEDIATELY, 0, &hffffffff, 0, @overlappedinfo)) then
+		if (LockFileEx(fhandle, LOCKFILE_FAIL_IMMEDIATELY, 0, &hffffffff, 0, @overlappedop)) then
 			return YES
 		end if
 		if GetLastError() <> ERROR_IO_PENDING then
@@ -137,25 +160,195 @@ end function
 '==========================================================================================
 
 
-'WRITEME: NOT IMPLEMENTED
+type NamedPipeInfo
+  fh as HANDLE
+  cfile as FILE ptr
+  available as integer
+  readamount as integer
+  hasconnected as integer
+  overlappedop as OVERLAPPED
+end type
 
-function channel_open_read (chan_name as string, byval result as IPCChannel ptr) as integer
-	return 0
+
+declare sub channel_delete (byval channel as NamedPipeInfo ptr)
+
+function channel_open_write (byref channel as NamedPipeInfo ptr, chan_name as string) as integer
+	if channel <> NULL then debug "channel_open_write: forgot to close" : channel_close(channel)
+
+	dim pipeh as HANDLE
+	'asynchronous named pipe with 4096 byte read & write buffers
+	pipeh = CreateNamedPipe(strptr(chan_name), PIPE_ACCESS_DUPLEX OR FILE_FLAG_OVERLAPPED, _
+	                        PIPE_TYPE_BYTE OR PIPE_READMODE_BYTE, 1, 4096, 4096, 0, NULL)
+	if pipeh = -1 then
+		dim errstr as string = get_windows_error()
+		debug "Could not open IPC channel: " + errstr
+		return NO
+	end if
+
+	dim pipeinfo as NamedPipeInfo ptr
+	pipeinfo = New NamedPipeInfo
+	pipeinfo->fh = pipeh
+
+	'create a "manual-reset event object", required for ConnectNamedPipe
+	dim event as HANDLE
+	event = CreateEvent(NULL, 1, 0, NULL)
+	pipeinfo->overlappedop.hEvent = event
+
+	'Start listening for connection (technically possible for a client to connect as soon as
+	'CreateNamedPipe is called)
+	ConnectNamedPipe(pipeh, @pipeinfo->overlappedop)
+	dim errcode as integer = GetLastError()
+	if errcode = ERROR_PIPE_CONNECTED then
+		pipeinfo->hasconnected = YES
+	elseif errcode <> ERROR_IO_PENDING then
+		dim errstr as string = get_windows_error()
+		debug "ConnectNamedPipe error: " + errstr
+		channel_delete(pipeinfo)
+		return NO
+	end if
+
+/'
+	dim cfile as FILE ptr
+	cfile = file_handle_to_FILE(pipeh, "channel_open_write")
+	if cfile = NULL then
+		channel_delete(pipeinfo)
+		return NO
+	end if
+	pipeinfo->cfile = cfile
+'/
+
+	channel = pipeinfo
+	return YES
 end function
 
-function channel_open_write (chan_name as string, byval result as IPCChannel ptr) as integer
-	return 0
+'Wait for a client connection; return true on success
+function channel_wait_for_client_connection (byref channel as NamedPipeInfo ptr, byval timeout_ms as integer) as integer
+	dim startt as double = TIMER
+
+	if channel->hasconnected = NO then
+		dim res as integer
+		res = WaitForSingleObject(channel->overlappedop.hEvent, timeout_ms)
+		if res = WAIT_TIMEOUT then
+			debug "timeout while waiting for channel connection"
+			return NO
+		elseif res = WAIT_OBJECT_0 then
+			channel->hasconnected = YES
+		else
+			dim errstr as string = get_windows_error()
+			debug "error waiting for channel connection: " + errstr
+			return NO
+		end if
+		debuginfo "Channel connection received (after " & CINT(1000 * (TIMER - startt)) & "ms)"
+	end if
+	return YES
 end function
 
-sub channel_close (byval channel as IPCChannel ptr)
+'Returns true on success
+function channel_open_read (byref channel as NamedPipeInfo ptr, chan_name as string) as integer
+	if channel <> NULL then debug "channel_open_read: forgot to close" : channel_close(channel)
+
+	dim pipeh as HANDLE
+	pipeh = CreateFile(strptr(chan_name), GENERIC_READ OR GENERIC_WRITE, 0, NULL, _
+	                   OPEN_EXISTING, 0, NULL)
+	if pipeh = -1 then
+		dim errstr as string = get_windows_error()
+		debug "channel_open_read: could not open: " + errstr
+		return NO
+	end if
+
+	'This is a hack; see channel_read_input_line
+	dim cfile as FILE ptr
+	cfile = file_handle_to_FILE(pipeh, "channel_open_read")
+	if cfile = NULL then
+		CloseHandle(pipeh)
+		return NO
+	end if
+
+	dim pipeinfo as NamedPipeInfo ptr
+	pipeinfo = New NamedPipeInfo
+	pipeinfo->fh = pipeh
+	pipeinfo->cfile = cfile
+	channel = pipeinfo
+	return YES
+end function
+
+private sub channel_delete (byval channel as NamedPipeInfo ptr)
+	with *channel
+		if .cfile then
+			fclose(.cfile)  'Closes .fh too
+			.fh = NULL
+		end if
+		if .fh then CloseHandle(.fh)
+		if .overlappedop.hEvent then CloseHandle(.overlappedop.hEvent)
+	end with
+	Delete channel
 end sub
 
-function channel_write (byval channel as IPCChannel, byval buf as byte ptr, byval buflen as integer) as integer
-	return 0
+sub channel_close (byref channel as NamedPipeInfo ptr)
+	if channel = NULL then exit sub
+	channel_delete(channel)
+	channel = NULL
+end sub
+
+'Returns true on success
+function channel_write (byref channel as NamedPipeInfo ptr, byval buf as byte ptr, byval buflen as integer) as integer
+	if channel = NULL then return NO
+
+	dim as integer res, written
+	'Technically am meant to pass an OVERLAPPED pointer to WriteFile, but this seems to work
+	res = WriteFile(channel->fh, buf, buflen, @written, NULL)
+	if res = 0 then
+		'should actually check errno instead; hope this works
+		dim errstr as string = get_windows_error()
+		debug "channel_write error (wrote " & written & " of " & buflen & "): " & errstr
+		return NO
+	end if
+	'debuginfo "channel_write: " & written & " of " & buflen & " " & get_windows_error()
+	return YES
 end function
 
-function channel_input_line (byval channel as IPCChannel, line_in as string) as integer
-	return 0
+'Read until the next newline (result in line_in) and return true, or return false if nothing to read
+function channel_input_line (byref channel as NamedPipeInfo ptr, line_in as string) as integer
+	line_in = ""
+	if channel = NULL then return NO
+
+	'This is a hack because I'm too lazy to do my own buffering:
+	'I wrapped the pipe in a C stdio FILE, but use PeekNamedPipe to figure out how much data is left
+	'in total in the pipe's buffer and the FILE buffer; do not call fgets unless it's positive,
+	'otherwise it will block.
+	if channel->readamount >= channel->available then
+		'recheck whether more data is available
+		dim bytesbuffered as integer
+		if PeekNamedPipe(channel->fh, NULL, 0, NULL, @bytesbuffered, NULL) = 0 then
+			dim errstr as string = get_windows_error()
+			debug "PeekNamedPipe fail: " + errstr
+			return 0
+		end if
+		channel->available += bytesbuffered
+		'debuginfo "read new data " & bytesbuffered
+		if channel->readamount >= channel->available then
+			return 0
+		end if
+	end if
+
+	dim buf(511) as ubyte
+	dim res as ubyte ptr
+	do
+		res = fgets(@buf(0), 512, channel->cfile)
+		if res = NULL then
+			dim errstr as string = get_windows_error()
+			debug "pipe read error: " + errstr  'should actually check errno instead; hope this works
+			return 0
+		end if
+		channel->readamount += strlen(@buf(0))
+		res = strrchr(@buf(0), 10)
+		if res <> NULL then *res = 0  'strip newline
+		'debuginfo "read '" & *cast(zstring ptr, @buf(0)) & "'"
+		line_in += *cast(zstring ptr, @buf(0))
+		if buf(0) = 0 or res <> NULL then
+			return 1
+		end if
+	loop
 end function
 
 

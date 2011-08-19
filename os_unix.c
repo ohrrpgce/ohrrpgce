@@ -16,6 +16,13 @@
 typedef int ProcessHandle;
 
 
+static long long milliseconds() {
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return (long long)tv.tv_sec * 1000 + tv.tv_usec / 1000;
+}
+
+
 //==========================================================================================
 //                                       Filesystem
 //==========================================================================================
@@ -108,13 +115,11 @@ int copy_file_replacing(const char *source, const char *destination) {
 	return 0;
 }
 
-static long long milliseconds() {
-	struct timeval tv;
-	gettimeofday(&tv, NULL);
-	return (long long)tv.tv_sec * 1000 + tv.tv_usec / 1000;
-}
 
-// Advisory locking
+//==========================================================================================
+//                                    Advisory locking
+//==========================================================================================
+
 
 static int lock_file_base(FILE *fh, int timeout_ms, int flag, char *funcname) {
 	int fd = fileno(fh);
@@ -168,8 +173,12 @@ void unlock_file(FILE *fh) {
 //==========================================================================================
 
 
+//FBSTRING *channel_pick_name(const char *id, const char *tempdir, const char *rpg) {
+//	  FBSTRING *ret;
+//}
+
 //Returns true on success
-int channel_open_read(FBSTRING *name, IPCChannel *result) {
+int channel_open_read(IPCChannel *result, FBSTRING *name) {
   int fd = open(name->data, O_RDONLY | O_NONBLOCK);
   if (fd == -1) {
     debugc(strerror(errno), 2);
@@ -186,7 +195,7 @@ int channel_open_read(FBSTRING *name, IPCChannel *result) {
 }
 
 //Returns true on success
-int channel_open_write(FBSTRING *name, IPCChannel *result) {
+int channel_open_write(IPCChannel *result, FBSTRING *name) {
   *result = fopen(name->data, "w");
   if (!*result) {
     debugc(strerror(errno), 2);
@@ -196,14 +205,20 @@ int channel_open_write(FBSTRING *name, IPCChannel *result) {
   return 1;
 }
 
+//Returns true on success, false on error or timeout
+int channel_wait_for_client_connection(IPCChannel *channel, int timeout_ms) {
+  // Not implemented
+  return 1;
+}
+
 void channel_close(IPCChannel *channel) {
   fclose(*channel);
   *channel = NULL;
 }
 
 //Returns true on success
-int channel_write(IPCChannel channel, const char *buf, int buflen) {
-  if (fwrite(buf, buflen, 1, channel) == 0) {
+int channel_write(IPCChannel *channel, const char *buf, int buflen) {
+  if (fwrite(buf, buflen, 1, *channel) == 0) {
     // whole write didn't occur  FIXME: this doesn't seem correct
     debuginfo("channel_write failed: %s\n", strerror(errno));
     //if (errno == EAGAIN || errno == EWOULDBLOCK)
@@ -212,8 +227,8 @@ int channel_write(IPCChannel channel, const char *buf, int buflen) {
 }
 
 //Returns true on reading a line
-int channel_input_line(IPCChannel channel, FBSTRING *output) {
-  FILE *f = channel;
+int channel_input_line(IPCChannel *channel, FBSTRING *output) {
+  FILE *f = *channel;
   int size = 0, readsize;
   do {
     if (!fb_hStrRealloc(output, size + 512, 1))  // set size, preserving existing

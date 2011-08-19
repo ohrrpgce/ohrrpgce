@@ -3984,25 +3984,52 @@ SUB stat_growth_chart ()
  LOOP 
 END SUB
 
+FUNCTION pick_channel_name() as string
+ #ifdef __FB_WIN32__
+  return "\\.\pipe\ohrrpgce_lump_updates_testing_" + trimpath(sourcerpg)
+ #else
+  return tmpdir + ".lump_updates.txt"
+ #endif
+END FUNCTION
+
 SUB spawn_game
  DIM fh as integer = FREEFILE
  DIM channel_name as string
- channel_name = tmpdir + ".lump_updates.txt"
- safekill channel_name
- IF channel_open_write(channel_name, @slave_channel) = NO THEN
+ channel_name = pick_channel_name()
+ IF channel_open_write(slave_channel, channel_name) = NO THEN
   notification "Couldn't open channel"
   EXIT SUB
  END IF
+ debuginfo "Successfully opened IPC channel " + channel_name
 
- 'write version info
+ DIM cmdline as string
+ cmdline = exepath & SLASH & GAMEEXE
+ IF isfile(cmdline) = NO THEN
+  notification "Couldn't find " & GAMEEXE
+  EXIT SUB
+ END IF
+ cmdline += " -slave " & channel_name
+ 'Have to specify either input or output, though we won't (can't?) use it
+ IF OPEN PIPE(cmdline FOR OUTPUT AS #fh) THEN
+  notification "Couldn't run " & GAMEEXE
+  EXIT SUB
+ END IF
+
+ 'Need Game to connect before we can safely write to the pipe; wait up to 1000ms
+ IF channel_wait_for_client_connection(slave_channel, 1000) = 0 THEN
+  notification "Couldn't connect to " & GAMEEXE
+  channel_close slave_channel
+  EXIT SUB
+ END IF
+
+ 'Write version info
  DIM tmp as string
  'msgtype magickey,proto_ver,program_ver,version_string
  tmp = "V OHRRPGCE," & CURRENT_TESTING_IPC_VERSION & "," & version_revision & "," & version & !"\n"
  IF channel_write(slave_channel, @tmp[0], LEN(tmp)) = 0 THEN
   'good idea to test writing is working at least once
   notification "Channel write failure; aborting"
-  channel_close @slave_channel
-  safekill channel_name
+  channel_close slave_channel
   EXIT SUB
  END IF
  tmp = "G " & sourcerpg & !"\n"
@@ -4010,20 +4037,8 @@ SUB spawn_game
  tmp = "W " & workingdir & !"\n"
  channel_write(slave_channel, @tmp[0], LEN(tmp))
 
- IF isfile("./" & GAMEEXE) = NO THEN
-  notification "Couldn't find " & GAMEEXE
-  EXIT SUB
- END IF
- DIM cmdline as string
- cmdline = "./" & GAMEEXE & " -slave " & channel_name
- 'have to specify either input or output, though we won't (can't?) use it
- IF OPEN PIPE(cmdline FOR OUTPUT AS #fh) THEN
-  notification "Couldn't run " & GAMEEXE
-  EXIT SUB
- END IF
-
  set_OPEN_hook_filter @inworkingdir, YES
- set_lump_updates_channel slave_channel
+ set_lump_updates_channel @slave_channel
 END SUB
 
 SUB spawn_game_menu

@@ -800,7 +800,7 @@ FUNCTION game_setoption(opt as string, arg as string) as integer
    debug "-slave option ignored because channel not specified"
    RETURN 1
   END IF
-  IF channel_open_read(arg, @master_channel) THEN
+  IF channel_open_read(master_channel, arg) THEN
    running_as_slave = YES
    debuginfo "Reading commands from master channel '" & arg & "'"
    RETURN 2

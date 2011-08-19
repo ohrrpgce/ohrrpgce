@@ -12,7 +12,7 @@
 map<FB_FILE *, FileInfo> openfiles;
 typedef map<FB_FILE *, FileInfo>::iterator openfiles_iterator_t;
 
-IPCChannel lump_updates_channel;
+IPCChannel *lump_updates_channel;
 
 bool lock_lumps = false;
 bool allow_lump_writes;
@@ -28,6 +28,8 @@ const char *trimpath(const char *filename) {
 }
 
 void send_lump_modified_msg(const char *filename) {
+	if (lump_updates_channel == NULL || *lump_updates_channel == NULL_CHANNEL)
+		return;
 	string buf = string("M ") + trimpath(filename) + "\n";
 	channel_write(lump_updates_channel, buf.c_str(), buf.size());
 }
@@ -40,7 +42,7 @@ int file_wrapper_close(FB_FILE *handle) {
 		// It's not really safe to call debug in here
 		debug(3, "ENGINE BUG: illegally wrote to %s", info.name.c_str());
 	}
-	if (info.dirty && lump_updates_channel != NULL_CHANNEL) {
+	if (info.dirty) {
 		//fprintf(stderr, "%s was dirty\n", info.name.c_str());
 		send_lump_modified_msg(info.name.c_str());
 	}
@@ -151,6 +153,7 @@ FBCALL int OPEN_hook(FBSTRING *filename,
 }
 
 // A replacement for FB's filecopy which sends modification messages and deals with open files
+// NOTE: return values are opposite to FileCopy (true for success)
 int copyfile(FBSTRING *source, FBSTRING *destination) {
 	if (pfnLumpfileFilter && pfnLumpfileFilter(destination, -1)) {
 		int ret = copy_file_replacing(source->data, destination->data);
@@ -168,6 +171,6 @@ void set_OPEN_hook_filter(FnOpenCallback lumpfile_filter, int lump_writes_allowe
 	allow_lump_writes = lump_writes_allowed;
 }
 
-void set_lump_updates_channel(IPCChannel channel) {
+void set_lump_updates_channel(IPCChannel *channel) {
 	lump_updates_channel = channel;
 }

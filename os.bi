@@ -28,20 +28,30 @@ declare sub unlock_file (byval fh as CFILE_ptr)
 declare function test_locked (filename as string, byval writable as integer) as integer
 
 #ifdef __FB_WIN32__
+
+type NamedPipeInfoFwd as NamedPipeInfo
+
 type ProcessHandle as PROCESS_INFORMATION ptr
-type IPCChannel as integer   'dummy type
-#define NULL_CHANNEL 0
+'type IPCChannel as HANDLE
+'#define NULL_CHANNEL INVALID_HANDLE_VALUE
+type IPCChannel as NamedPipeInfoFwd ptr
+#define NULL_CHANNEL NULL
+
 #else
+
 type ProcessHandle as integer  'dummy type
 type IPCChannel as any ptr   'actually FILE*
 #define NULL_CHANNEL NULL
+
 #endif
 
-declare function channel_open_read (chan_name as string, byval result as IPCChannel ptr) as integer
-declare function channel_open_write (chan_name as string, byval result as IPCChannel ptr) as integer
-declare sub channel_close (byval channel as IPCChannel ptr)
-declare function channel_write (byval channel as IPCChannel, byval buf as byte ptr, byval buflen as integer) as integer
-declare function channel_input_line (byval channel as IPCChannel, line_in as string) as integer
+'declare function channel_pick_name (byval id as zstring ptr, byval tempdir as zstring ptr, byval rpg as zstring ptr) as string
+declare function channel_open_read (byref channel as IPCChannel, chan_name as string) as integer
+declare function channel_open_write (byref channel as IPCChannel, chan_name as string) as integer
+declare sub channel_close (byref channel as IPCChannel)
+declare function channel_wait_for_client_connection (byref channel as IPCChannel, byval timeout_ms as integer) as integer
+declare function channel_write (byref channel as IPCChannel, byval buf as byte ptr, byval buflen as integer) as integer
+declare function channel_input_line (byref channel as IPCChannel, line_in as string) as integer
 
 
 declare function open_console_process (program as string, args as string) as ProcessHandle

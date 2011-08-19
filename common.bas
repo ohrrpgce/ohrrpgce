@@ -4129,12 +4129,12 @@ END SUB
 FUNCTION readbinstring (array() AS INTEGER, offset AS INTEGER, maxlen AS INTEGER) AS STRING
 
  DIM result AS STRING = ""
- DIM strlen AS INTEGER = bound(array(offset), 0, maxlen)
+ DIM stringlen AS INTEGER = bound(array(offset), 0, maxlen)
  DIM i AS INTEGER
  DIM n AS INTEGER
 
  i = 1
- DO WHILE LEN(result) < strlen
+ DO WHILE LEN(result) < stringlen
   '--get an int
   n = array(offset + i)
   i = i + 1
@@ -4143,7 +4143,7 @@ FUNCTION readbinstring (array() AS INTEGER, offset AS INTEGER, maxlen AS INTEGER
   result = result & CHR(n AND &HFF)
 
   '--if we still care about the highbyte, append it as a char too
-  IF LEN(result) < strlen THEN
+  IF LEN(result) < stringlen THEN
    result = result & CHR((n SHR 8) AND &HFF)
   END IF
 
@@ -4153,18 +4153,18 @@ FUNCTION readbinstring (array() AS INTEGER, offset AS INTEGER, maxlen AS INTEGER
 END FUNCTION
 
 FUNCTION readbinstring (array() AS SHORT, offset AS INTEGER, maxlen AS INTEGER) AS STRING
- DIM strlen AS INTEGER = bound(array(offset), 0, maxlen)
- DIM result AS STRING = STRING(strlen, 0)
- memcpy(@result[0], @array(offset + 1), strlen)
+ DIM stringlen AS INTEGER = bound(array(offset), 0, maxlen)
+ DIM result AS STRING = STRING(stringlen, 0)
+ memcpy(@result[0], @array(offset + 1), stringlen)
  RETURN result
 END FUNCTION
 
 FUNCTION readbadbinstring (array() AS INTEGER, offset AS INTEGER, maxlen AS INTEGER, skipword AS INTEGER=0) AS STRING
  DIM result AS STRING = ""
- DIM strlen AS INTEGER = bound(array(offset), 0, maxlen)
+ DIM stringlen AS INTEGER = bound(array(offset), 0, maxlen)
  DIM n AS INTEGER
 
- FOR i AS INTEGER = 1 TO strlen
+ FOR i AS INTEGER = 1 TO stringlen
   '--read and int
   n = array(offset + skipword + i)
   '--if the int is a char use it.

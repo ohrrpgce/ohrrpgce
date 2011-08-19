@@ -67,7 +67,6 @@ EXTERN as string gfxbackendinfo, musicbackendinfo, systeminfo
 #undef rand
 #undef abort
 #undef bound
-#undef strlen
 
 'it was too awful (collision-wise) to include all of windows.bi
 #macro include_windows_bi()

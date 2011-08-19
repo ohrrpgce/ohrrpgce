@@ -31,11 +31,13 @@ void unlock_file(FILE *fh);
 int test_locked(const char *filename, int writable);
 
 
-int channel_open_read(FBSTRING *name, IPCChannel *result);
-int channel_open_write(FBSTRING *name, IPCChannel *result);
-void channel_close(IPCChannel *channel);
-int channel_write(IPCChannel channel, const char *buf, int buflen);
-int channel_input_line(IPCChannel channel, FBSTRING *output);
+//FBSTRING *channel_pick_name(const char *id, const char *tempdir, const char *rpg);
+int channel_open_read(IPCChannel *result, FBSTRING *name);
+int channel_open_write(IPCChannel *result, FBSTRING *name);
+void channel_close(IPCChannel *channelp);
+int channel_wait_for_client_connection(IPCChannel *channel, int timeout_ms);
+int channel_write(IPCChannel *channel, const char *buf, int buflen);
+int channel_input_line(IPCChannel *channel, FBSTRING *output);
 
 #ifdef __cplusplus
 }
