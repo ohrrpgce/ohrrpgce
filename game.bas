@@ -121,7 +121,7 @@ DIM catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3
 DIM herow(3) as GraphicPair  'FIXME: these are only used in the various hero pickers
 DIM statnames() as string
 
-DIM maptiles(0) as TileMap, pass as TileMap
+DIM maptiles(0) as TileMap, pass as TileMap, foemap as TileMap
 DIM zmap as ZoneMap
 DIM tilesets(maplayerMax) as TilesetData ptr  'tilesets is fixed size at the moment. It must always be at least as large as the number of layers on a map
 DIM mapsizetiles as XYPair  'for convienence
@@ -138,7 +138,7 @@ DIM gold
 DIM npcs(0) as NPCType
 DIM npc(299) as NPCInst
 
-DIM AS INTEGER mapx, mapy, vpage, dpage, fadestate, usepreunlump, lastsaveslot, abortg, resetg, foemaph, presentsong, framex, framey
+DIM AS INTEGER mapx, mapy, vpage, dpage, fadestate, usepreunlump, lastsaveslot, abortg, resetg, presentsong, framex, framey
 DIM err_suppress_lvl
 DIM AS STRING tmpdir, exename, game, sourcerpg, savefile, workingdir, homedir
 DIM prefsdir as string
@@ -662,7 +662,7 @@ DO
  END IF
  'DEBUG debug "random enemies"
  IF gam.random_battle_countdown = 0 AND readbit(gen(), 44, suspendrandomenemies) = 0 AND (vstate.active = NO OR vstate.dat.random_battles > -1) THEN
-  temp = readfoemap(catx(0) \ 20, caty(0) \ 20, foemaph)
+  temp = readblock(foemap, catx(0) \ 20, caty(0) \ 20)
   IF vstate.active AND vstate.dat.random_battles > 0 THEN temp = vstate.dat.random_battles
   IF temp > 0 THEN
    batform = random_formation(temp - 1)
@@ -746,8 +746,8 @@ SUB reset_game_final_cleanup()
  refresh_map_slice_tilesets '--zeroes them out
  unloadtilemaps maptiles()
  unloadtilemap pass
+ unloadtilemap foemap
  DeleteZonemap zmap
- IF foemaph THEN CLOSE #foemaph : foemaph = 0
  'checks for leaks and deallocates them
  sprite_empty_cache()
  palette16_empty_cache()
@@ -999,7 +999,7 @@ SUB update_heroes(BYVAL force_npc_check AS INTEGER=NO)
   END IF
   IF needf = 0 THEN
    DIM battle_formation_set AS INTEGER
-   battle_formation_set = readfoemap(catx(0) \ 20, caty(0) \ 20, foemaph)
+   battle_formation_set = readblock(foemap, catx(0) \ 20, caty(0) \ 20)
    IF vstate.active = YES AND vstate.dat.random_battles > 0 THEN
     battle_formation_set = vstate.dat.random_battles
    END IF
@@ -1440,7 +1440,7 @@ IF wantdoor > 0 THEN
  opendoor wantdoor
  wantdoor = 0
  IF needf = 0 THEN
-  temp = readfoemap(catx(0) \ 20, caty(0) \ 20, foemaph)
+  temp = readblock(foemap, catx(0) \ 20, caty(0) \ 20)
   IF vstate.active = YES AND vstate.dat.random_battles > 0 THEN temp = vstate.dat.random_battles
   IF temp > 0 THEN gam.random_battle_countdown = large(gam.random_battle_countdown - gam.foe_freq(temp - 1), 0)
  END IF
@@ -2103,6 +2103,10 @@ SUB loadmap_passmap(mapnum)
  LoadTileMap pass, maplumpname$(mapnum, "p")
 END SUB
 
+SUB loadmap_foemap(mapnum)
+ LoadTileMap foemap, maplumpname$(mapnum, "e")
+END SUB
+
 SUB loadmap_zonemap(mapnum)
  '.Z is the only one of the map lumps that has been added in about the last decade
  IF isfile(maplumpname(mapnum, "z")) THEN
@@ -2713,6 +2717,7 @@ SUB prepare_map (afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
   loadmap_passmap gam.map.id
   loadmap_zonemap gam.map.id
  END IF
+ loadmap_foemap gam.map.id
 
  IF afterbat = NO THEN
   recreate_map_slices
@@ -2729,13 +2734,6 @@ SUB prepare_map (afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
   END IF
  END IF
 
- IF isfile(maplumpname$(gam.map.id, "e")) THEN
-  IF foemaph THEN CLOSE #foemaph : foemaph = 0
-  foemaph = FREEFILE
-  OPEN maplumpname$(gam.map.id, "e") FOR BINARY ACCESS READ AS #foemaph
- ELSE
-  showerror "Oh no! Map " & gam.map.id & " foemap is missing"
- END IF
  loaddoor gam.map.id
 
  IF afterbat = NO AND gam.map.same = NO THEN
@@ -2980,7 +2978,7 @@ SUB advance_text_box ()
   opendoor txt.box.door + 1
   IF needf = 0 THEN
    DIM temp AS INTEGER
-   temp = readfoemap(catx(0) \ 20, caty(0) \ 20, foemaph)
+   temp = readblock(foemap, catx(0) \ 20, caty(0) \ 20)
    IF vstate.active = YES AND vstate.dat.random_battles > 0 THEN temp = vstate.dat.random_battles
    IF temp > 0 THEN gam.random_battle_countdown = large(gam.random_battle_countdown - gam.foe_freq(temp - 1), 0)
   END IF

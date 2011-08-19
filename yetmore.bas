@@ -782,10 +782,6 @@ FUNCTION rankincaterpillar (byval heroid as integer) as integer
  RETURN result
 END FUNCTION
 
-FUNCTION readfoemap (byval x as integer, byval y as integer, byval fh as integer) as integer
- RETURN readbyte(fh, 12 + (y * mapsizetiles.x) + x) 
-END FUNCTION
-
 SUB scriptadvanced (byval id as integer)
 
 'contains advanced scripting stuff such as pixel-perfect movement...

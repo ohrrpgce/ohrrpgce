@@ -18,7 +18,6 @@ EXTERN speedcontrol as integer
 EXTERN autotestmode as integer
 EXTERN deferpaint as integer
 EXTERN presentsong as integer
-EXTERN foemaph as integer
 EXTERN lastsaveslot as integer
 EXTERN abortg as integer
 EXTERN resetg as integer
@@ -65,6 +64,7 @@ EXTERN hmask() as integer
 EXTERN gmap() as integer
 EXTERN maptiles() as TileMap
 EXTERN pass as TileMap
+EXTERN foemap as TileMap
 EXTERN zmap as ZoneMap
 EXTERN mapsizetiles as XYPair
 EXTERN as integer mapx, mapy  'camera pos

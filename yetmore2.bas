@@ -324,9 +324,6 @@ SUB exitprogram (BYVAL needfade as integer, BYVAL errorout as integer = NO)
 IF needfade THEN fadeout 0, 0, 0
 
 'DEBUG debug "Cleanup Routine"
-'--open files
-'DEBUG debug "Close foemap handle"
-IF foemaph THEN CLOSE #foemaph : foemaph = 0
 
 '--script stack
 'DEBUG debug "Release script stack"
@@ -920,11 +917,7 @@ SUB try_to_reload_files_onmap ()
    load_fset_frequencies
    handled = YES
 
-  ELSEIF modified_lumps[i] = trimpath(maplumpname(gam.map.id, "e")) THEN '.E##
-   IF foemaph THEN CLOSE #foemaph
-   foemaph = FREEFILE
-   OPEN maplumpname(gam.map.id, "e") FOR BINARY ACCESS READ AS #foemaph
-   handled = YES
+  'ELSEIF modified_lumps[i] = trimpath(maplumpname(gam.map.id, "e")) THEN '.E##
 
   ELSEIF is_int(extn) _
          OR (LEFT(base, 4) = "song" ANDALSO is_int(MID(base, 5))) THEN   '.## and song##.xxx (music)
