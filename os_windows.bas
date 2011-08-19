@@ -36,7 +36,7 @@ private function file_handle_to_FILE (byval fhandle as HANDLE, funcname as strin
 		return NULL
 	end if
 
-	dim fh as FILE ptr = _fdopen(fd, "r+")
+	dim fh as FILE ptr = _fdopen(fd, "r")
 	if fh = NULL then
 		debug funcname + ": _fdopen failed"
 		_close(fd)
@@ -207,7 +207,6 @@ function channel_open_write (byref channel as NamedPipeInfo ptr, chan_name as st
 		return NO
 	end if
 
-/'
 	dim cfile as FILE ptr
 	cfile = file_handle_to_FILE(pipeh, "channel_open_write")
 	if cfile = NULL then
@@ -215,7 +214,6 @@ function channel_open_write (byref channel as NamedPipeInfo ptr, chan_name as st
 		return NO
 	end if
 	pipeinfo->cfile = cfile
-'/
 
 	channel = pipeinfo
 	return YES
@@ -291,13 +289,13 @@ sub channel_close (byref channel as NamedPipeInfo ptr)
 end sub
 
 'Returns true on success
-function channel_write (byref channel as NamedPipeInfo ptr, byval buf as byte ptr, byval buflen as integer) as integer
+function channel_write (byref channel as NamedPipeInfo ptr, byval buf as zstring ptr, byval buflen as integer) as integer
 	if channel = NULL then return NO
 
 	dim as integer res, written
 	'Technically am meant to pass an OVERLAPPED pointer to WriteFile, but this seems to work
 	res = WriteFile(channel->fh, buf, buflen, @written, NULL)
-	if res = 0 then
+	if res = 0 or written < buflen then
 		'should actually check errno instead; hope this works
 		dim errstr as string = get_windows_error()
 		debug "channel_write error (wrote " & written & " of " & buflen & "): " & errstr

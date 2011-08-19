@@ -4015,8 +4015,8 @@ SUB spawn_game
   EXIT SUB
  END IF
 
- 'Need Game to connect before we can safely write to the pipe; wait up to 1000ms
- IF channel_wait_for_client_connection(slave_channel, 1000) = 0 THEN
+ 'Need Game to connect before we can safely write to the pipe; wait up to 3000ms
+ IF channel_wait_for_client_connection(slave_channel, 3000) = 0 THEN
   notification "Couldn't connect to " & GAMEEXE
   channel_close slave_channel
   cleanup_process @slave_process

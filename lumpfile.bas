@@ -1147,3 +1147,22 @@ function inworkingdir(filename as string, byval writable as integer) as integer
 	return ret
 end function
 
+'A crude synchronisation measure. Waits until receiving a message with the given prefix,
+'placing it in line_in, discarding everything else. Returns true on success
+function channel_wait_for_msg(byref channel as IPCChannel, wait_for_prefix as string, line_in as string = "", byval timeout_ms as integer = 500) as integer
+	dim timeout as double = TIMER + timeout_ms / 1000
+
+	do
+		while channel_input_line(channel, line_in) = 0
+			sleep 10
+			if TIMER > timeout then
+				debuginfo "channel_wait_for_msg timed out"
+				return NO
+			end if
+		wend
+		if instr(line_in, wait_for_prefix) = 1 then
+			return YES
+		end if
+		debug "warning: channel_wait_for_msg discarding message: " & line_in
+	loop
+end function

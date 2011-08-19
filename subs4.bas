@@ -360,6 +360,20 @@ SUB generalmusicsfxmenu ()
   resetsfx
 END SUB
 
+SUB delete_song (BYVAL songnum as integer, songfile AS STRING)
+ #IFDEF __FB_WIN32__
+  'Only needed on windows, and not currently implemented on unix anyway
+  IF slave_channel <> NULL_CHANNEL THEN
+   DIM msg as string = "CM " & songnum & !"\n"
+   IF channel_write(slave_channel, msg, LEN(msg)) THEN
+    channel_wait_for_msg(slave_channel, "CM ", "", 1500)
+   END IF
+  END IF
+ #ENDIF
+ safekill songfile$
+ 'FIXME: handle deleting from rpgdirs (bug 247)... and the same for soundeffects
+END SUB
+
 SUB importsong ()
 STATIC default AS STRING
 DIM oggtemp AS STRING
@@ -418,7 +432,7 @@ DO
     music_stop
     'closemusic  'music_stop not always enough to cause the music backend to let go of the damn file!
     'setupmusic
-    safekill songfile$
+    delete_song snum, songfile$
     safekill bamfile$
     IF slave_channel <> NULL_CHANNEL THEN send_lump_modified_msg(songfile$)  'only need to send any valid filename for this song
     GOSUB getsonginfo
@@ -540,7 +554,9 @@ IF sourcesong$ = "" THEN
 END IF
 
 'remove song file (except BAM, we can leave those as fallback for QB version)
-IF songfile$ <> bamfile$ THEN safekill songfile$
+IF songfile$ <> bamfile$ THEN
+ delete_song snum, songfile$
+END IF
 
 sname$ = a$
 
@@ -552,7 +568,7 @@ ELSE
  songfile$ = workingdir + SLASH + "song" + STR$(snum) + "." + extension$
 END IF
 
-'Copy in new lump
+'Copy in new lump (this implicitly sends a notification to Game if it's been spawned)
 copyfile sourcesong$, songfile$
 
 IF oggtemp <> "" THEN KILL oggtemp

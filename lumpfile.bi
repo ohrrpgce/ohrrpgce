@@ -196,5 +196,6 @@ declare sub set_lump_updates_channel(byval channel as IPCChannel ptr)
 end extern
 
 declare function inworkingdir(filename as string, byval writable as integer) as integer
+declare function channel_wait_for_msg(byref channel as IPCChannel, wait_for_prefix as string, line_in as string = "", byval timeout_ms as integer = 500) as integer
 
 #endif

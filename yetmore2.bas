@@ -833,7 +833,7 @@ SUB handshake_with_master ()
    debug "handshake_with_master: no message on channel"
    fatalerror "Could not communicate with Custom"
   END IF
-  debug "Received message from Custom: " & line_in
+  debuginfo "Received message from Custom: " & line_in
 
   SELECT CASE i
    CASE 1  'Parse version string
@@ -879,16 +879,22 @@ SUB receive_file_updates ()
  DIM pieces() as string
 
  WHILE channel_input_line(master_channel, line_in)
-  IF LEFT(line_in, 2) = "M " THEN
+  IF LEFT(line_in, 2) = "M " THEN  'file modified/created/deleted
    line_in = MID(line_in, 3)
    DIM at as integer = v_find(modified_lumps, line_in)
    IF at = -1 THEN
     v_append modified_lumps, line_in
    END IF
+  ELSEIF LEFT(line_in, 3) = "CM " THEN  'please close music file
+   DIM songnum as integer = str2int(MID(line_in, 4))
+   IF songnum = presentsong THEN music_stop
+   'Send confirmation
+   line_in += !"\n"
+   channel_write(master_channel, strptr(line_in), LEN(line_in))
   ELSE
    debug "Did not understand message from Custom: " & line_in
   END IF
-  debuginfo "msg from Custom: " & line_in
+  debuginfo "msg from Custom: " & RTRIM(line_in)
  WEND
 END SUB
 
