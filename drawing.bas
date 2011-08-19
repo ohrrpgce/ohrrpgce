@@ -17,7 +17,7 @@ DECLARE SUB importmasterpal (f$, palnum%)
 
 'Local SUBs and FUNCTIONS
 DECLARE SUB picktiletoedit (tmode%, pagenum%, mapfile$)
-DECLARE SUB editmaptile (ts AS TileEditState, mover(), mouse AS MouseInfo, area() AS MouseArea)
+DECLARE SUB editmaptile (ts AS TileEditState, mover(), mouse AS MouseInfo, area() AS MouseArea, BYVAL tilesetnum AS INTEGER)
 DECLARE SUB tilecut (ts AS TileEditState, mouse AS MouseInfo, area() AS MouseArea)
 DECLARE SUB refreshtileedit (mover%(), state AS TileEditState)
 DECLARE SUB writeundoblock (mover%(), state AS TileEditState)
@@ -807,7 +807,7 @@ DO
  IF enter_or_space() OR mouse.clicks > 0 THEN
   setkeys
   IF tmode = 0 THEN
-   editmaptile ts, mover(), mouse, area()
+   editmaptile ts, mover(), mouse, area(), pagenum
   END IF
   IF tmode = 1 THEN
    ts.cuttileset = YES
@@ -826,6 +826,7 @@ DO
    array_to_vector ts.defaultwalls, buf()
    setkeyrepeat 25, 5  'editbitset resets the repeat rate
   END IF
+  storemxs mapfile$, pagenum, vpages(3)
  END IF
 
  copypage 3, dpage
@@ -896,7 +897,7 @@ printstr ">", 270, 16 + (state.undo * 21), 2
 refreshtileedit mover(), state
 END SUB
 
-SUB editmaptile (ts AS TileEditState, mover(), mouse AS MouseInfo, area() AS MouseArea)
+SUB editmaptile (ts AS TileEditState, mover(), mouse AS MouseInfo, area() AS MouseArea, BYVAL tilesetnum AS INTEGER)
 STATIC clone AS TileCloneBuffer
 DIM spot AS XYPair
 
@@ -1055,12 +1056,17 @@ DO
    movemouse mouse.x, mouse.y
   END IF
  END IF 
+ IF keyval(scCtrl) > 0 AND keyval(scS) > 1 THEN
+  storemxs game + ".til", tilesetnum, vpages(3)
+ END IF
  '---KEYBOARD SHORTCUTS FOR TOOLS------------
- FOR i = 0 TO UBOUND(toolinfo)
-  IF keyval(toolinfo(i).shortcut) > 1 THEN
-   tileedit_set_tool ts, toolinfo(), i
-  END IF
- NEXT i
+ IF keyval(scCtrl) = 0 THEN
+  FOR i = 0 TO UBOUND(toolinfo)
+   IF keyval(toolinfo(i).shortcut) > 1 THEN
+    tileedit_set_tool ts, toolinfo(), i
+   END IF
+  NEXT i
+ END IF
  '----------
  IF keyval(scComma) > 1 OR (keyval(scAlt) > 0 AND keyval(scLeft) > 1) THEN
   ts.curcolor = (ts.curcolor + 255) MOD 256

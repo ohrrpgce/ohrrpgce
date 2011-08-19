@@ -68,3 +68,5 @@ CTRL+Backspace flips the tile
 
 ] Rotates the tile 90 degrees
   clockwise.
+
+CTRL+S saves the tile immediately without exiting, which is useful if you are live-previewing the game.
