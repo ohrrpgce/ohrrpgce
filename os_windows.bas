@@ -119,6 +119,11 @@ sub unlock_file (byval fh as CFILE_ptr)
 	UnLockFile(get_file_handle(fh), 0, 0, &hffffffff, 0)
 end sub
 
+function test_locked (filename as string, byval writable as integer) as integer
+	'Not bothering to implement this; used for debugging only
+	return 0
+end function
+
 
 '==========================================================================================
 '                               Inter-process communication

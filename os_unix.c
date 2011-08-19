@@ -73,6 +73,22 @@ static int lock_file_base(FILE *fh, int timeout_ms, int flag, char *funcname) {
 	return 0;
 }
 
+//For debugging
+int test_locked(const char *filename, int writable) {
+	int fd = open(filename, O_RDONLY);
+	if (!flock(fd, LOCK_NB | (writable ? LOCK_EX : LOCK_SH))) {
+		close(fd);
+		return 0;
+	}
+	if (errno != EWOULDBLOCK && errno != EINTR) {
+		debuginfo("test_locked: error: %s", strerror(errno));
+		close(fd);
+		return 0;
+	}
+	close(fd);
+	return 1;
+}
+
 //Returns true on success
 int lock_file_for_write(FILE *fh, int timeout_ms) {
 	return lock_file_base(fh, timeout_ms, LOCK_EX, "lock_file_for_write");

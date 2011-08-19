@@ -26,6 +26,7 @@ typedef FILE *IPCChannel;
 int lock_file_for_write(FILE *fh, int timeout_ms);
 int lock_file_for_read(FILE *fh, int timeout_ms);
 void unlock_file(FILE *fh);
+int test_locked(const char *filename, int writable);
 
 
 int channel_open_read(FBSTRING *name, IPCChannel *result);

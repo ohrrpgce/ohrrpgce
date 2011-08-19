@@ -22,6 +22,7 @@ type CFILE_ptr as any ptr
 declare function lock_file_for_write (byval fh as CFILE_ptr, byval timeout_ms as integer) as integer
 declare function lock_file_for_read (byval fh as CFILE_ptr, byval timeout_ms as integer) as integer
 declare sub unlock_file (byval fh as CFILE_ptr)
+declare function test_locked (filename as string, byval writable as integer) as integer
 
 #ifdef __FB_WIN32__
 type ProcessHandle as PROCESS_INFORMATION ptr
