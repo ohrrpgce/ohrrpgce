@@ -122,7 +122,7 @@ if win32:
     libraries += ['fbgfx']
     commonenv['FBFLAGS'] += ['-s','gui']
 elif unix:
-    base_modules += ['os_unix.bas']
+    base_modules += ['os_unix.c']
     libraries += 'X11 Xext Xpm Xrandr Xrender pthread'.split (' ')
     commonenv['FBFLAGS'] += ['-d', 'DATAFILES=\'"/usr/share/games/ohrrpgce"\'']
 

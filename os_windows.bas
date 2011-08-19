@@ -21,6 +21,7 @@ function get_windows_error () as string
 	return strbuf
 end function
 
+extern "C"
 
 '==========================================================================================
 '                                       Filesystem
@@ -152,3 +153,5 @@ sub cleanup_process (byval process as ProcessHandle ptr)
 	Deallocate(*process)
 	*process = NULL
 end sub
+
+end extern
