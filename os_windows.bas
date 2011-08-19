@@ -77,6 +77,34 @@ sub setwriteable (fname as string)
 	end if
 end sub
 
+
+'==========================================================================================
+'                               Inter-process communication
+'==========================================================================================
+
+
+'WRITEME: NOT IMPLEMENTED
+
+function channel_open_read (name as string, byval result as IPCChannel ptr) as integer
+	return 0
+end function
+
+function channel_open_write (name as string, byval result as IPCChannel ptr) as integer
+	return 0
+end function
+
+sub channel_close (byval channel as IPCChannel ptr)
+end function
+
+function channel_write (byval channel as IPCChannel, byval buf as byte ptr, byval buflen as integer) as integer
+	return 0
+end function
+
+function channel_input_line (byval channel as IPCChannel, output as string) as integer         
+	return 0
+end function
+
+
 '==========================================================================================
 '                                       Processes
 '==========================================================================================

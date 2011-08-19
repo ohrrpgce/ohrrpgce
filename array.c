@@ -69,7 +69,7 @@ void debugc(char *msg, int errorlevel);
 void (*fb_ErrorThrowAt(int line_num, const char *mod_name, void *res_label, void *resnext_label))(void) noreturn;
 
 static void _throw_error(int linenum, char *msg, ...) format_chk(2) noreturn;
-static void debug(char *msg, ...) format_chk(1);
+void debuginfo(char *msg, ...) format_chk(1);
 void array_free(array_t *array);
 
 #define throw_error(...) _throw_error(__LINE__, __VA_ARGS__)
@@ -90,7 +90,7 @@ void _throw_error(int linenum, char *msg, ...) {
 	handler();
 }
 
-void debug(char *msg, ...) {
+void debuginfo(char *msg, ...) {
 	va_list vl;
 	va_start(vl, msg);
 	char buf[256];
@@ -356,7 +356,7 @@ array_t array_extend_d(array_t *dest, array_t *src) {
 	if (!*dest) {
 		throw_error("array_extend_d: dest array not initialised");
 		/*
-		debug("array_extend_d: dest array not initialised");
+		debuginfo("array_extend_d: dest array not initialised");
 		*dest = *src;
 		*src = NULL;
 		return *dest;
@@ -413,7 +413,7 @@ void array_assign(array_t *dest, array_t *src) {
 	}
 
 	if (!*src) {
-		debug("array_assign: NULL src");
+		debuginfo("array_assign: NULL src");
 		return;
 	}
 
@@ -442,7 +442,7 @@ void array_assign_d(array_t *dest, array_t *src) {
 	}
 
 	if (!*src) {
-		debug("array_assign: NULL src");
+		debuginfo("array_assign: NULL src");
 		return;
 	}
 

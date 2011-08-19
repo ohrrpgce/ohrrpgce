@@ -1,9 +1,20 @@
 //OHHRPGCE COMMON - Generic Unix versions of OS-specific routines
 //Please read LICENSE.txt for GNU GPL License details and disclaimer of liability
 
+#define _POSIX_SOURCE  // for fdopen
+//fb_stub.h MUST be included first, to ensure fb_off_t is 64 bit
 #include "fb/fb_stub.h"
+#include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
+#include "os.h"
 
 typedef int ProcessHandle;
+
+// common.bas
+void debugc(char *msg, int errorlevel);
+// array.c
+void debuginfo(char *msg, ...);  //errorlevel 1
 
 
 //==========================================================================================
@@ -35,6 +46,85 @@ void setwriteable (FBSTRING *fname) {
 	//Not written because I don't know whether it's actually needed: does
 	//filecopy on Unix also copy file permissions?
 	fb_hStrDelTemp(fname);
+}
+
+
+//==========================================================================================
+//                               Inter-process communication
+//==========================================================================================
+
+
+//Returns true on success
+int channel_open_read(FBSTRING *name, IPCChannel *result) {
+  int fd = open(name->data, O_RDONLY | O_NONBLOCK);
+  if (fd == -1) {
+    debugc(strerror(errno), 2);
+    *result = NULL;
+    return 0;
+  }
+  *result = fdopen(fd, "r");
+  if (!*result) {
+    debugc(strerror(errno), 2);
+    return 0;
+  }
+  setvbuf(*result, NULL, _IOLBF, 4096);  // set line buffered
+  return 1;
+}
+
+//Returns true on success
+int channel_open_write(FBSTRING *name, IPCChannel *result) {
+  *result = fopen(name->data, "w");
+  if (!*result) {
+    debugc(strerror(errno), 2);
+    return 0;
+  }
+  setvbuf(*result, NULL, _IOLBF, 4096);  // set line buffered
+  return 1;
+}
+
+void channel_close(IPCChannel *channel) {
+  fclose(*channel);
+  *channel = NULL;
+}
+
+//Returns true on success
+int channel_write(IPCChannel channel, char *buf, int buflen) {
+  if (fwrite(buf, buflen, 1, channel) == 0) {
+    // whole write didn't occur  FIXME: this doesn't seem correct
+    debuginfo("channel_write failed: %s\n", strerror(errno));
+    //if (errno == EAGAIN || errno == EWOULDBLOCK)
+    return 0;
+  }
+}
+
+//Returns true on reading a line
+int channel_input_line(IPCChannel channel, FBSTRING *output) {
+  FILE *f = channel;
+  int size = 0, readsize;
+  do {
+    if (!fb_hStrRealloc(output, size + 512, 1))  // set size, preserving existing
+      return 0;
+    if (fgets(output->data + size, 513, f) == NULL) {
+      if (errno == EAGAIN || errno == EWOULDBLOCK) {
+        // not sinister
+      } else {
+        debugc("pipe closed\n", 2);
+      }
+
+      fb_StrDelete(output);
+      return 0;
+    }
+    //fb_hStrCopy(output->data + size, buf, 512);
+    readsize = strlen(output->data + size);
+    size += readsize;
+  } while (readsize == 512);
+  if (size > 0) size--;  //trim off the newline
+
+  if (!fb_hStrRealloc(output, size, 1))
+    return 0;
+  return 1;
+  //fb_StrAssign(output, -1, buf, strlen(buf), 0);
+  //fb_hStrCopy(output->data + size, buf, 512);
 }
 
 
