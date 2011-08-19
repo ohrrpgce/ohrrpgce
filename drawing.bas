@@ -17,7 +17,7 @@ DECLARE SUB importmasterpal (f$, palnum%)
 
 'Local SUBs and FUNCTIONS
 DECLARE SUB picktiletoedit (tmode%, pagenum%, mapfile$)
-DECLARE SUB editmaptile (ts AS TileEditState, mover(), mouse AS MouseInfo, area() AS MouseArea, BYVAL tilesetnum AS INTEGER)
+DECLARE SUB editmaptile (ts AS TileEditState, mover(), mouse AS MouseInfo, area() AS MouseArea)
 DECLARE SUB tilecut (ts AS TileEditState, mouse AS MouseInfo, area() AS MouseArea)
 DECLARE SUB refreshtileedit (mover%(), state AS TileEditState)
 DECLARE SUB writeundoblock (mover%(), state AS TileEditState)
@@ -656,6 +656,7 @@ SUB picktiletoedit (tmode, pagenum, mapfile$)
 STATIC cutnpaste(19, 19), oldpaste
 DIM ts AS TileEditState, mover(12), area(24) AS MouseArea
 DIM mouse as MouseInfo
+ts.tilesetnum = pagenum
 ts.drawframe = frame_new(20, 20, , YES)
 DIM tog AS integer
 ts.gotmouse = havemouse()
@@ -807,7 +808,7 @@ DO
  IF enter_or_space() OR mouse.clicks > 0 THEN
   setkeys
   IF tmode = 0 THEN
-   editmaptile ts, mover(), mouse, area(), pagenum
+   editmaptile ts, mover(), mouse, area()
   END IF
   IF tmode = 1 THEN
    ts.cuttileset = YES
@@ -826,7 +827,7 @@ DO
    array_to_vector ts.defaultwalls, buf()
    setkeyrepeat 25, 5  'editbitset resets the repeat rate
   END IF
-  storemxs mapfile$, pagenum, vpages(3)
+  IF slave_channel <> NULL_CHANNEL THEN storemxs mapfile$, pagenum, vpages(3)
  END IF
 
  copypage 3, dpage
@@ -897,7 +898,7 @@ printstr ">", 270, 16 + (state.undo * 21), 2
 refreshtileedit mover(), state
 END SUB
 
-SUB editmaptile (ts AS TileEditState, mover(), mouse AS MouseInfo, area() AS MouseArea, BYVAL tilesetnum AS INTEGER)
+SUB editmaptile (ts AS TileEditState, mover(), mouse AS MouseInfo, area() AS MouseArea)
 STATIC clone AS TileCloneBuffer
 DIM spot AS XYPair
 
@@ -1057,7 +1058,7 @@ DO
   END IF
  END IF 
  IF keyval(scCtrl) > 0 AND keyval(scS) > 1 THEN
-  storemxs game + ".til", tilesetnum, vpages(3)
+  storemxs game + ".til", ts.tilesetnum, vpages(3)
  END IF
  '---KEYBOARD SHORTCUTS FOR TOOLS------------
  IF keyval(scCtrl) = 0 THEN
@@ -1623,6 +1624,7 @@ IF ts.canpaste THEN
    putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, cutnpaste(i, j), 3
   NEXT j
  NEXT i
+ IF slave_channel <> NULL_CHANNEL THEN storemxs game + ".til", ts.tilesetnum, vpages(3)
 END IF 
 END SUB
 
@@ -1633,7 +1635,8 @@ IF ts.canpaste THEN
    IF cutnpaste(i, j) THEN putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, cutnpaste(i, j), 3
   NEXT j
  NEXT i
-END IF 
+ IF slave_channel <> NULL_CHANNEL THEN storemxs game + ".til", ts.tilesetnum, vpages(3)
+END IF
 END SUB
 
 OPTION EXPLICIT '======== FIXME: move this up as code gets cleaned up =====================

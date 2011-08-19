@@ -89,6 +89,7 @@ TYPE TileCloneBuffer
 END TYPE
 
 TYPE TileEditState
+  tilesetnum AS INTEGER
   drawframe AS Frame Ptr  '--Don't write to this! It's for display only
   x AS INTEGER
   y AS INTEGER
