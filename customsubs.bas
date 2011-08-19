@@ -14,6 +14,7 @@
 #include "cglobals.bi"
 #include "reload.bi"
 #include "slices.bi"
+#include "ver.txt"
 
 #include "customsubs.bi"
 
@@ -3981,4 +3982,59 @@ SUB stat_growth_chart ()
   setvispage vpage
   dowait
  LOOP 
+END SUB
+
+SUB spawn_game
+ DIM fh as integer = FREEFILE
+ DIM channel_name as string
+ channel_name = tmpdir + ".lump_updates.txt"
+ safekill channel_name
+ IF channel_open_write(channel_name, @slave_channel) = NO THEN
+  notification "Couldn't open channel"
+  EXIT SUB
+ END IF
+
+ 'write version info
+ DIM tmp as string
+ 'msgtype magickey,proto_ver,program_ver,version_string
+ tmp = "V OHRRPGCE,0," & version_revision & "," & version & !"\n"
+ IF channel_write(slave_channel, @tmp[0], LEN(tmp)) = 0 THEN
+  'good idea to test writing is working at least once
+  notification "Channel write failure; aborting"
+  channel_close @slave_channel
+  safekill channel_name
+  EXIT SUB
+ END IF
+ tmp = "G " & sourcerpg & !"\n"
+ channel_write(slave_channel, @tmp[0], LEN(tmp))
+ tmp = "W " & workingdir & !"\n"
+ channel_write(slave_channel, @tmp[0], LEN(tmp))
+
+ IF isfile("./" & GAMEEXE) = NO THEN
+  notification "Couldn't find " & GAMEEXE
+  EXIT SUB
+ END IF
+ DIM cmdline as string
+ cmdline = "./" & GAMEEXE & " -slave " & channel_name
+ 'have to specify either input or output, though we won't (can't?) use it
+ IF OPEN PIPE(cmdline FOR OUTPUT AS #fh) THEN
+  notification "Couldn't run " & GAMEEXE
+  EXIT SUB
+ END IF
+
+ set_OPEN_hook_filter @inworkingdir
+ set_lump_updates_channel slave_channel
+END SUB
+
+SUB spawn_game_menu
+#IFDEF __FB_WIN32__
+ notification "Not implemented in Windows yet, sorry."
+ EXIT SUB
+#ENDIF
+
+ IF slave_channel <> NULL_CHANNEL THEN
+  notification "Game is already running! Running multiple test copies of a game is not yet supported."
+ ELSE
+  spawn_game
+ END IF
 END SUB

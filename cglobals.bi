@@ -3,5 +3,8 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
+#include "os.bi"
+
 EXTERN timing() as integer
 EXTERN activepalette as integer
+EXTERN slave_channel as IPCChannel

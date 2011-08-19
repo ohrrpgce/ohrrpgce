@@ -21,6 +21,7 @@ DEFINT A-Z
 #include "sliceedit.bi"
 #include "reloadedit.bi"
 #include "editedit.bi"
+#include "os.bi"
 
 'FIXME: add header files for these declarations
 DECLARE SUB importbmp (f AS STRING, cap AS STRING, count AS INTEGER)
@@ -65,6 +66,7 @@ DIM tmpdir as string
 DIM homedir as string
 DIM workingdir as string
 DIM app_dir as string
+DIM slave_channel as IPCChannel
 
 'Local variables (declaring these up here is often necessary due to gosubs)
 DIM font(1024), joy(4)
@@ -226,8 +228,6 @@ ELSE
 END IF
 safekill workingdir + SLASH + "__danger.tmp"
 
-set_OPEN_hook_filter @inworkingdir
-
 'Perform additional checks for future rpg files or corruption
 rpg_sanity_checks
 
@@ -310,7 +310,8 @@ DO:
     IF pt = 16 THEN gendata
     IF pt = 17 THEN scriptman
     IF pt = 18 THEN slice_editor
-    IF pt = 19 THEN
+    IF pt = 19 THEN spawn_game_menu
+    IF pt = 20 THEN
      GOSUB relump
      IF quitnow > 1 THEN GOTO finis
     END IF
@@ -356,7 +357,7 @@ DO:
 LOOP
 
 setmainmenu:
-mainmax = 19
+mainmax = 20
 menu(0) = "Edit Graphics"
 menu(1) = "Edit Map Data"
 menu(2) = "Edit Global Text Strings"
@@ -376,7 +377,8 @@ menu(15) = "Edit Font"
 menu(16) = "Edit General Game Data"
 menu(17) = "Script Management"
 menu(18) = "Edit Slice Collections"
-menu(19) = "Quit Editing"
+menu(19) = "Test Game"
+menu(20) = "Quit Editing"
 get_menu_hotkeys menu(), mainmax, menukeys(), "Edit"
 RETRACE
 

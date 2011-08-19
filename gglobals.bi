@@ -8,6 +8,7 @@
 #include "game_udts.bi"
 #include "battle_udts.bi"
 #include "slices.bi"
+#include "os.bi"
 
 'Misc game globals
 EXTERN prefsdir as string ' currently only used by Linux
@@ -27,6 +28,10 @@ EXTERN err_suppress_lvl as integer
 EXTERN backcompat_sound_slot_mode as integer
 EXTERN backcompat_sound_slots() as integer
 EXTERN autosnap as integer
+EXTERN running_as_slave as integer
+EXTERN custom_version as string
+EXTERN master_channel as IPCChannel
+'EXTERN delayed_startup_error as string
 
 'Input handling globals
 EXTERN as integer carray(), csetup()

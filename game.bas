@@ -74,9 +74,13 @@ debuginfo DATE & " " & TIME
 'DEBUG debug "randomize timer"
 mersenne_twister TIMER
 
+'Global variables which are affected by processcommandline (specifically, game_setoption)
 DIM autotestmode AS INTEGER = NO
 DIM speedcontrol AS INTEGER = 55
 DIM autosnap AS INTEGER = 0
+DIM running_as_slave AS INTEGER = NO
+DIM custom_version AS STRING  'when running as slave
+DIM master_channel AS IPCChannel = NULL_CHANNEL  'when running as slave
 
 orig_dir = CURDIR()
 processcommandline
@@ -184,26 +188,12 @@ plotslicesp = @plotslices(1)
 
 'Module local variables
 DIM font(1024)
+DIM archinym as string
 
 'DEBUG debug "Thestart"
-DO 'This is a big loop that encloses the entire program (more than it should). The loop is only reached when resetting the game
+DO 'This is a big loop that encloses the entire program (more than it should). The loop is only reached when resetting the program
 
-'DEBUG debug "setup directories"
-
-'---get work dir and exe name---
-IF NOT isdir(tmpdir) THEN makedir tmpdir
-workingdir = tmpdir + "playing.tmp"
-exename = trimextension$(trimpath$(COMMAND$(0)))
-
-'DEBUG debug "create playing.tmp"
-'---If workingdir does not already exist, it must be created---
-IF isdir(workingdir) THEN
- 'DEBUG debug workingdir+" already exists"
- 'DEBUG debug "erasing "+workingdir+"\"+ALLFILES
- cleanuptemp
-ELSE
- makedir workingdir
-END IF
+'----(Re)initialise graphics/window/IO options
 
 '-- Init joysticks
 FOR i = 0 TO 1
@@ -212,55 +202,77 @@ NEXT i
 
 dpage = 1: vpage = 0
 presentsong = -1
-gen(genJoy) = 0'--leave joystick calibration enabled
+gen(genJoy) = 0  'leave joystick calibration enabled
+defaultc  'set up default controls
 
 load_default_master_palette master()
 DefaultUIColors uilook()
-
-'DEBUG debug "load font"
 getdefaultfont font()
-
-setwindowtitle "O.H.R.RPG.C.E"
-
-'DEBUG debug "apply font"
 setfont font()
 
-'init mouse
-unhidemousecursor
+setwindowtitle "O.H.R.RPG.C.E"
+unhidemousecursor  'init mouse state
 
-'DEBUG debug "set up default controls"
-defaultc
-
-'---IF A VALID RPG FILE WAS SPECIFIED ON THE COMMAND LINE, RUN IT, ELSE BROWSE---
-'---ALSO CHECKS FOR GAME.EXE RENAMING
-'DEBUG debug "enable autorunning"
 gam.autorungame = NO
-usepreunlump = 0
+usepreunlump = NO
 
-FOR i = 1 TO UBOUND(cmdline_args)
- a$ = cmdline_args(i)
+'---get work dir and exe name---
+'DEBUG debug "setup directories"
+IF NOT isdir(tmpdir) THEN makedir tmpdir
+exename = trimextension$(trimpath$(COMMAND$(0)))
 
-#IFDEF __FB_WIN32__
- IF MID$(a$, 2, 1) <> ":" THEN a$ = curdir$ + SLASH + a$
-#ELSE
- IF MID$(a$, 1, 1) <> SLASH THEN a$ = curdir$ + SLASH + a$
-#ENDIF
- IF LCASE$(RIGHT$(a$, 4)) = ".rpg" AND isfile(a$) THEN
-  sourcerpg = a$
-  gam.autorungame = YES
-  EXIT FOR
- ELSEIF isdir(a$) THEN 'perhaps it's an unlumped folder?
-  'check for essentials (archinym.lmp was added long before .rpgdir support)
-  IF isfile(a$ + SLASH + "archinym.lmp") THEN 'ok, accept it
-   gam.autorungame = YES
-   usepreunlump = 1
-   sourcerpg = a$
-   workingdir = a$
-  END IF
-  EXIT FOR
-'ELSE nothing; custom throws a warning
+IF running_as_slave THEN
+
+ 'Check for version compatibility, and get told sourcerpg & workingdir
+ 'NOTE: normally sourcedir == workingdir if running a preunlumped game, but not in this case!
+ handshake_with_master
+ gam.autorungame = YES
+ usepreunlump = YES
+
+ELSE  'NOT running_as_slave
+
+ workingdir = tmpdir + "playing.tmp"
+
+ 'DEBUG debug "create playing.tmp"
+ '---If workingdir does not already exist, it must be created---
+ IF isdir(workingdir) THEN
+  'DEBUG debug workingdir+" already exists"
+  'DEBUG debug "erasing "+workingdir+"\"+ALLFILES
+  cleanuptemp
+ ELSE
+  makedir workingdir
  END IF
-NEXT
+
+ '---IF A VALID RPG FILE WAS SPECIFIED ON THE COMMAND LINE, RUN IT, ELSE BROWSE---
+ '---ALSO CHECKS FOR GAME.EXE RENAMING
+
+ 'DEBUG debug "searching commandline for game"
+ FOR i = 1 TO UBOUND(cmdline_args)
+  a$ = cmdline_args(i)
+
+ #IFDEF __FB_WIN32__
+  IF MID$(a$, 2, 1) <> ":" THEN a$ = curdir$ + SLASH + a$
+ #ELSE
+  IF MID$(a$, 1, 1) <> SLASH THEN a$ = curdir$ + SLASH + a$
+ #ENDIF
+  IF LCASE$(RIGHT$(a$, 4)) = ".rpg" AND isfile(a$) THEN
+   sourcerpg = a$
+   gam.autorungame = YES
+   EXIT FOR
+  ELSEIF isdir(a$) THEN 'perhaps it's an unlumped folder?
+   'check for essentials (archinym.lmp was added long before .rpgdir support)
+   IF isfile(a$ + SLASH + "archinym.lmp") THEN 'ok, accept it
+    gam.autorungame = YES
+    usepreunlump = YES
+    sourcerpg = a$
+    workingdir = a$
+   END IF
+   EXIT FOR
+ 'ELSE nothing; custom throws a warning
+  END IF
+ NEXT
+
+END IF  'NOT running_as_slave
 
 IF gam.autorungame = NO THEN
  IF LCASE$(exename) <> "game" THEN
@@ -274,7 +286,7 @@ IF gam.autorungame = NO THEN
      sourcerpg = a$
      workingdir = a$
      gam.autorungame = YES
-     usepreunlump = 1
+     usepreunlump = YES
     END IF
    END IF
   END IF
@@ -285,7 +297,7 @@ IF gam.autorungame = NO THEN
  sourcerpg = browse$(7, "", "*.rpg", tmpdir, 1, "browse_rpg")
  IF sourcerpg = "" THEN exitprogram 0
  IF isdir(sourcerpg) THEN
-  usepreunlump = 1
+  usepreunlump = YES
   workingdir = sourcerpg
  END IF
 END IF
@@ -327,23 +339,28 @@ END IF
 edgeprint "Loading...", xstring("Loading...", 160), 6, uilook(uiText), vpage
 setvispage vpage 'refresh
 
-'--pre-extract .gen and load it
-copylump sourcerpg, "archinym.lmp", tmpdir, -1
-archinym$ = readarchinym(tmpdir, sourcerpg)
-copylump sourcerpg, archinym$ + ".gen", tmpdir, -1
-xbload tmpdir + archinym$ + ".gen", gen(), "general game data missing from " + sourcerpg
+'--pre-extract (if needed) .gen and load it
+IF usepreunlump THEN
+ archinym = readarchinym(workingdir, sourcerpg)
+ xbload workingdir + archinym + ".gen", gen(), "general game data missing from " + sourcerpg
+ELSE
+ copylump sourcerpg, "archinym.lmp", tmpdir, -1
+ archinym = readarchinym(tmpdir, sourcerpg)
+ copylump sourcerpg, archinym + ".gen", tmpdir, -1
+ xbload tmpdir + archinym + ".gen", gen(), "general game data missing from " + sourcerpg
+END IF
 
 forcerpgcopy = NO
 IF gen(genVersion) > CURRENT_RPG_VERSION THEN
  debug "genVersion = " & gen(genVersion)
- future_rpg_warning
+ future_rpg_warning  '(fatal error is running_as_slave)
  forcerpgcopy = YES  'If we upgraded an .rpgdir in-place, we would probably damage it
 END IF
 
 '---GAME SELECTED, PREPARING TO PLAY---
-IF usepreunlump = 0 THEN
+IF usepreunlump = NO THEN
  unlump sourcerpg, workingdir
-ELSE
+ELSEIF NOT running_as_slave THEN  'Won't upgrade if running as slave
  IF NOT diriswriteable(workingdir) THEN
   'We have to copy the game, otherwise we won't be able to upgrade it
   '(it's too much trouble to properly check whether the game is already
@@ -354,21 +371,22 @@ ELSE
  IF forcerpgcopy THEN
   workingdir = tmpdir + "playing.tmp"
   copyfiles sourcerpg, workingdir + SLASH
-  usepreunlump = 0
+  usepreunlump = NO
  END IF
 END IF
 
 debuginfo long_version & build_info
 debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo  & "  " & systeminfo
 debuginfo "Playing game " & sourcerpg & " (" & getdisplayname(" ") & ") " & DATE & " " & TIME
+IF running_as_slave THEN debuginfo "Spawned from Custom (" & custom_version & ")" 
 
-set_OPEN_hook_filter @inworkingdir
-
-dim gmap(dimbinsize(binMAP)) 'this must be declared here, after the binsize file exists!
+DIM gmap(dimbinsize(binMAP)) 'this must be declared here, after the binsize file exists!
 
 '--set game
-game = workingdir + SLASH + archinym$
-setwindowtitle getdisplayname(trimpath(sourcerpg))
+game = workingdir + SLASH + archinym
+DIM wintitle AS STRING = getdisplayname(trimpath(sourcerpg))
+IF running_as_slave THEN wintitle = "Testing " + wintitle
+setwindowtitle wintitle
 
 'Perform additional checks for future rpg files or corruption
 'FIXME: if a problem was detected, we don't force copy of an .rpgdir
@@ -377,9 +395,12 @@ rpg_sanity_checks
 xbload game + ".fnt", font(), "font missing from " + sourcerpg
 
 '--upgrade obsolete RPG files (if possible)
-upgrade font()
+IF NOT running_as_slave THEN upgrade font()
 
-if isfile(game + ".hsp") then unlump game + ".hsp", tmpdir
+'If no version mismatch error has occurred yet, show a warning if the versions aren't identical
+IF running_as_slave THEN check_game_custom_versions_match
+
+IF isfile(game + ".hsp") THEN unlump game + ".hsp", tmpdir
 
 fadeout 0, 0, 0
 needf = 1

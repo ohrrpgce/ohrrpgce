@@ -16,6 +16,7 @@ DEFINT A-Z
 #include "loading.bi"
 #include "reload.bi"
 #include "reloadext.bi"
+#include "ver.txt"
 
 #include "game.bi"
 #include "yetmore.bi"
@@ -263,21 +264,25 @@ END IF
 END SUB
 
 SUB cleanuptemp
- 'Delete contents of/clean up workingdir
  DIM filelist() as string
- findfiles workingdir, ALLFILES, fileTypeFile, NO, filelist()
- FOR i as integer = 0 TO UBOUND(filelist)
-  IF usepreunlump = 0 THEN
-   'normally delete everything
-   safekill workingdir + SLASH + filelist(i)
-  ELSE
-   'but for preunlumped games only delete specific files
-   DIM file_ext AS STRING = justextension$(filelist(i))
-   IF file_ext = "tmp" OR file_ext = "bmd" THEN
+
+ 'Delete contents of/clean up workingdir
+ IF running_as_slave = NO THEN
+  findfiles workingdir, ALLFILES, fileTypeFile, NO, filelist()
+  FOR i as integer = 0 TO UBOUND(filelist)
+   IF usepreunlump = 0 THEN
+    'normally delete everything
     safekill workingdir + SLASH + filelist(i)
+   ELSE
+    'but for preunlumped games only delete specific files
+    'FIXME: aside from upgrade(), are any files actually created in workingdir? We definitely SHOULD NOT do that!
+    DIM file_ext AS STRING = justextension$(filelist(i))
+    IF file_ext = "tmp" THEN
+     safekill workingdir + SLASH + filelist(i)
+    END IF
    END IF
-  END IF
- NEXT
+  NEXT
+ END IF
 
  'Delete contents of/clean up tmpdir
  findfiles tmpdir, ALLFILES, fileTypeFile, NO, filelist()
@@ -788,9 +793,82 @@ FUNCTION game_setoption(opt as string, arg as string) as integer
    debug "WARNING: autosnap argument was ignored because it should be followed by an integer"
    RETURN 1
   END IF
+ ELSEIF opt = "slave" THEN
+  IF arg = "" THEN
+   debug "-slave option ignored because channel not specified"
+   RETURN 1
+  END IF
+  IF channel_open_read(arg, @master_channel) THEN
+   running_as_slave = YES
+   debuginfo "Reading commands from master channel '" & arg & "'"
+   RETURN 2
+  ELSE
+   debug "Failed to open channel '" & arg & "'"
+   SYSTEM
+   RETURN 1
+  END IF
  END IF
  RETURN 0
 END FUNCTION
+
+SUB show_wrong_spawned_version_error
+ fatalerror !"This version of Game differs from the version of Custom which spawned it and cannot be used for the ""Test Game"" option. Download and place matching versions in the same directory before trying again.\n" _
+             "Game is version " + version + " r" & version_revision & !"\n" _
+             "Custom is version " + custom_version
+END SUB
+
+SUB check_game_custom_versions_match
+ DIM game_version as string = version + " r" & version_revision
+ IF game_version <> custom_version THEN
+  pop_warning !"Warning: This version of Game is not exactly identical to the version of Custom that spawned it. No differences in file format were detected, but this is a bad idea. There's no chance of corrupting your game, but something might go haywire.\n" _
+               "Game is version " + game_version + !"\n" _
+               "Custom is version " + custom_version
+ END IF
+END SUB
+
+SUB handshake_with_master ()
+ DIM line_in as string
+ FOR i as integer = 1 TO 3
+  IF channel_input_line(master_channel, line_in) = 0 THEN
+   'Custom is meant to have already sent the initialisation messages by now
+   debug "handshake_with_master: no message on channel"
+   fatalerror "Could not communicate with Custom"
+  END IF
+  debug "Received message from Custom: " & line_in
+
+  SELECT CASE i
+   CASE 1  'Parse version string
+    DIM pieces() as string
+    split line_in, pieces(), ","
+    IF pieces(0) <> "V OHRRPGCE" THEN
+     fatalerror "Could not communicate with Custom"
+    END IF
+    IF UBOUND(pieces) >= 3 THEN
+     custom_version = pieces(3) & " r" & pieces(2)
+    ELSE
+     custom_version = "<unknown>"
+    END IF
+    IF pieces(1) <> "0" THEN  'wrong protocol version
+     show_wrong_spawned_version_error     
+    END IF
+
+   CASE 2  'Get sourcerpg
+    IF LEFT(line_in, 2) <> "G " THEN
+     fatalerror "Unexpected command from Custom"
+    END IF
+    sourcerpg = MID(line_in, 3)
+
+   CASE 3  'Get workingdir
+    IF LEFT(line_in, 2) <> "W " THEN
+     fatalerror "Unexpected command from Custom"
+    END IF
+    workingdir = MID(line_in, 3)
+    IF isdir(workingdir) = 0 THEN
+     fatalerror !"Communication error with Custom:\n" & workingdir & !"\ndoes not exist"
+    END IF
+  END SELECT
+ NEXT
+END SUB
 
 'return a video page which is a view on vpage that is 320x200 (or smaller) and centred
 FUNCTION compatpage() as integer

@@ -139,6 +139,7 @@ option nokeyword gosub
 #define ispathsep(character) (character = ASC("/"))
 #define LINE_END !"\n"
 #define CUSTOMEXE "ohrrpgce-custom"
+#define GAMEEXE "ohrrpgce-game"
 #define DOTEXE ""
 #define ALLFILES "*"
 #else
@@ -146,6 +147,7 @@ option nokeyword gosub
 #define ispathsep(character) (character = ASC("/") OR character = ASC("\"))
 #define LINE_END !"\r\n"
 #define CUSTOMEXE "CUSTOM.EXE"
+#define GAMEEXE "game.exe"
 #define DOTEXE ".exe"
 #define ALLFILES "*.*"
 #endif

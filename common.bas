@@ -32,8 +32,10 @@ DECLARE FUNCTION istag (num, zero) as integer
 DECLARE SUB scripterr (e as string, errorlevel as integer = 5)
 DECLARE FUNCTION commandname (byval id as integer) as string
 DECLARE SUB exitprogram (BYVAL needfade as integer, BYVAL errorout as integer = NO)
+DECLARE SUB show_wrong_spawned_version_error
 EXTERN insideinterpreter as integer
 EXTERN curcmd as ScriptCommand ptr
+EXTERN running_as_slave as integer
 #ENDIF
 
 #IFDEF IS_CUSTOM
@@ -3311,6 +3313,13 @@ SUB future_rpg_warning ()
  'This sub displays forward-compat warnings when a new RPG file is loaded in
  'an old copy of game, or an old version of custom (ypsiliform or newer)
 
+#IFDEF IS_GAME
+ IF running_as_slave THEN
+  'No version differences allowable!
+  show_wrong_spawned_version_error
+ END IF
+#ENDIF
+
  'future_rpg_warning can get called multiple times per game
  STATIC warned_sourcerpg as string
  IF sourcerpg = warned_sourcerpg THEN EXIT SUB
@@ -3350,7 +3359,7 @@ SUB rpg_sanity_checks
   FOR bindex as integer = 0 TO sizebinsize
    IF curbinsize(bindex) MOD 2 <> 0 THEN
     'curbinsize is INSANE, scream bloody murder to prevent data corruption!
-    fatalerror "Oh noes! curbinsize(" & bindex & ")=" & curbinsize(bindex) & " please complain to the devs, who may have just done something stupid!"
+    fatalerror "Oh noes! curbinsize(" & bindex & ")=" & curbinsize(bindex) & " Please complain to the devs, who may have just done something stupid!"
    END IF
    DIM binsize as integer = getbinsize(bindex)
    IF binsize > curbinsize(bindex) THEN

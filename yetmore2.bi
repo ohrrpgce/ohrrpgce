@@ -44,6 +44,9 @@ DECLARE FUNCTION decodetrigger (trigger as integer, trigtype as integer) as inte
 DECLARE SUB debug_npcs ()
 DECLARE SUB npc_debug_display ()
 DECLARE FUNCTION game_setoption(opt as string, arg as string) as integer
+DECLARE SUB handshake_with_master ()
+DECLARE SUB show_wrong_spawned_version_error ()
+DECLARE SUB check_game_custom_versions_match ()
 DECLARE FUNCTION compatpage() as integer
 
 #endif

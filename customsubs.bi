@@ -82,5 +82,6 @@ DECLARE FUNCTION numbertail (s AS STRING) AS STRING
 DECLARE SUB get_menu_hotkeys (menu() AS STRING, BYVAL menumax AS INTEGER, menukeys() AS STRING, excludewords AS STRING = "")
 DECLARE SUB experience_chart ()
 DECLARE SUB stat_growth_chart ()
+DECLARE SUB spawn_game_menu ()
 
 #endif
