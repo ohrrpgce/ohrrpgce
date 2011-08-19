@@ -144,7 +144,7 @@ STATIC joyuse, joymenu
 
 'Since this sub is called from lots of places, sticking this here is a stop-gap so
 'that messages from Custom are usually processed promptly
-IF running_as_slave THEN receive_file_updates
+IF running_as_slave THEN try_reload_lumps_anywhere
 
 FOR i = 0 TO 7: carray(i) = 0: NEXT i
 
@@ -1724,7 +1724,8 @@ END SUB
 
 'There's no need to handle any lumps here which don't have effect on battles such as map data
 SUB try_to_reload_files_inbattle ()
- receive_file_updates
+ 'calls receive_file_updates
+ try_reload_lumps_anywhere
 
  DIM i as integer = 0
  WHILE i < v_len(modified_lumps)
@@ -1732,13 +1733,7 @@ SUB try_to_reload_files_inbattle ()
   DIM base as string = trimextension(modified_lumps[i])
   DIM extn as string = justextension(modified_lumps[i])
 
-  IF try_reload_gfx_lump(extn) THEN                                       '.PT#, .TIL
-   handled = YES
-
-  ELSEIF try_reload_music_lump(base, extn) THEN                           '.## and song##.xxx (music)
-   handled = YES
-
-  END IF
+  'Nothing here yet!!
 
   IF handled THEN
    v_delete_slice modified_lumps, i, i + 1

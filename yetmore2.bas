@@ -1329,10 +1329,11 @@ FUNCTION try_reload_music_lump(base as string, extn as string) as integer
  RETURN YES
 END FUNCTION
 
-SUB try_to_reload_files_onmap ()
- receive_file_updates
+'This sub does lump reloading which is safe to do from anywhere
+SUB try_reload_lumps_anywhere ()
 
- STATIC ignorable_extns_(...) as string*3 => {"mn", "tmn", "d", "dor"}
+ 'pal handled with special message
+ STATIC ignorable_extns_(...) as string*3 => {"mn", "tmn", "d", "dor", "pal"}
  STATIC ignorable_extns as string vector
  IF ignorable_extns = NULL THEN
   v_new ignorable_extns
@@ -1340,6 +1341,8 @@ SUB try_to_reload_files_onmap ()
    v_append(ignorable_extns, ignorable_extns_(i))
   NEXT
  END IF
+
+ receive_file_updates
 
  DIM i as integer = 0
  WHILE i < v_len(modified_lumps)
@@ -1350,10 +1353,54 @@ SUB try_to_reload_files_onmap ()
   IF v_find(ignorable_extns, extn) > -1 THEN
    handled = YES
 
+  ELSEIF extn = "gen" THEN                                                '.GEN
+   DIM newgen(360) as integer
+   xbload game + ".gen", newgen(), "reload lumps: .gen unreadable"
+   FOR j as integer = 0 TO UBOUND(gen)
+    SELECT CASE j
+     CASE 44 TO 54, 58, 60
+     CASE ELSE
+      gen(j) = newgen(j)
+    END SELECT
+   NEXT
+   handled = YES
+
   ELSEIF try_reload_gfx_lump(extn) THEN                                   '.PT#, .TIL
    handled = YES
 
-  ELSEIF extn = "efs" THEN                                                '.EFS
+  ELSEIF try_reload_music_lump(base, extn) THEN                           '.## and song##.xxx (music)
+   handled = YES
+
+  ELSEIF extn = "itm" THEN                                                '.ITM
+   FOR slot as integer = 0 TO last_inv_slot()
+    update_inventory_caption slot
+   NEXT
+   load_special_tag_caches  'includes item tags
+   'Does anything else need to be done?
+   handled = YES
+
+  END IF
+
+  IF handled THEN
+   v_delete_slice modified_lumps, i, i + 1
+  ELSE
+   i += 1
+  END IF
+
+ WEND
+END SUB
+
+SUB try_to_reload_files_onmap ()
+ 'calls receive_file_updates
+ try_reload_lumps_anywhere
+
+ DIM i as integer = 0
+ WHILE i < v_len(modified_lumps)
+  DIM handled as integer = NO
+  DIM base as string = trimextension(modified_lumps[i])
+  DIM extn as string = justextension(modified_lumps[i])
+
+  IF extn = "efs" THEN                                                    '.EFS
    load_fset_frequencies
    handled = YES
 
@@ -1366,9 +1413,6 @@ SUB try_to_reload_files_onmap ()
    handled = YES
 
   ELSEIF try_reload_map_lump(base, extn) THEN                             '.T, .P, .E, .Z, .N, .L
-   handled = YES
-
-  ELSEIF try_reload_music_lump(base, extn) THEN                           '.## and song##.xxx (music)
    handled = YES
 
   ELSE
