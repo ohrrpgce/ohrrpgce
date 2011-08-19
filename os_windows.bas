@@ -298,7 +298,8 @@ function channel_write (byref channel as NamedPipeInfo ptr, byval buf as zstring
 	if res = 0 or written < buflen then
 		'should actually check errno instead; hope this works
 		dim errstr as string = get_windows_error()
-		debug "channel_write error (wrote " & written & " of " & buflen & "): " & errstr
+		debuginfo "channel_write error (closing) (wrote " & written & " of " & buflen & "): " & errstr
+		channel_close(channel)
 		return NO
 	end if
 	'debuginfo "channel_write: " & written & " of " & buflen & " " & get_windows_error()
@@ -319,7 +320,8 @@ function channel_input_line (byref channel as NamedPipeInfo ptr, line_in as stri
 		dim bytesbuffered as integer
 		if PeekNamedPipe(channel->fh, NULL, 0, NULL, @bytesbuffered, NULL) = 0 then
 			dim errstr as string = get_windows_error()
-			debug "PeekNamedPipe fail: " + errstr
+			debuginfo "PeekNamedPipe error (closing) : " + errstr
+			channel_close(channel)
 			return 0
 		end if
 		channel->available += bytesbuffered
@@ -335,7 +337,8 @@ function channel_input_line (byref channel as NamedPipeInfo ptr, line_in as stri
 		res = fgets(@buf(0), 512, channel->cfile)
 		if res = NULL then
 			dim errstr as string = get_windows_error()
-			debug "pipe read error: " + errstr  'should actually check errno instead; hope this works
+			debuginfo "pipe read error (closing): " + errstr  'should actually check errno instead; hope this works
+			channel_close(channel)
 			return 0
 		end if
 		channel->readamount += strlen(@buf(0))

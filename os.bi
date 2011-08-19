@@ -45,6 +45,8 @@ type IPCChannel as any ptr   'actually FILE*
 
 #endif
 
+'IPCChannel functions will automatically close an IPCChannel and set it equal to NULL_CHANNEL if there is an error
+
 'declare function channel_pick_name (byval id as zstring ptr, byval tempdir as zstring ptr, byval rpg as zstring ptr) as string
 declare function channel_open_read (byref channel as IPCChannel, chan_name as string) as integer
 declare function channel_open_write (byref channel as IPCChannel, chan_name as string) as integer

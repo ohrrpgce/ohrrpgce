@@ -468,6 +468,9 @@ IF keyval(-1) THEN '2nd quit request? Right away!
  quitnow = 4 'no special meaning
  RETRACE
 END IF
+IF (quitnow = 2 OR quitnow = 3) AND slave_channel <> NULL_CHANNEL THEN
+ IF yesno("You are still running a copy of this game. Quitting will force " & GAMEEXE & " to quit as well. Really quit?") = NO THEN quitnow = 0
+END IF
 IF quitnow = 1 OR quitnow = 2 THEN
  GOSUB dorelump
 END IF
@@ -538,8 +541,21 @@ restoremode
 SYSTEM
 
 finis:
-IF slave_channel <> NULL_CHANNEL THEN channel_close slave_channel
-IF slave_process <> 0 THEN cleanup_process @slave_channel
+IF slave_channel <> NULL_CHANNEL THEN
+ channel_write(slave_channel, @!"Q\n", 2)
+ #IFDEF __FB_WIN32__
+  'On windows, can't delete workingdir until Game has closed the music. Not too serious though
+  basic_textbox "Waiting for " & GAMEEXE & " to clean up...", uilook(uiText), vpage
+  setvispage vpage
+  IF channel_wait_for_msg(slave_channel, "Q", "", 2000) = 0 THEN
+   basic_textbox "Waiting for " & GAMEEXE & " to clean up... giving up.", uilook(uiText), vpage
+   setvispage vpage
+   sleep 700
+  END IF
+ #ENDIF
+ channel_close(slave_channel)
+END IF
+IF slave_process <> 0 THEN cleanup_process @slave_process
 closemusic
 'catch sprite leaks
 sprite_empty_cache

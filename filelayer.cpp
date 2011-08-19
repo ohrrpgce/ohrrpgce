@@ -32,6 +32,9 @@ void send_lump_modified_msg(const char *filename) {
 		return;
 	string buf = string("M ") + trimpath(filename) + "\n";
 	channel_write(lump_updates_channel, buf.c_str(), buf.size());
+	if (*lump_updates_channel == NULL_CHANNEL)
+		//Automatically shut down the show
+		clear_OPEN_hook();
 }
 
 int file_wrapper_close(FB_FILE *handle) {
@@ -99,7 +102,7 @@ void dump_openfiles() {
 	for (openfiles_iterator_t it = openfiles.begin(); it != openfiles.end(); ++it) {
 		const char *fname = it->second.name.c_str();
 		debug(2, " %p (%s)", it->first, fname);
-                if (lock_lumps)
+		if (lock_lumps)
 			debug(2, "   read-lock:%d write-lock:%d", test_locked(fname, 0), test_locked(fname, 1));
 	}
 }
@@ -164,13 +167,17 @@ int copyfile(FBSTRING *source, FBSTRING *destination) {
 	return fb_FileCopy(source->data, destination->data);
 }
 
-void set_OPEN_hook_filter(FnOpenCallback lumpfile_filter, int lump_writes_allowed) {
+void set_OPEN_hook(FnOpenCallback lumpfile_filter, int lump_writes_allowed, IPCChannel *channel) {
 	pfnLumpfileFilter = lumpfile_filter;
 	__fb_ctx.pfnDevOpenHook = OPEN_hook;
 	lock_lumps = true;
 	allow_lump_writes = lump_writes_allowed;
+	lump_updates_channel = channel;
 }
 
-void set_lump_updates_channel(IPCChannel *channel) {
-	lump_updates_channel = channel;
+void clear_OPEN_hook() {
+	__fb_ctx.pfnDevOpenHook = NULL;
+	lock_lumps = false;
+	allow_lump_writes = true;
+	lump_updates_channel = NULL_CHANNEL;
 }

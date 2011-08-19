@@ -191,8 +191,8 @@ type FnOpenCallback as function (filename as string, byval writable as integer) 
 
 extern "C"
 declare sub send_lump_modified_msg(byval filename as zstring ptr)
-declare sub set_OPEN_hook_filter(byval lumpfile_filter as FnOpenCallback, byval lump_writes_allowed as integer)
-declare sub set_lump_updates_channel(byval channel as IPCChannel ptr)
+declare sub set_OPEN_hook(byval lumpfile_filter as FnOpenCallback, byval lump_writes_allowed as integer, byval channel as IPCChannel ptr)
+declare sub clear_OPEN_hook()
 end extern
 
 declare function inworkingdir(filename as string, byval writable as integer) as integer

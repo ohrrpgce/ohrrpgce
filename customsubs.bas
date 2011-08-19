@@ -3993,6 +3993,11 @@ FUNCTION pick_channel_name() as string
 END FUNCTION
 
 SUB spawn_game
+ IF slave_process <> 0 THEN
+  'First clean up after the last time we ran Game
+  cleanup_process @slave_process
+ END IF
+
  DIM fh as integer = FREEFILE
  DIM channel_name as string
  channel_name = pick_channel_name()
@@ -4009,11 +4014,12 @@ SUB spawn_game
   EXIT SUB
  END IF
  slave_process = open_process(executable, "-slave " & channel_name)
- 'Have to specify either input or output, though we won't (can't?) use it
  IF slave_process = 0 THEN
   notification "Couldn't run " & GAMEEXE
   EXIT SUB
  END IF
+ 'We currently do nothing at all with slave_process except cleanup (nothing is implemented
+ 'on Unix). Instead we test Game is still running with slave_channel <> NULL_CHANNEL
 
  'Need Game to connect before we can safely write to the pipe; wait up to 3000ms
  IF channel_wait_for_client_connection(slave_channel, 3000) = 0 THEN
@@ -4027,7 +4033,7 @@ SUB spawn_game
  DIM tmp as string
  'msgtype magickey,proto_ver,program_ver,version_string
  tmp = "V OHRRPGCE," & CURRENT_TESTING_IPC_VERSION & "," & version_revision & "," & version & !"\n"
- IF channel_write(slave_channel, @tmp[0], LEN(tmp)) = 0 THEN
+ IF channel_write(slave_channel, tmp, LEN(tmp)) = 0 THEN
   'good idea to test writing is working at least once
   notification "Channel write failure; aborting"
   channel_close slave_channel
@@ -4035,19 +4041,19 @@ SUB spawn_game
   EXIT SUB
  END IF
  tmp = "G " & sourcerpg & !"\n"
- channel_write(slave_channel, @tmp[0], LEN(tmp))
+ channel_write(slave_channel, tmp, LEN(tmp))
  tmp = "W " & workingdir & !"\n"
- channel_write(slave_channel, @tmp[0], LEN(tmp))
+ channel_write(slave_channel, tmp, LEN(tmp))
 
- set_OPEN_hook_filter @inworkingdir, YES
- set_lump_updates_channel @slave_channel
+ IF slave_channel <> NULL_CHANNEL THEN
+  'If we got this far, start sending lump updates and locking files before writing
+  set_OPEN_hook @inworkingdir, YES, @slave_channel
+ END IF
 END SUB
 
 SUB spawn_game_menu
-#IFDEF __FB_WIN32__
- notification "Not implemented in Windows yet, sorry."
- EXIT SUB
-#ENDIF
+ 'Prod the channel to see whether it's still up (send ping)
+ channel_write(slave_channel, !"P \n", 3)
 
  IF slave_channel <> NULL_CHANNEL THEN
   notification "Game is already running! Running multiple test copies of a game is not yet supported."

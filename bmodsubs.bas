@@ -142,6 +142,10 @@ SUB control
 
 STATIC joyuse, joymenu
 
+'Since this sub is called from lots of places, sticking this here is a stop-gap so
+'that messages from Custom are usually processed promptly
+IF running_as_slave THEN receive_file_updates
+
 FOR i = 0 TO 7: carray(i) = 0: NEXT i
 
 'commented due to bug 619: gfx_sdl weirdness. Anyway, this check is from the DOS days

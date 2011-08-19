@@ -22,6 +22,8 @@ DEFINT A-Z
 #include "yetmore.bi"
 #include "yetmore2.bi"
 #include "moresubs.bi"
+#include "menustuf.bi"
+#include "savegame.bi"
 #include "bmodsubs.bi"
 
 Using Reload
@@ -870,15 +872,17 @@ SUB handshake_with_master ()
 
  'Set this hook to throw an error on any detected write in workingdir;
  'also needed to set a shared lock when reading a file
- set_OPEN_hook_filter @inworkingdir, NO
+ set_OPEN_hook @inworkingdir, NO, NULL
 END SUB
 
-'Checks to see which lumps have been updated by the master process
+'Reads and handles messages from Custom, updating modified_lumps
 SUB receive_file_updates ()
  DIM line_in as string
  DIM pieces() as string
 
  WHILE channel_input_line(master_channel, line_in)
+  debuginfo "msg from Custom: " & RTRIM(line_in)
+
   IF LEFT(line_in, 2) = "M " THEN  'file modified/created/deleted
    line_in = MID(line_in, 3)
    DIM at as integer = v_find(modified_lumps, line_in)
@@ -891,11 +895,32 @@ SUB receive_file_updates ()
    'Send confirmation
    line_in += !"\n"
    channel_write(master_channel, strptr(line_in), LEN(line_in))
+  ELSEIF LEFT(line_in, 1) = "Q" THEN   'quit!
+   music_stop
+   'DIR might be holding a handle for the last directory on which it was run, which could prevent
+   'Custom from deleting workingdir. So reset it.
+   #IFDEF __FB_WIN32__
+    DIM dummy as string = DIR("C:\")
+   #ENDIF
+   'Send confirmation
+   channel_write(master_channel, @!"Q\n", 2)
+   channel_close(master_channel)
+   EXIT WHILE
+  ELSEIF LEFT(line_in, 2) = "P " THEN   'ping
   ELSE
    debug "Did not understand message from Custom: " & line_in
   END IF
-  debuginfo "msg from Custom: " & RTRIM(line_in)
  WEND
+
+ IF master_channel = NULL_CHANNEL THEN
+  'Opps, it closed. Better quit immediately because workingdir is probably gone (crashy)
+  IF yesno("Lost connection to Custom; the game has to be closed. Do you want to save the game first?") THEN
+   DIM slot as integer = picksave(0)
+   IF slot >= 0 THEN savegame slot
+  END IF
+  exitprogram YES, 0
+ END IF
+
 END SUB
 
 SUB try_to_reload_files_onmap ()
