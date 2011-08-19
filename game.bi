@@ -9,6 +9,8 @@
 
 #INCLUDE "game_udts.bi"
 
+declare sub prepare_map (afterbat as integer=NO, afterload as integer=NO)
+declare sub displayall()
 declare function valid_item_slot(item_slot as integer) as integer
 declare function valid_item(itemid as integer) as integer
 declare function valid_hero_party(who as integer, minimum as integer=0) as integer

@@ -13,6 +13,7 @@ DECLARE SUB setmapxy
 DECLARE SUB limitcamera (BYREF x AS INTEGER, BYREF y AS INTEGER)
 DECLARE SUB showplotstrings
 DECLARE SUB makebackups
+DECLARE SUB make_map_backups
 DECLARE SUB correctbackdrop
 DECLARE SUB cleanuptemp
 DECLARE FUNCTION checkfordeath () as integer
@@ -38,7 +39,15 @@ DECLARE SUB loadmapstate_tilemap (mapnum as integer, prefix as string, dontfallb
 DECLARE SUB loadmapstate_passmap (mapnum as integer, prefix as string, dontfallback as integer = 0)
 DECLARE SUB loadmapstate_zonemap (mapnum as integer, prefix as string, dontfallback as integer = 0)
 DECLARE SUB loadmapstate (mapnum as integer, loadmask as integer, prefix as string, dontfallback as integer = 0)
-DECLARE SUB deletemapstate (mapnum as integer, killmask as integer, prefix as string)
+DECLARE SUB deletemapstate (byval mapnum as integer, byval killmask as integer, prefix as string)
+DECLARE FUNCTION gmap_index_affects_tiles(byval index as integer) as integer
+DECLARE SUB reloadmap_gmap_no_tilesets()
+DECLARE SUB reloadmap_npcd()
+DECLARE SUB reloadmap_npcl()
+DECLARE SUB reloadmap_tilemap_and_tilesets(byval merge as integer)
+DECLARE SUB reloadmap_passmap(byval merge as integer)
+DECLARE SUB reloadmap_foemap()
+DECLARE SUB reloadmap_zonemap()
 DECLARE SUB deletetemps
 DECLARE FUNCTION decodetrigger (trigger as integer, trigtype as integer) as integer
 DECLARE SUB debug_npcs ()
@@ -51,6 +60,7 @@ DECLARE SUB receive_file_updates ()
 DECLARE SUB try_to_reload_files_onmap ()
 DECLARE FUNCTION compatpage() as integer
 DECLARE SUB load_fset_frequencies ()
+DECLARE SUB live_preview_menu ()
 
 
 #endif

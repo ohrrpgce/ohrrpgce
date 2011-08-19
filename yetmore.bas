@@ -876,6 +876,7 @@ SELECT CASE AS CONST id
    IF retvals(0) = 5 THEN setoutside -1  'hint: always use the wrapper in plotscr.hsd
    IF retvals(0) = 6 AND gmap(5) = 2 THEN setoutside retvals(1)
    IF retvals(0) = 16 THEN refresh_walkabout_layer_sort()
+   lump_reloading.gmap.dirty = YES
   END IF
  CASE 492'--mouse click
   IF retvals(0) <= 2 THEN
@@ -2692,6 +2693,7 @@ SELECT CASE AS CONST id
     ELSE
      UnsetZoneTile(zmap, retvals(0), retvals(1), retvals(2))
     END IF
+    lump_reloading.zonemap.dirty = YES
    END IF
   END IF
  CASE 482'--zone at spot (x, y, count)
@@ -2732,6 +2734,7 @@ SELECT CASE AS CONST id
  CASE 489'--set zone extra (id, extra, value)
   IF valid_zone(retvals(0)) AND bound_arg(retvals(1), 0, 2, "extra data number", , , 5) THEN
    GetZoneInfo(zmap, retvals(0))->extra(retvals(1)) = retvals(2)
+   lump_reloading.zonemap.dirty = YES
   END IF
  CASE 493'--load backdrop sprite (record)
   scriptret = load_sprite_plotslice(sprTypeMXS, retvals(0))

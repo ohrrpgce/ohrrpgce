@@ -247,6 +247,15 @@ SUB makebackups
  'if you add lump-modding commands, you better well add them here >:(
 END SUB
 
+SUB make_map_backups
+ 'This back-ups certain map lumps so that when live previewing a game, changes can be three-way merged
+ writeablecopyfile maplumpname(gam.map.id, "t"), tmpdir & "mapbackup.t"
+ writeablecopyfile maplumpname(gam.map.id, "p"), tmpdir & "mapbackup.p"
+ 'Global lump which doesn't need to be backed up on every map change... actually maybe doing that interferes
+ 'with merging? Well, putting this here keeps things simple
+ writeablecopyfile game + ".map", tmpdir & "mapbackup.map"
+END SUB
+
 SUB correctbackdrop
 
 IF gen(genTextboxBackdrop) THEN
@@ -470,7 +479,7 @@ SUB savemapstate_npcl(mapnum, prefix$)
 END SUB
 
 SUB savemapstate_npcd(mapnum, prefix$)
- SaveNPCD mapstatetemp$(mapnum, prefix$), npcs()
+ SaveNPCD mapstatetemp$(mapnum, prefix$) + "_n.tmp", npcs()
 END SUB
 
 SUB savemapstate_tilemap(mapnum, prefix$)
@@ -514,6 +523,9 @@ SUB loadmapstate_gmap (mapnum, prefix$, dontfallback = 0)
   IF dontfallback = 0 THEN loadmap_gmap mapnum
   EXIT SUB
  END IF
+ lump_reloading.gmap.dirty = NO  'Not correct, but too much trouble to do correctly
+ lump_reloading.gmap.changed = NO
+
  OPEN filebase$ + "_map.tmp" FOR BINARY AS #fh
  GET #fh, , gmap()
  CLOSE #fh
@@ -569,9 +581,13 @@ SUB loadmapstate_tilemap (mapnum, prefix as string, dontfallback = 0)
   GetTilemapInfo filebase + "_t.tmp", statesize
 
   IF statesize.wide = propersize.wide AND statesize.high = propersize.high THEN
+   lump_reloading.maptiles.dirty = NO  'Not correct, but too much trouble to do correctly
+   lump_reloading.maptiles.changed = NO
+
    loadtilemaps maptiles(), filebase + "_t.tmp"
    mapsizetiles.x = maptiles(0).wide
    mapsizetiles.y = maptiles(0).high
+   refresh_map_slice
 
    '--as soon as we know the dimensions of the map, enforce hero position boundaries
    cropposition catx(0), caty(0), 20
@@ -598,6 +614,8 @@ SUB loadmapstate_passmap (mapnum, prefix as string, dontfallback = 0)
   GetTilemapInfo filebase + "_p.tmp", statesize
 
   IF statesize.wide = propersize.wide AND statesize.high = propersize.high THEN
+   lump_reloading.passmap.dirty = NO  'Not correct, but too much trouble to do correctly
+   lump_reloading.passmap.changed = NO
    loadtilemap pass, filebase + "_p.tmp"
   ELSE
    DIM errmsg as string = "tried to load saved passmap state which is size " & statesize.wide & "*" & statesize.high & ", while the map is size " & propersize.wide & "*" & propersize.high
@@ -619,6 +637,8 @@ SUB loadmapstate_zonemap (mapnum, prefix as string, dontfallback = 0)
   'Unlike tile- and passmap loading, this doesn't leave the zonemap intact if the
   'saved state is the wrong size; instead the zonemap is blanked
 
+  lump_reloading.zonemap.dirty = NO  'Not correct, but too much trouble to do correctly
+  lump_reloading.zonemap.changed = NO
   LoadZoneMap zmap, filebase + "_z.tmp"
   IF zmap.wide <> mapsizetiles.x OR zmap.high <> mapsizetiles.y THEN
    DIM errmsg as string = "tried to load saved zonemap state which is size " & zmap.wide & "*" & zmap.high & ", while the map is size " & mapsizetiles.x & "*" & mapsizetiles.y
@@ -658,14 +678,175 @@ IF loadmask AND 32 THEN
 END IF
 END SUB
 
-SUB deletemapstate (mapnum, killmask, prefix$)
-filebase$ = mapstatetemp(mapnum, "map")
-IF killmask AND 1 THEN safekill filebase$ + "_map.tmp"
-IF killmask AND 2 THEN safekill filebase$ + "_l.tmp"
-IF killmask AND 4 THEN safekill filebase$ + "_n.tmp"
-IF killmask AND 8 THEN safekill filebase$ + "_t.tmp"
-IF killmask AND 16 THEN safekill filebase$ + "_p.tmp"
-IF killmask AND 32 THEN safekill filebase$ + "_z.tmp"
+SUB deletemapstate (byval mapnum as integer, byval killmask as integer, prefix as string)
+ dim filebase as string = mapstatetemp(mapnum, prefix)
+ IF killmask AND 1 THEN safekill filebase + "_map.tmp"
+ IF killmask AND 2 THEN safekill filebase + "_l.reld.tmp"
+ IF killmask AND 4 THEN safekill filebase + "_n.tmp"
+ IF killmask AND 8 THEN safekill filebase + "_t.tmp"
+ IF killmask AND 16 THEN safekill filebase + "_p.tmp"
+ IF killmask AND 32 THEN safekill filebase + "_z.tmp"
+END SUB
+
+'Note a differing number of layers is allowed!
+FUNCTION tilemap_is_same_size (lumptype as string, what as string) as integer
+ DIM as TilemapInfo newsize
+ GetTilemapInfo maplumpname(gam.map.id, lumptype), newsize
+
+ IF newsize.wide <> mapsizetiles.w OR newsize.high <> mapsizetiles.h THEN
+  notification "Could not reload " + what + " because the map size has changed. The map must be reloaded. You can do so by pressing Ctrl+F3 to access the Live Preview Debug Menu and selecting 'Reload map'."
+  RETURN NO
+ END IF
+ RETURN YES
+END FUNCTION
+
+'gmap is a mess; some of it is data that belongs in a replacement lump .T (eg. tileset stuff).
+'So several functions segregate the data.
+FUNCTION gmap_index_affects_tiles(byval index as integer) as integer
+ SELECT CASE index
+  CASE 0, 19, 22 TO 24, 26 TO 31
+   RETURN YES
+  CASE ELSE
+   RETURN NO
+ END SELECT
+END FUNCTION
+
+#DEFINE debug_reloadmap(what)  debuginfo __FUNCTION__ " " #what ".dirty=" & lump_reloading.what.dirty & " " #what ".changed=" & lump_reloading.what.changed & " " #what ".mode=" & lump_reloading.what.mode
+
+SUB reloadmap_gmap_no_tilesets()
+ debug_reloadmap(gmap)
+ lump_reloading.gmap.dirty = NO
+ lump_reloading.gmap.changed = NO
+
+ 'Delete saved state to prevent regressions
+ safekill mapstatetemp(gam.map.id, "map") + "_map.tmp" 
+
+ DIM gmaptmp(dimbinsize(binMAP)) as integer
+ loadrecord gmaptmp(), game + ".map", getbinsize(binMAP) \ 2, gam.map.id
+ IF gmaptmp(31) = 0 THEN gmaptmp(31) = 2
+
+ FOR i as integer = 0 TO UBOUND(gmap)
+  IF gmap_index_affects_tiles(i) = NO THEN gmap(i) = gmaptmp(i)
+ NEXT
+
+ SELECT CASE gmap(5) '--outer edge wrapping
+  CASE 0, 1'--crop edges or wrap
+   setoutside -1
+  CASE 2
+   setoutside gmap(6)
+ END SELECT
+
+ IF gmap(1) > 0 THEN
+  wrappedsong gmap(1) - 1
+ ELSEIF gmap(1) = 0 THEN
+  stopsong
+ END IF
+END SUB
+
+'NOT FINISHED
+SUB reloadmap_npcl()
+ 'Delete saved state to prevent regressions
+ safekill mapstatetemp(gam.map.id, "map") + "_l.reld.tmp"
+
+ LoadNPCL maplumpname(gam.map.id, "l"), npc()
+
+ 'Evaluate whether NPCs should appear or disappear based on tags
+ visnpc
+END SUB
+
+'NOT FINISHED
+SUB reloadmap_npcd()
+ 'Delete saved state to prevent regressions
+ safekill mapstatetemp(gam.map.id, "map") + "_n.tmp"
+
+ LoadNPCD maplumpname(gam.map.id, "n"), npcs()
+
+ 'Evaluate whether NPCs should appear or disappear based on tags
+ visnpc
+ 'load NPC graphics
+ reloadnpc
+END SUB
+
+SUB reloadmap_tilemap_and_tilesets(byval merge as integer)
+ debug_reloadmap(maptiles)
+
+ 'Delete saved state to prevent regressions
+ safekill mapstatetemp(gam.map.id, "map") + "_t.tmp"
+
+ IF tilemap_is_same_size("t", "tilemaps") THEN
+  lump_reloading.maptiles.changed = NO
+
+  DIM filename as string = maplumpname(gam.map.id, "t")
+  IF merge THEN
+   'Note: Its possible for this to fail if the number of layers differs
+   MergeTileMaps maptiles(), filename, tmpdir + "mapbackup.t"
+  ELSE
+   lump_reloading.maptiles.dirty = NO
+   LoadTileMaps maptiles(), filename
+   writeablecopyfile filename, tmpdir + "mapbackup.t"
+  END IF
+  refresh_map_slice
+
+  'Now reload tileset and layering info
+  DIM gmaptmp(dimbinsize(binMAP)) as integer
+  loadrecord gmaptmp(), game + ".map", getbinsize(binMAP) \ 2, gam.map.id
+
+  FOR i as integer = 0 TO UBOUND(gmap)
+   IF gmap_index_affects_tiles(i) THEN gmap(i) = gmaptmp(i)
+  NEXT
+
+  loadmaptilesets tilesets(), gmap()
+  refresh_map_slice_tilesets
+ END IF
+END SUB
+
+SUB reloadmap_passmap(byval merge as integer)
+ debug_reloadmap(passmap)
+
+ 'Delete saved state to prevent regressions
+ safekill mapstatetemp(gam.map.id, "map") + "_p.tmp"
+
+ IF tilemap_is_same_size("p", "wallmap") THEN
+  lump_reloading.passmap.changed = NO
+
+  DIM filename as string = maplumpname(gam.map.id, "p")
+  IF merge THEN
+   MergeTileMap pass, filename, tmpdir + "mapbackup.p"
+  ELSE
+   lump_reloading.passmap.dirty = NO
+   LoadTileMap pass, filename
+   writeablecopyfile filename, tmpdir + "mapbackup.p"
+  END IF
+ END IF
+END SUB
+
+SUB reloadmap_foemap()
+ debug_reloadmap(foemap)
+
+ 'Delete saved state to prevent regressions
+ safekill mapstatetemp(gam.map.id, "map") + "_e.tmp"
+
+ IF tilemap_is_same_size("e", "foemap") THEN
+  lump_reloading.foemap.changed = NO
+  lump_reloading.foemap.dirty = NO
+  LoadTileMap foemap, maplumpname(gam.map.id, "e")
+ END IF
+END SUB
+
+SUB reloadmap_zonemap()
+ debug_reloadmap(zonemap)
+ lump_reloading.zonemap.changed = NO
+ lump_reloading.zonemap.dirty = NO
+
+ 'Delete saved state to prevent regressions
+ safekill mapstatetemp(gam.map.id, "map") + "_z.tmp"
+
+ '.Z is the only one of the map lumps that has been added in about the last decade
+ IF isfile(maplumpname(gam.map.id, "z")) THEN
+  LoadZoneMap zmap, maplumpname(gam.map.id, "z")
+ ELSE
+  CleanZoneMap zmap, mapsizetiles.x, mapsizetiles.y
+ END IF
 END SUB
 
 SUB deletetemps
@@ -832,10 +1013,10 @@ SUB handshake_with_master ()
  FOR i as integer = 1 TO 3
   IF channel_input_line(master_channel, line_in) = 0 THEN
    'Custom is meant to have already sent the initialisation messages by now
-   debug "handshake_with_master: no message on channel"
+   debuginfo "handshake_with_master: no message on channel"
    fatalerror "Could not communicate with Custom"
   END IF
-  debug "Received message from Custom: " & line_in
+  debuginfo "Received message from Custom: " & line_in
 
   SELECT CASE i
    CASE 1  'Parse version string
@@ -877,6 +1058,11 @@ END SUB
 
 'Reads and handles messages from Custom, updating modified_lumps
 SUB receive_file_updates ()
+ 'This sub is called from control and a couple other places, so prevent reentering
+ STATIC entered as integer = NO
+ IF entered THEN EXIT SUB
+ entered = YES
+
  DIM line_in as string
  DIM pieces() as string
 
@@ -914,14 +1100,145 @@ SUB receive_file_updates ()
 
  IF master_channel = NULL_CHANNEL THEN
   'Opps, it closed. Better quit immediately because workingdir is probably gone (crashy)
-  IF yesno("Lost connection to Custom; the game has to be closed. Do you want to save the game first?") THEN
+  IF yesno("Lost connection to Custom; the game has to be closed. Do you want to save the game first? (WARNING: resulting save might be corrupt)") THEN
    DIM slot as integer = picksave(0)
    IF slot >= 0 THEN savegame slot
   END IF
   exitprogram YES, 0
  END IF
 
+ entered = NO
 END SUB
+
+SUB inspect_MAP_lump()
+ WITH lump_reloading
+
+  'Only compare part of each MAP record... OK, this is getting really perfectionist
+  DIM compare_mask(dimbinsize(binMAP)) as integer
+  FOR i as integer = 0 TO UBOUND(compare_mask)
+   compare_mask(i) = (gmap_index_affects_tiles(i) = NO)
+  NEXT
+
+  'Compare with backup to find the changes
+  REDIM changed_records(0) as integer
+  IF compare_files_by_record(changed_records(), game + ".map", tmpdir + "mapbackup.map", getbinsize(binMAP) \ 2, @compare_mask(0)) = NO THEN
+   debug "inspect_MAP_lump: couldn't compare!"
+   EXIT SUB
+  END IF
+
+  FOR mapno as integer = 0 TO UBOUND(changed_records)
+   'delete saved state
+   IF changed_records(mapno) THEN
+    IF .gmap.mode <> loadmodeNever THEN
+     safekill mapstatetemp(mapno, "map") + "_map.tmp"
+    END IF
+   END IF
+  NEXT
+
+  IF changed_records(gam.map.id) THEN
+   '--never/always/if unchanged only
+   .gmap.changed = YES
+   IF .gmap.dirty THEN
+    IF .gmap.mode = loadmodeAlways THEN reloadmap_gmap_no_tilesets
+   ELSE
+    IF .gmap.mode >= loadmodeAlways THEN reloadmap_gmap_no_tilesets
+   END IF
+  END IF      
+
+ END WITH
+END SUB
+
+'Check whether a lump is a (supported) map lump, and if so return YES and reload it if needed.
+'Also updates lump_reloading flags and deletes mapstate data as required.
+'Currently supports: T, P, E, Z
+'Missing: N, L, D, DOX
+'Elsewhere: MAP
+'Not going to bother with: MN
+FUNCTION try_reload_map_lump(base as string, extn as string) as integer
+ DIM typecode as string
+ DIM mapnum as integer = -1
+
+ IF extn = "dox" THEN
+  'these affect multiple maps (keep mapnum = -1)
+  typecode = extn
+ ELSE
+  'Check for .X## and map###.X
+  DIM extnnum as integer = -1
+  IF LEN(extn) = 3 THEN extnnum = str2int(MID(extn, 2), -1)
+  DIM basenum as integer = str2int(base, -1)
+  '--Don't bother to actually check base=archinym
+  mapnum = IIF(basenum >= 100 AND extnnum = -1, basenum, extnnum)
+  IF mapnum = -1 THEN RETURN NO
+  typecode = LEFT(extn, 1)
+ END IF
+
+ WITH lump_reloading
+
+  IF mapnum <> gam.map.id THEN
+   'Affects map(s) other then the current one. However, we should still delete saved map state.
+   'Not really sure what to do if the mode loadmodeIfUnchanged or loadmodeMerge... deleting seems safest bet.
+
+   dim statefile as string = mapstatetemp(mapnum, "map") + "_" + typecode
+   IF typecode = "l" THEN statefile += ".reld.tmp" ELSE statefile += ".tmp"
+
+   SELECT CASE typecode
+    CASE "t"
+     IF .maptiles.mode <> loadmodeNever THEN safekill statefile
+    CASE "p"
+     IF .passmap.mode <> loadmodeNever THEN safekill statefile
+    CASE "e"
+     IF .foemap.mode <> loadmodeNever THEN safekill statefile
+    CASE "z"
+     IF .foemap.mode <> loadmodeNever THEN safekill statefile
+    CASE ELSE
+     RETURN NO
+   END SELECT
+
+   'If this is a lump for a specific map other than the current, stop.
+   IF mapnum <> -1 THEN RETURN YES
+  END IF
+
+  'This is (also) one of the current map's lumps
+
+  SELECT CASE typecode
+   CASE "t"  '--all modes supported
+    .maptiles.changed = YES
+    IF .maptiles.dirty THEN
+     IF .maptiles.mode = loadmodeAlways THEN reloadmap_tilemap_and_tilesets NO
+     IF .maptiles.mode = loadmodeMerge THEN reloadmap_tilemap_and_tilesets YES
+    ELSE
+     IF .maptiles.mode >= loadmodeAlways THEN reloadmap_tilemap_and_tilesets NO
+    END IF
+
+   CASE "p"  '--all modes supported
+    .passmap.changed = YES
+    IF .passmap.dirty THEN
+     IF .passmap.mode = loadmodeAlways THEN reloadmap_passmap NO
+     IF .passmap.mode = loadmodeMerge THEN reloadmap_passmap YES
+    ELSE
+     IF .passmap.mode >= loadmodeAlways THEN reloadmap_passmap NO
+    END IF
+
+   CASE "e"  '--never/always only
+    .foemap.changed = YES
+    IF .foemap.mode = loadmodeAlways THEN reloadmap_foemap
+
+   CASE "z"  '--never/always/if unchanged only
+    .zonemap.changed = YES
+    IF .zonemap.dirty THEN
+     IF .zonemap.mode = loadmodeAlways THEN reloadmap_zonemap
+    ELSE
+     IF .zonemap.mode >= loadmodeAlways THEN reloadmap_zonemap
+    END IF
+
+   CASE ELSE  'not yet implemented
+    RETURN NO
+
+  END SELECT
+ END WITH
+ RETURN YES
+
+END FUNCTION
 
 SUB try_to_reload_files_onmap ()
  receive_file_updates
@@ -948,10 +1265,15 @@ SUB try_to_reload_files_onmap ()
    load_fset_frequencies
    handled = YES
 
-  'ELSEIF modified_lumps[i] = trimpath(maplumpname(gam.map.id, "e")) THEN '.E##
+  ELSEIF extn = "map" THEN                                                '.MAP
+   inspect_MAP_lump
+   handled = YES
+
+  ELSEIF try_reload_map_lump(base, extn) THEN                             '.T, .P, .E, .Z
+   handled = YES
 
   ELSEIF is_int(extn) _
-         OR (LEFT(base, 4) = "song" ANDALSO is_int(MID(base, 5))) THEN   '.## and song##.xxx (music)
+         OR (LEFT(base, 4) = "song" ANDALSO is_int(MID(base, 5))) THEN    '.## and song##.xxx (music)
    IF base = "song" + STR(presentsong) OR extn = STR(presentsong) THEN
     pausesong
     playsongnum presentsong
@@ -971,6 +1293,7 @@ SUB try_to_reload_files_onmap ()
  WEND
 END SUB
 
+
 'return a video page which is a view on vpage that is 320x200 (or smaller) and centred
 FUNCTION compatpage() as integer
  DIM fakepage AS INTEGER
@@ -987,4 +1310,139 @@ SUB load_fset_frequencies ()
   loadrecord buf(), game + ".efs", 25, i
   gam.foe_freq(i) = buf(0)
  NEXT i
+END SUB
+
+FUNCTION lump_reload_mode_to_string (byval mode as integer) as string
+ IF mode = loadmodeNever THEN RETURN "Never"
+ IF mode = loadmodeAlways THEN RETURN "Always"
+ IF mode = loadmodeIfUnchanged THEN RETURN "If no script changes"
+ IF mode = loadmodeMerge THEN RETURN "Merge script changes"
+END FUNCTION
+
+SUB LPM_append_reload_mode_item (menu as MenuDef, what as string, info as LumpReloadState, byval extradata as integer = 0)
+ append_menu_item menu, "Reload " + what + ": " + lump_reload_mode_to_string(info.mode)
+ menu.last->extra(0) = extradata
+END SUB
+
+SUB LPM_append_force_reload_item (menu as MenuDef, tooltips() as string, what as string, info as LumpReloadState, byval extradata as integer = 0)
+ append_menu_item menu, "Force reload of " + what
+ menu.last->extra(0) = extradata
+ REDIM PRESERVE tooltips(menu.numitems - 1)
+ DIM tmp as string
+ IF info.changed = 0 AND info.dirty = 0 THEN
+  tmp = "No changes"
+  menu.last->disabled = YES
+ ELSE
+  tmp = "Modified by"
+  IF info.dirty THEN
+   tmp += " scripts"
+   IF info.changed THEN tmp += ", by"
+  END IF
+  IF info.changed THEN
+   tmp += " Custom"
+  END IF
+ END IF
+ tooltips(menu.numitems - 1) = tmp
+END SUB
+
+SUB LPM_update (menu1 as MenuDef, st1 as MenuState, tooltips() as string)
+ WITH lump_reloading
+  DeleteMenuItems menu1
+  REDIM tooltips(0)
+
+  append_menu_item menu1, "Exit"        : menu1.last->extra(0) = 1
+  append_menu_item menu1, "Reload map"  : menu1.last->extra(0) = 2
+  IF running_as_slave THEN
+   LPM_append_reload_mode_item menu1, "gen. map data", .gmap, 10
+   LPM_append_reload_mode_item menu1, "tilemap", .maptiles, 11
+   LPM_append_reload_mode_item menu1, "wallmap", .passmap, 12
+   LPM_append_reload_mode_item menu1, "foemap", .foemap, 13
+   LPM_append_reload_mode_item menu1, "zonemap", .zonemap, 14
+  END IF
+  LPM_append_force_reload_item menu1, tooltips(), "general map data", .gmap, 100
+  LPM_append_force_reload_item menu1, tooltips(), "tiles", .maptiles, 101
+  LPM_append_force_reload_item menu1, tooltips(), "wallmap", .passmap, 102
+  LPM_append_force_reload_item menu1, tooltips(), "foemap", .foemap, 103
+  LPM_append_force_reload_item menu1, tooltips(), "zones", .zonemap, 104
+
+  init_menu_state st1, menu1
+  REDIM PRESERVE tooltips(menu1.numitems - 1)
+ END WITH
+END SUB
+
+SUB live_preview_menu ()
+ DIM st1 as MenuState
+ st1.active = YES
+ 
+ DIM menu1 AS MenuDef
+ ClearMenuData menu1
+ menu1.align = -1
+ menu1.boxstyle = 3
+ menu1.translucent = YES
+ menu1.min_chars = 38
+
+ DIM tooltips() as string
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  control
+  IF running_as_slave THEN try_to_reload_files_onmap
+
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "game_live_preview_menu"
+
+  LPM_update menu1, st1, tooltips()
+
+  usemenu st1
+  SELECT CASE menu1.items[st1.pt]->extra(0)
+   CASE 1  '--exit
+    IF carray(ccUse) > 1 THEN EXIT DO
+   CASE 2  '--reload map
+    IF carray(ccUse) > 1 THEN
+     'delete everything
+     deletemapstate gam.map.id, -1, "map"
+     prepare_map NO, YES
+    END IF
+   CASE 10  '--gmap reload mode
+    st1.need_update = intgrabber(lump_reloading.gmap.mode, 0, 2)  '3 --merging not implemented
+   CASE 11  '--tile reload mode
+    st1.need_update = intgrabber(lump_reloading.maptiles.mode, 0, 3)
+   CASE 12  '--wallmap reload mode
+    st1.need_update = intgrabber(lump_reloading.passmap.mode, 0, 3)
+   CASE 13  '--foemap reload mode
+    st1.need_update = intgrabber(lump_reloading.foemap.mode, 0, 1)  'Not even possible to modify, so don't confuse people
+   CASE 14  '--zones reload mode
+    st1.need_update = intgrabber(lump_reloading.zonemap.mode, 0, 2)  'Can't merge zones
+   CASE 100  '--force gmap reload
+    IF carray(ccUse) > 1 THEN
+     reloadmap_gmap_no_tilesets
+    END IF
+   CASE 101  '--force tile reload
+    IF carray(ccUse) > 1 THEN
+     reloadmap_tilemap_and_tilesets NO
+    END IF
+   CASE 102  '--force wallmap reload
+    IF carray(ccUse) > 1 THEN
+     reloadmap_passmap NO
+    END IF
+   CASE 103  '--force foemap reload
+    IF carray(ccUse) > 1 THEN
+     reloadmap_foemap
+    END IF
+   CASE 104  '--force zonemap reload
+    IF carray(ccUse) > 1 THEN
+     reloadmap_zonemap
+    END IF
+  END SELECT
+
+  'Draw screen
+  displayall
+  draw_menu menu1, st1, dpage
+  rectangle 0, 188, 320, 12, uilook(uiBackground), dpage
+  edgeprint tooltips(st1.pt), 0, 190, uilook(uiText), dpage
+  setvispage dpage
+  dowait
+ LOOP
 END SUB

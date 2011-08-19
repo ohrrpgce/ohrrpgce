@@ -660,6 +660,51 @@ SUB CleanTilemaps(layers() as TileMap, BYVAL wide as integer, BYVAL high as inte
   NEXT
 END SUB
 
+PRIVATE SUB MergeTileMapData(mine as TileMap, theirs as TileMap, base as TileMap)
+  FOR i as integer = 0 TO mine.wide * mine.high - 1
+    IF theirs.data[i] <> base.data[i] THEN
+      mine.data[i] = theirs.data[i]
+    END IF
+  NEXT
+END SUB 
+
+SUB MergeTileMap(mine as TileMap, theirs_file as string, base_file as string)
+  DIM as TileMap base, theirs
+  LoadTileMap base, base_file
+  LoadTileMap theirs, theirs_file
+  IF theirs.wide <> mine.wide OR theirs.high <> mine.high OR _
+     theirs.wide <> base.wide OR theirs.high <> base.high THEN
+    'We we could actually continue...
+    debug "MergeTilemap: nonmatching map sizes!"
+    UnloadTilemap base
+    UnloadTilemap theirs
+    EXIT SUB
+  END IF
+  MergeTileMapData mine, theirs, base
+  UnloadTilemap base
+  UnloadTilemap theirs
+END SUB
+
+SUB MergeTileMaps(mine() as TileMap, theirs_file as string, base_file as string)
+  REDIM as TileMap base(0), theirs(0)
+  LoadTileMaps base(), base_file
+  LoadTileMaps theirs(), theirs_file
+  IF theirs(0).wide <> mine(0).wide OR theirs(0).high <> mine(0).high OR _
+     theirs(0).wide <> base(0).wide OR theirs(0).high <> base(0).high OR _
+     UBOUND(theirs) <> UBOUND(mine) THEN
+    'We we could actually continue...
+    debug "MergeTilemap: nonmatching map sizes/num layers!"
+    UnloadTilemaps base()
+    UnloadTilemaps theirs()
+    EXIT SUB
+  END IF
+  FOR i as integer = 0 TO UBOUND(mine)
+    MergeTileMapData mine(i), theirs(i), base(i)
+  NEXT
+  UnloadTilemaps base()
+  UnloadTilemaps theirs()
+END SUB
+
 
 '==========================================================================================
 '                                        Zone maps

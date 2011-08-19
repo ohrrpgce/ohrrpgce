@@ -150,6 +150,7 @@ declare function loadrecord overload (buf() as integer, fh as integer, recordsiz
 declare function loadrecord overload (buf() as integer, filename as string, recordsize as integer, record as integer = 0, expectfile as integer = YES) as integer
 declare sub storerecord overload (buf() as integer, fh as integer, recordsize as integer, record as integer = -1)
 declare sub storerecord overload (buf() as integer, filename as string, recordsize as integer, record as integer = 0)
+declare function compare_files_by_record (differences() as integer, leftfile as string, rightfile as string, byval recordsize as integer, byval maskarray as integer ptr = NULL) as integer
 
 declare function indexunlumpeddir (whichdir as string) as LumpIndex ptr
 declare function indexlumpfile (lumpfile as string, byval keepopen as integer = YES) as LumpIndex ptr

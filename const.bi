@@ -245,6 +245,13 @@ CONST ccUse = 4
 CONST ccMenu = 5
 CONST ccRun = 6
 
+'constants for lump reloading schemes
+CONST loadmodeNever = 0
+CONST loadmodeAlways = 1
+CONST loadmodeIfUnchanged = 2
+CONST loadmodeMerge = 3
+
+
 #include "uiconst.bi"
 #include "scancodes.bi"
 

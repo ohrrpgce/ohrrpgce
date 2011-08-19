@@ -31,7 +31,6 @@
 
 
 'local subs and functions
-DECLARE SUB prepare_map (afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
 DECLARE SUB reset_map_state (map AS MapModeState)
 DECLARE SUB opendoor (dforce AS INTEGER=0)
 DECLARE SUB thrudoor (door_id AS INTEGER)
@@ -44,7 +43,6 @@ DECLARE SUB npchitwall (npci AS NPCInst, npcdata AS NPCType)
 DECLARE FUNCTION find_useable_npc () AS INTEGER
 DECLARE SUB interpret ()
 DECLARE SUB update_heroes(BYVAL force_npc_check AS INTEGER=NO)
-DECLARE SUB displayall()
 DECLARE SUB doloadgame(BYVAL load_slot AS INTEGER)
 DECLARE SUB reset_game_final_cleanup()
 DECLARE FUNCTION should_skip_this_timer(byval l as integer, t as PlotTimer) AS INTEGER
@@ -142,6 +140,13 @@ DIM AS INTEGER mapx, mapy, vpage, dpage, fadestate, usepreunlump, lastsaveslot, 
 DIM err_suppress_lvl
 DIM AS STRING tmpdir, exename, game, sourcerpg, savefile, workingdir, homedir
 DIM prefsdir as string
+
+DIM lump_reloading as LumpReloadOptions
+lump_reloading.gmap.mode = loadmodeAlways
+lump_reloading.maptiles.mode = loadmodeAlways
+lump_reloading.passmap.mode = loadmodeAlways
+lump_reloading.foemap.mode = loadmodeAlways
+lump_reloading.zonemap.mode = loadmodeAlways
 
 'Menu Data
 DIM menu_set AS MenuSet
@@ -571,7 +576,7 @@ DO
   IF keyval(scF3) > 1 AND txt.showing = NO THEN
    wantloadgame = 33
   END IF
-  IF keyval(scCtrl) = 0 AND keyval(scF5) > 1 THEN 'F5
+  IF keyval(scCtrl) = 0 AND keyval(scF7) > 1 THEN
    SELECT CASE gen(cameramode)
     CASE herocam
      IF gen(cameraArg) < 15 THEN
@@ -584,7 +589,7 @@ DO
      gen(cameraArg) = 0
    END SELECT
   END IF
-  IF keyval(scCtrl) > 0 AND keyval(scF5) > 1 THEN  'CTRL + F5
+  IF keyval(scCtrl) > 0 AND keyval(scF7) > 1 THEN
    catx(0) = (catx(0) \ 20) * 20
    caty(0) = (caty(0) \ 20) * 20
    xgo(0) = 0
@@ -609,13 +614,6 @@ DO
     setdebugpan
    END IF
   END IF
-  IF keyval(scF7) > 1 THEN 'Toggle level-up bug
-   IF readbit(gen(), genBits, 9) = 0 THEN
-    setbit gen(), genBits, 9, 1
-   ELSE
-    setbit gen(), genBits, 9, 0
-   END IF
-  END IF
   IF keyval(scF10) > 1 THEN scrwatch = loopvar(scrwatch, 0, 2, 1): gam.debug_showtags = NO
   IF keyval(scCtrl) > 0 THEN ' holding CTRL
    IF keyval(scF1) > 1 AND txt.showing = NO THEN 
@@ -634,15 +632,23 @@ DO
     END IF
    END IF
    IF keyval(scF4) > 1 THEN slice_editor SliceTable.Root
+   IF keyval(scF5) > 1 THEN 'Toggle level-up bug
+    IF readbit(gen(), genBits, 9) = 0 THEN
+     setbit gen(), genBits, 9, 1
+    ELSE
+     setbit gen(), genBits, 9, 0
+    END IF
+   END IF
    IF keyval(scF8) > 1 THEN
     debug "----------------Slice Tree Dump---------------"
     SliceDebugDumpTree SliceTable.Root
     notification "Dumped entire slice tree to g_debug.txt"
    END IF
    IF keyval(scF11) > 1 THEN gam.debug_npc_info = NOT gam.debug_npc_info
-  ELSE ' not holding CTRL
+  ELSE ' holding CTRL
    IF keyval(scF1) > 1 AND txt.showing = NO THEN minimap catx(0), caty(0)
    IF keyval(scF4) > 1 THEN gam.debug_showtags = NOT gam.debug_showtags : scrwatch = 0 
+   IF keyval(scF5) > 1 THEN live_preview_menu
    IF keyval(scF8) > 1 THEN patcharray gen(), "gen"
    IF keyval(scF9) > 1 THEN patcharray gmap(), "gmap"
    IF keyval(scF11) > 1 THEN gam.walk_through_walls = NOT gam.walk_through_walls
@@ -1601,11 +1607,13 @@ WITH scrat(nowscript)
     IF curcmd->argc = 3 THEN retvals(3) = 0
     IF retvals(3) >= 0 AND retvals(3) <= UBOUND(maptiles) AND retvals(2) >= 0 AND retvals(2) <= 255 THEN
      writeblock maptiles(retvals(3)), bound(retvals(0), 0, mapsizetiles.x-1), bound(retvals(1), 0, mapsizetiles.y-1), retvals(2)
+     lump_reloading.maptiles.dirty = YES
     END IF
    CASE 99'--read pass block
     scriptret = readblock(pass, bound(retvals(0), 0, mapsizetiles.x-1), bound(retvals(1), 0, mapsizetiles.y-1))
    CASE 100'--write pass block
     writeblock pass, bound(retvals(0), 0, mapsizetiles.x-1), bound(retvals(1), 0, mapsizetiles.y-1), bound(retvals(2), 0, 255)
+    lump_reloading.passmap.dirty = YES
    CASE 144'--load tileset
     'version that doesn't modify gmap
     IF retvals(0) <= gen(genMaxTile) THEN
@@ -2058,6 +2066,8 @@ FUNCTION valid_tile_pos(x AS INTEGER, y AS INTEGER) AS INTEGER
 END FUNCTION
 
 SUB loadmap_gmap(mapnum)
+ lump_reloading.gmap.dirty = NO
+ lump_reloading.gmap.changed = NO
  loadrecord gmap(), game + ".map", getbinsize(binMAP) / 2, mapnum
  IF gmap(31) = 0 THEN gmap(31) = 2
 
@@ -2090,24 +2100,32 @@ SUB loadmap_npcd(mapnum)
 END SUB
 
 SUB loadmap_tilemap(mapnum)
+ lump_reloading.maptiles.dirty = NO
+ lump_reloading.maptiles.changed = NO
  LoadTileMaps maptiles(), maplumpname$(mapnum, "t")
- mapsizetiles.x = maptiles(0).wide
- mapsizetiles.y = maptiles(0).high
- refresh_map_slice 
+ mapsizetiles.w = maptiles(0).wide
+ mapsizetiles.h = maptiles(0).high
+ refresh_map_slice
  
  '--as soon as we know the dimensions of the map, enforce hero position boundaries
  cropposition catx(0), caty(0), 20
 END SUB
 
 SUB loadmap_passmap(mapnum)
+ lump_reloading.passmap.dirty = NO
+ lump_reloading.passmap.changed = NO
  LoadTileMap pass, maplumpname$(mapnum, "p")
 END SUB
 
 SUB loadmap_foemap(mapnum)
+ lump_reloading.foemap.dirty = NO
+ lump_reloading.foemap.changed = NO
  LoadTileMap foemap, maplumpname$(mapnum, "e")
 END SUB
 
 SUB loadmap_zonemap(mapnum)
+ lump_reloading.zonemap.dirty = NO
+ lump_reloading.zonemap.changed = NO
  '.Z is the only one of the map lumps that has been added in about the last decade
  IF isfile(maplumpname(mapnum, "z")) THEN
   LoadZoneMap zmap, maplumpname(mapnum, "z")
@@ -2690,6 +2708,8 @@ SUB prepare_map (afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
    savemapstate_zonemap gam.map.lastmap, "map"
   END IF
  END IF
+ IF running_as_slave THEN make_map_backups
+
  gam.map.lastmap = gam.map.id
 
  'load gmap

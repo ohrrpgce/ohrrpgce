@@ -31,7 +31,7 @@ EXTERN running_as_slave as integer
 EXTERN custom_version as string
 EXTERN master_channel as IPCChannel
 EXTERN modified_lumps as string vector
-'EXTERN delayed_startup_error as string
+EXTERN lump_reloading as LumpReloadOptions
 
 'Input handling globals
 EXTERN as integer carray(), csetup()

@@ -339,6 +339,62 @@ sub storerecord (buf() as integer, filen as string, recordsize as integer, recor
 	close #f
 end sub
 
+'Compares two files record-by-record, setting each element of the difference array to:
+'0: records are identical
+'1: records differ
+'2: left file is short; this record only in right file
+'-2: right file is short; this record only in left file
+'recordsize = record size in shorts (not bytes)
+'maskarray = if specified, only compare SHORTs in each record which are nonzero in maskarray
+'Return true on success, false if one of the files doesn't exist
+function compare_files_by_record(differences() as integer, leftfile as string, rightfile as string, byval recordsize as integer, byval maskarray as integer ptr = NULL) as integer
+	redim differences(0)
+
+	dim as integer fh1, fh2
+	fh1 = freefile
+	if open(leftfile for binary access read as #fh1) then return NO
+	fh2 = freefile
+	if open(rightfile for binary access read as #fh2) then
+		close #fh1
+		return NO
+	end if
+
+	dim as integer buf1(recordsize - 1), buf2(recordsize - 1)
+	dim as integer length1, length2
+	length1 = LOF(fh1) \ (2 * recordsize)
+	length2 = LOF(fh2) \ (2 * recordsize)
+
+	redim differences(large(length1, length2) - 1)
+
+	for record as integer = 0 to ubound(differences)
+		if length1 - 1 < record then
+			differences(record) = -2
+		elseif length2 - 1 < record then
+			differences(record) = 2
+		else
+			loadrecord buf1(), fh1, recordsize, record
+			loadrecord buf2(), fh2, recordsize, record
+			if maskarray then
+				for j as integer = 0 to recordsize - 1
+					if maskarray[j] then
+						if buf1(j) <> buf2(j) then
+							differences(record) = 1
+							exit for
+						end if
+					end if
+				next
+			else      
+				if memcmp(@buf1(0), @buf2(0), recordsize * 4) then   '* 4 since array of ints!
+					differences(record) = 1
+				end if
+			end if
+		end if
+	next
+	close #fh1
+	close #fh2
+	return YES
+end function
+
 
 '----------------------------------------------------------------------
 '                           FileLump class

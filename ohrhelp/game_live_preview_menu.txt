@@ -1,0 +1,21 @@
+This menu displays the status of the current map.
+
+Reload map: This deletes any saved map data, and then reloads a map (as if reentering it).
+
+If live-previewing a game, several additional options appear for how to handle edits you make in Custom. These options affect all maps. You can press LEFT and RIGHT to change them. The different settings are:
+
+Reload: Never:
+ Never reload this data when it's
+ edited in Custom.
+
+Reload: Always:
+ Always immediately reload this data,
+ overwriting any changes by scripts.
+
+Reload: If no script changes:
+ If a script modifies this,
+ automatically reloading is disabled.
+
+Reload: Merge script changes:
+ Changes made by scripts and made in
+ Custom are combined.

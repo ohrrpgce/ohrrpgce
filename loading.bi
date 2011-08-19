@@ -53,6 +53,9 @@ declare sub SaveTilemaps(tmaps() as TileMap, filename as string)
 declare sub CleanTilemap(map as TileMap, BYVAL wide as integer, BYVAL high as integer, BYVAL layernum as integer = 0)
 declare sub CleanTilemaps(layers() as TileMap, BYVAL wide as integer, BYVAL high as integer, BYVAL numlayers as integer)
 declare function GetTilemapInfo(filename as string, info as TilemapInfo) as integer
+declare sub MergeTileMap(mine as TileMap, theirs_file as string, base_file as string)
+declare sub MergeTileMaps(mine() as TileMap, theirs_file as string, base_file as string)
+
 
 '*** Requires construction + destruction ***
 declare sub CleanZoneMap(zmap as ZoneMap, BYVAL wide as integer, BYVAL high as integer)

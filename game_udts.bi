@@ -153,4 +153,18 @@ TYPE SpellsMenuState
   has_none_caption AS STRING
 END TYPE
 
+TYPE LumpReloadState
+  mode      AS INTEGER  'one of the loadmode constants in const.bi
+  dirty     AS INTEGER  'whether a script has modified this for the current map
+  changed   AS INTEGER  'whether modified by Custom and not reloaded
+END TYPE
+
+TYPE LumpReloadOptions
+  gmap     AS LumpReloadState
+  maptiles AS LumpReloadState
+  passmap  AS LumpReloadState
+  foemap   AS LumpReloadState
+  zonemap  AS LumpReloadState
+END TYPE
+
 #ENDIF
