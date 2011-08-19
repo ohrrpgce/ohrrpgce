@@ -42,6 +42,8 @@ DECLARE SUB importscripts (f$)
 
 'Local function declarations
 DECLARE FUNCTION newRPGfile (templatefile$, newrpg$)
+DECLARE FUNCTION makeworkingdir () as integer
+DECLARE FUNCTION handle_dirty_workingdir () as integer
 DECLARE SUB dolumpfiles (filetolump as string)
 DECLARE SUB move_unwriteable_rpg (filetolump as string)
 DECLARE SUB shopdata ()
@@ -74,13 +76,13 @@ DIM font(1024), joy(4)
 DIM menu(22) AS STRING
 DIM menukeys(22) AS STRING
 DIM chooserpg_menu(2) AS STRING
-DIM cleanup_menu(2) AS STRING
 DIM quit_menu(3) AS STRING
 DIM quit_confirm(1) AS STRING
 DIM hsfile AS STRING
 DIM intext AS STRING
 DIM passphrase AS STRING
 DIM archinym AS STRING
+DIM SHARED nocleanup AS INTEGER = NO
 
 DIM walkabout_frame_captions(7) AS STRING = {"Up A","Up B","Right A","Right B","Down A","Down B","Left A","Left B"}
 DIM hero_frame_captions(7) AS STRING = {"Standing","Stepping","Attack A","Attack B","Cast/Use","Hurt","Weak","Dead"}
@@ -149,7 +151,7 @@ textcolor uilook(uiText), 0
 
 'Cleanups up working.tmp if existing; requires graphics up and running
 workingdir = tmpdir & "working.tmp"
-GOSUB makeworkingdir
+IF makeworkingdir() = NO THEN GOTO finis
 
 FOR i = 1 TO UBOUND(cmdline_args)
  cmdline$ = cmdline_args(i)
@@ -442,78 +444,6 @@ DO
 LOOP
 RETRACE
 
-cleanup:
-cleanup_menu(0) = "DO NOTHING"
-cleanup_menu(1) = "RECOVER IT"
-cleanup_menu(2) = "ERASE IT"
-clean_choice = 0
-a$ = "recovered"
-i = 0
-DO WHILE isfile("recovered" & i & ".bak")
- i = i + 1
-LOOP
-a$ = a$ + STR$(i)
-setkeys
-DO
- setwait 55
- setkeys
- tog = tog XOR 1
- usemenu clean_choice, 0, 0, 2, 2
- IF enter_or_space() THEN
-  IF clean_choice = 1 THEN
-   IF isfile(workingdir + SLASH + "__danger.tmp") THEN
-    textcolor uilook(uiSelectedItem), uilook(uiHighlight) 'FIXME: new uilook for warning text colors?
-    printstr "Data is corrupt, not safe to relump", 0, 100, vpage
-    setvispage vpage 'refresh
-    w = getkey
-   ELSE '---END UNSAFE
-    printstr "Saving as " + a$ + ".bak", 0, 180, vpage
-    printstr "LUMPING DATA: please wait...", 0, 190, vpage
-    setvispage vpage 'refresh
-    '--re-lump recovered files as BAK file
-    dolumpfiles a$ + ".bak"
-    clearpage vpage
-    basic_textbox "The recovered data has been saved. If " + CUSTOMEXE + " crashed last time you " _
-                  "ran it and you lost work, you may be able to recover it. Make a backup " _
-                  "copy of your RPG and then rename " + a$ + !".bak to gamename.rpg\n" _
-                  "If you have questions, ask ohrrpgce-crash@HamsterRepublic.com", _
-                  uilook(uiText), vpage
-    setvispage vpage
-    w = getkey
-    RETRACE
-   END IF '---END RELUMP
-  END IF
-  IF clean_choice = 2 THEN RETRACE
-  IF clean_choice = 0 THEN nocleanup = 1: RETRACE
- END IF
-
- basic_textbox !"A game was found unlumped.\n" _
-                "This may mean that " + CUSTOMEXE + " crashed last time you used it, or it may mean " _
-                "that another copy of " + CUSTOMEXE + " is already running in the background.", _
-                uilook(uiText), dpage
- standardmenu cleanup_menu(), 2, 2, clean_choice, 0, 16, 150, dpage, 0
-
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
-
-makeworkingdir:
-IF NOT isdir(workingdir) THEN
- makedir workingdir
-ELSE
- 'Recover from an old crash
- GOSUB cleanup
- clearpage 0
- setvispage 0
- textcolor uilook(uiText), 0
- printstr "Run " + CUSTOMEXE + " again.", 0, 0, 0
- setvispage 0 'refresh
- w = getkey
- GOTO finis
-END IF
-RETRACE
 
 relump:
 xbsave game + ".gen", gen(), 1000
@@ -1028,6 +958,105 @@ END FUNCTION
 '=======================================================================
 'FIXME: move this up as code gets cleaned up!  (Hah!)
 OPTION EXPLICIT
+
+'Try to delete everything in workingdir
+FUNCTION empty_workingdir () as integer
+ DIM filelist() as string
+ findfiles workingdir, ALLFILES, fileTypeFile, NO, filelist()
+ FOR i as integer = 0 TO UBOUND(filelist)
+  DIM fname as string = workingdir + SLASH + filelist(i)
+  safekill fname
+  IF isfile(fname) THEN
+   notification "Could not clean up " & workingdir & !"\nYou may have to manually delete its contents."
+   RETURN NO
+  END IF
+ NEXT
+ RETURN YES
+END FUNCTION
+
+'Returns true on success, false if want to GOTO finis
+FUNCTION makeworkingdir () as integer
+ IF NOT isdir(workingdir) THEN
+  makedir workingdir
+  RETURN YES
+ ELSE
+  'Does this look like a game, or should we just delete it?
+  DIM filelist() as string
+  findfiles workingdir, ALLFILES, fileTypeFile, NO, filelist()
+  IF UBOUND(filelist) <= 5 THEN
+   'Just some stray files that refused to delete last time
+   RETURN empty_workingdir
+  END IF
+
+  'Recover from an old crash
+  RETURN handle_dirty_workingdir
+ END IF
+END FUNCTION
+
+'Returns true on success, false if want to GOTO finis
+FUNCTION handle_dirty_workingdir () as integer
+ DIM cleanup_menu(2) AS STRING
+ cleanup_menu(0) = "DO NOTHING"
+ cleanup_menu(1) = "RECOVER IT"
+ cleanup_menu(2) = "ERASE IT"
+ DIM clean_choice as integer
+ DIM tog as integer
+
+ DIM index as integer = 0
+ DIM destfile as string
+ DO
+  destfile = "recovered" & index & ".bak"
+  IF NOT isfile(destfile) THEN EXIT DO
+  index += 1
+ LOOP
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  tog = tog XOR 1
+  usemenu clean_choice, 0, 0, 2, 2
+  IF enter_or_space() THEN
+   IF clean_choice = 1 THEN
+	IF isfile(workingdir + SLASH + "__danger.tmp") THEN
+	 textcolor uilook(uiSelectedItem), uilook(uiHighlight) 'FIXME: new uilook for warning text colors?
+	 printstr "Data is corrupt, not safe to relump", 0, 100, vpage
+	 setvispage vpage 'refresh
+	 waitforanykey
+	ELSE '---END UNSAFE
+	 printstr "Saving as " + destfile, 0, 180, vpage
+	 printstr "LUMPING DATA: please wait...", 0, 190, vpage
+	 setvispage vpage 'refresh
+	 '--re-lump recovered files as BAK file
+	 dolumpfiles destfile
+	 clearpage vpage
+	 basic_textbox "The recovered data has been saved. If " + CUSTOMEXE + " crashed last time you " _
+				   "ran it and you lost work, you may be able to recover it. Make a backup " _
+				   "copy of your RPG and then rename " + destfile + !" to gamename.rpg\n" _
+				   "If you have questions, ask ohrrpgce-crash@HamsterRepublic.com", _
+				   uilook(uiText), vpage
+	 setvispage vpage
+	 waitforanykey
+     empty_workingdir
+	 RETURN YES  'continue
+	END IF '---END RELUMP
+   END IF
+   IF clean_choice = 2 THEN empty_workingdir : RETURN YES  'continue
+   IF clean_choice = 0 THEN nocleanup = 1: RETURN NO  'quit
+  END IF
+
+  basic_textbox !"A game was found unlumped.\n" _
+				 "This may mean that " + CUSTOMEXE + " crashed last time you used it, or it may mean " _
+				 "that another copy of " + CUSTOMEXE + " is already running in the background.", _
+				 uilook(uiText), dpage
+  standardmenu cleanup_menu(), 2, 2, clean_choice, 0, 16, 150, dpage, 0
+
+  SWAP vpage, dpage
+  setvispage vpage
+  clearpage dpage
+  dowait
+ LOOP
+END FUNCTION
 
 SUB dolumpfiles (filetolump as string)
  '--build the list of files to lump. We don't need hidden files
