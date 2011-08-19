@@ -412,12 +412,12 @@ function open_piped_process (program as string, args as string, byval iopipe as 
 
 	dim as NamedPipeInfo ptr serverpipe, clientpipe
 
-	if channel_open_write(serverpipe, pipename) = NO then
+	if channel_open_server(serverpipe, pipename) = NO then
 		debug "open_piped_process failed."
 		goto error_out
 	end if
 
-	if channel_open_read(clientpipe, pipename) = NO then
+	if channel_open_client(clientpipe, pipename) = NO then
 		debug "open_piped_process failed."
 		goto error_out
 	end if
