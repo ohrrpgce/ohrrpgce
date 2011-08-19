@@ -99,7 +99,7 @@ SUB SaveNPCD_fixedlen(file as string, dat() as NPCType, byval arraylen as intege
   safekill file
 
   f = FREEFILE
-  OPEN file FOR BINARY AS #f
+  OPEN file FOR BINARY ACCESS WRITE AS #f  'Should also truncate
   SEEK #f, 8
 
   DIM as integer recordlen = getbinsize(binN) \ 2
@@ -188,7 +188,7 @@ SUB LoadNPCL(file as string, dat() as NPCInst)
   DIM i AS INTEGER
   DIM f AS INTEGER
   f = FREEFILE
-  OPEN file FOR BINARY AS #f
+  OPEN file FOR BINARY ACCESS READ AS #f
   SEEK #f, 8
   CleanNPCL dat()
   FOR i = 0 to 299
@@ -214,7 +214,7 @@ SUB SaveNPCL(file as string, dat() as NPCInst)
   DIM i AS INTEGER
   DIM f AS INTEGER
   f = FREEFILE
-  OPEN file FOR BINARY AS #f
+  OPEN file FOR BINARY ACCESS WRITE AS #f  'truncates
   SEEK #f, 8
   FOR i = 0 to 299
     WriteShort f, -1, dat(i).x / 20
@@ -540,7 +540,7 @@ END SUB
 'Get size of a tilemap file; returns false if badly formed
 FUNCTION GetTilemapInfo(filename as string, info as TilemapInfo) as integer
   DIM as integer fh = FREEFILE
-  IF OPEN(filename FOR BINARY AS #fh) <> 0 THEN RETURN NO
+  IF OPEN(filename FOR BINARY ACCESS READ AS #fh) <> 0 THEN RETURN NO
   WITH info
     .wide = readshort(fh, 8)  'skip over BSAVE header
     .high = readshort(fh, 10)
@@ -564,7 +564,7 @@ SUB LoadTilemap(map as TileMap, filename as string)
 
   DIM AS INTEGER fh
   fh = FREEFILE
-  OPEN filename FOR BINARY AS #fh
+  OPEN filename FOR BINARY ACCESS READ AS #fh
   map.wide = bound(readshort(fh, 8), 16, 32678)
   map.high = bound(readshort(fh, 10), 10, 32678)
   map.layernum = 0
@@ -588,7 +588,7 @@ SUB LoadTilemaps(layers() as TileMap, filename as string)
   NEXT
 
   fh = FREEFILE
-  OPEN filename FOR BINARY AS #fh
+  OPEN filename FOR BINARY ACCESS READ AS #fh
   wide = bound(readshort(fh, 8), 16, 32678)
   high = bound(readshort(fh, 10), 10, 32678)
   numlayers = (LOF(fh) - 11) \ (wide * high)
@@ -616,7 +616,7 @@ SUB SaveTilemap(tmap as TileMap, filename as string)
   DIM fh as integer
   safekill filename
   fh = FREEFILE
-  OPEN filename FOR BINARY AS #fh
+  OPEN filename FOR BINARY ACCESS WRITE AS #fh  'Should also truncate
   writeshort fh, 8, tmap.wide
   writeshort fh, 10, tmap.high
   PUT #fh, 12, *tmap.data, tmap.wide * tmap.high
@@ -627,7 +627,7 @@ SUB SaveTilemaps(tmaps() as TileMap, filename as string)
   DIM fh as integer
   safekill filename
   fh = FREEFILE
-  OPEN filename FOR BINARY AS #fh
+  OPEN filename FOR BINARY ACCESS WRITE AS #fh  'Should also truncate
   writeshort fh, 8, tmaps(0).wide
   writeshort fh, 10, tmaps(0).high
   SEEK #fh, 12
@@ -1166,7 +1166,7 @@ SUB DeserDoorLinks(filename as string, array() as doorlink)
 	end if
 	
 	f = freefile
-	open filename for binary as #f
+	open filename for binary access read as #f
 	
 	
 	if hasheader then 
@@ -1246,7 +1246,7 @@ Sub DeSerDoors(filename as string, array() as door, record as integer)
 	
 	dim as integer f = freefile, i
 	
-	open filename for binary as #f
+	open filename for binary access read as #f
 	
 	seek #f, record * 600 + 1
 	
@@ -1353,7 +1353,7 @@ Sub DeSerHeroDef(filename as string, hero as herodef ptr, record as integer)
 	
 	dim as integer f = freefile, i, j
 	
-	open filename for binary as #f
+	open filename for binary access read as #f
 	dim recordsize as integer = getbinsize(binDT0)  'in BYTES
 	seek #f, record * recordsize + 1
 	
@@ -1644,7 +1644,7 @@ SUB LoadUIColors (colarray() AS INTEGER, palnum AS INTEGER=-1)
  DIM i AS INTEGER
  DIM f AS INTEGER
  f = FREEFILE
- OPEN filename FOR BINARY AS #f
+ OPEN filename FOR BINARY ACCESS READ AS #f
  SEEK #f, palnum * getbinsize(binUICOLORS) + 1
  FOR i = 0 TO uiColors
   colarray(i) = ReadShort(f)
@@ -2554,7 +2554,7 @@ SUB load_string_list(array() AS STRING, filename AS STRING)
  IF isfile(filename) THEN
 
   DIM fh AS INTEGER = FREEFILE
-  OPEN filename FOR INPUT AS #fh
+  OPEN filename FOR INPUT ACCESS READ AS #fh
 
   DIM s AS STRING
  

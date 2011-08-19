@@ -14,18 +14,39 @@ typedef map<FB_FILE *, FileInfo>::iterator openfiles_iterator_t;
 
 IPCChannel lump_updates_channel;
 
+bool lock_lumps = false;
+bool allow_lump_writes;
+
+const char *trimpath(const char *filename) {
+	const char *p = filename, *ret = filename;
+	while (*p) {
+		if (ispathsep(*p))
+			ret = p + 1;
+		p++;
+	}
+	return ret;
+}
 
 int file_wrapper_close(FB_FILE *handle) {
 	assert(openfiles.count(handle));
 	FileInfo &info = openfiles[handle];
 	//fprintf(stderr, "closing %s\n", info.name.c_str());
+	if (info.dirty && !allow_lump_writes) {
+		// It's not really safe to call debug in here
+		debug(3, "ENGINE BUG: illegally wrote to %s", info.name.c_str());
+	}
 	if (info.dirty && lump_updates_channel != NULL_CHANNEL) {
 		//fprintf(stderr, "%s was dirty\n", info.name.c_str());
 		char buf[256];
-		int len = snprintf(buf, 256, "M %s\n", info.name.c_str());
-		if (len > 255) len = 255;
+		int len = snprintf(buf, 256, "M %s\n", trimpath(info.name.c_str()));
+		if (len > 255) {
+			len = 255;
+			buf[254] = '\n';
+		}
 		channel_write(lump_updates_channel, buf, len);
 	}
+	//debuginfo("unlocking %s", info.name.c_str());
+	unlock_file((FILE *)handle->opaque);  // Only needed on Windows
 	openfiles.erase(handle);
 
 	return fb_DevFileClose(handle);  
@@ -80,21 +101,31 @@ void dump_openfiles() {
 }
 
 int lump_file_opener(FB_FILE *handle, const char *filename, size_t filename_len) {
-	//fprintf(stderr, "openning %p (%s).\n", handle, filename);
+	//fprintf(stderr, "opening %p (%s).\n", handle, filename);
 
 	// Just let the default file opener handle it (it does quite a lot of stuff, actually),
 	// and then patch the file hooks table with wrappers
 	int ret = fb_DevFileOpen(handle, filename, filename_len);
+	// Note: fb_DevFileOpen changes FB_FILE_ACCESS_ANY to actual access state
 	if (ret) return ret;
 
 	handle->hooks = &lumpfile_hooks;
 	assert(openfiles.count(handle) == 0);
 	FileInfo &info = openfiles[handle];
 	info.name = string(filename);
+	if (lock_lumps) {
+		if (handle->access & FB_FILE_ACCESS_WRITE) {
+			//debuginfo("write-locking %s", filename);
+			lock_file_for_write((FILE *)handle->opaque, 1000);
+		} else {
+			//debuginfo("read-locking %s", filename);
+			lock_file_for_read((FILE *)handle->opaque, 1000);
+		}
+	}
 	return 0;
 }
 
-FnStringPredicate pfnLumpfileFilter;
+FnOpenCallback pfnLumpfileFilter;
 
 // This is called on each (regular) OPEN, to optionally override the file opener function
 FBCALL int OPEN_hook(FBSTRING *filename,
@@ -103,17 +134,24 @@ FBCALL int OPEN_hook(FBSTRING *filename,
                      unsigned lock_mode,
                      int rec_len,
                      FnFileOpen *pfnFileOpen) {
-	// I believe that it's safe to call a FB function in this context: fb_FileOpen[Ex]
+	// It's safe to call a FB function in this context: fb_FileOpen[Ex]
 	// (in libfb_file_open.c) seems to be specifically designed in this way: the state
 	// the runtime library has not been modified (e.g. locked) at this point.
-	if (pfnLumpfileFilter(filename))
+
+	// This is the correct test
+	//bool writable = access_mode & FB_FILE_ACCESS_WRITE || accessmode == FB_FILE_ACCESS_ANY;
+	// This tests only for explicit ACCESS WRITE, which is much more likely to be an error
+	bool writable = access_mode & FB_FILE_ACCESS_WRITE;
+	if (pfnLumpfileFilter(filename, writable ? -1 : 0))
 		*pfnFileOpen = lump_file_opener;
 	return 0;  // Success. We don't know any FB error codes, and we don't want to use them anyway
 }
 
-void set_OPEN_hook_filter(FnStringPredicate lumpfile_filter) {
+void set_OPEN_hook_filter(FnOpenCallback lumpfile_filter, int lump_writes_allowed) {
 	pfnLumpfileFilter = lumpfile_filter;
 	__fb_ctx.pfnDevOpenHook = OPEN_hook;
+	lock_lumps = true;
+	allow_lump_writes = lump_writes_allowed;
 }
 
 void set_lump_updates_channel(IPCChannel channel) {

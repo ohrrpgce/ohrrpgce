@@ -187,12 +187,13 @@ declare sub Buffered_putc(byval bfile as BufferedFile ptr, byval datum as ubyte)
 '                       openfile.c stuff
 
 type FnStringPredicate as function (filename as string) as integer
+type FnOpenCallback as function (filename as string, byval writable as integer) as integer
 
 extern "C"
-declare sub set_OPEN_hook_filter(byval lumpfile_filter as FnStringPredicate)
+declare sub set_OPEN_hook_filter(byval lumpfile_filter as FnOpenCallback, byval lump_writes_allowed as integer)
 declare sub set_lump_updates_channel(byval channel as IPCChannel)
 end extern
 
-declare function inworkingdir(filename as string) as integer
+declare function inworkingdir(filename as string, byval writable as integer) as integer
 
 #endif

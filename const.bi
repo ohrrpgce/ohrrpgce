@@ -33,6 +33,8 @@ CONST CURRENT_RSAV_VERSION = 1
 ' added.
 ' 1 - zenzizenzic wip removed nativehbits related nodes
 
+CONST CURRENT_TESTING_IPC_VERSION = 1
+
 '---GENERAL GAME DATA (.GEN) constants---
 CONST genMaxMap = 0             'max map ID
 CONST genTitle = 1              'title screen backdrop

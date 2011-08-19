@@ -37,6 +37,11 @@ LMPVTAB(LT_FILE,   FileLump_,    QLMP(destruct),       QLMP(open), QLMP(close), 
  dim shared tmpdir as string
 #endif
 
+#ifdef IS_GAME
+ EXTERN running_as_slave as integer
+#endif
+
+
 '----------------------------------------------------------------------
 '                          LumpIndex class
 
@@ -230,7 +235,7 @@ function Lump_unlumpfile(byref this as Lump, whereto as string) as integer
 		return NO
 	end if
 	of = freefile
-	open dest for binary access write as #of
+	open dest for binary access write as #of   'Truncates
 	lumpvtable(this.type).writetofile(this, of, 1)
 	close of
 	return YES
@@ -399,7 +404,7 @@ sub FileLump_open(byref this as FileLump)
 		dim fname as string = this.filename
 		if fname = "" then fname = this.index->unlumpeddir + this.lumpname
 		this.fhandle = freefile
-		open fname for binary access write lock write as #this.fhandle
+		open fname for binary as #this.fhandle
 	end if
 end sub
 
@@ -1117,18 +1122,28 @@ end sub
 
 
 '----------------------------------------------------------------------
-'                     openfile.c support stuff
+'                     filelayer.cpp support stuff
 
 
 'This is called on EVERY OPEN call once the OPEN hook is registered! See openfile.c
-function inworkingdir(filename as string) as integer
-	'Uncomment for OPEN tracing (or you could just use strace...)
-	'if RIGHT(filename, 9) = "debug.txt" then return NO
-	'if RIGHT(filename, 9) = "_archive.txt" then return NO
+'Double as both a general callback, and 
+'writable: whether attempting to *explicitly* open with write access
+function inworkingdir(filename as string, byval writable as integer) as integer
+	if RIGHT(filename, 10) = "_debug.txt" then return NO
+	'if RIGHT(filename, 12) = "_archive.txt" then return NO
+	'Uncomment this for OPEN tracing (or you could just use strace...)
 	'debuginfo "OPEN(" & filename & ")  " & ret
 
-	if strncmp(strptr(filename), strptr(workingdir), len(workingdir)) <> 0 then return NO
-	if right(filename, 4) = ".tmp" then return NO
-	return YES
+	dim ret as integer = YES
+	if strncmp(strptr(filename), strptr(workingdir), len(workingdir)) <> 0 then ret = NO
+	if right(filename, 4) = ".tmp" then ret = NO
+
+#ifdef IS_GAME
+	if running_as_slave andalso ret andalso writable then
+		fatalerror "Engine bug: Illegally tried to write to " & filename
+	end if
+#endif
+
+	return ret
 end function
 

@@ -3464,7 +3464,7 @@ function isawav(fi$) as integer
   dim chnk_ID as integer
   dim chnk_size as integer
   dim f as integer = freefile
-  open fi$ for binary as #f
+  open fi$ for binary access read as #f
 
   get #f,,chnk_ID
   if chnk_ID <> _RIFF then
@@ -3907,7 +3907,7 @@ function frame_load(fi as string, byval rec as integer, byval num as integer, by
 	dim f as integer = freefile
 	
 	'open() returns 0 for success
-	if open(fi for binary as #f) then
+	if open(fi for binary access read as #f) then
 		debug "sprites: could not open " & fi
 		return 0
 	end if
@@ -4721,7 +4721,7 @@ function palette16_load(fil as string, byval num as integer, byval autotype as i
 	
 	f = freefile
 	
-	if open(fil for binary as #f) then return 0
+	if open(fil for binary access read as #f) then return 0
 	
 	
 	dim mag as short

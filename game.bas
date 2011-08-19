@@ -2733,7 +2733,7 @@ SUB prepare_map (afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
  IF isfile(maplumpname$(gam.map.id, "e")) THEN
   IF foemaph THEN CLOSE #foemaph : foemaph = 0
   foemaph = FREEFILE
-  OPEN maplumpname$(gam.map.id, "e") FOR BINARY AS #foemaph
+  OPEN maplumpname$(gam.map.id, "e") FOR BINARY ACCESS READ AS #foemaph
  ELSE
   showerror "Oh no! Map " & gam.map.id & " foemap is missing"
  END IF

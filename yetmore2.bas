@@ -339,7 +339,7 @@ closemusic
 '--working files
 'DEBUG debug "Kill working files"
 cleanuptemp
-killdir tmpdir + "playing.tmp"
+IF NOT running_as_slave THEN killdir tmpdir + "playing.tmp"
 killdir tmpdir
 
 'DEBUG debug "Restore Old Graphics Mode"
@@ -848,7 +848,7 @@ SUB handshake_with_master ()
     ELSE
      custom_version = "<unknown>"
     END IF
-    IF pieces(1) <> "0" THEN  'wrong protocol version
+    IF pieces(1) <> STR(CURRENT_TESTING_IPC_VERSION) THEN  'wrong protocol version
      show_wrong_spawned_version_error     
     END IF
 
@@ -868,6 +868,10 @@ SUB handshake_with_master ()
     END IF
   END SELECT
  NEXT
+
+ 'Set this hook to throw an error on any detected write in workingdir;
+ 'also needed to set a shared lock when reading a file
+ set_OPEN_hook_filter @inworkingdir, NO
 END SUB
 
 'return a video page which is a view on vpage that is 320x200 (or smaller) and centred

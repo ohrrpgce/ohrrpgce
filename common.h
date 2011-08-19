@@ -10,6 +10,15 @@ extern "C" {
 #endif
 
 
+#if defined(_WIN32) || defined(WIN32)
+# define SLASH '\\'
+# define ispathsep(chr) ((chr) == '/' || (chr) == '\\')
+#else
+# define SLASH '/'
+# define ispathsep(chr) ((chr) == '/')
+#endif
+
+
 /* Several other C/C++ compilers, like Comeau C++, also have good gcc compatibility. Change this.
    Apparently the Intel compiler defines __GNUC__ */
 #if defined(__GNUC__) || defined(__IBMC__) || defined(__INTEL_COMPILER)

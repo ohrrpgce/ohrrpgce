@@ -3997,7 +3997,7 @@ SUB spawn_game
  'write version info
  DIM tmp as string
  'msgtype magickey,proto_ver,program_ver,version_string
- tmp = "V OHRRPGCE,0," & version_revision & "," & version & !"\n"
+ tmp = "V OHRRPGCE," & CURRENT_TESTING_IPC_VERSION & "," & version_revision & "," & version & !"\n"
  IF channel_write(slave_channel, @tmp[0], LEN(tmp)) = 0 THEN
   'good idea to test writing is working at least once
   notification "Channel write failure; aborting"
@@ -4022,7 +4022,7 @@ SUB spawn_game
   EXIT SUB
  END IF
 
- set_OPEN_hook_filter @inworkingdir
+ set_OPEN_hook_filter @inworkingdir, YES
  set_lump_updates_channel slave_channel
 END SUB
 

@@ -1497,7 +1497,7 @@ SUB xbsave (filename as string, array() as integer, bsize as integer)
 	next
 
 	ff = FreeFile
-	OPEN filename FOR BINARY ACCESS write AS #ff
+	OPEN filename FOR BINARY ACCESS write AS #ff  'Truncate
 	PUT #ff, , byt				'Magic number
 	PUT #ff, , seg				'segment - obsolete
 	PUT #ff, , offset			'offset - obsolete
