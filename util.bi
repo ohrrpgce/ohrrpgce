@@ -254,6 +254,7 @@ declare function hash_iter(byref this as HashTable, byref state as integer, byre
 CONST fileTypeDirectory = 0
 CONST fileTypeFile = 1
 
+declare function hash_file(filename as string) as unsigned integer
 declare function normalize_path (filename as string) as string
 declare function simplify_path (pathname as string) as string
 declare FUNCTION simplify_path_further (pathname as string, fromwhere as string) as string

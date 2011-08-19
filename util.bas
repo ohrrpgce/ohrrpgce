@@ -16,6 +16,8 @@ CONST STACK_SIZE_INC = 512 ' in integers
 #include "os.bi"
 #include "common_base.bi"
 
+declare function fgetiob alias "fb_FileGetIOB" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger, byval bytesread as uinteger ptr ) as integer
+
 #if __FB_LANG__ <> "fb"
 OPTION EXPLICIT
 #endif
@@ -751,6 +753,33 @@ END FUNCTION
 
 '------------- File Functions -------------
 
+
+'Uses strhash, which is pretty fast despite being FB. I get 56MB/s on my netbook.
+'Please not do depend on the algorithm not changing.
+FUNCTION hash_file(filename as string) as unsigned integer
+  DIM fh as integer = FREEFILE
+  IF OPEN(filename FOR BINARY AS #fh) THEN
+    debug "hash_file: couldn't open " & filename
+    RETURN 0
+  END IF
+  DIM size as integer = LOF(fh)
+  DIM hash as unsigned integer = size
+  hash += hash SHL 8
+  DIM buf(4095) as ubyte
+  WHILE size > 0
+    DIM readamnt as integer
+    fgetiob fh, , @buf(0), 4096, @readamnt
+    IF readamnt < size AND readamnt <> 4096 THEN
+      debug "hash_file: fgetiob failed!"
+      RETURN 0
+    END IF
+    hash xor= strhash(cast(zstring ptr, @buf(0)), readamnt)
+    hash += ROT(hash, 5)
+    size -= 4096
+  WEND
+  CLOSE #fh
+  RETURN hash
+END FUNCTION
 
 'Change / to \ in paths on Windows
 FUNCTION normalize_path(filename as string) as string

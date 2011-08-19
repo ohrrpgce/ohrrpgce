@@ -157,10 +157,11 @@ TYPE LumpReloadState
   mode      AS INTEGER  'one of the loadmode constants in const.bi
   dirty     AS INTEGER  'whether a script has modified this for the current map
   changed   AS INTEGER  'whether modified by Custom and not reloaded
+  hash      AS INTEGER  'used to store file_hash of last version loaded
 END TYPE
 
 TYPE LumpReloadOptions
-  gmap     AS LumpReloadState
+  gmap     AS LumpReloadState  '.hash not (can't) be used
   maptiles AS LumpReloadState
   passmap  AS LumpReloadState
   foemap   AS LumpReloadState  '.dirty ignored: can't be modified

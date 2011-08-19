@@ -2087,6 +2087,8 @@ SUB loadmap_gmap(mapnum)
 END SUB
 
 SUB loadmap_npcl(mapnum)
+ lump_reloading.npcl.changed = NO
+ lump_reloading.npcl.hash = hash_file(maplumpname(mapnum, "l"))
  LoadNPCL maplumpname$(mapnum, "l"), npc()
 
  'Evaluate whether NPCs should appear or disappear based on tags
@@ -2094,6 +2096,9 @@ SUB loadmap_npcl(mapnum)
 END SUB
 
 SUB loadmap_npcd(mapnum)
+ lump_reloading.npcd.dirty = NO
+ lump_reloading.npcd.changed = NO
+ lump_reloading.npcd.hash = hash_file(maplumpname(mapnum, "n"))
  LoadNPCD maplumpname$(mapnum, "n"), npcs()
 
  'Evaluate whether NPCs should appear or disappear based on tags
@@ -2105,7 +2110,8 @@ END SUB
 SUB loadmap_tilemap(mapnum)
  lump_reloading.maptiles.dirty = NO
  lump_reloading.maptiles.changed = NO
- LoadTileMaps maptiles(), maplumpname$(mapnum, "t")
+ lump_reloading.maptiles.hash = hash_file(maplumpname(mapnum, "t"))
+ LoadTileMaps maptiles(), maplumpname(mapnum, "t")
  mapsizetiles.w = maptiles(0).wide
  mapsizetiles.h = maptiles(0).high
  refresh_map_slice
@@ -2117,23 +2123,28 @@ END SUB
 SUB loadmap_passmap(mapnum)
  lump_reloading.passmap.dirty = NO
  lump_reloading.passmap.changed = NO
- LoadTileMap pass, maplumpname$(mapnum, "p")
+ lump_reloading.passmap.hash = hash_file(maplumpname(mapnum, "p"))
+ LoadTileMap pass, maplumpname(mapnum, "p")
 END SUB
 
 SUB loadmap_foemap(mapnum)
  lump_reloading.foemap.dirty = NO
  lump_reloading.foemap.changed = NO
- LoadTileMap foemap, maplumpname$(mapnum, "e")
+ lump_reloading.foemap.hash = hash_file(maplumpname(mapnum, "e"))
+ LoadTileMap foemap, maplumpname(mapnum, "e")
 END SUB
 
 SUB loadmap_zonemap(mapnum)
  lump_reloading.zonemap.dirty = NO
  lump_reloading.zonemap.changed = NO
  '.Z is the only one of the map lumps that has been added in about the last decade
- IF isfile(maplumpname(mapnum, "z")) THEN
-  LoadZoneMap zmap, maplumpname(mapnum, "z")
+ DIM filename as string = maplumpname(mapnum, "z")
+ IF isfile(filename) THEN
+  LoadZoneMap zmap, filename
+  lump_reloading.zonemap.hash = hash_file(filename)
  ELSE
   CleanZoneMap zmap, mapsizetiles.x, mapsizetiles.y
+  lump_reloading.zonemap.hash = 0
  END IF
 END SUB
 

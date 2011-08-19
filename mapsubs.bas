@@ -891,7 +891,13 @@ DO
      FOR i = 0 TO 299
       WITH st.npc_inst(i)
        IF .id > 0 THEN
-        IF .x = st.x * 20 AND .y = st.y * 20 THEN .id = 0: temp = 1
+        IF .x = st.x * 20 AND .y = st.y * 20 THEN
+         .id = 0
+         .x = 0
+         .y = 0
+         .dir = 0
+         temp = 1
+        END IF
        END IF
       END WITH
      NEXT i

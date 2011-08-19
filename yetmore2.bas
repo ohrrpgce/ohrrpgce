@@ -751,6 +751,7 @@ SUB reloadmap_npcl(byval merge as integer)
  safekill mapstatetemp(gam.map.id, "map") + "_l.reld.tmp"
 
  DIM filename as string = maplumpname(gam.map.id, "l")
+ lump_reloading.npcl.hash = hash_file(filename)
  IF merge THEN
   DIM npcnew(UBOUND(npc)) as NPCInst
   DIM npcbase(UBOUND(npc)) as NPCInst
@@ -783,7 +784,9 @@ SUB reloadmap_npcd()
  'Delete saved state to prevent regressions
  safekill mapstatetemp(gam.map.id, "map") + "_n.tmp"
 
- LoadNPCD maplumpname(gam.map.id, "n"), npcs()
+ DIM filename as string = maplumpname(gam.map.id, "n")
+ lump_reloading.npcd.hash = hash_file(filename)
+ LoadNPCD filename, npcs()
 
  'Evaluate whether NPCs should appear or disappear based on tags
  visnpc
@@ -801,6 +804,7 @@ SUB reloadmap_tilemap_and_tilesets(byval merge as integer)
   lump_reloading.maptiles.changed = NO
 
   DIM filename as string = maplumpname(gam.map.id, "t")
+  lump_reloading.maptiles.hash = hash_file(filename)
   IF merge THEN
    'Note: Its possible for this to fail if the number of layers differs
    MergeTileMaps maptiles(), filename, tmpdir + "mapbackup.t"
@@ -834,6 +838,7 @@ SUB reloadmap_passmap(byval merge as integer)
   lump_reloading.passmap.changed = NO
 
   DIM filename as string = maplumpname(gam.map.id, "p")
+  lump_reloading.passmap.hash = hash_file(filename)
   IF merge THEN
    MergeTileMap pass, filename, tmpdir + "mapbackup.p"
   ELSE
@@ -853,7 +858,9 @@ SUB reloadmap_foemap()
  IF tilemap_is_same_size("e", "foemap") THEN
   lump_reloading.foemap.changed = NO
   lump_reloading.foemap.dirty = NO
-  LoadTileMap foemap, maplumpname(gam.map.id, "e")
+  DIM filename as string = maplumpname(gam.map.id, "e")
+  LoadTileMap foemap, filename
+  lump_reloading.foemap.hash = hash_file(filename)
  END IF
 END SUB
 
@@ -866,10 +873,13 @@ SUB reloadmap_zonemap()
  safekill mapstatetemp(gam.map.id, "map") + "_z.tmp"
 
  '.Z is the only one of the map lumps that has been added in about the last decade
- IF isfile(maplumpname(gam.map.id, "z")) THEN
-  LoadZoneMap zmap, maplumpname(gam.map.id, "z")
+ DIM filename as string = maplumpname(gam.map.id, "z")
+ IF isfile(filename) THEN
+  LoadZoneMap zmap, filename
+  lump_reloading.zonemap.hash = hash_file(filename)
  ELSE
   CleanZoneMap zmap, mapsizetiles.x, mapsizetiles.y
+  lump_reloading.zonemap.hash = 0
  END IF
 END SUB
 
@@ -1222,8 +1232,11 @@ FUNCTION try_reload_map_lump(base as string, extn as string) as integer
 
   'This is one of the current map's lumps
 
+  DIM newhash as integer = hash_file(workingdir + base + "." + extn)
+
   SELECT CASE typecode
    CASE "t"  '--all modes supported
+    IF .maptiles.hash = newhash THEN RETURN YES
     .maptiles.changed = YES
     IF .maptiles.dirty THEN
      IF .maptiles.mode = loadmodeAlways THEN reloadmap_tilemap_and_tilesets NO
@@ -1233,6 +1246,7 @@ FUNCTION try_reload_map_lump(base as string, extn as string) as integer
     END IF
 
    CASE "p"  '--all modes supported
+    IF .passmap.hash = newhash THEN RETURN YES
     .passmap.changed = YES
     IF .passmap.dirty THEN
      IF .passmap.mode = loadmodeAlways THEN reloadmap_passmap NO
@@ -1242,10 +1256,12 @@ FUNCTION try_reload_map_lump(base as string, extn as string) as integer
     END IF
 
    CASE "e"  '--never/always only
+    IF .foemap.hash = newhash THEN RETURN YES
     .foemap.changed = YES
     IF .foemap.mode = loadmodeAlways THEN reloadmap_foemap
 
    CASE "z"  '--never/always/if unchanged only
+    IF .zonemap.hash = newhash THEN RETURN YES
     .zonemap.changed = YES
     IF .zonemap.dirty THEN
      IF .zonemap.mode = loadmodeAlways THEN reloadmap_zonemap
@@ -1254,10 +1270,12 @@ FUNCTION try_reload_map_lump(base as string, extn as string) as integer
     END IF
 
    CASE "l"  '--never/always/merge only
+    IF .npcl.hash = newhash THEN RETURN YES
     .npcl.changed = YES
     IF .npcl.mode <> loadmodeNever THEN reloadmap_npcl (.npcl.mode = loadmodeMerge)
 
    CASE "n"  '--never/always/if unchanged only
+    IF .npcd.hash = newhash THEN RETURN YES
     .npcd.changed = YES
     IF .npcd.dirty THEN
      IF .npcd.mode = loadmodeAlways THEN reloadmap_npcd
