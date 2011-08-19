@@ -15,6 +15,14 @@ declare function hasmedia (drive as string) as integer
 
 declare sub setwriteable (fname as string)
 
+'C FILE* type. Can be retrieved with FILEATTR from a FB filehandle
+type CFILE_ptr as any ptr
+
+'Advisory locking (actually mandatory on Windows).
+declare function lock_file_for_write (byval fh as CFILE_ptr, byval timeout_ms as integer) as integer
+declare function lock_file_for_read (byval fh as CFILE_ptr, byval timeout_ms as integer) as integer
+declare sub unlock_file (byval fh as CFILE_ptr)
+
 #ifdef __FB_WIN32__
 type ProcessHandle as PROCESS_INFORMATION ptr
 type IPCChannel as integer   'dummy type
@@ -24,7 +32,6 @@ type ProcessHandle as integer  'dummy type
 type IPCChannel as any ptr   'actually FILE*
 #define NULL_CHANNEL NULL
 #endif
-
 
 declare function channel_open_read (name as string, byval result as IPCChannel ptr) as integer
 declare function channel_open_write (name as string, byval result as IPCChannel ptr) as integer

@@ -4,6 +4,7 @@
 #include "os.bi"
 #include "config.bi"
 #include "crt/limits.bi"
+#include "crt/stdio.bi"
 #include "common.bi"
 #include "allmodex.bi"
 #include "util.bi"
@@ -75,6 +76,47 @@ sub setwriteable (fname as string)
 		dim errstr as string = get_windows_error()
 		debug "SetFileAttributes(" & fname & ") failed: " & errstr
 	end if
+end sub
+
+
+'Advisory locking (actually mandatory on Windows).
+
+private function get_file_handle (byval fh as CFILE_ptr) as integer
+	return get_osfhandle(fileno(fh))
+end function
+	
+function lock_file_for_write (byval fh as CFILE_ptr, byval timeout_ms as integer, byval flag as integer, funcname as string) as integer
+	dim fhandle as integer = get_file_handle(fh)
+	dim timeout as integer = GetTickCount() + timeout_ms
+	dim overlapped as LPOVERLAPPED
+	overlapped.hEvent = 0
+	overlapped.offset = 0  'specify beginning of file
+	overlapped.offsetHigh = 0
+	do
+		if (LockFile(fhandle, OR LOCKFILE_FAIL_IMMEDIATELY, 0, &hffffffff, 0, @overlapped))
+			return YES
+		end if
+		if GetLastError() <> ERROR_IO_PENDING then
+			dim errstr as string = get_windows_error()
+			debug funcname & ": LockFile() failed: " & errstr
+			return NO
+		end if
+		Sleep(0)
+	while GetTickCount() < timeout
+	debug funcname & ": timed out"
+	return NO
+end function
+
+function lock_file_for_write (byval fh as CFILE_ptr, byval timeout_ms as integer) as integer
+	return lock_file_base(fh, timeout_ms, LOCKFILE_EXCLUSIVE_LOCK, "lock_file_for_write")
+end function
+
+function lock_file_for_read (byval fh as CFILE_ptr, byval timeout_ms as integer) as integer
+	return lock_file_base(fh, timeout_ms, 0, "lock_file_for_read")
+end function
+
+sub unlock_file (byval fh as CFILE_ptr)
+	UnLockFile(get_file_handle(fh), 0, 0, &hffffffff, 0)
 end sub
 
 

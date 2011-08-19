@@ -1,4 +1,4 @@
-//OHHRPGCE COMMON - Generic Unix versions of OS-specific routines
+//OHRRPGCE COMMON - Generic Unix versions of OS-specific routines
 //Please read LICENSE.txt for GNU GPL License details and disclaimer of liability
 
 #ifndef OS_H
@@ -7,6 +7,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <stdio.h>
 
 #ifdef _WIN32
 
@@ -19,6 +21,12 @@ typedef FILE *IPCChannel;
 #define NULL_CHANNEL NULL
 
 #endif
+
+//Advisory locking (actually mandatory on Windows)
+int lock_file_for_write(FILE *fh, int timeout_ms);
+int lock_file_for_read(FILE *fh, int timeout_ms);
+void unlock_file(FILE *fh);
+
 
 int channel_open_read(FBSTRING *name, IPCChannel *result);
 int channel_open_write(FBSTRING *name, IPCChannel *result);

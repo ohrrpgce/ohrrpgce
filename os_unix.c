@@ -2,10 +2,13 @@
 //Please read LICENSE.txt for GNU GPL License details and disclaimer of liability
 
 #define _POSIX_SOURCE  // for fdopen
+#define _BSD_SOURCE  // for usleep
 //fb_stub.h MUST be included first, to ensure fb_off_t is 64 bit
 #include "fb/fb_stub.h"
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/file.h>
+#include <sys/time.h>
 #include <errno.h>
 #include "common.h"
 #include "os.h"
@@ -42,6 +45,46 @@ void setwriteable (FBSTRING *fname) {
 	//Not written because I don't know whether it's actually needed: does
 	//filecopy on Unix also copy file permissions?
 	fb_hStrDelTemp(fname);
+}
+
+
+
+static long long milliseconds() {
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return (long long)tv.tv_sec * 1000 + tv.tv_usec / 1000;
+}
+
+// Advisory locking
+
+static int lock_file_base(FILE *fh, int timeout_ms, int flag, char *funcname) {
+	int fd = fileno(fh);
+	long long timeout = milliseconds() + timeout_ms;
+	do {
+		if (!flock(fd, flag | LOCK_NB))
+			return 1;
+		if (errno != EWOULDBLOCK && errno != EINTR) {
+			debuginfo("%s: error: %s", funcname, strerror(errno));
+			return 0;
+		}
+		usleep(10000);
+	} while (milliseconds() < timeout);
+	debuginfo("%s: timed out", funcname);
+	return 0;
+}
+
+//Returns true on success
+int lock_file_for_write(FILE *fh, int timeout_ms) {
+	return lock_file_base(fh, timeout_ms, LOCK_EX, "lock_file_for_write");
+}
+
+//Returns true on success
+int lock_file_for_read(FILE *fh, int timeout_ms) {
+	return lock_file_base(fh, timeout_ms, LOCK_SH, "lock_file_for_read");
+}
+
+void unlock_file(FILE *fh) {
+	flock(fileno(fh), LOCK_UN);
 }
 
 
