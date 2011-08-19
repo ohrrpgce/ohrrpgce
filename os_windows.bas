@@ -1,15 +1,16 @@
 'OHHRPGCE COMMON - Windows versions of OS-specific routines
 'Please read LICENSE.txt for GNU GPL License details and disclaimer of liability
 
-#include "os.bi"
 #include "config.bi"
+include_windows_bi()
+#include "os.bi"
 #include "crt/limits.bi"
 #include "crt/stdio.bi"
+#include "crt/io.bi"
 #include "common.bi"
 #include "allmodex.bi"
 #include "util.bi"
 #include "const.bi"
-include_windows_bi()
 
 option explicit
 
@@ -87,19 +88,19 @@ end function
 
 'Advisory locking (actually mandatory on Windows).
 
-private function get_file_handle (byval fh as CFILE_ptr) as integer
-	return get_osfhandle(fileno(fh))
+private function get_file_handle (byval fh as CFILE_ptr) as HANDLE
+	return cast(HANDLE, _get_osfhandle(_fileno(fh)))
 end function
 	
-function lock_file_for_write (byval fh as CFILE_ptr, byval timeout_ms as integer, byval flag as integer, funcname as string) as integer
-	dim fhandle as integer = get_file_handle(fh)
+private function lock_file_base (byval fh as CFILE_ptr, byval timeout_ms as integer, byval flag as integer, funcname as string) as integer
+	dim fhandle as HANDLE = get_file_handle(fh)
 	dim timeout as integer = GetTickCount() + timeout_ms
-	dim overlapped as LPOVERLAPPED
-	overlapped.hEvent = 0
-	overlapped.offset = 0  'specify beginning of file
-	overlapped.offsetHigh = 0
+	dim overlappedinfo as OVERLAPPED
+	overlappedinfo.hEvent = 0
+	overlappedinfo.offset = 0  'specify beginning of file
+	overlappedinfo.offsetHigh = 0
 	do
-		if (LockFile(fhandle, OR LOCKFILE_FAIL_IMMEDIATELY, 0, &hffffffff, 0, @overlapped))
+		if (LockFileEx(fhandle, LOCKFILE_FAIL_IMMEDIATELY, 0, &hffffffff, 0, @overlappedinfo)) then
 			return YES
 		end if
 		if GetLastError() <> ERROR_IO_PENDING then
@@ -108,7 +109,7 @@ function lock_file_for_write (byval fh as CFILE_ptr, byval timeout_ms as integer
 			return NO
 		end if
 		Sleep(0)
-	while GetTickCount() < timeout
+	loop while GetTickCount() < timeout
 	debug funcname & ": timed out"
 	return NO
 end function
@@ -138,22 +139,22 @@ end function
 
 'WRITEME: NOT IMPLEMENTED
 
-function channel_open_read (name as string, byval result as IPCChannel ptr) as integer
+function channel_open_read (chan_name as string, byval result as IPCChannel ptr) as integer
 	return 0
 end function
 
-function channel_open_write (name as string, byval result as IPCChannel ptr) as integer
+function channel_open_write (chan_name as string, byval result as IPCChannel ptr) as integer
 	return 0
 end function
 
 sub channel_close (byval channel as IPCChannel ptr)
-end function
+end sub
 
 function channel_write (byval channel as IPCChannel, byval buf as byte ptr, byval buflen as integer) as integer
 	return 0
 end function
 
-function channel_input_line (byval channel as IPCChannel, output as string) as integer         
+function channel_input_line (byval channel as IPCChannel, line_in as string) as integer
 	return 0
 end function
 

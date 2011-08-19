@@ -37,11 +37,11 @@ type IPCChannel as any ptr   'actually FILE*
 #define NULL_CHANNEL NULL
 #endif
 
-declare function channel_open_read (name as string, byval result as IPCChannel ptr) as integer
-declare function channel_open_write (name as string, byval result as IPCChannel ptr) as integer
+declare function channel_open_read (chan_name as string, byval result as IPCChannel ptr) as integer
+declare function channel_open_write (chan_name as string, byval result as IPCChannel ptr) as integer
 declare sub channel_close (byval channel as IPCChannel ptr)
 declare function channel_write (byval channel as IPCChannel, byval buf as byte ptr, byval buflen as integer) as integer
-declare function channel_input_line (byval channel as IPCChannel, output as string) as integer
+declare function channel_input_line (byval channel as IPCChannel, line_in as string) as integer
 
 
 declare function open_console_process (program as string, args as string) as ProcessHandle
