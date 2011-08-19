@@ -1005,7 +1005,7 @@ FUNCTION newRPGfile (templatefile$, newrpg$)
   w = getkey
   EXIT FUNCTION
  END IF
- writeablefilecopy templatefile$, newrpg$
+ writeablecopyfile templatefile$, newrpg$
  printstr "Unlumping", 0, 60, vpage
  setvispage vpage 'refresh
  unlump newrpg$, workingdir + SLASH
@@ -1039,7 +1039,7 @@ SUB dolumpfiles (filetolump as string)
   END IF
   FOR i AS INTEGER = 0 TO UBOUND(filelist)
    safekill filetolump + SLASH + filelist(i)
-   filecopy workingdir + SLASH + filelist(i), filetolump + SLASH + filelist(i)
+   copyfile workingdir + SLASH + filelist(i), filetolump + SLASH + filelist(i)
    'FIXME: move file instead? (warning: can't move from different mounted filesystem)
   NEXT
  ELSE

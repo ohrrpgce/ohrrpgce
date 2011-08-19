@@ -3685,7 +3685,7 @@ SUB fontedit_export_font(font() AS INTEGER)
 
  IF newfont <> "" THEN
   xbsave game & ".fnt", font(), 2048
-  filecopy game & ".fnt", newfont & ".ohf"
+  copyfile game & ".fnt", newfont & ".ohf"
  END IF
 
 END SUB
@@ -3696,7 +3696,7 @@ SUB fontedit_import_font(font() AS INTEGER)
  DIM newfont AS STRING = browse(0, default, "*.ohf", "", , "browse_font")
  
  IF newfont <> "" THEN
-  writeablefilecopy newfont, game & ".fnt"
+  writeablecopyfile newfont, game & ".fnt"
 
   DIM i AS INTEGER
   DIM font_tmp(1024) AS INTEGER
@@ -3752,7 +3752,7 @@ SUB cropafter (BYVAL index AS INTEGER, BYREF limit AS INTEGER, BYVAL flushafter 
  END IF
  limit = index
 
- filecopy tmpdir & "_cropped.tmp", lump
+ copyfile tmpdir & "_cropped.tmp", lump
  safekill tmpdir & "_cropped.tmp"
 END SUB
 

@@ -24,6 +24,8 @@ extern "C" {
   typedef FBCALL int (*FnStringPredicate)(FBSTRING *filename);
   typedef FBCALL int (*FnOpenCallback)(FBSTRING *filename, int writable);
 
+  void send_lump_modified_msg(const char *filename);
+  int copyfile(FBSTRING *source, FBSTRING *destination);
   void set_OPEN_hook_filter(FnOpenCallback lumpfile_filter, int lump_writes_allowed);
   void set_lump_updates_channel(IPCChannel channel);
 

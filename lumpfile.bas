@@ -428,7 +428,7 @@ end sub
 
 /'
 sub FileLump_unlumpfile(byref this as FileLump, whereto as string)
-	writeablefilecopy this.index->unlumpeddir + this.lumpname, whereto + this.lumpname
+	writeablecopyfile this.index->unlumpeddir + this.lumpname, whereto + this.lumpname
 end sub
 '/
 
@@ -764,7 +764,7 @@ sub copylump(package as string, lump as string, dest as string, ignoremissing as
 		if ignoremissing then
 			if not isfile(package + SLASH + lump) then exit sub
 		end if
-		writeablefilecopy package + SLASH + lump, dest + lump
+		writeablecopyfile package + SLASH + lump, dest + lump
 	else
 		'lumpfile
 		unlumpfile package, lump, dest

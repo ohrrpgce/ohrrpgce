@@ -2764,7 +2764,7 @@ IF NOT isfile(game + ".veh") THEN
  IF templatefile <> "" THEN
   unlumpfile(templatefile, "ohrrpgce.veh", tmpdir)
   'Recall it's best to avoid moving files across filesystems
-  filecopy tmpdir & SLASH & "ohrrpgce.veh", game & ".veh"
+  copyfile tmpdir & SLASH & "ohrrpgce.veh", game & ".veh"
   safekill tmpdir & SLASH & "ohrrpgce.veh"
   gen(genMaxVehicle) = 2
  END IF

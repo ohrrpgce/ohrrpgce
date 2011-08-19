@@ -20,6 +20,8 @@ typedef int ProcessHandle;
 //                                       Filesystem
 //==========================================================================================
 
+// I think all the fb_hStrDelTemp paranoia in the following is actually unnecessary...
+// FB has a special calling convention for rtlib functions with different string passing? FBCALL?
 
 int drivelist (void *drives_array) {
 	// on Unix there is only one drive, the root /
@@ -42,12 +44,69 @@ int hasmedia (FBSTRING *drive) {
 }
 
 void setwriteable (FBSTRING *fname) {
-	//Not written because I don't know whether it's actually needed: does
-	//filecopy on Unix also copy file permissions?
+	//(FB's) filecopy on Unix does not copy file permissions, so this isn't needed
 	fb_hStrDelTemp(fname);
 }
 
 
+//(setq c-basic-offset 8)
+//(setq indent-tabs-mode t)
+
+#define COPYBUF_SIZE 4096
+char copybuf[COPYBUF_SIZE];
+
+//A file copy function which deals safely with the case where the file is open already. On Unix, unlink first.
+//
+//Based on FB's Unix FileCopy function.
+//No reason for this to exist rather than just call remove and fb_FileCopy...
+//Originally I was going to do file locking, but that's unneeded on Unix.
+//Well, at least it has lots of added error printing
+int copy_file_replacing(const char *source, const char *destination) {
+	FILE *src, *dst = NULL;
+	long len;
+	size_t bytes_to_copy;
+	
+	if (remove(destination)) {
+		if (errno != ENOENT) {
+			debug(2, "error while trying remove(%s): %s", destination, strerror(errno));
+			//Can try continuing...
+		}
+	}
+	
+	if (!(src = fopen(source, "rb"))) {
+		debug(2, "copy_file_replacing: could not fopen(%s, r): %s", source, strerror(errno));
+		return 0;
+	}
+
+	fseek(src, 0, SEEK_END);
+	len = ftell(src);
+	fseek(src, 0, SEEK_SET);
+	
+	if (!(dst = fopen(destination, "wb"))) {
+		debug(2, "copy_file_replacing: could not fopen(%s, w): %s", destination, strerror(errno));
+		goto err;
+	}
+	
+	while (len > 0) {
+		bytes_to_copy = (len >= COPYBUF_SIZE) ? COPYBUF_SIZE : len;
+		if (fread(copybuf, 1, bytes_to_copy, src) != bytes_to_copy) {
+			debug(2, "copy_file_replacing: fread(%s) error: %s", source, strerror(errno));
+			goto err;
+		}
+		if (fwrite(copybuf, 1, bytes_to_copy, dst) != bytes_to_copy) {
+			debug(2, "copy_file_replacing: fwrite(%s) error: %s", destination, strerror(errno));
+			goto err;
+		}
+		len -= bytes_to_copy;
+	}	
+	fclose(src);
+	fclose(dst);
+	return 1;
+ err:
+	if (src) fclose(src);
+	if (dst) fclose(dst);
+	return 0;
+}
 
 static long long milliseconds() {
 	struct timeval tv;
@@ -143,7 +202,7 @@ void channel_close(IPCChannel *channel) {
 }
 
 //Returns true on success
-int channel_write(IPCChannel channel, char *buf, int buflen) {
+int channel_write(IPCChannel channel, const char *buf, int buflen) {
   if (fwrite(buf, buflen, 1, channel) == 0) {
     // whole write didn't occur  FIXME: this doesn't seem correct
     debuginfo("channel_write failed: %s\n", strerror(errno));

@@ -78,6 +78,12 @@ sub setwriteable (fname as string)
 	end if
 end sub
 
+'A file copy function which deals safely with the case where the file is open already.
+function copy_file_replacing(byval source as zstring ptr, byval destination as zstring ptr) as integer
+	'Haven't yet decided how to handle this on Windows...
+	return filecopy(source, destination)
+end function
+
 
 'Advisory locking (actually mandatory on Windows).
 

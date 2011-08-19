@@ -8,6 +8,9 @@
 
 extern "C"
 
+'Actually in filelayer.cpp
+declare function copyfile(source as string, destination as string) as integer
+
 declare function drivelist (d() as string) as integer
 declare function drivelabel (drive as string) as string
 declare function isremovable (drive as string) as integer

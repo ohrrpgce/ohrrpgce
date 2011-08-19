@@ -22,6 +22,8 @@ typedef FILE *IPCChannel;
 
 #endif
 
+int copy_file_replacing(const char *source, const char *destination);
+
 //Advisory locking (actually mandatory on Windows)
 int lock_file_for_write(FILE *fh, int timeout_ms);
 int lock_file_for_read(FILE *fh, int timeout_ms);
@@ -32,7 +34,7 @@ int test_locked(const char *filename, int writable);
 int channel_open_read(FBSTRING *name, IPCChannel *result);
 int channel_open_write(FBSTRING *name, IPCChannel *result);
 void channel_close(IPCChannel *channel);
-int channel_write(IPCChannel channel, char *buf, int buflen);
+int channel_write(IPCChannel channel, const char *buf, int buflen);
 int channel_input_line(IPCChannel channel, FBSTRING *output);
 
 #ifdef __cplusplus

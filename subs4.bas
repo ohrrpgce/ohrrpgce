@@ -420,6 +420,7 @@ DO
     'setupmusic
     safekill songfile$
     safekill bamfile$
+    IF slave_channel <> NULL_CHANNEL THEN send_lump_modified_msg(songfile$)  'only need to send any valid filename for this song
     GOSUB getsonginfo
    END IF
   END IF
@@ -552,7 +553,7 @@ ELSE
 END IF
 
 'Copy in new lump
-filecopy sourcesong$, songfile$
+copyfile sourcesong$, songfile$
 
 IF oggtemp <> "" THEN KILL oggtemp
 
@@ -572,7 +573,7 @@ IF bamfile$ <> songfile$ AND bamfile$ <> "" THEN
 END IF
 outfile$ = inputfilename(query$, file_ext$, "", "input_file_export_song")
 IF outfile$ = "" THEN RETRACE
-filecopy songfile$, outfile$ + file_ext$
+copyfile songfile$, outfile$ + file_ext$
 RETRACE
 
 ssongdata:
@@ -734,7 +735,7 @@ sname$ = a$
 sfxfile$ = workingdir + SLASH + "sfx" + STR$(snum) + "." + LCASE(justextension$(sourcesfx$))
 
 '--copy in the new lump
-filecopy sourcesfx$, sfxfile$
+copyfile sourcesfx$, sfxfile$
 
 IF oggtemp <> "" THEN KILL oggtemp
 
@@ -747,7 +748,7 @@ exportsfx:
 query$ = "Name of file to export to?"
 outfile$ = inputfilename(query$, file_ext$, "", "input_file_export_sfx")
 IF outfile$ = "" THEN RETRACE
-filecopy sfxfile$, outfile$ + file_ext$
+copyfile sfxfile$, outfile$ + file_ext$
 RETRACE
 
 ssfxdata:

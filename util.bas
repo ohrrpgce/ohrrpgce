@@ -1064,8 +1064,8 @@ SUB findfiles (directory AS STRING, namemask AS STRING = "", BYVAL filetype AS I
 #endif
 END SUB
 
-SUB writeablefilecopy(src as string, dest as string)
- filecopy src, dest
+SUB writeablecopyfile(src as string, dest as string)
+ copyfile src, dest
  setwriteable dest
 END SUB
 
@@ -1074,7 +1074,7 @@ SUB copyfiles(src as string, dest as string, byval copyhidden as integer = 0)
  DIM filelist() as string
  findfiles src, ALLFILES, fileTypeFile, copyhidden, filelist()
  FOR i as integer = 0 TO UBOUND(filelist)
-  writeablefilecopy src + SLASH + filelist(i), dest + SLASH + filelist(i)
+  writeablecopyfile src + SLASH + filelist(i), dest + SLASH + filelist(i)
  NEXT
 END SUB
 

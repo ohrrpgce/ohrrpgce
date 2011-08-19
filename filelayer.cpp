@@ -27,6 +27,11 @@ const char *trimpath(const char *filename) {
 	return ret;
 }
 
+void send_lump_modified_msg(const char *filename) {
+	string buf = string("M ") + trimpath(filename) + "\n";
+	channel_write(lump_updates_channel, buf.c_str(), buf.size());
+}
+
 int file_wrapper_close(FB_FILE *handle) {
 	assert(openfiles.count(handle));
 	FileInfo &info = openfiles[handle];
@@ -37,13 +42,7 @@ int file_wrapper_close(FB_FILE *handle) {
 	}
 	if (info.dirty && lump_updates_channel != NULL_CHANNEL) {
 		//fprintf(stderr, "%s was dirty\n", info.name.c_str());
-		char buf[256];
-		int len = snprintf(buf, 256, "M %s\n", trimpath(info.name.c_str()));
-		if (len > 255) {
-			len = 255;
-			buf[254] = '\n';
-		}
-		channel_write(lump_updates_channel, buf, len);
+		send_lump_modified_msg(info.name.c_str());
 	}
 	//debuginfo("unlocking %s", info.name.c_str());
 	unlock_file((FILE *)handle->opaque);  // Only needed on Windows
@@ -149,6 +148,17 @@ FBCALL int OPEN_hook(FBSTRING *filename,
 	if (pfnLumpfileFilter(filename, writable ? -1 : 0))
 		*pfnFileOpen = lump_file_opener;
 	return 0;  // Success. We don't know any FB error codes, and we don't want to use them anyway
+}
+
+// A replacement for FB's filecopy which sends modification messages and deals with open files
+int copyfile(FBSTRING *source, FBSTRING *destination) {
+	if (pfnLumpfileFilter && pfnLumpfileFilter(destination, -1)) {
+		int ret = copy_file_replacing(source->data, destination->data);
+		if (ret)
+			send_lump_modified_msg(destination->data);
+		return ret;
+	}
+	return fb_FileCopy(source->data, destination->data);
 }
 
 void set_OPEN_hook_filter(FnOpenCallback lumpfile_filter, int lump_writes_allowed) {

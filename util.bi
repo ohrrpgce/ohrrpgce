@@ -268,7 +268,7 @@ declare function anycase (filename as string) as string
 declare sub touchfile (filename as string)
 declare sub extendfile (byval fh as integer, byval length as integer)
 declare sub findfiles (directory AS STRING, namemask AS STRING = "", BYVAL filetype AS INTEGER = fileTypeFile, BYVAL findhidden AS INTEGER = 0, filelist() AS STRING)
-declare sub writeablefilecopy (src as string, dest as string)
+declare sub writeablecopyfile (src as string, dest as string)
 declare sub copyfiles (src as string, dest as string, byval copyhidden as integer = 0)
 declare sub killdir (directory as string)
 declare function makedir (directory as string) as integer
