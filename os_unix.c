@@ -302,6 +302,15 @@ int channel_write(PipeState **channelp, const char *buf, int buflen) {
 	return 1;
 }
 
+//Returns true on success. Automatically appends a newline
+int channel_write_line(PipeState **channelp, FBSTRING *buf) {
+	//Temporarily replace NULL byte with a newline
+	buf->data[FB_STRSIZE(buf)] = '\n';
+	int ret = channel_write(channelp, buf->data, FB_STRSIZE(buf) + 1);
+	buf->data[FB_STRSIZE(buf)] = '\0';
+	return ret;
+}
+
 //Returns true on reading a line
 int channel_input_line(PipeState **channelp, FBSTRING *output) {
 	if (!*channelp) return 0;

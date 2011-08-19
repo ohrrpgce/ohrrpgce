@@ -364,8 +364,8 @@ SUB delete_song (BYVAL songnum as integer, songfile AS STRING)
  #IFDEF __FB_WIN32__
   'Only needed on windows, and not currently implemented on unix anyway
   IF slave_channel <> NULL_CHANNEL THEN
-   DIM msg as string = "CM " & songnum & !"\n"
-   IF channel_write(slave_channel, msg, LEN(msg)) THEN
+   DIM msg as string = "CM " & songnum
+   IF channel_write_line(slave_channel, msg) THEN
     channel_wait_for_msg(slave_channel, "CM ", "", 1500)
    END IF
   END IF

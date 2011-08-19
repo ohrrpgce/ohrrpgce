@@ -52,7 +52,8 @@ declare function channel_open_client (byref channel as IPCChannel, chan_name as 
 declare function channel_open_server (byref channel as IPCChannel, chan_name as string) as integer
 declare sub channel_close (byref channel as IPCChannel)
 declare function channel_wait_for_client_connection (byref channel as IPCChannel, byval timeout_ms as integer) as integer
-declare function channel_write (byref channel as IPCChannel, byval buf as zstring ptr, byval buflen as integer) as integer
+declare function channel_write (byref channel as IPCChannel, byval buf as any ptr, byval buflen as integer) as integer
+declare function channel_write_line (byref channel as IPCChannel, buf as string) as integer
 declare function channel_input_line (byref channel as IPCChannel, line_in as string) as integer
 
 

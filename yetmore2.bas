@@ -1113,8 +1113,7 @@ SUB receive_file_updates ()
    DIM songnum as integer = str2int(MID(line_in, 4))
    IF songnum = presentsong THEN music_stop
    'Send confirmation
-   line_in += !"\n"
-   channel_write(master_channel, strptr(line_in), LEN(line_in))
+   channel_write_line(master_channel, line_in)
   ELSEIF LEFT(line_in, 1) = "Q" THEN   'quit!
    music_stop
    'DIR might be holding a handle for the last directory on which it was run, which could prevent
@@ -1123,7 +1122,7 @@ SUB receive_file_updates ()
     DIM dummy as string = DIR("C:\")
    #ENDIF
    'Send confirmation
-   channel_write(master_channel, @!"Q\n", 2)
+   channel_write_line(master_channel, "Q ")
    channel_close(master_channel)
    EXIT WHILE
   ELSEIF LEFT(line_in, 2) = "P " THEN   'ping

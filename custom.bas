@@ -545,7 +545,7 @@ SYSTEM
 
 finis:
 IF slave_channel <> NULL_CHANNEL THEN
- channel_write(slave_channel, @!"Q\n", 2)
+ channel_write_line(slave_channel, "Q ")
  #IFDEF __FB_WIN32__
   'On windows, can't delete workingdir until Game has closed the music. Not too serious though
   basic_textbox "Waiting for " & GAMEEXE & " to clean up...", uilook(uiText), vpage

@@ -41,6 +41,7 @@ int channel_open_server(IPCChannel *result, FBSTRING *name);
 void channel_close(IPCChannel *channelp);
 int channel_wait_for_client_connection(IPCChannel *channel, int timeout_ms);
 int channel_write(IPCChannel *channel, const char *buf, int buflen);
+int channel_write_string(IPCChannel *channel, FBSTRING *input);
 int channel_input_line(IPCChannel *channel, FBSTRING *output);
 
 ProcessHandle open_process (FBSTRING *program, FBSTRING *args);

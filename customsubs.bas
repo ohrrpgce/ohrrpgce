@@ -4032,18 +4032,18 @@ SUB spawn_game
  'Write version info
  DIM tmp as string
  'msgtype magickey,proto_ver,program_ver,version_string
- tmp = "V OHRRPGCE," & CURRENT_TESTING_IPC_VERSION & "," & version_revision & "," & version & !"\n"
- IF channel_write(slave_channel, tmp, LEN(tmp)) = 0 THEN
+ tmp = "V OHRRPGCE," & CURRENT_TESTING_IPC_VERSION & "," & version_revision & "," & version
+ IF channel_write_line(slave_channel, tmp) = 0 THEN
   'good idea to test writing is working at least once
   notification "Channel write failure; aborting"
   channel_close slave_channel
   cleanup_process @slave_process
   EXIT SUB
  END IF
- tmp = "G " & sourcerpg & !"\n"
- channel_write(slave_channel, tmp, LEN(tmp))
- tmp = "W " & workingdir & !"\n"
- channel_write(slave_channel, tmp, LEN(tmp))
+ tmp = "G " & sourcerpg
+ channel_write_line(slave_channel, tmp)
+ tmp = "W " & workingdir
+ channel_write_line(slave_channel, tmp)
 
  IF slave_channel <> NULL_CHANNEL THEN
   'If we got this far, start sending lump updates and locking files before writing
@@ -4053,7 +4053,7 @@ END SUB
 
 SUB spawn_game_menu
  'Prod the channel to see whether it's still up (send ping)
- channel_write(slave_channel, !"P \n", 3)
+ channel_write_line(slave_channel, "P ")
 
  IF slave_channel <> NULL_CHANNEL THEN
   notification "Game is already running! Running multiple test copies of a game is not yet supported."

@@ -289,7 +289,7 @@ sub channel_close (byref channel as NamedPipeInfo ptr)
 end sub
 
 'Returns true on success
-function channel_write (byref channel as NamedPipeInfo ptr, byval buf as zstring ptr, byval buflen as integer) as integer
+function channel_write (byref channel as NamedPipeInfo ptr, byval buf as any ptr, byval buflen as integer) as integer
 	if channel = NULL then return NO
 
 	dim as integer res, written
@@ -304,6 +304,16 @@ function channel_write (byref channel as NamedPipeInfo ptr, byval buf as zstring
 	end if
 	'debuginfo "channel_write: " & written & " of " & buflen & " " & get_windows_error()
 	return YES
+end function
+
+'Returns true on success
+'Automatically appends a newline.
+function channel_write_line (byref channel as NamedPipeInfo ptr, buf as string) as integer
+	'Temporarily replace NULL byte with a newline
+	buf[LEN(buf)] = 10
+	dim ret as integer = channel_write(channel, @buf(0), LEN(buf) + 1)
+	buf[LEN(buf)] = 0
+	return ret
 end function
 
 'Read until the next newline (result in line_in) and return true, or return false if nothing to read
