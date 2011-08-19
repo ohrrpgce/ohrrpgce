@@ -16,7 +16,7 @@ FBFLAGS = os.environ.get ('FBFLAGS', []) + ['-mt','-g']
 CC = ''
 CXX = ''
 CFLAGS = '-g --std=c99'.split ()
-CXXFLAGS = '-Wall -Wno-non-virtual-dtor'.split ()
+CXXFLAGS = '-g -Wall -Wno-non-virtual-dtor'.split ()
 C_opt = True    # compile with -O2?
 FB_exx = True   # compile with -exx?
 envextra = {}
@@ -218,7 +218,7 @@ game_modules = ['game',
                 'savegame',
                 'hsinterpreter']
 
-common_modules += ['filelayer.c']
+common_modules += ['filelayer.cpp']
 
 if 'raster' in ARGUMENTS:
     common_modules += ['rasterizer.cpp', 'matrixMath.cpp', 'gfx_newRenderPlan.cpp']

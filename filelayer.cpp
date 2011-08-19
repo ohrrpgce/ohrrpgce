@@ -1,32 +1,39 @@
-#include "fb/fb_stub.h"
+/* OHRRPGCE - low level file interface layer
+ * Copyright 2011. Please read LICENSE.txt for GNU GPL details and disclaimer of liability
+ */
 
-// common.bas
-void debugc(char *msg, int errorlevel);
+//fb_stub.h (included by filelayer.h) MUST be included first, to ensure fb_off_t is 64 bit
+#include "filelayer.h"
+#include <cstdio>
+#include <cassert>
+#include <map>
 
-typedef FBCALL int (*FnStringPredicate)(FBSTRING *filename);
+map<FB_FILE *, FileInfo> openfiles;
+typedef map<FB_FILE *, FileInfo>::iterator openfiles_iterator_t;
 
-
-int file_wrapper_close(struct _FB_FILE *handle) {
-	// Nothing here
+int file_wrapper_close(FB_FILE *handle) {
+	FileInfo &info = openfiles[handle];
+	//fprintf(stderr, "closing %s\n", info.name.c_str());
+	openfiles.erase(handle);
 	return fb_DevFileClose(handle);  
 }
 
-int file_wrapper_seek(struct _FB_FILE *handle, fb_off_t offset, int whence) {
+int file_wrapper_seek(FB_FILE *handle, fb_off_t offset, int whence) {
 	// Nothing here
 	return fb_DevFileSeek(handle, offset, whence);
 }
 
-int file_wrapper_tell(struct _FB_FILE *handle, fb_off_t *pOffset) {
+int file_wrapper_tell(FB_FILE *handle, fb_off_t *pOffset) {
 	// Nothing here
 	return fb_DevFileTell(handle, pOffset);
 }
 
-int file_wrapper_read(struct _FB_FILE *handle, void *value, size_t *pValuelen) {
+int file_wrapper_read(FB_FILE *handle, void *value, size_t *pValuelen) {
 	// Nothing here
 	return fb_DevFileRead(handle, value, pValuelen);
 }
 
-int file_wrapper_write(struct _FB_FILE *handle, const void *value, size_t valuelen) {
+int file_wrapper_write(FB_FILE *handle, const void *value, size_t valuelen) {
 	// Nothing here
 	return fb_DevFileWrite(handle, value, valuelen);
 }
@@ -49,14 +56,25 @@ static FB_FILE_HOOKS lumpfile_hooks = {
 	fb_DevFileFlush
 };
 
+void dump_openfiles() {
+	fprintf(stderr, "%d open files:\n", openfiles.size());
+	for (openfiles_iterator_t it = openfiles.begin(); it != openfiles.end(); ++it) {
+		fprintf(stderr, " %p (%s)\n", it->first, it->second.name.c_str());
+	}
+}
 
-int lump_file_opener(struct _FB_FILE *handle, const char *filename, size_t filename_len) {
+int lump_file_opener(FB_FILE *handle, const char *filename, size_t filename_len) {
+	//fprintf(stderr, "openning %p (%s).\n", handle, filename);
+
 	// Just let the default file opener handle it (it does quite a lot of stuff, actually),
 	// and then patch the file hooks table with wrappers
 	int ret = fb_DevFileOpen(handle, filename, filename_len);
 	if (ret) return ret;
 
 	handle->hooks = &lumpfile_hooks;
+	assert(openfiles.count(handle) == 0);
+	FileInfo &info = openfiles[handle];
+	info.name = string(filename);
 	return 0;
 }
 

@@ -216,7 +216,7 @@ extern "C" {
 
 #else 
 
- //fb_unix.h
+ //fb_unix.h (actually, _FILE_OFFSET_BITS is apparently a linux-specific mess?)
 # define _FILE_OFFSET_BITS 64
 # include <sys/types.h>
   typedef off_t fb_off_t;
