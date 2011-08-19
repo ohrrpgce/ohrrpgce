@@ -362,6 +362,8 @@ debuginfo long_version & build_info
 debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo  & "  " & systeminfo
 debuginfo "Playing game " & sourcerpg & " (" & getdisplayname(" ") & ") " & DATE & " " & TIME
 
+set_OPEN_hook_filter @inworkingdir
+
 dim gmap(dimbinsize(binMAP)) 'this must be declared here, after the binsize file exists!
 
 '--set game

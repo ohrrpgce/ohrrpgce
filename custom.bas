@@ -226,6 +226,8 @@ ELSE
 END IF
 safekill workingdir + SLASH + "__danger.tmp"
 
+set_OPEN_hook_filter @inworkingdir
+
 'Perform additional checks for future rpg files or corruption
 rpg_sanity_checks
 

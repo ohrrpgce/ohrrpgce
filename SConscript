@@ -218,6 +218,8 @@ game_modules = ['game',
                 'savegame',
                 'hsinterpreter']
 
+common_modules += ['filelayer.c']
+
 if 'raster' in ARGUMENTS:
     common_modules += ['rasterizer.cpp', 'matrixMath.cpp', 'gfx_newRenderPlan.cpp']
     commonenv['FBFLAGS'] += ['-d', 'USE_RASTERIZER']

@@ -1114,3 +1114,21 @@ sub Buffered_putc (byval bfile as BufferedFile ptr, byval datum as ubyte)
 		if .pos > .len then .len = .pos
 	end with
 end sub
+
+
+'----------------------------------------------------------------------
+'                     openfile.c support stuff
+
+
+'This is called on EVERY OPEN call once the OPEN hook is registered! See openfile.c
+function inworkingdir(filename as string) as integer
+	'Uncomment for OPEN tracing (or you could just use strace...)
+	'if RIGHT(filename, 9) = "debug.txt" then return NO
+	'if RIGHT(filename, 9) = "_archive.txt" then return NO
+	'debuginfo "OPEN(" & filename & ")  " & ret
+
+	if strncmp(strptr(filename), strptr(workingdir), len(workingdir)) <> 0 then return NO
+	if right(filename, 4) = ".tmp" then return NO
+	return YES
+end function
+

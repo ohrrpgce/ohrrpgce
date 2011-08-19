@@ -181,4 +181,16 @@ declare function Buffered_tell(byval bfile as BufferedFile ptr) as integer
 declare sub Buffered_write(byval bfile as BufferedFile ptr, byval databuf as any ptr, byval amount as integer)
 declare sub Buffered_putc(byval bfile as BufferedFile ptr, byval datum as ubyte)
 
+
+'----------------------------------------------------------------------
+'                       openfile.c stuff
+
+type FnStringPredicate as function (filename as string) as integer
+
+extern "C"
+declare sub set_OPEN_hook_filter(byval lumpfile_filter as FnStringPredicate)
+end extern
+
+declare function inworkingdir(filename as string) as integer
+
 #endif
