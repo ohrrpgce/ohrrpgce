@@ -2567,7 +2567,7 @@ SUB prepare_map (afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
  END IF
 
  IF isfile(maplumpname$(gam.map.id, "e")) THEN
-  CLOSE #foemaph
+  IF foemaph THEN CLOSE #foemaph
   foemaph = FREEFILE
   OPEN maplumpname$(gam.map.id, "e") FOR BINARY AS #foemaph
  ELSE
