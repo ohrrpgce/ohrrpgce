@@ -16,6 +16,7 @@ DEFINT A-Z
 #include "loading.bi"
 #include "reload.bi"
 #include "reloadext.bi"
+#include "hsinterpreter.bi"
 #include "ver.txt"
 
 #include "game.bi"
@@ -1412,6 +1413,14 @@ SUB try_to_reload_files_onmap ()
    DeSerDoors(game + ".dox", gam.map.door(), gam.map.id)
    handled = YES
 
+  ELSEIF extn = "hsp" THEN                                                '.HSP
+   'Could add an option for automatic reloading, with suitable warnings...
+   lump_reloading.hsp.changed = YES
+   handled = YES
+
+  ELSEIF modified_lumps[i] = "plotscr.lst" THEN                           'PLOTSCR.LST
+   handled = YES  'ignore
+
   ELSEIF try_reload_map_lump(base, extn) THEN                             '.T, .P, .E, .Z, .N, .L
    handled = YES
 
@@ -1504,6 +1513,9 @@ SUB LPM_update (menu1 as MenuDef, st1 as MenuState, tooltips() as string)
   LPM_append_force_reload_item menu1, tooltips(), "npc locations", .npcl, 105, YES  'NPCL is virtually always dirty
   LPM_append_force_reload_item menu1, tooltips(), "npc definitions", .npcd, 106
 
+  LPM_append_force_reload_item menu1, tooltips(), "scripts", .hsp, 110
+  tooltips(UBOUND(tooltips)) += " (Read Help file!)"
+
   init_menu_state st1, menu1
   REDIM PRESERVE tooltips(menu1.numitems - 1)
  END WITH
@@ -1585,6 +1597,10 @@ SUB live_preview_menu ()
    CASE 106  '--force npcd reload
     IF carray(ccUse) > 1 THEN
      reloadmap_npcd
+    END IF
+   CASE 110  '--force scripts reload
+    IF carray(ccUse) > 1 THEN
+     reload_scripts
     END IF
   END SELECT
 

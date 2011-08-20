@@ -25,3 +25,8 @@ Reload: Merge in-game changes:
  that moving an NPC can change its
  reference number, leading to odd
  results.)
+
+
+Scripts:
+Script reloading isn't automatic.
+Scripts which are currently running (either waiting or suspended by another called or triggered script) can not be updated to the latest version. Reloading scripts will cause all other scripts to be reloaded from the game though, possibly resulting in a mix of old and new! Scripts set to trigger by timers can be reloaded.

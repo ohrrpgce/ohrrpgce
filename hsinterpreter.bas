@@ -1436,3 +1436,55 @@ FUNCTION scriptstate (targetscript as integer, recurse as integer = -1) as strin
  'debug outstr$
  reloadscript scrat(nowscript)
 END FUNCTION
+
+SUB delete_scriptdata (byval scriptd as ScriptData ptr)
+ WITH *scriptd
+  'debug "deallocating " & .id & " " & scriptname(.id) & " size " & .size
+  totalscrmem -= .size
+  numloadedscr -= 1
+  deallocate(.ptr)
+  IF .next THEN
+   .next->backptr = .backptr
+  END IF
+  *.backptr = .next
+
+  IF .refcount THEN
+   FOR j = 0 TO nowscript
+	IF scrat(j).scr = scriptd THEN
+	 'debug "marking scrat(" & j & ") (id = " & scrat(j).id & ") unloaded"
+	 scrat(j).scr = NULL
+	 scrat(j).scrdata = NULL
+	END IF
+   NEXT
+  END IF
+ END WITH
+
+ deallocate(scriptd)
+END SUB
+
+SUB reload_scripts
+ IF isfile(game + ".hsp") THEN unlump game + ".hsp", tmpdir
+
+ DIM unfreeable as integer = 0
+
+ FOR i as integer = 0 TO UBOUND(script)
+  DIM as ScriptData Ptr scrp = script(i), nextp
+  WHILE scrp
+   nextp = scrp->next
+   WITH *scrp
+	IF .refcount = 0 THEN
+     delete_scriptdata scrp
+	ELSE
+     unfreeable += 1
+	 debuginfo "not reloading script " & scriptname(.id) & " because it's in use: refcount=" & .refcount
+	END IF
+   END WITH
+
+   scrp = nextp
+  WEND
+ NEXT
+
+ IF unfreeable THEN
+  notification unfreeable & " scripts are in use and couldn't be freed (see g_debug.txt for details)"
+ END IF
+END SUB

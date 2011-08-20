@@ -168,6 +168,8 @@ TYPE LumpReloadOptions
   zonemap  AS LumpReloadState
   npcl     AS LumpReloadState  '.dirty ignored: nearly always dirty
   npcd     AS LumpReloadState
+
+  hsp      AS LumpReloadState  '.hash, .mode, .dirty ignored
 END TYPE
 
 #ENDIF

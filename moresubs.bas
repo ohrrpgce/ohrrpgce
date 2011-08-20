@@ -1534,29 +1534,8 @@ IF mem > scriptmemMax \ 2 THEN targetmem = mem * (1 - 0.5 * (mem - scriptmemMax 
 'debug "requested max mem = " & mem & ", target = " & targetmem
 
 FOR i = 0 TO listtail
- WITH *LRUlist(i).p
-  IF totalscrmem <= targetmem AND numloadedscr <= maxLoadedScripts - 24 THEN EXIT SUB
-
-  'debug "deallocating " & .id & " " & scriptname(.id) & " size " & .size
-  totalscrmem -= .size
-  numloadedscr -= 1
-  deallocate(.ptr)
-  IF .refcount THEN
-   FOR j = 0 TO nowscript
-    IF scrat(j).scr = LRUlist(i).p THEN
-     'debug "marking scrat(" & j & ") (id = " & scrat(j).id & ") unloaded"
-     scrat(j).scr = NULL
-     scrat(j).scrdata = NULL
-    END IF
-   NEXT
-  END IF
-
-  IF .next THEN
-   .next->backptr = .backptr
-  END IF
-  *.backptr = .next
- END WITH
- deallocate(LRUlist(i).p)
+ IF totalscrmem <= targetmem AND numloadedscr <= maxLoadedScripts - 24 THEN EXIT SUB
+ delete_scriptdata LRUlist(i).p
 NEXT
 
 END SUB
@@ -1673,6 +1652,7 @@ SUB scripterr (e AS STRING, errorlevel as integer = 5)
   ELSE
    append_menu_item menu, "Enter debugger"
   END IF
+  IF running_as_slave THEN append_menu_item menu, "Reload scripts"
  END IF
 
  state.active = YES
@@ -1691,23 +1671,21 @@ SUB scripterr (e AS STRING, errorlevel as integer = 5)
   IF enter_or_space() THEN
    SELECT CASE state.pt
     CASE 0 'ignore
-     EXIT DO
     CASE 1 'hide errors (but not engine bugs)
      err_suppress_lvl = 6
-     EXIT DO
     CASE 2 'hide some errors
      err_suppress_lvl = errorlevel
-     EXIT DO
     CASE 3 'hide errors from this command
      int_array_append(ignorelist(), scriptcmdhash)
-     EXIT DO
     CASE 4
      exitprogram 0
     CASE 5
      scrwatch = 2
      scriptwatcher scrwatch, 0 'clean mode, script state view mode
-     EXIT DO
+    CASE 6 'reload scripts
+     reload_scripts
    END SELECT
+   EXIT DO
   END IF
   
   usemenu state
