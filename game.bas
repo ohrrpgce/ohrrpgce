@@ -351,7 +351,7 @@ setvispage vpage 'refresh
 '--pre-extract (if needed) .gen and load it
 IF usepreunlump THEN
  archinym = readarchinym(workingdir, sourcerpg)
- xbload workingdir + archinym + ".gen", gen(), "general game data missing from " + sourcerpg
+ xbload workingdir & SLASH & archinym & ".gen", gen(), "general game data missing from " + sourcerpg
 ELSE
  copylump sourcerpg, "archinym.lmp", tmpdir, -1
  archinym = readarchinym(tmpdir, sourcerpg)
