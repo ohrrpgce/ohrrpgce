@@ -31,6 +31,8 @@ if platform.system () == 'Windows':
 else:
     unix = True
 
+if 'gengcc' in ARGUMENTS:
+    FBFLAGS += ["-gen", "gcc"]
 
 environ = os.environ
 svn = ARGUMENTS.get ('svn','svn')
