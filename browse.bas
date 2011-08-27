@@ -176,7 +176,7 @@ DO
   END IF
  ELSE
   'find by letter
-  DIM intext as string = LEFT(getinputtext, 1)
+  DIM intext as string = LCASE(LEFT(getinputtext, 1))
   IF LEN(intext) > 0 THEN
    FOR j AS INTEGER = 1 TO br.treesize
     DIM mappedj AS INTEGER
