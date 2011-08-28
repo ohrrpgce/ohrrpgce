@@ -3687,7 +3687,7 @@ end
 		<command id="slicecollide">
 			<canon>slice collide (handle1, handle2)</canon>
 			<shortname>slice collide</shortname>
-			<description>Given a pair of slice handles, return true if they collide with one another. Parent/child relationships have nothing to do with this test; it does not matter if the slices are related.</description>
+			<description>Given a pair of slice handles, return true if their screen positions overlap with one another (even if one or both are off the edge of the screen or hidden). Parent/child relationships have nothing to do with this test; it does not matter if the slices are related.</description>
 			<seealso>
 				<ref>slicecollidepoint</ref>
 				<ref>slicecontains</ref>
@@ -3696,7 +3696,7 @@ end
 		<command id="slicecontains">
 			<canon>slice contains (handle1, handle2)</canon>
 			<shortname>slice contains</shortname>
-			<description>Return true if the screen position of slice <p>handle2</p> is completely inside slice <p>handle1</p>. Parent/child relationships have nothing to do with this test; it does not matter if the slices are related.</description>
+			<description>Return true if the screen position of slice <p>handle2</p> is completely inside slice <p>handle1</p> (even if one or both are off the edge of the screen or hidden). Parent/child relationships have nothing to do with this test; it does not matter if the slices are related.</description>
 			<seealso>
 				<ref>slicecollide</ref>
 			</seealso>
@@ -3704,7 +3704,7 @@ end
 		<command id="sliceatpixel">
 			<canon>slice at pixel (parent, x, y, number, check descendants)</canon>
 			<shortname>slice at pixel</shortname>
-			<description>Searches through all the descendants of <p>parent</p> for slices containing the given <p>x</p>, <p>y</p> pixel screen position. To search all your slices, you can normally use <ref>spritelayer</ref> as <p>parent</p>. <p>number</p> is an optional argument indicating which slice to return if there is more than one at that point; the bottom most one (returned by default) is number 0. slice at pixel returns 0 if you pass too high a <p>number</p>. If you pass <ref>getcount</ref> as <p>number</p> the number of slices at that pixel is returned instead. <p>check descendants</p> is an optional argument defaulting to true. If false, then only <p>parent</p>'s children will be checked, not all its descendants. This command never returns Special slices, such as the sprite layer slice.</description>
+			<description>Searches through all the descendants of <p>parent</p> for slices containing the given <p>x</p>, <p>y</p> pixel screen position. To search all your slices, you can normally use <ref>spritelayer</ref> as <p>parent</p>. <p>number</p> is an optional argument indicating which slice to return if there is more than one at that point; the bottom most one (returned by default) is number 0. slice at pixel returns 0 if <p>number</p> is too large (larger than or equal to the number of overlapping slices). If you pass <ref>getcount</ref> as <p>number</p> the number of slices at that pixel is returned instead. <p>check descendants</p> is an optional argument defaulting to true. If false, then only <p>parent</p>'s children will be checked, not all its descendants. This command never returns Special slices, such as the sprite layer slice.</description>
 			<seealso>
 				<ref>slicecollidepoint</ref>
 				<ref>findcollidingslice</ref>
@@ -3713,7 +3713,7 @@ end
 		<command id="findcollidingslice">
 			<canon>find colliding slice (parent, slice, number, check descendants)</canon>
 			<shortname>find colliding slice</shortname>
-			<description>Searches through all the descendants of <p>parent</p> for slices colliding with the given <p>slice</p> (by screen position). To search all your slices, you can normally use <ref>spritelayer</ref> as <p>parent</p>. <p>number</p> is an optional argument indicating which slice to return if there is more than one at that point; the bottom most one (returned by default) is number 0. slice at pixel returns 0 if you pass too high a <p>number</p>. If you pass <ref>getcount</ref> as <p>number</p> the number of slices at that pixel is returned instead. <p>check descendants</p> is an optional argument defaulting to true. If false, then only <p>parent</p>'s children will be checked, not all its descendants. This command never returns Special slices, such as the sprite layer slice, and ignores collisions with the children of <p>slice</p>.</description>
+			<description>Searches through all the descendants of <p>parent</p> for slices colliding (intersecting) with the given <p>slice</p> (by screen position). To search all your slices, you can normally use <ref>spritelayer</ref> as <p>parent</p>. <p>number</p> is an optional argument indicating which slice to return if there is more than one at that point; the bottom most one (returned by default) is number 0. 0 is returned if <p>number</p> is too large (larger than or equal to the number of overlapping slices). If you pass <ref>getcount</ref> as <p>number</p> the number of overlapping slices is returned instead. <p>check descendants</p> is an optional argument defaulting to true. If false, then only <p>parent</p>'s children will be checked, not all its descendants. This command never returns Special slices, such as the sprite layer slice, nor will it return <p>slice</p> or any of its descendants.</description>
 			<seealso>
 				<ref>sliceatpixel</ref>
 				<ref>slicecollide</ref>
