@@ -292,14 +292,6 @@ global function decapitate(sequence s)
   end if
 end function
 
---return the absolute value of a number... how can this not be in the standard lib?--
-global function abs(atom n)
-  if n<0 then
-    n*=-1
-  end if
-  return n
-end function
-
 --verify that a file exists--
 global function file_exists(sequence f)
   integer fh

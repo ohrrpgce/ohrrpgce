@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Nb 2011-08-28 Fix overflow_int32 and bitwise operator overflow
 --3Na 2011-07-25 Add -x option for Hamster Whisper's benefit
 --3N  2011-07-12 Add assert
 --3Ma 2010-10-21 Correctly strip \r to fix newlines ... again.
@@ -105,6 +106,7 @@ without type_check    --for a small speed boost
 include hsspiffy.e --various routines, sequence manipulation - James Paige
 include graphics.e --standard library, needed for color output
 include machine.e  --needed for int_to_bytes
+include std/math.e --needed for mod
 
 ---------------------------------------------------------------------------
 --constants--
@@ -116,7 +118,7 @@ constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Na"
+constant COMPILER_SUB_VERSION="Nb"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags. May add more colors, up to 254
@@ -3049,7 +3051,12 @@ end function
 --simulate a result overflowing a signed 32 bit register
 function overflow_int32(atom val)
   --maybe check whether val is so large that this is could be inaccurate?
-  return(and_bits(remainder(val,#80000000),#FFFFFFFF))
+  atom ret
+  ret=mod(val,#100000000)
+  if ret>2147483647 then
+    ret-=#100000000
+  end if
+  return(ret)
 end function
 
 ---------------------------------------------------------------------------
@@ -3125,13 +3132,13 @@ function optimized_arg(sequence tree,sequence vars)
          return(overflow_int32(arg1+arg2))
        elsif id=7 then
          --xor
-         return(xor_bits(arg1,arg2))
+         return(overflow_int32(xor_bits(arg1,arg2)))
        elsif id=8 then
          --or
-         return(or_bits(arg1,arg2))
+         return(overflow_int32(or_bits(arg1,arg2)))
        elsif id=9 then
          --and
-         return(and_bits(arg1,arg2))
+         return(overflow_int32(and_bits(arg1,arg2)))
        elsif id=10 then
          --equal
          return(arg1=arg2)
@@ -3158,7 +3165,7 @@ function optimized_arg(sequence tree,sequence vars)
          return((arg1=0)!=(arg2=0))
        elsif id=23 then
          --abs
-         return(abs(arg1))
+         return(overflow_int32(abs(arg1)))
        elsif id=24 then
          --sign
          return((arg1>0)-(arg1<0))
