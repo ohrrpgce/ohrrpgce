@@ -92,6 +92,7 @@ DECLARE FUNCTION createminimap OVERLOAD (layer AS TileMap, tileset AS TilesetDat
 DECLARE SUB animatetilesets (tilesets() AS TilesetData ptr)
 DECLARE SUB cycletile (tanim_state() AS TileAnimState, tastuf() AS INTEGER)
 DECLARE SUB loadtilesetdata (tilesets() AS TilesetData ptr, BYVAL layer AS INTEGER, BYVAL tilesetnum AS INTEGER, BYVAL lockstep AS INTEGER = YES)
+DECLARE SUB reloadtileanimations (tilesets() AS TilesetData ptr, gmap() AS INTEGER)
 DECLARE SUB unloadtilesetdata (BYREF tileset AS TilesetData ptr)
 DECLARE FUNCTION layer_tileset_index(BYVAL layer AS INTEGER) AS INTEGER
 DECLARE SUB loadmaptilesets (tilesets() AS TilesetData ptr, gmap() AS INTEGER, BYVAL resetanimations as integer = YES)

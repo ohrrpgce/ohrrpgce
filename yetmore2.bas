@@ -1334,7 +1334,7 @@ END FUNCTION
 SUB try_reload_lumps_anywhere ()
 
  'pal handled with special message
- STATIC ignorable_extns_(...) as string*3 => {"mn", "tmn", "d", "dor", "pal"}
+ STATIC ignorable_extns_(...) as string*3 => {"mn", "tmn", "d", "dor", "pal", "sng"}
  STATIC ignorable_extns as string vector
  IF ignorable_extns = NULL THEN
   v_new ignorable_extns
@@ -1386,6 +1386,11 @@ SUB try_reload_lumps_anywhere ()
    'Does anything else need to be done?
    handled = YES
 
+  ELSEIF extn = "stt" THEN                                                '.STT
+   loadglobalstrings
+   getstatnames statnames()
+   handled = YES
+
   END IF
 
   IF handled THEN
@@ -1428,6 +1433,10 @@ SUB try_to_reload_files_onmap ()
    handled = YES  'ignore
 
   ELSEIF try_reload_map_lump(base, extn) THEN                             '.T, .P, .E, .Z, .N, .L
+   handled = YES
+
+  ELSEIF extn = "tap" THEN                                                '.TAP
+   reloadtileanimations tilesets(), gmap()
    handled = YES
 
   ELSE

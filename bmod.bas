@@ -2120,8 +2120,6 @@ END SUB
 
 SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS INTEGER, st() as herodef)
 
- DIM mp_name AS STRING = readglobalstring(1, "MP", 10)
-     
  DIM atk AS AttackData
  DIM spellcount AS INTEGER = 0
  DIM i AS INTEGER
@@ -2181,7 +2179,7 @@ SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS I
       bat.spell.slot(i).desc = atk.description
       IF st(bat.hero_turn).list_type(bat.listslot) = 0 THEN
        '--regular MP
-       bat.spell.slot(i).cost = " " & focuscost(atk.mp_cost, bslot(bat.hero_turn).stat.cur.foc) & " " & mp_name & " " & bslot(bat.hero_turn).stat.cur.mp & "/" & bslot(bat.hero_turn).stat.max.mp
+       bat.spell.slot(i).cost = " " & focuscost(atk.mp_cost, bslot(bat.hero_turn).stat.cur.foc) & " " & statnames(statMP) & " " & bslot(bat.hero_turn).stat.cur.mp & "/" & bslot(bat.hero_turn).stat.max.mp
       END IF
       IF st(bat.hero_turn).list_type(bat.listslot) = 1 THEN
        '--level MP

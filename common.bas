@@ -3736,6 +3736,29 @@ SUB loadmaptilesets (tilesets() AS TilesetData ptr, gmap() AS INTEGER, BYVAL res
  NEXT
 END SUB
 
+SUB reloadtileanimations (tilesets() AS TilesetData ptr, gmap() AS INTEGER)
+ DIM AS INTEGER i, j
+ DIM tileset AS INTEGER
+
+ FOR i = 0 TO UBOUND(tilesets)
+  tileset = gmap(layer_tileset_index(i))
+  IF tileset <> 0 THEN
+   tileset = tileset - 1
+  ELSE
+   tileset = gmap(0)
+  END IF
+
+  loadtanim tileset, tilesets(i)->tastuf()
+  FOR j = 0 TO 1
+   WITH tilesets(i)->anim(j)
+    .cycle = 0
+    .pt = 0
+    .skip = 0
+   END WITH
+  NEXT
+ NEXT
+END SUB
+
 SUB unloadmaptilesets (tilesets() AS TilesetData ptr)
  DIM i AS INTEGER
  FOR i = 0 TO UBOUND(tilesets)

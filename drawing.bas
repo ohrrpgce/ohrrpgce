@@ -32,7 +32,7 @@ DECLARE SUB copymapblock (buf%(), sx%, sy%, sp%, dx%, dy%, dp%)
 DECLARE SUB changepal (palval%, palchange%, workpal%(), aindex%)
 DECLARE SUB airbrush (x%, y%, d%, m%, c%, p%)
 DECLARE SUB testanimpattern (tastuf%(), taset%)
-DECLARE SUB setanimpattern (tastuf%(), taset%)
+DECLARE SUB setanimpattern (tastuf() AS INTEGER, taset AS INTEGER, tilesetnum AS INTEGER)
 DECLARE FUNCTION mouseover (BYVAL mousex AS INTEGER, BYVAL mousey AS INTEGER, BYREF zox, BYREF zoy, BYREF zcsr, area() AS MouseArea) AS INTEGER
 DECLARE SUB maptile ()
 DECLARE SUB tileedit_set_tool (ts AS TileEditState, toolinfo() AS ToolInfoType, BYVAL toolnum AS INTEGER)
@@ -377,19 +377,18 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(scESC) > 1 THEN savetanim pagenum, tastuf(): RETRACE
+ IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "maptile_tileanim"
  IF usemenu(taptr, 0, 0, 5, 5) THEN GOSUB utamenu
- IF taptr = 1 THEN
-  IF intgrabber(taset, 0, 1) THEN GOSUB utamenu
- END IF
  IF taptr = 4 THEN
   IF tag_grabber(tastuf(1 + 20 * taset)) THEN GOSUB utamenu
+ ELSE
+  IF intgrabber(taset, 0, 1) THEN GOSUB utamenu
  END IF
  IF enter_or_space() THEN
-  IF taptr = 0 THEN savetanim pagenum, tastuf(): RETRACE
+  IF taptr = 0 THEN EXIT DO
   IF taptr = 2 THEN GOSUB setanimrange
-  IF taptr = 3 THEN setanimpattern tastuf(), taset
+  IF taptr = 3 THEN setanimpattern tastuf(), taset, pagenum
   IF taptr = 5 THEN testanimpattern tastuf(), taset
  END IF
  clearpage dpage
@@ -402,6 +401,8 @@ DO
  setvispage vpage
  dowait
 LOOP
+savetanim pagenum, tastuf()
+RETRACE
 
 utamenu:
 menu(1) = CHR$(27) + "Animation set " & taset & CHR$(26)
@@ -414,7 +415,7 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(scESC) > 1 OR enter_or_space() THEN RETRACE
+ IF keyval(scESC) > 1 OR enter_or_space() THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "maptile_setanimrange"
  IF keyval(scUp) > 1 THEN tastuf(0 + 20 * taset) = large(tastuf(0 + 20 * taset) - 16, 0)
  IF keyval(scDown) > 1 THEN tastuf(0 + 20 * taset) = small(tastuf(0 + 20 * taset) + 16, 112)
@@ -426,6 +427,8 @@ DO
  setvispage vpage
  dowait
 LOOP
+savetanim pagenum, tastuf()
+RETRACE
 
 drawanimrange:
 x = 0: y = 0
@@ -457,7 +460,7 @@ NEXT i
 
 END FUNCTION
 
-SUB setanimpattern (tastuf(), taset)
+SUB setanimpattern (tastuf() AS INTEGER, taset AS INTEGER, tilesetnum AS INTEGER)
 DIM menu(12) AS STRING, stuff(7) AS STRING, llim(7), ulim(7)
 menu(0) = "Previous Menu"
 stuff(0) = "end of animation"
@@ -504,7 +507,10 @@ DO
     END IF
    END IF
   CASE 1 '---EDIT THAT STATEMENT---
-   IF keyval(scESC) > 1 THEN context = 0
+   IF keyval(scESC) > 1 THEN
+    savetanim tilesetnum, tastuf()
+    context = 0
+   END IF
    usemenu ptr2, 0, 0, 1, 1
    index = bound(pt - 1, 0, 8) + 20 * taset
    IF ptr2 = 0 THEN
