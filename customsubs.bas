@@ -3508,8 +3508,8 @@ SUB attack_preview_slice_defocus(BYVAL sl AS Slice Ptr)
  WEND
 END SUB
 
-SUB fontedit (font() AS INTEGER)
-
+SUB fontedit ()
+ DIM font(1023) AS INTEGER
  DIM f(255) AS INTEGER
  DIM copybuf(4) AS INTEGER
  DIM menu(3) AS STRING
@@ -3520,6 +3520,8 @@ SUB fontedit (font() AS INTEGER)
  menu(3) = "Export Font..."
 
  DIM i AS INTEGER
+
+ xbload game + ".fnt", font(), "Font not loaded"
 
  DIM last AS INTEGER = -1
  FOR i = 32 TO 255
@@ -3584,7 +3586,6 @@ SUB fontedit (font() AS INTEGER)
       y = 0
      END IF
     END IF
-    IF keyval(scCtrl) > 0 AND keyval(scR) > 1 THEN romfontchar font(), pt
    CASE 1
     IF keyval(scEsc) > 1 OR keyval(scEnter) > 1 THEN mode = 0
     IF keyval(scUp) > 1 THEN y = loopvar(y, 0, 7, -1)

@@ -34,7 +34,7 @@ DECLARE SUB airbrush (x%, y%, d%, m%, c%, p%)
 DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE SUB setanimpattern (tastuf%(), taset%)
 DECLARE FUNCTION mouseover (BYVAL mousex AS INTEGER, BYVAL mousey AS INTEGER, BYREF zox, BYREF zoy, BYREF zcsr, area() AS MouseArea) AS INTEGER
-DECLARE SUB maptile (font())
+DECLARE SUB maptile ()
 DECLARE SUB tileedit_set_tool (ts AS TileEditState, toolinfo() AS ToolInfoType, BYVAL toolnum AS INTEGER)
 
 DECLARE SUB spriteedit_load_what_you_see(j, top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
@@ -259,7 +259,7 @@ RETRACE
 
 END SUB
 
-SUB maptile (font())
+SUB maptile ()
 DIM menu(10) AS STRING, tastuf(40)
 
 mapfile$ = game + ".til"
@@ -1641,7 +1641,7 @@ END SUB
 
 OPTION EXPLICIT '======== FIXME: move this up as code gets cleaned up =====================
 
-SUB sprite (xw, yw, sets, perset, soff, info$(), zoom, fileset, font(), fullset AS INTEGER=NO, cursor_start AS INTEGER=0, cursor_top AS INTEGER=0)
+SUB sprite (xw, yw, sets, perset, soff, info$(), zoom, fileset, fullset AS INTEGER=NO, cursor_start AS INTEGER=0, cursor_top AS INTEGER=0)
 STATIC ss_save AS SpriteEditStatic
 
 DIM ss AS SpriteEditState
@@ -1726,7 +1726,7 @@ DO
   IF ss.fullset = NO AND ss.perset > 1 THEN
    spriteedit_save_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
    savedefaultpals ss.fileset, poffset(), sets
-   sprite ss.wide * ss.perset, ss.high, sets, 1, soff, info$(), 1, ss.fileset, font(), YES, state.pt, state.top
+   sprite ss.wide * ss.perset, ss.high, sets, 1, soff, info$(), 1, ss.fileset, YES, state.pt, state.top
    REDIM PRESERVE poffset(large(sets, ss.at_a_time))
    loaddefaultpals ss.fileset, poffset(), sets
    spriteedit_load_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()

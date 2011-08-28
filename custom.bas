@@ -28,7 +28,7 @@ DECLARE SUB importbmp (f AS STRING, cap AS STRING, count AS INTEGER)
 DECLARE SUB vehicles ()
 DECLARE SUB scriptman ()
 DECLARE SUB map_picker ()
-DECLARE SUB sprite (xw, yw, sets, perset, soff, info$(), zoom, fileset, font(), fullset AS INTEGER=NO, cursor_start AS INTEGER=0, cursor_top AS INTEGER=0)
+DECLARE SUB sprite (xw, yw, sets, perset, soff, info$(), zoom, fileset, fullset AS INTEGER=NO, cursor_start AS INTEGER=0, cursor_top AS INTEGER=0)
 DECLARE SUB importsong ()
 DECLARE SUB importsfx ()
 DECLARE SUB gendata ()
@@ -37,7 +37,7 @@ DECLARE SUB formation ()
 DECLARE SUB enemydata ()
 DECLARE SUB herodata ()
 DECLARE SUB text_box_editor ()
-DECLARE SUB maptile (font())
+DECLARE SUB maptile ()
 DECLARE SUB importscripts (f$)
 
 'Local function declarations
@@ -47,10 +47,10 @@ DECLARE FUNCTION handle_dirty_workingdir () as integer
 DECLARE SUB dolumpfiles (filetolump as string)
 DECLARE SUB move_unwriteable_rpg (filetolump as string)
 DECLARE SUB shopdata ()
-DECLARE SUB secret_menu (font())
+DECLARE SUB secret_menu ()
 DECLARE SUB condition_test_menu ()
 DECLARE SUB quad_transforms_menu ()
-DECLARE SUB arbitrary_sprite_editor (font())
+DECLARE SUB arbitrary_sprite_editor ()
 
 'Global variables
 REDIM gen(360)
@@ -75,7 +75,7 @@ EXTERN running_as_slave AS INTEGER
 DIM running_as_slave AS INTEGER = NO  'This is just for the benefit of gfx_sdl
 
 'Local variables (declaring these up here is often necessary due to gosubs)
-DIM font(1024), joy(4)
+DIM joy(4)
 DIM menu(22) AS STRING
 DIM menukeys(22) AS STRING
 DIM chooserpg_menu(2) AS STRING
@@ -143,6 +143,7 @@ processcommandline
 
 load_default_master_palette master()
 DefaultUIColors uilook()
+DIM font(1023) as integer
 getdefaultfont font()
 
 setmodex
@@ -238,7 +239,7 @@ safekill workingdir + SLASH + "__danger.tmp"
 rpg_sanity_checks
 
 'upgrade obsolete RPG files
-upgrade font()
+upgrade
 
 'Load the game's palette, uicolors, font
 activepalette = gen(genMasterPal)
@@ -288,7 +289,7 @@ DO:
  END IF
  intext = LCASE(getinputtext)
  passphrase = RIGHT(passphrase + intext, 4)
- IF passphrase = "spam" THEN passphrase = "" : secret_menu font()
+ IF passphrase = "spam" THEN passphrase = "" : secret_menu
  FOR i = 1 TO mainmax
   DIM temp as integer = (pt + i) MOD (mainmax + 1)
   IF INSTR(menukeys(temp), intext) THEN pt = temp : EXIT FOR
@@ -312,7 +313,7 @@ DO:
     IF pt = 12 THEN tagnames
     IF pt = 13 THEN importsong
     IF pt = 14 THEN importsfx
-    IF pt = 15 THEN fontedit font()
+    IF pt = 15 THEN fontedit
     IF pt = 16 THEN gendata
     IF pt = 17 THEN scriptman
     IF pt = 18 THEN slice_editor
@@ -323,18 +324,18 @@ DO:
     END IF
    CASE 1'--graphics mode
     IF pt = 0 THEN pt = 0: menumode = 0: GOSUB setmainmenu
-    IF pt = 1 THEN maptile font()
-    IF pt = 2 THEN sprite 20, 20, gen(genMaxNPCPic),    8, 5, walkabout_frame_captions(),  4, 4, font()
-    IF pt = 3 THEN sprite 32, 40, gen(genMaxHeroPic),   8, 16, hero_frame_captions(), 4, 0, font()
-    IF pt = 4 THEN sprite 34, 34, gen(genMaxEnemy1Pic), 1, 2, enemy_frame_captions(), 4, 1, font()
-    IF pt = 5 THEN sprite 50, 50, gen(genMaxEnemy2Pic), 1, 4, enemy_frame_captions(), 2, 2, font()
-    IF pt = 6 THEN sprite 80, 80, gen(genMaxEnemy3Pic), 1, 10, enemy_frame_captions(), 2, 3, font()
-    IF pt = 7 THEN sprite 50, 50, gen(genMaxAttackPic), 3, 12, attack_frame_captions(), 2, 6, font()
-    IF pt = 8 THEN sprite 24, 24, gen(genMaxWeaponPic), 2, 2, weapon_frame_captions(), 4, 5, font()
+    IF pt = 1 THEN maptile
+    IF pt = 2 THEN sprite 20, 20, gen(genMaxNPCPic),    8, 5, walkabout_frame_captions(),  4, 4
+    IF pt = 3 THEN sprite 32, 40, gen(genMaxHeroPic),   8, 16, hero_frame_captions(), 4, 0
+    IF pt = 4 THEN sprite 34, 34, gen(genMaxEnemy1Pic), 1, 2, enemy_frame_captions(), 4, 1
+    IF pt = 5 THEN sprite 50, 50, gen(genMaxEnemy2Pic), 1, 4, enemy_frame_captions(), 2, 2
+    IF pt = 6 THEN sprite 80, 80, gen(genMaxEnemy3Pic), 1, 10, enemy_frame_captions(), 2, 3
+    IF pt = 7 THEN sprite 50, 50, gen(genMaxAttackPic), 3, 12, attack_frame_captions(), 2, 6
+    IF pt = 8 THEN sprite 24, 24, gen(genMaxWeaponPic), 2, 2, weapon_frame_captions(), 4, 5
     IF pt = 9 THEN
-     sprite 16, 16, gen(genMaxBoxBorder), 16, 7, box_border_captions(), 4, 7, font()
+     sprite 16, 16, gen(genMaxBoxBorder), 16, 7, box_border_captions(), 4, 7
     END IF
-    IF pt = 10 THEN sprite 50, 50, gen(genMaxPortrait), 1, 4, portrait_captions(), 2, 8, font()
+    IF pt = 10 THEN sprite 50, 50, gen(genMaxPortrait), 1, 4, portrait_captions(), 2, 8
     IF pt = 11 THEN importbmp ".mxs", "screen", gen(genNumBackdrops)
     IF pt = 12 THEN
      gen(genMaxTile) = gen(genMaxTile) + 1
@@ -534,7 +535,7 @@ LOOP
 hsimport:
 debuginfo "Importing scripts from " & hsfile
 xbload game + ".gen", gen(), "general data is missing, RPG file corruption is likely"
-upgrade font() 'needed because it has not already happened because we are doing command-line import
+upgrade 'needed because it has not already happened because we are doing command-line import
 importscripts with_orig_path(hsfile)
 xbsave game + ".gen", gen(), 1000
 GOSUB dorelump
@@ -1111,7 +1112,7 @@ SUB move_unwriteable_rpg (filetolump as string)
  filetolump = newfile
 END SUB
 
-SUB secret_menu (font())
+SUB secret_menu ()
  DIM menu(...) as string = {"Reload Editor", "Editor Editor", "Conditions and More Tests", "Transformed Quads", "Sprite editor with arbitrary sizes"}
  DIM st as MenuState
  st.size = 24
@@ -1126,7 +1127,7 @@ SUB secret_menu (font())
    IF st.pt = 1 THEN editor_editor
    IF st.pt = 2 THEN condition_test_menu
    IF st.pt = 3 THEN quad_transforms_menu
-   IF st.pt = 4 THEN arbitrary_sprite_editor font()
+   IF st.pt = 4 THEN arbitrary_sprite_editor
   END IF
   usemenu st
   clearpage vpage
@@ -1137,7 +1138,7 @@ SUB secret_menu (font())
  setkeys
 END SUB
 
-SUB arbitrary_sprite_editor (font())
+SUB arbitrary_sprite_editor ()
  DIM tempsets AS INTEGER = 0
  DIM tempcaptions(15) AS STRING
  FOR i AS INTEGER = 0 to UBOUND(tempcaptions)
@@ -1170,7 +1171,7 @@ SUB arbitrary_sprite_editor (font())
   IF enter_or_space() THEN
    IF st.pt = 5 THEN
     crappy_screenpage_lines = ceiling(size.x * size.y * framecount / 2 / 320)
-    sprite size.x, size.y, tempsets, framecount, crappy_screenpage_lines, tempcaptions(), zoom, -1, font()
+    sprite size.x, size.y, tempsets, framecount, crappy_screenpage_lines, tempcaptions(), zoom, -1
     IF isfile(game & ".pt-1") THEN
      debug "Leaving behind """ & game & ".pt-1"""
     END IF

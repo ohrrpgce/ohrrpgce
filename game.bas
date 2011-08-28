@@ -196,7 +196,7 @@ plotslicesp = @plotslices(1)
 'End global variables
 
 'Module local variables
-DIM font(1024)
+DIM font(1023)
 DIM archinym as string
 
 'DEBUG debug "Thestart"
@@ -404,7 +404,7 @@ rpg_sanity_checks
 xbload game + ".fnt", font(), "font missing from " + sourcerpg
 
 '--upgrade obsolete RPG files (if possible)
-IF NOT running_as_slave THEN upgrade font()
+IF NOT running_as_slave THEN upgrade
 
 'If no version mismatch error has occurred yet, show a warning if the versions aren't identical
 IF running_as_slave THEN check_game_custom_versions_match

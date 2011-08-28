@@ -74,7 +74,7 @@ DECLARE SUB attack_preview_slice_focus(BYVAL sl AS Slice Ptr)
 DECLARE SUB attack_preview_slice_defocus(BYVAL sl AS Slice Ptr)
 DECLARE FUNCTION find_free_attack_preview_slot(slots() AS Slice Ptr) AS INTEGER
 DECLARE SUB position_chain_preview_boxes(sl_list() AS Slice ptr, st AS MenuState)
-DECLARE SUB fontedit (font() AS INTEGER)
+DECLARE SUB fontedit ()
 DECLARE SUB fontedit_export_font(font() AS INTEGER)
 DECLARE SUB fontedit_import_font(font() AS INTEGER)
 DECLARE SUB cropafter (BYVAL index AS INTEGER, BYREF limit AS INTEGER, BYVAL flushafter AS INTEGER, lump AS STRING, BYVAL bytes AS INTEGER, BYVAL prompt AS INTEGER=YES)

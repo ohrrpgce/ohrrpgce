@@ -161,11 +161,6 @@ sub display_help_string(help as string)
 	SYSTEM        ' terminate the program
 end sub
 
-SUB romfontchar (font(), char)
-'should I implement this using the default font? potentially useful
-'i suppose
-END SUB
-
 FUNCTION ReadShort(fh as integer,p as long=-1) as short
 	DIM ret as short
 	IF p = -1 THEN

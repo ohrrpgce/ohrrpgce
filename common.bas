@@ -2513,7 +2513,7 @@ FUNCTION getpassword () as string
  END IF 
 END FUNCTION
 
-SUB upgrade (font())
+SUB upgrade ()
 DIM pal16(8)
 DIM AS INTEGER i, j, o, p, y
 DIM temp AS INTEGER
@@ -2593,6 +2593,7 @@ IF gen(genVersion) = 1 THEN
   storeset game + ".dox", o, 0
  NEXT o
  upgrade_message "Enforcing default font"
+ DIM font(1023) as integer
  getdefaultfont font()
  xbsave game + ".fnt", font(), 2048
  upgrade_message "rpgfix:Making AniMaptiles Backward Compatible"
@@ -2753,6 +2754,7 @@ END IF
 'This is corruption recovery, not upgrade, but Custom has always done this
 IF NOT isfile(game + ".fnt") THEN
  debug game + ".fnt missing (which should never happen)"
+ DIM font(1023) as integer
  getdefaultfont font()
  xbsave game + ".fnt", font(), 2048
 END IF
