@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Nc 2011-08-28 Additional expression optimisations
 --3Nb 2011-08-28 Fix overflow_int32 and bitwise operator overflow
 --3Na 2011-07-25 Add -x option for Hamster Whisper's benefit
 --3N  2011-07-12 Add assert
@@ -118,7 +119,7 @@ constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Nb"
+constant COMPILER_SUB_VERSION="Nc"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags. May add more colors, up to 254
@@ -3073,10 +3074,16 @@ function optimized_arg(sequence tree,sequence vars)
     return(id)
   elsif kind=KIND_MATH and (id<=15 or id>=19) then
     arg1=optimized_arg(tree[TREE_BRANCHES][1],vars)
+    if equal(arg1,{}) then
+      arg1=tree[TREE_BRANCHES][1]
+    end if
     if length(tree[TREE_BRANCHES])>=2 then
       arg2=optimized_arg(tree[TREE_BRANCHES][2],vars)
     else
       arg2=0
+    end if
+    if equal(arg2,{}) then
+      arg2=tree[TREE_BRANCHES][2]
     end if
     if atom(arg1) and atom(arg2) then
        if id=0 then
@@ -3177,9 +3184,22 @@ function optimized_arg(sequence tree,sequence vars)
          return(floor(sqrt(arg1)+0.5))
        end if
     end if
-    --have to allow for side effects of shortcut evaluating expressions by only checking first arg
+
+    --have to allow for side effects of shortcut evaluating operators by only checking first arg
     if atom(arg1) then
-       if id=20 then
+       if id=4 then
+         --multiply
+         if arg1=0 then
+           return 0
+         elsif arg1=1 then
+           return arg2
+         end if
+       elsif id=6 then
+         --add
+         if arg1=0 then
+           return arg2
+         end if
+       elsif id=20 then
          --logand
          if arg1=0 then
            return 0
@@ -3188,6 +3208,27 @@ function optimized_arg(sequence tree,sequence vars)
          --logor
          if arg1!=0 then
            return 1
+         end if
+       end if
+    end if
+
+    if atom(arg2) then
+       if id=4 then
+         --multiply
+         if arg2=0 then
+           return 0
+         elsif arg2=1 then
+           return arg1
+         end if
+       elsif id=5 then
+         --subtract
+         if arg2=0 then
+           return arg1
+         end if
+       elsif id=6 then
+         --add
+         if arg2=0 then
+           return arg1
          end if
        end if
     end if
@@ -3205,6 +3246,8 @@ function optimize_script(sequence tree,sequence vars)
     if atom(arg) then
       tree[i][TREE_TRUNK][CMD_TEXT]=sprintf("%d",arg)
       tree[i][TREE_BRANCHES]={}
+    elsif sequence(arg) and length(arg) then
+      tree[i]=arg
     end if
     if length(tree[i][TREE_BRANCHES]) then
       --if there are sub-arguments, recurse
