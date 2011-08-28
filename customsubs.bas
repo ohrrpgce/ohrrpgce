@@ -3595,6 +3595,7 @@ SUB fontedit ()
     IF keyval(scSpace) > 1 THEN
      setbit font(), 0, (f(pt) * 8 + x) * 8 + y, (readbit(font(), 0, (f(pt) * 8 + x) * 8 + y) XOR 1)
      setfont font()
+     xbsave game + ".fnt", font(), 2048
     END IF
   END SELECT
   IF mode >= 0 THEN
@@ -3609,6 +3610,7 @@ SUB fontedit ()
      setbit font(), 0, f(pt) * 64 + i, readbit(copybuf(), 0, i)
     NEXT i
     setfont font()
+    xbsave game + ".fnt", font(), 2048
    END IF
   END IF
 
@@ -3673,8 +3675,6 @@ SUB fontedit ()
   setvispage vpage
   dowait
  LOOP
- 
- xbsave game + ".fnt", font(), 2048
 EXIT SUB
 
 END SUB

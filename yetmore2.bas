@@ -1369,6 +1369,12 @@ SUB try_reload_lumps_anywhere ()
   ELSEIF try_reload_gfx_lump(extn) THEN                                   '.PT#, .TIL
    handled = YES
 
+  ELSEIF extn = "fnt" THEN                                                '.FNT
+   DIM font(1023) as integer
+   xbload game + ".fnt", font(), "Font not loaded"
+   setfont font()
+   handled = YES
+
   ELSEIF try_reload_music_lump(base, extn) THEN                           '.## and song##.xxx (music)
    handled = YES
 
