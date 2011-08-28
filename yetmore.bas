@@ -1930,19 +1930,27 @@ SELECT CASE AS CONST id
   END IF
  CASE 354 '--set horiz align
   IF valid_plotslice(retvals(0)) THEN
-   plotslices(retvals(0))->AlignHoriz = retvals(1)
+   IF bound_arg(retvals(1), 0, 2, "edge:... constant", , , 5) THEN
+    plotslices(retvals(0))->AlignHoriz = retvals(1)
+   END IF
   END IF
  CASE 355 '--set vert align
   IF valid_plotslice(retvals(0)) THEN
-   plotslices(retvals(0))->AlignVert = retvals(1)
+   IF bound_arg(retvals(1), 0, 2, "edge:... constant", , , 5) THEN
+    plotslices(retvals(0))->AlignVert = retvals(1)
+   END IF
   END IF
  CASE 356 '--set horiz anchor
   IF valid_plotslice(retvals(0)) THEN
-   plotslices(retvals(0))->AnchorHoriz = retvals(1)
+   IF bound_arg(retvals(1), 0, 2, "edge:... constant", , , 5) THEN
+    plotslices(retvals(0))->AnchorHoriz = retvals(1)
+   END IF
   END IF
  CASE 357 '--set vert anchor
   IF valid_plotslice(retvals(0)) THEN
-   plotslices(retvals(0))->AnchorVert = retvals(1)
+   IF bound_arg(retvals(1), 0, 2, "edge:... constant", , , 5) THEN
+    plotslices(retvals(0))->AnchorVert = retvals(1)
+   END IF
   END IF
  CASE 358 '--number from string
   IF valid_plotstr(retvals(0)) THEN
