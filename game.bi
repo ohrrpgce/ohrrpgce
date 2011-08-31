@@ -86,5 +86,7 @@ DECLARE SUB reset_game_state ()
 DECLARE SUB cleanup_game_slices ()
 DECLARE FUNCTION hero_layer() AS Slice Ptr
 DECLARE FUNCTION npc_layer() AS Slice Ptr
+DECLARE SUB queue_fade_in (BYVAL delay AS INTEGER = 0)
+DECLARE SUB check_for_queued_fade_in ()
 
 #ENDIF

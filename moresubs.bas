@@ -1022,7 +1022,7 @@ page = compatpage
 IF fadestate = 0 THEN
  setvispage vpage
  fadein
- needfadeout = 1
+ need_fade_out = YES
 END IF
 
 setkeys
@@ -1049,7 +1049,7 @@ LOOP
 menusound gen(genAcceptSFX)
 gen(genJoy) = rememberjoycal '-- restore joystick calibration setting
 
-IF needfadeout = 1 THEN
+IF need_fade_out THEN
  fadeout 0, 0, 0
 END IF
 freepage page
@@ -1744,7 +1744,7 @@ END IF
 
 END FUNCTION
 
-SUB shop (id, needf)
+SUB shop (id)
 
 DIM storebuf(40), menu(10) AS STRING, menuid(10)
 DIM sn AS STRING
@@ -1825,7 +1825,7 @@ DO
   END IF
   IF menuid(st.pt) = 3 THEN '--INN
    inn = 0
-   IF useinn(inn, storebuf(18), needf, holdscreen) THEN
+   IF useinn(inn, storebuf(18), holdscreen) THEN
     IF inn = 0 THEN
      innRestore
     END IF
@@ -1838,7 +1838,7 @@ DO
     ELSE
      '--Inn has no script, do simple fade
      fadeout 0, 0, 80
-     needf = 1
+     queue_fade_in
     END IF
    END IF
    copypage holdscreen, vpage
@@ -1855,8 +1855,7 @@ DO
  NEXT i
  setvispage vpage
  copypage holdscreen, vpage
- IF needf = 1 THEN needf = 0: fadein: setkeys
- IF needf > 1 THEN needf = needf - 1
+ check_for_queued_fade_in
  dowait
 LOOP
 FOR t = 4 TO 5: carray(t) = 0: NEXT t
@@ -1884,7 +1883,7 @@ RETRACE
 END SUB
 
 'holdscreen is a copy of vpage (not a compatpage)
-FUNCTION useinn (inn as integer, price as integer, needf as integer, holdscreen as integer) as integer
+FUNCTION useinn (inn as integer, price as integer, holdscreen as integer) as integer
 DIM menu(1) AS STRING
 DIM AS INTEGER i, y
 DIM page as integer
@@ -1950,8 +1949,7 @@ DO
  NEXT i
 
  setvispage vpage
- IF needf = 1 THEN needf = 0: fadein: setkeys
- IF needf > 1 THEN needf = needf - 1
+ check_for_queued_fade_in
  dowait
 LOOP
 freepage page

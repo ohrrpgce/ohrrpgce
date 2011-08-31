@@ -31,8 +31,8 @@ DECLARE SUB freescripts (mem as integer)
 DECLARE FUNCTION commandname (byval id as integer) as string
 DECLARE SUB scripterr (e as string, errorlevel as integer = 5)
 DECLARE FUNCTION settingstring (searchee as string, setting as string, result as string) as integer
-DECLARE SUB shop (id as integer, needf as integer)
-DECLARE FUNCTION useinn (inn as integer, price as integer, needf as integer, holdscreen as integer) as integer
+DECLARE SUB shop (id as integer)
+DECLARE FUNCTION useinn (inn as integer, price as integer, holdscreen as integer) as integer
 DECLARE SUB tagdisplay
 DECLARE SUB writejoysettings
 DECLARE FUNCTION herocount (last as integer = 3) as integer

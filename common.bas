@@ -31,7 +31,7 @@ DECLARE SUB setup_sprite_sizes ()
 DECLARE FUNCTION istag (num, zero) as integer
 DECLARE SUB scripterr (e as string, errorlevel as integer = 5)
 DECLARE FUNCTION commandname (byval id as integer) as string
-DECLARE SUB exitprogram (BYVAL needfade as integer, BYVAL errorout as integer = NO)
+DECLARE SUB exitprogram (BYVAL need_fade_out as integer = NO, BYVAL errorout as integer = NO)
 DECLARE SUB show_wrong_spawned_version_error
 EXTERN insideinterpreter as integer
 EXTERN curcmd as ScriptCommand ptr

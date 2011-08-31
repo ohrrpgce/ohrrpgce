@@ -330,11 +330,11 @@ IF direction = 3 THEN x = x - distance
 
 END SUB
 
-SUB exitprogram (BYVAL needfade as integer, BYVAL errorout as integer = NO)
+SUB exitprogram (BYVAL need_fade_out as integer = NO, BYVAL errorout as integer = NO)
 
 'DEBUG debug "Exiting Program"
 'DEBUG debug "fade screen"
-IF needfade THEN fadeout 0, 0, 0
+IF need_fade_out THEN fadeout 0, 0, 0
 
 'DEBUG debug "Cleanup Routine"
 
@@ -405,7 +405,7 @@ END SUB
 FUNCTION titlescr () as integer
 titlescr = -1 ' default return true for success
 loadmxs game + ".mxs", gen(genTitle), vpages(3)
-needf = 2
+queue_fade_in 1
 IF gen(genTitleMus) > 0 THEN wrappedsong gen(genTitleMus) - 1
 setkeys
 DO
@@ -438,11 +438,7 @@ DO
  SWAP vpage, dpage
  setvispage vpage
  copypage 3, dpage
- IF needf = 1 THEN
-  needf = 0
-  fadein
- END IF
- IF needf > 1 THEN needf = needf - 1
+ check_for_queued_fade_in
  dowait
 LOOP
 END FUNCTION

@@ -100,7 +100,6 @@ setupmusic
 '$dynamic
 
 'shared module variables
-DIM SHARED needf
 DIM SHARED harmtileflash = NO
 DIM SHARED wantbox, wantdoor, wantbattle, wantteleport, wantusenpc, wantloadgame
 DIM SHARED scriptout AS STRING
@@ -412,7 +411,7 @@ IF running_as_slave THEN check_game_custom_versions_match
 IF isfile(game + ".hsp") THEN unlump game + ".hsp", tmpdir
 
 fadeout 0, 0, 0
-needf = 1
+queue_fade_in
 
 setfont font()
 load_fset_frequencies
@@ -498,7 +497,7 @@ END IF
 
 load_special_tag_caches  'Load herotags and itemtags, which are immutable
 evalherotags
-needf = 1
+queue_fade_in
 force_npc_check = YES
 
 '--Reset some stuff related to debug keys
@@ -532,13 +531,13 @@ DO
  'DEBUG debug "increment script timers"
  dotimer(0)
  'DEBUG debug "keyboard handling"
- IF carray(ccMenu) > 1 AND txt.showing = NO AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND vstate.active = NO AND xgo(0) = 0 AND ygo(0) = 0 THEN
+ IF carray(ccMenu) > 1 AND txt.showing = NO AND gam.need_fade_in = NO AND readbit(gen(), 44, suspendplayer) = 0 AND vstate.active = NO AND xgo(0) = 0 AND ygo(0) = 0 THEN
   IF allowed_to_open_main_menu() THEN
    add_menu 0
    menusound gen(genAcceptSFX)
   END IF
  END IF
- IF txt.showing = NO AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND vehicle_is_animating() = NO AND menus_allow_player() THEN
+ IF txt.showing = NO AND gam.need_fade_in = NO AND readbit(gen(), 44, suspendplayer) = 0 AND vehicle_is_animating() = NO AND menus_allow_player() THEN
   IF xgo(0) = 0 AND ygo(0) = 0 THEN
    DO
     IF carray(ccUp) > 0 THEN ygo(0) = 20: catd(0) = 0: EXIT DO
@@ -665,7 +664,7 @@ DO
   stopsong
   resetsfx
   fadeout 0, 0, 0
-  needf = 1
+  queue_fade_in
   doloadgame load_slot
  END IF
  'DEBUG debug "random enemies"
@@ -680,7 +679,7 @@ DO
      fatal = 0
      gam.wonbattle = battle(batform)
      prepare_map YES
-     needf = 2
+     queue_fade_in 1
     END IF
    ELSE
     'trigger the instead-of-battle script
@@ -702,7 +701,7 @@ DO
    rsr = runscript(gen(genGameoverScript), nowscript + 1, YES, NO, "death", plottrigger)
    IF rsr = 1 THEN
     fatal = 0
-    needf = 2
+    queue_fade_in 1
    END IF
   ELSE
    fadeout 255, 0, 0
@@ -727,13 +726,7 @@ DO
  SWAP vpage, dpage
  setvispage vpage
  'DEBUG debug "fade in"
- 'DEBUG debug "needf " & needf
- IF needf = 1 AND fatal = 0 THEN
-  needf = 0
-  fadein
-  setkeys
- END IF
- IF needf > 1 THEN needf = needf - 1
+ check_for_queued_fade_in
  'DEBUG debug "tail of main loop"
  dowait
 LOOP
@@ -1005,7 +998,7 @@ SUB update_heroes(BYVAL force_npc_check AS INTEGER=NO)
   IF didgo(0) = YES THEN 'only check doors if the hero really moved, not just if force_npc_check = YES
    opendoor
   END IF
-  IF needf = 0 THEN
+  IF gam.need_fade_in = NO THEN 'No random battle allowed on the first tick before fade-in (?)
    DIM battle_formation_set AS INTEGER
    battle_formation_set = readblock(foemap, catx(0) \ 20, caty(0) \ 20)
    IF vstate.active = YES AND vstate.dat.random_battles > 0 THEN
@@ -1428,7 +1421,6 @@ WITH scrat(nowscript)
 '   debug "wantimmediate ended on nowscript = -1"
 '  ELSE
 '   debug "wantimmediate would have skipped wait on command " & scrat(nowscript).curvalue & " in " & scriptname$(scrat(nowscript).id) & ", state = " & scrat(nowscript).state
-'   debug "needf = " & needf
 '  END IF
   wantimmediate = 0 'change to -1 to reenable bug
  END IF
@@ -1447,7 +1439,7 @@ END IF
 IF wantdoor > 0 THEN
  opendoor wantdoor
  wantdoor = 0
- IF needf = 0 THEN
+ IF gam.need_fade_in = NO THEN 'no random battle on the first tick before fade in (?)
   temp = readblock(foemap, catx(0) \ 20, caty(0) \ 20)
   IF vstate.active = YES AND vstate.dat.random_battles > 0 THEN temp = vstate.dat.random_battles
   IF temp > 0 THEN gam.random_battle_countdown = large(gam.random_battle_countdown - gam.foe_freq(temp - 1), 0)
@@ -1460,7 +1452,7 @@ IF wantbattle > 0 THEN
  wantbattle = 0
  prepare_map YES
  gam.random_battle_countdown = range(100, 60)
- needf = 3
+ queue_fade_in 2 'FIXME: why 2 ticks?
  setkeys
 END IF
 IF wantteleport > 0 THEN
@@ -1529,7 +1521,7 @@ WITH scrat(nowscript)
     END IF
    CASE 37'--use shop
     IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxShop) THEN
-     shop retvals(0), needf
+     shop retvals(0)
     END IF
    CASE 55'--get default weapon
     IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
@@ -2909,7 +2901,6 @@ SUB opendoor (dforce AS INTEGER=0)
 END SUB
 
 SUB thrudoor (door_id AS INTEGER)
- 'FIXME: needf is accessed here. It is module shared, should probably become a member of gam
  DIM oldmap AS INTEGER
  DIM i AS INTEGER
  DIM destdoor AS INTEGER
@@ -2927,7 +2918,7 @@ SUB thrudoor (door_id AS INTEGER)
      catx(0) = gam.map.door(destdoor).x * 20
      caty(0) = (gam.map.door(destdoor).y - 1) * 20
      fadeout 0, 0, 0
-     needf = 2
+     queue_fade_in 1
      IF oldmap = gam.map.id THEN gam.map.same = YES
      prepare_map
      gam.random_battle_countdown = range(100, 60)
@@ -2979,7 +2970,7 @@ SUB advance_text_box ()
   gam.wonbattle = battle(txt.box.battle)
   prepare_map YES
   gam.random_battle_countdown = range(100, 60)
-  needf = 1
+  queue_fade_in
  END IF
  '---GAIN/LOSE ITEM--------
  IF istag(txt.box.item_tag, 0) THEN
@@ -2989,15 +2980,15 @@ SUB advance_text_box ()
  '---SHOP/INN/SAVE/ETC------------
  IF istag(txt.box.shop_tag, 0) THEN
   IF txt.box.shop > 0 THEN
-   shop txt.box.shop - 1, needf
+   shop txt.box.shop - 1
   END IF
   DIM inn AS INTEGER = 0
   IF txt.box.shop < 0 THEN
    '--Preserve background for display beneath the top-level shop menu
    DIM holdscreen = duplicatepage(vpage)
-   IF useinn(inn, -txt.box.shop, needf, holdscreen) THEN
+   IF useinn(inn, -txt.box.shop, holdscreen) THEN
     fadeout 0, 0, 80
-    needf = 1
+    queue_fade_in
    END IF
    freepage holdscreen
   END IF
@@ -3010,7 +3001,7 @@ SUB advance_text_box ()
  '---FORCE DOOR------
  IF istag(txt.box.door_tag, 0) THEN
   opendoor txt.box.door + 1
-  IF needf = 0 THEN
+  IF gam.need_fade_in = NO THEN
    DIM temp AS INTEGER
    temp = readblock(foemap, catx(0) \ 20, caty(0) \ 20)
    IF vstate.active = YES AND vstate.dat.random_battles > 0 THEN temp = vstate.dat.random_battles
@@ -3642,4 +3633,21 @@ SUB cleanup_game_slices ()
   DeleteSlice @npc(i).sl
  NEXT i
  DestroyGameSlices
+END SUB
+
+SUB queue_fade_in (BYVAL delay AS INTEGER = 0)
+ gam.need_fade_in = YES
+ gam.fade_in_delay = delay
+END SUB
+
+SUB check_for_queued_fade_in ()
+ IF gam.need_fade_in THEN
+  IF gam.fade_in_delay <= 0 THEN
+   gam.need_fade_in = 0
+   fadein
+   setkeys
+  ELSE
+   gam.fade_in_delay -= 1
+  END IF
+ END IF
 END SUB

@@ -670,9 +670,9 @@ st.size = 4
 '--loading 0 is the save menu, 1 is load menu, and 2 is load with no titlescreen. it fades the screen in
 '--loading 0+1 use vpage as background, loading 2 uses none. pages 2 and 3 are preserved
 '--terribly sorry for the dirtyness
-needf = 0
+gam.need_fade_in = NO 'FIXME: this looks like a tacky hack.
 IF loading = 2 THEN
- needf = 2
+ queue_fade_in 1
 END IF
 
 '--load strings. menu array holds the names of the options
@@ -730,7 +730,8 @@ IF loading THEN
  END IF
 END IF
 
-IF needf = 0 THEN MenuSound gen(genAcceptSFX)
+'FIXME: using need_fade_in to trigger the sound effect seems like a bad idea
+IF gam.need_fade_in = NO THEN MenuSound gen(genAcceptSFX)
 setkeys
 DO
  setwait speedcontrol
@@ -787,11 +788,7 @@ DO
  GOSUB drawmenugosub
  setvispage vpage
  copypage holdscreen, page
- IF needf = 1 THEN   'the titlescreen might be skipped and with it the fading in
-  needf = 0
-  fadein
- END IF
- IF needf > 1 THEN needf = needf - 1
+ check_for_queued_fade_in
  dowait
 LOOP
 

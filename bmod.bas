@@ -102,7 +102,7 @@ FUNCTION battle (form) as integer
 
  'fade to near white
  fadeout 240, 240, 240
- DIM needf AS INTEGER = YES
+ queue_fade_in
  
  clearpage 0
  clearpage 1
@@ -195,11 +195,7 @@ FUNCTION battle (form) as integer
 
   SWAP vpage, dpage
   setvispage vpage
-  IF needf THEN
-   needf = NO
-   fadein
-   setkeys
-  END IF
+  check_for_queued_fade_in
   dowait
  LOOP
  IF fatal THEN battle = 0

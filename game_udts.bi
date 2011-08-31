@@ -71,6 +71,8 @@ TYPE GameState
   debug_showtags AS INTEGER
   debug_npc_info AS INTEGER
   autorungame AS INTEGER
+  need_fade_in AS INTEGER
+  fade_in_delay AS INTEGER
 END TYPE
 
 TYPE TextBoxState
