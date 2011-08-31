@@ -11,7 +11,7 @@ from ohrbuild import basfile_scan, verprint
 win32 = False
 unix = True
 exe_suffix = ''
-FBFLAGS = os.environ.get ('FBFLAGS', []) + ['-mt','-g']
+FBFLAGS = os.environ.get ('FBFLAGS', []) + ['-mt']
 #CC and CXX are probably not needed anymore
 CC = ''
 CXX = ''
@@ -19,6 +19,7 @@ CFLAGS = '-g -Wall --std=c99'.split ()
 CXXFLAGS = '-g -Wall -Wno-non-virtual-dtor'.split ()
 C_opt = True    # compile with -O2?
 FB_exx = True   # compile with -exx?
+FB_g = True   # compile with -g?
 envextra = {}
 from ohrbuild import basfile_scan, verprint
 
@@ -40,7 +41,7 @@ fbc = ARGUMENTS.get ('fbc','fbc')
 git = ARGUMENTS.get ('git','git')
 if 'debug' in ARGUMENTS:
     C_opt = not int (ARGUMENTS['debug'])
-    FB_exx = int (ARGUMENTS['debug'])
+    FB_g = FB_exx = int (ARGUMENTS['debug'])
 if 'profile' in ARGUMENTS:
     FBFLAGS.append ('-profile')
     CFLAGS.append ('-pg')
@@ -53,6 +54,8 @@ if ARGUMENTS.get ('valgrind', 0):
     CFLAGS.append ('-DVALGRIND_ARRAYS')
 if FB_exx:
     FBFLAGS.append ('-exx')
+if FB_exx:
+    FBFLAGS.append ('-g')
 if C_opt:
     CFLAGS.append ('-O2')
     CXXFLAGS.append ('-O3')
@@ -73,6 +76,7 @@ env = Environment (FBFLAGS = FBFLAGS,
                    CFLAGS = CFLAGS,
                    FBC = fbc + ' -lang deprecated',
                    CXXFLAGS = CXXFLAGS,
+                   CXXLINKFLAGS = [],
                    VAR_PREFIX = '',
                    **envextra)
 
@@ -170,6 +174,9 @@ for k, v in music_map.items ():
         for k2, v2 in v.items ():
             tmp[k2] += v2.split (' ')
 
+commonenv['CXXLINKFLAGS'] += ['-l' + lib for lib in libraries]
+commonenv['CXXLINKFLAGS'] += ['-L' + path for path in libpaths]
+
 libraries = Flatten ([['-l', v] for v in libraries])
 libpaths = Flatten ([['-p', v] for v in libpaths])
 
@@ -226,17 +233,54 @@ if 'raster' in ARGUMENTS:
     common_modules += ['rasterizer.cpp', 'matrixMath.cpp', 'gfx_newRenderPlan.cpp']
     commonenv['FBFLAGS'] += ['-d', 'USE_RASTERIZER']
 
-if win32:
-    def run_gcc(query):
-        from subprocess import Popen, PIPE
-        f = Popen ("gcc " + query, stdout = PIPE, stderr = PIPE)
-        return f.stdout.read().strip()
+def which(env, prog_name):
+    "Like the 'which' utility, using env['ENV']['PATH']"
+    if win32:
+        paths = env['ENV']['PATH'].split(';')
+    else:
+        paths = env['ENV']['PATH'].split(':')
+    for path in paths:
+        name = os.path.abspath(os.path.join(path, prog_name)) + exe_suffix
+        #print "trying " + path + " = " + name
+        if os.path.isfile(name):
+            return name
+    return None
 
+def get_run_command(cmd):
+    """Runs a shell commands and returns stdout as a string"""
+    import subprocess
+    proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    errtext = proc.stderr.read()
+    if len(errtext) > 0:
+        raise Exception("subprocess.Popen(%s) returned stderr:\n%s" % (cmd, errtext))
+    return proc.stdout.read().strip()
+
+if 'linkgcc' in ARGUMENTS:
+    fbc_exe = which(commonenv, fbc)
+    #print "fbc = " + os.path.dirname(fbc_exe)
+    import re
+    fbcinfo = get_run_command("fbc -version")
+    target = re.findall("target:([a-z]*)", fbcinfo)
+    if len(target) == 0:
+        raise Exception("Couldn't determine fbc target")
+
+    if not win32:
+        commonenv['CXXLINKFLAGS'] += ['linux/fb_icon.c']
+    
+    libpath = os.path.join(os.path.dirname(fbc_exe), 'lib', target[0])
+    commonenv['CXXLINKFLAGS'] += ['-L' + libpath, os.path.join(libpath, 'fbrt0.o'), '-lfbmt', '-lncurses']
+
+    basexe_gcc = Builder (action = '$CXX $CXXFLAGS -o $TARGET $SOURCES $CXXLINKFLAGS',
+                  suffix = exe_suffix, src_suffix = '.bas')
+
+    commonenv['BUILDERS']['BASEXE'] = basexe_gcc
+
+elif win32:
     if not os.path.isfile('libgcc_s.a'):
-        shutil.copy(run_gcc("-print-file-name=libgcc_s.a"), ".")
+        shutil.copy(get_run_command("gcc -print-file-name=libgcc_s.a"), ".")
     if not os.path.isfile('libstdc++.a'):
-        shutil.copy(run_gcc("-print-file-name=libstdc++.a"), ".")
-    commonenv['FBLIBS'] += ['-l','gcc_s','-l','stdc++']
+        shutil.copy(get_run_command("gcc -print-file-name=libstdc++.a"), ".")
+    #commonenv['FBLIBS'] += ['-l','gcc_s','-l','stdc++']
 
 # Note that base_objects are not built in commonenv!
 base_objects = [env.Object(a) for a in base_modules]
@@ -275,8 +319,13 @@ editflags = list (editenv['FBFLAGS']) #+ ['-v']
 if win32:
     gamename = 'game'
     editname = 'custom'
-    gamesrc += ['gicon.rc']
-    editsrc += ['cicon.rc']
+    if 'linkgcc' in ARGUMENTS:
+        # FIXME: This is a stopgap, it only works if the .rc files have previously been compiled
+        gamesrc += ['gicon.obj']
+        editsrc += ['cicon.obj']
+    else:
+        gamesrc += ['gicon.rc']
+        editsrc += ['cicon.rc']
 
 GAME = gameenv.BASEXE   (gamename, source = gamesrc, FBFLAGS = gameflags)
 CUSTOM = editenv.BASEXE (editname, source = editsrc, FBFLAGS = editflags)
@@ -320,7 +369,10 @@ Options:
   svn=PATH            Override svn.
   git=PATH            Override git.
 
-  raster=1            Link with rasterizer.
+Experimental options:
+  raster=1            Include new graphics API and rasterizer.
+  gengcc=1            Compile using GCC emitter.
+  linkgcc=1           Link using g++ instead of fbc.
 
 Targets:
   """ + gamename + """ (or game)
@@ -333,6 +385,7 @@ Targets:
   reload2xml
   reloadutil
   vectortest
+  dumpohrkey
   bam2mid
   reload              Compile all RELOAD utilities.
   .                   Compile everything.
