@@ -267,7 +267,10 @@ if 'linkgcc' in ARGUMENTS:
     if not win32:
         commonenv['CXXLINKFLAGS'] += ['linux/fb_icon.c']
     
-    libpath = os.path.join(os.path.dirname(fbc_exe), 'lib', target[0])
+    if win32:
+        libpath = os.path.join(os.path.dirname(fbc_exe), 'lib', 'win32')
+    else:
+        libpath = "/usr/share/freebasic/lib/linux"
     commonenv['CXXLINKFLAGS'] += ['-L' + libpath, os.path.join(libpath, 'fbrt0.o'), '-lfbmt', '-lncurses']
 
     basexe_gcc = Builder (action = '$CXX $CXXFLAGS -o $TARGET $SOURCES $CXXLINKFLAGS',
