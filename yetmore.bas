@@ -1515,7 +1515,7 @@ SELECT CASE AS CONST id
   scriptret = str2int(MID$(DATE$, 7, 4))
  CASE 229'--string compare
   IF valid_plotstr(retvals(0)) AND valid_plotstr(retvals(1)) THEN
-   scriptret = (plotstr(retvals(0)).s = plotstr(retvals(1)).s)
+   scriptret = IIF(plotstr(retvals(0)).s = plotstr(retvals(1)).s, 1, 0)
   END IF
  CASE 230'--read enemy data
   'Boy, was this command a bad idea!
