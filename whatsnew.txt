@@ -37,6 +37,8 @@ WHAT IS NEW?
     * NPC definitions weren't being saved by "save map state" and
       the "Remember NPC data" option, and "delete map state" didn't
       work on NPC locations/instances [Ralph]
+    * 'Set target stat to %' attacks were being affected by the damage
+      cap [Ralph]
 
   * New Plotscripting Stuff
     * Slice velocity commands to make a slice move automatically at

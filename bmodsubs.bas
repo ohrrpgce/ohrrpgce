@@ -528,6 +528,8 @@ FUNCTION inflict (BYREF h AS INTEGER, BYREF targstat AS INTEGER, w as integer, t
     END IF
    END IF
   END IF
+
+  DIM capdamage as integer = YES
  
   IF attack.percent_damage_not_set = NO THEN
    'percentage attacks set stat
@@ -537,14 +539,17 @@ FUNCTION inflict (BYREF h AS INTEGER, BYREF targstat AS INTEGER, w as integer, t
    SELECT CASE attack.damage_math
     CASE 5'% of max
      h = chp - (mhp + (attack.extra_damage * mhp / 100))
+     capdamage = NO
     CASE 6'% of cur
      h = chp - (chp + (attack.extra_damage * chp / 100))
+     capdamage = NO
    END SELECT
   END IF
  
   'inflict
   IF attack.show_damage_without_inflicting = NO THEN
-   IF gen(genDamageCap) > 0 THEN
+   'I think that not applying the damage cap when only showing damage is pretty dodgy...
+   IF gen(genDamageCap) > 0 AND capdamage THEN
     IF h > gen(genDamageCap) THEN h = gen(genDamageCap)
     IF h < -gen(genDamageCap) THEN h = -gen(genDamageCap)
    END IF
