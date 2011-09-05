@@ -34,6 +34,7 @@ option explicit
 #IFDEF __FB_WIN32__
 	#undef getcommandline
 	#include once "windows.bi"
+	#undef copyfile
 	#undef createevent
 	#include "externs.bi"
 	#include once "win/msacm.bi"

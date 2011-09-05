@@ -23,7 +23,9 @@ dim shared tag(2000), global(1025)
 '#IFNDEF USE_ALLEGRO
 #IFDEF __FB_WIN32__
 	#undef getcommandline
+	#undef copyfile
 	#include once "windows.bi"
+	#undef copyfile
 	#undef createevent
 	#include "externs.bi"
 	#include once "win/msacm.bi"
