@@ -20,6 +20,7 @@ CXXFLAGS = '-g -Wall -Wno-non-virtual-dtor'.split ()
 C_opt = True    # compile with -O2?
 FB_exx = True   # compile with -exx?
 FB_g = True   # compile with -g?
+linkgcc = False  # link using g++?
 GCC_strip = False  # (linkgcc only) strip (link with -s)?
 envextra = {}
 from ohrbuild import basfile_scan, verprint
@@ -35,6 +36,8 @@ else:
 
 if 'gengcc' in ARGUMENTS:
     FBFLAGS += ["-gen", "gcc"]
+
+linkgcc = int (ARGUMENTS.get ('linkgcc', win32))
 
 environ = os.environ
 svn = ARGUMENTS.get ('svn','svn')
@@ -93,6 +96,11 @@ baso = Builder (action = '$FBC -c $SOURCE -o $TARGET $FBFLAGS',
 basexe = Builder (action = '$FBC $FBFLAGS -x $TARGET $FBLIBS $SOURCES',
                   suffix = exe_suffix, src_suffix = '.bas')
 
+# windres is part of mingw, and this is only used with linkgcc anyway.
+# FB includes GoRC.exe, but finding that file is too much trouble...
+rc_builder = Builder (action = 'windres --input $SOURCE --output $TARGET',
+                      suffix = '.obj', src_suffix = '.rc')
+
 bas_scanner = Scanner (function = basfile_scan,
                        skeys = ['.bas', '.bi'], recursive = True)
 
@@ -100,7 +108,7 @@ env['BUILDERS']['Object'].add_action ('.bas', '$FBC -c $SOURCE -o $TARGET $FBFLA
 SourceFileScanner.add_scanner ('.bas', bas_scanner)
 SourceFileScanner.add_scanner ('.bi', bas_scanner)
 
-env.Append (BUILDERS = {'BASEXE':basexe, 'BASO':baso, 'VARIANT_BASO':variant_baso},
+env.Append (BUILDERS = {'BASEXE':basexe, 'BASO':baso, 'VARIANT_BASO':variant_baso, 'RC':rc_builder},
             SCANNERS = bas_scanner)
 
 
@@ -256,7 +264,7 @@ def get_run_command(cmd):
         raise Exception("subprocess.Popen(%s) returned stderr:\n%s" % (cmd, errtext))
     return proc.stdout.read().strip()
 
-if 'linkgcc' in ARGUMENTS:
+if linkgcc:
     fbc_exe = which(commonenv, fbc)
     #print "fbc = " + os.path.dirname(fbc_exe)
     import re
@@ -275,7 +283,7 @@ if 'linkgcc' in ARGUMENTS:
     if GCC_strip:
         commonenv['CXXLINKFLAGS'] += ['-s']
     if win32:
-        commonenv['CXXLINKFLAGS'] += ['-lgdi32', '-lwinmm']
+        commonenv['CXXLINKFLAGS'] += ['-lgdi32', '-lwinmm', '-static-libgcc', '-static-libstdc++', '-Wl,--subsystem,windows']
     else:
         commonenv['CXXLINKFLAGS'] += ['-lncurses', 'linux/fb_icon.c']
 
@@ -328,10 +336,10 @@ editflags = list (editenv['FBFLAGS']) #+ ['-v']
 if win32:
     gamename = 'game'
     editname = 'custom'
-    if 'linkgcc' in ARGUMENTS:
+    if linkgcc:
         # FIXME: This is a stopgap, it only works if the .rc files have previously been compiled
-        gamesrc += ['gicon.obj']
-        editsrc += ['cicon.obj']
+        gamesrc += [gameenv.RC('gicon.rc')]
+        editsrc += [editenv.RC('cicon.rc')]
     else:
         gamesrc += ['gicon.rc']
         editsrc += ['cicon.rc']
