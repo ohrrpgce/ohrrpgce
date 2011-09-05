@@ -20,6 +20,7 @@ CXXFLAGS = '-g -Wall -Wno-non-virtual-dtor'.split ()
 C_opt = True    # compile with -O2?
 FB_exx = True   # compile with -exx?
 FB_g = True   # compile with -g?
+GCC_strip = False  # (linkgcc only) strip (link with -s)?
 envextra = {}
 from ohrbuild import basfile_scan, verprint
 
@@ -40,7 +41,7 @@ svn = ARGUMENTS.get ('svn','svn')
 fbc = ARGUMENTS.get ('fbc','fbc')
 git = ARGUMENTS.get ('git','git')
 if 'debug' in ARGUMENTS:
-    C_opt = not int (ARGUMENTS['debug'])
+    GCC_strip = C_opt = not int (ARGUMENTS['debug'])
     FB_g = FB_exx = int (ARGUMENTS['debug'])
 if 'profile' in ARGUMENTS:
     FBFLAGS.append ('-profile')
@@ -263,15 +264,20 @@ if 'linkgcc' in ARGUMENTS:
     target = re.findall("target:([a-z]*)", fbcinfo)
     if len(target) == 0:
         raise Exception("Couldn't determine fbc target")
-
-    if not win32:
-        commonenv['CXXLINKFLAGS'] += ['linux/fb_icon.c']
     
     if win32:
         libpath = os.path.join(os.path.dirname(fbc_exe), 'lib', 'win32')
     else:
         libpath = "/usr/share/freebasic/lib/linux"
-    commonenv['CXXLINKFLAGS'] += ['-L' + libpath, os.path.join(libpath, 'fbrt0.o'), '-lfbmt', '-lncurses']
+    # Passing this -L option straight to the linker is necessary, otherwise gcc gives it
+    # priority over the default library paths, which on Windows means using FB's old mingw libraries
+    commonenv['CXXLINKFLAGS'] += ['-Wl,-L' + libpath, os.path.join(libpath, 'fbrt0.o'), '-lfbmt']
+    if GCC_strip:
+        commonenv['CXXLINKFLAGS'] += ['-s']
+    if win32:
+        commonenv['CXXLINKFLAGS'] += ['-lgdi32', '-lwinmm']
+    else:
+        commonenv['CXXLINKFLAGS'] += ['-lncurses', 'linux/fb_icon.c']
 
     basexe_gcc = Builder (action = '$CXX $CXXFLAGS -o $TARGET $SOURCES $CXXLINKFLAGS',
                   suffix = exe_suffix, src_suffix = '.bas')
@@ -283,7 +289,7 @@ elif win32:
         shutil.copy(get_run_command("gcc -print-file-name=libgcc_s.a"), ".")
     if not os.path.isfile('libstdc++.a'):
         shutil.copy(get_run_command("gcc -print-file-name=libstdc++.a"), ".")
-    #commonenv['FBLIBS'] += ['-l','gcc_s','-l','stdc++']
+    commonenv['FBLIBS'] += ['-l','gcc_s','-l','stdc++']
 
 # Note that base_objects are not built in commonenv!
 base_objects = [env.Object(a) for a in base_modules]
