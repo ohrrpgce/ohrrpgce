@@ -1252,6 +1252,13 @@ script, battle tests, begin
   force random battle
   show value(random(1, 999999999)), w # this should remain deterministic after battle
   show no value, w
+  # attack forces run
+  assert(fight formation(1) == false), w
+  # attack forces victory
+  assert(fight formation(2) == true), w
+  # attack forces exit
+  assert(fight formation(3) == false), w
+  w(5)
 end
 
 script, force random battle, begin

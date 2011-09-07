@@ -2163,6 +2163,8 @@ SUB convertattackdata(buf() AS INTEGER, BYREF atkdat AS AttackData)
   .targ_does_not_flinch           = xreadbit(buf(), 18, 65)
   .do_not_exceed_targ_stat        = xreadbit(buf(), 19, 65)
   .nonblocking                    = xreadbit(buf(), 20, 65)
+  .force_victory                  = xreadbit(buf(), 21, 65)
+  .force_battle_exit              = xreadbit(buf(), 22, 65)
  END WITH
 END SUB
 

@@ -100,6 +100,8 @@ atkbit(81) = "Re-check costs after attack delay"
 atkbit(82) = "Do not cause target to flinch"
 atkbit(83) = "Don't allow damage to exceed target stat"
 atkbit(84) = "Delay doesn't block further actions"
+atkbit(85) = "Force victory"
+atkbit(86) = "Force battle exit (no run animation)"
 '             ^---------------------------------------^
 '               the amount of room you have (39 chars)
 

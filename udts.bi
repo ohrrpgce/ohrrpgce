@@ -569,6 +569,8 @@ Type AttackData
 	do_not_randomize as integer
 	damage_can_be_zero as integer
 	force_run as integer
+	force_victory as integer
+	force_battle_exit as integer
 	mutable as integer
 	fail_if_targ_poison as integer
 	fail_if_targ_regen as integer

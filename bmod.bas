@@ -488,6 +488,10 @@ SUB battle_attack_do_inflict(targ AS INTEGER, tcount AS INTEGER, BYREF attack AS
    ELSE
     bat.away = 1
    END IF
+  ELSEIF attack.force_victory = YES THEN
+   trigger_victory bat, bslot()
+  ELSEIF attack.force_battle_exit = YES THEN
+   bat.away = 11
   END IF
   checkTagCond attack.tagset(0), 2
   checkTagCond attack.tagset(1), 2
