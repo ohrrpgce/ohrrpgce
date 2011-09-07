@@ -1548,6 +1548,92 @@ SUB pop_warning(s AS STRING)
  DeleteSlice @root
 END SUB
 
+FUNCTION prompt_for_string (BYREF s AS STRING, caption AS STRING, BYVAL limit AS INTEGER=NO) AS INTEGER
+ '--Construct the prompt UI. FIXME: redo this when the Slice Editor can save/load)
+ DIM root AS Slice Ptr
+ root = NewSliceOfType(slRoot)
+ root->Fill = YES
+ DIM outer_box AS Slice Ptr
+ outer_box = NewSliceOfType(slRectangle, root)
+ WITH *outer_box
+  .AnchorHoriz = 1
+  .AnchorVert = 1
+  .AlignHoriz = 1
+  .AlignVert = 1
+  .paddingTop = 16
+  .paddingBottom = 16
+  .paddingLeft = 16
+  .paddingRight = 16
+  .Width = 300
+  .Height = 64
+ END WITH
+ ChangeRectangleSlice outer_box, 1
+ DIM caption_area AS Slice Ptr
+ caption_area = NewSliceOfType(slText, outer_box)
+ ChangeTextSlice caption_area, caption, uilook(uiText)
+ DIM inner_box AS Slice Ptr
+ inner_box = NewSliceOfType(slContainer, outer_box)
+ WITH *inner_box
+  .paddingTop = 16
+  .Fill = YES
+ END WITH
+ DIM text_border_box As Slice Ptr
+ text_border_box = NewSliceOfType(slRectangle, inner_box)
+ WITH *text_border_box
+  .paddingTop = 2
+  .paddingBottom = 2
+  .paddingLeft = 2
+  .paddingRight = 2
+  .Fill = YES
+ END WITH
+ ChangeRectangleSlice text_border_box, , uilook(uiOutline), uilook(uiText)
+ DIM text_area AS Slice Ptr
+ text_area = NewSliceOfType(slText, text_border_box)
+ WITH *text_area
+  .Fill = YES
+ END WITH
+ ChangeTextSlice text_area, s, uilook(uiMenuItem), , , uilook(uiOutline) 
+
+ '--Preserve whatever screen was already showing as a background
+ DIM holdscreen AS INTEGER
+ holdscreen = allocatepage
+ copypage vpage, holdscreen
+
+ DIM dat AS TextSliceData Ptr
+ dat = text_area->SliceData
+
+ IF limit = NO THEN limit = 40
+
+ '--Now loop while editing string
+ setkeys
+ DO
+  setwait 40
+  setkeys
+  
+  IF keyval(scESC) > 1 THEN
+   prompt_for_string = NO
+   EXIT DO
+  END IF
+  IF keyval(scEnter) > 1 THEN
+   prompt_for_string = YES
+   s = dat->s
+   EXIT DO
+  END IF
+  strgrabber dat->s, limit
+
+  copypage holdscreen, dpage
+  DrawSlice root, dpage
+
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+ 
+ setkeys
+ freepage holdscreen
+ DeleteSlice @root
+END FUNCTION
+
 SUB show_help(helpkey AS STRING)
  DIM help_str AS STRING
  help_str = load_help_file(helpkey)
@@ -1604,6 +1690,8 @@ SUB show_help(helpkey AS STRING)
  DIM scrollbar_state AS MenuState
  scrollbar_state.size = 17
 
+ DIM searchstring AS STRING
+
  '--Now loop displaying help
  setkeyrepeat  'reset repeat rate
  setkeys
@@ -1638,6 +1726,21 @@ SUB show_help(helpkey AS STRING)
      END IF
     END IF
    END IF
+
+   IF editing THEN
+    'Enabled while editing only, because when not, 1) scrolling to show the match
+    'and 2) highlighting the match aren't easy. Delayed until TextSlice cleanup.
+    IF keyval(scCTRL) > 0 AND keyval(scS) > 1 THEN
+     IF prompt_for_string(searchstring, "Search") THEN
+      DIM idx AS INTEGER = INSTR(dat->insert + 2, LCASE(dat->s), LCASE(searchstring))
+      IF idx = 0 THEN  'wrap
+       idx = INSTR(dat->s, searchstring)
+      END IF
+      IF idx THEN dat->insert = idx - 1
+     END IF
+    END IF
+   END IF
+
    IF keyval(scE) > 1 THEN
     IF fileiswriteable(get_help_dir() & SLASH & helpkey & ".txt") THEN
      editing = YES

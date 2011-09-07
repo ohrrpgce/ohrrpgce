@@ -192,6 +192,7 @@ DECLARE FUNCTION escape_nonprintable_ascii(s AS STRING) AS STRING
 DECLARE FUNCTION fixfilename (s AS STRING) AS STRING
 
 DECLARE FUNCTION inputfilename (query AS STRING, ext AS STRING, directory AS STRING, helpkey AS STRING, default AS STRING="", BYVAL allow_overwrite AS INTEGER=YES) AS STRING
+DECLARE FUNCTION prompt_for_string (BYREF s AS STRING, caption AS STRING, BYVAL limit AS INTEGER=NO) AS INTEGER
 
 DECLARE SUB set_homedir()
 DECLARE FUNCTION get_help_dir(helpfile AS STRING="") AS STRING

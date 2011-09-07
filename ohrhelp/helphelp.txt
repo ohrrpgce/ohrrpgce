@@ -6,4 +6,4 @@ You may also know that you can use the up and down arrow keys and pageup and pag
 
 But did you know that you can press E to edit the help screens? Think of it as a tiny wiki built into the program. If you make improvements to any of the help screens, you can zip up a copy of your ohrhelp folder and mail it to the developers, and they can integrate your improvements into the official help files. Cool huh?
 
-While editing, CTRL+Left and CTRL+Right move by word, and Home and End move by line.
+While editing, CTRL+Left and CTRL+Right move by word, and Home and End move by line. You can also press CTRL+S to search the text (case-insensitive).
