@@ -283,7 +283,8 @@ if linkgcc:
     if GCC_strip:
         commonenv['CXXLINKFLAGS'] += ['-s']
     if win32:
-        commonenv['CXXLINKFLAGS'] += ['-lgdi32', '-lwinmm', '-static-libgcc', '-static-libstdc++', '-Wl,--subsystem,windows']
+        # win32\ld_opt_hack.txt contains --stack option which can't be passed using -Wl
+        commonenv['CXXLINKFLAGS'] += ['-lgdi32', '-lwinmm', '-static-libgcc', '-static-libstdc++', '-Wl,--subsystem,windows', '-Wl,@win32\ld_opt_hack.txt']
     else:
         commonenv['CXXLINKFLAGS'] += ['-lncurses', 'linux/fb_icon.c']
 
