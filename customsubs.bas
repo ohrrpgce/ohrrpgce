@@ -1653,7 +1653,7 @@ FUNCTION import_textboxes (filename AS STRING, BYREF warn AS STRING) AS INTEGER
   LINE INPUT #1, s
   s = decode_backslash_codes(s)
   IF firstline THEN
-   IF s <> STRING(38, "=") THEN
+   IF RTRIM(s) <> STRING(38, "=") THEN
     import_textboxes_warn warn, filename & " is not a valid text box file. Expected header row, found """ & s & """."
     CLOSE #fh
     RETURN NO
@@ -1682,9 +1682,9 @@ FUNCTION import_textboxes (filename AS STRING, BYREF warn AS STRING) AS INTEGER
      RETURN NO
     END IF
    CASE 1 '--Seek divider
-    IF s = STRING(38, "-") THEN
+    IF RTRIM(s) = STRING(38, "-") THEN
      mode = 2
-    ELSEIF s = STRING(38, "=") THEN '--no text
+    ELSEIF RTRIM(s) = STRING(38, "=") THEN '--no text
      IF index > gen(genMaxTextbox) THEN
       warn_append += index - gen(genMaxTextbox)
       gen(genMaxTextbox) = index
@@ -1805,7 +1805,7 @@ FUNCTION import_textboxes (filename AS STRING, BYREF warn AS STRING) AS INTEGER
      END IF
     END IF
    CASE 2 '--Text lines
-    IF s = STRING(38, "=") THEN
+    IF RTRIM(s) = STRING(38, "=") THEN
      FOR i = boxlines TO 7
       box.text(i) = ""
      NEXT i
