@@ -3,8 +3,12 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
-'!$DYNAMIC
+
+'FIXME: This module compiles with lang fb, but will not link yet
+'#lang "fb"
+
 'DEFINT A-Z
+OPTION EXPLICIT
 
 #include "config.bi"
 #include "ver.txt"
@@ -87,7 +91,7 @@ processcommandline
 
 '---get temp dir---
 set_homedir
-tmpdir = acquiretempdir$
+tmpdir = acquiretempdir
 
 'DEBUG debug "set mode-X"
 setmodex
@@ -97,47 +101,83 @@ setupmusic
 
 'DEBUG debug "dim (almost) everything"
 
-'$dynamic
-
 'shared module variables
-DIM SHARED harmtileflash = NO
-DIM SHARED wantbox, wantdoor, wantbattle, wantteleport, wantusenpc, wantloadgame
+DIM SHARED harmtileflash as integer = NO
+DIM SHARED wantbox as integer
+DIM SHARED wantdoor as integer
+DIM SHARED wantbattle as integer
+DIM SHARED wantteleport as integer
+DIM SHARED wantusenpc as integer
+DIM SHARED wantloadgame as integer
 DIM SHARED scriptout AS STRING
 
 'global variables
 DIM gam AS GameState
 DIM txt AS TextBoxState
-DIM gen(360)
-DIM tag(127)
+REDIM gen(360) as integer
+REDIM tag(127) as integer
 
-DIM herotags(59) as HeroTagsCache, itemtags(maxMaxItems) as ItemTagsCache
+REDIM herotags(59) as HeroTagsCache
+REDIM itemtags(maxMaxItems) as ItemTagsCache
 
-DIM hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), names(40)
-DIM eqstuf(40, 4)
-DIM catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), hmask(3)
-DIM herow(3) as GraphicPair  'FIXME: these are only used in the various hero pickers
-DIM statnames() as string
+REDIM hero(40) as integer
+REDIM bmenu(40, 5) as integer
+REDIM spell(40, 3, 23) as integer
+REDIM lmp(40, 7) as integer
+REDIM names(40) as string
+REDIM eqstuf(40, 4) as integer
+REDIM catx(15) as integer
+REDIM caty(15) as integer
+REDIM catz(15) as integer
+REDIM catd(15) as integer
+REDIM xgo(3) as integer
+REDIM ygo(3) as integer
+REDIM herospeed(3) as integer
+REDIM wtog(3) as integer
+REDIM hmask(3) as integer
+REDIM herow(3) as GraphicPair  'FIXME: these are only used in the various hero pickers
+REDIM statnames() as string
 
-DIM maptiles(0) as TileMap, pass as TileMap, foemap as TileMap
+REDIM maptiles(0) as TileMap
+DIM pass as TileMap
+DIM foemap as TileMap
 DIM zmap as ZoneMap
-DIM tilesets(maplayerMax) as TilesetData ptr  'tilesets is fixed size at the moment. It must always be at least as large as the number of layers on a map
+REDIM tilesets(maplayerMax) as TilesetData ptr  'tilesets is fixed size at the moment. It must always be at least as large as the number of layers on a map
 DIM mapsizetiles as XYPair  'for convienence
 
-DIM master(255) as RGBcolor
-DIM uilook(uiColors)
+REDIM master(255) as RGBcolor
+REDIM uilook(uiColors) as integer
 
-DIM pal16(448)
-DIM buffer(16384)
+REDIM pal16(448) as integer
+REDIM buffer(16384) as integer 'FIXME: when can we get rid of this?
 
-DIM inventory(inventoryMax) as InventSlot
-DIM gold
+REDIM inventory(inventoryMax) as InventSlot
+DIM gold as integer
 
-DIM npcs(0) as NPCType
-DIM npc(299) as NPCInst
+REDIM npcs(0) as NPCType
+REDIM npc(299) as NPCInst
 
-DIM AS INTEGER mapx, mapy, vpage, dpage, fadestate, usepreunlump, lastsaveslot, abortg, resetg, presentsong, framex, framey
-DIM err_suppress_lvl
-DIM AS STRING tmpdir, exename, game, sourcerpg, savefile, workingdir, homedir
+DIM mapx as integer
+DIM mapy as integer
+DIM vpage as integer
+DIM dpage as integer
+DIM fadestate as integer
+DIM usepreunlump as integer
+DIM lastsaveslot as integer
+DIM abortg as integer
+DIM resetg as integer
+DIM presentsong as integer
+DIM framex as integer
+DIM framey as integer
+
+DIM err_suppress_lvl as integer
+DIM tmpdir as string
+DIM exename as string
+DIM game as string
+DIM sourcerpg as string
+DIM savefile as string
+DIM workingdir as string
+DIM homedir as string
 DIM prefsdir as string
 
 DIM lump_reloading as LumpReloadOptions
@@ -151,38 +191,47 @@ lump_reloading.npcd.mode = loadmodeAlways
 
 'Menu Data
 DIM menu_set AS MenuSet
-DIM menus(0) AS MenuDef 'This is an array because it holds a stack of heirarchial menus (resized as required)
-DIM mstates(0) AS MenuState
+REDIM menus(0) AS MenuDef 'This is an array because it holds a stack of heirarchial menus (resized as required)
+REDIM mstates(0) AS MenuState
 DIM topmenu AS INTEGER = -1
 
-DIM fatal
-DIM lastformation
+DIM fatal as integer
+DIM lastformation as integer
 
 DIM vstate AS VehicleState
 reset_vehicle vstate
 
-DIM csetup(12), carray(13)
+REDIM csetup(12) as integer
+REDIM carray(13) as integer
 DIM mouse AS MouseInfo
-DIM joy(14), gotj(2)
+REDIM joy(14) as integer
+REDIM gotj(2) as integer
 
-DIM backcompat_sound_slot_mode
-DIM backcompat_sound_slots(7)
+DIM backcompat_sound_slot_mode as integer
+REDIM backcompat_sound_slots(7) as integer
 
-DIM nowscript, scriptret, scriptctr, numloadedscr, totalscrmem, scrwatch
-DIM heap(2048), global(4095), retvals(32)
-DIM scrat(128) as ScriptInst
-DIM script(scriptTableSize - 1) as ScriptData Ptr
-DIM plotstr(31) as Plotstring
+DIM nowscript as integer
+DIM scriptret as integer
+DIM scriptctr as integer
+DIM numloadedscr as integer
+DIM totalscrmem as integer
+DIM scrwatch as integer
+REDIM heap(2048) as integer
+REDIM global(4095) as integer
+REDIM retvals(32) as integer
+REDIM scrat(128) as ScriptInst
+REDIM script(scriptTableSize - 1) as ScriptData Ptr
+REDIM plotstr(31) as Plotstring
 DIM scrst as Stack
 DIM curcmd as ScriptCommand ptr
-DIM insideinterpreter
-DIM wantimmediate
+DIM insideinterpreter as integer
+DIM wantimmediate as integer
 
 'incredibly frustratingly fbc doesn't export global array debugging symbols
 DIM globalp as integer ptr
 DIM heapp as integer ptr
 DIM scratp as ScriptInst ptr
-DIM scriptp as ScriptData ptr ptr 
+DIM scriptp as ScriptData ptr ptr
 DIM retvalsp as integer ptr
 DIM plotslicesp as slice ptr ptr
 globalp = @global(0)
@@ -195,7 +244,7 @@ plotslicesp = @plotslices(1)
 'End global variables
 
 'Module local variables
-DIM font(1023)
+REDIM font(1023) as integer
 DIM archinym as string
 
 'DEBUG debug "Thestart"
@@ -204,7 +253,7 @@ DO 'This is a big loop that encloses the entire program (more than it should). T
 '----(Re)initialise graphics/window/IO options
 
 '-- Init joysticks
-FOR i = 0 TO 1
+FOR i as integer = 0 TO 1
  gotj(i) = readjoy(joy(), i)
 NEXT i
 
@@ -227,7 +276,7 @@ usepreunlump = NO
 '---get work dir and exe name---
 'DEBUG debug "setup directories"
 IF NOT isdir(tmpdir) THEN makedir tmpdir
-exename = trimextension$(trimpath$(COMMAND$(0)))
+exename = trimextension(trimpath(COMMAND(0)))
 
 IF running_as_slave THEN
 
@@ -255,25 +304,25 @@ ELSE  'NOT running_as_slave
  '---ALSO CHECKS FOR GAME.EXE RENAMING
 
  'DEBUG debug "searching commandline for game"
- FOR i = 1 TO UBOUND(cmdline_args)
-  a$ = cmdline_args(i)
+ FOR i as integer = 1 TO UBOUND(cmdline_args)
+  DIM arg as string = cmdline_args(i)
 
  #IFDEF __FB_WIN32__
-  IF MID$(a$, 2, 1) <> ":" THEN a$ = curdir$ + SLASH + a$
+  IF MID(arg, 2, 1) <> ":" THEN arg = curdir + SLASH + arg
  #ELSE
-  IF MID$(a$, 1, 1) <> SLASH THEN a$ = curdir$ + SLASH + a$
+  IF MID(arg, 1, 1) <> SLASH THEN arg = curdir + SLASH + arg
  #ENDIF
-  IF LCASE$(RIGHT$(a$, 4)) = ".rpg" AND isfile(a$) THEN
-   sourcerpg = a$
+  IF LCASE(RIGHT(arg, 4)) = ".rpg" AND isfile(arg) THEN
+   sourcerpg = arg
    gam.autorungame = YES
    EXIT FOR
-  ELSEIF isdir(a$) THEN 'perhaps it's an unlumped folder?
+  ELSEIF isdir(arg) THEN 'perhaps it's an unlumped folder?
    'check for essentials (archinym.lmp was added long before .rpgdir support)
-   IF isfile(a$ + SLASH + "archinym.lmp") THEN 'ok, accept it
+   IF isfile(arg + SLASH + "archinym.lmp") THEN 'ok, accept it
     gam.autorungame = YES
     usepreunlump = YES
-    sourcerpg = a$
-    workingdir = a$
+    sourcerpg = arg
+    workingdir = arg
    END IF
    EXIT FOR
  'ELSE nothing; custom throws a warning
@@ -283,16 +332,16 @@ ELSE  'NOT running_as_slave
 END IF  'NOT running_as_slave
 
 IF gam.autorungame = NO THEN
- IF LCASE$(exename) <> "game" THEN
+ IF LCASE(exename) <> "game" THEN
   IF isfile(exepath + SLASH + exename + ".rpg") THEN
    sourcerpg = exepath + SLASH + exename + ".rpg"
    gam.autorungame = YES
   ELSE
-   a$ = exepath + SLASH + exename + ".rpgdir"
-   IF isdir(a$) THEN
-    IF isfile(a$ + SLASH + "archinym.lmp") THEN
-     sourcerpg = a$
-     workingdir = a$
+   DIM rpgd as string = exepath + SLASH + exename + ".rpgdir"
+   IF isdir(rpgd) THEN
+    IF isfile(rpgd + SLASH + "archinym.lmp") THEN
+     sourcerpg = rpgd
+     workingdir = rpgd
      gam.autorungame = YES
      usepreunlump = YES
     END IF
@@ -302,7 +351,7 @@ IF gam.autorungame = NO THEN
 END IF
 IF gam.autorungame = NO THEN
  'DEBUG debug "browse for RPG"
- sourcerpg = browse$(7, "", "*.rpg", tmpdir, 1, "browse_rpg")
+ sourcerpg = browse(7, "", "*.rpg", tmpdir, 1, "browse_rpg")
  IF sourcerpg = "" THEN exitprogram 0
  IF isdir(sourcerpg) THEN
   usepreunlump = YES
@@ -313,20 +362,20 @@ END IF
 '-- set up prefs dir
 #IFDEF __UNIX__
 'This is important on unix in case you are playing an rpg file installed in /usr/share/games
-prefsdir = ENVIRON$("HOME") + SLASH + ".ohrrpgce" + SLASH + trimextension$(trimpath$(sourcerpg))
+prefsdir = ENVIRON("HOME") + SLASH + ".ohrrpgce" + SLASH + trimextension(trimpath(sourcerpg))
 IF NOT isdir(prefsdir) THEN makedir prefsdir
 #ELSE
 'This is not used anywhere yet in the Windows version
-prefsdir = ENVIRON$("APPDATA") + SLASH + "OHRRPGCE" + SLASH + trimextension$(trimpath$(sourcerpg))
+prefsdir = ENVIRON("APPDATA") + SLASH + "OHRRPGCE" + SLASH + trimextension(trimpath(sourcerpg))
 #ENDIF
 
 end_debug 'delete unimportant messages generated before this point, or from previous game
 
 '-- change current directory, where g_debug will be put; mainly for drag-dropping onto Game in Windows which defaults to homedir
-a$ = trimfilename(sourcerpg)
-IF a$ <> "" ANDALSO diriswriteable(a$) THEN
+DIM fol as string = trimfilename(sourcerpg)
+IF fol <> "" ANDALSO diriswriteable(fol) THEN
  'first choice is game directory
- CHDIR a$
+ CHDIR fol
 ELSEIF diriswriteable(app_dir) THEN
  CHDIR app_dir
 ELSE
@@ -358,7 +407,7 @@ ELSE
  xbload tmpdir + archinym + ".gen", gen(), "general game data missing from " + sourcerpg
 END IF
 
-forcerpgcopy = NO
+DIM forcerpgcopy as integer = NO
 IF gen(genVersion) > CURRENT_RPG_VERSION THEN
  debug "genVersion = " & gen(genVersion)
  future_rpg_warning  '(fatal error is running_as_slave)
@@ -386,9 +435,9 @@ END IF
 debuginfo long_version & build_info
 debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo  & "  " & systeminfo
 debuginfo "Playing game " & sourcerpg & " (" & getdisplayname(" ") & ") " & DATE & " " & TIME
-IF running_as_slave THEN debuginfo "Spawned from Custom (" & custom_version & ")" 
+IF running_as_slave THEN debuginfo "Spawned from Custom (" & custom_version & ")"
 
-DIM gmap(dimbinsize(binMAP)) 'this must be declared here, after the binsize file exists!
+REDIM gmap(dimbinsize(binMAP)) as integer 'this must be declared here, after the binsize file exists!
 
 '--set game
 game = workingdir + SLASH + archinym
@@ -417,13 +466,12 @@ setfont font()
 load_fset_frequencies
 loadglobalstrings
 getstatnames statnames()
-j = 0
 
 IF err_suppress_lvl = 0 THEN err_suppress_lvl = bound(gen(genErrorLevel) - 1, 0, 5)  'might be changed by -errlvl
 nowscript = -1
 numloadedscr = 0
 totalscrmem = 0
-depth = 0
+DIM depth as integer = 0
 resetinterpreter
 'the old stack used only inbattle
 releasestack
@@ -466,7 +514,7 @@ txt.show_lines = 0
 txt.sayer = -1
 txt.id = -1
 
-load_slot = -1
+DIM load_slot as integer = -1
 'resetg is YES when we are skipping straight to launching the game
 IF readbit(gen(), genBits, 11) = 0 AND resetg = NO THEN
  IF titlescr = 0 THEN EXIT DO'resetg
@@ -498,7 +546,8 @@ END IF
 load_special_tag_caches  'Load herotags and itemtags, which are immutable
 evalherotags
 queue_fade_in
-force_npc_check = YES
+DIM force_npc_check as integer = YES
+DIM tog as integer
 
 '--Reset some stuff related to debug keys
 gam.debug_showtags = NO
@@ -617,7 +666,7 @@ DO
   END IF
   IF keyval(scF10) > 1 THEN scrwatch = loopvar(scrwatch, 0, 2, 1): gam.debug_showtags = NO
   IF keyval(scCtrl) > 0 THEN ' holding CTRL
-   IF keyval(scF1) > 1 AND txt.showing = NO THEN 
+   IF keyval(scF1) > 1 AND txt.showing = NO THEN
     IF teleporttool() THEN 'CTRL + F1
      prepare_map
     END IF
@@ -625,11 +674,11 @@ DO
    IF gam.debug_showtags = NO THEN
     IF keyval(scNumpadPlus) > 1 OR keyval(scPlus) > 1 THEN  'CTRL +
      speedcontrol = large(speedcontrol - 1, 10)
-     scriptout$ = STR(speedcontrol)
+     scriptout = STR(speedcontrol)
     END IF
     IF keyval(scNumpadMinus) > 1 OR keyval(scMinus) > 1 THEN  'CTRL -
      speedcontrol = small(speedcontrol + 1, 160)
-     scriptout$ = STR(speedcontrol)
+     scriptout = STR(speedcontrol)
     END IF
    END IF
    IF keyval(scF4) > 1 THEN slice_editor SliceTable.Root
@@ -648,7 +697,7 @@ DO
    IF keyval(scF11) > 1 THEN gam.debug_npc_info = NOT gam.debug_npc_info
   ELSE ' holding CTRL
    IF keyval(scF1) > 1 AND txt.showing = NO THEN minimap catx(0), caty(0)
-   IF keyval(scF4) > 1 THEN gam.debug_showtags = NOT gam.debug_showtags : scrwatch = 0 
+   IF keyval(scF4) > 1 THEN gam.debug_showtags = NOT gam.debug_showtags : scrwatch = 0
    IF keyval(scF5) > 1 THEN live_preview_menu
    IF keyval(scF8) > 1 THEN patcharray gen(), "gen"
    IF keyval(scF9) > 1 THEN patcharray gmap(), "gmap"
@@ -659,7 +708,7 @@ DO
   'DEBUG debug "loading game slot " & (wantloadgame - 1)
   load_slot = wantloadgame - 1
   wantloadgame = 0
-  resetgame scriptout$
+  resetgame scriptout
   initgamedefaults
   stopsong
   resetsfx
@@ -669,10 +718,10 @@ DO
  END IF
  'DEBUG debug "random enemies"
  IF gam.random_battle_countdown = 0 AND readbit(gen(), 44, suspendrandomenemies) = 0 AND (vstate.active = NO OR vstate.dat.random_battles > -1) THEN
-  temp = readblock(foemap, catx(0) \ 20, caty(0) \ 20)
-  IF vstate.active AND vstate.dat.random_battles > 0 THEN temp = vstate.dat.random_battles
-  IF temp > 0 THEN
-   batform = random_formation(temp - 1)
+  DIM tempblock as integer = readblock(foemap, catx(0) \ 20, caty(0) \ 20)
+  IF vstate.active AND vstate.dat.random_battles > 0 THEN tempblock = vstate.dat.random_battles
+  IF tempblock > 0 THEN
+   DIM batform as integer = random_formation(tempblock - 1)
    IF gmap(13) <= 0 THEN 'if no random battle script is defined
     IF batform >= 0 THEN 'and if the randomly selected battle is valid
      'trigger a normal random battle
@@ -683,10 +732,10 @@ DO
     END IF
    ELSE
     'trigger the instead-of-battle script
-    rsr = runscript(gmap(13), nowscript + 1, YES, YES, "rand-battle", plottrigger)
+    DIM rsr as integer = runscript(gmap(13), nowscript + 1, YES, YES, "rand-battle", plottrigger)
     IF rsr = 1 THEN
      setScriptArg 0, batform
-     setScriptArg 1, temp
+     setScriptArg 1, tempblock
     END IF
    END IF
    gam.random_battle_countdown = range(100, 60)
@@ -698,7 +747,7 @@ DO
   txt.showing = NO
   txt.fully_shown = NO
   IF gen(genGameoverScript) > 0 THEN
-   rsr = runscript(gen(genGameoverScript), nowscript + 1, YES, NO, "death", plottrigger)
+   DIM rsr as integer = runscript(gen(genGameoverScript), nowscript + 1, YES, NO, "death", plottrigger)
    IF rsr = 1 THEN
     fatal = 0
     queue_fade_in 1
@@ -711,7 +760,7 @@ DO
  END IF' end menus_allow_gameplay
  displayall()
  IF fatal = 1 OR abortg > 0 OR resetg THEN
-  resetgame scriptout$
+  resetgame scriptout
   'Stop sounds but not music; the title screen might not have any music set, or be set to the same music
   resetsfx
   IF resetg THEN EXIT DO  'skip to new game
@@ -736,9 +785,6 @@ LOOP ' This is the end of the DO that encloses a specific RPG file
 reset_game_final_cleanup
 RETRIEVESTATE
 LOOP ' This is the end of the DO that encloses the entire program.
-
-'======== FIXME: move this up as code gets cleaned up ===========
-OPTION EXPLICIT
 
 SUB reset_game_final_cleanup()
  cleanup_text_box
@@ -808,21 +854,21 @@ SUB displayall()
  IF gen(genTextboxBackdrop) = 0 AND gen(genScrBackdrop) = 0 THEN
   '---NORMAL DISPLAY---
   'DEBUG debug "drawmap"
-  IF readbit(gen(), genSuspendBits, suspendoverlay) THEN 
+  IF readbit(gen(), genSuspendBits, suspendoverlay) THEN
    ChangeMapSlice SliceTable.MapLayer(0), , , , 0   'draw all
    SliceTable.ObsoleteOverhead->Visible = NO
   ELSE
-   ChangeMapSlice SliceTable.MapLayer(0), , , , 1   'draw non-overhead only 
+   ChangeMapSlice SliceTable.MapLayer(0), , , , 1   'draw non-overhead only
    SliceTable.ObsoleteOverhead->Visible = YES
   END IF
   WITH *(SliceTable.MapRoot)
    .X = mapx * -1
    .Y = mapy * -1
   END WITH
- 
+
   DrawSlice SliceTable.MapRoot, dpage
   DrawSlice SliceTable.ScriptSprite, dpage 'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
-  
+
   animatetilesets tilesets()
   IF harmtileflash = YES THEN
    rectangle 0, 0, 320, 200, gmap(10), dpage
@@ -846,7 +892,7 @@ SUB displayall()
  FOR i AS INTEGER = 0 TO topmenu
   draw_menu menus(i), mstates(i), dpage
  NEXT i
- edgeprint scriptout$, 0, 190, uilook(uiText), dpage
+ edgeprint scriptout, 0, 190, uilook(uiText), dpage
  showplotstrings
  IF gam.debug_npc_info THEN npc_debug_display
  IF gam.debug_showtags THEN tagdisplay
@@ -854,7 +900,7 @@ SUB displayall()
 END SUB
 
 SUB update_heroes(BYVAL force_npc_check AS INTEGER=NO)
- 'note: xgo and ygo are offset of current position from destination, eg +ve xgo means go left 
+ 'note: xgo and ygo are offset of current position from destination, eg +ve xgo means go left
  FOR whoi AS INTEGER = 0 TO 3
   IF herospeed(whoi) = 0 THEN
    '--cancel movement, or some of the following code misbehaves
@@ -933,8 +979,8 @@ SUB update_heroes(BYVAL force_npc_check AS INTEGER=NO)
    IF xgo(whoi) OR ygo(whoi) THEN wtog(whoi) = loopvar(wtog(whoi), 0, 3, 1)
   NEXT whoi
  END IF
- 
- DIM didgo(0 TO 3) AS INTEGER
+
+ REDIM didgo(0 TO 3) AS INTEGER
  FOR whoi AS INTEGER = 0 TO 3
   didgo(whoi) = NO
   IF xgo(whoi) OR ygo(whoi) THEN
@@ -944,11 +990,11 @@ SUB update_heroes(BYVAL force_npc_check AS INTEGER=NO)
    IF ygo(whoi) > 0 THEN ygo(whoi) = ygo(whoi) - herospeed(whoi): caty(whoi * 5) = caty(whoi * 5) - herospeed(whoi): didgo(whoi) = YES
    IF ygo(whoi) < 0 THEN ygo(whoi) = ygo(whoi) + herospeed(whoi): caty(whoi * 5) = caty(whoi * 5) + herospeed(whoi): didgo(whoi) = YES
   END IF
- 
+
   DIM harm_cater AS INTEGER = whoi
   '--if catapillar is not suspended, only the leader's motion matters
   IF readbit(gen(), genSuspendBits, suspendcatapillar) = 0 THEN harm_cater = 0
- 
+
   '--leader always checks harm tiles, allies only if caterpillar is enabled
   IF whoi = 0 OR readbit(gen(), genBits, 1) = 1 THEN
    '--Stuff that should only happen when you finish moving
@@ -957,8 +1003,8 @@ SUB update_heroes(BYVAL force_npc_check AS INTEGER=NO)
     DIM p AS INTEGER = readblock(pass, catx(whoi * 5) \ 20, caty(whoi * 5) \ 20)
     IF (p AND passHarm) THEN
      'stepping on a harm tile
-     
-     DIM harm_partyslot = -1
+
+     DIM harm_partyslot as integer = -1
      FOR i AS INTEGER = 0 TO whoi
       harm_partyslot += 1
       WHILE hero(harm_partyslot) = 0 AND harm_partyslot < 4: harm_partyslot += 1: WEND
@@ -1041,7 +1087,7 @@ FUNCTION should_show_normal_caterpillar() AS INTEGER
 END FUNCTION
 
 SUB update_walkabout_hero_slices()
- 
+
  DIM should_hide AS INTEGER = should_hide_hero_caterpillar()
  FOR i AS INTEGER = 0 TO UBOUND(gam.caterp)
   set_walkabout_vis gam.caterp(i), NOT should_hide
@@ -1071,7 +1117,7 @@ SUB update_walkabout_hero_slices()
    set_walkabout_vis gam.caterp(i), NO
   NEXT i
  END IF
- 
+
 END SUB
 
 SUB update_walkabout_npc_slices()
@@ -1127,7 +1173,7 @@ SUB update_walkabout_pos (byval walkabout_cont as slice ptr, byval x as integer,
   .X = where.x + mapx
   .Y = where.y + mapy
  END WITH
- 
+
  DIM sprsl AS Slice Ptr
  sprsl = LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, walkabout_cont)
  IF sprsl = 0 THEN
@@ -1420,7 +1466,7 @@ WITH scrat(nowscript)
 '  IF nowscript < 0 THEN
 '   debug "wantimmediate ended on nowscript = -1"
 '  ELSE
-'   debug "wantimmediate would have skipped wait on command " & scrat(nowscript).curvalue & " in " & scriptname$(scrat(nowscript).id) & ", state = " & scrat(nowscript).state
+'   debug "wantimmediate would have skipped wait on command " & scrat(nowscript).curvalue & " in " & scriptname(scrat(nowscript).id) & ", state = " & scrat(nowscript).state
 '  END IF
   wantimmediate = 0 'change to -1 to reenable bug
  END IF
@@ -1567,7 +1613,7 @@ WITH scrat(nowscript)
     abortg = 1
     .state = stwait
    CASE 77'--show value
-    scriptout$ = STR$(retvals(0))
+    scriptout = STR(retvals(0))
    CASE 78'--alter NPC
     IF bound_arg(retvals(1), 0, 15, "NPCstat: constant") THEN
      DIM npcid as integer = get_valid_npc_id(retvals(0), 4)
@@ -1588,7 +1634,7 @@ WITH scrat(nowscript)
      END IF
     END IF
    CASE 79'--show no value
-    scriptout$ = ""
+    scriptout = ""
    CASE 80'--current map
     scriptret = gam.map.id
    CASE 86'--advance text box
@@ -1624,7 +1670,7 @@ WITH scrat(nowscript)
        NEXT
       END IF
      ELSEIF retvals(1) >= 0 AND retvals(1) <= UBOUND(maptiles) AND retvals(0) >= 0 THEN
-      'load tileset for an individual layer. 
+      'load tileset for an individual layer.
       loadtilesetdata tilesets(), retvals(1), retvals(0)
      END IF
      '--important to refresh map slices regardless of how the tileset was changed
@@ -1673,7 +1719,7 @@ WITH scrat(nowscript)
     END IF
    CASE 210'--show string
     IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
-     scriptout$ = plotstr(retvals(0)).s
+     scriptout = plotstr(retvals(0)).s
     END IF
    CASE 234'--load menu
     scriptret = picksave(1) + 1
@@ -1990,7 +2036,7 @@ WITH scrat(nowscript)
      scriptret = dlist_find(menus(menuslot).itemlist, menus(menuslot).items[mislot])
      IF scriptret < 0 THEN scripterr "menuitemtrueslot: dlist corruption", 7
     END IF
-    
+
    CASE ELSE '--try all the scripts implemented in subs (insanity!)
     scriptnpc cmdid
     scriptmisc cmdid
@@ -2060,15 +2106,15 @@ FUNCTION valid_tile_pos(x AS INTEGER, y AS INTEGER) AS INTEGER
  RETURN YES
 END FUNCTION
 
-SUB loadmap_gmap(mapnum)
+SUB loadmap_gmap(byval mapnum as integer)
  lump_reloading.gmap.dirty = NO
  lump_reloading.gmap.changed = NO
- loadrecord gmap(), game + ".map", getbinsize(binMAP) / 2, mapnum
+ loadrecord gmap(), game & ".map", getbinsize(binMAP) / 2, mapnum
  IF gmap(31) = 0 THEN gmap(31) = 2
 
  loadmaptilesets tilesets(), gmap()
  refresh_map_slice_tilesets
- 
+
  correctbackdrop
  SELECT CASE gmap(5) '--outer edge wrapping
   CASE 0, 1'--crop edges or wrap
@@ -2078,20 +2124,20 @@ SUB loadmap_gmap(mapnum)
  END SELECT
 END SUB
 
-SUB loadmap_npcl(mapnum)
+SUB loadmap_npcl(byval mapnum as integer)
  lump_reloading.npcl.changed = NO
  lump_reloading.npcl.hash = hash_file(maplumpname(mapnum, "l"))
- LoadNPCL maplumpname$(mapnum, "l"), npc()
+ LoadNPCL maplumpname(mapnum, "l"), npc()
 
  'Evaluate whether NPCs should appear or disappear based on tags
  visnpc
 END SUB
 
-SUB loadmap_npcd(mapnum)
+SUB loadmap_npcd(byval mapnum as integer)
  lump_reloading.npcd.dirty = NO
  lump_reloading.npcd.changed = NO
  lump_reloading.npcd.hash = hash_file(maplumpname(mapnum, "n"))
- LoadNPCD maplumpname$(mapnum, "n"), npcs()
+ LoadNPCD maplumpname(mapnum, "n"), npcs()
 
  'Evaluate whether NPCs should appear or disappear based on tags
  visnpc
@@ -2099,7 +2145,7 @@ SUB loadmap_npcd(mapnum)
  reloadnpc
 END SUB
 
-SUB loadmap_tilemap(mapnum)
+SUB loadmap_tilemap(byval mapnum as integer)
  lump_reloading.maptiles.dirty = NO
  lump_reloading.maptiles.changed = NO
  lump_reloading.maptiles.hash = hash_file(maplumpname(mapnum, "t"))
@@ -2107,26 +2153,26 @@ SUB loadmap_tilemap(mapnum)
  mapsizetiles.w = maptiles(0).wide
  mapsizetiles.h = maptiles(0).high
  refresh_map_slice
- 
+
  '--as soon as we know the dimensions of the map, enforce hero position boundaries
  cropposition catx(0), caty(0), 20
 END SUB
 
-SUB loadmap_passmap(mapnum)
+SUB loadmap_passmap(byval mapnum as integer)
  lump_reloading.passmap.dirty = NO
  lump_reloading.passmap.changed = NO
  lump_reloading.passmap.hash = hash_file(maplumpname(mapnum, "p"))
  LoadTileMap pass, maplumpname(mapnum, "p")
 END SUB
 
-SUB loadmap_foemap(mapnum)
+SUB loadmap_foemap(byval mapnum as integer)
  lump_reloading.foemap.dirty = NO
  lump_reloading.foemap.changed = NO
  lump_reloading.foemap.hash = hash_file(maplumpname(mapnum, "e"))
  LoadTileMap foemap, maplumpname(mapnum, "e")
 END SUB
 
-SUB loadmap_zonemap(mapnum)
+SUB loadmap_zonemap(byval mapnum as integer)
  lump_reloading.zonemap.dirty = NO
  lump_reloading.zonemap.changed = NO
  '.Z is the only one of the map lumps that has been added in about the last decade
@@ -2140,7 +2186,7 @@ SUB loadmap_zonemap(mapnum)
  END IF
 END SUB
 
-SUB loadmaplumps (mapnum, loadmask)
+SUB loadmaplumps (byval mapnum as integer, byval loadmask as integer)
  'loads some, but not all the lumps needed for each map
  IF loadmask AND 1 THEN
   loadmap_gmap mapnum
@@ -2171,7 +2217,7 @@ END SUB
 
 SUB usemenusounds (byval deckey as integer = scUp, byval inckey as integer = scDown)
   IF keyval(deckey) > 1 ORELSE keyval(inckey) > 1 ORELSE keyval(scPageup) > 1 _
-       ORELSE keyval(scPagedown) > 1 ORELSE keyval(scHome) > 1 ORELSE keyval(scEnd) > 1 THEN 
+       ORELSE keyval(scPagedown) > 1 ORELSE keyval(scHome) > 1 ORELSE keyval(scEnd) > 1 THEN
     menusound gen(genCursorSFX)
   END IF
 END SUB
@@ -2407,13 +2453,13 @@ FUNCTION activate_menu_item(mi AS MenuDefItem, BYVAL menuslot AS INTEGER, BYVAL 
         EXIT DO
        END IF
       CASE 1 ' spell
-       slot = onwho(readglobalstring$(106, "Whose Spells?", 20), 0)
+       slot = onwho(readglobalstring(106, "Whose Spells?", 20), 0)
        IF slot >= 0 THEN spells_menu slot
       CASE 2 ' status
-       slot = onwho(readglobalstring$(104, "Whose Status?", 20), 0)
+       slot = onwho(readglobalstring(104, "Whose Status?", 20), 0)
        IF slot >= 0 THEN status slot
       CASE 3 ' equip
-       slot = onwho(readglobalstring$(108, "Equip Whom?", 20), 0)
+       slot = onwho(readglobalstring(108, "Equip Whom?", 20), 0)
        IF slot >= 0 THEN equip slot
       CASE 4 ' order
        hero_swap_menu 0
@@ -2586,7 +2632,7 @@ FUNCTION find_menu_id (id AS INTEGER) AS INTEGER
  RETURN -1 ' Not found
 END FUNCTION
 
-FUNCTION find_menu_handle (handle) AS INTEGER
+FUNCTION find_menu_handle (byval handle as integer) AS INTEGER
  DIM i AS INTEGER
  FOR i = 0 TO topmenu
   IF menus(i).handle = handle THEN RETURN i 'return slot
@@ -2594,7 +2640,7 @@ FUNCTION find_menu_handle (handle) AS INTEGER
  RETURN -1 ' Not found
 END FUNCTION
 
-FUNCTION find_menu_item_handle_in_menuslot (handle AS INTEGER, menuslot AS INTEGER) AS INTEGER
+FUNCTION find_menu_item_handle_in_menuslot (byval handle as integer, byval menuslot as integer) AS INTEGER
  DIM mislot AS INTEGER
  WITH menus(menuslot)
   FOR mislot = 0 TO .numitems - 1
@@ -2604,7 +2650,7 @@ FUNCTION find_menu_item_handle_in_menuslot (handle AS INTEGER, menuslot AS INTEG
  RETURN -1 ' Not found
 END FUNCTION
 
-FUNCTION find_menu_item_handle (handle AS INTEGER, BYREF found_in_menuslot) AS INTEGER
+FUNCTION find_menu_item_handle (byval handle as integer, byref found_in_menuslot as integer) AS INTEGER
  DIM menuslot AS INTEGER
  DIM mislot AS INTEGER
  DIM found AS INTEGER
@@ -2620,18 +2666,17 @@ FUNCTION find_menu_item_handle (handle AS INTEGER, BYREF found_in_menuslot) AS I
 END FUNCTION
 
 FUNCTION assign_menu_item_handle (BYREF mi AS MenuDefItem) AS INTEGER
- STATIC new_handle = 0
+ STATIC new_handle as integer = 0
  new_handle = new_handle + 1
  mi.handle = new_handle
  RETURN new_handle
 END FUNCTION
 
 FUNCTION assign_menu_handles (BYREF menu AS MenuDef) AS INTEGER
- DIM i AS INTEGER
- STATIC new_handle = 0
+ STATIC new_handle as integer = 0
  new_handle = new_handle + 1
  menus(topmenu).handle = new_handle
- FOR i = 0 TO menu.numitems - 1
+ FOR i as integer = 0 TO menu.numitems - 1
   assign_menu_item_handle *menu.items[i]
  NEXT i
  RETURN new_handle
@@ -2678,7 +2723,7 @@ FUNCTION allowed_to_open_main_menu () AS INTEGER
 END FUNCTION
 
 FUNCTION random_formation (BYVAL set AS INTEGER) AS INTEGER
- DIM formset(24)
+ REDIM formset(24) as integer
  DIM AS INTEGER i, num
  STATIC foenext AS INTEGER = 0
  loadrecord formset(), game + ".efs", 25, set
@@ -2691,7 +2736,7 @@ FUNCTION random_formation (BYVAL set AS INTEGER) AS INTEGER
  'same slot being picked consecutively, so I'll leave it be for now
  'FIXME: When this was written, I confused the meaning of range; should improve this
  FOR i = 0 TO INT(RND * range(19, 27))
-  DO 
+  DO
    foenext = loopvar(foenext, 0, 19, 1)
   LOOP WHILE formset(1 + foenext) = 0
  NEXT
@@ -2732,7 +2777,7 @@ SUB prepare_map (afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
   END IF
  END IF
 
- gam.map.name = getmapname$(gam.map.id)
+ gam.map.name = getmapname(gam.map.id)
 
  IF gmap(18) < 2 THEN
   loadmapstate_tilemap gam.map.id, "map"
@@ -2816,7 +2861,7 @@ SUB reset_game_state ()
  gam.remembermusic = -1
  gam.random_battle_countdown = range(100, 60)
  gam.mouse_enabled = NO
- 
+
  'If we are resetting, the old slices will have already been destroyed
  'by cleanup_game_slices() so we just re-assign gam.caterp()
  FOR i AS INTEGER = 0 TO UBOUND(gam.caterp)
@@ -2985,7 +3030,7 @@ SUB advance_text_box ()
   DIM inn AS INTEGER = 0
   IF txt.box.shop < 0 THEN
    '--Preserve background for display beneath the top-level shop menu
-   DIM holdscreen = duplicatepage(vpage)
+   DIM holdscreen as integer = duplicatepage(vpage)
    IF useinn(inn, -txt.box.shop, holdscreen) THEN
     fadeout 0, 0, 80
     queue_fade_in
@@ -3075,9 +3120,9 @@ SUB init_text_box_slices(txt AS TextBoxState)
   text_box = NewSliceOfType(slRectangle, txt.sl)
   ChangeRectangleSlice text_box, txt.box.boxstyle, , , , iif(txt.box.opaque, transOpaque, transFuzzy)
  END IF
- 
+
  '--position and size the text box
- WITH *text_box 
+ WITH *text_box
   .X = 4
   .Y = 4 + txt.box.vertical_offset * 4
   .Width = 312
@@ -3105,7 +3150,7 @@ SUB init_text_box_slices(txt AS TextBoxState)
  FOR i AS INTEGER = 0 TO 7
   s &= txt.box.text(i) & CHR(10)
  NEXT i
-  
+
  DIM text_sl AS Slice Ptr
  text_sl = NewSliceOfType(slText, text_frame, SL_TEXTBOX_TEXT)
  text_sl->Fill = YES
@@ -3117,7 +3162,7 @@ SUB init_text_box_slices(txt AS TextBoxState)
  IF dat THEN
   dat->line_limit = -1
  END IF
- 
+
  '--figure out which portrait to load
  DIM img_id AS INTEGER = -1
  DIM pal_id AS INTEGER = -1
@@ -3158,7 +3203,7 @@ SUB init_text_box_slices(txt AS TextBoxState)
   img_sl = NewSliceOfType(slSprite, img_box, SL_TEXTBOX_PORTRAIT)
   ChangeSpriteSlice img_sl, 8, img_id, pal_id
  END IF
- 
+
  '--set up the choice-box (if any)
  IF txt.box.choice_enabled THEN
   'tempy = 100 + (txt.box.vertical_offset * 4) - (txt.box.shrink * 4)
@@ -3182,7 +3227,7 @@ SUB init_text_box_slices(txt AS TextBoxState)
    .Y += 12
   END WITH
   ChangeRectangleSlice choice_box, txt.box.boxstyle
-  DIM choice_sl(1) AS Slice Ptr
+  REDIM choice_sl(1) AS Slice Ptr
   FOR i AS INTEGER = 0 TO 1
    choice_sl(i) = NewSliceOfType(slText, choice_box)
    ChangeTextSlice choice_sl(i), txt.box.choice(i), uilook(uiMenuItem), YES
@@ -3195,7 +3240,7 @@ SUB init_text_box_slices(txt AS TextBoxState)
   choice_sl(0)->Lookup = SL_TEXTBOX_CHOICE0
   choice_sl(1)->Lookup = SL_TEXTBOX_CHOICE1
  END IF
- 
+
 END SUB
 
 SUB cleanup_text_box ()
@@ -3221,7 +3266,7 @@ SUB recreate_map_slices()
  'this destroys and re-creates the map slices. it should only happen when
  'moving from one map to another, but not when a battle ends. (same as when
  'the map autorun script is triggered)
-  
+
  'First free all NPC slices because we can't guarantee that they will be
  'freed when the map slices are freed, even though in normal circumstances
  'they will all be freed. (and we must do this unconditionally, even if
@@ -3229,7 +3274,7 @@ SUB recreate_map_slices()
  FOR i AS INTEGER = 0 TO UBOUND(npc)
   DeleteSlice @npc(i).sl
  NEXT i
-  
+
  IF readbit(gen(), genBits2, 11) <> 0 THEN
   '"Recreate map slices when changing maps" = ON
 
@@ -3254,7 +3299,7 @@ SUB recreate_map_slices()
 
   'Reparent the hero slices to the new map
   reparent_hero_slices
-  
+
   refresh_map_slice_tilesets
   visnpc
  END IF
@@ -3307,7 +3352,7 @@ SUB refresh_map_slice()
  NEXT
  SliceTable.ObsoleteOverhead->Width = mapsizetiles.x * 20
  SliceTable.ObsoleteOverhead->Height = mapsizetiles.y * 20
-  
+
  FOR i AS INTEGER = 0 TO UBOUND(maptiles)
   '--reset each layer (the tileset ptr is set in refresh_map_slice_tilesets
   ChangeMapSlice SliceTable.MapLayer(i), @maptiles(i), @pass
@@ -3320,7 +3365,7 @@ SUB refresh_map_slice()
   END IF
  NEXT i
  ChangeMapSlice SliceTable.ObsoleteOverhead, @maptiles(0), @pass
- 
+
  '--now fix up the order of the slices
  DIM num_layers_under_walkabouts as integer
  '--It's possible for gmap(31) to be larger than the number of map layers
@@ -3339,10 +3384,10 @@ SUB refresh_map_slice()
    SliceTable.MapLayer(i)->Sorter = i
   END IF
  NEXT i
- 
+
  SliceTable.Walkabout->Sorter = num_layers_under_walkabouts
  SliceTable.ObsoleteOverhead->Sorter = UBOUND(maptiles) + 2
- 
+
  CustomSortChildSlices SliceTable.MapRoot, YES
  refresh_walkabout_layer_sort()
 END SUB
@@ -3570,7 +3615,7 @@ FUNCTION free_slots_in_party() AS INTEGER
  'allow active party members to be swapped out.
  'FIXME: the above would be true except that it has been broken so
  'very long that games could already exist that rely on having 41 heroes
- 
+
  '--This is the "correct" intended limit that has never been enforced right.
  'RETURN 38 - herocount(40)
 
@@ -3583,7 +3628,7 @@ SUB change_npc_def_sprite (BYVAL npc_id AS INTEGER, BYVAL walkabout_sprite_id AS
   IF npc(i).id - 1 = npc_id THEN
    'found a match!
    set_walkabout_sprite npc(i).sl, walkabout_sprite_id
-  END IF 
+  END IF
  NEXT i
 END SUB
 
@@ -3592,7 +3637,7 @@ SUB change_npc_def_pal (BYVAL npc_id AS INTEGER, BYVAL palette_id AS INTEGER)
   IF npc(i).id - 1 = npc_id THEN
    'found a match!
    set_walkabout_sprite npc(i).sl, , palette_id
-  END IF 
+  END IF
  NEXT i
 END SUB
 

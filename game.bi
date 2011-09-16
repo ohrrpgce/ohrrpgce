@@ -22,14 +22,14 @@ declare function valid_formation(form as integer) as integer
 declare function valid_formation_slot(form as integer, slot as integer) as integer
 declare function valid_zone(id as integer) as integer
 declare function valid_tile_pos(x as integer, y as integer) as integer
-declare sub loadmap_gmap(mapnum)
-declare sub loadmap_npcl(mapnum)
-declare sub loadmap_npcd(mapnum)
-declare sub loadmap_tilemap(mapnum)
-declare sub loadmap_passmap(mapnum)
-declare sub loadmap_foemap(mapnum)
-declare sub loadmap_zonemap(mapnum)
-declare sub loadmaplumps (mapnum, loadmask)
+declare sub loadmap_gmap(byval mapnum as integer)
+declare sub loadmap_npcl(byval mapnum as integer)
+declare sub loadmap_npcd(byval mapnum as integer)
+declare sub loadmap_tilemap(byval mapnum as integer)
+declare sub loadmap_passmap(byval mapnum as integer)
+declare sub loadmap_foemap(byval mapnum as integer)
+declare sub loadmap_zonemap(byval mapnum as integer)
+declare sub loadmaplumps (byval mapnum as integer, byval loadmask as integer)
 declare sub menusound(byval s as integer)
 declare sub usemenusounds (byval deckey as integer = scUp, byval inckey as integer = scDown)
 declare sub dotimer(byval l as integer)
@@ -45,9 +45,9 @@ declare sub check_menu_tags ()
 declare sub tag_updates ()
 declare function game_usemenu (state as menustate) as integer
 declare function find_menu_id (id as integer) as integer
-declare function find_menu_handle (handle) as integer
-declare function find_menu_item_handle_in_menuslot (handle as integer, menuslot as integer) as integer
-declare function find_menu_item_handle (handle as integer, byref found_in_menuslot) as integer
+declare function find_menu_handle (byval handle as integer) as integer
+declare function find_menu_item_handle_in_menuslot (byval handle as integer, byval menuslot as integer) as integer
+declare function find_menu_item_handle (byval handle as integer, byref found_in_menuslot as integer) as integer
 declare function assign_menu_item_handle (byref mi as menudefitem) as integer
 declare function assign_menu_handles (byref menu as menudef) as integer
 declare function menu_item_handle_by_slot(menuslot as integer, mislot as integer, visible_only as integer=yes) as integer

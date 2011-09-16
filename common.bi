@@ -52,11 +52,11 @@ END ENUM
 
 DECLARE SUB centerfuz (x as integer, y as integer, w as integer, h as integer, c as integer, p as integer)
 DECLARE SUB centerbox (x as integer, y as integer, w as integer, h as integer, c as integer, p as integer)
-DECLARE SUB edgeboxstyle OVERLOAD (rect as RectType, BYVAL boxstyle, BYVAL p, BYVAL fuzzy=NO, BYVAL supress_borders=NO)
+DECLARE SUB edgeboxstyle OVERLOAD (rect as RectType, BYVAL boxstyle as integer, BYVAL p as integer, BYVAL fuzzy as integer=NO, BYVAL supress_borders as integer=NO)
 DECLARE SUB edgeboxstyle OVERLOAD (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL boxstyle as integer, BYVAL p as integer, BYVAL fuzzy as integer=NO, BYVAL supress_borders as integer=NO)
 DECLARE SUB center_edgeboxstyle (x as integer, y as integer, w as integer, h as integer, boxstyle as integer, p as integer, fuzzy as integer=NO, supress_borders as integer=NO)
-DECLARE SUB edgebox OVERLOAD (x as integer, y as integer, w as integer, h as integer, col as integer, bordercol as integer, p as integer, trans as RectTransTypes=transOpaque, border as integer=-1, fuzzfactor as integer=50)
-DECLARE SUB edgebox OVERLOAD (x, y, w, h, col, bordercol, BYVAL fr AS Frame Ptr, trans AS RectTransTypes=transOpaque, border=-1, fuzzfactor as integer=50)
+DECLARE SUB edgebox OVERLOAD (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval col as integer, byval bordercol as integer, byval p as integer, trans as RectTransTypes=transOpaque, byval border as integer=-1, byval fuzzfactor as integer=50)
+DECLARE SUB edgebox OVERLOAD (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval col as integer, byval bordercol as integer, byval fr AS Frame Ptr, trans AS RectTransTypes=transOpaque, byval border as integer=-1, byval fuzzfactor as integer=50)
 DECLARE FUNCTION isbit (bb() as INTEGER, BYVAL w as INTEGER, BYVAL b as INTEGER) as INTEGER
 DECLARE FUNCTION scriptname (num as integer, trigger as integer = 0) as string
 DECLARE Function seconds2str(byval sec as integer, f as string = " %m: %S") as string
@@ -211,7 +211,7 @@ DECLARE FUNCTION color_browser_256(BYVAL start_color AS INTEGER=0) AS INTEGER
 DECLARE FUNCTION filenum(n AS INTEGER) AS STRING
 
 'Sprite loading convenience functions
-DECLARE SUB load_sprite_and_pal (BYREF img AS GraphicPair, BYVAL spritetype, BYVAL index AS INTEGER, BYVAL palnum AS INTEGER=-1)
+DECLARE SUB load_sprite_and_pal (BYREF img AS GraphicPair, BYVAL spritetype as integer, BYVAL index AS INTEGER, BYVAL palnum AS INTEGER=-1)
 DECLARE SUB unload_sprite_and_pal (BYREF img AS GraphicPair)
 
 'strgrabber has separate versions in customsubs.bas and yetmore2.bas

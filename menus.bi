@@ -12,13 +12,13 @@
 DECLARE SUB init_menu_state OVERLOAD (BYREF state AS MenuState, menu() AS SimpleMenu, BYVAL pickenabled AS INTEGER = YES)
 DECLARE SUB clamp_menu_state (BYREF state AS MenuState)
 DECLARE SUB append_simplemenu_item (menu() as SimpleMenu, caption as string, BYVAL enabled as integer = YES, BYVAL col as integer = -1, BYVAL dat as integer = 0, BYVAL where as integer = -1)
-DECLARE FUNCTION usemenu OVERLOAD (state AS MenuState, BYVAL deckey = scUp, BYVAL inckey = scDown) as integer
-DECLARE FUNCTION usemenu OVERLOAD (BYREF pt, BYREF top, BYVAL first, BYVAL last, BYVAL size, BYVAL deckey = scUp, BYVAL inckey = scDown) as integer
+DECLARE FUNCTION usemenu OVERLOAD (state AS MenuState, BYVAL deckey as integer = scUp, BYVAL inckey as integer = scDown) as integer
+DECLARE FUNCTION usemenu OVERLOAD (BYREF pt as integer, BYREF top as integer, BYVAL first as integer, BYVAL last as integer, BYVAL size as integer, BYVAL deckey as integer = scUp, BYVAL inckey as integer = scDown) as integer
 DECLARE FUNCTION usemenu OVERLOAD (state as MenuState, menudata() as SimpleMenu, BYVAL deckey as integer = scUp, BYVAL inckey as integer = scDown) as integer
 DECLARE FUNCTION usemenu OVERLOAD (state as MenuState, enabled() as INTEGER, BYVAL deckey as integer = scUp, BYVAL inckey as integer = scDown) as integer
 DECLARE FUNCTION scrollmenu (state AS MenuState, BYVAL deckey as integer = scUp, BYVAL inckey as integer = scDown) as integer
-DECLARE SUB standardmenu OVERLOAD (menu() AS STRING, state AS MenuState, BYVAL x AS INTEGER, BYVAL y AS INTEGER, BYVAL page AS INTEGER, BYVAL edge AS INTEGER=NO, BYVAL hidecursor AS INTEGER=NO, BYVAL wide AS INTEGER=999, BYVAL highlight AS INTEGER=NO, BYVAL toggle=YES)
-DECLARE SUB standardmenu OVERLOAD (menu() AS STRING, state AS MenuState, shaded() AS INTEGER, BYVAL x AS INTEGER, BYVAL y AS INTEGER, BYVAL page AS INTEGER, BYVAL edge AS INTEGER=NO, BYVAL hidecursor AS INTEGER=NO, BYVAL wide AS INTEGER=999, BYVAL highlight AS INTEGER=NO, BYVAL toggle=YES)
+DECLARE SUB standardmenu OVERLOAD (menu() AS STRING, state AS MenuState, BYVAL x AS INTEGER, BYVAL y AS INTEGER, BYVAL page AS INTEGER, BYVAL edge AS INTEGER=NO, BYVAL hidecursor AS INTEGER=NO, BYVAL wide AS INTEGER=999, BYVAL highlight AS INTEGER=NO, BYVAL toggle AS INTEGER=YES)
+DECLARE SUB standardmenu OVERLOAD (menu() AS STRING, state AS MenuState, shaded() AS INTEGER, BYVAL x AS INTEGER, BYVAL y AS INTEGER, BYVAL page AS INTEGER, BYVAL edge AS INTEGER=NO, BYVAL hidecursor AS INTEGER=NO, BYVAL wide AS INTEGER=999, BYVAL highlight AS INTEGER=NO, BYVAL toggle AS INTEGER=YES)
 DECLARE SUB standardmenu OVERLOAD (menu() AS STRING, BYVAL size AS INTEGER, BYVAL vis AS INTEGER, BYVAL pt AS INTEGER, BYVAL top AS INTEGER, BYVAL x AS INTEGER, BYVAL y AS INTEGER, BYVAL page AS INTEGER, BYVAL edge AS INTEGER=NO, BYVAL wide AS INTEGER=999, BYVAL highlight AS INTEGER=NO, BYVAL shaded AS INTEGER PTR=NULL, BYVAL toggle AS INTEGER=YES)
 
 '' MenuDef

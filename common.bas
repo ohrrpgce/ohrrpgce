@@ -397,11 +397,11 @@ SUB edgeboxstyle (BYVAL x, BYVAL y, BYVAL w, BYVAL h, BYVAL boxstyle, BYVAL p, B
  edgebox x, y, w, h, col, bordercol, p, trans, borders
 END SUB
 
-SUB edgebox (x, y, w, h, col, bordercol, p, trans AS RectTransTypes=transOpaque, border=-1, fuzzfactor=50)
+SUB edgebox (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval col as integer, byval bordercol as integer, byval p as integer, trans AS RectTransTypes=transOpaque, byval border as integer=-1, byval fuzzfactor as integer=50)
  edgebox x, y, w, h, col, bordercol, vpages(p), trans, border, fuzzfactor
 END SUB
 
-SUB edgebox (x, y, w, h, col, bordercol, BYVAL fr AS Frame Ptr, trans AS RectTransTypes=transOpaque, border=-1, fuzzfactor=50)
+SUB edgebox (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval col as integer, byval bordercol  as integer, byval fr AS Frame Ptr, trans AS RectTransTypes=transOpaque, byval border as integer=-1, byval fuzzfactor as integer=50)
 '--border: -2 is none, -1 is simple line, 0+ is styled box edge
 IF trans = transFuzzy THEN
  fuzzyrect fr, x, y, w, h, col, fuzzfactor
