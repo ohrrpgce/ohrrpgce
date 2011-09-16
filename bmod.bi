@@ -10,55 +10,55 @@
 #INCLUDE "udts.bi"
 #INCLUDE "battle_udts.bi"
 
-declare function battle (form as integer) as integer
+declare function battle (byval form as integer) as integer
 declare function checknorunbit (bslot() as battlesprite) as integer
-DECLARE SUB checkTagCond (t AS AttackDataTag, check AS INTEGER)
-declare function focuscost (cost as integer, focus as integer) as integer
+DECLARE SUB checkTagCond (byref t as AttackDataTag, byval check as integer)
+declare function focuscost (byval cost as integer, byval focus as integer) as integer
 DECLARE SUB calc_hero_elementals (elemental_resists() as single, byval who as integer)
 declare sub invertstack
-declare sub quickinflict (harm as integer, targ as integer, bslot() as battlesprite)
+declare sub quickinflict (byval harm as integer, byval targ as integer, bslot() as battlesprite)
 DECLARE SUB anim_end()
-DECLARE SUB anim_wait(ticks as integer)
+DECLARE SUB anim_wait(byval ticks as integer)
 DECLARE SUB anim_waitforall()
-DECLARE SUB anim_inflict(who AS INTEGER, target_count AS INTEGER)
-DECLARE SUB anim_disappear(who as integer)
-DECLARE SUB anim_appear(who as integer)
-DECLARE SUB anim_setframe(who as integer, frame as integer)
-DECLARE SUB anim_setpos(who as integer, x as integer, y as integer, d as integer)
-DECLARE SUB anim_setz(who as integer, z as integer)
-DECLARE SUB anim_setmove(who as integer, xm as integer, ym as integer, xstep as integer, ystep as integer)
-DECLARE SUB anim_absmove(who as integer, tox as integer, toy as integer, xspeed as integer, yspeed as integer)
-DECLARE SUB anim_zmove(who as integer, zm as integer, zstep as integer)
-DECLARE SUB anim_walktoggle(who as integer)
-DECLARE SUB anim_sound(which as integer)
-DECLARE SUB anim_align(who as integer, target as integer, dire as integer, offset as integer)
-DECLARE SUB anim_setcenter(who as integer, target as integer, offx as integer, offy as integer)
-DECLARE SUB anim_align2(who as integer, target as integer, edgex as integer, edgey as integer, offx as integer, offy as integer)
-DECLARE SUB anim_relmove(who as integer, tox as integer, toy as integer, xspeed as integer, yspeed as integer)
-DECLARE SUB anim_setdir(who as integer, d as integer)
-DECLARE FUNCTION dieWOboss(BYVAL who as integer, bslot() AS BattleSprite) as integer
-DECLARE SUB dead_enemy(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() as integer)
-DECLARE SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
-DECLARE SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS INTEGER, st() as herodef)
-DECLARE SUB spellmenu (BYREF bat AS BattleState, st() as HeroDef, bslot() AS BattleSprite)
-DECLARE SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, t() AS INTEGER)
-DECLARE SUB enforce_weak_picture(who AS INTEGER, bslot() AS BattleSprite, bat AS BattleState)
-DECLARE SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, st() AS HeroDef, formdata() as integer)
-DECLARE SUB setup_targetting (BYREF bat AS BattleState, bslot() AS BattleSprite)
-DECLARE SUB itemmenu (BYREF bat AS BattleState, bslot() AS BattleSprite)
-DECLARE FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite) AS INTEGER
-DECLARE FUNCTION check_attack_chain(ch AS AttackDataChain, bat AS BattleState, bslot() AS BattleSprite) AS INTEGER
-DECLARE FUNCTION valid_statnum(statnum AS INTEGER, context AS STRING) AS INTEGER
-DECLARE FUNCTION knows_attack(BYVAL who AS INTEGER, BYVAL atk AS INTEGER, bslot() AS BattleSprite) AS INTEGER
-DECLARE FUNCTION distribute_party_experience (BYVAL exper AS INTEGER) AS INTEGER
+DECLARE SUB anim_inflict(byval who as integer, byval target_count as integer)
+DECLARE SUB anim_disappear(byval who as integer)
+DECLARE SUB anim_appear(byval who as integer)
+DECLARE SUB anim_setframe(byval who as integer, byval frame as integer)
+DECLARE SUB anim_setpos(byval who as integer, byval x as integer, byval y as integer, byval d as integer)
+DECLARE SUB anim_setz(byval who as integer, byval z as integer)
+DECLARE SUB anim_setmove(byval who as integer, byval xm as integer, byval ym as integer, byval xstep as integer, byval ystep as integer)
+DECLARE SUB anim_absmove(byval who as integer, byval tox as integer, byval toy as integer, byval xspeed as integer, byval yspeed as integer)
+DECLARE SUB anim_zmove(byval who as integer, byval zm as integer, byval zstep as integer)
+DECLARE SUB anim_walktoggle(byval who as integer)
+DECLARE SUB anim_sound(byval which as integer)
+DECLARE SUB anim_align(byval who as integer, byval target as integer, byval dire as integer, byval offset as integer)
+DECLARE SUB anim_setcenter(byval who as integer, byval target as integer, byval offx as integer, byval offy as integer)
+DECLARE SUB anim_align2(byval who as integer, byval target as integer, byval edgex as integer, byval edgey as integer, byval offx as integer, byval offy as integer)
+DECLARE SUB anim_relmove(byval who as integer, byval tox as integer, byval toy as integer, byval xspeed as integer, byval yspeed as integer)
+DECLARE SUB anim_setdir(byval who as integer, byval d as integer)
+DECLARE FUNCTION dieWOboss(byval who as integer, bslot() as BattleSprite) as integer
+DECLARE SUB dead_enemy(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
+DECLARE SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
+DECLARE SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, menubits() as integer, st() as herodef)
+DECLARE SUB spellmenu (byref bat as BattleState, st() as HeroDef, bslot() as BattleSprite)
+DECLARE SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, t() as integer)
+DECLARE SUB enforce_weak_picture(byval who as integer, bslot() as BattleSprite, byref bat as BattleState)
+DECLARE SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef, formdata() as integer)
+DECLARE SUB setup_targetting (byref bat as BattleState, bslot() as BattleSprite)
+DECLARE SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
+DECLARE FUNCTION spawn_chained_attack(byref ch as AttackDataChain, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite) as integer
+DECLARE FUNCTION check_attack_chain(byref ch as AttackDataChain, byref bat as BattleState, bslot() as BattleSprite) as integer
+DECLARE FUNCTION valid_statnum(byval statnum as integer, context as string) as integer
+DECLARE FUNCTION knows_attack(byval who as integer, byval atk as integer, bslot() as BattleSprite) as integer
+DECLARE FUNCTION distribute_party_experience (byval exper as integer) as integer
 
-DECLARE SUB queue_attack OVERLOAD (attack AS INTEGER, who AS INTEGER, targs() AS INTEGER, override_blocking AS INTEGER=-2, dont_retarget AS INTEGER = NO)
-DECLARE SUB queue_attack OVERLOAD (attack AS INTEGER, who AS INTEGER, delay AS INTEGER, targs() AS INTEGER, blocking AS INTEGER=YES, dont_retarget AS INTEGER = NO)
-DECLARE SUB set_attack_queue_slot(slot AS INTEGER, attack AS INTEGER, who AS INTEGER, delay AS INTEGER, targs() AS INTEGER, blocking AS INTEGER=YES, dont_retarget AS INTEGER = NO)
+DECLARE SUB queue_attack OVERLOAD (attack as integer, who as integer, targs() as integer, override_blocking as integer=-2, dont_retarget as integer = NO)
+DECLARE SUB queue_attack OVERLOAD (attack as integer, who as integer, delay as integer, targs() as integer, blocking as integer=YES, dont_retarget as integer = NO)
+DECLARE SUB set_attack_queue_slot(slot as integer, attack as integer, who as integer, delay as integer, targs() as integer, blocking as integer=YES, dont_retarget as integer = NO)
 DECLARE SUB clear_attack_queue()
-DECLARE SUB clear_attack_queue_slot(slot AS INTEGER)
-DECLARE SUB display_attack_queue (bslot() AS BattleSprite)
-DECLARE FUNCTION blocked_by_attack (who AS INTEGER) AS INTEGER
-DECLARE FUNCTION ready_meter_may_grow (bslot() AS BattleSprite, who AS INTEGER) AS INTEGER
+DECLARE SUB clear_attack_queue_slot(slot as integer)
+DECLARE SUB display_attack_queue (bslot() as BattleSprite)
+DECLARE FUNCTION blocked_by_attack (who as integer) as integer
+DECLARE FUNCTION ready_meter_may_grow (bslot() as BattleSprite, who as integer) as integer
 
 #ENDIF

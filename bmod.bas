@@ -2,7 +2,9 @@
 '(C) Copyright 1997-2005 James Paige and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
-'
+
+'#lang "fb"
+
 '$DYNAMIC
 DEFINT A-Z
 
@@ -27,73 +29,69 @@ DEFINT A-Z
 #include "menustuf.bi"
 
 '--local subs and functions
-DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
-DECLARE FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
-DECLARE SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, formdata(), bslot() AS BattleSprite)
-DECLARE SUB triggerfade(BYVAL who, bslot() AS BattleSprite)
-DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata())
-DECLARE SUB checkitemusability(iuse() AS INTEGER, bslot() AS BattleSprite, who AS INTEGER)
-DECLARE SUB reset_battle_state (BYREF bat AS BattleState)
-DECLARE SUB reset_targetting (BYREF bat AS BattleState)
-DECLARE SUB reset_attack (BYREF bat AS BattleState)
-DECLARE SUB reset_victory_state (BYREF vic AS VictoryState)
-DECLARE SUB reset_rewards_state (BYREF rew AS RewardsState)
-DECLARE SUB show_victory (BYREF bat AS BattleState, bslot() AS BattleSprite)
-DECLARE SUB trigger_victory(BYREF bat AS BattleState, bslot() AS BattleSprite)
-DECLARE SUB fulldeathcheck (killing_attack AS INTEGER, bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
-DECLARE SUB anim_flinchstart(who AS INTEGER, bslot() AS BattleSprite, attack AS AttackData)
-DECLARE SUB anim_flinchdone(who AS INTEGER, bslot() AS BattleSprite, attack AS AttackData)
-DECLARE SUB draw_battle_sprites(bslot() AS BattleSprite)
-DECLARE FUNCTION battle_time_can_pass(bat AS BattleState) AS INTEGER
-DECLARE SUB battle_crappy_run_handler(BYREF bat AS BattleState, bslot() AS BattleSprite)
-DECLARE SUB show_enemy_meters(bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
-DECLARE SUB battle_animate(BYREF bat AS BattleState, bslot() AS BattleSprite)
-DECLARE SUB battle_meters (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
-DECLARE SUB battle_display (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS INTEGER, st() AS HeroDef)
-DECLARE SUB battle_confirm_target(BYREF bat AS BattleState, bslot() AS BattleSprite)
-DECLARE SUB battle_targetting(BYREF bat AS BattleState, bslot() AS BattleSprite)
-DECLARE SUB battle_spawn_on_hit(targ as INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
-DECLARE SUB battle_attack_anim_cleanup (BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
-DECLARE SUB battle_attack_anim_playback (BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
-DECLARE SUB battle_attack_do_inflict(targ AS INTEGER, tcount AS INTEGER, BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata())
+DECLARE FUNCTION count_dissolving_enemies(bslot() as BattleSprite) as integer
+DECLARE FUNCTION find_empty_enemy_slot(formdata() as integer) as integer
+DECLARE SUB spawn_on_death(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, formdata() as integer, bslot() as BattleSprite)
+DECLARE SUB triggerfade(byval who as integer, bslot() as BattleSprite)
+DECLARE SUB check_death(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
+DECLARE SUB checkitemusability(iuse() as integer, bslot() as BattleSprite, byval who as integer)
+DECLARE SUB reset_battle_state (byref bat as BattleState)
+DECLARE SUB reset_targetting (byref bat as BattleState)
+DECLARE SUB reset_attack (byref bat as BattleState)
+DECLARE SUB reset_victory_state (byref vic as VictoryState)
+DECLARE SUB reset_rewards_state (byref rew as RewardsState)
+DECLARE SUB show_victory (byref bat as BattleState, bslot() as BattleSprite)
+DECLARE SUB trigger_victory(byref bat as BattleState, bslot() as BattleSprite)
+DECLARE SUB fulldeathcheck (killing_attack as integer, bat as BattleState, bslot() as BattleSprite, formdata() as integer)
+DECLARE SUB anim_flinchstart(byval who as integer, bslot() as BattleSprite, byref attack as AttackData)
+DECLARE SUB anim_flinchdone(byval who as integer, bslot() as BattleSprite, byref attack as AttackData)
+DECLARE SUB draw_battle_sprites(bslot() as BattleSprite)
+DECLARE FUNCTION battle_time_can_pass(bat as BattleState) as integer
+DECLARE SUB battle_crappy_run_handler(byref bat as BattleState, bslot() as BattleSprite)
+DECLARE SUB show_enemy_meters(bat as BattleState, bslot() as BattleSprite, formdata() as integer)
+DECLARE SUB battle_animate(byref bat as BattleState, bslot() as BattleSprite)
+DECLARE SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
+DECLARE SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, menubits() as integer, st() as HeroDef)
+DECLARE SUB battle_confirm_target(byref bat as BattleState, bslot() as BattleSprite)
+DECLARE SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
+DECLARE SUB battle_spawn_on_hit(targ as integer, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
+DECLARE SUB battle_attack_anim_cleanup (byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
+DECLARE SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
+DECLARE SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
 DECLARE SUB battle_pause ()
-DECLARE SUB battle_cleanup(BYREF bat AS BattleState, bslot() AS BattleSprite)
-DECLARE SUB battle_init(BYREF bat AS BattleState, bslot() AS BattleSprite)
-DECLARE SUB battle_background_anim(BYREF bat AS BattleState, formdata() AS INTEGER)
-DECLARE FUNCTION battle_run_away(BYREF bat AS BattleState, bslot() AS BattleSprite) AS INTEGER
-DECLARE SUB battle_animate_running_away (bslot() AS BattleSprite)
-DECLARE SUB battle_check_delays(BYREF bat AS BattleState, bslot() AS BattleSprite)
-DECLARE FUNCTION battle_check_a_delay(BYREF bat AS BattleState, bslot() AS BattleSprite, index AS INTEGER) AS INTEGER
-DECLARE SUB battle_check_for_hero_turns(BYREF bat AS BattleState, bslot() AS BattleSprite)
-DECLARE FUNCTION battle_check_a_hero_turn(BYREF bat AS BattleState, bslot() AS BattleSprite, index AS INTEGER)
-DECLARE SUB battle_check_for_enemy_turns(BYREF bat AS BattleState, bslot() AS BattleSprite)
-DECLARE FUNCTION battle_check_an_enemy_turn(BYREF bat AS BattleState, bslot() AS BattleSprite, index AS INTEGER)
-DECLARE SUB battle_attack_cancel_target_attack(targ as INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, BYREF attack AS AttackData)
-DECLARE SUB battle_reevaluate_dead_targets (deadguy AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite)
-DECLARE SUB battle_sort_away_dead_t_target(deadguy AS INTEGER, t() AS INTEGER)
-DECLARE SUB battle_counterattacks(BYVAL h AS INTEGER, BYVAL targstat AS INTEGER, who AS INTEGER, attack AS AttackData, bslot() AS BattleSprite)
+DECLARE SUB battle_cleanup(byref bat as BattleState, bslot() as BattleSprite)
+DECLARE SUB battle_init(byref bat as BattleState, bslot() as BattleSprite)
+DECLARE SUB battle_background_anim(byref bat as BattleState, formdata() as integer)
+DECLARE FUNCTION battle_run_away(byref bat as BattleState, bslot() as BattleSprite) as integer
+DECLARE SUB battle_animate_running_away (bslot() as BattleSprite)
+DECLARE SUB battle_check_delays(byref bat as BattleState, bslot() as BattleSprite)
+DECLARE FUNCTION battle_check_a_delay(byref bat as BattleState, bslot() as BattleSprite, index as integer) as integer
+DECLARE SUB battle_check_for_hero_turns(byref bat as BattleState, bslot() as BattleSprite)
+DECLARE FUNCTION battle_check_a_hero_turn(byref bat as BattleState, bslot() as BattleSprite, byval index as integer) as integer
+DECLARE SUB battle_check_for_enemy_turns(byref bat as BattleState, bslot() as BattleSprite)
+DECLARE FUNCTION battle_check_an_enemy_turn(byref bat as BattleState, bslot() as BattleSprite, byval index as integer) as integer
+DECLARE SUB battle_attack_cancel_target_attack(targ as integer, byref bat as BattleState, bslot() as BattleSprite, byref attack as AttackData)
+DECLARE SUB battle_reevaluate_dead_targets (deadguy as integer, byref bat as BattleState, bslot() as BattleSprite)
+DECLARE SUB battle_sort_away_dead_t_target(deadguy as integer, t() as integer)
+DECLARE SUB battle_counterattacks(byval h as integer, byval targstat as integer, who as integer, attack as AttackData, bslot() as BattleSprite)
 DECLARE SUB show_first_battle_timer ()
 
 'these are the battle global variables
-DIM bstackstart AS INTEGER
-DIM learnmask(245) AS INTEGER '6 shorts of bits per hero
+DIM bstackstart as integer
+REDIM learnmask(245) as integer '6 shorts of bits per hero
 
-REM $STATIC
-
-OPTION EXPLICIT
-
-FUNCTION battle (form) as integer
+FUNCTION battle (byval form as integer) as integer
  battle = 1 'default return value
 
- DIM formdata(40)
- DIM attack AS AttackData
+ REDIM formdata(40) as integer
+ DIM attack as AttackData
  DIM st(3) as HeroDef
- DIM menubits(2)
- DIM bat AS BattleState
- REDIM atkq(15) AS AttackQueue
+ REDIM menubits(2) as integer
+ DIM bat as BattleState
+ REDIM atkq(15) as AttackQueue
  clear_attack_queue()
- DIM bslot(24) AS BattleSprite
- DIM show_info_mode AS INTEGER = 0
+ DIM bslot(24) as BattleSprite
+ DIM show_info_mode as integer = 0
 
  '--lastformation is a global
  lastformation = form
@@ -205,7 +203,7 @@ FUNCTION battle (form) as integer
  tag_updates
 END FUNCTION
 
-SUB battle_init(BYREF bat AS BattleState, bslot() AS BattleSprite)
+SUB battle_init(byref bat as BattleState, bslot() as BattleSprite)
 
  '--prepare stack
  bstackstart = stackpos
@@ -216,7 +214,7 @@ SUB battle_init(BYREF bat AS BattleState, bslot() AS BattleSprite)
  reset_battle_state bat
 
  '--Init BattleState
- FOR i AS INTEGER = 0 TO 11
+ FOR i as integer = 0 TO 11
   bslot(i).consume_item = -1
   bslot(i).revenge = -1
   bslot(i).thankvenge = -1
@@ -246,7 +244,7 @@ SUB battle_init(BYREF bat AS BattleState, bslot() AS BattleSprite)
  IF gen(genMute) <= 0 THEN gen(genMute) = 163
 END SUB
 
-SUB battle_cleanup(BYREF bat AS BattleState, bslot() AS BattleSprite)
+SUB battle_cleanup(byref bat as BattleState, bslot() as BattleSprite)
  'FIXME: writestats is called from different places depending on whether you win or not. Unify
  IF bat.have_written_stats = NO THEN writestats bslot()
 
@@ -254,7 +252,7 @@ SUB battle_cleanup(BYREF bat AS BattleState, bslot() AS BattleSprite)
  IF (stackpos - bstackstart) \ 2 > 0 THEN
   '--an overflow is not unusual. This happens if the battle terminates
   '--while an attack is still going on
-  DIM dummy AS INTEGER
+  DIM dummy as integer
   WHILE stackpos > bstackstart: dummy = popw: WEND
  END IF
 
@@ -272,7 +270,7 @@ SUB battle_cleanup(BYREF bat AS BattleState, bslot() AS BattleSprite)
  clearpage 2
  clearpage 3
 
- FOR i AS INTEGER = LBOUND(bslot) TO UBOUND(bslot)
+ FOR i as integer = LBOUND(bslot) TO UBOUND(bslot)
   frame_unload(@bslot(i).sprites)
   palette16_unload(@bslot(i).pal)
  NEXT i
@@ -280,18 +278,18 @@ SUB battle_cleanup(BYREF bat AS BattleState, bslot() AS BattleSprite)
 END SUB
 
 SUB battle_pause ()
- DIM pause AS STRING = readglobalstring(54, "PAUSE", 10)
+ DIM pause as STRING = readglobalstring(54, "PAUSE", 10)
  fuzzyrect 0, 0, 320, 200, uilook(uiTextBox), vpage
  edgeprint pause, xstring(pause, 160), 95, uilook(uiText), vpage
  setvispage vpage
  '--wait for a key
- DIM wk AS INTEGER = getkey
+ DIM wk as integer = getkey
 END SUB
 
-SUB battle_attack_anim_playback (BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
+SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
  '--this plays back the animation sequence built when the attack starts.
 
- DIM i AS INTEGER
+ DIM i as integer
 
  '--decrement the animation wait ticks, and don't proceed until they are zero
  IF bat.wait_frames > 0 THEN bat.wait_frames -= 1: IF bat.wait_frames > 0 THEN EXIT SUB
@@ -306,12 +304,12 @@ SUB battle_attack_anim_playback (BYREF attack AS AttackData, BYREF bat AS Battle
  END IF
  bat.wait_frames = 0
 
- DIM act AS INTEGER
+ DIM act as integer
  
  '--these are used to temporarily store "who" arguments
- DIM ww AS INTEGER
- DIM w1 AS INTEGER
- DIM w2 AS INTEGER
+ DIM ww as integer
+ DIM w1 as integer
+ DIM w2 as integer
  
  DO: 'INTERPRET THE ANIMATION SCRIPT
   act = popw
@@ -357,15 +355,15 @@ SUB battle_attack_anim_playback (BYREF attack AS AttackData, BYREF bat AS Battle
     bslot(ww).vis = 0
    CASE 7 'setframe(who,frame)
     ww = popw
-    DIM fr AS INTEGER = popw
+    DIM fr as integer = popw
     bslot(ww).frame = fr
     IF is_hero(ww) THEN bslot(ww).walk = 0
    CASE 8 'absmove(who,n,n,n,n)
     ww = popw
-    DIM destpos AS XYPair
+    DIM destpos as XYPair
     destpos.x = popw
     destpos.y = popw
-    DIM movestep AS XYPair
+    DIM movestep as XYPair
     movestep.x = popw
     movestep.y = popw
     bslot(ww).xspeed = (destpos.x - bslot(ww).x) / movestep.x
@@ -375,8 +373,8 @@ SUB battle_attack_anim_playback (BYREF attack AS AttackData, BYREF bat AS Battle
    CASE 9 'waitforall()
     bat.wait_frames = -1
    CASE 10 'inflict(targ, target_count)
-    DIM targ AS INTEGER = popw
-    DIM tcount AS INTEGER = popw
+    DIM targ as integer = popw
+    DIM tcount as integer = popw
     battle_attack_do_inflict targ, tcount, attack, bat, bslot(), formdata()
    CASE 11 'setz(who,z)
     ww = popw
@@ -416,8 +414,8 @@ SUB battle_attack_anim_playback (BYREF attack AS AttackData, BYREF bat AS Battle
   CASE 19 'align2(who, target, edgex, edgey, offx, offy)
    w1 = popw
    w2 = popw
-   DIM xd AS INTEGER = popw
-   DIM yd AS INTEGER = popw
+   DIM xd as integer = popw
+   DIM yd as integer = popw
    if xd then
     bslot(w1).x = bslot(w2).x + bslot(w2).w - bslot(w1).w + popw
    else
@@ -430,10 +428,10 @@ SUB battle_attack_anim_playback (BYREF attack AS AttackData, BYREF bat AS Battle
    end if
   CASE 20 'relmove(who, x, y, sx, sy)
    ww = popw  'who
-   DIM movedist AS XYPair
+   DIM movedist as XYPair
    movedist.x = popw
    movedist.y = popw
-   DIM movestep AS XYPair
+   DIM movestep as XYPair
    movestep.x = popw
    movestep.y = popw
    with bslot(ww)
@@ -444,7 +442,7 @@ SUB battle_attack_anim_playback (BYREF attack AS AttackData, BYREF bat AS Battle
    end with
   CASE 21 'setdir(who, d)
    ww = popw
-   DIM newdir AS INTEGER = popw
+   DIM newdir as integer = popw
    bslot(ww).d = newdir
   END SELECT
  LOOP UNTIL bat.wait_frames <> 0 OR bat.atk.id = -1
@@ -454,18 +452,18 @@ SUB battle_attack_anim_playback (BYREF attack AS AttackData, BYREF bat AS Battle
  END IF
 END SUB
 
-SUB battle_attack_do_inflict(targ AS INTEGER, tcount AS INTEGER, BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata())
+SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
  'targ is the target slot number
  'tcount is the total number of targets (used only for dividing spread damage)
 
- DIM i AS INTEGER
+ DIM i as integer
  'set tag, if there is one
  checkTagCond attack.tagset(0), 1
  checkTagCond attack.tagset(1), 1
  
  '--attempt inflict the damage to the target
- DIM h AS INTEGER = 0 '--set inside inflict
- DIM targstat AS INTEGER = 0 '--set inside inflict
+ DIM h as integer = 0 '--set inside inflict
+ DIM targstat as integer = 0 '--set inside inflict
  IF inflict(h, targstat, bat.acting, targ, bslot(bat.acting), bslot(targ), attack, tcount, attack_can_hit_dead(bat.acting, attack)) THEN
   '--attack succeeded
   IF attack.transmog_enemy > 0 ANDALSO is_enemy(targ) THEN
@@ -581,7 +579,7 @@ SUB battle_attack_do_inflict(targ AS INTEGER, tcount AS INTEGER, BYREF attack AS
  
 END SUB
 
-SUB battle_attack_anim_cleanup (BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
+SUB battle_attack_anim_cleanup (byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
  
  '--hide the caption when the animation is done
  IF attack.caption_time = 0 THEN
@@ -598,7 +596,7 @@ SUB battle_attack_anim_cleanup (BYREF attack AS AttackData, BYREF bat AS BattleS
 
  '--clean up animation stack
  'DEBUG debug "discarding " & (stackpos - bstackstart) \ 2 & " from stack"
- DIM dummy AS INTEGER
+ DIM dummy as integer
  WHILE stackpos > bstackstart: dummy = popw: WEND
  
  '--spawn the next after-chained attack (if any)
@@ -608,10 +606,10 @@ SUB battle_attack_anim_cleanup (BYREF attack AS AttackData, BYREF bat AS BattleS
 
 END SUB
 
-SUB battle_spawn_on_hit(targ AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
- DIM i AS INTEGER
- DIM j AS INTEGER
- DIM slot AS INTEGER
+SUB battle_spawn_on_hit(targ as integer, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
+ DIM i as integer
+ DIM j as integer
+ DIM slot as integer
  
  WITH bslot(targ)
   '--non-elemental hit
@@ -640,9 +638,9 @@ SUB battle_spawn_on_hit(targ AS INTEGER, BYREF bat AS BattleState, bslot() AS Ba
  END WITH
 END SUB
 
-SUB battle_targetting(BYREF bat AS BattleState, bslot() AS BattleSprite)
+SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
 
- DIM i AS INTEGER
+ DIM i as integer
 
  'cancel
  IF carray(ccMenu) > 1 THEN
@@ -657,7 +655,7 @@ SUB battle_targetting(BYREF bat AS BattleState, bslot() AS BattleSprite)
  IF bat.targ.mode = targSETUP THEN setup_targetting bat, bslot()
 
  IF bat.targ.mode = targAUTO THEN
-  DIM t(11) AS INTEGER
+  DIM t(11) as integer
   autotarget bat.hero_turn, bslot(bat.hero_turn).attack - 1, bslot(), t()
   bslot(bat.hero_turn).ready_meter = 0
   bslot(bat.hero_turn).ready = NO
@@ -728,13 +726,13 @@ SUB battle_targetting(BYREF bat AS BattleState, bslot() AS BattleSprite)
  
 END SUB
  
-SUB battle_confirm_target(BYREF bat AS BattleState, bslot() AS BattleSprite)
+SUB battle_confirm_target(byref bat as BattleState, bslot() as BattleSprite)
  bat.targ.selected(bat.targ.pointer) = 1
 
- DIM t(11) AS INTEGER
+ DIM t(11) as integer
  flusharray t(), 11, -1
- DIM o AS INTEGER = 0
- FOR i AS INTEGER = 0 TO 11
+ DIM o as integer = 0
+ FOR i as integer = 0 TO 11
   IF bat.targ.selected(i) = 1 THEN
    t(o) = i
    o = o + 1
@@ -750,12 +748,12 @@ SUB battle_confirm_target(BYREF bat AS BattleState, bslot() AS BattleSprite)
  bat.targ.hit_dead = NO
 END SUB
 
-SUB battle_display (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS INTEGER, st() AS HeroDef)
+SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, menubits() as integer, st() as HeroDef)
  'display:
  '--this sub currently draws the user-interface. In the future it will update
  '--user interface slices
- DIM i AS INTEGER
- DIM col AS INTEGER
+ DIM i as integer
+ DIM col as integer
  IF bat.vic.state = 0 THEN 'only display interface till you win
   FOR i = 0 TO 3 '--for each hero
    IF hero(i) > 0 THEN '--FIXME: should use some battle state instead of global state to
@@ -766,7 +764,7 @@ SUB battle_display (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits(
      IF bslot(i).ready = YES THEN col = uilook(uiTimeBarFull)
      edgeboxstyle 1, 4 + i * 10, 132, 11, 0, dpage, YES, YES
      IF bslot(i).stat.cur.hp > 0 THEN
-      DIM j AS INTEGER = bslot(i).ready_meter / 7.7
+      DIM j as integer = bslot(i).ready_meter / 7.7
       IF blocked_by_attack(i) OR bslot(i).attack > 0 OR (bat.atk.id >= 0 AND bat.acting = i) THEN
        col = uilook(uiTimeBar)
        j = 130
@@ -792,7 +790,7 @@ SUB battle_display (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits(
     '--hp--
     edgeprint bslot(i).stat.cur.hp & "/" & bslot(i).stat.max.hp, 136, 5 + i * 10, col, dpage
     WITH bslot(i).stat
-     DIM indicatorpos AS INTEGER = 217
+     DIM indicatorpos as integer = 217
      'poison indicator
      IF .cur.poison < .max.poison THEN
       edgeprint CHR(gen(genPoison)), indicatorpos, 5 + i * 10, col, dpage
@@ -821,8 +819,8 @@ SUB battle_display (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits(
   END IF
   IF bat.hero_turn >= 0 THEN
    centerbox 268, 5 + (4 * (bslot(bat.hero_turn).menu_size + 2)), 88, 8 * (bslot(bat.hero_turn).menu_size + 2), 1, dpage
-   DIM bg AS INTEGER
-   DIM fg AS INTEGER
+   DIM bg as integer
+   DIM fg as integer
    FOR i = 0 TO bslot(bat.hero_turn).menu_size
     bg = 0
     fg = uilook(uiMenuItem)
@@ -865,7 +863,7 @@ SUB battle_display (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits(
    'if keyval(scS) > 1 then gen(genMaxInventory) += 3
    'if keyval(scA) > 1 then gen(genMaxInventory) -= 3
    IF bat.menu_mode = batMENUITEM THEN '--draw item menu
-    DIM inv_height AS INTEGER = small(78, 8 + ((last_inv_slot() + 1) \ 3) * 8)
+    DIM inv_height as integer = small(78, 8 + ((last_inv_slot() + 1) \ 3) * 8)
     WITH bat.inv_scroll
      .top = INT(bat.item.top / 3)
      .pt = INT(bat.item.pt / 3)
@@ -899,16 +897,16 @@ SUB battle_display (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits(
 END SUB
 
 
-SUB battle_meters (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
+SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
  IF bat.away > 0 THEN EXIT SUB '--skip all this if the heroes have already run away
  
  '--if a menu is up, and pause-on-menus is ON then no time passes (as long as at least one visible targetable enemy is alive)
- DIM isdeepmenu AS INTEGER = (bat.menu_mode > 0 AND readbit(gen(), genBits, 0) <> 0)
- DIM isbattlemenu AS INTEGER = (bat.menu_mode >= 0 AND bat.hero_turn >= 0 AND readbit(gen(), genBits, 13) <> 0)
- DIM isenemytargs AS INTEGER = (targenemycount(bslot()) > 0)
+ DIM isdeepmenu as integer = (bat.menu_mode > 0 AND readbit(gen(), genBits, 0) <> 0)
+ DIM isbattlemenu as integer = (bat.menu_mode >= 0 AND bat.hero_turn >= 0 AND readbit(gen(), genBits, 13) <> 0)
+ DIM isenemytargs as integer = (targenemycount(bslot()) > 0)
  IF (isdeepmenu OR isbattlemenu) AND isenemytargs THEN EXIT SUB
 
- DIM i AS INTEGER
+ DIM i as integer
 
  FOR i = 0 TO 11
  
@@ -918,7 +916,7 @@ SUB battle_meters (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata()
     bslot(i).poison_repeat += large(.cur.spd, 7)
     IF bslot(i).poison_repeat >= 1500 THEN
      bslot(i).poison_repeat = 0
-     DIM harm AS INTEGER = .max.poison - .cur.poison
+     DIM harm as integer = .max.poison - .cur.poison
      harm = range(harm, 20)
      quickinflict harm, i, bslot()
      triggerfade i, bslot()
@@ -933,7 +931,7 @@ SUB battle_meters (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata()
     bslot(i).regen_repeat += large(.cur.spd, 7)
     IF bslot(i).regen_repeat >= 1500 THEN
      bslot(i).regen_repeat = 0
-     DIM heal AS INTEGER = .max.regen - .cur.regen
+     DIM heal as integer = .max.regen - .cur.regen
      heal = heal * -1
      heal = range(heal, 20)
      quickinflict heal, i, bslot()
@@ -981,10 +979,10 @@ SUB battle_meters (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata()
 
 END SUB
 
-SUB battle_animate(BYREF bat AS BattleState, bslot() AS BattleSprite)
+SUB battle_animate(byref bat as BattleState, bslot() as BattleSprite)
  'This sub is intended to apply animation effects triggered elsewhere.
  'FIXME: due to messy code, some stuff animation stuff might still happen elsewhere
- DIM i AS INTEGER
+ DIM i as integer
  '--First, things that only heroes can do
  FOR i = 0 TO 3
   IF bslot(i).walk = 1 THEN bslot(i).frame = bslot(i).frame XOR bat.tog
@@ -1036,11 +1034,11 @@ SUB battle_animate(BYREF bat AS BattleState, bslot() AS BattleSprite)
  NEXT i
 END SUB
 
-SUB show_enemy_meters(bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
+SUB show_enemy_meters(bat as BattleState, bslot() as BattleSprite, formdata() as integer)
  'This shows meters and extra debug info info when you press F10 the first time
- DIM c AS INTEGER
- DIM info AS STRING
- FOR i AS INTEGER = 0 TO 11
+ DIM c as integer
+ DIM info as STRING
+ FOR i as integer = 0 TO 11
   WITH bslot(i)
    c = uilook(uiSelectedDisabled)
    IF is_hero(i) THEN c = uilook(uiSelectedItem)
@@ -1052,12 +1050,12 @@ SUB show_enemy_meters(bat AS BattleState, bslot() AS BattleSprite, formdata() AS
  NEXT i
 END SUB
 
-SUB battle_crappy_run_handler(BYREF bat AS BattleState, bslot() AS BattleSprite)
+SUB battle_crappy_run_handler(byref bat as BattleState, bslot() as BattleSprite)
  '--Current running system sucks about as bad as a running system conceivably CAN suck
  IF carray(ccMenu) > 1 AND readbit(gen(), genBits2, 1) = 0 THEN
   bat.flee = bat.flee + 1
  END IF
- DIM i AS INTEGER
+ DIM i as integer
  IF bat.flee > 0 AND bat.flee < 4 THEN
   IF carray(ccRun) = 0 THEN
    bat.flee = 0
@@ -1090,7 +1088,7 @@ SUB battle_crappy_run_handler(BYREF bat AS BattleState, bslot() AS BattleSprite)
     bslot(i).walk = 0
    NEXT i
   END IF
-  DIM stupid_run_threshold AS INTEGER = 400
+  DIM stupid_run_threshold as integer = 400
   FOR i = 4 TO 11
    stupid_run_threshold += bslot(i).stat.cur.spd
   NEXT i
@@ -1105,16 +1103,16 @@ SUB battle_crappy_run_handler(BYREF bat AS BattleState, bslot() AS BattleSprite)
  END IF
 END SUB
 
-SUB draw_battle_sprites(bslot() AS BattleSprite)
- DIM zbuf(24) AS INTEGER
- DIM basey(24) AS INTEGER
- DIM harm_text_offset AS INTEGER = 0
+SUB draw_battle_sprites(bslot() as BattleSprite)
+ DIM zbuf(24) as integer
+ DIM basey(24) as integer
+ DIM harm_text_offset as integer = 0
  
- FOR i AS INTEGER = 0 TO 24
+ FOR i as integer = 0 TO 24
   basey(i) = bslot(i).y + bslot(i).h
  NEXT i
  sort_integers_indices(zbuf(), @basey(0))
- FOR i AS INTEGER = 0 TO 24
+ FOR i as integer = 0 TO 24
  IF (bslot(zbuf(i)).vis = 1 OR bslot(zbuf(i)).dissolve > 0) THEN
    dim w as BattleSprite ptr
    w = @bslot(zbuf(i))
@@ -1146,7 +1144,7 @@ SUB draw_battle_sprites(bslot() AS BattleSprite)
    end with
   END IF
  NEXT i
- FOR i AS INTEGER = 0 TO 11
+ FOR i as integer = 0 TO 11
   WITH bslot(i).harm
    IF .ticks > 0 THEN
     IF gen(genDamageDisplayTicks) <> 0 THEN
@@ -1162,8 +1160,8 @@ SUB draw_battle_sprites(bslot() AS BattleSprite)
  NEXT i
 END SUB
 
-SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, st() AS HeroDef, formdata())
- DIM i AS INTEGER
+SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef, formdata() as integer)
+ DIM i as integer
 
  setpicstuf formdata(), 80, -1
  loadset tmpdir & "for.tmp", form, 0
@@ -1177,8 +1175,8 @@ SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS B
 
  IF formdata(33) > 0 THEN wrappedsong formdata(33) - 1
  
- DIM attack AS AttackData
- DIM newm AS INTEGER
+ DIM attack as AttackData
+ DIM newm as integer
  FOR i = 0 TO 3
   IF hero(i) > 0 THEN
    loadherodata @st(i), hero(i) - 1
@@ -1186,7 +1184,7 @@ SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS B
    
    'Loop through hero battle menu, populating bslot().menu() with the ones that should be displayed
    'Note that bmenu() is a global.
-   FOR oldm AS INTEGER = 0 TO 5
+   FOR oldm as integer = 0 TO 5
     IF bmenu(i, oldm) < 0 AND bmenu(i, oldm) > -5 AND readbit(st(i).bits(),0,26) <> 0 THEN
      'this is a spell list, and the hide empty spell lists bitset is on...
      'count the spells, and skip if empty
@@ -1216,7 +1214,7 @@ SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS B
    END WITH
    
    '--copy hero's outside-battle stats to their inside-battle stats
-   FOR o AS INTEGER = 0 TO 11
+   FOR o as integer = 0 TO 11
     bslot(i).stat.cur.sta(o) = gam.hero(i).stat.cur.sta(o)
     bslot(i).stat.max.sta(o) = gam.hero(i).stat.max.sta(o)
    NEXT o
@@ -1226,7 +1224,7 @@ SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS B
    bslot(i).name = names(i)
    
    '--load hero menu captions
-   FOR o AS INTEGER = 0 TO 5
+   FOR o as integer = 0 TO 5
     WITH bslot(i).menu(o)
      .caption = ""
      .atk = -1 'none
@@ -1256,7 +1254,7 @@ SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS B
 
  '--wipe spells learnt and levels gained for all heroes
  FOR i = 0 TO UBOUND(hero)
-  FOR o AS INTEGER = i * 6 TO i * 6 + 5
+  FOR o as integer = i * 6 TO i * 6 + 5
    learnmask(o) = 0
   NEXT
   gam.hero(i).lev_gain = 0
@@ -1310,12 +1308,12 @@ SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS B
  fulldeathcheck -1, bat, bslot(), formdata()
 END SUB
 
-SUB fulldeathcheck (killing_attack AS INTEGER, bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
+SUB fulldeathcheck (killing_attack as integer, bat as BattleState, bslot() as BattleSprite, formdata() as integer)
  '--Runs check_death on all enemies, checks all heroes for death, and sets bat.death_mode if necessary
  'killing_attack is the attack ID that was just used, or -1 for none
- DIM deadguy AS INTEGER
- DIM dead_enemies AS INTEGER
- DIM dead_heroes AS INTEGER
+ DIM deadguy as integer
+ DIM dead_enemies as integer
+ DIM dead_heroes as integer
  FOR deadguy = 4 TO 11
   IF bslot(deadguy).stat.cur.hp > 0 THEN
    'this enemy hasn't just spawned; it should fade out
@@ -1339,7 +1337,7 @@ SUB fulldeathcheck (killing_attack AS INTEGER, bat AS BattleState, bslot() AS Ba
  IF dead_heroes = 4 THEN bat.death_mode = deathHEROES
 END SUB
 
-SUB trigger_victory(BYREF bat AS BattleState, bslot() AS BattleSprite)
+SUB trigger_victory(byref bat as BattleState, bslot() as BattleSprite)
  '--Play the victory music
  IF gen(genVictMus) > 0 THEN wrappedsong gen(genVictMus) - 1
  '--Collect gold (which is capped at 2 billion max)
@@ -1353,11 +1351,11 @@ SUB trigger_victory(BYREF bat AS BattleState, bslot() AS BattleSprite)
  bat.vic.state = vicGOLDEXP
 END SUB
 
-FUNCTION distribute_party_experience (BYVAL exper AS INTEGER) AS INTEGER
+FUNCTION distribute_party_experience (byval exper as integer) as integer
  '--Calculate amount of experience given to each hero, and returns the "base" experience value,
  '--which is the amount given to live heroes in the active party
- DIM AS DOUBLE sumheroes, xp_mult(UBOUND(hero))
- DIM AS INTEGER i
+ DIM as DOUBLE sumheroes, xp_mult(UBOUND(hero))
+ DIM as integer i
 
  FOR i = 0 TO UBOUND(hero)
   IF hero(i) > 0 THEN
@@ -1390,9 +1388,9 @@ FUNCTION distribute_party_experience (BYVAL exper AS INTEGER) AS INTEGER
  RETURN exper
 END FUNCTION
 
-SUB show_victory (BYREF bat AS BattleState, bslot() AS BattleSprite)
-DIM tempstr AS STRING
-DIM AS INTEGER i, o
+SUB show_victory (byref bat as BattleState, bslot() as BattleSprite)
+DIM tempstr as STRING
+DIM as integer i, o
 IF bat.vic.box THEN centerfuz 160, 30, 280, 50, 1, dpage
 SELECT CASE bat.vic.state
  CASE vicGOLDEXP
@@ -1412,7 +1410,7 @@ SELECT CASE bat.vic.state
  CASE vicLEVELUP
   '--print levelups
   o = 0
-  DIM numlevelled AS INTEGER = 0
+  DIM numlevelled as integer = 0
   FOR i = 0 TO UBOUND(hero)
    IF gam.hero(i).lev_gain <> 0 THEN numlevelled += 1
   NEXT
@@ -1456,7 +1454,7 @@ SELECT CASE bat.vic.state
     END IF
     IF readbit(learnmask(), 0, bat.vic.learnwho * 96 + bat.vic.learnlist * 24 + bat.vic.learnslot) THEN
      'found a learned spell
-     DIM learn_attack AS AttackData
+     DIM learn_attack as AttackData
      loadattackdata learn_attack, spell(bat.vic.learnwho, bat.vic.learnlist, bat.vic.learnslot) - 1
      bat.vic.item_name = names(bat.vic.learnwho) + bat.vic.learned_caption + learn_attack.name
      bat.vic.showlearn = YES
@@ -1503,7 +1501,7 @@ SELECT CASE bat.vic.state
 END SELECT
 END SUB
 
-SUB reset_battle_state (BYREF bat AS BattleState)
+SUB reset_battle_state (byref bat as BattleState)
  'This could become a constructor for BattleState when we support the -lang fb dialect
 
  WITH bat
@@ -1551,14 +1549,14 @@ SUB reset_battle_state (BYREF bat AS BattleState)
  reset_rewards_state bat.rew
 END SUB
 
-SUB reset_targetting (BYREF bat AS BattleState)
+SUB reset_targetting (byref bat as BattleState)
  WITH bat.targ
   .hit_dead = NO
  END WITH
 END SUB
 
-SUB reset_attack (BYREF bat AS BattleState)
- DIM i AS INTEGER
+SUB reset_attack (byref bat as BattleState)
+ DIM i as integer
  WITH bat.atk
   .id = -1
   .was_id = -1
@@ -1569,9 +1567,9 @@ SUB reset_attack (BYREF bat AS BattleState)
  END WITH
 END SUB
 
-SUB reset_rewards_state (BYREF rew AS RewardsState)
+SUB reset_rewards_state (byref rew as RewardsState)
  'This could become a constructor for RewardsState when we support the -lang fb dialect
- DIM i AS INTEGER
+ DIM i as integer
  WITH rew
   .plunder = 0
   .exper = 0
@@ -1582,7 +1580,7 @@ SUB reset_rewards_state (BYREF rew AS RewardsState)
  END WITH
 END SUB
 
-SUB reset_victory_state (BYREF vic AS VictoryState)
+SUB reset_victory_state (byref vic as VictoryState)
  'This could become a constructor for VictoryState when we support the -lang fb dialect
  WITH vic
   .state = 0
@@ -1606,11 +1604,11 @@ SUB reset_victory_state (BYREF vic AS VictoryState)
  END WITH
 END SUB
 
-SUB checkitemusability(iuse() AS INTEGER, bslot() AS BattleSprite, who AS INTEGER)
+SUB checkitemusability(iuse() as integer, bslot() as BattleSprite, byval who as integer)
  'Iterate through the iuse() bitfield and mark any items that are usable
- DIM i AS INTEGER
- DIM itembuf(dimbinsize(binITM)) AS INTEGER
- DIM attack AS AttackData
+ DIM i as integer
+ DIM itembuf(dimbinsize(binITM)) as integer
+ DIM attack as AttackData
 
  FOR i = 0 TO inventoryMax
   setbit iuse(), 0, i, 0 ' Default each slot to unusable
@@ -1632,15 +1630,15 @@ SUB checkitemusability(iuse() AS INTEGER, bslot() AS BattleSprite, who AS INTEGE
  NEXT i
 END SUB
 
-FUNCTION checkNoRunBit (bslot() AS BattleSprite) as integer
- DIM i AS INTEGER
+FUNCTION checkNoRunBit (bslot() as BattleSprite) as integer
+ DIM i as integer
  FOR i = 4 TO 11
   IF bslot(i).stat.cur.hp > 0 AND bslot(i).vis = 1 AND bslot(i).unescapable = YES THEN RETURN 1
  NEXT i
  RETURN 0
 END FUNCTION
 
-SUB checkTagCond (t AS AttackDataTag, check AS INTEGER)
+SUB checkTagCond (byref t as AttackDataTag, byval check as integer)
  't.condition - type
  'check = curtype
  't.tag - the tag to be set
@@ -1651,7 +1649,7 @@ SUB checkTagCond (t AS AttackDataTag, check AS INTEGER)
  END IF
 END SUB
 
-FUNCTION focuscost (cost, focus) as integer
+FUNCTION focuscost (byval cost as integer, byval focus as integer) as integer
 IF focus > 0 THEN
  focuscost = cost - INT(cost / (100 / focus))
 ELSE
@@ -1705,8 +1703,8 @@ END SUB
 
 SUB invertstack
 '--this is a hack so I can use the stack like a fifo
-DIM i AS INTEGER
-DIM stackdepth AS INTEGER
+DIM i as integer
+DIM stackdepth as integer
 
 stackdepth = (stackpos - bstackstart) \ 2
 
@@ -1720,9 +1718,9 @@ NEXT i
 
 END SUB
 
-SUB quickinflict (harm, targ, bslot() AS BattleSprite)
+SUB quickinflict (byval harm as integer, byval targ as integer, bslot() as BattleSprite)
  '--quick damage infliction to hp. no bells and whistles
- DIM max_bound AS INTEGER
+ DIM max_bound as integer
  WITH bslot(targ)
 
   IF gen(genDamageCap) > 0 THEN harm = small(harm, gen(genDamageCap))
@@ -1745,43 +1743,43 @@ SUB anim_end()
  pushw 0
 END SUB
 
-SUB anim_inflict(who AS INTEGER, target_count AS INTEGER)
+SUB anim_inflict(byval who as integer, byval target_count as integer)
  pushw 10: pushw who: pushw target_count
 END SUB
 
-SUB anim_disappear(who)
+SUB anim_disappear(byval who as integer)
  pushw 6: pushw who
 END SUB
 
-SUB anim_setpos(who, x, y, d)
+SUB anim_setpos(byval who as integer, byval x as integer, byval y as integer, byval d as integer)
  pushw 3: pushw who: pushw x: pushw y: pushw d
 END SUB
 
-SUB anim_setz(who, z)
+SUB anim_setz(byval who as integer, byval z as integer)
  pushw 11: pushw who: pushw z
 END SUB
 
-SUB anim_appear(who)
+SUB anim_appear(byval who as integer)
  pushw 5: pushw who
 END SUB
 
-SUB anim_setmove(who, xm, ym, xstep, ystep)
+SUB anim_setmove(byval who as integer, byval xm as integer, byval ym as integer, byval xstep as integer, byval ystep as integer)
  pushw 2: pushw who: pushw xm: pushw ym: pushw xstep: pushw ystep
 END SUB
 
-SUB anim_absmove(who, tox, toy, xspeed, yspeed)
+SUB anim_absmove(byval who as integer, byval tox as integer, byval toy as integer, byval xspeed as integer, byval yspeed as integer)
  pushw 8: pushw who: pushw tox: pushw toy: pushw xspeed: pushw yspeed
 END SUB
 
-SUB anim_zmove(who, zm, zstep)
+SUB anim_zmove(byval who as integer, byval zm as integer, byval zstep as integer)
  pushw 15: pushw who: pushw zm: pushw zstep
 END SUB
 
-SUB anim_wait(ticks)
+SUB anim_wait(byval ticks as integer)
  pushw 13: pushw ticks
 END SUB
 
-SUB anim_setframe(who, frame)
+SUB anim_setframe(byval who as integer, byval frame as integer)
  pushw 7: pushw who: pushw frame
 END SUB
 
@@ -1789,38 +1787,38 @@ SUB anim_waitforall()
  pushw 9
 END SUB
 
-SUB anim_walktoggle(who)
+SUB anim_walktoggle(byval who as integer)
  pushw 14: pushw who
 END SUB
 
-SUB anim_sound(which)
+SUB anim_sound(byval which as integer)
  pushw 16: pushw which
 END SUB
 
-SUB anim_align(who, target, dire, offset)
+SUB anim_align(byval who as integer, byval target as integer, byval dire as integer, byval offset as integer)
  pushw 17: pushw who: pushw target: pushw dire: pushw offset
 END SUB
 
-SUB anim_setcenter(who, target, offx, offy)
+SUB anim_setcenter(byval who as integer, byval target as integer, byval offx as integer, byval offy as integer)
  pushw 18: pushw who: pushw target: pushw offx: pushw offy
 END SUB
 
-SUB anim_align2(who, target, edgex, edgey, offx, offy)
+SUB anim_align2(byval who as integer, byval target as integer, byval edgex as integer, byval edgey as integer, byval offx as integer, byval offy as integer)
  pushw 19: pushw who: pushw target: pushw edgex: pushw edgey: pushw offx: pushw offy
 END SUB
 
-SUB anim_relmove(who, tox, toy, xspeed, yspeed)
+SUB anim_relmove(byval who as integer, byval tox as integer, byval toy as integer, byval xspeed as integer, byval yspeed as integer)
  pushw 20: pushw who: pushw tox: pushw toy: pushw xspeed: pushw yspeed
 END SUB
 
-SUB anim_setdir(who, d)
+SUB anim_setdir(byval who as integer, byval d as integer)
  pushw 21: pushw who: pushw d
 END SUB
 
-SUB anim_flinchstart(who AS INTEGER, bslot() AS BattleSprite, attack AS AttackData)
+SUB anim_flinchstart(byval who as integer, bslot() as BattleSprite, byref attack as AttackData)
  '--If enemy can flinch and if attack allows flinching
  IF bslot(who).never_flinch = NO AND attack.targ_does_not_flinch = NO THEN
-  DIM flinch_x_dist AS INTEGER
+  DIM flinch_x_dist as integer
   flinch_x_dist = 3
   IF is_enemy(who) THEN flinch_x_dist = -3
   anim_setmove who, flinch_x_dist, 0, 2, 0
@@ -1836,10 +1834,10 @@ SUB anim_flinchstart(who AS INTEGER, bslot() AS BattleSprite, attack AS AttackDa
  END IF
 END SUB
 
-SUB anim_flinchdone(who AS INTEGER, bslot() AS BattleSprite, attack AS AttackData)
+SUB anim_flinchdone(byval who as integer, bslot() as BattleSprite, byref attack as AttackData)
  '--If enemy can flinch and if attack allows flinching
  IF bslot(who).never_flinch = NO AND attack.targ_does_not_flinch = NO THEN
-  DIM flinch_x_dist AS INTEGER
+  DIM flinch_x_dist as integer
   flinch_x_dist = -3
   IF is_enemy(who) THEN flinch_x_dist = 3
   anim_setmove who, flinch_x_dist, 0, 2, 0
@@ -1847,20 +1845,20 @@ SUB anim_flinchdone(who AS INTEGER, bslot() AS BattleSprite, attack AS AttackDat
  END IF
 END SUB
 
-FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
- DIM i AS INTEGER
- DIM count AS INTEGER = 0
+FUNCTION count_dissolving_enemies(bslot() as BattleSprite) as integer
+ DIM i as integer
+ DIM count as integer = 0
  FOR i = 4 TO 11
   IF bslot(i).dissolve > 0 THEN count += 1
  NEXT i
  RETURN count
 END FUNCTION
 
-SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, formdata(), bslot() AS BattleSprite)
+SUB spawn_on_death(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, formdata() as integer, bslot() as BattleSprite)
  'killing_attack is the id of the attack that killed the target or -1 if the target died without a specific attack
- DIM attack AS AttackData
- DIM slot AS INTEGER
- DIM i AS INTEGER
+ DIM attack as AttackData
+ DIM slot as integer
+ DIM i as integer
  IF NOT is_enemy(deadguy) THEN EXIT SUB ' Only works for enemies
  IF killing_attack >= 0 THEN
   'This death is the result of an attack
@@ -1894,17 +1892,17 @@ SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS B
  END WITH
 END SUB
 
-FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
+FUNCTION find_empty_enemy_slot(formdata() as integer) as integer
  'Returns index of first empty slot, or -1 if none was found
- DIM i AS INTEGER
+ DIM i as integer
  FOR i = 0 TO 7
   IF formdata(i * 4) = 0 THEN RETURN i
  NEXT i
  RETURN -1
 END FUNCTION
 
-FUNCTION dieWOboss(BYVAL who, bslot() AS BattleSprite) as integer
- DIM AS INTEGER j
+FUNCTION dieWOboss(byval who as integer, bslot() as BattleSprite) as integer
+ DIM as integer j
  '--count bosses
  FOR j = 4 TO 11
   '--is it a boss?
@@ -1923,7 +1921,7 @@ FUNCTION dieWOboss(BYVAL who, bslot() AS BattleSprite) as integer
  END IF
 END FUNCTION
 
-SUB triggerfade(BYVAL who, bslot() AS BattleSprite)
+SUB triggerfade(byval who as integer, bslot() as BattleSprite)
  'If the target is really dead...
  IF bslot(who).stat.cur.hp = 0 THEN
   IF is_hero(who) THEN
@@ -1944,7 +1942,7 @@ SUB triggerfade(BYVAL who, bslot() AS BattleSprite)
  END IF
 END SUB
 
-SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata())
+SUB check_death(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
 'killing_attack contains attack id or -1 when no attack is relevant.
 
  IF is_enemy(deadguy) THEN
@@ -1966,7 +1964,7 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
   .cur.mute   = .max.mute
  END WITH
  '-- remove any attack queue entries
- FOR i AS INTEGER = 0 TO UBOUND(atkq)
+ FOR i as integer = 0 TO UBOUND(atkq)
   WITH atkq(i)
    IF .used ANDALSO .attacker = deadguy THEN
     clear_attack_queue_slot i
@@ -1994,11 +1992,11 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
  battle_reevaluate_dead_targets deadguy, bat, bslot()
 END SUB
 
-SUB dead_enemy(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata())
+SUB dead_enemy(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
  '--give rewards, spawn enemies, clear formdata slot, but NO other cleanup!
  'killing_attack is the id of the attack that killed the target or -1 if the target died without a specific attack
- DIM AS INTEGER j
- DIM enemynum AS INTEGER = deadguy - 4
+ DIM as integer j
+ DIM enemynum as integer = deadguy - 4
  '--spawn enemies before freeing the formdata slot to avoid infinite loops. however this might need to be changed to fix morphing enemies?
  spawn_on_death deadguy, killing_attack, bat, formdata(), bslot()
  IF formdata(enemynum * 4) > 0 THEN
@@ -2025,9 +2023,9 @@ SUB dead_enemy(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS Battl
  formdata(enemynum * 4) = 0
 END SUB
 
-SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
- DIM ai AS INTEGER = 0
- DIM weakhp AS INTEGER = 0
+SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
+ DIM ai as integer = 0
+ DIM weakhp as integer = 0
  
  'if HP is less than the threshold, go into desperation mode
  weakhp = gen(genEnemyWeakHP)
@@ -2036,11 +2034,11 @@ SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS I
  'if targetable enemy count is 1, go into alone mode
  IF targenemycount(bslot(), YES) = 1 THEN ai = 2
 
- DIM slot AS INTEGER = 0
+ DIM slot as integer = 0
  'spawn allies when alone
  WITH bslot(bat.enemy_turn)
   IF ai = 2 AND .enemy.spawn.when_alone > 0 THEN
-   FOR j AS INTEGER = 1 TO .enemy.spawn.how_many
+   FOR j as integer = 1 TO .enemy.spawn.how_many
     slot = find_empty_enemy_slot(formdata())
     IF slot > -1 THEN
      formdata(slot * 4) = .enemy.spawn.when_alone
@@ -2064,9 +2062,9 @@ SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS I
  IF countai(ai, bat.enemy_turn, bslot()) = 0 THEN bat.enemy_turn = -1 : EXIT SUB
 
  'pick a random attack
- DIM atk_id AS INTEGER
- DIM atk AS AttackData
- DIM safety AS INTEGER = 0
+ DIM atk_id as integer
+ DIM atk as AttackData
+ DIM safety as integer = 0
  DO
   WITH bslot(bat.enemy_turn)
    SELECT CASE ai
@@ -2108,7 +2106,7 @@ SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS I
   END IF
  LOOP
 
- DIM t(11) AS INTEGER
+ DIM t(11) as integer
  autotarget bat.enemy_turn, atk, bslot(), t()
 
  'ready for next attack
@@ -2118,11 +2116,11 @@ SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS I
 
 END SUB
 
-SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS INTEGER, st() as herodef)
+SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, menubits() as integer, st() as herodef)
 
- DIM atk AS AttackData
- DIM spellcount AS INTEGER = 0
- DIM i AS INTEGER
+ DIM atk as AttackData
+ DIM spellcount as integer = 0
+ DIM i as integer
  
  FOR i = 0 TO 5
   setbit menubits(), 0, bat.hero_turn * 4 + i, 0
@@ -2202,8 +2200,8 @@ SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS I
      END IF
     NEXT i
     IF spellcount > 0 THEN '-- don't attempt to pick randomly from an empty list
-     DIM safety AS INTEGER
-     DIM rptr AS INTEGER
+     DIM safety as integer
+     DIM rptr as integer
      rptr = INT(RND * 24)
      FOR i = 0 TO INT(RND * spellcount)
       safety = 0
@@ -2230,7 +2228,7 @@ SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS I
  END IF
 END SUB
 
-SUB spellmenu (BYREF bat AS BattleState, st() as HeroDef, bslot() AS BattleSprite)
+SUB spellmenu (byref bat as BattleState, st() as HeroDef, bslot() as BattleSprite)
  IF carray(ccMenu) > 1 THEN '--cancel
   bat.menu_mode = batMENUHERO
   flusharray carray(), 7, 0
@@ -2280,7 +2278,7 @@ SUB spellmenu (BYREF bat AS BattleState, st() as HeroDef, bslot() AS BattleSprit
    EXIT SUB
   END IF
 
-  DIM atk AS AttackData
+  DIM atk as AttackData
   '--can-I-use-it? checking
   IF bat.spell.slot(bat.sptr).atk_id = -1 THEN
    '--list-entry is empty
@@ -2306,7 +2304,7 @@ SUB spellmenu (BYREF bat AS BattleState, st() as HeroDef, bslot() AS BattleSprit
  END IF
 END SUB
 
-SUB itemmenu (BYREF bat AS BattleState, bslot() AS BattleSprite)
+SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
  IF carray(ccMenu) > 1 THEN
   bat.menu_mode = batMENUHERO
   flusharray carray(), 7, 0
@@ -2315,7 +2313,7 @@ SUB itemmenu (BYREF bat AS BattleState, bslot() AS BattleSprite)
   EXIT SUB
  END IF
 
- DIM remember_pt AS INTEGER = bat.item.pt
+ DIM remember_pt as integer = bat.item.pt
  usemenusounds
  IF carray(ccUp) > 1 AND bat.item.pt > 2 THEN bat.item.pt = bat.item.pt - 3
  IF carray(ccDown) > 1 AND bat.item.pt <= last_inv_slot() - 3 THEN bat.item.pt = bat.item.pt + 3
@@ -2345,7 +2343,7 @@ SUB itemmenu (BYREF bat AS BattleState, bslot() AS BattleSprite)
  WHILE bat.item.pt < bat.item.top : bat.item.top = bat.item.top - 3 : WEND
  WHILE bat.item.pt >= bat.item.top + (bat.inv_scroll.size+1) * 3 : bat.item.top = bat.item.top + 3 : WEND
 
- DIM itembuf(dimbinsize(binITM)) AS INTEGER
+ DIM itembuf(dimbinsize(binITM)) as integer
  
  IF remember_pt <> bat.item.pt THEN
   IF inventory(bat.item.pt).used THEN
@@ -2371,8 +2369,8 @@ SUB itemmenu (BYREF bat AS BattleState, bslot() AS BattleSprite)
  END IF
 END SUB
 
-SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, t() AS INTEGER)
- DIM i AS INTEGER
+SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, t() as integer)
+ DIM i as integer
 
  '--check for item consumption
  IF bslot(bat.acting).consume_item >= 0 THEN
@@ -2386,7 +2384,7 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
  '--load attack
  loadattackdata attack, bat.atk.id
 
- DIM safety AS INTEGER = 0
+ DIM safety as integer = 0
  DO WHILE spawn_chained_attack(attack.instead, attack, bat, bslot())
   IF blocked_by_attack(bat.acting) THEN EXIT SUB
   IF bat.atk.id = -1 THEN EXIT SUB
@@ -2422,8 +2420,8 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
   end with
  NEXT i
  
- DIM tcount AS INTEGER = -1
- DIM pdir AS INTEGER = 0
+ DIM tcount as integer = -1
+ DIM pdir as integer = 0
  
  bat.atk.has_consumed_costs = NO
  IF is_enemy(bat.acting) THEN pdir = 1
@@ -2437,7 +2435,7 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
   END IF
  NEXT i
  'MOVE EMPTY TARGET SLOTS TO THE BACK
- FOR o AS INTEGER = 0 TO UBOUND(t) - 1
+ FOR o as integer = 0 TO UBOUND(t) - 1
   FOR i = 0 TO 10
    IF t(i) = -1 THEN SWAP t(i), t(i + 1)
   NEXT i
@@ -2481,21 +2479,21 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
   end with
  END IF
  
- DIM numhits AS INTEGER
+ DIM numhits as integer
  numhits = attack.hits + INT(RND * (bslot(bat.acting).stat.cur.hits + 1))
  IF attack.ignore_extra_hits THEN numhits = attack.hits
 
- DIM atkimgdirection AS INTEGER
+ DIM atkimgdirection as integer
  atkimgdirection = pdir
  IF attack.unreversable_picture = YES THEN atkimgdirection = 0
  
- DIM AS INTEGER xt, yt
+ DIM as integer xt, yt
 
  '----NULL ANIMATION
  IF attack.attack_anim = 10 THEN
   anim_advance bat.acting, attack, bslot(), t()
   if attack.sound_effect > 0  then anim_sound(attack.sound_effect - 1)
-  FOR j AS INTEGER = 1 TO numhits
+  FOR j as integer = 1 TO numhits
    IF is_hero(bat.acting) THEN anim_hero bat.acting, attack, bslot(), t()
    IF is_enemy(bat.acting) THEN anim_enemy bat.acting, attack, bslot(), t()
    FOR i = 0 TO tcount
@@ -2521,7 +2519,7 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
   END IF
  NEXT i
  anim_advance bat.acting, attack, bslot(), t()
- FOR j AS INTEGER = 1 TO numhits
+ FOR j as integer = 1 TO numhits
   IF is_hero(bat.acting) THEN anim_hero bat.acting, attack, bslot(), t()
   IF is_enemy(bat.acting) THEN anim_enemy bat.acting, attack, bslot(), t()
    FOR i = 0 TO tcount
@@ -2579,11 +2577,11 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
 
  '----SEQUENTIAL PROJECTILE
  IF attack.attack_anim = 7 THEN
-  DIM startoffset AS INTEGER
+  DIM startoffset as integer
   'attacker steps forward
   anim_advance bat.acting, attack, bslot(), t()
   'repeat the following for each attack
-  FOR j AS INTEGER = 1 TO numhits
+  FOR j as integer = 1 TO numhits
    'attacker animates
    IF is_hero(bat.acting) THEN anim_hero bat.acting, attack, bslot(), t()
    IF is_enemy(bat.acting) THEN anim_enemy bat.acting, attack, bslot(), t()
@@ -2632,11 +2630,11 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
  
  '----PROJECTILE, REVERSE PROJECTILE and METEOR
  IF attack.attack_anim = 1 OR attack.attack_anim = 2 OR attack.attack_anim = 8 THEN
-  DIM projectile_start_x_offset AS INTEGER
+  DIM projectile_start_x_offset as integer
   projectile_start_x_offset = 50
   IF is_hero(bat.acting) THEN projectile_start_x_offset = -50
   anim_advance bat.acting, attack, bslot(), t()
-  FOR j AS INTEGER = 1 TO numhits
+  FOR j as integer = 1 TO numhits
    FOR i = 0 TO tcount
     yt = (bslot(t(i)).h - 50) + 2
     xt = 0
@@ -2699,7 +2697,7 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
  '----DRIVEBY
  IF attack.attack_anim = 9 THEN
   anim_advance bat.acting, attack, bslot(), t()
-  FOR j AS INTEGER = 1 TO numhits
+  FOR j as integer = 1 TO numhits
    FOR i = 0 TO tcount
     yt = (bslot(t(i)).h - 50) + 2
     IF is_hero(bat.acting) THEN
@@ -2749,12 +2747,12 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
  '----FOCUSED RING
  IF attack.attack_anim = 4 AND tcount = 0 THEN
   anim_advance bat.acting, attack, bslot(), t()
-  FOR j AS INTEGER = 1 TO numhits
+  FOR j as integer = 1 TO numhits
    i = 0
    yt = (bslot(t(i)).h - 50) + 2
    xt = 0
    IF t(i) = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> 7 THEN xt = -20
-   DIM ringpos AS XYPair
+   DIM ringpos as XYPair
    ringpos.x = bslot(t(i)).x + xt
    ringpos.y = bslot(t(i)).y + yt
    anim_setpos 12 + 0, ringpos.x + 0, ringpos.y - 50, atkimgdirection
@@ -2800,15 +2798,15 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
  
  '----WAVE
  IF attack.attack_anim = 5 THEN
-  DIM wave_start_x AS INTEGER
+  DIM wave_start_x as integer
   wave_start_x = -50
   IF is_hero(bat.acting) THEN wave_start_x = 320
-  DIM pushback_x AS INTEGER
+  DIM pushback_x as integer
   pushback_x = 24
   IF is_hero(bat.acting) THEN pushback_x = -24
   yt = bslot(t(0)).y + (bslot(t(0)).h - 50) + 2
   anim_advance bat.acting, attack, bslot(), t()
-  FOR j AS INTEGER = 1 TO numhits
+  FOR j as integer = 1 TO numhits
    FOR i = 0 TO 11
     IF tcount > 0 OR attack.targ_set = 1 THEN
      anim_setpos 12 + i, wave_start_x, i * 15, atkimgdirection
@@ -2877,19 +2875,19 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
  bat.anim_ready = YES
 END SUB
 
-SUB enforce_weak_picture(who AS INTEGER, bslot() AS BattleSprite, bat AS BattleState)
+SUB enforce_weak_picture(byval who as integer, bslot() as BattleSprite, byref bat as BattleState)
  '--Heroes only, since enemies don't currently have a weak frame
  IF is_hero(who) THEN
   '--enforce weak picture
-  DIM weakhp AS INTEGER = 0
+  DIM weakhp as integer = 0
   weakhp = gen(genHeroWeakHP)
   IF bslot(who).stat.cur.hp < 0.01 * bslot(who).stat.max.hp * weakhp AND bat.vic.state = 0 THEN bslot(who).frame = 6
  END IF
 END SUB
 
-SUB setup_targetting (BYREF bat AS BattleState, bslot() AS BattleSprite)
+SUB setup_targetting (byref bat as BattleState, bslot() as BattleSprite)
  'setuptarg (heroes only)
- DIM i AS INTEGER
+ DIM i as integer
 
  'init
  bat.targ.opt_spread = 0
@@ -2903,7 +2901,7 @@ SUB setup_targetting (BYREF bat AS BattleState, bslot() AS BattleSprite)
 
  bat.targ.hit_dead = NO
 
- DIM attack AS AttackData
+ DIM attack as AttackData
  'load attack
  loadattackdata attack, bslot(bat.hero_turn).attack - 1
 
@@ -2944,11 +2942,11 @@ SUB setup_targetting (BYREF bat AS BattleState, bslot() AS BattleSprite)
  bat.targ.mode = targMANUAL
 END SUB
 
-FUNCTION valid_statnum(statnum AS INTEGER, context AS STRING) AS INTEGER
+FUNCTION valid_statnum(byval statnum as integer, context as string) as integer
  RETURN bound_arg(statnum, 0, 15, "stat number", context, NO)
 END FUNCTION
 
-FUNCTION check_attack_chain(ch AS AttackDataChain, bat AS BattleState, bslot() AS BattleSprite) AS INTEGER
+FUNCTION check_attack_chain(byref ch as AttackDataChain, byref bat as BattleState, bslot() as BattleSprite) as integer
  'Returns YES if the chain may proceed, or NO if it fails
  
  IF INT(RND * 100) >= ch.rate THEN RETURN NO '--random percentage failed
@@ -2992,7 +2990,7 @@ FUNCTION check_attack_chain(ch AS AttackDataChain, bat AS BattleState, bslot() A
  RETURN NO
 END FUNCTION
 
-FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite) AS INTEGER
+FUNCTION spawn_chained_attack(byref ch as AttackDataChain, byref attack as AttackData, byref bat as battlestate, bslot() as BattleSprite) as integer
  IF ch.atk_id <= 0 THEN RETURN NO '--no chain defined
  IF bslot(bat.acting).stat.cur.hp <= 0 THEN RETURN NO '--attacker is dead
  IF attack.no_chain_on_failure = YES AND bslot(bat.acting).attack_succeeded = 0 THEN
@@ -3006,10 +3004,10 @@ FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF
   bat.wait_frames = 0
   bat.anim_ready = NO
   
-  DIM chained_attack AS AttackData
+  DIM chained_attack as AttackData
   loadattackdata chained_attack, ch.atk_id - 1
 
-  DIM delayed_attack_id AS INTEGER = 0
+  DIM delayed_attack_id as integer = 0
   IF chained_attack.attack_delay > 0 AND ch.no_delay = NO THEN
    '--chain is delayed, queue the attack
    bat.atk.id = -1 '--terminate the attack that lead to this chain
@@ -3020,7 +3018,7 @@ FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF
    bat.anim_ready = NO
   END IF
   
-  DIM blocking AS INTEGER
+  DIM blocking as integer
   IF bat.anim_blocking_delay = NO THEN
    '--chains from non-blocking attacks are always non-blocking
    blocking = NO
@@ -3036,7 +3034,7 @@ FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF
    'if the chained attack has a different target class/type then re-target
    'also retarget if the chained attack has target setting "random roulette"
    'also retarget if the chained attack's preferred target is explicitly set
-   DIM t(11) AS INTEGER
+   DIM t(11) as integer
    autotarget bat.acting, chained_attack, bslot(), t(), , blocking, ch.dont_retarget
    bat.atk.id = -1
   ELSEIF delayed_attack_id > 0 THEN
@@ -3050,7 +3048,7 @@ FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF
  RETURN NO '--chained attack failed
 END FUNCTION '.attack
 
-FUNCTION knows_attack(BYVAL who AS INTEGER, BYVAL atk AS INTEGER, bslot() AS BattleSprite) AS INTEGER
+FUNCTION knows_attack(byval who as integer, byval atk as integer, bslot() as BattleSprite) as integer
  'who is bslot index
  'atk is attack id
  'bslot() hero and enemy data
@@ -3059,11 +3057,11 @@ FUNCTION knows_attack(BYVAL who AS INTEGER, BYVAL atk AS INTEGER, bslot() AS Bat
  '--different handling for heroes and monsters
  
  IF is_hero(who) THEN
-  FOR i AS INTEGER = 0 TO 5
+  FOR i as integer = 0 TO 5
    WITH bslot(who).menu(i)
     IF .atk = atk THEN RETURN YES 'Knows the attack by an equipped weapon
     IF .spell_list >= 0 THEN
-     FOR j AS INTEGER = 0 TO 23
+     FOR j as integer = 0 TO 23
       IF spell(who, .spell_list, j) = atk THEN RETURN YES 'Knows the attack in a spell list
      NEXT j
     END IF
@@ -3072,7 +3070,7 @@ FUNCTION knows_attack(BYVAL who AS INTEGER, BYVAL atk AS INTEGER, bslot() AS Bat
  END IF
  
  IF is_enemy(who) THEN
-  FOR i AS INTEGER = 0 TO 4
+  FOR i as integer = 0 TO 4
    'check if enemy knows this attack for one of the three ai sets
    IF bslot(who).enemy.regular_ai(i) - 1 = atk THEN RETURN YES
    IF bslot(who).enemy.desperation_ai(i) - 1 = atk THEN RETURN YES
@@ -3083,22 +3081,22 @@ FUNCTION knows_attack(BYVAL who AS INTEGER, BYVAL atk AS INTEGER, bslot() AS Bat
  RETURN NO
 END FUNCTION
 
-SUB queue_attack(attack AS INTEGER, who AS INTEGER, targs() AS INTEGER, override_blocking AS INTEGER=-2, dont_retarget AS INTEGER = NO)
- DIM atk AS AttackData
+SUB queue_attack(attack as integer, who as integer, targs() as integer, override_blocking as integer=-2, dont_retarget as integer = NO)
+ DIM atk as AttackData
  loadattackdata atk, attack
- DIM blocking AS INTEGER = (atk.nonblocking = NO)
+ DIM blocking as integer = (atk.nonblocking = NO)
  IF override_blocking > -2 THEN blocking = override_blocking
  queue_attack attack, who, atk.attack_delay, targs(), blocking, dont_retarget
 END SUB
 
-SUB queue_attack(attack AS INTEGER, who AS INTEGER, delay AS INTEGER, targs() AS INTEGER, blocking AS INTEGER=YES, dont_retarget AS INTEGER = NO)
- 'DIM targstr AS STRING = ""
- 'FOR i AS INTEGER = 0 TO UBOUND(targs)
+SUB queue_attack(attack as integer, who as integer, delay as integer, targs() as integer, blocking as integer=YES, dont_retarget as integer = NO)
+ 'DIM targstr as STRING = ""
+ 'FOR i as integer = 0 TO UBOUND(targs)
  ' IF targs(i) > -1 THEN targstr &= " " & i & "=" & targs(i)
  'NEXT i
  'debug "queue_attack " & readattackname(attack) & ", " & who & ", " & targstr
  
- FOR i AS INTEGER = 0 TO UBOUND(atkq)
+ FOR i as integer = 0 TO UBOUND(atkq)
   IF atkq(i).used = NO THEN
    'Recycle a queue slot
    set_attack_queue_slot i, attack, who, delay, targs(), blocking, dont_retarget
@@ -3106,21 +3104,21 @@ SUB queue_attack(attack AS INTEGER, who AS INTEGER, delay AS INTEGER, targs() AS
   END IF
  NEXT i
  'No spaces to recycle, grow the queue
- DIM oldbound AS INTEGER = UBOUND(atkq)
- REDIM PRESERVE atkq(oldbound + 16) AS AttackQueue
- FOR i AS INTEGER = oldbound + 2 TO UBOUND(atkq)
+ DIM oldbound as integer = UBOUND(atkq)
+ REDIM PRESERVE atkq(oldbound + 16) as AttackQueue
+ FOR i as integer = oldbound + 2 TO UBOUND(atkq)
   clear_attack_queue_slot i
  NEXT i
  set_attack_queue_slot oldbound + 1, attack, who, delay, targs(), blocking
 END SUB
 
-SUB set_attack_queue_slot(slot AS INTEGER, attack AS INTEGER, who AS INTEGER, delay AS INTEGER, targs() AS INTEGER, blocking AS INTEGER=YES, dont_retarget AS INTEGER = NO)
+SUB set_attack_queue_slot(slot as integer, attack as integer, who as integer, delay as integer, targs() as integer, blocking as integer=YES, dont_retarget as integer = NO)
  WITH atkq(slot)
   .used = YES
   .attack = attack
   .attacker = who
   .delay = delay
-  FOR i AS INTEGER = 0 TO UBOUND(.t)
+  FOR i as integer = 0 TO UBOUND(.t)
    .t(i) = targs(i)
   NEXT i
   .blocking = blocking
@@ -3129,18 +3127,18 @@ SUB set_attack_queue_slot(slot AS INTEGER, attack AS INTEGER, who AS INTEGER, de
 END SUB
 
 SUB clear_attack_queue()
- FOR i AS INTEGER = 0 TO UBOUND(atkq)
+ FOR i as integer = 0 TO UBOUND(atkq)
   clear_attack_queue_slot i
  NEXT i
 END SUB
 
-SUB clear_attack_queue_slot(slot AS INTEGER)
+SUB clear_attack_queue_slot(slot as integer)
  WITH atkq(slot)
   .used = NO
   .attack = -1
   .attacker = -1
   .delay = 0
-  FOR i AS INTEGER = 0 TO UBOUND(.t)
+  FOR i as integer = 0 TO UBOUND(.t)
    .t(i) = -1
   NEXT i
   .blocking = YES
@@ -3148,15 +3146,15 @@ SUB clear_attack_queue_slot(slot AS INTEGER)
  END WITH
 END SUB
 
-SUB display_attack_queue (bslot() AS BattleSprite)
- DIM s AS STRING
- DIM targstr AS STRING
- FOR i AS INTEGER = 0 TO UBOUND(atkq)
+SUB display_attack_queue (bslot() as BattleSprite)
+ DIM s as STRING
+ DIM targstr as STRING
+ FOR i as integer = 0 TO UBOUND(atkq)
   WITH atkq(i)
    IF .used THEN
     s = .delay & " " & bslot(.attacker).name & ":" & .attacker & " " & readattackname(.attack) & ":" & .attack & " "
     targstr = ""
-    FOR j AS INTEGER = 0 TO UBOUND(.t)
+    FOR j as integer = 0 TO UBOUND(.t)
      IF .t(j) > -1 THEN
       targstr &= CHR(24) & .t(j)
      END IF
@@ -3170,14 +3168,14 @@ SUB display_attack_queue (bslot() AS BattleSprite)
  NEXT i
 END SUB
 
-FUNCTION battle_time_can_pass(bat AS BattleState) AS INTEGER
+FUNCTION battle_time_can_pass(bat as BattleState) as integer
  IF bat.atk.id <> -1 THEN RETURN NO 'an attack animation is going on right now
  IF bat.vic.state <> 0 THEN RETURN NO 'victory has already happened
  IF readbit(gen(), genBits2, 5) <> 0 AND bat.caption_time > 0 THEN RETURN NO 'pause on captions
  RETURN YES
 END FUNCTION
 
-SUB battle_background_anim(BYREF bat AS BattleState, formdata() AS INTEGER)
+SUB battle_background_anim(byref bat as BattleState, formdata() as integer)
  IF formdata(34) > 0 and gen(genVersion) >= 6 THEN
   bat.bgspeed = loopvar(bat.bgspeed, 0, formdata(35), 1)
   IF bat.bgspeed = 0 THEN
@@ -3187,7 +3185,7 @@ SUB battle_background_anim(BYREF bat AS BattleState, formdata() AS INTEGER)
  END IF
 END SUB
 
-FUNCTION battle_run_away(BYREF bat AS BattleState, bslot() AS BattleSprite) AS INTEGER
+FUNCTION battle_run_away(byref bat as BattleState, bslot() as BattleSprite) as integer
  '--this function is called every tick of battle. It returns YES if
  '-- a successful run has completed, thus ending battle.
  
@@ -3205,8 +3203,8 @@ FUNCTION battle_run_away(BYREF bat AS BattleState, bslot() AS BattleSprite) AS I
  RETURN NO
 END FUNCTION
 
-SUB battle_animate_running_away (bslot() AS BattleSprite)
- FOR i AS INTEGER = 0 TO 3
+SUB battle_animate_running_away (bslot() as BattleSprite)
+ FOR i as integer = 0 TO 3
   '--if alive, animate running away
   IF bslot(i).stat.cur.hp > 0 THEN
    WITH bslot(i)
@@ -3221,9 +3219,9 @@ SUB battle_animate_running_away (bslot() AS BattleSprite)
  NEXT i
 END SUB
 
-SUB battle_check_delays(BYREF bat AS BattleState, bslot() AS BattleSprite)
+SUB battle_check_delays(byref bat as BattleState, bslot() as BattleSprite)
  '--check the attack queue delays
- FOR i AS INTEGER = 0 TO UBOUND(atkq)
+ FOR i as integer = 0 TO UBOUND(atkq)
   WITH atkq(i)
    IF .used THEN
     IF .delay <= 0 THEN
@@ -3244,7 +3242,7 @@ SUB battle_check_delays(BYREF bat AS BattleState, bslot() AS BattleSprite)
      END IF
      bat.atk.id = .attack
      bat.acting = .attacker
-     FOR j AS INTEGER = 0 TO UBOUND(.t)
+     FOR j as integer = 0 TO UBOUND(.t)
       bat.anim_t(j) = .t(j)
      NEXT j
      bat.anim_blocking_delay = .blocking
@@ -3257,7 +3255,7 @@ SUB battle_check_delays(BYREF bat AS BattleState, bslot() AS BattleSprite)
  NEXT i
 END SUB
 
-SUB battle_check_for_hero_turns(BYREF bat AS BattleState, bslot() AS BattleSprite)
+SUB battle_check_for_hero_turns(byref bat as BattleState, bslot() as BattleSprite)
  bat.next_hero = loopvar(bat.next_hero, 0, 3, 1)
  IF bat.hero_turn > -1 THEN
   '--somebody is already taking their turn
@@ -3270,14 +3268,14 @@ SUB battle_check_for_hero_turns(BYREF bat AS BattleState, bslot() AS BattleSprit
  END IF
 
  '--if it is not currently any hero's turn, check to see if anyone is alive and ready
- FOR i AS INTEGER = 0 TO 3
+ FOR i as integer = 0 TO 3
   IF battle_check_a_hero_turn(bat, bslot(), (i + bat.next_hero) MOD 4) THEN
    EXIT FOR
   END IF
  NEXT i
 END SUB
 
-FUNCTION battle_check_a_hero_turn(BYREF bat AS BattleState, bslot() AS BattleSprite, index AS INTEGER)
+FUNCTION battle_check_a_hero_turn(byref bat as BattleState, bslot() as BattleSprite, byval index as integer) as integer
  IF bslot(index).ready = YES AND bslot(index).stat.cur.hp > 0 AND bat.death_mode = deathNOBODY THEN
   bat.hero_turn = index
   bat.pt = 0
@@ -3287,19 +3285,19 @@ FUNCTION battle_check_a_hero_turn(BYREF bat AS BattleState, bslot() AS BattleSpr
  RETURN NO
 END FUNCTION
 
-SUB battle_check_for_enemy_turns(BYREF bat AS BattleState, bslot() AS BattleSprite)
+SUB battle_check_for_enemy_turns(byref bat as BattleState, bslot() as BattleSprite)
  bat.next_enemy = loopvar(bat.next_enemy, 4, 11, 1)
  IF bat.enemy_turn = -1 THEN
   '--if no enemy is currently taking their turn, check to find an enemy who is ready
-  DIM slot AS INTEGER = bat.next_enemy
-  FOR i AS INTEGER = 4 TO 11
+  DIM slot as integer = bat.next_enemy
+  FOR i as integer = 4 TO 11
    IF battle_check_an_enemy_turn(bat, bslot(), slot) THEN EXIT FOR
    slot = loopvar(slot, 4, 11, 1)
   NEXT i
  END IF
 END SUB
 
-FUNCTION battle_check_an_enemy_turn(BYREF bat AS BattleState, bslot() AS BattleSprite, index AS INTEGER)
+FUNCTION battle_check_an_enemy_turn(byref bat as BattleState, bslot() as BattleSprite, byval index as integer) as integer
  IF bslot(index).ready = YES AND bslot(index).stat.cur.hp > 0 AND bat.death_mode = deathNOBODY THEN
   bat.enemy_turn = index
   RETURN YES
@@ -3307,8 +3305,8 @@ FUNCTION battle_check_an_enemy_turn(BYREF bat AS BattleState, bslot() AS BattleS
  RETURN NO
 END FUNCTION
 
-FUNCTION blocked_by_attack (who AS INTEGER) AS INTEGER
- FOR i AS INTEGER = 0 TO UBOUND(atkq)
+FUNCTION blocked_by_attack (who as integer) as integer
+ FOR i as integer = 0 TO UBOUND(atkq)
   WITH atkq(i)
    IF .used ANDALSO .attacker = who ANDALSO .delay > 0 ANDALSO .blocking THEN RETURN YES
   END WITH
@@ -3316,7 +3314,7 @@ FUNCTION blocked_by_attack (who AS INTEGER) AS INTEGER
  RETURN NO
 END FUNCTION
 
-FUNCTION ready_meter_may_grow (bslot() AS BattleSprite, who AS INTEGER) AS INTEGER
+FUNCTION ready_meter_may_grow (bslot() as BattleSprite, who as integer) as integer
  WITH bslot(who)
   IF .attack <> 0 THEN RETURN NO
   IF .dissolve <> 0 THEN RETURN NO
@@ -3327,11 +3325,11 @@ FUNCTION ready_meter_may_grow (bslot() AS BattleSprite, who AS INTEGER) AS INTEG
  RETURN YES
 END FUNCTION
 
-SUB battle_attack_cancel_target_attack(targ as INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, BYREF attack AS AttackData)
+SUB battle_attack_cancel_target_attack(targ as integer, byref bat as BattleState, bslot() as BattleSprite, byref attack as AttackData)
  IF attack.cancel_targets_attack THEN
   '--try to cancel target's attack
-  DIM targets_attack AS AttackData
-  FOR i AS INTEGER = 0 TO UBOUND(atkq)
+  DIM targets_attack as AttackData
+  FOR i as integer = 0 TO UBOUND(atkq)
    WITH atkq(i)
     IF .used ANDALSO .attacker = targ THEN
      loadattackdata targets_attack, .attack
@@ -3355,15 +3353,15 @@ SUB battle_attack_cancel_target_attack(targ as INTEGER, BYREF bat AS BattleState
  END IF
 END SUB
 
-SUB battle_reevaluate_dead_targets (deadguy AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite)
+SUB battle_reevaluate_dead_targets (deadguy as integer, byref bat as BattleState, bslot() as BattleSprite)
  '--check for queued attacks that target the dead target
- FOR i AS INTEGER = 0 TO UBOUND(atkq)
+ FOR i as integer = 0 TO UBOUND(atkq)
   WITH atkq(i)
    IF .used THEN
-    DIM attack AS AttackData
+    DIM attack as AttackData
     loadattackdata attack, .attack
     
-    'DIM s AS STRING
+    'DIM s as STRING
     's = attack.name & " of " & bslot(.attacker).name
     'dim showdebug as integer=NO
     'for j as integer = 0 to ubound(.t)
@@ -3407,19 +3405,19 @@ SUB battle_reevaluate_dead_targets (deadguy AS INTEGER, BYREF bat AS BattleState
  END IF  '----END ONLY WHEN bat.targ.hit_dead = NO
 END SUB
 
-SUB battle_sort_away_dead_t_target(deadguy AS INTEGER, t() AS INTEGER)
+SUB battle_sort_away_dead_t_target(deadguy as integer, t() as integer)
  '--FIXME: la la la! James loves Bogo-sorts!
- FOR i AS INTEGER = 0 TO UBOUND(t) - 1
+ FOR i as integer = 0 TO UBOUND(t) - 1
   '--crappy bogo-sort dead target away
   IF t(i) = deadguy THEN SWAP t(i), t(i + 1)
  NEXT i
  IF t(UBOUND(t)) = deadguy THEN t(UBOUND(t)) = -1
 END SUB
 
-SUB battle_counterattacks(BYVAL h AS INTEGER, BYVAL targstat AS INTEGER, who AS INTEGER, attack AS AttackData, bslot() AS BattleSprite)
- DIM t(11) AS INTEGER
+SUB battle_counterattacks(byval h as integer, byval targstat as integer, who as integer, attack as AttackData, bslot() as BattleSprite)
+ DIM t(11) as integer
  '--first elementals
- FOR i AS INTEGER = 0 TO gen(genNumElements) - 1
+ FOR i as integer = 0 TO gen(genNumElements) - 1
   IF attack.elemental_damage(i) THEN
    IF bslot(who).elem_counter_attack(i) > 0 THEN
     'counterattacks are forced non-blocking
@@ -3429,7 +3427,7 @@ SUB battle_counterattacks(BYVAL h AS INTEGER, BYVAL targstat AS INTEGER, who AS 
   END IF
  NEXT i
  '-then stat damage 
- FOR i AS INTEGER = 0 TO 11
+ FOR i as integer = 0 TO 11
   IF h > 0 AND targstat = i THEN
    IF bslot(who).stat_counter_attack(i) > 0 THEN
     'counterattacks are forced non-blocking
@@ -3442,7 +3440,7 @@ END SUB
 
 SUB show_first_battle_timer ()
  '--show the timer
- FOR i AS INTEGER = 0 to UBOUND(timers)
+ FOR i as integer = 0 to UBOUND(timers)
   IF timers(i).speed > 0 ANDALSO timers(i).st > 0 ANDALSO (timers(i).flags AND 2) = 2 THEN
    edgeprint plotstr(timers(i).st-1).s, 320 - LEN(plotstr(timers(i).st-1).s) * 10, 185, uilook(uiText), dpage
    EXIT FOR 'Only print the first timer if there are many of them
