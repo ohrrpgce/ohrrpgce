@@ -45,7 +45,7 @@ DECLARE SUB spells_menu_refresh_hero(sp as SpellsMenuState)
 DECLARE SUB spells_menu_control(sp as SpellsMenuState)
 DECLARE SUB spells_menu_paint (byref sp as SpellsMenuState)
 DECLARE SUB picksave_draw(menu() as string, byval loading as integer, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval page as integer)
-DECLARE SUB picksave_confirm(menu() as string, byval loading as integer, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval allow as integer, byval holdscreen as integer, byval page as integer)
+DECLARE FUNCTION picksave_confirm(menu() as string, byval loading as integer, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval holdscreen as integer, byval page as integer) as integer
 
 SUB buystuff (byval id as integer, byval shoptype as integer, storebuf() as integer)
 DIM b((getbinsize(binSTF) \ 2) * 50 - 1) as integer
@@ -193,13 +193,13 @@ DO
  DIM gold_str as string = gold & " " & readglobalstring(32, "Money")
  centerbox 240, 19, LEN(gold_str) * 8 + 8, 14, 4, page
  edgeprint gold_str, xstring(gold_str, 240), 14, uilook(uiText), page
- DIM o as integer = 0
- edgeprint stuff(st.pt).text, xstring(stuff(st.pt).text, 240), 30 + o * 10, uilook(uiMenuItem), page: o = o + 1
- IF info1 <> "" THEN edgeprint info1, xstring(info1, 240), 30 + o * 10, uilook(uiDisabledItem), page: o = o + 1
- IF info2 <> "" THEN edgeprint info2, xstring(info2, 240), 30 + o * 10, uilook(uiDisabledItem), page: o = o + 1
- IF eqinfo <> "" THEN edgeprint eqinfo, xstring(eqinfo, 240), 30 + o * 10, uilook(uiMenuItem), page: o = o + 1
+ DIM linenum as integer = 0
+ edgeprint stuff(st.pt).text, xstring(stuff(st.pt).text, 240), 30 + linenum * 10, uilook(uiMenuItem), page: linenum += 1
+ IF info1 <> "" THEN edgeprint info1, xstring(info1, 240), 30 + linenum * 10, uilook(uiDisabledItem), page: linenum += 1
+ IF info2 <> "" THEN edgeprint info2, xstring(info2, 240), 30 + linenum * 10, uilook(uiDisabledItem), page: linenum += 1
+ IF eqinfo <> "" THEN edgeprint eqinfo, xstring(eqinfo, 240), 30 + linenum * 10, uilook(uiMenuItem), page: linenum += 1
  IF gam.stock(id, itemno) > 1 THEN
-  edgeprint (gam.stock(id, itemno) - 1) & " " & instock & " ", xstring((gam.stock(id, itemno) - 1) & " " & instock & " ", 240), 30 + o * 10, uilook(uiMenuItem), page: o = o + 1
+  edgeprint (gam.stock(id, itemno) - 1) & " " & instock & " ", xstring((gam.stock(id, itemno) - 1) & " " & instock & " ", 240), 30 + linenum * 10, uilook(uiMenuItem), page: linenum += 1
  END IF
  IF showhero > -1 THEN
   'This happens only if a hireable hero is selected
@@ -707,7 +707,7 @@ IF loading = 2 THEN
  queue_fade_in 1
 END IF
 
-'--load strings. menu array holds the names of the options
+'--menu array holds the names of the options
 '--at the top of the screeen (only one appears when saving)
 
 IF loading THEN
@@ -799,7 +799,7 @@ DO
     IF pv(st.pt).valid = 0 THEN allow = 0
    ELSE
     '--normal save in a slot
-    IF pv(st.pt).valid THEN picksave_confirm menu(), loading, sprites(), pv(), mapname(), lev(), st, allow, holdscreen, page
+    IF pv(st.pt).valid THEN allow = picksave_confirm(menu(), loading, sprites(), pv(), mapname(), lev(), st, holdscreen, page)
    END IF
    IF allow = 1 THEN
     MenuSound gen(genAcceptSFX)
@@ -832,7 +832,8 @@ EXIT FUNCTION
 
 END FUNCTION
 
-SUB picksave_confirm(menu() as string, byval loading as integer, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval allow as integer, byval holdscreen as integer, byval page as integer)
+'Returns whether confirmed
+FUNCTION picksave_confirm(menu() as string, byval loading as integer, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval holdscreen as integer, byval page as integer) as integer
  DIM confirmboxY as integer = 14 + (44 * st.pt)
  DIM tog as integer
  DIM confirm(1) as string
@@ -843,7 +844,7 @@ SUB picksave_confirm(menu() as string, byval loading as integer, sprites() as Gr
  DIM replacedat as string
  replacedat = readglobalstring(102, "Replace Old Data?", 20)
  
- allow = 0
+ DIM allow as integer = 0
  MenuSound gen(genAcceptSFX)
  setkeys
  DO
@@ -853,28 +854,27 @@ SUB picksave_confirm(menu() as string, byval loading as integer, sprites() as Gr
   playtimer
   control
   IF carray(ccMenu) > 1 THEN
-   allow = 0
    MenuSound gen(genCancelSFX)
-   EXIT SUB
+   RETURN NO
   END IF
-  IF carray(ccUp) > 1 OR carray(ccDown) > 1 THEN
-   allow = allow XOR 1
-   MenuSound gen(genCursorSFX)
-  END IF
+  IF carray(ccUse) > 1 THEN RETURN allow
+
+  usemenu allow, 0, 0, 1, 2
+  usemenusounds
  
   copypage holdscreen, page
-  IF carray(ccUse) > 1 THEN EXIT SUB
   picksave_draw menu(), loading, sprites(), pv(), mapname(), lev(), st, page
   centerbox 160, confirmboxY, 40 + (LEN(replacedat) * 8) + menuwidth, 24, 3, page
   edgeprint replacedat, 200 - (LEN(replacedat) * 8), confirmboxY - 5, uilook(uiText), page
   FOR i as integer = 0 TO 1
-   DIM col as integer = uilook(uiSelectedItem + tog): IF allow = i THEN col = uilook(uiMenuItem)
+   DIM col as integer = uilook(uiSelectedItem + tog)
+   IF allow = i THEN col = uilook(uiMenuItem)
    edgeprint confirm(i), 216, confirmboxY - 9 + (i * 9), col, page
   NEXT i
   setvispage vpage
   dowait
  LOOP
-END SUB
+END FUNCTION
 
 SUB picksave_draw(menu() as string, byval loading as integer, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval page as integer)
  DIM col as integer
