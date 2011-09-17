@@ -2,9 +2,12 @@
 '(C) Copyright 1997-2005 James Paige and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
-'
+
+'#lang "fb"
+
 '$DYNAMIC
 DEFINT A-Z
+OPTION EXPLICIT
 
 #include "config.bi"
 #include "allmodex.bi"
@@ -25,72 +28,91 @@ DEFINT A-Z
 #include "bmod.bi"
 
 '--SUBs and FUNCTIONS only used locally
-DECLARE SUB loadtrades(index as integer, tradestf() as integer, b() as integer, recordsize as integer)
-DECLARE SUB setshopstock (id as integer, recordsize as integer, storebuf() as integer, stufbuf() as integer)
-DECLARE SUB equip_menu_setup (BYREF st AS EquipMenuState, menu$())
-DECLARE SUB equip_menu_do_equip(BYVAL item AS INTEGER, BYREF st AS EquipMenuState, menu$())
-DECLARE SUB equip_menu_back_to_menu(BYREF st AS EquipMenuState, menu$())
-DECLARE SUB equip_menu_stat_bonus(BYREF st AS EquipMenuState)
-DECLARE SUB items_menu_paint (istate AS ItemsMenuState, iuse() AS INTEGER, permask() AS INTEGER)
-DECLARE SUB items_menu_infostr(state AS ItemsMenuState, permask() AS INTEGER)
-DECLARE SUB items_menu_autosort(iuse() AS INTEGER, permask() AS INTEGER)
-DECLARE SUB item_menu_use_item(BYVAL slot AS INTEGER, istate AS ItemsMenuState, iuse() AS INTEGER, permask() AS INTEGER)
-DECLARE FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS INTEGER, use_caption AS STRING, BYVAL x_offset AS INTEGER=0, BYVAL really_use_attack AS INTEGER=YES) AS INTEGER
-DECLARE SUB items_menu_control (istate AS ItemsMenuState, iuse() AS INTEGER, permask() AS INTEGER)
-DECLARE SUB spells_menu_refresh_list(sp AS SpellsMenuState)
-DECLARE SUB spells_menu_refresh_hero(sp AS SpellsMenuState)
-DECLARE SUB spells_menu_control(sp AS SpellsMenuState)
-DECLARE SUB spells_menu_paint (BYREF sp AS SpellsMenuState)
+DECLARE SUB loadtrades(byval index as integer, tradestf() as integer, b() as integer, byval recordsize as integer)
+DECLARE SUB setshopstock (byval id as integer, byval recordsize as integer, storebuf() as integer, stufbuf() as integer)
+DECLARE SUB equip_menu_setup (byref st as EquipMenuState, menu() as string)
+DECLARE SUB equip_menu_do_equip(byval item as integer, byref st as EquipMenuState, menu() as string)
+DECLARE SUB equip_menu_back_to_menu(byref st as EquipMenuState, menu() as string)
+DECLARE SUB equip_menu_stat_bonus(byref st as EquipMenuState)
+DECLARE SUB items_menu_paint (istate as ItemsMenuState, iuse() as integer, permask() as integer)
+DECLARE SUB items_menu_infostr(state as ItemsMenuState, permask() as integer)
+DECLARE SUB items_menu_autosort(iuse() as integer, permask() as integer)
+DECLARE SUB item_menu_use_item(byval slot as integer, istate as ItemsMenuState, iuse() as integer, permask() as integer)
+DECLARE FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as integer, use_caption as STRING, byval x_offset as integer=0, byval really_use_attack as integer=YES) as integer
+DECLARE SUB items_menu_control (istate as ItemsMenuState, iuse() as integer, permask() as integer)
+DECLARE SUB spells_menu_refresh_list(sp as SpellsMenuState)
+DECLARE SUB spells_menu_refresh_hero(sp as SpellsMenuState)
+DECLARE SUB spells_menu_control(sp as SpellsMenuState)
+DECLARE SUB spells_menu_paint (byref sp as SpellsMenuState)
+DECLARE SUB picksave_draw(menu() as string, byval loading as integer, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval page as integer)
+DECLARE SUB picksave_confirm(menu() as string, byval loading as integer, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval allow as integer, byval holdscreen as integer, byval page as integer)
 
-REM $STATIC
-
-SUB buystuff (id, shoptype, storebuf())
-DIM b((getbinsize(binSTF) \ 2) * 50 - 1), buytype(5, 1) AS STRING, wbuf(dimbinsize(binITM)), walks(15), tradestf(3, 1)
-DIM is_equipable AS INTEGER
-DIM itembuf(dimbinsize(binITM)) AS INTEGER
-DIM hiresprite AS Frame PTR
-DIM hirepal AS Palette16 PTR
-DIM herosprite(3) AS Frame PTR
-DIM heropal(3) AS Palette16 PTR
-DIM heroframe AS INTEGER
-DIM heropos AS XYPair
-DIM room_to_hire AS INTEGER = NO
-DIM st AS MenuState
-REDIM stuff(-1 TO -1) AS SimpleMenu   ' .dat of each menu item is item index
-DIM itemno AS INTEGER   ' always equal to stuff(st.pt).dat
-recordsize = curbinsize(binSTF) \ 2 ' get size in INTs
+SUB buystuff (byval id as integer, byval shoptype as integer, storebuf() as integer)
+DIM b((getbinsize(binSTF) \ 2) * 50 - 1) as integer
+DIM buytype(5, 1) as string
+DIM wbuf(dimbinsize(binITM)) as integer
+DIM walks(15) as integer
+DIM tradestf(3, 1) as integer
+DIM is_equipable as integer
+DIM itembuf(dimbinsize(binITM)) as integer
+DIM hiresprite as Frame PTR
+DIM hirepal as Palette16 PTR
+DIM herosprite(3) as Frame PTR
+DIM heropal(3) as Palette16 PTR
+DIM heroframe as integer
+DIM heropos as XYPair
+DIM room_to_hire as integer = NO
+DIM st as MenuState
+REDIM stuff(-1 TO -1) as SimpleMenu   ' .dat of each menu item is item index
+DIM itemno as integer   ' always equal to stuff(st.pt).dat
+DIM recordsize as integer = curbinsize(binSTF) \ 2 ' get size in INTs
 
 '--Preserve background for display beneath the buy menu
-DIM page AS INTEGER
-DIM holdscreen AS INTEGER
+DIM page as integer
+DIM holdscreen as integer
 page = compatpage
 holdscreen = allocatepage
 copypage page, holdscreen
 
-DIM left_panel AS RectType = (5, 10, 150, 168)
-DIM right_panel AS RectType = (165, 10, 150, 168)
+DIM left_panel as RectType = (5, 10, 150, 168)
+DIM right_panel as RectType = (165, 10, 150, 168)
 
-buytype(0, 0) = readglobalstring$(85, "Trade for", 20) + " "
-buytype(0, 1) = readglobalstring$(87, "Joins for", 20) + " "
-buytype(1, 0) = readglobalstring$(89, "Cannot Afford", 20) + " "
-buytype(1, 1) = readglobalstring$(91, "Cannot Hire", 20) + " "
-wepslot$ = readglobalstring$(38, "Weapon", 10)
-purchased$ = readglobalstring$(93, "Purchased", 20)
-joined$ = readglobalstring$(95, "Joined!", 20)
-instock$ = readglobalstring$(97, "in stock", 20)
-anda$ = readglobalstring$(81, "and a", 10)
-andsome$ = readglobalstring$(153, "and", 10)
-eqprefix$ = readglobalstring$(99, "Equip:", 10)
-noroom$ = readglobalstring$(100, "No Room in Party", 20)
+buytype(0, 0) = readglobalstring(85, "Trade for", 20) + " "
+buytype(0, 1) = readglobalstring(87, "Joins for", 20) + " "
+buytype(1, 0) = readglobalstring(89, "Cannot Afford", 20) + " "
+buytype(1, 1) = readglobalstring(91, "Cannot Hire", 20) + " "
+DIM wepslot as string = readglobalstring(38, "Weapon", 10)
+DIM purchased as string = readglobalstring(93, "Purchased", 20)
+DIM joined as string = readglobalstring(95, "Joined!", 20)
+DIM instock as string = readglobalstring(97, "in stock", 20)
+DIM anda as string = readglobalstring(81, "and a", 10)
+DIM andsome as string = readglobalstring(153, "and", 10)
+DIM eqprefix as string = readglobalstring(99, "Equip:", 10)
+DIM noroom as string = readglobalstring(100, "No Room in Party", 20)
 
-FOR i = 0 TO 3
+DIM xtralines as integer
+DIM price as string
+DIM price2 as string
+DIM info1 as string
+DIM info2 as string
+DIM eqinfo as string
+DIM showhero as integer
+DIM tradingitems as integer
+DIM acol as integer
+DIM alert as integer
+DIM alert_str as string
+DIM tog as integer
+DIM walk as integer
+DIM slot as integer
+
+FOR i as integer = 0 TO 3
  herosprite(i) = frame_load(0, gam.hero(i).battle_pic)
  IF herosprite(i) = 0 THEN debug "Couldn't load hero sprite: " & game & ".pt0#" & gam.hero(i).battle_pic
  heropal(i) = palette16_load(gam.hero(i).battle_pal, 0, gam.hero(i).battle_pic)
  IF heropal(i) = 0 THEN debug "Failed to load palette for hero (#" & i & ")"
 NEXT i
 
-FOR i = 0 TO 10 STEP 2
+FOR i as integer = 0 TO 10 STEP 2
  walks(i) = 1
 NEXT i
 walks(11) = 2
@@ -106,11 +128,6 @@ st.size = 15
 GOSUB buildmenu
 IF st.last = -1 THEN GOTO cleanupquit
 
-price$ = "": xtralines = 0: price2$ = ""
-info1$ = "": info2$ = ""
-eqinfo$ = ""
-showhero = 0
-tradingitems = 0
 GOSUB curinfo
 
 menusound gen(genAcceptSFX)
@@ -131,7 +148,7 @@ DO
    settag b(itemno * recordsize + 22)
    gold = gold - b(itemno * recordsize + 24)
    IF tradingitems THEN '---TRADE IN ITEMS----------
-    FOR i = 0 TO 3
+    FOR i as integer = 0 TO 3
      IF tradestf(i, 0) > -1 THEN
       delitem tradestf(i, 0) + 1, tradestf(i, 1)
      END IF
@@ -142,7 +159,7 @@ DO
     getitem b(itemno * recordsize + 18) + 1, 1
     acol = 4
     alert = 10
-    alert$ = purchased$ + " " + stuff(st.pt).text
+    alert_str = purchased & " " & stuff(st.pt).text
    END IF '-------END IF ITEM-------------------------------------
    IF b(itemno * recordsize + 17) = 1 THEN '---HIRE HERO------------------
     menusound gen(genHireSFX)
@@ -151,7 +168,7 @@ DO
      addhero b(itemno * recordsize + 18) + 1, slot, b(itemno * recordsize + 26)
      acol = 4
      alert = 10
-     alert$ = stuff(st.pt).text + " " + joined$
+     alert_str = stuff(st.pt).text & " " & joined
     END IF
    END IF '-------END IF HERO-------------------------------------
    'the last thing to do is re-eval the item and hero tags in case
@@ -162,7 +179,7 @@ DO
    menusound gen(genCantBuySFX)
    acol = 3
    alert = 10
-   alert$ = buytype(1, shoptype) + stuff(st.pt).text
+   alert_str = buytype(1, shoptype) & stuff(st.pt).text
   END IF '--------END BUY THING------------
   GOSUB buildmenu
   IF st.last = -1 THEN GOTO cleanupquit
@@ -173,16 +190,16 @@ DO
  edgeboxstyle left_panel, 0, page
  edgeboxstyle right_panel, 0, page
  '-----RIGHT PANEL------------------------------------------
- temp$ = gold & " " & readglobalstring(32, "Money")
- centerbox 240, 19, LEN(temp$) * 8 + 8, 14, 4, page
- edgeprint temp$, xstring(temp$, 240), 14, uilook(uiText), page
- o = 0
+ DIM gold_str as string = gold & " " & readglobalstring(32, "Money")
+ centerbox 240, 19, LEN(gold_str) * 8 + 8, 14, 4, page
+ edgeprint gold_str, xstring(gold_str, 240), 14, uilook(uiText), page
+ DIM o as integer = 0
  edgeprint stuff(st.pt).text, xstring(stuff(st.pt).text, 240), 30 + o * 10, uilook(uiMenuItem), page: o = o + 1
- IF info1$ <> "" THEN edgeprint info1$, xstring(info1$, 240), 30 + o * 10, uilook(uiDisabledItem), page: o = o + 1
- IF info2$ <> "" THEN edgeprint info2$, xstring(info2$, 240), 30 + o * 10, uilook(uiDisabledItem), page: o = o + 1
- IF eqinfo$ <> "" THEN edgeprint eqinfo$, xstring(eqinfo$, 240), 30 + o * 10, uilook(uiMenuItem), page: o = o + 1
+ IF info1 <> "" THEN edgeprint info1, xstring(info1, 240), 30 + o * 10, uilook(uiDisabledItem), page: o = o + 1
+ IF info2 <> "" THEN edgeprint info2, xstring(info2, 240), 30 + o * 10, uilook(uiDisabledItem), page: o = o + 1
+ IF eqinfo <> "" THEN edgeprint eqinfo, xstring(eqinfo, 240), 30 + o * 10, uilook(uiMenuItem), page: o = o + 1
  IF gam.stock(id, itemno) > 1 THEN
-  edgeprint (gam.stock(id, itemno) - 1) & " " & instock$ & " ", xstring((gam.stock(id, itemno) - 1) & " " & instock$ & " ", 240), 30 + o * 10, uilook(uiMenuItem), page: o = o + 1
+  edgeprint (gam.stock(id, itemno) - 1) & " " & instock & " ", xstring((gam.stock(id, itemno) - 1) & " " & instock & " ", 240), 30 + o * 10, uilook(uiMenuItem), page: o = o + 1
  END IF
  IF showhero > -1 THEN
   'This happens only if a hireable hero is selected
@@ -190,11 +207,11 @@ DO
   frame_draw(hiresprite + walks(walk), hirepal, 224, 110, 1, -1, page)
  END IF
  IF is_equipable THEN
-  FOR i = 0 TO 3
+  FOR i as integer = 0 TO 3
    heropos.x = 170 + i * 36
    heropos.y = 130
    heroframe = 0
-   col = 0
+   DIM col as integer = 0
    IF hero(i) > 0 THEN
     'If there is a hero in this slot
     IF readbit(itembuf(), 66, hero(i) - 1) <> 0 THEN
@@ -211,21 +228,22 @@ DO
   NEXT i
  END IF
  '-----LEFT PANEL-------------------------------------------
- FOR i = st.top TO small(st.top + st.size, UBOUND(stuff))
-  c = uilook(uiMenuItem): IF st.pt = i THEN c = uilook(uiSelectedItem + tog)
+ FOR i as integer = st.top TO small(st.top + st.size, UBOUND(stuff))
+  DIM c as integer = uilook(uiMenuItem)
+  IF st.pt = i THEN c = uilook(uiSelectedItem + tog)
   IF stuff(i).enabled = 0 THEN c = uilook(uiDisabledItem): IF st.pt = i THEN c = uilook(uiMenuItem + tog)
   edgeprint stuff(i).text, 10, 15 + (i - st.top) * 10, c, page
  NEXT i
  draw_scrollbar st, left_panel, , page
- IF price$ <> "" THEN
-  centerbox 160, 187, LEN(price$) * 8 + 8, 14 + xtralines * 10, 1, page
-  edgeprint price$, xstring(price$, 160), 182 - xtralines * 5, uilook(uiText), page
-  IF xtralines >= 1 THEN edgeprint price2$, xstring(price2$, 160), 187, uilook(uiText), page
+ IF price <> "" THEN
+  centerbox 160, 187, LEN(price) * 8 + 8, 14 + xtralines * 10, 1, page
+  edgeprint price, xstring(price, 160), 182 - xtralines * 5, uilook(uiText), page
+  IF xtralines >= 1 THEN edgeprint price2, xstring(price2, 160), 187, uilook(uiText), page
  END IF
  IF alert THEN
   alert = alert - 1
-  centerbox 160, 178, LEN(alert$) * 8 + 8, 14, acol, page
-  edgeprint alert$, xstring(alert$, 160), 173, uilook(uiSelectedItem + tog), page
+  centerbox 160, 178, LEN(alert_str) * 8 + 8, 14, acol, page
+  edgeprint alert_str, xstring(alert_str, 160), 173, uilook(uiSelectedItem + tog), page
  END IF
  setvispage vpage
  copypage holdscreen, page
@@ -234,7 +252,7 @@ LOOP
 
 cleanupquit:
 'Unload the sprites used to display the heroes
-FOR i = 0 TO 3
+FOR i as integer = 0 TO 3
  frame_unload(@herosprite(i))
  palette16_unload(@heropal(i))
 NEXT i
@@ -251,7 +269,7 @@ buildmenu:
 '--this figures out if it is okay to buy (or hire) particular stuff.
 REDIM stuff(-1 TO -1)
 room_to_hire = herocount(3) < 4 ANDALSO free_slots_in_party() > 0
-FOR i = 0 TO storebuf(16)
+FOR i as integer = 0 TO storebuf(16)
  '--for each shop-thing
  IF gam.stock(id, i) = 1 THEN CONTINUE FOR
  IF b(i * recordsize + 17) = (shoptype XOR 1) THEN CONTINUE FOR
@@ -261,7 +279,7 @@ FOR i = 0 TO storebuf(16)
  append_simplemenu_item stuff(), itemname, , , i
  IF b(i * recordsize + 24) > gold THEN stuff(UBOUND(stuff)).enabled = NO
  loadtrades i, tradestf(), b(), recordsize
- FOR j = 0 TO 3
+ FOR j as integer = 0 TO 3
   IF tradestf(j, 0) > -1 THEN
    IF countitem(tradestf(j, 0) + 1) < tradestf(j, 1) THEN stuff(UBOUND(stuff)).enabled = NO
   END IF
@@ -280,58 +298,59 @@ tradingitems = 0
 xtralines = 0
 showhero = -1
 is_equipable = NO
-price$ = ""
-price2$ = ""
-eqinfo$ = ""
-info1$ = ""
-info2$ = ""
-IF b(itemno * recordsize + 24) > 0 THEN price$ = b(itemno * recordsize + 24) & " " & readglobalstring(32, "Money")
+price = ""
+price2 = ""
+eqinfo = ""
+info1 = ""
+info2 = ""
+IF b(itemno * recordsize + 24) > 0 THEN price = b(itemno * recordsize + 24) & " " & readglobalstring(32, "Money")
 '--load must trade in item types+amounts
 loadtrades itemno, tradestf(), b(), recordsize
-FOR i = 0 TO 3
+FOR i as integer = 0 TO 3
  IF tradestf(i, 0) > -1 THEN
   tradingitems = 1
-  IF price$ = "" THEN
-   price$ = buytype(0, shoptype)
+  IF price = "" THEN
+   price = buytype(0, shoptype)
   ELSE
    IF tradestf(i, 1) = 1 THEN
-    price$ = price$ + " " + anda$ + " "
+    price = price & " " & anda & " "
    ELSE
-    price$ = price$ + " " + andsome$ + " "
+    price = price & " " & andsome & " "
    END IF
   END IF
   IF tradestf(i, 1) = 1 THEN
-   price$ = price$ + readitemname$(tradestf(i, 0))
+   price = price & readitemname(tradestf(i, 0))
   ELSE
-   price$ = price$ + STR$(tradestf(i, 1)) + " " + readitemname$(tradestf(i, 0))
+   price = price & STR(tradestf(i, 1)) & " " & readitemname(tradestf(i, 0))
   END IF
  END IF
 NEXT
-IF LEN(price$) > 38 THEN
+IF LEN(price) > 38 THEN
  '--have to split in 2! ARGH
- i = 38
- WHILE i > 19 AND MID$(price$, i, 1) <> " ": i = i - 1: WEND
- price2$ = MID$(price$, i + 1)
- price$ = LEFT$(price$, i - 1)
+ DIM i as integer = 38
+ WHILE i > 19 AND MID(price, i, 1) <> " ": i = i - 1: WEND
+ price2 = MID(price, i + 1)
+ price = LEFT(price, i - 1)
  xtralines = 1
 END IF
 IF b(itemno * recordsize + 17) = 0 THEN
  'This is an item
  loaditemdata itembuf(), b(itemno * recordsize + 18)
  'The itembuf remains and is used later to show equipability.
- IF itembuf(49) = 1 THEN eqinfo$ = eqprefix$ & " " & wepslot$
- IF itembuf(49) > 1 THEN eqinfo$ = eqprefix$ & " " & readglobalstring(23 + itembuf(49), "Armor" & itembuf(49)-1)
- info1$ = readbadbinstring$(itembuf(), 9, 35, 0)
- IF LEN(info1$) > 17 THEN
+ IF itembuf(49) = 1 THEN eqinfo = eqprefix & " " & wepslot
+ IF itembuf(49) > 1 THEN eqinfo = eqprefix & " " & readglobalstring(23 + itembuf(49), "Armor" & itembuf(49)-1)
+ info1 = readbadbinstring(itembuf(), 9, 35, 0)
+ IF LEN(info1) > 17 THEN
+  DIM o as integer
   FOR o = 18 TO 1 STEP -1
-   IF MID$(info1$, o, 1) = " " OR MID$(info1$, o, 1) = "-" OR MID$(info1$, o, 1) = "," OR MID$(info1$, o, 1) = "." THEN EXIT FOR
+   IF MID(info1, o, 1) = " " OR MID(info1, o, 1) = "-" OR MID(info1, o, 1) = "," OR MID(info1, o, 1) = "." THEN EXIT FOR
   NEXT o
   IF o > 1 THEN
-   info2$ = RIGHT$(info1$, LEN(info1$) - o)
-   info1$ = LEFT$(info1$, o)
+   info2 = RIGHT(info1, LEN(info1) - o)
+   info1 = LEFT(info1, o)
   END IF
-  IF RIGHT$(info1$, 1) = " " THEN info1$ = LEFT$(info1$, LEN(info1$) - 1)
-  info1$ = LEFT$(info1$, 18)
+  IF RIGHT(info1, 1) = " " THEN info1 = LEFT(info1, LEN(info1) - 1)
+  info1 = LEFT(info1, 18)
  END IF
  IF itembuf(49) > 0 THEN
   'This item is equippable
@@ -344,7 +363,7 @@ IF b(itemno * recordsize + 17) = 1 THEN
  loadherodata @her, b(itemno * recordsize + 18)
  loaditemdata wbuf(), her.def_weapon
  IF her.def_level < 0 THEN her.def_level = averagelev
- eqinfo$ = (atlevel(her.def_level, her.lev0.hp, her.levMax.hp) + wbuf(54 + 0)) & " " & statnames(statHP)
+ eqinfo = (atlevel(her.def_level, her.lev0.hp, her.levMax.hp) & wbuf(54 + 0)) & " " & statnames(statHP)
  showhero = her.sprite
  
  'Load the sprite for the hireable hero
@@ -355,13 +374,13 @@ IF b(itemno * recordsize + 17) = 1 THEN
  hirepal = palette16_load(her.sprite_pal, 0, showhero)
  IF hirepal = 0 THEN debug "Failed to load palette for hireable hero (#" & her.sprite_pal & ")"
 
- IF room_to_hire = NO THEN info1$ = noroom$
+ IF room_to_hire = NO THEN info1 = noroom
 END IF
 RETRACE
 END SUB
 
-SUB setshopstock (id, recordsize, storebuf(), stufbuf())
-DIM i AS INTEGER
+SUB setshopstock (byval id as integer, byval recordsize as integer, storebuf() as integer, stufbuf() as integer)
+DIM i as integer
 FOR i = 0 TO storebuf(16)
  '--for each shop-stuff
  IF gam.stock(id, i) = 0 THEN
@@ -373,27 +392,27 @@ FOR i = 0 TO storebuf(16)
 NEXT i
 END SUB
 
-SUB loadtrades(index, tradestf(), b(), recordsize)
-tradestf(0, 0) = b(index * recordsize + 25) - 1
-tradestf(0, 1) = b(index * recordsize + 30) + 1
-FOR i = 1 TO 3
- tradestf(i, 0) = b(index * recordsize + i * 2 + 29) - 1
- tradestf(i, 1) = b(index * recordsize + i * 2 + 30) + 1
-NEXT i
+SUB loadtrades(byval index as integer, tradestf() as integer, b() as integer, byval recordsize as integer)
+ tradestf(0, 0) = b(index * recordsize + 25) - 1
+ tradestf(0, 1) = b(index * recordsize + 30) + 1
+ FOR i as integer = 1 TO 3
+  tradestf(i, 0) = b(index * recordsize + i * 2 + 29) - 1
+  tradestf(i, 1) = b(index * recordsize + i * 2 + 30) + 1
+ NEXT i
 END SUB
 
-FUNCTION chkOOBtarg (target AS INTEGER, atk AS INTEGER) AS INTEGER
+FUNCTION chkOOBtarg (target as integer, atk as integer) as integer
 'true if valid, false if not valid
 'atk id can be -1 for when no attack is relevant
  IF target < 0 OR target > 40 THEN RETURN NO
  IF hero(target) = 0 THEN RETURN NO
  IF atk < -1 OR atk > gen(genMaxAttack) THEN RETURN NO
 
- DIM hp AS INTEGER
+ DIM hp as integer
  hp = gam.hero(target).stat.cur.hp
 
  IF atk >= 0 THEN
-  DIM attack AS AttackData
+  DIM attack as AttackData
   loadattackdata attack, atk
   IF hp = 0 AND (attack.targ_class = 4 OR attack.targ_class = 10) THEN RETURN YES
   IF hp > 0 AND attack.targ_class = 10 THEN RETURN NO
@@ -404,14 +423,14 @@ FUNCTION chkOOBtarg (target AS INTEGER, atk AS INTEGER) AS INTEGER
  RETURN YES
 END FUNCTION
 
-SUB doequip (toequip, who, where, defwep)
+SUB doequip (byval toequip as integer, byval who as integer, byval where as integer, byval defwep as integer)
 
 '--load the item data for this equipment
 loaditemdata buffer(), toequip -1
 
 '--apply the stat bonuses
 WITH gam.hero(who).stat
- FOR i = 0 TO 11
+ FOR i as integer = 0 TO 11
   'stat bonuses
   .max.sta(i) += buffer(54 + i)
   IF i > 1 THEN .cur.sta(i) = .max.sta(i)
@@ -445,11 +464,12 @@ evalherotags  'You could kill someone, right?
 tag_updates
 END SUB
 
-SUB getitem (getit, num)
+SUB getitem (byval getit as integer, byval num as integer)
 
-numitems = num
+DIM numitems as integer = num
+DIM room as integer
 
-FOR i = 0 TO last_inv_slot()
+FOR i as integer = 0 TO last_inv_slot()
  ' Loop through all inventory slots looking for a slot that already
  ' contains the item we are adding. If found increment that slot
  room = 99 - inventory(i).num
@@ -465,7 +485,7 @@ FOR i = 0 TO last_inv_slot()
   END IF
  END IF
 NEXT
-FOR i = 0 TO last_inv_slot()
+FOR i as integer = 0 TO last_inv_slot()
  'loop through each inventory slot looking for an empty slot to populate 
  IF inventory(i).used = 0 THEN
   inventory(i).used = -1
@@ -478,11 +498,11 @@ FOR i = 0 TO last_inv_slot()
 NEXT
 END SUB
 
-FUNCTION getOOBtarg (search_direction AS INTEGER, BYREF target AS INTEGER, atk AS INTEGER, recheck AS INTEGER=NO) AS INTEGER
+FUNCTION getOOBtarg (search_direction as integer, byref target as integer, atk as integer, recheck as integer=NO) as integer
  '--return true on success, false on failure
  '--atk id can be -1 for when no attack is relevant
  IF recheck THEN target -= 1 ' For a re-check, back the cursor up so if the current target is still valid, it won't change
- DIM safety AS INTEGER = 0
+ DIM safety as integer = 0
  DO
   target = loopvar(target, 0, 3, search_direction)
   IF chkOOBtarg(target, atk) THEN RETURN YES
@@ -494,58 +514,58 @@ FUNCTION getOOBtarg (search_direction AS INTEGER, BYREF target AS INTEGER, atk A
  RETURN NO
 END FUNCTION
 
-SUB itemmenuswap (invent() AS InventSlot, iuse(), permask(), i, o)
-'this sub called from items()
-SWAP invent(i), invent(o)
-
-t1 = readbit(iuse(), 0, 3 + i)
-t2 = readbit(iuse(), 0, 3 + o)
-setbit iuse(), 0, 3 + i, t2
-setbit iuse(), 0, 3 + o, t1
-t1 = readbit(permask(), 0, 3 + i)
-t2 = readbit(permask(), 0, 3 + o)
-setbit permask(), 0, 3 + i, t2
-setbit permask(), 0, 3 + o, t1
+SUB itemmenuswap (invent() as InventSlot, iuse() as integer, permask() as integer, byval it1 as integer, byval it2 as integer)
+ 'this sub called from items()
+ SWAP invent(it1), invent(it2)
+ 
+ DIM t1 as integer = readbit(iuse(), 0, 3 + it1)
+ DIM t2 as integer = readbit(iuse(), 0, 3 + it2)
+ setbit iuse(), 0, 3 + it1, t2
+ setbit iuse(), 0, 3 + it2, t1
+ t1 = readbit(permask(), 0, 3 + it1)
+ t2 = readbit(permask(), 0, 3 + it2)
+ setbit permask(), 0, 3 + it1, t2
+ setbit permask(), 0, 3 + it2, t1
 END SUB
 
-SUB update_inventory_caption (i)
+SUB update_inventory_caption (byval i as integer)
 IF inventory(i).used = 0 THEN
- inventory(i).text = SPACE$(11)
+ inventory(i).text = SPACE(11)
 ELSE
- inventory(i).text = readitemname$(inventory(i).id)
- inventory(i).text = rpad(inventory(i).text, " ", 8) + CHR$(1) + RIGHT$(XSTR$(inventory(i).num), 2)
+ inventory(i).text = readitemname(inventory(i).id)
+ inventory(i).text = rpad(inventory(i).text, " ", 8) + CHR(1) + RIGHT(XSTR(inventory(i).num), 2)
 END IF
 END SUB
 
-SUB oobcure (w, t, atk, spred)
+SUB oobcure (byval w as integer, byval t as integer, byval atk as integer, byval spred as integer)
 '--outside-of-battle cure
 
-DIM st(13, 1)
+DIM st(13, 1) as integer
 
 '--average stats for item-triggered spells
 IF w = -1 THEN
- j = 0
- FOR o = 0 TO 3
+ DIM j as integer = 0
+ FOR o as integer = 0 TO 3
   IF hero(o) > 0 THEN
    j = j + 1
-   FOR i = 0 TO 11
+   FOR i as integer = 0 TO 11
     st(i, 0) = st(i, 0) + gam.hero(o).stat.cur.sta(i)
     st(i, 1) = st(i, 1) + gam.hero(o).stat.max.sta(i)
    NEXT i
   END IF
  NEXT o
- FOR i = 0 TO 11
+ FOR i as integer = 0 TO 11
   st(i, 0) = st(i, 0) / j
   st(i, 1) = st(i, 1) / j
  NEXT i
 ELSE
- FOR i = 0 TO 11
+ FOR i as integer = 0 TO 11
   st(i, 0) = gam.hero(w).stat.cur.sta(i)
   st(i, 1) = gam.hero(w).stat.max.sta(i)
  NEXT i
 END IF
 
-DIM attack AS AttackData
+DIM attack as AttackData
 loadattackdata attack, atk
 
 '--out of battle attacks that target stats other than HP and MP
@@ -557,23 +577,23 @@ END IF
 '--out of battle attacks aren't allowed to miss.
 attack.aim_math = 3
 
-DIM AS BattleSprite attacker, target
+DIM as BattleSprite attacker, target
 
 '--populate attacker object
 IF w = -1 THEN '--use average stats
- FOR i AS INTEGER = 0 to 11
+ FOR i as integer = 0 to 11
   attacker.stat.cur.sta(i) = st(i, 0)
   attacker.stat.max.sta(i) = st(i, 1)
  NEXT i
 ELSE '--use actual stats
- FOR i AS INTEGER = 0 to 11
+ FOR i as integer = 0 to 11
   attacker.stat.cur.sta(i) = gam.hero(w).stat.cur.sta(i)
   attacker.stat.max.sta(i) = gam.hero(w).stat.max.sta(i)
  NEXT i
 END IF
 
 '--populate the target object
-FOR i AS INTEGER = 0 to 11
+FOR i as integer = 0 to 11
  target.stat.cur.sta(i) = gam.hero(t).stat.cur.sta(i)
  target.stat.max.sta(i) = gam.hero(t).stat.max.sta(i)
 NEXT i
@@ -583,13 +603,13 @@ inflict(0, 1, attacker, target, attack, spred)
 
 '--copy back stats that need copying back
 '--first copy HP and MP normally
-FOR i AS INTEGER = 0 to 1
+FOR i as integer = 0 to 1
  gam.hero(t).stat.cur.sta(i) = target.stat.cur.sta(i)
  gam.hero(t).stat.max.sta(i) = target.stat.max.sta(i)
 NEXT i
 '--Then update just the max for the other stats
 '--this kinda sucks but it is consistent with the way outside of battle cure has always worked
-FOR i AS INTEGER = 2 to 11
+FOR i as integer = 2 to 11
  gam.hero(t).stat.max.sta(i) = target.stat.cur.sta(i)
  gam.hero(t).stat.cur.sta(i) = gam.hero(t).stat.max.sta(i)
 NEXT i
@@ -601,12 +621,13 @@ MenuSound attack.sound_effect
 
 END SUB
 
-SUB patcharray (array(), n$)
+SUB patcharray (array() as integer, n as string)
 
-DIM num(2) as string, hexk(15)
+DIM num(2) as string
+DIM hexk(15) as integer
 
 hexk(0) = 11
-FOR i = 1 TO 9
+FOR i as integer = 1 TO 9
  hexk(i) = i + 1
 NEXT i
 hexk(10) = 30
@@ -615,7 +636,9 @@ hexk(12) = 46
 hexk(13) = 32
 hexk(14) = 18
 hexk(15) = 33
-pt = 0
+DIM pt as integer = 0
+DIM tog as integer
+DIM csr as integer
 
 setkeys
 DO
@@ -628,14 +651,14 @@ DO
  IF csr = 0 THEN intgrabber pt, 0, UBOUND(array)
  IF csr = 1 THEN intgrabber array(pt), -32768, 32767
  IF csr = 2 THEN
-  FOR i = 0 TO 15
+  FOR i as integer = 0 TO 15
    IF keyval(hexk(i)) > 1 THEN setbit array(), pt, i, readbit(array(), pt, i) XOR 1
   NEXT i
  END IF
- num(0) = n$ & "(" & ABS(pt) & ")"
+ num(0) = n & "(" & ABS(pt) & ")"
  num(1) = "value = " & array(pt)
  num(2) = ""
- FOR i = 0 TO 15
+ FOR i as integer = 0 TO 15
   IF readbit(array(), pt, i) THEN
    num(2) = num(2) + "1"
   ELSE
@@ -645,8 +668,13 @@ DO
  clearpage dpage
  edgeprint "DEBUG MODE", 120, 50, uilook(uiText), dpage
  centerbox 160, 100, 140, 60, 1, dpage
- FOR i = 0 TO 2
-  IF i = csr THEN c = uilook(uiSelectedItem + tog) ELSE c = uilook(uiMenuItem)
+ DIM c as integer
+ FOR i as integer = 0 TO 2
+  IF i = csr THEN
+   c = uilook(uiSelectedItem + tog)
+  ELSE
+   c = uilook(uiMenuItem)
+  END IF
   edgeprint num(i), 160 - LEN(num(i)) * 4, 80 + i * 10, c, dpage
  NEXT i
  edgeprint "0123456789ABCDEF", 96, 110, uilook(uiSelectedDisabled), dpage
@@ -657,15 +685,19 @@ LOOP
 
 END SUB
 
-FUNCTION picksave (loading as integer) as integer
+FUNCTION picksave (byval loading as integer) as integer
 
-DIM mapname(3) AS STRING, lev(3) AS STRING, confirm(1) AS STRING, menu(1) AS STRING
-DIM sprites(3, 3) AS GraphicPair
-DIM st AS MenuState
+DIM mapname(3) as STRING
+DIM lev(3) as STRING
+DIM menu(1) as STRING
+DIM sprites(3, 3) as GraphicPair
+DIM st as MenuState
 
 st.first = -1
 st.last = 3
 st.size = 4
+
+DIM allow as integer
 
 '--loading 0 is the save menu, 1 is load menu, and 2 is load with no titlescreen. it fades the screen in
 '--loading 0+1 use vpage as background, loading 2 uses none. pages 2 and 3 are preserved
@@ -680,19 +712,15 @@ END IF
 
 IF loading THEN
  st.pt = 0
- menu(0) = readglobalstring$(52, "New Game", 10)
- menu(1) = readglobalstring$(53, "Exit", 10)
+ menu(0) = readglobalstring(52, "New Game", 10)
+ menu(1) = readglobalstring(53, "Exit", 10)
 ELSE
  st.pt = lastsaveslot - 1
- confirm(0) = readglobalstring$(44, "Yes", 10)
- confirm(1) = readglobalstring$(45, "No", 10)
- menu(0) = readglobalstring$(59, "CANCEL", 10)
- replacedat$ = readglobalstring$(102, "Replace Old Data?", 20)
- menuwidth = 8 * large(LEN(confirm(0)), LEN(confirm(1)))
+ menu(0) = readglobalstring(59, "CANCEL", 10)
 END IF
 
-DIM holdscreen AS INTEGER
-DIM page AS INTEGER
+DIM holdscreen as integer
+DIM page as integer
 page = compatpage
 holdscreen = allocatepage
 IF loading < 2 THEN
@@ -701,14 +729,14 @@ IF loading < 2 THEN
 END IF
 'otherwise, holdscreen is black
 
-DIM pv(3) AS SaveSlotPreview
-FOR i = 0 TO 3
+DIM pv(3) as SaveSlotPreview
+FOR i as integer = 0 TO 3
  get_save_slot_preview i, pv(i)
  IF pv(i).valid THEN
   mapname(i) = getmapname(pv(i).cur_map)
   '--leader level
   lev(i) = readglobalstring(43, "Level", 10) & " " & pv(i).leader_lev
-  FOR o = 0 TO 3
+  FOR o as integer = 0 TO 3
    '--hero pic and palette
    IF pv(i).hero_id(o) > 0 THEN
     sprites(i, o).sprite = frame_load(0, pv(i).hero(o).battle_pic)
@@ -720,8 +748,8 @@ NEXT i
 
 IF loading THEN
  'check for no slots
- nofull = YES
- FOR i = 0 TO 3
+ DIM nofull as integer = YES
+ FOR i as integer = 0 TO 3
   IF pv(i).valid THEN nofull = NO
  NEXT i
  IF nofull = YES THEN
@@ -736,8 +764,6 @@ setkeys
 DO
  setwait speedcontrol
  setkeys
- tog = tog XOR 1
- walk = walk XOR tog
  IF loading = 0 THEN playtimer
  control
  IF carray(ccMenu) > 1 THEN
@@ -773,7 +799,7 @@ DO
     IF pv(st.pt).valid = 0 THEN allow = 0
    ELSE
     '--normal save in a slot
-    IF pv(st.pt).valid THEN GOSUB confirm
+    IF pv(st.pt).valid THEN picksave_confirm menu(), loading, sprites(), pv(), mapname(), lev(), st, allow, holdscreen, page
    END IF
    IF allow = 1 THEN
     MenuSound gen(genAcceptSFX)
@@ -785,7 +811,7 @@ DO
    END IF
   END IF
  END IF
- GOSUB drawmenugosub
+ picksave_draw menu(), loading, sprites(), pv(), mapname(), lev(), st, page
  setvispage vpage
  copypage holdscreen, page
  check_for_queued_fade_in
@@ -795,122 +821,149 @@ LOOP
 freesprites:
 freepage page
 freepage holdscreen
-FOR t = 4 TO 5: carray(t) = 0: NEXT t
-FOR i = 0 TO 3
- FOR o = 0 TO 3
+FOR t as integer = 4 TO 5: carray(t) = 0: NEXT t
+FOR i as integer = 0 TO 3
+ FOR o as integer = 0 TO 3
   frame_unload(@sprites(i, o).sprite)
   palette16_unload(@sprites(i, o).pal)
  NEXT
 NEXT
 EXIT FUNCTION
 
-confirm:
-allow = 0
-MenuSound gen(genAcceptSFX)
-confirmboxY = 14 + (44 * st.pt)
-setkeys
-DO
- setwait speedcontrol
- setkeys
- tog = tog XOR 1
- playtimer
- control
- IF carray(ccMenu) > 1 THEN
-  allow = 0
-  MenuSound gen(genCancelSFX)
-  RETRACE
- END IF
- IF carray(ccUp) > 1 OR carray(ccDown) > 1 THEN
-  allow = allow XOR 1
-  MenuSound gen(genCursorSFX)
- END IF
-
- copypage holdscreen, page
- IF carray(ccUse) > 1 THEN RETRACE
- GOSUB drawmenugosub
- centerbox 160, confirmboxY, 40 + (LEN(replacedat$) * 8) + menuwidth, 24, 3, page
- edgeprint replacedat$, 200 - (LEN(replacedat$) * 8), confirmboxY - 5, uilook(uiText), page
- FOR i = 0 TO 1
-  col = uilook(uiSelectedItem + tog): IF allow = i THEN col = uilook(uiMenuItem)
-  edgeprint confirm(i), 216, confirmboxY - 9 + (i * 9), col, page
- NEXT i
- setvispage vpage
- dowait
-LOOP
-
-drawmenugosub:
-centerbox 50, 11, 80, 14, 15, page
-IF loading THEN centerbox 270, 11, 80, 14, 15, page
-FOR i = 0 TO 3
- centerbox 160, 44 + i * 44, 310, 42, 15, page
-NEXT i
-'load and save menus enjoy different colour schemes
-IF loading THEN activec = 2 ELSE activec = 1
-SELECT CASE st.pt
- CASE -2
-  centerbox 270, 11, 82, 16, activec, page
- CASE -1
-  centerbox 50, 11, 82, 16, activec, page
- CASE ELSE
-  centerbox 160, 44 + st.pt * 44, 312, 44, activec, page
-END SELECT
-FOR i = 0 TO 3
- IF pv(i).valid THEN
-  FOR o = 0 TO 3
-   IF sprites(i, o).sprite THEN
-    frame_draw sprites(i, o).sprite + iif(st.pt = i, walk, 0), sprites(i, o).pal, 140 + (o * 42), 24 + i * 44, 1, -1, page
-   END IF
-  NEXT o
-  col = uilook(uiMenuItem)
-  IF st.pt = i THEN col = uilook(uiSelectedItem + tog)
-  edgeprint pv(i).leader_name, 14, 25 + i * 44, col, page
-  edgeprint lev(i), 14, 34 + i * 44, col, page
-  edgeprint pv(i).playtime, 14, 43 + i * 44, col, page
-  edgeprint mapname(i), 14, 52 + i * 44, col, page
- END IF
-NEXT i
-col = uilook(uiMenuItem): IF st.pt = -1 THEN col = uilook(uiSelectedItem + tog)
-edgeprint menu(0), xstring(menu(0), 50), 6, col, page
-IF loading THEN
- col = uilook(uiMenuItem): IF st.pt = -2 THEN col = uilook(uiSelectedItem + tog)
- edgeprint menu(1), xstring(menu(1), 270), 6, col, page
-END IF
-RETRACE
-
 END FUNCTION
 
-SUB sellstuff (id, storebuf())
-DIM b((getbinsize(binSTF) \ 2) * 50 - 1), permask(15), price((inventoryMax + 1) \ 3)
-recordsize = curbinsize(binSTF) \ 2 ' get size in INTs
+SUB picksave_confirm(menu() as string, byval loading as integer, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval allow as integer, byval holdscreen as integer, byval page as integer)
+ DIM confirmboxY as integer = 14 + (44 * st.pt)
+ DIM tog as integer
+ DIM confirm(1) as string
+ confirm(0) = readglobalstring(44, "Yes", 10)
+ confirm(1) = readglobalstring(45, "No", 10)
+ DIM menuwidth as integer
+ menuwidth = 8 * large(LEN(confirm(0)), LEN(confirm(1)))
+ DIM replacedat as string
+ replacedat = readglobalstring(102, "Replace Old Data?", 20)
+ 
+ allow = 0
+ MenuSound gen(genAcceptSFX)
+ setkeys
+ DO
+  setwait speedcontrol
+  setkeys
+  tog = tog XOR 1
+  playtimer
+  control
+  IF carray(ccMenu) > 1 THEN
+   allow = 0
+   MenuSound gen(genCancelSFX)
+   EXIT SUB
+  END IF
+  IF carray(ccUp) > 1 OR carray(ccDown) > 1 THEN
+   allow = allow XOR 1
+   MenuSound gen(genCursorSFX)
+  END IF
+ 
+  copypage holdscreen, page
+  IF carray(ccUse) > 1 THEN EXIT SUB
+  picksave_draw menu(), loading, sprites(), pv(), mapname(), lev(), st, page
+  centerbox 160, confirmboxY, 40 + (LEN(replacedat) * 8) + menuwidth, 24, 3, page
+  edgeprint replacedat, 200 - (LEN(replacedat) * 8), confirmboxY - 5, uilook(uiText), page
+  FOR i as integer = 0 TO 1
+   DIM col as integer = uilook(uiSelectedItem + tog): IF allow = i THEN col = uilook(uiMenuItem)
+   edgeprint confirm(i), 216, confirmboxY - 9 + (i * 9), col, page
+  NEXT i
+  setvispage vpage
+  dowait
+ LOOP
+END SUB
+
+SUB picksave_draw(menu() as string, byval loading as integer, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval page as integer)
+ DIM col as integer
+ DIM activec as integer
+
+ STATIC tog as integer
+ STATIC walk as integer
+ tog = tog XOR 1
+ walk = walk XOR tog
+ 
+ centerbox 50, 11, 80, 14, 15, page
+ IF loading THEN centerbox 270, 11, 80, 14, 15, page
+ FOR i as integer = 0 TO 3
+  centerbox 160, 44 + i * 44, 310, 42, 15, page
+ NEXT i
+ 'load and save menus enjoy different colour schemes
+ IF loading THEN activec = 2 ELSE activec = 1
+ SELECT CASE st.pt
+  CASE -2
+   centerbox 270, 11, 82, 16, activec, page
+  CASE -1
+   centerbox 50, 11, 82, 16, activec, page
+  CASE ELSE
+   centerbox 160, 44 + st.pt * 44, 312, 44, activec, page
+ END SELECT
+ FOR i as integer = 0 TO 3
+  IF pv(i).valid THEN
+   FOR o as integer = 0 TO 3
+    IF sprites(i, o).sprite THEN
+     frame_draw sprites(i, o).sprite + iif(st.pt = i, walk, 0), sprites(i, o).pal, 140 + (o * 42), 24 + i * 44, 1, -1, page
+    END IF
+   NEXT o
+   col = uilook(uiMenuItem)
+   IF st.pt = i THEN col = uilook(uiSelectedItem + tog)
+   edgeprint pv(i).leader_name, 14, 25 + i * 44, col, page
+   edgeprint lev(i), 14, 34 + i * 44, col, page
+   edgeprint pv(i).playtime, 14, 43 + i * 44, col, page
+   edgeprint mapname(i), 14, 52 + i * 44, col, page
+  END IF
+ NEXT i
+ col = uilook(uiMenuItem): IF st.pt = -1 THEN col = uilook(uiSelectedItem + tog)
+ edgeprint menu(0), xstring(menu(0), 50), 6, col, page
+ IF loading THEN
+  col = uilook(uiMenuItem): IF st.pt = -2 THEN col = uilook(uiSelectedItem + tog)
+  edgeprint menu(1), xstring(menu(1), 270), 6, col, page
+ END IF
+END SUB
+
+SUB sellstuff (byval id as integer, storebuf() as integer)
+ DIM b((getbinsize(binSTF) \ 2) * 50 - 1) as integer
+ DIM permask(15) as integer
+ DIM price((inventoryMax + 1) \ 3) as integer
+ DIM recordsize as integer = curbinsize(binSTF) \ 2 ' get size in INTs
 
 '--preserve background for display under sell menu
-DIM page AS INTEGER
-DIM holdscreen AS INTEGER
+DIM page as integer
+DIM holdscreen as integer
 page = compatpage
 holdscreen = allocatepage
 copypage page, holdscreen
 
-cannotsell$ = readglobalstring$(75, "CANNOT SELL", 20)
-worth$ = readglobalstring$(77, "Worth", 20)
-tradefor$ = readglobalstring$(79, "Trade for", 20)
-anda$ = readglobalstring$(81, "and a", 10)
-andsome$ = readglobalstring$(153, "and", 10)
-worthnothing$ = readglobalstring$(82, "Worth Nothing", 20)
-sold$ = readglobalstring$(84, "Sold", 10)
+DIM cannotsell as string = readglobalstring(75, "CANNOT SELL", 20)
+DIM worth as string = readglobalstring(77, "Worth", 20)
+DIM tradefor as string = readglobalstring(79, "Trade for", 20)
+DIM anda as string = readglobalstring(81, "and a", 10)
+DIM andsome as string = readglobalstring(153, "and", 10)
+DIM worthnothing as string = readglobalstring(82, "Worth Nothing", 20)
+DIM sold as string = readglobalstring(84, "Sold", 10)
 
 loadshopstuf b(), id
-GOSUB selstock
+FOR i as integer = 0 TO storebuf(16)
+ IF gam.stock(id, i) = 0 THEN
+  gam.stock(id, i) = b(i * recordsize + 19)
+  IF gam.stock(id, i) > -1 THEN gam.stock(id, i) = gam.stock(id, i) + 1
+ END IF
+NEXT i
 
-ic = 0: top = 0
-alert = 0
-alert$ = ""
-info$ = ""
+DIM ic as integer = 0
+DIM top as integer = 0
+DIM tog as integer
+DIM alert as integer = 0
+DIM alert_str as string = ""
+DIM info as string = ""
+DIM quit as integer = 0
 
 menusound gen(genAcceptSFX)
 GOSUB refreshs
 
 GOSUB sellinfostr
-quit = 0
 setkeys
 DO
  setwait speedcontrol
@@ -921,7 +974,7 @@ DO
  GOSUB keysell
  IF quit THEN EXIT DO
  centerbox 160, 92, 304, 176, 1, page
- FOR i = top TO top + 62
+ FOR i as integer = top TO top + 62
   textcolor uilook(uiMenuItem), 0
   IF readbit(permask(), 0, i) THEN textcolor uilook(uiDisabledItem), 0
   IF ic = i THEN
@@ -931,12 +984,12 @@ DO
   printstr inventory(i).text, 20 + 96 * (i MOD 3), 12 + 8 * ((i - top) \ 3), page
  NEXT i
  centerfuz 160, 180, 312, 20, 4, page
- edgeprint info$, xstring(info$, 160), 175, uilook(uiText), page
+ edgeprint info, xstring(info, 160), 175, uilook(uiText), page
  edgeprint gold & " " & readglobalstring(32, "Money"), 310 - LEN(gold & " " & readglobalstring(32, "Money")) * 8, 1, uilook(uiGold), page
  IF alert THEN
   alert = alert - 1
-  centerbox 160, 178, LEN(alert$) * 8 + 8, 14, 4, page
-  edgeprint alert$, xstring(alert$, 160), 173, uilook(uiSelectedItem + tog), page
+  centerbox 160, 178, LEN(alert_str) * 8 + 8, 14, 4, page
+  edgeprint alert_str, xstring(alert_str, 160), 173, uilook(uiSelectedItem + tog), page
  END IF
  setvispage vpage
  copypage holdscreen, page
@@ -951,28 +1004,28 @@ tag_updates
 EXIT SUB
 
 sellinfostr:
-info$ = ""
+info = ""
 IF inventory(ic).used = 0 THEN RETRACE
-IF readbit(permask(), 0, ic) = 1 THEN info$ = cannotsell$: RETRACE
-IF price(ic) > 0 THEN info$ = worth$ & " " & price(ic) & " " & readglobalstring(32, "Money")
-FOR i = 0 TO storebuf(16)
+IF readbit(permask(), 0, ic) = 1 THEN info = cannotsell: RETRACE
+IF price(ic) > 0 THEN info = worth & " " & price(ic) & " " & readglobalstring(32, "Money")
+FOR i as integer = 0 TO storebuf(16)
  IF b(i * recordsize + 17) = 0 AND b(i * recordsize + 18) = inventory(ic).id THEN
   IF b(i * recordsize + 28) > 0 THEN
-   IF info$ = "" THEN
-    info$ = tradefor$ + " "
+   IF info = "" THEN
+    info = tradefor & " "
    ELSE
     IF b(i * recordsize + 29) > 0 THEN
-     info$ = info$ + " " + andsome$ + " "
+     info = info & " " & andsome & " "
     ELSE
-     info$ = info$ + " " + anda$ + " "
+     info = info & " " & anda & " "
     END IF
    END IF
-   IF b(i * recordsize + 29) > 0 THEN info$ = info$ + STR$(b(i * recordsize + 29) + 1) + " "
-   info$ = info$ + readitemname$(b(i * recordsize + 28) - 1)
+   IF b(i * recordsize + 29) > 0 THEN info = info & STR(b(i * recordsize + 29) + 1) & " "
+   info = info & readitemname(b(i * recordsize + 28) - 1)
   END IF
  END IF
 NEXT i
-IF info$ = "" THEN info$ = worthnothing$
+IF info = "" THEN info = worthnothing
 RETRACE
 
 keysell:
@@ -981,13 +1034,13 @@ IF carray(ccUse) > 1  AND inventory(ic).used THEN
  IF readbit(permask(), 0, ic) = 0 THEN
   menusound gen(genSellSFX)
   alert = 10
-  alert$ = sold$ + " " + readitemname$(inventory(ic).id)
+  alert_str = sold & " " & readitemname(inventory(ic).id)
   'INCREMENT GOLD-----------
   gold = gold + price(ic)
   IF gold > 2000000000 THEN gold = 2000000000
   IF gold < 0 THEN gold = 0
   'CHECK FOR SPECIAL CASES---------
-  FOR i = 0 TO storebuf(16)
+  FOR i as integer = 0 TO storebuf(16)
    IF b(i * recordsize + 17) = 0 AND b(i * recordsize + 18) = inventory(ic).id THEN
     'SET SELL BIT---
     settag b(i * recordsize + 23)
@@ -1001,7 +1054,7 @@ IF carray(ccUse) > 1  AND inventory(ic).used THEN
    END IF
   NEXT i
   'DECREMENT ITEM-----------
-  dummy = consumeitem(ic)
+  consumeitem ic
   'UPDATE ITEM POSESSION TAGS--------
   evalitemtags
   'REFRESH DISPLAY--------
@@ -1046,12 +1099,12 @@ END IF
 RETRACE
 
 refreshs:
-FOR i = 0 TO last_inv_slot()
+FOR i as integer = 0 TO last_inv_slot()
  IF inventory(i).used THEN
   loaditemdata buffer(), inventory(i).id
   IF buffer(73) = 2 THEN setbit permask(), 0, i, 1
   price(i) = INT(buffer(46) * .5)
-  FOR o = 0 TO storebuf(16)
+  FOR o as integer = 0 TO storebuf(16)
    IF b(o * recordsize + 18) = inventory(i).id THEN
     IF ABS(b(o * recordsize + 21)) > 0 THEN IF readbit(tag(), 0, ABS(b(o * recordsize + 21))) <> SGN(SGN(b(o * recordsize + 21)) + 1) THEN setbit permask(), 0, i, 1
     IF b(o * recordsize + 17) = 0 THEN
@@ -1064,17 +1117,11 @@ FOR i = 0 TO last_inv_slot()
 NEXT i
 RETRACE
 
-selstock:
-FOR i = 0 TO storebuf(16)
- IF gam.stock(id, i) = 0 THEN gam.stock(id, i) = b(i * recordsize + 19): IF gam.stock(id, i) > -1 THEN gam.stock(id, i) = gam.stock(id, i) + 1
-NEXT i
-RETRACE
-
 END SUB
 
 'Format one of the strings on the second Status menu screen
-FUNCTION hero_elemental_resist_msg (element AS STRING, damage AS SINGLE) AS STRING
- DIM raw AS STRING
+FUNCTION hero_elemental_resist_msg (element as STRING, damage as SINGLE) as STRING
+ DIM raw as STRING
  IF ABS(damage) < 0.000005 THEN
   raw = readglobalstring(168, "Immune to $E", 30)
  ELSEIF damage < 0.0 THEN
@@ -1093,20 +1140,20 @@ FUNCTION hero_elemental_resist_msg (element AS STRING, damage AS SINGLE) AS STRI
  RETURN raw
 END FUNCTION
 
-SUB status (pt)
-DIM mtype(5)
-DIM her AS HeroDef
-DIM portrait AS GraphicPair
-DIM page AS INTEGER
-DIM holdscreen AS INTEGER
+SUB status (byval pt as integer)
+DIM mtype(5) as integer
+DIM her as HeroDef
+DIM portrait as GraphicPair
+DIM page as integer
+DIM holdscreen as integer
 
-DIM exper_caption AS STRING = readglobalstring(33, "Experience", 10)
-DIM level_caption AS STRING = readglobalstring(43, "Level", 10)
-DIM level_mp_caption AS STRING = readglobalstring(160, "Level MP", 20)
+DIM exper_caption as STRING = readglobalstring(33, "Experience", 10)
+DIM level_caption as STRING = readglobalstring(43, "Level", 10)
+DIM level_mp_caption as STRING = readglobalstring(160, "Level MP", 20)
 
-DIM elementalmenu() AS STRING
-DIM elementalmenu_st AS MenuState
-DIM elementalmenu_scrollrect AS RectType
+DIM elementalmenu() as STRING
+DIM elementalmenu_st as MenuState
+DIM elementalmenu_scrollrect as RectType
 WITH elementalmenu_scrollrect
  .x = 14
  .y = 60
@@ -1114,12 +1161,13 @@ WITH elementalmenu_scrollrect
  .high = 120
 END WITH
 
-DIM elementnames() AS STRING
+DIM elementnames() as STRING
 getelementnames elementnames()
 
-DIM elementaldmg(maxElements - 1) AS SINGLE
+DIM elementaldmg(maxElements - 1) as SINGLE
 
-mode = 0
+DIM mode as integer = 0
+DIM tog as integer
 
 GOSUB buildmenu
 '--Preserve background for display under status menu
@@ -1160,45 +1208,46 @@ DO
  edgeprint level_caption & " " & gam.hero(pt).lev, 142 - LEN(level_caption & " " & gam.hero(pt).lev) * 4, 30, uilook(uiText), page
  IF gam.hero(pt).lev < current_max_level THEN
   'Can't level further, so hide experience required
-  temp$ = (gam.hero(pt).exp_next - gam.hero(pt).exp_cur) & " " & exper_caption & " " & readglobalstring$(47, "for next", 10) & " " & level_caption
-  edgeprint temp$, 142 - LEN(temp$) * 4, 40, uilook(uiText), page
+  DIM exp_str as string = (gam.hero(pt).exp_next - gam.hero(pt).exp_cur) & " " & exper_caption & " " & readglobalstring(47, "for next", 10) & " " & level_caption
+  edgeprint exp_str, 142 - LEN(exp_str) * 4, 40, uilook(uiText), page
  END IF
 
  SELECT CASE mode
   CASE 0
    '--show stats
-   FOR i = 0 TO 9
+   FOR i as integer = 0 TO 9
     edgeprint statnames(i + 2), 20, 62 + i * 10, uilook(uiText), page
-    temp$ = STR(gam.hero(pt).stat.cur.sta(i + 2))
-    edgeprint temp$, 148 - LEN(temp$) * 8, 62 + i * 10, uilook(uiText), page
+    DIM stat_str as string = STR(gam.hero(pt).stat.cur.sta(i + 2))
+    edgeprint stat_str, 148 - LEN(stat_str) * 8, 62 + i * 10, uilook(uiText), page
    NEXT i
 
    'current/max HP
    edgeprint statnames(statHP), 236 - LEN(statnames(statHP)) * 4, 65, uilook(uiText), page
-   temp$ = STR$(ABS(gam.hero(pt).stat.cur.hp)) + "/" + STR$(ABS(gam.hero(pt).stat.max.hp))
-   edgeprint temp$, 236 - LEN(temp$) * 4, 75, uilook(uiText), page
+   DIM hp_str as string = STR(ABS(gam.hero(pt).stat.cur.hp)) & "/" & STR(ABS(gam.hero(pt).stat.max.hp))
+   edgeprint hp_str, 236 - LEN(hp_str) * 4, 75, uilook(uiText), page
 
    '--MP and level MP
-   FOR i = 0 TO 5
+   DIM mp_str as string
+   FOR i as integer = 0 TO 5
     IF mtype(i) = 0 THEN
      edgeprint statnames(statMP), 236 - LEN(statnames(statMP)) * 4, 95, uilook(uiText), page
-     temp$ = STR$(ABS(gam.hero(pt).stat.cur.mp)) + "/" + STR$(ABS(gam.hero(pt).stat.max.mp))
-     edgeprint temp$, 236 - LEN(temp$) * 4, 105, uilook(uiText), page
+     mp_str = STR(ABS(gam.hero(pt).stat.cur.mp)) & "/" & STR(ABS(gam.hero(pt).stat.max.mp))
+     edgeprint mp_str, 236 - LEN(mp_str) * 4, 105, uilook(uiText), page
     END IF
     IF mtype(i) = 1 THEN
      edgeprint level_mp_caption, 236 - LEN(level_mp_caption) * 4, 125, uilook(uiText), page
-     temp$ = ""
-     FOR o = 0 TO 3
-      temp$ = temp$ + STR$(ABS(lmp(pt, o))) + "/"
+     mp_str = ""
+     FOR o as integer = 0 TO 3
+      mp_str = mp_str & STR(ABS(lmp(pt, o))) & "/"
      NEXT o
-     temp$ = LEFT$(temp$, LEN(temp$) - 1)
-     edgeprint temp$, 236 - LEN(temp$) * 4, 135, uilook(uiText), page
-     temp$ = ""
-     FOR o = 4 TO 7
-      temp$ = temp$ + STR$(ABS(lmp(pt, o))) + "/"
+     mp_str = LEFT(mp_str, LEN(mp_str) - 1)
+     edgeprint mp_str, 236 - LEN(mp_str) * 4, 135, uilook(uiText), page
+     mp_str = ""
+     FOR o as integer = 4 TO 7
+      mp_str = mp_str & STR(ABS(lmp(pt, o))) & "/"
      NEXT o
-     temp$ = LEFT$(temp$, LEN(temp$) - 1)
-     edgeprint temp$, 236 - LEN(temp$) * 4, 145, uilook(uiText), page
+     mp_str = LEFT(mp_str, LEN(mp_str) - 1)
+     edgeprint mp_str, 236 - LEN(mp_str) * 4, 145, uilook(uiText), page
     END IF
    NEXT i
 
@@ -1212,7 +1261,7 @@ DO
     scrollmenu elementalmenu_st
 
     draw_scrollbar elementalmenu_st, elementalmenu_scrollrect, , page
-    FOR i = 0 TO .size
+    FOR i as integer = 0 TO .size
      IF .top + i <= .last THEN
       edgeprint elementalmenu(.top + i), 20, 64 + i * 10, uilook(uiText), page
      END IF
@@ -1239,7 +1288,7 @@ IF portrait.sprite THEN frame_unload @portrait.sprite
 IF portrait.pal    THEN palette16_unload @portrait.pal
 freepage page
 freepage holdscreen
-FOR t = 4 TO 5
+FOR t as integer = 4 TO 5
  carray(t) = 0
 NEXT t
 EXIT SUB
@@ -1249,11 +1298,12 @@ buildmenu: '--loads the hero whose slot is held in pt
 'loadherodata buffer(), hero(pt) - 1
 loadherodata @her, hero(pt) - 1
 
-FOR i = 0 TO 5
+FOR i as integer = 0 TO 5
  mtype(i) = -1
  IF bmenu(pt, i) < 0 AND bmenu(pt, i) > -10 THEN
-  temp = (bmenu(pt, i) + 1) * -1
-  IF her.list_name(temp) <> "" THEN mtype(i) = her.list_type(temp)
+  IF her.list_name((bmenu(pt, i) + 1) * -1) <> "" THEN
+   mtype(i) = her.list_type((bmenu(pt, i) + 1) * -1)
+  END IF
  END IF
 NEXT i
 
@@ -1262,16 +1312,16 @@ calc_hero_elementals elementaldmg(), pt
 
 '--build elemental strings
 REDIM elementalmenu(-1 TO -1)
-DIM msg AS STRING = readglobalstring$(302, "Elemental Effects:", 30)
+DIM msg as string = readglobalstring(302, "Elemental Effects:", 30)
 IF LEN(msg) THEN str_array_append elementalmenu(), msg
-FOR i = 0 TO gen(genNumElements) - 1
+FOR i as integer = 0 TO gen(genNumElements) - 1
  msg = hero_elemental_resist_msg(elementnames(i), elementaldmg(i))
  IF LEN(msg) THEN str_array_append elementalmenu(), msg
 NEXT
 
 'Well, if you set some blank global text strings, you could get this message
 'even if not everything is level, but that's a bonus.
-IF UBOUND(elementalmenu) = 0 THEN elementalmenu(0) = readglobalstring$(130, "No Elemental Effects", 30)
+IF UBOUND(elementalmenu) = 0 THEN elementalmenu(0) = readglobalstring(130, "No Elemental Effects", 30)
 
 WITH elementalmenu_st
  .last = UBOUND(elementalmenu)
@@ -1296,16 +1346,16 @@ FUNCTION trylearn (who as integer, atk as integer, learntype as integer) as inte
 IF hero(who) = 0 THEN debug "trylearn fail on empty party slot " & who : RETURN 0
 
 '--fail by default
-result = 0
+DIM result as integer = 0
 
 dim her as herodef
 '--load the hero's data.
 loadherodata @her, hero(who) - 1
 
 '--for each spell list
-FOR j = 0 TO 3
+FOR j as integer = 0 TO 3
  '--for each spell slot
- FOR o = 0 TO 23
+ FOR o as integer = 0 TO 23
   '--if this slot is empty and accepts this spell
   '--and is learnable by learntype
   IF spell(who, j, o) = 0 AND her.spell_lists(j,o).attack = atk AND her.spell_lists(j,o).learned = learntype THEN
@@ -1319,7 +1369,7 @@ trylearn = result
 
 END FUNCTION
 
-SUB unequip (who, where, defwep, resetdw)
+SUB unequip (byval who as integer, byval where as integer, byval defwep as integer, byval resetdw as integer)
 
 '--exit if nothing is equiped
 IF eqstuf(who, where) = 0 THEN EXIT SUB
@@ -1329,7 +1379,7 @@ loaditemdata buffer(), eqstuf(who, where) - 1
 
 '--remove stat bonuses
 WITH gam.hero(who).stat
- FOR i = 0 TO 11
+ FOR i as integer = 0 TO 11
   .max.sta(i) = .max.sta(i) - buffer(54 + i)
   '--for non HP non MP stats, reset current to max
   IF i > 1 THEN .cur.sta(i) = .max.sta(i)
@@ -1357,36 +1407,33 @@ evalherotags  'You could kill someone, right?
 tag_updates
 END SUB
 
-'======== FIXME: move this up as code gets cleaned up ===========
-OPTION EXPLICIT
-
-SUB loadshopstuf (array() AS INTEGER, BYVAL id AS INTEGER)
- DIM ol AS INTEGER = getbinsize(binSTF) \ 2 'old size on disk
- DIM nw AS INTEGER = curbinsize(binSTF) \ 2 'new size in memory
+SUB loadshopstuf (array() as integer, byval id as integer)
+ DIM ol as integer = getbinsize(binSTF) \ 2 'old size on disk
+ DIM nw as integer = curbinsize(binSTF) \ 2 'new size in memory
  flusharray array(), nw * 50 - 1, 0
  'load shop data from STF lump
  setpicstuf buffer(), ol * 2 * 50, -1
  loadset game + ".stf", id, 0
  'in case shop data has been resized, scale records to new size
- FOR i AS INTEGER = 0 TO ol - 1
-  FOR o AS INTEGER = 0 to 49
+ FOR i as integer = 0 TO ol - 1
+  FOR o as integer = 0 to 49
    array(o * nw + i) = buffer(o * ol + i)
   NEXT o
  NEXT i
 END SUB
 
-FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTEGER
- DIM i AS INTEGER
- DIM n AS INTEGER = 0
+FUNCTION count_available_spells(who as integer, list as integer) as integer
+ DIM i as integer
+ DIM n as integer = 0
  FOR i = 0 to 23
   IF spell(who, list, i) > 0 THEN n + = 1
  NEXT i
  RETURN n
 END FUNCTION
 
-FUNCTION outside_battle_cure (atk AS INTEGER, target AS INTEGER, attacker AS INTEGER, spread AS INTEGER) AS INTEGER
- DIM i AS INTEGER
- DIM didcure AS INTEGER = NO
+FUNCTION outside_battle_cure (atk as integer, target as integer, attacker as integer, spread as integer) as integer
+ DIM i as integer
+ DIM didcure as integer = NO
  IF spread = 0 THEN
   IF chkOOBtarg(target, atk) THEN oobcure attacker, target, atk, spread : didcure = YES
  ELSE
@@ -1405,27 +1452,27 @@ FUNCTION outside_battle_cure (atk AS INTEGER, target AS INTEGER, attacker AS INT
  RETURN didcure
 END FUNCTION
 
-SUB equip (who)
+SUB equip (byval who as integer)
 
 '--dim stuff
-DIM m(4) AS STRING, menu(6) AS STRING
-DIM page AS INTEGER = compatpage
-DIM holdscreen = allocatepage
-DIM st AS EquipMenuState
+DIM m(4) as STRING, menu(6) as STRING
+DIM page as integer = compatpage
+DIM holdscreen as integer = allocatepage
+DIM st as EquipMenuState
 
-DIM i AS INTEGER
-DIM tog AS INTEGER = 0
-DIM stat_caption AS STRING
-DIM col AS INTEGER
-DIM item_id AS INTEGER
+DIM i as integer
+DIM tog as integer = 0
+DIM stat_caption as STRING
+DIM col as integer
+DIM item_id as integer
 
 '--get names
-m(0) = readglobalstring$(38, "Weapon", 10)
+m(0) = readglobalstring(38, "Weapon", 10)
 FOR i = 0 TO 3
  m(i + 1) = readglobalstring(25 + i, "Armor" & i+1)
 NEXT i
-menu(5) = rpad(readglobalstring$(39, "-REMOVE-", 8), " ", 8)
-menu(6) = rpad(readglobalstring$(40, "-EXIT-", 8), " ", 8)
+menu(5) = rpad(readglobalstring(39, "-REMOVE-", 8), " ", 8)
+menu(6) = rpad(readglobalstring(40, "-EXIT-", 8), " ", 8)
 
 '--initialize
 WITH st
@@ -1434,7 +1481,7 @@ WITH st
  .eq_cursor.size = 17
  .default_weapon = 0
  .default_weapon_name = ""
- .unequip_caption = rpad(readglobalstring$(110, "Nothing", 10), " ", 11)
+ .unequip_caption = rpad(readglobalstring(110, "Nothing", 10), " ", 11)
 END WITH
 equip_menu_setup st, menu()
 
@@ -1490,7 +1537,7 @@ DO
    IF st.slot = 5 THEN
     MenuSound gen(genCancelSFX)
     '--unequip all
-    FOR i AS INTEGER = 0 TO 4
+    FOR i as integer = 0 TO 4
      unequip st.who, i, st.default_weapon, 1
     NEXT i
     equip_menu_setup st, menu()
@@ -1540,9 +1587,9 @@ DO
   IF st.stat_bonus(i) < 0 THEN col = uilook(uiDisabledItem)
   IF st.stat_bonus(i) > 0 THEN col = uilook(uiSelectedItem + tog)
   IF gen(genStatCap + i) > 0 THEN
-   stat_caption = STR$(small(gam.hero(st.who).stat.max.sta(i) + st.stat_bonus(i), gen(genStatCap + i)))
+   stat_caption = STR(small(gam.hero(st.who).stat.max.sta(i) + st.stat_bonus(i), gen(genStatCap + i)))
   ELSE
-   stat_caption = STR$(gam.hero(st.who).stat.max.sta(i) + st.stat_bonus(i))
+   stat_caption = STR(gam.hero(st.who).stat.max.sta(i) + st.stat_bonus(i))
   END IF
   edgeprint stat_caption, 148 - LEN(stat_caption) * 8, 42 + i * 10, col, page
  NEXT i
@@ -1597,31 +1644,31 @@ MenuSound gen(genCancelSFX)
 'tags handled in unequip, doequip
 END SUB
 
-SUB equip_menu_setup (BYREF st AS EquipMenuState, menu$())
+SUB equip_menu_setup (byref st as EquipMenuState, menu() as string)
  st.default_weapon = gam.hero(st.who).def_wep
  st.default_weapon_name = rpad(readitemname(st.default_weapon - 1), " ", 11)
  IF LEN(TRIM(st.default_weapon_name)) = 0 THEN
   st.default_weapon_name = st.unequip_caption
  END IF
 
- FOR i AS INTEGER = 0 TO 4
-  menu$(i) = "        "
+ FOR i as integer = 0 TO 4
+  menu(i) = "        "
   IF eqstuf(st.who, i) > 0 THEN
-   menu$(i) = rpad(readitemname(eqstuf(st.who, i) - 1), " ", 8)
+   menu(i) = rpad(readitemname(eqstuf(st.who, i) - 1), " ", 8)
   END IF
  NEXT i
  
  'erase the tables of equippables
- FOR i AS INTEGER = 0 TO 4
-  FOR j AS INTEGER = 0 TO last_inv_slot()
+ FOR i as integer = 0 TO 4
+  FOR j as integer = 0 TO last_inv_slot()
    st.eq(i).offset(j) = -1
   NEXT j
   st.eq(i).count = 0
  NEXT i
  
- DIM itembuf(dimbinsize(binITM)) AS INTEGER
- DIM eq_slot AS INTEGER = 0
- FOR i AS INTEGER = 0 TO last_inv_slot()
+ DIM itembuf(dimbinsize(binITM)) as integer
+ DIM eq_slot as integer = 0
+ FOR i as integer = 0 TO last_inv_slot()
   IF inventory(i).used THEN
    '--load item data
    loaditemdata itembuf(), inventory(i).id
@@ -1641,22 +1688,22 @@ SUB equip_menu_setup (BYREF st AS EquipMenuState, menu$())
 
 END SUB
 
-SUB equip_menu_do_equip(BYVAL item AS INTEGER, BYREF st AS EquipMenuState, menu$())
+SUB equip_menu_do_equip(byval item as integer, byref st as EquipMenuState, menu() as string)
  unequip st.who, st.slot, st.default_weapon, 0
  doequip item, st.who, st.slot, st.default_weapon
- equip_menu_back_to_menu st, menu$()
+ equip_menu_back_to_menu st, menu()
 END SUB
 
-SUB equip_menu_back_to_menu(BYREF st AS EquipMenuState, menu$())
+SUB equip_menu_back_to_menu(byref st as EquipMenuState, menu() as string)
  st.mode = 0
  flusharray st.stat_bonus()
- equip_menu_setup st, menu$()
+ equip_menu_setup st, menu()
 END SUB
 
-SUB equip_menu_stat_bonus(BYREF st AS EquipMenuState)
+SUB equip_menu_stat_bonus(byref st as EquipMenuState)
  '--load stat bonuses of currently hovered weapon for display
 
- DIM item AS INTEGER = 0 ' Will be set to item ID + 1
+ DIM item as integer = 0 ' Will be set to item ID + 1
 
  IF st.eq_cursor.pt = st.eq(st.slot).count THEN
   '--unequip
@@ -1673,25 +1720,25 @@ SUB equip_menu_stat_bonus(BYREF st AS EquipMenuState)
   item = inventory(st.eq(st.slot).offset(st.eq_cursor.pt)).id + 1
  END IF
 
- DIM itembuf(dimbinsize(binITM))
+ DIM itembuf(dimbinsize(binITM)) as integer
  IF item = 0 THEN
   '--nothing to load!
   flusharray st.stat_bonus()
  ELSE
   loaditemdata itembuf(), item - 1
-  FOR i AS INTEGER = 0 TO 11
+  FOR i as integer = 0 TO 11
    st.stat_bonus(i) = itembuf(54 + i)
   NEXT i
  END IF
 
  IF eqstuf(st.who, st.slot) > 0 THEN
   loaditemdata itembuf(), eqstuf(st.who, st.slot) - 1
-  FOR i AS INTEGER = 0 TO 11
+  FOR i as integer = 0 TO 11
    st.stat_bonus(i) = st.stat_bonus(i) - itembuf(54 + i)
   NEXT i
  END IF
 
- FOR i AS INTEGER = 0 to 11
+ FOR i as integer = 0 to 11
   'FIXME: This should take the current stats into account to decide
   'what the stat cap caps the bonus to
   IF gen(genStatCap + i) > 0 THEN st.stat_bonus(i) = small(st.stat_bonus(i), gen(genStatCap + i))
@@ -1700,7 +1747,7 @@ SUB equip_menu_stat_bonus(BYREF st AS EquipMenuState)
 END SUB
 
 FUNCTION items_menu () as integer
- DIM istate AS ItemsMenuState
+ DIM istate as ItemsMenuState
  WITH istate
   .trigger_box = -1
   .cursor = -3
@@ -1710,21 +1757,21 @@ FUNCTION items_menu () as integer
   .re_use = NO
  END WITH
 
- DIM itemtemp(dimbinsize(binITM)) AS INTEGER
- DIM iuse((inventoryMax + 3) / 16) AS INTEGER 'bit 0 of iuse, permask, correspond to item -3
- DIM permask((inventoryMax + 3) / 16) AS INTEGER
+ DIM itemtemp(dimbinsize(binITM)) as integer
+ DIM iuse((inventoryMax + 3) / 16) as integer 'bit 0 of iuse, permask, correspond to item -3
+ DIM permask((inventoryMax + 3) / 16) as integer
 
  istate.special(-3) = rpad(readglobalstring(35, "DONE", 10), " ", 11)
  istate.special(-2) = rpad(readglobalstring(36, "AUTOSORT", 10), " ", 11)
  istate.special(-1) = rpad(readglobalstring(37, "TRASH", 10), " ", 11)
 
  '--Preserve background for display beneath the item menu
- DIM holdscreen AS INTEGER
+ DIM holdscreen as integer
  istate.page = compatpage
  holdscreen = allocatepage
  copypage istate.page, holdscreen
 
- DIM i AS INTEGER
+ DIM i as integer
  
  FOR i = 0 TO 2
   setbit iuse(), 0, i, 1
@@ -1763,7 +1810,7 @@ FUNCTION items_menu () as integer
 
  items_menu_infostr istate, permask()
  
- DIM wtogl AS INTEGER = 0
+ DIM wtogl as integer = 0
  menusound gen(genAcceptSFX)
 
  setkeys
@@ -1808,10 +1855,10 @@ FUNCTION items_menu () as integer
  tag_updates
 END FUNCTION
 
-SUB items_menu_paint (istate AS ItemsMenuState, iuse() AS INTEGER, permask() AS INTEGER)
+SUB items_menu_paint (istate as ItemsMenuState, iuse() as integer, permask() as integer)
  edgeboxstyle istate.rect.x, istate.rect.y, istate.rect.wide, istate.rect.high, 0, istate.page
- DIM display AS STRING
- FOR i AS INTEGER = istate.top TO small(istate.top + 62, last_inv_slot())
+ DIM display as STRING
+ FOR i as integer = istate.top TO small(istate.top + 62, last_inv_slot())
   textcolor uilook(uiDisabledItem), 0
   IF readbit(iuse(), 0, 3 + i) = 1 THEN textcolor uilook(uiMenuItem), 0
   IF readbit(permask(), 0, 3 + i) THEN textcolor uilook(uiSelectedDisabled), 0
@@ -1840,7 +1887,7 @@ SUB items_menu_paint (istate AS ItemsMenuState, iuse() AS INTEGER, permask() AS 
  draw_scrollbar istate.scroll, istate.scrollrect, , istate.page
 END SUB
 
-SUB items_menu_infostr(istate AS ItemsMenuState, permask() AS INTEGER)
+SUB items_menu_infostr(istate as ItemsMenuState, permask() as integer)
  istate.info = ""
  IF istate.sel >= 0 AND istate.cursor = -1 THEN
   IF inventory(istate.sel).used THEN
@@ -1853,12 +1900,12 @@ SUB items_menu_infostr(istate AS ItemsMenuState, permask() AS INTEGER)
  istate.info = readitemdescription(inventory(istate.cursor).id)
 END SUB
 
-SUB items_menu_autosort(iuse() AS INTEGER, permask() AS INTEGER)
- DIM autosort_changed AS INTEGER = NO
+SUB items_menu_autosort(iuse() as integer, permask() as integer)
+ DIM autosort_changed as integer = NO
  'First sort all items to the top
- FOR i AS INTEGER = 0 TO last_inv_slot() - 1
+ FOR i as integer = 0 TO last_inv_slot() - 1
   IF inventory(i).used THEN CONTINUE FOR
-  FOR o AS INTEGER = i + 1 TO last_inv_slot()
+  FOR o as integer = i + 1 TO last_inv_slot()
    IF inventory(o).used THEN
     itemmenuswap inventory(), iuse(), permask(), i, o
     autosort_changed = YES
@@ -1870,8 +1917,8 @@ SUB items_menu_autosort(iuse() AS INTEGER, permask() AS INTEGER)
  IF gen(genAutosortScheme) = 0 THEN
   'Sorting by type: cache the sort order of the items, or the cost of repeatedly loading
   'item data might go out of control
-  DIM itemdata(dimbinsize(binITM)) AS INTEGER
-  FOR slot AS INTEGER = 0 TO last_inv_slot()
+  DIM itemdata(dimbinsize(binITM)) as integer
+  FOR slot as integer = 0 TO last_inv_slot()
    IF inventory(slot).used = NO THEN CONTINUE FOR
    loaditemdata itemdata(), inventory(slot).id
 
@@ -1899,10 +1946,10 @@ SUB items_menu_autosort(iuse() AS INTEGER, permask() AS INTEGER)
  END IF
 
  'Then sort by the autosort criterion (insertion sort)
- FOR i AS INTEGER = 0 TO last_inv_slot() - 1
+ FOR i as integer = 0 TO last_inv_slot() - 1
   IF inventory(i).used = NO THEN EXIT FOR
-  DIM best AS INTEGER = i
-  FOR o AS INTEGER = i TO last_inv_slot()
+  DIM best as integer = i
+  FOR o as integer = i TO last_inv_slot()
    IF inventory(o).used = NO THEN EXIT FOR
    SELECT CASE gen(genAutosortScheme)
     CASE 0 'type
@@ -1928,10 +1975,10 @@ SUB items_menu_autosort(iuse() AS INTEGER, permask() AS INTEGER)
  END IF
 END SUB
 
-SUB item_menu_use_item(BYVAL slot AS INTEGER, istate AS ItemsMenuState, iuse() AS INTEGER, permask() AS INTEGER)
+SUB item_menu_use_item(byval slot as integer, istate as ItemsMenuState, iuse() as integer, permask() as integer)
  IF inventory(slot).used = NO THEN EXIT SUB
 
- DIM consumed AS INTEGER = NO
+ DIM consumed as integer = NO
 
  '--repaint the item menu so it can be the background for the menu_attack_targ_picker
  items_menu_paint istate, iuse(), permask()
@@ -1944,7 +1991,7 @@ SUB item_menu_use_item(BYVAL slot AS INTEGER, istate AS ItemsMenuState, iuse() A
  END IF
 END SUB
 
-FUNCTION use_item_in_slot(BYVAL slot AS INTEGER, BYREF trigger_box AS INTEGER, BYREF consumed AS INTEGER) AS INTEGER
+FUNCTION use_item_in_slot(byval slot as integer, byref trigger_box as integer, byref consumed as integer) as integer
  '--slot is the index in your inventory
  
  '--trigger_box is used to communicate when an item has triggered a text box.
@@ -1956,12 +2003,12 @@ FUNCTION use_item_in_slot(BYVAL slot AS INTEGER, BYREF trigger_box AS INTEGER, B
  consumed = NO
  IF inventory(slot).used = NO THEN RETURN NO
 
- DIM itemdata(dimbinsize(binITM)) AS INTEGER
+ DIM itemdata(dimbinsize(binITM)) as integer
  loaditemdata itemdata(), inventory(slot).id
- DIM attack_name AS STRING = readbadbinstring(itemdata(), 0, 8, 0)
- DIM should_consume AS INTEGER = (itemdata(73) = 1)
- DIM attack_id AS INTEGER = itemdata(51) - 1
- DIM is_attack_item AS INTEGER = ( itemdata(51) > 0 ANDALSO NOT itemdata(50) > 0 )
+ DIM attack_name as STRING = readbadbinstring(itemdata(), 0, 8, 0)
+ DIM should_consume as integer = (itemdata(73) = 1)
+ DIM attack_id as integer = itemdata(51) - 1
+ DIM is_attack_item as integer = ( itemdata(51) > 0 ANDALSO NOT itemdata(50) > 0 )
 
  IF use_item_by_id(inventory(slot).id, trigger_box, inventory(slot).text) THEN
   IF should_consume THEN
@@ -1979,7 +2026,7 @@ FUNCTION use_item_in_slot(BYVAL slot AS INTEGER, BYREF trigger_box AS INTEGER, B
  RETURN NO
 END FUNCTION
 
-FUNCTION use_item_by_id(BYVAL item_id AS INTEGER, BYREF trigger_box AS INTEGER, name_override AS STRING="") AS INTEGER
+FUNCTION use_item_by_id(byval item_id as integer, byref trigger_box as integer, name_override as STRING="") as integer
  '--item_id is the actual ID number, not offset.
 
  '--trigger_box communicates the box id if this item triggerd a text box.
@@ -1998,10 +2045,10 @@ FUNCTION use_item_by_id(BYVAL item_id AS INTEGER, BYREF trigger_box AS INTEGER, 
  '--This sub does not care if you actually own the item in question,
  '   nor will it consume items from your inventory even if the item is a consuming item.
  
- DIM itemdata(dimbinsize(binITM)) AS INTEGER
+ DIM itemdata(dimbinsize(binITM)) as integer
  loaditemdata itemdata(), item_id
 
- DIM caption AS STRING
+ DIM caption as STRING
  IF name_override <> "" THEN
   caption = name_override
  ELSE
@@ -2034,34 +2081,34 @@ FUNCTION use_item_by_id(BYVAL item_id AS INTEGER, BYREF trigger_box AS INTEGER, 
  RETURN NO
 END FUNCTION
 
-FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS INTEGER, use_caption AS STRING, BYVAL x_offset AS INTEGER=0, BYVAL really_use_attack AS INTEGER=YES) AS INTEGER
+FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as integer, use_caption as STRING, byval x_offset as integer=0, byval really_use_attack as integer=YES) as integer
  'Returns true if the attack/spell was actually used/learned
  
  'FIXME: x_offset should probably go away in favor of a slice template at some point in the future
  
  menu_attack_targ_picker = NO
 
- STATIC targ AS INTEGER
- STATIC spread AS INTEGER
+ STATIC targ as integer
+ STATIC spread as integer
 
  '--Preserve background for display beneath the targ picker menu
- DIM page AS INTEGER
+ DIM page as integer
  page = compatpage
- DIM holdscreen AS INTEGER
+ DIM holdscreen as integer
  holdscreen = allocatepage
  copypage page, holdscreen
 
- DIM cater AS INTEGER
- DIM walk AS INTEGER
- DIM wtogl AS INTEGER
- DIM tog AS INTEGER
- DIM col AS INTEGER
- DIM atk AS AttackData
- DIM learn_attack AS AttackData
- DIM caption AS STRING
- DIM check_consume AS INTEGER = NO
- DIM allow_spread AS INTEGER = NO
- DIM must_spread AS INTEGER = NO
+ DIM cater as integer
+ DIM walk as integer
+ DIM wtogl as integer
+ DIM tog as integer
+ DIM col as integer
+ DIM atk as AttackData
+ DIM learn_attack as AttackData
+ DIM caption as STRING
+ DIM check_consume as integer = NO
+ DIM allow_spread as integer = NO
+ DIM must_spread as integer = NO
  
  IF attack_id >= 0 THEN
   loadattackdata atk, attack_id
@@ -2076,7 +2123,7 @@ FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS I
  '--make sure the default target is okay
  IF chkOOBtarg(targ, attack_id) = NO THEN
   targ = -1
-  FOR i AS INTEGER = 0 TO 3
+  FOR i as integer = 0 TO 3
    IF chkOOBtarg(i, attack_id) THEN
     targ = i
     EXIT FOR
@@ -2088,7 +2135,7 @@ FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS I
   IF spread > 0 THEN
    '--if a spread target was previously recorded, update it
    spread = 0
-   FOR i AS INTEGER = 0 TO 3
+   FOR i as integer = 0 TO 3
     IF chkOOBtarg(i, attack_id) THEN spread += 1
    NEXT i
   END IF
@@ -2098,7 +2145,7 @@ FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS I
 
  IF must_spread THEN
   spread = 0
-  FOR i AS INTEGER = 0 TO 3
+  FOR i as integer = 0 TO 3
    IF chkOOBtarg(i, attack_id) THEN spread += 1
   NEXT i
  END IF
@@ -2132,7 +2179,7 @@ FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS I
    IF carray(ccLeft) > 1 OR carray(ccRight) > 1 THEN
     MenuSound gen(genCursorSFX)
     IF spread = 0 THEN
-     FOR i AS INTEGER = 0 TO 3
+     FOR i as integer = 0 TO 3
       IF chkOOBtarg(i, attack_id) THEN spread += 1
      NEXT i
     ELSE
@@ -2183,7 +2230,7 @@ FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS I
    rectangle 84 + x_offset, 8, 152, 80, uilook(uiHighlight2 * tog), page
   END IF
   cater = 0
-  FOR i AS INTEGER = 0 TO 3
+  FOR i as integer = 0 TO 3
    IF hero(i) > 0 THEN
     walk = 0
     IF targ = i THEN walk = INT(wtogl / 2)
@@ -2217,7 +2264,7 @@ FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS I
  freepage holdscreen
 END FUNCTION
 
-SUB items_menu_control (istate AS ItemsMenuState, iuse() AS INTEGER, permask() AS INTEGER)
+SUB items_menu_control (istate as ItemsMenuState, iuse() as integer, permask() as integer)
  istate.refresh = NO
  IF istate.re_use THEN
   istate.re_use = NO
@@ -2322,13 +2369,13 @@ SUB items_menu_control (istate AS ItemsMenuState, iuse() AS INTEGER, permask() A
  END IF
 END SUB
 
-SUB spells_menu_refresh_list(sp AS SpellsMenuState)
+SUB spells_menu_refresh_list(sp as SpellsMenuState)
  IF sp.lists(sp.listnum).magic_type < 0 THEN EXIT SUB
  
- DIM atk AS AttackData
- DIM cost AS INTEGER
+ DIM atk as AttackData
+ DIM cost as integer
  
- FOR i AS INTEGER = 0 TO 23
+ FOR i as integer = 0 TO 23
   WITH sp.spell(i)
    .name = ""
    .desc = ""
@@ -2373,12 +2420,12 @@ SUB spells_menu_refresh_list(sp AS SpellsMenuState)
  NEXT i
 END SUB
 
-SUB spells_menu_refresh_hero(sp AS SpellsMenuState)
- DIM her AS HeroDef
+SUB spells_menu_refresh_hero(sp as SpellsMenuState)
+ DIM her as HeroDef
  loadherodata @her, hero(sp.hero) - 1 'hero() is a global
  
  '--first blank out lists
- FOR i AS INTEGER = 0 TO UBOUND(sp.lists)
+ FOR i as integer = 0 TO UBOUND(sp.lists)
   WITH sp.lists(i)
    .magic_type = -1
    .menu_index = -1
@@ -2386,10 +2433,10 @@ SUB spells_menu_refresh_hero(sp AS SpellsMenuState)
   END WITH
  NEXT i
 
- DIM bmenu_id AS INTEGER
- DIM slot AS INTEGER = 0
+ DIM bmenu_id as integer
+ DIM slot as integer = 0
  '--loop through the battle menu looking for valid lists
- FOR i AS INTEGER = 0 TO UBOUND(bmenu, 2)
+ FOR i as integer = 0 TO UBOUND(bmenu, 2)
   bmenu_id = bmenu(sp.hero, i)
   IF bmenu_id < 0 AND bmenu_id > -10 THEN
    'Positive numbers in bmenu() are attacks (from weapon)
@@ -2427,7 +2474,7 @@ SUB spells_menu_refresh_hero(sp AS SpellsMenuState)
  spells_menu_refresh_list sp
 END SUB
 
-SUB spells_menu_control(sp AS SpellsMenuState)
+SUB spells_menu_control(sp as SpellsMenuState)
  IF sp.mset = 0 THEN '--picking which spell list
   IF carray(ccMenu) > 1 THEN sp.quit = YES : EXIT SUB
   IF carray(ccLeft) > 1 THEN
@@ -2503,7 +2550,7 @@ SUB spells_menu_control(sp AS SpellsMenuState)
    IF sp.spell(sp.cursor).can_use > 0 THEN
     '--spell that can be used oob
     
-    DIM atk AS AttackData
+    DIM atk as AttackData
     loadattackdata atk, sp.spell(sp.cursor).id
     '--NOTE: atkallowed isn't needed here because the check is done elswehere...
     '--still, it would be nice if we could use it anyway...
@@ -2515,7 +2562,7 @@ SUB spells_menu_control(sp AS SpellsMenuState)
      '--attack was actually used
      'FIXME: outside-battle and inside-battle attack cost consumption should be unified
      '--deduct MP
-     DIM cost AS INTEGER
+     DIM cost as integer
      cost = focuscost(atk.mp_cost, gam.hero(sp.hero).stat.cur.foc)
      gam.hero(sp.hero).stat.cur.mp = small(large(gam.hero(sp.hero).stat.cur.mp - cost, 0), gam.hero(sp.hero).stat.max.mp)
      IF sp.lists(sp.listnum).magic_type = 1 THEN
@@ -2534,9 +2581,9 @@ SUB spells_menu_control(sp AS SpellsMenuState)
  END IF
 END SUB
 
-SUB spells_menu (who AS INTEGER)
+SUB spells_menu (who as integer)
 
- DIM sp AS SpellsMenuState
+ DIM sp as SpellsMenuState
  sp.hero = who
  sp.listnum = 0
 
@@ -2546,11 +2593,11 @@ SUB spells_menu (who AS INTEGER)
  spells_menu_refresh_hero sp
  '--Preserve background for display beneath the spells menu
  sp.page = compatpage
- DIM holdscreen AS INTEGER = allocatepage
+ DIM holdscreen as integer = allocatepage
  copypage sp.page, holdscreen
 
  menusound gen(genAcceptSFX)
- DIM wtogl AS INTEGER = 0
+ DIM wtogl as integer = 0
  setkeys
  DO
   setwait speedcontrol
@@ -2581,14 +2628,14 @@ SUB spells_menu (who AS INTEGER)
  tag_updates
 END SUB
 
-SUB spells_menu_paint (BYREF sp AS SpellsMenuState)
+SUB spells_menu_paint (byref sp as SpellsMenuState)
  centerfuz 160, 100, 312, 184, 1, sp.page 'outer box
  centerbox 206, 36, 200, 17, 2, sp.page   'name box
  centerbox 56, 50, 84, 60, 2, sp.page     'spell lists menu box
  centerbox 160, 134, 308, 96, 2, sp.page  'spell list
  rectangle 6, 168, 308, 1, uilook(uiTextBox + 3), sp.page 'divider 2
  'top menu (spell lists)
- FOR i AS INTEGER = 0 TO sp.last
+ FOR i as integer = 0 TO sp.last
   textcolor uilook(uiMenuItem), 0
   IF sp.listnum = i THEN textcolor uilook(uiSelectedItem + sp.tog), uilook(uiHighlight2): IF sp.mset = 1 THEN textcolor uilook(uiMenuItem), uilook(uiHighlight2)
   printstr sp.lists(i).name, 16, 25 + i * 10, sp.page 'spell menu
@@ -2596,7 +2643,7 @@ SUB spells_menu_paint (BYREF sp AS SpellsMenuState)
 
  'bottom menu (spells in spell list)
  IF sp.lists(sp.listnum).menu_index >= 0 THEN
-  FOR o AS INTEGER = 0 TO 23
+  FOR o as integer = 0 TO 23
   'Note: this will give yellow when .can_use is -1 (is it ever?), orig would give blue
    textcolor uilook(uiDisabledItem - SGN(sp.spell(o).can_use)), 0
    IF sp.cursor = o AND sp.mset = 1 THEN
