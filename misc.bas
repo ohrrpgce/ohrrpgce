@@ -161,7 +161,7 @@ sub display_help_string(help as string)
 	SYSTEM        ' terminate the program
 end sub
 
-FUNCTION ReadShort(fh as integer,p as long=-1) as short
+FUNCTION ReadShort(byval fh as integer, byval p as long=-1) as short
 	DIM ret as short
 	IF p = -1 THEN
 		GET #fh,,ret
@@ -171,7 +171,7 @@ FUNCTION ReadShort(fh as integer,p as long=-1) as short
 	return ret
 END FUNCTION
 
-FUNCTION ReadShort(filename as string, p as integer) as short
+FUNCTION ReadShort(filename as string, byval p as integer) as short
 	DIM ret as short
 	DIM fh as integer
 	fh = FREEFILE
@@ -181,7 +181,7 @@ FUNCTION ReadShort(filename as string, p as integer) as short
 	return ret
 END FUNCTION
 
-FUNCTION ReadByte(fh as integer,p as long=-1) as ubyte
+FUNCTION ReadByte(byval fh as integer, byval p as long=-1) as ubyte
 	DIM ret as ubyte
 	IF p = -1 THEN
 		GET #fh,,ret
@@ -191,11 +191,11 @@ FUNCTION ReadByte(fh as integer,p as long=-1) as ubyte
 	return ret
 END FUNCTION
 
-Sub WriteShort(fh as integer,p as long, v as integer)
+Sub WriteShort(byval fh as integer, byval p as long, byval v as integer)
 	WriteShort(fh,p,cshort(v))
 END SUB
 
-Sub WriteShort(fh as integer,p as long, v as short)
+Sub WriteShort(byval fh as integer, byval p as long, byval v as short)
 	IF p = -1 THEN
 		PUT #fh,,v
 	ELSEIF p >= 0 THEN
@@ -203,7 +203,7 @@ Sub WriteShort(fh as integer,p as long, v as short)
 	END IF
 END SUB
 
-Sub WriteShort(filename as string, p as integer, v as integer)
+Sub WriteShort(filename as string, byval p as integer, byval v as integer)
 	DIM fh as integer
 	fh = FREEFILE
 	OPEN filename FOR BINARY AS #fh
@@ -211,7 +211,7 @@ Sub WriteShort(filename as string, p as integer, v as integer)
 	CLOSE #fh
 END SUB
 
-Sub WriteByte(fh as integer,v as ubyte, p as long=-1)
+Sub WriteByte(byval fh as integer, byval v as ubyte, byval p as long=-1)
 	IF p = -1 THEN
 		PUT #fh,,v
 	ELSEIF p >= 0 THEN
@@ -219,44 +219,44 @@ Sub WriteByte(fh as integer,v as ubyte, p as long=-1)
 	END IF
 END SUB
 
-Function ReadVStr(fh as integer, le as integer) as string
-	dim l as short, ret as string, c as short, i as integer
-	l = readshort(fh)
+Function ReadVStr(byval fh as integer, byval maxlen as integer) as string
+	dim length as short, ret as string, c as short, i as integer
+	length = readshort(fh)
 	
-	for i = 0 to le - 1
+	for i = 0 to maxlen - 1
 		c = readshort(fh)
-		if i < l then ret = ret & chr(c AND 255)
+		if i < length then ret &= chr(c AND 255)
 	next
 	
 	return ret
 end function
 
-Sub WriteVStr(fh as integer, le as integer, s as string)
+Sub WriteVStr(byval fh as integer, byval maxlen as integer, s as string)
 	dim i as integer
-	writeshort(fh, -1, small(le, len(s)))
+	writeshort(fh, -1, small(maxlen, len(s)))
 	
-	for i = 0 to le - 1
+	for i = 0 to maxlen - 1
 		if i < len(s) then writeshort(fh, -1, cint(s[i])) else writeshort(fh, -1, 0)
 	next
 end sub
 
-Function ReadByteStr(fh as integer, le as integer) as string
-	dim l as short, ret as string, c as ubyte, i as integer
-	l = readshort(fh)
+Function ReadByteStr(byval fh as integer, byval maxlen as integer) as string
+	dim length as short, ret as string, c as ubyte, i as integer
+	length = readshort(fh)
 	
-	for i = 0 to le - 1
+	for i = 0 to maxlen - 1
 		c = readbyte(fh)
-		if i < l then ret = ret & chr(c)
+		if i < length then ret = ret & chr(c)
 	next
 	
 	return ret
 end function
 
-Sub WriteByteStr(fh as integer, le as integer, s as string)
+Sub WriteByteStr(byval fh as integer, byval maxlen as integer, s as string)
 	dim i as integer
-	writeshort(fh, -1, small(le, len(s)))
+	writeshort(fh, -1, small(maxlen, len(s)))
 	
-	for i = 0 to le - 1
+	for i = 0 to maxlen - 1
 		if i < len(s) then writebyte(fh, cubyte(s[i])) else writebyte(fh, 0)
 	next
 end sub

@@ -4,11 +4,13 @@
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
 
-'FIXME: This module compiles with lang fb, but will not link yet
-'#lang "fb"
-
-'DEFINT A-Z
-OPTION EXPLICIT
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
+#endif
 
 #include "config.bi"
 #include "ver.txt"
@@ -471,7 +473,6 @@ IF err_suppress_lvl = 0 THEN err_suppress_lvl = bound(gen(genErrorLevel) - 1, 0,
 nowscript = -1
 numloadedscr = 0
 totalscrmem = 0
-DIM depth as integer = 0
 resetinterpreter
 'the old stack used only inbattle
 releasestack

@@ -25,8 +25,8 @@ DECLARE FUNCTION titlescr as integer
 DECLARE SUB reloadnpc ()
 DECLARE FUNCTION mapstatetemp(mapnum as integer, prefix as string) as string
 DECLARE SUB savemapstate_gmap(mapnum as integer, prefix as string)
-DECLARE SUB savemapstate_npcl OVERLOAD (mapnum as integer, prefix as string)
-DECLARE SUB savemapstate_npcl OVERLOAD (BYVAL node AS Reload.NodePtr)
+DECLARE SUB savemapstate_npcl OVERLOAD (byval mapnum as integer, prefix as string)
+'DECLARE SUB savemapstate_npcl OVERLOAD (byval node AS Reload.NodePtr)   'where did this come from?
 DECLARE SUB savemapstate_npcd(mapnum as integer, prefix as string)
 DECLARE SUB savemapstate_tilemap(mapnum as integer, prefix as string)
 DECLARE SUB savemapstate_passmap(mapnum as integer, prefix as string)

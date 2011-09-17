@@ -256,7 +256,7 @@ end function
 'handled transparently by the Lump object rather than actually occurring
 
 
-function loadrecord (buf() as integer, fh as integer, recordsize as integer, record as integer = -1) as integer
+function loadrecord (buf() as integer, byval fh as integer, byval recordsize as integer, byval record as integer = -1) as integer
 'common sense alternative to loadset, setpicstuf
 'loads 16bit records in an array
 'buf() = buffer to load shorts into, starting at buf(0)
@@ -283,7 +283,7 @@ function loadrecord (buf() as integer, fh as integer, recordsize as integer, rec
 	loadrecord = 1
 end function
 
-function loadrecord (buf() as integer, filen as string, recordsize as integer, record as integer = 0, expectfile as integer = YES) as integer
+function loadrecord (buf() as integer, filen as string, byval recordsize as integer, byval record as integer = 0, byval expectfile as integer = YES) as integer
 'wrapper for above
 'set expectfile = NO to suppress errors
 	dim f as integer

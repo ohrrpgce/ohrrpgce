@@ -3,10 +3,13 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 
-'#lang "fb"
-
-'!$DYNAMIC
-DEFINT A-Z
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
+#endif
 
 #include "config.bi"
 #include "bmod.bi"
@@ -308,23 +311,23 @@ Function GetHeroPos(h as integer, f as integer, isY as integer) as integer'or x?
  CLOSE #FH
 End Function
 
-FUNCTION inflict (w as integer, t as integer, byref attacker as BattleSprite, byref target as BattleSprite, attack as AttackData, tcount as integer, byval hit_dead as integer=NO) as integer
+FUNCTION inflict (byval attackerslot as integer, byval targetslot as integer, byref attacker as BattleSprite, byref target as BattleSprite, attack as AttackData, byval tcount as integer, byval hit_dead as integer=NO) as integer
  'This overload is for when you want the luxury of not caring which stat was damaged, or by how much.
  DIM h as integer = 0
  DIM targstat as integer = 0
- RETURN inflict(h, targstat, w, t, attacker, target, attack, tcount, hit_dead)
+ RETURN inflict(h, targstat, attackerslot, targetslot, attacker, target, attack, tcount, hit_dead)
 END FUNCTION
 
-FUNCTION inflict (byref h as integer, byref targstat as integer, w as integer, t as integer, byref attacker as BattleSprite, byref target as BattleSprite, attack as AttackData, tcount as integer, byval hit_dead as integer=NO) as integer
+FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackerslot as integer, byval targetslot as integer, byref attacker as BattleSprite, byref target as BattleSprite, attack as AttackData, byval tcount as integer, byval hit_dead as integer=NO) as integer
  
  attacker.attack_succeeded = 0
  
  'remember this target
- attacker.last_targs(t) = YES
+ attacker.last_targs(targetslot) = YES
  
  'stored targs
  IF attack.store_targ THEN
-  attacker.stored_targs(t) = YES
+  attacker.stored_targs(targetslot) = YES
   attacker.stored_targs_can_be_dead = hit_dead
  END IF
  IF attack.delete_stored_targ THEN
@@ -594,16 +597,16 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, w as integer, t
  
   'remember revenge data
   IF remtargstat > target.stat.cur.sta(targstat) THEN
-   target.revengemask(w) = YES
-   target.revenge = w
+   target.revengemask(attackerslot) = YES
+   target.revenge = attackerslot
    target.revengeharm = remtargstat - target.stat.cur.sta(targstat)
    attacker.repeatharm = remtargstat - target.stat.cur.sta(targstat)
   END IF
  
   'remember thankvenge data
   IF remtargstat < target.stat.cur.sta(targstat) THEN
-   target.thankvengemask(w) = YES
-   target.thankvenge = w
+   target.thankvengemask(attackerslot) = YES
+   target.thankvenge = attackerslot
    target.thankvengecure = ABS(remtargstat - target.stat.cur.sta(targstat))
   END IF
  
@@ -1276,13 +1279,13 @@ SUB anim_retreat (who as integer, attack as AttackData, bslot() as BattleSprite)
  END IF
 END SUB
 
-FUNCTION attack_can_hit_dead(who as integer, atk_id as integer, stored_targs_can_be_dead as integer=NO) as integer
+FUNCTION attack_can_hit_dead(byval who as integer, byval atk_id as integer, byval stored_targs_can_be_dead as integer=NO) as integer
  DIM attack as AttackData
  loadattackdata attack, atk_id
  RETURN attack_can_hit_dead(who, attack, stored_targs_can_be_dead)
 END FUNCTION
 
-FUNCTION attack_can_hit_dead(who as integer, attack as AttackData, stored_targs_can_be_dead as integer=NO) as integer
+FUNCTION attack_can_hit_dead(byval who as integer, attack as AttackData, byval stored_targs_can_be_dead as integer=NO) as integer
 
  SELECT CASE attack.targ_class
   CASE 4 'ally-including-dead (hero only)

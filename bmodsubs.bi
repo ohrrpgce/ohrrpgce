@@ -25,8 +25,8 @@ declare sub anim_enemy (who as integer, attack as AttackData, bslot() as BattleS
 declare function getweaponpos(w as integer,f as integer,isy as integer) as integer'or x?
 declare function getheropos(h as integer,f as integer,isy as integer) as integer'or x?
 declare sub anim_hero (who as integer, attack as AttackData, bslot() as BattleSprite, t() as integer)
-declare function inflict OVERLOAD (w as integer, t as integer, byref attacker as BattleSprite, byref target as BattleSprite, attack as AttackData, tcount as integer, byval hit_dead as integer=NO) as integer
-declare function inflict OVERLOAD (byref h as integer, byref targstat as integer, w as integer, t as integer, byref attacker as BattleSprite, byref target as BattleSprite, attack as AttackData, tcount as integer, byval hit_dead as integer=NO) as integer
+declare function inflict OVERLOAD (byval attackerslot as integer, byval targetslot as integer, byref attacker as BattleSprite, byref target as BattleSprite, attack as AttackData, byval tcount as integer, byval hit_dead as integer=NO) as integer
+declare function inflict OVERLOAD (byref h as integer, byref targstat as integer, byval attackerslot as integer, byval targetslot as integer, byref attacker as BattleSprite, byref target as BattleSprite, attack as AttackData, byval tcount as integer, byval hit_dead as integer=NO) as integer
 declare function liveherocount overload (bslot() as BattleSprite) as integer
 declare function liveherocount () as integer
 declare sub loadfoe (slot as integer, formdata() as integer, byref bat as BattleState, bslot() as BattleSprite, allow_dead as integer = NO)
@@ -53,8 +53,8 @@ declare function visibleandalive (o as integer, bslot() as battlesprite) as inte
 declare sub writestats (bslot() as BattleSprite)
 
 declare sub get_valid_targs (tmask() as integer, byval who as integer, byref atk as AttackData, bslot() as BattleSprite)
-declare function attack_can_hit_dead OVERLOAD (who as integer, atk_id as integer, stored_targs_can_be_dead as integer=NO) as integer
-declare function attack_can_hit_dead OVERLOAD (who as integer, attack as AttackData, stored_targs_can_be_dead as integer=NO) as integer
+declare function attack_can_hit_dead OVERLOAD (byval who as integer, byval atk_id as integer, byval stored_targs_can_be_dead as integer=NO) as integer
+declare function attack_can_hit_dead OVERLOAD (byval who as integer, attack as AttackData, byval stored_targs_can_be_dead as integer=NO) as integer
 declare sub autotarget OVERLOAD (byval who as integer, byval atk_id as integer, bslot() as BattleSprite, t() as integer, byval queue as integer=YES, byval override_blocking as integer=-2, byval dont_retarget as integer=NO)
 declare sub autotarget OVERLOAD (byval who as integer, byref atk as AttackData, bslot() as BattleSprite, t() as integer, byval queue as integer=YES, byval override_blocking as integer=-2, byval dont_retarget as integer=NO)
 

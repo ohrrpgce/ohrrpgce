@@ -4206,6 +4206,7 @@ SUB getelementnames(elmtnames() AS STRING)
  NEXT i
 END SUB
 
+'See WriteByteStr for the straight-to-file version
 SUB writebinstring (savestr AS STRING, array() AS INTEGER, offset AS INTEGER, maxlen AS INTEGER)
  DIM s AS STRING
 
@@ -4238,6 +4239,7 @@ SUB writebinstring (savestr AS STRING, array() AS SHORT, offset AS INTEGER, maxl
  memcpy(@array(offset + 1), @s[0], maxlen)
 END SUB
 
+'See WriteVStr for the straight-to-file version
 SUB writebadbinstring (savestr AS STRING, array() AS INTEGER, offset AS INTEGER, maxlen AS INTEGER, skipword AS INTEGER=0)
  '--write current length
  array(offset) = small(LEN(savestr), maxlen)
@@ -4254,6 +4256,7 @@ SUB writebadbinstring (savestr AS STRING, array() AS INTEGER, offset AS INTEGER,
 
 END SUB
 
+'See ReadByteStr for the straight-from-file version
 FUNCTION readbinstring (array() AS INTEGER, offset AS INTEGER, maxlen AS INTEGER) AS STRING
 
  DIM result AS STRING = ""
@@ -4280,6 +4283,7 @@ FUNCTION readbinstring (array() AS INTEGER, offset AS INTEGER, maxlen AS INTEGER
  RETURN result
 END FUNCTION
 
+'See ReadByteStr for the straight-from-file version
 FUNCTION readbinstring (array() AS SHORT, offset AS INTEGER, maxlen AS INTEGER) AS STRING
  DIM stringlen AS INTEGER = bound(array(offset), 0, maxlen)
  DIM result AS STRING = STRING(stringlen, 0)
@@ -4287,6 +4291,7 @@ FUNCTION readbinstring (array() AS SHORT, offset AS INTEGER, maxlen AS INTEGER) 
  RETURN result
 END FUNCTION
 
+'See ReadVStr for the straight-from-file version
 FUNCTION readbadbinstring (array() AS INTEGER, offset AS INTEGER, maxlen AS INTEGER, skipword AS INTEGER=0) AS STRING
  DIM result AS STRING = ""
  DIM stringlen AS INTEGER = bound(array(offset), 0, maxlen)

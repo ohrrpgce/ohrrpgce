@@ -470,7 +470,7 @@ SUB savemapstate_gmap(mapnum, prefix$)
  CLOSE #fh
 END SUB
 
-SUB savemapstate_npcl(mapnum, prefix$)
+SUB savemapstate_npcl(byval mapnum as integer, prefix as string)
  DIM filename AS STRING
  filename = mapstatetemp$(mapnum, prefix$) + "_l.reld.tmp"
  save_npc_locations filename, npc()

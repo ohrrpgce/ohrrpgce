@@ -87,10 +87,10 @@ declare Sub SerHeroDef(filename as string, hero as herodef ptr, record as intege
 declare sub loadherodata (hero as herodef ptr, index as integer)
 declare sub saveherodata (hero as herodef ptr, index as integer)
 
-declare Sub LoadVehicle OVERLOAD (file AS STRING, vehicle AS VehicleData, record AS INTEGER)
-declare Sub LoadVehicle OVERLOAD (file AS STRING, veh() as integer, vehname as string, record AS INTEGER)
-declare Sub SaveVehicle OVERLOAD (file AS STRING, veh() as integer, vehname as string, record AS INTEGER)
-declare Sub SaveVehicle OVERLOAD (file AS STRING, vehicle AS VehicleData, record AS INTEGER)
+declare Sub LoadVehicle OVERLOAD (file AS STRING, vehicle AS VehicleData, BYVAL record AS INTEGER)
+declare Sub LoadVehicle OVERLOAD (file AS STRING, veh() as integer, vehname as string, BYVAL record AS INTEGER)
+declare Sub SaveVehicle OVERLOAD (file AS STRING, veh() as integer, vehname as string, BYVAL record AS INTEGER)
+declare Sub SaveVehicle OVERLOAD (file AS STRING, vehicle AS VehicleData, BYVAL record AS INTEGER)
 declare Sub ClearVehicle (vehicle AS VehicleData)
 
 declare Sub SaveUIColors (colarray() AS INTEGER, palnum AS INTEGER)
@@ -130,10 +130,10 @@ DECLARE FUNCTION backcompat_element_dmg (BYVAL weak as integer, BYVAL strong as 
 DECLARE FUNCTION loadoldenemyresist (array() AS INTEGER, BYVAL element AS INTEGER) AS SINGLE
 DECLARE SUB clearenemydata OVERLOAD (enemy AS EnemyDef)
 DECLARE SUB clearenemydata OVERLOAD (buf() AS INTEGER)
-DECLARE SUB loadenemydata OVERLOAD (array() as integer, index as integer, altfile as integer = 0)
-DECLARE SUB loadenemydata OVERLOAD (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
-DECLARE SUB saveenemydata OVERLOAD (array() as integer, index as integer, altfile as integer = 0)
-DECLARE SUB saveenemydata OVERLOAD (enemy AS EnemyDef, index as integer, altfile as integer = 0)
+DECLARE SUB loadenemydata OVERLOAD (array() as integer, BYVAL index as integer, BYVAL altfile as integer = 0)
+DECLARE SUB loadenemydata OVERLOAD (enemy AS EnemyDef, BYVAL index AS INTEGER, BYVAL altfile AS INTEGER = 0)
+DECLARE SUB saveenemydata OVERLOAD (array() as integer, BYVAL index as integer, BYVAL altfile as integer = 0)
+DECLARE SUB saveenemydata OVERLOAD (enemy AS EnemyDef, BYVAL index as integer, BYVAL altfile as integer = 0)
 
 DECLARE SUB save_string_list(array() AS STRING, filename AS STRING)
 DECLARE SUB load_string_list(array() AS STRING, filename AS STRING)

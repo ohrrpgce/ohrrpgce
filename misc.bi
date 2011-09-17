@@ -41,17 +41,17 @@ DECLARE SUB getdefaultfont (font() as integer)
 DECLARE SUB crashexplain ()
 DECLARE function with_orig_path(dir_name as string, add_slash as integer=0) as string
 declare sub processcommandline()
-DECLARE FUNCTION ReadShort overload (fh as integer,p as long=-1) as short
-DECLARE FUNCTION ReadShort overload (filename as string, p as integer) as short
-DECLARE Sub WriteShort overload (fh as integer,p as long, v as integer)
-DECLARE Sub WriteShort overload (fh as integer,p as long, v as short)
-DECLARE Sub WriteShort overload (filename as string, p as integer, v as integer)
-DECLARE FUNCTION ReadVStr(fh as integer, le as integer) as string
-DECLARE Sub WriteVStr(fh as integer, le as integer, s as string)
-DECLARE SUB WriteByte(fh as integer,v as ubyte, p as long=-1)
-DECLARE FUNCTION ReadByte(fh as integer,p as long=-1) as ubyte
-DECLARE SUB WriteByteStr(fh as integer, le as integer, s as string)
-DECLARE FUNCTION ReadByteStr(fh as integer, le as integer) as string
+DECLARE FUNCTION ReadShort overload (byval fh as integer, byval p as long=-1) as short
+DECLARE FUNCTION ReadShort overload (filename as string, byval p as integer) as short
+DECLARE Sub WriteShort overload (byval fh as integer, byval p as long, byval v as integer)
+DECLARE Sub WriteShort overload (byval fh as integer, byval p as long, byval v as short)
+DECLARE Sub WriteShort overload (filename as string, byval p as integer, byval v as integer)
+DECLARE FUNCTION ReadVStr(byval fh as integer, byval maxlen as integer) as string
+DECLARE Sub WriteVStr(byval fh as integer, byval maxlen as integer, s as string)
+DECLARE SUB WriteByte(byval fh as integer, byval v as ubyte, byval p as long=-1)
+DECLARE FUNCTION ReadByte(byval fh as integer, byval p as long=-1) as ubyte
+DECLARE SUB WriteByteStr(byval fh as integer, byval maxlen as integer, s as string)
+DECLARE FUNCTION ReadByteStr(byval fh as integer, byval maxlen as integer) as string
 
 'not really a global: just an empty string, since you can't specify zstring ptr default arguments directly
 EXTERN nulzstr as zstring ptr

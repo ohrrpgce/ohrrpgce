@@ -37,6 +37,9 @@ else:
 if 'gengcc' in ARGUMENTS:
     FBFLAGS += ["-gen", "gcc"]
 
+if 'langfb' in ARGUMENTS:
+    FBFLAGS += ["-d", "TRY_LANG_FB"]
+
 linkgcc = int (ARGUMENTS.get ('linkgcc', win32))
 
 environ = os.environ
@@ -391,6 +394,7 @@ Experimental options:
   raster=1            Include new graphics API and rasterizer.
   gengcc=1            Compile using GCC emitter.
   linkgcc=1           Link using g++ instead of fbc.
+  langfb=1            Compiles certain source files using the "fb" dialect
 
 Targets:
   """ + gamename + """ (or game)

@@ -3,11 +3,13 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 
-'#lang "fb"
-
-'$DYNAMIC
-DEFINT A-Z
-OPTION EXPLICIT
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION DYNAMIC
+ OPTION EXPLICIT
+#endif
 
 #include "config.bi"
 #include "allmodex.bi"

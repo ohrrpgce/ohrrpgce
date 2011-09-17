@@ -3,10 +3,13 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 
-'#lang "fb"
-
-'$DYNAMIC
-DEFINT A-Z
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION DYNAMIC
+ OPTION EXPLICIT
+#endif
 
 'misc
 #include "config.bi"
@@ -283,7 +286,7 @@ SUB battle_pause ()
  edgeprint pause, xstring(pause, 160), 95, uilook(uiText), vpage
  setvispage vpage
  '--wait for a key
- DIM wk as integer = getkey
+ getkey
 END SUB
 
 SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
@@ -3081,7 +3084,7 @@ FUNCTION knows_attack(byval who as integer, byval atk as integer, bslot() as Bat
  RETURN NO
 END FUNCTION
 
-SUB queue_attack(attack as integer, who as integer, targs() as integer, override_blocking as integer=-2, dont_retarget as integer = NO)
+SUB queue_attack(byval attack as integer, byval who as integer, targs() as integer, byval override_blocking as integer=-2, byval dont_retarget as integer = NO)
  DIM atk as AttackData
  loadattackdata atk, attack
  DIM blocking as integer = (atk.nonblocking = NO)
@@ -3089,7 +3092,7 @@ SUB queue_attack(attack as integer, who as integer, targs() as integer, override
  queue_attack attack, who, atk.attack_delay, targs(), blocking, dont_retarget
 END SUB
 
-SUB queue_attack(attack as integer, who as integer, delay as integer, targs() as integer, blocking as integer=YES, dont_retarget as integer = NO)
+SUB queue_attack(byval attack as integer, byval who as integer, byval delay as integer, targs() as integer, byval blocking as integer=YES, byval dont_retarget as integer = NO)
  'DIM targstr as STRING = ""
  'FOR i as integer = 0 TO UBOUND(targs)
  ' IF targs(i) > -1 THEN targstr &= " " & i & "=" & targs(i)

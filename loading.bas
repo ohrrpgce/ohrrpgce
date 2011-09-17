@@ -1532,7 +1532,7 @@ END SUB
 '==========================================================================================
 
 
-SUB LoadVehicle (file AS STRING, vehicle AS VehicleData, record AS INTEGER)
+SUB LoadVehicle (file AS STRING, vehicle AS VehicleData, BYVAL record AS INTEGER)
   DIM buf(39)
   LoadVehicle file, buf(), vehicle.name, record
   WITH vehicle
@@ -1560,13 +1560,13 @@ SUB LoadVehicle (file AS STRING, vehicle AS VehicleData, record AS INTEGER)
   END WITH
 END SUB
 
-SUB LoadVehicle (file AS STRING, veh(), vehname$, record AS INTEGER)
+SUB LoadVehicle (file AS STRING, veh(), vehname AS STRING, BYVAL record AS INTEGER)
  loadrecord veh(), file, 40, record
  vehname$ = STRING$(bound(veh(0) AND 255, 0, 15), 0)
  array2str veh(), 1, vehname$
 END SUB
 
-SUB SaveVehicle (file AS STRING, vehicle AS VehicleData, record AS INTEGER)
+SUB SaveVehicle (file AS STRING, vehicle AS VehicleData, BYVAL record AS INTEGER)
   DIM buf(39)
   WITH vehicle
     buf(39) = .speed
@@ -1594,7 +1594,7 @@ SUB SaveVehicle (file AS STRING, vehicle AS VehicleData, record AS INTEGER)
   SaveVehicle file, buf(), vehicle.name, record
 END SUB
 
-SUB SaveVehicle (file AS STRING, veh(), vehname$, record AS INTEGER)
+SUB SaveVehicle (file AS STRING, veh(), vehname AS STRING, BYVAL record AS INTEGER)
  veh(0) = bound(LEN(vehname$), 0, 15)
  str2array vehname$, veh(), 1
  storerecord veh(), file, 40, record
@@ -2374,7 +2374,7 @@ END SUB
 'Note that this form of loadenemydata does not do fixEnemyElementals fixes!
 'Don't use this anywhere in Game where those need to be applied! (Of course,
 'you probably would never use this in Game)
-SUB loadenemydata (array() AS INTEGER, index AS INTEGER, altfile AS INTEGER = 0)
+SUB loadenemydata (array() AS INTEGER, BYVAL index AS INTEGER, BYVAL altfile AS INTEGER = 0)
  DIM filename AS STRING
  IF altfile THEN
   filename = tmpdir & "dt1.tmp"
@@ -2384,7 +2384,7 @@ SUB loadenemydata (array() AS INTEGER, index AS INTEGER, altfile AS INTEGER = 0)
  loadrecord array(), filename, getbinsize(binDT1) \ 2, index
 END SUB
 
-SUB loadenemydata (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
+SUB loadenemydata (enemy AS EnemyDef, BYVAL index AS INTEGER, BYVAL altfile AS INTEGER = 0)
  DIM buf(dimbinsize(binDT1)) AS INTEGER
  loadenemydata buf(), index, altfile
  WITH enemy
@@ -2472,7 +2472,7 @@ SUB loadenemydata (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
  END WITH
 END SUB
 
-SUB saveenemydata (array() AS INTEGER, index AS INTEGER, altfile AS INTEGER = 0)
+SUB saveenemydata (array() AS INTEGER, BYVAL index AS INTEGER, BYVAL altfile AS INTEGER = 0)
  DIM filename AS STRING
  IF altfile THEN
   filename = tmpdir & "dt1.tmp"
@@ -2482,7 +2482,7 @@ SUB saveenemydata (array() AS INTEGER, index AS INTEGER, altfile AS INTEGER = 0)
  storerecord array(), filename, getbinsize(binDT1) \ 2, index
 END SUB
 
-SUB saveenemydata (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
+SUB saveenemydata (enemy AS EnemyDef, BYVAL index AS INTEGER, BYVAL altfile AS INTEGER = 0)
  DIM buf(dimbinsize(binDT1)) AS INTEGER
  WITH enemy
   buf(0) = LEN(.name)
