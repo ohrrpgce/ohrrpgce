@@ -1,14 +1,16 @@
 @ECHO OFF
 REM pass 'nightly' as first argument to build nightlies instead of releases
 
+REM default locations for required programs
 SET ISCC="C:\Program Files\Inno Setup 5\iscc.exe"
 SET SVN="C:\Program Files\Subversion\bin\svn.exe"
+SET EU="C:\Euphoria\bin"
 
 ECHO Verifying support programs...
 IF NOT EXIST support\cp.exe GOTO NOSUPPORT
 IF NOT EXIST support\zip.exe GOTO NOSUPPORT
 IF NOT EXIST %ISCC% GOTO NOINNO
-IF NOT EXIST %EUDIR%\bin\euc.exe GOTO NOEUPHORIA
+IF NOT EXIST %EU%\bin\euc.exe GOTO NOEUPHORIA
 
 IF NOT EXIST tmpdist GOTO SKIPDELTMPDIST
 RMDIR /S /Q tmpdist
@@ -223,8 +225,8 @@ GOTO DONE
 
 :NOEUPHORIA
 ECHO ERROR: Euphoria is missing, unable to continue.
-ECHO Default location: %EUDIR%
-ECHO Download from http://www.RapidEuphoria.com/
+ECHO Default location: %EU%
+ECHO Download from http://www.OpenEuphoria.com/
 GOTO DONE
 
 :NOEXE
