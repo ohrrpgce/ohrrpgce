@@ -20,7 +20,7 @@ cd sanity
 cd ..
 IF NOT EXIST sanity\game.exe GOTO sanityfailed
 IF NOT EXIST sanity\custom.exe GOTO sanityfailed
-rm -r sanity
+support\rm -r sanity
 
 :addextrafiles
 
