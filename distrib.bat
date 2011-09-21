@@ -80,8 +80,6 @@ support\cp docs\*.URL tmpdist\docs
 support\cp docs\plotdictionary.html tmpdist\docs
 support\cp docs\more-docs.txt tmpdist\docs
 
-support\upx -q --best tmpdist\custom.exe tmpdist\game.exe
-
 cd tmpdist
 ..\support\zip -9 -q -r ..\distrib\ohrrpgce-minimal.zip *.*
 cd ..
