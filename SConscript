@@ -6,7 +6,7 @@ cf. SConstruct, ohrbuild.py
 import os
 import platform
 import shutil
-from ohrbuild import basfile_scan, verprint
+from ohrbuild import basfile_scan, verprint, which, get_run_command
 
 win32 = False
 unix = True
@@ -23,7 +23,6 @@ FB_g = True   # compile with -g?
 linkgcc = False  # link using g++?
 GCC_strip = False  # (linkgcc only) strip (link with -s)?
 envextra = {}
-from ohrbuild import basfile_scan, verprint
 
 if platform.system () == 'Windows':
     win32 = True
@@ -96,6 +95,8 @@ variant_baso = Builder (action = '$FBC -c $SOURCE -o $TARGET $FBFLAGS',
                 suffix = '.o', src_suffix = '.bas', single_source = True, emitter = prefix_targets)
 baso = Builder (action = '$FBC -c $SOURCE -o $TARGET $FBFLAGS',
                 suffix = '.o', src_suffix = '.bas', single_source = True)
+basmaino = Builder (action = '$FBC -c $SOURCE -o $TARGET -m ${SOURCE.filebase} $FBFLAGS',
+                    suffix = '.o', src_suffix = '.bas', single_source = True)
 basexe = Builder (action = '$FBC $FBFLAGS -x $TARGET $FBLIBS $SOURCES',
                   suffix = exe_suffix, src_suffix = '.bas')
 
@@ -111,7 +112,7 @@ env['BUILDERS']['Object'].add_action ('.bas', '$FBC -c $SOURCE -o $TARGET $FBFLA
 SourceFileScanner.add_scanner ('.bas', bas_scanner)
 SourceFileScanner.add_scanner ('.bi', bas_scanner)
 
-env.Append (BUILDERS = {'BASEXE':basexe, 'BASO':baso, 'VARIANT_BASO':variant_baso, 'RC':rc_builder},
+env.Append (BUILDERS = {'BASEXE':basexe, 'BASO':baso, 'BASMAINO':basmaino, 'VARIANT_BASO':variant_baso, 'RC':rc_builder},
             SCANNERS = bas_scanner)
 
 
@@ -123,6 +124,47 @@ if CC:
 if CXX:
     env['ENV']['CXX'] = CXX
     env.Replace (CXX = CXX)
+
+if linkgcc:
+    fbc_path = os.path.dirname(which(env, fbc))
+    #print "fbc = " + fbc_path
+    import re
+    fbcinfo = get_run_command("fbc -version")
+    target = re.findall("target:([a-z]*)", fbcinfo)
+    if len(target) == 0:
+        raise Exception("Couldn't determine fbc target")
+    
+    if win32:
+        libpath = os.path.join(fbc_path, 'lib', 'win32')
+    else:
+        if os.path.isfile(os.path.join(fbc_path, 'lib', target[0], 'fbrt0.o')):
+            libpath = os.path.join(fbc_path, 'lib', target[0])
+        else:
+            libpath = "/usr/share/freebasic/lib/linux"
+    # Passing this -L option straight to the linker is necessary, otherwise gcc gives it
+    # priority over the default library paths, which on Windows means using FB's old mingw libraries
+    env['CXXLINKFLAGS'] += ['-Wl,-L' + libpath, os.path.join(libpath, 'fbrt0.o'), '-lfbmt']
+    if GCC_strip:
+        env['CXXLINKFLAGS'] += ['-s']
+    if win32:
+        # win32\ld_opt_hack.txt contains --stack option which can't be passed using -Wl
+        env['CXXLINKFLAGS'] += ['-static-libgcc', '-static-libstdc++', '-Wl,@win32\ld_opt_hack.txt']
+    else:
+        env['CXXLINKFLAGS'] += ['-lncurses', '-lpthread', 'linux/fb_icon.c']
+
+    def compile_main_module(target, source, env):
+        "This is the emitter for BASEXE when using linkgcc: it compiles the main module using BASMAINO"
+        def to_o(obj):
+            if str(obj).endswith('.bas'):
+                return env.BASMAINO (obj)
+            return obj
+        return target, [to_o(s) for s in source]
+
+    basexe_gcc = Builder (action = '$CXX $CXXFLAGS -o $TARGET $SOURCES $CXXLINKFLAGS',
+                  suffix = exe_suffix, src_suffix = '.bas', emitter = compile_main_module)
+
+    env['BUILDERS']['BASEXE'] = basexe_gcc
+
 
 # Make a base environment for Game and Custom (other utilities use env)
 commonenv = env.Clone ()
@@ -149,7 +191,7 @@ used_music = []
 
 ### Add various modules to build, conditional on OHRGFX and OHRMUSIC
 
-gfx_map = {'fb': {'shared_modules': 'gfx_fb.bas', 'libraries': 'fbgfx'},
+gfx_map = {'fb': {'shared_modules': 'gfx_fb.bas', 'libraries': 'fbgfx fbmt'},
            'alleg' : {'shared_modules': 'gfx_alleg.bas', 'libraries': 'alleg'},
            'sdl' : {'shared_modules': 'gfx_sdl.bas', 'libraries': 'SDL'},
            'directx' : {}, # nothing needed
@@ -245,56 +287,9 @@ if 'raster' in ARGUMENTS:
     common_modules += ['rasterizer.cpp', 'matrixMath.cpp', 'gfx_newRenderPlan.cpp']
     commonenv['FBFLAGS'] += ['-d', 'USE_RASTERIZER']
 
-def which(env, prog_name):
-    "Like the 'which' utility, using env['ENV']['PATH']"
-    if win32:
-        paths = env['ENV']['PATH'].split(';')
-    else:
-        paths = env['ENV']['PATH'].split(':')
-    for path in paths:
-        name = os.path.abspath(os.path.join(path, prog_name)) + exe_suffix
-        #print "trying " + path + " = " + name
-        if os.path.isfile(name):
-            return name
-    return None
-
-def get_run_command(cmd):
-    """Runs a shell commands and returns stdout as a string"""
-    import subprocess
-    proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    errtext = proc.stderr.read()
-    if len(errtext) > 0:
-        raise Exception("subprocess.Popen(%s) returned stderr:\n%s" % (cmd, errtext))
-    return proc.stdout.read().strip()
-
 if linkgcc:
-    fbc_exe = which(commonenv, fbc)
-    #print "fbc = " + os.path.dirname(fbc_exe)
-    import re
-    fbcinfo = get_run_command("fbc -version")
-    target = re.findall("target:([a-z]*)", fbcinfo)
-    if len(target) == 0:
-        raise Exception("Couldn't determine fbc target")
-    
     if win32:
-        libpath = os.path.join(os.path.dirname(fbc_exe), 'lib', 'win32')
-    else:
-        libpath = "/usr/share/freebasic/lib/linux"
-    # Passing this -L option straight to the linker is necessary, otherwise gcc gives it
-    # priority over the default library paths, which on Windows means using FB's old mingw libraries
-    commonenv['CXXLINKFLAGS'] += ['-Wl,-L' + libpath, os.path.join(libpath, 'fbrt0.o'), '-lfbmt']
-    if GCC_strip:
-        commonenv['CXXLINKFLAGS'] += ['-s']
-    if win32:
-        # win32\ld_opt_hack.txt contains --stack option which can't be passed using -Wl
-        commonenv['CXXLINKFLAGS'] += ['-lgdi32', '-lwinmm', '-static-libgcc', '-static-libstdc++', '-Wl,--subsystem,windows', '-Wl,@win32\ld_opt_hack.txt']
-    else:
-        commonenv['CXXLINKFLAGS'] += ['-lncurses', 'linux/fb_icon.c']
-
-    basexe_gcc = Builder (action = '$CXX $CXXFLAGS -o $TARGET $SOURCES $CXXLINKFLAGS',
-                  suffix = exe_suffix, src_suffix = '.bas')
-
-    commonenv['BUILDERS']['BASEXE'] = basexe_gcc
+        commonenv['CXXLINKFLAGS'] += ['-lgdi32', '-lwinmm', '-Wl,--subsystem,windows']
 
 elif win32:
     if not os.path.isfile('libgcc_s.a'):
@@ -356,7 +351,7 @@ env.BASEXE ('relump', source = ['relump.bas', 'lumpfile.o'] + base_objects)
 env.BASEXE ('dumpohrkey')
 env.Command ('hspeak', source = ['hspeak.exw', 'hsspiffy.e'], action = 'euc -gcc hspeak.exw')
 RELOADTEST = env.BASEXE ('reloadtest', source = ['reloadtest.bas'] + reload_objects)
-XML2RELOAD = env.BASEXE ('xml2reload', source = ['xml2reload.bas'] + reload_objects, FBLIBS = env['FBLIBS'] + ['-p','.', '-l','xml2'])
+XML2RELOAD = env.BASEXE ('xml2reload', source = ['xml2reload.bas'] + reload_objects, FBLIBS = env['FBLIBS'] + ['-p','.', '-l','xml2'], CXXLINKFLAGS = env['CXXLINKFLAGS'] + ['-lxml2'])
 RELOAD2XML = env.BASEXE ('reload2xml', source = ['reload2xml.bas'] + reload_objects)
 RELOADUTIL = env.BASEXE ('reloadutil', source = ['reloadutil.bas'] + reload_objects)
 env.BASEXE ('vectortest', source = ['vectortest.bas'] + base_objects)
