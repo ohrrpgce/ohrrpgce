@@ -5,6 +5,7 @@ echo "---------------------------------------------------"
 
 SCPHOST="james_paige@motherhamster.org"
 SCPDEST="HamsterRepublic.com/ohrrpgce/nightly"
+SCPDOCS="HamsterRepublic.com/ohrrpgce/docs"
 
 SCONS="C:\Python27\Scripts\scons.bat"
 
@@ -35,37 +36,23 @@ function zip_and_upload {
   zip -q distrib/"${ZIPFILE}" whatsnew.txt *-binary.txt *-nightly.txt plotscr.hsd svninfo.txt
   zip -q -r distrib/"${ZIPFILE}" ohrhelp
 
-IF NOT EXIST distrib\%ZIPFILE% GOTO failed
+  mustexist distrib/"${ZIPFILE}"
 
-mkdir sanity
-cd sanity
-..\support\unzip -qq ..\distrib\%ZIPFILE%
-cd ..
-IF NOT EXIST sanity\game.exe GOTO sanityfailed
-IF NOT EXIST sanity\custom.exe GOTO sanityfailed
-support\rm -r sanity
+  rm -Rf sanity
+  mkdir sanity
+  cd sanity
+  unzip -qq ../distrib/"${ZIPFILE}"
+  cd ..
+  mustexist "sanity/game.exe"
+  mustexist "sanity/custom.exe"
+  rm -Rf sanity
 
-:addextrafiles
+  if [ -f "${4}" ] ; then
+    zip -q distrib/"${ZIPFILE}" "${4}"
+    shift
+  fi
 
-IF NOT EXIST "%4" GOTO extrafilesdone
-support\zip -q distrib\%ZIPFILE% %4
-shift
-goto addextrafiles
-:extrafilesdone
-
-pscp -i C:\progra~1\putty\id_rsa.ppk distrib\%ZIPFILE% james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
-GOTO finished
-
-:sanityfailed
-del sanity\*.exe
-del sanity\*.dll
-del sanity\*.txt
-del sanity\*.hsd
-rmdir sanity
-
-:failed
-
-:finished
+  scp distrib/"${ZIPFILE}" "${SCPHOST}":"${SCPDEST}"
 }
 
 #-----------------------------------------------------------------------
@@ -86,89 +73,87 @@ scp -p distrib/ohrrpgce-win-installer-"${SUFFIX}".exe "${SCPHOST}":"${SCPDEST}"/
 
 rm -r game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=directx+sdl+fb music=sdl debug=0
-call nightly-gfx-music directx sdl ~ gfx_directx.dll SDL.dll SDL_mixer.dll 
+zip_and_upload directx sdl "~" gfx_directx.dll SDL.dll SDL_mixer.dll 
 
 del game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=directx+fb music=native debug=0
-call nightly-gfx-music directx native ~ gfx_directx.dll audiere.dll
+zip_and_upload directx native "~" gfx_directx.dll audiere.dll
 
 del game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=directx+fb music=native2 debug=0
-call nightly-gfx-music directx native2 ~ gfx_directx.dll audiere.dll
+zip_and_upload directx native2 "~" gfx_directx.dll audiere.dll
 
 del game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=fb+directx+sdl music=sdl debug=0
-call nightly-gfx-music fb sdl ~ SDL.dll SDL_mixer.dll 
+zip_and_upload fb sdl "~" SDL.dll SDL_mixer.dll 
 
 del game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=fb+directx music=native debug=0
-call nightly-gfx-music fb native ~ audiere.dll
+zip_and_upload fb native "~" audiere.dll
 
 del game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=fb+directx music=native2 debug=0
-call nightly-gfx-music fb native2 ~ audiere.dll
+zip_and_upload fb native2 "~" audiere.dll
 
 del game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=alleg+directx+fb+sdl music=sdl debug=0
-call nightly-gfx-music alleg sdl ~ alleg40.dll SDL.dll SDL_mixer.dll 
+zip_and_upload alleg sdl "~" alleg40.dll SDL.dll SDL_mixer.dll 
 
 del game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=alleg+directx+fb music=native debug=0
-call nightly-gfx-music alleg native ~ alleg40.dll audiere.dll
+zip_and_upload alleg native "~" alleg40.dll audiere.dll
 
 del game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=alleg+directx+fb music=native2 debug=0
-call nightly-gfx-music alleg native2 ~ alleg40.dll audiere.dll
+zip_and_upload alleg native2 "~" alleg40.dll audiere.dll
 
 del game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=sdl+directx+fb music=sdl debug=0
-call nightly-gfx-music sdl sdl ~ SDL.dll SDL_mixer.dll 
+zip_and_upload sdl sdl "~" SDL.dll SDL_mixer.dll 
 
 del game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=sdl+directx+fb music=native debug=0
-call nightly-gfx-music sdl native ~ audiere.dll SDL.dll
+zip_and_upload sdl native "~" audiere.dll SDL.dll
 
 del game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=sdl+directx+fb music=native2 debug=0
-call nightly-gfx-music sdl native2 ~ audiere.dll SDL.dll
+zip_and_upload sdl native2 "~" audiere.dll SDL.dll
 
 del game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=directx+sdl+fb music=silence debug=0
-call nightly-gfx-music directx silence ~ SDL.dll gfx_directx.dll
+zip_and_upload directx silence "~" SDL.dll gfx_directx.dll
 
 del game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=directx+sdl+fb music=sdl debug=1
-call nightly-gfx-music directx sdl -debug SDL.dll SDL_mixer.dll gfx_directx.dll misc\gdbcmds1.txt misc\gdbcmds2.txt gdbgame.bat gdbcustom.bat
+zip_and_upload directx sdl -debug SDL.dll SDL_mixer.dll gfx_directx.dll misc/gdbcmds1.txt misc/gdbcmds2.txt gdbgame.bat gdbcustom.bat
 
 del game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=directx+sdl+fb music=sdl debug=1 valgrind=1
-call nightly-gfx-music directx sdl -debug-valgrind SDL.dll SDL_mixer.dll gfx_directx.dll misc\gdbcmds1.txt misc\gdbcmds2.txt gdbgame.bat gdbcustom.bat
+zip_and_upload directx sdl -debug-valgrind SDL.dll SDL_mixer.dll gfx_directx.dll misc/gdbcmds1.txt misc/gdbcmds2.txt gdbgame.bat gdbcustom.bat
 
 del game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=directx+sdl+fb music=sdl debug=0 scriptprofile=1
-call nightly-gfx-music directx sdl -scriptprofile SDL.dll SDL_mixer.dll gfx_directx.dll
+zip_and_upload directx sdl -scriptprofile SDL.dll SDL_mixer.dll gfx_directx.dll
 
-Echo upload plotdict.xml
-pscp -i C:\progra~1\putty\id_rsa.ppk docs\plotdict.xml james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/docs/
+echo "upload plotdict.xml"
+scp docs\plotdict.xml "${SCPHOST}":"${SCPDOCS}"
 
-del unlump.exe relump.exe
+rm -f distrib/ohrrpgce-util.zip
+rm -f unlump.exe relump.exe
 wine cmd /C "${SCONS}" unlump.exe relump.exe
-del distrib\ohrrpgce-util.zip
-IF NOT EXIST unlump.exe GOTO NOUTIL
-IF NOT EXIST relump.exe GOTO NOUTIL
-support\zip distrib\ohrrpgce-util.zip unlump.exe relump.exe LICENSE-binary.txt svninfo.txt
-pscp -i C:\progra~1\putty\id_rsa.ppk distrib\ohrrpgce-util.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
-:NOUTIL
+mustexist unlump.exe
+mustexist relump.exe
+zip distrib/ohrrpgce-util.zip unlump.exe relump.exe LICENSE-binary.txt svninfo.txt
+scp distrib/ohrrpgce-util.zip "${SCPHOST}":"${SCPDEST}"
 
-del distrib\hspeak-win-nightly.zip
-del hspeak.exe
+rm -f distrib/hspeak-win-nightly.zip
+rm -f hspeak.exe
 wine cmd /C "${SCONS}" hspeak
-IF NOT EXIST hspeak.exe GOTO NOHSPEAK
-support\zip distrib\hspeak-win-nightly.zip hspeak.exe hspeak.exw hsspiffy.e LICENSE.txt plotscr.hsd
-pscp -i C:\progra~1\putty\id_rsa.ppk distrib\hspeak-win-nightly.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
-:NOHSPEAK
+mustexist hspeak.exe
+zip distrib/hspeak-win-nightly.zip hspeak.exe hspeak.exw hsspiffy.e LICENSE.txt plotscr.hsd
+scp distrib/hspeak-win-nightly.zip "${SCPHOST}":"${SCPDEST}"
 
-del distrib\bam2mid.zip
+rm -f distrib/bam2mid.zip
 del bam2mid.exe
 wine cmd /C "${SCONS}" bam2mid.exe
 IF NOT EXIST bam2mid.exe GOTO NOBAM2MID
