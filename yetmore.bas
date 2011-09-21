@@ -3,8 +3,14 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
-'$DYNAMIC
-DEFINT A-Z
+
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
+#endif
 
 #include "config.bi"
 #include "allmodex.bi"
@@ -36,17 +42,14 @@ DEFINT A-Z
 
 'Using a lower bound of 1 because 0 is considered an invalid handle
 'The size of 64 is just so we won't have to reallocate for a little while
-DIM plotslices(1 TO 64) AS Slice Ptr
+REDIM plotslices(1 TO 64) as Slice Ptr
 
-DIM timers(15) as PlotTimer
+REDIM timers(15) as PlotTimer
 
-
-
-REM $STATIC
-
-SUB add_rem_swap_lock_hero (box AS TextBox)
+SUB add_rem_swap_lock_hero (byref box as TextBox)
 '---ADD/REMOVE/SWAP/LOCK
 '---ADD---
+DIM i as integer
 IF box.hero_addrem > 0 THEN
  i = first_free_slot_in_party()
  IF i > -1 THEN
@@ -65,7 +68,7 @@ END IF '---end if < 0
 IF box.hero_swap > 0 THEN
  i = findhero(box.hero_swap, 40, 0, -1)
  IF i > -1 THEN
-  FOR o = 0 TO 3
+  FOR o as integer = 0 TO 3
    IF hero(o) = 0 THEN
     doswap i, o
     EXIT FOR
@@ -77,7 +80,7 @@ END IF '---end if > 0
 IF box.hero_swap < 0 THEN
  i = findhero(-box.hero_swap, 0, 40, 1)
  IF i > -1 THEN
-  FOR o = 40 TO 4 STEP -1
+  FOR o as integer = 40 TO 4 STEP -1
    IF hero(o) = 0 THEN
     doswap i, o
     IF herocount(3) = 0 THEN forceparty
@@ -88,13 +91,13 @@ IF box.hero_swap < 0 THEN
 END IF '---end if < 0
 '---UNLOCK HERO---
 IF box.hero_lock > 0 THEN
- temp = findhero(box.hero_lock, 0, 40, 1)
- IF temp > -1 THEN setbit hmask(), 0, temp, 0
+ DIM heroat as integer = findhero(box.hero_lock, 0, 40, 1)
+ IF heroat > -1 THEN setbit hmask(), 0, heroat, 0
 END IF '---end if > 0
 '---LOCK HERO---
 IF box.hero_lock < 0 THEN
- temp = findhero(-box.hero_lock, 0, 40, 1)
- IF temp > -1 THEN setbit hmask(), 0, temp, 1
+ DIM heroat as integer = findhero(-box.hero_lock, 0, 40, 1)
+ IF heroat > -1 THEN setbit hmask(), 0, heroat, 1
 END IF '---end if > 0
 
 '--indirect effects
@@ -102,16 +105,16 @@ party_change_updates
 END SUB
 
 SUB load_special_tag_caches
- DIM her AS herodef
- FOR i AS INTEGER = 0 TO small(gen(genMaxHero), 59)
+ DIM her as herodef
+ FOR i as integer = 0 TO small(gen(genMaxHero), 59)
   loadherodata @her, i
   herotags(i).have_tag = her.have_tag
   herotags(i).alive_tag = her.alive_tag
   herotags(i).leader_tag = her.leader_tag
   herotags(i).active_tag = her.active_tag
  NEXT i
- DIM item_data(dimbinsize(binITM)) AS INTEGER
- FOR i AS INTEGER = 0 TO gen(genMaxItem)
+ REDIM item_data(dimbinsize(binITM)) as integer
+ FOR i as integer = 0 TO gen(genMaxItem)
   loaditemdata item_data(), i
   itemtags(i).have_tag = item_data(74)
   itemtags(i).in_inventory_tag = item_data(75)
@@ -120,65 +123,65 @@ SUB load_special_tag_caches
  NEXT i
 END SUB
 
-SUB embedtext (text$, limit=0)
-start = 1
-DO WHILE start < LEN(text$)
+SUB embedtext (text as string, byval limit as integer=0)
+DIM start as integer = 1
+DO WHILE start < LEN(text)
  '--seek an embed spot
- embedbegin = INSTR(start, text$, "${")
+ DIM embedbegin as integer = INSTR(start, text, "${")
  IF embedbegin = 0 THEN EXIT DO '--failed to find an embed spot
- embedend = INSTR(embedbegin + 4, text$, "}")
+ DIM embedend as integer = INSTR(embedbegin + 4, text, "}")
  IF embedend = 0 THEN EXIT DO '--embed spot has no end
  '--break apart the string
- before$ = MID$(text$, 1, large(embedbegin - 1, 0))
- after$ = MID$(text$, embedend + 1)
+ DIM before as string = MID(text, 1, large(embedbegin - 1, 0))
+ DIM after as string = MID(text, embedend + 1)
  '--extract the command and arg
- act$ = MID$(text$, embedbegin + 2, 1)
- arg$ = MID$(text$, embedbegin + 3, large(embedend - (embedbegin + 3), 0))
+ DIM act as string = MID(text, embedbegin + 2, 1)
+ DIM arg_str as string = MID(text, embedbegin + 3, large(embedend - (embedbegin + 3), 0))
  '--convert the arg to a number
- arg = str2int(arg$)
+ DIM arg as integer = str2int(arg_str)
  '--discourage bad arg values (not perfect)
- IF NOT (arg = 0 AND arg$ <> STRING$(LEN(arg$), "0")) THEN
+ IF NOT (arg = 0 AND arg_str <> STRING(LEN(arg_str), "0")) THEN
   IF arg >= 0 THEN '--only permit postive args
    '--by default the embed is unchanged
-   insert$ = "${" + act$ + arg$ + "}"
+   DIM insert as string = "${" & act & arg_str & "}"
    '--evalued possible actions
-   SELECT CASE UCASE$(act$)
+   SELECT CASE UCASE(act)
     CASE "H": '--Hero name by ID
      '--defaults blank if not found
-     insert$ = ""
-     where = findhero(arg + 1, 0, 40, 1)
+     insert = ""
+     DIM where as integer = findhero(arg + 1, 0, 40, 1)
      IF where >= 0 THEN
-      insert$ = names(where)
+      insert = names(where)
      END IF
     CASE "P": '--Hero name by Party position
      IF arg < 40 THEN
       '--defaults blank if not found
-      insert$ = ""
+      insert = ""
       IF hero(arg) > 0 THEN
-       insert$ = names(arg)
+       insert = names(arg)
       END IF
      END IF
     CASE "C": '--Hero name by caterpillar position
      '--defaults blank if not found
-     insert$ = ""
-     where = partybyrank(arg)
+     insert = ""
+     DIM where as integer = partybyrank(arg)
      IF where >= 0 THEN
-      insert$ = names(where)
+      insert = names(where)
      END IF
     CASE "V": '--global variable by ID
      '--defaults blank if out-of-range
-     insert$ = ""
+     insert = ""
      IF arg >= 0 AND arg <= 4095 THEN
-      insert$ = STR$(global(arg))
+      insert = STR(global(arg))
      END IF
     CASE "S": '--string variable by ID
-     insert$ = ""
+     insert = ""
      IF bound_arg(arg, 0, UBOUND(plotstr), "string ID", "${S#} text box insert", NO) THEN
-      insert$ = plotstr(arg).s
+      insert = plotstr(arg).s
      END IF
    END SELECT
-   text$ = before$ + insert$ + after$
-   embedend = LEN(before$) + LEN(insert$) + 1
+   text = before & insert & after
+   embedend = LEN(before) + LEN(insert) + 1
   END IF
  END IF
  '--skip past this embed
@@ -186,21 +189,21 @@ DO WHILE start < LEN(text$)
 LOOP
 '--enforce limit (if set)
 IF limit > 0 THEN
- text$ = LEFT$(text$, limit)
+ text = LEFT(text, limit)
 END IF
 END SUB
 
-SUB scriptstat (id)
+SUB scriptstat (byval id as integer)
 'contains an assortment of scripting commands that
 'used to depend on access to the hero stat array stat(), but that is irrelevant now,
 'because that is a global gam.hero().stat
 
-SELECT CASE AS CONST id
+SELECT CASE as CONST id
  CASE 64'--get hero stat
   'FIXME: unfortunately this can also access hero level
   'which will suck when we want to add more stats
-  slot = bound(retvals(0), 0, 40)
-  i = bound(retvals(1), 0, 13)
+  DIM slot as integer = bound(retvals(0), 0, 40)
+  DIM i as integer = bound(retvals(1), 0, 13)
   IF retvals(2) < 1 THEN
    IF i = 13 THEN
     'This is just backcompat for a very undocumented bugfeature
@@ -224,7 +227,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 66'--add hero
   IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxHero) THEN
-   slot = first_free_slot_in_party()
+   DIM slot as integer = first_free_slot_in_party()
    IF slot >= 0 THEN
     'retvals(0) is the real hero id, addhero subtracts the 1 again
     addhero retvals(0) + 1, slot
@@ -233,15 +236,15 @@ SELECT CASE AS CONST id
   END IF
  CASE 67'--delete hero
   IF herocount(40) > 1 THEN
-   i = findhero(bound(retvals(0), 0, 59) + 1, 0, 40, 1)
+   DIM i as integer = findhero(bound(retvals(0), 0, 59) + 1, 0, 40, 1)
    IF i > -1 THEN hero(i) = 0
    IF herocount(3) = 0 THEN forceparty
    party_change_updates
   END IF
  CASE 68'--swap out hero
-  i = findhero(retvals(0) + 1, 0, 40, 1)
+  DIM i as integer = findhero(retvals(0) + 1, 0, 40, 1)
   IF i > -1 THEN
-   FOR o = 40 TO 4 STEP -1
+   FOR o as integer = 40 TO 4 STEP -1
     IF hero(o) = 0 THEN
      doswap i, o
      IF herocount(3) = 0 THEN forceparty
@@ -250,9 +253,9 @@ SELECT CASE AS CONST id
    NEXT o
   END IF
  CASE 69'--swap in hero
-  i = findhero(retvals(0) + 1, 40, 0, -1)
+  DIM i as integer = findhero(retvals(0) + 1, 40, 0, -1)
   IF i > -1 THEN
-   FOR o = 0 TO 3
+   FOR o as integer = 0 TO 3
     IF hero(o) = 0 THEN
      doswap i, o
      EXIT FOR
@@ -262,8 +265,8 @@ SELECT CASE AS CONST id
  CASE 83'--set hero stat
   'FIXME: this command can also set hero level (without updating stats)
   ' which sucks for when we want to add more stats.
-  slot = bound(retvals(0), 0, 40)
-  i = bound(retvals(1), 0, 13)
+  DIM slot as integer = bound(retvals(0), 0, 40)
+  DIM i as integer = bound(retvals(1), 0, 13)
   IF retvals(3) < 1 THEN
    IF i = 13 THEN
     'This is just backcompat for a very undocumented bugfeature
@@ -293,7 +296,7 @@ SELECT CASE AS CONST id
   doswap bound(retvals(0), 0, 40), bound(retvals(1), 0, 40)
  CASE 110'--set hero picture
   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
-   i = bound(retvals(0), 0, 40)
+   DIM i as integer = bound(retvals(0), 0, 40)
    retvals(2) = bound(retvals(2), 0, 1)
    IF retvals(2) = 0 THEN gam.hero(i).battle_pic = bound(retvals(1), 0, gen(genMaxHeroPic))
    IF retvals(2) = 1 THEN gam.hero(i).pic = bound(retvals(1), 0, gen(genMaxNPCPic))
@@ -303,8 +306,8 @@ SELECT CASE AS CONST id
   END IF
  CASE 111'--set hero palette
   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
-   i = bound(retvals(0), 0, 40)
-   j = bound(retvals(2), 0, 1)
+   DIM i as integer = bound(retvals(0), 0, 40)
+   DIM j as integer = bound(retvals(2), 0, 1)
    IF j < 1 THEN
     gam.hero(i).battle_pal = bound(retvals(1), -1, 32767)
    ELSE
@@ -347,7 +350,7 @@ SELECT CASE AS CONST id
   END IF
   IF retvals(0) = -1 THEN
    'Or pass -1 to equip the first hero in the party
-   FOR i = 0 TO 3
+   FOR i as integer = 0 TO 3
     IF hero(i) > 0 THEN
      equip i
      EXIT FOR
@@ -383,9 +386,9 @@ SELECT CASE AS CONST id
   scriptret = gam.hero(bound(retvals(0), 0, 40)).lev_gain
  CASE 186'--spells learnt
   'NOTE: this is deprecated but will remain for backcompat. New games should use "spells learned" 
-  found = 0
+  DIM found as integer = 0
   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
-   FOR i = retvals(0) * 96 TO retvals(0) * 96 + 95
+   FOR i as integer = retvals(0) * 96 TO retvals(0) * 96 + 95
     IF readbit(learnmask(), 0, i) THEN
      IF retvals(1) = found THEN
       scriptret = spell(retvals(0), (i \ 24) MOD 4, i MOD 24) - 1
@@ -415,8 +418,8 @@ SELECT CASE AS CONST id
    learn_spells_for_current_level retvals(0), (retvals(1)<>0)
   END IF
  CASE 449'--reset hero picture
-  i = retvals(0)
-  j = retvals(1)
+  DIM i as integer = retvals(0)
+  DIM j as integer = retvals(1)
   IF valid_hero_party(i) THEN
    IF hero(i) > 0 THEN
     IF bound_arg(j, 0, 1, "in or out of battle") THEN
@@ -429,8 +432,8 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 450'--reset hero palette
-  i = retvals(0)
-  j = retvals(1)
+  DIM i as integer = retvals(0)
+  DIM j as integer = retvals(1)
   IF valid_hero_party(i) THEN
    IF hero(i) > 0 THEN
     IF bound_arg(j, 0, 1, "in or out of battle") THEN
@@ -457,7 +460,7 @@ SELECT CASE AS CONST id
  CASE 499'--hero total elemental resist as int (hero, element)
   IF really_valid_hero_party(retvals(0)) THEN
    IF bound_arg(retvals(1), 0, gen(genNumElements) - 1, "element number") THEN
-    DIM elementals(gen(genNumElements) - 1) AS SINGLE
+    REDIM elementals(gen(genNumElements) - 1) as SINGLE
     calc_hero_elementals elementals(), retvals(0)
     scriptret = 100 * elementals(retvals(1))  'rounds to nearest int
    END IF
@@ -467,9 +470,9 @@ END SUB
 
 SUB forceparty ()
 '---MAKE SURE YOU HAVE AN ACTIVE PARTY---
-fpi = findhero(-1, 0, 40, 1)
+DIM fpi as integer = findhero(-1, 0, 40, 1)
 IF fpi > -1 THEN
- FOR fpo = 0 TO 3
+ FOR fpo as integer = 0 TO 3
   IF hero(fpo) = 0 THEN
    doswap fpi, fpo
    EXIT FOR
@@ -478,12 +481,12 @@ IF fpi > -1 THEN
 END IF
 END SUB
 
-FUNCTION gethighbyte (n) as integer
+FUNCTION gethighbyte (byval n as integer) as integer
 RETURN n SHL 8
 END FUNCTION
 
 'Deprecated; Use get_valid_npc for all new NPC commands
-FUNCTION getnpcref (seekid as integer, offset as integer) as integer
+FUNCTION getnpcref (byval seekid as integer, byval offset as integer) as integer
 SELECT CASE seekid
 
  CASE -300 TO -1'--direct reference
@@ -491,8 +494,8 @@ SELECT CASE seekid
   EXIT FUNCTION
 
  CASE 0 TO UBOUND(npcs) 'ID
-  found = 0
-  FOR i = 0 TO 299
+  DIM found as integer = 0
+  FOR i as integer = 0 TO 299
    IF npc(i).id - 1 = seekid THEN
     IF found = offset THEN
      getnpcref = i
@@ -512,7 +515,7 @@ END FUNCTION
 'Given NPC ref or NPC ID, return npc() index, or throw a scripterr and return -1
 'Note this is stricter than getnpcref: invalid npc refs are not alright!
 'References to Hidden/Disabled NPCs are alright.
-FUNCTION get_valid_npc (BYVAL seekid as integer, BYVAL errlvl as integer = 5) as integer
+FUNCTION get_valid_npc (byval seekid as integer, byval errlvl as integer = 5) as integer
  IF seekid < 0 THEN
   DIM npcidx as integer = (seekid + 1) * -1
   IF npcidx > 299 ORELSE npc(npcidx).id = 0 THEN
@@ -531,7 +534,7 @@ END FUNCTION
 
 'Given NPC ref or NPC ID, return an NPC ID, or throw a scripterr and return -1
 'References to Hidden/Disabled NPCs are alright.
-FUNCTION get_valid_npc_id (BYVAL seekid as integer, BYVAL errlvl as integer = 5) as integer
+FUNCTION get_valid_npc_id (byval seekid as integer, byval errlvl as integer = 5) as integer
  IF seekid >= 0 THEN
   IF seekid > UBOUND(npcs) THEN
    scripterr commandname(curcmd->value) & ": invalid NPC ID " & seekid, errlvl
@@ -556,17 +559,17 @@ FUNCTION get_valid_npc_id (BYVAL seekid as integer, BYVAL errlvl as integer = 5)
 END FUNCTION
 
 SUB greyscalepal
-FOR i = bound(retvals(0), 0, 255) TO bound(retvals(1), 0, 255)
+FOR i as integer = bound(retvals(0), 0, 255) TO bound(retvals(1), 0, 255)
  master(i).r = bound((master(i).r + master(i).g + master(i).b) / 3, 0, 255)
  master(i).g = master(i).r
  master(i).b = master(i).r
 NEXT i
 END SUB
 
-FUNCTION herobyrank (slot as integer) as integer
+FUNCTION herobyrank (byval slot as integer) as integer
 IF slot >= 0 AND slot <= 3 THEN
- j = -1
- FOR i = 0 TO 3
+ DIM j as integer = -1
+ FOR i as integer = 0 TO 3
   IF hero(i) > 0 THEN j = j + 1
   IF j = slot THEN
    RETURN hero(i) - 1
@@ -578,8 +581,8 @@ END FUNCTION
 
 SUB interpolatecat
 'given the current positions of the caterpillar party, interpolate their inbetween frames
-FOR o = 0 TO 10 STEP 5
- FOR i = o + 1 TO o + 4
+FOR o as integer = 0 TO 10 STEP 5
+ FOR i as integer = o + 1 TO o + 4
   catx(i) = catx(i - 1) + ((catx(o + 5) - catx(o)) / 5)
   caty(i) = caty(i - 1) + ((caty(o + 5) - caty(o)) / 5)
   catd(i) = catd(o)
@@ -593,9 +596,9 @@ SUB visnpc()
  'calls. So we must tolerate invalid NPC IDs and anything else. So here we mark all NPCs as hidden which
  'would otherwise cause problems
 
- DIM npc_id AS INTEGER
+ DIM npc_id as integer
  
- FOR i AS INTEGER = 0 TO UBOUND(npc)
+ FOR i as integer = 0 TO UBOUND(npc)
   npc_id = ABS(npc(i).id) - 1
 
   IF npc_id > UBOUND(npcs) THEN
@@ -633,7 +636,7 @@ SUB visnpc()
  NEXT i
 END SUB
 
-FUNCTION script_keyval (BYVAL key as integer) as integer
+FUNCTION script_keyval (byval key as integer) as integer
  'Wrapper around keyval for use by scripts: performs scancode mapping for back-compat
 
  DIM ret as integer = 0
@@ -664,18 +667,15 @@ FUNCTION script_keyval (BYVAL key as integer) as integer
  RETURN ret
 END FUNCTION
 
-'======== FIXME: move this up as code gets cleaned up ===========
-OPTION EXPLICIT
-
 SUB onkeyscript (byval scriptnum as integer)
- DIM doit AS INTEGER = NO
+ DIM doit as integer = NO
  
- FOR i AS INTEGER = 0 TO 5
+ FOR i as integer = 0 TO 5
   IF carray(i) THEN doit = YES: EXIT FOR
  NEXT i
  
  IF doit = NO THEN
-  FOR i AS INTEGER = 1 TO 127
+  FOR i as integer = 1 TO 127
    'We scan all keys, triggering a script even if its scancode is not one
    'accessible via script commands so that custom "press any key" scripts work.
    IF keyval(i) THEN doit = YES: EXIT FOR
@@ -701,7 +701,7 @@ SUB onkeyscript (byval scriptnum as integer)
 END SUB
 
 FUNCTION playtime (byval d as integer, byval h as integer, byval m as integer) as string
- DIM s AS STRING = ""
+ DIM s as STRING = ""
 
  SELECT CASE d
   CASE 1
@@ -729,7 +729,7 @@ FUNCTION playtime (byval d as integer, byval h as integer, byval m as integer) a
 END FUNCTION
 
 SUB playtimer
- STATIC n AS DOUBLE
+ STATIC n as DOUBLE
  
  IF TIMER >= n + 1 OR n - TIMER > 3600 THEN
   n = INT(TIMER)
@@ -753,10 +753,10 @@ SUB playtimer
 END SUB
 
 FUNCTION partybyrank (byval slot as integer) as integer
- DIM result AS INTEGER = -1
+ DIM result as integer = -1
  IF slot >= 0 AND slot <= 3 THEN
-  DIM j AS INTEGER = -1
-  FOR i AS INTEGER = 0 TO 3
+  DIM j as integer = -1
+  FOR i as integer = 0 TO 3
    IF hero(i) > 0 THEN j = j + 1
    IF j = slot THEN
     result = i
@@ -771,9 +771,9 @@ FUNCTION rankincaterpillar (byval heroid as integer) as integer
  'Returns -1 if the hero is not found.
  'Returns the last hero's rank if there are more than one copy of the same ehero
  
- DIM result AS INTEGER = -1
- DIM o AS INTEGER = 0
- FOR i AS INTEGER = 0 TO 3
+ DIM result as integer = -1
+ DIM o as integer = 0
+ FOR i as integer = 0 TO 3
   IF hero(i) > 0 THEN
    IF hero(i) - 1 = heroid THEN result = o
    o += 1
@@ -788,7 +788,7 @@ SUB scriptadvanced (byval id as integer)
 '...actually this is a completely arbitrary distinction, and there is 
 'no realy reason these are separate...
 
-SELECT CASE AS CONST id
+SELECT CASE as CONST id
 
  CASE 135'--puthero
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
@@ -797,7 +797,7 @@ SELECT CASE AS CONST id
    caty(retvals(0) * 5) = retvals(2)
   END IF
  CASE 136'--putnpc
-  DIM npcref AS INTEGER = getnpcref(retvals(0), 0)
+  DIM npcref as integer = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
    cropposition retvals(1), retvals(2), 20
    npc(npcref).x = retvals(1)
@@ -817,12 +817,12 @@ SELECT CASE AS CONST id
    scriptret = caty(retvals(0) * 5)
   END IF
  CASE 140'--npcpixelx
-  DIM npcref AS INTEGER = getnpcref(retvals(0), 0)
+  DIM npcref as integer = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
    scriptret = npc(npcref).x
   END IF
  CASE 141'--npcpixely
-  DIM npcref AS INTEGER = getnpcref(retvals(0), 0)
+  DIM npcref as integer = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
    scriptret = npc(npcref).y
   END IF
@@ -891,7 +891,7 @@ SUB scriptmisc (byval id as integer)
 'contains a whole mess of scripting commands that do not depend on
 'any main-module level local variables or GOSUBs
 
-SELECT CASE AS CONST id
+SELECT CASE as CONST id
 
  CASE 0'--noop
   scripterr "encountered clean noop", 1
@@ -966,7 +966,7 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 19'--leader
-  FOR i AS INTEGER = 0 TO 3
+  FOR i as integer = 0 TO 3
    IF hero(i) > 0 THEN scriptret = hero(i) - 1: EXIT FOR
   NEXT i
  CASE 20'--get money
@@ -988,7 +988,7 @@ SELECT CASE AS CONST id
  CASE 27'--suspend overlay
   setbit gen(), 44, suspendoverlay, 1
  CASE 28'--play song
-  'loadsong game + "." + STR$(retvals(0))
+  'loadsong game + "." + STR(retvals(0))
   wrappedsong retvals(0)
  CASE 29'--stop song
   stopsong
@@ -1058,7 +1058,7 @@ SELECT CASE AS CONST id
   IF valid_item(retvals(1)) THEN
    IF valid_hero_party(retvals(0)) THEN
     loaditemdata buffer(), retvals(1)
-    DIM hero_id AS INTEGER = hero(retvals(0)) - 1
+    DIM hero_id as integer = hero(retvals(0)) - 1
     IF hero_id >= 0 THEN
      IF readbit(buffer(), 66, hero_id) THEN
       scriptret = buffer(49)
@@ -1074,15 +1074,15 @@ SELECT CASE AS CONST id
  CASE 70'--room in active party
   scriptret = 4 - herocount(3)
  CASE 71'--lock hero
-  DIM hero_slot AS INTEGER = findhero(retvals(0) + 1, 0, 40, 1)
+  DIM hero_slot as integer = findhero(retvals(0) + 1, 0, 40, 1)
   IF hero_slot > -1 THEN setbit hmask(), 0, hero_slot, 1
  CASE 72'--unlock hero
-  DIM hero_slot AS INTEGER = findhero(retvals(0) + 1, 0, 40, 1)
+  DIM hero_slot as integer = findhero(retvals(0) + 1, 0, 40, 1)
   IF hero_slot > -1 THEN setbit hmask(), 0, hero_slot, 0
  CASE 74'--set death script
   gen(genGameoverScript) = large(retvals(0), 0)
  CASE 75'--fade screen out
-  FOR i AS INTEGER = 0 TO 2
+  FOR i as integer = 0 TO 2
    retvals(i) = bound(iif(retvals(i), retvals(i) * 4 + 3, 0), 0, 255)
   NEXT
   fadeout retvals(0), retvals(1), retvals(2)
@@ -1101,7 +1101,7 @@ SELECT CASE AS CONST id
  CASE 87'--set hero position
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
   cropposition retvals(1), retvals(2), 1
-   FOR i AS INTEGER = 0 TO 4
+   FOR i as integer = 0 TO 4
     catx(small(retvals(0) * 5 + i, 15)) = retvals(1) * 20
     caty(small(retvals(0) * 5 + i, 15)) = retvals(2) * 20
    NEXT i
@@ -1145,7 +1145,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 106'--write color
   IF retvals(0) >= 0 AND retvals(0) < 256 THEN
-   DIM col AS INTEGER = bound(retvals(2), 0, 63)
+   DIM col as integer = bound(retvals(2), 0, 63)
    IF retvals(1) = 0 THEN master(retvals(0)).r = iif(col, col * 4 + 3, 0)
    IF retvals(1) = 1 THEN master(retvals(0)).g = iif(col, col * 4 + 3, 0)
    IF retvals(1) = 2 THEN master(retvals(0)).b = iif(col, col * 4 + 3, 0)
@@ -1185,8 +1185,8 @@ SELECT CASE AS CONST id
  CASE 128'--forget spell
   scriptret = 0
   retvals(0) = bound(retvals(0), 0, 40)
-  FOR i AS INTEGER = 0 TO 3
-   FOR j AS INTEGER = 0 TO 23
+  FOR i as integer = 0 TO 3
+   FOR j as integer = 0 TO 23
     IF spell(retvals(0), i, j) = retvals(1) THEN
      spell(retvals(0), i, j) = 0
      scriptret = 1
@@ -1207,8 +1207,8 @@ SELECT CASE AS CONST id
   scriptret = 0
   retvals(0) = bound(retvals(0), 0, 40)
   IF retvals(1) > 0 THEN
-   FOR i AS INTEGER = 0 TO 3
-    FOR j AS INTEGER = 0 TO 23
+   FOR i as integer = 0 TO 3
+    FOR j as integer = 0 TO 23
      IF spell(retvals(0), i, j) = retvals(1) THEN
       scriptret = 1
       EXIT FOR
@@ -1218,8 +1218,8 @@ SELECT CASE AS CONST id
   END IF
  CASE 132'--can learn spell
   scriptret = 0
-  DIM partyslot AS INTEGER
-  DIM heroID as INTEGER
+  DIM partyslot as integer
+  DIM heroID as integer
   partyslot = bound(retvals(0), 0, 40)
   heroID = hero(partyslot) - 1
   IF heroID = -1 THEN
@@ -1228,8 +1228,8 @@ SELECT CASE AS CONST id
    IF retvals(1) > 0 THEN
     DIM her as herodef
     loadherodata @her, heroID
-    FOR i AS INTEGER = 0 TO 3
-     FOR j AS INTEGER = 0 TO 23
+    FOR i as integer = 0 TO 3
+     FOR j as integer = 0 TO 23
       IF spell(partyslot, i, j) = 0 THEN
        IF her.spell_lists(i,j).attack = retvals(1) AND her.spell_lists(i,j).learned = retvals(2) THEN
         scriptret = 1
@@ -1249,7 +1249,7 @@ SELECT CASE AS CONST id
  CASE 134'--hero by rank
   scriptret = herobyrank(retvals(0))
  CASE 145'--pick hero
-  scriptret = onwho(readglobalstring$(135, "Which Hero?", 20), 1)
+  scriptret = onwho(readglobalstring(135, "Which Hero?", 20), 1)
  CASE 146'--rename hero by slot
   IF valid_hero_party(retvals(0)) THEN
    IF hero(retvals(0)) > 0 THEN
@@ -1268,7 +1268,7 @@ SELECT CASE AS CONST id
    END IF
    IF retvals(1) >= 0 AND retvals(1) <= 4095 THEN
     IF retvals(2) = -1 THEN 'importglobals(slot,id)
-     DIM remval AS INTEGER = global(retvals(1))
+     DIM remval as integer = global(retvals(1))
      loadglobalvars retvals(0) - 1, retvals(1), retvals(1)
      scriptret = global(retvals(1))
      global(retvals(1)) = remval
@@ -1288,11 +1288,11 @@ SELECT CASE AS CONST id
    erase_save_slot retvals(0) - 1
   END IF
  CASE 176'--run script by id
-  DIM rsr AS INTEGER
+  DIM rsr as integer
   rsr = runscript(retvals(0), nowscript + 1, NO, NO, "indirect", plottrigger) 'possible to get ahold of triggers
   IF rsr = 1 THEN
    '--fill heap with return values
-   FOR i AS INTEGER = 1 TO scrat(nowscript - 1).curargc - 1  'flexible argument number! (note that argc has been saved here by runscript)
+   FOR i as integer = 1 TO scrat(nowscript - 1).curargc - 1  'flexible argument number! (note that argc has been saved here by runscript)
     setScriptArg i - 1, retvals(i)
    NEXT i
    'NOTE: scriptret is not set here when this command is successful. The return value of the called script will be returned.
@@ -1327,18 +1327,18 @@ SELECT CASE AS CONST id
  CASE 188'--setmusicvolume
   set_music_volume bound(retvals(0), 0, 255) / 255
  CASE 189, 307'--get formation song
-  DIM fh AS INTEGER = FREEFILE
+  DIM fh as integer = FREEFILE
   IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxFormation) THEN
-   OPEN tmpdir & "for.tmp" FOR BINARY AS #fh
+   OPEN tmpdir & "for.tmp" FOR BINARY as #fh
    scriptret = readshort(fh, retvals(0) * 80 + 67)
    IF id = 307 THEN scriptret -= 1
    CLOSE #fh
   END IF
  CASE 190'--set formation song
   'set formation song never worked, so don't bother with backwards compatibility
-  DIM fh AS INTEGER = FREEFILE
+  DIM fh as integer = FREEFILE
   IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxFormation) AND retvals(1) >= -2 AND retvals(1) <= gen(genMaxSong) THEN
-   OPEN tmpdir & "for.tmp" FOR BINARY AS #fh
+   OPEN tmpdir & "for.tmp" FOR BINARY as #fh
    WriteShort fh, retvals(0) * 80 + 67, retvals(1) + 1
    CLOSE #fh
   ELSE
@@ -1360,7 +1360,7 @@ SELECT CASE AS CONST id
    backcompat_sound_slots(retvals(0)) = 0
   END IF
  CASE 197'--play sound
-  DIM sfxid AS INTEGER = backcompat_sound_id(retvals(0))
+  DIM sfxid as integer = backcompat_sound_id(retvals(0))
   IF sfxid >= 0 AND sfxid <= gen(genMaxSFX) THEN
    if retvals(2) then stopsfx sfxid
    playsfx sfxid, retvals(1)
@@ -1376,12 +1376,12 @@ SELECT CASE AS CONST id
    stopsfx retvals(0)
    scriptret = -1
   END IF
- CASE 200'--system hour (time$ is always hh:mm:ss)
-  scriptret = str2int(MID$(TIME$, 1, 2))
+ CASE 200'--system hour (time is always hh:mm:ss)
+  scriptret = str2int(MID(TIME, 1, 2))
  CASE 201'--system minute
-  scriptret = str2int(MID$(TIME$, 4, 2))
+  scriptret = str2int(MID(TIME, 4, 2))
  CASE 202'--system second
-  scriptret = str2int(MID$(TIME$, 7, 2))
+  scriptret = str2int(MID(TIME, 7, 2))
  CASE 203'--current song
   scriptret = presentsong
  CASE 204'--get hero name(str,her)
@@ -1410,7 +1410,7 @@ SELECT CASE AS CONST id
    IF valid_plotstr(retvals(0)) = NO OR retvals(1) < 0 OR retvals(1) > gen(genMaxMap) THEN
    scriptret = 0
   ELSE
-   plotstr(retvals(0)).s = getmapname$(retvals(1))
+   plotstr(retvals(0)).s = getmapname(retvals(1))
    scriptret = 1
   END IF
  CASE 208'--get attack name(str,atk)
@@ -1418,7 +1418,7 @@ SELECT CASE AS CONST id
   IF valid_plotstr(retvals(0)) = NO OR retvals(1) < 0 OR retvals(1) > gen(genMaxAttack) THEN
    scriptret = 0
   ELSE
-   plotstr(retvals(0)).s = readattackname$(retvals(1) + 1)
+   plotstr(retvals(0)).s = readattackname(retvals(1) + 1)
    scriptret = 1
   END IF
  CASE 209'--get global string(str,glo)
@@ -1427,7 +1427,7 @@ SELECT CASE AS CONST id
   IF valid_plotstr(retvals(0)) = NO OR retvals(1) < 0 OR retvals(1) > 303 THEN
    scriptret = 0
   ELSE
-   plotstr(retvals(0)).s = readglobalstring$(retvals(1), "", 255)
+   plotstr(retvals(0)).s = readglobalstring(retvals(1), "", 255)
    scriptret = 1
   END IF
  CASE 211'--clear string
@@ -1435,7 +1435,7 @@ SELECT CASE AS CONST id
  CASE 212'--append ascii
   IF valid_plotstr(retvals(0)) THEN
    IF retvals(1) >= 0 AND retvals(1) <= 255 THEN
-    plotstr(retvals(0)).s = plotstr(retvals(0)).s + CHR$(retvals(1))
+    plotstr(retvals(0)).s = plotstr(retvals(0)).s + CHR(retvals(1))
     scriptret = LEN(plotstr(retvals(0)).s)
    END IF
   END IF
@@ -1460,15 +1460,15 @@ SELECT CASE AS CONST id
  CASE 217'--delete char
   IF valid_plotstr(retvals(0)) THEN
    IF retvals(1) >= 1 AND retvals(1) <= LEN(plotstr(retvals(0)).s) THEN
-    DIM beforestr AS STRING = LEFT(plotstr(retvals(0)).s, retvals(1) - 1)
-    DIM afterstr AS STRING = MID(plotstr(retvals(0)).s, retvals(1) + 1)
+    DIM beforestr as STRING = LEFT(plotstr(retvals(0)).s, retvals(1) - 1)
+    DIM afterstr as STRING = MID(plotstr(retvals(0)).s, retvals(1) + 1)
     plotstr(retvals(0)).s = beforestr & afterstr
    END IF
   END IF
  CASE 218'--replace char
   IF valid_plotstr(retvals(0)) AND retvals(2) >= 0 AND retvals(2) <= 255 THEN
    IF retvals(1) >= 1 AND retvals(1) <= LEN(plotstr(retvals(0)).s) THEN
-    MID$(plotstr(retvals(0)).s, retvals(1), 1) = CHR$(retvals(2))
+    MID(plotstr(retvals(0)).s, retvals(1), 1) = CHR(retvals(2))
    END IF
   END IF
  CASE 219'--ascii from string
@@ -1507,12 +1507,12 @@ SELECT CASE AS CONST id
   IF valid_plotstr(retvals(0)) THEN
    scriptret = plotstr(retvals(0)).Y
   END IF
- CASE 226'--system day (date$ is always mm-dd-yyyy)
-  scriptret = str2int(MID$(DATE$, 4, 2))
+ CASE 226'--system day (date is always mm-dd-yyyy)
+  scriptret = str2int(MID(DATE, 4, 2))
  CASE 227'--system month
-  scriptret = str2int(MID$(DATE$, 1, 2))
+  scriptret = str2int(MID(DATE, 1, 2))
  CASE 228'--system year
-  scriptret = str2int(MID$(DATE$, 7, 4))
+  scriptret = str2int(MID(DATE, 7, 4))
  CASE 229'--string compare
   IF valid_plotstr(retvals(0)) AND valid_plotstr(retvals(1)) THEN
    scriptret = IIF(plotstr(retvals(0)).s = plotstr(retvals(1)).s, 1, 0)
@@ -1540,7 +1540,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 233'--get song name
   IF valid_plotstr(retvals(0)) AND retvals(1) >= 0 THEN
-   plotstr(retvals(0)).s = getsongname$(retvals(1))
+   plotstr(retvals(0)).s = getsongname(retvals(1))
   END IF
  CASE 235'--key is pressed
   SELECT CASE retvals(0)
@@ -1552,7 +1552,7 @@ SELECT CASE AS CONST id
     IF retvals(0) >= 128 AND retvals(0) <= 143 THEN
      scriptret = (b SHR (retvals(0) - 128)) AND 1
     ELSEIF retvals(0) = 144 THEN 'x left
-     'debug STR$(xaxis)
+     'debug STR(xaxis)
      scriptret = abs(xaxis <= -50) 'true = -1...
     ELSEIF retvals(0) = 145 THEN 'x right
      scriptret = abs(xaxis >= 50)
@@ -1568,7 +1568,7 @@ SELECT CASE AS CONST id
    scriptret = 0
   END SELECT
  CASE 236'--sound is playing
-  DIM sfxid AS INTEGER = backcompat_sound_id(retvals(0))
+  DIM sfxid as integer = backcompat_sound_id(retvals(0))
   IF sfxid >= 0 AND sfxid <= gen(genMaxSFX) THEN
    scriptret = sfxisplaying(sfxid)
   END IF
@@ -1588,12 +1588,12 @@ SELECT CASE AS CONST id
  CASE 239'--trim string
   IF valid_plotstr(retvals(0)) THEN
    IF retvals(1) = -1 THEN
-    plotstr(retvals(0)).s = trim$(plotstr(retvals(0)).s)
+    plotstr(retvals(0)).s = trim(plotstr(retvals(0)).s)
    ELSE
     IF retvals(1) <= LEN(plotstr(retvals(0)).s) AND retvals(2) >= 1 THEN
      retvals(1) = large(retvals(1),1)
      'retvals(2) = bound(retvals(2),1,LEN(plotstr(retvals(0)).s))
-     plotstr(retvals(0)).s = MID$(plotstr(retvals(0)).s,retvals(1),retvals(2))
+     plotstr(retvals(0)).s = MID(plotstr(retvals(0)).s,retvals(1),retvals(2))
     ELSE
      plotstr(retvals(0)).s = ""
     END IF
@@ -1601,13 +1601,13 @@ SELECT CASE AS CONST id
   END IF
  CASE 240'-- string from textbox
   IF valid_plotstr(retvals(0)) THEN
-   DIM box AS TextBox
+   DIM box as TextBox
    retvals(1) = bound(retvals(1),0,gen(genMaxTextbox))
    retvals(2) = bound(retvals(2),0,7)
    LoadTextBox box, retvals(1)
    plotstr(retvals(0)).s = box.text(retvals(2))
    IF NOT retvals(3) THEN embedtext plotstr(retvals(0)).s
-   plotstr(retvals(0)).s = trim$(plotstr(retvals(0)).s)
+   plotstr(retvals(0)).s = trim(plotstr(retvals(0)).s)
   END IF
  CASE 241'-- expand string(id)
   IF valid_plotstr(retvals(0)) THEN
@@ -1648,7 +1648,7 @@ SELECT CASE AS CONST id
  CASE 251'--set string from table
   IF bound_arg(retvals(0), 0, UBOUND(plotstr), "string ID", !"$# = \"...\"") THEN
    WITH *scrat(nowscript).scr
-    DIM stringp AS INTEGER PTR = .ptr + .strtable + retvals(1)
+    DIM stringp as integer PTR = .ptr + .strtable + retvals(1)
     IF .strtable + retvals(1) >= .size ORELSE .strtable + (stringp[0] + 3) \ 4 >= .size THEN
      scripterr "script corrupt: illegal string offset", 6
     ELSE
@@ -1659,7 +1659,7 @@ SELECT CASE AS CONST id
  CASE 252'--append string from table
   IF bound_arg(retvals(0), 0, UBOUND(plotstr), "string ID", !"$# + \"...\"") THEN
    WITH *scrat(nowscript).scr
-    DIM stringp AS INTEGER PTR = .ptr + .strtable + retvals(1)
+    DIM stringp as integer PTR = .ptr + .strtable + retvals(1)
     IF .strtable + retvals(1) >= .size ORELSE .strtable + (stringp[0] + 3) \ 4 >= .size THEN
      scripterr "script corrupt: illegal string offset", 6
     ELSE
@@ -1730,16 +1730,16 @@ SELECT CASE AS CONST id
   scriptret = -1
   IF valid_formation(retvals(0)) AND retvals(1) >= 0 AND retvals(1) <= gen(genMaxEnemy) THEN
    loadrecord buffer(), tmpdir & "for.tmp", 40, retvals(0)
-   DIM slot AS INTEGER = -1
-   FOR i AS INTEGER = 0 TO 7
+   DIM slot as integer = -1
+   FOR i as integer = 0 TO 7
     IF buffer(i * 4) = 0 THEN slot = i: EXIT FOR
    NEXT
    IF retvals(4) >= 0 AND retvals(4) <= 7 THEN
     IF buffer(retvals(4) * 4) = 0 THEN slot = retvals(4)
    END IF
    IF slot >= 0 THEN
-    DIM szindex AS INTEGER = ReadShort(tmpdir & "dt1.tmp", retvals(1) * getbinsize(binDT1) + 111) 'picture size
-    DIM size AS INTEGER
+    DIM szindex as integer = ReadShort(tmpdir & "dt1.tmp", retvals(1) * getbinsize(binDT1) + 111) 'picture size
+    DIM size as integer
     IF szindex = 0 THEN size = 34
     IF szindex = 1 THEN size = 50
     IF szindex = 2 THEN size = 80
@@ -1753,9 +1753,9 @@ SELECT CASE AS CONST id
  CASE 309'--find enemy in formation (formation, enemy id, number)
   IF valid_formation(retvals(0)) THEN
    loadrecord buffer(), tmpdir & "for.tmp", 40, retvals(0)
-   DIM slot AS INTEGER = 0
+   DIM slot as integer = 0
    scriptret = -1
-   FOR i AS INTEGER = 0 TO 7
+   FOR i as integer = 0 TO 7
     IF buffer(i * 4) > 0 AND (retvals(1) = buffer(i * 4) - 1 OR retvals(1) = -1) THEN
      IF retvals(2) = slot THEN scriptret = i: EXIT FOR
      slot += 1
@@ -1774,12 +1774,12 @@ SELECT CASE AS CONST id
   END IF
  CASE 312, 313'--formation slot x (formation, slot), formation slot y (formation, slot)
   IF valid_formation_slot(retvals(0), retvals(1)) THEN
-   DIM enemy_id AS INTEGER = ReadShort(tmpdir & "for.tmp", retvals(0) * 80 + retvals(1) * 8 + 1) - 1 'will be -1 for empty slot
+   DIM enemy_id as integer = ReadShort(tmpdir & "for.tmp", retvals(0) * 80 + retvals(1) * 8 + 1) - 1 'will be -1 for empty slot
    scriptret = ReadShort(tmpdir & "for.tmp", retvals(0) * 80 + retvals(1) * 8 + (id - 311) * 2 + 1) 'x or y
    'now find the position of the bottom center of the enemy sprite
    IF enemy_id >= 0 THEN
-    DIM pictype AS INTEGER = ReadShort(tmpdir & "dt1.tmp", enemy_id * getbinsize(binDT1) + 111) 'picture size
-    DIM picsize AS INTEGER
+    DIM pictype as integer = ReadShort(tmpdir & "dt1.tmp", enemy_id * getbinsize(binDT1) + 111) 'picture size
+    DIM picsize as integer
     IF pictype = 0 THEN picsize = 34
     IF pictype = 1 THEN picsize = 50
     IF pictype = 2 THEN picsize = 80
@@ -1811,9 +1811,9 @@ SELECT CASE AS CONST id
  CASE 319'--formation probability (formation set, formation)
   IF retvals(0) >= 1 AND retvals(0) <= 255 THEN
    loadrecord buffer(), game + ".efs", 25, retvals(0) - 1
-   DIM slot AS INTEGER = 0
+   DIM slot as integer = 0
    scriptret = 0
-   FOR i AS INTEGER = 1 TO 20
+   FOR i as integer = 1 TO 20
     IF buffer(i) = retvals(1) + 1 THEN scriptret += 1
     IF buffer(i) > 0 THEN slot += 1
    NEXT
@@ -1885,20 +1885,20 @@ SELECT CASE AS CONST id
   replace_sprite_plotslice retvals(0), 8, retvals(1), retvals(2)
  CASE 345 '--clone sprite
   IF valid_plotsprite(retvals(0)) THEN
-   DIM sl AS Slice Ptr
+   DIM sl as Slice Ptr
    sl = NewSliceOfType(slSprite, SliceTable.scriptsprite)
    sl->Clone(plotslices(retvals(0)), sl)
    scriptret = create_plotslice_handle(sl)
   END IF
  CASE 346 '--get sprite frame
   IF valid_plotsprite(retvals(0)) THEN
-   DIM dat AS SpriteSliceData Ptr
+   DIM dat as SpriteSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
    scriptret = dat->frame
   END IF
  CASE 347 '--sprite frame count
   IF valid_plotsprite(retvals(0)) THEN
-   DIM dat AS SpriteSliceData Ptr
+   DIM dat as SpriteSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
    WITH *dat
     scriptret = sprite_sizes(.spritetype).frames
@@ -1965,7 +1965,7 @@ SELECT CASE AS CONST id
   scriptret = find_plotslice_handle(SliceTable.ScriptSprite)
  CASE 361 '--free slice
   IF valid_plotslice(retvals(0), 2) THEN
-   DIM sl AS Slice Ptr
+   DIM sl as Slice Ptr
    sl = plotslices(retvals(0))
    IF sl->Protect THEN
     scripterr "free slice: cannot free protected " & SliceTypeName(sl) & " slice " & retvals(0), 5
@@ -1975,25 +1975,25 @@ SELECT CASE AS CONST id
   END IF
  CASE 362 '--first child
   IF valid_plotslice(retvals(0)) THEN
-   DIM sl AS Slice Ptr
+   DIM sl as Slice Ptr
    sl = plotslices(retvals(0))
    scriptret = find_plotslice_handle(sl->FirstChild)
   END IF
  CASE 363 '--next sibling
   IF valid_plotslice(retvals(0)) THEN
-   DIM sl AS Slice Ptr
+   DIM sl as Slice Ptr
    sl = plotslices(retvals(0))
    scriptret = find_plotslice_handle(sl->NextSibling)
   END IF
  CASE 364 '--create container
-  DIM sl AS Slice Ptr
+  DIM sl as Slice Ptr
   sl = NewSliceOfType(slContainer, SliceTable.scriptsprite)
   sl->Width = retvals(0)
   sl->Height = retvals(1)
   scriptret = create_plotslice_handle(sl)
  CASE 365 '--set parent
   IF valid_plotslice(retvals(0)) AND valid_plotslice(retvals(1)) THEN
-   DIM sl AS Slice Ptr
+   DIM sl as Slice Ptr
    sl = plotslices(retvals(0))
    IF sl->Protect THEN
     scripterr "free slice: cannot reparent protected " & SliceTypeName(sl) & " slice " & retvals(0), 5
@@ -2009,14 +2009,14 @@ SELECT CASE AS CONST id
   END IF
  CASE 367 '--slice screen x
   IF valid_plotslice(retvals(0)) THEN
-   DIM sl AS Slice Ptr
+   DIM sl as Slice Ptr
    sl = plotslices(retvals(0))
    RefreshSliceScreenPos sl
    scriptret = sl->ScreenX + SliceXAnchor(sl)
   END IF
  CASE 368 '--slice screen y
   IF valid_plotslice(retvals(0)) THEN
-   DIM sl AS Slice Ptr
+   DIM sl as Slice Ptr
    sl = plotslices(retvals(0))
    RefreshSliceScreenPos sl
    scriptret = sl->ScreenY + SliceYAnchor(sl)
@@ -2027,7 +2027,7 @@ SELECT CASE AS CONST id
    IF plotslices(retvals(0))->SliceType = slContainer THEN scriptret = 1
   END IF
  CASE 370 '--create rect
-  DIM sl AS Slice Ptr
+  DIM sl as Slice Ptr
   sl = NewSliceOfType(slRectangle, SliceTable.scriptsprite)
   sl->Width = retvals(0)
   sl->Height = retvals(1)
@@ -2050,7 +2050,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 374 '--get rect style
   IF valid_plotrect(retvals(0)) THEN
-   DIM dat AS RectangleSliceData ptr
+   DIM dat as RectangleSliceData ptr
    dat = plotslices(retvals(0))->SliceData
    scriptret = dat->style
   END IF
@@ -2060,7 +2060,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 376 '--get rect fgcol
   IF valid_plotrect(retvals(0)) THEN
-   DIM dat AS RectangleSliceData ptr
+   DIM dat as RectangleSliceData ptr
    dat = plotslices(retvals(0))->SliceData
    scriptret = dat->fgcol
   END IF
@@ -2070,7 +2070,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 378 '--get rect bgcol
   IF valid_plotrect(retvals(0)) THEN
-   DIM dat AS RectangleSliceData ptr
+   DIM dat as RectangleSliceData ptr
    dat = plotslices(retvals(0))->SliceData
    scriptret = dat->bgcol
   END IF
@@ -2080,7 +2080,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 380 '--get rect border
   IF valid_plotrect(retvals(0)) THEN
-   DIM dat AS RectangleSliceData ptr
+   DIM dat as RectangleSliceData ptr
    dat = plotslices(retvals(0))->SliceData
    scriptret = dat->border
   END IF
@@ -2090,7 +2090,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 382 '--get rect trans
   IF valid_plotrect(retvals(0)) THEN
-   DIM dat AS RectangleSliceData ptr
+   DIM dat as RectangleSliceData ptr
    dat = plotslices(retvals(0))->SliceData
    scriptret = dat->translucent
   END IF
@@ -2100,7 +2100,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 384 '--slice collide point
   IF valid_plotslice(retvals(0)) THEN
-   DIM sl AS Slice Ptr
+   DIM sl as Slice Ptr
    sl = plotslices(retvals(0))
    RefreshSliceScreenPos sl
    scriptret = ABS(SliceCollidePoint(sl, retvals(1), retvals(2)))
@@ -2135,13 +2135,13 @@ SELECT CASE AS CONST id
   END IF
  CASE 390 '--sprite is horiz flipped
   IF valid_plotsprite(retvals(0)) THEN
-   DIM dat AS SpriteSliceData Ptr
+   DIM dat as SpriteSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
    IF dat->flipHoriz THEN scriptret = 1 ELSE scriptret = 0
   END IF
  CASE 391 '--sprite is vert flipped
   IF valid_plotsprite(retvals(0)) THEN
-   DIM dat AS SpriteSliceData Ptr
+   DIM dat as SpriteSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
    IF dat->flipVert THEN scriptret = 1 ELSE scriptret = 0
   END IF
@@ -2187,13 +2187,13 @@ SELECT CASE AS CONST id
   END IF
  CASE 402 '--slice to front
   IF valid_plotslice(retvals(0)) THEN
-   DIM sl AS Slice Ptr
+   DIM sl as Slice Ptr
    sl = plotslices(retvals(0))->Parent
    SetSliceParent plotslices(retvals(0)), sl
   END IF
  CASE 403 '--slice to back
   IF valid_plotslice(retvals(0)) THEN
-   DIM sl AS Slice Ptr
+   DIM sl as Slice Ptr
    sl = plotslices(retvals(0))
    IF sl->Parent = 0 THEN
     scripterr "slice to back: invalid on root slice", 5
@@ -2240,7 +2240,7 @@ SELECT CASE AS CONST id
  CASE 412 '--get sprite type
   IF valid_plotslice(retvals(0)) THEN
    IF plotslices(retvals(0))->SliceType = slSprite THEN
-    DIM dat AS SpriteSliceData Ptr = plotslices(retvals(0))->SliceData
+    DIM dat as SpriteSliceData Ptr = plotslices(retvals(0))->SliceData
     scriptret = dat->spritetype
    ELSE
     scriptret = -1
@@ -2248,12 +2248,12 @@ SELECT CASE AS CONST id
   END IF
  CASE 413 '--get sprite set number
   IF valid_plotsprite(retvals(0)) THEN
-   DIM dat AS SpriteSliceData Ptr = plotslices(retvals(0))->SliceData
+   DIM dat as SpriteSliceData Ptr = plotslices(retvals(0))->SliceData
    scriptret = dat->record
   END IF 
  CASE 414 '--get sprite palette
   IF valid_plotsprite(retvals(0)) THEN
-   DIM dat AS SpriteSliceData Ptr = plotslices(retvals(0))->SliceData
+   DIM dat as SpriteSliceData Ptr = plotslices(retvals(0))->SliceData
    IF dat->paletted = NO THEN
     scripterr "get sprite palette: this sprite is unpaletted", 2
    ELSE
@@ -2261,11 +2261,11 @@ SELECT CASE AS CONST id
    END IF
   END IF 
  CASE 415 '--suspend timers
-  FOR i AS INTEGER = 0 TO ubound(timers)
+  FOR i as integer = 0 TO ubound(timers)
    timers(i).pause = YES
   NEXT i
  CASE 416 '--resume timers
-  FOR i AS INTEGER = 0 TO ubound(timers)
+  FOR i as integer = 0 TO ubound(timers)
    timers(i).pause = NO
   NEXT i
  CASE 325, 417 '--set sprite visible, set slice visible
@@ -2283,7 +2283,7 @@ SELECT CASE AS CONST id
  CASE 419 '--slice edge x
   IF valid_plotslice(retvals(0)) THEN
    IF bound_arg(retvals(1), 0, 2, "edge") THEN
-    DIM sl AS Slice Ptr
+    DIM sl as Slice Ptr
     sl = plotslices(retvals(0))
     scriptret = sl->X - SliceXAnchor(sl) + SliceEdgeX(sl, retvals(1))
    END IF
@@ -2291,13 +2291,13 @@ SELECT CASE AS CONST id
  CASE 420 '--slice edge y
   IF valid_plotslice(retvals(0)) THEN
    IF bound_arg(retvals(1), 0, 2, "edge") THEN
-    DIM sl AS Slice Ptr
+    DIM sl as Slice Ptr
     sl = plotslices(retvals(0))
     scriptret = sl->Y - SliceYAnchor(sl) + SliceEdgeY(sl, retvals(1))
    END IF
   END IF
  CASE 421 '--create text
-  DIM sl AS Slice Ptr
+  DIM sl as Slice Ptr
   sl = NewSliceOfType(slText, SliceTable.scriptsprite)
   scriptret = create_plotslice_handle(sl)
  CASE 422 '--set slice text
@@ -2308,7 +2308,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 423 '--get text color
   IF valid_plottextslice(retvals(0)) THEN
-   DIM dat AS TextSliceData Ptr
+   DIM dat as TextSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
    scriptret = dat->col
   END IF
@@ -2320,7 +2320,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 425 '--get wrap
   IF valid_plottextslice(retvals(0)) THEN
-   DIM dat AS TextSliceData Ptr
+   DIM dat as TextSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
    scriptret = ABS(dat->wrap)
   END IF
@@ -2335,7 +2335,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 428 '--get text bg
   IF valid_plottextslice(retvals(0)) THEN
-   DIM dat AS TextSliceData Ptr
+   DIM dat as TextSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
    scriptret = dat->bgcol
   END IF
@@ -2347,7 +2347,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 430 '--get outline
   IF valid_plottextslice(retvals(0)) THEN
-   DIM dat AS TextSliceData Ptr
+   DIM dat as TextSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
    scriptret = ABS(dat->outline)
   END IF
@@ -2359,7 +2359,7 @@ SELECT CASE AS CONST id
   IF valid_plotslice(retvals(0)) THEN
    RefreshSliceScreenPos plotslices(retvals(0))
    IF retvals(3) <= -1 THEN
-    DIM slnum AS INTEGER = -1
+    DIM slnum as integer = -1
     FindSliceAtPoint(plotslices(retvals(0)), retvals(1), retvals(2), slnum, retvals(4))
     scriptret = -slnum - 1
    ELSE
@@ -2371,7 +2371,7 @@ SELECT CASE AS CONST id
    RefreshSliceScreenPos plotslices(retvals(0))
    RefreshSliceScreenPos plotslices(retvals(1))
    IF retvals(2) <= -1 THEN
-    DIM slnum AS INTEGER = -1
+    DIM slnum as integer = -1
     FindSliceCollision(plotslices(retvals(0)), plotslices(retvals(1)), slnum, retvals(3))
     scriptret = -slnum - 1
    ELSE
@@ -2489,7 +2489,7 @@ SELECT CASE AS CONST id
     IF plotslices(retvals(0))->Protect ANDALSO plotslices(retvals(0))->Parent <> plotslices(retvals(1))->Parent THEN
      scripterr "movesliceabove: tried to change the parent of a protected slice", 5
     ELSE
-     DIM sl AS Slice Ptr = plotslices(retvals(1))
+     DIM sl as Slice Ptr = plotslices(retvals(1))
      IF sl->NextSibling THEN
       InsertSliceBefore sl->NextSibling, plotslices(retvals(0))
      ELSE
@@ -2505,8 +2505,8 @@ SELECT CASE AS CONST id
   END IF
  CASE 448 '--slice child
   IF valid_plotslice(retvals(0)) THEN
-   DIM sl AS Slice Ptr = plotslices(retvals(0))->FirstChild
-   FOR i AS INTEGER = 0 TO retvals(1)
+   DIM sl as Slice Ptr = plotslices(retvals(0))->FirstChild
+   FOR i as integer = 0 TO retvals(1)
     IF sl = NULL THEN EXIT FOR
     IF i = retvals(1) THEN scriptret = find_plotslice_handle(sl)
     sl = sl->NextSibling
@@ -2521,7 +2521,7 @@ SELECT CASE AS CONST id
    scriptret = ABS(plotslices(retvals(0))->Clip <> 0)
   END IF
  CASE 453 '--create grid
-  DIM sl AS Slice Ptr
+  DIM sl as Slice Ptr
   sl = NewSliceOfType(slGrid, SliceTable.scriptsprite)
   scriptret = create_plotslice_handle(sl)
   sl->Width = retvals(0)
@@ -2538,7 +2538,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 456 '--get grid columns
   IF valid_plotgridslice(retvals(0)) THEN
-   DIM dat AS GridSliceData Ptr
+   DIM dat as GridSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
    scriptret = dat->cols
   END IF
@@ -2548,24 +2548,24 @@ SELECT CASE AS CONST id
   END IF
  CASE 458 '--get grid rows
   IF valid_plotgridslice(retvals(0)) THEN
-   DIM dat AS GridSliceData Ptr
+   DIM dat as GridSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
    scriptret = dat->rows
   END IF
  CASE 459 '--show grid
   IF valid_plotgridslice(retvals(0)) THEN
-   DIM dat AS GridSliceData Ptr
+   DIM dat as GridSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
    dat->show = (retvals(1) <> 0)
   END IF
  CASE 460 '--grid is shown
   IF valid_plotgridslice(retvals(0)) THEN
-   DIM dat AS GridSliceData Ptr
+   DIM dat as GridSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
    scriptret = ABS(dat->show <> 0)
   END IF
  CASE 461 '--load slice collection
-  DIM sl AS Slice Ptr
+  DIM sl as Slice Ptr
   IF isfile(workingdir & SLASH & "slicetree_0_" & retvals(0) & ".reld") THEN
    sl = NewSliceOfType(slContainer, SliceTable.scriptsprite)
    SliceLoadFromFile sl, workingdir & SLASH & "slicetree_0_" & retvals(0) & ".reld"
@@ -2577,7 +2577,7 @@ SELECT CASE AS CONST id
  CASE 462 '--set slice edge x
   IF valid_plotslice(retvals(0)) THEN
    IF bound_arg(retvals(1), 0, 2, "edge") THEN
-    DIM sl AS Slice Ptr
+    DIM sl as Slice Ptr
     sl = plotslices(retvals(0))
     sl->X = retvals(2) + SliceXAnchor(sl) - SliceEdgeX(sl, retvals(1))
    END IF
@@ -2585,7 +2585,7 @@ SELECT CASE AS CONST id
  CASE 463 '--slice edge y
   IF valid_plotslice(retvals(0)) THEN
    IF bound_arg(retvals(1), 0, 2, "edge") THEN
-    DIM sl AS Slice Ptr
+    DIM sl as Slice Ptr
     sl = plotslices(retvals(0))
     sl->Y = retvals(2) + SliceYAnchor(sl) - SliceEdgeY(sl, retvals(1))
    END IF
@@ -2605,12 +2605,12 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 466 '--trace value internal (string, value, ...)
-  DIM result AS string
-  FOR i AS INTEGER = 0 TO curcmd->argc - 1
+  DIM result as string
+  FOR i as integer = 0 TO curcmd->argc - 1
    IF i MOD 2 = 0 THEN
     IF i <> 0 THEN result &= ", "
     WITH *scrat(nowscript).scr
-     DIM stringp AS INTEGER PTR = .ptr + .strtable + retvals(i)
+     DIM stringp as integer PTR = .ptr + .strtable + retvals(i)
      IF .strtable + retvals(i) >= .size ORELSE .strtable + (stringp[0] + 3) \ 4 >= .size THEN
       scripterr "script corrupt: illegal string offset", 6
      ELSE
@@ -2637,9 +2637,9 @@ SELECT CASE AS CONST id
    scriptret = 1
   END IF
  CASE 469'--spells learned
-  DIM found AS INTEGER = 0
+  DIM found as integer = 0
   IF valid_hero_party(retvals(0)) THEN
-   FOR i AS INTEGER = retvals(0) * 96 TO retvals(0) * 96 + 95
+   FOR i as integer = retvals(0) * 96 TO retvals(0) * 96 + 95
     IF readbit(learnmask(), 0, i) THEN
      IF retvals(1) = found THEN
       scriptret = spell(retvals(0), (i \ 24) MOD 4, i MOD 24)
@@ -2662,7 +2662,7 @@ SELECT CASE AS CONST id
 /'  Disabled until an alternative ("new timer") is decided upon
  CASE 471'--unused timer
   scriptret = -1
-  FOR i AS INTEGER = 0 TO UBOUND(timers)
+  FOR i as integer = 0 TO UBOUND(timers)
    IF timers(i).speed <= 0 THEN
     scriptret = i
     WITH timers(scriptret)
@@ -2706,7 +2706,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 482'--zone at spot (x, y, count)
   IF valid_tile_pos(retvals(0), retvals(1)) THEN
-   DIM zoneshere() as integer
+   REDIM zoneshere() as integer
    GetZonesAtTile(zmap, zoneshere(), retvals(0), retvals(1))
    IF retvals(2) = -1 THEN  'getcount
     scriptret = UBOUND(zoneshere)
@@ -2750,7 +2750,7 @@ SELECT CASE AS CONST id
   replace_sprite_plotslice retvals(0), sprTypeMXS, retvals(1)
  CASE 495 '--get sprite trans (handle)
   IF valid_plotsprite(retvals(0)) THEN
-   DIM dat AS SpriteSliceData Ptr = plotslices(retvals(0))->SliceData
+   DIM dat as SpriteSliceData Ptr = plotslices(retvals(0))->SliceData
    scriptret = IIF(dat->trans, 1, 0)
   END IF 
  CASE 496 '--set sprite trans (handle, bool)
@@ -2837,7 +2837,7 @@ SELECT CASE AS CONST id
    END WITH
   END IF
  CASE 510 '--create ellipse
-  DIM sl AS Slice Ptr
+  DIM sl as Slice Ptr
   sl = NewSliceOfType(slEllipse, SliceTable.scriptsprite)
   sl->Width = retvals(0)
   sl->Height = retvals(1)
@@ -2867,13 +2867,13 @@ SELECT CASE AS CONST id
   END IF
  CASE 514 '--get ellipse border col
   IF valid_plotslice(retvals(0)) THEN
-   DIM dat AS EllipseSliceData ptr
+   DIM dat as EllipseSliceData ptr
    dat = plotslices(retvals(0))->SliceData
    scriptret = dat->bordercol
   END IF
  CASE 515 '--get ellipse fill col
   IF valid_plotslice(retvals(0)) THEN
-   DIM dat AS EllipseSliceData ptr
+   DIM dat as EllipseSliceData ptr
    dat = plotslices(retvals(0))->SliceData
    scriptret = dat->fillcol
   END IF
@@ -2896,12 +2896,12 @@ END SELECT
 
 END SUB
 
-SUB scriptnpc (byval id AS integer)
+SUB scriptnpc (byval id as integer)
 
 'contains npc related scripting commands
-DIM npcref AS INTEGER
+DIM npcref as integer
 
-SELECT CASE AS CONST id
+SELECT CASE as CONST id
 
  CASE 26'--set NPC frame
   npcref = getnpcref(retvals(0), 0)
@@ -2962,8 +2962,8 @@ SELECT CASE AS CONST id
  CASE 120'--NPC reference
   scriptret = 0
   IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npcs) THEN
-   DIM found AS INTEGER = 0
-   FOR i AS INTEGER = 0 TO UBOUND(npc)
+   DIM found as integer = 0
+   FOR i as integer = 0 TO UBOUND(npc)
     IF npc(i).id - 1 = retvals(0) THEN
      IF found = retvals(1) THEN
       scriptret = (i + 1) * -1
@@ -2975,8 +2975,8 @@ SELECT CASE AS CONST id
   END IF
  CASE 121'--NPC at spot
   scriptret = 0
-  DIM found AS INTEGER = 0
-  FOR i AS INTEGER = 0 TO UBOUND(npc)
+  DIM found as integer = 0
+  FOR i as integer = 0 TO UBOUND(npc)
    IF npc(i).id > 0 THEN
     IF npc(i).x \ 20 = retvals(0) THEN 
      IF npc(i).y \ 20 = retvals(1) THEN
@@ -3000,7 +3000,7 @@ SELECT CASE AS CONST id
  CASE 123'--NPC copy count
   scriptret = 0
   IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npcs) THEN
-   FOR i AS INTEGER = 0 TO UBOUND(npc)
+   FOR i as integer = 0 TO UBOUND(npc)
     IF npc(i).id - 1 = retvals(0) THEN
      scriptret = scriptret + 1
     END IF
@@ -3015,7 +3015,7 @@ SELECT CASE AS CONST id
  CASE 125'--create NPC
   scriptret = 0
   IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npcs) THEN
-   DIM i AS INTEGER
+   DIM i as integer
    FOR i = UBOUND(npc) TO 0 STEP -1
     IF npc(i).id = 0 THEN EXIT FOR
    NEXT
@@ -3035,7 +3035,7 @@ SELECT CASE AS CONST id
    END IF
    IF i > -1 THEN
     CleanNPCInst npc(i)
-    DIM npc_id AS INTEGER = retvals(0)
+    DIM npc_id as integer = retvals(0)
     npc(i).id = npc_id + 1
     cropposition retvals(1), retvals(2), 1
     npc(i).x = retvals(1) * 20
@@ -3063,8 +3063,8 @@ SELECT CASE AS CONST id
   END IF
  CASE 165'--NPC at pixel
   scriptret = 0
-  DIM found AS INTEGER = 0
-  FOR i AS INTEGER = 0 TO UBOUND(npc)
+  DIM found as integer = 0
+  FOR i as integer = 0 TO UBOUND(npc)
    IF npc(i).id > 0 THEN 
     IF npc(i).x <= retvals(0) AND npc(i).x > (retvals(0) - 20) THEN 
      IF npc(i).y <= retvals(1) AND npc(i).y > (retvals(1) - 20) THEN
@@ -3154,7 +3154,7 @@ SUB setdebugpan
 END SUB
 
 SUB tweakpalette (byval r as integer, byval g as integer, byval b as integer, byval first as integer = 0, byval last as integer = 255)
- FOR i AS INTEGER = first TO last
+ FOR i as integer = first TO last
   master(i).r = bound(master(i).r + r * 4, 0, 255)
   master(i).g = bound(master(i).g + g * 4, 0, 255)
   master(i).b = bound(master(i).b + b * 4, 0, 255)
@@ -3162,8 +3162,8 @@ SUB tweakpalette (byval r as integer, byval g as integer, byval b as integer, by
 END SUB
 
 SUB update_vehicle_state ()
-STATIC aheadx AS INTEGER
-STATIC aheady AS INTEGER
+STATIC aheadx as integer
+STATIC aheady as integer
 
 IF vstate.mounting THEN '--scramble-----------------------
  '--part of the vehicle automount where heros scramble--
@@ -3173,8 +3173,8 @@ IF vstate.mounting THEN '--scramble-----------------------
  END IF
 END IF'--scramble mount
 IF vstate.rising THEN '--rise----------------------
- DIM risen_count AS INTEGER = 0
- FOR i AS INTEGER = 0 TO 3
+ DIM risen_count as integer = 0
+ FOR i as integer = 0 TO 3
   IF catz(i * 5) < vstate.dat.elevation THEN
    catz(i * 5) = catz(i * 5) + large(1, small(4, (vstate.dat.elevation - catz(i * 5) + 1) \ 2))
   ELSE
@@ -3186,8 +3186,8 @@ IF vstate.rising THEN '--rise----------------------
  END IF
 END IF
 IF vstate.falling THEN '--fall-------------------
- DIM fallen_count = 0
- FOR i AS INTEGER = 0 TO 3
+ DIM fallen_count as integer = 0
+ FOR i as integer = 0 TO 3
   IF catz(i * 5) > 0 THEN
    catz(i * 5) = catz(i * 5) - large(1, small(4, (vstate.dat.elevation - catz(i * 5) + 1) \ 2))
   ELSE
@@ -3195,7 +3195,7 @@ IF vstate.falling THEN '--fall-------------------
   END IF
  NEXT i
  IF fallen_count = 4 THEN
-  FOR i AS INTEGER = 0 TO 3
+  FOR i as integer = 0 TO 3
    catz(i * 5) = 0
   NEXT i
   vstate.falling = NO
@@ -3204,8 +3204,8 @@ IF vstate.falling THEN '--fall-------------------
 END IF
 IF vstate.init_dismount THEN '--dismount---------------
  vstate.init_dismount = NO
- DIM disx AS INTEGER = catx(0) \ 20
- DIM disy AS INTEGER = caty(0) \ 20
+ DIM disx as integer = catx(0) \ 20
+ DIM disy as integer = caty(0) \ 20
  IF vstate.dat.dismount_ahead AND vstate.dat.pass_walls_while_dismounting THEN
   '--dismount-ahead is true, dismount-passwalls is true
   aheadxy disx, disy, catd(0), 1
@@ -3213,7 +3213,7 @@ IF vstate.init_dismount THEN '--dismount---------------
  END IF
  IF vehpass(vstate.dat.dismount_to, readblock(pass, disx, disy), -1) THEN
   '--dismount point is landable
-  FOR i AS INTEGER = 0 TO 15
+  FOR i as integer = 0 TO 15
    catx(i) = catx(0)
    caty(i) = caty(0)
    catd(i) = catd(0)
@@ -3257,7 +3257,7 @@ IF vstate.trigger_cleanup THEN '--clear
  delete_walkabout_shadow npc(vstate.npc).sl
  '--clear vehicle
  reset_vehicle vstate
- FOR i AS INTEGER = 0 TO 15   'Why is this duplicated from dismounting?
+ FOR i as integer = 0 TO 15   'Why is this duplicated from dismounting?
   catx(i) = catx(0)
   caty(i) = caty(0)
   catd(i) = catd(0)
@@ -3270,10 +3270,10 @@ IF vstate.ahead THEN '--ahead
 END IF
 IF vstate.active = YES AND vehicle_is_animating() = NO THEN
  IF txt.showing = NO AND readbit(gen(), 44, suspendplayer) = 0 THEN
-  DIM button(1) AS INTEGER
+  REDIM button(1) as integer
   button(0) = vstate.dat.use_button
   button(1) = vstate.dat.menu_button
-  FOR i AS INTEGER = 0 TO 1
+  FOR i as integer = 0 TO 1
    IF carray(ccUse + i) > 1 AND xgo(0) = 0 AND ygo(0) = 0 THEN
     SELECT CASE button(i)
      CASE -2
@@ -3308,7 +3308,7 @@ FUNCTION vehpass (byval n as integer, byval tile as integer, byval default as in
  '--true means passable
  '--false means impassable
 
- DIM v AS INTEGER = default
+ DIM v as integer = default
 
  SELECT CASE n
   CASE 1
@@ -3335,13 +3335,13 @@ END FUNCTION
 
 'Reload party walkabout graphics
 SUB vishero ()
- FOR i AS INTEGER = 0 TO UBOUND(herow)
+ FOR i as integer = 0 TO UBOUND(herow)
   frame_unload @herow(i).sprite
   palette16_unload @herow(i).pal
  NEXT
 
- DIM o AS INTEGER = 0
- FOR i AS INTEGER = 0 TO 3
+ DIM o as integer = 0
+ FOR i as integer = 0 TO 3
   IF hero(i) > 0 THEN
    herow(o).sprite = frame_load(4, gam.hero(i).pic)
    herow(o).pal = palette16_load(gam.hero(i).pal, 4, gam.hero(i).pic)
@@ -3353,7 +3353,7 @@ SUB vishero ()
 END SUB
 
 SUB set_walkabout_sprite (byval cont as Slice Ptr, byval pic as integer=-1, byval pal as integer=-2)
- DIM sprsl AS Slice Ptr
+ DIM sprsl as Slice Ptr
  IF cont = 0 THEN
   debug "null container slice in set_walkabout_sprite"
  ELSE
@@ -3367,7 +3367,7 @@ SUB set_walkabout_sprite (byval cont as Slice Ptr, byval pic as integer=-1, byva
 END SUB
 
 SUB set_walkabout_frame (byval cont as Slice Ptr, byval frame as integer)
- DIM sprsl AS Slice Ptr
+ DIM sprsl as Slice Ptr
  IF cont = 0 THEN
   debug "null container slice in set_walkabout_frame"
  ELSE
@@ -3414,13 +3414,13 @@ END SUB
 FUNCTION wrappass (byval x as integer, byval y as integer, byref xgo as integer, byref ygo as integer, byval isveh as integer) as integer
  wrappass = 0
  ' returns true if blocked by terrain
- DIM pd(3) AS INTEGER
+ REDIM pd(3) as integer
  
- DIM tilex AS INTEGER = x
- DIM tiley AS INTEGER = y
- DIM p AS INTEGER = readblock(pass, tilex, tiley)
+ DIM tilex as integer = x
+ DIM tiley as integer = y
+ DIM p as integer = readblock(pass, tilex, tiley)
  
- FOR i AS INTEGER = 0 TO 3
+ FOR i as integer = 0 TO 3
   tilex = x
   tiley = y
   wrapaheadxy tilex, tiley, i, 1, 1
@@ -3440,7 +3440,7 @@ FUNCTION wrappass (byval x as integer, byval y as integer, byref xgo as integer,
 
 END FUNCTION
 
-FUNCTION wrapzonetest (BYVAL zone as integer, BYVAL x as integer, BYVAL y as integer, BYVAL xgo as integer, BYVAL ygo as integer) as integer
+FUNCTION wrapzonetest (byval zone as integer, byval x as integer, byval y as integer, byval xgo as integer, byval ygo as integer) as integer
  'x, y in pixels
  'Warning: always wraps! But that isn't a problem on non-wrapping maps.
 
@@ -3451,7 +3451,7 @@ FUNCTION wrapzonetest (BYVAL zone as integer, BYVAL x as integer, BYVAL y as int
 END FUNCTION
 
 FUNCTION wrapcollision (byval xa as integer, byval ya as integer, byval xgoa as integer, byval ygoa as integer, byval xb as integer, byval yb as integer, byval xgob as integer, byval ygob as integer) as integer
- DIM AS INTEGER x1, x2, y1, y2
+ DIM as integer x1, x2, y1, y2
  x1 = (xa - bound(xgoa, -20, 20)) \ 20
  x2 = (xb - bound(xgob, -20, 20)) \ 20
  y1 = (ya - bound(ygoa, -20, 20)) \ 20
@@ -3475,13 +3475,13 @@ FUNCTION wraptouch (byval x1 as integer, byval y1 as integer, byval x2 as intege
  RETURN 0
 END FUNCTION
 
-SUB wrapxy (BYREF x AS INTEGER, BYREF y AS INTEGER, BYVAL wide AS INTEGER, BYVAL high AS INTEGER)
+SUB wrapxy (byref x as integer, byref y as integer, byval wide as integer, byval high as integer)
  '--wraps the given X and Y values within the bounds of width and height
  x = ((x MOD wide) + wide) MOD wide  'negative modulo is the devil's creation and never helped me once
  y = ((y MOD high) + high) MOD high
 END SUB
 
-SUB wrappedsong (BYVAL songnumber AS INTEGER)
+SUB wrappedsong (byval songnumber as integer)
 
  IF songnumber <> presentsong THEN
   playsongnum songnumber
@@ -3497,7 +3497,7 @@ SUB stopsong
  pausesong 'this is how you stop the music
 END SUB
 
-FUNCTION backcompat_sound_id (BYVAL id AS INTEGER) as integer
+FUNCTION backcompat_sound_id (byval id as integer) as integer
  IF backcompat_sound_slot_mode THEN
   'BACKWARDS COMPATABILITY HACK
   IF id >= 0 AND id <= 7 THEN
@@ -3509,12 +3509,12 @@ FUNCTION backcompat_sound_id (BYVAL id AS INTEGER) as integer
  END IF
 END FUNCTION
 
-SUB vehscramble(BYREF mode_val AS INTEGER, BYVAL trigger_cleanup AS INTEGER, BYVAL targx AS INTEGER, BYVAL targy AS INTEGER)
- DIM tmp AS INTEGER = 0
- DIM count AS INTEGER = herocount()
- DIM scramx AS INTEGER
- DIM scramy AS INTEGER
- FOR i AS INTEGER = 0 TO 3
+SUB vehscramble(byref mode_val as integer, byval trigger_cleanup as integer, byval targx as integer, byval targy as integer)
+ DIM tmp as integer = 0
+ DIM count as integer = herocount()
+ DIM scramx as integer
+ DIM scramy as integer
+ FOR i as integer = 0 TO 3
   IF i >= count THEN
    tmp += 1
   ELSE
@@ -3553,7 +3553,7 @@ SUB vehscramble(BYREF mode_val AS INTEGER, BYVAL trigger_cleanup AS INTEGER, BYV
   herospeed(0) = vstate.dat.speed
   IF herospeed(0) = 3 THEN herospeed(0) = 10
   '--null out hero's movement
-  FOR i AS INTEGER = 0 TO 3
+  FOR i as integer = 0 TO 3
    xgo(i) = 0
    ygo(i) = 0
   NEXT i
@@ -3562,9 +3562,9 @@ SUB vehscramble(BYREF mode_val AS INTEGER, BYVAL trigger_cleanup AS INTEGER, BYV
  END IF
 END SUB
 
-SUB loadsay (BYVAL box_id AS INTEGER)
-DIM j AS INTEGER
-DIM rsr AS INTEGER
+SUB loadsay (byval box_id as integer)
+DIM j as integer
+DIM rsr as integer
 
 DO '--This loop is where we find which box will be displayed right now
  '--load data from the textbox lump
@@ -3594,7 +3594,7 @@ txt.id = box_id
 gen(genTextboxBackdrop) = 0
 txt.choice_cursor = 0
 
-FOR j = 0 TO 7
+FOR j as integer = 0 TO 7
  embedtext txt.box.text(j), 38
 NEXT j
 
@@ -3642,13 +3642,13 @@ init_text_box_slices txt
 
 END SUB
 
-SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
+SUB load_text_box_portrait (byref box as TextBox, byref gfx as GraphicPair)
  'WARNING: There is another version of this in customsubs.bas
  'If you update this here, make sure to update that one too!
- DIM img_id AS INTEGER = -1
- DIM pal_id AS INTEGER = -1
- DIM hero_id AS INTEGER = -1
- DIM her AS HeroDef
+ DIM img_id as integer = -1
+ DIM pal_id as integer = -1
+ DIM hero_id as integer = -1
+ DIM her as HeroDef
  WITH gfx
   IF .sprite THEN frame_unload @.sprite
   IF .pal    THEN palette16_unload @.pal
@@ -3675,9 +3675,9 @@ SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
  END WITH
 END SUB
 
-FUNCTION valid_spriteslice_dat(BYVAL sl AS Slice Ptr) AS INTEGER
+FUNCTION valid_spriteslice_dat(byval sl as Slice Ptr) as integer
  IF sl = 0 THEN scripterr "null slice ptr in valid_spriteslice_dat", 7 : RETURN NO
- DIM dat AS SpriteSliceData Ptr = sl->SliceData
+ DIM dat as SpriteSliceData Ptr = sl->SliceData
  IF dat = 0 THEN
   scripterr SliceTypeName(sl) & " handle " & retvals(0) & " has null dat pointer", 7
   RETURN NO
@@ -3755,7 +3755,7 @@ END FUNCTION
 
 FUNCTION valid_resizeable_slice(byval handle as integer, byval ignore_fill as integer=NO) as integer
  IF valid_plotslice(handle) THEN
-  DIM sl AS Slice Ptr
+  DIM sl as Slice Ptr
   sl = plotslices(handle)
   IF sl->SliceType = slRectangle OR sl->SliceType = slContainer OR sl->SliceType = slGrid OR sl->SliceType = slEllipse THEN
    IF sl->Fill = NO OR ignore_fill THEN
@@ -3765,7 +3765,7 @@ FUNCTION valid_resizeable_slice(byval handle as integer, byval ignore_fill as in
    END IF
   ELSE
    IF sl->SliceType = slText THEN
-    DIM dat AS TextSliceData ptr
+    DIM dat as TextSliceData ptr
     dat = sl->SliceData
     IF dat = 0 THEN scripterr "sanity check fail, text slice " & handle & " has null data", 7 : RETURN NO
     IF dat->wrap = YES THEN
@@ -3781,7 +3781,7 @@ FUNCTION valid_resizeable_slice(byval handle as integer, byval ignore_fill as in
  RETURN NO
 END FUNCTION
 
-FUNCTION create_plotslice_handle(byval sl as Slice Ptr) AS INTEGER
+FUNCTION create_plotslice_handle(byval sl as Slice Ptr) as integer
  IF sl = 0 THEN scripterr "create_plotslice_handle null ptr", 7 : RETURN 0
  IF sl->TableSlot <> 0 THEN
   'this should not happen! Call find_plotslice_handle instead.
@@ -3790,7 +3790,7 @@ FUNCTION create_plotslice_handle(byval sl as Slice Ptr) AS INTEGER
  END IF
  DIM i as integer
  'First search for an empty slice handle slot (which sucks because it means they get re-used)
- FOR i = LBOUND(plotslices) to UBOUND(plotslices)
+ FOR i as integer = LBOUND(plotslices) to UBOUND(plotslices)
   IF plotslices(i) = 0 THEN
    'Store the slice pointer in the handle slot
    plotslices(i) = sl
@@ -3810,7 +3810,7 @@ FUNCTION create_plotslice_handle(byval sl as Slice Ptr) AS INTEGER
  RETURN i
 END FUNCTION
 
-FUNCTION find_plotslice_handle(BYVAL sl AS Slice Ptr) AS INTEGER
+FUNCTION find_plotslice_handle(byval sl as Slice Ptr) as integer
  IF sl = 0 THEN RETURN 0 ' it would be silly to search for a null pointer
  IF sl->TableSlot THEN RETURN sl->TableSlot
  'slice not in table, so create a new handle for it
@@ -3818,10 +3818,10 @@ FUNCTION find_plotslice_handle(BYVAL sl AS Slice Ptr) AS INTEGER
 END FUNCTION
 
 'By default, no palette set
-FUNCTION load_sprite_plotslice(BYVAL spritetype AS INTEGER, BYVAL record AS INTEGER, BYVAL pal AS INTEGER=-2) AS INTEGER
+FUNCTION load_sprite_plotslice(byval spritetype as integer, byval record as integer, byval pal as integer=-2) as integer
  WITH sprite_sizes(spritetype)
   IF bound_arg(record, 0, gen(.genmax) + .genmax_offset, "sprite record number") THEN
-   DIM sl AS Slice Ptr
+   DIM sl as Slice Ptr
    sl = NewSliceOfType(slSprite, SliceTable.scriptsprite)
    ChangeSpriteSlice sl, spritetype, record, pal
    RETURN create_plotslice_handle(sl)
@@ -3831,7 +3831,7 @@ FUNCTION load_sprite_plotslice(BYVAL spritetype AS INTEGER, BYVAL record AS INTE
 END FUNCTION
 
 'By default, no palette change
-SUB replace_sprite_plotslice(BYVAL handle AS INTEGER, BYVAL spritetype AS INTEGER, BYVAL record AS INTEGER, BYVAL pal AS INTEGER=-2)
+SUB replace_sprite_plotslice(byval handle as integer, byval spritetype as integer, byval record as integer, byval pal as integer=-2)
  WITH sprite_sizes(spritetype)
   IF valid_plotsprite(handle) THEN
    IF bound_arg(record, 0, gen(.genmax) + .genmax_offset, "sprite record number") THEN
@@ -3841,9 +3841,9 @@ SUB replace_sprite_plotslice(BYVAL handle AS INTEGER, BYVAL spritetype AS INTEGE
  END WITH
 END SUB
 
-SUB change_rect_plotslice(BYVAL handle AS INTEGER, BYVAL style AS INTEGER=-2, BYVAL bgcol AS INTEGER=-1, BYVAL fgcol AS INTEGER=-1, BYVAL border AS INTEGER=-3, BYVAL translucent AS RectTransTypes=transUndef)
+SUB change_rect_plotslice(byval handle as integer, byval style as integer=-2, byval bgcol as integer=-1, byval fgcol as integer=-1, byval border as integer=-3, byval translucent as RectTransTypes=transUndef)
  IF valid_plotslice(handle) THEN
-  DIM sl AS Slice Ptr
+  DIM sl as Slice Ptr
   sl = plotslices(handle)
   IF sl->SliceType = slRectangle THEN
    ChangeRectangleSlice sl, style, bgcol, fgcol, border, translucent
@@ -3857,8 +3857,8 @@ SUB write_checkpoint ()
  'This is used for automated testing.
  ' currently just writes a screenshot,
  ' but might also dump slice tree and other stuff too in the future.
- STATIC n AS INTEGER = 0
- DIM f AS STRING = with_orig_path("checkpoint" & right("0000" & n, 5))
+ STATIC n as integer = 0
+ DIM f as STRING = with_orig_path("checkpoint" & right("0000" & n, 5))
  bmp_screenshot f
  n += 1
 END SUB
