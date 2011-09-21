@@ -181,10 +181,19 @@ void unlock_file(FILE *fh) {
 // Size of a PipeState readbuf in bytes
 #define PIPEBUFSZ 2048
 
+typedef struct BufferedMsg BufferedMsg;
+struct BufferedMsg {
+	BufferedMsg *next;
+	char *msg;
+	int msglen;
+};
+
 struct PipeState {
 	char *basename;
 	// Writing
 	int writefd;
+	BufferedMsg *writebuf_head;
+	BufferedMsg *writebuf_tail;
 	// Reading
 	int readfd;
 	char *readbuf; // PIPEBUFSZ bytes
@@ -192,10 +201,15 @@ struct PipeState {
 	int usedamnt;  // Total amount of data in readbuf, including already read
 };
 
+static void channel_writebuf_push_msg(PipeState *channel, const char *buf, int buflen);
+static void channel_writebuf_pop_msg(PipeState *channel);
+
+
 static PipeState *channel_new(const char *basename) {
 	PipeState *ret = malloc(sizeof(PipeState));
 	ret->readfd = -1;
 	ret->writefd = -1;
+	ret->writebuf_head = ret->writebuf_tail = NULL;
 	ret->readbuf = malloc(PIPEBUFSZ);
 	ret->readamnt = ret->usedamnt = 0;
 	ret->basename = malloc(strlen(basename) + 1);
@@ -208,6 +222,8 @@ static void channel_delete(PipeState *channel) {
 	if (!channel) return;
 	free(channel->readbuf);
 	free(channel->basename);
+	while (channel->writebuf_head)
+		channel_writebuf_pop_msg(channel);
 	free(channel);
 }
 
@@ -340,13 +356,12 @@ int channel_wait_for_client_connection(PipeState **channelp, int timeout_ms) {
 	return 1;
 }
 
-// Returns true on success
-int channel_write(PipeState **channelp, const char *buf, int buflen) {
-	if (!*channelp) return 0;
-
+// Returns: 0 error, channel closed;  1 success;  2 no room in buffer
+static int channel_write_internal(PipeState **channelp, const char *buf, int buflen) {
 	int fd = (*channelp)->writefd;
 	if (fd == -1) {
 		debug(3, "channel_write: no file descriptor! (forgot channel_wait_for_client_connection?)");
+		channel_close(channelp);
 		return 0;
 	}
 	int written = 0;
@@ -355,6 +370,8 @@ int channel_write(PipeState **channelp, const char *buf, int buflen) {
 		if (res == -1) {
 			if (errno == EINTR)  // write interrupted, retry
 				continue;
+			if (errno == EAGAIN)
+				return 2;
 			if (errno == EPIPE)
 				// Reading end closed
 				debuginfo("channel_write: pipe closed.");
@@ -368,7 +385,70 @@ int channel_write(PipeState **channelp, const char *buf, int buflen) {
 	return 1;
 }
 
-// Returns true on success. Automatically appends a newline
+static void channel_writebuf_push_msg(PipeState *channel, const char *buf, int buflen) {
+	BufferedMsg *elmt = malloc(sizeof(BufferedMsg));
+	elmt->msg = malloc(buflen);
+	memcpy(elmt->msg, buf, buflen);
+	elmt->msglen = buflen;
+	elmt->next = NULL;
+
+	if (channel->writebuf_tail) {
+		channel->writebuf_tail->next = elmt;
+		channel->writebuf_tail = elmt;
+	} else {
+		channel->writebuf_head = channel->writebuf_tail = elmt;
+	}
+}
+
+static void channel_writebuf_pop_msg(PipeState *channel) {
+	BufferedMsg *elmt = channel->writebuf_head;
+	channel->writebuf_head = elmt->next;
+	if (!channel->writebuf_head)
+		channel->writebuf_tail = NULL;
+	free(elmt->msg);
+	free(elmt);
+}
+
+// Returns true on apparent success (which may mean the output is buffered
+// instead of immediately written)
+int channel_write(PipeState **channelp, const char *buf, int buflen) {
+	int res;
+	PipeState *channel = *channelp;
+	if (!channel) return 0;
+
+	// Flush delayed writes
+	while (channel->writebuf_head) {
+		res = channel_write_internal(channelp, channel->writebuf_head->msg, channel->writebuf_head->msglen);
+		if (res == 0) {
+			channel_close(channelp);
+			return 0;
+		}
+		if (res == 1) {
+			channel_writebuf_pop_msg(channel);
+		}
+		if (res == 2) {
+			// Still not enough room
+			channel_writebuf_push_msg(channel, buf, buflen);
+			return 1;
+		}
+	}
+
+	res = channel_write_internal(channelp, buf, buflen);
+	if (res == 2) {
+		if (!channel->writebuf_head) {
+			// This is the first overflow
+			debuginfo("channel_write warning: OS pipe buffer full, starting internal buffering");
+		}
+		channel_writebuf_push_msg(channel, buf, buflen);
+		return 1;
+	} else {
+		return res;
+	}
+}
+
+// Returns true on apparent success (which may mean the output is buffered
+// instead of immediately written)
+// Automatically appends a newline
 int channel_write_line(PipeState **channelp, FBSTRING *buf) {
 	// Temporarily replace NULL byte with a newline
 	buf->data[FB_STRSIZE(buf)] = '\n';
