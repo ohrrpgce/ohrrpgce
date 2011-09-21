@@ -1,4 +1,4 @@
-//OHHRPGCE COMMON - Generic Unix versions of OS-specific routines
+//OHRRPGCE COMMON - Generic Unix versions of OS-specific routines
 //Please read LICENSE.txt for GNU GPL License details and disclaimer of liability
 
 #define _POSIX_SOURCE  // for fdopen
@@ -178,107 +178,173 @@ void unlock_file(FILE *fh) {
 //	  FBSTRING *ret;
 //}
 
-//Size of a PipeState read buffer in bytes
+// Size of a PipeState readbuf in bytes
 #define PIPEBUFSZ 2048
 
 struct PipeState {
-	char *filename;
-	int fd;
-	char *buf;
-	int readamnt;   //Next byte to be read from buffer
-	int usedamnt;   //Total amount of data in buffer, including already read
+	char *basename;
+	// Writing
+	int writefd;
+	// Reading
+	int readfd;
+	char *readbuf; // PIPEBUFSZ bytes
+	int readamnt;  // Next byte to be read from readbuf
+	int usedamnt;  // Total amount of data in readbuf, including already read
 };
 
-static PipeState *channel_new(int fd) {
+static PipeState *channel_new(const char *basename) {
 	PipeState *ret = malloc(sizeof(PipeState));
-	ret->fd = fd;
-	ret->buf = malloc(PIPEBUFSZ);
+	ret->readfd = -1;
+	ret->writefd = -1;
+	ret->readbuf = malloc(PIPEBUFSZ);
 	ret->readamnt = ret->usedamnt = 0;
-	ret->filename = NULL;
+	ret->basename = malloc(strlen(basename) + 1);
+	strcpy(ret->basename, basename);
+
 	return ret;
 }
 
-static void channel_delete(PipeState *state) {
-	if (!state) return;
-	free(state->buf);
-	free(state->filename);
-	free(state);
+static void channel_delete(PipeState *channel) {
+	if (!channel) return;
+	free(channel->readbuf);
+	free(channel->basename);
+	free(channel);
 }
 
-//Returns true on success
-int channel_open_server(PipeState **result, FBSTRING *name) {
-	*result = NULL;
-	remove(name->data);
-	int res = mkfifo(name->data, 0777);
-	if (res == -1) {
-		debug(2, "mkfifo(%s) failed: %s", name->data, strerror(errno));
+void channel_close(PipeState **channelp) {
+	PipeState *channel = *channelp;
+	if (!channel) return;
+	if (channel->readfd != -1) close(channel->readfd);
+	if (channel->writefd != -1) close(channel->writefd);
+	channel_delete(channel);
+	*channelp = NULL;
+}
+
+// Attempts to open a FIFO file for reading
+// Returns true on success
+static int fifo_open_read(char *name, int *out_fd) {
+	*out_fd = open(name, O_RDONLY | O_NONBLOCK);
+	if (*out_fd == -1) {
+		debug(2, "fifo_open_read: open(%s) error: %s", name, strerror(errno));
 		return 0;
 	}
-	PipeState *ret = channel_new(-1);
-	ret->filename = malloc(strlen(name->data) + 1);
-	strcpy(ret->filename, name->data);
+	return 1;
+}
+
+// Attempts to open a FIFO file for writing
+// Returns true on success
+static int fifo_open_write(char *filename, int *out_fd, int timeout_ms) {
+	*out_fd = -1;
+	long long timeout = milliseconds() + timeout_ms;
+	do {
+		int fd = open(filename, O_WRONLY | O_NONBLOCK);
+		if (fd != -1) {
+			*out_fd = fd;
+			return 1;
+		}
+		if (errno != ENXIO && errno != EINTR) {	
+			debug(2, "fifo_open_write: open(%s) error: %s", filename, strerror(errno));
+			return 0;
+		}
+		usleep(10000);
+	} while (milliseconds() < timeout);
+	debug(2, "timeout while waiting for writer to connect to %s", filename);
+	return 0;
+}
+
+// Creates a FIFO. To finish connecting, the client must connect and 
+// channel_wait_for_client_connection must be called (in either order).
+// Returns true on success
+int channel_open_server(PipeState **result, FBSTRING *name) {
+	*result = NULL;
+	char *writefile = alloca(strlen(name->data) + 8 + 1);
+	char *readfile = alloca(strlen(name->data) + 8 + 1);
+	sprintf(writefile, "%s.2client", name->data);
+	sprintf(readfile,  "%s.2server", name->data);
+
+	remove(writefile);
+	if (mkfifo(writefile, 0777) == -1) {
+		debug(2, "mkfifo(%s) failed: %s", writefile, strerror(errno));
+		return 0;
+	}
+
+	remove(readfile);
+	if (mkfifo(readfile, 0777) == -1) {
+		debug(2, "mkfifo(%s) failed: %s", readfile, strerror(errno));
+		remove(writefile);
+		return 0;
+	}
+
+	PipeState *ret = channel_new(name->data);
+	if (fifo_open_read(readfile, &ret->readfd) == -1) {
+		channel_close(&ret);
+		remove(readfile);
+		remove(writefile);
+		return 0;
+	}
 
 	// If a FIFO is opened for write in non-blocking mode and it hasn't been opened for read
-	// yet, then the open fails. So we have to wait for the client to connect first:
-	// see channel_wait_for_client_connection
+	// yet, then the open fails. So we have to wait for the client to connect to the 'in'
+	// FIFO first; see channel_wait_for_client_connection.
 
-        // write() normally throws a SIGPIPE on broken pipe; ignore those and receive EPIPE instead
-        signal(SIGPIPE, SIG_IGN);
+	// write() normally throws a SIGPIPE on broken pipe; ignore those and receive EPIPE instead
+	signal(SIGPIPE, SIG_IGN);
 
 	*result = ret;
 	return 1;
 }
 
-//Returns true on success
+// Returns true on success
 int channel_open_client(PipeState **result, FBSTRING *name) {
-	int fd = open(name->data, O_RDONLY | O_NONBLOCK);
-	if (fd == -1) {
-		debugc(strerror(errno), 2);
-		*result = NULL;
+	*result = NULL;
+	char *writefile = alloca(strlen(name->data) + 8 + 1);
+	char *readfile = alloca(strlen(name->data) + 8 + 1);
+	sprintf(writefile, "%s.2server", name->data);  // Reversed from channel_open_server
+	sprintf(readfile,  "%s.2client", name->data);
+
+	*result = channel_new(name->data);
+
+	if (!fifo_open_read(readfile, &(*result)->readfd)) {
+		channel_close(result);
 		return 0;
 	}
-	*result = channel_new(fd);
+
+	// At this point the server is meant to already have its read end open, so this
+	// should succeed immediately.
+	if (!fifo_open_write(writefile, &(*result)->writefd, 200)) {
+		channel_close(result);
+		return 0;
+	}
+
+	// write() normally throws a SIGPIPE on broken pipe; ignore those and receive EPIPE instead
+	signal(SIGPIPE, SIG_IGN);
+
 	return 1;
 }
 
-//Returns true on success, false on error or timeout
+// This is used by the server process only. Attempts to open the write side of a pair
+// of pipes. Requires that the other process opens its read side first. Waits for that to happen.
+// Returns true on success, false on error or timeout
 int channel_wait_for_client_connection(PipeState **channelp, int timeout_ms) {
 	PipeState *chan = *channelp;
 
 	if (!chan) return 0;
 
-	long long timeout = milliseconds() + timeout_ms;
+	char *namebuf = alloca(strlen(chan->basename) + 8 + 1);
+	sprintf(namebuf, "%s.2client", chan->basename);
 
-	do {
-		int fd = open(chan->filename, O_WRONLY | O_NONBLOCK);
-		if (fd != -1) {
-			chan->fd = fd;
-			return 1;
-		}
-		if (errno != ENXIO && errno != EINTR) {	
-			debug(2, "channel_open_server(%s) error: %s", chan->filename, strerror(errno));
-			channel_close(channelp);
-			return 0;
-		}
-		usleep(10000);
-	} while (milliseconds() < timeout);
-	debug(2, "timeout while waiting for client connection to %s", chan->filename);
-	channel_close(channelp);
-	return 0;
+	if (!fifo_open_write(namebuf, &chan->writefd, timeout_ms)) {
+		channel_close(channelp);
+		return 0;
+	}
+	return 1;
 }
 
-void channel_close(PipeState **channelp) {
-	if (!*channelp) return;
-	if ((*channelp)->fd != -1) close((*channelp)->fd);
-	channel_delete(*channelp);
-	*channelp = NULL;
-}
-
-//Returns true on success
+// Returns true on success
 int channel_write(PipeState **channelp, const char *buf, int buflen) {
 	if (!*channelp) return 0;
 
-	int fd = (*channelp)->fd;
+	int fd = (*channelp)->writefd;
 	if (fd == -1) {
 		debug(3, "channel_write: no file descriptor! (forgot channel_wait_for_client_connection?)");
 		return 0;
@@ -287,10 +353,10 @@ int channel_write(PipeState **channelp, const char *buf, int buflen) {
 	while (written < buflen) {
 		int res = write(fd, buf + written, buflen - written);
 		if (res == -1) {
-			if (errno == EINTR)
+			if (errno == EINTR)  // write interrupted, retry
 				continue;
 			if (errno == EPIPE)
-				//Reading end closed
+				// Reading end closed
 				debuginfo("channel_write: pipe closed.");
 			else
 				debug(2, "channel_write: error: %s", strerror(errno));
@@ -302,16 +368,16 @@ int channel_write(PipeState **channelp, const char *buf, int buflen) {
 	return 1;
 }
 
-//Returns true on success. Automatically appends a newline
+// Returns true on success. Automatically appends a newline
 int channel_write_line(PipeState **channelp, FBSTRING *buf) {
-	//Temporarily replace NULL byte with a newline
+	// Temporarily replace NULL byte with a newline
 	buf->data[FB_STRSIZE(buf)] = '\n';
 	int ret = channel_write(channelp, buf->data, FB_STRSIZE(buf) + 1);
 	buf->data[FB_STRSIZE(buf)] = '\0';
 	return ret;
 }
 
-//Returns true on reading a line
+// Returns true on reading a line
 int channel_input_line(PipeState **channelp, FBSTRING *output) {
 	if (!*channelp) return 0;
 
@@ -323,12 +389,12 @@ int channel_input_line(PipeState **channelp, FBSTRING *output) {
 		// First try to fulfill the request from buffer
 		int copylen = chan->readamnt - chan->usedamnt;
 		if (copylen > 0) {
-			nl = memchr(chan->buf + chan->usedamnt, '\n', copylen);
+			nl = memchr(chan->readbuf + chan->usedamnt, '\n', copylen);
 			if (nl)
-				copylen = nl - (chan->buf + chan->usedamnt);
+				copylen = nl - (chan->readbuf + chan->usedamnt);
 			if (!fb_hStrRealloc(output, outlen + copylen, 1))  // set length, preserving existing
 				return 0;
-			memcpy(output->data + outlen, chan->buf + chan->usedamnt, copylen);
+			memcpy(output->data + outlen, chan->readbuf + chan->usedamnt, copylen);
 			outlen += copylen;
 			chan->usedamnt += copylen;
 			if (nl) {
@@ -339,7 +405,7 @@ int channel_input_line(PipeState **channelp, FBSTRING *output) {
 		}
 
 		// Read into buffer
-		int res = read(chan->fd, chan->buf, PIPEBUFSZ);
+		int res = read(chan->readfd, chan->readbuf, PIPEBUFSZ);
 		if (res == 0) {
 			// EOF: write end of pipe has closed
 			debuginfo("channel_input_line: pipe closed");
@@ -390,10 +456,15 @@ int channel_input_line(PipeState **channelp, FBSTRING *output) {
 ProcessHandle open_process (FBSTRING *program, FBSTRING *args) {
 	char *buf = malloc(strlen(program->data) + strlen(args->data) + 2);
 	sprintf(buf, "%s %s", program->data, args->data);
-	popen(buf, "r");  //No intention to read or write
+	FILE *res = popen(buf, "r");  //No intention to read or write
+	int err = errno;
 	free(buf);
 	fb_hStrDelTemp(program);
 	fb_hStrDelTemp(args);
+	if (!res) {
+		debug(2, "popen(%s, %s) failed: %s", program->data, args->data, strerror(err));
+		return 0;
+	}
 	return -1;  //nonzero
 }
 
