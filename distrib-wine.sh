@@ -13,6 +13,34 @@ function mustexist {
   fi
 }  
 
+function ohrrpgce_common_files {
+ cp game.exe tmpdist
+ cp custom.exe tmpdist
+ cp hspeak.exe tmpdist
+ cp ohrrpgce.new tmpdist
+ cp plotscr.hsd tmpdist
+ cp scancode.hsi tmpdist
+ cp README-game.txt tmpdist
+ cp README-custom.txt tmpdist
+ cp IMPORTANT-nightly.txt tmpdist
+ cp LICENSE.txt tmpdist
+ cp LICENSE-binary.txt tmpdist
+ cp SDL.dll tmpdist
+ cp SDL_mixer.dll tmpdist
+ cp gfx_directx.dll tmpdist
+ mkdir tmpdist/support
+ cp support/madplay.exe tmpdist/support
+ cp support/LICENSE-madplay.txt tmpdist/support
+ cp support/oggenc.exe tmpdist/support
+ cp support/LICENSE-oggenc.txt tmpdist/support
+ mkdir tmpdist/ohrhelp
+ cp ohrhelp/*.txt tmpdist/ohrhelp
+ mkdir tmpdist/docs
+ cp docs/*.URL tmpdist/docs
+ cp docs/plotdictionary.html tmpdist/docs
+ cp docs/more-docs.txt tmpdist/docs
+}
+
 #-----------------------------------------------------------------------
 # turn of wine's debug noise
 export WINEDEBUG=fixme-all
@@ -57,36 +85,13 @@ rm -Rf tmpdist
 mkdir tmpdist
 
 echo "Packaging minimalist ohrrpgce-minimal.zip ..."
-cp game.exe tmpdist
-cp custom.exe tmpdist
-cp hspeak.exe tmpdist
-cp ohrrpgce.new tmpdist
-cp plotscr.hsd tmpdist
-cp scancode.hsi tmpdist
-cp README-game.txt tmpdist
-cp README-custom.txt tmpdist
-cp IMPORTANT-nightly.txt tmpdist
-cp LICENSE-binary.txt tmpdist
-cp SDL.dll tmpdist
-cp SDL_mixer.dll tmpdist
-cp gfx_directx.dll tmpdist
-mkdir tmpdist/support
-cp support/madplay.exe tmpdist/support
-cp support/LICENSE-madplay.txt tmpdist/support
-cp support/oggenc.exe tmpdist/support
-cp support/LICENSE-oggenc.txt tmpdist/support
-mkdir tmpdist/ohrhelp
-cp ohrhelp/*.txt tmpdist/ohrhelp
-mkdir tmpdist/docs
-cp docs/*.URL tmpdist/docs
-cp docs/plotdictionary.html tmpdist/docs
-cp docs/more-docs.txt tmpdist/docs
+ohrrpgce_common_files
 
 cd tmpdist
 zip -9 -q -r ../distrib/ohrrpgce-minimal.zip *
 cd ..
 
-echo "Verify zip file..."
+echo "  verify minimalist zip file..."
 rm -Rf tmpdist
 mkdir tmpdist
 cd tmpdist
@@ -97,41 +102,18 @@ mustexist "tmpdist/game.exe"
 echo "Packaging ohrrpgce.zip ..."
 rm -Rf tmpdist
 mkdir tmpdist
-cp game.exe tmpdist
-cp custom.exe tmpdist
-cp hspeak.exe tmpdist
-cp ohrrpgce.new tmpdist
-cp README-game.txt tmpdist
-cp README-custom.txt tmpdist
-cp IMPORTANT-nightly.txt tmpdist
-cp LICENSE.txt tmpdist
-cp LICENSE-binary.txt tmpdist
-cp plotscr.hsd tmpdist
-cp scancode.hsi tmpdist
-cp gfx_directx.dll tmpdist
-cp SDL.dll tmpdist
-cp SDL_mixer.dll tmpdist
-mkdir tmpdist/ohrhelp
-cp ohrhelp/*.txt tmpdist/ohrhelp
-mkdir tmpdist/docs
-cp docs/FAQ.URL tmpdist/docs
-cp docs/HOWTO.URL tmpdist/docs
-cp docs/*.html tmpdist/docs
+ohrrpgce_common_files
+# extra docs
 cp docs/plotdict.xml tmpdist/docs
 cp docs/htmlplot.xsl tmpdist/docs
-cp docs/more-docs.txt tmpdist/docs
-mkdir tmpdist/support
-cp support/madplay.exe tmpdist/support
-cp support/LICENSE-madplay.txt tmpdist/support
-cp support/oggenc.exe tmpdist/support
-cp support/LICENSE-oggenc.txt tmpdist/support
+# Vikings
 cp vikings.rpg tmpdist
 mkdir "tmpdist/Vikings script files"
 cp "vikings/Vikings script files/viking.txt" "tmpdist/Vikings script files"
 cp "vikings/Vikings script files/viking.hsi" "tmpdist/Vikings script files"
 cp "vikings/Vikings script files/utility.lib" "tmpdist/Vikings script files"
 cp "vikings/README-vikings.txt" tmpdist
-
+# Import folder
 mkdir tmpdist/import
 mkdir tmpdist/import/background
 cp import/background/*.bmp tmpdist/import/background
@@ -145,7 +127,7 @@ mkdir "tmpdist/import/Master Palettes"
 cp import/"Master Palettes"/*.bmp tmpdist/import/"Master Palettes"
 
 cd tmpdist
-zip -9 -q -r ../distrib/ohrrpgce.zip *.* -x *.svn*
+zip -9 -q -r ../distrib/ohrrpgce.zip *
 cd ..
 
 rm -Rf tmpdist
@@ -169,8 +151,8 @@ mustexist "distrib/ohrrpgce-win-installer.exe"
 
 echo "Packaging source snapshot zip ..."
 OHRVERDATE=`svn info | grep "^Last Changed Date:" | cut -d ":" -f 2 | cut -d " " -f 2`
-REPOSITORY=`svn info | grep "^URL:" | cut -d " " -f 2-`
 OHRVERCODE=`cat codename.txt`
+REPOSITORY=`svn info | grep "^URL:" | cut -d " " -f 2-`
 rm -Rf tmpdist
 mkdir tmpdist
 
