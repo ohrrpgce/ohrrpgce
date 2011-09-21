@@ -39,6 +39,7 @@ function ohrrpgce_common_files {
  cp docs/*.URL tmpdist/docs
  cp docs/plotdictionary.html tmpdist/docs
  cp docs/more-docs.txt tmpdist/docs
+ unix2dos -q tmpdist/*.txt tmpdist/*.hsd tmpdist/*.hsi tmpdist/support/*.txt tmpdist/docs/*.txt
 }
 
 #-----------------------------------------------------------------------
@@ -113,6 +114,7 @@ cp "vikings/Vikings script files/viking.txt" "tmpdist/Vikings script files"
 cp "vikings/Vikings script files/viking.hsi" "tmpdist/Vikings script files"
 cp "vikings/Vikings script files/utility.lib" "tmpdist/Vikings script files"
 cp "vikings/README-vikings.txt" tmpdist
+unix2dos -q "tmpdist/Vikings script files/"*
 # Import folder
 mkdir tmpdist/import
 mkdir tmpdist/import/background

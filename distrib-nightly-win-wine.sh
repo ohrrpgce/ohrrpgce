@@ -33,8 +33,13 @@ function zip_and_upload {
   rm -f distrib/"${ZIPFILE}"
   zip -q distrib/"${ZIPFILE}" game.exe custom.exe
   zip -q distrib/"${ZIPFILE}" ohrrpgce.new
-  zip -q distrib/"${ZIPFILE}" whatsnew.txt *-binary.txt *-nightly.txt plotscr.hsd svninfo.txt
   zip -q -r distrib/"${ZIPFILE}" ohrhelp
+  rm -Rf texttemp
+  mkdir texttemp
+  cp whatsnew.txt *-binary.txt *-nightly.txt plotscr.hsd svninfo.txt texttemp/
+  unix2dos -q texttemp/*
+  zip -q -j distrib/"${ZIPFILE}" texttemp/*
+  rm -Rf texttemp
 
   mustexist distrib/"${ZIPFILE}"
 
@@ -75,68 +80,68 @@ rm -r game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=directx+sdl+fb music=sdl debug=0
 zip_and_upload directx sdl "~" gfx_directx.dll SDL.dll SDL_mixer.dll 
 
-del game*.exe custom*.exe
+rm -f game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=directx+fb music=native debug=0
 zip_and_upload directx native "~" gfx_directx.dll audiere.dll
 
-del game*.exe custom*.exe
+rm -f game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=directx+fb music=native2 debug=0
 zip_and_upload directx native2 "~" gfx_directx.dll audiere.dll
 
-del game*.exe custom*.exe
+rm -f game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=fb+directx+sdl music=sdl debug=0
 zip_and_upload fb sdl "~" SDL.dll SDL_mixer.dll 
 
-del game*.exe custom*.exe
+rm -f game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=fb+directx music=native debug=0
 zip_and_upload fb native "~" audiere.dll
 
-del game*.exe custom*.exe
+rm -f game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=fb+directx music=native2 debug=0
 zip_and_upload fb native2 "~" audiere.dll
 
-del game*.exe custom*.exe
+rm -f game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=alleg+directx+fb+sdl music=sdl debug=0
 zip_and_upload alleg sdl "~" alleg40.dll SDL.dll SDL_mixer.dll 
 
-del game*.exe custom*.exe
+rm -f game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=alleg+directx+fb music=native debug=0
 zip_and_upload alleg native "~" alleg40.dll audiere.dll
 
-del game*.exe custom*.exe
+rm -f game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=alleg+directx+fb music=native2 debug=0
 zip_and_upload alleg native2 "~" alleg40.dll audiere.dll
 
-del game*.exe custom*.exe
+rm -f game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=sdl+directx+fb music=sdl debug=0
 zip_and_upload sdl sdl "~" SDL.dll SDL_mixer.dll 
 
-del game*.exe custom*.exe
+rm -f game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=sdl+directx+fb music=native debug=0
 zip_and_upload sdl native "~" audiere.dll SDL.dll
 
-del game*.exe custom*.exe
+rm -f game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=sdl+directx+fb music=native2 debug=0
 zip_and_upload sdl native2 "~" audiere.dll SDL.dll
 
-del game*.exe custom*.exe
+rm -f game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=directx+sdl+fb music=silence debug=0
 zip_and_upload directx silence "~" SDL.dll gfx_directx.dll
 
-del game*.exe custom*.exe
+rm -f game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=directx+sdl+fb music=sdl debug=1
 zip_and_upload directx sdl -debug SDL.dll SDL_mixer.dll gfx_directx.dll misc/gdbcmds1.txt misc/gdbcmds2.txt gdbgame.bat gdbcustom.bat
 
-del game*.exe custom*.exe
+rm -f game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=directx+sdl+fb music=sdl debug=1 valgrind=1
 zip_and_upload directx sdl -debug-valgrind SDL.dll SDL_mixer.dll gfx_directx.dll misc/gdbcmds1.txt misc/gdbcmds2.txt gdbgame.bat gdbcustom.bat
 
-del game*.exe custom*.exe
+rm -f game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=directx+sdl+fb music=sdl debug=0 scriptprofile=1
 zip_and_upload directx sdl -scriptprofile SDL.dll SDL_mixer.dll gfx_directx.dll
 
 echo "upload plotdict.xml"
-scp docs\plotdict.xml "${SCPHOST}":"${SCPDOCS}"
+scp docs/plotdict.xml "${SCPHOST}":"${SCPDOCS}"
 
 rm -f distrib/ohrrpgce-util.zip
 rm -f unlump.exe relump.exe
@@ -154,15 +159,14 @@ zip distrib/hspeak-win-nightly.zip hspeak.exe hspeak.exw hsspiffy.e LICENSE.txt 
 scp distrib/hspeak-win-nightly.zip "${SCPHOST}":"${SCPDEST}"
 
 rm -f distrib/bam2mid.zip
-del bam2mid.exe
+rm -f bam2mid.exe
 wine cmd /C "${SCONS}" bam2mid.exe
-IF NOT EXIST bam2mid.exe GOTO NOBAM2MID
-support\zip distrib\bam2mid.zip bam2mid.exe bam2mid.txt bam2mid.bas banks.bi LICENSE.txt make-bam2mid.bat make-bam2mid.sh svninfo.txt
-pscp -i C:\progra~1\putty\id_rsa.ppk distrib\bam2mid.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
-:NOBAM2MID
+mustexist bam2mid.exe
+zip distrib/bam2mid.zip bam2mid.exe bam2mid.txt bam2mid.bas banks.bi LICENSE.txt make-bam2mid.bat make-bam2mid.sh svninfo.txt
+scp distrib/bam2mid.zip "${SCPHOST}":"${SCPDEST}"
 
-del distrib\madplay+oggenc.zip
-support\zip distrib\madplay+oggenc.zip support\madplay.exe support\oggenc.exe support\LICENSE-*.txt LICENSE.txt
-pscp -i C:\progra~1\putty\id_rsa.ppk distrib\madplay+oggenc.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
+rm -f distrib/madplay+oggenc.zip
+zip distrib/madplay+oggenc.zip support/madplay.exe support/oggenc.exe support/LICENSE-*.txt LICENSE.txt
+scp distrib/madplay+oggenc.zip "${SCPHOST}":"${SCPDEST}"
 
-pscp -i C:\progra~1\putty\id_rsa.ppk svninfo.txt james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
+scp svninfo.txt "${SCPHOST}":"${SCPDEST}"
