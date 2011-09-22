@@ -37,21 +37,21 @@
 
 
 'local subs and functions
-DECLARE SUB reset_map_state (map AS MapModeState)
-DECLARE SUB opendoor (dforce AS INTEGER=0)
-DECLARE SUB thrudoor (door_id AS INTEGER)
+DECLARE SUB reset_map_state (map as MapModeState)
+DECLARE SUB opendoor (dforce as integer=0)
+DECLARE SUB thrudoor (door_id as integer)
 DECLARE SUB advance_text_box ()
-DECLARE FUNCTION want_to_check_for_walls(BYVAL who AS INTEGER) AS INTEGER
+DECLARE FUNCTION want_to_check_for_walls(byval who as integer) as integer
 DECLARE SUB update_npcs ()
-DECLARE SUB pick_npc_action(npci AS NPCInst, npcdata AS NPCType)
-DECLARE SUB perform_npc_move(BYVAL npcnum AS INTEGER, npci AS NPCInst, npcdata AS NPCType)
-DECLARE SUB npchitwall (npci AS NPCInst, npcdata AS NPCType)
-DECLARE FUNCTION find_useable_npc () AS INTEGER
+DECLARE SUB pick_npc_action(npci as NPCInst, npcdata as NPCType)
+DECLARE SUB perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as NPCType)
+DECLARE SUB npchitwall (npci as NPCInst, npcdata as NPCType)
+DECLARE FUNCTION find_useable_npc () as integer
 DECLARE SUB interpret ()
-DECLARE SUB update_heroes(BYVAL force_npc_check AS INTEGER=NO)
-DECLARE SUB doloadgame(BYVAL load_slot AS INTEGER)
+DECLARE SUB update_heroes(byval force_npc_check as integer=NO)
+DECLARE SUB doloadgame(byval load_slot as integer)
 DECLARE SUB reset_game_final_cleanup()
-DECLARE FUNCTION should_skip_this_timer(byval l as integer, t as PlotTimer) AS INTEGER
+DECLARE FUNCTION should_skip_this_timer(byval l as integer, t as PlotTimer) as integer
 DECLARE SUB update_menu_states ()
 DECLARE SUB reparent_hero_slices()
 DECLARE SUB orphan_hero_slices()
@@ -79,13 +79,13 @@ debuginfo DATE & " " & TIME
 mersenne_twister TIMER
 
 'Global variables which are affected by processcommandline (specifically, game_setoption)
-DIM autotestmode AS INTEGER = NO
-DIM speedcontrol AS INTEGER = 55
-DIM autosnap AS INTEGER = 0
-DIM running_as_slave AS INTEGER = NO
-DIM custom_version AS STRING  'when running as slave
-DIM master_channel AS IPCChannel = NULL_CHANNEL  'when running as slave
-DIM modified_lumps AS STRING VECTOR  'when running as slave
+DIM autotestmode as integer = NO
+DIM speedcontrol as integer = 55
+DIM autosnap as integer = 0
+DIM running_as_slave as integer = NO
+DIM custom_version as STRING  'when running as slave
+DIM master_channel as IPCChannel = NULL_CHANNEL  'when running as slave
+DIM modified_lumps as STRING VECTOR  'when running as slave
 v_new modified_lumps
 
 orig_dir = CURDIR()
@@ -111,11 +111,11 @@ DIM SHARED wantbattle as integer
 DIM SHARED wantteleport as integer
 DIM SHARED wantusenpc as integer
 DIM SHARED wantloadgame as integer
-DIM SHARED scriptout AS STRING
+DIM SHARED scriptout as STRING
 
 'global variables
-DIM gam AS GameState
-DIM txt AS TextBoxState
+DIM gam as GameState
+DIM txt as TextBoxState
 REDIM gen(360) as integer
 REDIM tag(127) as integer
 
@@ -192,20 +192,20 @@ lump_reloading.npcl.mode = loadmodeMerge
 lump_reloading.npcd.mode = loadmodeAlways
 
 'Menu Data
-DIM menu_set AS MenuSet
-REDIM menus(0) AS MenuDef 'This is an array because it holds a stack of heirarchial menus (resized as required)
-REDIM mstates(0) AS MenuState
-DIM topmenu AS INTEGER = -1
+DIM menu_set as MenuSet
+REDIM menus(0) as MenuDef 'This is an array because it holds a stack of heirarchial menus (resized as required)
+REDIM mstates(0) as MenuState
+DIM topmenu as integer = -1
 
 DIM fatal as integer
 DIM lastformation as integer
 
-DIM vstate AS VehicleState
+DIM vstate as VehicleState
 reset_vehicle vstate
 
 REDIM csetup(12) as integer
 REDIM carray(13) as integer
-DIM mouse AS MouseInfo
+DIM mouse as MouseInfo
 REDIM joy(14) as integer
 REDIM gotj(2) as integer
 
@@ -443,7 +443,7 @@ REDIM gmap(dimbinsize(binMAP)) as integer 'this must be declared here, after the
 
 '--set game
 game = workingdir + SLASH + archinym
-DIM wintitle AS STRING = getdisplayname(trimpath(sourcerpg))
+DIM wintitle as STRING = getdisplayname(trimpath(sourcerpg))
 IF running_as_slave THEN wintitle = "Testing " + wintitle
 setwindowtitle wintitle
 
@@ -813,11 +813,11 @@ SUB reset_game_final_cleanup()
  sourcerpg = ""
 END SUB
 
-SUB doloadgame(BYVAL load_slot AS INTEGER)
+SUB doloadgame(byval load_slot as integer)
  loadgame load_slot
  init_default_text_colors
  IF gen(genLoadGameScript) > 0 THEN
-  DIM rsr AS INTEGER
+  DIM rsr as integer
   rsr = runscript(gen(genLoadGameScript), nowscript + 1, YES, YES, "loadgame", plottrigger)
   IF rsr = 1 THEN
    '--pass save slot as argument
@@ -890,7 +890,7 @@ SUB displayall()
   gam.map.showname = 0
  END IF
  update_menu_states
- FOR i AS INTEGER = 0 TO topmenu
+ FOR i as integer = 0 TO topmenu
   draw_menu menus(i), mstates(i), dpage
  NEXT i
  edgeprint scriptout, 0, 190, uilook(uiText), dpage
@@ -900,9 +900,9 @@ SUB displayall()
  IF scrwatch THEN scriptwatcher scrwatch, -1
 END SUB
 
-SUB update_heroes(BYVAL force_npc_check AS INTEGER=NO)
+SUB update_heroes(byval force_npc_check as integer=NO)
  'note: xgo and ygo are offset of current position from destination, eg +ve xgo means go left
- FOR whoi AS INTEGER = 0 TO 3
+ FOR whoi as integer = 0 TO 3
   IF herospeed(whoi) = 0 THEN
    '--cancel movement, or some of the following code misbehaves
    xgo(whoi) = 0
@@ -913,31 +913,31 @@ SUB update_heroes(BYVAL force_npc_check AS INTEGER=NO)
    IF readbit(gen(), genSuspendBits, suspendherowalls) = 0 AND vehicle_is_animating() = NO THEN
     '--this only happens if herowalls is on
     '--wrapping passability
-    DIM herotile AS XYPair
+    DIM herotile as XYPair
     herotile.x = catx(whoi * 5) \ 20
     herotile.y = caty(whoi * 5) \ 20
     wrappass herotile.x, herotile.y, xgo(whoi), ygo(whoi), vstate.active
    END IF
    IF readbit(gen(), genSuspendBits, suspendobstruction) = 0 AND vehicle_is_animating() = NO THEN
     '--this only happens if obstruction is on
-    FOR i AS INTEGER = 0 TO UBOUND(npc)
+    FOR i as integer = 0 TO UBOUND(npc)
      WITH npc(i)
       IF .id > 0 THEN '---NPC EXISTS---
-       DIM id AS INTEGER
+       DIM id as integer
        id = .id - 1
        IF npcs(id).activation <> 2 THEN '---NPC is not step-on
         IF wrapcollision (.x, .y, .xgo, .ygo, catx(whoi * 5), caty(whoi * 5), xgo(whoi), ygo(whoi)) THEN
          IF .not_obstruction = 0 THEN
           xgo(whoi) = 0: ygo(whoi) = 0
           '--push the NPC
-          DIM push AS INTEGER = npcs(id).pushtype
+          DIM push as integer = npcs(id).pushtype
           IF push > 0 AND .xgo = 0 AND .ygo = 0 THEN
            IF catd(whoi) = 0 AND (push = 1 OR push = 2 OR push = 4) THEN .ygo = 20
            IF catd(whoi) = 2 AND (push = 1 OR push = 2 OR push = 6) THEN .ygo = -20
            IF catd(whoi) = 3 AND (push = 1 OR push = 3 OR push = 7) THEN .xgo = 20
            IF catd(whoi) = 1 AND (push = 1 OR push = 3 OR push = 5) THEN .xgo = -20
            IF readbit(gen(), genBits2, 0) = 0 THEN ' Only do this if the backcompat bitset is off
-            FOR o AS INTEGER = 0 TO UBOUND(npc) ' check to make sure no other NPCs are blocking this one
+            FOR o as integer = 0 TO UBOUND(npc) ' check to make sure no other NPCs are blocking this one
              IF npc(o).id <= 0 THEN CONTINUE FOR 'Ignore empty NPC slots and negative (tag-disabled) NPCs
              IF i = o THEN CONTINUE FOR
              IF npc(o).not_obstruction THEN CONTINUE FOR
@@ -966,23 +966,23 @@ SUB update_heroes(BYVAL force_npc_check AS INTEGER=NO)
  '--if the leader moved last time, and catapillar is enabled then make others trail
  IF readbit(gen(), genSuspendBits, suspendcatapillar) = 0 THEN
   IF xgo(0) OR ygo(0) THEN
-   FOR i AS INTEGER = 15 TO 1 STEP -1
+   FOR i as integer = 15 TO 1 STEP -1
     catx(i) = catx(i - 1)
     caty(i) = caty(i - 1)
     catd(i) = catd(i - 1)
    NEXT i
-   FOR whoi AS INTEGER = 0 TO 3
+   FOR whoi as integer = 0 TO 3
     wtog(whoi) = loopvar(wtog(whoi), 0, 3, 1)
    NEXT whoi
   END IF
  ELSE
-  FOR whoi AS INTEGER = 0 TO 3
+  FOR whoi as integer = 0 TO 3
    IF xgo(whoi) OR ygo(whoi) THEN wtog(whoi) = loopvar(wtog(whoi), 0, 3, 1)
   NEXT whoi
  END IF
 
- REDIM didgo(0 TO 3) AS INTEGER
- FOR whoi AS INTEGER = 0 TO 3
+ REDIM didgo(0 TO 3) as integer
+ FOR whoi as integer = 0 TO 3
   didgo(whoi) = NO
   IF xgo(whoi) OR ygo(whoi) THEN
    '--this actualy updates the heros coordinates
@@ -992,7 +992,7 @@ SUB update_heroes(BYVAL force_npc_check AS INTEGER=NO)
    IF ygo(whoi) < 0 THEN ygo(whoi) = ygo(whoi) + herospeed(whoi): caty(whoi * 5) = caty(whoi * 5) + herospeed(whoi): didgo(whoi) = YES
   END IF
 
-  DIM harm_cater AS INTEGER = whoi
+  DIM harm_cater as integer = whoi
   '--if catapillar is not suspended, only the leader's motion matters
   IF readbit(gen(), genSuspendBits, suspendcatapillar) = 0 THEN harm_cater = 0
 
@@ -1001,12 +1001,12 @@ SUB update_heroes(BYVAL force_npc_check AS INTEGER=NO)
    '--Stuff that should only happen when you finish moving
    IF didgo(harm_cater) = YES AND xgo(harm_cater) = 0 AND ygo(harm_cater) = 0 THEN
     '---check for harm tile
-    DIM p AS INTEGER = readblock(pass, catx(whoi * 5) \ 20, caty(whoi * 5) \ 20)
+    DIM p as integer = readblock(pass, catx(whoi * 5) \ 20, caty(whoi * 5) \ 20)
     IF (p AND passHarm) THEN
      'stepping on a harm tile
 
      DIM harm_partyslot as integer = -1
-     FOR i AS INTEGER = 0 TO whoi
+     FOR i as integer = 0 TO whoi
       harm_partyslot += 1
       WHILE hero(harm_partyslot) = 0 AND harm_partyslot < 4: harm_partyslot += 1: WEND
      NEXT i
@@ -1028,7 +1028,7 @@ SUB update_heroes(BYVAL force_npc_check AS INTEGER=NO)
   '--finished a step
   IF readbit(gen(), 44, suspendobstruction) = 0 THEN
    '--check for step-on NPCS
-   FOR i AS INTEGER = 0 TO UBOUND(npc)
+   FOR i as integer = 0 TO UBOUND(npc)
     WITH npc(i)
      IF .id > 0 THEN '---NPC EXISTS---
       IF vstate.active = NO OR (vstate.dat.enable_npc_activation = YES AND vstate.npc <> i) THEN
@@ -1046,7 +1046,7 @@ SUB update_heroes(BYVAL force_npc_check AS INTEGER=NO)
    opendoor
   END IF
   IF gam.need_fade_in = NO THEN 'No random battle allowed on the first tick before fade-in (?)
-   DIM battle_formation_set AS INTEGER
+   DIM battle_formation_set as integer
    battle_formation_set = readblock(foemap, catx(0) \ 20, caty(0) \ 20)
    IF vstate.active = YES AND vstate.dat.random_battles > 0 THEN
     battle_formation_set = vstate.dat.random_battles
@@ -1056,7 +1056,7 @@ SUB update_heroes(BYVAL force_npc_check AS INTEGER=NO)
    END IF
   END IF
   IF gmap(14) > 0 THEN
-   DIM rsr AS INTEGER
+   DIM rsr as integer
    rsr = runscript(gmap(14), nowscript + 1, YES, YES, "eachstep", plottrigger)
    IF rsr = 1 THEN
     setScriptArg 0, catx(0) \ 20
@@ -1073,7 +1073,7 @@ SUB update_walkabout_slices()
  update_walkabout_npc_slices()
 END SUB
 
-FUNCTION should_hide_hero_caterpillar() AS INTEGER
+FUNCTION should_hide_hero_caterpillar() as integer
  RETURN vstate.active = YES _
    ANDALSO vstate.mounting = NO _
    ANDALSO vstate.trigger_cleanup = NO _
@@ -1082,31 +1082,31 @@ FUNCTION should_hide_hero_caterpillar() AS INTEGER
    ANDALSO vstate.dat.do_not_hide_party = NO
 END FUNCTION
 
-FUNCTION should_show_normal_caterpillar() AS INTEGER
+FUNCTION should_show_normal_caterpillar() as integer
  RETURN readbit(gen(), 101, 1) = 1 _
    ANDALSO (vstate.active = NO ORELSE vstate.dat.do_not_hide_leader = NO)
 END FUNCTION
 
 SUB update_walkabout_hero_slices()
 
- DIM should_hide AS INTEGER = should_hide_hero_caterpillar()
- FOR i AS INTEGER = 0 TO UBOUND(gam.caterp)
+ DIM should_hide as integer = should_hide_hero_caterpillar()
+ FOR i as integer = 0 TO UBOUND(gam.caterp)
   set_walkabout_vis gam.caterp(i), NOT should_hide
  NEXT i
 
  IF should_show_normal_caterpillar() THEN
-  FOR i AS INTEGER = 0 TO UBOUND(gam.caterp)
+  FOR i as integer = 0 TO UBOUND(gam.caterp)
    update_walkabout_pos gam.caterp(i), catx(i * 5), caty(i * 5), catz(i * 5)
   NEXT i
 
-  DIM cat_slot AS INTEGER = 0
-  FOR party_slot AS INTEGER = 0 TO 3
+  DIM cat_slot as integer = 0
+  FOR party_slot as integer = 0 TO 3
    IF hero(party_slot) > 0 THEN
     set_walkabout_frame gam.caterp(cat_slot), catd(cat_slot * 5) * 2 + (wtog(cat_slot) \ 2)
     cat_slot += 1
    END IF
   NEXT party_slot
-  FOR i AS INTEGER = cat_slot TO UBOUND(gam.caterp)
+  FOR i as integer = cat_slot TO UBOUND(gam.caterp)
    set_walkabout_vis gam.caterp(i), NO
   NEXT i
 
@@ -1114,7 +1114,7 @@ SUB update_walkabout_hero_slices()
   '--non-caterpillar party, vehicle no-hide-leader (or backcompat pref)
   update_walkabout_pos gam.caterp(0), catx(0), caty(0), catz(0)
   set_walkabout_frame gam.caterp(0), catd(0) * 2 + (wtog(0) \ 2)
-  FOR i AS INTEGER = 1 TO UBOUND(gam.caterp)
+  FOR i as integer = 1 TO UBOUND(gam.caterp)
    set_walkabout_vis gam.caterp(i), NO
   NEXT i
  END IF
@@ -1122,10 +1122,10 @@ SUB update_walkabout_hero_slices()
 END SUB
 
 SUB update_walkabout_npc_slices()
- DIM z AS INTEGER
- DIM shadow AS Slice Ptr
+ DIM z as integer
+ DIM shadow as Slice Ptr
 
- FOR i AS INTEGER = 0 TO UBOUND(npc)
+ FOR i as integer = 0 TO UBOUND(npc)
   IF npc(i).id > 0 THEN '-- if visible
    z = 0
    IF vstate.active AND vstate.npc = i THEN
@@ -1153,7 +1153,7 @@ SUB update_walkabout_npc_slices()
  NEXT i
 
  '--now apply sprite frame changes
- FOR i AS INTEGER = 0 TO UBOUND(npc)
+ FOR i as integer = 0 TO UBOUND(npc)
   IF npc(i).id > 0 THEN '-- if visible
    set_walkabout_frame npc(i).sl, npc(i).dir * 2 + npc(i).frame \ 2
   END IF
@@ -1167,7 +1167,7 @@ SUB update_walkabout_pos (byval walkabout_cont as slice ptr, byval x as integer,
   EXIT SUB
  END IF
 
- DIM where AS XYPair
+ DIM where as XYPair
  '+ gmap(11)
  framewalkabout x, y , where.x, where.y, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)
  WITH *walkabout_cont
@@ -1175,7 +1175,7 @@ SUB update_walkabout_pos (byval walkabout_cont as slice ptr, byval x as integer,
   .Y = where.y + mapy
  END WITH
 
- DIM sprsl AS Slice Ptr
+ DIM sprsl as Slice Ptr
  sprsl = LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, walkabout_cont)
  IF sprsl = 0 THEN
   debug "update_walkabout_pos: null sprite slice for walkabout slice " & walkabout_cont
@@ -1187,9 +1187,9 @@ END SUB
 'NPC movement
 'Note that NPC xgo and ygo can also be set from elsewhere, eg. being pushed
 SUB update_npcs ()
- FOR o AS INTEGER = 0 TO 299
+ FOR o as integer = 0 TO 299
   IF npc(o).id > 0 THEN
-   DIM AS INTEGER id = (npc(o).id - 1)
+   DIM as integer id = (npc(o).id - 1)
 
    '--if this is the active vehicle
    IF vstate.active = YES AND vstate.npc = o THEN
@@ -1217,10 +1217,10 @@ END SUB
 
 'A currently stationary NPC decides what to do.
 'Most move types are implemented here, but some are handled upon collision in perform_npc_move
-SUB pick_npc_action(npci AS NPCInst, npcdata AS NPCType)
- DIM AS INTEGER movetype = npcdata.movetype
- DIM AS INTEGER speedset = npcdata.speed
- DIM AS INTEGER temp, rand
+SUB pick_npc_action(npci as NPCInst, npcdata as NPCType)
+ DIM as integer movetype = npcdata.movetype
+ DIM as integer speedset = npcdata.speed
+ DIM as integer temp, rand
  IF movetype > 0 AND (speedset > 0 OR movetype = 8) THEN
   'RANDOM WANDER---
   IF movetype = 1 THEN
@@ -1274,7 +1274,7 @@ SUB pick_npc_action(npci AS NPCInst, npcdata AS NPCType)
  END IF
 END SUB
 
-SUB perform_npc_move(BYVAL npcnum AS INTEGER, npci AS NPCInst, npcdata AS NPCType)
+SUB perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as NPCType)
  '--npcnum is the npc() index of npci.
  '--Here we attempt to actually update the coordinates for this NPC, checking obstructions
  npci.frame = loopvar(npci.frame, 0, 3, 1)
@@ -1288,7 +1288,7 @@ SUB perform_npc_move(BYVAL npcnum AS INTEGER, npci AS NPCInst, npcdata AS NPCTyp
     GOTO nogo
    END IF
    '--Check for movement zones (treat the edges as walls)
-   DIM zone AS INTEGER = npcdata.defaultzone
+   DIM zone as integer = npcdata.defaultzone
    IF zone > 0 ANDALSO wrapzonetest(zone, npci.x, npci.y, npci.xgo, npci.ygo) THEN
     npci.xgo = 0
     npci.ygo = 0
@@ -1298,7 +1298,7 @@ SUB perform_npc_move(BYVAL npcnum AS INTEGER, npci AS NPCInst, npcdata AS NPCTyp
   END IF
   IF readbit(gen(), 44, suspendobstruction) = 0 AND npci.not_obstruction = 0 THEN
    '--this only happens if obstruction is on
-   FOR i AS INTEGER = 0 TO 299
+   FOR i as integer = 0 TO 299
     IF npc(i).id > 0 AND npcnum <> i AND npc(i).not_obstruction = 0 THEN
      IF wrapcollision (npc(i).x, npc(i).y, npc(i).xgo, npc(i).ygo, npci.x, npci.y, npci.xgo, npci.ygo) THEN
       npci.xgo = 0
@@ -1344,7 +1344,7 @@ SUB perform_npc_move(BYVAL npcnum AS INTEGER, npci AS NPCInst, npcdata AS NPCTyp
  END IF
 END SUB
 
-SUB npchitwall(npci AS NPCInst, npcdata AS NPCType)
+SUB npchitwall(npci as NPCInst, npcdata as NPCType)
  IF npci.suspend_ai = 0 THEN
   IF npcdata.movetype = 2 THEN npci.dir = loopvar(npci.dir, 0, 3, 2)  'Pace
   IF npcdata.movetype = 3 THEN npci.dir = loopvar(npci.dir, 0, 3, 1)  'Right Turns
@@ -1354,7 +1354,7 @@ SUB npchitwall(npci AS NPCInst, npcdata AS NPCType)
 END SUB
 
 SUB interpret()
-DIM AS INTEGER i, n, npcref, temp
+DIM as integer i, n, npcref, temp
 reentersub:
 IF nowscript >= 0 THEN
 WITH scrat(nowscript)
@@ -1514,16 +1514,16 @@ END IF
 END SUB
 
 'Script commands ('top level', rest is in yetmore.bas)
-SUB sfunctions(BYVAL cmdid AS INTEGER)
-DIM menuslot AS INTEGER = ANY
-DIM mislot AS INTEGER = ANY
-DIM npcref AS INTEGER = ANY
-DIM i AS INTEGER = ANY
+SUB sfunctions(byval cmdid as integer)
+DIM menuslot as integer = ANY
+DIM mislot as integer = ANY
+DIM npcref as integer = ANY
+DIM i as integer = ANY
 scriptret = 0
 WITH scrat(nowscript)
   'the only commands that belong at the top level are the ones that need
   'access to main-module shared variables (rather few of the commands actually here)
-  SELECT CASE AS CONST cmdid
+  SELECT CASE as CONST cmdid
    CASE 11'--Show Text Box (box)
     wantbox = retvals(0)
    CASE 15'--use door
@@ -1580,11 +1580,11 @@ WITH scrat(nowscript)
     IF valid_hero_party(retvals(0)) THEN
      IF valid_item(retvals(1)) THEN
       '--identify new default weapon
-      DIM AS INTEGER newdfw = retvals(1) + 1
+      DIM as integer newdfw = retvals(1) + 1
       '--remember old default weapon
-      DIM AS INTEGER olddfw = gam.hero(retvals(0)).def_wep
+      DIM as integer olddfw = gam.hero(retvals(0)).def_wep
       '--remeber currently equipped weapon
-      DIM AS INTEGER cureqw = eqstuf(retvals(0), 0)
+      DIM as integer cureqw = eqstuf(retvals(0), 0)
       '--change default
       gam.hero(retvals(0)).def_wep = newdfw
       '--blank weapon
@@ -1619,7 +1619,7 @@ WITH scrat(nowscript)
     IF bound_arg(retvals(1), 0, 15, "NPCstat: constant") THEN
      DIM npcid as integer = get_valid_npc_id(retvals(0), 4)
      IF npcid <> -1 THEN
-      DIM AS INTEGER writesafe = 1
+      DIM as integer writesafe = 1
       IF retvals(1) = 0 THEN
        IF retvals(2) < 0 OR retvals(2) > gen(genMaxNPCPic) THEN
         writesafe = 0
@@ -1769,7 +1769,7 @@ WITH scrat(nowscript)
     END IF
    CASE 258'--check hero wall
     IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-     DIM AS INTEGER tempxgo = 0, tempygo = 0
+     DIM as integer tempxgo = 0, tempygo = 0
      IF retvals(1) = 0 THEN tempygo = 20
      IF retvals(1) = 1 THEN tempxgo = -20
      IF retvals(1) = 2 THEN tempygo = -20
@@ -1780,7 +1780,7 @@ WITH scrat(nowscript)
     npcref = getnpcref(retvals(0), 0)
     IF npcref >= 0 THEN
      'Only check walls for NPC who actually exists
-     DIM AS INTEGER tempxgo = 0, tempygo = 0
+     DIM as integer tempxgo = 0, tempygo = 0
      IF retvals(1) = 0 THEN tempygo = 20
      IF retvals(1) = 1 THEN tempxgo = -20
      IF retvals(1) = 2 THEN tempygo = -20
@@ -1938,7 +1938,7 @@ WITH scrat(nowscript)
      scriptret = menus(menuslot).record
     END IF
    CASE 299'--swap menu items
-    DIM AS INTEGER menuslot2, mislot2
+    DIM as integer menuslot2, mislot2
     mislot = find_menu_item_handle(retvals(0), menuslot)
     mislot2 = find_menu_item_handle(retvals(1), menuslot2)
     IF valid_menuslot_and_mislot(menuslot, mislot) THEN
@@ -1951,7 +1951,7 @@ WITH scrat(nowscript)
    CASE 300'--find menu item caption
     IF valid_plotstr(retvals(1)) THEN
      menuslot = find_menu_handle(retvals(0))
-     DIM start_slot AS INTEGER
+     DIM start_slot as integer
      IF retvals(2) = 0 THEN
       start_slot = 0
      ELSE
@@ -2016,7 +2016,7 @@ WITH scrat(nowscript)
    CASE 491'--use item in slot (slot)
     scriptret = 0
     IF valid_item_slot(retvals(0)) THEN
-     DIM consumed AS INTEGER '--throwaway, this is not used for anything in this context. use_item_in_slot() just needs it.
+     DIM consumed as integer '--throwaway, this is not used for anything in this context. use_item_in_slot() just needs it.
      IF use_item_in_slot(retvals(0), wantbox, consumed) THEN
       scriptret = 1
      END IF
@@ -2024,7 +2024,7 @@ WITH scrat(nowscript)
    CASE 517'--menu item by true slot
     menuslot = find_menu_handle(retvals(0))
     IF valid_menuslot(menuslot) THEN
-     DIM menuitem AS MenuDefItem ptr = dlist_nth(menus(menuslot).itemlist, retvals(1))
+     DIM menuitem as MenuDefItem ptr = dlist_nth(menus(menuslot).itemlist, retvals(1))
      IF menuitem THEN
       scriptret = menuitem->handle
      ELSE
@@ -2048,19 +2048,19 @@ WITH scrat(nowscript)
 END WITH
 END SUB
 
-FUNCTION valid_item_slot(item_slot AS INTEGER) AS INTEGER
+FUNCTION valid_item_slot(item_slot as integer) as integer
  RETURN bound_arg(item_slot, 0, last_inv_slot(), "item slot")
 END FUNCTION
 
-FUNCTION valid_item(itemID AS INTEGER) AS INTEGER
+FUNCTION valid_item(itemID as integer) as integer
  RETURN bound_arg(itemID, 0, gen(genMaxItem), "item ID")
 END FUNCTION
 
-FUNCTION valid_hero_party(who AS INTEGER, minimum AS INTEGER=0) AS INTEGER
+FUNCTION valid_hero_party(who as integer, minimum as integer=0) as integer
  RETURN bound_arg(who, minimum, 40, "hero party slot")
 END FUNCTION
 
-FUNCTION really_valid_hero_party(BYVAL who AS INTEGER, BYVAL minimum AS INTEGER=0) AS INTEGER
+FUNCTION really_valid_hero_party(byval who as integer, byval minimum as integer=0) as integer
  IF bound_arg(who, minimum, 40, "hero party slot") = NO THEN RETURN NO
  IF hero(who) = 0 THEN
   scripterr commandname(curcmd->value) + ": Party hero slot " & who & " is empty"
@@ -2069,37 +2069,37 @@ FUNCTION really_valid_hero_party(BYVAL who AS INTEGER, BYVAL minimum AS INTEGER=
  RETURN YES
 END FUNCTION
 
-FUNCTION valid_menuslot(menuslot AS INTEGER) AS INTEGER
+FUNCTION valid_menuslot(menuslot as integer) as integer
  RETURN bound_arg(menuslot, 0, topmenu, "menu handle")
 END FUNCTION
 
-FUNCTION valid_menuslot_and_mislot(menuslot AS INTEGER, mislot AS INTEGER) AS INTEGER
+FUNCTION valid_menuslot_and_mislot(menuslot as integer, mislot as integer) as integer
  IF valid_menuslot(menuslot) THEN
   RETURN bound_arg(mislot, 0, menus(menuslot).numitems - 1, "menu item handle")
  END IF
  RETURN NO
 END FUNCTION
 
-FUNCTION valid_plotstr(n AS INTEGER) AS INTEGER
+FUNCTION valid_plotstr(n as integer) as integer
  RETURN bound_arg(n, 0, UBOUND(plotstr), "string ID")
 END FUNCTION
 
-FUNCTION valid_formation(form AS INTEGER) AS INTEGER
+FUNCTION valid_formation(form as integer) as integer
  RETURN bound_arg(form, 0, gen(genMaxFormation), "formation ID")
 END FUNCTION
 
-FUNCTION valid_formation_slot(form AS INTEGER, slot AS INTEGER) AS INTEGER
+FUNCTION valid_formation_slot(form as integer, slot as integer) as integer
  IF bound_arg(form, 0, gen(genMaxFormation), "formation ID") THEN
   RETURN bound_arg(slot, 0, 7, "formation slot")
  END IF
  RETURN NO
 END FUNCTION
 
-FUNCTION valid_zone(id AS INTEGER) AS INTEGER
+FUNCTION valid_zone(id as integer) as integer
  RETURN bound_arg(id, 1, 9999, "zone ID", , , 5)
 END FUNCTION
 
-FUNCTION valid_tile_pos(x AS INTEGER, y AS INTEGER) AS INTEGER
+FUNCTION valid_tile_pos(x as integer, y as integer) as integer
  IF x < 0 OR y < 0 OR x >= mapsizetiles.x OR y >= mapsizetiles.y THEN
   scripterr commandname(curcmd->value) + ": invalid map position " & x & "," & y & " -- map is " & mapsizetiles.x & "*" & mapsizetiles.y & " tiles", 5
   RETURN NO
@@ -2223,7 +2223,7 @@ SUB usemenusounds (byval deckey as integer = scUp, byval inckey as integer = scD
   END IF
 END SUB
 
-FUNCTION should_skip_this_timer(byval l as integer, t as PlotTimer) AS INTEGER
+FUNCTION should_skip_this_timer(byval l as integer, t as PlotTimer) as integer
  IF l = 1 THEN
   'This is happening in battle!
   IF (t.flags AND 2) = 0 THEN
@@ -2300,10 +2300,10 @@ function dotimerbattle() as integer
   return 0
 end function
 
-FUNCTION add_menu (record AS INTEGER, allow_duplicate AS INTEGER=NO) AS INTEGER
+FUNCTION add_menu (record as integer, allow_duplicate as integer=NO) as integer
  IF record >= 0 AND allow_duplicate = NO THEN
   'If adding a non-blank menu, first check if the requested menu is already open
-  DIM menuslot AS INTEGER
+  DIM menuslot as integer
   menuslot = find_menu_id(record)
   IF menuslot >= 0 THEN
    'the requested menu is already open, just bring it to the top
@@ -2314,8 +2314,8 @@ FUNCTION add_menu (record AS INTEGER, allow_duplicate AS INTEGER=NO) AS INTEGER
  'Load the menu into a new menu slot
  topmenu = topmenu + 1
  IF topmenu > UBOUND(menus) THEN
-  REDIM PRESERVE menus(topmenu) AS MenuDef
-  REDIM PRESERVE mstates(topmenu) AS MenuState
+  REDIM PRESERVE menus(topmenu) as MenuDef
+  REDIM PRESERVE mstates(topmenu) as MenuState
  END IF
  mstates(topmenu).pt = 0
  mstates(topmenu).top = 0
@@ -2331,32 +2331,32 @@ FUNCTION add_menu (record AS INTEGER, allow_duplicate AS INTEGER=NO) AS INTEGER
  RETURN assign_menu_handles(menus(topmenu))
 END FUNCTION
 
-SUB remove_menu (slot AS INTEGER, BYVAL run_on_close AS INTEGER=YES)
+SUB remove_menu (slot as integer, byval run_on_close as integer=YES)
  IF slot < 0 OR slot > UBOUND(menus) THEN scripterr "remove_menu: invalid slot " & slot, 4 : EXIT SUB
  bring_menu_forward slot
  IF menus(topmenu).advance_textbox = YES THEN
   'Advance an open text box.
   'Because this could open other menus, take care to remember this menu's handle
-  DIM remember_handle AS INTEGER = menus(topmenu).handle
+  DIM remember_handle as integer = menus(topmenu).handle
   advance_text_box
   slot = find_menu_handle(remember_handle)
   bring_menu_forward slot
  END IF
  IF menus(topmenu).on_close <> 0 AND run_on_close THEN
-  DIM rsr AS INTEGER
+  DIM rsr as integer
   rsr = runscript(menus(topmenu).on_close, nowscript + 1, YES, YES, "menu on-close", plottrigger)
  END IF
  ClearMenuData menus(topmenu)
  topmenu = topmenu - 1
  IF topmenu >= 0 THEN
-  REDIM PRESERVE menus(topmenu) AS MenuDef
-  REDIM PRESERVE mstates(topmenu) AS MenuState
+  REDIM PRESERVE menus(topmenu) as MenuDef
+  REDIM PRESERVE mstates(topmenu) as MenuState
   mstates(topmenu).active = YES
  END IF
 END SUB
 
-SUB bring_menu_forward (slot AS INTEGER)
- DIM i AS INTEGER
+SUB bring_menu_forward (slot as integer)
+ DIM i as integer
  IF slot < 0 OR slot > UBOUND(menus) OR slot > topmenu THEN scripterr "bring_menu_forward: invalid slot " & slot, 4 : EXIT SUB
  mstates(topmenu).active = NO
  FOR i = slot TO topmenu - 1
@@ -2366,18 +2366,18 @@ SUB bring_menu_forward (slot AS INTEGER)
  mstates(topmenu).active = YES
 END SUB
 
-FUNCTION menus_allow_gameplay () AS INTEGER
+FUNCTION menus_allow_gameplay () as integer
  IF topmenu < 0 THEN RETURN YES
  RETURN menus(topmenu).allow_gameplay
 END FUNCTION
 
-FUNCTION menus_allow_player () AS INTEGER
+FUNCTION menus_allow_player () as integer
  IF topmenu < 0 THEN RETURN YES
  RETURN menus(topmenu).suspend_player = NO
 END FUNCTION
 
 SUB update_menu_states ()
- FOR i AS INTEGER = 0 TO topmenu
+ FOR i as integer = 0 TO topmenu
   IF mstates(i).need_update THEN
    mstates(i).need_update = NO
    init_menu_state mstates(i), menus(i)
@@ -2386,10 +2386,10 @@ SUB update_menu_states ()
 END SUB
 
 SUB player_menu_keys ()
- DIM i AS INTEGER
- DIM activated AS INTEGER
- DIM menu_handle AS INTEGER
- DIM esc_menu AS INTEGER
+ DIM i as integer
+ DIM activated as integer
+ DIM menu_handle as integer
+ DIM esc_menu as integer
  IF topmenu >= 0 THEN
   IF menus(topmenu).no_controls = YES THEN EXIT SUB
   menu_handle = menus(topmenu).handle 'store handle for later use
@@ -2414,7 +2414,7 @@ SUB player_menu_keys ()
    menusound gen(genCursorSFX)
   END IF
   activated = NO
-  DIM mi AS MenuDefItem '--using a copy of the menu item here is safer (in future) because activate_menu_item() can deallocate it
+  DIM mi as MenuDefItem '--using a copy of the menu item here is safer (in future) because activate_menu_item() can deallocate it
   mi = *menus(topmenu).items[mstates(topmenu).pt]
   IF mi.disabled THEN EXIT SUB
   IF mi.t = 1 AND mi.sub_t = 11 THEN '--volume
@@ -2427,12 +2427,12 @@ SUB player_menu_keys ()
  END IF
 END SUB
 
-FUNCTION activate_menu_item(mi AS MenuDefItem, BYVAL menuslot AS INTEGER, BYVAL newcall AS INTEGER=YES) AS INTEGER
- DIM open_other_menu AS INTEGER = -1
- DIM menu_text_box AS INTEGER = 0
- DIM updatetags AS INTEGER = NO
- DIM slot AS INTEGER
- DIM activated AS INTEGER = YES
+FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer, byval newcall as integer=YES) as integer
+ DIM open_other_menu as integer = -1
+ DIM menu_text_box as integer = 0
+ DIM updatetags as integer = NO
+ DIM slot as integer
+ DIM activated as integer = YES
  menu_text_box = 0
  DO 'This DO exists to allow EXIT DO
   WITH mi
@@ -2477,7 +2477,7 @@ FUNCTION activate_menu_item(mi AS MenuDefItem, BYVAL menuslot AS INTEGER, BYVAL 
        slot = picksave(1)
        IF slot >= 0 THEN
         wantloadgame = slot + 1
-        FOR i AS INTEGER = topmenu TO 0 STEP -1
+        FOR i as integer = topmenu TO 0 STEP -1
          remove_menu i, NO
         NEXT i
         EXIT DO
@@ -2493,7 +2493,7 @@ FUNCTION activate_menu_item(mi AS MenuDefItem, BYVAL menuslot AS INTEGER, BYVAL 
     CASE 3 ' Text box
      menu_text_box = .sub_t
     CASE 4 ' Run Script
-     DIM rsr AS INTEGER
+     DIM rsr as integer
      rsr = runscript(.sub_t, nowscript + 1, newcall, newcall, "menuitem", plottrigger)
      IF rsr = 1 THEN
       IF menus(topmenu).allow_gameplay THEN
@@ -2548,12 +2548,12 @@ SUB tag_updates
 END SUB
 
 SUB check_menu_tags ()
- DIM i AS INTEGER
- DIM j AS INTEGER
- DIM old AS INTEGER
- DIM changed AS INTEGER
- DIM remember AS INTEGER
- DIM selecteditem AS MenuDefItem ptr
+ DIM i as integer
+ DIM j as integer
+ DIM old as integer
+ DIM changed as integer
+ DIM remember as integer
+ DIM selecteditem as MenuDefItem ptr
  FOR j = 0 TO topmenu
   WITH menus(j)
    changed = NO
@@ -2602,9 +2602,9 @@ SUB check_menu_tags ()
  update_menu_states
 END SUB
 
-FUNCTION game_usemenu (state AS MenuState) as integer
- DIM oldptr AS INTEGER
- DIM oldtop AS INTEGER
+FUNCTION game_usemenu (state as MenuState) as integer
+ DIM oldptr as integer
+ DIM oldtop as integer
 
  WITH state
   oldptr = .pt
@@ -2623,8 +2623,8 @@ FUNCTION game_usemenu (state AS MenuState) as integer
  END WITH
 END FUNCTION
 
-FUNCTION find_menu_id (id AS INTEGER) AS INTEGER
- DIM i AS INTEGER
+FUNCTION find_menu_id (id as integer) as integer
+ DIM i as integer
  FOR i = topmenu TO 0 STEP -1
   IF menus(i).record = id THEN
    RETURN i 'return slot
@@ -2633,16 +2633,16 @@ FUNCTION find_menu_id (id AS INTEGER) AS INTEGER
  RETURN -1 ' Not found
 END FUNCTION
 
-FUNCTION find_menu_handle (byval handle as integer) AS INTEGER
- DIM i AS INTEGER
+FUNCTION find_menu_handle (byval handle as integer) as integer
+ DIM i as integer
  FOR i = 0 TO topmenu
   IF menus(i).handle = handle THEN RETURN i 'return slot
  NEXT i
  RETURN -1 ' Not found
 END FUNCTION
 
-FUNCTION find_menu_item_handle_in_menuslot (byval handle as integer, byval menuslot as integer) AS INTEGER
- DIM mislot AS INTEGER
+FUNCTION find_menu_item_handle_in_menuslot (byval handle as integer, byval menuslot as integer) as integer
+ DIM mislot as integer
  WITH menus(menuslot)
   FOR mislot = 0 TO .numitems - 1
    IF .items[mislot]->handle = handle THEN RETURN mislot
@@ -2651,10 +2651,10 @@ FUNCTION find_menu_item_handle_in_menuslot (byval handle as integer, byval menus
  RETURN -1 ' Not found
 END FUNCTION
 
-FUNCTION find_menu_item_handle (byval handle as integer, byref found_in_menuslot as integer) AS INTEGER
- DIM menuslot AS INTEGER
- DIM mislot AS INTEGER
- DIM found AS INTEGER
+FUNCTION find_menu_item_handle (byval handle as integer, byref found_in_menuslot as integer) as integer
+ DIM menuslot as integer
+ DIM mislot as integer
+ DIM found as integer
  FOR menuslot = 0 TO topmenu
   found = find_menu_item_handle_in_menuslot(handle, menuslot)
   IF found >= 0 THEN
@@ -2666,14 +2666,14 @@ FUNCTION find_menu_item_handle (byval handle as integer, byref found_in_menuslot
  RETURN -1 ' Not found
 END FUNCTION
 
-FUNCTION assign_menu_item_handle (BYREF mi AS MenuDefItem) AS INTEGER
+FUNCTION assign_menu_item_handle (byref mi as MenuDefItem) as integer
  STATIC new_handle as integer = 0
  new_handle = new_handle + 1
  mi.handle = new_handle
  RETURN new_handle
 END FUNCTION
 
-FUNCTION assign_menu_handles (BYREF menu AS MenuDef) AS INTEGER
+FUNCTION assign_menu_handles (byref menu as MenuDef) as integer
  STATIC new_handle as integer = 0
  new_handle = new_handle + 1
  menus(topmenu).handle = new_handle
@@ -2683,7 +2683,7 @@ FUNCTION assign_menu_handles (BYREF menu AS MenuDef) AS INTEGER
  RETURN new_handle
 END FUNCTION
 
-FUNCTION menu_item_handle_by_slot(menuslot AS INTEGER, mislot AS INTEGER, visible_only AS INTEGER=YES) AS INTEGER
+FUNCTION menu_item_handle_by_slot(menuslot as integer, mislot as integer, visible_only as integer=YES) as integer
  IF menuslot >= 0 AND menuslot <= topmenu THEN
   WITH menus(menuslot)
    IF mislot >= 0 AND mislot < .numitems THEN
@@ -2697,9 +2697,9 @@ FUNCTION menu_item_handle_by_slot(menuslot AS INTEGER, mislot AS INTEGER, visibl
  RETURN 0
 END FUNCTION
 
-FUNCTION find_menu_item_slot_by_string(menuslot AS INTEGER, s AS STRING, mislot AS INTEGER=0, visible_only AS INTEGER=YES) AS INTEGER
- DIM i AS INTEGER
- DIM cap AS STRING
+FUNCTION find_menu_item_slot_by_string(menuslot as integer, s as STRING, mislot as integer=0, visible_only as integer=YES) as integer
+ DIM i as integer
+ DIM cap as STRING
  WITH menus(menuslot)
   FOR i = mislot TO .numitems - 1
    WITH *.items[i]
@@ -2714,8 +2714,8 @@ FUNCTION find_menu_item_slot_by_string(menuslot AS INTEGER, s AS STRING, mislot 
  RETURN -1 ' not found
 END FUNCTION
 
-FUNCTION allowed_to_open_main_menu () AS INTEGER
- DIM i AS INTEGER
+FUNCTION allowed_to_open_main_menu () as integer
+ DIM i as integer
  IF find_menu_id(0) >= 0 THEN RETURN NO 'Already open
  FOR i = topmenu TO 0 STEP -1
   IF menus(i).prevent_main_menu = YES THEN RETURN NO
@@ -2723,10 +2723,10 @@ FUNCTION allowed_to_open_main_menu () AS INTEGER
  RETURN YES
 END FUNCTION
 
-FUNCTION random_formation (BYVAL set AS INTEGER) AS INTEGER
+FUNCTION random_formation (byval set as integer) as integer
  REDIM formset(24) as integer
- DIM AS INTEGER i, num
- STATIC foenext AS INTEGER = 0
+ DIM as integer i, num
+ STATIC foenext as integer = 0
  loadrecord formset(), game + ".efs", 25, set
  FOR i = 1 TO 20
   IF formset(i) THEN num += 1
@@ -2744,10 +2744,10 @@ FUNCTION random_formation (BYVAL set AS INTEGER) AS INTEGER
  RETURN formset(1 + foenext) - 1
 END FUNCTION
 
-SUB prepare_map (afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
+SUB prepare_map (afterbat as integer=NO, afterload as integer=NO)
  'DEBUG debug "in preparemap"
 
- DIM i AS INTEGER
+ DIM i as integer
  'save data from old map
  IF gam.map.lastmap > -1 THEN
   IF gmap(17) = 1 THEN
@@ -2834,7 +2834,7 @@ SUB prepare_map (afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
  END IF
  txt.sayer = -1
 
- DIM rsr AS INTEGER
+ DIM rsr as integer
  IF afterbat = NO THEN
   IF gmap(7) > 0 THEN
    rsr = runscript(gmap(7), nowscript + 1, YES, YES, "map", plottrigger)
@@ -2865,13 +2865,13 @@ SUB reset_game_state ()
 
  'If we are resetting, the old slices will have already been destroyed
  'by cleanup_game_slices() so we just re-assign gam.caterp()
- FOR i AS INTEGER = 0 TO UBOUND(gam.caterp)
+ FOR i as integer = 0 TO UBOUND(gam.caterp)
   gam.caterp(i) = create_walkabout_slices(hero_layer())
  NEXT i
 END SUB
 
-FUNCTION hero_layer() AS Slice Ptr
- DIM layer AS Slice Ptr
+FUNCTION hero_layer() as Slice Ptr
+ DIM layer as Slice Ptr
  IF gmap(16) = 2 THEN ' heroes and NPCs together
   layer = SliceTable.Walkabout
  ELSE ' heroes and NPCs on separate layers
@@ -2883,8 +2883,8 @@ FUNCTION hero_layer() AS Slice Ptr
  RETURN layer
 END FUNCTION
 
-FUNCTION npc_layer() AS Slice Ptr
- DIM layer AS Slice Ptr
+FUNCTION npc_layer() as Slice Ptr
+ DIM layer as Slice Ptr
  IF gmap(16) = 2 THEN ' heroes and NPCs together
   layer = SliceTable.Walkabout
  ELSE ' heroes and NPCs on separate layers
@@ -2896,15 +2896,15 @@ FUNCTION npc_layer() AS Slice Ptr
  RETURN layer
 END FUNCTION
 
-FUNCTION create_walkabout_slices(byval parent as Slice Ptr) AS Slice Ptr
- DIM sl AS Slice Ptr
+FUNCTION create_walkabout_slices(byval parent as Slice Ptr) as Slice Ptr
+ DIM sl as Slice Ptr
  sl = NewSliceOfType(slContainer, parent)
  WITH *sl
   .Width = 20
   .Height = 20
   .Protect = YES
  END WITH
- DIM sprsl AS Slice Ptr
+ DIM sprsl as Slice Ptr
  sprsl = NewSliceOfType(slSprite, sl, SL_WALKABOUT_SPRITE_COMPONENT)
  WITH *sprsl
   'Anchor and align NPC sprite in the bottom center of the NPC container
@@ -2917,7 +2917,7 @@ FUNCTION create_walkabout_slices(byval parent as Slice Ptr) AS Slice Ptr
  RETURN sl
 END FUNCTION
 
-SUB reset_map_state (map AS MapModeState)
+SUB reset_map_state (map as MapModeState)
  map.id = gen(genStartMap)
  map.lastmap = -1
  map.same = NO
@@ -2925,9 +2925,9 @@ SUB reset_map_state (map AS MapModeState)
  map.name = ""
 END SUB
 
-SUB opendoor (dforce AS INTEGER=0)
+SUB opendoor (dforce as integer=0)
  'dforce is the ID number +1 of the door to force, or 0 if we are going to search for a mathcing door
- DIM door_id AS INTEGER
+ DIM door_id as integer
  IF vstate.active = YES AND vstate.dat.enable_door_use = NO AND dforce = 0 THEN EXIT SUB 'Doors are disabled by a vehicle
  IF dforce THEN
   door_id = dforce - 1
@@ -2946,10 +2946,10 @@ SUB opendoor (dforce AS INTEGER=0)
  'No doors found
 END SUB
 
-SUB thrudoor (door_id AS INTEGER)
- DIM oldmap AS INTEGER
- DIM i AS INTEGER
- DIM destdoor AS INTEGER
+SUB thrudoor (door_id as integer)
+ DIM oldmap as integer
+ DIM i as integer
+ DIM destdoor as integer
  gam.map.same = NO
  oldmap = gam.map.id
  deserdoorlinks(maplumpname(gam.map.id,"d"), gam.map.doorlinks())
@@ -3028,7 +3028,7 @@ SUB advance_text_box ()
   IF txt.box.shop > 0 THEN
    shop txt.box.shop - 1
   END IF
-  DIM inn AS INTEGER = 0
+  DIM inn as integer = 0
   IF txt.box.shop < 0 THEN
    '--Preserve background for display beneath the top-level shop menu
    DIM holdscreen as integer = duplicatepage(vpage)
@@ -3048,7 +3048,7 @@ SUB advance_text_box ()
  IF istag(txt.box.door_tag, 0) THEN
   opendoor txt.box.door + 1
   IF gam.need_fade_in = NO THEN
-   DIM temp AS INTEGER
+   DIM temp as integer
    temp = readblock(foemap, catx(0) \ 20, caty(0) \ 20)
    IF vstate.active = YES AND vstate.dat.random_battles > 0 THEN temp = vstate.dat.random_battles
    IF temp > 0 THEN gam.random_battle_countdown = large(gam.random_battle_countdown - gam.foe_freq(temp - 1), 0)
@@ -3098,12 +3098,12 @@ END SUB
 
 SUB init_default_text_colors()
  textcolor uilook(uiText), 0
- FOR i AS INTEGER = 0 TO 31
+ FOR i as integer = 0 TO 31
   plotstr(i).Col = uilook(uiText)
  NEXT i
 END SUB
 
-SUB init_text_box_slices(txt AS TextBoxState)
+SUB init_text_box_slices(txt as TextBoxState)
  IF txt.sl THEN
   '--free any already-loaded textbox
   DeleteSlice @(txt.sl)
@@ -3112,7 +3112,7 @@ SUB init_text_box_slices(txt AS TextBoxState)
  txt.sl->Fill = Yes
 
  '--Create a new slice for the text box
- DIM text_box AS Slice Ptr
+ DIM text_box as Slice Ptr
 
  '--set up box style
  IF txt.box.no_box THEN
@@ -3131,7 +3131,7 @@ SUB init_text_box_slices(txt AS TextBoxState)
  END WITH
 
  '--A frame that handles the padding around the text
- DIM text_frame AS Slice Ptr
+ DIM text_frame as Slice Ptr
  text_frame = NewSliceOfType(slContainer, text_box)
   '--set up padding
  WITH *text_frame
@@ -3143,32 +3143,32 @@ SUB init_text_box_slices(txt AS TextBoxState)
  END WITH
 
  '--Set up the actual text
- DIM col AS INTEGER
+ DIM col as integer
  col = uilook(uiText)
  IF txt.box.textcolor > 0 THEN col = txt.box.textcolor
 
- DIM s AS STRING = ""
- FOR i AS INTEGER = 0 TO 7
+ DIM s as STRING = ""
+ FOR i as integer = 0 TO 7
   s &= txt.box.text(i) & CHR(10)
  NEXT i
 
- DIM text_sl AS Slice Ptr
+ DIM text_sl as Slice Ptr
  text_sl = NewSliceOfType(slText, text_frame, SL_TEXTBOX_TEXT)
  text_sl->Fill = YES
  ChangeTextSlice text_sl, s, col, YES, NO
 
  '--start the displayed lines as all hidden. They will be revealed in drawsay
- DIM dat AS TextSliceData Ptr
+ DIM dat as TextSliceData Ptr
  dat = text_sl->SliceData
  IF dat THEN
   dat->line_limit = -1
  END IF
 
  '--figure out which portrait to load
- DIM img_id AS INTEGER = -1
- DIM pal_id AS INTEGER = -1
- DIM hero_id AS INTEGER = -1
- DIM her AS HeroDef
+ DIM img_id as integer = -1
+ DIM pal_id as integer = -1
+ DIM hero_id as integer = -1
+ DIM her as HeroDef
  SELECT CASE txt.box.portrait_type
   CASE 1' Fixed ID number
    img_id = txt.box.portrait_id
@@ -3188,7 +3188,7 @@ SUB init_text_box_slices(txt AS TextBoxState)
 
  IF img_id >= 0 THEN
   '--First set up the box that holds the portrait
-  DIM img_box AS Slice Ptr
+  DIM img_box as Slice Ptr
   IF txt.box.portrait_box THEN
    img_box = NewSliceOfType(slRectangle, text_box)
    ChangeRectangleSlice img_box, txt.box.boxstyle, , , , transFuzzy
@@ -3200,7 +3200,7 @@ SUB init_text_box_slices(txt AS TextBoxState)
   img_box->X = txt.box.portrait_pos.x
   img_box->Y = txt.box.portrait_pos.y
   '--Then load the portrait
-  DIM img_sl AS Slice Ptr
+  DIM img_sl as Slice Ptr
   img_sl = NewSliceOfType(slSprite, img_box, SL_TEXTBOX_PORTRAIT)
   ChangeSpriteSlice img_sl, 8, img_id, pal_id
  END IF
@@ -3210,7 +3210,7 @@ SUB init_text_box_slices(txt AS TextBoxState)
   'tempy = 100 + (txt.box.vertical_offset * 4) - (txt.box.shrink * 4)
   'IF tempy > 160 THEN tempy = 20
   'centerbox 160, tempy + 12, 10 + large(LEN(txt.box.choice(0)) * 8, LEN(txt.box.choice(1)) * 8), 24, txt.box.boxstyle + 1, dpage
-  DIM choice_box AS Slice Ptr
+  DIM choice_box as Slice Ptr
   choice_box = NewSliceOfType(slRectangle, txt.sl)
   WITH *choice_box
    '--center the box
@@ -3228,8 +3228,8 @@ SUB init_text_box_slices(txt AS TextBoxState)
    .Y += 12
   END WITH
   ChangeRectangleSlice choice_box, txt.box.boxstyle
-  REDIM choice_sl(1) AS Slice Ptr
-  FOR i AS INTEGER = 0 TO 1
+  REDIM choice_sl(1) as Slice Ptr
+  FOR i as integer = 0 TO 1
    choice_sl(i) = NewSliceOfType(slText, choice_box)
    ChangeTextSlice choice_sl(i), txt.box.choice(i), uilook(uiMenuItem), YES
    WITH *(choice_sl(i))
@@ -3272,7 +3272,7 @@ SUB recreate_map_slices()
  'freed when the map slices are freed, even though in normal circumstances
  'they will all be freed. (and we must do this unconditionally, even if
  'the preference for recreating map slices is turned OFF)
- FOR i AS INTEGER = 0 TO UBOUND(npc)
+ FOR i as integer = 0 TO UBOUND(npc)
   DeleteSlice @npc(i).sl
  NEXT i
 
@@ -3284,7 +3284,7 @@ SUB recreate_map_slices()
   orphan_hero_slices
 
   'Free the map slices
-  FOR i AS INTEGER = 0 TO UBOUND(SliceTable.MapLayer)
+  FOR i as integer = 0 TO UBOUND(SliceTable.MapLayer)
    DeleteSlice @SliceTable.MapLayer(i)
   NEXT i
   DeleteSlice @SliceTable.ObsoleteOverhead
@@ -3308,19 +3308,19 @@ SUB recreate_map_slices()
 END SUB
 
 SUB reparent_hero_slices()
- FOR i AS INTEGER = 0 TO UBOUND(gam.caterp)
+ FOR i as integer = 0 TO UBOUND(gam.caterp)
   SetSliceParent gam.caterp(i), hero_layer()
  NEXT i
 END SUB
 
 SUB orphan_hero_slices()
- FOR i AS INTEGER = 0 TO UBOUND(gam.caterp)
+ FOR i as integer = 0 TO UBOUND(gam.caterp)
   OrphanSlice gam.caterp(i)
  NEXT i
 END SUB
 
 SUB reparent_npc_slices()
- FOR i AS INTEGER = 0 TO UBOUND(npc)
+ FOR i as integer = 0 TO UBOUND(npc)
   IF npc(i).sl THEN
    SetSliceParent npc(i).sl, npc_layer()
   END IF
@@ -3328,7 +3328,7 @@ SUB reparent_npc_slices()
 END SUB
 
 SUB orphan_npc_slices()
- FOR i AS INTEGER = 0 TO UBOUND(npc)
+ FOR i as integer = 0 TO UBOUND(npc)
   IF npc(i).sl THEN
    OrphanSlice npc(i).sl
   END IF
@@ -3345,7 +3345,7 @@ SUB refresh_map_slice()
   .Width = mapsizetiles.x * 20
   .Height = mapsizetiles.y * 20
  END WITH
- FOR i AS INTEGER = 0 TO UBOUND(SliceTable.MapLayer)
+ FOR i as integer = 0 TO UBOUND(SliceTable.MapLayer)
   IF SliceTable.MapLayer(i) THEN
    SliceTable.MapLayer(i)->Width = mapsizetiles.x * 20
    SliceTable.MapLayer(i)->Height = mapsizetiles.y * 20
@@ -3354,11 +3354,11 @@ SUB refresh_map_slice()
  SliceTable.ObsoleteOverhead->Width = mapsizetiles.x * 20
  SliceTable.ObsoleteOverhead->Height = mapsizetiles.y * 20
 
- FOR i AS INTEGER = 0 TO UBOUND(maptiles)
+ FOR i as integer = 0 TO UBOUND(maptiles)
   '--reset each layer (the tileset ptr is set in refresh_map_slice_tilesets
   ChangeMapSlice SliceTable.MapLayer(i), @maptiles(i), @pass
  NEXT i
- FOR i AS INTEGER = UBOUND(maptiles) + 1 TO UBOUND(SliceTable.MapLayer)
+ FOR i as integer = UBOUND(maptiles) + 1 TO UBOUND(SliceTable.MapLayer)
   '--if slices exist for the unused layers that this map doesn't have,
   '--we should make them display no tiles
   IF Slicetable.MapLayer(i) <> 0 THEN
@@ -3371,14 +3371,14 @@ SUB refresh_map_slice()
  DIM num_layers_under_walkabouts as integer
  '--It's possible for gmap(31) to be larger than the number of map layers
  num_layers_under_walkabouts = bound(gmap(31), 1, UBOUND(maptiles) + 1)
- FOR i AS INTEGER = 0 TO UBOUND(maptiles)
+ FOR i as integer = 0 TO UBOUND(maptiles)
   IF SliceTable.Maplayer(i) = 0 THEN
    debug "Null map layer " & i & " when sorting in refresh_map_slice"
   ELSE
    SliceTable.MapLayer(i)->Sorter = IIF(i < num_layers_under_walkabouts, i, i + 1)
   END IF
  NEXT
- FOR i AS INTEGER = UBOUND(maptiles) + 1 TO UBOUND(SliceTable.MapLayer)
+ FOR i as integer = UBOUND(maptiles) + 1 TO UBOUND(SliceTable.MapLayer)
   'Slices for layers that do not exist on the current map...
   IF SliceTable.MapLayer(i) <> 0 THEN
    '...should be sorted too, if they exist.
@@ -3394,7 +3394,7 @@ SUB refresh_map_slice()
 END SUB
 
 SUB refresh_map_slice_tilesets()
- FOR i AS INTEGER = 0 TO maplayerMax
+ FOR i as integer = 0 TO maplayerMax
   '--reset map layer tileset ptrs
   IF SliceTable.MapLayer(i) <> 0 THEN
    ChangeMapSliceTileset SliceTable.MapLayer(i), tilesets(i)
@@ -3439,13 +3439,13 @@ SUB refresh_walkabout_layer_sort()
  reparent_npc_slices
 END SUB
 
-FUNCTION vehicle_is_animating() AS INTEGER
+FUNCTION vehicle_is_animating() as integer
  WITH vstate
   RETURN .mounting ORELSE .rising ORELSE .falling ORELSE .init_dismount ORELSE .ahead ORELSE .trigger_cleanup
  END WITH
 END FUNCTION
 
-SUB reset_vehicle(v AS VehicleState)
+SUB reset_vehicle(v as VehicleState)
  v.id = -1
  v.npc = 0
  v.old_speed = 0
@@ -3467,19 +3467,19 @@ END SUB
 
 '--Look in front of the leader for an activatable NPC.
 '--WARNING: has side-effects: assumes result is passed to usenpc
-FUNCTION find_useable_npc() AS INTEGER
- DIM ux AS INTEGER = catx(0)
- DIM uy AS INTEGER = caty(0)
+FUNCTION find_useable_npc() as integer
+ DIM ux as integer = catx(0)
+ DIM uy as integer = caty(0)
  wrapaheadxy ux, uy, catd(0), 20, 20
 
- FOR j AS INTEGER = 0 TO 299
+ FOR j as integer = 0 TO 299
   WITH npc(j)
    IF .id > 0 AND (j <> vstate.npc OR vstate.active = NO) THEN
     '--Step-on NPCs cannot be used
     IF npcs(.id - 1).activation = 2 THEN CONTINUE FOR
     IF .suspend_use THEN CONTINUE FOR
-    DIM nx AS INTEGER = .x
-    DIM ny AS INTEGER = .y
+    DIM nx as integer = .x
+    DIM ny as integer = .y
     IF (nx = ux AND ny = uy) THEN 'not moving NPCs
      RETURN j
     ELSEIF nx MOD 20 <> 0 XOR ny mod 20 <> 0 THEN 'they're moving (i.e. misaligned)
@@ -3511,16 +3511,16 @@ FUNCTION find_useable_npc() AS INTEGER
 END FUNCTION
 
 'Activate npc(npcnum)
-SUB usenpc(BYVAL cause AS INTEGER, BYVAL npcnum AS INTEGER)
+SUB usenpc(byval cause as integer, byval npcnum as integer)
  'cause = 0: normal use key
  'cause = 1: touch and step-on
  'cause = 2: scripted
  IF npcnum < 0 THEN EXIT SUB
  IF npc(npcnum).suspend_use ANDALSO cause <> 2 THEN EXIT SUB
- DIM id AS INTEGER = npc(npcnum).id - 1
+ DIM id as integer = npc(npcnum).id - 1
 
  '---Item from NPC---
- DIM getit AS INTEGER = npcs(id).item
+ DIM getit as integer = npcs(id).item
  IF getit THEN
   getitem getit, 1
   evalitemtags
@@ -3538,13 +3538,13 @@ SUB usenpc(BYVAL cause AS INTEGER, BYVAL npcnum AS INTEGER)
  END IF
  IF npcs(id).script > 0 THEN
   '--summon a script directly from an NPC
-  DIM rsr AS INTEGER = runscript(npcs(id).script, nowscript + 1, YES, YES, "NPC", plottrigger)
+  DIM rsr as integer = runscript(npcs(id).script, nowscript + 1, YES, YES, "NPC", plottrigger)
   IF rsr = 1 THEN
    setScriptArg 0, npcs(id).scriptarg
    setScriptArg 1, (npcnum + 1) * -1 'reference
   END IF
  END IF
- DIM vehuse AS INTEGER = npcs(id).vehicle
+ DIM vehuse as integer = npcs(id).vehicle
  IF vehuse THEN '---activate a vehicle---
   reset_vehicle vstate
   vstate.id = vehuse - 1
@@ -3568,20 +3568,20 @@ SUB usenpc(BYVAL cause AS INTEGER, BYVAL npcnum AS INTEGER)
  tag_updates
 END SUB
 
-FUNCTION want_to_check_for_walls(BYVAL who AS INTEGER) AS INTEGER
+FUNCTION want_to_check_for_walls(byval who as integer) as integer
  IF movdivis(xgo(who)) = 0 AND movdivis(ygo(who)) = 0 THEN RETURN NO
  IF gam.walk_through_walls = YES THEN RETURN NO
  IF vstate.dat.pass_walls = YES THEN RETURN NO
  IF vstate.active THEN
-  DIM thisherotilex AS INTEGER = catx(who * 5) \ 20
-  DIM thisherotiley AS INTEGER = caty(who * 5) \ 20
+  DIM thisherotilex as integer = catx(who * 5) \ 20
+  DIM thisherotiley as integer = caty(who * 5) \ 20
   IF vehpass(vstate.dat.override_walls, readblock(pass, thisherotilex, thisherotiley), 0) <> 0 THEN RETURN NO
  END IF
  RETURN YES
 END FUNCTION
 
-FUNCTION first_free_slot_in_party() AS INTEGER
- DIM slot AS INTEGER = -1
+FUNCTION first_free_slot_in_party() as integer
+ DIM slot as integer = -1
  IF free_slots_in_party() > 0 THEN
   slot = first_free_slot_in_active_party()
   IF slot = -1 THEN
@@ -3591,25 +3591,25 @@ FUNCTION first_free_slot_in_party() AS INTEGER
  RETURN slot
 END FUNCTION
 
-FUNCTION first_free_slot_in_active_party() AS INTEGER
+FUNCTION first_free_slot_in_active_party() as integer
  '--returns the first free slot, or -1 if all slots are full
- FOR i AS INTEGER = 0 TO 3
+ FOR i as integer = 0 TO 3
   IF hero(i) = 0 THEN RETURN i
  NEXT i
  RETURN -1
 END FUNCTION
 
-FUNCTION first_free_slot_in_reserve_party() AS INTEGER
+FUNCTION first_free_slot_in_reserve_party() as integer
  '--returns the first free slot, or -1 if all slots are full
  IF free_slots_in_party() > 0 THEN
-  FOR i AS INTEGER = 4 TO 40
+  FOR i as integer = 4 TO 40
    IF hero(i) = 0 THEN RETURN i
   NEXT i
  END IF
  RETURN -1
 END FUNCTION
 
-FUNCTION free_slots_in_party() AS INTEGER
+FUNCTION free_slots_in_party() as integer
  '--Returns the number of free slots in the active+reserve party
  'Note that there can only be 38 heroes total even though there are 41
  'hero slots. This is because 3 reserve slots have to be saved to
@@ -3624,8 +3624,8 @@ FUNCTION free_slots_in_party() AS INTEGER
 
 END FUNCTION
 
-SUB change_npc_def_sprite (BYVAL npc_id AS INTEGER, BYVAL walkabout_sprite_id AS INTEGER)
- FOR i AS INTEGER = 0 TO UBOUND(npc)
+SUB change_npc_def_sprite (byval npc_id as integer, byval walkabout_sprite_id as integer)
+ FOR i as integer = 0 TO UBOUND(npc)
   IF npc(i).id - 1 = npc_id THEN
    'found a match!
    set_walkabout_sprite npc(i).sl, walkabout_sprite_id
@@ -3633,8 +3633,8 @@ SUB change_npc_def_sprite (BYVAL npc_id AS INTEGER, BYVAL walkabout_sprite_id AS
  NEXT i
 END SUB
 
-SUB change_npc_def_pal (BYVAL npc_id AS INTEGER, BYVAL palette_id AS INTEGER)
- FOR i AS INTEGER = 0 TO UBOUND(npc)
+SUB change_npc_def_pal (byval npc_id as integer, byval palette_id as integer)
+ FOR i as integer = 0 TO UBOUND(npc)
   IF npc(i).id - 1 = npc_id THEN
    'found a match!
    set_walkabout_sprite npc(i).sl, , palette_id
@@ -3642,12 +3642,12 @@ SUB change_npc_def_pal (BYVAL npc_id AS INTEGER, BYVAL palette_id AS INTEGER)
  NEXT i
 END SUB
 
-SUB create_walkabout_shadow (BYVAL walkabout_cont AS Slice Ptr)
+SUB create_walkabout_shadow (byval walkabout_cont as Slice Ptr)
  IF walkabout_cont = 0 THEN debug "create_walkabout_shadow: null walkabout container": EXIT SUB
- DIM sprsl AS Slice Ptr
+ DIM sprsl as Slice Ptr
  sprsl = LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, walkabout_cont)
  IF sprsl = 0 THEN debug "create_walkabout_shadow: null walkabout sprite": EXIT SUB
- DIM shadow AS Slice Ptr
+ DIM shadow as Slice Ptr
  shadow = NewSliceOfType(slEllipse, ,SL_WALKABOUT_SHADOW_COMPONENT)
  WITH *shadow
   .Width = 12
@@ -3663,25 +3663,25 @@ SUB create_walkabout_shadow (BYVAL walkabout_cont AS Slice Ptr)
  InsertSliceBefore(sprsl, shadow)
 END SUB
 
-SUB delete_walkabout_shadow (BYVAL walkabout_cont AS Slice Ptr)
+SUB delete_walkabout_shadow (byval walkabout_cont as Slice Ptr)
  IF walkabout_cont = 0 THEN debug "delete_walkabout_shadow: null walkabout container": EXIT SUB
- DIM shadow AS Slice Ptr
+ DIM shadow as Slice Ptr
  shadow = LookupSlice(SL_WALKABOUT_SHADOW_COMPONENT, walkabout_cont)
  IF shadow = 0 THEN debug "delete_walkabout_shadow: no shadow to delete" : EXIT SUB
  DeleteSlice @shadow
 END SUB
 
 SUB cleanup_game_slices ()
- FOR i AS INTEGER = 0 TO UBOUND(gam.caterp)
+ FOR i as integer = 0 TO UBOUND(gam.caterp)
   DeleteSlice @gam.caterp(i)
  NEXT i
- FOR i AS INTEGER = 0 TO UBOUND(npc)
+ FOR i as integer = 0 TO UBOUND(npc)
   DeleteSlice @npc(i).sl
  NEXT i
  DestroyGameSlices
 END SUB
 
-SUB queue_fade_in (BYVAL delay AS INTEGER = 0)
+SUB queue_fade_in (byval delay as integer = 0)
  gam.need_fade_in = YES
  gam.fade_in_delay = delay
 END SUB

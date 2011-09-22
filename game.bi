@@ -55,38 +55,38 @@ declare function find_menu_item_slot_by_string(menuslot as integer, s as string,
 declare function allowed_to_open_main_menu () as integer
 declare function random_formation (byval set as integer) as integer
 declare sub init_default_text_colors()
-DECLARE FUNCTION activate_menu_item(mi AS MenuDefItem, BYVAL menuslot AS INTEGER, BYVAL newcall AS INTEGER=YES) AS INTEGER
-DECLARE SUB init_text_box_slices(txt AS TextBoxState)
+DECLARE FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer, byval newcall as integer=YES) as integer
+DECLARE SUB init_text_box_slices(txt as TextBoxState)
 DECLARE SUB cleanup_text_box ()
 DECLARE SUB recreate_map_slices()
 DECLARE SUB refresh_map_slice()
 DECLARE SUB refresh_map_slice_tilesets()
 DECLARE SUB refresh_walkabout_layer_sort()
-DECLARE FUNCTION vehicle_is_animating() AS INTEGER
-DECLARE SUB reset_vehicle(v AS vehicleState)
+DECLARE FUNCTION vehicle_is_animating() as integer
+DECLARE SUB reset_vehicle(v as vehicleState)
 DECLARE SUB dump_vehicle_state()
-DECLARE SUB usenpc(BYVAL cause AS INTEGER, BYVAL npcnum AS INTEGER)
-DECLARE SUB sfunctions (BYVAL cmdid AS INTEGER)
-DECLARE FUNCTION first_free_slot_in_party() AS INTEGER
-DECLARE FUNCTION first_free_slot_in_active_party() AS INTEGER
-DECLARE FUNCTION first_free_slot_in_reserve_party() AS INTEGER
-DECLARE FUNCTION free_slots_in_party() AS INTEGER
+DECLARE SUB usenpc(byval cause as integer, byval npcnum as integer)
+DECLARE SUB sfunctions (byval cmdid as integer)
+DECLARE FUNCTION first_free_slot_in_party() as integer
+DECLARE FUNCTION first_free_slot_in_active_party() as integer
+DECLARE FUNCTION first_free_slot_in_reserve_party() as integer
+DECLARE FUNCTION free_slots_in_party() as integer
 DECLARE SUB update_walkabout_slices()
 DECLARE SUB update_walkabout_hero_slices()
 DECLARE SUB update_walkabout_npc_slices()
 DECLARE SUB update_walkabout_pos (byval walkabout_cont as slice ptr, byval x as integer, byval y as integer, byval z as integer)
-DECLARE FUNCTION should_hide_hero_caterpillar() AS INTEGER
-DECLARE FUNCTION should_show_normal_caterpillar() AS INTEGER
-DECLARE SUB change_npc_def_sprite (BYVAL npc_id AS INTEGER, BYVAL walkabout_sprite_id AS INTEGER)
-DECLARE SUB change_npc_def_pal (BYVAL npc_id AS INTEGER, BYVAL palette_id AS INTEGER)
-DECLARE FUNCTION create_walkabout_slices(byval parent as Slice Ptr) AS Slice Ptr
-DECLARE SUB create_walkabout_shadow (BYVAL walkabout_cont AS Slice Ptr)
-DECLARE SUB delete_walkabout_shadow (BYVAL walkabout_cont AS Slice Ptr)
+DECLARE FUNCTION should_hide_hero_caterpillar() as integer
+DECLARE FUNCTION should_show_normal_caterpillar() as integer
+DECLARE SUB change_npc_def_sprite (byval npc_id as integer, byval walkabout_sprite_id as integer)
+DECLARE SUB change_npc_def_pal (byval npc_id as integer, byval palette_id as integer)
+DECLARE FUNCTION create_walkabout_slices(byval parent as Slice Ptr) as Slice Ptr
+DECLARE SUB create_walkabout_shadow (byval walkabout_cont as Slice Ptr)
+DECLARE SUB delete_walkabout_shadow (byval walkabout_cont as Slice Ptr)
 DECLARE SUB reset_game_state ()
 DECLARE SUB cleanup_game_slices ()
-DECLARE FUNCTION hero_layer() AS Slice Ptr
-DECLARE FUNCTION npc_layer() AS Slice Ptr
-DECLARE SUB queue_fade_in (BYVAL delay AS INTEGER = 0)
+DECLARE FUNCTION hero_layer() as Slice Ptr
+DECLARE FUNCTION npc_layer() as Slice Ptr
+DECLARE SUB queue_fade_in (byval delay as integer = 0)
 DECLARE SUB check_for_queued_fade_in ()
 
 #ENDIF
