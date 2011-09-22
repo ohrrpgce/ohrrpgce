@@ -145,8 +145,8 @@ declare function __array_is_temp cdecl alias "array_is_temp" (byval this as any 
 #ENDMACRO
 
 'Accepts any type of vector, and returns a string representation, eg [3, 4]. Understands nested vectors.
-'Doesn't actually modify vec, ignore the BYREF. (Implemented in vector.bas)
-DECLARE FUNCTION v_str CDECL (BYREF vec as any vector) as string
+'Doesn't actually modify vec, ignore the byref. (Implemented in vector.bas)
+DECLARE FUNCTION v_str CDECL (byref vec as any vector) as string
 
 
 'This stuff is commented out until we switch to a version of FB with variadic macros
@@ -279,15 +279,15 @@ DECLARE_VECTOR_OF_TYPE(integer vector, integer_vector)
 
 'Utility functions
 
-DECLARE FUNCTION intvec_sum(BYVAL vec as integer vector) as integer
+DECLARE FUNCTION intvec_sum(byval vec as integer vector) as integer
 
 'These only accept arrays with LBOUND 0 or -1, the -1th element is ignored
-DECLARE SUB array_to_vector OVERLOAD (BYREF vec as integer vector, array() as integer)
-DECLARE SUB array_to_vector OVERLOAD (BYREF vec as string vector, array() as string)
+DECLARE SUB array_to_vector OVERLOAD (byref vec as integer vector, array() as integer)
+DECLARE SUB array_to_vector OVERLOAD (byref vec as string vector, array() as string)
 
 'These require dynamic arrays, of course. If the array is zero length, the array will be -1 TO -1
-DECLARE SUB vector_to_array OVERLOAD (array() as integer, BYVAL vec as integer vector)
-DECLARE SUB vector_to_array OVERLOAD (array() as string, BYVAL vec as string vector)
+DECLARE SUB vector_to_array OVERLOAD (array() as integer, byval vec as integer vector)
+DECLARE SUB vector_to_array OVERLOAD (array() as string, byval vec as string vector)
 
 
 #ENDIF

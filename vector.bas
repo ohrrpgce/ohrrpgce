@@ -5,6 +5,13 @@
 'Type definitions for the basic builtin types. Place other DEFINE_VECTOR_OF_TYPE macros in another
 'module (somewhere where your type definitions are actually available, they aren't here)
 
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
+#endif
 
 #include "util.bi"
 #include "common_base.bi"
@@ -24,7 +31,7 @@ SUB string_copyctor cdecl (byval p1 as string ptr, byval p2 as string ptr)
   fb_StrAssignEx(p1, -1, p2, -1, 0, 1)
 END SUB
 
-FUNCTION double_compare CDECL (BYVAL a as double ptr, BYVAL b as double ptr) as integer
+FUNCTION double_compare CDECL (byval a as double ptr, byval b as double ptr) as integer
   IF *a < *b THEN RETURN -1
   IF *a > *b THEN RETURN 1
   'implicitly RETURN 0 (it's faster to omit the RETURN :-)
@@ -32,7 +39,7 @@ END FUNCTION
 
 'Doubles are tricky. You usually don't really want to use exactly equality to test whether
 'two doubles are equal, only to use it for sorting.
-FUNCTION double_inequal CDECL (BYVAL a as double ptr, BYVAL b as double ptr) as integer
+FUNCTION double_inequal CDECL (byval a as double ptr, byval b as double ptr) as integer
   'tol = MAX(ABS(*a), ABS(*b), 1.0)
   DIM tol as double = ABS(*a)
   DIM temp as double = ABS(*b)
@@ -41,19 +48,19 @@ FUNCTION double_inequal CDECL (BYVAL a as double ptr, BYVAL b as double ptr) as 
   RETURN (ABS(*a - *b) <= 1E-15 * tol)
 END FUNCTION
 
-FUNCTION string_str CDECL (BYVAL this as string ptr) as string
+FUNCTION string_str CDECL (byval this as string ptr) as string
   RETURN """" + *this + """"
 END FUNCTION
 
-FUNCTION integer_str CDECL (BYVAL this as integer ptr) as string
+FUNCTION integer_str CDECL (byval this as integer ptr) as string
   RETURN STR(*this)
 END FUNCTION
 
-FUNCTION ptr_str CDECL (BYVAL this as any ptr ptr) as string
+FUNCTION ptr_str CDECL (byval this as any ptr ptr) as string
   RETURN "0x" + HEX(*this)
 END FUNCTION
 
-FUNCTION double_str CDECL (BYVAL this as double ptr) as string
+FUNCTION double_str CDECL (byval this as double ptr) as string
   RETURN STR(*this)
 END FUNCTION
 
@@ -73,7 +80,7 @@ DEFINE_VECTOR_VECTOR_OF(integer, integer)  'integer vector vector
 
 'Utility Functions
 
-FUNCTION intvec_sum(BYVAL vec as integer vector) as integer
+FUNCTION intvec_sum(byval vec as integer vector) as integer
   DIM sum as integer = 0
   FOR i as integer = 0 TO v_len(vec) - 1
     sum += vec[i]
@@ -81,9 +88,9 @@ FUNCTION intvec_sum(BYVAL vec as integer vector) as integer
   RETURN sum
 END FUNCTION
 
-'Not BYREF because it modifies vec, but simply to fit the signature...
+'Not byref because it modifies vec, but simply to fit the signature...
 'ought to take a vector ptr, but that's unpleas
-FUNCTION v_str CDECL (BYREF vec as any vector) as string
+FUNCTION v_str CDECL (byref vec as any vector) as string
   IF vec = NULL THEN RETURN ""
   DIM ret as string = "["
   'Cast so that we can call a set of overloaded functions (aside from v_new, all
@@ -102,7 +109,7 @@ FUNCTION v_str CDECL (BYREF vec as any vector) as string
   RETURN ret + "]"
 END FUNCTION
 
-SUB vector_to_array OVERLOAD (array() as integer, BYVAL vec as integer vector)
+SUB vector_to_array OVERLOAD (array() as integer, byval vec as integer vector)
   IF vec = NULL THEN
     debug "vector_to_array: uninitialised vector is suspicious"
     REDIM array(-1 TO -1)
@@ -117,7 +124,7 @@ SUB vector_to_array OVERLOAD (array() as integer, BYVAL vec as integer vector)
   NEXT
 END SUB
 
-SUB vector_to_array OVERLOAD (array() as string, BYVAL vec as string vector)
+SUB vector_to_array OVERLOAD (array() as string, byval vec as string vector)
   IF vec = NULL THEN
     debug "vector_to_array: uninitialised vector is suspicious"
     REDIM array(-1 TO -1)
@@ -132,7 +139,7 @@ SUB vector_to_array OVERLOAD (array() as string, BYVAL vec as string vector)
   NEXT
 END SUB
 
-SUB array_to_vector OVERLOAD (BYREF vec as integer vector, array() as integer)
+SUB array_to_vector OVERLOAD (byref vec as integer vector, array() as integer)
   IF LBOUND(array) < -1 OR LBOUND(array) > 0 THEN
     showerror "array_to_vector: bad array size " & LBOUND(array) & " TO " & UBOUND(array)
     v_new vec
@@ -144,7 +151,7 @@ SUB array_to_vector OVERLOAD (BYREF vec as integer vector, array() as integer)
   NEXT
 END SUB
 
-SUB array_to_vector OVERLOAD (BYREF vec as string vector, array() as string)
+SUB array_to_vector OVERLOAD (byref vec as string vector, array() as string)
   IF LBOUND(array) < -1 OR LBOUND(array) > 0 THEN
     showerror "array_to_vector: bad array size " & LBOUND(array) & " TO " & UBOUND(array)
     v_new vec
