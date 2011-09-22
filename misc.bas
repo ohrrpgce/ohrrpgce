@@ -5,7 +5,13 @@
 '
 'FIXME: move this crud elsewhere
 
-option explicit
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
+#endif
 
 #include "config.bi"
 #include "ver.txt"
@@ -26,7 +32,6 @@ end extern
 dim nulzstr as zstring ptr  '(see misc.bi)
 
 'Gosub workaround
-option dynamic
 dim shared gosubbuf(31) as crt_jmp_buf
 dim shared gosubptr as integer = 0
 #ifdef timer_variables
