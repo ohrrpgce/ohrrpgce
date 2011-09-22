@@ -1,3 +1,3 @@
 #!/bin/sh
 
-fbc -v bam2mid.bas
+fbc -v -d TRY_LANG_FB bam2mid.bas

@@ -11,7 +11,13 @@
 ''        fbc -lang deprecated bam2mid.bas
 ''
 
-option explicit
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
+#endif
 
 #include "banks.bi"
 
