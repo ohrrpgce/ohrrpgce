@@ -3,8 +3,13 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
-'$DYNAMIC
-DEFINT A-Z
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
+#endif
 
 #include "config.bi"
 #include "ver.txt"
@@ -26,63 +31,60 @@ USING Reload.Ext
 
 '--Local subs and functions
 
-DECLARE SUB gamestate_to_reload(BYVAL node AS Reload.NodePtr)
-DECLARE SUB gamestate_state_to_reload(BYVAL parent AS Reload.NodePtr)
-DECLARE SUB gamestate_script_to_reload(BYVAL parent AS Reload.NodePtr)
-DECLARE FUNCTION script_trigger_from_reload(BYVAL parent AS Reload.NodePtr, node_name AS STRING) AS INTEGER
-DECLARE SUB gamestate_globals_to_reload(BYVAL parent AS Reload.NodePtr, BYVAL first AS INTEGER=0, BYVAL last AS INTEGER=4095)
-DECLARE SUB gamestate_maps_to_reload(BYVAL parent AS Reload.NodePtr)
-DECLARE SUB gamestate_npcs_to_reload(BYVAL parent AS Reload.NodePtr, BYVAL map AS INTEGER)
-DECLARE SUB gamestate_tags_to_reload(BYVAL parent AS Reload.NodePtr)
-DECLARE SUB gamestate_onetime_to_reload(BYVAL parent AS Reload.NodePtr)
-DECLARE SUB gamestate_party_to_reload(BYVAL parent AS Reload.NodePtr)
-DECLARE SUB gamestate_spelllist_to_reload(hero_slot AS INTEGER, spell_list AS INTEGER, BYVAL parent AS Reload.NodePtr)
-DECLARE SUB gamestate_inventory_to_reload(BYVAL parent AS Reload.NodePtr)
-DECLARE SUB gamestate_shops_to_reload(BYVAL parent AS Reload.NodePtr)
-DECLARE SUB gamestate_vehicle_to_reload(BYVAL parent AS Reload.NodePtr)
+DECLARE SUB gamestate_to_reload(byval node as Reload.NodePtr)
+DECLARE SUB gamestate_state_to_reload(byval parent as Reload.NodePtr)
+DECLARE SUB gamestate_script_to_reload(byval parent as Reload.NodePtr)
+DECLARE FUNCTION script_trigger_from_reload(byval parent as Reload.NodePtr, node_name as STRING) as integer
+DECLARE SUB gamestate_globals_to_reload(byval parent as Reload.NodePtr, byval first as integer=0, byval last as integer=4095)
+DECLARE SUB gamestate_maps_to_reload(byval parent as Reload.NodePtr)
+DECLARE SUB gamestate_npcs_to_reload(byval parent as Reload.NodePtr, byval map as integer)
+DECLARE SUB gamestate_tags_to_reload(byval parent as Reload.NodePtr)
+DECLARE SUB gamestate_onetime_to_reload(byval parent as Reload.NodePtr)
+DECLARE SUB gamestate_party_to_reload(byval parent as Reload.NodePtr)
+DECLARE SUB gamestate_spelllist_to_reload(hero_slot as integer, spell_list as integer, byval parent as Reload.NodePtr)
+DECLARE SUB gamestate_inventory_to_reload(byval parent as Reload.NodePtr)
+DECLARE SUB gamestate_shops_to_reload(byval parent as Reload.NodePtr)
+DECLARE SUB gamestate_vehicle_to_reload(byval parent as Reload.NodePtr)
 
-DECLARE SUB new_loadgame(BYVAL slot AS INTEGER)
-DECLARE SUB gamestate_from_reload(BYVAL node AS Reload.NodePtr)
-DECLARE SUB gamestate_state_from_reload(BYVAL parent AS Reload.NodePtr)
-DECLARE SUB gamestate_script_from_reload(BYVAL parent AS Reload.NodePtr)
-DECLARE SUB script_trigger_to_reload(BYVAL parent AS Reload.NodePtr, node_name AS STRING, BYVAL script_id AS INTEGER)
-DECLARE SUB gamestate_globals_from_reload(BYVAL parent AS Reload.NodePtr, BYVAL first AS INTEGER=0, BYVAL last AS INTEGER=4095)
-DECLARE SUB gamestate_maps_from_reload(BYVAL parent AS Reload.NodePtr)
-DECLARE SUB gamestate_npcs_from_reload(BYVAL parent AS Reload.NodePtr, BYVAL map AS INTEGER)
-DECLARE SUB gamestate_tags_from_reload(BYVAL parent AS Reload.NodePtr)
-DECLARE SUB gamestate_onetime_from_reload(BYVAL parent AS Reload.NodePtr)
-DECLARE SUB gamestate_party_from_reload(BYVAL parent AS Reload.NodePtr)
-DECLARE SUB gamestate_spelllist_from_reload(hero_slot AS INTEGER, spell_list AS INTEGER, BYVAL parent AS Reload.NodePtr)
-DECLARE SUB gamestate_inventory_from_reload(BYVAL parent AS Reload.NodePtr)
-DECLARE SUB gamestate_shops_from_reload(BYVAL parent AS Reload.NodePtr)
-DECLARE SUB gamestate_vehicle_from_reload(BYVAL parent AS Reload.NodePtr)
+DECLARE SUB new_loadgame(byval slot as integer)
+DECLARE SUB gamestate_from_reload(byval node as Reload.NodePtr)
+DECLARE SUB gamestate_state_from_reload(byval parent as Reload.NodePtr)
+DECLARE SUB gamestate_script_from_reload(byval parent as Reload.NodePtr)
+DECLARE SUB script_trigger_to_reload(byval parent as Reload.NodePtr, node_name as STRING, byval script_id as integer)
+DECLARE SUB gamestate_globals_from_reload(byval parent as Reload.NodePtr, byval first as integer=0, byval last as integer=4095)
+DECLARE SUB gamestate_maps_from_reload(byval parent as Reload.NodePtr)
+DECLARE SUB gamestate_npcs_from_reload(byval parent as Reload.NodePtr, byval map as integer)
+DECLARE SUB gamestate_tags_from_reload(byval parent as Reload.NodePtr)
+DECLARE SUB gamestate_onetime_from_reload(byval parent as Reload.NodePtr)
+DECLARE SUB gamestate_party_from_reload(byval parent as Reload.NodePtr)
+DECLARE SUB gamestate_spelllist_from_reload(hero_slot as integer, spell_list as integer, byval parent as Reload.NodePtr)
+DECLARE SUB gamestate_inventory_from_reload(byval parent as Reload.NodePtr)
+DECLARE SUB gamestate_shops_from_reload(byval parent as Reload.NodePtr)
+DECLARE SUB gamestate_vehicle_from_reload(byval parent as Reload.NodePtr)
 
-DECLARE SUB rsav_warn (s AS STRING)
-DECLARE SUB rsav_warn_wrong (expected AS STRING, BYVAL n AS Reload.NodePtr)
-DECLARE SUB rsav_check_children_names (BYVAL n AS Reload.NodePtr, expected AS STRING)
+DECLARE SUB rsav_warn (s as STRING)
+DECLARE SUB rsav_warn_wrong (expected as STRING, byval n as Reload.NodePtr)
+DECLARE SUB rsav_check_children_names (byval n as Reload.NodePtr, expected as STRING)
 
-DECLARE SUB new_loadglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL last AS INTEGER)
+DECLARE SUB new_loadglobalvars (byval slot as integer, byval first as integer, byval last as integer)
 
-DECLARE FUNCTION new_save_slot_used (BYVAL slot AS INTEGER) AS INTEGER
-DECLARE FUNCTION new_count_used_save_slots() AS INTEGER
-DECLARE SUB new_get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
+DECLARE FUNCTION new_save_slot_used (byval slot as integer) as integer
+DECLARE FUNCTION new_count_used_save_slots() as integer
+DECLARE SUB new_get_save_slot_preview(byval slot as integer, pv as SaveSlotPreview)
 
 '--old save/load support
-DECLARE SUB old_loadgame (slot as integer)
-DECLARE SUB old_loadglobalvars (slot as integer, first as integer, last as integer)
-DECLARE SUB old_get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
-DECLARE SUB show_load_index(z AS INTEGER, caption AS STRING, slot AS INTEGER=0)
-DECLARE SUB rebuild_inventory_captions (invent() AS InventSlot)
-DECLARE FUNCTION old_save_slot_used (BYVAL slot AS INTEGER) AS INTEGER
-DECLARE FUNCTION old_count_used_save_slots() AS INTEGER
+DECLARE SUB old_loadgame (byval slot as integer)
+DECLARE SUB old_loadglobalvars (byval slot as integer, byval first as integer, byval last as integer)
+DECLARE SUB old_get_save_slot_preview(byval slot as integer, pv as SaveSlotPreview)
+DECLARE SUB show_load_index(z as integer, caption as STRING, slot as integer=0)
+DECLARE SUB rebuild_inventory_captions (invent() as InventSlot)
+DECLARE FUNCTION old_save_slot_used (byval slot as integer) as integer
+DECLARE FUNCTION old_count_used_save_slots() as integer
 
-DIM SHARED old_savefile AS STRING
-DIM SHARED savedir AS STRING
+DIM SHARED old_savefile as STRING
+DIM SHARED savedir as STRING
 
-DIM SHARED current_save_slot AS INTEGER '--used in rsav_warn
-
-REM $STATIC
-OPTION EXPLICIT
+DIM SHARED current_save_slot as integer '--used in rsav_warn
 
 '-----------------------------------------------------------------------
 
@@ -99,7 +101,7 @@ SUB init_save_system()
  
  '--set up new rsav folder
  
- DIM rpg_folder AS STRING = trimfilename(sourcerpg)
+ DIM rpg_folder as STRING = trimfilename(sourcerpg)
  IF diriswriteable(rpg_folder) THEN
   '--default location is same as the RPG file (if possible)
   savedir = trimextension(sourcerpg) & ".saves"
@@ -111,11 +113,11 @@ SUB init_save_system()
 
 END SUB
 
-SUB loadgame (BYVAL slot AS INTEGER)
+SUB loadgame (byval slot as integer)
  '--Works under the assumption that resetgame has already been called.
  IF keyval(scLeftShift) = 0 AND keyval(scRightShift) = 0 THEN
   'bypass new loading if shift is held down when you load
-  DIM filename AS STRING
+  DIM filename as STRING
   filename = savedir & SLASH & slot & ".rsav"
   IF isfile(filename) THEN
    debuginfo "loading awesome new loadgame from " & filename
@@ -127,10 +129,10 @@ SUB loadgame (BYVAL slot AS INTEGER)
  old_loadgame slot
 END SUB
 
-SUB loadglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL last AS INTEGER)
+SUB loadglobalvars (byval slot as integer, byval first as integer, byval last as integer)
  IF keyval(scLeftShift) = 0 AND keyval(scRightShift) = 0 THEN
   'bypass new loading if shift is held down when you load
-  DIM filename AS STRING
+  DIM filename as STRING
   filename = savedir & SLASH & slot & ".rsav"
   IF isfile(filename) THEN
    debuginfo "loading awesome new loadglobalvars from " & filename
@@ -142,7 +144,7 @@ SUB loadglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL last AS
  old_loadglobalvars slot, first, last
 END SUB
 
-SUB get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
+SUB get_save_slot_preview(byval slot as integer, pv as SaveSlotPreview)
  IF new_save_slot_used(slot) THEN
   debuginfo "use nifty new save slot preview for slot " & slot
   new_get_save_slot_preview slot, pv
@@ -152,15 +154,15 @@ SUB get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
  END IF
 END SUB
 
-FUNCTION save_slot_used (BYVAL slot AS INTEGER) AS INTEGER
+FUNCTION save_slot_used (byval slot as integer) as integer
  IF new_save_slot_used(slot) THEN
   RETURN YES
  END IF
  RETURN old_save_slot_used(slot)
 END FUNCTION
 
-FUNCTION count_used_save_slots() AS INTEGER
- DIM count AS INTEGER = new_count_used_save_slots()
+FUNCTION count_used_save_slots() as integer
+ DIM count as integer = new_count_used_save_slots()
  IF count > 0 THEN
   RETURN count
  END IF
@@ -169,18 +171,18 @@ END FUNCTION
 
 '-----------------------------------------------------------------------
 
-SUB savegame (BYVAL slot AS INTEGER)
+SUB savegame (byval slot as integer)
  current_save_slot = slot
  
- DIM doc AS DocPtr
+ DIM doc as DocPtr
  doc = CreateDocument()
  
- DIM node AS NodePtr
+ DIM node as NodePtr
  node = CreateNode(doc, "rsav")
  SetRootNode(doc, node)
  gamestate_to_reload node
  
- DIM filename AS STRING
+ DIM filename as STRING
  filename = savedir & SLASH & slot & ".rsav"
  SerializeBin filename, doc
  
@@ -188,10 +190,10 @@ SUB savegame (BYVAL slot AS INTEGER)
  current_save_slot = -1
 END SUB
 
-SUB new_loadgame(BYVAL slot AS INTEGER)
+SUB new_loadgame(byval slot as integer)
  current_save_slot = slot
  
- DIM filename AS STRING
+ DIM filename as STRING
  filename = savedir & SLASH & slot & ".rsav"
 
  IF NOT isfile(filename) THEN
@@ -200,10 +202,10 @@ SUB new_loadgame(BYVAL slot AS INTEGER)
   EXIT SUB
  END IF
 
- DIM doc AS DocPtr
+ DIM doc as DocPtr
  doc = LoadDocument(filename)
  
- DIM node AS NodePtr
+ DIM node as NodePtr
  node = DocumentRoot(doc)
  
  gamestate_from_reload node
@@ -212,16 +214,16 @@ SUB new_loadgame(BYVAL slot AS INTEGER)
  current_save_slot = -1
 END SUB
 
-SUB rsav_warn (s AS STRING)
+SUB rsav_warn (s as STRING)
  debug "Save slot " & current_save_slot & ": " & s
 END SUB
 
-SUB rsav_warn_wrong (expected AS STRING, BYVAL n AS Reload.NodePtr)
+SUB rsav_warn_wrong (expected as STRING, byval n as Reload.NodePtr)
  rsav_warn "expected " & expected & " but found " & NodeName(n)
 END SUB
 
-SUB rsav_check_children_names (BYVAL n AS Reload.NodePtr, expected AS STRING)
- DIM child AS Reload.NodePtr = FirstChild(n)
+SUB rsav_check_children_names (byval n as Reload.NodePtr, expected as STRING)
+ DIM child as Reload.NodePtr = FirstChild(n)
  WHILE child
   IF NodeName(child) <> expected THEN rsav_warn_wrong expected, child
   child = NextSibling(child)
@@ -230,7 +232,7 @@ END SUB
 
 '-----------------------------------------------------------------------
 
-SUB gamestate_from_reload(BYVAL node AS Reload.NodePtr)
+SUB gamestate_from_reload(byval node as Reload.NodePtr)
  IF NodeName(node) <> "rsav" THEN rsav_warn "root node is not rsav"
 
  IF GetChildNodeInt(node, "ver") > CURRENT_RSAV_VERSION THEN
@@ -252,16 +254,16 @@ SUB gamestate_from_reload(BYVAL node AS Reload.NodePtr)
 
 END SUB
 
-SUB gamestate_state_from_reload(BYVAL parent AS Reload.NodePtr)
- DIM node AS NodePtr
+SUB gamestate_state_from_reload(byval parent as Reload.NodePtr)
+ DIM node as NodePtr
  node = GetChildByName(parent, "state")
- DIM ch AS NodePtr 'used for sub-containers
- DIM n AS NodePtr 'used for numbered containers
- DIM i AS INTEGER
+ DIM ch as NodePtr 'used for sub-containers
+ DIM n as NodePtr 'used for numbered containers
+ DIM i as integer
  
  gam.map.id = GetChildNodeInt(node, "current_map")
 
- DIM map_offset AS XYPair
+ DIM map_offset as XYPair
  map_offset = load_map_pos_save_offset(gam.map.id)
 
  ch = GetChildByName(node, "caterpillar")
@@ -327,11 +329,11 @@ SUB gamestate_state_from_reload(BYVAL parent AS Reload.NodePtr)
 
 END SUB
 
-SUB gamestate_script_from_reload(BYVAL parent AS Reload.NodePtr)
+SUB gamestate_script_from_reload(byval parent as Reload.NodePtr)
 
- DIM node AS NodePtr
+ DIM node as NodePtr
  node = GetChildByName(parent, "script")
- DIM ch AS NodePtr 'used for sub-containers
+ DIM ch as NodePtr 'used for sub-containers
 
  gamestate_globals_from_reload node
 
@@ -356,8 +358,8 @@ SUB gamestate_script_from_reload(BYVAL parent AS Reload.NodePtr)
  gen(genScrBackdrop) = GetChildNodeInt(node, "backdrop")
 END SUB
 
-FUNCTION script_trigger_from_reload(BYVAL parent AS Reload.NodePtr, node_name AS STRING) AS INTEGER
- DIM node AS NodePtr
+FUNCTION script_trigger_from_reload(byval parent as Reload.NodePtr, node_name as STRING) as integer
+ DIM node as NodePtr
  node = GetChildByName(parent, node_name)
  IF node = 0 THEN RETURN 0
  IF GetChildNodeExists(node, "name") THEN
@@ -372,12 +374,12 @@ FUNCTION script_trigger_from_reload(BYVAL parent AS Reload.NodePtr, node_name AS
  RETURN 0 
 END FUNCTION
 
-SUB gamestate_globals_from_reload(BYVAL parent AS Reload.NodePtr, BYVAL first AS INTEGER=0, BYVAL last AS INTEGER=4095)
+SUB gamestate_globals_from_reload(byval parent as Reload.NodePtr, byval first as integer=0, byval last as integer=4095)
 
- DIM node AS NodePtr
+ DIM node as NodePtr
  node = GetChildByName(parent, "globals")
- DIM n AS NodePtr 'used for numbered containers
- DIM i AS INTEGER
+ DIM n as NodePtr 'used for numbered containers
+ DIM i as integer
 
  rsav_check_children_names(node, "global")
  n = FirstChild(node, "global")
@@ -397,12 +399,12 @@ SUB gamestate_globals_from_reload(BYVAL parent AS Reload.NodePtr, BYVAL first AS
  LOOP
 END SUB
 
-SUB gamestate_maps_from_reload(BYVAL parent AS Reload.NodePtr)
- DIM node AS NodePtr
+SUB gamestate_maps_from_reload(byval parent as Reload.NodePtr)
+ DIM node as NodePtr
  node = GetChildByName(parent, "maps")
- DIM n AS NodePtr 'used for numbered containers
- DIM i AS INTEGER
- DIM loaded_current AS INTEGER = NO
+ DIM n as NodePtr 'used for numbered containers
+ DIM i as integer
+ DIM loaded_current as integer = NO
  
  'FIXME: currently only supports saving the current map
  rsav_check_children_names(node, "map")
@@ -422,15 +424,15 @@ SUB gamestate_maps_from_reload(BYVAL parent AS Reload.NodePtr)
  
 END SUB
 
-SUB gamestate_npcs_from_reload(BYVAL parent AS Reload.NodePtr, BYVAL map AS INTEGER)
- DIM node AS NodePtr
+SUB gamestate_npcs_from_reload(byval parent as Reload.NodePtr, byval map as integer)
+ DIM node as NodePtr
  node = GetChildByName(parent, "npcs")
 
- DIM map_offset AS XYPair
+ DIM map_offset as XYPair
  map_offset = load_map_pos_save_offset(map)
 
- DIM i AS INTEGER
- DIM n AS NodePtr
+ DIM i as integer
+ DIM n as NodePtr
  rsav_check_children_names(node, "npc")
  n = FirstChild(node, "npc")
  DO WHILE n
@@ -446,60 +448,60 @@ SUB gamestate_npcs_from_reload(BYVAL parent AS Reload.NodePtr, BYVAL map AS INTE
 
 END SUB
 
-SUB gamestate_tags_from_reload(BYVAL parent AS Reload.NodePtr)
- DIM node AS NodePtr
+SUB gamestate_tags_from_reload(byval parent as Reload.NodePtr)
+ DIM node as NodePtr
  node = GetChildByName(parent, "tags")
  
- DIM count AS INTEGER
+ DIM count as integer
  count = GetChildNodeInt(node, "count")
  IF count > 1000 THEN
   rsav_warn "too many saved tags 1000 < " & count
   count = 1000
  END IF
 
- DIM buf(INT(count / 16)) AS INTEGER
+ DIM buf(INT(count / 16)) as integer
 
- DIM ch AS NodePtr
+ DIM ch as NodePtr
  ch = GetChildByName(node, "data")
  LoadBitsetArray(ch, buf(), UBOUND(buf))
  
- FOR i AS INTEGER = 0 TO count - 1
+ FOR i as integer = 0 TO count - 1
   settag i, readbit(buf(), 0, i)
  NEXT i
  
 END SUB
 
-SUB gamestate_onetime_from_reload(BYVAL parent AS Reload.NodePtr)
- DIM node AS NodePtr
+SUB gamestate_onetime_from_reload(byval parent as Reload.NodePtr)
+ DIM node as NodePtr
  node = GetChildByName(parent, "onetime")
  
- DIM count AS INTEGER
+ DIM count as integer
  count = GetChildNodeInt(node, "count")
  IF count > 1032 THEN
   rsav_warn "too many saved tags 1032 < " & count
   count = 1032
  END IF
 
- DIM buf(INT(count / 16)) AS INTEGER
+ DIM buf(INT(count / 16)) as integer
 
- DIM ch AS NodePtr
+ DIM ch as NodePtr
  ch = GetChildByName(node, "data")
  LoadBitsetArray(ch, buf(), UBOUND(buf))
  
- FOR i AS INTEGER = 0 TO count - 1
+ FOR i as integer = 0 TO count - 1
   settag 1000 + i, readbit(buf(), 0, i)
  NEXT i
  
 END SUB
 
-SUB gamestate_party_from_reload(BYVAL parent AS Reload.NodePtr)
- DIM node AS NodePtr
+SUB gamestate_party_from_reload(byval parent as Reload.NodePtr)
+ DIM node as NodePtr
  node = GetChildByName(parent, "party")
- DIM slot AS NodePtr
- DIM ch AS NodePtr 'used for sub-containers
- DIM n AS NodePtr 'used for numbered containers
- DIM i AS INTEGER
- DIM her AS HeroDef 'used to provide default values when missing
+ DIM slot as NodePtr
+ DIM ch as NodePtr 'used for sub-containers
+ DIM n as NodePtr 'used for numbered containers
+ DIM i as integer
+ DIM her as HeroDef 'used to provide default values when missing
  
  slot = FirstChild(node)
  DO WHILE slot
@@ -521,7 +523,7 @@ SUB gamestate_party_from_reload(BYVAL parent AS Reload.NodePtr)
 
      ch = GetChildByName(slot, "stats")
      rsav_check_children_names(ch, "stat")
-     DIM j AS INTEGER
+     DIM j as integer
      n = FirstChild(ch, "stat")
      DO WHILE n
       j = GetInteger(n)
@@ -570,7 +572,7 @@ SUB gamestate_party_from_reload(BYVAL parent AS Reload.NodePtr)
       IF ch THEN
        n = FirstChild(ch, "element")
        DO WHILE n
-        DIM j AS INTEGER = GetInteger(n)
+        DIM j as integer = GetInteger(n)
         IF j < gen(genNumElements) THEN
          .elementals(j) = GetChildNodeFloat(n, "damage", 1.0)
         END IF
@@ -654,17 +656,17 @@ SUB gamestate_party_from_reload(BYVAL parent AS Reload.NodePtr)
  LOOP
 END SUB
 
-SUB gamestate_spelllist_from_reload(hero_slot AS INTEGER, spell_list AS INTEGER, BYVAL parent AS Reload.NodePtr)
- DIM node AS NodePtr
+SUB gamestate_spelllist_from_reload(hero_slot as integer, spell_list as integer, byval parent as Reload.NodePtr)
+ DIM node as NodePtr
  node = GetChildByName(parent, "spells")
  IF spell_list <> GetInteger(node) THEN
   rsav_warn "spell list id mismatch " & spell_list & "<>" & GetInteger(node)
  END IF
  
- DIM n AS NodePtr 'used for numbered containers
- DIM i AS INTEGER
+ DIM n as NodePtr 'used for numbered containers
+ DIM i as integer
 
- DIM atk_id AS INTEGER
+ DIM atk_id as integer
  rsav_check_children_names(node, "spell")
  n = FirstChild(node, "spell")
  DO WHILE n
@@ -681,17 +683,17 @@ SUB gamestate_spelllist_from_reload(hero_slot AS INTEGER, spell_list AS INTEGER,
  
 END SUB
 
-SUB gamestate_inventory_from_reload(BYVAL parent AS Reload.NodePtr)
- DIM node AS NodePtr
+SUB gamestate_inventory_from_reload(byval parent as Reload.NodePtr)
+ DIM node as NodePtr
  node = GetChildByName(parent, "inventory")
- DIM ch AS NodePtr 'used for sub-containers
- DIM n AS NodePtr 'used for numbered containers
- DIM i AS INTEGER
+ DIM ch as NodePtr 'used for sub-containers
+ DIM n as NodePtr 'used for numbered containers
+ DIM i as integer
  
  gen(genMaxInventory) = GetChildNodeInt(node, "size")
 
  ch = GetChildByName(node, "slots")
- DIM last AS INTEGER
+ DIM last as integer
  last = small(inventoryMax, UBOUND(inventory))
  
  rsav_check_children_names(ch, "slot")
@@ -715,16 +717,16 @@ SUB gamestate_inventory_from_reload(BYVAL parent AS Reload.NodePtr)
  
 END SUB
 
-SUB gamestate_shops_from_reload(BYVAL parent AS Reload.NodePtr)
- DIM node AS NodePtr
+SUB gamestate_shops_from_reload(byval parent as Reload.NodePtr)
+ DIM node as NodePtr
  node = GetChildByName(parent, "shops")
- DIM ch AS NodePtr 'used for sub-containers
- DIM n AS NodePtr 'used for numbered containers
- DIM n2 AS NodePtr 'also used for numbered containers
- DIM i AS INTEGER
- DIM j AS INTEGER
+ DIM ch as NodePtr 'used for sub-containers
+ DIM n as NodePtr 'used for numbered containers
+ DIM n2 as NodePtr 'also used for numbered containers
+ DIM i as integer
+ DIM j as integer
 
- DIM shoptmp(19) AS INTEGER
+ DIM shoptmp(19) as integer
 
  n = FirstChild(node)
  DO WHILE n
@@ -762,11 +764,11 @@ SUB gamestate_shops_from_reload(BYVAL parent AS Reload.NodePtr)
  
 END SUB
 
-SUB gamestate_vehicle_from_reload(BYVAL parent AS Reload.NodePtr)
- DIM node AS NodePtr
+SUB gamestate_vehicle_from_reload(byval parent as Reload.NodePtr)
+ DIM node as NodePtr
  node = GetChildByName(parent, "vehicle")
- DIM ch AS NodePtr 'used for sub-containers
- DIM n AS NodePtr 'used for numbered containers
+ DIM ch as NodePtr 'used for sub-containers
+ DIM n as NodePtr 'used for numbered containers
  
  WITH vstate
 
@@ -793,12 +795,12 @@ END SUB
 
 '-----------------------------------------------------------------------
 
-SUB gamestate_to_reload(BYVAL node AS Reload.NodePtr)
+SUB gamestate_to_reload(byval node as Reload.NodePtr)
  'increment this to produce a warning message when
  'loading a new rsav file in an old game player
  SetChildNode(node, "ver", CURRENT_RSAV_VERSION)
 
- DIM ch AS NodePtr
+ DIM ch as NodePtr
  ch = SetChildNode(node, "game_client", "OHRRPGCE")
  SetChildNode(ch, "branch_name", version_branch)
  'version_revision is 0 if verprint could not determine it
@@ -815,19 +817,19 @@ SUB gamestate_to_reload(BYVAL node AS Reload.NodePtr)
  gamestate_vehicle_to_reload node
 END SUB
 
-SUB gamestate_state_to_reload(BYVAL parent AS Reload.NodePtr)
- DIM node AS NodePtr
+SUB gamestate_state_to_reload(byval parent as Reload.NodePtr)
+ DIM node as NodePtr
  node = SetChildNode(parent, "state")
- DIM ch AS NodePtr 'used for sub-containers
- DIM n AS NodePtr 'used for numbered containers
+ DIM ch as NodePtr 'used for sub-containers
+ DIM n as NodePtr 'used for numbered containers
  
  SetChildNode(node, "current_map", gam.map.id)
 
- DIM map_offset AS XYPair
+ DIM map_offset as XYPair
  map_offset = load_map_pos_save_offset(gam.map.id)
 
  ch = SetChildNode(node, "caterpillar")
- FOR i AS INTEGER = 0 TO 3
+ FOR i as integer = 0 TO 3
   n = AppendChildNode(ch, "hero", i)
   SetChildNode(n, "x", catx(i * 5) - map_offset.x * 20)
   SetChildNode(n, "y", caty(i * 5) - map_offset.y * 20)
@@ -840,7 +842,7 @@ SUB gamestate_state_to_reload(BYVAL parent AS Reload.NodePtr)
  SetChildNode(ch, "x", mapx)
  SetChildNode(ch, "y", mapy)
  SetChildNode(ch, "mode", gen(genCamera))
- FOR i AS INTEGER = 0 TO 3
+ FOR i as integer = 0 TO 3
   SetChildNode(ch, "arg" & i+1, gen(genCamArg1 + i))
  NEXT i
  
@@ -864,21 +866,21 @@ SUB gamestate_state_to_reload(BYVAL parent AS Reload.NodePtr)
  SetChildNode(node, "level_cap", gen(genLevelCap))
 
  ch = SetChildNode(node, "stats")
- FOR i AS INTEGER = 0 TO 11
+ FOR i as integer = 0 TO 11
   n = AppendChildNode(ch, "stat", i)
   SetChildNode(n, "cap", gen(genStatCap + i))
  NEXT i
 
 END SUB
 
-SUB gamestate_script_to_reload(BYVAL parent AS Reload.NodePtr)
+SUB gamestate_script_to_reload(byval parent as Reload.NodePtr)
  'FIXME: currently only stores a tiny bit of script state, but could store
  'a lot more in the future
 
- DIM node AS NodePtr
+ DIM node as NodePtr
  node = SetChildNode(parent, "script")
- DIM ch AS NodePtr 'used for sub-containers
- DIM n AS NodePtr 'used for numbered containers
+ DIM ch as NodePtr 'used for sub-containers
+ DIM n as NodePtr 'used for numbered containers
 
  gamestate_globals_to_reload node
 
@@ -900,8 +902,8 @@ SUB gamestate_script_to_reload(BYVAL parent AS Reload.NodePtr)
  SetChildNode(node, "backdrop", gen(genScrBackdrop))
 END SUB
 
-SUB script_trigger_to_reload(BYVAL parent AS Reload.NodePtr, node_name AS STRING, BYVAL script_id AS INTEGER)
- DIM node AS NodePtr
+SUB script_trigger_to_reload(byval parent as Reload.NodePtr, node_name as STRING, byval script_id as integer)
+ DIM node as NodePtr
  node = SetChildNode(parent, node_name)
  'IF script_id <= 16383 THEN
   '--old style
@@ -913,23 +915,23 @@ SUB script_trigger_to_reload(BYVAL parent AS Reload.NodePtr, node_name AS STRING
  'END IF
 END SUB
 
-SUB gamestate_globals_to_reload(BYVAL parent AS Reload.NodePtr, BYVAL first AS INTEGER=0, BYVAL last AS INTEGER=4095)
+SUB gamestate_globals_to_reload(byval parent as Reload.NodePtr, byval first as integer=0, byval last as integer=4095)
 
- DIM node AS NodePtr
+ DIM node as NodePtr
  node = SetChildNode(parent, "globals")
- DIM n AS NodePtr 'used for numbered containers
+ DIM n as NodePtr 'used for numbered containers
 
- FOR i AS INTEGER = first TO last
+ FOR i as integer = first TO last
   IF global(i) <> 0 THEN
    SetKeyValueNode(node, "global", i, global(i))
   END IF
  NEXT i
 END SUB
 
-SUB gamestate_maps_to_reload(BYVAL parent AS Reload.NodePtr)
- DIM node AS NodePtr
+SUB gamestate_maps_to_reload(byval parent as Reload.NodePtr)
+ DIM node as NodePtr
  node = SetChildNode(parent, "maps")
- DIM n AS NodePtr 'used for numbered containers
+ DIM n as NodePtr 'used for numbered containers
  
  'FIXME: currently only supports saving the current map
  n = AppendChildNode(node, "map", gam.map.id)
@@ -937,15 +939,15 @@ SUB gamestate_maps_to_reload(BYVAL parent AS Reload.NodePtr)
  
 END SUB
 
-SUB gamestate_npcs_to_reload(BYVAL parent AS Reload.NodePtr, BYVAL map AS INTEGER)
- DIM node AS NodePtr
+SUB gamestate_npcs_to_reload(byval parent as Reload.NodePtr, byval map as integer)
+ DIM node as NodePtr
  node = SetChildNode(parent, "npcs")
 
- DIM map_offset AS XYPair
+ DIM map_offset as XYPair
  map_offset = load_map_pos_save_offset(map)
 
- DIM n AS NodePtr
- FOR i AS INTEGER = 0 TO 299
+ DIM n as NodePtr
+ FOR i as integer = 0 TO 299
   IF npc(i).id <> 0 ANDALSO NO THEN 'currently disabled for all NPCs
    n = AppendChildNode(node, "npc", i)
    save_npc_loc n, i, npc(i), map_offset
@@ -953,48 +955,48 @@ SUB gamestate_npcs_to_reload(BYVAL parent AS Reload.NodePtr, BYVAL map AS INTEGE
  NEXT i
 END SUB
 
-SUB gamestate_tags_to_reload(BYVAL parent AS Reload.NodePtr)
- DIM node AS NodePtr
+SUB gamestate_tags_to_reload(byval parent as Reload.NodePtr)
+ DIM node as NodePtr
  node = SetChildNode(parent, "tags")
  
- DIM count AS INTEGER = 1000
+ DIM count as integer = 1000
  SetChildNode(node, "count", count)
  
- DIM buf(INT(count / 16)) AS INTEGER
- FOR i AS INTEGER = 0 TO count - 1
+ DIM buf(INT(count / 16)) as integer
+ FOR i as integer = 0 TO count - 1
   setbit buf(), 0, i, readbit(tag(), 0, i)
  NEXT i
  
- DIM ch AS NodePtr
+ DIM ch as NodePtr
  ch = SetChildNode(node, "data")
  SaveBitsetArray(ch, buf(), UBOUND(buf))
 END SUB
 
-SUB gamestate_onetime_to_reload(BYVAL parent AS Reload.NodePtr)
- DIM node AS NodePtr
+SUB gamestate_onetime_to_reload(byval parent as Reload.NodePtr)
+ DIM node as NodePtr
  node = SetChildNode(parent, "onetime")
  
- DIM count AS INTEGER = 1032
+ DIM count as integer = 1032
  SetChildNode(node, "count", count)
  
- DIM buf(INT(count / 16)) AS INTEGER
- FOR i AS INTEGER = 0 TO count - 1
+ DIM buf(INT(count / 16)) as integer
+ FOR i as integer = 0 TO count - 1
   setbit buf(), 0, i, readbit(tag(), 0, 1000 + i)
  NEXT i
  
- DIM ch AS NodePtr
+ DIM ch as NodePtr
  ch = SetChildNode(node, "data")
  SaveBitsetArray(ch, buf(), UBOUND(buf))
 END SUB
 
-SUB gamestate_party_to_reload(BYVAL parent AS Reload.NodePtr)
- DIM node AS NodePtr
+SUB gamestate_party_to_reload(byval parent as Reload.NodePtr)
+ DIM node as NodePtr
  node = SetChildNode(parent, "party")
- DIM slot AS NodePtr
- DIM ch AS NodePtr 'used for sub-containers
- DIM n AS NodePtr 'used for numbered containers
+ DIM slot as NodePtr
+ DIM ch as NodePtr 'used for sub-containers
+ DIM n as NodePtr 'used for numbered containers
  
- FOR i AS INTEGER = 0 TO 40
+ FOR i as integer = 0 TO 40
   slot = AppendChildNode(node, "slot", i)
   
   IF hero(i) > 0 THEN SetChildNode(slot, "id", hero(i) - 1)
@@ -1005,7 +1007,7 @@ SUB gamestate_party_to_reload(BYVAL parent AS Reload.NodePtr)
   END IF
   
   ch = SetChildNode(slot, "stats")
-  FOR j AS INTEGER = 0 TO 11
+  FOR j as integer = 0 TO 11
    WITH gam.hero(i).stat
     IF .cur.sta(j) <> 0 OR .max.sta(j) <> 0 THEN
      n = AppendChildNode(ch, "stat", j)
@@ -1034,7 +1036,7 @@ SUB gamestate_party_to_reload(BYVAL parent AS Reload.NodePtr)
   SetChildNode(ch, "pal", gam.hero(i).pal)
   
   ch = SetChildNode(slot, "battle_menus")
-  FOR j AS INTEGER = 0 TO 5
+  FOR j as integer = 0 TO 5
    n = AppendChildNode(ch, "menu", j)
    SELECT CASE bmenu(i, j)
     CASE IS > 0:
@@ -1050,20 +1052,20 @@ SUB gamestate_party_to_reload(BYVAL parent AS Reload.NodePtr)
   NEXT j
   
   ch = SetChildNode(slot, "spell_lists")
-  FOR j AS INTEGER = 0 TO 3
+  FOR j as integer = 0 TO 3
    n = AppendChildNode(ch, "list", j)
    gamestate_spelllist_to_reload(i, j, n)
   NEXT j
   
   ch = SetChildNode(slot, "level_mp")
-  FOR j AS INTEGER = 0 TO 7
+  FOR j as integer = 0 TO 7
    IF lmp(i, j) <> 0 THEN
     SetKeyValueNode(ch, "lev", j, lmp(i, j), "val")
    END IF
   NEXT j
 
   ch = SetChildNode(slot, "equipment")
-  FOR j AS INTEGER = 0 TO 4
+  FOR j as integer = 0 TO 4
    IF eqstuf(i, j) > 0 THEN
     SetKeyValueNode(ch, "equip", j, eqstuf(i, j) - 1, "item")
    END IF
@@ -1074,7 +1076,7 @@ SUB gamestate_party_to_reload(BYVAL parent AS Reload.NodePtr)
    'to read/write empty hero slots, so don't need to save those
 
    ch = SetChildNode(slot, "elements")
-   FOR j AS INTEGER = 0 TO gen(genNumElements) - 1
+   FOR j as integer = 0 TO gen(genNumElements) - 1
     n = AppendChildNode(ch, "element", j)
     SetChildNode(n, "damage", cast(double, gam.hero(i).elementals(j)))
    NEXT j
@@ -1085,13 +1087,13 @@ SUB gamestate_party_to_reload(BYVAL parent AS Reload.NodePtr)
  NEXT i
 END SUB
 
-SUB gamestate_spelllist_to_reload(hero_slot AS INTEGER, spell_list AS INTEGER, BYVAL parent AS Reload.NodePtr)
- DIM node AS NodePtr
+SUB gamestate_spelllist_to_reload(hero_slot as integer, spell_list as integer, byval parent as Reload.NodePtr)
+ DIM node as NodePtr
  node = SetChildNode(parent, "spells", spell_list)
- DIM n AS NodePtr 'used for numbered containers
+ DIM n as NodePtr 'used for numbered containers
 
- DIM atk_id AS INTEGER
- FOR i AS INTEGER = 0 TO 23
+ DIM atk_id as integer
+ FOR i as integer = 0 TO 23
   atk_id = spell(hero_slot, spell_list, i) - 1
   IF atk_id >= 0 THEN
    n = AppendChildNode(node, "spell", i)
@@ -1101,18 +1103,18 @@ SUB gamestate_spelllist_to_reload(hero_slot AS INTEGER, spell_list AS INTEGER, B
  
 END SUB
 
-SUB gamestate_inventory_to_reload(BYVAL parent AS Reload.NodePtr)
- DIM node AS NodePtr
+SUB gamestate_inventory_to_reload(byval parent as Reload.NodePtr)
+ DIM node as NodePtr
  node = SetChildNode(parent, "inventory")
- DIM ch AS NodePtr 'used for sub-containers
- DIM n AS NodePtr 'used for numbered containers
+ DIM ch as NodePtr 'used for sub-containers
+ DIM n as NodePtr 'used for numbered containers
  
  SetChildNode(node, "size", gen(genMaxInventory))
 
  ch = SetChildNode(node, "slots")
- DIM last AS INTEGER
+ DIM last as integer
  last = small(inventoryMax, UBOUND(inventory))
- FOR i AS INTEGER = 0 TO last
+ FOR i as integer = 0 TO last
   WITH inventory(i)
    IF .used THEN
     n = AppendChildNode(ch, "slot", i)
@@ -1123,20 +1125,20 @@ SUB gamestate_inventory_to_reload(BYVAL parent AS Reload.NodePtr)
  NEXT i
 END SUB
 
-SUB gamestate_shops_to_reload(BYVAL parent AS Reload.NodePtr)
- DIM node AS NodePtr
+SUB gamestate_shops_to_reload(byval parent as Reload.NodePtr)
+ DIM node as NodePtr
  node = SetChildNode(parent, "shops")
- DIM ch AS NodePtr 'used for sub-containers
- DIM n AS NodePtr 'used for numbered containers
- DIM n2 AS NodePtr 'also used for numbered containers
+ DIM ch as NodePtr 'used for sub-containers
+ DIM n as NodePtr 'used for numbered containers
+ DIM n2 as NodePtr 'also used for numbered containers
 
- DIM shoptmp(19) AS INTEGER
+ DIM shoptmp(19) as integer
  
- FOR i AS INTEGER = 0 TO gen(genMaxShop)
+ FOR i as integer = 0 TO gen(genMaxShop)
   n = AppendChildNode(node, "shop", i)
   loadrecord shoptmp(), game & ".sho", 20, i
   ch = SetChildNode(n, "slots")
-  FOR j AS INTEGER = 0 TO shoptmp(16)
+  FOR j as integer = 0 TO shoptmp(16)
    IF gam.stock(i, j) >= 0 THEN
     n2 = AppendChildNode(ch, "slot", j)
     SetChildNode(n2, "stock", gam.stock(i, j))
@@ -1146,11 +1148,11 @@ SUB gamestate_shops_to_reload(BYVAL parent AS Reload.NodePtr)
  
 END SUB
 
-SUB gamestate_vehicle_to_reload(BYVAL parent AS Reload.NodePtr)
- DIM node AS NodePtr
+SUB gamestate_vehicle_to_reload(byval parent as Reload.NodePtr)
+ DIM node as NodePtr
  node = SetChildNode(parent, "vehicle")
- DIM ch AS NodePtr 'used for sub-containers
- DIM n AS NodePtr 'used for numbered containers
+ DIM ch as NodePtr 'used for sub-containers
+ DIM n as NodePtr 'used for numbered containers
  
  WITH vstate
   IF .id >= 0 THEN
@@ -1172,16 +1174,16 @@ END SUB
 
 '-----------------------------------------------------------------------
 
-SUB saveglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL last AS INTEGER)
+SUB saveglobalvars (byval slot as integer, byval first as integer, byval last as integer)
  current_save_slot = slot
  
- DIM filename AS STRING
+ DIM filename as STRING
  filename = savedir & SLASH & slot & ".rsav"
 
- DIM doc AS DocPtr
- DIM rsav_node AS NodePtr
- DIM script_node AS NodePtr
- DIM globals_node AS NodePtr
+ DIM doc as DocPtr
+ DIM rsav_node as NodePtr
+ DIM script_node as NodePtr
+ DIM globals_node as NodePtr
 
  IF NOT isfile(filename) THEN
   debuginfo "Save file missing: " & filename
@@ -1201,8 +1203,8 @@ SUB saveglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL last AS
  script_node = GetChildByName(rsav_node, "script")
  globals_node = GetChildByName(script_node, "globals")
  
- DIM n AS NodePtr
- DIM i AS INTEGER
+ DIM n as NodePtr
+ DIM i as integer
  
  '--delete any old global nodes in the range
  n = FirstChild(globals_node, "global")
@@ -1225,10 +1227,10 @@ SUB saveglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL last AS
  current_save_slot = -1
 END SUB
 
-SUB new_loadglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL last AS INTEGER)
+SUB new_loadglobalvars (byval slot as integer, byval first as integer, byval last as integer)
  current_save_slot = slot
  
- DIM filename AS STRING
+ DIM filename as STRING
  filename = savedir & SLASH & slot & ".rsav"
 
  IF NOT isfile(filename) THEN
@@ -1237,17 +1239,17 @@ SUB new_loadglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL las
   EXIT SUB
  END IF
 
- DIM doc AS DocPtr
+ DIM doc as DocPtr
  doc = LoadDocument(filename)
  
- DIM node AS NodePtr
+ DIM node as NodePtr
  
  '--get the script node
  node = DocumentRoot(doc)
  node = GetChildByName(node, "script")
 
  '--wipe out the range of globals first
- FOR i AS INTEGER = first TO last
+ FOR i as integer = first TO last
   global(i) = 0
  NEXT i
 
@@ -1260,22 +1262,22 @@ END SUB
 
 '-----------------------------------------------------------------------
 
-SUB erase_save_slot (BYVAL slot AS INTEGER)
- DIM filename AS STRING
+SUB erase_save_slot (byval slot as integer)
+ DIM filename as STRING
  filename = savedir & SLASH & slot & ".rsav"
  safekill filename
 END SUB
 
-FUNCTION new_save_slot_used (BYVAL slot AS INTEGER) AS INTEGER
- DIM result AS INTEGER = NO
+FUNCTION new_save_slot_used (byval slot as integer) as integer
+ DIM result as integer = NO
 
- DIM filename AS STRING
+ DIM filename as STRING
  filename = savedir & SLASH & slot & ".rsav"
  
  IF isfile(filename) THEN
-  DIM doc AS DocPtr
+  DIM doc as DocPtr
   doc = LoadDocument(filename)
-  DIM node AS NodePtr
+  DIM node as NodePtr
   node = DocumentRoot(doc)
   IF GetChildNodeInt(node, "ver", -1) >= 0 THEN
    result = YES
@@ -1286,10 +1288,10 @@ FUNCTION new_save_slot_used (BYVAL slot AS INTEGER) AS INTEGER
  RETURN result
 END FUNCTION
 
-FUNCTION new_count_used_save_slots() AS INTEGER
- DIM count AS INTEGER = 0
+FUNCTION new_count_used_save_slots() as integer
+ DIM count as integer = 0
  
- FOR slot AS INTEGER = 0 TO 32
+ FOR slot as integer = 0 TO 32
   IF new_save_slot_used(slot) THEN count += 1
  NEXT slot
  
@@ -1298,12 +1300,12 @@ END FUNCTION
 
 '-----------------------------------------------------------------------
 
-SUB new_get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
+SUB new_get_save_slot_preview(byval slot as integer, pv as SaveSlotPreview)
  current_save_slot = slot
 
  pv.valid = NO
 
- DIM filename AS STRING
+ DIM filename as STRING
  filename = savedir & SLASH & slot & ".rsav"
 
  IF NOT isfile(filename) THEN
@@ -1311,10 +1313,10 @@ SUB new_get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
   EXIT SUB
  END IF
 
- DIM doc AS DocPtr
+ DIM doc as DocPtr
  doc = LoadDocument(filename)
  
- DIM parent AS NodePtr
+ DIM parent as NodePtr
  parent = DocumentRoot(doc)
 
  '--if there is no version data, don't continue
@@ -1328,16 +1330,16 @@ SUB new_get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
  '--Loaded data okay! populate the SaveSlotPreview object
  pv.valid = YES
 
- DIM ch AS NodePtr
+ DIM ch as NodePtr
  
  ch = NodeByPath(parent, "/state/current_map")
  pv.cur_map = GetInteger(ch) 
 
- DIM h AS NodePtr
- DIM stat AS NodePtr
- DIM picpal AS NodePtr
- DIM foundleader AS INTEGER = NO
- FOR i AS INTEGER = 0 TO 3
+ DIM h as NodePtr
+ DIM stat as NodePtr
+ DIM picpal as NodePtr
+ DIM foundleader as integer = NO
+ FOR i as integer = 0 TO 3
   pv.hero_id(i) = 0
   h = NodeByPath(parent, "/party/slot[" & i & "]")
   IF h THEN
@@ -1350,7 +1352,7 @@ SUB new_get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
     END IF
     WITH pv.hero(i)
      .lev = GetChildNodeInt(h, "lev")
-     FOR j AS INTEGER = 0 TO 11
+     FOR j as integer = 0 TO 11
       stat = NodeByPath(h, "/stats/stat[" & j & "]")
       IF stat THEN
        .stat.cur.sta(j) = GetChildNodeInt(stat, "cur")
@@ -1380,19 +1382,19 @@ END SUB
 '=======================================================================
 '-----------------------------------------------------------------------
 
-SUB old_loadgame (slot)
-DIM gmaptmp(dimbinsize(binMAP))
+SUB old_loadgame (byval slot as integer)
+DIM gmaptmp(dimbinsize(binMAP)) as integer
 
-DIM AS INTEGER i, j, o, z
+DIM as integer i, j, o, z
 
 '--return gen to defaults
 xbload game + ".gen", gen(), "General data is missing from " + sourcerpg
 
-DIM sg AS STRING = old_savefile
+DIM sg as STRING = old_savefile
 setpicstuf buffer(), 30000, -1
 loadset sg, slot * 2, 0
 
-DIM savver AS INTEGER = buffer(0)
+DIM savver as integer = buffer(0)
 IF savver < 2 OR savver > 3 THEN EXIT SUB
 gam.map.id = buffer(1)
 loadrecord gmaptmp(), game + ".map", getbinsize(binMAP) \ 2, gam.map.id
@@ -1404,7 +1406,7 @@ gam.random_battle_countdown = buffer(5)
 mapx = buffer(7)
 mapy = buffer(8)
 
-DIM gold_str AS STRING = ""
+DIM gold_str as STRING = ""
 FOR i = 0 TO 24
  IF buffer(i + 9) < 0 OR buffer(i + 9) > 255 THEN buffer(i + 9) = 0
  IF buffer(i + 9) > 0 THEN gold_str &= CHR(buffer(i + 9))
@@ -1480,7 +1482,7 @@ FOR i = 0 TO 40
  NEXT o
 NEXT i
 show_load_index z, "exlev"
-DIM exp_str AS STRING
+DIM exp_str as STRING
 FOR i = 0 TO 40
  FOR o = 0 TO 1
   exp_str = ""
@@ -1504,7 +1506,7 @@ FOR i = 0 TO 40
 NEXT i
 
 show_load_index z, "inv_mode"
-DIM inv_mode AS INTEGER
+DIM inv_mode as integer
 inv_mode = buffer(z)
 show_load_index z, "inv 8bit"
 IF inv_mode = 0 THEN ' Read 8-bit inventory data from old SAV files
@@ -1594,7 +1596,7 @@ END WITH
 z += 22
 '--picture and palette
 show_load_index z, "picpal magic", 1
-DIM picpalmagicnum AS INTEGER = buffer(z): z = z + 1
+DIM picpalmagicnum as integer = buffer(z): z = z + 1
 show_load_index z, "picpalwep", 1
 FOR i = 0 TO 40
  IF picpalmagicnum = 4444 THEN
@@ -1608,7 +1610,7 @@ FOR i = 0 TO 40
 NEXT i
 'native hero bitsets
 show_load_index z, "hbit magic", 1
-DIM nativebitmagicnum AS INTEGER = buffer(z): z = z + 1
+DIM nativebitmagicnum as integer = buffer(z): z = z + 1
 show_load_index z, "hbits", 1
 'Just totally ignore all the hero bits, as none of them are/were modifiable anyway;
 'nativehbits() was removed
@@ -1638,7 +1640,7 @@ rebuild_inventory_captions inventory()
 'fix doors...
 IF savver = 2 THEN gen(genVersion) = 3
 
-DIM her AS HeroDef
+DIM her as HeroDef
 
 FOR i = 0 TO 40
  IF hero(i) > 0 THEN
@@ -1664,16 +1666,16 @@ NEXT i
 'See http://rpg.hamsterrepublic.com/ohrrpgce/SAV for docs
 END SUB
 
-SUB old_loadglobalvars (slot, first, last)
-DIM i AS INTEGER
-DIM buf((last - first + 1) * 2) = ANY
+SUB old_loadglobalvars (byval slot as integer, byval first as integer, byval last as integer)
+DIM i as integer
+DIM buf((last - first + 1) * 2) as integer = ANY
 IF isfile(old_savefile) THEN
- DIM fh AS INTEGER = FREEFILE
- OPEN old_savefile FOR BINARY AS #fh
+ DIM fh as integer = FREEFILE
+ OPEN old_savefile FOR BINARY as #fh
 
  IF first <= 1024 THEN
   'grab first-final
-  DIM final AS INTEGER = small(1024, last)
+  DIM final as integer = small(1024, last)
   SEEK #fh, 60000 * slot + 2 * first + 40027  '20013 * 2 + 1
   loadrecord buf(), fh, final - first + 1, -1
   FOR i = 0 TO final - first
@@ -1687,7 +1689,7 @@ IF isfile(old_savefile) THEN
  END IF
  IF last >= 1025 THEN
   'grab start-last
-  DIM start AS INTEGER = large(1025, first)
+  DIM start as integer = large(1025, first)
   SEEK #fh, 60000 * slot + 4 * (start - 1025) + 45077  '22538 * 2 + 1
   loadrecord buf(), fh, (last - start + 1) * 2, -1
   FOR i = 0 TO last - start
@@ -1704,18 +1706,18 @@ ELSE
 END IF
 END SUB
 
-SUB show_load_index(z AS INTEGER, caption AS STRING, slot AS INTEGER=0)
+SUB show_load_index(z as integer, caption as STRING, slot as integer=0)
  'debug "SAV:" & LEFT(caption & STRING(20, " "), 20) & " int=" & z + slot * 15000
 END SUB
 
-SUB rebuild_inventory_captions (invent() AS InventSlot)
- DIM i AS INTEGER
+SUB rebuild_inventory_captions (invent() as InventSlot)
+ DIM i as integer
  FOR i = 0 TO inventoryMax
   update_inventory_caption i
  NEXT i
 END SUB
 
-SUB old_get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
+SUB old_get_save_slot_preview(byval slot as integer, pv as SaveSlotPreview)
 
  setpicstuf buffer(), 30000, -1
  loadset old_savefile, slot * 2, 0
@@ -1730,14 +1732,14 @@ SUB old_get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
  pv.cur_map = buffer(1)
 
  '-get stats
- DIM z AS INTEGER = 3305
- FOR i AS INTEGER = 0 TO 3
-  FOR j AS INTEGER = 0 TO 11
+ DIM z as integer = 3305
+ FOR i as integer = 0 TO 3
+  FOR j as integer = 0 TO 11
    pv.hero(i).stat.cur.sta(j) = buffer(z): z += 1
   NEXT j
   pv.hero(i).lev = buffer(z): z += 1
   z += 1 'skip weapon pic because we could care less right now
-  FOR j AS INTEGER = 0 TO 11
+  FOR j as integer = 0 TO 11
    pv.hero(i).stat.max.sta(j) = buffer(z): z += 1
   NEXT j
  NEXT i
@@ -1747,16 +1749,16 @@ SUB old_get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
  pv.playtime = playtime(buffer(z), buffer(z + 1), buffer(z + 2))
 
  '--leader data
- DIM foundleader AS INTEGER = NO
+ DIM foundleader as integer = NO
  pv.leader_name = ""
- FOR o AS INTEGER = 0 TO 3
+ FOR o as integer = 0 TO 3
   '--load hero ID
   pv.hero_id(o) = buffer(2763 + o)
   '--leader name and level
   IF foundleader = NO AND pv.hero_id(o) > 0 THEN
    foundleader = YES
-   FOR j AS INTEGER = 0 TO 15
-    DIM k AS INTEGER = buffer(11259 + (o * 17) + j)
+   FOR j as integer = 0 TO 15
+    DIM k as integer = buffer(11259 + (o * 17) + j)
     IF k > 0 AND k < 255 THEN pv.leader_name &= CHR(k)
    NEXT j
    pv.leader_lev = pv.hero(o).lev
@@ -1767,10 +1769,10 @@ SUB old_get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
  loadset old_savefile, slot * 2 + 1, 0
 
  z = 6060
- DIM use_saved_pics AS INTEGER = NO
+ DIM use_saved_pics as integer = NO
  IF buffer(z) = 4444 THEN use_saved_pics = YES
  z += 1
- FOR i AS INTEGER = 0 TO 3
+ FOR i as integer = 0 TO 3
   IF use_saved_pics THEN
    pv.hero(i).battle_pic = buffer(z)
    pv.hero(i).battle_pal = buffer(z+1)
@@ -1781,7 +1783,7 @@ SUB old_get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
   ELSE
    '--backcompat (for ancient SAV files)
    IF pv.hero_id(i) > 0 THEN
-    DIM her AS HeroDef
+    DIM her as HeroDef
     loadherodata @her, pv.hero_id(i) - 1
     pv.hero(i).battle_pic = her.sprite
     pv.hero(i).battle_pal = her.sprite_pal
@@ -1794,30 +1796,30 @@ SUB old_get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
 
 END SUB
 
-FUNCTION old_save_slot_used (BYVAL slot AS INTEGER) AS INTEGER
- DIM AS SHORT saveversion
- DIM savh AS INTEGER = FREEFILE
- OPEN old_savefile FOR BINARY AS #savh
+FUNCTION old_save_slot_used (byval slot as integer) as integer
+ DIM as SHORT saveversion
+ DIM savh as integer = FREEFILE
+ OPEN old_savefile FOR BINARY as #savh
  GET #savh, 1 + 60000 * slot, saveversion
  CLOSE #savh
  RETURN (saveversion = 3)
 END FUNCTION
 
-SUB old_erase_save_slot (BYVAL slot AS INTEGER)
- DIM AS SHORT saveversion = 0
+SUB old_erase_save_slot (byval slot as integer)
+ DIM as SHORT saveversion = 0
  IF fileisreadable(old_savefile) = NO THEN EXIT SUB
- DIM savh AS INTEGER = FREEFILE
- OPEN old_savefile FOR BINARY AS #savh
+ DIM savh as integer = FREEFILE
+ OPEN old_savefile FOR BINARY as #savh
  IF LOF(savh) > 60000 * slot THEN
   PUT #savh, 1 + 60000 * slot, saveversion
  END IF
  CLOSE #savh
 END SUB
 
-FUNCTION old_count_used_save_slots() AS INTEGER
- DIM i AS INTEGER
- DIM n AS INTEGER
- DIM savver AS INTEGER
+FUNCTION old_count_used_save_slots() as integer
+ DIM i as integer
+ DIM n as integer
+ DIM savver as integer
  n = 0
  setpicstuf buffer(), 30000, -1
  FOR i = 0 TO 3

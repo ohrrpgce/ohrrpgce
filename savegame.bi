@@ -2,27 +2,27 @@
 #define SAVEGAME_BI
 
 TYPE SaveSlotPreview
- valid AS INTEGER    'Whether this slot is not empty
- cur_map AS INTEGER
- hero(3) AS HeroState
- hero_id(3) AS INTEGER  'Hero ID numbers +1 (0 indicates empty slot)
- playtime AS STRING
- leader_name AS STRING
- leader_lev AS INTEGER
+ valid as integer    'Whether this slot is not empty
+ cur_map as integer
+ hero(3) as HeroState
+ hero_id(3) as integer  'Hero ID numbers +1 (0 indicates empty slot)
+ playtime as string
+ leader_name as string
+ leader_lev as integer
 END TYPE
 
 DECLARE SUB init_save_system()
 
-DECLARE SUB savegame (BYVAL slot AS INTEGER)
-DECLARE SUB saveglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL last AS INTEGER)
-DECLARE SUB loadgame (BYVAL slot AS INTEGER)
-DECLARE SUB loadglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL last AS INTEGER)
+DECLARE SUB savegame (byval slot as integer)
+DECLARE SUB saveglobalvars (byval slot as integer, byval first as integer, byval last as integer)
+DECLARE SUB loadgame (byval slot as integer)
+DECLARE SUB loadglobalvars (byval slot as integer, byval first as integer, byval last as integer)
 
-DECLARE SUB get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
+DECLARE SUB get_save_slot_preview(byval slot as integer, pv as SaveSlotPreview)
 
-DECLARE FUNCTION save_slot_used (BYVAL slot AS INTEGER) AS INTEGER
-DECLARE SUB erase_save_slot (BYVAL slot AS INTEGER)
-DECLARE FUNCTION count_used_save_slots() AS INTEGER
+DECLARE FUNCTION save_slot_used (byval slot as integer) as integer
+DECLARE SUB erase_save_slot (byval slot as integer)
+DECLARE FUNCTION count_used_save_slots() as integer
 
 #endif
 
