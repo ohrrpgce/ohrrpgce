@@ -7,6 +7,14 @@
 ' any FreeBasic program. Nothing in here can depend on Allmodex, nor on any
 ' gfx or music backend, nor on any other part of the OHR
 
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
+#endif
+
 CONST STACK_SIZE_INC = 512 ' in integers
 
 #include "file.bi"   'FB header
@@ -18,106 +26,102 @@ CONST STACK_SIZE_INC = 512 ' in integers
 
 declare function fgetiob alias "fb_FileGetIOB" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger, byval bytesread as uinteger ptr ) as integer
 
-#if __FB_LANG__ <> "fb"
-OPTION EXPLICIT
-#endif
-
  '------------- Other -------------
 
-FUNCTION bitcount (BYVAL v as unsigned integer) as integer
+FUNCTION bitcount (byval v as unsigned integer) as integer
   'From the "Software Optimization Guide for AMD Athlon 64 and Opteron Processors". Thanks, AMD!
   v = v - ((v SHR 1) AND &h55555555)
   v = (v AND &h33333333) + ((v SHR 2) AND &h33333333)
   RETURN ((v + (v SHR 4) AND &hF0F0F0F) * &h1010101) SHR 24
 END FUNCTION
 
-FUNCTION ceiling (BYVAL n as integer) as integer
+FUNCTION ceiling (byval n as integer) as integer
  RETURN INT(n * -1) * -1
 END FUNCTION
 
-FUNCTION bound (BYVAL n as integer, BYVAL lowest as integer, BYVAL highest as integer) as integer
+FUNCTION bound (byval n as integer, byval lowest as integer, byval highest as integer) as integer
  bound = n
  IF n < lowest THEN bound = lowest
  IF n > highest THEN bound = highest
 END FUNCTION
 
-FUNCTION bound (BYVAL n as longint, BYVAL lowest as longint, BYVAL highest as longint) as longint
+FUNCTION bound (byval n as longint, byval lowest as longint, byval highest as longint) as longint
  bound = n
  IF n < lowest THEN bound = lowest
  IF n > highest THEN bound = highest
 END FUNCTION
 
-FUNCTION bound (BYVAL n AS DOUBLE, BYVAL lowest AS DOUBLE, BYVAL highest AS DOUBLE) AS DOUBLE
+FUNCTION bound (byval n as DOUBLE, byval lowest as DOUBLE, byval highest as DOUBLE) as DOUBLE
  bound = n
  IF n < lowest THEN bound = lowest
  IF n > highest THEN bound = highest
 END FUNCTION
 
-FUNCTION in_bound (BYVAL n as integer, BYVAL lowest as integer, BYVAL highest as integer) as integer
+FUNCTION in_bound (byval n as integer, byval lowest as integer, byval highest as integer) as integer
  RETURN (n >= lowest) AND (n <= highest)
 END FUNCTION
 
-FUNCTION large (BYVAL n1 as integer, BYVAL n2 as integer) as integer
+FUNCTION large (byval n1 as integer, byval n2 as integer) as integer
  large = n1
  IF n2 > n1 THEN large = n2
 END FUNCTION
 
-FUNCTION large (BYVAL n1 as longint, BYVAL n2 as longint) as longint
+FUNCTION large (byval n1 as longint, byval n2 as longint) as longint
  large = n1
  IF n2 > n1 THEN large = n2
 END FUNCTION
 
-FUNCTION large (BYVAL n1 as double, BYVAL n2 as double) as double
+FUNCTION large (byval n1 as double, byval n2 as double) as double
  IF n2 > n1 THEN RETURN n2 ELSE RETURN n1
 END FUNCTION
 
-FUNCTION loopvar (BYVAL value as integer, BYVAL min as integer, BYVAL max as integer, BYVAL inc as integer) as integer
+FUNCTION loopvar (byval value as integer, byval min as integer, byval max as integer, byval inc as integer) as integer
  RETURN POSMOD((value + inc) - min, (max - min) + 1) + min
 END FUNCTION
 
-FUNCTION loopvar (BYVAL value as longint, BYVAL min as longint, BYVAL max as longint, BYVAL inc as longint) as longint
+FUNCTION loopvar (byval value as longint, byval min as longint, byval max as longint, byval inc as longint) as longint
  RETURN POSMOD((value + inc) - min, (max - min) + 1) + min
 END FUNCTION
 
-FUNCTION small (BYVAL n1 as integer, BYVAL n2 as integer) as integer
+FUNCTION small (byval n1 as integer, byval n2 as integer) as integer
  small = n1
  IF n2 < n1 THEN small = n2
 END FUNCTION
 
-FUNCTION small (BYVAL n1 as longint, BYVAL n2 as longint) as longint
+FUNCTION small (byval n1 as longint, byval n2 as longint) as longint
  small = n1
  IF n2 < n1 THEN small = n2
 END FUNCTION
 
-FUNCTION small (BYVAL n1 as double, BYVAL n2 as double) as double
+FUNCTION small (byval n1 as double, byval n2 as double) as double
  IF n2 < n1 THEN RETURN n2 ELSE RETURN n1
 END FUNCTION
 
-FUNCTION range (number AS INTEGER, percent AS INTEGER) AS INTEGER
- DIM a AS INTEGER
+FUNCTION range (number as integer, percent as integer) as integer
+ DIM a as integer
  a = (number / 100) * percent
  RETURN number + INT(RND * (a * 2)) - a
 END FUNCTION
 
-FUNCTION isnan (BYVAL value AS DOUBLE) AS INTEGER
+FUNCTION isnan (byval value as DOUBLE) as integer
  RETURN value <> value
 END FUNCTION
 
-FUNCTION isnan (BYVAL value AS SINGLE) AS INTEGER
+FUNCTION isnan (byval value as SINGLE) as integer
  RETURN value <> value
 END FUNCTION
 
-FUNCTION isfinite (BYVAL value AS DOUBLE) AS INTEGER
+FUNCTION isfinite (byval value as DOUBLE) as integer
  RETURN DBL_MAX >= value AND value >= -DBL_MAX
 END FUNCTION
 
-FUNCTION isfinite (BYVAL value AS SINGLE) AS INTEGER
+FUNCTION isfinite (byval value as SINGLE) as integer
  RETURN FLT_MAX >= value AND value >= -FLT_MAX
 END FUNCTION
 
 'A fuzzy equivalent to 'iif(value >= low+high/2, 1.0, 0.0)'
 'Swap low,high to reverse the comparison
-FUNCTION fuzzythreshold (BYVAL value AS DOUBLE, BYVAL low AS DOUBLE, BYVAL high AS DOUBLE) AS DOUBLE
+FUNCTION fuzzythreshold (byval value as DOUBLE, byval low as DOUBLE, byval high as DOUBLE) as DOUBLE
  IF low > high THEN
   low = -low
   high = -high
@@ -132,8 +136,8 @@ FUNCTION fuzzythreshold (BYVAL value AS DOUBLE, BYVAL low AS DOUBLE, BYVAL high 
  END IF
 END FUNCTION
 
-FUNCTION rpad (s AS STRING, pad_char AS STRING, size AS INTEGER) AS STRING
- DIM result AS STRING
+FUNCTION rpad (s as STRING, pad_char as STRING, size as integer) as STRING
+ DIM result as STRING
  result = LEFT(s, size)
  WHILE LEN(result) < size: result = result & pad_char: WEND
  RETURN result
@@ -141,10 +145,10 @@ END FUNCTION
 
 'Like INSTR, but return the n-th match
 'Returns 0 if not found
-FUNCTION Instr_nth (BYVAL start AS INTEGER, s AS STRING, substring AS STRING, BYVAL nth AS INTEGER = 1) AS INTEGER
- DIM temp AS INTEGER = start - 1
+FUNCTION Instr_nth (byval start as integer, s as STRING, substring as STRING, byval nth as integer = 1) as integer
+ DIM temp as integer = start - 1
  IF nth < 1 THEN RETURN 0
- FOR n AS INTEGER = 1 TO nth
+ FOR n as integer = 1 TO nth
   temp = INSTR(temp + 1, s, substring)
   IF temp = 0 THEN RETURN 0
  NEXT
@@ -153,7 +157,7 @@ END FUNCTION
 
 'Like INSTR without start point, but return the n-th match
 'Returns 0 if not found
-FUNCTION Instr_nth (s AS STRING, substring AS STRING, BYVAL nth AS INTEGER = 1) AS INTEGER
+FUNCTION Instr_nth (s as STRING, substring as STRING, byval nth as integer = 1) as integer
  RETURN Instr_nth(1, s, substring, nth)
 END FUNCTION
 
@@ -170,23 +174,23 @@ FUNCTION length_matching(s1 as string, s2 as string) as integer
  RETURN ret
 END FUNCTION
 
-FUNCTION is_int (s AS STRING) AS INTEGER
+FUNCTION is_int (s as STRING) as integer
  'Even stricter than str2int (doesn't accept "00")
- DIM n AS INTEGER = VALINT(s)
+ DIM n as integer = VALINT(s)
  RETURN (n <> 0 ANDALSO n <> VALINT(s + "1")) ORELSE s = "0"
 END FUNCTION
 
 FUNCTION str2int (stri as string, default as integer=0) as integer
  'Use this in contrast to QuickBasic's VALINT.
  'it is stricter, and returns a default on failure
- DIM n AS INTEGER = 0
- DIM s AS STRING = LTRIM(stri)
+ DIM n as integer = 0
+ DIM s as STRING = LTRIM(stri)
  IF s = "" THEN RETURN default
- DIM sign AS INTEGER = 1
+ DIM sign as integer = 1
 
- DIM ch AS STRING
- DIM c AS INTEGER
- FOR i AS INTEGER = 1 TO LEN(s)
+ DIM ch as STRING
+ DIM c as integer
+ FOR i as integer = 1 TO LEN(s)
   ch = MID(s, i, 1)
   IF ch = "-" AND i = 1 THEN
    sign = -1
@@ -211,10 +215,10 @@ FUNCTION rotascii (s as string, o as integer) as string
  RETURN temp
 END FUNCTION
 
-FUNCTION escape_string(s AS STRING, chars AS STRING) AS STRING
- DIM i AS INTEGER
- DIM c AS STRING
- DIM result AS STRING
+FUNCTION escape_string(s as STRING, chars as STRING) as STRING
+ DIM i as integer
+ DIM c as STRING
+ DIM result as STRING
  result = ""
  FOR i = 1 to LEN(s)
   c = MID(s, i, 1)
@@ -245,11 +249,11 @@ FUNCTION replacestr (buffer as string, replacewhat as string, withwhat as string
 END FUNCTION
 
 FUNCTION exclude (s as string, x as string) as string
- DIM outf AS STRING = ""
- DIM ok AS INTEGER
- FOR i AS INTEGER = 1 TO LEN(s)
+ DIM outf as STRING = ""
+ DIM ok as integer
+ FOR i as integer = 1 TO LEN(s)
   ok = -1
-  FOR j AS INTEGER = 1 TO LEN(x)
+  FOR j as integer = 1 TO LEN(x)
    IF MID(s, i, 1) = MID(x, j, 1) THEN ok = 0
   NEXT j
   IF ok THEN outf &= MID(s, i, 1)
@@ -258,11 +262,11 @@ FUNCTION exclude (s as string, x as string) as string
 END FUNCTION
 
 FUNCTION exclusive (s as string, x as string) as string
- DIM outf AS STRING = ""
- DIM ok AS INTEGER
- FOR i AS INTEGER = 1 TO LEN(s)
+ DIM outf as STRING = ""
+ DIM ok as integer
+ FOR i as integer = 1 TO LEN(s)
   ok = 0
-  FOR j AS INTEGER = 1 TO LEN(x)
+  FOR j as integer = 1 TO LEN(x)
    IF MID(s, i, 1) = MID(x, j, 1) THEN ok = -1
   NEXT j
   IF ok THEN outf &= MID(s, i, 1)
@@ -329,7 +333,7 @@ SUB setupstack ()
 	stacksize = 32768
 end SUB
 
-SUB pushw (BYVAL word as integer)
+SUB pushw (byval word as integer)
 	if stackptr - stackbottom > stacksize - 2 then
 		dim newptr as ubyte ptr
 		newptr = reallocate(stackbottom, stacksize + 32768)
@@ -359,7 +363,7 @@ FUNCTION popw () as integer
 	popw = pw
 end FUNCTION
 
-SUB pushdw (BYVAL dword as integer)
+SUB pushdw (byval dword as integer)
 	if stackptr - stackbottom > stacksize - 4 then
 		dim newptr as ubyte ptr
 		newptr = reallocate(stackbottom, stacksize + 32768)
@@ -401,7 +405,7 @@ FUNCTION stackpos () as integer
 end FUNCTION
 
 'read an int from the stack relative to current position (eg -1 is last word pushed - off should be negative)
-FUNCTION readstackdw (BYVAL off as integer) as integer
+FUNCTION readstackdw (byval off as integer) as integer
 	if stackptr + off * 4 >= stackbottom then
 		readstackdw = *cptr(integer ptr, stackptr + off * 4)
 	end if
@@ -409,13 +413,13 @@ END FUNCTION
 
 '------------- End allmodex stack -------------
 
-FUNCTION sign_string(n AS INTEGER, neg_str AS STRING, zero_str AS STRING, pos_str AS STRING) AS STRING
+FUNCTION sign_string(n as integer, neg_str as STRING, zero_str as STRING, pos_str as STRING) as STRING
  IF n < 0 THEN RETURN neg_str
  IF n > 0 THEN RETURN pos_str
  RETURN zero_str
 END FUNCTION
 
-FUNCTION zero_default(n as integer, zerocaption AS STRING="default", displayoffset AS INTEGER = 0) AS STRING
+FUNCTION zero_default(n as integer, zerocaption as STRING="default", displayoffset as integer = 0) as STRING
  IF n = 0 THEN RETURN zerocaption
  RETURN "" & (n + displayoffset)
 END FUNCTION
@@ -500,40 +504,40 @@ function textwidth(z as string) as integer
  return ret * 8
 end function
 
-SUB flusharray (array() AS INTEGER, BYVAL size AS INTEGER=-1, BYVAL value AS INTEGER=0)
+SUB flusharray (array() as integer, byval size as integer=-1, byval value as integer=0)
  'If size is -1, then flush the entire array
  IF size = -1 THEN size = UBOUND(array)
- FOR i AS INTEGER = LBOUND(array) TO size
+ FOR i as integer = LBOUND(array) TO size
   array(i) = value
  NEXT i
 END SUB
 
-SUB str_array_append (array() AS STRING, s AS STRING)
- REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) + 1) AS STRING
+SUB str_array_append (array() as STRING, s as STRING)
+ REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) + 1) as STRING
  array(UBOUND(array)) = s
 END SUB
 
-FUNCTION str_array_findcasei (array() AS STRING, value AS STRING) AS INTEGER
- DIM valuei AS STRING = LCASE(value)
- FOR i AS INTEGER = LBOUND(array) TO UBOUND(array)
+FUNCTION str_array_findcasei (array() as STRING, value as STRING) as integer
+ DIM valuei as STRING = LCASE(value)
+ FOR i as integer = LBOUND(array) TO UBOUND(array)
   IF LCASE(array(i)) = value THEN RETURN i
  NEXT
  RETURN -1
 END FUNCTION
 
-SUB int_array_append (array() AS INTEGER, BYVAL k AS INTEGER)
- REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) + 1) AS INTEGER
+SUB int_array_append (array() as integer, byval k as integer)
+ REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) + 1) as integer
  array(UBOUND(array)) = k
 END SUB
 
-SUB intstr_array_append (array() AS IntStrPair, BYVAL k AS INTEGER, s AS STRING)
+SUB intstr_array_append (array() as IntStrPair, byval k as integer, s as STRING)
  REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) + 1)
  array(UBOUND(array)).i = k
  array(UBOUND(array)).s = s
 END SUB
 
-FUNCTION int_array_find (array() AS INTEGER, BYVAL value AS INTEGER) AS INTEGER
- FOR i AS INTEGER = LBOUND(array) TO UBOUND(array)
+FUNCTION int_array_find (array() as integer, byval value as integer) as integer
+ FOR i as integer = LBOUND(array) TO UBOUND(array)
   IF array(i) = value THEN RETURN i
  NEXT
  RETURN -1
@@ -541,11 +545,11 @@ END FUNCTION
 
 'Resize a dynamic int array, removing all occurrences of k
 SUB int_array_remove (array() as integer, byval k as integer)
- DIM i AS INTEGER = LBOUND(array)
+ DIM i as integer = LBOUND(array)
  WHILE i <= UBOUND(array)
   IF array(i) = k THEN
    'Shuffle down
-   FOR j AS INTEGER = i TO UBOUND(array) - 1
+   FOR j as integer = i TO UBOUND(array) - 1
     array(j) = array(j + 1)
    NEXT
    IF UBOUND(array) > LBOUND(array) THEN REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) - 1)
@@ -562,7 +566,7 @@ END SUB
 'visiting the data (an array of some kind of struct containing an integer) in ascending order.
 'start points to the integer in the first element, stride is the size of an array element, in integers
 'Insertion sort. Running time is O(n^2). Much faster on nearly-sorted lists. STABLE
-SUB sort_integers_indices(indices() as integer, BYVAL start as integer ptr, BYVAL number as integer, BYVAL stride as integer)
+SUB sort_integers_indices(indices() as integer, byval start as integer ptr, byval number as integer, byval stride as integer)
  IF number = 0 THEN number = UBOUND(indices) + 1
  DIM keys(number - 1) as integer
  DIM as integer i, temp
@@ -584,20 +588,20 @@ SUB sort_integers_indices(indices() as integer, BYVAL start as integer ptr, BYVA
  NEXT
 END SUB
 
-FUNCTION integer_compare CDECL (BYVAL a as integer ptr, BYVAL b as integer ptr) as integer
+FUNCTION integer_compare CDECL (byval a as integer ptr, byval b as integer ptr) as integer
  IF *a < *b THEN RETURN -1
  IF *a > *b THEN RETURN 1
  'implicitly RETURN 0 (it's faster to omit the RETURN :-)
 END FUNCTION
 
-FUNCTION integerptr_compare CDECL (BYVAL a as integer ptr ptr, BYVAL b as integer ptr ptr) as integer
+FUNCTION integerptr_compare CDECL (byval a as integer ptr ptr, byval b as integer ptr ptr) as integer
  IF **a < **b THEN RETURN -1
  IF **a > **b THEN RETURN 1
  'implicitly RETURN 0 (it's faster to omit the RETURN :-)
 END FUNCTION
 
 'a string ptr is a pointer to a FB string descriptor
-FUNCTION string_compare CDECL (BYVAL a as string ptr, BYVAL b as string ptr) as integer
+FUNCTION string_compare CDECL (byval a as string ptr, byval b as string ptr) as integer
  'This is equivalent, but the code below can be adapted for case insensitive compare (and is faster (what, how?!))
  'RETURN fb_StrCompare( *a, -1, *b, -1)
 
@@ -607,7 +611,7 @@ FUNCTION string_compare CDECL (BYVAL a as string ptr, BYVAL b as string ptr) as 
  IF @((*b)[0]) = 0 THEN ret += 1: somenull = 1
  IF somenull THEN RETURN ret
 
- DIM k AS INTEGER = 0
+ DIM k as integer = 0
  DIM chara as ubyte
  DIM charb as ubyte
  DO
@@ -623,13 +627,13 @@ FUNCTION string_compare CDECL (BYVAL a as string ptr, BYVAL b as string ptr) as 
  RETURN 0
 END FUNCTION
 
-FUNCTION stringptr_compare CDECL (BYVAL a as string ptr ptr, BYVAL b as string ptr ptr) as integer
+FUNCTION stringptr_compare CDECL (byval a as string ptr ptr, byval b as string ptr ptr) as integer
  RETURN string_compare(*a, *b)
 END FUNCTION
 
 'CRT Quicksort. Running time is *usually* O(n*log(n)). NOT STABLE
 'See sort_integer_indices.
-PRIVATE SUB qsort_indices(indices() as integer, BYVAL start as any ptr, BYVAL number as integer, BYVAL stride as integer, BYVAL compare_fn as FnCompare)
+PRIVATE SUB qsort_indices(indices() as integer, byval start as any ptr, byval number as integer, byval stride as integer, byval compare_fn as FnCompare)
  IF number = 0 THEN number = UBOUND(indices) + 1
 
  DIM keys(number - 1) as any ptr
@@ -645,11 +649,11 @@ PRIVATE SUB qsort_indices(indices() as integer, BYVAL start as any ptr, BYVAL nu
  NEXT
 END SUB
 
-SUB qsort_integers_indices(indices() as integer, BYVAL start as integer ptr, BYVAL number as integer, BYVAL stride as integer)
+SUB qsort_integers_indices(indices() as integer, byval start as integer ptr, byval number as integer, byval stride as integer)
  qsort_indices indices(), start, number, stride, CAST(FnCompare, @integerptr_compare)
 END SUB
 
-SUB qsort_strings_indices(indices() as integer, BYVAL start as string ptr, BYVAL number as integer, BYVAL stride as integer)
+SUB qsort_strings_indices(indices() as integer, byval start as string ptr, byval number as integer, byval stride as integer)
  qsort_indices indices(), start, number, stride, CAST(FnCompare, @stringptr_compare)
 END SUB
 
@@ -758,7 +762,7 @@ END FUNCTION
 'Please not do depend on the algorithm not changing.
 FUNCTION hash_file(filename as string) as unsigned integer
   DIM fh as integer = FREEFILE
-  IF OPEN(filename FOR BINARY AS #fh) THEN
+  IF OPEN(filename FOR BINARY as #fh) THEN
     debug "hash_file: couldn't open " & filename
     RETURN 0
   END IF
@@ -969,7 +973,7 @@ END FUNCTION
 
 'Go up a number of directories. Simplifies and normalises.
 'pathname is interpreted as a directory even if missing the final slash!
-FUNCTION parentdir (path as string, BYVAL upamount as integer = 1) as string
+FUNCTION parentdir (path as string, byval upamount as integer = 1) as string
   DIM pathname as string = path + SLASH
   FOR i as integer = 0 TO upamount - 1
    pathname += ".." + SLASH
@@ -983,7 +987,7 @@ FUNCTION anycase (filename as string) as string
   'Windows filenames are always case-insenstitive
   RETURN filename
 #ELSE
-  DIM ascii AS INTEGER
+  DIM ascii as integer
   dim as string result = ""
   FOR i as integer = 1 TO LEN(filename)
     ascii = ASC(MID(filename, i, 1))
@@ -1001,14 +1005,14 @@ END FUNCTION
 
 SUB touchfile (filename as string)
   dim as integer fh = FREEFILE
-  OPEN filename FOR BINARY AS #fh
+  OPEN filename FOR BINARY as #fh
   CLOSE #fh
 END SUB
 
 'Increases (never decreases) the length of a file by appending NUL bytes as required.
 'Writing off the end of a file writes garbage between the new data and the end of the old file.
 'Use this function to extend the file first.
-SUB extendfile (BYVAL fh as integer, BYVAL length as integer)
+SUB extendfile (byval fh as integer, byval length as integer)
  DIM curlen as integer = LOF(fh)
  IF curlen < length THEN
   DIM oldpos as integer = SEEK(fh)
@@ -1022,16 +1026,16 @@ END SUB
 'filelist() must be resizeable; it'll be resized so that LBOUND = -1, with files, if any, in filelist(0) up
 'By default, find all files in directory, otherwise namemask is a case-insensitive filename mask
 'filetype is one of fileTypeFile, fileTypeDirectory
-SUB findfiles (directory AS STRING, namemask AS STRING = "", BYVAL filetype AS INTEGER = fileTypeFile, BYVAL findhidden AS INTEGER = 0, filelist() AS STRING)
-  DIM AS STRING searchdir = directory
+SUB findfiles (directory as STRING, namemask as STRING = "", byval filetype as integer = fileTypeFile, byval findhidden as integer = 0, filelist() as STRING)
+  DIM as STRING searchdir = directory
   IF RIGHT(searchdir, 1) <> SLASH THEN searchdir += SLASH
-  DIM AS STRING nmask = anycase(namemask)
+  DIM as STRING nmask = anycase(namemask)
   IF LEN(nmask) = 0 THEN nmask = ALLFILES
   REDIM filelist(-1 TO -1)
 
 #ifdef __UNIX__
   'this is super hacky, but works around the apparent uselessness of DIR
-  DIM AS STRING grep, shellout
+  DIM as STRING grep, shellout
   shellout = "/tmp/ohrrpgce-findfiles-" + STR(RND * 10000) + ".tmp"
   grep = "-v '/$'"
   IF filetype = fileTypeDirectory THEN grep = "'/$'"
@@ -1043,10 +1047,10 @@ SUB findfiles (directory AS STRING, namemask AS STRING = "", BYVAL filetype AS I
   END IF
 
   SHELL "ls -d1p " + searchdir + " 2>/dev/null |grep "+ grep + ">" + shellout + " 2>&1"
-  DIM AS INTEGER f1
+  DIM as integer f1
   f1 = FreeFile
-  OPEN shellout FOR INPUT AS #f1
-  DIM filename AS STRING
+  OPEN shellout FOR INPUT as #f1
+  DIM filename as STRING
   DO UNTIL EOF(f1)
     LINE INPUT #f1, filename
     IF RIGHT(filename, 3) = "/./" ORELSE RIGHT(filename, 4) = "/../" _
@@ -1057,8 +1061,8 @@ SUB findfiles (directory AS STRING, namemask AS STRING = "", BYVAL filetype AS I
   KILL shellout
 
 #else
-  DIM foundfile AS STRING
-  DIM attrib AS INTEGER
+  DIM foundfile as STRING
+  DIM attrib as integer
   /'---DOS directory attributes
   CONST attribReadOnly = 1
   CONST attribHidden = 2
@@ -1076,12 +1080,12 @@ SUB findfiles (directory AS STRING, namemask AS STRING = "", BYVAL filetype AS I
   IF findhidden THEN attrib += 2
   foundfile = DIR(searchdir + nmask, attrib)
   IF foundfile = "" THEN EXIT SUB
-  REDIM tempfilelist(-1 TO -1) AS STRING
+  REDIM tempfilelist(-1 TO -1) as STRING
   DO UNTIL foundfile = ""
     str_array_append tempfilelist(), foundfile
     foundfile = DIR '("", attrib)
   LOOP
-  FOR i AS INTEGER = 0 TO UBOUND(tempfilelist)
+  FOR i as integer = 0 TO UBOUND(tempfilelist)
     foundfile = tempfilelist(i)
     IF filetype = fileTypeDirectory THEN
       'alright, we want directories, but DIR is too broken to give them to us
@@ -1115,7 +1119,7 @@ SUB killdir(directory as string)
   NEXT
   IF RMDIR(directory) THEN
     'errno would get overwritten while building the error message
-    DIM err_string AS STRING = *get_sys_err_string()
+    DIM err_string as STRING = *get_sys_err_string()
     debug "Could not rmdir(" & directory & "): " & err_string
   END IF
 '  IF isdir(directory) THEN
@@ -1131,7 +1135,7 @@ FUNCTION makedir (directory as string) as integer
   END IF
   IF MKDIR(directory) THEN
     'errno would get overwritten while building the error message
-    DIM err_string AS STRING = *get_sys_err_string()
+    DIM err_string as STRING = *get_sys_err_string()
     'The heck? On Windows at least, MKDIR throws this false error
 #ifdef __FB_WIN32__
     IF err_string = "File exists" THEN RETURN 0
@@ -1151,7 +1155,7 @@ SUB safekill (filename as string)
   IF isfile(filename) THEN
    'KILL is a thin wrapper around C's remove(), however by calling it directly we can get a textual error message
    IF remove(strptr(filename)) THEN
-    DIM err_string AS STRING = *get_sys_err_string()
+    DIM err_string as STRING = *get_sys_err_string()
     debug "Could not remove(" & filename & "): " & err_string
 
     'NOTE: on Windows, even if deletion fails because the file is open, the file will be marked
@@ -1480,7 +1484,7 @@ SUB xbload (filename as string, array() as integer, errmsg as string)
 		dim i as integer
 		
 		ff = FreeFile
-		OPEN filename FOR BINARY AS #ff
+		OPEN filename FOR BINARY as #ff
 		GET #ff,, byt 'Magic number, always 253
 		IF byt <> 253 THEN fatalerror errmsg
 		GET #ff,, seg 'Segment, no use anymore
@@ -1504,7 +1508,7 @@ SUB xbload (filename as string, array() as integer, errmsg as string)
 END SUB
 
 SUB xbsave (filename as string, array() as integer, bsize as integer)
-	dim ff as integer, byt as UByte, seg AS uShort, offset AS Short, length AS Short
+	dim ff as integer, byt as UByte, seg as uShort, offset as Short, length as Short
 	dim ilength as integer
 	dim i as integer
 	dim needbyte as integer
@@ -1526,7 +1530,7 @@ SUB xbsave (filename as string, array() as integer, bsize as integer)
 	next
 
 	ff = FreeFile
-	OPEN filename FOR BINARY ACCESS write AS #ff  'Truncate
+	OPEN filename FOR BINARY ACCESS write as #ff  'Truncate
 	PUT #ff, , byt				'Magic number
 	PUT #ff, , seg				'segment - obsolete
 	PUT #ff, , offset			'offset - obsolete
@@ -1541,7 +1545,7 @@ SUB xbsave (filename as string, array() as integer, bsize as integer)
 	CLOSE #ff
 END SUB
 
-SUB setbit (bb() as integer, BYVAL w as integer, BYVAL b as integer, BYVAL v as integer)
+SUB setbit (bb() as integer, byval w as integer, byval b as integer, byval v as integer)
 	dim mask as uinteger
 	dim woff as integer
 	dim wb as integer
@@ -1563,7 +1567,7 @@ SUB setbit (bb() as integer, BYVAL w as integer, BYVAL b as integer, BYVAL v as 
 	end if
 end SUB
 
-FUNCTION readbit (bb() as integer, BYVAL w as integer, BYVAL b as integer)  as integer
+FUNCTION readbit (bb() as integer, byval w as integer, byval b as integer)  as integer
 	dim mask as uinteger
 	dim woff as integer
 	dim wb as integer

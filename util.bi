@@ -148,13 +148,13 @@ declare sub checkoverflow (st as Stack, byval amount as integer = 1)
 
 'Old allmodex stack (FIXME: get rid of this)
 declare sub setupstack ()
-declare sub pushw (BYVAL word as integer)
+declare sub pushw (byval word as integer)
 declare function popw () as integer
-declare sub pushdw (BYVAL word as integer)
+declare sub pushdw (byval word as integer)
 declare function popdw () as integer
 declare sub releasestack ()
 declare function stackpos () as integer
-declare function readstackdw (BYVAL off as integer) as integer
+declare function readstackdw (byval off as integer) as integer
 
 
 '------------ String Cache ------------
@@ -264,11 +264,11 @@ declare function trimextension (filename as string) as string
 declare function justextension (filename as string) as string
 declare function is_absolute_path (sDir as string) as integer
 declare function absolute_path (pathname as string) as string
-declare function parentdir (pathname as string, BYVAL upamount as integer = 1) as string
+declare function parentdir (pathname as string, byval upamount as integer = 1) as string
 declare function anycase (filename as string) as string
 declare sub touchfile (filename as string)
 declare sub extendfile (byval fh as integer, byval length as integer)
-declare sub findfiles (directory AS STRING, namemask AS STRING = "", BYVAL filetype AS INTEGER = fileTypeFile, BYVAL findhidden AS INTEGER = 0, filelist() AS STRING)
+declare sub findfiles (directory as STRING, namemask as STRING = "", byval filetype as integer = fileTypeFile, byval findhidden as integer = 0, filelist() as STRING)
 declare sub writeablecopyfile (src as string, dest as string)
 declare sub copyfiles (src as string, dest as string, byval copyhidden as integer = 0)
 declare sub killdir (directory as string)
@@ -296,11 +296,11 @@ declare function isdir (sdir as string) as integer
 
 
 declare function bitcount (byval v as unsigned integer) as integer
-declare function ceiling (BYVAL n as integer) as integer
+declare function ceiling (byval n as integer) as integer
 declare function bound overload (byval n as integer, byval lowest as integer, byval highest as integer) as integer
 declare function bound overload (byval n as longint, byval lowest as longint, byval highest as longint) as longint
 declare function bound overload (byval n as double, byval lowest as double, byval highest as double) as double
-declare function in_bound (BYVAL n as integer, BYVAL lowest as integer, BYVAL highest as integer) as integer
+declare function in_bound (byval n as integer, byval lowest as integer, byval highest as integer) as integer
 declare function large overload (byval n1 as integer, byval n2 as integer) as integer
 declare function large overload (byval n1 as longint, byval n2 as longint) as longint
 declare function large overload (byval n1 as double, byval n2 as double) as double
@@ -328,7 +328,7 @@ declare function exclude (s as string, x as string) as string
 declare function exclusive (s as string, x as string) as string
 declare function sign_string(n as integer, neg_str as string, zero_str as string, pos_str as string) as string
 declare function iif_string(byval condition as integer, s1 as string, s2 as string) as string
-declare function zero_default(n as integer, zerocaption AS STRING="default", displayoffset AS INTEGER = 0) as string
+declare function zero_default(n as integer, zerocaption as STRING="default", displayoffset as integer = 0) as string
 declare Function wordwrap(z as string, byval width as integer, sep as string = chr(10)) as string
 declare sub split(in as string, ret() as string, sep as string = chr(10))
 declare function textwidth(z as string) as integer
@@ -352,10 +352,10 @@ declare function strhash overload (hstr as string) as unsigned integer
 
 DECLARE SUB xbload (f as string, array() as integer, e as string)
 DECLARE SUB xbsave (f as string, array() as integer, bsize as integer)
-DECLARE SUB setbit (b() as integer, BYVAL w as integer, BYVAL b as integer, BYVAL v as integer)
-DECLARE FUNCTION readbit (b() as integer, BYVAL w as integer, BYVAL b as integer) as integer
-DECLARE SUB array2str (arr() as integer, BYVAL o as integer, s as string)
-DECLARE SUB str2array (s as string, arr() as integer, BYVAL o as integer)
+DECLARE SUB setbit (b() as integer, byval w as integer, byval b as integer, byval v as integer)
+DECLARE FUNCTION readbit (b() as integer, byval w as integer, byval b as integer) as integer
+DECLARE SUB array2str (arr() as integer, byval o as integer, s as string)
+DECLARE SUB str2array (s as string, arr() as integer, byval o as integer)
 
 
 #ENDIF
