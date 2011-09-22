@@ -4,9 +4,9 @@
 
 DECLARE SUB scriptinterpreter ()
 DECLARE SUB scriptdump (s as string)
-DECLARE SUB breakpoint (mode as integer, callspot as integer)
-DECLARE SUB scriptwatcher (mode as integer, drawloop as integer)
-DECLARE SUB setScriptArg (arg as integer, value as integer)
+DECLARE SUB breakpoint (byval mode as integer, byval callspot as integer)
+DECLARE SUB scriptwatcher (byval mode as integer, byval drawloop as integer)
+DECLARE SUB setScriptArg (byval arg as integer, byval value as integer)
 DECLARE SUB killallscripts ()
 DECLARE SUB resetinterpreter ()
 DECLARE SUB delete_scriptdata (byval scriptd as ScriptData ptr)
