@@ -2,17 +2,22 @@
 '(C) Copyright 1997-2005 James Paige and Hamster Republic Productions
 'Please read LICENSE.txt for GNU GPL details and disclaimer of liability
 
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
+#endif
+
 #include "const.bi"
 #include "util.bi"
 #include "config.bi"
 
-OPTION EXPLICIT
-
-
 'This is similar to fuzzythreshold. It interpolates between these values:
 ' 0.12  0.24  1.00  2.00 ...  x
 '  0     1     0     1      x - 1 
-FUNCTION fuzzy_strong_amount (value as double) as double
+FUNCTION fuzzy_strong_amount (byval value as double) as double
  IF value <= 0.12 THEN
   RETURN 0.0
  ELSEIF value <= 0.24 THEN
