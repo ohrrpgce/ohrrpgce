@@ -3,8 +3,13 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
-'$DYNAMIC
-DEFINT A-Z
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
+#endif
 
 #include "config.bi"
 #include "allmodex.bi"
@@ -30,9 +35,7 @@ DEFINT A-Z
 Using Reload
 Using Reload.Ext
 
-REM $STATIC
-
-FUNCTION cropmovement (x as integer, y as integer, xgo as integer, ygo as integer) as integer
+FUNCTION cropmovement (byref x as integer, byref y as integer, byref xgo as integer, byref ygo as integer) as integer
  'crops movement at edge of map, or wraps
  'returns true if ran into wall at edge
  cropmovement = 0
@@ -52,19 +55,19 @@ FUNCTION cropmovement (x as integer, y as integer, xgo as integer, ygo as intege
 END FUNCTION
 
 SUB defaultc
- DIM cconst(12) = {scUp,scDown,scLeft,scRight,scSpace,scEnter,scCtrl,scEsc,scAlt,scEsc,scTab,scJ,scComma}
- DIM joyconst(3) = {150,650,150,650}
+ DIM cconst(12) as integer = {scUp,scDown,scLeft,scRight,scSpace,scEnter,scCtrl,scEsc,scAlt,scEsc,scTab,scJ,scComma}
+ DIM joyconst(3) as integer = {150,650,150,650}
 
- FOR i = 0 TO 12
+ FOR i as integer = 0 TO 12
   csetup(i) = cconst(i)
  NEXT i
- FOR i = 9 TO 12
+ FOR i as integer = 9 TO 12
   joy(i) = joyconst(i - 9)
  NEXT i
  EXIT SUB
 END SUB
 
-SUB forcedismount (catd())
+SUB forcedismount (catd() as integer)
 IF vstate.active THEN
  '--clear vehicle on loading new map--
  IF vstate.dat.dismount_ahead = YES AND vstate.dat.pass_walls_while_dismounting = NO THEN
@@ -84,13 +87,13 @@ IF vstate.active THEN
   loadsay vstate.dat.on_dismount
  END IF
  IF vstate.dat.on_dismount < 0 THEN
-  rsr = runscript(ABS(vstate.dat.on_dismount), nowscript + 1, YES, YES, "dismount", plottrigger)
+  DIM rsr as integer = runscript(ABS(vstate.dat.on_dismount), nowscript + 1, YES, YES, "dismount", plottrigger)
  END IF
  settag vstate.dat.riding_tag, NO
  herospeed(0) = vstate.old_speed
  IF herospeed(0) = 3 THEN herospeed(0) = 10
  reset_vehicle vstate
- FOR i = 1 TO 15
+ FOR i as integer = 1 TO 15
   catx(i) = catx(0)
   caty(i) = caty(0)
  NEXT i
@@ -142,12 +145,12 @@ CleanInventory inventory()
 gold = gen(genStartMoney)
 
 '--hero's speed
-FOR i = 0 TO 3
+FOR i as integer = 0 TO 3
  herospeed(i) = 4
 NEXT i
 
 '--hero's position
-FOR i = 0 TO 15
+FOR i as integer = 0 TO 15
  catx(i) = gen(genStartX) * 20
  caty(i) = gen(genStartY) * 20
  catd(i) = 2
@@ -156,7 +159,7 @@ NEXT i
 END SUB
 
 SUB innRestore ()
- FOR i AS INTEGER = 0 TO 3
+ FOR i as integer = 0 TO 3
   IF hero(i) > 0 THEN '--hero exists
    IF gam.hero(i).stat.cur.hp <= 0 AND readbit(gen(), 101, 4) THEN
     '--hero is dead and inn-revive is disabled
@@ -186,19 +189,20 @@ SELECT CASE gen(cameramode)
   END IF
   IF gen(cameraArg2) <= 0 THEN gen(cameramode) = stopcam
  CASE focuscam ' 1=x, 2=y, 3=x step, 4=y step
-  temp = gen(cameraArg) - mapx
-  IF ABS(temp) <= gen(cameraArg3) THEN
+  DIM camdiff as integer
+  camdiff = gen(cameraArg) - mapx
+  IF ABS(camdiff) <= gen(cameraArg3) THEN
    gen(cameraArg3) = 0
    mapx = gen(cameraArg)
   ELSE
-   mapx += SGN(temp) * gen(cameraArg3)
+   mapx += SGN(camdiff) * gen(cameraArg3)
   END IF
-  temp = gen(cameraArg2) - mapy
-  IF ABS(temp) <= gen(cameraArg4) THEN
+  camdiff = gen(cameraArg2) - mapy
+  IF ABS(camdiff) <= gen(cameraArg4) THEN
    gen(cameraArg4) = 0
    mapy = gen(cameraArg2)
   ELSE
-   mapy += SGN(temp) * gen(cameraArg4)
+   mapy += SGN(camdiff) * gen(cameraArg4)
   END IF
   limitcamera mapx, mapy
   IF gen(cameraArg3) = 0 AND gen(cameraArg4) = 0 THEN gen(cameramode) = stopcam
@@ -208,7 +212,7 @@ END SUB
 
 SUB showplotstrings
 
-FOR i = 0 TO 31
+FOR i as integer = 0 TO 31
  '-- for each string
  IF plotstr(i).bits AND 1 THEN
   '-- only display visible strings
@@ -226,11 +230,11 @@ NEXT i
 END SUB
 
 'Returns whether the string has changed
-FUNCTION strgrabber (s as string, byval maxl as integer) AS INTEGER
- DIM old AS STRING = s
+FUNCTION strgrabber (s as string, byval maxl as integer) as integer
+ DIM old as STRING = s
 
  '--BACKSPACE support
- IF keyval(scBackspace) > 1 AND LEN(s) > 0 THEN s = LEFT$(s, LEN(s) - 1)
+ IF keyval(scBackspace) > 1 AND LEN(s) > 0 THEN s = LEFT(s, LEN(s) - 1)
 
  '--adding chars
  s = LEFT(s + getinputtext, maxl)
@@ -277,7 +281,7 @@ END IF
 END SUB
 
 SUB cleanuptemp
- DIM filelist() as string
+ REDIM filelist() as string
 
  'Delete contents of/clean up workingdir
  IF running_as_slave = NO THEN
@@ -289,7 +293,7 @@ SUB cleanuptemp
    ELSE
     'but for preunlumped games only delete specific files
     'FIXME: aside from upgrade(), are any files actually created in workingdir? We definitely SHOULD NOT do that!
-    DIM file_ext AS STRING = justextension$(filelist(i))
+    DIM file_ext as STRING = justextension(filelist(i))
     IF file_ext = "tmp" THEN
      safekill workingdir + SLASH + filelist(i)
     END IF
@@ -309,8 +313,8 @@ END SUB
 FUNCTION checkfordeath () as integer
 checkfordeath = 0' --default alive
 
-o = 0
-FOR i = 0 TO 3 '--for each slot
+DIM o as integer = 0
+FOR i as integer = 0 TO 3 '--for each slot
  IF hero(i) > 0 THEN '--if hero exists
   o = o + 1
   IF gam.hero(i).stat.cur.hp <= 0 AND gam.hero(i).stat.max.hp > 0 THEN o = o - 1
@@ -320,7 +324,7 @@ IF o = 0 THEN checkfordeath = 1
 
 END FUNCTION
 
-SUB aheadxy (x, y, direction, distance)
+SUB aheadxy (byref x as integer, byref y as integer, byval direction as integer, byval distance as integer)
 '--alters the input X and Y, moving them "ahead" by distance in direction
 
 IF direction = 0 THEN y = y - distance
@@ -330,7 +334,7 @@ IF direction = 3 THEN x = x - distance
 
 END SUB
 
-SUB exitprogram (BYVAL need_fade_out as integer = NO, BYVAL errorout as integer = NO)
+SUB exitprogram (byval need_fade_out as integer = NO, byval errorout as integer = NO)
 
 'DEBUG debug "Exiting Program"
 'DEBUG debug "fade screen"
@@ -364,14 +368,16 @@ END SUB
 
 SUB verquit
  'copypage dpage, vpage
- DIM page AS INTEGER
+ DIM page as integer
  page = compatpage
 
- quitprompt$ = readglobalstring$(55, "Quit Playing?", 20)
- quityes$ = readglobalstring$(57, "Yes", 10)
- quitno$ = readglobalstring$(58, "No", 10)
- direction = 2
- ptr2 = 0
+ DIM quitprompt as string = readglobalstring(55, "Quit Playing?", 20)
+ DIM quityes as string = readglobalstring(57, "Yes", 10)
+ DIM quitno as string = readglobalstring(58, "No", 10)
+ DIM direction as integer = 2
+ DIM ptr2 as integer = 0
+ DIM tog as integer
+ DIM col as integer
  setkeys
  DO
   setwait speedcontrol
@@ -392,11 +398,11 @@ SUB verquit
   IF carray(ccRight) > 0 THEN ptr2 = ptr2 + 5: direction = 1
   centerbox 160, 95, 200, 42, 15, page
   frame_draw herow(0).sprite + direction * 2 + (wtog(0) \ 2), herow(0).pal, 150 + ptr2, 90, 1, -1, page
-  edgeprint quitprompt$, xstring(quitprompt$, 160), 80, uilook(uiText), page
+  edgeprint quitprompt, xstring(quitprompt, 160), 80, uilook(uiText), page
   col = uilook(uiMenuItem): IF ptr2 < -20 THEN col = uilook(uiSelectedItem + tog) '10 + tog * 5
-  edgeprint quityes$, 70, 96, col, page
+  edgeprint quityes, 70, 96, col, page
   col = uilook(uiMenuItem): IF ptr2 > 20 THEN col = uilook(uiSelectedItem + tog) '10 + tog * 5
-  edgeprint quitno$, 256 - LEN(quitno$) * 8, 96, col, page
+  edgeprint quitno, 256 - LEN(quitno) * 8, 96, col, page
   setvispage vpage
   dowait
  LOOP
@@ -417,12 +423,12 @@ DO
   EXIT DO
  END IF
  IF carray(ccUse) > 1 OR carray(ccMenu) > 1 THEN EXIT DO
- FOR i = 2 TO 88
+ FOR i as integer = 2 TO 88
   IF i <> scNumlock AND i <> scCapslock AND keyval(i) > 1 THEN  'DELETEME: a workaround for bug 619
    EXIT DO
   END IF
  NEXT i
- FOR i = 0 TO 1
+ FOR i as integer = 0 TO 1
   gotj(i) = readjoy(joy(), i)
   IF gotj(i) THEN
    IF joy(2) = 0 OR joy(3) = 0 THEN
@@ -444,8 +450,8 @@ LOOP
 END FUNCTION
 
 SUB reloadnpc ()
- DIM npc_id AS INTEGER
- FOR i AS INTEGER = 0 TO UBOUND(npc)
+ DIM npc_id as integer
+ FOR i as integer = 0 TO UBOUND(npc)
   npc_id = npc(i).id - 1
   IF npc_id >= 0 THEN
    IF npc_id > UBOUND(npcs) THEN
@@ -459,72 +465,71 @@ SUB reloadnpc ()
  NEXT i
 END SUB
 
-FUNCTION mapstatetemp(mapnum as integer, prefix as string) as string
+FUNCTION mapstatetemp(byval mapnum as integer, prefix as string) as string
  RETURN tmpdir & prefix & mapnum
 END FUNCTION
 
-SUB savemapstate_gmap(mapnum, prefix$)
- fh = FREEFILE
- OPEN mapstatetemp$(mapnum, prefix$) + "_map.tmp" FOR BINARY AS #fh
+SUB savemapstate_gmap(byval mapnum as integer, prefix as string)
+ DIM fh as integer = FREEFILE
+ OPEN mapstatetemp(mapnum, prefix) & "_map.tmp" FOR BINARY as #fh
  PUT #fh, , gmap()
  CLOSE #fh
 END SUB
 
 SUB savemapstate_npcl(byval mapnum as integer, prefix as string)
- DIM filename AS STRING
- filename = mapstatetemp$(mapnum, prefix$) + "_l.reld.tmp"
+ DIM filename as string = mapstatetemp(mapnum, prefix) & "_l.reld.tmp"
  save_npc_locations filename, npc()
 END SUB
 
-SUB savemapstate_npcd(mapnum, prefix$)
- SaveNPCD mapstatetemp$(mapnum, prefix$) + "_n.tmp", npcs()
+SUB savemapstate_npcd(byval mapnum as integer, prefix as string)
+ SaveNPCD mapstatetemp(mapnum, prefix) & "_n.tmp", npcs()
 END SUB
 
-SUB savemapstate_tilemap(mapnum, prefix$)
- savetilemaps maptiles(), mapstatetemp$(mapnum, prefix$) + "_t.tmp"
+SUB savemapstate_tilemap(byval mapnum as integer, prefix as string)
+ savetilemaps maptiles(), mapstatetemp(mapnum, prefix) & "_t.tmp"
 END SUB
 
-SUB savemapstate_passmap(mapnum, prefix$)
- savetilemap pass, mapstatetemp$(mapnum, prefix$) + "_p.tmp"
+SUB savemapstate_passmap(byval mapnum as integer, prefix as string)
+ savetilemap pass, mapstatetemp(mapnum, prefix) & "_p.tmp"
 END SUB
 
-SUB savemapstate_zonemap(mapnum, prefix$)
- SaveZoneMap zmap, mapstatetemp$(mapnum, prefix$) + "_z.tmp"
+SUB savemapstate_zonemap(byval mapnum as integer, prefix as string)
+ SaveZoneMap zmap, mapstatetemp(mapnum, prefix) & "_z.tmp"
 END SUB
 
-SUB savemapstate (mapnum, savemask = 255, prefix$)
-fh = FREEFILE
+SUB savemapstate (byval mapnum as integer, byval savemask as integer = 255, prefix as string)
+DIM fh as integer = FREEFILE
 IF savemask AND 1 THEN
- savemapstate_gmap mapnum, prefix$
+ savemapstate_gmap mapnum, prefix
 END IF
 IF savemask AND 2 THEN
- savemapstate_npcl mapnum, prefix$
+ savemapstate_npcl mapnum, prefix
 END IF
 IF savemask AND 4 THEN
- savemapstate_npcd mapnum, prefix$
+ savemapstate_npcd mapnum, prefix
 END IF
 IF savemask AND 8 THEN
- savemapstate_tilemap mapnum, prefix$
+ savemapstate_tilemap mapnum, prefix
 END IF
 IF savemask AND 16 THEN
- savemapstate_passmap mapnum, prefix$
+ savemapstate_passmap mapnum, prefix
 END IF
 IF savemask AND 32 THEN
- savemapstate_zonemap mapnum, prefix$
+ savemapstate_zonemap mapnum, prefix
 END IF
 END SUB
 
-SUB loadmapstate_gmap (mapnum, prefix$, dontfallback = 0)
- fh = FREEFILE
- filebase$ = mapstatetemp$(mapnum, prefix$)
- IF NOT isfile(filebase$ + "_map.tmp") THEN
+SUB loadmapstate_gmap (byval mapnum as integer, prefix as string, byval dontfallback as integer = 0)
+ DIM fh as integer = FREEFILE
+ DIM filebase as string = mapstatetemp(mapnum, prefix)
+ IF NOT isfile(filebase & "_map.tmp") THEN
   IF dontfallback = 0 THEN loadmap_gmap mapnum
   EXIT SUB
  END IF
  lump_reloading.gmap.dirty = NO  'Not correct, but too much trouble to do correctly
  lump_reloading.gmap.changed = NO
 
- OPEN filebase$ + "_map.tmp" FOR BINARY AS #fh
+ OPEN filebase & "_map.tmp" FOR BINARY as #fh
  GET #fh, , gmap()
  CLOSE #fh
  IF gmap(31) = 0 THEN gmap(31) = 2
@@ -540,10 +545,10 @@ SUB loadmapstate_gmap (mapnum, prefix$, dontfallback = 0)
  END SELECT
 END SUB
 
-SUB loadmapstate_npcl (mapnum, prefix$, dontfallback = 0)
+SUB loadmapstate_npcl (byval mapnum as integer, prefix as string, byval dontfallback as integer = 0)
  '--new-style
- DIM filename AS STRING
- filename = mapstatetemp(mapnum, prefix$) & "_l.reld.tmp"
+ DIM filename as string
+ filename = mapstatetemp(mapnum, prefix) & "_l.reld.tmp"
  IF NOT isfile(filename) THEN
   IF dontfallback = 0 THEN loadmap_npcl mapnum
   EXIT SUB
@@ -555,13 +560,13 @@ SUB loadmapstate_npcl (mapnum, prefix$, dontfallback = 0)
  visnpc
 END SUB
 
-SUB loadmapstate_npcd (mapnum, prefix$, dontfallback = 0)
- filebase$ = mapstatetemp$(mapnum, prefix$)
- IF NOT isfile(filebase$ + "_n.tmp") THEN
+SUB loadmapstate_npcd (byval mapnum as integer, prefix as string, byval dontfallback as integer = 0)
+ DIM filebase as string = mapstatetemp(mapnum, prefix)
+ IF NOT isfile(filebase & "_n.tmp") THEN
   IF dontfallback = 0 THEN loadmap_npcd mapnum
   EXIT SUB
  END IF
- LoadNPCD filebase$ + "_n.tmp", npcs()
+ LoadNPCD filebase & "_n.tmp", npcs()
 
  'Evaluate whether NPCs should appear or disappear based on tags
  visnpc
@@ -569,7 +574,7 @@ SUB loadmapstate_npcd (mapnum, prefix$, dontfallback = 0)
  reloadnpc
 END SUB
 
-SUB loadmapstate_tilemap (mapnum, prefix as string, dontfallback = 0)
+SUB loadmapstate_tilemap (byval mapnum as integer, prefix as string, byval dontfallback as integer = 0)
  DIM filebase as string = mapstatetemp(mapnum, prefix)
  IF NOT isfile(filebase + "_t.tmp") THEN
   IF dontfallback = 0 THEN loadmap_tilemap mapnum
@@ -602,7 +607,7 @@ SUB loadmapstate_tilemap (mapnum, prefix as string, dontfallback = 0)
  END IF
 END SUB
 
-SUB loadmapstate_passmap (mapnum, prefix as string, dontfallback = 0)
+SUB loadmapstate_passmap (byval mapnum as integer, prefix as string, byval dontfallback as integer = 0)
  DIM filebase as string = mapstatetemp(mapnum, prefix)
  IF NOT isfile(filebase + "_p.tmp") THEN
   IF dontfallback = 0 THEN loadmap_passmap mapnum
@@ -627,7 +632,7 @@ SUB loadmapstate_passmap (mapnum, prefix as string, dontfallback = 0)
  END IF
 END SUB
 
-SUB loadmapstate_zonemap (mapnum, prefix as string, dontfallback = 0)
+SUB loadmapstate_zonemap (byval mapnum as integer, prefix as string, byval dontfallback as integer = 0)
  DIM filebase as string = mapstatetemp(mapnum, prefix)
  IF NOT isfile(filebase + "_z.tmp") THEN
   IF dontfallback = 0 THEN loadmap_zonemap mapnum
@@ -655,24 +660,24 @@ SUB loadmapstate_zonemap (mapnum, prefix as string, dontfallback = 0)
  END IF
 END SUB
 
-SUB loadmapstate (mapnum, loadmask, prefix$, dontfallback = 0)
+SUB loadmapstate (byval mapnum as integer, byval loadmask as integer, prefix as string, byval dontfallback as integer = 0)
 IF loadmask AND 1 THEN
- loadmapstate_gmap mapnum, prefix$, dontfallback
+ loadmapstate_gmap mapnum, prefix, dontfallback
 END IF
 IF loadmask AND 2 THEN
- loadmapstate_npcl mapnum, prefix$, dontfallback
+ loadmapstate_npcl mapnum, prefix, dontfallback
 END IF
 IF loadmask AND 4 THEN
- loadmapstate_npcd mapnum, prefix$, dontfallback
+ loadmapstate_npcd mapnum, prefix, dontfallback
 END IF
 IF loadmask AND 8 THEN
- loadmapstate_tilemap mapnum, prefix$, dontfallback
+ loadmapstate_tilemap mapnum, prefix, dontfallback
 END IF
 IF loadmask AND 16 THEN
- loadmapstate_passmap mapnum, prefix$, dontfallback
+ loadmapstate_passmap mapnum, prefix, dontfallback
 END IF
 IF loadmask AND 32 THEN
- loadmapstate_zonemap mapnum, prefix$, dontfallback
+ loadmapstate_zonemap mapnum, prefix, dontfallback
 END IF
 END SUB
 
@@ -719,7 +724,7 @@ SUB reloadmap_gmap_no_tilesets()
  'Delete saved state to prevent regressions
  safekill mapstatetemp(gam.map.id, "map") + "_map.tmp" 
 
- DIM gmaptmp(dimbinsize(binMAP)) as integer
+ REDIM gmaptmp(dimbinsize(binMAP)) as integer
  loadrecord gmaptmp(), game + ".map", getbinsize(binMAP) \ 2, gam.map.id
  IF gmaptmp(31) = 0 THEN gmaptmp(31) = 2
 
@@ -750,8 +755,8 @@ SUB reloadmap_npcl(byval merge as integer)
  DIM filename as string = maplumpname(gam.map.id, "l")
  lump_reloading.npcl.hash = hash_file(filename)
  IF merge THEN
-  DIM npcnew(UBOUND(npc)) as NPCInst
-  DIM npcbase(UBOUND(npc)) as NPCInst
+  REDIM npcnew(UBOUND(npc)) as NPCInst
+  REDIM npcbase(UBOUND(npc)) as NPCInst
   LoadNPCL filename, npcnew()
   LoadNPCL tmpdir + "mapbackup.l", npcbase()
 
@@ -813,7 +818,7 @@ SUB reloadmap_tilemap_and_tilesets(byval merge as integer)
   refresh_map_slice
 
   'Now reload tileset and layering info
-  DIM gmaptmp(dimbinsize(binMAP)) as integer
+  REDIM gmaptmp(dimbinsize(binMAP)) as integer
   loadrecord gmaptmp(), game + ".map", getbinsize(binMAP) \ 2, gam.map.id
 
   FOR i as integer = 0 TO UBOUND(gmap)
@@ -883,24 +888,25 @@ END SUB
 SUB deletetemps
 'deletes game-state temporary files from tmpdir when exiting back to the titlescreen
 
- DIM filelist() as string
+ REDIM filelist() as string
  findfiles tmpdir, ALLFILES, fileTypeFile, YES, filelist()
+ DIM filename as string
  FOR i as integer = 0 TO UBOUND(filelist)
-  filename$ = LCASE$(filelist(i))
-  IF RIGHT$(filename$,4) = ".tmp" AND (LEFT$(filename$,3) = "map" OR LEFT$(filename$,5) = "state") THEN
+  filename = LCASE(filelist(i))
+  IF RIGHT(filename,4) = ".tmp" AND (LEFT(filename,3) = "map" OR LEFT(filename,5) = "state") THEN
    KILL tmpdir + filelist(i)
   END IF
  NEXT
 END SUB
 
 '--A similar function exists in customsubs.bas for custom. it differs only in error-reporting
-FUNCTION decodetrigger (trigger as integer, trigtype as integer) as integer
- DIM buf(19)
- 'debug "decoding " + STR$(trigger) + " type " + STR$(trigtype)
+FUNCTION decodetrigger (byval trigger as integer, byval trigtype as integer) as integer
+ REDIM buf(19) as integer
+ 'debug "decoding " + STR(trigger) + " type " + STR(trigtype)
  decodetrigger = trigger  'default
  IF trigger >= 16384 THEN
-  fname$ = workingdir + SLASH + "lookup" + STR$(trigtype) + ".bin"
-  IF loadrecord (buf(), fname$, 20, trigger - 16384) THEN
+  DIM fname as string = workingdir & SLASH & "lookup" & trigtype & ".bin"
+  IF loadrecord (buf(), fname, 20, trigger - 16384) THEN
    decodetrigger = buf(0)
    IF buf(0) = 0 THEN
     scripterr "Script " + readbinstring(buf(), 1, 36) + " is used but has not been imported", 6
@@ -911,14 +917,14 @@ END FUNCTION
 
 SUB debug_npcs ()
  debug "NPC types:"
- FOR i AS INTEGER = 0 TO UBOUND(npcs)
+ FOR i as integer = 0 TO UBOUND(npcs)
   debug " ID " & i & ": pic=" & npcs(i).picture & " pal=" & npcs(i).palette
  NEXT
  debug "NPC instances:"
- FOR i AS INTEGER = 0 TO 299
+ FOR i as integer = 0 TO 299
   WITH npc(i)
    IF .id <> 0 THEN
-    DIM AS INTEGER drawX, drawY
+    DIM as integer drawX, drawY
     IF framewalkabout(npc(i).x, npc(i).y + gmap(11), drawX, drawY, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)) THEN
      debug " " & i & ": ID=" & (ABS(.id) - 1) & iif_string(.id < 0, " (hidden)", "") & " x=" & .x & " y=" & .y & " screenx=" & drawX & " screeny=" & drawY
     ELSE
@@ -930,39 +936,36 @@ SUB debug_npcs ()
 END SUB
 
 SUB npc_debug_display ()
- DIM temp AS STRING
- STATIC tog
+ DIM temp as string
+ STATIC tog as integer
  tog = tog XOR 1
- FOR i AS INTEGER = 0 TO 299
+ FOR i as integer = 0 TO 299
   WITH npc(i)
    IF .id <> 0 THEN
-    DIM AS INTEGER drawX, drawY
+    DIM as integer drawX, drawY
     IF framewalkabout(npc(i).x, npc(i).y + gmap(11), drawX, drawY, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)) THEN
      textcolor uilook(uiText), 0
      'the numbers can overlap quite badly, try to squeeze them in
      temp = iif_string(.id < 0, "-", "") & (ABS(.id) - 1)
-     printstr MID$(temp, 1, 1), drawX, drawY + 4, dpage
-     printstr MID$(temp, 2, 1), drawX + 7, drawY + 4, dpage
-     printstr MID$(temp, 3, 1), drawX + 14, drawY + 4, dpage
+     printstr MID(temp, 1, 1), drawX, drawY + 4, dpage
+     printstr MID(temp, 2, 1), drawX + 7, drawY + 4, dpage
+     printstr MID(temp, 3, 1), drawX + 14, drawY + 4, dpage
      textcolor uilook(uiDescription), 0
-     temp = STR$(i + 1)
-     printstr MID$(temp, 1, 1), drawX, drawY + 12, dpage
-     printstr MID$(temp, 2, 1), drawX + 7, drawY + 12, dpage
-     printstr MID$(temp, 3, 1), drawX + 14, drawY + 12, dpage
+     temp = STR(i + 1)
+     printstr MID(temp, 1, 1), drawX, drawY + 12, dpage
+     printstr MID(temp, 2, 1), drawX + 7, drawY + 12, dpage
+     printstr MID(temp, 3, 1), drawX + 14, drawY + 12, dpage
     END IF
    END IF
   END WITH
  NEXT
 END SUB
 
-'======== FIXME: move this up as code gets cleaned up ===========
-OPTION EXPLICIT
-
-SUB limitcamera (BYREF x AS INTEGER, BYREF y AS INTEGER)
+SUB limitcamera (byref x as integer, byref y as integer)
  IF gmap(5) = 0 THEN
   'when cropping the camera to the map, stop camera movements that attempt to go over the edge
-  DIM oldmapx AS INTEGER = x
-  DIM oldmapy AS INTEGER = y
+  DIM oldmapx as integer = x
+  DIM oldmapy as integer = y
   x = bound(x, 0, mapsizetiles.x * 20 - 320)
   y = bound(y, 0, mapsizetiles.y * 20 - 200)
   IF oldmapx <> x THEN
@@ -1051,7 +1054,7 @@ SUB handshake_with_master ()
 
   SELECT CASE i
    CASE 1  'Parse version string
-    DIM pieces() as string
+    REDIM pieces() as string
     split line_in, pieces(), ","
     IF pieces(0) <> "V OHRRPGCE" THEN
      fatalerror "Could not communicate with Custom"
@@ -1095,7 +1098,7 @@ SUB receive_file_updates ()
  entered = YES
 
  DIM line_in as string
- DIM pieces() as string
+ REDIM pieces() as string
 
  WHILE channel_input_line(master_channel, line_in)
   debuginfo "msg from Custom: " & RTRIM(line_in)
@@ -1152,7 +1155,7 @@ SUB inspect_MAP_lump()
  WITH lump_reloading
 
   'Only compare part of each MAP record... OK, this is getting really perfectionist
-  DIM compare_mask(dimbinsize(binMAP)) as integer
+  REDIM compare_mask(dimbinsize(binMAP)) as integer
   FOR i as integer = 0 TO UBOUND(compare_mask)
    compare_mask(i) = (gmap_index_affects_tiles(i) = NO)
   NEXT
@@ -1188,7 +1191,7 @@ END SUB
 
 'Check whether a lump is a .PT# or .TIL lump. Reload them. MXS (backdrops) are quite different
 'because they don't go in the sprite cache: need different handling in and out of battles
-FUNCTION try_reload_gfx_lump(extn as string)
+FUNCTION try_reload_gfx_lump(extn as string) as integer
  IF extn = "til" THEN
   sprite_update_cache_tilesets
   RETURN YES
@@ -1351,7 +1354,7 @@ SUB try_reload_lumps_anywhere ()
    handled = YES
 
   ELSEIF extn = "gen" THEN                                                '.GEN
-   DIM newgen(360) as integer
+   REDIM newgen(360) as integer
    xbload game + ".gen", newgen(), "reload lumps: .gen unreadable"
    FOR j as integer = 0 TO UBOUND(gen)
     SELECT CASE j
@@ -1366,7 +1369,7 @@ SUB try_reload_lumps_anywhere ()
    handled = YES
 
   ELSEIF extn = "fnt" THEN                                                '.FNT
-   DIM font(1023) as integer
+   REDIM font(1023) as integer
    xbload game + ".fnt", font(), "Font not loaded"
    setfont font()
    handled = YES
@@ -1451,8 +1454,8 @@ END SUB
 
 'return a video page which is a view on vpage that is 320x200 (or smaller) and centred
 FUNCTION compatpage() as integer
- DIM fakepage AS INTEGER
- DIM centreview AS Frame ptr
+ DIM fakepage as integer
+ DIM centreview as Frame ptr
  centreview = frame_new_view(vpages(vpage), (vpages(vpage)->w - 320) / 2, (vpages(vpage)->h - 200) / 2, 320, 200)
  fakepage = registerpage(centreview)
  frame_unload @centreview
@@ -1460,7 +1463,7 @@ FUNCTION compatpage() as integer
 END FUNCTION
 
 SUB load_fset_frequencies ()
- DIM buf(24) as integer
+ REDIM buf(24) as integer
  FOR i as integer = 0 TO 254
   loadrecord buf(), game + ".efs", 25, i
   gam.foe_freq(i) = buf(0)
@@ -1536,14 +1539,14 @@ SUB live_preview_menu ()
  DIM st1 as MenuState
  st1.active = YES
  
- DIM menu1 AS MenuDef
+ DIM menu1 as MenuDef
  ClearMenuData menu1
  menu1.align = -1
  menu1.boxstyle = 3
  menu1.translucent = YES
  menu1.min_chars = 38
 
- DIM tooltips() as string
+ REDIM tooltips() as string
 
  setkeys
  DO

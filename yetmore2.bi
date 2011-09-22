@@ -3,42 +3,42 @@
 
 #include "reload.bi"
 
-DECLARE FUNCTION cropmovement (x as integer, y as integer, xgo as integer, ygo as integer) as integer
+DECLARE FUNCTION cropmovement (byref x as integer, byref y as integer, byref xgo as integer, byref ygo as integer) as integer
 DECLARE SUB defaultc
 DECLARE SUB forcedismount (catd() as integer)
 DECLARE FUNCTION framewalkabout (x as integer, y as integer, framex as integer, framey as integer, mapwide as integer, maphigh as integer, wrapmode as integer) as integer
 DECLARE SUB initgamedefaults
 DECLARE SUB innRestore ()
 DECLARE SUB setmapxy
-DECLARE SUB limitcamera (BYREF x AS INTEGER, BYREF y AS INTEGER)
+DECLARE SUB limitcamera (byref x as integer, byref y as integer)
 DECLARE SUB showplotstrings
 DECLARE SUB makebackups
 DECLARE SUB make_map_backups
 DECLARE SUB correctbackdrop
 DECLARE SUB cleanuptemp
 DECLARE FUNCTION checkfordeath () as integer
-DECLARE SUB aheadxy (x as integer, y as integer, direction as integer, distance as integer)
-DECLARE SUB exitprogram (BYVAL need_fade_out as integer = NO, BYVAL errorout as integer = NO)
+DECLARE SUB aheadxy (byref x as integer, byref y as integer, byval direction as integer, byval distance as integer)
+DECLARE SUB exitprogram (byval need_fade_out as integer = NO, byval errorout as integer = NO)
 DECLARE SUB keyboardsetup
 DECLARE SUB verquit
 DECLARE FUNCTION titlescr as integer
 DECLARE SUB reloadnpc ()
-DECLARE FUNCTION mapstatetemp(mapnum as integer, prefix as string) as string
-DECLARE SUB savemapstate_gmap(mapnum as integer, prefix as string)
+DECLARE FUNCTION mapstatetemp(byval mapnum as integer, prefix as string) as string
+DECLARE SUB savemapstate_gmap(byval mapnum as integer, prefix as string)
 DECLARE SUB savemapstate_npcl OVERLOAD (byval mapnum as integer, prefix as string)
-'DECLARE SUB savemapstate_npcl OVERLOAD (byval node AS Reload.NodePtr)   'where did this come from?
-DECLARE SUB savemapstate_npcd(mapnum as integer, prefix as string)
-DECLARE SUB savemapstate_tilemap(mapnum as integer, prefix as string)
-DECLARE SUB savemapstate_passmap(mapnum as integer, prefix as string)
-DECLARE SUB savemapstate_zonemap(mapnum as integer, prefix as string)
-DECLARE SUB savemapstate (mapnum as integer, savemask as integer = 255, prefix as string)
-DECLARE SUB loadmapstate_gmap (mapnum as integer, prefix as string, dontfallback as integer = 0)
-DECLARE SUB loadmapstate_npcl (mapnum as integer, prefix as string, dontfallback as integer = 0)
-DECLARE SUB loadmapstate_npcd (mapnum as integer, prefix as string, dontfallback as integer = 0)
-DECLARE SUB loadmapstate_tilemap (mapnum as integer, prefix as string, dontfallback as integer = 0)
-DECLARE SUB loadmapstate_passmap (mapnum as integer, prefix as string, dontfallback as integer = 0)
-DECLARE SUB loadmapstate_zonemap (mapnum as integer, prefix as string, dontfallback as integer = 0)
-DECLARE SUB loadmapstate (mapnum as integer, loadmask as integer, prefix as string, dontfallback as integer = 0)
+'DECLARE SUB savemapstate_npcl OVERLOAD (byval node as Reload.NodePtr)   'where did this come from?
+DECLARE SUB savemapstate_npcd(byval mapnum as integer, prefix as string)
+DECLARE SUB savemapstate_tilemap(byval mapnum as integer, prefix as string)
+DECLARE SUB savemapstate_passmap(byval mapnum as integer, prefix as string)
+DECLARE SUB savemapstate_zonemap(byval mapnum as integer, prefix as string)
+DECLARE SUB savemapstate (byval mapnum as integer, byval savemask as integer = 255, prefix as string)
+DECLARE SUB loadmapstate_gmap (byval mapnum as integer, prefix as string, byval dontfallback as integer = 0)
+DECLARE SUB loadmapstate_npcl (byval mapnum as integer, prefix as string, byval dontfallback as integer = 0)
+DECLARE SUB loadmapstate_npcd (byval mapnum as integer, prefix as string, byval dontfallback as integer = 0)
+DECLARE SUB loadmapstate_tilemap (byval mapnum as integer, prefix as string, byval dontfallback as integer = 0)
+DECLARE SUB loadmapstate_passmap (byval mapnum as integer, prefix as string, byval dontfallback as integer = 0)
+DECLARE SUB loadmapstate_zonemap (byval mapnum as integer, prefix as string, byval dontfallback as integer = 0)
+DECLARE SUB loadmapstate (byval mapnum as integer, byval loadmask as integer, prefix as string, byval dontfallback as integer = 0)
 DECLARE SUB deletemapstate (byval mapnum as integer, byval killmask as integer, prefix as string)
 DECLARE FUNCTION gmap_index_affects_tiles(byval index as integer) as integer
 DECLARE SUB reloadmap_gmap_no_tilesets()
@@ -49,7 +49,7 @@ DECLARE SUB reloadmap_passmap(byval merge as integer)
 DECLARE SUB reloadmap_foemap()
 DECLARE SUB reloadmap_zonemap()
 DECLARE SUB deletetemps
-DECLARE FUNCTION decodetrigger (trigger as integer, trigtype as integer) as integer
+DECLARE FUNCTION decodetrigger (byval trigger as integer, byval trigtype as integer) as integer
 DECLARE SUB debug_npcs ()
 DECLARE SUB npc_debug_display ()
 DECLARE FUNCTION game_setoption(opt as string, arg as string) as integer
