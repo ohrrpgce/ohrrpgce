@@ -3,7 +3,13 @@
 'Please read LICENSE.txt for GNU GPL details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 
-OPTION EXPLICIT
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
+#endif
 
 #include "config.bi"
 #include "udts.bi"
@@ -14,14 +20,14 @@ OPTION EXPLICIT
 #include "menus.bi"
 
 #IFDEF IS_GAME
-DECLARE SUB embedtext (text AS STRING, limit AS INTEGER = 0)
+DECLARE SUB embedtext (text as string, limit as integer = 0)
 #ENDIF
 
 'Local functions
-DECLARE SUB LoadMenuItems(menu_set AS MenuSet, dat AS MenuDef, BYVAL record AS INTEGER)
-DECLARE SUB LoadMenuItem(BYVAL f AS INTEGER, items() AS MenuDefItem ptr, BYVAL record AS INTEGER)
-DECLARE SUB SaveMenuItems(menu_set AS MenuSet, dat AS MenuDef, BYVAL record AS INTEGER)
-DECLARE SUB SaveMenuItem(BYVAL f AS INTEGER, mi AS MenuDefItem, BYVAL record AS INTEGER, BYVAL menunum AS INTEGER, BYVAL itemnum AS INTEGER)
+DECLARE SUB LoadMenuItems(menu_set as MenuSet, dat as MenuDef, byval record as integer)
+DECLARE SUB LoadMenuItem(byval f as integer, items() as MenuDefItem ptr, byval record as integer)
+DECLARE SUB SaveMenuItems(menu_set as MenuSet, dat as MenuDef, byval record as integer)
+DECLARE SUB SaveMenuItem(byval f as integer, mi as MenuDefItem, byval record as integer, byval menunum as integer, byval itemnum as integer)
 
 
 '==========================================================================================
@@ -32,7 +38,7 @@ DECLARE SUB SaveMenuItem(BYVAL f AS INTEGER, mi AS MenuDefItem, BYVAL record AS 
 '(Re-)initialise menu state, preserving .pt if valid
 'pickenabled: move .pt to an enabled menu item. (Note that .enabled may mean either "greyed out"
 'or "unselectable")
-SUB init_menu_state (BYREF state AS MenuState, menu() AS SimpleMenu, BYVAL pickenabled AS INTEGER = YES)
+SUB init_menu_state (byref state as MenuState, menu() as SimpleMenu, byval pickenabled as integer = YES)
  WITH state
   .first = 0
   .last = UBOUND(menu)
@@ -41,7 +47,7 @@ SUB init_menu_state (BYREF state AS MenuState, menu() AS SimpleMenu, BYVAL picke
   IF pickenabled THEN
    IF menu(.pt).enabled = NO THEN
     .pt = -1  'explicitly -1 when nothing selectable
-    FOR i AS INTEGER = 0 TO UBOUND(menu)
+    FOR i as integer = 0 TO UBOUND(menu)
      IF menu(i).enabled THEN .pt = i: EXIT FOR
     NEXT
    END IF
@@ -53,7 +59,7 @@ SUB init_menu_state (BYREF state AS MenuState, menu() AS SimpleMenu, BYVAL picke
  END WITH
 END SUB
 
-SUB clamp_menu_state (BYREF state AS MenuState)
+SUB clamp_menu_state (byref state as MenuState)
  WITH state
   IF .pt < .top THEN .top = .pt
   IF .pt > .top + .size THEN .top = large(.top, .top + .size)
@@ -62,7 +68,7 @@ END SUB
 
 'Simple... and yet, more options than a regular menu item
 'Can also insert instead of appending... bad name
-SUB append_simplemenu_item (menu() as SimpleMenu, caption as string, BYVAL enabled as integer = YES, BYVAL col as integer = -1, BYVAL dat as integer = 0, BYVAL where as integer = -1)
+SUB append_simplemenu_item (menu() as SimpleMenu, caption as string, byval enabled as integer = YES, byval col as integer = -1, byval dat as integer = 0, byval where as integer = -1)
  IF col = -1 THEN col = uilook(uiText)
  IF where = -1 THEN
   REDIM PRESERVE menu(LBOUND(menu) TO UBOUND(menu) + 1)
@@ -76,13 +82,13 @@ SUB append_simplemenu_item (menu() as SimpleMenu, caption as string, BYVAL enabl
  END WITH
 END SUB
 
-FUNCTION usemenu (state AS MenuState, BYVAL deckey = scUp, BYVAL inckey = scDown) as integer
+FUNCTION usemenu (byref state as MenuState, byval deckey as integer = scUp, byval inckey as integer = scDown) as integer
  WITH state
   RETURN usemenu(.pt, .top, .first, .last, .size, deckey, inckey)
  END WITH
 END FUNCTION
 
-FUNCTION usemenu (BYREF pt, BYREF top, BYVAL first, BYVAL last, BYVAL size, BYVAL deckey = scUp, BYVAL inckey = scDown) as integer
+FUNCTION usemenu (byref pt as integer, byref top as integer, byval first as integer, byval last as integer, byval size as integer, byval deckey as integer = scUp, byval inckey as integer = scDown) as integer
  DIM oldptr as integer = pt
  DIM oldtop as integer = top
 
@@ -104,7 +110,7 @@ FUNCTION usemenu (BYREF pt, BYREF top, BYVAL first, BYVAL last, BYVAL size, BYVA
 END FUNCTION
 
 'a version for menus with unselectable items, skip items for which menudata().enabled = 0
-FUNCTION usemenu (state as MenuState, menudata() as SimpleMenu, BYVAL deckey as integer = scUp, BYVAL inckey as integer = scDown) as integer
+FUNCTION usemenu (state as MenuState, menudata() as SimpleMenu, byval deckey as integer = scUp, byval inckey as integer = scDown) as integer
  WITH state
   '.pt = -1 when the menu has no selectable items
   IF .pt = -1 THEN RETURN 0
@@ -142,7 +148,7 @@ FUNCTION usemenu (state as MenuState, menudata() as SimpleMenu, BYVAL deckey as 
 
   IF moved_d THEN
    'we look ahead of the actual cursor, to bring unselectable items at the ends of the menu into view
-   DIM lookahead AS INTEGER = .pt
+   DIM lookahead as integer = .pt
    DO
     lookahead += moved_d
    LOOP WHILE bound(lookahead, .first, .last) = lookahead ANDALSO menudata(lookahead).enabled = 0
@@ -161,7 +167,7 @@ FUNCTION usemenu (state as MenuState, menudata() as SimpleMenu, BYVAL deckey as 
 END FUNCTION
 
 'a version for menus with unselectable items, skip items for which enabled = 0
-FUNCTION usemenu (state as MenuState, enabled() as INTEGER, BYVAL deckey as integer = scUp, BYVAL inckey as integer = scDown) as integer
+FUNCTION usemenu (state as MenuState, enabled() as integer, byval deckey as integer = scUp, byval inckey as integer = scDown) as integer
  WITH state
   '.pt = -1 when the menu has no selectable items
   IF .pt = -1 THEN RETURN 0
@@ -199,7 +205,7 @@ FUNCTION usemenu (state as MenuState, enabled() as INTEGER, BYVAL deckey as inte
 
   IF moved_d THEN
    'we look ahead of the actual cursor, to bring unselectable items at the ends of the menu into view
-   DIM lookahead AS INTEGER = .pt
+   DIM lookahead as integer = .pt
    DO
     lookahead += moved_d
    LOOP WHILE bound(lookahead, .first, .last) = lookahead ANDALSO enabled(lookahead) = 0
@@ -219,7 +225,7 @@ END FUNCTION
 
 'scrollmenu is like usemenu for menus where no menu item is selected:
 'you just want to scroll a menu up and down (modifies .top; .pt is ignored).
-FUNCTION scrollmenu (state AS MenuState, BYVAL deckey as integer = scUp, BYVAL inckey as integer = scDown) as integer
+FUNCTION scrollmenu (state as MenuState, byval deckey as integer = scUp, byval inckey as integer = scDown) as integer
  WITH state
   DIM oldtop as integer = .top
   DIM lasttop as integer = large(.first, .last - .size)
@@ -233,8 +239,8 @@ FUNCTION scrollmenu (state AS MenuState, BYVAL deckey as integer = scUp, BYVAL i
  END WITH
 END FUNCTION
 
-SUB standardmenu (menu() AS STRING, state AS MenuState, BYVAL x AS INTEGER, BYVAL y AS INTEGER, BYVAL page AS INTEGER, BYVAL edge AS INTEGER=NO, BYVAL hidecursor AS INTEGER=NO, BYVAL wide AS INTEGER=999, BYVAL highlight AS INTEGER=NO, BYVAL toggle=YES)
- DIM p AS INTEGER
+SUB standardmenu (menu() as string, byref state as MenuState, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval hidecursor as integer=NO, byval wide as integer=999, byval highlight as integer=NO, byval toggle as integer=YES)
+ DIM p as integer
  WITH state
   p = .pt
   IF hidecursor THEN p = .first - 1
@@ -243,8 +249,8 @@ SUB standardmenu (menu() AS STRING, state AS MenuState, BYVAL x AS INTEGER, BYVA
 END SUB
 
 'Version which allows items to be greyed out/disabled/shaded
-SUB standardmenu (menu() AS STRING, state AS MenuState, shaded() AS INTEGER, BYVAL x AS INTEGER, BYVAL y AS INTEGER, BYVAL page AS INTEGER, BYVAL edge AS INTEGER=NO, BYVAL hidecursor AS INTEGER=NO, BYVAL wide AS INTEGER=999, BYVAL highlight AS INTEGER=NO, BYVAL toggle=YES)
- DIM p AS INTEGER
+SUB standardmenu (menu() as string, byref state as MenuState, shaded() as integer, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval hidecursor as integer=NO, byval wide as integer=999, byval highlight as integer=NO, byval toggle as integer=YES)
+ DIM p as integer
  IF LBOUND(shaded) > LBOUND(menu) OR UBOUND(shaded) < UBOUND(menu) THEN fatalerror "standardmenu: shaded() too small"
  WITH state
   p = .pt
@@ -253,13 +259,13 @@ SUB standardmenu (menu() AS STRING, state AS MenuState, shaded() AS INTEGER, BYV
  END WITH
 END SUB
 
-SUB standardmenu (menu() AS STRING, BYVAL size AS INTEGER, BYVAL vis AS INTEGER, BYVAL pt AS INTEGER, BYVAL top AS INTEGER, BYVAL x AS INTEGER, BYVAL y AS INTEGER, BYVAL page AS INTEGER, BYVAL edge AS INTEGER=NO, BYVAL wide AS INTEGER=999, BYVAL highlight AS INTEGER=NO, BYVAL shaded AS INTEGER PTR=NULL, BYVAL toggle AS INTEGER=YES)
+SUB standardmenu (menu() as STRING, byval size as integer, byval vis as integer, byval pt as integer, byval top as integer, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval wide as integer=999, byval highlight as integer=NO, byval shaded as integer PTR=NULL, byval toggle as integer=YES)
  'the default for wide is 999 until I know whether it'd break anything to set it to 40
- STATIC rememtog
- DIM tog AS INTEGER
- DIM i AS INTEGER
- DIM col AS INTEGER
- DIM text AS STRING
+ STATIC rememtog as integer
+ DIM tog as integer
+ DIM i as integer
+ DIM col as integer
+ DIM text as string
 
  IF toggle THEN
   rememtog = rememtog XOR 1
@@ -274,7 +280,7 @@ SUB standardmenu (menu() AS STRING, BYVAL size AS INTEGER, BYVAL vis AS INTEGER,
    text = menu(i)
    IF pt = i THEN text = RIGHT(text, wide)
    IF pt = i AND highlight THEN
-    DIM w AS INTEGER
+    DIM w as integer
     w = 8 * LEN(text)
     IF w = 0 THEN w = small(wide * 8, 320)
     rectangle x + 0, y + (i - top) * 8, w, 8, uilook(uiHighlight), page
@@ -303,8 +309,8 @@ END SUB
 
 
 'This initialises a menu if it has not been already
-SUB ClearMenuData(dat AS MenuDef)
- DIM bits(0) AS INTEGER
+SUB ClearMenuData(dat as MenuDef)
+ DIM bits(0) as integer
  WITH dat
   .record = -1
   .handle = 0
@@ -330,8 +336,8 @@ SUB ClearMenuData(dat AS MenuDef)
  MenuBitsFromArray dat, bits()
 END SUB
 
-SUB DeleteMenuItems(menu AS MenuDef)
- DIM i AS INTEGER
+SUB DeleteMenuItems(menu as MenuDef)
+ DIM i as integer
  WITH menu
   FOR i = 0 TO .numitems - 1
    dlist_remove menu.itemlist, .items[i]
@@ -343,9 +349,9 @@ SUB DeleteMenuItems(menu AS MenuDef)
 END SUB
 
 'This is not used anywhere currently. This has nothing to do with deleting a menu item!
-SUB ClearMenuItem(mi AS MenuDefItem)
- DIM bits(0) AS INTEGER
- DIM i AS INTEGER
+SUB ClearMenuItem(mi as MenuDefItem)
+ DIM bits(0) as integer
+ DIM i as integer
  WITH mi
   .caption = ""
   .t = 0
@@ -363,9 +369,9 @@ SUB ClearMenuItem(mi AS MenuDefItem)
 END SUB
 
 'recreate a menu's items[] array, which sorts visible items to the top
-SUB SortMenuItems(menu AS MenuDef)
- DIM AS INTEGER i, j, lowest, found
- DIM mi AS MenuDefItem ptr
+SUB SortMenuItems(menu as MenuDef)
+ DIM as integer i, j, lowest, found
+ DIM mi as MenuDefItem ptr
  IF menu.numitems = 0 THEN
   DEALLOCATE(menu.items)
   menu.items = NULL
@@ -393,7 +399,7 @@ SUB SortMenuItems(menu AS MenuDef)
  WEND
 END SUB
 
-FUNCTION getmenuname(BYVAL record AS INTEGER) AS STRING
+FUNCTION getmenuname(byval record as integer) as STRING
  DIM as string ret
 #IFDEF IS_GAME
  STATIC cache(32) as IntStrPair
@@ -401,10 +407,10 @@ FUNCTION getmenuname(BYVAL record AS INTEGER) AS STRING
  IF ret <> "" THEN RETURN ret
 #ENDIF
 
- DIM menu_set AS MenuSet
+ DIM menu_set as MenuSet
  menu_set.menufile = workingdir + SLASH + "menus.bin"
  menu_set.itemfile = workingdir + SLASH + "menuitem.bin"
- DIM menu AS MenuDef
+ DIM menu as MenuDef
  LoadMenuData menu_set, menu, record, YES
  ret = menu.name
  ClearMenuData menu
@@ -416,7 +422,7 @@ FUNCTION getmenuname(BYVAL record AS INTEGER) AS STRING
 END FUNCTION
 
 '(Re-)initialise menu state, preserving .pt if valid
-SUB init_menu_state (BYREF state AS MenuState, menu AS MenuDef)
+SUB init_menu_state (byref state as MenuState, menu as MenuDef)
  WITH state
   .first = 0
   .last = count_menu_items(menu) - 1
@@ -428,9 +434,9 @@ SUB init_menu_state (BYREF state AS MenuState, menu AS MenuDef)
  END WITH
 END SUB
 
-FUNCTION append_menu_item(BYREF menu AS MenuDef, caption AS STRING, BYVAL t AS INTEGER=0, BYVAL sub_t AS INTEGER=0) as integer
- DIM i AS INTEGER
- DIM item AS MenuDefItem ptr
+FUNCTION append_menu_item(byref menu as MenuDef, caption as STRING, byval t as integer=0, byval sub_t as integer=0) as integer
+ DIM i as integer
+ DIM item as MenuDefItem ptr
  item = NEW MenuDefItem
  WITH *item
   .caption = caption
@@ -454,18 +460,18 @@ FUNCTION append_menu_item(BYREF menu AS MenuDef, caption AS STRING, BYVAL t AS I
  RETURN menu.numitems - 1
 END FUNCTION
 
-SUB remove_menu_item(BYREF menu AS MenuDef, BYVAL mi AS MenuDefItem ptr)
+SUB remove_menu_item(byref menu as MenuDef, byval mi as MenuDefItem ptr)
  dlist_remove menu.itemlist, mi
  DELETE mi
  'rebuild menu.items[]
  SortMenuItems menu
 END SUB
 
-SUB remove_menu_item(BYREF menu AS MenuDef, BYVAL mislot AS INTEGER)
+SUB remove_menu_item(byref menu as MenuDef, byval mislot as integer)
  remove_menu_item menu, menu.items[mislot]
 END SUB
 
-SUB swap_menu_items(BYREF menu1 AS MenuDef, BYVAL mislot1 AS INTEGER, BYREF menu2 AS MenuDef, BYVAL mislot2 AS INTEGER)
+SUB swap_menu_items(byref menu1 as MenuDef, byval mislot1 as integer, byref menu2 as MenuDef, byval mislot2 as integer)
  dlist_swap(menu1.itemlist, menu1.items[mislot1], menu2.itemlist, menu2.items[mislot2])
  SortMenuItems menu1
  SortMenuItems menu2
@@ -477,15 +483,15 @@ END SUB
 '==========================================================================================
 
 
-SUB LoadMenuData(menu_set AS MenuSet, dat AS MenuDef, BYVAL record AS INTEGER, BYVAL ignore_items AS INTEGER=NO)
- DIM f AS INTEGER
- DIM bits(0) AS INTEGER
+SUB LoadMenuData(menu_set as MenuSet, dat as MenuDef, byval record as integer, byval ignore_items as integer=NO)
+ DIM f as integer
+ DIM bits(0) as integer
  IF record > gen(genMaxMenu) OR record < 0 THEN
   ClearMenuData dat
   EXIT SUB
  END IF
  f = FREEFILE
- OPEN menu_set.menufile FOR BINARY AS #f
+ OPEN menu_set.menufile FOR BINARY as #f
  SEEK #f, record * getbinsize(binMENUS) + 1
  WITH dat
   .record = record
@@ -517,17 +523,17 @@ SUB LoadMenuData(menu_set AS MenuSet, dat AS MenuDef, BYVAL record AS INTEGER, B
  END IF
 END SUB
 
-SUB LoadMenuItems(menu_set AS MenuSet, menu AS MenuDef, BYVAL record AS INTEGER)
- DIM i AS INTEGER
- DIM f AS INTEGER
- DIM member AS INTEGER
- DIM actual_record_count AS INTEGER = 0
+SUB LoadMenuItems(menu_set as MenuSet, menu as MenuDef, byval record as integer)
+ DIM i as integer
+ DIM f as integer
+ DIM member as integer
+ DIM actual_record_count as integer = 0
  'The items may appear out-of-order in menuitem.bin, so rather than just append them as
  'we find the, first we store them in this temp array:
- REDIM itemarray(0) AS MenuDefItem ptr
+ REDIM itemarray(0) as MenuDefItem ptr
 
  f = FREEFILE
- OPEN menu_set.itemfile FOR BINARY AS #f
+ OPEN menu_set.itemfile FOR BINARY as #f
  'FIXME: this shouldn't be here, it's covered in upgrade() (but commented out currently)
  actual_record_count = LOF(f) / getbinsize(binMENUITEM)
  IF actual_record_count <> gen(genMaxMenuItem) + 1 THEN
@@ -558,11 +564,11 @@ SUB LoadMenuItems(menu_set AS MenuSet, menu AS MenuDef, BYVAL record AS INTEGER)
  SortMenuItems menu
 END SUB
 
-SUB LoadMenuItem(BYVAL f AS INTEGER, items() AS MenuDefItem ptr, BYVAL record AS INTEGER)
- DIM i AS INTEGER
- DIM bits(0) AS INTEGER
- DIM mi AS MenuDefItem ptr
- DIM itemnum AS INTEGER
+SUB LoadMenuItem(byval f as integer, items() as MenuDefItem ptr, byval record as integer)
+ DIM i as integer
+ DIM bits(0) as integer
+ DIM mi as MenuDefItem ptr
+ DIM itemnum as integer
  mi = NEW MenuDefItem
  SEEK #f, record * getbinsize(binMENUITEM) + 1
  WITH *mi
@@ -585,11 +591,11 @@ SUB LoadMenuItem(BYVAL f AS INTEGER, items() AS MenuDefItem ptr, BYVAL record AS
  MenuItemBitsFromArray *mi, bits()
 END SUB
 
-SUB SaveMenuData(menu_set AS MenuSet, dat AS MenuDef, BYVAL record AS INTEGER)
- DIM f AS INTEGER
- DIM bits(0) AS INTEGER
+SUB SaveMenuData(menu_set as MenuSet, dat as MenuDef, byval record as integer)
+ DIM f as integer
+ DIM bits(0) as integer
  f = FREEFILE
- OPEN menu_set.menufile FOR BINARY AS #f
+ OPEN menu_set.menufile FOR BINARY as #f
  SEEK #f, record * getbinsize(binMENUS) + 1
  WITH dat
   WriteByteStr(f, 20, .name)
@@ -613,16 +619,16 @@ SUB SaveMenuData(menu_set AS MenuSet, dat AS MenuDef, BYVAL record AS INTEGER)
  SaveMenuItems menu_set, dat, record
 END SUB
 
-SUB SaveMenuItems(menu_set AS MenuSet, menu AS MenuDef, BYVAL record AS INTEGER)
- DIM i AS INTEGER
- DIM f AS INTEGER
- DIM member AS INTEGER
- DIM elem AS INTEGER = 0
- DIM mi AS MenuDefItem ptr
- DIM blankmi AS MenuDefItem
+SUB SaveMenuItems(menu_set as MenuSet, menu as MenuDef, byval record as integer)
+ DIM i as integer
+ DIM f as integer
+ DIM member as integer
+ DIM elem as integer = 0
+ DIM mi as MenuDefItem ptr
+ DIM blankmi as MenuDefItem
  
  f = FREEFILE
- OPEN menu_set.itemfile FOR BINARY AS #f
+ OPEN menu_set.itemfile FOR BINARY as #f
  'Loop through each record and orphan all old entries for this menu
  FOR i = 0 TO gen(genMaxMenuItem)
   SEEK #f, i * getbinsize(binMENUITEM) + 1
@@ -653,9 +659,9 @@ SUB SaveMenuItems(menu_set AS MenuSet, menu AS MenuDef, BYVAL record AS INTEGER)
  CLOSE #f
 END SUB
 
-SUB SaveMenuItem(BYVAL f AS INTEGER, mi AS MenuDefItem, BYVAL record AS INTEGER, BYVAL menunum AS INTEGER, BYVAL itemnum AS INTEGER)
- DIM i AS INTEGER
- DIM bits(0) AS INTEGER
+SUB SaveMenuItem(byval f as integer, mi as MenuDefItem, byval record as integer, byval menunum as integer, byval itemnum as integer)
+ DIM i as integer
+ DIM bits(0) as integer
  SEEK #f, record * getbinsize(binMENUITEM) + 1
  WITH mi
   WriteShort(f, -1, menunum + 1)
@@ -675,7 +681,7 @@ SUB SaveMenuItem(BYVAL f AS INTEGER, mi AS MenuDefItem, BYVAL record AS INTEGER,
  END WITH
 END SUB
 
-SUB MenuBitsToArray (menu AS MenuDef, bits() AS INTEGER)
+SUB MenuBitsToArray (menu as MenuDef, bits() as integer)
  bits(0) = 0
  WITH menu
   setbit bits(), 0, 0, .translucent
@@ -690,7 +696,7 @@ SUB MenuBitsToArray (menu AS MenuDef, bits() AS INTEGER)
  END WITH
 END SUB
 
-SUB MenuBitsFromArray (menu AS MenuDef, bits() AS INTEGER)
+SUB MenuBitsFromArray (menu as MenuDef, bits() as integer)
  WITH menu
   .translucent    = xreadbit(bits(), 0)
   .no_scrollbar   = xreadbit(bits(), 1)
@@ -704,7 +710,7 @@ SUB MenuBitsFromArray (menu AS MenuDef, bits() AS INTEGER)
  END WITH
 END SUB
 
-SUB MenuItemBitsToArray (mi AS MenuDefItem, bits() AS INTEGER)
+SUB MenuItemBitsToArray (mi as MenuDefItem, bits() as integer)
  bits(0) = 0
  WITH mi
   setbit bits(), 0, 0, .hide_if_disabled
@@ -713,7 +719,7 @@ SUB MenuItemBitsToArray (mi AS MenuDefItem, bits() AS INTEGER)
  END WITH
 END SUB
 
-SUB MenuItemBitsFromArray (mi AS MenuDefItem, bits() AS INTEGER)
+SUB MenuItemBitsFromArray (mi as MenuDefItem, bits() as integer)
  WITH mi
   .hide_if_disabled  = xreadbit(bits(), 0)
   .close_if_selected = xreadbit(bits(), 1)
@@ -721,10 +727,10 @@ SUB MenuItemBitsFromArray (mi AS MenuDefItem, bits() AS INTEGER)
  END WITH
 END SUB
 
-FUNCTION read_menu_int (menu AS MenuDef, BYVAL intoffset AS INTEGER) as integer
+FUNCTION read_menu_int (menu as MenuDef, byval intoffset as integer) as integer
  '--This function allows read access to integers in a menu for the plotscripting interface
  '--intoffset is the integer offset, same as appears in the MENUS.BIN lump documentation
- DIM bits(0) AS INTEGER
+ DIM bits(0) as integer
  WITH menu
   SELECT CASE intoffset
    CASE 12: RETURN .boxstyle
@@ -750,10 +756,10 @@ FUNCTION read_menu_int (menu AS MenuDef, BYVAL intoffset AS INTEGER) as integer
  RETURN 0
 END FUNCTION
 
-SUB write_menu_int (menu AS MenuDef, BYVAL intoffset AS INTEGER, BYVAL n AS INTEGER)
+SUB write_menu_int (menu as MenuDef, byval intoffset as integer, byval n as integer)
  '--This sub allows write access to integers in a menu for the plotscripting interface
  '--intoffset is the integer offset, same as appears in the MENUS.BIN lump documentation
- DIM bits(0) AS INTEGER
+ DIM bits(0) as integer
  WITH menu
   SELECT CASE intoffset
    CASE 12: .boxstyle = n
@@ -778,10 +784,10 @@ SUB write_menu_int (menu AS MenuDef, BYVAL intoffset AS INTEGER, BYVAL n AS INTE
  END WITH
 END SUB
 
-FUNCTION read_menu_item_int (mi AS MenuDefItem, BYVAL intoffset AS INTEGER) as integer
+FUNCTION read_menu_item_int (mi as MenuDefItem, byval intoffset as integer) as integer
  '--This function allows read access to integers in a menu item for the plotscripting interface
  '--intoffset is the integer offset, same as appears in the MENUITEM.BIN lump documentation
- DIM bits(0) AS INTEGER
+ DIM bits(0) as integer
  WITH mi
   SELECT CASE intoffset
    CASE 22: RETURN .t
@@ -801,10 +807,10 @@ FUNCTION read_menu_item_int (mi AS MenuDefItem, BYVAL intoffset AS INTEGER) as i
  RETURN 0
 END FUNCTION
 
-SUB write_menu_item_int (mi AS MenuDefItem, BYVAL intoffset AS INTEGER, BYVAL n AS INTEGER)
+SUB write_menu_item_int (mi as MenuDefItem, byval intoffset as integer, byval n as integer)
  '--This sub allows write access to integers in a menu item for the plotscripting interface
  '--intoffset is the integer offset, same as appears in the MENUITEM.BIN lump documentation
- DIM bits(0) AS INTEGER
+ DIM bits(0) as integer
  WITH mi
   SELECT CASE intoffset
    CASE 22: .t = n
@@ -829,12 +835,12 @@ END SUB
 '==========================================================================================
 
 
-SUB draw_menu (menu AS MenuDef, state AS MenuState, BYVAL page AS INTEGER)
- DIM i AS INTEGER
- DIM elem AS INTEGER
- DIM cap AS STRING
- DIM col AS INTEGER
- DIM where AS XYPair
+SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
+ DIM i as integer
+ DIM elem as integer
+ DIM cap as STRING
+ DIM col as integer
+ DIM where as XYPair
 
  'we actually calculate each menu item caption twice: once also in position_menu
  position_menu menu, page
@@ -875,8 +881,8 @@ SUB draw_menu (menu AS MenuDef, state AS MenuState, BYVAL page AS INTEGER)
  
 END SUB
 
-SUB position_menu_item (menu AS MenuDef, cap AS STRING, BYVAL i AS INTEGER, BYREF where AS XYPair)
- DIM bord AS INTEGER
+SUB position_menu_item (menu as MenuDef, cap as STRING, byval i as integer, byref where as XYPair)
+ DIM bord as integer
  bord = 8 + menu.bordersize
  WITH menu.rect
   SELECT CASE menu.align
@@ -891,10 +897,10 @@ SUB position_menu_item (menu AS MenuDef, cap AS STRING, BYVAL i AS INTEGER, BYRE
  END WITH
 END SUB
 
-SUB position_menu (menu AS MenuDef, BYVAL page AS INTEGER)
- DIM i AS INTEGER
- DIM cap AS STRING
- DIM bord AS INTEGER
+SUB position_menu (menu as MenuDef, byval page as integer)
+ DIM i as integer
+ DIM cap as STRING
+ DIM bord as integer
  bord = 8 + menu.bordersize
 
  menu.rect.wide = bord * 2
@@ -921,7 +927,7 @@ SUB position_menu (menu AS MenuDef, BYVAL page AS INTEGER)
  END WITH
 END SUB
 
-FUNCTION anchor_point(BYVAL anchor AS INTEGER, BYVAL size AS INTEGER) AS INTEGER
+FUNCTION anchor_point(byval anchor as integer, byval size as integer) as integer
  SELECT CASE anchor
   CASE -1
    RETURN 0
@@ -932,9 +938,9 @@ FUNCTION anchor_point(BYVAL anchor AS INTEGER, BYVAL size AS INTEGER) AS INTEGER
  END SELECT
 END FUNCTION
 
-FUNCTION count_menu_items (menu AS MenuDef) as integer
- DIM i AS INTEGER
- DIM count AS INTEGER = 0
+FUNCTION count_menu_items (menu as MenuDef) as integer
+ DIM i as integer
+ DIM count as integer = 0
  FOR i = 0 TO menu.numitems - 1
   WITH *menu.items[i]
    IF .disabled AND .hide_if_disabled THEN CONTINUE FOR
@@ -944,8 +950,8 @@ FUNCTION count_menu_items (menu AS MenuDef) as integer
  RETURN count
 END FUNCTION
 
-FUNCTION get_menu_item_caption (mi AS MenuDefItem, menu AS MenuDef) AS STRING
- DIM cap AS STRING
+FUNCTION get_menu_item_caption (mi as MenuDefItem, menu as MenuDef) as STRING
+ DIM cap as STRING
  cap = mi.caption
  IF LEN(cap) = 0 THEN
   'No caption, use the default
@@ -975,8 +981,8 @@ FUNCTION get_menu_item_caption (mi AS MenuDefItem, menu AS MenuDef) AS STRING
  RETURN cap
 END FUNCTION
 
-FUNCTION get_special_menu_caption(BYVAL subtype AS INTEGER, BYVAL edit_mode AS INTEGER= NO) AS STRING
- DIM cap AS STRING
+FUNCTION get_special_menu_caption(byval subtype as integer, byval edit_mode as integer= NO) as STRING
+ DIM cap as STRING
  SELECT CASE subtype
   CASE 0: cap = readglobalstring(60, "Items", 10)
   CASE 1: cap = readglobalstring(61, "Spells", 10)
@@ -1010,22 +1016,22 @@ END FUNCTION
 '==========================================================================================
 
 
-SUB draw_scrollbar(state AS MenuState, menu AS MenuDef, BYVAL page AS INTEGER)
+SUB draw_scrollbar(state as MenuState, menu as MenuDef, byval page as integer)
  draw_scrollbar state, menu.rect, menu.boxstyle, page
 END SUB
 
-SUB draw_scrollbar(state AS MenuState, rect AS RectType, BYVAL boxstyle AS INTEGER=0, BYVAL page AS INTEGER)
- DIM count AS INTEGER = state.last - state.first + 1
+SUB draw_scrollbar(state as MenuState, rect as RectType, byval boxstyle as integer=0, byval page as integer)
+ DIM count as integer = state.last - state.first + 1
  draw_scrollbar state, rect, count, boxstyle, page
 END SUB
 
 'count being the number of (visible) menu items
-SUB draw_scrollbar(state AS MenuState, rect AS RectType, BYVAL count AS INTEGER, BYVAL boxstyle AS INTEGER=0, BYVAL page AS INTEGER)
+SUB draw_scrollbar(state as MenuState, rect as RectType, byval count as integer, byval boxstyle as integer=0, byval page as integer)
  'recall state.size is off-by-1
  IF state.top > state.first OR count > (state.size + 1) THEN
   IF count > 0 THEN
-   DIM sbar AS RectType
-   DIM slider AS RectType
+   DIM sbar as RectType
+   DIM slider as RectType
    sbar.x = rect.x + rect.wide - 6
    sbar.y = rect.y + 2
    sbar.wide = 4
@@ -1040,8 +1046,8 @@ SUB draw_scrollbar(state AS MenuState, rect AS RectType, BYVAL count AS INTEGER,
  END IF
 END SUB
 
-SUB draw_fullscreen_scrollbar(state AS MenuState, BYVAL boxstyle AS INTEGER=0, BYVAL page AS INTEGER)
- DIM rect AS RectType
+SUB draw_fullscreen_scrollbar(state as MenuState, byval boxstyle as integer=0, byval page as integer)
+ DIM rect as RectType
  rect.wide = 320
  rect.high = 200
  draw_scrollbar state, rect, boxstyle, page
