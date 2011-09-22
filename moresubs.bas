@@ -690,7 +690,7 @@ SUB settag (byval tagnum as integer, byval value as integer = 4444)
  END IF
 END SUB
 
-FUNCTION istag (num as integer, zero as integer) as integer
+FUNCTION istag (byval num as integer, byval zero as integer) as integer
  IF num = 0 THEN RETURN zero 'why go through all that just to return defaults?
  IF num = 1 THEN RETURN 0
  IF num = -1 THEN RETURN -1
