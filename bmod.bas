@@ -45,7 +45,7 @@ DECLARE SUB reset_victory_state (byref vic as VictoryState)
 DECLARE SUB reset_rewards_state (byref rew as RewardsState)
 DECLARE SUB show_victory (byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB trigger_victory(byref bat as BattleState, bslot() as BattleSprite)
-DECLARE SUB fulldeathcheck (killing_attack as integer, bat as BattleState, bslot() as BattleSprite, formdata() as integer)
+DECLARE SUB fulldeathcheck (byval killing_attack as integer, bat as BattleState, bslot() as BattleSprite, formdata() as integer)
 DECLARE SUB anim_flinchstart(byval who as integer, bslot() as BattleSprite, byref attack as AttackData)
 DECLARE SUB anim_flinchdone(byval who as integer, bslot() as BattleSprite, byref attack as AttackData)
 DECLARE SUB draw_battle_sprites(bslot() as BattleSprite)
@@ -57,7 +57,7 @@ DECLARE SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, fo
 DECLARE SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, menubits() as integer, st() as HeroDef)
 DECLARE SUB battle_confirm_target(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
-DECLARE SUB battle_spawn_on_hit(targ as integer, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
+DECLARE SUB battle_spawn_on_hit(byval targ as integer, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
 DECLARE SUB battle_attack_anim_cleanup (byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
 DECLARE SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
 DECLARE SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
@@ -68,15 +68,14 @@ DECLARE SUB battle_background_anim(byref bat as BattleState, formdata() as integ
 DECLARE FUNCTION battle_run_away(byref bat as BattleState, bslot() as BattleSprite) as integer
 DECLARE SUB battle_animate_running_away (bslot() as BattleSprite)
 DECLARE SUB battle_check_delays(byref bat as BattleState, bslot() as BattleSprite)
-DECLARE FUNCTION battle_check_a_delay(byref bat as BattleState, bslot() as BattleSprite, index as integer) as integer
 DECLARE SUB battle_check_for_hero_turns(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE FUNCTION battle_check_a_hero_turn(byref bat as BattleState, bslot() as BattleSprite, byval index as integer) as integer
 DECLARE SUB battle_check_for_enemy_turns(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE FUNCTION battle_check_an_enemy_turn(byref bat as BattleState, bslot() as BattleSprite, byval index as integer) as integer
-DECLARE SUB battle_attack_cancel_target_attack(targ as integer, byref bat as BattleState, bslot() as BattleSprite, byref attack as AttackData)
-DECLARE SUB battle_reevaluate_dead_targets (deadguy as integer, byref bat as BattleState, bslot() as BattleSprite)
-DECLARE SUB battle_sort_away_dead_t_target(deadguy as integer, t() as integer)
-DECLARE SUB battle_counterattacks(byval h as integer, byval targstat as integer, who as integer, attack as AttackData, bslot() as BattleSprite)
+DECLARE SUB battle_attack_cancel_target_attack(byval targ as integer, byref bat as BattleState, bslot() as BattleSprite, byref attack as AttackData)
+DECLARE SUB battle_reevaluate_dead_targets (byval deadguy as integer, byref bat as BattleState, bslot() as BattleSprite)
+DECLARE SUB battle_sort_away_dead_t_target(byval deadguy as integer, t() as integer)
+DECLARE SUB battle_counterattacks(byval h as integer, byval targstat as integer, byval who as integer, attack as AttackData, bslot() as BattleSprite)
 DECLARE SUB show_first_battle_timer ()
 
 'these are the battle global variables
@@ -609,7 +608,7 @@ SUB battle_attack_anim_cleanup (byref attack as AttackData, byref bat as BattleS
 
 END SUB
 
-SUB battle_spawn_on_hit(targ as integer, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
+SUB battle_spawn_on_hit(byval targ as integer, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
  DIM i as integer
  DIM j as integer
  DIM slot as integer
@@ -1311,7 +1310,7 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
  fulldeathcheck -1, bat, bslot(), formdata()
 END SUB
 
-SUB fulldeathcheck (killing_attack as integer, bat as BattleState, bslot() as BattleSprite, formdata() as integer)
+SUB fulldeathcheck (byval killing_attack as integer, bat as BattleState, bslot() as BattleSprite, formdata() as integer)
  '--Runs check_death on all enemies, checks all heroes for death, and sets bat.death_mode if necessary
  'killing_attack is the attack ID that was just used, or -1 for none
  DIM deadguy as integer
@@ -3115,7 +3114,7 @@ SUB queue_attack(byval attack as integer, byval who as integer, byval delay as i
  set_attack_queue_slot oldbound + 1, attack, who, delay, targs(), blocking
 END SUB
 
-SUB set_attack_queue_slot(slot as integer, attack as integer, who as integer, delay as integer, targs() as integer, blocking as integer=YES, dont_retarget as integer = NO)
+SUB set_attack_queue_slot(byval slot as integer, byval attack as integer, byval who as integer, byval delay as integer, targs() as integer, byval blocking as integer=YES, byval dont_retarget as integer = NO)
  WITH atkq(slot)
   .used = YES
   .attack = attack
@@ -3135,7 +3134,7 @@ SUB clear_attack_queue()
  NEXT i
 END SUB
 
-SUB clear_attack_queue_slot(slot as integer)
+SUB clear_attack_queue_slot(byval slot as integer)
  WITH atkq(slot)
   .used = NO
   .attack = -1
@@ -3308,7 +3307,7 @@ FUNCTION battle_check_an_enemy_turn(byref bat as BattleState, bslot() as BattleS
  RETURN NO
 END FUNCTION
 
-FUNCTION blocked_by_attack (who as integer) as integer
+FUNCTION blocked_by_attack (byval who as integer) as integer
  FOR i as integer = 0 TO UBOUND(atkq)
   WITH atkq(i)
    IF .used ANDALSO .attacker = who ANDALSO .delay > 0 ANDALSO .blocking THEN RETURN YES
@@ -3317,7 +3316,7 @@ FUNCTION blocked_by_attack (who as integer) as integer
  RETURN NO
 END FUNCTION
 
-FUNCTION ready_meter_may_grow (bslot() as BattleSprite, who as integer) as integer
+FUNCTION ready_meter_may_grow (bslot() as BattleSprite, byval who as integer) as integer
  WITH bslot(who)
   IF .attack <> 0 THEN RETURN NO
   IF .dissolve <> 0 THEN RETURN NO
@@ -3328,7 +3327,7 @@ FUNCTION ready_meter_may_grow (bslot() as BattleSprite, who as integer) as integ
  RETURN YES
 END FUNCTION
 
-SUB battle_attack_cancel_target_attack(targ as integer, byref bat as BattleState, bslot() as BattleSprite, byref attack as AttackData)
+SUB battle_attack_cancel_target_attack(byval targ as integer, byref bat as BattleState, bslot() as BattleSprite, byref attack as AttackData)
  IF attack.cancel_targets_attack THEN
   '--try to cancel target's attack
   DIM targets_attack as AttackData
@@ -3356,7 +3355,7 @@ SUB battle_attack_cancel_target_attack(targ as integer, byref bat as BattleState
  END IF
 END SUB
 
-SUB battle_reevaluate_dead_targets (deadguy as integer, byref bat as BattleState, bslot() as BattleSprite)
+SUB battle_reevaluate_dead_targets (byval deadguy as integer, byref bat as BattleState, bslot() as BattleSprite)
  '--check for queued attacks that target the dead target
  FOR i as integer = 0 TO UBOUND(atkq)
   WITH atkq(i)
@@ -3408,7 +3407,7 @@ SUB battle_reevaluate_dead_targets (deadguy as integer, byref bat as BattleState
  END IF  '----END ONLY WHEN bat.targ.hit_dead = NO
 END SUB
 
-SUB battle_sort_away_dead_t_target(deadguy as integer, t() as integer)
+SUB battle_sort_away_dead_t_target(byval deadguy as integer, t() as integer)
  '--FIXME: la la la! James loves Bogo-sorts!
  FOR i as integer = 0 TO UBOUND(t) - 1
   '--crappy bogo-sort dead target away
@@ -3417,7 +3416,7 @@ SUB battle_sort_away_dead_t_target(deadguy as integer, t() as integer)
  IF t(UBOUND(t)) = deadguy THEN t(UBOUND(t)) = -1
 END SUB
 
-SUB battle_counterattacks(byval h as integer, byval targstat as integer, who as integer, attack as AttackData, bslot() as BattleSprite)
+SUB battle_counterattacks(byval h as integer, byval targstat as integer, byval who as integer, attack as AttackData, bslot() as BattleSprite)
  DIM t(11) as integer
  '--first elementals
  FOR i as integer = 0 TO gen(genNumElements) - 1
