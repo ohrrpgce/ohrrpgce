@@ -3,6 +3,14 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
+#endif
+
 #include "config.bi"
 #include "udts.bi"
 #include "const.bi"
@@ -16,8 +24,6 @@
 USING RELOAD
 USING RELOAD.EXT
 
-option explicit
-
 #IFDEF IS_CUSTOM
 EXTERN slave_channel as IPCChannel
 #ENDIF
@@ -27,14 +33,14 @@ EXTERN slave_channel as IPCChannel
 '==========================================================================================
 
 
-FUNCTION DeSerSingle (buf() as integer, BYVAL index as integer) as single
+FUNCTION DeSerSingle (buf() as integer, byval index as integer) as single
   DIM ret as single
   CAST(short ptr, @ret)[0] = buf(index)
   CAST(short ptr, @ret)[1] = buf(index + 1)
   RETURN ret
 END FUNCTION
 
-SUB SerSingle (buf() as integer, BYVAL index as integer, BYVAL sing as single)
+SUB SerSingle (buf() as integer, byval index as integer, byval sing as single)
   buf(index) = CAST(short ptr, @sing)[0]
   buf(index + 1) = CAST(short ptr, @sing)[1]
 END SUB
@@ -64,7 +70,7 @@ PRIVATE SUB LoadNPCD_internal (file as string, dat() as NPCType, byref arraylen 
   NEXT i
 
   f = FREEFILE
-  OPEN file FOR BINARY ACCESS READ AS #f
+  OPEN file FOR BINARY ACCESS READ as #f
   SEEK #f, 8
 
   arraylen = (LOF(f) - 7) \ getbinsize(binN)
@@ -97,13 +103,13 @@ END SUB
 'As for LoadNPCD, there are two versions of SaveNPCD. See comment above
 
 SUB SaveNPCD_fixedlen(file as string, dat() as NPCType, byval arraylen as integer)
-  DIM AS INTEGER i, j, f
+  DIM as integer i, j, f
 
   'We want to truncate the file to the right length
   safekill file
 
   f = FREEFILE
-  OPEN file FOR BINARY ACCESS WRITE AS #f  'Should also truncate
+  OPEN file FOR BINARY ACCESS WRITE as #f  'Should also truncate
   SEEK #f, 8
 
   DIM as integer recordlen = getbinsize(binN) \ 2
@@ -129,20 +135,20 @@ SUB SaveNPCD(file as string, dat() as NPCType)
 END SUB
 
 'Prefer write_npc_int instead in the future, as it lacks pointer thoughtcrime
-SUB SetNPCD(npcd AS NPCType, offset AS INTEGER, value AS INTEGER)
-  STATIC maxoffset AS INTEGER = -1
+SUB SetNPCD(npcd as NPCType, offset as integer, value as integer)
+  STATIC maxoffset as integer = -1
   IF maxoffset = -1 THEN maxoffset = (curbinsize(binN) \ 2) - 1
 
   IF offset >= 0 AND offset <= maxoffset THEN
     (@npcd.picture)[offset] = value
   ELSE
-    debug "Attempt to write NPC data out-of-range. offset=" + STR$(offset) + " value=" + STR$(value)
+    debug "Attempt to write NPC data out-of-range. offset=" & offset & " value=" & value
   END IF
 END SUB
 
 'Prefer read_npc_int instead in the future, as it lacks pointer thoughtcrime
-FUNCTION GetNPCD(npcd AS NPCType, offset AS INTEGER) AS INTEGER
-  STATIC maxoffset AS INTEGER = -1
+FUNCTION GetNPCD(npcd as NPCType, offset as integer) as integer
+  STATIC maxoffset as integer = -1
   IF maxoffset = -1 THEN maxoffset = (curbinsize(binN) \ 2) - 1
 
   IF offset >= 0 AND offset <= maxoffset THEN
@@ -176,7 +182,7 @@ SUB CleanNPCDefinition(dat as NPCType)
 END SUB
 
 SUB CleanNPCD(dat() as NPCType)
-  FOR i AS INTEGER = 0 TO UBOUND(dat)
+  FOR i as integer = 0 TO UBOUND(dat)
     CleanNPCDefinition dat(i)
   NEXT
 END SUB
@@ -189,10 +195,10 @@ END SUB
 
 'Legacy (used for .L); not kept up to date with changes to NPCInst
 SUB LoadNPCL(file as string, dat() as NPCInst)
-  DIM i AS INTEGER
-  DIM f AS INTEGER
+  DIM i as integer
+  DIM f as integer
   f = FREEFILE
-  OPEN file FOR BINARY ACCESS READ AS #f
+  OPEN file FOR BINARY ACCESS READ as #f
   SEEK #f, 8
   CleanNPCL dat()
   FOR i = 0 to 299
@@ -215,10 +221,10 @@ END SUB
 
 'Legacy (used for .L); not kept up to date with changes to NPCInst
 SUB SaveNPCL(file as string, dat() as NPCInst)
-  DIM i AS INTEGER
-  DIM f AS INTEGER
+  DIM i as integer
+  DIM f as integer
   f = FREEFILE
-  OPEN file FOR BINARY ACCESS WRITE AS #f  'truncates
+  OPEN file FOR BINARY ACCESS WRITE as #f  'truncates
   SEEK #f, 8
   FOR i = 0 to 299
     WriteShort f, -1, dat(i).x / 20
@@ -240,7 +246,7 @@ END SUB
 
 'Legacy (used in .SAV); not kept up to date with changes to NPCInst
 'num is always 300.
-SUB DeserNPCL(npc() as NPCInst, z, buffer(), num as integer, xoffset as integer, yoffset as integer)
+SUB DeserNPCL(npc() as NPCInst, byref z as integer, buffer() as integer, byval num as integer, byval xoffset as integer, byval yoffset as integer)
   DIM i as integer
   CleanNPCL npc()
   FOR i = 0 to num - 1
@@ -266,7 +272,7 @@ SUB DeserNPCL(npc() as NPCInst, z, buffer(), num as integer, xoffset as integer,
   NEXT
 END SUB
 
-SUB CleanNPCInst(inst as NPCInst)
+SUB CleanNPCInst(byref inst as NPCInst)
   WITH inst
    .x = 0
    .y = 0
@@ -290,11 +296,11 @@ SUB CleanNPCL(dat() as NPCInst, byval num as integer=-1)
   NEXT
 END SUB
 
-SUB save_npc_locations(filename AS STRING, npc() AS NPCInst)
- DIM doc AS DocPtr
+SUB save_npc_locations(filename as string, npc() as NPCInst)
+ DIM doc as DocPtr
  doc = CreateDocument()
  
- DIM node AS NodePtr
+ DIM node as NodePtr
  node = CreateNode(doc, "npcs")
  SetRootNode(doc, node)
  save_npc_locations node, npc()
@@ -304,11 +310,11 @@ SUB save_npc_locations(filename AS STRING, npc() AS NPCInst)
  FreeDocument doc
 END SUB
 
-SUB save_npc_locations(BYVAL npcs_node AS NodePtr, npc() AS NPCInst)
+SUB save_npc_locations(byval npcs_node as NodePtr, npc() as NPCInst)
  IF NumChildren(npcs_node) <> 0 THEN
   debug "WARNING: saving NPC locations to a Reload node that already has " & NumChildren(npcs_node) & " children!"
  END IF
- FOR i AS INTEGER = 0 TO UBOUND(npc)
+ FOR i as integer = 0 TO UBOUND(npc)
   WITH npc(i)
    IF .id <> 0 THEN 'FIXME: When the "save" node is fully supported it will be main the criteria that determines if a node is written
     save_npc_loc npcs_node, i, npc(i)
@@ -317,14 +323,14 @@ SUB save_npc_locations(BYVAL npcs_node AS NodePtr, npc() AS NPCInst)
  NEXT i
 END SUB
 
-SUB save_npc_loc (BYVAL parent AS NodePtr, BYVAL index AS integer, npc AS NPCInst)
+SUB save_npc_loc (byval parent as NodePtr, byval index as integer, npc as NPCInst)
  'Map offset does not need to be used when saving temporary npc states
- DIM map_offset AS XYPair
+ DIM map_offset as XYPair
  save_npc_loc parent, index, npc, map_offset
 END SUB
 
-SUB save_npc_loc (BYVAL parent AS NodePtr, BYVAL index AS integer, npc AS NPCInst, map_offset AS XYPair)
- DIM n AS NodePtr
+SUB save_npc_loc (byval parent as NodePtr, byval index as integer, npc as NPCInst, map_offset as XYPair)
+ DIM n as NodePtr
  n = AppendChildNode(parent, "npc", index)
  WITH npc
   SetChildNode(n, "id", ABS(.id) - 1)
@@ -334,7 +340,7 @@ SUB save_npc_loc (BYVAL parent AS NodePtr, BYVAL index AS integer, npc AS NPCIns
   SetChildNode(n, "fr", .frame)
   IF .xgo THEN SetChildNode(n, "xgo", .xgo)
   IF .ygo THEN SetChildNode(n, "ygo", .ygo)
-  FOR j AS INTEGER = 0 TO 2
+  FOR j as integer = 0 TO 2
    IF .extra(j) THEN SetKeyValueNode(n, "extra", j, .extra(j))
   NEXT
   IF .ignore_walls THEN SetChildNode(n, "ignore_walls")
@@ -345,16 +351,16 @@ SUB save_npc_loc (BYVAL parent AS NodePtr, BYVAL index AS integer, npc AS NPCIns
  END WITH
 END SUB
 
-SUB load_npc_locations (filename AS STRING, npc() AS NPCInst)
+SUB load_npc_locations (filename as string, npc() as NPCInst)
  IF NOT isfile(filename) THEN
   debug "load_npc_locations: file doesn't exist: '" & filename & "'"
   EXIT SUB
  END IF
 
- DIM doc AS DocPtr
+ DIM doc as DocPtr
  doc = LoadDocument(filename)
  
- DIM node AS NodePtr
+ DIM node as NodePtr
  node = DocumentRoot(doc)
  
  load_npc_locations node, npc()
@@ -362,15 +368,15 @@ SUB load_npc_locations (filename AS STRING, npc() AS NPCInst)
  FreeDocument doc
 END SUB
 
-SUB load_npc_locations (BYVAL npcs_node AS NodePtr, npc() AS NPCInst)
+SUB load_npc_locations (byval npcs_node as NodePtr, npc() as NPCInst)
  IF NodeName(npcs_node) <> "npcs" THEN
   debug "WARNING: load_npc_locations expected a node named 'npcs' but found '" & NodeName(npcs_node) & "' instead."
  END IF
- FOR i AS INTEGER = 0 TO UBOUND(npc)
+ FOR i as integer = 0 TO UBOUND(npc)
   WITH npc(i)
    '--disable/hide this NPC by default
    .id = 0
-   DIM n AS NodePtr
+   DIM n as NodePtr
    n = NodeByPath(npcs_node, "/npc[" & i & "]")
    IF n THEN
     load_npc_loc n, npc(i)
@@ -379,13 +385,13 @@ SUB load_npc_locations (BYVAL npcs_node AS NodePtr, npc() AS NPCInst)
  NEXT i
 END SUB
 
-SUB load_npc_loc (BYVAL n AS NodePtr, npc AS NPCInst)
+SUB load_npc_loc (byval n as NodePtr, npc as NPCInst)
  'Map offset does not need to be used when loading temporary npc states
- DIM map_offset AS XYPair
+ DIM map_offset as XYPair
  load_npc_loc n, npc, map_offset
 END SUB
 
-SUB load_npc_loc (BYVAL n AS NodePtr, npc AS NPCInst, map_offset AS XYPair)
+SUB load_npc_loc (byval n as NodePtr, npc as NPCInst, map_offset as XYPair)
  IF NodeName(n) <> "npc" THEN
   debug "load_npc_loc: loading npc location data into a node named """ & NodeName(n) & """"
  END IF
@@ -400,10 +406,10 @@ SUB load_npc_loc (BYVAL n AS NodePtr, npc AS NPCInst, map_offset AS XYPair)
    .xgo = GetChildNodeInt(n, "xgo")
    .ygo = GetChildNodeInt(n, "ygo")
    flusharray .extra()
-   DIM ex AS NodePtr
+   DIM ex as NodePtr
    ex = FirstChild(n, "extra")
    WHILE ex
-    DIM exid AS INTEGER = GetInteger(ex)
+    DIM exid as integer = GetInteger(ex)
     IF exid >= 0 AND exid <= 2 THEN
      .extra(exid) = GetChildNodeInt(n, "int")
     ELSE
@@ -427,7 +433,7 @@ END SUB
 '==========================================================================================
 
 
-SUB SerInventory8Bit(invent() as InventSlot, z, buf())
+SUB SerInventory8Bit(invent() as InventSlot, byref z as integer, buf() as integer)
   DIM i as integer, j as integer
   buf(z) = 1 'Instruct new versions of game to ignore all this junk and use the 16-bit data instead
   '...but go ahead and write the 8-bit data so that loading a new SAV in an old version of game
@@ -444,7 +450,7 @@ SUB SerInventory8Bit(invent() as InventSlot, z, buf())
   z += 2  'slots 198 and 199 not useable
   z += 3 * 12
   FOR i = 0 to 197 ' hard code old inventoryMax
-    IF invent(i).used = 0 THEN invent(i).text = SPACE$(11)
+    IF invent(i).used = 0 THEN invent(i).text = SPACE(11)
     'unfortunately, this isn't exactly the badbinstring format
     FOR j = 0 TO 11
      'actually max length is 11, last byte always wasted
@@ -455,7 +461,7 @@ SUB SerInventory8Bit(invent() as InventSlot, z, buf())
   z += 2 * 12
 END SUB
 
-SUB DeserInventory8Bit(invent() as InventSlot, z, buf())
+SUB DeserInventory8Bit(invent() as InventSlot, byref z as integer, buf() as integer)
   DIM i as integer, j as integer, temp as string
   z += 3
   FOR i = 0 TO 197 ' hard code old inventoryMax
@@ -469,11 +475,11 @@ SUB DeserInventory8Bit(invent() as InventSlot, z, buf())
   FOR i = 0 TO 197 ' hard code old inventoryMax
     temp = ""
     FOR j = 0 TO 11
-      IF buf(z) > 0 AND buf(z) <= 255 THEN temp = temp + CHR$(buf(z))
+      IF buf(z) > 0 AND buf(z) <= 255 THEN temp = temp + CHR(buf(z))
       z += 1
     NEXT j
     '--Don't bother actually using the stored string. it is rebuilt later with rebuild_inventory_captions()
-    'invent(i).text = temp$
+    'invent(i).text = temp
   NEXT
   z += 2 * 12
 END SUB
@@ -482,13 +488,13 @@ SUB CleanInventory(invent() as InventSlot)
   DIM i as integer
   FOR i = 0 TO inventoryMax
     invent(i).used = 0
-    invent(i).text = SPACE$(11)
+    invent(i).text = SPACE(11)
   NEXT
 END SUB
 
-SUB SaveInventory16bit(invent() AS InventSlot, BYREF z AS INTEGER, buf() AS INTEGER, BYVAL first AS INTEGER=0, BYVAL last AS INTEGER=-1)
+SUB SaveInventory16bit(invent() as InventSlot, byref z as integer, buf() as integer, byval first as integer=0, byval last as integer=-1)
   IF last = -1 THEN last = UBOUND(invent)
-  DIM i AS INTEGER
+  DIM i as integer
   FOR i = first TO small(inventoryMax, last)
     WITH invent(i)
       IF .used THEN
@@ -503,9 +509,9 @@ SUB SaveInventory16bit(invent() AS InventSlot, BYREF z AS INTEGER, buf() AS INTE
   NEXT i
 END SUB
 
-SUB LoadInventory16Bit(invent() AS InventSlot, BYREF z AS INTEGER, buf() AS INTEGER, BYVAL first AS INTEGER=0, BYVAL last AS INTEGER=-1)
+SUB LoadInventory16Bit(invent() as InventSlot, byref z as integer, buf() as integer, byval first as integer=0, byval last as integer=-1)
   IF last = -1 THEN last = UBOUND(invent)
-  DIM i AS INTEGER
+  DIM i as integer
   FOR i = first TO small(inventoryMax, last)
     WITH invent(i)
       .num = buf(z+1)
@@ -544,7 +550,7 @@ END SUB
 'Get size of a tilemap file; returns false if badly formed
 FUNCTION GetTilemapInfo(filename as string, info as TilemapInfo) as integer
   DIM as integer fh = FREEFILE
-  IF OPEN(filename FOR BINARY ACCESS READ AS #fh) <> 0 THEN RETURN NO
+  IF OPEN(filename FOR BINARY ACCESS READ as #fh) <> 0 THEN RETURN NO
   WITH info
     .wide = readshort(fh, 8)  'skip over BSAVE header
     .high = readshort(fh, 10)
@@ -566,9 +572,9 @@ END FUNCTION
 SUB LoadTilemap(map as TileMap, filename as string)
   IF map.data THEN DEALLOCATE map.data
 
-  DIM AS INTEGER fh
+  DIM as integer fh
   fh = FREEFILE
-  OPEN filename FOR BINARY ACCESS READ AS #fh
+  OPEN filename FOR BINARY ACCESS READ as #fh
   map.wide = bound(readshort(fh, 8), 16, 32678)
   map.high = bound(readshort(fh, 10), 10, 32678)
   map.layernum = 0
@@ -586,13 +592,13 @@ END SUB
 'FIXME: early versions always saved 32000 bytes of tile data (ie, 32011 total)!
 'This will cause extra spurious map layers to be loaded!
 SUB LoadTilemaps(layers() as TileMap, filename as string)
-  DIM AS INTEGER fh, numlayers, i, wide, high
+  DIM as integer fh, numlayers, i, wide, high
   FOR i = 0 TO UBOUND(layers)
     IF layers(i).data THEN DEALLOCATE layers(i).data
   NEXT
 
   fh = FREEFILE
-  OPEN filename FOR BINARY ACCESS READ AS #fh
+  OPEN filename FOR BINARY ACCESS READ as #fh
   wide = bound(readshort(fh, 8), 16, 32678)
   high = bound(readshort(fh, 10), 10, 32678)
   numlayers = (LOF(fh) - 11) \ (wide * high)
@@ -620,7 +626,7 @@ SUB SaveTilemap(tmap as TileMap, filename as string)
   DIM fh as integer
   safekill filename
   fh = FREEFILE
-  OPEN filename FOR BINARY ACCESS WRITE AS #fh  'Should also truncate
+  OPEN filename FOR BINARY ACCESS WRITE as #fh  'Should also truncate
   writeshort fh, 8, tmap.wide
   writeshort fh, 10, tmap.high
   PUT #fh, 12, *tmap.data, tmap.wide * tmap.high
@@ -631,7 +637,7 @@ SUB SaveTilemaps(tmaps() as TileMap, filename as string)
   DIM fh as integer
   safekill filename
   fh = FREEFILE
-  OPEN filename FOR BINARY ACCESS WRITE AS #fh  'Should also truncate
+  OPEN filename FOR BINARY ACCESS WRITE as #fh  'Should also truncate
   writeshort fh, 8, tmaps(0).wide
   writeshort fh, 10, tmaps(0).high
   SEEK #fh, 12
@@ -641,7 +647,7 @@ SUB SaveTilemaps(tmaps() as TileMap, filename as string)
   CLOSE #fh
 END SUB
 
-SUB CleanTilemap(map as TileMap, BYVAL wide as integer, BYVAL high as integer, BYVAL layernum as integer = 0)
+SUB CleanTilemap(map as TileMap, byval wide as integer, byval high as integer, byval layernum as integer = 0)
   'two purposes: allocate a new tilemap, or blank an existing one
   UnloadTilemap(map)
   map.wide = wide
@@ -650,7 +656,7 @@ SUB CleanTilemap(map as TileMap, BYVAL wide as integer, BYVAL high as integer, B
   map.layernum = layernum
 END SUB
 
-SUB CleanTilemaps(layers() as TileMap, BYVAL wide as integer, BYVAL high as integer, BYVAL numlayers as integer)
+SUB CleanTilemaps(layers() as TileMap, byval wide as integer, byval high as integer, byval numlayers as integer)
   'two purposes: allocate a new tilemap, or blank an existing one
   UnloadTilemaps layers()
   REDIM layers(numlayers - 1)
@@ -739,7 +745,7 @@ END SUB
 
 
 'Used both to blank out an existing ZoneMap, or initialise it from zeroed-out memory
-SUB CleanZoneMap(zmap as ZoneMap, BYVAL wide as integer, BYVAL high as integer)
+SUB CleanZoneMap(zmap as ZoneMap, byval wide as integer, byval high as integer)
   WITH zmap
     IF .bitmap THEN DeleteZoneMap(zmap)
     .wide = wide
@@ -774,7 +780,7 @@ END SUB
 'Fills zones() with the IDs of all the zones which this tile is a part of.
 'zones() should be a dynamic array, it's filled with unsorted ID numbers in zones(0) onwards
 'zones() is REDIMed to start at -1, for fake zero-length arrays
-SUB GetZonesAtTile(zmap as ZoneMap, zones() as integer, BYVAL x as integer, BYVAL y as integer)
+SUB GetZonesAtTile(zmap as ZoneMap, zones() as integer, byval x as integer, byval y as integer)
   WITH zmap
     DIM bitvector as ushort = .bitmap[x + y * .wide]
     DIM IDmap as ushort ptr = @.zoneIDmap[(x \ 4 + (y \ 4) * .wide_segments) * 16]
@@ -795,7 +801,7 @@ SUB GetZonesAtTile(zmap as ZoneMap, zones() as integer, BYVAL x as integer, BYVA
 END SUB
 
 'Is a tile in a zone?
-FUNCTION CheckZoneAtTile(zmap as ZoneMap, BYVAL id as integer, BYVAL x as integer, BYVAL y as integer) as integer
+FUNCTION CheckZoneAtTile(zmap as ZoneMap, byval id as integer, byval x as integer, byval y as integer) as integer
   'Could call CheckZoneAtTile, but this is more efficient
   WITH zmap
     DIM bitvector as ushort = .bitmap[x + y * .wide]
@@ -814,7 +820,7 @@ FUNCTION CheckZoneAtTile(zmap as ZoneMap, BYVAL id as integer, BYVAL x as intege
 END FUNCTION
 
 'Print ZoneMap debug info, including data about a specific tile if specified
-SUB DebugZoneMap(zmap as ZoneMap, BYVAL x as integer = -1, BYVAL y as integer = -1)
+SUB DebugZoneMap(zmap as ZoneMap, byval x as integer = -1, byval y as integer = -1)
   WITH zmap
     DIM memusage as integer
     memusage = .wide * .high * 2 + .wide_segments * .high_segments * 32 + .extraID_hash.numitems * SIZEOF(ZoneHashedSegment) + .extraID_hash.tablesize * SIZEOF(any ptr)
@@ -852,7 +858,7 @@ END FUNCTION
 
 'Return ptr to the ZoneInfo for a certain zone, creating it if it doesn't yet exist.
 '(It doesn't matter if we create a lot of extra ZoneInfo's, they won't be saved)
-FUNCTION GetZoneInfo(zmap as ZoneMap, BYVAL id as integer) as ZoneInfo ptr
+FUNCTION GetZoneInfo(zmap as ZoneMap, byval id as integer) as ZoneInfo ptr
   WITH zmap
     FOR i as integer = 0 TO .numzones - 1
       IF .zones[i].id = id THEN RETURN @.zones[i]
@@ -863,13 +869,13 @@ FUNCTION GetZoneInfo(zmap as ZoneMap, BYVAL id as integer) as ZoneInfo ptr
   END WITH
 END FUNCTION
 
-PRIVATE SUB ZoneInfoBookkeeping(zmap as ZoneMap, BYVAL id as integer, BYVAL delta as integer = 0)
+PRIVATE SUB ZoneInfoBookkeeping(zmap as ZoneMap, byval id as integer, byval delta as integer = 0)
   DIM info as ZoneInfo ptr
   info = GetZoneInfo(zmap, id)
   info->numtiles += delta
 END SUB
 
-PRIVATE FUNCTION ZoneMapAddExtraSegment(zmap as ZoneMap, BYVAL x as integer, BYVAL y as integer) as ZoneHashedSegment ptr
+PRIVATE FUNCTION ZoneMapAddExtraSegment(zmap as ZoneMap, byval x as integer, byval y as integer) as ZoneHashedSegment ptr
   DIM tiledescriptor as ZoneHashedSegment ptr = CALLOCATE(SIZEOF(ZoneHashedSegment))
   tiledescriptor->hashed.hash = (x SHL 16) OR y
   hash_add(zmap.extraID_hash, tiledescriptor)
@@ -878,7 +884,7 @@ END FUNCTION
 
 'Add tile to zone.
 'Returns success, or 0 if there are already too many overlapping zones there
-FUNCTION SetZoneTile(zmap as ZoneMap, BYVAL id as integer, BYVAL x as integer, BYVAL y as integer) as integer
+FUNCTION SetZoneTile(zmap as ZoneMap, byval id as integer, byval x as integer, byval y as integer) as integer
   IF CheckZoneAtTile(zmap, id, x, y) THEN RETURN YES
   ZoneInfoBookkeeping zmap, id, 1
   WITH zmap
@@ -920,7 +926,7 @@ FUNCTION SetZoneTile(zmap as ZoneMap, BYVAL id as integer, BYVAL x as integer, B
 END FUNCTION
 
 'Remove tile from zone.
-SUB UnsetZoneTile(zmap as ZoneMap, BYVAL id as integer, BYVAL x as integer, BYVAL y as integer)
+SUB UnsetZoneTile(zmap as ZoneMap, byval id as integer, byval x as integer, byval y as integer)
   WITH zmap
     DIM bitvector as ushort ptr = @.bitmap[x + y * .wide]
     DIM IDmap as ushort ptr = @.zoneIDmap[(x \ 4 + (y \ 4) * .wide_segments) * 16]
@@ -951,7 +957,7 @@ SUB UnsetZoneTile(zmap as ZoneMap, BYVAL id as integer, BYVAL x as integer, BYVA
   END WITH 
 END SUB
 
-PRIVATE FUNCTION ZoneBitmaskFromIDMap(BYVAL IDmap as ushort ptr, BYVAL id as integer) as uinteger
+PRIVATE FUNCTION ZoneBitmaskFromIDMap(byval IDmap as ushort ptr, byval id as integer) as uinteger
   FOR i as integer = 0 TO 14
     IF IDmap[i] = id THEN RETURN 1 SHL i
   NEXT
@@ -959,7 +965,7 @@ PRIVATE FUNCTION ZoneBitmaskFromIDMap(BYVAL IDmap as ushort ptr, BYVAL id as int
 END FUNCTION
 
 'Sets a certain bit in each tile to 1 or 0 depending on whether that tile is in a certain zone
-SUB ZoneToTileMap(zmap as ZoneMap, tmap as TileMap, BYVAL id as integer, BYVAL bitnum as integer)
+SUB ZoneToTileMap(zmap as ZoneMap, tmap as TileMap, byval id as integer, byval bitnum as integer)
 'static accum as double=0.0, samples as integer = 0
   DIM t as double = timer
   WITH zmap
@@ -999,7 +1005,7 @@ END SUB
 
 'Adds 'rows' node to a .Z## root RELOAD node describing the tile data.
 'rect.x/y give an offset, and rect.w/h a size to trim to; used for resizing a map.
-PRIVATE SUB SerializeZoneTiles(zmap as ZoneMap, BYVAL root as NodePtr, rect as RectType)
+PRIVATE SUB SerializeZoneTiles(zmap as ZoneMap, byval root as NodePtr, rect as RectType)
   DIM t as double = TIMER
 
   DIM as NodePtr rowsnode, rownode, idnode, spannode
@@ -1064,7 +1070,7 @@ PRIVATE SUB SerializeZoneTiles(zmap as ZoneMap, BYVAL root as NodePtr, rect as R
 END SUB
 
 'Set zone tiles according to a .Z document ('rows' node)
-PRIVATE SUB DeserializeZoneTiles(zmap as ZoneMap, BYVAL root as NodePtr)
+PRIVATE SUB DeserializeZoneTiles(zmap as ZoneMap, byval root as NodePtr)
   DIM as NodePtr rowsnode, rownode, idnode
   rowsnode = GetChildByName(root, "rows")
   IF rowsnode = NULL THEN
@@ -1532,8 +1538,8 @@ END SUB
 '==========================================================================================
 
 
-SUB LoadVehicle (file AS STRING, vehicle AS VehicleData, BYVAL record AS INTEGER)
-  DIM buf(39)
+SUB LoadVehicle (file as string, vehicle as VehicleData, byval record as integer)
+  DIM buf(39) as integer
   LoadVehicle file, buf(), vehicle.name, record
   WITH vehicle
     .speed          = buf(8)
@@ -1560,14 +1566,14 @@ SUB LoadVehicle (file AS STRING, vehicle AS VehicleData, BYVAL record AS INTEGER
   END WITH
 END SUB
 
-SUB LoadVehicle (file AS STRING, veh(), vehname AS STRING, BYVAL record AS INTEGER)
+SUB LoadVehicle (file as string, veh() as integer, vehname as string, byval record as integer)
  loadrecord veh(), file, 40, record
- vehname$ = STRING$(bound(veh(0) AND 255, 0, 15), 0)
- array2str veh(), 1, vehname$
+ vehname = STRING(bound(veh(0) AND 255, 0, 15), 0)
+ array2str veh(), 1, vehname
 END SUB
 
-SUB SaveVehicle (file AS STRING, vehicle AS VehicleData, BYVAL record AS INTEGER)
-  DIM buf(39)
+SUB SaveVehicle (file as string, byref vehicle as VehicleData, byval record as integer)
+  DIM buf(39) as integer
   WITH vehicle
     buf(39) = .speed
     buf(11) = .random_battles
@@ -1594,13 +1600,13 @@ SUB SaveVehicle (file AS STRING, vehicle AS VehicleData, BYVAL record AS INTEGER
   SaveVehicle file, buf(), vehicle.name, record
 END SUB
 
-SUB SaveVehicle (file AS STRING, veh(), vehname AS STRING, BYVAL record AS INTEGER)
- veh(0) = bound(LEN(vehname$), 0, 15)
- str2array vehname$, veh(), 1
+SUB SaveVehicle (file as string, veh() as integer, vehname as string, byval record as integer)
+ veh(0) = bound(LEN(vehname), 0, 15)
+ str2array vehname, veh(), 1
  storerecord veh(), file, 40, record
 END SUB
 
-SUB ClearVehicle (vehicle AS VehicleData)
+SUB ClearVehicle (vehicle as VehicleData)
   WITH vehicle
     .speed          = 0
     .random_battles = 0
@@ -1632,44 +1638,46 @@ END SUB
 '==========================================================================================
 
 
-SUB OldDefaultUIColors (colarray() AS INTEGER)
+SUB OldDefaultUIColors (colarray() as integer)
  'Default UI for Classic OHR master palette
  'for upgrading old games that lak an uilook.bin file
- DIM uidef(uiColors) = {0,7,8,14,15,6,7,1,2,18,21,35,37,15,240,10,14,240, _
+ DIM uidef(uiColors) as integer = _
+        {0,7,8,14,15,6,7,1,2,18,21,35,37,15,240,10,14,240, _
         18,28,34,44,50,60,66,76,82,92,98,108,114,124,130,140, _
         146,156,162,172,178,188,194,204,210,220,226,236,242,252}
- DIM i AS INTEGER
+ DIM i as integer
  FOR i = 0 TO uiColors
   colarray(i) = uidef(i)
  NEXT
 END SUB
 
-SUB DefaultUIColors (colarray() AS INTEGER)
+SUB DefaultUIColors (colarray() as integer)
  'Default UI for NeoTA's new Master palette
  'for the filepicker before loading a game.
- DIM uidef(uiColors) = {0,144,80,110,240,102,144,244,215,242,67,212, _
+ DIM uidef(uiColors) as integer = _
+                        {0,144,80,110,240,102,144,244,215,242,67,212, _
                         215,240,0,220,110,0,242,40,211,221,83,90,182, _
                         173,100,159,115,60,132,156,98,105,195,204,70, _
                         66,217,210,87,82,108,232,54,116,48,160}
- DIM i AS INTEGER
+ DIM i as integer
  FOR i = 0 TO uiColors
   colarray(i) = uidef(i)
  NEXT
- 'DIM hexstring AS STRING
+ 'DIM hexstring as string
  'FOR i = 0 TO uiColors
  ' hexstring += "&h" & hex(master(uidef(i)).col, 6) & ","
  'NEXT
  'debug "defaults: " & hexstring
 END SUB
 
-SUB GuessDefaultUIColors (colarray() AS INTEGER)
- DIM AS INTEGER fixeddefaults(uiColors) = {&h000000,&hA19CB0,&h4F595A,&hFFFC62,&hFFFFFF,&h8E6B00,&hA19CB0,_
+SUB GuessDefaultUIColors (colarray() as integer)
+ DIM as integer fixeddefaults(uiColors) = {&h000000,&hA19CB0,&h4F595A,&hFFFC62,&hFFFFFF,&h8E6B00,&hA19CB0,_
        &h003B95,&h228B22,&h001D48,&h153289,&h154C15,&h228B22,&hFFFFFF,&h000000,&h6BEB61,&hFFFC62,&h000000,_
        &h001D48,&h8084D0,&h123D12,&h98FA90,&h500000,&hFF7F7F,&h4F7A54,&hD3F88E,&h5E4600,&hF1EA89,&h471747,_
        &hDF90FF,&h76352C,&hD3A560,&h2D2200,&hD7A100,&h4D3836,&hF6D2B6,&h2179D3,&h0E2059,&h3CB23A,&h0E300E,_
        &hBF0000,&h340000,&hFFDD30,&hCD8316,&h8236AC,&h5F1F5F,&h2F342E,&hBAABC1}
- DIM i AS INTEGER
- DIM temp AS RGBcolor
+ DIM i as integer
+ DIM temp as RGBcolor
  FOR i = 0 TO 47
   temp.col = fixeddefaults(i)
   colarray(i) = nearcolor(master(), temp.r, temp.g, temp.b)
@@ -1680,9 +1688,9 @@ SUB GuessDefaultUIColors (colarray() AS INTEGER)
  NEXT i
 END SUB
 
-SUB LoadUIColors (colarray() AS INTEGER, palnum AS INTEGER=-1)
+SUB LoadUIColors (colarray() as integer, palnum as integer=-1)
  'load ui colors from data lump
- DIM filename AS STRING
+ DIM filename as string
  filename = workingdir & SLASH & "uicolors.bin"
 
  IF palnum < 0 OR palnum > gen(genMaxMasterPal) OR NOT isfile(filename) THEN
@@ -1690,10 +1698,10 @@ SUB LoadUIColors (colarray() AS INTEGER, palnum AS INTEGER=-1)
   EXIT SUB
  END IF
 
- DIM i AS INTEGER
- DIM f AS INTEGER
+ DIM i as integer
+ DIM f as integer
  f = FREEFILE
- OPEN filename FOR BINARY ACCESS READ AS #f
+ OPEN filename FOR BINARY ACCESS READ as #f
  SEEK #f, palnum * getbinsize(binUICOLORS) + 1
  FOR i = 0 TO uiColors
   colarray(i) = ReadShort(f)
@@ -1701,8 +1709,8 @@ SUB LoadUIColors (colarray() AS INTEGER, palnum AS INTEGER=-1)
  CLOSE f
 END SUB
 
-SUB SaveUIColors (colarray() AS INTEGER, palnum AS INTEGER)
- DIM filename AS STRING
+SUB SaveUIColors (colarray() as integer, palnum as integer)
+ DIM filename as string
  filename = workingdir & SLASH & "uicolors.bin"
 
  IF palnum < 0 OR palnum > gen(genMaxMasterPal) THEN
@@ -1710,10 +1718,10 @@ SUB SaveUIColors (colarray() AS INTEGER, palnum AS INTEGER)
   EXIT SUB
  END IF
 
- DIM i AS INTEGER
- DIM f AS INTEGER
+ DIM i as integer
+ DIM f as integer
  f = FREEFILE
- OPEN filename FOR BINARY AS #f
+ OPEN filename FOR BINARY as #f
  SEEK #f, palnum * getbinsize(binUICOLORS) + 1
  FOR i = 0 TO uiColors
   WriteShort f, -1, colarray(i)
@@ -1727,19 +1735,19 @@ END SUB
 '==========================================================================================
 
 
-SUB LoadTextBox (BYREF box AS TextBox, record AS INTEGER)
- DIM boxbuf(dimbinsize(binSAY)) AS INTEGER
+SUB LoadTextBox (byref box as TextBox, record as integer)
+ DIM boxbuf(dimbinsize(binSAY)) as integer
  IF record < 0 OR record > gen(genMaxTextBox) THEN
   debug "LoadTextBox: invalid record: " & record
   IF record <> 0 THEN LoadTextBox box, 0
   EXIT SUB
  END IF
 
- DIM filename AS STRING
+ DIM filename as string
  filename = game & ".say"
  loadrecord boxbuf(), filename, getbinsize(binSAY) \ 2, record
 
- DIM i AS INTEGER
+ DIM i as integer
 
  '--Populate TextBox object
  WITH box
@@ -1751,8 +1759,8 @@ SUB LoadTextBox (BYREF box AS TextBox, record AS INTEGER)
   NEXT i
   '--Gather conditional data
   '--transpose conditional data from its dumb-as-toast non-int-aligned location
-  DIM condtemp AS STRING
-  DIM condbuf(20) AS INTEGER
+  DIM condtemp as string
+  DIM condbuf(20) as integer
   condtemp = STRING(42, 0)
   array2str boxbuf(), 305, condtemp
   str2array condtemp, condbuf(), 0
@@ -1811,14 +1819,14 @@ SUB LoadTextBox (BYREF box AS TextBox, record AS INTEGER)
  END WITH
 END SUB
 
-SUB SaveTextBox (BYREF box AS TextBox, record AS INTEGER)
- DIM boxbuf(dimbinsize(binSAY))
+SUB SaveTextBox (byref box as TextBox, record as integer)
+ DIM boxbuf(dimbinsize(binSAY)) as integer
  IF record < 0 OR record > gen(genMaxTextBox) THEN debug "SaveTextBox: invalid record: " & record : EXIT SUB
 
- DIM filename AS STRING
+ DIM filename as string
  filename = game & ".say"
 
- DIM i AS INTEGER
+ DIM i as integer
 
  'FIXME: not all elements are saved here yet. They will be added as direct boxbuf() access is phased out
  WITH box
@@ -1828,7 +1836,7 @@ SUB SaveTextBox (BYREF box AS TextBox, record AS INTEGER)
    str2array .text(i), boxbuf(), i * 38
   NEXT i
   '--Transcribe conditional data
-  DIM condbuf(20) AS INTEGER
+  DIM condbuf(20) as integer
   condbuf(0) = .instead_tag
   condbuf(1) = .instead
   condbuf(2) = .settag_tag
@@ -1850,7 +1858,7 @@ SUB SaveTextBox (BYREF box AS TextBox, record AS INTEGER)
   condbuf(18) = .item
   condbuf(19) = .hero_swap
   condbuf(20) = .hero_lock
-  DIM condtemp AS STRING
+  DIM condtemp as string
   condtemp = STRING(42, 0)
   array2str condbuf(), 0, condtemp
   str2array condtemp, boxbuf(), 305
@@ -1891,8 +1899,8 @@ SUB SaveTextBox (BYREF box AS TextBox, record AS INTEGER)
  storerecord boxbuf(), filename, getbinsize(binSAY) \ 2, record
 END SUB
 
-SUB ClearTextBox (BYREF box AS TextBox)
- DIM i AS INTEGER
+SUB ClearTextBox (byref box as TextBox)
+ DIM i as integer
  '--Erase members of TextBox object
  WITH box
   '--Load lines of text
@@ -1959,41 +1967,41 @@ END SUB
 '==========================================================================================
 
 
-SUB loadoldattackdata (array(), index)
+SUB loadoldattackdata (array() as integer, byval index as integer)
  loadrecord array(), game & ".dt6", 40, index
 END SUB
 
-SUB saveoldattackdata (array(), index)
+SUB saveoldattackdata (array() as integer, byval index as integer)
  storerecord array(), game & ".dt6", 40, index
 END SUB
 
-SUB loadnewattackdata (array(), index)
- DIM size AS INTEGER = getbinsize(binATTACK) \ 2
+SUB loadnewattackdata (array() as integer, byval index as integer)
+ DIM size as integer = getbinsize(binATTACK) \ 2
  IF size > 0 THEN
   loadrecord array(), workingdir + SLASH + "attack.bin", size, index
  END IF
 END SUB
 
-SUB savenewattackdata (array(), index)
- DIM size AS INTEGER = getbinsize(binATTACK) \ 2
+SUB savenewattackdata (array() as integer, byval index as integer)
+ DIM size as integer = getbinsize(binATTACK) \ 2
  IF size > 0 THEN
   storerecord array(), workingdir + SLASH + "attack.bin", size, index
  END IF
 END SUB
 
-SUB loadattackdata (array() AS INTEGER, BYVAL index AS INTEGER)
+SUB loadattackdata (array() as integer, byval index as integer)
  loadoldattackdata array(), index
- DIM size AS INTEGER = getbinsize(binATTACK) \ 2 'size of record in RPG file
+ DIM size as integer = getbinsize(binATTACK) \ 2 'size of record in RPG file
  IF size > 0 THEN
-  DIM buf(size - 1) AS INTEGER
+  DIM buf(size - 1) as integer
   loadnewattackdata buf(), index
-  FOR i AS INTEGER = 0 TO size - 1
+  FOR i as integer = 0 TO size - 1
    array(40 + i) = buf(i)
   NEXT i
  END IF
 END SUB
 
-SUB loadattackchain (BYREF ch AS AttackDataChain, buf() AS INTEGER, BYVAL id_offset AS INTEGER, BYVAL rate_offset AS INTEGER, BYVAL mode_offset AS INTEGER, BYVAL val1_offset AS INTEGER, BYVAL val2_offset AS INTEGER, BYVAL bits_offset AS INTEGER)
+SUB loadattackchain (byref ch as AttackDataChain, buf() as integer, byval id_offset as integer, byval rate_offset as integer, byval mode_offset as integer, byval val1_offset as integer, byval val2_offset as integer, byval bits_offset as integer)
  ch.atk_id = buf(id_offset)
  ch.rate = buf(rate_offset)
  ch.mode = buf(mode_offset)
@@ -2005,7 +2013,7 @@ SUB loadattackchain (BYREF ch AS AttackDataChain, buf() AS INTEGER, BYVAL id_off
  ch.dont_retarget = xreadbit(buf(), 3, bits_offset)
 END SUB
 
-SUB loadoldattackelementalfail (BYREF cond AS AttackElementCondition, buf() AS INTEGER, BYVAL element AS INTEGER)
+SUB loadoldattackelementalfail (byref cond as AttackElementCondition, buf() as integer, byval element as integer)
  WITH cond
   IF element < 8 THEN
    IF xreadbit(buf(), 21+element, 20) THEN  'atkdat.fail_vs_elemental_resistance(element)
@@ -2027,26 +2035,26 @@ SUB loadoldattackelementalfail (BYREF cond AS AttackElementCondition, buf() AS I
  END WITH
 END SUB
 
-SUB SerAttackElementCond (cond as AttackElementCondition, buf() as integer, BYVAL index as integer)
+SUB SerAttackElementCond (cond as AttackElementCondition, buf() as integer, byval index as integer)
  buf(index) = cond.type
  buf(index + 1) = CAST(short ptr, @cond.value)[0]
  buf(index + 2) = CAST(short ptr, @cond.value)[1]
 END SUB
 
-SUB DeSerAttackElementCond (cond as AttackElementCondition, buf() as integer, BYVAL index as integer)
+SUB DeSerAttackElementCond (cond as AttackElementCondition, buf() as integer, byval index as integer)
  cond.type = buf(index)
  CAST(short ptr, @cond.value)[0] = buf(index + 1)
  CAST(short ptr, @cond.value)[1] = buf(index + 2)
 END SUB
 
-SUB loadattackdata (BYREF atkdat AS AttackData, BYVAL index AS INTEGER)
- DIM buf(40 + dimbinsize(binATTACK)) AS INTEGER
+SUB loadattackdata (byref atkdat as AttackData, byval index as integer)
+ DIM buf(40 + dimbinsize(binATTACK)) as integer
  loadattackdata buf(), index
  convertattackdata buf(), atkdat
  atkdat.id = index
 END SUB
 
-SUB convertattackdata(buf() AS INTEGER, BYREF atkdat AS AttackData)
+SUB convertattackdata(buf() as integer, byref atkdat as AttackData)
  WITH atkdat
   .name = readbadbinstring(buf(), 24, 10, 1)
   .description = readbinstring(buf(), 73, 38)
@@ -2071,27 +2079,27 @@ SUB convertattackdata(buf() AS INTEGER, BYREF atkdat AS AttackData)
   .prefer_targ = buf(19)
   .prefer_targ_stat = buf(100)
   .caption_time = buf(36)
-  .caption = readbinstring$(buf(), 37, 38)
+  .caption = readbinstring(buf(), 37, 38)
   .caption_delay = buf(57)
-  FOR i AS INTEGER = 0 TO 1
+  FOR i as integer = 0 TO 1
    WITH .tagset(i)
     .tag = buf(59 + i*3)
     .condition = buf(60 + i*3)
     .tagcheck = buf(61 + i*3)
    END WITH
   NEXT i
-  FOR i AS INTEGER = 0 TO 2
+  FOR i as integer = 0 TO 2
    WITH .item(i)
     .id = buf(93 + i*2)
     .number = buf(94 + i*2)
    END WITH
   NEXT i
   IF getfixbit(fixAttackElementFails) THEN
-   FOR i AS INTEGER = 0 TO gen(genNumElements) - 1
+   FOR i as integer = 0 TO gen(genNumElements) - 1
     DeSerAttackElementCond .elemental_fail_conds(i), buf(), 121 + i * 3
    NEXT
   ELSE
-   FOR i AS INTEGER = 0 TO gen(genNumElements) - 1
+   FOR i as integer = 0 TO gen(genNumElements) - 1
     loadoldattackelementalfail .elemental_fail_conds(i), buf(), i
    NEXT
   END IF
@@ -2110,21 +2118,21 @@ SUB convertattackdata(buf() AS INTEGER, BYREF atkdat AS AttackData)
   .absorb_damage                  = xreadbit(buf(), 2, 20)
   .unreversable_picture           = xreadbit(buf(), 3, 20)
   .can_steal_item                 = xreadbit(buf(), 4, 20)
-  FOR i AS INTEGER = 0 TO small(15, gen(genNumElements) - 1)
+  FOR i as integer = 0 TO small(15, gen(genNumElements) - 1)
    .elemental_damage(i)           = xreadbit(buf(), 5+i, 20)
   NEXT
-  FOR i AS INTEGER = 16 TO gen(genNumElements) - 1
+  FOR i as integer = 16 TO gen(genNumElements) - 1
    .elemental_damage(i)           = xreadbit(buf(), 80+(i-16), 65)
   NEXT
   'Obsolete:
-  'FOR i AS INTEGER = 0 TO 7
+  'FOR i as integer = 0 TO 7
   ' .fail_vs_elemental_resistance(i) = xreadbit(buf(), 21+i, 20)
   ' .fail_vs_monster_type(i)       = xreadbit(buf(), 29+i, 20)
   'NEXT i
-  FOR i AS INTEGER = 0 TO 7
+  FOR i as integer = 0 TO 7
    .cannot_target_enemy_slot(i)   = xreadbit(buf(), 37+i, 20)
   NEXT i
-  FOR i AS INTEGER = 0 TO 3
+  FOR i as integer = 0 TO 3
    .cannot_target_hero_slot(i)    = xreadbit(buf(), 45+i, 20)
   NEXT i
   .ignore_extra_hits              = xreadbit(buf(), 49, 20)
@@ -2168,11 +2176,11 @@ SUB convertattackdata(buf() AS INTEGER, BYREF atkdat AS AttackData)
  END WITH
 END SUB
 
-SUB saveattackdata (array(), index)
+SUB saveattackdata (array() as integer, byval index as integer)
  saveoldattackdata array(), index
- DIM size AS INTEGER = curbinsize(binATTACK) \ 2
- DIM buf(size - 1) AS INTEGER
- FOR i AS INTEGER = 0 TO size - 1
+ DIM size as integer = curbinsize(binATTACK) \ 2
+ DIM buf(size - 1) as integer
+ FOR i as integer = 0 TO size - 1
   buf(i) = array(40 + i)
  NEXT i
  savenewattackdata buf(), index
@@ -2184,12 +2192,12 @@ END SUB
 '==========================================================================================
 
 
-SUB loadtanim (n AS INTEGER, tastuf() AS INTEGER)
+SUB loadtanim (n as integer, tastuf() as integer)
  setpicstuf tastuf(), 80, -1
  loadset game & ".tap", n, 0
 END SUB
 
-SUB savetanim (n AS INTEGER, tastuf() AS INTEGER)
+SUB savetanim (n as integer, tastuf() as integer)
  setpicstuf tastuf(), 80, -1
  storeset game & ".tap", n, 0
 END SUB
@@ -2200,10 +2208,10 @@ END SUB
 '==========================================================================================
 
 
-SUB getpal16 (array() AS INTEGER, aoffset AS INTEGER, foffset AS INTEGER, autotype AS INTEGER=-1, sprite AS INTEGER=0)
-DIM buf(8) AS INTEGER
-DIM defaultpal AS INTEGER
-DIM i AS INTEGER
+SUB getpal16 (array() as integer, aoffset as integer, foffset as integer, autotype as integer=-1, sprite as integer=0)
+DIM buf(8) as integer
+DIM defaultpal as integer
+DIM i as integer
 
 loadrecord buf(), game & ".pal", 8, 0
 IF buf(0) = 4444 THEN '--check magic number
@@ -2230,7 +2238,7 @@ IF buf(0) = 4444 THEN '--check magic number
   array(aoffset * 8 + i) = 0
  NEXT i
 ELSE '--magic number not found, palette is still in BSAVE format
- DIM xbuf(100 * 8)
+ DIM xbuf(100 * 8) as integer
  xbload game + ".pal", xbuf(), "16-color palettes missing from " + sourcerpg
  FOR i = 0 TO 7
   array(aoffset * 8 + i) = xbuf(foffset * 8 + i)
@@ -2239,10 +2247,10 @@ END IF
 
 END SUB
 
-SUB storepal16 (array() AS INTEGER, aoffset AS INTEGER, foffset AS INTEGER)
-DIM buf(8) AS INTEGER
+SUB storepal16 (array() as integer, aoffset as integer, foffset as integer)
+DIM buf(8) as integer
 
-DIM f AS STRING = game & ".pal"
+DIM f as string = game & ".pal"
 loadrecord buf(), f, 8, 0
 
 IF buf(0) <> 4444 THEN
@@ -2250,8 +2258,8 @@ IF buf(0) <> 4444 THEN
  EXIT SUB
 END IF
 
-DIM last AS INTEGER = buf(1)
-DIM i AS INTEGER
+DIM last as integer = buf(1)
+DIM i as integer
 
 IF foffset > last THEN
  '--blank out palettes before extending file
@@ -2286,7 +2294,7 @@ END SUB
 '==========================================================================================
 
 
-SUB loaditemdata (array() AS INTEGER, index AS INTEGER)
+SUB loaditemdata (array() as integer, index as integer)
  flusharray array(), dimbinsize(binITM), 0
  IF index > gen(genMaxItem) THEN debug "loaditemdata:" & index & " out of range" : EXIT SUB
  IF loadrecord(array(), game & ".itm", getbinsize(binITM) \ 2, index) = 0 THEN
@@ -2295,11 +2303,11 @@ SUB loaditemdata (array() AS INTEGER, index AS INTEGER)
  END IF
 END SUB
 
-SUB saveitemdata (array() AS INTEGER, index AS INTEGER)
+SUB saveitemdata (array() as integer, index as integer)
  storerecord array(), game & ".itm", getbinsize(binITM) \ 2, index
 END SUB
 
-FUNCTION LoadOldItemElemental (itembuf() AS INTEGER, BYVAL element AS INTEGER) AS SINGLE
+FUNCTION LoadOldItemElemental (itembuf() as integer, byval element as integer) as SINGLE
  IF element < 8 THEN
   RETURN backcompat_element_dmg(readbit(itembuf(), 70, element), readbit(itembuf(), 70, 8 + element), readbit(itembuf(), 70, 16 + element))
  ELSE
@@ -2307,16 +2315,16 @@ FUNCTION LoadOldItemElemental (itembuf() AS INTEGER, BYVAL element AS INTEGER) A
  END IF
 END FUNCTION
 
-SUB LoadItemElementals (BYVAL index AS INTEGER, itemresists() AS SINGLE)
- DIM itembuf(dimbinsize(binITM)) AS INTEGER
+SUB LoadItemElementals (byval index as integer, itemresists() as SINGLE)
+ DIM itembuf(dimbinsize(binITM)) as integer
  loaditemdata itembuf(), index
  REDIM itemresists(gen(genNumElements) - 1)
  IF getfixbit(fixItemElementals) THEN
-  FOR i AS INTEGER = 0 TO gen(genNumElements) - 1
+  FOR i as integer = 0 TO gen(genNumElements) - 1
    itemresists(i) = DeSerSingle(itembuf(), 82 + i * 2)
   NEXT
  ELSE
-  FOR i AS INTEGER = 0 TO gen(genNumElements) - 1
+  FOR i as integer = 0 TO gen(genNumElements) - 1
    itemresists(i) = LoadOldItemElemental(itembuf(), i)
   NEXT
  END IF
@@ -2327,15 +2335,15 @@ END SUB
 '                                         Enemies
 '==========================================================================================
 
-FUNCTION backcompat_element_dmg(BYVAL weak AS INTEGER, BYVAL strong AS INTEGER, BYVAL absorb AS INTEGER) AS DOUBLE
- DIM dmg AS DOUBLE = 1.0
+FUNCTION backcompat_element_dmg(byval weak as integer, byval strong as integer, byval absorb as integer) as DOUBLE
+ DIM dmg as DOUBLE = 1.0
  IF weak THEN dmg *= 2
  IF strong THEN dmg *= 0.12
  IF absorb THEN dmg = -dmg
  RETURN dmg
 END FUNCTION
 
-FUNCTION loadoldenemyresist(array() AS INTEGER, BYVAL element AS INTEGER) AS SINGLE
+FUNCTION loadoldenemyresist(array() as integer, byval element as integer) as SINGLE
  IF element < 8 THEN
   DIM as integer weak, strong, absorb
   weak = xreadbit(array(), 0 + element, 74)
@@ -2351,22 +2359,22 @@ FUNCTION loadoldenemyresist(array() AS INTEGER, BYVAL element AS INTEGER) AS SIN
  END IF
 END FUNCTION
 
-SUB clearenemydata (enemy AS EnemyDef)
+SUB clearenemydata (enemy as EnemyDef)
  memset @enemy, 0, sizeof(enemy)
 
  enemy.pal = -1 'default palette
  '--elemental resists
- FOR i AS INTEGER = 0 TO 63
+ FOR i as integer = 0 TO 63
   enemy.elementals(i) = 1.0f
  NEXT    
 END SUB
 
-SUB clearenemydata (buf() AS INTEGER)
+SUB clearenemydata (buf() as integer)
  flusharray buf(), dimbinsize(binDT1)
 
  buf(54) = -1 'default palette
  '--elemental resists
- FOR i AS INTEGER = 0 TO 63
+ FOR i as integer = 0 TO 63
   SerSingle buf(), 239 + i*2, 1.0f
  NEXT    
 END SUB
@@ -2374,8 +2382,8 @@ END SUB
 'Note that this form of loadenemydata does not do fixEnemyElementals fixes!
 'Don't use this anywhere in Game where those need to be applied! (Of course,
 'you probably would never use this in Game)
-SUB loadenemydata (array() AS INTEGER, BYVAL index AS INTEGER, BYVAL altfile AS INTEGER = 0)
- DIM filename AS STRING
+SUB loadenemydata (array() as integer, byval index as integer, byval altfile as integer = 0)
+ DIM filename as string
  IF altfile THEN
   filename = tmpdir & "dt1.tmp"
  ELSE
@@ -2384,8 +2392,8 @@ SUB loadenemydata (array() AS INTEGER, BYVAL index AS INTEGER, BYVAL altfile AS 
  loadrecord array(), filename, getbinsize(binDT1) \ 2, index
 END SUB
 
-SUB loadenemydata (enemy AS EnemyDef, BYVAL index AS INTEGER, BYVAL altfile AS INTEGER = 0)
- DIM buf(dimbinsize(binDT1)) AS INTEGER
+SUB loadenemydata (enemy as EnemyDef, byval index as integer, byval altfile as integer = 0)
+ DIM buf(dimbinsize(binDT1)) as integer
  loadenemydata buf(), index, altfile
  WITH enemy
   .name = readbadbinstring(buf(), 0, 16)
@@ -2408,7 +2416,7 @@ SUB loadenemydata (enemy AS EnemyDef, BYVAL index AS INTEGER, BYVAL altfile AS I
   .reward.item_rate = buf(59)
   .reward.rare_item = buf(60)
   .reward.rare_item_rate = buf(61)
-  FOR i AS INTEGER = 0 TO UBOUND(.stat.sta)
+  FOR i as integer = 0 TO UBOUND(.stat.sta)
    .stat.sta(i) = buf(62 + i)
   NEXT i
   
@@ -2427,11 +2435,11 @@ SUB loadenemydata (enemy AS EnemyDef, BYVAL index AS INTEGER, BYVAL altfile AS I
 
   '--elementals
   IF getfixbit(fixEnemyElementals) THEN
-   FOR i AS INTEGER = 0 TO gen(genNumElements) - 1
+   FOR i as integer = 0 TO gen(genNumElements) - 1
     .elementals(i) = DeSerSingle(buf(), 239 + i*2)
    NEXT
   ELSE
-   FOR i AS INTEGER = 0 TO gen(genNumElements) - 1
+   FOR i as integer = 0 TO gen(genNumElements) - 1
     .elementals(i) = loadoldenemyresist(buf(), i)
    NEXT
   END IF
@@ -2441,7 +2449,7 @@ SUB loadenemydata (enemy AS EnemyDef, BYVAL index AS INTEGER, BYVAL altfile AS I
   .spawn.non_elemental_death = buf(80)
   .spawn.when_alone = buf(81)
   .spawn.non_elemental_hit = buf(82)
-  FOR i AS INTEGER = 0 TO gen(genNumElements) - 1
+  FOR i as integer = 0 TO gen(genNumElements) - 1
    IF i <= 7 THEN
     .spawn.elemental_hit(i) = buf(83 + i)
    ELSE
@@ -2451,29 +2459,29 @@ SUB loadenemydata (enemy AS EnemyDef, BYVAL index AS INTEGER, BYVAL altfile AS I
   .spawn.how_many = buf(91)
   
   '--attacks
-  FOR i AS INTEGER = 0 TO 4
+  FOR i as integer = 0 TO 4
    .regular_ai(i) = buf(92 + i)
    .desperation_ai(i) = buf(97 + i)
    .alone_ai(i) = buf(102 + i)
   NEXT i
   
   '--counter-attacks
-  FOR i AS INTEGER = 0 TO gen(genNumElements) - 1
+  FOR i as integer = 0 TO gen(genNumElements) - 1
    IF i <= 7 THEN
     .elem_counter_attack(i) = buf(107 + i)
    ELSE
     .elem_counter_attack(i) = buf(127 + (i - 8))
    END IF
   NEXT i
-  FOR i AS INTEGER = 0 TO 11
+  FOR i as integer = 0 TO 11
    .stat_counter_attack(i) = buf(115 + i)
   NEXT i
   
  END WITH
 END SUB
 
-SUB saveenemydata (array() AS INTEGER, BYVAL index AS INTEGER, BYVAL altfile AS INTEGER = 0)
- DIM filename AS STRING
+SUB saveenemydata (array() as integer, byval index as integer, byval altfile as integer = 0)
+ DIM filename as string
  IF altfile THEN
   filename = tmpdir & "dt1.tmp"
  ELSE
@@ -2482,11 +2490,11 @@ SUB saveenemydata (array() AS INTEGER, BYVAL index AS INTEGER, BYVAL altfile AS 
  storerecord array(), filename, getbinsize(binDT1) \ 2, index
 END SUB
 
-SUB saveenemydata (enemy AS EnemyDef, BYVAL index AS INTEGER, BYVAL altfile AS INTEGER = 0)
- DIM buf(dimbinsize(binDT1)) AS INTEGER
+SUB saveenemydata (enemy as EnemyDef, byval index as integer, byval altfile as integer = 0)
+ DIM buf(dimbinsize(binDT1)) as integer
  WITH enemy
   buf(0) = LEN(.name)
-  FOR i AS INTEGER = 1 TO LEN(.name)
+  FOR i as integer = 1 TO LEN(.name)
    buf(i) = ASC(MID(.name, i, 1))
   NEXT i
   buf(17) = .steal.thievability
@@ -2508,7 +2516,7 @@ SUB saveenemydata (enemy AS EnemyDef, BYVAL index AS INTEGER, BYVAL altfile AS I
   buf(59) = .reward.item_rate
   buf(60) = .reward.rare_item
   buf(61) = .reward.rare_item_rate
-  FOR i AS INTEGER = 0 TO UBOUND(.stat.sta)
+  FOR i as integer = 0 TO UBOUND(.stat.sta)
    buf(62 + i) = .stat.sta(i)
   NEXT i
 
@@ -2532,41 +2540,41 @@ SUB saveenemydata (enemy AS EnemyDef, BYVAL index AS INTEGER, BYVAL altfile AS I
   buf(82) = .spawn.non_elemental_hit
   'Blank out unused spawns to be save: don't want to have to zero stuff out
   'if gen(genNumElements) increases
-  FOR i AS INTEGER = gen(genNumElements) TO 63
+  FOR i as integer = gen(genNumElements) TO 63
    .spawn.elemental_hit(i) = 0
   NEXT
-  FOR i AS INTEGER = 0 TO 7
+  FOR i as integer = 0 TO 7
    buf(83 + i) = .spawn.elemental_hit(i)
   NEXT i
-  FOR i AS INTEGER = 8 TO 63
+  FOR i as integer = 8 TO 63
    buf(183 + (i - 8)) = .spawn.elemental_hit(i)
   NEXT i
 
   buf(91) = .spawn.how_many
   
   '--attacks
-  FOR i AS INTEGER = 0 TO 4
+  FOR i as integer = 0 TO 4
    buf(92 + i) = .regular_ai(i)
    buf(97 + i) = .desperation_ai(i)
    buf(102 + i) = .alone_ai(i)
   NEXT i
   
   '--counter attacks
-  FOR i AS INTEGER = gen(genNumElements) TO 63
+  FOR i as integer = gen(genNumElements) TO 63
    .elem_counter_attack(i) = 0
   NEXT
-  FOR i AS INTEGER = 0 TO 7
+  FOR i as integer = 0 TO 7
    buf(107 + i) = .elem_counter_attack(i)
   NEXT
-  FOR i AS INTEGER = 8 TO 63
+  FOR i as integer = 8 TO 63
    buf(127 + (i - 8)) = .elem_counter_attack(i)
   NEXT i
-  FOR i AS INTEGER = 0 TO 11
+  FOR i as integer = 0 TO 11
    buf(115 + i) = .stat_counter_attack(i)
   NEXT i
 
   '--elemental resists
-  FOR i AS INTEGER = 0 TO 63
+  FOR i as integer = 0 TO 63
    DIM outval as single = 1.0f
    IF i < gen(genNumElements) THEN
     outval = .elementals(i)
@@ -2585,14 +2593,14 @@ END SUB
 '==========================================================================================
 
 
-SUB save_string_list(array() AS STRING, filename AS STRING)
+SUB save_string_list(array() as string, filename as string)
 
- DIM fh AS INTEGER = FREEFILE
- OPEN filename FOR BINARY ACCESS WRITE AS #fh
+ DIM fh as integer = FREEFILE
+ OPEN filename FOR BINARY ACCESS WRITE as #fh
 
- DIM s AS STRING
+ DIM s as string
  
- FOR i AS INTEGER = 0 TO UBOUND(array)
+ FOR i as integer = 0 TO UBOUND(array)
   s = escape_nonprintable_ascii(array(i)) & CHR(10)
   PUT #fh, , s
  NEXT i
@@ -2601,23 +2609,23 @@ SUB save_string_list(array() AS STRING, filename AS STRING)
 
 END SUB
 
-SUB load_string_list(array() AS STRING, filename AS STRING)
+SUB load_string_list(array() as string, filename as string)
 
- DIM lines AS INTEGER = 0
+ DIM lines as integer = 0
 
  IF isfile(filename) THEN
 
-  DIM fh AS INTEGER = FREEFILE
-  OPEN filename FOR INPUT ACCESS READ AS #fh
+  DIM fh as integer = FREEFILE
+  OPEN filename FOR INPUT ACCESS READ as #fh
 
-  DIM s AS STRING
+  DIM s as string
  
   DO WHILE NOT EOF(fh)
    '--get the next line
    LINE INPUT #fh, s
    '--if the array is not big enough to hold the new line, make it bigger
    IF lines > UBOUND(array) THEN
-    REDIM PRESERVE array(lines) AS STRING
+    REDIM PRESERVE array(lines) as string
    END IF
    '--store the string in the array
    array(lines) = decode_backslash_codes(s)
@@ -2633,14 +2641,14 @@ SUB load_string_list(array() AS STRING, filename AS STRING)
   REDIM array(0)
  ELSE
   '--resize the array to fit the number of lines loaded
-  REDIM PRESERVE array(lines - 1) AS STRING
+  REDIM PRESERVE array(lines - 1) as string
  END IF
 
 END SUB
 
-FUNCTION load_map_pos_save_offset(BYVAL mapnum AS INTEGER) AS XYPair
- DIM offset AS XYPair
- DIM gmaptmp(dimbinsize(binMAP))
+FUNCTION load_map_pos_save_offset(byval mapnum as integer) as XYPair
+ DIM offset as XYPair
+ DIM gmaptmp(dimbinsize(binMAP)) as integer
  loadrecord gmaptmp(), game & ".map", getbinsize(binMAP) \ 2, mapnum
  offset.x = gmaptmp(20)
  offset.y = gmaptmp(21)

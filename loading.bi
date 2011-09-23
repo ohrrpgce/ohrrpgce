@@ -23,9 +23,9 @@ declare function DeSerSingle (buf() as integer, byval index as integer) as singl
 
 'Sprites are not loaded by these functions; can use CleanNPCD to free them if you load them
 declare sub LoadNPCD(file as string, dat() as NPCType)
-declare sub LoadNPCD_fixedlen(file as string, dat() as NPCType, BYREF arraylen as integer)
+declare sub LoadNPCD_fixedlen(file as string, dat() as NPCType, byref arraylen as integer)
 declare sub SaveNPCD(file as string, dat() as NPCType)
-declare sub SaveNPCD_fixedlen(file as string, dat() as NPCType, BYVAL arraylen as integer)
+declare sub SaveNPCD_fixedlen(file as string, dat() as NPCType, byval arraylen as integer)
 declare sub setnpcd(npcd as npctype, offset as integer, value as integer)
 declare function getnpcd(npcd as npctype, offset as integer) as integer
 declare sub CleanNPCDefinition(dat as NPCType)
@@ -33,14 +33,14 @@ declare sub CleanNPCD(dat() as NPCType)
 
 declare sub LoadNPCL(file as string, dat() as npcinst)
 declare sub SaveNPCL(file as string, dat() as npcinst)
-declare sub DeserNPCL(npc() as npcinst, z as integer, buffer() as integer, num as integer, xoffset as integer, yoffset as integer)
+declare sub DeserNPCL(npc() as npcinst, byref z as integer, buffer() as integer, byval num as integer, byval xoffset as integer, byval yoffset as integer)
 declare sub CleanNPCInst(inst as NPCInst)
 declare sub CleanNPCL(dat() as npcinst, byval num as integer=-1)
 
-declare Sub SaveInventory16bit(invent() AS InventSlot, BYREF z AS INTEGER, buf() AS INTEGER, BYVAL first AS INTEGER=0, BYVAL last AS INTEGER=-1)
-declare Sub LoadInventory16Bit(invent() AS InventSlot, BYREF z AS INTEGER, buf() AS INTEGER, BYVAL first AS INTEGER=0, BYVAL last AS INTEGER=-1)
-declare sub serinventory8bit(invent() as inventslot, z as integer, buf() as integer)
-declare sub deserinventory8bit(invent() as inventslot, z as integer, buf() as integer)
+declare Sub SaveInventory16bit(invent() as InventSlot, byref z as integer, buf() as integer, byval first as integer=0, byval last as integer=-1)
+declare Sub LoadInventory16Bit(invent() as InventSlot, byref z as integer, buf() as integer, byval first as integer=0, byval last as integer=-1)
+declare sub serinventory8bit(invent() as inventslot, byref z as integer, buf() as integer)
+declare sub deserinventory8bit(invent() as inventslot, byref z as integer, buf() as integer)
 declare sub cleaninventory(invent() as inventslot)
 
 '*** Requires construction + destruction ***
@@ -50,23 +50,23 @@ declare sub LoadTilemap(map as TileMap, filename as string)
 declare sub LoadTilemaps(layers() as TileMap, filename as string)
 declare sub SaveTilemap(tmap as TileMap, filename as string)
 declare sub SaveTilemaps(tmaps() as TileMap, filename as string)
-declare sub CleanTilemap(map as TileMap, BYVAL wide as integer, BYVAL high as integer, BYVAL layernum as integer = 0)
-declare sub CleanTilemaps(layers() as TileMap, BYVAL wide as integer, BYVAL high as integer, BYVAL numlayers as integer)
+declare sub CleanTilemap(map as TileMap, byval wide as integer, byval high as integer, byval layernum as integer = 0)
+declare sub CleanTilemaps(layers() as TileMap, byval wide as integer, byval high as integer, byval numlayers as integer)
 declare function GetTilemapInfo(filename as string, info as TilemapInfo) as integer
 declare sub MergeTileMap(mine as TileMap, theirs_file as string, base_file as string)
 declare sub MergeTileMaps(mine() as TileMap, theirs_file as string, base_file as string)
 
 
 '*** Requires construction + destruction ***
-declare sub CleanZoneMap(zmap as ZoneMap, BYVAL wide as integer, BYVAL high as integer)
+declare sub CleanZoneMap(zmap as ZoneMap, byval wide as integer, byval high as integer)
 declare sub DeleteZoneMap(zmap as ZoneMap)
-declare function SetZoneTile(zmap as ZoneMap, BYVAL id as integer, BYVAL x as integer, BYVAL y as integer) as integer
-declare sub UnsetZoneTile(zmap as ZoneMap, BYVAL id as integer, BYVAL x as integer, BYVAL y as integer)
-declare function CheckZoneAtTile(zmap as ZoneMap, BYVAL id as integer, BYVAL x as integer, BYVAL y as integer) as integer
-declare sub GetZonesAtTile(zmap as ZoneMap, zones() as integer, BYVAL x as integer, BYVAL y as integer)
-declare function GetZoneInfo(zmap as ZoneMap, BYVAL id as integer) as ZoneInfo ptr
-declare sub DebugZoneMap(zmap as ZoneMap, BYVAL x as integer = -1, BYVAL y as integer = -1)
-declare sub ZoneToTileMap(zmap as ZoneMap, tmap as TileMap, BYVAL id as integer, BYVAL bitnum as integer)
+declare function SetZoneTile(zmap as ZoneMap, byval id as integer, byval x as integer, byval y as integer) as integer
+declare sub UnsetZoneTile(zmap as ZoneMap, byval id as integer, byval x as integer, byval y as integer)
+declare function CheckZoneAtTile(zmap as ZoneMap, byval id as integer, byval x as integer, byval y as integer) as integer
+declare sub GetZonesAtTile(zmap as ZoneMap, zones() as integer, byval x as integer, byval y as integer)
+declare function GetZoneInfo(zmap as ZoneMap, byval id as integer) as ZoneInfo ptr
+declare sub DebugZoneMap(zmap as ZoneMap, byval x as integer = -1, byval y as integer = -1)
+declare sub ZoneToTileMap(zmap as ZoneMap, tmap as TileMap, byval id as integer, byval bitnum as integer)
 declare sub SaveZoneMap(zmap as ZoneMap, filename as string, rsrect as RectType ptr = NULL)
 declare sub LoadZoneMap(zmap as ZoneMap, filename as string)
 
@@ -87,33 +87,33 @@ declare Sub SerHeroDef(filename as string, hero as herodef ptr, record as intege
 declare sub loadherodata (hero as herodef ptr, index as integer)
 declare sub saveherodata (hero as herodef ptr, index as integer)
 
-declare Sub LoadVehicle OVERLOAD (file AS STRING, vehicle AS VehicleData, BYVAL record AS INTEGER)
-declare Sub LoadVehicle OVERLOAD (file AS STRING, veh() as integer, vehname as string, BYVAL record AS INTEGER)
-declare Sub SaveVehicle OVERLOAD (file AS STRING, veh() as integer, vehname as string, BYVAL record AS INTEGER)
-declare Sub SaveVehicle OVERLOAD (file AS STRING, vehicle AS VehicleData, BYVAL record AS INTEGER)
-declare Sub ClearVehicle (vehicle AS VehicleData)
+declare Sub LoadVehicle OVERLOAD (file as string, vehicle as VehicleData, byval record as integer)
+declare Sub LoadVehicle OVERLOAD (file as string, veh() as integer, vehname as string, byval record as integer)
+declare Sub SaveVehicle OVERLOAD (file as string, veh() as integer, vehname as string, byval record as integer)
+declare Sub SaveVehicle OVERLOAD (file as string, vehicle as VehicleData, byval record as integer)
+declare Sub ClearVehicle (vehicle as VehicleData)
 
-declare Sub SaveUIColors (colarray() AS INTEGER, palnum AS INTEGER)
-declare Sub LoadUIColors (colarray() AS INTEGER, palnum AS INTEGER=-1)
-declare Sub DefaultUIColors (colarray() AS INTEGER)
-declare Sub OldDefaultUIColors (colarray() AS INTEGER)
-declare Sub GuessDefaultUIColors (colarray() AS INTEGER)
+declare Sub SaveUIColors (colarray() as integer, palnum as integer)
+declare Sub LoadUIColors (colarray() as integer, palnum as integer=-1)
+declare Sub DefaultUIColors (colarray() as integer)
+declare Sub OldDefaultUIColors (colarray() as integer)
+declare Sub GuessDefaultUIColors (colarray() as integer)
 
-declare Sub LoadTextBox (BYREF box AS TextBox, record AS INTEGER)
-declare Sub SaveTextBox (BYREF box AS TextBox, record AS INTEGER)
-declare Sub ClearTextBox (BYREF box AS TextBox)
+declare Sub LoadTextBox (byref box as TextBox, record as integer)
+declare Sub SaveTextBox (byref box as TextBox, record as integer)
+declare Sub ClearTextBox (byref box as TextBox)
 
-DECLARE SUB loadoldattackelementalfail (BYREF cond as AttackElementCondition, buf() as integer, BYVAL element as integer)
-DECLARE SUB loadoldattackdata (array() as integer, index as integer)
-DECLARE SUB saveoldattackdata (array() as integer, index as integer)
-DECLARE SUB loadnewattackdata (array() as integer, index as integer)
-DECLARE SUB savenewattackdata (array() as integer, index as integer)
-DECLARE SUB loadattackdata OVERLOAD (array() as integer, BYVAL index as integer)
-DECLARE SUB loadattackdata OVERLOAD (BYREF atkdat as AttackData, BYVAL index as integer)
-DECLARE SUB SerAttackElementCond (cond as AttackElementCondition, buf() as integer, BYVAL index as integer)
-DECLARE SUB DeSerAttackElementCond (BYREF cond as AttackElementCondition, buf() as integer, BYVAL index as integer)
-DECLARE SUB convertattackdata(buf() AS INTEGER, BYREF atkdat AS AttackData)
-DECLARE SUB saveattackdata (array() as integer, index as integer)
+DECLARE SUB loadoldattackelementalfail (byref cond as AttackElementCondition, buf() as integer, byval element as integer)
+DECLARE SUB loadoldattackdata (array() as integer, byval index as integer)
+DECLARE SUB saveoldattackdata (array() as integer, byval index as integer)
+DECLARE SUB loadnewattackdata (array() as integer, byval index as integer)
+DECLARE SUB savenewattackdata (array() as integer, byval index as integer)
+DECLARE SUB loadattackdata OVERLOAD (array() as integer, byval index as integer)
+DECLARE SUB loadattackdata OVERLOAD (byref atkdat as AttackData, byval index as integer)
+DECLARE SUB SerAttackElementCond (cond as AttackElementCondition, buf() as integer, byval index as integer)
+DECLARE SUB DeSerAttackElementCond (byref cond as AttackElementCondition, buf() as integer, byval index as integer)
+DECLARE SUB convertattackdata(buf() as integer, byref atkdat as AttackData)
+DECLARE SUB saveattackdata (array() as integer, byval index as integer)
 
 DECLARE SUB loadtanim (n as integer, tastuf() as integer)
 DECLARE SUB savetanim (n as integer, tastuf() as integer)
@@ -123,31 +123,31 @@ DECLARE SUB storepal16 (array() as integer, aoffset as integer, foffset as integ
 
 DECLARE SUB loaditemdata (array() as integer, index as integer)
 DECLARE SUB saveitemdata (array() as integer, index as integer)
-DECLARE FUNCTION LoadOldItemElemental (itembuf() AS INTEGER, BYVAL element AS INTEGER) AS SINGLE
-DECLARE SUB LoadItemElementals (BYVAL index as integer, itemresists() as single)
+DECLARE FUNCTION LoadOldItemElemental (itembuf() as integer, byval element as integer) as SINGLE
+DECLARE SUB LoadItemElementals (byval index as integer, itemresists() as single)
 
-DECLARE FUNCTION backcompat_element_dmg (BYVAL weak as integer, BYVAL strong as integer, BYVAL absorb as integer) as double
-DECLARE FUNCTION loadoldenemyresist (array() AS INTEGER, BYVAL element AS INTEGER) AS SINGLE
-DECLARE SUB clearenemydata OVERLOAD (enemy AS EnemyDef)
-DECLARE SUB clearenemydata OVERLOAD (buf() AS INTEGER)
-DECLARE SUB loadenemydata OVERLOAD (array() as integer, BYVAL index as integer, BYVAL altfile as integer = 0)
-DECLARE SUB loadenemydata OVERLOAD (enemy AS EnemyDef, BYVAL index AS INTEGER, BYVAL altfile AS INTEGER = 0)
-DECLARE SUB saveenemydata OVERLOAD (array() as integer, BYVAL index as integer, BYVAL altfile as integer = 0)
-DECLARE SUB saveenemydata OVERLOAD (enemy AS EnemyDef, BYVAL index as integer, BYVAL altfile as integer = 0)
+DECLARE FUNCTION backcompat_element_dmg (byval weak as integer, byval strong as integer, byval absorb as integer) as double
+DECLARE FUNCTION loadoldenemyresist (array() as integer, byval element as integer) as SINGLE
+DECLARE SUB clearenemydata OVERLOAD (enemy as EnemyDef)
+DECLARE SUB clearenemydata OVERLOAD (buf() as integer)
+DECLARE SUB loadenemydata OVERLOAD (array() as integer, byval index as integer, byval altfile as integer = 0)
+DECLARE SUB loadenemydata OVERLOAD (enemy as EnemyDef, byval index as integer, byval altfile as integer = 0)
+DECLARE SUB saveenemydata OVERLOAD (array() as integer, byval index as integer, byval altfile as integer = 0)
+DECLARE SUB saveenemydata OVERLOAD (enemy as EnemyDef, byval index as integer, byval altfile as integer = 0)
 
-DECLARE SUB save_string_list(array() AS STRING, filename AS STRING)
-DECLARE SUB load_string_list(array() AS STRING, filename AS STRING)
+DECLARE SUB save_string_list(array() as string, filename as string)
+DECLARE SUB load_string_list(array() as string, filename as string)
 
-DECLARE FUNCTION load_map_pos_save_offset(BYVAL mapnum AS INTEGER) AS XYPair
+DECLARE FUNCTION load_map_pos_save_offset(byval mapnum as integer) as XYPair
 
-DECLARE SUB save_npc_locations OVERLOAD (filename AS STRING, npc() AS NPCInst)
-DECLARE SUB save_npc_locations OVERLOAD (BYVAL npcs_node AS NodePtr, npc() AS NPCInst)
-DECLARE SUB save_npc_loc OVERLOAD (BYVAL parent AS NodePtr, BYVAL index AS integer, npc AS NPCInst)
-DECLARE SUB save_npc_loc OVERLOAD (BYVAL parent AS NodePtr, BYVAL index AS integer, npc AS NPCInst, map_offset AS XYPair)
+DECLARE SUB save_npc_locations OVERLOAD (filename as string, npc() as NPCInst)
+DECLARE SUB save_npc_locations OVERLOAD (byval npcs_node as NodePtr, npc() as NPCInst)
+DECLARE SUB save_npc_loc OVERLOAD (byval parent as NodePtr, byval index as integer, npc as NPCInst)
+DECLARE SUB save_npc_loc OVERLOAD (byval parent as NodePtr, byval index as integer, npc as NPCInst, map_offset as XYPair)
 
-DECLARE SUB load_npc_locations OVERLOAD (filename AS STRING, npc() AS NPCInst)
-DECLARE SUB load_npc_locations OVERLOAD (BYVAL npcs_node AS NodePtr, npc() AS NPCInst)
-DECLARE SUB load_npc_loc OVERLOAD (BYVAL n AS NodePtr, npc AS NPCInst)
-DECLARE SUB load_npc_loc OVERLOAD (BYVAL n AS NodePtr, npc AS NPCInst, map_offset AS XYPair)
+DECLARE SUB load_npc_locations OVERLOAD (filename as string, npc() as NPCInst)
+DECLARE SUB load_npc_locations OVERLOAD (byval npcs_node as NodePtr, npc() as NPCInst)
+DECLARE SUB load_npc_loc OVERLOAD (byval n as NodePtr, npc as NPCInst)
+DECLARE SUB load_npc_loc OVERLOAD (byval n as NodePtr, npc as NPCInst, map_offset as XYPair)
 
 #ENDIF
