@@ -28,15 +28,15 @@ extern plotslices() as integer
 '==============================================================================
 
 'Reload helper functions used by saving/loading
-DECLARE Sub SaveProp OVERLOAD (node AS Reload.Nodeptr, propname AS STRING, value AS INTEGER)
-DECLARE Sub SaveProp OVERLOAD (node AS Reload.Nodeptr, propname AS STRING, s AS STRING)
-DECLARE Function LoadPropStr(node AS Reload.Nodeptr, propname as string, default as string="") as string
-DECLARE Function LoadProp(node AS Reload.Nodeptr, propname as string, default as integer=0) as integer
-DECLARE Function LoadPropBool(node AS Reload.Nodeptr, propname as string, default as integer=NO) as integer
+DECLARE Sub SaveProp OVERLOAD (node as Reload.Nodeptr, propname as string, value as integer)
+DECLARE Sub SaveProp OVERLOAD (node as Reload.Nodeptr, propname as string, s as string)
+DECLARE Function LoadPropStr(node as Reload.Nodeptr, propname as string, default as string="") as string
+DECLARE Function LoadProp(node as Reload.Nodeptr, propname as string, default as integer=0) as integer
+DECLARE Function LoadPropBool(node as Reload.Nodeptr, propname as string, default as integer=NO) as integer
 
 'Other local subs and functions
-DECLARE Function SliceXAlign(BYVAL sl AS Slice Ptr, BYVAL alignTo AS Slice Ptr) AS INTEGER
-DECLARE Function SliceYAlign(BYVAL sl AS Slice Ptr, BYVAL alignTo AS Slice Ptr) AS INTEGER
+DECLARE Function SliceXAlign(byval sl as Slice Ptr, byval alignTo as Slice Ptr) as integer
+DECLARE Function SliceYAlign(byval sl as Slice Ptr, byval alignTo as Slice Ptr) as integer
 DECLARE Sub ApplySliceVelocity(byval s as slice ptr)
 DECLARE Sub SeekSliceTarg(byval s as slice ptr)
 
@@ -44,12 +44,12 @@ DECLARE Sub SeekSliceTarg(byval s as slice ptr)
 
 Dim SliceTable as SliceTable_
 
-ReDim Shared SliceDebug(50) AS Slice Ptr
+ReDim Shared SliceDebug(50) as Slice Ptr
 
 'add other slice tables here
 
 'ScreenSlice is used by other slices with ->Attach = slScreen
-DIM SHARED ScreenSlice AS Slice Ptr
+DIM SHARED ScreenSlice as Slice Ptr
 ScreenSlice = NewSlice()
 SliceDebugForget ScreenSlice '--screen slice is magical, ignore it for debugging purposes
 WITH *ScreenSlice
@@ -65,7 +65,7 @@ END WITH
 'frame_new_view changes the position of the origin. This is the transform needed to translate
 'a slice's ScreenX/Y position to X/Y position on the current view slice. It starts at 0,0 when
 'drawing a slice tree, and is modified whenever recursing to the children of a clipping slice.
-Dim Shared GlobalCoordOffset AS XYPair
+Dim Shared GlobalCoordOffset as XYPair
 
 '==General slice code==========================================================
 
@@ -153,7 +153,7 @@ Sub SetupGameSlices
 End Sub
 
 Sub SetupMapSlices(byval to_max as integer)
- FOR i AS INTEGER = 0 TO to_max
+ FOR i as integer = 0 TO to_max
   SliceTable.MapLayer(i) = NewSliceOfType(slMap, SliceTable.MapRoot, SL_MAP_LAYER0 - i)
   ChangeMapSlice SliceTable.MapLayer(i), , , (i > 0), 0   'maybe transparent, not overhead
  NEXT
@@ -175,13 +175,13 @@ Sub SetupMapSlices(byval to_max as integer)
  SliceTable.NPCLayer->AutoSort = slAutoSortCustom
 End Sub
 
-Sub DestroyGameSlices (Byval dumpdebug AS INTEGER=0)
+Sub DestroyGameSlices (Byval dumpdebug as integer=0)
 
  DeleteSlice(@SliceTable.Root, ABS(SGN(dumpdebug)))
  '--after deleting root, all other slices should be gone, but the pointers
  '--in SliceTable still need zeroing
  SliceTable.MapRoot = 0
- FOR i AS INTEGER = 0 TO maplayerMax
+ FOR i as integer = 0 TO maplayerMax
   SliceTable.MapLayer(i) = 0
  NEXT
  SliceTable.ObsoleteOverhead = 0
@@ -191,12 +191,12 @@ Sub DestroyGameSlices (Byval dumpdebug AS INTEGER=0)
  SliceTable.ScriptString = 0
 End Sub
 
-FUNCTION SliceTypeName (sl AS Slice Ptr) AS STRING
+FUNCTION SliceTypeName (sl as Slice Ptr) as string
  IF sl = 0 THEN debug "SliceTypeName null ptr": RETURN "<null ptr>"
  RETURN SliceTypeName(sl->SliceType)
 END FUNCTION
 
-FUNCTION SliceTypeName (t AS SliceTypes) AS STRING
+FUNCTION SliceTypeName (t as SliceTypes) as string
  SELECT CASE t
   CASE slRoot:           RETURN "Root"
   CASE slSpecial:        RETURN "Special"
@@ -213,7 +213,7 @@ FUNCTION SliceTypeName (t AS SliceTypes) AS STRING
  RETURN "Unknown"
 END FUNCTION
 
-FUNCTION SliceTypeByName (s AS STRING) AS SliceTypes
+FUNCTION SliceTypeByName (s as string) as SliceTypes
  SELECT CASE s
   CASE "Root":           RETURN slRoot
   CASE "Special":        RETURN slSpecial
@@ -230,13 +230,13 @@ FUNCTION SliceTypeByName (s AS STRING) AS SliceTypes
  debug "Unrecognized slice name """ & s & """"
 END FUNCTION
 
-FUNCTION SliceLookupCodename (sl AS Slice Ptr) AS STRING
+FUNCTION SliceLookupCodename (sl as Slice Ptr) as string
  '--Used for debugging
  IF sl = 0 THEN RETURN "[null]"
  RETURN SliceLookupCodename(sl->Lookup)
 END FUNCTION
 
-FUNCTION SliceLookupCodename (BYVAL code AS INTEGER) AS STRING
+FUNCTION SliceLookupCodename (byval code as integer) as string
  SELECT CASE code
   CASE 0: RETURN ""
 '--the following is updated from slices.bi using the misc/sl_lookup.py script
@@ -270,8 +270,8 @@ FUNCTION SliceLookupCodename (BYVAL code AS INTEGER) AS STRING
  RETURN ""
 END FUNCTION
 
-FUNCTION NewSliceOfType (BYVAL t AS SliceTypes, BYVAL parent AS Slice Ptr=0, BYVAL lookup_code AS INTEGER=0) AS Slice Ptr
- DIM newsl AS Slice Ptr
+FUNCTION NewSliceOfType (byval t as SliceTypes, byval parent as Slice Ptr=0, byval lookup_code as integer=0) as Slice Ptr
+ DIM newsl as Slice Ptr
  SELECT CASE t
   CASE slRoot:
    newsl = NewSlice(parent)
@@ -295,29 +295,29 @@ FUNCTION NewSliceOfType (BYVAL t AS SliceTypes, BYVAL parent AS Slice Ptr=0, BYV
    newsl = NewSlice(parent)
    newsl->SliceType = slContainer
   CASE slRectangle:
-   DIM dat AS RectangleSliceData
+   DIM dat as RectangleSliceData
    newsl = NewRectangleSlice(parent, dat)
   CASE slSprite:
-   DIM dat AS SpriteSliceData
+   DIM dat as SpriteSliceData
    newsl = NewSpriteSlice(parent, dat)
   CASE slText
-   DIM dat AS TextSliceData
+   DIM dat as TextSliceData
    newsl = NewTextSlice(parent, dat)
   CASE slMenu:
-   DIM dat AS MenuSliceData
+   DIM dat as MenuSliceData
    newsl = NewMenuSlice(parent, dat)
   CASE slMenuItem:
-   DIM dat AS MenuItemSliceData
+   DIM dat as MenuItemSliceData
    newsl = NewMenuItemSlice(parent, dat)
   CASE slMap:
-   DIM dat AS MapSliceData
+   DIM dat as MapSliceData
    newsl = NewMapSlice(parent, dat)
    newsl->Protect = YES
   CASE slGrid:
-   DIM dat AS GridSliceData
+   DIM dat as GridSliceData
    newsl = NewGridSlice(parent, dat)
   CASE slEllipse:
-   DIM dat AS EllipseSliceData
+   DIM dat as EllipseSliceData
    newsl = NewEllipseSlice(parent, dat)
   CASE ELSE
    debug "NewSliceByType: Warning! type " & t & " is invalid"
@@ -694,9 +694,9 @@ Function LookupSlice(byval lookup_code as integer, byval start_sl as slice ptr) 
   IF start_sl = 0 THEN RETURN 0 '--fail searching under an invalid slice
   IF lookup_code = 0 THEN RETURN 0 '--fail searching for a zero lookup code
   IF start_sl->Lookup = lookup_code THEN RETURN start_sl '--found it!
-  DIM child AS Slice Ptr
+  DIM child as Slice Ptr
   child = start_sl->FirstChild
-  DIM result AS Slice Ptr
+  DIM result as Slice Ptr
   WHILE child
    result = LookupSlice(lookup_code, child)
    IF result THEN RETURN result '--found in recursion, pass the result back
@@ -706,10 +706,10 @@ End Function
 
 Function LastChild(byval parent as slice ptr) as slice ptr
  IF parent = 0 THEN RETURN 0
- DIM sl AS Slice Ptr
+ DIM sl as Slice Ptr
  sl = parent->FirstChild
  IF sl = 0 THEN RETURN 0
- DIM nextsib AS Slice ptr
+ DIM nextsib as Slice ptr
  WHILE sl
   nextsib = sl->NextSibling
   IF nextsib = 0 THEN RETURN sl
@@ -797,7 +797,7 @@ end sub
 
 Sub SaveRectangleSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SaveRectangleSlice null ptr": exit sub
- DIM dat AS RectangleSliceData Ptr
+ DIM dat as RectangleSliceData Ptr
  dat = sl->SliceData
  SaveProp node, "style", dat->style
  SaveProp node, "fg", dat->fgcol
@@ -809,7 +809,7 @@ End Sub
 
 Sub LoadRectangleSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "LoadRectangleSlice null ptr": exit sub
- dim dat AS RectangleSliceData Ptr
+ dim dat as RectangleSliceData Ptr
  dat = sl->SliceData
  dat->style = LoadProp(node, "style", -1)
  dat->fgcol = LoadProp(node, "fg")
@@ -1006,7 +1006,7 @@ end sub
 
 Sub SaveTextSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SaveTextSlice null ptr": exit sub
- DIM dat AS TextSliceData Ptr
+ DIM dat as TextSliceData Ptr
  dat = sl->SliceData
  SaveProp node, "s", dat->s
  SaveProp node, "col", dat->col
@@ -1017,7 +1017,7 @@ End Sub
 
 Sub LoadTextSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "LoadTextSlice null ptr": exit sub
- dim dat AS TextSliceData Ptr
+ dim dat as TextSliceData Ptr
  dat = sl->SliceData
  dat->s       = LoadPropStr(node, "s")
  dat->col     = LoadProp(node, "col")
@@ -1192,7 +1192,7 @@ end sub
 
 Sub SaveSpriteSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SaveSpriteSlice null ptr": exit sub
- DIM dat AS SpriteSliceData Ptr
+ DIM dat as SpriteSliceData Ptr
  dat = sl->SliceData
  if dat->spritetype = sprTypeFrame then showerror "SaveSpriteSlice: tried to save Frame sprite": exit sub  'programmer error
  SaveProp node, "sprtype", dat->spritetype
@@ -1208,7 +1208,7 @@ end sub
 
 Sub LoadSpriteSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "LoadSpriteSlice null ptr": exit sub
- dim dat AS SpriteSliceData Ptr
+ dim dat as SpriteSliceData Ptr
  dat = sl->SliceData
  dat->spritetype = LoadProp(node, "sprtype")
  dat->record     = LoadProp(node, "rec")
@@ -1323,14 +1323,14 @@ End Function
 
 Sub SaveMapSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SaveMapSlice null ptr": exit sub
- DIM dat AS SpriteSliceData Ptr
+ DIM dat as SpriteSliceData Ptr
  dat = sl->SliceData
  'FIXME: current MapSlice impl. has no savable properties
 end sub
 
 Sub LoadMapSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "LoadMapSlice null ptr": exit sub
- dim dat AS SpriteSliceData Ptr
+ dim dat as SpriteSliceData Ptr
  dat = sl->SliceData
  'FIXME: current MapSlice impl. has no savable properties
 End Sub
@@ -1443,7 +1443,7 @@ end sub
 
 Sub SaveGridSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SaveGridSlice null ptr": exit sub
- DIM dat AS GridSliceData Ptr
+ DIM dat as GridSliceData Ptr
  dat = sl->SliceData
  SaveProp node, "cols", dat->cols
  SaveProp node, "rows", dat->rows
@@ -1452,14 +1452,14 @@ End Sub
 
 Sub LoadGridSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "LoadGridSlice null ptr": exit sub
- dim dat AS GridSliceData Ptr
+ dim dat as GridSliceData Ptr
  dat = sl->SliceData
  dat->cols = large(1, LoadProp(node, "cols", 1))
  dat->rows = large(1, LoadProp(node, "rows", 1))
  dat->show = LoadPropBool(node, "show")
 End Sub
 
-Function GridSliceXAlign(BYVAL sl AS Slice Ptr, BYVAL alignTo AS Slice Ptr, BYVAL w AS INTEGER) AS INTEGER
+Function GridSliceXAlign(byval sl as Slice Ptr, byval alignTo as Slice Ptr, byval w as integer) as integer
  if sl = 0 then debug "GridSliceXAlign null ptr": Return 0
  SELECT CASE sl->AlignHoriz
   CASE 0: RETURN alignTo->ScreenX + alignTo->paddingLeft
@@ -1468,7 +1468,7 @@ Function GridSliceXAlign(BYVAL sl AS Slice Ptr, BYVAL alignTo AS Slice Ptr, BYVA
  END SELECT
 End Function
 
-Function GridSliceYAlign(BYVAL sl AS Slice Ptr, BYVAL alignTo AS Slice Ptr, BYVAL h AS INTEGER) AS INTEGER
+Function GridSliceYAlign(byval sl as Slice Ptr, byval alignTo as Slice Ptr, byval h as integer) as integer
  if sl = 0 then debug "GridSliceYAlign null ptr": Return 0
  SELECT CASE sl->AlignVert
   CASE 0: RETURN alignTo->ScreenY + alignTo->paddingTop
@@ -1678,7 +1678,7 @@ end sub
 
 Sub SaveEllipseSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SaveEllipseSlice null ptr": exit sub
- DIM dat AS EllipseSliceData Ptr
+ DIM dat as EllipseSliceData Ptr
  dat = sl->SliceData
  SaveProp node, "bordercol", dat->bordercol
  SaveProp node, "fillcol", dat->fillcol
@@ -1686,7 +1686,7 @@ end sub
 
 Sub LoadEllipseSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "LoadEllipseSlice null ptr": exit sub
- dim dat AS EllipseSliceData Ptr
+ dim dat as EllipseSliceData Ptr
  dat = sl->SliceData
  dat->bordercol = LoadProp(node, "bordercol")
  dat->fillcol   = LoadProp(node, "fillcol")
@@ -1760,7 +1760,7 @@ End Function
 
 Sub SaveMenuSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SaveMenuSlice null ptr": exit sub
- DIM dat AS MenuSliceData Ptr
+ DIM dat as MenuSliceData Ptr
  dat = sl->SliceData
  'FIXME: Implement me!
  debug "SaveMenuSlice not implemented"
@@ -1768,7 +1768,7 @@ end sub
 
 Sub LoadMenuSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "LoadMenuSlice null ptr": exit sub
- dim dat AS MenuSliceData Ptr
+ dim dat as MenuSliceData Ptr
  dat = sl->SliceData
  'FIXME: Implement me!
  debug "LoadMenuSlice not implemented"
@@ -1840,7 +1840,7 @@ End Function
 
 Sub SaveMenuItemSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "GetMenuItemSliceData null ptr": exit sub
- DIM dat AS MenuItemSliceData Ptr
+ DIM dat as MenuItemSliceData Ptr
  dat = sl->SliceData
  'FIXME: Implement me!
  debug "SaveMenuItemSlice not implemented"
@@ -1848,7 +1848,7 @@ end sub
 
 Sub LoadMenuItemSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "LoadMenuItemSlice null ptr": exit sub
- dim dat AS MenuItemSliceData Ptr
+ dim dat as MenuItemSliceData Ptr
  dat = sl->SliceData
  'FIXME: Implement me!
  debug "LoadMenuItemSlice not implemented"
@@ -1879,7 +1879,7 @@ end function
 
 '==General slice display=======================================================
 
-Function GetSliceDrawAttachParent(BYVAL sl AS Slice Ptr) AS Slice Ptr
+Function GetSliceDrawAttachParent(byval sl as Slice Ptr) as Slice Ptr
  if sl = 0 then debug "GetSliceDrawAttachParent null ptr": return 0
  WITH *sl
   SELECT CASE .Attach
@@ -1899,7 +1899,7 @@ Function GetSliceDrawAttachParent(BYVAL sl AS Slice Ptr) AS Slice Ptr
  RETURN ScreenSlice
 End Function
 
-Function SliceXAlign(BYVAL sl AS Slice Ptr, BYVAL alignTo AS Slice Ptr) AS INTEGER
+Function SliceXAlign(byval sl as Slice Ptr, byval alignTo as Slice Ptr) as integer
  if sl = 0 then debug "SliceXAlign null ptr": Return 0
  SELECT CASE sl->AlignHoriz
   CASE 0: RETURN alignTo->ScreenX + alignTo->paddingLeft
@@ -1908,7 +1908,7 @@ Function SliceXAlign(BYVAL sl AS Slice Ptr, BYVAL alignTo AS Slice Ptr) AS INTEG
  END SELECT
 End Function
 
-Function SliceYAlign(BYVAL sl AS Slice Ptr, BYVAL alignTo AS Slice Ptr) AS INTEGER
+Function SliceYAlign(byval sl as Slice Ptr, byval alignTo as Slice Ptr) as integer
  if sl = 0 then debug "SliceYAlign null ptr": Return 0
  SELECT CASE sl->AlignVert
   CASE 0: RETURN alignTo->ScreenY + alignTo->paddingTop
@@ -1917,7 +1917,7 @@ Function SliceYAlign(BYVAL sl AS Slice Ptr, BYVAL alignTo AS Slice Ptr) AS INTEG
  END SELECT
 End Function
 
-Function SliceXAnchor(BYVAL sl AS Slice Ptr) AS INTEGER
+Function SliceXAnchor(byval sl as Slice Ptr) as integer
  if sl = 0 then debug "SliceXAnchor null ptr": Return 0
  SELECT CASE sl->AnchorHoriz
   CASE 0: RETURN 0
@@ -1926,7 +1926,7 @@ Function SliceXAnchor(BYVAL sl AS Slice Ptr) AS INTEGER
  END SELECT
 End Function
 
-Function SliceYAnchor(BYVAL sl AS Slice Ptr) AS INTEGER
+Function SliceYAnchor(byval sl as Slice Ptr) as integer
  if sl = 0 then debug "SliceYAnchor null ptr": Return 0
  SELECT CASE sl->AnchorVert
   CASE 0: RETURN 0
@@ -1935,7 +1935,7 @@ Function SliceYAnchor(BYVAL sl AS Slice Ptr) AS INTEGER
  END SELECT
 End Function
 
-Function SliceEdgeX(BYVAL sl AS Slice Ptr, BYVAL edge AS INTEGER) AS INTEGER
+Function SliceEdgeX(byval sl as Slice Ptr, byval edge as integer) as integer
  if sl = 0 then debug "SliceEdgeX null ptr": Return 0
  SELECT CASE edge
   CASE 0: RETURN 0
@@ -1944,7 +1944,7 @@ Function SliceEdgeX(BYVAL sl AS Slice Ptr, BYVAL edge AS INTEGER) AS INTEGER
  END SELECT
 End Function
 
-Function SliceEdgeY(BYVAL sl AS Slice Ptr, BYVAL edge AS INTEGER) AS INTEGER
+Function SliceEdgeY(byval sl as Slice Ptr, byval edge as integer) as integer
  if sl = 0 then debug "SliceEdgeY null ptr": Return 0
  SELECT CASE edge
   CASE 0: RETURN 0
@@ -2027,7 +2027,7 @@ Sub DrawSlice(byval s as slice ptr, byval page as integer)
  if s->Visible then
   'calc the slice's X,Y
 
-  DIM attach AS Slice Ptr
+  DIM attach as Slice Ptr
   attach = GetSliceDrawAttachParent(s)
   if attach then attach->ChildRefresh(attach, s)
   if s->Draw then
@@ -2049,7 +2049,7 @@ Sub RefreshSliceScreenPos(byval s as slice ptr)
  'without needing to do a full DrawSlice of the whole tree
  'and without respect to the .Visible property
  if s = 0 then exit sub
- DIM attach AS Slice Ptr
+ DIM attach as Slice Ptr
  attach = GetSliceDrawAttachParent(s)
  if attach = 0 then exit sub
  if attach = ScreenSlice then exit sub
@@ -2214,8 +2214,8 @@ Function CloneSliceTree(byval sl as slice ptr) as slice ptr
  '--clone special properties for this slice type
  sl->Clone(sl, clone)
  '--Now clone all the children
- dim ch_slice AS Slice Ptr = sl->FirstChild
- dim ch_clone AS Slice Ptr
+ dim ch_slice as Slice Ptr = sl->FirstChild
+ dim ch_clone as Slice Ptr
  do while ch_slice <> 0
   ch_clone = CloneSliceTree(ch_slice)
   SetSliceParent ch_clone, clone
@@ -2229,17 +2229,17 @@ end function
 
 '--saving----------------------------------------------------------------------
 
-Sub SaveProp(node AS Reload.Nodeptr, propname AS STRING, value AS INTEGER)
+Sub SaveProp(node as Reload.Nodeptr, propname as string, value as integer)
  if node = 0 then debug "SaveProp null node ptr": Exit Sub
  Reload.SetChildNode(node, propname, CLNGINT(value))
 End Sub
 
-Sub SaveProp(node AS Reload.Nodeptr, propname AS STRING, s AS STRING)
+Sub SaveProp(node as Reload.Nodeptr, propname as string, s as string)
  if node = 0 then debug "SaveProp null node ptr": Exit Sub
  Reload.SetChildNode(node, propname, s)
 End Sub
 
-Sub SliceSaveToNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
+Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr)
  if sl = 0 then debug "SliceSaveToNode null slice ptr": Exit Sub
  if node = 0 then debug "SliceSaveToNode null node ptr": Exit Sub
  if Reload.NumChildren(node) <> 0 then debug "SliceSaveToNode non-empty node has " & Reload.NumChildren(node) & " children"
@@ -2292,8 +2292,8 @@ Sub SliceSaveToNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
   children = Reload.CreateNode(node, "children")
   Reload.AddChild(node, children)
   'now loop through the children of this slice and create a new node for each one
-  dim ch_node AS Reload.NodePtr
-  dim ch_slice AS Slice Ptr = sl->FirstChild
+  dim ch_node as Reload.NodePtr
+  dim ch_slice as Slice Ptr = sl->FirstChild
   do while ch_slice <> 0
    ch_node = Reload.CreateNode(children, "")
    Reload.AddChild(children, ch_node)
@@ -2303,7 +2303,7 @@ Sub SliceSaveToNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
  end if
 End sub
 
-Sub SliceSaveToFile(BYVAL sl AS Slice Ptr, filename AS STRING)
+Sub SliceSaveToFile(byval sl as Slice Ptr, filename as string)
  
  'First create a reload document
  dim doc as Reload.DocPtr
@@ -2328,22 +2328,22 @@ End sub
 
 '--loading---------------------------------------------------------------------
 
-Function LoadPropStr(node AS Reload.Nodeptr, propname as string, default as string="") as string
+Function LoadPropStr(node as Reload.Nodeptr, propname as string, default as string="") as string
  if node = 0 then debug "LoadPropStr null node ptr": return default
  return Reload.GetChildNodeStr(node, propname, default)
 End function
 
-Function LoadProp(node AS Reload.Nodeptr, propname as string, default as integer=0) as integer
+Function LoadProp(node as Reload.Nodeptr, propname as string, default as integer=0) as integer
  if node = 0 then debug "LoadProp null node ptr": return default
  return Reload.GetChildNodeInt(node, propname, CLNGINT(default))
 End function
 
-Function LoadPropBool(node AS Reload.Nodeptr, propname as string, default as integer=NO) as integer
+Function LoadPropBool(node as Reload.Nodeptr, propname as string, default as integer=NO) as integer
  if node = 0 then debug "LoadPropBool null node ptr": return default
  return Reload.GetChildNodeBool(node, propname, default)
 End function
 
-Sub SliceLoadFromNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
+Sub SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr)
  if sl = 0 then debug "SliceLoadFromNode null slice ptr": Exit Sub
  if node = 0 then debug "SliceLoadFromNode null node ptr": Exit Sub
  if sl->NumChildren > 0 then debug "SliceLoadFromNode slice already has " & sl->numChildren & " children"
@@ -2393,8 +2393,8 @@ Sub SliceLoadFromNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
  children = Reload.GetChildByName(node, "children")
  if children then
   'now loop through the children of this node and create a new slice for each one
-  dim ch_slice AS Slice Ptr
-  dim ch_node AS Reload.NodePtr = Reload.FirstChild(children)
+  dim ch_slice as Slice Ptr
+  dim ch_node as Reload.NodePtr = Reload.FirstChild(children)
   do while ch_node <> 0
    ch_slice = NewSlice(sl)
    SliceLoadFromNode ch_slice, ch_node
@@ -2403,7 +2403,7 @@ Sub SliceLoadFromNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
  end if
 End sub
 
-Sub SliceLoadFromFile(BYVAL sl AS Slice Ptr, filename AS STRING)
+Sub SliceLoadFromFile(byval sl as Slice Ptr, filename as string)
  
  'First create a reload document
  dim doc as Reload.DocPtr
@@ -2424,7 +2424,7 @@ End sub
 
 '--slice debug stuff
 
-SUB SliceDebugRemember(sl AS Slice Ptr)
+SUB SliceDebugRemember(sl as Slice Ptr)
  if ENABLE_SLICE_DEBUG = NO then exit sub
  if sl = 0 then debug "SliceDebugRemember null ptr": exit sub
  for i as integer = 0 to ubound(SliceDebug)
@@ -2441,7 +2441,7 @@ SUB SliceDebugRemember(sl AS Slice Ptr)
  SliceDebugRemember sl
 END SUB
 
-SUB SliceDebugForget(sl AS Slice Ptr)
+SUB SliceDebugForget(sl as Slice Ptr)
  if ENABLE_SLICE_DEBUG = NO then exit sub
  if sl = 0 then debug "SliceDebugForget null ptr": exit sub
  for i as integer = 0 to ubound(SliceDebug)
@@ -2454,7 +2454,7 @@ SUB SliceDebugForget(sl AS Slice Ptr)
  debug "WARNING: tried to delete slice " & sl & " without any record of creating it!"
 END SUB
 
-SUB SliceDebugDump(noisy AS INTEGER = NO)
+SUB SliceDebugDump(noisy as integer = NO)
  if ENABLE_SLICE_DEBUG = NO then exit sub
  debug "===SLICE DEBUG DUMP==="
  dim count as integer = 0
@@ -2486,7 +2486,7 @@ SUB SliceDebugDumpTree(sl as Slice Ptr, indent as integer = 0)
  SliceDebugDumpTree sl->NextSibling, indent
 END SUB
 
-FUNCTION SliceDebugCheck(sl as Slice Ptr) AS INTEGER
+FUNCTION SliceDebugCheck(sl as Slice Ptr) as integer
  if ENABLE_SLICE_DEBUG = NO then debug "SliceDebugCheck not enabled" : RETURN NO
  if sl = 0 then RETURN NO
  for i as integer = 0 to ubound(SliceDebug)
