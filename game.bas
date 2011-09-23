@@ -38,8 +38,8 @@
 
 'local subs and functions
 DECLARE SUB reset_map_state (map as MapModeState)
-DECLARE SUB opendoor (dforce as integer=0)
-DECLARE SUB thrudoor (door_id as integer)
+DECLARE SUB opendoor (byval dforce as integer=0)
+DECLARE SUB thrudoor (byval door_id as integer)
 DECLARE SUB advance_text_box ()
 DECLARE FUNCTION want_to_check_for_walls(byval who as integer) as integer
 DECLARE SUB update_npcs ()
@@ -2048,15 +2048,15 @@ WITH scrat(nowscript)
 END WITH
 END SUB
 
-FUNCTION valid_item_slot(item_slot as integer) as integer
+FUNCTION valid_item_slot(byval item_slot as integer) as integer
  RETURN bound_arg(item_slot, 0, last_inv_slot(), "item slot")
 END FUNCTION
 
-FUNCTION valid_item(itemID as integer) as integer
+FUNCTION valid_item(byval itemID as integer) as integer
  RETURN bound_arg(itemID, 0, gen(genMaxItem), "item ID")
 END FUNCTION
 
-FUNCTION valid_hero_party(who as integer, minimum as integer=0) as integer
+FUNCTION valid_hero_party(byval who as integer, byval minimum as integer=0) as integer
  RETURN bound_arg(who, minimum, 40, "hero party slot")
 END FUNCTION
 
@@ -2069,37 +2069,37 @@ FUNCTION really_valid_hero_party(byval who as integer, byval minimum as integer=
  RETURN YES
 END FUNCTION
 
-FUNCTION valid_menuslot(menuslot as integer) as integer
+FUNCTION valid_menuslot(byval menuslot as integer) as integer
  RETURN bound_arg(menuslot, 0, topmenu, "menu handle")
 END FUNCTION
 
-FUNCTION valid_menuslot_and_mislot(menuslot as integer, mislot as integer) as integer
+FUNCTION valid_menuslot_and_mislot(byval menuslot as integer, byval mislot as integer) as integer
  IF valid_menuslot(menuslot) THEN
   RETURN bound_arg(mislot, 0, menus(menuslot).numitems - 1, "menu item handle")
  END IF
  RETURN NO
 END FUNCTION
 
-FUNCTION valid_plotstr(n as integer) as integer
+FUNCTION valid_plotstr(byval n as integer) as integer
  RETURN bound_arg(n, 0, UBOUND(plotstr), "string ID")
 END FUNCTION
 
-FUNCTION valid_formation(form as integer) as integer
+FUNCTION valid_formation(byval form as integer) as integer
  RETURN bound_arg(form, 0, gen(genMaxFormation), "formation ID")
 END FUNCTION
 
-FUNCTION valid_formation_slot(form as integer, slot as integer) as integer
+FUNCTION valid_formation_slot(byval form as integer, byval slot as integer) as integer
  IF bound_arg(form, 0, gen(genMaxFormation), "formation ID") THEN
   RETURN bound_arg(slot, 0, 7, "formation slot")
  END IF
  RETURN NO
 END FUNCTION
 
-FUNCTION valid_zone(id as integer) as integer
+FUNCTION valid_zone(byval id as integer) as integer
  RETURN bound_arg(id, 1, 9999, "zone ID", , , 5)
 END FUNCTION
 
-FUNCTION valid_tile_pos(x as integer, y as integer) as integer
+FUNCTION valid_tile_pos(byval x as integer, byval y as integer) as integer
  IF x < 0 OR y < 0 OR x >= mapsizetiles.x OR y >= mapsizetiles.y THEN
   scripterr commandname(curcmd->value) + ": invalid map position " & x & "," & y & " -- map is " & mapsizetiles.x & "*" & mapsizetiles.y & " tiles", 5
   RETURN NO
@@ -2300,7 +2300,7 @@ function dotimerbattle() as integer
   return 0
 end function
 
-FUNCTION add_menu (record as integer, allow_duplicate as integer=NO) as integer
+FUNCTION add_menu (byval record as integer, byval allow_duplicate as integer=NO) as integer
  IF record >= 0 AND allow_duplicate = NO THEN
   'If adding a non-blank menu, first check if the requested menu is already open
   DIM menuslot as integer
@@ -2331,7 +2331,7 @@ FUNCTION add_menu (record as integer, allow_duplicate as integer=NO) as integer
  RETURN assign_menu_handles(menus(topmenu))
 END FUNCTION
 
-SUB remove_menu (slot as integer, byval run_on_close as integer=YES)
+SUB remove_menu (byref slot as integer, byval run_on_close as integer=YES)
  IF slot < 0 OR slot > UBOUND(menus) THEN scripterr "remove_menu: invalid slot " & slot, 4 : EXIT SUB
  bring_menu_forward slot
  IF menus(topmenu).advance_textbox = YES THEN
@@ -2355,7 +2355,7 @@ SUB remove_menu (slot as integer, byval run_on_close as integer=YES)
  END IF
 END SUB
 
-SUB bring_menu_forward (slot as integer)
+SUB bring_menu_forward (byref slot as integer)
  DIM i as integer
  IF slot < 0 OR slot > UBOUND(menus) OR slot > topmenu THEN scripterr "bring_menu_forward: invalid slot " & slot, 4 : EXIT SUB
  mstates(topmenu).active = NO
@@ -2623,7 +2623,7 @@ FUNCTION game_usemenu (state as MenuState) as integer
  END WITH
 END FUNCTION
 
-FUNCTION find_menu_id (id as integer) as integer
+FUNCTION find_menu_id (byval id as integer) as integer
  DIM i as integer
  FOR i = topmenu TO 0 STEP -1
   IF menus(i).record = id THEN
@@ -2683,7 +2683,7 @@ FUNCTION assign_menu_handles (byref menu as MenuDef) as integer
  RETURN new_handle
 END FUNCTION
 
-FUNCTION menu_item_handle_by_slot(menuslot as integer, mislot as integer, visible_only as integer=YES) as integer
+FUNCTION menu_item_handle_by_slot(byval menuslot as integer, byval mislot as integer, byval visible_only as integer=YES) as integer
  IF menuslot >= 0 AND menuslot <= topmenu THEN
   WITH menus(menuslot)
    IF mislot >= 0 AND mislot < .numitems THEN
@@ -2697,7 +2697,7 @@ FUNCTION menu_item_handle_by_slot(menuslot as integer, mislot as integer, visibl
  RETURN 0
 END FUNCTION
 
-FUNCTION find_menu_item_slot_by_string(menuslot as integer, s as STRING, mislot as integer=0, visible_only as integer=YES) as integer
+FUNCTION find_menu_item_slot_by_string(byval menuslot as integer, s as string, byval mislot as integer=0, byval visible_only as integer=YES) as integer
  DIM i as integer
  DIM cap as STRING
  WITH menus(menuslot)
@@ -2744,7 +2744,7 @@ FUNCTION random_formation (byval set as integer) as integer
  RETURN formset(1 + foenext) - 1
 END FUNCTION
 
-SUB prepare_map (afterbat as integer=NO, afterload as integer=NO)
+SUB prepare_map (byval afterbat as integer=NO, byval afterload as integer=NO)
  'DEBUG debug "in preparemap"
 
  DIM i as integer
@@ -2925,7 +2925,7 @@ SUB reset_map_state (map as MapModeState)
  map.name = ""
 END SUB
 
-SUB opendoor (dforce as integer=0)
+SUB opendoor (byval dforce as integer=0)
  'dforce is the ID number +1 of the door to force, or 0 if we are going to search for a mathcing door
  DIM door_id as integer
  IF vstate.active = YES AND vstate.dat.enable_door_use = NO AND dforce = 0 THEN EXIT SUB 'Doors are disabled by a vehicle
@@ -2946,7 +2946,7 @@ SUB opendoor (dforce as integer=0)
  'No doors found
 END SUB
 
-SUB thrudoor (door_id as integer)
+SUB thrudoor (byval door_id as integer)
  DIM oldmap as integer
  DIM i as integer
  DIM destdoor as integer
