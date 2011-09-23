@@ -4,12 +4,12 @@
 'See README.txt for code docs and apologies for crappyness of this code ;)
 'Except, this module isn't especially crappy. Yay!
 '
-
-#ifdef __FB_LANG__
-  #if __FB_LANG__ <> "fb"
-'$DYNAMIC
-    Option Explicit
-  #endif
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
 #endif
 
 #include "config.bi"
@@ -202,7 +202,7 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
  load_string_list slicelookup(), workingdir & SLASH & "slicelookup.txt"
 
  DIM menu(0) AS SliceEditMenuItem
- DIM plainmenu(0) AS STRING 'FIXME: This is a hack because I didn't want to re-implement standardmenu right now
+ REDIM plainmenu(0) AS STRING 'FIXME: This is a hack because I didn't want to re-implement standardmenu right now
 
  DIM state AS MenuState
  WITH state
