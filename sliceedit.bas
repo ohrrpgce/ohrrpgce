@@ -129,7 +129,7 @@ DIM SHARED VertCaptions(2) AS STRING
 VertCaptions(0) = "Top"
 VertCaptions(1) = "Center"
 VertCaptions(2) = "Bottom"
-DIM SHARED BorderCaptions(-2 TO -1) AS STRING
+REDIM SHARED BorderCaptions(-2 TO -1) AS STRING
 BorderCaptions(-2) = "None"
 BorderCaptions(-1) = "Line"
 DIM SHARED TransCaptions(0 TO 2) AS STRING

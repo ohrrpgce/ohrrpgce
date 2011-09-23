@@ -32,7 +32,7 @@ DECLARE SUB subread (byref si as ScriptInst)
 DECLARE SUB subdoarg (byref si as ScriptInst)
 DECLARE SUB subreturn (byref si as ScriptInst)
 DECLARE SUB unwindtodo (byref si as ScriptInst, byval levels as integer)
-DECLARE SUB readstackcommand (byref state as ScriptInst, byref stk as Stack, byval i as integer)
+DECLARE SUB readstackcommand (byref state as ScriptInst, byref stk as Stack, byref i as integer)
 DECLARE FUNCTION localvariablename (byval value as integer, byval scriptargs as integer) as string
 DECLARE FUNCTION mathvariablename (byval value as integer, byval scriptargs as integer) as string
 DECLARE FUNCTION scriptstate (byval targetscript as integer, byval recurse as integer = -1) as string
@@ -761,7 +761,7 @@ END SUB
 
 'This function is called at possible breakpoints and decides whether to break into the debugger
 'It's rather hard to understand.
-SUB breakpoint (byval mode as integer, byval callspot as integer)
+SUB breakpoint (byref mode as integer, byval callspot as integer)
 ' callspot = 1  stnext
 ' callspot = 2  stdone
 ' callspot = 3  stread  - (skipping to end of a command?)
@@ -845,7 +845,7 @@ scriptwatcher mode, 0
 END SUB
 
 'The following function is an atrocious mess. Don't worry too much; it'll be totally replaced.
-SUB scriptwatcher (byval mode as integer, byval drawloop as integer)
+SUB scriptwatcher (byref mode as integer, byval drawloop as integer)
 STATIC localsscroll as integer
 STATIC globalsscroll as integer
 STATIC stringsscroll as integer
@@ -1175,7 +1175,7 @@ IF nowscript >= 0 THEN
 END IF
 END SUB
 
-SUB readstackcommand (byref state as ScriptInst, byref stk as Stack, byval i as integer)
+SUB readstackcommand (byref state as ScriptInst, byref stk as Stack, byref i as integer)
  state.curargn = reads(stk, i)
  state.ptr = reads(stk, i - 1)
  DIM cmdptr as ScriptCommand ptr = cast(ScriptCommand ptr, state.scrdata + state.ptr)
