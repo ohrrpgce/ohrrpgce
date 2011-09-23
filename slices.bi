@@ -152,17 +152,17 @@ TYPE Slice
 END TYPE
 
 TYPE SliceTable_
-  root AS Slice Ptr
-  maproot AS Slice Ptr
-  maplayer(maplayerMax) AS Slice Ptr
-  obsoleteoverhead AS Slice Ptr
-  Walkabout AS Slice Ptr
-  HeroLayer AS Slice Ptr
-  NPCLayer AS Slice Ptr
-  scriptsprite AS Slice Ptr
-  textbox AS Slice Ptr
-  menu AS Slice Ptr
-  scriptstring AS Slice Ptr
+  root as Slice Ptr
+  maproot as Slice Ptr
+  maplayer(maplayerMax) as Slice Ptr
+  obsoleteoverhead as Slice Ptr
+  Walkabout as Slice Ptr
+  HeroLayer as Slice Ptr
+  NPCLayer as Slice Ptr
+  scriptsprite as Slice Ptr
+  textbox as Slice Ptr
+  menu as Slice Ptr
+  scriptstring as Slice Ptr
 END TYPE
 
 '--Data containers for various slice types
@@ -203,16 +203,16 @@ CONST sprTypeFrame = 10  'free to change this later (never saved)
 
 'FIXME: Support for modifying sprites and flipping is pretty tacked on; generalise!
 Type SpriteSliceData
- spritetype AS INTEGER 'PT0 thru PT8, 9=MXS, 10=loaded from Frame
- record AS INTEGER     'meaningless if spritetype is sptTypeFrame
- paletted AS INTEGER   'UNSAVED: YES: 4-bit, NO: 8-bit  (could remove this when 256-colour palettes added, or change meaning)
- pal AS INTEGER     '(UNSAVED if unpaletted) Set pal to -1 for the default. Ignored for unpaletted
- trans AS INTEGER   'Draw transparently?
- frame AS INTEGER   'Currently displaying frame
- flipHoriz AS INTEGER  'NO normal, YES horizontally flipped
- flipVert AS INTEGER   'NO normal, YES horizontally flipped
- loaded AS INTEGER  'UNSAVED: Set to NO to force a re-load on the next draw
- img AS GraphicPair 'UNSAVED: No need to manually populate this, done in draw (.pal = NULL for unpaletted)
+ spritetype as integer 'PT0 thru PT8, 9=MXS, 10=loaded from Frame
+ record as integer     'meaningless if spritetype is sptTypeFrame
+ paletted as integer   'UNSAVED: YES: 4-bit, NO: 8-bit  (could remove this when 256-colour palettes added, or change meaning)
+ pal as integer     '(UNSAVED if unpaletted) Set pal to -1 for the default. Ignored for unpaletted
+ trans as integer   'Draw transparently?
+ frame as integer   'Currently displaying frame
+ flipHoriz as integer  'NO normal, YES horizontally flipped
+ flipVert as integer   'NO normal, YES horizontally flipped
+ loaded as integer  'UNSAVED: Set to NO to force a re-load on the next draw
+ img as GraphicPair 'UNSAVED: No need to manually populate this, done in draw (.pal = NULL for unpaletted)
 End Type
 
 'Shows the currently loaded map at the given slice pos
@@ -220,9 +220,9 @@ End Type
 Type MapSliceData
  'FIXME: Should I even use this at all in this early
  'incarnation? maybe not yet. (It certainly was a huge hassle when rewriting up tilemap stuff)
- map AS INTEGER 'Currently read-only informational
- transparent AS INTEGER 'Whether or not color 0 is transparent
- overlay AS INTEGER 'For backcompat with layers that observe the old overlay feature.
+ map as integer 'Currently read-only informational
+ transparent as integer 'Whether or not color 0 is transparent
+ overlay as integer 'For backcompat with layers that observe the old overlay feature.
  tileset as TilesetData ptr 'NOTE: ptr to the same memory pointed to by the ptrs in the tilesets() array in game.bas (Not owned!)
  tiles as TileMap ptr 'NOTE: ptr to one of maptiles() in game.bas (Not owned!)
  pass as TileMap ptr 'NOTE: ptr to pass in game.bas (Not owned!) May be NULL for non-overhead layers
@@ -246,17 +246,17 @@ Type GridSliceData
 End Type
 
 Type EllipseSliceData
- bordercol AS INTEGER
- fillcol AS INTEGER
- last_draw_size AS XYPair  'UNSAVED: used to detect size changes to force a redraw of the frame
- last_draw_bordercol AS INTEGER 'UNSAVED
- last_draw_fillcol AS INTEGER   'UNSAVED
- frame AS Frame Ptr 'UNSAVED: No need to manually populate this, done in draw
+ bordercol as integer
+ fillcol as integer
+ last_draw_size as XYPair  'UNSAVED: used to detect size changes to force a redraw of the frame
+ last_draw_bordercol as integer 'UNSAVED
+ last_draw_fillcol as integer   'UNSAVED
+ frame as Frame Ptr 'UNSAVED: No need to manually populate this, done in draw
 End Type
 
 DECLARE Sub SetupGameSlices
 DECLARE Sub SetupMapSlices(byval to_max as integer)
-DECLARE Sub DestroyGameSlices(Byval dumpdebug AS INTEGER=0)
+DECLARE Sub DestroyGameSlices(Byval dumpdebug as integer=0)
 DECLARE Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
 DECLARE Sub DeleteSlice(Byval s as Slice ptr ptr, byval debugme as integer = 0)
 DECLARE Sub DeleteSliceChildren(Byval s as Slice ptr)
@@ -271,15 +271,15 @@ DECLARE Function LookupSlice OVERLOAD (byval lookup_code as integer) as slice pt
 DECLARE Function LookupSlice OVERLOAD (byval lookup_code as integer, byval start_sl as slice ptr) as slice ptr
 DECLARE Function LastChild(byval parent as slice ptr) as slice ptr
 DECLARE Function verifySliceLineage(byval sl as slice ptr, parent as slice ptr) as integer
-DECLARE FUNCTION SliceTypeName OVERLOAD (sl AS Slice Ptr) AS STRING
-DECLARE FUNCTION SliceTypeName OVERLOAD (t AS SliceTypes) AS STRING
-DECLARE FUNCTION SliceLookupCodename OVERLOAD (sl AS Slice Ptr) AS STRING
-DECLARE FUNCTION SliceLookupCodename OVERLOAD (BYVAL code AS INTEGER) AS STRING
+DECLARE FUNCTION SliceTypeName OVERLOAD (sl as Slice Ptr) as string
+DECLARE FUNCTION SliceTypeName OVERLOAD (t as SliceTypes) as string
+DECLARE FUNCTION SliceLookupCodename OVERLOAD (sl as Slice Ptr) as string
+DECLARE FUNCTION SliceLookupCodename OVERLOAD (byval code as integer) as string
 DECLARE Sub RefreshSliceScreenPos(byval sl as slice ptr)
-DECLARE Function SliceXAnchor(BYVAL sl AS Slice Ptr) AS INTEGER
-DECLARE Function SliceYAnchor(BYVAL sl AS Slice Ptr) AS INTEGER
-DECLARE Function SliceEdgeX(BYVAL sl AS Slice Ptr, BYVAL edge AS INTEGER) AS INTEGER
-DECLARE Function SliceEdgeY(BYVAL sl AS Slice Ptr, BYVAL edge AS INTEGER) AS INTEGER
+DECLARE Function SliceXAnchor(byval sl as Slice Ptr) as integer
+DECLARE Function SliceYAnchor(byval sl as Slice Ptr) as integer
+DECLARE Function SliceEdgeX(byval sl as Slice Ptr, byval edge as integer) as integer
+DECLARE Function SliceEdgeY(byval sl as Slice Ptr, byval edge as integer) as integer
 DECLARE Function SliceCollide(byval sl1 as Slice Ptr, sl2 as Slice Ptr) as integer
 DECLARE Function SliceCollidePoint(byval sl as Slice Ptr, byval x as integer, byval y as integer) as integer
 DECLARE Function SliceContains(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr) as integer
@@ -293,13 +293,13 @@ DECLARE Sub AutoSortChildren(byval s as Slice Ptr)
 DECLARE Function CloneSliceTree(byval sl as slice ptr) as slice ptr
 DECLARE Sub SetSliceTarg(byval s as slice ptr, byval x as integer, byval y as integer, byval ticks as integer)
 
-DECLARE FUNCTION NewSliceOfType (BYVAL t AS SliceTypes, BYVAL parent AS Slice Ptr=0, BYVAL lookup_code AS INTEGER=0) AS Slice Ptr
+DECLARE FUNCTION NewSliceOfType (byval t as SliceTypes, byval parent as Slice Ptr=0, byval lookup_code as integer=0) as Slice Ptr
 
-DECLARE SUB SliceDebugRemember(sl AS Slice Ptr)
-DECLARE SUB SliceDebugForget(sl AS Slice Ptr)
-DECLARE SUB SliceDebugDump(noisy AS INTEGER = NO)
+DECLARE SUB SliceDebugRemember(sl as Slice Ptr)
+DECLARE SUB SliceDebugForget(sl as Slice Ptr)
+DECLARE SUB SliceDebugDump(noisy as integer = NO)
 DECLARE SUB SliceDebugDumpTree(sl as Slice Ptr, indent as integer = 0)
-DECLARE FUNCTION SliceDebugCheck(sl as Slice Ptr) AS INTEGER
+DECLARE FUNCTION SliceDebugCheck(sl as Slice Ptr) as integer
 
 DECLARE Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSliceData) as slice ptr
 DECLARE Sub ChangeRectangleSlice(byval sl as slice ptr,_
@@ -359,13 +359,13 @@ DECLARE Sub ChangeEllipseSlice(byval sl as slice ptr,_
                       byval fillcol as integer=-1)  ' All arguments default to no change
 
 '--Saving and loading slices
-DECLARE Sub SliceSaveToNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
-DECLARE Sub SliceSaveToFile(BYVAL sl AS Slice Ptr, filename AS STRING)
-DECLARE Sub SliceLoadFromNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
-DECLARE Sub SliceLoadFromFile(BYVAL sl AS Slice Ptr, filename AS STRING)
+DECLARE Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr)
+DECLARE Sub SliceSaveToFile(byval sl as Slice Ptr, filename as string)
+DECLARE Sub SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr)
+DECLARE Sub SliceLoadFromFile(byval sl as Slice Ptr, filename as string)
 
 
-EXTERN AS SliceTable_ SliceTable
+EXTERN as SliceTable_ SliceTable
 
 'NEW SLICE TYPE TEMPLATE
 'INSTRUCTIONS: Copy the following block into Slices.bas.
@@ -396,7 +396,7 @@ Function Get<TYPENAME>SliceData(byval sl as slice ptr) as <TYPENAME>SliceData pt
 End Function
 
 Sub Save<TYPENAME>Slice(byval sl as slice ptr, byref f as SliceFileWrite)
- DIM dat AS <TYPENAME>SliceData Ptr
+ DIM dat as <TYPENAME>SliceData Ptr
  dat = sl->SliceData
  'WriteSliceFileVal f, "keyname", dat->datamember
 End Sub
@@ -404,7 +404,7 @@ End Sub
 Function Load<TYPENAME>Slice (Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer
  'Return value is YES if the key is understood, NO if ignored
  'set checkn=NO if you read a string. checkn defaults to YES which causes integer/boolean checking to happen afterwards
- dim dat AS <TYPENAME>SliceData Ptr
+ dim dat as <TYPENAME>SliceData Ptr
  dat = sl->SliceData
  select case key
   'case "keyname": dat->datamember = n
