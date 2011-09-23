@@ -4,7 +4,13 @@
 '' part of OHRRPGCE - see LICENCE.txt for GPL
 ''
 
-option explicit
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
+#endif
 
 #include "config.bi"
 #include "crt.bi"
@@ -684,7 +690,7 @@ SUB io_sdl_setmousevisibility(byval visible as integer)
 END SUB
 
 'Change from SDL to OHR mouse button numbering (swap middle and right)
-FUNCTION fix_buttons(byval buttons as integer)
+FUNCTION fix_buttons(byval buttons as integer) as integer
   DIM mbuttons as integer = 0
   IF SDL_BUTTON(SDL_BUTTON_LEFT) AND buttons THEN mbuttons = mbuttons OR 1
   IF SDL_BUTTON(SDL_BUTTON_RIGHT) AND buttons THEN mbuttons = mbuttons OR 2
@@ -738,7 +744,7 @@ SUB io_sdl_mousebits (byref mx as integer, byref my as integer, byref mwheel as 
   mouseclicks = 0
 END SUB
 
-SUB io_sdl_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as integer)
+SUB io_sdl_getmouse(byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer)
   'supports io_mousebits instead
 END SUB
 
