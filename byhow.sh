@@ -18,10 +18,10 @@ LNUMS=`fbc -lang deprecated -c "${BAS}" -o temp.o -mt -exx -g -d DATAFILES='"/us
 for L in ${LNUMS} ; do
   head -n "${L}" "${BAS}" | tail -n 1 | sed -e s/"^"/"${L}:"/
 done | grep -i \
-  -e "as integer" \
-  -e "as long" \
-  -e "as short" \
-  -e "as float" \
-  -e "as double" \
-  -e "as short" \
-  -e "as [^ ]+ ptr"
+  -e "\((\|,\) *[^ ()]\+ as integer" \
+  -e "\((\|,\) *[^ ()]\+ as long" \
+  -e "\((\|,\) *[^ ()]\+ as short" \
+  -e "\((\|,\) *[^ ()]\+ as float" \
+  -e "\((\|,\) *[^ ()]\+ as double" \
+  -e "\((\|,\) *[^ ()]\+ as short" \
+  -e "\((\|,\) *[^ ()]\+ as [^ ]+ ptr"
