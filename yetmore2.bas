@@ -74,13 +74,13 @@ IF vstate.active THEN
   '--dismount-ahead is true, dismount-passwalls is false
   SELECT CASE catd(0)
    CASE 0
-    ygo(0) = 20
+    herow(0).ygo = 20
    CASE 1
-    xgo(0) = -20
+    herow(0).xgo = -20
    CASE 2
-    ygo(0) = -20
+    herow(0).ygo = -20
    CASE 3
-    xgo(0) = 20
+    herow(0).xgo = 20
   END SELECT
  END IF
  IF vstate.dat.on_dismount > 0 THEN
@@ -90,8 +90,8 @@ IF vstate.active THEN
   trigger_script ABS(vstate.dat.on_dismount), YES, "dismount", scrqBackcompat()
  END IF
  settag vstate.dat.riding_tag, NO
- herospeed(0) = vstate.old_speed
- IF herospeed(0) = 3 THEN herospeed(0) = 10
+ herow(0).speed = vstate.old_speed
+ IF herow(0).speed = 3 THEN herow(0).speed = 10
  reset_vehicle vstate
  FOR i as integer = 1 TO 15
   catx(i) = catx(0)
@@ -146,7 +146,7 @@ gold = gen(genStartMoney)
 
 '--hero's speed
 FOR i as integer = 0 TO 3
- herospeed(i) = 4
+ herow(i).speed = 4
 NEXT i
 
 '--hero's position
@@ -377,6 +377,7 @@ SUB verquit
  DIM direction as integer = 2
  DIM ptr2 as integer = 0
  DIM tog as integer
+ DIM wtog as integer
  DIM col as integer
  setkeys
  DO
@@ -385,7 +386,7 @@ SUB verquit
   tog = tog XOR 1
   playtimer
   control
-  wtog(0) = loopvar(wtog(0), 0, 3, 1)
+  wtog = loopvar(wtog, 0, 3, 1)
   IF carray(ccMenu) > 1 THEN abortg = 0: setkeys: flusharray carray(),7,0: EXIT DO
   IF (carray(ccUse) > 1 AND ABS(ptr2) > 20) OR ABS(ptr2) > 50 THEN
    IF ptr2 < 0 THEN abortg = 1: fadeout 0, 0, 0
@@ -397,8 +398,8 @@ SUB verquit
   IF carray(ccLeft) > 0 THEN ptr2 = ptr2 - 5: direction = 3
   IF carray(ccRight) > 0 THEN ptr2 = ptr2 + 5: direction = 1
   centerbox 160, 95, 200, 42, 15, page
-  set_walkabout_frame gam.caterp(0), direction, wtog(0) \ 2
-  DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, gam.caterp(0)), 150 + ptr2, 90, 20, 20, page
+  set_walkabout_frame herow(0).sl, direction, wtog \ 2
+  DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, herow(0).sl), 150 + ptr2, 90, 20, 20, page
   edgeprint quitprompt, xstring(quitprompt, 160), 80, uilook(uiText), page
   col = uilook(uiMenuItem): IF ptr2 < -20 THEN col = uilook(uiSelectedItem + tog) '10 + tog * 5
   edgeprint quityes, 70, 96, col, page

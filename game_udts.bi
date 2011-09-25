@@ -57,6 +57,15 @@ TYPE HeroState
  elementals(maxElements - 1) AS SINGLE
 END TYPE
 
+TYPE HeroWalkabout
+  sl as Slice Ptr
+  xgo as integer
+  ygo as integer
+  wtog as integer
+  speed as integer
+  'x, y, z, dir are in catx(), caty(), catz(), catd() instead *grumble*
+END TYPE
+
 TYPE GameState
   map AS MapModeState
   wonbattle AS INTEGER 'Indicates the status of the last battle, 1 for victory 0 for running away
@@ -67,7 +76,6 @@ TYPE GameState
   walk_through_walls AS INTEGER 'used for F11 cheat mode
   mouse_enabled AS INTEGER 'initmouse called
   hero(40) AS HeroState
-  caterp(3) AS Slice Ptr
   debug_showtags AS INTEGER
   debug_npc_info AS INTEGER
   autorungame AS INTEGER

@@ -930,16 +930,16 @@ SELECT CASE as CONST id
    SELECT CASE retvals(1)
     CASE 0'--north
      catd(retvals(0) * 5) = 0
-     ygo(retvals(0)) = retvals(2) * 20
+     herow(retvals(0)).ygo = retvals(2) * 20
     CASE 1'--east
      catd(retvals(0) * 5) = 1
-     xgo(retvals(0)) = (retvals(2) * 20) * -1
+     herow(retvals(0)).xgo = (retvals(2) * 20) * -1
     CASE 2'--south
      catd(retvals(0) * 5) = 2
-     ygo(retvals(0)) = (retvals(2) * 20) * -1
+     herow(retvals(0)).ygo = (retvals(2) * 20) * -1
     CASE 3'--west
      catd(retvals(0) * 5) = 3
-     xgo(retvals(0)) = retvals(2) * 20
+     herow(retvals(0)).xgo = retvals(2) * 20
    END SELECT
   END IF
  CASE 12'--check tag
@@ -983,7 +983,7 @@ SELECT CASE as CONST id
   END IF
  CASE 25'--set hero frame
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-   wtog(retvals(0)) = bound(retvals(1), 0, 1) * 2
+   herow(retvals(0)).wtog = bound(retvals(1), 0, 1) * 2
   END IF
  CASE 27'--suspend overlay
   setbit gen(), 44, suspendoverlay, 1
@@ -1090,7 +1090,7 @@ SELECT CASE as CONST id
   fadein
  CASE 81'--set hero speed
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-   herospeed(retvals(0)) = bound(retvals(1), 0, 20)
+   herow(retvals(0)).speed = bound(retvals(1), 0, 20)
   END IF
  CASE 82'--inventory
   scriptret = countitem(retvals(0) + 1)
@@ -1174,7 +1174,7 @@ SELECT CASE as CONST id
   END IF
  CASE 116'--hero is walking
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-   IF xgo(retvals(0)) = 0 AND ygo(retvals(0)) = 0 THEN
+   IF herow(retvals(0)).xgo = 0 AND herow(retvals(0)).ygo = 0 THEN
     scriptret = 0
    ELSE
     scriptret = 1
@@ -1346,7 +1346,7 @@ SELECT CASE as CONST id
   END IF
  CASE 191'--hero frame
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-   scriptret = wtog(retvals(0)) \ 2
+   scriptret = herow(retvals(0)).wtog \ 2
   END IF
  CASE 195'--load sound (BACKWARDS COMPATABILITY HACK )
   'This opcode is not exposed in plotscr.hsd and should not be used in any new scripts
@@ -1822,7 +1822,7 @@ SELECT CASE as CONST id
   END IF
  CASE 321'--get hero speed (hero)
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-   scriptret = herospeed(retvals(0))
+   scriptret = herow(retvals(0)).speed
   END IF
  CASE 322'--load hero sprite
   scriptret = load_sprite_plotslice(0, retvals(0), retvals(1))
@@ -2885,7 +2885,7 @@ SELECT CASE as CONST id
   END IF
  CASE 519 '--get hero slice
   IF bound_arg(retvals(0), 0, 3, "caterpillar slot") THEN
-   scriptret = find_plotslice_handle(gam.caterp(retvals(0)))
+   scriptret = find_plotslice_handle(herow(retvals(0)).sl)
   END IF
  CASE 520 '--get NPC slice
   DIM npcref as integer = get_valid_npc(retvals(0))
@@ -3238,20 +3238,19 @@ IF vstate.trigger_cleanup THEN '--clear
  IF vstate.dat.on_dismount > 0 THEN loadsay vstate.dat.on_dismount
  settag vstate.dat.riding_tag, NO
  IF vstate.dat.dismount_ahead = YES AND vstate.dat.pass_walls_while_dismounting = NO THEN
-  '--dismount-ahead is true, dismount-passwalls is false
   SELECT CASE catd(0)
    CASE 0
-    ygo(0) = 20
+    herow(0).ygo = 20
    CASE 1
-    xgo(0) = -20
+    herow(0).xgo = -20
    CASE 2
-    ygo(0) = -20
+    herow(0).ygo = -20
    CASE 3
-    xgo(0) = 20
+    herow(0).xgo = 20
   END SELECT
  END IF
- herospeed(0) = vstate.old_speed
- IF herospeed(0) = 3 THEN herospeed(0) = 10
+ herow(0).speed = vstate.old_speed
+ IF herow(0).speed = 3 THEN herow(0).speed = 10
  npc(vstate.npc).xgo = 0
  npc(vstate.npc).ygo = 0
  delete_walkabout_shadow npc(vstate.npc).sl
@@ -3274,7 +3273,7 @@ IF vstate.active = YES AND vehicle_is_animating() = NO THEN
   button(0) = vstate.dat.use_button
   button(1) = vstate.dat.menu_button
   FOR i as integer = 0 TO 1
-   IF carray(ccUse + i) > 1 AND xgo(0) = 0 AND ygo(0) = 0 THEN
+   IF carray(ccUse + i) > 1 AND herow(0).xgo = 0 AND herow(0).ygo = 0 THEN
     SELECT CASE button(i)
      CASE -2
       '-disabled
@@ -3295,8 +3294,8 @@ END IF'--normal
 END SUB 'result
 
 SUB vehicle_graceful_dismount ()
- xgo(0) = 0
- ygo(0) = 0
+ herow(0).xgo = 0
+ herow(0).ygo = 0
  IF vstate.dat.elevation > 0 THEN
   vstate.falling = YES
  ELSE
@@ -3338,7 +3337,7 @@ SUB vishero ()
  DIM cater_slot as integer = 0
  FOR party_slot as integer = 0 TO 3
   IF hero(party_slot) > 0 THEN
-   set_walkabout_sprite gam.caterp(cater_slot), gam.hero(party_slot).pic, gam.hero(party_slot).pal
+   set_walkabout_sprite herow(cater_slot).sl, gam.hero(party_slot).pic, gam.hero(party_slot).pal
    cater_slot += 1
   END IF
  NEXT
@@ -3512,26 +3511,26 @@ SUB vehscramble(byref mode_val as integer, byval trigger_cleanup as integer, byv
   ELSE
    scramx = catx(i * 5)
    scramy = caty(i * 5)
-   IF ABS(scramx - targx) < large(herospeed(i), 4) THEN
+   IF ABS(scramx - targx) < large(herow(i).speed, 4) THEN
     scramx = targx
-    xgo(i) = 0
-    ygo(i) = 0
+    herow(i).xgo = 0
+    herow(i).ygo = 0
    END IF
-   IF ABS(scramy - targy) < large(herospeed(i), 4) THEN
+   IF ABS(scramy - targy) < large(herow(i).speed, 4) THEN
     scramy = targy
-    xgo(i) = 0
-    ygo(i) = 0
+    herow(i).xgo = 0
+    herow(i).ygo = 0
    END IF
-   IF ABS(targx - scramx) > 0 AND xgo(i) = 0 THEN
-    xgo(i) = 20 * SGN(scramx - targx)
+   IF ABS(targx - scramx) > 0 AND herow(i).xgo = 0 THEN
+    herow(i).xgo = 20 * SGN(scramx - targx)
    END IF
-   IF ABS(targy - scramy) > 0 AND ygo(i) = 0 THEN
-    ygo(i) = 20 * SGN(scramy - targy)
+   IF ABS(targy - scramy) > 0 AND herow(i).ygo = 0 THEN
+    herow(i).ygo = 20 * SGN(scramy - targy)
    END IF
    IF gmap(5) = 1 THEN
     '--this is a wrapping map
-    IF ABS(scramx - targx) > mapsizetiles.x * 20 / 2 THEN xgo(i) = xgo(i) * -1
-    IF ABS(scramy - targy) > mapsizetiles.y * 20 / 2 THEN ygo(i) = ygo(i) * -1
+    IF ABS(scramx - targx) > mapsizetiles.x * 20 / 2 THEN herow(i).xgo *= -1
+    IF ABS(scramy - targy) > mapsizetiles.y * 20 / 2 THEN herow(i).ygo *= -1
    END IF
    IF scramx - targx = 0 AND scramy - targy = 0 THEN tmp = tmp + 1
    catx(i * 5) = scramx
@@ -3542,12 +3541,12 @@ SUB vehscramble(byref mode_val as integer, byval trigger_cleanup as integer, byv
   mode_val = NO
   IF vstate.dat.on_mount < 0 THEN trigger_script ABS(vstate.dat.on_mount), YES, "vehicle on-mount", scrqBackcompat()
   IF vstate.dat.on_mount > 0 THEN loadsay vstate.dat.on_mount
-  herospeed(0) = vstate.dat.speed
-  IF herospeed(0) = 3 THEN herospeed(0) = 10
+  herow(0).speed = vstate.dat.speed
+  IF herow(0).speed = 3 THEN herow(0).speed = 10
   '--null out hero's movement
   FOR i as integer = 0 TO 3
-   xgo(i) = 0
-   ygo(i) = 0
+   herow(i).xgo = 0
+   herow(i).ygo = 0
   NEXT i
   IF trigger_cleanup THEN vstate.trigger_cleanup = YES '--clear
   IF vstate.dat.elevation > 0 THEN vstate.rising = YES

@@ -2234,8 +2234,8 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
    IF hero(i) > 0 THEN
     DIM frame as integer = 0
     IF targ = i THEN frame = wtogl \ 2
-    set_walkabout_frame gam.caterp(cater_slot), dirDown, frame
-    DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, gam.caterp(cater_slot)), 89 + x_offset, 8 + i * 20, 20, 20, page
+    set_walkabout_frame herow(cater_slot).sl, dirDown, frame
+    DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, herow(cater_slot).sl), 89 + x_offset, 8 + i * 20, 20, 20, page
     col = uilook(uiMenuItem)
     IF i = targ THEN col = uilook(uiSelectedItem + tog)
     IF attack_id >= 0 THEN

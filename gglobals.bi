@@ -71,11 +71,8 @@ EXTERN as integer mapx, mapy  'camera pos
 EXTERN tilesets() as TilesetData ptr
 
 'Hero walkabout globals
-EXTERN as GraphicPair herow()
 EXTERN as integer catx(), caty(), catz(), catd()
-EXTERN herospeed() as integer
-EXTERN as integer xgo(), ygo()
-EXTERN wtog() as integer
+EXTERN herow() as HeroWalkabout
 
 'NPC globals
 EXTERN npcs() as NPCType

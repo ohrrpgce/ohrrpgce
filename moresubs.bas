@@ -633,8 +633,8 @@ cater_slot = 0
 FOR i as integer = 0 TO 3
  IF i = swapme OR hero(i) > 0 THEN rectangle 105 + (30 * i), 60, 20, 20, uilook(uiTextBox), page
  IF hero(i) THEN
-  set_walkabout_frame gam.caterp(cater_slot), dirDown, 0
-  DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, gam.caterp(cater_slot)), 105 + i * 30, 60 + (i = swapme) * 6, 20, 20, page
+  set_walkabout_frame herow(cater_slot).sl, dirDown, 0
+  DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, herow(cater_slot).sl), 105 + i * 30, 60 + (i = swapme) * 6, 20, 20, page
   cater_slot += 1
  END IF
 NEXT i
@@ -980,8 +980,8 @@ DO
  FOR party_slot as integer = 0 TO 3
   IF hero(party_slot) > 0 THEN
    IF w = party_slot THEN wt = wtg \ 2 ELSE wt = 0
-   set_walkabout_frame gam.caterp(cater_slot), dirDown, wt
-   DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, gam.caterp(cater_slot)), 100 + party_slot * 30, 100, 20, 20, page
+   set_walkabout_frame herow(cater_slot).sl, dirDown, wt
+   DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, herow(cater_slot).sl), 100 + party_slot * 30, 100, 20, 20, page
    cater_slot += 1
   END IF
  NEXT
@@ -1169,7 +1169,7 @@ FOR i as integer = 0 TO 99
   gam.stock(i, o) = -1 'default of -1 means no limit
  NEXT o
 NEXT i
-flusharray hmask(), 3, 0
+flusharray hmask()
 flusharray global(), 4095, 0
 reset_vehicle vstate
 cleanup_text_box
