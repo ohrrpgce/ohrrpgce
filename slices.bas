@@ -2044,6 +2044,33 @@ Sub DrawSlice(byval s as slice ptr, byval page as integer)
  end if
 end sub
 
+Sub DrawSliceAt(byval s as slice ptr, byval x as integer, byval y as integer, byval w as integer = 100, byval h as integer = 100, byval page as integer)
+ if s = 0 then debug "DrawSliceAt null ptr": exit sub
+ if s->Visible then
+  'calc the slice's X,Y
+
+  'Is this actually necessary? I guess it should always be 0,0 when not inside a DrawSlice call...
+  'GlobalCoordOffset.X = 0
+  'GlobalCoordOffset.Y = 0
+
+  DIM dummyparent as Slice Ptr
+  dummyparent = NewSliceOfType(slContainer)
+  dummyparent->ScreenX = x
+  dummyparent->ScreenY = y
+  dummyparent->Width = w
+  dummyparent->Height = h
+  DefaultChildRefresh(dummyparent, s)
+
+  if s->Draw then
+   s->Draw(s, page)
+  end if
+  AutoSortChildren(s)
+  s->ChildDraw(s, page)
+
+  DeleteSlice @dummyparent
+ end if
+end sub
+
 Sub RefreshSliceScreenPos(byval s as slice ptr)
  'This sub quickly updates a slice's ScreenX and ScreenY
  'without needing to do a full DrawSlice of the whole tree
