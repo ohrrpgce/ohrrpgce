@@ -5,6 +5,7 @@
 # test that demonstrates the bug FIRST before you fix the bug.
 
 include, plotscr.hsd
+include, autotest.hsi
 
 ########################################################################
 
@@ -29,6 +30,7 @@ plotscript, run all tests, begin
   seed random(4444)
   math tests
   hero tests
+  trigger tests
   npc tests
   menu tests
   textbox tests
@@ -116,17 +118,6 @@ end
 #hero base elemental resist as int (who, element)
 #hero total elemental resist as int (who, element)
 #set hero base elemental resist (who, element, percent)
-
-# Because I don't want to bother with having an HSI file right now
-
-define constant(
-0,hero:Freki
-1,hero:Helga
-2,hero:Olaf
-3,hero:Frumpy
-4,hero:Styrge
-5,hero:Kitt
-)
 
 script, hero party management tests, begin
   $0="hero party management tests"
@@ -375,7 +366,6 @@ script, do hero cater tests, who, begin
     )
   )
   put hero(who, px, py), w
-    
 end
 
 script, expect hero walls, who, wn, we, ws, ww, begin
@@ -764,6 +754,82 @@ script, npc movement tests, n, begin
   set npc position(n, 3, 5)
   
   show no value
+end
+
+########################################################################
+
+script, trigger tests, begin
+  harm tile tests
+end
+
+script, assert hurt pattern, test no, start hp, h0, h1, h2, h3, begin
+  # h# is true if hero # should be hurt
+  $0="assert hurt pattern, test no. "
+  append number(0, test no)
+  assert(get hero stat(0, stat:hp) == start hp -- h0)
+  assert(get hero stat(1, stat:hp) == start hp -- h1)
+  assert(get hero stat(2, stat:hp) == start hp -- h2)
+  assert(get hero stat(3, stat:hp) == start hp -- h3)
+  set hero stat(0, stat:hp, start hp)
+  set hero stat(1, stat:hp, start hp)
+  set hero stat(2, stat:hp, start hp)
+  set hero stat(3, stat:hp, start hp)
+end
+
+script, harm tile tests, begin
+  $0="harm tile tests"
+
+  # Test harmtile damage
+  walk hero to x(me, 7)
+  walk hero to y(me, 6)
+  wait for hero(me)
+
+  variable(start hp)
+  start hp := get hero stat(0, stat:hp, current stat)
+  # hero is now at tile 7,6, caterpillar is enabled and not suspended, and all heroes have 'start hp' hp
+
+  write map block(6, 6, 140, 1)
+  write pass block(6, 6, harmtile)
+
+  # Test damage to individual heroes, caterpillar enabled
+  # also testing crossing over harmtile without stopping
+  walk hero(me, left, 1)
+  wait for hero(me), _checkpoint   # check for flash
+  assert hurt pattern(0, start hp, true, false, false, false)
+  walk hero(me, left, 2)
+  wait for hero(me), _checkpoint
+  assert hurt pattern(1, start hp, false, true, true, false)
+
+  # Test damage to individual heroes, caterpillar suspended
+  suspend caterpillar
+  walk hero(1, right, 1)
+  walk hero(2, down, 1)
+  walk hero(3, left, 1)
+  wait for hero(3)
+  assert hurt pattern(2, start hp, false, true, false, true)
+
+  # Test damage to whole party, caterpillar disabled
+  set caterpillar mode(off)
+  walk hero(me, right, 3)
+  wait for hero(me)
+  # "Harm tiles harm non-caterpillar party" is off
+  assert hurt pattern(3, start hp, true, false, false, false)
+  # Turn on "Harm tiles harm non-caterpillar party"
+  write general(177, read general(177), or, 2^12)
+  walk hero(me, left, 2)
+  wait for hero(me)
+  assert hurt pattern(4, start hp, true, true, true, true)
+  # Check this makes no difference
+  resume caterpillar
+  walk hero(me, right, 1)
+  wait for hero(me)
+  assert hurt pattern(5, start hp, true, true, true, true)
+  
+  write map block(6, 6, 0, 1)
+  write pass block(6, 6, 0)
+
+  set caterpillar mode(on)
+  # Caterpiller on and resumed, all heroes have 'start hp' hp
 end
 
 ########################################################################
@@ -1764,7 +1830,6 @@ end
 #set ambient music (song)
 #set battle wait mode (state)
 #set bottom padding (handle, pixels)
-#set caterpillar mode (state)
 #set color(index, value)
 #set damage cap (cap)
 #set days of play (days)
@@ -1916,7 +1981,6 @@ end
 #number -- number
 #suspend box advance
 #suspend catapillar
-#suspend caterpillar
 #suspend map music
 #suspend NPCs
 #suspend NPC walls

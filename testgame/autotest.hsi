@@ -1,0 +1,44 @@
+# HamsterSpeak constant definitions for autotest.rpg
+
+define constant, begin
+2,tag:box chain test
+3,tag:menu tag test
+0,hero:Freki
+1,hero:Helga
+2,hero:Olaf
+3,hero:Frumpy
+4,hero:Styrge
+5,hero:Kitt
+0,stat:HP
+1,stat:MP
+2,stat:Atk
+3,stat:Aim
+4,stat:Def
+5,stat:Dog
+6,stat:Mag
+7,stat:Wil
+8,stat:Spd
+9,stat:Ctr
+10,stat:MP~
+11,stat:Hits
+1,slot:Weapon
+1,slot:Weapon 2
+2,slot:Head
+3,slot:Body
+4,slot:Arms
+5,slot:Legs
+0,map:Test Town
+1,map:Afterbattle script map
+2,map:Insteadofbattle script map
+3,map:InsteadAfter battle map
+1,atk:SelfStab
+2,atk:L10 Wolf
+3,atk:Force Run
+4,atk:Force Vict
+5,atk:Force Exit
+2,menu:Menu from menu
+0,enemy:Mushboom
+1,enemy:Run Forcer
+2,enemy:Victory Forcer
+3,enemy:Exit Forcer
+end
