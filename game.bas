@@ -1486,11 +1486,6 @@ END IF
 IF wantdoor > 0 THEN
  usedoor wantdoor - 1
  wantdoor = 0
- IF gam.need_fade_in = NO THEN 'no random battle on the first tick before fade in (?)
-  temp = readblock(foemap, catx(0) \ 20, caty(0) \ 20)
-  IF vstate.active = YES AND vstate.dat.random_battles > 0 THEN temp = vstate.dat.random_battles
-  IF temp > 0 THEN gam.random_battle_countdown = large(gam.random_battle_countdown - gam.foe_freq(temp - 1), 0)
- END IF
  setmapxy
 END IF
 IF wantbattle > 0 THEN
@@ -3041,12 +3036,6 @@ SUB advance_text_box ()
  '---FORCE DOOR------
  IF istag(txt.box.door_tag, 0) THEN
   usedoor txt.box.door
-  IF gam.need_fade_in = NO THEN
-   DIM temp as integer
-   temp = readblock(foemap, catx(0) \ 20, caty(0) \ 20)
-   IF vstate.active = YES AND vstate.dat.random_battles > 0 THEN temp = vstate.dat.random_battles
-   IF temp > 0 THEN gam.random_battle_countdown = large(gam.random_battle_countdown - gam.foe_freq(temp - 1), 0)
-  END IF
   setmapxy
  END IF
  '---JUMP TO NEXT TEXT BOX--------
