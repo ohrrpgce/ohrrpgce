@@ -14,7 +14,7 @@ DECLARE SUB drawsay ()
 DECLARE SUB party_change_updates ()
 DECLARE SUB evalherotags ()
 DECLARE SUB evalitemtags ()
-DECLARE FUNCTION findhero (byval who as integer, byval f as integer, byval l as integer, byval d as integer) as integer
+DECLARE FUNCTION findhero (byval who as integer, byval first as integer, byval last as integer, byval direction as integer) as integer
 DECLARE SUB hero_swap_menu (iAll as integer)
 DECLARE SUB settag (byval tagnum as integer, byval value as integer = 4444)
 DECLARE FUNCTION istag (byval num as integer, byval zero as integer) as integer

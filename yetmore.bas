@@ -164,7 +164,7 @@ DO WHILE start < LEN(text)
     CASE "C": '--Hero name by caterpillar position
      '--defaults blank if not found
      insert = ""
-     DIM where as integer = partybyrank(arg)
+     DIM where as integer = rank_to_party_slot(arg)
      IF where >= 0 THEN
       insert = names(where)
      END IF
@@ -347,15 +347,9 @@ SELECT CASE as CONST id
    IF hero(retvals(0)) > 0 THEN
     equip retvals(0)
    END IF
-  END IF
-  IF retvals(0) = -1 THEN
+  ELSEIF retvals(0) = -1 THEN
    'Or pass -1 to equip the first hero in the party
-   FOR i as integer = 0 TO 3
-    IF hero(i) > 0 THEN
-     equip i
-     EXIT FOR
-    END IF
-   NEXT i
+   equip rank_to_party_slot(0)
   END IF
  CASE 157'--order menu
   hero_swap_menu 0
@@ -420,29 +414,25 @@ SELECT CASE as CONST id
  CASE 449'--reset hero picture
   DIM i as integer = retvals(0)
   DIM j as integer = retvals(1)
-  IF valid_hero_party(i) THEN
-   IF hero(i) > 0 THEN
-    IF bound_arg(j, 0, 1, "in or out of battle") THEN
-     DIM her as herodef
-     loadherodata @her, hero(i) - 1
-     IF j = 0 THEN gam.hero(i).battle_pic = her.sprite
-     IF j = 1 THEN gam.hero(i).pic = her.walk_sprite
-     IF i < 4 THEN vishero
-    END IF
+  IF really_valid_hero_party(i, 4) THEN  'suppressed error
+   IF bound_arg(j, 0, 1, "in or out of battle") THEN
+    DIM her as herodef
+    loadherodata @her, hero(i) - 1
+    IF j = 0 THEN gam.hero(i).battle_pic = her.sprite
+    IF j = 1 THEN gam.hero(i).pic = her.walk_sprite
+    IF i < 4 THEN vishero
    END IF
   END IF
  CASE 450'--reset hero palette
   DIM i as integer = retvals(0)
   DIM j as integer = retvals(1)
-  IF valid_hero_party(i) THEN
-   IF hero(i) > 0 THEN
-    IF bound_arg(j, 0, 1, "in or out of battle") THEN
-     DIM her as herodef
-     loadherodata @her, hero(i) - 1
-     IF j = 0 THEN gam.hero(i).battle_pal = her.sprite_pal
-     IF j = 1 THEN gam.hero(i).pal = her.walk_sprite_pal
-     IF i < 4 THEN vishero
-    END IF
+  IF really_valid_hero_party(i, 4) THEN  'suppressed error
+   IF bound_arg(j, 0, 1, "in or out of battle") THEN
+    DIM her as herodef
+    loadherodata @her, hero(i) - 1
+    IF j = 0 THEN gam.hero(i).battle_pal = her.sprite_pal
+    IF j = 1 THEN gam.hero(i).pal = her.walk_sprite_pal
+    IF i < 4 THEN vishero
    END IF
   END IF
  CASE 497'--set hero base elemental resist (hero, element, percent)
@@ -566,17 +556,33 @@ FOR i as integer = bound(retvals(0), 0, 255) TO bound(retvals(1), 0, 255)
 NEXT i
 END SUB
 
-FUNCTION herobyrank (byval slot as integer) as integer
-IF slot >= 0 AND slot <= 3 THEN
- DIM j as integer = -1
- FOR i as integer = 0 TO 3
-  IF hero(i) > 0 THEN j = j + 1
-  IF j = slot THEN
-   RETURN hero(i) - 1
+FUNCTION rank_to_party_slot (byval rank as integer) as integer
+ 'Returns the party slot of the nth hero in the party (not just caterpillar party), or -1
+ DIM heronum as integer = -1
+ FOR party_slot as integer = 0 TO 3
+  IF hero(party_slot) > 0 THEN heronum += 1
+  IF heronum = rank THEN
+   RETURN party_slot
   END IF
- NEXT i
-END IF
-RETURN -1
+ NEXT
+ RETURN -1
+END FUNCTION
+
+FUNCTION party_slot_to_rank (byval slot as integer) as integer
+ 'Returns the rank of the hero in a party slot (not just caterpillar party), or -1 if invalid
+ IF slot < -1 OR slot > UBOUND(hero) THEN RETURN -1
+ DIM heronum as integer = 0
+ FOR party_slot as integer = 0 TO slot - 1
+  IF hero(party_slot) > 0 THEN heronum += 1
+ NEXT
+ RETURN heronum
+END FUNCTION
+
+FUNCTION herobyrank (byval slot as integer) as integer
+ 'Return the ID of the ith hero in the *caterpillar* party
+ DIM party_slot as integer = rank_to_party_slot(slot)
+ IF party_slot >= 0 AND party_slot <= 3 THEN RETURN hero(party_slot) - 1
+ RETURN -1
 END FUNCTION
 
 SUB interpolatecat
@@ -752,24 +758,9 @@ SUB playtimer
  END IF
 END SUB
 
-FUNCTION partybyrank (byval slot as integer) as integer
- DIM result as integer = -1
- IF slot >= 0 AND slot <= 3 THEN
-  DIM j as integer = -1
-  FOR i as integer = 0 TO 3
-   IF hero(i) > 0 THEN j = j + 1
-   IF j = slot THEN
-    result = i
-    EXIT FOR
-   END IF
-  NEXT i
- END IF
- RETURN result
-END FUNCTION
-
 FUNCTION rankincaterpillar (byval heroid as integer) as integer
  'Returns -1 if the hero is not found.
- 'Returns the last hero's rank if there are more than one copy of the same ehero
+ 'Returns the last hero's rank if there are more than one copy of the same hero
  
  DIM result as integer = -1
  DIM o as integer = 0
@@ -966,9 +957,7 @@ SELECT CASE as CONST id
    END IF
   END IF
  CASE 19'--leader
-  FOR i as integer = 0 TO 3
-   IF hero(i) > 0 THEN scriptret = hero(i) - 1: EXIT FOR
-  NEXT i
+  scriptret = herobyrank(0)
  CASE 20'--get money
   gold = gold + retvals(0)
  CASE 21'--lose money

@@ -999,13 +999,9 @@ SUB update_heroes(byval force_npc_check as integer=NO)
     IF (p AND passHarm) THEN
      'stepping on a harm tile
 
-     DIM harm_partyslot as integer = -1
-     FOR i as integer = 0 TO whoi
-      harm_partyslot += 1
-      WHILE hero(harm_partyslot) = 0 AND harm_partyslot < 4: harm_partyslot += 1: WEND
-     NEXT i
-     IF harm_partyslot < 4 THEN
-      gam.hero(harm_partyslot).stat.cur.hp = large(gam.hero(harm_partyslot).stat.cur.hp - gmap(9), 0)
+     DIM partyslot as integer = rank_to_party_slot(whoi)
+     IF partyslot > -1 AND partyslot < 4 THEN
+      gam.hero(partyslot).stat.cur.hp = large(gam.hero(partyslot).stat.cur.hp - gmap(9), 0)
       IF gmap(10) THEN
        harmtileflash = YES
       END IF
@@ -2052,10 +2048,11 @@ FUNCTION valid_hero_party(byval who as integer, byval minimum as integer=0) as i
  RETURN bound_arg(who, minimum, 40, "hero party slot")
 END FUNCTION
 
-FUNCTION really_valid_hero_party(byval who as integer, byval minimum as integer=0) as integer
- IF bound_arg(who, minimum, 40, "hero party slot") = NO THEN RETURN NO
+FUNCTION really_valid_hero_party(byval who as integer, byval minimum as integer=0, byval errlvl as integer=5) as integer
+ 'Defaults to a non-suppressed error
+ IF bound_arg(who, minimum, 40, "hero party slot", , , errlvl) = NO THEN RETURN NO
  IF hero(who) = 0 THEN
-  scripterr commandname(curcmd->value) + ": Party hero slot " & who & " is empty"
+  scripterr commandname(curcmd->value) + ": Party hero slot " & who & " is empty", errlvl
   RETURN NO
  END IF
  RETURN YES

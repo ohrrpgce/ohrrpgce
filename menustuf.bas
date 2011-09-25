@@ -546,10 +546,10 @@ DIM st(13, 1) as integer
 
 '--average stats for item-triggered spells
 IF w = -1 THEN
- DIM j as integer = 0
+ DIM partysize as integer = 0
  FOR o as integer = 0 TO 3
   IF hero(o) > 0 THEN
-   j = j + 1
+   partysize += 1
    FOR i as integer = 0 TO 11
     st(i, 0) = st(i, 0) + gam.hero(o).stat.cur.sta(i)
     st(i, 1) = st(i, 1) + gam.hero(o).stat.max.sta(i)
@@ -557,8 +557,8 @@ IF w = -1 THEN
   END IF
  NEXT o
  FOR i as integer = 0 TO 11
-  st(i, 0) = st(i, 0) / j
-  st(i, 1) = st(i, 1) / j
+  st(i, 0) = st(i, 0) / partysize
+  st(i, 1) = st(i, 1) / partysize
  NEXT i
 ELSE
  FOR i as integer = 0 TO 11

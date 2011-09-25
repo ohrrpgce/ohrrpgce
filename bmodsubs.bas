@@ -639,12 +639,14 @@ FUNCTION liveherocount (bslot() as BattleSprite) as integer
 END FUNCTION
 
 FUNCTION liveherocount () as integer
- '--with no argument, counts heros outside-of-battle HP state
- DIM i as integer = 0
+ '--with no argument, counts live heroes in outside-of-battle active party
+ DIM liveheroes as integer = 0
  FOR o as integer = 0 TO 3
-  IF hero(o) > 0 AND gam.hero(o).stat.cur.hp > 0 THEN i += 1
+  IF hero(o) > 0 THEN
+   IF gam.hero(o).stat.cur.hp > 0 OR gam.hero(o).stat.max.hp <= 0 THEN liveheroes += 1
+  END IF
  NEXT o
- RETURN i
+ RETURN liveheroes
 END FUNCTION
 
 FUNCTION randomally (byval who as integer) as integer

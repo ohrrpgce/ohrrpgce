@@ -169,7 +169,7 @@ FUNCTION averagelev () as integer
   IF hero(i) > 0 THEN average += gam.hero(i).lev: count += 1
  NEXT i
  IF count > 0 THEN average = average / count
- averagelev = average
+ RETURN average
 END FUNCTION
 
 SUB calibrate
@@ -407,10 +407,7 @@ END SUB
 
 SUB evalherotags ()
  DIM as integer i, id
- DIM leaderid as integer = -1
- FOR i as integer = 3 TO 0 STEP -1
-  IF hero(i) > 0 THEN leaderid = hero(i) - 1
- NEXT i
+ DIM leaderid as integer = herobyrank(0)
 
  FOR i as integer = 0 TO small(gen(genMaxHero), UBOUND(herotags, 1)) '--for each available hero
   'unset all tags, including ones used on heroes not in the party 
@@ -472,8 +469,8 @@ SUB evalitemtags
  NEXT j
 END SUB
 
-FUNCTION findhero (byval who as integer, byval f as integer, byval l as integer, byval d as integer) as integer
- FOR i as integer = f TO l STEP d
+FUNCTION findhero (byval who as integer, byval first as integer, byval last as integer, byval direction as integer) as integer
+ FOR i as integer = first TO last STEP direction
   IF hero(i) = who ORELSE (who = -1 ANDALSO hero(i)) THEN
    RETURN i
   END IF
@@ -682,12 +679,7 @@ FOR i as integer = 40 TO 4 STEP -1
  END IF
 NEXT i
 high = small(8, la + 1)
-numhero = 0
-FOR i as integer = 0 TO 3
- IF hero(i) > 0 THEN
-  numhero = numhero + 1
- END IF
-NEXT i
+numhero = herocount()
 IF hero(acsr) AND ecsr < 0 THEN info = names(acsr) ELSE info = ""
 RETRACE
 END SUB
@@ -933,14 +925,8 @@ END FUNCTION
 
 FUNCTION onwho (caption as string, alone as integer) as integer
 
-DIM w as integer
 '-- pre-select the first hero
-FOR i as integer = 0 TO 3
- IF hero(i) > 0 THEN
-  w = i
-  EXIT FOR
- END IF
-NEXT i
+DIM w as integer = rank_to_party_slot(0)
 
 '-- if there is only one hero, return immediately
 '--unless we are in alone-mode
@@ -2143,10 +2129,8 @@ SUB writejoysettings
 END SUB
 
 FUNCTION herocount (last as integer = 3) as integer
-'--differs from liveherocount() in that it does not care if they are alive
- DIM i as integer
- DIM count as integer
- count = 0
+ '--differs from liveherocount() in that it does not care if they are alive
+ DIM count as integer = 0
  FOR i as integer = 0 TO last
   IF hero(i) > 0 THEN count += 1
  NEXT i

@@ -311,17 +311,7 @@ SUB cleanuptemp
 END SUB
 
 FUNCTION checkfordeath () as integer
-checkfordeath = 0' --default alive
-
-DIM o as integer = 0
-FOR i as integer = 0 TO 3 '--for each slot
- IF hero(i) > 0 THEN '--if hero exists
-  o = o + 1
-  IF gam.hero(i).stat.cur.hp <= 0 AND gam.hero(i).stat.max.hp > 0 THEN o = o - 1
- END IF
-NEXT i
-IF o = 0 THEN checkfordeath = 1
-
+ RETURN liveherocount = 0
 END FUNCTION
 
 SUB aheadxy (byref x as integer, byref y as integer, byval direction as integer, byval distance as integer)
