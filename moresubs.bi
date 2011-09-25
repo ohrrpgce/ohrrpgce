@@ -42,5 +42,6 @@ DECLARE FUNCTION useinn (byval inn as integer, byval price as integer, byval hol
 DECLARE SUB tagdisplay
 DECLARE SUB writejoysettings
 DECLARE FUNCTION herocount (last as integer = 3) as integer
+DECLARE FUNCTION caterpillar_size () as integer
 
 #endif

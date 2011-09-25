@@ -1033,9 +1033,9 @@ SELECT CASE as CONST id
    catd(retvals(0) * 5) = ABS(retvals(1)) MOD 4
   END IF
  CASE 57, 118'--suspend caterpillar
-  setbit gen(), 44, suspendcatapillar, 1
+  setbit gen(), 44, suspendcaterpillar, 1
  CASE 58, 119'--resume caterpillar
-  setbit gen(), 44, suspendcatapillar, 0
+  setbit gen(), 44, suspendcaterpillar, 0
   interpolatecat
  CASE 59'--wait for text box
   IF readbit(gen(), 44, suspendboxadvance) = 0 THEN

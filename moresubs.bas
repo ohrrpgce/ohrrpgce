@@ -2136,3 +2136,9 @@ FUNCTION herocount (last as integer = 3) as integer
  NEXT i
  RETURN count
 END FUNCTION
+
+FUNCTION caterpillar_size () as integer
+ 'Returns the number of heroes on the map, regardless of whether caterpillar trailing is enabled
+ IF readbit(gen(), genBits, 1) = 1 THEN RETURN herocount
+ RETURN 1
+END FUNCTION

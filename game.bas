@@ -957,8 +957,8 @@ SUB update_heroes(byval force_npc_check as integer=NO)
    END IF
   END IF'--this only gets run when starting a movement to a new tile
  NEXT whoi
- '--if the leader moved last time, and catapillar is enabled then make others trail
- IF readbit(gen(), genSuspendBits, suspendcatapillar) = 0 THEN
+ '--if the leader moved last time, and caterpillar is enabled then make others trail
+ IF readbit(gen(), genSuspendBits, suspendcaterpillar) = 0 THEN
   IF herow(0).xgo OR herow(0).ygo THEN
    FOR i as integer = 15 TO 1 STEP -1
     catx(i) = catx(i - 1)
@@ -976,42 +976,53 @@ SUB update_heroes(byval force_npc_check as integer=NO)
  END IF
 
  REDIM didgo(0 TO 3) as integer
- FOR whoi as integer = 0 TO 3
+ FOR whoi as integer = 0 TO caterpillar_size() - 1
+
   didgo(whoi) = NO
   IF herow(whoi).xgo OR herow(whoi).ygo THEN
-   '--this actualy updates the heros coordinates
-   IF herow(whoi).xgo > 0 THEN herow(whoi).xgo -= herow(whoi).speed: catx(whoi * 5) = catx(whoi * 5) - herow(whoi).speed: didgo(whoi) = YES
-   IF herow(whoi).xgo < 0 THEN herow(whoi).xgo += herow(whoi).speed: catx(whoi * 5) = catx(whoi * 5) + herow(whoi).speed: didgo(whoi) = YES
-   IF herow(whoi).ygo > 0 THEN herow(whoi).ygo -= herow(whoi).speed: caty(whoi * 5) = caty(whoi * 5) - herow(whoi).speed: didgo(whoi) = YES
-   IF herow(whoi).ygo < 0 THEN herow(whoi).ygo += herow(whoi).speed: caty(whoi * 5) = caty(whoi * 5) + herow(whoi).speed: didgo(whoi) = YES
-  END IF
-
-  DIM harm_cater as integer = whoi
-  '--if catapillar is not suspended, only the leader's motion matters
-  IF readbit(gen(), genSuspendBits, suspendcatapillar) = 0 THEN harm_cater = 0
-
-  '--leader always checks harm tiles, allies only if caterpillar is enabled
-  IF whoi = 0 OR readbit(gen(), genBits, 1) = 1 THEN
-   '--Stuff that should only happen when you finish moving
-   IF didgo(harm_cater) = YES AND herow(harm_cater).xgo = 0 AND herow(harm_cater).ygo = 0 THEN
-    '---check for harm tile
-    DIM p as integer = readblock(pass, catx(whoi * 5) \ 20, caty(whoi * 5) \ 20)
-    IF (p AND passHarm) THEN
-     'stepping on a harm tile
-
-     DIM partyslot as integer = rank_to_party_slot(whoi)
-     IF partyslot > -1 AND partyslot < 4 THEN
-      gam.hero(partyslot).stat.cur.hp = large(gam.hero(partyslot).stat.cur.hp - gmap(9), 0)
-      IF gmap(10) THEN
-       harmtileflash = YES
-      END IF
-     END IF
-     '--check for death
-     fatal = checkfordeath
-    END IF
-   END IF
+   '--this actually updates the hero's coordinates
+   'NOTE: if the caterpillar is enabled, then only the leader has nonzero xgo, ygo
+   IF herow(whoi).xgo > 0 THEN herow(whoi).xgo -= herow(whoi).speed: catx(whoi * 5) -= herow(whoi).speed
+   IF herow(whoi).xgo < 0 THEN herow(whoi).xgo += herow(whoi).speed: catx(whoi * 5) += herow(whoi).speed
+   IF herow(whoi).ygo > 0 THEN herow(whoi).ygo -= herow(whoi).speed: caty(whoi * 5) -= herow(whoi).speed
+   IF herow(whoi).ygo < 0 THEN herow(whoi).ygo += herow(whoi).speed: caty(whoi * 5) += herow(whoi).speed
+   didgo(whoi) = YES
   END IF
   cropmovement catx(whoi * 5), caty(whoi * 5), herow(whoi).xgo, herow(whoi).ygo
+
+  DIM steppingslot as integer = whoi
+  '--If caterpillar is not suspended, only the leader's motion determines a step
+  '--(a limitation of the caterpillar party)
+  IF readbit(gen(), genSuspendBits, suspendcaterpillar) = 0 THEN steppingslot = 0
+
+  IF didgo(steppingslot) = YES AND herow(steppingslot).xgo = 0 AND herow(steppingslot).ygo = 0 THEN
+   '--Stuff that should only happen when you finish a step
+
+   '---check for harm tile
+   DIM p as integer = readblock(pass, catx(whoi * 5) \ 20, caty(whoi * 5) \ 20)
+   IF p AND passHarm THEN
+
+    IF whoi = 0 AND readbit(gen(), genSuspendBits, suspendcaterpillar) = 0 THEN
+     '--if caterpillar is not suspended, only the leader's motion matters (harm whole party)
+     FOR party_slot as integer = 0 TO 3
+      IF hero(party_slot) > 0 THEN
+       gam.hero(party_slot).stat.cur.hp = large(gam.hero(party_slot).stat.cur.hp - gmap(9), 0)
+       IF party_slot_to_rank(party_slot) >= caterpillar_size THEN EXIT FOR  'emulate bug in old versions
+      END IF
+     NEXT
+    ELSE
+     '--harm single hero
+     DIM party_slot as integer = rank_to_party_slot(whoi)
+     gam.hero(party_slot).stat.cur.hp = large(gam.hero(party_slot).stat.cur.hp - gmap(9), 0)
+    END IF
+
+    IF gmap(10) THEN
+     harmtileflash = YES
+    END IF
+    fatal = checkfordeath
+   END IF
+
+  END IF
  NEXT whoi
  '--only the leader may activate NPCs
  IF (herow(0).xgo MOD 20 = 0) AND (herow(0).ygo MOD 20 = 0) AND (didgo(0) = YES OR force_npc_check = YES) THEN
@@ -1311,10 +1322,10 @@ SUB perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as NPCTyp
  END IF
  IF npcdata.speed THEN
   '--change x,y and decrement wantgo by speed
-  IF npci.xgo > 0 THEN npci.xgo = npci.xgo - npcdata.speed: npci.x = npci.x - npcdata.speed
-  IF npci.xgo < 0 THEN npci.xgo = npci.xgo + npcdata.speed: npci.x = npci.x + npcdata.speed
-  IF npci.ygo > 0 THEN npci.ygo = npci.ygo - npcdata.speed: npci.y = npci.y - npcdata.speed
-  IF npci.ygo < 0 THEN npci.ygo = npci.ygo + npcdata.speed: npci.y = npci.y + npcdata.speed
+  IF npci.xgo > 0 THEN npci.xgo -= npcdata.speed: npci.x -= npcdata.speed
+  IF npci.xgo < 0 THEN npci.xgo += npcdata.speed: npci.x += npcdata.speed
+  IF npci.ygo > 0 THEN npci.ygo -= npcdata.speed: npci.y -= npcdata.speed
+  IF npci.ygo < 0 THEN npci.ygo += npcdata.speed: npci.y += npcdata.speed
  ELSE
   '--no speed, kill wantgo
   npci.xgo = 0
