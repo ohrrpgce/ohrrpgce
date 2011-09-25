@@ -403,7 +403,7 @@ SUB loadtrades(byval index as integer, tradestf() as integer, b() as integer, by
  NEXT i
 END SUB
 
-FUNCTION chkOOBtarg (target as integer, atk as integer) as integer
+FUNCTION chkOOBtarg (byval target as integer, byval atk as integer) as integer
 'true if valid, false if not valid
 'atk id can be -1 for when no attack is relevant
  IF target < 0 OR target > 40 THEN RETURN NO
@@ -500,7 +500,7 @@ FOR i as integer = 0 TO last_inv_slot()
 NEXT
 END SUB
 
-FUNCTION getOOBtarg (search_direction as integer, byref target as integer, atk as integer, recheck as integer=NO) as integer
+FUNCTION getOOBtarg (byval search_direction as integer, byref target as integer, byval atk as integer, byval recheck as integer=NO) as integer
  '--return true on success, false on failure
  '--atk id can be -1 for when no attack is relevant
  IF recheck THEN target -= 1 ' For a re-check, back the cursor up so if the current target is still valid, it won't change
@@ -1340,7 +1340,7 @@ RETRACE
 
 END SUB
 
-FUNCTION trylearn (who as integer, atk as integer, learntype as integer) as integer
+FUNCTION trylearn (byval who as integer, byval atk as integer, byval learntype as integer) as integer
 'first arg is hero position in the party
 
 '--returns 1 when the spell was learned, 0 when it was not learned
@@ -1424,7 +1424,7 @@ SUB loadshopstuf (array() as integer, byval id as integer)
  NEXT i
 END SUB
 
-FUNCTION count_available_spells(who as integer, list as integer) as integer
+FUNCTION count_available_spells(byval who as integer, byval list as integer) as integer
  DIM i as integer
  DIM n as integer = 0
  FOR i = 0 to 23
@@ -1433,7 +1433,7 @@ FUNCTION count_available_spells(who as integer, list as integer) as integer
  RETURN n
 END FUNCTION
 
-FUNCTION outside_battle_cure (atk as integer, target as integer, attacker as integer, spread as integer) as integer
+FUNCTION outside_battle_cure (byval atk as integer, byref target as integer, byval attacker as integer, byval spread as integer) as integer
  DIM i as integer
  DIM didcure as integer = NO
  IF spread = 0 THEN
@@ -2583,7 +2583,7 @@ SUB spells_menu_control(sp as SpellsMenuState)
  END IF
 END SUB
 
-SUB spells_menu (who as integer)
+SUB spells_menu (byval who as integer)
 
  DIM sp as SpellsMenuState
  sp.hero = who
