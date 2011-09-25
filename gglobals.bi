@@ -68,8 +68,6 @@ EXTERN foemap as TileMap
 EXTERN zmap as ZoneMap
 EXTERN mapsizetiles as XYPair
 EXTERN as integer mapx, mapy  'camera pos
-EXTERN framex as integer
-EXTERN framey as integer
 EXTERN tilesets() as TilesetData ptr
 
 'Hero walkabout globals

@@ -169,8 +169,6 @@ DIM lastsaveslot as integer
 DIM abortg as integer
 DIM resetg as integer
 DIM presentsong as integer
-DIM framex as integer
-DIM framey as integer
 
 DIM err_suppress_lvl as integer
 DIM tmpdir as string
