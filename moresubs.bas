@@ -39,6 +39,19 @@
 '--Local subs and functions
 DECLARE SUB teleporttooltend (byref mini as Frame Ptr, maptilesX() as TileMap, tilesets2() as TilesetData ptr, byref zoom as integer, byval map as integer, byref mapsize as XYPair, byref minisize as XYPair, byref offset as XYPair)
 
+'--Global variables
+
+'These have to be in the same module as dequeue_scripts for some reason; looks like a FB bug.
+REDIM scrqFirst() as QueuedScript
+REDIM scrqBackcompat() as QueuedScript
+REDIM scrqLast() as QueuedScript
+
+'--Module local variables
+
+'Used by trigger_script
+DIM SHARED trigger_script_failure as integer
+
+
 'who is the hero id + 1!
 SUB addhero (byval who as integer, byval slot as integer, byval forcelevel as integer=-1)
 DIM wbuf(dimbinsize(binITM)) as integer
@@ -1225,7 +1238,91 @@ SUB resetlmp (byval slot as integer, byval lev as integer)
  NEXT i
 END SUB
 
-FUNCTION runscript (id as integer, index as integer, newcall as integer, double_trigger_check as integer, er as string, trigger as integer) as integer
+SUB trigger_script (byval id as integer, byval double_trigger_check as integer, scripttype as string, scrqueue() as QueuedScript, byval trigger as integer = plottrigger)
+ 'Add a script to one of the script queues, unless already inside the interpreter.
+ 'In that case, run immediately.
+ 'queuenum should be one of the scrq* constants
+ 'double_trigger_check: whether "no double-triggering" should take effect
+
+ IF insideinterpreter THEN
+  DIM rsr as integer
+  rsr = runscript(id, YES, double_trigger_check, scripttype, trigger)
+  trigger_script_failure = (rsr <> 1)
+  EXIT SUB
+ END IF
+
+ REDIM PRESERVE scrqueue(-1 TO UBOUND(scrqueue) + 1)
+ last_queued_script = @scrqueue(UBOUND(scrqueue))
+
+ WITH *last_queued_script
+  IF trigger <> 0 THEN id = decodetrigger(id, trigger)
+  .id = id
+  .scripttype = scripttype
+  .double_trigger_check = double_trigger_check
+  .argc = 0
+ END WITH
+END SUB
+
+SUB trigger_script_arg (byval argno as integer, byval value as integer)
+ 'Set one of the args for a script that was just triggered
+ 'Note that after calling trigger_script, script queuing can be in three states:
+ 'inside interpreter, trigger_script_failure = NO
+ '    triggered a script which started immediately
+ 'inside interpreter, trigger_script_failure = YES
+ '    triggered a script which there was an error starting
+ 'not inside interpreter:
+ '    queued a script, can now set the arguments
+
+ IF insideinterpreter THEN
+  IF trigger_script_failure = NO THEN
+   setScriptArg argno, value
+  END IF
+  EXIT SUB
+ END IF
+
+ WITH *last_queued_script
+  IF argno > UBOUND(.args) THEN fatalerror "trigger_script_arg: args queue overflow"
+  .args(argno) = value
+  .argc = large(.argc, argno + 1)
+ END WITH
+END SUB
+
+PRIVATE SUB run_queued_script (script as QueuedScript)
+ DIM rsr as integer
+ rsr = runscript(script.id, YES, script.double_trigger_check, script.scripttype, 0)
+ IF rsr = 1 THEN
+  FOR argno as integer = 0 TO script.argc - 1
+   setScriptArg argno, script.args(argno)
+  NEXT
+ END IF
+END SUB
+
+SUB run_queued_scripts
+ 'Load the queued scripts into the interpreter.
+ 'We have to call runscript in the reverse order, because we build the stack up from bottom
+
+ FOR i as integer = UBOUND(scrqFirst) TO 0 STEP -1
+  run_queued_script(scrqFirst(i))
+ NEXT
+ FOR i as integer = 0 TO UBOUND(scrqBackcompat)
+  run_queued_script(scrqBackcompat(i))
+ NEXT
+ FOR i as integer = UBOUND(scrqLast) TO 0 STEP -1
+  run_queued_script(scrqLast(i))
+ NEXT
+
+ dequeue_scripts
+END SUB
+
+SUB dequeue_scripts
+ 'Wipe the script queues
+ last_queued_script = NULL
+ REDIM scrqFirst(-1 TO -1)
+ REDIM scrqBackcompat(-1 TO -1)
+ REDIM scrqLast(-1 TO -1)
+END SUB
+
+FUNCTION runscript (byval id as integer, byval newcall as integer, byval double_trigger_check as integer, byval scripttype as zstring ptr, byval trigger as integer) as integer
 'newcall: whether his script is triggered rather than called from a script
 'double_trigger_check: whether "no double-triggering" should take effect
 
@@ -1237,9 +1334,11 @@ IF n = 0 THEN
  EXIT FUNCTION
 END IF
 
+DIM index as integer = nowscript + 1
+
 IF index > 127 THEN
  runscript = 0 '--error
- scripterr "failed to load " + er + " script " & n & " " & scriptname(n) & ", interpreter overloaded", 6
+ scripterr "failed to load " + *scripttype + " script " & n & " " & scriptname(n) & ", interpreter overloaded", 6
  EXIT FUNCTION
 END IF
 
@@ -1267,7 +1366,7 @@ WITH scrat(index)
  IF .scr = NULL THEN
   '--failed to load
   runscript = 0'--error
-  scripterr "Failed to load " + er + " script " & n & " " & scriptname(n), 6
+  scripterr "Failed to load " + *scripttype + " script " & n & " " & scriptname(n), 6
   EXIT FUNCTION
  END IF
  .scr->totaluse += 1
@@ -1289,7 +1388,7 @@ WITH scrat(index)
 
  IF scrat(index + 1).heap > 2048 THEN
   runscript = 0'--error
-  scripterr "failed to load " + er + " script " & n & " " & scriptname(n) & ", script heap overflow", 6
+  scripterr "failed to load " + *scripttype + " script " & n & " " & scriptname(n) & ", script heap overflow", 6
   EXIT FUNCTION
  END IF
 
@@ -1321,7 +1420,7 @@ RETURN 1 '--success
 
 END FUNCTION
 
-FUNCTION loadscript (n as unsigned integer) as ScriptData ptr
+FUNCTION loadscript (byval n as unsigned integer) as ScriptData ptr
  '-- script() is a hashtable with doubly linked lists as buckets, storing the loaded scripts
 
  DIM as ScriptData Ptr scrnode = script(n MOD scriptTableSize)
@@ -1872,10 +1971,8 @@ DO
     END IF
     IF storebuf(19) > 0 THEN
      '--Run animation for Inn
-     rsr = runscript(storebuf(19), nowscript + 1, YES, NO, "inn", plottrigger)
-     IF rsr = 1 THEN
-      EXIT DO
-     END IF
+     trigger_script storebuf(19), NO, "inn", scrqBackcompat()
+     EXIT DO
     ELSE
      '--Inn has no script, do simple fade
      fadeout 0, 0, 80

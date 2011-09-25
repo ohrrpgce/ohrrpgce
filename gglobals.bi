@@ -103,6 +103,10 @@ EXTERN totalscrmem as integer
 EXTERN scriptctr as integer
 EXTERN scrst as Stack
 EXTERN curcmd as ScriptCommand ptr
+EXTERN last_queued_script as QueuedScript ptr
+EXTERN scrqFirst() as QueuedScript
+EXTERN scrqBackcompat() as QueuedScript
+EXTERN scrqLast() as QueuedScript
 'debugger aids
 EXTERN globalp as integer ptr
 EXTERN heapp as integer ptr

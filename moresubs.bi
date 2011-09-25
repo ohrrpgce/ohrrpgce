@@ -1,6 +1,8 @@
 #ifndef MORESUBS_BI
 #define MORESUBS_BI
 
+#include "scrconst.bi"
+
 DECLARE SUB addhero (byval who as integer, byval slot as integer, byval forcelevel as integer=-1)
 DECLARE FUNCTION averagelev () as integer
 DECLARE SUB calibrate
@@ -25,8 +27,12 @@ DECLARE SUB readjoysettings
 DECLARE SUB renamehero (byval who as integer, byval escapable as integer)
 DECLARE SUB resetgame (scriptout as string)
 DECLARE SUB resetlmp (byval slot as integer, byval lev as integer)
-DECLARE FUNCTION runscript (id as integer, index as integer, newcall as integer, double_trigger_check as integer, er as string, trigger as integer) as integer
-DECLARE FUNCTION loadscript (n as unsigned integer) as ScriptData ptr
+DECLARE SUB trigger_script (byval id as integer, byval double_trigger_check as integer, scripttype as string, scrqueue() as QueuedScript, byval trigger as integer = plottrigger)
+DECLARE SUB trigger_script_arg (byval argno as integer, byval value as integer)
+DECLARE SUB dequeue_scripts ()
+DECLARE SUB run_queued_scripts ()
+DECLARE FUNCTION runscript (byval id as integer, byval newcall as integer, byval double_trigger_check as integer, byval scripttype as zstring ptr, byval trigger as integer) as integer
+DECLARE FUNCTION loadscript (byval n as unsigned integer) as ScriptData ptr
 DECLARE SUB freescripts (byval mem as integer)
 DECLARE FUNCTION commandname (byval id as integer) as string
 DECLARE SUB scripterr (e as string, errorlevel as integer = 5)

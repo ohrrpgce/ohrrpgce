@@ -356,6 +356,14 @@ TYPE ScriptInst
   curargc as integer    'number of args for current statement
 END TYPE
 
+TYPE QueuedScript
+  id as integer         'Triggers pre-decoded
+  scripttype as string
+  double_trigger_check as integer
+  argc as integer       'The number of args passed
+  args(3) as integer
+END TYPE
+
 TYPE ScriptCommand
   kind as integer
   value as integer

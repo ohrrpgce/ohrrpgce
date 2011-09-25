@@ -228,6 +228,7 @@ DIM scrst as Stack
 DIM curcmd as ScriptCommand ptr
 DIM insideinterpreter as integer
 DIM wantimmediate as integer
+DIM last_queued_script as QueuedScript ptr
 
 'incredibly frustratingly fbc doesn't export global array debugging symbols
 DIM globalp as integer ptr
@@ -539,7 +540,7 @@ ELSE
  clearpage 1
  addhero 1, 0
  IF gen(genNewGameScript) > 0 THEN
-  runscript(gen(genNewGameScript), nowscript + 1, YES, YES, "newgame", plottrigger)
+  trigger_script gen(genNewGameScript), YES, "newgame", scrqBackcompat()
  END IF
  prepare_map
 END IF
@@ -733,11 +734,9 @@ DO
     END IF
    ELSE
     'trigger the instead-of-battle script
-    DIM rsr as integer = runscript(gmap(13), nowscript + 1, YES, YES, "rand-battle", plottrigger)
-    IF rsr = 1 THEN
-     setScriptArg 0, batform
-     setScriptArg 1, tempblock
-    END IF
+    trigger_script gmap(13), YES, "instead-of-battle", scrqBackcompat()
+    trigger_script_arg 0, batform
+    trigger_script_arg 1, tempblock
    END IF
    gam.random_battle_countdown = range(100, 60)
   END IF
@@ -748,11 +747,9 @@ DO
   txt.showing = NO
   txt.fully_shown = NO
   IF gen(genGameoverScript) > 0 THEN
-   DIM rsr as integer = runscript(gen(genGameoverScript), nowscript + 1, YES, NO, "death", plottrigger)
-   IF rsr = 1 THEN
-    fatal = 0
-    queue_fade_in 1
-   END IF
+   trigger_script gen(genGameoverScript), NO, "death", scrqBackcompat()
+   fatal = 0
+   queue_fade_in 1
   ELSE
    fadeout 255, 0, 0
   END IF
@@ -817,15 +814,12 @@ SUB doloadgame(byval load_slot as integer)
  loadgame load_slot
  init_default_text_colors
  IF gen(genLoadGameScript) > 0 THEN
-  DIM rsr as integer
-  rsr = runscript(gen(genLoadGameScript), nowscript + 1, YES, YES, "loadgame", plottrigger)
-  IF rsr = 1 THEN
-   '--pass save slot as argument
-   IF load_slot = 32 THEN
-    setScriptArg 0, -1 'quickload slot
-   ELSE
-    setScriptArg 0, load_slot
-   END IF
+  trigger_script gen(genLoadGameScript), YES, "loadgame", scrqBackcompat()
+  '--pass save slot as argument
+  IF load_slot = 32 THEN
+   trigger_script_arg 0, -1 'quickload slot
+  ELSE
+   trigger_script_arg 0, load_slot
   END IF
  END IF
  gam.map.same = YES
@@ -1056,13 +1050,10 @@ SUB update_heroes(byval force_npc_check as integer=NO)
    END IF
   END IF
   IF gmap(14) > 0 THEN
-   DIM rsr as integer
-   rsr = runscript(gmap(14), nowscript + 1, YES, YES, "eachstep", plottrigger)
-   IF rsr = 1 THEN
-    setScriptArg 0, catx(0) \ 20
-    setScriptArg 1, caty(0) \ 20
-    setScriptArg 2, catd(0)
-   END IF
+   trigger_script gmap(14), YES, "eachstep", scrqBackcompat()
+   trigger_script_arg 0, catx(0) \ 20
+   trigger_script_arg 1, caty(0) \ 20
+   trigger_script_arg 2, catd(0)
   END IF
  END IF
  setmapxy
@@ -1355,6 +1346,12 @@ END SUB
 
 SUB interpret()
 DIM as integer i, n, npcref, temp
+
+'It seems like it would be good to call this immediately before script_interpreter so that
+'the return values of fightformation and waitforkey are correct, however doing so might
+'break something?
+run_queued_scripts
+
 reentersub:
 IF nowscript >= 0 THEN
 WITH scrat(nowscript)
@@ -1996,7 +1993,7 @@ WITH scrat(nowscript)
    CASE 432 '--use menu item
     mislot = find_menu_item_handle(retvals(0), menuslot)
     IF valid_menuslot_and_mislot(menuslot, mislot) THEN
-     activate_menu_item(*menus(menuslot).items[mislot], menuslot, NO)
+     activate_menu_item(*menus(menuslot).items[mislot], menuslot)
     END IF
    CASE 438 '--reset game
     resetg = YES
@@ -2237,7 +2234,6 @@ END FUNCTION
 
 SUB dotimer(byval l as integer)
   dim i as integer
-  dim rsr as integer
   for i = 0 to ubound(timers)
     with timers(i)
       if .pause then continue for
@@ -2269,10 +2265,8 @@ SUB dotimer(byval l as integer)
             end if
 
             if .trigger > -1 then 'plotscript
-              rsr = runscript(.trigger, nowscript + 1, YES, NO, "timer", 0)
-              IF rsr = 1 THEN
-                setScriptArg 0, i
-              END IF
+              trigger_script .trigger, NO, "timer", scrqBackcompat()
+              trigger_script_arg 0, i
             end if
           end if
         end if
@@ -2338,8 +2332,7 @@ SUB remove_menu (byref slot as integer, byval run_on_close as integer=YES)
   bring_menu_forward slot
  END IF
  IF menus(topmenu).on_close <> 0 AND run_on_close THEN
-  DIM rsr as integer
-  rsr = runscript(menus(topmenu).on_close, nowscript + 1, YES, YES, "menu on-close", plottrigger)
+  trigger_script menus(topmenu).on_close, YES, "menu on-close", scrqBackcompat()
  END IF
  ClearMenuData menus(topmenu)
  topmenu = topmenu - 1
@@ -2422,7 +2415,7 @@ SUB player_menu_keys ()
  END IF
 END SUB
 
-FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer, byval newcall as integer=YES) as integer
+FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as integer
  DIM open_other_menu as integer = -1
  DIM menu_text_box as integer = 0
  DIM updatetags as integer = NO
@@ -2488,19 +2481,16 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer, byval 
     CASE 3 ' Text box
      menu_text_box = .sub_t
     CASE 4 ' Run Script
-     DIM rsr as integer
-     rsr = runscript(.sub_t, nowscript + 1, newcall, newcall, "menuitem", plottrigger)
-     IF rsr = 1 THEN
-      IF menus(topmenu).allow_gameplay THEN
-       'Normally, pass a menu item handle
-       setScriptArg 0, .handle
-      ELSE
-       'but if this menu suspends gameplay, then a handle will always be invalid
-       'by the time the script runs, so pass the extra values instead.
-       setScriptArg 0, .extra(0)
-       setScriptArg 1, .extra(1)
-       setScriptArg 2, .extra(2)
-      END IF
+     trigger_script .sub_t, YES, "menuitem", scrqBackcompat()
+     IF menus(topmenu).allow_gameplay THEN
+      'Normally, pass a menu item handle
+      trigger_script_arg 0, .handle
+     ELSE
+      'but if this menu suspends gameplay, then a handle will always be invalid
+      'by the time the script runs, so pass the extra values instead.
+      trigger_script_arg 0, .extra(0)
+      trigger_script_arg 1, .extra(1)
+      trigger_script_arg 2, .extra(2)
      END IF
     END SELECT
    END WITH
@@ -2514,7 +2504,7 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer, byval 
 
    'WARNING: below this point, mi is invalid
 
-   IF newcall THEN '--Not inside a script
+   IF insideinterpreter = NO THEN '--Not inside a script
     carray(ccUse) = 0
     setkeys '--Discard the keypress that triggered the menu item that closed the menu
    END IF
@@ -2829,21 +2819,16 @@ SUB prepare_map (byval afterbat as integer=NO, byval afterload as integer=NO)
  END IF
  txt.sayer = -1
 
- DIM rsr as integer
  IF afterbat = NO THEN
   IF gmap(7) > 0 THEN
-   rsr = runscript(gmap(7), nowscript + 1, YES, YES, "map", plottrigger)
-   IF rsr = 1 THEN
-    setScriptArg 0, gmap(8)
-   END IF
+   trigger_script gmap(7), YES, "map", scrqBackcompat()
+   trigger_script_arg 0, gmap(8)
   END IF
  ELSE
   IF gmap(12) > 0 THEN
-   rsr = runscript(gmap(12), nowscript + 1, YES, NO, "afterbattle", plottrigger)
-   IF rsr = 1 THEN
-    '--afterbattle script gets one arg telling if you won or ran
-    setScriptArg 0, gam.wonbattle
-   END IF
+   trigger_script gmap(12), NO, "afterbattle", scrqBackcompat()
+   '--afterbattle script gets one arg telling if you won or ran
+   trigger_script_arg 0, gam.wonbattle
   END IF
  END IF
  gam.map.same = NO
@@ -3041,7 +3026,7 @@ SUB advance_text_box ()
  '---JUMP TO NEXT TEXT BOX--------
  IF istag(txt.box.after_tag, 0) THEN
   IF txt.box.after < 0 THEN
-   runscript(-txt.box.after, nowscript + 1, YES, YES, "textbox", plottrigger)
+   trigger_script -txt.box.after, YES, "textbox", scrqBackcompat()
   ELSE
    loadsay txt.box.after
    EXIT SUB
@@ -3521,11 +3506,9 @@ SUB usenpc(byval cause as integer, byval npcnum as integer)
  END IF
  IF npcs(id).script > 0 THEN
   '--summon a script directly from an NPC
-  DIM rsr as integer = runscript(npcs(id).script, nowscript + 1, YES, YES, "NPC", plottrigger)
-  IF rsr = 1 THEN
-   setScriptArg 0, npcs(id).scriptarg
-   setScriptArg 1, (npcnum + 1) * -1 'reference
-  END IF
+  trigger_script npcs(id).script, YES, "NPC", scrqBackcompat()
+  trigger_script_arg 0, npcs(id).scriptarg
+  trigger_script_arg 1, (npcnum + 1) * -1 'reference
  END IF
  DIM vehuse as integer = npcs(id).vehicle
  IF vehuse THEN '---activate a vehicle---

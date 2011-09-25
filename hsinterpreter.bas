@@ -165,7 +165,7 @@ DO
       END SELECT
       '.state = streturn'---return
      CASE tyscript
-      rsr = runscript(curcmd->value, nowscript + 1, NO, NO, "indirect", 0)
+      rsr = runscript(curcmd->value, NO, NO, "indirect", 0)
       IF rsr = 1 THEN
        '--fill heap with return values
        FOR i as integer = .curargc - 1 TO 0 STEP -1   '--be VERY careful... runscript set curargc, WITH points to nowscript-1
@@ -410,12 +410,14 @@ SUB killallscripts
 
  destroystack(scrst)  'temp
  createstack(scrst)
+
+ dequeue_scripts
 END SUB
 
 SUB resetinterpreter
 'unload all scripts and wipe interpreter state. use when quitting the game.
 
- IF nowscript > -1 THEN killallscripts
+ killallscripts
 
  IF numloadedscr > 0 THEN freescripts(0)
 END SUB
