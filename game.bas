@@ -38,8 +38,8 @@
 
 'local subs and functions
 DECLARE SUB reset_map_state (map as MapModeState)
-DECLARE SUB opendoor (byval dforce as integer=0)
-DECLARE SUB thrudoor (byval door_id as integer)
+DECLARE SUB checkdoors ()
+DECLARE SUB usedoor (byval door_id as integer)
 DECLARE SUB advance_text_box ()
 DECLARE FUNCTION want_to_check_for_walls(byval who as integer) as integer
 DECLARE SUB update_npcs ()
@@ -1043,7 +1043,7 @@ SUB update_heroes(byval force_npc_check as integer=NO)
    NEXT i
   END IF
   IF didgo(0) = YES THEN 'only check doors if the hero really moved, not just if force_npc_check = YES
-   opendoor
+   checkdoors
   END IF
   IF gam.need_fade_in = NO THEN 'No random battle allowed on the first tick before fade-in (?)
    DIM battle_formation_set as integer
@@ -1484,7 +1484,7 @@ IF wantbox > 0 THEN
  wantbox = 0
 END IF
 IF wantdoor > 0 THEN
- opendoor wantdoor
+ usedoor wantdoor - 1
  wantdoor = 0
  IF gam.need_fade_in = NO THEN 'no random battle on the first tick before fade in (?)
   temp = readblock(foemap, catx(0) \ 20, caty(0) \ 20)
@@ -2925,34 +2925,28 @@ SUB reset_map_state (map as MapModeState)
  map.name = ""
 END SUB
 
-SUB opendoor (byval dforce as integer=0)
- 'dforce is the ID number +1 of the door to force, or 0 if we are going to search for a mathcing door
- DIM door_id as integer
- IF vstate.active = YES AND vstate.dat.enable_door_use = NO AND dforce = 0 THEN EXIT SUB 'Doors are disabled by a vehicle
- IF dforce THEN
-  door_id = dforce - 1
-  IF readbit(gam.map.door(door_id).bits(),0,0) = 0 THEN EXIT SUB 'Door is disabled
-  thrudoor door_id
-  EXIT SUB
- END IF
- FOR door_id = 0 TO 99
+SUB checkdoors ()
+ 'If the leader is standing on a door, use it.
+ IF vstate.active = YES AND vstate.dat.enable_door_use = NO THEN EXIT SUB 'Doors are disabled by a vehicle
+ FOR door_id as integer = 0 TO 99
   IF readbit(gam.map.door(door_id).bits(),0,0) THEN 'Door is enabled
    IF gam.map.door(door_id).x = catx(0) \ 20 AND gam.map.door(door_id).y = (caty(0) \ 20) + 1 THEN
-    thrudoor door_id
+    usedoor door_id
     EXIT SUB
    END IF
   END IF
  NEXT door_id
- 'No doors found
 END SUB
 
-SUB thrudoor (byval door_id as integer)
+SUB usedoor (byval door_id as integer)
+ IF readbit(gam.map.door(door_id).bits(), 0, 0) = 0 THEN EXIT SUB 'Door is disabled
+
  DIM oldmap as integer
  DIM i as integer
  DIM destdoor as integer
  gam.map.same = NO
  oldmap = gam.map.id
- deserdoorlinks(maplumpname(gam.map.id,"d"), gam.map.doorlinks())
+ deserdoorlinks maplumpname(gam.map.id,"d"), gam.map.doorlinks()
 
  FOR i = 0 TO 199
   WITH gam.map.doorlinks(i)
@@ -3046,7 +3040,7 @@ SUB advance_text_box ()
  IF istag(txt.box.hero_tag, 0) THEN add_rem_swap_lock_hero txt.box
  '---FORCE DOOR------
  IF istag(txt.box.door_tag, 0) THEN
-  opendoor txt.box.door + 1
+  usedoor txt.box.door
   IF gam.need_fade_in = NO THEN
    DIM temp as integer
    temp = readblock(foemap, catx(0) \ 20, caty(0) \ 20)
