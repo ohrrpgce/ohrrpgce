@@ -39,6 +39,12 @@ WHAT IS NEW?
       work on NPC locations/instances [Ralph]
     * 'Set target stat to %' attacks were being affected by the damage
       cap [Ralph]
+    * Harm tile mess:
+      * Harm tiles didn't affect non-visible heroes when the
+        caterpillar party was disabled (fix enabled only with "Harm
+        tiles harm non-caterpillar party" general preference bitset)
+      * Didn't trigger when crossing over them using walkhero with
+        distance more than 1 [Ralph]
 
   * New Plotscripting Stuff
     * Slice velocity commands to make a slice move automatically at

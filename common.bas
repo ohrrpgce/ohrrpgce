@@ -2823,6 +2823,10 @@ IF gen(genVersion) = 4 THEN
   NEXT i
   storeset game + ".pal", 1 + j, 0
  NEXT j
+ 'esperable (2003) introduced the bug where harm tiles no longer damage the
+ 'whole active party if the caterpillar is disabled. Fixed for alectormancy.
+ 'The best we can do is not emulating the bug for versions before March 2001 :(
+ setbit gen(), genBits2, 12, 1  'Harm tiles harm non-caterpillar heroes
 END IF
 '--VERSION 6--
 IF gen(genVersion) = 5 THEN

@@ -1002,12 +1002,19 @@ SUB update_heroes(byval force_npc_check as integer=NO)
    DIM p as integer = readblock(pass, catx(whoi * 5) \ 20, caty(whoi * 5) \ 20)
    IF p AND passHarm THEN
 
-    IF whoi = 0 AND readbit(gen(), genSuspendBits, suspendcaterpillar) = 0 THEN
-     '--if caterpillar is not suspended, only the leader's motion matters (harm whole party)
-     FOR party_slot as integer = 0 TO 3
+    IF whoi = 0 AND readbit(gen(), genBits, 1) = 0 THEN
+     'The caterpillar is disabled, so harm the whole party when the leader steps on a harm tile,
+     'for some customisable defintion of 'whole'
+     DIM howmany as integer
+     IF readbit(gen(), genBits2, 12) THEN  'Harm tiles harm non-caterpillar heroes
+      howmany = herocount  'whole active party
+     ELSE
+      'Old buggy behaviour: just the leader
+      howmany = 1
+     END IF
+     FOR party_slot as integer = 0 TO howmany - 1
       IF hero(party_slot) > 0 THEN
        gam.hero(party_slot).stat.cur.hp = large(gam.hero(party_slot).stat.cur.hp - gmap(9), 0)
-       IF party_slot_to_rank(party_slot) >= caterpillar_size THEN EXIT FOR  'emulate bug in old versions
       END IF
      NEXT
     ELSE

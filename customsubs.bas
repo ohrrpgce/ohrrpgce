@@ -2106,7 +2106,9 @@ SUB editbitset (array() AS INTEGER, BYVAL wof AS INTEGER, BYVAL last AS INTEGER,
     IF state.pt = i THEN col = uilook(uiSelectedItem + state.tog)
    END IF
    textcolor col, 0
-   printstr menu(i), 8, (i - state.top) * 8, dpage
+   DIM drawstr as string = " " & menu(i)
+   IF state.pt = i THEN drawstr = RIGHT(drawstr, 40)
+   printstr drawstr, 0, (i - state.top) * 8, dpage
   NEXT i
   SWAP vpage, dpage
   setvispage vpage
