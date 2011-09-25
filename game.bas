@@ -995,7 +995,7 @@ SUB update_heroes(byval force_npc_check as integer=NO)
   '--(a limitation of the caterpillar party)
   IF readbit(gen(), genSuspendBits, suspendcaterpillar) = 0 THEN steppingslot = 0
 
-  IF didgo(steppingslot) = YES AND herow(steppingslot).xgo = 0 AND herow(steppingslot).ygo = 0 THEN
+  IF didgo(steppingslot) = YES AND (herow(steppingslot).xgo MOD 20) = 0 AND (herow(steppingslot).ygo MOD 20) = 0 THEN
    '--Stuff that should only happen when you finish a step
 
    '---check for harm tile
