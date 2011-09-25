@@ -3335,21 +3335,13 @@ END FUNCTION
 
 'Reload party walkabout graphics
 SUB vishero ()
- FOR i as integer = 0 TO UBOUND(herow)
-  frame_unload @herow(i).sprite
-  palette16_unload @herow(i).pal
- NEXT
-
- DIM o as integer = 0
- FOR i as integer = 0 TO 3
-  IF hero(i) > 0 THEN
-   herow(o).sprite = frame_load(4, gam.hero(i).pic)
-   herow(o).pal = palette16_load(gam.hero(i).pal, 4, gam.hero(i).pic)
- 
-   set_walkabout_sprite gam.caterp(o), gam.hero(i).pic, gam.hero(i).pal
-   o = o + 1
+ DIM cater_slot as integer = 0
+ FOR party_slot as integer = 0 TO 3
+  IF hero(party_slot) > 0 THEN
+   set_walkabout_sprite gam.caterp(cater_slot), gam.hero(party_slot).pic, gam.hero(party_slot).pal
+   cater_slot += 1
   END IF
- NEXT i
+ NEXT
 END SUB
 
 SUB set_walkabout_sprite (byval cont as Slice Ptr, byval pic as integer=-1, byval pal as integer=-2)
@@ -3366,7 +3358,7 @@ SUB set_walkabout_sprite (byval cont as Slice Ptr, byval pic as integer=-1, byva
  END IF
 END SUB
 
-SUB set_walkabout_frame (byval cont as Slice Ptr, byval frame as integer)
+SUB set_walkabout_frame (byval cont as Slice Ptr, byval direction as integer, byval frame as integer)
  DIM sprsl as Slice Ptr
  IF cont = 0 THEN
   debug "null container slice in set_walkabout_frame"
@@ -3375,7 +3367,7 @@ SUB set_walkabout_frame (byval cont as Slice Ptr, byval frame as integer)
   IF sprsl = 0 THEN
    debug "null sprite slice in set_walkabout_frame"
   ELSE
-   ChangeSpriteSlice sprsl, , , , frame
+   ChangeSpriteSlice sprsl, , , , direction * 2 + frame
   END IF
  END IF
 END SUB

@@ -137,7 +137,6 @@ REDIM ygo(3) as integer
 REDIM herospeed(3) as integer
 REDIM wtog(3) as integer
 REDIM hmask(3) as integer
-REDIM herow(3) as GraphicPair  'FIXME: these are only used in the various hero pickers
 REDIM statnames() as string
 
 REDIM maptiles(0) as TileMap
@@ -1091,7 +1090,7 @@ SUB update_walkabout_hero_slices()
   DIM cat_slot as integer = 0
   FOR party_slot as integer = 0 TO 3
    IF hero(party_slot) > 0 THEN
-    set_walkabout_frame gam.caterp(cat_slot), catd(cat_slot * 5) * 2 + (wtog(cat_slot) \ 2)
+    set_walkabout_frame gam.caterp(cat_slot), catd(cat_slot * 5), (wtog(cat_slot) \ 2)
     cat_slot += 1
    END IF
   NEXT party_slot
@@ -1102,7 +1101,7 @@ SUB update_walkabout_hero_slices()
  ELSE
   '--non-caterpillar party, vehicle no-hide-leader (or backcompat pref)
   update_walkabout_pos gam.caterp(0), catx(0), caty(0), catz(0)
-  set_walkabout_frame gam.caterp(0), catd(0) * 2 + (wtog(0) \ 2)
+  set_walkabout_frame gam.caterp(0), catd(0), (wtog(0) \ 2)
   FOR i as integer = 1 TO UBOUND(gam.caterp)
    set_walkabout_vis gam.caterp(i), NO
   NEXT i
@@ -1144,7 +1143,7 @@ SUB update_walkabout_npc_slices()
  '--now apply sprite frame changes
  FOR i as integer = 0 TO UBOUND(npc)
   IF npc(i).id > 0 THEN '-- if visible
-   set_walkabout_frame npc(i).sl, npc(i).dir * 2 + npc(i).frame \ 2
+   set_walkabout_frame npc(i).sl, npc(i).dir, npc(i).frame \ 2
   END IF
  NEXT i
 

@@ -397,7 +397,8 @@ SUB verquit
   IF carray(ccLeft) > 0 THEN ptr2 = ptr2 - 5: direction = 3
   IF carray(ccRight) > 0 THEN ptr2 = ptr2 + 5: direction = 1
   centerbox 160, 95, 200, 42, 15, page
-  frame_draw herow(0).sprite + direction * 2 + (wtog(0) \ 2), herow(0).pal, 150 + ptr2, 90, 1, -1, page
+  set_walkabout_frame gam.caterp(0), direction, wtog(0) \ 2
+  DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, gam.caterp(0)), 150 + ptr2, 90, 20, 20, page
   edgeprint quitprompt, xstring(quitprompt, 160), 80, uilook(uiText), page
   col = uilook(uiMenuItem): IF ptr2 < -20 THEN col = uilook(uiSelectedItem + tog) '10 + tog * 5
   edgeprint quityes, 70, 96, col, page

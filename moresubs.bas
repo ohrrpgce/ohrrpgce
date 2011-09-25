@@ -504,7 +504,7 @@ DIM wide as integer = 0
 DIM tog as integer
 DIM swap1 as integer
 DIM swap2 as integer
-DIM draw_slot as integer
+DIM cater_slot as integer
 DIM menu_color as integer
 
 GOSUB resetswap
@@ -629,13 +629,13 @@ RETRACE
 '---DRAWS SWAP MENU AND CURRENT SELECTION----
 showswapmenu:
 centerbox 160, 66, 130, 38, 1, page
-draw_slot = 0
+cater_slot = 0
 FOR i as integer = 0 TO 3
  IF i = swapme OR hero(i) > 0 THEN rectangle 105 + (30 * i), 60, 20, 20, uilook(uiTextBox), page
  IF hero(i) THEN
-  '5th frame: down
-  frame_draw herow(draw_slot).sprite + 4, herow(draw_slot).pal, 105 + i * 30, 60 + (i = swapme) * 6, 1, -1, page
-  draw_slot += 1
+  set_walkabout_frame gam.caterp(cater_slot), dirDown, 0
+  DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, gam.caterp(cater_slot)), 105 + i * 30, 60 + (i = swapme) * 6, 20, 20, page
+  cater_slot += 1
  END IF
 NEXT i
 IF ecsr < 0 THEN edgeprint CHR(24), 111 + 30 * acsr, 52, uilook(uiSelectedItem + tog), page
@@ -976,14 +976,15 @@ DO
  END IF
  IF carray(ccUse) > 1 THEN onwho = w: EXIT DO
  centerbox 160, 100, 140, 52, 1, page
- DIM o as integer = 0
- FOR i as integer = 0 TO 3
-  IF hero(i) > 0 THEN
-   wt = 0: IF w = i THEN wt = INT(wtg / 2)
-   frame_draw herow(o).sprite + (2 * 2) + wt, herow(o).pal, 100 + i * 30, 100, 1, -1, page
-   o = o + 1
+ DIM cater_slot as integer = 0
+ FOR party_slot as integer = 0 TO 3
+  IF hero(party_slot) > 0 THEN
+   IF w = party_slot THEN wt = wtg \ 2 ELSE wt = 0
+   set_walkabout_frame gam.caterp(cater_slot), dirDown, wt
+   DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, gam.caterp(cater_slot)), 100 + party_slot * 30, 100, 20, 20, page
+   cater_slot += 1
   END IF
- NEXT i
+ NEXT
  edgeprint CHR(25), 106 + w * 30, 90, uilook(uiSelectedItem + tog), page
  edgeprint caption, xstring(caption, 160), 80, uilook(uiText), page
  setvispage vpage
@@ -1196,13 +1197,6 @@ deletetemps
 
 'doesn't unload scripts: not needed
 killallscripts
-
-FOR i as integer = 0 TO UBOUND(herow)
- WITH herow(i)
-  frame_unload(@.sprite)
-  palette16_unload(@.pal)
- END WITH
-NEXT
 
 FOR i as integer = 0 TO ubound(timers)
  WITH timers(i)

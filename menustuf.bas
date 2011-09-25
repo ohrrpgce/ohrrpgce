@@ -2100,8 +2100,6 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
  holdscreen = allocatepage
  copypage page, holdscreen
 
- DIM cater as integer
- DIM walk as integer
  DIM wtogl as integer
  DIM tog as integer
  DIM col as integer
@@ -2231,25 +2229,26 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
   ELSEIF spread <> 0 THEN
    rectangle 84 + x_offset, 8, 152, 80, uilook(uiHighlight2 * tog), page
   END IF
-  cater = 0
+  DIM cater_slot as integer = 0
   FOR i as integer = 0 TO 3
    IF hero(i) > 0 THEN
-    walk = 0
-    IF targ = i THEN walk = INT(wtogl / 2)
-    frame_draw herow(cater).sprite + (2 * 2) + walk, herow(cater).pal, 89 + x_offset, 8 + i * 20, 1, -1, page
+    DIM frame as integer = 0
+    IF targ = i THEN frame = wtogl \ 2
+    set_walkabout_frame gam.caterp(cater_slot), dirDown, frame
+    DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, gam.caterp(cater_slot)), 89 + x_offset, 8 + i * 20, 20, 20, page
     col = uilook(uiMenuItem)
     IF i = targ THEN col = uilook(uiSelectedItem + tog)
     IF attack_id >= 0 THEN
      IF atk.targ_stat = 0 or atk.targ_stat = 1 THEN
-      caption = STR(gam.hero(i).stat.cur.sta(atk.targ_stat)) & "/" & STR(gam.hero(i).stat.max.sta(atk.targ_stat)) & " " & statnames(atk.targ_stat)
+      caption = gam.hero(i).stat.cur.sta(atk.targ_stat) & "/" & gam.hero(i).stat.max.sta(atk.targ_stat) & " " & statnames(atk.targ_stat)
      ELSE
-      caption = STR(gam.hero(i).stat.cur.sta(atk.targ_stat)) & " " & statnames(atk.targ_stat)
+      caption = gam.hero(i).stat.cur.sta(atk.targ_stat) & " " & statnames(atk.targ_stat)
      END IF
      edgeprint caption, 119 + x_offset, 16 + i * 20, col, page
     ELSEIF learn_id >= 0 THEN
-     edgeprint names(cater), 119 + x_offset, 16 + i * 20, col, page
+     edgeprint names(cater_slot), 119 + x_offset, 16 + i * 20, col, page
     END IF
-    cater += 1
+    cater_slot += 1
    END IF
   NEXT i
   centerfuz 160 + x_offset, 100, LEN(use_caption) * 8 + 32, 16, 4, page
