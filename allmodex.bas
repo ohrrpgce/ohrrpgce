@@ -37,7 +37,7 @@ type node 	'only used for floodfill
 end type
 
 declare sub drawohr(byval src as Frame ptr, byval dest as Frame ptr, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval trans as integer = -1)
-declare sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
+declare sub grabrect(byval page as integer, byval x as integer, byval y as integer, byval w as integer, byval h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
 declare function write_bmp_header(f as string, byval w as integer, byval h as integer, byval bitdepth as integer) as integer
 declare sub loadbmp24(byval bf as integer, byval fr as Frame ptr, pal() as RGBcolor)
 declare sub loadbmp8(byval bf as integer, byval fr as Frame ptr)
@@ -1017,7 +1017,7 @@ FUNCTION getkey () as integer
 	getkey = key
 end FUNCTION
 
-SUB setkeyrepeat (rwait as integer = 8, rrate as integer = 1)
+SUB setkeyrepeat (byval rwait as integer = 8, byval rrate as integer = 1)
 	keyrepeatwait = rwait
 	keyrepeatrate = rrate
 END SUB
@@ -3425,7 +3425,7 @@ function frame_to_tileset(byval spr as Frame ptr) as Frame ptr
 end function
 
 /'
-sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
+sub grabrect(byval page as integer, byval x as integer, byval y as integer, byval w as integer, byval h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
 'this isn't used anywhere anymore, was used to grab tiles from the tileset videopage before loadtileset
 'maybe some possible future use?
 'ibuf should be pre-allocated
@@ -4980,7 +4980,7 @@ sub sprite_unload(byval spr as SpriteState ptr ptr)
 end sub
 
 'loop is number of times to play, or <=0 for infinite
-sub sprite_play_animation(spr as SpriteState ptr, anim_name as string, loopcount as integer = 1)
+sub sprite_play_animation(spr as SpriteState ptr, anim_name as string, byval loopcount as integer = 1)
 	spr->anim_wait = 0
 	spr->anim_step = 0
 	spr->anim_loop = loopcount - 1

@@ -123,7 +123,7 @@ DECLARE FUNCTION keyval (byval a as integer, byval rwait as integer = 0, byval r
 DECLARE FUNCTION getkey () as integer
 DECLARE FUNCTION getinputtext () as string
 DECLARE FUNCTION waitforanykey (byval modkeys as integer = -1) as integer
-DECLARE SUB setkeyrepeat (rwait as integer = 8, rrate as integer = 1)
+DECLARE SUB setkeyrepeat (byval rwait as integer = 8, byval rrate as integer = 1)
 DECLARE SUB setkeys ()
 DECLARE SUB clearkey (byval k as integer)
 DECLARE SUB setquitflag ()
