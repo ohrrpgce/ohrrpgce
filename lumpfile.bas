@@ -310,7 +310,7 @@ function loadrecord (buf() as integer, filen as string, byval recordsize as inte
 	close #f
 end function
 
-sub storerecord (buf() as integer, fh as integer, recordsize as integer, record as integer = -1)
+sub storerecord (buf() as integer, byval fh as integer, byval recordsize as integer, byval record as integer = -1)
 'same as loadrecord
 	if ubound(buf) < recordsize - 1 then
 		debug "storerecord: array has only " & ubound(buf) + 1 & " elements, record is " & recordsize & " ints"
@@ -329,7 +329,7 @@ sub storerecord (buf() as integer, fh as integer, recordsize as integer, record 
 	put #fh, , writebuf()
 end sub
 
-sub storerecord (buf() as integer, filen as string, recordsize as integer, record as integer = 0)
+sub storerecord (buf() as integer, filen as string, byval recordsize as integer, byval record as integer = 0)
 'wrapper for above
 	dim f as integer
 
@@ -818,7 +818,7 @@ sub unlumpfile (lumpfile as string, fmask as string, path as string)
 	close #lf
 end sub
 
-sub copylump(package as string, lump as string, dest as string, ignoremissing as integer = NO)
+sub copylump(package as string, lump as string, dest as string, byval ignoremissing as integer = NO)
 	if len(dest) and right(dest, 1) <> SLASH then dest = dest + SLASH
 	if isdir(package) then
 		'unlumped folder

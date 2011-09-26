@@ -148,8 +148,8 @@ declare function FileLump_tempfromlump(byref lmp as Lump) as FileLump ptr
 
 declare function loadrecord overload (buf() as integer, byval fh as integer, byval recordsize as integer, byval record as integer = -1) as integer
 declare function loadrecord overload (buf() as integer, filename as string, byval recordsize as integer, byval record as integer = 0, byval expectfile as integer = YES) as integer
-declare sub storerecord overload (buf() as integer, fh as integer, recordsize as integer, record as integer = -1)
-declare sub storerecord overload (buf() as integer, filename as string, recordsize as integer, record as integer = 0)
+declare sub storerecord overload (buf() as integer, byval fh as integer, byval recordsize as integer, byval record as integer = -1)
+declare sub storerecord overload (buf() as integer, filename as string, byval recordsize as integer, byval record as integer = 0)
 declare function compare_files_by_record (differences() as integer, leftfile as string, rightfile as string, byval recordsize as integer, byval maskarray as integer ptr = NULL) as integer
 
 declare function indexunlumpeddir (whichdir as string) as LumpIndex ptr
@@ -157,7 +157,7 @@ declare function indexlumpfile (lumpfile as string, byval keepopen as integer = 
 declare sub lumpfiles (filelist() as string, lump as string, path as string)
 declare sub unlump(lump as string, ulpath as string)
 declare sub unlumpfile(lump as string, fmask as string, path as string)
-declare sub copylump(package as string, lump as string, dest as string, ignoremissing as integer = NO)
+declare sub copylump(package as string, lump as string, dest as string, byval ignoremissing as integer = NO)
 declare function islumpfile (lump as string, fmask as string) as integer
 declare sub fixlumporder (filelist() as string)
 
