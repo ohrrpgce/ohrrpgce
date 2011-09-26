@@ -34,8 +34,8 @@ declare sub setbigval(byval value as integer)
 declare sub setsmallval(byval value as integer)
 declare function setvarval(byval value as integer) as integer
 declare function getvoice(bamvoice as voice) as integer
-declare sub magicSysexStart(file as integer,length as integer)
-declare sub magicSysexEnd(file as integer)
+declare sub magicSysexStart(byval file as integer, byval length as integer)
+declare sub magicSysexEnd(byval file as integer)
 
 'external
 'declare sub debug(message as string)
