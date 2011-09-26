@@ -41,7 +41,7 @@ DECLARE SUB gamestate_npcs_to_reload(byval parent as Reload.NodePtr, byval map a
 DECLARE SUB gamestate_tags_to_reload(byval parent as Reload.NodePtr)
 DECLARE SUB gamestate_onetime_to_reload(byval parent as Reload.NodePtr)
 DECLARE SUB gamestate_party_to_reload(byval parent as Reload.NodePtr)
-DECLARE SUB gamestate_spelllist_to_reload(hero_slot as integer, spell_list as integer, byval parent as Reload.NodePtr)
+DECLARE SUB gamestate_spelllist_to_reload(byval hero_slot as integer, byval spell_list as integer, byval parent as Reload.NodePtr)
 DECLARE SUB gamestate_inventory_to_reload(byval parent as Reload.NodePtr)
 DECLARE SUB gamestate_shops_to_reload(byval parent as Reload.NodePtr)
 DECLARE SUB gamestate_vehicle_to_reload(byval parent as Reload.NodePtr)
@@ -57,7 +57,7 @@ DECLARE SUB gamestate_npcs_from_reload(byval parent as Reload.NodePtr, byval map
 DECLARE SUB gamestate_tags_from_reload(byval parent as Reload.NodePtr)
 DECLARE SUB gamestate_onetime_from_reload(byval parent as Reload.NodePtr)
 DECLARE SUB gamestate_party_from_reload(byval parent as Reload.NodePtr)
-DECLARE SUB gamestate_spelllist_from_reload(hero_slot as integer, spell_list as integer, byval parent as Reload.NodePtr)
+DECLARE SUB gamestate_spelllist_from_reload(byval hero_slot as integer, byval spell_list as integer, byval parent as Reload.NodePtr)
 DECLARE SUB gamestate_inventory_from_reload(byval parent as Reload.NodePtr)
 DECLARE SUB gamestate_shops_from_reload(byval parent as Reload.NodePtr)
 DECLARE SUB gamestate_vehicle_from_reload(byval parent as Reload.NodePtr)
@@ -76,7 +76,7 @@ DECLARE SUB new_get_save_slot_preview(byval slot as integer, pv as SaveSlotPrevi
 DECLARE SUB old_loadgame (byval slot as integer)
 DECLARE SUB old_loadglobalvars (byval slot as integer, byval first as integer, byval last as integer)
 DECLARE SUB old_get_save_slot_preview(byval slot as integer, pv as SaveSlotPreview)
-DECLARE SUB show_load_index(z as integer, caption as STRING, slot as integer=0)
+DECLARE SUB show_load_index(byval z as integer, caption as string, byval slot as integer=0)
 DECLARE SUB rebuild_inventory_captions (invent() as InventSlot)
 DECLARE FUNCTION old_save_slot_used (byval slot as integer) as integer
 DECLARE FUNCTION old_count_used_save_slots() as integer
@@ -656,7 +656,7 @@ SUB gamestate_party_from_reload(byval parent as Reload.NodePtr)
  LOOP
 END SUB
 
-SUB gamestate_spelllist_from_reload(hero_slot as integer, spell_list as integer, byval parent as Reload.NodePtr)
+SUB gamestate_spelllist_from_reload(byval hero_slot as integer, byval spell_list as integer, byval parent as Reload.NodePtr)
  DIM node as NodePtr
  node = GetChildByName(parent, "spells")
  IF spell_list <> GetInteger(node) THEN
@@ -1087,7 +1087,7 @@ SUB gamestate_party_to_reload(byval parent as Reload.NodePtr)
  NEXT i
 END SUB
 
-SUB gamestate_spelllist_to_reload(hero_slot as integer, spell_list as integer, byval parent as Reload.NodePtr)
+SUB gamestate_spelllist_to_reload(byval hero_slot as integer, byval spell_list as integer, byval parent as Reload.NodePtr)
  DIM node as NodePtr
  node = SetChildNode(parent, "spells", spell_list)
  DIM n as NodePtr 'used for numbered containers
@@ -1706,7 +1706,7 @@ ELSE
 END IF
 END SUB
 
-SUB show_load_index(z as integer, caption as STRING, slot as integer=0)
+SUB show_load_index(byval z as integer, caption as string, byval slot as integer=0)
  'debug "SAV:" & LEFT(caption & STRING(20, " "), 20) & " int=" & z + slot * 15000
 END SUB
 
