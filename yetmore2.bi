@@ -6,7 +6,7 @@
 DECLARE FUNCTION cropmovement (byref x as integer, byref y as integer, byref xgo as integer, byref ygo as integer) as integer
 DECLARE SUB defaultc
 DECLARE SUB forcedismount (catd() as integer)
-DECLARE FUNCTION framewalkabout (x as integer, y as integer, framex as integer, framey as integer, mapwide as integer, maphigh as integer, wrapmode as integer) as integer
+DECLARE FUNCTION framewalkabout (byval x as integer, byval y as integer, byref framex as integer, byref framey as integer, byval mapwide as integer, byval maphigh as integer, byval wrapmode as integer) as integer
 DECLARE SUB initgamedefaults
 DECLARE SUB innRestore ()
 DECLARE SUB setmapxy

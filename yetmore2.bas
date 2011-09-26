@@ -102,7 +102,7 @@ END IF
 END SUB
 
 'called on each coordinate of a screen position to wrap it around the map so that's it's as close as possible to being on the screen
-FUNCTION closestwrappedpos (coord as integer, screenlen as integer, maplen as integer) as integer
+FUNCTION closestwrappedpos (byval coord as integer, byval screenlen as integer, byval maplen as integer) as integer
  'consider two possibilities: one negative but as large as possible; and the one after that
  DIM as integer lowposs, highposs
  lowposs = (coord MOD maplen) + 10 'center of tile
@@ -114,7 +114,7 @@ FUNCTION closestwrappedpos (coord as integer, screenlen as integer, maplen as in
  RETURN lowposs - 10
 END FUNCTION
 
-FUNCTION framewalkabout (x as integer, y as integer, framex as integer, framey as integer, mapwide as integer, maphigh as integer, wrapmode as integer) as integer
+FUNCTION framewalkabout (byval x as integer, byval y as integer, byref framex as integer, byref framey as integer, byval mapwide as integer, byval maphigh as integer, byval wrapmode as integer) as integer
 'Given an X and a Y returns true if a walkabout at that spot might be on-screen.
 'We always return true because with offset variable sized frames and slices
 'attached to NPCs, it's practically impossible to tell.
