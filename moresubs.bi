@@ -6,23 +6,23 @@
 DECLARE SUB addhero (byval who as integer, byval slot as integer, byval forcelevel as integer=-1)
 DECLARE FUNCTION averagelev () as integer
 DECLARE SUB calibrate
-DECLARE FUNCTION consumeitem (index as integer) as integer
-DECLARE FUNCTION countitem (it as integer) as integer
-DECLARE SUB delitem (it as integer, amount as integer)
+DECLARE FUNCTION consumeitem (byval index as integer) as integer
+DECLARE FUNCTION countitem (byval it as integer) as integer
+DECLARE SUB delitem (byval it as integer, byval amount as integer)
 DECLARE SUB doswap (byval s as integer, byval d as integer)
 DECLARE SUB drawsay ()
 DECLARE SUB party_change_updates ()
 DECLARE SUB evalherotags ()
 DECLARE SUB evalitemtags ()
 DECLARE FUNCTION findhero (byval who as integer, byval first as integer, byval last as integer, byval direction as integer) as integer
-DECLARE SUB hero_swap_menu (iAll as integer)
+DECLARE SUB hero_swap_menu (byval iAll as integer)
 DECLARE SUB settag (byval tagnum as integer, byval value as integer = 4444)
 DECLARE FUNCTION istag (byval num as integer, byval zero as integer) as integer
 DECLARE SUB loaddoor (byval map as integer)
 DECLARE SUB minimap (byval x as integer, byval y as integer)
 DECLARE FUNCTION teleporttool () as integer
-DECLARE FUNCTION movdivis (xygo as integer) as integer
-DECLARE FUNCTION onwho (caption as string, alone as integer) as integer
+DECLARE FUNCTION movdivis (byval xygo as integer) as integer
+DECLARE FUNCTION onwho (caption as string, byval alone as integer) as integer
 DECLARE SUB readjoysettings
 DECLARE SUB renamehero (byval who as integer, byval escapable as integer)
 DECLARE SUB resetgame (scriptout as string)
@@ -35,13 +35,13 @@ DECLARE FUNCTION runscript (byval id as integer, byval newcall as integer, byval
 DECLARE FUNCTION loadscript (byval n as unsigned integer) as ScriptData ptr
 DECLARE SUB freescripts (byval mem as integer)
 DECLARE FUNCTION commandname (byval id as integer) as string
-DECLARE SUB scripterr (e as string, errorlevel as integer = 5)
+DECLARE SUB scripterr (e as string, byval errorlevel as integer = 5)
 DECLARE FUNCTION settingstring (searchee as string, setting as string, result as string) as integer
 DECLARE SUB shop (byval id as integer)
 DECLARE FUNCTION useinn (byval inn as integer, byval price as integer, byval holdscreen as integer) as integer
 DECLARE SUB tagdisplay
 DECLARE SUB writejoysettings
-DECLARE FUNCTION herocount (last as integer = 3) as integer
+DECLARE FUNCTION herocount (byval last as integer = 3) as integer
 DECLARE FUNCTION caterpillar_size () as integer
 
 #endif

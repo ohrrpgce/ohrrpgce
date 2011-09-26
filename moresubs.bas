@@ -273,7 +273,7 @@ LOOP
 
 END SUB
 
-FUNCTION consumeitem (index as integer) as integer
+FUNCTION consumeitem (byval index as integer) as integer
 '--subtracts one of an item at a location. If the item is depleted, returns true. If there are some of the item left, it returns false
 '--argument is the inventory slot index, not the item ID
 consumeitem = 0
@@ -285,7 +285,7 @@ END IF
 update_inventory_caption index
 END FUNCTION
 
-FUNCTION countitem (it as integer) as integer
+FUNCTION countitem (byval it as integer) as integer
  DIM total as integer = 0
  FOR o as integer = 0 TO last_inv_slot()
   IF inventory(o).used AND it - 1 = inventory(o).id THEN
@@ -295,7 +295,7 @@ FUNCTION countitem (it as integer) as integer
  RETURN total
 END FUNCTION
 
-SUB delitem (it as integer, amount as integer)
+SUB delitem (byval it as integer, byval amount as integer)
 FOR o as integer = 0 TO last_inv_slot()
  IF inventory(o).used AND it - 1 = inventory(o).id THEN
   IF inventory(o).num <= amount THEN
@@ -478,7 +478,7 @@ FUNCTION findhero (byval who as integer, byval first as integer, byval last as i
  RETURN -1 'not found
 END FUNCTION
 
-SUB hero_swap_menu (iAll as integer)
+SUB hero_swap_menu (byval iAll as integer)
 '--Preserve background for display beneath the hero swapper
 DIM page as integer
 DIM holdscreen as integer
@@ -915,7 +915,7 @@ SUB teleporttooltend (byref mini as Frame Ptr, maptilesX() as TileMap, tilesets2
 END SUB
 
 
-FUNCTION movdivis (xygo as integer) as integer
+FUNCTION movdivis (byval xygo as integer) as integer
 IF (xygo \ 20) * 20 = xygo AND xygo <> 0 THEN
  movdivis = -1
 ELSE
@@ -923,7 +923,7 @@ ELSE
 END IF
 END FUNCTION
 
-FUNCTION onwho (caption as string, alone as integer) as integer
+FUNCTION onwho (caption as string, byval alone as integer) as integer
 
 '-- pre-select the first hero
 DIM w as integer = rank_to_party_slot(0)
@@ -1703,7 +1703,7 @@ END FUNCTION
 '5: bad argument/operation       (not suppressed by default)
 '6: corrupt script data/unimplemented feature/interpreter can't continue
 '7: impossible condition; engine bug
-SUB scripterr (e as STRING, errorlevel as integer = 5)
+SUB scripterr (e as string, byval errorlevel as integer = 5)
  'mechanism to handle scriptwatch throwing errors
  STATIC as integer recursivecall
 
@@ -2128,7 +2128,7 @@ SUB writejoysettings
  CLOSE #fh
 END SUB
 
-FUNCTION herocount (last as integer = 3) as integer
+FUNCTION herocount (byval last as integer = 3) as integer
  '--differs from liveherocount() in that it does not care if they are alive
  DIM count as integer = 0
  FOR i as integer = 0 TO last
