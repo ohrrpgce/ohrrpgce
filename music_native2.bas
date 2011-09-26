@@ -67,10 +67,10 @@ end type
 'extern
 extern tmpdir as string
 
-declare sub bam2mid(infile as string, outfile as string, useOHRm as integer)
+declare sub bam2mid(infile as string, outfile as string, byval useOHRm as integer)
 
 
-DECLARE Sub UpdateDelay(BYREF delay as integer, tempo as integer)
+DECLARE Sub UpdateDelay(byref delay as integer, byval tempo as integer)
 DECLARE Sub StreamCallback(Byval handle as HMIDIOUT, byval umsg as Uinteger, byval dwInstance as UInteger, byval dwParam1 as UInteger, byval dwParam2 as UInteger)
 DECLARE Sub PrepareNextBeat(byval unused as any ptr)
 Declare Sub ResetInternals()
@@ -740,11 +740,11 @@ function music_get_info() as string
 	return ""
 end function
 
-sub music_play overload(byval lump as Lump ptr, fmt as integer=FORMAT_BAM)
+sub music_play overload(byval lump as Lump ptr, byval fmt as integer=FORMAT_BAM)
 
 end sub
 
-sub music_play(songname as string, fmt as integer)
+sub music_play(songname as string, byval fmt as integer)
 	dim erro as MMRESULT
 	if music_on then
 		songname = rtrim$(songname)	'lose any added nulls
@@ -870,7 +870,7 @@ sub music_stop()
 	if sound_song >= 0 then sound_stop(sound_song, -1)
 end sub
 
-sub music_setvolume(vol as single)
+sub music_setvolume(byval vol as single)
 	music_vol = vol
 	if music_on then
 		'if music_song > 0 then setvolmidi vol

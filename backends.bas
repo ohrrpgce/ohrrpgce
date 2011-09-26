@@ -135,7 +135,7 @@ dim shared gfx_choices() as GfxBackendStuff ptr
 GFX_CHOICES_INIT
 extern "C"
 
-declare function gfx_load(onlyfirst as integer = NO) as integer
+declare function gfx_load(byval onlyfirst as integer = NO) as integer
 declare sub unload_backend(which as GFxBackendStuff ptr)
 
 dim shared currentgfxbackend as GfxBackendStuff ptr = NULL
@@ -408,7 +408,7 @@ sub unload_backend(which as GFxBackendStuff ptr)
 end sub
 
 'onlyfirst: only try the most prefered. Returns 1 on success
-function gfx_load(onlyfirst as integer) as integer
+function gfx_load(byval onlyfirst as integer) as integer
 	if currentgfxbackend <> NULL then return 1 'hmm
 	for i as integer = 0 to ubound(gfx_choices)
 		if load_backend(gfx_choices(i)) then return 1

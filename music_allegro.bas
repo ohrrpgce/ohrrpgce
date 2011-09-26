@@ -16,7 +16,7 @@ option explicit
 'extern
 extern tmpdir as string
 declare sub debug(s$)
-declare sub bam2mid(infile as string, outfile as string, useOHRm as integer)
+declare sub bam2mid(infile as string, outfile as string, byval useOHRm as integer)
 declare function isfile(n$) as integer
 
 dim shared music_on as integer = 0
@@ -44,7 +44,7 @@ sub music_init()
 		music_on = 1
 		music_paused = 0
 		
-		music_setvolume(music_vol)					
+		music_setvolume(music_vol)
 	end if	
 end sub
 
@@ -166,7 +166,7 @@ sub music_stop()
 	music_pause()
 end sub
 
-sub music_setvolume(vol as integer)
+sub music_setvolume(byval vol as single)
 	music_vol = vol
 	if music_on = 1 then
 		'multiply by 17 to adjust for change in scale

@@ -21,7 +21,7 @@
 #include "SDL\SDL_mixer.bi"
 
 'extern
-declare sub bam2mid(infile as string, outfile as string, useOHRm as integer)
+declare sub bam2mid(infile as string, outfile as string, byval useOHRm as integer)
 declare function safe_RWops(byval rw as SDL_RWops ptr) as SDL_RWops ptr
 declare sub safe_RWops_close (byval rw as SDL_RWops ptr)
 
@@ -49,7 +49,7 @@ extern tmpdir as string
 'local functions
 declare function GetSlot(byval num as integer) as integer
 declare function next_free_slot() as integer
-declare function sfx_slot_info (slot as integer) as string
+declare function sfx_slot_info (byval slot as integer) as string
 
 dim shared music_on as integer = 0  '-1 indicates error, don't try again
 dim shared music_vol as integer      '0 to 128
@@ -203,11 +203,11 @@ sub music_close()
 	end if
 end sub
 
-sub music_play(byval lump as Lump ptr, fmt as integer)
+sub music_play(byval lump as Lump ptr, byval fmt as integer)
 
 end sub
 
-sub music_play(songname as string, fmt as integer)
+sub music_play(songname as string, byval fmt as integer)
 	if music_on = 1 then
 		songname = rtrim$(songname)	'lose any added nulls
 		
@@ -314,7 +314,7 @@ sub music_stop()
 	end if	
 end sub
 
-sub music_setvolume(vol as single)
+sub music_setvolume(byval vol as single)
 	music_vol = vol * 128
 	if music_on = 1 then
 		Mix_VolumeMusic(music_vol)
@@ -580,7 +580,7 @@ sub SDL_done_playing cdecl(byval channel as integer)
 end sub
 
 '-- for debugging
-function sfx_slot_info (slot as integer) as string
+function sfx_slot_info (byval slot as integer) as string
  with sfx_slots(slot)
    return .used & " " & .effectID & " " & .paused & " " & .playing & " " & .pause_pos & " " & .buf
  end with

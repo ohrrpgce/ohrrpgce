@@ -37,13 +37,13 @@ declare sub music_close()
 '(eg. just return dll version)
 declare function music_get_info() as string
 
-declare sub music_play overload(songname as string, fmt as integer=FORMAT_BAM)
-declare sub music_play overload(byval lump as Lump ptr, fmt as integer=FORMAT_BAM)
+declare sub music_play overload(songname as string, byval fmt as integer=FORMAT_BAM)
+declare sub music_play overload(byval lump as Lump ptr, byval fmt as integer=FORMAT_BAM)
 declare sub music_pause()
 declare sub music_resume()
 declare sub music_stop()
 
-declare sub music_setvolume(vol as single)
+declare sub music_setvolume(byval vol as single)
 declare function music_getvolume() as single
 
 

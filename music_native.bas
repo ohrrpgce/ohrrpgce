@@ -96,11 +96,11 @@ dim shared midi_handle as FILE ptr
 'extern
 extern tmpdir as string
 
-declare sub bam2mid(infile as string, outfile as string, useOHRm as integer)
+declare sub bam2mid(infile as string, outfile as string, byval useOHRm as integer)
 
 
 DECLARE Sub PlayBackThread(byval dummy as any ptr)
-DECLARE Sub UpdateDelay(BYREF delay as double, tempo as integer)
+DECLARE Sub UpdateDelay(byref delay as double, byval tempo as integer)
 
 
 
@@ -152,7 +152,7 @@ function shortMidi(event as UByte, a as UByte, b as UByte) as integer
 end function
 
 'emit a stream of bytes to the device
-function longMidi(dat as UByte ptr, l as integer) as integer
+function longMidi(dat as UByte ptr, byval l as integer) as integer
     #IFDEF __FB_WIN32__
     '??? - api doesn't support streaming?
     #ELSE
@@ -283,11 +283,11 @@ function music_get_info() as string
 	return ""
 end function
 
-sub music_play overload(byval lump as Lump ptr, fmt as integer=FORMAT_BAM)
+sub music_play overload(byval lump as Lump ptr, byval fmt as integer=FORMAT_BAM)
 
 end sub
 
-sub music_play(songname as string, fmt as integer)
+sub music_play(songname as string, byval fmt as integer)
 	if music_on then
 		songname = rtrim$(songname)	'lose any added nulls
     dim ext as string = lcase(justextension(songname))
@@ -388,7 +388,7 @@ sub music_stop()
 	if sound_song >= 0 then sound_stop(sound_song, -1)
 end sub
 
-sub music_setvolume(vol as single)
+sub music_setvolume(byval vol as single)
 	music_vol = vol
 	if music_on then
 		'Don't know what this is meant to do
@@ -683,7 +683,7 @@ playback_thread = NULL
 
 End Sub
 
-Sub UpdateDelay(BYREF delay as double, tempo as integer)
+Sub UpdateDelay(byref delay as double, byval tempo as integer)
   delay = division * 1000000 \ tempo - 1
 end sub
 

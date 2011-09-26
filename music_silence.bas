@@ -16,9 +16,9 @@ function music_get_info() as string
 	return ""
 end function
 
-sub music_play(byval lump as Lump ptr, fmt as integer) : end sub
+sub music_play(byval lump as Lump ptr, byval fmt as integer) : end sub
 
-sub music_play(songname as string, fmt as integer=FORMAT_BAM) : end sub
+sub music_play(songname as string, byval fmt as integer=FORMAT_BAM) : end sub
 
 sub music_pause() : end sub
 
@@ -26,7 +26,7 @@ sub music_resume() : end sub
 
 sub music_stop() : end sub
 
-sub music_setvolume(vol as single) : end sub
+sub music_setvolume(byval vol as single) : end sub
 
 function music_getvolume() as single
 	return 0.5
