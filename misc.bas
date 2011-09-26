@@ -110,7 +110,7 @@ function usage_setoption(opt as string, arg as string) as integer
 	return 0
 end function
 
-function with_orig_path(file_or_dir as string, add_slash as integer=0) as string
+function with_orig_path(file_or_dir as string, byval add_slash as integer=0) as string
 	dim d as string = file_or_dir
 	if not is_absolute_path(d) then d = orig_dir & SLASH & d
 	if add_slash and right(d, 1) <> SLASH then d = d & SLASH
@@ -266,7 +266,7 @@ Sub WriteByteStr(byval fh as integer, byval maxlen as integer, s as string)
 	next
 end sub
 
-function xstr (x as integer) as string
+function xstr (byval x as integer) as string
 	if x >= 0 then
 		xstr = " " + str(x)
 	else
