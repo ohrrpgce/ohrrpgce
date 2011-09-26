@@ -5,13 +5,24 @@
 '' part of OHRRPGCE - see elsewhere for license details
 ''
 
-option explicit
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
+#endif
 
 #include "config.bi"
 #include "fbgfx.bi"
 #include "gfx_newRenderPlan.bi"
 #include "gfx.bi"
 #include "common.bi"
+
+#ifdef TRY_LANG_FB
+'Use the FB namespace for the types and constants from fbgfx
+USING FB
+#endif
 
 #include once "crt.bi"
 #undef abort
@@ -118,7 +129,7 @@ sub gfx_fb_setpal(byval pal as RGBcolor ptr)
 	'accessible.
 end sub
 
-function gfx_fb_present(byval surfaceIn as Surface ptr, byval pal as BackendPalette ptr)
+function gfx_fb_present(byval surfaceIn as Surface ptr, byval pal as BackendPalette ptr) as integer
 '320x200 Surfaces supported only!
 	screenlock
 
@@ -414,7 +425,7 @@ sub io_fb_setmousevisibility(byval visible as integer)
 	end if
 end sub
 
-sub io_fb_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as integer)
+sub io_fb_getmouse(byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer)
 	static as integer lastx = 0, lasty = 0, lastwheel = 0, lastbuttons = 0
 	dim as integer dmx, dmy, dw, db, remx, remy
 	if getmouse(dmx, dmy, dw, db) = 0 then
