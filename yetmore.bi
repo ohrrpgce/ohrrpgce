@@ -46,7 +46,7 @@ DECLARE SUB wrapxy (byref x as integer, byref y as integer, byval wide as intege
 DECLARE FUNCTION backcompat_sound_id (byval id as integer) as integer
 DECLARE SUB loadsay (byval box_id as integer)
 DECLARE SUB load_text_box_portrait (byref box as TextBox, byref gfx as GraphicPair)
-DECLARE FUNCTION valid_plotslice(byval handle as integer, errlev as integer=5) as integer
+DECLARE FUNCTION valid_plotslice(byval handle as integer, byval errlev as integer=5) as integer
 DECLARE FUNCTION valid_plotsprite(byval handle as integer) as integer
 DECLARE FUNCTION valid_plotrect(byval handle as integer) as integer
 DECLARE FUNCTION valid_plottextslice(byval handle as integer) as integer

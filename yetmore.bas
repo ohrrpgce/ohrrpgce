@@ -3664,7 +3664,7 @@ FUNCTION valid_spriteslice_dat(byval sl as Slice Ptr) as integer
  RETURN YES
 END FUNCTION
 
-FUNCTION valid_plotslice(byval handle as integer, errlev as integer=5) as integer
+FUNCTION valid_plotslice(byval handle as integer, byval errlev as integer=5) as integer
  IF handle < LBOUND(plotslices) OR handle > UBOUND(plotslices) THEN
   scripterr commandname(curcmd->value) & ": invalid slice handle " & handle, errlev
   RETURN NO
