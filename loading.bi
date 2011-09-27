@@ -26,8 +26,8 @@ declare sub LoadNPCD(file as string, dat() as NPCType)
 declare sub LoadNPCD_fixedlen(file as string, dat() as NPCType, byref arraylen as integer)
 declare sub SaveNPCD(file as string, dat() as NPCType)
 declare sub SaveNPCD_fixedlen(file as string, dat() as NPCType, byval arraylen as integer)
-declare sub setnpcd(npcd as npctype, offset as integer, value as integer)
-declare function getnpcd(npcd as npctype, offset as integer) as integer
+declare sub setnpcd(npcd as npctype, byval offset as integer, byval value as integer)
+declare function getnpcd(npcd as npctype, byval offset as integer) as integer
 declare sub CleanNPCDefinition(dat as NPCType)
 declare sub CleanNPCD(dat() as NPCType)
 
@@ -71,21 +71,21 @@ declare sub SaveZoneMap(zmap as ZoneMap, filename as string, rsrect as RectType 
 declare sub LoadZoneMap(zmap as ZoneMap, filename as string)
 
 declare SUB DeserDoorLinks(filename as string, array() as doorlink)
-declare Sub SerDoorLinks(filename as string, array() as doorlink, withhead as integer = 1)
+declare Sub SerDoorLinks(filename as string, array() as doorlink, byval withhead as integer = 1)
 declare sub CleanDoorLinks(array() as doorlink)
-declare Sub DeSerDoors(filename as string, array() as door, record as integer)
-declare Sub SerDoors(filename as string, array() as door, record as integer)
+declare Sub DeSerDoors(filename as string, array() as door, byval record as integer)
+declare Sub SerDoors(filename as string, array() as door, byval record as integer)
 declare Sub CleanDoors(array() as door)
 
-declare Sub LoadStats(fh as integer, sta as stats ptr)
-declare Sub SaveStats(fh as integer, sta as stats ptr)
-declare Sub LoadStats2(fh as integer, lev0 as stats ptr, levMax as stats ptr)
-declare Sub SaveStats2(fh as integer, lev0 as stats ptr, levMax as stats ptr)
+declare Sub LoadStats(byval fh as integer, sta as stats ptr)
+declare Sub SaveStats(byval fh as integer, sta as stats ptr)
+declare Sub LoadStats2(byval fh as integer, lev0 as stats ptr, levMax as stats ptr)
+declare Sub SaveStats2(byval fh as integer, lev0 as stats ptr, levMax as stats ptr)
 
-declare Sub DeSerHeroDef(filename as string, hero as herodef ptr, record as integer)
-declare Sub SerHeroDef(filename as string, hero as herodef ptr, record as integer)
-declare sub loadherodata (hero as herodef ptr, index as integer)
-declare sub saveherodata (hero as herodef ptr, index as integer)
+declare Sub DeSerHeroDef(filename as string, hero as herodef ptr, byval record as integer)
+declare Sub SerHeroDef(filename as string, hero as herodef ptr, byval record as integer)
+declare sub loadherodata (hero as herodef ptr, byval index as integer)
+declare sub saveherodata (hero as herodef ptr, byval index as integer)
 
 declare Sub LoadVehicle OVERLOAD (file as string, vehicle as VehicleData, byval record as integer)
 declare Sub LoadVehicle OVERLOAD (file as string, veh() as integer, vehname as string, byval record as integer)
@@ -93,14 +93,14 @@ declare Sub SaveVehicle OVERLOAD (file as string, veh() as integer, vehname as s
 declare Sub SaveVehicle OVERLOAD (file as string, vehicle as VehicleData, byval record as integer)
 declare Sub ClearVehicle (vehicle as VehicleData)
 
-declare Sub SaveUIColors (colarray() as integer, palnum as integer)
-declare Sub LoadUIColors (colarray() as integer, palnum as integer=-1)
+declare Sub SaveUIColors (colarray() as integer, byval palnum as integer)
+declare Sub LoadUIColors (colarray() as integer, byval palnum as integer=-1)
 declare Sub DefaultUIColors (colarray() as integer)
 declare Sub OldDefaultUIColors (colarray() as integer)
 declare Sub GuessDefaultUIColors (colarray() as integer)
 
-declare Sub LoadTextBox (byref box as TextBox, record as integer)
-declare Sub SaveTextBox (byref box as TextBox, record as integer)
+declare Sub LoadTextBox (byref box as TextBox, byval record as integer)
+declare Sub SaveTextBox (byref box as TextBox, byval record as integer)
 declare Sub ClearTextBox (byref box as TextBox)
 
 DECLARE SUB loadoldattackelementalfail (byref cond as AttackElementCondition, buf() as integer, byval element as integer)
@@ -115,14 +115,14 @@ DECLARE SUB DeSerAttackElementCond (byref cond as AttackElementCondition, buf() 
 DECLARE SUB convertattackdata(buf() as integer, byref atkdat as AttackData)
 DECLARE SUB saveattackdata (array() as integer, byval index as integer)
 
-DECLARE SUB loadtanim (n as integer, tastuf() as integer)
-DECLARE SUB savetanim (n as integer, tastuf() as integer)
+DECLARE SUB loadtanim (byval n as integer, tastuf() as integer)
+DECLARE SUB savetanim (byval n as integer, tastuf() as integer)
 
-DECLARE SUB getpal16 (array() as integer, aoffset as integer, foffset as integer, autotype as integer=-1, sprite as integer=0)
-DECLARE SUB storepal16 (array() as integer, aoffset as integer, foffset as integer)
+DECLARE SUB getpal16 (array() as integer, byval aoffset as integer, byval foffset as integer, byval autotype as integer=-1, byval sprite as integer=0)
+DECLARE SUB storepal16 (array() as integer, byval aoffset as integer, byval foffset as integer)
 
-DECLARE SUB loaditemdata (array() as integer, index as integer)
-DECLARE SUB saveitemdata (array() as integer, index as integer)
+DECLARE SUB loaditemdata (array() as integer, byval index as integer)
+DECLARE SUB saveitemdata (array() as integer, byval index as integer)
 DECLARE FUNCTION LoadOldItemElemental (itembuf() as integer, byval element as integer) as SINGLE
 DECLARE SUB LoadItemElementals (byval index as integer, itemresists() as single)
 

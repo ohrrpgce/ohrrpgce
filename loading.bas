@@ -135,7 +135,7 @@ SUB SaveNPCD(file as string, dat() as NPCType)
 END SUB
 
 'Prefer write_npc_int instead in the future, as it lacks pointer thoughtcrime
-SUB SetNPCD(npcd as NPCType, offset as integer, value as integer)
+SUB SetNPCD(npcd as NPCType, byval offset as integer, byval value as integer)
   STATIC maxoffset as integer = -1
   IF maxoffset = -1 THEN maxoffset = (curbinsize(binN) \ 2) - 1
 
@@ -147,7 +147,7 @@ SUB SetNPCD(npcd as NPCType, offset as integer, value as integer)
 END SUB
 
 'Prefer read_npc_int instead in the future, as it lacks pointer thoughtcrime
-FUNCTION GetNPCD(npcd as NPCType, offset as integer) as integer
+FUNCTION GetNPCD(npcd as NPCType, byval offset as integer) as integer
   STATIC maxoffset as integer = -1
   IF maxoffset = -1 THEN maxoffset = (curbinsize(binN) \ 2) - 1
 
@@ -1248,7 +1248,7 @@ SUB DeserDoorLinks(filename as string, array() as doorlink)
 	close #f
 End SUB
 
-Sub SerDoorLinks(filename as string, array() as doorlink, withhead as integer = -1)
+Sub SerDoorLinks(filename as string, array() as doorlink, byval withhead as integer = -1)
 	dim as integer f = freefile, i
 	
 	if not fileiswriteable(filename) then exit sub
@@ -1296,7 +1296,7 @@ sub CleanDoorLinks(array() as doorlink)
 	next
 end sub
 
-Sub DeSerDoors(filename as string, array() as door, record as integer)
+Sub DeSerDoors(filename as string, array() as door, byval record as integer)
 	if not fileisreadable(filename) then exit sub
 	
 	dim as integer f = freefile, i
@@ -1318,7 +1318,7 @@ Sub DeSerDoors(filename as string, array() as door, record as integer)
 	close #f
 End Sub
 
-Sub SerDoors(filename as string, array() as door, record as integer)
+Sub SerDoors(filename as string, array() as door, byval record as integer)
 	if not fileiswriteable(filename) then exit sub
 	dim as integer f = freefile, i
 	
@@ -1356,7 +1356,7 @@ end sub
 
 
 'loads a standard block of stats from a file handle.
-Sub LoadStats(fh as integer, sta as stats ptr)
+Sub LoadStats(byval fh as integer, sta as stats ptr)
 	dim i as integer
 	if sta = 0 then exit sub
 	
@@ -1369,7 +1369,7 @@ Sub LoadStats(fh as integer, sta as stats ptr)
 end sub
 
 'saves a stat block to a file handle
-Sub SaveStats(fh as integer, sta as stats ptr)
+Sub SaveStats(byval fh as integer, sta as stats ptr)
 	dim i as integer
 	if sta = 0 then exit sub
 	
@@ -1383,7 +1383,7 @@ end sub
 
 'this differs from the above because it loads two interleaved blocks of stats,
 'such as those found in the hero definitions.
-Sub LoadStats2(fh as integer, lev0 as stats ptr, levMax as stats ptr)
+Sub LoadStats2(byval fh as integer, lev0 as stats ptr, levMax as stats ptr)
 	dim as integer i
 	if lev0 = 0 or levMax = 0 then exit sub
 	for i = 0 to 11
@@ -1393,7 +1393,7 @@ Sub LoadStats2(fh as integer, lev0 as stats ptr, levMax as stats ptr)
 end sub
 
 'save interleaved stat blocks
-Sub SaveStats2(fh as integer, lev0 as stats ptr, levMax as stats ptr)
+Sub SaveStats2(byval fh as integer, lev0 as stats ptr, levMax as stats ptr)
 	if lev0 = 0 or levMax = 0 then exit sub
 	dim as integer i
 	for i = 0 to 11
@@ -1402,7 +1402,7 @@ Sub SaveStats2(fh as integer, lev0 as stats ptr, levMax as stats ptr)
 	next i
 end sub
 
-Sub DeSerHeroDef(filename as string, hero as herodef ptr, record as integer)
+Sub DeSerHeroDef(filename as string, hero as herodef ptr, byval record as integer)
 	if record < 0 or record > gen(genMaxHero) then debug "DeSerHeroDef: fail on record:" & record : exit sub
 	if not fileisreadable(filename) or hero = 0 then exit sub
 	
@@ -1459,7 +1459,7 @@ Sub DeSerHeroDef(filename as string, hero as herodef ptr, record as integer)
 	close #f
 end sub
 
-Sub SerHeroDef(filename as string, hero as herodef ptr, record as integer)
+Sub SerHeroDef(filename as string, hero as herodef ptr, byval record as integer)
 	if not fileiswriteable(filename) or hero = 0 then exit sub
 	
 	dim as integer f = freefile, i, j
@@ -1524,11 +1524,11 @@ Sub SerHeroDef(filename as string, hero as herodef ptr, record as integer)
 	close #f
 end sub
 
-SUB loadherodata (hero as herodef ptr, index as integer)
+SUB loadherodata (hero as herodef ptr, byval index as integer)
  deserherodef game & ".dt0", hero, index
 END SUB
 
-SUB saveherodata (hero as herodef ptr, index as integer)
+SUB saveherodata (hero as herodef ptr, byval index as integer)
  serherodef game & ".dt0", hero, index
 END SUB
 
@@ -1688,7 +1688,7 @@ SUB GuessDefaultUIColors (colarray() as integer)
  NEXT i
 END SUB
 
-SUB LoadUIColors (colarray() as integer, palnum as integer=-1)
+SUB LoadUIColors (colarray() as integer, byval palnum as integer=-1)
  'load ui colors from data lump
  DIM filename as string
  filename = workingdir & SLASH & "uicolors.bin"
@@ -1709,7 +1709,7 @@ SUB LoadUIColors (colarray() as integer, palnum as integer=-1)
  CLOSE f
 END SUB
 
-SUB SaveUIColors (colarray() as integer, palnum as integer)
+SUB SaveUIColors (colarray() as integer, byval palnum as integer)
  DIM filename as string
  filename = workingdir & SLASH & "uicolors.bin"
 
@@ -1735,7 +1735,7 @@ END SUB
 '==========================================================================================
 
 
-SUB LoadTextBox (byref box as TextBox, record as integer)
+SUB LoadTextBox (byref box as TextBox, byval record as integer)
  DIM boxbuf(dimbinsize(binSAY)) as integer
  IF record < 0 OR record > gen(genMaxTextBox) THEN
   debug "LoadTextBox: invalid record: " & record
@@ -1819,7 +1819,7 @@ SUB LoadTextBox (byref box as TextBox, record as integer)
  END WITH
 END SUB
 
-SUB SaveTextBox (byref box as TextBox, record as integer)
+SUB SaveTextBox (byref box as TextBox, byval record as integer)
  DIM boxbuf(dimbinsize(binSAY)) as integer
  IF record < 0 OR record > gen(genMaxTextBox) THEN debug "SaveTextBox: invalid record: " & record : EXIT SUB
 
@@ -2192,12 +2192,12 @@ END SUB
 '==========================================================================================
 
 
-SUB loadtanim (n as integer, tastuf() as integer)
+SUB loadtanim (byval n as integer, tastuf() as integer)
  setpicstuf tastuf(), 80, -1
  loadset game & ".tap", n, 0
 END SUB
 
-SUB savetanim (n as integer, tastuf() as integer)
+SUB savetanim (byval n as integer, tastuf() as integer)
  setpicstuf tastuf(), 80, -1
  storeset game & ".tap", n, 0
 END SUB
@@ -2208,7 +2208,7 @@ END SUB
 '==========================================================================================
 
 
-SUB getpal16 (array() as integer, aoffset as integer, foffset as integer, autotype as integer=-1, sprite as integer=0)
+SUB getpal16 (array() as integer, byval aoffset as integer, byval foffset as integer, byval autotype as integer=-1, byval sprite as integer=0)
 DIM buf(8) as integer
 DIM defaultpal as integer
 DIM i as integer
@@ -2247,7 +2247,7 @@ END IF
 
 END SUB
 
-SUB storepal16 (array() as integer, aoffset as integer, foffset as integer)
+SUB storepal16 (array() as integer, byval aoffset as integer, byval foffset as integer)
 DIM buf(8) as integer
 
 DIM f as string = game & ".pal"
@@ -2294,7 +2294,7 @@ END SUB
 '==========================================================================================
 
 
-SUB loaditemdata (array() as integer, index as integer)
+SUB loaditemdata (array() as integer, byval index as integer)
  flusharray array(), dimbinsize(binITM), 0
  IF index > gen(genMaxItem) THEN debug "loaditemdata:" & index & " out of range" : EXIT SUB
  IF loadrecord(array(), game & ".itm", getbinsize(binITM) \ 2, index) = 0 THEN
@@ -2303,7 +2303,7 @@ SUB loaditemdata (array() as integer, index as integer)
  END IF
 END SUB
 
-SUB saveitemdata (array() as integer, index as integer)
+SUB saveitemdata (array() as integer, byval index as integer)
  storerecord array(), game & ".itm", getbinsize(binITM) \ 2, index
 END SUB
 
