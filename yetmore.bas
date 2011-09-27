@@ -42,7 +42,7 @@
 
 'Using a lower bound of 1 because 0 is considered an invalid handle
 'The size of 64 is just so we won't have to reallocate for a little while
-REDIM plotslices(1 TO 10) as Slice Ptr
+REDIM plotslices(1 TO 64) as Slice Ptr
 plotslicesp = @plotslices(1)
 
 REDIM timers(15) as PlotTimer
@@ -3781,7 +3781,7 @@ FUNCTION create_plotslice_handle(byval sl as Slice Ptr) as integer
   END IF
  NEXT
  'If no room is available, make the array bigger.
- REDIM PRESERVE plotslices(LBOUND(plotslices) TO UBOUND(plotslices) + 32)
+ REDIM PRESERVE plotslices(LBOUND(plotslices) TO UBOUND(plotslices) * 1.5 + 32)
  plotslicesp = @plotslices(1)
  'Store the slice pointer in the handle slot
  plotslices(i) = sl
