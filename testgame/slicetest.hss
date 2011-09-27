@@ -24,6 +24,18 @@ plotscript, test, begin
   #w (16)
   #free slice(sl2)
 
+  $0="plotslice array expansion test"
+  sl2 := create container
+  for(i, 0, 128) do(
+    sl := create rect(3, 3, -1)
+    set parent(sl, sl2)
+    set slice x(sl, i)
+    set rect bg col(sl, i)
+    set rect fg col(sl, i)
+    if(i,mod,10 == 0) then(w(1))
+  )
+  free slice(sl2)
+
   $0="ellipse tests", show string(0)
   
   sl := create ellipse(100, 100, 2, 10)
