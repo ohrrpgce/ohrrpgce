@@ -242,7 +242,6 @@ heapp = @heap(0)
 scratp = @scrat(0)
 scriptp = @script(0)
 retvalsp = @retvals(0)
-plotslicesp = @plotslices(1)
 
 'End global variables
 
