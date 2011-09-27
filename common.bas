@@ -47,7 +47,7 @@ EXTERN running_as_slave as integer
 #ENDIF
 
 #IFDEF IS_CUSTOM
-DECLARE FUNCTION charpicker() as STRING
+DECLARE FUNCTION charpicker() as string
 #ENDIF
 
 
@@ -58,16 +58,16 @@ REDIM sprite_sizes(-1 TO 10) as SpriteSize
 setup_sprite_sizes
 
 'holds commandline args not recognised by the backends or anything else
-REDIM cmdline_args(0) as STRING
+REDIM cmdline_args(0) as string
 
 'holds the directory to dump logfiles into
-DIM log_dir as STRING
+DIM log_dir as string
 
 'It is very important for this to be populated _before_ any calls to CHDIR
-DIM orig_dir as STRING
+DIM orig_dir as string
 
 'Used on Mac to point to the app bundle Resources directory
-DIM data_dir as STRING
+DIM data_dir as string
 
 'Used by intgrabber, reset by usemenu
 DIM negative_zero as integer = NO
@@ -106,10 +106,10 @@ DIM SHARED full_upgrade as integer = NO
 DIM SHARED importantdebug as integer = 0
 
 'When restarting the log, the previous path if significant
-DIM SHARED lastlogfile as STRING
+DIM SHARED lastlogfile as string
 
 '.stt lump read into memory
-DIM SHARED global_strings_buffer as STRING
+DIM SHARED global_strings_buffer as string
 
 
 FUNCTION common_setoption(opt as string, arg as string) as integer
@@ -248,7 +248,7 @@ SUB start_new_debug
 END SUB
 
 SUB end_debug
- DIM filename as STRING
+ DIM filename as string
  #IFDEF IS_GAME
    filename = "g_debug.txt"
  #ELSE
@@ -307,7 +307,7 @@ END SUB
 'Draw a wrapped string in the middle of the page, in a box
 SUB basic_textbox (msg as string, byval col as integer, byval page as integer)
  WITH *vpages(page)
-  DIM captlines() as STRING
+  DIM captlines() as string
   split(wordwrap(msg, (.w - 20) \ 8), captlines())
   centerbox .w \ 2, .h \ 2, .w - 10, 26 + 10 * UBOUND(captlines), 3, page
   DIM y as integer = .h \ 2 - (UBOUND(captlines) + 1) * 5
@@ -317,7 +317,7 @@ SUB basic_textbox (msg as string, byval col as integer, byval page as integer)
  END WITH
 END SUB
 
-SUB notification (msg as STRING)
+SUB notification (msg as string)
  basic_textbox msg, uilook(uiText), vpage
  setvispage vpage
  waitforanykey
@@ -330,7 +330,7 @@ SUB visible_debug (msg as string)
 END SUB
 
 FUNCTION getfixbit(byval bitnum as integer) as integer
- DIM f as STRING
+ DIM f as string
  f = workingdir + SLASH + "fixbits.bin"
  IF NOT isfile(f) THEN RETURN 0
  DIM fh as integer = FREEFILE
@@ -342,7 +342,7 @@ FUNCTION getfixbit(byval bitnum as integer) as integer
 END FUNCTION
 
 SUB setfixbit(byval bitnum as integer, byval bitval as integer)
- DIM f as STRING
+ DIM f as string
  f = workingdir + SLASH + "fixbits.bin"
  DIM fh as integer = FREEFILE
  IF OPEN(f FOR BINARY as fh) THEN fatalerror "Impossible to upgrade game: Could not write " & f  'Really bad!
@@ -537,8 +537,8 @@ FUNCTION isbit (bb() as integer, byval w as integer, byval b as integer) as inte
  END IF
 END FUNCTION
 
-FUNCTION scriptname (num as integer, trigger as integer = 0) as string
-DIM a as STRING
+FUNCTION scriptname (byval num as integer, byval trigger as integer = 0) as string
+DIM a as string
 
 #ifdef IS_GAME
  'remember script names; can be a large speed up in script debugger 
@@ -550,7 +550,7 @@ DIM a as STRING
 DIM buf(19) as integer
 IF num >= 16384 AND trigger > 0 THEN
  IF loadrecord (buf(), workingdir + SLASH + "lookup" + STR(trigger) + ".bin", 20, num - 16384, NO) THEN
-  DIM sname as STRING = readbinstring(buf(), 1, 36)
+  DIM sname as string = readbinstring(buf(), 1, 36)
   IF buf(0) THEN
    a = sname
   ELSE
@@ -621,9 +621,9 @@ Function seconds2str(byval sec as integer, f as string = "%m:%S") as string
   return ret
 end function
 
-FUNCTION getdefaultpal(fileset as integer, index as integer) as integer
+FUNCTION getdefaultpal(byval fileset as integer, byval index as integer) as integer
  DIM v as SHORT
- DIM f as STRING = workingdir & SLASH & "defpal" & fileset & ".bin"
+ DIM f as string = workingdir & SLASH & "defpal" & fileset & ".bin"
  IF isfile(f) THEN
   DIM fh as integer = FREEFILE
   OPEN f FOR BINARY as #fh
@@ -644,9 +644,9 @@ FUNCTION abs_pal_num(byval num as integer, byval sprtype as integer, byval spr a
  RETURN 0
 END FUNCTION
 
-SUB loaddefaultpals(fileset as integer, poffset() as integer, sets as integer)
+SUB loaddefaultpals(byval fileset as integer, poffset() as integer, byval sets as integer)
  DIM v as SHORT
- DIM f as STRING = workingdir & SLASH & "defpal" & fileset & ".bin"
+ DIM f as string = workingdir & SLASH & "defpal" & fileset & ".bin"
  IF isfile(f) THEN
   DIM fh as integer = FREEFILE
   OPEN f FOR BINARY as #fh
@@ -660,9 +660,9 @@ SUB loaddefaultpals(fileset as integer, poffset() as integer, sets as integer)
  END IF
 END SUB
 
-SUB savedefaultpals(fileset as integer, poffset() as integer, sets as integer)
+SUB savedefaultpals(byval fileset as integer, poffset() as integer, byval sets as integer)
  DIM v as SHORT
- DIM f as STRING = workingdir & SLASH & "defpal" & fileset & ".bin"
+ DIM f as string = workingdir & SLASH & "defpal" & fileset & ".bin"
  DIM fh as integer = FREEFILE
  OPEN f FOR BINARY as #fh
  FOR i as integer = 0 to sets
@@ -672,7 +672,7 @@ SUB savedefaultpals(fileset as integer, poffset() as integer, sets as integer)
  CLOSE #fh
 END SUB
 
-SUB guessdefaultpals(fileset as integer, poffset() as integer, sets as integer)
+SUB guessdefaultpals(byval fileset as integer, poffset() as integer, byval sets as integer)
  DIM her as herodef
  DIM found as integer
  
@@ -729,7 +729,7 @@ SUB guessdefaultpals(fileset as integer, poffset() as integer, sets as integer)
  END SELECT
 END SUB
 
-FUNCTION defbinsize (id as integer) as integer
+FUNCTION defbinsize (byval id as integer) as integer
  'returns the default size in BYTES to use for getbinsize() when no BINSIZE data is available at all
  IF id = 0 THEN RETURN 0  'attack.bin
  IF id = 1 THEN RETURN 64 '.stf
@@ -747,7 +747,7 @@ FUNCTION defbinsize (id as integer) as integer
  RETURN 0
 END FUNCTION
 
-FUNCTION curbinsize (id as integer) as integer
+FUNCTION curbinsize (byval id as integer) as integer
  'returns the native size in BYTES of the records for the version you are running
  IF id = 0 THEN RETURN 546 'attack.bin
  IF id = 1 THEN RETURN 84  '.stf
@@ -765,7 +765,7 @@ FUNCTION curbinsize (id as integer) as integer
  RETURN 0
 END FUNCTION
 
-FUNCTION getbinsize (id as integer) as integer
+FUNCTION getbinsize (byval id as integer) as integer
 'returns the current size in BYTES of the records in the specific binary file you are working with
 IF isfile(workingdir + SLASH + "binsize.bin") THEN
  DIM as short recordsize
@@ -785,13 +785,13 @@ END IF
 END FUNCTION
 
 'INTS, not bytes!
-FUNCTION dimbinsize (id as integer) as integer
+FUNCTION dimbinsize (byval id as integer) as integer
  'curbinsize is size supported by current version of engine
  'getbinsize is size of records in RPG file
  dimbinsize = large(curbinsize(id), getbinsize(id)) \ 2 - 1
 END FUNCTION
 
-SUB setbinsize (id as integer, size as integer)
+SUB setbinsize (byval id as integer, byval size as integer)
  DIM fh as integer = FREEFILE
  OPEN workingdir & SLASH & "binsize.bin" FOR BINARY as #fh
  PUT #fh, 1 + id * 2, CAST(short, size)
@@ -825,7 +825,7 @@ FUNCTION readarchinym (gamedir as string, sourcefile as string) as string
  RETURN iname
 END FUNCTION
 
-FUNCTION maplumpname (map as integer, oldext as STRING) as string
+FUNCTION maplumpname (byval map as integer, oldext as string) as string
  IF map < 100 THEN
   return game & "." & oldext & RIGHT("0" & map, 2)
  ELSE
@@ -833,12 +833,12 @@ FUNCTION maplumpname (map as integer, oldext as STRING) as string
  END IF
 END FUNCTION
 
-SUB fatalerror (msg as STRING)
+SUB fatalerror (msg as string)
  showerror msg, YES
 END SUB
 
 'cleanup: (Custom only) whether to delete working.tmp
-SUB showerror (msg as STRING, byval isfatal as integer = NO)
+SUB showerror (msg as string, byval isfatal as integer = NO)
  STATIC entered as integer = 0  'don't allow reentry
  IF entered THEN EXIT SUB
  entered = 1
@@ -913,21 +913,21 @@ SUB showerror (msg as STRING, byval isfatal as integer = NO)
 END SUB
 
 'Returns left edge x coord of a string centred at given x
-FUNCTION xstring (s as STRING, x as integer) as integer
+FUNCTION xstring (s as string, byval x as integer) as integer
  return small(large(x - LEN(s) * 4, 0), 319 - LEN(s) * 8)
 END FUNCTION
 
-FUNCTION defaultint (n as integer, default_caption as STRING="default") as STRING
+FUNCTION defaultint (byval n as integer, default_caption as string="default") as string
  IF n = -1 THEN RETURN default_caption
  RETURN STR(n)
 END FUNCTION
 
-FUNCTION caption_or_int (n as integer, captions() as STRING) as STRING
+FUNCTION caption_or_int (byval n as integer, captions() as string) as string
  IF n >= LBOUND(captions) AND n <= UBOUND(captions) THEN RETURN captions(n)
  RETURN STR(n)
 END FUNCTION
 
-SUB poke8bit (array16() as integer, index as integer, val8 as integer)
+SUB poke8bit (array16() as integer, byval index as integer, byval val8 as integer)
  IF index \ 2 > UBOUND(array16) THEN
   debug "Dang rotten poke8bit(array(" & UBOUND(array16) & ")," & index & "," & val8 & ") out of range"
   EXIT SUB
@@ -948,7 +948,7 @@ SUB poke8bit (array16() as integer, index as integer, val8 as integer)
  array16(index \ 2) = element
 END SUB
 
-FUNCTION peek8bit (array16() as integer, index as integer) as integer
+FUNCTION peek8bit (array16() as integer, byval index as integer) as integer
  IF index \ 2 > UBOUND(array16) THEN
   debug "Dang rotten peek8bit(array(" & UBOUND(array16) & ")," & index & ") out of range"
   RETURN 0
@@ -1050,7 +1050,7 @@ END SUB
 FUNCTION getmapname (byval m as integer) as string
  DIM nameread(39) as integer
  loadrecord nameread(), game + ".mn", 40, m
- DIM a as STRING = STRING(small((nameread(0) AND 255), 39), " ")
+ DIM a as string = STRING(small((nameread(0) AND 255), 39), " ")
  array2str nameread(), 1, a
  RETURN a
 END FUNCTION
@@ -1132,7 +1132,7 @@ END FUNCTION
 
 FUNCTION getsongname (byval num as integer, byval prefixnum as integer = 0) as string
  DIM songd(dimbinsize(binSONGDATA)) as integer
- DIM s as STRING
+ DIM s as string
  IF num = -1 THEN RETURN "-none-"
  s = ""
  IF prefixnum THEN s = num & " "
@@ -1176,7 +1176,7 @@ FUNCTION intgrabber (byref n as LONGINT, byval min as LONGINT, byval max as LONG
   n = ABS(n)
   IF keyval(scBackspace) > 1 THEN n \= 10: typed = YES
 
-  DIM intext as STRING = getinputtext
+  DIM intext as string = getinputtext
   FOR i as integer = 0 TO LEN(intext) - 1
    IF isdigit(intext[i]) THEN
     n = n * 10 + (intext[i] - ASC("0"))
@@ -1223,7 +1223,7 @@ FUNCTION intgrabber (byref n as LONGINT, byval min as LONGINT, byval max as LONG
  END IF
 END FUNCTION
 
-FUNCTION zintgrabber (n as integer, min as integer, max as integer, less as integer=75, more as integer=77) as integer
+FUNCTION zintgrabber (byref n as integer, byval min as integer, byval max as integer, byval less as integer=75, byval more as integer=77) as integer
  '--adjust for entries that are offset by +1
  '--what a hack!
  '--all entries <= 0 are special options not meant to be enumerated
@@ -1244,7 +1244,7 @@ FUNCTION zintgrabber (n as integer, min as integer, max as integer, less as inte
  RETURN (old <> n)
 END FUNCTION
 
-FUNCTION xintgrabber (n as integer, pmin as integer, pmax as integer, nmin as integer=1, nmax as integer=1, less as integer=scLeft, more as integer=scRight) as integer
+FUNCTION xintgrabber (byref n as integer, byval pmin as integer, byval pmax as integer, byval nmin as integer=1, byval nmax as integer=1, byval less as integer=scLeft, byval more as integer=scRight) as integer
  '--quite a bit of documentation required:
  '--like zintgrabber, but for cases where positive values mean one thing, negatives
  '--another, and 0 means none.
@@ -1332,12 +1332,12 @@ FUNCTION xintgrabber (n as integer, pmin as integer, pmax as integer, nmin as in
  RETURN (old <> n)
 END FUNCTION
 
-FUNCTION stredit (s as STRING, byref insert as integer, byval maxl as integer, byval numlines as integer=1, byval wrapchars as integer=1) as integer
+FUNCTION stredit (s as string, byref insert as integer, byval maxl as integer, byval numlines as integer=1, byval wrapchars as integer=1) as integer
  'Return value is the line that the cursor is on, or 0 if numlines=1
  'insert is the position of the cursor (range 0..LEN(s)-1), and is modified byref. Set to -1 to move automatically to end of string
  stredit = 0
  
- STATIC clip as STRING
+ STATIC clip as string
 
  '--copy+paste support
  IF copy_keychord() THEN clip = s
@@ -1363,9 +1363,9 @@ FUNCTION stredit (s as STRING, byref insert as integer, byval maxl as integer, b
 
  '--up and down arrow keys
  IF numlines > 1 THEN
-  DIM wrapped as STRING
+  DIM wrapped as string
   wrapped = wordwrap(s, large(1, wrapchars))
-  DIM lines() as STRING
+  DIM lines() as string
   split(wrapped, lines())
   DIM count as integer = 0
   DIM found_insert as integer = -1
@@ -1417,8 +1417,8 @@ FUNCTION stredit (s as STRING, byref insert as integer, byval maxl as integer, b
  IF insert < 0 THEN insert = LEN(s)
  insert = bound(insert, 0, LEN(s))
 
- DIM pre as STRING = LEFT(s, insert)
- DIM post as STRING = RIGHT(s, LEN(s) - insert)
+ DIM pre as string = LEFT(s, insert)
+ DIM post as string = RIGHT(s, LEN(s) - insert)
 
  '--BACKSPACE support
  IF keyval(scBackspace) > 1 AND LEN(pre) > 0 THEN
@@ -1451,7 +1451,7 @@ FUNCTION stredit (s as STRING, byref insert as integer, byval maxl as integer, b
  
 END FUNCTION
 
-SUB pop_warning(s as STRING)
+SUB pop_warning(s as string)
  
  '--Construct the warning UI (This will be hella easier later when the Slice Editor can save/load)
  DIM root as Slice Ptr
@@ -1551,7 +1551,7 @@ SUB pop_warning(s as STRING)
  DeleteSlice @root
 END SUB
 
-FUNCTION prompt_for_string (byref s as STRING, caption as STRING, byval limit as integer=NO) as integer
+FUNCTION prompt_for_string (byref s as string, caption as string, byval limit as integer=NO) as integer
  '--Construct the prompt UI. FIXME: redo this when the Slice Editor can save/load)
  DIM root as Slice Ptr
  root = NewSliceOfType(slRoot)
@@ -1637,8 +1637,8 @@ FUNCTION prompt_for_string (byref s as STRING, caption as STRING, byval limit as
  DeleteSlice @root
 END FUNCTION
 
-SUB show_help(helpkey as STRING)
- DIM help_str as STRING
+SUB show_help(helpkey as string)
+ DIM help_str as string
  help_str = load_help_file(helpkey)
  
  '--Construct the help UI (This will be hella easier later when the Slice Editor can save/load)
@@ -1693,7 +1693,7 @@ SUB show_help(helpkey as STRING)
  DIM scrollbar_state as MenuState
  scrollbar_state.size = 17
 
- DIM searchstring as STRING
+ DIM searchstring as string
 
  '--Now loop displaying help
  setkeyrepeat  'reset repeat rate
@@ -1805,7 +1805,7 @@ SUB show_help(helpkey as STRING)
  DeleteSlice @help_root
 END SUB
 
-FUNCTION multiline_string_editor(s as STRING, helpkey as STRING="") as STRING
+FUNCTION multiline_string_editor(s as string, helpkey as string="") as string
  'probably contains more code duplication than is apropriate when comared to the help_editor
  
  '--Construct the UI (loading a slice collection might be better here? but not from the RPG file!)
@@ -1917,7 +1917,7 @@ FUNCTION multiline_string_editor(s as STRING, helpkey as STRING="") as STRING
   dowait
  LOOP
 
- DIM result as STRING
+ DIM result as string
  result = dat->s
  
  freepage holdscreen
@@ -1926,12 +1926,12 @@ FUNCTION multiline_string_editor(s as STRING, helpkey as STRING="") as STRING
  RETURN result
 END FUNCTION
 
-FUNCTION multichoice(capt as STRING, choices() as STRING, defaultval as integer=0, escval as integer=-1, helpkey as STRING="") as integer
+FUNCTION multichoice(capt as string, choices() as string, byval defaultval as integer=0, byval escval as integer=-1, helpkey as string="") as integer
  DIM state as MenuState
  DIM menu as MenuDef
  ClearMenuData menu
  DIM result as integer
- DIM captlines() as STRING
+ DIM captlines() as string
  DIM wide as integer
 
  split(wordwrap(capt, 37), captlines())
@@ -1997,14 +1997,14 @@ FUNCTION multichoice(capt as STRING, choices() as STRING, defaultval as integer=
  RETURN result
 END FUNCTION
 
-FUNCTION twochoice(capt as STRING, strA as STRING="Yes", strB as STRING="No", defaultval as integer=0, escval as integer=-1, helpkey as STRING="") as integer
- DIM choices(1) as STRING = {strA, strB}
+FUNCTION twochoice(capt as string, strA as string="Yes", strB as string="No", byval defaultval as integer=0, byval escval as integer=-1, helpkey as string="") as integer
+ DIM choices(1) as string = {strA, strB}
  RETURN multichoice(capt, choices(), defaultval, escval, helpkey)
 END FUNCTION
 
 'Asks a yes-or-no pop-up question.
 '(Not to be confused with yesorno(), which returns a yes/no string)
-FUNCTION yesno(capt as STRING, byval defaultval as integer=YES, escval as integer=NO) as integer
+FUNCTION yesno(capt as string, byval defaultval as integer=YES, byval escval as integer=NO) as integer
  IF defaultval THEN defaultval = 0 ELSE defaultval = 1
  IF escval THEN escval = 0 ELSE escval = 1
  DIM result as integer
@@ -2014,7 +2014,7 @@ FUNCTION yesno(capt as STRING, byval defaultval as integer=YES, escval as intege
 END FUNCTION
 
 SUB playsongnum (byval songnum as integer)
-  DIM songbase as STRING, songfile as STRING
+  DIM songbase as string, songfile as string
 
   songbase = workingdir & SLASH & "song" & songnum
   songfile = ""
@@ -2043,7 +2043,7 @@ SUB playsongnum (byval songnum as integer)
   loadsong songfile
 END SUB
 
-FUNCTION spawn_and_wait (app as STRING, args as STRING) as string
+FUNCTION spawn_and_wait (app as string, args as string) as string
  'Run a commandline program in a terminal emulator and wait for it to finish. 
  'On Windows the program is run asynchronously and users are offered the option to kill it.
  'On other platforms the program just freezes.
@@ -2129,18 +2129,18 @@ FUNCTION spawn_and_wait (app as STRING, args as STRING) as string
 
 END FUNCTION
 
-FUNCTION find_madplay () as STRING
+FUNCTION find_madplay () as string
  STATIC cached as integer = 0
- STATIC cached_app as STRING
+ STATIC cached_app as string
  IF cached THEN RETURN cached_app
  cached_app = find_helper_app("madplay")
  cached = -1
  RETURN cached_app
 END FUNCTION
 
-FUNCTION find_oggenc () as STRING
+FUNCTION find_oggenc () as string
  STATIC cached as integer = 0
- STATIC cached_app as STRING
+ STATIC cached_app as string
  IF cached THEN RETURN cached_app
  cached_app = find_helper_app("oggenc")
  IF cached_app = "" THEN cached_app = find_helper_app("oggenc2")
@@ -2148,7 +2148,7 @@ FUNCTION find_oggenc () as STRING
  RETURN cached_app
 END FUNCTION
 
-FUNCTION find_helper_app (appname as STRING) as STRING
+FUNCTION find_helper_app (appname as string) as string
 'Returns an empty string if the app is not found, or the full path if it is found
 
 'Look in the same folder as CUSTOM/GAME
@@ -2160,8 +2160,8 @@ IF isfile(exepath & "/support/" & appname) THEN RETURN exepath & "/support/" & a
 #IFDEF __UNIX__
 '--Find helper app on Unix
 DIM as integer fh
-DIM as STRING tempfile
-DIM as STRING s
+DIM as string tempfile
+DIM as string s
 tempfile = tmpdir & "find_helper_app." & INT(RND * 10000) & ".tmp"
 'Use the standard util "which" to search the path
 SHELL "which " & appname & " > " & tempfile
@@ -2225,9 +2225,9 @@ FUNCTION missing_helper_message (appname as string) as string
 END FUNCTION
 
 'Returns error message, or "" on success
-FUNCTION mp3_to_ogg (in_file as STRING, out_file as STRING, quality as integer = 4) as STRING
- DIM as STRING tempwav
- DIM as STRING ret
+FUNCTION mp3_to_ogg (in_file as string, out_file as string, byval quality as integer = 4) as string
+ DIM as string tempwav
+ DIM as string ret
  tempwav = tmpdir & "temp." & INT(RND * 100000) & ".wav"
  ret = mp3_to_wav(in_file, tempwav)
  IF LEN(ret) THEN RETURN ret
@@ -2237,8 +2237,8 @@ FUNCTION mp3_to_ogg (in_file as STRING, out_file as STRING, quality as integer =
 END FUNCTION
 
 'Returns error message, or "" on success
-FUNCTION mp3_to_wav (in_file as STRING, out_file as STRING) as STRING
- DIM as STRING app, args, ret
+FUNCTION mp3_to_wav (in_file as string, out_file as string) as string
+ DIM as string app, args, ret
  IF NOT isfile(in_file) THEN RETURN "mp3 to wav conversion: " & in_file & " does not exist"
  app = find_madplay()
  IF app = "" THEN RETURN "Can not read MP3 files: " + missing_helper_message("madplay" + DOTEXE)
@@ -2255,8 +2255,8 @@ FUNCTION mp3_to_wav (in_file as STRING, out_file as STRING) as STRING
 END FUNCTION
 
 'Returns error message, or "" on success
-FUNCTION wav_to_ogg (in_file as STRING, out_file as STRING, quality as integer = 4) as STRING
- DIM as STRING app, args, ret
+FUNCTION wav_to_ogg (in_file as string, out_file as string, byval quality as integer = 4) as string
+ DIM as string app, args, ret
  IF NOT isfile(in_file) THEN RETURN "wav to ogg conversion: " & in_file & " does not exist"
  app = find_oggenc()
  IF app = "" THEN RETURN "Can not convert to OGG: " + missing_helper_message("oggenc" DOTEXE " and oggenc2" DOTEXE)
@@ -2272,7 +2272,7 @@ FUNCTION wav_to_ogg (in_file as STRING, out_file as STRING, quality as integer =
  RETURN ""
 END FUNCTION
 
-SUB upgrade_message (s as STRING)
+SUB upgrade_message (s as string)
  IF NOT upgrademessages THEN
   upgrademessages = -1
   reset_console 20, vpages(vpage)->h - 20
@@ -2296,7 +2296,7 @@ SUB upgrade_message (s as STRING)
 END SUB
 
 'admittedly, these 'console' functions suck
-SUB reset_console (top as integer = 0, h as integer = 200, c as integer = -1)
+SUB reset_console (byval top as integer = 0, byval h as integer = 200, byval c as integer = -1)
  IF c = -1 THEN c = uilook(uiBackground)
  WITH console
   .top = top
@@ -2311,14 +2311,14 @@ SUB reset_console (top as integer = 0, h as integer = 200, c as integer = -1)
  END WITH
 END SUB
 
-SUB show_message (s as STRING)
+SUB show_message (s as string)
  WITH console
   IF .x > 0 THEN .x = 0 : .y += 8
   append_message s
  END WITH
 END SUB
 
-SUB append_message (s as STRING)
+SUB append_message (s as string)
  DIM as integer display = YES
  IF RIGHT(TRIM(s), 1) = "," THEN display = NO
  WITH console
@@ -2401,7 +2401,7 @@ SUB cycletile (tanim_state() as TileAnimState, tastuf() as integer)
  NEXT i
 END SUB
 
-FUNCTION finddatafile(filename as STRING) as STRING
+FUNCTION finddatafile(filename as string) as string
 'Current dir
 IF isfile(filename) THEN RETURN filename
 'platform-specific relative data files path (Mac OS X bundles)
@@ -2418,7 +2418,7 @@ IF isfile(DATAFILES & SLASH & filename) THEN RETURN DATAFILES & SLASH & filename
 RETURN ""
 END FUNCTION
 
-FUNCTION finddatadir(dirname as STRING) as STRING
+FUNCTION finddatadir(dirname as string) as string
 'Current dir
 IF isdir(dirname) THEN RETURN dirname
 'platform-specific relative data files path (Mac OS X bundles)
@@ -2435,7 +2435,7 @@ IF isdir(DATAFILES & SLASH & dirname) THEN RETURN DATAFILES & SLASH & dirname
 RETURN ""
 END FUNCTION
 
-SUB updaterecordlength (lumpf as STRING, byval bindex as integer, byval headersize as integer = 0, byval repeating as integer = NO)
+SUB updaterecordlength (lumpf as string, byval bindex as integer, byval headersize as integer = 0, byval repeating as integer = NO)
 'If the length of records in this lump has changed (increased) according to binsize.bin, stretch it, padding records with zeroes.
 'Note: does not create a lump if it doesn't exist.
 'Pass 'repeating' as true when more than one lump with this bindex exists.
@@ -2451,11 +2451,11 @@ IF getbinsize(bindex) < curbinsize(bindex) THEN
  'Only bother to do this for records of nonzero size (this implies the file doesn't exist, right?)
  IF oldsize > 0 ANDALSO isfile(lumpf) THEN
 
-  DIM tempf as STRING = lumpf & ".resize.tmp"
+  DIM tempf as string = lumpf & ".resize.tmp"
 
   'This tends to break (it's a C/unix system call), hence all the paranoia
   IF rename(lumpf, tempf) THEN
-   DIM err_string as STRING = *get_sys_err_string()  'errno would get overwritten while building the error message
+   DIM err_string as string = *get_sys_err_string()  'errno would get overwritten while building the error message
    fatalerror "Impossible to upgrade game: Could not rename " & lumpf & " to " & tempf & " (exists=" & isfile(tempf) & ") Reason: " & err_string
   END IF
 
@@ -2509,7 +2509,7 @@ FUNCTION passwordhash (p as string) as ushort
 END FUNCTION
 
 'If someone forgets their password, call this function to generate a new one
-FUNCTION generatepassword(hash as integer) as string
+FUNCTION generatepassword(byval hash as integer) as string
  IF hash = 0 THEN RETURN ""
  IF hash - 512 < 0 OR hash - 512 > 511 THEN RETURN "<invalid password hash " & hash & ">"
  DO
@@ -2521,7 +2521,7 @@ FUNCTION generatepassword(hash as integer) as string
  LOOP
 END FUNCTION
 
-SUB writepassword (pass as STRING)
+SUB writepassword (pass as string)
  gen(genPassVersion) = 257
  gen(genPW4Hash) = passwordhash(pass)
 
@@ -2568,7 +2568,7 @@ END FUNCTION
 FUNCTION read_PW3_password () as string
  '--read a 17-byte string from GEN at word offset 7
  '--(Note that array2str uses the byte offset not the word offset)
- DIM pass as STRING
+ DIM pass as string
  pass = STRING(17, 0)
  array2str gen(), 14, pass
 
@@ -2576,9 +2576,9 @@ FUNCTION read_PW3_password () as string
  pass = rotascii(pass, gen(genPW3Rot) * -1)
 
  '-- discard ascii chars lower than 32
- DIM pass2 as STRING = ""
+ DIM pass2 as string = ""
  FOR i as integer = 1 TO 17
-  DIM c as STRING = MID(pass, i, 1)
+  DIM c as string = MID(pass, i, 1)
   IF ASC(c) >= 32 THEN pass2 += c
  NEXT i
 
@@ -2873,7 +2873,7 @@ END IF
 IF NOT isfile(game + ".veh") THEN
  upgrade_message "add vehicle data"
  '--make sure vehicle lump is present
- DIM templatefile as STRING = finddatafile("ohrrpgce.new")
+ DIM templatefile as string = finddatafile("ohrrpgce.new")
  IF templatefile <> "" THEN
   unlumpfile(templatefile, "ohrrpgce.veh", tmpdir)
   'Recall it's best to avoid moving files across filesystems
@@ -2911,7 +2911,7 @@ END IF
 
 IF NOT isfile(workingdir + SLASH + "songdata.bin") THEN
  upgrade_message "Upgrading Song Name format..."
- DIM song(99) as STRING
+ DIM song(99) as string
  fh = FREEFILE
  OPEN game + ".sng" FOR BINARY as #fh
  temp = LOF(fh)
@@ -3376,7 +3376,7 @@ xbsave game + ".gen", gen(), 1000
 'wow! this is quite a big and ugly routine!
 END SUB
 
-SUB fix_record_count(byref last_rec_index as integer, byref record_byte_size as integer, lumpname as STRING, info as STRING, skip_header_bytes as integer=0, count_offset as integer=0)
+SUB fix_record_count(byref last_rec_index as integer, byref record_byte_size as integer, lumpname as string, info as string, byval skip_header_bytes as integer=0, byval count_offset as integer=0)
  DIM rec_count as integer = last_rec_index + 1 + count_offset
  IF NOT isfile(lumpname) THEN
   'debug "fix_record_count: " & info & " lump " & trimpath(lumpname) & " does not exist." 
@@ -3390,7 +3390,7 @@ SUB fix_record_count(byref last_rec_index as integer, byref record_byte_size as 
  IF total_bytes MOD record_byte_size <> 0 THEN
   DIM diffsize as integer
   diffsize = total_bytes - record_byte_size * rec_count
-  DIM mismatch as STRING
+  DIM mismatch as string
   IF diffsize < 0 THEN
    mismatch = "file short by " & diffsize & " bytes"
   ELSE
@@ -3417,7 +3417,7 @@ END SUB
 SUB fix_sprite_record_count(byval pt_num as integer)
  WITH sprite_sizes(pt_num)
   DIM bytes as integer = .size.x * .size.y * .frames / 2 '--we divide by 2 because there are 2 pixels per byte
-  DIM lump as STRING = game & ".pt" & pt_num
+  DIM lump as string = game & ".pt" & pt_num
   fix_record_count gen(.genmax), bytes, lump, .name & " sprites"
  END WITH
 END SUB
@@ -3521,7 +3521,7 @@ END IF
 CLOSE #fh
 END SUB
 
-FUNCTION readglobalstring (index as integer, default as STRING, maxlen as integer=10) as string
+FUNCTION readglobalstring (byval index as integer, default as string, byval maxlen as integer=10) as string
 IF index * 11 + 2 > LEN(global_strings_buffer) THEN
  RETURN default
 ELSE
@@ -3548,7 +3548,7 @@ SUB create_default_menu(menu as MenuDef)
  menu.min_chars = 14
 END SUB
 
-FUNCTION bound_arg(n as integer, min as integer, max as integer, argname as ZSTRING PTR, context as ZSTRING PTR=nulzstr, fromscript as integer=YES, errlvl as integer = 4) as integer
+FUNCTION bound_arg(byval n as integer, byval min as integer, byval max as integer, argname as ZSTRING PTR, context as ZSTRING PTR=nulzstr, byval fromscript as integer=YES, byval errlvl as integer = 4) as integer
  'This function takes zstring ptr arguments because passing strings is actually really expensive
  '(it performs an allocation, copy, delete), and would be easily noticeable by scripts.
  IF n < min OR n > max THEN
@@ -3568,11 +3568,11 @@ FUNCTION bound_arg(n as integer, min as integer, max as integer, argname as ZSTR
  RETURN YES
 END FUNCTION
 
-SUB reporterr(msg as STRING, errlvl as integer = 5)
+SUB reporterr(msg as string, byval errlvl as integer = 5)
  'this is a placeholder for some more detailed replacement of debug, so scripterrs can be thrown from slices.bas
 #IFDEF IS_GAME
  IF insideinterpreter THEN
-  DIM msg2 as STRING = msg  'Don't modify passed-in strings
+  DIM msg2 as string = msg  'Don't modify passed-in strings
   IF curcmd->kind = tyfunct THEN msg2 = commandname(curcmd->value) + ": " + msg2
   scripterr msg2, errlvl
  ELSE
@@ -3583,13 +3583,13 @@ SUB reporterr(msg as STRING, errlvl as integer = 5)
 #ENDIF
 END SUB
 
-FUNCTION tag_set_caption(n as integer, prefix as STRING="Set Tag") as STRING
+FUNCTION tag_set_caption(byval n as integer, prefix as string="Set Tag") as string
  RETURN tag_condition_caption(n, prefix, "N/A", "Unchangeable", "Unchangeable")
 END FUNCTION
 
-FUNCTION tag_condition_caption(n as integer, prefix as STRING="Tag", zerocap as STRING="", onecap as STRING="", negonecap as STRING="") as STRING
- DIM s as STRING
- DIM cap as STRING
+FUNCTION tag_condition_caption(byval n as integer, prefix as string="Tag", zerocap as string="", onecap as string="", negonecap as string="") as string
+ DIM s as string
+ DIM cap as string
  s = prefix
  IF LEN(s) > 0 THEN s = s & " "
  s = s & ABS(n) & "=" & onoroff(n)
@@ -3602,14 +3602,14 @@ FUNCTION tag_condition_caption(n as integer, prefix as STRING="Tag", zerocap as 
  RETURN s
 END FUNCTION
 
-FUNCTION onoroff (n as integer) as STRING
+FUNCTION onoroff (byval n as integer) as string
  IF n >= 0 THEN RETURN "ON"
  RETURN "OFF"
 END FUNCTION
 
 'Returns a YES/NO string. Not to be confused with yesno() (in this file)
 'which asks an interactive yes/no question
-FUNCTION yesorno (n as integer, yes_cap as STRING="YES", no_cap as STRING="NO") as STRING
+FUNCTION yesorno (byval n as integer, yes_cap as string="YES", no_cap as string="NO") as string
  IF n THEN RETURN yes_cap
  RETURN no_cap
 END FUNCTION
@@ -3625,14 +3625,14 @@ FUNCTION format_percent(byval float as double, byval sigfigs as integer = 5) as 
  RETURN repr + "%"
 END FUNCTION
 
-FUNCTION load_tag_name (index as integer) as STRING
+FUNCTION load_tag_name (byval index as integer) as string
  IF index = 0 THEN RETURN ""
  IF index = 1 THEN RETURN "Never"
  IF index = -1 THEN RETURN "Always"
  RETURN readbadgenericname(ABS(index), game + ".tmn", 42, 0, 20)
 END FUNCTION
 
-SUB save_tag_name (tagname as STRING, index as integer)
+SUB save_tag_name (tagname as string, byval index as integer)
  DIM buf(20) as integer
  setpicstuf buf(), 42, -1
  writebadbinstring tagname, buf(), 0, 20
@@ -3640,7 +3640,7 @@ SUB save_tag_name (tagname as STRING, index as integer)
 END SUB
 
 SUB dump_master_palette_as_hex (master_palette() as RGBColor)
- DIM hexstring as STRING = " DIM colorcodes(255) as integer = {"
+ DIM hexstring as string = " DIM colorcodes(255) as integer = {"
  FOR i as integer = 0 to 255
   hexstring = hexstring & "&h" & hex(master_palette(i).col, 6)
   IF i <> 255 THEN hexstring = hexstring & ","
@@ -3702,7 +3702,7 @@ FUNCTION paste_keychord () as integer
  RETURN (keyval(scShift) > 0 AND keyval(scInsert) > 1) OR (keyval(scCtrl) > 0 AND keyval(scV) > 1)
 END FUNCTION
 
-SUB write_npc_int (npcdata as NPCType, intoffset as integer, n as integer)
+SUB write_npc_int (npcdata as NPCType, byval intoffset as integer, byval n as integer)
  '--intoffset is the integer offset, same as appears in the .N lump documentation
  WITH npcdata
   SELECT CASE intoffset
@@ -3728,7 +3728,7 @@ SUB write_npc_int (npcdata as NPCType, intoffset as integer, n as integer)
  END WITH
 END SUB
 
-FUNCTION read_npc_int (npcdata as NPCType, intoffset as integer) as integer
+FUNCTION read_npc_int (npcdata as NPCType, byval intoffset as integer) as integer
  '--intoffset is the integer offset, same as appears in the .N lump documentation
  WITH npcdata
   SELECT CASE intoffset
@@ -3755,7 +3755,7 @@ FUNCTION read_npc_int (npcdata as NPCType, intoffset as integer) as integer
  RETURN 0
 END FUNCTION
 
-SUB lockstep_tile_animation (tilesets() as TilesetData ptr, layer as integer)
+SUB lockstep_tile_animation (tilesets() as TilesetData ptr, byval layer as integer)
  'Called after changing a layer's tileset to make sure its tile animation is in phase with other layers of the same tileset
  FOR i as integer = 0 TO UBOUND(tilesets)
   IF i <> layer ANDALSO tilesets(i) ANDALSO tilesets(i)->num = tilesets(layer)->num THEN
@@ -3870,12 +3870,12 @@ SUB unloadmaptilesets (tilesets() as TilesetData ptr)
  NEXT
 END SUB
 
-FUNCTION xreadbit (bitarray() as integer, bitoffset as integer, intoffset as integer=0) as integer
+FUNCTION xreadbit (bitarray() as integer, byval bitoffset as integer, byval intoffset as integer=0) as integer
  'This is a wrapper for readbit that returns YES/NO and accepts a default arg of zero for the integer offset
  RETURN readbit(bitarray(), intoffset, bitoffset) <> 0 
 END FUNCTION
 
-FUNCTION getheroname (byval hero_id as integer) as STRING
+FUNCTION getheroname (byval hero_id as integer) as string
  DIM her as HeroDef
  IF hero_id >= 0 THEN
   loadherodata @her, hero_id
@@ -4007,12 +4007,12 @@ SUB unload_sprite_and_pal (byref img as GraphicPair)
  palette16_unload @img.pal
 END SUB
 
-FUNCTION decode_backslash_codes(s as STRING) as STRING
- DIM result as STRING = ""
+FUNCTION decode_backslash_codes(s as string) as string
+ DIM result as string = ""
  DIM i as integer = 1
- DIM ch as STRING
+ DIM ch as string
  DIM mode as integer = 0
- DIM nstr as STRING
+ DIM nstr as string
  DIM num as integer
  DO
   ch = MID(s, i, 1)
@@ -4071,10 +4071,10 @@ FUNCTION decode_backslash_codes(s as STRING) as STRING
  RETURN result
 END FUNCTION
 
-FUNCTION escape_nonprintable_ascii(s as STRING) as STRING
- DIM result as STRING = ""
- DIM nstr as STRING
- DIM ch as STRING
+FUNCTION escape_nonprintable_ascii(s as string) as string
+ DIM result as string = ""
+ DIM nstr as string
+ DIM ch as string
  FOR i as integer = 1 TO LEN(s)
   ch = MID(s, i, 1)
   SELECT CASE ASC(ch)
@@ -4099,10 +4099,10 @@ FUNCTION escape_nonprintable_ascii(s as STRING) as STRING
  RETURN result
 END FUNCTION
 
-FUNCTION fixfilename (s as STRING) as STRING
+FUNCTION fixfilename (s as string) as string
  'Makes sure that a string cannot contain any chars unsafe for filenames (overly strict)
- DIM result as STRING = ""
- DIM ch as STRING
+ DIM result as string = ""
+ DIM ch as string
  DIM ascii as integer
  FOR i as integer = 1 TO LEN(s)
   ch = MID(s, i, 1)
@@ -4115,8 +4115,8 @@ FUNCTION fixfilename (s as STRING) as STRING
  RETURN result
 END FUNCTION
 
-FUNCTION inputfilename (query as STRING, ext as STRING, directory as STRING, helpkey as STRING, default as STRING="", byval allow_overwrite as integer=YES) as STRING
- DIM filename as STRING = default
+FUNCTION inputfilename (query as string, ext as string, directory as string, helpkey as string, default as string="", byval allow_overwrite as integer=YES) as string
+ DIM filename as string = default
  DIM tog as integer
  IF directory = "" THEN directory = CURDIR
  setkeys
@@ -4157,14 +4157,14 @@ FUNCTION inputfilename (query as STRING, ext as STRING, directory as STRING, hel
  LOOP
 END FUNCTION
 
-FUNCTION getdisplayname (default as STRING) as STRING
+FUNCTION getdisplayname (default as string) as string
  '--Get game's display name
- DIM f as STRING
+ DIM f as string
  f = workingdir & SLASH & "browse.txt"
  IF isfile(f) THEN
   setpicstuf buffer(), 40, -1
   loadset f, 0, 0
-  DIM s as STRING
+  DIM s as string
   s = STRING(bound(buffer(0), 0, 38), " ")
   array2str buffer(), 2, s
   IF LEN(s) > 0 THEN
@@ -4174,7 +4174,7 @@ FUNCTION getdisplayname (default as STRING) as STRING
  RETURN default
 END FUNCTION
 
-SUB getstatnames(statnames() as STRING)
+SUB getstatnames(statnames() as string)
  REDIM statnames(11)
  statnames(0) = readglobalstring(0, "HP")
  statnames(1) = readglobalstring(1, "MP")
@@ -4190,10 +4190,10 @@ SUB getstatnames(statnames() as STRING)
  statnames(11) = readglobalstring(4, "HitX")
 END SUB
 
-SUB getelementnames(elmtnames() as STRING)
+SUB getelementnames(elmtnames() as string)
  REDIM elmtnames(gen(genNumElements) - 1)
  FOR i as integer = 0 TO gen(genNumElements) - 1
-  DIM default as STRING
+  DIM default as string
   default = "Element" & i+1
   IF i < 8 THEN
    'Original indices changed so maxlen could be expanded
@@ -4207,8 +4207,8 @@ SUB getelementnames(elmtnames() as STRING)
 END SUB
 
 'See WriteByteStr for the straight-to-file version
-SUB writebinstring (savestr as STRING, array() as integer, offset as integer, maxlen as integer)
- DIM s as STRING
+SUB writebinstring (savestr as string, array() as integer, byval offset as integer, byval maxlen as integer)
+ DIM s as string
 
  '--pad savestr to (at least) the right length
  s = savestr + STRING(maxlen - LEN(s), CHR(0))
@@ -4224,8 +4224,8 @@ SUB writebinstring (savestr as STRING, array() as integer, offset as integer, ma
  NEXT
 END SUB
 
-SUB writebinstring (savestr as STRING, array() as SHORT, offset as integer, maxlen as integer)
- DIM s as STRING
+SUB writebinstring (savestr as string, array() as short, byval offset as integer, byval maxlen as integer)
+ DIM s as string
 
  '--pad savestr to (at least) the right length
  s = savestr + STRING(maxlen - LEN(s), CHR(0))
@@ -4240,7 +4240,7 @@ SUB writebinstring (savestr as STRING, array() as SHORT, offset as integer, maxl
 END SUB
 
 'See WriteVStr for the straight-to-file version
-SUB writebadbinstring (savestr as STRING, array() as integer, offset as integer, maxlen as integer, skipword as integer=0)
+SUB writebadbinstring (savestr as string, array() as integer, byval offset as integer, byval maxlen as integer, byval skipword as integer=0)
  '--write current length
  array(offset) = small(LEN(savestr), maxlen)
 
@@ -4256,9 +4256,9 @@ SUB writebadbinstring (savestr as STRING, array() as integer, offset as integer,
 END SUB
 
 'See ReadByteStr for the straight-from-file version
-FUNCTION readbinstring (array() as integer, offset as integer, maxlen as integer) as STRING
+FUNCTION readbinstring (array() as integer, byval offset as integer, byval maxlen as integer) as string
 
- DIM result as STRING = ""
+ DIM result as string = ""
  DIM stringlen as integer = bound(array(offset), 0, maxlen)
  DIM i as integer
  DIM n as integer
@@ -4283,16 +4283,16 @@ FUNCTION readbinstring (array() as integer, offset as integer, maxlen as integer
 END FUNCTION
 
 'See ReadByteStr for the straight-from-file version
-FUNCTION readbinstring (array() as SHORT, offset as integer, maxlen as integer) as STRING
+FUNCTION readbinstring (array() as short, byval offset as integer, byval maxlen as integer) as string
  DIM stringlen as integer = bound(array(offset), 0, maxlen)
- DIM result as STRING = STRING(stringlen, 0)
+ DIM result as string = STRING(stringlen, 0)
  memcpy(@result[0], @array(offset + 1), stringlen)
  RETURN result
 END FUNCTION
 
 'See ReadVStr for the straight-from-file version
-FUNCTION readbadbinstring (array() as integer, offset as integer, maxlen as integer, skipword as integer=0) as STRING
- DIM result as STRING = ""
+FUNCTION readbadbinstring (array() as integer, byval offset as integer, byval maxlen as integer, byval skipword as integer=0) as string
+ DIM result as string = ""
  DIM stringlen as integer = bound(array(offset), 0, maxlen)
  DIM n as integer
 
@@ -4321,11 +4321,11 @@ SUB set_homedir()
 #ENDIF
 END SUB
 
-PRIVATE FUNCTION help_dir_helper(dirname as STRING, fname as STRING) as integer
+PRIVATE FUNCTION help_dir_helper(dirname as string, fname as string) as integer
  IF LEN(fname) THEN RETURN isfile(dirname + SLASH + fname) ELSE RETURN isdir(dirname)
 END FUNCTION
 
-FUNCTION get_help_dir(helpfile as STRING="") as STRING
+FUNCTION get_help_dir(helpfile as string="") as string
  'what happened to prefsdir? [James: prefsdir only exists for game not custom right now]
  IF help_dir_helper(homedir & SLASH & "ohrhelp", helpfile) THEN RETURN homedir & SLASH & "ohrhelp"
  IF help_dir_helper(exepath & SLASH & "ohrhelp", helpfile) THEN RETURN exepath & SLASH & "ohrhelp"
@@ -4340,17 +4340,17 @@ FUNCTION get_help_dir(helpfile as STRING="") as STRING
  RETURN exepath & SLASH & "ohrhelp"
 END FUNCTION
 
-FUNCTION load_help_file(helpkey as STRING) as STRING
- DIM help_dir as STRING
+FUNCTION load_help_file(helpkey as string) as string
+ DIM help_dir as string
  help_dir = get_help_dir(helpkey & ".txt")
  IF isdir(help_dir) THEN
-  DIM helpfile as STRING
+  DIM helpfile as string
   helpfile = help_dir & SLASH & helpkey & ".txt"
   IF isfile(helpfile) THEN
    DIM fh as integer = FREEFILE
    OPEN helpfile FOR INPUT ACCESS READ as #fh
-   DIM helptext as STRING = ""
-   DIM s as STRING
+   DIM helptext as string = ""
+   DIM s as string
    DO WHILE NOT EOF(fh)
     LINE INPUT #fh, s
     helptext = helptext & s & CHR(10)
@@ -4362,8 +4362,8 @@ FUNCTION load_help_file(helpkey as STRING) as STRING
  RETURN "No help found for """ & helpkey & """"
 END FUNCTION
 
-SUB save_help_file(helpkey as STRING, text as STRING)
- DIM help_dir as STRING
+SUB save_help_file(helpkey as string, text as string)
+ DIM help_dir as string
  help_dir = get_help_dir()
  IF NOT isdir(help_dir) THEN
   IF makedir(help_dir) THEN
@@ -4371,11 +4371,11 @@ SUB save_help_file(helpkey as STRING, text as STRING)
    EXIT SUB
   END IF
  END IF
- DIM helpfile as STRING
+ DIM helpfile as string
  helpfile = help_dir & SLASH & helpkey & ".txt"
  DIM fh as integer = FREEFILE
  IF OPEN(helpfile FOR OUTPUT ACCESS READ WRITE as #fh) = 0 THEN
-  DIM trimmed_text as STRING
+  DIM trimmed_text as string
   trimmed_text = RTRIM(text, ANY " " & CHR(13) & CHR(10))
   PRINT #fh, trimmed_text
   CLOSE #fh
@@ -4384,7 +4384,7 @@ SUB save_help_file(helpkey as STRING, text as STRING)
  END IF
 END SUB
 
-FUNCTION filenum (n as integer) as STRING
+FUNCTION filenum (byval n as integer) as string
  IF n < 100 THEN
   RETURN RIGHT("00" + STR(n), 2)
  ELSE
@@ -4441,7 +4441,7 @@ FUNCTION color_browser_256(byval start_color as integer=0) as integer
  LOOP
 END FUNCTION
 
-FUNCTION exptolevel (level as integer) as integer
+FUNCTION exptolevel (byval level as integer) as integer
 ' HINT: Customisation goes here :)
 
  IF level = 0 THEN RETURN 0
@@ -4454,7 +4454,7 @@ FUNCTION exptolevel (level as integer) as integer
  RETURN exper
 END FUNCTION
 
-FUNCTION total_exp_to_level (level as integer) as integer
+FUNCTION total_exp_to_level (byval level as integer) as integer
  DIM total as integer = 0
  FOR i as integer = 1 TO level
   total += exptolevel(i)
@@ -4466,7 +4466,7 @@ FUNCTION current_max_level() as integer
  RETURN small(gen(genLevelCap), gen(genMaxLevel))
 END FUNCTION
 
-FUNCTION atlevel (lev as integer, a0 as integer, aMax as integer) as integer
+FUNCTION atlevel (byval lev as integer, byval a0 as integer, byval aMax as integer) as integer
  'Stat at a given level, according to an arbitrary curve between two points.
   IF lev < 0 THEN RETURN 0
   RETURN (.8 + lev / 50) * lev * ((aMax - a0) / 275.222) + a0 + .1
