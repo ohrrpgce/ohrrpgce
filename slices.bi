@@ -298,8 +298,8 @@ DECLARE FUNCTION NewSliceOfType (byval t as SliceTypes, byval parent as Slice Pt
 
 DECLARE SUB SliceDebugRemember(sl as Slice Ptr)
 DECLARE SUB SliceDebugForget(sl as Slice Ptr)
-DECLARE SUB SliceDebugDump(noisy as integer = NO)
-DECLARE SUB SliceDebugDumpTree(sl as Slice Ptr, indent as integer = 0)
+DECLARE SUB SliceDebugDump(byval noisy as integer = NO)
+DECLARE SUB SliceDebugDumpTree(sl as Slice Ptr, byval indent as integer = 0)
 DECLARE FUNCTION SliceDebugCheck(sl as Slice Ptr) as integer
 
 DECLARE Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSliceData) as slice ptr

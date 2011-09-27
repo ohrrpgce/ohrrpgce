@@ -28,11 +28,11 @@ extern plotslices() as integer
 '==============================================================================
 
 'Reload helper functions used by saving/loading
-DECLARE Sub SaveProp OVERLOAD (node as Reload.Nodeptr, propname as string, value as integer)
+DECLARE Sub SaveProp OVERLOAD (node as Reload.Nodeptr, propname as string, byval value as integer)
 DECLARE Sub SaveProp OVERLOAD (node as Reload.Nodeptr, propname as string, s as string)
 DECLARE Function LoadPropStr(node as Reload.Nodeptr, propname as string, default as string="") as string
-DECLARE Function LoadProp(node as Reload.Nodeptr, propname as string, default as integer=0) as integer
-DECLARE Function LoadPropBool(node as Reload.Nodeptr, propname as string, default as integer=NO) as integer
+DECLARE Function LoadProp(node as Reload.Nodeptr, propname as string, byval default as integer=0) as integer
+DECLARE Function LoadPropBool(node as Reload.Nodeptr, propname as string, byval default as integer=NO) as integer
 
 'Other local subs and functions
 DECLARE Function SliceXAlign(byval sl as Slice Ptr, byval alignTo as Slice Ptr) as integer
@@ -2256,7 +2256,7 @@ end function
 
 '--saving----------------------------------------------------------------------
 
-Sub SaveProp(node as Reload.Nodeptr, propname as string, value as integer)
+Sub SaveProp(node as Reload.Nodeptr, propname as string, byval value as integer)
  if node = 0 then debug "SaveProp null node ptr": Exit Sub
  Reload.SetChildNode(node, propname, CLNGINT(value))
 End Sub
@@ -2360,12 +2360,12 @@ Function LoadPropStr(node as Reload.Nodeptr, propname as string, default as stri
  return Reload.GetChildNodeStr(node, propname, default)
 End function
 
-Function LoadProp(node as Reload.Nodeptr, propname as string, default as integer=0) as integer
+Function LoadProp(node as Reload.Nodeptr, propname as string, byval default as integer=0) as integer
  if node = 0 then debug "LoadProp null node ptr": return default
  return Reload.GetChildNodeInt(node, propname, CLNGINT(default))
 End function
 
-Function LoadPropBool(node as Reload.Nodeptr, propname as string, default as integer=NO) as integer
+Function LoadPropBool(node as Reload.Nodeptr, propname as string, byval default as integer=NO) as integer
  if node = 0 then debug "LoadPropBool null node ptr": return default
  return Reload.GetChildNodeBool(node, propname, default)
 End function
@@ -2481,7 +2481,7 @@ SUB SliceDebugForget(sl as Slice Ptr)
  debug "WARNING: tried to delete slice " & sl & " without any record of creating it!"
 END SUB
 
-SUB SliceDebugDump(noisy as integer = NO)
+SUB SliceDebugDump(byval noisy as integer = NO)
  if ENABLE_SLICE_DEBUG = NO then exit sub
  debug "===SLICE DEBUG DUMP==="
  dim count as integer = 0
@@ -2500,7 +2500,7 @@ SUB SliceDebugDump(noisy as integer = NO)
  debug count & " slices found in the slice debug table"
 END SUB
 
-SUB SliceDebugDumpTree(sl as Slice Ptr, indent as integer = 0)
+SUB SliceDebugDumpTree(sl as Slice Ptr, byval indent as integer = 0)
  if sl = 0 then exit sub
  dim s as string
  s = string(indent, " ") & SliceTypeName(sl)
