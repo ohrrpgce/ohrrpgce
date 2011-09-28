@@ -62,7 +62,7 @@ for exe in "game.exe" "custom.exe" "unlump.exe" "relump.exe" ; do
 done
 
 echo "Lumping Vikings of Midgard"
-scons relump
+scons relump linkgcc=1
 rm -f vikings.rpg
 ./relump.exe vikings/vikings.rpgdir vikings.rpg
 mustexist "vikings.rpg"
