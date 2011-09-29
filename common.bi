@@ -117,6 +117,7 @@ DECLARE SUB load_default_master_palette (master_palette() as RGBColor)
 DECLARE SUB dump_master_palette_as_hex (master_palette() as RGBColor)
 
 DECLARE FUNCTION readattackname (byval index as integer) as string
+DECLARE FUNCTION readattackcaption (byval index as integer) as string
 DECLARE FUNCTION readenemyname (byval index as integer) as string
 DECLARE FUNCTION readitemname (byval index as integer) as string
 DECLARE FUNCTION readitemdescription (byval index as integer) as string

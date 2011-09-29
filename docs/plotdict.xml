@@ -488,6 +488,31 @@ resume player # ok, done</example>
 			<shortname>use door</shortname>
 			<description>Instantly uses the numbered door, just as if you had stepped into it. <note>An automatic <ref>wait</ref>(1) occurs immediately after this command.</note></description>
 		</command>
+		<command id="getdoorx">
+			<canon>get door x (number)</canon>
+			<shortname>get door x</shortname>
+			<description>Returns the x coordinate (in tiles) of the numbered door.</description>
+		</command>
+		<command id="getdoory">
+			<canon>get door y (number)</canon>
+			<shortname>get door y</shortname>
+			<description>Returns the y coordinate (in tiles) of the numbered door.</description>
+		</command>
+		<command id="getdoordestinationid">
+			<canon>get door destination id (number)</canon>
+			<shortname>get door destination id</shortname>
+			<description>Returns the door id of the door linked to by the numbered door. To get the door's location, use <ref>getdoorx</ref> and <ref>getdoory</ref> when the player is on the destination map. <note>A door's destination can vary depending on the current game state. Check your doorlinks if you get unexpected results!</note></description>
+			<seealso>
+				<ref>getdoorx</ref>
+				<ref>getdoory</ref>
+				<ref>getdoordestinationmap</ref>
+			</seealso>
+		</command>
+		<command id="getdoordestinationmap">
+			<canon>get door destination map (number)</canon>
+			<shortname>get door destination map</shortname>
+			<description>Returns the map id of the door linked to by the numbered door. <note>A door's destination can vary depending on the current game state. Check your doorlinks if you get unexpected results!</note></description>
+		</command>
 		<command id="teleporttomap">
 			<canon>teleport to map (map, x, y)</canon>
 			<shortname>teleport to map</shortname>
@@ -1453,6 +1478,13 @@ get hero name (1,find hero(hero by rank(0)))
 			<description>This command will take the name of <p>attack</p> and stick it in string #<p>ID</p>, overwriting its contents. Use the <p>atk:name</p> constants from your HSI file.
 			<note>If you want to use this command with attack ID numbers, you must add 1 to the ID number.</note>
 			<note>This command replaces the old <p>get attack name</p> which required you to use <p>atk:name -- 2</p> or the attack id number <p>-- 1</p></note>
+			</description>
+		</command>
+		<command id="readattackcaption">
+			<canon>read attack caption (ID, attack)</canon>
+			<shortname>read attack caption</shortname>
+			<description>This command will take the caption of <p>attack</p> and stick it in string #<p>ID</p>, overwriting its contents. Use the <p>atk:name</p> constants from your HSI file.
+			<note>If you want to use this command with attack ID numbers, you must add 1 to the ID number.</note>
 			</description>
 		</command>
 		<command id="getglobalstring">

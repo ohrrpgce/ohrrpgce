@@ -59,6 +59,9 @@ WHAT IS NEW?
     * "assert" [Ralph]
     * "menu item true slot", "menu item by true slot" [Ralph]
     * "get hero slice" and "get NPC slice" commands [James]
+    * "get door x", "get door y", "get door destination id",
+      "get door destination map", "door is active" [Mogri]
+    * "read attack caption" [Mogri]
 
   * Vikings of Midgard
 

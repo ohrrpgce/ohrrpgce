@@ -2882,6 +2882,52 @@ SELECT CASE as CONST id
   IF npcref >= 0 THEN
    scriptret = find_plotslice_handle(npc(npcref).sl)
   END IF
+ CASE 521 '--get door x
+  IF bound_arg(retvals(0), 0, 99, "door") THEN
+   scriptret = gam.map.door(retvals(0)).x
+  END IF
+ CASE 522 '--get door y
+  IF bound_arg(retvals(0), 0, 99, "door") THEN
+   scriptret = gam.map.door(retvals(0)).y - 1
+  END IF
+ CASE 523 '--get door destination id
+  IF bound_arg(retvals(0), 0, 99, "door") THEN
+   deserdoorlinks maplumpname(gam.map.id,"d"), gam.map.doorlinks()
+   FOR i as integer = 0 TO 199
+    WITH gam.map.doorlinks(i)
+     IF retvals(0) = .source THEN
+      IF istag(.tag1, YES) AND istag(.tag2, YES) THEN 'Check tags to make sure this door is okay
+       scriptret = .dest
+       EXIT FOR
+      END IF
+     END IF
+    END WITH
+   NEXT i
+  END IF
+ CASE 524 '--get door destination map
+  IF bound_arg(retvals(0), 0, 99, "door") THEN
+   deserdoorlinks maplumpname(gam.map.id,"d"), gam.map.doorlinks()
+   FOR i as integer = 0 TO 199
+    WITH gam.map.doorlinks(i)
+     IF retvals(0) = .source THEN
+      IF istag(.tag1, YES) AND istag(.tag2, YES) THEN 'Check tags to make sure this door is okay
+       scriptret = .dest_map
+       EXIT FOR
+      END IF
+     END IF
+    END WITH
+   NEXT i
+  END IF
+ CASE 525 '--door is active
+  IF bound_arg(retvals(0), 0, 99, "door") THEN
+   scriptret = readbit(gam.map.door(retvals(0)).bits(),0,0)
+  END IF
+ CASE 526 '--read attack caption
+  IF valid_plotstr(retvals(0)) AND bound_arg(retvals(1), 1, gen(genMaxAttack)+1, "attack ID") THEN
+   plotstr(retvals(0)).s = readattackcaption(retvals(1) - 1)
+   scriptret = 1
+  END IF
+
 END SELECT
 
 END SUB

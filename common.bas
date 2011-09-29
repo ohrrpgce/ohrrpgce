@@ -1114,6 +1114,12 @@ FUNCTION readattackname (byval index as integer) as string
  RETURN readbadgenericname(index, game + ".dt6", 80, 24, 10, 1)
 END FUNCTION
 
+FUNCTION readattackcaption (byval index as integer) as string
+ DIM buf(40 + dimbinsize(binATTACK)) as integer
+ loadattackdata buf(), index
+ RETURN readbinstring(buf(), 73, 38)
+END FUNCTION
+
 FUNCTION readenemyname (byval index as integer) as string
  RETURN readbadgenericname(index, game + ".dt1", getbinsize(binDT1), 0, 16, 0)
 END FUNCTION
