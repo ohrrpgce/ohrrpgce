@@ -10,7 +10,7 @@ svn info > svninfo.txt
 
 CALL distrib.bat nightly
 CALL distver.bat
-pscp -i C:\progra~1\putty\id_rsa.ppk distrib\ohrrpgce-win-installer-%OHRVERDATE%-%OHRVERCODE%.exe james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/ohrrpgce-wip-win-installer.exe
+pscp distrib\ohrrpgce-win-installer-%OHRVERDATE%-%OHRVERCODE%.exe james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/ohrrpgce-wip-win-installer.exe
 
 del game*.exe custom*.exe
 call scons gfx=directx+sdl+fb music=sdl debug=0
@@ -77,7 +77,7 @@ call scons gfx=directx+sdl+fb music=sdl debug=0 scriptprofile=1
 call nightly-gfx-music directx sdl -scriptprofile SDL.dll SDL_mixer.dll gfx_directx.dll
 
 Echo upload plotdict.xml
-pscp -i C:\progra~1\putty\id_rsa.ppk docs\plotdict.xml james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/docs/
+pscp docs\plotdict.xml james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/docs/
 
 del unlump.exe relump.exe
 call scons unlump.exe relump.exe
@@ -85,7 +85,7 @@ del distrib\ohrrpgce-util.zip
 IF NOT EXIST unlump.exe GOTO NOUTIL
 IF NOT EXIST relump.exe GOTO NOUTIL
 support\zip distrib\ohrrpgce-util.zip unlump.exe relump.exe LICENSE-binary.txt svninfo.txt
-pscp -i C:\progra~1\putty\id_rsa.ppk distrib\ohrrpgce-util.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
+pscp distrib\ohrrpgce-util.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
 :NOUTIL
 
 del distrib\hspeak-win-nightly.zip
@@ -93,7 +93,7 @@ del hspeak.exe
 call scons hspeak
 IF NOT EXIST hspeak.exe GOTO NOHSPEAK
 support\zip distrib\hspeak-win-nightly.zip hspeak.exe hspeak.exw hsspiffy.e LICENSE.txt plotscr.hsd
-pscp -i C:\progra~1\putty\id_rsa.ppk distrib\hspeak-win-nightly.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
+pscp distrib\hspeak-win-nightly.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
 :NOHSPEAK
 
 del distrib\bam2mid.zip
@@ -101,11 +101,11 @@ del bam2mid.exe
 call scons bam2mid.exe
 IF NOT EXIST bam2mid.exe GOTO NOBAM2MID
 support\zip distrib\bam2mid.zip bam2mid.exe bam2mid.txt bam2mid.bas banks.bi LICENSE.txt make-bam2mid.bat make-bam2mid.sh svninfo.txt
-pscp -i C:\progra~1\putty\id_rsa.ppk distrib\bam2mid.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
+pscp distrib\bam2mid.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
 :NOBAM2MID
 
 del distrib\madplay+oggenc.zip
 support\zip distrib\madplay+oggenc.zip support\madplay.exe support\oggenc.exe support\LICENSE-*.txt LICENSE.txt
-pscp -i C:\progra~1\putty\id_rsa.ppk distrib\madplay+oggenc.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
+pscp distrib\madplay+oggenc.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
 
-pscp -i C:\progra~1\putty\id_rsa.ppk svninfo.txt james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
+pscp svninfo.txt james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/

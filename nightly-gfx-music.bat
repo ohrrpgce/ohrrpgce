@@ -30,7 +30,7 @@ shift
 goto addextrafiles
 :extrafilesdone
 
-pscp -i C:\progra~1\putty\id_rsa.ppk distrib\%ZIPFILE% james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
+pscp distrib\%ZIPFILE% james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
 GOTO finished
 
 :sanityfailed
