@@ -6,11 +6,19 @@ SET ISCC="C:\Program Files\Inno Setup 5\iscc.exe"
 SET SVN="C:\Program Files\Subversion\bin\svn.exe"
 SET EU="C:\Euphoria\bin"
 
+REM In case we need the 32 bit versions on a 64 bit system...
+IF EXIST %ISCC% GOTO NOX86ISCC
+SET ISCC="C:\Program Files (x86)\Inno Setup 5\iscc.exe"
+:NOX86ISCC
+IF EXIST %SVN% GOTO NOX86SVN
+SET SVN="C:\Program Files (x86)\Subversion\bin\svn.exe"
+:NOX86SVN
+
 ECHO Verifying support programs...
 IF NOT EXIST support\cp.exe GOTO NOSUPPORT
 IF NOT EXIST support\zip.exe GOTO NOSUPPORT
 IF NOT EXIST %ISCC% GOTO NOINNO
-IF NOT EXIST %EU%\bin\euc.exe GOTO NOEUPHORIA
+IF NOT EXIST %EU%\euc.exe GOTO NOEUPHORIA
 
 IF NOT EXIST tmpdist GOTO SKIPDELTMPDIST
 RMDIR /S /Q tmpdist
