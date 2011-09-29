@@ -39,7 +39,7 @@ if 'gengcc' in ARGUMENTS:
 if 'langfb' in ARGUMENTS:
     FBFLAGS += ["-d", "TRY_LANG_FB"]
 
-linkgcc = int (ARGUMENTS.get ('linkgcc', win32))
+linkgcc = int (ARGUMENTS.get ('linkgcc', True))
 
 environ = os.environ
 svn = ARGUMENTS.get ('svn','svn')
