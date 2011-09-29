@@ -198,10 +198,10 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
  edslice->Y = 0
 
  '--user-defined slice lookup codes
- DIM slicelookup(10) as string
+ REDIM slicelookup(10) as string
  load_string_list slicelookup(), workingdir & SLASH & "slicelookup.txt"
 
- DIM menu(0) as SliceEditMenuItem
+ REDIM menu(0) as SliceEditMenuItem
  REDIM plainmenu(0) as string 'FIXME: This is a hack because I didn't want to re-implement standardmenu right now
 
  DIM state as MenuState
@@ -492,8 +492,8 @@ SUB slice_edit_detail (sl as Slice Ptr, byref ses as SliceEditState, rootsl as S
 
  IF sl = 0 THEN EXIT SUB
 
- DIM menu(0) as string
- DIM rules(0) as EditRule
+ REDIM menu(0) as string
+ REDIM rules(0) as EditRule
 
  DIM state as MenuState
  WITH state
@@ -698,8 +698,8 @@ SUB sliceed_rule_tog(rules() as EditRule, helpkey as String, byval dataptr as in
 END SUB
 
 SUB slice_edit_detail_refresh (byref state as MenuState, menu() as string, sl as Slice Ptr, rules() as EditRule, slicelookup() as string)
- REDIM menu(6)
- REDIM rules(0)
+ REDIM menu(6) as string
+ REDIM rules(0) as EditRule
  rules(0).helpkey = "detail"
  menu(0) = "Previous Menu"
  WITH *sl
