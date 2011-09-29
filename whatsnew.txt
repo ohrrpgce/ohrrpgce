@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-??? ? ???? [A????]
+??? ? 2011 [Alectormancy]
 
   * New Features
     * Adjustable global HP thresholds for hero and enemy Weak states
@@ -19,6 +19,7 @@ WHAT IS NEW?
       * Ctrl+S in the map and tileset editors immediately saves.
         (Moved old Ctrl+S (paint the screen) to Ctrl+W (ie. paint the
         "window")) [Ralph]
+    * New general bitset "Attacks will ignore extra hits stat" [James]
 
   * Bugfixes
     * Wrong names used for reserve party heroes who level during

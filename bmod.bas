@@ -2482,7 +2482,11 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  END IF
  
  DIM numhits as integer
- numhits = attack.hits + INT(RND * (bslot(bat.acting).stat.cur.hits + 1))
+ numhits = attack.hits
+ IF xreadbit(gen(), 13, genBits2) = NO THEN
+  numhits += INT(RND * (bslot(bat.acting).stat.cur.hits + 1))
+ ELSE
+ END IF
  IF attack.ignore_extra_hits THEN numhits = attack.hits
 
  DIM atkimgdirection as integer
