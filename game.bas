@@ -44,11 +44,11 @@ DECLARE SUB advance_text_box ()
 DECLARE FUNCTION want_to_check_for_walls(byval who as integer) as integer
 DECLARE SUB update_npcs ()
 DECLARE SUB pick_npc_action(npci as NPCInst, npcdata as NPCType)
-DECLARE SUB perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as NPCType)
+DECLARE FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as NPCType) as integer
 DECLARE SUB npchitwall (npci as NPCInst, npcdata as NPCType)
 DECLARE FUNCTION find_useable_npc () as integer
 DECLARE SUB interpret ()
-DECLARE SUB update_heroes(byval force_npc_check as integer=NO)
+DECLARE SUB update_heroes(byval force_step_check as integer=NO)
 DECLARE SUB doloadgame(byval load_slot as integer)
 DECLARE SUB reset_game_final_cleanup()
 DECLARE FUNCTION should_skip_this_timer(byval l as integer, t as PlotTimer) as integer
@@ -111,7 +111,7 @@ DIM SHARED wantbattle as integer
 DIM SHARED wantteleport as integer
 DIM SHARED wantusenpc as integer
 DIM SHARED wantloadgame as integer
-DIM SHARED scriptout as STRING
+DIM SHARED scriptout as string
 
 'global variables
 DIM gam as GameState
@@ -547,7 +547,7 @@ END IF
 load_special_tag_caches  'Load herotags and itemtags, which are immutable
 evalherotags
 queue_fade_in
-DIM force_npc_check as integer = YES
+DIM force_step_check as integer = YES
 DIM tog as integer
 
 '--Reset some stuff related to debug keys
@@ -893,7 +893,7 @@ SUB displayall()
  IF scrwatch THEN scriptwatcher scrwatch, -1
 END SUB
 
-SUB update_heroes(byval force_npc_check as integer=NO)
+SUB update_heroes(byval force_step_check as integer=NO)
  'note: xgo and ygo are offset of current position from destination, eg +ve xgo means go left
  FOR whoi as integer = 0 TO 3
   IF herow(whoi).speed = 0 THEN
@@ -956,7 +956,8 @@ SUB update_heroes(byval force_npc_check as integer=NO)
    END IF
   END IF'--this only gets run when starting a movement to a new tile
  NEXT whoi
- '--if the leader moved last time, and caterpillar is enabled then make others trail
+
+ 'Caterpillar hero movement: if enabled and the leader about to move then make others trail
  IF readbit(gen(), genSuspendBits, suspendcaterpillar) = 0 THEN
   IF herow(0).xgo OR herow(0).ygo THEN
    FOR i as integer = 15 TO 1 STEP -1
@@ -974,9 +975,9 @@ SUB update_heroes(byval force_npc_check as integer=NO)
   NEXT whoi
  END IF
 
+ 'Non-caterpillar (normal [xy]go-based) hero movement
  REDIM didgo(0 TO 3) as integer
  FOR whoi as integer = 0 TO caterpillar_size() - 1
-
   didgo(whoi) = NO
   IF herow(whoi).xgo OR herow(whoi).ygo THEN
    '--this actually updates the hero's coordinates
@@ -988,6 +989,18 @@ SUB update_heroes(byval force_npc_check as integer=NO)
    didgo(whoi) = YES
   END IF
   cropmovement catx(whoi * 5), caty(whoi * 5), herow(whoi).xgo, herow(whoi).ygo
+ NEXT whoi
+
+ 'Update lists of current zones and run zone entry+exit triggers
+ 'We do this each tick instead of only when completing a step because they need to be
+ 'rechecked when the hero position changes for any reason (eg. script commands), or when
+ 'the zone map changes (eg. loading map state), and hooking into all those places is too
+ 'much of a maintenance burden. Plus also each-step detection sucks.
+ FOR whoi as integer = 0 TO caterpillar_size() - 1
+  update_hero_zones whoi
+ NEXT
+ 
+ FOR whoi as integer = 0 TO caterpillar_size() - 1
 
   DIM steppingslot as integer = whoi
   '--If caterpillar is not suspended, only the leader's motion determines a step
@@ -995,9 +1008,12 @@ SUB update_heroes(byval force_npc_check as integer=NO)
   IF readbit(gen(), genSuspendBits, suspendcaterpillar) = 0 THEN steppingslot = 0
 
   IF didgo(steppingslot) = YES AND (herow(steppingslot).xgo MOD 20) = 0 AND (herow(steppingslot).ygo MOD 20) = 0 THEN
-   '--Stuff that should only happen when you finish a step
+   '--Stuff that should only happen when a hero finishs a step
 
-   '---check for harm tile
+   '--Run each-step zone triggers
+   process_zone_eachstep_triggers "hero" & whoi, herow(whoi).curzones
+
+   '--Check for harm tile
    DIM p as integer = readblock(pass, catx(whoi * 5) \ 20, caty(whoi * 5) \ 20)
    IF p AND passHarm THEN
 
@@ -1028,11 +1044,13 @@ SUB update_heroes(byval force_npc_check as integer=NO)
     fatal = checkfordeath
    END IF
 
-  END IF
+  END IF  'End of harm tile checking
  NEXT whoi
- '--only the leader may activate NPCs
- IF (herow(0).xgo MOD 20 = 0) AND (herow(0).ygo MOD 20 = 0) AND (didgo(0) = YES OR force_npc_check = YES) THEN
-  '--finished a step
+
+ 'If the leader finished a step, check triggers
+ IF (herow(0).xgo MOD 20 = 0) AND (herow(0).ygo MOD 20 = 0) AND (didgo(0) = YES OR force_step_check = YES) THEN
+
+  'Trigger NPCs
   IF readbit(gen(), 44, suspendobstruction) = 0 THEN
    '--check for step-on NPCS
    FOR i as integer = 0 TO UBOUND(npc)
@@ -1049,9 +1067,13 @@ SUB update_heroes(byval force_npc_check as integer=NO)
     END WITH
    NEXT i
   END IF
-  IF didgo(0) = YES THEN 'only check doors if the hero really moved, not just if force_npc_check = YES
+
+  'Trigger doors (only if the hero really moved, not just if force_step_check = YES)
+  IF didgo(0) = YES THEN
    checkdoors
   END IF
+
+  'Trigger battles
   IF gam.need_fade_in = NO THEN 'No random battle allowed on the first tick before fade-in (?)
    DIM battle_formation_set as integer
    battle_formation_set = readblock(foemap, catx(0) \ 20, caty(0) \ 20)
@@ -1062,14 +1084,66 @@ SUB update_heroes(byval force_npc_check as integer=NO)
     gam.random_battle_countdown = large(gam.random_battle_countdown - gam.foe_freq(battle_formation_set - 1), 0)
    END IF
   END IF
+
+  'Each step trigger
   IF gmap(14) > 0 THEN
    trigger_script gmap(14), YES, "eachstep", scrqBackcompat()
    trigger_script_arg 0, catx(0) \ 20
    trigger_script_arg 1, caty(0) \ 20
    trigger_script_arg 2, catd(0)
   END IF
- END IF
+
+ END IF '--End of on-step triggers
+
  setmapxy
+END SUB
+
+SUB process_zone_eachstep_triggers(who as string, byval zones as integer vector)
+ FOR i as integer = 0 TO v_len(zones) - 1
+  debuginfo who & " step in zone " & zones[i]
+ NEXT
+END SUB
+
+SUB process_zone_entry_triggers(who as string, byval oldzones as integer vector, byval newzones as integer vector)
+ 'Check for differences between two sorted lists of zone IDs, and run entry and exit triggers
+
+ DIM oldi as integer = 0  'index in oldzones()
+ DIM newi as integer = 0  'index in newzones()
+ DO
+  DIM oldzone as integer = IIF(oldi < v_len(oldzones), oldzones[oldi], 999999)
+  DIM newzone as integer = IIF(newi < v_len(newzones), newzones[newi], 999999)
+
+  IF oldzone = 999999 AND newzone = 999999 THEN EXIT DO
+
+  IF oldzone > newzone THEN
+   'Found newly entered zone
+   '(add triggers here)
+   debuginfo who & " entered " & newzone
+   newi += 1
+  ELSEIF oldzone < newzone THEN
+   'Left a zone
+   debuginfo who & " left " & oldzone
+   oldi += 1
+  ELSE
+   'Same zone appears in both lists
+   newi += 1
+   oldi += 1
+  END IF
+ LOOP
+END SUB
+
+SUB update_hero_zones(byval who as integer)
+ DIM newzones as integer vector
+ v_move newzones, GetZonesAtTile(zmap, catx(who * 5) \ 20, caty(who * 5) \ 20)
+ process_zone_entry_triggers "hero" & who, herow(who).curzones, newzones
+ v_move herow(who).curzones, newzones
+END SUB
+
+SUB update_npc_zones(byval npcref as integer)
+ DIM newzones as integer vector
+ v_move newzones, GetZonesAtTile(zmap, npc(npcref).x \ 20, npc(npcref).y \ 20)
+ process_zone_entry_triggers "npc" & npcref, npc(npcref).curzones, newzones
+ v_move npc(npcref).curzones, newzones
 END SUB
 
 SUB update_walkabout_slices()
@@ -1214,7 +1288,16 @@ SUB update_npcs ()
     END IF
    END IF
 
-   IF npc(o).xgo <> 0 OR npc(o).ygo <> 0 THEN perform_npc_move(o, npc(o), npcs(id))
+   DIM finished_step as integer = NO
+   IF npc(o).xgo <> 0 OR npc(o).ygo <> 0 THEN finished_step = perform_npc_move(o, npc(o), npcs(id))
+
+   'Recalculate current zones every tick (see update_heroes for rationale)
+   update_npc_zones o
+
+   IF finished_step THEN
+    process_zone_eachstep_triggers "npc" & o, npc(o).curzones
+   END IF
+
   END IF
  NEXT o
 END SUB
@@ -1278,11 +1361,14 @@ SUB pick_npc_action(npci as NPCInst, npcdata as NPCType)
  END IF
 END SUB
 
-SUB perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as NPCType)
+FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as NPCType) as integer
  '--npcnum is the npc() index of npci.
  '--Here we attempt to actually update the coordinates for this NPC, checking obstructions
+ '--Return true if we finished a step (didgo)
+ DIM didgo as integer = NO
  npci.frame = loopvar(npci.frame, 0, 3, 1)
  IF movdivis(npci.xgo) OR movdivis(npci.ygo) THEN
+  'About to begin moving to a new tile
   IF readbit(gen(), 44, suspendnpcwalls) = 0 AND npci.ignore_walls = 0 THEN
    '--this only happens if NPC walls on
    IF wrappass(npci.x \ 20, npci.y \ 20, npci.xgo, npci.ygo, 0) THEN
@@ -1328,10 +1414,13 @@ SUB perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as NPCTyp
  END IF
  IF npcdata.speed THEN
   '--change x,y and decrement wantgo by speed
-  IF npci.xgo > 0 THEN npci.xgo -= npcdata.speed: npci.x -= npcdata.speed
-  IF npci.xgo < 0 THEN npci.xgo += npcdata.speed: npci.x += npcdata.speed
-  IF npci.ygo > 0 THEN npci.ygo -= npcdata.speed: npci.y -= npcdata.speed
-  IF npci.ygo < 0 THEN npci.ygo += npcdata.speed: npci.y += npcdata.speed
+  IF npci.xgo OR npci.ygo THEN
+   IF npci.xgo > 0 THEN npci.xgo -= npcdata.speed: npci.x -= npcdata.speed
+   IF npci.xgo < 0 THEN npci.xgo += npcdata.speed: npci.x += npcdata.speed
+   IF npci.ygo > 0 THEN npci.ygo -= npcdata.speed: npci.y -= npcdata.speed
+   IF npci.ygo < 0 THEN npci.ygo += npcdata.speed: npci.y += npcdata.speed
+   IF (npci.xgo MOD 20) = 0 AND (npci.ygo MOD 20) = 0 THEN didgo = YES
+  END IF
  ELSE
   '--no speed, kill wantgo
   npci.xgo = 0
@@ -1346,7 +1435,9 @@ SUB perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as NPCTyp
    usenpc 1, npcnum
   END IF
  END IF
-END SUB
+
+ RETURN didgo
+END FUNCTION
 
 SUB npchitwall(npci as NPCInst, npcdata as NPCType)
  IF npci.suspend_ai = 0 THEN
@@ -2856,6 +2947,21 @@ SUB prepare_map (byval afterbat as integer=NO, byval afterload as integer=NO)
   END IF
  END IF
  gam.map.same = NO
+
+ 'For heroes, we trigger zone exit scripts for the zones the hero was inside
+ 'on the previous map, and zone entry scripts for the new zones
+ FOR whoi as integer = 0 TO caterpillar_size() - 1
+  update_hero_zones whoi
+ NEXT
+
+ 'For NPCs, we don't run zone exit scripts (because the NPCs no longer exist)
+ 'for the previous map, but we do run the entry scripts for the new map
+ 'UNLESS (unimplemented, FIXME) restoring a saved map state
+ FOR npcref as integer = 0 TO UBOUND(npc)
+  IF npc(npcref).id > 0 THEN
+   update_npc_zones npcref
+  END IF
+ NEXT
 
  'DEBUG debug "end of preparemap"
 END SUB

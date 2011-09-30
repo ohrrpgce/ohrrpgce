@@ -604,6 +604,13 @@ SUB visnpc()
  'calls. So we must tolerate invalid NPC IDs and anything else. So here we mark all NPCs as hidden which
  'would otherwise cause problems
 
+ 'To scripts, hiding an NPC is like deleting it, and unhiding an NPC is like creating it.
+ 'Therefore, zone exit triggers *do not* happen when hiding an NPC, and zone entry triggers *do*
+ 'happen when unhiding an NPC (rather than remembering the old zones)
+ 'However, we run the zone entry triggers elsewhere (update_npcs), otherwise tags toggled by the
+ 'triggers would immediately affect NPCs not yet processed (it's better if the order doesn't
+ 'matter), and worse, visnpc might be called several times per tick!
+
  FOR i as integer = 0 TO UBOUND(npc)
   IF npc(i).id = 0 THEN CONTINUE FOR
 
@@ -636,6 +643,7 @@ SUB visnpc()
     'debug "delete npc sl " & i & " [visnpc]"
     DeleteSlice @npc(i).sl
    END IF
+   v_free npc(i).curzones
   END IF
 
  NEXT i
@@ -3068,12 +3076,14 @@ SELECT CASE as CONST id
     set_walkabout_sprite npc(i).sl, npcs(npc_id).picture, npcs(npc_id).palette
     set_walkabout_vis npc(i).sl, YES
     'debug "npc(" & i & ").sl=" & npc(i).sl & " [create npc(" & retvals(0) & ")]"
+    update_npc_zones i
     scriptret = (i + 1) * -1
    END IF
   END IF
  CASE 126 '--destroy NPC
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
+   'Don't run zone exit triggers.
    'This deletes the walkabout slice
    CleanNPCInst npc(npcref)
   END IF

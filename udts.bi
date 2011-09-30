@@ -311,6 +311,7 @@ TYPE NPCInst
   not_obstruction as integer 'can walk through npcs+heroes and vice-versa
   suspend_use as integer   'not activatable 
   suspend_ai as integer    'ignore movetype (effectively 'stand still')
+  curzones as integer vector  'sorted vector of zones this NPC is currently inside
 END TYPE
 
 TYPE InventSlot

@@ -274,6 +274,7 @@ SUB DeserNPCL(npc() as NPCInst, byref z as integer, buffer() as integer, byval n
 END SUB
 
 SUB CleanNPCInst(byref inst as NPCInst)
+  v_free inst.curzones
   DeleteSlice @inst.sl
   memset @inst, 0, sizeof(NPCInst)
 END SUB
@@ -788,6 +789,16 @@ SUB GetZonesAtTile(zmap as ZoneMap, zones() as integer, byval x as integer, byva
     REDIM PRESERVE zones(-1 TO nextindex - 1)
   END WITH
 END SUB
+
+'Returns zones at a tile, in a sorted vector
+FUNCTION GetZonesAtTile(zmap as ZoneMap, byval x as integer, byval y as integer) as integer vector
+  REDIM tmparray() as integer
+  GetZonesAtTile zmap, tmparray(), x, y
+  DIM zonesvec as integer vector
+  array_to_vector zonesvec, tmparray() 
+  v_sort zonesvec
+  RETURN v_ret(zonesvec)
+END FUNCTION
 
 'Is a tile in a zone?
 FUNCTION CheckZoneAtTile(zmap as ZoneMap, byval id as integer, byval x as integer, byval y as integer) as integer

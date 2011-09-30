@@ -63,6 +63,7 @@ TYPE HeroWalkabout
   ygo as integer
   wtog as integer
   speed as integer
+  curzones as integer vector
   'x, y, z, dir are in catx(), caty(), catz(), catd() instead *grumble*
 END TYPE
 

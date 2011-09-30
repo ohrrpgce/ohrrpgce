@@ -91,4 +91,9 @@ DECLARE SUB queue_fade_in (byval delay as integer = 0)
 DECLARE SUB check_for_queued_fade_in ()
 DECLARE FUNCTION find_doorlink (byval door_id as integer) as integer
 
+DECLARE SUB update_hero_zones (byval who as integer)
+DECLARE SUB update_npc_zones (byval npcref as integer)
+DECLARE SUB process_zone_eachstep_triggers (who as string, byval zones as integer vector)
+DECLARE SUB process_zone_entry_triggers (who as string, byval oldzones as integer vector, byval newzones as integer vector)
+
 #ENDIF
