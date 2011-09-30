@@ -919,7 +919,25 @@ FUNCTION intgrabber_with_addset(BYREF pt AS INTEGER, BYVAL min AS INTEGER, BYVAL
  END IF
 END FUNCTION
 
-SUB edit_npc (npcdata AS NPCType, zmap AS ZoneMap)
+FUNCTION editnpc_zone_caption(byval zoneid as integer, byval default as integer, zmap as ZoneMap) as string
+ DIM caption as string
+ IF zoneid = 0 THEN
+  caption = " Map default:"
+  zoneid = default
+ ELSEIF zoneid = -1 THEN
+  'We use -1 instead of 0 for None simply so that the default value
+  '(including in existing games) is 'default'
+  zoneid = 0
+ END IF
+ IF zoneid = 0 THEN
+  caption += " None"
+ ELSE
+  caption += " " & zoneid & " " & GetZoneInfo(zmap, zoneid)->name
+ END IF
+ RETURN caption
+END FUNCTION
+
+SUB edit_npc (npcdata AS NPCType, gmap() AS integer, zmap AS ZoneMap)
  DIM i AS INTEGER
 
  DIM itemname AS STRING
@@ -968,6 +986,8 @@ SUB edit_npc (npcdata AS NPCType, zmap AS ZoneMap)
  lnpc(9) = -999
  lnpc(10) = -999
  lnpc(13) = -32767
+ lnpc(15) = -1
+ lnpc(16) = -1
 
  menucaption(0) = "Picture"
  menucaption(1) = "Palette"
@@ -1148,17 +1168,9 @@ SUB edit_npc (npcdata AS NPCType, zmap AS ZoneMap)
       caption = vehiclename
      END IF
     CASE 15 'default movement zone
-     IF npcdata.defaultzone = 0 THEN
-      caption = " None"
-     ELSE
-      caption += " " & GetZoneInfo(zmap, npcdata.defaultzone)->name
-     END IF
+     caption = editnpc_zone_caption(npcdata.defaultzone, gmap(32), zmap)
     CASE 16 'default avoidance zone
-     IF npcdata.defaultwallzone = 0 THEN
-      caption = " None"
-     ELSE
-      caption += " " & GetZoneInfo(zmap, npcdata.defaultwallzone)->name
-     END IF
+     caption = editnpc_zone_caption(npcdata.defaultwallzone, gmap(33), zmap)
    END SELECT
    printstr menucaption(i) + caption, 0, 8 + (8 * i), dpage
   NEXT i

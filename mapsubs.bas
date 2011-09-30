@@ -12,7 +12,7 @@ DEFINT A-Z
 #include "custom_udts.bi"
 
 'external subs and functions
-DECLARE SUB npcdef (st AS MapEditState, npc_img() AS GraphicPair, zmap AS ZoneMap)
+DECLARE SUB npcdef (st AS MapEditState, npc_img() AS GraphicPair, gmap() AS integer, zmap AS ZoneMap)
 
 'local subs and functions
 DECLARE SUB make_map_picker_menu (topmenu() AS STRING, state AS MenuState)
@@ -27,6 +27,7 @@ DECLARE SUB loadpasdefaults (BYREF defaults AS INTEGER VECTOR, tilesetnum AS INT
 DECLARE SUB fill_map_area(st AS MapEditState, BYVAL x, BYVAL y, map() AS TileMap, pass AS TileMap, emap AS TileMap, zmap AS ZoneMap, reader AS FnReader)
 DECLARE SUB fill_with_other_area(st AS MapEditState, BYVAL x, BYVAL y, map() AS TileMap, pass AS TileMap, emap AS TileMap, zmap AS ZoneMap, reader AS FnReader)
 
+DECLARE FUNCTION mapedit_npc_at_spot(st as MapEditState) as integer
 DECLARE FUNCTION mapedit_on_screen(st AS MapEditState, BYVAL x as integer, BYVAL y as integer) as integer
 DECLARE SUB mapedit_focus_camera(st as MapEditState, BYVAL x as integer, BYVAL y as integer)
 
@@ -87,7 +88,7 @@ DECLARE SUB mapedit_makelayermenu(BYREF st AS MapEditState, menu() AS SimpleMenu
 DECLARE SUB mapedit_insert_layer(BYREF st AS MapEditState, map() as TileMap, vis() AS INTEGER, gmap() AS INTEGER, BYVAL where AS INTEGER)
 DECLARE SUB mapedit_delete_layer(BYREF st AS MapEditState, map() as TileMap, vis() AS INTEGER, gmap() AS INTEGER, BYVAL which AS INTEGER)
 DECLARE SUB mapedit_swap_layers(BYREF st AS MapEditState, map() as TileMap, vis() AS INTEGER, gmap() AS INTEGER, BYVAL l1 AS INTEGER, BYVAL l2 AS INTEGER)
-DECLARE SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER)
+DECLARE SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER, zmap as ZoneMap)
 DECLARE SUB mapedit_draw_icon(st AS MapEditState, icon as string, byval x as integer, byval y as integer, byval highlight as integer = NO)
 
 DECLARE FUNCTION find_last_used_doorlink(link() AS DoorLink) AS INTEGER
@@ -501,14 +502,14 @@ DO
     mapedit_savemap st, mapnum, map(), pass, emap, zmap, gmap(), doors(), link(), mapname
     EXIT DO
    CASE 1
-    mapedit_gmapdata st, gmap()
+    mapedit_gmapdata st, gmap(), zmap
    CASE 2
     mapedit_resize st, mapnum, map(), pass, emap, zmap, gmap(), doors(), link(), mapname
    CASE 3
     mapedit_layers st, gmap(), visible(), map()
    CASE 4
     'This may change st.num_npc_defs, and delete NPC instances
-    npcdef st, npc_img(), zmap
+    npcdef st, npc_img(), gmap(), zmap
    CASE 5 TO 10
     st.seteditmode = st.menustate.pt - 5
     GOSUB mapping
@@ -792,13 +793,13 @@ DO
       IF i > UBOUND(map) THEN
        temp = i - UBOUND(map)
        IF yesno("Create " & iif_string(temp = 1, "a new map layer?", temp & " new map layers?")) THEN
-	add_more_layers st, map(), visible(), gmap(), i
+        add_more_layers st, map(), visible(), gmap(), i
        END IF
       END IF
      ELSE
       IF st.layer = i THEN
        DO UNTIL layerisenabled(gmap(), st.layer)
-	st.layer -= 1
+        st.layer -= 1
        LOOP
       END IF
      END IF
@@ -898,19 +899,16 @@ DO
    IF keyval(scSpace) > 1 OR nd > -1 THEN
     temp = 0
     IF nd = -1 THEN
-     FOR i = 0 TO 299
-      WITH st.npc_inst(i)
-       IF .id > 0 THEN
-        IF .x = st.x * 20 AND .y = st.y * 20 THEN
-         .id = 0
-         .x = 0
-         .y = 0
-         .dir = 0
-         temp = 1
-        END IF
-       END IF
+     DIM npci as integer = mapedit_npc_at_spot(st)
+     IF npci > -1 THEN
+      WITH st.npc_inst(npci)
+       .id = 0
+       .x = 0
+       .y = 0
+       .dir = 0
+       temp = 1
       END WITH
-     NEXT i
+     END IF
     END IF
     IF nd = -1 THEN nd = 2
     IF temp = 0 THEN
@@ -1238,20 +1236,25 @@ DO
   DIM oldwallzone as integer = st.cur_npc_wall_zone
   st.cur_npc_zone = 0
   st.cur_npc_wall_zone = 0
-  FOR i = 0 TO 299
-   WITH st.npc_inst(i)
-    IF .id > 0 AND .id <= st.num_npc_defs THEN
-     IF .x = st.x * 20 AND .y = st.y * 20 THEN
-      WITH st.npc_def(.id - 1)
-       IF .defaultzone OR .defaultwallzone THEN
-        st.cur_npc_zone = .defaultzone
-        st.cur_npc_wall_zone = .defaultwallzone
-       END IF
-      END WITH
-     END IF
+  DIM npci as integer = mapedit_npc_at_spot(st)
+  IF npci > -1 THEN
+   WITH st.npc_def(st.npc_inst(npci).id - 1)
+    IF .defaultzone = -1 THEN
+     st.cur_npc_zone = 0
+    ELSEIF .defaultzone = 0 THEN
+     st.cur_npc_zone = gmap(32)
+    ELSE
+     st.cur_npc_zone = .defaultzone
+    END IF
+    IF .defaultwallzone = -1 THEN
+     st.cur_npc_wall_zone = 0
+    ELSEIF .defaultwallzone = 0 THEN
+     st.cur_npc_wall_zone = gmap(33)
+    ELSE
+     st.cur_npc_wall_zone = .defaultwallzone
     END IF
    END WITH
-  NEXT i
+  END IF
   IF oldzone <> st.cur_npc_zone OR oldwallzone <> st.cur_npc_wall_zone OR npczone_needupdate THEN
    CleanTilemap st.zoneoverlaymap, st.wide, st.high
    IF st.cur_npc_zone > 0 THEN
@@ -1264,7 +1267,7 @@ DO
    'We're reusing st.zoneoverlaymap
    st.zones_needupdate = YES
   END IF
-  '--Draw restriction zone
+  '--Draw NPC zones
   drawmap st.zoneoverlaymap, st.mapx, st.mapy, overlaytileset, dpage, YES, , , 20
 
   '--Draw npcs
@@ -1490,6 +1493,17 @@ END SUB
 
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
+
+FUNCTION mapedit_npc_at_spot(st as MapEditState) as integer
+ FOR i as integer = 0 TO 299
+  WITH st.npc_inst(i)
+   IF .id > 0 THEN
+    IF .x = st.x * 20 AND .y = st.y * 20 THEN RETURN i
+   END IF
+  END WITH
+ NEXT i
+ RETURN -1
+END FUNCTION
 
 'This is a variant on spriteedit_draw_icon
 SUB mapedit_draw_icon(st AS MapEditState, icon as string, byval x as integer, byval y as integer, byval highlight as integer = NO)
@@ -1888,29 +1902,34 @@ SUB mapedit_edit_zoneinfo(BYREF st as MapEditState, zmap as ZoneMap)
  
 END SUB
 
-SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER)
- DIM gdmenu(0 TO 18) AS STRING
- gdmenu(0) = "Previous Menu"
- gdmenu(1) = "Ambient Music:"
- gdmenu(2) = "Minimap Available:"
- gdmenu(3) = "Save Anywhere:"
- gdmenu(4) = "Display Map Name:"
- gdmenu(5) = "Map Edge Mode:"
- gdmenu(6) = "Default Edge Tile:"
- gdmenu(7) = "Autorun Script: "
- gdmenu(8) = "Autorun Script Argument:"
- gdmenu(9) = "Harm-Tile Damage:"
- gdmenu(10) = "Harm-Tile Flash:"
- gdmenu(11) = "Foot Offset:"
- gdmenu(12) = "After-Battle Script:"
- gdmenu(13) = "Instead-of-Battle Script:"
- gdmenu(14) = "Each-Step Script:"
- gdmenu(15) = "On-Keypress Script:"
- gdmenu(16) = "Walkabout Layering:"
- gdmenu(17) = "NPC Data:"
- gdmenu(18) = "Tile Data:"
+SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER, zmap as ZoneMap)
+ DIM gdidx(20) as integer  'Index in gmap()
+ DIM gdmenu(0 TO 20) as string
+ gdidx(0) = -1:  gdmenu(0) = "Previous Menu"
+ gdidx(1) = 1:   gdmenu(1) = "Ambient Music:"
+ gdidx(2) = 2:   gdmenu(2) = "Minimap Available:"
+ gdidx(3) = 3:   gdmenu(3) = "Save Anywhere:"
+ gdidx(4) = 4:   gdmenu(4) = "Display Map Name:"
+ gdidx(5) = 5:   gdmenu(5) = "Map Edge Mode:"
+ gdidx(6) = 6:   gdmenu(6) = "Default Edge Tile:"
+ gdidx(7) = 7:   gdmenu(7) = "Autorun Script: "
+ gdidx(8) = 8:   gdmenu(8) = "Autorun Script Argument:"
+ gdidx(9) = 9:   gdmenu(9) = "Harm-Tile Damage:"
+ gdidx(10) = 10: gdmenu(10) = "Harm-Tile Flash:"
+ gdidx(11) = 11: gdmenu(11) = "Foot Offset:"
+ gdidx(12) = 12: gdmenu(12) = "After-Battle Script:"
+ gdidx(13) = 13: gdmenu(13) = "Instead-of-Battle Script:"
+ gdidx(14) = 14: gdmenu(14) = "Each-Step Script:"
+ gdidx(15) = 15: gdmenu(15) = "On-Keypress Script:"
+ gdidx(16) = 16: gdmenu(16) = "Walkabout Layering:"
+ gdidx(17) = 17: gdmenu(17) = "NPC Data:"
+ gdidx(18) = 18: gdmenu(18) = "Tile Data:"
+ gdidx(19) = 32: gdmenu(19) = "Default NPC Move Zone:"
+ gdidx(20) = 33: gdmenu(20) = "Default NPC Avoid Zone:"
 
- DIM gdmax(20) AS INTEGER,        gdmin(20) AS INTEGER
+ 'These are indexed by *gmap index*, not by menu item index!
+ DIM gdmax(dimbinsize(binMAP)) as integer
+ DIM gdmin(dimbinsize(binMAP)) as integer
  gdmax(1) = gen(genMaxSong) + 1:  gdmin(1) = -1
  gdmax(2) = 1:                    gdmin(2) = 0
  gdmax(3) = 1:                    gdmin(3) = 0
@@ -1929,14 +1948,14 @@ SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER)
  gdmax(16) = 2:                   gdmin(16) = 0
  gdmax(17) = 2:                   gdmin(17) = 0
  gdmax(18) = 2:                   gdmin(18) = 0
+ gdmax(32) = 9999:                gdmin(32) = 0
+ gdmax(33) = 9999:                gdmin(33) = 0
 
  DIM state AS MenuState
  state.pt = 0
  state.last = UBOUND(gdmenu)
  state.size = 24
 
- DIM idx AS INTEGER
- DIM scri AS INTEGER
  DIM gmapscrof(5)
  gmapscrof(0) = 7  'autorun
  gmapscrof(1) = 12 'after-battle
@@ -1954,14 +1973,13 @@ SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER)
  
  FOR i AS INTEGER = 1 TO UBOUND(gdmenu)
   'Safety-bounding of gmap data, prevents crashes in cases of corruption
-  gmap(i) = bound(gmap(i), gdmin(i), gdmax(i))
+  DIM idx as integer = gdidx(i)
+  gmap(idx) = bound(gmap(idx), gdmin(idx), gdmax(idx))
  NEXT i
 
  'A sample map of a single tile, used to preview the default edge tile
  DIM sampmap AS TileMap
  cleantilemap sampmap, 1, 1
- 
- DIM caption AS STRING
  
  setkeys
  DO
@@ -1971,37 +1989,41 @@ SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER)
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "general_map_data"
   usemenu state
-  SELECT CASE state.pt
-   CASE 0
+  DIM idx as integer = gdidx(state.pt)
+  SELECT CASE idx
+   CASE -1
     IF enter_or_space() THEN EXIT DO
    CASE 1 'music
-    IF zintgrabber(gmap(state.pt), gdmin(state.pt) - 1, gdmax(state.pt) - 1) THEN 'song is optional
+    IF zintgrabber(gmap(idx), gdmin(idx) - 1, gdmax(idx) - 1) THEN 'song is optional
      pausesong
     END IF
     IF enter_or_space() THEN
-     IF gmap(state.pt) > 0 THEN playsongnum gmap(state.pt) - 1
+     IF gmap(idx) > 0 THEN playsongnum gmap(idx) - 1
     END IF
    CASE 7, 12 TO 15 'scripts
-    IF state.pt = 7 THEN idx = 0 ELSE idx = state.pt - 11
+    DIM scridx as integer
+    IF idx = 7 THEN scridx = 0 ELSE scridx = idx - 11
     IF enter_or_space() THEN
-     gmapscr(idx) = scriptbrowse_string(gmap(state.pt), plottrigger, "plotscript")
-    ELSEIF scrintgrabber(gmap(state.pt), 0, 0, scLeft, scRight, 1, plottrigger) THEN
-     gmapscr(idx) = scriptname(gmap(state.pt), plottrigger)
+     gmapscr(scridx) = scriptbrowse_string(gmap(idx), plottrigger, "plotscript")
+    ELSEIF scrintgrabber(gmap(idx), 0, 0, scLeft, scRight, 1, plottrigger) THEN
+     gmapscr(scridx) = scriptname(gmap(idx), plottrigger)
     END IF
    CASE 10' Harm tile color
-    intgrabber gmap(state.pt), gdmin(state.pt), gdmax(state.pt)
+    intgrabber gmap(idx), gdmin(idx), gdmax(idx)
     IF enter_or_space() THEN
-     gmap(state.pt) = color_browser_256(gmap(state.pt))
+     gmap(idx) = color_browser_256(gmap(idx))
     END IF
    CASE ELSE 'all other gmap data is simple integers
-    intgrabber gmap(state.pt), gdmin(state.pt), gdmax(state.pt)
+    intgrabber gmap(idx), gdmin(idx), gdmax(idx)
   END SELECT
-  scri = 0
+
   '--Draw screen
   clearpage dpage
+  DIM scri AS INTEGER = 0  'Yuck!
   FOR i AS INTEGER = 0 TO UBOUND(gdmenu)
-   caption = ""
-   SELECT CASE i
+   DIM idx as integer = gdidx(i)
+   DIM caption as string
+   SELECT CASE idx
     CASE 1 'music
      IF gmap(1) = 0 THEN
       caption = "-silence-"
@@ -2011,11 +2033,11 @@ SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER)
       caption = (gmap(1) - 1) & " " & getsongname(gmap(1) - 1)
      END IF
     CASE 2, 3 'minimap available and save anywhere
-     caption = yesorno(gmap(i))
+     caption = yesorno(gmap(idx))
     CASE 4 'show map name
-     IF gmap(i) = 0 THEN caption = "NO" ELSE caption = gmap(i) & " ticks"
+     IF gmap(idx) = 0 THEN caption = "NO" ELSE caption = gmap(idx) & " ticks"
     CASE 5 'map edge mode
-     SELECT CASE gmap(i)
+     SELECT CASE gmap(idx)
       CASE 0
        caption = "Crop"
       CASE 1
@@ -2025,7 +2047,7 @@ SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER)
      END SELECT
     CASE 6 'default edge tile
      IF gmap(5) = 2 THEN
-      caption = STR(gmap(i))
+      caption = STR(gmap(idx))
      ELSE
       caption = "N/A"
      END IF
@@ -2036,33 +2058,33 @@ SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER)
      IF gmap(7) = 0 THEN
       caption = "N/A"
      ELSE
-      caption = STR(gmap(i))
+      caption = STR(gmap(idx))
      END IF
     CASE 9 'harm tile damage
-     caption = STR(gmap(i))
+     caption = STR(gmap(idx))
     CASE 10 'harm tile flash
-     IF gmap(i) = 0 THEN
+     IF gmap(idx) = 0 THEN
       caption = "none"
      ELSE
-      caption = STR(gmap(i))
+      caption = STR(gmap(idx))
      END IF
     CASE 11 'foot offset
-     SELECT CASE gmap(i)
+     SELECT CASE gmap(idx)
       CASE 0
        caption = "none"
       CASE IS < 0
-       caption = "up " & ABS(gmap(i)) & " pixels"
+       caption = "up " & ABS(gmap(idx)) & " pixels"
       CASE IS > 0
-       caption = "down " & gmap(i) & " pixels"
+       caption = "down " & gmap(idx) & " pixels"
      END SELECT
     CASE 16 'hero/npc draw order
-     SELECT CASE gmap(i)
+     SELECT CASE gmap(idx)
       CASE 0: caption = "Heroes over NPCs"
       CASE 1: caption = "NPCs over Heroes"
       CASE 2: caption = "Together (reccomended)"
      END SELECT
     CASE 17, 18 'NPC and Tile data saving
-     SELECT CASE gmap(i)
+     SELECT CASE gmap(idx)
       CASE 0
        caption = "Don't save state when leaving"
       CASE 1
@@ -2070,6 +2092,12 @@ SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER)
       CASE 2
        caption = "Ignore saved state, load anew"
      END SELECT
+    CASE 32, 33 'Default zones
+     IF gmap(idx) = 0 THEN
+      caption = "None"
+     ELSE
+      caption = gmap(idx) & " " & GetZoneInfo(zmap, gmap(idx))->name
+     END IF
    END SELECT
    textcolor uilook(uiMenuItem), 0
    IF i = state.pt THEN textcolor uilook(uiSelectedItem + state.tog), 0

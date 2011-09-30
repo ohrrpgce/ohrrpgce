@@ -1379,6 +1379,7 @@ FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as N
    END IF
    '--Check for movement zones (treat the edges as walls)
    DIM zone as integer = npcdata.defaultzone
+   IF zone = 0 THEN zone = gmap(32)  'fallback to default
    IF zone > 0 ANDALSO wrapzonecheck(zone, npci.x, npci.y, npci.xgo, npci.ygo) = 0 THEN
     npci.xgo = 0
     npci.ygo = 0
@@ -1387,13 +1388,13 @@ FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as N
    END IF
    '--Check for avoidance zones (treat as walls)
    zone = npcdata.defaultwallzone
+   IF zone = 0 THEN zone = gmap(33)  'fallback to default
    IF zone > 0 ANDALSO wrapzonecheck(zone, npci.x, npci.y, npci.xgo, npci.ygo) THEN
     npci.xgo = 0
     npci.ygo = 0
     npchitwall(npci, npcdata)
     GOTO nogo
    END IF
-
   END IF
   IF readbit(gen(), genSuspendBits, suspendobstruction) = 0 AND npci.not_obstruction = 0 THEN
    '--this only happens if obstruction is on
