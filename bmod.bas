@@ -126,7 +126,7 @@ FUNCTION battle (byval form as integer) as integer
   '--background animation hack
   battle_background_anim bat, formdata()
 
-  IF readbit(gen(), 101, 8) = 0 THEN
+  IF readbit(gen(), genBits, 8) = 0 THEN
    '--debug keys
    IF keyval(scF4) > 1 THEN bat.away = 11 ' Instant-cheater-running
    IF keyval(scF5) > 1 THEN bat.rew.exper = 1000000  'Million experience!
@@ -760,7 +760,7 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, menubits(
   FOR i = 0 TO 3 '--for each hero
    IF hero(i) > 0 THEN '--FIXME: should use some battle state instead of global state to
                        '--determine if the hero is present.
-    IF readbit(gen(), 101, 6) = 0 THEN
+    IF readbit(gen(), genBits, 6) = 0 THEN
      '--show the ready meter
      col = uilook(uiTimeBar)
      IF bslot(i).ready = YES THEN col = uilook(uiTimeBarFull)
@@ -774,7 +774,7 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, menubits(
       rectangle 2, 5 + i * 10, j, 9, col, dpage
      END IF
     END IF
-    IF readbit(gen(), 101, 7) = 0 THEN
+    IF readbit(gen(), genBits, 7) = 0 THEN
      '--hp-meter--
      col = uiLook(uiHealthBar)
      IF bslot(i).lifemeter < INT((87 / large(bslot(i).stat.max.hp, 1)) * bslot(i).stat.cur.hp) THEN bslot(i).lifemeter += 1
@@ -3268,7 +3268,7 @@ SUB battle_check_for_hero_turns(byref bat as BattleState, bslot() as BattleSprit
   EXIT SUB
  END IF
 
- IF xreadbit(gen(), 7, genBits2) AND bat.atk.id > -1 THEN
+ IF readbit(gen(), genBits2, 7) AND bat.atk.id > -1 THEN
   '--an attack is currently animating, and the bitset tells us we must wait for it
   EXIT SUB
  END IF

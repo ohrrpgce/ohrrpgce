@@ -581,13 +581,13 @@ DO
  'DEBUG debug "increment script timers"
  dotimer(0)
  'DEBUG debug "keyboard handling"
- IF carray(ccMenu) > 1 AND txt.showing = NO AND gam.need_fade_in = NO AND readbit(gen(), 44, suspendplayer) = 0 AND vstate.active = NO AND herow(0).xgo = 0 AND herow(0).ygo = 0 THEN
+ IF carray(ccMenu) > 1 AND txt.showing = NO AND gam.need_fade_in = NO AND readbit(gen(), genSuspendBits, suspendplayer) = 0 AND vstate.active = NO AND herow(0).xgo = 0 AND herow(0).ygo = 0 THEN
   IF allowed_to_open_main_menu() THEN
    add_menu 0
    menusound gen(genAcceptSFX)
   END IF
  END IF
- IF txt.showing = NO AND gam.need_fade_in = NO AND readbit(gen(), 44, suspendplayer) = 0 AND vehicle_is_animating() = NO AND menus_allow_player() THEN
+ IF txt.showing = NO AND gam.need_fade_in = NO AND readbit(gen(), genSuspendBits, suspendplayer) = 0 AND vehicle_is_animating() = NO AND menus_allow_player() THEN
   IF herow(0).xgo = 0 AND herow(0).ygo = 0 THEN
    DO
     IF carray(ccUp) > 0 THEN herow(0).ygo = 20: catd(0) = 0: EXIT DO
@@ -602,7 +602,7 @@ DO
   END IF
  END IF
  'debug "before advance_text_box:"
- IF carray(ccUse) > 1 AND txt.fully_shown = YES AND readbit(gen(), 44, suspendboxadvance) = 0 THEN
+ IF carray(ccUse) > 1 AND txt.fully_shown = YES AND readbit(gen(), genSuspendBits, suspendboxadvance) = 0 THEN
   advance_text_box
  END IF
  'debug "after advance_text_box:"
@@ -618,7 +618,7 @@ DO
  update_heroes()
  'DEBUG debug "NPC movement"
  update_npcs()
- IF readbit(gen(), 101, 8) = 0 THEN
+ IF readbit(gen(), genBits, 8) = 0 THEN
   '--debugging keys
   'DEBUG debug "evaluate debugging keys"
   IF keyval(scF2) > 1 AND txt.showing = NO THEN
@@ -718,7 +718,7 @@ DO
   doloadgame load_slot
  END IF
  'DEBUG debug "random enemies"
- IF gam.random_battle_countdown = 0 AND readbit(gen(), 44, suspendrandomenemies) = 0 AND (vstate.active = NO OR vstate.dat.random_battles > -1) THEN
+ IF gam.random_battle_countdown = 0 AND readbit(gen(), genSuspendBits, suspendrandomenemies) = 0 AND (vstate.active = NO OR vstate.dat.random_battles > -1) THEN
   DIM tempblock as integer = readblock(foemap, catx(0) \ 20, caty(0) \ 20)
   IF vstate.active AND vstate.dat.random_battles > 0 THEN tempblock = vstate.dat.random_battles
   IF tempblock > 0 THEN
@@ -1051,7 +1051,7 @@ SUB update_heroes(byval force_step_check as integer=NO)
  IF (herow(0).xgo MOD 20 = 0) AND (herow(0).ygo MOD 20 = 0) AND (didgo(0) = YES OR force_step_check = YES) THEN
 
   'Trigger NPCs
-  IF readbit(gen(), 44, suspendobstruction) = 0 THEN
+  IF readbit(gen(), genSuspendBits, suspendobstruction) = 0 THEN
    '--check for step-on NPCS
    FOR i as integer = 0 TO UBOUND(npc)
     WITH npc(i)
@@ -1161,7 +1161,7 @@ FUNCTION should_hide_hero_caterpillar() as integer
 END FUNCTION
 
 FUNCTION should_show_normal_caterpillar() as integer
- RETURN readbit(gen(), 101, 1) = 1 _
+ RETURN readbit(gen(), genBits, 1) = 1 _
    ANDALSO (vstate.active = NO ORELSE vstate.dat.do_not_hide_leader = NO)
 END FUNCTION
 
@@ -1281,7 +1281,7 @@ SUB update_npcs ()
     END IF
    ELSE
     '--Not the active vehicle
-    IF txt.sayer <> o AND readbit(gen(), 44, suspendnpcs) = 0 AND npc(o).suspend_ai = 0 THEN
+    IF txt.sayer <> o AND readbit(gen(), genSuspendBits, suspendnpcs) = 0 AND npc(o).suspend_ai = 0 THEN
      IF npc(o).xgo = 0 AND npc(o).ygo = 0 THEN
       pick_npc_action npc(o), npcs(id)
      END IF
@@ -1369,7 +1369,7 @@ FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as N
  npci.frame = loopvar(npci.frame, 0, 3, 1)
  IF movdivis(npci.xgo) OR movdivis(npci.ygo) THEN
   'About to begin moving to a new tile
-  IF readbit(gen(), 44, suspendnpcwalls) = 0 AND npci.ignore_walls = 0 THEN
+  IF readbit(gen(), genSuspendBits, suspendnpcwalls) = 0 AND npci.ignore_walls = 0 THEN
    '--this only happens if NPC walls on
    IF wrappass(npci.x \ 20, npci.y \ 20, npci.xgo, npci.ygo, 0) THEN
     npci.xgo = 0
@@ -1386,7 +1386,7 @@ FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as N
     GOTO nogo
    END IF
   END IF
-  IF readbit(gen(), 44, suspendobstruction) = 0 AND npci.not_obstruction = 0 THEN
+  IF readbit(gen(), genSuspendBits, suspendobstruction) = 0 AND npci.not_obstruction = 0 THEN
    '--this only happens if obstruction is on
    FOR i as integer = 0 TO UBOUND(npc)
     IF npc(i).id > 0 AND npcnum <> i AND npc(i).not_obstruction = 0 THEN
@@ -1483,7 +1483,7 @@ WITH scrat(nowscript)
      FOR i = 0 TO 3
       IF herow(i).xgo <> 0 OR herow(i).ygo <> 0 THEN n = 1
      NEXT i
-     IF readbit(gen(), 44, suspendnpcs) = 1 THEN
+     IF readbit(gen(), genSuspendBits, suspendnpcs) = 1 THEN
       FOR i = 0 TO 299
        IF npc(i).id > 0 ANDALSO (npc(i).xgo <> 0 OR npc(i).ygo <> 0) THEN n = 1: EXIT FOR
       NEXT i
@@ -1537,7 +1537,7 @@ WITH scrat(nowscript)
     CASE 42'--wait for camera
      IF gen(cameramode) <> pancam AND gen(cameramode) <> focuscam THEN .state = streturn
     CASE 59'--wait for text box
-     IF txt.showing = NO OR readbit(gen(), 44, suspendboxadvance) = 1 THEN
+     IF txt.showing = NO OR readbit(gen(), genSuspendBits, suspendboxadvance) = 1 THEN
       .state = streturn
      END IF
     CASE 73, 234, 438'--game over, quit from loadmenu, reset game
@@ -1704,7 +1704,7 @@ WITH scrat(nowscript)
      .state = stwait
     END IF
    CASE 63, 169'--resume random enemies
-    setbit gen(), 44, suspendrandomenemies, 0
+    setbit gen(), genSuspendBits, suspendrandomenemies, 0
     gam.random_battle_countdown = range(100, 60)
    CASE 73'--game over
     abortg = 1

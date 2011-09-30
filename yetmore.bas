@@ -913,13 +913,13 @@ SELECT CASE as CONST id
    scrat(nowscript).state = stwait
   END IF
  CASE 5'--suspend npcs
-  setbit gen(), 44, suspendnpcs, 1
+  setbit gen(), genSuspendBits, suspendnpcs, 1
  CASE 6'--suspend player
-  setbit gen(), 44, suspendplayer, 1
+  setbit gen(), genSuspendBits, suspendplayer, 1
  CASE 7'--resume npcs
-  setbit gen(), 44, suspendnpcs, 0
+  setbit gen(), genSuspendBits, suspendnpcs, 0
  CASE 8'--resume player
-  setbit gen(), 44, suspendplayer, 0
+  setbit gen(), genSuspendBits, suspendplayer, 0
  CASE 9'--wait for key
   scrat(nowscript).waitarg = retvals(0)
   scrat(nowscript).state = stwait
@@ -982,7 +982,7 @@ SELECT CASE as CONST id
    herow(retvals(0)).wtog = bound(retvals(1), 0, 1) * 2
   END IF
  CASE 27'--suspend overlay
-  setbit gen(), 44, suspendoverlay, 1
+  setbit gen(), genSuspendBits, suspendoverlay, 1
  CASE 28'--play song
   'loadsong game + "." + STR(retvals(0))
   wrappedsong retvals(0)
@@ -1026,26 +1026,26 @@ SELECT CASE as CONST id
    scriptret = caty(retvals(0) * 5) \ 20
   END IF
  CASE 47'--suspend obstruction
-  setbit gen(), 44, suspendobstruction, 1
+  setbit gen(), genSuspendBits, suspendobstruction, 1
  CASE 48'--resume obstruction
-  setbit gen(), 44, suspendobstruction, 0
+  setbit gen(), genSuspendBits, suspendobstruction, 0
  CASE 49'--suspend hero walls
-  setbit gen(), 44, suspendherowalls, 1
+  setbit gen(), genSuspendBits, suspendherowalls, 1
  CASE 50'--suspend NPC walls
-  setbit gen(), 44, suspendnpcwalls, 1
+  setbit gen(), genSuspendBits, suspendnpcwalls, 1
  CASE 51'--resume hero walls
-  setbit gen(), 44, suspendherowalls, 0
+  setbit gen(), genSuspendBits, suspendherowalls, 0
  CASE 53'--set hero direction
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
    catd(retvals(0) * 5) = ABS(retvals(1)) MOD 4
   END IF
  CASE 57, 118'--suspend caterpillar
-  setbit gen(), 44, suspendcaterpillar, 1
+  setbit gen(), genSuspendBits, suspendcaterpillar, 1
  CASE 58, 119'--resume caterpillar
-  setbit gen(), 44, suspendcaterpillar, 0
+  setbit gen(), genSuspendBits, suspendcaterpillar, 0
   interpolatecat
  CASE 59'--wait for text box
-  IF readbit(gen(), 44, suspendboxadvance) = 0 THEN
+  IF readbit(gen(), genSuspendBits, suspendboxadvance) = 0 THEN
    scrat(nowscript).waitarg = retvals(0)
    scrat(nowscript).state = stwait
   END IF
@@ -1063,10 +1063,10 @@ SELECT CASE as CONST id
    END IF
   END IF
  CASE 62, 168'--suspend random enemies
-  setbit gen(), 44, suspendrandomenemies, 1
+  setbit gen(), genSuspendBits, suspendrandomenemies, 1
   '--resume random enemies is not here! it works different!
  CASE 65'--resume overlay
-  setbit gen(), 44, suspendoverlay, 0
+  setbit gen(), genSuspendBits, suspendoverlay, 0
  CASE 70'--room in active party
   scriptret = 4 - herocount(3)
  CASE 71'--lock hero
@@ -1091,9 +1091,9 @@ SELECT CASE as CONST id
  CASE 82'--inventory
   scriptret = countitem(retvals(0) + 1)
  CASE 84'--suspend box advance
-  setbit gen(), 44, suspendboxadvance, 1
+  setbit gen(), genSuspendBits, suspendboxadvance, 1
  CASE 85'--resume box advance
-  setbit gen(), 44, suspendboxadvance, 0
+  setbit gen(), genSuspendBits, suspendboxadvance, 0
  CASE 87'--set hero position
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
   cropposition retvals(1), retvals(2), 1
@@ -1117,7 +1117,7 @@ SELECT CASE as CONST id
  CASE 94'--minutes of play
   scriptret = gen(genMinutes)
  CASE 95'--resume NPC walls
-  setbit gen(), 44, suspendnpcwalls, 0
+  setbit gen(), genSuspendBits, suspendnpcwalls, 0
  CASE 96'--set hero Z
   catz(bound(retvals(0), 0, 3) * 5) = retvals(1)
  CASE 102'--hero direction
@@ -1664,9 +1664,9 @@ SELECT CASE as CONST id
    END WITH
   END IF
  CASE 256'--suspend map music
-  setbit gen(), 44, suspendambientmusic, 1
+  setbit gen(), genSuspendBits, suspendambientmusic, 1
  CASE 257'--resume map music
-  setbit gen(), 44, suspendambientmusic, 0
+  setbit gen(), genSuspendBits, suspendambientmusic, 0
  CASE 260'--set timer(id, count, speed, trigger, string, flags)
   IF bound_arg(retvals(0), 0, UBOUND(timers), "timer ID") THEN
     WITH timers(retvals(0))
@@ -3294,7 +3294,7 @@ IF vstate.ahead THEN '--ahead
  vehscramble vstate.ahead, YES, aheadx, aheady
 END IF
 IF vstate.active = YES AND vehicle_is_animating() = NO THEN
- IF txt.showing = NO AND readbit(gen(), 44, suspendplayer) = 0 THEN
+ IF txt.showing = NO AND readbit(gen(), genSuspendBits, suspendplayer) = 0 THEN
   REDIM button(1) as integer
   button(0) = vstate.dat.use_button
   button(1) = vstate.dat.menu_button

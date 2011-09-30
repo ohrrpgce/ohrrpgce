@@ -1323,7 +1323,7 @@ IF index > 127 THEN
 END IF
 
 IF double_trigger_check AND index > 0 THEN
- IF n = scrat(index - 1).id AND readbit(gen(), 101, 10) = 0 THEN
+ IF n = scrat(index - 1).id AND readbit(gen(), genBits, 10) = 0 THEN
   'fail quietly
   '--scripterr "script " & n & " is already running"
   runscript = 2 '--quiet failure

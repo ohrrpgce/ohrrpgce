@@ -1209,7 +1209,7 @@ END FUNCTION
 
 SUB onetimetog(BYREF tagnum AS INTEGER)
  IF tagnum > 0 THEN
-  setbit gen(), 106, tagnum - 1, 0
+  setbit gen(), genOneTimeNPCBits, tagnum - 1, 0
   tagnum = 0
   EXIT SUB
  END IF
@@ -1217,9 +1217,9 @@ SUB onetimetog(BYREF tagnum AS INTEGER)
  DO
   gen(genOneTimeNPC) = loopvar(gen(genOneTimeNPC), 0, 999, 1)
   i = i + 1: IF i > 1000 THEN EXIT SUB 'Revisit this later
- LOOP UNTIL readbit(gen(), 106, gen(genOneTimeNPC)) = 0
+ LOOP UNTIL readbit(gen(), genOneTimeNPCBits, gen(genOneTimeNPC)) = 0
  tagnum = gen(genOneTimeNPC) + 1
- setbit gen(), 106, gen(genOneTimeNPC), 1
+ setbit gen(), genOneTimeNPCBits, gen(genOneTimeNPC), 1
 END SUB
 
 FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL picnum AS INTEGER) AS INTEGER

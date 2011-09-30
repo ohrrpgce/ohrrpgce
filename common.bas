@@ -2790,8 +2790,8 @@ IF gen(genVersion) = 3 THEN
   NEXT i
   saveoldattackdata buffer(), o
  NEXT o
- setbit gen(), 101, 6, 0 'no hide readymeter
- setbit gen(), 101, 7, 0 'no hide health meter
+ setbit gen(), genBits, 6, 0 'no hide readymeter
+ setbit gen(), genBits, 7, 0 'no hide health meter
 END IF
 '--VERSION 5--
 IF gen(genVersion) = 4 THEN

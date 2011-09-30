@@ -113,6 +113,7 @@ CONST genStartX = 102           'starting X
 CONST genStartY = 103           'starting Y
 CONST genStartMap = 104         'starting Map
 CONST genOneTimeNPC = 105       'one-time-NPC indexer
+CONST genOneTimeNPCBits = 106   'one-time-NPC bits start here, 1000 in total
 CONST genDefaultDeathSFX = 171  'default enemy death sound effect
 CONST genMaxSong = 172          'last song number
 CONST genAcceptSFX = 173        'menu interface
