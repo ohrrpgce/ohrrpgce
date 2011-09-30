@@ -29,6 +29,11 @@ DECLARE SUB LoadMenuItem(byval f as integer, items() as MenuDefItem ptr, byval r
 DECLARE SUB SaveMenuItems(menu_set as MenuSet, dat as MenuDef, byval record as integer)
 DECLARE SUB SaveMenuItem(byval f as integer, mi as MenuDefItem, byval record as integer, byval menunum as integer, byval itemnum as integer)
 
+'TypeTables
+DEFINE_VECTOR_OF_CLASS(BasicMenuItem, BasicMenuItem)
+DEFINE_VECTOR_OF_CLASS(SimpleMenuItem, SimpleMenuItem)
+DEFINE_VECTOR_OF_CLASS(MenuDefItem, MenuDefItem)
+
 
 '==========================================================================================
 '                                 Generic MenuState Stuff
@@ -74,6 +79,7 @@ SUB append_simplemenu_item (menu() as SimpleMenuItem, caption as string, byval u
  WITH menu(where)
   .text = caption
   .col = col
+  .bgcol = 0
   .unselectable = unselectable
   .disabled = NO
   .dat = dat
@@ -237,33 +243,58 @@ FUNCTION scrollmenu (state as MenuState, byval deckey as integer = scUp, byval i
  END WITH
 END FUNCTION
 
+SUB standard_to_basic_menu (menu() as string, byval last as integer, byref basicmenu as BasicMenuItem vector, byval shaded as integer PTR=NULL)
+ v_new basicmenu, last + 1
+ FOR i as integer = 0 TO last
+  WITH basicmenu[i]
+   .text = menu(i)
+   .col = uilook(uiMenuItem)
+   IF shaded THEN
+    .disabled = shaded[i]
+   END IF
+  END WITH
+ NEXT
+END SUB
+
 SUB standardmenu (menu() as string, byref state as MenuState, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval hidecursor as integer=NO, byval wide as integer=999, byval highlight as integer=NO, byval toggle as integer=YES)
- DIM p as integer
- WITH state
-  p = .pt
-  IF hidecursor THEN p = .first - 1
-  standardmenu menu(), .last, .size, p, .top, x, y, page, edge, wide, highlight, NULL, toggle
- END WITH
+ DIM basicmenu as BasicMenuItem vector
+ standard_to_basic_menu menu(), state.last, basicmenu
+ standardmenu basicmenu, state, x, y, page, edge, hidecursor, wide, highlight, toggle
+ v_free basicmenu
 END SUB
 
 'Version which allows items to be greyed out/disabled/shaded
 SUB standardmenu (menu() as string, byref state as MenuState, shaded() as integer, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval hidecursor as integer=NO, byval wide as integer=999, byval highlight as integer=NO, byval toggle as integer=YES)
- DIM p as integer
  IF LBOUND(shaded) > LBOUND(menu) OR UBOUND(shaded) < UBOUND(menu) THEN fatalerror "standardmenu: shaded() too small"
- WITH state
-  p = .pt
-  IF hidecursor THEN p = .first - 1
-  standardmenu menu(), .last, .size, p, .top, x, y, page, edge, wide, highlight, @shaded(0), toggle
- END WITH
+ DIM basicmenu as BasicMenuItem vector
+ standard_to_basic_menu menu(), state.last, basicmenu, @shaded(0)
+ standardmenu basicmenu, state, x, y, page, edge, hidecursor, wide, highlight, toggle
+ v_free basicmenu
 END SUB
 
-SUB standardmenu (menu() as STRING, byval size as integer, byval vis as integer, byval pt as integer, byval top as integer, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval wide as integer=999, byval highlight as integer=NO, byval shaded as integer PTR=NULL, byval toggle as integer=YES)
+SUB standardmenu (menu() as STRING, byval size as integer, byval vis as integer, byval pt as integer, byval top as integer, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval wide as integer=999, byval highlight as integer=NO, byval toggle as integer=YES)
  'the default for wide is 999 until I know whether it'd break anything to set it to 40
+ DIM state as MenuState
+ state.pt = pt
+ state.top = top
+ state.last = size
+ state.size = vis
+ DIM basicmenu as BasicMenuItem vector
+ standard_to_basic_menu menu(), state.last, basicmenu
+ standardmenu basicmenu, state, x, y, page, edge, NO, wide, highlight, toggle
+ v_free basicmenu
+END SUB
+
+SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval hidecursor as integer=NO, byval wide as integer=999, byval highlight as integer=NO, byval toggle as integer=YES)
+ 'menu may in fact be a vector of any type inheriting from BasicMenuItem.
+ 'menu's typetable tells the size in bytes of each menu item
+
  STATIC rememtog as integer
  DIM tog as integer
- DIM i as integer
- DIM col as integer
  DIM text as string
+
+ DIM pt as integer = state.pt
+ IF hidecursor THEN pt = state.first - 1
 
  IF toggle THEN
   rememtog = rememtog XOR 1
@@ -273,29 +304,37 @@ SUB standardmenu (menu() as STRING, byval size as integer, byval vis as integer,
   tog = 0
  END IF
 
- FOR i = top TO top + vis
-  IF i <= size THEN
-   text = menu(i)
-   IF pt = i THEN text = RIGHT(text, wide)
-   IF pt = i AND highlight THEN
-    DIM w as integer
-    w = 8 * LEN(text)
-    IF w = 0 THEN w = small(wide * 8, 320)
-    rectangle x + 0, y + (i - top) * 8, w, 8, uilook(uiHighlight), page
-   END IF
-   IF shaded ANDALSO shaded[i] THEN
-    col = uilook(uiDisabledItem)
-    IF pt = i THEN col = uilook(uiSelectedDisabled + tog)
-   ELSE
-    col = uilook(uiMenuItem)
-    IF pt = i THEN col = uilook(uiSelectedItem + tog)
-   END IF
-   IF edge THEN
-    edgeprint text, x + 0, y + (i - top) * 8, col, page, YES
-   ELSE
-    textcolor col, 0
-    printstr text, x + 0, y + (i - top) * 8, page, YES
-   END IF
+ FOR i as integer = state.top TO state.top + state.size
+  IF i < v_len(menu) THEN
+   WITH *cast(BasicMenuItem ptr, cast(byte ptr, menu) + i * v_type(menu)->element_len)
+
+    text = .text
+    IF pt = i THEN text = RIGHT(text, wide)
+    IF .bgcol THEN
+     rectangle x + 0, y + (i - state.top) * 8, wide * 8, 8, .bgcol, page
+    END IF
+    IF pt = i AND highlight THEN
+     DIM w as integer
+     w = 8 * LEN(text)
+     IF w = 0 THEN w = small(wide * 8, 320)
+     rectangle x + 0, y + (i - state.top) * 8, w, 8, uilook(uiHighlight), page
+    END IF
+    DIM col as integer = .col
+    IF col = 0 THEN col = uilook(uiMenuItem)
+    IF .disabled THEN
+     col = uilook(uiDisabledItem)
+     IF pt = i THEN col = uilook(uiSelectedDisabled + tog)
+    ELSE
+     IF pt = i THEN col = uilook(uiSelectedItem + tog)
+    END IF
+    IF edge THEN
+     edgeprint text, x + 0, y + (i - state.top) * 8, col, page, YES
+    ELSE
+     textcolor col, 0
+     printstr text, x + 0, y + (i - state.top) * 8, page, YES
+    END IF
+
+   END WITH
   END IF
  NEXT i
 END SUB

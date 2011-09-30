@@ -176,9 +176,12 @@ END TYPE
 TYPE BasicMenuItem
   text AS STRING
   col AS INTEGER
+  bgcol AS INTEGER
   unselectable AS INTEGER
-  disabled AS INTEGER  'Appear greyed out. Any other meaning of this depend on use 
+  disabled AS INTEGER  'Appear greyed out. Any other meaning of this is up to the user
 END TYPE
+
+DECLARE_VECTOR_OF_TYPE(BasicMenuItem, BasicMenuItem)
 
 MAKETYPE_DoubleList(MenuDefItem)
 MAKETYPE_DListItem(MenuDefItem)
@@ -187,7 +190,8 @@ TYPE MenuDefItem  'EXTENDS BasicMenuItem
   'members copied from BasicMenuItem
   text AS STRING  ' This is the caption actually displayed
   col AS INTEGER
-  unselectable AS INTEGER
+  bgcol AS INTEGER  ' Not used
+  unselectable AS INTEGER  ' Not used (yet)
   disabled AS INTEGER ' set at run-time based on .tag1 and .tag2
 
   'Other members
@@ -206,6 +210,8 @@ TYPE MenuDefItem  'EXTENDS BasicMenuItem
   skip_close_script AS INTEGER ' Bitset
   dataptr   AS ANY PTR 'Use this with caution!
 END TYPE
+
+DECLARE_VECTOR_OF_TYPE(MenuDefItem, MenuDefItem)
 
 '*** Requires construction (with ClearMenuData or LoadMenuData) + destruction (with DeleteMenuItems) ***
 TYPE MenuDef
@@ -255,12 +261,15 @@ TYPE SimpleMenuItem  'EXTENDS BasicMenuItem
   'members copied from BasicMenuItem
   text AS STRING
   col AS INTEGER
+  bgcol AS INTEGER
   unselectable AS INTEGER
   disabled AS INTEGER  'Appear greyed out. Other meaning of this depend on use 
 
   'other members
   dat AS INTEGER  'For your own use
 END TYPE
+
+DECLARE_VECTOR_OF_TYPE(SimpleMenuItem, SimpleMenuItem)
 
 'Warning: when editing NPCType, consider Get/SetNPCD and serialization disasters
 TYPE NPCType
