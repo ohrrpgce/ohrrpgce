@@ -36,25 +36,22 @@ DECLARE SUB SaveMenuItem(byval f as integer, mi as MenuDefItem, byval record as 
 
 
 '(Re-)initialise menu state, preserving .pt if valid
-'pickenabled: move .pt to an enabled menu item. (Note that .enabled may mean either "greyed out"
-'or "unselectable")
-SUB init_menu_state (byref state as MenuState, menu() as SimpleMenu, byval pickenabled as integer = YES)
+'.pt is moved to a selectable menu item.
+SUB init_menu_state (byref state AS MenuState, menu() AS SimpleMenuItem)
  WITH state
   .first = 0
   .last = UBOUND(menu)
   IF .size <= 0 THEN .size = 20
   .pt = bound(.pt, .first, .last)  '.first <= .last
-  IF pickenabled THEN
-   IF menu(.pt).enabled = NO THEN
-    .pt = -1  'explicitly -1 when nothing selectable
-    FOR i as integer = 0 TO UBOUND(menu)
-     IF menu(i).enabled THEN .pt = i: EXIT FOR
-    NEXT
-   END IF
-   'Menus with unselectable items have lookahead, which these +1,-1
-   'attempt to simulate. Not perfect, but prevents some flickering
-   IF .pt <> -1 THEN .top = bound(.top, .pt - .size + 1, .pt - 1)
+  IF menu(.pt).unselectable THEN
+   .pt = -1  'explicitly -1 when nothing selectable
+   FOR i as integer = 0 TO UBOUND(menu)
+    IF menu(i).unselectable = NO THEN .pt = i: EXIT FOR
+   NEXT
   END IF
+  'Menus with unselectable items have lookahead, which these +1,-1
+  'attempt to simulate. Not perfect, but prevents some flickering
+  IF .pt <> -1 THEN .top = bound(.top, .pt - .size + 1, .pt - 1)
   .top = bound(.top, 0, large(.last - .size, 0))
  END WITH
 END SUB
@@ -68,7 +65,7 @@ END SUB
 
 'Simple... and yet, more options than a regular menu item
 'Can also insert instead of appending... bad name
-SUB append_simplemenu_item (menu() as SimpleMenu, caption as string, byval enabled as integer = YES, byval col as integer = -1, byval dat as integer = 0, byval where as integer = -1)
+SUB append_simplemenu_item (menu() as SimpleMenuItem, caption as string, byval unselectable as integer = NO, byval col as integer = -1, byval dat as integer = 0, byval where as integer = -1)
  IF col = -1 THEN col = uilook(uiText)
  IF where = -1 THEN
   REDIM PRESERVE menu(LBOUND(menu) TO UBOUND(menu) + 1)
@@ -76,8 +73,9 @@ SUB append_simplemenu_item (menu() as SimpleMenu, caption as string, byval enabl
  END IF
  WITH menu(where)
   .text = caption
-  .enabled = enabled
   .col = col
+  .unselectable = unselectable
+  .disabled = NO
   .dat = dat
  END WITH
 END SUB
@@ -109,8 +107,8 @@ FUNCTION usemenu (byref pt as integer, byref top as integer, byval first as inte
  END IF
 END FUNCTION
 
-'a version for menus with unselectable items, skip items for which menudata().enabled = 0
-FUNCTION usemenu (state as MenuState, menudata() as SimpleMenu, byval deckey as integer = scUp, byval inckey as integer = scDown) as integer
+'a version for menus with unselectable items, skip items for which menudata().selectable = 0
+FUNCTION usemenu (state as MenuState, menudata() as SimpleMenuItem, byval deckey as integer = scUp, byval inckey as integer = scDown) as integer
  WITH state
   '.pt = -1 when the menu has no selectable items
   IF .pt = -1 THEN RETURN 0
@@ -125,14 +123,14 @@ FUNCTION usemenu (state as MenuState, menudata() as SimpleMenu, byval deckey as 
   IF keyval(inckey) > 1 THEN d = 1
   IF keyval(scPageup) > 1 THEN
    .pt = large(.pt - .size, .first)
-   WHILE menudata(.pt).enabled = 0 AND .pt > .first : .pt = loopvar(.pt, .first, .last, -1) : WEND
-   IF menudata(.pt).enabled = 0 THEN d = 1
+   WHILE menudata(.pt).unselectable AND .pt > .first : .pt = loopvar(.pt, .first, .last, -1) : WEND
+   IF menudata(.pt).unselectable THEN d = 1
    moved_d = -1
   END IF
   IF keyval(scPagedown) > 1 THEN
    .pt = small(.pt + .size, .last)
-   WHILE menudata(.pt).enabled = 0 AND .pt < .last : .pt = loopvar(.pt, .first, .last, 1) : WEND
-   IF menudata(.pt).enabled = 0 THEN d = -1
+   WHILE menudata(.pt).unselectable AND .pt < .last : .pt = loopvar(.pt, .first, .last, 1) : WEND
+   IF menudata(.pt).unselectable THEN d = -1
    moved_d = 1
   END IF
   IF keyval(scHome) > 1 THEN .pt = .last : d = 1
@@ -143,7 +141,7 @@ FUNCTION usemenu (state as MenuState, menudata() as SimpleMenu, byval deckey as 
    DO
     .top = bound(.top, .pt - .size, .pt)
     .pt = loopvar(.pt, .first, .last, d)
-   LOOP WHILE menudata(.pt).enabled = 0
+   LOOP WHILE menudata(.pt).unselectable
   END IF
 
   IF moved_d THEN
@@ -151,7 +149,7 @@ FUNCTION usemenu (state as MenuState, menudata() as SimpleMenu, byval deckey as 
    DIM lookahead as integer = .pt
    DO
     lookahead += moved_d
-   LOOP WHILE bound(lookahead, .first, .last) = lookahead ANDALSO menudata(lookahead).enabled = 0
+   LOOP WHILE bound(lookahead, .first, .last) = lookahead ANDALSO menudata(lookahead).unselectable
    lookahead = bound(lookahead, .first, .last)
    .top = bound(.top, lookahead - .size, lookahead)
   END IF
@@ -166,8 +164,8 @@ FUNCTION usemenu (state as MenuState, menudata() as SimpleMenu, byval deckey as 
  END WITH
 END FUNCTION
 
-'a version for menus with unselectable items, skip items for which enabled = 0
-FUNCTION usemenu (state as MenuState, enabled() as integer, byval deckey as integer = scUp, byval inckey as integer = scDown) as integer
+'a version for menus with unselectable items, skip items for which selectable(i) = 0
+FUNCTION usemenu (state as MenuState, selectable() as INTEGER, byval deckey as integer = scUp, byval inckey as integer = scDown) as integer
  WITH state
   '.pt = -1 when the menu has no selectable items
   IF .pt = -1 THEN RETURN 0
@@ -182,14 +180,14 @@ FUNCTION usemenu (state as MenuState, enabled() as integer, byval deckey as inte
   IF keyval(inckey) > 1 THEN d = 1
   IF keyval(scPageup) > 1 THEN
    .pt = large(.pt - .size, .first)
-   WHILE enabled(.pt) = 0 AND .pt > .first : .pt = loopvar(.pt, .first, .last, -1) : WEND
-   IF enabled(.pt) = 0 THEN d = 1
+   WHILE selectable(.pt) = 0 AND .pt > .first : .pt = loopvar(.pt, .first, .last, -1) : WEND
+   IF selectable(.pt) = 0 THEN d = 1
    moved_d = -1
   END IF
   IF keyval(scPagedown) > 1 THEN
    .pt = small(.pt + .size, .last)
-   WHILE enabled(.pt) = 0 AND .pt < .last : .pt = loopvar(.pt, .first, .last, 1) : WEND
-   IF enabled(.pt) = 0 THEN d = -1
+   WHILE selectable(.pt) = 0 AND .pt < .last : .pt = loopvar(.pt, .first, .last, 1) : WEND
+   IF selectable(.pt) = 0 THEN d = -1
    moved_d = 1
   END IF
   IF keyval(scHome) > 1 THEN .pt = .last : d = 1
@@ -200,7 +198,7 @@ FUNCTION usemenu (state as MenuState, enabled() as integer, byval deckey as inte
    DO
     .top = bound(.top, .pt - .size, .pt)
     .pt = loopvar(.pt, .first, .last, d)
-   LOOP WHILE enabled(.pt) = 0
+   LOOP WHILE selectable(.pt) = 0
   END IF
 
   IF moved_d THEN
@@ -208,7 +206,7 @@ FUNCTION usemenu (state as MenuState, enabled() as integer, byval deckey as inte
    DIM lookahead as integer = .pt
    DO
     lookahead += moved_d
-   LOOP WHILE bound(lookahead, .first, .last) = lookahead ANDALSO enabled(lookahead) = 0
+   LOOP WHILE bound(lookahead, .first, .last) = lookahead ANDALSO selectable(lookahead) = 0
    lookahead = bound(lookahead, .first, .last)
    .top = bound(.top, lookahead - .size, lookahead)
   END IF
@@ -838,11 +836,14 @@ END SUB
 SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
  DIM i as integer
  DIM elem as integer
- DIM cap as STRING
  DIM col as integer
  DIM where as XYPair
 
- 'we actually calculate each menu item caption twice: once also in position_menu
+ 'Update the caption of each menu item
+ FOR i = 0 TO menu.numitems - 1
+  menu.items[i]->text = get_menu_item_caption(*menu.items[i], menu)
+ NEXT
+
  position_menu menu, page
  
  WITH menu.rect
@@ -868,12 +869,11 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
      IF state.pt = elem AND state.active THEN col = uilook(uiSelectedDisabled + state.tog)
     END IF
     IF NOT (.disabled AND .hide_if_disabled) THEN
-     cap = get_menu_item_caption(*menu.items[elem], menu)
-     position_menu_item menu, cap, i, where
+     position_menu_item menu, .text, i, where
      IF .t = 1 AND .sub_t = 11 THEN ' volume meter
       edgeboxstyle where.x, where.y, get_music_volume * 48, 10, menu.boxstyle, page, NO, YES
      END IF
-     edgeprint cap, where.x, where.y, col, page
+     edgeprint .text, where.x, where.y, col, page
     END IF
    END WITH
   END IF
@@ -899,7 +899,6 @@ END SUB
 
 SUB position_menu (menu as MenuDef, byval page as integer)
  DIM i as integer
- DIM cap as STRING
  DIM bord as integer
  bord = 8 + menu.bordersize
 
@@ -908,8 +907,7 @@ SUB position_menu (menu as MenuDef, byval page as integer)
 
  FOR i = 0 TO menu.numitems - 1
   WITH *menu.items[i]
-   cap = get_menu_item_caption(*menu.items[i], menu)
-   menu.rect.wide = large(menu.rect.wide, LEN(cap) * 8 + bord * 2)
+   menu.rect.wide = large(menu.rect.wide, LEN(.text) * 8 + bord * 2)
    IF .disabled AND .hide_if_disabled THEN CONTINUE FOR 'hidden matter for auto-width but not auto-height
    menu.rect.high = menu.rect.high + 10
   END WITH

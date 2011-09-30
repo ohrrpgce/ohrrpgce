@@ -40,9 +40,9 @@ DECLARE SUB draw_zone_tileset(BYVAL zonetileset AS Frame ptr)
 DECLARE SUB draw_zone_tileset2(BYVAL zonetileset AS Frame ptr)
 DECLARE SUB draw_zone_tileset3(BYVAL zonetileset AS Frame ptr)
 DECLARE SUB mapedit_doZoneHinting(st AS MapEditState, zmap AS ZoneMap)
-DECLARE SUB zonemenu_add_zone (zonemenu() as SimpleMenu, zonecolours() as integer, BYVAL info as ZoneInfo ptr)
+DECLARE SUB zonemenu_add_zone (zonemenu() as SimpleMenuItem, zonecolours() as integer, BYVAL info as ZoneInfo ptr)
 DECLARE FUNCTION mapedit_try_assign_colour_to_zone(BYVAL id as integer, zonecolours() as integer, viszonelist() as integer) as integer
-DECLARE SUB mapedit_update_visible_zones (st as MapEditState, zonemenu() as SimpleMenu, zonemenustate as MenuState, zmap as ZoneMap, lockedzonelist() as integer)
+DECLARE SUB mapedit_update_visible_zones (st as MapEditState, zonemenu() as SimpleMenuItem, zonemenustate as MenuState, zmap as ZoneMap, lockedzonelist() as integer)
 DECLARE SUB mapedit_edit_zoneinfo(BYREF st as MapEditState, zmap as ZoneMap)
 DECLARE SUB mapedit_zonespam(st as MapEditState, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
 DECLARE SUB draw_zone_minimap(st as MapEditState, tmap as TileMap, BYVAL bitnum as integer, BYVAL col as integer)
@@ -83,7 +83,7 @@ DECLARE SUB mapedit_delete(BYREF st AS MapEditState, mapnum AS INTEGER, map() AS
 DECLARE SUB link_one_door(BYREF st AS MapEditState, mapnum AS INTEGER, linknum AS INTEGER, link() AS DoorLink, doors() AS Door, map() AS TileMap, pass AS TileMap, gmap() AS INTEGER)
 DECLARE SUB mapedit_linkdoors (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS TileMap, pass AS TileMap, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink)
 DECLARE SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS INTEGER, map() AS TileMap)
-DECLARE SUB mapedit_makelayermenu(BYREF st AS MapEditState, menu() AS SimpleMenu, state AS MenuState, gmap() AS INTEGER, BYREF currentset AS INTEGER, visible() AS INTEGER, map() AS TileMap, itemsinfo() AS LayerMenuItem, BYVAL resetpt AS INTEGER, BYVAL selectedlayer AS INTEGER = 0)
+DECLARE SUB mapedit_makelayermenu(BYREF st AS MapEditState, menu() AS SimpleMenuItem, state AS MenuState, gmap() AS INTEGER, BYREF currentset AS INTEGER, visible() AS INTEGER, map() AS TileMap, itemsinfo() AS LayerMenuItem, BYVAL resetpt AS INTEGER, BYVAL selectedlayer AS INTEGER = 0)
 DECLARE SUB mapedit_insert_layer(BYREF st AS MapEditState, map() as TileMap, vis() AS INTEGER, gmap() AS INTEGER, BYVAL where AS INTEGER)
 DECLARE SUB mapedit_delete_layer(BYREF st AS MapEditState, map() as TileMap, vis() AS INTEGER, gmap() AS INTEGER, BYVAL which AS INTEGER)
 DECLARE SUB mapedit_swap_layers(BYREF st AS MapEditState, map() as TileMap, vis() AS INTEGER, gmap() AS INTEGER, BYVAL l1 AS INTEGER, BYVAL l2 AS INTEGER)
@@ -330,7 +330,7 @@ DIM drawing_allowed AS INTEGER     'Whether you can actually draw
 REDIM lockedzonelist(-1 TO -1) AS INTEGER 'The zones chosen to be always displayed. At most 8 (index 0 onwards, start at -1 for fake zero-length arrays) 
 DIM gauze_ticker AS INTEGER = 0  'for hidden zones animation
 'The floating menu that displays a list of zones. These are created and updated in mapedit_update_visible_zones
-REDIM zonemenu(0) AS SimpleMenu  
+REDIM zonemenu(0) AS SimpleMenuItem  
 DIM zonemenustate AS MenuState
 DIM zone_delete_tool as integer  'Whether Space should add or remove tiles
 
@@ -1549,7 +1549,7 @@ FUNCTION mapedit_try_assign_colour_to_zone(BYVAL id as integer, zonecolours() as
  LOOP
 END FUNCTION
 
-SUB zonemenu_add_zone (zonemenu() as SimpleMenu, zonecolours() as integer, BYVAL info as ZoneInfo ptr)
+SUB zonemenu_add_zone (zonemenu() as SimpleMenuItem, zonecolours() as integer, BYVAL info as ZoneInfo ptr)
  IF info = NULL THEN
   debug "zonemenu_add_zone: NULL zone"
   EXIT SUB
@@ -1567,11 +1567,11 @@ SUB zonemenu_add_zone (zonemenu() as SimpleMenu, zonecolours() as integer, BYVAL
   col = uilook(uiTextBox + 2 * col + 1)
  END IF
  IF info->name <> "" THEN extra += " " & info->name
- append_simplemenu_item zonemenu(), "${K" & col & "}" & info->id & "${K" & uilook(uiText) & "}" & extra, YES, , info->id
+ append_simplemenu_item zonemenu(), "${K" & col & "}" & info->id & "${K" & uilook(uiText) & "}" & extra, , , info->id
 END SUB
 
 'Rebuilds zonemenu() and st.zoneviewmap based on selected tile and lockedzonelist() 
-SUB mapedit_update_visible_zones (st as MapEditState, zonemenu() as SimpleMenu, zonemenustate as MenuState, zmap as ZoneMap, lockedzonelist() as integer)
+SUB mapedit_update_visible_zones (st as MapEditState, zonemenu() as SimpleMenuItem, zonemenustate as MenuState, zmap as ZoneMap, lockedzonelist() as integer)
 
  REDIM tilezonelist(-1 TO -1) as integer  'The zones at the current tile (index 0 onwards, start at -1 for fake zero-length arrays)
  REDIM viszonelist(-1 TO 0) as integer    'The currently displayed zones. At most 8. (index 0 onwards, start at -1 for fake zero-length arrays)
@@ -1612,13 +1612,13 @@ SUB mapedit_update_visible_zones (st as MapEditState, zonemenu() as SimpleMenu, 
  'Rebuild the menu
  REDIM zonemenu(-1 TO -1)
  IF UBOUND(lockedzonelist) >= 0 THEN
-  append_simplemenu_item zonemenu(), "Locked zones:", NO
+  append_simplemenu_item zonemenu(), "Locked zones:", YES
  END IF
  FOR i = 0 TO UBOUND(lockedzonelist)
   zonemenu_add_zone zonemenu(), st.zonecolours(), GetZoneInfo(zmap, lockedzonelist(i))
  NEXT
 
- append_simplemenu_item zonemenu(), iif_string(UBOUND(tilezonelist) >= 0, "Zones here:", "No zones here"), NO
+ append_simplemenu_item zonemenu(), iif_string(UBOUND(tilezonelist) >= 0, "Zones here:", "No zones here"), YES
  DIM tileliststart as integer = UBOUND(zonemenu) + 1
  FOR i = 0 TO UBOUND(tilezonelist)
   zonemenu_add_zone zonemenu(), st.zonecolours(), GetZoneInfo(zmap, tilezonelist(i))
@@ -2084,7 +2084,7 @@ END SUB
 
 SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS INTEGER, map() AS TileMap)
  DIM state AS MenuState
- REDIM menu(0) AS SimpleMenu
+ REDIM menu(0) AS SimpleMenuItem
  REDIM itemsinfo(0) AS LayerMenuItem
  
  DIM layerno AS INTEGER
@@ -2240,9 +2240,9 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
 
 END SUB
 
-SUB mapedit_makelayermenu_layer(BYREF st AS MapEditState, menu() AS SimpleMenu, gmap() AS INTEGER, visible() AS INTEGER, itemsinfo() AS LayerMenuItem, BYREF slot AS INTEGER, BYVAL layer AS INTEGER, BYREF needdefault AS INTEGER)
+SUB mapedit_makelayermenu_layer(BYREF st AS MapEditState, menu() AS SimpleMenuItem, gmap() AS INTEGER, visible() AS INTEGER, itemsinfo() AS LayerMenuItem, BYREF slot AS INTEGER, BYVAL layer AS INTEGER, BYREF needdefault AS INTEGER)
 
- menu(slot).enabled = NO
+ menu(slot).unselectable = YES
  menu(slot).text = "Tile layer " & layer
  slot += 1
 
@@ -2274,12 +2274,12 @@ SUB mapedit_makelayermenu_layer(BYREF st AS MapEditState, menu() AS SimpleMenu, 
  slot += 1
 END SUB
 
-SUB mapedit_makelayermenu(BYREF st AS MapEditState, menu() AS SimpleMenu, state AS MenuState, gmap() AS INTEGER, BYREF currentset AS INTEGER, visible() AS INTEGER, map() AS TileMap, itemsinfo() AS LayerMenuItem, BYVAL resetpt AS INTEGER, BYVAL selectedlayer AS INTEGER = 0)
+SUB mapedit_makelayermenu(BYREF st AS MapEditState, menu() AS SimpleMenuItem, state AS MenuState, gmap() AS INTEGER, BYREF currentset AS INTEGER, visible() AS INTEGER, map() AS TileMap, itemsinfo() AS LayerMenuItem, BYVAL resetpt AS INTEGER, BYVAL selectedlayer AS INTEGER = 0)
  REDIM menu(1 + 3 * (UBOUND(map) + 1) + 3)
  REDIM itemsinfo(1 + 3 * (UBOUND(map) + 1) + 3)
  state.last = UBOUND(menu)
  FOR i AS INTEGER = 0 TO UBOUND(menu)
-  menu(i).enabled = YES
+  menu(i).unselectable = NO
   menu(i).col = uilook(uiMenuItem)
   itemsinfo(i).layernum = -1
   itemsinfo(i).gmapindex = -1
@@ -2296,15 +2296,15 @@ SUB mapedit_makelayermenu(BYREF st AS MapEditState, menu() AS SimpleMenu, state 
  NEXT
 
  IF gmap(16) = 2 THEN '--keep heroes and NPCs together
-  menu(slot).enabled = NO
+  menu(slot).unselectable = YES
   menu(slot).col = uilook(uiSelectedDisabled)
   menu(slot).text = "Heroes & NPCs layer"
   slot += 1
  ELSE '--heroes and NPCs on different layers
-  menu(slot).enabled = NO
+  menu(slot).unselectable = YES
   menu(slot).col = uilook(uiSelectedDisabled)
   slot += 1
-  menu(slot).enabled = NO
+  menu(slot).unselectable = YES
   menu(slot).col = uilook(uiSelectedDisabled)
   slot += 1
   IF gmap(16) = 0 THEN
@@ -2321,7 +2321,7 @@ SUB mapedit_makelayermenu(BYREF st AS MapEditState, menu() AS SimpleMenu, state 
   mapedit_makelayermenu_layer st, menu(), gmap(), visible(), itemsinfo(), slot, i, needdefault
  NEXT
 
- menu(slot).enabled = NO
+ menu(slot).unselectable = YES
  menu(slot).col = uilook(uiSelectedDisabled)
  menu(slot).text = "Tile layer 0 overhead tiles (obsolete)"
  slot += 1
@@ -2330,7 +2330,7 @@ SUB mapedit_makelayermenu(BYREF st AS MapEditState, menu() AS SimpleMenu, state 
   menu(1).text += STR(gmap(0))
  ELSE
   menu(1).text += "(Not used)"
-  menu(1).enabled = NO
+  menu(1).unselectable = YES
   menu(1).col = uilook(uiDisabledItem)
  END IF
 

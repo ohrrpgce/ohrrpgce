@@ -65,7 +65,7 @@ DIM heroframe as integer
 DIM heropos as XYPair
 DIM room_to_hire as integer = NO
 DIM st as MenuState
-REDIM stuff(-1 TO -1) as SimpleMenu   ' .dat of each menu item is item index
+REDIM stuff(-1 TO -1) as SimpleMenuItem   ' .dat of each menu item is item index
 DIM itemno as integer   ' always equal to stuff(st.pt).dat
 DIM recordsize as integer = curbinsize(binSTF) \ 2 ' get size in INTs
 
@@ -145,7 +145,7 @@ DO
  IF usemenu(st) THEN GOSUB curinfo
  IF carray(ccMenu) > 1 THEN EXIT DO
  IF carray(ccUse) > 1 THEN '---PRESS ENTER---------------------
-  IF stuff(st.pt).enabled THEN '---CHECK TO SEE IF YOU CAN AFFORD IT---
+  IF stuff(st.pt).disabled = NO THEN '---CHECK TO SEE IF YOU CAN AFFORD IT---
    IF gam.stock(id, itemno) > 1 THEN gam.stock(id, itemno) -= 1
    settag b(itemno * recordsize + 22)
    gold = gold - b(itemno * recordsize + 24)
@@ -233,7 +233,7 @@ DO
  FOR i as integer = st.top TO small(st.top + st.size, UBOUND(stuff))
   DIM c as integer = uilook(uiMenuItem)
   IF st.pt = i THEN c = uilook(uiSelectedItem + tog)
-  IF stuff(i).enabled = 0 THEN c = uilook(uiDisabledItem): IF st.pt = i THEN c = uilook(uiMenuItem + tog)
+  IF stuff(i).disabled THEN c = uilook(uiDisabledItem): IF st.pt = i THEN c = uilook(uiMenuItem + tog)
   edgeprint stuff(i).text, 10, 15 + (i - st.top) * 10, c, page
  NEXT i
  draw_scrollbar st, left_panel, , page
@@ -279,19 +279,19 @@ FOR i as integer = 0 TO storebuf(16)
 
  DIM itemname as string = readbadbinstring(b(), i * recordsize, 16)
  append_simplemenu_item stuff(), itemname, , , i
- IF b(i * recordsize + 24) > gold THEN stuff(UBOUND(stuff)).enabled = NO
+ IF b(i * recordsize + 24) > gold THEN stuff(UBOUND(stuff)).disabled = YES
  loadtrades i, tradestf(), b(), recordsize
  FOR j as integer = 0 TO 3
   IF tradestf(j, 0) > -1 THEN
-   IF countitem(tradestf(j, 0) + 1) < tradestf(j, 1) THEN stuff(UBOUND(stuff)).enabled = NO
+   IF countitem(tradestf(j, 0) + 1) < tradestf(j, 1) THEN stuff(UBOUND(stuff)).disabled = YES
   END IF
  NEXT
  '---PREVENT PARTY OVERFLOW
  IF b(i * recordsize + 17) = 1 THEN
-  IF room_to_hire = NO THEN stuff(UBOUND(stuff)).enabled = NO
+  IF room_to_hire = NO THEN stuff(UBOUND(stuff)).disabled = YES
  END IF
 NEXT i
-init_menu_state st, stuff(), NO
+init_menu_state st, stuff()
 RETRACE
 
 curinfo:

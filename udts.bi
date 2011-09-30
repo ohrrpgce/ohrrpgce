@@ -173,13 +173,26 @@ TYPE MenuSet
   itemfile AS STRING
 END TYPE
 
+TYPE BasicMenuItem
+  text AS STRING
+  col AS INTEGER
+  unselectable AS INTEGER
+  disabled AS INTEGER  'Appear greyed out. Any other meaning of this depend on use 
+END TYPE
+
 MAKETYPE_DoubleList(MenuDefItem)
 MAKETYPE_DListItem(MenuDefItem)
 
-TYPE MenuDefItem
+TYPE MenuDefItem  'EXTENDS BasicMenuItem
+  'members copied from BasicMenuItem
+  text AS STRING  ' This is the caption actually displayed
+  col AS INTEGER
+  unselectable AS INTEGER
+  disabled AS INTEGER ' set at run-time based on .tag1 and .tag2
+
+  'Other members
   handle    AS INTEGER
-  disabled  AS INTEGER ' set at run-time based on .tag1 and .tag2
-  caption   AS STRING
+  caption   AS STRING  ' This is the caption as set in the menu editor/set menu item caption
   trueorder AS DListItem(MenuDefItem) ' contains next, prev
   t         AS INTEGER
   sub_t     AS INTEGER
@@ -238,10 +251,14 @@ TYPE MenuState
 END TYPE
 
 'For when a string array is too crude, but a MenuDef is overkill
-TYPE SimpleMenu
+TYPE SimpleMenuItem  'EXTENDS BasicMenuItem
+  'members copied from BasicMenuItem
   text AS STRING
-  enabled AS INTEGER
   col AS INTEGER
+  unselectable AS INTEGER
+  disabled AS INTEGER  'Appear greyed out. Other meaning of this depend on use 
+
+  'other members
   dat AS INTEGER  'For your own use
 END TYPE
 
