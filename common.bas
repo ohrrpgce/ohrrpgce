@@ -758,7 +758,7 @@ FUNCTION curbinsize (byval id as integer) as integer
  IF id = 6 THEN RETURN 64  'menuitem.bin
  IF id = 7 THEN RETURN 126 'uicolors.bin
  IF id = 8 THEN RETURN 412 '.say
- IF id = 9 THEN RETURN 32  '.n##
+ IF id = 9 THEN RETURN 34  '.n##
  IF id = 10 THEN RETURN 858 '.dt0
  IF id = 11 THEN RETURN 734 '.dt1
  IF id = 12 THEN RETURN 420 '.itm
@@ -3728,6 +3728,7 @@ SUB write_npc_int (npcdata as NPCType, byval intoffset as integer, byval n as in
    CASE 13: .scriptarg = n
    CASE 14: .vehicle = n
    CASE 15: .defaultzone = n
+   CASE 16: .defaultwallzone = n
    CASE ELSE
     debug "write_npc_int: " & intoffset & " is an invalid integer offset"
   END SELECT
@@ -3754,6 +3755,7 @@ FUNCTION read_npc_int (npcdata as NPCType, byval intoffset as integer) as intege
    CASE 13: RETURN .scriptarg
    CASE 14: RETURN .vehicle
    CASE 15: RETURN .defaultzone
+   CASE 16: RETURN .defaultwallzone
    CASE ELSE
     debug "read_npc_int: " & intoffset & " is an invalid integer offset"
   END SELECT

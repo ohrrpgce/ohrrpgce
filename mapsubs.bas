@@ -390,8 +390,10 @@ draw_zone_tileset3 zonetileset(2)
 
 DIM overlaytileset AS Frame ptr
 overlaytileset = frame_new(20, 20 * 160, , YES)
-fuzzyrect overlaytileset, 0, 1*20, 20, 20, uilook(uiHighlight)
-rectangle overlaytileset, 0, 6*20, 20, 20, uilook(uiDisabledItem)
+fuzzyrect overlaytileset, 0, 1*20, 20, 20, uilook(uiHighlight)  'Zone edit mode, and NPC movement zone
+fuzzyrect overlaytileset, 0, 2*20, 20, 20, uilook(uiHighlight2) 'NPC avoidance zone
+fuzzyrect overlaytileset, 0, 3*20, 20, 20, uilook(uiHighlight2) 'NPC avoidance zone (overriding movement zone)
+rectangle overlaytileset, 0, 6*20, 20, 20, uilook(uiDisabledItem)  '???
 
 'Tiles 10 - 15 are for the 'hidden zone' animation. I think it's easier on the eyes than 2 frame flickering.
 'Leave tiles 10-12 blank
@@ -1231,22 +1233,32 @@ DO
 
  '--npc display--
  IF st.editmode = npc_mode THEN
-  '--Determine restriction zone to display
-  oldzone = st.cur_npc_zone
+  '--Determine restriction zone to display (Ugh this is pretty ugly)
+  DIM oldzone as integer = st.cur_npc_zone
+  DIM oldwallzone as integer = st.cur_npc_wall_zone
   st.cur_npc_zone = 0
+  st.cur_npc_wall_zone = 0
   FOR i = 0 TO 299
    WITH st.npc_inst(i)
     IF .id > 0 AND .id <= st.num_npc_defs THEN
-     IF st.npc_def(.id - 1).defaultzone > 0 THEN
-      IF .x = st.x * 20 AND .y = st.y * 20 THEN st.cur_npc_zone = st.npc_def(.id - 1).defaultzone
+     IF .x = st.x * 20 AND .y = st.y * 20 THEN
+      WITH st.npc_def(.id - 1)
+       IF .defaultzone OR .defaultwallzone THEN
+        st.cur_npc_zone = .defaultzone
+        st.cur_npc_wall_zone = .defaultwallzone
+       END IF
+      END WITH
      END IF
     END IF
    END WITH
   NEXT i
-  IF oldzone <> st.cur_npc_zone OR npczone_needupdate THEN
+  IF oldzone <> st.cur_npc_zone OR oldwallzone <> st.cur_npc_wall_zone OR npczone_needupdate THEN
    CleanTilemap st.zoneoverlaymap, st.wide, st.high
    IF st.cur_npc_zone > 0 THEN
     ZoneToTilemap zmap, st.zoneoverlaymap, st.cur_npc_zone, 0
+   END IF
+   IF st.cur_npc_wall_zone > 0 THEN
+    ZoneToTilemap zmap, st.zoneoverlaymap, st.cur_npc_wall_zone, 1
    END IF
    npczone_needupdate = NO
    'We're reusing st.zoneoverlaymap

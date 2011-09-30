@@ -20,6 +20,8 @@ WHAT IS NEW?
         (Moved old Ctrl+S (paint the screen) to Ctrl+W (ie. paint the
         "window")) [Ralph]
     * New general bitset "Attacks will ignore extra hits stat" [James]
+    * NPCs can now be assigned avoidance (wall) zones as well as
+      movement zones. The avoidance zones have precedence. [Ralph]
 
   * Bugfixes
     * Wrong names used for reserve party heroes who level during

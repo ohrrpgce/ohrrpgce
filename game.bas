@@ -1379,12 +1379,21 @@ FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as N
    END IF
    '--Check for movement zones (treat the edges as walls)
    DIM zone as integer = npcdata.defaultzone
-   IF zone > 0 ANDALSO wrapzonetest(zone, npci.x, npci.y, npci.xgo, npci.ygo) THEN
+   IF zone > 0 ANDALSO wrapzonecheck(zone, npci.x, npci.y, npci.xgo, npci.ygo) = 0 THEN
     npci.xgo = 0
     npci.ygo = 0
     npchitwall(npci, npcdata)
     GOTO nogo
    END IF
+   '--Check for avoidance zones (treat as walls)
+   zone = npcdata.defaultwallzone
+   IF zone > 0 ANDALSO wrapzonecheck(zone, npci.x, npci.y, npci.xgo, npci.ygo) THEN
+    npci.xgo = 0
+    npci.ygo = 0
+    npchitwall(npci, npcdata)
+    GOTO nogo
+   END IF
+
   END IF
   IF readbit(gen(), genSuspendBits, suspendobstruction) = 0 AND npci.not_obstruction = 0 THEN
    '--this only happens if obstruction is on
@@ -1712,7 +1721,7 @@ WITH scrat(nowscript)
    CASE 77'--show value
     scriptout = STR(retvals(0))
    CASE 78'--alter NPC
-    IF bound_arg(retvals(1), 0, 15, "NPCstat: constant") THEN
+    IF bound_arg(retvals(1), 0, 16, "NPCstat: constant") THEN
      DIM npcid as integer = get_valid_npc_id(retvals(0), 4)
      IF npcid <> -1 THEN
       DIM as integer writesafe = 1

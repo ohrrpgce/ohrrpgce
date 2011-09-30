@@ -241,6 +241,7 @@ TYPE MapEditState
   zonecolours(7) AS INTEGER  'The zone assigned to each colour, or 0. Includes "memories" of zones not currently displayed
   'Zone stuff (npc_mode)
   cur_npc_zone AS INTEGER    'Movement zone for currently selected NPC in NPC placer
+  cur_npc_wall_zone AS INTEGER 'Avoidance zone for currently selected NPC in NPC placer
 
 END TYPE
 

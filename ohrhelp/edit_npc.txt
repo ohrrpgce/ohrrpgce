@@ -53,3 +53,5 @@ Script Argument: If you have specified a plotscript, you can also provide a numb
 Vehicle: This allows you to turn this NPC into a vehicle. Activating the NPC will cause you to mount the vehicle. See the Edit Vehicles menu (from the Main Menu) for more info.
 
 Movement Zone: this restricts this NPC to only move onto tiles that are in a certain zone.
+
+Avoidance Zone: the NPC treats tiles in this zone as walls. This overrides the movement zone.

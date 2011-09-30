@@ -3105,7 +3105,7 @@ SELECT CASE as CONST id
   NEXT i
   IF retvals(2) = -1 THEN scriptret = found
  CASE 182'--read NPC
-  IF bound_arg(retvals(1), 0, 15, "NPCstat: constant") THEN
+  IF bound_arg(retvals(1), 0, 16, "NPCstat: constant") THEN
    DIM npcid as integer = get_valid_npc_id(retvals(0), 4)
    IF npcid <> -1 THEN
     scriptret = GetNPCD(npcs(npcid), retvals(1))
@@ -3457,14 +3457,14 @@ FUNCTION wrappass (byval x as integer, byval y as integer, byref xgo as integer,
 
 END FUNCTION
 
-FUNCTION wrapzonetest (byval zone as integer, byval x as integer, byval y as integer, byval xgo as integer, byval ygo as integer) as integer
+FUNCTION wrapzonecheck (byval zone as integer, byval x as integer, byval y as integer, byval xgo as integer, byval ygo as integer) as integer
  'x, y in pixels
  'Warning: always wraps! But that isn't a problem on non-wrapping maps.
 
  x -= xgo
  y -= ygo
  wrapxy (x, y, mapsizetiles.x * 20, mapsizetiles.y * 20)
- RETURN (CheckZoneAtTile(zmap, zone, x \ 20, y \ 20) = 0)
+ RETURN CheckZoneAtTile(zmap, zone, x \ 20, y \ 20)
 END FUNCTION
 
 FUNCTION wrapcollision (byval xa as integer, byval ya as integer, byval xgoa as integer, byval ygoa as integer, byval xb as integer, byval yb as integer, byval xgob as integer, byval ygob as integer) as integer

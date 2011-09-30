@@ -271,7 +271,8 @@ END TYPE
 
 DECLARE_VECTOR_OF_TYPE(SimpleMenuItem, SimpleMenuItem)
 
-'Warning: when editing NPCType, consider Get/SetNPCD and serialization disasters
+'Warning: when editing NPCType, consider updating read/write_npc_int and serialization disasters
+'including updating readnpc, alternpc, plotscr.hsd constants, and plotdict.xml
 TYPE NPCType
   picture as integer     '+0
   palette as integer     '+1
@@ -289,6 +290,7 @@ TYPE NPCType
   scriptarg as integer   '+13
   vehicle as integer     '+14
   defaultzone as integer '+15
+  defaultwallzone as integer '+16
   sprite as frame ptr
   pal as palette16 ptr
 END TYPE

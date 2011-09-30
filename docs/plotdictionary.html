@@ -404,6 +404,9 @@
 		<a href="#about-do">do</a><br>
 		
 	
+		<a href="#about-doorexists">door exists (number)</a><br>
+		
+	
 		
 		<a href="#about-directionconstants">down</a><br>
 	
@@ -563,6 +566,9 @@
 		<a href="#about-getambientmusic">get ambient music</a><br>
 		
 	
+		<a href="#about-getattackcaption">get attack caption (ID, attack)</a><br>
+		
+	
 		
 		<a href="#about-readattackname">get attack name</a><br>
 	
@@ -582,6 +588,18 @@
 		
 	
 		<a href="#about-getdefaultweapon">get default weapon (hero)</a><br>
+		
+	
+		<a href="#about-getdoordestinationid">get door destination id (number)</a><br>
+		
+	
+		<a href="#about-getdoordestinationmap">get door destination map (number)</a><br>
+		
+	
+		<a href="#about-getdoorx">get door x (number)</a><br>
+		
+	
+		<a href="#about-getdoory">get door y (number)</a><br>
 		
 	
 		<a href="#about-geteachstepscript">get each step script</a><br>
@@ -2549,7 +2567,7 @@ wait for camera # wait until he's on screen</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">wait for all</font></b><br>
-			Waits for any camera motion to stop, waits for all heroes to stop walking, and if <a href="#about-suspendnpcs" class="ref">suspend NPCs</a> is active, waits for all NPCs to stop walking. Warning! In all versions older than July 6 2011, <span class="param">wait for all</span> did not correctly wait for NPC movement. It was effectively broken, since it did not actually wait for all movement. Also be aware that <span class="param">wait for all</span> does NOT wait for text boxes.<br>
+			Waits for any camera motion to stop, waits for all heroes to stop walking, and if <a href="#about-suspendnpcs" class="ref">suspend NPCs</a> is active, waits for all NPCs to stop walking. Warning! In all versions older than July 6 2010, <span class="param">wait for all</span> did not correctly wait for NPC movement. It was effectively broken, since it did not actually wait for all movement. Also be aware that <span class="param">wait for all</span> does NOT wait for text boxes.<br>
 			<pre># do a bunch of things all at once
 wait for all # wait until everything is done</pre>
 			
@@ -2915,6 +2933,58 @@ resume player # ok, done</pre>
 		<b><font color="yellow">use door (number)</font></b><br>
 			Instantly uses the numbered door, just as if you had stepped into it. <div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">An automatic <a href="#about-wait" class="ref">wait</a>(1) occurs immediately after this command.<br clear="all">
+</div>
+<br>
+			
+			
+		</tt></p>
+		<a name="about-doorexists"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">door exists (number)</font></b><br>
+			Returns <a href="#about-booleanconstants" class="ref">true</a> if there is a door with ID <span class="param">number</span> on the current map. This command is useful for avoiding script errors due to invalid door IDs.<br>
+			
+			
+		</tt></p>
+		<a name="about-getdoorx"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get door x (number)</font></b><br>
+			Returns the x coordinate (in tiles) of the numbered door.<br>
+			
+			
+		</tt></p>
+		<a name="about-getdoory"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get door y (number)</font></b><br>
+			Returns the y coordinate (in tiles) of the numbered door.<br>
+			
+			
+		</tt></p>
+		<a name="about-getdoordestinationid"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get door destination id (number)</font></b><br>
+			Returns the door id of the door linked to by the numbered door. To get the door's location, use <a href="#about-getdoorx" class="ref">get door x</a> and <a href="#about-getdoory" class="ref">get door y</a> when the player is on the destination map. If door <span class="param">number</span> does not exist, or is not currently linked to any other door, then -1 is returned. <div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">A door's destination can vary depending on the current game state. Check your doorlinks if you get unexpected results!<br clear="all">
+</div>
+<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-getdoorx" class="ref">get door x</a>, </li>
+<li>
+<a href="#about-getdoory" class="ref">get door y</a>, </li>
+<li><a href="#about-getdoordestinationmap" class="ref">get door destination map</a></li>
+</ul>
+		</tt></p>
+		<a name="about-getdoordestinationmap"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get door destination map (number)</font></b><br>
+			Returns the map id of the door linked to by the numbered door. If door <span class="param">number</span> does not exist, or is not currently linked to any other door, then -1 is returned. <div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">A door's destination can vary depending on the current game state. Check your doorlinks if you get unexpected results!<br clear="all">
 </div>
 <br>
 			
@@ -4372,6 +4442,18 @@ get hero name (1,find hero(hero by rank(0)))
 </div>
 			<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">This command replaces the old <span class="param">get attack name</span> which required you to use <span class="param">atk:name -- 2</span> or the attack id number <span class="param">-- 1</span><br clear="all">
+</div>
+			<br>
+			
+			
+		</tt></p>
+		<a name="about-getattackcaption"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get attack caption (ID, attack)</font></b><br>
+			This command will take the caption of <span class="param">attack</span> and stick it in string #<span class="param">ID</span>, overwriting its contents. Use the <span class="param">atk:name</span> constants from your HSI file.
+			<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">If you want to use this command with attack ID numbers, you must add 1 to the ID number.<br clear="all">
 </div>
 			<br>
 			
@@ -7438,7 +7520,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">slice collide (handle1, handle2)</font></b><br>
-			Given a pair of slice handles, return true if they collide with one another. Parent/child relationships have nothing to do with this test; it does not matter if the slices are related.<br>
+			Given a pair of slice handles, return true if their screen positions overlap with one another (even if one or both are off the edge of the screen or hidden). Parent/child relationships have nothing to do with this test; it does not matter if the slices are related.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -7450,7 +7532,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">slice contains (handle1, handle2)</font></b><br>
-			Return true if the screen position of slice <span class="param">handle2</span> is completely inside slice <span class="param">handle1</span>. Parent/child relationships have nothing to do with this test; it does not matter if the slices are related.<br>
+			Return true if the screen position of slice <span class="param">handle2</span> is completely inside slice <span class="param">handle1</span> (even if one or both are off the edge of the screen or hidden). Parent/child relationships have nothing to do with this test; it does not matter if the slices are related.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-slicecollide" class="ref">slice collide</a></li></ul>
 		</tt></p>
@@ -7458,7 +7540,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">slice at pixel (parent, x, y, number, check descendants)</font></b><br>
-			Searches through all the descendants of <span class="param">parent</span> for slices containing the given <span class="param">x</span>, <span class="param">y</span> pixel screen position. To search all your slices, you can normally use <a href="#about-spritelayer" class="ref">sprite layer</a> as <span class="param">parent</span>. <span class="param">number</span> is an optional argument indicating which slice to return if there is more than one at that point; the bottom most one (returned by default) is number 0. slice at pixel returns 0 if you pass too high a <span class="param">number</span>. If you pass <a href="#about-getcount" class="ref">get count</a> as <span class="param">number</span> the number of slices at that pixel is returned instead. <span class="param">check descendants</span> is an optional argument defaulting to true. If false, then only <span class="param">parent</span>'s children will be checked, not all its descendants. This command never returns Special slices, such as the sprite layer slice.<br>
+			Searches through all the descendants of <span class="param">parent</span> for slices containing the given <span class="param">x</span>, <span class="param">y</span> pixel screen position. To search all your slices, you can normally use <a href="#about-spritelayer" class="ref">sprite layer</a> as <span class="param">parent</span>. <span class="param">number</span> is an optional argument indicating which slice to return if there is more than one at that point; the bottom most one (returned by default) is number 0. slice at pixel returns 0 if <span class="param">number</span> is too large (larger than or equal to the number of overlapping slices). If you pass <a href="#about-getcount" class="ref">get count</a> as <span class="param">number</span> the number of slices at that pixel is returned instead. <span class="param">check descendants</span> is an optional argument defaulting to true. If false, then only <span class="param">parent</span>'s children will be checked, not all its descendants. This command never returns Special slices, such as the sprite layer slice.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -7470,7 +7552,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">find colliding slice (parent, slice, number, check descendants)</font></b><br>
-			Searches through all the descendants of <span class="param">parent</span> for slices colliding with the given <span class="param">slice</span> (by screen position). To search all your slices, you can normally use <a href="#about-spritelayer" class="ref">sprite layer</a> as <span class="param">parent</span>. <span class="param">number</span> is an optional argument indicating which slice to return if there is more than one at that point; the bottom most one (returned by default) is number 0. slice at pixel returns 0 if you pass too high a <span class="param">number</span>. If you pass <a href="#about-getcount" class="ref">get count</a> as <span class="param">number</span> the number of slices at that pixel is returned instead. <span class="param">check descendants</span> is an optional argument defaulting to true. If false, then only <span class="param">parent</span>'s children will be checked, not all its descendants. This command never returns Special slices, such as the sprite layer slice, and ignores collisions with the children of <span class="param">slice</span>.<br>
+			Searches through all the descendants of <span class="param">parent</span> for slices colliding (intersecting) with the given <span class="param">slice</span> (by screen position). To search all your slices, you can normally use <a href="#about-spritelayer" class="ref">sprite layer</a> as <span class="param">parent</span>. <span class="param">number</span> is an optional argument indicating which slice to return if there is more than one at that point; the bottom most one (returned by default) is number 0. 0 is returned if <span class="param">number</span> is too large (larger than or equal to the number of overlapping slices). If you pass <a href="#about-getcount" class="ref">get count</a> as <span class="param">number</span> the number of overlapping slices is returned instead. <span class="param">check descendants</span> is an optional argument defaulting to true. If false, then only <span class="param">parent</span>'s children will be checked, not all its descendants. This command never returns Special slices, such as the sprite layer slice, nor will it return <span class="param">slice</span> or any of its descendants.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -9355,6 +9437,7 @@ Besides readability, there is one other important difference between these two e
 <li>Alter NPC (who,NPCstat:script argument,number)</li>
 <li>Alter NPC (who,NPCstat:vehicle,vehicle ID+1)</li>
 <li>Alter NPC (who,NPCstat:default movement zone,zone ID)</li>
+<li>Alter NPC (who,NPCstat:default avoidance zone,zone ID)</li>
 </ul>Normally you would only give an NPC ID number to alter NPC, but if you want to use an <a href="#about-npcreference" class="ref">NPC reference</a> it will still work. Just remember that alter NPC changes every copy of the NPC on the map, not just the specific one you referenced.<br>A good way to make use of Alter NPC is to wrap it in your own script. For example:
 		<pre># Example AlterNPC wrapper for changing NPC appearance
 
@@ -10734,7 +10817,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 743 commands in this file, of which 56 are only references to other commands.</p>
+	<p>Stats: There are 749 commands in this file, of which 56 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

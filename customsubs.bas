@@ -932,8 +932,8 @@ SUB edit_npc (npcdata AS NPCType, zmap AS ZoneMap)
  DIM walk AS INTEGER = 0
  DIM tog AS INTEGER = 0
 
- DIM unpc(15) AS INTEGER, lnpc(15) AS INTEGER
- DIM menucaption(15) AS STRING
+ DIM unpc(16) AS INTEGER, lnpc(16) AS INTEGER
+ DIM menucaption(16) AS STRING
 
  DIM state AS MenuState
  state.size = 24
@@ -959,6 +959,7 @@ SUB edit_npc (npcdata AS NPCType, zmap AS ZoneMap)
  unpc(13) = 32767
  unpc(14) = gen(genMaxVehicle) + 1  'max vehicles
  unpc(15) = 9999  'zones
+ unpc(16) = 9999  'zones
 
  FOR i = 0 TO UBOUND(lnpc)
   lnpc(i) = 0
@@ -984,6 +985,7 @@ SUB edit_npc (npcdata AS NPCType, zmap AS ZoneMap)
  menucaption(13) = "Script Argument"
  menucaption(14) = "Vehicle: "
  menucaption(15) = "Movement Zone:"
+ menucaption(16) = "Avoidance Zone:"
  DIM movetype(8) AS STRING
  movetype(0) = "Stand Still"
  movetype(1) = "Wander"
@@ -1090,6 +1092,8 @@ SUB edit_npc (npcdata AS NPCType, zmap AS ZoneMap)
     END IF
    CASE 15
     intgrabber(npcdata.defaultzone, lnpc(state.pt), unpc(state.pt))
+   CASE 16
+    intgrabber(npcdata.defaultwallzone, lnpc(state.pt), unpc(state.pt))
    CASE -1' previous menu
     IF enter_or_space() THEN EXIT DO
   END SELECT
@@ -1143,25 +1147,31 @@ SUB edit_npc (npcdata AS NPCType, zmap AS ZoneMap)
      ELSE
       caption = vehiclename
      END IF
-    CASE 15 'zone
+    CASE 15 'default movement zone
      IF npcdata.defaultzone = 0 THEN
       caption = " None"
      ELSE
       caption += " " & GetZoneInfo(zmap, npcdata.defaultzone)->name
      END IF
+    CASE 16 'default avoidance zone
+     IF npcdata.defaultwallzone = 0 THEN
+      caption = " None"
+     ELSE
+      caption += " " & GetZoneInfo(zmap, npcdata.defaultwallzone)->name
+     END IF
    END SELECT
    printstr menucaption(i) + caption, 0, 8 + (8 * i), dpage
   NEXT i
-  edgebox 9, 139, 22, 22, uilook(uiDisabledItem), uilook(uiText), dpage
-  frame_draw npcdata.sprite + 4 + (walk \ 2), npcdata.pal, 10, 140, 1, YES, dpage
+  edgebox 9, 149, 22, 22, uilook(uiDisabledItem), uilook(uiText), dpage
+  frame_draw npcdata.sprite + 4 + (walk \ 2), npcdata.pal, 10, 150, 1, YES, dpage
   appearstring = "Appears if tag " & ABS(npcdata.tag1) & " = " & onoroff$(npcdata.tag1) & " and tag " & ABS(npcdata.tag2) & " = " & onoroff$(npcdata.tag2)
   IF npcdata.tag1 <> 0 AND npcdata.tag2 = 0 THEN appearstring = "Appears if tag " & ABS(npcdata.tag1) & " = " & onoroff$(npcdata.tag1)
   IF npcdata.tag1 = 0 AND npcdata.tag2 <> 0 THEN appearstring = "Appears if tag " & ABS(npcdata.tag2) & " = " & onoroff$(npcdata.tag2)
   IF npcdata.tag1 = 0 AND npcdata.tag2 = 0 THEN appearstring = "Appears all the time"
+  textcolor uilook(uiSelectedItem2), uiLook(uiHighlight)
+  printstr boxpreview, 0, 177, dpage
   textcolor uilook(uiSelectedItem2), 0
   printstr appearstring, 0, 190, dpage
-  textcolor uilook(uiSelectedItem2), uiLook(uiHighlight)
-  printstr boxpreview, 0, 170, dpage
   SWAP vpage, dpage
   setvispage vpage
   dowait
