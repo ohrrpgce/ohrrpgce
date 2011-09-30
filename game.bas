@@ -1147,7 +1147,7 @@ SUB update_walkabout_npc_slices()
     '--default NPC sort is by instance id
     npc(i).sl->Sorter = i
    END IF
-  ELSEIF npc(i).id < 0 THEN
+  ELSEIF npc(i).id <= 0 THEN
    '--remove unused and hidden NPC slices
    IF npc(i).sl <> 0 THEN
     debug "Sloppy housekeeping: delete npc sl " & i & " [update_walkabout_npc_slices]"
@@ -1191,7 +1191,7 @@ END SUB
 'NPC movement
 'Note that NPC xgo and ygo can also be set from elsewhere, eg. being pushed
 SUB update_npcs ()
- FOR o as integer = 0 TO 299
+ FOR o as integer = 0 TO UBOUND(npc)
   IF npc(o).id > 0 THEN
    DIM as integer id = (npc(o).id - 1)
 
@@ -1302,7 +1302,7 @@ SUB perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as NPCTyp
   END IF
   IF readbit(gen(), 44, suspendobstruction) = 0 AND npci.not_obstruction = 0 THEN
    '--this only happens if obstruction is on
-   FOR i as integer = 0 TO 299
+   FOR i as integer = 0 TO UBOUND(npc)
     IF npc(i).id > 0 AND npcnum <> i AND npc(i).not_obstruction = 0 THEN
      IF wrapcollision (npc(i).x, npc(i).y, npc(i).xgo, npc(i).ygo, npci.x, npci.y, npci.xgo, npci.ygo) THEN
       npci.xgo = 0
@@ -3266,9 +3266,9 @@ SUB recreate_map_slices()
  'moving from one map to another, but not when a battle ends. (same as when
  'the map autorun script is triggered)
 
- 'First free all NPC slices because we can't guarantee that they will be
- 'freed when the map slices are freed, even though in normal circumstances
- 'they will all be freed. (and we must do this unconditionally, even if
+ 'First free all NPC slices because we need to make sure the npc(i).sl's
+ 'don't point to deleted memory, though they would all be deleted anyway,
+ 'but not soon enough. (and we must do this unconditionally, even if
  'the preference for recreating map slices is turned OFF)
  FOR i as integer = 0 TO UBOUND(npc)
   DeleteSlice @npc(i).sl

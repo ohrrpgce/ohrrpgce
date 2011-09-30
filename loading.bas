@@ -20,6 +20,7 @@
 #include "reload.bi"
 #include "reloadext.bi"
 #include "os.bi"
+#include "slices.bi"
 
 USING RELOAD
 USING RELOAD.EXT
@@ -273,25 +274,12 @@ SUB DeserNPCL(npc() as NPCInst, byref z as integer, buffer() as integer, byval n
 END SUB
 
 SUB CleanNPCInst(byref inst as NPCInst)
-  WITH inst
-   .x = 0
-   .y = 0
-   .id = 0
-   .dir = 0
-   .frame = 0
-   .xgo = 0
-   .ygo = 0
-   .extra(0) = 0
-   .extra(1) = 0
-   .extra(2) = 0
-  END WITH
+  DeleteSlice @inst.sl
+  memset @inst, 0, sizeof(NPCInst)
 END SUB
 
-SUB CleanNPCL(dat() as NPCInst, byval num as integer=-1)
-  'Num is the count of elements to erase, or -1 to autodetect the size of the array
-  DIM i as integer
-  IF num = -1 THEN num = UBOUND(dat) + 1
-  FOR i = 0 to num - 1
+SUB CleanNPCL(dat() as NPCInst)
+  FOR i as integer = 0 TO UBOUND(dat)
    CleanNPCInst dat(i)
   NEXT
 END SUB
@@ -375,7 +363,8 @@ SUB load_npc_locations (byval npcs_node as NodePtr, npc() as NPCInst)
  FOR i as integer = 0 TO UBOUND(npc)
   WITH npc(i)
    '--disable/hide this NPC by default
-   .id = 0
+   CleanNPCInst npc(i)
+
    DIM n as NodePtr
    n = NodeByPath(npcs_node, "/npc[" & i & "]")
    IF n THEN

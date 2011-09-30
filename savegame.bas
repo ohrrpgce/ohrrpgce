@@ -431,6 +431,8 @@ SUB gamestate_npcs_from_reload(byval parent as Reload.NodePtr, byval map as inte
  DIM map_offset as XYPair
  map_offset = load_map_pos_save_offset(map)
 
+ CleanNPCL npc()
+
  DIM i as integer
  DIM n as NodePtr
  rsav_check_children_names(node, "npc")

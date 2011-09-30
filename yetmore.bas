@@ -598,15 +598,16 @@ NEXT o
 END SUB
 
 SUB visnpc()
+ 'Hide/Unhide NPCs based on tag requirements. (No other function should do so)
  'This SUB will be called when a map is incompletely loaded (NPC instances before definitions
  'or vice versa), and that's hard to avoid, because a script could load them with two separate loadmapstate
  'calls. So we must tolerate invalid NPC IDs and anything else. So here we mark all NPCs as hidden which
  'would otherwise cause problems
 
- DIM npc_id as integer
- 
  FOR i as integer = 0 TO UBOUND(npc)
-  npc_id = ABS(npc(i).id) - 1
+  IF npc(i).id = 0 THEN CONTINUE FOR
+
+  DIM npc_id as integer = ABS(npc(i).id) - 1
 
   IF npc_id > UBOUND(npcs) THEN
    'Invalid ID number; hide. Probably a partially loaded map.
@@ -614,14 +615,11 @@ SUB visnpc()
    CONTINUE FOR
   END IF
  
-  IF npc(i).id <> 0 THEN
-   '--npc exist but may be visible or invisible
-   '--check tags
-   IF istag(npcs(npc_id).tag1, 1) ANDALSO istag(npcs(npc_id).tag2, 1) ANDALSO istag(1000 + npcs(npc_id).usetag, 0) = 0 THEN
-    npc(i).id = npc_id + 1
-   ELSE
-    npc(i).id = -npc_id - 1
-   END IF
+  '--check tags
+  IF istag(npcs(npc_id).tag1, 1) ANDALSO istag(npcs(npc_id).tag2, 1) ANDALSO istag(1000 + npcs(npc_id).usetag, 0) = 0 THEN
+   npc(i).id = npc_id + 1
+  ELSE
+   npc(i).id = -npc_id - 1
   END IF
   
   IF npc(i).id > 0 THEN
@@ -629,11 +627,11 @@ SUB visnpc()
    IF npc(i).sl = 0 THEN
     npc(i).sl = create_walkabout_slices(npc_layer())
     'debug "npc(" & i & ").sl=" & npc(i).sl & " [visnpc]"
+    '--set sprite
+    set_walkabout_sprite npc(i).sl, npcs(npc_id).picture, npcs(npc_id).palette
    END IF
-   '--set sprite
-   set_walkabout_sprite npc(i).sl, npcs(npc_id).picture, npcs(npc_id).palette
   ELSE
-   '--nonexistent or hidden
+   '--hidden
    IF npc(i).sl <> 0 THEN
     'debug "delete npc sl " & i & " [visnpc]"
     DeleteSlice @npc(i).sl
@@ -3058,6 +3056,7 @@ SELECT CASE as CONST id
     END IF
    END IF
    IF i > -1 THEN
+    'This deletes the walkabout slice
     CleanNPCInst npc(i)
     DIM npc_id as integer = retvals(0)
     npc(i).id = npc_id + 1
@@ -3065,10 +3064,6 @@ SELECT CASE as CONST id
     npc(i).x = retvals(1) * 20
     npc(i).y = retvals(2) * 20
     npc(i).dir = ABS(retvals(3)) MOD 4
-    IF npc(i).sl <> 0 THEN
-     'debug "delete npc sl " & i & "[create npc(" & retvals(0) & ")]"
-     DeleteSlice @npc(i).sl
-    END IF
     npc(i).sl = create_walkabout_slices(npc_layer())
     set_walkabout_sprite npc(i).sl, npcs(npc_id).picture, npcs(npc_id).palette
     set_walkabout_vis npc(i).sl, YES
@@ -3079,11 +3074,8 @@ SELECT CASE as CONST id
  CASE 126 '--destroy NPC
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
-   npc(npcref).id = 0
-   IF npc(npcref).sl <> 0 THEN
-    'debug "delete npc sl " & npcref & "[destroy npc(" & retvals(0) & ")]"
-    DeleteSlice @npc(npcref).sl
-   END IF
+   'This deletes the walkabout slice
+   CleanNPCInst npc(npcref)
   END IF
  CASE 165'--NPC at pixel
   scriptret = 0

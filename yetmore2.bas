@@ -758,7 +758,7 @@ SUB reloadmap_npcl(byval merge as integer)
     'don't overwrite it.
     IF npc(i).id <> npcbase(i).id AND npcnew(i).id = 0 THEN CONTINUE FOR
     'Otherwise Custom has priority
-    DeleteSlice @npc(i).sl  
+    CleanNPCInst npc(i)
     npc(i) = npcnew(i)
    END IF
   NEXT

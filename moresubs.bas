@@ -1095,7 +1095,7 @@ scriptout = ""
 '--return gen to defaults
 xbload game + ".gen", gen(), "General data is missing from " + sourcerpg
 
-CleanNPCL npc(),300
+CleanNPCL npc()
 flusharray tag(), 126, 0
 flusharray hero(), 40, 0
 FOR i as integer = 0 TO 40

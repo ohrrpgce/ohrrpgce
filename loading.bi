@@ -35,7 +35,7 @@ declare sub LoadNPCL(file as string, dat() as npcinst)
 declare sub SaveNPCL(file as string, dat() as npcinst)
 declare sub DeserNPCL(npc() as npcinst, byref z as integer, buffer() as integer, byval num as integer, byval xoffset as integer, byval yoffset as integer)
 declare sub CleanNPCInst(inst as NPCInst)
-declare sub CleanNPCL(dat() as npcinst, byval num as integer=-1)
+declare sub CleanNPCL(dat() as npcinst)
 
 declare Sub SaveInventory16bit(invent() as InventSlot, byref z as integer, buf() as integer, byval first as integer=0, byval last as integer=-1)
 declare Sub LoadInventory16Bit(invent() as InventSlot, byref z as integer, buf() as integer, byval first as integer=0, byval last as integer=-1)
