@@ -59,7 +59,7 @@ END TYPE
 
 '==============================================================================
 
-DIM SHARED editable_slice_types(5) as SliceTypes
+REDIM SHARED editable_slice_types(5) as SliceTypes
 editable_slice_types(0) = SlContainer
 editable_slice_types(1) = SlRectangle
 editable_slice_types(2) = SlSprite
@@ -121,22 +121,22 @@ DECLARE SUB sliceed_rule_none(rules() as EditRule, helpkey as String, byval grou
 
 '==============================================================================
 
-DIM SHARED HorizCaptions(2) as string
+REDIM SHARED HorizCaptions(2) as string
 HorizCaptions(0) = "Left"
 HorizCaptions(1) = "Center"
 HorizCaptions(2) = "Right"
-DIM SHARED VertCaptions(2) as string
+REDIM SHARED VertCaptions(2) as string
 VertCaptions(0) = "Top"
 VertCaptions(1) = "Center"
 VertCaptions(2) = "Bottom"
 REDIM SHARED BorderCaptions(-2 TO -1) as string
 BorderCaptions(-2) = "None"
 BorderCaptions(-1) = "Line"
-DIM SHARED TransCaptions(0 TO 2) as string
+REDIM SHARED TransCaptions(0 TO 2) as string
 TransCaptions(0) = "Solid"
 TransCaptions(1) = "Fuzzy"
 TransCaptions(2) = "Hollow"
-DIM SHARED AutoSortCaptions(0 TO 5) as string
+REDIM SHARED AutoSortCaptions(0 TO 5) as string
 AutoSortCaptions(0) = "None"
 AutoSortCaptions(1) = "Custom"
 AutoSortCaptions(2) = "by Y"
