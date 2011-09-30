@@ -2086,8 +2086,8 @@ FUNCTION valid_menuslot_and_mislot(byval menuslot as integer, byval mislot as in
  RETURN NO
 END FUNCTION
 
-FUNCTION valid_plotstr(byval n as integer) as integer
- RETURN bound_arg(n, 0, UBOUND(plotstr), "string ID")
+FUNCTION valid_plotstr(byval n as integer, byval errlvl as integer=4) as integer
+ RETURN bound_arg(n, 0, UBOUND(plotstr), "string ID", , , errlvl)
 END FUNCTION
 
 FUNCTION valid_formation(byval form as integer) as integer
@@ -2103,6 +2103,16 @@ END FUNCTION
 
 FUNCTION valid_zone(byval id as integer) as integer
  RETURN bound_arg(id, 1, 9999, "zone ID", , , 5)
+END FUNCTION
+
+FUNCTION valid_door(byval id as integer) as integer
+ IF bound_arg(id, 0, UBOUND(gam.map.door), "door", , , 5) = NO THEN RETURN NO
+ IF readbit(gam.map.door(id).bits(), 0, 0) = 0 THEN
+  'Door doesn't exist
+  scripterr commandname(curcmd->value) & ": invalid door id " & id, 5
+  RETURN NO
+ END IF
+ RETURN YES
 END FUNCTION
 
 FUNCTION valid_tile_pos(byval x as integer, byval y as integer) as integer

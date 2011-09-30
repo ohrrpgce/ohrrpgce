@@ -1487,7 +1487,7 @@ script, string tests, begin
   assert(string compare(1,2))
   
   $1="Attack self"
-  read attack caption(2, 0 + 1)
+  get attack caption(2, 0 + 1)
   assert(string compare(1,2))
 end
 
@@ -1499,7 +1499,11 @@ script, door tests, begin
   assert(get door y(0) == 5)
   assert(get door destination id(0) == 1)
   assert(get door destination map(0) == 4)
-  assert(door is active(0))
+  assert(door exists(0))
+  assert(get door destination id(1) == -1)
+  assert(get door destination map(1) == -1)
+  assert(door exists(1))
+  assert(door exists(2) == false)
 end
 
 ########################################################################

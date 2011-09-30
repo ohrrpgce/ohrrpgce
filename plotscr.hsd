@@ -206,16 +206,16 @@ define function, begin
 197,playsound,3,1,0,0       # plays an sfx (num, loop?, preempt?)
 198,pausesound,1,1          # pauses an sfx (num) (stop, but don't rewind)
 199,stopsound,1,1           # stops an sfx (num)  (stop, and rewind)
-200,system hour,0
-201,system minute,0
-202,system second,0
-203,current song,0
-204,get hero name,2,0,0	    # (string, hero) - puts the name of hero(hero) in string(string)
-205,set hero name,2,0,0	    # (string, hero) - sets the name of hero(hero) to string(string)
-206,get item name,2,0,0	    # (string, item) - puts the name of item(item) in string(string)
-207,get map name,2,0,0	    # (string, map) - puts the name of map(map) in string(string)
-208,getattackname,2,0,0     # deprecated. Use "read attack name" instead
-209,get global string,2,0,0 # (string, global) - puts the global string (global) in string(string)
+200,systemhour,0
+201,systemminute,0
+202,systemsecond,0
+203,currentsong,0
+204,getheroname,2,0,0         # (string, hero) - puts the name of hero(hero) in string(string)
+205,setheroname,2,0,0         # (string, hero) - sets the name of hero(hero) to string(string)
+206,getitemname,2,0,0         # (string, item) - puts the name of item(item) in string(string)
+207,getmapname,2,0,0          # (string, map) - puts the name of map(map) in string(string)
+208,getattackname,2,0,0       # deprecated. Use "read attack name" instead
+209,getglobalstring,2,0,0     # (string, global) - puts the global string (global) in string(string)
 210,showstring,1,0            #shows string on the bottom(stringID)
 211,clearstring,1,0           #deletes the data from string(stringID)
 212,appendascii,2,0,0         #adds ascii to string(stringID,ascii)
@@ -533,8 +533,8 @@ define function, begin
 522,getdoory,1,0                 #y coordinate of given door
 523,getdoordestinationid,1,0     #door id of given door's exit
 524,getdoordestinationmap,1,0    #map number of given door's exit
-525,doorisactive,1,0             #returns true if the given door has an active link
-526,readattackcaption,2,0,0      #puts an attack's caption in a string (string id, attack id+1 / attack .hsi constant)
+525,doorexists,1,0               #returns true if the given door exists
+526,getattackcaption,2,0,0       #puts an attack's caption in a string (string id, attack id+1 / attack .hsi constant)
 end
 
 #--------------------------------------------------------------------------

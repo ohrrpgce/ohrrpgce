@@ -17,10 +17,11 @@ declare function valid_hero_party(byval who as integer, byval minimum as integer
 declare function really_valid_hero_party(byval who as integer, byval minimum as integer=0, byval errlvl as integer=5) as integer
 declare function valid_menuslot(byval menuslot as integer) as integer
 declare function valid_menuslot_and_mislot(byval menuslot as integer, byval mislot as integer) as integer
-declare function valid_plotstr(byval n as integer) as integer
+declare function valid_plotstr(byval n as integer, byval errlvl as integer=4) as integer
 declare function valid_formation(byval form as integer) as integer
 declare function valid_formation_slot(byval form as integer, byval slot as integer) as integer
 declare function valid_zone(byval id as integer) as integer
+declare function valid_door(byval id as integer) as integer
 declare function valid_tile_pos(byval x as integer, byval y as integer) as integer
 declare sub loadmap_gmap(byval mapnum as integer)
 declare sub loadmap_npcl(byval mapnum as integer)
