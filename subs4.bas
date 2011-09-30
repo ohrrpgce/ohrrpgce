@@ -1230,7 +1230,7 @@ SUB battleoptionsmenu ()
 
   clearpage vpage
   draw_fullscreen_scrollbar state, , vpage
-  standardmenu menu(), state, 0, 0, vpage, 0, , 40
+  standardmenu menu(), state, 0, 0, vpage, 0
   setvispage vpage
   dowait
  LOOP
@@ -1626,7 +1626,7 @@ SUB gendata ()
 
   clearpage dpage
   draw_fullscreen_scrollbar state, , dpage
-  standardmenu m(), state, 0, 0, dpage, 0, , 40
+  standardmenu m(), state, 0, 0, dpage, 0
 
   SWAP vpage, dpage
   setvispage vpage

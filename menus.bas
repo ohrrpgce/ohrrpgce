@@ -256,7 +256,7 @@ SUB standard_to_basic_menu (menu() as string, byval last as integer, byref basic
  NEXT
 END SUB
 
-SUB standardmenu (menu() as string, byref state as MenuState, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval hidecursor as integer=NO, byval wide as integer=999, byval highlight as integer=NO, byval toggle as integer=YES)
+SUB standardmenu (menu() as string, byref state as MenuState, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval hidecursor as integer=NO, byval wide as integer=9999, byval highlight as integer=NO, byval toggle as integer=YES)
  DIM basicmenu as BasicMenuItem vector
  standard_to_basic_menu menu(), state.last, basicmenu
  standardmenu basicmenu, state, x, y, page, edge, hidecursor, wide, highlight, toggle
@@ -264,7 +264,7 @@ SUB standardmenu (menu() as string, byref state as MenuState, byval x as integer
 END SUB
 
 'Version which allows items to be greyed out/disabled/shaded
-SUB standardmenu (menu() as string, byref state as MenuState, shaded() as integer, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval hidecursor as integer=NO, byval wide as integer=999, byval highlight as integer=NO, byval toggle as integer=YES)
+SUB standardmenu (menu() as string, byref state as MenuState, shaded() as integer, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval hidecursor as integer=NO, byval wide as integer=9999, byval highlight as integer=NO, byval toggle as integer=YES)
  IF LBOUND(shaded) > LBOUND(menu) OR UBOUND(shaded) < UBOUND(menu) THEN fatalerror "standardmenu: shaded() too small"
  DIM basicmenu as BasicMenuItem vector
  standard_to_basic_menu menu(), state.last, basicmenu, @shaded(0)
@@ -272,8 +272,7 @@ SUB standardmenu (menu() as string, byref state as MenuState, shaded() as intege
  v_free basicmenu
 END SUB
 
-SUB standardmenu (menu() as STRING, byval size as integer, byval vis as integer, byval pt as integer, byval top as integer, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval wide as integer=999, byval highlight as integer=NO, byval toggle as integer=YES)
- 'the default for wide is 999 until I know whether it'd break anything to set it to 40
+SUB standardmenu (menu() as STRING, byval size as integer, byval vis as integer, byval pt as integer, byval top as integer, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval wide as integer=9999, byval highlight as integer=NO, byval toggle as integer=YES)
  DIM state as MenuState
  state.pt = pt
  state.top = top
@@ -285,13 +284,12 @@ SUB standardmenu (menu() as STRING, byval size as integer, byval vis as integer,
  v_free basicmenu
 END SUB
 
-SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval hidecursor as integer=NO, byval wide as integer=999, byval highlight as integer=NO, byval toggle as integer=YES)
- 'menu may in fact be a vector of any type inheriting from BasicMenuItem.
- 'menu's typetable tells the size in bytes of each menu item
+'menu may in fact be a vector of any type inheriting from BasicMenuItem.
+'menu's typetable tells the size in bytes of each menu item
+SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval hidecursor as integer=NO, byval wide as integer=9999, byval highlight as integer=NO, byval toggle as integer=YES)
 
  STATIC rememtog as integer
  DIM tog as integer
- DIM text as string
 
  DIM pt as integer = state.pt
  IF hidecursor THEN pt = state.first - 1
@@ -304,20 +302,22 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval 
   tog = 0
  END IF
 
+ wide = small(wide, vpages(page)->w - x)
+
+ DIM rememclip as ClipState
+ saveclip rememclip
+ shrinkclip x, , x + wide, , vpages(page)
+
  FOR i as integer = state.top TO state.top + state.size
   IF i < v_len(menu) THEN
    WITH *cast(BasicMenuItem ptr, cast(byte ptr, menu) + i * v_type(menu)->element_len)
 
-    text = .text
-    IF pt = i THEN text = RIGHT(text, wide)
+    DIM linewidth as integer = 8 * LEN(.text)
     IF .bgcol THEN
-     rectangle x + 0, y + (i - state.top) * 8, wide * 8, 8, .bgcol, page
+     rectangle x + 0, y + (i - state.top) * 8, wide, 8, .bgcol, page
     END IF
     IF pt = i AND highlight THEN
-     DIM w as integer
-     w = 8 * LEN(text)
-     IF w = 0 THEN w = small(wide * 8, 320)
-     rectangle x + 0, y + (i - state.top) * 8, w, 8, uilook(uiHighlight), page
+     rectangle x + 0, y + (i - state.top) * 8, IIF(linewidth, linewidth, 9999), 8, uilook(uiHighlight), page
     END IF
     DIM col as integer = .col
     IF col = 0 THEN col = uilook(uiMenuItem)
@@ -327,16 +327,20 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval 
     ELSE
      IF pt = i THEN col = uilook(uiSelectedItem + tog)
     END IF
+    DIM drawx as integer = x
+    IF pt = i AND linewidth > wide THEN drawx = x + wide - linewidth
     IF edge THEN
-     edgeprint text, x + 0, y + (i - state.top) * 8, col, page, YES
+     edgeprint .text, drawx, y + (i - state.top) * 8, col, page, YES
     ELSE
      textcolor col, 0
-     printstr text, x + 0, y + (i - state.top) * 8, page, YES
+     printstr .text, drawx, y + (i - state.top) * 8, page, YES
     END IF
 
    END WITH
   END IF
  NEXT i
+
+ loadclip rememclip
 END SUB
 
 

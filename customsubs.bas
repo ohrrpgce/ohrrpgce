@@ -3816,7 +3816,7 @@ SUB experience_chart ()
 
   clearpage vpage
   draw_fullscreen_scrollbar state, , vpage
-  standardmenu menu(), state, 0, 0, vpage, 0, , 40
+  standardmenu menu(), state, 0, 0, vpage, 0, , 312
   setvispage vpage
   dowait
  LOOP 
@@ -3871,7 +3871,7 @@ SUB stat_growth_chart ()
 
   'Draw screen
   clearpage vpage
-  standardmenu menu(), state, 0, 0, vpage, 0, , 40
+  standardmenu menu(), state, 0, 0, vpage, 0
 
   'Draw a 150x150 graph
   'axes
