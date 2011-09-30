@@ -2942,35 +2942,41 @@ SUB checkdoors ()
  NEXT door_id
 END SUB
 
-SUB usedoor (byval door_id as integer)
- IF readbit(gam.map.door(door_id).bits(), 0, 0) = 0 THEN EXIT SUB 'Door is disabled
+FUNCTION find_doorlink (byval door_id as integer) as integer
+ 'Returns the index in gam.map.doorlinks() which is active for this door,
+ 'or -1 if none are, or if the door does not even exist.
 
- DIM oldmap as integer
- DIM i as integer
- DIM destdoor as integer
- gam.map.same = NO
- oldmap = gam.map.id
+ IF readbit(gam.map.door(door_id).bits(), 0, 0) = 0 THEN RETURN -1
+
  deserdoorlinks maplumpname(gam.map.id,"d"), gam.map.doorlinks()
 
- FOR i = 0 TO 199
+ FOR i as integer = 0 TO UBOUND(gam.map.doorlinks)
   WITH gam.map.doorlinks(i)
    IF door_id = .source THEN
     IF istag(.tag1, YES) AND istag(.tag2, YES) THEN 'Check tags to make sure this door is okay
-     gam.map.id = .dest_map
-     destdoor = .dest
-     deserdoors game + ".dox", gam.map.door(), gam.map.id
-     catx(0) = gam.map.door(destdoor).x * 20
-     caty(0) = (gam.map.door(destdoor).y - 1) * 20
-     fadeout 0, 0, 0
-     queue_fade_in 1
-     IF oldmap = gam.map.id THEN gam.map.same = YES
-     prepare_map
-     gam.random_battle_countdown = range(100, 60)
-     EXIT FOR
+     RETURN i
     END IF
    END IF
   END WITH
  NEXT i
+ RETURN -1
+END FUNCTION
+
+SUB usedoor (byval door_id as integer)
+ DIM linknum as integer = find_doorlink(door_id)
+ IF linknum = -1 THEN EXIT SUB
+
+ WITH gam.map.doorlinks(linknum)
+  gam.map.same = (.dest_map = gam.map.id)
+  gam.map.id = .dest_map
+  deserdoors game + ".dox", gam.map.door(), gam.map.id
+  catx(0) = gam.map.door(.dest).x * 20
+  caty(0) = (gam.map.door(.dest).y - 1) * 20
+  fadeout 0, 0, 0
+  queue_fade_in 1
+  prepare_map
+  gam.random_battle_countdown = range(100, 60)
+ END WITH
 END SUB
 
 SUB advance_text_box ()

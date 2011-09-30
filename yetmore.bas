@@ -2895,38 +2895,16 @@ SELECT CASE as CONST id
    scriptret = -1
   END IF
  CASE 523 '--get door destination id
+  scriptret = -1
   IF valid_door(retvals(0)) THEN
-   deserdoorlinks maplumpname(gam.map.id,"d"), gam.map.doorlinks()
-   scriptret = -1
-   FOR i as integer = 0 TO 199
-    WITH gam.map.doorlinks(i)
-     IF retvals(0) = .source THEN
-      IF istag(.tag1, YES) AND istag(.tag2, YES) THEN 'Check tags to make sure this door is okay
-       scriptret = .dest
-       EXIT FOR
-      END IF
-     END IF
-    END WITH
-   NEXT i
-  ELSE
-   scriptret = -1
+   DIM linknum as integer = find_doorlink(retvals(0))
+   IF linknum >= 0 THEN scriptret = gam.map.doorlinks(linknum).dest
   END IF
  CASE 524 '--get door destination map
+  scriptret = -1
   IF valid_door(retvals(0)) THEN
-   deserdoorlinks maplumpname(gam.map.id,"d"), gam.map.doorlinks()
-   scriptret = -1
-   FOR i as integer = 0 TO 199
-    WITH gam.map.doorlinks(i)
-     IF retvals(0) = .source THEN
-      IF istag(.tag1, YES) AND istag(.tag2, YES) THEN 'Check tags to make sure this door is okay
-       scriptret = .dest_map
-       EXIT FOR
-      END IF
-     END IF
-    END WITH
-   NEXT i
-  ELSE
-   scriptret = -1
+   DIM linknum as integer = find_doorlink(retvals(0))
+   IF linknum >= 0 THEN scriptret = gam.map.doorlinks(linknum).dest_map
   END IF
  CASE 525 '--door exists
   IF retvals(0) >= 0 AND retvals(0) <= 99 THEN
