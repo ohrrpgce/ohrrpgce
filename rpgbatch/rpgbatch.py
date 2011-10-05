@@ -1,0 +1,153 @@
+import os
+import sys
+import numpy as np
+from nohrio.ohrrpgce import *
+from nohrio.rpg2 import RPG
+#from nohrio.ohrstring import *
+import zipfile
+from tempfile import mkdtemp
+from weakref import proxy
+import shutil
+import hashlib
+import calendar
+import time
+
+path = os.path
+
+
+def is_rpg(name):
+    return name.lower().endswith(".rpg") or name.lower().endswith(".rpgdir")
+
+
+class RPGIterator(object):
+    def __init__(self, things):
+        "Pass in a list of paths: .rpg files, .rpgdir folders, .zip files containing the preceding, folders containing the preceding."
+        self.zipfiles = []
+        self.rpgfiles = []
+        self.hashs = {}
+        self.cleanup_dir = False
+        self.current_rpg = None
+
+        # Stats
+        self.num_badzips = 0
+        self.num_rpgs = 0
+        self.num_uniquerpgs = 0
+        self.bytes = 0
+
+        for arg in things:
+            if path.isdir(arg):
+                if arg.lower().endswith(".rpgdir"):
+                    self.rpgfiles.append(path.abspath(arg))
+                else:
+                    for node in os.listdir(arg):
+                        self._addfile(path.join(arg, node))
+            elif path.isfile(arg):
+                if not self._addfile(arg):
+                    print "Unrecognised file '%s'" % arg
+            else:
+                print "Unrecognised argument", arg
+
+    def _addfile(self, node):
+        if node.lower().endswith(".zip"):
+            self.zipfiles.append(path.abspath(node))
+            return True
+        if is_rpg(node):
+            self.rpgfiles.append(path.abspath(node))
+            return True
+
+    def _nonduplicate(self, fname, gameid):
+        self.num_rpgs += 1
+        md5 = hashlib.md5()
+        with open(fname, 'rb') as f:
+            while True:
+                data = f.read(8192)
+                if not data:
+                    break
+                md5.update(data)
+        digest = md5.digest()
+        if digest in self.hashs:
+            self.hashs[digest].append(gameid)
+            return False
+        else:
+            self.hashs[digest] = [gameid]
+            self.num_uniquerpgs += 1
+            return True
+
+    def _get_rpg(self, fname):
+        rpg = RPG(fname)
+        if path.isfile(fname):
+            self.bytes += os.stat(fname).st_size
+            # unlump; rpg2.RPGFile isn't very useful
+            fname = path.join(self.tmpdir, path.basename(fname) + "dir")
+            os.mkdir(fname)
+            for foo in rpg.unlump_all(fname):
+                #sys.stdout.write('.')
+                pass
+            rpg = RPG(fname)
+            self.cleanup_dir = fname
+        # We return a proxy because otherwise after being yielded from __iter__ and
+        # bound to a variable, it won't be unbound from that variable and deleted
+        # until after the next rpg is yielded --- meaning _cleanup() won't work.
+        self.current_rpg = rpg
+        return proxy(rpg)
+
+    def _cleanup(self):
+        self.current_rpg = None
+        if self.cleanup_dir:
+            shutil.rmtree(self.cleanup_dir)
+            self.cleanup_dir = False
+
+    def __iter__(self):
+        self.timer = time.time()
+        self.tmpdir = mkdtemp(prefix = "gamescanner_tmp")
+        try:
+            for fname in self.rpgfiles:
+                if self._nonduplicate(fname, fname):
+                    yield self._get_rpg(fname), fname, os.stat(fname).st_mtime
+                    self._cleanup()
+
+            for f in self.zipfiles:
+                # ZipFile is a context manager only in python 2.7+
+                try:
+                    archive = zipfile.ZipFile(f, "r")
+                    #if archive.testzip():
+                    #    raise zipfile.BadZipfile
+                    # FIXME: add rpgdir support
+                    for name in archive.namelist():
+                        if is_rpg(name):
+                            print "Found %s in %s" % (name, f)
+                            fname = path.join(self.tmpdir, path.basename(name))
+                            # Reimplementing ZipFile.extract, so that the target is
+                            # closed immediately if interrupted by an exception
+                            #archive.extract(name, self.tmpdir)
+                            source = archive.open(name)
+                            with open(fname, "wb") as target:
+                                shutil.copyfileobj(source, target)
+                            source.close()
+                            gameid = "%s:%s" % (path.basename(f), name)
+                            if self._nonduplicate(fname, gameid):
+                                mtime = calendar.timegm(archive.getinfo(name).date_time)
+                                yield self._get_rpg(fname), gameid, mtime
+                                self._cleanup()
+                            os.remove(fname)
+                except zipfile.BadZipfile:
+                    print f, "is corrupt, skipping"
+                    self.num_badzips += 1
+                finally:
+                    archive.close()
+                    archive = None
+
+        finally:
+            self._cleanup()
+            shutil.rmtree(self.tmpdir)
+        self.timer = time.time() - self.timer
+
+    def print_summary(self):
+        print
+        print "Scanned %d zips (%d bad)" % (len(self.zipfiles), self.num_badzips)
+        print "Found %d RPGS (%d unique, totalling %.1f MB)" % (self.num_rpgs, self.num_uniquerpgs, self.bytes / 2.**20)
+        print "Finished in %.2f s" % self.timer
+        for gameids in self.hashs.itervalues():
+            if len(gameids) > 1:
+                print "The following are identical:", gameids
+        print
