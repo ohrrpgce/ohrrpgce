@@ -56,7 +56,7 @@ for rpg, gameinfo, zipinfo in rpgs:
     fnt = np.append(fnt, rpg.data('fnt', shape = 1))
 
     # This is just a dumb example
-    print "Processing RPG ", gameinfo.id
+    print "Processing RPG ", gameinfo.id, "from", gameinfo.src
     print " > ", gameinfo.longname, " --- ", gameinfo.aboutline
     print "mod time =", time.ctime(gameinfo.mtime)
     print "maps =", int(rpg.general.maxmap) + 1

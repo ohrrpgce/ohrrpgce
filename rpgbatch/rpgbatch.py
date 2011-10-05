@@ -47,7 +47,11 @@ class ArchiveInfo(object):
 
 class RPGIterator(object):
     def __init__(self, things):
-        "Pass in a list of paths: .rpg files, .rpgdir folders, .zip files containing the preceding, folders containing the preceding."
+        """Pass in a list of paths: .rpg files, .rpgdir folders, .zip files containing the preceding, folders containing the preceding.
+
+        Also, you may pass in strings prefixed with 'src:' which sets the gameinfo.src tag for the following games."""
+
+        self.cur_src = ''
         self.zipfiles = []
         self.rpgfiles = []
         self.hashs = {}
@@ -61,9 +65,11 @@ class RPGIterator(object):
         self.bytes = 0
 
         for arg in things:
-            if path.isdir(arg):
+            if arg.startswith('src:'):
+                self.cur_src = arg[4:]
+            elif path.isdir(arg):
                 if arg.lower().endswith(".rpgdir"):
-                    self.rpgfiles.append(path.abspath(arg))
+                    self._addfile(path.abspath(arg))
                 else:
                     for node in os.listdir(arg):
                         self._addfile(path.join(arg, node))
@@ -75,10 +81,10 @@ class RPGIterator(object):
 
     def _addfile(self, node):
         if node.lower().endswith(".zip"):
-            self.zipfiles.append(path.abspath(node))
+            self.zipfiles.append((path.abspath(node), self.cur_src))
             return True
         if is_rpg(node):
-            self.rpgfiles.append(path.abspath(node))
+            self.rpgfiles.append((path.abspath(node), self.cur_src))
             return True
 
     def _nonduplicate(self, fname, gameid):
@@ -126,18 +132,19 @@ class RPGIterator(object):
         self.timer = time.time()
         self.tmpdir = mkdtemp(prefix = "gamescanner_tmp")
         try:
-            for fname in self.rpgfiles:
+            for fname, src in self.rpgfiles:
                 if self._nonduplicate(fname, fname):
                     gameinfo = RPGInfo()
                     gameinfo.rpgfile = path.basename(fname)
                     gameinfo.id = fname
+                    gameinfo.src = src
                     gameinfo.mtime = os.stat(fname).st_mtime
                     gameinfo.size = os.stat(fname).st_size
                     self.bytes += gameinfo.size
                     yield self._get_rpg(fname), gameinfo, None
                     self._cleanup()
 
-            for f in self.zipfiles:
+            for f, src in self.zipfiles:
                 # ZipFile is a context manager only in python 2.7+
                 try:
                     archive = zipfile.ZipFile(f, "r")
@@ -176,6 +183,7 @@ class RPGIterator(object):
                         gameinfo = RPGInfo()
                         gameinfo.rpgfile = path.basename(name)
                         gameinfo.id = "%s:%s" % (path.basename(f), name)
+                        gameinfo.src = src
                         gameinfo.mtime = calendar.timegm(archive.getinfo(name).date_time)
                         gameinfo.size = os.stat(fname).st_size
                         if self._nonduplicate(fname, gameinfo.id):
