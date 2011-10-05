@@ -11,13 +11,13 @@ import shutil
 import hashlib
 import calendar
 import time
+import traceback
 
 path = os.path
 
 
 def is_rpg(name):
     return name.lower().endswith(".rpg") or name.lower().endswith(".rpgdir")
-
 
 class RPGIterator(object):
     def __init__(self, things):
@@ -94,7 +94,7 @@ class RPGIterator(object):
     def _cleanup(self):
         self.current_rpg = None
         if self.cleanup_dir:
-            shutil.rmtree(self.cleanup_dir)
+            shutil.rmtree(self.cleanup_dir, ignore_errors = True)
             self.cleanup_dir = False
 
     def __iter__(self):
@@ -139,7 +139,11 @@ class RPGIterator(object):
 
         finally:
             self._cleanup()
-            shutil.rmtree(self.tmpdir)
+            try:
+                shutil.rmtree(self.tmpdir)
+            except:
+                traceback.print_exc(1, sys.stderr)
+                print
         self.timer = time.time() - self.timer
 
     def print_summary(self):
