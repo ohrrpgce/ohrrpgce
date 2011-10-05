@@ -12,12 +12,38 @@ import hashlib
 import calendar
 import time
 import traceback
+import re
 
 path = os.path
 
+def file_ext_in(name, *types):
+    return path.splitext(name)[1].lower()[1:] in types
 
 def is_rpg(name):
-    return name.lower().endswith(".rpg") or name.lower().endswith(".rpgdir")
+    return file_ext_in(name, 'rpg', 'rpgdir')
+
+top_level = ["defineconstant", "definetrigger", "defineoperator", 
+             "globalvariable", "definefunction", "definescript", "include"]
+
+def is_script(f):
+    "Given a (text) file try to determine whether is it contains hamsterspeak scripts"
+
+    with filename_or_handle(f, 'r') as f:
+        # Read up to the first top level token, ignoring # comments
+        for line in f:
+            match = re.search('[,()#]', line)
+            if match:
+                line = line[:match.start()]
+            line = line.lower().strip().replace(' ', '')
+            if line:
+                return line in top_level
+    return False
+
+class RPGInfo(object):
+    pass
+
+class ArchiveInfo(object):
+    pass
 
 class RPGIterator(object):
     def __init__(self, things):
@@ -76,7 +102,6 @@ class RPGIterator(object):
     def _get_rpg(self, fname):
         rpg = RPG(fname)
         if path.isfile(fname):
-            self.bytes += os.stat(fname).st_size
             # unlump; rpg2.RPGFile isn't very useful
             fname = path.join(self.tmpdir, path.basename(fname) + "dir")
             os.mkdir(fname)
@@ -103,7 +128,13 @@ class RPGIterator(object):
         try:
             for fname in self.rpgfiles:
                 if self._nonduplicate(fname, fname):
-                    yield self._get_rpg(fname), fname, os.stat(fname).st_mtime
+                    gameinfo = RPGInfo()
+                    gameinfo.rpgfile = path.basename(fname)
+                    gameinfo.id = fname
+                    gameinfo.mtime = os.stat(fname).st_mtime
+                    gameinfo.size = os.stat(fname).st_size
+                    self.bytes += gameinfo.size
+                    yield self._get_rpg(fname), gameinfo, None
                     self._cleanup()
 
             for f in self.zipfiles:
@@ -112,24 +143,47 @@ class RPGIterator(object):
                     archive = zipfile.ZipFile(f, "r")
                     #if archive.testzip():
                     #    raise zipfile.BadZipfile
-                    # FIXME: add rpgdir support
+
+                    zipinfo = ArchiveInfo()
+                    zipinfo.zip = proxy(archive)
+                    zipinfo.scripts = []
+                    zipinfo.exes = []
+                    zipinfo.rpgs = []
+
+                    # First scan for interesting stuff
                     for name in archive.namelist():
                         if is_rpg(name):
-                            print "Found %s in %s" % (name, f)
-                            fname = path.join(self.tmpdir, path.basename(name))
-                            # Reimplementing ZipFile.extract, so that the target is
-                            # closed immediately if interrupted by an exception
-                            #archive.extract(name, self.tmpdir)
+                            zipinfo.rpgs.extend(name)
+                        elif file_ext_in(name, 'hss', 'txt'):
                             source = archive.open(name)
-                            with open(fname, "wb") as target:
-                                shutil.copyfileobj(source, target)
+                            if is_script(source):
+                                zipinfo.scripts.extend(name)
                             source.close()
-                            gameid = "%s:%s" % (path.basename(f), name)
-                            if self._nonduplicate(fname, gameid):
-                                mtime = calendar.timegm(archive.getinfo(name).date_time)
-                                yield self._get_rpg(fname), gameid, mtime
-                                self._cleanup()
-                            os.remove(fname)
+                        elif file_ext_in(name, 'exe'):
+                            zipinfo.exes.extend(name)
+
+                    for name in zipinfo.rpgs:
+                        # FIXME: add rpgdir support
+                        print "Found %s in %s" % (name, f)
+                        fname = path.join(self.tmpdir, path.basename(name))
+                        # Reimplementing ZipFile.extract, so that the target is
+                        # closed immediately if interrupted by an exception
+                        #archive.extract(name, self.tmpdir)
+                        source = archive.open(name)
+                        with open(fname, "wb") as target:
+                            shutil.copyfileobj(source, target)
+                        source.close()
+                        gameinfo = RPGInfo()
+                        gameinfo.rpgfile = path.basename(name)
+                        gameinfo.id = "%s:%s" % (path.basename(f), name)
+                        gameinfo.mtime = calendar.timegm(archive.getinfo(name).date_time)
+                        gameinfo.size = os.stat(fname).st_size
+                        if self._nonduplicate(fname, gameinfo.id):
+                            self.bytes += gameinfo.size
+                            yield self._get_rpg(fname), gameinfo, zipinfo
+                            self._cleanup()
+                        os.remove(fname)
+
                 except zipfile.BadZipfile:
                     print f, "is corrupt, skipping"
                     self.num_badzips += 1
