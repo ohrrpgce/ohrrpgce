@@ -13,6 +13,7 @@ import calendar
 import time
 import traceback
 import re
+import zlib
 
 path = os.path
 
@@ -28,15 +29,15 @@ top_level = ["defineconstant", "definetrigger", "defineoperator",
 def is_script(f):
     "Given a (text) file try to determine whether is it contains hamsterspeak scripts"
 
-    with filename_or_handle(f, 'r') as f:
-        # Read up to the first top level token, ignoring # comments
-        for line in f:
-            match = re.search('[,()#]', line)
-            if match:
-                line = line[:match.start()]
-            line = line.lower().strip().replace(' ', '')
-            if line:
-                return line in top_level
+    #with filename_or_handle(f, 'r') as f:
+    # Read up to the first top level token, ignoring # comments
+    for line in f:
+        match = re.search('[,()#]', line)
+        if match:
+            line = line[:match.start()]
+        line = line.lower().strip().replace(' ', '')
+        if line:
+            return line in top_level
     return False
 
 class RPGInfo(object):
@@ -160,14 +161,14 @@ class RPGIterator(object):
                     # First scan for interesting stuff
                     for name in archive.namelist():
                         if is_rpg(name):
-                            zipinfo.rpgs.extend(name)
+                            zipinfo.rpgs.append(name)
                         elif file_ext_in(name, 'hss', 'txt'):
                             source = archive.open(name)
                             if is_script(source):
-                                zipinfo.scripts.extend(name)
+                                zipinfo.scripts.append(name)
                             source.close()
                         elif file_ext_in(name, 'exe'):
-                            zipinfo.exes.extend(name)
+                            zipinfo.exes.append(name)
 
                     for name in zipinfo.rpgs:
                         # FIXME: add rpgdir support
@@ -192,12 +193,12 @@ class RPGIterator(object):
                             self._cleanup()
                         os.remove(fname)
 
-                except zipfile.BadZipfile:
+                except (zipfile.BadZipfile, zlip.error):
                     print f, "is corrupt, skipping"
                     self.num_badzips += 1
                 finally:
-                    archive.close()
-                    archive = None
+                    if archive:
+                        archive.close()
 
         finally:
             self._cleanup()

@@ -39,8 +39,8 @@ for rpg, gameinfo, zipinfo in rpgs:
         gameinfo.scripts = []
     if rpg.lump_size('browse.txt'):
         browse = rpg.data('browse.txt')
-        gameinfo.longname = browse.longname.value[0]
-        gameinfo.aboutline = browse.about.value[0]
+        gameinfo.longname = get_str8(browse.longname[0])
+        gameinfo.aboutline = get_str8(browse.about[0])
         del browse
     else:
         gameinfo.longname = ''
