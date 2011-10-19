@@ -2565,6 +2565,10 @@ SELECT CASE as CONST id
    sl = NewSliceOfType(slContainer, SliceTable.scriptsprite)
    SliceLoadFromFile sl, workingdir & SLASH & "slicetree_0_" & retvals(0) & ".reld"
    scriptret = create_plotslice_handle(sl)
+   'The collection root container is set to Fill. Turn that off so that it can be moved around,
+   'but first refresh it, so that it fills SliceTable.scriptsprite as it's meant to.
+   RefreshSliceScreenPos(sl)
+   sl->Fill = NO
   ELSE
    scripterr commandname(curcmd->value) & ": invalid slice collection id " & retvals(0), 5
    scriptret = 0
