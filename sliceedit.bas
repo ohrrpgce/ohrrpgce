@@ -888,6 +888,9 @@ SUB slice_editor_refresh (byref ses as SliceEditState, byref state as MenuState,
  NEXT i
  DIM index as integer = 0
 
+ 'Refresh positions of all slices
+ DrawSlice edslice, dpage
+
  DIM indent as integer = 0
  slice_editor_refresh_append index, menu(), "Previous Menu"
  ses.last_non_slice = 0
