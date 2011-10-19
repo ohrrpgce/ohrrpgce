@@ -11,20 +11,69 @@ from nohrio.scripts import *
 from rpgbatch import RPGIterator, RPGInfo
 
 if len(sys.argv) < 2:
-    sys.exit("Specify .rpg files, .rpgdir directories, .zip files, or directories containing any of these as arguments.")
+    print "Pass path to plotscr.hs (plotscr.hsd compiled) as first argument to distinguish the standard scripts."
+    print "Specify .rpg files, .rpgdir directories, .zip files, or directories containing any of these as arguments."
+    sys.exit()
 things = sys.argv[1:]
 
-rpgidx = np.ndarray(shape = 0, dtype = RPGInfo)
-cmdcounts = np.ndarray(shape = (0, 1000), dtype = np.int32)
+commandnames = []
+scripthashes = {}
 
-def iter_script_tree(root):
+standardscrs = {'names': []}
+if things[0].endswith('plotscr.hs'):
+    scripts = HSScripts(things[0])
+    standardscrs['names'] = scripts.scriptnames.values()
+    commandnames = scripts.commands_info
+    del scripts
+    print "Read", len(standardscrs['names']), "standard scripts from", things[0]
+    things.pop(0)
+    # A few special cases for scripts which were removed from plotscr.hsd
+    # (all of these were in fact replaced with builtin commands)
+    for n in ('setstring', 'appendstring', 'suspendmapmusic', 'resumemapmusic'):
+        if n not in standardscrs['names']:
+            standardscrs['names'].append(n)
+standardscrs['versions'] = [[0, 0] for x in standardscrs['names']]
+standardscrs['games'] = [[] for i in range(len(standardscrs['names']))]
+
+rpgidx = np.zeros(shape = 0, dtype = RPGInfo)
+cmdcounts = np.zeros(shape = (0, 2000), dtype = np.int32)
+standardscrs['cmdcounts'] = np.zeros((2000), np.int32)
+
+def iter_script_tree2(root):
     yield root
     for arg in root.args():
         # Wow! Passing each item back up the call chain has got to be inefficient!
         for ret in iter_script_tree(arg):
             yield ret
 
-commandnames = []
+# This is about 30% faster than iter_script_tree2... disappointing
+def iter_script_tree(root):
+    "Iterate over the descendents of a script node"
+    node = ScriptNode(root.scripts(), root.scrinfo, root.offset)
+    yield node
+    if root.argnum == 0:
+        return
+    lst = [root.offset + 3, root.argnum]
+    data = root.scrdata()
+    while len(lst):
+        node.offset = data[lst[-2]]
+        yield node
+        if lst[-1] == 1:
+            lst = lst[:-2]
+        else:
+            lst[-2] += 1
+            lst[-1] -= 1
+        argnum = node.argnum
+        if argnum:
+            lst.append(node.offset + 3)
+            lst.append(argnum)
+
+scriptbytes = 0
+scriptuniquebytes = 0
+scriptnum = 0
+scriptuniquenum = 0
+
+output = ''
 
 rpgs = RPGIterator(things)
 for rpg, gameinfo, zipinfo in rpgs:
@@ -35,8 +84,7 @@ for rpg, gameinfo, zipinfo in rpgs:
     gameinfo.loadname(rpg)
     rpgidx = np.append(rpgidx, gameinfo)
 
-    cmdusage = np.ndarray((1, 1000), np.int32)
-    cmdusage.fill(0)
+    cmdusage = np.zeros((1, 2000), np.int32)
 
     hspfile = rpg.lump_path('.hsp')
     gameinfo.has_scripts = os.path.isfile(hspfile)
@@ -49,24 +97,73 @@ for rpg, gameinfo, zipinfo in rpgs:
             commandnames = scripts.commands_info
 
         for id in scripts.scriptnames.iterkeys():
-            for node in iter_script_tree(scripts.script(id)):
-                if node.kind == kCmd:
-                    cmdusage[0][node.id] += 1
-                    if node.id == 240:  # stringfromtable
-                        print "Found in", scripts.scriptnames[id], "in", gameinfo.name, ":"
-                        print node
-        del node
+            script = scripts.script(id)
+            if not script:
+                continue
+            scriptnum += 1
+            md5 = script.scrdata().view(OhrData).md5()
+            info = dict(script.scrinfo)
+            del info['data']
+            info['id'] = id
+            info['name'] = scripts.scriptnames[id]
+            info['game'] = gameinfo.name
+            if info['name'] in standardscrs['names']:
+                usagevec = standardscrs['cmdcounts']
+            else:
+                usagevec = cmdusage[0]
+            scriptbytes += script.scrdata().nbytes
+            if md5 in scripthashes:
+                scripthashes[md5].append(info)
+            else:
+                scriptuniquenum += 1
+                scripthashes[md5] = [info]
+                scriptuniquebytes += script.scrdata().nbytes
+                for node in iter_script_tree(script):
+                    if node.kind == kCmd:
+                        usagevec[node.id] += 1
+                        if node.id == 240:  # stringfromtable
+                            output += "Found in " + scripts.scriptnames[id] + " in " + gameinfo.name + ":\n" + str(node) + '\n'
+        scripts.close()
         del scripts
 
     cmdcounts = np.append(cmdcounts, cmdusage, axis = 0)
 
 rpgs.print_summary()
 del rpgs
+print "scanned %d scripts totalling %.2f MB (%.2f MB nonunique)" % (scriptnum, scriptuniquebytes / 2.**20, scriptbytes / 2.**20)
+print
+for key, info in scripthashes.iteritems():
+    if len(info) > 1 and info[0]['name'] not in standardscrs['names']:
+        games = []
+        duptext = ''
+        for i in info:
+            if i['game'] not in games:
+                games.append(i['game'])
+                duptext += "\n   " + i['name'] + " in " + i['game']
+        if len(games) > 1:
+            print "Script duplicated", len(games), "times:", duptext
+print
+for info in scripthashes.itervalues():
+    try:
+        idx = standardscrs['names'].index(info[0]['name'])
+    except ValueError:
+        pass
+    else:
+        if info[0]['version'] == 0:
+            standardscrs['versions'][idx][0] += 1
+        else:
+            standardscrs['versions'][idx][1] += 1
+        standardscrs['games'][idx].extend(info)
+for name, versions, games in zip(standardscrs['names'], standardscrs['versions'], standardscrs['games']):
+    print "Found %d versions of %-21s in %d games" % (versions[0] + versions[1], name, len(games)), "(%d 16-bit, %d 32-bit)" % tuple(versions)
+
+print
+print output
 
 rpgidx = rpgidx.view(OhrData)
 
 with open('scriptdata.bin', 'wb') as f:
-    pickle.dump({'rpgidx':rpgidx, 'cmdcounts':cmdcounts}, f)
+    pickle.dump({'rpgidx':rpgidx, 'cmdcounts':cmdcounts, 'standardscrs':standardscrs}, f)
 
 def commandname(id):
     if id in commandnames:
@@ -75,8 +172,7 @@ def commandname(id):
 
 print
 
-tally = np.ndarray((len(rpgidx), 2, 2, 3), dtype = np.int)
-tally.fill(0)
+tally = np.zeros((len(rpgidx), 2, 2, 3), dtype = np.int)
 for i, r in enumerate(rpgidx):
     backup_type = 0
     if r.scripts_backup == 'source.txt':
@@ -95,12 +191,12 @@ print "with orig. src     %3d             %3d                %3d" % tuple(tally[
 
 total = tally.sum()
 print
-print "%d/%d games had script source available" % (total - tally[0][0].sum(), total)
+print "...of which %d/%d games had script source available" % (total - tally[0][0].sum(), total)
 
 print 
 
 cmdsums = cmdcounts.sum(axis=0)
 cmdgamecounts = (cmdcounts > 0).sum(axis=0)
 for i, count in enumerate(cmdsums):
-    if count:
-        print "%-3d: %-29s used %5d times in %3d games" % (i, commandname(i), count, cmdgamecounts[i])
+    if count or standardscrs['cmdcounts'][i]:
+        print "%-3d: %-29s %5d uses in %3d games + %2d in plotscr.hsd" % (i, commandname(i), count, cmdgamecounts[i], standardscrs['cmdcounts'][i])
