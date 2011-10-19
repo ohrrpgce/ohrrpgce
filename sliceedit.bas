@@ -109,7 +109,7 @@ DECLARE FUNCTION slice_lookup_code_caption(byval code as integer, slicelookup() 
 DECLARE FUNCTION edit_slice_lookup_codes(slicelookup() as string, byval start_at_code as integer) as integer
 DECLARE FUNCTION slice_caption (sl as Slice Ptr, slicelookup() as string) as string
 DECLARE SUB slice_editor_copy(byref ses as SliceEditState, byval slice as Slice Ptr)
-DECLARE SUB slice_editor_paste(byref ses as SliceEditState, byval slice as Slice Ptr)
+DECLARE SUB slice_editor_paste(byref ses as SliceEditState, byval slice as Slice Ptr, byval edslice as Slice Ptr)
 
 'Functions that need to be aware of magic numbers for SliceType
 DECLARE FUNCTION slice_edit_detail_browse_slicetype(byref slice_type as SliceTypes) as SliceTypes
@@ -258,7 +258,7 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
    IF state.pt = 1 THEN
     '--Browse collections
     jump_to_collection = ses.collection_number
-    IF intgrabber(jump_to_collection, 0, 32767) THEN
+    IF intgrabber(jump_to_collection, 0, 32767, , , , NO) THEN  'Disable copy/pasting
      slice_editor_save edslice, slice_editor_filename(ses)
      ses.collection_number = jump_to_collection
      slice_editor_load edslice, slice_editor_filename(ses)
@@ -292,6 +292,21 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
     ELSE
      cursor_seek = NewSliceOfType(slice_type, edslice)
     END IF
+    state.need_update = YES
+   END IF
+  END IF
+
+  IF state.need_update = NO THEN
+   IF copy_keychord() THEN
+    #IFDEF IS_GAME
+     IF menu(state.pt).handle->Lookup < 0 THEN
+      notification "Can't copy special slices!"
+      CONTINUE DO
+     END IF
+    #ENDIF
+    slice_editor_copy ses, menu(state.pt).handle
+   ELSEIF paste_keychord() THEN
+    slice_editor_paste ses, menu(state.pt).handle, edslice
     state.need_update = YES
    END IF
   END IF
@@ -336,18 +351,7 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
 
    ELSEIF keyval(scCtrl) > 0 THEN '--ctrl, not shift
 
-    IF keyval(scC) > 1 THEN
-     #IFDEF IS_GAME
-      IF menu(state.pt).handle->Lookup < 0 THEN
-       notification "Can't copy special slices!"
-       CONTINUE DO
-      END IF
-     #ENDIF
-     slice_editor_copy ses, menu(state.pt).handle
-    ELSEIF keyval(scV) > 1 THEN
-     slice_editor_paste ses, menu(state.pt).handle
-     state.need_update = YES
-    ELSEIF keyval(scUp) > 1 THEN
+    IF keyval(scUp) > 1 THEN
      cursor_seek = menu(state.pt).handle->prevSibling
      state.need_update = YES
     ELSEIF keyval(scDown) > 1 THEN
@@ -462,9 +466,13 @@ SUB slice_editor_copy(byref ses as SliceEditState, byval slice as Slice Ptr)
  ses.clipboard = CloneSliceTree(slice)
 END SUB
 
-SUB slice_editor_paste(byref ses as SliceEditState, byval slice as Slice Ptr)
+SUB slice_editor_paste(byref ses as SliceEditState, byval slice as Slice Ptr, byval edslice as Slice Ptr)
  IF ses.clipboard THEN
-  InsertSliceBefore slice, CloneSliceTree(ses.clipboard)
+  IF slice THEN
+   InsertSliceBefore slice, CloneSliceTree(ses.clipboard)
+  ELSE
+   SetSliceParent CloneSliceTree(ses.clipboard), edslice
+  END IF
  END IF
 END SUB
 
