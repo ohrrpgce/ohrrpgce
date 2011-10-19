@@ -383,9 +383,9 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
     plainmenu(i) = menu(i).s
    NEXT i
    state.need_update = NO
+  ELSE
+   usemenu state
   END IF
-
-  usemenu state
 
   clearpage dpage
   DrawSlice edslice, dpage
