@@ -4,6 +4,7 @@ import sys
 import time
 import cPickle as pickle
 import numpy as np
+import re
 from nohrio.ohrrpgce import *
 from nohrio.dtypes import dt
 from nohrio.wrappers import OhrData
@@ -83,6 +84,8 @@ scriptuniquenum = 0
 # noop, stringfromtextbox, initmouse, readgeneral, writegeneral, readgmap, writegmap, readenemydata, writeenemydata
 cmd_logging = {0:'', 240:'', 159:'', 147:'', 148:'', 178:'', 179:'', 230:'', 231:''}
 
+strange_names = []
+
 # Map from name to index in standardscrs
 standardindex = {}
 for i, name in enumerate(standardscrs['names']):
@@ -121,6 +124,10 @@ for rpg, gameinfo, zipinfo in rpgs:
             idx = standardindex.get(name)
             if idx:
                 id_to_standardindex[id] = idx
+
+        for name in scriptset.scriptnames.itervalues():
+            if re.search('(^[0-9-]|[^a-z0-9_-])', name):
+                strange_names.append((name, gameinfo.id))
 
         for id in scriptset.scriptnames.iterkeys():
             script = scriptset.script(id)
@@ -199,6 +206,13 @@ for scripts in scripthashes.itervalues():
     idx = standardindex.get(scripts[0].name)
     if idx:
         standardscrs['versions'][idx] += 1
+
+print
+
+if len(strange_names):
+    print "Saw script names containing unusual characters:"
+    for name, game in strange_names:
+        print "\"" + name + "\" in " + game
 
 print
 
