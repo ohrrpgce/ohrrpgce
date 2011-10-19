@@ -31,20 +31,13 @@ rpgs = RPGIterator(things)
 for rpg, gameinfo, zipinfo in rpgs:
     # Let's fetch some useful data and store it
     if zipinfo:
-        gameinfo.script = zipinfo.scripts
+        gameinfo.scripts = zipinfo.scripts
         if len(zipinfo.scripts):
             withscripts += 1
         print "scripts:", zipinfo.scripts
     else:
         gameinfo.scripts = []
-    if rpg.lump_size('browse.txt'):
-        browse = rpg.data('browse.txt')
-        gameinfo.longname = get_str8(browse.longname[0])
-        gameinfo.aboutline = get_str8(browse.about[0])
-        del browse
-    else:
-        gameinfo.longname = ''
-        gameinfo.aboutline = ''
+    gameinfo.loadname(rpg)
     gameinfo.lumplist = [(lumpbasename(name, rpg), os.stat(name).st_size) for name in rpg.manifest]
     gameinfo.archinym = rpg.archinym.prefix
     gameinfo.arch_version = rpg.archinym.version
@@ -58,10 +51,10 @@ for rpg, gameinfo, zipinfo in rpgs:
     # This is just a dumb example
     print "Processing RPG ", gameinfo.id, "from", gameinfo.src
     print " > ", gameinfo.longname, " --- ", gameinfo.aboutline
-    print "mod time =", time.ctime(gameinfo.mtime)
-    print "maps =", int(rpg.general.maxmap) + 1
-    print "format ver =", int(rpg.general.version)
-    print "say size =", int(rpg.binsize.say)
+    #print "mod time =", time.ctime(gameinfo.mtime)
+    #print "maps =", int(rpg.general.maxmap) + 1
+    #print "format ver =", int(rpg.general.version)
+    #print "say size =", int(rpg.binsize.say)
     data.append((gameinfo.mtime, int(rpg.general.version), gameinfo.id))
 rpgs.print_summary()
 del rpgs
@@ -72,7 +65,7 @@ mas = mas.view(OhrData)
 fnt = fnt.view(OhrData)
 
 with open('gamedata.bin', 'wb') as f:
-    pickle.dump({'rpgidx':rpgidx, 'gen':gen, 'mas':mas, 'fnt':fnt}, f)
+    pickle.dump({'rpgidx':rpgidx, 'gen':gen, 'mas':mas, 'fnt':fnt}, f, protocol = 2)
 
 
 # Continuing the dumb example

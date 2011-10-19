@@ -41,6 +41,17 @@ def is_script(f):
     return False
 
 class RPGInfo(object):
+    def loadname(self, rpg):
+        if rpg.lump_size('browse.txt'):
+            browse = rpg.data('browse.txt')
+            self.longname = get_str8(browse.longname[0])
+            self.aboutline = get_str8(browse.about[0])
+            del browse
+        else:
+            self.longname = ''
+            self.aboutline = ''
+        self.name = ("%-30s %s" % (self.id, self.longname)).strip()
+
     def __str__(self):
         return self.id + ' -- ' + self.longname
 

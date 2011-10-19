@@ -25,10 +25,6 @@ mas = d['mas']
 fnt = d['fnt']
 del d
 
-# A more convenient name for each game
-for r in rpgidx:
-    r.name = "%-30s %s" % (r.id, r.longname)
-
 
 # END OF BOILERPLATE
 
