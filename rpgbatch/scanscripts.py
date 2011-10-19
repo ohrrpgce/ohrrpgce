@@ -150,7 +150,7 @@ for rpg, gameinfo, zipinfo in rpgs:
                 id_to_standardindex[id] = idx
 
         for name in scriptset.scriptnames.itervalues():
-            if re.search('(^[0-9-]|[^a-z0-9_-])', name):
+            if re.search('(^[0-9-]|[^a-z0-9:_-])', name):
                 strange_names.append((name, gameinfo.id))
 
         for id in scriptset.scriptnames.iterkeys():
@@ -251,7 +251,7 @@ for scripts in scripthashes.itervalues():
             del script.scriptset
 
 state = {}
-for var in 'rpgidx', 'rpgs', 'cmdcounts', 'cmdcounts_in_plotscrhsd', 'standardscrs', 'scripthashes', 'commands_info', 'table_size', 'cmd_logging', 'scriptbytes', 'scriptuniquebytes', 'scriptnum', 'scriptuniquenum':
+for var in 'rpgidx', 'rpgs', 'cmdcounts', 'cmdcounts_in_plotscrhsd', 'standardscrs', 'scripthashes', 'commands_info', 'table_size', 'cmd_logging', 'scriptbytes', 'scriptuniquebytes', 'scriptnum', 'scriptuniquenum', 'strange_names':
     state[var] = locals()[var]
 with open('scriptdata.bin', 'wb') as f:
     pickle.dump(state, f, protocol = 2)
