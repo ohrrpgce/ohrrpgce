@@ -56,13 +56,23 @@ def safe_extract(archive, srcfile, destfile):
         shutil.copyfileobj(source, target)
     source.close()
 
+def escape_string(s):
+    return s
+    ret = ''
+    for c in s:
+        if ord(c) >= 32 and ord(c) < 128:
+            ret += c
+        else:
+            ret += "\\x%02X" % ord(c)
+    print "RESULT :", ret
+    return ret
 
 class RPGInfo(object):
     def loadname(self, rpg):
         if rpg.lump_size('browse.txt'):
             browse = rpg.data('browse.txt')
-            self.longname = get_str8(browse.longname[0])
-            self.aboutline = get_str8(browse.about[0])
+            self.longname = escape_string(get_str8(browse.longname[0]))
+            self.aboutline = escape_string(get_str8(browse.about[0]))
             del browse
         else:
             self.longname = ''
@@ -81,7 +91,6 @@ class RPGIterator(object):
 
         Also, you may pass in strings prefixed with 'src:' which sets the gameinfo.src tag for the following games."""
 
-        self.cur_src = ''
         self.zipfiles = []
         self.rpgfiles = []
         self.hashs = {}
@@ -89,34 +98,44 @@ class RPGIterator(object):
         self.current_rpg = None
 
         # Stats
+        self.num_zips = 0
         self.num_badzips = 0
         self.num_badrpgs = 0
         self.num_rpgs = 0
         self.num_uniquerpgs = 0
         self.bytes = 0
+        self.timings = []
+        self.messages = ''
 
+        self.set_input(things)
+
+    def set_input(self, things):
+        self.zipfiles = []
+        self.rpgfiles = []
+        cur_src = ''
         for arg in things:
             if arg.startswith('src:'):
-                self.cur_src = arg[4:]
+                cur_src = arg[4:]
             elif path.isdir(arg):
                 arg = arg.rstrip('/\\')
                 if arg.lower().endswith(".rpgdir"):
-                    self._addfile(path.abspath(arg))
+                    self._addfile(path.abspath(arg), cur_src)
                 else:
                     for node in os.listdir(arg):
-                        self._addfile(path.join(arg, node))
+                        self._addfile(path.join(arg, node), cur_src)
             elif path.isfile(arg):
-                if not self._addfile(arg):
+                if not self._addfile(arg, cur_src):
                     print "Unrecognised file '%s'" % arg
             else:
                 print "Unrecognised argument", arg
 
-    def _addfile(self, node):
+    def _addfile(self, node, src):
         if node.lower().endswith(".zip"):
-            self.zipfiles.append((path.abspath(node), self.cur_src))
+            self.zipfiles.append((path.abspath(node), src))
+            self.num_zips += 1
             return True
         if is_rpg(node):
-            self.rpgfiles.append((path.abspath(node), self.cur_src))
+            self.rpgfiles.append((path.abspath(node), src))
             return True
 
     def _nonduplicate(self, fname, gameid):
@@ -160,12 +179,17 @@ class RPGIterator(object):
             shutil.rmtree(self.cleanup_dir, ignore_errors = True)
             self.cleanup_dir = False
 
+    def _print(self, msg):
+        self.messages += msg + '\n'
+        print msg
+
     def __iter__(self):
-        self.timer = time.time()
+        timer = time.time()
         self.tmpdir = mkdtemp(prefix = "gamescanner_tmp")
         try:
             for fname, src in self.rpgfiles:
                 if self._nonduplicate(fname, fname):
+                    self._print("Found %s" % fname)
                     gameinfo = RPGInfo()
                     gameinfo.rpgfile = path.basename(fname)
                     gameinfo.id = fname
@@ -176,7 +200,7 @@ class RPGIterator(object):
                     try:
                         yield self._get_rpg(fname), gameinfo, None
                     except CorruptionError as e:
-                        print fname, "is corrupt, skipped:", e
+                        self._print("%s is corrupt, skipped: %s" % (fname, e))
                         self.num_badrpgs += 1
                         # Clear last exception: it holds onto local variables in stack frames
                         sys.exc_clear()
@@ -190,7 +214,7 @@ class RPGIterator(object):
                     except IOError as e:
                         # Catch a file seek "invalid argument" error (in CP game 781 at least, which
                         # appears to be a perfectly valid zip). Probably a zipfile bug.
-                        print f, "could not be read, skipping:", e
+                        self._print("%s could not be read, skipping: %s" % (f, e))
                         continue
 
                     #if archive.testzip():
@@ -217,7 +241,7 @@ class RPGIterator(object):
 
                     for name_ in zipinfo.rpgs:
                         name = name_.rstrip('/\\')
-                        print "Found %s in %s" % (name, f)
+                        self._print("Found %s in %s" % (name, f))
                         extractto = path.join(self.tmpdir, path.basename(name))
                         if name.endswith('.rpgdir'):
                             os.mkdir(extractto)
@@ -242,7 +266,7 @@ class RPGIterator(object):
                             try:
                                 yield self._get_rpg(extractto), gameinfo, zipinfo
                             except CorruptionError as e:
-                                print gameinfo.id, "is corrupt, skipped:", e
+                                self._print("%s is corrupt, skipped: %s" % (gameinfo.id, e))
                                 self.num_badrpgs += 1
                                 # Clear last exception: it holds onto local variables in stack frames
                                 sys.exc_clear()
@@ -253,7 +277,7 @@ class RPGIterator(object):
                             os.remove(extractto)
 
                 except (zipfile.BadZipfile, zlib.error):
-                    print f, "is corrupt, skipping"
+                    self._print("%s is corrupt, skipping" % f)
                     self.num_badzips += 1
                 finally:
                     if archive:
@@ -266,14 +290,15 @@ class RPGIterator(object):
             except:
                 traceback.print_exc(1, sys.stderr)
                 print
-        self.timer = time.time() - self.timer
+        timer = time.time() - timer
+        self.timings.append("Run %d: Finished in %.2f s" % (len(self.timings) + 1, timer))
 
     def print_summary(self):
-        print
-        print "Scanned %d zips (%d bad)" % (len(self.zipfiles), self.num_badzips)
+        print '\n'.join(self.timings)
+        print "Scanned %d zips (%d bad)" % (self.num_zips, self.num_badzips)
         print "Found %d RPGS, %d corrupt, (%d unique, totalling %.1f MB)" % (self.num_rpgs, self.num_badrpgs, self.num_uniquerpgs, self.bytes / 2.**20)
-        print "Finished in %.2f s" % self.timer
+        print 
         for gameids in self.hashs.itervalues():
             if len(gameids) > 1:
-                print "The following are identical:", gameids
+                print "The following are identical:", ', '.join(gameids)
         print

@@ -12,16 +12,51 @@ from nohrio.scripts import *
 from rpgbatch import RPGIterator, RPGInfo
 
 if len(sys.argv) < 2:
-    print "Pass path to plotscr.hs (plotscr.hsd compiled) as first argument to distinguish the standard scripts."
+    print "Usage:"
+    print " scanscripts.py [--resume scriptdata.bin | plotscr.hs] [src:identifier] locations ..."
+    print "Optionally pass plotscr.hs (plotscr.hsd compiled) as the first argument to identify the standard scripts."
+    print "scriptdata.bin is created in the current directory, which can be passed using --resume"
+    print "to combine runs of the utility."
     print "Specify .rpg files, .rpgdir directories, .zip files, or directories containing any of these as arguments."
     sys.exit()
 things = sys.argv[1:]
 
+table_size = 2000
+cmdcounts = np.zeros(shape = (0, table_size), dtype = np.int32)
+cmdcounts_in_plotscrhsd = np.zeros((table_size), np.int32)
+
 commands_info = {}
 scripthashes = {}
+rpgidx = np.zeros(shape = 0, dtype = RPGInfo)
 
-standardscrs = {'names': []}
-if things[0].endswith('plotscr.hs'):
+standardscrs = {'names': [], 'versions':[], 'games':[]}
+
+scriptbytes = 0
+scriptuniquebytes = 0
+scriptnum = 0
+scriptuniquenum = 0
+
+# All uses of the following script commands will be logged and printed
+# You can also add standard script names to this, eg. 'minutesofplay':''
+# noop, stringfromtextbox, initmouse, readgeneral, writegeneral, readgmap, writegmap, readenemydata, writeenemydata
+cmd_logging = {0:'', 240:'', 159:'', 147:'', 148:'', 178:'', 179:'', 230:'', 231:''}
+
+strange_names = []
+
+
+if things[0] == '--resume':
+    with open(things[1], 'rb') as f:
+        state = pickle.load(f)
+        locals().update(state)
+    things = things[2:]
+    rpgs.set_input(things)
+    print
+    print "Resuming from previous run:"
+    print rpgs.messages
+    print "New run:"
+
+
+elif things[0].endswith('plotscr.hs'):
     scriptset = HSScripts(things[0])
     standardscrs['names'] = scriptset.scriptnames.values()
     commands_info = scriptset.commands_info
@@ -33,17 +68,18 @@ if things[0].endswith('plotscr.hs'):
     for n in ('setstring', 'appendstring', 'suspendmapmusic', 'resumemapmusic', 'setenemyrewards', 'getenemyrewards'):
         if n not in standardscrs['names']:
             standardscrs['names'].append(n)
-standardscrs['versions'] = [0 for x in standardscrs['names']]
-standardscrs['games'] = [[] for x in standardscrs['names']]
+    standardscrs['versions'] = [0 for x in standardscrs['names']]
+    standardscrs['games'] = [[] for x in standardscrs['names']]
 
-rpgidx = np.zeros(shape = 0, dtype = RPGInfo)
+    # We'll store usage counts for both commands and standard scripts in cmdcount.
+    # The scripts start at 2000.
+    table_size = 2000 + len(standardscrs['names'])
 
-# We'll store usage counts for both commands and standard scripts in cmdcount.
-# The scripts start at 2000.
-table_size = 2000 + len(standardscrs['names'])
+    cmdcounts = np.zeros(shape = (0, table_size), dtype = np.int32)
+    cmdcounts_in_plotscrhsd = np.zeros((table_size), np.int32)
 
-cmdcounts = np.zeros(shape = (0, table_size), dtype = np.int32)
-cmdcounts_in_plotscrhsd = np.zeros((table_size), np.int32)
+    rpgs = RPGIterator(things)
+
 
 def iter_script_tree2(root):
     yield root
@@ -74,18 +110,6 @@ def iter_script_tree(root):
             lst.append(node.offset + 3)
             lst.append(argnum)
 
-scriptbytes = 0
-scriptuniquebytes = 0
-scriptnum = 0
-scriptuniquenum = 0
-
-# All uses of the following script commands will be logged and printed
-# You can also add standard script names to this, eg. 'minutesofplay':''
-# noop, stringfromtextbox, initmouse, readgeneral, writegeneral, readgmap, writegmap, readenemydata, writeenemydata
-cmd_logging = {0:'', 240:'', 159:'', 147:'', 148:'', 178:'', 179:'', 230:'', 231:''}
-
-strange_names = []
-
 # Map from name to index in standardscrs
 standardindex = {}
 for i, name in enumerate(standardscrs['names']):
@@ -97,7 +121,6 @@ def commandname(id):
     return "cmd%d" % id
 
 
-rpgs = RPGIterator(things)
 for rpg, gameinfo, zipinfo in rpgs:
     gameinfo.has_source = False
     gameinfo.scripts_backup = False
@@ -180,8 +203,9 @@ for rpg, gameinfo, zipinfo in rpgs:
 
     cmdcounts = np.append(cmdcounts, cmdusage, axis = 0)
 
+print
 rpgs.print_summary()
-del rpgs
+#del rpgs
 print "Scanned %d unique scripts totalling %.2f MB (%.2f MB nonunique)" % (scriptuniquenum, scriptuniquebytes / 2.**20, scriptbytes / 2.**20)
 print
 
@@ -198,16 +222,9 @@ for md5, scripts in scripthashes.iteritems():
             if len(set(script.gamename for script in scripts)) == 1:
                 almost_dup += 1
             else:
-                print "Script duplicated", len(games), "times: (%s)", duptext, md5[:5]
+                print "Script duplicated", len(games), "times:", duptext
 print
 print "Ignored %d duplicated scripts which seem to be from different versions of the same game" % almost_dup
-
-for scripts in scripthashes.itervalues():
-    idx = standardindex.get(scripts[0].name)
-    if idx:
-        standardscrs['versions'][idx] += 1
-
-print
 
 if len(strange_names):
     print "Saw script names containing unusual characters:"
@@ -227,12 +244,16 @@ rpgidx = rpgidx.view(OhrData)
 # Delete weakrefs from scripts so that they are pickleable
 for scripts in scripthashes.itervalues():
     for script in scripts:
-        if script.scriptset() != None:
-            print "WARNING: undeleted HSScripts object"
-        del script.scriptset
+        if hasattr(script, 'scriptset'):
+            if script.scriptset() != None:
+                print "WARNING: undeleted HSScripts object"
+            del script.scriptset
 
+state = {}
+for var in 'rpgidx', 'rpgs', 'cmdcounts', 'cmdcounts_in_plotscrhsd', 'standardscrs', 'scripthashes', 'commands_info', 'table_size', 'cmd_logging', 'scriptbytes', 'scriptuniquebytes', 'scriptnum', 'scriptuniquenum':
+    state[var] = locals()[var]
 with open('scriptdata.bin', 'wb') as f:
-    pickle.dump({'rpgidx':rpgidx, 'cmdcounts':cmdcounts, 'cmdcounts_in_plotscrhsd':cmdcounts_in_plotscrhsd, 'standardscrs':standardscrs, 'scripthashes':scripthashes}, f, protocol = 2)
+    pickle.dump(state, f, protocol = 2)
 
 print
 
@@ -259,7 +280,13 @@ print "in sum %d/%d games had script source available" % (total - tally[0][0].su
 
 print 
 
+
 # Print out usage counts for commands AND plotscr.hsd scripts
+
+for scripts in scripthashes.itervalues():
+    idx = standardindex.get(scripts[0].name)
+    if idx:
+        standardscrs['versions'][idx] += 1
 
 cmdsums = cmdcounts.sum(axis=0)
 cmdgamecounts = (cmdcounts > 0).sum(axis=0)
