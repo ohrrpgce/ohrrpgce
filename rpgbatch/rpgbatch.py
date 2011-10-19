@@ -40,6 +40,23 @@ def is_script(f):
             return line in top_level
     return False
 
+def md5_add_file(md5, fname):
+    with open(fname, 'rb') as f:
+        while True:
+            data = f.read(8192)
+            if not data:
+                break
+            md5.update(data)
+
+def safe_extract(archive, srcfile, destfile):
+    # Reimplementing ZipFile.extract, so that the target is
+    # closed immediately if interrupted by an exception
+    source = archive.open(srcfile)
+    with open(destfile, "wb") as target:
+        shutil.copyfileobj(source, target)
+    source.close()
+
+
 class RPGInfo(object):
     def loadname(self, rpg):
         if rpg.lump_size('browse.txt'):
@@ -81,6 +98,7 @@ class RPGIterator(object):
             if arg.startswith('src:'):
                 self.cur_src = arg[4:]
             elif path.isdir(arg):
+                arg = arg.strip('/\\')
                 if arg.lower().endswith(".rpgdir"):
                     self._addfile(path.abspath(arg))
                 else:
@@ -103,12 +121,12 @@ class RPGIterator(object):
     def _nonduplicate(self, fname, gameid):
         self.num_rpgs += 1
         md5 = hashlib.md5()
-        with open(fname, 'rb') as f:
-            while True:
-                data = f.read(8192)
-                if not data:
-                    break
-                md5.update(data)
+        if path.isdir(fname):
+            for node in sorted(os.listdir(fname)):
+                md5.update(node)
+                md5_add_file(md5, path.join(fname, node))
+        else:
+            md5_add_file(md5, fname)
         digest = md5.digest()
         if digest in self.hashs:
             self.hashs[digest].append(gameid)
@@ -172,6 +190,7 @@ class RPGIterator(object):
 
                     # First scan for interesting stuff
                     for name in archive.namelist():
+                        name = name.strip('/\\')
                         if is_rpg(name):
                             zipinfo.rpgs.append(name)
                         elif file_ext_in(name, 'hss', 'txt'):
@@ -182,30 +201,38 @@ class RPGIterator(object):
                         elif file_ext_in(name, 'exe'):
                             zipinfo.exes.append(name)
 
-                    for name in zipinfo.rpgs:
-                        # FIXME: add rpgdir support
+                    for name_ in zipinfo.rpgs:
+                        name = name_.strip('/\\')
                         print "Found %s in %s" % (name, f)
-                        fname = path.join(self.tmpdir, path.basename(name))
-                        # Reimplementing ZipFile.extract, so that the target is
-                        # closed immediately if interrupted by an exception
-                        #archive.extract(name, self.tmpdir)
-                        source = archive.open(name)
-                        with open(fname, "wb") as target:
-                            shutil.copyfileobj(source, target)
-                        source.close()
+                        extractto = path.join(self.tmpdir, path.basename(name))
+                        if name.endswith('.rpgdir'):
+                            os.mkdir(extractto)
+                            size = 0
+                            for zipped in archive.namelist():
+                                if zipped.startswith(name) and len(zipped) >  len(name) + 1:
+                                    safe_extract(archive, zipped, path.join(extractto, path.basename(zipped)))
+                                    dated_file = zipped  # Pick any old lump
+                                    size += archive.getinfo(dated_file).file_size
+                        else:
+                            safe_extract(archive, name, extractto)
+                            dated_file = name_
+                            size = os.stat(extractto).st_size
                         gameinfo = RPGInfo()
                         gameinfo.rpgfile = path.basename(name)
                         gameinfo.id = "%s:%s" % (path.basename(f), name)
                         gameinfo.src = src
-                        gameinfo.mtime = calendar.timegm(archive.getinfo(name).date_time)
-                        gameinfo.size = os.stat(fname).st_size
-                        if self._nonduplicate(fname, gameinfo.id):
+                        gameinfo.mtime = calendar.timegm(archive.getinfo(dated_file).date_time)
+                        gameinfo.size = size
+                        if self._nonduplicate(extractto, gameinfo.id):
                             self.bytes += gameinfo.size
-                            yield self._get_rpg(fname), gameinfo, zipinfo
+                            yield self._get_rpg(extractto), gameinfo, zipinfo
                             self._cleanup()
-                        os.remove(fname)
+                        if path.isdir(extractto):
+                            shutil.rmtree(extractto)
+                        else:
+                            os.remove(extractto)
 
-                except (zipfile.BadZipfile, zlip.error):
+                except (zipfile.BadZipfile, zlib.error):
                     print f, "is corrupt, skipping"
                     self.num_badzips += 1
                 finally:
