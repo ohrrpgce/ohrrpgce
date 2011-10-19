@@ -56,20 +56,21 @@ if things[0] == '--resume':
     print "New run:"
 
 
-elif things[0].endswith('plotscr.hs'):
-    scriptset = HSScripts(things[0])
-    standardscrs['names'] = scriptset.scriptnames.values()
-    commands_info = scriptset.commands_info
-    del scriptset
-    print "Read", len(standardscrs['names']), "standard scripts from", things[0]
-    things.pop(0)
-    # A few special cases for scripts which were removed from plotscr.hsd
-    # (all of these were in fact replaced with builtin commands)
-    for n in ('setstring', 'appendstring', 'suspendmapmusic', 'resumemapmusic', 'setenemyrewards', 'getenemyrewards'):
-        if n not in standardscrs['names']:
-            standardscrs['names'].append(n)
-    standardscrs['versions'] = [0 for x in standardscrs['names']]
-    standardscrs['games'] = [[] for x in standardscrs['names']]
+else:
+    if things[0].endswith('plotscr.hs'):
+        scriptset = HSScripts(things[0])
+        standardscrs['names'] = scriptset.scriptnames.values()
+        commands_info = scriptset.commands_info
+        del scriptset
+        print "Read", len(standardscrs['names']), "standard scripts from", things[0]
+        things.pop(0)
+        # A few special cases for scripts which were removed from plotscr.hsd
+        # (all of these were in fact replaced with builtin commands)
+        for n in ('setstring', 'appendstring', 'suspendmapmusic', 'resumemapmusic', 'setenemyrewards', 'getenemyrewards'):
+            if n not in standardscrs['names']:
+                standardscrs['names'].append(n)
+        standardscrs['versions'] = [0 for x in standardscrs['names']]
+        standardscrs['games'] = [[] for x in standardscrs['names']]
 
     # We'll store usage counts for both commands and standard scripts in cmdcount.
     # The scripts start at 2000.
