@@ -41,7 +41,8 @@ def is_script(f):
     return False
 
 class RPGInfo(object):
-    pass
+    def __str__(self):
+        return self.id + ' -- ' + self.longname
 
 class ArchiveInfo(object):
     pass
