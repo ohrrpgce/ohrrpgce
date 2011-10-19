@@ -30,6 +30,7 @@ plotscript, run all tests, begin
   seed random(4444)
   string tests
   math tests
+  slice tests
   door tests
   hero tests
   trigger tests
@@ -1508,6 +1509,32 @@ end
 
 ########################################################################
 
+script, slice tests, begin
+  # Only testing rect transparency
+  variable (sl)
+  sl := create rect(100, 100), w
+  assert(get rect trans(sl) == trans:solid)
+  assert(get rect fuzziness(sl) == 100)
+  set rect trans(sl, trans:hollow), w
+  assert(get rect trans(sl) == trans:hollow)
+  assert(get rect fuzziness(sl) == 0)
+  set rect fuzziness(sl, 25), w
+  assert(get rect trans(sl) == trans:fuzzy)
+  assert(get rect fuzziness(sl) == 25)
+  set rect fuzziness(sl, 0), w
+  assert(get rect trans(sl) == trans:hollow)
+  assert(get rect fuzziness(sl) == 0)
+  set rect fuzziness(sl, 100), w
+  assert(get rect trans(sl) == trans:solid)
+  assert(get rect fuzziness(sl) == 100)
+  set rect trans(sl, trans:fuzzy), w
+  assert(get rect trans(sl) == trans:fuzzy)
+  assert(get rect fuzziness(sl) == 50)
+  free slice(sl)
+end
+
+########################################################################
+
 ########################################################################
 #### COMMANDS THAT STILL NEED TESTS
 #allow minimap (setting)
@@ -1655,7 +1682,6 @@ end
 #get rect border (handle)
 #get rect fgcol (handle)
 #get rect style (handle)
-#get rect trans (handle)
 #get right padding (handle)
 #get slice clipping (handle)
 #get slice extra (handle, extra)
@@ -1910,7 +1936,6 @@ end
 #set rect border (handle, border)
 #set rect fgcol (handle, color)
 #set rect style (handle, style)
-#set rect trans (handle, transparency setting)
 #set right padding (handle, pixels)
 #set seconds of play (sec)
 #set slice clipping (handle, clip)

@@ -2921,7 +2921,31 @@ SELECT CASE as CONST id
    plotstr(retvals(0)).s = readattackcaption(retvals(1) - 1)
    scriptret = 1
   END IF
-
+ CASE 527 '--get rect fuzziness (slice)
+  IF valid_plotrect(retvals(0)) THEN
+   DIM dat as RectangleSliceData ptr
+   dat = plotslices(retvals(0))->SliceData
+   IF dat->translucent = transFuzzy THEN
+    scriptret = dat->fuzzfactor
+   ELSEIF dat->translucent = transHollow THEN
+    scriptret = 0
+   ELSEIF dat->translucent = transOpaque THEN
+    scriptret = 100
+   END IF
+  END IF
+ CASE 528 '--set rect fuzziness (slice, percent)
+  IF valid_plotrect(retvals(0)) THEN
+   IF bound_arg(retvals(1), 0, 100, "fuzziness percentage", , , 5) THEN
+    IF retvals(1) = 0 THEN
+     'Reset fuzzfactor to default 50% for future "set rect trans (sl, trans:fuzzy)"
+     ChangeRectangleSlice plotslices(retvals(0)), , , , , transHollow, 50
+    ELSEIF retvals(1) = 100 THEN 
+     ChangeRectangleSlice plotslices(retvals(0)), , , , , transOpaque, 50
+    ELSE
+     ChangeRectangleSlice plotslices(retvals(0)), , , , , transFuzzy, retvals(1)
+    END IF
+   END IF
+  END IF
 END SELECT
 
 END SUB

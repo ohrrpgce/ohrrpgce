@@ -66,6 +66,7 @@ WHAT IS NEW?
     * "get door x", "get door y", "get door destination id",
       "get door destination map", "door is active" [Mogri]
     * "read attack caption" [Mogri]
+    * "get rect fuzziness", "set rect fuzziness" [Ralph]
 
   * Vikings of Midgard
 
