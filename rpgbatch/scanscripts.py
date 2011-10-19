@@ -32,7 +32,7 @@ if things[0].endswith('plotscr.hs'):
     for n in ('setstring', 'appendstring', 'suspendmapmusic', 'resumemapmusic', 'setenemyrewards', 'getenemyrewards'):
         if n not in standardscrs['names']:
             standardscrs['names'].append(n)
-standardscrs['versions'] = [[0, 0] for x in standardscrs['names']]
+standardscrs['versions'] = [0 for x in standardscrs['names']]
 standardscrs['games'] = [[] for x in standardscrs['names']]
 
 rpgidx = np.zeros(shape = 0, dtype = RPGInfo)
@@ -129,23 +129,31 @@ for rpg, gameinfo, zipinfo in rpgs:
             scriptnum += 1
             #script = copy(script)
             #script.drop_data()
-            script.game = gameinfo.name
-            if script.name in standardindex:
-                usagevec = cmdcounts_in_plotscrhsd
-            else:
-                usagevec = cmdusage[0]
+            script.game = gameinfo.name  # RPG file and long name
+            script.gamename = gameinfo.longname
             scriptbytes += script.lump_size
-            md5 = script.md5()
+
+            # The first Script in each list of Scripts in scripthashes has a vector of
+            # command usage counts for that script (hacky)
+            md5 = script.invariate_md5()
             if md5 in scripthashes:
+                # Only need one copy of the script data
+                script.drop_data()
                 scripthashes[md5].append(script)
+                # Commands in standard scripts are only counted once per unique copy of the script.
+                # Commands in other scripts are counted for each game they appear in
+                if script.name not in standardindex:
+                    cmdusage[0] += scripthashes[md5][0].cmdusage
             else:
+                script.cmdusage = np.zeros((table_size), np.int32)
                 scriptuniquenum += 1
                 scripthashes[md5] = [script]
                 scriptuniquebytes += script.lump_size
+
                 for node in iter_script_tree(script.root()):
                     kind = node.kind
                     if kind == kCmd:
-                        usagevec[node.id] += 1
+                        script.cmdusage[node.id] += 1
                         # Ignore occurrences in standard scripst
                         if node.id in cmd_logging and id not in id_to_standardindex:
                             cmd_logging[node.id] += "Found in " + script.name + " in " + gameinfo.name + ":\n" + str(node) + '\n'
@@ -153,10 +161,13 @@ for rpg, gameinfo, zipinfo in rpgs:
                         idx = id_to_standardindex.get(node.id)
                         # Ignore occurrences in standard scripts
                         if idx and id not in id_to_standardindex:
-                            usagevec[2000 + idx] += 1
+                            script.cmdusage[2000 + idx] += 1
                             if standardscrs['names'][idx] in cmd_logging:
-                                cmd_logging[standardscrs['names'][idx]] += "Found in " + script.name + " in " + gameinfo.name + ":\n" + str(node) + '\n'                         
-                        
+                                cmd_logging[standardscrs['names'][idx]] += "Found in " + script.name + " in " + gameinfo.name + ":\n" + str(node) + '\n'
+                if script.name in standardindex:
+                    cmdcounts_in_plotscrhsd += script.cmdusage
+                else:
+                    cmdusage[0] += script.cmdusage
         scriptset.close()
         del scriptset
 
@@ -164,8 +175,10 @@ for rpg, gameinfo, zipinfo in rpgs:
 
 rpgs.print_summary()
 del rpgs
-print "scanned %d scripts totalling %.2f MB (%.2f MB nonunique)" % (scriptnum, scriptuniquebytes / 2.**20, scriptbytes / 2.**20)
+print "Scanned %d unique scripts totalling %.2f MB (%.2f MB nonunique)" % (scriptuniquenum, scriptuniquebytes / 2.**20, scriptbytes / 2.**20)
 print
+
+almost_dup = 0
 for md5, scripts in scripthashes.iteritems():
     if len(scripts) > 1 and scripts[0].name not in standardindex:
         games = []
@@ -175,19 +188,17 @@ for md5, scripts in scripthashes.iteritems():
                 games.append(script.game)
                 duptext += "\n   " + script.name + " in " + script.game
         if len(games) > 1:
-            print "Script duplicated", len(games), "times:", duptext
+            if len(set(script.gamename for script in scripts)) == 1:
+                almost_dup += 1
+            else:
+                print "Script duplicated", len(games), "times: (%s)", duptext, md5[:5]
 print
+print "Ignored %d duplicated scripts which seem to be from different versions of the same game" % almost_dup
+
 for scripts in scripthashes.itervalues():
     idx = standardindex.get(scripts[0].name)
     if idx:
-        if scripts[0].format_version == 0:
-            # 16 bit
-            standardscrs['versions'][idx][0] += 1
-        else:
-            # 32 bit
-            standardscrs['versions'][idx][1] += 1
-for name, versions in zip(standardscrs['names'], standardscrs['versions']):
-    print "Found %d versions of %-21s" % (versions[0] + versions[1], name), "(%d 16-bit, %d 32-bit)" % tuple(versions)
+        standardscrs['versions'][idx] += 1
 
 print
 
@@ -207,7 +218,7 @@ for scripts in scripthashes.itervalues():
         del script.scriptset
 
 with open('scriptdata.bin', 'wb') as f:
-    pickle.dump({'rpgidx':rpgidx, 'cmdcounts':cmdcounts, 'cmdcounts_in_plotscrhsd':cmdcounts_in_plotscrhsd, 'standardscrs':standardscrs, 'scripthashes':scripthashes}, f)
+    pickle.dump({'rpgidx':rpgidx, 'cmdcounts':cmdcounts, 'cmdcounts_in_plotscrhsd':cmdcounts_in_plotscrhsd, 'standardscrs':standardscrs, 'scripthashes':scripthashes}, f, protocol = 2)
 
 print
 
@@ -241,10 +252,9 @@ cmdgamecounts = (cmdcounts > 0).sum(axis=0)
 for i in xrange(len(cmdsums)):
     if cmdsums[i] or cmdcounts_in_plotscrhsd[i] or (i in commands_info) or i >= 2000:
         if i >= 2000:
-            header = "     " + standardscrs['names'][i - 2000]
+            header = standardscrs['names'][i - 2000] + " (%d versions)" % standardscrs['versions'][i - 2000]
         else:
-            header =  "%-3d: %s" % (i, commandname(i))
+            header =  "%-3s%s" % (str(i) + ':', commandname(i))
         mark = ''
-        if cmdsums[i] == 0:
-            mark = ' 0'
-        print "%-34s %5d uses in %3d games + %2d in plotscr.hsd%s" % (header, cmdsums[i], cmdgamecounts[i], cmdcounts_in_plotscrhsd[i], mark)
+        header += ' ' * max(1, 41 - len(header) - len(str(cmdsums[i])))
+        print "%s%d uses in %3d games + %2d in plotscr.hsd" % (header, cmdsums[i], cmdgamecounts[i], cmdcounts_in_plotscrhsd[i])
