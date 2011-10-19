@@ -245,16 +245,7 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
    .Height = vpages(dpage)->h
   END WITH
 
-  IF state.need_update THEN
-   slice_editor_refresh(ses, state, menu(), edslice, cursor_seek, slicelookup())
-   REDIM plainmenu(state.last) as string
-   FOR i as integer = 0 TO UBOUND(plainmenu)
-    plainmenu(i) = menu(i).s
-   NEXT i
-   state.need_update = NO
-  END IF
-
-  IF enter_or_space() THEN
+  IF state.need_update = NO AND enter_or_space() THEN
    IF state.pt = 0 THEN
     EXIT DO
    ELSE
@@ -272,9 +263,6 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
      ses.collection_number = jump_to_collection
      slice_editor_load edslice, slice_editor_filename(ses)
      state.need_update = YES
-     '--Force immediate menu refresh
-     dowait
-     CONTINUE DO
     END IF
    END IF
   END IF
@@ -293,13 +281,11 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
      slice_editor_load edslice, filename
      cursor_seek = NULL
      state.need_update = YES
-     '--Force immediate menu refresh
-     CONTINUE DO
     END IF
    END IF
   END IF
 #ENDIF
-  IF keyval(scPlus) > 1 OR keyval(scNumpadPlus) THEN
+  IF state.need_update = NO AND (keyval(scPlus) > 1 OR keyval(scNumpadPlus)) THEN
    IF slice_edit_detail_browse_slicetype(slice_type) THEN
     IF state.pt > ses.last_non_slice THEN
      InsertSliceBefore menu(state.pt).handle, NewSliceOfType(slice_type)
@@ -310,7 +296,7 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
    END IF
   END IF
 
-  IF menu(state.pt).handle THEN
+  IF state.need_update = NO AND menu(state.pt).handle <> NULL THEN
 
    IF keyval(scDelete) > 1 THEN
     #IFDEF IS_GAME
@@ -323,29 +309,24 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
      slice_editor_refresh_delete state.pt, menu()
      state.need_update = YES
     END IF
-   END IF
-   IF keyval(scF) > 1 THEN
+   ELSEIF keyval(scF) > 1 THEN
     slice_editor menu(state.pt).handle
-   END IF
 
-   IF keyval(scShift) > 0 THEN
+   ELSEIF keyval(scShift) > 0 THEN
 
     IF keyval(scUp) > 1 THEN
      SwapSiblingSlices menu(state.pt).handle, menu(state.pt).handle->PrevSibling
      cursor_seek = menu(state.pt).handle
      state.need_update = YES
-    END IF
-    IF keyval(scDown) > 1 AND state.pt < state.last THEN
+    ELSEIF keyval(scDown) > 1 AND state.pt < state.last THEN
      SwapSiblingSlices menu(state.pt).handle, menu(state.pt).handle->NextSibling
      cursor_seek = menu(state.pt).handle
      state.need_update = YES
-    END IF
-    IF keyval(scRight) > 1 THEN
+    ELSEIF keyval(scRight) > 1 THEN
      SliceAdoptSister menu(state.pt).handle
      cursor_seek = menu(state.pt).handle
      state.need_update = YES
-    END IF
-    IF keyval(scLeft) > 1 THEN
+    ELSEIF keyval(scLeft) > 1 THEN
      IF (menu(state.pt).handle)->parent <> edslice THEN
       SliceAdoptNiece menu(state.pt).handle
       cursor_seek = menu(state.pt).handle
@@ -363,24 +344,19 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
       END IF
      #ENDIF
      slice_editor_copy ses, menu(state.pt).handle
-    END IF
-    IF keyval(scV) > 1 THEN
+    ELSEIF keyval(scV) > 1 THEN
      slice_editor_paste ses, menu(state.pt).handle
      state.need_update = YES
-    END IF
-    IF keyval(scUp) > 1 THEN
+    ELSEIF keyval(scUp) > 1 THEN
      cursor_seek = menu(state.pt).handle->prevSibling
      state.need_update = YES
-    END IF
-    IF keyval(scDown) > 1 THEN
+    ELSEIF keyval(scDown) > 1 THEN
      cursor_seek = menu(state.pt).handle->nextSibling
      state.need_update = YES
-    END IF
-    IF keyval(scLeft) > 1 THEN
+    ELSEIF keyval(scLeft) > 1 THEN
      cursor_seek = menu(state.pt).handle->parent
      state.need_update = YES
-    END IF
-    IF keyval(scRight) > 1 THEN
+    ELSEIF keyval(scRight) > 1 THEN
      cursor_seek = menu(state.pt).handle->firstChild
      state.need_update = YES
     END IF
@@ -394,12 +370,18 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
 
    END IF
 
-  END IF '--end IF menu(state.pt).handle
+  END IF '--end IF state.need_update = NO AND menu(state.pt).handle
 
-  IF state.need_update = NO THEN
-   'Only do normal cursor movement when no updates are needed
-   usemenu state
+  IF state.need_update THEN
+   slice_editor_refresh(ses, state, menu(), edslice, cursor_seek, slicelookup())
+   REDIM plainmenu(state.last) as string
+   FOR i as integer = 0 TO UBOUND(plainmenu)
+    plainmenu(i) = menu(i).s
+   NEXT i
+   state.need_update = NO
   END IF
+
+  usemenu state
 
   clearpage dpage
   DrawSlice edslice, dpage
