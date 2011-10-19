@@ -1595,15 +1595,14 @@ SELECT CASE as CONST id
     END IF
    END IF
   END IF
- CASE 240'-- string from textbox
+ CASE 240'-- string from textbox (string, box, line, ignored)
   IF valid_plotstr(retvals(0)) THEN
    DIM box as TextBox
    retvals(1) = bound(retvals(1),0,gen(genMaxTextbox))
    retvals(2) = bound(retvals(2),0,7)
    LoadTextBox box, retvals(1)
-   plotstr(retvals(0)).s = box.text(retvals(2))
-   IF NOT retvals(3) THEN embedtext plotstr(retvals(0)).s
-   plotstr(retvals(0)).s = trim(plotstr(retvals(0)).s)
+   plotstr(retvals(0)).s = trim(box.text(retvals(2)))
+   embedtext plotstr(retvals(0)).s
   END IF
  CASE 241'-- expand string(id)
   IF valid_plotstr(retvals(0)) THEN
@@ -2946,6 +2945,24 @@ SELECT CASE as CONST id
     END IF
    END IF
   END IF
+ CASE 529 '-- textbox line (string, box, line, expand, strip)
+  IF valid_plotstr(retvals(0), 5) ANDALSO _
+     bound_arg(retvals(1), 0, gen(genMaxTextbox), "textbox", , , 5) THEN
+   IF retvals(2) < 0 THEN
+    'There's no upper bound on valid textbox line numbers
+    scripterr "textbox line: invalid line number " & retvals(2), 5
+   ELSEIF retvals(2) > 7 THEN
+    'On the other hand, this is currently impossible
+    plotstr(retvals(0)).s = ""
+   ELSE
+    DIM box as TextBox
+    LoadTextBox box, retvals(1)
+    plotstr(retvals(0)).s = box.text(retvals(2))
+    IF retvals(4) THEN plotstr(retvals(0)).s = trim(plotstr(retvals(0)).s)
+    IF retvals(3) THEN embedtext plotstr(retvals(0)).s
+   END IF
+  END IF
+
 END SELECT
 
 END SUB

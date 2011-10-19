@@ -16,9 +16,12 @@ global variable(101, timer global)
 global variable(102, timer global will become)
 global variable(103, battle script sequence)
 global variable(104, menu close global)
+global variable(105, embedding string)
 
 #string 0 = error messages
 #string 1 = temporary misc
+#string 2 = temporary misc
+#string 3 = temporary misc
 #string 10 = error message arg
 #string 11 = asserts
 define constant(11, assert expression string)
@@ -1482,7 +1485,17 @@ end
 script, string tests, begin
   # There are tons more string commands we could test here!
   $0="String tests", trace(0)
-  
+
+  $1=""
+  $2=""
+  assert(string compare(1,2))
+  $1="a"
+  $2="A"
+  assert(string compare(1,2) == false)
+  $1=" .~fooy"
+  $2=" .~fooY"
+  assert(string compare(1,2) == false)
+
   $1="SelfStab"
   read attack name(2, 0 + 1)
   assert(string compare(1,2))
@@ -1490,6 +1503,52 @@ script, string tests, begin
   $1="Attack self"
   get attack caption(2, 0 + 1)
   assert(string compare(1,2))
+
+  embedding string := -1234
+  $3="<embedded> "
+
+  # Test the obsolete stringfromtextbox: 4th arg ignored
+  stringfromtextbox(1, 8, 2)
+  $2="."
+  assert(string compare(1, 2))
+  stringfromtextbox(1, 8, 3)
+  $2=""
+  assert(string compare(1, 2))
+  stringfromtextbox(1, 8, 4)
+  $2="##"
+  assert(string compare(1, 2))
+  stringfromtextbox(1, 8, 5, false)
+  $2=",-1234. ,<embedded> "
+  assert(string compare(1, 2))
+  stringfromtextbox(1, 8, 5, true)
+  assert(string compare(1, 2))
+
+  # textbox line
+  textboxline(1, 8, 2)
+  $2="."
+  assert(string compare(1, 2))
+  textboxline(1, 8, 3)
+  $2=""
+  assert(string compare(1, 2))
+  textboxline(1, 8, 4)
+  $2=" ## "
+  assert(string compare(1, 2))
+  textboxline(1, 8, 4, true, false)
+  assert(string compare(1, 2))
+  textboxline(1, 8, 4, true, true)
+  $2="##"
+  assert(string compare(1, 2))
+  textboxline(1, 8, 5, false)
+  $2=" ,${V105}. ,${S3} "
+  assert(string compare(1, 2))
+  textboxline(1, 8, 5, true)
+  $2=" ,-1234. ,<embedded>  "
+  assert(string compare(1, 2))
+  textboxline(1, 8, 5, true, true)
+  $2=",-1234. ,<embedded> "
+  assert(string compare(1, 2))
+
+
 end
 
 ########################################################################
@@ -1510,6 +1569,8 @@ end
 ########################################################################
 
 script, slice tests, begin
+  $0="Slice tests"
+
   # Only testing rect transparency
   variable (sl)
   sl := create rect(100, 100), w
@@ -2024,8 +2085,6 @@ end
 #stop sound (num)
 #stop timer (id)
 #string color (ID, foreground color, background color)
-#string compare (ID1, ID2)
-#string from textbox (ID, textbox, line, expand)
 #string is visible (ID)
 #string length (ID)
 #string style (ID, style)

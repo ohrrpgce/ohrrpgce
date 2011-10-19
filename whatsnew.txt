@@ -67,6 +67,8 @@ WHAT IS NEW?
       "get door destination map", "door is active" [Mogri]
     * "read attack caption" [Mogri]
     * "get rect fuzziness", "set rect fuzziness" [Ralph]
+    * "textbox line" replaces "string from textbox", fixing the
+      broken 'expand' argument and adding 'strip' argument [Ralph]
 
   * Vikings of Midgard
 

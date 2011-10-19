@@ -246,7 +246,7 @@ define function, begin
 #237,soundslots,0              #returns the number of slots available
 238,searchstring,3,0,0,1      #Search string, (ID1,ID2,start)
 239,trimstring,3,0,-1,1       #Trims the specified string, (ID, start,length)
-240,stringfromtextbox,4,0,0,0,0 #loads string with whatever line in whatever textbox you specify
+240,stringfromtextbox,4,0,0,0,0 #(obsolete) get a line from a textbox  (string, box, line, ignored)
 241,expandstring,1,0          #expand ${Hxx}, etc in a string(ID)
 242,joystickbutton,2,0,0      #returns whether a given button is pressed (button, joystick)
 243,joystickaxis,3,0,100,0    #returns the axis position (axis,multiplier,joystick)
@@ -537,6 +537,7 @@ define function, begin
 526,getattackcaption,2,0,0       #puts an attack's caption in a string (string id, attack id+1 / attack .hsi constant)
 527,getrectfuzziness,1,0         #get rect fuzz percentange
 528,setrectfuzziness,2,0,50      #set rect fuzz percentange
+529,textboxline,5,0,0,-1,1,0     #get a line of text from a textbox (string, box, line, expand, strip)
 end
 
 #--------------------------------------------------------------------------

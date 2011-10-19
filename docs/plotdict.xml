@@ -1563,17 +1563,27 @@ get hero name (1,find hero(hero by rank(0)))
 			<description>Cuts the string to the specified length, OR removes blank space from the beginning and ends of the string. <p>ID</p> is the string you want to be cut. If you wish to cut <p>ID</p> to a certain length, you must specify <p>start</p> and <p>length</p>. <p>start</p> is the position at which you want to start cutting, anything to the left of this number will be deleted in a string. <p>length</p> is the size of the string you want to preserve, anything to the right of this number will be deleted in a string. If you leave these parameters blank, it will trim whitespace from the beginning and ends of <p>ID</p>.</description>
 		</command>
 		<command id="stringfromtextbox">
-			<canon>string from textbox (ID, textbox, line, expand)</canon>
+			<canon>string from textbox (ID, textbox, line, ignored)</canon>
 			<shortname>string from textbox</shortname>
-			<description>Loads text from the <p>line</p> in a <p>textbox</p> into a string <p>ID</p>. The command automatically erases white spaces from the begining of the string and end of the string. Valid numbers for <p>line</p> are 0-7. If <p>expand</p> is true, then codes like ${H1} in the string will be substituted automatically.</description>
+			<description>Loads one of the <p>line</p>s of a <p>textbox</p> into a string <p>ID</p>. Valid numbers for <p>line</p> are 0-7. This command is obsolete and exists only for compatibility with old games: It has been replaced with <ref>textboxline</ref>. The fourth argument does nothing. Trailing and leading whitespace is stripped from the line, and embedded codes like ${H1} in the string are automatically substituted.</description>
+			<seealso>
+				<ref>expandstring</ref>
+				<ref>textboxline</ref>
+			</seealso>
+		</command>
+		<command id="textboxline">
+			<canon>textbox line (string ID, textbox, line, expand, strip)</canon>
+			<shortname>textbox line</shortname>
+			<description>Loads one of the <p>line</p>s of a <p>textbox</p> into a <p>string ID</p>. Valid numbers for <p>line</p> are 0-7. If <p>expand</p> is true (which is the default) codes such as ${H1} in the string will be substituted automatically. If <p>strip</p> is true (which is NOT the default), white space at the beginning and end of the string are removed.</description>
 			<seealso>
 				<ref>expandstring</ref>
 			</seealso>
 		</command>
+
 		<command id="expandstring">
 			<canon>expand string(ID)</canon>
 			<shortname>expand string</shortname>
-			<description>Expands codes in <p>ID</p> like ${H1}. This does the same thing that textboxes do automatically.</description>
+			<description>Expands codes in <p>ID</p> such as ${H1}. This does the same thing that textboxes do automatically.</description>
 		</command>
 	</section>
 
