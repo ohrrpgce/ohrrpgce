@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Nd 2011-10-16 Fix commands.bin generation bug
 --3Nc 2011-08-28 Additional expression optimisations
 --3Nb 2011-08-28 Fix overflow_int32 and bitwise operator overflow
 --3Na 2011-07-25 Add -x option for Hamster Whisper's benefit
@@ -119,7 +120,7 @@ constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Nc"
+constant COMPILER_SUB_VERSION="Nd"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags. May add more colors, up to 254
@@ -3555,7 +3556,7 @@ end function
 
 function generate_commands_dot_bin()
   sequence result
-  integer i
+  integer i, id
   integer offset
   integer records
   function_list=sort(function_list)
@@ -3576,18 +3577,27 @@ function generate_commands_dot_bin()
   result&=output_word(records)
 
   offset=length(result)+records*2
+  id=0
   i=1
-  for id=0 to records-1 do
-    if function_list[i][PAIR_NUM]=id then
+  while i<=length(function_list) do
+    if function_list[i][PAIR_NUM]<id then
+      i+=1
+    elsif function_list[i][PAIR_NUM]=id then
       result&=output_word(offset)
       offset+=4+length(function_list[i][PAIR_NAME])
-      i+=1
+      id+=1
     else
       result&=output_word(0)
+      id+=1
     end if
-  end for
+  end while
   i=1
+  id=-1
   while i<=length(function_list) and function_list[i][PAIR_NUM]<records do
+    if function_list[i][PAIR_NUM]=id then
+      i+=1
+      continue
+    end if
     if equal(function_list[i][FUNC_ARGS],VAR_ARGS) then
       result&=output_word(-1)
     else
@@ -3595,6 +3605,7 @@ function generate_commands_dot_bin()
     end if
     result&=output_word(length(function_list[i][PAIR_NAME]))
     result&=function_list[i][PAIR_NAME]
+    id=function_list[i][PAIR_NUM]
     i+=1
   end while
   return(result)
