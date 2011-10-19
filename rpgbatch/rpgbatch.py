@@ -2,7 +2,7 @@ import os
 import sys
 import numpy as np
 from nohrio.ohrrpgce import *
-from nohrio.rpg2 import RPG
+from nohrio.rpg2 import RPG, CorruptionError
 #from nohrio.ohrstring import *
 import zipfile
 from tempfile import mkdtemp
@@ -90,6 +90,7 @@ class RPGIterator(object):
 
         # Stats
         self.num_badzips = 0
+        self.num_badrpgs = 0
         self.num_rpgs = 0
         self.num_uniquerpgs = 0
         self.bytes = 0
@@ -98,7 +99,7 @@ class RPGIterator(object):
             if arg.startswith('src:'):
                 self.cur_src = arg[4:]
             elif path.isdir(arg):
-                arg = arg.strip('/\\')
+                arg = arg.rstrip('/\\')
                 if arg.lower().endswith(".rpgdir"):
                     self._addfile(path.abspath(arg))
                 else:
@@ -142,11 +143,11 @@ class RPGIterator(object):
             # unlump; rpg2.RPGFile isn't very useful
             fname = path.join(self.tmpdir, path.basename(fname) + "dir")
             os.mkdir(fname)
+            self.cleanup_dir = fname
             for foo in rpg.unlump_all(fname):
                 #sys.stdout.write('.')
                 pass
             rpg = RPG(fname)
-            self.cleanup_dir = fname
         # We return a proxy because otherwise after being yielded from __iter__ and
         # bound to a variable, it won't be unbound from that variable and deleted
         # until after the next rpg is yielded --- meaning _cleanup() won't work.
@@ -172,13 +173,26 @@ class RPGIterator(object):
                     gameinfo.mtime = os.stat(fname).st_mtime
                     gameinfo.size = os.stat(fname).st_size
                     self.bytes += gameinfo.size
-                    yield self._get_rpg(fname), gameinfo, None
+                    try:
+                        yield self._get_rpg(fname), gameinfo, None
+                    except CorruptionError as e:
+                        print fname, "is corrupt, skipped:", e
+                        self.num_badrpgs += 1
+                        # Clear last exception: it holds onto local variables in stack frames
+                        sys.exc_clear()
                     self._cleanup()
 
             for f, src in self.zipfiles:
                 # ZipFile is a context manager only in python 2.7+
                 try:
-                    archive = zipfile.ZipFile(f, "r")
+                    try:
+                        archive = zipfile.ZipFile(f, "r")
+                    except IOError as e:
+                        # Catch a file seek "invalid argument" error (in CP game 781 at least, which
+                        # appears to be a perfectly valid zip). Probably a zipfile bug.
+                        print f, "could not be read, skipping:", e
+                        continue
+
                     #if archive.testzip():
                     #    raise zipfile.BadZipfile
 
@@ -190,7 +204,7 @@ class RPGIterator(object):
 
                     # First scan for interesting stuff
                     for name in archive.namelist():
-                        name = name.strip('/\\')
+                        name = name.rstrip('/\\')
                         if is_rpg(name):
                             zipinfo.rpgs.append(name)
                         elif file_ext_in(name, 'hss', 'txt'):
@@ -202,7 +216,7 @@ class RPGIterator(object):
                             zipinfo.exes.append(name)
 
                     for name_ in zipinfo.rpgs:
-                        name = name_.strip('/\\')
+                        name = name_.rstrip('/\\')
                         print "Found %s in %s" % (name, f)
                         extractto = path.join(self.tmpdir, path.basename(name))
                         if name.endswith('.rpgdir'):
@@ -225,7 +239,13 @@ class RPGIterator(object):
                         gameinfo.size = size
                         if self._nonduplicate(extractto, gameinfo.id):
                             self.bytes += gameinfo.size
-                            yield self._get_rpg(extractto), gameinfo, zipinfo
+                            try:
+                                yield self._get_rpg(extractto), gameinfo, zipinfo
+                            except CorruptionError as e:
+                                print gameinfo.id, "is corrupt, skipped:", e
+                                self.num_badrpgs += 1
+                                # Clear last exception: it holds onto local variables in stack frames
+                                sys.exc_clear()
                             self._cleanup()
                         if path.isdir(extractto):
                             shutil.rmtree(extractto)
@@ -251,7 +271,7 @@ class RPGIterator(object):
     def print_summary(self):
         print
         print "Scanned %d zips (%d bad)" % (len(self.zipfiles), self.num_badzips)
-        print "Found %d RPGS (%d unique, totalling %.1f MB)" % (self.num_rpgs, self.num_uniquerpgs, self.bytes / 2.**20)
+        print "Found %d RPGS, %d corrupt, (%d unique, totalling %.1f MB)" % (self.num_rpgs, self.num_badrpgs, self.num_uniquerpgs, self.bytes / 2.**20)
         print "Finished in %.2f s" % self.timer
         for gameids in self.hashs.itervalues():
             if len(gameids) > 1:
