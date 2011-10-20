@@ -1206,17 +1206,17 @@ SUB saveglobalvars (byval slot as integer, byval first as integer, byval last as
  globals_node = GetChildByName(script_node, "globals")
  
  DIM n as NodePtr
- DIM i as integer
+ DIM nextch as NodePtr
  
  '--delete any old global nodes in the range
  n = FirstChild(globals_node, "global")
  DO WHILE n
-  i = GetInteger(n)
-  SELECT CASE i
+  nextch = NextSibling(n, "global")
+  SELECT CASE GetInteger(n)
    CASE first TO last
     FreeNode(n)
   END SELECT
-  n = NextSibling(n, "global")
+  n = nextch
  LOOP
 
  '--add nodes for the globals in the range
