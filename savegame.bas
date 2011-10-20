@@ -1799,6 +1799,7 @@ SUB old_get_save_slot_preview(byval slot as integer, pv as SaveSlotPreview)
 END SUB
 
 FUNCTION old_save_slot_used (byval slot as integer) as integer
+ IF isfile(old_savefile) = 0 THEN RETURN NO
  DIM as SHORT saveversion
  DIM savh as integer = FREEFILE
  OPEN old_savefile FOR BINARY as #savh
