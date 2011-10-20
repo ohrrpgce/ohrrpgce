@@ -284,7 +284,24 @@ SUB standardmenu (menu() as STRING, byval size as integer, byval vis as integer,
  v_free basicmenu
 END SUB
 
+SUB standardmenu (menu() as SimpleMenuItem, state as MenuState, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval hidecursor as integer=NO, byval wide as integer=9999, byval highlight as integer=NO, byval toggle as integer=YES)
+ DIM m as BasicMenuItem vector
+ v_new m, UBOUND(menu) + 1
+ FOR i as integer = 0 TO UBOUND(menu)
+  WITH m[i]
+   .text = menu(i).text
+   .col = menu(i).col
+   .bgcol = menu(i).bgcol
+   .unselectable = menu(i).unselectable
+   .disabled = menu(i).disabled
+  END WITH
+ NEXT i
+ standardmenu m, state, x, y, page, edge, hidecursor, wide, highlight, toggle
+ v_free m
+END SUB
+
 'menu may in fact be a vector of any type inheriting from BasicMenuItem.
+'     ^ Apparently this isn't true yet because we can't really do inheritance yet? [James]
 'menu's typetable tells the size in bytes of each menu item
 SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval hidecursor as integer=NO, byval wide as integer=9999, byval highlight as integer=NO, byval toggle as integer=YES)
 

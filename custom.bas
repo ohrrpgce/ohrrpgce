@@ -51,6 +51,9 @@ DECLARE SUB secret_menu ()
 DECLARE SUB condition_test_menu ()
 DECLARE SUB quad_transforms_menu ()
 DECLARE SUB arbitrary_sprite_editor ()
+DECLARE SUB setmainmenu (menu() as string, byref mainmax as integer, menukeys() as string)
+DECLARE SUB setgraphicmenu (menu() as string, byref mainmax as integer, menukeys() as string)
+DECLARE SUB distribute_game ()
 
 'Global variables
 REDIM gen(360)
@@ -265,18 +268,20 @@ mainmax = 0
 quitnow = 0
 
 setkeys
-GOSUB setmainmenu
+setmainmenu menu(), mainmax, menukeys()
 DO:
  setwait 55
  setkeys
  tog = tog XOR 1
  IF keyval(scEsc) > 1 THEN
   SELECT CASE menumode
-   CASE 0'--normal
+   CASE 0'--in main menu
     GOSUB relump
     IF quitnow > 1 THEN GOTO finis
    CASE 1'--graphics
-    pt = 0: menumode = 0: GOSUB setmainmenu
+    pt = 0
+    menumode = 0
+    setmainmenu menu(), mainmax, menukeys()
   END SELECT
  END IF
  IF keyval(scF1) > 1 THEN
@@ -298,7 +303,11 @@ DO:
  IF enter_or_space() THEN
   SELECT CASE menumode
    CASE 0'--normal mode
-    IF pt = 0 THEN pt = 0: menumode = 1: GOSUB setgraphicmenu
+    IF pt = 0 THEN
+     pt = 0
+     menumode = 1
+     setgraphicmenu menu(), mainmax, menukeys()
+    END IF
     IF pt = 1 THEN map_picker
     IF pt = 2 THEN edit_global_text_strings
     IF pt = 3 THEN herodata
@@ -318,12 +327,17 @@ DO:
     IF pt = 17 THEN scriptman
     IF pt = 18 THEN slice_editor
     IF pt = 19 THEN spawn_game_menu
-    IF pt = 20 THEN
+    IF pt = 20 THEN distribute_game
+    IF pt = 21 THEN
      GOSUB relump
      IF quitnow > 1 THEN GOTO finis
     END IF
    CASE 1'--graphics mode
-    IF pt = 0 THEN pt = 0: menumode = 0: GOSUB setmainmenu
+    IF pt = 0 THEN
+     pt = 0
+     menumode = 0
+     setmainmenu menu(), mainmax, menukeys()
+    END IF
     IF pt = 1 THEN maptile
     IF pt = 2 THEN sprite 20, 20, gen(genMaxNPCPic),    8, 5, walkabout_frame_captions(),  4, 4
     IF pt = 3 THEN sprite 32, 40, gen(genMaxHeroPic),   8, 16, hero_frame_captions(), 4, 0
@@ -362,51 +376,6 @@ DO:
  setvispage vpage
  dowait
 LOOP
-
-setmainmenu:
-mainmax = 20
-menu(0) = "Edit Graphics"
-menu(1) = "Edit Map Data"
-menu(2) = "Edit Global Text Strings"
-menu(3) = "Edit Hero Stats"
-menu(4) = "Edit Enemy Stats"
-menu(5) = "Edit Attacks"
-menu(6) = "Edit Items"
-menu(7) = "Edit Shops"
-menu(8) = "Edit Battle Formations"
-menu(9) = "Edit Text Boxes"
-menu(10) = "Edit Menus"
-menu(11) = "Edit Vehicles"
-menu(12) = "Edit Tag Names"
-menu(13) = "Import Music"
-menu(14) = "Import Sound Effects"
-menu(15) = "Edit Font"
-menu(16) = "Edit General Game Data"
-menu(17) = "Script Management"
-menu(18) = "Edit Slice Collections"
-menu(19) = "Test Game"
-menu(20) = "Quit Editing"
-get_menu_hotkeys menu(), mainmax, menukeys(), "Edit"
-RETRACE
-
-setgraphicmenu:
-mainmax = 13
-menu(0) = "Back to the main menu"
-menu(1) = "Edit Maptiles"
-menu(2) = "Draw Walkabout Graphics"
-menu(3) = "Draw Hero Graphics"
-menu(4) = "Draw Small Enemy Graphics  34x34"
-menu(5) = "Draw Medium Enemy Graphics 50x50"
-menu(6) = "Draw Big Enemy Graphics    80x80"
-menu(7) = "Draw Attacks"
-menu(8) = "Draw Weapons"
-menu(9) = "Draw Box Edges"
-menu(10) = "Draw Portrait Graphics"
-menu(11) = "Import/Export Screens"
-menu(12) = "Import/Export Full Maptile Sets"
-menu(13) = "Change User-Interface Colors"
-get_menu_hotkeys menu(), mainmax, menukeys()
-RETRACE
 
 chooserpg:
 last = 2: csr = 1: top = 0
@@ -1249,6 +1218,85 @@ SUB condition_test_menu ()
  setkeys
 END SUB
 
+SUB setmainmenu (menu() as string, byref mainmax as integer, menukeys() as string)
+ mainmax = 21
+ menu(0) = "Edit Graphics"
+ menu(1) = "Edit Map Data"
+ menu(2) = "Edit Global Text Strings"
+ menu(3) = "Edit Hero Stats"
+ menu(4) = "Edit Enemy Stats"
+ menu(5) = "Edit Attacks"
+ menu(6) = "Edit Items"
+ menu(7) = "Edit Shops"
+ menu(8) = "Edit Battle Formations"
+ menu(9) = "Edit Text Boxes"
+ menu(10) = "Edit Menus"
+ menu(11) = "Edit Vehicles"
+ menu(12) = "Edit Tag Names"
+ menu(13) = "Import Music"
+ menu(14) = "Import Sound Effects"
+ menu(15) = "Edit Font"
+ menu(16) = "Edit General Game Data"
+ menu(17) = "Script Management"
+ menu(18) = "Edit Slice Collections"
+ menu(19) = "Test Game"
+ menu(20) = "Distribute Game"
+ menu(21) = "Quit Editing"
+ get_menu_hotkeys menu(), mainmax, menukeys(), "Edit"
+END SUB
+
+SUB setgraphicmenu (menu() as string, byref mainmax as integer, menukeys() as string)
+ mainmax = 13
+ menu(0) = "Back to the main menu"
+ menu(1) = "Edit Maptiles"
+ menu(2) = "Draw Walkabout Graphics"
+ menu(3) = "Draw Hero Graphics"
+ menu(4) = "Draw Small Enemy Graphics  34x34"
+ menu(5) = "Draw Medium Enemy Graphics 50x50"
+ menu(6) = "Draw Big Enemy Graphics    80x80"
+ menu(7) = "Draw Attacks"
+ menu(8) = "Draw Weapons"
+ menu(9) = "Draw Box Edges"
+ menu(10) = "Draw Portrait Graphics"
+ menu(11) = "Import/Export Screens"
+ menu(12) = "Import/Export Full Maptile Sets"
+ menu(13) = "Change User-Interface Colors"
+ get_menu_hotkeys menu(), mainmax, menukeys()
+END SUB
+
+SUB distribute_game ()
+
+ REDIM menu(0) as SimpleMenuItem
+ menu(0).text = "Previous Menu..."
+ append_simplemenu_item menu(), "Game name: " & trimpath(sourcerpg), YES, uilook(uiDisabledItem)
+
+ DIM st AS MenuState
+ init_menu_state st, menu()
+
+ DO
+  setwait 55
+  setkeys
+
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "distribute_game"
+  IF st.pt = 0 THEN
+   IF enter_or_space() THEN EXIT DO
+  END IF
+
+  usemenu st, menu()
+  
+  IF st.need_update THEN
+  END IF
+
+  clearpage dpage
+  standardmenu menu(), st, 0, 0, dpage
+  
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+ setkeys
+END SUB
 
 #IFDEF USE_RASTERIZER
 
