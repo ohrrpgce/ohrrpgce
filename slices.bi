@@ -276,6 +276,7 @@ DECLARE FUNCTION SliceTypeName OVERLOAD (sl as Slice Ptr) as string
 DECLARE FUNCTION SliceTypeName OVERLOAD (t as SliceTypes) as string
 DECLARE FUNCTION SliceLookupCodename OVERLOAD (sl as Slice Ptr) as string
 DECLARE FUNCTION SliceLookupCodename OVERLOAD (byval code as integer) as string
+DECLARE FUNCTION UpdateScreenSlice(byval page as integer) as integer
 DECLARE Sub RefreshSliceScreenPos(byval sl as slice ptr)
 DECLARE Function SliceXAnchor(byval sl as Slice Ptr) as integer
 DECLARE Function SliceYAnchor(byval sl as Slice Ptr) as integer

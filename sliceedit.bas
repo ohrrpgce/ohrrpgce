@@ -238,13 +238,6 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
   #ENDIF
   IF keyval(scF4) > 1 THEN ses.hide_menu = NOT ses.hide_menu
 
-  updatepagesize dpage
-  
-  WITH *edslice
-   .Width = vpages(dpage)->w
-   .Height = vpages(dpage)->h
-  END WITH
-
   IF state.need_update = NO AND enter_or_space() THEN
    IF state.pt = 0 THEN
     EXIT DO
@@ -376,6 +369,8 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
 
   END IF '--end IF state.need_update = NO AND menu(state.pt).handle
 
+  IF UpdateScreenSlice(dpage) THEN state.need_update = YES
+
   IF state.need_update THEN
    slice_editor_refresh(ses, state, menu(), edslice, cursor_seek, slicelookup())
    REDIM plainmenu(state.last) as string
@@ -500,6 +495,8 @@ SUB slice_edit_detail (sl as Slice Ptr, byref ses as SliceEditState, rootsl as S
   IF keyval(scF1) > 1 THEN show_help "sliceedit_" & rules(state.pt).helpkey
   IF keyval(scF4) > 1 THEN ses.hide_menu = NOT ses.hide_menu
 
+  IF UpdateScreenSlice(dpage) THEN state.need_update = YES
+
   IF state.need_update THEN
    slice_edit_detail_refresh state, menu(), sl, rules(), slicelookup()
    state.need_update = NO
@@ -519,12 +516,6 @@ SUB slice_edit_detail (sl as Slice Ptr, byref ses as SliceEditState, rootsl as S
   SWAP vpage, dpage
   setvispage vpage
   dowait
-
-  updatepagesize dpage
-  WITH *rootsl
-   .Width = vpages(dpage)->w
-   .Height = vpages(dpage)->h
-  END WITH
  LOOP
  
  remember_pt = state.pt
