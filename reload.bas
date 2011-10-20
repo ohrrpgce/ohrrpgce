@@ -646,7 +646,16 @@ sub SerializeBin(file as string, byval doc as DocPtr)
 		Buffered_write(f, zs, zslen)
 	next
 	Buffered_close(f)
-	
+
+	if doc->fileHandle then
+		'In the process of serializing the document, all nodes would have been loaded,
+		'therefore we can close the source file.
+		'Now it's very likely that we're writing back to the original file, which means
+		'that on Windows we have to close this file, otherwise we can't delete it!
+		fclose(doc->fileHandle)
+		doc->fileHandle = NULL
+	end if
+
 	safekill file
 	if rename(file & ".tmp", file) then
 		debug "SerializeBin: could not rename " & file & ".tmp (exists=" & isfile(file & ".tmp") & ") to " & file & " (exists=" & isfile(file) & ")"

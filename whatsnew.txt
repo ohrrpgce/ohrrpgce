@@ -50,6 +50,7 @@ WHAT IS NEW?
         tiles harm non-caterpillar party" general preference bitset)
       * Didn't trigger when crossing over them using walkhero with
         distance more than 1 [Ralph]
+    * "export globals" was broken in strange ways [Ralph]
 
   * New Plotscripting Stuff
     * Slice velocity commands to make a slice move automatically at
