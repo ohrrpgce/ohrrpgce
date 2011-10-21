@@ -98,6 +98,9 @@ declare function __array_is_temp cdecl alias "array_is_temp" (byval this as any 
   'Increases the number of elements of a vector. Returns a pointer to the first new element created
   declare function v_expand overload alias "array_expand" (byref this as T vector, byval amount as uinteger = 1) as T ptr
 
+  'Return pointer to some element. Throws a fatal error if out of range. Useful for polymorphism.
+  declare function v_at overload alias "array_index" (byval this as T vector, byval index as integer) as T ptr
+
   'Returns pointer 1 past end, useful for indexing from the end
   declare function v_end overload alias "array_end" (byval this as T vector) as T ptr
 

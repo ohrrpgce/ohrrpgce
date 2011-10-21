@@ -163,7 +163,8 @@ startTest(emptyInteger)
 	v_new arr, 10000
 	if v_len(arr) <> 10000 then fail
 	for i as integer = 0 to 9999
-		if arr[i] <> 0 then fail 
+		if arr[i] <> 0 then fail
+		if *v_at(arr, i) <> 0 then fail
 	next
 	v_free arr
 	if arr <> NULL then fail
@@ -268,6 +269,7 @@ startTest(integerResizing)
 	if v_len(arr) <> 50 then fail
 	for i as integer = 0 to 49
 		if arr[i] <> iif(i < 23, 800 + i, 0) then fail
+		if arr[i] <> *v_at(arr, i) then fail
 	next
 	v_resize arr, 0
 	if v_len(arr) <> 0 then fail
@@ -736,5 +738,12 @@ startTest(valgrind)
 	dummy = arr[0]
 	v_append arr, 42
 	dummy = arr[1]
+	v_free arr
+endTest
+
+startTest(ThisShouldAbort)
+	dim arr as integer vector
+	v_new arr, 2
+	? v_at(arr, 2)
 	v_free arr
 endTest

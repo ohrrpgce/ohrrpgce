@@ -478,6 +478,15 @@ array_t array_end(array_t array) {
 	return (array_t)((char *)array + get_type(array)->element_len * length(array));
 }
 
+// (E)
+void *array_index(array_t array, int n) {
+	if (!array)
+		throw_error("array_index: array uninitialised");
+	if (n < 0 || n >= length(array))
+		throw_error("array_index: out of bounds array access, index %d in length %d array of %s", n, length(array), get_type(array)->name);
+	return nth_elem(array, n);
+}
+
 // (A)
 typetable *array_type(array_t array) {
 	return get_type(array);
