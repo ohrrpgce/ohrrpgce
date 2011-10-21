@@ -2154,15 +2154,6 @@ FUNCTION find_oggenc () as string
  RETURN cached_app
 END FUNCTION
 
-FUNCTION find_zip () as string
- STATIC cached as integer = 0
- STATIC cached_app as string
- IF cached THEN RETURN cached_app
- cached_app = find_helper_app("zip")
- cached = -1
- RETURN cached_app
-END FUNCTION
-
 FUNCTION find_helper_app (appname as string) as string
 'Returns an empty string if the app is not found, or the full path if it is found
 

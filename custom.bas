@@ -44,6 +44,7 @@ DECLARE SUB importscripts (f as string)
 DECLARE FUNCTION newRPGfile (templatefile as string, newrpg as string)
 DECLARE FUNCTION makeworkingdir () as integer
 DECLARE FUNCTION handle_dirty_workingdir () as integer
+DECLARE SUB save_current_game()
 DECLARE SUB dolumpfiles (filetolump as string)
 DECLARE SUB move_unwriteable_rpg (filetolump as string)
 DECLARE SUB shopdata ()
@@ -55,6 +56,7 @@ DECLARE SUB setmainmenu (menu() as string, byref mainmax as integer, menukeys() 
 DECLARE SUB setgraphicmenu (menu() as string, byref mainmax as integer, menukeys() as string)
 DECLARE SUB distribute_game ()
 DECLARE SUB distribute_game_as_zip ()
+DECLARE FUNCTION confirmed_copy (srcfile as string, destfile as string) as integer
 
 'Global variables
 REDIM gen(360)
@@ -448,7 +450,7 @@ IF (quitnow = 2 OR quitnow = 3) AND slave_channel <> NULL_CHANNEL THEN
  IF yesno("You are still running a copy of this game. Quitting will force " & GAMEEXE & " to quit as well. Really quit?") = NO THEN quitnow = 0
 END IF
 IF quitnow = 1 OR quitnow = 2 THEN
- GOSUB dorelump
+ save_current_game
 END IF
 IF quitnow = 3 THEN
  quit_confirm(0) = "I changed my mind! Don't quit!"
@@ -456,18 +458,6 @@ IF quitnow = 3 THEN
  IF sublist(quit_confirm()) <= 0 THEN quitnow = 0
 END IF
 setkeys
-RETRACE
-
-dorelump:
-clearpage 0
-setvispage 0
-textcolor uilook(uiText), 0
-printstr "LUMPING DATA: please wait.", 0, 0, 0
-setvispage 0 'refresh
-'--verify various stuff
-rpg_sanity_checks
-'--lump data to SAVE rpg file
-dolumpfiles sourcerpg
 RETRACE
 
 checkpass:
@@ -510,7 +500,7 @@ xbload game + ".gen", gen(), "general data is missing, RPG file corruption is li
 upgrade 'needed because it has not already happened because we are doing command-line import
 importscripts with_orig_path(hsfile)
 xbsave game + ".gen", gen(), 1000
-GOSUB dorelump
+save_current_game
 GOSUB cleanupfiles
 end_debug
 restoremode
@@ -1271,16 +1261,30 @@ CONST distmenuEXIT as integer = 1
 CONST distmenuZIP as integer = 2
 
 SUB distribute_game ()
-
+ save_current_game
+ 
+ DIM zip_ok as integer = YES
+ 
  DIM menu as SimpleMenuItem vector
- v_new menu, 1
- menu[0].text = "Previous Menu..."
- menu[0].dat = distmenuEXIT
- append_simplemenu_item menu, "Game name: " & trimpath(sourcerpg), YES, uilook(uiDisabledItem)
- IF find_zip() <> "" THEN
-  append_simplemenu_item menu, "Export .ZIP", , , distmenuZIP
- ELSE
-  append_simplemenu_item menu, "Can't Export .ZIP (zip" & DOTEXE & " not found)", YES
+ v_new menu, 0
+ append_simplemenu_item menu, "Previous Menu...", , , distmenuEXIT
+ append_simplemenu_item menu, " Game name: " & trimpath(sourcerpg), YES, uilook(uiDisabledItem)
+ 
+ DIM relump as string
+ IF LCASE(justextension(sourcerpg)) = "rpgdir" THEN
+  relump = find_helper_app("relump")
+  IF relump = "" THEN
+   append_simplemenu_item menu, " ERROR: Can't find relump" & DOTEXE & " utility", YES, uilook(uiDisabledItem)
+   zip_ok = NO
+  END IF
+ END IF
+ 
+ IF zip_ok THEN
+  IF find_helper_app("zip") <> "" THEN
+   append_simplemenu_item menu, "Export .ZIP", , , distmenuZIP
+  ELSE
+   append_simplemenu_item menu, "Can't Export .ZIP (zip" & DOTEXE & " not found)", YES
+  END IF
  END IF
 
  DIM st AS MenuState
@@ -1317,22 +1321,53 @@ SUB distribute_game ()
 END SUB
 
 SUB distribute_game_as_zip ()
- DIM app as string = find_zip()
- IF app = "" THEN
+
+ DIM spawn_ret as string
+
+ DIM zip as string = find_helper_app("zip")
+ IF zip = "" THEN
   visible_debug "Can't create zip files: " & missing_helper_message("zip" + DOTEXE)
   RETURN
  END IF
 
- DIM gameplayer as string
- gameplayer = exepath & SLASH & "game.exe" 'Tries to include the windows version no matter what platform we are running on
- IF NOT isfile(gameplayer) THEN
-  IF yesno("Can't find game.exe, continue zipping anyway?") = NO THEN RETURN
+ DIM ziptmp as string = trimfilename(sourcerpg) & SLASH & "zip.tmp"
+ IF isdir(ziptmp) THEN
+  IF yesno("Warning: zip.tmp already exists. Delete it?") = NO THEN RETURN
+  killdir ziptmp
  END IF
 
+ DIM extension as string = LCASE(justextension(sourcerpg))
+
+ DIM need_relump as integer = NO
+ DIM relump as string
+ IF extension = "rpgdir" THEN
+  need_relump = YES
+  relump = find_helper_app("relump")
+  IF relump = "" THEN
+   visible_debug "Can't find relump" & DOTEXE & " utility."
+   RETURN
+  END IF
+ END IF
+
+ DIM use_gameplayer as integer = YES
+ DIM gameplayer as string
+ gameplayer = exepath & SLASH & "game.exe"
+ 'Tries to include the windows version no matter what platform we are running on
+ IF NOT isfile(gameplayer) THEN
+  IF yesno("Can't find game.exe, continue zipping anyway?") = NO THEN RETURN
+  use_gameplayer = NO
+ END IF
+
+ DIM use_binlicense as integer = YES
  DIM binlicense as string
- binlicense = exepath & SLASH & "LICENSE-binary.txt"
- IF NOT isfile(binlicense) THEN
-  IF yesno("Can't find LICENSE-binary.txt, continue zipping anyway?") = NO THEN RETURN
+ IF use_gameplayer = NO THEN
+  use_binlicense = NO
+ ELSE
+  binlicense = exepath & SLASH & "LICENSE-binary.txt"
+  IF NOT isfile(binlicense) THEN
+   IF yesno("Can't find LICENSE-binary.txt, continue zipping anyway?") = NO THEN RETURN
+   use_binlicense = NO
+  END IF
  END IF
 
  DIM destzip as string = trimextension(sourcerpg) & ".zip"
@@ -1342,16 +1377,72 @@ SUB distribute_game_as_zip ()
   safekill destzip
  END IF
 
- DIM args as string = "-r -j """ & destzip & """ """ & sourcerpg & """ """ & gameplayer & """ """ & binlicense & """"
- DIM ret as string
- ret = spawn_and_wait(app, args)
- IF LEN(ret) THEN
-  safekill destzip
-  visible_debug "Zip file creation failed."
+ MKDIR ziptmp
+ IF NOT isdir(ziptmp) THEN
+  visible_debug "ERROR: unable to create temporary folder"
   RETURN
  END IF
+
+ DO 'Single-pass loop for operations after ziptmp exists
+  
+  DIM basename as string = trimextension(trimpath(sourcerpg))
+  
+  IF need_relump THEN
+   spawn_ret = spawn_and_wait(relump, """" & sourcerpg & """ """ & ziptmp & SLASH & basename & ".rpg""")
+   IF LEN(spawn_ret) ORELSE NOT isfile(ziptmp & SLASH & basename & ".rpg") THEN
+    visible_debug "ERROR: failed relumping " & sourcerpg & " " & spawn_ret 
+    EXIT DO
+   END IF
+  ELSE
+   IF confirmed_copy(sourcerpg, ziptmp & SLASH & basename & ".rpg") = NO THEN EXIT DO
+  END IF
+
+  IF use_gameplayer THEN
+   IF confirmed_copy(gameplayer, ziptmp & SLASH & basename & ".exe") = NO THEN EXIT DO
+  END IF
+
+  IF use_binlicense THEN
+   confirmed_copy(binlicense, ziptmp & SLASH & trimpath(binlicense))
+  END IF
  
- visible_debug "Successfully created " & shortzip
+  DIM args as string = "-r -j """ & destzip & """ """ & ziptmp & """"
+  spawn_ret = spawn_and_wait(zip, args)
+  IF LEN(spawn_ret) ORELSE NOT isfile(destzip) THEN
+   safekill destzip
+   visible_debug "Zip file creation failed." & spawn_ret
+   RETURN
+  END IF
+  
+  visible_debug "Successfully created " & shortzip
+
+  EXIT DO 'single pass, never really loops.
+ LOOP
+ 'Cleanup ziptmp
+ killdir ziptmp
+ 
+END SUB
+
+FUNCTION confirmed_copy (srcfile as string, destfile as string) as integer
+ 'Copy a file, heck to make sure it really was copied, and show an error message if not.
+ ' Returns true if the copy was okay, false if it failed
+ copyfile srcfile, destfile
+ IF NOT isfile(destfile) THEN
+  visible_debug "ERROR: failed copying " & destfile
+  RETURN NO
+ END IF
+ RETURN YES
+END FUNCTION
+
+SUB save_current_game ()
+ clearpage 0
+ setvispage 0
+ textcolor uilook(uiText), 0
+ printstr "LUMPING DATA: please wait.", 0, 0, 0
+ setvispage 0 'refresh
+ '--verify various stuff
+ rpg_sanity_checks
+ '--lump data to SAVE rpg file
+ dolumpfiles sourcerpg
 END SUB
 
 #IFDEF USE_RASTERIZER
