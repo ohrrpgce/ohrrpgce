@@ -1272,18 +1272,19 @@ CONST distmenuZIP as integer = 2
 
 SUB distribute_game ()
 
- REDIM menu(0) as SimpleMenuItem
- menu(0).text = "Previous Menu..."
- menu(0).dat = distmenuEXIT
- append_simplemenu_item menu(), "Game name: " & trimpath(sourcerpg), YES, uilook(uiDisabledItem)
+ DIM menu as SimpleMenuItem vector
+ v_new menu, 1
+ menu[0].text = "Previous Menu..."
+ menu[0].dat = distmenuEXIT
+ append_simplemenu_item menu, "Game name: " & trimpath(sourcerpg), YES, uilook(uiDisabledItem)
  IF find_zip() <> "" THEN
-  append_simplemenu_item menu(), "Export .ZIP", , , distmenuZIP
+  append_simplemenu_item menu, "Export .ZIP", , , distmenuZIP
  ELSE
-  append_simplemenu_item menu(), "Can't Export .ZIP (zip" & DOTEXE & " not found)", YES
+  append_simplemenu_item menu, "Can't Export .ZIP (zip" & DOTEXE & " not found)", YES
  END IF
 
  DIM st AS MenuState
- init_menu_state st, menu()
+ init_menu_state st, cast(BasicMenuItem vector, menu)
 
  DO
   setwait 55
@@ -1292,26 +1293,27 @@ SUB distribute_game ()
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "distribute_game"
   IF enter_or_space() THEN
-   SELECT CASE menu(st.pt).dat
+   SELECT CASE menu[st.pt].dat
     CASE distmenuEXIT: EXIT DO
     CASE distmenuZIP:
      distribute_game_as_zip
    END SELECT
   END IF
 
-  usemenu st, menu()
+  usemenu st, cast(BasicMenuItem vector, menu)
   
   IF st.need_update THEN
   END IF
 
   clearpage dpage
-  standardmenu menu(), st, 0, 0, dpage
+  standardmenu cast(BasicMenuItem vector, menu), st, 0, 0, dpage
   
   SWAP vpage, dpage
   setvispage vpage
   dowait
  LOOP
  setkeys
+ v_free menu
 END SUB
 
 SUB distribute_game_as_zip ()

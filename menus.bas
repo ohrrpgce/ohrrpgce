@@ -61,6 +61,30 @@ SUB init_menu_state (byref state AS MenuState, menu() AS SimpleMenuItem)
  END WITH
 END SUB
 
+'(Re-)initialise menu state, preserving .pt if valid
+'.pt is moved to a selectable menu item.
+'
+'menu may in fact be a vector of any type inheriting from BasicMenuItem.
+'menu's typetable tells the size in bytes of each menu item
+SUB init_menu_state (byref state AS MenuState, byval menu AS BasicMenuItem vector)
+ WITH state
+  .first = 0
+  .last = v_len(menu) - 1
+  IF .size <= 0 THEN .size = 20
+  .pt = bound(.pt, .first, .last)  '.first <= .last
+  IF v_at(menu, .pt)->unselectable THEN
+   .pt = -1  'explicitly -1 when nothing selectable
+   FOR i as integer = 0 TO v_len(menu) - 1
+    IF v_at(menu, i)->unselectable = NO THEN .pt = i: EXIT FOR
+   NEXT
+  END IF
+  'Menus with unselectable items have lookahead, which these +1,-1
+  'attempt to simulate. Not perfect, but prevents some flickering
+  IF .pt <> -1 THEN .top = bound(.top, .pt - .size + 1, .pt - 1)
+  .top = bound(.top, 0, large(.last - .size, 0))
+ END WITH
+END SUB
+
 SUB clamp_menu_state (byref state as MenuState)
  WITH state
   IF .pt < .top THEN .top = .pt
@@ -70,13 +94,12 @@ END SUB
 
 'Simple... and yet, more options than a regular menu item
 'Can also insert instead of appending... bad name
-SUB append_simplemenu_item (menu() as SimpleMenuItem, caption as string, byval unselectable as integer = NO, byval col as integer = -1, byval dat as integer = 0, byval where as integer = -1)
- IF col = -1 THEN col = uilook(uiText)
+SUB append_simplemenu_item (byref menu as SimpleMenuItem vector, caption as string, byval unselectable as integer = NO, byval col as integer = 0, byval dat as integer = 0, byval where as integer = -1)
  IF where = -1 THEN
-  REDIM PRESERVE menu(LBOUND(menu) TO UBOUND(menu) + 1)
-  where = UBOUND(menu)
+  v_expand menu, 1
+  where = v_len(menu) - 1
  END IF
- WITH menu(where)
+ WITH menu[where]
   .text = caption
   .col = col
   .bgcol = 0
@@ -113,8 +136,10 @@ FUNCTION usemenu (byref pt as integer, byref top as integer, byval first as inte
  END IF
 END FUNCTION
 
-'a version for menus with unselectable items, skip items for which menudata().selectable = 0
-FUNCTION usemenu (state as MenuState, menudata() as SimpleMenuItem, byval deckey as integer = scUp, byval inckey as integer = scDown) as integer
+'a version for menus with unselectable items, skip items for which menudata[i].selectable = 0
+'menu may in fact be a vector of any type inheriting from BasicMenuItem.
+'menu's typetable tells the size in bytes of each menu item
+FUNCTION usemenu (state as MenuState, byval menudata as BasicMenuItem vector, byval deckey as integer = scUp, byval inckey as integer = scDown) as integer
  WITH state
   '.pt = -1 when the menu has no selectable items
   IF .pt = -1 THEN RETURN 0
@@ -129,14 +154,14 @@ FUNCTION usemenu (state as MenuState, menudata() as SimpleMenuItem, byval deckey
   IF keyval(inckey) > 1 THEN d = 1
   IF keyval(scPageup) > 1 THEN
    .pt = large(.pt - .size, .first)
-   WHILE menudata(.pt).unselectable AND .pt > .first : .pt = loopvar(.pt, .first, .last, -1) : WEND
-   IF menudata(.pt).unselectable THEN d = 1
+   WHILE v_at(menudata, .pt)->unselectable AND .pt > .first : .pt = loopvar(.pt, .first, .last, -1) : WEND
+   IF v_at(menudata, .pt)->unselectable THEN d = 1
    moved_d = -1
   END IF
   IF keyval(scPagedown) > 1 THEN
    .pt = small(.pt + .size, .last)
-   WHILE menudata(.pt).unselectable AND .pt < .last : .pt = loopvar(.pt, .first, .last, 1) : WEND
-   IF menudata(.pt).unselectable THEN d = -1
+   WHILE v_at(menudata, .pt)->unselectable AND .pt < .last : .pt = loopvar(.pt, .first, .last, 1) : WEND
+   IF v_at(menudata, .pt)->unselectable THEN d = -1
    moved_d = 1
   END IF
   IF keyval(scHome) > 1 THEN .pt = .last : d = 1
@@ -147,7 +172,7 @@ FUNCTION usemenu (state as MenuState, menudata() as SimpleMenuItem, byval deckey
    DO
     .top = bound(.top, .pt - .size, .pt)
     .pt = loopvar(.pt, .first, .last, d)
-   LOOP WHILE menudata(.pt).unselectable
+   LOOP WHILE v_at(menudata, .pt)->unselectable
   END IF
 
   IF moved_d THEN
@@ -155,7 +180,7 @@ FUNCTION usemenu (state as MenuState, menudata() as SimpleMenuItem, byval deckey
    DIM lookahead as integer = .pt
    DO
     lookahead += moved_d
-   LOOP WHILE bound(lookahead, .first, .last) = lookahead ANDALSO menudata(lookahead).unselectable
+   LOOP WHILE bound(lookahead, .first, .last) = lookahead ANDALSO v_at(menudata, lookahead)->unselectable
    lookahead = bound(lookahead, .first, .last)
    .top = bound(.top, lookahead - .size, lookahead)
   END IF
@@ -284,24 +309,8 @@ SUB standardmenu (menu() as STRING, byval size as integer, byval vis as integer,
  v_free basicmenu
 END SUB
 
-SUB standardmenu (menu() as SimpleMenuItem, state as MenuState, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval hidecursor as integer=NO, byval wide as integer=9999, byval highlight as integer=NO, byval toggle as integer=YES)
- DIM m as BasicMenuItem vector
- v_new m, UBOUND(menu) + 1
- FOR i as integer = 0 TO UBOUND(menu)
-  WITH m[i]
-   .text = menu(i).text
-   .col = menu(i).col
-   .bgcol = menu(i).bgcol
-   .unselectable = menu(i).unselectable
-   .disabled = menu(i).disabled
-  END WITH
- NEXT i
- standardmenu m, state, x, y, page, edge, hidecursor, wide, highlight, toggle
- v_free m
-END SUB
-
-'menu may in fact be a vector of any type inheriting from BasicMenuItem.
-'     ^ Apparently this isn't true yet because we can't really do inheritance yet? [James]
+'menu may in fact be a vector of any type inheriting from BasicMenuItem:
+' standardmenu cast(BasicMenuItem vector, menu), ...
 'menu's typetable tells the size in bytes of each menu item
 SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval hidecursor as integer=NO, byval wide as integer=9999, byval highlight as integer=NO, byval toggle as integer=YES)
 
@@ -323,11 +332,11 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval 
 
  DIM rememclip as ClipState
  saveclip rememclip
- shrinkclip x, , x + wide, , vpages(page)
+ shrinkclip x, , x + wide - 1, , vpages(page)
 
  FOR i as integer = state.top TO state.top + state.size
   IF i < v_len(menu) THEN
-   WITH *cast(BasicMenuItem ptr, cast(byte ptr, menu) + i * v_type(menu)->element_len)
+   WITH *v_at(menu, i)
 
     DIM linewidth as integer = 8 * LEN(.text)
     IF .bgcol THEN
@@ -337,15 +346,16 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval 
      rectangle x + 0, y + (i - state.top) * 8, IIF(linewidth, linewidth, 9999), 8, uilook(uiHighlight), page
     END IF
     DIM col as integer = .col
-    IF col = 0 THEN col = uilook(uiMenuItem)
+    IF .col = 0 THEN col = uilook(uiMenuItem)
     IF .disabled THEN
-     col = uilook(uiDisabledItem)
+     IF .col = 0 THEN col = uilook(uiDisabledItem)
      IF pt = i THEN col = uilook(uiSelectedDisabled + tog)
     ELSE
      IF pt = i THEN col = uilook(uiSelectedItem + tog)
     END IF
     DIM drawx as integer = x
-    IF pt = i AND linewidth > wide THEN drawx = x + wide - linewidth
+	'FIXME: This doesn't work if the text contains embedded tags!
+    'IF pt = i AND linewidth > wide THEN drawx = x + wide - linewidth
     IF edge THEN
      edgeprint .text, drawx, y + (i - state.top) * 8, col, page, YES
     ELSE

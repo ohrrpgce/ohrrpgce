@@ -278,7 +278,9 @@ FOR i as integer = 0 TO storebuf(16)
  IF NOT istag(b(i * recordsize + 20), -1) THEN CONTINUE FOR
 
  DIM itemname as string = readbadbinstring(b(), i * recordsize, 16)
- append_simplemenu_item stuff(), itemname, , , i
+ REDIM PRESERVE stuff(-1 TO UBOUND(stuff) + 1)
+ stuff(UBOUND(stuff)).text = itemname
+ stuff(UBOUND(stuff)).dat = i
  IF b(i * recordsize + 24) > gold THEN stuff(UBOUND(stuff)).disabled = YES
  loadtrades i, tradestf(), b(), recordsize
  FOR j as integer = 0 TO 3

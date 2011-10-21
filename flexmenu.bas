@@ -788,7 +788,7 @@ menuoff(AtkChainVal2) = AtkDatChainVal2
 menulimits(AtkChainVal2) = AtkLimChainVal2
 
 CONST AtkChainBits = 52
-menu(AtkChainBits) = "  option bitsets..."
+menu(AtkChainBits) = "  Option bitsets..."
 menutype(AtkChainBits) = 1
 
 CONST AtkElseChainTo = 53
