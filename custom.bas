@@ -28,7 +28,7 @@ DECLARE SUB importbmp (f AS STRING, cap AS STRING, count AS INTEGER)
 DECLARE SUB vehicles ()
 DECLARE SUB scriptman ()
 DECLARE SUB map_picker ()
-DECLARE SUB sprite (xw, yw, sets, perset, soff, info$(), zoom, fileset, fullset AS INTEGER=NO, cursor_start AS INTEGER=0, cursor_top AS INTEGER=0)
+DECLARE SUB sprite (xw, yw, sets, perset, soff, info() as string, zoom, fileset, fullset AS INTEGER=NO, cursor_start AS INTEGER=0, cursor_top AS INTEGER=0)
 DECLARE SUB importsong ()
 DECLARE SUB importsfx ()
 DECLARE SUB gendata ()
@@ -38,10 +38,10 @@ DECLARE SUB enemydata ()
 DECLARE SUB herodata ()
 DECLARE SUB text_box_editor ()
 DECLARE SUB maptile ()
-DECLARE SUB importscripts (f$)
+DECLARE SUB importscripts (f as string)
 
 'Local function declarations
-DECLARE FUNCTION newRPGfile (templatefile$, newrpg$)
+DECLARE FUNCTION newRPGfile (templatefile as string, newrpg as string)
 DECLARE FUNCTION makeworkingdir () as integer
 DECLARE FUNCTION handle_dirty_workingdir () as integer
 DECLARE SUB dolumpfiles (filetolump as string)
@@ -54,6 +54,7 @@ DECLARE SUB arbitrary_sprite_editor ()
 DECLARE SUB setmainmenu (menu() as string, byref mainmax as integer, menukeys() as string)
 DECLARE SUB setgraphicmenu (menu() as string, byref mainmax as integer, menukeys() as string)
 DECLARE SUB distribute_game ()
+DECLARE SUB distribute_game_as_zip ()
 
 'Global variables
 REDIM gen(360)
@@ -98,18 +99,20 @@ DIM attack_frame_captions(2) AS STRING = {"First Frame","Middle Frame","Last Fra
 DIM box_border_captions(15) AS STRING = {"Top Left Corner","Top Edge Left","Top Edge","Top Edge Right","Top Right Corner","Left Edge Top","Right Edge Top","Left Edge","Right Edge","Left Edge Bottom","Right Edge Bottom","Bottom Left Corner","Bottom Edge Left","Bottom Edge","Bottom Edge Right","Bottom Right Corner"}
 DIM portrait_captions(0) AS STRING = {"Character Portrait"}
 
+DIM lumpfile as string
+DIM cmdline as string
 
 '--Startup
 
 'seed the random number generator
 mersenne_twister TIMER
 
-exename = trimextension$(trimpath$(COMMAND$(0)))
+exename = trimextension(trimpath(COMMAND(0)))
 
 'why do we use different temp dirs in game and custom?
 set_homedir
 
-app_dir = exepath  'Note that exepath$ is a FreeBasic builtin, and not derived from the above exename
+app_dir = exepath  'Note that exepath is a FreeBasic builtin, and not derived from the above exename
 
 #IFDEF __FB_DARWIN__
  'Bundled apps have starting current directory equal to the location of the bundle, but exepath points inside
@@ -161,24 +164,24 @@ workingdir = tmpdir & "working.tmp"
 IF makeworkingdir() = NO THEN GOTO finis
 
 FOR i = 1 TO UBOUND(cmdline_args)
- cmdline$ = cmdline_args(i)
+ cmdline = cmdline_args(i)
 
- IF isfile(cmdline$) = 0 AND isdir(cmdline$) = 0 THEN
+ IF isfile(cmdline) = 0 AND isdir(cmdline) = 0 THEN
   centerbox 160, 40, 300, 50, 3, 0
   edgeprint "File not found/invalid option:", 15, 30, uilook(uiText), 0
-  edgeprint RIGHT$(cmdline$,35), 15, 40, uilook(uiText), 0
+  edgeprint RIGHT(cmdline,35), 15, 40, uilook(uiText), 0
   setvispage 0
   w = getkey
   CONTINUE FOR
  END IF
- IF LCASE$(justextension$(cmdline$)) = "hs" AND isfile(cmdline$) THEN
-  hsfile = cmdline$
+ IF LCASE(justextension(cmdline)) = "hs" AND isfile(cmdline) THEN
+  hsfile = cmdline
   CONTINUE FOR
  END IF
 
- IF (LCASE$(justextension$(cmdline$)) = "rpg" AND isfile(cmdline$)) OR isdir(cmdline$) THEN
-  sourcerpg = cmdline$
-  game = trimextension$(trimpath$(sourcerpg))
+ IF (LCASE(justextension(cmdline)) = "rpg" AND isfile(cmdline)) OR isdir(cmdline) THEN
+  sourcerpg = cmdline
+  game = trimextension(trimpath(sourcerpg))
  END IF
 NEXT
 IF game = "" THEN
@@ -187,9 +190,9 @@ IF game = "" THEN
 END IF
 
 #IFDEF __FB_WIN32__
- IF MID$(sourcerpg, 2, 1) <> ":" THEN sourcerpg = curdir$ + SLASH + sourcerpg
+ IF MID(sourcerpg, 2, 1) <> ":" THEN sourcerpg = curdir + SLASH + sourcerpg
 #ELSE
- IF MID$(sourcerpg, 1, 1) <> SLASH THEN sourcerpg = curdir$ + SLASH + sourcerpg
+ IF MID(sourcerpg, 1, 1) <> SLASH THEN sourcerpg = curdir + SLASH + sourcerpg
 #ENDIF
 a$ = trimfilename(sourcerpg)
 
@@ -367,8 +370,8 @@ DO:
  standardmenu menu(), mainmax, 22, pt, 0, 0, 0, dpage, 0
 
  textcolor uilook(uiSelectedDisabled), 0
- printstr version_code$, 0, 176, dpage
- printstr version_build$, 0, 184, dpage
+ printstr version_code, 0, 176, dpage
+ printstr version_build, 0, 184, dpage
  textcolor uilook(uiText), 0
  printstr "Press F1 for help on any menu!", 0, 192, dpage
 
@@ -396,12 +399,12 @@ DO
    IF game <> "" THEN
      IF NOT newRPGfile(finddatafile("ohrrpgce.new"), game + ".rpg") THEN GOTO finis
      sourcerpg = game + ".rpg"
-     game = trimpath$(game)
+     game = trimpath(game)
      EXIT DO
    END IF
   ELSEIF csr = 1 THEN
-   sourcerpg = browse$(7, "", "*.rpg", tmpdir, 0, "browse_rpg")
-   game = trimextension$(trimpath$(sourcerpg))
+   sourcerpg = browse(7, "", "*.rpg", tmpdir, 0, "browse_rpg")
+   game = trimextension(trimpath(sourcerpg))
    IF game <> "" THEN EXIT DO
   ELSEIF csr = 2 THEN
    GOTO finis
@@ -430,14 +433,14 @@ IF keyval(-1) THEN '2nd quit request? Right away!
  a$ = trimextension(sourcerpg)
  i = 0
  DO
-  lumpfile$ = a$ & ".rpg_" & i & ".bak"
+  lumpfile = a$ & ".rpg_" & i & ".bak"
   i += 1
- LOOP WHILE isfile(lumpfile$)
+ LOOP WHILE isfile(lumpfile)
  clearpage 0
- printstr "Saving as " + lumpfile$, 0, 0, 0
+ printstr "Saving as " + lumpfile, 0, 0, 0
  printstr "LUMPING DATA: please wait...", 0, 10, 0
  setvispage 0
- dolumpfiles lumpfile$
+ dolumpfiles lumpfile
  quitnow = 4 'no special meaning
  RETRACE
 END IF
@@ -494,7 +497,7 @@ DO
  printstr "This game requires a password to edit", 0, 0, dpage
  printstr " Type it in and press ENTER", 0, 9, dpage
  textcolor uilook(uiSelectedItem + tog), 1
- printstr STRING$(LEN(pas$), "*"), 0, 20, dpage
+ printstr STRING(LEN(pas$), "*"), 0, 20, dpage
  printstr passcomment$, 0, 40, dpage
  SWAP vpage, dpage
  setvispage vpage
@@ -701,7 +704,7 @@ setpicstuf a(), 40, -1
 loadset game + ".sho", pt, 0
 sn = ""
 FOR i = 1 TO small(a(0), 15)
- sn = sn + CHR$(a(i))
+ sn = sn + CHR(a(i))
 NEXT i
 GOSUB menuup
 RETRACE
@@ -710,7 +713,7 @@ sshopset:
 a(16) = small(a(16), 49)
 a(0) = LEN(sn)
 FOR i = 1 TO small(a(0), 15)
- a(i) = ASC(MID$(sn, i, 1))
+ a(i) = ASC(MID(sn, i, 1))
 NEXT i
 setpicstuf a(), 40, -1
 storeset game + ".sho", pt, 0
@@ -721,7 +724,7 @@ menu(1) = CHR(27) & " Shop " & pt & " of " & gen(genMaxShop) & CHR(26)
 menu(2) = "Name: " & sn
 menu(5) = "Inn Price: " & a(18)
 IF readbit(a(), 17, 3) = 0 THEN menu(5) = "Inn Price: N/A"
-menu(6) = "Inn Script: " & scriptname$(a(19), plottrigger)
+menu(6) = "Inn Script: " & scriptname(a(19), plottrigger)
 IF readbit(a(), 17, 0) OR readbit(a(), 17, 1) OR readbit(a(), 17, 2) THEN havestuf = 1 ELSE havestuf = 0
 RETRACE
 
@@ -883,7 +886,7 @@ load_stf:
 flusharray b(), dimbinsize(binSTF), 0
 setpicstuf b(), getbinsize(binSTF), -1
 loadset game + ".stf", pt * 50 + thing, 0
-thing$ = readbadbinstring$(b(), 0, 16, 0)
+thing$ = readbadbinstring(b(), 0, 16, 0)
 '---check for invalid data
 IF b(17) < 0 OR b(17) > 2 THEN b(17) = 0
 IF b(19) < -1 THEN b(19) = 0
@@ -913,34 +916,34 @@ RETRACE
 
 END SUB
 
-FUNCTION newRPGfile (templatefile$, newrpg$)
+FUNCTION newRPGfile (templatefile as string, newrpg as string)
  newRPGfile = 0 ' default return value 0 means failure
- IF newrpg$ = "" THEN EXIT FUNCTION
+ IF newrpg = "" THEN EXIT FUNCTION
  textcolor uilook(uiSelectedDisabled), 0
  printstr "Please Wait...", 0, 40, vpage
  printstr "Creating RPG File", 0, 50, vpage
  setvispage vpage
- IF NOT isfile(templatefile$) THEN
+ IF NOT isfile(templatefile) THEN
   printstr "Error: ohrrpgce.new not found", 0, 60, vpage
   printstr "Press Enter to quit", 0, 70, vpage
  setvispage vpage
   w = getkey
   EXIT FUNCTION
  END IF
- writeablecopyfile templatefile$, newrpg$
+ writeablecopyfile templatefile, newrpg
  printstr "Unlumping", 0, 60, vpage
  setvispage vpage 'refresh
- unlump newrpg$, workingdir + SLASH
+ unlump newrpg, workingdir + SLASH
  '--create archinym information lump
  fh = FREEFILE
  OPEN workingdir + SLASH + "archinym.lmp" FOR OUTPUT AS #fh
  PRINT #fh, "ohrrpgce"
- PRINT #fh, version$
+ PRINT #fh, version
  CLOSE #fh
  printstr "Finalumping", 0, 80, vpage
  setvispage vpage 'refresh
  '--re-lump files as NEW rpg file
- dolumpfiles newrpg$
+ dolumpfiles newrpg
  newRPGfile = -1 'return true for success
 END FUNCTION
 
@@ -1264,11 +1267,20 @@ SUB setgraphicmenu (menu() as string, byref mainmax as integer, menukeys() as st
  get_menu_hotkeys menu(), mainmax, menukeys()
 END SUB
 
+CONST distmenuEXIT as integer = 1
+CONST distmenuZIP as integer = 2
+
 SUB distribute_game ()
 
  REDIM menu(0) as SimpleMenuItem
  menu(0).text = "Previous Menu..."
+ menu(0).dat = distmenuEXIT
  append_simplemenu_item menu(), "Game name: " & trimpath(sourcerpg), YES, uilook(uiDisabledItem)
+ IF find_zip() <> "" THEN
+  append_simplemenu_item menu(), "Export .ZIP", , , distmenuZIP
+ ELSE
+  append_simplemenu_item menu(), "Can't Export .ZIP (zip" & DOTEXE & " not found)", YES
+ END IF
 
  DIM st AS MenuState
  init_menu_state st, menu()
@@ -1279,8 +1291,12 @@ SUB distribute_game ()
 
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "distribute_game"
-  IF st.pt = 0 THEN
-   IF enter_or_space() THEN EXIT DO
+  IF enter_or_space() THEN
+   SELECT CASE menu(st.pt).dat
+    CASE distmenuEXIT: EXIT DO
+    CASE distmenuZIP:
+     distribute_game_as_zip
+   END SELECT
   END IF
 
   usemenu st, menu()
@@ -1296,6 +1312,44 @@ SUB distribute_game ()
   dowait
  LOOP
  setkeys
+END SUB
+
+SUB distribute_game_as_zip ()
+ DIM app as string = find_zip()
+ IF app = "" THEN
+  visible_debug "Can't create zip files: " & missing_helper_message("zip" + DOTEXE)
+  RETURN
+ END IF
+
+ DIM gameplayer as string
+ gameplayer = exepath & SLASH & "game.exe" 'Tries to include the windows version no matter what platform we are running on
+ IF NOT isfile(gameplayer) THEN
+  IF yesno("Can't find game.exe, continue zipping anyway?") = NO THEN RETURN
+ END IF
+
+ DIM binlicense as string
+ binlicense = exepath & SLASH & "LICENSE-binary.txt"
+ IF NOT isfile(binlicense) THEN
+  IF yesno("Can't find LICENSE-binary.txt, continue zipping anyway?") = NO THEN RETURN
+ END IF
+
+ DIM destzip as string = trimextension(sourcerpg) & ".zip"
+ DIM shortzip as string = trimpath(destzip)
+ IF isfile(destzip) THEN
+  IF yesno(shortzip & " already exists. Overwrite it?") = NO THEN RETURN
+  safekill destzip
+ END IF
+
+ DIM args as string = "-r -j """ & destzip & """ """ & sourcerpg & """ """ & gameplayer & """ """ & binlicense & """"
+ DIM ret as string
+ ret = spawn_and_wait(app, args)
+ IF LEN(ret) THEN
+  safekill destzip
+  visible_debug "Zip file creation failed."
+  RETURN
+ END IF
+ 
+ visible_debug "Successfully created " & shortzip
 END SUB
 
 #IFDEF USE_RASTERIZER

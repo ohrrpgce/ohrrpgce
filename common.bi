@@ -138,6 +138,7 @@ DECLARE FUNCTION find_helper_app (appname as string) as string
 DECLARE FUNCTION missing_helper_message (appname as string) as string
 DECLARE FUNCTION find_madplay () as string
 DECLARE FUNCTION find_oggenc () as string
+DECLARE FUNCTION find_zip () as string
 DECLARE FUNCTION can_convert_mp3 () as integer
 DECLARE FUNCTION can_convert_wav () as integer
 DECLARE FUNCTION mp3_to_ogg (in_file as string, out_file as string, byval quality as integer = 4) as string
