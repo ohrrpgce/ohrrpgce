@@ -11,6 +11,9 @@ support\zip -q distrib\%ZIPFILE% game.exe custom.exe
 support\zip -q distrib\%ZIPFILE% ohrrpgce.new
 support\zip -q distrib\%ZIPFILE% whatsnew.txt *-binary.txt *-nightly.txt plotscr.hsd svninfo.txt
 support\zip -q -r distrib\%ZIPFILE% ohrhelp
+support\zip -q distrib\%ZIPFILE% support\madplay.exe
+support\zip -q distrib\%ZIPFILE% support\oggenc.exe
+support\zip -q distrib\%ZIPFILE% support\zip.exe
 
 IF NOT EXIST distrib\%ZIPFILE% GOTO failed
 

@@ -34,6 +34,9 @@ function zip_and_upload {
   zip -q distrib/"${ZIPFILE}" game.exe custom.exe
   zip -q distrib/"${ZIPFILE}" ohrrpgce.new
   zip -q -r distrib/"${ZIPFILE}" ohrhelp
+  zip -q distrib/"${ZIPFILE}" support/madplay.exe
+  zip -q distrib/"${ZIPFILE}" support/oggenc.exe
+  zip -q distrib/"${ZIPFILE}" support/zip.exe
   rm -Rf texttemp
   mkdir texttemp
   cp whatsnew.txt *-binary.txt *-nightly.txt plotscr.hsd svninfo.txt texttemp/
