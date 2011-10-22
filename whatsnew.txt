@@ -24,6 +24,8 @@ WHAT IS NEW?
       movement zones. The avoidance zones have precedence. [Ralph]
     * Default NPC movement and avoidance zones can be set in the
       General Map Data menu [Ralph]
+    * Distribute Game menu, where you can automatically package your
+      game to distribute to other people. [James]
 
   * Bugfixes
     * Wrong names used for reserve party heroes who level during

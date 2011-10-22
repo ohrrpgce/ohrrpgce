@@ -82,5 +82,6 @@ DECLARE SUB get_menu_hotkeys (menu() AS STRING, BYVAL menumax AS INTEGER, menuke
 DECLARE SUB experience_chart ()
 DECLARE SUB stat_growth_chart ()
 DECLARE SUB spawn_game_menu ()
+DECLARE FUNCTION wget_download (url as string, dest as string) as integer
 
 #endif

@@ -57,6 +57,7 @@ DECLARE SUB setgraphicmenu (menu() as string, byref mainmax as integer, menukeys
 DECLARE SUB distribute_game ()
 DECLARE SUB distribute_game_as_zip ()
 DECLARE FUNCTION confirmed_copy (srcfile as string, destfile as string) as integer
+DECLARE FUNCTION get_windows_gameplayer() as string
 
 'Global variables
 REDIM gen(360)
@@ -1268,8 +1269,8 @@ SUB distribute_game ()
  DIM menu as SimpleMenuItem vector
  v_new menu, 0
  append_simplemenu_item menu, "Previous Menu...", , , distmenuEXIT
- append_simplemenu_item menu, " Game name: " & trimpath(sourcerpg), YES, uilook(uiDisabledItem)
- 
+ append_simplemenu_item menu, " Game file: " & trimpath(sourcerpg), YES, uilook(uiDisabledItem)
+
  DIM relump as string
  IF LCASE(justextension(sourcerpg)) = "rpgdir" THEN
   relump = find_helper_app("relump")
@@ -1351,23 +1352,10 @@ SUB distribute_game_as_zip ()
 
  DIM use_gameplayer as integer = YES
  DIM gameplayer as string
- gameplayer = exepath & SLASH & "game.exe"
- 'Tries to include the windows version no matter what platform we are running on
- IF NOT isfile(gameplayer) THEN
-  IF yesno("Can't find game.exe, continue zipping anyway?") = NO THEN RETURN
+ gameplayer = get_windows_gameplayer()
+ IF gameplayer = "" THEN
+  IF yesno("game.exe is not available, continue anyway?") = NO THEN RETURN
   use_gameplayer = NO
- END IF
-
- DIM use_binlicense as integer = YES
- DIM binlicense as string
- IF use_gameplayer = NO THEN
-  use_binlicense = NO
- ELSE
-  binlicense = exepath & SLASH & "LICENSE-binary.txt"
-  IF NOT isfile(binlicense) THEN
-   IF yesno("Can't find LICENSE-binary.txt, continue zipping anyway?") = NO THEN RETURN
-   use_binlicense = NO
-  END IF
  END IF
 
  DIM destzip as string = trimextension(sourcerpg) & ".zip"
@@ -1377,7 +1365,7 @@ SUB distribute_game_as_zip ()
   safekill destzip
  END IF
 
- MKDIR ziptmp
+ makedir ziptmp
  IF NOT isdir(ziptmp) THEN
   visible_debug "ERROR: unable to create temporary folder"
   RETURN
@@ -1399,10 +1387,11 @@ SUB distribute_game_as_zip ()
 
   IF use_gameplayer THEN
    IF confirmed_copy(gameplayer, ziptmp & SLASH & basename & ".exe") = NO THEN EXIT DO
-  END IF
-
-  IF use_binlicense THEN
-   confirmed_copy(binlicense, ziptmp & SLASH & trimpath(binlicense))
+   DIM gamedir AS string = trimfilename(gameplayer)
+   DIM otherf(3) as string = {"gfx_directx.dll", "SDL.dll", "SDL_mixer.dll", "LICENSE-binary.txt"}
+   FOR i as integer = 0 TO UBOUND(otherf)
+    IF confirmed_copy(gamedir & SLASH & otherf(i), ziptmp & SLASH & otherf(i)) = NO THEN EXIT DO
+   NEXT i
   END IF
  
   DIM args as string = "-r -j """ & destzip & """ """ & ziptmp & """"
@@ -1421,6 +1410,68 @@ SUB distribute_game_as_zip ()
  killdir ziptmp
  
 END SUB
+
+FUNCTION get_windows_gameplayer() as string
+ 'On Windows, Return the full path to game.exe
+ 'On other platforms, download game.exe, unzip it, and return the full path
+ 'Returns "" for failure.
+
+#IFDEF __FB_WIN32__
+
+ '--If this is Windows, we already have the correct version of game.exe
+ IF isfile(exepath & SLASH & "game.exe") THEN
+  RETURN exepath & SLASH & "game.exe"
+ ELSE
+  visible_debug "ERROR: game.exe wasn't found in the same folder as custom.exe. (This shouldn't happen!)" : RETURN ""
+ END IF
+
+#ENDIF
+ '--For Non-Windows platforms, we need to download game.exe
+ '(NOTE: This all should work fine on Windows too, but it is best to use the installed game.exe)
+
+ '--Find the folder that we are going to download game.exe into
+ DIM support as string = find_support_dir()
+ IF support = "" THEN visible_debug "ERROR: Unable to find support directory": RETURN ""
+ DIM dldir as string = support & SLASH & "gameplayer"
+ IF NOT isdir(dldir) THEN makedir dldir
+ IF NOT isdir(dldir) THEN visible_debug "ERROR: Unable to create support/gameplayer directory": RETURN ""
+  
+ '--Decide which url to download
+ DIM url as string
+ IF version_branch = "wip" THEN
+  '--If running a nightly wip, download the latest nightly wip
+  url = "http://hamsterrepublic.com/ohrrpgce/nightly/ohrrpgce-wip-default.zip"
+ ELSE
+  '--If running any stable release, download the latest stable release.
+  url = "http://hamsterrepublic.com/dl/ohrrpgce-minimal.zip"
+ END IF
+
+ '--Ask the user for permission the first time we download (subsequent updates don't ask)
+ DIM destzip as string = dldir & SLASH & "ohrrpgce-windows.zip"
+ IF NOT isfile(destzip) THEN
+  IF yesno("Is it okay to download the Windows version of OHRRPGCE game.exe from HamsterRepublic.com now?") = NO THEN RETURN ""
+ END IF
+
+ '--Actually download the dang file
+ wget_download url, destzip
+ 
+ '--Find the unzip tool
+ DIM unzip as string = find_helper_app("unzip")
+ IF unzip = "" THEN visible_debug "ERROR: Couldn't find unzip tool": RETURN ""
+ 
+ '--Unzip the desired files
+ DIM args as string = "-o """ & destzip & """ game.exe gfx_directx.dll SDL.dll SDL_mixer.dll LICENSE-binary.txt -d """ & dldir & """"
+ DIM spawn_ret as string = spawn_and_wait(unzip, args)
+ IF LEN(spawn_ret) > 0 THEN visible_debug "ERROR: unzip failed: " & spawn_ret : RETURN ""
+ 
+ IF NOT isfile(dldir & SLASH & "game.exe")           THEN visible_debug "ERROR: Failed to unzip game.exe" : RETURN ""
+ IF NOT isfile(dldir & SLASH & "gfx_directx.dll")    THEN visible_debug "ERROR: Failed to unzip gfx_directx.dll" : RETURN ""
+ IF NOT isfile(dldir & SLASH & "SDL.dll")            THEN visible_debug "ERROR: Failed to unzip SDL.dll" : RETURN ""
+ IF NOT isfile(dldir & SLASH & "SDL_mixer.dll")      THEN visible_debug "ERROR: Failed to unzip SDL_mixer.dll" : RETURN ""
+ IF NOT isfile(dldir & SLASH & "LICENSE-binary.txt") THEN visible_debug "ERROR: Failed to unzip LICENSE-binary.txt" : RETURN ""
+ 
+ RETURN dldir & SLASH & "game.exe"
+END FUNCTION
 
 FUNCTION confirmed_copy (srcfile as string, destfile as string) as integer
  'Copy a file, heck to make sure it really was copied, and show an error message if not.

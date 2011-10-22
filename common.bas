@@ -2154,6 +2154,19 @@ FUNCTION find_oggenc () as string
  RETURN cached_app
 END FUNCTION
 
+FUNCTION find_support_dir () as string
+'Returns an empty string if the support dir is not found (which should never happen!)
+'Returns the full path if it is found
+IF isdir(exepath & SLASH & "support") THEN RETURN exepath & SLASH & "support"
+#IFDEF __UNIX__
+'--There is no support directory Linux package manager installation
+DIM d as string = environ("HOME") & SLASH & ".ohrrpgce" & SLASH "support"
+IF NOT isdir(d) THEN makedir d
+IF isdir(d) THEN return d
+#ENDIF
+RETURN "" ' not found. booo! :(
+END FUNCTION
+
 FUNCTION find_helper_app (appname as string) as string
 'Returns an empty string if the app is not found, or the full path if it is found
 
