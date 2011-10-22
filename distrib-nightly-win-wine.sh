@@ -21,6 +21,7 @@ function mustexist {
 function zip_and_upload {
   mustexist game.exe
   mustexist custom.exe
+  mustexist hspeak.exe
   mustexist relump.exe
   GFX="${1}"
   MUSIC="${2}"
@@ -32,7 +33,7 @@ function zip_and_upload {
   fi
 
   rm -f distrib/"${ZIPFILE}"
-  zip -q distrib/"${ZIPFILE}" game.exe custom.exe
+  zip -q distrib/"${ZIPFILE}" game.exe custom.exe hspeak.exe
   zip -q distrib/"${ZIPFILE}" ohrrpgce.new
   zip -q -r distrib/"${ZIPFILE}" ohrhelp
   zip -q distrib/"${ZIPFILE}" support/madplay.exe
@@ -43,7 +44,7 @@ function zip_and_upload {
   rm support/relump.exe
   rm -Rf texttemp
   mkdir texttemp
-  cp whatsnew.txt *-binary.txt *-nightly.txt plotscr.hsd svninfo.txt texttemp/
+  cp whatsnew.txt *-binary.txt *-nightly.txt plotscr.hsd scancode.hsi svninfo.txt texttemp/
   unix2dos -q texttemp/*
   zip -q -j distrib/"${ZIPFILE}" texttemp/*
   rm -Rf texttemp
@@ -83,7 +84,7 @@ SUFFIX="${OHRVERDATE}-${OHRVERCODE}"
 mustexist distrib/ohrrpgce-win-installer-"${SUFFIX}".exe
 scp -p distrib/ohrrpgce-win-installer-"${SUFFIX}".exe "${SCPHOST}":"${SCPDEST}"/ohrrpgce-wip-win-installer.exe
 
-wine cmd /C "${SCONS}" relump.exe unlump.exe
+wine cmd /C "${SCONS}" hspeak relump.exe unlump.exe
 
 rm -r game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=directx+sdl+fb music=sdl debug=0

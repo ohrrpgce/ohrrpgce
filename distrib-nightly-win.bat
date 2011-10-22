@@ -12,7 +12,7 @@ CALL distrib.bat nightly
 CALL distver.bat
 pscp distrib\ohrrpgce-win-installer-%OHRVERDATE%-%OHRVERCODE%.exe james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/ohrrpgce-wip-win-installer.exe
 
-scons relump.exe unlump.exe
+scons hspeak relump.exe unlump.exe
 
 del game*.exe custom*.exe
 call scons gfx=directx+sdl+fb music=sdl debug=0
