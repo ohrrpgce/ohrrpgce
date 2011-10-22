@@ -58,6 +58,8 @@ Source: "support\wget.exe"; DestDir: "{app}\support\"; Flags: ignoreversion
 Source: "support\wget.hlp"; DestDir: "{app}\support\"; Flags: ignoreversion
 Source: "support\zip.exe"; DestDir: "{app}\support\"; Flags: ignoreversion
 Source: "support\unzip.exe"; DestDir: "{app}\support\"; Flags: ignoreversion
+Source: "relump.exe"; DestDir: "{app}\support\"; Flags: ignoreversion
+Source: "unlump.exe"; DestDir: "{app}\support\"; Flags: ignoreversion
 Source: "vikings.rpg"; DestDir: "{app}"; Flags: ignoreversion
 Source: "vikings\Vikings script files\viking.txt"; DestDir: "{app}\Vikings script files\"; Flags: ignoreversion
 Source: "vikings\Vikings script files\viking.hsi"; DestDir: "{app}\Vikings script files\"; Flags: ignoreversion

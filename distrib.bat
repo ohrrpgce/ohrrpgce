@@ -82,6 +82,7 @@ support\cp support\LICENSE-madplay.txt tmpdist\support
 support\cp support\oggenc.exe tmpdist\support
 support\cp support\LICENSE-oggenc.txt tmpdist\support
 support\cp support\zip.exe tmpdist\support
+support\cp relump.exe tmpdist\support
 mkdir tmpdist\ohrhelp
 support\cp ohrhelp\*.txt tmpdist\ohrhelp
 mkdir tmpdist\docs
@@ -138,6 +139,8 @@ support\cp support\wget.exe tmpdist\support
 support\cp support\wget.hlp tmpdist\support
 support\cp support\zip.exe tmpdist\support
 support\cp support\unzip.exe tmpdist\support
+support\cp relump.exe tmpdist\support
+support\cp unlump.exe tmpdist\support
 support\cp vikings.rpg tmpdist
 mkdir "tmpdist\Vikings script files"
 support\cp "vikings\Vikings script files\viking.txt" "tmpdist\Vikings script files"

@@ -21,6 +21,7 @@ function mustexist {
 function zip_and_upload {
   mustexist game.exe
   mustexist custom.exe
+  mustexist relump.exe
   GFX="${1}"
   MUSIC="${2}"
   EXTRA="${3}"
@@ -37,6 +38,9 @@ function zip_and_upload {
   zip -q distrib/"${ZIPFILE}" support/madplay.exe
   zip -q distrib/"${ZIPFILE}" support/oggenc.exe
   zip -q distrib/"${ZIPFILE}" support/zip.exe
+  cp relump.exe support/
+  zip -q distrib/"${ZIPFILE}" support/relump.exe
+  rm support/relump.exe
   rm -Rf texttemp
   mkdir texttemp
   cp whatsnew.txt *-binary.txt *-nightly.txt plotscr.hsd svninfo.txt texttemp/
@@ -78,6 +82,8 @@ SUFFIX="${OHRVERDATE}-${OHRVERCODE}"
 
 mustexist distrib/ohrrpgce-win-installer-"${SUFFIX}".exe
 scp -p distrib/ohrrpgce-win-installer-"${SUFFIX}".exe "${SCPHOST}":"${SCPDEST}"/ohrrpgce-wip-win-installer.exe
+
+wine cmd /C "${SCONS}" relump.exe unlump.exe
 
 rm -r game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=directx+sdl+fb music=sdl debug=0
