@@ -14,6 +14,14 @@ IF EXIST %SVN% GOTO NOX86SVN
 SET SVN="C:\Program Files (x86)\Subversion\bin\svn.exe"
 :NOX86SVN
 
+REM Also support the Sliksvn install location
+IF EXIST %SVN% GOTO NOSLIKSVN
+SET SVN="C:\Program Files\Sliksvn\bin\svn.exe"
+:NOSLIKSVN
+IF EXIST %SVN% GOTO NOSLIKSVNX86
+SET SVN="C:\Program Files (x86)\Sliksvn\bin\svn.exe"
+:NOSLIKSVNX86
+
 ECHO Verifying support programs...
 IF NOT EXIST support\cp.exe GOTO NOSUPPORT
 IF NOT EXIST support\zip.exe GOTO NOSUPPORT
