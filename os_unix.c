@@ -1,8 +1,10 @@
 //OHRRPGCE COMMON - Generic Unix versions of OS-specific routines
 //Please read LICENSE.txt for GNU GPL License details and disclaimer of liability
 
+#ifndef __APPLE__
 #define _POSIX_SOURCE  // for fdopen
 #define _BSD_SOURCE  // for usleep
+#endif
 //fb_stub.h MUST be included first, to ensure fb_off_t is 64 bit
 #include "fb/fb_stub.h"
 #include <stdlib.h>

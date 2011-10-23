@@ -61,7 +61,8 @@ DECLARE SUB orphan_npc_slices()
 REMEMBERSTATE
 
 'FIXME: too many directory variables! Clean this nonsense up
-DIM app_dir as string = exepath
+DIM app_dir as string  'global
+app_dir = exepath
 
 #IFDEF __FB_DARWIN__
  'Bundled apps have starting current directory equal to the location of the bundle, but exepath points inside

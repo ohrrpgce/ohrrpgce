@@ -166,7 +166,7 @@ includes:=${shell echo *.bi}
 
 #The following common modules need to be rebuilt for Game or Custom, because
 #they depend on IS_GAME/IS_EDIT
-semicommon_modules:=backends common allmodex slices misc music_native music_native2
+semicommon_modules:=backends common allmodex slices menus misc music_native music_native2
 semicommon_objects+=$(addsuffix .o,$(semicommon_modules))
 semicommon_sources+=$(addsuffix .bas,$(semicommon_modules))
 
@@ -282,6 +282,9 @@ $(main_modules): %.o: %.bas $(includes)
 #unix only; run make in win32/ on windows
 %.o: %.c
 	$(CC) -c -g -O3 $< --std=c99
+
+%.o: %.cpp
+	$(CXX) -c -g -O3 $<
 
 $(semicommon_objects) game.o custom.o: codename.txt
 

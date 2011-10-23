@@ -227,7 +227,7 @@ DECLARE FUNCTION atlevel_quadratic (byval lev as double, byval a0 as double, byv
 
 'Global variables
 EXTERN sourcerpg as string
-EXTERN as string game, tmpdir, exename, workingdir, homedir
+EXTERN as string game, tmpdir, exename, workingdir, homedir, app_dir
 EXTERN uilook() as integer
 EXTERN as integer vpage, dpage
 EXTERN buffer() as integer

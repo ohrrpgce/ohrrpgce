@@ -3946,15 +3946,25 @@ SUB spawn_game
  END IF
  debuginfo "Successfully opened IPC channel " + channel_name
 
+ DIM gameexename as string = GAMEEXE
  DIM executable as string
  executable = exepath & SLASH & GAMEEXE
+
+#ifdef __FB_DARWIN__
+ executable = app_dir + "/OHRRPGCE-Game.app/Contents/MacOS/ohrrpgce-game"
  IF isfile(executable) = NO THEN
-  notification "Couldn't find " & GAMEEXE
+  executable = exepath & SLASH & GAMEEXE
+ ELSE
+  gameexename = "OHRRPGCE-Game"
+ END IF
+#endif
+ IF isfile(executable) = NO THEN
+  notification "Couldn't find " & gameexename
   EXIT SUB
  END IF
  slave_process = open_process(executable, "-slave " & channel_name)
  IF slave_process = 0 THEN
-  notification "Couldn't run " & GAMEEXE
+  notification "Couldn't run " & gameexename
   EXIT SUB
  END IF
  'We currently do nothing at all with slave_process except cleanup (nothing is implemented
@@ -3962,7 +3972,7 @@ SUB spawn_game
 
  'Need Game to connect before we can safely write to the pipe; wait up to 3000ms
  IF channel_wait_for_client_connection(slave_channel, 3000) = 0 THEN
-  notification "Couldn't connect to " & GAMEEXE
+  notification "Couldn't connect to " & gameexename
   channel_close slave_channel
   cleanup_process @slave_process
   EXIT SUB
