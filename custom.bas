@@ -56,8 +56,13 @@ DECLARE SUB setmainmenu (menu() as string, byref mainmax as integer, menukeys() 
 DECLARE SUB setgraphicmenu (menu() as string, byref mainmax as integer, menukeys() as string)
 DECLARE SUB distribute_game ()
 DECLARE SUB distribute_game_as_zip ()
+DECLARE SUB distribute_game_as_windows_installer ()
 DECLARE FUNCTION confirmed_copy (srcfile as string, destfile as string) as integer
 DECLARE FUNCTION get_windows_gameplayer() as string
+DECLARE FUNCTION find_or_download_innosetup () as string
+DECLARE FUNCTION find_innosetup () as string
+DECLARE FUNCTION win_or_wine_drive(letter as string) as string
+DECLARE FUNCTION win_or_wine_spawn_and_wait (cmd as string) as string
 
 'Global variables
 REDIM gen(360)
@@ -1260,32 +1265,27 @@ END SUB
 
 CONST distmenuEXIT as integer = 1
 CONST distmenuZIP as integer = 2
+CONST distmenuWINSETUP as integer = 3
 
 SUB distribute_game ()
  save_current_game
- 
- DIM zip_ok as integer = YES
  
  DIM menu as SimpleMenuItem vector
  v_new menu, 0
  append_simplemenu_item menu, "Previous Menu...", , , distmenuEXIT
  append_simplemenu_item menu, " Game file: " & trimpath(sourcerpg), YES, uilook(uiDisabledItem)
 
- DIM relump as string
- IF LCASE(justextension(sourcerpg)) = "rpgdir" THEN
-  relump = find_helper_app("relump")
-  IF relump = "" THEN
-   append_simplemenu_item menu, " ERROR: Can't find relump" & DOTEXE & " utility", YES, uilook(uiDisabledItem)
-   zip_ok = NO
-  END IF
+ IF find_helper_app("zip") <> "" THEN
+  append_simplemenu_item menu, "Export .ZIP", , , distmenuZIP
+ ELSE
+  append_simplemenu_item menu, "Can't Export .ZIP (zip" & DOTEXE & " not found)", YES
  END IF
- 
- IF zip_ok THEN
-  IF find_helper_app("zip") <> "" THEN
-   append_simplemenu_item menu, "Export .ZIP", , , distmenuZIP
-  ELSE
-   append_simplemenu_item menu, "Can't Export .ZIP (zip" & DOTEXE & " not found)", YES
-  END IF
+
+ IF can_run_windows_exes() THEN
+  append_simplemenu_item menu, "Export Windows Installer", , , distmenuWINSETUP
+ ELSE
+  append_simplemenu_item menu, "Can't Export Windows Installer", YES
+  append_simplemenu_item menu, " (requires Windows or wine)", YES, uilook(uiDisabledItem)
  END IF
 
  DIM st AS MenuState
@@ -1302,6 +1302,8 @@ SUB distribute_game ()
     CASE distmenuEXIT: EXIT DO
     CASE distmenuZIP:
      distribute_game_as_zip
+    CASE distmenuWINSETUP:
+     distribute_game_as_windows_installer
    END SELECT
   END IF
 
@@ -1322,8 +1324,6 @@ SUB distribute_game ()
 END SUB
 
 SUB distribute_game_as_zip ()
-
- DIM spawn_ret as string
 
  DIM zip as string = find_helper_app("zip")
  IF zip = "" THEN
@@ -1370,6 +1370,8 @@ SUB distribute_game_as_zip ()
   visible_debug "ERROR: unable to create temporary folder"
   RETURN
  END IF
+
+ DIM spawn_ret as string
 
  DO 'Single-pass loop for operations after ziptmp exists
   
@@ -1482,6 +1484,67 @@ FUNCTION confirmed_copy (srcfile as string, destfile as string) as integer
   RETURN NO
  END IF
  RETURN YES
+END FUNCTION
+
+SUB distribute_game_as_windows_installer ()
+
+ DIM iscc as string = find_or_download_innosetup()
+ IF iscc = "" THEN RETURN
+ 
+ visible_debug "(This export feature is not finished) iscc is installed at: " & iscc
+
+END SUB
+
+FUNCTION find_or_download_innosetup () as string
+ DIM iscc as string = find_innosetup()
+ IF iscc = "" THEN
+  IF yesno("Inno Setup 5 is required to create windows installation packages. Would you like to download it from jrsoftware.org now?") THEN
+   DIM support as string = find_support_dir()
+   IF support = "" THEN visible_debug "ERROR: Can't find support dir" : RETURN ""
+   wget_download "http://www.jrsoftware.org/download.php/is.exe", support & SLASH & "is.exe"
+   DIM spawn_ret as string
+   spawn_ret = win_or_wine_spawn_and_wait(support & SLASH & "is.exe")
+   IF LEN(spawn_ret) THEN visible_debug "ERROR: Inno Setup installer failed: " & spawn_ret : RETURN ""
+   '--re-search for iscc now that it may have been installed
+   iscc = find_innosetup()
+  END IF
+  IF iscc = "" THEN visible_debug "Canceling export. Inno Setup 5 is not available." : RETURN ""
+ END IF
+ RETURN iscc
+END FUNCTION
+
+FUNCTION find_innosetup () as string
+ DIM c_drive as string = win_or_wine_drive("c")
+
+ DIM iscc as string
+ iscc = c_drive & SLASH & "Program Files" & SLASH & "Inno Setup 5" & SLASH & "ISCC.exe"
+ IF isfile(iscc) THEN RETURN iscc
+ iscc = c_drive & SLASH & "Program Files (x86)" & SLASH & "Inno Setup 5" & SLASH & "ISCC.exe"
+ IF isfile(iscc) THEN RETURN iscc
+
+ RETURN "" 'Not found
+END FUNCTION
+
+FUNCTION win_or_wine_drive(letter as string) as string
+#IFDEF __FB__WIN32__
+ RETURN letter & ":"
+#ELSE
+ RETURN environ("HOME") & "/.wine/dosdevices/" & letter & ":"
+#ENDIF
+END FUNCTION
+
+FUNCTION win_or_wine_spawn_and_wait (cmd as string) as string
+ 'For running Windows programs only. On Windows run natively, on Linux Unix Mac, try to run with Wine
+ 'Currently only needed for installing and running innosetup. Hopefully we won't ever need it for anything else
+ DIM spawn_ret as string
+#IFDEF __FB_WIN32__
+ 'On Windows this is nice and simple
+ RETURN spawn_and_wait(cmd)
+#ELSE
+ DIM wine_args as string = """" & cmd & """"
+ RETURN spawn_and_wait("wine", wine_args)
+#ENDIF
+ 
 END FUNCTION
 
 SUB save_current_game ()

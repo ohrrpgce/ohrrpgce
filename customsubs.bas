@@ -4013,9 +4013,12 @@ SUB spawn_game_menu
 END SUB
 
 FUNCTION wget_download (url as string, dest as string) as integer
+ 'Returns True on success, false on failure.
+
  'Downloads a url to a file. uses wget's -N option to only download the
  '  file if it is newer than an existing dest file.
- 'Returns True on success, false on failure.
+ 'FIXME: I just discovered that -N and -O are incompatible [James]
+ 
 
  '--Find the wget to to do the downloading
  DIM wget as string = find_helper_app("wget")
@@ -4031,4 +4034,15 @@ FUNCTION wget_download (url as string, dest as string) as integer
  IF NOT isfile(dest) THEN visible_debug "ERROR: wget succeeded but the download failed": RETURN NO
  
  RETURN YES
+END FUNCTION
+
+FUNCTION can_run_windows_exes () as integer
+#IFDEF __FB_WIN32__
+ '--Of course we can always run exe files on Windows
+ RETURN YES
+#ENDIF
+'--Unixen and Macs can only run exe files with wine
+IF find_helper_app("wine") = "" THEN RETURN NO
+IF NOT isdir(environ("HOME") & "/.wine/dosdevices/c:") THEN RETURN NO
+RETURN YES
 END FUNCTION
