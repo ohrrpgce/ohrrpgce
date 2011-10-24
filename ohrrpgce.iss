@@ -18,7 +18,6 @@ LicenseFile=LICENSE-binary.txt
 #include "iextratxt.txt"
 InfoAfterFile=whatsnew.txt
 OutputBaseFilename=ohrrpgce
-Compression=bzip
 SolidCompression=yes
 ChangesAssociations=yes
 UninstallDisplayIcon={app}\game.ico
