@@ -1443,22 +1443,25 @@ FUNCTION get_windows_gameplayer() as string
   
  '--Decide which url to download
  DIM url as string
+ DIM dlfile as string
  IF version_branch = "wip" THEN
   '--If running a nightly wip, download the latest nightly wip
   url = "http://hamsterrepublic.com/ohrrpgce/nightly/ohrrpgce-wip-default.zip"
+  dlfile = "ohrrpgce-wip-default.zip"
  ELSE
   '--If running any stable release, download the latest stable release.
   url = "http://hamsterrepublic.com/dl/ohrrpgce-minimal.zip"
+  dlfile = "ohrrpgce-minimal.zip"
  END IF
 
  '--Ask the user for permission the first time we download (subsequent updates don't ask)
- DIM destzip as string = dldir & SLASH & "ohrrpgce-windows.zip"
+ DIM destzip as string = dldir & SLASH & dlfile
  IF NOT isfile(destzip) THEN
   IF yesno("Is it okay to download the Windows version of OHRRPGCE game.exe from HamsterRepublic.com now?") = NO THEN RETURN ""
  END IF
 
  '--Actually download the dang file
- wget_download url, destzip
+ wget_download url, dldir
  
  '--Find the unzip tool
  DIM unzip as string = find_helper_app("unzip")
@@ -1552,9 +1555,10 @@ FUNCTION find_or_download_innosetup () as string
   IF yesno("Inno Setup 5 is required to create windows installation packages. Would you like to download it from jrsoftware.org now?") THEN
    DIM support as string = find_support_dir()
    IF support = "" THEN visible_debug "ERROR: Can't find support dir" : RETURN ""
-   wget_download "http://www.jrsoftware.org/download.php/is.exe", support & SLASH & "is.exe"
+   wget_download "http://www.jrsoftware.org/download.php/is.exe", support
    DIM spawn_ret as string
    spawn_ret = win_or_wine_spawn_and_wait(support & SLASH & "is.exe")
+   safekill support & SLASH & "is.exe"
    IF LEN(spawn_ret) THEN visible_debug "ERROR: Inno Setup installer failed: " & spawn_ret : RETURN ""
    '--re-search for iscc now that it may have been installed
    iscc = find_innosetup()

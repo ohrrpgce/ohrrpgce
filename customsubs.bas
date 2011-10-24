@@ -4012,26 +4012,23 @@ SUB spawn_game_menu
  END IF
 END SUB
 
-FUNCTION wget_download (url as string, dest as string) as integer
+FUNCTION wget_download (url as string, destdir as string) as integer
  'Returns True on success, false on failure.
 
- 'Downloads a url to a file. uses wget's -N option to only download the
- '  file if it is newer than an existing dest file.
- 'FIXME: I just discovered that -N and -O are incompatible [James]
- 
+ 'Downloads a url to a file. uses wget's -N option to only re-download
+ ' an existing file if the remote file is newer.
 
  '--Find the wget to to do the downloading
  DIM wget as string = find_helper_app("wget")
  IF wget = "" THEN visible_debug "ERROR: Can't find wget download tool": RETURN NO
  
  '--Do the download
- DIM args as string = "-N -O """ & dest & """ """ & url & """"
+ DIM args as string = "-N -P """ & destdir & """ """ & url & """"
  DIM spawn_ret as string
  spawn_ret = spawn_and_wait(wget, args)
  
  '--Check to see if the download worked
  IF LEN(spawn_ret) > 0 THEN visible_debug "ERROR: wget download failed: " & spawn_ret : RETURN NO
- IF NOT isfile(dest) THEN visible_debug "ERROR: wget succeeded but the download failed": RETURN NO
  
  RETURN YES
 END FUNCTION
