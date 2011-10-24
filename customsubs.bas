@@ -4012,18 +4012,30 @@ SUB spawn_game_menu
  END IF
 END SUB
 
-FUNCTION wget_download (url as string, destdir as string) as integer
+FUNCTION wget_download (url as string, destdir as string, forcefilename as string="") as integer
  'Returns True on success, false on failure.
-
+ '
  'Downloads a url to a file. uses wget's -N option to only re-download
  ' an existing file if the remote file is newer.
+ '
+ 'If you specify forcefilename, the -N option will do nothing,
+ ' and the file will be re-downloaded even if it has not changed
+ ' since the last time it was downloaded.
 
  '--Find the wget to to do the downloading
  DIM wget as string = find_helper_app("wget")
  IF wget = "" THEN visible_debug "ERROR: Can't find wget download tool": RETURN NO
+
+ '--prepare the command line
+ DIM args as string
+ IF forcefilename = "" THEN
+  args = "-N -P """ & destdir & """"
+ ELSE
+  args = "-O """ & destdir & SLASH & forcefilename & """"
+ END IF
+ args &= " """ & url & """"
  
  '--Do the download
- DIM args as string = "-N -P """ & destdir & """ """ & url & """"
  DIM spawn_ret as string
  spawn_ret = spawn_and_wait(wget, args)
  

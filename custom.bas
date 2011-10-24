@@ -1555,7 +1555,7 @@ FUNCTION find_or_download_innosetup () as string
   IF yesno("Inno Setup 5 is required to create windows installation packages. Would you like to download it from jrsoftware.org now?") THEN
    DIM support as string = find_support_dir()
    IF support = "" THEN visible_debug "ERROR: Can't find support dir" : RETURN ""
-   wget_download "http://www.jrsoftware.org/download.php/is.exe", support
+   wget_download "http://www.jrsoftware.org/download.php/is.exe", support, "is.exe"
    DIM spawn_ret as string
    spawn_ret = win_or_wine_spawn_and_wait(support & SLASH & "is.exe")
    safekill support & SLASH & "is.exe"
