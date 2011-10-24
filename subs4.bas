@@ -1536,14 +1536,8 @@ SUB gendata ()
  max(14) = 6
  min(14) = 2
 
- DIM aboutline AS STRING = ""
- DIM longname AS STRING = ""
- DIM tempbuf(79)
-
- IF loadrecord(tempbuf(), workingdir + SLASH + "browse.txt", 40) THEN
-  longname = readbinstring(tempbuf(), 0, 38)
-  aboutline = readbinstring(tempbuf(), 20, 38)
- END IF
+ DIM aboutline AS STRING = load_gamename()
+ DIM longname AS STRING = load_aboutline()
 
  setkeys
  DO
@@ -1634,7 +1628,6 @@ SUB gendata ()
  LOOP
  
  '--write long name and about line
- writebinstring longname, tempbuf(), 0, 38
- writebinstring aboutline, tempbuf(), 20, 38
- storerecord tempbuf(), workingdir + SLASH + "browse.txt", 40
+ save_gamename longname
+ save_aboutline aboutline
 END SUB

@@ -2655,3 +2655,63 @@ FUNCTION load_map_pos_save_offset(byval mapnum as integer) as XYPair
  offset.y = gmaptmp(21)
  RETURN offset
 END FUNCTION
+
+FUNCTION load_gamename (filename as string="") as string
+ DIM f as string
+ IF filename = "" THEN
+  '-default filename
+  f = workingdir & SLASH & "browse.txt"
+ ELSE
+  f = filename
+ END IF
+ DIM tempbuf(79)
+ IF loadrecord(tempbuf(), f, 40) THEN
+  RETURN readbinstring(tempbuf(), 0, 38)
+ END IF
+ debug "Couldn't open browse.txt"
+ RETURN ""
+END FUNCTION
+
+FUNCTION load_aboutline (filename as string="") as string
+ DIM f as string
+ IF filename = "" THEN
+  '-default filename
+  f = workingdir & SLASH & "browse.txt"
+ ELSE
+  f = filename
+ END IF
+ DIM tempbuf(79)
+ IF loadrecord(tempbuf(), f, 40) THEN
+  RETURN readbinstring(tempbuf(), 20, 38)
+ END IF
+ debug "Couldn't open browse.txt"
+ RETURN ""
+END FUNCTION
+
+SUB save_gamename (s as string, filename as string="")
+ DIM f as string
+ IF filename = "" THEN
+  '-default filename
+  f = workingdir & SLASH & "browse.txt"
+ ELSE
+  f = filename
+ END IF
+ DIM tempbuf(79)
+ loadrecord tempbuf(), f, 40
+ writebinstring s, tempbuf(), 0, 38
+ storerecord tempbuf(), f, 40
+END SUB
+
+SUB save_aboutline (s as string, filename as string="")
+ DIM f as string
+ IF filename = "" THEN
+  '-default filename
+  f = workingdir & SLASH & "browse.txt"
+ ELSE
+  f = filename
+ END IF
+ DIM tempbuf(79)
+ loadrecord tempbuf(), f, 40
+ writebinstring s, tempbuf(), 20, 38
+ storerecord tempbuf(), f, 40
+END SUB

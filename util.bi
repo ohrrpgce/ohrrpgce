@@ -326,6 +326,7 @@ declare function escape_string(s as string, chars as string) as string
 declare function replacestr (buffer as string, replacewhat as string, withwhat as string, byval maxtimes as integer = -1) as integer
 declare function exclude (s as string, x as string) as string
 declare function exclusive (s as string, x as string) as string
+declare function special_char_sanitize(s as string) as string
 declare function sign_string(n as integer, neg_str as string, zero_str as string, pos_str as string) as string
 declare function iif_string(byval condition as integer, s1 as string, s2 as string) as string
 declare function zero_default(n as integer, zerocaption as STRING="default", displayoffset as integer = 0) as string

@@ -1587,3 +1587,19 @@ FUNCTION readbit (bb() as integer, byval w as integer, byval b as integer)  as i
 		readbit = 0
 	end if
 end FUNCTION
+
+FUNCTION special_char_sanitize(s as string) as string
+ 'This is a datalossy function.
+ 'Remove special characters from and OHR string to make it 7-bit ASCII safe.
+ 'Also translates the OHR copyright char to (C)
+ DIM s2 as string = s
+ replacestr(s2, CHR(134), "(C)")
+ DIM result as string = ""
+ FOR i as integer = 0 TO LEN(s2) - 1
+  SELECT CASE s2[i]
+   CASE 32 TO 126:
+    result &= CHR(s2[i])
+  END SELECT
+ NEXT i
+ RETURN result
+END FUNCTION

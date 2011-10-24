@@ -151,4 +151,9 @@ DECLARE SUB load_npc_locations OVERLOAD (byval npcs_node as NodePtr, npc() as NP
 DECLARE SUB load_npc_loc OVERLOAD (byval n as NodePtr, npc as NPCInst)
 DECLARE SUB load_npc_loc OVERLOAD (byval n as NodePtr, npc as NPCInst, map_offset as XYPair)
 
+DECLARE FUNCTION load_gamename (filename as string="") as string
+DECLARE FUNCTION load_aboutline (filename as string="") as string
+DECLARE SUB save_gamename (s as string, filename as string="")
+DECLARE SUB save_aboutline (s as string, filename as string="")
+
 #ENDIF
