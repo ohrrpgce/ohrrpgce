@@ -63,9 +63,11 @@ DECLARE FUNCTION find_or_download_innosetup () as string
 DECLARE FUNCTION find_innosetup () as string
 DECLARE FUNCTION win_or_wine_drive(letter as string) as string
 DECLARE FUNCTION win_or_wine_spawn_and_wait (cmd as string, args as string="") as string
-DECLARE SUB write_innosetup_script (iss as string)
+DECLARE SUB write_innosetup_script (basename as string, isstmp as string)
 DECLARE SUB add_innosetup_file (s as string, filename as string)
 DECLARE FUNCTION win_path (filename as string) as string
+DECLARE FUNCTION copy_or_relump (src_rpg_or_rpgdir as string, dest_rpg as string) as integer
+DECLARE FUNCTION copy_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
 
 'Global variables
 REDIM gen(360)
@@ -535,11 +537,11 @@ closemusic
 'catch sprite leaks
 sprite_empty_cache
 palette16_empty_cache
-GOSUB cleanupfiles
 IF keyval(-1) = 0 THEN
  clearpage vpage
  pop_warning "Don't forget to keep backup copies of your work! You never know when an unknown bug or a hard-drive crash or a little brother might delete your files!"
 END IF
+GOSUB cleanupfiles
 end_debug
 restoremode
 END
@@ -1343,21 +1345,7 @@ SUB distribute_game_as_zip ()
 
  DIM ziptmp as string = trimfilename(sourcerpg) & SLASH & "zip.tmp"
  IF isdir(ziptmp) THEN
-  IF yesno("Warning: zip.tmp already exists. Delete it?") = NO THEN RETURN
   killdir ziptmp
- END IF
-
- DIM extension as string = LCASE(justextension(sourcerpg))
-
- DIM need_relump as integer = NO
- DIM relump as string
- IF extension = "rpgdir" THEN
-  need_relump = YES
-  relump = find_helper_app("relump")
-  IF relump = "" THEN
-   visible_debug "Can't find relump" & DOTEXE & " utility."
-   RETURN
-  END IF
  END IF
 
  DIM use_gameplayer as integer = YES
@@ -1380,23 +1368,10 @@ SUB distribute_game_as_zip ()
   
   DIM basename as string = trimextension(trimpath(sourcerpg))
   
-  IF need_relump THEN
-   spawn_ret = spawn_and_wait(relump, """" & sourcerpg & """ """ & ziptmp & SLASH & basename & ".rpg""")
-   IF LEN(spawn_ret) ORELSE NOT isfile(ziptmp & SLASH & basename & ".rpg") THEN
-    visible_debug "ERROR: failed relumping " & sourcerpg & " " & spawn_ret 
-    EXIT DO
-   END IF
-  ELSE
-   IF confirmed_copy(sourcerpg, ziptmp & SLASH & basename & ".rpg") = NO THEN EXIT DO
-  END IF
+  IF copy_or_relump(sourcerpg, ziptmp & SLASH & basename & ".rpg") = NO THEN EXIT DO
 
   IF use_gameplayer THEN
-   IF confirmed_copy(gameplayer, ziptmp & SLASH & basename & ".exe") = NO THEN EXIT DO
-   DIM gamedir AS string = trimfilename(gameplayer)
-   DIM otherf(3) as string = {"gfx_directx.dll", "SDL.dll", "SDL_mixer.dll", "LICENSE-binary.txt"}
-   FOR i as integer = 0 TO UBOUND(otherf)
-    IF confirmed_copy(gamedir & SLASH & otherf(i), ziptmp & SLASH & otherf(i)) = NO THEN EXIT DO
-   NEXT i
+   IF copy_gameplayer(gameplayer, basename, ziptmp) = NO THEN EXIT DO
   END IF
  
   DIM args as string = "-r -j """ & destzip & """ """ & ziptmp & """"
@@ -1415,6 +1390,40 @@ SUB distribute_game_as_zip ()
  killdir ziptmp
  
 END SUB
+
+FUNCTION copy_or_relump (src_rpg_or_rpgdir as string, dest_rpg as string) as integer
+ 'Return true on success, false on fail
+
+ DIM extension as string = LCASE(justextension(src_rpg_or_rpgdir))
+
+ IF extension = "rpgdir" THEN
+  DIM relump as string
+  relump = find_helper_app("relump")
+  IF relump = "" THEN visible_debug "Can't find relump" & DOTEXE & " utility." : RETURN NO
+  DIM spawn_ret as string
+  spawn_ret = spawn_and_wait(relump, """" & src_rpg_or_rpgdir & """ """ & dest_rpg & """")
+  IF LEN(spawn_ret) ORELSE NOT isfile(dest_rpg) THEN
+   visible_debug "ERROR: failed relumping " & src_rpg_or_rpgdir & " " & spawn_ret 
+   RETURN NO
+  END IF
+ ELSE 'simple case for regular .rpg files
+  IF confirmed_copy(src_rpg_or_rpgdir, dest_rpg) = NO THEN
+   visible_debug "ERROR: failed to copy " & src_rpg_or_rpgdir
+  END IF
+ END IF
+ RETURN YES
+END FUNCTION
+
+FUNCTION copy_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
+ 'Returns true on success, false on failure
+ IF confirmed_copy(gameplayer, destdir & SLASH & basename & ".exe") = NO THEN RETURN NO
+ DIM gamedir AS string = trimfilename(gameplayer)
+ DIM otherf(3) as string = {"gfx_directx.dll", "SDL.dll", "SDL_mixer.dll", "LICENSE-binary.txt"}
+ FOR i as integer = 0 TO UBOUND(otherf)
+  IF confirmed_copy(gamedir & SLASH & otherf(i), destdir & SLASH & otherf(i)) = NO THEN RETURN NO
+ NEXT i
+ RETURN YES
+END FUNCTION
 
 FUNCTION get_windows_gameplayer() as string
  'On Windows, Return the full path to game.exe
@@ -1494,36 +1503,96 @@ END FUNCTION
 
 SUB distribute_game_as_windows_installer ()
 
+ DIM basename as string = trimextension(trimpath(sourcerpg))
+ DIM installer as string = trimfilename(sourcerpg) & SLASH & "setup-" & basename & ".exe"
+
+ IF isfile(installer) THEN
+  IF yesno(trimpath(installer) & " already exists. Overwrite it?") = NO THEN RETURN
+  safekill installer
+ END IF
+
  DIM iscc as string = find_or_download_innosetup()
  IF iscc = "" THEN RETURN
  
- DIM iss_script as string = trimextension(sourcerpg) & ".iss"
- write_innosetup_script iss_script
+ DIM isstmp as string = trimfilename(sourcerpg) & SLASH & "innosetup.tmp"
+ IF isdir(isstmp) THEN
+  killdir isstmp
+ END IF
+ makedir isstmp
 
- visible_debug "(This export feature is not finished) iscc is installed at: " & iscc
+ DO '--single pass loop for breaking
+
+  IF copy_or_relump(sourcerpg, isstmp & SLASH & basename & ".rpg") = NO THEN EXIT DO
+ 
+  DIM gameplayer as string
+  gameplayer = get_windows_gameplayer()
+  IF gameplayer = "" THEN visible_debug "ERROR: game.exe is not available" : EXIT DO
+  IF copy_gameplayer(gameplayer, basename, isstmp) = NO THEN EXIT DO
+  
+  write_innosetup_script basename, isstmp
+
+  DIM iss_script as string = isstmp & SLASH & "innosetup_script.iss"
+ 
+  DIM args as string
+  args = "'" & win_path(iss_script) & "'"
+  
+  DIM spawn_ret as string
+  spawn_ret = win_or_wine_spawn_and_wait(iscc,  args)
+  IF LEN(spawn_ret) THEN visible_debug "ERROR: iscc.exe failed: " & spawn_ret : EXIT DO
+  IF confirmed_copy(isstmp & SLASH & "Output" & SLASH & "setup-" & basename & ".exe", installer) = NO THEN
+   visible_debug "ERROR: iscc.exe completed but installer was not created"
+   EXIT DO
+  END IF
+
+  visible_debug trimpath(installer) & " was successfully created!"
+  EXIT DO 'this loop is only ever one pass
+ LOOP
+
+ '--Cleanup temp files
+ killdir isstmp
+ 
 END SUB
 
-SUB write_innosetup_script (iss as string)
+SUB write_innosetup_script (basename as string, isstmp as string)
+
+ DIM iss_script as string = isstmp & SLASH & "innosetup_script.iss"
+
  DIM s as string
  DIM E as string = !"\r\n" ' E is End of line
  s &= "; Inno Setup script generated by OHRRPGCE custom" & E
  
  DIM gamename as string = special_char_sanitize(load_gamename)
+ IF gamename = "" THEN gamename = basename
  
  s &= E & "[Setup]" & E
  s &= "AppName=" & gamename & E
  s &= "AppVersion=" & MID(DATE, 7, 4) & "." & MID(DATE, 1, 2) & "." & MID(DATE, 4, 2) & E
- s &= "{pf}\OHRRPGCE Games\" & gamename & E
+ s &= "DefaultDirName={pf}\OHRRPGCE Games\" & gamename & E
  s &= "DefaultGroupName=" & gamename & E
  s &= "SolidCompression=yes" & E
+ s &= "OutputBaseFilename=setup-" & basename
 
  s &= E & "[Languages]" & E
  s &= "Name: ""eng""; MessagesFile: ""compiler:Default.isl""" & E
 
  s &= E & "[Files]" & E
- add_innosetup_file s, sourcerpg
+ add_innosetup_file s, isstmp & SLASH & basename & ".rpg"
+ add_innosetup_file s, isstmp & SLASH & basename & ".exe"
+ add_innosetup_file s, isstmp & SLASH & "gfx_directx.dll"
+ add_innosetup_file s, isstmp & SLASH & "SDL.dll"
+ add_innosetup_file s, isstmp & SLASH & "SDL_mixer.dll"
+ add_innosetup_file s, isstmp & SLASH & "LICENSE-binary.txt"
+
+ s &= E & "[Icons]" & E
+ s &= "Name: ""{userdesktop}\" & gamename & """; Filename: ""{app}\" & basename & ".exe""; WorkingDir: ""{app}"";" & E
+ s &= "Name: ""{group}\" & gamename & """; Filename: ""{app}\" & basename & ".exe""; WorkingDir: ""{app}"";" & E
  
  debug s
+ 
+ DIM fh as integer = FREEFILE
+ OPEN iss_script FOR BINARY AS #fh
+ PUT #fh, 1, s
+ CLOSE #fh
 
 END SUB
 
@@ -1538,12 +1607,11 @@ FUNCTION win_path (filename as string) as string
  RETURN filename
 #ELSE
  'When using wine, paths that start with $HOME can be translated to Z:
- DIM home as string = ENVIRON("HOME")
- IF LEFT(filename, LEN(home)) <> home THEN
+ IF LEFT(filename, 1) <> "/" THEN
   visible_debug "ERROR: Unable to translate path for wine: " & filename 
   RETURN filename
  END IF
- DIM winepath as string = "z:" & MID(filename, LEN(home) + 1)
+ DIM winepath as string = "z:" & filename
  replacestr winepath, "/", "\"
  RETURN winepath
 #ENDIF
@@ -1596,7 +1664,8 @@ FUNCTION win_or_wine_spawn_and_wait (cmd as string, args as string="") as string
  'On Windows this is nice and simple
  RETURN spawn_and_wait(cmd, args)
 #ELSE
- DIM wine_args as string = """" & cmd & """ " & args
+ DIM wine_args as string = "'" & cmd & "' " & escape_string(args, "\")
+ debug "wine_args =" & wine_args
  RETURN spawn_and_wait("wine", wine_args)
 #ENDIF
  
