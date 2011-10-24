@@ -62,7 +62,7 @@ DECLARE FUNCTION get_windows_gameplayer() as string
 DECLARE FUNCTION find_or_download_innosetup () as string
 DECLARE FUNCTION find_innosetup () as string
 DECLARE FUNCTION win_or_wine_drive(letter as string) as string
-DECLARE FUNCTION win_or_wine_spawn_and_wait (cmd as string) as string
+DECLARE FUNCTION win_or_wine_spawn_and_wait (cmd as string, args as string="") as string
 DECLARE SUB write_innosetup_script (iss as string)
 DECLARE SUB add_innosetup_file (s as string, filename as string)
 DECLARE FUNCTION win_path (filename as string) as string
@@ -1588,15 +1588,15 @@ FUNCTION win_or_wine_drive(letter as string) as string
 #ENDIF
 END FUNCTION
 
-FUNCTION win_or_wine_spawn_and_wait (cmd as string) as string
+FUNCTION win_or_wine_spawn_and_wait (cmd as string, args as string="") as string
  'For running Windows programs only. On Windows run natively, on Linux Unix Mac, try to run with Wine
  'Currently only needed for installing and running innosetup. Hopefully we won't ever need it for anything else
  DIM spawn_ret as string
 #IFDEF __FB_WIN32__
  'On Windows this is nice and simple
- RETURN spawn_and_wait(cmd)
+ RETURN spawn_and_wait(cmd, args)
 #ELSE
- DIM wine_args as string = """" & cmd & """"
+ DIM wine_args as string = """" & cmd & """ " & args
  RETURN spawn_and_wait("wine", wine_args)
 #ENDIF
  
