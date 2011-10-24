@@ -4180,19 +4180,9 @@ END FUNCTION
 
 FUNCTION getdisplayname (default as string) as string
  '--Get game's display name
- DIM f as string
- f = workingdir & SLASH & "browse.txt"
- IF isfile(f) THEN
-  setpicstuf buffer(), 40, -1
-  loadset f, 0, 0
-  DIM s as string
-  s = STRING(bound(buffer(0), 0, 38), " ")
-  array2str buffer(), 2, s
-  IF LEN(s) > 0 THEN
-   RETURN s
-  END IF
- END IF
- RETURN default
+ DIM n as string = load_gamename()
+ IF n = "" THEN RETURN default
+ RETURN n
 END FUNCTION
 
 SUB getstatnames(statnames() as string)

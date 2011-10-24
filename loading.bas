@@ -2664,6 +2664,7 @@ FUNCTION load_gamename (filename as string="") as string
  ELSE
   f = filename
  END IF
+ IF NOT isfile(f) THEN RETURN ""
  DIM tempbuf(79)
  IF loadrecord(tempbuf(), f, 40) THEN
   RETURN readbinstring(tempbuf(), 0, 38)
@@ -2680,6 +2681,7 @@ FUNCTION load_aboutline (filename as string="") as string
  ELSE
   f = filename
  END IF
+ IF NOT isfile(f) THEN RETURN ""
  DIM tempbuf(79)
  IF loadrecord(tempbuf(), f, 40) THEN
   RETURN readbinstring(tempbuf(), 20, 38)

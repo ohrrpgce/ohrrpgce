@@ -16,6 +16,7 @@
 #include "const.bi"
 #include "allmodex.bi"
 #include "common.bi"
+#include "loading.bi"
 #include "reload.bi"
 #include "os.bi"
 
@@ -398,15 +399,10 @@ FOR i as integer = 0 TO UBOUND(filelist)
  '--RPG files
  IF br.special = 7 THEN
   copylump filename, "browse.txt", br.tmp, -1
-  IF loadrecord(tempbuf(), br.tmp + "browse.txt", 40, , NO) THEN
-   tree(br.treesize).caption = readbinstring(tempbuf(), 0, 38)
-   tree(br.treesize).about = readbinstring(tempbuf(), 20, 38)
-   safekill br.tmp + "browse.txt"
-   IF LEN(tree(br.treesize).caption) = 0 THEN tree(br.treesize).caption = tree(br.treesize).filename
-  ELSE
-   tree(br.treesize).about = ""
-   tree(br.treesize).caption = tree(br.treesize).filename
-  END IF
+  tree(br.treesize).caption = load_gamename(br.tmp & "browse.txt")
+  tree(br.treesize).about = load_aboutline(br.tmp & "browse.txt")
+  safekill br.tmp & "browse.txt"
+  IF tree(br.treesize).caption = "" THEN tree(br.treesize).caption = tree(br.treesize).filename
  END IF
  '--RELOAD files
  IF br.special = 8 THEN
