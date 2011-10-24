@@ -1581,7 +1581,7 @@ FUNCTION find_innosetup () as string
 END FUNCTION
 
 FUNCTION win_or_wine_drive(letter as string) as string
-#IFDEF __FB__WIN32__
+#IFDEF __FB_WIN32__
  RETURN letter & ":"
 #ELSE
  RETURN environ("HOME") & "/.wine/dosdevices/" & letter & ":"
