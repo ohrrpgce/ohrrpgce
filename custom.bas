@@ -1534,7 +1534,12 @@ SUB distribute_game_as_windows_installer ()
   DIM iss_script as string = isstmp & SLASH & "innosetup_script.iss"
  
   DIM args as string
+#IFDEF __FB_WIN32__
+ 'this sucks and is a terrible hack but I am sick of fighting with multiply-layerd cross-platform quotes
+  args = """" & win_path(iss_script) & """"
+#ELSE
   args = "'" & win_path(iss_script) & "'"
+#ENDIF
   
   DIM spawn_ret as string
   spawn_ret = win_or_wine_spawn_and_wait(iscc,  args)
@@ -1549,6 +1554,7 @@ SUB distribute_game_as_windows_installer ()
  LOOP
 
  '--Cleanup temp files
+ IF isdir(isstmp & SLASH & "Output") THEN killdir isstmp & SLASH & "Output"
  killdir isstmp
  
 END SUB
@@ -1662,9 +1668,11 @@ FUNCTION win_or_wine_spawn_and_wait (cmd as string, args as string="") as string
  DIM spawn_ret as string
 #IFDEF __FB_WIN32__
  'On Windows this is nice and simple
+ debug "spawn_and_wait: " & cmd & " " & args
  RETURN spawn_and_wait(cmd, args)
 #ELSE
  DIM wine_args as string = "'" & cmd & "' " & escape_string(args, "\")
+ debug "spawn_and_wait: wine " & cmd & " " & wine_args
  debug "wine_args =" & wine_args
  RETURN spawn_and_wait("wine", wine_args)
 #ENDIF
