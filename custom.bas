@@ -24,11 +24,11 @@ DEFINT A-Z
 #include "os.bi"
 
 'FIXME: add header files for these declarations
-DECLARE SUB importbmp (f AS STRING, cap AS STRING, count AS INTEGER)
+DECLARE SUB importbmp (f as string, cap as string, count as integer)
 DECLARE SUB vehicles ()
 DECLARE SUB scriptman ()
 DECLARE SUB map_picker ()
-DECLARE SUB sprite (xw, yw, sets, perset, soff, info() as string, zoom, fileset, fullset AS INTEGER=NO, cursor_start AS INTEGER=0, cursor_top AS INTEGER=0)
+DECLARE SUB sprite (xw, yw, sets, perset, soff, info() as string, zoom, fileset, fullset as integer=NO, cursor_start as integer=0, cursor_top as integer=0)
 DECLARE SUB importsong ()
 DECLARE SUB importsfx ()
 DECLARE SUB gendata ()
@@ -68,13 +68,14 @@ DECLARE SUB add_innosetup_file (s as string, filename as string)
 DECLARE FUNCTION win_path (filename as string) as string
 DECLARE FUNCTION copy_or_relump (src_rpg_or_rpgdir as string, dest_rpg as string) as integer
 DECLARE FUNCTION copy_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
+DECLARE SUB shop_update_item_strings(stufbuf() as integer, tradestf() as string, tradefor as string)
 
 'Global variables
 REDIM gen(360)
 REDIM buffer(16384)
 REDIM master(255) as RGBcolor
 REDIM uilook(uiColors)
-DIM statnames() AS STRING
+DIM statnames() as string
 DIM vpage = 0, dpage = 1
 DIM activepalette, fadestate
 'FIXME: too many directory variables! Clean this nonsense up
@@ -88,29 +89,29 @@ DIM app_dir as string
 DIM slave_channel as IPCChannel = NULL_CHANNEL
 DIM slave_process as ProcessHandle = 0
 
-EXTERN running_as_slave AS INTEGER
-DIM running_as_slave AS INTEGER = NO  'This is just for the benefit of gfx_sdl
+EXTERN running_as_slave as integer
+DIM running_as_slave as integer = NO  'This is just for the benefit of gfx_sdl
 
 'Local variables (declaring these up here is often necessary due to gosubs)
 DIM joy(4)
-DIM menu(22) AS STRING
-DIM menukeys(22) AS STRING
-DIM chooserpg_menu(2) AS STRING
-DIM quit_menu(3) AS STRING
-DIM quit_confirm(1) AS STRING
-DIM hsfile AS STRING
-DIM intext AS STRING
-DIM passphrase AS STRING
-DIM archinym AS STRING
-DIM SHARED nocleanup AS INTEGER = NO
+DIM menu(22) as string
+DIM menukeys(22) as string
+DIM chooserpg_menu(2) as string
+DIM quit_menu(3) as string
+DIM quit_confirm(1) as string
+DIM hsfile as string
+DIM intext as string
+DIM passphrase as string
+DIM archinym as string
+DIM SHARED nocleanup as integer = NO
 
-DIM walkabout_frame_captions(7) AS STRING = {"Up A","Up B","Right A","Right B","Down A","Down B","Left A","Left B"}
-DIM hero_frame_captions(7) AS STRING = {"Standing","Stepping","Attack A","Attack B","Cast/Use","Hurt","Weak","Dead"}
-DIM enemy_frame_captions(0) AS STRING = {"Enemy (facing right)"}
-DIM weapon_frame_captions(1) AS STRING = {"Frame 1","Frame 2"}
-DIM attack_frame_captions(2) AS STRING = {"First Frame","Middle Frame","Last Frame"}
-DIM box_border_captions(15) AS STRING = {"Top Left Corner","Top Edge Left","Top Edge","Top Edge Right","Top Right Corner","Left Edge Top","Right Edge Top","Left Edge","Right Edge","Left Edge Bottom","Right Edge Bottom","Bottom Left Corner","Bottom Edge Left","Bottom Edge","Bottom Edge Right","Bottom Right Corner"}
-DIM portrait_captions(0) AS STRING = {"Character Portrait"}
+DIM walkabout_frame_captions(7) as string = {"Up A","Up B","Right A","Right B","Down A","Down B","Left A","Left B"}
+DIM hero_frame_captions(7) as string = {"Standing","Stepping","Attack A","Attack B","Cast/Use","Hurt","Weak","Dead"}
+DIM enemy_frame_captions(0) as string = {"Enemy (facing right)"}
+DIM weapon_frame_captions(1) as string = {"Frame 1","Frame 2"}
+DIM attack_frame_captions(2) as string = {"First Frame","Middle Frame","Last Frame"}
+DIM box_border_captions(15) as string = {"Top Left Corner","Top Edge Left","Top Edge","Top Edge Right","Top Right Corner","Left Edge Top","Right Edge Top","Left Edge","Right Edge","Left Edge Bottom","Right Edge Bottom","Bottom Left Corner","Bottom Edge Left","Bottom Edge","Bottom Edge Right","Bottom Right Corner"}
+DIM portrait_captions(0) as string = {"Character Portrait"}
 
 DIM lumpfile as string
 DIM cmdline as string
@@ -572,10 +573,13 @@ RETRACE
 REM $STATIC
 
 SUB shopdata
-DIM a(20), b(curbinsize(binSTF) \ 2 - 1), menu(24) AS STRING, smenu(24) AS STRING, max(24), min(24), sbit(-1 TO 10) AS STRING, stf(16) AS STRING, tradestf(3) AS STRING
+DIM a(20) as integer
+DIM stufbuf(curbinsize(binSTF) \ 2 - 1) as integer
+DIM menu(24) as string, smenu(24) as string, max(24), min(24), sbit(-1 TO 10) as string, stf(16) as string, tradestf(3) as string
 DIM her AS HeroDef' Used to get hero name for default stuff name
 DIM item_tmp(dimbinsize(binITM)) ' This is only used for loading the default buy/sell price for items
-DIM sn AS STRING = "", trit AS STRING = ""
+DIM sn as string = ""
+DIM tradefor as string = ""
 
 
 maxcount = 32: pt = 0
@@ -648,9 +652,9 @@ DO
     setpicstuf a(), 40, -1
     storeset game + ".sho", pt, 0
     '--create a new shop stuff record
-    flusharray b(), dimbinsize(binSTF), 0
-    setpicstuf b(), getbinsize(binSTF), -1
-    b(19) = -1 ' When adding new stuff, default in-stock to infinite
+    flusharray stufbuf(), dimbinsize(binSTF), 0
+    setpicstuf stufbuf(), getbinsize(binSTF), -1
+    stufbuf(19) = -1 ' When adding new stuff, default in-stock to infinite
     storeset game + ".stf", pt * 50 + 0, 0
    END IF
    GOSUB lshopset
@@ -737,7 +741,7 @@ tcsr = 0
 last = 2
 GOSUB load_stf
 GOSUB othertype
-GOSUB itstrsh
+shop_update_item_strings stufbuf(), tradestf(), tradefor
 GOSUB stufmenu
 setkeys
 DO
@@ -755,18 +759,18 @@ DO
    thing = newthing
    IF thing > a(16) THEN
     a(16) = thing
-    flusharray b(), dimbinsize(binSTF), 0
-    setpicstuf b(), getbinsize(binSTF), -1
-    b(19) = -1 ' When adding new stuff, default in-stock to infinite
+    flusharray stufbuf(), dimbinsize(binSTF), 0
+    setpicstuf stufbuf(), getbinsize(binSTF), -1
+    stufbuf(19) = -1 ' When adding new stuff, default in-stock to infinite
     storeset game + ".stf", pt * 50 + thing, 0
    END IF
    GOSUB load_stf
-   GOSUB itstrsh
+   shop_update_item_strings stufbuf(), tradestf(), tradefor
   END IF
  END IF
  IF tcsr = 2 THEN strgrabber thing$, 16
  IF tcsr > 2 THEN
-  IF b(17) = 1 THEN
+  IF stufbuf(17) = 1 THEN
    '--using a hero
    min(19) = -1
    max(19) = 99
@@ -776,40 +780,40 @@ DO
   END IF
   SELECT CASE tcsr
    CASE 6 TO 9 '--tags
-    tag_grabber b(17 + tcsr - 3)
+    tag_grabber stufbuf(17 + tcsr - 3)
    CASE 11 '--must trade in item 1 type
-    IF zintgrabber(b(25), min(tcsr), max(tcsr)) THEN GOSUB itstrsh
+    IF zintgrabber(stufbuf(25), min(tcsr), max(tcsr)) THEN shop_update_item_strings stufbuf(), tradestf(), tradefor
    CASE 13, 15, 17 '--must trade in item 2+ types
-    IF zintgrabber(b(18 + tcsr), min(tcsr), max(tcsr)) THEN GOSUB itstrsh
+    IF zintgrabber(stufbuf(18 + tcsr), min(tcsr), max(tcsr)) THEN shop_update_item_strings stufbuf(), tradestf(), tradefor
    CASE 12, 14, 16, 18 '--trade in item amounts
-    b(18 + tcsr) = b(18 + tcsr) + 1
-    intgrabber(b(18 + tcsr), min(tcsr), max(tcsr))
-    b(18 + tcsr) = b(18 + tcsr) - 1
+    stufbuf(18 + tcsr) = stufbuf(18 + tcsr) + 1
+    intgrabber(stufbuf(18 + tcsr), min(tcsr), max(tcsr))
+    stufbuf(18 + tcsr) = stufbuf(18 + tcsr) - 1
    CASE 19, 20 '--sell type, price
-    intgrabber(b(7 + tcsr), min(tcsr), max(tcsr))
-    IF (b(26) < 0 OR b(26) > 3) AND b(17) <> 1 THEN b(26) = 0
+    intgrabber(stufbuf(7 + tcsr), min(tcsr), max(tcsr))
+    IF (stufbuf(26) < 0 OR stufbuf(26) > 3) AND stufbuf(17) <> 1 THEN stufbuf(26) = 0
    CASE 21 '--trade in for
-    IF zintgrabber(b(7 + tcsr), min(tcsr), max(tcsr)) THEN GOSUB itstrsh
+    IF zintgrabber(stufbuf(7 + tcsr), min(tcsr), max(tcsr)) THEN shop_update_item_strings stufbuf(), tradestf(), tradefor
    CASE 22 '--trade in for amount
-    b(7 + tcsr) = b(7 + tcsr) + 1
-    intgrabber(b(7 + tcsr), min(tcsr), max(tcsr))
-    b(7 + tcsr) = b(7 + tcsr) - 1
+    stufbuf(7 + tcsr) = stufbuf(7 + tcsr) + 1
+    intgrabber(stufbuf(7 + tcsr), min(tcsr), max(tcsr))
+    stufbuf(7 + tcsr) = stufbuf(7 + tcsr) - 1
    CASE ELSE
-    IF intgrabber(b(17 + tcsr - 3), min(tcsr), max(tcsr)) THEN
+    IF intgrabber(stufbuf(17 + tcsr - 3), min(tcsr), max(tcsr)) THEN
      IF tcsr = 3 OR tcsr = 4 THEN
       GOSUB othertype
       '--Re-load default names and default prices
-      SELECT CASE b(17)
+      SELECT CASE stufbuf(17)
        CASE 0' This is an item
-        thing$ = load_item_name(b(18),1,1)
-        loaditemdata item_tmp(), b(18)
-        b(24) = item_tmp(46) ' default buy price
-        b(27) = item_tmp(46) \ 2 ' default sell price
+        thing$ = load_item_name(stufbuf(18),1,1)
+        loaditemdata item_tmp(), stufbuf(18)
+        stufbuf(24) = item_tmp(46) ' default buy price
+        stufbuf(27) = item_tmp(46) \ 2 ' default sell price
        CASE 1
-        loadherodata @her, b(18)
+        loadherodata @her, stufbuf(18)
         thing$ = her.name
-        b(24) = 0 ' default buy price
-        b(27) = 0 ' default sell price
+        stufbuf(24) = 0 ' default buy price
+        stufbuf(27) = 0 ' default sell price
        CASE ELSE
         thing$ = "Unsupported"
       END SELECT
@@ -829,14 +833,14 @@ DO
 LOOP
 
 othertype:
-SELECT CASE b(17)
+SELECT CASE stufbuf(17)
  CASE 0 ' Is an item
   last = 22
-  max(4) = gen(genMaxItem): IF b(18) > max(4) THEN b(18) = 0
+  max(4) = gen(genMaxItem): IF stufbuf(18) > max(4) THEN stufbuf(18) = 0
   max(19) = 3 ' Item sell-type
  CASE 1 ' Is a hero
   last = 19
-  max(4) = gen(genMaxHero): IF b(18) > gen(genMaxHero) THEN b(18) = 0
+  max(4) = gen(genMaxHero): IF stufbuf(18) > gen(genMaxHero) THEN stufbuf(18) = 0
   max(19) = gen(genMaxLevel) ' Hero experience level
  CASE 2 ' Is ... something else?
   last = 18
@@ -847,74 +851,78 @@ RETRACE
 stufmenu:
 smenu(1) = CHR(27) & "Shop Thing " & thing & " of " & a(16) & CHR(26)
 smenu(2) = "Name: " & thing$
-smenu(3) = "Type: " & b(17) & "-" & stf(bound(b(17), 0, 2))
-smenu(4) = "Number: " & b(18) & " " & defaultthing$
-IF b(19) > 0 THEN
- smenu(5) = "In Stock: " & b(19)
+smenu(3) = "Type: " & stufbuf(17) & "-" & stf(bound(stufbuf(17), 0, 2))
+smenu(4) = "Number: " & stufbuf(18) & " " & defaultthing$
+IF stufbuf(19) > 0 THEN
+ smenu(5) = "In Stock: " & stufbuf(19)
 ELSE
- smenu(5) = stf(8 + bound(b(19), -1, 0))
+ smenu(5) = stf(8 + bound(stufbuf(19), -1, 0))
 END IF
-smenu(6) = tag_condition_caption(b(20), "Buy Require Tag", "No Tag Check")
-smenu(7) = tag_condition_caption(b(21), "Sell Require Tag", "No Tag Check")
-smenu(8) = tag_condition_caption(b(22), "Buy Set Tag", "No Tag Set", "Unalterable", "Unalterable")
-smenu(9) = tag_condition_caption(b(23), "Sell Set Tag", "No Tag Set", "Unalterable", "Unalterable")
-smenu(10) = "Cost: " & b(24) & " " & readglobalstring(32, "Money")
-smenu(11) = "Must Trade in " & (b(30) + 1) & " of: " & tradestf(0)
+smenu(6) = tag_condition_caption(stufbuf(20), "Buy Require Tag", "No Tag Check")
+smenu(7) = tag_condition_caption(stufbuf(21), "Sell Require Tag", "No Tag Check")
+smenu(8) = tag_condition_caption(stufbuf(22), "Buy Set Tag", "No Tag Set", "Unalterable", "Unalterable")
+smenu(9) = tag_condition_caption(stufbuf(23), "Sell Set Tag", "No Tag Set", "Unalterable", "Unalterable")
+smenu(10) = "Cost: " & stufbuf(24) & " " & readglobalstring(32, "Money")
+smenu(11) = "Must Trade in " & (stufbuf(30) + 1) & " of: " & tradestf(0)
 smenu(12) = " (Change Amount)"
-smenu(13) = "Must Trade in " & (b(32) + 1) & " of: " & tradestf(1)
+smenu(13) = "Must Trade in " & (stufbuf(32) + 1) & " of: " & tradestf(1)
 smenu(14) = " (Change Amount)"
-smenu(15) = "Must Trade in " & (b(34) + 1) & " of: " & tradestf(2)
+smenu(15) = "Must Trade in " & (stufbuf(34) + 1) & " of: " & tradestf(2)
 smenu(16) = " (Change Amount)"
-smenu(17) = "Must Trade in " & (b(36) + 1) & " of: " & tradestf(3)
+smenu(17) = "Must Trade in " & (stufbuf(36) + 1) & " of: " & tradestf(3)
 smenu(18) = " (Change Amount)"
-IF b(17) = 0 THEN
- smenu(19) = "Sell type: " & stf(bound(b(26), 0, 3) + 3)
- smenu(20) = "Sell for: " & b(27) & " " & readglobalstring(32, "Money")
- smenu(21) = "  and " & (b(29) + 1) & " of: " & trit$
+IF stufbuf(17) = 0 THEN
+ smenu(19) = "Sell type: " & stf(bound(stufbuf(26), 0, 3) + 3)
+ smenu(20) = "Sell for: " & stufbuf(27) & " " & readglobalstring(32, "Money")
+ smenu(21) = "  and " & (stufbuf(29) + 1) & " of: " & tradefor
  smenu(22) = " (Change Amount)"
 ELSE
  smenu(19) = "Experience Level: "
- IF b(26) = -1 THEN
+ IF stufbuf(26) = -1 THEN
   smenu(19) = smenu(19) & "default"
  ELSE
-  smenu(19) = smenu(19) & b(26)
+  smenu(19) = smenu(19) & stufbuf(26)
  END IF
 END IF
 '--mutate menu for item/hero
 RETRACE
 
 load_stf:
-flusharray b(), dimbinsize(binSTF), 0
-setpicstuf b(), getbinsize(binSTF), -1
+flusharray stufbuf(), dimbinsize(binSTF), 0
+setpicstuf stufbuf(), getbinsize(binSTF), -1
 loadset game + ".stf", pt * 50 + thing, 0
-thing$ = readbadbinstring(b(), 0, 16, 0)
+thing$ = readbadbinstring(stufbuf(), 0, 16, 0)
 '---check for invalid data
-IF b(17) < 0 OR b(17) > 2 THEN b(17) = 0
-IF b(19) < -1 THEN b(19) = 0
-IF (b(26) < 0 OR b(26) > 3) AND b(17) <> 1 THEN b(26) = 0
+IF stufbuf(17) < 0 OR stufbuf(17) > 2 THEN stufbuf(17) = 0
+IF stufbuf(19) < -1 THEN stufbuf(19) = 0
+IF (stufbuf(26) < 0 OR stufbuf(26) > 3) AND stufbuf(17) <> 1 THEN stufbuf(26) = 0
 '--WIP Serendipity custom builds didn't flush shop records when upgrading properly
 FOR i = 32 TO 41
- b(i) = large(b(i), 0)
+ stufbuf(i) = large(stufbuf(i), 0)
 NEXT
 RETRACE
 
 save_stf:
-b(0) = LEN(thing$)
-FOR i = 1 TO small(b(0), 16)
- b(i) = ASC(MID$(thing$, i, 1))
+stufbuf(0) = LEN(thing$)
+FOR i = 1 TO small(stufbuf(0), 16)
+ stufbuf(i) = ASC(MID$(thing$, i, 1))
 NEXT i
-setpicstuf b(), getbinsize(binSTF), -1
+setpicstuf stufbuf(), getbinsize(binSTF), -1
 storeset game + ".stf", pt * 50 + thing, 0
 RETRACE
 
-itstrsh:
-tradestf(0) = load_item_name(b(25),0,0)
-tradestf(1) = load_item_name(b(31),0,0)
-tradestf(2) = load_item_name(b(33),0,0)
-tradestf(3) = load_item_name(b(35),0,0)
-trit$ = load_item_name(b(28),0,0)
-RETRACE
+END SUB
 
+'=======================================================================
+'FIXME: move this up as code gets cleaned up!  (Hah!)
+OPTION EXPLICIT
+
+SUB shop_update_item_strings(stufbuf() as integer, tradestf() as string, tradefor as string)
+ tradestf(0) = load_item_name(stufbuf(25),0,0)
+ tradestf(1) = load_item_name(stufbuf(31),0,0)
+ tradestf(2) = load_item_name(stufbuf(33),0,0)
+ tradestf(3) = load_item_name(stufbuf(35),0,0)
+ tradefor = load_item_name(stufbuf(28),0,0)
 END SUB
 
 FUNCTION newRPGfile (templatefile as string, newrpg as string)
@@ -928,7 +936,7 @@ FUNCTION newRPGfile (templatefile as string, newrpg as string)
   printstr "Error: ohrrpgce.new not found", 0, 60, vpage
   printstr "Press Enter to quit", 0, 70, vpage
  setvispage vpage
-  w = getkey
+  getkey
   EXIT FUNCTION
  END IF
  writeablecopyfile templatefile, newrpg
@@ -936,7 +944,7 @@ FUNCTION newRPGfile (templatefile as string, newrpg as string)
  setvispage vpage 'refresh
  unlump newrpg, workingdir + SLASH
  '--create archinym information lump
- fh = FREEFILE
+ DIM fh as integer = FREEFILE
  OPEN workingdir + SLASH + "archinym.lmp" FOR OUTPUT AS #fh
  PRINT #fh, "ohrrpgce"
  PRINT #fh, version
@@ -947,10 +955,6 @@ FUNCTION newRPGfile (templatefile as string, newrpg as string)
  dolumpfiles newrpg
  newRPGfile = -1 'return true for success
 END FUNCTION
-
-'=======================================================================
-'FIXME: move this up as code gets cleaned up!  (Hah!)
-OPTION EXPLICIT
 
 'Try to delete everything in workingdir
 FUNCTION empty_workingdir () as integer
@@ -988,7 +992,7 @@ END FUNCTION
 
 'Returns true on success, false if want to GOTO finis
 FUNCTION handle_dirty_workingdir () as integer
- DIM cleanup_menu(2) AS STRING
+ DIM cleanup_menu(2) as string
  cleanup_menu(0) = "DO NOTHING"
  cleanup_menu(1) = "RECOVER IT"
  cleanup_menu(2) = "ERASE IT"
@@ -1053,7 +1057,7 @@ END FUNCTION
 
 SUB dolumpfiles (filetolump as string)
  '--build the list of files to lump. We don't need hidden files
- DIM filelist() AS STRING
+ DIM filelist() as string
  findfiles workingdir, ALLFILES, fileTypeFile, NO, filelist()
  fixlumporder filelist()
  IF isdir(filetolump) THEN
@@ -1062,7 +1066,7 @@ SUB dolumpfiles (filetolump as string)
    move_unwriteable_rpg filetolump
    makedir filetolump
   END IF
-  FOR i AS INTEGER = 0 TO UBOUND(filelist)
+  FOR i as integer = 0 TO UBOUND(filelist)
    safekill filetolump + SLASH + filelist(i)
    copyfile workingdir + SLASH + filelist(i), filetolump + SLASH + filelist(i)
    'FIXME: move file instead? (warning: can't move from different mounted filesystem)
@@ -1112,17 +1116,17 @@ SUB secret_menu ()
 END SUB
 
 SUB arbitrary_sprite_editor ()
- DIM tempsets AS INTEGER = 0
- DIM tempcaptions(15) AS STRING
- FOR i AS INTEGER = 0 to UBOUND(tempcaptions)
+ DIM tempsets as integer = 0
+ DIM tempcaptions(15) as string
+ FOR i as integer = 0 to UBOUND(tempcaptions)
   tempcaptions(i) = "frame" & i
  NEXT i
  DIM size AS XYPair
  size.x = 20
  size.y = 20
- DIM framecount AS INTEGER = 8
- DIM crappy_screenpage_lines AS INTEGER
- DIM zoom AS INTEGER = 2
+ DIM framecount as integer = 8
+ DIM crappy_screenpage_lines as integer
+ DIM zoom as integer = 2
 
  DIM menu(...) as string = {"Width=", "Height=", "Framecount=", "Zoom=", "Sets=", "Start Editing..."}
  DIM st as MenuState
@@ -1417,7 +1421,7 @@ END FUNCTION
 FUNCTION copy_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
  'Returns true on success, false on failure
  IF confirmed_copy(gameplayer, destdir & SLASH & basename & ".exe") = NO THEN RETURN NO
- DIM gamedir AS string = trimfilename(gameplayer)
+ DIM gamedir as string = trimfilename(gameplayer)
  DIM otherf(3) as string = {"gfx_directx.dll", "SDL.dll", "SDL_mixer.dll", "LICENSE-binary.txt"}
  FOR i as integer = 0 TO UBOUND(otherf)
   IF confirmed_copy(gamedir & SLASH & otherf(i), destdir & SLASH & otherf(i)) = NO THEN RETURN NO
@@ -1706,7 +1710,7 @@ SUB quad_transforms_menu ()
  st.size = 22
  st.need_update = YES
  
- DIM spritemode AS INTEGER = -1
+ DIM spritemode as integer = -1
 
  DIM testframe as Frame ptr
  DIM vertices(3) as Float3
