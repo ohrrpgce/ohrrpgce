@@ -1,5 +1,5 @@
-WARNING="!!! This Makefile is not the recommended way to build the OHRRPGCE, and is poorly tested!" \
-	"scons is recommended instead! Install scons; type 'scons --help' !!!"
+WARNING="!!! This Makefile is not the recommended way to build the OHRRPGCE, and Windows especially is NOT supported!" \
+	"scons is the One True Way! Install scons; type 'scons --help' !!!"
 
 # See also makehspeak.bat, makeutil.bat/sh, makereload.bat/sh; this Makefile doesn't build those utilities
 
@@ -43,9 +43,9 @@ OBJCFLAGS=
 ifdef win32
 	FBFLAGS+=-s gui
 #libfbgfx always needed, because of display_help_string!
-	libraries=fbgfx
+	libraries=fbgfx stdc++ gcc_s
 #libraries+= gdi32 winmm msvcrt kernel32 user32
-	base_objects+=os_windows.o win32\blit.o win32\base64.o win32\array.o
+	base_objects+=os_windows.o
 	game_exe:=game.exe
 	edit_exe:=custom.exe
 	verprint_exe:=verprint.exe
@@ -54,7 +54,7 @@ ifdef win32
 endif
 
 ifdef unix
-	base_objects+=os_unix.o blit.o base64.o array.o
+	base_objects+=os_unix.o
 ifndef mac
 	libraries+= X11 Xext Xpm Xrandr Xrender pthread
 else
@@ -120,13 +120,13 @@ endif
 
 ifeq "$(OHRMUSIC)" "native"
 	common_modules+= music_native
-	common_objects+=win32\audwrap.o
+	common_objects+=audwrap.o
 	libraries+= audiere
 	libpath+= audwrap
 else
 ifeq "$(OHRMUSIC)" "native2"
 	common_modules+= music_native2
-	common_objects+=win32\audwrap.o
+	common_objects+=audwrap.o
 	libraries+= audiere
 	libpath+= audwrap
 else
@@ -143,7 +143,7 @@ endif
 endif
 endif
 
-base_objects+= vector.o filelayer.o
+base_objects+= vector.o filelayer.o blit.o base64.o array.o
 
 common_modules+=allmodex backends lumpfile misc bam2mid common bcommon menus browse util loading reload reloadext slices sliceedit
 common_objects+=$(base_objects) $(addsuffix .o,$(common_modules))
@@ -188,7 +188,7 @@ ifdef mac
 	common_objects+= SDLMain.o
 	semicommon_objects+= SDLMain.o   #whether to include help menu varies
 	FBFLAGS+= -entry SDL_main
-	CFLAGS+=${shell if [ `which sdl-confijg` ] ; then sdl-config --cflags; else echo -I$(FRAMEWORKS_PATH)/SDL.framework/Headers; fi}
+	CFLAGS+=${shell if [ `which sdl-config` ] ; then sdl-config --cflags; else echo -I$(FRAMEWORKS_PATH)/SDL.framework/Headers; fi}
 else
 #It's really bad of us, but we don't link with SDLmain except on Mac
 	libraries+= -l SDL
@@ -199,7 +199,6 @@ endif
 ifdef mac
 	FBFLAGS+= -Wl -macosx_version_min,10.4
 endif
-
 
 all: game edit
 
@@ -279,7 +278,6 @@ $(main_modules): %.o: %.bas $(includes)
 %.o: mac/%.m
 	$(CC) -c $< -o $@ $(CFLAGS) $(OBJCFLAGS)
 
-#unix only; run make in win32/ on windows
 %.o: %.c
 	$(CC) -c -g -O3 $< --std=c99
 
