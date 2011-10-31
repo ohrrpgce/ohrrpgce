@@ -246,7 +246,7 @@ TYPE MenuDef
 END TYPE
 
 TYPE MenuState
-  active    AS INTEGER
+  active    AS INTEGER 'boolean
   pt        AS INTEGER 'currently selected item (.first - 1 if menu is empty)
   top       AS INTEGER 'scroll position for long lists
   first     AS INTEGER 'first element (usually zero)

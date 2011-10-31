@@ -18,7 +18,7 @@ DECLARE FUNCTION usemenu OVERLOAD (byref pt as integer, byref top as integer, by
 DECLARE FUNCTION usemenu OVERLOAD (state as MenuState, byval menudata as BasicMenuItem vector, byval deckey as integer = scUp, byval inckey as integer = scDown) as integer
 DECLARE FUNCTION usemenu OVERLOAD (state as MenuState, selectable() as integer, byval deckey as integer = scUp, byval inckey as integer = scDown) as integer
 DECLARE FUNCTION scrollmenu (state as MenuState, byval deckey as integer = scUp, byval inckey as integer = scDown) as integer
-DECLARE SUB standard_to_basic_menu (menu() as string, byval last as integer, byref basicmenu as BasicMenuItem vector, byval shaded as integer PTR=NULL)
+DECLARE SUB standard_to_basic_menu (menu() as string, byref state as MenuState, byref basicmenu as BasicMenuItem vector, byval shaded as integer PTR=NULL)
 DECLARE SUB standardmenu OVERLOAD (menu() as STRING, state as MenuState, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval hidecursor as integer=NO, byval wide as integer=9999, byval highlight as integer=NO, byval toggle as integer=YES)
 DECLARE SUB standardmenu OVERLOAD (menu() as STRING, state as MenuState, shaded() as integer, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval hidecursor as integer=NO, byval wide as integer=9999, byval highlight as integer=NO, byval toggle as integer=YES)
 DECLARE SUB standardmenu OVERLOAD (menu() as STRING, byval size as integer, byval vis as integer, byval pt as integer, byval top as integer, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval wide as integer=9999, byval highlight as integer=NO, byval toggle as integer=YES)

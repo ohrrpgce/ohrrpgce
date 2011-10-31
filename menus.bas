@@ -268,14 +268,14 @@ FUNCTION scrollmenu (state as MenuState, byval deckey as integer = scUp, byval i
  END WITH
 END FUNCTION
 
-SUB standard_to_basic_menu (menu() as string, byval last as integer, byref basicmenu as BasicMenuItem vector, byval shaded as integer PTR=NULL)
- v_new basicmenu, last + 1
- FOR i as integer = 0 TO last
+SUB standard_to_basic_menu (menu() as string, byref state as MenuState, byref basicmenu as BasicMenuItem vector, byval shaded as integer PTR=NULL)
+ v_new basicmenu, state.last - state.first + 1
+ FOR i as integer = 0 TO state.last - state.first
   WITH basicmenu[i]
-   .text = menu(i)
+   .text = menu(state.first + i)
    .col = uilook(uiMenuItem)
    IF shaded THEN
-    .disabled = shaded[i]
+    .disabled = shaded[state.first + i]
    END IF
   END WITH
  NEXT
@@ -283,8 +283,18 @@ END SUB
 
 SUB standardmenu (menu() as string, byref state as MenuState, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval hidecursor as integer=NO, byval wide as integer=9999, byval highlight as integer=NO, byval toggle as integer=YES)
  DIM basicmenu as BasicMenuItem vector
- standard_to_basic_menu menu(), state.last, basicmenu
+ standard_to_basic_menu menu(), state, basicmenu
+ 'Shift menu items so that state.first = 0
+ DIM first as integer = state.first
+ state.top -= first
+ state.pt -= first
+ state.last -= first
+ state.first = 0
  standardmenu basicmenu, state, x, y, page, edge, hidecursor, wide, highlight, toggle
+ state.top += first
+ state.pt += first
+ state.last += first
+ state.first = first
  v_free basicmenu
 END SUB
 
@@ -292,19 +302,29 @@ END SUB
 SUB standardmenu (menu() as string, byref state as MenuState, shaded() as integer, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval hidecursor as integer=NO, byval wide as integer=9999, byval highlight as integer=NO, byval toggle as integer=YES)
  IF LBOUND(shaded) > LBOUND(menu) OR UBOUND(shaded) < UBOUND(menu) THEN fatalerror "standardmenu: shaded() too small"
  DIM basicmenu as BasicMenuItem vector
- standard_to_basic_menu menu(), state.last, basicmenu, @shaded(0)
+ standard_to_basic_menu menu(), state, basicmenu, @shaded(0)
+ 'Shift menu items so that state.first = 0
+ DIM first as integer = state.first
+ state.top -= first
+ state.pt -= first
+ state.last -= first
+ state.first = 0
  standardmenu basicmenu, state, x, y, page, edge, hidecursor, wide, highlight, toggle
+ state.top += first
+ state.pt += first
+ state.last += first
+ state.first = first
  v_free basicmenu
 END SUB
 
 SUB standardmenu (menu() as STRING, byval size as integer, byval vis as integer, byval pt as integer, byval top as integer, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval wide as integer=9999, byval highlight as integer=NO, byval toggle as integer=YES)
- DIM state as MenuState
+DIM state as MenuState
  state.pt = pt
  state.top = top
  state.last = size
  state.size = vis
  DIM basicmenu as BasicMenuItem vector
- standard_to_basic_menu menu(), state.last, basicmenu
+ standard_to_basic_menu menu(), state, basicmenu
  standardmenu basicmenu, state, x, y, page, edge, NO, wide, highlight, toggle
  v_free basicmenu
 END SUB
@@ -319,6 +339,12 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval 
 
  DIM pt as integer = state.pt
  IF hidecursor THEN pt = state.first - 1
+
+ IF state.first <> 0 THEN
+  'The following doesn't affect simple string array menus which are converted to BasicMenuItem menus
+  showerror "Programmer error: standardmenu: state.first <> 0 not supported for BasicMenuItem menus!"
+  EXIT SUB
+ END IF
 
  IF toggle THEN
   rememtog = rememtog XOR 1
