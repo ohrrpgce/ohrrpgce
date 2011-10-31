@@ -69,6 +69,8 @@ DECLARE FUNCTION win_path (filename as string) as string
 DECLARE FUNCTION copy_or_relump (src_rpg_or_rpgdir as string, dest_rpg as string) as integer
 DECLARE FUNCTION copy_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
 DECLARE SUB shop_update_item_strings(stufbuf() as integer, tradestf() as string, tradefor as string)
+DECLARE SUB shop_save_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
+DECLARE SUB shop_load_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
 
 'Global variables
 REDIM gen(360)
@@ -578,9 +580,10 @@ DIM stufbuf(curbinsize(binSTF) \ 2 - 1) as integer
 DIM menu(24) as string, smenu(24) as string, max(24), min(24), sbit(-1 TO 10) as string, stf(16) as string, tradestf(3) as string
 DIM her AS HeroDef' Used to get hero name for default stuff name
 DIM item_tmp(dimbinsize(binITM)) ' This is only used for loading the default buy/sell price for items
-DIM sn as string = ""
-DIM tradefor as string = ""
+DIM sn as string
+DIM tradefor as string
 
+DIM stuf as ShopStuffState
 
 maxcount = 32: pt = 0
 havestuf = 0
@@ -668,7 +671,7 @@ DO
   IF csr = 0 THEN EXIT DO
   IF csr = 3 AND havestuf THEN
    GOSUB shopstuf
-   GOSUB save_stf
+   shop_save_stf pt, stuf, stufbuf()
   END IF
   IF csr = 4 THEN editbitset a(), 17, 7, sbit(): GOSUB menuup
   IF csr = 6 THEN
@@ -734,12 +737,12 @@ IF readbit(a(), 17, 0) OR readbit(a(), 17, 1) OR readbit(a(), 17, 2) THEN havest
 RETRACE
 
 shopstuf:
-thing = 0
+stuf.thing = 0
 defaultthing$ = ""
-thing$ = ""
+stuf.thingname = ""
 tcsr = 0
 last = 2
-GOSUB load_stf
+shop_load_stf pt, stuf, stufbuf()
 GOSUB othertype
 shop_update_item_strings stufbuf(), tradestf(), tradefor
 GOSUB stufmenu
@@ -753,22 +756,22 @@ DO
  IF tcsr = 0 THEN IF enter_or_space() THEN RETRACE
  usemenu tcsr, 0, 0, last, 24
  IF tcsr = 1 THEN
-  newthing = thing
+  newthing = stuf.thing
   IF intgrabber_with_addset(newthing, 0, a(16), 49, "Shop Thing") THEN
-   GOSUB save_stf
-   thing = newthing
-   IF thing > a(16) THEN
-    a(16) = thing
+   shop_save_stf pt, stuf, stufbuf()
+   stuf.thing = newthing
+   IF stuf.thing > a(16) THEN
+    a(16) = stuf.thing
     flusharray stufbuf(), dimbinsize(binSTF), 0
     setpicstuf stufbuf(), getbinsize(binSTF), -1
     stufbuf(19) = -1 ' When adding new stuff, default in-stock to infinite
-    storeset game + ".stf", pt * 50 + thing, 0
+    storeset game + ".stf", pt * 50 + stuf.thing, 0
    END IF
-   GOSUB load_stf
+   shop_load_stf pt, stuf, stufbuf()
    shop_update_item_strings stufbuf(), tradestf(), tradefor
   END IF
  END IF
- IF tcsr = 2 THEN strgrabber thing$, 16
+ IF tcsr = 2 THEN strgrabber stuf.thingname, 16
  IF tcsr > 2 THEN
   IF stufbuf(17) = 1 THEN
    '--using a hero
@@ -805,17 +808,17 @@ DO
       '--Re-load default names and default prices
       SELECT CASE stufbuf(17)
        CASE 0' This is an item
-        thing$ = load_item_name(stufbuf(18),1,1)
+        stuf.thingname = load_item_name(stufbuf(18),1,1)
         loaditemdata item_tmp(), stufbuf(18)
         stufbuf(24) = item_tmp(46) ' default buy price
         stufbuf(27) = item_tmp(46) \ 2 ' default sell price
        CASE 1
         loadherodata @her, stufbuf(18)
-        thing$ = her.name
+        stuf.thingname = her.name
         stufbuf(24) = 0 ' default buy price
         stufbuf(27) = 0 ' default sell price
        CASE ELSE
-        thing$ = "Unsupported"
+        stuf.thingname = "Unsupported"
       END SELECT
      END IF
     END IF
@@ -849,8 +852,8 @@ END SELECT
 RETRACE
 
 stufmenu:
-smenu(1) = CHR(27) & "Shop Thing " & thing & " of " & a(16) & CHR(26)
-smenu(2) = "Name: " & thing$
+smenu(1) = CHR(27) & "Shop Thing " & stuf.thing & " of " & a(16) & CHR(26)
+smenu(2) = "Name: " & stuf.thingname
 smenu(3) = "Type: " & stufbuf(17) & "-" & stf(bound(stufbuf(17), 0, 2))
 smenu(4) = "Number: " & stufbuf(18) & " " & defaultthing$
 IF stufbuf(19) > 0 THEN
@@ -887,35 +890,33 @@ END IF
 '--mutate menu for item/hero
 RETRACE
 
-load_stf:
-flusharray stufbuf(), dimbinsize(binSTF), 0
-setpicstuf stufbuf(), getbinsize(binSTF), -1
-loadset game + ".stf", pt * 50 + thing, 0
-thing$ = readbadbinstring(stufbuf(), 0, 16, 0)
-'---check for invalid data
-IF stufbuf(17) < 0 OR stufbuf(17) > 2 THEN stufbuf(17) = 0
-IF stufbuf(19) < -1 THEN stufbuf(19) = 0
-IF (stufbuf(26) < 0 OR stufbuf(26) > 3) AND stufbuf(17) <> 1 THEN stufbuf(26) = 0
-'--WIP Serendipity custom builds didn't flush shop records when upgrading properly
-FOR i = 32 TO 41
- stufbuf(i) = large(stufbuf(i), 0)
-NEXT
-RETRACE
-
-save_stf:
-stufbuf(0) = LEN(thing$)
-FOR i = 1 TO small(stufbuf(0), 16)
- stufbuf(i) = ASC(MID$(thing$, i, 1))
-NEXT i
-setpicstuf stufbuf(), getbinsize(binSTF), -1
-storeset game + ".stf", pt * 50 + thing, 0
-RETRACE
-
 END SUB
 
 '=======================================================================
 'FIXME: move this up as code gets cleaned up!  (Hah!)
 OPTION EXPLICIT
+
+SUB shop_load_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
+'load_stf:
+ flusharray stufbuf(), dimbinsize(binSTF), 0
+ setpicstuf stufbuf(), getbinsize(binSTF), -1
+ loadset game & ".stf", shop_id * 50 + stuf.thing, 0
+ stuf.thingname = readbadbinstring(stufbuf(), 0, 16, 0)
+ '---check for invalid data
+ IF stufbuf(17) < 0 OR stufbuf(17) > 2 THEN stufbuf(17) = 0
+ IF stufbuf(19) < -1 THEN stufbuf(19) = 0
+ IF (stufbuf(26) < 0 OR stufbuf(26) > 3) AND stufbuf(17) <> 1 THEN stufbuf(26) = 0
+ '--WIP Serendipity custom builds didn't flush shop records when upgrading properly
+ FOR i as integer = 32 TO 41
+  stufbuf(i) = large(stufbuf(i), 0)
+ NEXT
+END SUB
+
+SUB shop_save_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
+ writebadbinstring stuf.thingname, stufbuf(), 0, 16
+ setpicstuf stufbuf(), getbinsize(binSTF), -1
+ storeset game & ".stf", shop_id * 50 + stuf.thing, 0
+END SUB
 
 SUB shop_update_item_strings(stufbuf() as integer, tradestf() as string, tradefor as string)
  tradestf(0) = load_item_name(stufbuf(25),0,0)
