@@ -1546,7 +1546,10 @@ FOR i = 0 TO 99
 NEXT i
 show_load_index z, "hmask", 1
 FOR i = 0 TO 3
- hmask(i) = buffer(z): z = z + 1
+ IF i <= UBOUND(hmask) THEN
+  hmask(i) = buffer(z)
+ END IF
+ z = z + 1
 NEXT i
 show_load_index z, "cathero", 1
 FOR i = 1 TO 3
