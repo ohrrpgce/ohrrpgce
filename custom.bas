@@ -78,6 +78,7 @@ DECLARE SUB shop_save (byref shopst as ShopEditState, shopbuf() as integer)
 DECLARE SUB shop_load (byref shopst as ShopEditState, shopbuf() as integer)
 DECLARE SUB cleanupfiles ()
 DECLARE SUB cleanup_and_terminate ()
+DECLARE SUB import_scripts_and_terminate (hsfile as string)
 
 'Global variables
 REDIM gen(360)
@@ -278,7 +279,7 @@ LoadUIColors uilook(), activepalette
 xbload game + ".fnt", font(), "Font not loaded"
 setfont font()
 
-IF hsfile <> "" THEN GOTO hsimport
+IF hsfile <> "" THEN import_scripts_and_terminate hsfile
 
 loadglobalstrings
 getstatnames statnames()
@@ -515,22 +516,23 @@ DO
  dowait
 LOOP
 
-hsimport:
-debuginfo "Importing scripts from " & hsfile
-xbload game + ".gen", gen(), "general data is missing, RPG file corruption is likely"
-upgrade 'needed because it has not already happened because we are doing command-line import
-importscripts with_orig_path(hsfile)
-xbsave game + ".gen", gen(), 1000
-save_current_game
-cleanupfiles
-end_debug
-restoremode
-SYSTEM
-
 
 '=======================================================================
 'FIXME: move this up as code gets cleaned up!  (Woo! It is happening!)
 OPTION EXPLICIT
+
+SUB import_scripts_and_terminate (hsfile as string)
+ debuginfo "Importing scripts from " & hsfile
+ xbload game & ".gen", gen(), "general data is missing, RPG file corruption is likely"
+ upgrade 'needed because it has not already happened because we are doing command-line import
+ importscripts with_orig_path(hsfile)
+ xbsave game & ".gen", gen(), 1000
+ save_current_game
+ cleanupfiles
+ end_debug
+ restoremode
+ SYSTEM
+END SUB
 
 SUB cleanup_and_terminate ()
  IF slave_channel <> NULL_CHANNEL THEN
