@@ -68,9 +68,11 @@ DECLARE SUB add_innosetup_file (s as string, filename as string)
 DECLARE FUNCTION win_path (filename as string) as string
 DECLARE FUNCTION copy_or_relump (src_rpg_or_rpgdir as string, dest_rpg as string) as integer
 DECLARE FUNCTION copy_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
-DECLARE SUB shop_update_item_strings(stufbuf() as integer, tradestf() as string, tradefor as string)
+DECLARE SUB shop_stuff_edit (byval shop_id as integer, stufbuf() as integer, byref thing_total as integer)
 DECLARE SUB shop_save_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
 DECLARE SUB shop_load_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
+DECLARE SUB update_shop_stuff_menu (byref stuf as ShopStuffState, stufbuf() as integer, byval thing_total as integer)
+DECLARE SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as integer)
 
 'Global variables
 REDIM gen(360)
@@ -575,15 +577,11 @@ RETRACE
 REM $STATIC
 
 SUB shopdata
-DIM a(20) as integer
+DIM shopbuf(20) as integer
 DIM stufbuf(curbinsize(binSTF) \ 2 - 1) as integer
-DIM menu(24) as string, smenu(24) as string, max(24), min(24), sbit(-1 TO 10) as string, stf(16) as string, tradestf(3) as string
-DIM her AS HeroDef' Used to get hero name for default stuff name
-DIM item_tmp(dimbinsize(binITM)) ' This is only used for loading the default buy/sell price for items
+DIM menu(24) as string
+DIM sbit(-1 TO 10) as string
 DIM sn as string
-DIM tradefor as string
-
-DIM stuf as ShopStuffState
 
 maxcount = 32: pt = 0
 havestuf = 0
@@ -595,37 +593,6 @@ sbit(4) = "Equip"
 sbit(5) = "Save"
 sbit(6) = "Map"
 sbit(7) = "Team"
-smenu(0) = "Previous Menu"
-max(3) = 1
-min(5) = -1
-max(5) = 99
-FOR i = 6 TO 9
- min(i) = -999: max(i) = 999
-NEXT i
-min(10) = -32767
-max(10) = 32767
-FOR i = 11 TO 17 STEP 2
- max(i) = gen(genMaxItem)
- min(i) = -1
- max(i + 1) = 99
- min(i + 1) = 1
-NEXT
-
-min(20) = -32767
-max(20) = 32767
-max(21) = gen(genMaxItem)
-min(21) = -1
-max(22) = 99
-min(22) = 1
-stf(0) = "Item"
-stf(1) = "Hero"
-stf(2) = "Script"
-stf(3) = "Normal"
-stf(4) = "Aquire Inventory"
-stf(5) = "Increment Inventory"
-stf(6) = "Refuse to Buy"
-stf(7) = "In Stock: Infinite"
-stf(8) = "In Stock: None"
 
 GOSUB lshopset
 GOSUB menugen
@@ -651,8 +618,8 @@ DO
    IF pt > gen(genMaxShop) THEN
     gen(genMaxShop) = pt
     '--Create a new shop record
-    flusharray a(), 19, 0
-    setpicstuf a(), 40, -1
+    flusharray shopbuf(), 19, 0
+    setpicstuf shopbuf(), 40, -1
     storeset game + ".sho", pt, 0
     '--create a new shop stuff record
     flusharray stufbuf(), dimbinsize(binSTF), 0
@@ -670,19 +637,18 @@ DO
  IF enter_or_space() THEN
   IF csr = 0 THEN EXIT DO
   IF csr = 3 AND havestuf THEN
-   GOSUB shopstuf
-   shop_save_stf pt, stuf, stufbuf()
+   shop_stuff_edit pt, stufbuf(), shopbuf(16)
   END IF
-  IF csr = 4 THEN editbitset a(), 17, 7, sbit(): GOSUB menuup
+  IF csr = 4 THEN editbitset shopbuf(), 17, 7, sbit(): GOSUB menuup
   IF csr = 6 THEN
-   menu(6) = "Inn Script: " & scriptbrowse_string(a(19), plottrigger, "Inn Plotscript")
+   menu(6) = "Inn Script: " & scriptbrowse_string(shopbuf(19), plottrigger, "Inn Plotscript")
   END IF
  END IF
  IF csr = 5 THEN
-  IF intgrabber(a(18), 0, 32767) THEN GOSUB menuup
+  IF intgrabber(shopbuf(18), 0, 32767) THEN GOSUB menuup
  END IF
  IF csr = 6 THEN
-  IF scrintgrabber(a(19), 0, 0, scLeft, scRight, 1, plottrigger) THEN GOSUB menuup
+  IF scrintgrabber(shopbuf(19), 0, 0, scLeft, scRight, 1, plottrigger) THEN GOSUB menuup
  END IF
  clearpage dpage
  FOR i = 0 TO li
@@ -708,196 +674,251 @@ GOSUB menuup
 RETRACE
 
 lshopset:
-setpicstuf a(), 40, -1
+setpicstuf shopbuf(), 40, -1
 loadset game + ".sho", pt, 0
 sn = ""
-FOR i = 1 TO small(a(0), 15)
- sn = sn + CHR(a(i))
+FOR i = 1 TO small(shopbuf(0), 15)
+ sn = sn + CHR(shopbuf(i))
 NEXT i
 GOSUB menuup
 RETRACE
 
 sshopset:
-a(16) = small(a(16), 49)
-a(0) = LEN(sn)
-FOR i = 1 TO small(a(0), 15)
- a(i) = ASC(MID(sn, i, 1))
+shopbuf(16) = small(shopbuf(16), 49)
+shopbuf(0) = LEN(sn)
+FOR i = 1 TO small(shopbuf(0), 15)
+ shopbuf(i) = ASC(MID(sn, i, 1))
 NEXT i
-setpicstuf a(), 40, -1
+setpicstuf shopbuf(), 40, -1
 storeset game + ".sho", pt, 0
 RETRACE
 
 menuup:
 menu(1) = CHR(27) & " Shop " & pt & " of " & gen(genMaxShop) & CHR(26)
 menu(2) = "Name: " & sn
-menu(5) = "Inn Price: " & a(18)
-IF readbit(a(), 17, 3) = 0 THEN menu(5) = "Inn Price: N/A"
-menu(6) = "Inn Script: " & scriptname(a(19), plottrigger)
-IF readbit(a(), 17, 0) OR readbit(a(), 17, 1) OR readbit(a(), 17, 2) THEN havestuf = 1 ELSE havestuf = 0
-RETRACE
-
-shopstuf:
-stuf.thing = 0
-defaultthing$ = ""
-stuf.thingname = ""
-tcsr = 0
-last = 2
-shop_load_stf pt, stuf, stufbuf()
-GOSUB othertype
-shop_update_item_strings stufbuf(), tradestf(), tradefor
-GOSUB stufmenu
-setkeys
-DO
- setwait 55
- setkeys
- tog = tog XOR 1
- IF keyval(scEsc) > 1 THEN RETRACE
- IF keyval(scF1) > 1 THEN show_help "shop_stuff"
- IF tcsr = 0 THEN IF enter_or_space() THEN RETRACE
- usemenu tcsr, 0, 0, last, 24
- IF tcsr = 1 THEN
-  newthing = stuf.thing
-  IF intgrabber_with_addset(newthing, 0, a(16), 49, "Shop Thing") THEN
-   shop_save_stf pt, stuf, stufbuf()
-   stuf.thing = newthing
-   IF stuf.thing > a(16) THEN
-    a(16) = stuf.thing
-    flusharray stufbuf(), dimbinsize(binSTF), 0
-    setpicstuf stufbuf(), getbinsize(binSTF), -1
-    stufbuf(19) = -1 ' When adding new stuff, default in-stock to infinite
-    storeset game + ".stf", pt * 50 + stuf.thing, 0
-   END IF
-   shop_load_stf pt, stuf, stufbuf()
-   shop_update_item_strings stufbuf(), tradestf(), tradefor
-  END IF
- END IF
- IF tcsr = 2 THEN strgrabber stuf.thingname, 16
- IF tcsr > 2 THEN
-  IF stufbuf(17) = 1 THEN
-   '--using a hero
-   min(19) = -1
-   max(19) = 99
-  ELSE
-   '--not a hero
-   min(19) = 0: max(19) = 3
-  END IF
-  SELECT CASE tcsr
-   CASE 6 TO 9 '--tags
-    tag_grabber stufbuf(17 + tcsr - 3)
-   CASE 11 '--must trade in item 1 type
-    IF zintgrabber(stufbuf(25), min(tcsr), max(tcsr)) THEN shop_update_item_strings stufbuf(), tradestf(), tradefor
-   CASE 13, 15, 17 '--must trade in item 2+ types
-    IF zintgrabber(stufbuf(18 + tcsr), min(tcsr), max(tcsr)) THEN shop_update_item_strings stufbuf(), tradestf(), tradefor
-   CASE 12, 14, 16, 18 '--trade in item amounts
-    stufbuf(18 + tcsr) = stufbuf(18 + tcsr) + 1
-    intgrabber(stufbuf(18 + tcsr), min(tcsr), max(tcsr))
-    stufbuf(18 + tcsr) = stufbuf(18 + tcsr) - 1
-   CASE 19, 20 '--sell type, price
-    intgrabber(stufbuf(7 + tcsr), min(tcsr), max(tcsr))
-    IF (stufbuf(26) < 0 OR stufbuf(26) > 3) AND stufbuf(17) <> 1 THEN stufbuf(26) = 0
-   CASE 21 '--trade in for
-    IF zintgrabber(stufbuf(7 + tcsr), min(tcsr), max(tcsr)) THEN shop_update_item_strings stufbuf(), tradestf(), tradefor
-   CASE 22 '--trade in for amount
-    stufbuf(7 + tcsr) = stufbuf(7 + tcsr) + 1
-    intgrabber(stufbuf(7 + tcsr), min(tcsr), max(tcsr))
-    stufbuf(7 + tcsr) = stufbuf(7 + tcsr) - 1
-   CASE ELSE
-    IF intgrabber(stufbuf(17 + tcsr - 3), min(tcsr), max(tcsr)) THEN
-     IF tcsr = 3 OR tcsr = 4 THEN
-      GOSUB othertype
-      '--Re-load default names and default prices
-      SELECT CASE stufbuf(17)
-       CASE 0' This is an item
-        stuf.thingname = load_item_name(stufbuf(18),1,1)
-        loaditemdata item_tmp(), stufbuf(18)
-        stufbuf(24) = item_tmp(46) ' default buy price
-        stufbuf(27) = item_tmp(46) \ 2 ' default sell price
-       CASE 1
-        loadherodata @her, stufbuf(18)
-        stuf.thingname = her.name
-        stufbuf(24) = 0 ' default buy price
-        stufbuf(27) = 0 ' default sell price
-       CASE ELSE
-        stuf.thingname = "Unsupported"
-      END SELECT
-     END IF
-    END IF
-  END SELECT
- END IF
- GOSUB othertype
- GOSUB stufmenu
-
- clearpage dpage
- standardmenu smenu(), last, 22, tcsr, 0, 0, 0, dpage, 0
-
- SWAP vpage, dpage
- setvispage vpage
- dowait
-LOOP
-
-othertype:
-SELECT CASE stufbuf(17)
- CASE 0 ' Is an item
-  last = 22
-  max(4) = gen(genMaxItem): IF stufbuf(18) > max(4) THEN stufbuf(18) = 0
-  max(19) = 3 ' Item sell-type
- CASE 1 ' Is a hero
-  last = 19
-  max(4) = gen(genMaxHero): IF stufbuf(18) > gen(genMaxHero) THEN stufbuf(18) = 0
-  max(19) = gen(genMaxLevel) ' Hero experience level
- CASE 2 ' Is ... something else?
-  last = 18
-  max(4) = 999
-END SELECT
-RETRACE
-
-stufmenu:
-smenu(1) = CHR(27) & "Shop Thing " & stuf.thing & " of " & a(16) & CHR(26)
-smenu(2) = "Name: " & stuf.thingname
-smenu(3) = "Type: " & stufbuf(17) & "-" & stf(bound(stufbuf(17), 0, 2))
-smenu(4) = "Number: " & stufbuf(18) & " " & defaultthing$
-IF stufbuf(19) > 0 THEN
- smenu(5) = "In Stock: " & stufbuf(19)
-ELSE
- smenu(5) = stf(8 + bound(stufbuf(19), -1, 0))
-END IF
-smenu(6) = tag_condition_caption(stufbuf(20), "Buy Require Tag", "No Tag Check")
-smenu(7) = tag_condition_caption(stufbuf(21), "Sell Require Tag", "No Tag Check")
-smenu(8) = tag_condition_caption(stufbuf(22), "Buy Set Tag", "No Tag Set", "Unalterable", "Unalterable")
-smenu(9) = tag_condition_caption(stufbuf(23), "Sell Set Tag", "No Tag Set", "Unalterable", "Unalterable")
-smenu(10) = "Cost: " & stufbuf(24) & " " & readglobalstring(32, "Money")
-smenu(11) = "Must Trade in " & (stufbuf(30) + 1) & " of: " & tradestf(0)
-smenu(12) = " (Change Amount)"
-smenu(13) = "Must Trade in " & (stufbuf(32) + 1) & " of: " & tradestf(1)
-smenu(14) = " (Change Amount)"
-smenu(15) = "Must Trade in " & (stufbuf(34) + 1) & " of: " & tradestf(2)
-smenu(16) = " (Change Amount)"
-smenu(17) = "Must Trade in " & (stufbuf(36) + 1) & " of: " & tradestf(3)
-smenu(18) = " (Change Amount)"
-IF stufbuf(17) = 0 THEN
- smenu(19) = "Sell type: " & stf(bound(stufbuf(26), 0, 3) + 3)
- smenu(20) = "Sell for: " & stufbuf(27) & " " & readglobalstring(32, "Money")
- smenu(21) = "  and " & (stufbuf(29) + 1) & " of: " & tradefor
- smenu(22) = " (Change Amount)"
-ELSE
- smenu(19) = "Experience Level: "
- IF stufbuf(26) = -1 THEN
-  smenu(19) = smenu(19) & "default"
- ELSE
-  smenu(19) = smenu(19) & stufbuf(26)
- END IF
-END IF
-'--mutate menu for item/hero
+menu(5) = "Inn Price: " & shopbuf(18)
+IF readbit(shopbuf(), 17, 3) = 0 THEN menu(5) = "Inn Price: N/A"
+menu(6) = "Inn Script: " & scriptname(shopbuf(19), plottrigger)
+IF readbit(shopbuf(), 17, 0) OR readbit(shopbuf(), 17, 1) OR readbit(shopbuf(), 17, 2) THEN havestuf = 1 ELSE havestuf = 0
 RETRACE
 
 END SUB
 
 '=======================================================================
-'FIXME: move this up as code gets cleaned up!  (Hah!)
+'FIXME: move this up as code gets cleaned up!  (Woo! It is happening!)
 OPTION EXPLICIT
 
+SUB shop_stuff_edit (byval shop_id as integer, stufbuf() as integer, byref thing_total as integer)
+'shopstuf:
+
+ DIM stuf as ShopStuffState
+ 
+ DIM newthing as integer
+
+ stuf.menu(0) = "Previous Menu"
+ stuf.max(3) = 1
+ stuf.min(5) = -1
+ stuf.max(5) = 99
+ FOR i as integer = 6 TO 9
+  stuf.min(i) = -999: stuf.max(i) = 999
+ NEXT i
+ stuf.min(10) = -32767
+ stuf.max(10) = 32767
+ FOR i as integer = 11 TO 17 STEP 2
+  stuf.max(i) = gen(genMaxItem)
+  stuf.min(i) = -1
+  stuf.max(i + 1) = 99
+  stuf.min(i + 1) = 1
+ NEXT
+
+ stuf.min(20) = -32767
+ stuf.max(20) = 32767
+ stuf.max(21) = gen(genMaxItem)
+ stuf.min(21) = -1
+ stuf.max(22) = 99
+ stuf.min(22) = 1
+
+ stuf.thing = 0
+ stuf.default_thingname = "" 'FIXME: this isn't updated anywhere yet
+ stuf.thingname = ""
+ 
+ stuf.st.pt = 0
+ stuf.st.last = 2
+ 
+ shop_load_stf shop_id, stuf, stufbuf()
+ 
+ update_shop_stuff_menu stuf, stufbuf(), thing_total
+ update_shop_stuff_type stuf, stufbuf()
+ 
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  stuf.st.tog = stuf.st.tog XOR 1
+
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "shop_stuff"
+  IF stuf.st.pt = 0 THEN IF enter_or_space() THEN EXIT DO
+
+  SELECT CASE stuf.st.pt
+   CASE 1 'browse shop stuff
+    newthing = stuf.thing
+    IF intgrabber_with_addset(newthing, 0, thing_total, 49, "Shop Thing") THEN
+     shop_save_stf shop_id, stuf, stufbuf()
+     stuf.thing = newthing
+     IF stuf.thing > thing_total THEN
+      thing_total = stuf.thing
+      flusharray stufbuf(), dimbinsize(binSTF), 0
+      setpicstuf stufbuf(), getbinsize(binSTF), -1
+      stufbuf(19) = -1 ' When adding new stuff, default in-stock to infinite
+      storeset game & ".stf", shop_id * 50 + stuf.thing, 0
+     END IF
+     shop_load_stf shop_id, stuf, stufbuf()
+     stuf.st.need_update = YES
+    END IF
+   CASE 2 'name
+    IF strgrabber(stuf.thingname, 16) THEN stuf.st.need_update = YES
+   CASE 3 TO 4 'type
+    IF intgrabber(stufbuf(17 + stuf.st.pt - 3), stuf.min(stuf.st.pt), stuf.max(stuf.st.pt)) THEN
+     stuf.st.need_update = YES
+     update_shop_stuff_type stuf, stufbuf()
+    END IF
+   CASE 6 TO 9 '--tags
+    IF tag_grabber(stufbuf(17 + stuf.st.pt - 3)) THEN stuf.st.need_update = YES
+   CASE 11 '--must trade in item 1 type
+    IF zintgrabber(stufbuf(25), stuf.min(stuf.st.pt), stuf.max(stuf.st.pt)) THEN stuf.st.need_update = YES
+   CASE 13, 15, 17 '--must trade in item 2+ types
+    IF zintgrabber(stufbuf(18 + stuf.st.pt), stuf.min(stuf.st.pt), stuf.max(stuf.st.pt)) THEN stuf.st.need_update = YES
+   CASE 12, 14, 16, 18 '--trade in item amounts
+    stufbuf(18 + stuf.st.pt) += 1
+    IF intgrabber(stufbuf(18 + stuf.st.pt), stuf.min(stuf.st.pt), stuf.max(stuf.st.pt)) THEN stuf.st.need_update = YES
+    stufbuf(18 + stuf.st.pt) -= 1
+   CASE 19, 20 '--sell type, price
+    IF intgrabber(stufbuf(7 + stuf.st.pt), stuf.min(stuf.st.pt), stuf.max(stuf.st.pt)) THEN stuf.st.need_update = YES
+    IF (stufbuf(26) < 0 OR stufbuf(26) > 3) AND stufbuf(17) <> 1 THEN stufbuf(26) = 0
+   CASE 21 '--trade in for
+    IF zintgrabber(stufbuf(7 + stuf.st.pt), stuf.min(stuf.st.pt), stuf.max(stuf.st.pt)) THEN stuf.st.need_update = YES
+   CASE 22 '--trade in for amount
+    stufbuf(7 + stuf.st.pt) += 1
+    IF intgrabber(stufbuf(7 + stuf.st.pt), stuf.min(stuf.st.pt), stuf.max(stuf.st.pt)) THEN stuf.st.need_update = YES
+    stufbuf(7 + stuf.st.pt) -= 1
+   CASE ELSE
+    IF intgrabber(stufbuf(17 + stuf.st.pt - 3), stuf.min(stuf.st.pt), stuf.max(stuf.st.pt)) THEN
+     stuf.st.need_update = YES
+    END IF
+  END SELECT
+
+  usemenu stuf.st
+
+  IF stuf.st.need_update THEN
+   update_shop_stuff_menu stuf, stufbuf(), thing_total
+  END IF
+   
+  clearpage dpage
+  standardmenu stuf.menu(), stuf.st.last, 22, stuf.st.pt, 0, 0, 0, dpage, 0
+ 
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+
+ shop_save_stf shop_id, stuf, stufbuf()
+
+END SUB ' last
+
+SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as integer)
+ '--Re-load default names and default prices
+ SELECT CASE stufbuf(17)
+  CASE 0' This is an item
+   stuf.thingname = load_item_name(stufbuf(18),1,1)
+   DIM item_tmp(dimbinsize(binITM))
+   loaditemdata item_tmp(), stufbuf(18)
+   stufbuf(24) = item_tmp(46) ' default buy price
+   stufbuf(27) = item_tmp(46) \ 2 ' default sell price
+   stuf.st.last = 22
+   stuf.max(4) = gen(genMaxItem)
+   IF stufbuf(18) > stuf.max(4) THEN stufbuf(18) = 0
+   stuf.min(19) = 0
+   stuf.max(19) = 3 ' Item sell-type
+  CASE 1
+   DIM her AS HeroDef
+   loadherodata @her, stufbuf(18)
+   stuf.thingname = her.name
+   stufbuf(24) = 0 ' default buy price
+   stufbuf(27) = 0 ' default sell price
+   stuf.st.last = 19
+   stuf.max(4) = gen(genMaxHero)
+   IF stufbuf(18) > gen(genMaxHero) THEN stufbuf(18) = 0
+   stuf.min(19) = -1
+   stuf.max(19) = gen(genMaxLevel) ' Hero experience level
+  CASE ELSE
+   'Type 2 was script which was never supported but was allowed for data entry in some ancient versions
+   stuf.thingname = "Unsupported"
+ END SELECT
+END SUB
+
+SUB update_shop_stuff_menu (byref stuf as ShopStuffState, stufbuf() as integer, byval thing_total as integer)
+
+ stuf.menu(1) = CHR(27) & "Shop Thing " & stuf.thing & " of " & thing_total & CHR(26)
+ stuf.menu(2) = "Name: " & stuf.thingname
+ stuf.menu(3) = "Type: " & stufbuf(17) & "-" 
+
+ SELECT CASE stufbuf(17)
+  CASE 0: stuf.menu(3) &= "Item"
+  CASE 1: stuf.menu(3) &= "Hero"
+  CASE 2: stuf.menu(3) &= "Script" 'This has never been supported
+  CASE ELSE: stuf.menu(3) &= "???"
+ END SELECT
+
+ stuf.menu(4) = "Number: " & stufbuf(18) & " " & stuf.default_thingname
+ 
+ SELECT CASE stufbuf(19)
+  CASE IS > 0: stuf.menu(5) = "In Stock: " & stufbuf(19)
+  CASE 0: stuf.menu(5) = "In Stock: None"
+  CASE -1: stuf.menu(5) = "In Stock: Infinite"
+  CASE ELSE: stuf.menu(5) = stufbuf(19) & " ???" 
+ END SELECT
+
+ stuf.menu(6) = tag_condition_caption(stufbuf(20), "Buy Require Tag", "No Tag Check")
+ stuf.menu(7) = tag_condition_caption(stufbuf(21), "Sell Require Tag", "No Tag Check")
+ stuf.menu(8) = tag_condition_caption(stufbuf(22), "Buy Set Tag", "No Tag Set", "Unalterable", "Unalterable")
+ stuf.menu(9) = tag_condition_caption(stufbuf(23), "Sell Set Tag", "No Tag Set", "Unalterable", "Unalterable")
+ stuf.menu(10) = "Cost: " & stufbuf(24) & " " & readglobalstring(32, "Money")
+ stuf.menu(11) = "Must Trade in " & (stufbuf(30) + 1) & " of: " & load_item_name(stufbuf(25),0,0)
+ stuf.menu(12) = " (Change Amount)"
+ stuf.menu(13) = "Must Trade in " & (stufbuf(32) + 1) & " of: " & load_item_name(stufbuf(31),0,0)
+ stuf.menu(14) = " (Change Amount)"
+ stuf.menu(15) = "Must Trade in " & (stufbuf(34) + 1) & " of: " & load_item_name(stufbuf(33),0,0)
+ stuf.menu(16) = " (Change Amount)"
+ stuf.menu(17) = "Must Trade in " & (stufbuf(36) + 1) & " of: " & load_item_name(stufbuf(35),0,0)
+ stuf.menu(18) = " (Change Amount)"
+
+ IF stufbuf(17) = 0 THEN
+
+  SELECT CASE stufbuf(26)
+   CASE 0: stuf.menu(19) = "Sell type: Normal"
+   CASE 1: stuf.menu(19) = "Sell type: Aquire Inventory"
+   CASE 2: stuf.menu(19) = "Sell type: Increment Inventory"
+   CASE 3: stuf.menu(19) = "Sell type: Refuse to Buy"
+   CASE ELSE: stuf.menu(19) = "Sell type: " & stufbuf(26) & " ???"
+  END SELECT
+
+  stuf.menu(20) = "Sell for: " & stufbuf(27) & " " & readglobalstring(32, "Money")
+  stuf.menu(21) = "  and " & (stufbuf(29) + 1) & " of: " & load_item_name(stufbuf(28),0,0)
+  stuf.menu(22) = " (Change Amount)"
+ ELSE
+  stuf.menu(19) = "Experience Level: "
+  IF stufbuf(26) = -1 THEN
+   stuf.menu(19) &= "default"
+  ELSE
+   stuf.menu(19) &= stufbuf(26)
+  END IF
+ END IF
+ 
+ stuf.st.need_update = NO
+END SUB
+
 SUB shop_load_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
-'load_stf:
  flusharray stufbuf(), dimbinsize(binSTF), 0
  setpicstuf stufbuf(), getbinsize(binSTF), -1
  loadset game & ".stf", shop_id * 50 + stuf.thing, 0
@@ -916,14 +937,6 @@ SUB shop_save_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufb
  writebadbinstring stuf.thingname, stufbuf(), 0, 16
  setpicstuf stufbuf(), getbinsize(binSTF), -1
  storeset game & ".stf", shop_id * 50 + stuf.thing, 0
-END SUB
-
-SUB shop_update_item_strings(stufbuf() as integer, tradestf() as string, tradefor as string)
- tradestf(0) = load_item_name(stufbuf(25),0,0)
- tradestf(1) = load_item_name(stufbuf(31),0,0)
- tradestf(2) = load_item_name(stufbuf(33),0,0)
- tradestf(3) = load_item_name(stufbuf(35),0,0)
- tradefor = load_item_name(stufbuf(28),0,0)
 END SUB
 
 FUNCTION newRPGfile (templatefile as string, newrpg as string)

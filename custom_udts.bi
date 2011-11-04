@@ -272,6 +272,10 @@ TYPE ShopStuffState
  st as MenuState
  thing as integer
  thingname as string
+ default_thingname as string
+ menu(24) as string
+ max(24) as integer
+ min(24) as integer
 END TYPE
 
 TYPE MouseArea
