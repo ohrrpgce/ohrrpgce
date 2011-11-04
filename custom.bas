@@ -76,6 +76,8 @@ DECLARE SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as in
 DECLARE SUB shop_menu_update(byref shopst as ShopEditState, shopbuf() as integer)
 DECLARE SUB shop_save (byref shopst as ShopEditState, shopbuf() as integer)
 DECLARE SUB shop_load (byref shopst as ShopEditState, shopbuf() as integer)
+DECLARE SUB cleanupfiles ()
+DECLARE SUB cleanup_and_terminate ()
 
 'Global variables
 REDIM gen(360)
@@ -182,7 +184,7 @@ textcolor uilook(uiText), 0
 
 'Cleanups up working.tmp if existing; requires graphics up and running
 workingdir = tmpdir & "working.tmp"
-IF makeworkingdir() = NO THEN GOTO finis
+IF makeworkingdir() = NO THEN cleanup_and_terminate
 
 FOR i = 1 TO UBOUND(cmdline_args)
  cmdline = cmdline_args(i)
@@ -301,7 +303,7 @@ DO:
   SELECT CASE menumode
    CASE 0'--in main menu
     GOSUB relump
-    IF quitnow > 1 THEN GOTO finis
+    IF quitnow > 1 THEN cleanup_and_terminate
    CASE 1'--graphics
     pt = 0
     menumode = 0
@@ -354,7 +356,7 @@ DO:
     IF pt = 20 THEN distribute_game
     IF pt = 21 THEN
      GOSUB relump
-     IF quitnow > 1 THEN GOTO finis
+     IF quitnow > 1 THEN cleanup_and_terminate
     END IF
    CASE 1'--graphics mode
     IF pt = 0 THEN
@@ -412,13 +414,13 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(scEsc) > 1 THEN GOTO finis
+ IF keyval(scEsc) > 1 THEN cleanup_and_terminate
  usemenu csr, top, 0, last, 20
  IF enter_or_space() THEN
   IF csr = 0 THEN
    game = inputfilename("Filename of New Game?", ".rpg", CURDIR, "input_file_new_game", , NO)
    IF game <> "" THEN
-     IF NOT newRPGfile(finddatafile("ohrrpgce.new"), game + ".rpg") THEN GOTO finis
+     IF NOT newRPGfile(finddatafile("ohrrpgce.new"), game + ".rpg") THEN cleanup_and_terminate
      sourcerpg = game + ".rpg"
      game = trimpath(game)
      EXIT DO
@@ -428,7 +430,7 @@ DO
    game = trimextension(trimpath(sourcerpg))
    IF game <> "" THEN EXIT DO
   ELSEIF csr = 2 THEN
-   GOTO finis
+   cleanup_and_terminate
   END IF
  END IF
 
@@ -497,7 +499,7 @@ DO
   IF checkpassword(pas$) THEN
    RETRACE
   ELSE
-   GOTO finis
+   cleanup_and_terminate
   END IF
  END IF
  strgrabber pas$, 17
@@ -520,64 +522,51 @@ upgrade 'needed because it has not already happened because we are doing command
 importscripts with_orig_path(hsfile)
 xbsave game + ".gen", gen(), 1000
 save_current_game
-GOSUB cleanupfiles
+cleanupfiles
 end_debug
 restoremode
 SYSTEM
 
-finis:
-IF slave_channel <> NULL_CHANNEL THEN
- channel_write_line(slave_channel, "Q ")
- #IFDEF __FB_WIN32__
-  'On windows, can't delete workingdir until Game has closed the music. Not too serious though
-  basic_textbox "Waiting for " & GAMEEXE & " to clean up...", uilook(uiText), vpage
-  setvispage vpage
-  IF channel_wait_for_msg(slave_channel, "Q", "", 2000) = 0 THEN
-   basic_textbox "Waiting for " & GAMEEXE & " to clean up... giving up.", uilook(uiText), vpage
-   setvispage vpage
-   sleep 700
-  END IF
- #ENDIF
- channel_close(slave_channel)
-END IF
-IF slave_process <> 0 THEN cleanup_process @slave_process
-closemusic
-'catch sprite leaks
-sprite_empty_cache
-palette16_empty_cache
-IF keyval(-1) = 0 THEN
- clearpage vpage
- pop_warning "Don't forget to keep backup copies of your work! You never know when an unknown bug or a hard-drive crash or a little brother might delete your files!"
-END IF
-GOSUB cleanupfiles
-end_debug
-restoremode
-END
-
-cleanupfiles:
-IF nocleanup = 0 THEN killdir workingdir
-safekill "temp.lst"
-RETRACE
-
-'---GENERIC LOOP HEAD---
-'setkeys
-'DO
-'setwait timing(), 100
-'setkeys
-'tog = tog XOR 1
-'IF keyval(scESC) > 1 THEN EXIT DO
-'IF keyval(scF1) > 1 THEN show_help "helpkey"
-
-'---GENERIC LOOP TAIL---
-'SWAP vpage, dpage
-'setvispage vpage
-'copypage 3, dpage
-'dowait
-'LOOP
 
 '=======================================================================
 'FIXME: move this up as code gets cleaned up!  (Woo! It is happening!)
 OPTION EXPLICIT
+
+SUB cleanup_and_terminate ()
+ IF slave_channel <> NULL_CHANNEL THEN
+  channel_write_line(slave_channel, "Q ")
+  #IFDEF __FB_WIN32__
+   'On windows, can't delete workingdir until Game has closed the music. Not too serious though
+   basic_textbox "Waiting for " & GAMEEXE & " to clean up...", uilook(uiText), vpage
+   setvispage vpage
+   IF channel_wait_for_msg(slave_channel, "Q", "", 2000) = 0 THEN
+    basic_textbox "Waiting for " & GAMEEXE & " to clean up... giving up.", uilook(uiText), vpage
+    setvispage vpage
+    sleep 700
+   END IF
+  #ENDIF
+  channel_close(slave_channel)
+ END IF
+ IF slave_process <> 0 THEN cleanup_process @slave_process
+ closemusic
+ 'catch sprite leaks
+ sprite_empty_cache
+ palette16_empty_cache
+ IF keyval(-1) = 0 THEN
+  clearpage vpage
+  pop_warning "Don't forget to keep backup copies of your work! You never know when an unknown bug or a hard-drive crash or a little brother might delete your files!"
+ END IF
+ cleanupfiles
+ end_debug
+ restoremode
+ SYSTEM
+
+END SUB
+
+SUB cleanupfiles ()
+ 'WARNING: nocleanup is module-shared
+ IF nocleanup = NO THEN killdir workingdir
+END SUB
 
 SUB shopdata ()
  DIM shopbuf(20) as integer
@@ -987,7 +976,7 @@ FUNCTION empty_workingdir () as integer
  RETURN YES
 END FUNCTION
 
-'Returns true on success, false if want to GOTO finis
+'Returns true on success, false if want to cleanup_and_terminate
 FUNCTION makeworkingdir () as integer
  IF NOT isdir(workingdir) THEN
   makedir workingdir
@@ -1006,7 +995,7 @@ FUNCTION makeworkingdir () as integer
  END IF
 END FUNCTION
 
-'Returns true on success, false if want to GOTO finis
+'Returns true on success, false if want to cleanup_and_terminate
 FUNCTION handle_dirty_workingdir () as integer
  DIM cleanup_menu(2) as string
  cleanup_menu(0) = "DO NOTHING"
@@ -1055,7 +1044,7 @@ FUNCTION handle_dirty_workingdir () as integer
 	END IF '---END RELUMP
    END IF
    IF clean_choice = 2 THEN empty_workingdir : RETURN YES  'continue
-   IF clean_choice = 0 THEN nocleanup = 1: RETURN NO  'quit
+   IF clean_choice = 0 THEN nocleanup = YES: RETURN NO  'quit
   END IF
 
   basic_textbox !"A game was found unlumped.\n" _
