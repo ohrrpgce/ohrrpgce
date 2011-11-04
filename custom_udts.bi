@@ -268,6 +268,14 @@ TYPE AttackChainBrowserState
  done as integer
 END TYPE
 
+TYPE ShopEditState
+ id as integer
+ st as MenuState
+ name as string
+ menu(24) as string
+ havestuf as integer
+END TYPE
+
 TYPE ShopStuffState
  st as MenuState
  thing as integer

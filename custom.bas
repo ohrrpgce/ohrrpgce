@@ -73,6 +73,9 @@ DECLARE SUB shop_save_stf (byval shop_id as integer, byref stuf as ShopStuffStat
 DECLARE SUB shop_load_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
 DECLARE SUB update_shop_stuff_menu (byref stuf as ShopStuffState, stufbuf() as integer, byval thing_total as integer)
 DECLARE SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as integer)
+DECLARE SUB shop_menu_update(byref shopst as ShopEditState, shopbuf() as integer)
+DECLARE SUB shop_save (byref shopst as ShopEditState, shopbuf() as integer)
+DECLARE SUB shop_load (byref shopst as ShopEditState, shopbuf() as integer)
 
 'Global variables
 REDIM gen(360)
@@ -572,141 +575,140 @@ RETRACE
 'dowait
 'LOOP
 
-'---For documentation of general data see http://rpg.hamsterrepublic.com/ohrrpgce/GEN
-
-REM $STATIC
-
-SUB shopdata
-DIM shopbuf(20) as integer
-DIM stufbuf(curbinsize(binSTF) \ 2 - 1) as integer
-DIM menu(24) as string
-DIM sbit(-1 TO 10) as string
-DIM sn as string
-
-maxcount = 32: pt = 0
-havestuf = 0
-sbit(0) = "Buy"
-sbit(1) = "Sell"
-sbit(2) = "Hire"
-sbit(3) = "Inn"
-sbit(4) = "Equip"
-sbit(5) = "Save"
-sbit(6) = "Map"
-sbit(7) = "Team"
-
-GOSUB lshopset
-GOSUB menugen
-li = 6
-csr = 0
-setkeys
-DO
- setwait 55
- setkeys
- tog = tog XOR 1
- IF keyval(scEsc) > 1 THEN EXIT DO
- IF keyval(scF1) > 1 THEN show_help "shop_main"
- IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN cropafter pt, gen(genMaxShop), 0, game + ".sho", 40: GOSUB menugen
- usemenu csr, 0, 0, li, 24
- IF csr = 1 THEN
-  '--only allow adding shops up to 99
-  'FIXME: This is because of the limitation on remembering shop stock in the SAV format
-  '       when the SAV format has changed, this limit can easily be lifted.
-  newpt = pt
-  IF intgrabber_with_addset(newpt, 0, gen(genMaxShop), 99, "Shop") THEN
-   GOSUB sshopset
-   pt = newpt
-   IF pt > gen(genMaxShop) THEN
-    gen(genMaxShop) = pt
-    '--Create a new shop record
-    flusharray shopbuf(), 19, 0
-    setpicstuf shopbuf(), 40, -1
-    storeset game + ".sho", pt, 0
-    '--create a new shop stuff record
-    flusharray stufbuf(), dimbinsize(binSTF), 0
-    setpicstuf stufbuf(), getbinsize(binSTF), -1
-    stufbuf(19) = -1 ' When adding new stuff, default in-stock to infinite
-    storeset game + ".stf", pt * 50 + 0, 0
-   END IF
-   GOSUB lshopset
-  END IF
- END IF
- IF csr = 2 THEN
-  strgrabber sn, 15
-  GOSUB menuup
- END IF
- IF enter_or_space() THEN
-  IF csr = 0 THEN EXIT DO
-  IF csr = 3 AND havestuf THEN
-   shop_stuff_edit pt, stufbuf(), shopbuf(16)
-  END IF
-  IF csr = 4 THEN editbitset shopbuf(), 17, 7, sbit(): GOSUB menuup
-  IF csr = 6 THEN
-   menu(6) = "Inn Script: " & scriptbrowse_string(shopbuf(19), plottrigger, "Inn Plotscript")
-  END IF
- END IF
- IF csr = 5 THEN
-  IF intgrabber(shopbuf(18), 0, 32767) THEN GOSUB menuup
- END IF
- IF csr = 6 THEN
-  IF scrintgrabber(shopbuf(19), 0, 0, scLeft, scRight, 1, plottrigger) THEN GOSUB menuup
- END IF
- clearpage dpage
- FOR i = 0 TO li
-  c = uilook(uiMenuItem): IF i = csr THEN c = uilook(uiSelectedItem + tog)
-  IF i = 3 AND havestuf = 0 THEN
-   c = uilook(uiDisabledItem): IF i = csr THEN c = uilook(uiSelectedDisabled + tog)
-  END IF
-  textcolor c, 0
-  printstr menu(i), 0, i * 8, dpage
- NEXT i
- SWAP vpage, dpage
- setvispage vpage
- dowait
-LOOP
-GOSUB sshopset
-EXIT SUB
-
-menugen:
-menu(0) = "Return to Main Menu"
-menu(3) = "Edit Available Stuff..."
-menu(4) = "Select Shop Menu Items..."
-GOSUB menuup
-RETRACE
-
-lshopset:
-setpicstuf shopbuf(), 40, -1
-loadset game + ".sho", pt, 0
-sn = ""
-FOR i = 1 TO small(shopbuf(0), 15)
- sn = sn + CHR(shopbuf(i))
-NEXT i
-GOSUB menuup
-RETRACE
-
-sshopset:
-shopbuf(16) = small(shopbuf(16), 49)
-shopbuf(0) = LEN(sn)
-FOR i = 1 TO small(shopbuf(0), 15)
- shopbuf(i) = ASC(MID(sn, i, 1))
-NEXT i
-setpicstuf shopbuf(), 40, -1
-storeset game + ".sho", pt, 0
-RETRACE
-
-menuup:
-menu(1) = CHR(27) & " Shop " & pt & " of " & gen(genMaxShop) & CHR(26)
-menu(2) = "Name: " & sn
-menu(5) = "Inn Price: " & shopbuf(18)
-IF readbit(shopbuf(), 17, 3) = 0 THEN menu(5) = "Inn Price: N/A"
-menu(6) = "Inn Script: " & scriptname(shopbuf(19), plottrigger)
-IF readbit(shopbuf(), 17, 0) OR readbit(shopbuf(), 17, 1) OR readbit(shopbuf(), 17, 2) THEN havestuf = 1 ELSE havestuf = 0
-RETRACE
-
-END SUB
-
 '=======================================================================
 'FIXME: move this up as code gets cleaned up!  (Woo! It is happening!)
 OPTION EXPLICIT
+
+SUB shopdata ()
+ DIM shopbuf(20) as integer
+ DIM stufbuf(curbinsize(binSTF) \ 2 - 1) as integer
+
+ DIM sbit(-1 TO 7) as string
+ sbit(0) = "Buy"
+ sbit(1) = "Sell"
+ sbit(2) = "Hire"
+ sbit(3) = "Inn"
+ sbit(4) = "Equip"
+ sbit(5) = "Save"
+ sbit(6) = "Map"
+ sbit(7) = "Team"
+
+ DIM shopst as ShopEditState
+ shopst.havestuf = NO
+ shopst.menu(0) = "Return to Main Menu"
+ shopst.menu(3) = "Edit Available Stuff..."
+ shopst.menu(4) = "Select Shop Menu Items..."
+
+ shop_load shopst, shopbuf()
+ shopst.st.last = 6
+
+ DIM new_shop_id as integer
+ DIM c as integer
+ 
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  shopst.st.tog XOR= 1
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "shop_main"
+  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN cropafter shopst.id, gen(genMaxShop), 0, game + ".sho", 40
+  usemenu shopst.st
+  IF shopst.st.pt = 1 THEN
+   '--only allow adding shops up to 99
+   'FIXME: This is because of the limitation on remembering shop stock in the SAV format
+   '       when the SAV format has changed, this limit can easily be lifted.
+   new_shop_id = shopst.id
+   IF intgrabber_with_addset(new_shop_id, 0, gen(genMaxShop), 99, "Shop") THEN
+    shop_save shopst, shopbuf()
+    shopst.id = new_shop_id
+    IF shopst.id > gen(genMaxShop) THEN
+     gen(genMaxShop) = shopst.id
+     '--Create a new shop record
+     flusharray shopbuf(), 19, 0
+     setpicstuf shopbuf(), 40, -1
+     storeset game + ".sho", shopst.id, 0
+     '--create a new shop stuff record
+     flusharray stufbuf(), dimbinsize(binSTF), 0
+     setpicstuf stufbuf(), getbinsize(binSTF), -1
+     stufbuf(19) = -1 ' When adding new stuff, default in-stock to infinite
+     storeset game + ".stf", shopst.id * 50 + 0, 0
+    END IF
+    shop_load shopst, shopbuf()
+   END IF
+  END IF
+  IF shopst.st.pt = 2 THEN
+   strgrabber shopst.name, 15
+   shopst.st.need_update = YES
+  END IF
+  IF enter_or_space() THEN
+   IF shopst.st.pt = 0 THEN EXIT DO
+   IF shopst.st.pt = 3 AND shopst.havestuf THEN
+    shop_stuff_edit shopst.id, stufbuf(), shopbuf(16)
+   END IF
+   IF shopst.st.pt = 4 THEN editbitset shopbuf(), 17, 7, sbit(): shopst.st.need_update = YES
+   IF shopst.st.pt = 6 THEN
+    shopst.menu(6) = "Inn Script: " & scriptbrowse_string(shopbuf(19), plottrigger, "Inn Plotscript")
+   END IF
+  END IF
+  IF shopst.st.pt = 5 THEN
+   IF intgrabber(shopbuf(18), 0, 32767) THEN shopst.st.need_update = YES
+  END IF
+  IF shopst.st.pt = 6 THEN
+   IF scrintgrabber(shopbuf(19), 0, 0, scLeft, scRight, 1, plottrigger) THEN shopst.st.need_update = YES
+  END IF
+  
+  IF shopst.st.need_update THEN
+   shop_menu_update shopst, shopbuf()
+  END IF
+  
+  clearpage dpage
+  
+  FOR i as integer = 0 TO shopst.st.last
+   c = uilook(uiMenuItem)
+   IF i = shopst.st.pt THEN c = uilook(uiSelectedItem + shopst.st.tog)
+   IF i = 3 AND shopst.havestuf = NO THEN
+    c = uilook(uiDisabledItem)
+    IF i = shopst.st.pt THEN c = uilook(uiSelectedDisabled + shopst.st.tog)
+   END IF
+   textcolor c, 0
+   printstr shopst.menu(i), 0, i * 8, dpage
+  NEXT i
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+ shop_save shopst, shopbuf()
+
+END SUB
+
+SUB shop_load (byref shopst as ShopEditState, shopbuf() as integer)
+ setpicstuf shopbuf(), 40, -1
+ loadset game & ".sho", shopst.id, 0
+ shopst.name = readbadbinstring(shopbuf(), 0, 15)
+ shopst.st.need_update = YES
+END SUB
+
+SUB shop_save (byref shopst as ShopEditState, shopbuf() as integer)
+ shopbuf(16) = small(shopbuf(16), 49)
+ writebadbinstring shopst.name, shopbuf(), 0, 15
+ setpicstuf shopbuf(), 40, -1
+ storeset game & ".sho", shopst.id, 0
+END SUB
+
+SUB shop_menu_update(byref shopst as ShopEditState, shopbuf() as integer)
+ shopst.menu(1) = CHR(27) & " Shop " & shopst.id & " of " & gen(genMaxShop) & CHR(26)
+ shopst.menu(2) = "Name: " & shopst.name
+ shopst.menu(5) = "Inn Price: " & shopbuf(18)
+ IF readbit(shopbuf(), 17, 3) = 0 THEN shopst.menu(5) = "Inn Price: N/A"
+ shopst.menu(6) = "Inn Script: " & scriptname(shopbuf(19), plottrigger)
+ IF readbit(shopbuf(), 17, 0) ORELSE readbit(shopbuf(), 17, 1) ORELSE readbit(shopbuf(), 17, 2) THEN
+  shopst.havestuf = YES
+ ELSE
+  shopst.havestuf = NO
+ END IF
+ shopst.st.need_update = NO
+END SUB
 
 SUB shop_stuff_edit (byval shop_id as integer, stufbuf() as integer, byref thing_total as integer)
 'shopstuf:
