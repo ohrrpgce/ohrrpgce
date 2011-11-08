@@ -79,6 +79,7 @@ DECLARE SUB shop_load (byref shopst as ShopEditState, shopbuf() as integer)
 DECLARE SUB cleanupfiles ()
 DECLARE SUB cleanup_and_terminate ()
 DECLARE SUB import_scripts_and_terminate (hsfile as string)
+DECLARE SUB prompt_for_password()
 
 'Global variables
 REDIM gen(360)
@@ -249,7 +250,7 @@ IF gen(genVersion) > CURRENT_RPG_VERSION THEN
  future_rpg_warning
 END IF
 
-GOSUB checkpass
+prompt_for_password
 
 clearpage vpage
 textcolor uilook(uiText), 0
@@ -482,44 +483,46 @@ END IF
 setkeys
 RETRACE
 
-checkpass:
-'--Is a password set?
-IF checkpassword("") THEN RETRACE
-
-'--Input password
-pas$ = ""
-passcomment$ = ""
-'Uncomment to display the/a password
-'passcomment$ = getpassword
-setkeys
-DO
- setwait 55
- setkeys
- tog = tog XOR 1
- IF keyval(scEnter) > 1 THEN
-  IF checkpassword(pas$) THEN
-   RETRACE
-  ELSE
-   cleanup_and_terminate
-  END IF
- END IF
- strgrabber pas$, 17
- clearpage dpage
- textcolor uilook(uiText), 0
- printstr "This game requires a password to edit", 0, 0, dpage
- printstr " Type it in and press ENTER", 0, 9, dpage
- textcolor uilook(uiSelectedItem + tog), 1
- printstr STRING(LEN(pas$), "*"), 0, 20, dpage
- printstr passcomment$, 0, 40, dpage
- SWAP vpage, dpage
- setvispage vpage
- dowait
-LOOP
-
 
 '=======================================================================
 'FIXME: move this up as code gets cleaned up!  (Woo! It is happening!)
 OPTION EXPLICIT
+
+SUB prompt_for_password()
+ '--Is a password set?
+ IF checkpassword("") THEN EXIT SUB
+ 
+ '--Input password
+ DIM pas as string = ""
+ DIM passcomment as string = ""
+ DIM tog as integer
+ 'Uncomment to display the/a password
+ 'passcomment = getpassword
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  tog = tog XOR 1
+  IF keyval(scEnter) > 1 THEN
+   IF checkpassword(pas) THEN
+    EXIT SUB
+   ELSE
+    cleanup_and_terminate
+   END IF
+  END IF
+  strgrabber pas, 17
+  clearpage dpage
+  textcolor uilook(uiText), 0
+  printstr "This game requires a password to edit", 0, 0, dpage
+  printstr " Type it in and press ENTER", 0, 9, dpage
+  textcolor uilook(uiSelectedItem + tog), 1
+  printstr STRING(LEN(pas), "*"), 0, 20, dpage
+  printstr passcomment, 0, 40, dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+END SUB
 
 SUB import_scripts_and_terminate (hsfile as string)
  debuginfo "Importing scripts from " & hsfile
