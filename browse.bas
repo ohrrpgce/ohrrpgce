@@ -55,6 +55,7 @@ DECLARE SUB browse_hover(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
 DECLARE SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as BrowseMenuState, tree() as BrowseMenuEntry)
 DECLARE FUNCTION validmusicfile (file as string, byval typemask as integer) as integer
 DECLARE FUNCTION browse_sanity_check_reload(filename as string, info as string) as integer
+DECLARE FUNCTION check_for_plotscr_inclusion(filename as string) as integer
 
 FUNCTION browse (byval special as integer, default as string, fmask as string, tmp as string, byref needf as integer, helpkey as string) as string
 STATIC remember as string
@@ -315,10 +316,10 @@ SUB browse_hover(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
   CASE 8 'reload
    br.alert = tree(br.treeptr).about
   CASE 9 'scripts
-   IF LCASE(justextension(tree(br.treeptr).filename)) = "hss" THEN
-    br.alert = "HamsterSpeak scripts"
-   ELSE
+   IF LCASE(justextension(tree(br.treeptr).filename)) = "hs" THEN
     br.alert = "Compiled HamsterSpeak scripts"
+   ELSE
+    br.alert = "HamsterSpeak scripts"
    END IF
  END SELECT
  IF tree(br.treeptr).kind = 0 THEN br.alert = "Drive"
@@ -408,6 +409,15 @@ FOR i as integer = 0 TO UBOUND(filelist)
  IF br.special = 8 THEN
   IF browse_sanity_check_reload(filename, tree(br.treesize).about) = NO THEN
    tree(br.treesize).kind = 6 'grey out bad ones
+  END IF
+ END IF
+ '--script files
+ IF br.special = 9 THEN
+  IF wildcard = "*.txt" THEN
+   IF NOT check_for_plotscr_inclusion(filename) THEN
+    'Don't display .txt files unless they include plotscr.hsd
+    br.treesize = br.treesize - 1
+   END IF
   END IF
  END IF
  draw_browse_meter br
@@ -642,6 +652,7 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
   ELSEIF br.special = 9 THEN
    browse_add_files "*.hs", filetype, br, tree()
    browse_add_files "*.hss", filetype, br, tree()
+   browse_add_files "*.txt", filetype, br, tree()
   ELSE
    browse_add_files br.fmask, filetype, br, tree()
   END IF
@@ -708,3 +719,23 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
  br.ranalready = 1
 
 END SUB
+
+FUNCTION check_for_plotscr_inclusion(filename as string) as integer
+ 'This script is a hack to allow people who name their scripts .txt to use the import
+ 'feature without cluttering the browse interface with non-plotscript .txt files
+ DIM result as integer = NO
+ 
+ DIM fh as integer = FREEFILE
+ OPEN filename FOR INPUT AS #fh
+ DIM s as string
+ FOR i as integer = 0 TO 29 'Only bother to check the first 30 lines
+  INPUT #fh, s
+  IF INSTR(LCASE(s), "plotscr.hsd") > 0 THEN
+   result = YES
+   EXIT FOR
+  END IF
+ NEXT i
+ CLOSE #fh
+ 
+ RETURN result
+END FUNCTION
