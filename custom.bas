@@ -80,6 +80,7 @@ DECLARE SUB cleanupfiles ()
 DECLARE SUB cleanup_and_terminate ()
 DECLARE SUB import_scripts_and_terminate (hsfile as string)
 DECLARE SUB prompt_for_password()
+DECLARE SUB prompt_for_save_and_quit()
 
 'Global variables
 REDIM gen(360)
@@ -108,7 +109,6 @@ DIM joy(4)
 DIM menu(22) as string
 DIM menukeys(22) as string
 DIM chooserpg_menu(2) as string
-DIM quit_menu(3) as string
 DIM quit_confirm(1) as string
 DIM hsfile as string
 DIM intext as string
@@ -124,7 +124,6 @@ DIM attack_frame_captions(2) as string = {"First Frame","Middle Frame","Last Fra
 DIM box_border_captions(15) as string = {"Top Left Corner","Top Edge Left","Top Edge","Top Edge Right","Top Right Corner","Left Edge Top","Right Edge Top","Left Edge","Right Edge","Left Edge Bottom","Right Edge Bottom","Bottom Left Corner","Bottom Edge Left","Bottom Edge","Bottom Edge Right","Bottom Right Corner"}
 DIM portrait_captions(0) as string = {"Character Portrait"}
 
-DIM lumpfile as string
 DIM cmdline as string
 
 '--Startup
@@ -293,7 +292,6 @@ cleanup_on_error = NO
 menumode = 0
 pt = 0
 mainmax = 0
-quitnow = 0
 
 setkeys
 setmainmenu menu(), mainmax, menukeys()
@@ -304,8 +302,7 @@ DO:
  IF keyval(scEsc) > 1 THEN
   SELECT CASE menumode
    CASE 0'--in main menu
-    GOSUB relump
-    IF quitnow > 1 THEN cleanup_and_terminate
+    prompt_for_save_and_quit
    CASE 1'--graphics
     pt = 0
     menumode = 0
@@ -357,8 +354,7 @@ DO:
     IF pt = 19 THEN spawn_game_menu
     IF pt = 20 THEN distribute_game
     IF pt = 21 THEN
-     GOSUB relump
-     IF quitnow > 1 THEN cleanup_and_terminate
+     prompt_for_save_and_quit
     END IF
    CASE 1'--graphics mode
     IF pt = 0 THEN
@@ -445,48 +441,56 @@ DO
 LOOP
 RETRACE
 
-
-relump:
-xbsave game + ".gen", gen(), 1000
-quit_menu(0) = "Continue editing"
-quit_menu(1) = "Save changes and continue editing"
-quit_menu(2) = "Save changes and quit"
-quit_menu(3) = "Discard changes and quit"
-clearkey(-1) 'stop firing esc's, if the user hit esc+pgup+pgdown
-quitnow = sublist(quit_menu(), "quit_and_save")
-IF keyval(-1) THEN '2nd quit request? Right away!
- a$ = trimextension(sourcerpg)
- i = 0
- DO
-  lumpfile = a$ & ".rpg_" & i & ".bak"
-  i += 1
- LOOP WHILE isfile(lumpfile)
- clearpage 0
- printstr "Saving as " + lumpfile, 0, 0, 0
- printstr "LUMPING DATA: please wait...", 0, 10, 0
- setvispage 0
- dolumpfiles lumpfile
- quitnow = 4 'no special meaning
- RETRACE
-END IF
-IF (quitnow = 2 OR quitnow = 3) AND slave_channel <> NULL_CHANNEL THEN
- IF yesno("You are still running a copy of this game. Quitting will force " & GAMEEXE & " to quit as well. Really quit?") = NO THEN quitnow = 0
-END IF
-IF quitnow = 1 OR quitnow = 2 THEN
- save_current_game
-END IF
-IF quitnow = 3 THEN
- quit_confirm(0) = "I changed my mind! Don't quit!"
- quit_confirm(1) = "I am sure I don't want to save."
- IF sublist(quit_confirm()) <= 0 THEN quitnow = 0
-END IF
-setkeys
-RETRACE
-
-
 '=======================================================================
 'FIXME: move this up as code gets cleaned up!  (Woo! It is happening!)
 OPTION EXPLICIT
+
+SUB prompt_for_save_and_quit()
+
+ xbsave game & ".gen", gen(), 1000
+
+ DIM quit_menu(3) as string
+ quit_menu(0) = "Continue editing"
+ quit_menu(1) = "Save changes and continue editing"
+ quit_menu(2) = "Save changes and quit"
+ quit_menu(3) = "Discard changes and quit"
+ clearkey(-1) 'stop firing esc's, if the user hit esc+pgup+pgdown
+ 
+ DIM quitnow as integer
+ quitnow = sublist(quit_menu(), "quit_and_save")
+ IF keyval(-1) THEN '2nd quit request? Right away!
+  DIM basename as string = trimextension(sourcerpg)
+  DIM lumpfile as string
+  DIM i as integer = 0
+  DO
+   lumpfile = basename & ".rpg_" & i & ".bak"
+   i += 1
+  LOOP WHILE isfile(lumpfile)
+  clearpage 0
+  printstr "Saving as " & lumpfile, 0, 0, 0
+  printstr "LUMPING DATA: please wait...", 0, 10, 0
+  setvispage 0
+  dolumpfiles lumpfile
+  cleanup_and_terminate
+  EXIT SUB
+ END IF
+ 
+ IF (quitnow = 2 OR quitnow = 3) AND slave_channel <> NULL_CHANNEL THEN
+  IF yesno("You are still running a copy of this game. Quitting will force " & GAMEEXE & " to quit as well. Really quit?") = NO THEN quitnow = 0
+ END IF
+ IF quitnow = 1 OR quitnow = 2 THEN
+  save_current_game
+ END IF
+ IF quitnow = 3 THEN
+  DIM quit_confirm(1) as string
+  quit_confirm(0) = "I changed my mind! Don't quit!"
+  quit_confirm(1) = "I am sure I don't want to save."
+  IF sublist(quit_confirm()) <= 0 THEN quitnow = 0
+ END IF
+ setkeys
+ IF quitnow > 1 THEN cleanup_and_terminate
+
+END SUB
 
 SUB prompt_for_password()
  '--Is a password set?
