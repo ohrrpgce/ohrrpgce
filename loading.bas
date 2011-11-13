@@ -1526,11 +1526,20 @@ Sub SerHeroDef(filename as string, hero as herodef ptr, byval record as integer)
 end sub
 
 SUB loadherodata (hero as herodef ptr, byval index as integer)
- deserherodef game & ".dt0", hero, index
+  deserherodef game & ".dt0", hero, index
 END SUB
 
 SUB saveherodata (hero as herodef ptr, byval index as integer)
- serherodef game & ".dt0", hero, index
+  serherodef game & ".dt0", hero, index
+END SUB
+
+SUB ClearHeroData (hero as HeroDef)
+  memset @hero, 0, sizeof(HeroDef)
+  hero.sprite_pal = -1      'default battle palette
+  hero.walk_sprite_pal = -1 'default walkabout palette
+  FOR i as integer = 0 TO maxElements - 1
+    hero.elementals(i) = 1.0f
+  NEXT
 END SUB
 
 

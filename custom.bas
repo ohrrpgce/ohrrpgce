@@ -35,7 +35,7 @@ DECLARE SUB gendata ()
 DECLARE SUB itemdata ()
 DECLARE SUB formation ()
 DECLARE SUB enemydata ()
-DECLARE SUB herodata ()
+DECLARE SUB hero_editor ()
 DECLARE SUB text_box_editor ()
 DECLARE SUB maptile ()
 DECLARE SUB importscripts (f as string)
@@ -338,7 +338,7 @@ DO:
     END IF
     IF pt = 1 THEN map_picker
     IF pt = 2 THEN edit_global_text_strings
-    IF pt = 3 THEN herodata
+    IF pt = 3 THEN hero_editor
     IF pt = 4 THEN enemydata
     IF pt = 5 THEN attackdata
     IF pt = 6 THEN itemdata

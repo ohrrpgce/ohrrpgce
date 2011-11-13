@@ -87,6 +87,8 @@ declare Sub DeSerHeroDef(filename as string, hero as herodef ptr, byval record a
 declare Sub SerHeroDef(filename as string, hero as herodef ptr, byval record as integer)
 declare sub loadherodata (hero as herodef ptr, byval index as integer)
 declare sub saveherodata (hero as herodef ptr, byval index as integer)
+declare sub ClearHeroData (hero as HeroDef)
+
 
 declare Sub LoadVehicle OVERLOAD (file as string, vehicle as VehicleData, byval record as integer)
 declare Sub LoadVehicle OVERLOAD (file as string, veh() as integer, vehname as string, byval record as integer)
