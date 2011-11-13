@@ -48,6 +48,7 @@ DECLARE SUB hero_editor_elementals(BYREF her AS HeroDef)
 DECLARE SUB item_editor_equipbits(itembuf())
 DECLARE SUB item_editor_elementals(itembuf() AS INTEGER)
 DECLARE SUB item_editor_init_new(itembuf() AS INTEGER)
+DECALRE SUB update_herotags_menu(byref hero as HeroDef, menu() as string)
 
 REM $STATIC
 
@@ -1529,74 +1530,52 @@ RETRACE
 
 END SUB 'End of herodata
 
+SUB update_herotags_menu (byref hero as HeroDef, menu() as string)
+ WITH hero
+  menu(0) = "Previous Menu: "
+  menu(1) = "have hero TAG: " + special_tag_caption(.have_tag)
+  menu(2) = "is alive TAG: " + special_tag_caption(.alive_tag)
+  menu(3) = "is leader TAG: " + special_tag_caption(.leader_tag)
+  menu(4) = "is in party now TAG: " + special_tag_caption(.active_tag)
+ END WITH
+END SUB
+
 SUB herotags (BYREF hero AS HeroDef)
-DIM tagnum AS INTEGER
-DIM tagcaption AS STRING
-DIM menu(5) AS STRING
-menu(0) = "Previous Menu"
-menu(1) = "have hero TAG"
-menu(2) = "is alive TAG"
-menu(3) = "is leader TAG"
-menu(4) = "is in party now TAG"
+ DIM menu(5) as string
+ DIM st as MenuState
+ st.need_update = YES
+ st.last = 4
+ st.size = 24
 
-WITH hero
-
-pt = 0
-setkeys
-DO
- setwait 55
  setkeys
- tog = tog XOR 1
- IF keyval(scESC) > 1 THEN EXIT DO
- IF keyval(scF1) > 1 THEN show_help "hero_tags"
- usemenu pt, 0, 0, 4, 24
- SELECT CASE pt
-  CASE 0
-   IF enter_or_space() THEN EXIT DO
-  CASE 1
-   tag_grabber .have_tag, 0
-  CASE 2
-   tag_grabber .alive_tag, 0
-  CASE 3
-   tag_grabber .leader_tag, 0
-  CASE 4
-   tag_grabber .active_tag, 0
- END SELECT
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "hero_tags"
+  usemenu st
+  WITH hero
+   SELECT CASE st.pt
+    CASE 0
+     IF enter_or_space() THEN EXIT DO
+    CASE 1
+     tag_grabber .have_tag, 0
+    CASE 2
+     tag_grabber .alive_tag, 0
+    CASE 3
+     tag_grabber .leader_tag, 0
+    CASE 4
+     tag_grabber .active_tag, 0
+   END SELECT
+  END WITH
 
- clearpage dpage
- FOR i = 0 TO 4
-  textcolor uilook(uiMenuItem), 0
-  IF pt = i THEN textcolor uilook(uiSelectedItem + tog), 0
-  tagnum = 0
-  SELECT CASE i
-   CASE 1
-    tagnum = .have_tag
-   CASE 2
-    tagnum = .alive_tag
-   CASE 3
-    tagnum = .leader_tag
-   CASE 4
-    tagnum = .active_tag
-  END SELECT
-  tagcaption = ": "
-  SELECT CASE tagnum
-   CASE 0
-    tagcaption += "None"
-   CASE 1
-    tagcaption += "None (tag 1 not usable)"
-   CASE ELSE
-    tagcaption += load_tag_name(tagnum) & "(" & tagnum & ")"
-  END SELECT
-  IF i = 0 THEN tagcaption = ""
-  printstr menu(i) & tagcaption, 0, i * 8, dpage
- NEXT i
- SWAP vpage, dpage
- setvispage vpage
- dowait
-LOOP
-END WITH
-EXIT SUB
-
+  clearpage dpage
+  update_herotags_menu hero, menu()
+  standardmenu menu(), st, 0, 0, dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
 END SUB
 
 SUB itemdata

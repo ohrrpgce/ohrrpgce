@@ -367,7 +367,7 @@ RETRACE
 tileanim:
 taset = 0
 loadtanim pagenum, tastuf()
-GOSUB utamenu
+GOSUB update_ta_menu
 menu(0) = "Previous Menu"
 menu(2) = "Set Animation Range"
 menu(3) = "Set Animation Pattern"
@@ -379,11 +379,11 @@ DO
  tog = tog XOR 1
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "maptile_tileanim"
- IF usemenu(taptr, 0, 0, 5, 5) THEN GOSUB utamenu
+ IF usemenu(taptr, 0, 0, 5, 5) THEN GOSUB update_ta_menu
  IF taptr = 4 THEN
-  IF tag_grabber(tastuf(1 + 20 * taset)) THEN GOSUB utamenu
+  IF tag_grabber(tastuf(1 + 20 * taset)) THEN GOSUB update_ta_menu
  ELSE
-  IF intgrabber(taset, 0, 1) THEN GOSUB utamenu
+  IF intgrabber(taset, 0, 1) THEN GOSUB update_ta_menu
  END IF
  IF enter_or_space() THEN
   IF taptr = 0 THEN EXIT DO
@@ -404,7 +404,7 @@ LOOP
 savetanim pagenum, tastuf()
 RETRACE
 
-utamenu:
+update_ta_menu:
 menu(1) = CHR$(27) + "Animation set " & taset & CHR$(26)
 menu(4) = tag_condition_caption(tastuf(1 + 20 * taset), "Disable if Tag", "No tag check")
 RETRACE
@@ -577,7 +577,7 @@ SELECT CASE tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset)
  CASE 5
   menu(11) = menu(11) + STR$(this) + " Ticks"
  CASE 6
-  menu(11) = menu(11) + tag_condition_caption(this)
+  menu(11) = menu(11) + tag_condition_caption(this, , "Never")
  CASE ELSE
   menu(11) = menu(11) + "N/A"
 END SELECT

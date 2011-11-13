@@ -43,10 +43,6 @@ EXTERN gam AS GameState
 EXTERN txt AS TextBoxState
 EXTERN tag() as integer
 
-'Special tags (immutable data)
-EXTERN herotags() as HeroTagsCache
-EXTERN itemtags() as ItemTagsCache
-
 'Vehicle globals
 EXTERN vstate AS VehicleState
 

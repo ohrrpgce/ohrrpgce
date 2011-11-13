@@ -671,7 +671,7 @@ menulimits(AtkBaseDef) = AtkLimBaseDef
 
 CONST AtkTag = 32
 menu(AtkTag) = "Set Tag"
-menutype(AtkTag) = 2
+menutype(AtkTag) = 21
 menuoff(AtkTag) = AtkDatTag
 menulimits(AtkTag) = AtkLimTag
 
@@ -689,7 +689,7 @@ menulimits(AtkTagAnd) = AtkLimTagAnd
 
 CONST AtkTag2 = 35
 menu(AtkTag2) = "Set Tag"
-menutype(AtkTag2) = 2
+menutype(AtkTag2) = 21
 menuoff(AtkTag2) = AtkDatTag2
 menulimits(AtkTag2) = AtkLimTag
 
@@ -799,7 +799,7 @@ menulimits(AtkElseChainTo) = AtkLimChainTo
 
 CONST AtkElseChainRate = 54
 menu(AtkElseChainRate) = "  Rate:"
-menutype(AtkElseChainRate) = 20 'Hacky speficic type
+menutype(AtkElseChainRate) = 20 'Hacky specific type
 menuoff(AtkElseChainRate) = AtkDatElseChainRate
 menulimits(AtkElseChainRate) = AtkLimChainRate
 
@@ -1354,7 +1354,7 @@ FUNCTION editflexmenu (nowindex AS INTEGER, menutype() AS INTEGER, menuoff() AS 
 'menutype() holds the type of each menu element.
 '           0=int
 '           1=action (usually triggering a different menu)
-'           2=set tag
+'           2=tag condition, including special tags
 '           3=string(bybyte)
 '           4=badly stored string(by word)
 '           5=chooser (not connected with data)
@@ -1372,6 +1372,8 @@ FUNCTION editflexmenu (nowindex AS INTEGER, menutype() AS INTEGER, menuoff() AS 
 '           17=int with a % sign after it
 '           18=skipper (caption which is skipped by the cursor)
 '           19=ticks (with seconds estimate)
+'           20=Else-Chain Rate hack (clumsy hack to force myself to do this elegantly in editedit --James)
+'           21=set tag, excluding special tags
 '           1000-1999=postcaptioned int (caption-start-offset=n-1000)
 '                     (be careful about negatives!)
 '           2000-2999=caption-only int (caption-start-offset=n-1000)
@@ -1396,12 +1398,14 @@ DIM changed AS INTEGER = 0
 DIM s AS STRING
 
 SELECT CASE menutype(nowindex)
- CASE 0, 8, 12 TO 17, 19, 20, 1000 TO 3999' integers
+ CASE 0, 8, 12 TO 17, 19, 1000 TO 3999' integers
   changed = intgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)), maxtable(menulimits(nowindex)))
  CASE 7, 9 TO 11 'offset integers
   changed = zintgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)) - 1, maxtable(menulimits(nowindex)) - 1)
- CASE 2' set tag
-  changed = tag_grabber(datablock(menuoff(nowindex)), -999, 999)
+ CASE 2' tag condition
+  changed = tag_grabber(datablock(menuoff(nowindex)), -999, 999, YES)
+ CASE 21' set tag (non-special)
+  changed = tag_grabber(datablock(menuoff(nowindex)), -999, 999, NO)
  CASE 3' string
   s = readbinstring$(datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)))
   IF strgrabber(s, maxtable(menulimits(nowindex))) THEN changed = 1
@@ -1485,7 +1489,7 @@ SUB updateflexmenu (mpointer AS INTEGER, nowmenu() AS STRING, nowdat() AS INTEGE
 'menutype() holds the type of each menu element.
 '           0=int
 '           1=action (usually triggering a different menu)
-'           2=set tag
+'           2=tag condition, including special tags
 '           3=string(bybyte)
 '           4=badly stored string(by word)
 '           5=record chooser (not connected with data)
@@ -1504,6 +1508,7 @@ SUB updateflexmenu (mpointer AS INTEGER, nowmenu() AS STRING, nowdat() AS INTEGE
 '           18=skipper (caption which is skipped by the cursor)
 '           19=ticks (with seconds estimate)
 '           20=Else-Chain Rate hack (clumsy hack to force myself to do this elegantly in editedit --James)
+'           21=set tag, excluding special tags
 '           1000-1999=postcaptioned int (caption-start-offset=n-1000)
 '                     (be careful about negatives!)
 '           2000-2999=caption-only int (caption-start-offset=n-2000)
@@ -1538,8 +1543,8 @@ FOR i = 0 TO size
  SELECT CASE menutype(nowdat(i))
   CASE 0 '--int
    datatext = STR(dat)
-  CASE 2 '--set tag
-   datatext = tag_condition_caption(dat, "", "NONE", "Tag 1 cannot be changed", "Tag 1 cannot be changed")
+  CASE 2 '--tag condition, including specials
+   datatext = tag_condition_caption(dat, "", "NONE")
   CASE 3 '--goodstring
    maxl = maxtable(menulimits(nowdat(i)))
    datatext = readbinstring(datablock(), menuoff(nowdat(i)), maxl)
@@ -1612,6 +1617,8 @@ FOR i = 0 TO size
    IF dat > 0 ANDALSO datablock(13) > 0 THEN
     datatext = datatext &  " (effectively " & INT((100 - datablock(13)) / 100.0 * dat) & "%)"
    END IF
+  CASE 21 '--set tag, not including specials
+   datatext = tag_set_caption(dat, "")
   CASE 1000 TO 1999 '--captioned int
    capnum = menutype(nowdat(i)) - 1000
    datatext = dat & " " & caption(capnum + dat)
@@ -1972,9 +1979,9 @@ SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, detail AS 
   CASE 5: 'conditional tag2
    IF tag_grabber(mi.tag2) THEN dstate.need_update = YES
   CASE 6: 'set tag
-   IF tag_grabber(mi.settag) THEN dstate.need_update = YES
+   IF tag_grabber(mi.settag, , , NO) THEN dstate.need_update = YES
   CASE 7: 'toggle tag
-   IF tag_grabber(mi.togtag, 0) THEN dstate.need_update = YES
+   IF tag_grabber(mi.togtag, 0, , NO) THEN dstate.need_update = YES
   CASE 8: ' bitsets
    IF enter_or_space() THEN
     edit_menu_item_bits mi
@@ -2064,8 +2071,8 @@ SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
   END SELECT
  END WITH
  
- append_menu_item detail, tag_condition_caption(mi.tag1, "Enable if tag", "No tag check")
- append_menu_item detail, tag_condition_caption(mi.tag2, "Enable if tag", "No tag check")
+ append_menu_item detail, tag_condition_caption(mi.tag1, "Enable if tag", "Always")
+ append_menu_item detail, tag_condition_caption(mi.tag2, "Enable if tag", "Always")
  append_menu_item detail, tag_set_caption(mi.settag, "Set tag")
  append_menu_item detail, tag_toggle_caption(mi.togtag)
  append_menu_item detail, "Edit Bitsets..."

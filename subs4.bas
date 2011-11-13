@@ -117,7 +117,7 @@ DO
     GOSUB vehmenu
    END IF
   CASE 12 '--tags
-   IF tag_grabber(veh(offset(csr))) THEN
+   IF tag_grabber(veh(offset(csr)), , , NO) THEN
     GOSUB vehmenu
    END IF
   CASE 4
@@ -194,15 +194,7 @@ FOR i = 0 TO 1
  IF i = 1 THEN menu(10 + i) = "Menu button: " + tmp$'13
 NEXT i
 
-SELECT CASE ABS(veh(offset(12)))
- CASE 0
-  tmp$ = " (DISABLED)"
- CASE 1
-  tmp$ = " (RESERVED TAG)"
- CASE ELSE
-  tmp$ = " (" + load_tag_name(ABS(veh(offset(12)))) + ")"  '14
-END SELECT
-menu(12) = "If riding Tag " & ABS(veh(offset(12))) & "=" & onoroff$(veh(offset(12))) & tmp$
+menu(12) = tag_set_caption(veh(offset(12)), "If riding set tag")
 
 SELECT CASE veh(offset(13))
  CASE 0

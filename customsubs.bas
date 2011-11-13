@@ -46,11 +46,13 @@ FUNCTION safe_tag_name(BYVAL tagnum AS INTEGER) AS STRING
  END IF
 END FUNCTION
 
-FUNCTION tag_grabber (BYREF n AS INTEGER, min AS INTEGER=-999, max AS INTEGER=999) AS INTEGER
+'allowspecial indicates whether to allow picking 'special' tags: those automatically
+'set, eg. based on inventory conditions
+FUNCTION tag_grabber (BYREF n AS INTEGER, BYVAL min AS INTEGER=-999, BYVAL max AS INTEGER=999, BYVAL allowspecial as integer=YES) AS INTEGER
  IF intgrabber(n, min, max) THEN RETURN YES
  IF enter_or_space() THEN
   DIM browse_tag AS INTEGER
-  browse_tag = tagnames(n, YES)
+  browse_tag = tags_menu(n, YES, allowspecial)
   IF browse_tag >= 2 OR browse_tag <= -2 THEN
    n = browse_tag
    RETURN YES
@@ -59,28 +61,43 @@ FUNCTION tag_grabber (BYREF n AS INTEGER, min AS INTEGER=-999, max AS INTEGER=99
  RETURN NO
 END FUNCTION
 
-FUNCTION tagnames (starttag AS INTEGER=0, picktag AS INTEGER=NO) AS INTEGER
+SUB tag_autoset_warning(byval tag_id as integer)
+ notification !"This tag is automatically set or unset on the following conditions:\n" + describe_tag_autoset_places(tag_id) + !"\nThis means that you should not attempt to set or unset the tag in any other way, because your changes will be erased -- unpredictably!"
+END SUB
+
+'If picktag is true, then can be used to pick a tag. In that case, allowspecial indicates whether to allow
+'picking 'special' tags: those automatically set, eg. based on inventory conditions
+FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, byval allowspecial as integer=YES) AS INTEGER
  DIM state AS MenuState
- DIM thisname AS STRING
- DIM remembertag AS INTEGER = starttag
+ DIM thisname as string
+ DIM ret as integer = starttag
  IF gen(genMaxTagname) < 1 THEN gen(genMaxTagname) = 1
- DIM menu(gen(genMaxTagname)) AS STRING
+ DIM menu as BasicMenuItem vector
+ v_new menu, gen(genMaxTagname) + 1
  IF picktag THEN
-  menu(0) = "Cancel"
+  menu[0].text = "Cancel"
  ELSE
-  menu(0) = "Previous Menu"
+  menu[0].text = "Previous Menu"
  END IF
- DIM i AS INTEGER
+ DIM i as integer
  FOR i = 2 TO gen(genMaxTagname) + 1
   'Load all tag names plus the first blank name
-  menu(i - 1) = "Tag " & i & ":" & load_tag_name(i)
+  menu[i - 1].text = "Tag " & i & ":" & load_tag_name(i)
+  IF tag_is_autoset(i) THEN
+   IF allowspecial = NO THEN
+    menu[i - 1].disabled = YES
+   ELSE
+    'We don't have any UI colours that are subtle enough!
+    'menu[i - 1].col = uilook(uiText)
+   END IF
+  END IF
  NEXT i
 
  DIM tagsign AS INTEGER
  tagsign = SGN(starttag)
  IF tagsign = 0 THEN tagsign = 1
 
- state.size = 24
+ state.size = 23
  state.last = gen(genMaxTagname)
 
  state.pt = 0
@@ -119,20 +136,26 @@ FUNCTION tagnames (starttag AS INTEGER=0, picktag AS INTEGER=NO) AS INTEGER
   END IF
   IF state.pt = 0 AND enter_or_space() THEN EXIT DO
   IF state.pt > 0 AND state.pt + 1 <= gen(genMaxTagName) + 1 THEN
-   IF picktag THEN
-    IF keyval(scEnter) > 1 THEN
-     RETURN (state.pt + 1) * tagsign
+   IF keyval(scTab) > 1 ANDALSO tag_is_autoset(state.pt + 1) THEN
+    tag_autoset_warning state.pt + 1
+   END IF
+   IF keyval(scEnter) > 1 THEN
+    IF menu[state.pt].disabled THEN
+     tag_autoset_warning state.pt + 1
+    ELSEIF picktag THEN
+     ret = (state.pt + 1) * tagsign
+     EXIT DO
     END IF
    END IF
    IF int_browsing = NO ANDALSO strgrabber(thisname, 20) THEN
     uninterrupted_alt_press = NO
     save_tag_name thisname, state.pt + 1
-    menu(state.pt) = "Tag " & state.pt + 1 & ":" & thisname
+    menu[state.pt].text = "Tag " & state.pt + 1 & ":" & thisname
     IF state.pt + 1 = gen(genMaxTagName) + 1 THEN
      IF gen(genMaxTagName) < 999 THEN
       gen(genMaxTagName) += 1
-      REDIM PRESERVE menu(gen(genMaxTagName)) AS STRING
-      menu(gen(genMaxTagName)) = "Tag " & gen(genMaxTagName) + 1 & ":"
+	  v_resize menu, gen(genMaxTagName) + 1
+      menu[gen(genMaxTagName)].text = "Tag " & gen(genMaxTagName) + 1 & ":"
       state.last += 1
      END IF
     END IF
@@ -140,8 +163,8 @@ FUNCTION tagnames (starttag AS INTEGER=0, picktag AS INTEGER=NO) AS INTEGER
   END IF
 
   clearpage dpage
-  draw_fullscreen_scrollbar state, ,dpage
-  standardmenu menu(), state, 0, 0, dpage
+  draw_fullscreen_scrollbar state, , dpage
+  standardmenu menu, state, 0, 0, dpage
   DIM tmpstr AS STRING
   IF int_browsing THEN
    textcolor uilook(uiText), uilook(uiHighlight)
@@ -152,12 +175,18 @@ FUNCTION tagnames (starttag AS INTEGER=0, picktag AS INTEGER=NO) AS INTEGER
   END IF
   printstr tmpstr, 320 - LEN(tmpstr) * 8, 0, dpage
 
+  IF tag_is_autoset(state.pt + 1) THEN
+   textcolor uilook(uiDisabledItem), 0
+   printstr "An auto-set tag. Press TAB for details", 0, 192, dpage
+  END IF
+
   SWAP vpage, dpage
   setvispage vpage
   dowait
  LOOP
 
- RETURN remembertag
+ v_free menu
+ RETURN ret
 END FUNCTION
 
 'default: meaning of the null condition (true: ALWAYS, false: NEVER)
@@ -185,7 +214,7 @@ FUNCTION cond_grabber (cond as Condition, byval default as integer = NO, byval a
   IF .type = compTag AND alwaysedit = 0 THEN
    IF enter_or_space() THEN
     DIM browse_tag AS INTEGER
-    browse_tag = tagnames(.tag, YES)
+    browse_tag = tags_menu(.tag, YES, YES)
     IF browse_tag >= 2 OR browse_tag <= -2 THEN
      .tag = browse_tag
      RETURN YES
@@ -414,10 +443,10 @@ SUB cond_editor (cond as Condition, byval default as integer = NO)
      END IF
     CASE 3:
      cond.type = compTag
-     cond.tag = tagnames(starttag, YES)
+     cond.tag = tags_menu(starttag, YES, YES)
     CASE 4:
      cond.type = compTag
-     cond.tag = tagnames(-1 * starttag, YES)
+     cond.tag = tags_menu(-1 * starttag, YES, YES)
     CASE ELSE:
      'TODO: global variable browser
      cond.type = (st.pt - 5) + compEq
@@ -937,6 +966,34 @@ FUNCTION editnpc_zone_caption(byval zoneid as integer, byval default as integer,
  RETURN caption
 END FUNCTION
 
+FUNCTION explain_two_tag_condition(prefix as string, truetext as string, falsetext as string, byval zerovalue as integer, byval tag1 as integer, byval tag2 as integer) as string
+  DIM ret as string
+  ret = "Appears if"
+  DIM true_count as integer
+  DIM false_count as integer
+  IF tag1 = 0 THEN tag1 = IIF(zerovalue, -1, 1)
+  IF tag2 = 0 THEN tag2 = IIF(zerovalue, -1, 1)
+  IF tag1 = 1 THEN
+   false_count += 1
+  ELSEIF tag1 = -1 THEN
+   true_count += 1
+  ELSE
+   ret &= " tag " & ABS(tag1) & " = " & onoroff(tag1)
+  END IF
+  IF tag2 = 1 THEN
+   false_count += 1
+  ELSEIF tag2 = -1 THEN
+   true_count += 1
+  ELSE
+   IF true_count = 0 AND false_count = 0 THEN ret &= " and"
+   ret &= " tag " & ABS(tag2) & " = " & onoroff(tag2)
+  END IF
+  
+  IF true_count = 2 THEN ret = truetext
+  IF false_count > 0 THEN ret = falsetext
+  RETURN ret
+END FUNCTION
+
 SUB edit_npc (npcdata AS NPCType, gmap() AS integer, zmap AS ZoneMap)
  DIM i AS INTEGER
 
@@ -945,7 +1002,6 @@ SUB edit_npc (npcdata AS NPCType, gmap() AS integer, zmap AS ZoneMap)
  DIM scrname AS STRING
  DIM vehiclename AS STRING
  DIM caption AS STRING
- DIM appearstring AS STRING
 
  DIM walk AS INTEGER = 0
  DIM tog AS INTEGER = 0
@@ -998,8 +1054,8 @@ SUB edit_npc (npcdata AS NPCType, gmap() AS integer, zmap AS ZoneMap)
  menucaption(6) = "Give Item:"
  menucaption(7) = "Pushability"
  menucaption(8) = "Activation: "
- menucaption(9) = "Appear if Tag"
- menucaption(10) = "Appear if Tag"
+ menucaption(9) = "Appear if Tag "
+ menucaption(10) = "Appear if Tag "
  menucaption(11) = "Usable"
  menucaption(12) = "Run Script: "
  menucaption(13) = "Script Argument"
@@ -1144,17 +1200,9 @@ SUB edit_npc (npcdata AS NPCType, gmap() AS integer, zmap AS ZoneMap)
     CASE 8
      caption = safe_caption(usetype(), npcdata.activation, "usetype")
     CASE 9
-     IF npcdata.tag1 THEN
-      caption = " " & ABS(npcdata.tag1) & " = " & onoroff$(npcdata.tag1) & " (" & load_tag_name(ABS(npcdata.tag1)) & ")"
-     ELSE
-      caption = " 0 (N/A)"
-     END IF
+	 caption = tag_condition_caption(npcdata.tag1, "", "Always")
     CASE 10
-     IF npcdata.tag2 THEN
-      caption = " " & ABS(npcdata.tag2) & " = " & onoroff$(npcdata.tag2) & " (" & load_tag_name(ABS(npcdata.tag2)) & ")"
-     ELSE
-      caption = " 0 (N/A)"
-     END IF
+	 caption = tag_condition_caption(npcdata.tag2, "", "Always")
     CASE 11
      IF npcdata.usetag THEN caption = " Only Once (tag " & (1000 + npcdata.usetag) & ")" ELSE caption = " Repeatedly"
     CASE 12 'script
@@ -1176,14 +1224,10 @@ SUB edit_npc (npcdata AS NPCType, gmap() AS integer, zmap AS ZoneMap)
   NEXT i
   edgebox 9, 149, 22, 22, uilook(uiDisabledItem), uilook(uiText), dpage
   frame_draw npcdata.sprite + 4 + (walk \ 2), npcdata.pal, 10, 150, 1, YES, dpage
-  appearstring = "Appears if tag " & ABS(npcdata.tag1) & " = " & onoroff$(npcdata.tag1) & " and tag " & ABS(npcdata.tag2) & " = " & onoroff$(npcdata.tag2)
-  IF npcdata.tag1 <> 0 AND npcdata.tag2 = 0 THEN appearstring = "Appears if tag " & ABS(npcdata.tag1) & " = " & onoroff$(npcdata.tag1)
-  IF npcdata.tag1 = 0 AND npcdata.tag2 <> 0 THEN appearstring = "Appears if tag " & ABS(npcdata.tag2) & " = " & onoroff$(npcdata.tag2)
-  IF npcdata.tag1 = 0 AND npcdata.tag2 = 0 THEN appearstring = "Appears all the time"
   textcolor uilook(uiSelectedItem2), uiLook(uiHighlight)
   printstr boxpreview, 0, 177, dpage
   textcolor uilook(uiSelectedItem2), 0
-  printstr appearstring, 0, 190, dpage
+  printstr explain_two_tag_condition("Appears if", "Appears all the time", "Never appears!", YES, npcdata.tag1, npcdata.tag2), 0, 190, dpage
   SWAP vpage, dpage
   setvispage vpage
   dowait
@@ -1483,7 +1527,7 @@ FUNCTION export_textboxes (filename AS STRING, metadata() AS INTEGER) AS INTEGER
     
   IF metadata(1) THEN '--box conditionals
    IF box.instead_tag <> 0 THEN
-    PRINT #fh, "Instead Tag: " & box.instead_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.instead_tag, , "Impossible", "Never", "Always")) & ")"
+    PRINT #fh, "Instead Tag: " & box.instead_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.instead_tag, , "Never")) & ")"
     PRINT #fh, "Instead Box: " & box.instead;
     IF box.instead < 0 THEN
      PRINT #fh, " (Plotscript " & scriptname$(box.instead * -1, plottrigger) & ")"
@@ -1492,7 +1536,7 @@ FUNCTION export_textboxes (filename AS STRING, metadata() AS INTEGER) AS INTEGER
     END IF
    END IF
    IF box.after_tag <> 0 THEN
-    PRINT #fh, "Next Tag: " & box.after_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.after_tag, , "Impossible", "Never", "Always")) & ")"
+    PRINT #fh, "Next Tag: " & box.after_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.after_tag, , "Never")) & ")"
     PRINT #fh, "Next Box: " & box.after;
     IF box.after < 0 THEN
      PRINT #fh, " (Plotscript " & scriptname$(box.after * -1, plottrigger) & ")"
@@ -1502,23 +1546,23 @@ FUNCTION export_textboxes (filename AS STRING, metadata() AS INTEGER) AS INTEGER
    END IF
    
    IF box.settag_tag <> 0 THEN
-    PRINT #fh, "Set Tag: " & box.settag_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.settag_tag, , "Impossible", "Never", "Always")) & ")"
-    IF box.settag1 <> 0 THEN PRINT #fh, "Set Tag 1: " & box.settag1 & " (" & escape_nonprintable_ascii(tag_condition_caption(box.settag1, , "Impossible", "Never", "Always")) & ")"
-    IF box.settag2 <> 0 THEN PRINT #fh, "Set Tag 2: " & box.settag2 & " (" & escape_nonprintable_ascii(tag_condition_caption(box.settag2, , "Impossible", "Never", "Always")) & ")"
+    PRINT #fh, "Set Tag: " & box.settag_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.settag_tag, , "Never")) & ")"
+    IF box.settag1 <> 0 THEN PRINT #fh, "Set Tag 1: " & box.settag1 & " (" & escape_nonprintable_ascii(tag_set_caption(box.settag1)) & ")"
+    IF box.settag2 <> 0 THEN PRINT #fh, "Set Tag 2: " & box.settag2 & " (" & escape_nonprintable_ascii(tag_set_caption(box.settag2)) & ")"
    END IF
    IF box.battle_tag <> 0 THEN
-    PRINT #fh, "Battle Tag: " & box.battle_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.battle_tag, , "Impossible", "Never", "Always")) & ")"
+    PRINT #fh, "Battle Tag: " & box.battle_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.battle_tag, , "Never")) & ")"
     PRINT #fh, "Battle: " & box.battle
    END IF
    IF box.shop_tag <> 0 THEN
-    PRINT #fh, "Shop Tag: " & box.shop_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.shop_tag, , "Impossible", "Never", "Always")) & ")"
+    PRINT #fh, "Shop Tag: " & box.shop_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.shop_tag, , "Never")) & ")"
     PRINT #fh, "Shop: " & box.shop;
-    if(box.shop = 0) THEN PRINT #fh, " (Restore HP/MP)"
-    if(box.shop < 0) THEN PRINT #fh, " (Inn for $" & (box.shop * -1) & ")"
-    if(box.shop > 0) THEN PRINT #fh, " (" & escape_nonprintable_ascii(readshopname$(box.shop - 1)) & ")"
+    IF box.shop = 0 THEN PRINT #fh, " (Restore HP/MP)"
+    IF box.shop < 0 THEN PRINT #fh, " (Inn for $" & (box.shop * -1) & ")"
+    IF box.shop > 0 THEN PRINT #fh, " (" & escape_nonprintable_ascii(readshopname$(box.shop - 1)) & ")"
    END IF
    IF box.hero_tag <> 0 THEN
-    PRINT #fh, "Hero Tag: " & box.hero_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.hero_tag, , "Impossible", "Never", "Always")) & ")"
+    PRINT #fh, "Hero Tag: " & box.hero_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.hero_tag, , "Never")) & ")"
     
     IF box.hero_addrem <> 0 THEN
      PRINT #fh, "Hero Add: " & box.hero_addrem;
@@ -1550,17 +1594,17 @@ FUNCTION export_textboxes (filename AS STRING, metadata() AS INTEGER) AS INTEGER
    END IF
    
    IF box.money_tag <> 0 THEN
-    PRINT #fh, "Money Tag: " & box.money_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.money_tag, , "Impossible", "Never", "Always")) & ")"
+    PRINT #fh, "Money Tag: " & box.money_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.money_tag, , "Never")) & ")"
     PRINT #fh, "Money: " & box.money
    END IF
    
    IF box.door_tag <> 0 THEN
-    PRINT #fh, "Door Tag: " & box.door_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.door_tag, , "Impossible", "Never", "Always")) & ")"
+    PRINT #fh, "Door Tag: " & box.door_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.door_tag, , "Never")) & ")"
     PRINT #fh, "Door: " & box.door
    END IF
    
    IF box.item_tag <> 0 THEN
-    PRINT #fh, "Item Tag: " & box.item_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.item_tag, , "Impossible", "Never", "Always")) & ")"
+    PRINT #fh, "Item Tag: " & box.item_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.item_tag, , "Never")) & ")"
     PRINT #fh, "Item: " & box.item;
     IF box.item < 0 THEN
      PRINT #fh, " (Remove " & escape_nonprintable_ascii(readitemname$((box.item * -1) - 1)) & ")"
@@ -1571,7 +1615,7 @@ FUNCTION export_textboxes (filename AS STRING, metadata() AS INTEGER) AS INTEGER
   END IF
   
   IF box.menu_tag <> 0 THEN
-    PRINT #fh, "Menu Tag: " & box.menu_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.menu_tag, , "Impossible", "Never", "Always")) & ")"
+    PRINT #fh, "Menu Tag: " & box.menu_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.menu_tag, , "Never")) & ")"
     PRINT #fh, "Menu: " & box.menu
    END IF
    
@@ -1579,9 +1623,9 @@ FUNCTION export_textboxes (filename AS STRING, metadata() AS INTEGER) AS INTEGER
    IF box.choice_enabled THEN
     PRINT #fh, "Choice Enabled: YES"
     PRINT #fh, "Choice 1: " & escape_nonprintable_ascii(box.choice(0))
-    PRINT #fh, "Choice 1 Tag: " & box.choice_tag(0) & " (" & escape_nonprintable_ascii(tag_condition_caption(box.choice_tag(0), , "Do Nothing", "Never", "Always")) & ")"
+    PRINT #fh, "Choice 1 " & escape_nonprintable_ascii(tag_set_caption(box.choice_tag(0)))
     PRINT #fh, "Choice 2: " & escape_nonprintable_ascii(box.choice(1))
-    PRINT #fh, "Choice 2 Tag: " & box.choice_tag(1) & " (" & escape_nonprintable_ascii(tag_condition_caption(box.choice_tag(1), , "Do Nothing", "Never", "Always")) & ")"
+    PRINT #fh, "Choice 2 " & escape_nonprintable_ascii(tag_set_caption(box.choice_tag(1)))
     
    END IF
   END IF
@@ -2056,17 +2100,32 @@ SUB reposition_anchor (menu AS MenuDef, mstate AS MenuState)
  LOOP
 END SUB
 
-FUNCTION tag_toggle_caption(n AS INTEGER, prefix AS STRING="Toggle tag") AS STRING
- DIM s AS STRING
+FUNCTION base_tag_caption(byval n as integer, prefix as string, suffix as string, zerocap as string, onecap as string, negonecap as string, byval allowspecial as integer) as string
+ DIM s as string
+ DIM cap as string
  s = prefix
- IF LEN(s) > 0 THEN s = s & " "
- s = s & ABS(n)
- SELECT CASE n
-  CASE 0: s = s & " (N/A)"
-  CASE 1, -1: s = s & " (unchangeable)"
-  CASE IS > 1: s = s & " (" & load_tag_name(n) & ")"
- END SELECT
+ IF LEN(s) > 0 THEN s &= " "
+ s &= ABS(n) & suffix
+ cap = load_tag_name(n)
+ IF n = 0 AND LEN(zerocap) > 0 THEN cap = zerocap
+ IF n = 1 AND LEN(onecap) > 0 THEN cap = onecap
+ IF n = -1 AND LEN(negonecap) > 0 THEN cap = negonecap
+ cap = TRIM(cap)
+ IF allowspecial <> YES ANDALSO tag_is_autoset(n) THEN s &= " [AUTOSET]"
+ IF LEN(cap) > 0 THEN s &= " (" & cap & ")"
  RETURN s
+END FUNCTION
+
+FUNCTION tag_toggle_caption(byval n as integer, prefix as string="Toggle tag", byval allowspecial as integer=NO) as string
+ RETURN base_tag_caption(n, prefix, "", "N/A", "Unchangeable", "Unchangeable", allowspecial)
+END FUNCTION
+
+FUNCTION tag_set_caption(byval n as integer, prefix as string="Set Tag", byval allowspecial as integer=NO) as string
+ RETURN base_tag_caption(n, prefix, "=" & onoroff(n), "No tag set", "Unchangeable", "Unchangeable", allowspecial)
+END FUNCTION
+
+FUNCTION tag_condition_caption(byval n as integer, prefix as string="Tag", zerocap as string, onecap as string="Never", negonecap as string="Always") as string
+ RETURN base_tag_caption(n, prefix, "=" & onoroff(n), zerocap, onecap, negonecap, YES)
 END FUNCTION
 
 'Edit array of bits. The bits don't have to be consecutive, but they do have to be in ascending order.

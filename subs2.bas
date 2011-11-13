@@ -75,6 +75,7 @@ CONST condDOOR   = 5
 CONST condITEM   = 6
 CONST condBOX    = 7
 CONST condMENU   = 8
+CONST condSETTAG = 9
 
 REM $STATIC
 
@@ -768,6 +769,8 @@ SUB textbox_conditionals(BYREF box AS TextBox)
    SELECT CASE box_conditional_type_by_menu_index(state.pt)
     CASE condTAG
      tag_grabber num
+    CASE condSETTAG
+     tag_grabber num, , , NO
     CASE condBATTLE
      intgrabber num, 0, gen(genMaxFormation)
     CASE condSHOP
@@ -800,7 +803,7 @@ SUB textbox_conditionals(BYREF box AS TextBox)
     SELECT CASE read_box_conditional_by_menu_index(box, i)
      CASE -1 ' Check tag 1=OFF always true
       c = uilook(uiHighlight)
-     CASE 0 ' Check tag 0 never true
+     CASE 0, 1 ' Disabled or check tag 1=ON never true
       c = uilook(uiDisabledItem)
     END SELECT
     rectangle 0, (i - state.top) * 9, 312, 8, c, dpage
@@ -829,8 +832,8 @@ SUB textbox_update_conditional_menu(BYREF box AS TextBox, menu() AS STRING)
    menu(1) = " jump to text box " & box.instead & " instead"
  END SELECT
  menu(2) = textbox_condition_caption(box.settag_tag, "SETTAG")
- menu(3) = tag_condition_caption(box.settag1, " set tag", "unchangeable", "unchangeable", "unchangeable")
- menu(4) = tag_condition_caption(box.settag2, " set tag", "unchangeable", "unchangeable", "unchangeable")
+ menu(3) = tag_set_caption(box.settag1, " set tag")
+ menu(4) = tag_set_caption(box.settag2, " set tag")
  menu(5) = textbox_condition_caption(box.money_tag, "MONEY")
  IF box.money < 0 THEN
   menu(6) = " lose " & ABS(box.money) & "$"
@@ -942,14 +945,14 @@ FUNCTION textbox_condition_caption(tag AS INTEGER, prefix AS STRING = "") AS STR
  IF tag = 0 THEN RETURN prefix2 & "Never do the following"
  IF tag = 1 THEN RETURN prefix2 & "If tag 1 = ON [Never]"
  IF tag = -1 THEN RETURN prefix2 & "Always do the following"
- RETURN prefix2 & "If tag " & ABS(tag) & " = " + onoroff$(tag) & " (" & load_tag_name(tag) & ")"
+ RETURN prefix2 & "If tag " & ABS(tag) & " = " + onoroff(tag) & " (" & load_tag_name(tag) & ")"
 END FUNCTION
 
 FUNCTION textbox_condition_short_caption(tag AS INTEGER) AS STRING
  IF tag = 0 THEN RETURN "NEVER"
  IF tag = 1 THEN RETURN "NEVER(1)"
  IF tag = -1 THEN RETURN "ALWAYS"
- RETURN "IF TAG " & ABS(tag) & "=" + UCASE(onoroff$(tag))
+ RETURN "IF TAG " & ABS(tag) & "=" + UCASE(onoroff(tag))
 END FUNCTION
 
 SUB writeconstant (filehandle AS INTEGER, num AS INTEGER, names AS STRING, unique() AS STRING, prefix AS STRING)
@@ -1032,6 +1035,7 @@ FUNCTION box_conditional_type_by_menu_index(menuindex AS INTEGER) AS INTEGER
  SELECT CASE menuindex
   CASE -1      : RETURN condEXIT
   CASE 1, 22   : RETURN condBOX
+  CASE 3, 4    : RETURN condSETTAG
   CASE 6       : RETURN condMONEY
   CASE 8       : RETURN condBATTLE
   CASE 10      : RETURN condITEM
@@ -1385,16 +1389,12 @@ SUB textbox_choice_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
   END IF
   FOR i AS INTEGER = 0 TO 1
    IF state.pt = 2 + (i * 2) THEN strgrabber box.choice(i), 15
-   IF state.pt = 3 + (i * 2) THEN tag_grabber box.choice_tag(i)
+   IF state.pt = 3 + (i * 2) THEN tag_grabber box.choice_tag(i), , , NO
   NEXT i
   IF box.choice_enabled THEN menu(1) = "Choice = Enabled" ELSE menu(1) = "Choice = Disabled"
   FOR i AS INTEGER = 0 TO 1
    menu(2 + (i * 2)) = "Option " & i & " text:" + box.choice(i)
-   IF box.choice_tag(i) THEN
-    menu(3 + (i * 2)) = "Set tag " & ABS(box.choice_tag(i)) & " = " & onoroff(box.choice_tag(i)) & " (" & load_tag_name(ABS(box.choice_tag(i))) & ")"
-   ELSE
-    menu(3 + (i * 2)) = "Set tag 0 (none)"
-   END IF
+   menu(3 + (i * 2)) = tag_set_caption(box.choice_tag(i))
   NEXT i
  
   clearpage dpage

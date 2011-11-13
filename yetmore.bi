@@ -4,7 +4,6 @@
 DECLARE SUB add_rem_swap_lock_hero (box as TextBox)
 DECLARE FUNCTION checksaveslot (slot as integer) as integer
 DECLARE SUB erasesaveslot (slot as integer)
-DECLARE SUB load_special_tag_caches ()
 DECLARE SUB embedtext (text as string, byval limit as integer=0)
 DECLARE SUB scriptstat (byval id as integer)
 DECLARE SUB forceparty ()

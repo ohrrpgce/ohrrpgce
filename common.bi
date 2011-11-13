@@ -171,8 +171,10 @@ DECLARE SUB reporterr(msg as string, byval errlvl as integer = 5)
 
 DECLARE FUNCTION load_tag_name (byval index as integer) as string
 DECLARE SUB save_tag_name (tagname as string, byval index as integer)
-DECLARE FUNCTION tag_condition_caption(byval n as integer, prefix as string="Tag", zerocap as string="", onecap as string="", negonecap as string="") as string
-DECLARE FUNCTION tag_set_caption(byval n as integer, prefix as string="Set Tag") as string
+
+DECLARE SUB load_special_tag_caches()
+DECLARE FUNCTION tag_is_autoset(byval tag_id as integer) as integer
+DECLARE FUNCTION describe_tag_autoset_places(byval tag_id as integer) as string
 DECLARE FUNCTION onoroff (byval n as integer) as string
 DECLARE FUNCTION yesorno (byval n as integer, yes_cap as string="YES", no_cap as string="NO") as string
 DECLARE FUNCTION format_percent (byval float as DOUBLE, byval sigfigs as integer = 5) as string
@@ -245,5 +247,7 @@ EXTERN negative_zero as integer
 #ifdef IS_CUSTOM
  EXTERN cleanup_on_error as integer
 #endif
+EXTERN herotags() as HeroTagsCache
+EXTERN itemtags() as ItemTagsCache
 
 #endif

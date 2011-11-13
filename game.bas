@@ -545,7 +545,7 @@ ELSE
  prepare_map
 END IF
 
-load_special_tag_caches  'Load herotags and itemtags, which are immutable
+load_special_tag_caches
 evalherotags
 queue_fade_in
 DIM force_step_check as integer = YES

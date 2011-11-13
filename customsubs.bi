@@ -12,16 +12,24 @@
 
 TYPE FnScriptVisitor as function (byref trig as integer, description as string, caption as string) as integer
 
-DECLARE FUNCTION tag_grabber (BYREF n AS INTEGER, min AS INTEGER=-999, max AS INTEGER=999) AS INTEGER
-DECLARE FUNCTION tagnames (starttag AS INTEGER=0, picktag AS INTEGER=NO) AS INTEGER
+DECLARE FUNCTION tag_grabber (BYREF n AS INTEGER, BYVAL min AS INTEGER=-999, BYVAL max AS INTEGER=999, BYVAL allowspecial AS INTEGER=YES) AS INTEGER
+DECLARE FUNCTION tags_menu (BYVAL starttag AS INTEGER=0, BYVAL picktag AS INTEGER=NO, BYVAL allowspecial AS INTEGER=YES) AS INTEGER
+DECLARE FUNCTION tag_toggle_caption(byval n as integer, prefix as string="Toggle tag", byval allowspecial as integer=NO) as string
+DECLARE FUNCTION tag_set_caption(byval n as integer, prefix as string="Set Tag", byval allowspecial as integer=NO) as string
+DECLARE FUNCTION tag_condition_caption(byval n as integer, prefix as string="Tag", zerocap as string, onecap as string="Never", negonecap as string="Always") as string
+DECLARE FUNCTION explain_two_tag_condition(prefix as string, truetext as string, falsetext as string, byval zerovalue as integer, byval tag1 as integer, byval tag2 as integer) as string
+
 DECLARE FUNCTION cond_grabber (cond AS Condition, BYVAL default AS INTEGER = 0, BYVAL alwaysedit AS INTEGER) AS INTEGER
 DECLARE FUNCTION condition_string (cond AS Condition, BYVAL selected AS INTEGER, default AS STRING = "Always", BYVAL wide AS INTEGER = 40) AS STRING
+
 DECLARE FUNCTION charpicker() AS STRING
+
 DECLARE FUNCTION percent_grabber OVERLOAD (BYREF float AS DOUBLE, repr AS STRING, BYVAL min AS DOUBLE, BYVAL max AS DOUBLE, BYVAL decimalplaces AS INTEGER = 4) AS INTEGER
 DECLARE FUNCTION percent_grabber OVERLOAD (BYREF float AS SINGLE, repr AS STRING, BYVAL min AS DOUBLE, BYVAL max AS DOUBLE, BYVAL decimalplaces AS INTEGER = 4) AS INTEGER
 DECLARE FUNCTION format_percent_cond(BYREF cond AS AttackElementCondition, default AS STRING, BYVAL decimalplaces AS INTEGER = 4) AS STRING
 DECLARE FUNCTION percent_cond_grabber(BYREF cond AS AttackElementCondition, repr AS STRING, default AS STRING, BYVAL min AS DOUBLE, BYVAL max AS DOUBLE, BYVAL decimalplaces AS INTEGER = 4) AS INTEGER
 DECLARE SUB percent_cond_editor (cond as AttackElementCondition, BYVAL min AS DOUBLE, BYVAL max AS DOUBLE, BYVAL decimalplaces AS INTEGER = 4, do_what as string = "...", percent_of_what AS STRING = "")
+
 DECLARE SUB ui_color_editor(palnum AS INTEGER)
 DECLARE SUB make_ui_color_editor_menu(m() AS STRING, colors() AS INTEGER)
 DECLARE FUNCTION pick_ogg_quality(BYREF quality AS INTEGER) AS INTEGER
@@ -49,7 +57,6 @@ DECLARE SUB edit_menu_bits (menu AS MenuDef)
 DECLARE SUB edit_menu_item_bits (mi AS MenuDefItem)
 DECLARE SUB reposition_menu (menu AS MenuDef, mstate AS MenuState)
 DECLARE SUB reposition_anchor (menu AS MenuDef, mstate AS MenuState)
-DECLARE FUNCTION tag_toggle_caption(n AS INTEGER, prefix AS STRING="Toggle tag") AS STRING
 DECLARE SUB editbitset (array() AS INTEGER, BYVAL wof AS INTEGER, BYVAL last AS INTEGER, names() AS STRING, helpkey AS STRING="editbitset")
 DECLARE FUNCTION scriptbrowse_string (BYREF trigger AS INTEGER, BYVAL triggertype AS INTEGER, scrtype AS STRING) AS STRING
 DECLARE SUB scriptbrowse (BYREF trigger AS INTEGER, BYVAL triggertype AS INTEGER, scrtype AS STRING)

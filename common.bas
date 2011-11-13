@@ -3602,23 +3602,71 @@ SUB reporterr(msg as string, byval errlvl as integer = 5)
 #ENDIF
 END SUB
 
-FUNCTION tag_set_caption(byval n as integer, prefix as string="Set Tag") as string
- RETURN tag_condition_caption(n, prefix, "N/A", "Unchangeable", "Unchangeable")
+SUB load_special_tag_caches()
+ DIM her as herodef
+ FOR i as integer = 0 TO small(gen(genMaxHero), 59)
+  loadherodata @her, i
+  herotags(i).have_tag = her.have_tag
+  herotags(i).alive_tag = her.alive_tag
+  herotags(i).leader_tag = her.leader_tag
+  herotags(i).active_tag = her.active_tag
+ NEXT i
+ REDIM item_data(dimbinsize(binITM)) as integer
+ FOR i as integer = 0 TO gen(genMaxItem)
+  loaditemdata item_data(), i
+  itemtags(i).have_tag = item_data(74)
+  itemtags(i).in_inventory_tag = item_data(75)
+  itemtags(i).is_equipped_tag = item_data(76)
+  itemtags(i).is_actively_equipped_tag = item_data(77)
+ NEXT i
+END SUB
+
+'Return whether a tag is automatically set by consulting herotags(), itemtags() arrays
+FUNCTION tag_is_autoset(byval tag_id as integer) as integer
+ DIM count as integer = 0
+ tag_id = ABS(tag_id)
+
+ IF tag_id <= 1 THEN RETURN NO
+
+ FOR i as integer = 0 TO small(gen(genMaxHero), UBOUND(herotags))
+  IF tag_id = herotags(i).have_tag THEN count += 1
+  IF tag_id = herotags(i).alive_tag THEN count += 1
+  IF tag_id = herotags(i).leader_tag THEN count += 1
+  IF tag_id = herotags(i).active_tag THEN count += 1
+ NEXT i
+
+ FOR i as integer = 0 TO small(gen(genMaxItem), UBOUND(itemtags))
+  IF tag_id = itemtags(i).have_tag THEN count += 1
+  IF tag_id = itemtags(i).in_inventory_tag THEN count += 1
+  IF tag_id = itemtags(i).is_equipped_tag THEN count += 1
+  IF tag_id = itemtags(i).is_actively_equipped_tag THEN count += 1
+ NEXT i
+
+ RETURN count > 0
 END FUNCTION
 
-FUNCTION tag_condition_caption(byval n as integer, prefix as string="Tag", zerocap as string="", onecap as string="", negonecap as string="") as string
- DIM s as string
- DIM cap as string
- s = prefix
- IF LEN(s) > 0 THEN s = s & " "
- s = s & ABS(n) & "=" & onoroff(n)
- cap = load_tag_name(n)
- IF n = 0 AND LEN(zerocap) > 0 THEN cap = zerocap
- IF n = 1 AND LEN(onecap) > 0 THEN cap = onecap
- IF n = -1 AND LEN(negonecap) > 0 THEN cap = negonecap
- cap = TRIM(cap)
- IF LEN(cap) > 0 THEN s = s & " (" & cap & ")"
- RETURN s
+'Returns one line per place where this tag is autoset. Empty if none.
+FUNCTION describe_tag_autoset_places(byval tag_id as integer) as string
+ DIM ret as string
+ tag_id = ABS(tag_id)
+
+ IF tag_id <= 1 THEN RETURN ""
+
+ FOR i as integer = 0 TO small(gen(genMaxHero), UBOUND(herotags, 1)) '--for each available hero
+  IF tag_id = herotags(i).have_tag THEN ret += "Hero " & i & !" in party tag\n"
+  IF tag_id = herotags(i).alive_tag THEN ret += "Hero " & i & !" is alive tag\n"
+  IF tag_id = herotags(i).leader_tag THEN ret += "Hero " & i & !" is leader tag\n"
+  IF tag_id = herotags(i).active_tag THEN ret += "Hero " & i & !" in active party tag\n"
+ NEXT i
+
+ FOR i as integer = 0 TO maxMaxItems
+  IF tag_id = itemtags(i).have_tag THEN ret += "Item " & i & !" have tag\n"
+  IF tag_id = itemtags(i).in_inventory_tag THEN ret += "Item " & i & !" in inventory tag\n"
+  IF tag_id = itemtags(i).is_equipped_tag THEN ret += "Item " & i & !" is equipped tag\n"
+  IF tag_id = itemtags(i).is_actively_equipped_tag THEN ret += "Item " & i & !" equipped by active hero tag\n"
+ NEXT i
+
+ RETURN ret
 END FUNCTION
 
 FUNCTION onoroff (byval n as integer) as string

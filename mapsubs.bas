@@ -2955,9 +2955,9 @@ SUB link_one_door(BYREF st AS MapEditState, mapnum AS INTEGER, linknum AS INTEGE
     CASE 2
      menu_temp = STR(link(linknum).dest_map)
     CASE 3
-     menu_temp = tag_condition_caption(link(linknum).tag1, "", "No Tag Check")
+     menu_temp = tag_condition_caption(link(linknum).tag1, "", "Always")
     CASE 4
-     menu_temp = tag_condition_caption(link(linknum).tag2, "", "No Tag Check")
+     menu_temp = tag_condition_caption(link(linknum).tag2, "", "Always")
    END SELECT
    col = uilook(uiMenuItem)
    IF state.pt = i THEN col = uilook(uiSelectedItem + state.tog)

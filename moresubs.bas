@@ -406,7 +406,7 @@ END IF
 END SUB
 
 SUB evalherotags ()
- DIM as integer i, id
+ DIM as integer id
  DIM leaderid as integer = herobyrank(0)
 
  FOR i as integer = 0 TO small(gen(genMaxHero), UBOUND(herotags, 1)) '--for each available hero
@@ -437,7 +437,7 @@ SUB party_change_updates
 END SUB
 
 SUB evalitemtags
- DIM as integer i, j, k, id
+ DIM as integer id
 
  FOR i as integer = 0 TO maxMaxItems
   'clear all four tags

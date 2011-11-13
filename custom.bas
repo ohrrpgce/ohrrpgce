@@ -88,6 +88,8 @@ REDIM buffer(16384)
 REDIM master(255) as RGBcolor
 REDIM uilook(uiColors)
 DIM statnames() as string
+REDIM herotags(59) as HeroTagsCache
+REDIM itemtags(maxMaxItems) as ItemTagsCache
 DIM vpage = 0, dpage = 1
 DIM activepalette, fadestate
 'FIXME: too many directory variables! Clean this nonsense up
@@ -283,6 +285,7 @@ IF hsfile <> "" THEN import_scripts_and_terminate hsfile
 
 loadglobalstrings
 getstatnames statnames()
+load_special_tag_caches
 
 setupmusic
 
@@ -344,7 +347,7 @@ DO:
     IF pt = 9 THEN text_box_editor
     if pt = 10 THEN menu_editor
     IF pt = 11 THEN vehicles
-    IF pt = 12 THEN tagnames
+    IF pt = 12 THEN tags_menu
     IF pt = 13 THEN importsong
     IF pt = 14 THEN importsfx
     IF pt = 15 THEN fontedit
@@ -783,8 +786,10 @@ SUB shop_stuff_edit (byval shop_id as integer, stufbuf() as integer, byref thing
      stuf.st.need_update = YES
      update_shop_stuff_type stuf, stufbuf()
     END IF
-   CASE 6 TO 9 '--tags
-    IF tag_grabber(stufbuf(17 + stuf.st.pt - 3)) THEN stuf.st.need_update = YES
+   CASE 6 TO 7 '--condition tags
+    IF tag_grabber(stufbuf(17 + stuf.st.pt - 3), , , YES) THEN stuf.st.need_update = YES
+   CASE 8 TO 9 '--set tags
+    IF tag_grabber(stufbuf(17 + stuf.st.pt - 3), , , NO) THEN stuf.st.need_update = YES
    CASE 11 '--must trade in item 1 type
     IF zintgrabber(stufbuf(25), stuf.min(stuf.st.pt), stuf.max(stuf.st.pt)) THEN stuf.st.need_update = YES
    CASE 13, 15, 17 '--must trade in item 2+ types
@@ -879,10 +884,10 @@ SUB update_shop_stuff_menu (byref stuf as ShopStuffState, stufbuf() as integer, 
   CASE ELSE: stuf.menu(5) = stufbuf(19) & " ???" 
  END SELECT
 
- stuf.menu(6) = tag_condition_caption(stufbuf(20), "Buy Require Tag", "No Tag Check")
- stuf.menu(7) = tag_condition_caption(stufbuf(21), "Sell Require Tag", "No Tag Check")
- stuf.menu(8) = tag_condition_caption(stufbuf(22), "Buy Set Tag", "No Tag Set", "Unalterable", "Unalterable")
- stuf.menu(9) = tag_condition_caption(stufbuf(23), "Sell Set Tag", "No Tag Set", "Unalterable", "Unalterable")
+ stuf.menu(6) = tag_condition_caption(stufbuf(20), "Buy Require Tag", "Always")
+ stuf.menu(7) = tag_condition_caption(stufbuf(21), "Sell Require Tag", "Always")
+ stuf.menu(8) = tag_set_caption(stufbuf(22), "Buy Set Tag")
+ stuf.menu(9) = tag_set_caption(stufbuf(23), "Sell Set Tag")
  stuf.menu(10) = "Cost: " & stufbuf(24) & " " & readglobalstring(32, "Money")
  stuf.menu(11) = "Must Trade in " & (stufbuf(30) + 1) & " of: " & load_item_name(stufbuf(25),0,0)
  stuf.menu(12) = " (Change Amount)"

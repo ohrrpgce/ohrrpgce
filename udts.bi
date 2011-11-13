@@ -664,7 +664,7 @@ Type HeroDef
 	hand_b_y as integer
 End Type
 
-'This caches the tags needed by evalherotag
+'This caches the tags needed by evalherotag/tag_is_special
 TYPE HeroTagsCache
 	have_tag as integer
 	alive_tag as integer
@@ -673,7 +673,7 @@ TYPE HeroTagsCache
 END TYPE
 
 'This is part of the UDT for items, which hasn't been written yet
-'It caches the tags needed by evalitemtag
+'It caches the tags needed by evalitemtag/tag_is_special
 TYPE ItemTagsCache
 	have_tag         as integer
 	in_inventory_tag as integer

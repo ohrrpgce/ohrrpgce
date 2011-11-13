@@ -105,25 +105,6 @@ END IF '---end if > 0
 party_change_updates
 END SUB
 
-SUB load_special_tag_caches
- DIM her as herodef
- FOR i as integer = 0 TO small(gen(genMaxHero), 59)
-  loadherodata @her, i
-  herotags(i).have_tag = her.have_tag
-  herotags(i).alive_tag = her.alive_tag
-  herotags(i).leader_tag = her.leader_tag
-  herotags(i).active_tag = her.active_tag
- NEXT i
- REDIM item_data(dimbinsize(binITM)) as integer
- FOR i as integer = 0 TO gen(genMaxItem)
-  loaditemdata item_data(), i
-  itemtags(i).have_tag = item_data(74)
-  itemtags(i).in_inventory_tag = item_data(75)
-  itemtags(i).is_equipped_tag = item_data(76)
-  itemtags(i).is_actively_equipped_tag = item_data(77)
- NEXT i
-END SUB
-
 SUB embedtext (text as string, byval limit as integer=0)
 DIM start as integer = 1
 DO WHILE start < LEN(text)
