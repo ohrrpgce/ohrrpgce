@@ -15,8 +15,8 @@ FBFLAGS = os.environ.get ('FBFLAGS', []) + ['-mt']
 #CC and CXX are probably not needed anymore
 CC = ''
 CXX = ''
-CFLAGS = '-g -Wall --std=c99'.split ()
-CXXFLAGS = '-g -Wall -Wno-non-virtual-dtor'.split ()
+CFLAGS = '-m32 -g -Wall --std=c99'.split ()
+CXXFLAGS = '-m32 -g -Wall -Wno-non-virtual-dtor'.split ()
 C_opt = True    # compile with -O2?
 FB_exx = True   # compile with -exx?
 FB_g = True   # compile with -g?
@@ -128,19 +128,30 @@ if CXX:
 if linkgcc:
     fbc_path = os.path.dirname(which(env, fbc))
     #print "fbc = " + fbc_path
-    import re
-    fbcinfo = get_run_command("fbc -version")
-    target = re.findall("target:([a-z]*)", fbcinfo)
-    if len(target) == 0:
-        raise Exception("Couldn't determine fbc target")
-    
     if win32:
-        libpath = os.path.join(fbc_path, 'lib', 'win32')
+        target = 'win32'
     else:
-        if os.path.isfile(os.path.join(fbc_path, 'lib', target[0], 'fbrt0.o')):
-            libpath = os.path.join(fbc_path, 'lib', target[0])
-        else:
-            libpath = "/usr/share/freebasic/lib/linux"
+        import re
+        fbcinfo = get_run_command("fbc -version")
+        target = re.findall("target:([a-z]*)", fbcinfo)
+        if len(target) == 0:
+            raise Exception("Couldn't determine fbc target")
+        target = target[0]
+    
+    fblibpaths = [[fbc_path, 'lib', target],
+                  [fbc_path, '..', 'lib', target],
+                  [fbc_path, '..', 'lib', 'freebasic', target],
+                  ['/usr/share/freebasic/lib', target],
+                  ['/usr/local/lib/freebasic', target]]
+    fblibpaths = [os.path.join(*pathparts) for pathparts in fblibpaths]
+    for path in fblibpaths:
+        #print "Looking for FB libs in", path
+        if os.path.isfile(os.path.join(path, 'fbrt0.o')):
+            libpath = path
+            break
+    else:
+        raise Exception("Couldn't find the FreeBASIC lib directory")
+
     # Passing this -L option straight to the linker is necessary, otherwise gcc gives it
     # priority over the default library paths, which on Windows means using FB's old mingw libraries
     env['CXXLINKFLAGS'] += ['-Wl,-L' + libpath, os.path.join(libpath, 'fbrt0.o'), '-lfbmt']
@@ -381,6 +392,7 @@ Options:
   valgrind=1          valgrinding build.
   profile=1           Profiling build for gprof.
   scriptprofile=1     Script profiling build.
+  linkgcc=0           Link using fbc instead of g++.
   fbc=PATH            Override fbc.
   svn=PATH            Override svn.
   git=PATH            Override git.
@@ -388,7 +400,6 @@ Options:
 Experimental options:
   raster=1            Include new graphics API and rasterizer.
   gengcc=1            Compile using GCC emitter.
-  linkgcc=1           Link using g++ instead of fbc.
   langfb=1            Compiles certain source files using the "fb" dialect
 
 Targets:
