@@ -49,7 +49,7 @@ DECLARE SUB update_hero_spell_list_menu (her as HeroDef, byval listnum as intege
 DECLARE SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer, listtype as string)
 DECLARE SUB hero_editor_spell_list_names (her as HeroDef)
 DECLARE SUB update_hero_tags_menu (byref hero as HeroDef, menu() as string)
-DECLARE SUB hero_editor_tags (byref hero as HeroDef)
+DECLARE SUB hero_editor_tags (byval hero_id as integer, byref hero as HeroDef)
 DECLARE SUB hero_editor_appearance (byref st as HeroEditState, byref her as HeroDef)
 DECLARE SUB hero_editor_equipment_list (byval hero_id as integer, byref her as HeroDef)
 DECLARE SUB hero_editor_equipbits (byval hero_id as integer, byval equip_type as integer)
@@ -1207,6 +1207,7 @@ DO
  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 AND csr >= 0 THEN
   cropafter csr, gen(genMaxItem), 0, game + ".itm", getbinsize(binITM)
   load_item_names item()
+  load_special_tag_caches
  END IF
  usemenu csr, top, -1, gen(genMaxItem) + 1, 23
  intgrabber csr, -1, gen(genMaxItem) + 1
@@ -1357,6 +1358,11 @@ DO
   CASE 12 TO 15
    IF tag_grabber(a(74 + (pt - 12)), 0) THEN
     need_update = YES
+    'Update cache
+    itemtags(csr).have_tag = a(74)
+    itemtags(csr).in_inventory_tag = a(75)
+    itemtags(csr).is_equipped_tag = a(76)
+    itemtags(csr).is_actively_equipped_tag = a(77)
    END IF
  END SELECT
  IF need_update THEN
@@ -1679,6 +1685,7 @@ SUB hero_editor
   IF keyval(scF1) > 1 THEN show_help "hero_editor"
   IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN
    cropafter hero_id, gen(genMaxHero), -1, game + ".dt0", getbinsize(binDT0)
+   load_special_tag_caches
   END IF
   usemenu mstate
   IF enter_or_space() THEN
@@ -1690,7 +1697,7 @@ SUB hero_editor
     CASE 6: hero_editor_spell_list_names her
     CASE 7: editbitset her.bits(), 0, 26, hbit()
     CASE 8: hero_editor_elementals her
-    CASE 9: hero_editor_tags her
+    CASE 9: hero_editor_tags hero_id, her
     CASE 10: hero_editor_equipment_list hero_id, her
    END SELECT
   END IF
@@ -2031,7 +2038,7 @@ SUB update_hero_tags_menu (byref hero as HeroDef, menu() as string)
  END WITH
 END SUB
 
-SUB hero_editor_tags (byref hero as HeroDef)
+SUB hero_editor_tags (byval hero_id as integer, byref hero as HeroDef)
  DIM menu(5) as string
  DIM st as MenuState
  st.need_update = YES
@@ -2058,6 +2065,12 @@ SUB hero_editor_tags (byref hero as HeroDef)
     CASE 4
      tag_grabber .active_tag, 0
    END SELECT
+
+   'Update cached hero tags
+   herotags(hero_id).have_tag = .have_tag
+   herotags(hero_id).alive_tag = .alive_tag
+   herotags(hero_id).leader_tag = .leader_tag
+   herotags(hero_id).active_tag = .active_tag
   END WITH
 
   clearpage dpage
