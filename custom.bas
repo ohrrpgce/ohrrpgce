@@ -391,7 +391,7 @@ DO:
  END IF
 
  clearpage dpage
- standardmenu menu(), mainmax, 22, pt, 0, 0, 0, dpage, 0
+ standardmenu menu(), mainmax, 22, pt, 0, 0, 0, dpage
 
  textcolor uilook(uiSelectedDisabled), 0
  printstr version_code, 0, 176, dpage
@@ -436,7 +436,7 @@ DO
  END IF
 
  clearpage dpage
- standardmenu chooserpg_menu(), last, 22, csr, top, 0, 0, dpage, 0
+ standardmenu chooserpg_menu(), last, 22, csr, top, 0, 0, dpage
 
  SWAP vpage, dpage
  setvispage vpage
@@ -820,7 +820,7 @@ SUB shop_stuff_edit (byval shop_id as integer, stufbuf() as integer, byref thing
   END IF
    
   clearpage dpage
-  standardmenu stuf.menu(), stuf.st.last, 22, stuf.st.pt, 0, 0, 0, dpage, 0
+  standardmenu stuf.menu(), stuf.st.last, 22, stuf.st.pt, 0, 0, 0, dpage
  
   SWAP vpage, dpage
   setvispage vpage
@@ -1065,7 +1065,7 @@ FUNCTION handle_dirty_workingdir () as integer
 				 "This may mean that " + CUSTOMEXE + " crashed last time you used it, or it may mean " _
 				 "that another copy of " + CUSTOMEXE + " is already running in the background.", _
 				 uilook(uiText), dpage
-  standardmenu cleanup_menu(), 2, 2, clean_choice, 0, 16, 150, dpage, 0
+  standardmenu cleanup_menu(), 2, 2, clean_choice, 0, 16, 150, dpage
 
   SWAP vpage, dpage
   setvispage vpage

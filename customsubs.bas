@@ -2362,7 +2362,7 @@ FUNCTION scriptbrowse_string (BYREF trigger AS INTEGER, BYVAL triggertype AS INT
   draw_fullscreen_scrollbar state, , dpage
   textcolor uilook(uiText), 0
   printstr "Pick a " + scrtype$, 0, 0, dpage
-  standardmenu scriptnames(), state, 8, 10, dpage, 0
+  standardmenu scriptnames(), state, 8, 10, dpage
   IF iddisplay THEN
    textcolor uilook(uiMenuItem), uilook(uiHighlight)
    printstr STR$(id), 8, 190, dpage
@@ -3170,7 +3170,7 @@ SUB edit_global_text_strings()
  
   clearpage dpage
   standardmenu menu.description(), state, menu.shaded(), 0, 0, dpage
-  standardmenu menu.text(), state, 232, 0, dpage, , , , , NO  'Don't toggle
+  standardmenu menu.text(), state, 232, 0, dpage, , , , YES  'highlight=YES
   draw_scrollbar state, rect, , dpage
   edgeprint "CTRL+S Search", 0, 191, uilook(uiDisabledItem), dpage
   IF state.pt >= 0 ANDALSO LEN(menu.help(state.pt)) THEN
@@ -3897,7 +3897,7 @@ SUB experience_chart ()
 
   clearpage vpage
   draw_fullscreen_scrollbar state, , vpage
-  standardmenu menu(), state, 0, 0, vpage, 0, , 312
+  standardmenu menu(), state, 0, 0, vpage, , , 312  'wide=312
   setvispage vpage
   dowait
  LOOP 
@@ -3952,7 +3952,7 @@ SUB stat_growth_chart ()
 
   'Draw screen
   clearpage vpage
-  standardmenu menu(), state, 0, 0, vpage, 0
+  standardmenu menu(), state, 0, 0, vpage
 
   'Draw a 150x150 graph
   'axes

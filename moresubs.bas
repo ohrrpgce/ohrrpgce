@@ -871,7 +871,7 @@ FUNCTION teleporttool () as integer
 
   copypage vpage, dpage
   rectangle offset.x + dest.x * zoom - camera.x, offset.y + dest.y * zoom - camera.y, zoom, zoom, uilook(uiSelectedItem) * state.tog, dpage
-  standardmenu menu(), state, 0, 182, dpage, YES, pickpoint=YES
+  standardmenu menu(), state, 0, 182, dpage, YES, (pickpoint=NO)  'edged=YES, active=(...)
   setvispage dpage
   dowait
  LOOP

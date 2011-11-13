@@ -858,7 +858,7 @@ DO
  END IF
 
  clearpage dpage
- standardmenu menu(), 2, 22, csr, 0, 0, 0, dpage, 0
+ standardmenu menu(), 2, 22, csr, 0, 0, 0, dpage
 
  SWAP vpage, dpage
  setvispage vpage
@@ -918,7 +918,7 @@ DO
   IF c(i - 2) = 0 THEN bmenu(i) = "Empty"
  NEXT i
 
- standardmenu bmenu(), 22, 22, bcsr, 0, 0, 0, dpage, 1
+ standardmenu bmenu(), 22, 22, bcsr, 0, 0, 0, dpage, YES  'edged=YES
 
  SWAP vpage, dpage
  setvispage vpage

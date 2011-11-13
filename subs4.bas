@@ -143,7 +143,7 @@ DO
    END IF
  END SELECT
  clearpage dpage
- standardmenu menu(), 15, 15, csr, top, 0, 0, dpage, 0
+ standardmenu menu(), 15, 15, csr, top, 0, 0, dpage
  SWAP vpage, dpage
  setvispage vpage
  dowait
@@ -342,7 +342,7 @@ SUB generalmusicsfxmenu ()
     END SELECT
 
     clearpage dpage
-    standardmenu disp(), num, 22, pt, menutop, 0, 0, dpage, 0
+    standardmenu disp(), num, 22, pt, menutop, 0, 0, dpage
 
     SWAP vpage, dpage
     setvispage vpage
@@ -440,7 +440,7 @@ DO
  END IF
 
  clearpage dpage
- standardmenu menu(), 10, 22, csr, 0, 0, 0, dpage, 0
+ standardmenu menu(), 10, 22, csr, 0, 0, 0, dpage
 
  SWAP vpage, dpage
  setvispage vpage
@@ -669,7 +669,7 @@ DO
  END IF
 
  clearpage dpage
- standardmenu menu(), 10, 22, csr, 0, 0, 0, dpage, 0
+ standardmenu menu(), 10, 22, csr, 0, 0, 0, dpage
 
  SWAP vpage, dpage
  setvispage vpage
@@ -1222,7 +1222,7 @@ SUB battleoptionsmenu ()
 
   clearpage vpage
   draw_fullscreen_scrollbar state, , vpage
-  standardmenu menu(), state, 0, 0, vpage, 0
+  standardmenu menu(), state, 0, 0, vpage
   setvispage vpage
   dowait
  LOOP
@@ -1283,7 +1283,7 @@ SUB statcapsmenu
   END IF
 
   clearpage vpage
-  standardmenu m(), state, 0, 0, vpage, 0
+  standardmenu m(), state, 0, 0, vpage
   setvispage vpage
   dowait
  LOOP
@@ -1459,7 +1459,7 @@ SUB startingdatamenu
   END IF
 
   clearpage vpage
-  standardmenu m(), state, 0, 0, vpage, 0
+  standardmenu m(), state, 0, 0, vpage
   setvispage vpage
   dowait
  LOOP
@@ -1612,7 +1612,7 @@ SUB gendata ()
 
   clearpage dpage
   draw_fullscreen_scrollbar state, , dpage
-  standardmenu m(), state, 0, 0, dpage, 0
+  standardmenu m(), state, 0, 0, dpage
 
   SWAP vpage, dpage
   setvispage vpage

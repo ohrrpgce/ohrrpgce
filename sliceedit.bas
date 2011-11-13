@@ -388,7 +388,7 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
    DrawSliceAnts menu(state.pt).handle, dpage
   END IF
   IF ses.hide_menu = NO THEN
-   standardmenu plainmenu(), state, 0, 0, dpage, YES, , , YES
+   standardmenu plainmenu(), state, 0, 0, dpage, YES, , , YES  'edged=YES, highlight=YES
    edgeprint "+ to add a slice. SHIFT+arrows to sort", 0, 190, uilook(uiText), dpage
   END IF
 
@@ -510,7 +510,7 @@ SUB slice_edit_detail (sl as Slice Ptr, byref ses as SliceEditState, rootsl as S
   DrawSlice rootsl, dpage
   DrawSliceAnts sl, dpage
   IF ses.hide_menu = NO THEN
-   standardmenu menu(), state, 0, 0, dpage, YES, , , YES
+   standardmenu menu(), state, 0, 0, dpage, YES, , , YES  'edged=YES, highlight=YES
   END IF
 
   SWAP vpage, dpage
@@ -1112,7 +1112,7 @@ FUNCTION edit_slice_lookup_codes(slicelookup() as string, byval start_at_code as
 
   clearpage dpage
   draw_fullscreen_scrollbar state, , dpage
-  standardmenu slicelookup(), state, 0, 0, dpage, , , , YES
+  standardmenu slicelookup(), state, 0, 0, dpage, , , , YES  'highlight=YES
 
   SWAP vpage, dpage
   setvispage vpage

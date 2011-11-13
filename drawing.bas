@@ -175,7 +175,7 @@ DO
  END IF
  copypage 2, dpage
  IF mstate.pt <> 6 THEN
-  standardmenu menu(), mstate, 0, 0, dpage, -1
+  standardmenu menu(), mstate, 0, 0, dpage, YES  'edged=YES
  END IF
  SWAP vpage, dpage
  setvispage vpage

@@ -461,7 +461,7 @@ DO
  END IF
 
  clearpage dpage
- standardmenu menu(), menumax, 22, pt, 0, 0, 0, dpage, 0
+ standardmenu menu(), menumax, 22, pt, 0, 0, 0, dpage
 
  SWAP vpage, dpage
  setvispage vpage
@@ -681,7 +681,7 @@ SUB text_box_editor () 'textage
   printstr "+ to copy", 248, 0, dpage
   printstr "ALT+C copy style", 192, 8, dpage
   IF style_clip > 0 THEN printstr "ALT+V paste style", 184, 16, dpage
-  standardmenu menu(), state, 0, 0, dpage, YES
+  standardmenu menu(), state, 0, 0, dpage, YES  'edged=YES
 
   SWAP vpage, dpage
   setvispage vpage

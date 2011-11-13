@@ -1467,21 +1467,7 @@ DO
    'Draw zonemenu
    DIM xpos as integer = 320 - 13*8  'Where to put the menu
    IF (st.x * 20) - st.mapx > xpos AND tiny = 0 THEN xpos = 8
-   standardmenu cast(BasicMenuItem vector, zonemenu), zonemenustate, xpos, 40, dpage, YES, , 13 * 8
-/'
-   setclip xpos, 0, xpos + 13*8 - 1, 319, dpage  'Can't use LEFT to clip text containing tags
-   'T his is mostly but not quite equivalent to standardmenu, sadly
-   WITH zonemenustate
-    FOR i = 0 TO .size
-'    FOR i = .top TO small(.top + .size, .last) 'UBOUND(zonemenu)
-     DIM idx as integer = i + .top
-     IF idx <= .last THEN
-      edgeprint zonemenu(idx).text, xpos, 40 + i*9, zonemenu(idx).col, dpage, YES
-     END IF
-    NEXT
-   END WITH
-   setclip , , , , dpage
-'/
+   standardmenu cast(BasicMenuItem vector, zonemenu), zonemenustate, xpos, 40, dpage, YES, , 13 * 8  'edged=YES, wide=13*8
 
    IF zonemenustate.pt > -1 THEN
     ' A little right arrow
@@ -2278,7 +2264,7 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
   END IF
   edgeprint "SHIFT+arrows to move layers, - to delete", 0, 190, uilook(uiText), dpage
 
-  standardmenu cast(BasicMenuItem vector, menu), state, 0, 0, dpage, YES
+  standardmenu cast(BasicMenuItem vector, menu), state, 0, 0, dpage, YES  'edged=YES
   /'  
   FOR i AS INTEGER = state.top TO state.top + state.size
    IF i <= state.last THEN
