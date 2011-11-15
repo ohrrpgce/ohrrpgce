@@ -374,6 +374,18 @@ class parser(object):
             if left > right:
                 return u""
 
+def visualColumn(text, offset):
+    """
+    Assuming that tabs are 8 spaces, returns the column that a certain character of a string is displayed at
+    """
+    ret = 0
+    for c in text[:offset]:
+        if c == "\t":
+            ret = (ret / 8 + 1) * 8
+        else:
+            ret += 1
+    return ret
+
 # plain module API
 
 def parseLine(textline, pattern, resultSoFar = [], skipWS = True, skipComments = None, packrat = False, matchAll = False, forceKeywords = False):
@@ -387,7 +399,7 @@ def parseLine(textline, pattern, resultSoFar = [], skipWS = True, skipComments =
         message = u"Syntax error: " + e.message + u"\n" + textline
         if not message.endswith(u"\n"):
             message += u"\n"
-        message += u" " * e.offset + u"^"
+        message += u" " * visualColumn(textline, e.offset) + u"^"
         e.message = message
         raise e
     return ast, text
@@ -455,7 +467,7 @@ def parse(language, lineSource, skipWS = True, skipComments = None, packrat = Fa
         message = u"Syntax error at " + u(file) + u":" + u(lineNo) + u":" + u(column) + u": " + e.message + u"\n" + lineCont
         if not message.endswith(u"\n"):
             message += u"\n"
-        message += u" " * column + u"^"
+        message += u" " * visualColumn(lineCont, column) + u"^"
         e.message = message
         raise e
 
