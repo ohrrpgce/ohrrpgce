@@ -9,7 +9,7 @@ def _pyAST2XML(pyAST, indent = 0, forcenl = False):
             result += "\n"
         return result
     if type(pyAST) is Symbol:
-        result = space + u"<" + pyAST[0].replace("_", "-") + u">"
+        result = space + u"<" + pyAST[0].replace("_", "-") + u" start=%d end=%d>" % (pyAST[0].start, pyAST[0].end)
         if isinstance(pyAST[1], unicode) or isinstance(pyAST[1], str):
             result += escape(pyAST[1])
         else:
