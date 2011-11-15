@@ -6,6 +6,7 @@
 #                   * Fixed "except: pass"s which broke memorization and more
 #                   * Added checkpoints along with a proper error reporting system;
 #                     throws a detailed ParseError instead of SyntaxError.
+#                   * Added forceKeywords option
 #                   (Ralph Versteegen)
 
 import re
@@ -14,6 +15,7 @@ import exceptions
 import types
 
 word_regex = re.compile(ur"\w+")
+whole_word_regex = re.compile(ur"\w+$")
 rest_regex = re.compile(ur".*")
 
 class keyword(unicode): pass
@@ -115,7 +117,7 @@ def skip(skipper, text, pattern, skipWS, skipComments):
     return t
 
 class parser(object):
-    def __init__(self, another = False, p = False):
+    def __init__(self, another = False, p = False, forceKeywords = False):
         self.restlen = -1 
         if not(another):
             self.skipper = parser(True, p)
@@ -126,6 +128,20 @@ class parser(object):
         self.textlen = 0
         self.memory = {}
         self.packrat = p
+        self.patternCache = {}
+        self.keywordCache = {}
+        self.forceKeywords = forceKeywords
+
+    def convertToKeywords(self, pattern):
+        """Convert all strings within this pattern to keyword instances as long as they can be"""
+        if isinstance(pattern, types.StringTypes):
+            if whole_word_regex.match(pattern):
+                return self.keywordCache.setdefault(pattern, keyword(pattern))
+            return pattern
+        elif hasattr(pattern, '__iter__'):
+            return type(pattern)(self.convertToKeywords(elem) for elem in pattern)
+        else:
+            return pattern
 
     # parseLine():
     #   textline:       text to parse
@@ -205,9 +221,15 @@ class parser(object):
                 name.line = self.lineNo()
                 rulename = name
 
-            pattern = pattern()
-            if callable(pattern):
-                pattern = (pattern,)
+            try:
+                pattern = self.patternCache[_pattern]
+            except KeyError:
+                pattern = pattern()
+                if self.forceKeywords:
+                    pattern = self.convertToKeywords(pattern)
+                if callable(pattern):
+                    pattern = (pattern,)
+                self.patternCache[_pattern] = pattern
 
         text = skip(self.skipper, textline, pattern, skipWS, skipComments)
         text_start_len = len(text)
@@ -354,8 +376,8 @@ class parser(object):
 
 # plain module API
 
-def parseLine(textline, pattern, resultSoFar = [], skipWS = True, skipComments = None, packrat = False, matchAll = False):
-    p = parser(p=packrat)
+def parseLine(textline, pattern, resultSoFar = [], skipWS = True, skipComments = None, packrat = False, matchAll = False, forceKeywords = False):
+    p = parser(p = packrat, forceKeywords = forceKeywords)
     try:
         ast, text = p.parseLine(textline, pattern, resultSoFar, skipWS, skipComments)
         text = skip(p.skipper, text, pattern, skipWS, skipComments)
@@ -377,13 +399,14 @@ def parseLine(textline, pattern, resultSoFar = [], skipWS = True, skipComments =
 #   skipComments:   Python function which returns pyPEG for matching comments
 #   packrat:        use memoization
 #   lineCount:      add line number information to AST
+#   forceKeywords:  all strings composed of alphanumeric characters are automatically treated as keywords
 #   
 #   returns:        pyAST
 #
 #   raises:         ParseError(reason), if a parsed line is not in language
 #                   SyntaxError(reason), if the language description is illegal
 
-def parse(language, lineSource, skipWS = True, skipComments = None, packrat = False, lineCount = True):
+def parse(language, lineSource, skipWS = True, skipComments = None, packrat = False, lineCount = True, forceKeywords = False):
     lines, lineNo = [], 0
 
     while callable(language):
@@ -401,7 +424,7 @@ def parse(language, lineSource, skipWS = True, skipComments = None, packrat = Fa
     textlen = len(orig)
 
     try:
-        p = parser(p=packrat)
+        p = parser(p = packrat, forceKeywords = forceKeywords)
         p.textlen = len(orig)
         if lineCount:
             p.lines = lines
