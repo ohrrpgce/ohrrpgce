@@ -2,7 +2,8 @@
 # 
 # Changelog:
 #            1.4:   Initial version from http://fdik.org/pyPEG
-# 2011-11-15 1.4.1: Added tracking of start & end of text matching a Symbol
+# 2011-11-15 1.4.1: * Added tracking of start & end of text matching a Symbol
+#                   * Fixed "except: pass"s which broke memorization and more
 #                   (Ralph Versteegen)
 
 import re
@@ -69,7 +70,8 @@ def skip(skipper, text, pattern, skipWS, skipComments):
                 skip, t = skipper.parseLine(t, skipComments, [], skipWS, None)
                 if skipWS:
                     t = t.lstrip()
-        except: pass
+        except SyntaxError:
+            pass
     return t
 
 class parser(object):
@@ -108,10 +110,9 @@ class parser(object):
         def R(result, text):
             if __debug__:
                 if print_trace:
-                    try:
+                    if hasattr(_pattern, '__name__'):
                         if _pattern.__name__ != "comment":
                             sys.stderr.write(u"match: " + _pattern.__name__ + u"\n")
-                    except: pass
 
             if self.restlen == -1:
                 self.restlen = len(text)
@@ -146,15 +147,15 @@ class parser(object):
                     return result
                 else:
                     raise SyntaxError()
-            except: pass
+            except KeyError:
+                pass
 
         if callable(pattern):
             if __debug__:
                 if print_trace:
-                    try:
+                    if hasattr(_pattern, '__name__'):
                         if pattern.__name__ != "comment":
                             sys.stderr.write(u"testing with " + pattern.__name__ + u": " + textline[:40] + u"\n")
-                    except: pass
 
             if pattern.__name__[0] != "_":
                 name = Name(pattern.__name__)
@@ -193,7 +194,7 @@ class parser(object):
         elif pattern_type is _not:
             try:
                 r, t = self.parseLine(text, pattern.obj, [], skipWS, skipComments, offset)
-            except:
+            except SyntaxError:
                 return resultSoFar, textline
             syntaxError()
 
