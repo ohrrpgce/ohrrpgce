@@ -109,7 +109,7 @@ def skip(skipper, text, skipWS, skipComments):
     if skipComments:
         try:
             while True:
-                skip, t = skipper.parseLine(t, skipComments, [], skipWS, None)
+                skipper.last_comment, t = skipper.parseLine(t, skipComments, [], skipWS, None)
                 if skipWS:
                     t = t.lstrip()
         except ParseFailure:
@@ -131,6 +131,7 @@ class parser(object):
         self.patternCache = {}
         self.keywordCache = {}
         self.forceKeywords = forceKeywords
+        self.last_comment = None
 
     def convertToKeywords(self, pattern):
         """Convert all strings within this pattern to keyword instances as long as they can be"""
@@ -396,21 +397,35 @@ def visualColumn(text, offset):
 
 # plain module API
 
-def parseLine(textline, pattern, resultSoFar = [], skipWS = True, skipComments = None, packrat = False, matchAll = False, forceKeywords = False):
-    p = parser(p = packrat, forceKeywords = forceKeywords)
-    try:
-        ast, text = p.parseLine(textline, pattern, resultSoFar, skipWS, skipComments)
-        text = skip(p.skipper, text, skipWS, skipComments)
-        if matchAll and len(text) > 0:
-            raise FatalParseError(u"garbage at end of line", len(textline) - len(text))
-    except ParseError, e:
-        message = u"Syntax error: " + e.message + u"\n" + textline
-        if not message.endswith(u"\n"):
-            message += u"\n"
-        message += u" " * visualColumn(textline, e.offset) + u"^"
-        e.message = message
-        raise e
-    return ast, text
+class LineParser(object):
+    def __init__(self, skipWS = True, skipComments = None, packrat = False, forceKeywords = False):
+        self.p = parser(p = packrat, forceKeywords = forceKeywords)
+        self.skipWS = skipWS
+        self.skipComments = skipComments
+
+    def parse_line(self, textline, pattern, matchAll = False, lineinfo = None):
+        if lineinfo:
+            self.p.lines = lineinfo
+        self.p.memory = {}
+        self.p.skipper.memory = {}
+        self.p.skipper.last_comment = None
+        # Preserve other caches
+        try:
+            ast, text = self.p.parseLine(textline, pattern, [], self.skipWS, self.skipComments)
+            text = skip(self.p.skipper, text, self.skipWS, self.skipComments)
+            if matchAll and len(text) > 0:
+                raise FatalParseError(u"garbage at end of line", len(textline) - len(text))
+        except ParseError, e:
+            message = u"Syntax error: " + e.message + u"\n" + textline
+            if not message.endswith(u"\n"):
+                message += u"\n"
+            message += u" " * visualColumn(textline, e.offset) + u"^"
+            e.message = message
+            raise e
+        return ast, text
+
+    def last_comment(self):
+        return self.p.skipper.last_comment
 
 # parse():
 #   language:       pyPEG language description
