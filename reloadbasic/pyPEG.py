@@ -1,5 +1,9 @@
-# pyPEG 1.4 by Volker Birk, licensed under the GNU GPL v2
-# http://fdik.org/pyPEG
+# A fork of pyPEG by Volker Birk, licensed under the GNU GPL v2
+# 
+# Changelog:
+#            1.4:   Initial version from http://fdik.org/pyPEG
+# 2011-11-15 1.4.1: Added tracking of start & end of text matching a Symbol
+#                   (Ralph Versteegen)
 
 import re
 import sys, codecs
@@ -21,6 +25,8 @@ class Name(unicode):
     def __init__(self, *args):
         self.line = 0
         self.file = u""
+        self.start = None
+        self.end = None
 
 class Symbol(list):
     def __init__(self, name, what):
@@ -54,7 +60,7 @@ def u(text):
 
 def skip(skipper, text, pattern, skipWS, skipComments):
     if skipWS:
-        t = text.strip()
+        t = text.lstrip()
     else:
         t = text
     if skipComments:
@@ -62,7 +68,7 @@ def skip(skipper, text, pattern, skipWS, skipComments):
             while True:
                 skip, t = skipper.parseLine(t, skipComments, [], skipWS, None)
                 if skipWS:
-                    t = t.strip()
+                    t = t.lstrip()
         except: pass
     return t
 
@@ -85,6 +91,7 @@ class parser(object):
     #   resultSoFar:    parsing result so far (default: blank list [])
     #   skipWS:         Flag if whitespace should be skipped (default: True)
     #   skipComments:   Python functions returning pyPEG for matching comments
+    #   offset:         The nominal offset of the beginning of textline (normally 0)
     #   
     #   returns:        pyAST, textrest
     #
@@ -93,7 +100,7 @@ class parser(object):
     #
     #                   SyntaxError(reason) if pattern is an illegal language description
 
-    def parseLine(self, textline, pattern, resultSoFar = [], skipWS = True, skipComments = None):
+    def parseLine(self, textline, pattern, resultSoFar = [], skipWS = True, skipComments = None, offset = 0):
         name = None
         _textline = textline
         _pattern = pattern
@@ -111,6 +118,9 @@ class parser(object):
             else:
                 self.restlen = min(self.restlen, len(text))
             res = resultSoFar
+            if name:
+                name.start = offset
+                name.end = offset + text_start_len - len(text)
             if name and result:
                 res.append(Symbol(name, result))
             elif name:
@@ -155,12 +165,15 @@ class parser(object):
                 pattern = (pattern,)
 
         text = skip(self.skipper, textline, pattern, skipWS, skipComments)
+        text_start_len = len(text)
+        offset += len(textline) - text_start_len
 
         pattern_type = type(pattern)
 
         if pattern_type is str or pattern_type is unicode:
             if text[:len(pattern)] == pattern:
-                text = skip(self.skipper, text[len(pattern):], pattern, skipWS, skipComments)
+                text = text[len(pattern):]
+                #text = skip(self.skipper, text[len(pattern):], pattern, skipWS, skipComments)
                 return R(None, text)
             else:
                 syntaxError()
@@ -169,7 +182,8 @@ class parser(object):
             m = word_regex.match(text)
             if m:
                 if m.group(0) == pattern:
-                    text = skip(self.skipper, text[len(pattern):], pattern, skipWS, skipComments)
+                    text = text[len(pattern):]
+                    #text = skip(self.skipper, text[len(pattern):], pattern, skipWS, skipComments)
                     return R(None, text)
                 else:
                     syntaxError()
@@ -178,13 +192,13 @@ class parser(object):
 
         elif pattern_type is _not:
             try:
-                r, t = self.parseLine(text, pattern.obj, [], skipWS, skipComments)
+                r, t = self.parseLine(text, pattern.obj, [], skipWS, skipComments, offset)
             except:
                 return resultSoFar, textline
             syntaxError()
 
         elif pattern_type is _and:
-            r, t = self.parseLine(text, pattern.obj, [], skipWS, skipComments)
+            r, t = self.parseLine(text, pattern.obj, [], skipWS, skipComments, offset)
             return resultSoFar, textline
 
         elif pattern_type is type(word_regex) or pattern_type is ignore:
@@ -192,7 +206,8 @@ class parser(object):
                 pattern = pattern.regex
             m = pattern.match(text)
             if m:
-                text = skip(self.skipper, text[len(m.group(0)):], pattern, skipWS, skipComments)
+                text = text[len(m.group(0)):]
+                #text = skip(self.skipper, text[len(m.group(0)):], pattern, skipWS, skipComments)
                 if pattern_type is ignore:
                     return R(None, text)
                 else:
@@ -203,28 +218,33 @@ class parser(object):
         elif pattern_type is tuple:
             result = []
             n = 1
+            newOffset = offset
             for p in pattern:
                 if type(p) is type(0):
                     n = p
                 else:
                     if n>0:
                         for i in range(n):
-                            result, text = self.parseLine(text, p, result, skipWS, skipComments)
+                            result, newText = self.parseLine(text, p, result, skipWS, skipComments, newOffset)
+                            newOffset += len(text) - len(newText)
+                            text = newText
                     elif n==0:
                         if text == "":
                             pass
                         else:
                             try:
-                                newResult, newText = self.parseLine(text, p, result, skipWS, skipComments)
-                                result, text = newResult, newText
+                                result, newText = self.parseLine(text, p, result, skipWS, skipComments, newOffset)
+                                newOffset += len(text) - len(newText)
+                                text = newText
                             except SyntaxError:
                                 pass
                     elif n<0:
                         found = False
                         while True:
                             try:
-                                newResult, newText = self.parseLine(text, p, result, skipWS, skipComments)
-                                result, text, found = newResult, newText, True
+                                result, newText = self.parseLine(text, p, result, skipWS, skipComments, newOffset)
+                                newOffset += len(text) - len(newText)
+                                text, found = newText, True
                             except SyntaxError:
                                 break
                         if n == -2 and not(found):
@@ -237,7 +257,7 @@ class parser(object):
             found = False
             for p in pattern:
                 try:
-                    result, text = self.parseLine(text, p, result, skipWS, skipComments)
+                    result, text = self.parseLine(text, p, result, skipWS, skipComments, offset)
                     found = True
                 except SyntaxError:
                     pass
@@ -283,8 +303,8 @@ class parser(object):
 
 def parseLine(textline, pattern, resultSoFar = [], skipWS = True, skipComments = None, packrat = False):
     p = parser(p=packrat)
-    text = skip(p.skipper, textline, pattern, skipWS, skipComments)
-    ast, text = p.parseLine(text, pattern, resultSoFar, skipWS, skipComments)
+    ast, text = p.parseLine(textline, pattern, resultSoFar, skipWS, skipComments)
+    text = skip(p.skipper, text, pattern, skipWS, skipComments)
     return ast, text
 
 # parse():
@@ -324,8 +344,8 @@ def parse(language, lineSource, skipWS = True, skipComments = None, packrat = Fa
             p.lines = lines
         else:
             p.line = None
-        text = skip(p.skipper, orig, language, skipWS, skipComments)
-        result, text = p.parseLine(text, language, [], skipWS, skipComments)
+        result, text = p.parseLine(orig, language, [], skipWS, skipComments)
+        text = skip(p.skipper, text, language, skipWS, skipComments)
         if text:
             raise SyntaxError()
 
