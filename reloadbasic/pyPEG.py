@@ -101,7 +101,7 @@ def u(text):
             return codecs.decode(text, "utf-8")
     return unicode(text)
 
-def skip(skipper, text, pattern, skipWS, skipComments):
+def skip(skipper, text, skipWS, skipComments):
     if skipWS:
         t = text.lstrip()
     else:
@@ -209,6 +209,17 @@ class parser(object):
             except KeyError:
                 pass
 
+            # Assuming self.skipper has identical packrat setting
+            try:
+                text = self.skipper.memory[len(textline)]
+            except KeyError:
+                text = skip(self.skipper, textline, skipWS, skipComments)
+                self.skipper.memory[len(textline)] = text
+        else:
+            text = skip(self.skipper, textline, skipWS, skipComments)
+        text_start_len = len(text)
+        offset += len(textline) - text_start_len
+
         if callable(pattern):
             if __debug__:
                 if print_trace:
@@ -231,9 +242,6 @@ class parser(object):
                     pattern = (pattern,)
                 self.patternCache[_pattern] = pattern
 
-        text = skip(self.skipper, textline, pattern, skipWS, skipComments)
-        text_start_len = len(text)
-        offset += len(textline) - text_start_len
 
         pattern_type = type(pattern)
 
@@ -392,7 +400,7 @@ def parseLine(textline, pattern, resultSoFar = [], skipWS = True, skipComments =
     p = parser(p = packrat, forceKeywords = forceKeywords)
     try:
         ast, text = p.parseLine(textline, pattern, resultSoFar, skipWS, skipComments)
-        text = skip(p.skipper, text, pattern, skipWS, skipComments)
+        text = skip(p.skipper, text, skipWS, skipComments)
         if matchAll and len(text) > 0:
             raise FatalParseError(u"garbage at end of line", len(textline) - len(text))
     except ParseError, e:
@@ -443,7 +451,7 @@ def parse(language, lineSource, skipWS = True, skipComments = None, packrat = Fa
         else:
             p.line = None
         result, text = p.parseLine(orig, language, [], skipWS, skipComments)
-        text = skip(p.skipper, text, language, skipWS, skipComments)
+        text = skip(p.skipper, text, skipWS, skipComments)
         if text:
             raise FatalParseError(u"garbage at end of line", len(orig) - len(text))
 
