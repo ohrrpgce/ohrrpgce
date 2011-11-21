@@ -72,6 +72,12 @@ TYPE NodePtr as Node ptr
 		stringHash as HashPtr
 		delayLoading as integer
 		fileHandle as FILE ptr
+
+		'The following members are used only by RELOADBASIC
+		RBSignature as integer
+		nameIndexTable as short ptr   'pointer to an array
+		'nameIndexTableBits as uinteger ptr
+		RBFuncBits as uinteger ptr
 	END TYPE
 	
 	ENUM NodeFlags
@@ -178,7 +184,21 @@ declare Sub WriteVLI overload(byval f as integer, byval v as Longint)
 
 Declare Function MemoryUsage(byval doc as DocPtr) as LongInt
 
-Declare Sub TestStringTables()
+#if defined(RELOADINTERNAL) or __FB_DEBUG__
+	Declare Function LoadNode overload(byval ret as nodeptr) as integer
+
+	'ReloadBasic stuff
+
+	Type RBNodeName
+		nameindex as integer
+		hash as uinteger
+		name as zstring ptr
+	End Type
+
+	Declare Sub BuildNameIndexTable(byval doc as DocPtr, nodenames() as RBNodeName, byval func_num as integer, byval func_bits_size as integer, byval signature as integer, byval total_num_names as integer)
+	Declare Function GetChildByNameIndex(byval nod as NodePtr, byval nameindex as integer) as NodePtr
+#endif
+
 
 End Namespace
 

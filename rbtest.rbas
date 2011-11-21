@@ -1,0 +1,376 @@
+
+#include "testing.bi"
+#include "common_base.bi"
+
+dim shared doc as DocPtr, doc2 as DocPtr
+
+
+sub sink(i as integer)
+end sub
+
+startTest(createDocument)
+	doc = CreateDocument()
+	if doc = null then fail
+
+	dim nod as NodePtr = CreateNode(doc, "root")
+	
+	if nod = 0 then fail
+	
+	SetRootNode(doc, nod)
+	
+	if DocumentRoot(doc) <> nod then fail
+endTest
+
+startTest(testBasicReading)
+	dim nod as nodeptr = SetChildNode(DocumentRoot(doc), "helper")
+	SetContent(nod, 100)
+
+	AppendChildNode(nod, "@attr1", "fish")
+	SetChildNode(nod, "int", 12345)
+	SetChildNode(nod, "int_like", "54321")
+	SetChildNode(nod, "float", 1234.5678)
+	SetChildNode(nod, "string", "1 2 3 4 5 6 7 8 9 0")
+	SetChildNode(nod, "null")
+	
+	if nod."int" <> 12345 then fail
+	if nod."int".integer <> 12345 then fail
+	if nod."int_like" <> 54321 then fail
+	if nod."float".float <> 1234.5678 then fail
+	if nod."string".string <> "1 2 3 4 5 6 7 8 9 0" then fail
+	if not nod."null".exists then fail
+	if not nod."int".bool then fail
+endTest
+
+startTest(testNestedNodes)
+	dim nod1 as NodePtr
+	dim nod2 as NodePtr
+	nod1 = SetChildNode(DocumentRoot(doc), "party")
+	AppendChildNode(nod1, "foo", 0)
+	AppendChildNode(nod1, "bar", 0)
+	AppendChildNode(nod1, "baz", 0)
+	nod1 = AppendChildNode(nod1, "slot", 3)
+	nod1 = SetChildNode(nod1, "stats")
+	nod2 = AppendChildNode(nod1, "stat", 0)
+	AppendChildNode(nod1, "stat", 1)
+	SetChildNode(nod2, "max", 100)
+	SetChildNode(nod2, "cur", 95)
+	
+	dim root as Node ptr = DocumentRoot(doc)
+	nod1 = root."party"."slot"."stats"."stat"."max".ptr
+	if NodeName(nod1) <> "max" then fail
+	if GetInteger(nod1) <> 100 then fail
+	withnode root."party"."slot"."stats"."stat" as stat
+		if NodeName(stat."max".ptr) <> "max" then fail
+		if stat."max" <> 100 then fail
+		if stat."max".integer <> 100 then fail
+	end withnode
+
+	withnode root."party" as party
+		withnode party."slot" as slot
+			withnode slot."stats" as stats
+				withnode stats."stat" as stat
+					if NodeName(stat."max".ptr) <> "max" then fail
+					if stat."max" <> 100 then fail
+					if stat."max".integer <> 100 then fail
+				end withnode
+			end withnode
+		end withnode
+	end withnode
+endTest
+
+startTest(testMissingNodes)
+	dim root as Node ptr = DocumentRoot(doc)
+	
+	if root."!@#".exists then fail
+	if root."!@#".bool then fail
+	if root."party"."   ".exists then fail
+	if root."party"."   ".ptr <> NULL then fail
+
+	'check default defaults
+	if root."not here".integer <> 0 then fail
+	if root."not here".string <> "" then fail
+	if root."not here".float <> 0.0 then fail
+	if root."not here"."foo".ptr <> NULL then fail
+	if root."not here"."foo".exists <> 0 then fail
+	if root."not here".bool <> 0 then fail
+	if root."not here".zstring <> NULL then fail
+	if root."not here".zstringsize <> 0 then fail
+
+	'check defaults
+	if root."not here".default(-1).integer <> -1 then fail
+	if root."not here".default("dd").string <> "dd" then fail
+	if root."not here".default(3.141).float <> 3.141 then fail
+	if root."not here"."foo".default(root).ptr <> root then fail
+	if root."not here".default(2).bool <> 2 then fail
+	if root."not here".default(@"blarg").zstring <> @"blarg" then fail
+	if root."not here".default(3).zstringsize <> 3 then fail
+endTest
+
+dim shared unexpected_warns as integer
+dim shared bad_warning as integer
+
+sub count_unexpected_warnings (msg as string)
+	if instr(lcase(msg), "unexpected") then
+		unexpected_warns += 1
+	else
+		debug msg
+		bad_warning += 1
+	end if
+end sub
+
+startTest(testReadNode)
+	# warn_func = count_unexpected_warnings
+	dim root as Node ptr = DocumentRoot(doc)
+	dim nod1 as Node ptr = AppendChildNode(root, "readnode")
+	for i as integer = 0 to 9
+		if i mod 3 = 0 then
+			AppendChildNode(nod1, "four of these", i)
+		else
+			AppendChildNode(nod1, "six of those", i)
+		end if
+		if i = 6 then
+			DIM nod2 as Node ptr = AppendChildNode(nod1, "something else", 12.3)
+			AppendChildNode(nod2, "A", 1)
+			AppendChildNode(nod2, "a", 100.4)
+			AppendChildNode(nod2, "A", 2)
+			DIM nod3 as Node ptr = AppendChildNode(nod2, "c", "C")
+			AppendChildNode(nod3, "child1", 1234)
+			AppendChildNode(nod3, "child2", 4321)
+		end if
+	next
+	
+	dim as integer sum1, sum2, sum3, Asum, should_happen
+	readnode nod1
+		sum1 += nod1."four of these".default(-100)
+		sum2 += nod1."six of those".default(-100)
+		readnode nod1."something else" as something
+			withnode something."c".required as foo
+				should_happen = YES
+				if NodeName(something) <> "something else" then fail
+			end withnode
+			Asum += something."A"
+			Asum += something."a"
+		end readnode
+		sum3 += nod1."none of that"
+	end readnode
+	if sum1 <> 18 then fail
+	if sum2 <> 27 then fail
+	if sum3 <> 0 then fail
+	if Asum <> 103 then fail
+	if should_happen = NO then fail
+	if bad_warning then fail
+	if unexpected_warns <> 0 then fail
+
+	sum1 = 0
+	sum2 = 0
+	Asum = 0
+
+	readnode root."readnode" as parent
+		sum1 += parent."four of these"
+		sum2 += parent."six of those"
+	end readnode
+	if sum1 <> 18 then fail
+	if sum2 <> 27 then fail
+	if bad_warning then fail
+	if unexpected_warns <> 1 then fail
+	unexpected_warns = 0
+
+	sum1 = 0
+
+	readnode root."readnode"."something else"."c" as c
+		sum1 += c."child1"
+		sum1 += c."child2"
+	end readnode
+	if sum1 <> 5555 then fail
+	if bad_warning then fail
+	if unexpected_warns <> 0 then fail
+endTest
+
+startTest(testIgnore)
+	# warn_func = count_unexpected_warnings
+	dim root as Node ptr = DocumentRoot(doc)
+
+	readnode root
+	end readnode
+	if bad_warning then fail
+	if unexpected_warns <> 3 then fail
+	unexpected_warns = 0
+
+	readnode root
+		root."party".ignore
+	end readnode
+	if bad_warning then fail
+	if unexpected_warns <> 2 then fail
+	unexpected_warns = 0
+
+	readnode root, ignoreall
+		sink root."party".exists
+	end readnode
+	if bad_warning then fail
+	if unexpected_warns <> 0 then fail
+endTest
+
+dim shared as integer set_warn, set_error
+
+sub warning(foo as string)
+	set_warn = YES
+end sub
+
+sub throwerror(foo as string)
+	set_error = YES
+end sub
+
+function error_out(byval root as NodePtr) as integer
+	# error_func = throwerror
+	print root."party"."slot"."not here".required.string
+	return 1  'OK
+end function
+
+startTest(testWarnRequire)
+	#warn_func = warning
+	# error_func = throwerror
+
+	dim root as Node ptr = DocumentRoot(doc)
+	sink root."blarg"
+	if set_warn then fail
+	sink root."blarg".warn
+	if set_warn = NO then fail
+	set_warn = NO
+
+	dim madeit as integer
+	withnode root."not 'ere".warn as dummy
+		if dummy <> NULL then fail
+		madeit = YES
+	end withnode
+	if madeit = NO then fail
+	if set_warn = NO then fail
+	set_warn = NO
+
+	'dim shouldnt_happen as integer
+	dim should_happen as integer
+	readnode root
+		sink root."not a node" : fail
+		sink root."also not".default(0) : should_happen = YES
+	end readnode
+	if set_warn = NO then fail
+	set_warn = NO
+	if should_happen = NO then fail
+	should_happen = NO
+
+	readnode root, default
+		sink root."not a node" : should_happen = YES
+	end readnode
+	if set_warn = NO then fail
+	set_warn = NO
+	if should_happen = NO then fail
+	should_happen = NO
+
+	readnode root, default
+		if root."neither.".string.default("4.5") <> "4.5" then fail : end if : should_happen = YES
+	end readnode
+	if set_warn = NO then fail
+	set_warn = NO
+	if should_happen = NO then fail
+	should_happen = NO
+
+	readnode root, ignoreall
+		sink root."not a node" : fail
+	end readnode
+	if set_warn then fail
+
+	if error_out(root) <> 0 then fail
+	if set_error = NO then fail
+endTest
+
+startTest(testNestedDefaulting)
+	dim as integer sum1, sum2
+	dim root as node ptr = DocumentRoot(doc)
+	
+	readnode root, ignoreall
+		readnode root."readnode" as rnode
+			rnode."four of these".ignore
+			rnode."six of those".ignore
+			readnode rnode."something else"."c" as c, default
+				withnode c."not here" as dummy
+					sum2 += 1  'should happen
+				end withnode
+				readnode c."not present" as notp
+					sum2 += notp."foo".default(100)
+					withnode notp."bar" as dummy
+						sum2 -= -100000  'shouldn't happen
+					end withnode
+				end readnode
+				sum1 += c."child1"
+				c."child2".ignore
+			end readnode
+			readnode rnode."not here" as dummy, default
+				sum2 += dummy."foo".default(-1000)  'shouldn't happen
+			end readnode
+			readnode rnode."also not here" as dummy
+				sum2 += dummy."foo".default(-10000)  'shouldn't happen
+			end readnode
+		end readnode
+	end readnode
+	if sum1 <> 1234 then fail
+	if sum2 <> 101 then fail
+endTest
+
+startTest(testMixedDocuments)
+	# warn_func = count_unexpected_warnings
+	doc2 = CreateDocument()
+	if doc2 = null then fail
+
+	dim root as NodePtr = DocumentRoot(doc)
+
+	dim root2 as NodePtr = CreateNode(doc2, "foo")
+	if root2 = 0 then fail
+	SetRootNode(doc2, root2)
+
+	AppendChildNode(root2, "child2", 3001)
+	AppendChildNode(root2, "child1", 3002)
+	dim as node ptr n = FirstChild(root2), n2
+	AppendChildNode(n, "party", 4001)
+	AppendChildNode(n, "", 4002)
+
+	if root."helper" <> 100 then fail
+	if root2."child1" <> 3002 then fail
+
+	withnode root2."child2" as ch
+		if ch."party" <> 4001 then fail
+		n2 = ch
+	end withnode
+	if n2."party" <> 4001 then fail
+
+	readnode root2
+		root2."helper".ignore
+	end readnode
+	if unexpected_warns <> 2 then fail
+	unexpected_warns = 0
+	if bad_warning then fail
+
+	dim sum as integer
+	readnode root2."child2" as dummy
+		sum += dummy.""
+	end readnode
+	if sum <> 4002 then fail
+	if unexpected_warns <> 1 then fail
+	unexpected_warns = 0
+	if bad_warning then fail
+
+	sum = 0
+	readnode root."helper" as dummy
+		sum += dummy."int"
+	end readnode
+	if sum <> 12345 then fail
+	if unexpected_warns <> 5 then fail
+	unexpected_warns = 0
+	if bad_warning then fail
+endTest
+
+startTest(cleanup)
+	FreeDocument(doc)
+	doc = 0
+	FreeDocument(doc2)
+	doc2 = 0
+	pass
+endTest

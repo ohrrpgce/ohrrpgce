@@ -50,8 +50,6 @@ Declare Function FindItem(byval h as HashPtr, byval key as ZString ptr, byval nu
 Declare Sub AddItem(byval h as HashPtr, byval key as ZString ptr, byval item as any ptr)
 Declare Sub RemoveKey(byval h as HashPtr, byval key as zstring ptr, byval num as integer = 1)
 
-Declare Function LoadNode overload(byval ret as nodeptr) as integer
-
 
 'I am aware of the hash table implementation in util.bas. However, this is tuned
 'for this purpose. Plus, I want everything contained on the private heap (if applicable)
@@ -130,6 +128,7 @@ Sub RDeallocate(byval p as any ptr, byval doc as docptr)
 #endif
 End Sub
 
+'If this changes, reload_HashZString in rparsergenerator.py needs to be updated too
 Function HashZString(byval st as ZString ptr) as integer
 	dim as integer ret = 0, i = 0
 	
@@ -313,7 +312,11 @@ sub FreeDocument(byval doc as DocPtr)
 			doc->stringHash = null
 		end if
 	end if
-	
+
+	RDeallocate(doc->nameIndexTable, doc)
+	'RDeallocate(doc->nameIndexTableBits, doc)
+	RDeallocate(doc->RBFuncBits, doc)
+
 	'regardless of what heap is in use, doc is on the default heap
 	delete doc
 end sub
@@ -607,6 +610,46 @@ Function AddStringToTable(st as string, byval doc as DocPtr) as integer
 	
 	return doc->numStrings - 1
 end function
+
+'RELOADBASIC internal function
+sub BuildNameIndexTable(byval doc as DocPtr, nodenames() as RBNodeName, byval func_num as integer, byval func_bits_size as integer, byval signature as integer, byval total_num_names as integer)
+	if doc->RBSignature <> signature then
+		doc->RBSignature = signature
+		RDeallocate(doc->nameIndexTable, doc)
+		'We might add more strings; worst case
+		doc->nameIndexTable = RAllocate((doc->numStrings + total_num_names) * sizeof(short), doc)
+		'RDeallocate(doc->nameIndexTableBits, doc)
+		'doc->nameIndexTableBits = RAllocate(((doc->numStrings + 31) / 32) * 4, doc)
+		RDeallocate(doc->RBFuncBits, doc)
+		doc->RBFuncBits = RAllocate(func_bits_size, doc)
+	end if
+
+	'If this function's nodenames table has been built before, skip
+	if doc->RBFuncBits[func_num / 32] and (1 shl (func_num mod 32)) then exit sub
+	doc->RBFuncBits[func_num / 32] or= (1 shl (func_num mod 32))
+
+	'memset(@table(0), &hff, sizeof(integer) * doc->numStrings)  'fills with -1
+
+	dim h as HashPtr = doc->stringHash
+	for i as integer = 0 to ubound(nodenames)
+		with nodenames(i)
+			'This is most of FindItem
+			dim b as ReloadHashItem ptr = h->bucket[.hash mod h->numBuckets]
+
+			do while b
+				if *b->key = *.name then
+					doc->nameIndexTable[cast(integer, b->item)] = .nameindex
+					continue for
+				end if
+				b = b->nxt
+			loop
+
+			'The string isn't in the table. Add it so that nameIndexTable doesn't
+			'become invalid if it is added.
+			doc->nameIndexTable[AddStringToTable(*.name, doc)] = .nameindex
+		end with
+	next
+end sub
 
 Declare sub serializeBin(byval nod as NodePtr, byval f as BufferedFile ptr, byval doc as DocPtr)
 
@@ -1254,6 +1297,21 @@ Function GetChildByName(byval nod as NodePtr, byval nam as zstring ptr) as NodeP
 			child = child->nextSib
 		wend
 	end if
+	return null
+End Function
+
+'RELOADBASIC internal function
+Function GetChildByNameIndex(byval nod as NodePtr, byval nameindex as integer) as NodePtr
+	if nod = null then return null
+	
+	if nod->flags AND nfNotLoaded then LoadNode(nod)
+
+	dim table as short ptr = nod->doc->nameIndexTable
+	dim child as NodePtr = nod->children
+	while child <> null
+		if table[child->namenum] = nameindex then return child
+		child = child->nextSib
+	wend
 	return null
 End Function
 

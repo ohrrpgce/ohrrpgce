@@ -100,6 +100,9 @@ basmaino = Builder (action = '$FBC -c $SOURCE -o $TARGET -m ${SOURCE.filebase} $
 basexe = Builder (action = '$FBC $FBFLAGS -x $TARGET $FBLIBS $SOURCES',
                   suffix = exe_suffix, src_suffix = '.bas')
 
+rbasic_builder = Builder (action = [['reloadbasic/reloadbasic.py', '$SOURCE', '-o', '$TARGET']],
+                          suffix = '.bas', src_suffix = '.rbas', single_source = True)
+
 # windres is part of mingw, and this is only used with linkgcc anyway.
 # FB includes GoRC.exe, but finding that file is too much trouble...
 rc_builder = Builder (action = 'windres --input $SOURCE --output $TARGET',
@@ -112,7 +115,7 @@ env['BUILDERS']['Object'].add_action ('.bas', '$FBC -c $SOURCE -o $TARGET $FBFLA
 SourceFileScanner.add_scanner ('.bas', bas_scanner)
 SourceFileScanner.add_scanner ('.bi', bas_scanner)
 
-env.Append (BUILDERS = {'BASEXE':basexe, 'BASO':baso, 'BASMAINO':basmaino, 'VARIANT_BASO':variant_baso, 'RC':rc_builder},
+env.Append (BUILDERS = {'BASEXE':basexe, 'BASO':baso, 'BASMAINO':basmaino, 'VARIANT_BASO':variant_baso, 'RB':rbasic_builder, 'RC':rc_builder},
             SCANNERS = bas_scanner)
 
 
@@ -365,6 +368,7 @@ RELOADTEST = env.BASEXE ('reloadtest', source = ['reloadtest.bas'] + reload_obje
 XML2RELOAD = env.BASEXE ('xml2reload', source = ['xml2reload.bas'] + reload_objects, FBLIBS = env['FBLIBS'] + ['-p','.', '-l','xml2'], CXXLINKFLAGS = env['CXXLINKFLAGS'] + ['-lxml2'])
 RELOAD2XML = env.BASEXE ('reload2xml', source = ['reload2xml.bas'] + reload_objects)
 RELOADUTIL = env.BASEXE ('reloadutil', source = ['reloadutil.bas'] + reload_objects)
+RBTEST = env.BASEXE ('rbtest', source = [env.RB('rbtest.rbas')] + reload_objects)
 env.BASEXE ('vectortest', source = ['vectortest.bas'] + base_objects)
 
 Default (GAME)
@@ -372,7 +376,7 @@ Default (CUSTOM)
 
 Alias ('game', GAME)
 Alias ('custom', CUSTOM)
-Alias ('reload', [RELOADUTIL, RELOAD2XML, XML2RELOAD, RELOADTEST])
+Alias ('reload', [RELOADUTIL, RELOAD2XML, XML2RELOAD, RELOADTEST, RBTEST])
 
 #print [str(a) for a in FindSourceFiles(GAME)]
 
@@ -413,6 +417,7 @@ Targets:
   reload2xml
   reloadutil
   vectortest
+  rbtest
   dumpohrkey
   bam2mid
   reload              Compile all RELOAD utilities.

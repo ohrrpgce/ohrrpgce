@@ -1,0 +1,110 @@
+This is the documentation for the RELOADbasiC extension of FreeBASIC.
+
+= Nodespecs =
+A nodespec is an expression for a typed value a child/descendent Node of a "root" NodePtr variable.
+
+Syntax:
+  nodevar."childname"[."deeper descendants" ...][.attribute]...
+
+nodevar must be a Node ptr variable. Zero length nodespecs aren't implemented yet, so you can only
+refer to descendants (you need to call GetInteger, etc. manually to get a node's value directly).
+
+== Nodespec type attributes ==
+.ptr		    : NodePtr: A pointer to the node itself, not its value.
+.integer        : (Default)
+.double
+.string
+.zstring
+.zstringsize    : Length of the zstring/binary blob
+.bool           : Equal to GetInteger(node) <> 0, like GetChildNodeBool. Always either YES or NO.
+				  So a Null node is NO, and it's possible to supply a default if the node doesn't
+				  exist.
+.exists			: More common usage: equal to YES if the node exists, NO otherwise, like
+				  GetChildNodeExists. No default value allowed, of course. 
+
+
+== Other Nodespec attributes ==
+.warn           : Print a warning message using warn_func if the node doesn't exist
+.required       : Print an error message using error_func if the node doesn't exist, then exit
+				  the sub or function (with return value 0)
+.default(value) : A default value if the node does not exist (NOT a default value for 'Null' nodes).
+				  The default value is evaluated lazily (only if required) EXCEPT if it's a string!
+				  This also causes a line inside a ReadNode to always be processed, with the default
+				  value, even if the node is missing. See below.
+.ignore         : The resulting nodespec is a directive, not an expression. It may only appear
+				  in a ReadNode, causing that node to be skipped without a warning.
+				  No other attributes should be given.
+
+
+= WithNode =
+Syntax:
+  WITHNODE nodespec AS nodevar
+    ...
+  END WITHNODE
+
+WithNode is mostly just a shortcut for
+  DIM nodevar as Node ptr = nodespec.ptr
+(nodevar should not be manually declared, it's done automatically), however it has an important use
+inside ReadNode block (more there).
+
+
+= ReadNode =
+Syntax:
+  READNODE nodespec AS nodevar [, IGNOREALL] [, DEFAULT]
+    ...
+  END READNODE
+or
+  READNODE nodevar [, IGNOREALL] [, DEFAULT]
+    ...
+  END READNODE
+
+The first form is just a shortcut for
+  DIM nodevar as Node ptr = nodespec.ptr
+  READNODE nodevar [...]
+(nodevar should not be manually declared, it's done automatically).
+
+nodevar must be a NodePtr. The body contains lines of arbitrary source which contain exactly one
+nodespec, referring to one of the children of nodevar. The children of nodevar are iterated over,
+and for each the matching line in the body is executed. If none match, then a warning is printed,
+unless "ignoreall" appears in the header. A child can also be ignored with an .ignore directive.
+If a line matches multiple times then it is run each time. If line doesn't match at all, then a
+warning or error is printed if its nodespec has the .warn or .required attributes, but it's not
+run with the default default value (ie. 0, 0.0 or "") unless either it has an explicit .default
+attribute, or "default" appears in the READNODE header.
+
+Example:
+
+
+ READNODE parent."state" as node
+  node."misthought_feature".ignore
+
+  gen(genDamageCap) = node."damage_cap"
+  gen(genLevelCap) = small(node."level_cap".default(99), gen(genMaxLevel))
+
+  gen(genTextboxBackdrop) = node."textbox"."backdrop"
+ END READNODE
+
+If node."damage_cap" is missing, then gen(genDamageCap) is uninitialised, while gen(genLevelCap)
+defaults to 99. You can't add a line that looks like
+  txt.id = node."textbox"."id"
+to this block, inside you would have to add
+  WITHNODE node."textbox" as tb
+   txt.id = tb."id"
+   gen(genTextboxBackdrop) = tb."backdrop"
+  END WITHNODE
+
+
+= TODO =
+
+* Finish writing this file
+* Clean up the source: handling of output and indent is horrible. Also variable naming confusion between strings, ASTNodes, others (NodeSpecs)
+* Assigning to nodespecs, other writing features
+* LOADARRAY
+* Zero length nodespecs
+* .once
+* .longint
+* nodespecs rooted by Doc ptrs
+* Global name indexing instead of RB_SIGNATURE hack
+* More care with nameindex tables (failures on NULL nodes)
+* Improve the tests
+* Inheriting warn_func, error_func from global scope
