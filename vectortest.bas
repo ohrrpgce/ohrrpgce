@@ -5,63 +5,8 @@ OPTION EXPLICIT
 
 '''''''''''''''''''''''''''''''' Testing Stuff '''''''''''''''''''''''''''''''''
 
+#include "testing.bi"
 
-type testPtr as function() as integer
-
-dim shared pauseTime as double
-dim shared errorpos as integer
-
-Randomize
-
-sub doTest(t as string, byval theTest as testPtr)
-	static num as integer = 0
-	
-	num += 1
-	
-	print "Test #" & num & ": " & t & "... ";
-	
-	dim as double start, finish, diff
-	dim as integer ret
-	
-	pauseTime = 0
-	
-	start = timer
-	
-	ret = theTest()
-	
-	finish = timer - pauseTime
-	
-	diff = finish - start
-	
-	do while diff < 0
-		diff += 86400
-	loop
-	
-	'diff *= 1000000
-	
-	if ret then
-		print "FAIL (on line " & errorpos & ")"
-		end num
-	else
-		print "Pass"
-	end if
-	
-	if(diff < 1) then
-		diff *= 1000
-		if(diff < 1) then
-			diff *= 1000
-			print "Took " & int(diff) & !" \u03BCs "
-		else
-			print "Took " & int(diff) & " ms "
-		end if
-	else
-		print "Took " & int(diff) & " s "
-	end if
-	
-end sub
-
-#define pass return 0
-#define fail errorpos = __LINE__ : return 1
 #macro assertVector(vec, repr)
 	Scope
 		dim temp as string = v_str(vec)
@@ -74,13 +19,6 @@ end sub
 		end if
 	End Scope
 #endmacro
-
-#macro startTest(t)
-	Declare Function t##_TEST() as integer
-	doTest(#t, @t##_TEST)
-	function t##_TEST() as integer
-#endmacro
-#define endTest pass : end Function
 
 
 '''''''''''''''''''''''''''''''''''' Types '''''''''''''''''''''''''''''''''''''
