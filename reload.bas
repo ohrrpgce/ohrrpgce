@@ -53,6 +53,23 @@ Declare Sub RemoveKey(byval h as HashPtr, byval key as zstring ptr, byval num as
 Declare Function LoadNode overload(byval ret as nodeptr) as integer
 
 
+'I am aware of the hash table implementation in util.bas. However, this is tuned
+'for this purpose. Plus, I want everything contained on the private heap (if applicable)
+Type ReloadHashItem
+	key as zstring ptr 
+	item as any ptr 'this doesn't have to be a pointer...
+	nxt as ReloadHashItem ptr
+End Type
+
+Type ReloadHash
+	bucket as ReloadHashItem ptr ptr
+	numBuckets as uinteger
+	numItems as uinteger
+	doc as DocPtr
+	hashFunc as hashFunction
+end Type
+
+
 '===================================================================================================
 '= Private Heap abstraction
 '= On Windows, we can create a private heap to manage our memory. The advantage is that when the
@@ -1216,20 +1233,27 @@ Function FindChildByName(byval nod as NodePtr, nam as string) as NodePtr
 	return null
 End function
 
-Function GetChildByName(byval nod as NodePtr, nam as string) as NodePtr
+Function GetChildByName(byval nod as NodePtr, byval nam as zstring ptr) as NodePtr
 	'Not recursive!
 	'does not find self.
 	if nod = null then return null
 	
 	if nod->flags AND nfNotLoaded then LoadNode(nod)
-	
-	dim child as NodePtr
-	dim ret as NodePtr
-	child = nod->children
-	while child <> null
-		if *child->name = nam then return child
-		child = child->nextSib
-	wend
+	dim child as NodePtr = nod->children
+
+	if nod->numChildren >= 10 then  'cutoff chosen with reloadtest speed tests
+		dim namenum as integer = cast(integer, FindItem(nod->doc->stringhash, nam))
+
+		while child <> null
+			if child->namenum = namenum then return child
+			child = child->nextSib
+		wend
+	else
+		while child <> null
+			if *child->name = *nam then return child
+			child = child->nextSib
+		wend
+	end if
 	return null
 End Function
 
@@ -1483,7 +1507,7 @@ Function GetChildNodeBool(byval parent as NodePtr, n as string, byval d as integ
 	
 	if nod = 0 then return d <> 0
 	
-	return GetInteger(nod) <> 0 'yes, I realize I don't check for null. GetInteger does, though.
+	return GetInteger(nod) <> 0
 end function
 
 'looks for a child node of the name n, and returns whether it finds it or not. For "flags", etc
@@ -1793,22 +1817,6 @@ function ReadVLI(byval f as FILE ptr) as longint
 	
 end function
 
-
-'I am aware of the hash table implementation in util.bas. However, this is tuned
-'for this purpose. Plus, I want everything contained on the private heap (if applicable)
-Type ReloadHashItem
-	key as zstring ptr 
-	item as any ptr 'this doesn't have to be a pointer...
-	nxt as ReloadHashItem ptr
-End Type
-
-Type ReloadHash
-	bucket as ReloadHashItem ptr ptr
-	numBuckets as uinteger
-	numItems as uinteger
-	doc as DocPtr
-	hashFunc as hashFunction
-end Type
 
 
 Function CreateHashTable(byval doc as Docptr, byval hashFunc as hashFunction, byval b as integer) as ReloadHash ptr

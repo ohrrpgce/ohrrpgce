@@ -1,6 +1,7 @@
 
 #include "reload.bi"
 #include "reloadext.bi"
+#include "string.bi"
 
 Using Reload
 Using Reload.Ext
@@ -47,14 +48,16 @@ sub doTest(t as string, byval theTest as testPtr)
 	
 	if(diff < 1) then
 		diff *= 1000
-		if(diff < 1) then
+		if(diff < 10) then
 			diff *= 1000
 			print "Took " & int(diff) & !" \u03BCs "
+		elseif diff < 100 then
+			print "Took " & format(diff, "0.0") & " ms "
 		else
 			print "Took " & int(diff) & " ms "
 		end if
 	else
-		print "Took " & int(diff) & " s "
+		print "Took " & format(diff, "0.00") & " s "
 	end if
 	
 end sub
@@ -496,6 +499,7 @@ startTest(testSwapNodes)
 	FreeDocument(swapdoc)
 endTest
 
+
 startTest(serializeXML)
 	print
 	
@@ -505,40 +509,6 @@ startTest(serializeXML)
 	close fh
 	
 	'if 0 = ask("Did this render correctly?") then fail
-endTest
-
-startTest(writeFile)
-	SerializeBin("unittest.rld", doc)
-	
-	if dir("unittest.rld") = "" then fail
-endTest
-
-startTest(compareDocumentsNoDelay)
-	doc2 = LoadDocument("unittest.rld", optNoDelay)
-	
-	if doc2 = null then fail
-	
-	if CompareNodes(DocumentRoot(doc), DocumentRoot(doc2), YES) then fail
-endTest
-
-startTest(freeDocumentNoDelay)
-	FreeDocument(doc2)
-	doc2 = 0
-	pass
-endTest
-
-startTest(compareDocumentsDelay)
-	doc2 = LoadDocument("unittest.rld")
-	
-	if doc2 = null then fail
-	
-	if CompareNodes(DocumentRoot(doc), DocumentRoot(doc2), YES) then fail
-endTest
-
-startTest(freeDocumentDelay)
-	FreeDocument(doc2)
-	doc2 = 0
-	pass
 endTest
 
 
@@ -584,6 +554,120 @@ startTest(pedanticCompareWithXML)
 	if CompareNodes(DocumentRoot(doc), DocumentRoot(doc2), YES) then fail
 endTest
 '/
+
+
+startTest(nodeAppendingSpeedTest1)
+	dim root as NodePtr = DocumentRoot(doc)
+	dim hub as NodePtr = AppendChildNode(root, "bigtree")
+	dim nod as NodePtr
+	for i as integer = 0 to 40000
+		AppendChildNode(hub, "null")
+		AppendChildNode(hub, "int", 42)
+		if i mod 1000 = 0 then
+			nod = AppendChildNode(hub, "marker" & i)
+		end if
+	next
+endTest
+
+startTest(nodeFindingSpeedTest1)
+	dim root as NodePtr = DocumentRoot(doc)
+	dim hub as NodePtr = GetChildByName(root, "bigtree")
+	dim nod as NodePtr
+	for i as integer = 0 to 40000 step 1000
+		nod = GetChildByName(hub, "marker" & i)
+	next
+endTest
+
+startTest(setKeyValueSpeedTest1)
+	dim root as NodePtr = DocumentRoot(doc)
+	dim hub as NodePtr = AppendChildNode(root, "bigtree2")
+	dim nod as NodePtr
+	dim itemname as string = "item"
+	for i as integer = 0 to 500
+	    SetKeyValueNode(hub, itemname, i, i * 2)
+	next
+endTest
+
+startTest(nodeFindingSpeedTest2)
+	dim root as NodePtr = DocumentRoot(doc)
+	dim hub as NodePtr = GetChildByName(root, "bigtree2")
+	dim nod as NodePtr
+	dim itemname as string = "item"
+	for i as integer = 500 to 0 step -1
+		if ReadKeyValueNode(hub, itemname, i, -1) <> i * 2 then fail
+	next
+endTest
+
+startTest(nodeAppendingSpeedTest2)
+	dim hub as NodePtr = NodeByPath(doc, "/bigtree")
+	dim nod as NodePtr
+	for i as integer = 0 to 4999
+		nod = AppendChildNode(hub, "something")
+		AppendChildNode(nod, "datum1", i)
+		AppendChildNode(nod, "datum2", i)
+		AppendChildNode(nod, "datum3")
+		AppendChildNode(nod, "datum4", i)
+		AppendChildNode(nod, "datum5", i)
+		AppendChildNode(nod, "datum6", "foo")
+		AppendChildNode(nod, "datum7")
+		AppendChildNode(nod, "datum8")
+		AppendChildNode(nod, "datum9")
+		AppendChildNode(nod, "datum10")
+	next
+endTest
+
+startTest(nodeFindingSpeedTest3)
+	dim nod as NodePtr = NodeByPath(doc, "/bigtree/something")
+	if nod = NULL then fail
+	for i as integer = 0 to 4999
+		if nod = NULL then fail
+		if GetChildNodeInt(nod, "datum1") <> i then fail
+		GetChildNodeInt(nod, "datum2")
+		GetChildByName(nod, "datum5")
+		GetChildByName(nod, "datum6")
+		GetChildByName(nod, "datum9")
+		GetChildByName(nod, "datum10")
+		nod = NextSibling(nod)
+	next
+endTest
+
+
+startTest(writeFile)
+	SerializeBin("unittest.rld", doc)
+	
+	if dir("unittest.rld") = "" then fail
+endTest
+
+startTest(loadDocumentNoDelay)
+	doc2 = LoadDocument("unittest.rld", optNoDelay)
+	
+	if doc2 = null then fail
+endTest
+
+startTest(compareDocumentsNoDelay)
+	if CompareNodes(DocumentRoot(doc), DocumentRoot(doc2), YES) then fail
+endTest
+
+startTest(freeDocumentNoDelay)
+	FreeDocument(doc2)
+	doc2 = 0
+	pass
+endTest
+
+startTest(loadAndCompareDocumentsDelay)
+	doc2 = LoadDocument("unittest.rld")
+	
+	if doc2 = null then fail
+	
+	if CompareNodes(DocumentRoot(doc), DocumentRoot(doc2), YES) then fail
+endTest
+
+startTest(freeDocumentDelay)
+	FreeDocument(doc2)
+	doc2 = 0
+	pass
+endTest
+
 
 startTest(cleanup)
 	FreeDocument(doc)
