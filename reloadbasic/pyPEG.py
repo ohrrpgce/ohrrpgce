@@ -10,6 +10,7 @@
 #                   (Ralph Versteegen)
 # 2011-11-17 1.4.2  * Breaking changes in AST structure: ASTNode replaces Symbol, Name
 #                   * LineParser class replaces parseLine function
+#                   * Added caseInsensitive option
 #                   (Ralph Versteegen)
 
 import re
@@ -24,8 +25,9 @@ rest_regex = re.compile(ur".*")
 class keyword(unicode): pass
 class code(unicode): pass
 class ignore(object):
-    def __init__(self, regex_text):
-        self.regex = re.compile(regex_text)
+    def __init__(self, regex_text, flags = 0):
+        self.regex = re.compile(regex_text, flags)
+        self.regex_text = regex_text
 
 class _and(object):
     def __init__(self, something):
@@ -90,8 +92,10 @@ class FatalParseError(ParseError):
             return u"'" + u(expected) + u"'"
         elif isinstance(expected, list):
             return u"one of: " + u", ".join(self.describePattern(elem) for elem in expected)
-        elif type(expected) in (type(word_regex), ignore):
+        elif type(expected) == type(word_regex):
             return u"<Regex>"
+        elif type(expected) == ignore:
+            return expected.regex_text
         elif callable(expected):
             return unicode(expected.__name__)
 
@@ -130,7 +134,7 @@ def skip(skipper, text, skipWS, skipComments):
     return t
 
 class parser(object):
-    def __init__(self, another = False, p = False, forceKeywords = False):
+    def __init__(self, another = False, p = False, forceKeywords = False, caseInsensitive = False):
         self.restlen = -1 
         if not(another):
             self.skipper = parser(True, p)
@@ -145,15 +149,41 @@ class parser(object):
         self.keywordCache = {}
         self.forceKeywords = forceKeywords
         self.last_comment = None
+        self.caseInsensitive = caseInsensitive
 
-    def convertToKeywords(self, pattern):
-        """Convert all strings within this pattern to keyword instances as long as they can be"""
+    def transformPattern(self, pattern):
+        """
+        If needed, convert all strings within this pattern to keyword instances (if they look like keywords),
+        and/or make things case insensitive.
+        """
         if isinstance(pattern, types.StringTypes):
-            if whole_word_regex.match(pattern):
-                return self.keywordCache.setdefault(pattern, keyword(pattern))
+            # This cache is not to speed up transformPattern (the result is cached anyway),
+            # instead it's used so that identical patterns are transformed to the same pattern,
+            # improving memoization
+            if pattern in self.keywordCache:
+                return self.keywordCache[pattern]
+            makekeyword = isinstance(pattern, keyword)  # Because keyword subclasses unicode
+            if self.forceKeywords:
+                makekeyword = makekeyword or whole_word_regex.match(pattern)
+            if self.caseInsensitive:
+                if makekeyword:
+                    ret = ignore(re.escape(pattern) + "(?!\w)", re.I)
+                else:
+                    ret = ignore(re.escape(pattern), re.I)
+            elif makekeyword:
+                ret = keyword(pattern)
+            else:
+                ret = pattern
+            self.keywordCache[pattern] = ret
+            return ret
+        elif isinstance(pattern, ignore) and self.caseInsensitive:
+            if pattern.regex_text in self.keywordCache:
+                return self.keywordCache[pattern.regex_text]
+            pattern.regex = re.compile(pattern.regex_text, re.I)
+            self.keywordCache[pattern.regex_text] = pattern
             return pattern
         elif hasattr(pattern, '__iter__'):
-            return type(pattern)(self.convertToKeywords(elem) for elem in pattern)
+            return type(pattern)(self.transformPattern(elem) for elem in pattern)
         else:
             return pattern
 
@@ -251,8 +281,8 @@ class parser(object):
                 pattern = self.patternCache[_pattern]
             except KeyError:
                 pattern = pattern()
-                if self.forceKeywords:
-                    pattern = self.convertToKeywords(pattern)
+                if self.forceKeywords or self.caseInsensitive:
+                    pattern = self.transformPattern(pattern)
                 if callable(pattern):
                     pattern = (pattern,)
                 self.patternCache[_pattern] = pattern
@@ -261,7 +291,7 @@ class parser(object):
         pattern_type = type(pattern)
 
         if pattern_type is str or pattern_type is unicode:
-            if text[:len(pattern)] == pattern:
+            if text.startswith(pattern):
                 text = text[len(pattern):]
                 return R(None, text)
             else:
@@ -269,7 +299,7 @@ class parser(object):
 
         elif pattern_type is keyword:
             m = word_regex.match(text)
-            if m and m.group(0) == pattern:
+            if m and m.group() == pattern:
                 text = text[len(pattern):]
                 return R(None, text)
             syntaxError()
@@ -290,11 +320,11 @@ class parser(object):
                 pattern = pattern.regex
             m = pattern.match(text)
             if m:
-                text = text[len(m.group(0)):]
+                text = text[m.end():]
                 if pattern_type is ignore:
                     return R(None, text)
                 else:
-                    return R([m.group(0)], text)
+                    return R([m.group()], text)
             else:
                 syntaxError()
 
@@ -423,8 +453,8 @@ def pointToError(text, offset1, offset2 = None):
 # plain module API
 
 class LineParser(object):
-    def __init__(self, skipWS = True, skipComments = None, packrat = False, forceKeywords = False):
-        self.p = parser(p = packrat, forceKeywords = forceKeywords)
+    def __init__(self, skipWS = True, skipComments = None, packrat = False, forceKeywords = False, caseInsensitive = False):
+        self.p = parser(p = packrat, forceKeywords = forceKeywords, caseInsensitive = caseInsensitive)
         self.skipWS = skipWS
         self.skipComments = skipComments
 
@@ -462,7 +492,7 @@ class LineParser(object):
 #   raises:         ParseError(reason), if a parsed line is not in language
 #                   SyntaxError(reason), if the language description is illegal
 
-def parse(language, lineSource, skipWS = True, skipComments = None, packrat = False, lineCount = True, forceKeywords = False):
+def parse(language, lineSource, skipWS = True, skipComments = None, packrat = False, lineCount = True, forceKeywords = False, caseInsensitive = False):
     lines, lineNo = [], 0
 
     while callable(language):
@@ -480,7 +510,7 @@ def parse(language, lineSource, skipWS = True, skipComments = None, packrat = Fa
     textlen = len(orig)
 
     try:
-        p = parser(p = packrat, forceKeywords = forceKeywords)
+        p = parser(p = packrat, forceKeywords = forceKeywords, caseInsensitive = caseInsensitive)
         p.textlen = len(orig)
         if lineCount:
             p.lines = lines

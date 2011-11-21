@@ -34,12 +34,12 @@ def escapedString():        return re.compile(r'!"(""|\\.|[^"\n])*"')
 #def string():              return [escapedString, basicString]
 def string():               return re.compile(r'"(""|[^"\n])*"|!"(""|\\.|[^"\n])*"')
 
-def identifier():           return re.compile(r'[_a-z]\w*')
+def identifier():           return re.compile(r'[_a-zA-Z]\w*')
 
 def namespace():            return PLUS, (identifier, ".")
 
 # Basically anything except a comma or (, ), {, }
-def genericToken():         return re.compile(r"([-a-z0-9._+=<>\\@&#$^*+[\]:;]|/(?!'))+")
+def genericToken():         return re.compile(r"([-a-zA-Z0-9._+=<>\\@&#$^*+[\]:;]|/(?!'))+")
 
 def nodeIndex():            return "[", CHECKPNT, "$", identifier, "]" 
 
@@ -59,7 +59,7 @@ def expressionList():       return QUES, (expression, STAR, (",", expression))
 def expression():           return PLUS, [("(", CHECKPNT, expressionList, ")"), ("{", CHECKPNT, expressionList, "}"),
                                           nodeSpec, string, genericToken]
 
-def typename():             return QUES, namespace, identifier, STAR, re.compile('ptr|vector')
+def typename():             return QUES, namespace, identifier, STAR, re.compile('ptr|vector', re.I)
 
 def arrayDimension():       return "(", CHECKPNT, expressionList, ")"
 
@@ -101,7 +101,7 @@ def nodeSpecAssignment():   return nodeSpec, "=", CHECKPNT, expression
 
 # Grammar for any line of RB source. Matches empty lines too (including those with comments)
 # The AND element requires the regex to match before most patterns are checked.
-def lineGrammar():          return [(AND(re.compile('(end\s+)?(dim|fornode|nextnode|readnode|withnode|private|sub|function)')),
+def lineGrammar():          return [(AND(re.compile('(end\s+)?(dim|fornode|nextnode|readnode|withnode|private|sub|function)', re.I)),
                                      [dimStatement, readnode, readnodeEnd, withnode, withnodeEnd, fornode, fornodeEnd,
                                       functionStart, functionEnd, subStart, subEnd]),
                                     nodeSpecAssignment, tokenList]
@@ -145,7 +145,7 @@ class FileParsingIterator(object):
         self.filename = filename
         file = open(filename, 'r')
         self.starting_in_comment = False
-        self.parser = pyPEG.LineParser(skipComments = comment, packrat = True, forceKeywords = True)
+        self.parser = pyPEG.LineParser(skipComments = comment, packrat = True, forceKeywords = True, caseInsensitive = True)
         self.source = source_lines_iter(file)
 
     def __iter__(self):
@@ -154,7 +154,7 @@ class FileParsingIterator(object):
     def next(self):
         self.lineno, self.line = self.source.next()
         try:
-            parse_line = self.line.lower()
+            parse_line = self.line
             offset = 0
             if self.starting_in_comment:
                 parse_line = "/'..." + parse_line
@@ -391,16 +391,16 @@ class ReloadBasicFunction(object):
         Given a typename AST node, returns whether it is a NodePtr or Node ptr.
         """
         if len(node) == 2:
-            return node[0] == ASTNode('identifier', ['node']) and node[1] == 'ptr'
+            return get_ident(node[0]).lower() == 'node' and node[1].lower() == 'ptr'
         if len(node) == 1:
-            return node[0] == ASTNode('identifier', ['nodeptr'])
+            return get_ident(node[0]).lower() == 'nodeptr'
         return False
 
     def find_nodeptr_vars(self, varnodes):
         """
         Given a list of normalised variable declarations, return the names of the Node ptrs among them.
         """
-        return [varname for (varname, typenode, initval) in varnodes if self.typename_is_nodeptr(typenode)]
+        return [varname.lower() for (varname, typenode, initval) in varnodes if self.typename_is_nodeptr(typenode)]
 
     def lookup_names(self, doc, namelist):
         prefix = self.makename()
@@ -441,7 +441,7 @@ class ReloadBasicFunction(object):
             nodespec = NodeSpec(astnode, self.cur_line, "ptr")
         else:
             nodespec = NodeSpec(astnode, self.cur_line)
-        if nodespec.nodeptr not in self.nodeptrs:
+        if nodespec.nodeptr.lower() not in self.nodeptrs:
             raise LanguageError("Nodespec lead variable is not recognised as a Node ptr", astnode[0])
 
         nodeptr = nodespec.nodeptr
