@@ -1,29 +1,34 @@
 from xml.sax.saxutils import escape
-from pyPEG import Symbol
+from pyPEG import ASTNode
 
-def _pyAST2XML(pyAST, indent = 0, forcenl = False):
+def _pyAST2XML(pyAST, indent = 0, forcenl = False, realxml = False):
     space = u"  " * indent
     if isinstance(pyAST, unicode) or isinstance(pyAST, str):
         result = space + escape(pyAST)
         if forcenl:
             result += "\n"
         return result
-    if type(pyAST) is Symbol:
-        result = space + u"<" + pyAST[0].replace("_", "-") + u" start=%d end=%d>" % (pyAST[0].start, pyAST[0].end)
-        if isinstance(pyAST[1], unicode) or isinstance(pyAST[1], str):
-            result += escape(pyAST[1])
+    if type(pyAST) is ASTNode:
+        result = space + u"<" + pyAST.name.replace("_", "-")
+        if realxml:
+            result += u' start="%s" end="%s">' % (pyAST.start, pyAST.end)
+        else:
+            result += u" start=%s end=%s>" % (pyAST.start, pyAST.end)
+        if len(pyAST.what) == 1 and type(pyAST.what[0]) in (unicode, str):
+            result += escape(pyAST.what[0])
         else:
             result += "\n"
-            for e in pyAST[1]:
-                result += _pyAST2XML(e, indent + 1, True)
+            for e in pyAST:
+                result += _pyAST2XML(e, indent + 1, True, realxml)
             result += space
-        result += u"</" + pyAST[0].replace("_", "-") + u">\n"
+        result += u"</" + pyAST.name.replace("_", "-") + u">\n"
     else:
         result = u""
         for e in pyAST:
-            result += _pyAST2XML(e, indent + 1, False)
+            result += _pyAST2XML(e, indent + 1, False, realxml)
         result += "\n"
     return result
 
-def pyAST2XML(pyAST):
-    return _pyAST2XML(pyAST)
+def AST2XML(pyAST, realxml = False):
+    "Return XML representation of an ASTNode. Outputs valid XML only if realxml is passed True."
+    return _pyAST2XML(pyAST, 0, False, realxml)

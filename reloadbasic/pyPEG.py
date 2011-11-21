@@ -8,6 +8,9 @@
 #                     throws a detailed ParseError instead of SyntaxError.
 #                   * Added forceKeywords option
 #                   (Ralph Versteegen)
+# 2011-11-17 1.4.2  * Breaking changes in AST structure: ASTNode replaces Symbol, Name
+#                   * LineParser class replaces parseLine function
+#                   (Ralph Versteegen)
 
 import re
 import sys, codecs
@@ -30,25 +33,35 @@ class _and(object):
 
 class _not(_and): pass
 
-class Name(unicode):
-    def __init__(self, *args):
-        self.line = 0
-        self.file = u""
-        self.start = None
-        self.end = None
-
-class Symbol(list):
+class ASTNode(object):
     def __init__(self, name, what):
-        self.__name__ = name
-        self.append(name)
+        self.name = name
         self.what = what
-        self.append(what)
+    def __getitem__(self, key):
+        return self.what[key]
+    def get(self, key, default = None):
+        for node in self.what:
+            if isinstance(node, ASTNode) and node.name == key:
+                return node
+        return default
+    def __getattr__(self, key):
+        for node in self.what:
+            if isinstance(node, ASTNode) and node.name == key:
+                return node
+        raise KeyError()
+    def __iter__(self):
+        return iter(self.what)
+    def __len__(self):
+        return len(self.what)
     def __call__(self):
         return self.what
+    def __eq__(self, rhs):
+        return isinstance(rhs, ASTNode) and self.name == rhs.name and self.what == rhs.what
     def __unicode__(self):
-        return u'Symbol(' + repr(self.__name__) + ', ' + repr(self.what) + u')'
+        return u'ASTNode(' + repr(self.name) + ', ' + repr(self.what) + u')'
     def __repr__(self):
         return unicode(self)
+
 
 class ParseError(Exception):
     def __init__(self, message):
@@ -180,12 +193,14 @@ class parser(object):
                 self.restlen = min(self.restlen, len(text))
             res = resultSoFar
             if name:
-                name.start = offset
-                name.end = offset + text_start_len - len(text)
-            if name and result:
-                res.append(Symbol(name, result))
-            elif name:
-                res.append(Symbol(name, []))
+                if result:
+                    node = ASTNode(name, result)
+                else:
+                    node = ASTNode(name, [])
+                node.start = offset
+                node.end = offset + text_start_len - len(text)
+                #node.lineno = self.lineNo()
+                res.append(node)
             elif result:
                 if type(result) is type([]):
                     res.extend(result)
@@ -229,8 +244,7 @@ class parser(object):
                             sys.stderr.write(u"testing with " + pattern.__name__ + u": " + textline[:40] + u"\n")
 
             if pattern.__name__[0] != "_":
-                name = Name(pattern.__name__)
-                name.line = self.lineNo()
+                name = pattern.__name__
                 rulename = name
 
             try:
@@ -280,7 +294,7 @@ class parser(object):
                 if pattern_type is ignore:
                     return R(None, text)
                 else:
-                    return R(m.group(0), text)
+                    return R([m.group(0)], text)
             else:
                 syntaxError()
 
@@ -395,6 +409,17 @@ def visualColumn(text, offset):
             ret += 1
     return ret
 
+def pointToError(text, offset1, offset2 = None):
+    message = text
+    if not message.endswith(u"\n"):
+        message += u"\n"
+    col1 = visualColumn(text, offset1)
+    col2 = col1 + 1
+    if offset2 != None:
+        col2 = visualColumn(text, offset2)
+    return message + u" " * col1 + u"^" * max(1, col2 - col1)
+
+
 # plain module API
 
 class LineParser(object):
@@ -403,29 +428,25 @@ class LineParser(object):
         self.skipWS = skipWS
         self.skipComments = skipComments
 
-    def parse_line(self, textline, pattern, matchAll = False, lineinfo = None):
+    def parse_line(self, textline, pattern, matchAll = False, lineinfo = None, offset = 0):
         if lineinfo:
             self.p.lines = lineinfo
         self.p.memory = {}
         self.p.skipper.memory = {}
-        self.p.skipper.last_comment = None
+        self.p.skipper.last_comment = [None]
         # Preserve other caches
         try:
-            ast, text = self.p.parseLine(textline, pattern, [], self.skipWS, self.skipComments)
+            ast, text = self.p.parseLine(textline, pattern, [], self.skipWS, self.skipComments, offset)
             text = skip(self.p.skipper, text, self.skipWS, self.skipComments)
             if matchAll and len(text) > 0:
                 raise FatalParseError(u"garbage at end of line", len(textline) - len(text))
         except ParseError, e:
-            message = u"Syntax error: " + e.message + u"\n" + textline
-            if not message.endswith(u"\n"):
-                message += u"\n"
-            message += u" " * visualColumn(textline, e.offset) + u"^"
-            e.message = message
+            e.message = u"Syntax error: " + e.message + u"\n" + pointToError(textline, e.offset)
             raise e
         return ast, text
 
     def last_comment(self):
-        return self.p.skipper.last_comment
+        return self.p.skipper.last_comment[0]
 
 # parse():
 #   language:       pyPEG language description
@@ -487,11 +508,7 @@ def parse(language, lineSource, skipWS = True, skipComments = None, packrat = Fa
         lineCont = orig.splitlines()[nn]
         column = e.offset - lines[nn][0]
 
-        message = u"Syntax error at " + u(file) + u":" + u(lineNo) + u":" + u(column) + u": " + e.message + u"\n" + lineCont
-        if not message.endswith(u"\n"):
-            message += u"\n"
-        message += u" " * visualColumn(lineCont, column) + u"^"
-        e.message = message
+        e.message = u"Syntax error at " + u(file) + u":" + u(lineNo) + u":" + u(column) + u": " + e.message + u"\n" + pointToError(lineCont, column)
         raise e
 
     return result

@@ -3,8 +3,8 @@ import sys
 import re
 import optparse
 import pyPEG
-from pyPEG import _not as NOT, _and as AND, Symbol, ignore as IGNORE
-from xmlast import pyAST2XML
+from pyPEG import _not as NOT, _and as AND, ASTNode, ignore as IGNORE, pointToError
+from xmlast import AST2XML
 
 
 ############################### RB PEG grammar #################################
@@ -143,7 +143,7 @@ def parsed_file_iter(filename):
             last_comment = parser.last_comment()
             starting_in_comment = False
             if last_comment:
-                if last_comment[0].what.startswith("/'") and not last_comment[0].what.endswith("'/"):
+                if last_comment[0].startswith("/'") and not last_comment[0].endswith("'/"):
                     starting_in_comment = True
         except pyPEG.ParseError, e:
             print "On line %d in %s:\n%s" % (lineno + 1, filename, str(e))
@@ -154,22 +154,32 @@ def parsed_file_iter(filename):
 
 
 def get_ident(astnode):
-    assert astnode.__name__ == 'identifier'
-    return astnode.what[0]
+    """Translate identifier ASTNode to string"""
+    assert astnode.name == 'identifier'
+    return astnode[0]
+
+def get_string(astnode):
+    """Translate string ASTNode to string"""
+    assert astnode.name == 'string'
+    if astnode[0][0] == '!':
+        return astnode[0][2:-1]
+    else:
+        # FIXME: I'm too lazy to properly escape the string, since we don't need that support
+        return astnode[0][1:-1]
 
 def cleanup_typed_var_list(astnode):
     """
     Clean up a dimStatement with individually typed variables or an argList.
     """
     ret = []
-    for node in astnode.what:
-        assert node.__name__ in ('typedVariableDecl', 'argumentDecl')
-        varname = get_ident(node.what[0])
-        if len(node.what) == 3:
-            initval = node.what[2]
+    for node in astnode:
+        assert node.name in ('typedVariableDecl', 'argumentDecl')
+        varname = get_ident(node[0])
+        if len(node) == 3:
+            initval = node[2]
         else:
             initval = None
-        ret.append((varname, node.what[1], initval))
+        ret.append((varname, node[1], initval))
     return ret
 
 def cleanup_typeless_var_list(astnode):
@@ -178,22 +188,21 @@ def cleanup_typeless_var_list(astnode):
     """
     ret = []
     for node in astnode.what[1:]:
-        assert node.__name__ == 'typelessVariableDecl'
-        varname = get_ident(node.what[0])
-        if len(node.what) == 2:
-            initval = node.what[1]
+        assert node.name == 'typelessVariableDecl'
+        varname = get_ident(node[0])
+        if len(node) == 2:
+            initval = node[1]
         else:
             initval = None
-        ret.append((varname, astnode.what[0], initval))
+        ret.append((varname, astnode[0], initval))
     return ret
 
 def cleanup_var_declarations(astnode):
     """
-    Fed in a dimStatement or argList AST node, returns a list of (varname, type, initial_value) triples.
+    Fed in a dimStatement AST node, returns a list of (varname, type, initial_value) triples.
     type is a typename AST node, initial_value is either None or an initialValue AST node.
     """
-    assert astnode.__name__ == 'dimStatement'
-    if astnode.what[0].__name__ == 'typename':
+    if astnode[0].name == 'typename':
         return cleanup_typeless_var_list(astnode)
     else:
         return cleanup_typed_var_list(astnode)
@@ -252,10 +261,10 @@ class ReloadBasicTranslater(object):
         """
         Given a typename AST node, returns whether it is a NodePtr or Node ptr.
         """
-        if len(node.what) == 2:
-            return node.what[0] == Symbol('identifier', 'node') and node.what[1] == 'ptr'
-        if len(node.what) == 1:
-            return node.what[0] == Symbol('identifier', 'nodeptr')
+        if len(node) == 2:
+            return node[0] == ASTNode('identifier', ['node']) and node[1] == 'ptr'
+        if len(node) == 1:
+            return node[0] == ASTNode('identifier', ['nodeptr'])
         return False
 
     def find_nodeptrs(self, node):
