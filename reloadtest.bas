@@ -390,7 +390,7 @@ startTest(testProvisional)
 	nod1 = AppendChildNode(root, "prov2")
 	MarkProvisional(nod1)
 	RemoveProvisionalNodes(root)
-	if NumChildren(root) <> numtoplevel + 2 then fail
+	if NumChildren(root) <> numtoplevel + 1 then fail
 endTest
 
 startTest(testSetKeyValueNode)
