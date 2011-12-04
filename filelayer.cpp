@@ -98,7 +98,7 @@ static FB_FILE_HOOKS lumpfile_hooks = {
 };
 
 void dump_openfiles() {
-	debug(2, "%d open files:", openfiles.size());
+	debug(2, "%d open files:", (int)openfiles.size());
 	for (openfiles_iterator_t it = openfiles.begin(); it != openfiles.end(); ++it) {
 		const char *fname = it->second.name.c_str();
 		debug(2, " %p (%s)", it->first, fname);

@@ -57,7 +57,7 @@ static NSString *getApplicationName(void)
     return appName;
 }
 
-static sendSDLKey(SDLKey key, SDLMod mod) {
+static void sendSDLKey(SDLKey key, SDLMod mod) {
     /* Post keydown+keyup events... */
     SDL_KeyboardEvent event;
     event.type = SDL_KEYDOWN;
@@ -468,4 +468,3 @@ int main (int argc, char **argv)
 #endif
     return 0;
 }
-

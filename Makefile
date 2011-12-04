@@ -14,6 +14,7 @@ FBC=fbc -lang deprecated
 
 #a C compiler is not required under windows
 CC=gcc -m32
+CXX=g++ -m32
 MAKE=make
 
 #msys doesn't include uname

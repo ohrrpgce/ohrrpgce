@@ -8,9 +8,6 @@ import platform
 import shutil
 from ohrbuild import basfile_scan, verprint, which, get_run_command
 
-win32 = False
-unix = True
-exe_suffix = ''
 FBFLAGS = os.environ.get ('FBFLAGS', []) + ['-mt']
 #CC and CXX are probably not needed anymore
 CC = ''
@@ -23,13 +20,20 @@ FB_g = True   # compile with -g?
 linkgcc = False  # link using g++?
 GCC_strip = False  # (linkgcc only) strip (link with -s)?
 envextra = {}
+FRAMEWORKS_PATH = "~/Library/Frameworks"  # Frameworks search path in addition to the default /Library/Frameworks
 
+win32 = False
+unix = False
+mac = False
+exe_suffix = ''
 if platform.system () == 'Windows':
     win32 = True
-    unix = False
     exe_suffix = '.exe'
     # Force use of gcc instead of MSVC++, so compiler flags are understood
     envextra = {'tools': ['mingw']}
+elif platform.system () == 'Darwin':
+    unix = True
+    mac = True
 else:
     unix = True
 
@@ -65,18 +69,16 @@ if FB_exx:
 if C_opt:
     CFLAGS.append ('-O2')
     CXXFLAGS.append ('-O3')
-# eg. pass gfx=sdl+fb for the default behaviour.
-if unix:
-    gfx = ARGUMENTS.get ('gfx', environ.get ('OHRGFX','sdl+fb'))
-else:
-    gfx = ARGUMENTS.get ('gfx', environ.get ('OHRGFX','directx+sdl+fb'))
-music = ARGUMENTS.get ('music', environ.get ('OHRMUSIC','sdl'))
-# handle OHRMUSIC/GFX which is blank
-# (ie is set to '', rather than not existing.)
-if gfx == '':
+# Backend selection.
+if mac:
+    gfx = 'sdl'
+elif unix:
     gfx = 'sdl+fb'
-if music == '':
-    music = 'sdl'
+elif win32:
+    gfx = 'directx+sdl+fb'
+gfx = ARGUMENTS.get ('gfx', environ.get ('OHRGFX', gfx))
+music = ARGUMENTS.get ('music', environ.get ('OHRMUSIC','sdl'))
+
 env = Environment (FBFLAGS = FBFLAGS,
                    FBLIBS = [],
                    CFLAGS = CFLAGS,
@@ -165,6 +167,8 @@ if linkgcc:
         env['CXXLINKFLAGS'] += ['-static-libgcc', '-static-libstdc++', '-Wl,@win32\ld_opt_hack.txt']
     else:
         env['CXXLINKFLAGS'] += ['-lncurses', '-lpthread', 'linux/fb_icon.c']
+    if mac:
+        env['CXXLINKFLAGS'] += [os.path.join(libpath, 'operatornew.o')]
 
     def compile_main_module(target, source, env):
         "This is the emitter for BASEXE when using linkgcc: it compiles the main module using BASMAINO"
@@ -194,7 +198,19 @@ libpaths = []
 if win32:
     base_modules += ['os_windows.bas']
     libraries += ['fbgfx']
+    libpaths += ['win32']
     commonenv['FBFLAGS'] += ['-s','gui']
+elif mac:
+    base_modules += ['os_unix.c']
+    common_modules += ['mac/SDLmain.m']
+    libraries += ['Cocoa']
+    commonenv['FBFLAGS'] += ['-entry', 'SDL_main']
+    commonenv['FBLIBS'] += ['-Wl', '-F,' + FRAMEWORKS_PATH, '-Wl', '-mmacosx-version-min=10.4']
+    commonenv['CXXLINKFLAGS'] += ['-F', FRAMEWORKS_PATH, '-mmacosx-version-min=10.4', '-v']
+    if which(env, 'sdl-config'):
+        commonenv['CFLAGS'] += [get_run_command("sdl-config --cflags")]
+    else:
+        commonenv['CFLAGS'] += ["-I", "/Library/Frameworks/SDL.framework/Headers", "-I", FRAMEWORKS_PATH + "/SDL.framework/Headers"]
 elif unix:
     base_modules += ['os_unix.c']
     libraries += 'X11 Xext Xpm Xrandr Xrender pthread'.split (' ')
@@ -222,7 +238,7 @@ music_map = {'native':
                   'libraries': 'audiere', 'libpaths': '.'},
              'sdl':
                  {'shared_modules': 'music_sdl.bas sdl_lumprwops.bas',
-                  'libraries': 'SDL SDL_mixer', 'libpaths': 'win32'},
+                  'libraries': 'SDL SDL_mixer'},
              'silence':
                  {'shared_modules': 'music_silence.bas'}
             }
@@ -242,13 +258,21 @@ for k, v in music_map.items ():
         for k2, v2 in v.items ():
             tmp[k2] += v2.split (' ')
 
-commonenv['CXXLINKFLAGS'] += ['-l' + lib for lib in libraries]
+#CXXLINKFLAGS are used when linking with g++
+#FBLIBS are used when linking with fbc
+
+for lib in libraries:
+    if mac and lib in ('SDL', 'SDL_mixer', 'Cocoa'):
+        # Use frameworks rather than normal unix libraries
+        commonenv['CXXLINKFLAGS'] += ['-framework', lib]
+        commonenv['FBLIBS'] += ['-Wl', '-framework,' + lib]
+    else:
+        commonenv['CXXLINKFLAGS'] += ['-l' + lib]
+        commonenv['FBLIBS'] += ['-l', lib]
+
 commonenv['CXXLINKFLAGS'] += ['-L' + path for path in libpaths]
+commonenv['FBLIBS'] += Flatten ([['-p', v] for v in libpaths])
 
-libraries = Flatten ([['-l', v] for v in libraries])
-libpaths = Flatten ([['-p', v] for v in libpaths])
-
-commonenv['FBLIBS'] += libpaths + libraries
 
 # first, make sure the version is saved.
 
