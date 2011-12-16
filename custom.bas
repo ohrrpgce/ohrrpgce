@@ -81,6 +81,7 @@ DECLARE SUB cleanup_and_terminate ()
 DECLARE SUB import_scripts_and_terminate (hsfile as string)
 DECLARE SUB prompt_for_password()
 DECLARE SUB prompt_for_save_and_quit()
+DECLARE SUB choose_rpg_to_open ()
 
 'Global variables
 REDIM gen(360)
@@ -110,7 +111,6 @@ DIM running_as_slave as integer = NO  'This is just for the benefit of gfx_sdl
 DIM joy(4)
 DIM menu(22) as string
 DIM menukeys(22) as string
-DIM chooserpg_menu(2) as string
 DIM quit_confirm(1) as string
 DIM hsfile as string
 DIM intext as string
@@ -212,7 +212,7 @@ FOR i = 1 TO UBOUND(cmdline_args)
 NEXT
 IF game = "" THEN
  hsfile = ""
- GOSUB chooserpg
+ choose_rpg_to_open()
 END IF
 
 #IFDEF __FB_WIN32__
@@ -404,49 +404,61 @@ DO:
  dowait
 LOOP
 
-chooserpg:
-last = 2: csr = 1: top = 0
-chooserpg_menu(0) = "CREATE NEW GAME"
-chooserpg_menu(1) = "LOAD EXISTING GAME"
-chooserpg_menu(2) = "EXIT PROGRAM"
-
-setkeys
-DO
- setwait 55
- setkeys
- tog = tog XOR 1
- IF keyval(scEsc) > 1 THEN cleanup_and_terminate
- usemenu csr, top, 0, last, 20
- IF enter_or_space() THEN
-  IF csr = 0 THEN
-   game = inputfilename("Filename of New Game?", ".rpg", CURDIR, "input_file_new_game", , NO)
-   IF game <> "" THEN
-     IF NOT newRPGfile(finddatafile("ohrrpgce.new"), game + ".rpg") THEN cleanup_and_terminate
-     sourcerpg = game + ".rpg"
-     game = trimpath(game)
-     EXIT DO
-   END IF
-  ELSEIF csr = 1 THEN
-   sourcerpg = browse(7, "", "*.rpg", tmpdir, 0, "browse_rpg")
-   game = trimextension(trimpath(sourcerpg))
-   IF game <> "" THEN EXIT DO
-  ELSEIF csr = 2 THEN
-   cleanup_and_terminate
-  END IF
- END IF
-
- clearpage dpage
- standardmenu chooserpg_menu(), last, 22, csr, top, 0, 0, dpage
-
- SWAP vpage, dpage
- setvispage vpage
- dowait
-LOOP
-RETRACE
 
 '=======================================================================
 'FIXME: move this up as code gets cleaned up!  (Woo! It is happening!)
 OPTION EXPLICIT
+
+SUB choose_rpg_to_open ()
+ 'This sub sets the globals: game and sourcerpg
+
+ DIM state as MenuState
+ state.pt = 1
+ state.last = 2
+ state.size = 20
+ 
+ DIM chooserpg_menu(2) as string
+ chooserpg_menu(0) = "CREATE NEW GAME"
+ chooserpg_menu(1) = "LOAD EXISTING GAME"
+ chooserpg_menu(2) = "EXIT PROGRAM"
+
+ DIM result as string
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  state.tog XOR= 1
+  IF keyval(scEsc) > 1 THEN cleanup_and_terminate
+  usemenu state
+  IF enter_or_space() THEN
+   SELECT CASE state.pt
+    CASE 0
+     game = inputfilename("Filename of New Game?", ".rpg", CURDIR, "input_file_new_game", , NO)
+     IF game <> "" THEN
+       IF NOT newRPGfile(finddatafile("ohrrpgce.new"), game & ".rpg") THEN cleanup_and_terminate
+       sourcerpg = game & ".rpg"
+       game = trimpath(game)
+       EXIT DO
+     END IF
+    CASE 1
+     sourcerpg = browse(7, "", "*.rpg", tmpdir, 0, "browse_rpg")
+     game = trimextension(trimpath(sourcerpg))
+     IF game <> "" THEN EXIT DO
+    CASE 2
+     cleanup_and_terminate
+   END SELECT
+  END IF
+ 
+  clearpage dpage
+  standardmenu chooserpg_menu(), state, 0, 0, dpage
+ 
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+ 
+END SUB
 
 SUB prompt_for_save_and_quit()
 
