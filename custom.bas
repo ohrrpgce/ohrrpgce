@@ -52,8 +52,6 @@ DECLARE SUB secret_menu ()
 DECLARE SUB condition_test_menu ()
 DECLARE SUB quad_transforms_menu ()
 DECLARE SUB arbitrary_sprite_editor ()
-DECLARE SUB setmainmenu (menu() as string, byref mainmax as integer, menukeys() as string)
-DECLARE SUB setgraphicmenu (menu() as string, byref mainmax as integer, menukeys() as string)
 DECLARE SUB distribute_game ()
 DECLARE SUB distribute_game_as_zip ()
 DECLARE SUB distribute_game_as_windows_installer ()
@@ -83,6 +81,7 @@ DECLARE SUB prompt_for_password()
 DECLARE SUB prompt_for_save_and_quit()
 DECLARE SUB choose_rpg_to_open ()
 DECLARE SUB main_editor_menu()
+DECLARE SUB gfx_editor_menu()
 
 'Global variables
 REDIM gen(360)
@@ -294,46 +293,50 @@ main_editor_menu
 OPTION EXPLICIT
 
 SUB main_editor_menu()
- DIM menu(22) as string
- DIM menukeys(22) as string
- DIM menumode as integer = 0 '0 is main, 1 is graphics
+ DIM menu(21) as string
+ DIM menukeys(UBOUND(menu)) as string
+ 
+ menu(0) = "Edit Graphics"
+ menu(1) = "Edit Map Data"
+ menu(2) = "Edit Global Text Strings"
+ menu(3) = "Edit Hero Stats"
+ menu(4) = "Edit Enemy Stats"
+ menu(5) = "Edit Attacks"
+ menu(6) = "Edit Items"
+ menu(7) = "Edit Shops"
+ menu(8) = "Edit Battle Formations"
+ menu(9) = "Edit Text Boxes"
+ menu(10) = "Edit Menus"
+ menu(11) = "Edit Vehicles"
+ menu(12) = "Edit Tag Names"
+ menu(13) = "Import Music"
+ menu(14) = "Import Sound Effects"
+ menu(15) = "Edit Font"
+ menu(16) = "Edit General Game Data"
+ menu(17) = "Script Management"
+ menu(18) = "Edit Slice Collections"
+ menu(19) = "Test Game"
+ menu(20) = "Distribute Game"
+ menu(21) = "Quit Editing"
+ get_menu_hotkeys menu(), UBOUND(menu), menukeys(), "Edit"
+ 
  DIM state as MenuState
  state.size = 24
+ state.last = UBOUND(menu)
  
  DIM intext as string
  DIM passphrase as string
 
- DIM walkabout_frame_captions(7) as string = {"Up A","Up B","Right A","Right B","Down A","Down B","Left A","Left B"}
- DIM hero_frame_captions(7) as string = {"Standing","Stepping","Attack A","Attack B","Cast/Use","Hurt","Weak","Dead"}
- DIM enemy_frame_captions(0) as string = {"Enemy (facing right)"}
- DIM weapon_frame_captions(1) as string = {"Frame 1","Frame 2"}
- DIM attack_frame_captions(2) as string = {"First Frame","Middle Frame","Last Frame"}
- DIM box_border_captions(15) as string = {"Top Left Corner","Top Edge Left","Top Edge","Top Edge Right","Top Right Corner","Left Edge Top","Right Edge Top","Left Edge","Right Edge","Left Edge Bottom","Right Edge Bottom","Bottom Left Corner","Bottom Edge Left","Bottom Edge","Bottom Edge Right","Bottom Right Corner"}
- DIM portrait_captions(0) as string = {"Character Portrait"}
-
  setkeys
- setmainmenu menu(), state.last, menukeys()
  DO
   setwait 55
   setkeys
   state.tog XOR= 1
   IF keyval(scEsc) > 1 THEN
-   SELECT CASE menumode
-    CASE 0'--in main menu
-     prompt_for_save_and_quit
-    CASE 1'--graphics
-     state.pt = 0
-     menumode = 0
-     setmainmenu menu(), state.last, menukeys()
-   END SELECT
+   prompt_for_save_and_quit
   END IF
   IF keyval(scF1) > 1 THEN
-   SELECT CASE menumode
-    CASE 0'--normal mode
-     show_help "main"
-    CASE 1'--normal mode
-     show_help "gfxmain"
-   END SELECT
+   show_help "main"
   END IF
   intext = LCASE(getinputtext)
   passphrase = RIGHT(passphrase & intext, 4)
@@ -347,63 +350,125 @@ SUB main_editor_menu()
   NEXT
   usemenu state
   IF enter_or_space() THEN
-   SELECT CASE menumode
-    CASE 0'--normal mode
-     IF state.pt = 0 THEN
-      state.pt = 0
-      menumode = 1
-      setgraphicmenu menu(), state.last, menukeys()
-     END IF
-     IF state.pt = 1 THEN map_picker
-     IF state.pt = 2 THEN edit_global_text_strings
-     IF state.pt = 3 THEN hero_editor
-     IF state.pt = 4 THEN enemydata
-     IF state.pt = 5 THEN attackdata
-     IF state.pt = 6 THEN itemdata
-     IF state.pt = 7 THEN shopdata
-     IF state.pt = 8 THEN formation
-     IF state.pt = 9 THEN text_box_editor
-     if state.pt = 10 THEN menu_editor
-     IF state.pt = 11 THEN vehicles
-     IF state.pt = 12 THEN tags_menu
-     IF state.pt = 13 THEN importsong
-     IF state.pt = 14 THEN importsfx
-     IF state.pt = 15 THEN fontedit
-     IF state.pt = 16 THEN gendata
-     IF state.pt = 17 THEN scriptman
-     IF state.pt = 18 THEN slice_editor
-     IF state.pt = 19 THEN spawn_game_menu
-     IF state.pt = 20 THEN distribute_game
-     IF state.pt = 21 THEN
-      prompt_for_save_and_quit
-     END IF
-    CASE 1'--graphics mode
-     IF state.pt = 0 THEN
-      state.pt = 0
-      menumode = 0
-      setmainmenu menu(), state.last, menukeys()
-     END IF
-     IF state.pt = 1 THEN maptile
-     IF state.pt = 2 THEN sprite 20, 20, gen(genMaxNPCPic),    8, 5, walkabout_frame_captions(),  4, 4
-     IF state.pt = 3 THEN sprite 32, 40, gen(genMaxHeroPic),   8, 16, hero_frame_captions(), 4, 0
-     IF state.pt = 4 THEN sprite 34, 34, gen(genMaxEnemy1Pic), 1, 2, enemy_frame_captions(), 4, 1
-     IF state.pt = 5 THEN sprite 50, 50, gen(genMaxEnemy2Pic), 1, 4, enemy_frame_captions(), 2, 2
-     IF state.pt = 6 THEN sprite 80, 80, gen(genMaxEnemy3Pic), 1, 10, enemy_frame_captions(), 2, 3
-     IF state.pt = 7 THEN sprite 50, 50, gen(genMaxAttackPic), 3, 12, attack_frame_captions(), 2, 6
-     IF state.pt = 8 THEN sprite 24, 24, gen(genMaxWeaponPic), 2, 2, weapon_frame_captions(), 4, 5
-     IF state.pt = 9 THEN
-      sprite 16, 16, gen(genMaxBoxBorder), 16, 7, box_border_captions(), 4, 7
-     END IF
-     IF state.pt = 10 THEN sprite 50, 50, gen(genMaxPortrait), 1, 4, portrait_captions(), 2, 8
-     IF state.pt = 11 THEN importbmp ".mxs", "screen", gen(genNumBackdrops)
-     IF state.pt = 12 THEN
-      gen(genMaxTile) = gen(genMaxTile) + 1
-      importbmp ".til", "tileset", gen(genMaxTile)
-      gen(genMaxTile) = gen(genMaxTile) - 1
-      tileset_empty_cache
-     END IF
-     IF state.pt = 13 THEN ui_color_editor(activepalette)
-   END SELECT
+   IF state.pt = 0 THEN gfx_editor_menu
+   IF state.pt = 1 THEN map_picker
+   IF state.pt = 2 THEN edit_global_text_strings
+   IF state.pt = 3 THEN hero_editor
+   IF state.pt = 4 THEN enemydata
+   IF state.pt = 5 THEN attackdata
+   IF state.pt = 6 THEN itemdata
+   IF state.pt = 7 THEN shopdata
+   IF state.pt = 8 THEN formation
+   IF state.pt = 9 THEN text_box_editor
+   IF state.pt = 10 THEN menu_editor
+   IF state.pt = 11 THEN vehicles
+   IF state.pt = 12 THEN tags_menu
+   IF state.pt = 13 THEN importsong
+   IF state.pt = 14 THEN importsfx
+   IF state.pt = 15 THEN fontedit
+   IF state.pt = 16 THEN gendata
+   IF state.pt = 17 THEN scriptman
+   IF state.pt = 18 THEN slice_editor
+   IF state.pt = 19 THEN spawn_game_menu
+   IF state.pt = 20 THEN distribute_game
+   IF state.pt = 21 THEN
+    prompt_for_save_and_quit
+   END IF
+   '--always resave the .GEN lump after any menu
+   xbsave game + ".gen", gen(), 1000
+  END IF
+ 
+  clearpage dpage
+  standardmenu menu(), state, 0, 0, dpage
+ 
+  textcolor uilook(uiSelectedDisabled), 0
+  printstr version_code, 0, 176, dpage
+  printstr version_build, 0, 184, dpage
+  textcolor uilook(uiText), 0
+  printstr "Press F1 for help on any menu!", 0, 192, dpage
+ 
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+
+END SUB
+
+SUB gfx_editor_menu()
+
+ DIM menu(13) as string
+ DIM menukeys(UBOUND(menu)) as string
+
+ menu(0) = "Back to the main menu"
+ menu(1) = "Edit Maptiles"
+ menu(2) = "Draw Walkabout Graphics"
+ menu(3) = "Draw Hero Graphics"
+ menu(4) = "Draw Small Enemy Graphics  34x34"
+ menu(5) = "Draw Medium Enemy Graphics 50x50"
+ menu(6) = "Draw Big Enemy Graphics    80x80"
+ menu(7) = "Draw Attacks"
+ menu(8) = "Draw Weapons"
+ menu(9) = "Draw Box Edges"
+ menu(10) = "Draw Portrait Graphics"
+ menu(11) = "Import/Export Screens"
+ menu(12) = "Import/Export Full Maptile Sets"
+ menu(13) = "Change User-Interface Colors"
+ 
+ get_menu_hotkeys menu(), UBOUND(menu), menukeys()
+
+ DIM state as MenuState
+ state.size = 24
+ state.last = UBOUND(menu)
+ 
+ DIM intext as string
+
+ DIM walkabout_frame_captions(7) as string = {"Up A","Up B","Right A","Right B","Down A","Down B","Left A","Left B"}
+ DIM hero_frame_captions(7) as string = {"Standing","Stepping","Attack A","Attack B","Cast/Use","Hurt","Weak","Dead"}
+ DIM enemy_frame_captions(0) as string = {"Enemy (facing right)"}
+ DIM weapon_frame_captions(1) as string = {"Frame 1","Frame 2"}
+ DIM attack_frame_captions(2) as string = {"First Frame","Middle Frame","Last Frame"}
+ DIM box_border_captions(15) as string = {"Top Left Corner","Top Edge Left","Top Edge","Top Edge Right","Top Right Corner","Left Edge Top","Right Edge Top","Left Edge","Right Edge","Left Edge Bottom","Right Edge Bottom","Bottom Left Corner","Bottom Edge Left","Bottom Edge","Bottom Edge Right","Bottom Right Corner"}
+ DIM portrait_captions(0) as string = {"Character Portrait"}
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  state.tog XOR= 1
+  IF keyval(scEsc) > 1 THEN
+   EXIT DO
+  END IF
+  IF keyval(scF1) > 1 THEN
+   show_help "gfxmain"
+  END IF
+  intext = LCASE(getinputtext)
+  FOR i as integer = 1 TO state.last
+   DIM jumpto as integer = (state.pt + i) MOD (state.last + 1)
+   IF INSTR(menukeys(jumpto), intext) THEN state.pt = jumpto : EXIT FOR
+  NEXT
+  usemenu state
+  IF enter_or_space() THEN
+   IF state.pt = 0 THEN
+    EXIT DO
+   END IF
+   IF state.pt = 1 THEN maptile
+   IF state.pt = 2 THEN sprite 20, 20, gen(genMaxNPCPic),    8, 5, walkabout_frame_captions(),  4, 4
+   IF state.pt = 3 THEN sprite 32, 40, gen(genMaxHeroPic),   8, 16, hero_frame_captions(), 4, 0
+   IF state.pt = 4 THEN sprite 34, 34, gen(genMaxEnemy1Pic), 1, 2, enemy_frame_captions(), 4, 1
+   IF state.pt = 5 THEN sprite 50, 50, gen(genMaxEnemy2Pic), 1, 4, enemy_frame_captions(), 2, 2
+   IF state.pt = 6 THEN sprite 80, 80, gen(genMaxEnemy3Pic), 1, 10, enemy_frame_captions(), 2, 3
+   IF state.pt = 7 THEN sprite 50, 50, gen(genMaxAttackPic), 3, 12, attack_frame_captions(), 2, 6
+   IF state.pt = 8 THEN sprite 24, 24, gen(genMaxWeaponPic), 2, 2, weapon_frame_captions(), 4, 5
+   IF state.pt = 9 THEN sprite 16, 16, gen(genMaxBoxBorder), 16, 7, box_border_captions(), 4, 7
+   IF state.pt = 10 THEN sprite 50, 50, gen(genMaxPortrait), 1, 4, portrait_captions(), 2, 8
+   IF state.pt = 11 THEN importbmp ".mxs", "screen", gen(genNumBackdrops)
+   IF state.pt = 12 THEN
+    gen(genMaxTile) = gen(genMaxTile) + 1
+    importbmp ".til", "tileset", gen(genMaxTile)
+    gen(genMaxTile) = gen(genMaxTile) - 1
+    tileset_empty_cache
+   END IF
+   IF state.pt = 13 THEN ui_color_editor(activepalette)
    '--always resave the .GEN lump after any menu
    xbsave game + ".gen", gen(), 1000
   END IF
@@ -1270,52 +1335,6 @@ SUB condition_test_menu ()
   dowait
  LOOP
  setkeys
-END SUB
-
-SUB setmainmenu (menu() as string, byref mainmax as integer, menukeys() as string)
- mainmax = 21
- menu(0) = "Edit Graphics"
- menu(1) = "Edit Map Data"
- menu(2) = "Edit Global Text Strings"
- menu(3) = "Edit Hero Stats"
- menu(4) = "Edit Enemy Stats"
- menu(5) = "Edit Attacks"
- menu(6) = "Edit Items"
- menu(7) = "Edit Shops"
- menu(8) = "Edit Battle Formations"
- menu(9) = "Edit Text Boxes"
- menu(10) = "Edit Menus"
- menu(11) = "Edit Vehicles"
- menu(12) = "Edit Tag Names"
- menu(13) = "Import Music"
- menu(14) = "Import Sound Effects"
- menu(15) = "Edit Font"
- menu(16) = "Edit General Game Data"
- menu(17) = "Script Management"
- menu(18) = "Edit Slice Collections"
- menu(19) = "Test Game"
- menu(20) = "Distribute Game"
- menu(21) = "Quit Editing"
- get_menu_hotkeys menu(), mainmax, menukeys(), "Edit"
-END SUB
-
-SUB setgraphicmenu (menu() as string, byref mainmax as integer, menukeys() as string)
- mainmax = 13
- menu(0) = "Back to the main menu"
- menu(1) = "Edit Maptiles"
- menu(2) = "Draw Walkabout Graphics"
- menu(3) = "Draw Hero Graphics"
- menu(4) = "Draw Small Enemy Graphics  34x34"
- menu(5) = "Draw Medium Enemy Graphics 50x50"
- menu(6) = "Draw Big Enemy Graphics    80x80"
- menu(7) = "Draw Attacks"
- menu(8) = "Draw Weapons"
- menu(9) = "Draw Box Edges"
- menu(10) = "Draw Portrait Graphics"
- menu(11) = "Import/Export Screens"
- menu(12) = "Import/Export Full Maptile Sets"
- menu(13) = "Change User-Interface Colors"
- get_menu_hotkeys menu(), mainmax, menukeys()
 END SUB
 
 CONST distmenuEXIT as integer = 1
