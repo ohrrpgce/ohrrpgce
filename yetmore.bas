@@ -396,7 +396,7 @@ SELECT CASE as CONST id
  CASE 449'--reset hero picture
   DIM i as integer = retvals(0)
   DIM j as integer = retvals(1)
-  IF really_valid_hero_party(i, 4) THEN  'suppressed error
+  IF really_valid_hero_party(i, 3) THEN  'suppressed error
    IF bound_arg(j, 0, 1, "in or out of battle") THEN
     DIM her as herodef
     loadherodata @her, hero(i) - 1
@@ -408,7 +408,7 @@ SELECT CASE as CONST id
  CASE 450'--reset hero palette
   DIM i as integer = retvals(0)
   DIM j as integer = retvals(1)
-  IF really_valid_hero_party(i, 4) THEN  'suppressed error
+  IF really_valid_hero_party(i, 3) THEN  'suppressed error
    IF bound_arg(j, 0, 1, "in or out of battle") THEN
     DIM her as herodef
     loadherodata @her, hero(i) - 1

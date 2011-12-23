@@ -2167,9 +2167,9 @@ FUNCTION valid_hero_party(byval who as integer, byval minimum as integer=0) as i
  RETURN bound_arg(who, minimum, 40, "hero party slot")
 END FUNCTION
 
-FUNCTION really_valid_hero_party(byval who as integer, byval minimum as integer=0, byval errlvl as integer=5) as integer
+FUNCTION really_valid_hero_party(byval who as integer, byval maxslot as integer=40, byval errlvl as integer=5) as integer
  'Defaults to a non-suppressed error
- IF bound_arg(who, minimum, 40, "hero party slot", , , errlvl) = NO THEN RETURN NO
+ IF bound_arg(who, 0, maxslot, "hero party slot", , , errlvl) = NO THEN RETURN NO
  IF hero(who) = 0 THEN
   scripterr commandname(curcmd->value) + ": Party hero slot " & who & " is empty", errlvl
   RETURN NO
