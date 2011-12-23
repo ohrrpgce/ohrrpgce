@@ -1909,7 +1909,8 @@ SUB hero_editor_spell_lists_toplevel (her as HeroDef)
 END SUB
 
 SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer, listtype as string)
- DIM leftmenu(24) as string, rightmenu(24) as string
+ DIM leftmenu(24) as string
+ DIM rightmenu(24) as string
  DIM activemenu as integer = 0  '0 or 1 for left or right menu
  DIM sticky as integer = 0
  DIM as integer leftkey, rightkey
@@ -1986,8 +1987,8 @@ SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer, listt
   clearpage dpage
   textcolor uilook(uiDescription), 0
   printstr listtype, 300 - LEN(listtype) * 8, 0, dpage
-  standardmenu leftmenu(), mstate, 0, 0, dpage, , (activemenu = 1), 160, sticky  'hidecursor=(...), wide=160, highlight=sticky
-  standardmenu rightmenu(), mstate, 160, 0, dpage, , (activemenu = 0), 160, sticky  'hidecursor=(...), wide=160, highlight=sticky
+  standardmenu leftmenu(), mstate, 0, 0, dpage, , (activemenu = 0), 160, sticky  'hidecursor=(...), wide=160, highlight=sticky
+  standardmenu rightmenu(), mstate, 160, 0, dpage, , (activemenu = 1), 160, sticky  'hidecursor=(...), wide=160, highlight=sticky
   SWAP vpage, dpage
   setvispage vpage
   dowait
