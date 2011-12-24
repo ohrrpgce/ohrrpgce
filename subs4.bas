@@ -1528,8 +1528,8 @@ SUB gendata ()
  max(14) = 6
  min(14) = 2
 
- DIM aboutline AS STRING = load_gamename()
- DIM longname AS STRING = load_aboutline()
+ DIM aboutline AS STRING = load_aboutline()
+ DIM longname AS STRING = load_gamename()
 
  setkeys
  DO
