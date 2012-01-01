@@ -3,7 +3,13 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
-DEFINT A-Z
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
+#endif
 
 #include "config.bi"
 #include "ver.txt"
@@ -180,7 +186,7 @@ textcolor uilook(uiText), 0
 workingdir = tmpdir & "working.tmp"
 IF makeworkingdir() = NO THEN cleanup_and_terminate
 
-FOR i = 1 TO UBOUND(cmdline_args)
+FOR i as integer = 1 TO UBOUND(cmdline_args)
  cmdline = cmdline_args(i)
 
  IF isfile(cmdline) = 0 AND isdir(cmdline) = 0 THEN
@@ -188,7 +194,7 @@ FOR i = 1 TO UBOUND(cmdline_args)
   edgeprint "File not found/invalid option:", 15, 30, uilook(uiText), 0
   edgeprint RIGHT(cmdline,35), 15, 40, uilook(uiText), 0
   setvispage 0
-  w = getkey
+  waitforanykey
   CONTINUE FOR
  END IF
  IF LCASE(justextension(cmdline)) = "hs" AND isfile(cmdline) THEN
@@ -211,11 +217,12 @@ END IF
 #ELSE
  IF MID(sourcerpg, 1, 1) <> SLASH THEN sourcerpg = curdir + SLASH + sourcerpg
 #ENDIF
-a$ = trimfilename(sourcerpg)
+
+DIM dir_to_change_into as string = trimfilename(sourcerpg)
 
 end_debug
-IF a$ <> "" ANDALSO diriswriteable(a$) THEN
- CHDIR a$
+IF dir_to_change_into <> "" ANDALSO diriswriteable(dir_to_change_into) THEN
+ CHDIR dir_to_change_into
 END IF
 'otherwise, keep current directory as it was, net effect: it is the same as in Game
 
@@ -286,11 +293,6 @@ cleanup_on_error = NO
 main_editor_menu
 'Execution ends inside main_editor_menu
 '=======================================================================
-
-
-'=======================================================================
-'FIXME: move this up as code gets cleaned up!  (Woo! It is happening!)
-OPTION EXPLICIT
 
 SUB main_editor_menu()
  DIM menu(21) as string
@@ -1046,8 +1048,8 @@ FUNCTION newRPGfile (templatefile as string, newrpg as string)
  IF NOT isfile(templatefile) THEN
   printstr "Error: ohrrpgce.new not found", 0, 60, vpage
   printstr "Press Enter to quit", 0, 70, vpage
- setvispage vpage
-  getkey
+  setvispage vpage
+  waitforanykey
   EXIT FUNCTION
  END IF
  writeablecopyfile templatefile, newrpg
@@ -1196,7 +1198,7 @@ SUB move_unwriteable_rpg (filetolump as string)
  DIM newfile as string = homedir & SLASH & trimpath(filetolump)
  basic_textbox filetolump + " is not writeable. Saving to " + newfile + !"\n[Press Any Key]", uilook(uiText), vpage
  setvispage vpage
- getkey
+ waitforanykey
  filetolump = newfile
 END SUB
 
