@@ -49,26 +49,35 @@ typedef struct _array_header {
 void array_free(array_t *array);
 
 
-void _throw_error(const char *srcfile, int linenum, char *msg, ...) {
-	va_list vl;
-	va_start(vl, msg);
-	char buf[256];
-	int emitted = sprintf(buf, "On line %d in %s: ", linenum, srcfile);
-	vsprintf(buf + emitted, msg, vl);
-	va_end(vl);
-	debugc(buf, 6);  // fatal
-	// Ah, what the heck, shouldn't run, but I already wrote it (NULLs indicate no RESUME support)
-	void (*handler)() = fb_ErrorThrowAt(linenum, srcfile, NULL, NULL);
-	handler();
+void (*debug_hook)(const char *msg, int errorlevel) = debugc;
+
+// This is for the benefit of testing tools (vectortest)
+void set_debug_hook(void (*new_debug_hook)(const char *msg, int errorlevel)) {
+	if (new_debug_hook)
+		debug_hook = new_debug_hook;
+	else
+		debug_hook = debugc;
 }
 
-void debug(int errorlevel, const char *msg, ...) {
+// fatal if errorlevel >= 5
+void _throw_error(int errorlevel, const char *srcfile, int linenum, const char *msg, ...) {
 	va_list vl;
 	va_start(vl, msg);
 	char buf[256];
-	vsprintf(buf, msg, vl);
+	buf[255] = '\0';
+	int emitted = 0;
+	if (srcfile)
+		emitted = snprintf(buf, 255, "On line %d in %s: ", linenum, srcfile);
+	vsnprintf(buf + emitted, 255 - emitted, msg, vl);
 	va_end(vl);
-	debugc(buf, errorlevel);
+	debug_hook(buf, errorlevel);
+	/*
+	if (errorlevel >= 5) {
+		// Ah, what the heck, shouldn't run, but I already wrote it (NULLs indicate no RESUME support)
+		void (*handler)() = fb_ErrorThrowAt(linenum, srcfile, NULL, NULL);
+		handler();
+	}
+	*/
 }
 
 
@@ -479,11 +488,14 @@ array_t array_end(array_t array) {
 }
 
 // (E)
+// Note that n is signed for more informative error messages
 void *array_index(array_t array, int n) {
 	if (!array)
 		throw_error("array_index: array uninitialised");
-	if (n < 0 || n >= length(array))
-		throw_error("array_index: out of bounds array access, index %d in length %d array of %s", n, length(array), get_type(array)->name);
+	if (n < 0 || n >= length(array)) {
+		debug(4, "array_index: out of bounds array access, index %d in length %d array of %s", n, length(array), get_type(array)->name);
+		return NULL;
+	}
 	return nth_elem(array, n);
 }
 
@@ -585,8 +597,10 @@ array_t array_insert(array_t *array, int pos, void *value) {
 	typetable *tytbl = get_type(*array);
 	unsigned int len = length(*array);
 
-	if (pos < 0 || pos > len)
-		throw_error("array_insert: tried to insert at position %d of array of length %d", pos, len);
+	if (pos < 0 || pos > len) {
+		debug(4, "array_insert: tried to insert at position %d of array of length %d", pos, len);
+		return *array;
+	}
 
 	if (value >= (void *)*array && value < (void *)nth_elem(*array, len)) {
 		// Special logic: you're inserting an element array[i] of an array into itself, but
@@ -609,7 +623,7 @@ array_t array_insert(array_t *array, int pos, void *value) {
 		memcpy(elmt, value, tytbl->element_len);
 	}
 
-        return *array;
+	return *array;
 }
 
 // Delete the elements in the range [from, to)
@@ -621,8 +635,10 @@ array_t array_delete_slice(array_t *array, int from, int to) {
 	typetable *tytbl = get_type(*array);
 	unsigned int len = length(*array);
 
-	if (from < 0 || to > len || from > to)
-		throw_error("array_delete_slice: invalid slice [%d, %d) of array of length %d", from, to, len);
+	if (from < 0 || to > len || from > to) {
+		debug(4, "array_delete_slice: invalid slice [%d, %d) of array of length %d", from, to, len);
+		return *array;
+	}
 	if (from == to)
 		return *array;
 

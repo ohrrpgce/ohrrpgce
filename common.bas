@@ -885,7 +885,7 @@ SUB showerror (msg as string, byval isfatal as integer = NO)
   restoremode
 
   'no need for end_debug
-  SYSTEM
+  SYSTEM 1
  #ELSE
   exitprogram 0, 1
  #ENDIF

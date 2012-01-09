@@ -38,7 +38,7 @@ END SUB
 SUB fatalerror (e as string)
   IF e <> "" THEN print "ERROR: " + e
   IF cleanup_function THEN cleanup_function()
-  SYSTEM
+  SYSTEM 1
 END SUB
 
 FUNCTION readkey () as string

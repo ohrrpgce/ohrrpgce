@@ -1,4 +1,5 @@
 /* OHRRPGCE
+ * This does NOT correspond to common.bi/common.bas
  * Copyright 2011. Please read LICENSE.txt for GNU GPL details and disclaimer of liability
  */
 
@@ -40,11 +41,14 @@ void debugc(const char *msg, int errorlevel);
 void (*fb_ErrorThrowAt(int line_num, const char *mod_name, void *res_label, void *resnext_label))(void) noreturn;
 
 // in array.c (meh)
-void _throw_error(const char *srcfile, int linenum, char *msg, ...) format_chk(3) noreturn;
+void _throw_error(int errorlevel, const char *srcfile, int linenum, const char *msg, ...) format_chk(4);
+extern void (*debug_hook)(const char *msg, int errorlevel);
+void set_debug_hook(void (*new_debug_hook)(const char *msg, int errorlevel));
 
-void debug(int errorlevel, const char *msg, ...) format_chk(2);
-#define debuginfo(...) debug(1, __VA_ARGS__)
-#define throw_error(...) _throw_error( __FILE__, __LINE__, __VA_ARGS__)
+#define debug(errorlevel, ...) _throw_error(errorlevel, NULL, 0, __VA_ARGS__)
+#define debuginfo(...) _throw_error(1, NULL, 0, __VA_ARGS__)
+#define throw_error(...) _throw_error(5, __FILE__, __LINE__, __VA_ARGS__)
+#define fatal_error(...) _throw_error(6, __FILE__, __LINE__, __VA_ARGS__)
 
 
 #ifdef __cplusplus

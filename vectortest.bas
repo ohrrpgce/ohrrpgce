@@ -20,6 +20,11 @@ OPTION EXPLICIT
 	End Scope
 #endmacro
 
+extern "C"
+	type FnDebugHook as sub (byval msg as zstring ptr, byval errorlevel as integer)
+	declare sub set_debug_hook (byval new_debug_hook as FnDebugHook)
+end extern
+
 
 '''''''''''''''''''''''''''''''''''' Types '''''''''''''''''''''''''''''''''''''
 
@@ -679,9 +684,36 @@ startTest(valgrind)
 	v_free arr
 endTest
 
-startTest(ThisShouldAbort)
+
+'Most error conditions in array.c raise a level 5 error (not-immediately fatal), but bounds checking
+'raises level 4 (probably fatal) errors
+
+dim shared num_errors as integer = 0
+
+sub error_counter cdecl (byval msg as zstring ptr, byval errorlevel as integer)
+	if errorlevel > 4 then
+		print "unexpected error (errlvl=" & errorlevel & "), on vectortest.bas line " & errorpos & ": " & msg
+		end 1
+	end if
+	num_errors += 1
+end sub
+
+startTest(testBoundsChecking)
+	num_errors = 0
+	set_debug_hook(@error_counter)
+
 	dim arr as integer vector
 	v_new arr, 2
-	? v_at(arr, 2)
+	v_at(arr, 0)
+	if num_errors then fail
+	v_at(arr, 1)
+	if num_errors then fail
+
+	v_at(arr, 2)
+	if num_errors <> 1 then fail
+	v_at(arr, -1)
+	if num_errors <> 2 then fail
+
+	set_debug_hook(NULL)
 	v_free arr
 endTest
