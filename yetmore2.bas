@@ -992,6 +992,10 @@ FUNCTION game_setoption(opt as string, arg as string) as integer
   autotestmode = YES
   enable_speed_control NO
   RETURN 1 'arg not used
+ ELSEIF opt = "runfast" THEN
+  debuginfo "Running without speed control"
+  enable_speed_control NO
+  RETURN 1 'arg not used
  ELSEIF opt = "autosnap" then
   IF is_int(arg) THEN
    autosnap = str2int(arg)

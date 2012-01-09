@@ -77,13 +77,15 @@ function usage_setoption(opt as string, arg as string) as integer
 		help = help & "Game data copyright and license will vary." & LINE_END
 		display_help_string help
 		return 1
-	elseif opt = "?" or opt = "help" then
-		help = help & "-? -help            Display this help screen" & LINE_END
+	elseif opt = "?" or opt = "help" or opt = "h" then
+		help = help & "-? -h -help         Display this help screen" & LINE_END
 		help = help & "-v -version         Show version and build info" & LINE_END
 		help = help & "-log foldername     Log debug messages to a specific folder" & LINE_END
 #IFDEF IS_GAME
 		help = help & "-full-upgrade       Upgrade game data completely, as Custom does" & LINE_END
 		help = help & "-autosnap N         Automatically save a screen snapshot every N ticks" & LINE_END
+		help = help & "-runfast            Run quickly (without speed control)" & LINE_END
+		help = help & "-autotest           Run quickly and write screenshots on _checkpoints" & LINE_END
 #ENDIF
 		help = help & "-recordinput file   Record keyboard input to a file" & LINE_END
 		help = help & "-replayinput file   Replay keyboard input from a previously recorded file" & LINE_END
