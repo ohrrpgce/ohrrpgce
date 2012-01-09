@@ -442,7 +442,7 @@ sub gfx_backend_init(byval terminate_signal_handler as sub cdecl (), byval windo
 	next
 
 	display_help_string "No working graphic backend!"
-	system
+	system 1
 end sub
 
 end extern

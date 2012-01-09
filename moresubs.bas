@@ -1828,7 +1828,7 @@ SUB scripterr (e as string, byval errorlevel as integer = 5)
 
   IF autotestmode THEN
     write_checkpoint
-    exitprogram 0
+    exitprogram 0, YES
   END IF
 
   dowait

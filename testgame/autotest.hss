@@ -45,6 +45,8 @@ plotscript, run all tests, begin
   textbox tests
   battle tests
   timer tests
+  $0="TESTS SUCCEEDED"
+  trace(0)
   game over
 end
 

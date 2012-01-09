@@ -88,6 +88,13 @@ env = Environment (FBFLAGS = FBFLAGS,
                    VAR_PREFIX = '',
                    **envextra)
 
+# Shocked that scons doesn't provide $HOME
+# $DISPLAY is need for both gfx_sdl and gfx_fb
+for var in 'PATH', 'DISPLAY', 'HOME':
+    if var in os.environ:
+        env['ENV'][var] = os.environ[var]
+
+
 def prefix_targets(target, source, env):
     target = [File(env['VAR_PREFIX'] + str(a)) for a in target]
     return target, source
@@ -120,8 +127,6 @@ SourceFileScanner.add_scanner ('.bi', bas_scanner)
 env.Append (BUILDERS = {'BASEXE':basexe, 'BASO':baso, 'BASMAINO':basmaino, 'VARIANT_BASO':variant_baso, 'RB':rbasic_builder, 'RC':rc_builder},
             SCANNERS = bas_scanner)
 
-
-env['ENV']['PATH'] = os.environ['PATH']
 if CC:
     env['ENV']['CC'] = CC
     env.Replace (CC = CC)
@@ -395,6 +400,16 @@ RELOADUTIL = env.BASEXE ('reloadutil', source = ['reloadutil.bas'] + reload_obje
 RBTEST = env.BASEXE ('rbtest', source = [env.RB('rbtest.rbas')] + reload_objects)
 env.BASEXE ('vectortest', source = ['vectortest.bas'] + base_objects)
 
+testprogs = ['reloadtest', 'rbtest', 'vectortest']
+# --log . to smooth out inconsistencies between Windows and Unix
+tmp = ''
+if 'fb' in used_gfx:
+    # Use gfx_fb because it draws far less frames without speed control for some reason, runs waaaay faster
+    tmp = ' --gfx fb'
+tests = testprogs + [gamename + tmp +  ' --log . --runfast testgame/autotest.rpg',
+                     'grep -q "TRACE: TESTS SUCCEEDED" g_debug.txt']
+env.Command ('test', source = testprogs + [GAME], action = tests)
+
 Default (GAME)
 Default (CUSTOM)
 
@@ -445,7 +460,8 @@ Targets:
   dumpohrkey
   bam2mid
   reload              Compile all RELOAD utilities.
-  .                   Compile everything.
+  test                Compile and run all automated tests (including autotest.rpg)
+  .                   Compile everything (and run tests).
 
 With no targets specified, compiles game and custom.
 
