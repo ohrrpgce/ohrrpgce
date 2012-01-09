@@ -318,6 +318,13 @@ SUB basic_textbox (msg as string, byval col as integer, byval page as integer)
 END SUB
 
 SUB notification (msg as string)
+ 'This is a kludge to fix showing notifications while faded out.
+ 'I don't want to completely reset to the default palette like showerror does, because
+ 'this is used for plenty of non-scary messages
+ IF fadestate = 0 THEN
+  setpal master()
+ END IF
+
  basic_textbox msg, uilook(uiText), vpage
  setvispage vpage
  waitforanykey

@@ -328,7 +328,8 @@ ELSE  'NOT running_as_slave
     workingdir = arg
    END IF
    EXIT FOR
- 'ELSE nothing; custom throws a warning
+  ELSE
+   visible_debug "Unrecognised commandline argument " & arg & " ignored"
   END IF
  NEXT
 
