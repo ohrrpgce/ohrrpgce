@@ -8,6 +8,16 @@ dim shared doc as DocPtr, doc2 as DocPtr
 sub sink(i as integer)
 end sub
 
+'Dump a RELOAD doc, for debugging
+sub printTree(byval doc as DocPtr)
+	dim fh as integer = freefile
+	open cons for output as fh
+	serializeXML(doc, fh)
+	close fh
+end sub
+
+
+
 startTest(createDocument)
 	doc = CreateDocument()
 	if doc = null then fail
@@ -313,6 +323,85 @@ startTest(testNestedDefaulting)
 	end readnode
 	if sum1 <> 1234 then fail
 	if sum2 <> 101 then fail
+endTest
+
+dim shared num_warnings as integer = 0
+
+sub count_warnings(msg as string)
+	num_warnings += 1
+end sub
+
+startTest(testLoadArray1)
+	'printTree(doc)
+
+	dim as NodePtr root = DocumentRoot(doc), nod1, nod2
+	nod1 = AppendChildNode(root, "loadarray_test")
+	for i as integer = -2 to 6 step 2
+		SetKeyValueNode(nod1, "key", i, i * i)
+	next
+	AppendChildNode(nod1, "dummy", 42)
+	SetKeyValueNode(nod1, "key", 20, 400)
+
+	'# warn_func = debug
+	# warn_func = count_warnings
+	num_warnings = 0
+
+	dim buf(-2 to 6) as integer, i as integer
+	readnode nod1
+		nod1."dummy".ignore
+		loadarray buf($i) = 1+nod1."key"[$i]."int".default(-44)+1
+	end readnode
+
+	if num_warnings <> 1 then fail
+	num_warnings = 0
+
+	for i as integer = lbound(buf) to ubound(buf)
+		if i mod 2 = 0 then
+			if buf(i) <> i * i + 2 then fail
+		else
+			if buf(i) <> -44 + 2 then fail
+		end if
+	next
+
+	'Test nonexistent children default correctly
+	'(Note: there's no way to tell between the "dummy"[$i] not existing, and the "doesn't exist" being missing)
+
+	readnode nod1, ignoreall
+		loadarray buf($i) = nod1."dummy"[$i]."doesn't exist"
+	end readnode
+
+	if num_warnings <> 1 then fail
+	num_warnings = 0
+
+	for i as integer = lbound(buf) to ubound(buf)
+		if buf(i) <> 0 then fail
+	next
+
+	readnode nod1, ignoreall
+		loadarray buf($i) = nod1."key"[$i].exists
+	end readnode
+
+	for i as integer = lbound(buf) to ubound(buf)
+		if i mod 2 = 0 then
+			if buf(i) <> YES then fail
+		else
+			if buf(i) <> NO then fail
+		end if
+	next
+
+	'This is somewhat useless, but is meant to work
+	readnode nod1, ignoreall
+		loadarray buf($i) = nod1."key"[$i].default(-4444)
+	end readnode
+
+	for i as integer = lbound(buf) to ubound(buf)
+		if i mod 2 = 0 then
+			if buf(i) <> i then fail
+		else
+			if buf(i) <> -4444 then fail
+		end if
+	next
+
 endTest
 
 startTest(testMixedDocuments)

@@ -6,7 +6,7 @@ from copy import copy
 from random import randint
 import optparse
 import pyPEG
-from pyPEG import _not as NOT, _and as AND, ASTNode, ignore as IGNORE, ParseError, pointToError
+from pyPEG import _not as NOT, _and as AND, ASTNode, ignore as IGNORE, ParseError
 from xmlast import AST2XML
 
 reloadbasic = "".join((a,a.upper())[randint(0,1)] for a in "reloadbasic")
@@ -16,7 +16,7 @@ reloadbasic = "".join((a,a.upper())[randint(0,1)] for a in "reloadbasic")
 
 
 type_attributes = 'ptr', 'integer', 'string', 'float', 'double', 'zstring', 'zstringsize', 'bool', 'exists'
-boolean_attributes = 'required', 'warn', 'ignore'
+boolean_attributes = 'required', 'warn', 'ignore', 'oob_error'
 attributes = type_attributes + boolean_attributes + ('default',)
 
 # Unlike in normal grammar or regex notation, these *precede* the element they act on
@@ -100,15 +100,19 @@ def readNodeEnd():          return "end", "readnode"
 def withNode():             return "withnode", CHECKPNT, nodeSpec, "as", identifier
 def withNodeEnd():          return "end", "withnode"
 
+def arrayName():            return STAR, (identifier, "."), identifier
+
+def loadArray():            return "loadarray", CHECKPNT, arrayName, "(", "$", identifier, ")", "=", expression
+
 def nodeSpecAssignment():   return nodeSpec, "=", CHECKPNT, expression
 
 def directive():            return "#", re.compile("warn_func|error_func"), CHECKPNT, "=", identifier
 
 # Grammar for any line of RB source. Matches empty lines too (including those with comments)
 # The AND element requires the regex to match before most patterns are checked.
-def lineGrammar():          return [(AND(re.compile('(end\s+)?(dim|readnode|withnode|private|sub|function|starttest|endtest|#)', re.I)),
+def lineGrammar():          return [(AND(re.compile('(end\s+)?(dim|readnode|withnode|loadarray|private|sub|function|starttest|endtest|#)', re.I)),
                                      [dimStatement, readNode, readNodeEnd, withNode, withNodeEnd,
-                                      functionStart, functionEnd, subStart, subEnd, directive]),
+                                      functionStart, functionEnd, subStart, subEnd, loadArray, directive]),
                                     nodeSpecAssignment, tokenList]
 
 
@@ -317,17 +321,32 @@ class DelayedFileWriter(FileMarker):
 ################################# NodeSpecs ####################################
 
 
+def one_of(collection):
+    if len(collection) == 1:
+        return str(collection[0])
+    return "one of " + ", ".join(str(item) for item in collection)
+
 class NodeSpec(object):
-    def __init__(self, node, cur_line, force_type = None):
+    def __init__(self, node, cur_line, force_type = None, index_vars = ()):
+        """
+        node should be a nodeSpec ASTNode.
+        force_type forces the value type to something; it can't be overridden.
+        index_vars is a list of variable names which may be used for array indexing,
+        by default indices are not allowed.
+        """
+        assert node.name == "nodeSpec"
+
         self.node = node
         self.root_var = get_ident(node[0])
-        self.indices = []    # string ASTNodes. Might be length 0!
+        self.indices = []    # either 'string' or 'identifier' (index variables) ASTNodes. Might be length 0!
+        self._index_var_index = None  # The index in self.indices of the index variable if any
         self.attributes = []
         self.default = None
         self.type = None
         self.required = False
         self.warn = False
         self.ignore = False
+        self.oob_error = False
 
         last_attribute = None
         for element in node[1:]:
@@ -335,12 +354,21 @@ class NodeSpec(object):
                 if element.name == "string":
                     self.indices.append(element)
                 elif element.name == "nodeIndex":
-                    raise LanguageError("Nodespec node value indices unimplemented", element)
+                    if len(index_vars) == 0:
+                        raise LanguageError("Only nodespecs on LoadArray lines may have value indices", element)
+                    if self._index_var_index == 1:
+                        raise LanguageError("Only a single value index is allowed in each LoadArray nodespec", element)
+                    index_var = get_ident(element.identifier)
+                    if index_var not in index_vars:
+                        raise LanguageError("This value index variable must be " + one_of(index_vars), element.identifier)
+                    self._index_var_index = len(self.indices)
+                    self.indices.append(element.identifier)
                 elif element.name == "expression":
                     if last_attribute != "default":
                         raise LanguageError("Only node 'default' attributes may take an argument", element)
                     self.default = cur_line[element.start:element.end]
                 last_attribute = None
+
             else:
                 # It's an attribute
                 if element.lower() not in attributes:
@@ -376,15 +404,33 @@ class NodeSpec(object):
         """
         if self.ignore:
             raise LanguageError("'ignore' attribute can only be used inside a ReadNode block", self.node)
+        if self.oob_error:
+            raise LanguageError("'oob_error' attribute can only be used in a LoadArray statement", self.node)
         if self.type == None:
             self.type = "integer"
 
     def check_readnode_expression_usage(self):
         """
-        Check supplied attributes are valid when used inside a ReadNode block
+        Check supplied attributes are valid when used inside a ReadNode block, excluding LoadArray lines
         """
         if self.type == None:
             self.type = "integer"
+        if self.oob_error:
+            raise LanguageError("'oob_error' attribute can only be used in a LoadArray statement", self.node)
+
+    def check_loadarray_usage(self):
+        """
+        Check supplied attributes are valid when used inside a LoadArray lines
+        """
+        if self.type == None:
+            self.type = "integer"
+        if self.warn or self.required:
+            raise LanguageError("'warn' and 'required' attributes are not allowed on a LoadArray nodespec", self.node)
+        if self._index_var_index == None:  # > 1 is checked in __init__
+            raise LanguageError("Each LoadArray nodespec needs a single [$varname] 'value index'", self.node)
+        # Check the value index is on the child
+        if self._index_var_index != 1:
+            raise LanguageError("The [$varname] 'value index' should be after the first child name", self.node)
 
     def check_header_usage(self, name):
         """
@@ -393,6 +439,8 @@ class NodeSpec(object):
         """
         if self.ignore:
             raise LanguageError("'ignore' attribute can only be used as a directive inside a ReadNode block", self.node)
+        if self.oob_error:
+            raise LanguageError("'oob_error' attribute can only be used in a LoadArray statement", self.node)
         # Using force_type instead
         #if self.type != None:
         #    raise LanguageError("May not specify a type attribute on a " + name + " nodespec", self.node)
@@ -406,6 +454,16 @@ class NodeSpec(object):
         "{ptr}", "CINT(GetInteger({ptr}))", "GetString({ptr})", "GetFloat({ptr})", "GetFloat({ptr})",
         "GetZString({ptr})", "GetZStringSize({ptr})", "(GetInteger({ptr}) <> 0)", "({ptr} <> NULL)"
         )
+
+    defaults = ("NULL", "0", '""', "0.0", "0.0", "NULL", "0", "NO", "NO")
+
+    def get_default(self):
+        """
+        Return an explicit default value as a string.
+        """
+        if self.default != None:
+            return self.default
+        return NodeSpec.defaults[type_attributes.index(self.type)]
 
     def value_getter(self):
         """
@@ -439,7 +497,8 @@ class NodeSpec(object):
         """
         An RPath-like node path, but starting with a NodePtr variable name
         """
-        return self.root_var + ":/" + "/".join(get_string(bit) for bit in self.indices)
+        # Ignore .name == "identifier" indices (value index variables)
+        return self.root_var + ":/" + "/".join(get_string(bit) for bit in self.indices if bit.name == "string")
 
 
 ########################### RB to FB translation ###############################
@@ -506,6 +565,24 @@ DO
 LOOP
 """
 
+# Translation for a LoadArray inside a ReadNode
+READNODE_LOADARRAY_TEMPLATE = """\
+{tmpi} = GetInteger({node})
+IF {tmpi} >= LBOUND({array}) AND {tmpi} <= UBOUND({array}) THEN
+  {array}({tmpi}) = {value}
+ELSE
+  {warn_func} "{codeloc}: Node {nodepath} value " & {tmpi} & " out of bounds; range " & LBOUND({array}) & " to " & UBOUND({array}){error_extra}
+END IF
+"""
+
+# Appears before a ReadNode block translation, for each LoadArray line.
+# Use this instead of flusharray() so that arbitrary types and expressions are supported. Also faster.
+FLUSH_ARRAY_TEMPLATE = """\
+' Flush {array}
+FOR {tmpi} as integer = LBOUND({array}) TO UBOUND({array})
+  {array}({tmpi}) = {value}
+NEXT
+"""
 
 class ReloadBasicFunction(object):
     """
@@ -569,7 +646,7 @@ class ReloadBasicFunction(object):
 
     def set_derived_from(self, variable, derived_from):
         """
-        Mark one NodePtr variables as belonging to the same document as another.
+        Mark one NodePtr variable as belonging to the same document as another.
         """
         # Don't allow a tree of depth more than 1, because one of the intermediates
         # could be an "AS foo" temporary variable which switches between multiple
@@ -640,7 +717,7 @@ class ReloadBasicFunction(object):
 
     def get_descendant(self, nodespec):
         """
-        An expression for finding a descendant Node described by a nodespec.
+        A FB expression for finding a descendant Node described by a nodespec.
         """
         prologue = ""
         nodeptr = nodespec.root_var # "{ptr}"
@@ -718,7 +795,7 @@ class ReloadBasicFunction(object):
         """
         Given a nodeSpec ASTNode for a nodeSpec which is in normal imperative scope, return a pair of strings:
         (translation, prologue)
-        where translation is FB translation to insert directly, and prologue is a set of source lines to place in front.
+        where translation is FB translation to insert directly, and prologue is a list of source lines to place in front.
         """
         nodeptr, translation, prologue = self.simple_nodespec_translation(nodespec, nodespec.required or nodespec.warn)
         prologue += self.nodespec_warn_required_checks(nodespec, nodeptr)
@@ -728,6 +805,7 @@ class ReloadBasicFunction(object):
     def find_nodespecs(self, nodeset, results = None):
         """
         Return a list of all the nodeSpec ASTNodes (in order) within a tokenList, expression, expressionList or list of these.
+
         """
         if results == None:
             results = []
@@ -753,24 +831,39 @@ class ReloadBasicFunction(object):
             prologue += temp[1]
         return replacements, prologue
 
-    def cur_line_with_replacements(self, replacements):
+    def astnode_to_string(self, node):
         """
-        Return a copy of the current line, with some ASTNodes replaced with strings.
+        Returns the portion of the current line which an ASTNode was parsed from.
         """
+        return self.cur_line[node.start : node.end]
+
+    def _with_replacements(self, text, offset, replacements):
         ret = ""
         start = 0
         for node, replacement in replacements:
             # print "Replacing", AST2XML(node)
-            # print self.cur_line
+            # print line
             # print rep
-            ret += self.cur_line[start:node.start] + replacement
-            start = node.end
-        ret += self.cur_line[start:]
+            ret += text[start:node.start - offset] + replacement
+            start = max(0, node.end - offset)
+        ret += text[start:]
         return ret
+
+    def node_with_replacements(self, node, replacements):
+        """
+        Return the text for an ASTNode on the current line, with some descendant ASTNodes replaced with strings.
+        """
+        return self._with_replacements(self.cur_line[node.start : node.end], node.start, replacements)
+
+    def cur_line_with_replacements(self, replacements):
+        """
+        Return a copy of the current line, with some ASTNodes replaced with strings.
+        """
+        return self._with_replacements(self.cur_line, 0, replacements)
 
     def output(self, text, prologue = ""):
         """
-        Write something to the output
+        Write something to the output (optionally with prologue with added indentation to match the current line)
         """
         if len(prologue):
             indentwith = whitespace.match(self.cur_line)
@@ -801,6 +894,44 @@ class ReloadBasicFunction(object):
             
         return indent(prologue, indentwith) + self.cur_line_with_replacements(replacements)
 
+    def process_readnode_loadarray(self, node, nodespec, readnode, node_path):
+        """
+        Return the replacement for a LoadArray line inside a ReadNode, and add necessary
+        array flushing to readnode.prologue.
+
+        node is the loadArray ASTNode, nodespec is a preprocessed NodeSpec for the nodespec
+        in the LoadArray's expression.
+        """
+        # At this point the child node name is stripped, so the index variable should be first
+        assert nodespec.indices[0].name == 'identifier'
+        del nodespec.indices[0]
+
+        result = []
+        _, replacement, prologue_ = self.simple_nodespec_translation(nodespec)
+        if prologue_:
+            result.append(prologue_)
+        expression = self.node_with_replacements(node.expression, [(nodespec.node, replacement)])
+
+        index_var = get_ident(node.identifier)
+        arrayname = self.astnode_to_string(node.arrayName)
+
+        # Prologue
+        temp = FLUSH_ARRAY_TEMPLATE
+        defaulted_expression = self.node_with_replacements(node.expression, [(nodespec.node, nodespec.get_default())])
+        readnode.prologue += temp.format(tmpi = self.makename("_i"), array = arrayname, value = defaulted_expression)
+        
+        # Line translation
+        result.append("'''" + self.cur_line.lstrip())
+        temp = READNODE_LOADARRAY_TEMPLATE
+        if nodespec.oob_error:
+            args = {'warn_func' : self.error_func, 'error_extra' : " : " + self.exit}
+        else:
+            args = {'warn_func' : self.warn_func, 'error_extra' : ""}
+        temp = temp.format(tmpi = index_var, node = nodespec.root_var, array = arrayname,
+                           value = expression, codeloc = self.cur_filepos, nodepath = node_path, **args)
+        result.append(temp)
+        return result
+
 
     class ReadNode(object):
         def __init__(self, header, parent_nodeptr, context):
@@ -810,6 +941,7 @@ class ReloadBasicFunction(object):
             self.ignoreall = "ignoreall" in header.what
             self.default = "default" in header.what
 
+            self.prologue = ""
             # Names of child nodes seen so far
             self.children = set()
             # List of children for which we need to do .warn or .required checks
@@ -824,9 +956,9 @@ class ReloadBasicFunction(object):
             context.set_derived_from(self.child_nodeptr, self.parent_nodeptr)
 
 
-    def process_readnode_line(self, node, iterator, readnode):
+    def process_readnode_line(self, node, iterator, readnode, parent_node_path):
         """
-        Process a readNode, withNode, or tokenList inside a readNode.
+        Process a readNode, withNode, or tokenList ASTNode (node) inside a readNode.
         """
 
         savescope = copy(self.users_temp_vars)
@@ -841,14 +973,23 @@ class ReloadBasicFunction(object):
             nodespec = NodeSpec(node.nodeSpec, self.cur_line)
             # Attribute checks are performed in process_withnode, shouldn't need to do them here
             #nodespec.check_header_usage("WithNode header")
-        elif node.name == "tokenList":
-            nodespecs = self.find_nodespecs(node)
+        else:
+            if node.name == "tokenList":
+                index_vars = []
+                nodespecs = self.find_nodespecs(node)
+            elif node.name == "loadArray":
+                index_vars = [get_ident(node.identifier)]
+                nodespecs = self.find_nodespecs(node.expression)
             if len(nodespecs) != 1:
                 raise LanguageError("Each line inside a ReadNode block should contain a single nodespec", node)
-            nodespec = NodeSpec(nodespecs[0], self.cur_line)
-            nodespec.check_readnode_expression_usage()
+            nodespec = NodeSpec(nodespecs[0], self.cur_line, None, index_vars)
+            if node.name == "tokenList":
+                nodespec.check_readnode_expression_usage()
+            elif node.name == "loadArray":
+                nodespec.check_loadarray_usage()
 
         child = get_string(nodespec.indices[0])
+        node_path = parent_node_path + "/" + child
         if nodespec.root_var.lower() != readnode.parent_nodeptr.lower():
             raise LanguageError("Each line inside this ReadNode block should have a nodespec rooted by the parent NodePtr, which is " + readnode.parent_nodeptr, nodespec.node[0])
         if child in readnode.children:
@@ -861,9 +1002,9 @@ class ReloadBasicFunction(object):
         result = []
         case_comment = child #self.cur_line[nodespec.node.start:nodespec.node.end]
 
-        loopback = readnode.default or nodespec.default != None
-
-        if not nodespec.ignore and (nodespec.warn or nodespec.required or loopback):
+        # Whether to record this node's presence
+        if node.name != "loadArray" and not nodespec.ignore and (
+                readnode.default or nodespec.default != None or nodespec.warn or nodespec.required):
             result.append("%s(%s) OR= 1 SHL %s\n" % (readnode.check_array, len(readnode.checks)/32, len(readnode.checks)%32))
             readnode.checks.append((nodespec, self.cur_filepos, child))
 
@@ -874,6 +1015,7 @@ class ReloadBasicFunction(object):
                 print "%s: Warning: redundant .ignore inside an ignoreall ReadNode" % self.cur_filepos
             result.append("'ignore\n")
         else:
+            # Note: invalidates nodespec._index_var_index
             del nodespec.indices[0]
             nodespec.root_var = readnode.child_nodeptr
 
@@ -895,6 +1037,9 @@ class ReloadBasicFunction(object):
                 if prologue_:
                     result.append(prologue_)
                 result.append(self.cur_line_with_replacements([(nodespec.node, replacement)]).lstrip() + "\n")
+            elif node.name == "loadArray":
+                # This also adds the array flushing to readnode.prologue
+                result += self.process_readnode_loadarray(node, nodespec, readnode, node_path)
 
         #print self.cur_filepos, "restoring ", savescope, "(was", self.users_temp_vars, ")"
         self.users_temp_vars = savescope
@@ -910,8 +1055,8 @@ class ReloadBasicFunction(object):
         override_nodespec may be passed to provided a modified nodespec
         """
 
-        prologue = ""
         output = ["'''" + self.cur_line.lstrip() + "\n"]
+        prologue_ = ""
 
         if header[0].name == "nodeSpec":
             # READNODE nodespec AS identifier [, ignoreall] [, default]
@@ -928,7 +1073,7 @@ class ReloadBasicFunction(object):
             #translation, prologue = self.nodespec_translation(nodespec, True)
 
             parent_nodeptr = get_ident(header[1])
-            prologue += self.block_nodespec_translation(nodespec, parent_nodeptr)
+            prologue_ = self.block_nodespec_translation(nodespec, parent_nodeptr)
             node_path = nodespec.path_string()
 
         else:
@@ -939,6 +1084,7 @@ class ReloadBasicFunction(object):
             node_path = parent_nodeptr + ":"
 
         readnode = ReloadBasicFunction.ReadNode(header, parent_nodeptr, self)
+        readnode.prologue = prologue_
 
         nametable, declare_table, build_table = self.nameindex_table(readnode.parent_nodeptr)
         build_table = indent(build_table, "  ")
@@ -954,16 +1100,16 @@ class ReloadBasicFunction(object):
             nodetype = node.name
             if nodetype == "readNodeEnd":
                 break
-            elif nodetype in ("tokenList", "readNode", "withNode"):
-                case = self.process_readnode_line(node, iterator, readnode)
+            elif nodetype in ("tokenList", "readNode", "withNode", "loadArray"):
+                case = self.process_readnode_line(node, iterator, readnode, node_path)
                 select_cases.extend(line + "\n" for line in case.split("\n"))
             else:
                 raise ParseError("Unexpected inside a ReadNode block:\n" + line)
 
         if len(readnode.checks):
-            prologue += "DIM %s(%s) as uinteger\n" % (readnode.check_array, len(readnode.checks) / 32)
+            readnode.prologue += "DIM %s(%s) as uinteger\n" % (readnode.check_array, len(readnode.checks) / 32)
 
-        output.append(prologue)
+        output.append(readnode.prologue)
 
         nameindex_var = self.makename("_nameidx")
 
@@ -1013,7 +1159,7 @@ class ReloadBasicFunction(object):
     def process_withnode(self, header, iterator, indentwith = None, override_nodespec = None):
         """
         Process a whole withnode block; header is a withNode ASTNode.
-        override_nodespec may be passed to provided a modified nodespec
+        override_nodespec may be passed to provided a modified NodeSpec
         """
         if override_nodespec:
             nodespec = override_nodespec
@@ -1107,6 +1253,8 @@ class ReloadBasicFunction(object):
                 self.output(self.process_readnode(node, iterator))
             elif nodetype == "withNode":
                 self.output(self.process_withnode(node, iterator))
+            #elif nodetype == "loadArray":
+            #    self.output(self.process_loadarray(node, iterator))
             elif nodetype in ("subEnd", "functionEnd"):
                 self.output(line)
                 iterator.hook = None
@@ -1174,7 +1322,7 @@ class ReloadBasicTranslator(object):
 
             except ParseError, e:
                 if hasattr(e, "node"):
-                    e.message += "\n" + pointToError(iterator.line, e.node.start, e.node.end)
+                    e.message += "\n" + pyPEG.pointToError(iterator.line, e.node.start, e.node.end)
                 print "On line %d of %s:\n%s" % (iterator.lineno, filename, str(e))
                 sys.exit(1)
 

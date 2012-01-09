@@ -9,6 +9,9 @@ Syntax:
 nodevar must be a Node ptr variable. Zero length nodespecs aren't implemented yet, so you can only
 refer to descendants (you need to call GetInteger, etc. manually to get a node's value directly).
 
+Nodespecs on a 'LoadArray' line can also contain an index, see the LoadArray section.
+
+
 == Nodespec type attributes ==
 .ptr		    : NodePtr: A pointer to the node itself, not its value.
 .integer        : (Default)
@@ -34,6 +37,8 @@ refer to descendants (you need to call GetInteger, etc. manually to get a node's
 .ignore         : The resulting nodespec is a directive, not an expression. It may only appear
 				  in a ReadNode, causing that node to be skipped without a warning.
 				  No other attributes should be given.
+.oob_error      : For LoadArray only. Print errors instead of warning messages and exit the sub
+				  or function on out-of-bounds errors.
 
 
 = WithNode =
@@ -70,7 +75,9 @@ unless "ignoreall" appears in the header. A child can also be ignored with an .i
 If a line matches multiple times then it is run each time. If line doesn't match at all, then a
 warning or error is printed if its nodespec has the .warn or .required attributes, but it's not
 run with the default default value (ie. 0, 0.0 or "") unless either it has an explicit .default
-attribute, or "default" appears in the READNODE header.
+attribute, or "default" appears in the ReadNode header.
+
+"default" in the ReadNode header has no effect on LoadArray lines, since arrays are always flushed.
 
 Example:
 
@@ -94,12 +101,54 @@ to this block, inside you would have to add
   END WITHNODE
 
 
+= LoadArray =
+Syntax:
+ (inside a READNODE block)
+ LOADARRAY array_name($varname) = <expression containing nodespec indexed by varname>
+
+Syntax for indexed nodespec:
+where nodespec[$varname].continued_nodespec
+  nodevar."childname" `[$'  varname `]' [."descendants" ...] [.attribute ...]
+  eg.
+   node."foo"[$var]."bar".double
+
+LoadArray can only occur inside a ReadNode block. It allows mapping multiple children of the
+ReadNode parent Node to elements of a (predetermined length) array. The integer value of each
+child is used as an array index, and (normally) one of its descendents is used as the evaluated
+value of the nodespec.
+The array is always zeroed (or using provided default) out at the start of the READNODE block,
+using the full expression with the default value substituted for the nodespec! So if the
+expression calls a function, that function could be called twice per array index (or more,
+if there are duplicates). If way of flushing the array is undesirable, it could be changed.
+
+You can use the index variable elsewhere in the expression. You have to declare it yourself,
+(as an integer)!
+
+As with other ReadNode lines, if the same node occurs multiple times, it'll be assigned to the
+array multiple times.
+
+Note that there is no difference between a certain index value in the range of the array
+being missing, and the requested descendant being missing. For example, in
+		loadarray buf($i) = nod1."key"[$i]."child".default(-1)
+if buf is (0 TO 99), nod1."key"[10] missing is indistinguishable from
+nod1."key"[10]."child" begin missing... except that in the later case, the expression is
+evaluated twice.
+
+If the nodespec has the .oob_error attribute, then an error instead of a warning is thrown if
+the index is out of the array bounds. .required and .warn aren't allowed.
+
+Examples:
+ DIM i as integer
+ ...
+ LOADARRAY npc.extra($i) = n."extra"[$i]."int"
+ LOADARRAY bits($i) = n."bit"[$i].exists
+ LOADARRAY dat($i) = extract_data(i, n."data"[$i]."value")
+
 = TODO =
 
 * Finish writing this file
 * Clean up the source: handling of output and indent is horrible. Also variable naming confusion between strings, ASTNodes, others (NodeSpecs)
 * Assigning to nodespecs, other writing features
-* LOADARRAY
 * Zero length nodespecs
 * .once
 * .longint
