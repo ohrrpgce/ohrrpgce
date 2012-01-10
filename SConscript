@@ -406,9 +406,10 @@ tmp = ''
 if 'fb' in used_gfx:
     # Use gfx_fb because it draws far less frames without speed control for some reason, runs waaaay faster
     tmp = ' --gfx fb'
-tests = testprogs + [gamename + tmp +  ' --log . --runfast testgame/autotest.rpg',
-                     'grep -q "TRACE: TESTS SUCCEEDED" g_debug.txt']
-env.Command ('test', source = testprogs + [GAME], action = tests)
+tests = ([File(prog).abspath for prog in testprogs]
+         + [File(gamename).abspath + tmp +  ' --log . --runfast testgame/autotest.rpg',
+            'grep -q "TRACE: TESTS SUCCEEDED" g_debug.txt'])
+env.Command ('test', source = testprogs + [GAME, XML2RELOAD], action = tests)
 
 Default (GAME)
 Default (CUSTOM)
