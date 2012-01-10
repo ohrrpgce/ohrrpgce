@@ -3,8 +3,10 @@
 
 TYPE testPtr as function() as integer
 
-dim shared pauseTime as double
-dim shared errorpos as integer
+extern pauseTime as double
+extern errorpos as integer
+dim pauseTime as double
+dim errorpos as integer
 
 Randomize
 

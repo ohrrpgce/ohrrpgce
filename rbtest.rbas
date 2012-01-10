@@ -2,8 +2,9 @@
 #include "testing.bi"
 #include "common_base.bi"
 
-dim shared doc as DocPtr, doc2 as DocPtr
+declare function otherFileTests(byval node as nodeptr) as integer
 
+dim shared doc as DocPtr, doc2 as DocPtr
 
 sub sink(i as integer)
 end sub
@@ -116,7 +117,8 @@ startTest(testMissingNodes)
 	if root."not here".default(3).zstringsize <> 3 then fail
 endTest
 
-dim shared unexpected_warns as integer
+extern unexpected_warns as integer
+dim unexpected_warns as integer
 dim shared bad_warning as integer
 
 sub count_unexpected_warnings (msg as string)
@@ -454,6 +456,33 @@ startTest(testMixedDocuments)
 	if unexpected_warns <> 5 then fail
 	unexpected_warns = 0
 	if bad_warning then fail
+endTest
+
+function splitContext(byval nod as NodePtr) as integer
+	# warn_func = count_unexpected_warnings
+	unexpected_warns = 0
+
+	if nod."sharedname" <> 10001 then fail
+	readnode nod, default
+		nod."sharedname".ignore
+		nod."_nested".ignore
+		' don't mention uniquename
+		if nod."foo".exists = NO then fail
+		if nod."bar".exists then fail
+	end readnode
+	if unexpected_warns <> 1 then fail
+end function
+
+startTest(testMixedSourceFiles)
+	dim root as NodePtr = DocumentRoot(doc)
+	dim as NodePtr nod = AppendChildNode(root, "mixed files"), nod2
+
+	AppendChildNode(nod, "foo", "fg")
+	AppendChildNode(AppendChildNode(nod, "_nested", 1002), "_nested2", 1001)
+
+	if otherFileTests(root) then return 1  'fail
+
+	if splitContext(nod) then return 1  'fail
 endTest
 
 startTest(cleanup)

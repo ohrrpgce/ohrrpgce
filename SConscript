@@ -407,7 +407,7 @@ RELOADTEST = env.BASEXE ('reloadtest', source = ['reloadtest.bas'] + reload_obje
 XML2RELOAD = env.BASEXE ('xml2reload', source = ['xml2reload.bas'] + reload_objects, FBLIBS = env['FBLIBS'] + ['-p','.', '-l','xml2'], CXXLINKFLAGS = env['CXXLINKFLAGS'] + ['-lxml2'])
 RELOAD2XML = env.BASEXE ('reload2xml', source = ['reload2xml.bas'] + reload_objects)
 RELOADUTIL = env.BASEXE ('reloadutil', source = ['reloadutil.bas'] + reload_objects)
-RBTEST = env.BASEXE ('rbtest', source = [env.RB('rbtest.rbas')] + reload_objects)
+RBTEST = env.BASEXE ('rbtest', source = [env.RB('rbtest.rbas'), env.RB('rbtest2.rbas')] + reload_objects)
 env.BASEXE ('vectortest', source = ['vectortest.bas'] + base_objects)
 
 testprogs = ['reloadtest', 'rbtest', 'vectortest']
