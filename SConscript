@@ -6,7 +6,7 @@ cf. SConstruct, ohrbuild.py
 import os
 import platform
 import shutil
-from ohrbuild import basfile_scan, verprint, which, get_run_command
+from ohrbuild import basfile_scan, verprint, get_run_command
 
 FBFLAGS = os.environ.get ('FBFLAGS', []) + ['-mt']
 #CC and CXX are probably not needed anymore
@@ -136,7 +136,7 @@ if CXX:
     env.Replace (CXX = CXX)
 
 if linkgcc:
-    fbc_path = os.path.dirname(which(env, fbc))
+    fbc_path = os.path.dirname(env.WhereIs(fbc))
     #print "fbc = " + fbc_path
     if win32:
         target = 'win32'
@@ -200,6 +200,8 @@ common_objects = []  # other objects shared by Game and Custom
 libraries = []
 libpaths = []
 
+print env.WhereIs('sdl-config')
+
 if win32:
     base_modules += ['os_windows.bas']
     libraries += ['fbgfx']
@@ -212,7 +214,7 @@ elif mac:
     commonenv['FBFLAGS'] += ['-entry', 'SDL_main']
     commonenv['FBLIBS'] += ['-Wl', '-F,' + FRAMEWORKS_PATH, '-Wl', '-mmacosx-version-min=10.4']
     commonenv['CXXLINKFLAGS'] += ['-F', FRAMEWORKS_PATH, '-mmacosx-version-min=10.4', '-v']
-    if which(env, 'sdl-config'):
+    if env.WhereIs('sdl-config'):
         commonenv['CFLAGS'] += [get_run_command("sdl-config --cflags")]
     else:
         commonenv['CFLAGS'] += ["-I", "/Library/Frameworks/SDL.framework/Headers", "-I", FRAMEWORKS_PATH + "/SDL.framework/Headers"]

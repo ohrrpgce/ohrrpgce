@@ -14,21 +14,6 @@ def get_run_command(cmd):
         raise Exception("subprocess.Popen(%s) returned stderr:\n%s" % (cmd, errtext))
     return proc.stdout.read().strip()
 
-def which(env, prog_name):
-    "Like the 'which' utility, using env['ENV']['PATH']"
-    exe_suffix = ''
-    if platform.system () == 'Windows':
-        paths = env['ENV']['PATH'].split(';')
-        exe_suffix = '.exe'
-    else:
-        paths = env['ENV']['PATH'].split(':')
-    for path in paths:
-        name = os.path.abspath(os.path.join(path, prog_name)) + exe_suffix
-        #print "trying " + path + " = " + name
-        if os.path.isfile(name):
-            return name
-    return None
-
 include_re = re.compile(r'^#include\s+"(\S+)"', re.M | re.I)
 
 standard_bi = ['crt', 'SDL', 'libxml', 'fbgfx.bi', 
