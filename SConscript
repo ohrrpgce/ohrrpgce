@@ -180,12 +180,18 @@ if linkgcc:
         env['CXXLINKFLAGS'] += [os.path.join(libpath, 'operatornew.o')]
 
     def compile_main_module(target, source, env):
-        "This is the emitter for BASEXE when using linkgcc: it compiles the main module using BASMAINO"
-        def to_o(obj):
+        """
+        This is the emitter for BASEXE when using linkgcc: it compiles sources if needed, where
+        the first specified module is the main module (-m flag), and rest are regular modules.
+        """
+        def to_o((i, obj)):
             if str(obj).endswith('.bas'):
-                return env.BASMAINO (obj)
+                if i == 0:
+                    return env.BASMAINO (obj)
+                else:
+                    return env.BASO (obj)
             return obj
-        return target, [to_o(s) for s in source]
+        return target, map(to_o, enumerate(source))
 
     basexe_gcc = Builder (action = '$CXX $CXXFLAGS -o $TARGET $SOURCES $CXXLINKFLAGS',
                   suffix = exe_suffix, src_suffix = '.bas', emitter = compile_main_module)
