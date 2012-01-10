@@ -589,7 +589,7 @@ class ReloadBasicFunction(object):
     Translator for a single """ + reloadbasic + """ function.
     """
 
-    def __init__(self, outfile, filename, function_num, global_scope, be_careful):
+    def __init__(self, outfile, filename, function_num, global_scope, be_careful, warn_func, error_func):
         self.makename_indices = {}
         self.nodeptrs = []       # all variables which are NodePtrs
         #self.max_temp_vars = 0   # The number of temp Node ptr variables needed
@@ -608,8 +608,8 @@ class ReloadBasicFunction(object):
         self.global_scope = global_scope
         self.be_careful = be_careful
 
-        self.warn_func = "debug"
-        self.error_func = "debug"
+        self.warn_func = warn_func
+        self.error_func = error_func
 
     def makename(self, prefix = '_'):
         self.makename_indices.setdefault(prefix, 0)
@@ -1275,6 +1275,9 @@ class ReloadBasicTranslator(object):
         self.xml_dump = xml_dump
         self.be_careful = be_careful
 
+        self.warn_func = "debug"
+        self.error_func = "debug"
+
     def nameindex(self, nodename):
         """
         Assign each node name an increasing positive integer which is unique in this source file.
@@ -1303,21 +1306,25 @@ class ReloadBasicTranslator(object):
         iterator = TranslationIteratorWrapper(filename, self.xml_dump)
         for lineno, line, node in iterator:
             try:
-                # In particular, function/sub headers are always written unmodified
-                outfile.write(line + "\n")
-
                 if iterator.line_is_blank():
+                    outfile.write(line + "\n")
                     continue
 
                 nodetype = node.name
                 #print nodetype
                 if nodetype in ("subStart", "functionStart"):
-                    translator = ReloadBasicFunction(outfile, filename, self.num_functions, self, self.be_careful)
+                    outfile.write(line + "\n")
+                    translator = ReloadBasicFunction(outfile, filename, self.num_functions, self, self.be_careful, self.warn_func, self.error_func)
                     translator.process_function(node, iterator)
                     self.num_functions += 1
                 elif nodetype == "dimStatement":
-                    pass
-                elif nodetype != "tokenList":
+                    outfile.write(line + "\n")
+                elif nodetype == "directive":
+                    # warn_func or error_func
+                    setattr(self, node[0].lower(), get_ident(node[1]))
+                elif nodetype == "tokenList":
+                    outfile.write(line + "\n")
+                else:
                     raise ParseError("Found unexpected " + nodetype + " outside any function")
 
             except ParseError, e:

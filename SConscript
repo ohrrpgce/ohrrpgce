@@ -109,8 +109,12 @@ basmaino = Builder (action = '$FBC -c $SOURCE -o $TARGET -m ${SOURCE.filebase} $
 basexe = Builder (action = '$FBC $FBFLAGS -x $TARGET $FBLIBS $SOURCES',
                   suffix = exe_suffix, src_suffix = '.bas')
 
-rbasic_builder = Builder (action = [['reloadbasic/reloadbasic.py', '$SOURCE', '-o', '$TARGET']],
-                          suffix = '.bas', src_suffix = '.rbas', single_source = True)
+# Surely there's a simpler way to do this
+def depend_on_reloadbasic_py(target, source, env):
+    return (target, source + ['reloadbasic/reloadbasic.py'])
+
+rbasic_builder = Builder (action = [[File('reloadbasic/reloadbasic.py'), '$SOURCE', '-o', '$TARGET']],
+                          suffix = '.bas', src_suffix = '.rbas', emitter = depend_on_reloadbasic_py)
 
 # windres is part of mingw, and this is only used with linkgcc anyway.
 # FB includes GoRC.exe, but finding that file is too much trouble...
@@ -199,8 +203,6 @@ common_objects = []  # other objects shared by Game and Custom
 
 libraries = []
 libpaths = []
-
-print env.WhereIs('sdl-config')
 
 if win32:
     base_modules += ['os_windows.bas']

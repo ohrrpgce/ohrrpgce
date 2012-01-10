@@ -144,6 +144,18 @@ Examples:
  LOADARRAY bits($i) = n."bit"[$i].exists
  LOADARRAY dat($i) = extract_data(i, n."data"[$i]."value")
 
+
+= Directives =
+Syntax:
+  #warn_func = <FB SUB name>
+  #error_func = <FB SUB name>
+
+Set the functions called on warnings and errors. Defaults to debug. Takes a single argument,
+a string.
+
+If placed outside of a file, affects the rest of the file. If inside a function, remains in
+effect for the rest of the function. Can't be placed inside ReadNode, WithNode.
+
 = TODO =
 
 * Finish writing this file
@@ -156,4 +168,3 @@ Examples:
 * Global name indexing instead of RB_SIGNATURE hack
 * More care with nameindex tables (failures on NULL nodes)
 * Improve the tests
-* Inheriting warn_func, error_func from global scope
