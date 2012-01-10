@@ -114,7 +114,7 @@ def depend_on_reloadbasic_py(target, source, env):
     return (target, source + ['reloadbasic/reloadbasic.py'])
 
 rbasic_builder = Builder (action = [[File('reloadbasic/reloadbasic.py'), '$SOURCE', '-o', '$TARGET']],
-                          suffix = '.bas', src_suffix = '.rbas', emitter = depend_on_reloadbasic_py)
+                          suffix = '.rbas.bas', src_suffix = '.rbas', emitter = depend_on_reloadbasic_py)
 
 # windres is part of mingw, and this is only used with linkgcc anyway.
 # FB includes GoRC.exe, but finding that file is too much trouble...

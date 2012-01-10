@@ -1,0 +1,22 @@
+' This is part of rbtest, for testing multiple .rbas source files
+
+extern errorpos as integer
+#define fail errorpos = __LINE__ : return 1
+
+extern unexpected_warns as integer
+declare sub count_unexpected_warnings (msg as string)
+
+function otherFileTests(byval root as nodeptr) as integer
+	# warn_func = count_unexpected_warnings
+	unexpected_warns = 0
+
+	if root."mixed files"."foo".exists = NO then fail
+	dim nod as NodePtr = root."mixed files".ptr
+
+	readnode nod, default
+		if nod."_nested"."_nested2" <> 1001 then fail
+	end readnode
+
+	AppendChildNode(nod, "sharedname", 10001)
+	AppendChildNode(nod, "uniquename", 10002)
+end function
