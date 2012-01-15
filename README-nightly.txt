@@ -5,11 +5,11 @@ Names are in the format: ohrrpgce-wip-GRAPHICS-MUSIC.zip
 GRAPHICS = sdl = Simple Directmedia Library. (default)
 GRAPHICS = directx = Windows-only DirectX backend (default for Windows)
 GRAPHICS = fb = FreeBasic graphics
-GRAPHICS = alleg = Allegro Game Library
+GRAPHICS = alleg = Allegro Game Library (not recommended)
 
-MUSIC = sdl     = Simple Directmedia Library (default)
-MUSIC = native  = Audiere + Windows MIDI
-MUSIC = native2 = Audiere + Windows MIDI (alternate implementation)
+MUSIC = sdl     = Simple Directmedia Library + SDL_mixer (default)
+MUSIC = native  = Audiere + Native Windows MIDI
+MUSIC = native2 = Audiere + Native Windows MIDI (alternate implementation)
 MUSIC = silence = No sound. For testing sound related bugs.
 
 If you are not sure which version to use, try ohrrpgce-wip-default.zip

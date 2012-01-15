@@ -1,26 +1,30 @@
 Welcome to the OHRRPGCE Source Code documentation! This file explains what
 you need in order to compile the OHRRPGCE, some hints for hacking
-improvements, and apologies for the general crappyness of almost all the
+improvements, and apologies for the general crappyness of most of the
 code :)
 -----------------------------------------------------------------------------
-http://HamsterRepublic.com/ohrrpgce/source.php for more information 
+See http://rpg.HamsterRepublic.com/ohrrpgce/Source for more detailed,
+up-to-date information, especially
+http://rpg.HamsterRepublic.com/ohrrpgce/Compiling
 -----------------------------------------------------------------------------
 WINDOWS/LINUX:
   Recommends FreeBasic version 0.21.1b
   Requires minimum FreeBasic version 0.20.0b
   Download FreeBasic from http://freebasic.net/
-  Building HSpeak requires any version Euphoria http://www.RapidEuphoria.com/
+  Compiling requires Python and Scons
+  Building HSpeak requires Euphoria v4.0+: http://www.OpenEuphoria.com/
+-----------------------------------------------------------------------------
+MAC OS X:
+  Compiling requires Python, Scons, and a custom FreeBasic build.
+  Read "Compiling" on the wiki.
 -----------------------------------------------------------------------------
 INSTRUCTIONS
   Unpack the source code to a new folder
   Install FreeBasic
-  (Alternative #1)
-    Run scons to compile
-  (Alternative #2)
-    Run make to compile
-  (Alternative #3)
-    Run makegame.bat to compile the game player
-    Run makeedit.bat to compile the game editor
+  Install Python if needed
+  Install SConscript
+  Run "scons --help" to see options
+  Run "scons" to compile Game and Custom
 -----------------------------------------------------------------------------
 MAKING IMPROVEMENTS
   There are still lots of bugs that need to be fixed. For a list of known
