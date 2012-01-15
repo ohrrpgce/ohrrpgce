@@ -355,7 +355,7 @@ END errorout
 
 END SUB
 
-SUB verquit
+SUB verify_quit
  'copypage dpage, vpage
  DIM page as integer
  page = compatpage
@@ -376,27 +376,30 @@ SUB verquit
   playtimer
   control
   wtog = loopvar(wtog, 0, 3, 1)
-  IF carray(ccMenu) > 1 THEN abortg = 0: setkeys: flusharray carray(),7,0: EXIT DO
+  IF carray(ccMenu) > 1 THEN EXIT DO
   IF (carray(ccUse) > 1 AND ABS(ptr2) > 20) OR ABS(ptr2) > 50 THEN
    IF ptr2 < 0 THEN abortg = 1: fadeout 0, 0, 0
-   setkeys
-   flusharray carray(), 7, 0
-   freepage page
-   EXIT SUB
+   EXIT DO
   END IF
   IF carray(ccLeft) > 0 THEN ptr2 = ptr2 - 5: direction = 3
   IF carray(ccRight) > 0 THEN ptr2 = ptr2 + 5: direction = 1
+
   centerbox 160, 95, 200, 42, 15, page
   set_walkabout_frame herow(0).sl, direction, wtog \ 2
-  DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, herow(0).sl), 150 + ptr2, 90, 20, 20, page
+  DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, herow(0).sl), 150 + ptr2, 90, 20, 20, page, YES
   edgeprint quitprompt, xstring(quitprompt, 160), 80, uilook(uiText), page
-  col = uilook(uiMenuItem): IF ptr2 < -20 THEN col = uilook(uiSelectedItem + tog) '10 + tog * 5
+  col = uilook(uiMenuItem)
+  IF ptr2 < -20 THEN col = uilook(uiSelectedItem + tog)
   edgeprint quityes, 70, 96, col, page
-  col = uilook(uiMenuItem): IF ptr2 > 20 THEN col = uilook(uiSelectedItem + tog) '10 + tog * 5
+  col = uilook(uiMenuItem)
+  IF ptr2 > 20 THEN col = uilook(uiSelectedItem + tog)
   edgeprint quitno, 256 - LEN(quitno) * 8, 96, col, page
   setvispage vpage
   dowait
  LOOP
+ setkeys
+ flusharray carray(), 7, 0
+ freepage page
 END SUB
 
 FUNCTION titlescr () as integer
@@ -1445,7 +1448,6 @@ SUB try_to_reload_files_onmap ()
   END IF
  WEND
 END SUB
-
 
 'return a video page which is a view on vpage that is 320x200 (or smaller) and centred
 FUNCTION compatpage() as integer

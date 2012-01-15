@@ -2044,7 +2044,9 @@ Sub DrawSlice(byval s as slice ptr, byval page as integer)
  end if
 end sub
 
-Sub DrawSliceAt(byval s as slice ptr, byval x as integer, byval y as integer, byval w as integer = 100, byval h as integer = 100, byval page as integer)
+Sub DrawSliceAt(byval s as slice ptr, byval x as integer, byval y as integer, byval w as integer = 100, byval h as integer = 100, byval page as integer, byval ignore_offset as integer = NO)
+ 'ignore_offset causes the slice's offset from its parent to be ignored
+
  if s = 0 then debug "DrawSliceAt null ptr": exit sub
  if s->Visible then
   'calc the slice's X,Y
@@ -2059,6 +2061,13 @@ Sub DrawSliceAt(byval s as slice ptr, byval x as integer, byval y as integer, by
   dummyparent->ScreenY = y
   dummyparent->Width = w
   dummyparent->Height = h
+  DIM oldpos as XYPair
+  if ignore_offset then
+   oldpos.X = s->X
+   oldpos.Y = s->Y
+   s->X = 0
+   s->Y = 0
+  end if
   DefaultChildRefresh(dummyparent, s)
 
   if s->Draw then
@@ -2067,6 +2076,10 @@ Sub DrawSliceAt(byval s as slice ptr, byval x as integer, byval y as integer, by
   AutoSortChildren(s)
   s->ChildDraw(s, page)
 
+  if ignore_offset then
+   s->X = oldpos.X
+   s->Y = oldpos.Y
+  end if
   DeleteSlice @dummyparent
  end if
 end sub

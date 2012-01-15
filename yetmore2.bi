@@ -20,7 +20,7 @@ DECLARE FUNCTION checkfordeath () as integer
 DECLARE SUB aheadxy (byref x as integer, byref y as integer, byval direction as integer, byval distance as integer)
 DECLARE SUB exitprogram (byval need_fade_out as integer = NO, byval errorout as integer = NO)
 DECLARE SUB keyboardsetup
-DECLARE SUB verquit
+DECLARE SUB verify_quit
 DECLARE FUNCTION titlescr as integer
 DECLARE SUB reloadnpc ()
 DECLARE FUNCTION mapstatetemp(byval mapnum as integer, prefix as string) as string

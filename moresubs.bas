@@ -631,7 +631,7 @@ FOR i as integer = 0 TO 3
  IF i = swapme OR hero(i) > 0 THEN rectangle 105 + (30 * i), 60, 20, 20, uilook(uiTextBox), page
  IF hero(i) THEN
   set_walkabout_frame herow(cater_slot).sl, dirDown, 0
-  DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, herow(cater_slot).sl), 105 + i * 30, 60 + (i = swapme) * 6, 20, 20, page
+  DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, herow(cater_slot).sl), 105 + i * 30, 60 + (i = swapme) * 6, 20, 20, page, YES
   cater_slot += 1
  END IF
 NEXT i
@@ -967,7 +967,7 @@ DO
   IF hero(party_slot) > 0 THEN
    IF w = party_slot THEN wt = wtg \ 2 ELSE wt = 0
    set_walkabout_frame herow(cater_slot).sl, dirDown, wt
-   DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, herow(cater_slot).sl), 100 + party_slot * 30, 100, 20, 20, page
+   DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, herow(cater_slot).sl), 100 + party_slot * 30, 100, 20, 20, page, YES
    cater_slot += 1
   END IF
  NEXT

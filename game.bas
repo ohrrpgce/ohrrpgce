@@ -2600,7 +2600,7 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as int
        END IF
       CASE 10 ' quit
        menusound gen(genAcceptSFX)
-       verquit
+       verify_quit
       CASE 11 ' volume
        activated = NO
      END SELECT
