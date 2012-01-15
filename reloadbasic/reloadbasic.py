@@ -944,7 +944,9 @@ class ReloadBasicFunction(object):
             self.prologue = ""
             # Names of child nodes seen so far
             self.children = set()
-            # List of children for which we need to do .warn or .required checks
+            # Children for which EITHER we need to do .warn or .required checks
+            # OR we need to execute the line regardless of whether the node is present.
+            # It is a list of (nodespec, self.cur_filepos, childname, always_run) tuples
             self.checks = []
             # Name of a bitarray
             self.check_array = context.makename("_seen")
@@ -1002,11 +1004,11 @@ class ReloadBasicFunction(object):
         result = []
         case_comment = child #self.cur_line[nodespec.node.start:nodespec.node.end]
 
+        always_run = (nodespec.type == "exists" or readnode.default or nodespec.default != None)
         # Whether to record this node's presence
-        if node.name != "loadArray" and not nodespec.ignore and (
-                readnode.default or nodespec.default != None or nodespec.warn or nodespec.required):
+        if node.name != "loadArray" and not nodespec.ignore and (always_run or nodespec.warn or nodespec.required):
             result.append("%s(%s) OR= 1 SHL %s\n" % (readnode.check_array, len(readnode.checks)/32, len(readnode.checks)%32))
-            readnode.checks.append((nodespec, self.cur_filepos, child))
+            readnode.checks.append((nodespec, self.cur_filepos, child, always_run))
 
         if nodespec.ignore:
             if len(nodespec.indices) > 1:
@@ -1116,7 +1118,7 @@ class ReloadBasicFunction(object):
         need_loopback = False
 
         checks_text = []
-        for i, (nodespec, filepos, child) in enumerate(readnode.checks):
+        for i, (nodespec, filepos, child, always_run) in enumerate(readnode.checks):
             msg = 'IF (%s(%s) AND (1 SHL %s)) = 0 THEN' % (readnode.check_array, i/32, i%32)
             msg2 = ' {func} "%s:{what} Did not see expected node %s/%s"' % (filepos, node_path, child)
 
@@ -1125,7 +1127,7 @@ class ReloadBasicFunction(object):
             else:
                 if nodespec.warn:
                     msg += msg2.format(func = self.warn_func, what = "")
-                if readnode.default or nodespec.default != None:
+                if always_run:
                     if not msg.endswith("THEN"):
                         msg += " :"
                     msg += " %s = %s : CONTINUE DO"  % (nameindex_var, self.global_scope.nameindex(child))
@@ -1142,7 +1144,7 @@ class ReloadBasicFunction(object):
 
         checks_text = "".join(checks_text)
         if need_loopback:
-            checks = indent(checks_text, "  ")
+            checks_text = indent(checks_text, "  ")
             out = READNODE_DEFAULTS_TEMPLATE
         else:
             out = READNODE_TEMPLATE

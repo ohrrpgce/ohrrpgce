@@ -294,6 +294,27 @@ startTest(testWarnRequire)
 	if set_error = NO then fail
 endTest
 
+startTest(testMoreReadNodeDefaulting)
+	dim root as Node ptr = DocumentRoot(doc)
+	root = AppendChildNode(root, "more defaulting")
+	#warn_func = warning
+	set_warn = NO
+
+	for i as integer = 0 to 1
+		if i = 1 then print "..."; : root = NULL
+
+		dim as integer should_be_zero = -1
+		readnode root
+			sink root."not a node" : fail
+			sink cint(root."not a node2".ptr) : fail
+			sink root."not a node3".bool : fail
+			should_be_zero = root."not a node4".exists   'exists is special
+		end readnode
+		if set_warn then fail
+		if should_be_zero <> 0 then fail
+	next
+endtest
+
 startTest(testNestedDefaulting)
 	dim as integer sum1, sum2
 	dim root as node ptr = DocumentRoot(doc)

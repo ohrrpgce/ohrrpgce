@@ -23,7 +23,8 @@ Nodespecs on a 'LoadArray' line can also contain an index, see the LoadArray sec
 				  So a Null node is NO, and it's possible to supply a default if the node doesn't
 				  exist.
 .exists			: More common usage: equal to YES if the node exists, NO otherwise, like
-				  GetChildNodeExists. No default value allowed, of course. 
+				  GetChildNodeExists. No default value allowed, of course.
+				  Inside a ReadNode, lines/rules containing this nodespec are always executed.
 
 
 == Other Nodespec attributes ==
@@ -75,7 +76,7 @@ unless "ignoreall" appears in the header. A child can also be ignored with an .i
 If a line matches multiple times then it is run each time. If line doesn't match at all, then a
 warning or error is printed if its nodespec has the .warn or .required attributes, but it's not
 run with the default default value (ie. 0, 0.0 or "") unless either it has an explicit .default
-attribute, or "default" appears in the ReadNode header.
+attribute, or "default" appears in the ReadNode header, or it is type '.exists'.
 
 "default" in the ReadNode header has no effect on LoadArray lines, since arrays are always flushed.
 
