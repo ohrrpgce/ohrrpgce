@@ -10,7 +10,6 @@ TYPE MapModeState
   id       AS INTEGER
   lastmap  AS INTEGER 'ID of the last loaded map
   same     AS INTEGER 'YES/NO flag that indicates when your are moving through a same-map door
-  showname AS INTEGER
   name     AS STRING
   door(99) AS Door
   doorlinks(199) AS doorlink
@@ -69,19 +68,21 @@ END TYPE
 
 TYPE GameState
   map AS MapModeState
-  wonbattle AS INTEGER 'Indicates the status of the last battle, 1 for victory 0 for running away
-  remembermusic AS INTEGER 'Remembers music from before battle starts
+  wonbattle AS INTEGER               'Indicates the status of the last battle, 1 for victory 0 for running away
+  remembermusic AS INTEGER           'Remembers music from before battle starts
   random_battle_countdown AS INTEGER
-  stock(99, 49) AS INTEGER 'Keeps track of available inventory at each shop
-  foe_freq(254) AS INTEGER 'A cache of the fight frequency for each formation set
-  walk_through_walls AS INTEGER 'used for F11 cheat mode
-  mouse_enabled AS INTEGER 'initmouse called
+  stock(99, 49) AS INTEGER           'Keeps track of available inventory at each shop
+  foe_freq(254) AS INTEGER           'A cache of the fight frequency for each formation set
+  walk_through_walls AS INTEGER      'used for F11 cheat mode
+  mouse_enabled AS INTEGER           'initmouse called
   hero(40) AS HeroState
   debug_showtags AS INTEGER
   debug_npc_info AS INTEGER
   autorungame AS INTEGER
   need_fade_in AS INTEGER
   fade_in_delay AS INTEGER
+  showtext as string                 'Used for map names and other alerts
+  showtext_ticks as integer          'Remaining number of ticks
 END TYPE
 
 TYPE TextBoxState

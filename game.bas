@@ -553,9 +553,11 @@ DIM force_step_check as integer = YES
 DIM tog as integer
 
 '--Reset some stuff related to debug keys
+gam.showtext_ticks = 0
 gam.debug_showtags = NO
 gam.debug_npc_info = NO
 gam.walk_through_walls = NO
+
 'DEBUG debug "pre-call update_heroes"
 update_heroes(YES)
 setkeys
@@ -625,9 +627,11 @@ DO
   'DEBUG debug "evaluate debugging keys"
   IF keyval(scF2) > 1 AND txt.showing = NO THEN
    savegame 32
+   gam.showtext = "Quick-saved. Press F3 to quick-load"
+   gam.showtext_ticks = 20
   END IF
   IF keyval(scF3) > 1 AND txt.showing = NO THEN
-   wantloadgame = 33
+   IF yesno("Load quick-saved game?") THEN wantloadgame = 33
   END IF
   IF keyval(scCtrl) = 0 AND keyval(scF7) > 1 THEN
    SELECT CASE gen(cameramode)
@@ -878,19 +882,16 @@ SUB displayall()
  'DEBUG debug "text box"
  DrawSlice(SliceTable.TextBox, dpage) 'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
  IF txt.showing = YES THEN drawsay
- 'DEBUG debug "map name"
- IF gam.map.showname > 0 AND gmap(4) >= gam.map.showname THEN
-  gam.map.showname -= 1
-  edgeprint gam.map.name, xstring(gam.map.name, 160), 180, uilook(uiText), dpage
- ELSE
-  gam.map.showname = 0
- END IF
  update_menu_states
  FOR i as integer = 0 TO topmenu
   draw_menu menus(i), mstates(i), dpage
  NEXT i
  edgeprint scriptout, 0, 190, uilook(uiText), dpage
  showplotstrings
+ IF gam.showtext_ticks > 0 THEN
+  gam.showtext_ticks -= 1
+  edgeprint gam.showtext, xstring(gam.showtext, 160), 180, uilook(uiText), dpage
+ END IF
  IF gam.debug_npc_info THEN npc_debug_display
  IF gam.debug_showtags THEN tagdisplay
  IF scrwatch THEN scriptwatcher scrwatch, -1
@@ -2909,7 +2910,8 @@ SUB prepare_map (byval afterbat as integer=NO, byval afterload as integer=NO)
  END IF
 
  IF afterbat = NO THEN
-  gam.map.showname = gmap(4)
+  gam.showtext = gam.map.name
+  gam.showtext_ticks = gmap(4)
   IF gmap(17) < 2 THEN
    loadmapstate_npcd gam.map.id, "map"
    loadmapstate_npcl gam.map.id, "map"
@@ -3044,7 +3046,6 @@ SUB reset_map_state (map as MapModeState)
  map.id = gen(genStartMap)
  map.lastmap = -1
  map.same = NO
- map.showname = 0
  map.name = ""
 END SUB
 
