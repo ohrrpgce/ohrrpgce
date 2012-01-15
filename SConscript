@@ -99,13 +99,20 @@ def prefix_targets(target, source, env):
     target = [File(env['VAR_PREFIX'] + str(a)) for a in target]
     return target, source
 
+def translate_rb(source):
+    if source.endswith('.rbas'):
+        return env.RB(source)
+    return File(source)
+
 #variant_baso creates Nodes/object files with filename prefixed with VAR_PREFIX environment variable
 variant_baso = Builder (action = '$FBC -c $SOURCE -o $TARGET $FBFLAGS',
-                suffix = '.o', src_suffix = '.bas', single_source = True, emitter = prefix_targets)
+                        suffix = '.o', src_suffix = '.bas', single_source = True, emitter = prefix_targets,
+                        source_factory = translate_rb)
 baso = Builder (action = '$FBC -c $SOURCE -o $TARGET $FBFLAGS',
-                suffix = '.o', src_suffix = '.bas', single_source = True)
+                suffix = '.o', src_suffix = '.bas', single_source = True, source_factory = translate_rb)
 basmaino = Builder (action = '$FBC -c $SOURCE -o $TARGET -m ${SOURCE.filebase} $FBFLAGS',
-                    suffix = '.o', src_suffix = '.bas', single_source = True)
+                    suffix = '.o', src_suffix = '.bas', single_source = True,
+                    source_factory = translate_rb)
 basexe = Builder (action = '$FBC $FBFLAGS -x $TARGET $FBLIBS $SOURCES',
                   suffix = exe_suffix, src_suffix = '.bas')
 
@@ -202,8 +209,8 @@ if linkgcc:
 # Make a base environment for Game and Custom (other utilities use env)
 commonenv = env.Clone ()
 
-base_modules = []   # modules shared by all utilities (except bam2mid)
-shared_modules = []  # freebasic modules shared by, but with separate builds, for Game and Custom 
+base_modules = []   # modules (any language) shared by all utilities (except bam2mid)
+shared_modules = []  # FB/RB modules shared by, but with separate builds, for Game and Custom 
 common_modules = []  # other modules (in any language) shared by Game and Custom
 common_objects = []  # other objects shared by Game and Custom
 
@@ -331,7 +338,7 @@ game_modules = ['game',
                 'moresubs',
                 'yetmore',
                 'yetmore2',
-                'savegame',
+                'savegame.rbas',
                 'hsinterpreter']
 
 common_modules += ['filelayer.cpp']
