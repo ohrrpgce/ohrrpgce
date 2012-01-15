@@ -91,7 +91,6 @@ IF vstate.active THEN
  END IF
  settag vstate.dat.riding_tag, NO
  herow(0).speed = vstate.old_speed
- IF herow(0).speed = 3 THEN herow(0).speed = 10
  reset_vehicle vstate
  FOR i as integer = 1 TO 15
   catx(i) = catx(0)

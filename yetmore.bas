@@ -3298,7 +3298,6 @@ IF vstate.trigger_cleanup THEN '--clear
   END SELECT
  END IF
  herow(0).speed = vstate.old_speed
- IF herow(0).speed = 3 THEN herow(0).speed = 10
  npc(vstate.npc).xgo = 0
  npc(vstate.npc).ygo = 0
  delete_walkabout_shadow npc(vstate.npc).sl

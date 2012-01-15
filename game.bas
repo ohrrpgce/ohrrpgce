@@ -838,6 +838,7 @@ SUB doloadgame(byval load_slot as integer)
     vehicle_graceful_dismount
    CASE ELSE
     vstate.id = npcs(npc(vstate.npc).id - 1).vehicle - 1
+    create_walkabout_shadow npc(vstate.npc).sl
   END SELECT
  END IF
 
