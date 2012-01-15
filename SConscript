@@ -410,16 +410,19 @@ RELOADUTIL = env.BASEXE ('reloadutil', source = ['reloadutil.bas'] + reload_obje
 RBTEST = env.BASEXE ('rbtest', source = [env.RB('rbtest.rbas'), env.RB('rbtest2.rbas')] + reload_objects)
 env.BASEXE ('vectortest', source = ['vectortest.bas'] + base_objects)
 
-testprogs = ['reloadtest', 'rbtest', 'vectortest']
 # --log . to smooth out inconsistencies between Windows and Unix
 tmp = ''
 if 'fb' in used_gfx:
     # Use gfx_fb because it draws far less frames without speed control for some reason, runs waaaay faster
     tmp = ' --gfx fb'
-tests = ([File(prog).abspath for prog in testprogs]
-         + [File(gamename).abspath + tmp +  ' --log . --runfast testgame/autotest.rpg',
-            'grep -q "TRACE: TESTS SUCCEEDED" g_debug.txt'])
-env.Command ('test', source = testprogs + [GAME, XML2RELOAD], action = tests)
+AUTOTEST = env.Command ('autotest_rpg', source = GAME, action =
+                        [File(gamename).abspath + tmp +  ' --log . --runfast testgame/autotest.rpg',
+                         'grep -q "TRACE: TESTS SUCCEEDED" g_debug.txt'])
+
+testprogs = ['reloadtest', 'rbtest', 'vectortest']
+tests = [File(prog).abspath for prog in testprogs]
+# The has to be some better way to do this...
+env.Command ('test', source = testprogs + [XML2RELOAD, AUTOTEST], action = tests)
 
 Default (GAME)
 Default (CUSTOM)
@@ -471,7 +474,8 @@ Targets:
   dumpohrkey
   bam2mid
   reload              Compile all RELOAD utilities.
-  test                Compile and run all automated tests (including autotest.rpg)
+  autotest_rpg        Runs autotest.rpg. See autotest.py for improved harness.
+  test                Compile and run all automated tests, including autotest.rpg.
   .                   Compile everything (and run tests).
 
 With no targets specified, compiles game and custom.
