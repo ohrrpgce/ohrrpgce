@@ -521,9 +521,13 @@ def indent(text, indentwith):
     return "".join(indentwith + l + "\n" for l in lines)
 
 def reload_HashZString(string):
-    "Returns the HashZString hash of a string"
-    # This is terrible!!
-    return sum(ord(a) for a in string)
+    """Returns the HashZString hash of a string"""
+    ret = 0
+    if len(string) % 2:
+        string += "\0"
+    for i in range(0, len(string), 2):
+        ret += (ret << 15) + ord(string[i]) + (ord(string[i+1]) << 8)
+    return 0xffffffff & ret
 
 
 READNODE_TEMPLATE = """\

@@ -34,7 +34,7 @@ Declare Function fb_hStrAllocTemp Alias "fb_hStrAllocTemp" (byval s as FBSTRING 
 
 Namespace Reload
 
-Type hashFunction as Function(byval k as ZString ptr) as integer
+Type hashFunction as Function(byval k as ZString ptr) as uinteger
 
 'These are in addition to the 'f as integer' overloads in reload.bi
 Declare Function ReadVLI(byval f as FILE ptr) as longint
@@ -128,13 +128,16 @@ Sub RDeallocate(byval p as any ptr, byval doc as docptr)
 #endif
 End Sub
 
+'Fed a list of 132010 english words, this produced 131957 unique hashes.
+'The old hash produced only 1931 unique hashes
 'If this changes, reload_HashZString in rparsergenerator.py needs to be updated too
-Function HashZString(byval st as ZString ptr) as integer
-	dim as integer ret = 0, i = 0
+Function HashZString(byval st as ZString ptr) as uinteger
+	dim as uinteger ret = 0, i = 0
 	
-	do while st[i] <> 0
-		ret += st[i]
-		i += 1
+	do while st[i]
+		ret += (ret shl 15) + *cast(short ptr, @st[i])
+		if st[i + 1] = 0 then return ret
+		i += 2
 	loop
 	
 	return ret
@@ -1910,7 +1913,7 @@ end sub
 Function FindItem(byval h as HashPtr, byval key as ZString ptr, byval num as integer) as any ptr
 	dim b as ReloadHashItem ptr
 	
-	dim hash as integer = h->hashFunc(key)
+	dim hash as uinteger = h->hashFunc(key)
 	
 	b = h->bucket[hash mod h->numBuckets]
 	
@@ -1926,7 +1929,7 @@ Function FindItem(byval h as HashPtr, byval key as ZString ptr, byval num as int
 End Function
 
 Sub AddItem(byval h as HashPtr, byval key as ZString ptr, byval item as any ptr)
-	dim hash as integer = h->hashFunc(key)
+	dim hash as uinteger = h->hashFunc(key)
 	
 	dim as ReloadHashItem ptr b, newitem = RAllocate(sizeof(ReloadHashItem), h->doc)
 	
@@ -1949,7 +1952,7 @@ end Sub
 Sub RemoveKey(byval h as HashPtr, byval key as zstring ptr, byval num as integer)
 	dim as ReloadHashItem ptr b, prev
 	
-	dim hash as integer = h->hashFunc(key)
+	dim hash as uinteger = h->hashFunc(key)
 	
 	b = h->bucket[hash mod h->numBuckets]
 	
