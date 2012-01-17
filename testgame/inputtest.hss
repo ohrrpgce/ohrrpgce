@@ -1,6 +1,10 @@
 include, plotscr.hsd
 include, scancode.hsi
 
+global variable (1, tick)
+global variable (2, input hash)
+global variable (3, show hash)
+
 #Removed from plotscr.hsd
 script, set extended scancodes enabled, hsd:bit=1, begin
   if(hsd:bit) then (hsd:bit := 256)
@@ -13,8 +17,12 @@ plotscript, main, begin
   set slice lookups (sprite layer)
 
   while (1) do, begin
+    tick += 1
     if (keyval(key:ctrl)>>0 && keyval(key:e)>>1) then (
       set extended scancodes enabled (extended scancodes enabled, xor, 1)
+    )
+    if (keyval(key:ctrl)>>0 && keyval(key:h)>>1) then (
+      show hash := true
     )
     show scancode bit status
     update keyboard
@@ -32,6 +40,11 @@ script, show scancode bit status, begin
   show string at (0, 20, 20)
   $1="(Ctrl+E toggle)"
   show string at (1, 28, 30)
+  if (show hash) then (
+    $2="Hash:"
+    append number (2, input hash)
+    show string at (2, 210, 2)
+  )
 end
 
 #Keyboard scancodes are stored in extra0, which we copy
@@ -56,5 +69,10 @@ script, update keyboard, begin
     if (sl == 0) then (continue)
 
     set rect style(sl, keyval(i) + 1)
+
+	if (keyval(i)) then (
+      input hash += (input hash * 333667), xor, (tick * 367 + i * 336667 + keyval(i) * 3336677)  # primes
+      input hash := abs(input hash)
+    )
   end
 end

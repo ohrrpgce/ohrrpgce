@@ -935,13 +935,13 @@ FUNCTION keyval (byval a as integer, byval repeat_wait as integer = 0, byval rep
 		if key_down_ms(a) >= repeat_wait then
 			dim check_repeat as integer = YES
 
-			if a = scAlt then
+			'if a = scAlt then
 				'alt can repeat (probably a bad idea not to), but only if nothing else has been pressed
 				'for i as integer = 1 to &h7f
 				'	if keybd(i) > 1 then check_repeat = NO
 				'next
-				if delayed_alt_keydown = NO then check_repeat = NO
-			end if
+				'if delayed_alt_keydown = NO then check_repeat = NO
+			'end if
 
 			'Don't fire repeat presses for special toggle keys (note: these aren't actually
 			'toggle keys in all backends, eg. gfx_fb)
@@ -967,7 +967,7 @@ FUNCTION getinputtext () as string
 	if keyval(scRightShift) > 0 or keyval(scLeftShift) > 0 then shift = 1
 
 	'ALT to enter extended characters (128 and up)
-	if keyval(scAlt) then shift += 2
+	if keyval(scAlt) and 1 then shift += 2
 
 	for i as integer = 0 to 53
 		dim effective_shift as integer = shift
@@ -1042,42 +1042,18 @@ SUB setkeyrepeat (byval repeat_wait as integer = 500, byval repeat_rate as integ
 	keyrepeatrate = repeat_rate
 END SUB
 
-SUB setkeys ()
-'Updates the keybd array (which keyval() wraps) to reflect new keypresses
-'since the last call, also clears all keypress events (except key-is-down)
-'
-'Also the place for low-level key hooks that work everywhere
-'(Note that backends also have some hooks, especially gfx_sdl.bas for OSX-
-'specific stuff)
-'
-'Note that key repeat is NOT added to keybd (it's done by "post-processing" in keyval)
+SUB setkeys_update_keybd
+	dim winstate as WindowState ptr
+	winstate = gfx_getwindowstate()
 
-	dim window_focused as integer
+	mutexlock keybdmutex
+	io_keybits(@keybd(0))
+	mutexunlock keybdmutex
 
-	if play_input then
-		replay_input_tick ()
-	else
-		setkeys_elapsed_ms = bound(1000 * (TIMER - last_setkeys_time), 0, 255)
-		last_setkeys_time = TIMER
-
-		dim winstate as WindowState ptr
-		winstate = gfx_getwindowstate()
-		window_focused = winstate->focused
-
-		mutexlock keybdmutex
-		io_keybits(@keybd(0))
-		mutexunlock keybdmutex
-
-		'Current state of keybd():
-		'bit 0: key currently down
-		'bit 1: key down since last io_keybits call
-		'bit 2: undefined
-
-		if rec_input then
-			record_input_tick ()
-		end if
-
-	end if
+	'Current state of keybd():
+	'bit 0: key currently down
+	'bit 1: key down since last io_keybits call
+	'bit 2: zero
 
 	'debug "raw scEnter = " & keybd(scEnter) & " scAlt = " & keybd(scAlt)
 
@@ -1089,7 +1065,7 @@ SUB setkeys ()
 		keybd(scShift) = keybd(scLeftShift) or keybd(scRightShift)
 	end if
 
-	'Don't fire ctrl pressed when alt down due to large number of WM shortcuts containing ctrl+alt
+	'Don't fire ctrl presses when alt down due to large number of WM shortcuts containing ctrl+alt
 	'(Testing delayed_alt_keydown is just a hack to add one tick delay after alt up,
 	'which is absolutely required)
 	if (keybd(scAlt) and 1) or delayed_alt_keydown then
@@ -1104,8 +1080,8 @@ SUB setkeys ()
 		keybd(scRightCtrl) and= 1 
 	end if
 
+	'Calculate new "new keypress" bit (bit 2)
 	for a as integer = 0 to &h7f
-		'Calculate new "new keypress" bit (bit 2)
 		keybd(a) and= 3
 		if a = scAlt then
 			'Special behaviour for alt, to ignore pesky WM shortcuts like alt+tab, alt+enter:
@@ -1131,7 +1107,7 @@ SUB setkeys ()
 				end if
 			next
 			'/
-			if window_focused = NO then
+			if winstate->focused = NO then
 				delayed_alt_keydown = NO
 			end if
 
@@ -1146,8 +1122,36 @@ SUB setkeys ()
 			'Duplicate bit 1 to bit 2
 			 keybd(a) or= (keybd(a) and 2) shl 1
 		end if
+	next
 
-		'Update key-down time
+end sub
+
+SUB setkeys ()
+'Updates the keybd array (which keyval() wraps) to reflect new keypresses
+'since the last call, also clears all keypress events (except key-is-down)
+'
+'Also the place for low-level key hooks that work everywhere
+'(Note that backends also have some hooks, especially gfx_sdl.bas for OSX-
+'specific stuff)
+'
+'Note that key repeat is NOT added to keybd (it's done by "post-processing" in keyval)
+
+	if play_input then
+		'Updates keybd() and setkeys_elapsed_ms
+		replay_input_tick ()
+	else
+		setkeys_update_keybd ()
+
+		setkeys_elapsed_ms = bound(1000 * (TIMER - last_setkeys_time), 0, 255)
+		last_setkeys_time = TIMER
+
+		if rec_input then
+			record_input_tick ()
+		end if
+	end if
+
+	'Update key-down time
+	for a as integer = 0 to &h7f
 		if (keybd(a) and 4) or (keybd(a) and 1) = 0 then
 			key_down_ms(a) = 0
 		end if
@@ -1253,7 +1257,7 @@ SUB start_recording_input (filename as string)
 	open filename for binary access write as #rec_input_file
 	dim header as string = "OHRRPGCEkeys"
 	PUT #rec_input_file,, header
-	dim ohrkey_ver as integer = 2
+	dim ohrkey_ver as integer = 3
 	PUT #rec_input_file,, ohrkey_ver
 	dim seed as double = TIMER
 	RANDOMIZE seed, 3
@@ -1286,7 +1290,7 @@ SUB start_replaying_input (filename as string)
 	if header <> "OHRRPGCEkeys" then stop_replaying_input "No OHRRPGCEkeys header in """ & filename & """"
 	dim ohrkey_ver as integer = -1
 	GET #play_input_file,, ohrkey_ver
-	if ohrkey_ver <> 2 then stop_replaying_input "Unknown ohrkey version code " & ohrkey_ver & " in """ & filename & """. Only know how to understand version 2"
+	if ohrkey_ver <> 3 then stop_replaying_input "Unknown ohrkey version code " & ohrkey_ver & " in """ & filename & """. Only know how to understand version 3"
 	dim seed as double
 	GET #play_input_file,, seed
 	RANDOMIZE seed, 3
@@ -1312,13 +1316,16 @@ SUB record_input_tick ()
 	static tick as integer = -1
 	tick += 1
 	dim presses as ubyte = 0
+	dim keys_down as integer = 0
 	for i as integer = 0 to ubound(keybd)
 		if keybd(i) <> last_keybd(i) then
 			presses += 1
 		end if
+		if keybd(i) then keys_down += 1
 	next i
-	if presses = 0 then exit sub
+	if presses = 0 and keys_down = 0 then exit sub
 	PUT #rec_input_file,, tick
+	PUT #rec_input_file,, cubyte(setkeys_elapsed_ms)
 	PUT #rec_input_file,, presses
 	for i as ubyte = 0 to ubound(keybd)
 		if keybd(i) <> last_keybd(i) then
@@ -1344,8 +1351,20 @@ SUB replay_input_tick ()
 		debug "input replay late for tick " & replaytick & " (" & replaytick - tick & ")"
 	elseif replaytick > tick then
 		'debug "saving replay input tick " & replaytick & " until its time has come (+" & replaytick - tick & ")"
+		for i as integer = 0 to 127
+			if keybd(i) then
+				' There ought to be a tick in the input file so that we can set setkeys_elapsed_ms correctly
+				debug "bad recorded key input: key " & i & " is down, but expected tick " & tick & " is missing" 
+				exit for
+			end if
+		next
+		' Otherwise, this doesn't matter as it won't be used
+		setkeys_elapsed_ms = 1
 		exit sub
 	end if
+	dim tick_ms as ubyte
+	GET #play_input_file,, tick_ms
+	setkeys_elapsed_ms = tick_ms
 	dim presses as ubyte
 	GET #play_input_file,, presses
 	if presses < 0 orelse presses > ubound(keybd) + 1 then

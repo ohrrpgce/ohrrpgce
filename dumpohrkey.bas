@@ -9,6 +9,7 @@ DECLARE SUB print_usage (errmsg as string = "")
 
 dim shared key2text(53) as string*1 => {"", "", "1","2","3","4","5","6","7","8","9","0","-","=","","","q","w","e","r","t","y","u","i","o","p","[","]","","","a","s","d","f","g","h","j","k","l",";","'","`","","\","z","x","c","v","b","n","m",",",".","/"}
 dim shared play_input_file as integer
+dim shared ohrkey_ver as integer = -1
 
 FUNCTION keyname (byval k as integer) as string
  SELECT CASE k
@@ -37,10 +38,9 @@ SUB start_replaying_input (filename as string)
  GET #play_input_file,, header
  if header <> "OHRRPGCEkeys" then stop_replaying_input "No OHRRPGCEkeys header in """ & filename & """"
  print header
- dim ohrkey_ver as integer = -1
  GET #play_input_file,, ohrkey_ver
- if ohrkey_ver <> 2 then
-  stop_replaying_input "Unknown ohrkey version code " & ohrkey_ver & " in """ & filename & """. Only know how to understand version 2"
+ if ohrkey_ver <> 3 then
+  stop_replaying_input "Unknown ohrkey version code " & ohrkey_ver & " in """ & filename & """. Only know how to understand version 3"
   EXIT SUB
  end if
  print "ohrkey version: " & ohrkey_ver
@@ -68,6 +68,9 @@ SUB replay_input ()
   DIM fpos as integer = LOC(play_input_file)
   GET #play_input_file,, replaytick
   info = "L:" & fpos & " T:" & replaytick 
+  dim as ubyte elapsed_ms
+  GET #play_input_file,, elapsed_ms
+  info &= " ms:" & elapsed_ms
   dim presses as ubyte
   GET #play_input_file,, presses
   if presses < 0 orelse presses > 128 then
