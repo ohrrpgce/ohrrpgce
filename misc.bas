@@ -91,11 +91,16 @@ function usage_setoption(opt as string, arg as string) as integer
 		help = help & "-replayinput file   Replay keyboard input from a previously recorded file" & LINE_END
 		help = help & "-gfx backendname    Select graphics backend. This build supports:" & LINE_END
 		help = help & "                      " & SUPPORTED_GFX & " (tried in that order)" & LINE_END
+		help = help & "-no-native-kbd      Use US keyboard layout instead of OS-based text input" & LINE_END
 		help = help & "-f -fullscreen      Start in full-screen mode if possible" & LINE_END
 		help = help & "-w -windowed        Start in windowed mode (default)" & LINE_END
 		help = help & " Backend-specific options for gfx_" & gfxbackend & ": (use -gfx to see others)" & LINE_END
 		help = help & *gfx_describe_options() & LINE_END
 		display_help_string help
+		return 1
+	elseif opt = "no-native-kbd" then
+		disable_native_text_input = YES
+		debuginfo "Native text input disabled"
 		return 1
 	elseif opt = "log" then
 		dim d as string = with_orig_path(arg, YES)

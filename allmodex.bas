@@ -64,6 +64,7 @@ declare sub replay_input_tick ()
 'global
 dim vpages() as Frame ptr
 dim vpagesp as Frame ptr ptr  'points to vpages(0) for debugging: fbc outputs typeless debugging symbol
+dim disable_native_text_input as integer = NO
 
 'Convert scancodes to text; Enter does not insert newline!
 'This array is a global instead of an internal detail because it's used by charpicker and the font editor
@@ -989,6 +990,11 @@ FUNCTION get_ascii_inputtext () as string
 end function
 
 sub update_inputtext ()
+	if disable_native_text_input then
+		inputtext = get_ascii_inputtext()
+		exit sub
+	end if
+
 	dim w_in as wstring * 64
 	if io_textinput then io_textinput(w_in, 64)
 

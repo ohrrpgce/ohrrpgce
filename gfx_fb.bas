@@ -346,6 +346,9 @@ sub process_events()
 		end if
 	wend
 
+	'Don't eat memory if io_textinput is never called
+	inputtext = RIGHT(inputtext, 128)
+
 	'the polling thread ought to ensure that these are caught timeously
 	'inkey does not seem to be threadsafe (bug 790)
 	'if inkey = chr(255) + "k" then post_terminate_signal

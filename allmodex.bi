@@ -196,5 +196,6 @@ declare sub palette16_update_cache(fil as string, byval num as integer)
 extern vpages() as Frame ptr
 extern vpagesp as Frame ptr ptr
 extern key2text(3,53) as string*1
+extern disable_native_text_input as integer
 
 #ENDIF
