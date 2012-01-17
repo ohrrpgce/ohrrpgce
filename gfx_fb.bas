@@ -43,6 +43,7 @@ declare sub calculate_screen_res()
 #define BORDER 20
 
 dim shared screen_buffer_offset as integer = 0
+dim shared window_state as WindowState
 dim shared windowed as integer = 1
 dim shared init_gfx as integer = 0
 'defaults are 2x zoom and 640x400 in 8-bit
@@ -73,6 +74,8 @@ function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windo
 		screeninfo , , bpp, , , , driver
 		*info_buffer = MID(bpp & "bpp, " & driver & " driver", 1, info_buffer_size)
 	end if
+	window_state.focused = YES
+	window_state.minimised = NO
 	return 1
 end function
 
@@ -191,7 +194,7 @@ sub gfx_fb_windowtitle(byval title as zstring ptr)
 end sub
 
 function gfx_fb_getwindowstate() as WindowState ptr
-	return 0
+	return @window_state
 end function
 
 function gfx_fb_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as integer
@@ -319,6 +322,7 @@ sub process_events()
 		'unhide the mouse when the window loses focus
 		if e.type = EVENT_WINDOW_LOST_FOCUS then
 			setmouse , , 1
+			window_state.focused = NO
 		end if
 		if e.type = EVENT_WINDOW_GOT_FOCUS then
 			if windowed then
@@ -326,6 +330,7 @@ sub process_events()
 			else
 				setmouse , , 0
 			end if
+			window_state.focused = YES
 		end if
 		if e.type = EVENT_KEY_PRESS then
 			if e.ascii <> 0 then inputtext += chr(e.ascii)
