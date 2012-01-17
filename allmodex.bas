@@ -56,6 +56,7 @@ declare function fget alias "fb_FileGet" ( byval fnum as integer, byval pos as i
 declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as integer = 0, byval src as any ptr, byval bytes as uinteger ) as integer
 
 declare sub pollingthread(byval as any ptr)
+declare sub update_inputtext ()
 
 declare sub record_input_tick ()
 declare sub replay_input_tick ()
@@ -114,6 +115,7 @@ dim shared keyrepeatwait as integer = 500
 dim shared keyrepeatrate as integer = 55
 dim shared diagonalhack as integer
 dim shared delayed_alt_keydown as integer = NO
+dim shared inputtext as string
 
 dim shared rec_input as integer = NO
 dim shared rec_input_file as integer
@@ -958,16 +960,14 @@ FUNCTION keyval (byval a as integer, byval repeat_wait as integer = 0, byval rep
 	return result
 end FUNCTION
 
-FUNCTION getinputtext () as string
-	dim ret as string
+FUNCTION get_ascii_inputtext () as string
 	dim shift as integer = 0
+	dim ret as string
 
 	if keyval(scCtrl) > 0 then return ""
 
-	if keyval(scRightShift) > 0 or keyval(scLeftShift) > 0 then shift = 1
-
-	'ALT to enter extended characters (128 and up)
-	if keyval(scAlt) and 1 then shift += 2
+	if keyval(scShift) and 1 then shift += 1
+	if keyval(scAlt) and 1 then shift += 2   'for characters 128 and up
 
 	for i as integer = 0 to 53
 		dim effective_shift as integer = shift
@@ -986,7 +986,52 @@ FUNCTION getinputtext () as string
 	if keyval(scSpace) > 1 then ret &= " "
 
 	return ret
-end FUNCTION
+end function
+
+sub update_inputtext ()
+	dim w_in as wstring * 64
+	if io_textinput then io_textinput(w_in, 64)
+
+	'OK, so here's the hack: one of the alt keys (could be either) might be used
+	'as a 'shift' or compose key, but if it's not, we want to support the old
+	'method of entering extended characters (128 and up) using it. This will
+	'backfire if the key face/base characters aren't ASCII
+
+	dim force_native_input as integer = NO
+
+	for i as integer = 0 to len(w_in) - 1
+		if w_in[i] > 127 then force_native_input = YES
+	next
+
+	if force_native_input = NO andalso keyval(scAlt) and 1 then
+		'Throw away w_in
+		inputtext = get_ascii_inputtext()
+		exit sub
+	end if
+
+	if io_textinput then
+		'if len(w_in) then print #fh, "input :" & w_in
+		'convert to ascii
+		inputtext = ""
+		for i as integer = 0 to len(w_in) - 1
+			if w_in[i] > 255 then
+				'print "unicode char " & w_in[i]
+				inputtext += "?"
+			elseif (w_in[i] < 32) or (w_in[i] >= &h7F and w_in[i] <= &hA0) then
+				'Control character. What a waste of 8-bit code-space!
+				'Note that we ignore newlines... because we've always done it that way
+			else
+				inputtext += chr(w_in[i])
+			end if
+		next
+	else
+		inputtext = get_ascii_inputtext()
+	end if
+end sub
+
+function getinputtext () as string
+	return inputtext
+end function
 
 'one of waitforanykey and getkey must go
 FUNCTION waitforanykey (byval modkeys as integer=-1) as integer
@@ -1159,6 +1204,8 @@ SUB setkeys ()
 			key_down_ms(a) += setkeys_elapsed_ms
 		end if
 	next
+
+	update_inputtext()
 
 	'reset arrow key fire state
 	diagonalhack = -1

@@ -80,6 +80,7 @@ DIM SHARED remember_mouserect AS RectType = (-1, -1, -1, -1)
 DIM SHARED AS INTEGER mxmin = -1, mxmax = -1, mymin = -1, mymax = -1
 DIM SHARED AS INTEGER privatemx, privatemy, lastmx, lastmy
 DIM SHARED keybdstate(127) AS INTEGER  '"real"time keyboard array
+DIM SHARED input_buffer AS WSTRING * 128
 DIM SHARED mouseclicks AS INTEGER
 
 END EXTERN 'weirdness
@@ -261,6 +262,9 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
       RETURN 0
     END IF
   END IF
+  SDL_EnableUNICODE(1)
+  SDL_EnableKeyRepeat(400, 50)
+
   *info_buffer = *info_buffer & " (" & SDL_NumJoysticks() & " joysticks) Driver:"
   SDL_VideoDriverName(info_buffer + LEN(*info_buffer), info_buffer_size - LEN(*info_buffer))
   
@@ -589,10 +593,12 @@ SUB gfx_sdl_process_events()
       CASE SDL_KEYDOWN
         keycombos_logic(evnt)
         DIM AS INTEGER key = scantrans(evnt.key.keysym.sym)
+        IF LEN(input_buffer) >= 127 THEN input_buffer = RIGHT(input_buffer, 126)
+        input_buffer += WCHR(evnt.key.keysym.unicode_)
         'lowest bit is now set in io_keybits, from SDL_GetKeyState
         'IF key THEN keybdstate(key) = 3
         IF key THEN keybdstate(key) = 2
-        'debug "key down: " & evnt.key.keysym.sym & " -> " & key
+        'debug "key down: " & evnt.key.keysym.sym & " -> " & key & " U " & evnt.key.keysym.unicode_
       CASE SDL_KEYUP
         DIM AS INTEGER key = scantrans(evnt.key.keysym.sym)
         IF key THEN keybdstate(key) AND= NOT 1
@@ -682,6 +688,13 @@ END SUB
 
 SUB io_sdl_updatekeys(byval keybd as integer ptr)
   'supports io_keybits instead
+END SUB
+
+SUB io_sdl_textinput (byval buf as wstring ptr, byval bufsize as integer)
+  'Both FB and SDL only support UCS2, which doesn't have variable len wchars.
+  DIM buflen as integer = bufsize \ 2 - 1
+  *buf = LEFT(input_buffer, buflen)
+  input_buffer = MID(input_buffer, buflen)
 END SUB
 
 SUB io_sdl_setmousevisibility(byval visible as integer)
@@ -860,6 +873,7 @@ FUNCTION gfx_sdl_setprocptrs() as integer
   io_waitprocessing = @io_sdl_waitprocessing
   io_keybits = @io_sdl_keybits
   io_updatekeys = @io_sdl_updatekeys
+  io_textinput = @io_sdl_textinput
   io_mousebits = @io_sdl_mousebits
   io_setmousevisibility = @io_sdl_setmousevisibility
   io_getmouse = @io_sdl_getmouse

@@ -337,8 +337,10 @@ sub process_events()
 			'debug "key press scan=" & e.scancode & " ascii=" & e.ascii
 			process_key_event(e, 8)
 		end if
-		if e.type = EVENT_KEY_RELEASE then
+		if e.type = EVENT_KEY_REPEAT then
 			if e.ascii <> 0 then inputtext += chr(e.ascii)
+		end if
+		if e.type = EVENT_KEY_RELEASE then
 			'debug "key release scan=" & e.scancode & " ascii=" & e.ascii
 			process_key_event(e, 0)
 		end if
@@ -402,9 +404,6 @@ sub io_fb_updatekeys(byval keybd as integer ptr)
 		end select
 	next
 
-	'Not used yet, so flush this
-	inputtext = ""
-
 	'fbgfx reports separate shift keys, but combined alt and ctrl keys
 
 	keybd[scShift] or= (keybd[scLeftShift] or keybd[scRightShift]) and 8
@@ -418,6 +417,12 @@ sub io_fb_updatekeys(byval keybd as integer ptr)
 	keybd[scNumpadEnter] or= keybd[scEnter] and 8
 	keybd[scPrintScreen] or= keybd[scNumpadAsterix] and 8
 	keybd[scPause] or= keybd[scNumlock] and 8
+end sub
+
+sub io_fb_textinput (byval buf as wstring ptr, byval bufsize as integer)
+	dim buflen as integer = bufsize \ 2 - 1
+	*buf = LEFT(inputtext, buflen)
+	inputtext = MID(inputtext, buflen)
 end sub
 
 sub io_fb_setmousevisibility(byval visible as integer)
@@ -505,6 +510,7 @@ function gfx_fb_setprocptrs() as integer
 	io_waitprocessing = @io_fb_waitprocessing
 	io_keybits = @io_amx_keybits
 	io_updatekeys = @io_fb_updatekeys
+	io_textinput = @io_fb_textinput
 	io_mousebits = @io_amx_mousebits
 	io_setmousevisibility = @io_fb_setmousevisibility
 	io_getmouse = @io_fb_getmouse

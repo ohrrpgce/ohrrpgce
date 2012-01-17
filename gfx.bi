@@ -56,6 +56,9 @@ extern Io_keybits as sub (byval keybdarray as integer ptr)
 'set bit 3 (8) on each key if current down, should not modify the other bits!
 extern Io_updatekeys as sub (byval keybd as integer ptr)
 
+'(optional, ptr might be NULL) Get the inputted text since the last call, in UCS2 encoded unicode
+extern Io_textinput as sub (byval buf as wstring ptr, byval bufsize as integer)
+
 '(optional) Primary mouse state function
 'mbuttons is bitmask of currently down keys OR new clicks, mclicks is bitmask ofnew clicks since last call.
 'left, right, middle buttons are bits 0, 1, 2

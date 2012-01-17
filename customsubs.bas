@@ -3653,15 +3653,17 @@ SUB fontedit ()
      rectangle xoff + x * 20, yoff + y * 20, 20, 20, c, dpage
     END IF
     textcolor uilook(uiText), 0
-    printstr "ASCII " & f(pt), 20, 190, dpage
+    DIM tmp as string = "CHAR " & f(pt)
+    IF f(pt) >= &hA1 THEN tmp &= "/U+00" & HEX(f(pt))
+    printstr tmp, 12, 190, dpage
     IF f(pt) < 32 THEN
-     printstr "RESERVED", 120, 190, dpage
+     printstr "RESERVED", 160, 190, dpage
     ELSE
      FOR i = 2 TO 53
-      IF f(pt) = ASC(key2text(2, i)) THEN printstr "ALT+" + UCASE(key2text(0, i)), 120, 190, dpage
-      IF f(pt) = ASC(key2text(3, i)) THEN printstr "ALT+SHIFT+" + UCASE(key2text(0, i)), 120, 190, dpage
+      IF f(pt) = ASC(key2text(2, i)) THEN printstr "ALT+" + UCASE(key2text(0, i)), 160, 190, dpage
+      IF f(pt) = ASC(key2text(3, i)) THEN printstr "ALT+SHIFT+" + UCASE(key2text(0, i)), 160, 190, dpage
      NEXT i
-     IF f(pt) = 32 THEN printstr "SPACE", 120, 190, dpage
+     IF f(pt) = 32 THEN printstr "SPACE", 160, 190, dpage
     END IF
    END IF
   END IF
