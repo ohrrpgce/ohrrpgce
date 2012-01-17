@@ -49,11 +49,11 @@ extern Io_waitprocessing as sub ()
 'one of io_keybits or io_updatekeys, and one of io_mousebits or io_getmouse is required.
 
 '(optional) Primary keyboard state function. Get keypress events (since last call) and keyboard state:
-'bit 0: key down, bit 1: keypress since last call
+'bit 0: key down, bit 1: keypress since last call, either clear other bits or leave them unchanged.
 extern Io_keybits as sub (byval keybdarray as integer ptr)
 
-'(optional, thread safe) Get current up/down state of each key. Only used by the polling thread, not needed otherwise
-'set bit 3 (8) on each key if current down
+'(optional, must be thread safe) Get current up/down state of each key. Only used by the polling thread, not needed otherwise
+'set bit 3 (8) on each key if current down, should not modify the other bits!
 extern Io_updatekeys as sub (byval keybd as integer ptr)
 
 '(optional) Primary mouse state function
@@ -62,7 +62,7 @@ extern Io_updatekeys as sub (byval keybd as integer ptr)
 'Mouse wheel not commonly implemented yet.
 extern Io_mousebits as sub (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer)
 
-'(optional, thread safe) same as Io_mouse bits.
+'(optional, must be thread safe) same as Io_mouse bits.
 extern Io_getmouse as sub (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer)
 extern Io_setmouse as sub (byval x as integer, byval y as integer)
 

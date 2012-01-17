@@ -111,6 +111,8 @@ dim shared keysteps(127) as integer
 dim shared keyrepeatwait as integer = 8
 dim shared keyrepeatrate as integer = 1
 dim shared diagonalhack as integer
+dim shared delayed_alt_keydown as integer = NO
+
 dim shared rec_input as integer = NO
 dim shared rec_input_file as integer
 dim shared play_input as integer = NO
@@ -922,18 +924,31 @@ FUNCTION keyval (byval a as integer, byval rwait as integer = 0, byval rrate as 
 		IF rwait = 0 THEN rwait = keyrepeatwait
 		IF rrate = 0 THEN rrate = keyrepeatrate
 
-		'awful hack to avoid arrow keys firely alternatively with rrate > 1
-		DIM arrowkey as integer = 0
-		IF a = scLeft OR a = scRight OR a = scUp OR a = scDown THEN arrowkey = -1
+		'awful hack to avoid arrow keys firing alternatively with rrate > 1
+		DIM arrowkey as integer = NO
+		IF a = scLeft OR a = scRight OR a = scUp OR a = scDown THEN arrowkey = YES
 		IF arrowkey AND diagonalhack <> -1 THEN RETURN (result AND 5) OR (diagonalhack AND keybd(a) > 0)
-		IF keysteps(a) >= rwait THEN
+
+		if keysteps(a) >= rwait then
+			dim fire_repeat as integer = YES
+
+			if a = scAlt then
+				'alt can repeat (probably a bad idea not to), but only if nothing else has been pressed
+				'for i as integer = 1 to &h7f
+				'	if keybd(i) > 1 then fire_repeat = NO
+				'next
+				if delayed_alt_keydown = NO then fire_repeat = NO
+			end if
+
 			'Don't fire repeat presses for special toggle keys (note: these aren't actually
 			'toggle keys in all backends, eg. gfx_fb)
-			IF a <> scNumlock AND a <> scCapslock AND a <> scScrolllock THEN
-				IF ((keysteps(a) - rwait - 1) MOD rrate = 0) THEN result OR= 2
-			END IF
-			IF arrowkey THEN diagonalhack = result AND 2
-		END IF
+			if a = scNumlock or a = scCapslock or a = scScrolllock then fire_repeat = NO
+
+			if fire_repeat then
+				if ((keysteps(a) - rwait - 1) MOD rrate = 0) then result or= 2
+			end if
+			if arrowkey then diagonalhack = result and 2
+		end if
 	END IF
 	RETURN result
 end FUNCTION
@@ -977,7 +992,7 @@ FUNCTION waitforanykey (byval modkeys as integer=-1) as integer
 		io_pollkeyevents()
 		setkeys
 		for i = 1 to &h7f
-			if not modkeys and (i=29 or i=56 or i=42 or i=54) then continue for  'what's the reason for this again? If I knew, I'd delete this function
+			if not modkeys and (i=scCtrl or i=scAlt or i=scShift) then continue for  'what's the reason for this again? If I knew, I'd delete this function
 			if keyval(i) > 1 then return i
 		next i
 		dowait
@@ -1026,12 +1041,14 @@ SUB setkeys ()
 'Updates the keybd array (which keyval() wraps) to reflect new keypresses
 'since the last call, also clears all keypress events (except key-is-down)
 '
-'keysteps is the number of setkeys calls that a key has been down, used
-'for flexible key-repeat
+'Also the place for low-level key hooks that work everywhere
+'(Note that backends also have some hooks, especially gfx_sdl.bas for OSX-
+'specific stuff)
 '
-'Note that currently key repeat events are triggered every 25ms, not every
-'setkeys call
-
+'Note that key repeat is NOT added to keybd (it's done by "post-processing" in keyval)
+'
+'keysteps() is the number of setkeys calls that a key has been down, used
+'for flexible key-repeat
 
 	if play_input then
 		replay_input_tick ()
@@ -1040,24 +1057,90 @@ SUB setkeys ()
 		io_keybits(@keybd(0))
 		mutexunlock keybdmutex
 
+		'Current state of keybd():
+		'bit 0: key currently down
+		'bit 1: key down since last io_keybits call
+		'bit 2: undefined
+
 		if rec_input then
 			record_input_tick ()
 		end if
 
 	end if
 
+	'debug "raw scEnter = " & keybd(scEnter) & " scAlt = " & keybd(scAlt)
+
 	'DELETEME (after a lag period): This is a temporary fix for gfx_directx not knowing about scShift
 	'(or any other of the new scancodes, but none of the rest matter much (maybe
 	'scPause) since there are no games that use them).
-	if (keybd(scLeftShift) or keybd(scRightShift)) <> keybd(scShift) then
+	'(Ignore bit 2, because that isn't set yet)
+	if ((keybd(scLeftShift) or keybd(scRightShift)) and 3) <> (keybd(scShift) and 3) then
 		keybd(scShift) = keybd(scLeftShift) or keybd(scRightShift)
 	end if
 
-	for a as integer = 0 to &h7f
-		'Duplicate bit 1 (key was triggered) to bit 2 (new keypress)
-		keybd(a) = (keybd(a) and 3) or ((keybd(a) and 2) shl 1)
+	dim winstate as WindowState ptr
+	winstate = gfx_getwindowstate()
 
-		if (keybd(a) and 2) or (keybd(a) and 1) = 0 then  'I am also confused
+	'Don't fire ctrl pressed when alt down due to large number of WM shortcuts containing ctrl+alt
+	'(Testing delayed_alt_keydown is just a hack to add one tick delay after alt up,
+	'which is absolutely required)
+	if (keybd(scAlt) and 1) or delayed_alt_keydown then
+
+		if keybd(scEnter) and 6 then
+			keybd(scEnter) and= 1
+			delayed_alt_keydown = NO
+		end if
+
+		keybd(scCtrl) and= 1 
+		keybd(scLeftCtrl) and= 1 
+		keybd(scRightCtrl) and= 1 
+	end if
+
+	for a as integer = 0 to &h7f
+		'Calculate new "new keypress" bit (bit 2)
+		keybd(a) and= 3
+		if a = scAlt then
+			'Special behaviour for alt, to ignore pesky WM shortcuts like alt+tab, alt+enter:
+			'Wait until alt has been released, without losing focus, before
+			'causing a key-down event.
+			'Also, special case for alt+enter, since that doesn't remove focus
+
+			'Note: this is only for scAlt, not scLeftAlt, scRightAlt, which aren't used by
+			'the engine, only by games. Maybe those shoudl be blocked too
+			'Note: currently keyval causes key-repeat events for alt if delayed_alt_keydown = YES
+
+			if keybd(scAlt) and 2 then
+				if delayed_alt_keydown = NO then
+					keybd(scAlt) -= 2
+				end if
+				delayed_alt_keydown = YES
+			end if
+
+			/'
+			for scancode as integer = 0 to &h7f
+				if scancode <> scAlt and scancode <> scLeftAlt and scancode <> scRightAlt and (keybd(scancode) and 1) then
+					delayed_alt_keydown = NO
+				end if
+			next
+			'/
+			if winstate->focused = NO then
+				delayed_alt_keydown = NO
+			end if
+
+			if (keybd(scAlt) and 1) = 0 andalso delayed_alt_keydown then
+				keybd(scAlt) or= 6
+				delayed_alt_keydown = NO
+			end if
+
+		'elseif a = scCtrl or a = scLeftCtrl or a = scRightCtrl then
+
+		else
+			'Duplicate bit 1 to bit 2
+			 keybd(a) or= (keybd(a) and 2) shl 1
+		end if
+
+		'Update key-down time
+		if (keybd(a) and 4) or (keybd(a) and 1) = 0 then
 			keysteps(a) = 0
 		end if
 		if keybd(a) and 1 then
@@ -1065,39 +1148,38 @@ SUB setkeys ()
 		end if
 	next
 
-	'Check to see if the operating system has received a request
-	'to close the window (clicking the X) and set the magic keyboard
+	'reset arrow key fire state
+	diagonalhack = -1
+
+	'Check to see if the backend has received a request
+	'to close the window (eg. clicking the X), set the magic keyboard
 	'index -1 if so. It can only be unset with clearkey.
-	IF closerequest THEN
+	if closerequest then
 		closerequest = 0
 		keybd(-1) = 1
-	'ELSE
-		'keybd(-1) = 0
-	END IF
+	end if
 	if keybd(scPageup) > 0 and keybd(scPagedown) > 0 and keybd(scEsc) > 1 then keybd(-1) = 1
 
 #ifdef IS_CUSTOM
 	if keybd(-1) then keybd(scEsc) = 7
 #elseif defined(IS_GAME)
 	'Quick abort (could probably do better, just moving this here for now)
-	IF keyval(-1) THEN
+	if keyval(-1) then
 		'uncomment for slice debugging
 		'DestroyGameSlices YES
 		exitprogram 0
-	END IF
+	end if
 #endif
 
+	'F12 for screenshots handled here
 	snapshot_check
-
-	'reset arrow key fire state
-	diagonalhack = -1
 
 	if keyval(scCtrl) > 0 and keyval(scTilde) and 4 then
 		showfps xor= 1
 	end if
 
 	'some debug keys for working on resolution independence
-	if (keyval(scLeftShift) > 0 or keyval(scRightShift) > 0) and keyval(sc1) > 0 then
+	if keyval(scShift) > 0 and keyval(sc1) > 0 then
 		if variablerez then
 			if keyval(scRightBrace) > 1 then
 				windowsize.w += 10
@@ -1305,7 +1387,7 @@ sub pollingthread(byval unused as any ptr)
 		'highest scancode in fbgfx.bi is &h79, no point overdoing it
 		for a = 0 to &h7f
 			if keybdstate(a) and 8 then
-				'decide whether to fire a new key event, otherwise the keystate is preserved
+				'decide whether to set the 'new key' bit, otherwise the keystate is preserved
 				if (keybdstate(a) and 1) = 0 then
 					'this is a new keypress
 					keybdstate(a) = keybdstate(a) or 2
