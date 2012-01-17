@@ -105,11 +105,13 @@ dim shared waitset as integer
 dim shared tickcount as integer = 0
 dim shared use_speed_control as integer = YES
 
+dim shared last_setkeys_time as double
+dim shared setkeys_elapsed_ms as integer 'Time since last setkeys call (used by keyval)
 dim shared keybd(-1 to 127) as integer  'keyval array
+dim shared key_down_ms(-1 to 127) as integer  'ms each key has been down
 dim shared last_keybd(127) as integer 'used only for input recording
-dim shared keysteps(127) as integer
-dim shared keyrepeatwait as integer = 8
-dim shared keyrepeatrate as integer = 1
+dim shared keyrepeatwait as integer = 500
+dim shared keyrepeatrate as integer = 55
 dim shared diagonalhack as integer
 dim shared delayed_alt_keydown as integer = NO
 
@@ -195,7 +197,7 @@ sub setmodex()
 	for i as integer = 0 to 127
 		keybd(i) = 0
 		keybdstate(i) = 0
- 		keysteps(i) = 0
+ 		key_down_ms(i) = 0
 	next
 	endpollthread = 0
 	mouselastflags = 0
@@ -908,7 +910,7 @@ SUB getsprite (pic() as integer, byval picoff as integer, byval x as integer, by
 
 END SUB
 
-FUNCTION keyval (byval a as integer, byval rwait as integer = 0, byval rrate as integer = 0) as integer
+FUNCTION keyval (byval a as integer, byval repeat_wait as integer = 0, byval repeat_rate as integer = 0) as integer
 'except for special keys (like -1), each key reports 3 bits:
 '
 'bit 0: key was down at the last setkeys call
@@ -917,40 +919,43 @@ FUNCTION keyval (byval a as integer, byval rwait as integer = 0, byval rrate as 
 '
 'Note: Alt/Ctrl keys may behave strangely with gfx_fb (and old gfx_directx):
 'You won't see Left/Right keypresses even when scAlt/scCtrl is pressed, so do not
-'check "keyval(scLeftAlt) > 0 OR keyval(scRightAlt) > 0" instead of "keyval(scAlt) > 0"
+'check "keyval(scLeftAlt) > 0 or keyval(scRightAlt) > 0" instead of "keyval(scAlt) > 0"
 
-	DIM result as integer = keybd(a)
-	IF a >= 0 THEN
-		IF rwait = 0 THEN rwait = keyrepeatwait
-		IF rrate = 0 THEN rrate = keyrepeatrate
+	dim result as integer = keybd(a)
+	if a >= 0 then
+		if repeat_wait = 0 then repeat_wait = keyrepeatwait
+		if repeat_rate = 0 then repeat_rate = keyrepeatrate
 
-		'awful hack to avoid arrow keys firing alternatively with rrate > 1
-		DIM arrowkey as integer = NO
-		IF a = scLeft OR a = scRight OR a = scUp OR a = scDown THEN arrowkey = YES
-		IF arrowkey AND diagonalhack <> -1 THEN RETURN (result AND 5) OR (diagonalhack AND keybd(a) > 0)
+		'awful hack to avoid arrow keys firing alternatively when not pressed at the same time:
+		'save state of the first arrow key you query
+		dim arrowkey as integer = NO
+		if a = scLeft or a = scRight or a = scUp or a = scDown then arrowkey = YES
+		if arrowkey and diagonalhack <> -1 then return (result and 5) or (diagonalhack and keybd(a) > 0)
 
-		if keysteps(a) >= rwait then
-			dim fire_repeat as integer = YES
+		if key_down_ms(a) >= repeat_wait then
+			dim check_repeat as integer = YES
 
 			if a = scAlt then
 				'alt can repeat (probably a bad idea not to), but only if nothing else has been pressed
 				'for i as integer = 1 to &h7f
-				'	if keybd(i) > 1 then fire_repeat = NO
+				'	if keybd(i) > 1 then check_repeat = NO
 				'next
-				if delayed_alt_keydown = NO then fire_repeat = NO
+				if delayed_alt_keydown = NO then check_repeat = NO
 			end if
 
 			'Don't fire repeat presses for special toggle keys (note: these aren't actually
 			'toggle keys in all backends, eg. gfx_fb)
-			if a = scNumlock or a = scCapslock or a = scScrolllock then fire_repeat = NO
+			if a = scNumlock or a = scCapslock or a = scScrolllock then check_repeat = NO
 
-			if fire_repeat then
-				if ((keysteps(a) - rwait - 1) MOD rrate = 0) then result or= 2
+			if check_repeat then
+				'Keypress event at "wait + i * rate" ms after keydown
+				dim temp as integer = key_down_ms(a) - repeat_wait
+				if temp \ repeat_rate > (temp - setkeys_elapsed_ms) \ repeat_rate then result or= 2
 			end if
 			if arrowkey then diagonalhack = result and 2
 		end if
-	END IF
-	RETURN result
+	end if
+	return result
 end FUNCTION
 
 FUNCTION getinputtext () as string
@@ -1032,9 +1037,9 @@ FUNCTION getkey () as integer
 	getkey = key
 end FUNCTION
 
-SUB setkeyrepeat (byval rwait as integer = 8, byval rrate as integer = 1)
-	keyrepeatwait = rwait
-	keyrepeatrate = rrate
+SUB setkeyrepeat (byval repeat_wait as integer = 500, byval repeat_rate as integer = 55)
+	keyrepeatwait = repeat_wait
+	keyrepeatrate = repeat_rate
 END SUB
 
 SUB setkeys ()
@@ -1046,13 +1051,19 @@ SUB setkeys ()
 'specific stuff)
 '
 'Note that key repeat is NOT added to keybd (it's done by "post-processing" in keyval)
-'
-'keysteps() is the number of setkeys calls that a key has been down, used
-'for flexible key-repeat
+
+	dim window_focused as integer
 
 	if play_input then
 		replay_input_tick ()
 	else
+		setkeys_elapsed_ms = bound(1000 * (TIMER - last_setkeys_time), 0, 255)
+		last_setkeys_time = TIMER
+
+		dim winstate as WindowState ptr
+		winstate = gfx_getwindowstate()
+		window_focused = winstate->focused
+
 		mutexlock keybdmutex
 		io_keybits(@keybd(0))
 		mutexunlock keybdmutex
@@ -1077,9 +1088,6 @@ SUB setkeys ()
 	if ((keybd(scLeftShift) or keybd(scRightShift)) and 3) <> (keybd(scShift) and 3) then
 		keybd(scShift) = keybd(scLeftShift) or keybd(scRightShift)
 	end if
-
-	dim winstate as WindowState ptr
-	winstate = gfx_getwindowstate()
 
 	'Don't fire ctrl pressed when alt down due to large number of WM shortcuts containing ctrl+alt
 	'(Testing delayed_alt_keydown is just a hack to add one tick delay after alt up,
@@ -1123,7 +1131,7 @@ SUB setkeys ()
 				end if
 			next
 			'/
-			if winstate->focused = NO then
+			if window_focused = NO then
 				delayed_alt_keydown = NO
 			end if
 
@@ -1141,10 +1149,10 @@ SUB setkeys ()
 
 		'Update key-down time
 		if (keybd(a) and 4) or (keybd(a) and 1) = 0 then
-			keysteps(a) = 0
+			key_down_ms(a) = 0
 		end if
 		if keybd(a) and 1 then
-			keysteps(a) += 1
+			key_down_ms(a) += setkeys_elapsed_ms
 		end if
 	next
 
@@ -1223,7 +1231,7 @@ end SUB
 SUB clearkey(byval k as integer)
 	keybd(k) = 0
 	if k >= 0 then
-		keysteps(k) = 1
+		key_down_ms(k) = 0
 	end if
 end sub
 

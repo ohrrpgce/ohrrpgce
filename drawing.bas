@@ -764,7 +764,6 @@ END IF
 loadmxs mapfile$, pagenum, vpages(3)
 'pick block to draw/import/default
 bnum = 0
-setkeyrepeat 25, 5
 setkeys
 DO
  setwait 17, 70
@@ -779,17 +778,16 @@ DO
   ELSE
    show_help "picktiletoedit"
   END IF
-  setkeyrepeat 25, 5  'yuck
  END IF
  IF ts.gotmouse THEN
   bnum = (mouse.y \ 20) * 16 + mouse.x \ 20
  END IF
  IF tmode <> 3 OR keyval(scCtrl) = 0 THEN
   movedcsr = NO
-  IF slowkey(scLeft, 6) THEN bnum = (bnum + 159) MOD 160: movedcsr = YES
-  IF slowkey(scRight, 6) THEN bnum = (bnum + 1) MOD 160: movedcsr = YES
-  IF slowkey(scUp, 6) THEN bnum = (bnum + 144) MOD 160: movedcsr = YES
-  IF slowkey(scDown, 6) THEN bnum = (bnum + 16) MOD 160: movedcsr = YES
+  IF slowkey(scLeft, 100) THEN bnum = (bnum + 159) MOD 160: movedcsr = YES
+  IF slowkey(scRight, 100) THEN bnum = (bnum + 1) MOD 160: movedcsr = YES
+  IF slowkey(scUp, 100) THEN bnum = (bnum + 144) MOD 160: movedcsr = YES
+  IF slowkey(scDown, 100) THEN bnum = (bnum + 16) MOD 160: movedcsr = YES
   IF movedcsr AND ts.gotmouse THEN
    mouse.x = (mouse.x MOD 20) + (bnum MOD 16) * 20
    mouse.y = (mouse.y MOD 20) + (bnum \ 16) * 20
@@ -810,7 +808,7 @@ DO
  IF paste_keychord() THEN tilepaste cutnpaste(), ts
  IF (keyval(scCtrl) > 0 AND keyval(scT) > 1) THEN tiletranspaste cutnpaste(), ts
  ts.tilex = bnum AND 15
- ts.tiley = INT(bnum / 16)
+ ts.tiley = bnum \ 16
  IF enter_or_space() OR mouse.clicks > 0 THEN
   setkeys
   IF tmode = 0 THEN
@@ -831,7 +829,6 @@ DO
    vector_to_array buf(), ts.defaultwalls
    editbitset buf(), bnum, 7, bitmenu()
    array_to_vector ts.defaultwalls, buf()
-   setkeyrepeat 25, 5  'editbitset resets the repeat rate
   END IF
   IF slave_channel <> NULL_CHANNEL THEN storemxs mapfile$, pagenum, vpages(3)
  END IF
@@ -869,7 +866,6 @@ DO
  setvispage vpage
  IF dowait THEN tog = tog XOR 1
 LOOP
-setkeyrepeat
 storemxs mapfile$, pagenum, vpages(3)
 IF tmode = 3 THEN
  savepasdefaults ts.defaultwalls, pagenum
@@ -1016,7 +1012,6 @@ NEXT j
 '--frame around the drawing area
 rectangle 79, 0, 162, 160, uilook(uiText), 2
 '---EDIT BLOCK---
-setkeyrepeat 25, 5
 setkeys
 DO
  setwait 17, 110
@@ -1036,20 +1031,20 @@ DO
    EXIT DO
   END IF
  END IF
- IF keyval(scF1) > 1 THEN show_help "editmaptile": setkeyrepeat 25, 5  'yuck
+ IF keyval(scF1) > 1 THEN show_help "editmaptile"
  IF keyval(scAlt) = 0 THEN
   DIM fixmouse AS INTEGER = NO
   IF ts.tool <> scroll_tool THEN
-   IF slowkey(scLeft, 6) THEN ts.x = large(ts.x - 1, 0): fixmouse = YES
-   IF slowkey(scRight, 6) THEN ts.x = small(ts.x + 1, 19): fixmouse = YES
-   IF slowkey(scUp, 6) THEN ts.y = large(ts.y - 1, 0): fixmouse = YES
-   IF slowkey(scDown, 6) THEN ts.y = small(ts.y + 1, 19): fixmouse = YES
+   IF slowkey(scLeft, 100) THEN ts.x = large(ts.x - 1, 0): fixmouse = YES
+   IF slowkey(scRight, 100) THEN ts.x = small(ts.x + 1, 19): fixmouse = YES
+   IF slowkey(scUp, 100) THEN ts.y = large(ts.y - 1, 0): fixmouse = YES
+   IF slowkey(scDown, 100) THEN ts.y = small(ts.y + 1, 19): fixmouse = YES
   ELSE
    DIM scrolloff AS XYPair
-   IF slowkey(scLeft, 6) THEN scrolloff.x = -1
-   IF slowkey(scRight, 6) THEN scrolloff.x = 1
-   IF slowkey(scUp, 6) THEN scrolloff.y = -1
-   IF slowkey(scDown, 6) THEN scrolloff.y = 1
+   IF slowkey(scLeft, 100) THEN scrolloff.x = -1
+   IF slowkey(scRight, 100) THEN scrolloff.x = 1
+   IF slowkey(scUp, 100) THEN scrolloff.y = -1
+   IF slowkey(scDown, 100) THEN scrolloff.y = 1
    scrolltile mover(), ts, scrolloff.x, scrolloff.y
    IF scrolloff.x OR scrolloff.y THEN fixmouse = YES
    ts.x = (ts.x + scrolloff.x + 20) MOD 20
@@ -1887,7 +1882,7 @@ END SUB
 
 SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, state AS MenuState, placer(), workpal(), poffset(), info$(), toolinfo() AS ToolInfoType, area() AS MouseArea, mouse AS MouseInfo)
  ss.curcolor = peek8bit(workpal(), ss.palindex + (state.pt - state.top) * 16)
- rectangle 247 + ((ss.curcolor - (INT(ss.curcolor / 16) * 16)) * 4), 0 + (INT(ss.curcolor / 16) * 6), 5, 7, uilook(uiText), dpage
+ rectangle 247 + ((ss.curcolor - ((ss.curcolor \ 16) * 16)) * 4), 0 + ((ss.curcolor \ 16) * 6), 5, 7, uilook(uiText), dpage
  DIM AS INTEGER i, o
  FOR i = 0 TO 15
   FOR o = 0 TO 15
@@ -2216,7 +2211,6 @@ SUB spriteedit_import16(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEdit
  
  STATIC default AS STRING
  
- setkeyrepeat
  srcbmp = browse(2, default, "*.bmp", "",, "browse_import_sprite")
  IF srcbmp = "" THEN EXIT SUB
  '--------------------
@@ -2471,7 +2465,6 @@ SUB sprite_editor(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic
  GOSUB spedbak
  loadsprite placer(), 0, ss.framenum * ss.size, soff * (state.pt - state.top), ss.wide, ss.high, 3
  hidemousecursor
- setkeyrepeat 25, 5
  setkeys
  DO
   setwait 17, 70
@@ -2491,7 +2484,7 @@ SUB sprite_editor(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic
     EXIT DO
    END IF
   END IF
-  IF keyval(scF1) > 1 THEN show_help "sprite_editor":  setkeyrepeat 25, 5  'yuck
+  IF keyval(scF1) > 1 THEN show_help "sprite_editor"
   IF ss.delay = 0 THEN
    GOSUB sprctrl
   END IF
@@ -2505,7 +2498,6 @@ SUB sprite_editor(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic
   tick = 0
   IF dowait THEN tick = 1: state.tog = state.tog XOR 1
  LOOP
- setkeyrepeat
  unhidemousecursor
  spriteedit_save_what_you_see(state.pt, state.top, sets, ss, soff, placer(), workpal(), poffset())
  changepal poffset(state.pt), 0, workpal(), state.pt - state.top
@@ -2539,7 +2531,6 @@ IF keyval(scP) > 1 OR (ss.zonenum = 19 AND mouse.clicks > 0) THEN '--call palett
  poffset(state.pt) = pal16browse(poffset(state.pt), ss.fileset, state.pt)
  clearkey(scEnter)
  clearkey(scSpace)
- setkeyrepeat 25, 5
  getpal16 workpal(), state.pt - state.top, poffset(state.pt)
 END IF
 '--UNDO
@@ -2591,7 +2582,7 @@ IF keyval(scAlt) > 0 THEN
  gen(genMaxPal) = large(gen(genMaxPal), poffset(state.pt))
 END IF
 IF (mouse.clicks AND mouseLeft) ANDALSO ss.zonenum = 3 THEN
- ss.curcolor = INT(INT(ss.zone.y / 6) * 16) + INT(ss.zone.x / 4)
+ ss.curcolor = ((ss.zone.y \ 6) * 16) + (ss.zone.x \ 4)
  'If the palette has changed, update genMaxPal
  gen(genMaxPal) = large(gen(genMaxPal), poffset(state.pt))
 END IF
@@ -2600,15 +2591,15 @@ IF keyval(scAlt) = 0 THEN
  DIM fixmouse AS INTEGER = NO
  WITH ss
   fixmouse = NO
-  IF slowkey(scUp, 6) THEN .y = large(0, .y - 1):      fixmouse = YES
-  IF slowkey(scDown, 6) THEN .y = small(ss.high - 1, .y + 1): fixmouse = YES
-  IF slowkey(scLeft, 6) THEN .x = large(0, .x - 1):      fixmouse = YES
-  IF slowkey(scRight, 6) THEN .x = small(ss.wide - 1, .x + 1): fixmouse = YES
+  IF slowkey(scUp, 100) THEN .y = large(0, .y - 1):      fixmouse = YES
+  IF slowkey(scDown, 100) THEN .y = small(ss.high - 1, .y + 1): fixmouse = YES
+  IF slowkey(scLeft, 100) THEN .x = large(0, .x - 1):      fixmouse = YES
+  IF slowkey(scRight, 100) THEN .x = small(ss.wide - 1, .x + 1): fixmouse = YES
  END WITH
  IF fixmouse THEN
   IF ss.zonenum = 1 THEN
-   ss.zone.x = ss.x * ss.zoom + INT(ss.zoom / 2)
-   ss.zone.y = ss.y * ss.zoom + INT(ss.zoom / 2)
+   ss.zone.x = ss.x * ss.zoom + (ss.zoom \ 2)
+   ss.zone.y = ss.y * ss.zoom + (ss.zoom \ 2)
    mouse.x = area(0).x + ss.zone.x 
    mouse.y = area(0).y + ss.zone.y
    movemouse mouse.x, mouse.y
@@ -2623,8 +2614,8 @@ IF keyval(scAlt) = 0 THEN
  END IF
 END IF
 IF ss.zonenum = 1 THEN
- ss.x = INT(ss.zone.x / ss.zoom)
- ss.y = INT(ss.zone.y / ss.zoom)
+ ss.x = ss.zone.x \ ss.zoom
+ ss.y = ss.zone.y \ ss.zoom
 END IF
 IF ss.tool = airbrush_tool THEN '--adjust airbrush
  IF mouse.buttons AND mouseLeft THEN
@@ -2832,16 +2823,15 @@ IF ss.tool = scroll_tool AND (ss.zonenum = 1 OR ss.zonenum = 14) THEN
 END IF
 IF ss.tool = scroll_tool AND keyval(scAlt) = 0 THEN
  DIM scrolloff AS XYPair
- IF slowkey(scLeft, 6) THEN scrolloff.x = -1
- IF slowkey(scRight, 6) THEN scrolloff.x = 1
- IF slowkey(scUp, 6) THEN scrolloff.y = -1
- IF slowkey(scDown, 6) THEN scrolloff.y = 1
+ IF slowkey(scLeft, 100) THEN scrolloff.x = -1
+ IF slowkey(scRight, 100) THEN scrolloff.x = 1
+ IF slowkey(scUp, 100) THEN scrolloff.y = -1
+ IF slowkey(scDown, 100) THEN scrolloff.y = 1
  spriteedit_scroll placer(), ss, scrolloff.x, scrolloff.y
 END IF
 IF keyval(scI) > 1 OR (ss.zonenum = 13 AND mouse.clicks > 0) THEN
  spriteedit_import16 ss, ss_save, state, placer(), workpal(), poffset(), info(), toolinfo(), area(), mouse
  GOSUB spedbak
- setkeyrepeat 25, 5
 END IF
 IF keyval(scE) > 1 OR (ss.zonenum = 26 AND mouse.clicks > 0) THEN
  changepal poffset(state.pt), 0, workpal(), state.pt - state.top '--this saves the current palette in case it has changed

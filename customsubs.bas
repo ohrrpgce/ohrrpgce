@@ -1318,7 +1318,6 @@ FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL pi
  state.top = bound(state.top, state.first, large(state.last - state.size, state.first))
 
  'reset repeat rate, needed because called from sprite editor (argh), the caller resets its own repeatrate
- setkeyrepeat
  setkeys
  DO
   setwait 55
@@ -2160,7 +2159,6 @@ SUB editbitset (array() AS INTEGER, BYVAL wof AS INTEGER, BYVAL last AS INTEGER,
  DIM col AS INTEGER
 
  '---MAIN LOOP---
- setkeyrepeat  'Parent menu may have changed the default repeat rate
  setkeys
  DO
   setwait 55

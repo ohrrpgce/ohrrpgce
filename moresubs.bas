@@ -854,10 +854,10 @@ FUNCTION teleporttool () as integer
     yrate = 1
    END IF
 
-   IF slowkey(scUp, 1) THEN dest.y = large(dest.y - yrate, 0)
-   IF slowkey(scDown, 1) THEN dest.y = small(dest.y + yrate, mapsize.y - 1)
-   IF slowkey(scLeft, 1) THEN dest.x = large(dest.x - xrate, 0)
-   IF slowkey(scRight, 1) THEN dest.x = small(dest.x + xrate, mapsize.x - 1)
+   IF slowkey(scUp, 45) THEN dest.y = large(dest.y - yrate, 0)
+   IF slowkey(scDown, 45) THEN dest.y = small(dest.y + yrate, mapsize.y - 1)
+   IF slowkey(scLeft, 45) THEN dest.x = large(dest.x - xrate, 0)
+   IF slowkey(scRight, 45) THEN dest.x = small(dest.x + xrate, mapsize.x - 1)
 
    DIM temp as XYPair = camera
    camera.x = bound(camera.x, (dest.x + 1) * zoom + 40 - minisize.x, dest.x * zoom - 40)  'follow dest

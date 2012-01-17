@@ -119,15 +119,15 @@ DECLARE FUNCTION bmpinfo (f as string, byref dat as BitmapInfoHeader) as integer
 
 DECLARE FUNCTION isawav(fi as string) as integer
 
-DECLARE FUNCTION keyval (byval a as integer, byval rwait as integer = 0, byval rrate as integer = 0) as integer
+DECLARE FUNCTION keyval (byval a as integer, byval repeat_wait as integer = 0, byval repeat_rate as integer = 0) as integer
 DECLARE FUNCTION getkey () as integer
 DECLARE FUNCTION getinputtext () as string
 DECLARE FUNCTION waitforanykey (byval modkeys as integer = -1) as integer
-DECLARE SUB setkeyrepeat (byval rwait as integer = 8, byval rrate as integer = 1)
+DECLARE SUB setkeyrepeat (byval repeat_wait as integer = 500, byval repeat_rate as integer = 55)
 DECLARE SUB setkeys ()
 DECLARE SUB clearkey (byval k as integer)
 DECLARE SUB setquitflag ()
-#DEFINE slowkey(key, fraction) (keyval((key), (fraction), (fraction)) > 1)
+#DEFINE slowkey(key, ms) (keyval((key), (ms), (ms)) > 1)
 
 DECLARE SUB start_recording_input (filename as string)
 DECLARE SUB stop_recording_input ()

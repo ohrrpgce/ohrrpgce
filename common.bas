@@ -1709,14 +1709,9 @@ SUB show_help(helpkey as string)
  DIM searchstring as string
 
  '--Now loop displaying help
- setkeyrepeat  'reset repeat rate
  setkeys
  DO
-  IF editing THEN
-   setwait 30
-  ELSE
-   setwait 17
-  END IF
+  setwait 17
   setkeys
   
   IF editing THEN  
@@ -1774,8 +1769,8 @@ SUB show_help(helpkey as string)
     dat->first_line = large(dat->first_line, cursor_line - (dat->line_limit - 2))
    ELSE
     '--not editing, just browsing
-    IF keyval(scUp) > 1 THEN dat->first_line -= 1
-    IF keyval(scDown) > 1 THEN dat->first_line += 1
+    IF slowkey(scUp, 30) THEN dat->first_line -= 1
+    IF slowkey(scDown, 30) THEN dat->first_line += 1
     IF keyval(scPageUp) > 1 THEN dat->first_line -= dat->line_limit - 1
     IF keyval(scPageDown) > 1 THEN dat->first_line += dat->line_limit - 1
     IF keyval(scHome) > 1 THEN dat->first_line = 0
@@ -1874,7 +1869,6 @@ FUNCTION multiline_string_editor(s as string, helpkey as string="") as string
  scrollbar_state.size = 17
 
  '--Now loop displaying help
- setkeyrepeat  'reset repeat rate
  setkeys
  DO
   setwait 30

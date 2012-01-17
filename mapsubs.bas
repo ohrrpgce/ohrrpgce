@@ -903,10 +903,10 @@ DO
    END IF
    nd = -1
    IF keyval(scCtrl) > 0 OR keyval(scSpace) > 1 THEN
-    IF slowkey(scUp, 12)    THEN nd = 0
-    IF slowkey(scRight, 12) THEN nd = 1
-    IF slowkey(scDown, 12)  THEN nd = 2
-    IF slowkey(scLeft, 12)  THEN nd = 3
+    IF slowkey(scUp, 660)    THEN nd = 0
+    IF slowkey(scRight, 660) THEN nd = 1
+    IF slowkey(scDown, 660)  THEN nd = 2
+    IF slowkey(scLeft, 660)  THEN nd = 3
    END IF
    IF keyval(scSpace) > 1 OR nd > -1 THEN
     temp = 0
@@ -1026,18 +1026,18 @@ DO
   yrate = 1
  END IF
  IF keyval(scAlt) = 0 AND keyval(scCtrl) = 0 THEN
-  IF slowkey(scUp, 2) THEN st.y = large(st.y - yrate, 0): IF st.y < st.mapy \ 20 THEN st.mapy = st.y * 20
-  IF slowkey(scDown, 2) THEN st.y = small(st.y + yrate, st.high - 1): IF st.y > st.mapy \ 20 + 8 THEN st.mapy = st.y * 20 - 160
-  IF slowkey(scLeft, 2) THEN st.x = large(st.x - xrate, 0): IF st.x < st.mapx \ 20 THEN st.mapx = st.x * 20
-  IF slowkey(scRight, 2) THEN st.x = small(st.x + xrate, st.wide - 1): IF st.x > st.mapx \ 20 + 15 THEN st.mapx = st.x * 20 - 300
+  IF slowkey(scUp, 110) THEN st.y = large(st.y - yrate, 0): IF st.y < st.mapy \ 20 THEN st.mapy = st.y * 20
+  IF slowkey(scDown, 110) THEN st.y = small(st.y + yrate, st.high - 1): IF st.y > st.mapy \ 20 + 8 THEN st.mapy = st.y * 20 - 160
+  IF slowkey(scLeft, 110) THEN st.x = large(st.x - xrate, 0): IF st.x < st.mapx \ 20 THEN st.mapx = st.x * 20
+  IF slowkey(scRight, 110) THEN st.x = small(st.x + xrate, st.wide - 1): IF st.x > st.mapx \ 20 + 15 THEN st.mapx = st.x * 20 - 300
  END IF
  IF keyval(scAlt) > 0 AND keyval(scCtrl) = 0 THEN
   oldrelx = st.x - st.mapx / 20
   oldrely = st.y - st.mapy / 20
-  IF slowkey(scUp, 2) THEN st.mapy = large(st.mapy - 20 * yrate, 0)
-  IF slowkey(scDown, 2) THEN st.mapy = small(st.mapy + 20 * yrate, st.high * 20 - 180)
-  IF slowkey(scLeft, 2) THEN st.mapx = large(st.mapx - 20 * xrate, 0)
-  IF slowkey(scRight, 2) THEN st.mapx = small(st.mapx + 20 * xrate, st.wide * 20 - 320)
+  IF slowkey(scUp, 110) THEN st.mapy = large(st.mapy - 20 * yrate, 0)
+  IF slowkey(scDown, 110) THEN st.mapy = small(st.mapy + 20 * yrate, st.high * 20 - 180)
+  IF slowkey(scLeft, 110) THEN st.mapx = large(st.mapx - 20 * xrate, 0)
+  IF slowkey(scRight, 110) THEN st.mapx = small(st.mapx + 20 * xrate, st.wide * 20 - 320)
   st.x = st.mapx / 20 + oldrelx
   st.y = st.mapy / 20 + oldrely
  END IF
