@@ -487,10 +487,10 @@ SUB slice_edit_detail (sl as Slice Ptr, byref ses as SliceEditState, rootsl as S
   .need_update = YES
  END WITH
 
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "sliceedit_" & rules(state.pt).helpkey
   IF keyval(scF4) > 1 THEN ses.hide_menu = NOT ses.hide_menu
@@ -1086,10 +1086,10 @@ FUNCTION edit_slice_lookup_codes(slicelookup() as string, byval start_at_code as
   END IF
  END WITH
 
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "slice_lookup_codes"
   IF keyval(scEnter) > 1 THEN

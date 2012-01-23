@@ -496,10 +496,10 @@ st.menustate.size = 24
 st.menustate.last = UBOUND(mapeditmenu)
 st.menustate.pt = remember_menu_pt  'preserved from any other maps for convenience
 
-setkeys
+setkeys YES
 DO
  setwait 55
- setkeys
+ setkeys YES
  tog = tog XOR 1
  IF keyval(scESC) > 1 THEN
   mapedit_savemap st, mapnum, map(), pass, emap, zmap, gmap(), doors(), link(), mapname
@@ -1861,10 +1861,10 @@ SUB mapedit_edit_zoneinfo(BYREF st as MapEditState, zmap as ZoneMap)
  state.size = 24
  state.need_update = YES
 
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "mapedit_zone_edit"
   usemenu state, enabled()

@@ -60,6 +60,7 @@ dim io_pollkeyevents as sub ()
 dim io_waitprocessing as sub ()
 dim io_keybits as sub (byval keybdarray as integer ptr)
 dim io_updatekeys as sub (byval keybd as integer ptr)
+dim io_enable_textinput as sub (byval enable as integer)
 dim io_textinput as sub (byval buf as wstring ptr, byval bufsize as integer)
 dim io_mousebits as sub (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer)
 dim io_setmousevisibility as sub (byval visible as integer)
@@ -154,6 +155,7 @@ sub io_dummy_keybits(byval keybdarray as integer ptr) : end sub
 sub io_dummy_updatekeys(byval keybd as integer ptr) : end sub
 sub io_dummy_mousebits(byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer) : end sub
 sub io_dummy_getmouse(byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer) : end sub
+sub io_dummy_enable_textinput(byval enable as integer) : end sub
 
 function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filename as string) as integer
 	dim hFile as any ptr = backendinfo->dylib
@@ -205,6 +207,9 @@ function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filename as 
 	end if
 	io_updatekeys = dylibsymbol(hFile, "io_updatekeys")
 	if io_updatekeys = NULL then io_updatekeys = @io_dummy_updatekeys
+
+	io_enable_textinput = dylibsymbol(hFile, "io_enable_textinput")
+	if io_enable_textinput = NULL then io_enable_textinput = @io_dummy_enable_textinput
 
 	io_textinput = dylibsymbol(hFile, "io_textinput")
 	'io_textinput is allowed to be NULL
@@ -383,6 +388,8 @@ function load_backend(which as GFxBackendStuff ptr) as integer
 	default_gfx_render_procs()
 	Gfx_getresize = @gfx_dummy_getresize
 	Gfx_setresizable = @gfx_dummy_setresizable
+	Io_textinput = NULL
+	Io_enable_textinput = @io_dummy_enable_textinput
 
 	if which->load = NULL then
 		dim filename as string = which->libname

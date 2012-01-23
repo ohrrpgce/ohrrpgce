@@ -124,7 +124,7 @@ DECLARE FUNCTION getkey () as integer
 DECLARE FUNCTION getinputtext () as string
 DECLARE FUNCTION waitforanykey (byval modkeys as integer = -1) as integer
 DECLARE SUB setkeyrepeat (byval repeat_wait as integer = 500, byval repeat_rate as integer = 55)
-DECLARE SUB setkeys ()
+DECLARE SUB setkeys (byval enable_inputtext as integer = NO)
 DECLARE SUB clearkey (byval k as integer)
 DECLARE SUB setquitflag ()
 #DEFINE slowkey(key, ms) (keyval((key), (ms), (ms)) > 1)

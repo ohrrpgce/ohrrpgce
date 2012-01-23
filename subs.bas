@@ -614,10 +614,10 @@ GOSUB EnLoadSub
 '------------------------------------------------------------------------
 '--main loop
 
-setkeys
+setkeys YES
 DO
  setwait 55
- setkeys
+ setkeys YES
  tog = tog XOR 1
  IF keyval(scESC) > 1 THEN
   IF menudepth = 1 THEN
@@ -1289,10 +1289,10 @@ wep_img.pal    = palette16_load(a(53), 5, a(52))
 
 need_update = NO
 
-setkeys
+setkeys YES
 DO
  setwait 55
- setkeys
+ setkeys YES
  tog = tog XOR 1
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "item_editor"
@@ -1676,10 +1676,10 @@ SUB hero_editor
 
  hero_editor_load_hero st, her, hero_id
 
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
   animate_hero_preview st
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "hero_editor"
@@ -2003,10 +2003,10 @@ SUB hero_editor_spell_list_names (her as HeroDef)
   .last = UBOUND(menu)
  END WITH
 
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "hero_spell_menu_names"
   usemenu mstate
@@ -2369,7 +2369,7 @@ SUB common_elementals_editor(elementals() as single, helpfile as string, byval s
 
  DO
   setwait 55
-  setkeys
+  setkeys YES
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help helpfile
   IF st.pt = 0 THEN

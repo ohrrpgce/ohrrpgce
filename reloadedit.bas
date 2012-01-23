@@ -88,10 +88,10 @@ SUB reload_editor()
   .maxrows = 18
  END WITH
  
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
 
   IF st.state.need_update THEN
    DeleteMenuItems st.menu
@@ -113,7 +113,7 @@ SUB reload_editor()
   IF keyval(scF3) > 1 THEN
    IF reload_editor_okay_to_unload(st) THEN
     IF reload_editor_browse(st) THEN
-     setkeys
+     setkeys YES
      st.state.need_update = YES
     END IF
    END IF

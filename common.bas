@@ -1190,13 +1190,16 @@ FUNCTION intgrabber (byref n as LONGINT, byval min as LONGINT, byval max as LONG
   n = ABS(n)
   IF keyval(scBackspace) > 1 THEN n \= 10: typed = YES
 
-  DIM intext as string = getinputtext
-  FOR i as integer = 0 TO LEN(intext) - 1
-   IF isdigit(intext[i]) THEN
-    n = n * 10 + (intext[i] - ASC("0"))
+  FOR i as integer = 1 TO 9
+   IF keyval(sc1 - 1 + i) > 1 THEN
+    n = n * 10 + i
     typed = YES
    END IF
   NEXT
+  IF keyval(sc0) > 1 THEN
+   n = n * 10
+   typed = YES
+  END IF
 
   IF old = 0 ANDALSO n <> 0 ANDALSO negative_zero THEN sign = -1
 
@@ -1628,10 +1631,10 @@ FUNCTION prompt_for_string (byref s as string, caption as string, byval limit as
  IF limit = NO THEN limit = 40
 
  '--Now loop while editing string
- setkeys
+ setkeys YES
  DO
   setwait 40
-  setkeys
+  setkeys YES
   
   IF keyval(scESC) > 1 THEN
    prompt_for_string = NO
@@ -1716,10 +1719,10 @@ SUB show_help(helpkey as string)
  DIM searchstring as string
 
  '--Now loop displaying help
- setkeys
+ setkeys YES
  DO
   setwait 17
-  setkeys
+  setkeys YES
   
   IF editing THEN  
    cursor_line = stredit(dat->s, dat->insert, 32767, dat->line_limit, help_text->Width \ 8)
@@ -1876,10 +1879,10 @@ FUNCTION multiline_string_editor(s as string, helpkey as string="") as string
  scrollbar_state.size = 17
 
  '--Now loop displaying help
- setkeys
+ setkeys YES
  DO
   setwait 30
-  setkeys
+  setkeys YES
   
   cursor_line = stredit(dat->s, dat->insert, 32767, dat->line_limit, text->Width \ 8)
   'The limit of 32767 chars is totally arbitrary and maybe not a good limit
@@ -4196,10 +4199,10 @@ FUNCTION inputfilename (query as string, ext as string, directory as string, hel
  DIM filename as string = default
  DIM tog as integer
  IF directory = "" THEN directory = CURDIR
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
   tog = tog XOR 1
   IF keyval(scEsc) > 1 THEN RETURN ""
   IF keyval(scF1) > 1 THEN show_help helpkey

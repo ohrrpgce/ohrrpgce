@@ -147,10 +147,10 @@ END IF
 br.changed = 0
 IF br.alert = "" THEN br.changed = 1  'Don't clobber alert
 
-setkeys
+setkeys YES
 DO
  setwait 55
- setkeys
+ setkeys YES
  IF keyval(scEsc) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help helpkey
  IF usemenu(br.treeptr, br.treetop, 0, br.treesize, br.viewsize) OR br.changed THEN

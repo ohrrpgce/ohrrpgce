@@ -113,10 +113,10 @@ SUB editor_editor()
   .maxrows = 18
  END WITH
  
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
 
   IF st.state.need_update THEN
    DeleteMenuItems st.menu
@@ -137,7 +137,7 @@ SUB editor_editor()
   IF keyval(scF3) > 1 THEN
    IF ee_okay_to_unload(st) THEN
     IF ee_browse(st) THEN
-     setkeys
+     setkeys YES
      st.state.need_update = YES
     END IF
    END IF
@@ -594,10 +594,10 @@ FUNCTION widget_editor(BYVAL widget AS NodePtr) AS INTEGER
  
  ee_get_widget_code(st.code, widget)
  
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
 
   IF st.state.need_update THEN
    DeleteMenuItems st.menu

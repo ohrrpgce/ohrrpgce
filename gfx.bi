@@ -56,6 +56,9 @@ extern Io_keybits as sub (byval keybdarray as integer ptr)
 'set bit 3 (8) on each key if current down, should not modify the other bits!
 extern Io_updatekeys as sub (byval keybd as integer ptr)
 
+'(optional) Enable or disable text input methods, possibly causing some keys to go dead
+extern Io_enable_textinput as sub (byval enable as integer)
+
 '(optional, ptr might be NULL) Get the inputted text since the last call, in UCS2 encoded unicode
 extern Io_textinput as sub (byval buf as wstring ptr, byval bufsize as integer)
 

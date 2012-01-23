@@ -110,10 +110,10 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
  DIM alt_pt AS INTEGER 
 
  DIM tog AS INTEGER = 0
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
   tog = tog XOR 1
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "tagnames"
@@ -750,7 +750,7 @@ SUB percent_cond_editor (cond as AttackElementCondition, byval min as double, by
 
  DO
   setwait 55
-  setkeys
+  setkeys YES
   IF keyval(scEsc) > 1 OR enter_or_space() THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "percent_cond_editor"
   SELECT CASE st.pt
@@ -2320,10 +2320,10 @@ FUNCTION scriptbrowse_string (BYREF trigger AS INTEGER, BYVAL triggertype AS INT
  state.top = large(0, small(state.pt - 10, scriptmax - 21))
  DIM id AS INTEGER = scriptids(state.pt)
  DIM iddisplay AS INTEGER = 0
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
   IF keyval(scESC) > 1 THEN
    RETURN tempstr
   END IF
@@ -3135,10 +3135,10 @@ SUB edit_global_text_strings()
  state.first = -1
  state.last = menu.curitem - 1
  state.size = 21
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN
    IF state.pt >= 0 ANDALSO LEN(menu.help(state.pt)) THEN
@@ -3927,10 +3927,10 @@ SUB stat_growth_chart ()
  rect.high = 140
  DIM origin_y = rect.y + rect.high
 
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
 
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "stat_growth"

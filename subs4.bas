@@ -82,10 +82,10 @@ min(15) = 0: max(15) = 99: offset(15) = 21'dismount
 LoadVehicle game + ".veh", veh(), vehname, pt
 GOSUB vehmenu
 
-setkeys
+setkeys YES
 DO
  setwait 55
- setkeys
+ setkeys YES
  tog = tog XOR 1
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "vehicle_editor"
@@ -383,10 +383,10 @@ bamfile$ = ""
 optionsbottom = 0
 GOSUB getsonginfo
 
-setkeys
+setkeys YES
 DO
  setwait 55
- setkeys
+ setkeys YES
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "import_songs"
 
@@ -612,10 +612,10 @@ sname$ = ""
 sfxfile$ = ""
 GOSUB getsfxinfo
 
-setkeys
+setkeys YES
 DO
  setwait 55
- setkeys
+ setkeys YES
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "import_sfx"
 
@@ -1059,10 +1059,10 @@ SUB inputpasw()
 DIM tog AS INTEGER = 0
 DIM oldpassword AS INTEGER = (checkpassword("") = 0)
 DIM pas AS STRING
-setkeys
+setkeys YES
 DO
  setwait 55
- setkeys
+ setkeys YES
  tog = tog XOR 1
  IF keyval(scEsc) > 1 THEN EXIT DO
  IF keyval(scEnter) > 1 THEN
@@ -1531,10 +1531,10 @@ SUB gendata ()
  DIM aboutline AS STRING = load_aboutline()
  DIM longname AS STRING = load_gamename()
 
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
 
   IF state.need_update THEN
    generate_gen_menu m(), longname, aboutline

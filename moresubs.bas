@@ -1049,10 +1049,10 @@ IF fadestate = 0 THEN
  need_fade_out = YES
 END IF
 
-setkeys
+setkeys YES
 DO
  setwait speedcontrol
- setkeys
+ setkeys YES
  playtimer
  control
  centerbox 160, 100, 168, 32, 1, page

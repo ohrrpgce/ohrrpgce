@@ -262,7 +262,6 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
       RETURN 0
     END IF
   END IF
-  SDL_EnableUNICODE(1)
   SDL_EnableKeyRepeat(400, 50)
 
   *info_buffer = *info_buffer & " (" & SDL_NumJoysticks() & " joysticks) Driver:"
@@ -690,6 +689,10 @@ SUB io_sdl_updatekeys(byval keybd as integer ptr)
   'supports io_keybits instead
 END SUB
 
+SUB io_sdl_enable_textinput (byval enable as integer)
+  SDL_EnableUNICODE(IIF(enable, 1, 0))
+END SUB
+
 SUB io_sdl_textinput (byval buf as wstring ptr, byval bufsize as integer)
   'Both FB and SDL only support UCS2, which doesn't have variable len wchars.
   DIM buflen as integer = bufsize \ 2 - 1
@@ -873,6 +876,7 @@ FUNCTION gfx_sdl_setprocptrs() as integer
   io_waitprocessing = @io_sdl_waitprocessing
   io_keybits = @io_sdl_keybits
   io_updatekeys = @io_sdl_updatekeys
+  io_enable_textinput = @io_sdl_enable_textinput
   io_textinput = @io_sdl_textinput
   io_mousebits = @io_sdl_mousebits
   io_setmousevisibility = @io_sdl_setmousevisibility

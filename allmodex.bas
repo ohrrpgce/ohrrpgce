@@ -117,6 +117,7 @@ dim shared keyrepeatrate as integer = 55
 dim shared diagonalhack as integer
 dim shared delayed_alt_keydown as integer = NO
 dim shared inputtext as string
+dim shared inputtext_enabled as integer
 
 dim shared rec_input as integer = NO
 dim shared rec_input_file as integer
@@ -1036,6 +1037,7 @@ sub update_inputtext ()
 end sub
 
 function getinputtext () as string
+	if inputtext_enabled = NO then debug "getinputtext: not enabled"
 	return inputtext
 end function
 
@@ -1181,7 +1183,7 @@ SUB setkeys_update_keybd
 
 end sub
 
-SUB setkeys ()
+SUB setkeys (byval enable_inputtext as integer = NO)
 'Updates the keybd array (which keyval() wraps) to reflect new keypresses
 'since the last call, also clears all keypress events (except key-is-down)
 '
@@ -1189,7 +1191,16 @@ SUB setkeys ()
 '(Note that backends also have some hooks, especially gfx_sdl.bas for OSX-
 'specific stuff)
 '
+'enable_inputtext needs to be true for getinputtext to work;
+'however there is a one tick delay before coming into effect
+'
 'Note that key repeat is NOT added to keybd (it's done by "post-processing" in keyval)
+
+	if enable_inputtext then enable_inputtext = YES
+	if inputtext_enabled <> enable_inputtext then
+		inputtext_enabled = enable_inputtext
+		io_enable_textinput(inputtext_enabled)
+	end if
 
 	if play_input then
 		'Updates keybd() and setkeys_elapsed_ms
@@ -1215,6 +1226,10 @@ SUB setkeys ()
 		end if
 	next
 
+	'AFAIK, this is will still work on all platforms except X11 with SDL
+	'even if inputtext was not enabled; however you'll get a warning when
+	'getinputtext is called. So we call this just so that making that error
+	'isn't too annoying (you'll still notice it)
 	update_inputtext()
 
 	'reset arrow key fire state

@@ -1091,10 +1091,10 @@ DIM tmpstr AS STRING
 '------------------------------------------------------------------------
 '--main loop
 
-setkeys
+setkeys YES
 DO
  setwait 55
- setkeys
+ setkeys YES
  state.tog = state.tog XOR 1
  IF keyval(scESC) > 1 THEN
   IF menudepth = 1 THEN
@@ -1140,7 +1140,7 @@ DO
  END IF
 
  IF keyval(scTab) > 1 THEN
-  IF keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0 THEN
+  IF keyval(scShift) > 0 THEN
    rememberindex = recindex
   ELSEIF rememberindex >= 0 AND rememberindex <= gen(genMaxAttack) THEN
    saveattackdata recbuf(), recindex
@@ -1721,10 +1721,10 @@ detail.min_chars = 36
 
 DIM box_preview AS STRING = ""
 
-setkeys
+setkeys YES
 DO
  setwait 55
- setkeys
+ setkeys YES
  
  IF state.active = NO THEN EXIT DO
  IF mstate.active = YES THEN

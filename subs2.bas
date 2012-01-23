@@ -540,10 +540,10 @@ SUB text_box_editor () 'textage
  DIM temptrig AS INTEGER
  
  textbox_edit_load box, st, menu()
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
   state.tog = state.tog XOR 1
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "textbox_main"
@@ -1320,10 +1320,10 @@ SUB textbox_line_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
   state.last = UBOUND(box.text)
  END WITH
  DIM insertpt AS INTEGER = -1
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
   state.tog = state.tog XOR 1
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "textbox_line_editor"
@@ -1373,10 +1373,10 @@ SUB textbox_choice_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
  END WITH
  DIM menu(5) AS STRING
  menu(0) = "Go Back"
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
   state.tog = state.tog XOR 1
   IF keyval(scEsc) > 1 THEN EXIT SUB
   IF keyval(scF1) > 1 THEN show_help "textbox_choice_editor"

@@ -329,10 +329,10 @@ SUB main_editor_menu()
  DIM intext as string
  DIM passphrase as string
 
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
   state.tog XOR= 1
   IF keyval(scEsc) > 1 THEN
    prompt_for_save_and_quit
@@ -432,10 +432,10 @@ SUB gfx_editor_menu()
  DIM box_border_captions(15) as string = {"Top Left Corner","Top Edge Left","Top Edge","Top Edge Right","Top Right Corner","Left Edge Top","Right Edge Top","Left Edge","Right Edge","Left Edge Bottom","Right Edge Bottom","Bottom Left Corner","Bottom Edge Left","Bottom Edge","Bottom Edge Right","Bottom Right Corner"}
  DIM portrait_captions(0) as string = {"Character Portrait"}
 
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
   state.tog XOR= 1
   IF keyval(scEsc) > 1 THEN
    EXIT DO
@@ -599,10 +599,10 @@ SUB prompt_for_password()
  DIM tog as integer
  'Uncomment to display the/a password
  'passcomment = getpassword
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
   tog = tog XOR 1
   IF keyval(scEnter) > 1 THEN
    IF checkpassword(pas) THEN
@@ -700,10 +700,10 @@ SUB shopdata ()
  DIM new_shop_id as integer
  DIM c as integer
  
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
   shopst.st.tog XOR= 1
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "shop_main"
@@ -847,10 +847,10 @@ SUB shop_stuff_edit (byval shop_id as integer, stufbuf() as integer, byref thing
  update_shop_stuff_menu stuf, stufbuf(), thing_total
  update_shop_stuff_type stuf, stufbuf()
  
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
   stuf.st.tog = stuf.st.tog XOR 1
 
   IF keyval(scEsc) > 1 THEN EXIT DO
@@ -1300,7 +1300,7 @@ SUB condition_test_menu ()
 
  DO
   setwait 55
-  setkeys
+  setkeys YES
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "condition_test"
   tmp = 0
