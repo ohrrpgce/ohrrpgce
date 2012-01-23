@@ -249,29 +249,25 @@ FUNCTION replacestr (buffer as string, replacewhat as string, withwhat as string
 END FUNCTION
 
 FUNCTION exclude (s as string, x as string) as string
- DIM outf as STRING = ""
- DIM ok as integer
+ DIM ret as string = ""
  FOR i as integer = 1 TO LEN(s)
-  ok = -1
-  FOR j as integer = 1 TO LEN(x)
-   IF MID(s, i, 1) = MID(x, j, 1) THEN ok = 0
-  NEXT j
-  IF ok THEN outf &= MID(s, i, 1)
+  DIM tmp as string = MID(s, i, 1)
+  IF INSTR(x, tmp) = 0 THEN
+   ret &= tmp
+  END IF
  NEXT i
- RETURN outf
+ RETURN ret
 END FUNCTION
 
 FUNCTION exclusive (s as string, x as string) as string
- DIM outf as STRING = ""
- DIM ok as integer
+ DIM ret as string = ""
  FOR i as integer = 1 TO LEN(s)
-  ok = 0
-  FOR j as integer = 1 TO LEN(x)
-   IF MID(s, i, 1) = MID(x, j, 1) THEN ok = -1
-  NEXT j
-  IF ok THEN outf &= MID(s, i, 1)
+  DIM tmp as string = MID(s, i, 1)
+  IF INSTR(x, tmp) THEN
+   ret &= tmp
+  END IF
  NEXT i
- RETURN outf
+ RETURN ret
 END FUNCTION
 
 '------------- Stack -------------
