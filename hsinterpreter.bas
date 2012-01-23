@@ -859,8 +859,6 @@ STATIC lastscript as integer
 'mode: 0 = do nothing, 1 = non-interactive (display over game), 2 = clean and sane
 '2 = interactive (display game and step on input), 3 = clean and sane
 
-DIM helpstr as string
-DIM help() as string
 DIM plots as string
 DIM marginstr as string
 DIM strings() as string
@@ -1088,38 +1086,30 @@ IF mode > 1 AND drawloop = 0 THEN
  DIM w as integer = getkey
  IF w = scF10 THEN mode = 0: clearkey(scF10)
  IF w = scEsc THEN mode = 0: clearkey(scEsc)
- IF w = 47 THEN viewmode = loopvar(viewmode, 0, 3, 1): GOTO redraw 'v
- IF w = 73 THEN 'pgup
+ IF w = scV THEN viewmode = loopvar(viewmode, 0, 3, 1): GOTO redraw
+ IF w = scPageUp THEN
   selectedscript += 1
   localsscroll = 0
   GOTO redraw
  END IF
- IF w = 81 THEN 'pgdw
+ IF w = scPageDown THEN
   selectedscript -= 1
   localsscroll = 0
   GOTO redraw
  END IF
- IF w = 12 OR w = 74 THEN '-
+ IF w = scMinus OR w = scNumpadMinus THEN
   IF viewmode = 1 THEN localsscroll = large(0, localsscroll - 3): GOTO redraw
   IF viewmode = 2 THEN globalsscroll = large(0, globalsscroll - 21): GOTO redraw
   IF viewmode = 3 THEN stringsscroll = large(0, stringsscroll - 1): GOTO redraw
  END IF
- IF w = 13 OR w = 78 THEN '+
+ IF w = scPlus OR w = scNumpadPlus THEN
   IF viewmode = 1 THEN localsscroll = small(large(scrat(selectedscript).scr->vars - 8, 0), localsscroll + 3): GOTO redraw
   IF viewmode = 2 THEN globalsscroll = small(4096 - 60, globalsscroll + 21): GOTO redraw
   IF viewmode = 3 THEN stringsscroll = small(stringsscroll + 1, (UBOUND(strings) - 1) - 19): GOTO redraw
  END IF
 
  IF w = scF1 THEN
-  helpstr = load_help_file("script_debugger")
-  split(wordwrap(helpstr, 38), help())
-  rectangle 3, 3, 314, 192, uilook(uiTextBox), page 
-  textcolor uilook(uiText), 0
-  FOR i as integer = 0 TO UBOUND(help)
-   printstr help(i), 8, 8 + 8 * i, page
-  NEXT
-  setvispage page
-  getkey
+  show_help("script_debugger")
   GOTO redraw
  END IF
 
@@ -1129,29 +1119,29 @@ IF mode > 1 AND drawloop = 0 THEN
  END IF
 
  'stepping
- IF w = 49 THEN 'n
+ IF w = scN THEN
   'step till next script
   mode or= breakstnext OR breakstdone OR breaklooptop
   stepmode = stepscript
   lastscriptnum = nowscript
  END IF
- IF w = 22 THEN 'u
+ IF w = scU THEN
   mode or= breakstnext
   stepmode = stepup
   waitfordepth = scrat(nowscript).depth - 1
   waitforscript = nowscript
  END IF
- IF w = 17 THEN 'w
+ IF w = scW THEN
   mode or= breakstnext
   waitforscript = selectedscript
   stepmode = stependscript
  END IF
- IF w = 31 THEN 's
+ IF w = scS THEN
   mode or= breakstread OR breakstnext OR breakloopbrch
   stepmode = stepnext
   waitforscript = 999
  END IF
- IF w = 33 THEN 'f
+ IF w = scF THEN
   'mode or= breakstread
   mode or= breakstnext OR breakloopbrch
   stepmode = stepargsdone
