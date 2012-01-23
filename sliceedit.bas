@@ -1100,7 +1100,7 @@ FUNCTION edit_slice_lookup_codes(slicelookup() as string, byval start_at_code as
   usemenu state
   IF state.pt > 0 THEN
    IF strgrabber(slicelookup(state.pt), 40) THEN
-    slicelookup(state.pt) = exclusive(slicelookup(state.pt), "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 _'~")
+    slicelookup(state.pt) = sanitize_script_identifier(slicelookup(state.pt))
    END IF
   END IF
   

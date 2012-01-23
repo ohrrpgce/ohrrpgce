@@ -403,7 +403,8 @@ END SUB
 
 FUNCTION isunique (s AS STRING, set() AS STRING) AS INTEGER
  DIM key AS STRING
- key = exclusive(LCASE(s), "abcdefghijklmnopqrstuvwxyz0123456789_'~")
+ key = sanitize_script_identifier(LCASE(s), NO)
+
  FOR i = 1 TO UBOUND(set)
   IF key = set(i) THEN RETURN NO
  NEXT i
@@ -961,7 +962,7 @@ SUB writeconstant (filehandle AS INTEGER, num AS INTEGER, names AS STRING, uniqu
  DIM s AS STRING
  DIM n AS INTEGER = 2
  DIM suffix AS STRING
- s = TRIM(exclusive(names, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 _'~"))
+ s = TRIM(sanitize_script_identifier(names))
  IF s <> "" THEN
   WHILE NOT isunique(s + suffix, unique())
    suffix = " " & n

@@ -4195,6 +4195,23 @@ FUNCTION fixfilename (s as string) as string
  RETURN result
 END FUNCTION
 
+FUNCTION sanitize_script_identifier (ident as string, byval allow_whitespace as integer = YES) as string
+ DIM tmp as string = exclude(ident, !"`!@#$%^&*()-+=[]{}\|<>,.;/\"")  ' :_'~? allowed
+ DIM lower_ascii_limit as integer = 32
+ IF allow_whitespace THEN lower_ascii_limit = 31
+ DIM ret as string
+ FOR i as integer = 0 TO LEN(tmp) - 1
+  SELECT CASE tmp[i]
+   CASE IS <= lower_ascii_limit
+   CASE &h7f TO &hA0
+    '(Note, &hA1 and above may not be Latin-1, but oh well)
+   CASE ELSE
+    ret &= CHR(tmp[i])
+  END SELECT
+ NEXT
+ RETURN ret
+END FUNCTION
+
 FUNCTION inputfilename (query as string, ext as string, directory as string, helpkey as string, default as string="", byval allow_overwrite as integer=YES) as string
  DIM filename as string = default
  DIM tog as integer
