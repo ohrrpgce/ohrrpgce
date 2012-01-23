@@ -1,3 +1,12 @@
+include std/machine.e
+include std/search.e
+include euphoria/unicode.e
+
+public enum
+	BINARY_MODE,
+	TEXT_MODE,
+	UNIX_TEXT,
+	DOS_TEXT
 
 public enum
 	ANSI,
@@ -336,7 +345,7 @@ public function read_file(object file, integer as_text = BINARY_MODE, integer en
 	end if
 
 	-- Convert Windows endings
-	ret = replace_all(ret, {13,10}, {10})
+	ret = match_replace({13,10}, ret, {10})
 	if length(ret) > 0 then
 		if ret[$] != 10 then
 			ret &= 10
@@ -418,14 +427,14 @@ public function write_file(object file, sequence data, integer as_text = BINARY_
 
 		if as_text = TEXT_MODE then
 			-- Standardize all line endings
-			data = replace_all(data, {13,10}, {10})
+			data = match_replace({13,10}, data, {10})
 
 		elsif as_text = UNIX_TEXT then
-			data = replace_all(data, {13,10}, {10})
+			data = match_replace({13,10}, data, {10})
 
 		elsif as_text = DOS_TEXT then
-			data = replace_all(data, {13,10}, {10})
-			data = replace_all(data, {10}, {13,10})
+			data = match_replace({13,10}, data, {10})
+			data = match_replace({10}, data, {13,10})
 
 		end if
 	end if
