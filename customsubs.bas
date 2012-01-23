@@ -4067,7 +4067,8 @@ SUB spawn_game_menu
   notification "Game is already running! Running multiple test copies of a game is not yet supported."
  ELSE
   spawn_game
-  show_help "test_game"
+  notification !"You're running your game in live preview mode. Please press F1 now to read the help file for this if you haven't already.\n\nPress any key"
+  IF keyval(scF1) > 1 THEN show_help "test_game"
  END IF
 END SUB
 

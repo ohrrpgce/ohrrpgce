@@ -317,8 +317,8 @@ SUB main_editor_menu()
  menu(16) = "Edit General Game Data"
  menu(17) = "Script Management"
  menu(18) = "Edit Slice Collections"
- menu(19) = "Test Game"
- menu(20) = "Distribute Game"
+ menu(19) = "Distribute Game"
+ menu(20) = "Test Game"
  menu(21) = "Quit Editing"
  get_menu_hotkeys menu(), UBOUND(menu), menukeys(), "Edit"
  
@@ -371,8 +371,8 @@ SUB main_editor_menu()
    IF state.pt = 16 THEN gendata
    IF state.pt = 17 THEN scriptman
    IF state.pt = 18 THEN slice_editor
-   IF state.pt = 19 THEN spawn_game_menu
-   IF state.pt = 20 THEN distribute_game
+   IF state.pt = 19 THEN distribute_game
+   IF state.pt = 20 THEN spawn_game_menu
    IF state.pt = 21 THEN
     prompt_for_save_and_quit
    END IF
