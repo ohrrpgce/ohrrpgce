@@ -33,6 +33,7 @@ define constant(11, assert expression string)
 plotscript, run all tests, begin
   suspend player
   seed random(4444)
+  hspeak tests
   string tests
   math tests
   save load tests
@@ -72,6 +73,31 @@ end
 script, assert failure, begin
   trace(assert expression string)
   crash
+end
+
+########################################################################
+
+# include a file with UTF-16 encoding
+include, "utf16 encoding test.hss"
+
+plotscript, ¿ƒüñÑÿ sÇ®¡ÞΤ ηªɱE, begin
+	return (42)
+end 
+
+# This really doesn't belong here, but I'm too lazy to find a better place
+script, hspeak tests, begin
+  variable (Über)
+  Über := 12
+  for (über, über, über + 4) do ()
+  assert(Über == 17)
+
+  # Lowercase form in Latin-1, uppercase not
+  variable (Ÿve)
+  ÿve := 0
+
+  assert(¿ƒüñÑÿ sÇ®¡ÞΤ ηªɱE == 42)
+
+  assert(that script in the other file == 91)
 end
 
 ########################################################################
@@ -1500,6 +1526,27 @@ script, string tests, begin
   $1=" .~fooy"
   $2=" .~fooY"
   assert(string compare(1,2) == false)
+
+  # Check HSpeak encodes Unicode correctly
+  $1="	 ¡éÖœ£"  # tab, space, exclamation
+  $2="‰Œẽñ"  # characters above U+00FF
+  $3="???ñ"
+  trace(3)
+  assert(string compare(2, 3))
+  3 $= 1
+  3 $+ 2
+  trace(3)
+  trace value(string length(3))
+  assert(string length(3) == 11)
+  assert(ascii from string(3, 1) == 9)
+  assert(ascii from string(3, 2) == 32)
+  assert(ascii from string(3, 3) == 161)
+  assert(ascii from string(3, 4) == 233)
+  assert(ascii from string(3, 10) == 63)
+  assert(ascii from string(3, 11) == 241)
+  show string at(3, 0, 0)
+  w
+  hide string(3)
 
   $1="SelfStab"
   read attack name(2, 0 + 1)
