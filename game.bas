@@ -1104,7 +1104,7 @@ END SUB
 
 SUB process_zone_eachstep_triggers(who as string, byval zones as integer vector)
  FOR i as integer = 0 TO v_len(zones) - 1
-  debuginfo who & " step in zone " & zones[i]
+  'debuginfo who & " step in zone " & zones[i]
  NEXT
 END SUB
 
@@ -1122,11 +1122,11 @@ SUB process_zone_entry_triggers(who as string, byval oldzones as integer vector,
   IF oldzone > newzone THEN
    'Found newly entered zone
    '(add triggers here)
-   debuginfo who & " entered " & newzone
+   'debuginfo who & " entered " & newzone
    newi += 1
   ELSEIF oldzone < newzone THEN
    'Left a zone
-   debuginfo who & " left " & oldzone
+   'debuginfo who & " left " & oldzone
    oldi += 1
   ELSE
    'Same zone appears in both lists
