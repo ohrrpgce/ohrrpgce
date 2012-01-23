@@ -425,11 +425,15 @@ if 'fb' in used_gfx:
 AUTOTEST = env.Command ('autotest_rpg', source = GAME, action =
                         [File(gamename).abspath + tmp +  ' --log . --runfast testgame/autotest.rpg',
                          'grep -q "TRACE: TESTS SUCCEEDED" g_debug.txt'])
+INTERTEST = env.Command ('interactivetest', source = GAME, action =
+                         [File(gamename).abspath + tmp + ' --log . --runfast testgame/interactivetest.rpg'
+                          ' --replayinput testgame/interactivetest.ohrkey',
+                          'grep -q "TRACE: TESTS SUCCEEDED" g_debug.txt'])
 
 testprogs = ['reloadtest', 'rbtest', 'vectortest']
 tests = [File(prog).abspath for prog in testprogs]
 # The has to be some better way to do this...
-env.Command ('test', source = testprogs + [XML2RELOAD, AUTOTEST], action = tests)
+env.Command ('test', source = testprogs + [XML2RELOAD, AUTOTEST, INTERTEST], action = tests)
 
 Default (GAME)
 Default (CUSTOM)
@@ -482,6 +486,7 @@ Targets:
   bam2mid
   reload              Compile all RELOAD utilities.
   autotest_rpg        Runs autotest.rpg. See autotest.py for improved harness.
+  interactivetest     Runs interactivetest.rpg with recorded input.
   test                Compile and run all automated tests, including autotest.rpg.
   .                   Compile everything (and run tests).
 
