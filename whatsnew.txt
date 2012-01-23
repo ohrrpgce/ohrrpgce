@@ -76,6 +76,8 @@ WHAT IS NEW?
     * "textbox line" replaces "string from textbox", fixing the
       broken 'expand' argument and adding 'strip' argument [Ralph]
     * "get slice text" [Ralph]
+    * "get input text" (and "enable input text") which obsoletes
+      "last ascii" [Ralph]
 
   * Vikings of Midgard
 

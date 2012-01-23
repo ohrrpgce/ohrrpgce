@@ -1087,6 +1087,7 @@ caty(0) = 0
 catz(0) = 0
 catd(0) = 0
 gam.random_battle_countdown = 0
+gam.getinputtext_enabled = NO
 'leader = 0
 mapx = 0
 mapy = 0

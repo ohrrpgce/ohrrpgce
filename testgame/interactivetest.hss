@@ -238,7 +238,7 @@ script, keyboard input tests, begin
   wait for key(anykey)
   assert(last ascii == 0)
 
-  $message1="Testing inputtest (try backspace & caps)"
+  $message1="Testing inputstring (try backspace & caps)"
 
   $message2="Type \"foo BAR AAAAAA #!\""
   $2="<initial>"
@@ -255,7 +255,7 @@ script, keyboard input tests, begin
   message2 $+ 2
   w(20)
 
-  $message1="Testing inputtest"
+  $message1="Testing inputstring"
   $message2="Type \"éÖ$ \" or \"SKIP\""
   assert(input string(2, 38, false, true) == true)
   $3="éÖ$ "

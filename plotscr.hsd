@@ -539,6 +539,9 @@ define function, begin
 528,setrectfuzziness,2,0,50      #set rect fuzz percentange
 529,textboxline,5,0,0,-1,1,0     #get a line of text from a textbox (string, box, line, expand, strip)
 530,getslicetext,2,0,0           #get the contents of a text slice (string, slice)
+531,getinputtext,1,0             #get user textual input since last tick (string)
+532,enableinputtext,1,1          #whether to enable getinputtext (enable?)
+533,inputtextenabled,0           #(undocumented) whether getinputtext is enabled
 end
 
 #--------------------------------------------------------------------------
@@ -651,6 +654,33 @@ script,stringisvisible,hsd:stringID,begin
   return(getstringbit(hsd:stringID,0))
 end
 
+# Internal functions, do not use
+# To get around the 32 string limitation...
+script, hsd:save string, hsd:id, begin
+  variable (hsd:sl)
+  hsd:sl := create text
+  set slice visible(hsd:sl, false)
+  set slice text(hsd:sl, hsd:id)
+  clear string(hsd:id)
+  return (hsd:sl)
+end
+
+script, hsd:restore string, hsd:id, hsd:saved, begin
+  get slice text(hsd:id, hsd:saved)
+  free slice(hsd:saved)
+end
+
+# Improvement (but which requires enableinputtext)
+# script, last ascii, begin
+#   variable (hsd:saved)
+#   hsd:saved := hsd:savestring(0)
+#   get input text(0)
+#   if (string length(0)) then (
+#     return (ascii from string(0, 1))
+#   )
+#   hsd:restore string(0, hsd:saved)
+# end
+
 script, last ascii, begin
 	variable(hsd:code, hsd:shift)
 
@@ -726,11 +756,12 @@ script, last ascii, begin
 	end
 
 	return (hsd:code)
-
 end
 
 script, input string, hsd:str, hsd:max len=40, hsd:useexist=0, hsd:center=1, hsd:positionx=-654321, hsd:positiony=-654321, begin
-  variable(hsd:done, hsd:key, hsd:show)
+  variable(hsd:done, hsd:key, hsd:show, hsd:tmp str, hsd:saved, hsd:enable input)
+  hsd:enable input := input text enabled
+  enable input text (true)
   if(hsd:useexist) else(clear string(hsd:str))
   trim string(hsd:str,1,hsd:maxlen)
   hsd:show:=getstringbit(hsd:str,0)==false
@@ -746,23 +777,27 @@ script, input string, hsd:str, hsd:max len=40, hsd:useexist=0, hsd:center=1, hsd
     hsd:positionx := string x(hsd:str)
     hsd:positiony := string y(hsd:str)
   )
+  hsd:tmp str := hsd:str,xor,1
+  hsd:saved := hsd:save string(hsd:tmp str)
   while(not(hsd:done)) do, begin
     if(hsd:center) then(center string at(hsd:str,hsd:positionx,hsd:positiony))
-    wait for key
-    if(key is pressed(28)) then(hsd:done:=true, return(true)) else(
+    wait
+    if(keyval(28)>>1 || keyval(103)>>1) then(hsd:done:=true, return(true)) else(
       if(keyval(14)>>1) then(delete char(hsd:str,string length(hsd:str)))
-      hsd:key:=last ascii
-      if(hsd:key&&string length(hsd:str)<<hsd:max len) then(append ascii(hsd:str,hsd:key)) else(
-        while(key is pressed(1)) do, begin
-          hsd:done:=true
-          return(false)
-          if(read general(44),and,2)
-            then(wait)
-            else(suspendplayer, wait, resumeplayer)
-        end
-      )
+      get input text(hsd:tmp str)
+      concatenate strings(hsd:str, hsd:tmp str)
+      trim string(hsd:str, 1, hsd:max len)
+      while(key is pressed(1)) do, begin
+        hsd:done:=true
+        return(false)
+        if(read general(44),and,2)
+          then(wait)
+          else(suspendplayer, wait, resumeplayer)
+      end
     )
   end
+  enable input text (hsd:enable input)
+  hsd:restore string(hsd:tmp str,hsd:saved)
   if(hsd:show) then(hide string(hsd:str))
 end
 

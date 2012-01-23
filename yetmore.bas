@@ -2955,6 +2955,18 @@ SELECT CASE as CONST id
     plotstr(retvals(0)).s = dat->s
    END IF
   END IF
+ CASE 531 '--get input text (string)
+  IF valid_plotstr(retvals(0)) THEN
+   IF gam.getinputtext_enabled = NO THEN
+    scripterr "'get input text' needs to be enabled with 'enable input text'", 5
+   ELSE
+    plotstr(retvals(0)).s = getinputtext()
+   END IF
+  END IF
+ CASE 532 '--enable input text (enable)
+  gam.getinputtext_enabled = retvals(0)
+ CASE 533 '--input text enabled
+  scriptret = gam.getinputtext_enabled
 
 END SELECT
 

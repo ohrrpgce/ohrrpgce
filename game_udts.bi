@@ -83,6 +83,7 @@ TYPE GameState
   fade_in_delay AS INTEGER
   showtext as string                 'Used for map names and other alerts
   showtext_ticks as integer          'Remaining number of ticks
+  getinputtext_enabled as integer
 END TYPE
 
 TYPE TextBoxState

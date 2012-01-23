@@ -1500,7 +1500,10 @@ get hero name (1,find hero(hero by rank(0)))
 		<command id="inputstring">
 			<canon>input string (ID, maxlength, use current, center, position x, position y)</canon>
 			<shortname>input string</shortname>
-			<description>Allows the player to type in a string. Returns false if they press ESC to cancel. <p>ID</p> is the string you want to use. All other arguments are optional: <p>maxlen</p> is the length of input, if left blank the limit will be set to 40 (max visible onscreen length). <p>use current</p> is whether you want to add to the existing string, or clear the string before typing. The default is to clear the string before typing, valid arguments are <ref>true</ref> or <ref>false</ref>. The string will be centered (see <ref>centerstringat</ref> unless <p>center</p> is <ref>false</ref>. If the string is not visible, then it will automatically be placed onscreen (centered if not specified) and hidden when done. <p>position x</p> and <p>position y</p> are optional (defaulting to the center of the screen), and are the position at which the string will be shown as it is being typed; otherwise the string will use its current positioning if already visible.</description>
+			<description>Allows the player to type in a string (until they press ENTER). Returns false if they press ESC to cancel. <p>ID</p> is the string you want to use. All other arguments are optional: <p>maxlen</p> is the length of input, if left blank the limit will be set to 40 (max visible onscreen length). <p>use current</p> is whether you want to add to the existing string, or clear the string before typing. The default is to clear the string before typing, valid arguments are <ref>true</ref> or <ref>false</ref>. The string will be centered (see <ref>centerstringat</ref> unless <p>center</p> is <ref>false</ref>. If the string is not visible, then it will automatically be placed onscreen (centered if not specified) and hidden when done. <p>position x</p> and <p>position y</p> are optional (defaulting to the center of the screen), and are the position at which the string will be shown as it is being typed; otherwise the string will use its current positioning if already visible.</description>
+			<seealso>
+				<ref>getinputtext</ref>
+			</seealso>
 		</command>
 		<command id="showstringat">
 			<canon>show string at (ID, x, y)</canon>
@@ -4315,15 +4318,31 @@ end
 		<command id="lastascii">
 			<canon>last ascii</canon>
 			<shortname>last ascii</shortname>
-			<description>Returns the ascii code of any currently pressed key. If more than one key corresponding to an ascii character is being pressed, then only one can be returned.</description>
+			<description>This command is obsolete. Use <ref>getinputtext</ref> instead, if possible.<lb/>Returns the character code of any currently pressed key, or 0 if none are. If more than one key corresponding to an ascii character is being pressed, then only one can be returned.</description>
+		</command>
+		<command id="enableinputtext">
+			<canon>enable input text (enable)</canon>
+			<shortname>enable input text</shortname>
+			<description>This command needs to be called before <ref>getinputtext</ref> can be used. If the optional argument is <ref>true</ref> or not given then <p>get input text</p> is enabled, otherwise it is disabled. Enabling <ref>getinputtext</ref> may cause some of the keys on international keyboards to go "dead" --- that is, commands such as <ref>keyispressed</ref> and <ref>waitforkey</ref> will stop showing that they are pressed. For that reason, <p>get input text</p> is disabled by default. You don't need to use this command before calling <ref>inputstring</ref>.</description>
+			<seealso>
+				<ref>getinputtext</ref>
+			</seealso>
+		</command>
+		<command id="getinputtext">
+			<canon>get input text (string id)</canon>
+			<shortname>get input text</shortname>
+			<description>Places in the specified string any text that the player has typed since the last tick. (The string will be empty if nothing has been.) Textual input must be enabled using <ref>enableinputtext</ref> before this command can be used! See that command for details. You will normally call this every tick in a loop and use <ref>concatenatestrings</ref> to get the players complete input. However it is much easier to call the <ref>inputstring</ref> function instead, which does this for you.</description>
+			<seealso>
+				<ref>inputstring</ref>
+			</seealso>
 		</command>
 		<command id="joystickbutton">
-			<canon>joystick button (button,joystick)</canon>
+			<canon>joystick button (button, joystick)</canon>
 			<shortname>joystick button</shortname>
 			<description>Returns <ref>true</ref> or <ref>false</ref> depending on whether button #<p>button</p> on joystick #<p>joystick</p> is pressed. <p>button</p> can be from 1-16 (assuming the joystick has that many buttons), and <p>joystick</p> can be from 0-7. Most of the time, you will want to use joystick #0, so that is what <p>joystick</p> defaults to.</description>
 		</command>
 		<command id="joystickaxis">
-			<canon>joystick axis (axis,multiplier,joystick)</canon>
+			<canon>joystick axis (axis, multiplier, joystick)</canon>
 			<shortname>joystick axis</shortname>
 			<description>Returns the position of the joystick along the X or Y axis on joystick #<p>joystick</p>. <p>axis</p> can be one of the constants <ref>xaxis</ref> or <ref>yaxis</ref>. <p>multiplier</p> is slightly complicated: The position of the joystick is actually a decimal between -1 and 1. Since plotscripting can't handle decimals, this position must be multiplied and rounded off until it is within plotscripting's capabilities. By default, it is 100 (so it will return -100 - 100). <p>joystick</p> can be from 0-7. Most of the time, you will want to use joystick #0, so that is what <p>joystick</p> defaults to.</description>
 		</command>

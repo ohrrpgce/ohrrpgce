@@ -565,7 +565,7 @@ DO
  'DEBUG debug "top of master loop"
  setwait speedcontrol
  IF running_as_slave THEN try_to_reload_files_onmap
- setkeys
+ setkeys gam.getinputtext_enabled
  mouse = readmouse  'didn't bother to check havemouse()
  tog = tog XOR 1
  'DEBUG debug "increment play timers"
