@@ -22,6 +22,7 @@
 #include "os.bi"
 #include "cutil.bi"
 #include "string.bi"
+#include "gfx.bi"
 
 #include "udts.bi"
 #include "scrconst.bi"
@@ -1464,8 +1465,9 @@ FUNCTION stredit (s as string, byref insert as integer, byval maxl as integer, b
  
 END FUNCTION
 
-SUB pop_warning(s as string)
- 
+SUB pop_warning(s as string, byval autoquit as integer = NO)
+ 'autoquit is specifically for cleanup_and_terminate and has no other use
+
  '--Construct the warning UI (This will be hella easier later when the Slice Editor can save/load)
  DIM root as Slice Ptr
  root = NewSliceOfType(slRoot)
@@ -1521,6 +1523,11 @@ SUB pop_warning(s as string)
  DO
   setwait 17
   setkeys
+
+  IF autoquit THEN
+   DIM winstate as WindowState ptr = gfx_getwindowstate()
+   IF winstate->focused = NO THEN EXIT DO
+  END IF
   
   IF deadkeys = 0 THEN 
    IF keyval(scESC) > 1 OR enter_or_space() THEN EXIT DO
