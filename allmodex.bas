@@ -1183,6 +1183,17 @@ SUB setkeys_update_keybd
 
 end sub
 
+sub update_keydown_times ()
+	for a as integer = 0 to &h7f
+		if (keybd(a) and 4) or (keybd(a) and 1) = 0 then
+			key_down_ms(a) = 0
+		end if
+		if keybd(a) and 1 then
+			key_down_ms(a) += setkeys_elapsed_ms
+		end if
+	next
+end sub
+
 SUB setkeys (byval enable_inputtext as integer = NO)
 'Updates the keybd array (which keyval() wraps) to reflect new keypresses
 'since the last call, also clears all keypress events (except key-is-down)
@@ -1203,34 +1214,28 @@ SUB setkeys (byval enable_inputtext as integer = NO)
 	end if
 
 	if play_input then
-		'Updates keybd() and setkeys_elapsed_ms
+		'Updates keybd(), setkeys_elapsed_ms, inputtext
 		replay_input_tick ()
+
+		update_keydown_times ()
 	else
 		setkeys_update_keybd ()
 
 		setkeys_elapsed_ms = bound(1000 * (TIMER - last_setkeys_time), 0, 255)
 		last_setkeys_time = TIMER
 
+		update_keydown_times ()
+
+		'AFAIK, this is will still work on all platforms except X11 with SDL
+		'even if inputtext was not enabled; however you'll get a warning when
+		'getinputtext is called. So we call this just so that making that error
+		'isn't too annoying (you'll still notice it)
+		update_inputtext()
+
 		if rec_input then
 			record_input_tick ()
 		end if
 	end if
-
-	'Update key-down time
-	for a as integer = 0 to &h7f
-		if (keybd(a) and 4) or (keybd(a) and 1) = 0 then
-			key_down_ms(a) = 0
-		end if
-		if keybd(a) and 1 then
-			key_down_ms(a) += setkeys_elapsed_ms
-		end if
-	next
-
-	'AFAIK, this is will still work on all platforms except X11 with SDL
-	'even if inputtext was not enabled; however you'll get a warning when
-	'getinputtext is called. So we call this just so that making that error
-	'isn't too annoying (you'll still notice it)
-	update_inputtext()
 
 	'reset arrow key fire state
 	diagonalhack = -1
@@ -1329,7 +1334,7 @@ SUB start_recording_input (filename as string)
 	open filename for binary access write as #rec_input_file
 	dim header as string = "OHRRPGCEkeys"
 	PUT #rec_input_file,, header
-	dim ohrkey_ver as integer = 3
+	dim ohrkey_ver as integer = 4
 	PUT #rec_input_file,, ohrkey_ver
 	dim seed as double = TIMER
 	RANDOMIZE seed, 3
@@ -1359,10 +1364,16 @@ SUB start_replaying_input (filename as string)
 	play_input = YES
 	dim header as string = STRING(12, 0)
 	GET #play_input_file,, header
-	if header <> "OHRRPGCEkeys" then stop_replaying_input "No OHRRPGCEkeys header in """ & filename & """"
+	if header <> "OHRRPGCEkeys" then
+		stop_replaying_input "No OHRRPGCEkeys header in """ & filename & """"
+		exit sub
+	end if
 	dim ohrkey_ver as integer = -1
 	GET #play_input_file,, ohrkey_ver
-	if ohrkey_ver <> 3 then stop_replaying_input "Unknown ohrkey version code " & ohrkey_ver & " in """ & filename & """. Only know how to understand version 3"
+	if ohrkey_ver <> 4 then
+		stop_replaying_input "Unknown ohrkey version code " & ohrkey_ver & " in """ & filename & """. Only know how to understand version 4"
+		exit sub
+	end if
 	dim seed as double
 	GET #play_input_file,, seed
 	RANDOMIZE seed, 3
@@ -1393,9 +1404,9 @@ SUB record_input_tick ()
 		if keybd(i) <> last_keybd(i) then
 			presses += 1
 		end if
-		if keybd(i) then keys_down += 1
+		if keybd(i) then keys_down += 1  'must record setkeys_elapsed_ms
 	next i
-	if presses = 0 and keys_down = 0 then exit sub
+	if presses = 0 and keys_down = 0 and len(inputtext) = 0 then exit sub
 	PUT #rec_input_file,, tick
 	PUT #rec_input_file,, cubyte(setkeys_elapsed_ms)
 	PUT #rec_input_file,, presses
@@ -1406,55 +1417,70 @@ SUB record_input_tick ()
 			last_keybd(i) = keybd(i)
 		end if
 	next i
+	PUT #rec_input_file,, cubyte(len(inputtext))
+	PUT #rec_input_file,, inputtext
 END SUB
 
 SUB replay_input_tick ()
 	static tick as integer = -1
 	tick += 1
 	do
-	if EOF(play_input_file) then
-		stop_replaying_input "The end of the input playback file was reached."
-		exit sub
-	end if
-	if replaytick = -1 then
-		GET #play_input_file,, replaytick
-	end if
-	if replaytick < tick and replaytick <> -1 then
-		debug "input replay late for tick " & replaytick & " (" & replaytick - tick & ")"
-	elseif replaytick > tick then
-		'debug "saving replay input tick " & replaytick & " until its time has come (+" & replaytick - tick & ")"
-		for i as integer = 0 to 127
-			if keybd(i) then
-				' There ought to be a tick in the input file so that we can set setkeys_elapsed_ms correctly
-				debug "bad recorded key input: key " & i & " is down, but expected tick " & tick & " is missing" 
-				exit for
-			end if
-		next
-		' Otherwise, this doesn't matter as it won't be used
-		setkeys_elapsed_ms = 1
-		exit sub
-	end if
-	dim tick_ms as ubyte
-	GET #play_input_file,, tick_ms
-	setkeys_elapsed_ms = tick_ms
-	dim presses as ubyte
-	GET #play_input_file,, presses
-	if presses < 0 orelse presses > ubound(keybd) + 1 then
-		stop_replaying_input "input replay tick " & replaytick & " has invalid number of keypresses " & presses
-		exit sub
-	end if
-	dim key as ubyte
-	dim kb as ubyte
-	for i as integer = 1 to presses
-		GET #play_input_file,, key
-		GET #play_input_file,, kb
-		keybd(key) = kb
-	next i
-	if replaytick = tick then
+		if EOF(play_input_file) then
+			stop_replaying_input "The end of the input playback file was reached."
+			exit sub
+		end if
+		if replaytick = -1 then
+			GET #play_input_file,, replaytick
+		end if
+		if replaytick < tick and replaytick <> -1 then
+			debug "input replay late for tick " & replaytick & " (" & replaytick - tick & ")"
+		elseif replaytick > tick then
+			'debug "saving replay input tick " & replaytick & " until its time has come (+" & replaytick - tick & ")"
+			for i as integer = 0 to 127
+				if keybd(i) then
+					' There ought to be a tick in the input file so that we can set setkeys_elapsed_ms correctly
+					debug "bad recorded key input: key " & i & " is down, but expected tick " & tick & " is missing" 
+					exit for
+				end if
+			next
+			' Otherwise, this doesn't matter as it won't be used
+			setkeys_elapsed_ms = 1
+			inputtext = ""
+			exit sub
+		end if
+
+		dim tick_ms as ubyte
+		GET #play_input_file,, tick_ms
+		setkeys_elapsed_ms = tick_ms
+		dim presses as ubyte
+		GET #play_input_file,, presses
+		if presses < 0 orelse presses > ubound(keybd) + 1 then
+			stop_replaying_input "input replay tick " & replaytick & " has invalid number of keypresses " & presses
+			exit sub
+		end if
+		dim key as ubyte
+		dim kb as ubyte
+		for i as integer = 1 to presses
+			GET #play_input_file,, key
+			GET #play_input_file,, kb
+			keybd(key) = kb
+		next i
+		dim input_len as ubyte
+		GET #play_input_file,, input_len
+		if input_len then
+			inputtext = space(input_len)
+			GET #play_input_file,, inputtext
+		else
+			inputtext = ""
+		end if
+
+		'In case the replay somehow became out of sync, keep looping
+		'(Probably hopeless though)
+		if replaytick = tick then
+			replaytick = -1
+			exit sub
+		end if
 		replaytick = -1
-		exit sub
-	end if
-	replaytick = -1
 	loop
 END SUB
 

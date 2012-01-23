@@ -39,8 +39,8 @@ SUB start_replaying_input (filename as string)
  if header <> "OHRRPGCEkeys" then stop_replaying_input "No OHRRPGCEkeys header in """ & filename & """"
  print header
  GET #play_input_file,, ohrkey_ver
- if ohrkey_ver <> 3 then
-  stop_replaying_input "Unknown ohrkey version code " & ohrkey_ver & " in """ & filename & """. Only know how to understand version 3"
+ if ohrkey_ver <> 4 then
+  stop_replaying_input "Unknown ohrkey version code " & ohrkey_ver & " in """ & filename & """. Only know how to understand version 4"
   EXIT SUB
  end if
  print "ohrkey version: " & ohrkey_ver
@@ -71,6 +71,7 @@ SUB replay_input ()
   dim as ubyte elapsed_ms
   GET #play_input_file,, elapsed_ms
   info &= " ms:" & elapsed_ms
+
   dim presses as ubyte
   GET #play_input_file,, presses
   if presses < 0 orelse presses > 128 then
@@ -86,6 +87,16 @@ SUB replay_input ()
    info = info & " " & keyname(key) & "=" & kb
   next i
   info = info & " )"
+
+  dim input_len as ubyte
+  GET #play_input_file,, input_len
+  dim inputtext as string
+  if input_len then
+    inputtext = space(input_len)
+    GET #play_input_file,, inputtext
+    info = info & " input: '" & inputtext & "'"
+  end if
+
   print info
  loop
 END SUB
