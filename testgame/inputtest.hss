@@ -18,32 +18,57 @@ plotscript, main, begin
 
   while (1) do, begin
     tick += 1
+    if (keyval(key:ctrl)>>0 && keyval(key:t)>>1) then (
+      enable input text (not (input text enabled))
+      $4=""
+    )
     if (keyval(key:ctrl)>>0 && keyval(key:e)>>1) then (
       set extended scancodes enabled (extended scancodes enabled, xor, 1)
     )
     if (keyval(key:ctrl)>>0 && keyval(key:h)>>1) then (
       show hash := true
     )
-    show scancode bit status
+    update strings
     update keyboard
     wait
   end
 end
 
-script, show scancode bit status, begin
+script, update strings, begin
   $0="Scancode backcompat: "
   if (extended scancodes enabled) then (
     $0+"OFF"
   ) else (
     $0+"ON"
   )
-  show string at (0, 20, 20)
+  show string at (0, 4, 8)
   $1="(Ctrl+E toggle)"
-  show string at (1, 28, 30)
+  show string at (1, 12, 18)
   if (show hash) then (
     $2="Hash:"
-    append number (2, input hash)
-    show string at (2, 210, 2)
+    append number (2, abs(input hash))
+    show string at (2, 200, 40)
+  )
+
+  show string at (3, 0, 48)
+  $3="Ctrl+T: enable text input"
+  if (input text enabled) then (
+    get input text (5)
+
+    variable (i)
+    for (i, 1, string length (5)) do (
+      input hash += (input hash * 333667), xor, ascii from string (5, i)
+    )
+
+    4 $+ 5
+    if (string length (4) >> 33) then (
+      trim string (4, string length (4) -- 33 + 1, 33)
+    )
+    if (keyval (key:backspace) >> 1) then (
+      trim string (4, string length (4), 1)
+    )
+    $3="Input :"
+    3 $+ 4
   )
 end
 
@@ -72,7 +97,6 @@ script, update keyboard, begin
 
 	if (keyval(i)) then (
       input hash += (input hash * 333667), xor, (tick * 367 + i * 336667 + keyval(i) * 3336677)  # primes
-      input hash := abs(input hash)
     )
   end
 end
