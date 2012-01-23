@@ -672,6 +672,10 @@ SUB onkeyscript (byval scriptnum as integer)
   FOR i as integer = 1 TO 127
    'We scan all keys, triggering a script even if its scancode is not one
    'accessible via script commands so that custom "press any key" scripts work.
+
+   'Check only scAlt, not scLeft/RightAlt, because that defeats the WM key combination
+   'filtering in allmodex.bas (which is only for scAlt)
+   IF i = scLeftAlt OR i = scRightAlt THEN CONTINUE FOR
    IF keyval(i) THEN doit = YES: EXIT FOR
   NEXT i
  END IF

@@ -1048,6 +1048,8 @@ FUNCTION waitforanykey (byval modkeys as integer=-1) as integer
 		io_pollkeyevents()
 		setkeys
 		for i = 1 to &h7f
+			'check scAlt only, so Alt-filtering (see setkeys) works
+			if i = scLeftAlt or i = scRightAlt then continue for
 			if not modkeys and (i=scCtrl or i=scAlt or i=scShift) then continue for  'what's the reason for this again? If I knew, I'd delete this function
 			if keyval(i) > 1 then return i
 		next i
@@ -1068,6 +1070,8 @@ FUNCTION getkey () as integer
 		io_pollkeyevents()
 		setkeys
 		for i=1 to &h7f
+			'check scAlt only, so Alt-filtering (see setkeys) works
+			if i = scLeftAlt or i = scRightAlt then continue for
 			if keyval(i) > 1 then
 				key = i
 				exit do

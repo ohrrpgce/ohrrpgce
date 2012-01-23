@@ -1531,13 +1531,18 @@ WITH scrat(nowscript)
        .state = streturn
       END IF
      ELSE
+      '.waitarg == anykey
+      ' Check carray because it includes joystick buttons
       FOR i = 0 TO 5
        IF carray(i) > 1 THEN
-        scriptret = csetup(i)
+        scriptret = csetup(i)  'FIXME: Incorrect! Might have been a joystick button!
         .state = streturn
        END IF
       NEXT i
       FOR i = 1 TO 127
+       'Check only scAlt, not scLeft/RightAlt, because that defeats the WM key combination
+       'filtering in allmodex.bas (which is only for scAlt)
+       IF i = scLeftAlt OR i = scRightAlt THEN CONTINUE FOR
        IF keyval(i) > 1 THEN
         scriptret = i
         .state = streturn
