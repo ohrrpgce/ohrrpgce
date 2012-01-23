@@ -1,12 +1,5 @@
 The script management menu allows you to access some tasks and tools related to your Plotscripts. (Check the documentation wiki at http://HamsterRepublic.com/ohrrpgce/ if you want to learn more about plotscripting)
 
-* "Export names for scripts (.hsi)"
-  creates or updates a list of names
-  (constants) that you can use while
-  writing your scripts. This is
-  typically necessary for writing
-  your plotscripts.
-
 * "Compile and/or Import plotscripts
    (.hss/.hs)"
   Imports scripts. Provided HSpeak
@@ -18,6 +11,13 @@ The script management menu allows you to access some tasks and tools related to 
   the same file (or 'include' them
   all in the same file) and import
   them all at once.
+
+* "Export names for scripts (.hsi)"
+  creates or updates a list of names
+  (constants) that you can use while
+  writing your scripts. This is
+  typically necessary for writing
+  your plotscripts.
 
 * "Check where scripts are used"
   produces a list of all the places

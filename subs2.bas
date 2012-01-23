@@ -418,12 +418,12 @@ DIM menu(5) as string
 
 menumax = 4
 menu(0) = "Previous Menu"
-menu(1) = "Export names for scripts (.hsi)"
-menu(2) = "Compile and/or Import scripts (.hss/.hs)"
+menu(1) = "Compile and/or Import scripts (.hss/.hs)"
+menu(2) = "Export names for scripts (.hsi)"
 menu(3) = "Check where scripts are used..."
 menu(4) = "Find broken script triggers..."
 
-pt = 0
+pt = 1
 setkeys
 DO
  setwait 55
@@ -437,8 +437,6 @@ DO
    CASE 0
     EXIT DO
    CASE 1
-    exportnames
-   CASE 2
     f$ = browse(9, defaultdir, "", "",, "browse_hs")
     IF f$ <> "" THEN
      IF justextension(f$) <> "hs" THEN
@@ -453,6 +451,8 @@ DO
       importscripts f$
      END IF
     END IF
+   CASE 2
+    exportnames
    CASE 3
     script_usage_list()
    CASE 4
@@ -497,6 +497,7 @@ FUNCTION compilescripts(fname as string) as string
 END FUNCTION
 
 SUB text_box_editor () 'textage
+ STATIC browse_default as string
  DIM menu(10) AS STRING
  DIM h(2) AS STRING
  DIM tagmn AS STRING
@@ -638,7 +639,7 @@ SUB text_box_editor () 'textage
    IF state.pt = 10 THEN '-- Import text boxes from a .TXT file
     SaveTextBox box, st.id
     IF yesno("Are you sure? Boxes will be overwritten", NO) THEN
-     box_text_file = browse(0, "", "*.txt", tmpdir, 0, "browse_import_textbox")
+     box_text_file = browse(0, browse_default, "*.txt", tmpdir, 0, "browse_import_textbox")
      clearpage vpage
      backup_say = tmpdir & "backup-textbox-lump.say"
      '--make a backup copy of the .say lump

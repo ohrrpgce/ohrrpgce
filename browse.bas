@@ -59,7 +59,7 @@ DECLARE FUNCTION check_for_plotscr_inclusion(filename as string) as integer
 
 FUNCTION browse (byval special as integer, default as string, fmask as string, tmp as string, byref needf as integer, helpkey as string) as string
 STATIC remember as string
-browse = ""
+DIM ret as string
 
 DIM br as BrowseMenuState
 br.tmp = tmp
@@ -113,11 +113,18 @@ IF needf = 1 THEN
  setpal temppal()
 END IF
 
+'remember/default may be either empty or a file (if one was selected last call), or directory (if not)
+DIM startfile as string
 IF remember = "" THEN remember = curdir & SLASH
 IF default = "" THEN
- br.nowdir = remember
+ default = remember
+END IF
+startfile = default
+br.nowdir = trimfilename(startfile) & SLASH
+IF RIGHT(startfile, 1) = SLASH THEN
+ startfile = ""
 ELSE
- br.nowdir = default
+ startfile = trimpath(startfile)
 END IF
 
 IF br.special = 7 THEN br.viewsize = 16 ELSE br.viewsize = 17
@@ -131,8 +138,14 @@ br.getdrivenames = 0  'whether to fetch names of all drives, on if hit F5
 br.ranalready = 0
 build_listing tree(), br
 
+IF LEN(startfile) THEN
+ FOR i as integer = 0 TO br.treesize
+  IF tree(i).filename = startfile THEN br.treeptr = i
+ NEXT
+END IF
+
 br.changed = 0
-IF br.alert = "" THEN br.changed = 1
+IF br.alert = "" THEN br.changed = 1  'Don't clobber alert
 
 setkeys
 DO
@@ -172,7 +185,7 @@ DO
     br.nowdir = br.nowdir + tree(br.treeptr).filename + SLASH
     build_listing tree(), br
    CASE 3
-    browse = br.nowdir + tree(br.treeptr).filename
+    ret = br.nowdir + tree(br.treeptr).filename
     EXIT DO
   END SELECT
  END IF
@@ -235,12 +248,16 @@ DO
  IF needf THEN needf = needf - 1
  dowait
 LOOP
-IF default = "" THEN
- remember = br.nowdir
+
+IF LEN(ret) THEN
+ default = ret
 ELSE
  default = br.nowdir
 END IF
-pausesong:if br.snd >= 0 then sound_stop(br.snd, -1): UnloadSound(br.snd)
+remember = default
+pausesong
+IF br.snd >= 0 THEN sound_stop(br.snd, -1) : UnloadSound(br.snd)
+RETURN ret
 
 END FUNCTION
 
