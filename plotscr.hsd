@@ -629,25 +629,25 @@ script,globalstostring,hsd:stringID,hsd:start,hsd:length,begin
   )
 end
 
-script,showstringat,hsd:stringID=0,hsd:x=0,hsd:y=0,begin
+script,showstringat,hsd:stringID,hsd:x=0,hsd:y=0,begin
   setstringbit(hsd:stringID,0,1)
   positionstring(hsd:stringID,hsd:x,hsd:y)
 end
 
-script,centerstringat,hsd:stringID=0,hsd:x=160,hsd:y=100,begin
+script,centerstringat,hsd:stringID,hsd:x=160,hsd:y=100,begin
   setstringbit(hsd:stringID,0,1)
   positionstring(hsd:stringID,hsd:x--(stringlength(hsd:stringID)*4),hsd:y)
 end
 
-script,hidestring,hsd:stringID=0,begin
+script,hidestring,hsd:stringID,begin
   setstringbit(hsd:stringID,0,0)
 end
 
-script,stringstyle,hsd:stringID=0,style=0,begin
-  setstringbit(hsd:stringID,1,style)
+script,stringstyle,hsd:stringID,hsd:style=0,begin
+  setstringbit(hsd:stringID,1,hsd:style)
 end
 
-script,stringisvisible,hsd:stringID=0,begin
+script,stringisvisible,hsd:stringID,begin
   return(getstringbit(hsd:stringID,0))
 end
 
@@ -756,7 +756,7 @@ script, input string, hsd:str=0, hsd:max len=40, hsd:useexist=0, hsd:center=-654
       )
     )
   end
-  if(hsd:show) then(hide string)
+  if(hsd:show) then(hide string(hsd:str))
 end
 
 script,currentdisplaytile,hsd:tile,hsd:layernumber=0,begin
@@ -768,7 +768,7 @@ end
 #--------------------------------------------------------------------------
 #read/write enemy wrappers
 
-script,getenemyname,hsd:enemyID,hsd:stringID=0,begin
+script,getenemyname,hsd:enemyID,hsd:stringID,begin
 variable(hsd:t)
   for (hsd:t,1,readenemydata(hsd:enemyID,0))do(
     appendascii(hsd:stringID,readenemydata(hsd:enemyID,hsd:t))
@@ -783,7 +783,7 @@ script,setenemystat,hsd:enemyID,hsd:stat,hsd:value,begin
   writeenemydata(hsd:enemyID,hsd:stat+62,hsd:value)
 end
 
-script,setenemyname,hsd:enemyID,hsd:stringID=0,begin
+script,setenemyname,hsd:enemyID,hsd:stringID,begin
 variable(hsd:t,hsd:t2)
 if(stringlength(hsd:stringID)>=16)then(hsd:t2:=16)else(hsd:t2:=stringlength(hsd:stringID))
  writeenemydata(hsd:enemyID,0,hsd:t2)
@@ -1018,129 +1018,129 @@ script, seconds of play, begin
 	return(read general(54))
 end
 
-script,set days of play,hsd:d=0, begin
+script,set days of play,hsd:d, begin
 	if(hsd:d >= 0) then (write general(51,hsd:d))
 end
 
-script,set hours of play,hsd:h=0, begin
+script,set hours of play,hsd:h, begin
 	if(hsd:h >= 0, and, hsd:h << 24) then (write general(52,hsd:h))
 end
 
-script,set minutes  of play,hsd:m=0, begin
+script,set minutes  of play,hsd:m, begin
 	if(hsd:m >= 0, and, hsd:m << 60) then (write general(53,hsd:m))
 end
 
-script,set seconds of play,hsd:s=0, begin
+script,set seconds of play,hsd:s, begin
 	if(hsd:s >= 0, and, hsd:s << 60) then (write general(54,hsd:s))
 end
 
 #--------------------------------------------------------------------------
 # menu wrappers
 
-script, first menu item, hsd:menuhandle=0, begin
+script, first menu item, hsd:menuhandle, begin
   exit returning(menu item by slot(hsd:menuhandle, 0))
 end
 
-script, wait for menu, hsd:menuhandle=0, begin
+script, wait for menu, hsd:menuhandle, begin
   while(menu is open(hsd:menuhandle)) do(wait(1))
 end
 
 #--------------------------------------------------------------------------
 # menu data wrappers
 
-script, get menu boxstyle, hsd:menuhandle=0, begin
+script, get menu boxstyle, hsd:menuhandle, begin
   exit returning(read menu int(hsd:menuhandle, 12))
 end
 
-script, set menu boxstyle, hsd:menuhandle=0, hsd:n=0, begin
+script, set menu boxstyle, hsd:menuhandle, hsd:n=0, begin
   write menu int(hsd:menuhandle, 12, hsd:n)
 end
 
-script, get menu textcolor, hsd:menuhandle=0, begin
+script, get menu textcolor, hsd:menuhandle, begin
   exit returning(read menu int(hsd:menuhandle, 13))
 end
 
-script, set menu textcolor, hsd:menuhandle=0, hsd:n=0, begin
+script, set menu textcolor, hsd:menuhandle, hsd:n=0, begin
   write menu int(hsd:menuhandle, 13, hsd:n)
 end
 
-script, get menu max rows, hsd:menuhandle=0, begin
+script, get menu max rows, hsd:menuhandle, begin
   exit returning(read menu int(hsd:menuhandle, 14))
 end
 
-script, set menu max rows, hsd:menuhandle=0, hsd:n=0, begin
+script, set menu max rows, hsd:menuhandle, hsd:n=0, begin
   write menu int(hsd:menuhandle, 14, hsd:n)
 end
 
-script, get menu offset x, hsd:menuhandle=0, begin
+script, get menu offset x, hsd:menuhandle, begin
   exit returning(read menu int(hsd:menuhandle, 16))
 end
 
-script, set menu offset x, hsd:menuhandle=0, hsd:n=0, begin
+script, set menu offset x, hsd:menuhandle, hsd:n=0, begin
   write menu int(hsd:menuhandle, 16, hsd:n)
 end
 
-script, get menu offset y, hsd:menuhandle=0, begin
+script, get menu offset y, hsd:menuhandle, begin
   exit returning(read menu int(hsd:menuhandle, 17))
 end
 
-script, set menu offset y, hsd:menuhandle=0, hsd:n=0, begin
+script, set menu offset y, hsd:menuhandle, hsd:n=0, begin
   write menu int(hsd:menuhandle, 17, hsd:n)
 end
 
-script, get menu anchor x, hsd:menuhandle=0, begin
+script, get menu anchor x, hsd:menuhandle, begin
   exit returning(read menu int(hsd:menuhandle, 18))
 end
 
-script, set menu anchor x, hsd:menuhandle=0, hsd:n=0, begin
+script, set menu anchor x, hsd:menuhandle, hsd:n=0, begin
   write menu int(hsd:menuhandle, 18, hsd:n)
 end
 
-script, get menu anchor y, hsd:menuhandle=0, begin
+script, get menu anchor y, hsd:menuhandle, begin
   exit returning(read menu int(hsd:menuhandle, 19))
 end
 
-script, set menu anchor y, hsd:menuhandle=0, hsd:n=0, begin
+script, set menu anchor y, hsd:menuhandle, hsd:n=0, begin
   write menu int(hsd:menuhandle, 19, hsd:n)
 end
 
-script, get menu text align, hsd:menuhandle=0, begin
+script, get menu text align, hsd:menuhandle, begin
   exit returning(read menu int(hsd:menuhandle, 20))
 end
 
-script, set menu text align, hsd:menuhandle=0, hsd:n=0, begin
+script, set menu text align, hsd:menuhandle, hsd:n=0, begin
   write menu int(hsd:menuhandle, 20, hsd:n)
 end
 
-script, get menu min chars, hsd:menuhandle=0, begin
+script, get menu min chars, hsd:menuhandle, begin
   exit returning(read menu int(hsd:menuhandle, 21))
 end
 
-script, set menu min chars, hsd:menuhandle=0, hsd:n=0, begin
+script, set menu min chars, hsd:menuhandle, hsd:n=0, begin
   write menu int(hsd:menuhandle, 21, hsd:n)
 end
 
-script, get menu max chars, hsd:menuhandle=0, begin
+script, get menu max chars, hsd:menuhandle, begin
   exit returning(read menu int(hsd:menuhandle, 22))
 end
 
-script, set menu max chars, hsd:menuhandle=0, hsd:n=0, begin
+script, set menu max chars, hsd:menuhandle, hsd:n=0, begin
   write menu int(hsd:menuhandle, 22, hsd:n)
 end
 
-script, get menu border, hsd:menuhandle=0, begin
+script, get menu border, hsd:menuhandle, begin
   exit returning(read menu int(hsd:menuhandle, 23))
 end
 
-script, set menu border, hsd:menuhandle=0, hsd:n=0, begin
+script, set menu border, hsd:menuhandle, hsd:n=0, begin
   write menu int(hsd:menuhandle, 23, hsd:n)
 end
 
-script, get menu on close script, hsd:menuhandle=0, begin
+script, get menu on close script, hsd:menuhandle, begin
   exit returning(read menu int(hsd:menuhandle, 24))
 end
 
-script, set menu on close script, hsd:menuhandle=0, hsd:n=0, begin
+script, set menu on close script, hsd:menuhandle, hsd:n=0, begin
   write menu int(hsd:menuhandle, 24, hsd:n)
 end
 
@@ -1162,7 +1162,7 @@ end
 #--------------------------------------------------------------------------
 # menu item data wrappers
 
-script, set menu item, hsd:handle=0, hsd:type=0, hsd:subtype=0, hsd:tag1=0, hsd:tag2=0, hsd:stag=0, hsd:togtag=0, begin
+script, set menu item, hsd:handle, hsd:type=0, hsd:subtype=0, hsd:tag1=0, hsd:tag2=0, hsd:stag=0, hsd:togtag=0, begin
   write menu item int(hsd:handle, 22, hsd:type)
   write menu item int(hsd:handle, 23, hsd:subtype)
   write menu item int(hsd:handle, 24, hsd:tag1)
@@ -1171,45 +1171,45 @@ script, set menu item, hsd:handle=0, hsd:type=0, hsd:subtype=0, hsd:tag1=0, hsd:
   write menu item int(hsd:handle, 27, hsd:togtag)
 end
 
-script, set menu item type, hsd:handle=0, hsd:n=0, begin
+script, set menu item type, hsd:handle, hsd:n=0, begin
   write menu item int(hsd:handle, 22, hsd:n)
 end
 
-script, get menu item type, hsd:handle=0, begin
+script, get menu item type, hsd:handle, begin
   exit returning(read menu item int(hsd:handle, 22))
 end
 
-script, set menu item subtype, hsd:handle=0, hsd:n=0, begin
+script, set menu item subtype, hsd:handle, hsd:n=0, begin
   write menu item int(hsd:handle, 23, hsd:n)
 end
 
-script, get menu item subtype, hsd:handle=0, begin
+script, get menu item subtype, hsd:handle, begin
   exit returning(read menu item int(hsd:handle, 23))
 end
 
-script, set menu item tag, hsd:handle=0, hsd:n=0, hsd:whichtag=1, begin
+script, set menu item tag, hsd:handle, hsd:n=0, hsd:whichtag=1, begin
   if(hsd:whichtag == 1) then(write menu item int(hsd:handle, 24, hsd:n))
   if(hsd:whichtag == 2) then(write menu item int(hsd:handle, 25, hsd:n))
 end
 
-script, get menu item tag, hsd:handle=0, hsd:whichtag=1, begin
+script, get menu item tag, hsd:handle, hsd:whichtag=1, begin
   if(hsd:whichtag == 1) then(exit returning(read menu item int(hsd:handle, 24)))
   if(hsd:whichtag == 2) then(exit returning(read menu item int(hsd:handle, 25)))
 end
 
-script, set menu item settag, hsd:handle=0, hsd:n=0, begin
+script, set menu item settag, hsd:handle, hsd:n=0, begin
   write menu item int(hsd:handle, 26, hsd:n)
 end
 
-script, get menu item settag, hsd:handle=0, begin
+script, get menu item settag, hsd:handle, begin
   exit returning(read menu item int(hsd:handle, 26))
 end
 
-script, set menu item togtag, hsd:handle=0, hsd:n=0, begin
+script, set menu item togtag, hsd:handle, hsd:n=0, begin
   write menu item int(hsd:handle, 27, hsd:n)
 end
 
-script, get menu item togtag, hsd:handle=0, begin
+script, get menu item togtag, hsd:handle, begin
   exit returning(read menu item int(hsd:handle, 27))
 end
 
@@ -1228,13 +1228,13 @@ script, set menu item bit, hsd:handle, hsd:bit, hsd:value=1, begin
   write menu item int(hsd:handle, 28, hsd:n)
 end
 
-script, set menu item extra, hsd:handle=0, hsd:extra=0, hsd:n=0, begin
+script, set menu item extra, hsd:handle, hsd:extra=0, hsd:n=0, begin
   if(hsd:extra >= 0 && hsd:extra <= 2) then, begin
     write menu item int(hsd:handle, 29+hsd:extra, hsd:n)
   end
 end
 
-script, get menu item extra, hsd:handle=0, hsd:extra=0, begin
+script, get menu item extra, hsd:handle, hsd:extra=0, begin
   if(hsd:extra >= 0 && hsd:extra <= 2) then, begin
     exit returning(read menu item int(hsd:handle, 29+hsd:extra))
   end
