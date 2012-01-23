@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Oa 2012-01-20 Fix lexer allowing newlines in strings
 --3O  2012-01-19 Unicode support
 --3Nd 2011-10-16 Fix commands.bin generation bug
 --3Nc 2011-08-28 Additional expression optimisations
@@ -124,7 +125,7 @@ constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="O "
+constant COMPILER_SUB_VERSION="Oa"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags. May add more colors, up to #F8FF
@@ -1013,14 +1014,14 @@ end procedure
 ---------------------------------------------------------------------------
 
 --reads and processes the escape codes in a string and returns it enclosed in quote marks
-function lexer_read_string(sequence s,integer i,srcpos pos)
+function lexer_read_string(sequence s,integer i,integer stop,srcpos pos)
   sequence string
   integer escaping
   escaping=false
   string="\""
   while true do
-    if i>length(s) then  --did not find a closing " so not a valid string
-      src_error("Expected \" at end of line to end string (multi-line strings are not supported)",pos+length(s))
+    if i>stop then  --did not find a closing " so not a valid string
+      src_error("Expected \" at end of line to end string (multi-line strings are not supported)",pos+stop)
     end if
     if escaping then
       if s[i]='"' or s[i]='\\' then
@@ -1049,7 +1050,7 @@ end function
 
 ---------------------------------------------------------------------------
 
-function lexer_read_number(sequence s,integer i,srcpos pos)
+function lexer_read_number(sequence s,integer i,integer stop,srcpos pos)
   integer state 
   atom val
   integer sign
@@ -1066,7 +1067,7 @@ function lexer_read_number(sequence s,integer i,srcpos pos)
     sign=1
   end if
   val=0
-  while i<=length(s) do
+  while i<=stop do
     if s[i]<256 then
       state=lexer_table[s[i]+1]
     else
@@ -1076,7 +1077,13 @@ function lexer_read_number(sequence s,integer i,srcpos pos)
     if state=LEX_DIGIT then
       text&=s[i]
       val=val*10+s[i]-'0'
-    elsif state=LEX_CHAR or state=LEX_WARN or state=LEX_STRING then
+    elsif state=LEX_SPACE then  --yes, allowed in numbers too
+    elsif state=LEX_COMMA or state=LEX_BEGIN or state=LEX_END or state=LEX_KEYWORD or state=LEX_COMMENT or state=LEX_BINARY then
+      --backtrack one character
+      --known bug: if this looks like part of a separator (KEYWORD) but isn't, then have granted a free comma where probably should throw an error instead
+      i-=1
+      exit
+    else  --currently, state=LEX_CHAR or state=LEX_WARN or state=LEX_STRING
       if s[i]='.' then
         src_error("Floating point values are not yet implemented",pos+i)
       end if
@@ -1085,12 +1092,6 @@ function lexer_read_number(sequence s,integer i,srcpos pos)
                 ,{text})
         ,pos+i
       )
-    elsif state=LEX_SPACE then  --yes, allowed in numbers too
-    else  -- state=LEX_COMMA or state=LEX_BEGIN or state=LEX_END or state=LEX_KEYWORD or state=LEX_COMMENT or state=LEX_BINARY
-      --backtrack one character
-      --known bug: if this looks like part of a separator (KEYWORD) but isn't, then have granted a free comma where probably should throw an error instead
-      i-=1
-      exit
     end if
     i+=1
   end while
@@ -1102,6 +1103,8 @@ end function
 
 ---------------------------------------------------------------------------
 
+-- s is the text for the whole file, the interval i to stop is a single line,
+-- and pos is the srcpos for the beginning of the file
 function lex_line(sequence s,integer i,integer stop,srcpos pos)
   integer state
   sequence tokens
@@ -1141,7 +1144,7 @@ function lex_line(sequence s,integer i,integer stop,srcpos pos)
           ident=""
           textstart=0
         end if
-        temp=lexer_read_number(s,i,pos)
+        temp=lexer_read_number(s,i,stop,pos)
         tokens=append(tokens,{temp[2],pos+i})
         i=temp[1]
         --nonnumeral remains false
@@ -1170,7 +1173,7 @@ function lex_line(sequence s,integer i,integer stop,srcpos pos)
       elsif state=LEX_COMMENT then
         exit
       elsif state=LEX_STRING then
-        temp=lexer_read_string(s,i+1,pos)
+        temp=lexer_read_string(s,i+1,stop,pos)
         tokens=append(tokens,{temp[2],pos+i})
         i=temp[1]
       elsif state=LEX_KEYWORD then
