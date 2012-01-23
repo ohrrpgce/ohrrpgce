@@ -215,7 +215,7 @@ define function, begin
 206,getitemname,2,0,0         # (string, item) - puts the name of item(item) in string(string)
 207,getmapname,2,0,0          # (string, map) - puts the name of map(map) in string(string)
 208,getattackname,2,0,0       # deprecated. Use "read attack name" instead
-209,getglobalstring,2,0,0     # (string, global) - puts the global string (global) in string(string)
+#209,getglobalstring,2,0,0     # (string, global) - puts the global string (global) in string(string)
 210,showstring,1,0            #shows string on the bottom(stringID)
 211,clearstring,1,0           #deletes the data from string(stringID)
 212,appendascii,2,0,0         #adds ascii to string(stringID,ascii)
