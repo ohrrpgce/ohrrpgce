@@ -1,0 +1,348 @@
+########################################################################
+# These scripts are for testing script commands and (certain) engine
+# features that require user input.
+#
+# Any time you are preparing to fix an engine bug, consider adding a
+# test that demonstrates the bug FIRST before you fix the bug.
+
+include, plotscr.hsd
+include, scancode.hsi
+
+########################################################################
+
+define constant(1, default wait)
+
+#string 0 = error messages
+#string 1-9 = temp
+#string 10 = error message arg
+#string 11 = asserts
+#string 12 = onscreen instructions, line 1
+#string 13 = onscreen instructions, line 2
+define constant(11, assert expression string)
+define constant(12, message 1)
+define constant(13, message 2)
+
+########################################################################
+
+plotscript, run all tests, begin
+  seed random(4444)
+  show string at(message 1, 0, 182)
+  show string at(message 2, 0, 191)
+
+  keyval tests
+  suspend and wait tests
+  keyboard input tests
+  #basic control tests
+  menu tests
+
+  $message1="ALL FINISHED"
+  $message2=""
+  wait(10)
+
+  $0="TESTS SUCCEEDED"
+  trace(0)
+  game over
+end
+
+########################################################################
+
+script, w, ticks=default wait, begin
+  wait(ticks)
+  _checkpoint
+end
+
+plotscript, crash, begin
+  if(string length(10) >> 0) then(
+    $0+"("
+    concatenate strings(0, 10)
+    $0+")"
+  )
+  trace(0)
+  suspend box advance
+  show text box(1)
+  w(40)
+  $0="Last onscreen message:"
+  trace(0)
+  trace(message1)
+  trace(message2)
+  game over
+end
+
+script, assert failure, begin
+  trace(assert expression string)
+  crash
+end
+
+# Note! on-keypress scripts aren't triggered while the active script is
+# waiting on waitforkey!!
+script, on keypress script, key, begin
+  _checkpoint
+end
+
+########################################################################
+
+script, keyval tests, begin
+  $0="keyval tests"
+
+  suspend player
+  $message 1="Testing keyval and keyispressed"
+  $message 2="Mash the keyboard for a bit (5 sec)"
+
+  variable (tick, i, events)
+  for (tick, 0, 18*5) do (
+    for (i, 0, 126) do (
+      if (keyval(i), and, 2) then (events += 1)
+      assert(keyispressed(i) == true || keyispressed(i) == false)
+      assert(keyval(i) >= 0 && keyval(i) <= 3)
+      if (keyispressed(i)) then (assert(keyval(i)))
+    )
+    if (keyispressed(key:leftshift)) then (assert(keyispressed(key:shift)))
+    if (keyispressed(key:rightshift)) then (assert(keyispressed(key:shift)))
+    if (keyispressed(key:leftalt)) then (assert(keyispressed(key:alt)))
+    if (keyispressed(key:rightalt)) then (assert(keyispressed(key:alt)))
+    if (keyispressed(key:leftctrl)) then (assert(keyispressed(key:ctrl)))
+    if (keyispressed(key:rightctrl)) then (assert(keyispressed(key:ctrl)))
+    wait
+  )
+  $message 2="Saw "
+  append number(message 2, events)
+  $message 2+" keypress events"
+  w(20)
+  resume player
+end
+
+########################################################################
+
+# Wait for the player to hit a certain key
+script, test wait for key, key, scancode, begin
+  # Because waitforkey blocks the on keypress script, there's not much checking we can do...
+  tracevalue,(wait for key(key),scancode)
+  assert(key is pressed(scancode))
+  assert(keyval(scancode))
+  while (key is pressed(scancode)) do (wait)
+end
+
+script, test wait for scancode, scancode, begin
+  wait for scancode(scancode)
+  assert(key is pressed(scancode))
+  while (key is pressed(scancode)) do (wait)
+end
+
+script, suspend and wait tests, begin
+  $0="suspend and wait tests"
+
+  $message 1="Testing suspendplayer and waitforkey"
+
+  $message 2="Hit Q"
+  suspend player
+  test wait for key(anykey, key:q)
+  $message 2="Hit TAB"
+  test wait for key(anykey, key:tab)
+
+  # Movement suspended
+  set hero direction(me, north)
+  $message 2="Hit LEFT"
+  test wait for key(left key, key:left)
+  assert(hero direction == north)
+  $message 2="Hit DOWN"
+  test wait for key(down key, key:down)
+  assert(hero direction == north)
+
+  # NPC use suspended
+  $message 2="Hit ENTER"
+  variable (npcref)
+  npcref := create npc(1, hero x, hero y -- 1, east)  #linked to script 'crash'
+  test wait for key(use key, key:enter)
+  wait
+  assert(npc direction(npcref) == east)
+  destroy npc(npcref)
+
+  # Main menu suspended
+  $message 2="Hit ESC"
+  test wait for key(menu key, key:esc)
+  assert(top menu == 0)
+  $message 2="Hit ALT"
+  test wait for key(menu key, key:alt)
+  assert(top menu == 0)
+
+  # Textbox advance not suspended
+  $message 2="Hit ENTER"
+  show text box(2)
+  test wait for key(use key, key:enter)
+  assert(current textbox == -1)
+  $message 2="Hit CTRL"
+  show text box(2)
+  test wait for key(use key, key:ctrl)
+  assert(current textbox == -1)
+  $message 2="Hit SPACE"
+  show text box(2)
+  test wait for key(use key, key:space)
+  assert(current textbox == -1)
+
+  $message 1="Testing suspendboxadvance"
+  suspend box advance
+  resume player
+
+  $message 2="Hit CTRL"
+  show text box(2)
+  test wait for key(use key, key:ctrl)
+  assert(current textbox == 2)
+  wait(2)
+  advance text box
+  assert(current textbox == -1)
+
+  resume box advance
+
+  $message1="Testing waitforscancode"
+  $message2="Hit Q"
+  test wait for scancode(key:q)
+  $message2="Hit F1"
+  test wait for scancode(key:F1)
+
+end
+
+########################################################################
+
+# This is used to check no strings have been clobbered
+script, hash all strings except, string, begin
+  variable (hash, i, j)
+  for (i, 0, 31) do (
+    if (i == string) then (continue)
+    hash += (hash * 333667), xor, (i * 367 + string length(i) * 336667)  #primes
+    for (j, 1, string length(i)) do (
+      hash += (hash * 367), xor, ascii from string(i, j)
+    )
+  )
+  return (hash)
+end
+
+script, keyboard input tests, begin
+  $0="keyboard input tests"
+  suspend player
+
+  $message1="Testing lastascii"
+  assert(last ascii == 0)
+  $message2="Hit q"
+  trace value(wait for key(anykey))
+  assert(last ascii == 113)
+  $message2="Hit SHIFT+W"
+  while (key is pressed (key:w) == false) do (wait)
+  assert(last ascii == 87)
+  $message2="Hit SPACE"
+  wait for key(anykey)
+  assert(last ascii == 32)
+  $message2="Hit F1"
+  wait for key(anykey)
+  assert(last ascii == 0)
+  $message2="Hit ENTER"
+  wait for key(anykey)
+  assert(last ascii == 0)
+
+  $message1="Testing inputtest (try backspace & caps)"
+
+  $message2="Type \"foo BAR AAAAAA #!\""
+  $2="<initial>"
+  $3="dummy"    # see inputstring implementation to wonder why I check this doesn't go blank
+  variable (hash)
+  hash := hash all strings except(2)
+  assert(input string(2, 38, false, true) == true)  # erase string, center, default position
+  assert(hash == hash all strings except(2))
+  assert(string is visible(2) == false)
+  $3="foo BAR AAAAAA #!"
+  assert(string compare(2, 3))
+  
+  $message2="Entered: "
+  message2 $+ 2
+  w(20)
+
+  $message1="Testing inputtest"
+  $message2="Type \"È÷$ \" or \"SKIP\""
+  assert(input string(2, 38, false, true) == true)
+  $3="È÷$ "
+  $4="SKIP"
+  assert(string compare(2, 3) || string compare(2, 4))
+
+  $message2="Enter text up to length limit"
+  $2="<initial text>"
+  assert(input string(2, 20, true, true) == true)
+  assert(string length(2) == 20)
+  trim string(2, 1, 14)
+  $3="<initial text>"
+  assert(string compare(2, 3))
+
+  $message2="Enter something then hit ESC"
+  $2="<initial text>"
+  assert(input string(2, 20, true, true) == false)
+  assert(key is pressed(key:esc) == false)  # input string is meant to hide the keypress
+  # assert(string length(2) == 0)  # not true: behaviour undefined actually...
+  assert(string is visible(2) == false)
+
+  $message2="Enter something"
+  show string at(2, 70, 70)
+  assert(input string(2, 20, false, false) == true)
+  # String shouldn't centre
+  assert(string x(2) == 70)
+  hide string(2)
+
+  resume player
+end
+
+########################################################################
+
+script, basic control tests, begin
+  $0="basic control tests"
+
+  $message 1="Testing basic controls"
+  $message 2="Walk south"
+
+end
+
+########################################################################
+
+script, menu tests, begin
+  $0="menu tests"
+  $1="Testing menus"
+  
+  # There are so many combinations of menu bits that ought to be tested...
+
+  variable (menu)
+  menu := open menu(1)
+  set menu bit(menu, menubit:no controls, true)
+  $message 2="Hit ESC"
+  test wait for key(cancel key, key:esc)
+  assert(top menu == menu)
+  $message 2="Hit ALT"
+  test wait for key(cancel key, key:alt)
+  assert(top menu == menu)
+  close menu(menu)
+
+end
+
+########################################################################
+#### COMMANDS THAT STILL NEED TESTS
+#equip menu (who)
+#get music volume
+#init mouse
+#input string (ID, maxlength, use current, center, position x, position y)
+#items menu
+#joystick axis (axis,multiplier,joystick)
+#joystick button (button,joystick)
+#load menu (reallyload)
+#main menu
+#mouse button (which)
+#mouse click (which)
+#mouse pixel X
+#mouse pixel Y
+#mouse region (x min, x max, y min, y max)
+#pick hero
+#put mouse (X, Y)
+#rename hero by slot(who)
+#rename hero(who)
+#set full hero swap mode (state)
+#set music volume (volume)
+#show mini map
+#spells menu (who)
+#status screen (who)
+#team menu
+#use shop (shop)
+#wait for text box
