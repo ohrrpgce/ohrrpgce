@@ -1041,27 +1041,8 @@ function getinputtext () as string
 	return inputtext
 end function
 
-'one of waitforanykey and getkey must go
-FUNCTION waitforanykey (byval modkeys as integer=-1) as integer
-	dim i as integer
-	setkeys
-	do
-		setwait 100
-		io_pollkeyevents()
-		setkeys
-		for i = 1 to &h7f
-			'check scAlt only, so Alt-filtering (see setkeys) works
-			if i = scLeftAlt or i = scRightAlt then continue for
-			if not modkeys and (i=scCtrl or i=scAlt or i=scShift) then continue for  'what's the reason for this again? If I knew, I'd delete this function
-			if keyval(i) > 1 then return i
-		next i
-		dowait
-	loop
-	return 0
-end FUNCTION
-
-'one of waitforanykey and getkey must go
-FUNCTION getkey () as integer
+'Returns a scancode or joystick button scancode
+FUNCTION waitforanykey () as integer
 	dim i as integer, key as integer
 	dim as integer joybutton = 0, joyx = 0, joyy = 0, sleepjoy = 3
 	key = 0
@@ -1091,7 +1072,7 @@ FUNCTION getkey () as integer
 	'prevent crazy fast pseudo-keyrepeat
 	sleep 25
 
-	getkey = key
+	return key
 end FUNCTION
 
 SUB setkeyrepeat (byval repeat_wait as integer = 500, byval repeat_rate as integer = 55)

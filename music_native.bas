@@ -49,7 +49,6 @@ option explicit
 #ENDIF
 
 '#ENDIF
-#undef getkey
 #undef rectangle
 #undef paintat
 #undef max

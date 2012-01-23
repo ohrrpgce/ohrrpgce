@@ -203,7 +203,7 @@ CLOSE #fh
 
 printstr "done", 0, pl * 8, 0: pl = pl + 1
 setvispage 0
-w = getkey
+waitforanykey
 
 END SUB
 
@@ -393,7 +393,7 @@ SUB importscripts (f$)
   
   textcolor uilook(uiText), 0
   show_message "imported " & viscount & " scripts"
-  w = getkey
+  waitforanykey
  ELSE
   pop_warning f$ + " is not really a compiled .hs file. Did you create it by compiling a" _
               " script file with hspeak.exe, or did you just give your script a name that" _

@@ -881,8 +881,8 @@ SUB showerror (msg as string, byval isfatal as integer = NO)
 
  setwait 200  'Give user a chance to let go of keys
  dowait
- DIM w as integer = getkey
- IF isfatal ORELSE w = scEsc THEN
+ DIM key as integer = waitforanykey
+ IF isfatal ORELSE key = scEsc THEN
  #IFDEF IS_CUSTOM
   IF cleanup_on_error THEN
    touchfile workingdir & SLASH & "__danger.tmp"
@@ -908,7 +908,7 @@ SUB showerror (msg as string, byval isfatal as integer = NO)
                 "before attempting to save, because there is a chance that saving will produce a corrupt file.", _
                 uilook(uiText), 0
   setvispage 0
-  getkey
+  waitforanykey
  #ENDIF
 
  'Restore game's master palette (minus fades or palette changes...

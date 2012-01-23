@@ -120,9 +120,8 @@ DECLARE FUNCTION bmpinfo (f as string, byref dat as BitmapInfoHeader) as integer
 DECLARE FUNCTION isawav(fi as string) as integer
 
 DECLARE FUNCTION keyval (byval a as integer, byval repeat_wait as integer = 0, byval repeat_rate as integer = 0) as integer
-DECLARE FUNCTION getkey () as integer
 DECLARE FUNCTION getinputtext () as string
-DECLARE FUNCTION waitforanykey (byval modkeys as integer = -1) as integer
+DECLARE FUNCTION waitforanykey () as integer
 DECLARE SUB setkeyrepeat (byval repeat_wait as integer = 500, byval repeat_rate as integer = 55)
 DECLARE SUB setkeys (byval enable_inputtext as integer = NO)
 DECLARE SUB clearkey (byval k as integer)

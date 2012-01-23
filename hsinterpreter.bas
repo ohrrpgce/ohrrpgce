@@ -1083,7 +1083,7 @@ END IF 'end NOT globals view
 IF mode > 1 AND drawloop = 0 THEN
  setpal master()
  setvispage page
- DIM w as integer = getkey
+ DIM w as integer = waitforanykey
  IF w = scF10 THEN mode = 0: clearkey(scF10)
  IF w = scEsc THEN mode = 0: clearkey(scEsc)
  IF w = scV THEN viewmode = loopvar(viewmode, 0, 3, 1): GOTO redraw

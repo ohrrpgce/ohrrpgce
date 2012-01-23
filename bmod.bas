@@ -284,8 +284,7 @@ SUB battle_pause ()
  fuzzyrect 0, 0, 320, 200, uilook(uiTextBox), vpage
  edgeprint pause, xstring(pause, 160), 95, uilook(uiText), vpage
  setvispage vpage
- '--wait for a key
- getkey
+ waitforanykey
 END SUB
 
 SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
