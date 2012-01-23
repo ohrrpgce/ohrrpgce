@@ -729,18 +729,25 @@ script, last ascii, begin
 
 end
 
-script, input string, hsd:str=0, hsd:max len=40, hsd:useexist=0, hsd:center=-654321, hsd:positionx=160, hsd:positiony=110, begin
+script, input string, hsd:str, hsd:max len=40, hsd:useexist=0, hsd:center=1, hsd:positionx=-654321, hsd:positiony=-654321, begin
   variable(hsd:done, hsd:key, hsd:show)
   if(hsd:useexist) else(clear string(hsd:str))
   trim string(hsd:str,1,hsd:maxlen)
-  hsd:show:=getstringbit(hsd:str,0)==0
-  if(hsd:center==0) then(show string at(hsd:str,hsd:positionx,hsd:positiony)) else(
-    if(hsd:center<>-654321||hsd:show) then(
+  hsd:show:=getstringbit(hsd:str,0)==false
+  if(hsd:positiony <> -654321 || hsd:show) then(
+    if(hsd:positionx == -654321) then(hsd:positionx := 160)
+    if(hsd:positiony == -654321) then(hsd:positiony := 110)
+    if(hsd:center) then(
       center string at(hsd:str,hsd:positionx,hsd:positiony)
+    )else(
+      show string at(hsd:str,hsd:positionx,hsd:positiony)
     )
+  )else(
+    hsd:positionx := string x(hsd:str)
+    hsd:positiony := string y(hsd:str)
   )
   while(not(hsd:done)) do, begin
-    if(hsd:center||(hsd:show&&hsd:center<>0)) then(center string at(hsd:str,hsd:positionx,hsd:positiony))
+    if(hsd:center) then(center string at(hsd:str,hsd:positionx,hsd:positiony))
     wait for key
     if(key is pressed(28)) then(hsd:done:=true, return(true)) else(
       if(keyval(14)>>1) then(delete char(hsd:str,string length(hsd:str)))

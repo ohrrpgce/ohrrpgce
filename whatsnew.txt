@@ -53,6 +53,9 @@ WHAT IS NEW?
       * Didn't trigger when crossing over them using walkhero with
         distance more than 1 [Ralph]
     * "export globals" was broken in strange ways [Ralph]
+    * "input string" would hide string 0 instead of the one it was
+      meant to; also changed the way the 'center' and position
+      arguments behave to make more sense [Ralph]
 
   * New Plotscripting Stuff
     * Slice velocity commands to make a slice move automatically at
@@ -68,7 +71,7 @@ WHAT IS NEW?
     * "get hero slice" and "get NPC slice" commands [James]
     * "get door x", "get door y", "get door destination id",
       "get door destination map", "door is active" [Mogri]
-    * "read attack caption" [Mogri]
+    * "get attack caption" [Mogri]
     * "get rect fuzziness", "set rect fuzziness" [Ralph]
     * "textbox line" replaces "string from textbox", fixing the
       broken 'expand' argument and adding 'strip' argument [Ralph]
