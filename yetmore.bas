@@ -2943,6 +2943,14 @@ SELECT CASE as CONST id
     IF retvals(3) THEN embedtext plotstr(retvals(0)).s
    END IF
   END IF
+ CASE 530 '--get slice text (string, slice)
+  IF valid_plotstr(retvals(0), 5) THEN
+   IF valid_plottextslice(retvals(1)) THEN
+    DIM dat as TextSliceData Ptr
+    dat = plotslices(retvals(1))->SliceData
+    plotstr(retvals(0)).s = dat->s
+   END IF
+  END IF
 
 END SELECT
 

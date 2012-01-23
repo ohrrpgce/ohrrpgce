@@ -3611,6 +3611,16 @@ end
 			<description>Copy a string specified by <p>string id</p> into the text slice specified by <p>handle</p>.</description>
 			<seealso>
 				<ref>createtext</ref>
+				<ref>getslicetext</ref>
+			</seealso>
+		</command>
+		<command id="getslicetext">
+			<canon>get slice text(string id, slice handle)</canon>
+			<shortname>get slice text</shortname>
+			<description>Copy the contents of the text slice specified by <p>slice handle</p> into a string specified by <p>string id</p>.</description>
+			<seealso>
+				<ref>createtext</ref>
+				<ref>setslicetext</ref>
 			</seealso>
 		</command>
 		<command id="gettextcolor">

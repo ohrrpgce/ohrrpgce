@@ -538,6 +538,7 @@ define function, begin
 527,getrectfuzziness,1,0         #get rect fuzz percentange
 528,setrectfuzziness,2,0,50      #set rect fuzz percentange
 529,textboxline,5,0,0,-1,1,0     #get a line of text from a textbox (string, box, line, expand, strip)
+530,getslicetext,2,0,0           #get the contents of a text slice (string, slice)
 end
 
 #--------------------------------------------------------------------------

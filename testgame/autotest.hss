@@ -1576,7 +1576,9 @@ end
 script, slice tests, begin
   $0="Slice tests"
 
-  # Only testing rect transparency
+  # Extremely unfinished!
+
+  # Test rect transparency
   variable (sl)
   sl := create rect(100, 100), w
   assert(get rect trans(sl) == trans:solid)
@@ -1596,6 +1598,16 @@ script, slice tests, begin
   set rect trans(sl, trans:fuzzy), w
   assert(get rect trans(sl) == trans:fuzzy)
   assert(get rect fuzziness(sl) == 50)
+  free slice(sl)
+
+  # Text slices
+  $2="fee Fi\n \n foe"
+  sl := create text
+  set slice text(sl, 3)
+  get slice text(2, sl)
+  assert(string compare(2, 3))
+  $2=""
+  $3=""
   free slice(sl)
 end
 
@@ -1669,7 +1681,7 @@ end
 ########################################################################
 
 ########################################################################
-#### COMMANDS THAT STILL NEED TESTS
+#### COMMANDS THAT STILL NEED TESTS (doesn't include new commands?)
 #allow minimap (setting)
 #allow save anywhere (setting)
 #alter NPC (who,NPCstat,value)
@@ -2076,7 +2088,6 @@ end
 #set slice lookup (handle, code)
 #set slice screen x (handle, x)
 #set slice screen y (handle, y)
-#set slice text(handle, string id)
 #set slice velocity (handle, horiz pixels per tick, vert pixels per tick, ticks)
 #set slice velocity x (handle, pixels per tick, ticks)
 #set slice velocity y (handle, pixels per tick, ticks)
