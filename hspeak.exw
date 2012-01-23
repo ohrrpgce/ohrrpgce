@@ -6,13 +6,14 @@
 -- This is a compiler for HamsterSpeak scripts used for plotscripting in
 -- the O.H.R.RPG.C.E. For more info, visit http://HamsterRepublic.com
 
--- This code is written in Euphoria 3.1. You can get the Free Open-Source
--- Euphoria compiler from http://RapidEuphoria.com . I also highly recommend
--- David Cuny's EE editor which you can download from the same site.
+-- This code is written in Euphoria 4.0. You can get the Free Open-Source
+-- Euphoria compiler from http://OpenEuphoria.com . I also highly recommend
+-- David Cuny's EE editor
 
 ---------------------------------------------------------------------------
 
 --Changelog
+--3O  2012-01-19 Unicode support
 --3Nd 2011-10-16 Fix commands.bin generation bug
 --3Nc 2011-08-28 Additional expression optimisations
 --3Nb 2011-08-28 Fix overflow_int32 and bitwise operator overflow
@@ -109,6 +110,9 @@ include hsspiffy.e --various routines, sequence manipulation - James Paige
 include graphics.e --standard library, needed for color output
 include machine.e  --needed for int_to_bytes
 include std/math.e --needed for mod
+include euphoria/unicode.e
+include euphoria/ucstypes.e
+include euphoria/io_with_unicode.e
 
 ---------------------------------------------------------------------------
 --constants--
@@ -120,15 +124,18 @@ constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Nd"
+constant COMPILER_SUB_VERSION="O "
 constant COPYRIGHT_DATE="2002"
 
---these constants are color-flags. May add more colors, up to 254
-constant COLYEL=239
-constant COLRED=240
-constant COLPNK=241
-constant COLWHI=242
-constant COLBWHI=243
+--these constants are color-flags. May add more colors, up to #F8FF
+--(these codes are at the end of the first private use area)
+constant COL_FIRST=#F8E0
+constant COLYEL=#F8E0
+constant COLRED=#F8E1
+constant COLPNK=#F8E2
+constant COLWHI=#F8E3
+constant COLBWHI=#F8E4
+constant COL_LAST=#F8FF
 --Euphoria's color constants vary depending on the platform, so we avoid them
 constant HS_TO_EU_COLORS={YELLOW, RED, BRIGHT_RED, WHITE, BRIGHT_WHITE}
 
@@ -356,28 +363,85 @@ end function
 
 ---------------------------------------------------------------------------
 
+--Euphoria's built-in sprintf truncates all string elements to 8 bits,
+--so this is an Unicode-enabled replacement. Supports %d, %s, %g, %%
+--Beware! This will be way slower than sprintf, but luckily it's not
+--needed anywhere where speed matters.
+function sprintf_utf(sequence s,sequence printf_args)
+  integer seg_start, seg_end
+  integer arg_ctr
+  integer code
+  sequence ret
+  if length(printf_args)=0 then
+    return s
+  end if
+
+  ret=""
+  arg_ctr=1
+  seg_start=1
+  seg_end=find('%',s)
+  while seg_end do
+    ret&=s[seg_start..seg_end-1]
+    code=s[seg_end+1]
+    if code='s' then
+      ret&=printf_args[arg_ctr]
+      arg_ctr+=1
+    elsif code='d' or code='g' then
+      ret&=sprintf({'%',code},printf_args[arg_ctr])
+      arg_ctr+=1
+    elsif code='%' then
+      ret&='%'
+    else
+      simple_error(sprintf("sprintf_utf: unrecognised format code %%%s\n",{s[seg_end+1]}))
+    end if
+    seg_start=seg_end+2
+    seg_end=find_from('%',s,seg_start)
+  end while
+  if seg_start<=length(s) then
+    ret&=s[seg_start..$]
+  end if
+
+  if arg_ctr!=length(printf_args)+1 then
+    simple_error(sprintf("sprintf_utf: recieved %d format arguments, only used %d\n",{length(printf_args),arg_ctr-1}))
+  end if
+  return ret
+end function
+
+---------------------------------------------------------------------------
+
+--fprintf as UTF8
+procedure print_utf(object fh,sequence s,sequence printf_args)
+  if length(printf_args) then
+    s=sprintf_utf(s,printf_args)
+  end if
+  s=toUTF(s,utf_32,utf_8)
+  puts(fh,s)
+end procedure
+
+---------------------------------------------------------------------------
+
 --prints a string with printf to stdout converting color codes
 procedure color_print(sequence s,sequence printf_args)
   sequence buffer
-  s=sprintf(s,printf_args)
+  s=sprintf_utf(s,printf_args)
   if simple_colorcodes then
     buffer=s
   else
     buffer=""
     for i=1 to length(s) do
-      if s[i]<=254 and s[i]>=239 then
-        puts(stdout,buffer)
+      if s[i]>=COL_FIRST and s[i]<=COL_LAST then
+        print_utf(stdout,buffer,{})
         buffer=""
         if colors_enabled then
-          text_color(HS_TO_EU_COLORS[s[i]-238])
+          text_color(HS_TO_EU_COLORS[s[i]-COL_FIRST+1])
         end if
-      else  
+      else
         buffer&=s[i]
       end if
     end for
   end if
   if length(buffer) then
-    puts(stdout,buffer)
+    print_utf(stdout,buffer,{})
   end if
 end procedure
 
@@ -441,6 +505,7 @@ end procedure
 procedure print_timing_data()
   sequence indent
   sequence data
+  sequence tmp1, tmp2
   if run_time=0 then
     --so that all percentages show as 0%
     run_time=1e100
@@ -448,7 +513,9 @@ procedure print_timing_data()
   for i=1 to length(timing_data) do
     data=timing_data[i]
     indent=repeat(' ',data[TIMING_DEPTH]*4)
-    color_print("%s "&COLBWHI&"%.2f"&COLWHI&"s %4.2g%%  %s\n",{indent,data[TIMING_TIME],100*data[TIMING_TIME]/run_time,data[TIMING_DESCRIPTION]})
+    tmp1=sprintf("%.2f",{data[TIMING_TIME]})
+    tmp2=sprintf("%5.2g",{100*data[TIMING_TIME]/run_time})
+    color_print("%s "&COLBWHI&"%s"&COLWHI&"s %s%%  %s\n",{indent,tmp1,tmp2,data[TIMING_DESCRIPTION]})
   end for
 end procedure
 
@@ -488,7 +555,7 @@ function error_string_convert(sequence s)
   result=""
   buffer=""
   for i=1 to length(s) do
-    if s[i]<=254 and s[i]>=239 then
+    if s[i]>=COL_FIRST and s[i]<=COL_LAST then
       if s[i]=COLYEL then
         buffer&="<font color=\"#F0F000\">"
       elsif s[i]=COLRED then
@@ -517,7 +584,7 @@ end function
 --prints a long string wrapped at 80 columns
 procedure wrap_print(sequence s,sequence arguments)
   sequence outstring
-  s=sprintf(s,arguments)
+  s=sprintf_utf(s,arguments)
   while length(s) do
     outstring=before_wrap_point(s)
     s=after_wrap_point(s)
@@ -532,7 +599,7 @@ procedure error_file_print(sequence s)
   if error_file then
     fh=open(compiler_dir&"hs_error.htm","a")
     if fh!=failure then
-      puts(fh,error_string_convert(s)&"\n")
+      print_utf(fh,error_string_convert(s)&"\n",{})
       close(fh)
     end if
   end if
@@ -547,10 +614,10 @@ procedure simple_warn(sequence s)
     --do not warn if -w is set
     pos=get_position()
     if pos[2]>1 then
-      printf(stdout,"\n",{})
+      print_utf(stdout,"\n",{})
     end if
     wrap_print(COLRED&"WARNING: %s"&COLWHI&"\n",{s})
-    error_file_print(sprintf("<font color=\"#FF0000\">WARNING: %s</font>",{html_char_convert(s)}))
+    error_file_print(sprintf_utf("<Font color=\"#FF0000\">WARNING: %s</font>",{html_char_convert(s)}))
     was_warnings = true
   end if
 end procedure
@@ -562,10 +629,10 @@ procedure simple_error(sequence s)
   sequence pos
   pos=get_position()
   if pos[2]>1 then
-    printf(stdout,"\n",{})
+    print_utf(stdout,"\n",{})
   end if
   wrap_print(COLRED&"ERROR: %s"&COLWHI&"\n",{s})
-  error_file_print(sprintf("<font color=\"#FF0000\">ERROR: %s</font>",{html_char_convert(s)}))
+  error_file_print(sprintf_utf("<font color=\"#FF0000\">ERROR: %s</font>",{html_char_convert(s)}))
   if end_anchor_kludge then
     error_file_print("</a>\n<hr>\n")
   end if
@@ -580,7 +647,7 @@ procedure check_arg_count(sequence args)
   if length(args)=2 then
     wrap_print("HamsterSpeak semicompiler v%d%s (C)%s James Paige&Hamster Republic Productions\n",{COMPILER_VERSION,COMPILER_SUB_VERSION,COPYRIGHT_DATE})
     wrap_print("Please read LICENSE.txt for GPL License details and disclaimer of liability",{})
-    wrap_print(COLYEL&"%s [-acdfknstwuxyz] source.hss [dest.hs]"&COLWHI&"\n\n",{hs_upper(file_only(args[2]))})
+    wrap_print(COLYEL&"%s [-acdfknstwuyz] source.hss [dest.hs]"&COLWHI&"\n\n",{hs_upper(file_only(args[2]))})
     color_print("   -f fast mode. Disables some optimization\n",{})
     color_print("   -k do not wait for a keypress when finished\n",{})
     color_print("   -n don't add debug info, or a copy of the source code, to .hs file\n",{})
@@ -593,8 +660,10 @@ procedure check_arg_count(sequence args)
     color_print("   -s print the name of each script as it is compiled\n",{})
     color_print("     -a same as -s, but including autonumbered scripts\n",{})
     color_print("   -t print detailed timing info (for HSpeak developers)\n",{})
-    color_print("   -x used by Hamster Whisper for piped output\n",{})
     color_print("   -z write error messages to hs_error.htm\n",{})
+    --Undocumented arguments:
+    --              --unicode-cols
+    --                 used by Hamster Whisper for piped output
     wrap_print("\nFor more info about HamsterSpeak visit "&COLBWHI&"http://HamsterRepublic.com/ohrrpgce"&COLWHI&"\n",{})
     wrap_print("\nThis is a command-line program. You should either run it from the command-line (DOS prompt) or you should drag and drop your script file onto it.\n",{})
     opt_wait_for_key()
@@ -604,8 +673,9 @@ end procedure
 
 ---------------------------------------------------------------------------
 
---build the lexer tables, which for each ASCII character i, contains the type
+--Build the lexer tables, which for each code point 0<=i<256, contains the type
 --of that character in entry i+1 (have to handle NUL)
+--Other characters are always LEX_CHAR
 procedure init_lexer()
   sequence table_insert
 
@@ -614,7 +684,7 @@ procedure init_lexer()
                 {LEX_SPACE,LEX_BEGIN,LEX_END,LEX_COMMA,LEX_COMMA,LEX_COMMENT,LEX_SPACE,LEX_STRING,LEX_WARN,LEX_WARN,LEX_WARN,LEX_WARN}}
   --by default each character is either binary, or an allowed identifier
   --character. This is for backwards compatibility
-  lexer_table=repeat(LEX_BINARY,32) & repeat(LEX_CHAR,256-32)
+  lexer_table=repeat(LEX_BINARY,32) & repeat(LEX_CHAR,127-32) & repeat(LEX_BINARY,#A1-127) & repeat(LEX_CHAR,256-#A1)
   for i=1 to length(table_insert[1]) do
     lexer_table[table_insert[1][i]+1]=table_insert[2][i]
   end for
@@ -654,7 +724,10 @@ procedure init()
   optlist={}
   index=3
   while index<=length(args) do
-    if args[index][1]='-' then
+    if equal(args[index],"--unicode-cols") then
+      simple_colorcodes=true
+      args=delete_element(args,index)
+    elsif args[index][1]='-' then
       optlist=optlist&hs_lower(args[index][2..length(args[index])])
       args=delete_element(args,index)
     else
@@ -675,10 +748,9 @@ procedure init()
   if find('c',optlist) then
     colors_enabled=false
   end if
-  --used by Hamster Whisper. Note: overrides -c
-  if find('x',optlist) then
-    simple_colorcodes=true
-  end if
+  --'x' used by old versions of Hamster Whisper to specify color code format
+  --However this clashes with Latin-1 characters and doesn't work with UTF-8 anyway
+  --Replaced by --unicode-cols
   --the semi-undocumented command line argument -z writes a file called
   --hs_error.htm formatted for HssEd to read
   if find('z',optlist) then
@@ -781,7 +853,7 @@ function decode_srcpos(srcpos pos)
   filetext=file_list[filenum][FILE_TEXT]
   lines=file_list[filenum][FILE_LINE_EXTENTS]
   if point>length(filetext) then
-    simple_error(sprintf("compiler bug: invalid source position %d in file of length %d",{point,length(filetext)}))
+    simple_error(sprintf_utf("compiler bug: invalid source position %d in file of length %d",{point,length(filetext)}))
   end if
 
   lineno=length(lines)
@@ -808,10 +880,10 @@ function form_error_text(sequence s,srcpos pos)
   line=substring_replace(src_position[POS_TEXT],"\t","    ")
   tab_compensate=3*count('\t',src_position[POS_TEXT][1..src_position[POS_COLUMN]])
   column_display=repeat(' ',src_position[POS_COLUMN]+tab_compensate)
-  error_file_print(sprintf("<a href=\"%s#%d\">\n",{src_position[POS_FILENAME],src_position[POS_LINE]}))
+  error_file_print(sprintf_utf("<a href=\"%s#%d\">\n",{src_position[POS_FILENAME],src_position[POS_LINE]}))
   if length(current_script) then
     return(
-      sprintf(
+      sprintf_utf(
          "in script "&COLYEL&"%s"&COLRED&" on line %d in "&COLPNK&"%s"&COLRED&"\n"
          &COLBWHI&"%s\n"
          &"%s^\n"
@@ -821,7 +893,7 @@ function form_error_text(sequence s,srcpos pos)
     )
   else
     return(
-      sprintf(
+      sprintf_utf(
          "in line %d of "&COLPNK&"%s"&COLRED&"\n"
          &COLBWHI&"%s\n"
          &"%s^\n"
@@ -854,7 +926,7 @@ end procedure
 
 procedure load_source(sequence filename,sequence reading_how,srcpos pos)
   integer fh
-  object line
+  integer line_start, line_end
   sequence file_text
   sequence line_extents  -- {start of line, end of line} pairs
 
@@ -862,24 +934,34 @@ procedure load_source(sequence filename,sequence reading_how,srcpos pos)
   if fh!=failure then
     wrap_print("%s "&COLBWHI&"%s"&COLWHI&"\n",{reading_how,filename})
 
-    file_text={}
     line_extents={}
-    line=gets(fh)
-    while sequence(line) do
-      line=exclude(line,"\n\r")
-      line_extents=append(line_extents,{length(file_text)+1,length(file_text)+length(line)})
-      file_text&=line
-      file_text&='\n'
-      line=gets(fh)
-    end while
+
+    reenter_timing_zone("read_file")
+    --Autodetect the encoding
+    file_text=read_file(fh, TEXT_MODE, UTF)
+    exit_timing_zone()
     close(fh)
+
+    --read_file already converts lineendings, so this usually won't be needed
+    file_text=exclude(file_text,"\r")
+
+    line_start=1
+    line_end=find('\n',file_text)
+    while line_end do
+      line_extents=append(line_extents,{line_start,line_end-1})
+      line_start=line_end+1
+      line_end=find_from('\n',file_text,line_start)
+    end while
+    if line_start<=length(file_text) then
+      line_extents=append(line_extents,{line_start,length(file_text)})
+    end if
     total_lines+=length(line_extents)
     file_list=append(file_list,{filename,file_text,line_extents})
   else
     if pos then
-      src_error(sprintf("file "&COLYEL&"%s"&COLRED&" not found\n",{filename}),pos)
+      src_error(sprintf_utf("file "&COLYEL&"%s"&COLRED&" not found\n",{filename}),pos)
     else
-      simple_error(sprintf("file "&COLYEL&"%s"&COLRED&" not found\n",{filename}))
+      simple_error(sprintf_utf("file "&COLYEL&"%s"&COLRED&" not found\n",{filename}))
     end if
   end if
 end procedure
@@ -958,7 +1040,7 @@ function lexer_read_string(sequence s,integer i,srcpos pos)
         string&=s[i]
       end if
     end if
-    if lexer_table[s[i]+1]=LEX_BINARY then
+    if s[i]<256 and lexer_table[s[i]+1]=LEX_BINARY then
       lexer_binary_error(pos+i)
     end if
     i+=1
@@ -985,7 +1067,11 @@ function lexer_read_number(sequence s,integer i,srcpos pos)
   end if
   val=0
   while i<=length(s) do
-    state=lexer_table[s[i]+1]
+    if s[i]<256 then
+      state=lexer_table[s[i]+1]
+    else
+      state=LEX_CHAR
+    end if
     --color_print("lexing %d=%s state %d\n",{s[i],{s[i]},state})
     if state=LEX_DIGIT then
       text&=s[i]
@@ -995,7 +1081,7 @@ function lexer_read_number(sequence s,integer i,srcpos pos)
         src_error("Floating point values are not yet implemented",pos+i)
       end if
       src_error(
-        sprintf("Expected "&COLYEL&"%s"&COLRED&" to be followed by "&COLYEL&","&COLRED&" or "&COLYEL&"("&COLRED&" or "&COLYEL&")"&COLRED&" or an operator"
+        sprintf_utf("Expected "&COLYEL&"%s"&COLRED&" to be followed by "&COLYEL&","&COLRED&" or "&COLYEL&"("&COLRED&" or "&COLYEL&")"&COLRED&" or an operator"
                 ,{text})
         ,pos+i
       )
@@ -1009,7 +1095,7 @@ function lexer_read_number(sequence s,integer i,srcpos pos)
     i+=1
   end while
   if not int32(sign*val) then
-    src_error(sprintf(COLYEL&"%s"&COLRED&" is too big to be stored in a 32 bit signed integer. Integers must be between -2147483648 and 2147483647",{text}),pos+starti)
+    src_error(sprintf_utf(COLYEL&"%s"&COLRED&" is too big to be stored in a 32 bit signed integer. Integers must be between -2147483648 and 2147483647",{text}),pos+starti)
   end if
   return({i,text})
 end function
@@ -1033,10 +1119,14 @@ function lex_line(sequence s,integer i,integer stop,srcpos pos)
   textstart=0
   tokens={}
   while i<=stop do
-    state=lexer_table[s[i]+1]
+    if s[i]<256 then
+      state=lexer_table[s[i]+1]
+    else
+      state=LEX_CHAR
+    end if
     --color_print("lexing %d=%s state %d\n",{s[i],{s[i]},state})
     if state=LEX_CHAR then
-      ident=ident & hs_lower(s[i])
+      ident=ident & toLower(s[i])
       if textstart=0 then
         textstart=i
       end if
@@ -1057,12 +1147,12 @@ function lex_line(sequence s,integer i,integer stop,srcpos pos)
         --nonnumeral remains false
       end if
     elsif state=LEX_WARN then
-      ident=ident & hs_lower(s[i])
+      ident=ident & toLower(s[i])
       if textstart=0 then
         textstart=i
       end if
       nonnumeral=true
-      src_warn(sprintf("FUTURE COMPATIBILITY PROBLEM: "&COLYEL&"%s"&COLRED&" should not be used in names!", {s[i]}), pos+i)
+      src_warn(sprintf_utf("FUTURE COMPATIBILITY PROBLEM: "&COLYEL&"%s"&COLRED&" should not be used in names!", {s[i]}), pos+i)
     else
       remem_ident=ident  --for backtracking
       remem_textstart=textstart
@@ -1090,7 +1180,11 @@ function lex_line(sequence s,integer i,integer stop,srcpos pos)
         --we only support length 1 and 2 separators
         while i<length(s) do
           i+=1
-          state=lexer_table_key2[s[i]+1]
+          if s[i]<256 then
+            state=lexer_table_key2[s[i]+1]
+          else
+            state=LEX_CHAR
+          end if
           if state=LEX_KEYWORD2 then
             masked&=s[i]
             exit
@@ -1174,7 +1268,7 @@ function translate_plotstrings(sequence tokens)
     else
       if tokens[i][CMD_TEXT][1]='"' then
         src_error(
-          sprintf(
+          sprintf_utf(
             "The string "&COLYEL&"%s"&COLRED&" is illegal here: strings may only be used as part of a $...=\"...\" or $...+\"...\" construct",
             {shorten_string(tokens[i][CMD_TEXT],15)}),
           tokens[i][CMD_POS]
@@ -1282,7 +1376,7 @@ function seek_include(sequence s)
       src_error("Expected name of file to follow "&COLYEL&"include"&COLRED,s[at][CMD_POS])
     end if
     if length(s)>2 then
-      src_error(sprintf("Found garbage "&COLYEL&"%s"&COLRED&" after name of file to include. Try enclosing the filename in \"quote marks\"?",{s[3][CMD_TEXT]}),s[3][CMD_POS])
+      src_error(sprintf_utf("Found garbage "&COLYEL&"%s"&COLRED&" after name of file to include. Try enclosing the filename in \"quote marks\"?",{s[3][CMD_TEXT]}),s[3][CMD_POS])
     end if
     if s[at+1][CMD_TEXT][1]='"' then --each element of s guaranteed nonzero length
       --is a string
@@ -1311,11 +1405,11 @@ procedure read_commands(integer file_num,sequence include_stack)
     include_name=seek_include(broken)
     if length(include_name) then
       if find(include_name,include_stack) then
-        src_error(sprintf("File "&COLPNK&"%s"&COLRED&" is being included recursively",{include_name}),broken[1][CMD_POS])
+        src_error(sprintf_utf("File "&COLPNK&"%s"&COLRED&" is being included recursively",{include_name}),broken[1][CMD_POS])
       end if
       include_num=find(include_name,column(file_list,FILE_NAME))
       if include_num then
-        src_warn(sprintf("File "&COLPNK&"%s"&COLRED&" is being included multiple times",{include_name}),broken[1][CMD_POS])
+        src_warn(sprintf_utf("File "&COLPNK&"%s"&COLRED&" is being included multiple times",{include_name}),broken[1][CMD_POS])
       else
         load_include(include_name,broken[2][CMD_POS])
         include_num=length(file_list)
@@ -1349,16 +1443,16 @@ procedure check_for_reserved(sequence s,srcpos pos,sequence expect)
   if alpha_tree_seek(reserved,s) then
     if compare("top-level declaration",expect)=0 then
       src_error(
-        sprintf(
+        sprintf_utf(
           "Expected %s, but found %s "&COLYEL&"%s"&COLRED&". Perhaps there is an extra "&COLYEL&"end"&COLRED&" or "&COLYEL&")"&COLRED&" earlier in the file"
           ,{expect,RESERVE_NAMES[alpha_tree_data(reserved,s,0)],s}
         )
         ,pos
       )
     elsif compare("user script name",expect)=0 then
-      src_error(sprintf("Expected %s, but found %s "&COLYEL&"%s"&COLRED,{expect,RESERVE_NAMES[alpha_tree_data(reserved,s,0)],s}),pos)
+      src_error(sprintf_utf("Expected %s, but found %s "&COLYEL&"%s"&COLRED,{expect,RESERVE_NAMES[alpha_tree_data(reserved,s,0)],s}),pos)
     else  
-      src_error(sprintf("Expected %s, but found %s "&COLYEL&"%s"&COLRED,{expect,RESERVE_NAMES[alpha_tree_data(reserved,s,0)],s}),pos)
+      src_error(sprintf_utf("Expected %s, but found %s "&COLYEL&"%s"&COLRED,{expect,RESERVE_NAMES[alpha_tree_data(reserved,s,0)],s}),pos)
     end if
   end if
 end procedure
@@ -1368,7 +1462,7 @@ end procedure
 procedure mustnt_be_a_number(sequence s)
   --note that identifiers are allowed to start with -
   if length(exclude(s[CMD_TEXT],"-0123456789"))=0 and count('-',s[CMD_TEXT])!=length(s[CMD_TEXT]) then
-    src_error(sprintf("Expected a name, but found a number "&COLYEL&"%s"&COLRED,{s[CMD_TEXT]}),s[CMD_POS])
+    src_error(sprintf_utf("Expected a name, but found a number "&COLYEL&"%s"&COLRED,{s[CMD_TEXT]}),s[CMD_POS])
   end if
 end procedure
 
@@ -1388,7 +1482,7 @@ procedure check_undefined_constant(sequence s,atom value)
      else
        whats_happening="is being redefined;"
      end if
-     err_string=sprintf("Constant "&COLYEL&"%s"&COLRED&" %s it is already defined in line %d of "&COLPNK&"%s"&COLRED&" with the value "&COLYEL&"%d"&COLRED
+     err_string=sprintf_utf("Constant "&COLYEL&"%s"&COLRED&" %s it is already defined in line %d of "&COLPNK&"%s"&COLRED&" with the value "&COLYEL&"%d"&COLRED
                    ,{
                       s[CMD_TEXT]
                      ,whats_happening
@@ -1420,10 +1514,10 @@ end procedure
 
 function force_16_bit(atom n,srcpos pos)
   if n>32767 then
-    src_warn(sprintf("number "&COLYEL&"%d"&COLRED&" is out of range for a 16-bit signed integer, and will be truncated to "&COLYEL&"32767"&COLRED,{n}),pos)
+    src_warn(sprintf_utf("number "&COLYEL&"%d"&COLRED&" is out of range for a 16-bit signed integer, and will be truncated to "&COLYEL&"32767"&COLRED,{n}),pos)
     n=32767
   elsif n<-32768 then
-    src_warn(sprintf("number "&COLYEL&"%d"&COLRED&" is out of range for a 16-bit signed integer, and will be truncated to "&COLYEL&"-32768"&COLRED,{n}),pos)
+    src_warn(sprintf_utf("number "&COLYEL&"%d"&COLRED&" is out of range for a 16-bit signed integer, and will be truncated to "&COLYEL&"-32768"&COLRED,{n}),pos)
     n=-32768
   end if
   return(n)
@@ -1435,7 +1529,7 @@ function try_string_to_number(sequence s)
   atom result
   result=floor(string_to_object(s[CMD_TEXT],0))
   if not string_is_int32(s[CMD_TEXT]) then
-    src_error(sprintf("Expected number but found "&COLYEL&"%s"&COLRED,{s[CMD_TEXT]}),s[CMD_POS])
+    src_error(sprintf_utf("Expected number but found "&COLYEL&"%s"&COLRED,{s[CMD_TEXT]}),s[CMD_POS])
   end if
   return(result)
 end function
@@ -1489,7 +1583,7 @@ function get_cmd_block(integer convert_constants)
   result={}
   this=get_cmd()
   if compare("begin",this[CMD_TEXT])!=0 then
-    src_error(sprintf("Expected "&COLYEL&"begin"&COLRED&" or "&COLYEL&"("&COLRED&" bracket but found "&COLYEL&"%s"&COLRED,{this[CMD_TEXT]}),this[CMD_POS])
+    src_error(sprintf_utf("Expected "&COLYEL&"begin"&COLRED&" or "&COLYEL&"("&COLRED&" bracket but found "&COLYEL&"%s"&COLRED,{this[CMD_TEXT]}),this[CMD_POS])
   end if
   while true do
     if convert_constants then
@@ -1548,7 +1642,7 @@ procedure create_global(integer id,sequence name,srcpos pos)
   integer at
   at=find(id,global_list[PAIR_NUM])
   if at then
-    src_error(sprintf("global variable ID "&COLYEL&"%d"&COLRED&" is already defined as "&COLYEL&"%s"&COLRED,{id,global_list[PAIR_NAME][at]}),pos)
+    src_error(sprintf_utf("global variable ID "&COLYEL&"%d"&COLRED&" is already defined as "&COLYEL&"%s"&COLRED,{id,global_list[PAIR_NAME][at]}),pos)
   else
     if id>=0 and id<=4095 then
       global_list[PAIR_NUM]=append(global_list[PAIR_NUM],id)
@@ -1556,7 +1650,7 @@ procedure create_global(integer id,sequence name,srcpos pos)
       global_list[GLB_POS]=append(global_list[GLB_POS],pos)
       reserved=alpha_tree_insert(reserved,name,RESERVE_GLOBAL)
     else
-      src_error(sprintf("global variable ID "&COLYEL&"%d"&COLRED&" is not permitted. Valid IDs are 0 to 4095",{id}),pos)
+      src_error(sprintf_utf("global variable ID "&COLYEL&"%d"&COLRED&" is not permitted. Valid IDs are 0 to 4095",{id}),pos)
     end if
   end if
 end procedure
@@ -1603,10 +1697,10 @@ function create_function(sequence list,integer id,sequence name,object arglist,i
   if func_type=RESERVE_SCRIPT then
     at=find(id,column(list,PAIR_NUM))
     if at then
-      src_error(sprintf("%s ID "&COLYEL&"%d"&COLRED&" is already defined as "&COLYEL&"%s"&COLRED,{RESERVE_NAMES[func_type],id,list[at][PAIR_NAME]}),pos)
+      src_error(sprintf_utf("%s ID "&COLYEL&"%d"&COLRED&" is already defined as "&COLYEL&"%s"&COLRED,{RESERVE_NAMES[func_type],id,list[at][PAIR_NAME]}),pos)
     end if
     if id=0 then
-      src_error(sprintf("ID "&COLYEL&"%d"&COLRED&" is not valid",{id}),pos)
+      src_error(sprintf_utf("ID "&COLYEL&"%d"&COLRED&" is not valid",{id}),pos)
     elsif id<0 then
       id=autonumber_id
       autonumber_id-=1
@@ -1630,7 +1724,7 @@ function parse_define_block(sequence block,sequence list,integer func_type)
   while i<=length(block) do
     num=force_16_bit(try_string_to_number(block[i]),block[i][CMD_POS])
     if i+1>length(block) then
-      src_error(sprintf("expected %s name but define block ended",{RESERVE_NAMES[func_type]}),block[i][CMD_POS])
+      src_error(sprintf_utf("expected %s name but define block ended",{RESERVE_NAMES[func_type]}),block[i][CMD_POS])
     else
       i+=1
       check_undefined_string(block[i],RESERVE_NAMES[func_type]&" name")
@@ -1705,7 +1799,7 @@ procedure parse_script(sequence trigger)
   arglist={}
   while true do
     if get_cmd_pointer>length(cmd) then
-      src_error(sprintf("script "&COLYEL&"%s"&COLRED&" is missing "&COLYEL&"begin"&COLRED&" or "&COLYEL&"("&COLRED,{name[CMD_TEXT]}),name[CMD_POS])
+      src_error(sprintf_utf("script "&COLYEL&"%s"&COLRED&" is missing "&COLYEL&"begin"&COLRED&" or "&COLYEL&"("&COLRED,{name[CMD_TEXT]}),name[CMD_POS])
     end if
     this=get_cmd()
     if compare("begin",this[CMD_TEXT])=0 then
@@ -1730,18 +1824,18 @@ procedure parse_script(sequence trigger)
     else
       temp=alpha_tree_data(reserved,this[CMD_TEXT],3)
       if temp<=RESERVE_UNIMPLEMENTED then
-        err_string=sprintf(
+        err_string=sprintf_utf(
           "%s "&COLYEL&"%s"&COLRED&" is not permitted inside a script.",{RESERVE_NAMES[alpha_tree_data(reserved,this[CMD_TEXT],0)],this[CMD_TEXT]}
         )
         if temp=RESERVE_CORE then
-          err_string&=sprintf(" Perhaps "&COLYEL&"%s"&COLRED&" has an extra "&COLYEL&"begin"&COLRED&" or "&COLYEL&"("&COLRED,{name[CMD_TEXT]})
+          err_string&=sprintf_utf(" Perhaps "&COLYEL&"%s"&COLRED&" has an extra "&COLYEL&"begin"&COLRED&" or "&COLYEL&"("&COLRED,{name[CMD_TEXT]})
         end if
         src_error(err_string,this[CMD_POS])
       end if
     end if
     if get_cmd_pointer>length(cmd) then
       src_error(
-        sprintf(
+        sprintf_utf(
            "script "&COLYEL&"%s"&COLRED&" is missing "&COLYEL&"end"&COLRED&" or "&COLYEL&")"&COLRED
           ,{name[CMD_TEXT]}
         )
@@ -1784,7 +1878,7 @@ procedure parse_top_level()
     else
       check_for_reserved(this[CMD_TEXT],this[CMD_POS],"top-level declaration")
       src_error(
-        sprintf(
+        sprintf_utf(
           "Expected top-level declaration but found "&COLYEL&"%s"&COLRED
           ,{this[CMD_TEXT]}
         )
@@ -1810,27 +1904,27 @@ procedure dump_script_and_function_info(integer fh,sequence list)
       id_string=sprintf("ID=%d",{this[PAIR_NUM]})
     end if
     src_position=decode_srcpos(this[FUNC_POS])
-    printf(fh,"%s %d\t%s\t%s(",{
+    print_utf(fh,"%s %d\t%s\t%s(",{
        src_position[POS_FILENAME]
       ,src_position[POS_LINE]
       ,id_string
       ,this[PAIR_NAME]
     })
     if equal(this[FUNC_ARGS],VAR_ARGS) then
-      printf(fh,"VARIABLE ARGS",{})
+      print_utf(fh,"VARIABLE ARGS",{})
     else
       for j=1 to length(this[FUNC_ARGS]) do
         if j>1 then
-          printf(fh,",",{})
+          print_utf(fh,",",{})
         end if
         if equal(this[FUNC_ARGS][j],NO_DEFAULT) then
-          printf(fh,"NONE",{})
+          print_utf(fh,"NONE",{})
         else
-          printf(fh,"%d",{this[FUNC_ARGS][j]})
+          print_utf(fh,"%d",{this[FUNC_ARGS][j]})
         end if
       end for
     end if
-    printf(fh,")\n",{})
+    print_utf(fh,")\n",{})
   end for
 end procedure
 
@@ -1842,7 +1936,7 @@ function seek_string_by_id(integer id,sequence list,sequence name)
   if at then
     return(list[at][PAIR_NAME])
   else  
-    simple_error(sprintf("decompiler couldnt find %s ID "&COLYEL&"%d"&COLRED,{name,id}))
+    simple_error(sprintf_utf("decompiler couldnt find %s ID "&COLYEL&"%d"&COLRED,{name,id}))
   end if
   return("")
 end function
@@ -1860,7 +1954,7 @@ function name_lookup(sequence pair)
     if at then
       return(global_list[PAIR_NAME][at])
     else  
-      simple_error(sprintf("decompiler couldnt find global variable ID "&COLYEL&"%d"&COLRED,{pair[2]}))
+      simple_error(sprintf_utf("decompiler couldnt find global variable ID "&COLYEL&"%d"&COLRED,{pair[2]}))
     end if
   elsif pair[1]=KIND_FLOW then
     return(seek_string_by_id(pair[2],flow_list,"flow control structure"))
@@ -1871,7 +1965,7 @@ function name_lookup(sequence pair)
   elsif pair[1]=KIND_MATH then
     return(seek_string_by_id(pair[2],math_list,"built-in function"))
   else  
-    simple_error(sprintf("decompiler found illegal kind "&COLYEL&"%d"&COLRED,{pair[1]}))
+    simple_error(sprintf_utf("decompiler found illegal kind "&COLYEL&"%d"&COLRED,{pair[1]}))
   end if
 end function
 
@@ -1898,8 +1992,8 @@ function dump_script_binary(sequence bin,integer offset,integer depth)
   result=""
   kind_and_id={binstring_to_int(bin[offset*4+1..offset*4+4]),binstring_to_int(bin[offset*4+5..offset*4+8])}
   kind=kind_and_id[1]
-  result&=sprintf("%s%s",{
-     repeat(' ',depth)--indent
+  result&=sprintf_utf("%s%s",{
+     repeat(' ',depth)  --indent
     ,name_lookup(kind_and_id)
   })
   if kind=KIND_FLOW or kind=KIND_SCRIPT or kind=KIND_FUNCTION or kind=KIND_MATH then
@@ -1927,7 +2021,7 @@ function dump_script_tree(sequence tree,integer depth)
   sequence result
   result=""
     for i=1 to length(tree)  do
-      result&=sprintf("%s%s",{
+      result&=sprintf_utf("%s%s",{
          repeat(' ',depth)--indent
         ,tree[i][TREE_TRUNK][CMD_TEXT]
       })
@@ -1958,7 +2052,8 @@ function dump_script_strings(sequence bin)
   offset=1
   while offset<length(bin) do
     len=binstring_to_int(bin[offset..offset+3])
-    result&=sprintf("string offset %-4d: \"%s\"\n",{offset/4,bin[offset+4..offset+4+len-1]})
+    result&=sprintf("string offset %-4d: \"",{offset/4})
+    result&=bin[offset+4..offset+4+len-1] & "\"\n"
     offset+=4+len
     if remainder(len,4) then
       offset+=4-remainder(len,4)
@@ -1984,30 +2079,30 @@ procedure dump_debug_report()
     if fh!=failure then
       wrap_print("writing debug report file "&COLBWHI&"%s"&COLWHI&"\n",{debug_file})  
       -------------------------------------
-      printf(fh,"[Scripts]\n",{})
+      print_utf(fh,"[Scripts]\n",{})
       dump_script_and_function_info(fh,script_list)
-      printf(fh,"\n",{})
+      print_utf(fh,"\n",{})
       -------------------------------------
-      printf(fh,"[Global Variables]\n",{})
+      print_utf(fh,"[Global Variables]\n",{})
       for i=1 to length(global_list[PAIR_NUM]) do
         src_position=decode_srcpos(global_list[GLB_POS][i])
-        printf(fh,"%s %d\tID=%d\t%s\n",{
+        print_utf(fh,"%s %d\tID=%d\t%s\n",{
            src_position[POS_FILENAME]
           ,src_position[POS_LINE]
           ,global_list[PAIR_NUM][i]
           ,global_list[PAIR_NAME][i]
         })
       end for
-      printf(fh,"\n",{})
+      print_utf(fh,"\n",{})
       -------------------------------------
-      printf(fh,"[Builtin Functions]\n",{})
+      print_utf(fh,"[Builtin Functions]\n",{})
       dump_script_and_function_info(fh,function_list)
-      printf(fh,"\n",{})
+      print_utf(fh,"\n",{})
       -------------------------------------
-      printf(fh,"[Operators]\n",{})
+      print_utf(fh,"[Operators]\n",{})
       for i=1 to length(operator_list) do
         src_position=decode_srcpos(operator_list[i][OPER_POS])
-        printf(fh,"%s %d\t%s\t%s\tPriority=%d\n",{
+        print_utf(fh,"%s %d\t%s\t%s\tPriority=%d\n",{
            src_position[POS_FILENAME]
           ,src_position[POS_LINE]
           ,operator_list[i][PAIR_NAME]
@@ -2015,19 +2110,19 @@ procedure dump_debug_report()
           ,operator_list[i][PAIR_NUM]
         })
       end for
-      printf(fh,"\n",{})
+      print_utf(fh,"\n",{})
       -------------------------------------
-      printf(fh,"[Script Dumps]\n",{})
+      print_utf(fh,"[Script Dumps]\n",{})
       for i=1 to length(all_scripts) do
         src_position=decode_srcpos(all_scripts[i][4])
-        printf(fh,"%s %d\tID=%d\t%s\n",{
+        print_utf(fh,"%s %d\tID=%d\t%s\n",{
            src_position[POS_FILENAME]
           ,src_position[POS_LINE]
           ,all_scripts[i][1]
           ,all_scripts[i][3]
         })
         src_position=decode_srcpos(script_cmd[i][1][CMD_POS])
-        printf(fh,"%s %d\tTrigger=%d\t%s\n",{
+        print_utf(fh,"%s %d\tTrigger=%d\t%s\n",{
            src_position[POS_FILENAME]
           ,src_position[POS_LINE]
           ,all_scripts[i][2]
@@ -2035,18 +2130,18 @@ procedure dump_debug_report()
         })
         for j=1 to length(all_scripts[i][6]) do
           src_position=decode_srcpos(all_scripts[i][6][j][CMD_POS])
-          printf(fh,"%s %d\tvar=%s\n",{
+          print_utf(fh,"%s %d\tvar=%s\n",{
              src_position[POS_FILENAME]
             ,src_position[POS_LINE]
             ,all_scripts[i][6][j][CMD_TEXT]
           })
         end for
-        printf(fh,"%d bytes compiled\n",{length(all_scripts[i][7])})
---        printf(fh,"%s\n\n",{dump_script_tree(all_scripts[i][5],0)})
-        printf(fh,"%s",{dump_script_binary(all_scripts[i][7][CODE_START_BYTE_OFFSET+1..$],0,0)})
-        printf(fh,"%s\n\n",{dump_script_strings(all_scripts[i][7])})
+        print_utf(fh,"%d bytes compiled\n",{length(all_scripts[i][7])})
+--        print_utf(fh,"%s\n\n",{dump_script_tree(all_scripts[i][5],0)})
+        print_utf(fh,"%s",{dump_script_binary(all_scripts[i][7][CODE_START_BYTE_OFFSET+1..$],0,0)})
+        print_utf(fh,"%s\n\n",{dump_script_strings(all_scripts[i][7])})
       end for
-      printf(fh,"\n",{})
+      print_utf(fh,"\n",{})
       -------------------------------------
       close(fh)
     else
@@ -2121,7 +2216,7 @@ function what_kind_and_id(sequence command,sequence local_vars)
     kind=KIND_MACRO
     id=0
   else
-    src_error(sprintf("Unrecognised name "&COLYEL&"%s"&COLRED&". It has not been defined as script, constant, variable, or anything else",{s}),command[CMD_POS])
+    src_error(sprintf_utf("Unrecognised name "&COLYEL&"%s"&COLRED&". It has not been defined as script, constant, variable, or anything else",{s}),command[CMD_POS])
   end if
   return({kind,id})
 end function
@@ -2158,7 +2253,7 @@ function what_kind(sequence command,sequence local_vars, integer look_for_operat
   elsif keyword=RESERVE_MACRO then
     kind=KIND_MACRO
   else
-    src_error(sprintf("Unrecognised name "&COLYEL&"%s"&COLRED&". It has not been defined as script, constant, variable, or anything else",{s}),command[CMD_POS])
+    src_error(sprintf_utf("Unrecognised name "&COLYEL&"%s"&COLRED&". It has not been defined as script, constant, variable, or anything else",{s}),command[CMD_POS])
   end if
   return(kind)
 end function
@@ -2295,14 +2390,14 @@ function gather_local_vars(sequence vars,sequence data)
     ptr+=1
     if compare("variable",this[CMD_TEXT])=0 then
       if ptr>length(data) then
-        src_error(sprintf(COLYEL&"variable"&COLRED&" should be followed by "&COLYEL&"(name)"&COLRED,{}),this[CMD_POS])
+        src_error(sprintf_utf(COLYEL&"variable"&COLRED&" should be followed by "&COLYEL&"(name)"&COLRED,{}),this[CMD_POS])
       end if
       this=data[ptr]
       ptr+=1
       if compare("begin",this[CMD_TEXT])=0 then
         while true do
           if ptr>length(data) then
-            src_error(sprintf(COLYEL&"variable"&COLRED&" should be followed by "&COLYEL&"(name)"&COLRED,{}),this[CMD_POS])
+            src_error(sprintf_utf(COLYEL&"variable"&COLRED&" should be followed by "&COLYEL&"(name)"&COLRED,{}),this[CMD_POS])
           end if
           this=data[ptr]
           ptr+=1
@@ -2314,7 +2409,7 @@ function gather_local_vars(sequence vars,sequence data)
           if at then
             src_position=decode_srcpos(vars[at][CMD_POS])
             src_error(
-              sprintf(
+              sprintf_utf(
                 "local variable/argument "&COLYEL&"%s"&COLRED&" is already defined in line %d of "&COLPNK&"%s"&COLRED,
                 {this[CMD_TEXT],src_position[POS_LINE],src_position[POS_FILENAME]}
               )
@@ -2325,7 +2420,7 @@ function gather_local_vars(sequence vars,sequence data)
           end if
         end while
       else
-        src_error(sprintf(COLYEL&"variable"&COLRED&" should be followed by "&COLYEL&"(name)"&COLRED,{}),this[CMD_POS])
+        src_error(sprintf_utf(COLYEL&"variable"&COLRED&" should be followed by "&COLYEL&"(name)"&COLRED,{}),this[CMD_POS])
       end if
     end if
     if ptr>length(data) then
@@ -2372,12 +2467,12 @@ function expand_macros(sequence tree)
       pos=tree[ptr][TREE_TRUNK][CMD_POS]
       src_position=decode_srcpos(pos)
       if length(tree[ptr][TREE_BRANCHES])!=1 then
-        src_error(sprintf(COLYEL&"assert"&COLRED&" statement takes exactly one argument: a condition. It has %d",{length(tree[ptr][TREE_BRANCHES])}),pos)        
+        src_error(sprintf_utf(COLYEL&"assert"&COLRED&" statement takes exactly one argument: a condition. It has %d",{length(tree[ptr][TREE_BRANCHES])}),pos)        
       end if
       newtree={{{"if",pos},{}}, {{"then",pos},{}}}
       newtree[1][TREE_BRANCHES]={{{"not",pos},{tree[ptr][TREE_BRANCHES][1]}}}
 
-      new_string=sprintf("%s:%d: %s",{src_position[POS_FILENAME],src_position[POS_LINE],tree_original_text(tree[ptr][TREE_BRANCHES][1])})
+      new_string=sprintf_utf("%s:%d: %s",{src_position[POS_FILENAME],src_position[POS_LINE],tree_original_text(tree[ptr][TREE_BRANCHES][1])})
       string_list=append(string_list,new_string)
       string_token={sprintf("@$string%d",{length(string_list)}),pos}
 
@@ -2409,12 +2504,12 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
     pos=tree[ptr][TREE_TRUNK][CMD_POS]
     if compare("if",s)=0 then
       if length(tree[ptr][TREE_BRANCHES])>1 then
-        src_error(sprintf(
+        src_error(sprintf_utf(
                       COLYEL&"if"&COLRED&" statement has %d conditions. It should have only one. Use "&COLYEL&"&&"&COLRED&" and "&COLYEL&"||"&COLRED&" for complex conditions"
                       ,{length(tree[ptr][TREE_BRANCHES])}
                     ),tree[ptr][TREE_BRANCHES][2][TREE_TRUNK][CMD_POS])
       elsif length(tree[ptr][TREE_BRANCHES])=0 then
-        src_error(sprintf(COLYEL&"if"&COLRED&" statement has no condition. It should have one.",{}),pos)
+        src_error(sprintf_utf(COLYEL&"if"&COLRED&" statement has no condition. It should have one.",{}),pos)
       end if
       if ptr<length(tree) then
         --there is room
@@ -2445,7 +2540,7 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
           tree=delete_element(tree,ptr+1)
         else  
           --found neither then nor else
-          src_error(sprintf("expected "&COLYEL&"then"&COLRED&" or "&COLYEL&"else"&COLRED&" but found "&COLYEL&"%s"&COLRED,{tree[ptr+1][TREE_TRUNK][CMD_TEXT]}),tree[ptr+1][TREE_TRUNK][CMD_POS])
+          src_error(sprintf_utf("expected "&COLYEL&"then"&COLRED&" or "&COLYEL&"else"&COLRED&" but found "&COLYEL&"%s"&COLRED,{tree[ptr+1][TREE_TRUNK][CMD_TEXT]}),tree[ptr+1][TREE_TRUNK][CMD_POS])
         end if
       else
         --no room for then or else
@@ -2461,12 +2556,12 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
       end if
     elsif compare("while",s)=0 then
       if length(tree[ptr][TREE_BRANCHES])>1 then
-        src_error(sprintf(
+        src_error(sprintf_utf(
                   COLYEL&"while"&COLRED&" statement has %d conditions. It should have only one. Use "&COLYEL&"&&"&COLRED&" and "&COLYEL&"||"&COLRED&" for complex conditions"
                   ,{length(tree[ptr][TREE_BRANCHES])}
                   ),tree[ptr][TREE_BRANCHES][2][TREE_TRUNK][CMD_POS])
       elsif length(tree[ptr][TREE_BRANCHES])=0 then
-        src_error(sprintf(COLYEL&"while"&COLRED&" statement has no condition. It should have one.",{}),pos)
+        src_error(sprintf_utf(COLYEL&"while"&COLRED&" statement has no condition. It should have one.",{}),pos)
       end if
       if ptr<length(tree) then
         --there is room
@@ -2475,16 +2570,16 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
           tree[ptr][TREE_BRANCHES]=append(tree[ptr][TREE_BRANCHES],tree[ptr+1])
           tree=delete_element(tree,ptr+1)
         else
-          src_error(sprintf(COLYEL&"while"&COLRED&" should be followed by "&COLYEL&"do"&COLRED&", not by "&COLYEL&"%s"&COLRED&".",{tree[ptr+1][TREE_TRUNK][CMD_TEXT]}),tree[ptr+1][TREE_TRUNK][CMD_POS])
+          src_error(sprintf_utf(COLYEL&"while"&COLRED&" should be followed by "&COLYEL&"do"&COLRED&", not by "&COLYEL&"%s"&COLRED&".",{tree[ptr+1][TREE_TRUNK][CMD_TEXT]}),tree[ptr+1][TREE_TRUNK][CMD_POS])
         end if
       else  
-        src_error(sprintf(COLYEL&"while"&COLRED&" should be followed by "&COLYEL&"do"&COLRED,{}),pos)
+        src_error(sprintf_utf(COLYEL&"while"&COLRED&" should be followed by "&COLYEL&"do"&COLRED,{}),pos)
       end if    
     elsif compare("for",s)=0 then
       if length(tree[ptr][TREE_BRANCHES])<3 then
-        src_error(sprintf(COLYEL&"for"&COLRED&" statement needs three arguments",{}),pos)
+        src_error(sprintf_utf(COLYEL&"for"&COLRED&" statement needs three arguments",{}),pos)
       elsif length(tree[ptr][TREE_BRANCHES])>4 then
-        src_error(sprintf(COLYEL&"for"&COLRED&" statement has too many arguments (%d)",{length(tree[ptr][TREE_BRANCHES])}),tree[ptr][TREE_BRANCHES][5][TREE_TRUNK][CMD_POS])
+        src_error(sprintf_utf(COLYEL&"for"&COLRED&" statement has too many arguments (%d)",{length(tree[ptr][TREE_BRANCHES])}),tree[ptr][TREE_BRANCHES][5][TREE_TRUNK][CMD_POS])
       elsif length(tree[ptr][TREE_BRANCHES])=3 then
         --append default step value
         tree[ptr][TREE_BRANCHES]=append(tree[ptr][TREE_BRANCHES],{{"1",tree[ptr][TREE_TRUNK][CMD_POS]},{}})
@@ -2497,7 +2592,7 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
         tree[ptr][TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT]=sprintf("-%d",{var_at})
       elsif argkind=KIND_GLOBAL then
         --warn, then translate into a numeric reference to a variable
-        src_warn(sprintf(
+        src_warn(sprintf_utf(
           "Using global variable "&COLYEL&"%s"&COLRED&" as the counter in a "&COLYEL&"for"&COLRED&" loop"
          ,{tree[ptr][TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT]}
         ),tree[ptr][TREE_BRANCHES][1][TREE_TRUNK][CMD_POS])
@@ -2506,7 +2601,7 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
       else  
         --only variables allowed as the first argument of a "for"
         src_error(
-           sprintf("first argument of "&COLYEL&"for"&COLRED&" statement must be a variable, not %s "&COLYEL&"%s"&COLRED,{
+           sprintf_utf("first argument of "&COLYEL&"for"&COLRED&" statement must be a variable, not %s "&COLYEL&"%s"&COLRED,{
               KIND_LONGNAMES[argkind]
              ,tree[ptr][TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT]
            })
@@ -2520,23 +2615,23 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
           tree[ptr][TREE_BRANCHES]=append(tree[ptr][TREE_BRANCHES],tree[ptr+1])
           tree=delete_element(tree,ptr+1)
         else
-          src_error(sprintf(COLYEL&"for"&COLRED&" should be followed by "&COLYEL&"do"&COLRED&", not by "&COLYEL&"%s"&COLRED&".",{tree[ptr+1][TREE_TRUNK][CMD_TEXT]}),tree[ptr+1][TREE_TRUNK][CMD_POS])
+          src_error(sprintf_utf(COLYEL&"for"&COLRED&" should be followed by "&COLYEL&"do"&COLRED&", not by "&COLYEL&"%s"&COLRED&".",{tree[ptr+1][TREE_TRUNK][CMD_TEXT]}),tree[ptr+1][TREE_TRUNK][CMD_POS])
         end if
       else  
-        src_error(sprintf(COLYEL&"for"&COLRED&" should be followed by "&COLYEL&"do"&COLRED,{}),pos)
+        src_error(sprintf_utf(COLYEL&"for"&COLRED&" should be followed by "&COLYEL&"do"&COLRED,{}),pos)
       end if
     elsif compare("return",s)=0 or compare("exitreturning",s)=0 then
       if length(tree[ptr][TREE_BRANCHES])>1 then
-        src_error(sprintf(
+        src_error(sprintf_utf(
                       COLYEL&s&COLRED&" statement has %d arguments. It should have only one."
                       ,{length(tree[ptr][TREE_BRANCHES])}
                     ),tree[ptr][TREE_BRANCHES][2][TREE_TRUNK][CMD_POS])
       elsif length(tree[ptr][TREE_BRANCHES])=0 then
-        src_error(sprintf(COLYEL&s&COLRED&" statement has no argument. It should have one. Prehaps you meant to use "&COLYEL&"exit script"&COLRED,{}),pos)
+        src_error(sprintf_utf(COLYEL&s&COLRED&" statement has no argument. It should have one. Prehaps you meant to use "&COLYEL&"exit script"&COLRED,{}),pos)
       end if
     elsif compare("break",s)=0 or compare("continue",s)=0 then
       if length(tree[ptr][TREE_BRANCHES])>1 then
-        src_error(sprintf(
+        src_error(sprintf_utf(
                       COLYEL&s&COLRED&" statement has %d arguments. It should have no more than one."
                       ,{length(tree[ptr][TREE_BRANCHES])}
                     ),tree[ptr][TREE_BRANCHES][2][TREE_TRUNK][CMD_POS])
@@ -2546,19 +2641,19 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
       end if
     elsif compare("exitscript",s)=0 then
       if length(tree[ptr][TREE_BRANCHES])>0 then
-        src_error(sprintf(
+        src_error(sprintf_utf(
                       COLYEL&s&COLRED&" statement has %d arguments. It should have none. Prehaps you meant to use "&COLYEL&"exit returning"&COLRED
                       ,{length(tree[ptr][TREE_BRANCHES])}
                     ),tree[ptr][TREE_BRANCHES][1][TREE_TRUNK][CMD_POS])
       end if
     elsif compare("switch",s)=0 then
       if length(tree[ptr][TREE_BRANCHES])>1 then
-        src_error(sprintf(
+        src_error(sprintf_utf(
                       COLYEL&s&COLRED&" statement has %d expressions. It should have only one."
                       ,{length(tree[ptr][TREE_BRANCHES])}
                     ),tree[ptr][TREE_BRANCHES][2][TREE_TRUNK][CMD_POS])
       elsif length(tree[ptr][TREE_BRANCHES])=0 then
-        src_error(sprintf(
+        src_error(sprintf_utf(
                       COLYEL&s&COLRED&" statement has no expression to match! Write "&COLYEL&"switch (expression) do (...)"&COLRED
                       ,{length(tree[ptr][TREE_BRANCHES])}
                     ),pos)
@@ -2570,7 +2665,7 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
           for j=1 to length(tree[ptr+1][TREE_BRANCHES]) do
             argpos=tree[ptr+1][TREE_BRANCHES][j][TREE_TRUNK][CMD_POS]
             if j=1 and compare("case",tree[ptr+1][TREE_BRANCHES][j][TREE_TRUNK][CMD_TEXT]) then
-              src_error(sprintf(COLYEL&"switch() do("&COLRED&" should be followed with a "&COLYEL&"case"&COLRED&", not with "&COLYEL&"%s"&COLRED&"."
+              src_error(sprintf_utf(COLYEL&"switch() do("&COLRED&" should be followed with a "&COLYEL&"case"&COLRED&", not with "&COLYEL&"%s"&COLRED&"."
                                 ,{tree[ptr+1][TREE_BRANCHES][j][TREE_TRUNK][CMD_TEXT]}),argpos)
             end if
             if compare("else",tree[ptr+1][TREE_BRANCHES][j][TREE_TRUNK][CMD_TEXT])=0 then
@@ -2578,7 +2673,7 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
                 --convert the else to a do
                 tree[ptr][TREE_BRANCHES]&={ {{"do",argpos},tree[ptr+1][TREE_BRANCHES][j][TREE_BRANCHES]} }
               else
-                src_error(sprintf(COLYEL&"else"&COLRED&" should be last statement inside a "&COLYEL&"switch"&COLRED&" block",{}),argpos)
+                src_error(sprintf_utf(COLYEL&"else"&COLRED&" should be last statement inside a "&COLYEL&"switch"&COLRED&" block",{}),argpos)
               end if
             elsif compare("case",tree[ptr+1][TREE_BRANCHES][j][TREE_TRUNK][CMD_TEXT])=0 then
               --expand case
@@ -2590,18 +2685,18 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
                 tree[ptr][TREE_BRANCHES]&={ {{"do",pos},{}} }
               end if
             else
-              src_error(sprintf("Expected "&COLYEL&"case(...) do"&COLRED&" or "&COLYEL&"else"&COLRED&", but found "&COLYEL&"%s"&COLRED&".",{tree[ptr+1][TREE_BRANCHES][j][TREE_TRUNK][CMD_TEXT]}),argpos)
+              src_error(sprintf_utf("Expected "&COLYEL&"case(...) do"&COLRED&" or "&COLYEL&"else"&COLRED&", but found "&COLYEL&"%s"&COLRED&".",{tree[ptr+1][TREE_BRANCHES][j][TREE_TRUNK][CMD_TEXT]}),argpos)
             end if
           end for
           tree=delete_element(tree,ptr+1)
         else
-          src_error(sprintf(COLYEL&"switch"&COLRED&" should be followed by "&COLYEL&"do"&COLRED&", not by "&COLYEL&"%s"&COLRED&".",{tree[ptr+1][TREE_TRUNK][CMD_TEXT]}),tree[ptr+1][TREE_TRUNK][CMD_POS])
+          src_error(sprintf_utf(COLYEL&"switch"&COLRED&" should be followed by "&COLYEL&"do"&COLRED&", not by "&COLYEL&"%s"&COLRED&".",{tree[ptr+1][TREE_TRUNK][CMD_TEXT]}),tree[ptr+1][TREE_TRUNK][CMD_POS])
         end if
       else  
-        src_error(sprintf(COLYEL&"switch"&COLRED&" should be followed by "&COLYEL&"do"&COLRED,{}),pos)
+        src_error(sprintf_utf(COLYEL&"switch"&COLRED&" should be followed by "&COLYEL&"do"&COLRED,{}),pos)
       end if
     elsif compare("case",s)=0 then
-      src_error(sprintf(COLYEL&"case"&COLRED&" is not allowed outside of "&COLYEL&"switch"&COLRED,{}),pos)
+      src_error(sprintf_utf(COLYEL&"case"&COLRED&" is not allowed outside of "&COLYEL&"switch"&COLRED,{}),pos)
     end if
     tree[ptr][TREE_BRANCHES]=normalize_flow_control(tree[ptr][TREE_BRANCHES],vars,tree[ptr][TREE_TRUNK][CMD_TEXT])
     ptr+=1
@@ -2625,10 +2720,10 @@ function convert_operators_recurse(sequence tree,integer priority)
             --has no args. if it has args, we assume it is an "or" "and" or "xor" that has already been converted
             if ptr=1 then
               --there is no room for the before-operands. Bad!
-              src_error(sprintf("operator "&COLYEL&"%s"&COLRED&" is missing its left-side operand",{tree[ptr][TREE_TRUNK][CMD_TEXT]}),tree[ptr][TREE_TRUNK][CMD_POS])
+              src_error(sprintf_utf("operator "&COLYEL&"%s"&COLRED&" is missing its left-side operand",{tree[ptr][TREE_TRUNK][CMD_TEXT]}),tree[ptr][TREE_TRUNK][CMD_POS])
             elsif ptr=length(tree) then
               --there is no room for the after-operand. Bad!
-              src_error(sprintf("operator "&COLYEL&"%s"&COLRED&" is missing its right-side operand",{tree[ptr][TREE_TRUNK][CMD_TEXT]}),tree[ptr][TREE_TRUNK][CMD_POS])
+              src_error(sprintf_utf("operator "&COLYEL&"%s"&COLRED&" is missing its right-side operand",{tree[ptr][TREE_TRUNK][CMD_TEXT]}),tree[ptr][TREE_TRUNK][CMD_POS])
             else
               --convert the operator to its true function name (which might be the same)
               tree[ptr][TREE_TRUNK][CMD_TEXT]=operator_list[j][OPER_TRUENAME]
@@ -2683,7 +2778,7 @@ function fix_arguments(sequence tree,integer kind,sequence list,sequence vars)
     maxargs=length(list[at][FUNC_ARGS])
   end if
   if maxargs < argnum then
-    src_error(sprintf(
+    src_error(sprintf_utf(
       "%s "&COLYEL&"%s"&COLRED&" takes at most %d arguments but is being passed %d arguments"
       ,{KIND_LONGNAMES[kind],tree[TREE_TRUNK][CMD_TEXT],maxargs,argnum}
     ),tree[TREE_BRANCHES][maxargs+1][TREE_TRUNK][CMD_POS])
@@ -2693,7 +2788,7 @@ function fix_arguments(sequence tree,integer kind,sequence list,sequence vars)
       --special processing for math
       if list[at][PAIR_NUM]<16 or list[at][PAIR_NUM]>=19 then
         --math shouldnt have defaults
-        src_error(sprintf(
+        src_error(sprintf_utf(
           "math function "&COLYEL&"%s"&COLRED&" is being passed %d arguments but it should always have %d"
           ,{tree[TREE_TRUNK][CMD_TEXT],argnum,maxargs}
         ),tree[TREE_TRUNK][CMD_POS])
@@ -2701,7 +2796,7 @@ function fix_arguments(sequence tree,integer kind,sequence list,sequence vars)
         --variable assignment commands can have defaults
         if argnum = 0 then
           --no defaults for first argument of variable function
-          src_error(sprintf(
+          src_error(sprintf_utf(
             "variable manipulation function "&COLYEL&"%s"&COLRED&" has %d arguments - it needs at least 1"
             ,{tree[TREE_TRUNK][CMD_TEXT],argnum}
           ),tree[TREE_TRUNK][CMD_POS])
@@ -2726,7 +2821,7 @@ function fix_arguments(sequence tree,integer kind,sequence list,sequence vars)
       --normal processing for script and function
       for i=argnum+1 to maxargs do
         if equal(list[at][FUNC_ARGS][i],NO_DEFAULT) then
-          src_error(sprintf(
+          src_error(sprintf_utf(
             "%s "&COLYEL&"%s"&COLRED&" has no default for missing argument %d"
             ,{KIND_LONGNAMES[kind],tree[TREE_TRUNK][CMD_TEXT],i}
           ),tree[TREE_TRUNK][CMD_POS])
@@ -2751,7 +2846,7 @@ function fix_arguments(sequence tree,integer kind,sequence list,sequence vars)
       tree[TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT]=sprintf("%d",{global_list[PAIR_NUM][var_at]})
     else
       --its not a variable. bad!
-      src_error(sprintf(
+      src_error(sprintf_utf(
         "first argument of variable manipulation function "&COLYEL&"%s"&COLRED&" must be a variable, not %s "&COLYEL&"%s"&COLRED
         ,{tree[TREE_TRUNK][CMD_TEXT],KIND_LONGNAMES[argkind],tree[TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT]}
       ),tree[TREE_BRANCHES][1][TREE_TRUNK][CMD_POS])
@@ -2805,14 +2900,32 @@ end function
 
 ---------------------------------------------------------------------------
 
+--Encode a unicode (UTF32/native Euphoria) string in the format the engine
+--requires, which is currently Latin-1
+function encode_ohr(sequence string, integer maxbytes=0)
+  for i=1 to length(string) do
+    if string[i]>=256 then
+      string[i]='?'
+    end if
+  end for
+  if maxbytes and maxbytes<length(string) then
+    string=string[1..maxbytes]
+  end if
+  return string
+end function
+
+---------------------------------------------------------------------------
+
 --add a string to the table for this script, return its offset
 function table_string(integer id)
   integer len
   integer offset
+  sequence string
   offset=length(string_table)/4
-  len=length(string_list[id])
+  string=encode_ohr(string_list[id])
+  len=length(string)
   string_table&=int_to_bytes(len)
-  string_table&=string_list[id]
+  string_table&=string
   if remainder(len,4) then
     string_table&=repeat(0,4-remainder(len,4))
   end if
@@ -2860,7 +2973,7 @@ function binary_compile_recurse(sequence tree,sequence vars,sequence done_code)
           result&=KIND_NUMBER
           result&=table_string(value_temp[2])
         else
-          src_error(sprintf("reference "&COLYEL&"@%s"&COLRED&" could not be resolved: must be the name of a global variable or a script",{str_temp}),tree[TREE_TRUNK][CMD_POS])
+          src_error(sprintf_utf("reference "&COLYEL&"@%s"&COLRED&" could not be resolved: must be the name of a global variable or a script",{str_temp}),tree[TREE_TRUNK][CMD_POS])
         end if
       end if
     end if
@@ -2908,7 +3021,7 @@ function binary_compile_recurse(sequence tree,sequence vars,sequence done_code)
       result[3+i]=offset
     end for
   else
-    src_error(sprintf("Compiler Bug! Illegal kind "&COLYEL&"%d"&COLRED&" for "&COLYEL&"%s"&COLRED,{kind,s}),tree[TREE_TRUNK][CMD_POS])
+    src_error(sprintf_utf("Compiler Bug! Illegal kind "&COLYEL&"%d"&COLRED&" for "&COLYEL&"%s"&COLRED,{kind,s}),tree[TREE_TRUNK][CMD_POS])
   end if
   if not fast_mode then
     at=match(result,done_code)
@@ -2957,7 +3070,7 @@ function binary_compile(integer id,sequence tree,sequence vars)
   --commands that tend to be redundant are the really short ones.
   --the first command is always a "do". there can be only one top-level command
   if length(tree)!=1 then
-    simple_error(sprintf("compiler bug! script tree has %s root nodes",{length(tree)}))
+    simple_error(sprintf_utf("compiler bug! script tree has %s root nodes",{length(tree)}))
   end if
   reenter_timing_zone("binary_compile_recurse")
   compiled_data=binary_compile_recurse(tree[1],vars,"")
@@ -3009,25 +3122,25 @@ function sanity_check(sequence tree,sequence vars,sequence parent)
     if (compare("if",parent)=0) and i=1 then
       if kind=KIND_NUMBER then
         if id then
-          src_warn(sprintf("Condition is always true ("&COLYEL&"%d"&COLRED&")",{id}),tree[i][TREE_TRUNK][CMD_POS])
+          src_warn(sprintf_utf("Condition is always true ("&COLYEL&"%d"&COLRED&")",{id}),tree[i][TREE_TRUNK][CMD_POS])
         else
           src_warn("Condition is always false",tree[i][TREE_TRUNK][CMD_POS])
         end if
       elsif kind=KIND_FLOW then
-        src_warn(sprintf("Should not use flow control command "&COLYEL&"%s"&COLRED&" as condition for if",{s}),tree[i][TREE_TRUNK][CMD_POS])
+        src_warn(sprintf_utf("Should not use flow control command "&COLYEL&"%s"&COLRED&" as condition for if",{s}),tree[i][TREE_TRUNK][CMD_POS])
       end if
     elsif compare("do",parent)=0 or compare("then",parent)=0 or compare("else",parent)=0 then
       if kind=KIND_NUMBER then
-        src_warn(sprintf("Expected script, function, or flow control, but found an expression with value "&COLYEL&"%d"&COLRED&". It will do nothing here."
+        src_warn(sprintf_utf("Expected script, function, or flow control, but found an expression with value "&COLYEL&"%d"&COLRED&". It will do nothing here."
                  ,{id}),tree[i][TREE_TRUNK][CMD_POS])
       elsif kind=KIND_GLOBAL then
-        src_warn(sprintf("Expected script, function, or flow control, but found global variable "&COLYEL&"%s"&COLRED&". It will do nothing here."
+        src_warn(sprintf_utf("Expected script, function, or flow control, but found global variable "&COLYEL&"%s"&COLRED&". It will do nothing here."
                  ,{s}),tree[i][TREE_TRUNK][CMD_POS])
       elsif kind=KIND_LOCAL then
-        src_warn(sprintf("Expected script, function, or flow control, but found local variable "&COLYEL&"%s"&COLRED&". It will do nothing here."
+        src_warn(sprintf_utf("Expected script, function, or flow control, but found local variable "&COLYEL&"%s"&COLRED&". It will do nothing here."
                  ,{vars[id][CMD_TEXT]}),tree[i][TREE_TRUNK][CMD_POS])
       elsif kind=KIND_MATH and (id<=15 or id>=19) then
-        src_warn(sprintf("Expected a statement but found built-in function "&COLYEL&"%s"&COLRED&", returning a value that is being discarded"
+        src_warn(sprintf_utf("Expected a statement but found built-in function "&COLYEL&"%s"&COLRED&", returning a value that is being discarded"
                  ,{s}),tree[i][TREE_TRUNK][CMD_POS])
       end if
     end if
@@ -3105,7 +3218,7 @@ function optimized_arg(sequence tree,sequence vars)
            return(1)
          elsif arg2<0 then
            if arg1=0 then
-             src_error(sprintf("Found the expression (or equivalent) "&COLYEL&"0 ^ %d"&COLRED&". This is division by zero.",{arg2}),tree[TREE_TRUNK][CMD_POS])
+             src_error(sprintf_utf("Found the expression (or equivalent) "&COLYEL&"0 ^ %d"&COLRED&". This is division by zero.",{arg2}),tree[TREE_TRUNK][CMD_POS])
            elsif arg1=1 or arg1=-1 then
              return(power(arg1,arg2))
            else
@@ -3115,13 +3228,13 @@ function optimized_arg(sequence tree,sequence vars)
        elsif id=2 then
          --modulus
          if arg2=0 then
-           src_error(sprintf("Found the expression (or equivalent) "&COLYEL&"%d, mod, 0"&COLRED&". This is division by zero.",{arg1}),tree[TREE_TRUNK][CMD_POS])
+           src_error(sprintf_utf("Found the expression (or equivalent) "&COLYEL&"%d, mod, 0"&COLRED&". This is division by zero.",{arg1}),tree[TREE_TRUNK][CMD_POS])
          end if
          return(floor(remainder(arg1,arg2)))
        elsif id=3 then
          --divide
          if arg2=0 then
-           src_error(sprintf("Found the expression (or equivalent) "&COLYEL&"%d / 0"&COLRED,{arg1}),tree[TREE_TRUNK][CMD_POS])
+           src_error(sprintf_utf("Found the expression (or equivalent) "&COLYEL&"%d / 0"&COLRED,{arg1}),tree[TREE_TRUNK][CMD_POS])
          end if
          --Euphoria doesn't have a truncating function?
          if arg1*arg2<0 then
@@ -3180,7 +3293,7 @@ function optimized_arg(sequence tree,sequence vars)
        elsif id=25 then
          --sqrt
          if arg1<0 then
-           src_error(sprintf("Found the expression (or equivalent) "&COLYEL&"sqrt(%d)"&COLRED,{arg1}),tree[TREE_TRUNK][CMD_POS])
+           src_error(sprintf_utf("Found the expression (or equivalent) "&COLYEL&"sqrt(%d)"&COLRED,{arg1}),tree[TREE_TRUNK][CMD_POS])
          end if
          return(floor(sqrt(arg1)+0.5))
        end if
@@ -3264,7 +3377,7 @@ procedure warn_unused_locals(sequence vars)
   if find('u',optlist) then
     for i=1 to length(vars) do
       if not find(vars[i][CMD_TEXT],used_locals) then
-        src_warn(sprintf("local variable "&COLYEL&"%s"&COLRED&" is never used",{vars[i][CMD_TEXT]}),vars[i][CMD_POS])
+        src_warn(sprintf_utf("local variable "&COLYEL&"%s"&COLRED&" is never used",{vars[i][CMD_TEXT]}),vars[i][CMD_POS])
       end if
     end for
   end if
@@ -3278,7 +3391,7 @@ procedure warn_unused_globals()
     for i=1 to length(global_list[PAIR_NUM]) do
       at=find(global_list[PAIR_NAME][i],used_globals)
       if not at then
-        src_warn(sprintf("global variable "&COLYEL&"%s"&COLRED&" ID "&COLYEL&"%d"&COLRED&" is never used",{global_list[PAIR_NAME][i],global_list[PAIR_NUM][i]}),global_list[GLB_POS][i])
+        src_warn(sprintf_utf("global variable "&COLYEL&"%s"&COLRED&" ID "&COLYEL&"%d"&COLRED&" is never used",{global_list[PAIR_NAME][i],global_list[PAIR_NUM][i]}),global_list[GLB_POS][i])
       end if
     end for
   end if
@@ -3359,11 +3472,11 @@ function process_arglist(sequence args)
     end if
     check_undefined_string(args[i],"argument name")
     if find(args[i][CMD_TEXT],column(arglist,CMD_TEXT)) then
-      src_error(sprintf("Multiple script arguments named "&COLYEL&"%s"&COLRED&" in argument list",{args[i][CMD_TEXT]}),args[i][CMD_POS])
+      src_error(sprintf_utf("Multiple script arguments named "&COLYEL&"%s"&COLRED&" in argument list",{args[i][CMD_TEXT]}),args[i][CMD_POS])
     end if
     if i<length(args) and compare("=",args[i+1][CMD_TEXT])=0 then
       if i+2>length(args) then
-        src_error(sprintf("Syntax error: expected default value for script argument "&COLYEL&"%s"&COLRED,{args[i][CMD_TEXT]}),args[i+1][CMD_POS])
+        src_error(sprintf_utf("Syntax error: expected default value for script argument "&COLYEL&"%s"&COLRED,{args[i][CMD_TEXT]}),args[i+1][CMD_POS])
       end if
       arglist=append(arglist,args[i])
       defaults&=try_string_to_number({enforce_constants(args[i+2][CMD_TEXT]),args[i+2][CMD_POS]})
@@ -3372,7 +3485,7 @@ function process_arglist(sequence args)
     else
       if using_defaults=true then
         --any argument with a default must be followed with arguments with defaults
-        src_error(sprintf("Default value missing for argument "&COLYEL&"%s"&COLRED&": the previous argument had a default value, so all following ones must too",{args[i][CMD_TEXT]}),args[i][CMD_POS])
+        src_error(sprintf_utf("Default value missing for argument "&COLYEL&"%s"&COLRED&": the previous argument had a default value, so all following ones must too",{args[i][CMD_TEXT]}),args[i][CMD_POS])
       end if
       arglist=append(arglist,args[i])
       defaults=append(defaults,NO_DEFAULT)
@@ -3407,7 +3520,7 @@ procedure check_script_declarations()
       if scripts_found[at]=true then
         src_position=decode_srcpos(script_list[at][FUNC_POS])
         src_error(
-          sprintf(
+          sprintf_utf(
             "Script "&COLYEL&"%s"&COLRED&" appears more than once! It was previously defined on line %d of "&COLPNK&"%s"&COLRED
             ,{script_cmd[i][2][CMD_TEXT],src_position[POS_LINE],src_position[POS_FILENAME]}
           )
@@ -3421,7 +3534,7 @@ procedure check_script_declarations()
 
       if length(script_cmd[i][3]) != length(script_list[at][FUNC_ARGS]) then
         src_error(
-          sprintf(
+          sprintf_utf(
             "Script "&COLYEL&"%s"&COLRED&" has %d arguments named, but has %d arguments in its declaration"
             ,{script_cmd[i][2][CMD_TEXT],length(script_cmd[i][3]),length(script_list[at][FUNC_ARGS])}
           )
@@ -3431,7 +3544,7 @@ procedure check_script_declarations()
       for j=1 to length(script_list[at][FUNC_ARGS]) do
         if not equal(args_and_defaults[2][j],NO_DEFAULT) and not equal(args_and_defaults[2][j],script_list[at][FUNC_ARGS][j]) then
           src_warn(
-            sprintf(
+            sprintf_utf(
               "Default value for argument "&COLYEL&"%s"&COLRED&" does not match default given in script definition, %d"
               ,{script_cmd[i][3][j][CMD_TEXT],script_list[at][FUNC_ARGS][j]}
             )
@@ -3447,7 +3560,7 @@ procedure check_script_declarations()
   for i=1 to length(scripts_found) do
     if scripts_found[i]=false then
       src_error(
-        sprintf("Script "&COLYEL&"%s"&COLRED&" was declared but is missing",{script_list[i][PAIR_NAME]})
+        sprintf_utf("Script "&COLYEL&"%s"&COLRED&" was declared but is missing",{script_list[i][PAIR_NAME]})
         ,script_list[i][FUNC_POS]
       )
     end if
@@ -3513,7 +3626,7 @@ function generate_scripts_dot_txt()
   end if
   
   for i=1 to length(script_list) do
-    result&=sprintf("%s\r\n%d\r\n%d\r\n",{script_list[i][PAIR_NAME],script_list[i][PAIR_NUM],length(script_list[i][FUNC_ARGS])})
+    result&=encode_ohr(sprintf_utf("%s\r\n%d\r\n%d\r\n",{script_list[i][PAIR_NAME],script_list[i][PAIR_NUM],length(script_list[i][FUNC_ARGS])}))
     for j=1 to length(script_list[i][FUNC_ARGS]) do
       if equal(script_list[i][FUNC_ARGS][j],NO_DEFAULT) then
         result&="0\r\n"
@@ -3532,6 +3645,7 @@ end function
 
 function generate_scripts_dot_bin()
   sequence result
+  sequence encoded_name
   --header size in bytes
   result=output_word(4)
   --record size in bytes
@@ -3540,14 +3654,10 @@ function generate_scripts_dot_bin()
   for i=1 to length(all_scripts) do
     result&=output_word(all_scripts[i][1])  --id
     result&=output_word(all_scripts[i][2])  --trigger type
-    result&=output_word(length(all_scripts[i][3]))
-    for j=1 to 36 do
-      if j<=length(all_scripts[i][3]) then
-        result&=all_scripts[i][3][j]
-      else
-        result&=0
-      end if
-    end for
+    encoded_name=encode_ohr(all_scripts[i][3],36)
+    result&=output_word(length(encoded_name))
+    result&=encoded_name
+    result&=repeat(0,36-length(encoded_name))
   end for
   return(result)
 end function
@@ -3556,7 +3666,8 @@ end function
 
 function generate_commands_dot_bin()
   sequence result
-  integer i, id
+  sequence encoded_names
+  integer i, id, name_num
   integer offset
   integer records
   function_list=sort(function_list)
@@ -3566,7 +3677,7 @@ function generate_commands_dot_bin()
     records=0
   end if
   if records>2048 then
-    simple_warn(sprintf("Maximum function id was %d, but will not export function names above id 2047",{records-1}))
+    simple_warn(sprintf_utf("Maximum function id was %d, but will not export function names above id 2047",{records-1}))
     records=2048
   end if
   --header size in bytes (offset to location table)
@@ -3579,22 +3690,29 @@ function generate_commands_dot_bin()
   offset=length(result)+records*2
   id=0
   i=1
+  encoded_names={}
   while i<=length(function_list) do
     if function_list[i][PAIR_NUM]<id then
+      --skip aliases
       i+=1
     elsif function_list[i][PAIR_NUM]=id then
       result&=output_word(offset)
-      offset+=4+length(function_list[i][PAIR_NAME])
+      encoded_names&={encode_ohr(function_list[i][PAIR_NAME])}
+      offset+=4+length(encoded_names[$])
+      i+=1
       id+=1
     else
+      --no function with this id
       result&=output_word(0)
       id+=1
     end if
   end while
   i=1
+  name_num=1
   id=-1
   while i<=length(function_list) and function_list[i][PAIR_NUM]<records do
     if function_list[i][PAIR_NUM]=id then
+      --skip aliases
       i+=1
       continue
     end if
@@ -3603,8 +3721,9 @@ function generate_commands_dot_bin()
     else
       result&=output_word(length(function_list[i][FUNC_ARGS]))
     end if
-    result&=output_word(length(function_list[i][PAIR_NAME]))
-    result&=function_list[i][PAIR_NAME]
+    result&=output_word(length(encoded_names[name_num]))
+    result&=encoded_names[name_num]
+    name_num+=1
     id=function_list[i][PAIR_NUM]
     i+=1
   end while
@@ -3665,7 +3784,7 @@ procedure write_output_file()
       --write each script
       for i=1 to length(all_scripts) do
         if write_lump(fh,sprintf("%d.hsz",{all_scripts[i][1]}),all_scripts[i][7])=false then
-          simple_error(sprintf("unable to write script "&COLYEL&"%s"&COLRED,{all_scripts[i][3]}))
+          simple_error(sprintf_utf("unable to write script "&COLYEL&"%s"&COLRED,{all_scripts[i][3]}))
         end if
       end for
       if not find('n',optlist) then --no debug info
@@ -3682,7 +3801,7 @@ procedure write_output_file()
       end if
       close(fh)
     else
-      simple_error(sprintf("attempt to open"&COLYEL&"%s"&COLRED&" failed",{dest_file}))  
+      simple_error(sprintf_utf("attempt to open"&COLYEL&"%s"&COLRED&" failed",{dest_file}))  
     end if
   else  
     color_print("no scripts to output\n",{})  
