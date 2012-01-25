@@ -493,13 +493,15 @@ class HWhisper(object):
         self.window.set_sensitive(False)
         # switch working directory
         os.chdir(os.path.dirname(hspeak))
-        # call the compiler (we use -c for old versions of HSpeak and -x for new versions)
+        # call the compiler
+        # we use -c for old versions of HSpeak, -x for 3Na to 3O, and
+        # --unicode-cols for 3O+
         if is_windows():
-            command_line = [hspeak, "-ykcx", self.doc.filename]
+            command_line = [hspeak, "-ykxc", "--unicode-cols", self.doc.filename]
             p = subprocess.Popen(command_line, stdout=subprocess.PIPE)
         else:
             # I have no dang idea why the win32 method above doesn't work on Linux :(
-            command_line = "'%s' -ykcx '%s'" % (hspeak, self.doc.filename)
+            command_line = "'%s' -ykxc --unicode-cols '%s'" % (hspeak, self.doc.filename)
             p = subprocess.Popen(command_line, shell=True, stdout=subprocess.PIPE)
         while p.returncode is None:
           #sts = os.waitpid(p.pid, 0)
@@ -511,15 +513,19 @@ class HWhisper(object):
         compiler_output = p.stdout.read()
         if p.returncode != 0:
             compiler_output += "Compiler returned error code (%d)" % (p.returncode)
-        self.parse_compiler_output_colors(compiler_output)
+        try:
+            compiler_output = compiler_output.decode('utf8')
+            self.parse_compiler_output_colors(compiler_output, 0xf8e0, 0xf8ff)
+        except UnicodeDecodeError:
+            self.parse_compiler_output_colors(compiler_output, 239, 255)
         self.move_console_to_end()
         # Done, re-enable window and reset status bar
         self.window.set_sensitive(True)
         self.statusbar_pop()
         self.update_status()
 
-    def parse_compiler_output_colors(self, text):
-        colormap = {239:"yellow", 240:"red", 241:"pink", 242:"grey", 243:"white"}
+    def parse_compiler_output_colors(self, text, col_start, col_end):
+        colormap = {0:"yellow", 1:"red", 2:"pink", 3:"grey", 4:"white"}
         buff = self.console.get_buffer()
         buff.set_text("")
         mark = buff.get_insert()
@@ -528,11 +534,11 @@ class HWhisper(object):
         colortag = "grey"
         for i in xrange(len(text)):
             char = ord(text[i])
-            if char >= 239 and char <= 243:
+            if char >= col_start and char <= col_end:
                 # Append the string segment with the previous color
                 buff.insert_with_tags_by_name(iter, str, colortag)
                 str = ""
-                colortag = colormap[char]
+                colortag = colormap.get(char - col_start, "grey")
             else:
                 str += text[i]
         # Append the final segment of the string
