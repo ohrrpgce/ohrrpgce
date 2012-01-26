@@ -723,29 +723,6 @@ DO
   queue_fade_in
   doloadgame load_slot
  END IF
- 'DEBUG debug "random enemies"
- IF gam.random_battle_countdown = 0 AND readbit(gen(), genSuspendBits, suspendrandomenemies) = 0 AND (vstate.active = NO OR vstate.dat.random_battles > -1) THEN
-  DIM tempblock as integer = readblock(foemap, catx(0) \ 20, caty(0) \ 20)
-  IF vstate.active AND vstate.dat.random_battles > 0 THEN tempblock = vstate.dat.random_battles
-  IF tempblock > 0 THEN
-   DIM batform as integer = random_formation(tempblock - 1)
-   IF gmap(13) <= 0 THEN 'if no random battle script is defined
-    IF batform >= 0 THEN 'and if the randomly selected battle is valid
-     'trigger a normal random battle
-     fatal = 0
-     gam.wonbattle = battle(batform)
-     prepare_map YES
-     queue_fade_in 1
-    END IF
-   ELSE
-    'trigger the instead-of-battle script
-    trigger_script gmap(13), YES, "instead-of-battle", scrqBackcompat()
-    trigger_script_arg 0, batform
-    trigger_script_arg 1, tempblock
-   END IF
-   gam.random_battle_countdown = range(100, 60)
-  END IF
- END IF
  'DEBUG debug "check for death (fatal = " & fatal & ")"
  IF fatal = 1 THEN
   '--this is what happens when you die in battle
@@ -1078,14 +1055,34 @@ SUB update_heroes(byval force_step_check as integer=NO)
   END IF
 
   'Trigger battles
-  IF gam.need_fade_in = NO THEN 'No random battle allowed on the first tick before fade-in (?)
+  'No random battle allowed on the first tick before fade-in (?)
+  IF gam.need_fade_in = NO AND readbit(gen(), genSuspendBits, suspendrandomenemies) = 0 THEN
    DIM battle_formation_set as integer
    battle_formation_set = readblock(foemap, catx(0) \ 20, caty(0) \ 20)
    IF vstate.active = YES AND vstate.dat.random_battles > 0 THEN
     battle_formation_set = vstate.dat.random_battles
    END IF
    IF battle_formation_set > 0 THEN
-    gam.random_battle_countdown = large(gam.random_battle_countdown - gam.foe_freq(battle_formation_set - 1), 0)
+    gam.random_battle_countdown = gam.random_battle_countdown - gam.foe_freq(battle_formation_set - 1)
+
+    IF gam.random_battle_countdown <= 0 THEN
+     gam.random_battle_countdown = range(100, 60)
+     DIM battle_formation as integer = random_formation(battle_formation_set - 1)
+     IF gmap(13) <= 0 THEN 'if no random battle script is defined
+      IF battle_formation >= 0 THEN 'and if the randomly selected battle is valid
+       'trigger a normal random battle
+       fatal = 0
+       gam.wonbattle = battle(battle_formation)
+       prepare_map YES
+       queue_fade_in 1
+      END IF
+     ELSE
+      'trigger the instead-of-battle script
+      trigger_script gmap(13), YES, "instead-of-battle", scrqBackcompat()
+      trigger_script_arg 0, battle_formation
+      trigger_script_arg 1, battle_formation_set
+     END IF
+    END IF
    END IF
   END IF
 
