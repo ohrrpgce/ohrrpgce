@@ -2451,12 +2451,13 @@ FUNCTION add_menu (byval record as integer, byval allow_duplicate as integer=NO)
  RETURN assign_menu_handles(menus(topmenu))
 END FUNCTION
 
-SUB remove_menu (byref slot as integer, byval run_on_close as integer=YES)
- IF slot < 0 OR slot > UBOUND(menus) THEN scripterr "remove_menu: invalid slot " & slot, 4 : EXIT SUB
+SUB remove_menu (byval slot as integer, byval run_on_close as integer=YES)
+ IF slot < 0 OR slot > UBOUND(menus) THEN debug "remove_menu: invalid slot " & slot : EXIT SUB
  bring_menu_forward slot
  IF menus(topmenu).advance_textbox = YES THEN
   'Advance an open text box.
   'Because this could open other menus, take care to remember this menu's handle
+  '(Isn't it impossible for slot to change though?)
   DIM remember_handle as integer = menus(topmenu).handle
   advance_text_box
   slot = find_menu_handle(remember_handle)
@@ -2474,7 +2475,7 @@ SUB remove_menu (byref slot as integer, byval run_on_close as integer=YES)
  END IF
 END SUB
 
-SUB bring_menu_forward (byref slot as integer)
+SUB bring_menu_forward (byval slot as integer)
  DIM i as integer
  IF slot < 0 OR slot > UBOUND(menus) OR slot > topmenu THEN scripterr "bring_menu_forward: invalid slot " & slot, 4 : EXIT SUB
  mstates(topmenu).active = NO
@@ -2541,7 +2542,7 @@ SUB player_menu_keys ()
    IF carray(ccRight) > 1 THEN set_music_volume small(get_music_volume + 1/16, 1.0)
   END IF
   IF carray(ccUse) > 1 THEN
-   activate_menu_item mi, find_menu_handle(menu_handle)
+   activate_menu_item mi, topmenu
   END IF
  END IF
 END SUB
@@ -2568,7 +2569,7 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as int
        menu_text_box = items_menu
        IF menu_text_box > 0 THEN
         IF mi.close_if_selected = NO THEN
-         remove_menu topmenu, (mi.skip_close_script = NO)
+         remove_menu menuslot, (mi.skip_close_script = NO)
         END IF
         EXIT DO
        END IF
@@ -2617,7 +2618,7 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as int
       'Normally, pass a menu item handle
       trigger_script_arg 0, .handle
      ELSE
-      'but if this menu suspends gameplay, then a handle will always be invalid
+      'but if the topmost menu suspends gameplay, then a handle will always be invalid
       'by the time the script runs, so pass the extra values instead.
       trigger_script_arg 0, .extra(0)
       trigger_script_arg 1, .extra(1)

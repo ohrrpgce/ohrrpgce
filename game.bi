@@ -37,8 +37,8 @@ declare sub dotimer(byval l as integer)
 declare function dotimerbattle() as integer
 declare function count_sav(filename as string) as integer
 declare function add_menu (byval record as integer, byval allow_duplicate as integer=no) as integer
-declare sub remove_menu (byref slot as integer, byval run_on_close as integer=YES)
-declare sub bring_menu_forward (byref slot as integer)
+declare sub remove_menu (byval slot as integer, byval run_on_close as integer=YES)
+declare sub bring_menu_forward (byval slot as integer)
 declare function menus_allow_gameplay () as integer
 declare function menus_allow_player () as integer
 declare sub player_menu_keys ()
