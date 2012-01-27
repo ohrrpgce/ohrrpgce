@@ -1090,8 +1090,8 @@ SUB update_heroes(byval force_step_check as integer=NO)
      ELSE
       'trigger the instead-of-battle script
       trigger_script gmap(13), YES, "instead-of-battle", "triggered at " & (catx(0) \ 20) & "," & (caty(0) \ 20), scrqBackcompat()
-      trigger_script_arg 0, batform, "formation"
-      trigger_script_arg 1, tempblock, "formation set"
+      trigger_script_arg 0, battle_formation, "formation"
+      trigger_script_arg 1, battle_formation_set, "formation set"
      END IF
     END IF
    END IF
