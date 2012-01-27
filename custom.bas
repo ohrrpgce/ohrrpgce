@@ -660,7 +660,8 @@ SUB cleanup_and_terminate ()
  palette16_empty_cache
  IF keyval(-1) = 0 THEN
   clearpage vpage
-  pop_warning "Don't forget to keep backup copies of your work! You never know when an unknown bug or a hard-drive crash or a little brother might delete your files!", YES
+  ' Don't let Spoonweaver's cat near your power cord!
+  pop_warning "Don't forget to keep backup copies of your work! You never know when an unknown bug or a cat-induced hard-drive crash or a little brother might delete your files!", YES
  END IF
  cleanupfiles
  end_debug
