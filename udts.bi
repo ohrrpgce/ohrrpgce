@@ -376,6 +376,8 @@ TYPE ScriptInst
   id as integer         'id number of current script
   waitarg as integer    'wait state argument 1
   waitarg2 as integer   'wait state argument 2
+  watched as integer    'true for scripts which are being logged
+  started as integer    'used only if watched is true: whether the script has started
 
   'these 3 items are only current/correct for inactive scripts. The active script's current
   'command is pointed to by the curcmd (ScriptCommand ptr) global, and copied here
@@ -388,7 +390,9 @@ END TYPE
 TYPE QueuedScript
   id as integer         'Triggers pre-decoded
   scripttype as string
+  trigger_loc as string 'More information about how it was triggered
   double_trigger_check as integer
+  log_line as string    'Debugging aid: Comprised from scripttype, arg names and values and trigger_loc
   argc as integer       'The number of args passed
   args(3) as integer
 END TYPE

@@ -1087,6 +1087,8 @@ caty(0) = 0
 catz(0) = 0
 catd(0) = 0
 gam.getinputtext_enabled = NO
+gam.script_log.tick = 0
+gam.script_log.wait_msg_repeats = 0
 'leader = 0
 mapx = 0
 mapy = 0
@@ -1218,32 +1220,41 @@ SUB resetlmp (byval slot as integer, byval lev as integer)
  NEXT i
 END SUB
 
-SUB trigger_script (byval id as integer, byval double_trigger_check as integer, scripttype as string, scrqueue() as QueuedScript, byval trigger as integer = plottrigger)
+SUB trigger_script (byval id as integer, byval double_trigger_check as integer, scripttype as string, trigger_loc as string, scrqueue() as QueuedScript, byval trigger as integer = plottrigger)
  'Add a script to one of the script queues, unless already inside the interpreter.
  'In that case, run immediately.
- 'queuenum should be one of the scrq* constants
+ 'scrqueue should be one of the scrq* arrays
  'double_trigger_check: whether "no double-triggering" should take effect
+
+ STATIC dummy_queued_script as QueuedScript
 
  IF insideinterpreter THEN
   DIM rsr as integer
   rsr = runscript(id, YES, double_trigger_check, scripttype, trigger)
   trigger_script_failure = (rsr <> 1)
-  EXIT SUB
- END IF
+  IF gam.script_log.enabled = NO THEN EXIT SUB
 
- REDIM PRESERVE scrqueue(-1 TO UBOUND(scrqueue) + 1)
- last_queued_script = @scrqueue(UBOUND(scrqueue))
+  'Can't call watched_script_triggered until after the trigger_script_args calls
+  scrat(nowscript).watched = YES
+  scrat(nowscript).state = sttriggered
+  last_queued_script = @dummy_queued_script
+ ELSE
+  REDIM PRESERVE scrqueue(-1 TO UBOUND(scrqueue) + 1)
+  last_queued_script = @scrqueue(UBOUND(scrqueue))
+ END IF
 
  WITH *last_queued_script
   IF trigger <> 0 THEN id = decodetrigger(id, trigger)
   .id = id
   .scripttype = scripttype
+  .log_line = scriptname(id) & "("
+  .trigger_loc = trigger_loc
   .double_trigger_check = double_trigger_check
   .argc = 0
  END WITH
 END SUB
 
-SUB trigger_script_arg (byval argno as integer, byval value as integer)
+SUB trigger_script_arg (byval argno as integer, byval value as integer, byval argname as zstring ptr = NULL)
  'Set one of the args for a script that was just triggered
  'Note that after calling trigger_script, script queuing can be in three states:
  'inside interpreter, trigger_script_failure = NO
@@ -1257,13 +1268,18 @@ SUB trigger_script_arg (byval argno as integer, byval value as integer)
   IF trigger_script_failure = NO THEN
    setScriptArg argno, value
   END IF
-  EXIT SUB
+  IF gam.script_log.enabled = NO THEN EXIT SUB
  END IF
 
  WITH *last_queued_script
   IF argno > UBOUND(.args) THEN fatalerror "trigger_script_arg: args queue overflow"
   .args(argno) = value
   .argc = large(.argc, argno + 1)
+  IF gam.script_log.enabled THEN
+   IF argno <> 0 THEN .log_line += ", "
+   IF argname THEN .log_line += *argname + "="
+   .log_line &= value
+  END IF
  END WITH
 END SUB
 
@@ -1275,6 +1291,8 @@ PRIVATE SUB run_queued_script (script as QueuedScript)
    setScriptArg argno, script.args(argno)
   NEXT
  END IF
+
+ IF gam.script_log.enabled THEN watched_script_triggered script
 END SUB
 
 SUB run_queued_scripts
@@ -1300,6 +1318,152 @@ SUB dequeue_scripts
  REDIM scrqFirst(-1 TO -1)
  REDIM scrqBackcompat(-1 TO -1)
  REDIM scrqLast(-1 TO -1)
+END SUB
+
+SUB start_script_trigger_log
+ gam.script_log.enabled = YES
+ safekill gam.script_log.filename
+ DIM fh as integer = FREEFILE
+ IF OPEN(gam.script_log.filename FOR APPEND AS #fh) THEN
+  notification "Could not open " & gam.script_log.filename & ". Script logging disabled."
+  EXIT SUB
+ END IF
+ gam.script_log.enabled = YES
+
+ print #fh, "Script trigger log for " & getdisplayname(trimpath(sourcerpg)) & ", " & DATE & " " & TIME
+ print #fh,
+ print #fh, "Solid lines '|' show triggered scripts which have already started running but are"
+ print #fh, "waiting or paused due to either another script which was triggered (line to the right)"
+ print #fh, "or while waiting for a script they called (not shown)."
+ print #fh, "Dotted lines ':' show triggered scripts which have no even had a chance to start."
+ print #fh,
+ print #fh, " Symbols in front of script names:"
+ print #fh, "+ -- A script was triggered (queued), possibly also started, possibly also finished" 
+ print #fh, "! -- As above, but triggered as a side effect of something the script above it did,"
+ print #fh, "     such as running ""close menu"", interrupting that script."
+ print #fh, "     (Note: ! is used only if the command didn't cause an implicit 'wait')"
+ print #fh, "* -- A queued script was started, possibly also finished" 
+ print #fh, "- -- A previously started script finished"
+ print #fh,
+ CLOSE #fh
+END SUB
+
+SUB script_log_out (text as string)
+ IF gam.script_log.enabled = NO THEN EXIT SUB
+ DIM fh as integer = FREEFILE
+ IF OPEN(gam.script_log.filename FOR APPEND AS #fh) THEN
+  gam.script_log.enabled = NO
+  EXIT SUB
+ END IF
+ print #fh, text;
+ CLOSE #fh
+ gam.script_log.output_flag = YES
+END SUB
+
+FUNCTION script_log_indent (byval upto as integer = -1, byval spaces as integer = 11) as string
+ DIM indent as string = SPACE(spaces)
+ IF upto = -1 THEN upto = nowscript - 1
+ FOR i as integer = 0 TO upto
+  WITH scrat(i)
+   IF .watched THEN
+    IF .started THEN
+     indent &= "| "
+    ELSE
+     indent &= ": "
+    END IF
+   END IF
+  END WITH
+ NEXT
+ RETURN indent
+END FUNCTION
+
+'Called after runscript when running a script which should be watched
+SUB watched_script_triggered(script as QueuedScript)
+ scrat(nowscript).watched = YES
+ IF gam.script_log.last_logged > -1 ANDALSO scrat(gam.script_log.last_logged).started = NO THEN
+  script_log_out " (queued)"
+ END IF
+
+ DIM logline as string
+ logline = !"\n" & script_log_indent()
+ IF insideinterpreter THEN
+  IF nowscript >= 1 ANDALSO scrat(nowscript - 1).state < 0 THEN
+   'The previous script was suspended, therefore this script was triggered as
+   'a side effect of something that script did, such as activate an NPC
+   logline &= "!"
+  ELSE
+   'Called normally
+   logline &= "\"
+  END IF
+ ELSE
+  'Triggered normally
+  logline &= "+"
+ END IF
+
+ logline &= script.log_line & ") " & script.scripttype & " script"
+ IF LEN(script.trigger_loc) THEN
+  logline &= ", " & script.trigger_loc
+ END IF
+ script_log_out logline
+
+ gam.script_log.last_logged = nowscript
+
+END SUB
+
+'nowscript has been started and resumed and has .watched = YES
+SUB watched_script_resumed
+ IF gam.script_log.last_logged = nowscript THEN
+  'nothing
+ ELSEIF scrat(nowscript).started THEN
+  'also nothing
+ ELSE
+  script_log_out !"\n" & script_log_indent() & "*" & scriptname(scrat(nowscript).id) & " started"
+  gam.script_log.last_logged = nowscript
+ END IF
+ scrat(nowscript).started = YES
+END SUB
+
+'Called right before the current script terminates and has .watched = YES
+SUB watched_script_finished
+ DIM logline as string
+ IF gam.script_log.last_logged = nowscript THEN
+  script_log_out " ... finished"
+ ELSE
+  script_log_out !"\n" & script_log_indent() & "-" & scriptname(scrat(nowscript).id) & " finished"
+ END IF
+
+ gam.script_log.last_logged = -1
+END SUB
+
+'Call each tick if script logging is enabled
+SUB script_log_tick
+ WITH gam.script_log
+  DIM doprint as integer = NO
+  IF .output_flag THEN doprint = YES
+
+  DIM wait_msg as string = ""
+  IF nowscript > -1 THEN
+   wait_msg = "waiting on " & commandname(scrat(nowscript).curvalue) & " in " & scriptname(scrat(nowscript).id)
+   IF .last_wait_msg <> wait_msg THEN
+    .last_wait_msg = wait_msg
+    .wait_msg_repeats = 0
+   END If
+   .wait_msg_repeats += 1
+   IF .wait_msg_repeats <= 3 THEN doprint = YES
+   IF .wait_msg_repeats = 3 THEN wait_msg = "..."
+  END IF
+
+  IF doprint THEN
+ '  script_log_out !"\n" & script_log_indent(nowscript) & "   <<tick " & .tick & ">>"
+   DIM logline as string
+   logline =  !"\ntick " & LEFT(RIGHT(STR(.tick), 5) & "     ", 6) & script_log_indent(nowscript, 0)
+   IF LEN(wait_msg) THEN logline &= "     (" & wait_msg & ")"
+   script_log_out logline
+   .output_flag = NO
+
+   .last_logged = -1
+  END IF
+ END WITH
 END SUB
 
 FUNCTION runscript (byval id as integer, byval newcall as integer, byval double_trigger_check as integer, byval scripttype as zstring ptr, byval trigger as integer) as integer
@@ -1361,6 +1525,8 @@ WITH scrat(index)
  .depth = 0
  .id = n
  .scrdata = .scr->ptr
+ .watched = NO
+ .started = NO
  .curargn = 0
  curcmd = cast(ScriptCommand ptr, .scrdata + .ptr) 'just in case it's needed before subread is run
  
@@ -1951,7 +2117,7 @@ DO
     END IF
     IF storebuf(19) > 0 THEN
      '--Run animation for Inn
-     trigger_script storebuf(19), NO, "inn", scrqBackcompat()
+     trigger_script storebuf(19), NO, "inn", "ID " & id, scrqBackcompat()
      EXIT DO
     ELSE
      '--Inn has no script, do simple fade

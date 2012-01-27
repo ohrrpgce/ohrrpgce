@@ -67,6 +67,8 @@ reloadscript scrat(nowscript)
  TIMER_START(scrat(nowscript).scr->totaltime)
 #ENDIF
 
+scrat(nowscript).started = YES
+
 interpretloop:
 WITH scrat(nowscript)
 DO
@@ -377,6 +379,10 @@ DO
    END SELECT
    IF scrwatch AND breakstnext THEN breakpoint scrwatch, 2
    GOTO interpretloop 'new WITH pointer
+  CASE sttriggered'---special initial state used just for script trigger logging
+   IF gam.script_log.enabled THEN watched_script_triggered *last_queued_script
+   .started = YES
+   .state = stread
   CASE sterror'---some error has occurred, crash and burn
    '--note that there's no thought out plan for handling errors
    killallscripts
@@ -407,6 +413,7 @@ SUB killallscripts
   IF scrat(i).scr <> NULL THEN scrat(i).scr->refcount -= 1
  NEXT
  nowscript = -1
+ gam.script_log.last_logged = -1
 
  destroystack(scrst)  'temp
  createstack(scrst)
@@ -433,15 +440,7 @@ FUNCTION functiondone () as integer
 'returns 1 when all scripts are finished
 'returns 2 when reactivating a suspended script
 
-'IF nowscript + 1 < 128 THEN
-' '-- when a script terminates, the script directly above it in
-' '-- the script buffer must be invalidated for caching
-' scrat(nowscript + 1).id = -1
-'END IF
-
-'--if the finishing script is at the top of the script buffer,
-'--then nextscroff needs to be changed
-'IF scrat(nowscript).size <> 0 THEN nextscroff = scrat(nowscript).off
+IF scrat(nowscript).watched THEN watched_script_finished
 
 scrat(nowscript).scr->refcount -= 1
 nowscript = nowscript - 1
@@ -458,6 +457,7 @@ ELSE
  IF scrat(nowscript).state < 0 THEN
   '--suspended script is resumed
   scrat(nowscript).state = ABS(scrat(nowscript).state)
+  IF scrat(nowscript).watched THEN watched_script_resumed
   functiondone = 2'--reactivating a supended script
  ELSE
   scriptret = scrat(nowscript + 1).ret

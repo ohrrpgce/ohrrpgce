@@ -87,7 +87,7 @@ IF vstate.active THEN
   loadsay vstate.dat.on_dismount
  END IF
  IF vstate.dat.on_dismount < 0 THEN
-  trigger_script ABS(vstate.dat.on_dismount), YES, "dismount", scrqBackcompat()
+  trigger_script ABS(vstate.dat.on_dismount), YES, "vehicle dismount", "", scrqBackcompat()
  END IF
  settag vstate.dat.riding_tag, NO
  herow(0).speed = vstate.old_speed

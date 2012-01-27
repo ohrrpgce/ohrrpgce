@@ -693,7 +693,7 @@ SUB onkeyscript (byval scriptnum as integer)
  END IF
 
  IF doit THEN
-  trigger_script scriptnum, YES, "on-key", scrqBackcompat()
+  trigger_script scriptnum, YES, "on-key", "", scrqBackcompat()
  END IF
 
 END SUB
@@ -3306,7 +3306,7 @@ IF vstate.init_dismount THEN '--dismount---------------
  END IF
 END IF
 IF vstate.trigger_cleanup THEN '--clear
- IF vstate.dat.on_dismount < 0 THEN trigger_script ABS(vstate.dat.on_dismount), YES, "vehicle on-dismount", scrqBackcompat()
+ IF vstate.dat.on_dismount < 0 THEN trigger_script ABS(vstate.dat.on_dismount), YES, "vehicle dismount", "", scrqBackcompat()
  IF vstate.dat.on_dismount > 0 THEN loadsay vstate.dat.on_dismount
  settag vstate.dat.riding_tag, NO
  IF vstate.dat.dismount_ahead = YES AND vstate.dat.pass_walls_while_dismounting = NO THEN
@@ -3355,7 +3355,7 @@ IF vstate.active = YES AND vehicle_is_animating() = NO THEN
       '--dismount
       vehicle_graceful_dismount
      CASE IS > 0
-      trigger_script button(i), YES, "vehicle button" & i, scrqBackcompat()
+      trigger_script button(i), YES, "vehicle button " & i, "", scrqBackcompat()
     END SELECT
    END IF
   NEXT i
@@ -3610,7 +3610,7 @@ SUB vehscramble(byref mode_val as integer, byval trigger_cleanup as integer, byv
  NEXT i
  IF tmp = 4 THEN
   mode_val = NO
-  IF vstate.dat.on_mount < 0 THEN trigger_script ABS(vstate.dat.on_mount), YES, "vehicle on-mount", scrqBackcompat()
+  IF vstate.dat.on_mount < 0 THEN trigger_script ABS(vstate.dat.on_mount), YES, "vehicle on-mount", "", scrqBackcompat()
   IF vstate.dat.on_mount > 0 THEN loadsay vstate.dat.on_mount
   herow(0).speed = vstate.dat.speed
   IF herow(0).speed = 3 THEN herow(0).speed = 10
@@ -3635,7 +3635,7 @@ DO '--This loop is where we find which box will be displayed right now
  IF istag(txt.box.instead_tag, 0) THEN
   '--do something else instead
   IF txt.box.instead < 0 THEN
-   trigger_script -txt.box.instead, YES, "instead", scrqBackcompat()
+   trigger_script -txt.box.instead, YES, "textbox instead", "box " & box_id, scrqBackcompat()
    txt.sayer = -1
    EXIT SUB
   ELSE

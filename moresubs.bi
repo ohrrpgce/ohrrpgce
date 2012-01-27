@@ -27,13 +27,23 @@ DECLARE SUB readjoysettings
 DECLARE SUB renamehero (byval who as integer, byval escapable as integer)
 DECLARE SUB resetgame (scriptout as string)
 DECLARE SUB resetlmp (byval slot as integer, byval lev as integer)
-DECLARE SUB trigger_script (byval id as integer, byval double_trigger_check as integer, scripttype as string, scrqueue() as QueuedScript, byval trigger as integer = plottrigger)
-DECLARE SUB trigger_script_arg (byval argno as integer, byval value as integer)
+
+DECLARE SUB trigger_script (byval id as integer, byval double_trigger_check as integer, scripttype as string, trigger_loc as string, scrqueue() as QueuedScript, byval trigger as integer = plottrigger)
+DECLARE SUB trigger_script_arg (byval argno as integer, byval value as integer, byval argname as zstring ptr = NULL)
 DECLARE SUB dequeue_scripts ()
 DECLARE SUB run_queued_scripts ()
+
+DECLARE SUB start_script_trigger_log ()
+DECLARE SUB script_log_tick ()
+DECLARE SUB script_log_out (text as string)
+DECLARE SUB watched_script_triggered (script as QueuedScript)
+DECLARE SUB watched_script_resumed ()
+DECLARE SUB watched_script_finished ()
+
 DECLARE FUNCTION runscript (byval id as integer, byval newcall as integer, byval double_trigger_check as integer, byval scripttype as zstring ptr, byval trigger as integer) as integer
 DECLARE FUNCTION loadscript (byval n as unsigned integer) as ScriptData ptr
 DECLARE SUB freescripts (byval mem as integer)
+
 DECLARE FUNCTION commandname (byval id as integer) as string
 DECLARE SUB scripterr (e as string, byval errorlevel as integer = 5)
 DECLARE FUNCTION settingstring (searchee as string, setting as string, result as string) as integer

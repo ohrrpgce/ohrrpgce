@@ -390,6 +390,7 @@ END IF
 start_new_debug
 
 init_save_system
+gam.script_log.filename = log_dir & "script_log.txt"
 
 IF gam.autorungame = NO THEN
  edgeboxstyle 4, 3, 312, 14, 0, vpage
@@ -541,7 +542,7 @@ ELSE
  clearpage 1
  addhero 1, 0
  IF gen(genNewGameScript) > 0 THEN
-  trigger_script gen(genNewGameScript), YES, "newgame", scrqBackcompat()
+  trigger_script gen(genNewGameScript), YES, "newgame", "", scrqBackcompat()
  END IF
  prepare_map
 END IF
@@ -671,7 +672,6 @@ DO
     setdebugpan
    END IF
   END IF
-  IF keyval(scF10) > 1 THEN scrwatch = loopvar(scrwatch, 0, 2, 1): gam.debug_showtags = NO
   IF keyval(scCtrl) > 0 THEN ' holding CTRL
    IF keyval(scF1) > 1 AND txt.showing = NO THEN
     IF teleporttool() THEN 'CTRL + F1
@@ -701,13 +701,24 @@ DO
     SliceDebugDumpTree SliceTable.Root
     notification "Dumped entire slice tree to g_debug.txt"
    END IF
+   IF keyval(scF10) > 1 THEN
+    IF gam.script_log.enabled THEN
+     gam.script_log.enabled = NO
+     gam.showtext = "Script logging disabled."
+    ELSE
+     gam.showtext = "Script logging enabled."
+     start_script_trigger_log
+    END IF
+    gam.showtext_ticks = 20
+   END IF
    IF keyval(scF11) > 1 THEN gam.debug_npc_info = NOT gam.debug_npc_info
-  ELSE ' holding CTRL
+  ELSE ' not holding CTRL
    IF keyval(scF1) > 1 AND txt.showing = NO THEN minimap catx(0), caty(0)
    IF keyval(scF4) > 1 THEN gam.debug_showtags = NOT gam.debug_showtags : scrwatch = 0
    IF keyval(scF5) > 1 THEN live_preview_menu
    IF keyval(scF8) > 1 THEN patcharray gen(), "gen"
    IF keyval(scF9) > 1 THEN patcharray gmap(), "gmap"
+   IF keyval(scF10) > 1 THEN scrwatch = loopvar(scrwatch, 0, 2, 1): gam.debug_showtags = NO
    IF keyval(scF11) > 1 THEN gam.walk_through_walls = NOT gam.walk_through_walls
   END IF
  END IF
@@ -729,7 +740,7 @@ DO
   txt.showing = NO
   txt.fully_shown = NO
   IF gen(genGameoverScript) > 0 THEN
-   trigger_script gen(genGameoverScript), NO, "death", scrqBackcompat()
+   trigger_script gen(genGameoverScript), NO, "death", "", scrqBackcompat()
    fatal = 0
    queue_fade_in 1
   ELSE
@@ -796,12 +807,12 @@ SUB doloadgame(byval load_slot as integer)
  loadgame load_slot
  init_default_text_colors
  IF gen(genLoadGameScript) > 0 THEN
-  trigger_script gen(genLoadGameScript), YES, "loadgame", scrqBackcompat()
+  trigger_script gen(genLoadGameScript), YES, "loadgame", "", scrqBackcompat()
   '--pass save slot as argument
   IF load_slot = 32 THEN
-   trigger_script_arg 0, -1 'quickload slot
+   trigger_script_arg 0, -1, "slot"  'quickload slot
   ELSE
-   trigger_script_arg 0, load_slot
+   trigger_script_arg 0, load_slot, "slot"
   END IF
  END IF
  gam.map.same = YES
@@ -1078,9 +1089,9 @@ SUB update_heroes(byval force_step_check as integer=NO)
       END IF
      ELSE
       'trigger the instead-of-battle script
-      trigger_script gmap(13), YES, "instead-of-battle", scrqBackcompat()
-      trigger_script_arg 0, battle_formation
-      trigger_script_arg 1, battle_formation_set
+      trigger_script gmap(13), YES, "instead-of-battle", "triggered at " & (catx(0) \ 20) & "," & (caty(0) \ 20), scrqBackcompat()
+      trigger_script_arg 0, batform, "formation"
+      trigger_script_arg 1, tempblock, "formation set"
      END IF
     END IF
    END IF
@@ -1088,10 +1099,10 @@ SUB update_heroes(byval force_step_check as integer=NO)
 
   'Each step trigger
   IF gmap(14) > 0 THEN
-   trigger_script gmap(14), YES, "eachstep", scrqBackcompat()
-   trigger_script_arg 0, catx(0) \ 20
-   trigger_script_arg 1, caty(0) \ 20
-   trigger_script_arg 2, catd(0)
+   trigger_script gmap(14), YES, "eachstep", "map " & gam.map.id, scrqBackcompat()
+   trigger_script_arg 0, catx(0) \ 20, "tile x"
+   trigger_script_arg 1, caty(0) \ 20, "tile y"
+   trigger_script_arg 2, catd(0), "direction"
   END IF
 
  END IF '--End of on-step triggers
@@ -1595,6 +1606,9 @@ WITH scrat(nowscript)
  END IF
 END WITH
 END IF
+script_log_tick
+gam.script_log.tick += 1
+
 '--do spawned text boxes, battles, etc.
 IF wantbox > 0 THEN
  loadsay wantbox
@@ -2396,8 +2410,8 @@ SUB dotimer(byval l as integer)
             end if
 
             if .trigger > -1 then 'plotscript
-              trigger_script .trigger, NO, "timer", scrqBackcompat()
-              trigger_script_arg 0, i
+              trigger_script .trigger, NO, "timer", "", scrqBackcompat()
+              trigger_script_arg 0, i, "id"
             end if
           end if
         end if
@@ -2464,7 +2478,7 @@ SUB remove_menu (byval slot as integer, byval run_on_close as integer=YES)
   bring_menu_forward slot
  END IF
  IF menus(topmenu).on_close <> 0 AND run_on_close THEN
-  trigger_script menus(topmenu).on_close, YES, "menu on-close", scrqBackcompat()
+  trigger_script menus(topmenu).on_close, YES, "menu on-close", "menu " & menus(topmenu).record, scrqBackcompat()
  END IF
  ClearMenuData menus(topmenu)
  topmenu = topmenu - 1
@@ -2613,16 +2627,16 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as int
     CASE 3 ' Text box
      menu_text_box = .sub_t
     CASE 4 ' Run Script
-     trigger_script .sub_t, YES, "menuitem", scrqBackcompat()
+     trigger_script .sub_t, YES, "menuitem", "item '" & get_menu_item_caption(mi, menus(menuslot)) & "' in menu " & menus(menuslot).record, scrqBackcompat()
      IF menus(topmenu).allow_gameplay THEN
       'Normally, pass a menu item handle
-      trigger_script_arg 0, .handle
+      trigger_script_arg 0, .handle, "item handle"
      ELSE
       'but if the topmost menu suspends gameplay, then a handle will always be invalid
       'by the time the script runs, so pass the extra values instead.
-      trigger_script_arg 0, .extra(0)
-      trigger_script_arg 1, .extra(1)
-      trigger_script_arg 2, .extra(2)
+      trigger_script_arg 0, .extra(0), "extra0"
+      trigger_script_arg 1, .extra(1), "extra1"
+      trigger_script_arg 2, .extra(2), "extra2"
      END IF
     END SELECT
    END WITH
@@ -2954,14 +2968,14 @@ SUB prepare_map (byval afterbat as integer=NO, byval afterload as integer=NO)
 
  IF afterbat = NO THEN
   IF gmap(7) > 0 THEN
-   trigger_script gmap(7), YES, "map", scrqBackcompat()
-   trigger_script_arg 0, gmap(8)
+   trigger_script gmap(7), YES, "map autorun", "map " & gam.map.id, scrqBackcompat()
+   trigger_script_arg 0, gmap(8), "arg"
   END IF
  ELSE
   IF gmap(12) > 0 THEN
-   trigger_script gmap(12), NO, "afterbattle", scrqBackcompat()
+   trigger_script gmap(12), NO, "afterbattle", "", scrqBackcompat()
    '--afterbattle script gets one arg telling if you won or ran
-   trigger_script_arg 0, gam.wonbattle
+   trigger_script_arg 0, gam.wonbattle, "wonbattle"
   END IF
  END IF
  gam.map.same = NO
@@ -3179,7 +3193,7 @@ SUB advance_text_box ()
  '---JUMP TO NEXT TEXT BOX--------
  IF istag(txt.box.after_tag, 0) THEN
   IF txt.box.after < 0 THEN
-   trigger_script -txt.box.after, YES, "textbox", scrqBackcompat()
+   trigger_script -txt.box.after, YES, "textbox", "box " & txt.id, scrqBackcompat()
   ELSE
    loadsay txt.box.after
    EXIT SUB
@@ -3659,9 +3673,9 @@ SUB usenpc(byval cause as integer, byval npcnum as integer)
  END IF
  IF npcs(id).script > 0 THEN
   '--summon a script directly from an NPC
-  trigger_script npcs(id).script, YES, "NPC", scrqBackcompat()
-  trigger_script_arg 0, npcs(id).scriptarg
-  trigger_script_arg 1, (npcnum + 1) * -1 'reference
+  trigger_script npcs(id).script, YES, "NPC", "NPC ID " & id & " at " & npc(npcnum).x & "," & npc(npcnum).y, scrqBackcompat()
+  trigger_script_arg 0, npcs(id).scriptarg, "arg"
+  trigger_script_arg 1, (npcnum + 1) * -1, "npcref"
  END IF
  DIM vehuse as integer = npcs(id).vehicle
  IF vehuse THEN '---activate a vehicle---

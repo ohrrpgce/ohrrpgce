@@ -66,6 +66,16 @@ TYPE HeroWalkabout
   'x, y, z, dir are in catx(), caty(), catz(), catd() instead *grumble*
 END TYPE
 
+TYPE ScriptLoggingState
+  enabled as integer
+  filename as string
+  tick as integer                    'Number of times interpret has been called
+  last_logged as integer             'scrat index
+  output_flag as integer             'Set to true after script_log_out called
+  last_wait_msg as string
+  wait_msg_repeats as integer        'Number of ticks in a row with identical last_wait_msg
+END TYPE
+
 TYPE GameState
   map AS MapModeState
   wonbattle AS INTEGER               'Indicates the status of the last battle, 1 for victory 0 for running away
@@ -84,6 +94,7 @@ TYPE GameState
   showtext as string                 'Used for map names and other alerts
   showtext_ticks as integer          'Remaining number of ticks
   getinputtext_enabled as integer
+  script_log as ScriptLoggingState
 END TYPE
 
 TYPE TextBoxState
