@@ -758,6 +758,7 @@ end
 script, npc tests, begin
   npc movement tests(1)
   npc movement tests(NPC reference(1))
+  npc id tests(NPC reference(1))
 end
 
 script, npc movement tests, n, begin
@@ -790,6 +791,14 @@ script, npc movement tests, n, begin
   set npc position(n, 3, 5)
   
   show no value
+end
+
+script, npc id tests, n, begin
+  set npc direction(n, south), w
+  assert(get npc id(n) == 1)
+  change npc id(n, 2), w(4)
+  assert(get npc id(n) == 2)
+  change npc id(n, 1), w
 end
 
 ########################################################################
@@ -1751,7 +1760,6 @@ end
 #case(value)
 #center slice (handle)
 #center string at (ID, x, y)
-#change NPC ID (reference,new ID)
 #change tileset (tileset, layer)
 #check NPC wall (who, direction)
 #check parentage (handle, parent handle)
@@ -1841,7 +1849,6 @@ end
 #get map name (ID, map)
 #get map tileset
 #get money (amount)
-#get NPC ID (reference)
 #get NPC ignores walls (who)
 #get NPC moves (who)
 #get NPC obstructs (who)

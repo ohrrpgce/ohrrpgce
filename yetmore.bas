@@ -616,8 +616,8 @@ SUB visnpc()
     npc(i).sl = create_walkabout_slices(npc_layer())
     'debug "npc(" & i & ").sl=" & npc(i).sl & " [visnpc]"
     '--set sprite
-    set_walkabout_sprite npc(i).sl, npcs(npc_id).picture, npcs(npc_id).palette
    END IF
+   set_walkabout_sprite npc(i).sl, npcs(npc_id).picture, npcs(npc_id).palette
   ELSE
    '--hidden
    IF npc(i).sl <> 0 THEN
