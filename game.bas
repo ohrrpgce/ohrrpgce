@@ -969,7 +969,11 @@ SUB update_heroes(byval force_step_check as integer=NO)
 
  'Non-caterpillar (normal [xy]go-based) hero movement
  REDIM didgo(0 TO 3) as integer
- FOR whoi as integer = 0 TO caterpillar_size() - 1
+ FOR whoi as integer = 0 TO 3
+  'NOTE: this loop covers the max caterpillar size, and not the current
+  ' return value of caterpillar_size() because empty hero slots still
+  ' need to be movable on the map. Scripts sometimes want to move a hero
+  ' and wait for that hero without first checking if the slot is occupied
   didgo(whoi) = NO
   IF herow(whoi).xgo OR herow(whoi).ygo THEN
    '--this actually updates the hero's coordinates
