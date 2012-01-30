@@ -251,11 +251,11 @@ gfx_map = {'fb': {'shared_modules': 'gfx_fb.bas', 'libraries': 'fbgfx fbmt'},
            }
 
 music_map = {'native':
-                 {'shared_modules': 'music_native.bas',
+                 {'shared_modules': 'music_native.bas music_audiere.bas',
                   'common_modules': os.path.join ('audwrap','audwrap.cpp'),
                   'libraries': 'audiere', 'libpaths': '.'},
              'native2':
-                 {'shared_modules': 'music_native2.bas',
+                 {'shared_modules': 'music_native2.bas music_audiere.bas',
                   'common_modules': os.path.join ('audwrap','audwrap.cpp'),
                   'libraries': 'audiere', 'libpaths': '.'},
              'sdl':
