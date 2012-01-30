@@ -76,6 +76,7 @@ TYPE NodePtr as Node ptr
 		'The following members are used only by RELOADBASIC
 		RBSignature as integer
 		nameIndexTable as short ptr   'pointer to an array
+		nameIndexTableLen as integer
 		'nameIndexTableBits as uinteger ptr
 		RBFuncBits as uinteger ptr
 	END TYPE

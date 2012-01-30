@@ -620,7 +620,8 @@ sub BuildNameIndexTable(byval doc as DocPtr, nodenames() as RBNodeName, byval fu
 		doc->RBSignature = signature
 		RDeallocate(doc->nameIndexTable, doc)
 		'We might add more strings; worst case
-		doc->nameIndexTable = RAllocate((doc->numStrings + total_num_names) * sizeof(short), doc)
+		doc->nameIndexTableLen = doc->numStrings + total_num_names
+		doc->nameIndexTable = RAllocate(doc->nameIndexTableLen * sizeof(short), doc)
 		'RDeallocate(doc->nameIndexTableBits, doc)
 		'doc->nameIndexTableBits = RAllocate(((doc->numStrings + 31) \ 32) * 4, doc)
 		RDeallocate(doc->RBFuncBits, doc)

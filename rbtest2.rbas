@@ -1,7 +1,8 @@
 ' This is part of rbtest, for testing multiple .rbas source files
 
 extern errorpos as integer
-#define fail errorpos = __LINE__ : return 1
+extern errorfile as string
+#define fail errorfile = __FILE__ : errorpos = __LINE__ : return 1
 
 extern unexpected_warns as integer
 declare sub count_unexpected_warnings (msg as string)
@@ -19,4 +20,38 @@ function otherFileTests(byval root as nodeptr) as integer
 
 	AppendChildNode(nod, "sharedname", 10001)
 	AppendChildNode(nod, "uniquename", 10002)
+end function
+
+function testAddingNodeNames1() as integer
+	dim newdoc as Docptr
+	newdoc = CreateDocument()
+	if newdoc = null then fail
+	
+	dim root as NodePtr = CreateNode(newdoc, "root")
+	if root = null then fail
+	SetRootNode(newdoc, root)
+	AppendChildNode(root, "vlad", 41)
+
+	# warn_func = count_unexpected_warnings
+	unexpected_warns = 0
+
+	'Force a BuildNameIndexTable call
+	readnode root
+	end readnode
+	if unexpected_warns <> 1 then fail
+
+	'Make sure #strings in the string table > RB_NUM_NAMES
+	for i as integer = 0 to 49
+		AppendChildNode(root, "totally unique name" & i)
+	next
+
+	unexpected_warns = 0
+	dim as integer test1
+	readnode root
+		test1 = root."vlad"
+	end readnode
+	if unexpected_warns <> 50 then fail
+	if test1 <> 41 then fail
+
+	FreeDocument(newdoc)
 end function

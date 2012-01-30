@@ -5,8 +5,10 @@ TYPE testPtr as function() as integer
 
 extern pauseTime as double
 extern errorpos as integer
+extern errorfile as string
 dim pauseTime as double
 dim errorpos as integer
+dim errorfile as string
 
 Randomize
 
@@ -37,7 +39,7 @@ sub doTest(t as string, byval theTest as testPtr)
 	'diff *= 1000000
 	
 	if ret then
-		print "FAIL (on line " & errorpos & ")"
+		print "FAIL (on line " & errorpos & " in " & errorfile & ")"
 		end num
 	else
 		print "Pass"
@@ -60,7 +62,7 @@ sub doTest(t as string, byval theTest as testPtr)
 end sub
 
 #define pass return 0
-#define fail errorpos = __LINE__ : return 1
+#define fail errorfile = __FILE__ : errorpos = __LINE__ : return 1
 
 #macro startTest(t)
 	Declare Function t##_TEST() as integer

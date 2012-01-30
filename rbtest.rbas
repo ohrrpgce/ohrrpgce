@@ -3,6 +3,7 @@
 #include "common_base.bi"
 
 declare function otherFileTests(byval node as nodeptr) as integer
+declare function testAddingNodeNames1() as integer
 
 dim shared doc as DocPtr, doc2 as DocPtr
 
@@ -504,6 +505,15 @@ startTest(testMixedSourceFiles)
 	if otherFileTests(root) then return 1  'fail
 
 	if splitContext(nod) then return 1  'fail
+endTest
+
+'This tests an implementation detail of RB, checking (valgrind required) whether reads
+'occur off the end of the document's nameIndexTable if additional names are added
+'BuildNameIndexTable
+startTest(testAddingNodeNames)
+	'This test is in a different file because name indices are shared across all functions
+	'in a file
+	return testAddingNodeNames1()
 endTest
 
 startTest(cleanup)

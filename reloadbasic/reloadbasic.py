@@ -537,7 +537,9 @@ IF {node} THEN
   {it} = {node}->children
 END IF
 WHILE {it}
-  SELECT CASE AS CONST {nametbl}[{it}->namenum]
+  DIM {nameindex} as integer = ANY
+  IF {it}->namenum < {it}->doc->nameIndexTableLen THEN {nameindex} = {nametbl}[{it}->namenum] ELSE {nameindex} = 999999
+  SELECT CASE AS CONST {nameindex}
 {cases}
   END SELECT
   {it} = {it}->nextSib
@@ -552,7 +554,9 @@ IF {node} THEN
   {it} = {node}->children
 END IF
 DIM {nameindex} as integer = INVALID_INDEX
-IF {it} THEN {nameindex} = {nametbl}[{it}->namenum]
+IF {it} THEN
+ IF {it}->namenum < {it}->doc->nameIndexTableLen THEN {nameindex} = {nametbl}[{it}->namenum] ELSE {nameindex} = 999999
+END IF
 DO
   SELECT CASE AS CONST {nameindex}
 {cases}
@@ -560,7 +564,7 @@ DO
   IF {it} THEN
     {it} = {it}->nextSib
     IF {it} THEN
-      {nameindex} = {nametbl}[{it}->namenum]
+      IF {it}->namenum < {it}->doc->nameIndexTableLen THEN {nameindex} = {nametbl}[{it}->namenum] ELSE {nameindex} = 999999
       CONTINUE DO
     END IF
   END IF
