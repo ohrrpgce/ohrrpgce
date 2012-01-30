@@ -300,15 +300,24 @@ startTest(testProvisional)
 endTest
 
 startTest(testSetKeyValueNode)
-	dim as NodePtr nod1, nod2
+	dim as NodePtr nod1
 	dim root as NodePtr = DocumentRoot(doc)
 	SetKeyValueNode(root, "a_dict", 0, 23)
 	nod1 = SetKeyValueNode(root, "a_dict", 1, 24)
 	SetChildNode(nod1, "something extra", "foo bar")
 	SetKeyValueNode(root, "a_dict", 2, 22)
-	nod2 = SetKeyValueNode(root, "a_dict", 1, -999)
-	if nod1 <> nod2 then fail
-	if NumChildren(nod2) then fail
+	nod1 = SetKeyValueNode(root, "a_dict", 1, -999)
+	if NumChildren(nod1) then fail
+
+	dim n as NodePtr
+	dim count as integer = 0
+	n = FirstChild(root, "a_dict")
+	while n
+		count += 1
+		n = NextSibling(n, "a_dict")
+	wend
+	if count <> 3 then fail
+
 	SetKeyValueNode(root, "dict2", 2, 22222, "id")
 endTest
 
