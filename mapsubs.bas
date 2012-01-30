@@ -1290,9 +1290,9 @@ DO
   FOR i = 0 TO 299
    WITH st.npc_inst(i)
     IF .id > 0 THEN
-     IF .x >= st.mapx AND .x < st.mapx + 320 AND .y >= st.mapy AND .y < st.mapy + 200 THEN
+     IF .x >= st.mapx AND .x < st.mapx + 320 AND .y >= st.mapy - 20 AND .y < st.mapy + 220 THEN
       DIM image AS GraphicPair = npc_img(.id - 1)
-      frame_draw image.sprite + (2 * .dir) + walk \ 2, image.pal, .x - st.mapx, .y + 20 - st.mapy, 1, -1, dpage
+      frame_draw image.sprite + (2 * .dir) + walk \ 2, image.pal, .x - st.mapx, .y + 20 - st.mapy + gmap(11), 1, -1, dpage
       textcolor uilook(uiSelectedItem + tog), 0
       printstr STR(.id - 1), .x - st.mapx, .y + 20 - st.mapy + 3, dpage
       printstr STR(npcnum(.id - 1)), .x - st.mapx, .y + 20 - st.mapy + 12, dpage
@@ -1386,7 +1386,7 @@ DO
  '--npc placement cursor--
  IF st.editmode = npc_mode THEN
   WITH npc_img(st.cur_npc)
-   frame_draw .sprite + (2 * walk), .pal, st.x * 20 - st.mapx, st.y * 20 - st.mapy + 20, 1, -1, dpage
+   frame_draw .sprite + (2 * walk), .pal, st.x * 20 - st.mapx, st.y * 20 - st.mapy + 20 + gmap(11), 1, -1, dpage
   END WITH
   textcolor uilook(uiSelectedItem + tog), 0
   printstr STR(st.cur_npc), (st.x * 20) - st.mapx, (st.y * 20) - st.mapy + 28, dpage
