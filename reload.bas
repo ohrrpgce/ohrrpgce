@@ -622,14 +622,14 @@ sub BuildNameIndexTable(byval doc as DocPtr, nodenames() as RBNodeName, byval fu
 		'We might add more strings; worst case
 		doc->nameIndexTable = RAllocate((doc->numStrings + total_num_names) * sizeof(short), doc)
 		'RDeallocate(doc->nameIndexTableBits, doc)
-		'doc->nameIndexTableBits = RAllocate(((doc->numStrings + 31) / 32) * 4, doc)
+		'doc->nameIndexTableBits = RAllocate(((doc->numStrings + 31) \ 32) * 4, doc)
 		RDeallocate(doc->RBFuncBits, doc)
 		doc->RBFuncBits = RAllocate(func_bits_size, doc)
 	end if
 
 	'If this function's nodenames table has been built before, skip
-	if doc->RBFuncBits[func_num / 32] and (1 shl (func_num mod 32)) then exit sub
-	doc->RBFuncBits[func_num / 32] or= (1 shl (func_num mod 32))
+	if doc->RBFuncBits[func_num \ 32] and (1 shl (func_num mod 32)) then exit sub
+	doc->RBFuncBits[func_num \ 32] or= (1 shl (func_num mod 32))
 
 	'memset(@table(0), &hff, sizeof(integer) * doc->numStrings)  'fills with -1
 
