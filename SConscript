@@ -90,7 +90,7 @@ env = Environment (FBFLAGS = FBFLAGS,
 
 # Shocked that scons doesn't provide $HOME
 # $DISPLAY is need for both gfx_sdl and gfx_fb
-for var in 'PATH', 'DISPLAY', 'HOME':
+for var in 'PATH', 'DISPLAY', 'HOME', 'EUDIR':
     if var in os.environ:
         env['ENV'][var] = os.environ[var]
 
@@ -403,19 +403,24 @@ if win32:
         gamesrc += ['gicon.rc']
         editsrc += ['cicon.rc']
 
+def env_exe(name, **kwargs):
+    ret = env.BASEXE (name, **kwargs)
+    Alias (name, ret)
+    return ret
+
 GAME = gameenv.BASEXE   (gamename, source = gamesrc, FBFLAGS = gameflags)
 CUSTOM = editenv.BASEXE (editname, source = editsrc, FBFLAGS = editflags)
-env.BASEXE ('bam2mid')
-env.BASEXE ('unlump', source = ['unlump.bas', 'lumpfile.o'] + base_objects)
-env.BASEXE ('relump', source = ['relump.bas', 'lumpfile.o'] + base_objects)
-env.BASEXE ('dumpohrkey')
-env.Command ('hspeak', source = ['hspeak.exw', 'hsspiffy.e'], action = 'euc -gcc hspeak.exw')
-RELOADTEST = env.BASEXE ('reloadtest', source = ['reloadtest.bas'] + reload_objects)
-XML2RELOAD = env.BASEXE ('xml2reload', source = ['xml2reload.bas'] + reload_objects, FBLIBS = env['FBLIBS'] + ['-p','.', '-l','xml2'], CXXLINKFLAGS = env['CXXLINKFLAGS'] + ['-lxml2'])
-RELOAD2XML = env.BASEXE ('reload2xml', source = ['reload2xml.bas'] + reload_objects)
-RELOADUTIL = env.BASEXE ('reloadutil', source = ['reloadutil.bas'] + reload_objects)
-RBTEST = env.BASEXE ('rbtest', source = [env.RB('rbtest.rbas'), env.RB('rbtest2.rbas')] + reload_objects)
-env.BASEXE ('vectortest', source = ['vectortest.bas'] + base_objects)
+env_exe ('bam2mid')
+env_exe ('unlump', source = ['unlump.bas', 'lumpfile.o'] + base_objects)
+env_exe ('relump', source = ['relump.bas', 'lumpfile.o'] + base_objects)
+env_exe ('dumpohrkey')
+env.Command ('hspeak', source = ['hspeak.exw', 'hsspiffy.e'], action = 'euc -gcc hspeak.exw -verbose')
+RELOADTEST = env_exe ('reloadtest', source = ['reloadtest.bas'] + reload_objects)
+XML2RELOAD = env_exe ('xml2reload', source = ['xml2reload.bas'] + reload_objects, FBLIBS = env['FBLIBS'] + ['-p','.', '-l','xml2'], CXXLINKFLAGS = env['CXXLINKFLAGS'] + ['-lxml2'])
+RELOAD2XML = env_exe ('reload2xml', source = ['reload2xml.bas'] + reload_objects)
+RELOADUTIL = env_exe ('reloadutil', source = ['reloadutil.bas'] + reload_objects)
+RBTEST = env_exe ('rbtest', source = [env.RB('rbtest.rbas'), env.RB('rbtest2.rbas')] + reload_objects)
+env_exe ('vectortest', source = ['vectortest.bas'] + base_objects)
 
 # --log . to smooth out inconsistencies between Windows and Unix
 tmp = ''
