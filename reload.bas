@@ -294,6 +294,10 @@ sub FreeDocument(byval doc as DocPtr)
 	
 	if doc->fileHandle then fclose(doc->fileHandle)
 	
+	RDeallocate(doc->nameIndexTable, doc)
+	'RDeallocate(doc->nameIndexTableBits, doc)
+	RDeallocate(doc->RBFuncBits, doc)
+
 	if RHeapDestroy(doc) then
 		if doc->root then
 			FreeNode(doc->root)
@@ -315,10 +319,6 @@ sub FreeDocument(byval doc as DocPtr)
 			doc->stringHash = null
 		end if
 	end if
-
-	RDeallocate(doc->nameIndexTable, doc)
-	'RDeallocate(doc->nameIndexTableBits, doc)
-	RDeallocate(doc->RBFuncBits, doc)
 
 	'regardless of what heap is in use, doc is on the default heap
 	delete doc
