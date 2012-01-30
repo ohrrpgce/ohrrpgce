@@ -80,6 +80,9 @@ dim key2text(3,53) as string*1 => { _
 	{"", "", !"\177",!"\178",!"\179",!"\180",!"\181",!"\182",!"\183",!"\184",!"\185",!"\186",!"\187",!"\188","","",!"\189",!"\190",!"\191",!"\192",!"\193",!"\194",!"\195",!"\196",!"\197",!"\198",!"\199",!"\200","","",!"\201",!"\202",!"\203",!"\204",!"\205",!"\206",!"\207",!"\208",!"\209",!"\210",!"\211",!"\212","",!"\213",!"\214",!"\215",!"\216",!"\217",!"\218",!"\219",!"\220",!"\221",!"\222",!"\223"} _
 }
 
+redim fonts(2) as Font
+
+
 'module shared
 dim shared wrkpage as integer  'used by some legacy modex functions. Usually points at clippedframe
 dim shared clippedframe as Frame ptr  'used to track which Frame the clips are set for.
@@ -140,7 +143,6 @@ dim shared mouse_dragmask as integer
 
 dim shared textfg as integer
 dim shared textbg as integer
-dim shared fonts(2) as Font
 
 dim shared intpal(0 to 255) as RGBcolor	'current palette
 dim shared updatepal as integer  'setpal called, load new palette at next setvispage
@@ -1664,7 +1666,7 @@ SUB fuzzyrect (byval fr as Frame Ptr, byval x as integer, byval y as integer, by
 	while h > 0
 		startr = (startr + grain) mod 100
 		r = startr
-                for i as integer = 0 to w-1
+		for i as integer = 0 to w-1
 			r += fuzzfactor
 			if r >= 100 then
 				sptr[i] = c
@@ -1949,8 +1951,8 @@ SUB ellipse (byval fr as Frame ptr, byval x as double, byval y as double, byval 
 		if discrim >= 0.0 then
 			discrim = sqr(discrim)
 
-                        'This algorithm is very sensitive to which way XXX.5 is rounded (normally towards even)...
-                        xstart = -int(-(x + (-qf_b - discrim) / (2.0 * qf_a) - 0.5))  'ceil(x-0.5), ie. round 0.5 down
+			'This algorithm is very sensitive to which way XXX.5 is rounded (normally towards even)...
+			xstart = -int(-(x + (-qf_b - discrim) / (2.0 * qf_a) - 0.5))  'ceil(x-0.5), ie. round 0.5 down
 			xend = int(x + (-qf_b + discrim) / (2.0 * qf_a) - 0.5)  'floor(x-0.5), ie. round 0.5 up, and subtract 1
 
 			if xstart > xend then  'No pixel centres on this scanline lie inside the ellipse
@@ -2143,97 +2145,584 @@ FUNCTION dowait () as integer
 	return timer >= flagtime
 end FUNCTION
 
-'FIXME: sprite pitch and so on!
-SUB printstr (byval dest as Frame ptr, s as string, byval startx as integer, byval y as integer, byval startfont as Font ptr, byval pal as Palette16 ptr, byval withtags as integer)
+'Pass a string, a 0-based offset of the start of the tag (it is assumed the first two characters have already
+'been matched as ${ or \8{ as desired), and action and arg pointers, to fill with the parse results. (Action in UPPERCASE)
+'Returns 0 for an invalidly formed tag, otherwise the (0-based) offset of the closing }.
+FUNCTION parse_tag(z as string, byval offset as integer, byval action as string ptr, byval arg as integer ptr) as integer
+	dim closebrace as integer = INSTR((offset + 4) + 1, z, "}") - 1
+	if closebrace <> -1 then
+		*action = ""
+		dim j as integer
+		for j = 2 to 5
+			if isalpha(z[offset + j]) then
+				*action += CHR(toupper(z[offset + j]))
+			else
+				exit for
+			end if
+		next
+
+		'dim strarg as string = MID(z, offset + j + 1, closebrace - (offset + j))
+		'*arg = str2int(strarg)
+
+		'The C standard lib seems a tad more practical than BASIC's (watch out though, scanf will stab you in the back if it sees a chance)
+		dim brace as byte
+		if isspace(z[offset + j]) orelse sscanf(@z[offset + j], "%d%c", arg, @brace) <> 2 orelse brace <> asc("}") then
+			*action = ""
+			return 0
+		end if
+		return closebrace
+	end if
+	return 0
+end FUNCTION
+
+Type PrintStrState
+	as Font ptr thefont
+	as Font ptr initialfont
+	as Palette16 localpal
+	as Palette16 ptr initialpal
+	as integer leftmargin
+	as integer rightmargin
+	as integer x
+	as integer y
+	as integer startx
+	as integer charnum
+End Type
+
+'Invisible argument: state. (member should not be . prefixed, unfortunately)
+'Modifies state, and appends a control sequence to the string outbuf to duplicate the change
+#define UPDATE_STATE(outbuf, member, value) _
+	outbuf += !"\016      " : _
+	*Cast(short ptr, @outbuf[len(outbuf) - 6]) = Offsetof(PrintStrState, member) : _
+	*Cast(integer ptr, @outbuf[len(outbuf) - 4]) = Cast(integer, value) : _
+	state.member = value
+
+'Interprets a control sequence (at 0-based offset ch in outbuf) written by UPDATE_STATE,
+'modifying state.
+#define MODIFY_STATE(state, outbuf, ch) _
+	/' dim offset as integer = *Cast(short ptr, @outbuf[ch + 1]) '/ _
+	/' dim newval as integer = *Cast(integer ptr, @outbuf[ch + 3]) '/ _
+	*Cast(integer ptr, Cast(byte ptr, @state) + *Cast(short ptr, @outbuf[ch + 1])) = _
+		*Cast(integer ptr, @outbuf[ch + 3]) : _
+	ch += 6
+
+
+'Processes starting from z[state.charnum] until the end of the line, returning a string
+'which describes a line fragment. It contains printing characters plus command sequences
+'for modifying state. state is passed byval (upon wrapping we would have to undo changes
+'to the state, which is too hard).
+'endchar is 0 based, and exclusive - normally len(z).
+'We also compute the height (height of the tallest font on the line) and the right edge
+'(max_x) of the line fragment. You have to know the line height before you can know the y
+'coordinate of each character on the line.
+'Updates to .x, .y are not written because they can be recreated from the character
+'stream, and .charnum is not written (unless updatecharnum is true) because it's too
+'expensive. However, .x, .y and .charnum are updated at the end.
+'If updatecharnum is true, it is updated only when .charnum jumps; you still need to
+'increment after every printing character yourself.
+private function layout_line_fragment(z as string, byval endchar as integer, byval state as PrintStrState, byref line_width as integer, byref line_height as integer, byval pagewidth as integer, byval withtags as integer, byval withnewlines as integer, byval updatecharnum as integer = NO) as string
+	dim lastspace as integer = -1
+	dim lastspace_x as integer
+	dim lastspace_outbuf_len as integer
+	dim lastspace_line_height as integer
+	dim endchar_x as integer  'x at endchar
+	dim endchar_outbuf_len as integer = 999999 'Length of outbuf at endchar
+	dim ch as integer  'We use this instead of modifying .charnum
+	dim visible_chars as integer  'Number non-control chars we will return
+	dim outbuf as string
+	'Appending characters one at a time to outbuf is slow, so we delay it.
+	'chars_to_add counts the number of delayed characters
+	dim chars_to_add as integer = 0
+	with state
+'debug "layout from " & .charnum & " at " & .x & "," & .y
+		line_height = .thefont->h
+		for ch = .charnum to len(z) - 1
+			if ch = endchar then
+				endchar_x = .x
+				endchar_outbuf_len = len(outbuf) + chars_to_add
+			end if
+
+			if z[ch] = 10 and withnewlines then  'newline
+'debug "add " & chars_to_add & " chars before " & ch & " : '" & Mid(z, 1 + ch - chars_to_add, chars_to_add) & "'"
+				outbuf += Mid(z, 1 + ch - chars_to_add, chars_to_add)
+				chars_to_add = 0
+				'Skip past the newline character, but don't add to outbuf
+				ch += 1
+				if ch > endchar then
+					outbuf = left(outbuf, endchar_outbuf_len)
+					line_width = endchar_x
+					UPDATE_STATE(outbuf, x, endchar_x)
+				else
+					line_width = .x
+					UPDATE_STATE(outbuf, x, .startx)
+				end if
+				'Purposefully past endchar 
+				UPDATE_STATE(outbuf, charnum, ch)
+				'Reset margins for next paragraph? No.
+				'UPDATE_STATE(outbuf, leftmargin, 0)
+				'UPDATE_STATE(outbuf, rightmargin, pagewidth)
+				return outbuf
+			elseif z[ch] = 8 then ' ^H, hide tag
+				if z[ch + 1] = asc("{") then
+					dim closebrace as integer = instr((ch + 2) + 1, z, "}") - 1
+					if closebrace <> -1 then
+						'Add delayed characters first
+'debug "add " & chars_to_add & " chars before " & ch & " : '" & Mid(z, 1 + ch - chars_to_add, chars_to_add) & "'"
+
+						outbuf += Mid(z, 1 + ch - chars_to_add, chars_to_add)
+						chars_to_add = 0
+						ch = closebrace
+						if updatecharnum then UPDATE_STATE(outbuf, charnum, ch)
+						continue for
+					end if
+				end if
+			elseif z[ch] = 16 then ' special signalling character. Not allowed!
+'debug "add " & chars_to_add & " chars before " & ch & " : '" & Mid(z, 1 + ch - chars_to_add, chars_to_add) & "'"
+
+				outbuf += Mid(z, 1 + ch - chars_to_add, chars_to_add)
+				chars_to_add = 0
+				ch += 1	 'skip
+				if updatecharnum then UPDATE_STATE(outbuf, charnum, ch)
+				continue for
+			elseif z[ch] = asc("$") then
+				if withtags and z[ch + 1] = asc("{") then
+					dim action as string
+					dim intarg as integer
+
+					dim closebrace as integer = parse_tag(z, ch, @action, @intarg)
+					if closebrace then
+						'Add delayed characters first
+'debug "add " & chars_to_add & " chars before " & ch & " : '" & Mid(z, 1 + ch - chars_to_add, chars_to_add) & "'"
+
+						outbuf += Mid(z, 1 + ch - chars_to_add, chars_to_add)
+						chars_to_add = 0
+						if action = "F" andalso intarg >= 0 andalso intarg <= ubound(fonts) then
+							line_height = large(line_height, .thefont->h)
+							'Let's preserve the position offset when changing fonts. That way, plain text in
+							'the middle of edgetext is also offset +1,+1, so that it lines up visually with it
+							'.x += fonts(intarg).offset.x - .thefont->offset.x
+							'.y += fonts(intarg).offset.y - .thefont->offset.y
+							if intarg = -1 then
+								UPDATE_STATE(outbuf, thefont, .initialfont)
+							elseif intarg >= 0 andalso intarg <= ubound(fonts) then
+								UPDATE_STATE(outbuf, thefont, @fonts(intarg))
+							else
+								'goto badtexttag
+							end if
+						elseif action = "K" then
+							if intarg <= -1 then
+								UPDATE_STATE(outbuf, localpal.col(1), .initialpal->col(1))
+							else
+								UPDATE_STATE(outbuf, localpal.col(1), intarg AND &hFF)
+							end if
+						elseif action = "LM" then
+							UPDATE_STATE(outbuf, leftmargin, intarg)
+						elseif action = "RM" then
+							UPDATE_STATE(outbuf, rightmargin, pagewidth - intarg)
+						else
+							goto badtexttag
+						end if
+						ch = closebrace
+						if updatecharnum then UPDATE_STATE(outbuf, charnum, ch)
+						continue for
+					end if
+
+					badtexttag:
+				end if
+			elseif z[ch] = asc(" ") then
+				lastspace = ch
+				lastspace_outbuf_len = len(outbuf) + chars_to_add
+				lastspace_x = .x
+				lastspace_line_height = line_height
+			end if
+
+			.x += .thefont->w(z[ch])
+			if .x > .startx + .rightmargin then
+'debug "rm = " & .rightmargin & " lm = " & .leftmargin
+				if lastspace > -1 and .x - lastspace_x < (.rightmargin - .leftmargin) \ 2 then
+					'Split at the last space
+
+					if chars_to_add then
+'debug "add " & chars_to_add & " chars before " & ch & " : '" & Mid(z, 1 + ch - chars_to_add, chars_to_add) & "'"
+
+						outbuf += Mid(z, 1 + ch - chars_to_add, chars_to_add)
+					end if
+					outbuf = left(outbuf, small(endchar_outbuf_len, lastspace_outbuf_len))
+					if lastspace < endchar then
+						line_width = lastspace_x
+						UPDATE_STATE(outbuf, x, .startx + .leftmargin)
+					else
+						line_width = endchar_x
+					end if
+					line_height = lastspace_line_height
+					UPDATE_STATE(outbuf, charnum, lastspace + 1)
+
+					return outbuf
+				else
+					'Split the word instead, it would just look ugly to break the line
+					if visible_chars = 0 then
+						'Always output at least one character
+						chars_to_add += 1
+						ch += 1
+					end if
+					exit for
+				end if
+			end if
+
+			'Add this character to outbuf. But not immediately.
+			chars_to_add += 1
+			visible_chars += 1
+		next
+
+		'Hit end of text, or splitting word
+		if chars_to_add then
+'debug "add " & chars_to_add & " chars before " & ch & " : '" & Mid(z, 1 + ch - chars_to_add, chars_to_add) & "'"
+			outbuf += Mid(z, 1 + ch - chars_to_add, chars_to_add)
+		end if
+		if ch < endchar then
+			line_width = .x
+			UPDATE_STATE(outbuf, x, .startx + .leftmargin)
+		else
+			outbuf = left(outbuf, endchar_outbuf_len)
+			line_width = endchar_x
+			UPDATE_STATE(outbuf, x, endchar_x)
+		end if
+		UPDATE_STATE(outbuf, charnum, ch)
+		'Preserve .leftmargin and .rightmargin
+
+		return outbuf
+	end with
+end function
+
+'Processes a parsed line, updating the state passed to it, and also optionally draws one of the layers
+sub draw_line_fragment(byval dest as Frame ptr, byref state as PrintStrState, byval layer as integer, parsed_line as string, byval reallydraw as integer, byval charframe as Frame ptr, byval trans_type as integer)
+	with state
+'debug "draw frag: x=" & .x & " y=" & .y & " char=" & .charnum & " reallydraw=" & reallydraw & " layer=" & layer
+		for ch as integer = 0 to len(parsed_line) - 1
+			if parsed_line[ch] = 16 then
+				'Control sequence. Make a change to state, and move ch past the sequence
+				MODIFY_STATE(state, parsed_line, ch)
+			else
+				'Draw a character
+
+				'Print one character past the end of the line
+				if reallydraw and .x <= clipr then
+					if .thefont->sprite(layer) <> NULL then
+						with .thefont->sprite(layer)->chdata(parsed_line[ch])
+							charframe->image = state.thefont->sprite(layer)->spr.image + .offset
+							charframe->w = .w
+							charframe->h = .h
+							charframe->pitch = .w
+'debug " <" & (state.x + .offx) & "," & (state.y + .offy) & ">"
+							drawohr(charframe, dest, @state.localpal, state.x + .offx, state.y + .offy - state.thefont->h, trans_type)
+						end with
+					end if
+				end if
+
+				'Note: do not use charframe->w, that's just the width of the sprite
+				.x += .thefont->w(parsed_line[ch])
+			end if
+		next
+	end with
+end sub
+
+
+'Draw a string. You will normally want to use one of the friendlier overloads for this,
+'probably the most complicated function in the engine.
+'
+'If withtags is false then no tags are processed.
+'If withtags is true, the follow "basic texttags" are processed:
+' ${F#} changes to font # or return to initial font if # == -1
+' ${K#} changes foreground/first colour
+' ${KP#} changes to palette #  (unimplemented)
+' ${LM#} sets left margin for the current line, in pixels
+' ${RM#} sets right margin for the current line, in pixels
+'Unrecognised and invalid basic texttags are printed as normal.
+'ASCII character 8 can be used to hide texttags by overwriting the $, like so: \008{X#}
+'
+'Clipping and wrapping:
+'If you specify a page width (the default is "infinite"), then text automatically wraps according
+'to current margins. Otherwise there is no limit on the right (not even the edge of the screen).
+'xpos is the left limit, and xpos+wide is the right limit from which margins are measured (inwards).
+'Drawn text is NOT clipped to this region, use setclip or frame_new_view for that.
+'This region may be larger than the clip area.
+'If withnewlines is true, then newlines (ASCII character 10) are respected
+'instead of printed as normal characters.
+'
+'If you want to skip some number of lines, you should clip, and draw some number of pixels
+'above the clipping rectangle.
+'
+'FIXME: Fonts suck, fix use of Frames
+'
+sub render_text (byval dest as Frame ptr, text as string, byval endchar as integer = 999999, byval xpos as integer, byval ypos as integer, byval wide as integer = 999999, byval startfont as Font ptr, byval pal as Palette16 ptr, byval withtags as integer = YES, byval withnewlines as integer = YES, byval cached_state as PrintStrStatePtr = NULL, byval use_cached_state as integer = YES)
+
+'static tog as integer = 0
+'tog xor= 1
+'dim t as double = timer
+
+	if dest = null then debug "printstr: NULL dest" : exit sub
+
 	if clippedframe <> dest then
 		setclip , , , , dest
 	end if
-
-	startx += startfont->offset.x
-	y += startfont->offset.y
 
 	'check bounds skipped because this is now quite hard to tell (checked in drawohr)
 
 	dim as Frame charframe
 	charframe.mask = NULL
 
-	'decide whether to draw a solid background or not
+	'decide whether to draw a solid background or not (kludge)
 	dim as integer trans_type = -1
 	if pal->col(0) > 0  then
 		trans_type = 0
 	end if
 
-	'We have to process both layers, even if this font has only one layer, incase it switches to a font that has two!
-	for layer as integer = 0 to 1
-		'Make a local copy of the palette, for modifications
-		dim localpal as Palette16 = *pal
+'debug "printstr '" & text & "' (len=" & len(text) & ") wide = " & wide & " tags=" & withtags & " nl=" & withnewlines
 
-		dim thefont as Font ptr = startfont
+	dim state as PrintStrState
+	with state
+		if cached_state <> NULL and use_cached_state then
+			state = *cached_state
+			cached_state = NULL
+		else
+			'Make a local copy of the palette, for modifications
+			.localpal = *pal
+			.initialpal = pal
+			.thefont = startfont
+			.initialfont = startfont
+			.charnum = 0
+			.x = xpos + startfont->offset.x
+			.y = ypos + startfont->offset.y
+			.startx = .x
+			'Margins are measured relative to xpos
+			.leftmargin = 0
+			.rightmargin = wide
+		end if
 
-		dim x as integer = startx
-		'dim y as integer = starty
+		dim as integer visibleline  'Draw this line of text?
 
-		for ch as integer = 0 to len(s) - 1
-			if withtags ANDALSO memcmp(@s[ch], @"${", 2) = 0 then
-				dim closebrace as integer = instr(ch + 1 + 4, s, "}")
-				if closebrace then
-					dim action as byte = toupper(s[ch + 2])
-					dim arg as string = mid(s, ch + 1 + 3, closebrace - (ch + 1) - 3)
-					dim intarg as integer = str2int(arg)
+		'We have to process both layers, even if the current font has only one layer,
+		'in case the string switches to a font that has two!
+		dim prev_state as PrintStrState = state
+		dim prev_parse as string
+		dim prev_visible as integer
+		dim draw_layer1 as integer = NO  'Don't draw on first loop
 
-					if action = asc("K") then
-						if intarg = -1 then intarg = pal->col(1)
-						localpal.col(1) = intarg
-					elseif action = asc("F") then
-						'Let's preserve the position offset when changing fonts. That way, plain text in
-						'the middle of edgetext is also offset +1,+1, so that it lines up visually with it
-						'x += fonts(intarg).offset.x - thefont->offset.x
-						'y += fonts(intarg).offset.y - thefont->offset.y
-						if intarg = -1 then
-							thefont = startfont
-						else
-							thefont = @fonts(intarg)
-						end if
-					else
-						goto badaction
-					end if
-					ch = closebrace - 1
-					continue for
-				end if
-			end if
-			badaction:
+		if endchar > len(text) then endchar = len(text)
+		do
+			dim line_height as integer
+			dim parsed_line as string = layout_line_fragment(text, endchar, state, 0, line_height, wide, withtags, withnewlines)
+'debug "parsed: " + parsed_line
+			'Print at least one extra line above and below the visible region, in case the
+			'characters are big (we only approximate this policy, with the current font height)
+			visibleline = (.y + line_height > clipt - .thefont->h AND .y < clipb + .thefont->h)
+'if tog then visibleline = 0
+'debug "vis: " & visibleline
 
-			if thefont->sprite(layer) <> NULL then
-				with thefont->sprite(layer)->chdata(s[ch])
-					charframe.image = thefont->sprite(layer)->spr.image + .offset
-					charframe.w = .w
-					charframe.h = .h
-					charframe.pitch = .w
-					drawohr(@charframe, dest, @localpal, x + .offx, y + .offy, trans_type)
-				end with
+			if cached_state then
+				*cached_state = state
+				cached_state = NULL  'Don't save again
 			end if
 
-			'print one character past the end of the line
-			'(I think this is a reasonable approximation)
-			if x > clipr then
-				continue for, for
+			.y += line_height
+
+			'Update state while drawing layer 0 (if visible)
+			draw_line_fragment(dest, state, 0, parsed_line, visibleline, @charframe, trans_type)
+
+			if draw_layer1 then
+				'Now update prev_state (to the beginning of THIS line) while drawing layer 1
+				'for the previous line. Afterwards, prev_state will be identical to state
+				'as it was at the start of this loop.
+				draw_line_fragment(dest, prev_state, 1, prev_parse, prev_visible, @charframe, trans_type)
+'debug "prev.charnum=" & prev_state.charnum
+				if prev_state.charnum >= endchar then /'debug "text end" :'/ exit do
+				if prev_state.y > clipb + prev_state.thefont->h then exit do
 			end if
-			'note: do not use charframe.w, that's just the width of the sprite
-			x += thefont->w(s[ch])
-		next
-	next
+			draw_layer1 = YES
+			prev_parse = parsed_line
+			prev_visible = visibleline
+			prev_state.y += line_height
+		loop
+	end with
+'t = timer - t
+'debug "prinstr" & tog & " len " & len(text) & " in " & t*1000 & "ms"
+end sub
+
+'Calculate size of part of a block of text when drawn, returned in retsize
+sub text_layout_dimensions (byval retsize as StringSize ptr, z as string, byval endchar as integer = 999999, byval maxlines as integer = 999999, byval wide as integer = 999999, byval fontnum as integer, byval withtags as integer = YES, byval withnewlines as integer = YES)
+'debug "DIMEN char " & endchar
+	dim state as PrintStrState
+	with state
+		'.localpal uninitialised
+		.thefont = @fonts(fontnum)
+		.initialfont = .thefont
+		.initialpal = @.localpal  'any old valid pointer
+		.charnum = 0
+		.x = .thefont->offset.x
+		.y = .thefont->offset.y
+		'Margins are measured relative to xpos
+		.leftmargin = 0
+		.rightmargin = wide
+
+		dim maxwidth as integer = 0
+		dim line_width as integer = 0
+		dim line_height as integer = 0
+		retsize->lines = 0
+
+		if endchar > len(z) then endchar = len(z)
+		while .charnum < len(z)
+			if .charnum > endchar then exit while
+			'If .charnum = endchar, the last line is zero length, but should be included.
+			'.charnum won't advance, so need extra check to prevent infinite loop!
+			dim exitloop as integer = (.charnum = endchar)
+			dim parsed_line as string = layout_line_fragment(z, endchar, state, line_width, line_height, wide, withtags, withnewlines)
+			retsize->lines += 1
+			maxwidth = large(maxwidth, line_width)
+
+			'Update state
+			.y += line_height
+			draw_line_fragment(NULL, state, 0, parsed_line, NO, NULL, 0)
+'debug "now " & .charnum & " at " & .x & "," & .y
+			if exitloop then exit while
+		wend
+
+		retsize->endchar = .charnum
+		retsize->w = maxwidth
+		retsize->h = .y
+		retsize->lastw = line_width
+		retsize->lasth = line_height
+		retsize->finalfont = .thefont
+'debug "END DIM  char=" & .charnum
+	end with
 end SUB
 
-'the old printstr
+'Returns the length in pixels of the longest line of a *non-autowrapped* string.
+FUNCTION textwidth(z as string, byval fontnum as integer = 0, byval withtags as integer = YES, byval withnewlines as integer = YES) as integer
+	dim retsize as StringSize
+	text_layout_dimensions @retsize, z, len(z), , , fontnum, withtags, withnewlines
+	return retsize.w
+end function
+
+'xpos and ypos passed to use same cached state
+sub find_point_in_text (byval retsize as StringCharPos ptr, byval seekx as integer, byval seeky as integer, z as string, byval wide as integer = 999999, byval xpos as integer, byval ypos as integer, byval fontnum as integer, byval withtags as integer = YES, byval withnewlines as integer = YES)
+
+	dim state as PrintStrState
+	with state
+		'.localpal uninitialised
+		.thefont = @fonts(fontnum)
+		.initialfont = .thefont
+		.initialpal = @.localpal  'any old valid pointer
+		.charnum = 0
+		.x = xpos + .thefont->offset.x
+		.y = ypos + .thefont->offset.y
+		'Margins are measured relative to xpos
+		.leftmargin = 0
+		.rightmargin = wide
+
+		dim delayedmatch as integer = NO
+		dim line_width as integer
+		dim line_height as integer
+
+		retsize->exacthit = NO
+		'retsize->w = .thefont->h  'Default for if we go off the end of the text
+
+		while .charnum < len(z)
+			dim parsed_line as string = layout_line_fragment(z, len(z), state, line_width, line_height, wide, withtags, withnewlines, YES)
+			.y += line_height
+			'.y now points to 1 pixel past the bottom of the line fragment
+
+			'Update state
+			for ch as integer = 0 to len(parsed_line) - 1
+				if parsed_line[ch] = 16 then
+					'Make a change to the state
+					.charnum += 1
+					MODIFY_STATE(state, parsed_line, ch)
+				else
+					dim w as integer = .thefont->w(parsed_line[ch])
+					'Draw a character
+					if delayedmatch then
+						'retsize->w = w
+						exit while
+					end if
+					.x += w
+					if .y > seeky and .x > seekx then
+'debug "FIND IN: hit w/ x = " & .x
+						'retsize->w = w
+						retsize->exacthit = YES
+						.x -= w
+						exit while
+					end if
+					.charnum += 1
+				end if
+			next
+
+			if .y > seeky then
+				'Position was off the end of the line
+				if .charnum > 0 then
+					dim lastchar as ubyte = z[.charnum - 1]
+					if lastchar = 32 or (lastchar = 10 andalso withnewlines) then
+						'This point is actually on a space/newline, which was
+						'not added to parsed_string. So don't delay.
+						retsize->exacthit = YES
+						.x = line_width
+						.charnum -= 1
+						exit while
+					end if
+				end if
+				delayedmatch = YES
+'debug "FIND IN: delayed"
+			end if
+		wend
+
+		retsize->charnum = .charnum
+		retsize->x = .x
+		retsize->y = .y - .thefont->h
+		retsize->h = .thefont->h
+		retsize->lineh = line_height
+	end with
+end SUB
+
+'A flexible printstr for enduser code without weird font, pal arguments
+SUB printstr (byval dest as Frame ptr, s as string, byval x as integer, byval y as integer, byval wide as integer = 999999, byval fontnum as integer, byval withtags as integer = YES, byval withnewlines as integer = YES)
+	dim fontpal as Palette16
+
+	if fontnum = 0 then
+		'unedged
+		fontpal.col(0) = textbg
+		fontpal.col(1) = textfg
+	else
+		'edged
+		fontpal.col(0) = 0
+		fontpal.col(1) = textfg
+		fontpal.col(2) = uilook(uiOutline)
+	end if
+
+	render_text (dest, s, , x, y, wide, @fonts(fontnum), @fontpal, withtags, withnewlines)
+end SUB
+
+SUB init_font_palette(byval fontpal as Palette16 ptr, byval fontnum as integer, byval fgcol as integer, byval bgcol as integer)
+	if fontnum = 0 then
+		'unedged
+		fontpal->col(0) = bgcol
+		fontpal->col(1) = fgcol
+	else
+		'edged
+		fontpal->col(0) = 0
+		fontpal->col(1) = fgcol
+		fontpal->col(2) = uilook(uiOutline)
+	end if
+END SUB
+
+'the old printstr -- no autowrapping
 SUB printstr (s as string, byval x as integer, byval y as integer, byval p as integer, byval withtags as integer = NO)
 	dim fontpal as Palette16
 
 	fontpal.col(0) = textbg
 	fontpal.col(1) = textfg
 
-	printstr (vpages(p), s, x, y, @fonts(0), @fontpal, withtags)
+	render_text (vpages(p), s, , x, y, , @fonts(0), @fontpal, withtags, NO)
 end SUB
 
+'this doesn't autowrap either
 SUB edgeprint (s as string, byval x as integer, byval y as integer, byval c as integer, byval p as integer, byval withtags as integer = NO)
 	static fontpal as Palette16
 
@@ -2245,7 +2734,7 @@ SUB edgeprint (s as string, byval x as integer, byval y as integer, byval c as i
 	textfg = c
 	textbg = 0
 
-	printstr (vpages(p), s, x, y, @fonts(1), @fontpal, withtags)
+	render_text (vpages(p), s, , x, y, , @fonts(1), @fontpal, withtags, NO)
 END SUB
 
 SUB textcolor (byval f as integer, byval b as integer)
@@ -2258,7 +2747,7 @@ end SUB
 SUB font_unload (byval font as Font ptr)
 	if font = null then exit sub
 
-	'look! polymorphism! definitely not hackery! yeah... look it up sometime.
+	'look! polymorphism! definitely not hackery! yeah... almost.
 	frame_unload cast(Frame ptr ptr, @font->sprite(0))
 	frame_unload cast(Frame ptr ptr, @font->sprite(1))
 
@@ -2409,7 +2898,7 @@ sub font_loadold1bit (byval font as Font ptr, byval fontdata as ubyte ptr)
 		.mask = null
 		.image = allocate(256 * 8 * 8)
 	end with
-	font->h = 8
+	font->h = 10  'I would have said 9, but this is what was used in text slices
 	font->offset.x = 0
 	font->offset.y = 0
 	font->cols = 1
@@ -2482,7 +2971,7 @@ SUB font_loadbmps (byval font as Font ptr, byval fallback as Font ptr = null)
 
 	for i = 0 to 255
 		with font->sprite(1)->chdata(i)
-			f = "testfont" & SLASH & i & ".bmp"
+			f = finddatafile("testfont" & SLASH & i & ".bmp")
 			if isfile(f) then
 				'FIXME: awful stuff
 				tempfr = frame_import_bmp_raw(f)  ', master())
@@ -2539,11 +3028,12 @@ SUB setfont (f() as integer)
 	font_loadold1bit(@fonts(0), cast(ubyte ptr, @f(0)))
 
 	font_create_edged(@fonts(1), @fonts(0))
-	'font_create_shadowed(@fonts(1), @fonts(0))
+	font_create_shadowed(@fonts(2), @fonts(0))
 	'more hardcoded stuff
 	fonts(1).offset.x = 1
 	fonts(1).offset.y = 1
-	fonts(1).h += 2
+	'fonts(1).h += 2
+	'font_loadbmps(@fonts(2), @fonts(1))
 end SUB
 
 SUB storeset (fil as string, byval i as integer, byval l as integer)

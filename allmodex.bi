@@ -79,6 +79,7 @@ DECLARE SUB drawline OVERLOAD (byval x1 as integer, byval y1 as integer, byval x
 DECLARE SUB paintat (byval dest as Frame ptr, byval x as integer, byval y as integer, byval c as integer)
 DECLARE SUB ellipse (byval fr as Frame ptr, byval x as double, byval y as double, byval radius as double, byval c as integer, byval fillcol as integer = -1, byval semiminor as double = 0.0, byval angle as double = 0.0)
 DECLARE SUB replacecolor (byval fr as Frame ptr, byval c_old as integer, byval c_new as integer, byval x as integer = -1, byval y as integer = -1, byval w as integer = -1, byval h as integer = -1)
+
 DECLARE SUB storemxs (fil as string, byval record as integer, byval fr as Frame ptr)
 DECLARE FUNCTION loadmxs (fil as string, byval record as integer, byval dest as Frame ptr = 0) as Frame ptr
 
@@ -87,10 +88,22 @@ DECLARE FUNCTION dowait () as integer
 DECLARE SUB enable_speed_control(byval setting as integer=YES)
 DECLARE FUNCTION get_tickcount() as integer
 
-DECLARE SUB printstr OVERLOAD (byval dest as Frame ptr, s as string, byval startx as integer, byval y as integer, byval startfont as Font ptr, byval pal as Palette16 ptr, byval withtags as integer)
+DECLARE FUNCTION parse_tag(z as string, byval offset as integer, byval action as string ptr, byval arg as integer ptr) as integer
+
+TYPE PrintStrStatePtr as PrintStrState Ptr
+
+DECLARE SUB render_text (byval dest as Frame ptr, text as string, byval endchar as integer = 999999, byval xpos as integer, byval ypos as integer, byval wide as integer = 999999, byval startfont as Font ptr, byval pal as Palette16 ptr, byval withtags as integer = YES, byval withnewlines as integer = YES, byval cached_state as PrintStrStatePtr = NULL, byval use_cached_state as integer = YES)
+DECLARE SUB text_layout_dimensions (byval retsize as StringSize ptr, z as string, byval endchar as integer = 999999, byval maxlines as integer = 999999, byval wide as integer = 999999, byval fontnum as integer, byval withtags as integer = YES, byval withnewlines as integer = YES)
+DECLARE SUB printstr OVERLOAD (byval dest as Frame ptr, s as string, byval x as integer, byval y as integer, byval wide as integer = 999999, byval fontnum as integer, byval withtags as integer = YES, byval withnewlines as integer = YES)
 DECLARE SUB printstr OVERLOAD (s as string, byval x as integer, byval y as integer, byval p as integer, byval withtags as integer = NO)
+DECLARE SUB init_font_palette(byval fontpal as Palette16 ptr, byval fontnum as integer, byval fgcol as integer, byval bgcol as integer)
 DECLARE SUB edgeprint (s as string, byval x as integer, byval y as integer, byval c as integer, byval p as integer, byval withtags as integer = NO)
 DECLARE SUB textcolor (byval f as integer, byval b as integer)
+
+DECLARE FUNCTION textwidth (z as string, byval fontnum as integer = 0, byval withtags as integer = YES, byval withnewlines as integer = YES) as integer
+
+DECLARE SUB find_point_in_text (byval retsize as StringCharPos ptr, byval seekx as integer, byval seeky as integer, z as string, byval wide as integer = 999999, byval xpos as integer, byval ypos as integer, byval fontnum as integer, byval withtags as integer = YES, byval withnewlines as integer = YES)
+
 DECLARE SUB setfont (f() as integer)
 
 DECLARE SUB storeset (fil as string, byval i as integer, byval l as integer)
@@ -196,5 +209,6 @@ extern vpages() as Frame ptr
 extern vpagesp as Frame ptr ptr
 extern key2text(3,53) as string*1
 extern disable_native_text_input as integer
+extern fonts() as Font
 
 #ENDIF

@@ -446,8 +446,6 @@ Function wordwrap(z as string, byval wid as integer, sep as string = chr(10)) as
    exit do
   end if
   
-  
-  
   for j = i - 1 to 1 step -1
    if mid(in, j, 1) = " " then
     'bingo!
@@ -489,16 +487,6 @@ sub split(in as string, ret() as string, sep as string = chr(10))
   j+=1
  loop
 end sub
-
-function textwidth(z as string) as integer
- dim lines() as string
- split(z, lines())
- dim ret as integer = 0
- for i as integer = 0 to ubound(lines)
-  if len(lines(i)) > ret then ret = len(lines(i))
- next
- return ret * 8
-end function
 
 SUB flusharray (array() as integer, byval size as integer=-1, byval value as integer=0)
  'If size is -1, then flush the entire array

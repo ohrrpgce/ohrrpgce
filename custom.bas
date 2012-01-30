@@ -58,6 +58,7 @@ DECLARE SUB secret_menu ()
 DECLARE SUB condition_test_menu ()
 DECLARE SUB quad_transforms_menu ()
 DECLARE SUB arbitrary_sprite_editor ()
+DECLARE SUB text_test_menu ()
 DECLARE SUB distribute_game ()
 DECLARE SUB distribute_game_as_zip ()
 DECLARE SUB distribute_game_as_windows_installer ()
@@ -1204,7 +1205,7 @@ SUB move_unwriteable_rpg (filetolump as string)
 END SUB
 
 SUB secret_menu ()
- DIM menu(...) as string = {"Reload Editor", "Editor Editor", "Conditions and More Tests", "Transformed Quads", "Sprite editor with arbitrary sizes"}
+ DIM menu(...) as string = {"Reload Editor", "Editor Editor", "Conditions and More Tests", "Transformed Quads", "Sprite editor with arbitrary sizes", "Text tests"}
  DIM st as MenuState
  st.size = 24
  st.last = UBOUND(menu)
@@ -1219,6 +1220,7 @@ SUB secret_menu ()
    IF st.pt = 2 THEN condition_test_menu
    IF st.pt = 3 THEN quad_transforms_menu
    IF st.pt = 4 THEN arbitrary_sprite_editor
+   IF st.pt = 5 THEN text_test_menu
   END IF
   usemenu st
   clearpage vpage
@@ -1921,3 +1923,42 @@ SUB quad_transforms_menu ()
 END SUB
 
 #ENDIF
+
+SUB text_test_menu
+ DIM text as string = load_help_file("texttest")
+ DIM mouse as MouseInfo
+ hidemousecursor
+ DO
+  setwait 55
+  setkeys
+  mouse = readmouse
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN
+   show_help "texttest"
+   text = load_help_file("texttest")
+  END IF
+  IF keyval(scF2) > 1 THEN
+   pop_warning !"Extreemmmely lonngggg Extreemmmely lonngggg Extreemmmely lonngggg Extreemmmely lonngggg Extreemmmely lonngggg Extreemmmely lonngggg Extreemmmely lonngggg \n\ntext\nbox\n\nnargh\nnargh\nnargh\nndargh\nnargh\nnagrgh\nnargh\n\nmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
+  END IF
+  IF keyval(scF3) > 1 THEN
+   text = load_help_file("texttest_stress_test")
+  END IF
+
+  DIM curspos as StringCharPos
+  DIM pos2 as StringSize
+  find_point_in_text @curspos, mouse.x - 20, mouse.y - 20, text, 280, 0, 0, 0, YES, YES
+
+  text_layout_dimensions @pos2, text, curspos.charnum, , 280, 0, YES, YES
+
+  clearpage vpage
+  edgeboxstyle 10, 10, 300, 185, 0, vpage
+  printstr vpages(vpage), text, 20, 20, 280, 0
+  rectangle vpages(vpage), 20 + pos2.lastw, 20 + pos2.h - pos2.finalfont->h, 8, pos2.finalfont->h, 5
+  printstr CHR(3), mouse.x - 2, mouse.y - 2, vpage
+  printstr STR(curspos.charnum), 0, 190, vpage
+  setvispage vpage
+  dowait
+ LOOP
+ setkeys
+ unhidemousecursor
+END SUB
