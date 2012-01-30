@@ -1145,7 +1145,7 @@ SUB setkeys_update_keybd
 				end if
 			next
 			'/
-			if winstate->focused = NO then
+			if winstate andalso winstate->focused = NO then
 				delayed_alt_keydown = NO
 			end if
 

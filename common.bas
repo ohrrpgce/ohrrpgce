@@ -1529,7 +1529,7 @@ SUB pop_warning(s as string, byval autoquit as integer = NO)
 
   IF autoquit THEN
    DIM winstate as WindowState ptr = gfx_getwindowstate()
-   IF winstate->focused = NO THEN EXIT DO
+   IF winstate andalso winstate->focused = NO THEN EXIT DO
   END IF
   
   IF deadkeys = 0 THEN 
