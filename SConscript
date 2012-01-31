@@ -88,12 +88,18 @@ env = Environment (FBFLAGS = FBFLAGS,
                    VAR_PREFIX = '',
                    **envextra)
 
+w32_env = Environment ()
+
 # Shocked that scons doesn't provide $HOME
 # $DISPLAY is need for both gfx_sdl and gfx_fb
 for var in 'PATH', 'DISPLAY', 'HOME', 'EUDIR':
     if var in os.environ:
         env['ENV'][var] = os.environ[var]
 
+if win32:
+    if 'DXSDK_DIR' in os.environ:
+        w32_env.Append(CPPPATH = os.path.join(os.environ['DXSDK_DIR'], 'Include'))
+        w32_env.Append(LIBPATH = os.path.join(os.environ['DXSDK_DIR'], 'Lib', 'x86'))
 
 def prefix_targets(target, source, env):
     target = [File(env['VAR_PREFIX'] + str(a)) for a in target]
@@ -422,6 +428,33 @@ RELOADUTIL = env_exe ('reloadutil', source = ['reloadutil.bas'] + reload_objects
 RBTEST = env_exe ('rbtest', source = [env.RB('rbtest.rbas'), env.RB('rbtest2.rbas')] + reload_objects)
 env_exe ('vectortest', source = ['vectortest.bas'] + base_objects)
 
+# Building gfx_directx.dll
+if win32:
+    directx_sources = ['d3d.cpp', 'didf.cpp', 'gfx_directx.cpp', 'joystick.cpp', 'keyboard.cpp',
+                       'midsurface.cpp', 'mouse.cpp', 'window.cpp']
+    directx_sources = [os.path.join('gfx_directx', f) for f in directx_sources]
+
+    RESFILE = w32_env.RES ('gfx_directx/gfx_directx.rc')
+    Depends (RESFILE, ['gfx_directx/help.txt', 'gfx_directx/Ohrrpgce.bmp'])
+    directx_sources.append (RESFILE)
+    
+    # Enable exceptions, most warnings, unicode
+    w32_env.Append (CPPFLAGS = ['/EHsc', '/W3'], CPPDEFINES = ['UNICODE', '_UNICODE'])
+
+    if int (ARGUMENTS.get ('debug', False)):
+        # debug info, runtime error checking, static link debugging VC9.0 runtime lib, no optimisation
+        w32_env.Append (CPPFLAGS = ['/Zi', '/RTC1', '/MTd', '/Od'], LINKFLAGS = ['/DEBUG'])
+    else:
+        # static link VC9.0 runtime lib, optimise, whole-program optimisation
+        w32_env.Append (CPPFLAGS = ['/MT', '/O2', '/GL'], LINKFLAGS = ['/LTCG'])
+    
+    w32_env.SharedLibrary ('gfx_directx.dll', source = directx_sources,
+                          LIBS = ['user32', 'ole32', 'gdi32'])
+    TEST = w32_env.Program ('gfx_directx_test1.exe', source = ['gfx_directx/gfx_directx_test1.cpp'],
+                            LIBS = ['user32'])
+    Alias ('gfx_directx_test', TEST)
+
+
 # --log . to smooth out inconsistencies between Windows and Unix
 tmp = ''
 if 'fb' in used_gfx:
@@ -478,6 +511,7 @@ Experimental options:
 Targets:
   """ + gamename + """ (or game)
   """ + editname + """ (or custom)
+  gfx_directx.dll
   unlump
   relump
   hspeak
@@ -487,6 +521,7 @@ Targets:
   reloadutil
   vectortest
   rbtest
+  gfx_directx_test    (Non-automated) gfx_directx.dll test
   dumpohrkey
   bam2mid
   reload              Compile all RELOAD utilities.

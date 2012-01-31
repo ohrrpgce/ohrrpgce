@@ -20,7 +20,7 @@ struct GFX_INIT
 	void (__cdecl *OnCriticalError)(const char* szError);
 	void (__cdecl *SendDebugString)(const char* szMessage);
 };
-#include <stdint.h>
+#include "stdint.h"
 
 //surfaces
 enum SurfaceFormat
