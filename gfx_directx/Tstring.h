@@ -7,6 +7,7 @@
 
 #include <string>
 #include <tchar.h>
+#include <sstream>
 
 typedef std::basic_string<TCHAR> _Tstring;
 
@@ -79,6 +80,13 @@ public:
 			assign(ansiString);
 #endif
 		}
+	}
+
+	Tstring(int value)
+	{
+		std::ostringstream stream;
+		stream << value;
+		assign(Tstring(stream.str().c_str()));
 	}
 };
 

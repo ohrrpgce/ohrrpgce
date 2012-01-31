@@ -282,9 +282,10 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GFX_INIT *pCreationData)
 	g_State.OnCriticalError = pCreationData->OnCriticalError;
 	g_State.SendDebugString = /*DebugString;*/pCreationData->SendDebugString;
 
-	if(g_State.PostTerminateSignal == NULL || g_State.OnCriticalError == NULL || g_State.SendDebugString == NULL)
+	if(g_State.PostTerminateSignal == NULL || g_State.OnCriticalError == NULL || g_State.SendDebugString == NULL) {
+		g_d3dInitInfo += TEXT("\r\nRequired GFX_INIT callbacks missing!");
 		return FALSE;
-
+    }
 	//g_State.SendDebugString("gfx_directx: Initializing...");
 	g_d3dInitInfo += TEXT("gfx_Initialize()...");
 
@@ -293,6 +294,7 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GFX_INIT *pCreationData)
 								   (WNDPROC)OHRWndProc)))
 	{
 		//g_State.SendDebugString("gfx_directx: Failed at window initialization! Fallback...");
+		g_d3dInitInfo += TEXT("\r\nWindow initialization failed!");
 		return FALSE;
 	}
 

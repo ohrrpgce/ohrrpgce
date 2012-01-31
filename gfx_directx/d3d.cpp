@@ -46,7 +46,7 @@ RECT D3D::calculateAspectRatio(UINT srcWidth, UINT srcHeight, UINT destWidth, UI
 	return r;
 }
 
-HRESULT D3D::initialize(gfx::Window *pWin, LPCTSTR szModuleName, Tstring* pStrResultInfo)
+HRESULT D3D::initialize(gfx::Window *pWin, LPCTSTR szModuleName, Tstring* pStrResult)
 {
 	HRESULT hr = S_OK;
 	if(!pWin)
@@ -57,7 +57,9 @@ HRESULT D3D::initialize(gfx::Window *pWin, LPCTSTR szModuleName, Tstring* pStrRe
 	else
 		m_szModuleName = TEXT("");
 
-	Tstring strResult;
+	Tstring dummyResult;
+	if(!pStrResult)
+		pStrResult = &dummyResult;
 
 	m_pWindow = pWin;
 	m_rWindowedMode = m_pWindow->getWindowSize();
@@ -79,26 +81,28 @@ HRESULT D3D::initialize(gfx::Window *pWin, LPCTSTR szModuleName, Tstring* pStrRe
 
 	if(Direct3DCreate9 == NULL)
 	{
-		strResult += TEXT("\r\nDirect3DCreate9() failed to load! Possibly d3d9.dll missing.");
+		*pStrResult += TEXT("\r\nDirect3DCreate9() failed to load! Possibly d3d9.dll missing.");
 		return E_FAIL;
 	}
 	m_d3d.Attach(Direct3DCreate9(D3D_SDK_VERSION));
 	if(m_d3d == NULL)
 	{
-		strResult += TEXT("\r\nIDirect3D9 object failed to be created! This is bad bad sad sad :(.");
+		*pStrResult += TEXT("\r\nIDirect3D9 object failed to be created! This is bad bad sad sad :(.");
 		return E_FAIL;
 	}
 
 	D3DADAPTER_IDENTIFIER9 adapterID;
 	hr = m_d3d->GetAdapterIdentifier(D3DADAPTER_DEFAULT, 0, &adapterID);
-	if(FAILED(hr))
-		strResult += TEXT("\r\nUnable to query adapter information!");
+	if(FAILED(hr)) {
+		*pStrResult += TEXT("\r\nUnable to query adapter information! Errorcode:");
+		*pStrResult += Tstring(hr);
+	}
 	else
 	{
-		strResult += TEXT("\r\nAdapter: ");
-		strResult += Tstring(adapterID.Description);
-		strResult += TEXT("\r\nDriver: ");
-		strResult += Tstring(adapterID.Driver);
+		*pStrResult += TEXT("\r\nAdapter: ");
+		*pStrResult += Tstring(adapterID.Description);
+		*pStrResult += TEXT("\r\nDriver: ");
+		*pStrResult += Tstring(adapterID.Driver);
 	}
 
 	hr = m_d3d->CreateDevice(D3DADAPTER_DEFAULT, 
@@ -117,17 +121,19 @@ HRESULT D3D::initialize(gfx::Window *pWin, LPCTSTR szModuleName, Tstring* pStrRe
 								 &m_d3ddev);
 		if(FAILED(hr))
 		{
-			strResult += TEXT("\r\nIDirect3DDevice9 object failed to be created! Possibly lack of hardware support.");
+			*pStrResult += TEXT("\r\nIDirect3DDevice9 object failed to be created! Possibly lack of hardware support. Errorcode:");
+			*pStrResult += Tstring(hr);
 			return hr;
 		}
 		else
-			strResult += TEXT("\r\nIDirect3DDevice9 object created as software device.");
+			*pStrResult += TEXT("\r\nIDirect3DDevice9 object created as software device.");
 	}
 	else
-		strResult += TEXT("\r\nIDirect3DDevice9 object created as hardware device.");
+		*pStrResult += TEXT("\r\nIDirect3DDevice9 object created as hardware device.");
 	if(FAILED(m_surface.initialize(m_d3ddev, 320, 200)))
 	{
-		strResult += TEXT("\r\nIDirect3DSurface9 object failed to be created!");
+		*pStrResult += TEXT("\r\nIDirect3DSurface9 object failed to be created! Errorcode:");
+		*pStrResult += Tstring(hr);
 		return E_FAIL;
 	}
 	m_bInitialized = TRUE;
@@ -139,12 +145,9 @@ HRESULT D3D::initialize(gfx::Window *pWin, LPCTSTR szModuleName, Tstring* pStrRe
 	hr = m_d3ddev->Present(NULL, NULL, NULL, NULL);
 
 	if(D3DXSaveSurfaceToFile == NULL)
-		strResult += TEXT("\r\nD3DXSaveSurfaceToFile() failed to load. Probably lacking d3dx_24.dll.");
+		*pStrResult += TEXT("\r\nD3DXSaveSurfaceToFile() failed to load. Probably lacking d3dx_24.dll.");
 	else
-		strResult += TEXT("\r\nD3DXSaveSurfaceToFile() successfully loaded.");
-
-	if(pStrResultInfo != NULL)
-		(*pStrResultInfo) += strResult;
+		*pStrResult += TEXT("\r\nD3DXSaveSurfaceToFile() successfully loaded.");
 
 	return S_OK;
 }
