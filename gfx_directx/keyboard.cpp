@@ -221,13 +221,13 @@ bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					if(HIWORD(lParam) & 0x100) //extended key, numpad enter
 					{
 						KB_BREAK_IF_SET(m_virtualKeys[VK_NUMPAD_ENTER]);
-						m_virtualKeys[VK_NUMPAD_ENTER] == 0x80;
+						m_virtualKeys[VK_NUMPAD_ENTER] = 0x80;
 						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_NUMPAD_ENTER] ]);
 					}
 					else
 					{
 						KB_BREAK_IF_SET(m_virtualKeys[VK_RETURN]);
-						m_virtualKeys[VK_RETURN] == 0x80;
+						m_virtualKeys[VK_RETURN] = 0x80;
 						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_RETURN] ]);
 					}
 				} break;
@@ -473,12 +473,12 @@ bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				{
 					if(HIWORD(lParam) & 0x100) //extended key, numpad enter
 					{
-						m_virtualKeys[VK_NUMPAD_ENTER] == 0x0;
+						m_virtualKeys[VK_NUMPAD_ENTER] = 0x0;
 						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_NUMPAD_ENTER] ]);
 					}
 					else
 					{
-						m_virtualKeys[VK_RETURN] == 0x0;
+						m_virtualKeys[VK_RETURN] = 0x0;
 						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_RETURN] ]);
 					}
 				} break;
