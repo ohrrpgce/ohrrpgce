@@ -119,7 +119,7 @@ class Context(object):
     def __init__(self, autotester):
         self._autotester = autotester # needed only for quithelp()
         self.remember_dir = os.getcwd()
-        if os.path.isdir(".svn"):
+        if os.path.isdir(".svn") or os.path.isdir(os.path.join("..", ".svn")):
             self.using_svn = True
             lines = get_run_command("svn info")
             for line in lines:
@@ -240,7 +240,7 @@ class AutoTest(object):
         os.chdir(d)
         if not os.path.isdir(".svn"):
             self.againfail(rpg)
-            run_command("svn checkout -r %s '%s' ." % (rev, self.context.url))
+            run_command("svn checkout -r %s %s ." % (rev, self.context.url))
         else:
             if not self.opt.again:
                 run_command("svn update -r %s" % (rev))
