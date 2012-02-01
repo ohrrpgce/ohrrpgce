@@ -116,7 +116,8 @@ This script can be used with 'git bisect run': it returns 0 on pass, 1 on fail o
 
 class Context(object):
     
-    def __init__(self):
+    def __init__(self, autotester):
+        self._autotester = autotester # needed only for quithelp()
         self.remember_dir = os.getcwd()
         if os.path.isdir(".svn"):
             self.using_svn = True
@@ -138,7 +139,7 @@ class Context(object):
                 # Not on a branch
                 self.rev = self.absolute_rev
         else:
-            self.quithelp("This is neither an svn nor a git (root) directory. This script should be run from an svn or git working copy of the OHRRPGCE source")
+            self._autotester.quithelp("This is neither an svn nor a git (root) directory. This script should be run from an svn or git working copy of the OHRRPGCE source")
 
 ########################################################################
 
@@ -159,7 +160,7 @@ class AutoTest(object):
     
     def __init__(self):
         self.opt = Options()
-        self.context = Context()
+        self.context = Context(self)
         self.plat = Platform()
         self.validate()
 
