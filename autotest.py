@@ -11,15 +11,22 @@ import textwrap
 
 ########################################################################
 
+def handle_stderr(s, exitcode=None):
+    if s == 'Function "abort" not defined.\n':
+        # Ignore this puzzling error
+        return
+    if len(s):
+        raise ExecError(exitcode, "subprocess.Popen().communicate() returned stderr:\n'%s'" % (s))
+
 def get_run_command(cmd, exitcode = None):
     """
-    Returns stdout as a string
+    This function is like os.system() except that it
+    returns stdout as a list of strings
     """
     proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     com = proc.communicate()
     result = com[0].split("\n")
-    if len(com[1]) > 0:
-        raise ExecError(exitcode, "subprocess.Popen().communicate() returned stderr:\n%s" % (com[1]))
+    handle_stderr(com[1], exitcode)
     return result
 
 def run_command_exitcode(cmd):
@@ -32,8 +39,7 @@ def run_command_exitcode(cmd):
 def run_command(cmd, exitcode = None):
     proc = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE)
     com = proc.communicate()
-    if len(com[1]) > 0:
-        raise ExecError(exitcode, "subprocess.Popen().communicate() returned stderr:\n%s" % (com[1]))
+    handle_stderr(com[1], exitcode)
 
 class ExceptWithExitCode(Exception):
     exitcode = 125
