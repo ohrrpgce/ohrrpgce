@@ -663,23 +663,18 @@ END FUNCTION
 
 SUB onkeyscript (byval scriptnum as integer)
  DIM doit as integer = NO
- 
+
+ 'carray is checked just for joystick movement
  FOR i as integer = 0 TO 5
   IF carray(i) THEN doit = YES: EXIT FOR
  NEXT i
- 
- IF doit = NO THEN
-  FOR i as integer = 1 TO 127
-   'We scan all keys, triggering a script even if its scancode is not one
-   'accessible via script commands so that custom "press any key" scripts work.
 
-   'Check only scAlt, not scUnfiltered/Left/RightAlt, because that defeats the WM key combination
-   'filtering in allmodex.bas (which is only for scAlt)
-   IF i = scLeftAlt OR i = scRightAlt OR i = scUnfilteredAlt THEN CONTINUE FOR
-   IF keyval(i) THEN doit = YES: EXIT FOR
-  NEXT i
- END IF
- 
+ 'Checks keyboard and joystick keys
+ IF anykeypressed THEN doit = YES
+
+ 'Because anykeypressed doesn't check it, and we don't want to break scripts looking for key:alt (== scUnfilteredAlt)
+ IF keyval(scUnfilteredAlt) > 1 THEN doit = YES
+
  IF gam.mouse_enabled THEN
   IF mouse.clicks THEN doit = YES
  END IF

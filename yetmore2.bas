@@ -402,45 +402,25 @@ SUB verify_quit
  freepage page
 END SUB
 
-FUNCTION titlescr () as integer
-titlescr = -1 ' default return true for success
-loadmxs game + ".mxs", gen(genTitle), vpages(3)
-queue_fade_in 1
-IF gen(genTitleMus) > 0 THEN wrappedsong gen(genTitleMus) - 1
-setkeys
-DO
- setwait speedcontrol
+FUNCTION titlescreen () as integer
+ loadmxs game + ".mxs", gen(genTitle), vpages(3)
+ queue_fade_in 1
+ IF gen(genTitleMus) > 0 THEN wrappedsong gen(genTitleMus) - 1
  setkeys
- control
- IF carray(ccMenu) > 1 THEN
-  titlescr = 0 ' return false for cancel
-  EXIT DO
- END IF
- IF carray(ccUse) > 1 OR carray(ccMenu) > 1 THEN EXIT DO
- FOR i as integer = 2 TO 88
-  IF i <> scNumlock AND i <> scCapslock AND keyval(i) > 1 THEN  'DELETEME: a workaround for bug 619
-   EXIT DO
+ DO
+  setwait speedcontrol
+  setkeys
+  control
+  IF carray(ccMenu) > 1 THEN
+   RETURN NO
   END IF
- NEXT i
- FOR i as integer = 0 TO 1
-  gotj(i) = readjoy(joy(), i)
-  IF gotj(i) THEN
-   IF joy(2) = 0 OR joy(3) = 0 THEN
-    joy(2) = -1: joy(3) = -1
-    readjoysettings
-    joy(2) = -1: joy(3) = -1
-    EXIT DO
-   ELSE
-    gotj(i) = 0
-   END IF
-  END IF
- NEXT i
- SWAP vpage, dpage
- setvispage vpage
- copypage 3, dpage
- check_for_queued_fade_in
- dowait
-LOOP
+  IF anykeypressed() THEN RETURN YES
+
+  copypage 3, vpage
+  setvispage vpage
+  check_for_queued_fade_in
+  dowait
+ LOOP
 END FUNCTION
 
 SUB reloadnpc ()

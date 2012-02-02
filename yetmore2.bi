@@ -21,7 +21,7 @@ DECLARE SUB aheadxy (byref x as integer, byref y as integer, byval direction as 
 DECLARE SUB exitprogram (byval need_fade_out as integer = NO, byval errorout as integer = NO)
 DECLARE SUB keyboardsetup
 DECLARE SUB verify_quit
-DECLARE FUNCTION titlescr as integer
+DECLARE FUNCTION titlescreen () as integer
 DECLARE SUB reloadnpc ()
 DECLARE FUNCTION mapstatetemp(byval mapnum as integer, prefix as string) as string
 DECLARE SUB savemapstate_gmap(byval mapnum as integer, prefix as string)

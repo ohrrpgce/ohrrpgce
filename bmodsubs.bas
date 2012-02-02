@@ -168,8 +168,7 @@ NEXT i
 carray(ccUse) = keyval(csetup(4)) OR keyval(csetup(5)) OR keyval(csetup(6))
 carray(ccMenu) = keyval(csetup(7)) OR keyval(csetup(8))
 carray(ccRun) = keyval(csetup(9)) OR keyval(csetup(10))
-'--gen(genJoy) is the calibration disabler flag
-IF gen(genJoy) = 0 AND keyval(scCtrl) > 0 AND keyval(csetup(11)) > 1 THEN
+IF keyval(scCtrl) > 0 AND keyval(csetup(11)) > 1 THEN  'ctrl + J
  calibrate
  FOR i as integer = 0 TO 1
   gotj(i) = readjoy(joy(), i)

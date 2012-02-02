@@ -202,6 +202,7 @@ DO
   CASE 2
    button = 0
  END SELECT
+ 'button = IIF(keyval(scB) AND 4, 2, 0)  'simulate joystick button with B
  disabled = disabled - SGN(disabled)
  SELECT CASE state
   CASE 0
@@ -745,10 +746,7 @@ SUB minimap (byval x as integer, byval y as integer)
   tog = tog XOR 1
   playtimer
   control
-  IF carray(ccUse) > 1 OR carray(ccMenu) > 1 THEN EXIT DO
-  FOR i as integer = 1 TO 99
-   IF keyval(i) > 1 THEN EXIT DO
-  NEXT i
+  IF anykeypressed THEN EXIT DO
   rectangle offset.x + (x / 20) * zoom, offset.y + (y / 20) * zoom, zoom, zoom, uilook(uiSelectedItem) * tog, vpage
   setvispage vpage
   dowait
@@ -1037,8 +1035,6 @@ IF limit = 0 THEN limit = 16
 DIM prompt as string = readglobalstring(137, "Name the Hero", 20)
 DIM spacer as string = STRING(large(limit, LEN(names(who))), " ")
 DIM remember as string = names(who)
-DIM rememberjoycal as integer = gen(genJoy)
-gen(genJoy) = 1'--disable joystick calibration
 
 DIM need_fade_out as integer
 DIM page as integer
@@ -1071,7 +1067,6 @@ DO
  dowait
 LOOP
 menusound gen(genAcceptSFX)
-gen(genJoy) = rememberjoycal '-- restore joystick calibration setting
 
 IF need_fade_out THEN
  fadeout 0, 0, 0

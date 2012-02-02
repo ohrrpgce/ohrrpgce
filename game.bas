@@ -262,8 +262,11 @@ NEXT i
 
 dpage = 1: vpage = 0
 presentsong = -1
-gen(genJoy) = 0  'leave joystick calibration enabled
+gen(genJoy) = 0  'joystick disabled by default
 defaultc  'set up default controls
+
+'Read joyset.ini
+readjoysettings
 
 load_default_master_palette master()
 DefaultUIColors uilook()
@@ -521,10 +524,9 @@ txt.id = -1
 DIM load_slot as integer = -1
 'resetg is YES when we are skipping straight to launching the game
 IF readbit(gen(), genBits, 11) = 0 AND resetg = NO THEN
- IF titlescr = 0 THEN EXIT DO'resetg
+ IF titlescreen() = NO THEN EXIT DO
  IF readbit(gen(), genBits, 12) = 0 THEN load_slot = picksave(1)
 ELSE
- readjoysettings
  IF readbit(gen(), genBits, 12) = 0 AND resetg = NO THEN
   IF gen(genTitleMus) > 0 THEN wrappedsong gen(genTitleMus) - 1
   load_slot = picksave(2)
@@ -1544,22 +1546,12 @@ WITH scrat(nowscript)
       END IF
      ELSE
       '.waitarg == anykey
-      ' Check carray because it includes joystick buttons
-      FOR i = 0 TO 5
-       IF carray(i) > 1 THEN
-        scriptret = csetup(i)  'FIXME: Incorrect! Might have been a joystick button!
-        .state = streturn
-       END IF
-      NEXT i
-      FOR i = 1 TO 127
-       'Check only scAlt, not scUnfiltered/Left/RightAlt, because that defeats the WM key combination
-       'filtering in allmodex.bas (which is only for scAlt)
-       IF i = scLeftAlt OR i = scRightAlt OR i = scUnfilteredAlt THEN CONTINUE FOR
-       IF keyval(i) > 1 THEN
-        scriptret = i
-        .state = streturn
-       END IF
-      NEXT i
+      scriptret = anykeypressed()
+      'Because anykeypressed doesn't check it, and we don't want to break scripts looking for key:alt (== scUnfilteredAlt)
+      IF keyval(scUnfilteredAlt) > 1 THEN scriptret = scUnfilteredAlt
+      IF scriptret THEN
+       .state = streturn
+      END IF
      END IF
     CASE 244'--wait for scancode
      IF keyval(.waitarg) > 1 THEN
