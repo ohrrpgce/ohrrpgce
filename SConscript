@@ -88,8 +88,6 @@ env = Environment (FBFLAGS = FBFLAGS,
                    VAR_PREFIX = '',
                    **envextra)
 
-w32_env = Environment ()
-
 # Shocked that scons doesn't provide $HOME
 # $DISPLAY is need for both gfx_sdl and gfx_fb
 for var in 'PATH', 'DISPLAY', 'HOME', 'EUDIR':
@@ -97,6 +95,8 @@ for var in 'PATH', 'DISPLAY', 'HOME', 'EUDIR':
         env['ENV'][var] = os.environ[var]
 
 if win32:
+    w32_env = Environment ()
+
     if 'DXSDK_DIR' in os.environ:
         w32_env.Append(CPPPATH = os.path.join(os.environ['DXSDK_DIR'], 'Include'))
         w32_env.Append(LIBPATH = os.path.join(os.environ['DXSDK_DIR'], 'Lib', 'x86'))
@@ -434,7 +434,7 @@ if win32:
                        'midsurface.cpp', 'mouse.cpp', 'window.cpp']
     directx_sources = [os.path.join('gfx_directx', f) for f in directx_sources]
 
-    RESFILE = w32_env.RES ('gfx_directx/gfx_directx.rc')
+    RESFILE = w32_env.RES ('gfx_directx/gfx_directx.res', source = 'gfx_directx/gfx_directx.rc')
     Depends (RESFILE, ['gfx_directx/help.txt', 'gfx_directx/Ohrrpgce.bmp'])
     directx_sources.append (RESFILE)
     
