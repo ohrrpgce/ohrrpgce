@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <string>
 #include <windows.h>
 
 #define KB_STATE 0x1
@@ -31,11 +32,15 @@ namespace gfx
 		BYTE m_virtualKeys[256];
 		UINT m_scLShift;
 		bool m_bActive;
+		std::wstring m_textInput;
 	public:
 		Keyboard();
 
 		void getOHRScans(int* pScancodes);
 		void getVirtualKeys(BYTE* pVirtualKeys) const {memcpy((void*)pVirtualKeys, (void*)m_virtualKeys, sizeof(m_virtualKeys));}
+
+		const std::wstring getText() const {return m_textInput;}
+		void clearText() {m_textInput.erase();}
 
 		//void Poll();
 		bool processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);

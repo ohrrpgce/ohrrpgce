@@ -106,8 +106,11 @@ DFI_IMPLEMENT_CDECL(void, gfx_windowtitle, const char* title)
 }
 
 DFI_IMPLEMENT_CDECL(WindowState*, gfx_getwindowstate)
-{//there isn't an equivalent message in the new backend
-	return 0;
+{
+	static WindowState winstate;
+	winstate.structsize = WINDOWSTATE_SZ;
+	gfx_GetWindowState(0, &winstate);
+	return &winstate;
 }
 
 DFI_IMPLEMENT_CDECL(int, gfx_setoption, const char* opt, const char* arg)
@@ -190,6 +193,11 @@ DFI_IMPLEMENT_CDECL(void, io_pollkeyevents)
 DFI_IMPLEMENT_CDECL(void, io_keybits, int *keybd)
 {
 	gfx_GetKeyboard(keybd);
+}
+
+DFI_IMPLEMENT_CDECL(void, io_textinput, wchar_t *buffer, int bufferLen)
+{
+	gfx_GetText(buffer, bufferLen);
 }
 
 DFI_IMPLEMENT_CDECL(int, io_setmousevisibility, int visible)
@@ -517,6 +525,17 @@ DFI_IMPLEMENT_CDECL(const char*, gfx_GetWindowTitle)
 	return StringToString(buffer, 256, g_State.szWindowTitle.c_str());
 }
 
+DFI_IMPLEMENT_CDECL(void, gfx_GetWindowState, int nID, WindowState *pState)
+{
+	// pState->structsize always >= 2
+	// This doesn't detect when the Alt+Tab Task Switcher window is actually in the foreground.
+	// gfx_sdl has the same problem on Windows, so the engine needs to work around this anyway.
+	HWND hActive = GetForegroundWindow();
+	pState->focused = (hActive == g_Window.getWindowHandle());
+	pState->minimised = IsIconic(g_Window.getWindowHandle());
+	pState->structsize = WINDOWSTATE_SZ;
+}
+
 DFI_IMPLEMENT_CDECL(void, gfx_ShowCursor)
 {
 	g_Mouse.setCursorVisibility(gfx::Mouse2::CV_SHOW);
@@ -549,6 +568,18 @@ DFI_IMPLEMENT_CDECL(int, gfx_GetKeyboard, int *pKeyboard)
 		return FALSE;
 	g_Keyboard.getOHRScans(pKeyboard);
 	return TRUE;
+}
+
+// Disable wcsncpy (and _stprintf) warning. Silly VC++, wcscpy_s is NOT a replacement for wcsncpy!
+#pragma warning(disable:4996)
+
+DFI_IMPLEMENT_CDECL(void, gfx_GetText, wchar_t *buffer, int bufferLen)
+{
+	int len = g_Keyboard.getText().length();
+	if (len > bufferLen - 1)
+		len = bufferLen - 1;
+	wcsncpy(buffer, g_Keyboard.getText().c_str(), len);
+	g_Keyboard.clearText();
 }
 
 DFI_IMPLEMENT_CDECL(int, gfx_GetMouse, int& x, int& y, int& wheel, int& buttons)
@@ -751,7 +782,7 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					//LockSetForegroundWindow(LSFW_UNLOCK);
 					SetWindowPos(hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
 					ShowWindow(hWnd, SW_MINIMIZE);
-				}
+		 		}
 			}
 			else
 			{
@@ -954,7 +985,7 @@ BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARA
 				{
 					g_Joystick.refreshEnumeration();
 					TCHAR strInfoBuffer[128] = TEXT("");
-					::_stprintf(strInfoBuffer, TEXT("Refresh Joysticks - Count: %d"), g_Joystick.getJoystickCount());
+					::_stprintf_s(strInfoBuffer, 128, TEXT("Refresh Joysticks - Count: %d"), g_Joystick.getJoystickCount());
 					::SendDlgItemMessage(hWndDlg, IDC_OPTIONS_RefreshJoysticks, WM_SETTEXT, 0, (LPARAM)strInfoBuffer);
 				} break;
 			case IDOK:
@@ -1006,9 +1037,9 @@ BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARA
 			::CheckDlgButton(hWndDlg, IDC_OPTIONS_DisableSystemMessages, (g_State.bDisableSysMsg ? BST_CHECKED : BST_UNCHECKED));
 			::SendDlgItemMessage(hWndDlg, IDC_OPTIONS_Status, WM_SETTEXT, 0, (LPARAM)g_State.szHelpText.c_str());
 			TCHAR strInfoBuffer[128] = TEXT("");
-			::_stprintf(strInfoBuffer, TEXT("DirectX Backend version: %d.%d.%d\r\nhttp://www.hamsterrepublic.com"), DX_VERSION_MAJOR, DX_VERSION_MINOR, DX_VERSION_BUILD);
+			::_stprintf_s(strInfoBuffer, 128, TEXT("DirectX Backend version: %d.%d.%d\r\nhttp://www.hamsterrepublic.com"), DX_VERSION_MAJOR, DX_VERSION_MINOR, DX_VERSION_BUILD);
 			::SendDlgItemMessage(hWndDlg, IDC_OPTIONS_Info, WM_SETTEXT, 0, (LPARAM)strInfoBuffer);
-			::_stprintf(strInfoBuffer, TEXT("Refresh Joysticks - Count: %d"), g_Joystick.getJoystickCount());
+			::_stprintf_s(strInfoBuffer, 128, TEXT("Refresh Joysticks - Count: %d"), g_Joystick.getJoystickCount());
 			::SendDlgItemMessage(hWndDlg, IDC_OPTIONS_RefreshJoysticks, WM_SETTEXT, 0, (LPARAM)strInfoBuffer);
 			if(g_DirectX.isScreenShotsActive())
 			{

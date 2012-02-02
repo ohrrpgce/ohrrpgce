@@ -1,4 +1,17 @@
 --------------------------------------------------
+3/2/12
+v1.17
+
+Added Features:
+
+-Support for native (keyboard layout respecting) unicode text input (io_textinput)
+
+-Support for gfx_getwindowstate, which allows the engine to ignore WM combinations
+
+
+
+
+--------------------------------------------------
 5/1/11
 v1.16
 

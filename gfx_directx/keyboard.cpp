@@ -124,6 +124,10 @@ bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 	switch(msg)
 	{
+	case WM_CHAR:
+		{
+			m_textInput += WCHAR(wParam);
+		} break;
 	case WM_ACTIVATE:
 		{
 			if(LOWORD(wParam) == WA_INACTIVE)
