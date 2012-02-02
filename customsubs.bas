@@ -897,8 +897,9 @@ SUB make_ui_color_editor_menu(m() AS STRING, colors() AS INTEGER)
 END SUB
 
 FUNCTION pick_ogg_quality(BYREF quality AS INTEGER) AS INTEGER
- STATIC q AS INTEGER = 4
- DIM i AS INTEGER
+ STATIC q as integer = 4
+ DIM i as integer
+ DIM descrip as string
  setkeys
  DO
   setwait 55
@@ -908,11 +909,26 @@ FUNCTION pick_ogg_quality(BYREF quality AS INTEGER) AS INTEGER
   IF enter_or_space() THEN EXIT DO
   intgrabber (q, -1, 10)
   clearpage dpage
-  centerbox 160, 100, 300, 40, 4, dpage
+  centerbox 160, 105, 300, 54, 4, dpage
   edgeprint "Pick Ogg quality level (" & q & ")", 64, 86, uilook(uiText), dpage
   FOR i = 0 TO q + 1
    rectangle 30 + 21 * i, 100, 20, 16, uilook(uiText), dpage
   NEXT i
+  SELECT CASE q
+   CASE -1: descrip = "scratchy, smallest"
+   CASE 0: descrip = "mildly scratchy, very small"
+   CASE 1: descrip = "not bad, very small"
+   CASE 2: descrip = "pretty good, smaller"
+   CASE 3: descrip = "good, smallish (similar to mp3)"
+   CASE 4: descrip = "great, medium (better than mp3)"
+   CASE 5: descrip = "amazing, biggish"
+   CASE 6: descrip = "better than you need, big"
+   CASE 7: descrip = "much better than you need, too big"
+   CASE 8: descrip = "excessive, wasteful"
+   CASE 9: descrip = "very excessive, very wasteful"
+   CASE 10: descrip = "flagrantly excessive and wasteful"
+  END SELECT
+  edgeprint descrip, xstring(descrip, 160), 118, uilook(uiText), dpage
   swap vpage, dpage
   setvispage vpage
   dowait
