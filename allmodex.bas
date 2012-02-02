@@ -1043,38 +1043,49 @@ function getinputtext () as string
 	return inputtext
 end function
 
+'Checks the keyboard and optionally joystick for keypress events.
+'Returns scancode if one is found, 0 otherwise.
+'Use this instead of looping over all keys, to make sure alt filtering and joysticks work
+function anykeypressed (byval checkjoystick as integer = YES) as integer
+	dim as integer joybutton, joyx, joyy
+
+	for i as integer = 1 to &h7f
+		'check scAlt only, so Alt-filtering (see setkeys) works
+		if i = scLeftAlt or i = scRightAlt or i = scUnfilteredAlt then continue for
+		if keyval(i) > 1 then
+			return i
+		end if
+	next
+	if checkjoystick then
+		if io_readjoysane(0, joybutton, joyx, joyy) then
+			for i as integer = 16 to 1 step -1
+				if joybutton and (i ^ 2) then return 127 + i
+			next i
+		end if
+	end if
+end function
+
 'Returns a scancode or joystick button scancode
 FUNCTION waitforanykey () as integer
-	dim i as integer, key as integer
-	dim as integer joybutton = 0, joyx = 0, joyy = 0, sleepjoy = 3
-	key = 0
+	dim as integer key, sleepjoy = 3
 
 	setkeys
 	do
 		setwait 50
+		dowait
 		io_pollkeyevents()
 		setkeys
-		for i=1 to &h7f
-			'check scAlt only, so Alt-filtering (see setkeys) works
-			if i = scUnfilteredAlt or i = scLeftAlt or i = scRightAlt then continue for
-			if keyval(i) > 1 then
-				key = i
-				exit do
-			end if
-		next
+		key = anykeypressed(sleepjoy = 0)
+		if key then
+			'prevent crazy fast pseudo-keyrepeat
+			sleep 25
+
+			return key
+		end if
 		if sleepjoy > 0 then
 			sleepjoy -= 1
-		elseif io_readjoysane(0, joybutton, joyx, joyy) then
-			for i = 16 to 1 step -1
-				if joybutton and (i ^ 2) then key = 127 + i
-			next i
 		end if
-		dowait
-	loop while key = 0
-	'prevent crazy fast pseudo-keyrepeat
-	sleep 25
-
-	return key
+	loop
 end FUNCTION
 
 SUB setkeyrepeat (byval repeat_wait as integer = 500, byval repeat_rate as integer = 55)

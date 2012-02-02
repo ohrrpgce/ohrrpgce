@@ -134,6 +134,7 @@ DECLARE FUNCTION isawav(fi as string) as integer
 
 DECLARE FUNCTION keyval (byval a as integer, byval repeat_wait as integer = 0, byval repeat_rate as integer = 0) as integer
 DECLARE FUNCTION getinputtext () as string
+DECLARE FUNCTION anykeypressed (byval checkjoystick as integer = YES) as integer
 DECLARE FUNCTION waitforanykey () as integer
 DECLARE SUB setkeyrepeat (byval repeat_wait as integer = 500, byval repeat_rate as integer = 55)
 DECLARE SUB setkeys (byval enable_inputtext as integer = NO)
