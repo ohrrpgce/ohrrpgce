@@ -33,6 +33,7 @@ extern gfx_PumpMessages as sub () 'pumps the backend's message queues and polls 
 
 extern gfx_SetWindowTitle as sub (byval szTitleconst as const zstring ptr) 'sets the window title; the backend may add messages to the window title to describe further option
 extern gfx_GetWindowTitle as function () as const zstring ptr 'returns the window title without the backend's possible additions
+'extern gfx_GetWindowState as sub (byval nID as integer, byval pState as WindowState ptr) 'return information for the specified window
 
 extern gfx_AcquireKeyboard as function (byval bEnable as integer) as integer 'alerts backend of the engine's request for keyboard input; if bEnable == 0, the keyboard is freed; returns 0 on failure
 extern gfx_AcquireMouse as function (byval bEnable as integer) as integer 'alerts backend of the engine's request for mouse input; if bEnable == 0, the mouse is freed; returns 0 on failure
@@ -41,8 +42,10 @@ extern gfx_AcquireMouse as function (byval bEnable as integer) as integer 'alert
 'if bEnable == 0, the joystick is freed;
 'returns 0 on failure;
 extern gfx_AcquireJoystick as function (byval bEnable as integer, byval nDevice as integer) as integer
+extern gfx_AcquireTextInput as function (byval bEnabled as integer) as integer  'sets whether text input translation is enabled, returns 0 on failure
 
 extern gfx_GetKeyboard as function (byval pKeyboard as integer ptr) as integer 'gets the keyboard state in a format the engine understands; returns 0 on failure
+extern gfx_GetText as sub (byval pBuffer as wstring ptr, byval buffenLen as integer)  'gets the textual input since the last call, stores it in a buffer which can hold len-1 characters
 
 extern gfx_GetMouseMovement as function (byref dx as integer, byref dy as integer, byref dWheel as integer, byref buttons as integer) as integer 'gets the mouse movement since the last input poll and the button state; returns 0 on failure
 extern gfx_GetMousePosition as function (byref x as integer, byref y as integer, byref wheel as integer, byref buttons as integer) as integer 'gets the mouse position and button state; returns 0 on failure

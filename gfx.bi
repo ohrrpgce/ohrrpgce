@@ -5,9 +5,11 @@
 extern "C"
 
 type WindowState
+	structsize as integer  'number of members in the struct, currently 3 (New API only!)
 	focused as integer
 	minimised as integer
 end type
+#define WINDOWSTATE_SZ 3
 
 'terminate_signal_handler is a pointer to post_terminate_signal, for dynamically linked graphics backends.
 'windowicon is platform specific: name of the icon resource on Windows, no meaning yet elsewhere

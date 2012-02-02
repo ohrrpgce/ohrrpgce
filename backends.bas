@@ -31,10 +31,13 @@ dim gfx_PumpMessages as sub ()
 'dim gfx_ScreenShot as function (byval szFileName as const zstring ptr) as integer
 dim gfx_SetWindowTitle as sub (byval szTitleconst as const zstring ptr)
 dim gfx_GetWindowTitle as function () as const zstring ptr
+'dim gfx_GetWindowState as sub (byval nID as integer, byval pState as WindowState ptr)
 dim gfx_AcquireKeyboard as function (byval bEnable as integer) as integer
 dim gfx_AcquireMouse as function (byval bEnable as integer) as integer
 dim gfx_AcquireJoystick as function (byval bEnable as integer, byval nDevice as integer) as integer
+dim gfx_AcquireTextInput as function (byval bEnable as integer) as integer
 dim gfx_GetKeyboard as function (byval pKeyboard as integer ptr) as integer
+dim gfx_GetText as sub (byval pBuffer as wstring ptr, byval buffenLen as integer)
 dim gfx_GetMouseMovement as function (byref dx as integer, byref dy as integer, byref dWheel as integer, byref buttons as integer) as integer
 dim gfx_GetMousePosition as function (byref x as integer, byref y as integer, byref wheel as integer, byref buttons as integer) as integer
 dim gfx_SetMousePosition as function (byval x as integer, byval y as integer) as integer
@@ -267,10 +270,13 @@ function gfx_load_library_new(byval backendinfo as GfxBackendStuff ptr, filename
 	gfx_ScreenShot = dylibsymbol(hFile, "gfx_ScreenShot")
 	gfx_SetWindowTitle = dylibsymbol(hFile, "gfx_SetWindowTitle")
 	gfx_GetWindowTitle = dylibsymbol(hFile, "gfx_GetWindowTitle")
+	'gfx_GetWindowState = dylibsymbol(hFile, "gfx_GetWindowState")
 	gfx_AcquireKeyboard = dylibsymbol(hFile, "gfx_AcquireKeyboard")
 	gfx_AcquireMouse = dylibsymbol(hFile, "gfx_AcquireMouse")
 	gfx_AcquireJoystick = dylibsymbol(hFile, "gfx_AcquireJoystick")
+	gfx_AcquireTextInput = dylibsymbol(hFile, "gfx_AcquireTextInput")
 	gfx_GetKeyboard = dylibsymbol(hFile, "gfx_GetKeyboard")
+	gfx_GetText = dylibsymbol(hFile, "gfx_GetText")
 	gfx_GetMouseMovement = dylibsymbol(hFile, "gfx_GetMouseMovement")
 	gfx_GetMousePosition = dylibsymbol(hFile, "gfx_GetMousePosition")
 	gfx_SetMousePosition = dylibsymbol(hFile, "gfx_SetMousePosition")
