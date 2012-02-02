@@ -60,6 +60,8 @@ WHAT IS NEW?
     * "input string" would hide string 0 instead of the one it was
       meant to; also changed the way the 'center' and position
       arguments behave to make more sense [Ralph]
+    * Bug 942: Attacks didn't chain if they depended on a tag with
+      ID >= 128 [San]
 
   * New Plotscripting Stuff
     * Slice velocity commands to make a slice move automatically at
