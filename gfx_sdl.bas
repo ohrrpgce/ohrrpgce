@@ -681,7 +681,7 @@ SUB io_sdl_keybits (BYVAL keybdarray as integer ptr)
   NEXT
 
   keybdarray[scShift] = keybdarray[scLeftShift] OR keybdarray[scRightShift]
-  keybdarray[scAlt] = keybdarray[scLeftAlt] OR keybdarray[scRightAlt]
+  keybdarray[scUnfilteredAlt] = keybdarray[scLeftAlt] OR keybdarray[scRightAlt]
   keybdarray[scCtrl] = keybdarray[scLeftCtrl] OR keybdarray[scRightCtrl]
 END SUB
 

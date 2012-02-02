@@ -4259,6 +4259,7 @@ end
 <li>key:Alt            # either Alt key pressed</li>
 <li>key:Left Alt</li>
 <li>key:Right Alt</li>
+<li>key:Filtered Alt   # either Alt key pressed, unless a key combinations like Alt+Tab is pressed, however key presses are delayed until key release.</li>
 <li>key:Ctrl           # either Ctrl key pressed</li>
 <li>key:Left Ctrl</li>
 <li>key:Right Ctrl</li>

@@ -142,6 +142,7 @@ define constant,begin
 117,key:Print Screen
 118,key:Pause     # previously key:Numlock
 
+119,key:Filtered Alt  # Same as key:Alt, but try to filter out keypresses which are part of window manager combinations
 
 #keys >= 128 are NOT scan codes, per se, but for other devices (mouse, joystick)
 # note that these only work for key is pressed, not for keyval

@@ -1552,9 +1552,9 @@ WITH scrat(nowscript)
        END IF
       NEXT i
       FOR i = 1 TO 127
-       'Check only scAlt, not scLeft/RightAlt, because that defeats the WM key combination
+       'Check only scAlt, not scUnfiltered/Left/RightAlt, because that defeats the WM key combination
        'filtering in allmodex.bas (which is only for scAlt)
-       IF i = scLeftAlt OR i = scRightAlt THEN CONTINUE FOR
+       IF i = scLeftAlt OR i = scRightAlt OR i = scUnfilteredAlt THEN CONTINUE FOR
        IF keyval(i) > 1 THEN
         scriptret = i
         .state = streturn

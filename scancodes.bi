@@ -83,7 +83,7 @@ CONST scSlash = 53
 CONST scQuestionMark = 53
 CONST scRightShift = 54
 CONST scNumpadAsterix = 55
-CONST scAlt = 56
+CONST scUnfilteredAlt = 56
 CONST scSpace = 57
 CONST scCapsLock = 58
 CONST scF1 = 59
@@ -150,6 +150,8 @@ CONST scNumpadPeriod = 116
 CONST scPrintScreen = 117
 CONST scPause = 118
 
+'This alt scancode is filtered for WM combinations
+CONST scAlt = 119
 
 ENUM MouseButton
   mouseLeft = 1

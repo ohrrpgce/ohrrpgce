@@ -1056,7 +1056,7 @@ FUNCTION waitforanykey () as integer
 		setkeys
 		for i=1 to &h7f
 			'check scAlt only, so Alt-filtering (see setkeys) works
-			if i = scLeftAlt or i = scRightAlt then continue for
+			if i = scUnfilteredAlt or i = scLeftAlt or i = scRightAlt then continue for
 			if keyval(i) > 1 then
 				key = i
 				exit do
@@ -1105,6 +1105,9 @@ SUB setkeys_update_keybd
 		keybd(scShift) = keybd(scLeftShift) or keybd(scRightShift)
 	end if
 
+	'Backends don't know about scAlt, only scUnfilteredAlt
+	keybd(scAlt) = keybd(scUnfilteredAlt)
+
 	'Don't fire ctrl presses when alt down due to large number of WM shortcuts containing ctrl+alt
 	'(Testing delayed_alt_keydown is just a hack to add one tick delay after alt up,
 	'which is absolutely required)
@@ -1142,7 +1145,7 @@ SUB setkeys_update_keybd
 
 			/'
 			for scancode as integer = 0 to &h7f
-				if scancode <> scAlt and scancode <> scLeftAlt and scancode <> scRightAlt and (keybd(scancode) and 1) then
+				if scancode <> scUnfilteredAlt and scancode <> scAlt and scancode <> scLeftAlt and scancode <> scRightAlt and (keybd(scancode) and 1) then
 					delayed_alt_keydown = NO
 				end if
 			next

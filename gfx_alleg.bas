@@ -189,7 +189,7 @@ sub io_alleg_updatekeys(byval keybd as integer ptr)
 	next
 
 	keybd[scShift] or= (keybd[scLeftShift] or keybd[scRightShift]) and 8
-	keybd[scAlt] or= (keybd[scLeftAlt] or keybd[scRightAlt]) and 8
+	keybd[scUnfilteredAlt] or= (keybd[scLeftAlt] or keybd[scRightAlt]) and 8
 	keybd[scCtrl] or= (keybd[scLeftCtrl] or keybd[scRightCtrl]) and 8
 
 	'Note: Pause reports NumLock for me, just like fbgfx

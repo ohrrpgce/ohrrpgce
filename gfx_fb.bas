@@ -410,8 +410,8 @@ sub io_fb_updatekeys(byval keybd as integer ptr)
 	'fbgfx reports separate shift keys, but combined alt and ctrl keys
 
 	keybd[scShift] or= (keybd[scLeftShift] or keybd[scRightShift]) and 8
-	keybd[scLeftAlt] or= keybd[scAlt] and 8
-	keybd[scRightAlt] or= keybd[scAlt] and 8
+	keybd[scLeftAlt] or= keybd[scUnfilteredAlt] and 8
+	keybd[scRightAlt] or= keybd[scUnfilteredAlt] and 8
 	keybd[scLeftCtrl] or= keybd[scCtrl] and 8
 	keybd[scRightCtrl] or= keybd[scCtrl] and 8
 
