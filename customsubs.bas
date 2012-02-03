@@ -916,11 +916,11 @@ FUNCTION pick_ogg_quality(BYREF quality AS INTEGER) AS INTEGER
   NEXT i
   SELECT CASE q
    CASE -1: descrip = "scratchy, smallest"
-   CASE 0: descrip = "mildly scratchy, very small"
-   CASE 1: descrip = "not bad, very small"
-   CASE 2: descrip = "pretty good, smaller"
-   CASE 3: descrip = "good, smallish (similar to mp3)"
-   CASE 4: descrip = "great, medium (better than mp3)"
+   CASE 0: descrip = "not too bad, very small"
+   CASE 1: descrip = "pretty good, quite small"
+   CASE 2: descrip = "good, pretty small"
+   CASE 3: descrip = "very good, smallish"
+   CASE 4: descrip = "great, medium sized"
    CASE 5: descrip = "amazing, biggish"
    CASE 6: descrip = "better than you need, big"
    CASE 7: descrip = "much better than you need, too big"
