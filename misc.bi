@@ -37,7 +37,10 @@
 declare function xstr (byval x as integer) as string
 
 DECLARE SUB display_help_string (help as string)
+
 DECLARE SUB getdefaultfont (font() as integer)
+DECLARE SUB getbrowserfont (font() as integer)
+
 DECLARE SUB crashexplain ()
 DECLARE function with_orig_path(dir_name as string, byval add_slash as integer=0) as string
 declare sub processcommandline()

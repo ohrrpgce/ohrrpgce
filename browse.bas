@@ -113,6 +113,12 @@ IF needf = 1 THEN
  setpal temppal()
 END IF
 
+'Load a variant of the default font, misc/browser font.ohf, which has both Latin-1
+'characters and the old (c), etc, characters from the original fonts
+DIM browser_font(1023) as integer
+getbrowserfont browser_font()
+setfont browser_font()
+
 'remember/default may be either empty or a file (if one was selected last call), or directory (if not)
 DIM startfile as string
 IF remember = "" THEN remember = curdir & SLASH
@@ -249,6 +255,7 @@ DO
  dowait
 LOOP
 
+setfont current_font()
 IF LEN(ret) THEN
  default = ret
 ELSE

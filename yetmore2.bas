@@ -1347,9 +1347,8 @@ SUB try_reload_lumps_anywhere ()
    handled = YES
 
   ELSEIF extn = "fnt" THEN                                                '.FNT
-   REDIM font(1023) as integer
-   xbload game + ".fnt", font(), "Font not loaded"
-   setfont font()
+   xbload game + ".fnt", current_font(), "Font not loaded"
+   setfont current_font()
    handled = YES
 
   ELSEIF try_reload_music_lump(base, extn) THEN                           '.## and song##.xxx (music)

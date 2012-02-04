@@ -39,10 +39,14 @@ dim timer_variables
 #endif
 
 SUB getdefaultfont(font() as integer)
-	dim i as integer
+	for i as integer = 0 to 1023
+		font(i) = default_font(i)
+	next
+END SUB
 
-	for i = 0 to 1023
-		font(i) = font_data(i)
+SUB getbrowserfont(font() as integer)
+	for i as integer = 0 to 1023
+		font(i) = browser_font(i)
 	next
 END SUB
 

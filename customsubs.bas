@@ -3519,8 +3519,7 @@ SUB attack_preview_slice_defocus(BYVAL sl AS Slice Ptr)
  WEND
 END SUB
 
-SUB fontedit ()
- DIM font(1023) AS INTEGER
+SUB fontedit (font() as integer)
  DIM f(255) AS INTEGER
  DIM copybuf(4) AS INTEGER
  DIM menu(3) AS STRING
@@ -3531,8 +3530,6 @@ SUB fontedit ()
  menu(3) = "Export Font..."
 
  DIM i AS INTEGER
-
- xbload game + ".fnt", font(), "Font not loaded"
 
  DIM last AS INTEGER = -1
  FOR i = 32 TO 255
@@ -3713,20 +3710,21 @@ SUB fontedit_import_font(font() AS INTEGER)
   writeablecopyfile newfont, game & ".fnt"
 
   DIM i AS INTEGER
-  DIM font_tmp(1024) AS INTEGER
+  DIM font_tmp(1023) AS INTEGER
 
-  '--never overwrite 0 thru 31
-  FOR i = 0 TO 2047
-   setbit font_tmp(), 0, i, readbit(font(), 0, i)
+  '--character 0 (actually font(0)) contains metadata (marks as ASCII or Latin-1)
+  '--character 1 to 31 are internal icons and should never be overwritten
+  FOR i = 1 * 4 TO 32 * 4 - 1
+   font_tmp(i) = font(i)
   NEXT i
 
   '--Reload the font
   xbload game + ".fnt", font(), "Can't load font"
   setfont font()
 
-  '--write back the old 0-31 values
-  FOR i = 0 TO 2047
-   setbit font(), 0, i, readbit(font_tmp(), 0, i)
+  '--write back the old 1-31 characters
+  FOR i = 1 * 4 TO 32 * 4 - 1
+   font(i) = font_tmp(i)
   NEXT i
   
  END IF

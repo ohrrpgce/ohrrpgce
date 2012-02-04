@@ -114,7 +114,7 @@ DECLARE SUB fix_record_count(byref last_rec_index as integer, byref record_byte_
 DECLARE SUB loadglobalstrings ()
 DECLARE FUNCTION readglobalstring (byval index as integer, default as string, byval maxlen as integer=10) as string
 DECLARE SUB load_default_master_palette (master_palette() as RGBColor)
-DECLARE SUB dump_master_palette_as_hex (master_palette() as RGBColor)
+DECLARE SUB dump_integer_array_as_hex (arraydim as string, byval start as uinteger ptr, byval _ubound as integer, byval nibbles as integer = 8)
 
 DECLARE FUNCTION readattackname (byval index as integer) as string
 DECLARE FUNCTION readattackcaption (byval index as integer) as string
@@ -236,6 +236,7 @@ EXTERN as integer vpage, dpage
 EXTERN buffer() as integer
 EXTERN fadestate as integer
 EXTERN master() as RGBcolor
+EXTERN current_font() as integer
 EXTERN gen() as integer
 EXTERN fmvol as integer
 EXTERN sprite_sizes() as SpriteSize

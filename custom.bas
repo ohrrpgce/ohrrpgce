@@ -173,14 +173,14 @@ processcommandline
 
 load_default_master_palette master()
 DefaultUIColors uilook()
-DIM font(1023) as integer
-getdefaultfont font()
+REDIM current_font(1023) as integer
+getdefaultfont current_font()
 
 setmodex
 debuginfo musicbackendinfo  'Preliminary info before initialising backend
 setwindowtitle "O.H.R.RPG.C.E"
 setpal master()
-setfont font()
+setfont current_font()
 textcolor uilook(uiText), 0
 
 'Cleanups up working.tmp if existing; requires graphics up and running
@@ -277,8 +277,8 @@ activepalette = gen(genMasterPal)
 loadpalette master(), activepalette
 setpal master()
 LoadUIColors uilook(), activepalette
-xbload game + ".fnt", font(), "Font not loaded"
-setfont font()
+xbload game + ".fnt", current_font(), "Font not loaded"
+setfont current_font()
 
 IF hsfile <> "" THEN import_scripts_and_terminate hsfile
 
@@ -368,7 +368,7 @@ SUB main_editor_menu()
    IF state.pt = 12 THEN tags_menu
    IF state.pt = 13 THEN importsong
    IF state.pt = 14 THEN importsfx
-   IF state.pt = 15 THEN fontedit
+   IF state.pt = 15 THEN fontedit current_font()
    IF state.pt = 16 THEN gendata
    IF state.pt = 17 THEN scriptman
    IF state.pt = 18 THEN slice_editor

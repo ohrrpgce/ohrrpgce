@@ -3717,11 +3717,11 @@ SUB save_tag_name (tagname as string, byval index as integer)
  storeset game + ".tmn", index, 0
 END SUB
 
-SUB dump_master_palette_as_hex (master_palette() as RGBColor)
- DIM hexstring as string = " DIM colorcodes(255) as integer = {"
- FOR i as integer = 0 to 255
-  hexstring = hexstring & "&h" & hex(master_palette(i).col, 6)
-  IF i <> 255 THEN hexstring = hexstring & ","
+SUB dump_integer_array_as_hex (arraydim as string, byval start as uinteger ptr, byval _ubound as integer, byval nibbles as integer = 8)
+ DIM hexstring as string = " DIM " & arraydim & " = {"
+ FOR i as integer = 0 TO _ubound
+  hexstring = hexstring & "&h" & hex(start[i], nibbles)
+  IF i <> _ubound THEN hexstring = hexstring & ","
   IF LEN(hexstring) > 88 THEN
    hexstring = hexstring & "_"
    debug hexstring
@@ -3731,6 +3731,12 @@ SUB dump_master_palette_as_hex (master_palette() as RGBColor)
  hexstring = hexstring & "}"
  debug hexstring
 END SUB
+
+SUB dump_master_palette_as_hex (master_palette() as RGBColor)
+ dump_integer_array_as_hex("colorcodes(255) as integer", CAST(uinteger ptr, @master_palette(0).col), 255, 6)
+END SUB
+
+'dump_integer_array_as_hex "default_font(1023) as ushort", @current_font(0), 1023, 4
 
 SUB load_default_master_palette (master_palette() as RGBColor)
  'To regenerate this if the default master palette changes, use dump_master_palette_as_hex

@@ -152,6 +152,7 @@ DIM mapsizetiles as XYPair  'for convienence
 
 REDIM master(255) as RGBcolor
 REDIM uilook(uiColors) as integer
+REDIM current_font(1023) as integer
 
 REDIM pal16(448) as integer
 REDIM buffer(16384) as integer 'FIXME: when can we get rid of this?
@@ -247,7 +248,6 @@ retvalsp = @retvals(0)
 'End global variables
 
 'Module local variables
-REDIM font(1023) as integer
 DIM archinym as string
 
 'DEBUG debug "Thestart"
@@ -270,8 +270,8 @@ readjoysettings
 
 load_default_master_palette master()
 DefaultUIColors uilook()
-getdefaultfont font()
-setfont font()
+getdefaultfont current_font()
+setfont current_font()
 
 setwindowtitle "O.H.R.RPG.C.E"
 unhidemousecursor  'init mouse state
@@ -457,7 +457,7 @@ setwindowtitle wintitle
 'FIXME: if a problem was detected, we don't force copy of an .rpgdir
 rpg_sanity_checks
 
-xbload game + ".fnt", font(), "font missing from " + sourcerpg
+xbload game + ".fnt", current_font(), "font missing from " + sourcerpg
 
 '--upgrade obsolete RPG files (if possible)
 IF NOT running_as_slave THEN upgrade
@@ -470,7 +470,7 @@ IF isfile(game + ".hsp") THEN unlump game + ".hsp", tmpdir
 fadeout 0, 0, 0
 queue_fade_in
 
-setfont font()
+setfont current_font()
 load_fset_frequencies
 loadglobalstrings
 getstatnames statnames()
