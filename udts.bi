@@ -500,7 +500,7 @@ Type StringSize
 	lastw as integer  'Width of last line fragment
 	lasth as integer  'Height of last line fragment
 	lines as integer  'Number of lines (always at least 1)   FIXME:  not true
-        finalfont as Font ptr
+	finalfont as Font ptr
 End Type
 
 Type StringCharPos

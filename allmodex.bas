@@ -2224,7 +2224,7 @@ End Type
 'which describes a line fragment. It contains printing characters plus command sequences
 'for modifying state. state is passed byval (upon wrapping we would have to undo changes
 'to the state, which is too hard).
-'endchar is 0 based, and exclusive - normally len(z).
+'endchar is 0 based, and exclusive - normally len(z). FIXME: endchar appears broken
 'We also compute the height (height of the tallest font on the line) and the right edge
 '(max_x) of the line fragment. You have to know the line height before you can know the y
 'coordinate of each character on the line.
@@ -2247,10 +2247,11 @@ private function layout_line_fragment(z as string, byval endchar as integer, byv
 	'chars_to_add counts the number of delayed characters
 	dim chars_to_add as integer = 0
 	with state
-'debug "layout from " & .charnum & " at " & .x & "," & .y
+'debug "layout '" & z & "' from " & .charnum & " at " & .x & "," & .y
 		line_height = .thefont->h
 		for ch = .charnum to len(z) - 1
-			if ch = endchar then
+			if ch = endchar then  'FIXME: This never happens
+'debug "hit endchar"
 				endchar_x = .x
 				endchar_outbuf_len = len(outbuf) + chars_to_add
 			end if
@@ -2261,7 +2262,7 @@ private function layout_line_fragment(z as string, byval endchar as integer, byv
 				chars_to_add = 0
 				'Skip past the newline character, but don't add to outbuf
 				ch += 1
-				if ch > endchar then
+				if ch >= endchar then
 					outbuf = left(outbuf, endchar_outbuf_len)
 					line_width = endchar_x
 					UPDATE_STATE(outbuf, x, endchar_x)
@@ -2392,10 +2393,12 @@ private function layout_line_fragment(z as string, byval endchar as integer, byv
 'debug "add " & chars_to_add & " chars before " & ch & " : '" & Mid(z, 1 + ch - chars_to_add, chars_to_add) & "'"
 			outbuf += Mid(z, 1 + ch - chars_to_add, chars_to_add)
 		end if
-		if ch < endchar then
+		if ch <= endchar then
+'debug "exiting layout_line_fragment, ch = " & ch & ", .x = " & .x
 			line_width = .x
 			UPDATE_STATE(outbuf, x, .startx + .leftmargin)
 		else
+'debug "exiting layout_line_fragment, ch = " & ch & ", endchar_x = " & endchar_x
 			outbuf = left(outbuf, endchar_outbuf_len)
 			line_width = endchar_x
 			UPDATE_STATE(outbuf, x, endchar_x)
@@ -2590,6 +2593,7 @@ sub text_layout_dimensions (byval retsize as StringSize ptr, z as string, byval 
 			dim exitloop as integer = (.charnum = endchar)
 			dim parsed_line as string = layout_line_fragment(z, endchar, state, line_width, line_height, wide, withtags, withnewlines)
 			retsize->lines += 1
+'debug "parsed a line, line_width =" & line_width
 			maxwidth = large(maxwidth, line_width)
 
 			'Update state
@@ -2613,6 +2617,7 @@ end SUB
 FUNCTION textwidth(z as string, byval fontnum as integer = 0, byval withtags as integer = YES, byval withnewlines as integer = YES) as integer
 	dim retsize as StringSize
 	text_layout_dimensions @retsize, z, len(z), , , fontnum, withtags, withnewlines
+'debug "width of '" & z & "' is "
 	return retsize.w
 end function
 
