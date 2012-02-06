@@ -1,0 +1,3 @@
+This screen displays a list of NPCs on the current tile, showing their ID number and the direction they are facing.
+
+Nothing can be edited from this screen, it is mainly just useful for understanding a stack of overlapping NPCs that all share the same tile.

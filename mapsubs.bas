@@ -101,6 +101,7 @@ DECLARE SUB mapedit_delete_layer(BYREF st AS MapEditState, map() as TileMap, vis
 DECLARE SUB mapedit_swap_layers(BYREF st AS MapEditState, map() as TileMap, vis() AS INTEGER, gmap() AS INTEGER, BYVAL l1 AS INTEGER, BYVAL l2 AS INTEGER)
 DECLARE SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER, zmap as ZoneMap)
 DECLARE SUB mapedit_draw_icon(st AS MapEditState, icon as string, byval x as integer, byval y as integer, byval highlight as integer = NO)
+DECLARE SUB mapedit_list_npcs_by_tile (st as MapEditState)
 
 DECLARE FUNCTION find_last_used_doorlink(link() AS DoorLink) AS INTEGER
 DECLARE FUNCTION find_door_at_spot (x AS INTEGER, y AS INTEGER, doors() AS Door) AS INTEGER
@@ -901,6 +902,9 @@ DO
      END WITH
     NEXT i
    END IF
+   IF keyval(scEnter) > 1 THEN
+    mapedit_list_npcs_by_tile st
+   END IF
    nd = -1
    IF keyval(scCtrl) > 0 OR keyval(scSpace) > 1 THEN
     IF slowkey(scUp, 660)    THEN nd = 0
@@ -1494,6 +1498,60 @@ END SUB
 
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
+
+SUB mapedit_list_npcs_by_tile (st as MapEditState)
+
+ DIM dir_str(...) as string = {"north", "east", "south", "west"}
+
+ DIM count as integer = 0
+
+ REDIM menu(0) as string
+ menu(0) = "Back to the map editor..."
+
+ DIM s as string
+ 
+ FOR i as integer = 0 to 299
+  WITH st.npc_inst(i)
+   IF .id > 0 THEN
+    IF .x = st.x * 20 AND .y = st.y * 20 THEN
+     s = "NPC ID=" & (.id - 1) & " facing " & dir_str(.dir)
+     REDIM PRESERVE menu(UBOUND(menu) + 1) as string
+     menu(UBOUND(menu)) = s
+     count += 1
+    END IF
+   END IF
+  END WITH
+ NEXT i
+
+ DIM state as MenuState
+ state.size = 20
+ state.last = UBOUND(menu)
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  state.tog XOR= 1
+
+  IF keyval(scF1) > 1 THEN show_help "mapedit_npcs_by_tile"
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF enter_or_space() THEN
+   clearkey(scSpace)
+   IF state.pt = 0 THEN EXIT DO
+  END IF
+  
+  usemenu state
+
+  edgeprint count & " NPCs at tile X=" & st.x & " Y=" & st.y, 0, 0, uilook(uiDisabledItem), dpage
+  standardmenu menu(), state, 0, 10, dpage
+
+  SWAP vpage, dpage
+  setvispage vpage
+  clearpage dpage
+  dowait
+ LOOP
+ 
+END SUB
 
 FUNCTION mapedit_npc_at_spot(st as MapEditState) as integer
  FOR i as integer = 0 TO 299
