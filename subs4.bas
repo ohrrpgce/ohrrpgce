@@ -356,6 +356,7 @@ SUB delete_song (BYVAL songnum as integer, songfile AS STRING)
  #IFDEF __FB_WIN32__
   'Only needed on windows, and not currently implemented on unix anyway
   IF slave_channel <> NULL_CHANNEL THEN
+   'Close Music message
    DIM msg as string = "CM " & songnum
    IF channel_write_line(slave_channel, msg) THEN
     channel_wait_for_msg(slave_channel, "CM ", "", 1500)
@@ -545,10 +546,7 @@ IF sourcesong$ = "" THEN
  RETRACE
 END IF
 
-'remove song file (except BAM, we can leave those as fallback for QB version)
-IF songfile$ <> bamfile$ THEN
- delete_song snum, songfile$
-END IF
+delete_song snum, songfile$
 
 sname$ = a$
 
