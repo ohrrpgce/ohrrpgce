@@ -2599,6 +2599,78 @@ END SUB
 
 
 '==========================================================================================
+'                                Formations & Formation Sets
+'==========================================================================================
+
+
+SUB ClearFormation (form as Formation)
+ WITH form
+  FOR i as integer = 0 TO 7
+   .slots(i).id = 0
+   .slots(i).pos.x = 0
+   .slots(i).pos.y = 0
+  NEXT
+  .music = -1  'maybe this should be gen(genBatMusic) - 1
+  .background = 0
+  .background_frames = 1
+  .background_ticks = 0
+ END WITH
+END SUB
+
+SUB LoadFormation (form as Formation, byval index as integer)
+ #IFDEF IS_GAME
+  LoadFormation form, tmpdir & "for.tmp", index
+ #ELSE
+  LoadFormation form, game & ".for", index
+ #ENDIF
+END SUB
+
+SUB LoadFormation (form as Formation, filename as string, byval index as integer)
+ DIM formdata(39) as integer
+ IF loadrecord(formdata(), filename, 40, index) = 0 THEN
+  debug "LoadFormation: invalid index " & index
+  ClearFormation form
+  EXIT SUB
+ END IF
+
+ WITH form
+  FOR i as integer = 0 TO 7
+   .slots(i).id = formdata(i * 4) - 1
+   .slots(i).pos.x = formdata(i * 4 + 1)
+   .slots(i).pos.y = formdata(i * 4 + 2)
+  NEXT
+  .background = formdata(32)
+  .music = formdata(33) - 1
+  IF gen(genVersion) < 6 THEN
+   .background_frames = 1
+   .background_ticks = 0
+  ELSE
+   .background_frames = formdata(34) + 1
+   .background_ticks = formdata(35)
+  END IF
+ END WITH
+END SUB
+
+SUB SaveFormation (form as Formation, byval index as integer)
+ DIM formdata(39) as integer
+
+ WITH form
+  FOR i as integer = 0 TO 7
+   formdata(i * 4) = .slots(i).id + 1
+   formdata(i * 4 + 1) = .slots(i).pos.x
+   formdata(i * 4 + 2) = .slots(i).pos.y
+  NEXT
+  formdata(32) = .background
+  formdata(33) = .music + 1
+  formdata(34) = .background_frames - 1
+  formdata(35) = .background_ticks
+ END WITH
+
+ storerecord(formdata(), game & ".for", 40, index)
+END SUB
+
+
+'==========================================================================================
 '                                           Misc
 '==========================================================================================
 

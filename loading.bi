@@ -138,6 +138,13 @@ DECLARE SUB loadenemydata OVERLOAD (enemy as EnemyDef, byval index as integer, b
 DECLARE SUB saveenemydata OVERLOAD (array() as integer, byval index as integer, byval altfile as integer = 0)
 DECLARE SUB saveenemydata OVERLOAD (enemy as EnemyDef, byval index as integer, byval altfile as integer = 0)
 
+DECLARE SUB ClearFormation (form as Formation)
+DECLARE SUB LoadFormation OVERLOAD (form as Formation, byval index as integer)
+DECLARE SUB LoadFormation OVERLOAD (form as Formation, filename as string, byval index as integer)
+DECLARE SUB SaveFormation (form as Formation, byval index as integer)
+'DECLARE SUB LoadFormationSet (formset as FormationSet, byval index as integer)
+'DECLARE SUB SaveFormationSet (formset as FormationSet, byval index as integer)
+
 DECLARE SUB save_string_list(array() as string, filename as string)
 DECLARE SUB load_string_list(array() as string, filename as string)
 

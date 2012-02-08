@@ -37,13 +37,13 @@ DECLARE SUB anim_align2(byval who as integer, byval target as integer, byval edg
 DECLARE SUB anim_relmove(byval who as integer, byval tox as integer, byval toy as integer, byval xspeed as integer, byval yspeed as integer)
 DECLARE SUB anim_setdir(byval who as integer, byval d as integer)
 DECLARE FUNCTION dieWOboss(byval who as integer, bslot() as BattleSprite) as integer
-DECLARE SUB dead_enemy(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
-DECLARE SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
+DECLARE SUB dead_enemy(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+DECLARE SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, menubits() as integer, st() as herodef)
 DECLARE SUB spellmenu (byref bat as BattleState, st() as HeroDef, bslot() as BattleSprite)
 DECLARE SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, t() as integer)
 DECLARE SUB enforce_weak_picture(byval who as integer, bslot() as BattleSprite, byref bat as BattleState)
-DECLARE SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef, formdata() as integer)
+DECLARE SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef, formdata as Formation)
 DECLARE SUB setup_targetting (byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
 DECLARE FUNCTION spawn_chained_attack(byref ch as AttackDataChain, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite) as integer

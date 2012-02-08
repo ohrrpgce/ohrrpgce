@@ -1037,7 +1037,7 @@ DO
     saveform(a(), remptr)
     IF pt > gen(genMaxFormation) THEN
      gen(genMaxFormation) = pt
-     GOSUB clearformation
+     GOSUB newformation
     END IF
     loadform(a(), pt)
     formpics(ename(), a(), egraphics())
@@ -1110,7 +1110,7 @@ saveform(a(),pt)
 pausesong
 RETRACE
 
-clearformation:
+newformation:
 FOR i = 0 TO 40
  a(i) = 0
 NEXT i

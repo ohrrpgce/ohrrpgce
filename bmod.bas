@@ -33,10 +33,10 @@
 
 '--local subs and functions
 DECLARE FUNCTION count_dissolving_enemies(bslot() as BattleSprite) as integer
-DECLARE FUNCTION find_empty_enemy_slot(formdata() as integer) as integer
-DECLARE SUB spawn_on_death(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, formdata() as integer, bslot() as BattleSprite)
+DECLARE FUNCTION find_empty_enemy_slot(formdata as Formation) as integer
+DECLARE SUB spawn_on_death(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, formdata as Formation, bslot() as BattleSprite)
 DECLARE SUB triggerfade(byval who as integer, bslot() as BattleSprite)
-DECLARE SUB check_death(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
+DECLARE SUB check_death(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB checkitemusability(iuse() as integer, bslot() as BattleSprite, byval who as integer)
 DECLARE SUB reset_battle_state (byref bat as BattleState)
 DECLARE SUB reset_targetting (byref bat as BattleState)
@@ -45,26 +45,26 @@ DECLARE SUB reset_victory_state (byref vic as VictoryState)
 DECLARE SUB reset_rewards_state (byref rew as RewardsState)
 DECLARE SUB show_victory (byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB trigger_victory(byref bat as BattleState, bslot() as BattleSprite)
-DECLARE SUB fulldeathcheck (byval killing_attack as integer, bat as BattleState, bslot() as BattleSprite, formdata() as integer)
+DECLARE SUB fulldeathcheck (byval killing_attack as integer, bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB anim_flinchstart(byval who as integer, bslot() as BattleSprite, byref attack as AttackData)
 DECLARE SUB anim_flinchdone(byval who as integer, bslot() as BattleSprite, byref attack as AttackData)
 DECLARE SUB draw_battle_sprites(bslot() as BattleSprite)
 DECLARE FUNCTION battle_time_can_pass(bat as BattleState) as integer
 DECLARE SUB battle_crappy_run_handler(byref bat as BattleState, bslot() as BattleSprite)
-DECLARE SUB show_enemy_meters(bat as BattleState, bslot() as BattleSprite, formdata() as integer)
+DECLARE SUB show_enemy_meters(bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB battle_animate(byref bat as BattleState, bslot() as BattleSprite)
-DECLARE SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
+DECLARE SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, menubits() as integer, st() as HeroDef)
 DECLARE SUB battle_confirm_target(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
-DECLARE SUB battle_spawn_on_hit(byval targ as integer, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
-DECLARE SUB battle_attack_anim_cleanup (byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
-DECLARE SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
-DECLARE SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
+DECLARE SUB battle_spawn_on_hit(byval targ as integer, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+DECLARE SUB battle_attack_anim_cleanup (byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+DECLARE SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+DECLARE SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB battle_pause ()
 DECLARE SUB battle_cleanup(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB battle_init(byref bat as BattleState, bslot() as BattleSprite)
-DECLARE SUB battle_background_anim(byref bat as BattleState, formdata() as integer)
+DECLARE SUB battle_background_anim(byref bat as BattleState, formdata as Formation)
 DECLARE FUNCTION battle_run_away(byref bat as BattleState, bslot() as BattleSprite) as integer
 DECLARE SUB battle_animate_running_away (bslot() as BattleSprite)
 DECLARE SUB battle_check_delays(byref bat as BattleState, bslot() as BattleSprite)
@@ -85,7 +85,7 @@ REDIM learnmask(245) as integer '6 shorts of bits per hero
 FUNCTION battle (byval form as integer) as integer
  battle = 1 'default return value
 
- REDIM formdata(40) as integer
+ DIM formdata as Formation
  DIM attack as AttackData
  DIM st(3) as HeroDef
  REDIM menubits(2) as integer
@@ -109,7 +109,7 @@ FUNCTION battle (byval form as integer) as integer
  clearpage 2
  clearpage 3
 
- battle_loadall form, bat, bslot(), st(), formdata()
+ battle_loadall form, bat, bslot(), st(), formdata
 
  copypage 2, dpage
 
@@ -124,7 +124,7 @@ FUNCTION battle (byval form as integer) as integer
   control
 
   '--background animation hack
-  battle_background_anim bat, formdata()
+  battle_background_anim bat, formdata
 
   IF readbit(gen(), genBits, 8) = 0 THEN
    '--debug keys
@@ -141,18 +141,18 @@ FUNCTION battle (byval form as integer) as integer
    generate_atkscript attack, bat, bslot(), bat.anim_t()
   END IF
   IF bat.atk.id >= 0 AND bat.anim_ready = YES AND bat.vic.state = 0 AND bat.away = 0 THEN
-   battle_attack_anim_playback attack, bat, bslot(), formdata()
+   battle_attack_anim_playback attack, bat, bslot(), formdata
   END IF
   battle_animate bat, bslot()
   
   IF battle_time_can_pass(bat) THEN
-   battle_meters bat, bslot(), formdata()
+   battle_meters bat, bslot(), formdata
    battle_check_delays bat, bslot()
   END IF
   battle_check_for_hero_turns bat, bslot()
   battle_check_for_enemy_turns bat, bslot()
   IF bat.vic.state = 0 THEN
-   IF bat.enemy_turn >= 0 THEN enemy_ai bat, bslot(), formdata()
+   IF bat.enemy_turn >= 0 THEN enemy_ai bat, bslot(), formdata
    IF bat.hero_turn >= 0 AND bat.targ.mode = targNONE THEN
     IF bat.menu_mode = batMENUITEM  THEN itemmenu bat, bslot()
     IF bat.menu_mode = batMENUSPELL THEN spellmenu bat, st(), bslot()
@@ -168,7 +168,7 @@ FUNCTION battle (byval form as integer) as integer
   IF bat.vic.state = vicEXITDELAY THEN bat.vic.state = vicEXIT
   IF bat.vic.state > 0 THEN show_victory bat, bslot()
   IF show_info_mode = 1 THEN
-   show_enemy_meters bat, bslot(), formdata()
+   show_enemy_meters bat, bslot(), formdata
   ELSEIF show_info_mode = 2 THEN
    display_attack_queue bslot()
   END IF
@@ -287,7 +287,7 @@ SUB battle_pause ()
  waitforanykey
 END SUB
 
-SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
+SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
  '--this plays back the animation sequence built when the attack starts.
 
  DIM i as integer
@@ -331,8 +331,8 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
     bat.atk.id = -1
    CASE 1 '???()
     FOR i = 0 TO 3
-     formdata(i * 4 + 1) = bslot(4 + i).x
-     formdata(i * 4 + 2) = bslot(4 + i).y
+     formdata.slots(i).pos.x = bslot(4 + i).x
+     formdata.slots(i).pos.y = bslot(4 + i).y
     NEXT i
     bat.atk.id = -1
    CASE 2 'setmove(who,xm,ym,xstep,ystep)
@@ -376,7 +376,7 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
    CASE 10 'inflict(targ, target_count)
     DIM targ as integer = popw
     DIM tcount as integer = popw
-    battle_attack_do_inflict targ, tcount, attack, bat, bslot(), formdata()
+    battle_attack_do_inflict targ, tcount, attack, bat, bslot(), formdata
    CASE 11 'setz(who,z)
     ww = popw
     bslot(ww).z = popw
@@ -449,11 +449,11 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
  LOOP UNTIL bat.wait_frames <> 0 OR bat.atk.id = -1
 
  IF bat.atk.id = -1 THEN
-  battle_attack_anim_cleanup attack, bat, bslot(), formdata()
+  battle_attack_anim_cleanup attack, bat, bslot(), formdata
  END IF
 END SUB
 
-SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
+SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
  'targ is the target slot number
  'tcount is the total number of targets (used only for dividing spread damage)
 
@@ -468,7 +468,7 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
  IF inflict(h, targstat, bat.acting, targ, bslot(bat.acting), bslot(targ), attack, tcount, attack_can_hit_dead(bat.acting, attack)) THEN
   '--attack succeeded
   IF attack.transmog_enemy > 0 ANDALSO is_enemy(targ) THEN
-   changefoe targ - 4, attack.transmog_enemy, formdata(), bslot(), attack.transmog_hp, attack.transmog_stats
+   changefoe targ - 4, attack.transmog_enemy - 1, formdata, bslot(), attack.transmog_hp, attack.transmog_stats
   END IF
   battle_attack_cancel_target_attack targ, bat, bslot(), attack
   WITH bslot(targ).enemy.reward
@@ -514,7 +514,7 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
   bslot(targ).vis = 1
   bslot(targ).dissolve = 0
  END IF
- IF is_enemy(targ) AND attack.no_spawn_on_attack = NO THEN battle_spawn_on_hit targ, bat, bslot(), formdata()
+ IF is_enemy(targ) AND attack.no_spawn_on_attack = NO THEN battle_spawn_on_hit targ, bat, bslot(), formdata
  battle_counterattacks h, targstat, targ, attack, bslot()
  IF bat.atk.has_consumed_costs = NO THEN
   '--if the attack costs MP, we want to actually consume MP
@@ -580,7 +580,7 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
  
 END SUB
 
-SUB battle_attack_anim_cleanup (byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
+SUB battle_attack_anim_cleanup (byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
  
  '--hide the caption when the animation is done
  IF attack.caption_time = 0 THEN
@@ -590,7 +590,7 @@ SUB battle_attack_anim_cleanup (byref attack as AttackData, byref bat as BattleS
  END IF
  
  '--check to see if anybody is dead
- fulldeathcheck bat.atk.was_id, bat, bslot(), formdata()
+ fulldeathcheck bat.atk.was_id, bat, bslot(), formdata
  
  '--FIXME: further cleanup to remove was_id entirely?
  bat.atk.was_id = -1
@@ -607,7 +607,7 @@ SUB battle_attack_anim_cleanup (byref attack as AttackData, byref bat as BattleS
 
 END SUB
 
-SUB battle_spawn_on_hit(byval targ as integer, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
+SUB battle_spawn_on_hit(byval targ as integer, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
  DIM i as integer
  DIM j as integer
  DIM slot as integer
@@ -616,10 +616,10 @@ SUB battle_spawn_on_hit(byval targ as integer, byref bat as BattleState, bslot()
   '--non-elemental hit
   IF .enemy.spawn.non_elemental_hit > 0 AND bat.atk.non_elemental THEN
    FOR j = 1 TO .enemy.spawn.how_many
-    slot = find_empty_enemy_slot(formdata())
+    slot = find_empty_enemy_slot(formdata)
     IF slot > -1 THEN
-     formdata(slot * 4) = .enemy.spawn.non_elemental_hit
-     loadfoe slot, formdata(), bat, bslot()
+     formdata.slots(slot).id = .enemy.spawn.non_elemental_hit - 1
+     loadfoe slot, formdata, bat, bslot()
     END IF
    NEXT j
    EXIT SUB '--skip further checks
@@ -627,10 +627,10 @@ SUB battle_spawn_on_hit(byval targ as integer, byref bat as BattleState, bslot()
   FOR i = 0 TO gen(genNumElements) - 1
    IF .enemy.spawn.elemental_hit(i) > 0 AND bat.atk.elemental(i) THEN
     FOR j = 1 TO .enemy.spawn.how_many
-     slot = find_empty_enemy_slot(formdata())
+     slot = find_empty_enemy_slot(formdata)
      IF slot > -1 THEN
-      formdata(slot * 4) = .enemy.spawn.elemental_hit(i)
-      loadfoe slot, formdata(), bat, bslot()
+      formdata.slots(slot).id = .enemy.spawn.elemental_hit(i) - 1
+      loadfoe slot, formdata, bat, bslot()
      END IF
     NEXT j
     EXIT FOR
@@ -898,7 +898,7 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, menubits(
 END SUB
 
 
-SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
+SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
  IF bat.away > 0 THEN EXIT SUB '--skip all this if the heroes have already run away
  
  '--if a menu is up, and pause-on-menus is ON then no time passes (as long as at least one visible targetable enemy is alive)
@@ -921,7 +921,7 @@ SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata()
      harm = range(harm, 20)
      quickinflict harm, i, bslot()
      triggerfade i, bslot()
-     fulldeathcheck -1, bat, bslot(), formdata()
+     fulldeathcheck -1, bat, bslot(), formdata
     END IF
    END IF
   END WITH
@@ -937,7 +937,7 @@ SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata()
      heal = range(heal, 20)
      quickinflict heal, i, bslot()
      triggerfade i, bslot()
-     fulldeathcheck -1, bat, bslot(), formdata()
+     fulldeathcheck -1, bat, bslot(), formdata
     END IF
    END IF
   END WITH
@@ -1035,7 +1035,7 @@ SUB battle_animate(byref bat as BattleState, bslot() as BattleSprite)
  NEXT i
 END SUB
 
-SUB show_enemy_meters(bat as BattleState, bslot() as BattleSprite, formdata() as integer)
+SUB show_enemy_meters(bat as BattleState, bslot() as BattleSprite, formdata as Formation)
  'This shows meters and extra debug info info when you press F10 the first time
  DIM c as integer
  DIM info as STRING
@@ -1045,7 +1045,7 @@ SUB show_enemy_meters(bat as BattleState, bslot() as BattleSprite, formdata() as
    IF is_hero(i) THEN c = uilook(uiSelectedItem)
    rectangle 0, 80 + (i * 10), .ready_meter / 10, 4, c, dpage
    info = "v=" & .vis & " tm=" & bat.targ.mask(i) & " hp=" & .stat.cur.hp & " dz=" & .dissolve & " a=" & .attack 
-   IF is_enemy(i) THEN info &= " fm=" & formdata((i-4)*4) 
+   IF is_enemy(i) THEN info &= " fm=" & formdata.slots(i-4).id
    edgeprint info, 20, 80 + i * 10, c, dpage
   END WITH
  NEXT i
@@ -1161,11 +1161,10 @@ SUB draw_battle_sprites(bslot() as BattleSprite)
  NEXT i
 END SUB
 
-SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef, formdata() as integer)
+SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef, formdata as Formation)
  DIM i as integer
 
- setpicstuf formdata(), 80, -1
- loadset tmpdir & "for.tmp", form, 0
+ LoadFormation formdata, form
 
  for i = 0 to 24
   bslot(i).frame = 0
@@ -1174,9 +1173,9 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
   bslot(i).attack = 0
  next i
 
- IF formdata(33) = 0 THEN stopsong
- IF formdata(33) > 0 THEN wrappedsong formdata(33) - 1
- 'Otherwise formdata(33) = -1: same music as map
+ IF formdata.music = -1 THEN stopsong
+ IF formdata.music >= 0 THEN wrappedsong formdata.music
+ 'Otherwise formdata.music = -2: same music as map
  
  DIM attack as AttackData
  DIM newm as integer
@@ -1265,7 +1264,7 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
  
  '--load monsters
  FOR i = 0 TO 7
-  loadfoe i, formdata(), bat, bslot(), YES
+  loadfoe i, formdata, bat, bslot(), YES
  NEXT i
  
  FOR i = 0 TO 11
@@ -1280,7 +1279,7 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
   bslot(i).h = 50
  NEXT i
  
- bat.curbg = formdata(32)
+ bat.curbg = formdata.background
  loadmxs game + ".mxs", bat.curbg, vpages(2)
  
  '--This checks weak/dead status for heroes
@@ -1308,10 +1307,10 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
    triggerfade i, bslot()
   END IF
  NEXT i
- fulldeathcheck -1, bat, bslot(), formdata()
+ fulldeathcheck -1, bat, bslot(), formdata
 END SUB
 
-SUB fulldeathcheck (byval killing_attack as integer, bat as BattleState, bslot() as BattleSprite, formdata() as integer)
+SUB fulldeathcheck (byval killing_attack as integer, bat as BattleState, bslot() as BattleSprite, formdata as Formation)
  '--Runs check_death on all enemies, checks all heroes for death, and sets bat.death_mode if necessary
  'killing_attack is the attack ID that was just used, or -1 for none
  DIM deadguy as integer
@@ -1326,7 +1325,7 @@ SUB fulldeathcheck (byval killing_attack as integer, bat as BattleState, bslot()
   END IF
  NEXT
  FOR deadguy = 0 TO 11
-  check_death deadguy, killing_attack, bat, bslot(), formdata()
+  check_death deadguy, killing_attack, bat, bslot(), formdata
  NEXT
  dead_enemies = 0
  FOR deadguy = 4 TO 11
@@ -1857,7 +1856,7 @@ FUNCTION count_dissolving_enemies(bslot() as BattleSprite) as integer
  RETURN count
 END FUNCTION
 
-SUB spawn_on_death(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, formdata() as integer, bslot() as BattleSprite)
+SUB spawn_on_death(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, formdata as Formation, bslot() as BattleSprite)
  'killing_attack is the id of the attack that killed the target or -1 if the target died without a specific attack
  DIM attack as AttackData
  DIM slot as integer
@@ -1874,20 +1873,20 @@ SUB spawn_on_death(byval deadguy as integer, byval killing_attack as integer, by
  WITH bslot(deadguy)
   IF .enemy.spawn.non_elemental_death > 0 AND bat.atk.non_elemental = YES THEN ' spawn on non-elemental death
    FOR i = 1 TO .enemy.spawn.how_many
-    slot = find_empty_enemy_slot(formdata())
+    slot = find_empty_enemy_slot(formdata)
     IF slot > -1 THEN
-     formdata(slot * 4) = .enemy.spawn.non_elemental_death
-     loadfoe(slot, formdata(), bat, bslot())
+     formdata.slots(slot).id = .enemy.spawn.non_elemental_death - 1
+     loadfoe(slot, formdata, bat, bslot())
     END IF
    NEXT i
    .enemy.spawn.non_elemental_death = 0
   END IF
   IF .enemy.spawn.on_death > 0 THEN ' spawn on death
    FOR i = 1 TO .enemy.spawn.how_many
-    slot = find_empty_enemy_slot(formdata())
+    slot = find_empty_enemy_slot(formdata)
     IF slot > -1 THEN
-     formdata(slot * 4) = .enemy.spawn.on_death
-     loadfoe(slot, formdata(), bat, bslot())
+     formdata.slots(slot).id = .enemy.spawn.on_death - 1
+     loadfoe(slot, formdata, bat, bslot())
     END IF
    NEXT i
    .enemy.spawn.on_death = 0
@@ -1895,11 +1894,11 @@ SUB spawn_on_death(byval deadguy as integer, byval killing_attack as integer, by
  END WITH
 END SUB
 
-FUNCTION find_empty_enemy_slot(formdata() as integer) as integer
+FUNCTION find_empty_enemy_slot(formdata as Formation) as integer
  'Returns index of first empty slot, or -1 if none was found
  DIM i as integer
  FOR i = 0 TO 7
-  IF formdata(i * 4) = 0 THEN RETURN i
+  IF formdata.slots(i).id = -1 THEN RETURN i
  NEXT i
  RETURN -1
 END FUNCTION
@@ -1945,11 +1944,11 @@ SUB triggerfade(byval who as integer, bslot() as BattleSprite)
  END IF
 END SUB
 
-SUB check_death(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
+SUB check_death(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 'killing_attack contains attack id or -1 when no attack is relevant.
 
  IF is_enemy(deadguy) THEN
-  IF formdata((deadguy - 4) * 4) = 0 THEN EXIT SUB
+  IF formdata.slots(deadguy - 4).id = -1 THEN EXIT SUB
  END IF
  IF bslot(deadguy).stat.cur.hp <> 0 THEN EXIT SUB
  '--deadguy is really dead (includes already dead and empty hero slots??)
@@ -1990,19 +1989,19 @@ SUB check_death(byval deadguy as integer, byval killing_attack as integer, byref
   ELSEIF bslot(deadguy).death_sfx > 0 THEN
    playsfx bslot(deadguy).death_sfx - 1
   END IF
-  dead_enemy deadguy, killing_attack, bat, bslot(), formdata()
+  dead_enemy deadguy, killing_attack, bat, bslot(), formdata
  END IF'------------END PLUNDER-------------------
  battle_reevaluate_dead_targets deadguy, bat, bslot()
 END SUB
 
-SUB dead_enemy(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
+SUB dead_enemy(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
  '--give rewards, spawn enemies, clear formdata slot, but NO other cleanup!
  'killing_attack is the id of the attack that killed the target or -1 if the target died without a specific attack
  DIM as integer j
  DIM enemynum as integer = deadguy - 4
  '--spawn enemies before freeing the formdata slot to avoid infinite loops. however this might need to be changed to fix morphing enemies?
- spawn_on_death deadguy, killing_attack, bat, formdata(), bslot()
- IF formdata(enemynum * 4) > 0 THEN
+ spawn_on_death deadguy, killing_attack, bat, formdata, bslot()
+ IF formdata.slots(enemynum).id > -1 THEN
   WITH bslot(deadguy)
    bat.rew.plunder += .enemy.reward.gold
    bat.rew.exper += .enemy.reward.exper
@@ -2023,10 +2022,10 @@ SUB dead_enemy(byval deadguy as integer, byval killing_attack as integer, byref 
   END WITH
  END IF
  ' remove dead enemy from formation
- formdata(enemynum * 4) = 0
+ formdata.slots(enemynum).id = -1
 END SUB
 
-SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata() as integer)
+SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
  DIM ai as integer = 0
  DIM weakhp as integer = 0
  
@@ -2042,10 +2041,10 @@ SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata() as i
  WITH bslot(bat.enemy_turn)
   IF ai = 2 AND .enemy.spawn.when_alone > 0 THEN
    FOR j as integer = 1 TO .enemy.spawn.how_many
-    slot = find_empty_enemy_slot(formdata())
+    slot = find_empty_enemy_slot(formdata)
     IF slot > -1 THEN
-     formdata(slot * 4) = .enemy.spawn.when_alone
-     loadfoe slot, formdata(), bat, bslot()
+     formdata.slots(slot).id = .enemy.spawn.when_alone - 1
+     loadfoe slot, formdata, bat, bslot()
     END IF
    NEXT j
   END IF
@@ -3182,11 +3181,11 @@ FUNCTION battle_time_can_pass(bat as BattleState) as integer
  RETURN YES
 END FUNCTION
 
-SUB battle_background_anim(byref bat as BattleState, formdata() as integer)
- IF formdata(34) > 0 and gen(genVersion) >= 6 THEN
-  bat.bgspeed = loopvar(bat.bgspeed, 0, formdata(35), 1)
-  IF bat.bgspeed = 0 THEN
-   bat.curbg = loopvar(bat.curbg, formdata(32), formdata(32) + formdata(34), 1)
+SUB battle_background_anim(byref bat as BattleState, formdata as Formation)
+ IF formdata.background_frames > 1 THEN
+  bat.bg_tick = loopvar(bat.bg_tick, 0, formdata.background_ticks, 1)
+  IF bat.bg_tick = 0 THEN
+   bat.curbg = loopvar(bat.curbg, formdata.background, formdata.background + formdata.background_frames - 1, 1)
    loadmxs game + ".mxs", bat.curbg MOD gen(genNumBackdrops), vpages(2)
   END IF
  END IF

@@ -767,6 +767,19 @@ TYPE EnemyDef
   ignore_for_alone    AS INTEGER 'YES/NO
 END TYPE
 
+TYPE FormationSlot
+  id as integer    '-1: none
+  pos as XYPair
+END TYPE
+
+TYPE Formation
+  slots(7) as FormationSlot
+  music as integer              '-1: none, -2: same as map
+  background as integer
+  background_frames as integer  'always >= 1
+  background_ticks as integer
+END TYPE
+
 TYPE TextBox
   text(7) AS STRING
   instead_tag AS INTEGER

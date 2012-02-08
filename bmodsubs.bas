@@ -1547,15 +1547,15 @@ FUNCTION targenemycount (bslot() as BattleSprite, byval for_alone_ai as integer=
  RETURN count
 END FUNCTION
 
-SUB loadfoe (byval slot as integer, formdata() as integer, byref bat as BattleState, bslot() as BattleSprite, byval allow_dead as integer = NO)
+SUB loadfoe (byval slot as integer, formdata as Formation, byref bat as BattleState, bslot() as BattleSprite, byval allow_dead as integer = NO)
  '--slot is the enemy formation slot
 
  DIM i as integer
  
- IF formdata(slot * 4) > 0 THEN '-- if this slot is occupied
+ IF formdata.slots(slot).id >= 0 THEN '-- if this slot is occupied
  
   '--load enemy data
-  loadenemydata bslot(4 + slot).enemy, formdata(slot * 4) - 1, -1
+  loadenemydata bslot(4 + slot).enemy, formdata.slots(slot).id, -1
 
   transfer_enemy_bits slot, bslot()
   transfer_enemy_counterattacks slot, bslot()
@@ -1569,7 +1569,7 @@ SUB loadfoe (byval slot as integer, formdata() as integer, byref bat as BattleSt
     'rewards and spawn enemies on death
     'enemy is only partially constructed, but already have everything needed.
     DIM atktype(8) as integer 'regular "spawn on death"
-    dead_enemy 4 + slot, -1, bat, bslot(), formdata()
+    dead_enemy 4 + slot, -1, bat, bslot(), formdata
     EXIT SUB
    END IF
   END IF
@@ -1579,8 +1579,8 @@ SUB loadfoe (byval slot as integer, formdata() as integer, byref bat as BattleSt
    '--Size and position
    .w = sprite_sizes(1 + .enemy.size).size.x
    .h = sprite_sizes(1 + .enemy.size).size.y
-   .basex = formdata(slot * 4 + 1)
-   .basey = formdata(slot * 4 + 2)
+   .basex = formdata.slots(slot).pos.x
+   .basey = formdata.slots(slot).pos.y
    .x = .basex
    .y = .basey
    '--targetting state
@@ -1677,16 +1677,16 @@ SUB setup_enemy_sprite_and_name(byval slot as integer, bslot() as BattleSprite)
  end with
 END SUB
 
-SUB changefoe(byval slot as integer, byval new_id as integer, formdata() as integer, bslot() as BattleSprite, byval hp_rule as integer, byval other_stats_rule as integer)
- IF formdata(slot * 4) = 0 THEN
+SUB changefoe(byval slot as integer, byval new_id as integer, formdata as Formation, bslot() as BattleSprite, byval hp_rule as integer, byval other_stats_rule as integer)
+ IF formdata.slots(slot).id = -1 THEN
   debug "changefoe doesn't work on empty slot " & slot & " " & new_id
   EXIT SUB
  END IF
  
- formdata(slot * 4) = new_id
+ formdata.slots(slot).id = new_id - 1
 
  '--load enemy data
- loadenemydata bslot(4 + slot).enemy, formdata(slot * 4) - 1, -1
+ loadenemydata bslot(4 + slot).enemy, formdata.slots(slot).id, -1
 
  transfer_enemy_bits slot, bslot()
  transfer_enemy_counterattacks slot, bslot()

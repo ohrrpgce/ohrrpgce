@@ -250,7 +250,7 @@ TYPE BattleState
           ({0,0,1,1,2,2,1,1,0,0,-1}), _
           ({-1,-1}) }
  curbg AS INTEGER      'Current background
- bgspeed AS INTEGER    'used by background animation
+ bg_tick AS INTEGER    'Number of ticks since last background frame change
  wait_frames AS INTEGER 'used by the attack animation
  level_mp_caption AS STRING
  cannot_run_caption AS STRING
