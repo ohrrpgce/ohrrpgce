@@ -554,7 +554,7 @@ sname$ = a$
 
 'generate lump name
 extension$ = LCASE(justextension(sourcesong$))
-IF extension$ = ".bam" AND snum <= 99 THEN
+IF extension$ = "bam" AND snum <= 99 THEN
  songfile$ = game + "." + STR$(snum)
 ELSE
  songfile$ = workingdir + SLASH + "song" + STR$(snum) + "." + extension$
