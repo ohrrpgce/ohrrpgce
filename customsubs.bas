@@ -270,7 +270,7 @@ FUNCTION cond_grabber (cond as Condition, byval default as integer = NO, byval a
 
     IF newtype > -1 THEN
      IF .type = compNone OR .type = compTag THEN
-      .varnum = small(ABS(.tag), 4095)  'future proofing
+      .varnum = small(ABS(.tag), 4095)  'future proofing 'James says: why 4095? That is the script global limit not the tag limit
       .value = 0
       .editstate = 2
      END IF
@@ -320,7 +320,7 @@ FUNCTION cond_grabber (cond as Condition, byval default as integer = NO, byval a
       temp = 0
       'Don't erase previous value when trying to inc/decrement it
       IF keyval(scLeft) > 0 OR keyval(scRight) > 0 THEN temp = .varnum
-      IF intgrabber(temp, 0, 4095, , , YES) THEN
+      IF intgrabber(temp, 0, maxScriptGlobals, , , YES) THEN
        .varnum = temp
        .editstate = 6
       END IF
@@ -334,7 +334,7 @@ FUNCTION cond_grabber (cond as Condition, byval default as integer = NO, byval a
       .editstate = 0
       .type = compNone
      ELSE
-      intgrabber(.varnum, 0, 4095)
+      intgrabber(.varnum, 0, maxScriptGlobals)
      END IF
     CASE 3
      IF keyval(scTab) > 1 THEN

@@ -1153,7 +1153,7 @@ FOR i as integer = 0 TO 99
  NEXT o
 NEXT i
 flusharray hmask()
-flusharray global(), 4095, 0
+flusharray global(), maxScriptGlobals, 0
 reset_vehicle vstate
 cleanup_text_box
 txt.showing = NO

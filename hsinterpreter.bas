@@ -504,7 +504,7 @@ SELECT CASE cmdptr->kind
  CASE tynumber
   pushs(scrst, cmdptr->value)
  CASE tyglobal
-  IF cmdptr->value < 0 OR cmdptr->value > 4095 THEN
+  IF cmdptr->value < 0 OR cmdptr->value > maxScriptGlobals THEN
    scripterr "Illegal global variable id " & cmdptr->value, 5
    si.state = sterror
    EXIT SUB
@@ -605,7 +605,7 @@ FUNCTION readscriptvar (byval id as integer) as integer
  SELECT CASE id
   CASE IS < 0 'local variable
    readscriptvar = heap(scrat(nowscript).heap + ABS(id) - 1)
-  CASE 0 TO 4095 'global variable
+  CASE 0 TO maxScriptGlobals 'global variable
    readscriptvar = global(id)
   CASE ELSE
    scripterr "Cannot read global " & id & ". Out of range", 5
@@ -616,7 +616,7 @@ SUB writescriptvar (byval id as integer, byval newval as integer)
  SELECT CASE id
   CASE IS < 0 'local variable
    heap(scrat(nowscript).heap + ABS(id) - 1) = newval
-  CASE 0 TO 4095 'global variable
+  CASE 0 TO maxScriptGlobals 'global variable
    global(id) = newval
   CASE ELSE
    scripterr "Cannot write global " & id &  ". Out of range", 5
@@ -1104,7 +1104,7 @@ IF mode > 1 AND drawloop = 0 THEN
  END IF
  IF w = scPlus OR w = scNumpadPlus THEN
   IF viewmode = 1 THEN localsscroll = small(large(scrat(selectedscript).scr->vars - 8, 0), localsscroll + 3): GOTO redraw
-  IF viewmode = 2 THEN globalsscroll = small(4096 - 60, globalsscroll + 21): GOTO redraw
+  IF viewmode = 2 THEN globalsscroll = small(maxScriptGlobals - 59, globalsscroll + 21): GOTO redraw
   IF viewmode = 3 THEN stringsscroll = small(stringsscroll + 1, (UBOUND(strings) - 1) - 19): GOTO redraw
  END IF
 

@@ -35,7 +35,7 @@ DECLARE SUB gamestate_to_reload(byval node as Reload.NodePtr)
 DECLARE SUB gamestate_state_to_reload(byval parent as Reload.NodePtr)
 DECLARE SUB gamestate_script_to_reload(byval parent as Reload.NodePtr)
 DECLARE FUNCTION script_trigger_from_reload(byval node as Reload.NodePtr) as integer
-DECLARE SUB gamestate_globals_to_reload(byval parent as Reload.NodePtr, byval first as integer=0, byval last as integer=4095)
+DECLARE SUB gamestate_globals_to_reload(byval parent as Reload.NodePtr, byval first as integer=0, byval last as integer=maxScriptGlobals)
 DECLARE SUB gamestate_maps_to_reload(byval parent as Reload.NodePtr)
 DECLARE SUB gamestate_npcs_to_reload(byval parent as Reload.NodePtr, byval map as integer)
 DECLARE SUB gamestate_tags_to_reload(byval parent as Reload.NodePtr)
@@ -316,7 +316,7 @@ SUB gamestate_state_from_reload(byval node as Reload.NodePtr)
 END SUB
 
 SUB gamestate_script_from_reload(byval node as Reload.NodePtr)
- gamestate_globals_from_reload node, 0, UBOUND(global)
+ gamestate_globals_from_reload node, 0, maxScriptGlobals
 
  DIM load_script_ids as integer = (readbit(gen(), genBits2, 2) = 0)
 
@@ -363,7 +363,7 @@ SUB gamestate_globals_from_reload(byval parent as Reload.NodePtr, byval first as
    i = GetInteger(n)
    IF i >= first AND i <= last THEN
     global(i) = n."int"
-   ELSEIF i < 0 OR i > UBOUND(global) THEN
+   ELSEIF i < 0 OR i > maxScriptGlobals THEN
     rsav_warn "invalid global id " & i
    END IF
   END WITHNODE
@@ -826,7 +826,7 @@ SUB script_trigger_to_reload(byval parent as Reload.NodePtr, node_name as STRING
  'END IF
 END SUB
 
-SUB gamestate_globals_to_reload(byval parent as Reload.NodePtr, byval first as integer=0, byval last as integer=4095)
+SUB gamestate_globals_to_reload(byval parent as Reload.NodePtr, byval first as integer=0, byval last as integer=maxScriptGlobals)
 
  DIM node as NodePtr
  node = SetChildNode(parent, "globals")
@@ -1529,7 +1529,7 @@ FOR i = 0 TO 1024
  global(i) or= buffer(z) shl 16: z = z + 1
 NEXT i
 show_load_index z, "global ext", 1
-FOR i = 1025 TO 4095
+FOR i = 1025 TO 4095 'maxScriptGlobals const is NOT appropriate here
  global(i) = buffer(z) and &hFFFF: z = z + 1
  global(i) or= buffer(z) shl 16: z = z + 1
 NEXT i

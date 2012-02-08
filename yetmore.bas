@@ -153,7 +153,7 @@ DO WHILE start < LEN(text)
     CASE "V": '--global variable by ID
      '--defaults blank if out-of-range
      insert = ""
-     IF arg >= 0 AND arg <= 4095 THEN
+     IF arg >= 0 AND arg <= maxScriptGlobals THEN
       insert = STR(global(arg))
      END IF
     CASE "S": '--string variable by ID
@@ -1137,13 +1137,13 @@ SELECT CASE as CONST id
  CASE 109'--grey scale palette
   greyscalepal
  CASE 114'--read global
-  IF retvals(0) >= 0 AND retvals(0) <= 4095 THEN
+  IF retvals(0) >= 0 AND retvals(0) <= maxScriptGlobals THEN
    scriptret = global(retvals(0))
   ELSE
    scripterr "readglobal: Cannot read global " & retvals(0) & ". Out of range", 5
   END IF
  CASE 115'--write global
-  IF retvals(0) >= 0 AND retvals(0) <= 4095 THEN
+  IF retvals(0) >= 0 AND retvals(0) <= maxScriptGlobals THEN
    global(retvals(0)) = retvals(1)
   ELSE
    scripterr "writeglobal: Cannot write global " & retvals(0) & ". Out of range", 5
@@ -1240,23 +1240,23 @@ SELECT CASE as CONST id
   IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
    IF retvals(1) = -1 THEN 'importglobals(slot)
     retvals(1) = 0
-    retvals(2) = 4095
+    retvals(2) = maxScriptGlobals
    END IF
-   IF retvals(1) >= 0 AND retvals(1) <= 4095 THEN
+   IF retvals(1) >= 0 AND retvals(1) <= maxScriptGlobals THEN
     IF retvals(2) = -1 THEN 'importglobals(slot,id)
      DIM remval as integer = global(retvals(1))
      loadglobalvars retvals(0) - 1, retvals(1), retvals(1)
      scriptret = global(retvals(1))
      global(retvals(1)) = remval
     ELSE                    'importglobals(slot,first,last)
-     IF retvals(2) <= 4095 AND retvals(1) <= retvals(2) THEN
+     IF retvals(2) <= maxScriptGlobals AND retvals(1) <= retvals(2) THEN
       loadglobalvars retvals(0) - 1, retvals(1), retvals(2)
      END IF
     END IF
    END IF
   END IF
  CASE 173'--exportglobals
-  IF retvals(0) >= 1 AND retvals(0) <= 32 AND retvals(1) >= 0 AND retvals(2) <= 4095 AND retvals(1) <= retvals(2) THEN
+  IF retvals(0) >= 1 AND retvals(0) <= 32 AND retvals(1) >= 0 AND retvals(2) <= maxScriptGlobals AND retvals(1) <= retvals(2) THEN
    saveglobalvars retvals(0) - 1, retvals(1), retvals(2)
   END IF
  CASE 175'--deletesave

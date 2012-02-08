@@ -221,7 +221,7 @@ DIM numloadedscr as integer
 DIM totalscrmem as integer
 DIM scrwatch as integer
 REDIM heap(2048) as integer
-REDIM global(4095) as integer
+REDIM global(maxScriptGlobals) as integer
 REDIM retvals(32) as integer
 REDIM scrat(128) as ScriptInst
 REDIM script(scriptTableSize - 1) as ScriptData Ptr
