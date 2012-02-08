@@ -11,7 +11,7 @@
 CONST YES = -1
 CONST NO = 0
 
-CONST CURRENT_RPG_VERSION = 16
+CONST CURRENT_RPG_VERSION = 17
 ' It is a good idea to increment this number each time a major feature
 ' has been added, if opening a new game in an old editor would cause data-loss
 ' Don't be afraid to increment this. Backcompat warnings are a good thing!
@@ -26,12 +26,14 @@ CONST CURRENT_RPG_VERSION = 16
 ' 14 - zenzizenzic wip made .DT0 binsize-sized
 ' 15 - zenzizenzic wip made .DT1 binsize-sized, and added binsize.bin, fixbits.bit safeguards
 ' 16 - zenzizenzic wip made .ITM binsize-sized
+' 17 - alectormancy wip increase global limit from 4095 to 16383
 
-CONST CURRENT_RSAV_VERSION = 1
+CONST CURRENT_RSAV_VERSION = 2
 ' Increment this number any time that loading and resaving a game in either
 ' new or old versions of Game leads to data-loss, or major new features are
 ' added.
 ' 1 - zenzizenzic wip removed nativehbits related nodes
+' 2 - alectormancy wip increased global limit from 4095 to 16383
 
 CONST CURRENT_TESTING_IPC_VERSION = 4
 
@@ -192,7 +194,7 @@ CONST dissolveTypeMax = 10 'Highest numbered frame dissolve effect
 CONST maxElements = 64 'Maximum selectable number of elements
 CONST tempZone = 10000 'ID (and up) to use for temporary zones
 CONST maxMapHistoryMem = 1000000 'In number of MapEditUndoTiles (8 bytes)
-CONST maxScriptGlobals = 4095 'Actually the index of the last global
+CONST maxScriptGlobals = 16383 'Actually the index of the last global
 #IFDEF SCRIPTPROFILE
 CONST scriptmemMax = 10000000 'in 4-byte ints
 CONST scriptTableSize = 512  'hash table size, power of 2 please

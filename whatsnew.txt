@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-??? ? 2011 [Alectormancy]
+??? ? 2012 [Alectormancy]
 
   * New Features
     * Adjustable global HP thresholds for hero and enemy Weak states
@@ -64,6 +64,8 @@ WHAT IS NEW?
       ID >= 128 [San]
 
   * New Plotscripting Stuff
+    * You can now have global variables up to 16383 instead of 4095
+      [James]
     * Slice velocity commands to make a slice move automatically at
       pixels-per-tick speeds. [James]
     * Slice movement commands to make a command move to a target

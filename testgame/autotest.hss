@@ -21,6 +21,7 @@ global variable(104, menu close global)
 global variable(105, embedding global)
 global variable(106, export global 1)
 global variable(107, export global 2)
+global variable(5000, global 5000)
 
 #string 0 = error messages
 #string 1 = temporary misc
@@ -100,6 +101,9 @@ script, hspeak tests, begin
   assert(¿ƒüñÑÿ sÇ®¡ÞΤ ηªɱE == 42)
 
   assert(that script in the other file == 91)
+  
+  global 5000 := 99999
+  assert(global 5000 == 99999)
 end
 
 ########################################################################

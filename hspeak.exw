@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Oc 2012-02-07 Increased MAXGLOBAL to 16383
 --3Ob 2012-02-07 Make the max script global number set by a constant
 --3Oa 2012-01-20 Fix lexer allowing newlines in strings
 --3O  2012-01-19 Unicode support
@@ -126,7 +127,7 @@ constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Ob"
+constant COMPILER_SUB_VERSION="Oc"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags. May add more colors, up to #F8FF
@@ -233,7 +234,7 @@ constant TIMING_ACTIVE=4
 constant CODE_START_BYTE_OFFSET=12
 constant SCRIPT_FORMAT_VERSION=2
 
-constant MAXGLOBAL=4095
+constant MAXGLOBAL=16383
 
 ---------------------------------------------------------------------------
 --globals--               --initializations--
