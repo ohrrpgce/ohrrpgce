@@ -1174,7 +1174,9 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
   bslot(i).attack = 0
  next i
 
+ IF formdata(33) = 0 THEN stopsong
  IF formdata(33) > 0 THEN wrappedsong formdata(33) - 1
+ 'Otherwise formdata(33) = -1: same music as map
  
  DIM attack as AttackData
  DIM newm as integer

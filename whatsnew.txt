@@ -63,6 +63,8 @@ WHAT IS NEW?
     * Bug 942: Attacks didn't chain if they depended on a tag with
       ID >= 128 [San]
     * It was no longer possible to import BAM files [Ralph]
+    * In-battle music option 'silence' acted the same as 'same as
+      last map'. Broken since xocolatl! [Ralph]
 
   * New Plotscripting Stuff
     * You can now have global variables up to 16383 instead of 4095
