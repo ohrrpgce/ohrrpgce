@@ -1761,7 +1761,6 @@ end
 #camera pixel X
 #camera pixel Y
 #cancel map name display
-#case(value)
 #center slice (handle)
 #center string at (ID, x, y)
 #change tileset (tileset, layer)
@@ -1783,7 +1782,6 @@ end
 #create text
 #current display tile (tile number, layer)
 #current map
-#current song
 #current stat
 #days of play
 #decrement (variable,amount)
@@ -1966,14 +1964,9 @@ end
 #overhead tile
 #pan camera (direction,distance,pixelstep)
 #parent slice (handle)
-#party
 #party money
-#pause sound (num)
 #pay money (amount)
 #place sprite
-#play song (song)
-#play sound (num,loop,preempt)
-#plotscript, name, argumentnames (statements)
 #positionstring (ID, x, y)
 #previous sibling(handle)
 #put camera (x,y)
@@ -2023,7 +2016,6 @@ end
 #search string (ID1, ID2, start)
 #seconds of play
 #seed random (new seed)
-#set ambient music (song)
 #set battle wait mode (state)
 #set bottom padding (handle, pixels)
 #set color(index, value)
@@ -2107,7 +2099,6 @@ end
 #variable := value
 #set vert align (handle, edge)
 #set vert anchor (handle, edge)
-#set victory music (song)
 #set wrap(handle, wrap)
 #set zone extra (zone id, extra num, value)
 #show backdrop (number)
@@ -2141,19 +2132,13 @@ end
 #slice width (handle)
 #slice x (handle)
 #slice y (handle)
-#song: same as last map
-#song: same as map
-#song: silence
 #sort children (handle, wipe)
-#sound is playing (num)
 #sprite frame count (handle)
 #sprite is horiz flipped (handle)
 #sprite is vert flipped (handle)
 #sprite layer
 #sqrt (number)
 #stop slice (handle)
-#stop song
-#stop sound (num)
 #stop timer (id)
 #string color (ID, foreground color, background color)
 #string is visible (ID)
@@ -2190,7 +2175,6 @@ end
 #use item in slot(slot)
 #use NPC (who)
 #vert flip sprite (handle, flip)
-#wait (ticks)
 #wait for all
 #wait for camera
 #wait for NPC (who)

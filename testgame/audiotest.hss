@@ -1,0 +1,87 @@
+########################################################################
+# audiotest.rpg is for testing stuff that requires a human tester to
+# listen. Any audio features/commands that could be tested by script
+# would probably be better put in autotest.hss.
+# audiotest currently isn't linear either, but we could create some
+# tests with long sequences of "is this working?" queries too.
+#
+# Any time you are preparing to fix an engine bug, consider adding a
+# test that demonstrates the bug FIRST before you fix the bug.
+
+include, plotscr.hsd
+include, audiotest.hsi
+
+define constant(1, default wait)
+define constant(11, assert expression string)
+
+########################################################################
+
+script, w, ticks=default wait, begin
+  wait(ticks)
+  _checkpoint
+end
+
+script, crash, begin
+  if(string length(10) >> 0) then(
+    $0+"("
+    concatenate strings(0, 10)
+    $0+")"
+  )
+  show text box(1)
+  trace(0)
+  #w(25)
+  #game over
+end
+
+script, assert failure, begin
+  trace(assert expression string)
+  crash
+end
+
+########################################################################
+
+plotscript, start, begin
+  set hero speed(0, 10)
+end
+
+plotscript, try play song, begin
+  play song(8)
+  assert(current song == 8)
+end
+
+plotscript, try stop song, begin
+  stop song
+  assert(current song == -1)
+end
+
+plotscript, try set ambient music, begin
+  set ambient music(9)
+  assert(current song == 9)
+end
+
+plotscript, try set ambient silence, begin
+  set ambient music(song:silence)
+  assert(current song == song:silence)
+end
+
+plotscript, disable victory music, begin
+  # Hey... this is undocumented!
+  set victory music(-1)
+end
+
+plotscript, enable victory music, begin
+  set victory music(2)
+end
+
+########################################################################
+#### COMMANDS THAT STILL NEED TESTS
+
+#get music volume
+#pause sound (num)
+#play sound (num,loop,preempt)
+#sound is playing (num)
+#set music volume (volume)
+#song: same as last map
+#song: same as map
+#song: silence
+#stop sound (num)

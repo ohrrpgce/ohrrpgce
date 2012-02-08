@@ -1,0 +1,52 @@
+# HamsterSpeak constant definitions for audiotest.rpg
+
+define constant, begin
+2,tag:box chain test
+3,tag:menu tag test
+0,song:The Hut of Baba Yaga
+1,song:De_Cold_Cold_Night
+2,song:Sabre Dance
+3,song:TICKTOCK
+4,song:greenochrome by neurosys PD
+5,song:Nebulos NES by SoDa7 PD
+6,song:SolarWar Introtune by SoDa7PD
+7,song:musixretrospective by m0d PD
+0,sfx:Slash8Bit
+1,sfx:Menu8Bit
+2,sfx:Cancel8Bit
+3,sfx:Confirm8Bit
+4,sfx:EnemyDeath
+5,sfx:Pingdadingdingding
+6,sfx:Select8Bit
+0,hero:Freki
+1,hero:Helga
+2,hero:Olaf
+3,hero:Frumpy
+4,hero:Styrge
+5,hero:Kitt
+0,item:Claw
+0,stat:HP
+1,stat:MP
+2,stat:Atk
+3,stat:Aim
+4,stat:Def
+5,stat:Dog
+6,stat:Mag
+7,stat:Wil
+8,stat:Spd
+9,stat:Ctr
+10,stat:MP~
+11,stat:Hits
+1,slot:Weapon
+1,slot:Weapon 2
+2,slot:Head
+3,slot:Body
+4,slot:Arms
+5,slot:Legs
+0,map:Aural Island
+1,map:Silent Island
+2,map:Sameasthelast Island
+1,atk:Win
+2,menu:Menu from menu
+0,enemy:Mushboom
+end

@@ -321,7 +321,6 @@ end
 ########################################################################
 #### COMMANDS THAT STILL NEED TESTS
 #equip menu (who)
-#get music volume
 #init mouse
 #input string (ID, maxlength, use current, center, position x, position y)
 #items menu
@@ -339,7 +338,6 @@ end
 #rename hero by slot(who)
 #rename hero(who)
 #set full hero swap mode (state)
-#set music volume (volume)
 #show mini map
 #spells menu (who)
 #status screen (who)
