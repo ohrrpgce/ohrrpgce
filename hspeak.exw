@@ -1657,7 +1657,7 @@ procedure create_global(integer id,sequence name,srcpos pos)
       global_list[GLB_POS]=append(global_list[GLB_POS],pos)
       reserved=alpha_tree_insert(reserved,name,RESERVE_GLOBAL)
     else
-      src_error(sprintf_utf("global variable ID "&COLYEL&"%d"&COLRED&" is not permitted. Valid IDs are 0 to MAXGLOBAL",{id}),pos)
+      src_error(sprintf_utf("global variable ID "&COLYEL&"%d"&COLRED&" is not permitted. Valid IDs are 0 to %d",{id,MAXGLOBAL}),pos)
     end if
   end if
 end procedure

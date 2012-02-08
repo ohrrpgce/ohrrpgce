@@ -270,7 +270,8 @@ FUNCTION cond_grabber (cond as Condition, byval default as integer = NO, byval a
 
     IF newtype > -1 THEN
      IF .type = compNone OR .type = compTag THEN
-      .varnum = small(ABS(.tag), 4095)  'future proofing 'James says: why 4095? That is the script global limit not the tag limit
+      'In future, largest allowable tag ID will increase
+      .varnum = small(ABS(.tag), maxScriptGlobals)
       .value = 0
       .editstate = 2
      END IF
