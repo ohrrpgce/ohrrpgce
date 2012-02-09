@@ -1364,7 +1364,7 @@ script, battle tests, begin
   # there are some other battle tests in with the timer tests
   $0="battle tests"
   show value(random(1, 999999999)), w
-  force random battle
+  force random battle(1)
   show value(random(1, 999999999)), w # this should remain deterministic after battle
   show no value, w
   # attack forces run
@@ -1373,11 +1373,16 @@ script, battle tests, begin
   assert(fight formation(2) == true), w
   # attack forces exit
   assert(fight formation(3) == false), w
+  # test tag check: battle should not trigger
+  force random battle(2)
+  assert(last formation <> 4)
   w(5)
 end
 
-script, force random battle, begin
+# Formation set should be 1-3
+script, force random battle, formation set = 1, begin
   variable(s, x, y, d)
+  if (formation set == 0) then (formation set := 1)  # If run with runscriptbyid
   # save hero state
   s := get hero speed(me)
   x := hero x(me)
@@ -1385,7 +1390,8 @@ script, force random battle, begin
   d := hero direction(me)
   # get the hero ready for forcing the battle
   set hero speed(0, 20)
-  set hero position(0, 15, 9), w
+  # Formations 1-3 are at x = 14-16
+  set hero position(0, 13 + formation set, 9), w
   # force the battle
   walk hero(0, north, 1), w
   # restore hero state

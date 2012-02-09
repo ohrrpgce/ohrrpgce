@@ -30,6 +30,7 @@ WHAT IS NEW?
       scripts (not called from other scripts) to be logged to
       script_log.txt. It might help to restart/reload the game
       after enabling it if running scripts are missing. [Ralph]
+    * Formation sets can now be disabled by tag conditions [Ralph]
 
   * Bugfixes
     * Wrong names used for reserve party heroes who level during

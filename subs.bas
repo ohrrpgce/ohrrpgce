@@ -878,10 +878,13 @@ SUB formation_set_editor
  DIM form as Formation
  DIM formset as FormationSet
  DIM set_id as integer = 1, form_id as integer
- DIM menu(22) as string
- DIM as integer bcsr, tog, i
+ DIM menu(23) as string
+ DIM as integer tog, i
  DIM as GraphicPair egraphics(7)
  DIM as string ename(7)
+ DIM state as MenuState
+ state.last = UBOUND(menu)
+ state.size = 24
 
  LoadFormationSet formset, set_id
  GOSUB lpreviewform
@@ -895,27 +898,28 @@ SUB formation_set_editor
    EXIT DO
   END IF
   IF keyval(scF1) > 1 THEN show_help "formation_sets"
-  IF usemenu(bcsr, 0, 0, 22, 24) THEN GOSUB lpreviewform
+  IF usemenu(state) THEN GOSUB lpreviewform
   IF enter_or_space() THEN
-   IF bcsr = 0 THEN
+   IF state.pt = 0 THEN
     SaveFormationSet formset, set_id
     EXIT DO
    END IF
   END IF
-  IF bcsr = 1 THEN
+  IF state.pt = 1 THEN
    DIM remember_id as integer = set_id
    IF intgrabber(set_id, 1, 255) THEN
     SaveFormationSet formset, remember_id
     LoadFormationSet formset, set_id
    END IF
   END IF
-  IF bcsr = 2 THEN intgrabber formset.frequency, 0, 200
-  IF bcsr >= 3 THEN
-   IF intgrabber(formset.formations(bcsr - 3), -1, gen(genMaxFormation)) THEN
+  IF state.pt = 2 THEN intgrabber formset.frequency, 0, 200
+  IF state.pt = 3 THEN tag_grabber formset.tag
+  IF state.pt >= 4 THEN
+   IF intgrabber(formset.formations(state.pt - 4), -1, gen(genMaxFormation)) THEN
     GOSUB lpreviewform
    END IF
   END IF
-  IF bcsr > 2 AND form_id >= 0 THEN
+  IF state.pt >= 4 AND form_id >= 0 THEN
    copypage 2, dpage
    drawformsprites form, egraphics(), -1
   ELSE
@@ -924,15 +928,16 @@ SUB formation_set_editor
   menu(0) = "Previous Menu"
   menu(1) = CHR(27) & "Formation Set " & set_id & CHR(26)
   menu(2) = "Battle Frequency: " & formset.frequency & " (" & step_estimate(formset.frequency, 60, 100, "-", " steps") & ")"
+  menu(3) = tag_condition_caption(formset.tag, "Only if tag", "No tag check")
   FOR i = 0 TO 19
    IF formset.formations(i) = -1 THEN
-    menu(3 + i) = "Empty"
+    menu(4 + i) = "Empty"
    ELSE
-    menu(3 + i) = "Formation " & formset.formations(i)
+    menu(4 + i) = "Formation " & formset.formations(i)
    END IF
   NEXT i
 
-  standardmenu menu(), 22, 22, bcsr, 0, 0, 0, dpage, YES  'edged=YES
+  standardmenu menu(), state, 0, 0, dpage, YES  'edged=YES
 
   SWAP vpage, dpage
   setvispage vpage
@@ -944,9 +949,9 @@ SUB formation_set_editor
  EXIT SUB
 
 lpreviewform:
- IF bcsr >= 3 THEN
+ IF state.pt >= 4 THEN
   '--have form selected
-  form_id = formset.formations(bcsr - 3)
+  form_id = formset.formations(state.pt - 4)
   IF form_id >= 0 THEN
    '--form not empty
    LoadFormation form, form_id

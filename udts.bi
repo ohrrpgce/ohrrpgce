@@ -782,6 +782,7 @@ END TYPE
 
 TYPE FormationSet
   frequency as integer
+  tag as integer                'required tag
   formations(19) as integer     '-1: unused
 END TYPE
 

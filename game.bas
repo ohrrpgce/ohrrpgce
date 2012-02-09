@@ -471,7 +471,6 @@ fadeout 0, 0, 0
 queue_fade_in
 
 setfont current_font()
-load_fset_frequencies
 loadglobalstrings
 getstatnames statnames()
 
@@ -1080,24 +1079,28 @@ SUB update_heroes(byval force_step_check as integer=NO)
     battle_formation_set = vstate.dat.random_battles
    END IF
    IF battle_formation_set > 0 THEN
-    gam.random_battle_countdown = gam.random_battle_countdown - gam.foe_freq(battle_formation_set - 1)
+    DIM formset as FormationSet
+    LoadFormationSet formset, battle_formation_set
+    IF istag(formset.tag, YES) THEN
+     gam.random_battle_countdown = gam.random_battle_countdown - formset.frequency
 
-    IF gam.random_battle_countdown <= 0 THEN
-     gam.random_battle_countdown = range(100, 60)
-     DIM battle_formation as integer = random_formation(battle_formation_set)
-     IF gmap(13) <= 0 THEN 'if no random battle script is defined
-      IF battle_formation >= 0 THEN 'and if the randomly selected battle is valid
-       'trigger a normal random battle
-       fatal = 0
-       gam.wonbattle = battle(battle_formation)
-       prepare_map YES
-       queue_fade_in 1
+     IF gam.random_battle_countdown <= 0 THEN
+      gam.random_battle_countdown = range(100, 60)
+      DIM battle_formation as integer = random_formation(battle_formation_set)
+      IF gmap(13) <= 0 THEN 'if no random battle script is defined
+       IF battle_formation >= 0 THEN 'and if the randomly selected battle is valid
+        'trigger a normal random battle
+        fatal = 0
+        gam.wonbattle = battle(battle_formation)
+        prepare_map YES
+        queue_fade_in 1
+       END IF
+      ELSE
+       'trigger the instead-of-battle script
+       trigger_script gmap(13), YES, "instead-of-battle", "triggered at " & (catx(0) \ 20) & "," & (caty(0) \ 20), scrqBackcompat()
+       trigger_script_arg 0, battle_formation, "formation"
+       trigger_script_arg 1, battle_formation_set, "formation set"
       END IF
-     ELSE
-      'trigger the instead-of-battle script
-      trigger_script gmap(13), YES, "instead-of-battle", "triggered at " & (catx(0) \ 20) & "," & (caty(0) \ 20), scrqBackcompat()
-      trigger_script_arg 0, battle_formation, "formation"
-      trigger_script_arg 1, battle_formation_set, "formation set"
      END IF
     END IF
    END IF

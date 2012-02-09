@@ -1311,7 +1311,7 @@ END FUNCTION
 SUB try_reload_lumps_anywhere ()
 
  'pal handled with special message
- STATIC ignorable_extns_(...) as string*3 => {"mn", "tmn", "d", "dor", "pal", "sng"}
+ STATIC ignorable_extns_(...) as string*3 => {"mn", "tmn", "d", "dor", "pal", "sng", "efs"}
  STATIC ignorable_extns as string vector
  IF ignorable_extns = NULL THEN
   v_new ignorable_extns
@@ -1388,11 +1388,7 @@ SUB try_to_reload_files_onmap ()
   DIM base as string = trimextension(modified_lumps[i])
   DIM extn as string = justextension(modified_lumps[i])
 
-  IF extn = "efs" THEN                                                    '.EFS
-   load_fset_frequencies
-   handled = YES
-
-  ELSEIF extn = "map" THEN                                                '.MAP
+  IF extn = "map" THEN                                                    '.MAP
    inspect_MAP_lump
    handled = YES
 
@@ -1437,14 +1433,6 @@ FUNCTION compatpage() as integer
  frame_unload @centreview
  RETURN fakepage
 END FUNCTION
-
-SUB load_fset_frequencies ()
- DIM formset as FormationSet
- FOR i as integer = 0 TO 254
-  LoadFormationSet formset, 1 + i
-  gam.foe_freq(i) = formset.frequency
- NEXT i
-END SUB
 
 FUNCTION lump_reload_mode_to_string (byval mode as integer) as string
  IF mode = loadmodeNever THEN RETURN "Never"

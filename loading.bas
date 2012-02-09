@@ -2681,9 +2681,10 @@ SUB LoadFormationSet (formset as FormationSet, byval index as integer)
  END IF
 
  formset.frequency = formsetdata(0)
- FOR i as integer = 0 TO UBOUND(formset.formations)
+ FOR i as integer = 0 TO 19
   formset.formations(i) = formsetdata(1 + i) - 1
  NEXT
+ formset.tag = formsetdata(21)
 END SUB
 
 SUB SaveFormationSet (formset as FormationSet, byval index as integer)
@@ -2695,9 +2696,10 @@ SUB SaveFormationSet (formset as FormationSet, byval index as integer)
  DIM formsetdata(24) as integer
 
  formsetdata(0) = formset.frequency
- FOR i as integer = 0 TO UBOUND(formset.formations)
+ FOR i as integer = 0 TO 19
   formsetdata(1 + i) = formset.formations(i) + 1
  NEXT
+ formsetdata(21) = formset.tag
 
  storerecord(formsetdata(), game & ".efs", 25, index - 1)
 END SUB
