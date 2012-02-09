@@ -879,14 +879,14 @@ END SUB
 SUB formation_set_editor
 
 DIM form as Formation
-DIM c(24), menu(22) as string
-DIM as integer bcsr, tog, pt, gptr, i
+DIM formset as FormationSet
+DIM set_id as integer = 1, form_id as integer
+DIM menu(22) as string
+DIM as integer bcsr, tog, i
 DIM as GraphicPair egraphics(7)
 DIM as string ename(7)
 
-menu(0) = "Previous Menu"
-pt = 0
-GOSUB loadfset
+LoadFormationSet formset, set_id
 GOSUB lpreviewform
 setkeys
 DO
@@ -894,42 +894,45 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(scESC) > 1 THEN
-  GOSUB savefset
+  SaveFormationSet formset, set_id
   EXIT DO
  END IF
  IF keyval(scF1) > 1 THEN show_help "formation_sets"
  IF usemenu(bcsr, 0, 0, 22, 24) THEN GOSUB lpreviewform
  IF enter_or_space() THEN
   IF bcsr = 0 THEN
-   GOSUB savefset
+   SaveFormationSet formset, set_id
    EXIT DO
   END IF
  END IF
  IF bcsr = 1 THEN
-  newgptr = gptr
-  IF intgrabber(newgptr, 0, 255) THEN
-   GOSUB savefset
-   gptr = newgptr
-   GOSUB loadfset
+  DIM remember_id as integer = set_id
+  IF intgrabber(set_id, 1, 255) THEN
+   SaveFormationSet formset, remember_id
+   LoadFormationSet formset, set_id
   END IF
  END IF
- IF bcsr = 2 THEN intgrabber c(0), 0, 200
- IF bcsr > 2 THEN
-  IF zintgrabber(c(bcsr - 2), -1, gen(genMaxFormation)) THEN
+ IF bcsr = 2 THEN intgrabber formset.frequency, 0, 200
+ IF bcsr >= 3 THEN
+  IF intgrabber(formset.formations(bcsr - 3), -1, gen(genMaxFormation)) THEN
    GOSUB lpreviewform
   END IF
  END IF
- IF bcsr > 2 AND pt >= 0 THEN
+ IF bcsr > 2 AND form_id >= 0 THEN
   copypage 2, dpage
   drawformsprites form, egraphics(), -1
  ELSE
   clearpage dpage
  END IF
- menu(1) = CHR(27) & "Formation Set " & (gptr + 1) & CHR(26)
- menu(2) = "Battle Frequency: " & c(0) & " (" & step_estimate(c(0), 60, 100, "-", " steps") & ")"
- FOR i = 3 TO 22
-  menu(i) = "Formation " & c(i - 2) - 1
-  IF c(i - 2) = 0 THEN menu(i) = "Empty"
+ menu(0) = "Previous Menu"
+ menu(1) = CHR(27) & "Formation Set " & set_id & CHR(26)
+ menu(2) = "Battle Frequency: " & formset.frequency & " (" & step_estimate(formset.frequency, 60, 100, "-", " steps") & ")"
+ FOR i = 0 TO 19
+  IF formset.formations(i) = -1 THEN
+   menu(3 + i) = "Empty"
+  ELSE
+   menu(3 + i) = "Formation " & formset.formations(i)
+  END IF
  NEXT i
 
  standardmenu menu(), 22, 22, bcsr, 0, 0, 0, dpage, YES  'edged=YES
@@ -944,26 +947,16 @@ NEXT
 EXIT SUB
 
 lpreviewform:
-IF bcsr > 2 THEN
+IF bcsr >= 3 THEN
  '--have form selected
- pt = c(bcsr - 2) - 1
- IF pt >= 0 THEN
+ form_id = formset.formations(bcsr - 3)
+ IF form_id >= 0 THEN
   '--form not empty
-  LoadFormation form, pt
+  LoadFormation form, form_id
   loadmxs game + ".mxs", form.background, vpages(2)
   formpics(ename(), form, egraphics())
  END IF
 END IF
-RETRACE
-
-savefset:
-setpicstuf c(), 50, -1
-storeset game + ".efs", gptr, 0
-RETRACE
-
-loadfset:
-setpicstuf c(), 50, -1
-loadset game + ".efs", gptr, 0
 RETRACE
 
 END SUB
