@@ -27,11 +27,20 @@ DEFINT A-Z
 DECLARE FUNCTION dissolve_type_caption(n AS INTEGER) AS STRING
 
 'Defined in this file:
+
+DECLARE SUB individual_formation_editor ()
+DECLARE SUB formation_set_editor ()
 DECLARE sub drawformsprites(form as Formation, egraphics() as GraphicPair, byval slot as integer)
 DECLARE sub formpics(ename() as string, form as Formation, egraphics() as GraphicPair)
+
 DECLARE SUB load_item_names (item_strings() AS STRING)
 DECLARE FUNCTION item_attack_name(n AS INTEGER) AS STRING
 DECLARE SUB generate_item_edit_menu (menu() AS STRING, itembuf() AS INTEGER, csr AS INTEGER, pt AS INTEGER, item_name AS STRING, info_string AS STRING, equip_types() AS STRING, BYREF box_preview AS STRING)
+
+DECLARE SUB item_editor_equipbits(itembuf())
+DECLARE SUB item_editor_elementals(itembuf() AS INTEGER)
+DECLARE SUB item_editor_init_new(itembuf() AS INTEGER)
+
 DECLARE SUB enforce_hero_data_limits(her AS HeroDef)
 DECLARE SUB update_hero_appearance_menu(BYREF st AS HeroEditState, menu() AS STRING, her AS HeroDef)
 DECLARE SUB update_hero_preview_pics(BYREF st AS HeroEditState, her AS HeroDef)
@@ -52,11 +61,6 @@ DECLARE SUB hero_editor_appearance (byref st as HeroEditState, byref her as Hero
 DECLARE SUB hero_editor_equipment_list (byval hero_id as integer, byref her as HeroDef)
 DECLARE SUB hero_editor_equipbits (byval hero_id as integer, byval equip_type as integer)
 DECLARE SUB hero_editor_elementals(BYREF her AS HeroDef)
-
-DECLARE SUB item_editor_equipbits(itembuf())
-DECLARE SUB item_editor_elementals(itembuf() AS INTEGER)
-DECLARE SUB item_editor_init_new(itembuf() AS INTEGER)
-
 
 
 REM $STATIC
@@ -842,16 +846,12 @@ END SUB
 
 SUB formation_editor
 
-DIM form as Formation
-DIM c(24), menu(22) as string, bmenu(22) as string
-dim as integer col, csr, bcsr, csr3, tog, pt, gptr, i, o, movpix, thiswidth
-DIM as GraphicPair egraphics(7)
-DIM as string ename(7)
-DIM state as MenuState
+DIM as integer csr, tog
+DIM menu(2) as string
+menu(0) = "Return to Main Menu"
+menu(1) = "Edit Individual Formations..."
+menu(2) = "Construct Formation Sets..."
 
-bmenu(0) = "Return to Main Menu"
-bmenu(1) = "Edit Individual Formations..."
-bmenu(2) = "Construct Formation Sets..."
 setkeys
 DO
  setwait 55
@@ -862,23 +862,28 @@ DO
  usemenu csr, 0, 0, 2, 24
  IF enter_or_space() THEN
   IF csr = 0 THEN EXIT DO
-  IF csr = 1 THEN GOSUB editform
-  IF csr = 2 THEN GOSUB formsets
+  IF csr = 1 THEN individual_formation_editor
+  IF csr = 2 THEN formation_set_editor
  END IF
 
  clearpage dpage
- standardmenu bmenu(), 2, 22, csr, 0, 0, 0, dpage
+ standardmenu menu(), 2, 22, csr, 0, 0, 0, dpage
 
  SWAP vpage, dpage
  setvispage vpage
  dowait
 LOOP
-FOR i = 0 TO 7
- unload_sprite_and_pal egraphics(i)
-NEXT
-EXIT SUB
 
-formsets:
+END SUB
+
+SUB formation_set_editor
+
+DIM form as Formation
+DIM c(24), menu(22) as string
+DIM as integer bcsr, tog, pt, gptr, i
+DIM as GraphicPair egraphics(7)
+DIM as string ename(7)
+
 menu(0) = "Previous Menu"
 pt = 0
 GOSUB loadfset
@@ -890,14 +895,14 @@ DO
  tog = tog XOR 1
  IF keyval(scESC) > 1 THEN
   GOSUB savefset
-  RETRACE
+  EXIT DO
  END IF
  IF keyval(scF1) > 1 THEN show_help "formation_sets"
  IF usemenu(bcsr, 0, 0, 22, 24) THEN GOSUB lpreviewform
  IF enter_or_space() THEN
   IF bcsr = 0 THEN
    GOSUB savefset
-   RETRACE
+   EXIT DO
   END IF
  END IF
  IF bcsr = 1 THEN
@@ -933,6 +938,10 @@ DO
  setvispage vpage
  dowait
 LOOP
+FOR i = 0 TO 7
+ unload_sprite_and_pal egraphics(i)
+NEXT
+EXIT SUB
 
 lpreviewform:
 IF bcsr > 2 THEN
@@ -957,18 +966,27 @@ setpicstuf c(), 50, -1
 loadset game + ".efs", gptr, 0
 RETRACE
 
-editform:
-pt = 0: csr3 = 0
-bgwait = 0
-bgctr = 0
-LoadFormation form, pt
+END SUB
+
+SUB individual_formation_editor ()
+
+DIM form_id as integer = 0
+DIM form as Formation
+DIM ename(7) as string
+DIM egraphics(7) as GraphicPair
+DIM as integer csr3, i, tog
+DIM as integer bgwait, bgctr
+
+LoadFormation form, form_id
 loadmxs game + ".mxs", form.background, vpages(2)
 formpics(ename(), form, egraphics())
 
+DIM menu(13) as string
+DIM state as MenuState
 state.pt = 0
 state.top = 0
 state.first = 0
-state.last = 13 'UBOUND(menu)
+state.last = UBOUND(menu)
 state.size = 20
 
 DIM slot as integer = state.pt - 6
@@ -982,8 +1000,8 @@ DO
   '--enemy positioning mode
   IF keyval(scESC) > 1 OR enter_or_space() THEN setkeys: csr3 = 0
   IF keyval(scF1) > 1 THEN show_help "formation_editor_placement"
+  DIM as integer thiswidth = 0, movpix
   movpix = 1 + (7 * SGN(keyval(scLeftShift) OR keyval(scRightShift)))
-  thiswidth = 0
   WITH form.slots(slot)
    IF egraphics(slot).sprite THEN thiswidth = egraphics(slot).sprite->w
    IF keyval(scUp) > 0 AND .pos.y > 0 THEN .pos.y = .pos.y - movpix
@@ -998,7 +1016,7 @@ DO
    EXIT DO
   END IF
   IF keyval(scF1) > 1 THEN show_help "formation_editor"
-  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN cropafter pt, gen(genMaxFormation), 0, game + ".for", 80
+  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN cropafter form_id, gen(genMaxFormation), 0, game + ".for", 80
   usemenu state
   slot = state.pt - 6
 
@@ -1043,14 +1061,16 @@ DO
    END IF
   END IF
   IF state.pt = 1 THEN '---SELECT A DIFFERENT FORMATION
-   DIM as integer remptr = pt
-   IF intgrabber_with_addset(pt, 0, gen(genMaxFormation), 32767, "formation") THEN
-    SaveFormation form, remptr
-    IF pt > gen(genMaxFormation) THEN
-     gen(genMaxFormation) = pt
-     GOSUB newformation
+   DIM as integer remember_id = form_id
+   IF intgrabber_with_addset(form_id, 0, gen(genMaxFormation), 32767, "formation") THEN
+    SaveFormation form, remember_id
+    IF form_id > gen(genMaxFormation) THEN
+     gen(genMaxFormation) = form_id
+     ClearFormation form
+     form.music = gen(genBatMus) - 1
+     SaveFormation form, form_id
     END IF
-    LoadFormation form, pt
+    LoadFormation form, form_id
     loadmxs game + ".mxs", form.background, vpages(2)
     formpics(ename(), form, egraphics())
     bgwait = 0
@@ -1094,7 +1114,7 @@ DO
  NEXT i
  IF csr3 = 0 THEN
   menu(0) = "Previous Menu"
-  menu(1) = CHR(27) + "Formation " & pt & CHR(26)
+  menu(1) = CHR(27) + "Formation " & form_id & CHR(26)
   menu(2) = "Backdrop: " & form.background
   IF form.background_frames <= 1 THEN
    menu(3) = "Backdrop Animation: none"
@@ -1120,19 +1140,16 @@ DO
  setvispage vpage
  dowait
 LOOP
-SaveFormation form, pt
-pausesong
-RETRACE
 
-newformation:
-ClearFormation form
-form.music = gen(genBatMus) - 1
-SaveFormation form, pt
-RETRACE
+SaveFormation form, form_id
+pausesong
+FOR i = 0 TO 7
+ unload_sprite_and_pal egraphics(i)
+NEXT
 
 END SUB
 
-sub formpics(ename() as string, form as Formation, egraphics() as GraphicPair)
+SUB formpics(ename() as string, form as Formation, egraphics() as GraphicPair)
  DIM enemy as EnemyDef
  FOR i as integer = 0 TO 7
   ename(i) = "-EMPTY-"
