@@ -845,301 +845,296 @@ RETRACE
 END SUB
 
 SUB formation_editor
+ DIM as integer csr, tog
+ DIM menu(2) as string
+ menu(0) = "Return to Main Menu"
+ menu(1) = "Edit Individual Formations..."
+ menu(2) = "Construct Formation Sets..."
 
-DIM as integer csr, tog
-DIM menu(2) as string
-menu(0) = "Return to Main Menu"
-menu(1) = "Edit Individual Formations..."
-menu(2) = "Construct Formation Sets..."
-
-setkeys
-DO
- setwait 55
  setkeys
- tog = tog XOR 1
- IF keyval(scESC) > 1 THEN EXIT DO
- IF keyval(scF1) > 1 THEN show_help "formation_main"
- usemenu csr, 0, 0, 2, 24
- IF enter_or_space() THEN
-  IF csr = 0 THEN EXIT DO
-  IF csr = 1 THEN individual_formation_editor
-  IF csr = 2 THEN formation_set_editor
- END IF
+ DO
+  setwait 55
+  setkeys
+  tog = tog XOR 1
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "formation_main"
+  usemenu csr, 0, 0, 2, 24
+  IF enter_or_space() THEN
+   IF csr = 0 THEN EXIT DO
+   IF csr = 1 THEN individual_formation_editor
+   IF csr = 2 THEN formation_set_editor
+  END IF
 
- clearpage dpage
- standardmenu menu(), 2, 22, csr, 0, 0, 0, dpage
+  clearpage dpage
+  standardmenu menu(), 2, 22, csr, 0, 0, 0, dpage
 
- SWAP vpage, dpage
- setvispage vpage
- dowait
-LOOP
-
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
 END SUB
 
 SUB formation_set_editor
+ DIM form as Formation
+ DIM formset as FormationSet
+ DIM set_id as integer = 1, form_id as integer
+ DIM menu(22) as string
+ DIM as integer bcsr, tog, i
+ DIM as GraphicPair egraphics(7)
+ DIM as string ename(7)
 
-DIM form as Formation
-DIM formset as FormationSet
-DIM set_id as integer = 1, form_id as integer
-DIM menu(22) as string
-DIM as integer bcsr, tog, i
-DIM as GraphicPair egraphics(7)
-DIM as string ename(7)
-
-LoadFormationSet formset, set_id
-GOSUB lpreviewform
-setkeys
-DO
- setwait 55
+ LoadFormationSet formset, set_id
+ GOSUB lpreviewform
  setkeys
- tog = tog XOR 1
- IF keyval(scESC) > 1 THEN
-  SaveFormationSet formset, set_id
-  EXIT DO
- END IF
- IF keyval(scF1) > 1 THEN show_help "formation_sets"
- IF usemenu(bcsr, 0, 0, 22, 24) THEN GOSUB lpreviewform
- IF enter_or_space() THEN
-  IF bcsr = 0 THEN
+ DO
+  setwait 55
+  setkeys
+  tog = tog XOR 1
+  IF keyval(scESC) > 1 THEN
    SaveFormationSet formset, set_id
    EXIT DO
   END IF
- END IF
- IF bcsr = 1 THEN
-  DIM remember_id as integer = set_id
-  IF intgrabber(set_id, 1, 255) THEN
-   SaveFormationSet formset, remember_id
-   LoadFormationSet formset, set_id
+  IF keyval(scF1) > 1 THEN show_help "formation_sets"
+  IF usemenu(bcsr, 0, 0, 22, 24) THEN GOSUB lpreviewform
+  IF enter_or_space() THEN
+   IF bcsr = 0 THEN
+    SaveFormationSet formset, set_id
+    EXIT DO
+   END IF
   END IF
- END IF
- IF bcsr = 2 THEN intgrabber formset.frequency, 0, 200
- IF bcsr >= 3 THEN
-  IF intgrabber(formset.formations(bcsr - 3), -1, gen(genMaxFormation)) THEN
-   GOSUB lpreviewform
+  IF bcsr = 1 THEN
+   DIM remember_id as integer = set_id
+   IF intgrabber(set_id, 1, 255) THEN
+    SaveFormationSet formset, remember_id
+    LoadFormationSet formset, set_id
+   END IF
   END IF
- END IF
- IF bcsr > 2 AND form_id >= 0 THEN
-  copypage 2, dpage
-  drawformsprites form, egraphics(), -1
- ELSE
-  clearpage dpage
- END IF
- menu(0) = "Previous Menu"
- menu(1) = CHR(27) & "Formation Set " & set_id & CHR(26)
- menu(2) = "Battle Frequency: " & formset.frequency & " (" & step_estimate(formset.frequency, 60, 100, "-", " steps") & ")"
- FOR i = 0 TO 19
-  IF formset.formations(i) = -1 THEN
-   menu(3 + i) = "Empty"
+  IF bcsr = 2 THEN intgrabber formset.frequency, 0, 200
+  IF bcsr >= 3 THEN
+   IF intgrabber(formset.formations(bcsr - 3), -1, gen(genMaxFormation)) THEN
+    GOSUB lpreviewform
+   END IF
+  END IF
+  IF bcsr > 2 AND form_id >= 0 THEN
+   copypage 2, dpage
+   drawformsprites form, egraphics(), -1
   ELSE
-   menu(3 + i) = "Formation " & formset.formations(i)
+   clearpage dpage
   END IF
- NEXT i
+  menu(0) = "Previous Menu"
+  menu(1) = CHR(27) & "Formation Set " & set_id & CHR(26)
+  menu(2) = "Battle Frequency: " & formset.frequency & " (" & step_estimate(formset.frequency, 60, 100, "-", " steps") & ")"
+  FOR i = 0 TO 19
+   IF formset.formations(i) = -1 THEN
+    menu(3 + i) = "Empty"
+   ELSE
+    menu(3 + i) = "Formation " & formset.formations(i)
+   END IF
+  NEXT i
 
- standardmenu menu(), 22, 22, bcsr, 0, 0, 0, dpage, YES  'edged=YES
+  standardmenu menu(), 22, 22, bcsr, 0, 0, 0, dpage, YES  'edged=YES
 
- SWAP vpage, dpage
- setvispage vpage
- dowait
-LOOP
-FOR i = 0 TO 7
- unload_sprite_and_pal egraphics(i)
-NEXT
-EXIT SUB
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+ FOR i = 0 TO 7
+  unload_sprite_and_pal egraphics(i)
+ NEXT
+ EXIT SUB
 
 lpreviewform:
-IF bcsr >= 3 THEN
- '--have form selected
- form_id = formset.formations(bcsr - 3)
- IF form_id >= 0 THEN
-  '--form not empty
-  LoadFormation form, form_id
-  loadmxs game + ".mxs", form.background, vpages(2)
-  formpics(ename(), form, egraphics())
+ IF bcsr >= 3 THEN
+  '--have form selected
+  form_id = formset.formations(bcsr - 3)
+  IF form_id >= 0 THEN
+   '--form not empty
+   LoadFormation form, form_id
+   loadmxs game + ".mxs", form.background, vpages(2)
+   formpics(ename(), form, egraphics())
+  END IF
  END IF
-END IF
-RETRACE
+ RETRACE
 
 END SUB
 
 SUB individual_formation_editor ()
+ DIM form_id as integer = 0
+ DIM form as Formation
+ DIM ename(7) as string
+ DIM egraphics(7) as GraphicPair
+ DIM as integer csr3, i, tog
+ DIM as integer bgwait, bgctr
 
-DIM form_id as integer = 0
-DIM form as Formation
-DIM ename(7) as string
-DIM egraphics(7) as GraphicPair
-DIM as integer csr3, i, tog
-DIM as integer bgwait, bgctr
+ LoadFormation form, form_id
+ loadmxs game + ".mxs", form.background, vpages(2)
+ formpics(ename(), form, egraphics())
 
-LoadFormation form, form_id
-loadmxs game + ".mxs", form.background, vpages(2)
-formpics(ename(), form, egraphics())
+ DIM menu(13) as string
+ DIM state as MenuState
+ state.pt = 0
+ state.top = 0
+ state.first = 0
+ state.last = UBOUND(menu)
+ state.size = 20
 
-DIM menu(13) as string
-DIM state as MenuState
-state.pt = 0
-state.top = 0
-state.first = 0
-state.last = UBOUND(menu)
-state.size = 20
+ DIM slot as integer = state.pt - 6
 
-DIM slot as integer = state.pt - 6
-
-setkeys
-DO
- setwait 55
  setkeys
- tog = tog XOR 1
- IF csr3 = 1 THEN
-  '--enemy positioning mode
-  IF keyval(scESC) > 1 OR enter_or_space() THEN setkeys: csr3 = 0
-  IF keyval(scF1) > 1 THEN show_help "formation_editor_placement"
-  DIM as integer thiswidth = 0, movpix
-  movpix = 1 + (7 * SGN(keyval(scLeftShift) OR keyval(scRightShift)))
-  WITH form.slots(slot)
-   IF egraphics(slot).sprite THEN thiswidth = egraphics(slot).sprite->w
-   IF keyval(scUp) > 0 AND .pos.y > 0 THEN .pos.y = .pos.y - movpix
-   IF keyval(scDown) > 0 AND .pos.y < 199 - thiswidth THEN .pos.y = .pos.y + movpix
-   IF keyval(scLeft) > 0 AND .pos.x > 0 THEN .pos.x = .pos.x - movpix
-   IF keyval(scRight) > 0 AND .pos.x < 250 - thiswidth THEN .pos.x = .pos.x + movpix
-  END WITH
- END IF
- IF csr3 = 0 THEN
-  '--menu mode
-  IF keyval(scESC) > 1 THEN
-   EXIT DO
-  END IF
-  IF keyval(scF1) > 1 THEN show_help "formation_editor"
-  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN cropafter form_id, gen(genMaxFormation), 0, game + ".for", 80
-  usemenu state
-  slot = state.pt - 6
-
-  IF enter_or_space() THEN
-   IF state.pt = 0 THEN
-    EXIT DO
-   END IF
-   IF state.pt = 1 THEN
-    IF form.music >= 0 THEN playsongnum form.music
-   END IF
-   IF state.pt >= 6 THEN 'an enemy
-    IF form.slots(slot).id >= 0 THEN csr3 = 1
-   END IF
-  END IF
-  IF state.pt = 2 THEN
-   IF intgrabber(form.background, 0, gen(genNumBackdrops) - 1) THEN
-    loadmxs game + ".mxs", form.background, vpages(2)
-    bgwait = 0
-    bgctr = 0
-   END IF
-  END IF
-  IF state.pt = 3 THEN
-   'IF intgrabber(form.background_frames, 1, 50) THEN
-   DIM temp as integer = form.background_frames - 1
-   IF xintgrabber(temp, 2, 50) THEN
-    IF form.background_frames = 1 THEN form.background_ticks = 8  'default to 8 ticks because 1 tick can be really painful
-    form.background_frames = temp + 1
-    IF bgctr >= form.background_frames THEN
-     bgctr = 0
-     loadmxs game + ".mxs", form.background, vpages(2)
-    END IF
-   END IF
-  END IF
-  IF state.pt = 4 THEN
-   IF intgrabber(form.background_ticks, 0, 1000) THEN
-    bgwait = 0
-   END IF
-  END IF
-  IF state.pt = 5 THEN
-   IF intgrabber(form.music, -2, gen(genMaxSong)) THEN
-    pausesong
-   END IF
-  END IF
-  IF state.pt = 1 THEN '---SELECT A DIFFERENT FORMATION
-   DIM as integer remember_id = form_id
-   IF intgrabber_with_addset(form_id, 0, gen(genMaxFormation), 32767, "formation") THEN
-    SaveFormation form, remember_id
-    IF form_id > gen(genMaxFormation) THEN
-     gen(genMaxFormation) = form_id
-     ClearFormation form
-     form.music = gen(genBatMus) - 1
-     SaveFormation form, form_id
-    END IF
-    LoadFormation form, form_id
-    loadmxs game + ".mxs", form.background, vpages(2)
-    formpics(ename(), form, egraphics())
-    bgwait = 0
-    bgctr = 0
-   END IF
-  END IF'--DONE SELECTING DIFFERENT FORMATION
-  IF state.pt >= 6 THEN
+ DO
+  setwait 55
+  setkeys
+  tog = tog XOR 1
+  IF csr3 = 1 THEN
+   '--enemy positioning mode
+   IF keyval(scESC) > 1 OR enter_or_space() THEN setkeys: csr3 = 0
+   IF keyval(scF1) > 1 THEN show_help "formation_editor_placement"
+   DIM as integer thiswidth = 0, movpix
+   movpix = 1 + (7 * SGN(keyval(scLeftShift) OR keyval(scRightShift)))
    WITH form.slots(slot)
-    oldenemy = .id
-    IF intgrabber(.id, -1, gen(genMaxEnemy)) THEN
-     'This would treat the x/y position as being the bottom middle of enemies, which makes much more
-     'sense, but that would change where enemies of different sizes are spawned in slots in existing games
-     'See the Plan for battle formation improvements
-     '.pos.x += w(slot) \ 2
-     '.pos.y += h(slot)
-     formpics(ename(), form, egraphics())
-     'default to middle of field
-     IF oldenemy = -1 AND .pos.x = 0 AND .pos.y = 0 THEN
-      .pos.x = 70
-      .pos.y = 95
-     END IF
-     '.pos.x -= w(slot) \ 2
-     '.pos.y -= h(slot)
-    END IF
+    IF egraphics(slot).sprite THEN thiswidth = egraphics(slot).sprite->w
+    IF keyval(scUp) > 0 AND .pos.y > 0 THEN .pos.y = .pos.y - movpix
+    IF keyval(scDown) > 0 AND .pos.y < 199 - thiswidth THEN .pos.y = .pos.y + movpix
+    IF keyval(scLeft) > 0 AND .pos.x > 0 THEN .pos.x = .pos.x - movpix
+    IF keyval(scRight) > 0 AND .pos.x < 250 - thiswidth THEN .pos.x = .pos.x + movpix
    END WITH
   END IF
- END IF
+  IF csr3 = 0 THEN
+   '--menu mode
+   IF keyval(scESC) > 1 THEN
+    EXIT DO
+   END IF
+   IF keyval(scF1) > 1 THEN show_help "formation_editor"
+   IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN cropafter form_id, gen(genMaxFormation), 0, game + ".for", 80
+   usemenu state
+   slot = state.pt - 6
 
- IF form.background_frames > 1 AND form.background_ticks > 0 THEN
-  bgwait = (bgwait + 1) MOD form.background_ticks
-  IF bgwait = 0 THEN
-   bgctr = loopvar(bgctr, 0, form.background_frames - 1, 1)
-   loadmxs game + ".mxs", (form.background + bgctr) MOD gen(genNumBackdrops), vpages(2)
+   IF enter_or_space() THEN
+    IF state.pt = 0 THEN
+     EXIT DO
+    END IF
+    IF state.pt = 1 THEN
+     IF form.music >= 0 THEN playsongnum form.music
+    END IF
+    IF state.pt >= 6 THEN 'an enemy
+     IF form.slots(slot).id >= 0 THEN csr3 = 1
+    END IF
+   END IF
+   IF state.pt = 2 THEN
+    IF intgrabber(form.background, 0, gen(genNumBackdrops) - 1) THEN
+     loadmxs game + ".mxs", form.background, vpages(2)
+     bgwait = 0
+     bgctr = 0
+    END IF
+   END IF
+   IF state.pt = 3 THEN
+    'IF intgrabber(form.background_frames, 1, 50) THEN
+    DIM temp as integer = form.background_frames - 1
+    IF xintgrabber(temp, 2, 50) THEN
+     IF form.background_frames = 1 THEN form.background_ticks = 8  'default to 8 ticks because 1 tick can be really painful
+     form.background_frames = temp + 1
+     IF bgctr >= form.background_frames THEN
+      bgctr = 0
+      loadmxs game + ".mxs", form.background, vpages(2)
+     END IF
+    END IF
+   END IF
+   IF state.pt = 4 THEN
+    IF intgrabber(form.background_ticks, 0, 1000) THEN
+     bgwait = 0
+    END IF
+   END IF
+   IF state.pt = 5 THEN
+    IF intgrabber(form.music, -2, gen(genMaxSong)) THEN
+     pausesong
+    END IF
+   END IF
+   IF state.pt = 1 THEN '---SELECT A DIFFERENT FORMATION
+    DIM as integer remember_id = form_id
+    IF intgrabber_with_addset(form_id, 0, gen(genMaxFormation), 32767, "formation") THEN
+     SaveFormation form, remember_id
+     IF form_id > gen(genMaxFormation) THEN
+      gen(genMaxFormation) = form_id
+      ClearFormation form
+      form.music = gen(genBatMus) - 1
+      SaveFormation form, form_id
+     END IF
+     LoadFormation form, form_id
+     loadmxs game + ".mxs", form.background, vpages(2)
+     formpics(ename(), form, egraphics())
+     bgwait = 0
+     bgctr = 0
+    END IF
+   END IF'--DONE SELECTING DIFFERENT FORMATION
+   IF state.pt >= 6 THEN
+    WITH form.slots(slot)
+     oldenemy = .id
+     IF intgrabber(.id, -1, gen(genMaxEnemy)) THEN
+      'This would treat the x/y position as being the bottom middle of enemies, which makes much more
+      'sense, but that would change where enemies of different sizes are spawned in slots in existing games
+      'See the Plan for battle formation improvements
+      '.pos.x += w(slot) \ 2
+      '.pos.y += h(slot)
+      formpics(ename(), form, egraphics())
+      'default to middle of field
+      IF oldenemy = -1 AND .pos.x = 0 AND .pos.y = 0 THEN
+       .pos.x = 70
+       .pos.y = 95
+      END IF
+      '.pos.x -= w(slot) \ 2
+      '.pos.y -= h(slot)
+     END IF
+    END WITH
+   END IF
   END IF
- END IF
- copypage 2, dpage
 
- drawformsprites form, egraphics(), slot
- FOR i = 0 TO 3
-  edgeboxstyle 240 + i * 8, 75 + i * 22, 32, 40, 0, dpage, NO, YES
- NEXT i
- IF csr3 = 0 THEN
-  menu(0) = "Previous Menu"
-  menu(1) = CHR(27) + "Formation " & form_id & CHR(26)
-  menu(2) = "Backdrop: " & form.background
-  IF form.background_frames <= 1 THEN
-   menu(3) = "Backdrop Animation: none"
-   menu(4) = " Ticks per Backdrop Frame: -NA-"
-  ELSE
-   menu(3) = "Backdrop Animation: " & form.background_frames & " frames"
-   menu(4) = " Ticks per Backdrop Frame: " & form.background_ticks
+  IF form.background_frames > 1 AND form.background_ticks > 0 THEN
+   bgwait = (bgwait + 1) MOD form.background_ticks
+   IF bgwait = 0 THEN
+    bgctr = loopvar(bgctr, 0, form.background_frames - 1, 1)
+    loadmxs game + ".mxs", (form.background + bgctr) MOD gen(genNumBackdrops), vpages(2)
+   END IF
   END IF
-  menu(5) = "Battle Music:"
-  IF form.music = -2 THEN
-    menu(5) &= " -same music as map-"
-  ELSEIF form.music = -1 THEN
-    menu(5) &= " -silence-"
-  ELSEIF form.music >= 0 THEN
-    menu(5) &= " " & form.music & " " & getsongname(form.music)
-  END IF
-  FOR i = 0 TO 7
-   menu(6 + i) = "Enemy:" + ename(i)
+  copypage 2, dpage
+
+  drawformsprites form, egraphics(), slot
+  FOR i = 0 TO 3
+   edgeboxstyle 240 + i * 8, 75 + i * 22, 32, 40, 0, dpage, NO, YES
   NEXT i
-  standardmenu menu(), state, 0, 0, dpage, YES
- END IF
- SWAP vpage, dpage
- setvispage vpage
- dowait
-LOOP
+  IF csr3 = 0 THEN
+   menu(0) = "Previous Menu"
+   menu(1) = CHR(27) + "Formation " & form_id & CHR(26)
+   menu(2) = "Backdrop: " & form.background
+   IF form.background_frames <= 1 THEN
+    menu(3) = "Backdrop Animation: none"
+    menu(4) = " Ticks per Backdrop Frame: -NA-"
+   ELSE
+    menu(3) = "Backdrop Animation: " & form.background_frames & " frames"
+    menu(4) = " Ticks per Backdrop Frame: " & form.background_ticks
+   END IF
+   menu(5) = "Battle Music:"
+   IF form.music = -2 THEN
+     menu(5) &= " -same music as map-"
+   ELSEIF form.music = -1 THEN
+     menu(5) &= " -silence-"
+   ELSEIF form.music >= 0 THEN
+     menu(5) &= " " & form.music & " " & getsongname(form.music)
+   END IF
+   FOR i = 0 TO 7
+    menu(6 + i) = "Enemy:" + ename(i)
+   NEXT i
+   standardmenu menu(), state, 0, 0, dpage, YES
+  END IF
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
 
-SaveFormation form, form_id
-pausesong
-FOR i = 0 TO 7
- unload_sprite_and_pal egraphics(i)
-NEXT
-
+ SaveFormation form, form_id
+ pausesong
+ FOR i = 0 TO 7
+  unload_sprite_and_pal egraphics(i)
+ NEXT
 END SUB
 
 SUB formpics(ename() as string, form as Formation, egraphics() as GraphicPair)
@@ -1155,7 +1150,7 @@ SUB formpics(ename() as string, form as Formation, egraphics() as GraphicPair)
    END WITH
   END IF
  NEXT i
-end sub
+END SUB
 
 SUB drawformsprites(form as Formation, egraphics() as GraphicPair, byval slot as integer)
  DIM z(7) as integer, basey(7) as integer
