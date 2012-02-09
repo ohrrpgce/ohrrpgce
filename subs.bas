@@ -27,7 +27,7 @@ DEFINT A-Z
 DECLARE FUNCTION dissolve_type_caption(n AS INTEGER) AS STRING
 
 'Defined in this file:
-DECLARE sub drawformsprites(form as Formation, egraphics() as GraphicPair, byval csr2 as integer)
+DECLARE sub drawformsprites(form as Formation, egraphics() as GraphicPair, byval slot as integer)
 DECLARE sub formpics(ename() as string, form as Formation, egraphics() as GraphicPair)
 DECLARE SUB load_item_names (item_strings() AS STRING)
 DECLARE FUNCTION item_attack_name(n AS INTEGER) AS STRING
@@ -843,14 +843,15 @@ END SUB
 SUB formation_editor
 
 DIM form as Formation
-DIM c(24), menu(10) AS STRING, bmenu(22) as string
-dim as integer col, csr, bcsr, csr2, csr3, tog, pt, gptr, i, o, movpix, thiswidth
+DIM c(24), menu(22) as string, bmenu(22) as string
+dim as integer col, csr, bcsr, csr3, tog, pt, gptr, i, o, movpix, thiswidth
 DIM as GraphicPair egraphics(7)
 DIM as string ename(7)
+DIM state as MenuState
 
-menu(0) = "Return to Main Menu"
-menu(1) = "Edit Individual Formations..."
-menu(2) = "Construct Formation Sets..."
+bmenu(0) = "Return to Main Menu"
+bmenu(1) = "Edit Individual Formations..."
+bmenu(2) = "Construct Formation Sets..."
 setkeys
 DO
  setwait 55
@@ -866,7 +867,7 @@ DO
  END IF
 
  clearpage dpage
- standardmenu menu(), 2, 22, csr, 0, 0, 0, dpage
+ standardmenu bmenu(), 2, 22, csr, 0, 0, 0, dpage
 
  SWAP vpage, dpage
  setvispage vpage
@@ -878,7 +879,7 @@ NEXT
 EXIT SUB
 
 formsets:
-bmenu(0) = "Previous Menu"
+menu(0) = "Previous Menu"
 pt = 0
 GOSUB loadfset
 GOSUB lpreviewform
@@ -919,14 +920,14 @@ DO
  ELSE
   clearpage dpage
  END IF
- bmenu(1) = CHR(27) & "Formation Set " & (gptr + 1) & CHR(26)
- bmenu(2) = "Battle Frequency: " & c(0) & " (" & step_estimate(c(0), 60, 100, "-", " steps") & ")"
+ menu(1) = CHR(27) & "Formation Set " & (gptr + 1) & CHR(26)
+ menu(2) = "Battle Frequency: " & c(0) & " (" & step_estimate(c(0), 60, 100, "-", " steps") & ")"
  FOR i = 3 TO 22
-  bmenu(i) = "Formation " & c(i - 2) - 1
-  IF c(i - 2) = 0 THEN bmenu(i) = "Empty"
+  menu(i) = "Formation " & c(i - 2) - 1
+  IF c(i - 2) = 0 THEN menu(i) = "Empty"
  NEXT i
 
- standardmenu bmenu(), 22, 22, bcsr, 0, 0, 0, dpage, YES  'edged=YES
+ standardmenu menu(), 22, 22, bcsr, 0, 0, 0, dpage, YES  'edged=YES
 
  SWAP vpage, dpage
  setvispage vpage
@@ -957,15 +958,22 @@ loadset game + ".efs", gptr, 0
 RETRACE
 
 editform:
-pt = 0: csr2 = -6: csr3 = 0
+pt = 0: csr3 = 0
 bgwait = 0
 bgctr = 0
 LoadFormation form, pt
 loadmxs game + ".mxs", form.background, vpages(2)
 formpics(ename(), form, egraphics())
 
-menu(3) = "Previous Menu"
+state.pt = 0
+state.top = 0
+state.first = 0
+state.last = 13 'UBOUND(menu)
+state.size = 20
 
+DIM slot as integer = state.pt - 6
+
+setkeys
 DO
  setwait 55
  setkeys
@@ -976,11 +984,13 @@ DO
   IF keyval(scF1) > 1 THEN show_help "formation_editor_placement"
   movpix = 1 + (7 * SGN(keyval(scLeftShift) OR keyval(scRightShift)))
   thiswidth = 0
-  IF egraphics(csr2).sprite THEN thiswidth = egraphics(csr2).sprite->w
-  IF keyval(scUp) > 0 AND form.slots(csr2).pos.y > 0 THEN form.slots(csr2).pos.y = form.slots(csr2).pos.y - movpix
-  IF keyval(scDown) > 0 AND form.slots(csr2).pos.y < 199 - thiswidth THEN form.slots(csr2).pos.y = form.slots(csr2).pos.y + movpix
-  IF keyval(scLeft) > 0 AND form.slots(csr2).pos.x > 0 THEN form.slots(csr2).pos.x = form.slots(csr2).pos.x - movpix
-  IF keyval(scRight) > 0 AND form.slots(csr2).pos.x < 250 - thiswidth THEN form.slots(csr2).pos.x = form.slots(csr2).pos.x + movpix
+  WITH form.slots(slot)
+   IF egraphics(slot).sprite THEN thiswidth = egraphics(slot).sprite->w
+   IF keyval(scUp) > 0 AND .pos.y > 0 THEN .pos.y = .pos.y - movpix
+   IF keyval(scDown) > 0 AND .pos.y < 199 - thiswidth THEN .pos.y = .pos.y + movpix
+   IF keyval(scLeft) > 0 AND .pos.x > 0 THEN .pos.x = .pos.x - movpix
+   IF keyval(scRight) > 0 AND .pos.x < 250 - thiswidth THEN .pos.x = .pos.x + movpix
+  END WITH
  END IF
  IF csr3 = 0 THEN
   '--menu mode
@@ -989,29 +999,32 @@ DO
   END IF
   IF keyval(scF1) > 1 THEN show_help "formation_editor"
   IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN cropafter pt, gen(genMaxFormation), 0, game + ".for", 80
-  usemenu csr2, -6, -6, 7, 25
+  usemenu state
+  slot = state.pt - 6
+
   IF enter_or_space() THEN
-   IF csr2 = -6 THEN
+   IF state.pt = 0 THEN
     EXIT DO
    END IF
-   IF csr2 = -1 THEN
+   IF state.pt = 1 THEN
     IF form.music >= 0 THEN playsongnum form.music
    END IF
-   IF csr2 >= 0 THEN 'an enemy
-    IF form.slots(csr2).id >= 0 THEN csr3 = 1
+   IF state.pt >= 6 THEN 'an enemy
+    IF form.slots(slot).id >= 0 THEN csr3 = 1
    END IF
   END IF
-  IF csr2 = -4 THEN
+  IF state.pt = 2 THEN
    IF intgrabber(form.background, 0, gen(genNumBackdrops) - 1) THEN
     loadmxs game + ".mxs", form.background, vpages(2)
     bgwait = 0
     bgctr = 0
    END IF
   END IF
-  IF csr2 = -3 THEN
+  IF state.pt = 3 THEN
    'IF intgrabber(form.background_frames, 1, 50) THEN
    DIM temp as integer = form.background_frames - 1
    IF xintgrabber(temp, 2, 50) THEN
+    IF form.background_frames = 1 THEN form.background_ticks = 8  'default to 8 ticks because 1 tick can be really painful
     form.background_frames = temp + 1
     IF bgctr >= form.background_frames THEN
      bgctr = 0
@@ -1019,18 +1032,18 @@ DO
     END IF
    END IF
   END IF
-  IF csr2 = -2 THEN
+  IF state.pt = 4 THEN
    IF intgrabber(form.background_ticks, 0, 1000) THEN
     bgwait = 0
    END IF
   END IF
-  IF csr2 = -1 THEN
+  IF state.pt = 5 THEN
    IF intgrabber(form.music, -2, gen(genMaxSong)) THEN
     pausesong
    END IF
   END IF
-  IF csr2 = -5 THEN '---SELECT A DIFFERENT FORMATION
-   dim as integer remptr = pt
+  IF state.pt = 1 THEN '---SELECT A DIFFERENT FORMATION
+   DIM as integer remptr = pt
    IF intgrabber_with_addset(pt, 0, gen(genMaxFormation), 32767, "formation") THEN
     SaveFormation form, remptr
     IF pt > gen(genMaxFormation) THEN
@@ -1044,23 +1057,25 @@ DO
     bgctr = 0
    END IF
   END IF'--DONE SELECTING DIFFERENT FORMATION
-  IF csr2 >= 0 THEN
-   oldenemy = form.slots(csr2).id
-   IF intgrabber(form.slots(csr2).id, -1, gen(genMaxEnemy)) THEN
-    'This would treat the x/y position as being the bottom middle of enemies, which makes much more
-    'sense, but that would change where enemies of different sizes are spawned in slots in existing games
-    'See the Plan for battle formation improvements
-    'form.slots(csr2).pos.x += w(csr2) \ 2
-    'form.slots(csr2).pos.y += h(csr2)
-    formpics(ename(), form, egraphics())
-    'default to middle of field
-    IF oldenemy = -1 AND form.slots(csr2).pos.x = 0 AND form.slots(csr2).pos.y = 0 THEN
-     form.slots(csr2).pos.x = 70
-     form.slots(csr2).pos.y = 95
+  IF state.pt >= 6 THEN
+   WITH form.slots(slot)
+    oldenemy = .id
+    IF intgrabber(.id, -1, gen(genMaxEnemy)) THEN
+     'This would treat the x/y position as being the bottom middle of enemies, which makes much more
+     'sense, but that would change where enemies of different sizes are spawned in slots in existing games
+     'See the Plan for battle formation improvements
+     '.pos.x += w(slot) \ 2
+     '.pos.y += h(slot)
+     formpics(ename(), form, egraphics())
+     'default to middle of field
+     IF oldenemy = -1 AND .pos.x = 0 AND .pos.y = 0 THEN
+      .pos.x = 70
+      .pos.y = 95
+     END IF
+     '.pos.x -= w(slot) \ 2
+     '.pos.y -= h(slot)
     END IF
-    'form.slots(csr2).pos.x -= w(csr2) \ 2
-    'form.slots(csr2).pos.y -= h(csr2)
-   END IF
+   END WITH
   END IF
  END IF
 
@@ -1073,37 +1088,33 @@ DO
  END IF
  copypage 2, dpage
 
- drawformsprites form, egraphics(), csr2
+ drawformsprites form, egraphics(), slot
  FOR i = 0 TO 3
   edgeboxstyle 240 + i * 8, 75 + i * 22, 32, 40, 0, dpage, NO, YES
  NEXT i
  IF csr3 = 0 THEN
-  menu(4) = CHR(27) + "Formation " & pt & CHR(26)
-  menu(5) = "Backdrop: " & form.background
+  menu(0) = "Previous Menu"
+  menu(1) = CHR(27) + "Formation " & pt & CHR(26)
+  menu(2) = "Backdrop: " & form.background
   IF form.background_frames <= 1 THEN
-   menu(6) = "Backdrop Animation: none"
-   menu(7) = " Ticks per Backdrop Frame: -NA-"
+   menu(3) = "Backdrop Animation: none"
+   menu(4) = " Ticks per Backdrop Frame: -NA-"
   ELSE
-   menu(6) = "Backdrop Animation: " & form.background_frames & " frames"
-   menu(7) = " Ticks per Backdrop Frame: " & form.background_ticks
+   menu(3) = "Backdrop Animation: " & form.background_frames & " frames"
+   menu(4) = " Ticks per Backdrop Frame: " & form.background_ticks
   END IF
-  menu(8) = "Battle Music:"
+  menu(5) = "Battle Music:"
   IF form.music = -2 THEN
-    menu(8) &= " -same music as map-"
+    menu(5) &= " -same music as map-"
   ELSEIF form.music = -1 THEN
-    menu(8) &= " -silence-"
+    menu(5) &= " -silence-"
   ELSEIF form.music >= 0 THEN
-    menu(8) &= " " & form.music & " " & getsongname(form.music)
+    menu(5) &= " " & form.music & " " & getsongname(form.music)
   END IF
-  FOR i = 0 TO 5
-   col = uilook(uiMenuItem): IF csr2 + 6 = i THEN col = uilook(uiSelectedItem + tog)
-   IF i = 4 AND form.background_frames <= 1 THEN col = uilook(uiDisabledItem): IF csr2 + 6 = i THEN col = uilook(uiSelectedDisabled + tog)
-   edgeprint menu(i + 3), 1, 1 + (i * 10), col, dpage
-  NEXT i
   FOR i = 0 TO 7
-   col = uilook(uiMenuItem): IF csr2 = i THEN col = uilook(uiSelectedItem + tog)
-   edgeprint "Enemy:" + ename(i), 1, 61 + (i * 10), col, dpage
+   menu(6 + i) = "Enemy:" + ename(i)
   NEXT i
+  standardmenu menu(), state, 0, 0, dpage, YES
  END IF
  SWAP vpage, dpage
  setvispage vpage
@@ -1136,7 +1147,7 @@ sub formpics(ename() as string, form as Formation, egraphics() as GraphicPair)
  NEXT i
 end sub
 
-SUB drawformsprites(form as Formation, egraphics() as GraphicPair, byval csr2 as integer)
+SUB drawformsprites(form as Formation, egraphics() as GraphicPair, byval slot as integer)
  DIM z(7) as integer, basey(7) as integer
  STATIC flash as integer
  flash = (flash + 1) MOD 256
@@ -1151,7 +1162,7 @@ SUB drawformsprites(form as Formation, egraphics() as GraphicPair, byval csr2 as
   IF fslot->id >= 0 THEN
    WITH egraphics(z(i))
     frame_draw .sprite, .pal, fslot->pos.x, fslot->pos.y, , , dpage
-    IF csr2 = z(i) THEN
+    IF slot = z(i) THEN
      textcolor flash, 0
      printstr CHR(25), fslot->pos.x + .sprite->w \ 2 - 4, fslot->pos.y, dpage
     END IF
