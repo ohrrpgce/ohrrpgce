@@ -2647,6 +2647,14 @@ SUB LoadFormation (form as Formation, filename as string, byval index as integer
 END SUB
 
 SUB SaveFormation (form as Formation, byval index as integer)
+ #IFDEF IS_GAME
+  SaveFormation form, tmpdir & "for.tmp", index
+ #ELSE
+  SaveFormation form, game & ".for", index
+ #ENDIF
+END SUB
+
+SUB SaveFormation (form as Formation, filename as string, byval index as integer)
  DIM formdata(39) as integer
 
  WITH form
@@ -2661,7 +2669,7 @@ SUB SaveFormation (form as Formation, byval index as integer)
   formdata(35) = .background_ticks
  END WITH
 
- storerecord(formdata(), game & ".for", 40, index)
+ storerecord(formdata(), filename, 40, index)
 END SUB
 
 'index is formation set number, starting from 1!

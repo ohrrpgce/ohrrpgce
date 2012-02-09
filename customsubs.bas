@@ -3828,7 +3828,6 @@ SUB experience_chart ()
  DIM enemy AS EnemyDef
 
  STATIC form_id AS INTEGER = 0
- DIM formdata(40) AS INTEGER
 
  DIM startfrom AS INTEGER = 3
  DIM menu(startfrom + gen(genMaxLevel)) AS STRING
@@ -3878,12 +3877,12 @@ SUB experience_chart ()
     test_exp = enemy.reward.exper
     test_name = enemy.name
    ELSEIF mode = 2 THEN
-    setpicstuf formdata(), 80, -1
-    loadset game & ".for", form_id, 0
+    DIM form as Formation
+    LoadFormation form, form_id
     test_exp = 0
-    FOR i AS INTEGER = 0 TO 8
-     IF formdata(i * 4) > 0 THEN
-      loadenemydata enemy, formdata(i * 4) - 1
+    FOR i AS INTEGER = 0 TO 7
+     IF form.slots(i).id >= 0 THEN
+      loadenemydata enemy, form.slots(i).id
       test_exp += enemy.reward.exper
      END IF
     NEXT i

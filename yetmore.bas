@@ -1305,18 +1305,18 @@ SELECT CASE as CONST id
  CASE 189, 307'--get formation song
   DIM fh as integer = FREEFILE
   IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxFormation) THEN
-   OPEN tmpdir & "for.tmp" FOR BINARY as #fh
-   scriptret = readshort(fh, retvals(0) * 80 + 67)
-   IF id = 307 THEN scriptret -= 1
-   CLOSE #fh
+   DIM form as Formation
+   LoadFormation form, retvals(0)
+   scriptret = form.music
+   IF id = 189 THEN scriptret += 1
   END IF
  CASE 190'--set formation song
   'set formation song never worked, so don't bother with backwards compatibility
-  DIM fh as integer = FREEFILE
   IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxFormation) AND retvals(1) >= -2 AND retvals(1) <= gen(genMaxSong) THEN
-   OPEN tmpdir & "for.tmp" FOR BINARY as #fh
-   WriteShort fh, retvals(0) * 80 + 67, retvals(1) + 1
-   CLOSE #fh
+   DIM form as Formation
+   LoadFormation form, retvals(0)
+   form.music = retvals(1)
+   SaveFormation form, retvals(0)
   ELSE
    scriptret = -1
   END IF
@@ -1704,13 +1704,14 @@ SELECT CASE as CONST id
  CASE 308'--add enemy to formation (formation, enemy id, x, y, slot = -1)
   scriptret = -1
   IF valid_formation(retvals(0)) AND retvals(1) >= 0 AND retvals(1) <= gen(genMaxEnemy) THEN
-   loadrecord buffer(), tmpdir & "for.tmp", 40, retvals(0)
+   DIM form as Formation
+   LoadFormation form, retvals(0)
    DIM slot as integer = -1
    FOR i as integer = 0 TO 7
-    IF buffer(i * 4) = 0 THEN slot = i: EXIT FOR
+    IF form.slots(i).id = -1 THEN slot = i: EXIT FOR
    NEXT
    IF retvals(4) >= 0 AND retvals(4) <= 7 THEN
-    IF buffer(retvals(4) * 4) = 0 THEN slot = retvals(4)
+    IF form.slots(retvals(4)).id = -1 THEN slot = retvals(4)
    END IF
    IF slot >= 0 THEN
     DIM szindex as integer = ReadShort(tmpdir & "dt1.tmp", retvals(1) * getbinsize(binDT1) + 111) 'picture size
@@ -1718,20 +1719,23 @@ SELECT CASE as CONST id
     IF szindex = 0 THEN size = 34
     IF szindex = 1 THEN size = 50
     IF szindex = 2 THEN size = 80
-    buffer(slot * 4) = retvals(1) + 1
-    buffer(slot * 4 + 1) = large( (small(retvals(2), 230) - size \ 2) , 0)  'approximately the 0 - 250 limit of the formation editor
-    buffer(slot * 4 + 2) = large( (small(retvals(3), 199) - size) , 0)
+    WITH form.slots(slot)
+     .id = retvals(1)
+     .pos.x = large( (small(retvals(2), 230) - size \ 2) , 0)  'approximately the 0 - 250 limit of the formation editor
+     .pos.y = large( (small(retvals(3), 199) - size) , 0)
+    END WITH
    END IF
-   storerecord buffer(), tmpdir & "for.tmp", 40, retvals(0)
+   SaveFormation form, retvals(0)
    scriptret = slot
   END IF
  CASE 309'--find enemy in formation (formation, enemy id, number)
   IF valid_formation(retvals(0)) THEN
-   loadrecord buffer(), tmpdir & "for.tmp", 40, retvals(0)
+   DIM form as Formation
+   LoadFormation form, retvals(0)
    DIM slot as integer = 0
    scriptret = -1
    FOR i as integer = 0 TO 7
-    IF buffer(i * 4) > 0 AND (retvals(1) = buffer(i * 4) - 1 OR retvals(1) = -1) THEN
+    IF form.slots(i).id >= 0 AND (retvals(1) = form.slots(i).id OR retvals(1) = -1) THEN
      IF retvals(2) = slot THEN scriptret = i: EXIT FOR
      slot += 1
     END IF
@@ -1740,17 +1744,24 @@ SELECT CASE as CONST id
   END IF
  CASE 310'--delete enemy from formation (formation, slot)
   IF valid_formation_slot(retvals(0), retvals(1)) THEN
-   WriteShort tmpdir & "for.tmp", retvals(0) * 80 + retvals(1) * 8 + 1, 0
+   DIM form as Formation
+   LoadFormation form, retvals(0)
+   form.slots(retvals(1)).id = -1
+   SaveFormation form, retvals(0)
   END IF
  CASE 311'--formation slot enemy (formation, slot)
   scriptret = -1
   IF valid_formation_slot(retvals(0), retvals(1)) THEN
-   scriptret = ReadShort(tmpdir & "for.tmp", retvals(0) * 80 + retvals(1) * 8 + 1) - 1
+   DIM form as Formation
+   LoadFormation form, retvals(0)
+   scriptret = form.slots(retvals(1)).id
   END IF
  CASE 312, 313'--formation slot x (formation, slot), formation slot y (formation, slot)
   IF valid_formation_slot(retvals(0), retvals(1)) THEN
-   DIM enemy_id as integer = ReadShort(tmpdir & "for.tmp", retvals(0) * 80 + retvals(1) * 8 + 1) - 1 'will be -1 for empty slot
-   scriptret = ReadShort(tmpdir & "for.tmp", retvals(0) * 80 + retvals(1) * 8 + (id - 311) * 2 + 1) 'x or y
+   DIM form as Formation
+   LoadFormation form, retvals(0)
+   DIM enemy_id as integer = form.slots(retvals(1)).id
+   scriptret = form.slots(retvals(1)).pos.n(id - 312)
    'now find the position of the bottom center of the enemy sprite
    IF enemy_id >= 0 THEN
     DIM pictype as integer = ReadShort(tmpdir & "dt1.tmp", enemy_id * getbinsize(binDT1) + 111) 'picture size
@@ -1763,15 +1774,18 @@ SELECT CASE as CONST id
   END IF
  CASE 314'--set formation background (formation, background, animation frames, animation ticks)
   IF valid_formation(retvals(0)) AND retvals(1) >= 0 AND retvals(1) <= gen(genNumBackdrops) - 1 THEN 
-   loadrecord buffer(), tmpdir & "for.tmp", 40, retvals(0)
-   buffer(32) = retvals(1)
-   buffer(34) = bound(retvals(2) - 1, 0, 49)
-   buffer(35) = bound(retvals(3), 0, 1000)
-   storerecord buffer(), tmpdir & "for.tmp", 40, retvals(0)
+   DIM form as Formation
+   LoadFormation form, retvals(0)
+   form.background = retvals(1)
+   form.background_frames = bound(retvals(2), 1, 50)
+   form.background_ticks = bound(retvals(3), 0, 1000)
+   SaveFormation form, retvals(0)
   END IF
  CASE 315'--get formation background (formation)
   IF valid_formation(retvals(0)) THEN
-   scriptret = ReadShort(tmpdir & "for.tmp", retvals(0) * 80 + retvals(1) * 8 + 32 + 1)
+   DIM form as Formation
+   LoadFormation form, retvals(0)
+   scriptret = form.background
   END IF
  CASE 316'--last formation
   scriptret = lastformation
