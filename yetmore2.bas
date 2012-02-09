@@ -1439,10 +1439,10 @@ FUNCTION compatpage() as integer
 END FUNCTION
 
 SUB load_fset_frequencies ()
- REDIM buf(24) as integer
+ DIM formset as FormationSet
  FOR i as integer = 0 TO 254
-  loadrecord buf(), game + ".efs", 25, i
-  gam.foe_freq(i) = buf(0)
+  LoadFormationSet formset, 1 + i
+  gam.foe_freq(i) = formset.frequency
  NEXT i
 END SUB
 

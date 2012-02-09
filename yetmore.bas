@@ -1777,20 +1777,23 @@ SELECT CASE as CONST id
   scriptret = lastformation
  CASE 317'--random formation (formation set)
   IF retvals(0) >= 1 AND retvals(0) <= 255 THEN
-   scriptret = random_formation(retvals(0) - 1)
+   scriptret = random_formation(retvals(0))
   END IF
  CASE 318'--formation set frequency (formation set)
   IF retvals(0) >= 1 AND retvals(0) <= 255 THEN
-   scriptret = ReadShort(game + ".efs", (retvals(0) - 1) * 50 + 1)
+   DIM formset as FormationSet
+   LoadFormationSet formset, retvals(0)
+   scriptret = formset.frequency
   END IF
  CASE 319'--formation probability (formation set, formation)
   IF retvals(0) >= 1 AND retvals(0) <= 255 THEN
-   loadrecord buffer(), game + ".efs", 25, retvals(0) - 1
+   DIM formset as FormationSet
+   LoadFormationSet formset, retvals(0)
    DIM slot as integer = 0
    scriptret = 0
-   FOR i as integer = 1 TO 20
-    IF buffer(i) = retvals(1) + 1 THEN scriptret += 1
-    IF buffer(i) > 0 THEN slot += 1
+   FOR i as integer = 0 TO UBOUND(formset.formations)
+    IF formset.formations(i) = retvals(1) THEN scriptret += 1
+    IF formset.formations(i) >= 0 THEN slot += 1
    NEXT
    'probability in percentage points
    IF slot > 0 THEN scriptret = (scriptret * 100) / slot

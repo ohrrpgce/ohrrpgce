@@ -1084,7 +1084,7 @@ SUB update_heroes(byval force_step_check as integer=NO)
 
     IF gam.random_battle_countdown <= 0 THEN
      gam.random_battle_countdown = range(100, 60)
-     DIM battle_formation as integer = random_formation(battle_formation_set - 1)
+     DIM battle_formation as integer = random_formation(battle_formation_set)
      IF gmap(13) <= 0 THEN 'if no random battle script is defined
       IF battle_formation >= 0 THEN 'and if the randomly selected battle is valid
        'trigger a normal random battle
@@ -2851,12 +2851,12 @@ FUNCTION allowed_to_open_main_menu () as integer
 END FUNCTION
 
 FUNCTION random_formation (byval set as integer) as integer
- REDIM formset(24) as integer
+ DIM formset as FormationSet
  DIM as integer i, num
  STATIC foenext as integer = 0
- loadrecord formset(), game + ".efs", 25, set
- FOR i = 1 TO 20
-  IF formset(i) THEN num += 1
+ LoadFormationSet formset, set
+ FOR i = 0 TO UBOUND(formset.formations)
+  IF formset.formations(i) >= 0 THEN num += 1
  NEXT
  IF num = 0 THEN RETURN -1
 
@@ -2865,10 +2865,10 @@ FUNCTION random_formation (byval set as integer) as integer
  'FIXME: When this was written, I confused the meaning of range; should improve this
  FOR i = 0 TO INT(RND * range(19, 27))
   DO
-   foenext = loopvar(foenext, 0, 19, 1)
-  LOOP WHILE formset(1 + foenext) = 0
+   foenext = loopvar(foenext, 0, UBOUND(formset.formations), 1)
+  LOOP WHILE formset.formations(foenext) = -1
  NEXT
- RETURN formset(1 + foenext) - 1
+ RETURN formset.formations(foenext)
 END FUNCTION
 
 SUB prepare_map (byval afterbat as integer=NO, byval afterload as integer=NO)

@@ -2641,13 +2641,8 @@ SUB LoadFormation (form as Formation, filename as string, byval index as integer
   NEXT
   .background = formdata(32)
   .music = formdata(33) - 1
-  IF gen(genVersion) < 6 THEN
-   .background_frames = 1
-   .background_ticks = 0
-  ELSE
-   .background_frames = bound(formdata(34) + 1, 1, gen(genNumBackdrops))
-   .background_ticks = formdata(35)
-  END IF
+  .background_frames = bound(formdata(34) + 1, 1, gen(genNumBackdrops))
+  .background_ticks = formdata(35)
  END WITH
 END SUB
 
@@ -2667,6 +2662,36 @@ SUB SaveFormation (form as Formation, byval index as integer)
  END WITH
 
  storerecord(formdata(), game & ".for", 40, index)
+END SUB
+
+'index is formation set number, starting from 1!
+SUB LoadFormationSet (formset as FormationSet, byval index as integer)
+ DIM formsetdata(24) as integer
+
+ IF index < 1 ORELSE loadrecord(formsetdata(), game & ".efs", 25, index - 1) = 0 THEN
+  debug "LoadFormationSet: invalid formation set " & index
+ END IF
+
+ formset.frequency = formsetdata(0)
+ FOR i as integer = 0 TO UBOUND(formset.formations)
+  formset.formations(i) = formsetdata(1 + i) - 1
+ NEXT
+END SUB
+
+SUB SaveFormationSet (formset as FormationSet, byval index as integer)
+ IF index < 1 THEN
+  debug "SaveFormationSet: invalid formation set " & index
+  EXIT SUB
+ END IF
+
+ DIM formsetdata(24) as integer
+
+ formsetdata(0) = formset.frequency
+ FOR i as integer = 0 TO UBOUND(formset.formations)
+  formsetdata(1 + i) = formset.formations(i) + 1
+ NEXT
+
+ storerecord(formsetdata(), game & ".efs", 25, index - 1)
 END SUB
 
 

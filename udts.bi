@@ -780,6 +780,11 @@ TYPE Formation
   background_ticks as integer
 END TYPE
 
+TYPE FormationSet
+  frequency as integer
+  formations(19) as integer     '-1: unused
+END TYPE
+
 TYPE TextBox
   text(7) AS STRING
   instead_tag AS INTEGER
