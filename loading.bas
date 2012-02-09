@@ -2645,7 +2645,7 @@ SUB LoadFormation (form as Formation, filename as string, byval index as integer
    .background_frames = 1
    .background_ticks = 0
   ELSE
-   .background_frames = formdata(34) + 1
+   .background_frames = bound(formdata(34) + 1, 1, gen(genNumBackdrops))
    .background_ticks = formdata(35)
   END IF
  END WITH

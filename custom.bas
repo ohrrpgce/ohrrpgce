@@ -39,7 +39,7 @@ DECLARE SUB importsong ()
 DECLARE SUB importsfx ()
 DECLARE SUB gendata ()
 DECLARE SUB itemdata ()
-DECLARE SUB formation ()
+DECLARE SUB formation_editor ()
 DECLARE SUB enemydata ()
 DECLARE SUB hero_editor ()
 DECLARE SUB text_box_editor ()
@@ -361,7 +361,7 @@ SUB main_editor_menu()
    IF state.pt = 5 THEN attackdata
    IF state.pt = 6 THEN itemdata
    IF state.pt = 7 THEN shopdata
-   IF state.pt = 8 THEN formation
+   IF state.pt = 8 THEN formation_editor
    IF state.pt = 9 THEN text_box_editor
    IF state.pt = 10 THEN menu_editor
    IF state.pt = 11 THEN vehicles

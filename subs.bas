@@ -27,10 +27,8 @@ DEFINT A-Z
 DECLARE FUNCTION dissolve_type_caption(n AS INTEGER) AS STRING
 
 'Defined in this file:
-DECLARE sub drawformsprites(a() as integer, egraphics() as GraphicPair, byval csr2 as integer)
-DECLARE sub loadform(a() as integer, pt as integer)
-DECLARE sub saveform(a() as integer, pt as integer)
-DECLARE sub formpics(ename() as string, a() as integer, egraphics() as GraphicPair)
+DECLARE sub drawformsprites(form as Formation, egraphics() as GraphicPair, byval csr2 as integer)
+DECLARE sub formpics(ename() as string, form as Formation, egraphics() as GraphicPair)
 DECLARE SUB load_item_names (item_strings() AS STRING)
 DECLARE FUNCTION item_attack_name(n AS INTEGER) AS STRING
 DECLARE SUB generate_item_edit_menu (menu() AS STRING, itembuf() AS INTEGER, csr AS INTEGER, pt AS INTEGER, item_name AS STRING, info_string AS STRING, equip_types() AS STRING, BYREF box_preview AS STRING)
@@ -842,9 +840,10 @@ RETRACE
 '-----------------------------------------------------------------------
 END SUB
 
-SUB formation
+SUB formation_editor
 
-DIM a(40), c(24), menu(10) AS STRING, max(10), min(10), bmenu(22) as string
+DIM form as Formation
+DIM c(24), menu(10) AS STRING, bmenu(22) as string
 dim as integer col, csr, bcsr, csr2, csr3, tog, pt, gptr, i, o, movpix, thiswidth
 DIM as GraphicPair egraphics(7)
 DIM as string ename(7)
@@ -916,7 +915,7 @@ DO
  END IF
  IF bcsr > 2 AND pt >= 0 THEN
   copypage 2, dpage
-  drawformsprites a(), egraphics(), -1
+  drawformsprites form, egraphics(), -1
  ELSE
   clearpage dpage
  END IF
@@ -940,8 +939,9 @@ IF bcsr > 2 THEN
  pt = c(bcsr - 2) - 1
  IF pt >= 0 THEN
   '--form not empty
-  loadform(a(),pt)
-  formpics(ename(), a(), egraphics())
+  LoadFormation form, pt
+  loadmxs game + ".mxs", form.background, vpages(2)
+  formpics(ename(), form, egraphics())
  END IF
 END IF
 RETRACE
@@ -957,17 +957,12 @@ loadset game + ".efs", gptr, 0
 RETRACE
 
 editform:
-'--???  well, you see..
-max(1) = gen(genNumBackdrops) - 1   'genNumBackdrops is number of backdrops, but is necessary
-max(2) = 50
-max(3) = 1000
-max(4) = gen(genMaxSong) + 1   'genMaxSongs is number of last song, but is optional
 pt = 0: csr2 = -6: csr3 = 0
 bgwait = 0
 bgctr = 0
-loadform(a(),pt)
-formpics(ename(), a(), egraphics())
-setkeys
+LoadFormation form, pt
+loadmxs game + ".mxs", form.background, vpages(2)
+formpics(ename(), form, egraphics())
 
 menu(3) = "Previous Menu"
 
@@ -982,10 +977,10 @@ DO
   movpix = 1 + (7 * SGN(keyval(scLeftShift) OR keyval(scRightShift)))
   thiswidth = 0
   IF egraphics(csr2).sprite THEN thiswidth = egraphics(csr2).sprite->w
-  IF keyval(scUp) > 0 AND a(csr2 * 4 + 2) > 0 THEN a(csr2 * 4 + 2) = a(csr2 * 4 + 2) - movpix
-  IF keyval(scDown) > 0 AND a(csr2 * 4 + 2) < 199 - thiswidth THEN a(csr2 * 4 + 2) = a(csr2 * 4 + 2) + movpix
-  IF keyval(scLeft) > 0 AND a(csr2 * 4 + 1) > 0 THEN a(csr2 * 4 + 1) = a(csr2 * 4 + 1) - movpix
-  IF keyval(scRight) > 0 AND a(csr2 * 4 + 1) < 250 - thiswidth THEN a(csr2 * 4 + 1) = a(csr2 * 4 + 1) + movpix
+  IF keyval(scUp) > 0 AND form.slots(csr2).pos.y > 0 THEN form.slots(csr2).pos.y = form.slots(csr2).pos.y - movpix
+  IF keyval(scDown) > 0 AND form.slots(csr2).pos.y < 199 - thiswidth THEN form.slots(csr2).pos.y = form.slots(csr2).pos.y + movpix
+  IF keyval(scLeft) > 0 AND form.slots(csr2).pos.x > 0 THEN form.slots(csr2).pos.x = form.slots(csr2).pos.x - movpix
+  IF keyval(scRight) > 0 AND form.slots(csr2).pos.x < 250 - thiswidth THEN form.slots(csr2).pos.x = form.slots(csr2).pos.x + movpix
  END IF
  IF csr3 = 0 THEN
   '--menu mode
@@ -999,102 +994,110 @@ DO
    IF csr2 = -6 THEN
     EXIT DO
    END IF
-   IF csr2 = -1 THEN 'formation music
-    IF a(33) > 0 THEN playsongnum a(33) - 1
+   IF csr2 = -1 THEN
+    IF form.music >= 0 THEN playsongnum form.music
    END IF
    IF csr2 >= 0 THEN 'an enemy
-    IF a(csr2 * 4 + 0) > 0 THEN csr3 = 1
+    IF form.slots(csr2).id >= 0 THEN csr3 = 1
    END IF
   END IF
-  IF csr2 = -4 THEN 'background
-   IF intgrabber(a(32), 0, max(csr2 + 5)) THEN
-    loadmxs game + ".mxs", a(32), vpages(2)
+  IF csr2 = -4 THEN
+   IF intgrabber(form.background, 0, gen(genNumBackdrops) - 1) THEN
+    loadmxs game + ".mxs", form.background, vpages(2)
     bgwait = 0
     bgctr = 0
    END IF
   END IF
-  IF csr2 = -3 THEN 'backdrop frames
-   IF xintgrabber(a(34), 2, max(csr2 + 5)) THEN
-    IF bgctr > a(34) THEN
+  IF csr2 = -3 THEN
+   'IF intgrabber(form.background_frames, 1, 50) THEN
+   DIM temp as integer = form.background_frames - 1
+   IF xintgrabber(temp, 2, 50) THEN
+    form.background_frames = temp + 1
+    IF bgctr >= form.background_frames THEN
      bgctr = 0
-     loadmxs game + ".mxs", a(32), vpages(2)
+     loadmxs game + ".mxs", form.background, vpages(2)
     END IF
    END IF
   END IF
-  IF csr2 = -2 THEN 'background ticks
-   IF intgrabber(a(35), 0, max(csr2 + 5)) THEN
+  IF csr2 = -2 THEN
+   IF intgrabber(form.background_ticks, 0, 1000) THEN
     bgwait = 0
    END IF
   END IF
-  IF csr2 = -1 THEN 'formation music
-   IF zintgrabber(a(33), -2, max(csr2 + 5)) THEN
+  IF csr2 = -1 THEN
+   IF intgrabber(form.music, -2, gen(genMaxSong)) THEN
     pausesong
    END IF
   END IF
   IF csr2 = -5 THEN '---SELECT A DIFFERENT FORMATION
    dim as integer remptr = pt
    IF intgrabber_with_addset(pt, 0, gen(genMaxFormation), 32767, "formation") THEN
-    saveform(a(), remptr)
+    SaveFormation form, remptr
     IF pt > gen(genMaxFormation) THEN
      gen(genMaxFormation) = pt
      GOSUB newformation
     END IF
-    loadform(a(), pt)
-    formpics(ename(), a(), egraphics())
+    LoadFormation form, pt
+    loadmxs game + ".mxs", form.background, vpages(2)
+    formpics(ename(), form, egraphics())
     bgwait = 0
     bgctr = 0
    END IF
   END IF'--DONE SELECTING DIFFERENT FORMATION
   IF csr2 >= 0 THEN
-   oldenemy = a(csr2 * 4)
-   IF zintgrabber(a(csr2 * 4 + 0), -1, gen(genMaxEnemy)) THEN
+   oldenemy = form.slots(csr2).id
+   IF intgrabber(form.slots(csr2).id, -1, gen(genMaxEnemy)) THEN
     'This would treat the x/y position as being the bottom middle of enemies, which makes much more
     'sense, but that would change where enemies of different sizes are spawned in slots in existing games
     'See the Plan for battle formation improvements
-    'a(csr2 * 4 + 1) += w(csr2) \ 2
-    'a(csr2 * 4 + 2) += h(csr2)
-    formpics(ename(), a(), egraphics())
+    'form.slots(csr2).pos.x += w(csr2) \ 2
+    'form.slots(csr2).pos.y += h(csr2)
+    formpics(ename(), form, egraphics())
     'default to middle of field
-    IF oldenemy = 0 AND a(csr2 * 4 + 1) = 0 AND a(csr2 * 4 + 2) = 0 THEN
-     a(csr2 * 4 + 1) = 70
-     a(csr2 * 4 + 2) = 95
+    IF oldenemy = -1 AND form.slots(csr2).pos.x = 0 AND form.slots(csr2).pos.y = 0 THEN
+     form.slots(csr2).pos.x = 70
+     form.slots(csr2).pos.y = 95
     END IF
-    'a(csr2 * 4 + 1) -= w(csr2) \ 2
-    'a(csr2 * 4 + 2) -= h(csr2)
+    'form.slots(csr2).pos.x -= w(csr2) \ 2
+    'form.slots(csr2).pos.y -= h(csr2)
    END IF
   END IF
  END IF
 
- IF a(34) > 0 AND a(35) > 0 THEN
-  bgwait = (bgwait + 1) MOD a(35)
+ IF form.background_frames > 1 AND form.background_ticks > 0 THEN
+  bgwait = (bgwait + 1) MOD form.background_ticks
   IF bgwait = 0 THEN
-   bgctr = loopvar(bgctr, 0, a(34), 1)
-   loadmxs game + ".mxs", (bgctr + a(32)) MOD gen(genNumBackdrops), vpages(2)
+   bgctr = loopvar(bgctr, 0, form.background_frames - 1, 1)
+   loadmxs game + ".mxs", (form.background + bgctr) MOD gen(genNumBackdrops), vpages(2)
   END IF
  END IF
  copypage 2, dpage
 
- drawformsprites a(), egraphics(), csr2
+ drawformsprites form, egraphics(), csr2
  FOR i = 0 TO 3
   edgeboxstyle 240 + i * 8, 75 + i * 22, 32, 40, 0, dpage, NO, YES
  NEXT i
  IF csr3 = 0 THEN
   menu(4) = CHR(27) + "Formation " & pt & CHR(26)
-  menu(5) = "Backdrop: " & a(32)
-  IF a(34) = 0 THEN menu(6) = "Backdrop Animation: none" ELSE menu(6) = "Backdrop Animation: " & (a(34) + 1) & " frames"
-  menu(7) = " Ticks per Backdrop Frame: " & a(35)
-  IF a(34) = 0 THEN menu(7) = " Ticks per Backdrop Frame: -NA-"
+  menu(5) = "Backdrop: " & form.background
+  IF form.background_frames <= 1 THEN
+   menu(6) = "Backdrop Animation: none"
+   menu(7) = " Ticks per Backdrop Frame: -NA-"
+  ELSE
+   menu(6) = "Backdrop Animation: " & form.background_frames & " frames"
+   menu(7) = " Ticks per Backdrop Frame: " & form.background_ticks
+  END IF
   menu(8) = "Battle Music:"
-  IF a(33) = -1 THEN
-    menu(8) = menu(8) & " -same music as map-"
-  ELSEIF a(33) = 0 THEN
-    menu(8) = menu(8) & " -silence-"
-  ELSEIF a(33) > 0 THEN
-    menu(8) = menu(8) & " " & (a(33) - 1) & " " & getsongname$(a(33) - 1)
+  IF form.music = -2 THEN
+    menu(8) &= " -same music as map-"
+  ELSEIF form.music = -1 THEN
+    menu(8) &= " -silence-"
+  ELSEIF form.music >= 0 THEN
+    menu(8) &= " " & form.music & " " & getsongname(form.music)
   END IF
   FOR i = 0 TO 5
    col = uilook(uiMenuItem): IF csr2 + 6 = i THEN col = uilook(uiSelectedItem + tog)
-   IF i = 4 AND a(34) = 0 THEN col = uilook(uiDisabledItem): IF csr2 + 6 = i THEN col = uilook(uiSelectedDisabled + tog)
+   IF i = 4 AND form.background_frames <= 1 THEN col = uilook(uiDisabledItem): IF csr2 + 6 = i THEN col = uilook(uiSelectedDisabled + tog)
    edgeprint menu(i + 3), 1, 1 + (i * 10), col, dpage
   NEXT i
   FOR i = 0 TO 7
@@ -1106,64 +1109,51 @@ DO
  setvispage vpage
  dowait
 LOOP
-saveform(a(),pt)
+SaveFormation form, pt
 pausesong
 RETRACE
 
 newformation:
-FOR i = 0 TO 40
- a(i) = 0
-NEXT i
-a(33) = gen(genBatMus)
-setpicstuf a(), 80, -1
-storeset game + ".for", pt, 0
+ClearFormation form
+form.music = gen(genBatMus) - 1
+SaveFormation form, pt
 RETRACE
 
 END SUB
 
-sub loadform(a() as integer, pt as integer)
- setpicstuf a(), 80, -1
- loadset game + ".for", pt, 0
- loadmxs game + ".mxs", a(32), vpages(2)
-end sub
-
-sub saveform(a() as integer, pt as integer)
- setpicstuf a(), 80, -1
- storeset game + ".for", pt, 0
-end sub
-
-sub formpics(ename() as string, a() as integer, egraphics() as GraphicPair)
+sub formpics(ename() as string, form as Formation, egraphics() as GraphicPair)
  DIM enemy as EnemyDef
  FOR i as integer = 0 TO 7
   ename(i) = "-EMPTY-"
   unload_sprite_and_pal egraphics(i)
-  IF a(i * 4 + 0) > 0 THEN
-   loadenemydata enemy, a(i * 4 + 0) - 1
+  IF form.slots(i).id >= 0 THEN
+   loadenemydata enemy, form.slots(i).id
    WITH enemy
-    ename(i) = (a(i * 4 + 0) - 1) & ":" & .name
+    ename(i) = form.slots(i).id & ":" & .name
     load_sprite_and_pal egraphics(i), 1 + bound(.size, 0, 2), .pic, .pal
    END WITH
   END IF
  NEXT i
 end sub
 
-SUB drawformsprites(a() as integer, egraphics() as GraphicPair, byval csr2 as integer)
- dim z(7) as integer, basey(7) as integer
- static flash as integer = 0
+SUB drawformsprites(form as Formation, egraphics() as GraphicPair, byval csr2 as integer)
+ DIM z(7) as integer, basey(7) as integer
+ STATIC flash as integer
  flash = (flash + 1) MOD 256
 
  FOR i as integer = 0 TO 7
-  IF egraphics(i).sprite THEN basey(i) = a(i * 4 + 2) + egraphics(i).sprite->h
+  IF egraphics(i).sprite THEN basey(i) = form.slots(i).pos.y + egraphics(i).sprite->h
  NEXT
  sort_integers_indices(z(), @basey(0))
 
  FOR i as integer = 0 TO 7
-  IF a(z(i) * 4 + 0) > 0 THEN
+  DIM fslot as FormationSlot ptr = @form.slots(z(i))
+  IF fslot->id >= 0 THEN
    WITH egraphics(z(i))
-    frame_draw .sprite, .pal, a(z(i) * 4 + 1), a(z(i) * 4 + 2), , , dpage
+    frame_draw .sprite, .pal, fslot->pos.x, fslot->pos.y, , , dpage
     IF csr2 = z(i) THEN
      textcolor flash, 0
-     printstr CHR$(25), a(z(i) * 4 + 1) + .sprite->w \ 2 - 4, a(z(i) * 4 + 2), dpage
+     printstr CHR(25), fslot->pos.x + .sprite->w \ 2 - 4, fslot->pos.y, dpage
     END IF
    END WITH
   END IF
