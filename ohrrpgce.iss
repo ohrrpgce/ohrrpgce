@@ -36,14 +36,11 @@ Source: "SDL.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "SDL_mixer.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "gfx_directx.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "hspeak.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "unlump.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "relump.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "ohrrpgce.new"; DestDir: "{app}"; Flags: ignoreversion
 Source: "game.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "README-game.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "README-custom.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "IMPORTANT-nightly.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "LICENSE-binary.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "whatsnew.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "plotscr.hsd"; DestDir: "{app}"; Flags: ignoreversion
@@ -77,11 +74,10 @@ Name: "{userdesktop}\OHRRPGCE Custom Editor"; Filename: "{app}\custom.exe"; Work
 Name: "{userdesktop}\OHRRPGCE Folder (install games here)"; Filename: "{app}"; WorkingDir: "{app}"; Tasks: desktopicon
 Name: "{group}\OHRRPGCE Game Player"; Filename: "{app}\game.exe"; WorkingDir: "{app}"; Flags: closeonexit
 Name: "{group}\OHRRPGCE Custom Editor"; Filename: "{app}\custom.exe"; WorkingDir: "{app}"; Flags: closeonexit
-Name: "{group}\OHRRPGCE Game Player (directx)"; Filename: "{app}\game.exe"; Parameters: "-gfx directx"; WorkingDir: "{app}"; Flags: closeonexit
-Name: "{group}\OHRRPGCE Custom Editor (directx)"; Filename: "{app}\custom.exe"; Parameters: "-gfx directx"; WorkingDir: "{app}"; Flags: closeonexit
 Name: "{group}\OHRRPGCE Folder (install games here)"; Filename: "{app}"; WorkingDir: "{app}";
 Name: "{group}\Website (Help, HOWTO, FAQ)"; Filename: "http://HamsterRepublic.com/ohrrpgce/";
 Name: "{group}\Download RPG Games"; Filename: "http://HamsterRepublic.com/ohrrpgce/index.php/Games.html";
+Name: "{group}\Plotscripting Dictionary"; Filename: "{app}\docs\plotdictionary.html";
 
 [Registry]
 Root: HKCR; Subkey: ".rpg"; ValueType: string; ValueName: ""; ValueData: "OHRRPGCE_Game"; Flags: uninsdeletevalue; Tasks: associate
