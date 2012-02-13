@@ -37,6 +37,9 @@ elif platform.system () == 'Darwin':
 else:
     unix = True
 
+if 'asm' in ARGUMENTS:
+    FBFLAGS += ["-r", "-g"]
+
 if 'gengcc' in ARGUMENTS:
     FBFLAGS += ["-gen", "gcc"]
 
@@ -46,9 +49,7 @@ if 'langfb' in ARGUMENTS:
 linkgcc = int (ARGUMENTS.get ('linkgcc', True))
 
 environ = os.environ
-svn = ARGUMENTS.get ('svn','svn')
 fbc = ARGUMENTS.get ('fbc','fbc')
-git = ARGUMENTS.get ('git','git')
 if 'debug' in ARGUMENTS:
     GCC_strip = C_opt = not int (ARGUMENTS['debug'])
     FB_g = FB_exx = int (ARGUMENTS['debug'])
@@ -122,6 +123,9 @@ basmaino = Builder (action = '$FBC -c $SOURCE -o $TARGET -m ${SOURCE.filebase} $
 basexe = Builder (action = '$FBC $FBFLAGS -x $TARGET $FBLIBS $SOURCES',
                   suffix = exe_suffix, src_suffix = '.bas')
 
+basasm = Builder (action = '$FBC -c $SOURCE -o $TARGET $FBFLAGS -r -g',
+                suffix = '.asm', src_suffix = '.bas', single_source = True)
+
 # Surely there's a simpler way to do this
 def depend_on_reloadbasic_py(target, source, env):
     return (target, source + ['reloadbasic/reloadbasic.py'])
@@ -141,7 +145,8 @@ env['BUILDERS']['Object'].add_action ('.bas', '$FBC -c $SOURCE -o $TARGET $FBFLA
 SourceFileScanner.add_scanner ('.bas', bas_scanner)
 SourceFileScanner.add_scanner ('.bi', bas_scanner)
 
-env.Append (BUILDERS = {'BASEXE':basexe, 'BASO':baso, 'BASMAINO':basmaino, 'VARIANT_BASO':variant_baso, 'RB':rbasic_builder, 'RC':rc_builder},
+env.Append (BUILDERS = {'BASEXE':basexe, 'BASO':baso, 'BASMAINO':basmaino, 'VARIANT_BASO':variant_baso,
+                        'RB':rbasic_builder, 'RC':rc_builder, 'ASM':basasm},
             SCANNERS = bas_scanner)
 
 if CC:
@@ -305,7 +310,7 @@ commonenv['FBLIBS'] += Flatten ([['-p', v] for v in libpaths])
 # first, make sure the version is saved.
 
 # always do verprinting, before anything else.
-verprint (used_gfx, used_music, svn, git, fbc)
+verprint (used_gfx, used_music, 'svn', 'git', fbc)
 
 
 base_modules += ['util.bas', 'blit.c', 'base64.c', 'array.c', 'vector.bas']
@@ -499,9 +504,8 @@ Options:
   profile=1           Profiling build for gprof.
   scriptprofile=1     Script profiling build.
   linkgcc=0           Link using fbc instead of g++.
+  asm=1               Produce .asm files instead of compiling.
   fbc=PATH            Override fbc.
-  svn=PATH            Override svn.
-  git=PATH            Override git.
 
 Experimental options:
   raster=1            Include new graphics API and rasterizer.
