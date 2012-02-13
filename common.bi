@@ -219,6 +219,7 @@ DECLARE FUNCTION filenum(byval n as integer) as string
 DECLARE SUB load_sprite_and_pal (byref img as GraphicPair, byval spritetype as integer, byval index as integer, byval palnum as integer=-1)
 DECLARE SUB unload_sprite_and_pal (byref img as GraphicPair)
 
+DECLARE FUNCTION stredit (s as string, byref insert as integer, byval maxl as integer, byval numlines as integer=1, byval wrapchars as integer=1) as integer
 'strgrabber has separate versions in customsubs.bas and yetmore2.bas
 DECLARE FUNCTION strgrabber (s as string, byval maxl as integer) as integer
 

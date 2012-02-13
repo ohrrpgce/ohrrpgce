@@ -561,7 +561,10 @@ FUNCTION charpicker() AS STRING
   setwait 55
   setkeys
   tog = tog XOR 1
-  IF keyval(scESC) > 1 THEN RETURN ""
+  IF keyval(scESC) > 1 THEN
+   setkeys
+   RETURN ""
+  END IF
   IF keyval(scF1) > 1 THEN show_help "charpicker"
 
   IF keyval(scUp) > 1 THEN pt = large(pt - linesize, 0)
@@ -569,7 +572,10 @@ FUNCTION charpicker() AS STRING
   IF keyval(scLeft) > 1 THEN pt = large(pt - 1, 0)
   IF keyval(scRight) > 1 THEN pt = small(pt + 1, last)
 
-  IF enter_or_space() THEN RETURN CHR(f(pt))
+  IF enter_or_space() THEN
+   setkeys
+   RETURN CHR(f(pt))
+  END IF
 
   clearpage dpage
   FOR i = 0 TO last
