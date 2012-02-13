@@ -229,7 +229,7 @@ libraries = []
 libpaths = []
 
 if win32:
-    base_modules += ['os_windows.bas']
+    base_modules += ['os_windows.bas', 'os_windows2.c']
     libraries += ['fbgfx']
     libpaths += ['win32']
     commonenv['FBFLAGS'] += ['-s','gui']
@@ -313,7 +313,7 @@ commonenv['FBLIBS'] += Flatten ([['-p', v] for v in libpaths])
 verprint (used_gfx, used_music, 'svn', 'git', fbc)
 
 
-base_modules += ['util.bas', 'blit.c', 'base64.c', 'array.c', 'vector.bas']
+base_modules += ['util.bas', 'blit.c', 'base64.c', 'unicode.c', 'array.c', 'vector.bas']
 
 shared_modules += ['allmodex',
                    'backends',

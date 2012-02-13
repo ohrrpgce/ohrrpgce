@@ -26,6 +26,11 @@ CONST STACK_SIZE_INC = 512 ' in integers
 
 declare function fgetiob alias "fb_FileGetIOB" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger, byval bytesread as uinteger ptr ) as integer
 
+
+'This is needed for mbstowcs. Placing it here seems like the simplest way to ensure it's run in all utilities
+init_runtime
+
+
  '------------- Other -------------
 
 FUNCTION bitcount (byval v as unsigned integer) as integer
@@ -1006,6 +1011,57 @@ SUB extendfile (byval fh as integer, byval length as integer)
  END IF
 END SUB
 
+#ifdef __UNIX__
+
+'Attempt to decode a filename (using native encoding) and then convert down to Latin-1 encoding
+PRIVATE FUNCTION decode_filename(filename as string) as string
+  DIM length as integer
+  DIM unicode as wstring ptr
+
+/'
+  'Always assume UTF8 -- doesn't work in practise
+  length = utf8_length(strptr(filename))
+  IF length < 0 THEN
+    debuginfo "decode_filename(" & filename & ") failed, " & length
+    RETURN filename
+  END IF
+  unicode = utf8_decode(strptr(filename), @length)
+  IF unicode = NULL THEN RETURN filename  'Shouldn't happen
+'/
+  length = mbstowcs(NULL, STRPTR(filename), 0)
+  IF length = -1 THEN
+    debuginfo "decode_filename(" & filename & ") failed"
+    RETURN filename   'not valid UTF-8 (Note: we continue on valid ASCII)
+  END IF
+  unicode = allocate(SIZEOF(wstring) * (length + 1))
+  mbstowcs(unicode, STRPTR(filename), length + 1)
+
+  'DIM ret as string = SPACE(length)
+  'wstring_to_latin1(unicode, strptr(ret), length + 1)
+  DIM ret as string = *unicode
+  'debug "decode_filename(" & filename & ") = " & ret
+  deallocate unicode
+  RETURN ret
+
+END FUNCTION
+
+#elseif defined(__WIN32__)
+
+'Convert Windows-1252 to Latin-1 by removing the extra characters
+FUNCTION decode_filename(filename as string) as string
+  DIM ret as string = SPACE(LEN(filename))
+  FOR i as integer = 0 TO LEN(filename) - 1
+    IF filename[i] >= 127 AND filename[i] <= 160 THEN
+      ret[i] = ASC("?")
+    ELSE
+      ret[i] = filename[i]
+    END IF
+  NEXT
+  RETURN ret
+END FUNCTION
+
+#endif
+
 'Finds files in a directory, writing them into an array without their path
 'filelist() must be resizeable; it'll be resized so that LBOUND = -1, with files, if any, in filelist(0) up
 'By default, find all files in directory, otherwise namemask is a case-insensitive filename mask
@@ -1019,6 +1075,7 @@ SUB findfiles (directory as STRING, namemask as STRING = "", byval filetype as i
 
 #ifdef __UNIX__
   'this is super hacky, but works around the apparent uselessness of DIR
+  'FIXME: rewrite this in C, in os_unix.c. This doesn't work with symbolic links
   DIM as STRING grep, shellout
   shellout = "/tmp/ohrrpgce-findfiles-" + STR(RND * 10000) + ".tmp"
   grep = "-v '/$'"
@@ -1039,12 +1096,18 @@ SUB findfiles (directory as STRING, namemask as STRING = "", byval filetype as i
     LINE INPUT #f1, filename
     IF RIGHT(filename, 3) = "/./" ORELSE RIGHT(filename, 4) = "/../" _
          ORELSE filename = "/dev/" ORELSE filename = "/proc/" ORELSE filename = "/sys/" THEN CONTINUE DO
-    str_array_append filelist(), trimpath(filename)
+    str_array_append filelist(), decode_filename(trimpath(filename))
   LOOP
   CLOSE #f1
-  KILL shellout
+  safekill shellout
+
 
 #else
+  'On Windows, non-unicode-enabled programs automatically get their filenames downconverted to Windows-1252,
+  'so we only restrict further, to Latin-1.
+  'However, once we want to support more than just Latin-1 filenames, we will have to rewrite
+  'this properly, using winapi calls, because FB's DIR has no support.
+
   DIM foundfile as STRING
   DIM attrib as integer
   /'---DOS directory attributes
@@ -1076,7 +1139,7 @@ SUB findfiles (directory as STRING, namemask as STRING = "", byval filetype as i
       'files with attribute 0 appear in the list, so single those out
       IF DIR(searchdir + foundfile, 55) = "" OR DIR(searchdir + foundfile, 39) <> "" THEN CONTINUE FOR
     END IF
-    str_array_append filelist(), foundfile
+    str_array_append filelist(), decode_filename(foundfile)
   NEXT
 #endif
 END SUB

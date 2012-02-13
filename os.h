@@ -26,6 +26,8 @@ typedef int ProcessHandle;  //dummy type
 
 #endif
 
+void init_runtime();
+
 int copy_file_replacing(const char *source, const char *destination);
 
 //Advisory locking (actually mandatory on Windows)

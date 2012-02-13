@@ -30,6 +30,14 @@ declare function base64_decode (byval in as byte ptr, byval inlen as size_t, _
 declare function base64_decode_alloc (byval in as byte ptr, byval inlen as size_t, _
                                       byval out as byte ptr ptr, byval outlen as size_t ptr) as bool
 
+
+'In unicode.c
+declare function utf8_length(byval in as byte ptr) as integer
+
+declare function utf8_decode(byval in as byte ptr, byval length as integer ptr = NULL) as wstring ptr
+
+declare sub wstring_to_latin1(byval input as wstring ptr, byval output as byte ptr, byval outsize as integer)
+
 end extern
 
 #endif

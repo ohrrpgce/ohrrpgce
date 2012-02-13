@@ -31,6 +31,19 @@ WHAT IS NEW?
       script_log.txt. It might help to restart/reload the game
       after enabling it if running scripts are missing. [Ralph]
     * Formation sets can now be disabled by tag conditions [Ralph]
+    * Partial Unicode support, currently limited to the Latin-1
+      character set:
+      * A new default font which includes the Latin-1 characters
+      * Your operating system's native keyboard layout/text inputting
+        methods are used when entering text, both in Game and Custom.
+        The input is restricted to Latin-1, though of course you'll
+        need the characters in your font to see them.
+        (Does not work with the gfx_fb backend).
+      * Support for non-ASCII filename encodings while browsing
+      * HSpeak has better, full Unicode support. It automatically
+        recognises the encoding as ASCII/Latin-1, UTF-8, or UTF-16.
+        Script names and strings are dumbed down to Latin-1 on import.
+      [Ralph]
 
   * Bugfixes
     * Wrong names used for reserve party heroes who level during

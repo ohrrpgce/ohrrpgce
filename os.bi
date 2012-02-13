@@ -8,6 +8,8 @@
 
 extern "C"
 
+declare sub init_runtime ()
+
 'Actually in filelayer.cpp
 declare function copyfile(source as string, destination as string) as integer
 

@@ -15,9 +15,18 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <errno.h>
+#include <locale.h>
 #include "common.h"
 #include "os.h"
 
+
+void init_runtime() {
+	// Needed for mbstowcs
+	if (!setlocale(LC_ALL, "")) {
+		// This will actually end up in ?_debug_archive.txt ...
+		debug(2, "setlocale failed");
+	}
+}
 
 static long long milliseconds() {
 	struct timeval tv;
