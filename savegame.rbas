@@ -510,6 +510,9 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
         .pal = ch."pal"
        END READNODE
 
+       'FIXME: hand position is not saved in the RSAV file yet,
+       'but when it is, this would be a good place to load it
+
        ' Abandoned
        slot."rename_on_add".ignore
        slot."hide_empty_lists".ignore
@@ -584,6 +587,13 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
        END READNODE
 
       END READNODE
+
+      'FIXME: hand position is not saved in the RSAV file yet,
+      'but we still need to populate the hero state for hand position
+      FOR j as integer = 0 to 1
+       .hand_pos(j).x = her.hand_pos(j).x
+       .hand_pos(j).y = her.hand_pos(j).y
+      NEXT j
 
      END WITH 'gam.hero(i)
 
@@ -1545,9 +1555,11 @@ show_load_index z, "unused", 1
 rebuild_inventory_captions inventory()
 
 '---BLOODY BACKWARD COMPATABILITY---
-'fix doors...
+'fix doors... 'James guesses that "fix doors" is a thing that we need to do, but are not doing yet?
 IF savver = 2 THEN gen(genVersion) = 3
 
+'Here we load hero state that is currently in RSAV files but that was
+'not stored in the old .SAV format
 DIM her as HeroDef
 
 FOR i = 0 TO 40
@@ -1568,6 +1580,11 @@ FOR i = 0 TO 40
   FOR j = 0 TO gen(genNumElements) - 1
    gam.hero(i).elementals(j) = her.elementals(j)
   NEXT
+  
+  FOR j = 0 TO 1
+   gam.hero(i).hand_pos(j).x = her.hand_pos(j).x
+   gam.hero(i).hand_pos(j).y = her.hand_pos(j).y
+  NEXT j
  END IF
 NEXT i
 

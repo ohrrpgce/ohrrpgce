@@ -2165,8 +2165,8 @@ SUB draw_hero_preview(st AS HeroEditState, her AS HeroDef)
  frame_draw st.walkabout.sprite + frame, st.walkabout.pal, 230 + st.preview_walk_pos.x, 5 + st.preview_walk_pos.y,,,dpage
  DIM hand AS XYPair
  IF st.previewframe <> -1 THEN
-  hand.x = her.hand_x(st.previewframe)
-  hand.y = her.hand_y(st.previewframe)
+  hand.x = her.hand_pos(st.previewframe).x
+  hand.y = her.hand_pos(st.previewframe).y
   drawline 248 + hand.x,25 + hand.y,249 + hand.x, 25 + hand.y,14 + tog, dpage
   drawline 250 + hand.x,23 + hand.y,250 + hand.x, 24 + hand.y,14 + tog, dpage
   drawline 251 + hand.x,25 + hand.y,252 + hand.x, 25 + hand.y,14 + tog, dpage
@@ -2275,9 +2275,9 @@ SUB hero_editor_appearance(BYREF st AS HeroEditState, BYREF her AS HeroDef)
      CASE 4
       her.walk_sprite_pal = pal16browse(her.walk_sprite_pal, 4, her.walk_sprite)
      CASE 8
-      xy_position_on_sprite st.battle, her.hand_x(0), her.hand_y(0), 2, 32, 40, "hand position (for weapon)", "xy_hero_hand"
+      xy_position_on_sprite st.battle, her.hand_pos(0).x, her.hand_pos(0).y, 2, 32, 40, "hand position (for weapon)", "xy_hero_hand"
      CASE 9
-      xy_position_on_sprite st.battle, her.hand_x(1), her.hand_y(1), 3, 32, 40, "hand position (for weapon)", "xy_hero_hand"
+      xy_position_on_sprite st.battle, her.hand_pos(1).x, her.hand_pos(1).y, 3, 32, 40, "hand position (for weapon)", "xy_hero_hand"
      CASE 11
       her.portrait_pal = pal16browse(her.portrait_pal, 8, her.portrait)
     END SELECT

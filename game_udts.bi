@@ -54,6 +54,7 @@ TYPE HeroState
  pal as integer
  rename_on_status as integer 'Renameable in status menu
  elementals(maxElements - 1) as SINGLE
+ hand_pos(1) as XYPair
 END TYPE
 
 TYPE HeroWalkabout

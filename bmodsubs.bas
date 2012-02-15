@@ -1140,8 +1140,8 @@ SUB anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSpri
   IF attack.attacker_anim <> 1 AND attack.attacker_anim <> 7 THEN 'if it's not cast or standing cast
    anim_setframe who, 2
   
-   hx = GetHeroHandPos(hero(who)-1,0,0)
-   hy = GetHeroHandPos(hero(who)-1,0,1)
+   hx = gam.hero(who).hand_pos(0).x
+   hy = gam.hero(who).hand_pos(0).y
    wx = GetWeaponPos(eqstuf(who,0)-1,1,0)
    wy = GetWeaponPos(eqstuf(who,0)-1,1,1)
    dx = hx - wx
@@ -1163,8 +1163,8 @@ SUB anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSpri
   IF attack.attacker_anim <> 1 AND attack.attacker_anim <> 7 THEN 'if it's not cast or standing cast
    anim_setframe who, 3
   
-   hx = GetHeroHandPos(hero(who)-1,1,0)
-   hy = GetHeroHandPos(hero(who)-1,1,1)
+   hx = gam.hero(who).hand_pos(1).x
+   hy = gam.hero(who).hand_pos(1).y
    wx = GetWeaponPos(eqstuf(who,0)-1,0,0)
    wy = GetWeaponPos(eqstuf(who,0)-1,0,1)
    dx = hx - wx

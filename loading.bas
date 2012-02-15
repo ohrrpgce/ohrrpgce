@@ -1447,8 +1447,8 @@ Sub DeSerHeroDef(filename as string, hero as herodef ptr, byval record as intege
 		.active_tag = readshort(f)
 		.max_name_len = readshort(f)
 		for i = 0 to 1
-			.hand_x(i) = readshort(f)
-			.hand_y(i) = readshort(f)
+			.hand_pos(i).x = readshort(f)
+			.hand_pos(i).y = readshort(f)
 		next i
 		for i as integer = 0 to gen(genNumElements) - 1
 			get #f, , .elementals(i)
@@ -1502,8 +1502,8 @@ Sub SerHeroDef(filename as string, hero as herodef ptr, byval record as integer)
 		writeshort(f,-1,.active_tag)
 		writeshort(f,-1,.max_name_len)
 		for i = 0 to 1
-			writeshort(f,-1,.hand_x(i))
-			writeshort(f,-1,.hand_y(i))
+			writeshort(f,-1,.hand_pos(i).x)
+			writeshort(f,-1,.hand_pos(i).y)
 		next i
 
 		if getfixbit(fixHeroElementals) = NO then

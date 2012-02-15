@@ -148,6 +148,10 @@ WITH gam.hero(slot)
  .pic = her.walk_sprite
  .pal = her.walk_sprite_pal
  .def_wep = her.def_weapon + 1'default weapon
+ FOR i as integer = 0 to 1
+  .hand_pos(i).x = her.hand_pos(i).x
+  .hand_pos(i).y = her.hand_pos(i).y
+ NEXT i
 END WITH
 
 '--read hero's name (doing this last for no real reason)
@@ -1113,6 +1117,10 @@ FOR i as integer = 0 TO 40
  FOR j as integer = 0 TO maxElements - 1
   gam.hero(i).elementals(j) = 1.0f
  NEXT
+ FOR j as integer = 0 to 1
+  gam.hero(i).hand_pos(j).x = 0
+  gam.hero(i).hand_pos(j).y = 0
+ NEXT j
 NEXT i
 FOR i as integer = 0 TO 40
  FOR o as integer = 0 TO 5
