@@ -88,7 +88,7 @@ declare Sub SerHeroDef(filename as string, hero as herodef ptr, byval record as 
 declare sub loadherodata (hero as herodef ptr, byval index as integer)
 declare sub saveherodata (hero as herodef ptr, byval index as integer)
 declare sub ClearHeroData (hero as HeroDef)
-
+declare function GetHeroHandPos(byval hero_id as integer, byval which_frame as integer, byval isy as integer) as integer
 
 declare Sub LoadVehicle OVERLOAD (file as string, vehicle as VehicleData, byval record as integer)
 declare Sub LoadVehicle OVERLOAD (file as string, veh() as integer, vehname as string, byval record as integer)

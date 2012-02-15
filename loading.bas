@@ -1541,6 +1541,15 @@ SUB ClearHeroData (hero as HeroDef)
   NEXT
 END SUB
 
+Function GetHeroHandPos(byval hero_id as integer, byval which_frame as integer, byval isY as integer) as integer
+ 'which-frame is 0 for attack A and 1 for attack B
+ 'isY is NO for x and YES for y
+ DIM fh as integer
+ fh = FREEFILE
+ OPEN game & ".dt0" FOR BINARY as #fh
+ GetHeroHandPos = ReadShort(fh,hero_id * getbinsize(binDT0) + 595 + which_frame * 4 + iif(isY,1,0) * 2)
+ CLOSE #FH
+End Function
 
 '==========================================================================================
 '                                         Vehicles

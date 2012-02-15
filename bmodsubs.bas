@@ -300,16 +300,6 @@ Function GetWeaponPos(byval w as integer, byval f as integer, byval isY as integ
  END IF
 End Function
 
-Function GetHeroPos(byval h as integer, byval f as integer, byval isY as integer) as integer'or x?
- 'FIXME: Ack! Lets just make hand position a member of bslot()
- DIM fh as integer
- fh = FREEFILE
- OPEN game + ".dt0" FOR BINARY as #fh
- 'debug "hero offset: " & (h * getbinsize(binDT0) + 595 + f * 4 + isY * 2)
- GetHeroPos = ReadShort(fh,h * getbinsize(binDT0) + 595 + f * 4 + iif(isY,1,0) * 2)
- CLOSE #FH
-End Function
-
 FUNCTION inflict (byval attackerslot as integer, byval targetslot as integer, byref attacker as BattleSprite, byref target as BattleSprite, attack as AttackData, byval tcount as integer, byval hit_dead as integer=NO) as integer
  'This overload is for when you want the luxury of not caring which stat was damaged, or by how much.
  DIM h as integer = 0
@@ -1150,8 +1140,8 @@ SUB anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSpri
   IF attack.attacker_anim <> 1 AND attack.attacker_anim <> 7 THEN 'if it's not cast or standing cast
    anim_setframe who, 2
   
-   hx = GetHeroPos(hero(who)-1,0,0)
-   hy = GetHeroPos(hero(who)-1,0,1)
+   hx = GetHeroHandPos(hero(who)-1,0,0)
+   hy = GetHeroHandPos(hero(who)-1,0,1)
    wx = GetWeaponPos(eqstuf(who,0)-1,1,0)
    wy = GetWeaponPos(eqstuf(who,0)-1,1,1)
    dx = hx - wx
@@ -1173,8 +1163,8 @@ SUB anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSpri
   IF attack.attacker_anim <> 1 AND attack.attacker_anim <> 7 THEN 'if it's not cast or standing cast
    anim_setframe who, 3
   
-   hx = GetHeroPos(hero(who)-1,1,0)
-   hy = GetHeroPos(hero(who)-1,1,1)
+   hx = GetHeroHandPos(hero(who)-1,1,0)
+   hy = GetHeroHandPos(hero(who)-1,1,1)
    wx = GetWeaponPos(eqstuf(who,0)-1,0,0)
    wy = GetWeaponPos(eqstuf(who,0)-1,0,1)
    dx = hx - wx
