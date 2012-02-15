@@ -1446,11 +1446,10 @@ Sub DeSerHeroDef(filename as string, hero as herodef ptr, byval record as intege
 		.leader_tag = readshort(f)
 		.active_tag = readshort(f)
 		.max_name_len = readshort(f)
-		.hand_a_x = readshort(f)
-		.hand_a_y = readshort(f)
-		.hand_b_x = readshort(f)
-		.hand_b_y = readshort(f)
-
+		for i = 0 to 1
+			.hand_x(i) = readshort(f)
+			.hand_y(i) = readshort(f)
+		next i
 		for i as integer = 0 to gen(genNumElements) - 1
 			get #f, , .elementals(i)
 		next
@@ -1502,10 +1501,10 @@ Sub SerHeroDef(filename as string, hero as herodef ptr, byval record as integer)
 		writeshort(f,-1,.leader_tag)
 		writeshort(f,-1,.active_tag)
 		writeshort(f,-1,.max_name_len)
-		writeshort(f,-1,.hand_a_x)
-		writeshort(f,-1,.hand_a_y)
-		writeshort(f,-1,.hand_b_x)
-		writeshort(f,-1,.hand_b_y)
+		for i = 0 to 1
+			writeshort(f,-1,.hand_x(i))
+			writeshort(f,-1,.hand_y(i))
+		next i
 
 		if getfixbit(fixHeroElementals) = NO then
 			debug "possible corruption: tried to save hero data with fixHeroElementals=0"

@@ -685,10 +685,8 @@ Type HeroDef
 	leader_tag as integer
 	active_tag as integer
 	max_name_len as integer
-	hand_a_x as integer
-	hand_a_y as integer
-	hand_b_x as integer
-	hand_b_y as integer
+	hand_x(1) as integer
+	hand_y(1) as integer
 End Type
 
 'This caches the tags needed by evalherotag/tag_is_special
