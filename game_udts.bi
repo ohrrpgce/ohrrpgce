@@ -7,53 +7,53 @@
 'so as to prevent them from cluttering up the global udts.bi file
 
 TYPE MapModeState
-  id       AS INTEGER
-  lastmap  AS INTEGER 'ID of the last loaded map
-  same     AS INTEGER 'YES/NO flag that indicates when your are moving through a same-map door
-  name     AS STRING
-  door(99) AS Door
-  doorlinks(199) AS doorlink
+  id       as integer
+  lastmap  as integer 'ID of the last loaded map
+  same     as integer 'YES/NO flag that indicates when your are moving through a same-map door
+  name     as string
+  door(99) as Door
+  doorlinks(199) as doorlink
 END TYPE
 
 UNION HeroStatsSingle
   'See also BattleStatsSingle '-- the two of these can probably be unified eventually
   TYPE
-    hp AS INTEGER   '0
-    mp AS INTEGER   '1
-    str AS INTEGER  '2
-    acc AS INTEGER  '3
-    def AS INTEGER  '4
-    dog AS INTEGER  '5
-    mag AS INTEGER  '6
-    wil AS INTEGER  '7
-    spd AS INTEGER  '8
-    ctr AS INTEGER  '9
-    foc AS INTEGER  '10
-    hits AS INTEGER '11
+    hp as integer   '0
+    mp as integer   '1
+    str as integer  '2
+    acc as integer  '3
+    def as integer  '4
+    dog as integer  '5
+    mag as integer  '6
+    wil as integer  '7
+    spd as integer  '8
+    ctr as integer  '9
+    foc as integer  '10
+    hits as integer '11
   END TYPE
-  sta(11) AS INTEGER
+  sta(11) as integer
 End UNION
 
 TYPE HeroStats
-  cur AS HeroStatsSingle
-  max AS HeroStatsSingle
+  cur as HeroStatsSingle
+  max as HeroStatsSingle
 END TYPE
 
 TYPE HeroState
- stat AS HeroStats
- lev AS INTEGER
- lev_gain AS INTEGER
- exp_cur AS INTEGER
- exp_next AS INTEGER
- wep_pic AS INTEGER
- wep_pal AS INTEGER
- battle_pic AS INTEGER
- battle_pal AS INTEGER
- def_wep AS INTEGER '-default weapon
- pic AS INTEGER
- pal AS INTEGER
- rename_on_status AS INTEGER 'Renameable in status menu
- elementals(maxElements - 1) AS SINGLE
+ stat as HeroStats
+ lev as integer
+ lev_gain as integer
+ exp_cur as integer
+ exp_next as integer
+ wep_pic as integer
+ wep_pal as integer
+ battle_pic as integer
+ battle_pal as integer
+ def_wep as integer '-default weapon
+ pic as integer
+ pal as integer
+ rename_on_status as integer 'Renameable in status menu
+ elementals(maxElements - 1) as SINGLE
 END TYPE
 
 TYPE HeroWalkabout
@@ -77,20 +77,20 @@ TYPE ScriptLoggingState
 END TYPE
 
 TYPE GameState
-  map AS MapModeState
-  wonbattle AS INTEGER               'Indicates the status of the last battle, 1 for victory 0 for running away
-  remembermusic AS INTEGER           'Remembers music from before battle starts
-  random_battle_countdown AS INTEGER
-  stock(99, 49) AS INTEGER           'Keeps track of available inventory at each shop
-  foe_freq(254) AS INTEGER           'A cache of the fight frequency for each formation set
-  walk_through_walls AS INTEGER      'used for F11 cheat mode
-  mouse_enabled AS INTEGER           'initmouse called
-  hero(40) AS HeroState
-  debug_showtags AS INTEGER
-  debug_npc_info AS INTEGER
-  autorungame AS INTEGER
-  need_fade_in AS INTEGER
-  fade_in_delay AS INTEGER
+  map as MapModeState
+  wonbattle as integer               'Indicates the status of the last battle, 1 for victory 0 for running away
+  remembermusic as integer           'Remembers music from before battle starts
+  random_battle_countdown as integer
+  stock(99, 49) as integer           'Keeps track of available inventory at each shop
+  foe_freq(254) as integer           'A cache of the fight frequency for each formation set
+  walk_through_walls as integer      'used for F11 cheat mode
+  mouse_enabled as integer           'initmouse called
+  hero(40) as HeroState
+  debug_showtags as integer
+  debug_npc_info as integer
+  autorungame as integer
+  need_fade_in as integer
+  fade_in_delay as integer
   showtext as string                 'Used for map names and other alerts
   showtext_ticks as integer          'Remaining number of ticks
   getinputtext_enabled as integer
@@ -98,102 +98,102 @@ TYPE GameState
 END TYPE
 
 TYPE TextBoxState
-  id             AS INTEGER 'ID Number of the current box or -1 for none
-  box            AS TextBox '--Contains the data about the content of the textbox
-  showing        AS INTEGER 'YES or NO
-  fully_shown    AS INTEGER 'YES or NO. All lines have been displayed, player is allowed to advance
-  choice_cursor  AS INTEGER
-  remember_music AS INTEGER
-  show_lines     AS INTEGER 'Number of lines currently on display
-  sayer          AS INTEGER 'The NPC reference who triggered this textbox as a positive number, or -1 for none
-  old_dir        AS INTEGER 'For NPCs that return to their previos direction after speaking
-  portrait       AS GraphicPair
-  sl             AS Slice Ptr
+  id             as integer 'ID Number of the current box or -1 for none
+  box            as TextBox '--Contains the data about the content of the textbox
+  showing        as integer 'YES or NO
+  fully_shown    as integer 'YES or NO. All lines have been displayed, player is allowed to advance
+  choice_cursor  as integer
+  remember_music as integer
+  show_lines     as integer 'Number of lines currently on display
+  sayer          as integer 'The NPC reference who triggered this textbox as a positive number, or -1 for none
+  old_dir        as integer 'For NPCs that return to their previos direction after speaking
+  portrait       as GraphicPair
+  sl             as Slice Ptr
 END TYPE
 
 TYPE EquippableList
-  count AS INTEGER
-  offset(inventoryMax) AS INTEGER 'Index into the inventory, or -1 for nothing
+  count as integer
+  offset(inventoryMax) as integer 'Index into the inventory, or -1 for nothing
 END TYPE
 
 TYPE EquipMenuState
-  mode                AS INTEGER '0=picking slot 1=picking equipment to put in slot
-  who                 AS INTEGER
-  slot                AS INTEGER
-  eq_cursor           AS MenuState
-  default_weapon      AS INTEGER 'item ID + 1
-  default_weapon_name AS STRING
-  unequip_caption     AS STRING
-  eq(4)               AS EquippableList
-  stat_bonus(11)      AS INTEGER 'Cache stat bonuses for currently selected equippable
+  mode                as integer '0=picking slot 1=picking equipment to put in slot
+  who                 as integer
+  slot                as integer
+  eq_cursor           as MenuState
+  default_weapon      as integer 'item ID + 1
+  default_weapon_name as string
+  unequip_caption     as string
+  eq(4)               as EquippableList
+  stat_bonus(11)      as integer 'Cache stat bonuses for currently selected equippable
 END TYPE
 
 TYPE ItemsMenuState
-  cursor AS INTEGER
-  sel    AS INTEGER
-  top    AS INTEGER
-  info   AS STRING
-  re_use AS INTEGER
-  trigger_box AS INTEGER
-  quit   AS INTEGER
-  scroll AS MenuState
-  scrollrect AS RectType
-  refresh AS INTEGER
-  page AS INTEGER
-  rect AS RectType
-  tog AS INTEGER
-  special(-3 TO 0) AS STRING 'upper bound should be -1, had to change due to FB bug #2898546
+  cursor as integer
+  sel    as integer
+  top    as integer
+  info   as string
+  re_use as integer
+  trigger_box as integer
+  quit   as integer
+  scroll as MenuState
+  scrollrect as RectType
+  refresh as integer
+  page as integer
+  rect as RectType
+  tog as integer
+  special(-3 TO 0) as string 'upper bound should be -1, had to change due to FB bug #2898546
 END TYPE
 
 TYPE SpellsMenuSlot
-  id      AS INTEGER    'attack id (or -1 for none)
-  name    AS STRING
-  desc    AS STRING
-  cost    AS STRING
-  can_use AS INTEGER
-  targt   AS INTEGER
-  tstat   AS INTEGER
+  id      as integer    'attack id (or -1 for none)
+  name    as string
+  desc    as string
+  cost    as string
+  can_use as integer
+  targt   as integer
+  tstat   as integer
 END TYPE
 
 TYPE SpellsMenuList
-  name       AS STRING
-  menu_index AS INTEGER 'maps to index in spells() global
-  magic_type AS INTEGER
+  name       as string
+  menu_index as integer 'maps to index in spells() global
+  magic_type as integer
 END TYPE
 
 TYPE SpellsMenuState
-  hero      AS INTEGER
-  listnum   AS INTEGER
-  last      AS INTEGER 'last occupied slot in .lists()
-  lists(4)  AS SpellsMenuList
-  spell(24) AS SpellsMenuSlot
-  quit      AS INTEGER
-  cursor    AS INTEGER
-  mset      AS INTEGER
-  re_use    AS INTEGER
-  page      AS INTEGER
-  tog       AS INTEGER
-  cancel_menu_caption AS STRING
-  has_none_caption AS STRING
+  hero      as integer
+  listnum   as integer
+  last      as integer 'last occupied slot in .lists()
+  lists(4)  as SpellsMenuList
+  spell(24) as SpellsMenuSlot
+  quit      as integer
+  cursor    as integer
+  mset      as integer
+  re_use    as integer
+  page      as integer
+  tog       as integer
+  cancel_menu_caption as string
+  has_none_caption as string
 END TYPE
 
 TYPE LumpReloadState
-  mode      AS INTEGER  'one of the loadmode constants in const.bi
-  dirty     AS INTEGER  'whether a script has modified this for the current map
-  changed   AS INTEGER  'whether modified by Custom and not reloaded
-  hash      AS INTEGER  'used to store file_hash of last version loaded
+  mode      as integer  'one of the loadmode constants in const.bi
+  dirty     as integer  'whether a script has modified this for the current map
+  changed   as integer  'whether modified by Custom and not reloaded
+  hash      as integer  'used to store file_hash of last version loaded
 END TYPE
 
 TYPE LumpReloadOptions
-  gmap     AS LumpReloadState  '.hash not (can't) be used
-  maptiles AS LumpReloadState
-  passmap  AS LumpReloadState
-  foemap   AS LumpReloadState  '.dirty ignored: can't be modified
-  zonemap  AS LumpReloadState
-  npcl     AS LumpReloadState  '.dirty ignored: nearly always dirty
-  npcd     AS LumpReloadState
+  gmap     as LumpReloadState  '.hash not (can't) be used
+  maptiles as LumpReloadState
+  passmap  as LumpReloadState
+  foemap   as LumpReloadState  '.dirty ignored: can't be modified
+  zonemap  as LumpReloadState
+  npcl     as LumpReloadState  '.dirty ignored: nearly always dirty
+  npcd     as LumpReloadState
 
-  hsp      AS LumpReloadState  '.hash, .mode, .dirty ignored
+  hsp      as LumpReloadState  '.hash, .mode, .dirty ignored
 END TYPE
 
 #ENDIF
