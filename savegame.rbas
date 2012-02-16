@@ -933,84 +933,84 @@ SUB gamestate_party_to_reload(byval parent as Reload.NodePtr)
   END IF
 
   WITH gam.hero(i)
-  
-  ch = SetChildNode(slot, "stats")
-  FOR j as integer = 0 TO 11
-   WITH .stat
-    IF .cur.sta(j) <> 0 OR .max.sta(j) <> 0 THEN
-     n = AppendChildNode(ch, "stat", j)
-     SetChildNode(n, "cur", .cur.sta(j))
-     SetChildNode(n, "max", .max.sta(j))
-    END IF
-   END WITH
-  NEXT j
-  
-  SetChildNode(slot, "lev", .lev)
-  SetChildNode(slot, "lev_gain", .lev_gain)
-  SetChildNode(slot, "exp", .exp_cur)
-  SetChildNode(slot, "exp_next", .exp_next)
-  SetChildNode(slot, "def_wep", .def_wep)
-  
-  ch = SetChildNode(slot, "wep")
-  SetChildNode(ch, "pic", .wep_pic)
-  SetChildNode(ch, "pal", .wep_pal)
-  
-  ch = SetChildNode(slot, "in_battle")
-  SetChildNode(ch, "pic", .battle_pic)
-  SetChildNode(ch, "pal", .battle_pal)
-
-  ch = SetChildNode(slot, "walkabout")
-  SetChildNode(ch, "pic", .pic)
-  SetChildNode(ch, "pal", .pal)
-  
-  ch = SetChildNode(slot, "battle_menus")
-  FOR j as integer = 0 TO 5
-   n = AppendChildNode(ch, "menu", j)
-   SELECT CASE bmenu(i, j)
-    CASE IS > 0:
-     '--attack from weapon
-     SetChildNode(n, "attack", bmenu(i, j) - 1)
-    CASE -10:
-     '--items menu
-     SetChildNode(n, "items")
-    CASE -4 TO -1:
-     '--spell list
-     SetChildNode(n, "spells", ABS(bmenu(i, j)) - 1)
-   END SELECT
-  NEXT j
-  
-  ch = SetChildNode(slot, "spell_lists")
-  FOR j as integer = 0 TO 3
-   n = AppendChildNode(ch, "list", j)
-   gamestate_spelllist_to_reload(i, j, n)
-  NEXT j
-  
-  ch = SetChildNode(slot, "level_mp")
-  FOR j as integer = 0 TO 7
-   IF lmp(i, j) <> 0 THEN
-    SetKeyValueNode(ch, "lev", j, lmp(i, j), "val")
-   END IF
-  NEXT j
-
-  ch = SetChildNode(slot, "equipment")
-  FOR j as integer = 0 TO 4
-   IF eqstuf(i, j) > 0 THEN
-    SetKeyValueNode(ch, "equip", j, eqstuf(i, j) - 1, "item")
-   END IF
-  NEXT j
-
-  IF hero(i) THEN
-   'Unlike all the other hero commands, hero elemental commands aren't allowed
-   'to read/write empty hero slots, so don't need to save those
-
-   ch = SetChildNode(slot, "elements")
-   FOR j as integer = 0 TO gen(genNumElements) - 1
-    n = AppendChildNode(ch, "element", j)
-    SetChildNode(n, "damage", cast(double, .elementals(j)))
+   
+   ch = SetChildNode(slot, "stats")
+   FOR j as integer = 0 TO 11
+    WITH .stat
+     IF .cur.sta(j) <> 0 OR .max.sta(j) <> 0 THEN
+      n = AppendChildNode(ch, "stat", j)
+      SetChildNode(n, "cur", .cur.sta(j))
+      SetChildNode(n, "max", .max.sta(j))
+     END IF
+    END WITH
    NEXT j
-
-   IF .rename_on_status THEN SetChildNode(slot, "rename_on_status")
-  END IF
+   
+   SetChildNode(slot, "lev", .lev)
+   SetChildNode(slot, "lev_gain", .lev_gain)
+   SetChildNode(slot, "exp", .exp_cur)
+   SetChildNode(slot, "exp_next", .exp_next)
+   SetChildNode(slot, "def_wep", .def_wep)
+   
+   ch = SetChildNode(slot, "wep")
+   SetChildNode(ch, "pic", .wep_pic)
+   SetChildNode(ch, "pal", .wep_pal)
+   
+   ch = SetChildNode(slot, "in_battle")
+   SetChildNode(ch, "pic", .battle_pic)
+   SetChildNode(ch, "pal", .battle_pal)
+ 
+   ch = SetChildNode(slot, "walkabout")
+   SetChildNode(ch, "pic", .pic)
+   SetChildNode(ch, "pal", .pal)
+   
+   ch = SetChildNode(slot, "battle_menus")
+   FOR j as integer = 0 TO 5
+    n = AppendChildNode(ch, "menu", j)
+    SELECT CASE bmenu(i, j)
+     CASE IS > 0:
+      '--attack from weapon
+      SetChildNode(n, "attack", bmenu(i, j) - 1)
+     CASE -10:
+      '--items menu
+      SetChildNode(n, "items")
+     CASE -4 TO -1:
+      '--spell list
+      SetChildNode(n, "spells", ABS(bmenu(i, j)) - 1)
+    END SELECT
+   NEXT j
+   
+   ch = SetChildNode(slot, "spell_lists")
+   FOR j as integer = 0 TO 3
+    n = AppendChildNode(ch, "list", j)
+    gamestate_spelllist_to_reload(i, j, n)
+   NEXT j
+   
+   ch = SetChildNode(slot, "level_mp")
+   FOR j as integer = 0 TO 7
+    IF lmp(i, j) <> 0 THEN
+     SetKeyValueNode(ch, "lev", j, lmp(i, j), "val")
+    END IF
+   NEXT j
+  
+   ch = SetChildNode(slot, "equipment")
+   FOR j as integer = 0 TO 4
+    IF eqstuf(i, j) > 0 THEN
+     SetKeyValueNode(ch, "equip", j, eqstuf(i, j) - 1, "item")
+    END IF
+   NEXT j
+ 
+   IF hero(i) THEN
+    'Unlike all the other hero commands, hero elemental commands aren't allowed
+    'to read/write empty hero slots, so don't need to save those
+ 
+    ch = SetChildNode(slot, "elements")
+    FOR j as integer = 0 TO gen(genNumElements) - 1
+     n = AppendChildNode(ch, "element", j)
+     SetChildNode(n, "damage", cast(double, .elementals(j)))
+    NEXT j
+ 
+    IF .rename_on_status THEN SetChildNode(slot, "rename_on_status")
+   END IF
   END WITH
   
  NEXT i
