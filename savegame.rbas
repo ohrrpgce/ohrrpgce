@@ -510,8 +510,13 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
         .pal = ch."pal"
        END READNODE
 
-       'FIXME: hand position is not saved in the RSAV file yet,
-       'but when it is, this would be a good place to load it
+       READNODE slot."hand" as hand
+        WITHNODE hand."frame" as fr
+         j = GetInteger(fr)
+         .hand_pos(j).x = fr."x".default(her.hand_pos(j).x)
+         .hand_pos(j).y = fr."y".default(her.hand_pos(j).y)
+        END WITHNODE
+       END READNODE
 
        ' Abandoned
        slot."rename_on_add".ignore
@@ -587,13 +592,6 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
        END READNODE
 
       END READNODE
-
-      'FIXME: hand position is not saved in the RSAV file yet,
-      'but we still need to populate the hero state for hand position
-      FOR j as integer = 0 to 1
-       .hand_pos(j).x = her.hand_pos(j).x
-       .hand_pos(j).y = her.hand_pos(j).y
-      NEXT j
 
      END WITH 'gam.hero(i)
 
