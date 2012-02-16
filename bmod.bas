@@ -468,7 +468,7 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
  IF inflict(h, targstat, bat.acting, targ, bslot(bat.acting), bslot(targ), attack, tcount, attack_can_hit_dead(bat.acting, attack)) THEN
   '--attack succeeded
   IF attack.transmog_enemy > 0 ANDALSO is_enemy(targ) THEN
-   changefoe targ - 4, attack.transmog_enemy - 1, formdata, bslot(), attack.transmog_hp, attack.transmog_stats
+   changefoe targ - 4, attack.transmog_enemy, formdata, bslot(), attack.transmog_hp, attack.transmog_stats
   END IF
   battle_attack_cancel_target_attack targ, bat, bslot(), attack
   WITH bslot(targ).enemy.reward
