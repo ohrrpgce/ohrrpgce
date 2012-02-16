@@ -951,6 +951,20 @@ SUB gamestate_party_to_reload(byval parent as Reload.NodePtr)
    SetChildNode(slot, "exp_next", .exp_next)
    SetChildNode(slot, "def_wep", .def_wep)
    
+   IF hero(i) > 0 THEN
+    ch = SetChildNode(slot, "hand")
+    DIM default_pos as XYPair
+    FOR j as integer = 0 TO 1
+     default_pos.x = GetHeroHandPos(hero(i) - 1, j, NO)
+     default_pos.y = GetHeroHandPos(hero(i) - 1, j, YES)
+     IF .hand_pos(j).x <> default_pos.x ORELSE .hand_pos(j).y <> default_pos.y THEN
+      n = AppendChildNode(ch, "frame", j)
+      SetChildNode(n, "x", .hand_pos(j).x)
+      SetChildNode(n, "y", .hand_pos(j).y)
+     END IF
+    NEXT j
+   END IF
+   
    ch = SetChildNode(slot, "wep")
    SetChildNode(ch, "pic", .wep_pic)
    SetChildNode(ch, "pal", .wep_pal)
