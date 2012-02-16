@@ -1406,6 +1406,8 @@ script, battle tests, begin
   force random battle(2)
   assert(last formation <> 4)
   w(5)
+  fight formation(5)
+  w(5)
 end
 
 # Formation set should be 1-3
