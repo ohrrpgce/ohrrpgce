@@ -465,6 +465,13 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
        FOR j = 0 TO gen(genNumElements) - 1
         .elementals(j) = her.elementals(j)
        NEXT
+       
+       'Load defaults for hand position
+       FOR j = 0 TO 1
+        .hand_pos(j).x = her.hand_pos(j).x
+        .hand_pos(j).y = her.hand_pos(j).y
+       NEXT j
+
       END IF
 
       'Other data must be loaded even if the hero slot is empty, for compatibility
@@ -513,8 +520,8 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
        READNODE slot."hand" as hand
         WITHNODE hand."frame" as fr
          j = GetInteger(fr)
-         .hand_pos(j).x = fr."x".default(her.hand_pos(j).x)
-         .hand_pos(j).y = fr."y".default(her.hand_pos(j).y)
+         .hand_pos(j).x = fr."x"
+         .hand_pos(j).y = fr."y"
         END WITHNODE
        END READNODE
 
