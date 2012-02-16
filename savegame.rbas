@@ -931,10 +931,12 @@ SUB gamestate_party_to_reload(byval parent as Reload.NodePtr)
   IF xreadbit(hmask(), i) THEN
    SetChildNode(slot, "locked")
   END IF
+
+  WITH gam.hero(i)
   
   ch = SetChildNode(slot, "stats")
   FOR j as integer = 0 TO 11
-   WITH gam.hero(i).stat
+   WITH .stat
     IF .cur.sta(j) <> 0 OR .max.sta(j) <> 0 THEN
      n = AppendChildNode(ch, "stat", j)
      SetChildNode(n, "cur", .cur.sta(j))
@@ -943,23 +945,23 @@ SUB gamestate_party_to_reload(byval parent as Reload.NodePtr)
    END WITH
   NEXT j
   
-  SetChildNode(slot, "lev", gam.hero(i).lev)
-  SetChildNode(slot, "lev_gain", gam.hero(i).lev_gain)
-  SetChildNode(slot, "exp", gam.hero(i).exp_cur)
-  SetChildNode(slot, "exp_next", gam.hero(i).exp_next)
-  SetChildNode(slot, "def_wep", gam.hero(i).def_wep)
+  SetChildNode(slot, "lev", .lev)
+  SetChildNode(slot, "lev_gain", .lev_gain)
+  SetChildNode(slot, "exp", .exp_cur)
+  SetChildNode(slot, "exp_next", .exp_next)
+  SetChildNode(slot, "def_wep", .def_wep)
   
   ch = SetChildNode(slot, "wep")
-  SetChildNode(ch, "pic", gam.hero(i).wep_pic)
-  SetChildNode(ch, "pal", gam.hero(i).wep_pal)
+  SetChildNode(ch, "pic", .wep_pic)
+  SetChildNode(ch, "pal", .wep_pal)
   
   ch = SetChildNode(slot, "in_battle")
-  SetChildNode(ch, "pic", gam.hero(i).battle_pic)
-  SetChildNode(ch, "pal", gam.hero(i).battle_pal)
+  SetChildNode(ch, "pic", .battle_pic)
+  SetChildNode(ch, "pal", .battle_pal)
 
   ch = SetChildNode(slot, "walkabout")
-  SetChildNode(ch, "pic", gam.hero(i).pic)
-  SetChildNode(ch, "pal", gam.hero(i).pal)
+  SetChildNode(ch, "pic", .pic)
+  SetChildNode(ch, "pal", .pal)
   
   ch = SetChildNode(slot, "battle_menus")
   FOR j as integer = 0 TO 5
@@ -1004,11 +1006,12 @@ SUB gamestate_party_to_reload(byval parent as Reload.NodePtr)
    ch = SetChildNode(slot, "elements")
    FOR j as integer = 0 TO gen(genNumElements) - 1
     n = AppendChildNode(ch, "element", j)
-    SetChildNode(n, "damage", cast(double, gam.hero(i).elementals(j)))
+    SetChildNode(n, "damage", cast(double, .elementals(j)))
    NEXT j
 
-   IF gam.hero(i).rename_on_status THEN SetChildNode(slot, "rename_on_status")
+   IF .rename_on_status THEN SetChildNode(slot, "rename_on_status")
   END IF
+  END WITH
   
  NEXT i
 END SUB
