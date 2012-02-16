@@ -2979,7 +2979,42 @@ SELECT CASE as CONST id
   gam.getinputtext_enabled = retvals(0)
  CASE 533 '--input text enabled
   scriptret = gam.getinputtext_enabled
-
+ CASE 534 '--set hero hand x
+  IF valid_hero_party(retvals(0)) THEN
+   IF bound_arg(retvals(0), 0, 1, "attack frame") THEN
+    gam.hero(retvals(0)).hand_pos(retvals(1)).x = retvals(2)
+   END IF
+  END IF
+ CASE 535 '--set hero hand y
+  IF valid_hero_party(retvals(0)) THEN
+   IF bound_arg(retvals(0), 0, 1, "attack frame") THEN
+    gam.hero(retvals(0)).hand_pos(retvals(1)).y = retvals(2)
+   END IF
+  END IF
+ CASE 536 '--get hero hand x
+  IF valid_hero_party(retvals(0)) THEN
+   IF bound_arg(retvals(0), 0, 1, "attack frame") THEN
+    scriptret = gam.hero(retvals(0)).hand_pos(retvals(1)).x
+   END IF
+  END IF
+ CASE 537 '--get hero hand y
+  IF valid_hero_party(retvals(0)) THEN
+   IF bound_arg(retvals(0), 0, 1, "attack frame") THEN
+    scriptret = gam.hero(retvals(0)).hand_pos(retvals(1)).y
+   END IF
+  END IF
+ CASE 538 '--get default hero hand x
+  IF valid_hero_party(retvals(0)) THEN
+   IF bound_arg(retvals(0), 0, 1, "attack frame") THEN
+    scriptret = GetHeroHandPos(hero(retvals(0))-1, retvals(1), NO)
+   END IF
+  END IF
+ CASE 539 '--get default hero hand y
+  IF valid_hero_party(retvals(0)) THEN
+   IF bound_arg(retvals(0), 0, 1, "attack frame") THEN
+    scriptret = GetHeroHandPos(hero(retvals(0))-1, retvals(1), YES)
+   END IF
+  END IF
 END SELECT
 
 END SUB

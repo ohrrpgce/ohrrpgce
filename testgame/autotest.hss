@@ -123,6 +123,7 @@ script, hero tests, begin
   hero caterpillar tests
   hero exp and levels tests
   hero stat growth test
+  hero misc tests
 end
 
 ## spell lists
@@ -755,6 +756,34 @@ script, hero stat growth test, begin
   assert(get hero stat(0, 0, maximum stat) == 1000)
   set hero level(0, 0, true)
   show no value, w
+end
+
+script, hero misc tests, begin
+  $0="hero misc tests"
+  show string(0), w
+  variable(n)
+  assert(hero by slot(0) == hero:Freki)
+  assert(get hero hand x(0, hand:attack A) == 22)
+  assert(get hero hand y(0, hand:attack A) == 11)
+  assert(get hero hand x(0, hand:attack B) == 2)
+  assert(get hero hand y(0, hand:attack B) == 17)
+  set hero hand x(0, hand:attack A, 50)
+  set hero hand y(0, hand:attack A, -25)
+  set hero hand x(0, hand:attack B, -10)
+  set hero hand y(0, hand:attack B, 1)
+  assert(get hero hand x(0, hand:attack A) == 50)
+  assert(get hero hand y(0, hand:attack A) == -25)
+  assert(get hero hand x(0, hand:attack B) == -10)
+  assert(get hero hand y(0, hand:attack B) == 1)
+  set hero hand x(0, hand:attack A, get default hero hand x(0, hand:attack A))
+  set hero hand y(0, hand:attack A, get default hero hand y(0, hand:attack A))
+  set hero hand x(0, hand:attack B, get default hero hand x(0, hand:attack B))
+  set hero hand y(0, hand:attack B, get default hero hand y(0, hand:attack B))
+  assert(get hero hand x(0, hand:attack A) == 22)
+  assert(get hero hand y(0, hand:attack A) == 11)
+  assert(get hero hand x(0, hand:attack B) == 2)
+  assert(get hero hand y(0, hand:attack B) == 17)
+  
 end
 
 ########################################################################

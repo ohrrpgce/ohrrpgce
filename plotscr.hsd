@@ -542,6 +542,12 @@ define function, begin
 531,getinputtext,1,0             #get user textual input since last tick (string)
 532,enableinputtext,1,1          #whether to enable getinputtext (enable?)
 533,inputtextenabled,0           #(undocumented) whether getinputtext is enabled
+534,setherohandx,3,0,0,0         #Change hand position for battle weapons (who, frame, new x)
+535,setherohandy,3,0,0,0         #Change hand position for battle weapons (who, frame, new y)
+536,getherohandx,2,0,0           #Read hero hand position for battle weapons (who, frame)
+537,getherohandy,2,0,0           #Read hero hand position for battle weapons (who, frame)
+538,getdefaultherohandx,2,0,0    #Read default hero hand position for battle weapons (who, frame)
+539,getdefaultherohandy,2,0,0    #Read default hero hand position for battle weapons (who, frame)
 end
 
 #--------------------------------------------------------------------------
@@ -1630,6 +1636,8 @@ define constant, begin
 0,trans:solid
 1,trans:fuzzy
 2,trans:hollow
+0,hand:Attack A
+1,hand:Attack B
 end
 
 #<SLICE LOOKUP CODES>

@@ -103,6 +103,9 @@ WHAT IS NEW?
     * "get slice text" [Ralph]
     * "get input text" (and "enable input text") which obsoletes
       "last ascii" [Ralph]
+    * "get hero hand x", "get hero hand y", "set hero hand x",
+      "set hero hand y", "get default hero hand x",
+      "get default hero hand y" [James]
 
   * Vikings of Midgard
 

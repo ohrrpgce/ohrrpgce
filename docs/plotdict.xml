@@ -5150,6 +5150,84 @@ Besides readability, there is one other important difference between these two e
 				<ref>setheropicture</ref>
 			</seealso>
 		</command>
+		<command id="getherohandx">
+			<canon>get hero hand x (who,frame)</canon>
+			<shortname>get hero hand x</shortname>
+			<description>Get the x position of a hero's weapon hand in battle. The position is in pixels relative to the top left corner of the hero's battle sprite. The first argument is the hero's position in the party. The second argument is the attack frame. You can use the constants <p>hand:Attack A</p> and <p>hand:Attack B</p></description>
+			<seealso>
+				<ref>getherohandx</ref>
+				<ref>getherohandy</ref>
+				<ref>setherohandx</ref>
+				<ref>setherohandy</ref>
+				<ref>getdefaultherohandx</ref>
+				<ref>getdefaultherohandy</ref>
+			</seealso>
+		</command>
+		<command id="getherohandy">
+			<canon>get hero hand y (who,frame)</canon>
+			<shortname>get hero hand y</shortname>
+			<description>Get the y position of a hero's weapon hand in battle. The position is in pixels relative to the top left corner of the hero's battle sprite. The first argument is the hero's position in the party. The second argument is the attack frame. You can use the constants <p>hand:Attack A</p> and <p>hand:Attack B</p></description>
+			<seealso>
+				<ref>getherohandx</ref>
+				<ref>getherohandy</ref>
+				<ref>setherohandx</ref>
+				<ref>setherohandy</ref>
+				<ref>getdefaultherohandx</ref>
+				<ref>getdefaultherohandy</ref>
+			</seealso>
+		</command>
+		<command id="setherohandx">
+			<canon>set hero hand x (who, frame, new x)</canon>
+			<shortname>set hero hand x</shortname>
+			<description>Change the x position of a hero's weapon hand in battle. The position is in pixels relative to the top left corner of the hero's battle sprite. The first argument is the hero's position in the party. The second argument is the attack frame. You can use the constants <p>hand:Attack A</p> and <p>hand:Attack B</p> The third argument is the new x position.</description>
+			<seealso>
+				<ref>getherohandx</ref>
+				<ref>getherohandy</ref>
+				<ref>setherohandx</ref>
+				<ref>setherohandy</ref>
+				<ref>getdefaultherohandx</ref>
+				<ref>getdefaultherohandy</ref>
+			</seealso>
+		</command>
+		<command id="setherohandy">
+			<canon>set hero hand y (who, frame, new y)</canon>
+			<shortname>set hero hand y</shortname>
+			<description>Change the y position of a hero's weapon hand in battle. The position is in pixels relative to the top left corner of the hero's battle sprite. The first argument is the hero's position in the party. The second argument is the attack frame. You can use the constants <p>hand:Attack A</p> and <p>hand:Attack B</p> The third argument is the new y position.</description>
+			<seealso>
+				<ref>getherohandx</ref>
+				<ref>getherohandy</ref>
+				<ref>setherohandx</ref>
+				<ref>setherohandy</ref>
+				<ref>getdefaultherohandx</ref>
+				<ref>getdefaultherohandy</ref>
+			</seealso>
+		</command>
+		<command id="getdefaultherohandx">
+			<canon>get default hero hand x (who,frame)</canon>
+			<shortname>get default hero hand x</shortname>
+			<description>Get the original x position of a hero's weapon hand in battle as specified in the hero editor. The position is in pixels relative to the top left corner of the hero's battle sprite. The first argument is the hero's position in the party. The second argument is the attack frame. You can use the constants <p>hand:Attack A</p> and <p>hand:Attack B</p></description>
+			<seealso>
+				<ref>getherohandx</ref>
+				<ref>getherohandy</ref>
+				<ref>setherohandx</ref>
+				<ref>setherohandy</ref>
+				<ref>getdefaultherohandx</ref>
+				<ref>getdefaultherohandy</ref>
+			</seealso>
+		</command>
+		<command id="getdefaultherohandy">
+			<canon>get default hero hand y (who,frame)</canon>
+			<shortname>get default hero hand y</shortname>
+			<description>Get the original y position of a hero's weapon hand in battle as specified in the hero editor. The position is in pixels relative to the top left corner of the hero's battle sprite. The first argument is the hero's position in the party. The second argument is the attack frame. You can use the constants <p>hand:Attack A</p> and <p>hand:Attack B</p></description>
+			<seealso>
+				<ref>getherohandx</ref>
+				<ref>getherohandy</ref>
+				<ref>setherohandx</ref>
+				<ref>setherohandy</ref>
+				<ref>getdefaultherohandx</ref>
+				<ref>getdefaultherohandy</ref>
+			</seealso>
+		</command>
 		<command id="alternpc">
 			<canon>alter NPC (who,NPCstat,value)</canon>
 			<shortname>alter NPC</shortname>

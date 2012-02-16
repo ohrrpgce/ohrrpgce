@@ -428,6 +428,9 @@
 		
 		<a href="#about-if">else</a><br>
 	
+		<a href="#about-enableinputtext">enable input text (enable)</a><br>
+		
+	
 		
 		<a href="#about-begin">end</a><br>
 	
@@ -587,6 +590,12 @@
 		<a href="#about-getdeathscript">get death script</a><br>
 		
 	
+		<a href="#about-getdefaultherohandx">get default hero hand x (who,frame)</a><br>
+		
+	
+		<a href="#about-getdefaultherohandy">get default hero hand y (who,frame)</a><br>
+		
+	
 		<a href="#about-getdefaultweapon">get default weapon (hero)</a><br>
 		
 	
@@ -629,13 +638,16 @@
 		<a href="#about-getformationsong">get formation song (formation)</a><br>
 		
 	
-		<a href="#about-getglobalstring">get global string (ID, global)</a><br>
-		
-	
 		<a href="#about-getgridcolumns">get grid columns (handle)</a><br>
 		
 	
 		<a href="#about-getgridrows">get grid rows (handle)</a><br>
+		
+	
+		<a href="#about-getherohandx">get hero hand x (who,frame)</a><br>
+		
+	
+		<a href="#about-getherohandy">get hero hand y (who,frame)</a><br>
 		
 	
 		<a href="#about-getherolevel">get hero level (who)</a><br>
@@ -660,6 +672,9 @@
 		
 	
 		<a href="#about-getherostatcap">get hero stat cap (stat)</a><br>
+		
+	
+		<a href="#about-getinputtext">get input text (string id)</a><br>
 		
 	
 		<a href="#about-getinsteadofbattlescript">get instead of battle script</a><br>
@@ -800,6 +815,9 @@
 		<a href="#about-getrectfgcol">get rect fgcol (handle)</a><br>
 		
 	
+		<a href="#about-getrectfuzziness">get rect fuzziness (handle)</a><br>
+		
+	
 		<a href="#about-getrectstyle">get rect style (handle)</a><br>
 		
 	
@@ -816,6 +834,9 @@
 		
 	
 		<a href="#about-getslicelookup">get slice lookup (handle)</a><br>
+		
+	
+		<a href="#about-getslicetext">get slice text(string id, slice handle)</a><br>
 		
 	
 		<a href="#about-getslicevelocityx">get slice velocity x (handle)</a><br>
@@ -977,10 +998,10 @@
 		<a href="#about-itemsmenu">items menu</a><br>
 		
 	
-		<a href="#about-joystickaxis">joystick axis (axis,multiplier,joystick)</a><br>
+		<a href="#about-joystickaxis">joystick axis (axis, multiplier, joystick)</a><br>
 		
 	
-		<a href="#about-joystickbutton">joystick button (button,joystick)</a><br>
+		<a href="#about-joystickbutton">joystick button (button, joystick)</a><br>
 		
 	
 		<a href="#about-keyconstants">Key Constants</a><br>
@@ -1625,6 +1646,12 @@
 		<a href="#about-setheroframe">set hero frame (who, frame)</a><br>
 		
 	
+		<a href="#about-setherohandx">set hero hand x (who, frame, new x)</a><br>
+		
+	
+		<a href="#about-setherohandy">set hero hand y (who, frame, new y)</a><br>
+		
+	
 		<a href="#about-setherolevel">set hero level (who, level, forgetspells)</a><br>
 		
 	
@@ -1812,6 +1839,9 @@
 		
 	
 		<a href="#about-setrectfgcol">set rect fgcol (handle, color)</a><br>
+		
+	
+		<a href="#about-setrectfuzziness">set rect fuzziness (handle, percent)</a><br>
 		
 	
 		<a href="#about-setrectstyle">set rect style (handle, style)</a><br>
@@ -2093,7 +2123,7 @@
 		<a href="#about-stringcompare">string compare (ID1, ID2)</a><br>
 		
 	
-		<a href="#about-stringfromtextbox">string from textbox (ID, textbox, line, expand)</a><br>
+		<a href="#about-stringfromtextbox">string from textbox (ID, textbox, line, ignored)</a><br>
 		
 	
 		<a href="#about-stringisvisible">string is visible (ID)</a><br>
@@ -2203,6 +2233,9 @@
 	
 		
 		<a href="#about-numericconstants">nine</a><br>
+	
+		<a href="#about-textboxline">textbox line (string ID, textbox, line, expand, strip)</a><br>
+		
 	
 		
 		<a href="#about-if">then</a><br>
@@ -4459,21 +4492,13 @@ get hero name (1,find hero(hero by rank(0)))
 			
 			
 		</tt></p>
-		<a name="about-getglobalstring"></a>
-		<p>
-		<tt>
-		<b><font color="yellow">get global string (ID, global)</font></b><br>
-			This command will take the name of global string #<span class="param">global</span> and stick it in string #<span class="param">ID</span>, overwriting its contents. Global strings include every text string in the game, such as prompts and messages. See the Global String Editor in CUSTOM for a list of all of them. Due to the way global strings are stored internally, not all values of #<span class="param">global</span> will produce valid results. <br>
-			
-			
-		</tt></p>
 		<a name="about-inputstring"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">input string (ID, maxlength, use current, center, position x, position y)</font></b><br>
-			Allows the player to type in a string. Returns false if they press ESC to cancel. All arguments are optional: <span class="param">ID</span> is the string you want to use, default is string #0. <span class="param">maxlen</span> is the length of input, if left blank the limit will be set to 40 (max visible onscreen length). <span class="param">use current</span> is whether you want to add to the existing string, or clear the string before typing. The default is to clear the string before typing, valid arguments are <a href="#about-booleanconstants" class="ref">true</a> or <a href="#about-booleanconstants" class="ref">false</a>. <span class="param">center</span> centers the string input at position x/y. If left blank the string will use its current positioning. Otherwise, valid arguments are <a href="#about-booleanconstants" class="ref">true</a> or <a href="#about-booleanconstants" class="ref">false</a>. If the string is not visible, then it will automatically be placed onscreen (centered if not specified) and hidden when done. <span class="param">position x</span> and <span class="param">position y</span> are optional, and are the position at which the string will be shown as it is being typed. The default values are 160,110.<br>
+			Allows the player to type in a string (until they press ENTER). Returns false if they press ESC to cancel. <span class="param">ID</span> is the string you want to use. All other arguments are optional: <span class="param">maxlen</span> is the length of input, if left blank the limit will be set to 40 (max visible onscreen length). <span class="param">use current</span> is whether you want to add to the existing string, or clear the string before typing. The default is to clear the string before typing, valid arguments are <a href="#about-booleanconstants" class="ref">true</a> or <a href="#about-booleanconstants" class="ref">false</a>. The string will be centered (see <a href="#about-centerstringat" class="ref">center string at</a> unless <span class="param">center</span> is <a href="#about-booleanconstants" class="ref">false</a>. If the string is not visible, then it will automatically be placed onscreen (centered if not specified) and hidden when done. <span class="param">position x</span> and <span class="param">position y</span> are optional (defaulting to the center of the screen), and are the position at which the string will be shown as it is being typed; otherwise the string will use its current positioning if already visible.<br>
 			
-			
+			<br>See also: <ul class="seealso"><li><a href="#about-getinputtext" class="ref">get input text</a></li></ul>
 		</tt></p>
 		<a name="about-showstringat"></a>
 		<p>
@@ -4577,8 +4602,20 @@ get hero name (1,find hero(hero by rank(0)))
 		<a name="about-stringfromtextbox"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">string from textbox (ID, textbox, line, expand)</font></b><br>
-			Loads text from the <span class="param">line</span> in a <span class="param">textbox</span> into a string <span class="param">ID</span>. The command automatically erases white spaces from the begining of the string and end of the string. Valid numbers for <span class="param">line</span> are 0-7. If <span class="param">expand</span> is true, then codes like ${H1} in the string will be substituted automatically.<br>
+		<b><font color="yellow">string from textbox (ID, textbox, line, ignored)</font></b><br>
+			Loads one of the <span class="param">line</span>s of a <span class="param">textbox</span> into a string <span class="param">ID</span>. Valid numbers for <span class="param">line</span> are 0-7. This command is obsolete and exists only for compatibility with old games: It has been replaced with <a href="#about-textboxline" class="ref">textbox line</a>. The fourth argument does nothing. Trailing and leading whitespace is stripped from the line, and embedded codes like ${H1} in the string are automatically substituted.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-expandstring" class="ref">expand string</a>, </li>
+<li><a href="#about-textboxline" class="ref">textbox line</a></li>
+</ul>
+		</tt></p>
+		<a name="about-textboxline"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">textbox line (string ID, textbox, line, expand, strip)</font></b><br>
+			Loads one of the <span class="param">line</span>s of a <span class="param">textbox</span> into a <span class="param">string ID</span>. Valid numbers for <span class="param">line</span> are 0-7. If <span class="param">expand</span> is true (which is the default) codes such as ${H1} in the string will be substituted automatically. If <span class="param">strip</span> is true (which is NOT the default), white space at the beginning and end of the string are removed.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-expandstring" class="ref">expand string</a></li></ul>
 		</tt></p>
@@ -4586,7 +4623,7 @@ get hero name (1,find hero(hero by rank(0)))
 		<p>
 		<tt>
 		<b><font color="yellow">expand string(ID)</font></b><br>
-			Expands codes in <span class="param">ID</span> like ${H1}. This does the same thing that textboxes do automatically.<br>
+			Expands codes in <span class="param">ID</span> such as ${H1}. This does the same thing that textboxes do automatically.<br>
 			
 			
 		</tt></p>
@@ -7256,17 +7293,53 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">get rect trans (handle)</font></b><br>
-			Given a rect slice <span class="param">handle</span>, returns one of: the constant <span class="param">trans:fuzzy</span> if it is drawn semi-transparent, <span class="param">trans:hollow</span> if it is fully transparent, or <span class="param">trans:solid</span> (equal to <a href="#about-booleanconstants" class="ref">false</a>) if it is drawn solid.<br>
+			Given a rect slice <span class="param">handle</span>, returns one of: the constant <span class="param">trans:fuzzy</span> if it is drawn semi-transparent (with any fuzziness percentage from 1 to 99: see <a href="#about-getrectfuzziness" class="ref">get rect fuzziness</a>), <span class="param">trans:hollow</span> if it is fully transparent, or <span class="param">trans:solid</span> (equal to <a href="#about-booleanconstants" class="ref">false</a>) if it is drawn solid.<br>
 			
-			<br>See also: <ul class="seealso"><li><a href="#about-setrecttrans" class="ref">set rect trans</a></li></ul>
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-setrecttrans" class="ref">set rect trans</a>, </li>
+<li><a href="#about-getrectfuzziness" class="ref">get rect fuzziness</a></li>
+</ul>
 		</tt></p>
 		<a name="about-setrecttrans"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">set rect trans (handle, transparency setting)</font></b><br>
-			Given a rect slice <span class="param">handle</span>, change how transparently it is drawn. For <span class="param">transparency setting</span>, pass in one of the constants <span class="param">trans:fuzzy</span> for semi-transparency (checkered), <span class="param">trans:hollow</span> for fully transparent (the border drawn only), or <span class="param">trans:solid</span> (equal to <a href="#about-booleanconstants" class="ref">false</a>) for solid.<br>
+			Given a rect slice <span class="param">handle</span>, change how transparently it is drawn. For <span class="param">transparency setting</span>, pass in one of the constants <span class="param">trans:fuzzy</span> for semi-transparency (checkered, ie. 50% fuzziness), <span class="param">trans:hollow</span> for fully transparent (the border drawn only), or <span class="param">trans:solid</span> (equal to <a href="#about-booleanconstants" class="ref">false</a>) for solid. Note that this command is strictly weaker than <a href="#about-setrectfuzziness" class="ref">set rect fuzziness</a>, which provides much finer control of rectangle slice transparency/translucency.<br>
 			
-			<br>See also: <ul class="seealso"><li><a href="#about-getrecttrans" class="ref">get rect trans</a></li></ul>
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-getrecttrans" class="ref">get rect trans</a>, </li>
+<li><a href="#about-setrectfuzziness" class="ref">set rect fuzziness</a></li>
+</ul>
+		</tt></p>
+		<a name="about-getrectfuzziness"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get rect fuzziness (handle)</font></b><br>
+			Given a rect slice <span class="param">handle</span>, returns the percentage translucency of the slice, from 0 to 100: 0 if the rectangle is hollow, 100 if it is opaque, and a value between 1 and 99 if it is fuzzy. Rectangles set to trans:fuzzy using <a href="#about-setrecttrans" class="ref">set rect trans</a> default to 50% translucency.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-setrecttrans" class="ref">set rect trans</a>, </li>
+<li>
+<a href="#about-getrecttrans" class="ref">get rect trans</a>, </li>
+<li><a href="#about-setrectfuzziness" class="ref">set rect fuzziness</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setrectfuzziness"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set rect fuzziness (handle, percent)</font></b><br>
+			Sets the percentage translucency of a rect slice <span class="param">handle</span> to <span class="param">percent</span>. A <span class="param">percent</span> of 0 is equivalent to <a href="#about-setrecttrans" class="ref">set rect trans</a>(handle, trans:hollow), a <span class="param">percent</span> of 100 is equivalent to <a href="#about-setrecttrans" class="ref">set rect trans</a>(handle, trans:opaque), and anything inbetween 1 and 99 implicitly does <a href="#about-setrecttrans" class="ref">set rect trans</a>(handle, trans:fuzzy) as well as setting the percentage.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-setrecttrans" class="ref">set rect trans</a>, </li>
+<li>
+<a href="#about-getrecttrans" class="ref">get rect trans</a>, </li>
+<li><a href="#about-getrectfuzziness" class="ref">get rect fuzziness</a></li>
+</ul>
 		</tt></p>
 		<a name="about-getellipsebordercol"></a>
 		<p>
@@ -7346,7 +7419,23 @@ end
 		<b><font color="yellow">set slice text(handle, string id)</font></b><br>
 			Copy a string specified by <span class="param">string id</span> into the text slice specified by <span class="param">handle</span>.<br>
 			
-			<br>See also: <ul class="seealso"><li><a href="#about-createtext" class="ref">create text</a></li></ul>
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-createtext" class="ref">create text</a>, </li>
+<li><a href="#about-getslicetext" class="ref">get slice text</a></li>
+</ul>
+		</tt></p>
+		<a name="about-getslicetext"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get slice text(string id, slice handle)</font></b><br>
+			Copy the contents of the text slice specified by <span class="param">slice handle</span> into a string specified by <span class="param">string id</span>.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-createtext" class="ref">create text</a>, </li>
+<li><a href="#about-setslicetext" class="ref">set slice text</a></li>
+</ul>
 		</tt></p>
 		<a name="about-gettextcolor"></a>
 		<p>
@@ -8210,6 +8299,7 @@ end
 <li>key:Alt            # either Alt key pressed</li>
 <li>key:Left Alt</li>
 <li>key:Right Alt</li>
+<li>key:Filtered Alt   # either Alt key pressed, unless a key combinations like Alt+Tab is pressed, however key presses are delayed until key release.</li>
 <li>key:Ctrl           # either Ctrl key pressed</li>
 <li>key:Left Ctrl</li>
 <li>key:Right Ctrl</li>
@@ -8270,14 +8360,30 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">last ascii</font></b><br>
-			Returns the ascii code of any currently pressed key. If more than one key corresponding to an ascii character is being pressed, then only one can be returned.<br>
+			This command is obsolete. Use <a href="#about-getinputtext" class="ref">get input text</a> instead, if possible.<br>Returns the character code of any currently pressed key, or 0 if none are. If more than one key corresponding to an ascii character is being pressed, then only one can be returned.<br>
 			
 			
+		</tt></p>
+		<a name="about-enableinputtext"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">enable input text (enable)</font></b><br>
+			This command needs to be called before <a href="#about-getinputtext" class="ref">get input text</a> can be used. If the optional argument is <a href="#about-booleanconstants" class="ref">true</a> or not given then <span class="param">get input text</span> is enabled, otherwise it is disabled. Enabling <a href="#about-getinputtext" class="ref">get input text</a> may cause some of the keys on international keyboards to go "dead" --- that is, commands such as <a href="#about-keyispressed" class="ref">key is pressed</a> and <a href="#about-waitforkey" class="ref">wait for key</a> will stop showing that they are pressed. For that reason, <span class="param">get input text</span> is disabled by default. You don't need to use this command before calling <a href="#about-inputstring" class="ref">input string</a>.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-getinputtext" class="ref">get input text</a></li></ul>
+		</tt></p>
+		<a name="about-getinputtext"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get input text (string id)</font></b><br>
+			Places in the specified string any text that the player has typed since the last tick. (The string will be empty if nothing has been.) Textual input must be enabled using <a href="#about-enableinputtext" class="ref">enable input text</a> before this command can be used! See that command for details. You will normally call this every tick in a loop and use <a href="#about-concatenatestrings" class="ref">concatenate strings</a> to get the players complete input. However it is much easier to call the <a href="#about-inputstring" class="ref">input string</a> function instead, which does this for you.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-inputstring" class="ref">input string</a></li></ul>
 		</tt></p>
 		<a name="about-joystickbutton"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">joystick button (button,joystick)</font></b><br>
+		<b><font color="yellow">joystick button (button, joystick)</font></b><br>
 			Returns <a href="#about-booleanconstants" class="ref">true</a> or <a href="#about-booleanconstants" class="ref">false</a> depending on whether button #<span class="param">button</span> on joystick #<span class="param">joystick</span> is pressed. <span class="param">button</span> can be from 1-16 (assuming the joystick has that many buttons), and <span class="param">joystick</span> can be from 0-7. Most of the time, you will want to use joystick #0, so that is what <span class="param">joystick</span> defaults to.<br>
 			
 			
@@ -8285,7 +8391,7 @@ end
 		<a name="about-joystickaxis"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">joystick axis (axis,multiplier,joystick)</font></b><br>
+		<b><font color="yellow">joystick axis (axis, multiplier, joystick)</font></b><br>
 			Returns the position of the joystick along the X or Y axis on joystick #<span class="param">joystick</span>. <span class="param">axis</span> can be one of the constants <a href="#about-xaxis" class="ref">x axis</a> or <a href="#about-yaxis" class="ref">y axis</a>. <span class="param">multiplier</span> is slightly complicated: The position of the joystick is actually a decimal between -1 and 1. Since plotscripting can't handle decimals, this position must be multiplied and rounded off until it is within plotscripting's capabilities. By default, it is 100 (so it will return -100 - 100). <span class="param">joystick</span> can be from 0-7. Most of the time, you will want to use joystick #0, so that is what <span class="param">joystick</span> defaults to.<br>
 			
 			
@@ -9386,6 +9492,126 @@ Besides readability, there is one other important difference between these two e
 			Resets a hero's palette that was previously changed with <a href="#about-setheropalette" class="ref">set hero palette</a> back to the default palette. The first argument is the hero's position in the party. (Use <a href="#about-findhero" class="ref">find hero</a> if you want refer to the hero by name.) The second argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a>, which determines if you are changing the hero's battle palette or their walkabout palette. If the last argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-setheropicture" class="ref">set hero picture</a></li></ul>
+		</tt></p>
+		<a name="about-getherohandx"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get hero hand x (who,frame)</font></b><br>
+			Get the x position of a hero's weapon hand in battle. The position is in pixels relative to the top left corner of the hero's battle sprite. The first argument is the hero's position in the party. The second argument is the attack frame. You can use the constants <span class="param">hand:Attack A</span> and <span class="param">hand:Attack B</span><br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-getherohandx" class="ref">get hero hand x</a>, </li>
+<li>
+<a href="#about-getherohandy" class="ref">get hero hand y</a>, </li>
+<li>
+<a href="#about-setherohandx" class="ref">set hero hand x</a>, </li>
+<li>
+<a href="#about-setherohandy" class="ref">set hero hand y</a>, </li>
+<li>
+<a href="#about-getdefaultherohandx" class="ref">get default hero hand x</a>, </li>
+<li><a href="#about-getdefaultherohandy" class="ref">get default hero hand y</a></li>
+</ul>
+		</tt></p>
+		<a name="about-getherohandy"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get hero hand y (who,frame)</font></b><br>
+			Get the y position of a hero's weapon hand in battle. The position is in pixels relative to the top left corner of the hero's battle sprite. The first argument is the hero's position in the party. The second argument is the attack frame. You can use the constants <span class="param">hand:Attack A</span> and <span class="param">hand:Attack B</span><br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-getherohandx" class="ref">get hero hand x</a>, </li>
+<li>
+<a href="#about-getherohandy" class="ref">get hero hand y</a>, </li>
+<li>
+<a href="#about-setherohandx" class="ref">set hero hand x</a>, </li>
+<li>
+<a href="#about-setherohandy" class="ref">set hero hand y</a>, </li>
+<li>
+<a href="#about-getdefaultherohandx" class="ref">get default hero hand x</a>, </li>
+<li><a href="#about-getdefaultherohandy" class="ref">get default hero hand y</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setherohandx"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set hero hand x (who, frame, new x)</font></b><br>
+			Change the x position of a hero's weapon hand in battle. The position is in pixels relative to the top left corner of the hero's battle sprite. The first argument is the hero's position in the party. The second argument is the attack frame. You can use the constants <span class="param">hand:Attack A</span> and <span class="param">hand:Attack B</span> The third argument is the new x position.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-getherohandx" class="ref">get hero hand x</a>, </li>
+<li>
+<a href="#about-getherohandy" class="ref">get hero hand y</a>, </li>
+<li>
+<a href="#about-setherohandx" class="ref">set hero hand x</a>, </li>
+<li>
+<a href="#about-setherohandy" class="ref">set hero hand y</a>, </li>
+<li>
+<a href="#about-getdefaultherohandx" class="ref">get default hero hand x</a>, </li>
+<li><a href="#about-getdefaultherohandy" class="ref">get default hero hand y</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setherohandy"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set hero hand y (who, frame, new y)</font></b><br>
+			Change the y position of a hero's weapon hand in battle. The position is in pixels relative to the top left corner of the hero's battle sprite. The first argument is the hero's position in the party. The second argument is the attack frame. You can use the constants <span class="param">hand:Attack A</span> and <span class="param">hand:Attack B</span> The third argument is the new y position.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-getherohandx" class="ref">get hero hand x</a>, </li>
+<li>
+<a href="#about-getherohandy" class="ref">get hero hand y</a>, </li>
+<li>
+<a href="#about-setherohandx" class="ref">set hero hand x</a>, </li>
+<li>
+<a href="#about-setherohandy" class="ref">set hero hand y</a>, </li>
+<li>
+<a href="#about-getdefaultherohandx" class="ref">get default hero hand x</a>, </li>
+<li><a href="#about-getdefaultherohandy" class="ref">get default hero hand y</a></li>
+</ul>
+		</tt></p>
+		<a name="about-getdefaultherohandx"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get default hero hand x (who,frame)</font></b><br>
+			Get the original x position of a hero's weapon hand in battle as specified in the hero editor. The position is in pixels relative to the top left corner of the hero's battle sprite. The first argument is the hero's position in the party. The second argument is the attack frame. You can use the constants <span class="param">hand:Attack A</span> and <span class="param">hand:Attack B</span><br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-getherohandx" class="ref">get hero hand x</a>, </li>
+<li>
+<a href="#about-getherohandy" class="ref">get hero hand y</a>, </li>
+<li>
+<a href="#about-setherohandx" class="ref">set hero hand x</a>, </li>
+<li>
+<a href="#about-setherohandy" class="ref">set hero hand y</a>, </li>
+<li>
+<a href="#about-getdefaultherohandx" class="ref">get default hero hand x</a>, </li>
+<li><a href="#about-getdefaultherohandy" class="ref">get default hero hand y</a></li>
+</ul>
+		</tt></p>
+		<a name="about-getdefaultherohandy"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get default hero hand y (who,frame)</font></b><br>
+			Get the original y position of a hero's weapon hand in battle as specified in the hero editor. The position is in pixels relative to the top left corner of the hero's battle sprite. The first argument is the hero's position in the party. The second argument is the attack frame. You can use the constants <span class="param">hand:Attack A</span> and <span class="param">hand:Attack B</span><br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-getherohandx" class="ref">get hero hand x</a>, </li>
+<li>
+<a href="#about-getherohandy" class="ref">get hero hand y</a>, </li>
+<li>
+<a href="#about-setherohandx" class="ref">set hero hand x</a>, </li>
+<li>
+<a href="#about-setherohandy" class="ref">set hero hand y</a>, </li>
+<li>
+<a href="#about-getdefaultherohandx" class="ref">get default hero hand x</a>, </li>
+<li><a href="#about-getdefaultherohandy" class="ref">get default hero hand y</a></li>
+</ul>
 		</tt></p>
 		<a name="about-alternpc"></a>
 		<p>
@@ -10817,7 +11043,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 749 commands in this file, of which 56 are only references to other commands.</p>
+	<p>Stats: There are 760 commands in this file, of which 56 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
