@@ -204,6 +204,7 @@ extern "C" {
 #if defined(_WIN32) || defined(WIN32)
 
   //fb_win32.h
+# include <io.h>
 # include <stdio.h>
 # ifdef TARGET_CYGWIN
    typedef _off64_t fb_off_t;

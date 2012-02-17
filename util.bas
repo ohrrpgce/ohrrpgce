@@ -1045,7 +1045,7 @@ PRIVATE FUNCTION decode_filename(filename as string) as string
 
 END FUNCTION
 
-#elseif defined(__WIN32__)
+#elseif defined(__FB_WIN32__)
 
 'Convert Windows-1252 to Latin-1 by removing the extra characters
 FUNCTION decode_filename(filename as string) as string
