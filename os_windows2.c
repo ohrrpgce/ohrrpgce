@@ -1,6 +1,9 @@
 //OHHRPGCE COMMON - Windows-specific routines which require C implementations
 //Please read LICENSE.txt for GNU GPL License details and disclaimer of liability
 
+//fb_stub.h MUST be included first, to ensure fb_off_t is 64 bit
+#include "fb/fb_stub.h"
+
 #include <locale.h>
 #include "os.h"
 #include "common.h"
