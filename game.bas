@@ -1547,10 +1547,14 @@ WITH scrat(nowscript)
       IF carray(.waitarg) > 1 THEN
        .state = streturn
       END IF
+      'Because carray(ccMenu) doesn't include it, and we don't want to break scripts
+      'doing waitforkey(menu key) followed by looking for key:alt (== scUnfilteredAlt)
+      IF .waitarg = ccMenu AND keyval(scUnfilteredAlt) > 1 THEN .state = streturn
      ELSE
       '.waitarg == anykey
       scriptret = anykeypressed()
-      'Because anykeypressed doesn't check it, and we don't want to break scripts looking for key:alt (== scUnfilteredAlt)
+      'Because anykeypressed doesn't check it, and we don't want to break scripts
+      'doing waitforkey(any key) followed by looking for key:alt (== scUnfilteredAlt)
       IF keyval(scUnfilteredAlt) > 1 THEN scriptret = scUnfilteredAlt
       IF scriptret THEN
        .state = streturn
