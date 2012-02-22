@@ -2800,9 +2800,8 @@ private function fontlayer_duplicate (byval srclayer as FontLayer ptr) as FontLa
 end function
 
 'Create a version of a font with an outline around each character (in a new palette colour)
-SUB font_create_edged (byval font as Font ptr, byval basefont as Font ptr)
-	if font = null then exit sub
-	font_unload font
+SUB font_create_edged (byval newfont as Font ptr, byval basefont as Font ptr)
+	if newfont = null then exit sub
 
 	if basefont = null then
 		debug "createedgefont wasn't passed a font!"
@@ -2812,6 +2811,10 @@ SUB font_create_edged (byval font as Font ptr, byval basefont as Font ptr)
 		debug "createedgefont was passed a blank font!"
 		exit sub
 	end if
+
+	'We support newfont == basefont by writing to a temporary Font to begin with
+	dim font as Font ptr = callocate(sizeof(Font))
+	'font_unload font
 
 	font->layers(0) = fontlayer_new()
 	'Share layer 1
@@ -2876,12 +2879,15 @@ SUB font_create_edged (byval font as Font ptr, byval basefont as Font ptr)
 			next
 		end with
 	next
+
+	font_unload newfont
+	memcpy(newfont, font, sizeof(Font))
+	deallocate(font)
 end SUB
 
 'Create a version of a font with a drop shadow (in a new palette colour)
-SUB font_create_shadowed (byval font as Font ptr, byval basefont as Font ptr, byval xdrop as integer = 1, byval ydrop as integer = 1)
-	if font = null then exit sub
-	font_unload font
+SUB font_create_shadowed (byval newfont as Font ptr, byval basefont as Font ptr, byval xdrop as integer = 1, byval ydrop as integer = 1)
+	if newfont = null then exit sub
 
 	if basefont = null then
 		debug "createshadowfont wasn't passed a font!"
@@ -2891,6 +2897,10 @@ SUB font_create_shadowed (byval font as Font ptr, byval basefont as Font ptr, by
 		debug "createshadowfont was passed a blank font!"
 		exit sub
 	end if
+
+	'We support newfont == basefont by writing to a temporary Font to begin with
+	dim font as Font ptr = callocate(sizeof(Font))
+	'font_unload font
 
 	memcpy(font, basefont, sizeof(Font))
 
@@ -2916,6 +2926,10 @@ SUB font_create_shadowed (byval font as Font ptr, byval basefont as Font ptr, by
 			end if
 		next
 	end with
+
+	font_unload newfont
+	memcpy(newfont, font, sizeof(Font))
+	deallocate(font)
 end SUB
 
 sub font_loadold1bit (byval font as Font ptr, byval fontdata as ubyte ptr)
@@ -2973,9 +2987,11 @@ end SUB
 'font for missing BMPs
 'This sub is for testing purposes only, and will be removed unless this shows some use:
 'uses hardcoded values
-SUB font_loadbmps (byval font as Font ptr, directory as string, byval fallback as Font ptr = null)
-	if font = null then exit sub
-	font_unload font
+SUB font_loadbmps (byval newfont as Font ptr, directory as string, byval fallback as Font ptr = null)
+	if newfont = null then exit sub
+	'We support fallback == font by writing to a temporary Font to begin with
+	dim font as Font ptr = callocate(sizeof(Font))
+	'font_unload font
 
 	font->layers(0) = null
 	font->layers(1) = fontlayer_new()
@@ -3023,6 +3039,8 @@ SUB font_loadbmps (byval font as Font ptr, directory as string, byval fallback a
 				if fallback = null ORELSE fallback->layers(1) = null then
 					debug "font_loadbmps: fallback font not provided"
 					font_unload font
+					deallocate(font)
+					'font_unload newfont
 					exit sub
 				end if
 
@@ -3043,6 +3061,70 @@ SUB font_loadbmps (byval font as Font ptr, directory as string, byval fallback a
 
 	font->layers(1)->spr->image = image
 	font->h = maxheight
+
+	font_unload newfont
+	memcpy(newfont, font, sizeof(Font))
+	deallocate(font)
+end SUB
+
+'Load a font from a BMP which contains all 256 characters in a 16x16 grid (all characters the same size)
+SUB font_loadbmp_16x16 (byval font as Font ptr, filename as string)
+	if font = null then exit sub
+
+	dim bmp as Frame ptr
+	bmp = frame_import_bmp_raw(filename)
+
+	if bmp = NULL then
+		debug "font_loadbmp_16x16: couldn't load " & filename
+		exit sub
+	end if
+
+	if bmp->w MOD 16 OR bmp->h MOD 16 then
+		debug "font_loadbmp_16x16: " & filename & ": bad dimensions " & bmp->w & "*" & bmp->h
+		exit sub
+	end if
+
+	font_unload font
+
+	dim as integer charw, charh
+	charw = bmp->w \ 16
+	charh = bmp->h \ 16
+	font->h = charh
+	font->offset.x = 0
+	font->offset.y = 0
+	font->layers(0) = null
+	font->layers(1) = fontlayer_new()
+
+	'"Linearise" the characters. In future this will be unnecessary
+	font->layers(1)->spr = frame_new(charw, charh * 256)
+
+	dim as integer size = 0
+
+	for i as integer = 0 to 255
+		with font->layers(1)->chdata(i)
+			.offset = size
+			.offx = 0
+			.offy = 0
+			.w = charw
+			.h = charh
+			font->w(i) = .w
+			size += .w * .h
+			dim tempview as Frame ptr
+			tempview = frame_new_view(bmp, charw * (i MOD 16), charh * (i \ 16), charw, charh)
+			'setclip , charh * i, , charh * (i + 1) - 1, font->layers(1)->spr
+			frame_draw tempview, , 0, charh * i, 1, NO, font->layers(1)->spr
+			frame_unload @tempview
+		end with
+	next
+
+	'Find number of used colours
+	font->cols = 0
+	dim as ubyte ptr image = bmp->image
+	for i as integer = 0 to bmp->pitch * bmp->h - 1
+		if image[i] > font->cols then font->cols = image[i]
+	next
+
+	frame_unload @bmp
 end SUB
 
 SUB setfont (f() as integer)
