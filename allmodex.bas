@@ -2423,9 +2423,9 @@ sub draw_line_fragment(byval dest as Frame ptr, byref state as PrintStrState, by
 
 				'Print one character past the end of the line
 				if reallydraw and .x <= clipr then
-					if .thefont->sprite(layer) <> NULL then
-						with .thefont->sprite(layer)->chdata(parsed_line[ch])
-							charframe->image = state.thefont->sprite(layer)->spr.image + .offset
+					if .thefont->layers(layer) <> NULL then
+						with .thefont->layers(layer)->chdata(parsed_line[ch])
+							charframe->image = state.thefont->layers(layer)->spr->image + .offset
 							charframe->w = .w
 							charframe->h = .h
 							charframe->pitch = .w
@@ -2761,48 +2761,74 @@ SUB textcolor (byval f as integer, byval b as integer)
 	textbg = b
 end SUB
 
-'TODO/FIXME: need to use frame_* functions PROPERLY to handle Frame stuff
-'In fact, this SUB is basically broken and does not work
+'This SUB doesn't actually delete the Font object
 SUB font_unload (byval font as Font ptr)
 	if font = null then exit sub
 
-	'look! polymorphism! definitely not hackery! yeah... almost.
-	frame_unload cast(Frame ptr ptr, @font->sprite(0))
-	frame_unload cast(Frame ptr ptr, @font->sprite(1))
+	for i as integer = 0 to 1
+		if font->layers(i) then
+			font->layers(i)->refcount -= 1
+			if font->layers(i)->refcount <= 0 then
+				frame_unload @font->layers(i)->spr
+				deallocate(font->layers(i))
+			end if
+			font->layers(i) = NULL
+		end if
+	next
 
-	'delete font
+	memset(font, 0, sizeof(Font))
+	'font->cols = 0
+	'font->offset.x = 0
+	'font->offset.y = 0
 end SUB
 
-'TODO/FIXME: need to use frame_* functions to handle Frame stuff
+'Doesn't create a Frame
+private function fontlayer_new () as FontLayer ptr
+	dim ret as FontLayer ptr
+	ret = callocate(sizeof(FontLayer))
+	ret->refcount = 1
+	return ret
+end function
+
+private function fontlayer_duplicate (byval srclayer as FontLayer ptr) as FontLayer ptr
+	dim ret as FontLayer ptr
+	ret = callocate(sizeof(FontLayer))
+	memcpy(ret, srclayer, sizeof(FontLayer))
+	ret->spr = frame_duplicate(srclayer->spr)
+	ret->refcount = 1
+	return ret
+end function
+
+'Create a version of a font with an outline around each character (in a new palette colour)
 SUB font_create_edged (byval font as Font ptr, byval basefont as Font ptr)
+	if font = null then exit sub
+	font_unload font
+
 	if basefont = null then
 		debug "createedgefont wasn't passed a font!"
 		exit sub
 	end if
-	if basefont->sprite(1) = null then
+	if basefont->layers(1) = null then
 		debug "createedgefont was passed a blank font!"
 		exit sub
 	end if
 
-	if font = null then exit sub
-	'font = new Font
-	font_unload font
-
-	font->sprite(0) = callocate(sizeof(FontLayer))
-	font->sprite(1) = basefont->sprite(1)
-	font->sprite(1)->spr.refcount += 1
+	font->layers(0) = fontlayer_new()
+	'Share layer 1
+	font->layers(1) = basefont->layers(1)
+	font->layers(1)->refcount += 1
 
 	dim size as integer
 	'since you can only WITH one thing at a time
 	dim bchr as FontChar ptr
-	bchr = @basefont->sprite(1)->chdata(0)
+	bchr = @basefont->layers(1)->chdata(0)
 
 	dim as integer ch
 
 	for ch = 0 to 255
 		font->w(ch) = basefont->w(ch)
 
-		with font->sprite(0)->chdata(ch)
+		with font->layers(0)->chdata(ch)
 			.offset = size
 			.offx = bchr->offx - 1
 			.offy = bchr->offy - 1
@@ -2812,30 +2838,27 @@ SUB font_create_edged (byval font as Font ptr, byval basefont as Font ptr)
 		end with
 		bchr += 1
 	next
-			
 
-	with font->sprite(0)->spr
-		.w = size  'garbage
-		.h = 1
-		.pitch = size 'more garbage, not sure whether there's a sensible value
-		.refcount = 1  'NOREFC  '?????
-		'.arrayelem = 1 ' ??????
-		.mask = null
-		.image = callocate(size)
-	end with
+	'This is a hack; create a size*1 size frame, which we use as a buffer for pixel data
+	font->layers(0)->spr = frame_new(size, 1, , YES)
+
 	font->h = basefont->h  '+ 2
 	font->offset = basefont->offset
 	font->cols = basefont->cols + 1
 
+	'Stuff currently hardcoded to keep edged font working as before
+	font->offset.x = 1
+	font->offset.y = 1
+	'font->h += 2
 
-	'dim as ubyte ptr maskp = basefont->sprite(0)->mask
+	'dim as ubyte ptr maskp = basefont->layers(0)->spr->mask
 	dim as ubyte ptr sptr
-	dim as ubyte ptr srcptr = font->sprite(1)->spr.image
+	dim as ubyte ptr srcptr = font->layers(1)->spr->image
 	dim as integer x, y
 
 	for ch = 0 to 255
-		with font->sprite(0)->chdata(ch)
-			sptr = font->sprite(0)->spr.image + .offset + .w + 1
+		with font->layers(0)->chdata(ch)
+			sptr = font->layers(0)->spr->image + .offset + .w + 1
 			for y = 1 to .h - 2
 				for x = 1 to .w - 2
 					if *srcptr then
@@ -2855,45 +2878,38 @@ SUB font_create_edged (byval font as Font ptr, byval basefont as Font ptr)
 	next
 end SUB
 
-'TODO/FIXME: need to use frame_* functions to handle Frame stuff (and some dodgy non-pitch-aware stuff here)
+'Create a version of a font with a drop shadow (in a new palette colour)
 SUB font_create_shadowed (byval font as Font ptr, byval basefont as Font ptr, byval xdrop as integer = 1, byval ydrop as integer = 1)
+	if font = null then exit sub
+	font_unload font
+
 	if basefont = null then
 		debug "createshadowfont wasn't passed a font!"
 		exit sub
 	end if
-	if basefont->sprite(1) = null then
+	if basefont->layers(1) = null then
 		debug "createshadowfont was passed a blank font!"
 		exit sub
 	end if
 
-	if font = null then exit sub
-	font_unload font
-
 	memcpy(font, basefont, sizeof(Font))
 
-	font->sprite(0) = callocate(sizeof(FontLayer))
-	font->sprite(1)->spr.refcount += 1
+	'Copy layer 1 from the old font to layer 0 of the new
+	font->layers(0) = fontlayer_duplicate(basefont->layers(1))
+
+	'Share layer 1 with the base font
+	font->layers(1)->refcount += 1
+
 	font->cols += 1
 
-	'wish I could call frame_duplicate. A little OO would fix that.
-	memcpy(font->sprite(0), font->sprite(1), sizeof(FontLayer))
-
 	for ch as integer = 0 to 255
-		with font->sprite(0)->chdata(ch)
+		with font->layers(0)->chdata(ch)
 			.offx += xdrop
 			.offy += ydrop
 		end with
 	next
 			
-	with font->sprite(0)->spr	
-		.image = allocate(.w * .h)
-		memcpy(.image, font->sprite(1)->spr.image, .w * .h)
-		if font->sprite(1)->spr.mask then
-			.mask = allocate(.w * .h)
-			memcpy(.mask, font->sprite(1)->spr.mask, .w * .h)
-		end if
-		.refcount = 1
-
+	with *font->layers(0)->spr
 		for i as integer = 0 to .w * .h - 1
 			if .image[i] then
 				.image[i] = font->cols
@@ -2902,28 +2918,19 @@ SUB font_create_shadowed (byval font as Font ptr, byval basefont as Font ptr, by
 	end with
 end SUB
 
-'TODO/FIXME: need to use frame_* functions to handle Frame stuff
 sub font_loadold1bit (byval font as Font ptr, byval fontdata as ubyte ptr)
 	if font = null then exit sub
 	font_unload font
 
-	font->sprite(1) = callocate(sizeof(FontLayer))
-	with font->sprite(1)->spr
-		.w = 8
-		.pitch = 8
-		.h = 256 * 8
-		.refcount = 1   'NOREFC
-		'font->mask = allocate(256 * 8 * 8)
-		.mask = null
-		.image = allocate(256 * 8 * 8)
-	end with
+	font->layers(1) = fontlayer_new()
+	font->layers(1)->spr = frame_new(8, 256 * 8)
 	font->h = 10  'I would have said 9, but this is what was used in text slices
 	font->offset.x = 0
 	font->offset.y = 0
 	font->cols = 1
 
-	'dim as ubyte ptr maskp = font->mask
-	dim as ubyte ptr sptr = font->sprite(1)->spr.image
+	'dim as ubyte ptr maskp = font->layers(1)->spr->mask
+	dim as ubyte ptr sptr = font->layers(1)->spr->image
 
 	dim as integer ch, x, y
 	dim as integer fi 'font index
@@ -2931,7 +2938,7 @@ sub font_loadold1bit (byval font as Font ptr, byval fontdata as ubyte ptr)
 
 	for ch = 0 to 255
 		font->w(ch) = 8
-		with font->sprite(1)->chdata(ch)
+		with font->layers(1)->chdata(ch)
 			.w = 8
 			.h = 8
 			.offset = 64 * ch
@@ -2962,35 +2969,40 @@ sub font_loadold1bit (byval font as Font ptr, byval fontdata as ubyte ptr)
 	next
 end SUB
 
-'This sub is for testing purposes only, and will be removed unless this happens to become
-'the adopted font format. Includes hardcoded values
-'TODO/FIXME: need to use frame_* functions to handle Frame stuff (plus pitch-awareness)
-'FIXME: setclip?
-SUB font_loadbmps (byval font as Font ptr, byval fallback as Font ptr = null)
-	font_unload font
+'Load each character from an individual BMP in a directory, falling back to some other
+'font for missing BMPs
+'This sub is for testing purposes only, and will be removed unless this shows some use:
+'uses hardcoded values
+SUB font_loadbmps (byval font as Font ptr, directory as string, byval fallback as Font ptr = null)
 	if font = null then exit sub
+	font_unload font
 
-	font->sprite(0) = null
-	font->sprite(1) = callocate(sizeof(FontLayer))
-	'these are hardcoded
-	font->h = 6
-	font->offset.x = 0
-	font->offset.y = 0
-	font->cols = 1
+	font->layers(0) = null
+	font->layers(1) = fontlayer_new()
+	'Hacky: start by allocating 4096 pixels, expand as needed
+	font->layers(1)->spr = frame_new(1, 4096)
+	font->cols = 1  'hardcoded
 
-	dim as ubyte ptr image = allocate(4096)
+	dim maxheight as integer
+	if fallback then
+		maxheight = fallback->h
+		font->offset.x = fallback->offset.x
+		font->offset.y = fallback->offset.y
+		font->cols = fallback->cols
+	end if
+
+	dim as ubyte ptr image = font->layers(1)->spr->image
 	dim as ubyte ptr sptr
 	dim as integer size = 0
-	dim as integer i, x, y
+	dim as integer i
 	dim f as string
 	dim tempfr as Frame ptr
 	dim bchr as FontChar ptr
-	bchr = @fallback->sprite(1)->chdata(0)
-
+	bchr = @fallback->layers(1)->chdata(0)
 
 	for i = 0 to 255
-		with font->sprite(1)->chdata(i)
-			f = finddatafile("testfont" & SLASH & i & ".bmp")
+		with font->layers(1)->chdata(i)
+			f = finddatafile(directory & SLASH & i & ".bmp")
 			if isfile(f) then
 				'FIXME: awful stuff
 				tempfr = frame_import_bmp_raw(f)  ', master())
@@ -3000,6 +3012,7 @@ SUB font_loadbmps (byval font as Font ptr, byval fallback as Font ptr = null)
 				.offy = 0
 				.w = tempfr->w
 				.h = tempfr->h
+				if .h > maxheight then maxheight = .h
 				font->w(i) = .w
 				size += .w * .h
 				image = reallocate(image, size)
@@ -3007,9 +3020,9 @@ SUB font_loadbmps (byval font as Font ptr, byval fallback as Font ptr = null)
 				memcpy(sptr, tempfr->image, .w * .h)
 				frame_unload @tempfr
 			else
-				if iif(fallback = null, YES, fallback->sprite(1) = null) then
+				if fallback = null ORELSE fallback->layers(1) = null then
 					debug "font_loadbmps: fallback font not provided"
-					deallocate(image)
+					font_unload font
 					exit sub
 				end if
 
@@ -3021,38 +3034,28 @@ SUB font_loadbmps (byval font as Font ptr, byval fallback as Font ptr = null)
 				font->w(i) = .w
 				size += .w * .h
 				image = reallocate(image, size)
-				memcpy(image + .offset, fallback->sprite(1)->spr.image + bchr->offset, .w * .h)
+				memcpy(image + .offset, fallback->layers(1)->spr->image + bchr->offset, .w * .h)
 			end if
 		end with
 
 		bchr += 1
 	next
 
-	with font->sprite(1)->spr
-		.w = size  'garbage
-		.h = 1
-		.pitch = size 'more garbage
-		.refcount = 1   'NOREFC
-		.mask = null
-		.image = image
-	end with
+	font->layers(1)->spr->image = image
+	font->h = maxheight
 end SUB
 
 SUB setfont (f() as integer)
 	'uncomment to try out a variable width font
 	'font_loadold1bit(@fonts(2), cast(ubyte ptr, @f(0)))
-	'font_loadbmps(@fonts(0), @fonts(2))
+	'font_loadbmps(@fonts(0), "testfont", @fonts(2))
 	
 	'comment to try out a variable width font
 	font_loadold1bit(@fonts(0), cast(ubyte ptr, @f(0)))
 
 	font_create_edged(@fonts(1), @fonts(0))
 	font_create_shadowed(@fonts(2), @fonts(0))
-	'more hardcoded stuff
-	fonts(1).offset.x = 1
-	fonts(1).offset.y = 1
-	'fonts(1).h += 2
-	'font_loadbmps(@fonts(2), @fonts(1))
+	'font_loadbmps(@fonts(2), "testfont", @fonts(1))
 end SUB
 
 SUB storeset (fil as string, byval i as integer, byval l as integer)
@@ -4915,7 +4918,7 @@ end function
 'Public:
 ' draws a sprite to a page. scale must be greater than or equal to 1. if trans is false, the
 ' mask will be wholly ignored. Just like drawohr, masks are optional, otherwise use colourkey 0
-sub frame_draw(byval src as frame ptr, Byval pal as Palette16 ptr = NULL, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = -1, byval page as integer)
+sub frame_draw(byval src as frame ptr, Byval pal as Palette16 ptr = NULL, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = YES, byval page as integer)
 	if src = 0 then
 		debug "trying to draw null frame"
 		exit sub
@@ -4924,7 +4927,7 @@ sub frame_draw(byval src as frame ptr, Byval pal as Palette16 ptr = NULL, Byval 
 	frame_draw src, pal, x, y, scale, trans, vpages(page)
 end sub
 
-sub frame_draw(byval src as Frame ptr, Byval pal as Palette16 ptr = NULL, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = -1, byval dest as Frame ptr)
+sub frame_draw(byval src as Frame ptr, Byval pal as Palette16 ptr = NULL, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = YES, byval dest as Frame ptr)
 	if dest <> clippedframe then
 		setclip , , , , dest
 	end if

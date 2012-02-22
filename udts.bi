@@ -469,27 +469,26 @@ Type ZoneMap
 End Type
 
 Type FontChar
-	offset as integer  'offset into spr.image
+	offset as integer  'offset into spr->image
 	offx as byte   'pixel offsets
 	offy as byte
 	w as byte      'size of sprite
 	h as byte
 End Type
 
-'spr has a refcount, which we use
-'Pretend I inherited from Frame here
 'WARNING: don't add strings to this
 Type FontLayer
-	spr as Frame
+	spr as Frame ptr
+	refcount as integer
 	chdata(255) as FontChar
 End Type
 
 Type Font
-	sprite(1) as FontLayer ptr	'single layer fonts should use sprite(1) only
+	layers(1) as FontLayer ptr	'single layer fonts should use sprite(1) only
 	w(255) as integer	'width of each character
 	h as integer		'height of a line
 	offset as XYPair	'added to coordinates when printing
-	cols as integer		'number of used colours, not including colour 0 (transparency)
+	cols as integer		'number of used colours, not including colour 0 (transparency), so at most 255
 End Type
 
 'text_layout_dimensions returns this struct
