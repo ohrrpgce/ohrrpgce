@@ -77,6 +77,8 @@ br.snd = -1
 'special=7   RPG files
 'special=8   RELOAD files
 'special=9   script files (.hs, .hss)
+'special=10  16 or 256 colour BMP, any size (temporary, used by font_test_menu only)
+
 br.mashead = CHR(253) & CHR(13) & CHR(158) & CHR(0) & CHR(0) & CHR(0) & CHR(6)
 br.paledithead = CHR(253) & CHR(217) & CHR(158) & CHR(0) & CHR(0) & CHR(7) & CHR(6)
 
@@ -280,7 +282,7 @@ SUB browse_hover(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
      br.alert = tree(br.treeptr).filename + " is not a valid BAM file"
     END IF
    END IF
-  CASE 2, 3 'bitmaps
+  CASE 2, 3, 10 'bitmaps
    IF bmpinfo(br.nowdir + tree(br.treeptr).filename, bmpd) THEN
     br.alert = bmpd.biWidth & "*" & bmpd.biHeight & " pixels, " & bmpd.biBitCount & "-bit color"
    END IF
@@ -402,7 +404,16 @@ FOR i as integer = 0 TO UBOUND(filelist)
    br.treesize = br.treesize - 1
   END IF
  END IF
- '--master palettes  (why isn't this up there?)
+ '---4/8 bit BMP files
+ IF br.special = 10 THEN
+  IF bmpinfo(filename, bmpd) THEN
+   IF bmpd.biBitCount = 24 THEN
+    tree(br.treesize).kind = 6
+   END IF
+  ELSE
+   br.treesize = br.treesize - 1
+  END IF
+ END IF '--master palettes  (why isn't this up there?)
  IF br.special = 4 THEN
   IF LCASE(justextension(filename)) = "mas" THEN
    DIM masfh as integer = FREEFILE

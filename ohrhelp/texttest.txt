@@ -4,8 +4,8 @@ ${K100}T${K110},${K9}
 hsimport:
 debuginfo "Importing scripts from " & hsfile
 
-Font 0 is no outline, font 1 is outlined. RM, right margin.
-
-${F1}${RM50}xbload game + ".gen", gen(), "general data is missing, RPG file corruption is likely"
+Font 0 is default, ${F1}here's font 1${F2} and font 2
+${F3}${RM50}font 3..... 
+xbload game + ".gen", gen(), "general data is missing, RPG file corruption is likely"
 
 ${LM20}upgrade font() 'needed because it has not already happened because we are doing command-line import

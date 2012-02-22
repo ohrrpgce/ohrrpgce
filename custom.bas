@@ -59,6 +59,7 @@ DECLARE SUB condition_test_menu ()
 DECLARE SUB quad_transforms_menu ()
 DECLARE SUB arbitrary_sprite_editor ()
 DECLARE SUB text_test_menu ()
+DECLARE SUB font_test_menu ()
 DECLARE SUB distribute_game ()
 DECLARE SUB distribute_game_as_zip ()
 DECLARE SUB distribute_game_as_windows_installer ()
@@ -1205,7 +1206,7 @@ SUB move_unwriteable_rpg (filetolump as string)
 END SUB
 
 SUB secret_menu ()
- DIM menu(...) as string = {"Reload Editor", "Editor Editor", "Conditions and More Tests", "Transformed Quads", "Sprite editor with arbitrary sizes", "Text tests"}
+ DIM menu(...) as string = {"Reload Editor", "Editor Editor", "Conditions and More Tests", "Transformed Quads", "Sprite editor with arbitrary sizes", "Text tests", "Font tests"}
  DIM st as MenuState
  st.size = 24
  st.last = UBOUND(menu)
@@ -1221,6 +1222,7 @@ SUB secret_menu ()
    IF st.pt = 3 THEN quad_transforms_menu
    IF st.pt = 4 THEN arbitrary_sprite_editor
    IF st.pt = 5 THEN text_test_menu
+   IF st.pt = 6 THEN font_test_menu
   END IF
   usemenu st
   clearpage vpage
@@ -1961,4 +1963,63 @@ SUB text_test_menu
  LOOP
  setkeys
  unhidemousecursor
+END SUB
+
+SUB font_test_menu
+ DIM menu(...) as string = {"Font 0", "Font 1", "Font 2", "Font 3"}
+ DIM st as MenuState
+ st.last = UBOUND(menu)
+ st.size = 22
+
+ DIM controls as string = "1: import from 'testfont/', 2: import from bmp, 3: create edged font, 4: create shadow font"
+
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(sc1) > 1 THEN
+   font_loadbmps @fonts(st.pt), "testfont", @fonts(st.pt)
+  END IF
+  IF keyval(sc2) > 1 THEN
+   DIM file as string
+   file = browse(10, "", "*.bmp", tmpdir, 0, "")
+debug "loading '" & file & "'"
+   IF LEN(file) THEN
+    font_loadbmp_16x16 @fonts(st.pt), file
+   END IF
+  END IF
+  IF keyval(sc3) > 1 THEN
+   DIM choice as integer
+   choice = multichoice("Create an edged font from which font?", menu())
+   IF choice > -1 THEN
+    font_create_edged @fonts(st.pt), @fonts(choice)
+   END IF
+  END IF
+  IF keyval(sc4) > 1 THEN
+   DIM choice as integer
+   choice = multichoice("Create a drop-shadow font from which font?", menu())
+   IF choice > -1 THEN
+    font_create_shadowed @fonts(st.pt), @fonts(choice), 2, 2
+   END IF
+  END IF
+
+  usemenu st
+
+  clearpage vpage
+  edgeboxstyle 10, 10, 300, 185, 0, vpage
+  standardmenu menu(), st, 0, 0, vpage
+  textcolor uilook(uiText), 0
+  printstr vpages(vpage), controls, 0, 40, 140, 0
+
+  FOR i as integer = 0 TO 15
+   DIM row as string
+   FOR j as integer = i * 16 TO i * 16 + 15
+    row &= CHR(j)
+   NEXT
+   printstr vpages(vpage), row, 145, 0 + i * fonts(st.pt).h, , st.pt, YES, NO  'without newlines
+  NEXT
+
+  setvispage vpage
+  dowait
+ LOOP
 END SUB

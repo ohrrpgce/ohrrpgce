@@ -80,7 +80,7 @@ dim key2text(3,53) as string*1 => { _
 	{"", "", !"\177",!"\178",!"\179",!"\180",!"\181",!"\182",!"\183",!"\184",!"\185",!"\186",!"\187",!"\188","","",!"\189",!"\190",!"\191",!"\192",!"\193",!"\194",!"\195",!"\196",!"\197",!"\198",!"\199",!"\200","","",!"\201",!"\202",!"\203",!"\204",!"\205",!"\206",!"\207",!"\208",!"\209",!"\210",!"\211",!"\212","",!"\213",!"\214",!"\215",!"\216",!"\217",!"\218",!"\219",!"\220",!"\221",!"\222",!"\223"} _
 }
 
-redim fonts(2) as Font
+redim fonts(3) as Font
 
 
 'module shared
@@ -2713,6 +2713,13 @@ SUB printstr (byval dest as Frame ptr, s as string, byval x as integer, byval y 
 		fontpal.col(0) = 0
 		fontpal.col(1) = textfg
 		fontpal.col(2) = uilook(uiOutline)
+	end if
+
+	'dirty hack, delete me
+	if fonts(fontnum).cols > 2 then
+		fontpal.col(1) = 80
+		fontpal.col(2) = 160
+		fontpal.col(3) = 240
 	end if
 
 	render_text (dest, s, , x, y, wide, @fonts(fontnum), @fontpal, withtags, withnewlines)
