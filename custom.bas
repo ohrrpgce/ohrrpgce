@@ -1971,14 +1971,14 @@ SUB font_test_menu
  st.last = UBOUND(menu)
  st.size = 22
 
- DIM controls as string = "1: import from 'testfont/', 2: import from bmp, 3: create edged font, 4: create shadow font"
+ DIM controls as string = "1: import from 'fonttests/testfont/', 2: import from bmp, 3: create edged font, 4: create shadow font"
 
  DO
   setwait 55
   setkeys
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(sc1) > 1 THEN
-   font_loadbmps @fonts(st.pt), "testfont", @fonts(st.pt)
+   font_loadbmps @fonts(st.pt), "fonttests/testfont", @fonts(st.pt)
   END IF
   IF keyval(sc2) > 1 THEN
    DIM file as string

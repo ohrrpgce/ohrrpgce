@@ -3135,16 +3135,8 @@ SUB font_loadbmp_16x16 (byval font as Font ptr, filename as string)
 end SUB
 
 SUB setfont (f() as integer)
-	'uncomment to try out a variable width font
-	'font_loadold1bit(@fonts(2), cast(ubyte ptr, @f(0)))
-	'font_loadbmps(@fonts(0), "testfont", @fonts(2))
-	
-	'comment to try out a variable width font
 	font_loadold1bit(@fonts(0), cast(ubyte ptr, @f(0)))
-
 	font_create_edged(@fonts(1), @fonts(0))
-	font_create_shadowed(@fonts(2), @fonts(0))
-	'font_loadbmps(@fonts(2), "testfont", @fonts(1))
 end SUB
 
 SUB storeset (fil as string, byval i as integer, byval l as integer)
