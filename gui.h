@@ -6,17 +6,15 @@
 
 extern "C" {
 
-//list of GUI_MESSAGE
+//list of GUI_MESSAGES
 enum GUI_MESSAGES
 {
 	GUI_HITTEST,				//param1 is depth value, param2 is int[2] with x,y mouse coordinates in absolute position, returns it's depth if it is >= param1 and x,y coordinates transformed to the object still pass
 	GUI_CREATE,					//param2 is creationParams, returns 0 on success, or a value for error
 	GUI_DESTROY,				//no params
-	//GUI_PAINT,					//param2 is GuiPaint struct
 	GUI_MOVE,					//param2 is int[2] with x,y coordinates of location to move to, relative to parent
 	GUI_MOVE_FROM_PARENT,		//param2 is int[2] with x,y coordinates of parent's absolute upper-left corner
 	GUI_SIZE,					//param2 is unsigned int[2] with x,y dimensions of new object size
-	//GUI_CLIENT_RESIZE,			//param2 is uint2 ptr with x,y dimensions of new client (backbuffer) size
 
 	GUI_MOUSE_OVER,				//param1 is true if mouse is over, false if it is not, param2 is const Mouse struct ptr
 	GUI_MOUSE_MOVE,				//param1 is amount moved, loword being signed x coord, hiword being signed y coord, param2 is const Mouse struct ptr
@@ -115,7 +113,7 @@ struct GuiKeyboard {
 };
 
 //synthesizes input messages from the static mouse and keyboard state;
-//this automatically calls 
+//this automatically calls guiInputMessage() with each input message
 void guiSynthesizeInputMessage( GuiMouse& mouse, GuiKeyboard& kb );
 
 //adds a GUI_* message to the GUI manager's message processor;

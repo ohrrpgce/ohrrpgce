@@ -1,13 +1,10 @@
 #include "guiBase.h"
 
-const GraphicRenderStateBlock GuiManager::m_rsBlock = { 0, 0, GCM_ccw, GRM_solid, 1 };
-
 GuiManager::GuiManager()
-: /*m_graphic(0), m_input(0), m_sound(0), m_tk(0), */
-m_objectIDGeneratorCounter(1), m_focusedObject(GUIC_INVALID), m_movingObject(GUIC_INVALID)/*, m_clientSize(0,0)*/
+: m_objectIDGeneratorCounter(1), m_focusedObject(GUIC_INVALID), m_movingObject(GUIC_INVALID)
 {
-	//memset( &m_mouseSnapshot, 0, sizeof(m_mouseSnapshot) );
-	//memset( &m_keyboardSnapshot, 0, sizeof(m_keyboardSnapshot) );
+	memset( &m_mouseSnapshot, 0, sizeof(m_mouseSnapshot) );
+	memset( &m_keyboardSnapshot, 0, sizeof(m_keyboardSnapshot) );
 }
 
 GuiManager::~GuiManager()
@@ -15,218 +12,306 @@ GuiManager::~GuiManager()
 	shutdown();
 }
 
-void GuiManager::queryInput()
+void GuiManager::postInputMessage( unsigned int msg, unsigned int param1, void* param2 )
 {
-	if(m_input == 0)
-		return;
 
-	long mouseCoord[2] = {m_input->mouse().px, m_input->mouse().py}; //{ (long)((m_input->mouse().x + 1.0f) * .5f * (float)m_graphic->getBackBuffer()->width), (long)((m_input->mouse().y - 1.0f) * (-.5f) * (float)m_graphic->getBackBuffer()->height) };
-	int depth = 0, depthTest = 0;
-
-	//if moving still, that object receives mouse data
-	if( m_movingObject != GUIC_INVALID )
-	{
-		depth = sendMessage( m_movingObject, GUI_GET_ZORDER, 0, 0 );
-	}
-	//else find the object depth that would receive mouse data, exception being mouse-over messages, which goes to everything
-	else
-	{
-		for(ObjectMap::iterator i = m_object.begin(); i != m_object.end(); i++)
-		{
-			depthTest = sendMessage( i->first, GUI_HITTEST, depth, mouseCoord );
-			if(depthTest >= depth)
+	switch( msg ) {
+		case GUI_MOUSE_LBUTTON_DOWN:
 			{
-				depth = depthTest;
+				//copy the mouse state of param2 to the snapshot
+
+				//if button already down,
+					//send input to focused control
+				//else
+					//set the focus control to the one that passes the HITTEST
+					//if that control can move
+						//set it as the moving object
 			}
-		}
-	}
-
-	//post mouse over messages to all objects, and mouse button messages only to those that pass the hittest
-	Message msg = { GUIC_INVALID, GUI_MOUSE_OVER, 0, &m_mouseSnapshot, false };
-	for(ObjectMap::iterator i = m_object.begin(); i != m_object.end(); i++)
-	{
-		if( (sendMessage( i->first, GUI_HITTEST, depth, mouseCoord ) && m_movingObject == GUIC_INVALID) || m_movingObject == i->first )
-		{
-			msg.param1 = 1;
-			msg.controlID = i->first;
-			postMessage( &msg );
-
-			Message buttonNotification = { i->first, 0, 0, msg.param2, false };
-			if(m_input->mouse().bLeftDown) //mouse left button down
+			break;
+		case GUI_MOUSE_LBUTTON_UP:
 			{
-				buttonNotification.msg = GUI_MOUSE_LBUTTON_DOWN;
+				//copy the mouse state of param2 to the snapshot
 
-				if(m_mouseSnapshot.bLeftDown) //mouse left button held
-					buttonNotification.param1 = GUIC_BUTTON_DOWN;
-				else //newly pressed
-				{
-					focus( i->first );
-					buttonNotification.param1 = GUIC_BUTTON_UP;
-					if( sendMessage( i->first, GUI_IS_MOVABLE_BY_MOUSE, 0, 0 ) == 1 )
-						m_movingObject = i->first;
-				}
+				//send the notification to the focus control
+				//if there was a moving object
+					//release the moving object
 
-				postMessage( &buttonNotification );
-				if(m_movingObject != GUIC_INVALID)
-				{
-					Message moveNote;
-					moveNote.controlID = i->first;
-					moveNote.msg = GUI_MOVE;
-					moveNote.param1 = 0;
-					allocateMessageSpace( 2*sizeof(long), &moveNote );
-					long d[2] = {mouseCoord[0] - m_mouseSnapshot.px, mouseCoord[1] - m_mouseSnapshot.py};
-					GuiRect parentRect = {0}, previousRect = {0};
-					unsigned int parentID = sendMessage( i->first, GUI_GET_PARENT, 0, 0 );
-					if( parentID != GUIC_INVALID )
-					{
-						sendMessage( parentID, GUI_GET_ABS_POSITION, 0, &parentRect );
-						d[0] += parentRect.left;
-						d[1] += parentRect.top;
-					}
-					sendMessage( i->first, GUI_GET_REL_POSITION, 0, &previousRect );
-					d[0] += previousRect.left;
-					d[1] += previousRect.top;
-
-					memcpy( moveNote.param2, d, sizeof(d) );
-					postMessage( &moveNote );
-				}
+				//if the release of the button was over the focused control (HITTEST),
+				//and the pressing of the button was over the focused control,
+					//emit a CLICK message to that control
 			}
-			else if(m_mouseSnapshot.bLeftDown) //mouse left button release
+			break;
+		case GUI_MOUSE_RBUTTON_DOWN:
 			{
-				buttonNotification.msg = GUI_MOUSE_LBUTTON_UP;
-				buttonNotification.param1 = GUIC_BUTTON_DOWN;
+				//copy the mouse state of param2 to the snapshot
 
-				postMessage( &buttonNotification );
-				if(m_movingObject != GUIC_INVALID)
-				{
-					Message moveNote;
-					moveNote.controlID = i->first;
-					moveNote.msg = GUI_MOVE;
-					moveNote.param1 = 0;
-					allocateMessageSpace( 2*sizeof(long), &moveNote );
-					long d[2] = {mouseCoord[0] - m_mouseSnapshot.px, mouseCoord[1] - m_mouseSnapshot.py};
-					GuiRect parentRect = {0}, previousRect = {0};
-					unsigned int parentID = sendMessage( i->first, GUI_GET_PARENT, 0, 0 );
-					if( parentID != GUIC_INVALID )
-					{
-						sendMessage( parentID, GUI_GET_ABS_POSITION, 0, &parentRect );
-						d[0] += parentRect.left;
-						d[1] += parentRect.top;
-					}
-					sendMessage( i->first, GUI_GET_REL_POSITION, 0, &previousRect );
-					d[0] += previousRect.left;
-					d[1] += previousRect.top;
-
-					memcpy( moveNote.param2, d, sizeof(d) );
-					postMessage( &moveNote );
-					m_movingObject = GUIC_INVALID;
-				}
+				//send input to focused control
 			}
-			if(m_input->mouse().bRightDown) //mouse right button down
+			break;
+		case GUI_MOUSE_RBUTTON_UP:
 			{
-				buttonNotification.msg = GUI_MOUSE_RBUTTON_DOWN;
+				//copy the mouse state of param2 to the snapshot
 
-				if(m_mouseSnapshot.bRightDown) //mouse right button held
-					buttonNotification.param1 = GUIC_BUTTON_DOWN;
-				else //newly pressed
-				{
-					focus( i->first );
-					buttonNotification.param1 = GUIC_BUTTON_UP;
-				}
+				//send input to focused control
 
-				postMessage( &buttonNotification );
+				//if the release of the button was over the focused control (HITTEST),
+				//and the pressing of the button was over the focused control,
+					//emit a CLICK message to that control
 			}
-			else if(m_mouseSnapshot.bRightDown) //mouse right button release
+			break;
+		case GUI_MOUSE_MBUTTON_DOWN:
 			{
-				buttonNotification.msg = GUI_MOUSE_RBUTTON_UP;
-				buttonNotification.param1 = GUIC_BUTTON_DOWN;
+				//copy the mouse state of param2 to the snapshot
 
-				postMessage( &buttonNotification );
+				//send input to focused control
 			}
-			if(m_input->mouse().bMiddleDown) //mouse middle button down
+			break;
+		case GUI_MOUSE_MBUTTON_UP:
 			{
-				buttonNotification.msg = GUI_MOUSE_MBUTTON_DOWN;
+				//copy the mouse state of param2 to the snapshot
 
-				if(m_mouseSnapshot.bMiddleDown) //mouse middle button held
-					buttonNotification.param1 = GUIC_BUTTON_DOWN;
-				else //newly pressed
-				{
-					focus( i->first );
-					buttonNotification.param1 = GUIC_BUTTON_UP;
-				}
+				//send input to focused control
 
-				postMessage( &buttonNotification );
+				//if the release of the button was over the focused control (HITTEST),
+				//and the pressing of the button was over the focused control,
+					//emit a CLICK message to that control
 			}
-			else if(m_mouseSnapshot.bMiddleDown) //mouse middle button release
+			break;
+		case GUI_MOUSE_MOVE:
 			{
-				buttonNotification.msg = GUI_MOUSE_MBUTTON_UP;
-				buttonNotification.param1 = GUIC_BUTTON_DOWN;
+				//copy the mouse state of param2 to the snapshot
 
-				postMessage( &buttonNotification );
+				//if there is a moving object
+					//send the message to that control
+				//else
+					//send the message to the control that passes the HITTEST and
+					//the control that previously received the MOUSE_MOVE message
+					//if the control that passes the HITTEST is not the same as the
+					//previous control that received the MOUSE_MOVE message
+						//emit a MOUSE_OVER message, with a 'true' value, to the control that passes the HITTEST
+						//emit a MOUSE_OVER message, with a 'false' value, to the previous control that received MOUSE_MOVE messages
 			}
-		}
-		else
-		{
-			msg.param1 = 0;
-			msg.controlID = i->first;
-			postMessage( &msg );
-		}
+			break;
+		case GUI_KEY_DOWN:
+			{
+				//issue the message to the focused control
+			}
+			break;
+		case GUI_KEY_UP:
+			{
+				//issue the message to the focused control
+				//also emit a TOUCH message to that control
+			}
+			break;
+		case GUI_CHAR:
+			{
+				//issue the message to the focused control
+			}
+			break;
+		//the next few messages generally are only if emulated click's and touch's are sent
+		case GUI_MOUSE_LBUTTON_CLICK:
+		case GUI_MOUSE_RBUTTON_CLICK:
+		case GUI_MOUSE_MBUTTON_CLICK:
+		case GUI_KEY_TOUCH:
+			{
+				//issue the message to the focused control
+			}
+			break;
 	}
 
-	//get the keyboard context
-	GuiKey key;
-	key.shift = m_input->keyboard().keys[ IS_SHIFT ];
-	key.ctrl = m_input->keyboard().keys[ IS_CONTROL ];
-	key.alt = m_input->keyboard().keys[ IS_ALT ];
+	//int mouseCoord[2] = {0,0};
+	//int depth = 0, depthTest = 0;
 
-	//intentionally starting with 1, because 0 is IS_INVALID
-	for(unsigned int i = 1; i < IS_SCANCODE_COUNT; i++)
-	{
-		if( m_input->keyboard().keys[i] != 0 ) //key is down
-		{
-			if( m_keyboardSnapshot.keys[i] != 0 ) //key was down
-			{
-				key.keyDown = true;
-				if( i == IS_CAPS_LOCK || i == IS_NUM_LOCK || i == IS_SCROLL_LOCK )
-					continue; //to avoid multiple toggle key notifications
-			}
-			else //key was up
-			{
-				key.keyDown = false;
-			}
-			key.scancode = i;
-			Message msg = { m_focusedObject, GUI_KEY_DOWN, (unsigned int)key, 0, false };
-			postMessage( &msg );
-		}
-		else //key is up
-		{
-			if( m_keyboardSnapshot.keys[i] != 0 ) //key was down
-			{
-				key.keyDown = true;
-				key.scancode = i;
-				Message msg = { m_focusedObject, GUI_KEY_UP, (unsigned int)key, 0, false };
-				postMessage( &msg );
-			}
-		}
-	}
+	////if moving still, that object receives mouse data
+	//if( m_movingObject != GUIC_INVALID )
+	//{
+	//	depth = sendMessage( m_movingObject, GUI_GET_ZORDER, 0, 0 );
+	//}
+	////else find the object depth that would receive mouse data, exception being mouse-over messages, which goes to everything
+	//else
+	//{
+	//	for(ObjectMap::iterator i = m_object.begin(); i != m_object.end(); i++)
+	//	{
+	//		depthTest = sendMessage( i->first, GUI_HITTEST, depth, mouseCoord );
+	//		if(depthTest >= depth)
+	//		{
+	//			depth = depthTest;
+	//		}
+	//	}
+	//}
 
-	//update the state of the mouse and keyboard snapshots
-	m_mouseSnapshot = m_input->mouse();
-	m_keyboardSnapshot = m_input->keyboard();
-}
+	////post mouse over messages to all objects, and mouse button messages only to those that pass the hittest
+	//Message msg = { GUIC_INVALID, GUI_MOUSE_OVER, 0, &m_mouseSnapshot, false };
+	//for(ObjectMap::iterator i = m_object.begin(); i != m_object.end(); i++)
+	//{
+	//	if( (sendMessage( i->first, GUI_HITTEST, depth, mouseCoord ) && m_movingObject == GUIC_INVALID) || m_movingObject == i->first )
+	//	{
+	//		msg.param1 = 1;
+	//		msg.controlID = i->first;
+	//		postMessage( &msg );
 
-void GuiManager::clientSizeTest()
-{
-	uint2 currentSize( m_graphic->getBackBuffer()->width, m_graphic->getBackBuffer()->height );
-	if( m_clientSize != currentSize )
-	{
-		m_clientSize = currentSize;
-		for(ObjectMap::iterator i = m_object.begin(); i != m_object.end(); i++)
-		{
-			Message msg = { i->first, GUI_CLIENT_RESIZE, 0, &m_clientSize, false };
-			postMessage( &msg );
-		}
-	}
+	//		Message buttonNotification = { i->first, 0, 0, msg.param2, false };
+	//		if(m_input->mouse().bLeftDown) //mouse left button down
+	//		{
+	//			buttonNotification.msg = GUI_MOUSE_LBUTTON_DOWN;
+
+	//			if(m_mouseSnapshot.bLeftDown) //mouse left button held
+	//				buttonNotification.param1 = GUIC_BUTTON_DOWN;
+	//			else //newly pressed
+	//			{
+	//				focus( i->first );
+	//				buttonNotification.param1 = GUIC_BUTTON_UP;
+	//				if( sendMessage( i->first, GUI_IS_MOVABLE_BY_MOUSE, 0, 0 ) == 1 )
+	//					m_movingObject = i->first;
+	//			}
+
+	//			postMessage( &buttonNotification );
+	//			if(m_movingObject != GUIC_INVALID)
+	//			{
+	//				Message moveNote;
+	//				moveNote.controlID = i->first;
+	//				moveNote.msg = GUI_MOVE;
+	//				moveNote.param1 = 0;
+	//				allocateMessageSpace( 2*sizeof(long), &moveNote );
+	//				long d[2] = {mouseCoord[0] - m_mouseSnapshot.px, mouseCoord[1] - m_mouseSnapshot.py};
+	//				GuiRect parentRect = {0}, previousRect = {0};
+	//				unsigned int parentID = sendMessage( i->first, GUI_GET_PARENT, 0, 0 );
+	//				if( parentID != GUIC_INVALID )
+	//				{
+	//					sendMessage( parentID, GUI_GET_ABS_POSITION, 0, &parentRect );
+	//					d[0] += parentRect.left;
+	//					d[1] += parentRect.top;
+	//				}
+	//				sendMessage( i->first, GUI_GET_REL_POSITION, 0, &previousRect );
+	//				d[0] += previousRect.left;
+	//				d[1] += previousRect.top;
+
+	//				memcpy( moveNote.param2, d, sizeof(d) );
+	//				postMessage( &moveNote );
+	//			}
+	//		}
+	//		else if(m_mouseSnapshot.bLeftDown) //mouse left button release
+	//		{
+	//			buttonNotification.msg = GUI_MOUSE_LBUTTON_UP;
+	//			buttonNotification.param1 = GUIC_BUTTON_DOWN;
+
+	//			postMessage( &buttonNotification );
+	//			if(m_movingObject != GUIC_INVALID)
+	//			{
+	//				Message moveNote;
+	//				moveNote.controlID = i->first;
+	//				moveNote.msg = GUI_MOVE;
+	//				moveNote.param1 = 0;
+	//				allocateMessageSpace( 2*sizeof(long), &moveNote );
+	//				long d[2] = {mouseCoord[0] - m_mouseSnapshot.px, mouseCoord[1] - m_mouseSnapshot.py};
+	//				GuiRect parentRect = {0}, previousRect = {0};
+	//				unsigned int parentID = sendMessage( i->first, GUI_GET_PARENT, 0, 0 );
+	//				if( parentID != GUIC_INVALID )
+	//				{
+	//					sendMessage( parentID, GUI_GET_ABS_POSITION, 0, &parentRect );
+	//					d[0] += parentRect.left;
+	//					d[1] += parentRect.top;
+	//				}
+	//				sendMessage( i->first, GUI_GET_REL_POSITION, 0, &previousRect );
+	//				d[0] += previousRect.left;
+	//				d[1] += previousRect.top;
+
+	//				memcpy( moveNote.param2, d, sizeof(d) );
+	//				postMessage( &moveNote );
+	//				m_movingObject = GUIC_INVALID;
+	//			}
+	//		}
+	//		if(m_input->mouse().bRightDown) //mouse right button down
+	//		{
+	//			buttonNotification.msg = GUI_MOUSE_RBUTTON_DOWN;
+
+	//			if(m_mouseSnapshot.bRightDown) //mouse right button held
+	//				buttonNotification.param1 = GUIC_BUTTON_DOWN;
+	//			else //newly pressed
+	//			{
+	//				focus( i->first );
+	//				buttonNotification.param1 = GUIC_BUTTON_UP;
+	//			}
+
+	//			postMessage( &buttonNotification );
+	//		}
+	//		else if(m_mouseSnapshot.bRightDown) //mouse right button release
+	//		{
+	//			buttonNotification.msg = GUI_MOUSE_RBUTTON_UP;
+	//			buttonNotification.param1 = GUIC_BUTTON_DOWN;
+
+	//			postMessage( &buttonNotification );
+	//		}
+	//		if(m_input->mouse().bMiddleDown) //mouse middle button down
+	//		{
+	//			buttonNotification.msg = GUI_MOUSE_MBUTTON_DOWN;
+
+	//			if(m_mouseSnapshot.bMiddleDown) //mouse middle button held
+	//				buttonNotification.param1 = GUIC_BUTTON_DOWN;
+	//			else //newly pressed
+	//			{
+	//				focus( i->first );
+	//				buttonNotification.param1 = GUIC_BUTTON_UP;
+	//			}
+
+	//			postMessage( &buttonNotification );
+	//		}
+	//		else if(m_mouseSnapshot.bMiddleDown) //mouse middle button release
+	//		{
+	//			buttonNotification.msg = GUI_MOUSE_MBUTTON_UP;
+	//			buttonNotification.param1 = GUIC_BUTTON_DOWN;
+
+	//			postMessage( &buttonNotification );
+	//		}
+	//	}
+	//	else
+	//	{
+	//		msg.param1 = 0;
+	//		msg.controlID = i->first;
+	//		postMessage( &msg );
+	//	}
+	//}
+
+	////get the keyboard context
+	//GuiKey key;
+	//key.shift = m_input->keyboard().keys[ IS_SHIFT ];
+	//key.ctrl = m_input->keyboard().keys[ IS_CONTROL ];
+	//key.alt = m_input->keyboard().keys[ IS_ALT ];
+
+	////intentionally starting with 1, because 0 is IS_INVALID
+	//for(unsigned int i = 1; i < IS_SCANCODE_COUNT; i++)
+	//{
+	//	if( m_input->keyboard().keys[i] != 0 ) //key is down
+	//	{
+	//		if( m_keyboardSnapshot.keys[i] != 0 ) //key was down
+	//		{
+	//			key.keyDown = true;
+	//			if( i == IS_CAPS_LOCK || i == IS_NUM_LOCK || i == IS_SCROLL_LOCK )
+	//				continue; //to avoid multiple toggle key notifications
+	//		}
+	//		else //key was up
+	//		{
+	//			key.keyDown = false;
+	//		}
+	//		key.scancode = i;
+	//		Message msg = { m_focusedObject, GUI_KEY_DOWN, (unsigned int)key, 0, false };
+	//		postMessage( &msg );
+	//	}
+	//	else //key is up
+	//	{
+	//		if( m_keyboardSnapshot.keys[i] != 0 ) //key was down
+	//		{
+	//			key.keyDown = true;
+	//			key.scancode = i;
+	//			Message msg = { m_focusedObject, GUI_KEY_UP, (unsigned int)key, 0, false };
+	//			postMessage( &msg );
+	//		}
+	//	}
+	//}
+
+	////update the state of the mouse and keyboard snapshots
+	//m_mouseSnapshot = m_input->mouse();
+	//m_keyboardSnapshot = m_input->keyboard();
 }
 
 void GuiManager::dispatchMessage(GuiManager::Message *pMsg)
@@ -239,19 +324,9 @@ void GuiManager::dispatchMessage(GuiManager::Message *pMsg)
 		freeMessageSpace(pMsg);
 }
 
-bool GuiManager::initialize(Graphic *pGraphic, Input *pInput, Sound* pSound, TimeKeeper* pTk)
+bool GuiManager::initialize()
 {
 	shutdown();
-	m_graphic = pGraphic;
-	m_input = pInput;
-	m_sound = pSound;
-	m_tk = pTk;
-
-	if(m_graphic == 0 || m_input == 0)
-		return false;
-
-	clientSizeTest();
-
 	return true;
 }
 
@@ -265,17 +340,9 @@ void GuiManager::shutdown()
 	while(!m_objectFactory.empty())
 		unregisterObjectFactory( m_objectFactory.begin()->first.c_str() );
 
-	while(!m_clipRegion.empty())
-		m_clipRegion.pop();
-
 	memset( &m_mouseSnapshot, 0, sizeof(m_mouseSnapshot) );
 	memset( &m_keyboardSnapshot, 0, sizeof(m_keyboardSnapshot) );
 	m_objectIDGeneratorCounter = 1;
-	m_clientSize = uint2(0,0);
-	m_graphic = 0;
-	m_input = 0;
-	m_sound = 0;
-	m_tk = 0;
 }
 
 bool GuiManager::registerObjectFactory(GuiObjectFactory* pFactory)
@@ -405,43 +472,8 @@ void GuiManager::destroyObject(unsigned int objectID)
 	m_objectUnparented.erase( iter );
 }
 
-void GuiManager::pushClipRegion(const GuiRect *pRegion)
-{
-	if(pRegion != 0)
-	{
-		GuiRect r = *pRegion;
-		if( r.left < m_clipRegion.top().left )
-			r.left = m_clipRegion.top().left;
-		if( r.right > m_clipRegion.top().right )
-			r.right = m_clipRegion.top().right;
-		if( r.top < m_clipRegion.top().top )
-			r.top = m_clipRegion.top().top;
-		if( r.bottom > m_clipRegion.top().bottom )
-			r.bottom = m_clipRegion.top().bottom;
-		if( r.left > r.right )
-			r.left = r.right;
-		if( r.top > r.bottom )
-			r.top = r.bottom;
-
-		m_clipRegion.push( r );
-		m_graphic->setScissorRect( &m_clipRegion.top() );
-	}
-}
-
-void GuiManager::popClipRegion()
-{
-	if( m_clipRegion.size() > 1 )
-	{
-		m_clipRegion.pop();
-		m_graphic->setScissorRect( &m_clipRegion.top() );
-	}
-}
-
 void GuiManager::pumpMessages()
 {
-	queryInput();
-	clientSizeTest();
-	m_tk->update();
 	while(!m_message.empty())
 	{
 		dispatchMessage( &m_message.front() );
@@ -496,29 +528,6 @@ void GuiManager::freeMessageSpace(GuiManager::Message *pMsg)
 	pMsg->param2 = 0;
 }
 
-void GuiManager::render(const Matrix *pWVP, const GuiRect *p)
-{
-	Matrix transform;
-
-	if(pWVP != 0)
-		memcpy(&transform, pWVP, sizeof(&transform));
-	else
-		matrixGuiProjection( &transform, (float)m_graphic->getBackBuffer()->width, (float)m_graphic->getBackBuffer()->height );
-
-	GuiRect clippingRegion = {0, 0, m_graphic->getBackBuffer()->width-1, m_graphic->getBackBuffer()->height-1};
-	if(p != 0)
-		memcpy(&clippingRegion, p, sizeof(clippingRegion));
-
-	m_clipRegion.push( clippingRegion );
-	for(ObjectMap::iterator i = m_objectUnparented.begin(); i != m_objectUnparented.end(); i++)
-	{
-		m_graphic->setRenderStateBlock( &m_rsBlock );
-		sendMessage( i->first, GUI_PAINT, 0, (void*)&transform );
-	}
-	while(!m_clipRegion.empty())
-		m_clipRegion.pop();
-	m_graphic->setScissorRect( 0 );
-}
 
 
 CGuiObject::CGuiObject()

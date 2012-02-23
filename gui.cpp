@@ -107,4 +107,6 @@ void guiSynthesizeInputMessage( GuiMouse& mouse, GuiKeyboard& kb ) {
 		//guiInputMessage( GUI_CHAR, theCharacter, 0 );
 }
 
-void guiInputMessage( unsigned int msg, unsigned int param1, void* param2 );
+void guiInputMessage( unsigned int msg, unsigned int param1, void* param2 ) {
+	g_guiManager.postInputMessage( msg, param1, param2 );
+}
