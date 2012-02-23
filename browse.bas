@@ -62,6 +62,7 @@ End Type
 DECLARE SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
 DECLARE SUB draw_browse_meter(br as BrowseMenuState)
 DECLARE SUB browse_hover(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
+DECLARE SUB browse_hover_file(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
 DECLARE SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as BrowseMenuState, tree() as BrowseMenuEntry)
 DECLARE FUNCTION validmusicfile (file as string, byval typemask as integer) as integer
 DECLARE FUNCTION browse_sanity_check_reload(filename as string, info as string) as integer
@@ -273,6 +274,21 @@ RETURN ret
 END FUNCTION
 
 SUB browse_hover(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
+ SELECT CASE tree(br.treeptr).kind
+  CASE bkDrive
+   br.alert = "Drive"
+  CASE bkParentDir
+   br.alert = "Directory"
+  CASE bkSubDir
+   br.alert = "Subdirectory"
+  CASE bkRoot
+   br.alert = "Root"
+  CASE bkSelectable, bkUnselectable
+   browse_hover_file tree(), br
+ END SELECT
+END SUB
+
+SUB browse_hover_file(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
  DIM bmpd as BitmapInfoHeader
  SELECT CASE br.special
   CASE 1 'music bam only (is this still used?)
@@ -350,10 +366,6 @@ SUB browse_hover(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
     br.alert = "HamsterSpeak scripts"
    END IF
  END SELECT
- IF tree(br.treeptr).kind = bkDrive THEN br.alert = "Drive"
- IF tree(br.treeptr).kind = bkParentDir THEN br.alert = "Directory"
- IF tree(br.treeptr).kind = bkSubDir THEN br.alert = "Subdirectory"
- IF tree(br.treeptr).kind = bkRoot THEN br.alert = "Root"
 END SUB
 
 SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as BrowseMenuState, tree() as BrowseMenuEntry)
