@@ -20,8 +20,18 @@
 #include "reload.bi"
 #include "os.bi"
 
+Enum BrowseEntryKind
+	bkDrive = 0       'Windows only
+	bkParentDir = 1
+	bkSubDir = 2
+	bkSelectable = 3
+	bkRoot = 4
+	bkSpecial = 5      'Not used
+	bkUnselectable = 6
+End Enum
+
 Type BrowseMenuEntry
-	kind as integer
+	kind as BrowseEntryKind
 	filename as string
 	caption as string
 	about as string
@@ -82,17 +92,9 @@ br.snd = -1
 br.mashead = CHR(253) & CHR(13) & CHR(158) & CHR(0) & CHR(0) & CHR(0) & CHR(6)
 br.paledithead = CHR(253) & CHR(217) & CHR(158) & CHR(0) & CHR(0) & CHR(7) & CHR(6)
 
+'tree().kind contains the type of each object in the menu
 REDIM tree(255) as BrowseMenuEntry
 DIM catfg(6) as integer, catbg(6) as integer
-
-'tree().kind contains the type of each object in the menu
-'0 = Drive (Windows only)
-'1 = Parent Directory
-'2 = Subdirectory
-'3 = Selectable item
-'4 = Root
-'5 = Special (not used)
-'6 = Unselectable item
 
 br.showHidden = 0
 
@@ -171,7 +173,7 @@ DO
   br.changed = 1
   IF br.special = 1 OR br.special = 5 THEN pausesong
   SELECT CASE tree(br.treeptr).kind
-   CASE 0
+   CASE bkDrive
     'this could take a while...
     rectangle 5, 32 + br.viewsize * 9, 310, 12, uilook(uiTextbox + 0), vpage
     edgeprint "Reading...", 8, 34 + br.viewsize * 9, uilook(uiText), vpage
@@ -183,16 +185,16 @@ DO
      br.alert = "No media"
      br.changed = 0
     END IF
-   CASE 1, 4
+   CASE bkParentDir, bkRoot
     br.nowdir = ""
     FOR i as integer = br.drivesshown TO br.treeptr
      br.nowdir = br.nowdir + tree(i).filename
     NEXT i
     build_listing tree(), br
-   CASE 2
+   CASE bkSubDir
     br.nowdir = br.nowdir + tree(br.treeptr).filename + SLASH
     build_listing tree(), br
-   CASE 3
+   CASE bkSelectable
     ret = br.nowdir + tree(br.treeptr).filename
     EXIT DO
   END SELECT
@@ -210,7 +212,7 @@ DO
    FOR j as integer = 1 TO br.treesize
     DIM mappedj as integer
     mappedj = (j + br.treeptr) MOD (br.treesize + 1)
-    IF (tree(mappedj).kind = 1 OR tree(mappedj).kind = 2 OR tree(mappedj).kind = 3) THEN
+    IF (tree(mappedj).kind = bkParentDir OR tree(mappedj).kind = bkSubDir OR tree(mappedj).kind = bkSelectable) THEN
      IF LCASE(LEFT(tree(mappedj).caption, 1)) = intext THEN br.treeptr = mappedj: EXIT FOR
     END IF
    NEXT
@@ -275,7 +277,7 @@ SUB browse_hover(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
  SELECT CASE br.special
   CASE 1 'music bam only (is this still used?)
    pausesong
-   IF tree(br.treeptr).kind = 3 OR tree(br.treeptr).kind = 6 THEN
+   IF tree(br.treeptr).kind = bkSelectable OR tree(br.treeptr).kind = bkUnselectable THEN
     IF validmusicfile(br.nowdir + tree(br.treeptr).filename, FORMAT_BAM) THEN
      loadsong br.nowdir + tree(br.treeptr).filename
     ELSE
@@ -287,7 +289,7 @@ SUB browse_hover(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
     br.alert = bmpd.biWidth & "*" & bmpd.biHeight & " pixels, " & bmpd.biBitCount & "-bit color"
    END IF
   CASE 4 'palettes
-   IF tree(br.treeptr).kind = 3 OR tree(br.treeptr).kind = 6 THEN
+   IF tree(br.treeptr).kind = bkSelectable OR tree(br.treeptr).kind = bkUnselectable THEN
     DIM masfh as integer = FREEFILE
     OPEN br.nowdir + tree(br.treeptr).filename FOR BINARY as #masfh
     IF LCASE(justextension(tree(br.treeptr).filename)) = "mas" THEN
@@ -328,7 +330,7 @@ SUB browse_hover(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
     UnloadSound(br.snd)
     br.snd = -1
    END IF
-   IF tree(br.treeptr).kind <> 6 THEN
+   IF tree(br.treeptr).kind <> bkUnselectable THEN
     'not disabled because of size
     IF validmusicfile(br.nowdir + tree(br.treeptr).filename, PREVIEWABLE_FX_FORMAT) THEN
      br.snd = LoadSound(br.nowdir + tree(br.treeptr).filename)
@@ -348,10 +350,10 @@ SUB browse_hover(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
     br.alert = "HamsterSpeak scripts"
    END IF
  END SELECT
- IF tree(br.treeptr).kind = 0 THEN br.alert = "Drive"
- IF tree(br.treeptr).kind = 1 THEN br.alert = "Directory"
- IF tree(br.treeptr).kind = 2 THEN br.alert = "Subdirectory"
- IF tree(br.treeptr).kind = 4 THEN br.alert = "Root"
+ IF tree(br.treeptr).kind = bkDrive THEN br.alert = "Drive"
+ IF tree(br.treeptr).kind = bkParentDir THEN br.alert = "Directory"
+ IF tree(br.treeptr).kind = bkSubDir THEN br.alert = "Subdirectory"
+ IF tree(br.treeptr).kind = bkRoot THEN br.alert = "Root"
 END SUB
 
 SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as BrowseMenuState, tree() as BrowseMenuEntry)
@@ -365,22 +367,22 @@ findfiles br.nowdir, wildcard, filetype, br.showhidden, filelist()
 FOR i as integer = 0 TO UBOUND(filelist)
  br.treesize = br.treesize + 1
  IF br.treesize = UBOUND(tree) THEN REDIM PRESERVE tree(UBOUND(tree) + 256)
- tree(br.treesize).kind = 3
+ tree(br.treesize).kind = bkSelectable
  tree(br.treesize).filename = filelist(i)
  filename = br.nowdir & tree(br.treesize).filename
  '---music files
  IF br.special = 1 OR br.special = 5 THEN
   IF validmusicfile(filename, VALID_MUSIC_FORMAT) = 0 THEN
-   tree(br.treesize).kind = 6
+   tree(br.treesize).kind = bkUnselectable
    tree(br.treesize).about = "Not a valid music file"
   END IF
  END IF
  IF br.special = 6 THEN
   IF validmusicfile(filename, VALID_FX_FORMAT) = 0 THEN
-   tree(br.treesize).kind = 6
+   tree(br.treesize).kind = bkUnselectable
    tree(br.treesize).about = "Not a valid sound effect file"
   ELSEIF FILELEN(filename) > 500 * 1024 AND LCASE(justextension(filename)) <> "wav" THEN
-   tree(br.treesize).kind = 6
+   tree(br.treesize).kind = bkUnselectable
    tree(br.treesize).about = "File is too large (limit 500kB)"
   END IF
  END IF
@@ -388,7 +390,7 @@ FOR i as integer = 0 TO UBOUND(filelist)
  IF br.special = 2 THEN
   IF bmpinfo(filename, bmpd) THEN
    IF bmpd.biBitCount <> 4 OR bmpd.biWidth > 320 OR bmpd.biHeight > 200 THEN
-    tree(br.treesize).kind = 6
+    tree(br.treesize).kind = bkUnselectable
    END IF
   ELSE
    br.treesize = br.treesize - 1
@@ -398,7 +400,7 @@ FOR i as integer = 0 TO UBOUND(filelist)
  IF br.special = 3 THEN
   IF bmpinfo(filename, bmpd) THEN
    IF (bmpd.biBitCount <> 24 AND bmpd.biBitCount <> 8) OR bmpd.biWidth <> 320 OR bmpd.biHeight <> 200 THEN
-    tree(br.treesize).kind = 6
+    tree(br.treesize).kind = bkUnselectable
    END IF
   ELSE
    br.treesize = br.treesize - 1
@@ -422,11 +424,11 @@ FOR i as integer = 0 TO UBOUND(filelist)
    GET #masfh, 1, a
    CLOSE #masfh
    IF a <> br.mashead AND a <> br.paledithead THEN
-    tree(br.treesize).kind = 6
+    tree(br.treesize).kind = bkUnselectable
    END IF
   ELSE  'BMP as a master palette
    IF bmpinfo(filename, bmpd) THEN
-    IF (bmpd.biBitCount = 8 OR bmpd.biBitCount = 24 AND (bmpd.biWidth = 16 AND bmpd.biHeight = 16)) = 0 THEN tree(br.treesize).kind = 6
+    IF (bmpd.biBitCount = 8 OR bmpd.biBitCount = 24 AND (bmpd.biWidth = 16 AND bmpd.biHeight = 16)) = 0 THEN tree(br.treesize).kind = bkUnselectable
    ELSE
     br.treesize = br.treesize - 1
    END IF
@@ -443,7 +445,7 @@ FOR i as integer = 0 TO UBOUND(filelist)
  '--RELOAD files
  IF br.special = 8 THEN
   IF browse_sanity_check_reload(filename, tree(br.treesize).about) = NO THEN
-   tree(br.treesize).kind = 6 'grey out bad ones
+   tree(br.treesize).kind = bkUnselectable 'grey out bad ones
   END IF
  END IF
  '--script files
@@ -557,7 +559,7 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
   'br.treesize += 1
   'tree(br.treesize).filename = ""
   'tree(br.treesize).caption = "Refresh drives list"
-  'tree(br.treesize).kind = 5
+  'tree(br.treesize).kind = bkSpecial
 
   DIM drive(26) as string
   DIM drivetotal as integer = drivelist(drive())
@@ -565,7 +567,7 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
    br.treesize += 1
    tree(br.treesize).filename = drive(i)
    tree(br.treesize).caption = drive(i)
-   tree(br.treesize).kind = 0
+   tree(br.treesize).kind = bkDrive
    IF br.getdrivenames THEN
     tree(br.treesize).caption += " " + drivelabel(drive(i))
    END IF
@@ -587,7 +589,7 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
   br.treesize += 1
   b = MID(a, 1, INSTR(a, SLASH))
   tree(br.treesize).filename = b
-  tree(br.treesize).kind = 4
+  tree(br.treesize).kind = bkRoot
 #IFDEF __FB_WIN32__
   IF hasmedia(b) = 0 THEN
    'Somebody pulled out the disk
@@ -628,7 +630,7 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
     br.treesize = br.treesize + 1
     IF br.treesize = UBOUND(tree) THEN REDIM PRESERVE tree(UBOUND(tree) + 256)
     tree(br.treesize).filename = b
-    tree(br.treesize).kind = 1
+    tree(br.treesize).kind = bkParentDir
     b = ""
    END IF
   LOOP
@@ -638,7 +640,7 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
   FOR i as integer = 0 TO UBOUND(filelist)
    br.treesize = br.treesize + 1
    IF br.treesize = UBOUND(tree) THEN REDIM PRESERVE tree(UBOUND(tree) + 256)
-   tree(br.treesize).kind = 2
+   tree(br.treesize).kind = bkSubDir
    tree(br.treesize).filename = filelist(i)
    DIM extension as string = justextension(filelist(i))
    IF tree(br.treesize).filename = "." OR tree(br.treesize).filename = ".." OR RIGHT(tree(br.treesize).filename, 4) = ".tmp" THEN br.treesize = br.treesize - 1
@@ -703,7 +705,7 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
  DIM sortstart as integer = br.treesize
  FOR k as integer = 0 TO br.treesize
   WITH tree(k)
-   IF .kind = 2 OR .kind = 3 OR .kind = 6 THEN sortstart = k: EXIT FOR
+   IF .kind = bkSubDir OR .kind = bkSelectable OR .kind = bkUnselectable THEN sortstart = k: EXIT FOR
   END WITH
  NEXT
 
@@ -741,11 +743,11 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
  br.treetop = 0
  FOR i as integer = br.drivesshown TO br.treesize
   'look for first selectable item
-  IF tree(i).kind = 3 THEN br.treeptr = i: EXIT FOR
+  IF tree(i).kind = bkSelectable THEN br.treeptr = i: EXIT FOR
   'second preference is first subdirectory
-  IF tree(i).kind = 2 AND tree(br.treeptr).kind <> 2 THEN br.treeptr = i
+  IF tree(i).kind = bkSubDir AND tree(br.treeptr).kind <> bkSubDir THEN br.treeptr = i
   'final preference is current (bottommost) directory
-  IF tree(i).kind = 1 OR tree(i).kind = 4 THEN br.treeptr = i
+  IF tree(i).kind = bkParentDir OR tree(i).kind = bkRoot THEN br.treeptr = i
  NEXT i
  br.treetop = small(br.treeptr - 2, br.treesize - br.viewsize)
  br.treetop = large(br.treetop, 0)
