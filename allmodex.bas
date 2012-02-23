@@ -3694,18 +3694,18 @@ end function
 
 'Open a BMP file, read its headers, and return a file handle.
 'Only 1, 4, 8, and 24 bit BMPs are accepted
-'Returns -1 on error
+'Returns -1 is invalid, -2 if unsupported
 function open_bmp_and_read_header(bmp as string, byref header as BITMAPFILEHEADER, byref info as BITMAPINFOHEADER) as integer
 	dim bf as integer = freefile
 	if open(bmp for binary access read as #bf) then
-		debug "Couldn't open " & bmp
+		debuginfo "Couldn't open " & bmp
 		return -1
 	end if
 
 	get #bf, , header
 	if header.bfType <> 19778 then
 		close #bf
-		debug bmp & " is not a valid BMP file"
+		debuginfo bmp & " is not a valid BMP file"
 		return -1
 	end if
 
@@ -3715,23 +3715,23 @@ function open_bmp_and_read_header(bmp as string, byref header as BITMAPFILEHEADE
 		'Probably a BITMAPCOREHEADER.
 		'We don't actually support any of the extensions to BITMAPINFOHEADER
 		close #bf
-		debug "Unsupported DIB header size " & info.biSize & " in " & bmp
-		return -1
+		debuginfo "Unsupported DIB header size " & info.biSize & " in " & bmp
+		return -2
 	end if
 
 	select case info.biBitCount
 		case 1, 4, 8, 24
 		case else
 			close #bf
-			debug "Unsupported bitdepth " & info.biBitCount & " in " & bmp
-			return -1
+			debuginfo "Unsupported bitdepth " & info.biBitCount & " in " & bmp
+			return -2
 	end select
 
 	'We could add RLE8 support, if anyone uses it
 	if info.biCompression <> BI_RGB and info.biCompression <> BI_RLE4 then
 		close #bf
-		debug "Unsupported compression scheme " & info.biCompression & " in " & bmp
-		return -1
+		debuginfo "Unsupported compression scheme " & info.biCompression & " in " & bmp
+		return -2
 	end if
 
 	return bf
@@ -3744,7 +3744,7 @@ FUNCTION frame_import_bmp24(bmp as string, pal() as RGBcolor) as Frame ptr
 	dim bf as integer
 
 	bf = open_bmp_and_read_header(bmp, header, info)
-	if bf = -1 then return 0
+	if bf <= -1 then return 0
 
 	if info.biBitCount <> 24 then
 		close #bf
@@ -3774,7 +3774,7 @@ SUB bitmap2pal (bmp as string, pal() as RGBcolor)
 	dim as integer w, h 
 
 	bf = open_bmp_and_read_header(bmp, header, info)
-	if bf = -1 then exit sub
+	if bf <= -1 then exit sub
 
 	if info.biBitCount <> 24 OR info.biWidth <> 16 OR info.biHeight <> 16 then
 		close #bf
@@ -3806,7 +3806,7 @@ FUNCTION frame_import_bmp_raw(bmp as string) as Frame ptr
 	dim ret as frame ptr
 
 	bf = open_bmp_and_read_header(bmp, header, info)
-	if bf = -1 then return 0
+	if bf <= -1 then return 0
 
 	if info.biBitCount > 8 then
 		close #bf
@@ -4022,7 +4022,7 @@ FUNCTION loadbmppal (f as string, pal() as RGBcolor) as integer
 	dim i as integer
 
 	bf = open_bmp_and_read_header(f, header, info)
-	if bf = -1 then return 0
+	if bf <= -1 then return 0
 
 	if info.biBitCount <= 8 then
 		for i = 0 to (1 shl info.biBitCount) - 1
@@ -4079,14 +4079,16 @@ SUB convertbmppal (f as string, mpal() as RGBcolor, pal() as integer, byval o as
 	end if
 END SUB
 
+'Returns 0 if invalid, otherwise fills 'info' and returns 1 if valid but unsupported, 2 if supported
 FUNCTION bmpinfo (f as string, byref info as BITMAPINFOHEADER) as integer
 	dim header as BITMAPFILEHEADER
 	dim bf as integer
 
 	bf = open_bmp_and_read_header(f, header, info)
-	if bf = -1 then return NO
+	if bf = -1 then return 0
+	if bf = -2 then return 1
 	close #bf
-	return YES
+	return 2
 END FUNCTION
 
 function nearcolor(pal() as RGBcolor, byval red as ubyte, byval green as ubyte, byval blue as ubyte) as ubyte

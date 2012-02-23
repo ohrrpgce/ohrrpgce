@@ -300,37 +300,6 @@ SUB browse_hover_file(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
      br.alert = tree(br.treeptr).filename + " is not a valid BAM file"
     END IF
    END IF
-  CASE 2, 3, 10 'bitmaps
-   IF bmpinfo(br.nowdir + tree(br.treeptr).filename, bmpd) THEN
-    br.alert = bmpd.biWidth & "*" & bmpd.biHeight & " pixels, " & bmpd.biBitCount & "-bit color"
-   END IF
-  CASE 4 'palettes
-   IF tree(br.treeptr).kind = bkSelectable OR tree(br.treeptr).kind = bkUnselectable THEN
-    DIM masfh as integer = FREEFILE
-    OPEN br.nowdir + tree(br.treeptr).filename FOR BINARY as #masfh
-    IF LCASE(justextension(tree(br.treeptr).filename)) = "mas" THEN
-     DIM a as string = "       "
-     GET #masfh, 1, a
-     CLOSE #masfh
-     SELECT CASE a
-      CASE br.mashead
-       br.alert = "MAS format"
-      CASE br.paledithead
-       br.alert = "MAS format (PalEdit)"
-      CASE ELSE
-      br.alert = "Not a valid MAS file"
-     END SELECT
-    ELSE
-     '.bmp file
-     IF bmpinfo(br.nowdir + tree(br.treeptr).filename, bmpd) THEN
-      IF bmpd.biBitCount = 24 THEN
-       br.alert = bmpd.biWidth & "*" & bmpd.biHeight & " pixels, " & bmpd.biBitCount & "-bit color"
-      ELSE
-       br.alert = bmpd.biBitCount & "-bit color BMP"
-      END IF
-     END IF
-    END IF
-   END IF
   CASE 5 'music
    pausesong
    br.alert = tree(br.treeptr).about
@@ -355,18 +324,31 @@ SUB browse_hover_file(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
      br.alert = "Cannot preview MP3, try importing"
     END IF
    END IF
-  CASE 7 'rpg
-   br.alert = tree(br.treeptr).about
-  CASE 8 'reload
-   br.alert = tree(br.treeptr).about
   CASE 9 'scripts
    IF LCASE(justextension(tree(br.treeptr).filename)) = "hs" THEN
     br.alert = "Compiled HamsterSpeak scripts"
    ELSE
     br.alert = "HamsterSpeak scripts"
    END IF
+  CASE ELSE
+   br.alert = tree(br.treeptr).about
  END SELECT
 END SUB
+
+'Returns true if the BMP looks good
+FUNCTION browse_check_bmp(byref br as BrowseMenuState, tree() as BrowseMenuEntry, byref bmpd as BitmapInfoHeader) as integer
+ DIM support as integer = bmpinfo(br.nowdir + tree(br.treesize).filename, bmpd)
+ IF support = 2 THEN
+  tree(br.treesize).about = bmpd.biWidth & "*" & bmpd.biHeight & " pixels, " & bmpd.biBitCount & "-bit color"
+  RETURN YES
+ ELSEIF support = 1 THEN
+  tree(br.treesize).about = "Unsupported BMP file"
+ ELSE
+  tree(br.treesize).about = "Invalid BMP file"
+ END IF
+ tree(br.treesize).kind = bkUnselectable
+ RETURN NO
+END FUNCTION
 
 SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as BrowseMenuState, tree() as BrowseMenuEntry)
 DIM bmpd as BitmapInfoHeader
@@ -400,34 +382,29 @@ FOR i as integer = 0 TO UBOUND(filelist)
  END IF
  '---1- and 4-bit BMP browsing
  IF br.special = 2 THEN
-  IF bmpinfo(filename, bmpd) THEN
+  IF browse_check_bmp(br, tree(), bmpd) THEN
    IF bmpd.biBitCount > 4 OR bmpd.biWidth > 320 OR bmpd.biHeight > 200 THEN
     tree(br.treesize).kind = bkUnselectable
    END IF
-  ELSE
-   br.treesize = br.treesize - 1
   END IF
  END IF
  '---320x200x24/8bit BMP files
  IF br.special = 3 THEN
-  IF bmpinfo(filename, bmpd) THEN
+  IF browse_check_bmp(br, tree(), bmpd) THEN
    IF (bmpd.biBitCount <> 24 AND bmpd.biBitCount <> 8) OR bmpd.biWidth <> 320 OR bmpd.biHeight <> 200 THEN
     tree(br.treesize).kind = bkUnselectable
    END IF
-  ELSE
-   br.treesize = br.treesize - 1
   END IF
  END IF
  '---1/4/8 bit BMP files
  IF br.special = 10 THEN
-  IF bmpinfo(filename, bmpd) THEN
+  IF browse_check_bmp(br, tree(), bmpd) THEN
    IF bmpd.biBitCount > 8 THEN
     tree(br.treesize).kind = bkUnselectable
    END IF
-  ELSE
-   br.treesize = br.treesize - 1
   END IF
- END IF '--master palettes  (why isn't this up there?)
+ END IF
+ '--master palettes
  IF br.special = 4 THEN
   IF LCASE(justextension(filename)) = "mas" THEN
    DIM masfh as integer = FREEFILE
@@ -435,14 +412,23 @@ FOR i as integer = 0 TO UBOUND(filelist)
    DIM a as string = "       "
    GET #masfh, 1, a
    CLOSE #masfh
-   IF a <> br.mashead AND a <> br.paledithead THEN
-    tree(br.treesize).kind = bkUnselectable
-   END IF
+   SELECT CASE a
+    CASE br.mashead
+     tree(br.treesize).about = "MAS format"
+    CASE br.paledithead
+     tree(br.treesize).about = "MAS format (PalEdit)"
+    CASE ELSE
+     tree(br.treesize).about = "Not a valid MAS file"
+     tree(br.treesize).kind = bkUnselectable
+   END SELECT
   ELSE  'BMP as a master palette
-   IF bmpinfo(filename, bmpd) THEN
-    IF (bmpd.biBitCount = 8 OR bmpd.biBitCount = 24 AND (bmpd.biWidth = 16 AND bmpd.biHeight = 16)) = 0 THEN tree(br.treesize).kind = bkUnselectable
-   ELSE
-    br.treesize = br.treesize - 1
+   IF browse_check_bmp(br, tree(), bmpd) THEN
+    IF bmpd.biBitCount = 8 THEN
+     'Don't care about the dimensions
+     tree(br.treesize).about = bmpd.biBitCount & "-bit color BMP"
+    ELSEIF (bmpd.biBitCount = 24 AND (bmpd.biWidth = 16 AND bmpd.biHeight = 16)) = 0 THEN
+     tree(br.treesize).kind = bkUnselectable
+    END IF
    END IF
   END IF
  END IF

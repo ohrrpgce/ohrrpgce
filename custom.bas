@@ -1983,7 +1983,6 @@ SUB font_test_menu
   IF keyval(sc2) > 1 THEN
    DIM file as string
    file = browse(10, "", "*.bmp", tmpdir, 0, "")
-debug "loading '" & file & "'"
    IF LEN(file) THEN
     font_loadbmp_16x16 @fonts(st.pt), file
    END IF
