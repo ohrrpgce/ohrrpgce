@@ -79,7 +79,7 @@ br.snd = -1
 
 'special=0   no preview
 'special=1   just BAM
-'special=2   16 color BMP
+'special=2   2 or 16 color BMP
 'special=3   background
 'special=4   master palette (*.mas, 8 bit *.bmp, 16x16 24 bit *.bmp) (fmask is ignored)
 'special=5   any supported music (currently *.bam, *.mid, *.ogg, *.mp3, *.mod, *.xm, *.it, *.s3m formats)  (fmask is ignored)
@@ -87,7 +87,7 @@ br.snd = -1
 'special=7   RPG files
 'special=8   RELOAD files
 'special=9   script files (.hs, .hss)
-'special=10  16 or 256 colour BMP, any size (temporary, used by font_test_menu only)
+'special=10  2, 16 or 256 colour BMP, any size (temporary, used by font_test_menu only)
 
 br.mashead = CHR(253) & CHR(13) & CHR(158) & CHR(0) & CHR(0) & CHR(0) & CHR(6)
 br.paledithead = CHR(253) & CHR(217) & CHR(158) & CHR(0) & CHR(0) & CHR(7) & CHR(6)
@@ -386,10 +386,10 @@ FOR i as integer = 0 TO UBOUND(filelist)
    tree(br.treesize).about = "File is too large (limit 500kB)"
   END IF
  END IF
- '---4-bit BMP browsing
+ '---1- and 4-bit BMP browsing
  IF br.special = 2 THEN
   IF bmpinfo(filename, bmpd) THEN
-   IF bmpd.biBitCount <> 4 OR bmpd.biWidth > 320 OR bmpd.biHeight > 200 THEN
+   IF bmpd.biBitCount > 4 OR bmpd.biWidth > 320 OR bmpd.biHeight > 200 THEN
     tree(br.treesize).kind = bkUnselectable
    END IF
   ELSE
@@ -406,11 +406,11 @@ FOR i as integer = 0 TO UBOUND(filelist)
    br.treesize = br.treesize - 1
   END IF
  END IF
- '---4/8 bit BMP files
+ '---1/4/8 bit BMP files
  IF br.special = 10 THEN
   IF bmpinfo(filename, bmpd) THEN
-   IF bmpd.biBitCount = 24 THEN
-    tree(br.treesize).kind = 6
+   IF bmpd.biBitCount > 8 THEN
+    tree(br.treesize).kind = bkUnselectable
    END IF
   ELSE
    br.treesize = br.treesize - 1

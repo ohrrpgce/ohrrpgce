@@ -42,6 +42,7 @@ declare function write_bmp_header(f as string, byval w as integer, byval h as in
 declare sub loadbmp24(byval bf as integer, byval fr as Frame ptr, pal() as RGBcolor)
 declare sub loadbmp8(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmp4(byval bf as integer, byval fr as Frame ptr)
+declare sub loadbmp1(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmprle4(byval bf as integer, byval fr as Frame ptr)
 declare sub surface_export_bmp24 (f as string, byval surf as Surface Ptr)
 
@@ -3771,7 +3772,7 @@ SUB bitmap2pal (bmp as string, pal() as RGBcolor)
 END SUB
 
 FUNCTION frame_import_bmp_raw(bmp as string) as Frame ptr
-'load a 4- or 8-bit .BMP, ignoring the palette
+'load a 1-, 4- or 8-bit .BMP, ignoring the palette
 	dim header as BITMAPFILEHEADER
 	dim info as BITMAPINFOHEADER
 	dim bf as integer
@@ -3790,17 +3791,20 @@ FUNCTION frame_import_bmp_raw(bmp as string) as Frame ptr
 
 	get #bf, , info
 
-	if info.biBitCount <> 4 and info.biBitCount <> 8 then
+	if info.biBitCount > 8 then
 		close #bf
+		debug "frame_import_bmp_raw should not have been called!"
 		return 0
 	end if
 
 	'use header offset to get to data
 	seek #bf, header.bfOffBits + 1
 
-	ret = frame_new(info.biWidth, info.biHeight, , 1)
+	ret = frame_new(info.biWidth, info.biHeight, , YES)
 
-	if info.biBitCount = 4 then
+	if info.biBitCount = 1 then
+		loadbmp1(bf, ret)
+	elseif info.biBitCount = 4 then
 		'call one of two loaders depending on compression
 		if info.biCompression = BI_RGB then
 			loadbmp4(bf, ret)
@@ -3808,6 +3812,7 @@ FUNCTION frame_import_bmp_raw(bmp as string) as Frame ptr
 			loadbmprle4(bf, ret)
 		end if
 	else
+		'RLE8 not supported
 		loadbmp8(bf, ret)
 	end if
 
@@ -3875,7 +3880,7 @@ PRIVATE SUB loadbmp4(byval bf as integer, byval fr as Frame ptr)
 	dim sptr as ubyte ptr
 	dim pad as integer
 
-	pad = 4 - ((fr->w / 2) mod 4)
+	pad = 4 - ((fr->w \ 2) mod 4)
 	if pad = 4 then	pad = 0
 
 	for h = fr->h - 1 to 0 step -1
@@ -3962,8 +3967,36 @@ PRIVATE SUB loadbmprle4(byval bf as integer, byval fr as Frame ptr)
 
 end sub
 
+private sub loadbmp1(byval bf as integer, byval fr as Frame ptr)
+'takes an open file handle and an already sized Frame pointer, should only be called within loadbmp
+	dim ub as ubyte
+	dim as integer w, h
+	dim sptr as ubyte ptr
+	dim pad as integer
+
+	pad = 4 - ((fr->w \ 8) mod 4)
+	if pad = 4 then	pad = 0
+
+	for h = fr->h - 1 to 0 step -1
+		sptr = fr->image + h * fr->pitch
+		for w = 0 to fr->w - 1
+			if (w MOD 8) = 0 then
+				get #bf, , ub
+			end if
+			*sptr = ub shr 7
+			ub = ub shl 1
+			sptr += 1
+		next
+
+		'padding to dword boundary
+		for w = 0 to pad - 1
+			get #bf, , ub
+		next
+	next
+end sub
+
 FUNCTION loadbmppal (f as string, pal() as RGBcolor) as integer
-'loads the palette of a 4-bit or 8-bit bmp into pal
+'loads the palette of a 1-bit, 4-bit or 8-bit bmp into pal
 'returns the number of bits
 	dim header as BITMAPFILEHEADER
 	dim info as BITMAPINFOHEADER
@@ -3971,37 +4004,28 @@ FUNCTION loadbmppal (f as string, pal() as RGBcolor) as integer
 	dim bf as integer
 	dim i as integer
 
-	if NOT fileisreadable(f) then exit function
-	bf = freefile
-	open f for binary access read as #bf
+	bf = open_bmp_and_read_header(f, header, info)
+	if bf = -1 then return 0
 
-	get #bf, , header
-	if header.bfType <> 19778 then
-		'not a bitmap
-		close #bf
-		exit function
-	end if
-
-	get #bf, , info
-
-	loadbmppal = info.biBitCount
-
-	if info.biBitCount = 4 or info.biBitCount = 8 then
+	if info.biBitCount <= 8 then
 		for i = 0 to (1 shl info.biBitCount) - 1
 			get #bf, , col
 			pal(i).r = col.rgbRed
 			pal(i).g = col.rgbGreen
 			pal(i).b = col.rgbBlue
 		next
+	else
+		debug "loadbmppal shouldn't have been called!"
 	end if
 	close #bf
+	return info.biBitCount
 END FUNCTION
 
 SUB convertbmppal (f as string, mpal() as RGBcolor, pal() as integer, byval o as integer)
-'find the nearest match palette mapping from a 4/8 bit bmp f to
+'find the nearest match palette mapping from a 1/4/8 bit bmp f to
 'the master palette mpal(), and store it in pal() starting at offset o
-'for 4 bit bmps, pal() is a 2 bytes per int packed format used for
-'sprite palettes, for 8bit bmps it is a simple array
+'for 1/4 bit bmps, pal() is a 2 bytes per int packed format used for
+'sprite palettes, 16 colours long, for 8bit bmps it is a simple array 256 colours long
 	dim col8 as integer
 	dim i as integer
 	dim p as integer
@@ -4010,13 +4034,18 @@ SUB convertbmppal (f as string, mpal() as RGBcolor, pal() as integer, byval o as
 	dim cols(255) as RGBcolor
 
 	bitdepth = loadbmppal(f, cols())
+	if bitdepth = 0 then exit sub
 
-	if bitdepth = 4 then
-		'read and translate the 16 colour entries
+	if bitdepth <= 4 then
+		'read and translate the colour entries
 		p = o
 		toggle = p mod 2
 		for i = 0 to 15
-			col8 = nearcolor(mpal(), cols(i).r, cols(i).g, cols(i).b)
+			if i < 2 ^ bitdepth then
+				col8 = nearcolor(mpal(), cols(i).r, cols(i).g, cols(i).b)
+			else
+				col8 = 0
+			end if
 			if toggle = 0 then
 				pal(p) = col8
 				toggle = 1
