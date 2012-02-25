@@ -2483,7 +2483,7 @@ lookup slice(sl:map layer7)
 		<command id="getnpcslice">
 			<canon>get npc slice (npc)</canon>
 			<shortname>get npc slice</shortname>
-			<description>Get the slice for an NPC walkabout. The argument is the NPC id or an <ref>NPC reference</ref>. You will not be able to manually reposition this slice. The main purpose of getting this slice is so you can access the sprite slice attached to it, or if you want to attach other slices to an NPC.</description>
+			<description>Get the slice for an NPC walkabout. The argument is the NPC id or an <ref>NPCreference</ref>. You will not be able to manually reposition this slice. The main purpose of getting this slice is so you can access the sprite slice attached to it, or if you want to attach other slices to an NPC.</description>
 			<seealso>
 				<ref>getheroslice</ref>
 			</seealso>
@@ -4709,10 +4709,10 @@ end
 			<description>Returns the value of a passability (wallmap) tile on the current map at the specified X,Y position. The return value will be from 0 to 255 and consists of eight flag bits.<lb/><lb/>bit 1 = <ref>northwall</ref><lb/>bit 2 = <ref>eastwall</ref><lb/>bit 4 = <ref>southwall</ref><lb/>bit 8 = <ref>westwall</ref><lb/>bit 16 = <ref>vehiclea</ref><lb/>bit 32 = <ref>vehicleb</ref><lb/>bit 64 = <ref>harmtile</ref><lb/>bit 128 = <ref>overheadtile</ref><lb/><lb/>To check the value of a specific bit, use the <ref>and</ref> operator. For example:  </description>
 			<example>  variable (pass)
   pass := read pass block(hero X(me),hero Y(me))
-  if (pass,and,harm tile) then begin
+  if (pass,and,harm tile) then (
     # this checks if the hero is standing
     # on a harm tile
-  end</example>
+  )</example>
 		</command>
 		<command id="writepassblock">
 			<canon>write pass block (x,y,value)</canon>
@@ -4905,7 +4905,7 @@ write pass block(15,3,pass)
 		<command id="begin">
 			<canon>begin,other commands,end</canon>
 			<shortname>begin</shortname>
-			<description>Begin is a synonym for ( and end is a synonym for ). Parenthesis are normally used for bracketing things that all fit on the same line, and begin/end statements are often used to enclose very long things such as whole scripts or long flow control blocks that take up several lines. For example, the following two blocks of code are identical:</description>
+			<description>Begin is a synonym for ( and end is a synonym for ). Parentheses are normally used for bracketing things that all fit on the same line, and begin/end statements are often used to enclose very long things such as whole scripts or long flow control blocks that take up several lines. For example, the following two blocks of code are identical:</description>
 			<example>if (check tag(2)) then (show text box (5),wait for text box)</example>
 			<example>if (check tag(2)) then
 begin
@@ -4920,7 +4920,7 @@ end</example>
 		<command id="if">
 			<canon>if(condition) then(commands) else(commands)</canon>
 			<shortname>if</shortname>
-			<description>The if statement checks the value of its condition, and if the value is <ref>true</ref>, it runs the commands in the then block. If the value is <ref>false</ref>, it runs the commands in its else block. The conditional is usually an equality operator such as <ref>equal</ref> or <ref>notequal</ref>, or it is a <ref>checktag</ref> command. The else is optional as long as you have a then, and the then is optional as long as you have an else. There are some examples of if statements in the HamsterSpeak Specification, and in WANDERP.HSS</description>
+			<description>The if statement checks the value of its condition, and if the value is <ref>true</ref>, it runs the commands in the then block. If the value is <ref>false</ref>, it runs the commands in its else block. The conditional is usually an equality operator such as <ref>equal</ref> or <ref>notequal</ref>, or it is a <ref>checktag</ref> command. The else is optional as long as you have a then, and the then is optional as long as you have an else. There are some examples of if statements in the HamsterSpeak Specification, and throughout this document.</description>
 		</command>
 		<command id="then">
 			<alias>if</alias>
@@ -4947,7 +4947,7 @@ end</example>
 		<command id="for">
 			<canon>for(counter,start,finish,step) do(commands)</canon>
 			<shortname>for</shortname>
-			<description>The for command runs the commands in the do block a specified number of times. The first argument to for is the counter. It must be a variable. The next two arguments are the starting value and the finishing value. For example, if you use a start value of 1 and a finish value of 10 then the do block will run 10 times. The first time the do block runs, the counter will be 1, then it will be 2, then 3 and so on until it reaches 10, the finish value. The fourth argument of for is optional. It is the step by which the counter will change each loop. If you use a step of 2 then the counter will count 1,3,5,7,9. If you switch the start and finish values and use a step of -1 then the counter will go backwards. If you use 0 as the step, the counter will never change, so the do block will repeat forever. There are examples of for commands in WANDERP.HSS</description>
+			<description>The for command runs the commands in the do block a specified number of times. The first argument to for is the counter. It must be a variable. The next two arguments are the starting value and the finishing value. For example, if you use a start value of 1 and a finish value of 10 then the do block will run 10 times. The first time the do block runs, the counter will be 1, then it will be 2, then 3 and so on until it reaches 10, the finish value. The fourth argument of for is optional. It is the step by which the counter will change each loop. If you use a step of 2 then the counter will count 1,3,5,7,9. If you switch the start and finish values and use a step of -1 then the counter will go backwards. If you use 0 as the step, the counter will never change, so the do block will repeat forever. See <ref>return</ref> and <ref>puthero</ref> for examples.</description>
 		</command>
 		<command id="return">
 			<canon>return(value)</canon>
@@ -4955,8 +4955,9 @@ end</example>
 			<description>Sets the value to be returned by the script. This is only useful when the script has been called as a function from another script. It is irrelevant to scripts called directly from your RPG, for example, text box scripts or menu scripts. This command only matters when you are calling one script from another script. This command does NOT cause the script to terminate, it just sets the return value. If you never use the <p>return</p> command, the script will return a zero. If return is used more than once in the same script, only the last one executed matters.
 <example>
 script, key wait, ticks, begin
-  # Returns true if the wait was cancelled by a keypress.
+  # Returns true if a key was pressed during the wait,
   # or false (0) if the wait finished uninterrupted.
+  # The wait duration is always the same.
   variable(i)
   for(i, 1, ticks) do, begin
     wait(1)
@@ -5016,10 +5017,10 @@ plotscript, usage example, begin
     show text box(6) # You there! I saw you move! You volunteer!
   )else(
     show text box(7) # a bunch of lily livered cowards, eh?
-  )
+   )
 end
 </example>
-The <p>exit returning</p> command works exactly the same as the <ref>return</ref> command followed immediately by <ref>exit script</ref>. Whether you decide to use <ref>return</ref> or <p>exit returning</p> to set your script's return value is often just a matter of style and taste.
+The <p>exit returning</p> command works exactly the same as the <ref>return</ref> command followed immediately by <ref>exitscript</ref>. Whether you decide to use <ref>return</ref> or <p>exit returning</p> to set your script's return value is often just a matter of style and taste.
 			</description>
 			<seealso>
 				<ref>return</ref>
