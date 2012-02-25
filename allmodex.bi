@@ -92,13 +92,11 @@ DECLARE FUNCTION parse_tag(z as string, byval offset as integer, byval action as
 
 TYPE PrintStrStatePtr as PrintStrState Ptr
 
-DECLARE SUB render_text (byval dest as Frame ptr, text as string, byval endchar as integer = 999999, byval xpos as integer, byval ypos as integer, byval wide as integer = 999999, byval startfont as Font ptr, byval pal as Palette16 ptr, byval withtags as integer = YES, byval withnewlines as integer = YES, byval cached_state as PrintStrStatePtr = NULL, byval use_cached_state as integer = YES)
 DECLARE SUB text_layout_dimensions (byval retsize as StringSize ptr, z as string, byval endchar as integer = 999999, byval maxlines as integer = 999999, byval wide as integer = 999999, byval fontnum as integer, byval withtags as integer = YES, byval withnewlines as integer = YES)
 DECLARE SUB printstr OVERLOAD (byval dest as Frame ptr, s as string, byval x as integer, byval y as integer, byval wide as integer = 999999, byval fontnum as integer, byval withtags as integer = YES, byval withnewlines as integer = YES)
 DECLARE SUB printstr OVERLOAD (s as string, byval x as integer, byval y as integer, byval p as integer, byval withtags as integer = NO)
-DECLARE SUB init_font_palette(byval fontpal as Palette16 ptr, byval fontnum as integer, byval fgcol as integer, byval bgcol as integer)
 DECLARE SUB edgeprint (s as string, byval x as integer, byval y as integer, byval c as integer, byval p as integer, byval withtags as integer = NO)
-DECLARE SUB textcolor (byval f as integer, byval b as integer)
+DECLARE SUB textcolor (byval fg as integer, byval bg as integer)
 
 DECLARE FUNCTION textwidth (z as string, byval fontnum as integer = 0, byval withtags as integer = YES, byval withnewlines as integer = YES) as integer
 

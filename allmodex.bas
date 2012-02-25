@@ -66,6 +66,7 @@ declare sub replay_input_tick ()
 dim vpages() as Frame ptr
 dim vpagesp as Frame ptr ptr  'points to vpages(0) for debugging: fbc outputs typeless debugging symbol
 dim disable_native_text_input as integer = NO
+redim fonts(3) as Font
 
 'Convert scancodes to text; Enter does not insert newline!
 'This array is a global instead of an internal detail because it's used by charpicker and the font editor
@@ -80,9 +81,6 @@ dim key2text(3,53) as string*1 => { _
 	{"", "", !"\130",!"\131",!"\132",!"\133",!"\134",!"\135",!"\136",!"\137",!"\138",!"\139",!"\140",!"\141","","",!"\142",!"\143",!"\144",!"\145",!"\146",!"\147",!"\148",!"\149",!"\150",!"\151",!"\152",!"\153","","",!"\154",!"\155",!"\156",!"\157",!"\158",!"\159",!"\160",!"\161",!"\162",!"\163",!"\164",!"\165","",!"\166",!"\167",!"\168",!"\169",!"\170",!"\171",!"\172",!"\173",!"\174",!"\175",!"\176"}, _
 	{"", "", !"\177",!"\178",!"\179",!"\180",!"\181",!"\182",!"\183",!"\184",!"\185",!"\186",!"\187",!"\188","","",!"\189",!"\190",!"\191",!"\192",!"\193",!"\194",!"\195",!"\196",!"\197",!"\198",!"\199",!"\200","","",!"\201",!"\202",!"\203",!"\204",!"\205",!"\206",!"\207",!"\208",!"\209",!"\210",!"\211",!"\212","",!"\213",!"\214",!"\215",!"\216",!"\217",!"\218",!"\219",!"\220",!"\221",!"\222",!"\223"} _
 }
-
-redim fonts(3) as Font
-
 
 'module shared
 dim shared wrkpage as integer  'used by some legacy modex functions. Usually points at clippedframe
@@ -2192,21 +2190,31 @@ end FUNCTION
 
 Type PrintStrState
 	as Font ptr thefont
-	as Font ptr initialfont
-	as Palette16 localpal
-	as Palette16 ptr initialpal
+	as Font ptr initial_font    'Used when resetting thefont
+	as integer bgcolor          'Only used if not_transparent
+	as integer fgcolor          'Used when resetting localpal. May be -1 for none
+	as integer initial_fgcolor  'Used when resetting fgcolor
+	as integer not_transparent  'Force non-transparency of layer 0
 	as integer leftmargin
 	as integer rightmargin
 	as integer x
 	as integer y
 	as integer startx
 	as integer charnum
+	as Palette16 localpal
 End Type
+
+'Special signalling characters
+#define tcmdFirst   15
+#define tcmdState   15
+#define tcmdPalette 16
+#define tcmdFont    17
+#define tcmdLast    17
 
 'Invisible argument: state. (member should not be . prefixed, unfortunately)
 'Modifies state, and appends a control sequence to the string outbuf to duplicate the change
 #define UPDATE_STATE(outbuf, member, value) _
-	outbuf += !"\016      " : _
+	outbuf += CHR(tcmdState) & "      " : _
 	*Cast(short ptr, @outbuf[len(outbuf) - 6]) = Offsetof(PrintStrState, member) : _
 	*Cast(integer ptr, @outbuf[len(outbuf) - 4]) = Cast(integer, value) : _
 	state.member = value
@@ -2220,6 +2228,13 @@ End Type
 		*Cast(integer ptr, @outbuf[ch + 3]) : _
 	ch += 6
 
+#define APPEND_CMD(outbuf, cmd_id, value) _
+	outbuf += CHR(cmd_id) & "    " : _
+	*Cast(integer ptr, @outbuf[len(outbuf) - 4]) = Cast(integer, value)
+
+#define READ_CMD(outbuf, ch, variable) _
+	variable = *Cast(integer ptr, @outbuf[ch + 1]) : _
+	ch += 4
 
 'Processes starting from z[state.charnum] until the end of the line, returning a string
 'which describes a line fragment. It contains printing characters plus command sequences
@@ -2247,6 +2262,7 @@ private function layout_line_fragment(z as string, byval endchar as integer, byv
 	'Appending characters one at a time to outbuf is slow, so we delay it.
 	'chars_to_add counts the number of delayed characters
 	dim chars_to_add as integer = 0
+
 	with state
 'debug "layout '" & z & "' from " & .charnum & " at " & .x & "," & .y
 		line_height = .thefont->h
@@ -2291,7 +2307,7 @@ private function layout_line_fragment(z as string, byval endchar as integer, byv
 						continue for
 					end if
 				end if
-			elseif z[ch] = 16 then ' special signalling character. Not allowed!
+			elseif z[ch] >= tcmdFirst and z[ch] <= tcmdLast then ' special signalling characters. Not allowed! (FIXME: delete this)
 'debug "add " & chars_to_add & " chars before " & ch & " : '" & Mid(z, 1 + ch - chars_to_add, chars_to_add) & "'"
 
 				outbuf += Mid(z, 1 + ch - chars_to_add, chars_to_add)
@@ -2311,24 +2327,44 @@ private function layout_line_fragment(z as string, byval endchar as integer, byv
 
 						outbuf += Mid(z, 1 + ch - chars_to_add, chars_to_add)
 						chars_to_add = 0
-						if action = "F" andalso intarg >= 0 andalso intarg <= ubound(fonts) then
-							line_height = large(line_height, .thefont->h)
+						if action = "F" then
 							'Let's preserve the position offset when changing fonts. That way, plain text in
 							'the middle of edgetext is also offset +1,+1, so that it lines up visually with it
 							'.x += fonts(intarg).offset.x - .thefont->offset.x
 							'.y += fonts(intarg).offset.y - .thefont->offset.y
-							if intarg = -1 then
-								UPDATE_STATE(outbuf, thefont, .initialfont)
-							elseif intarg >= 0 andalso intarg <= ubound(fonts) then
-								UPDATE_STATE(outbuf, thefont, @fonts(intarg))
+							if intarg >= -1 andalso intarg <= ubound(fonts) then
+								if intarg = -1 then
+									'UPDATE_STATE(outbuf, thefont, .initial_font)
+									.thefont = .initial_font
+								elseif fonts(intarg).initialised then
+									'UPDATE_STATE(outbuf, thefont, @fonts(intarg))
+									.thefont = @fonts(intarg)
+								else
+									goto badtexttag
+								end if
+								APPEND_CMD(outbuf, tcmdFont, .thefont)
+								line_height = large(line_height, .thefont->h)
 							else
-								'goto badtexttag
+								goto badtexttag
 							end if
 						elseif action = "K" then
+							dim col as integer
 							if intarg <= -1 then
-								UPDATE_STATE(outbuf, localpal.col(1), .initialpal->col(1))
+								col = .initial_fgcolor
+							elseif intarg <= 255 THEN
+								col = intarg
 							else
-								UPDATE_STATE(outbuf, localpal.col(1), intarg AND &hFF)
+								goto badtexttag
+							end if
+							UPDATE_STATE(outbuf, localpal.col(1), col)
+							UPDATE_STATE(outbuf, fgcolor, col)
+						elseif action = "KP" then
+							if intarg >= 0 and intarg <= gen(genMaxPal) then
+								APPEND_CMD(outbuf, tcmdPalette, intarg)
+								'No need up update palette or fgcolor here
+								'(don't want to duplicate that logic here)
+							else
+								goto badtexttag
 							end if
 						elseif action = "LM" then
 							UPDATE_STATE(outbuf, leftmargin, intarg)
@@ -2394,6 +2430,7 @@ private function layout_line_fragment(z as string, byval endchar as integer, byv
 'debug "add " & chars_to_add & " chars before " & ch & " : '" & Mid(z, 1 + ch - chars_to_add, chars_to_add) & "'"
 			outbuf += Mid(z, 1 + ch - chars_to_add, chars_to_add)
 		end if
+		'Why do we always set x and charnum at the end of the string?
 		if ch <= endchar then
 'debug "exiting layout_line_fragment, ch = " & ch & ", .x = " & .x
 			line_width = .x
@@ -2411,14 +2448,62 @@ private function layout_line_fragment(z as string, byval endchar as integer, byv
 	end with
 end function
 
+'Build state.localpal
+sub build_text_palette(byref state as PrintStrState, byval srcpal as Palette16 ptr)
+	with state
+		if srcpal then
+			memcpy(@.localpal, srcpal, sizeof(Palette16))
+		end if
+		.localpal.col(0) = .bgcolor
+		if .fgcolor > -1 then
+			.localpal.col(1) = .fgcolor
+		end if
+		if srcpal = NULL and .fgcolor = -1 then
+			debug "render_text: Drawing a font without a palette or foreground colour!"
+		end if
+'debug "build_text_palette: bg = " & .bgcolor & " fg = "& .fgcolor & " outline = " & .thefont->outline_col
+		'Outline colours are a hack, hopefully temp.
+		if .thefont->outline_col > -1 then
+			.localpal.col(.thefont->outline_col) = uilook(uiOutline)
+		end if
+	end with
+end sub
+
 'Processes a parsed line, updating the state passed to it, and also optionally draws one of the layers
-sub draw_line_fragment(byval dest as Frame ptr, byref state as PrintStrState, byval layer as integer, parsed_line as string, byval reallydraw as integer, byval charframe as Frame ptr, byval trans_type as integer)
+sub draw_line_fragment(byval dest as Frame ptr, byref state as PrintStrState, byval layer as integer, parsed_line as string, byval reallydraw as integer)
+	dim arg as integer
+	dim as Frame charframe
+	charframe.mask = NULL
+
 	with state
 'debug "draw frag: x=" & .x & " y=" & .y & " char=" & .charnum & " reallydraw=" & reallydraw & " layer=" & layer
 		for ch as integer = 0 to len(parsed_line) - 1
-			if parsed_line[ch] = 16 then
+			if parsed_line[ch] = tcmdState then
 				'Control sequence. Make a change to state, and move ch past the sequence
 				MODIFY_STATE(state, parsed_line, ch)
+			elseif parsed_line[ch] = tcmdFont then
+				READ_CMD(parsed_line, ch, arg)
+				.thefont = cast(Font ptr, arg)
+				'.thefont = @fonts(arg)
+				if reallydraw then
+					'In case .fgcolor == -1 and .thefont->pal == NULL. Palette changes are per-font,
+					'so reset the colour.
+					if .fgcolor = -1 then .fgcolor = .initial_fgcolor
+					'We rebuild the local palette using either the font's palette or from scratch
+					build_text_palette state, .thefont->pal
+				end if
+			elseif parsed_line[ch] = tcmdPalette then
+				READ_CMD(parsed_line, ch, arg)
+				if reallydraw then
+					dim pal as Palette16 ptr
+					pal = palette16_load(arg)
+					if pal then
+						'Palettes override the foreground colour (but not background or outline)
+						.fgcolor = -1
+						build_text_palette state, pal
+						palette16_unload @pal
+					end if
+				end if
 			else
 				'Draw a character
 
@@ -2426,17 +2511,19 @@ sub draw_line_fragment(byval dest as Frame ptr, byref state as PrintStrState, by
 				if reallydraw and .x <= clipr then
 					if .thefont->layers(layer) <> NULL then
 						with .thefont->layers(layer)->chdata(parsed_line[ch])
-							charframe->image = state.thefont->layers(layer)->spr->image + .offset
-							charframe->w = .w
-							charframe->h = .h
-							charframe->pitch = .w
+							charframe.image = state.thefont->layers(layer)->spr->image + .offset
+							charframe.w = .w
+							charframe.h = .h
+							charframe.pitch = .w
 'debug " <" & (state.x + .offx) & "," & (state.y + .offy) & ">"
-							drawohr(charframe, dest, @state.localpal, state.x + .offx, state.y + .offy - state.thefont->h, trans_type)
+							dim trans as integer = YES
+							if layer = 0 and state.not_transparent then trans = NO
+							drawohr(@charframe, dest, @state.localpal, state.x + .offx, state.y + .offy - state.thefont->h, trans)
 						end with
 					end if
 				end if
 
-				'Note: do not use charframe->w, that's just the width of the sprite
+				'Note: do not use charframe.w, that's just the width of the sprite
 				.x += .thefont->w(parsed_line[ch])
 			end if
 		next
@@ -2447,13 +2534,28 @@ end sub
 'Draw a string. You will normally want to use one of the friendlier overloads for this,
 'probably the most complicated function in the engine.
 '
+'Arguments:
+'
+'Pass in a reference to a (fresh!!) PrintStrState object with .thefont and .fgcolor set
+'.fgcolor can be -1 for no colour (just use font palette).
+'.not_transparent and .bgcolor (only used if .not_transparent) may also be set
+'
+'At least one of pal and the (current) font pal and .fgcolor must be not NULL/-1.
+'This can be ensured by starting with either a palette or a .fgcolor!=-1
+'
+'endchar shouldn't be used; currently broken?
+'
 'If withtags is false then no tags are processed.
 'If withtags is true, the follow "basic texttags" are processed:
-' ${F#} changes to font # or return to initial font if # == -1
-' ${K#} changes foreground/first colour
-' ${KP#} changes to palette #  (unimplemented)
+'  (These will change!)
+' ${F#}  changes to font # or return to initial font if # == -1
+' ${K#}  changes foreground/first colour, or return to initial colour if # == -1
+'        (Note that this does disable the foreground colour, unless the initial fg colour was -1!)
+' ${KP#} changes to palette # (-1 is invalid) (Maybe should make ${F-1} return to the default)
+'        (Note, palette changes are per-font, and expire when the font changes)
 ' ${LM#} sets left margin for the current line, in pixels
 ' ${RM#} sets right margin for the current line, in pixels
+'Purposefully no way to set background colour.
 'Unrecognised and invalid basic texttags are printed as normal.
 'ASCII character 8 can be used to hide texttags by overwriting the $, like so: \008{X#}
 '
@@ -2469,9 +2571,8 @@ end sub
 'If you want to skip some number of lines, you should clip, and draw some number of pixels
 'above the clipping rectangle.
 '
-'FIXME: Fonts suck, fix use of Frames
-'
-sub render_text (byval dest as Frame ptr, text as string, byval endchar as integer = 999999, byval xpos as integer, byval ypos as integer, byval wide as integer = 999999, byval startfont as Font ptr, byval pal as Palette16 ptr, byval withtags as integer = YES, byval withnewlines as integer = YES, byval cached_state as PrintStrStatePtr = NULL, byval use_cached_state as integer = YES)
+sub render_text (byval dest as Frame ptr, byref state as PrintStrState, text as string, byval endchar as integer = 999999, byval xpos as integer, byval ypos as integer, byval wide as integer = 999999, byval pal as Palette16 ptr = NULL, byval withtags as integer = YES, byval withnewlines as integer = YES)
+', byval cached_state as PrintStrStatePtr = NULL, byval use_cached_state as integer = YES)
 
 'static tog as integer = 0
 'tog xor= 1
@@ -2485,36 +2586,30 @@ sub render_text (byval dest as Frame ptr, text as string, byval endchar as integ
 
 	'check bounds skipped because this is now quite hard to tell (checked in drawohr)
 
-	dim as Frame charframe
-	charframe.mask = NULL
-
-	'decide whether to draw a solid background or not (kludge)
-	dim as integer trans_type = -1
-	if pal->col(0) > 0  then
-		trans_type = 0
-	end if
-
 'debug "printstr '" & text & "' (len=" & len(text) & ") wide = " & wide & " tags=" & withtags & " nl=" & withnewlines
 
-	dim state as PrintStrState
 	with state
+		/'
 		if cached_state <> NULL and use_cached_state then
 			state = *cached_state
 			cached_state = NULL
 		else
-			'Make a local copy of the palette, for modifications
-			.localpal = *pal
-			.initialpal = pal
-			.thefont = startfont
-			.initialfont = startfont
+		'/
+			if pal then
+				build_text_palette state, pal
+			else
+				build_text_palette state, .thefont->pal
+			end if
+			.initial_font = .thefont
+			.initial_fgcolor = .fgcolor
 			.charnum = 0
-			.x = xpos + startfont->offset.x
-			.y = ypos + startfont->offset.y
+			.x = xpos + .thefont->offset.x
+			.y = ypos + .thefont->offset.y
 			.startx = .x
 			'Margins are measured relative to xpos
 			.leftmargin = 0
 			.rightmargin = wide
-		end if
+		'end if
 
 		dim as integer visibleline  'Draw this line of text?
 
@@ -2536,21 +2631,24 @@ sub render_text (byval dest as Frame ptr, text as string, byval endchar as integ
 'if tog then visibleline = 0
 'debug "vis: " & visibleline
 
+			'FIXME: state caching was meant to kick in after the first visible line of text, not here;
+			'however need to rethink how it should work
+/'
 			if cached_state then
 				*cached_state = state
 				cached_state = NULL  'Don't save again
 			end if
-
+'/
 			.y += line_height
 
 			'Update state while drawing layer 0 (if visible)
-			draw_line_fragment(dest, state, 0, parsed_line, visibleline, @charframe, trans_type)
+			draw_line_fragment(dest, state, 0, parsed_line, visibleline)
 
 			if draw_layer1 then
 				'Now update prev_state (to the beginning of THIS line) while drawing layer 1
 				'for the previous line. Afterwards, prev_state will be identical to state
 				'as it was at the start of this loop.
-				draw_line_fragment(dest, prev_state, 1, prev_parse, prev_visible, @charframe, trans_type)
+				draw_line_fragment(dest, prev_state, 1, prev_parse, prev_visible)
 'debug "prev.charnum=" & prev_state.charnum
 				if prev_state.charnum >= endchar then /'debug "text end" :'/ exit do
 				if prev_state.y > clipb + prev_state.thefont->h then exit do
@@ -2570,10 +2668,9 @@ sub text_layout_dimensions (byval retsize as StringSize ptr, z as string, byval 
 'debug "DIMEN char " & endchar
 	dim state as PrintStrState
 	with state
-		'.localpal uninitialised
+		'.localpal/fgcolor/initial_fgcolor uninitialised
 		.thefont = @fonts(fontnum)
-		.initialfont = .thefont
-		.initialpal = @.localpal  'any old valid pointer
+		.initial_font = .thefont
 		.charnum = 0
 		.x = .thefont->offset.x
 		.y = .thefont->offset.y
@@ -2599,7 +2696,7 @@ sub text_layout_dimensions (byval retsize as StringSize ptr, z as string, byval 
 
 			'Update state
 			.y += line_height
-			draw_line_fragment(NULL, state, 0, parsed_line, NO, NULL, 0)
+			draw_line_fragment(NULL, state, 0, parsed_line, NO)
 'debug "now " & .charnum & " at " & .x & "," & .y
 			if exitloop then exit while
 		wend
@@ -2627,10 +2724,9 @@ sub find_point_in_text (byval retsize as StringCharPos ptr, byval seekx as integ
 
 	dim state as PrintStrState
 	with state
-		'.localpal uninitialised
+		'.localpal/fgcolor/initial_fgcolor uninitialised
 		.thefont = @fonts(fontnum)
-		.initialfont = .thefont
-		.initialpal = @.localpal  'any old valid pointer
+		.initial_font = .thefont
 		.charnum = 0
 		.x = xpos + .thefont->offset.x
 		.y = ypos + .thefont->offset.y
@@ -2641,6 +2737,7 @@ sub find_point_in_text (byval retsize as StringCharPos ptr, byval seekx as integ
 		dim delayedmatch as integer = NO
 		dim line_width as integer
 		dim line_height as integer
+		dim arg as integer
 
 		retsize->exacthit = NO
 		'retsize->w = .thefont->h  'Default for if we go off the end of the text
@@ -2652,11 +2749,18 @@ sub find_point_in_text (byval retsize as StringCharPos ptr, byval seekx as integ
 
 			'Update state
 			for ch as integer = 0 to len(parsed_line) - 1
-				if parsed_line[ch] = 16 then
+				if parsed_line[ch] = tcmdState then
 					'Make a change to the state
-					.charnum += 1
+					.charnum += 1   'FIXME: this looks wrong
 					MODIFY_STATE(state, parsed_line, ch)
+				elseif parsed_line[ch] = tcmdFont then
+					READ_CMD(parsed_line, ch, arg)
+					.thefont = cast(Font ptr, arg)
+					'.thefont = @fonts(arg)
+				elseif parsed_line[ch] = tcmdPalette then
+					READ_CMD(parsed_line, ch, arg)
 				else
+
 					dim w as integer = .thefont->w(parsed_line[ch])
 					'Draw a character
 					if delayedmatch then
@@ -2703,70 +2807,42 @@ end SUB
 
 'A flexible printstr for enduser code without weird font, pal arguments
 SUB printstr (byval dest as Frame ptr, s as string, byval x as integer, byval y as integer, byval wide as integer = 999999, byval fontnum as integer, byval withtags as integer = YES, byval withnewlines as integer = YES)
-	dim fontpal as Palette16
+	dim state as PrintStrState
+	state.thefont = @fonts(fontnum)
+	if textbg <> 0 then state.not_transparent = YES
+	state.bgcolor = textbg
+	state.fgcolor = textfg
 
-	if fontnum = 0 then
-		'unedged
-		fontpal.col(0) = textbg
-		fontpal.col(1) = textfg
-	else
-		'edged
-		fontpal.col(0) = 0
-		fontpal.col(1) = textfg
-		fontpal.col(2) = uilook(uiOutline)
-	end if
-
-	'dirty hack, delete me
-	if fonts(fontnum).cols > 2 then
-		fontpal.col(1) = 80
-		fontpal.col(2) = 160
-		fontpal.col(3) = 240
-	end if
-
-	render_text (dest, s, , x, y, wide, @fonts(fontnum), @fontpal, withtags, withnewlines)
+	render_text (dest, state, s, , x, y, wide, , withtags, withnewlines)
 end SUB
-
-SUB init_font_palette(byval fontpal as Palette16 ptr, byval fontnum as integer, byval fgcol as integer, byval bgcol as integer)
-	if fontnum = 0 then
-		'unedged
-		fontpal->col(0) = bgcol
-		fontpal->col(1) = fgcol
-	else
-		'edged
-		fontpal->col(0) = 0
-		fontpal->col(1) = fgcol
-		fontpal->col(2) = uilook(uiOutline)
-	end if
-END SUB
 
 'the old printstr -- no autowrapping
 SUB printstr (s as string, byval x as integer, byval y as integer, byval p as integer, byval withtags as integer = NO)
-	dim fontpal as Palette16
+	dim state as PrintStrState
+	state.thefont = @fonts(0)
+	if textbg <> 0 then state.not_transparent = YES
+	state.bgcolor = textbg
+	state.fgcolor = textfg
 
-	fontpal.col(0) = textbg
-	fontpal.col(1) = textfg
-
-	render_text (vpages(p), s, , x, y, , @fonts(0), @fontpal, withtags, NO)
+	render_text (vpages(p), state, s, , x, y, , , withtags, NO)
 end SUB
 
 'this doesn't autowrap either
 SUB edgeprint (s as string, byval x as integer, byval y as integer, byval c as integer, byval p as integer, byval withtags as integer = NO)
-	static fontpal as Palette16
-
-	fontpal.col(0) = 0
-	fontpal.col(1) = c
-	fontpal.col(2) = uilook(uiOutline)
-
 	'preserve the old behaviour (edgeprint used to call textcolor)
 	textfg = c
 	textbg = 0
 
-	render_text (vpages(p), s, , x, y, , @fonts(1), @fontpal, withtags, NO)
+	dim state as PrintStrState
+	state.thefont = @fonts(1)
+	state.fgcolor = c
+
+	render_text (vpages(p), state, s, , x, y, , , withtags, NO)
 END SUB
 
-SUB textcolor (byval f as integer, byval b as integer)
-	textfg = f
-	textbg = b
+SUB textcolor (byval fg as integer, byval bg as integer)
+	textfg = fg
+	textbg = bg
 end SUB
 
 'This SUB doesn't actually delete the Font object
@@ -2784,7 +2860,10 @@ SUB font_unload (byval font as Font ptr)
 		end if
 	next
 
+	palette16_unload @font->pal
 	memset(font, 0, sizeof(Font))
+	font->pal_id = -1
+	font->outline_col = -1
 	'font->cols = 0
 	'font->offset.x = 0
 	'font->offset.y = 0
@@ -2856,6 +2935,8 @@ SUB font_create_edged (byval newfont as Font ptr, byval basefont as Font ptr)
 	font->h = basefont->h  '+ 2
 	font->offset = basefont->offset
 	font->cols = basefont->cols + 1
+	font->outline_col = font->cols
+	font->initialised = YES
 
 	'Stuff currently hardcoded to keep edged font working as before
 	font->offset.x = 1
@@ -2873,10 +2954,10 @@ SUB font_create_edged (byval newfont as Font ptr, byval basefont as Font ptr)
 			for y = 1 to .h - 2
 				for x = 1 to .w - 2
 					if *srcptr then
-						sptr[-.w + 0] = font->cols
-						sptr[  0 - 1] = font->cols
-						sptr[  0 + 1] = font->cols
-						sptr[ .w + 0] = font->cols
+						sptr[-.w + 0] = font->outline_col
+						sptr[  0 - 1] = font->outline_col
+						sptr[  0 + 1] = font->outline_col
+						sptr[ .w + 0] = font->outline_col
 					end if
 					'if *sptr = 0 then *maskp = 0 else *maskp = &hff
 					sptr += 1
@@ -2919,6 +3000,8 @@ SUB font_create_shadowed (byval newfont as Font ptr, byval basefont as Font ptr,
 	font->layers(1)->refcount += 1
 
 	font->cols += 1
+	font->outline_col = font->cols
+	font->initialised = YES
 
 	for ch as integer = 0 to 255
 		with font->layers(0)->chdata(ch)
@@ -2930,7 +3013,7 @@ SUB font_create_shadowed (byval newfont as Font ptr, byval basefont as Font ptr,
 	with *font->layers(0)->spr
 		for i as integer = 0 to .w * .h - 1
 			if .image[i] then
-				.image[i] = font->cols
+				.image[i] = font->outline_col
 			end if
 		next
 	end with
@@ -2950,6 +3033,7 @@ sub font_loadold1bit (byval font as Font ptr, byval fontdata as ubyte ptr)
 	font->offset.x = 0
 	font->offset.y = 0
 	font->cols = 1
+	font->initialised = YES
 
 	'dim as ubyte ptr maskp = font->layers(1)->spr->mask
 	dim as ubyte ptr sptr = font->layers(1)->spr->image
@@ -3006,6 +3090,7 @@ SUB font_loadbmps (byval newfont as Font ptr, directory as string, byval fallbac
 	'Hacky: start by allocating 4096 pixels, expand as needed
 	font->layers(1)->spr = frame_new(1, 4096)
 	font->cols = 1  'hardcoded
+	font->initialised = YES
 
 	dim maxheight as integer
 	if fallback then
@@ -3100,6 +3185,7 @@ SUB font_loadbmp_16x16 (byval font as Font ptr, filename as string)
 	font->h = charh
 	font->offset.x = 0
 	font->offset.y = 0
+	font->initialised = YES
 	font->layers(0) = null
 	font->layers(1) = fontlayer_new()
 
@@ -5574,7 +5660,6 @@ sub Palette16_add_cache(s as string, byval p as Palette16 ptr, byval fr as integ
 			if .s = "" then
 				.s = s
 				.p = p
-				p->refcount = 1
 				exit sub
 			elseif .p->refcount <= 0 then
 				sec = i
@@ -5586,7 +5671,6 @@ sub Palette16_add_cache(s as string, byval p as Palette16 ptr, byval fr as integ
 		Palette16_delete(@palcache(sec).p)
 		palcache(sec).s = s
 		palcache(sec).p = p
-		p->refcount = 1
 		exit sub
 	end if
 	
@@ -5664,7 +5748,6 @@ function palette16_load(fil as string, byval num as integer, byval autotype as i
 	end if
 	
 	ret = callocate(sizeof(palette16))
-	
 	if ret = 0 then
 		close #f
 		debug "Could not create palette, no memory"
@@ -5675,6 +5758,7 @@ function palette16_load(fil as string, byval num as integer, byval autotype as i
 	for mag = 0 to 15
 		get #f,, ret->col(mag)
 	next
+	ret->refcount = 1
 	
 	close #f
 	
@@ -5701,11 +5785,14 @@ sub palette16_unload(byval p as palette16 ptr ptr)
 	else
 		(*p)->refcount -= 1
 		'debug "unloading palette (" & ((*p)->refcount) & " more copies!)"
+		'Don't delete: it stays in the cache. Unlike the sprite cache, the much simpler
+		'palette cache doesn't count as a reference
 	end if
 	*p = 0
 end sub
 
 'update a .pal-loaded palette even while in use elsewhere.
+'(Won't update localpal in a cached PrintStrState... but caching isn't implemented yet)
 sub Palette16_update_cache(fil as string, byval num as integer)
 	dim oldpal as Palette16 ptr
 	dim hashstring as string

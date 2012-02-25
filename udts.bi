@@ -484,11 +484,15 @@ Type FontLayer
 End Type
 
 Type Font
+	initialised as integer
 	layers(1) as FontLayer ptr	'single layer fonts should use sprite(1) only
 	w(255) as integer	'width of each character
 	h as integer		'height of a line
 	offset as XYPair	'added to coordinates when printing
-	cols as integer		'number of used colours, not including colour 0 (transparency), so at most 255
+	cols as integer		'number of used colours, not including colour 0 (transparency), so at most <s>255</s> 15
+	pal as Palette16 ptr '(Default) palette template to use, or NULL if this font is unpaletted (foreground colour only)
+	pal_id as integer   'id of pal. Not used by render_text
+	outline_col as integer 'palette entry which should be filled with uiOutline, or -1 for none
 End Type
 
 'text_layout_dimensions returns this struct
