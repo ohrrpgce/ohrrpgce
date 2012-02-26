@@ -60,10 +60,10 @@ struct GuiObject
 	virtual int proc(unsigned int msg, unsigned int param1, void* param2) = 0;
 };
 
-struct GuiRect
-{
-	long left, top, right, bottom;
-};
+//struct GuiRect
+//{
+//	long left, top, right, bottom;
+//};
 
 class GuiManager;
 struct GuiCreationParams
