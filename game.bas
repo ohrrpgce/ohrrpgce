@@ -3474,7 +3474,7 @@ SUB orphan_npc_slices()
 END SUB
 
 SUB refresh_map_slice()
- 'This updates the size, tilesets, and sort order of the map slices
+ 'This updates the size, tilesets, sort order, and visibility of the map slices
 
  'debug "refresh_map_slice() there are " & UBOUND(maptiles) + 1 & " map layers on map " & gam.map.id
 
@@ -3495,12 +3495,14 @@ SUB refresh_map_slice()
  FOR i as integer = 0 TO UBOUND(maptiles)
   '--reset each layer (the tileset ptr is set in refresh_map_slice_tilesets
   ChangeMapSlice SliceTable.MapLayer(i), @maptiles(i), @pass
+  SliceTable.MapLayer(i)->Visible = IIF(i = 0, YES, readbit(gmap(), 19, i - 1))
  NEXT i
  FOR i as integer = UBOUND(maptiles) + 1 TO UBOUND(SliceTable.MapLayer)
   '--if slices exist for the unused layers that this map doesn't have,
   '--we should make them display no tiles
   IF Slicetable.MapLayer(i) <> 0 THEN
    ChangeMapSlice SliceTable.MapLayer(i), NULL, NULL
+   SliceTable.MapLayer(i)->Visible = NO
   END IF
  NEXT i
  ChangeMapSlice SliceTable.ObsoleteOverhead, @maptiles(0), @pass
