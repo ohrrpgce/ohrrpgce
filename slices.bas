@@ -788,31 +788,31 @@ Function sliceIsClipping( byval s as Slice ptr ) as integer
 	return s->Clip
 End Function
 'slice mutators
-DECLARE Sub sliceSetX( byval x as integer, byval s as Slice ptr )
+Sub sliceSetX( byval x as integer, byval s as Slice ptr )
 	s->X = x
 End Sub
-DECLARE Sub sliceSetY( byval y as integer, byval s as Slice ptr )
+Sub sliceSetY( byval y as integer, byval s as Slice ptr )
 	s->Y = y
 End Sub
-DECLARE Sub sliceSetScreenX( byval x as integer, byval s as Slice ptr )
+Sub sliceSetScreenX( byval x as integer, byval s as Slice ptr )
 	s->ScreenX = x
 End Sub
-DECLARE Sub sliceSetScreenY( byval y as integer, byval s as Slice ptr )
+Sub sliceSetScreenY( byval y as integer, byval s as Slice ptr )
 	s->ScreenY = y
 End Sub
-DECLARE Sub sliceSetWidth( byval w as integer, byval s as Slice ptr )
+Sub sliceSetWidth( byval w as integer, byval s as Slice ptr )
 	s->Width = w
 End Sub
-DECLARE Sub sliceSetHeight( byval h as integer, byval s as Slice ptr )
+Sub sliceSetHeight( byval h as integer, byval s as Slice ptr )
 	s->Height = h
 End Sub
-DECLARE Sub sliceSetVisibility( byval b as integer, byval s as Slice ptr )
+Sub sliceSetVisibility( byval b as integer, byval s as Slice ptr )
 	s->Visible = b
 End Sub
-DECLARE Sub sliceSetMobility( byval b as integer, byval s as Slice ptr )
+Sub sliceSetMobility( byval b as integer, byval s as Slice ptr )
 	s->Mobile = b
 End Sub
-DECLARE Sub sliceSetClipping( byval b as integer, byval s as Slice ptr )
+Sub sliceSetClipping( byval b as integer, byval s as Slice ptr )
 	s->Clip = b
 End Sub
 
