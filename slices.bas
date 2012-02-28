@@ -745,74 +745,74 @@ Function IndexAmongSiblings(byref sl as Slice Ptr) as integer
 End function
 
 'slice accessors
-Function sliceGetParent( s as Slice ptr ) as Slice ptr
+Function sliceGetParent( byval s as Slice ptr ) as Slice ptr
 	return s->Parent
 End Function
-Function sliceGetFirstChild( s as Slice ptr ) as Slice ptr
+Function sliceGetFirstChild( byval s as Slice ptr ) as Slice ptr
 	return s->FirstChild
 End Function
-Function sliceGetNextSibling( s as Slice ptr ) as Slice ptr
+Function sliceGetNextSibling( byval s as Slice ptr ) as Slice ptr
 	return s->NextSibling
 End Function
-Function sliceGetPrevSibling( s as Slice ptr ) as Slice ptr
+Function sliceGetPrevSibling( byval s as Slice ptr ) as Slice ptr
 	return s->PrevSibling
 End Function
-Function sliceGetNumChildren( s as Slice ptr ) as integer
+Function sliceGetNumChildren( byval s as Slice ptr ) as integer
 	return s->NumChildren
 End Function
-Function sliceGetX( s as Slice ptr ) as integer
+Function sliceGetX( byval s as Slice ptr ) as integer
 	return s->X
 End Function
-Function sliceGetY( s as Slice ptr ) as integer
+Function sliceGetY( byval s as Slice ptr ) as integer
 	return s->Y
 End Function
-Function sliceGetScreenX( s as Slice ptr ) as integer
+Function sliceGetScreenX( byval s as Slice ptr ) as integer
 	return s->ScreenX
 End Function
-Function sliceGetScreenY( s as Slice ptr ) as integer
+Function sliceGetScreenY( byval s as Slice ptr ) as integer
 	return s->ScreenY
 End Function
-Function sliceGetWidth( s as Slice ptr ) as integer
+Function sliceGetWidth( byval s as Slice ptr ) as integer
 	return s->Width
 End Function
-Function sliceGetHeight( s as Slice ptr ) as integer
+Function sliceGetHeight( byval s as Slice ptr ) as integer
 	return s->Height
 End Function
-Function sliceIsVisible( s as Slice ptr ) as integer
+Function sliceIsVisible( byval s as Slice ptr ) as integer
 	return s->Visible
 End Function
-Function sliceIsMobile( s as Slice ptr ) as integer
+Function sliceIsMobile( byval s as Slice ptr ) as integer
 	return s->Mobile
 End Function
-Function sliceIsClipping( s as Slice ptr ) as integer
+Function sliceIsClipping( byval s as Slice ptr ) as integer
 	return s->Clip
 End Function
 'slice mutators
-DECLARE Sub sliceSetX( x as integer, s as Slice ptr )
+DECLARE Sub sliceSetX( byval x as integer, byval s as Slice ptr )
 	s->X = x
 End Sub
-DECLARE Sub sliceSetY( y as integer, s as Slice ptr )
+DECLARE Sub sliceSetY( byval y as integer, byval s as Slice ptr )
 	s->Y = y
 End Sub
-DECLARE Sub sliceSetScreenX( x as integer, s as Slice ptr )
+DECLARE Sub sliceSetScreenX( byval x as integer, byval s as Slice ptr )
 	s->ScreenX = x
 End Sub
-DECLARE Sub sliceSetScreenY( y as integer, s as Slice ptr )
+DECLARE Sub sliceSetScreenY( byval y as integer, byval s as Slice ptr )
 	s->ScreenY = y
 End Sub
-DECLARE Sub sliceSetWidth( w as integer, s as Slice ptr )
+DECLARE Sub sliceSetWidth( byval w as integer, byval s as Slice ptr )
 	s->Width = w
 End Sub
-DECLARE Sub sliceSetHeight( h as integer, s as Slice ptr )
+DECLARE Sub sliceSetHeight( byval h as integer, byval s as Slice ptr )
 	s->Height = h
 End Sub
-DECLARE Sub sliceSetVisibility( b as integer, s as Slice ptr )
+DECLARE Sub sliceSetVisibility( byval b as integer, byval s as Slice ptr )
 	s->Visible = b
 End Sub
-DECLARE Sub sliceSetMobility( b as integer, s as Slice ptr )
+DECLARE Sub sliceSetMobility( byval b as integer, byval s as Slice ptr )
 	s->Mobile = b
 End Sub
-DECLARE Sub sliceSetClipping( b as integer, s as Slice ptr )
+DECLARE Sub sliceSetClipping( byval b as integer, byval s as Slice ptr )
 	s->Clip = b
 End Sub
 
