@@ -295,6 +295,36 @@ DECLARE Sub AutoSortChildren(byval s as Slice Ptr)
 DECLARE Function CloneSliceTree(byval sl as slice ptr) as slice ptr
 DECLARE Sub SetSliceTarg(byval s as slice ptr, byval x as integer, byval y as integer, byval ticks as integer)
 
+extern "C"
+
+'slice accessors
+DECLARE Function sliceGetParent( s as Slice ptr ) as Slice ptr
+DECLARE Function sliceGetFirstChild( s as Slice ptr ) as Slice ptr
+DECLARE Function sliceGetNextSibling( s as Slice ptr ) as Slice ptr
+DECLARE Function sliceGetPrevSibling( s as Slice ptr ) as Slice ptr
+DECLARE Function sliceGetNumChildren( s as Slice ptr ) as integer
+DECLARE Function sliceGetX( s as Slice ptr ) as integer
+DECLARE Function sliceGetY( s as Slice ptr ) as integer
+DECLARE Function sliceGetScreenX( s as Slice ptr ) as integer
+DECLARE Function sliceGetScreenY( s as Slice ptr ) as integer
+DECLARE Function sliceGetWidth( s as Slice ptr ) as integer
+DECLARE Function sliceGetHeight( s as Slice ptr ) as integer
+DECLARE Function sliceIsVisible( s as Slice ptr ) as integer
+DECLARE Function sliceIsMobile( s as Slice ptr ) as integer
+DECLARE Function sliceIsClipping( s as Slice ptr ) as integer
+'slice mutators
+DECLARE Sub sliceSetX( x as integer, s as Slice ptr )
+DECLARE Sub sliceSetY( y as integer, s as Slice ptr )
+DECLARE Sub sliceSetScreenX( x as integer, s as Slice ptr )
+DECLARE Sub sliceSetScreenY( y as integer, s as Slice ptr )
+DECLARE Sub sliceSetWidth( w as integer, s as Slice ptr )
+DECLARE Sub sliceSetHeight( h as integer, s as Slice ptr )
+DECLARE Sub sliceSetVisibility( b as integer, s as Slice ptr )
+DECLARE Sub sliceSetMobility( b as integer, s as Slice ptr )
+DECLARE Sub sliceSetClipping( b as integer, s as Slice ptr )
+
+end extern
+
 DECLARE FUNCTION NewSliceOfType (byval t as SliceTypes, byval parent as Slice Ptr=0, byval lookup_code as integer=0) as Slice Ptr
 
 DECLARE SUB SliceDebugRemember(sl as Slice Ptr)
