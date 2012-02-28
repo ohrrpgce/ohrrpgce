@@ -298,30 +298,30 @@ DECLARE Sub SetSliceTarg(byval s as slice ptr, byval x as integer, byval y as in
 extern "C"
 
 'slice accessors
-DECLARE Function sliceGetParent( byval s as Slice ptr ) as Slice ptr
-DECLARE Function sliceGetFirstChild( byval s as Slice ptr ) as Slice ptr
-DECLARE Function sliceGetNextSibling( byval s as Slice ptr ) as Slice ptr
-DECLARE Function sliceGetPrevSibling( byval s as Slice ptr ) as Slice ptr
-DECLARE Function sliceGetNumChildren( byval s as Slice ptr ) as integer
-DECLARE Function sliceGetX( byval s as Slice ptr ) as integer
-DECLARE Function sliceGetY( byval s as Slice ptr ) as integer
-DECLARE Function sliceGetScreenX( byval s as Slice ptr ) as integer
-DECLARE Function sliceGetScreenY( byval s as Slice ptr ) as integer
-DECLARE Function sliceGetWidth( byval s as Slice ptr ) as integer
-DECLARE Function sliceGetHeight( byval s as Slice ptr ) as integer
-DECLARE Function sliceIsVisible( byval s as Slice ptr ) as integer
-DECLARE Function sliceIsMobile( byval s as Slice ptr ) as integer
-DECLARE Function sliceIsClipping( byval s as Slice ptr ) as integer
+DECLARE Function SliceGetParent( byval s as Slice ptr ) as Slice ptr
+DECLARE Function SliceGetFirstChild( byval s as Slice ptr ) as Slice ptr
+DECLARE Function SliceGetNextSibling( byval s as Slice ptr ) as Slice ptr
+DECLARE Function SliceGetPrevSibling( byval s as Slice ptr ) as Slice ptr
+DECLARE Function SliceGetNumChildren( byval s as Slice ptr ) as integer
+DECLARE Function SliceGetX( byval s as Slice ptr ) as integer
+DECLARE Function SliceGetY( byval s as Slice ptr ) as integer
+DECLARE Function SliceGetScreenX( byval s as Slice ptr ) as integer
+DECLARE Function SliceGetScreenY( byval s as Slice ptr ) as integer
+DECLARE Function SliceGetWidth( byval s as Slice ptr ) as integer
+DECLARE Function SliceGetHeight( byval s as Slice ptr ) as integer
+DECLARE Function SliceIsVisible( byval s as Slice ptr ) as integer
+DECLARE Function SliceIsMobile( byval s as Slice ptr ) as integer
+DECLARE Function SliceIsClipping( byval s as Slice ptr ) as integer
 'slice mutators
-DECLARE Sub sliceSetX( byval x as integer, byval s as Slice ptr )
-DECLARE Sub sliceSetY( byval y as integer, byval s as Slice ptr )
-DECLARE Sub sliceSetScreenX( byval x as integer, byval s as Slice ptr )
-DECLARE Sub sliceSetScreenY( byval y as integer, byval s as Slice ptr )
-DECLARE Sub sliceSetWidth( byval w as integer, byval s as Slice ptr )
-DECLARE Sub sliceSetHeight( byval h as integer, byval s as Slice ptr )
-DECLARE Sub sliceSetVisibility( byval b as integer, byval s as Slice ptr )
-DECLARE Sub sliceSetMobility( byval b as integer, byval s as Slice ptr )
-DECLARE Sub sliceSetClipping( byval b as integer, byval s as Slice ptr )
+DECLARE Sub SliceSetX( byval s as Slice ptr, byval x as integer )
+DECLARE Sub SliceSetY( byval s as Slice ptr, byval y as integer )
+DECLARE Sub SliceSetScreenX( byval s as Slice ptr, byval x as integer )
+DECLARE Sub SliceSetScreenY( byval s as Slice ptr, byval y as integer )
+DECLARE Sub SliceSetWidth( byval s as Slice ptr, byval w as integer )
+DECLARE Sub SliceSetHeight( byval s as Slice ptr, byval h as integer )
+DECLARE Sub SliceSetVisibility( byval s as Slice ptr, byval b as integer )
+DECLARE Sub SliceSetMobility( byval s as Slice ptr, byval b as integer )
+DECLARE Sub SliceSetClipping( byval s as Slice ptr, byval b as integer )
 
 end extern
 

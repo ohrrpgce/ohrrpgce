@@ -745,75 +745,75 @@ Function IndexAmongSiblings(byref sl as Slice Ptr) as integer
 End function
 
 'slice accessors
-Function sliceGetParent( byval s as Slice ptr ) as Slice ptr
-	return s->Parent
+Function SliceGetParent( byval s as Slice ptr ) as Slice ptr
+ return s->Parent
 End Function
-Function sliceGetFirstChild( byval s as Slice ptr ) as Slice ptr
-	return s->FirstChild
+Function SliceGetFirstChild( byval s as Slice ptr ) as Slice ptr
+ return s->FirstChild
 End Function
-Function sliceGetNextSibling( byval s as Slice ptr ) as Slice ptr
-	return s->NextSibling
+Function SliceGetNextSibling( byval s as Slice ptr ) as Slice ptr
+ return s->NextSibling
 End Function
-Function sliceGetPrevSibling( byval s as Slice ptr ) as Slice ptr
-	return s->PrevSibling
+Function SliceGetPrevSibling( byval s as Slice ptr ) as Slice ptr
+ return s->PrevSibling
 End Function
-Function sliceGetNumChildren( byval s as Slice ptr ) as integer
-	return s->NumChildren
+Function SliceGetNumChildren( byval s as Slice ptr ) as integer
+ return s->NumChildren
 End Function
-Function sliceGetX( byval s as Slice ptr ) as integer
-	return s->X
+Function SliceGetX( byval s as Slice ptr ) as integer
+ return s->X
 End Function
-Function sliceGetY( byval s as Slice ptr ) as integer
-	return s->Y
+Function SliceGetY( byval s as Slice ptr ) as integer
+ return s->Y
 End Function
-Function sliceGetScreenX( byval s as Slice ptr ) as integer
-	return s->ScreenX
+Function SliceGetScreenX( byval s as Slice ptr ) as integer
+ return s->ScreenX
 End Function
-Function sliceGetScreenY( byval s as Slice ptr ) as integer
-	return s->ScreenY
+Function SliceGetScreenY( byval s as Slice ptr ) as integer
+ return s->ScreenY
 End Function
-Function sliceGetWidth( byval s as Slice ptr ) as integer
-	return s->Width
+Function SliceGetWidth( byval s as Slice ptr ) as integer
+ return s->Width
 End Function
-Function sliceGetHeight( byval s as Slice ptr ) as integer
-	return s->Height
+Function SliceGetHeight( byval s as Slice ptr ) as integer
+ return s->Height
 End Function
-Function sliceIsVisible( byval s as Slice ptr ) as integer
-	return s->Visible
+Function SliceIsVisible( byval s as Slice ptr ) as integer
+ return s->Visible
 End Function
-Function sliceIsMobile( byval s as Slice ptr ) as integer
-	return s->Mobile
+Function SliceIsMobile( byval s as Slice ptr ) as integer
+ return s->Mobile
 End Function
-Function sliceIsClipping( byval s as Slice ptr ) as integer
-	return s->Clip
+Function SliceIsClipping( byval s as Slice ptr ) as integer
+ return s->Clip
 End Function
 'slice mutators
-Sub sliceSetX( byval x as integer, byval s as Slice ptr )
-	s->X = x
+Sub SliceSetX( byval s as Slice ptr, byval x as integer )
+ s->X = x
 End Sub
-Sub sliceSetY( byval y as integer, byval s as Slice ptr )
-	s->Y = y
+Sub SliceSetY( byval s as Slice ptr, byval y as integer )
+ s->Y = y
 End Sub
-Sub sliceSetScreenX( byval x as integer, byval s as Slice ptr )
-	s->ScreenX = x
+Sub SliceSetScreenX( byval s as Slice ptr, byval x as integer )
+ s->ScreenX = x
 End Sub
-Sub sliceSetScreenY( byval y as integer, byval s as Slice ptr )
-	s->ScreenY = y
+Sub SliceSetScreenY( byval s as Slice ptr, byval y as integer )
+ s->ScreenY = y
 End Sub
-Sub sliceSetWidth( byval w as integer, byval s as Slice ptr )
-	s->Width = w
+Sub SliceSetWidth( byval s as Slice ptr, byval w as integer )
+ s->Width = w
 End Sub
-Sub sliceSetHeight( byval h as integer, byval s as Slice ptr )
-	s->Height = h
+Sub SliceSetHeight( byval s as Slice ptr, byval h as integer )
+ s->Height = h
 End Sub
-Sub sliceSetVisibility( byval b as integer, byval s as Slice ptr )
-	s->Visible = b
+Sub SliceSetVisibility( byval s as Slice ptr, byval b as integer )
+ s->Visible = b
 End Sub
-Sub sliceSetMobility( byval b as integer, byval s as Slice ptr )
-	s->Mobile = b
+Sub SliceSetMobility( byval s as Slice ptr, byval b as integer )
+ s->Mobile = b
 End Sub
-Sub sliceSetClipping( byval b as integer, byval s as Slice ptr )
-	s->Clip = b
+Sub SliceSetClipping( byval s as Slice ptr, byval b as integer )
+ s->Clip = b
 End Sub
 
 '==Special slice types=========================================================

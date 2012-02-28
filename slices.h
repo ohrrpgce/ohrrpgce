@@ -18,30 +18,30 @@ void InsertSliceBefore( SlicePtr sl, SlicePtr newsl );
 void SwapSiblingSlices( SlicePtr sl1, SlicePtr sl2 );
 SlicePtr FindSliceAtPoint( SlicePtr parent, int x, int y, int& num, int descend );
 
-SlicePtr sliceGetParent( SlicePtr s );
-SlicePtr sliceGetFirstChild( SlicePtr s );
-SlicePtr sliceGetNextSibling( SlicePtr s );
-SlicePtr sliceGetPrevSibling( SlicePtr s );
-int sliceGetNumChildren( SlicePtr s );
-int sliceGetX( SlicePtr s );
-int sliceGetY( SlicePtr s );
-int sliceGetScreenX( SlicePtr s );
-int sliceGetScreenY( SlicePtr s );
-int sliceGetWidth( SlicePtr s );
-int sliceGetHeight( SlicePtr s );
-int sliceIsVisible( SlicePtr s );
-int sliceIsMobile( SlicePtr s );
-int sliceIsClipping( SlicePtr s );
+SlicePtr SliceGetParent( SlicePtr s );
+SlicePtr SliceGetFirstChild( SlicePtr s );
+SlicePtr SliceGetNextSibling( SlicePtr s );
+SlicePtr SliceGetPrevSibling( SlicePtr s );
+int SliceGetNumChildren( SlicePtr s );
+int SliceGetX( SlicePtr s );
+int SliceGetY( SlicePtr s );
+int SliceGetScreenX( SlicePtr s );
+int SliceGetScreenY( SlicePtr s );
+int SliceGetWidth( SlicePtr s );
+int SliceGetHeight( SlicePtr s );
+int SliceIsVisible( SlicePtr s );
+int SliceIsMobile( SlicePtr s );
+int SliceIsClipping( SlicePtr s );
 
-void sliceSetX( int x, SlicePtr s );
-void sliceSetY( int y, SlicePtr s );
-void sliceSetScreenX( int x, SlicePtr s );
-void sliceSetScreenY( int y, SlicePtr s );
-void sliceSetWidth( int w, SlicePtr s );
-void sliceSetHeight( int h, SlicePtr s );
-void sliceSetVisibility( int b, SlicePtr s );
-void sliceSetMobility( int b, SlicePtr s );
-void sliceSetClipping( int b, SlicePtr s );
+void SliceSetX( SlicePtr s, int x );
+void SliceSetY( SlicePtr s, int y );
+void SliceSetScreenX( SlicePtr s, int x );
+void SliceSetScreenY( SlicePtr s, int y );
+void SliceSetWidth( SlicePtr s, int w );
+void SliceSetHeight( SlicePtr s, int h );
+void SliceSetVisibility( SlicePtr s, int b );
+void SliceSetMobility( SlicePtr s, int b );
+void SliceSetClipping( SlicePtr s, int b );
 
 }
 
