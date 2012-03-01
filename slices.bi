@@ -254,6 +254,9 @@ Type EllipseSliceData
  frame as Frame Ptr 'UNSAVED: No need to manually populate this, done in draw
 End Type
 
+
+Extern "C"
+
 DECLARE Sub SetupGameSlices
 DECLARE Sub SetupMapSlices(byval to_max as integer)
 DECLARE Sub DestroyGameSlices(Byval dumpdebug as integer=0)
@@ -268,14 +271,9 @@ DECLARE Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
 DECLARE Sub ReplaceSliceType(byval sl as slice ptr, byref newsl as slice ptr)
 DECLARE Sub InsertSliceBefore(byval sl as slice ptr, byval newsl as slice ptr)
 DECLARE Sub SwapSiblingSlices(byval sl1 as slice ptr, byval sl2 as slice ptr)
-DECLARE Function LookupSlice OVERLOAD (byval lookup_code as integer) as slice ptr
-DECLARE Function LookupSlice OVERLOAD (byval lookup_code as integer, byval start_sl as slice ptr) as slice ptr
+DECLARE Function LookupSlice (byval lookup_code as integer, byval start_sl as slice ptr = NULL) as slice ptr
 DECLARE Function LastChild(byval parent as slice ptr) as slice ptr
-DECLARE Function verifySliceLineage(byval sl as slice ptr, parent as slice ptr) as integer
-DECLARE FUNCTION SliceTypeName OVERLOAD (sl as Slice Ptr) as string
-DECLARE FUNCTION SliceTypeName OVERLOAD (t as SliceTypes) as string
-DECLARE FUNCTION SliceLookupCodename OVERLOAD (sl as Slice Ptr) as string
-DECLARE FUNCTION SliceLookupCodename OVERLOAD (byval code as integer) as string
+DECLARE Function VerifySliceLineage(byval sl as slice ptr, parent as slice ptr) as integer
 DECLARE FUNCTION UpdateScreenSlice(byval page as integer) as integer
 DECLARE Sub RefreshSliceScreenPos(byval sl as slice ptr)
 DECLARE Function SliceXAnchor(byval sl as Slice Ptr) as integer
@@ -295,7 +293,16 @@ DECLARE Sub AutoSortChildren(byval s as Slice Ptr)
 DECLARE Function CloneSliceTree(byval sl as slice ptr) as slice ptr
 DECLARE Sub SetSliceTarg(byval s as slice ptr, byval x as integer, byval y as integer, byval ticks as integer)
 
-extern "C"
+End Extern
+
+'Declare any overloaded functions here. Overloaded functions can't be accessed from C/C++
+
+DECLARE FUNCTION SliceTypeName OVERLOAD (sl as Slice Ptr) as string
+DECLARE FUNCTION SliceTypeName OVERLOAD (t as SliceTypes) as string
+DECLARE FUNCTION SliceLookupCodename OVERLOAD (sl as Slice Ptr) as string
+DECLARE FUNCTION SliceLookupCodename OVERLOAD (byval code as integer) as string
+
+Extern "C"
 
 'slice accessors
 DECLARE Function SliceGetParent( byval s as Slice ptr ) as Slice ptr
@@ -315,15 +322,12 @@ DECLARE Function SliceIsClipping( byval s as Slice ptr ) as integer
 'slice mutators
 DECLARE Sub SliceSetX( byval s as Slice ptr, byval x as integer )
 DECLARE Sub SliceSetY( byval s as Slice ptr, byval y as integer )
-DECLARE Sub SliceSetScreenX( byval s as Slice ptr, byval x as integer )
-DECLARE Sub SliceSetScreenY( byval s as Slice ptr, byval y as integer )
 DECLARE Sub SliceSetWidth( byval s as Slice ptr, byval w as integer )
 DECLARE Sub SliceSetHeight( byval s as Slice ptr, byval h as integer )
 DECLARE Sub SliceSetVisibility( byval s as Slice ptr, byval b as integer )
 DECLARE Sub SliceSetMobility( byval s as Slice ptr, byval b as integer )
 DECLARE Sub SliceSetClipping( byval s as Slice ptr, byval b as integer )
 
-end extern
 
 DECLARE FUNCTION NewSliceOfType (byval t as SliceTypes, byval parent as Slice Ptr=0, byval lookup_code as integer=0) as Slice Ptr
 
@@ -398,6 +402,9 @@ DECLARE Sub SliceLoadFromFile(byval sl as Slice Ptr, filename as string)
 
 
 EXTERN as SliceTable_ SliceTable
+
+End Extern
+
 
 'NEW SLICE TYPE TEMPLATE
 'INSTRUCTIONS: Copy the following block into Slices.bas.

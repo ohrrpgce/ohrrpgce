@@ -686,12 +686,8 @@ Sub ReplaceSliceType(byval sl as slice ptr, byref newsl as slice ptr)
  END WITH
 End Sub
 
-Function LookupSlice(byval lookup_code as integer) as slice ptr
- RETURN LookupSlice(lookup_code, SliceTable.root)
-End Function
-
-Function LookupSlice(byval lookup_code as integer, byval start_sl as slice ptr) as slice ptr
-  IF start_sl = 0 THEN RETURN 0 '--fail searching under an invalid slice
+Function LookupSlice(byval lookup_code as integer, byval start_sl as slice ptr = NULL) as slice ptr
+  IF start_sl = 0 THEN start_sl = SliceTable.root
   IF lookup_code = 0 THEN RETURN 0 '--fail searching for a zero lookup code
   IF start_sl->Lookup = lookup_code THEN RETURN start_sl '--found it!
   DIM child as Slice Ptr
@@ -793,12 +789,6 @@ Sub SliceSetX( byval s as Slice ptr, byval x as integer )
 End Sub
 Sub SliceSetY( byval s as Slice ptr, byval y as integer )
  s->Y = y
-End Sub
-Sub SliceSetScreenX( byval s as Slice ptr, byval x as integer )
- s->ScreenX = x
-End Sub
-Sub SliceSetScreenY( byval s as Slice ptr, byval y as integer )
- s->ScreenY = y
 End Sub
 Sub SliceSetWidth( byval s as Slice ptr, byval w as integer )
  s->Width = w
