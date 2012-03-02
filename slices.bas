@@ -30,6 +30,9 @@ extern plotslices() as integer
 'Reload helper functions used by saving/loading
 DECLARE Sub SaveProp OVERLOAD (node as Reload.Nodeptr, propname as string, byval value as integer)
 DECLARE Sub SaveProp OVERLOAD (node as Reload.Nodeptr, propname as string, s as string)
+
+EXTERN "C"
+
 DECLARE Function LoadPropStr(node as Reload.Nodeptr, propname as string, default as string="") as string
 DECLARE Function LoadProp(node as Reload.Nodeptr, propname as string, byval default as integer=0) as integer
 DECLARE Function LoadPropBool(node as Reload.Nodeptr, propname as string, byval default as integer=NO) as integer
@@ -39,6 +42,8 @@ DECLARE Function SliceXAlign(byval sl as Slice Ptr, byval alignTo as Slice Ptr) 
 DECLARE Function SliceYAlign(byval sl as Slice Ptr, byval alignTo as Slice Ptr) as integer
 DECLARE Sub ApplySliceVelocity(byval s as slice ptr)
 DECLARE Sub SeekSliceTarg(byval s as slice ptr)
+
+END EXTERN
 
 '==============================================================================
 
@@ -66,6 +71,9 @@ END WITH
 'a slice's ScreenX/Y position to X/Y position on the current view slice. It starts at 0,0 when
 'drawing a slice tree, and is modified whenever recursing to the children of a clipping slice.
 Dim Shared GlobalCoordOffset as XYPair
+
+EXTERN "C"
+
 
 '==General slice code==========================================================
 
@@ -191,6 +199,25 @@ Sub DestroyGameSlices (Byval dumpdebug as integer=0)
  SliceTable.ScriptString = 0
 End Sub
 
+FUNCTION SliceTypeByName (s as string) as SliceTypes
+ SELECT CASE s
+  CASE "Root":           RETURN slRoot
+  CASE "Special":        RETURN slSpecial
+  CASE "Container":      RETURN slContainer
+  CASE "Rectangle":      RETURN slRectangle
+  CASE "Sprite":         RETURN slSprite
+  CASE "Text":           RETURN slText
+  CASE "Menu":           RETURN slMenu
+  CASE "MenuItem":       RETURN slMenuItem
+  CASE "Map":            RETURN slMap
+  CASE "Grid":           RETURN slGrid
+  CASE "Ellipse":        RETURN slEllipse
+ END SELECT
+ debug "Unrecognized slice name """ & s & """"
+END FUNCTION
+
+END EXTERN
+
 FUNCTION SliceTypeName (sl as Slice Ptr) as string
  IF sl = 0 THEN debug "SliceTypeName null ptr": RETURN "<null ptr>"
  RETURN SliceTypeName(sl->SliceType)
@@ -211,23 +238,6 @@ FUNCTION SliceTypeName (t as SliceTypes) as string
   CASE slEllipse:        RETURN "Ellipse"
  END SELECT
  RETURN "Unknown"
-END FUNCTION
-
-FUNCTION SliceTypeByName (s as string) as SliceTypes
- SELECT CASE s
-  CASE "Root":           RETURN slRoot
-  CASE "Special":        RETURN slSpecial
-  CASE "Container":      RETURN slContainer
-  CASE "Rectangle":      RETURN slRectangle
-  CASE "Sprite":         RETURN slSprite
-  CASE "Text":           RETURN slText
-  CASE "Menu":           RETURN slMenu
-  CASE "MenuItem":       RETURN slMenuItem
-  CASE "Map":            RETURN slMap
-  CASE "Grid":           RETURN slGrid
-  CASE "Ellipse":        RETURN slEllipse
- END SELECT
- debug "Unrecognized slice name """ & s & """"
 END FUNCTION
 
 FUNCTION SliceLookupCodename (sl as Slice Ptr) as string
@@ -269,6 +279,8 @@ FUNCTION SliceLookupCodename (byval code as integer) as string
  END SELECT
  RETURN ""
 END FUNCTION
+
+EXTERN "C"
 
 FUNCTION NewSliceOfType (byval t as SliceTypes, byval parent as Slice Ptr=0, byval lookup_code as integer=0) as Slice Ptr
  DIM newsl as Slice Ptr
@@ -2343,6 +2355,8 @@ end function
 
 '--saving----------------------------------------------------------------------
 
+End Extern
+
 Sub SaveProp(node as Reload.Nodeptr, propname as string, byval value as integer)
  if node = 0 then debug "SaveProp null node ptr": Exit Sub
  Reload.SetChildNode(node, propname, CLNGINT(value))
@@ -2352,6 +2366,8 @@ Sub SaveProp(node as Reload.Nodeptr, propname as string, s as string)
  if node = 0 then debug "SaveProp null node ptr": Exit Sub
  Reload.SetChildNode(node, propname, s)
 End Sub
+
+Extern "C"
 
 Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr)
  if sl = 0 then debug "SliceSaveToNode null slice ptr": Exit Sub
@@ -2633,3 +2649,5 @@ Constructor RectangleSliceData (byval bg as integer = -1, byval tr as RectTransT
  end with
 End Constructor
 '/
+
+End Extern
