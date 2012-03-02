@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Od 2012-03-03 Change directory search order slightly
 --3Oc 2012-02-07 Increased MAXGLOBAL to 16383
 --3Ob 2012-02-07 Make the max script global number set by a constant
 --3Oa 2012-01-20 Fix lexer allowing newlines in strings
@@ -127,7 +128,7 @@ constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Oc"
+constant COMPILER_SUB_VERSION="Od"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags. May add more colors, up to #F8FF
@@ -975,14 +976,14 @@ end procedure
 
 procedure load_include(sequence include_name,srcpos pos)
   reenter_timing_zone("load_source/include")
-  --try current directory
-  if file_exists(include_name) then
-    load_source(include_name,"including",pos)
-  else
-    --try source directory
-    if file_exists(path_only(source_file)&include_name) then
-      load_source(normalize_filename(path_only(source_file)&include_name),"including",pos)
-    else  
+  --try source directory
+  if file_exists(path_only(source_file)&include_name) then
+    load_source(normalize_filename(path_only(source_file)&include_name),"including",pos)
+  else  
+    --try current directory
+    if file_exists(include_name) then
+      load_source(include_name,"including",pos)
+    else
       --try compiler_directory
       if file_exists(compiler_dir&include_name) then
         load_source(normalize_filename(compiler_dir&include_name),"including",pos)
