@@ -3494,8 +3494,12 @@ SUB refresh_map_slice()
 
  FOR i as integer = 0 TO UBOUND(maptiles)
   '--reset each layer (the tileset ptr is set in refresh_map_slice_tilesets
-  ChangeMapSlice SliceTable.MapLayer(i), @maptiles(i), @pass
-  SliceTable.MapLayer(i)->Visible = IIF(i = 0, YES, readbit(gmap(), 19, i - 1))
+  IF SliceTable.MapLayer(i) = 0 THEN
+   debug "NULL SliceTable.MapLayer(" & i & ") when reseting tilesets in refresh_map_slice()"
+  ELSE
+   ChangeMapSlice SliceTable.MapLayer(i), @maptiles(i), @pass
+   SliceTable.MapLayer(i)->Visible = IIF(i = 0, YES, readbit(gmap(), 19, i - 1))
+  END IF
  NEXT i
  FOR i as integer = UBOUND(maptiles) + 1 TO UBOUND(SliceTable.MapLayer)
   '--if slices exist for the unused layers that this map doesn't have,
