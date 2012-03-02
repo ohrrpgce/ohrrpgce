@@ -616,8 +616,8 @@ SUB visnpc()
     npc(i).sl = create_walkabout_slices(npc_layer())
     'debug "npc(" & i & ").sl=" & npc(i).sl & " [visnpc]"
     '--set sprite
+    set_walkabout_sprite npc(i).sl, npcs(npc_id).picture, npcs(npc_id).palette
    END IF
-   set_walkabout_sprite npc(i).sl, npcs(npc_id).picture, npcs(npc_id).palette
   ELSE
    '--hidden
    IF npc(i).sl <> 0 THEN
@@ -3133,6 +3133,9 @@ SELECT CASE as CONST id
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 AND retvals(1) >= 0 AND retvals(1) <= UBOUND(npcs) THEN
    npc(npcref).id = retvals(1) + 1
+   '--update the walkabout sprite for the changed NPC
+   set_walkabout_sprite npc(npcref).sl, npcs(retvals(1)).picture, npcs(retvals(1)).palette
+   '--run visnpc to apply any changes to the NPCs tag-visibility
    visnpc
   END IF
  CASE 125'--create NPC
