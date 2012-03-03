@@ -3208,7 +3208,6 @@ SUB advance_text_box ()
  evalitemtags
  evalherotags
  tag_updates
- vishero
  IF txt.sayer >= 0 AND txt.old_dir <> -1 THEN
   IF npc(txt.sayer).id > 0 THEN
    IF npcs(npc(txt.sayer).id - 1).facetype = 1 THEN  '"Face Player"
