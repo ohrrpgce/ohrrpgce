@@ -439,7 +439,7 @@ resume player # ok, done</example>
 		<command id="setherodirection">
 			<canon>set hero direction (who, direction)</canon>
 			<shortname>set hero direction</shortname>
-			<description>Makes the specified hero face in the specified direction. The following constants are avaialable for direction: <ref>north</ref>, <ref>south</ref>, <ref>east</ref>, <ref>west</ref>, <ref>up</ref>, <ref>down</ref>, <ref>left</ref>, or <ref>right</ref>.</description>
+			<description>Makes the specified hero face in the specified direction. The hero is specified by their rank in the walkabout caterpillar, 0-3. The following constants are avaialable for direction: <ref>north</ref>, <ref>south</ref>, <ref>east</ref>, <ref>west</ref>, <ref>up</ref>, <ref>down</ref>, <ref>left</ref>, or <ref>right</ref>.</description>
 			<example>set hero direction (me,right) # face right</example>
 		</command>
 		<command id="setheroframe">
@@ -4015,7 +4015,7 @@ end
 		<command id="herodirection">
 			<canon>hero direction (who)</canon>
 			<shortname>hero direction</shortname>
-			<description>Returns the specified hero&apos;s direction.</description>
+			<description>Returns the specified hero&apos;s direction. The hero is specified by their rank in the walkabout caterpillar, 0-3</description>
 		</command>
 		<command id="heroframe">
 			<canon>hero frame (who)</canon>
