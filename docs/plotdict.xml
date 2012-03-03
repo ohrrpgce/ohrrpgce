@@ -445,7 +445,7 @@ resume player # ok, done</example>
 		<command id="setheroframe">
 			<canon>set hero frame (who, frame)</canon>
 			<shortname>set hero frame</shortname>
-			<description>Sets the walking frame of the specified hero to 0 or 1.</description>
+			<description>Sets the walking frame of the specified hero to 0 or 1. The hero is specified by their rank in the walkabout party, 0-3</description>
 			<seealso>
 				<ref>heroframe</ref>
 			</seealso>
@@ -4020,7 +4020,7 @@ end
 		<command id="heroframe">
 			<canon>hero frame (who)</canon>
 			<shortname>hero frame</shortname>
-			<description>Returns the walking frame (0 or 1) of the specified hero.</description>
+			<description>Returns the walking frame (0 or 1) of the specified hero. The hero is specified by their rank in the walkabout party, 0-3</description>
 		</command>
 		<command id="getherospeed">
 			<canon>get hero speed (who)</canon>
