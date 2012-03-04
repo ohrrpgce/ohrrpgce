@@ -2517,7 +2517,7 @@ sub draw_line_fragment(byval dest as Frame ptr, byref state as PrintStrState, by
 							charframe.pitch = .w
 'debug " <" & (state.x + .offx) & "," & (state.y + .offy) & ">"
 							dim trans as integer = YES
-							if layer = 0 and state.not_transparent then trans = NO
+							if layer = 1 and state.not_transparent then trans = NO
 							drawohr(@charframe, dest, @state.localpal, state.x + .offx, state.y + .offy - state.thefont->h, trans)
 						end with
 					end if
