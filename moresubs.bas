@@ -1189,6 +1189,8 @@ deletetemps
 'doesn't unload scripts: not needed
 killallscripts
 
+IF running_as_slave THEN reload_scripts
+
 FOR i as integer = 0 TO ubound(timers)
  WITH timers(i)
   .count = 0
