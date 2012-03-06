@@ -841,6 +841,7 @@ END SUB
 
 SUB displayall()
  update_walkabout_slices()
+ setmapxy  'Update camera position
  IF gen(genTextboxBackdrop) = 0 AND gen(genScrBackdrop) = 0 THEN
   '---NORMAL DISPLAY---
   'DEBUG debug "drawmap"
@@ -1115,8 +1116,6 @@ SUB update_heroes(byval force_step_check as integer=NO)
   END IF
 
  END IF '--End of on-step triggers
-
- setmapxy
 END SUB
 
 SUB process_zone_eachstep_triggers(who as string, byval zones as integer vector)
@@ -1620,7 +1619,6 @@ END IF
 IF wantdoor > 0 THEN
  usedoor wantdoor - 1
  wantdoor = 0
- setmapxy
 END IF
 IF wantbattle > 0 THEN
  fatal = 0
@@ -3191,7 +3189,6 @@ SUB advance_text_box ()
  '---FORCE DOOR------
  IF istag(txt.box.door_tag, 0) THEN
   usedoor txt.box.door
-  setmapxy
  END IF
  '---JUMP TO NEXT TEXT BOX--------
  IF istag(txt.box.after_tag, 0) THEN
