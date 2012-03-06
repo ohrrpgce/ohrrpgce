@@ -1167,10 +1167,10 @@ DO
  st.last_pos = TYPE(st.x, st.y)
 
  '--Draw Screen
+ clearpage dpage
   
  '--draw map
  animatetilesets st.tilesets()
- rectangle 0, 20, 320, 180, uilook(uiBackground), dpage
  FOR i = 0 TO UBOUND(map)
   IF layerisvisible(visible(), i) AND layerisenabled(gmap(), i) THEN
    jigx = 0
@@ -1354,6 +1354,8 @@ DO
 
  '--draw menubar
  IF st.editmode = tile_mode THEN
+  'To draw tile 0 black if required
+  st.menubar.layernum = st.layer
   drawmap st.menubar, st.menubarstart(st.layer) * 20, 0, st.tilesets(st.layer), dpage, , , , 0, 20
   rectangle 280, 0, 40, 20, uilook(uiBackground), dpage
  ELSE
@@ -3440,9 +3442,10 @@ END SUB
 
 SUB mapedit_pickblock(BYREF st AS MapEditState)
  DIM tog AS INTEGER = 0
+ st.tilesetview.layernum = st.layer
  setkeys
  DO
-  setwait 80
+  setwait 55
   setkeys
   IF keyval(scEnter) > 1 OR keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "mapedit_tilemap_picktile"
@@ -3461,6 +3464,7 @@ SUB mapedit_pickblock(BYREF st AS MapEditState)
    IF st.tilepick.x > 15 THEN st.tilepick.x = 0: st.tilepick.y += 1
   END IF
   tog = tog XOR 1
+  clearpage vpage
   drawmap st.tilesetview, 0, 0, st.tilesets(st.layer), vpage
   edgeprint "Tile " & st.usetile(st.layer), 0, IIF(st.usetile(st.layer) < 112, 190, 0), uilook(uiText), vpage
   frame_draw st.cursor.sprite + tog, st.cursor.pal, st.tilepick.x * 20, st.tilepick.y * 20, , , vpage

@@ -19,6 +19,8 @@ Press < and > to change the current zone number, or type in an ID number. There'
 
 Press E to go to the zone info editor, where you can edit the triggers attached to this zone.
 
+If the current tool isn't the Draw tool, press + or - to toggle whether you are adding or removing tiles.
+
 At the top right corner the current drawing tool is shown. Press SPACE to draw the zone. The tools are:
 
 CTRL+D - Draw tool:
@@ -51,8 +53,6 @@ CTRL+P - Paint on Tilemap tool:
 Also,
 
 CTRL+W paints (adds or removes) the tiles visible in the window/screen to/from the zone.
-
-If the current tool isn't the Draw tool, press + or - to toggle whether you are adding or removing tiles.
 
 CTRL+Z undoes a change to the tilemap, wallmap, foemap or zonemap. Changes to NPCs and doors are not undoable. The undo history buffer is near-infinite, but certain things cause it to be cleared: resizing the map, deleting or swapping map layers, erasing map data, and leaving the map editor.
 

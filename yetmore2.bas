@@ -671,7 +671,7 @@ FUNCTION tilemap_is_same_size (lumptype as string, what as string) as integer
  GetTilemapInfo maplumpname(gam.map.id, lumptype), newsize
 
  IF newsize.wide <> mapsizetiles.w OR newsize.high <> mapsizetiles.h THEN
-  notification "Could not reload " + what + " because the map size has changed. The map must be reloaded. You can do so by pressing Ctrl+F3 to access the Live Preview Debug Menu and selecting 'Reload map'."
+  notification "Could not reload " + what + " because the map size has changed. The map must be reloaded. You can do so by pressing F5 to access the Live Preview Debug Menu and selecting 'Reload map'."
   RETURN NO
  END IF
  RETURN YES
