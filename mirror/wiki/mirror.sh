@@ -2,11 +2,11 @@
 
 URL="http://rpg.hamsterrepublic.com/ohrrpgce/"
 
-echo rm -R *.hamsterrepublic.com index.html date.txt url.txt mirror.tar.bz2 > /dev/null 2>&1
+rm -R *.hamsterrepublic.com index.html date.txt url.txt mirror.tar.bz2 > /dev/null 2>&1
 
 echo "mirroring ${URL}"
 
-echo httrack --quiet --extended-parsing=YES \
+httrack --quiet --extended-parsing=YES \
   "${URL}" \
   +"*hamsterrepublic*.gif" \
   +"*hamsterrepublic*.png" \
@@ -87,10 +87,6 @@ echo ${URL} > url.txt
 
 echo "compressing..."
 tar -jcf mirror.tar.bz2 ./*
-
-echo "uploading stable to dreamhost..."
-scp -p mirror.tar.bz2 james_paige@motherhamster.org:tmp/
-ssh james_paige@motherhamster.org sh script/ohrrpgce-mirror.sh
 
 echo "uploading mirror..."
 scp -p mirror.tar.bz2 james_paige@motherhamster.org:mirror.motherhamster.org/
