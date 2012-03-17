@@ -132,7 +132,7 @@ FUNCTION battle (byval form as integer) as integer
    IF keyval(scF5) > 1 THEN bat.rew.exper = 1000000  'Million experience!
    IF keyval(scF11) > 1 THEN show_info_mode = loopvar(show_info_mode, 0, 2, 1)  'Draw debug info
   END IF
-  IF keyval(scNumlock) > 1 THEN battle_pause
+  IF keyval(scPause) > 1 THEN battle_pause
   IF battle_run_away(bat, bslot()) THEN
    battle = 0
    EXIT DO

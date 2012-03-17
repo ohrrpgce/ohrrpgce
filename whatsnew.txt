@@ -81,6 +81,7 @@ WHAT IS NEW?
       last map'. Broken since xocolatl! [Ralph]
     * When "camera follows NPC" was used the camera lagged one tick
       behind the NPC [Ralph]
+    * The pause key didn't pause battles anymore [Ralph]
 
   * New Plotscripting Stuff
     * You can now have global variables up to 16383 instead of 4095
