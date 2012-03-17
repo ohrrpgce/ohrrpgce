@@ -2143,7 +2143,7 @@ SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER, zmap as ZoneMa
      SELECT CASE gmap(idx)
       CASE 0: caption = "Heroes over NPCs"
       CASE 1: caption = "NPCs over Heroes"
-      CASE 2: caption = "Together (reccomended)"
+      CASE 2: caption = "Together (recommended)"
      END SELECT
     CASE 17, 18 'NPC and Tile data saving
      SELECT CASE gmap(idx)

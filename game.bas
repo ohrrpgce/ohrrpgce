@@ -567,18 +567,23 @@ DO
  'DEBUG debug "top of master loop"
  setwait speedcontrol
  IF running_as_slave THEN try_to_reload_files_onmap
- setkeys gam.getinputtext_enabled
- mouse = readmouse  'didn't bother to check havemouse()
  tog = tog XOR 1
  'DEBUG debug "increment play timers"
  playtimer
+
  'DEBUG debug "read controls"
+ setkeys gam.getinputtext_enabled
+ mouse = readmouse  'didn't bother to check havemouse()
  control
+
  'debug "menu key handling:"
  check_menu_tags
  player_menu_keys()
  'debug "after menu key handling:"
+
  IF menus_allow_gameplay() THEN
+
+ '--Scripts
  IF gmap(15) THEN onkeyscript gmap(15)
  'breakpoint : called after keypress script is run, but don't get called by wantimmediate
  IF scrwatch > 1 THEN breakpoint scrwatch, 4
@@ -586,6 +591,7 @@ DO
  interpret
  'DEBUG debug "increment script timers"
  dotimer(0)
+
  'DEBUG debug "keyboard handling"
  IF carray(ccMenu) > 1 AND txt.showing = NO AND gam.need_fade_in = NO AND readbit(gen(), genSuspendBits, suspendplayer) = 0 AND vstate.active = NO AND herow(0).xgo = 0 AND herow(0).ygo = 0 THEN
   IF allowed_to_open_main_menu() THEN
@@ -624,8 +630,9 @@ DO
  update_heroes()
  'DEBUG debug "NPC movement"
  update_npcs()
+
+ '--Debug keys
  IF readbit(gen(), genBits, 8) = 0 THEN
-  '--debugging keys
   'DEBUG debug "evaluate debugging keys"
   IF keyval(scF2) > 1 AND txt.showing = NO THEN
    savegame 32
@@ -723,6 +730,7 @@ DO
    IF keyval(scF11) > 1 THEN gam.walk_through_walls = NOT gam.walk_through_walls
   END IF
  END IF
+
  IF wantloadgame > 0 THEN
   'DEBUG debug "loading game slot " & (wantloadgame - 1)
   load_slot = wantloadgame - 1
@@ -750,6 +758,9 @@ DO
  END IF
  AdvanceSlice SliceTable.root
  END IF' end menus_allow_gameplay
+
+ 'Draw screen
+
  displayall()
  IF fatal = 1 OR abortg > 0 OR resetg THEN
   resetgame scriptout
