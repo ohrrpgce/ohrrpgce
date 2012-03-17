@@ -856,7 +856,7 @@ STATIC bottom as integer
 STATIC viewmode as integer
 STATIC lastscript as integer
 'viewmode: 0 = script state, 1 = local variables, 2 = global variables
-'mode: 0 = do nothing, 1 = non-interactive (display over game), 2 = clean and sane
+'mode: 0 = do nothing, 1 = non-interactive (display over game), 2 >= clean and sane
 '2 = interactive (display game and step on input), 3 = clean and sane
 
 DIM plots as string
@@ -864,6 +864,15 @@ DIM marginstr as string
 DIM strings() as string
 DIM linelen as integer
 DIM page as integer
+
+DIM resetpal as integer = NO  'need setpal master()
+
+IF mode >= 2 THEN
+ REDIM default_palette(255) as RGBcolor
+ loadpalette default_palette(), gen(genMasterPal)
+ setpal default_palette()
+ resetpal = YES
+END IF
 
 FOR i as integer = 0 TO 31
  plots = plotstr(i).s
@@ -1081,7 +1090,6 @@ IF mode > 1 AND viewmode <> 2 AND viewmode <> 3 THEN
 END IF 'end NOT globals view
 
 IF mode > 1 AND drawloop = 0 THEN
- setpal master()
  setvispage page
  DIM w as integer = waitforanykey
  IF w = scF10 THEN mode = 0: clearkey(scF10)
@@ -1165,6 +1173,9 @@ IF drawloop = 0 AND mode = 2 THEN GOTO redraw
 IF nowscript >= 0 THEN
  reloadscript scrat(nowscript), 0
 END IF
+
+IF resetpal THEN setpal master()
+
 END SUB
 
 SUB readstackcommand (byref state as ScriptInst, byref stk as Stack, byref i as integer)

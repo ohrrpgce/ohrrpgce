@@ -1937,8 +1937,15 @@ SUB scripterr (e as string, byval errorlevel as integer = 5)
 
  state.active = YES
  init_menu_state state, menu
- 
+
+ 'Modify master() because the script debugger or other menus may setpal 
+ REDIM remember_master(255) as RGBcolor
+ FOR i as integer = 0 TO 255
+  remember_master(i) = master(i)
+ NEXT
+ loadpalette master(), gen(genMasterPal)
  setpal master()
+
  setkeys
  DO
   setwait 55
@@ -2007,6 +2014,11 @@ SUB scripterr (e as string, byval errorlevel as integer = 5)
  ClearMenuData menu
  setkeys
  recursivecall -= 1
+
+ FOR i as integer = 0 TO 255
+  master(i) = remember_master(i)
+ NEXT
+ setpal master()
 END SUB
 
 FUNCTION settingstring (searchee as string, setting as string, result as string) as integer

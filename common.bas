@@ -872,9 +872,10 @@ SUB showerror (msg as string, byval isfatal as integer = NO)
 
  'Reset palette (in case the error happened in a fade-to-black or due to
  'corrupt/missing palette or UI colours)
- load_default_master_palette master()
+ REDIM default_palette(255) as RGBcolor
+ load_default_master_palette default_palette()
+ setpal default_palette()
  DefaultUIColors uilook()
- setpal master()
  clearpage 0
  basic_textbox msg + quitmsg, uilook(uiText), 0
  setvispage 0
@@ -911,9 +912,7 @@ SUB showerror (msg as string, byval isfatal as integer = NO)
   waitforanykey
  #ENDIF
 
- 'Restore game's master palette (minus fades or palette changes...
- 'but that's the least of your worries at this point)
- loadpalette master(), gen(genMasterPal)
+ 'Restore game's master palette and ui colors
  LoadUIColors uilook(), gen(genMasterPal)
  setpal master()
 
