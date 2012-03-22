@@ -515,18 +515,21 @@ FUNCTION get_valid_npc_id (byval seekid as integer, byval errlvl as integer = 5)
   RETURN seekid
  ELSE
   DIM npcidx as integer = (seekid + 1) * -1
-  IF npcidx > 299 THEN
+  IF npcidx > UBOUND(npc) THEN
    scripterr commandname(curcmd->value) & ": invalid NPC reference " & seekid, errlvl
    RETURN -1
   ELSEIF npc(npcidx).id = 0 THEN
    scripterr commandname(curcmd->value) & ": invalid NPC reference " & seekid & " (maybe the NPC was deleted?)", errlvl
    RETURN -1
-  ELSEIF npc(npcidx).id > UBOUND(npcs) THEN
-   'Note that an NPC may be marked hidden because it has an invalid ID
-   scripterr commandname(curcmd->value) & ": NPC reference " & seekid & " is for a disabled NPC with invalid ID " & npc(npcidx).id & " (the map must be incompletely loaded)", errlvl
-   RETURN -1
+  ELSE
+   DIM id as integer = ABS(npc(npcidx).id) - 1
+   IF id > UBOUND(npcs) THEN
+    'Note that an NPC may be marked hidden because it has an invalid ID
+    scripterr commandname(curcmd->value) & ": NPC reference " & seekid & " is for a disabled NPC with invalid ID " & npc(npcidx).id & " (the map must be incompletely loaded)", errlvl
+    RETURN -1
+   END IF
+   RETURN id
   END IF
-  RETURN ABS(npc(npcidx).id) - 1
  END IF
 END FUNCTION
 
