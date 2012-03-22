@@ -1360,6 +1360,11 @@ SUB script_log_out (text as string)
   gam.script_log.enabled = NO
   EXIT SUB
  END IF
+ #IFDEF __FB_WIN32__
+  'FB opens files in binary mode...
+  replacestr text, !"\n", !"\r\n"
+ #ENDIF
+
  print #fh, text;
  CLOSE #fh
  gam.script_log.output_flag = YES

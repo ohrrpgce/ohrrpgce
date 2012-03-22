@@ -2408,6 +2408,7 @@ SUB dotimer(byval l as integer)
           .ticks = 0
           if .st > 0 and .count >= 0 then plotstr(.st - 1).s = seconds2str(.count)
           if .count < 0 then
+            .finished_tick = gam.script_log.tick
             .speed *= -1
             .speed -= 1
             'do something

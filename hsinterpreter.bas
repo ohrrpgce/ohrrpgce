@@ -851,11 +851,12 @@ SUB scriptwatcher (byref mode as integer, byval drawloop as integer)
 STATIC localsscroll as integer
 STATIC globalsscroll as integer
 STATIC stringsscroll as integer
+STATIC timersscroll as integer
 STATIC selectedscript as integer
 STATIC bottom as integer
 STATIC viewmode as integer
 STATIC lastscript as integer
-'viewmode: 0 = script state, 1 = local variables, 2 = global variables
+'viewmode: 0 = script state, 1 = local variables, 2 = global variables, 3 = strings, 4 = timers
 'mode: 0 = do nothing, 1 = non-interactive (display over game), 2 >= clean and sane
 '2 = interactive (display game and step on input), 3 = clean and sane
 
@@ -1031,6 +1032,45 @@ IF mode > 1 AND viewmode = 3 THEN
  ol -= 9
 END IF
 
+IF mode > 1 AND viewmode = 4 THEN
+ 'display timers, 19 lines at a time
+ edgeprint "ID Count Speed Flags Str Trigger", 0, ol, uilook(uiText), page
+ ol -= 9
+ FOR i as integer = small(UBOUND(timers), 18) TO 0 STEP -1
+  DIM id as integer = i + timersscroll
+  DIM as string text, flags
+  WITH timers(id)
+   text = LEFT(id & "   ", 3)
+   IF .speed < 0 THEN
+    IF .finished_tick = gam.script_log.tick THEN
+     text &= "Trigg "
+    ELSE
+     text &= "Done  "
+    END IF
+   ELSE
+    text &= LEFT(.count & "      ", 6)
+   END IF
+   text &= LEFT(ABS(.speed) & "      ", 6)  'negated if not running
+   IF .pause THEN
+    flags &= "P "
+   END IF
+   flags &= .flags
+   text &= LEFT(flags & "      ", 6)
+   text &= LEFT(.st & "    ", 4)
+   IF .trigger = -2 THEN
+    text &= "Game Over"
+   ELSEIF .trigger >= 0 THEN
+    text &= scriptname(.trigger)
+   END IF
+  END WITH
+  textcolor uilook(uiText), 0
+  printstr text, 0, ol, page
+  ol -= 9
+ NEXT
+ edgeprint "Timers:", 0, ol, uilook(uiText), page
+ ol -= 9
+END IF
+
 'IF mode > 1 THEN
 ' edgeprint "argc=" & scrat(selectedscript).curargc & " argn=" & scrat(selectedscript).curargn & " ptr=" & scrat(selectedscript).ptr, 0, ol, uilook(uiDescription), page
 ' ol -= 9
@@ -1040,8 +1080,8 @@ DIM lastarg as integer
 DIM col as integer
 DIM waitcause as string
 
-IF mode > 1 AND viewmode <> 2 AND viewmode <> 3 THEN
- 'not displaying globals
+IF mode > 1 AND (viewmode = 0 OR viewmode = 1) THEN
+ 'show scripts list
 
  '6 rows up
  ol = 200 - 6 * 9
@@ -1066,7 +1106,11 @@ IF mode > 1 AND viewmode <> 2 AND viewmode <> 3 THEN
   edgeprint LEFT(scriptname(scrat(i).id), 17), 16, ol, col, page
   edgeprint STR(scrat(i).depth), 160, ol, col, page
   IF scrat(i).state < 0 THEN
-   edgeprint "Suspended", 184, ol, col, page
+   IF scrat(i).started = NO THEN
+    edgeprint "Queued (not started)", 184, ol, col, page
+   ELSE
+    edgeprint "Suspended", 184, ol, col, page
+   END IF
   ELSEIF scrat(i).state = stwait THEN
    waitcause = commandname(scrat(i).curvalue)
    SELECT CASE scrat(i).curvalue
@@ -1087,14 +1131,14 @@ IF mode > 1 AND viewmode <> 2 AND viewmode <> 3 THEN
   IF ol < 6 THEN EXIT FOR
  NEXT i
 
-END IF 'end NOT globals view
+END IF 'end drawing scripts list
 
 IF mode > 1 AND drawloop = 0 THEN
  setvispage page
  DIM w as integer = waitforanykey
  IF w = scF10 THEN mode = 0: clearkey(scF10)
  IF w = scEsc THEN mode = 0: clearkey(scEsc)
- IF w = scV THEN viewmode = loopvar(viewmode, 0, 3, 1): GOTO redraw
+ IF w = scV THEN viewmode = loopvar(viewmode, 0, 4, 1): GOTO redraw
  IF w = scPageUp THEN
   selectedscript += 1
   localsscroll = 0
@@ -1109,11 +1153,13 @@ IF mode > 1 AND drawloop = 0 THEN
   IF viewmode = 1 THEN localsscroll = large(0, localsscroll - 3): GOTO redraw
   IF viewmode = 2 THEN globalsscroll = large(0, globalsscroll - 21): GOTO redraw
   IF viewmode = 3 THEN stringsscroll = large(0, stringsscroll - 1): GOTO redraw
+  IF viewmode = 4 THEN timersscroll = large(0, timersscroll - 4): GOTO redraw
  END IF
  IF w = scPlus OR w = scNumpadPlus THEN
   IF viewmode = 1 THEN localsscroll = small(large(scrat(selectedscript).scr->vars - 8, 0), localsscroll + 3): GOTO redraw
   IF viewmode = 2 THEN globalsscroll = small(maxScriptGlobals - 59, globalsscroll + 21): GOTO redraw
   IF viewmode = 3 THEN stringsscroll = small(stringsscroll + 1, (UBOUND(strings) - 1) - 19): GOTO redraw
+  IF viewmode = 4 THEN timersscroll = small(timersscroll + 4, UBOUND(timers) - 18): GOTO redraw
  END IF
 
  IF w = scF1 THEN
