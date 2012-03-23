@@ -25,6 +25,14 @@
 #undef strlen
 #undef raw
 
+'Wrapper functions in curses_wrap.c (really, this backend should be written in C)
+extern "C"
+declare function get_stdscr() as WINDOW ptr
+declare sub set_ESCDELAY(byval val as integer)
+end extern
+#undef stdscr
+#define stdscr get_stdscr()
+
 'Bit of a blooper in curses.bi
 #ifdef __FB_WIN32__
  #define CURSES_ERR PDC_ERR
@@ -138,7 +146,7 @@ function gfx_console_init(byval terminate_signal_handler as sub cdecl (), byval 
 				noecho()
 				nonl()
 				keypad(stdscr, 1)
-				ESCDELAY = 40
+				set_ESCDELAY(40)
 				nodelay(stdscr, 1)
 				scrollok(stdscr, 0)
 				'notimeout(stdscr, 1)

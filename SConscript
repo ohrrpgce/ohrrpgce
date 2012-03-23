@@ -78,7 +78,10 @@ elif unix:
 elif win32:
     gfx = 'directx+sdl+fb'
 gfx = ARGUMENTS.get ('gfx', environ.get ('OHRGFX', gfx))
+gfx = gfx.split ("+")
+gfx = [g.lower () for g in gfx]
 music = ARGUMENTS.get ('music', environ.get ('OHRMUSIC','sdl'))
+music = [music.lower ()]
 
 env = Environment (FBFLAGS = FBFLAGS,
                    FBLIBS = [],
@@ -187,7 +190,8 @@ if linkgcc:
     # This causes ld to recursively search the dependencies of linked dynamic libraries
     # for more dependencies (specifically SDL on X11, etc)
     # Usually the default, but overridden on some distros. Don't know whether GOLD ld supports this.
-    env['CXXLINKFLAGS'] += ['-Wl,--add-needed']
+    if not mac:
+        env['CXXLINKFLAGS'] += ['-Wl,--add-needed']
 
     # Passing this -L option straight to the linker is necessary, otherwise gcc gives it
     # priority over the default library paths, which on Windows means using FB's old mingw libraries
@@ -240,29 +244,27 @@ if win32:
     commonenv['FBFLAGS'] += ['-s','gui']
 elif mac:
     base_modules += ['os_unix.c']
-    common_modules += ['mac/SDLmain.m']
-    libraries += ['Cocoa']
-    commonenv['FBFLAGS'] += ['-entry', 'SDL_main']
     commonenv['FBLIBS'] += ['-Wl', '-F,' + FRAMEWORKS_PATH, '-Wl', '-mmacosx-version-min=10.4']
-    commonenv['CXXLINKFLAGS'] += ['-F', FRAMEWORKS_PATH, '-mmacosx-version-min=10.4', '-v']
-    if env.WhereIs('sdl-config'):
-        commonenv['CFLAGS'] += [get_run_command("sdl-config --cflags")]
-    else:
-        commonenv['CFLAGS'] += ["-I", "/Library/Frameworks/SDL.framework/Headers", "-I", FRAMEWORKS_PATH + "/SDL.framework/Headers"]
+    commonenv['CXXLINKFLAGS'] += ['-F', FRAMEWORKS_PATH, '-mmacosx-version-min=10.4']
+    libraries += ['Cocoa']  # For CoreServices
+    if 'sdl' in gfx:
+        common_modules += ['mac/SDLmain.m']
+        commonenv['FBFLAGS'] += ['-entry', 'SDL_main']
+        if env.WhereIs('sdl-config'):
+            commonenv['CFLAGS'] += [get_run_command("sdl-config --cflags").split()]
+        else:
+            commonenv['CFLAGS'] += ["-I", "/Library/Frameworks/SDL.framework/Headers", "-I", FRAMEWORKS_PATH + "/SDL.framework/Headers"]
 elif unix:
     base_modules += ['os_unix.c']
     libraries += 'X11 Xext Xpm Xrandr Xrender pthread'.split (' ')
     commonenv['FBFLAGS'] += ['-d', 'DATAFILES=\'"/usr/share/games/ohrrpgce"\'']
 
-used_gfx = []
-used_music = []
-
-### Add various modules to build, conditional on OHRGFX and OHRMUSIC
+### gfx and music backend dependencies
 
 gfx_map = {'fb': {'shared_modules': 'gfx_fb.bas', 'libraries': 'fbgfx fbmt'},
            'alleg' : {'shared_modules': 'gfx_alleg.bas', 'libraries': 'alleg'},
            'sdl' : {'shared_modules': 'gfx_sdl.bas', 'libraries': 'SDL'},
-           'console' : {'shared_modules': 'gfx_console.bas'}, # probably also need to link pdcurses on windows, untested
+           'console' : {'shared_modules': 'gfx_console.bas', 'common_modules': 'curses_wrap.c'}, # probably also need to link pdcurses on windows, untested
            'directx' : {}, # nothing needed
            'sdlpp': {}     # nothing needed
            }
@@ -282,19 +284,13 @@ music_map = {'native':
                  {'shared_modules': 'music_silence.bas'}
             }
 
-gfx = gfx.split ("+")
 for k in gfx:
-    if k not in used_gfx:
-        used_gfx.append (k)
-        for k2, v2 in gfx_map[k].items ():
-            globals()[k2] += v2.split (' ')
+    for k2, v2 in gfx_map[k].items ():
+        globals()[k2] += v2.split (' ')
 
-for k, v in music_map.items ():
-    if k == music:
-        if k not in used_music:
-            used_music.append (k)
-        for k2, v2 in v.items ():
-            globals()[k2] += v2.split (' ')
+for k in music:
+    for k2, v2 in music_map[k].items ():
+        globals()[k2] += v2.split (' ')
 
 #CXXLINKFLAGS are used when linking with g++
 #FBLIBS are used when linking with fbc
@@ -315,7 +311,7 @@ commonenv['FBLIBS'] += Flatten ([['-p', v] for v in libpaths])
 # first, make sure the version is saved.
 
 # always do verprinting, before anything else.
-verprint (used_gfx, used_music, 'svn', 'git', fbc)
+verprint (gfx, music, 'svn', 'git', fbc)
 
 
 base_modules += ['util.bas', 'blit.c', 'base64.c', 'unicode.c', 'array.c', 'vector.bas']
@@ -467,7 +463,7 @@ if win32:
 
 # --log . to smooth out inconsistencies between Windows and Unix
 tmp = ''
-if 'fb' in used_gfx:
+if 'fb' in gfx:
     # Use gfx_fb because it draws far less frames without speed control for some reason, runs waaaay faster
     tmp = ' --gfx fb'
 AUTOTEST = env.Command ('autotest_rpg', source = GAME, action =
@@ -502,7 +498,7 @@ Options:
                       Current (default) value: """ + "+".join (gfx) + """
   music=BACKEND       Music backend. Options:
                         """ + " ".join (music_map.keys ()) + """
-                      Current (default) value: """ + music + """
+                      Current (default) value: """ + "+".join (music) + """
   debug=0|1           Debugging build: with -exx and without optimisation.
                       Set to 0 to force building without -exx.
   valgrind=1          valgrinding build.

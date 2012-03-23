@@ -90,13 +90,13 @@ def verprint (used_gfx, used_music, svn, git, fbc):
         date, rev = query_svn (git,'svn','info')
     fbver = query_fb ()
     for g in used_gfx:
-        if g.upper() in ('SDL','FB','ALLEG','DIRECTX','SDLPP','CONSOLE'):
+        if g in ('sdl','fb','alleg','directx','sdlpp','console'):
             results.append ('#DEFINE GFX_%s_BACKEND' % g.upper())
             supported_gfx.append (g)
         else:
             exit("Unrecognised gfx backend " + g)
     for m in used_music:
-        if m.upper() in ('NATIVE','SDL','NATIVE2','SILENCE'):
+        if m in ('native','sdl','native2','silence'):
             results.append ('#DEFINE MUSIC_%s_BACKEND' % m.upper())
             results.append ('#DEFINE MUSIC_BACKEND "%s"' % m)
         else:
