@@ -184,6 +184,11 @@ if linkgcc:
     else:
         raise Exception("Couldn't find the FreeBASIC lib directory")
 
+    # This causes ld to recursively search the dependencies of linked dynamic libraries
+    # for more dependencies (specifically SDL on X11, etc)
+    # Usually the default, but overridden on some distros. Don't know whether GOLD ld supports this.
+    env['CXXLINKFLAGS'] += ['-Wl,--add-needed']
+
     # Passing this -L option straight to the linker is necessary, otherwise gcc gives it
     # priority over the default library paths, which on Windows means using FB's old mingw libraries
     env['CXXLINKFLAGS'] += ['-Wl,-L' + libpath, os.path.join(libpath, 'fbrt0.o'), '-lfbmt']
