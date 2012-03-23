@@ -252,5 +252,6 @@ EXTERN negative_zero as integer
 #endif
 EXTERN herotags() as HeroTagsCache
 EXTERN itemtags() as ItemTagsCache
+EXTERN debug_to_console as integer
 
 #endif

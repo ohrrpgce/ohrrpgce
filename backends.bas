@@ -58,6 +58,7 @@ dim gfx_getresize as function (byref ret as XYPair) as integer
 dim gfx_setresizable as sub (byval able as integer)
 dim gfx_setoption as function (byval opt as zstring ptr, byval arg as zstring ptr) as integer
 dim gfx_describe_options as function () as zstring ptr
+dim gfx_printchar as sub (byval ch as integer, byval x as integer, byval y as integer)
 dim io_init as sub ()
 dim io_pollkeyevents as sub ()
 dim io_waitprocessing as sub ()
@@ -102,6 +103,7 @@ dim gfx_present as function ( byval pSurfaceIn as Surface ptr, byval pPalette as
 declare function gfx_alleg_setprocptrs() as integer
 declare function gfx_fb_setprocptrs() as integer
 declare function gfx_sdl_setprocptrs() as integer
+declare function gfx_console_setprocptrs() as integer
 'declare function gfx_sdlpp_setprocptrs() as integer
 
 type GfxBackendStuff
@@ -124,6 +126,9 @@ dim shared as GfxBackendStuff fb_stuff = ("fb", "", @gfx_fb_setprocptrs, YES)
 #endif
 #ifdef GFX_SDL_BACKEND
 dim shared as GfxBackendStuff sdl_stuff = ("sdl", "", @gfx_sdl_setprocptrs, NO)
+#endif
+#ifdef GFX_CONSOLE_BACKEND
+dim shared as GfxBackendStuff console_stuff = ("console", "", @gfx_console_setprocptrs, NO)
 #endif
 #ifdef GFX_SDLPP_BACKEND
 dim shared as GfxBackendStuff sdlpp_stuff = ("sdl++", "gfx_sdl", NULL)
@@ -189,6 +194,7 @@ function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filename as 
 	gfx_getwindowstate = dylibsymbol(hFile, "gfx_getwindowstate")
 	gfx_setoption = dylibsymbol(hFile, "gfx_setoption")
 	gfx_describe_options = dylibsymbol(hFile, "gfx_describe_options")
+	gfx_printchar = dylibsymbol(hFile, "gfx_printchar") 'allowed to be NULL
 
 #ifdef USE_RASTERIZER
 	'New rendering API (FIXME: complete this)
@@ -353,6 +359,13 @@ function backends_setoption(opt as string, arg as string) as integer
 				failed = YES
 			#endif
 			unsupported = YES
+		elseif arg = "console" then
+			#ifdef GFX_CONSOLE_BACKEND
+				prefer_backend(@console_stuff)
+				if gfx_load(YES) then return 2
+				failed = YES
+			#endif
+			unsupported = YES
 		elseif arg = "sdlpp" or arg = "sdl++" then
 			#ifdef GFX_SDLPP_BACKEND
 				prefer_backend(@sdlpp_stuff)
@@ -396,6 +409,7 @@ function load_backend(which as GFxBackendStuff ptr) as integer
 	Gfx_setresizable = @gfx_dummy_setresizable
 	Io_textinput = NULL
 	Io_enable_textinput = @io_dummy_enable_textinput
+	Gfx_printchar = NULL
 
 	if which->load = NULL then
 		dim filename as string = which->libname

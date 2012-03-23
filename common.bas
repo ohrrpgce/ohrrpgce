@@ -103,6 +103,7 @@ DIM SHARED full_upgrade as integer = YES
 DIM SHARED full_upgrade as integer = NO
 #ENDIF
 
+DIM SHARED debug_to_console as integer = NO
 'don't delete the debug file at end of play
 DIM SHARED importantdebug as integer = 0
 
@@ -285,6 +286,9 @@ END SUB
 
 SUB debuginfo (s as string)
  'use for throwaway messages like upgrading
+
+ IF debug_to_console THEN PRINT s
+
  STATIC sizeerror as integer = 0
  DIM filename as string
  #IFDEF IS_GAME

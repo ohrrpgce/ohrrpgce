@@ -2507,6 +2507,11 @@ sub draw_line_fragment(byval dest as Frame ptr, byref state as PrintStrState, by
 			else
 				'Draw a character
 
+				'Fun hack! Console support
+				if layer = 1 and gfx_printchar <> NULL then
+					gfx_printchar(parsed_line[ch], .x, .y)
+				end if
+
 				'Print one character past the end of the line
 				if reallydraw and .x <= clipr then
 					if .thefont->layers(layer) <> NULL then

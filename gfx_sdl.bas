@@ -1,7 +1,7 @@
 ''
 '' gfx_sdl.bas - External graphics functions implemented in SDL
 ''
-'' part of OHRRPGCE - see LICENCE.txt for GPL
+'' Part of the OHRRPGCE - See LICENSE.txt for GNU GPL License details and disclaimer of liability
 ''
 
 #ifdef TRY_LANG_FB

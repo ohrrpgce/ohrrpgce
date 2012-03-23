@@ -40,6 +40,9 @@ extern Gfx_setresizable as sub (byval able as integer)
 extern Gfx_setoption as function (byval opt as zstring ptr, byval arg as zstring ptr) as integer
 extern Gfx_describe_options as function () as zstring ptr
 
+'(optional, ptr may be NULL, gfx_console only)
+extern Gfx_printchar as sub (byval ch as integer, byval x as integer, byval y as integer)
+
 extern Io_init as sub ()
 
 '(optional) called in loops where gfx_showpage is not.
@@ -52,6 +55,7 @@ extern Io_waitprocessing as sub ()
 
 '(optional) Primary keyboard state function. Get keypress events (since last call) and keyboard state:
 'bit 0: key down, bit 1: keypress since last call, must clear all other bits
+'Length 128 array.
 extern Io_keybits as sub (byval keybdarray as integer ptr)
 
 '(optional, must be thread safe) Get current up/down state of each key. Only used by the polling thread, not needed otherwise

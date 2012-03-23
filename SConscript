@@ -262,6 +262,7 @@ used_music = []
 gfx_map = {'fb': {'shared_modules': 'gfx_fb.bas', 'libraries': 'fbgfx fbmt'},
            'alleg' : {'shared_modules': 'gfx_alleg.bas', 'libraries': 'alleg'},
            'sdl' : {'shared_modules': 'gfx_sdl.bas', 'libraries': 'SDL'},
+           'console' : {'shared_modules': 'gfx_console.bas'}, # probably also need to link pdcurses on windows, untested
            'directx' : {}, # nothing needed
            'sdlpp': {}     # nothing needed
            }
@@ -281,20 +282,19 @@ music_map = {'native':
                  {'shared_modules': 'music_silence.bas'}
             }
 
-tmp = globals ()
 gfx = gfx.split ("+")
 for k in gfx:
     if k not in used_gfx:
         used_gfx.append (k)
         for k2, v2 in gfx_map[k].items ():
-            tmp[k2] += v2.split (' ')
+            globals()[k2] += v2.split (' ')
 
 for k, v in music_map.items ():
     if k == music:
         if k not in used_music:
             used_music.append (k)
         for k2, v2 in v.items ():
-            tmp[k2] += v2.split (' ')
+            globals()[k2] += v2.split (' ')
 
 #CXXLINKFLAGS are used when linking with g++
 #FBLIBS are used when linking with fbc

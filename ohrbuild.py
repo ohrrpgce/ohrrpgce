@@ -17,7 +17,7 @@ def get_run_command(cmd):
 include_re = re.compile(r'^#include\s+"(\S+)"', re.M | re.I)
 
 standard_bi = ['crt', 'SDL', 'libxml', 'fbgfx.bi', 
-               'file.bi', 'allegro.bi', 'string.bi']
+               'file.bi', 'allegro.bi', 'string.bi', 'curses.bi']
 
 def scrub_includes(includes):
     return [v for v in includes if not any([v.startswith(inc) for inc in standard_bi])]
@@ -90,13 +90,17 @@ def verprint (used_gfx, used_music, svn, git, fbc):
         date, rev = query_svn (git,'svn','info')
     fbver = query_fb ()
     for g in used_gfx:
-        if g.upper() in ('SDL','FB','ALLEG','DIRECTX','SDLPP'):
+        if g.upper() in ('SDL','FB','ALLEG','DIRECTX','SDLPP','CONSOLE'):
             results.append ('#DEFINE GFX_%s_BACKEND' % g.upper())
             supported_gfx.append (g)
+        else:
+            exit("Unrecognised gfx backend " + g)
     for m in used_music:
         if m.upper() in ('NATIVE','SDL','NATIVE2','SILENCE'):
             results.append ('#DEFINE MUSIC_%s_BACKEND' % m.upper())
             results.append ('#DEFINE MUSIC_BACKEND "%s"' % m)
+        else:
+            exit("Unrecognised music backend " + g)
     results.append ('#DEFINE SUPPORTED_GFX "%s "' % ' '.join (supported_gfx))
     tmp = ['gfx_choices(%d) = @%s_stuff' % (i, v) for i, v in enumerate (supported_gfx)]
     results.append ("#define GFX_CHOICES_INIT  " +\
