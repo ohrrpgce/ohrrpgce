@@ -161,7 +161,10 @@ if CXX:
     env.Replace (CXX = CXX)
 
 if linkgcc:
-    fbc_path = os.path.dirname(env.WhereIs(fbc))
+    fbc_binary = env.WhereIs(fbc)
+    if not fbc_binary:
+        raise Exception("FreeBasic compiler is not installed!")
+    fbc_path = os.path.dirname(fbc_binary)
     #print "fbc = " + fbc_path
     if win32:
         target = 'win32'
