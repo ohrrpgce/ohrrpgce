@@ -240,28 +240,6 @@ common_objects = []  # other objects shared by Game and Custom
 libraries = []
 libpaths = []
 
-if win32:
-    base_modules += ['os_windows.bas', 'os_windows2.c']
-    libraries += ['fbgfx']
-    libpaths += ['win32']
-    commonenv['FBFLAGS'] += ['-s','gui']
-elif mac:
-    base_modules += ['os_unix.c']
-    commonenv['FBLIBS'] += ['-Wl', '-F,' + FRAMEWORKS_PATH, '-Wl', '-mmacosx-version-min=10.4']
-    commonenv['CXXLINKFLAGS'] += ['-F', FRAMEWORKS_PATH, '-mmacosx-version-min=10.4']
-    libraries += ['Cocoa']  # For CoreServices
-    if 'sdl' in gfx:
-        common_modules += ['mac/SDLmain.m']
-        commonenv['FBFLAGS'] += ['-entry', 'SDL_main']
-        if env.WhereIs('sdl-config'):
-            commonenv['CFLAGS'] += [get_run_command("sdl-config --cflags").split()]
-        else:
-            commonenv['CFLAGS'] += ["-I", "/Library/Frameworks/SDL.framework/Headers", "-I", FRAMEWORKS_PATH + "/SDL.framework/Headers"]
-elif unix:
-    base_modules += ['os_unix.c']
-    libraries += 'X11 Xext Xpm Xrandr Xrender pthread'.split (' ')
-    commonenv['FBFLAGS'] += ['-d', 'DATAFILES=\'"/usr/share/games/ohrrpgce"\'']
-
 ### gfx and music backend dependencies
 
 gfx_map = {'fb': {'shared_modules': 'gfx_fb.bas', 'libraries': 'fbgfx fbmt'},
@@ -294,6 +272,28 @@ for k in gfx:
 for k in music:
     for k2, v2 in music_map[k].items ():
         globals()[k2] += v2.split (' ')
+
+if win32:
+    base_modules += ['os_windows.bas', 'os_windows2.c']
+    libraries += ['fbgfx']
+    libpaths += ['win32']
+    commonenv['FBFLAGS'] += ['-s','gui']
+elif mac:
+    base_modules += ['os_unix.c']
+    commonenv['FBLIBS'] += ['-Wl', '-F,' + FRAMEWORKS_PATH, '-Wl', '-mmacosx-version-min=10.4']
+    commonenv['CXXLINKFLAGS'] += ['-F', FRAMEWORKS_PATH, '-mmacosx-version-min=10.4']
+    libraries += ['Cocoa']  # For CoreServices
+    if 'sdl' in gfx:
+        common_modules += ['mac/SDLmain.m']
+        commonenv['FBFLAGS'] += ['-entry', 'SDL_main']
+        if env.WhereIs('sdl-config'):
+            commonenv['CFLAGS'] += [get_run_command("sdl-config --cflags").split()]
+        else:
+            commonenv['CFLAGS'] += ["-I", "/Library/Frameworks/SDL.framework/Headers", "-I", FRAMEWORKS_PATH + "/SDL.framework/Headers"]
+elif unix:
+    base_modules += ['os_unix.c']
+    libraries += 'X11 Xext Xpm Xrandr Xrender pthread'.split (' ')
+    commonenv['FBFLAGS'] += ['-d', 'DATAFILES=\'"/usr/share/games/ohrrpgce"\'']
 
 #CXXLINKFLAGS are used when linking with g++
 #FBLIBS are used when linking with fbc
