@@ -227,7 +227,7 @@ END SUB
 
 SUB showplotstrings
 
-FOR i as integer = 0 TO 31
+FOR i as integer = 0 TO UBOUND(plotstr)
  '-- for each string
  IF plotstr(i).bits AND 1 THEN
   '-- only display visible strings

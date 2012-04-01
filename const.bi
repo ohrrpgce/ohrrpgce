@@ -195,6 +195,7 @@ CONST maxElements = 64 'Maximum selectable number of elements
 CONST tempZone = 10000 'ID (and up) to use for temporary zones
 CONST maxMapHistoryMem = 1000000 'In number of MapEditUndoTiles (8 bytes)
 CONST maxScriptGlobals = 16383 'Actually the index of the last global
+CONST maxScriptStrings = 99 'ID of last plotstring
 #IFDEF SCRIPTPROFILE
 CONST scriptmemMax = 10000000 'in 4-byte ints
 CONST scriptTableSize = 512  'hash table size, power of 2 please

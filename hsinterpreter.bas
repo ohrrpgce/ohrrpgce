@@ -875,7 +875,7 @@ IF mode >= 2 THEN
  resetpal = YES
 END IF
 
-FOR i as integer = 0 TO 31
+FOR i as integer = 0 TO UBOUND(plotstr)
  plots = plotstr(i).s
  marginstr = LEFT(i & ": ", 3)
  linelen = 0

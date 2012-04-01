@@ -1168,15 +1168,15 @@ txt.showing = NO
 txt.fully_shown = NO
 txt.show_lines = 0
 
-FOR i as integer = 0 TO 31
- with plotstr(i)
+FOR i as integer = 0 TO UBOUND(plotstr)
+ WITH plotstr(i)
   .s = ""
-  .col = 15
+  .col = uilook(uiText)
   .BGCol = 0
   .X = 0
   .Y = 0
   .Bits = 0
- end with
+ END WITH
 NEXT i
 
 FOR i as integer = topmenu TO 0 STEP -1

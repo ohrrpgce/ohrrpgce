@@ -225,7 +225,7 @@ REDIM global(maxScriptGlobals) as integer
 REDIM retvals(32) as integer
 REDIM scrat(128) as ScriptInst
 REDIM script(scriptTableSize - 1) as ScriptData Ptr
-REDIM plotstr(31) as Plotstring
+REDIM plotstr(maxScriptStrings) as Plotstring
 DIM scrst as Stack
 DIM curcmd as ScriptCommand ptr
 DIM insideinterpreter as integer
@@ -1857,7 +1857,7 @@ WITH scrat(nowscript)
      END IF
     END IF
    CASE 210'--show string
-    IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
+    IF valid_plotstr(retvals(0)) THEN
      scriptout = plotstr(retvals(0)).s
     END IF
    CASE 234'--load menu
@@ -3244,7 +3244,7 @@ END SUB
 
 SUB init_default_text_colors()
  textcolor uilook(uiText), 0
- FOR i as integer = 0 TO 31
+ FOR i as integer = 0 TO UBOUND(plotstr)
   plotstr(i).Col = uilook(uiText)
  NEXT i
 END SUB

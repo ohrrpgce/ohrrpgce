@@ -29,6 +29,7 @@ global variable(5000, global 5000)
 #string 3 = temporary misc
 #string 10 = error message arg
 #string 11 = asserts
+#string 95-96 = temp misc
 define constant(11, assert expression string)
 
 ########################################################################
@@ -1652,7 +1653,12 @@ script, string tests, begin
   $2=",-1234. ,<embedded> "
   assert(string compare(1, 2))
 
-
+  # higher IDs
+  $95="a "
+  $96=""
+  appendascii(96, 97)
+  $96+" "
+  assert(string compare(95, 96))
 end
 
 ########################################################################
