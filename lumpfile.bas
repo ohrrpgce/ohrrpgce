@@ -602,11 +602,11 @@ function indexlumpfile (lumpfile as string, byval keepopen as integer = YES) as 
 			i += 1
 		wend
 		if i >= 50 then 'corrupt file, really if i > 12
-			debug "corrupt lump file " + lumpfile + " : lump name too long"
+			debug "indexlumpfile: corrupt lump file " & lumpfile & " : lump name too long: '" & lname & "'" 
 			exit do
 		end if
 		if eof(lf) then
-			debug "corrupt lump file " + lumpfile + " : garbage"
+			debug "indexlumpfile: corrupt lump file " + lumpfile + " : garbage"
 			exit do
 		end if
 
@@ -747,7 +747,7 @@ sub unlumpfile (lumpfile as string, fmask as string, path as string)
 			i += 1
 		wend
 		if i > 50 then
-			debug "corrupt lump file " + lumpfile + " : lump name too long"
+			debug "unlumpfile: corrupt lump file " + lumpfile + " : lump name too long: '" & lname & "'"
 			exit while
 		end if
 		lname = lcase(lname)
@@ -858,7 +858,7 @@ function islumpfile (lumpfile as string, fmask as string) as integer
 			i += 1
 		wend
 		if i > 50 then
-			debug "corrupt lump file " + lumpfile + " : lump name too long"
+			debug "islumpfile: corrupt lump file " + lumpfile + " : lump name too long: '" & lname & "'"
 			exit while
 		end if
 		lname = lcase(lname)
