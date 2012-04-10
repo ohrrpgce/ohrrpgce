@@ -638,22 +638,6 @@ FUNCTION liveherocount () as integer
  RETURN liveheroes
 END FUNCTION
 
-FUNCTION randomally (byval who as integer) as integer
- IF is_hero(who) THEN
-  RETURN INT(RND * 4)
- ELSE
-  RETURN 4 + INT(RND * 8)
- END IF
-END FUNCTION
-
-FUNCTION randomfoe (byval who as integer) as integer
- IF is_enemy(who) THEN
-  RETURN INT(RND * 4)
- ELSE
-  RETURN 4 + INT(RND * 8)
- END IF
-END FUNCTION
-
 FUNCTION safesubtract (byval number as integer, byval minus as integer) as integer
  DIM longnumber as DOUBLE = number
  DIM longminus as DOUBLE = minus
