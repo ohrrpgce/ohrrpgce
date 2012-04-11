@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Oe 2012-04-11 Add \n and \t escape codes
 --3Od 2012-03-03 Change directory search order slightly
 --3Oc 2012-02-07 Increased MAXGLOBAL to 16383
 --3Ob 2012-02-07 Make the max script global number set by a constant
@@ -128,7 +129,7 @@ constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Od"
+constant COMPILER_SUB_VERSION="Oe"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags. May add more colors, up to #F8FF
@@ -1031,6 +1032,10 @@ function lexer_read_string(sequence s,integer i,integer stop,srcpos pos)
     if escaping then
       if s[i]='"' or s[i]='\\' then
         string&=s[i]
+      elsif s[i]='n' then
+        string&=10
+      elsif s[i]='t' then
+        string&=9
       else
         --invalid sequence
         string&='\\'
