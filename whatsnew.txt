@@ -44,6 +44,7 @@ WHAT IS NEW?
         recognises the encoding as ASCII/Latin-1, UTF-8, or UTF-16.
         Script names and strings are dumbed down to Latin-1 on import.
       [Ralph]
+    * New general bitset "Don't divide experience between heroes" [James]
 
   * Bugfixes
     * Wrong names used for reserve party heroes who level during

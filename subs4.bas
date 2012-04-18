@@ -1546,7 +1546,7 @@ SUB gendata ()
    IF state.pt = 0 THEN EXIT DO
    IF state.pt = 3 THEN
     DIM bittemp(2) AS INTEGER
-    DIM bitname(29) AS STRING
+    DIM bitname(30) AS STRING
     bitname(0) = "Pause on Battle Sub-menus"
     bitname(1) = "Enable Caterpillar Party"
     bitname(2) = "Don't Restore HP on Levelup"
@@ -1577,6 +1577,7 @@ SUB gendata ()
     bitname(27) = "Recreate map slices when changing maps"
     bitname(28) = "Harm tiles harm non-caterpillar heroes"
     bitname(29) = "Attacks will ignore extra hits stat"
+    bitname(30) = "Don't divide experience between heroes"
     bittemp(0) = gen(genBits)
     bittemp(1) = gen(genBits2)
     bittemp(2) = gen(genBits2+1)

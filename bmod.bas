@@ -1378,7 +1378,9 @@ FUNCTION distribute_party_experience (byval exper as integer) as integer
  NEXT
  'debug "distribute_party_experience: exper = " & exper & " sumheroes = " & sumheroes
 
- IF sumheroes > 0 THEN exper = exper / sumheroes
+ 'if there is more than one hero, and the bitset to disable experience dividing is off,
+ ' then divide the experience between the heroes
+ IF sumheroes > 0 ANDALSO readbit(gen(), genBits2, 14) = 0 THEN exper = exper / sumheroes
 
  FOR i = 0 TO UBOUND(hero)
   IF hero(i) > 0 THEN
