@@ -29,3 +29,5 @@ The "Simulate __ bug" bitsets are for backwards compatibility with old games, an
 "0 damage when immune to attack elements" allows elemental attacks to do zero damage if the target takes 0% damage from that element. Normally you would have to to set the "Allow zero damage" bit on the attack to do less than 1 point of damage.
 
 "Harm tiles harm non-caterpillar heroes" causes all heroes in the active party to be harmed when the leader walks over a harm tile if the caterpillar party isn't enabled. This defaults to off in old games.
+
+"Don't divide experience between heroes" causes all heroes to get the full amount of experience after battles, rather than dividing the experience depending on the number of heroes in your active party.
