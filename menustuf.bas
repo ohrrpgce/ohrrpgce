@@ -343,7 +343,7 @@ IF b(itemno * recordsize + 17) = 0 THEN
  'The itembuf remains and is used later to show equipability.
  IF itembuf(49) = 1 THEN eqinfo = eqprefix & " " & wepslot
  IF itembuf(49) > 1 THEN eqinfo = eqprefix & " " & readglobalstring(23 + itembuf(49), "Armor" & itembuf(49)-1)
- info1 = readbadbinstring(itembuf(), 9, 35, 0)
+ info1 = readbadbinstring(itembuf(), 9, 36, 0)
  IF LEN(info1) > 17 THEN
   DIM o as integer
   FOR o = 18 TO 1 STEP -1

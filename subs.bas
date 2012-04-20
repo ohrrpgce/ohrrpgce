@@ -1348,7 +1348,7 @@ DO
    strgrabber item(csr), 8
    menu(1) = "Name:" + item(csr)
   CASE 2
-   strgrabber info$, 34
+   strgrabber info$, 36
    menu(2) = "Info:" + info$
   CASE 3, 6, 9, 10
    IF intgrabber(a(46 + (pt - 3)), min(pt), max(pt)) THEN

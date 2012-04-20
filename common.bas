@@ -1140,7 +1140,7 @@ FUNCTION readitemname (byval index as integer) as string
 END FUNCTION
 
 FUNCTION readitemdescription (byval index as integer) as string
- RETURN readbadgenericname(index, game + ".itm", getbinsize(binITM), 9, 35, 0)
+ RETURN readbadgenericname(index, game + ".itm", getbinsize(binITM), 9, 36, 0)
 END FUNCTION
 
 FUNCTION readshopname (byval shopnum as integer) as string
