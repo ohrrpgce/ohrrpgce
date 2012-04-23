@@ -4135,3 +4135,12 @@ IF find_helper_app("wine") = "" THEN RETURN NO
 IF NOT isdir(environ("HOME") & "/.wine/dosdevices/c:") THEN RETURN NO
 RETURN YES
 END FUNCTION
+
+FUNCTION can_make_debian_packages () as integer
+'--check to see if we can find the tools needed to create a .deb package
+IF find_helper_app("ar") = "" THEN RETURN NO
+IF find_helper_app("tar") = "" THEN RETURN NO
+IF find_helper_app("gzip") = "" THEN RETURN NO
+RETURN YES
+END FUNCTION
+

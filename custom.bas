@@ -65,6 +65,7 @@ DECLARE SUB distribute_game_as_zip ()
 DECLARE SUB distribute_game_as_windows_installer ()
 DECLARE FUNCTION confirmed_copy (srcfile as string, destfile as string) as integer
 DECLARE FUNCTION get_windows_gameplayer() as string
+DECLARE FUNCTION get_linux_gameplayer() as string
 DECLARE FUNCTION find_or_download_innosetup () as string
 DECLARE FUNCTION find_innosetup () as string
 DECLARE FUNCTION win_or_wine_drive(letter as string) as string
@@ -73,7 +74,12 @@ DECLARE SUB write_innosetup_script (basename as string, isstmp as string)
 DECLARE SUB add_innosetup_file (s as string, filename as string)
 DECLARE FUNCTION win_path (filename as string) as string
 DECLARE FUNCTION copy_or_relump (src_rpg_or_rpgdir as string, dest_rpg as string) as integer
-DECLARE FUNCTION copy_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
+DECLARE FUNCTION copy_windows_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
+DECLARE FUNCTION copy_linux_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
+DECLARE SUB distribute_game_as_debian_package ()
+DECLARE FUNCTION get_debian_package_version() as string
+DECLARE FUNCTION get_debian_package_name() as string
+
 DECLARE SUB shop_stuff_edit (byval shop_id as integer, stufbuf() as integer, byref thing_total as integer)
 DECLARE SUB shop_save_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
 DECLARE SUB shop_load_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
@@ -1347,6 +1353,7 @@ END SUB
 CONST distmenuEXIT as integer = 1
 CONST distmenuZIP as integer = 2
 CONST distmenuWINSETUP as integer = 3
+CONST distmenuDEBSETUP as integer = 4
 
 SUB distribute_game ()
  save_current_game
@@ -1369,6 +1376,13 @@ SUB distribute_game ()
   append_simplemenu_item menu, " (requires Windows or wine)", YES, uilook(uiDisabledItem)
  END IF
 
+ 'IF can_make_debian_packages() THEN
+ ' append_simplemenu_item menu, "Export Debian Linux Package", , , distmenuDEBSETUP
+ 'ELSE
+ ' append_simplemenu_item menu, "Can't Export Debian Linux Package", YES
+ ' append_simplemenu_item menu, " (requires ar+tar+gzip)", YES, uilook(uiDisabledItem)
+ 'END IF
+
  DIM st AS MenuState
  init_menu_state st, cast(BasicMenuItem vector, menu)
 
@@ -1385,6 +1399,8 @@ SUB distribute_game ()
      distribute_game_as_zip
     CASE distmenuWINSETUP:
      distribute_game_as_windows_installer
+    CASE distmenuDEBSETUP:
+     distribute_game_as_debian_package
    END SELECT
   END IF
 
@@ -1447,7 +1463,7 @@ SUB distribute_game_as_zip ()
   IF copy_or_relump(sourcerpg, ziptmp & SLASH & basename & ".rpg") = NO THEN EXIT DO
 
   IF use_gameplayer THEN
-   IF copy_gameplayer(gameplayer, basename, ziptmp) = NO THEN EXIT DO
+   IF copy_windows_gameplayer(gameplayer, basename, ziptmp) = NO THEN EXIT DO
   END IF
  
   DIM args as string = "-r -j """ & destzip & """ """ & ziptmp & """"
@@ -1490,7 +1506,7 @@ FUNCTION copy_or_relump (src_rpg_or_rpgdir as string, dest_rpg as string) as int
  RETURN YES
 END FUNCTION
 
-FUNCTION copy_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
+FUNCTION copy_windows_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
  'Returns true on success, false on failure
  IF confirmed_copy(gameplayer, destdir & SLASH & basename & ".exe") = NO THEN RETURN NO
  DIM gamedir as string = trimfilename(gameplayer)
@@ -1498,6 +1514,17 @@ FUNCTION copy_gameplayer (gameplayer as string, basename as string, destdir as s
  FOR i as integer = 0 TO UBOUND(otherf)
   IF confirmed_copy(gamedir & SLASH & otherf(i), destdir & SLASH & otherf(i)) = NO THEN RETURN NO
  NEXT i
+ RETURN YES
+END FUNCTION
+
+FUNCTION copy_linux_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
+ 'Returns true on success, false on failure
+ IF confirmed_copy(gameplayer, destdir & SLASH & basename) = NO THEN RETURN NO
+#IFDEF __FB_LINUX__
+  '--just in case we are playing with a debug build,
+  '--strip the copy of the binary that goes in the distribution file.
+  SHELL "strip '" & destdir & SLASH & basename & "'"
+#ENDIF
  RETURN YES
 END FUNCTION
 
@@ -1566,6 +1593,69 @@ FUNCTION get_windows_gameplayer() as string
  RETURN dldir & SLASH & "game.exe"
 END FUNCTION
 
+FUNCTION get_linux_gameplayer() as string
+ 'On Linux, Return the full path to ohrrpgce-game
+ 'On other platforms, download a precompiled i386 binary of ohrrpgce-game,
+ 'unzip it, and return the full path.
+ 'Returns "" for failure.
+
+#IFDEF __FB_LINUX__
+
+ '--If this is Linux, we already have the correct version of ohrrpgce-game
+ IF isfile(exepath & SLASH & "ohrrpgce-game") THEN
+  RETURN exepath & SLASH & "ohrrpgce-game"
+ ELSE
+  visible_debug "ERROR: ohrrpgce-game wasn't found in the same directory as ohrrpgce-custom. (This probably shouldn't happen!)" : RETURN ""
+ END IF
+
+#ENDIF
+
+ '--For Non-Linux platforms, we need to download ohrrpgce-game
+ '(NOTE: This all should work fine on Linux too, but it is best to use the installed ohrrpgce-game)
+
+ '--Find the folder that we are going to download ohrrpgce-game into
+ DIM support as string = find_support_dir()
+ IF support = "" THEN visible_debug "ERROR: Unable to find support directory": RETURN ""
+ DIM dldir as string = support & SLASH & "gameplayer"
+ IF NOT isdir(dldir) THEN makedir dldir
+ IF NOT isdir(dldir) THEN visible_debug "ERROR: Unable to create support/gameplayer directory": RETURN ""
+  
+ '--Decide which url to download
+ DIM url as string
+ DIM dlfile as string
+ 
+ 'Ideally we might check IF version_branch = "wip" and handle wip versions
+ 'differently than stable versions, but there is not a stable linux binary zip
+ 'yet for any stable releases.
+ 
+ url = "http://hamsterrepublic.com/ohrrpgce/nightly/ohrrpgce-player-linux-bin-minimal.zip"
+ dlfile = "ohrrpgce-player-linux-bin-minimal.zip"
+
+ '--Ask the user for permission the first time we download (subsequent updates don't ask)
+ DIM destzip as string = dldir & SLASH & dlfile
+ IF NOT isfile(destzip) THEN
+  IF yesno("Is it okay to download the Linux version of OHRRPGCE ohrrpgce-game from HamsterRepublic.com now?") = NO THEN RETURN ""
+ END IF
+
+ '--Actually download the dang file
+ wget_download url, dldir
+ 
+ '--Find the unzip tool
+ DIM unzip as string = find_helper_app("unzip")
+ IF unzip = "" THEN visible_debug "ERROR: Couldn't find unzip tool": RETURN ""
+ 
+ '--Unzip the desired files
+ DIM args as string = "-o """ & destzip & """ ohrrpgce-game LICENSE-binary.txt -d """ & dldir & """"
+ DIM spawn_ret as string = spawn_and_wait(unzip, args)
+ IF LEN(spawn_ret) > 0 THEN visible_debug "ERROR: unzip failed: " & spawn_ret : RETURN ""
+ 
+ IF NOT isfile(dldir & SLASH & "ohrrpgce-game")      THEN visible_debug "ERROR: Failed to unzip ohrrpgce-game" : RETURN ""
+ IF NOT isfile(dldir & SLASH & "LICENSE-binary.txt") THEN visible_debug "ERROR: Failed to unzip LICENSE-binary.txt" : RETURN ""
+ 
+ RETURN dldir & SLASH & "ohrrpgce-game"
+
+END FUNCTION
+
 FUNCTION confirmed_copy (srcfile as string, destfile as string) as integer
  'Copy a file, heck to make sure it really was copied, and show an error message if not.
  ' Returns true if the copy was okay, false if it failed
@@ -1603,7 +1693,7 @@ SUB distribute_game_as_windows_installer ()
   DIM gameplayer as string
   gameplayer = get_windows_gameplayer()
   IF gameplayer = "" THEN visible_debug "ERROR: game.exe is not available" : EXIT DO
-  IF copy_gameplayer(gameplayer, basename, isstmp) = NO THEN EXIT DO
+  IF copy_windows_gameplayer(gameplayer, basename, isstmp) = NO THEN EXIT DO
   
   write_innosetup_script basename, isstmp
 
@@ -1753,6 +1843,80 @@ FUNCTION win_or_wine_spawn_and_wait (cmd as string, args as string="") as string
  RETURN spawn_and_wait("wine", wine_args)
 #ENDIF
  
+END FUNCTION
+
+SUB distribute_game_as_debian_package ()
+
+ DIM basename as string = trimextension(trimpath(sourcerpg))
+ DIM pkgname as string = get_debian_package_name()
+ DIM pkgver as string = get_debian_package_version()
+ DIM debname as string = trimfilename(sourcerpg) & SLASH & pkgname & "_" & pkgver & "_i386.deb"
+
+ IF isfile(debname) THEN
+  IF yesno(trimpath(debname) & " already exists. Overwrite it?") = NO THEN RETURN
+  safekill debname
+ END IF
+
+ DIM debtmp as string = trimfilename(sourcerpg) & SLASH & "debpkg.tmp"
+ IF isdir(debtmp) THEN
+  killdir debtmp
+ END IF
+ makedir debtmp
+ makedir debtmp & SLASH & "usr"
+ makedir debtmp & SLASH & "usr" & SLASH & "share"
+ makedir debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "games"
+ DIM bindir as string = debtmp & SLASH & "usr" & SLASH & "games"
+ makedir bindir
+ DIM datadir as string = debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "games" & SLASH & pkgname
+ makedir datadir
+
+ DO '--single pass loop for breaking
+
+  IF copy_or_relump(sourcerpg, datadir & SLASH & basename & ".rpg") = NO THEN EXIT DO
+ 
+  DIM gameplayer as string
+  gameplayer = get_linux_gameplayer()
+  IF gameplayer = "" THEN visible_debug "ERROR: game.exe is not available" : EXIT DO
+  IF copy_linux_gameplayer(gameplayer, basename, bindir) = NO THEN EXIT DO
+    
+  visible_debug "working so far! :)"
+
+  'visible_debug trimpath(installer) & " was successfully created!"
+  EXIT DO 'this loop is only ever one pass
+ LOOP
+
+ '--Cleanup temp files
+ 'killdir debtmp
+ 
+END SUB
+
+FUNCTION get_debian_package_name() as string
+ DIM s as string
+ s = load_gamename()
+ IF s = "" THEN s = trimextension(trimpath(sourcerpg))
+ s = LCASE(s)
+ DIM result as string = ""
+ DIM ch as string
+ DIM dash as integer = NO
+ FOR i as integer = 1 TO LEN(s)
+   ch = MID(s, i, 1)
+   IF ch >= "a" ANDALSO ch <= "z" THEN
+    result &= ch
+    dash = NO
+   ELSE
+    IF NOT dash ANDALSO LEN(result) > 0 THEN
+     result &= "-"
+     dash = YES
+    END IF
+   END IF
+ NEXT i
+ 'FIXME: collision-prevention goes here
+ RETURN result
+END FUNCTION
+
+FUNCTION get_debian_package_version() as string
+ DIM d as string = DATE
+ RETURN MID(d, 7, 4) & "." & MID(d, 1, 2) & "." & MID(d, 4, 2) & "." & MID(TIME, 1, 2)
 END FUNCTION
 
 SUB save_current_game ()
