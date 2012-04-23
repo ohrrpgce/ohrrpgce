@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Scheduling this script to run automatically is equivalent to giving the other devs
-# write access to your automatric build machine. Don't do it unless you trust them all.
+# write access to your automatic build machine. Don't do it unless you trust them all.
 # (which James fortunately does, and the build machine is reasonably sandboxed, so!)
 
 UPLOAD_SERVER="james_paige@motherhamster.org"
@@ -67,3 +67,10 @@ rm distrib/ohrrpgce-linux-wip.tar.bz2
 ssh $UPLOAD_SERVER rm "$UPLOAD_FOLDER/ohrrpgce/nightly/ohrrpgce_*.deb"
 scp -p distrib/ohrrpgce_*.wip-*_i386.deb $UPLOAD_DEST/ohrrpgce/nightly/
 rm distrib/ohrrpgce_*.deb
+
+# Make the minimal binary dist
+cp ohrrpgce-game tmp/
+strip tmp/ohrrpgce-game
+zip -j distrib/ohrrpgce-player-linux-bin-minimal.zip tmp/ohrrpgce-game LICENSE-binary.txt README-linux-bin-minimal.txt
+rm tmp/ohrrpgce-game
+scp -p distrib/ohrrpgce-player-linux-bin-minimal.zip $UPLOAD_DEST/ohrrpgce/nightly/
