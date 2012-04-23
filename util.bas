@@ -1650,3 +1650,9 @@ FUNCTION special_char_sanitize(s as string) as string
  NEXT i
  RETURN result
 END FUNCTION
+
+FUNCTION starts_with(s as string, prefix as string) as integer
+ 'Return YES if the string begins with a specific prefix
+ RETURN MID(s, 1, LEN(prefix)) = prefix
+END FUNCTION
+

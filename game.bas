@@ -57,6 +57,7 @@ DECLARE SUB reparent_hero_slices()
 DECLARE SUB orphan_hero_slices()
 DECLARE SUB reparent_npc_slices()
 DECLARE SUB orphan_npc_slices()
+DECLARE SUB seek_rpg_or_rpgdir_and_play_it(where as string, gamename as string)
 
 REMEMBERSTATE
 
@@ -339,23 +340,23 @@ ELSE  'NOT running_as_slave
 END IF  'NOT running_as_slave
 
 IF gam.autorungame = NO THEN
- IF LCASE(exename) <> "game" THEN
-  IF isfile(exepath + SLASH + exename + ".rpg") THEN
-   sourcerpg = exepath + SLASH + exename + ".rpg"
-   gam.autorungame = YES
-  ELSE
-   DIM rpgd as string = exepath + SLASH + exename + ".rpgdir"
-   IF isdir(rpgd) THEN
-    IF isfile(rpgd + SLASH + "archinym.lmp") THEN
-     sourcerpg = rpgd
-     workingdir = rpgd
-     gam.autorungame = YES
-     usepreunlump = YES
-    END IF
-   END IF
+#IFDEF __FB_LINUX__
+ IF exename <> "ohrrpgce-game" THEN
+  IF starts_with(exepath, "/usr/games") THEN
+   seek_rpg_or_rpgdir_and_play_it "/usr/share/" & exename, exename
+  ELSEIF starts_with(exepath, "/usr/local/games") THEN
+   seek_rpg_or_rpgdir_and_play_it "/usr/local/share/" & exename, exename
   END IF
  END IF
+#ENDIF
 END IF
+
+IF gam.autorungame = NO THEN
+ IF LCASE(exename) <> "game" ANDALSO exename <> "ohrrpgce-game" THEN
+  seek_rpg_or_rpgdir_and_play_it exepath, exename
+ END IF
+END IF
+
 IF gam.autorungame = NO THEN
  'DEBUG debug "browse for RPG"
  sourcerpg = browse(7, "", "*.rpg", tmpdir, 1, "browse_rpg")
@@ -3847,3 +3848,23 @@ SUB check_for_queued_fade_in ()
   END IF
  END IF
 END SUB
+
+SUB seek_rpg_or_rpgdir_and_play_it(where as string, gamename as string)
+ '--Search to see if a rpg file or an rpgdir of a given name exists
+ ' and if so, select it for playing (the browse screen will not appear)
+ IF isfile(where & SLASH & gamename & ".rpg") THEN
+  sourcerpg = where & SLASH + gamename & ".rpg"
+  gam.autorungame = YES
+ ELSE
+  DIM rpgd as string = where & SLASH & gamename & ".rpgdir"
+  IF isdir(rpgd) THEN
+   IF isfile(rpgd & SLASH & "archinym.lmp") THEN
+    sourcerpg = rpgd
+    workingdir = rpgd
+    gam.autorungame = YES
+    usepreunlump = YES
+   END IF
+  END IF
+ END IF
+END SUB
+
