@@ -343,9 +343,9 @@ IF gam.autorungame = NO THEN
 #IFDEF __FB_LINUX__
  IF exename <> "ohrrpgce-game" THEN
   IF starts_with(exepath, "/usr/games") THEN
-   seek_rpg_or_rpgdir_and_play_it "/usr/share/" & exename, exename
+   seek_rpg_or_rpgdir_and_play_it "/usr/share/games/" & exename, exename
   ELSEIF starts_with(exepath, "/usr/local/games") THEN
-   seek_rpg_or_rpgdir_and_play_it "/usr/local/share/" & exename, exename
+   seek_rpg_or_rpgdir_and_play_it "/usr/local/share/games/" & exename, exename
   END IF
  END IF
 #ENDIF
