@@ -57,7 +57,7 @@ DECLARE SUB reparent_hero_slices()
 DECLARE SUB orphan_hero_slices()
 DECLARE SUB reparent_npc_slices()
 DECLARE SUB orphan_npc_slices()
-DECLARE SUB seek_rpg_or_rpgdir_and_play_it(where as string, gamename as string)
+DECLARE FUNCTION seek_rpg_or_rpgdir_and_play_it(where as string, gamename as string) as integer
 
 REMEMBERSTATE
 
@@ -342,11 +342,16 @@ END IF  'NOT running_as_slave
 IF gam.autorungame = NO THEN
 #IFDEF __FB_LINUX__
  IF exename <> "ohrrpgce-game" THEN
-  IF starts_with(exepath, "/usr/games") THEN
-   seek_rpg_or_rpgdir_and_play_it "/usr/share/games/" & exename, exename
-  ELSEIF starts_with(exepath, "/usr/local/games") THEN
-   seek_rpg_or_rpgdir_and_play_it "/usr/local/share/games/" & exename, exename
-  END IF
+  DO 'single-pass loop for breaking
+   IF starts_with(exepath, "/usr/local") THEN
+    IF seek_rpg_or_rpgdir_and_play_it("/usr/local/share/games/" & exename, exename) THEN EXIT DO
+    IF seek_rpg_or_rpgdir_and_play_it("/usr/local/share/" & exename, exename) THEN EXIT DO
+   END IF
+   IF starts_with(exepath, "/usr/games") ORELSE starts_with(exepath, "/usr/bin") THEN
+    IF seek_rpg_or_rpgdir_and_play_it("/usr/share/games/" & exename, exename) THEN EXIT DO
+    IF seek_rpg_or_rpgdir_and_play_it("/usr/share/" & exename, exename) THEN EXIT DO
+   END IF
+  EXIT DO : LOOP '--end of single-pass loop for breaking
  END IF
 #ENDIF
 END IF
@@ -3849,12 +3854,14 @@ SUB check_for_queued_fade_in ()
  END IF
 END SUB
 
-SUB seek_rpg_or_rpgdir_and_play_it(where as string, gamename as string)
+FUNCTION seek_rpg_or_rpgdir_and_play_it(where as string, gamename as string) as integer
  '--Search to see if a rpg file or an rpgdir of a given name exists
  ' and if so, select it for playing (the browse screen will not appear)
+ 'Returns YES if found, NO if not found
  IF isfile(where & SLASH & gamename & ".rpg") THEN
   sourcerpg = where & SLASH + gamename & ".rpg"
   gam.autorungame = YES
+  RETURN YES
  ELSE
   DIM rpgd as string = where & SLASH & gamename & ".rpgdir"
   IF isdir(rpgd) THEN
@@ -3863,8 +3870,10 @@ SUB seek_rpg_or_rpgdir_and_play_it(where as string, gamename as string)
     workingdir = rpgd
     gam.autorungame = YES
     usepreunlump = YES
+    RETURN YES
    END IF
   END IF
  END IF
-END SUB
+ RETURN NO
+END FUNCTION
 
