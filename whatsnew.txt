@@ -83,6 +83,8 @@ WHAT IS NEW?
     * When "camera follows NPC" was used the camera lagged one tick
       behind the NPC [Ralph]
     * The pause key didn't pause battles anymore [Ralph]
+    * Bug 945: Attacks used from a hero's spell list out-of-battle
+      used the average party stats instead of that hero's [Ralph]
 
   * New Plotscripting Stuff
     * You can now have global variables up to 16383 instead of 4095

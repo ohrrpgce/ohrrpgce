@@ -40,7 +40,7 @@ DECLARE SUB items_menu_paint (istate as ItemsMenuState, iuse() as integer, perma
 DECLARE SUB items_menu_infostr(state as ItemsMenuState, permask() as integer)
 DECLARE SUB items_menu_autosort(iuse() as integer, permask() as integer)
 DECLARE SUB item_menu_use_item(byval slot as integer, istate as ItemsMenuState, iuse() as integer, permask() as integer)
-DECLARE FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as integer, use_caption as STRING, byval x_offset as integer=0, byval really_use_attack as integer=YES) as integer
+DECLARE FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as integer, byval attacker as integer, use_caption as STRING, byval x_offset as integer=0, byval really_use_attack as integer=YES) as integer
 DECLARE SUB items_menu_control (istate as ItemsMenuState, iuse() as integer, permask() as integer)
 DECLARE SUB spells_menu_refresh_list(sp as SpellsMenuState)
 DECLARE SUB spells_menu_refresh_hero(sp as SpellsMenuState)
@@ -541,33 +541,42 @@ ELSE
 END IF
 END SUB
 
-SUB oobcure (byval w as integer, byval t as integer, byval atk as integer, byval spred as integer)
+SUB oobcure (byval attacker as integer, byval target as integer, byval atk as integer, byval spread as integer)
 '--outside-of-battle cure
+' attacker and target are hero slots; attacker may be -1
 
-DIM st(13, 1) as integer
+DIM as BattleSprite attacker_obj, target_obj
 
-'--average stats for item-triggered spells
-IF w = -1 THEN
+'--populate attacker object
+IF attacker = -1 THEN
+ '--average stats for item-triggered spells
  DIM partysize as integer = 0
  FOR o as integer = 0 TO 3
   IF hero(o) > 0 THEN
    partysize += 1
    FOR i as integer = 0 TO 11
-    st(i, 0) = st(i, 0) + gam.hero(o).stat.cur.sta(i)
-    st(i, 1) = st(i, 1) + gam.hero(o).stat.max.sta(i)
+    attacker_obj.stat.cur.sta(i) += gam.hero(o).stat.cur.sta(i)
+    attacker_obj.stat.max.sta(i) += gam.hero(o).stat.max.sta(i)
    NEXT i
   END IF
  NEXT o
  FOR i as integer = 0 TO 11
-  st(i, 0) = st(i, 0) / partysize
-  st(i, 1) = st(i, 1) / partysize
+  attacker_obj.stat.cur.sta(i) /= partysize
+  attacker_obj.stat.max.sta(i) /= partysize
  NEXT i
 ELSE
  FOR i as integer = 0 TO 11
-  st(i, 0) = gam.hero(w).stat.cur.sta(i)
-  st(i, 1) = gam.hero(w).stat.max.sta(i)
+  attacker_obj.stat.cur.sta(i) = gam.hero(attacker).stat.cur.sta(i)
+  attacker_obj.stat.max.sta(i) = gam.hero(attacker).stat.max.sta(i)
  NEXT i
 END IF
+
+'--populate the target object
+FOR i as integer = 0 to 11
+ target_obj.stat.cur.sta(i) = gam.hero(target).stat.cur.sta(i)
+ target_obj.stat.max.sta(i) = gam.hero(target).stat.max.sta(i)
+NEXT i
+calc_hero_elementals target_obj.elementaldmg(), target
 
 DIM attack as AttackData
 loadattackdata attack, atk
@@ -581,41 +590,19 @@ END IF
 '--out of battle attacks aren't allowed to miss.
 attack.aim_math = 3
 
-DIM as BattleSprite attacker, target
-
-'--populate attacker object
-IF w = -1 THEN '--use average stats
- FOR i as integer = 0 to 11
-  attacker.stat.cur.sta(i) = st(i, 0)
-  attacker.stat.max.sta(i) = st(i, 1)
- NEXT i
-ELSE '--use actual stats
- FOR i as integer = 0 to 11
-  attacker.stat.cur.sta(i) = gam.hero(w).stat.cur.sta(i)
-  attacker.stat.max.sta(i) = gam.hero(w).stat.max.sta(i)
- NEXT i
-END IF
-
-'--populate the target object
-FOR i as integer = 0 to 11
- target.stat.cur.sta(i) = gam.hero(t).stat.cur.sta(i)
- target.stat.max.sta(i) = gam.hero(t).stat.max.sta(i)
-NEXT i
-calc_hero_elementals target.elementaldmg(), t
-
-inflict(0, 1, attacker, target, attack, spred)
+inflict(0, 1, attacker_obj, target_obj, attack, spread)
 
 '--copy back stats that need copying back
 '--first copy HP and MP normally
 FOR i as integer = 0 to 1
- gam.hero(t).stat.cur.sta(i) = target.stat.cur.sta(i)
- gam.hero(t).stat.max.sta(i) = target.stat.max.sta(i)
+ gam.hero(target).stat.cur.sta(i) = target_obj.stat.cur.sta(i)
+ gam.hero(target).stat.max.sta(i) = target_obj.stat.max.sta(i)
 NEXT i
 '--Then update just the max for the other stats
 '--this kinda sucks but it is consistent with the way outside of battle cure has always worked
 FOR i as integer = 2 to 11
- gam.hero(t).stat.max.sta(i) = target.stat.cur.sta(i)
- gam.hero(t).stat.cur.sta(i) = gam.hero(t).stat.max.sta(i)
+ gam.hero(target).stat.max.sta(i) = target_obj.stat.cur.sta(i)
+ gam.hero(target).stat.cur.sta(i) = gam.hero(target).stat.max.sta(i)
 NEXT i
 
 'Sound effect
@@ -1439,10 +1426,16 @@ FUNCTION outside_battle_cure (byval atk as integer, byref target as integer, byv
  DIM i as integer
  DIM didcure as integer = NO
  IF spread = 0 THEN
-  IF chkOOBtarg(target, atk) THEN oobcure attacker, target, atk, spread : didcure = YES
+  IF chkOOBtarg(target, atk) THEN
+   oobcure attacker, target, atk, spread
+   didcure = YES
+  END IF
  ELSE
   FOR i = 0 TO 3
-   IF chkOOBtarg(i, atk) THEN oobcure attacker, i, atk, spread : didcure = YES
+   IF chkOOBtarg(i, atk) THEN
+    oobcure attacker, i, atk, spread
+    didcure = YES
+   END IF 
   NEXT i
  END IF
  IF didcure THEN
@@ -2019,7 +2012,7 @@ FUNCTION use_item_in_slot(byval slot as integer, byref trigger_box as integer, b
    IF consumeitem(slot) THEN
     IF is_attack_item ANDALSO inventory(slot).used = NO THEN
      '--used the last attack item (potion) in a consumable stack
-     menu_attack_targ_picker attack_id, -1, rpad(attack_name, " ", 8) & "x 0", , NO
+     menu_attack_targ_picker attack_id, -1, -1, rpad(attack_name, " ", 8) & "x 0", , NO
      menusound gen(genCancelSFX)
     END IF
     consumed = YES
@@ -2060,9 +2053,8 @@ FUNCTION use_item_by_id(byval item_id as integer, byref trigger_box as integer, 
  END IF
 
  IF itemdata(50) > 0 THEN '--learn a spell
-  '--target the first non-dead hero
   MenuSound gen(genAcceptSFX)
-  IF menu_attack_targ_picker(-1, itemdata(50)-1, caption) THEN
+  IF menu_attack_targ_picker(-1, itemdata(50)-1, -1, caption) THEN
    '--successfully learned
    RETURN YES
   END IF
@@ -2071,7 +2063,7 @@ FUNCTION use_item_by_id(byval item_id as integer, byref trigger_box as integer, 
  
  IF itemdata(51) > 0 THEN '--attack/oobcure
   MenuSound gen(genAcceptSFX)
-  IF menu_attack_targ_picker(itemdata(51)-1, -1, caption) THEN
+  IF menu_attack_targ_picker(itemdata(51)-1, -1, -1, caption) THEN
    RETURN YES
   END IF
   RETURN NO
@@ -2085,7 +2077,10 @@ FUNCTION use_item_by_id(byval item_id as integer, byref trigger_box as integer, 
  RETURN NO
 END FUNCTION
 
-FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as integer, use_caption as STRING, byval x_offset as integer=0, byval really_use_attack as integer=YES) as integer
+FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as integer, byval attacker as integer, use_caption as STRING, byval x_offset as integer=0, byval really_use_attack as integer=YES) as integer
+ 'Lets the player pick a target, and then performs an attack or teaches a spell
+ '(FIXME: should move to separate function!)
+ 'attacker == -1 when not using an attack from a spell list. In that case, use party's avg stats
  'Returns true if the attack/spell was actually used/learned
  
  'FIXME: x_offset should probably go away in favor of a slice template at some point in the future
@@ -2216,7 +2211,7 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
    
    '--do attack outside of battle (cure)
    IF attack_id >= 0 ANDALSO really_use_attack THEN
-    IF outside_battle_cure(attack_id, targ, -1, spread) THEN
+    IF outside_battle_cure(attack_id, targ, attacker, spread) THEN
      menu_attack_targ_picker = YES
     END IF
    END IF
@@ -2561,7 +2556,7 @@ SUB spells_menu_control(sp as SpellsMenuState)
     
     '--repaint the screen so it will show up under the menu attack targ picker
     spells_menu_paint sp
-    IF menu_attack_targ_picker(sp.spell(sp.cursor).id, -1, TRIM(sp.spell(sp.cursor).name), 36) THEN
+    IF menu_attack_targ_picker(sp.spell(sp.cursor).id, -1, sp.hero, TRIM(sp.spell(sp.cursor).name), 36) THEN
      '--attack was actually used
      'FIXME: outside-battle and inside-battle attack cost consumption should be unified
      '--deduct MP

@@ -146,7 +146,7 @@ DO WHILE start < LEN(text)
     CASE "C": '--Hero name by caterpillar position
      '--defaults blank if not found
      insert = ""
-     DIM where as integer = rank_to_party_slot(arg)
+     DIM where as integer = herobyrank(arg)
      IF where >= 0 THEN
       insert = names(where)
      END IF
@@ -544,7 +544,7 @@ END SUB
 FUNCTION rank_to_party_slot (byval rank as integer) as integer
  'Returns the party slot of the nth hero in the party (not just caterpillar party), or -1
  DIM heronum as integer = -1
- FOR party_slot as integer = 0 TO 3
+ FOR party_slot as integer = 0 TO UBOUND(hero)
   IF hero(party_slot) > 0 THEN heronum += 1
   IF heronum = rank THEN
    RETURN party_slot
