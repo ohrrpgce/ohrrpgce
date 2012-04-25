@@ -79,6 +79,16 @@ DECLARE FUNCTION copy_linux_gameplayer (gameplayer as string, basename as string
 DECLARE SUB distribute_game_as_debian_package ()
 DECLARE FUNCTION get_debian_package_version() as string
 DECLARE FUNCTION get_debian_package_name() as string
+DECLARE SUB write_linux_menu_file(filename as string, basename as string)
+DECLARE SUB write_linux_desktop_file(filename as string, basename as string)
+DECLARE SUB write_debian_binary_file (filename as string)
+DECLARE SUB write_debian_control_file(controlfile as string, basename as string, pkgver as string, author as string, email as string, size_in_kibibytes as integer)
+DECLARE FUNCTION create_tarball(start_in_dir as string, tarball as string, files as string) as integer
+DECLARE FUNCTION create_ar_archive(start_in_dir as string, archive as string, files as string) as integer
+DECLARE SUB fix_deb_group_permissions(start_at_dir as string)
+DECLARE SUB write_debian_postrm_script (filename as string)
+DECLARE SUB write_debian_postinst_script (filename as string)
+DECLARE SUB kill_debtmp_dir(debtmp as string, basename as string)
 
 DECLARE SUB shop_stuff_edit (byval shop_id as integer, stufbuf() as integer, byref thing_total as integer)
 DECLARE SUB shop_save_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
@@ -1376,12 +1386,12 @@ SUB distribute_game ()
   append_simplemenu_item menu, " (requires Windows or wine)", YES, uilook(uiDisabledItem)
  END IF
 
- 'IF can_make_debian_packages() THEN
- ' append_simplemenu_item menu, "Export Debian Linux Package", , , distmenuDEBSETUP
- 'ELSE
- ' append_simplemenu_item menu, "Can't Export Debian Linux Package", YES
- ' append_simplemenu_item menu, " (requires ar+tar+gzip)", YES, uilook(uiDisabledItem)
- 'END IF
+ IF can_make_debian_packages() THEN
+  append_simplemenu_item menu, "Export Debian Linux Package", , , distmenuDEBSETUP
+ ELSE
+  append_simplemenu_item menu, "Can't Export Debian Linux Package", YES
+  append_simplemenu_item menu, " (requires ar+tar+gzip)", YES, uilook(uiDisabledItem)
+ END IF
 
  DIM st AS MenuState
  init_menu_state st, cast(BasicMenuItem vector, menu)
@@ -1524,6 +1534,8 @@ FUNCTION copy_linux_gameplayer (gameplayer as string, basename as string, destdi
   '--just in case we are playing with a debug build,
   '--strip the copy of the binary that goes in the distribution file.
   SHELL "strip '" & destdir & SLASH & basename & "'"
+  '--fix the permissions
+  SHELL "chmod +x '" & destdir & SLASH & basename & "'"
 #ENDIF
  RETURN YES
 END FUNCTION
@@ -1847,10 +1859,9 @@ END FUNCTION
 
 SUB distribute_game_as_debian_package ()
 
- DIM basename as string = trimextension(trimpath(sourcerpg))
- DIM pkgname as string = get_debian_package_name()
+ DIM basename as string = get_debian_package_name()
  DIM pkgver as string = get_debian_package_version()
- DIM debname as string = trimfilename(sourcerpg) & SLASH & pkgname & "_" & pkgver & "_i386.deb"
+ DIM debname as string = trimfilename(sourcerpg) & SLASH & basename & "_" & pkgver & "_i386.deb"
 
  IF isfile(debname) THEN
   IF yesno(trimpath(debname) & " already exists. Overwrite it?") = NO THEN RETURN
@@ -1859,42 +1870,228 @@ SUB distribute_game_as_debian_package ()
 
  DIM debtmp as string = trimfilename(sourcerpg) & SLASH & "debpkg.tmp"
  IF isdir(debtmp) THEN
-  killdir debtmp
+  debuginfo "Clean up old " & debtmp
+  kill_debtmp_dir debtmp, basename
  END IF
+ 
+ debuginfo "Prepare package data files..."
  makedir debtmp
  makedir debtmp & SLASH & "usr"
  makedir debtmp & SLASH & "usr" & SLASH & "share"
  makedir debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "games"
  DIM bindir as string = debtmp & SLASH & "usr" & SLASH & "games"
  makedir bindir
- DIM datadir as string = debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "games" & SLASH & pkgname
+ DIM datadir as string = debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "games" & SLASH & basename
  makedir datadir
 
  DO '--single pass loop for breaking
 
+  debuginfo "Copy rpg file"
   IF copy_or_relump(sourcerpg, datadir & SLASH & basename & ".rpg") = NO THEN EXIT DO
- 
+
+  debuginfo "Copy linux game player" 
   DIM gameplayer as string
   gameplayer = get_linux_gameplayer()
-  IF gameplayer = "" THEN visible_debug "ERROR: game.exe is not available" : EXIT DO
+  IF gameplayer = "" THEN visible_debug "ERROR: ohrrpgce-game is not available" : EXIT DO
   IF copy_linux_gameplayer(gameplayer, basename, bindir) = NO THEN EXIT DO
-    
-  visible_debug "working so far! :)"
+  
+  debuginfo "Create menu file"
+  DIM menudir as string = debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "menu"
+  MKDIR menudir
+  write_linux_menu_file menudir & SLASH & basename, basename
 
-  'visible_debug trimpath(installer) & " was successfully created!"
+  debuginfo "Create desktop file"
+  DIM applicationsdir as string = debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "applications"
+  MKDIR applicationsdir
+  write_linux_desktop_file applicationsdir & SLASH & basename & ".desktop", basename
+
+  debuginfo "Calculate Installed-Size"
+  DIM size_in_kibibytes as integer = count_directory_size(debtmp & SLASH & "usr") / 1024
+ 
+  debuginfo "Create debian-binary version file"
+  write_debian_binary_file debtmp & SLASH & "debian-binary"
+
+  debuginfo "Create debian control file"
+  write_debian_control_file debtmp & SLASH & "control", basename, pkgver, "Author", "real@email.belongs.here", size_in_kibibytes
+  IF NOT isfile(debtmp & SLASH & "control") THEN visible_debug "Couldn't create debian control file" : EXIT DO
+  write_debian_postinst_script debtmp & SLASH & "postinst"
+  write_debian_postrm_script debtmp & SLASH & "postrm"
+
+  fix_deb_group_permissions debtmp & SLASH & "control"
+  fix_deb_group_permissions debtmp & SLASH & "postinst"
+  fix_deb_group_permissions debtmp & SLASH & "postrm"
+
+  IF create_tarball(debtmp, debtmp & SLASH & "control.tar.gz", "control postinst postrm") = NO THEN EXIT DO
+
+  fix_deb_group_permissions debtmp & SLASH & "usr"
+  
+  IF create_tarball(debtmp, debtmp & SLASH & "data.tar.gz", "usr") = NO THEN EXIT DO
+
+  IF create_ar_archive(debtmp, debname, "debian-binary control.tar.gz data.tar.gz") = NO THEN EXIT DO
+  
+  visible_debug trimpath(debname) & " was successfully created!"
   EXIT DO 'this loop is only ever one pass
  LOOP
 
  '--Cleanup temp files
- 'killdir debtmp
+ 'kill_debtmp_dir debtmp
  
+END SUB
+
+SUB kill_debtmp_dir(debtmp as string, basename as string)
+ 'killdir doesn't recurse into directories, so we need to be a bit explicit here
+ killdir debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "menu"
+ killdir debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "applications"
+ killdir debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "games" & SLASH & basename
+ killdir debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "games"
+ killdir debtmp & SLASH & "usr" & SLASH & "games"
+ killdir debtmp & SLASH & "usr" & SLASH & "share"
+ killdir debtmp & SLASH & "usr"
+ killdir debtmp
+END SUB
+
+SUB write_debian_postinst_script (filename as string)
+ DIM LF as string = CHR(10)
+ DIM fh as integer = FREEFILE
+ OPEN filename for output as #fh
+ PUT #fh, , "#!/bin/sh" & LF
+ PUT #fh, , "set -e" & LF
+ PUT #fh, , "if [ ""$1"" = ""configure"" ] && [ -x ""`which update-menus 2>/dev/null`"" ]; then" & LF
+ PUT #fh, , "    update-menus" & LF
+ PUT #fh, , "fi" & LF
+ CLOSE #fh
+ #IFDEF __FB_LINUX__
+ DIM cmd as string
+ cmd = "chmod +x " & filename
+ debuginfo cmd
+ SHELL cmd
+ #ENDIF
+END SUB
+
+SUB write_debian_postrm_script (filename as string)
+ DIM LF as string = CHR(10)
+ DIM fh as integer = FREEFILE
+ OPEN filename for output as #fh
+ PUT #fh, , "#!/bin/sh" & LF
+ PUT #fh, , "set -e" & LF
+ PUT #fh, , "if [ -x ""`which update-menus 2>/dev/null`"" ]; then" & LF
+ PUT #fh, , "    update-menus" & LF
+ PUT #fh, , "fi" & LF
+ CLOSE #fh
+ #IFDEF __FB_LINUX__
+ DIM cmd as string
+ cmd = "chmod +x " & filename
+ debuginfo cmd
+ SHELL cmd
+ #ENDIF
+END SUB
+
+SUB fix_deb_group_permissions(start_at_dir as string)
+#IFDEF __FB_LINUX__
+ 'This is needed because the user's umask might have given group write access to the files
+ DIM cmd as string
+ cmd = "chmod -R g-w " & start_at_dir
+ debuginfo cmd
+ SHELL cmd
+#ENDIF
+END SUB
+
+SUB write_linux_menu_file(filename as string, basename as string)
+ DIM title as string = exclude(special_char_sanitize(load_gamename()), """")
+ DIM fh as integer = FREEFILE
+ OPEN filename for output as #fh
+ PUT #fh, , "?package(" & basename & "): needs=""X11"" title=""" & title & """ command=""/usr/games/" & basename & """ section=""Games/Adventure""" & CHR(10)
+ CLOSE #fh
+END SUB
+
+SUB write_linux_desktop_file(filename as string, basename as string)
+ DIM title as string = special_char_sanitize(load_gamename())
+ DIM LF as string = CHR(10)
+ DIM fh as integer = FREEFILE
+ OPEN filename for output as #fh
+ PUT #fh, , "[Desktop Entry]" & LF
+ PUT #fh, , "Name=" & title & LF
+ PUT #fh, , "Exec=/usr/games/" & basename & LF
+ PUT #fh, , "Terminal=false" & LF
+ PUT #fh, , "Type=Application" & LF
+ PUT #fh, , "Categories=Application;Game;" & LF
+ CLOSE #fh
+END SUB
+
+FUNCTION create_ar_archive(start_in_dir as string, archive as string, files as string) as integer
+ '--Returns YES if successful, or NO if failed
+
+ ' start_in_dir only applies to the ar command. The archive filename should still be either absolute or relative to the default CURDIR
+
+ 'files is a list of space-separated filenames and directory names to include in the tarball
+ 'if they contain spaces they must be quoted
+
+ DIM ar as string = find_helper_app("ar")
+ IF ar = "" THEN visible_debug "ERROR: ar is not available" : RETURN NO
+
+ DIM olddir as string = CURDIR
+ CHDIR start_in_dir
+ DIM cmd as string
+ cmd = """" & ar & """ qcD """ & archive & """ " & files
+ debuginfo cmd
+ SHELL cmd
+ CHDIR olddir
+ IF NOT isfile(archive) THEN visible_debug "Could not create " & archive : RETURN NO
+ RETURN YES
+ 
+END FUNCTION
+
+FUNCTION create_tarball(start_in_dir as string, tarball as string, files as string) as integer
+ '--Returns YES if successful, or NO if failed
+
+ ' start_in_dir only applies to the tar command. The tarball filename should still be either absolute or relative to the default CURDIR
+
+ 'files is a list of space-separated filenames and directory names to include in the tarball
+ 'if they contain spaces they must be quoted
+ 
+ DIM tar as string = find_helper_app("tar")
+ IF tar = "" THEN visible_debug "ERROR: tar is not available": RETURN NO
+ DIM cmd as string
+ cmd = """" & tar & """ -c -C """ & start_in_dir & """ -z --owner=root --group=root -f """ & tarball & """ " & files
+ debuginfo cmd
+ SHELL cmd
+ IF NOT isfile(tarball) THEN visible_debug "Could not create " & tarball : RETURN NO
+ RETURN YES
+END FUNCTION
+
+SUB write_debian_binary_file (filename as string)
+ DIM fh as integer = FREEFILE
+ OPEN filename for binary as #fh
+ PUT #fh, ,"2.0" & CHR(10)
+ CLOSE #fh
+END SUB
+
+SUB write_debian_control_file(controlfile as string, basename as string, pkgver as string, author as string, email as string, size_in_kibibytes as integer)
+ DIM LF as string = CHR(10)
+ DIM fh as integer = FREEFILE
+ OPEN controlfile for output as #fh
+ PUT #fh, , "Package: " & basename & LF
+ PUT #fh, , "Priority: optional" & LF 
+ PUT #fh, , "Section: games" & LF 
+ PUT #fh, , "Maintainer: """ & author & """ <" & email & ">" & LF
+ PUT #fh, , "Architecture: i386" & LF
+ PUT #fh, , "Version: " & pkgver & LF
+ PUT #fh, , "Installed-Size: " & size_in_kibibytes & LF
+ 'FIXME: the Depends: line could vary depending on gfx and music backends
+ 'FIXME: Is there an easy way to verify which is the minimum libc version to depend upon?
+ PUT #fh, , "Depends: libc6 (>= 2.3), libncurses5 (>= 5.4), libsdl-mixer1.2 (>= 1.2), libsdl1.2debian (>> 1.2), libx11-6, libxext6, libxpm4, libxrandr2, libxrender1" & LF
+ 'FIXME: it would be best to let the user edit the description
+ PUT #fh, , "Description: " & special_char_sanitize(load_gamename()) & LF
+ PUT #fh, , " " & special_char_sanitize(load_aboutline()) & LF
+ CLOSE #fh
 END SUB
 
 FUNCTION get_debian_package_name() as string
  DIM s as string
- s = load_gamename()
+ s = trimextension(trimpath(sourcerpg))
  IF s = "" THEN s = trimextension(trimpath(sourcerpg))
  s = LCASE(s)
+ s = exclude(s, "'")
  DIM result as string = ""
  DIM ch as string
  DIM dash as integer = NO
@@ -1904,19 +2101,21 @@ FUNCTION get_debian_package_name() as string
     result &= ch
     dash = NO
    ELSE
-    IF NOT dash ANDALSO LEN(result) > 0 THEN
+    IF NOT dash ANDALSO LEN(result) > 0 ANDALSO i <> LEN(s) THEN
      result &= "-"
      dash = YES
     END IF
    END IF
  NEXT i
- 'FIXME: collision-prevention goes here
+ 'FIXME: collision-prevention could go here
  RETURN result
 END FUNCTION
 
 FUNCTION get_debian_package_version() as string
  DIM d as string = DATE
- RETURN MID(d, 7, 4) & "." & MID(d, 1, 2) & "." & MID(d, 4, 2) & "." & MID(TIME, 1, 2)
+ RETURN MID(d, 7, 4) & "." & MID(d, 1, 2) & "." & MID(d, 4, 2)
+ '--if we wanted the hour we would add this too
+ '& "." & MID(TIME, 1, 2)
 END FUNCTION
 
 SUB save_current_game ()

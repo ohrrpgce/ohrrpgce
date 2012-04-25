@@ -1656,3 +1656,32 @@ FUNCTION starts_with(s as string, prefix as string) as integer
  RETURN MID(s, 1, LEN(prefix)) = prefix
 END FUNCTION
 
+FUNCTION byte_size_of_file(filename as string) as integer
+ DIM fh as integer = FREEFILE
+ OPEN filename for binary access read as #fh
+ byte_size_of_file = LOF(fh)
+ CLOSE #fh
+END FUNCTION
+
+FUNCTION count_directory_size(directory as string) as integer
+ '--Count the bytes in all the files in a directory and all subdirectories.
+ '--This doesn't consider the space taken by the directories themselves,
+ '--nor does it consider blocksize or any other filesystem details.
+ DIM bytes as integer = 0
+ DIM filelist() as string
+ 
+ '--First cound files
+ findfiles directory, ALLFILES, fileTypeFile, -1, filelist()
+ FOR i as integer = 0 TO UBOUND(filelist)
+  bytes += byte_size_of_file(directory & SLASH & filelist(i))
+ NEXT
+ 
+ '--Then count subdirectories
+ findfiles directory, ALLFILES, fileTypeDirectory, -1, filelist()
+ FOR i as integer = 0 TO UBOUND(filelist)
+  bytes += count_directory_size(directory & SLASH & filelist(i))
+ NEXT
+ 
+ RETURN bytes
+END FUNCTION
+

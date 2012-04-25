@@ -26,6 +26,9 @@ WHAT IS NEW?
       General Map Data menu [Ralph]
     * Distribute Game menu, where you can automatically package your
       game to distribute to other people. [James]
+      * Distribute as Zip file
+      * Distribute as Windows installer
+      * Distribute as Debian Linux package
     * Script trigger log: press CTRL+F10 in-game to cause triggered
       scripts (not called from other scripts) to be logged to
       script_log.txt. It might help to restart/reload the game
