@@ -330,6 +330,7 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GFX_INIT *pCreationData)
 	g_Window.setClientSize(640, 400);
 	g_Window.centerWindow();
 	g_Window.showWindow();
+	g_Window.setClientSize(640, 400);
 
 	//g_State.SendDebugString("gfx_directx: Initialization success!");
 	return TRUE;
