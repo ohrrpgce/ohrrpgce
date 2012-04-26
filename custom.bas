@@ -1526,7 +1526,7 @@ END FUNCTION
 FUNCTION copy_linux_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
  'Returns true on success, false on failure
  IF confirmed_copy(gameplayer, destdir & SLASH & basename) = NO THEN RETURN NO
-#IFDEF __FB_LINUX__
+#IFDEF __UNIX__
   '--just in case we are playing with a debug build,
   '--strip the copy of the binary that goes in the distribution file.
   SHELL "strip '" & destdir & SLASH & basename & "'"
@@ -1956,7 +1956,7 @@ SUB write_debian_postinst_script (filename as string)
  PUT #fh, , "    update-menus" & LF
  PUT #fh, , "fi" & LF
  CLOSE #fh
- #IFDEF __FB_LINUX__
+ #IFDEF __UNIX__
  DIM cmd as string
  cmd = "chmod +x " & filename
  debuginfo cmd
@@ -1974,7 +1974,7 @@ SUB write_debian_postrm_script (filename as string)
  PUT #fh, , "    update-menus" & LF
  PUT #fh, , "fi" & LF
  CLOSE #fh
- #IFDEF __FB_LINUX__
+ #IFDEF __UNIX__
  DIM cmd as string
  cmd = "chmod +x " & filename
  debuginfo cmd
@@ -1983,7 +1983,7 @@ SUB write_debian_postrm_script (filename as string)
 END SUB
 
 SUB fix_deb_group_permissions(start_at_dir as string)
-#IFDEF __FB_LINUX__
+#IFDEF __UNIX__
  'This is needed because the user's umask might have given group write access to the files
  DIM cmd as string
  cmd = "chmod -R g-w " & start_at_dir
