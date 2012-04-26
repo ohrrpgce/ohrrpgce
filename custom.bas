@@ -1378,14 +1378,12 @@ SUB distribute_game ()
  IF can_run_windows_exes() THEN
   append_simplemenu_item menu, "Export Windows Installer", , , distmenuWINSETUP
  ELSE
-  append_simplemenu_item menu, "Can't Export Windows Installer", YES
+  append_simplemenu_item menu, "Can't Export Windows Installer", YES, uilook(uiDisabledItem)
   append_simplemenu_item menu, " (requires Windows or wine)", YES, uilook(uiDisabledItem)
  END IF
 
- IF can_make_debian_packages() THEN
-  append_simplemenu_item menu, "Export Debian Linux Package", , , distmenuDEBSETUP
- ELSE
-  append_simplemenu_item menu, "Can't Export Debian Linux Package", YES
+ append_simplemenu_item menu, "Export Debian Linux Package", , , distmenuDEBSETUP
+ IF NOT can_make_debian_packages() THEN
   append_simplemenu_item menu, " (requires ar+tar+gzip)", YES, uilook(uiDisabledItem)
  END IF
 
@@ -2022,7 +2020,7 @@ FUNCTION create_ar_archive(start_in_dir as string, archive as string, files as s
  'files is a list of space-separated filenames and directory names to include in the tarball
  'if they contain spaces they must be quoted
 
- DIM ar as string = find_helper_app("ar")
+ DIM ar as string = find_helper_app("ar", YES)
  IF ar = "" THEN visible_debug "ERROR: ar is not available" : RETURN NO
 
  DIM olddir as string = CURDIR
@@ -2046,9 +2044,9 @@ FUNCTION create_tarball(start_in_dir as string, tarball as string, files as stri
  'files is a list of space-separated filenames and directory names to include in the tarball
  'if they contain spaces they must be quoted
  
- DIM tar as string = find_helper_app("tar")
+ DIM tar as string = find_helper_app("tar", YES)
  IF tar = "" THEN visible_debug "ERROR: tar is not available": RETURN NO
- DIM gzip as string = find_helper_app("gzip")
+ DIM gzip as string = find_helper_app("gzip", YES)
  IF gzip = "" THEN visible_debug "ERROR: gzip is not available": RETURN NO
 
  DIM uncompressed as string = trimextension(tarball)

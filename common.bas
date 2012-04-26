@@ -2232,7 +2232,7 @@ IF try_install THEN
    END IF
    ' -q quiet -o overwrite -C case-insenstive -L make lowercase -j junk directories
    DIM arglist as string
-   arglist =  " -qoCLj """ & support & SLASH & appname & ".zip"" " & appname & ".exe -d """ & support & """"
+   arglist =  " -qoCLj """ & support & SLASH & appname & ".zip"" -d """ & support & """"
    DIM spawn_ret as string
    spawn_ret = spawn_and_wait(unzip, arglist)
    IF NOT isfile(support & SLASH & appname & ".exe") THEN
