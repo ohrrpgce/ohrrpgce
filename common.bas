@@ -2214,12 +2214,12 @@ RETURN s
 DIM support as string = find_support_dir()
 IF isfile(support & SLASH & appname & ".exe") THEN RETURN support & SLASH & appname & ".exe"
 IF try_install THEN
- IF choice(appname & ".exe was not found. Would you like to automatically download it from HamsterRepublic.com?", , , , , "download_win_support_util") = 0 THEN
-  DIM ext as string = "zip"
-  IF appname = "unzip" THEN ext = "exe"
-  wget_download "http://HamsterRepublic.com/ohrrpgce/support/" & appname & "." & ext, support
-  IF NOT isfile(support & SLASH & appname & "." & ext) THEN
-   visible_debug "Unable to download " & appname & "." & ext
+ IF twochoice(appname & ".exe was not found. Would you like to automatically download it from HamsterRepublic.com?", , , , , "download_win_support_util") = 0 THEN
+  DIM extenstion as string = "zip"
+  IF appname = "unzip" THEN extenstion = "exe"
+  wget_download "http://HamsterRepublic.com/ohrrpgce/support/" & appname & "." & extenstion, support
+  IF NOT isfile(support & SLASH & appname & "." & extenstion) THEN
+   visible_debug "Unable to download " & appname & "." & extenstion
    RETURN ""
   END IF
   IF appname <> "unzip" THEN
@@ -2240,6 +2240,39 @@ IF try_install THEN
 END IF
 RETURN ""
 #ENDIF
+END FUNCTION
+
+FUNCTION wget_download (url as string, destdir as string, forcefilename as string="") as integer
+ 'Returns True on success, false on failure.
+ '
+ 'Downloads a url to a file. uses wget's -N option to only re-download
+ ' an existing file if the remote file is newer.
+ '
+ 'If you specify forcefilename, the -N option will do nothing,
+ ' and the file will be re-downloaded even if it has not changed
+ ' since the last time it was downloaded.
+
+ '--Find the wget to to do the downloading
+ DIM wget as string = find_helper_app("wget")
+ IF wget = "" THEN visible_debug "ERROR: Can't find wget download tool": RETURN NO
+
+ '--prepare the command line
+ DIM args as string
+ IF forcefilename = "" THEN
+  args = "-N -P """ & destdir & """"
+ ELSE
+  args = "-O """ & destdir & SLASH & forcefilename & """"
+ END IF
+ args &= " """ & url & """"
+ 
+ '--Do the download
+ DIM spawn_ret as string
+ spawn_ret = spawn_and_wait(wget, args)
+ 
+ '--Check to see if the download worked
+ IF LEN(spawn_ret) > 0 THEN visible_debug "ERROR: wget download failed: " & spawn_ret : RETURN NO
+ 
+ RETURN YES
 END FUNCTION
 
 'Not used
