@@ -2229,9 +2229,13 @@ IF try_install THEN
     RETURN ""
    END IF
    ' -q quiet -o overwrite -C case-insenstive -L make lowercase -j junk directories
-   SHELL """" & unzip & """ -qoCLj " & appname & ".zip " & appname & ".exe -d """ & support & """"
+   DIM arglist as string
+   arglist =  " -qoCLj """ & support & SLASH & appname & ".zip"" " & appname & ".exe -d """ & support & """"
+   DIM spawn_ret as string
+   spawn_ret = spawn_and_wait(unzip, arglist)
+   debug support & SLASH & appname & ".exe " & isfile(support & SLASH & appname & ".exe")
    IF NOT isfile(support & SLASH & appname & ".exe") THEN
-    visible_debug "Unable to unzip " & appname & ".exe from" & appname & ".zip"
+    visible_debug "Unable to unzip " & appname & ".exe from " & appname & ".zip"
     RETURN ""
    END IF
   END IF

@@ -1373,11 +1373,7 @@ SUB distribute_game ()
  append_simplemenu_item menu, "Previous Menu...", , , distmenuEXIT
  append_simplemenu_item menu, " Game file: " & trimpath(sourcerpg), YES, uilook(uiDisabledItem)
 
- IF find_helper_app("zip", YES) <> "" THEN
-  append_simplemenu_item menu, "Export .ZIP", , , distmenuZIP
- ELSE
-  append_simplemenu_item menu, "Can't Export .ZIP (zip" & DOTEXE & " not found)", YES
- END IF
+ append_simplemenu_item menu, "Export .ZIP", , , distmenuZIP
 
  IF can_run_windows_exes() THEN
   append_simplemenu_item menu, "Export Windows Installer", , , distmenuWINSETUP
