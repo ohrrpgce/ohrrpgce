@@ -1134,7 +1134,7 @@ SUB findfiles (directory as STRING, namemask as STRING = "", byval filetype as i
   LOOP
   FOR i as integer = 0 TO UBOUND(tempfilelist)
     foundfile = tempfilelist(i)
-    IF foundfile = "." ORELSE foundfile = ".." THEN CONTINUE
+    IF foundfile = "." ORELSE foundfile = ".." THEN CONTINUE FOR
     IF filetype = fileTypeDirectory THEN
       'alright, we want directories, but DIR is too broken to give them to us
       'files with attribute 0 appear in the list, so single those out
