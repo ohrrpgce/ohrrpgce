@@ -1373,7 +1373,7 @@ SUB distribute_game ()
  append_simplemenu_item menu, "Previous Menu...", , , distmenuEXIT
  append_simplemenu_item menu, " Game file: " & trimpath(sourcerpg), YES, uilook(uiDisabledItem)
 
- IF find_helper_app("zip") <> "" THEN
+ IF find_helper_app("zip", YES) <> "" THEN
   append_simplemenu_item menu, "Export .ZIP", , , distmenuZIP
  ELSE
   append_simplemenu_item menu, "Can't Export .ZIP (zip" & DOTEXE & " not found)", YES
@@ -1432,7 +1432,7 @@ END SUB
 
 SUB distribute_game_as_zip ()
 
- DIM zip as string = find_helper_app("zip")
+ DIM zip as string = find_helper_app("zip", YES)
  IF zip = "" THEN
   visible_debug "Can't create zip files: " & missing_helper_message("zip" + DOTEXE)
   RETURN
@@ -1500,7 +1500,7 @@ FUNCTION copy_or_relump (src_rpg_or_rpgdir as string, dest_rpg as string) as int
 
  IF extension = "rpgdir" THEN
   DIM relump as string
-  relump = find_helper_app("relump")
+  relump = find_helper_app("relump", YES)
   IF relump = "" THEN visible_debug "Can't find relump" & DOTEXE & " utility." : RETURN NO
   DIM spawn_ret as string
   spawn_ret = spawn_and_wait(relump, """" & src_rpg_or_rpgdir & """ """ & dest_rpg & """")
@@ -1588,7 +1588,7 @@ FUNCTION get_windows_gameplayer() as string
  wget_download url, dldir
  
  '--Find the unzip tool
- DIM unzip as string = find_helper_app("unzip")
+ DIM unzip as string = find_helper_app("unzip", YES)
  IF unzip = "" THEN visible_debug "ERROR: Couldn't find unzip tool": RETURN ""
  
  '--Unzip the desired files
@@ -1653,7 +1653,7 @@ FUNCTION get_linux_gameplayer() as string
  wget_download url, dldir
  
  '--Find the unzip tool
- DIM unzip as string = find_helper_app("unzip")
+ DIM unzip as string = find_helper_app("unzip", YES)
  IF unzip = "" THEN visible_debug "ERROR: Couldn't find unzip tool": RETURN ""
  
  '--Unzip the desired files

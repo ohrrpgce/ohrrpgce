@@ -2153,7 +2153,7 @@ FUNCTION find_madplay () as string
  STATIC cached as integer = 0
  STATIC cached_app as string
  IF cached THEN RETURN cached_app
- cached_app = find_helper_app("madplay")
+ cached_app = find_helper_app("madplay", YES)
  cached = -1
  RETURN cached_app
 END FUNCTION
@@ -2162,7 +2162,7 @@ FUNCTION find_oggenc () as string
  STATIC cached as integer = 0
  STATIC cached_app as string
  IF cached THEN RETURN cached_app
- cached_app = find_helper_app("oggenc")
+ cached_app = find_helper_app("oggenc", YES)
  IF cached_app = "" THEN cached_app = find_helper_app("oggenc2")
  cached = -1
  RETURN cached_app
@@ -2181,8 +2181,10 @@ IF isdir(d) THEN return d
 RETURN "" ' not found. booo! :(
 END FUNCTION
 
-FUNCTION find_helper_app (appname as string) as string
+FUNCTION find_helper_app (appname as string, try_install as integer=NO) as string
 'Returns an empty string if the app is not found, or the full path if it is found
+
+'try_install currently only works on Windows, and not for all possible apps
 
 'Look in the same folder as CUSTOM/GAME
 IF isfile(exepath & SLASH & appname & DOTEXE) THEN RETURN exepath & SLASH & appname & DOTEXE
@@ -2206,9 +2208,36 @@ CLOSE #fh
 KILL tempfile
 s = TRIM(s)
 RETURN s
-#ELSE
-'Then look in the support subdirectory
-IF isfile(exepath & "\support\" & appname & ".exe") THEN RETURN exepath & "\support\" & appname & ".exe"
+#ENDIF
+#IFDEF __FB_WIN32__
+'For windows, look in the support subdirectory
+DIM support as string = find_support_dir()
+IF isfile(support & SLASH & appname & ".exe") THEN RETURN support & SLASH & appname & ".exe"
+IF try_install THEN
+ IF choice(appname & ".exe was not found. Would you like to automatically download it from HamsterRepublic.com?", , , , , "download_win_support_util") = 0 THEN
+  DIM ext as string = "zip"
+  IF appname = "unzip" THEN ext = "exe"
+  wget_download "http://HamsterRepublic.com/ohrrpgce/support/" & appname & "." & ext, support
+  IF NOT isfile(support & SLASH & appname & "." & ext) THEN
+   visible_debug "Unable to download " & appname & "." & ext
+   RETURN ""
+  END IF
+  IF appname <> "unzip" THEN
+   DIM unzip as string = find_helper_app("unzip")
+   IF unzip = "" THEN
+    visible_debug "Can't find unzip tool"
+    RETURN ""
+   END IF
+   ' -q quiet -o overwrite -C case-insenstive -L make lowercase -j junk directories
+   SHELL """" & unzip & """ -qoCLj " & appname & ".zip " & appname & ".exe -d """ & support & """"
+   IF NOT isfile(support & SLASH & appname & ".exe") THEN
+    visible_debug "Unable to unzip " & appname & ".exe from" & appname & ".zip"
+    RETURN ""
+   END IF
+  END IF
+  RETURN support & SLASH & appname & ".exe"
+ END IF
+END IF
 RETURN ""
 #ENDIF
 END FUNCTION
