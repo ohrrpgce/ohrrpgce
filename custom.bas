@@ -2053,16 +2053,20 @@ FUNCTION create_tarball(start_in_dir as string, tarball as string, files as stri
 
  DIM uncompressed as string = trimextension(tarball)
 
- DIM owner_fix as string = ""
+ DIM platform_args as string = ""
  #IFDEF __UNIX__
- 'Thes arguments are broken on Windows tar.exe for some insanely stupid reason
- owner_fix = " --owner=root --group=root"
+ 'These arguments are broken on Windows tar.exe for some stupid reason
+ platform_args = " --owner=root --group=root"
+ #ENDIF
+ #IFDEF __FB_WIN32__
+ 'This is a hack to replace tar.exe's horrendous default permissions, and to (clumsily) mark the executables with the executable bit
+ platform_args = " --mode=755"
  #ENDIF
 
  DIM spawn_ret as string
  DIM args as string
 
- args = " -c -C """ & start_in_dir & """ " & owner_fix & " -f """ & uncompressed & """ " & files
+ args = " -c -C """ & start_in_dir & """ " & platform_args & " -f """ & uncompressed & """ " & files
  spawn_ret = spawn_and_wait(tar, args)
  IF LEN(spawn_ret) THEN visible_debug spawn_ret : RETURN NO
 
