@@ -85,12 +85,7 @@ support\cp SDL.dll tmpdist
 support\cp SDL_mixer.dll tmpdist
 support\cp gfx_directx.dll tmpdist
 mkdir tmpdist\support
-support\cp support\madplay.exe tmpdist\support
-support\cp support\LICENSE-madplay.txt tmpdist\support
-support\cp support\oggenc.exe tmpdist\support
-support\cp support\LICENSE-oggenc.txt tmpdist\support
-support\cp support\zip.exe tmpdist\support
-support\cp relump.exe tmpdist\support
+support\cp support\wget.exe tmpdist\support
 mkdir tmpdist\ohrhelp
 support\cp ohrhelp\*.txt tmpdist\ohrhelp
 mkdir tmpdist\docs
