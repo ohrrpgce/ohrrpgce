@@ -57,6 +57,7 @@ if 'profile' in ARGUMENTS:
     FBFLAGS.append ('-profile')
     CFLAGS.append ('-pg')
     CXXFLAGS.append ('-pg')
+    FB_g = True
 if 'scriptprofile' in ARGUMENTS:
     FBFLAGS += ['-d','SCRIPTPROFILE']
 if ARGUMENTS.get ('valgrind', 0):
@@ -65,7 +66,7 @@ if ARGUMENTS.get ('valgrind', 0):
     CFLAGS.append ('-DVALGRIND_ARRAYS')
 if FB_exx:
     FBFLAGS.append ('-exx')
-if FB_exx:
+if FB_g:
     FBFLAGS.append ('-g')
 if C_opt:
     CFLAGS.append ('-O2')
