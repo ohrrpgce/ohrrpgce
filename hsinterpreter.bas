@@ -540,8 +540,34 @@ SELECT CASE cmdptr->kind
   EXIT SUB
 END SELECT
 
+finishedarg:
+
 si.curargn += 1
-IF si.curargn >= curcmd->argc THEN EXIT SUB
+IF si.curargn >= curcmd->argc THEN
+ IF curcmd->kind = tymath THEN
+  'Optimisation
+/'  Here's the prologue (from a *previous* iteration through the above SELECT)
+  si.depth += 1
+  pushs(scrst, si.ptr)
+  pushs(scrst, si.curargn)
+  curcmd = cmdptr
+  si.ptr = (cast(integer, cmdptr) - cast(integer, dataptr)) shr 2
+  si.curargn = 0
+  scriptret = 0'--default returnvalue is zero
+'/
+  IF curcmd->argc = 2 THEN pops(scrst, retvals(1))
+  pops(scrst, retvals(0))
+  scriptmath
+  si.depth -= 1
+  pops(scrst, si.curargn)
+  pops(scrst, si.ptr)
+  curcmd = cast(ScriptCommand ptr, si.scrdata + si.ptr)
+  '--push return value
+  pushs(scrst, scriptret)
+  GOTO finishedarg
+ END IF
+ EXIT SUB
+END IF
 IF curcmd->kind = tyflow THEN IF curcmd->value = flowif OR curcmd->value >= flowfor THEN EXIT SUB
 IF curcmd->kind = tymath THEN IF curcmd->value >= 20 THEN EXIT SUB
 GOTO quickrepeat
@@ -604,7 +630,7 @@ END SUB
 FUNCTION readscriptvar (byval id as integer) as integer
  SELECT CASE id
   CASE IS < 0 'local variable
-   readscriptvar = heap(scrat(nowscript).heap + ABS(id) - 1)
+   readscriptvar = heap(scrat(nowscript).heap - id - 1)
   CASE 0 TO maxScriptGlobals 'global variable
    readscriptvar = global(id)
   CASE ELSE
@@ -615,7 +641,7 @@ END FUNCTION
 SUB writescriptvar (byval id as integer, byval newval as integer)
  SELECT CASE id
   CASE IS < 0 'local variable
-   heap(scrat(nowscript).heap + ABS(id) - 1) = newval
+   heap(scrat(nowscript).heap - id - 1) = newval
   CASE 0 TO maxScriptGlobals 'global variable
    global(id) = newval
   CASE ELSE
