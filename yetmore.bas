@@ -763,11 +763,12 @@ FUNCTION rankincaterpillar (byval heroid as integer) as integer
  RETURN result
 END FUNCTION
 
-SUB scriptadvanced (byval id as integer)
+SUB scriptmisc (byval id as integer)
 
-'contains advanced scripting stuff such as pixel-perfect movement...
-'...actually this is a completely arbitrary distinction, and there is 
-'no realy reason these are separate...
+'contains a whole mess of scripting commands that do not depend on
+'any main-module level local variables or GOSUBs
+
+DIM npcref as integer = ANY
 
 SELECT CASE as CONST id
 
@@ -778,7 +779,7 @@ SELECT CASE as CONST id
    caty(retvals(0) * 5) = retvals(2)
   END IF
  CASE 136'--putnpc
-  DIM npcref as integer = getnpcref(retvals(0), 0)
+  npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
    cropposition retvals(1), retvals(2), 20
    npc(npcref).x = retvals(1)
@@ -798,12 +799,12 @@ SELECT CASE as CONST id
    scriptret = caty(retvals(0) * 5)
   END IF
  CASE 140'--npcpixelx
-  DIM npcref as integer = getnpcref(retvals(0), 0)
+  npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
    scriptret = npc(npcref).x
   END IF
  CASE 141'--npcpixely
-  DIM npcref as integer = getnpcref(retvals(0), 0)
+  npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
    scriptret = npc(npcref).y
   END IF
@@ -865,15 +866,7 @@ SELECT CASE as CONST id
    IF mouse.clicks AND (2 ^ retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
   END IF
 
-END SELECT
-
-END SUB
-
-SUB scriptmisc (byval id as integer)
-'contains a whole mess of scripting commands that do not depend on
-'any main-module level local variables or GOSUBs
-
-SELECT CASE as CONST id
+'old scriptmisc
 
  CASE 0'--noop
   scripterr "encountered clean noop", 1
@@ -2884,7 +2877,7 @@ SELECT CASE as CONST id
    scriptret = find_plotslice_handle(herow(retvals(0)).sl)
   END IF
  CASE 520 '--get NPC slice
-  DIM npcref as integer = get_valid_npc(retvals(0))
+  npcref = get_valid_npc(retvals(0))
   IF npcref >= 0 THEN
    scriptret = find_plotslice_handle(npc(npcref).sl)
   END IF
@@ -3019,16 +3012,8 @@ SELECT CASE as CONST id
     scriptret = GetHeroHandPos(hero(retvals(0))-1, retvals(1), YES)
    END IF
   END IF
-END SELECT
 
-END SUB
-
-SUB scriptnpc (byval id as integer)
-
-'contains npc related scripting commands
-DIM npcref as integer
-
-SELECT CASE as CONST id
+'old scriptnpc
 
  CASE 26'--set NPC frame
   npcref = getnpcref(retvals(0), 0)

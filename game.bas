@@ -2183,9 +2183,7 @@ WITH scrat(nowscript)
     END IF
 
    CASE ELSE '--try all the scripts implemented in subs (insanity!)
-    scriptnpc cmdid
     scriptmisc cmdid
-    scriptadvanced cmdid
     scriptstat cmdid
     '---------
   END SELECT
