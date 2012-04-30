@@ -2646,8 +2646,14 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as int
     CASE 4 ' Run Script
      trigger_script .sub_t, YES, "menuitem", "item '" & get_menu_item_caption(mi, menus(menuslot)) & "' in menu " & menus(menuslot).record, scrqBackcompat()
      IF menus(topmenu).allow_gameplay THEN
-      'Normally, pass a menu item handle
-      trigger_script_arg 0, .handle, "item handle"
+      IF .close_if_selected THEN
+       'The menu item handle would be useless, so as a special case pass 0
+       '(rather than having confusing special case behaviour)
+       trigger_script_arg 0, 0, "dummy"
+      ELSE
+       'Normally, pass a menu item handle
+       trigger_script_arg 0, .handle, "item handle"
+      END IF
      ELSE
       'but if the topmost menu suspends gameplay, then a handle will always be invalid
       'by the time the script runs, so pass the extra values instead.
@@ -2655,8 +2661,8 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as int
       trigger_script_arg 1, .extra(1), "extra1"
       trigger_script_arg 2, .extra(2), "extra2"
      END IF
-    END SELECT
-   END WITH
+   END SELECT
+  END WITH
   EXIT DO
  LOOP
  IF activated THEN
