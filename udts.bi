@@ -894,4 +894,15 @@ TYPE SpriteSize
  genmax_offset AS INTEGER 'if gen() actually stores num instead of max, this is -1
 END TYPE
 
+TYPE DistribState
+  pkgname as string
+  gamename as string
+  author as string
+  email as string
+  website as string
+  description as string
+  license as string
+  external_license as string
+END TYPE
+
 #ENDIF

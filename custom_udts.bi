@@ -302,5 +302,4 @@ TYPE ToolInfoType
   areanum as integer
 END TYPE
 
-
 #ENDIF

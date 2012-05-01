@@ -2841,3 +2841,59 @@ SUB save_aboutline (s as string, filename as string="")
  writebinstring s, tempbuf(), 20, 38
  storerecord tempbuf(), f, 40
 END SUB
+
+SUB load_distrib_state(byref distinfo as DistribState, filename as string)
+
+ DIM doc as DocPtr
+ doc = LoadDocument(filename)
+ 
+ DIM root_node as NodePtr
+ root_node = DocumentRoot(doc)
+
+ load_distrib_state distinfo, root_node
+
+ FreeDocument doc
+END SUB
+
+SUB load_distrib_state(byref distinfo as DistribState, byval node as Reload.NodePtr)
+ IF NodeName(node) <> "distrib" THEN debug "root node is not distrib"
+
+ READNODE node, default
+  distinfo.pkgname          = node."pkgname".string
+  distinfo.gamename         = node."gamename".string
+  distinfo.author           = node."author".string
+  distinfo.email            = node."email".string
+  distinfo.website          = node."website".string
+  distinfo.description      = node."description".string
+  distinfo.license          = node."license".string
+  distinfo.external_license = node."external_license".string
+ END READNODE
+
+END SUB
+
+SUB save_distrib_state(byref distinfo as DistribState, filename as string)
+ DIM doc as DocPtr
+ doc = CreateDocument()
+ 
+ DIM root_node as NodePtr
+ root_node = CreateNode(doc, "distrib")
+ SetRootNode(doc, root_node)
+ 
+ save_distrib_state distinfo, root_node
+ 
+ SerializeBin filename, doc
+ 
+ FreeDocument doc
+END SUB
+
+SUB save_distrib_state(byref distinfo as DistribState, byval node as Reload.NodePtr)
+ SetChildNode node, "pkgname",     distinfo.pkgname
+ SetChildNode node, "gamename",    distinfo.gamename
+ SetChildNode node, "author",      distinfo.author
+ SetChildNode node, "email",       distinfo.email
+ SetChildNode node, "website",     distinfo.website
+ SetChildNode node, "description", distinfo.description
+ SetChildNode node, "license",     distinfo.license
+ SetChildNode node, "external_license", distinfo.external_license
+END SUB
+
