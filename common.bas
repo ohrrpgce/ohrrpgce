@@ -341,6 +341,17 @@ SUB visible_debug (msg as string)
 ' pop_warning msg
 END SUB
 
+FUNCTION confirmed_copy (srcfile as string, destfile as string) as integer
+ 'Copy a file, check to make sure it really was copied, and show an error message if not.
+ ' Returns true if the copy was okay, false if it failed
+ copyfile srcfile, destfile
+ IF NOT isfile(destfile) THEN
+  visible_debug "ERROR: failed copying " & destfile
+  RETURN NO
+ END IF
+ RETURN YES
+END FUNCTION
+
 FUNCTION getfixbit(byval bitnum as integer) as integer
  DIM f as string
  f = workingdir + SLASH + "fixbits.bin"

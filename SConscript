@@ -345,7 +345,8 @@ edit_modules = ['custom',
                 'flexmenu',
                 'reloadedit',
                 'editedit',
-                'editrunner']
+                'editrunner',
+                'distribmenu']
 
 game_modules = ['game',
                 'bmod',

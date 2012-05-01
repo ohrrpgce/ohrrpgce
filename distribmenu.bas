@@ -1,0 +1,841 @@
+'OHRRPGCE CUSTOM - Distribute game menu
+'(C) Copyright 1997-2005 James Paige and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
+'See README.txt for code docs and apologies for crappyness of this code ;)
+'Except, this module isn't much crappier than it needs to be
+'
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
+#endif
+
+#include "config.bi"
+#include "ver.txt"
+#include "udts.bi"
+#include "const.bi"
+#include "allmodex.bi"
+#include "common.bi"
+#include "loading.bi"
+#include "customsubs.bi"
+#include "flexmenu.bi"
+#include "slices.bi"
+#include "cglobals.bi"
+#include "uiconst.bi"
+#include "scrconst.bi"
+
+DECLARE SUB distribute_game_as_zip ()
+DECLARE SUB distribute_game_as_windows_installer ()
+DECLARE FUNCTION get_windows_gameplayer() as string
+DECLARE FUNCTION get_linux_gameplayer() as string
+DECLARE FUNCTION find_or_download_innosetup () as string
+DECLARE FUNCTION find_innosetup () as string
+DECLARE FUNCTION win_or_wine_drive(letter as string) as string
+DECLARE FUNCTION win_or_wine_spawn_and_wait (cmd as string, args as string="") as string
+DECLARE SUB write_innosetup_script (basename as string, isstmp as string)
+DECLARE SUB add_innosetup_file (s as string, filename as string)
+DECLARE FUNCTION win_path (filename as string) as string
+DECLARE FUNCTION copy_or_relump (src_rpg_or_rpgdir as string, dest_rpg as string) as integer
+DECLARE FUNCTION copy_windows_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
+DECLARE FUNCTION copy_linux_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
+DECLARE SUB distribute_game_as_debian_package ()
+DECLARE FUNCTION get_debian_package_version() as string
+DECLARE FUNCTION get_debian_package_name() as string
+DECLARE SUB write_linux_menu_file(filename as string, basename as string)
+DECLARE SUB write_linux_desktop_file(filename as string, basename as string)
+DECLARE SUB write_debian_binary_file (filename as string)
+DECLARE SUB write_debian_control_file(controlfile as string, basename as string, pkgver as string, author as string, email as string, size_in_kibibytes as integer)
+DECLARE FUNCTION create_tarball(start_in_dir as string, tarball as string, files as string) as integer
+DECLARE FUNCTION create_ar_archive(start_in_dir as string, archive as string, files as string) as integer
+DECLARE SUB fix_deb_group_permissions(start_at_dir as string)
+DECLARE SUB write_debian_postrm_script (filename as string)
+DECLARE SUB write_debian_postinst_script (filename as string)
+DECLARE SUB kill_debtmp_dir(debtmp as string, basename as string)
+DECLARE FUNCTION can_run_windows_exes () as integer
+DECLARE FUNCTION can_make_debian_packages () as integer
+
+CONST distmenuEXIT as integer = 1
+CONST distmenuZIP as integer = 2
+CONST distmenuWINSETUP as integer = 3
+CONST distmenuDEBSETUP as integer = 4
+
+SUB distribute_game ()
+ save_current_game
+ 
+ DIM menu as SimpleMenuItem vector
+ v_new menu, 0
+ append_simplemenu_item menu, "Previous Menu...", , , distmenuEXIT
+ append_simplemenu_item menu, " Game file: " & trimpath(sourcerpg), YES, uilook(uiDisabledItem)
+
+ append_simplemenu_item menu, "Export .ZIP", , , distmenuZIP
+
+ IF can_run_windows_exes() THEN
+  append_simplemenu_item menu, "Export Windows Installer", , , distmenuWINSETUP
+ ELSE
+  append_simplemenu_item menu, "Can't Export Windows Installer", YES, uilook(uiDisabledItem)
+  append_simplemenu_item menu, " (requires Windows or wine)", YES, uilook(uiDisabledItem)
+ END IF
+
+ append_simplemenu_item menu, "Export Debian Linux Package", , , distmenuDEBSETUP
+ IF NOT can_make_debian_packages() THEN
+  append_simplemenu_item menu, " (requires ar+tar+gzip)", YES, uilook(uiDisabledItem)
+ END IF
+
+ DIM st AS MenuState
+ init_menu_state st, cast(BasicMenuItem vector, menu)
+
+ DO
+  setwait 55
+  setkeys
+
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "distribute_game"
+  IF enter_or_space() THEN
+   SELECT CASE menu[st.pt].dat
+    CASE distmenuEXIT: EXIT DO
+    CASE distmenuZIP:
+     distribute_game_as_zip
+    CASE distmenuWINSETUP:
+     distribute_game_as_windows_installer
+    CASE distmenuDEBSETUP:
+     distribute_game_as_debian_package
+   END SELECT
+  END IF
+
+  usemenu st, cast(BasicMenuItem vector, menu)
+  
+  IF st.need_update THEN
+  END IF
+
+  clearpage dpage
+  standardmenu cast(BasicMenuItem vector, menu), st, 0, 0, dpage
+  
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+ setkeys
+ v_free menu
+END SUB
+
+SUB distribute_game_as_zip ()
+
+ DIM zip as string = find_helper_app("zip", YES)
+ IF zip = "" THEN
+  visible_debug "Can't create zip files: " & missing_helper_message("zip" + DOTEXE)
+  RETURN
+ END IF
+
+ DIM destzip as string = trimextension(sourcerpg) & ".zip"
+ DIM shortzip as string = trimpath(destzip)
+ IF isfile(destzip) THEN
+  IF yesno(shortzip & " already exists. Overwrite it?") = NO THEN RETURN
+  safekill destzip
+ END IF
+
+ DIM ziptmp as string = trimfilename(sourcerpg) & SLASH & "zip.tmp"
+ IF isdir(ziptmp) THEN
+  killdir ziptmp
+ END IF
+
+ DIM use_gameplayer as integer = YES
+ DIM gameplayer as string
+ gameplayer = get_windows_gameplayer()
+ IF gameplayer = "" THEN
+  IF yesno("game.exe is not available, continue anyway?") = NO THEN RETURN
+  use_gameplayer = NO
+ END IF
+
+ makedir ziptmp
+ IF NOT isdir(ziptmp) THEN
+  visible_debug "ERROR: unable to create temporary folder"
+  RETURN
+ END IF
+
+ DIM spawn_ret as string
+
+ DO 'Single-pass loop for operations after ziptmp exists
+  
+  DIM basename as string = trimextension(trimpath(sourcerpg))
+  
+  IF copy_or_relump(sourcerpg, ziptmp & SLASH & basename & ".rpg") = NO THEN EXIT DO
+
+  IF use_gameplayer THEN
+   IF copy_windows_gameplayer(gameplayer, basename, ziptmp) = NO THEN EXIT DO
+  END IF
+ 
+  DIM args as string = "-r -j """ & destzip & """ """ & ziptmp & """"
+  spawn_ret = spawn_and_wait(zip, args)
+  IF LEN(spawn_ret) ORELSE NOT isfile(destzip) THEN
+   safekill destzip
+   visible_debug "Zip file creation failed." & spawn_ret
+   RETURN
+  END IF
+  
+  visible_debug "Successfully created " & shortzip
+
+  EXIT DO 'single pass, never really loops.
+ LOOP
+ 'Cleanup ziptmp
+ killdir ziptmp
+ 
+END SUB
+
+FUNCTION copy_or_relump (src_rpg_or_rpgdir as string, dest_rpg as string) as integer
+ 'Return true on success, false on fail
+
+ DIM extension as string = LCASE(justextension(src_rpg_or_rpgdir))
+
+ IF extension = "rpgdir" THEN
+  DIM relump as string
+  relump = find_helper_app("relump", YES)
+  IF relump = "" THEN visible_debug "Can't find relump" & DOTEXE & " utility." : RETURN NO
+  DIM spawn_ret as string
+  spawn_ret = spawn_and_wait(relump, """" & src_rpg_or_rpgdir & """ """ & dest_rpg & """")
+  IF LEN(spawn_ret) ORELSE NOT isfile(dest_rpg) THEN
+   visible_debug "ERROR: failed relumping " & src_rpg_or_rpgdir & " " & spawn_ret 
+   RETURN NO
+  END IF
+ ELSE 'simple case for regular .rpg files
+  IF confirmed_copy(src_rpg_or_rpgdir, dest_rpg) = NO THEN
+   visible_debug "ERROR: failed to copy " & src_rpg_or_rpgdir
+  END IF
+ END IF
+ RETURN YES
+END FUNCTION
+
+FUNCTION copy_windows_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
+ 'Returns true on success, false on failure
+ IF confirmed_copy(gameplayer, destdir & SLASH & basename & ".exe") = NO THEN RETURN NO
+ DIM gamedir as string = trimfilename(gameplayer)
+ DIM otherf(3) as string = {"gfx_directx.dll", "SDL.dll", "SDL_mixer.dll", "LICENSE-binary.txt"}
+ FOR i as integer = 0 TO UBOUND(otherf)
+  IF confirmed_copy(gamedir & SLASH & otherf(i), destdir & SLASH & otherf(i)) = NO THEN RETURN NO
+ NEXT i
+ RETURN YES
+END FUNCTION
+
+FUNCTION copy_linux_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
+ 'Returns true on success, false on failure
+ IF confirmed_copy(gameplayer, destdir & SLASH & basename) = NO THEN RETURN NO
+#IFDEF __UNIX__
+  '--just in case we are playing with a debug build,
+  '--strip the copy of the binary that goes in the distribution file.
+  SHELL "strip '" & destdir & SLASH & basename & "'"
+  '--fix the permissions
+  SHELL "chmod +x '" & destdir & SLASH & basename & "'"
+#ENDIF
+ RETURN YES
+END FUNCTION
+
+FUNCTION get_windows_gameplayer() as string
+ 'On Windows, Return the full path to game.exe
+ 'On other platforms, download game.exe, unzip it, and return the full path
+ 'Returns "" for failure.
+
+#IFDEF __FB_WIN32__
+
+ '--If this is Windows, we already have the correct version of game.exe
+ IF isfile(exepath & SLASH & "game.exe") THEN
+  RETURN exepath & SLASH & "game.exe"
+ ELSE
+  visible_debug "ERROR: game.exe wasn't found in the same folder as custom.exe. (This shouldn't happen!)" : RETURN ""
+ END IF
+
+#ENDIF
+ '--For Non-Windows platforms, we need to download game.exe
+ '(NOTE: This all should work fine on Windows too, but it is best to use the installed game.exe)
+
+ '--Find the folder that we are going to download game.exe into
+ DIM support as string = find_support_dir()
+ IF support = "" THEN visible_debug "ERROR: Unable to find support directory": RETURN ""
+ DIM dldir as string = support & SLASH & "gameplayer"
+ IF NOT isdir(dldir) THEN makedir dldir
+ IF NOT isdir(dldir) THEN visible_debug "ERROR: Unable to create support/gameplayer directory": RETURN ""
+  
+ '--Decide which url to download
+ DIM url as string
+ DIM dlfile as string
+ IF version_branch = "wip" THEN
+  '--If running a nightly wip, download the latest nightly wip
+  url = "http://hamsterrepublic.com/ohrrpgce/nightly/ohrrpgce-wip-default.zip"
+  dlfile = "ohrrpgce-wip-default.zip"
+ ELSE
+  '--If running any stable release, download the latest stable release.
+  url = "http://hamsterrepublic.com/dl/ohrrpgce-minimal.zip"
+  dlfile = "ohrrpgce-minimal.zip"
+ END IF
+
+ '--Ask the user for permission the first time we download (subsequent updates don't ask)
+ DIM destzip as string = dldir & SLASH & dlfile
+ IF NOT isfile(destzip) THEN
+  IF yesno("Is it okay to download the Windows version of OHRRPGCE game.exe from HamsterRepublic.com now?") = NO THEN RETURN ""
+ END IF
+
+ '--Actually download the dang file
+ wget_download url, dldir
+ 
+ '--Find the unzip tool
+ DIM unzip as string = find_helper_app("unzip", YES)
+ IF unzip = "" THEN visible_debug "ERROR: Couldn't find unzip tool": RETURN ""
+ 
+ '--Unzip the desired files
+ DIM args as string = "-o """ & destzip & """ game.exe gfx_directx.dll SDL.dll SDL_mixer.dll LICENSE-binary.txt -d """ & dldir & """"
+ DIM spawn_ret as string = spawn_and_wait(unzip, args)
+ IF LEN(spawn_ret) > 0 THEN visible_debug "ERROR: unzip failed: " & spawn_ret : RETURN ""
+ 
+ IF NOT isfile(dldir & SLASH & "game.exe")           THEN visible_debug "ERROR: Failed to unzip game.exe" : RETURN ""
+ IF NOT isfile(dldir & SLASH & "gfx_directx.dll")    THEN visible_debug "ERROR: Failed to unzip gfx_directx.dll" : RETURN ""
+ IF NOT isfile(dldir & SLASH & "SDL.dll")            THEN visible_debug "ERROR: Failed to unzip SDL.dll" : RETURN ""
+ IF NOT isfile(dldir & SLASH & "SDL_mixer.dll")      THEN visible_debug "ERROR: Failed to unzip SDL_mixer.dll" : RETURN ""
+ IF NOT isfile(dldir & SLASH & "LICENSE-binary.txt") THEN visible_debug "ERROR: Failed to unzip LICENSE-binary.txt" : RETURN ""
+ 
+ RETURN dldir & SLASH & "game.exe"
+END FUNCTION
+
+FUNCTION get_linux_gameplayer() as string
+ 'On Linux, Return the full path to ohrrpgce-game
+ 'On other platforms, download a precompiled i386 binary of ohrrpgce-game,
+ 'unzip it, and return the full path.
+ 'Returns "" for failure.
+
+#IFDEF __FB_LINUX__
+
+ '--If this is Linux, we already have the correct version of ohrrpgce-game
+ IF isfile(exepath & SLASH & "ohrrpgce-game") THEN
+  RETURN exepath & SLASH & "ohrrpgce-game"
+ ELSE
+  visible_debug "ERROR: ohrrpgce-game wasn't found in the same directory as ohrrpgce-custom. (This probably shouldn't happen!)" : RETURN ""
+ END IF
+
+#ENDIF
+
+ '--For Non-Linux platforms, we need to download ohrrpgce-game
+ '(NOTE: This all should work fine on Linux too, but it is best to use the installed ohrrpgce-game)
+
+ '--Find the folder that we are going to download ohrrpgce-game into
+ DIM support as string = find_support_dir()
+ IF support = "" THEN visible_debug "ERROR: Unable to find support directory": RETURN ""
+ DIM dldir as string = support & SLASH & "gameplayer"
+ IF NOT isdir(dldir) THEN makedir dldir
+ IF NOT isdir(dldir) THEN visible_debug "ERROR: Unable to create support/gameplayer directory": RETURN ""
+  
+ '--Decide which url to download
+ DIM url as string
+ DIM dlfile as string
+ 
+ 'Ideally we might check IF version_branch = "wip" and handle wip versions
+ 'differently than stable versions, but there is not a stable linux binary zip
+ 'yet for any stable releases.
+ 
+ url = "http://hamsterrepublic.com/ohrrpgce/nightly/ohrrpgce-player-linux-bin-minimal.zip"
+ dlfile = "ohrrpgce-player-linux-bin-minimal.zip"
+
+ '--Ask the user for permission the first time we download (subsequent updates don't ask)
+ DIM destzip as string = dldir & SLASH & dlfile
+ IF NOT isfile(destzip) THEN
+  IF yesno("Is it okay to download the Linux version of OHRRPGCE ohrrpgce-game from HamsterRepublic.com now?") = NO THEN RETURN ""
+ END IF
+
+ '--Actually download the dang file
+ wget_download url, dldir
+ 
+ '--Find the unzip tool
+ DIM unzip as string = find_helper_app("unzip", YES)
+ IF unzip = "" THEN visible_debug "ERROR: Couldn't find unzip tool": RETURN ""
+ 
+ '--Unzip the desired files
+ DIM args as string = "-o """ & destzip & """ ohrrpgce-game LICENSE-binary.txt -d """ & dldir & """"
+ DIM spawn_ret as string = spawn_and_wait(unzip, args)
+ IF LEN(spawn_ret) > 0 THEN visible_debug "ERROR: unzip failed: " & spawn_ret : RETURN ""
+ 
+ IF NOT isfile(dldir & SLASH & "ohrrpgce-game")      THEN visible_debug "ERROR: Failed to unzip ohrrpgce-game" : RETURN ""
+ IF NOT isfile(dldir & SLASH & "LICENSE-binary.txt") THEN visible_debug "ERROR: Failed to unzip LICENSE-binary.txt" : RETURN ""
+ 
+ RETURN dldir & SLASH & "ohrrpgce-game"
+
+END FUNCTION
+
+SUB distribute_game_as_windows_installer ()
+
+ DIM basename as string = trimextension(trimpath(sourcerpg))
+ DIM installer as string = trimfilename(sourcerpg) & SLASH & "setup-" & basename & ".exe"
+
+ IF isfile(installer) THEN
+  IF yesno(trimpath(installer) & " already exists. Overwrite it?") = NO THEN RETURN
+  safekill installer
+ END IF
+
+ DIM iscc as string = find_or_download_innosetup()
+ IF iscc = "" THEN RETURN
+ 
+ DIM isstmp as string = trimfilename(sourcerpg) & SLASH & "innosetup.tmp"
+ IF isdir(isstmp) THEN
+  killdir isstmp
+ END IF
+ makedir isstmp
+
+ DO '--single pass loop for breaking
+
+  IF copy_or_relump(sourcerpg, isstmp & SLASH & basename & ".rpg") = NO THEN EXIT DO
+ 
+  DIM gameplayer as string
+  gameplayer = get_windows_gameplayer()
+  IF gameplayer = "" THEN visible_debug "ERROR: game.exe is not available" : EXIT DO
+  IF copy_windows_gameplayer(gameplayer, basename, isstmp) = NO THEN EXIT DO
+  
+  write_innosetup_script basename, isstmp
+
+  DIM iss_script as string = isstmp & SLASH & "innosetup_script.iss"
+ 
+  DIM args as string
+#IFDEF __FB_WIN32__
+ 'this sucks and is a terrible hack but I am sick of fighting with multiply-layerd cross-platform quotes
+  args = """" & win_path(iss_script) & """"
+#ELSE
+  args = "'" & win_path(iss_script) & "'"
+#ENDIF
+  
+  DIM spawn_ret as string
+  spawn_ret = win_or_wine_spawn_and_wait(iscc,  args)
+  IF LEN(spawn_ret) THEN visible_debug "ERROR: iscc.exe failed: " & spawn_ret : EXIT DO
+  IF confirmed_copy(isstmp & SLASH & "Output" & SLASH & "setup-" & basename & ".exe", installer) = NO THEN
+   visible_debug "ERROR: iscc.exe completed but installer was not created"
+   EXIT DO
+  END IF
+
+  visible_debug trimpath(installer) & " was successfully created!"
+  EXIT DO 'this loop is only ever one pass
+ LOOP
+
+ '--Cleanup temp files
+ IF isdir(isstmp & SLASH & "Output") THEN killdir isstmp & SLASH & "Output"
+ killdir isstmp
+ 
+END SUB
+
+SUB write_innosetup_script (basename as string, isstmp as string)
+
+ DIM iss_script as string = isstmp & SLASH & "innosetup_script.iss"
+
+ DIM s as string
+ DIM E as string = !"\r\n" ' E is End of line
+ s &= "; Inno Setup script generated by OHRRPGCE custom" & E
+ 
+ DIM gamename as string = special_char_sanitize(load_gamename)
+ IF gamename = "" THEN gamename = basename
+ 
+ s &= E & "[Setup]" & E
+ s &= "AppName=" & gamename & E
+ s &= "AppVersion=" & MID(DATE, 7, 4) & "." & MID(DATE, 1, 2) & "." & MID(DATE, 4, 2) & E
+ s &= "DefaultDirName={pf}\OHRRPGCE Games\" & gamename & E
+ s &= "DefaultGroupName=" & gamename & E
+ s &= "SolidCompression=yes" & E
+ s &= "OutputBaseFilename=setup-" & basename
+
+ s &= E & "[Languages]" & E
+ s &= "Name: ""eng""; MessagesFile: ""compiler:Default.isl""" & E
+
+ s &= E & "[Files]" & E
+ add_innosetup_file s, isstmp & SLASH & basename & ".rpg"
+ add_innosetup_file s, isstmp & SLASH & basename & ".exe"
+ add_innosetup_file s, isstmp & SLASH & "gfx_directx.dll"
+ add_innosetup_file s, isstmp & SLASH & "SDL.dll"
+ add_innosetup_file s, isstmp & SLASH & "SDL_mixer.dll"
+ add_innosetup_file s, isstmp & SLASH & "LICENSE-binary.txt"
+
+ s &= E & "[Icons]" & E
+ s &= "Name: ""{userdesktop}\" & gamename & """; Filename: ""{app}\" & basename & ".exe""; WorkingDir: ""{app}"";" & E
+ s &= "Name: ""{group}\" & gamename & """; Filename: ""{app}\" & basename & ".exe""; WorkingDir: ""{app}"";" & E
+ 
+ debug s
+ 
+ DIM fh as integer = FREEFILE
+ OPEN iss_script FOR BINARY AS #fh
+ PUT #fh, 1, s
+ CLOSE #fh
+
+END SUB
+
+SUB add_innosetup_file (s as string, filename as string)
+ DIM E as string = !"\r\n" ' E is End of line
+ s &= "Source: """ & win_path(filename) & """; DestDir: ""{app}""; Flags: ignoreversion" & E
+END SUB
+
+FUNCTION win_path (filename as string) as string
+#IFDEF __FB_WIN32__
+ 'This is a do-nothing on real Windows
+ RETURN filename
+#ELSE
+ 'When using wine, paths that start with $HOME can be translated to Z:
+ IF LEFT(filename, 1) <> "/" THEN
+  visible_debug "ERROR: Unable to translate path for wine: " & filename 
+  RETURN filename
+ END IF
+ DIM winepath as string = "z:" & filename
+ replacestr winepath, "/", "\"
+ RETURN winepath
+#ENDIF
+END FUNCTION
+
+FUNCTION find_or_download_innosetup () as string
+ DIM iscc as string = find_innosetup()
+ IF iscc = "" THEN
+  IF yesno("Inno Setup 5 is required to create windows installation packages. Would you like to download it from jrsoftware.org now?") THEN
+   DIM support as string = find_support_dir()
+   IF support = "" THEN visible_debug "ERROR: Can't find support dir" : RETURN ""
+   wget_download "http://www.jrsoftware.org/download.php/is.exe", support, "is.exe"
+   DIM spawn_ret as string
+   spawn_ret = win_or_wine_spawn_and_wait(support & SLASH & "is.exe")
+   safekill support & SLASH & "is.exe"
+   IF LEN(spawn_ret) THEN visible_debug "ERROR: Inno Setup installer failed: " & spawn_ret : RETURN ""
+   '--re-search for iscc now that it may have been installed
+   iscc = find_innosetup()
+  END IF
+  IF iscc = "" THEN visible_debug "Canceling export. Inno Setup 5 is not available." : RETURN ""
+ END IF
+ RETURN iscc
+END FUNCTION
+
+FUNCTION find_innosetup () as string
+ DIM c_drive as string = win_or_wine_drive("c")
+
+ DIM iscc as string
+ iscc = c_drive & SLASH & "Program Files" & SLASH & "Inno Setup 5" & SLASH & "ISCC.exe"
+ IF isfile(iscc) THEN RETURN iscc
+ iscc = c_drive & SLASH & "Program Files (x86)" & SLASH & "Inno Setup 5" & SLASH & "ISCC.exe"
+ IF isfile(iscc) THEN RETURN iscc
+
+ RETURN "" 'Not found
+END FUNCTION
+
+FUNCTION win_or_wine_drive(letter as string) as string
+#IFDEF __FB_WIN32__
+ RETURN letter & ":"
+#ELSE
+ RETURN environ("HOME") & "/.wine/dosdevices/" & letter & ":"
+#ENDIF
+END FUNCTION
+
+FUNCTION win_or_wine_spawn_and_wait (cmd as string, args as string="") as string
+ 'For running Windows programs only. On Windows run natively, on Linux Unix Mac, try to run with Wine
+ 'Currently only needed for installing and running innosetup. Hopefully we won't ever need it for anything else
+ DIM spawn_ret as string
+#IFDEF __FB_WIN32__
+ 'On Windows this is nice and simple
+ debug "spawn_and_wait: " & cmd & " " & args
+ RETURN spawn_and_wait(cmd, args)
+#ELSE
+ DIM wine_args as string = "'" & cmd & "' " & escape_string(args, "\")
+ debug "spawn_and_wait: wine " & cmd & " " & wine_args
+ debug "wine_args =" & wine_args
+ RETURN spawn_and_wait("wine", wine_args)
+#ENDIF
+ 
+END FUNCTION
+
+SUB distribute_game_as_debian_package ()
+
+ DIM basename as string = get_debian_package_name()
+ DIM pkgver as string = get_debian_package_version()
+ DIM debname as string = trimfilename(sourcerpg) & SLASH & basename & "_" & pkgver & "_i386.deb"
+
+ IF isfile(debname) THEN
+  IF yesno(trimpath(debname) & " already exists. Overwrite it?") = NO THEN RETURN
+  safekill debname
+ END IF
+
+ DIM debtmp as string = trimfilename(sourcerpg) & SLASH & "debpkg.tmp"
+ IF isdir(debtmp) THEN
+  debuginfo "Clean up old " & debtmp
+  kill_debtmp_dir debtmp, basename
+ END IF
+ 
+ debuginfo "Prepare package data files..."
+ makedir debtmp
+ makedir debtmp & SLASH & "usr"
+ makedir debtmp & SLASH & "usr" & SLASH & "share"
+ makedir debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "games"
+ DIM bindir as string = debtmp & SLASH & "usr" & SLASH & "games"
+ makedir bindir
+ DIM datadir as string = debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "games" & SLASH & basename
+ makedir datadir
+
+ DO '--single pass loop for breaking
+
+  debuginfo "Copy rpg file"
+  IF copy_or_relump(sourcerpg, datadir & SLASH & basename & ".rpg") = NO THEN EXIT DO
+
+  debuginfo "Copy linux game player" 
+  DIM gameplayer as string
+  gameplayer = get_linux_gameplayer()
+  IF gameplayer = "" THEN visible_debug "ERROR: ohrrpgce-game is not available" : EXIT DO
+  IF copy_linux_gameplayer(gameplayer, basename, bindir) = NO THEN EXIT DO
+  
+  debuginfo "Create menu file"
+  DIM menudir as string = debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "menu"
+  MKDIR menudir
+  write_linux_menu_file menudir & SLASH & basename, basename
+
+  debuginfo "Create desktop file"
+  DIM applicationsdir as string = debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "applications"
+  MKDIR applicationsdir
+  write_linux_desktop_file applicationsdir & SLASH & basename & ".desktop", basename
+
+  debuginfo "Calculate Installed-Size"
+  DIM size_in_kibibytes as integer = count_directory_size(debtmp & SLASH & "usr") / 1024
+ 
+  debuginfo "Create debian-binary version file"
+  write_debian_binary_file debtmp & SLASH & "debian-binary"
+
+  debuginfo "Create debian control file"
+  write_debian_control_file debtmp & SLASH & "control", basename, pkgver, "Author", "real@email.belongs.here", size_in_kibibytes
+  IF NOT isfile(debtmp & SLASH & "control") THEN visible_debug "Couldn't create debian control file" : EXIT DO
+  write_debian_postinst_script debtmp & SLASH & "postinst"
+  write_debian_postrm_script debtmp & SLASH & "postrm"
+
+  fix_deb_group_permissions debtmp & SLASH & "control"
+  fix_deb_group_permissions debtmp & SLASH & "postinst"
+  fix_deb_group_permissions debtmp & SLASH & "postrm"
+
+  IF create_tarball(debtmp, debtmp & SLASH & "control.tar.gz", "control postinst postrm") = NO THEN EXIT DO
+
+  fix_deb_group_permissions debtmp & SLASH & "usr"
+  
+  IF create_tarball(debtmp, debtmp & SLASH & "data.tar.gz", "usr") = NO THEN EXIT DO
+
+  IF create_ar_archive(debtmp, debname, "debian-binary control.tar.gz data.tar.gz") = NO THEN EXIT DO
+  
+  visible_debug trimpath(debname) & " was successfully created!"
+  EXIT DO 'this loop is only ever one pass
+ LOOP
+
+ '--Cleanup temp files
+ 'kill_debtmp_dir debtmp
+ 
+END SUB
+
+SUB kill_debtmp_dir(debtmp as string, basename as string)
+ 'killdir doesn't recurse into directories, so we need to be a bit explicit here
+ killdir debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "menu"
+ killdir debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "applications"
+ killdir debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "games" & SLASH & basename
+ killdir debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "games"
+ killdir debtmp & SLASH & "usr" & SLASH & "games"
+ killdir debtmp & SLASH & "usr" & SLASH & "share"
+ killdir debtmp & SLASH & "usr"
+ killdir debtmp
+END SUB
+
+SUB write_debian_postinst_script (filename as string)
+ DIM LF as string = CHR(10)
+ DIM fh as integer = FREEFILE
+ OPEN filename for output as #fh
+ PUT #fh, , "#!/bin/sh" & LF
+ PUT #fh, , "set -e" & LF
+ PUT #fh, , "if [ ""$1"" = ""configure"" ] && [ -x ""`which update-menus 2>/dev/null`"" ]; then" & LF
+ PUT #fh, , "    update-menus" & LF
+ PUT #fh, , "fi" & LF
+ CLOSE #fh
+ #IFDEF __UNIX__
+ DIM cmd as string
+ cmd = "chmod +x " & filename
+ debuginfo cmd
+ SHELL cmd
+ #ENDIF
+END SUB
+
+SUB write_debian_postrm_script (filename as string)
+ DIM LF as string = CHR(10)
+ DIM fh as integer = FREEFILE
+ OPEN filename for output as #fh
+ PUT #fh, , "#!/bin/sh" & LF
+ PUT #fh, , "set -e" & LF
+ PUT #fh, , "if [ -x ""`which update-menus 2>/dev/null`"" ]; then" & LF
+ PUT #fh, , "    update-menus" & LF
+ PUT #fh, , "fi" & LF
+ CLOSE #fh
+ #IFDEF __UNIX__
+ DIM cmd as string
+ cmd = "chmod +x " & filename
+ debuginfo cmd
+ SHELL cmd
+ #ENDIF
+END SUB
+
+SUB fix_deb_group_permissions(start_at_dir as string)
+#IFDEF __UNIX__
+ 'This is needed because the user's umask might have given group write access to the files
+ DIM cmd as string
+ cmd = "chmod -R g-w " & start_at_dir
+ debuginfo cmd
+ SHELL cmd
+#ENDIF
+END SUB
+
+SUB write_linux_menu_file(filename as string, basename as string)
+ DIM title as string = exclude(special_char_sanitize(load_gamename()), """")
+ DIM fh as integer = FREEFILE
+ OPEN filename for output as #fh
+ PUT #fh, , "?package(" & basename & "): needs=""X11"" title=""" & title & """ command=""/usr/games/" & basename & """ section=""Games/Adventure""" & CHR(10)
+ CLOSE #fh
+END SUB
+
+SUB write_linux_desktop_file(filename as string, basename as string)
+ DIM title as string = special_char_sanitize(load_gamename())
+ DIM LF as string = CHR(10)
+ DIM fh as integer = FREEFILE
+ OPEN filename for output as #fh
+ PUT #fh, , "[Desktop Entry]" & LF
+ PUT #fh, , "Name=" & title & LF
+ PUT #fh, , "Exec=/usr/games/" & basename & LF
+ PUT #fh, , "Terminal=false" & LF
+ PUT #fh, , "Type=Application" & LF
+ PUT #fh, , "Categories=Application;Game;" & LF
+ CLOSE #fh
+END SUB
+
+FUNCTION create_ar_archive(start_in_dir as string, archive as string, files as string) as integer
+ '--Returns YES if successful, or NO if failed
+
+ ' start_in_dir only applies to the ar command. The archive filename should still be either absolute or relative to the default CURDIR
+
+ 'files is a list of space-separated filenames and directory names to include in the tarball
+ 'if they contain spaces they must be quoted
+
+ DIM ar as string = find_helper_app("ar", YES)
+ IF ar = "" THEN visible_debug "ERROR: ar is not available" : RETURN NO
+
+ DIM olddir as string = CURDIR
+ CHDIR start_in_dir
+ DIM args as string
+ args = " qcD """ & archive & """ " & files
+ DIM spawn_ret as string
+ spawn_ret = spawn_and_wait(ar, args)
+ IF LEN(spawn_ret) THEN visible_debug spawn_ret : RETURN NO
+ CHDIR olddir
+ IF NOT isfile(archive) THEN visible_debug "Could not create " & archive : RETURN NO
+ RETURN YES
+ 
+END FUNCTION
+
+FUNCTION create_tarball(start_in_dir as string, tarball as string, files as string) as integer
+ '--Returns YES if successful, or NO if failed
+
+ ' start_in_dir only applies to the tar command. The tarball filename should still be either absolute or relative to the default CURDIR
+
+ 'files is a list of space-separated filenames and directory names to include in the tarball
+ 'if they contain spaces they must be quoted
+ 
+ DIM tar as string = find_helper_app("tar", YES)
+ IF tar = "" THEN visible_debug "ERROR: tar is not available": RETURN NO
+ DIM gzip as string = find_helper_app("gzip", YES)
+ IF gzip = "" THEN visible_debug "ERROR: gzip is not available": RETURN NO
+
+ DIM uncompressed as string = trimextension(tarball)
+
+ DIM platform_args as string = ""
+ #IFDEF __UNIX__
+ 'These arguments are broken on Windows tar.exe for some stupid reason
+ platform_args = " --owner=root --group=root"
+ #ENDIF
+ #IFDEF __FB_WIN32__
+ 'This is a hack to replace tar.exe's horrendous default permissions, and to (clumsily) mark the executables with the executable bit
+ platform_args = " --mode=755"
+ #ENDIF
+
+ DIM spawn_ret as string
+ DIM args as string
+
+ args = " -c -C """ & start_in_dir & """ " & platform_args & " -f """ & uncompressed & """ " & files
+ spawn_ret = spawn_and_wait(tar, args)
+ IF LEN(spawn_ret) THEN visible_debug spawn_ret : RETURN NO
+
+ args = """" & uncompressed & """"
+ debug args
+ spawn_ret = spawn_and_wait(gzip, args)
+ IF LEN(spawn_ret) THEN visible_debug spawn_ret : RETURN NO
+ 
+ IF NOT isfile(tarball) THEN visible_debug "Could not create " & tarball : RETURN NO
+ RETURN YES
+END FUNCTION
+
+SUB write_debian_binary_file (filename as string)
+ DIM fh as integer = FREEFILE
+ OPEN filename for binary as #fh
+ PUT #fh, ,"2.0" & CHR(10)
+ CLOSE #fh
+END SUB
+
+SUB write_debian_control_file(controlfile as string, basename as string, pkgver as string, author as string, email as string, size_in_kibibytes as integer)
+ DIM LF as string = CHR(10)
+ DIM fh as integer = FREEFILE
+ OPEN controlfile for output as #fh
+ PUT #fh, , "Package: " & basename & LF
+ PUT #fh, , "Priority: optional" & LF 
+ PUT #fh, , "Section: games" & LF 
+ PUT #fh, , "Maintainer: """ & author & """ <" & email & ">" & LF
+ PUT #fh, , "Architecture: i386" & LF
+ PUT #fh, , "Version: " & pkgver & LF
+ PUT #fh, , "Installed-Size: " & size_in_kibibytes & LF
+ 'FIXME: the Depends: line could vary depending on gfx and music backends
+ 'FIXME: Is there an easy way to verify which is the minimum libc version to depend upon?
+ PUT #fh, , "Depends: libc6 (>= 2.3), libncurses5 (>= 5.4), libsdl-mixer1.2 (>= 1.2), libsdl1.2debian (>> 1.2), libx11-6, libxext6, libxpm4, libxrandr2, libxrender1" & LF
+ 'FIXME: it would be best to let the user edit the description
+ PUT #fh, , "Description: " & special_char_sanitize(load_gamename()) & LF
+ PUT #fh, , " " & special_char_sanitize(load_aboutline()) & LF
+ CLOSE #fh
+END SUB
+
+FUNCTION get_debian_package_name() as string
+ DIM s as string
+ s = trimextension(trimpath(sourcerpg))
+ IF s = "" THEN s = trimextension(trimpath(sourcerpg))
+ s = LCASE(s)
+ s = exclude(s, "'")
+ DIM result as string = ""
+ DIM ch as string
+ DIM dash as integer = NO
+ FOR i as integer = 1 TO LEN(s)
+   ch = MID(s, i, 1)
+   IF ch >= "a" ANDALSO ch <= "z" THEN
+    result &= ch
+    dash = NO
+   ELSE
+    IF NOT dash ANDALSO LEN(result) > 0 ANDALSO i <> LEN(s) THEN
+     result &= "-"
+     dash = YES
+    END IF
+   END IF
+ NEXT i
+ 'FIXME: collision-prevention could go here
+ RETURN result
+END FUNCTION
+
+FUNCTION get_debian_package_version() as string
+ DIM d as string = DATE
+ RETURN MID(d, 7, 4) & "." & MID(d, 1, 2) & "." & MID(d, 4, 2)
+ '--if we wanted the hour we would add this too
+ '& "." & MID(TIME, 1, 2)
+END FUNCTION
+
+FUNCTION can_run_windows_exes () as integer
+#IFDEF __FB_WIN32__
+ '--Of course we can always run exe files on Windows
+ RETURN YES
+#ENDIF
+'--Unixen and Macs can only run exe files with wine
+IF find_helper_app("wine") = "" THEN RETURN NO
+IF NOT isdir(environ("HOME") & "/.wine/dosdevices/c:") THEN RETURN NO
+RETURN YES
+END FUNCTION
+
+FUNCTION can_make_debian_packages () as integer
+'--check to see if we can find the tools needed to create a .deb package
+IF find_helper_app("ar") = "" THEN RETURN NO
+IF find_helper_app("tar") = "" THEN RETURN NO
+IF find_helper_app("gzip") = "" THEN RETURN NO
+RETURN YES
+END FUNCTION

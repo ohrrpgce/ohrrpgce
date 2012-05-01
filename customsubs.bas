@@ -4092,22 +4092,48 @@ SUB spawn_game_menu
  END IF
 END SUB
 
-FUNCTION can_run_windows_exes () as integer
-#IFDEF __FB_WIN32__
- '--Of course we can always run exe files on Windows
- RETURN YES
-#ENDIF
-'--Unixen and Macs can only run exe files with wine
-IF find_helper_app("wine") = "" THEN RETURN NO
-IF NOT isdir(environ("HOME") & "/.wine/dosdevices/c:") THEN RETURN NO
-RETURN YES
-END FUNCTION
+SUB save_current_game ()
+ clearpage 0
+ setvispage 0
+ textcolor uilook(uiText), 0
+ printstr "LUMPING DATA: please wait.", 0, 0, 0
+ setvispage 0 'refresh
+ '--verify various stuff
+ rpg_sanity_checks
+ '--lump data to SAVE rpg file
+ dolumpfiles sourcerpg
+END SUB
 
-FUNCTION can_make_debian_packages () as integer
-'--check to see if we can find the tools needed to create a .deb package
-IF find_helper_app("ar") = "" THEN RETURN NO
-IF find_helper_app("tar") = "" THEN RETURN NO
-IF find_helper_app("gzip") = "" THEN RETURN NO
-RETURN YES
-END FUNCTION
+SUB dolumpfiles (filetolump as string)
+ '--build the list of files to lump. We don't need hidden files
+ DIM filelist() as string
+ findfiles workingdir, ALLFILES, fileTypeFile, NO, filelist()
+ fixlumporder filelist()
+ IF isdir(filetolump) THEN
+  '---copy changed files back to source rpgdir---
+  IF NOT fileiswriteable(filetolump & SLASH & "archinym.lmp") THEN
+   move_unwriteable_rpg filetolump
+   makedir filetolump
+  END IF
+  FOR i as integer = 0 TO UBOUND(filelist)
+   safekill filetolump + SLASH + filelist(i)
+   copyfile workingdir + SLASH + filelist(i), filetolump + SLASH + filelist(i)
+   'FIXME: move file instead? (warning: can't move from different mounted filesystem)
+  NEXT
+ ELSE
+  '---relump data into lumpfile package---
+  IF NOT fileiswriteable(filetolump) THEN
+   move_unwriteable_rpg filetolump
+  END IF
+  lumpfiles filelist(), filetolump, workingdir + SLASH
+ END IF
+END SUB
 
+SUB move_unwriteable_rpg (filetolump as string)
+ clearpage vpage
+ DIM newfile as string = homedir & SLASH & trimpath(filetolump)
+ basic_textbox filetolump + " is not writeable. Saving to " + newfile + !"\n[Press Any Key]", uilook(uiText), vpage
+ setvispage vpage
+ waitforanykey
+ filetolump = newfile
+END SUB

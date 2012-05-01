@@ -88,7 +88,9 @@ DECLARE SUB get_menu_hotkeys (menu() AS STRING, BYVAL menumax AS INTEGER, menuke
 DECLARE SUB experience_chart ()
 DECLARE SUB stat_growth_chart ()
 DECLARE SUB spawn_game_menu ()
-DECLARE FUNCTION can_run_windows_exes () as integer
-DECLARE FUNCTION can_make_debian_packages () as integer
+
+DECLARE SUB dolumpfiles (filetolump as string)
+DECLARE SUB move_unwriteable_rpg (filetolump as string)
+DECLARE SUB save_current_game()
 
 #endif
