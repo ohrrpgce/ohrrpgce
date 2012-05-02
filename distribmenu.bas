@@ -67,8 +67,6 @@ CONST distmenuINFO as integer = 5
 
 SUB distribute_game ()
  
- save_current_game
- 
  DIM menu as SimpleMenuItem vector
  v_new menu, 0
  append_simplemenu_item menu, "Previous Menu...", , , distmenuEXIT
@@ -103,14 +101,16 @@ SUB distribute_game ()
    SELECT CASE menu[st.pt].dat
     CASE distmenuEXIT: EXIT DO
     CASE distmenuZIP:
+     save_current_game
      distribute_game_as_zip
     CASE distmenuWINSETUP:
+     save_current_game
      distribute_game_as_windows_installer
     CASE distmenuDEBSETUP:
+     save_current_game
      distribute_game_as_debian_package
     CASE distmenuINFO:
      edit_distrib_info
-     save_current_game
    END SELECT
   END IF
 
