@@ -34,7 +34,7 @@ DECLARE FUNCTION find_or_download_innosetup () as string
 DECLARE FUNCTION find_innosetup () as string
 DECLARE FUNCTION win_or_wine_drive(letter as string) as string
 DECLARE FUNCTION win_or_wine_spawn_and_wait (cmd as string, args as string="") as string
-DECLARE SUB write_innosetup_script (basename as string, isstmp as string)
+DECLARE SUB write_innosetup_script (basename as string, gamename as string, isstmp as string)
 DECLARE SUB add_innosetup_file (s as string, filename as string)
 DECLARE FUNCTION win_path (filename as string) as string
 DECLARE FUNCTION copy_or_relump (src_rpg_or_rpgdir as string, dest_rpg as string) as integer
@@ -43,10 +43,10 @@ DECLARE FUNCTION copy_linux_gameplayer (gameplayer as string, basename as string
 DECLARE SUB distribute_game_as_debian_package ()
 DECLARE FUNCTION get_debian_package_version() as string
 DECLARE FUNCTION get_debian_package_name() as string
-DECLARE SUB write_linux_menu_file(filename as string, basename as string)
-DECLARE SUB write_linux_desktop_file(filename as string, basename as string)
+DECLARE SUB write_linux_menu_file(title as string, filename as string, basename as string)
+DECLARE SUB write_linux_desktop_file(title as string, filename as string, basename as string)
 DECLARE SUB write_debian_binary_file (filename as string)
-DECLARE SUB write_debian_control_file(controlfile as string, basename as string, pkgver as string, author as string, email as string, size_in_kibibytes as integer)
+DECLARE SUB write_debian_control_file(controlfile as string, basename as string, pkgver as string, size_in_kibibytes as integer, byref distinfo as DistribState)
 DECLARE FUNCTION create_tarball(start_in_dir as string, tarball as string, files as string) as integer
 DECLARE FUNCTION create_ar_archive(start_in_dir as string, archive as string, files as string) as integer
 DECLARE SUB fix_deb_group_permissions(start_at_dir as string)
@@ -55,19 +55,24 @@ DECLARE SUB write_debian_postinst_script (filename as string)
 DECLARE SUB kill_debtmp_dir(debtmp as string, basename as string)
 DECLARE FUNCTION can_run_windows_exes () as integer
 DECLARE FUNCTION can_make_debian_packages () as integer
+DECLARE SUB edit_distrib_info ()
 
 CONST distmenuEXIT as integer = 1
 CONST distmenuZIP as integer = 2
 CONST distmenuWINSETUP as integer = 3
 CONST distmenuDEBSETUP as integer = 4
+CONST distmenuINFO as integer = 5
 
 SUB distribute_game ()
+ 
  save_current_game
  
  DIM menu as SimpleMenuItem vector
  v_new menu, 0
  append_simplemenu_item menu, "Previous Menu...", , , distmenuEXIT
  append_simplemenu_item menu, " Game file: " & trimpath(sourcerpg), YES, uilook(uiDisabledItem)
+
+ append_simplemenu_item menu, "Edit distribution info...", , , distmenuINFO
 
  append_simplemenu_item menu, "Export .ZIP", , , distmenuZIP
 
@@ -101,6 +106,9 @@ SUB distribute_game ()
      distribute_game_as_windows_installer
     CASE distmenuDEBSETUP:
      distribute_game_as_debian_package
+    CASE distmenuINFO:
+     edit_distrib_info
+     save_current_game
    END SELECT
   END IF
 
@@ -120,7 +128,73 @@ SUB distribute_game ()
  v_free menu
 END SUB
 
+SUB edit_distrib_info ()
+
+ DIM distinfo as DistribState
+ load_distrib_state distinfo, workingdir & SLASH & "distrib.reld"
+
+ DIM menu as SimpleMenuItem vector
+ v_new menu, 0
+
+ append_simplemenu_item menu, "Previous Menu...", , , distmenuEXIT
+
+ append_simplemenu_item menu, "Package name: " & distinfo.pkgname
+ append_simplemenu_item menu, "Game name: " & distinfo.gamename
+ 'append_simplemenu_item menu, "Author: " & distinfo.author
+ 'append_simplemenu_item menu, "Email: " & distinfo.email
+ 'append_simplemenu_item menu, "Website: " & distinfo.website
+
+ DIM st AS MenuState
+ init_menu_state st, cast(BasicMenuItem vector, menu)
+
+ DO
+  setwait 55
+  setkeys YES
+
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "edit_distrib_info"
+  IF enter_or_space() THEN
+   SELECT CASE menu[st.pt].dat
+    CASE distmenuEXIT: EXIT DO
+   END SELECT
+  END IF
+   
+  SELECT CASE st.pt
+   CASE 1:
+    IF strgrabber(distinfo.pkgname, 40) THEN
+     distinfo.gamename = LCASE(special_char_sanitize(exclude(distinfo.gamename, "/\ ""'")))
+     menu[st.pt].text = "Package name: " & distinfo.pkgname
+    END IF
+   CASE 2:
+    IF strgrabber(distinfo.gamename, 40) THEN
+     distinfo.gamename = special_char_sanitize(exclude(distinfo.gamename, "/\"""))
+     menu[st.pt].text = "Game name: " & distinfo.gamename
+    END IF
+  END SELECT
+
+  usemenu st, cast(BasicMenuItem vector, menu)
+  
+  IF st.need_update THEN
+  END IF
+
+  clearpage dpage
+  standardmenu cast(BasicMenuItem vector, menu), st, 0, 0, dpage
+  
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+ setkeys
+ v_free menu
+
+ save_distrib_state distinfo, workingdir & SLASH & "distrib.reld"
+
+END SUB
+
 SUB distribute_game_as_zip ()
+
+ DIM distinfo as DistribState
+ load_distrib_state distinfo, workingdir & SLASH & "distrib.reld"
 
  DIM zip as string = find_helper_app("zip", YES)
  IF zip = "" THEN
@@ -128,7 +202,7 @@ SUB distribute_game_as_zip ()
   RETURN
  END IF
 
- DIM destzip as string = trimextension(sourcerpg) & ".zip"
+ DIM destzip as string = trimfilename(sourcerpg) & SLASH & distinfo.pkgname & ".zip"
  DIM shortzip as string = trimpath(destzip)
  IF isfile(destzip) THEN
   IF yesno(shortzip & " already exists. Overwrite it?") = NO THEN RETURN
@@ -158,7 +232,7 @@ SUB distribute_game_as_zip ()
 
  DO 'Single-pass loop for operations after ziptmp exists
   
-  DIM basename as string = trimextension(trimpath(sourcerpg))
+  DIM basename as string = distinfo.pkgname
   
   IF copy_or_relump(sourcerpg, ziptmp & SLASH & basename & ".rpg") = NO THEN EXIT DO
 
@@ -360,7 +434,10 @@ END FUNCTION
 
 SUB distribute_game_as_windows_installer ()
 
- DIM basename as string = trimextension(trimpath(sourcerpg))
+ DIM distinfo as DistribState
+ load_distrib_state distinfo, workingdir & SLASH & "distrib.reld"
+
+ DIM basename as string = distinfo.pkgname
  DIM installer as string = trimfilename(sourcerpg) & SLASH & "setup-" & basename & ".exe"
 
  IF isfile(installer) THEN
@@ -386,7 +463,7 @@ SUB distribute_game_as_windows_installer ()
   IF gameplayer = "" THEN visible_debug "ERROR: game.exe is not available" : EXIT DO
   IF copy_windows_gameplayer(gameplayer, basename, isstmp) = NO THEN EXIT DO
   
-  write_innosetup_script basename, isstmp
+  write_innosetup_script basename, distinfo.gamename, isstmp
 
   DIM iss_script as string = isstmp & SLASH & "innosetup_script.iss"
  
@@ -416,16 +493,13 @@ SUB distribute_game_as_windows_installer ()
  
 END SUB
 
-SUB write_innosetup_script (basename as string, isstmp as string)
+SUB write_innosetup_script (basename as string, gamename as string, isstmp as string)
 
  DIM iss_script as string = isstmp & SLASH & "innosetup_script.iss"
 
  DIM s as string
  DIM E as string = !"\r\n" ' E is End of line
  s &= "; Inno Setup script generated by OHRRPGCE custom" & E
- 
- DIM gamename as string = special_char_sanitize(load_gamename)
- IF gamename = "" THEN gamename = basename
  
  s &= E & "[Setup]" & E
  s &= "AppName=" & gamename & E
@@ -538,6 +612,9 @@ END FUNCTION
 
 SUB distribute_game_as_debian_package ()
 
+ DIM distinfo as DistribState
+ load_distrib_state distinfo, workingdir & SLASH & "distrib.reld"
+
  DIM basename as string = get_debian_package_name()
  DIM pkgver as string = get_debian_package_version()
  DIM debname as string = trimfilename(sourcerpg) & SLASH & basename & "_" & pkgver & "_i386.deb"
@@ -577,12 +654,12 @@ SUB distribute_game_as_debian_package ()
   debuginfo "Create menu file"
   DIM menudir as string = debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "menu"
   MKDIR menudir
-  write_linux_menu_file menudir & SLASH & basename, basename
+  write_linux_menu_file distinfo.gamename, menudir & SLASH & basename, basename
 
   debuginfo "Create desktop file"
   DIM applicationsdir as string = debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "applications"
   MKDIR applicationsdir
-  write_linux_desktop_file applicationsdir & SLASH & basename & ".desktop", basename
+  write_linux_desktop_file distinfo.gamename, applicationsdir & SLASH & basename & ".desktop", basename
 
   debuginfo "Calculate Installed-Size"
   DIM size_in_kibibytes as integer = count_directory_size(debtmp & SLASH & "usr") / 1024
@@ -591,7 +668,7 @@ SUB distribute_game_as_debian_package ()
   write_debian_binary_file debtmp & SLASH & "debian-binary"
 
   debuginfo "Create debian control file"
-  write_debian_control_file debtmp & SLASH & "control", basename, pkgver, "Author", "real@email.belongs.here", size_in_kibibytes
+  write_debian_control_file debtmp & SLASH & "control", basename, pkgver, size_in_kibibytes, distinfo
   IF NOT isfile(debtmp & SLASH & "control") THEN visible_debug "Couldn't create debian control file" : EXIT DO
   write_debian_postinst_script debtmp & SLASH & "postinst"
   write_debian_postrm_script debtmp & SLASH & "postrm"
@@ -675,16 +752,14 @@ SUB fix_deb_group_permissions(start_at_dir as string)
 #ENDIF
 END SUB
 
-SUB write_linux_menu_file(filename as string, basename as string)
- DIM title as string = exclude(special_char_sanitize(load_gamename()), """")
+SUB write_linux_menu_file(title as string, filename as string, basename as string)
  DIM fh as integer = FREEFILE
  OPEN filename for output as #fh
  PUT #fh, , "?package(" & basename & "): needs=""X11"" title=""" & title & """ command=""/usr/games/" & basename & """ section=""Games/Adventure""" & CHR(10)
  CLOSE #fh
 END SUB
 
-SUB write_linux_desktop_file(filename as string, basename as string)
- DIM title as string = special_char_sanitize(load_gamename())
+SUB write_linux_desktop_file(title as string, filename as string, basename as string)
  DIM LF as string = CHR(10)
  DIM fh as integer = FREEFILE
  OPEN filename for output as #fh
@@ -769,13 +844,17 @@ SUB write_debian_binary_file (filename as string)
  CLOSE #fh
 END SUB
 
-SUB write_debian_control_file(controlfile as string, basename as string, pkgver as string, author as string, email as string, size_in_kibibytes as integer)
+SUB write_debian_control_file(controlfile as string, basename as string, pkgver as string, size_in_kibibytes as integer, byref distinfo as DistribState)
  DIM LF as string = CHR(10)
  DIM fh as integer = FREEFILE
  OPEN controlfile for output as #fh
  PUT #fh, , "Package: " & basename & LF
  PUT #fh, , "Priority: optional" & LF 
- PUT #fh, , "Section: games" & LF 
+ PUT #fh, , "Section: games" & LF
+ DIM author as string = distinfo.author
+ IF author = "" THEN author = "Anonymous"
+ DIM email as string = distinfo.email
+ IF email = "" THEN email = "anonymous_author@no.email.specified" 
  PUT #fh, , "Maintainer: """ & author & """ <" & email & ">" & LF
  PUT #fh, , "Architecture: i386" & LF
  PUT #fh, , "Version: " & pkgver & LF
@@ -784,15 +863,22 @@ SUB write_debian_control_file(controlfile as string, basename as string, pkgver 
  'FIXME: Is there an easy way to verify which is the minimum libc version to depend upon?
  PUT #fh, , "Depends: libc6 (>= 2.3), libncurses5 (>= 5.4), libsdl-mixer1.2 (>= 1.2), libsdl1.2debian (>> 1.2), libx11-6, libxext6, libxpm4, libxrandr2, libxrender1" & LF
  'FIXME: it would be best to let the user edit the description
- PUT #fh, , "Description: " & special_char_sanitize(load_gamename()) & LF
- PUT #fh, , " " & special_char_sanitize(load_aboutline()) & LF
+ PUT #fh, , "Description: " & special_char_sanitize(distinfo.gamename) & LF
+ IF LEN(TRIM(special_char_sanitize(load_aboutline()))) > 0 THEN
+  PUT #fh, , " " & special_char_sanitize(load_aboutline()) & LF
+ END IF
+ IF LEN(TRIM(distinfo.description)) > 0 THEN
+  PUT #fh, , " ." & LF
+  PUT #fh, , " " & distinfo.description & LF
+ END IF
  CLOSE #fh
 END SUB
 
 FUNCTION get_debian_package_name() as string
+ DIM distinfo as DistribState
+ load_distrib_state distinfo, workingdir & SLASH & "distrib.reld"
  DIM s as string
- s = trimextension(trimpath(sourcerpg))
- IF s = "" THEN s = trimextension(trimpath(sourcerpg))
+ s = distinfo.pkgname
  s = LCASE(s)
  s = exclude(s, "'")
  DIM result as string = ""
@@ -810,7 +896,6 @@ FUNCTION get_debian_package_name() as string
     END IF
    END IF
  NEXT i
- 'FIXME: collision-prevention could go here
  RETURN result
 END FUNCTION
 

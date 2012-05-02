@@ -2846,9 +2846,17 @@ SUB load_distrib_state(byref distinfo as DistribState, filename as string)
 
  DIM doc as DocPtr
  doc = LoadDocument(filename)
+ IF doc = 0 THEN
+  debuginfo "distrib doc not found, create it"
+  doc = CreateDocument()
+ END IF
  
  DIM root_node as NodePtr
  root_node = DocumentRoot(doc)
+ IF root_node = 0 THEN
+  root_node = CreateNode(doc, "distrib")
+  SetRootNode(doc, root_node)
+ END IF
 
  load_distrib_state distinfo, root_node
 
@@ -2869,6 +2877,10 @@ SUB load_distrib_state(byref distinfo as DistribState, byval node as Reload.Node
   distinfo.external_license = node."external_license".string
  END READNODE
 
+ '--Set up defaults
+ IF distinfo.pkgname = "" THEN distinfo.pkgname = trimextension(trimpath(sourcerpg))
+ IF distinfo.gamename = "" THEN distinfo.gamename = special_char_sanitize(load_gamename)
+
 END SUB
 
 SUB save_distrib_state(byref distinfo as DistribState, filename as string)
@@ -2887,8 +2899,12 @@ SUB save_distrib_state(byref distinfo as DistribState, filename as string)
 END SUB
 
 SUB save_distrib_state(byref distinfo as DistribState, byval node as Reload.NodePtr)
- SetChildNode node, "pkgname",     distinfo.pkgname
- SetChildNode node, "gamename",    distinfo.gamename
+ IF distinfo.pkgname <> trimextension(trimpath(sourcerpg)) THEN
+  SetChildNode node, "pkgname", distinfo.pkgname
+ END IF
+ IF distinfo.gamename <> special_char_sanitize(load_gamename) THEN
+  SetChildNode node, "gamename", distinfo.gamename
+ END IF
  SetChildNode node, "author",      distinfo.author
  SetChildNode node, "email",       distinfo.email
  SetChildNode node, "website",     distinfo.website
