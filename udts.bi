@@ -901,6 +901,7 @@ TYPE DistribState
   email as string
   website as string
   description as string
+  more_description as string
   license as string
   external_license as string
 END TYPE

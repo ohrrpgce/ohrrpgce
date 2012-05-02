@@ -1,0 +1,3 @@
+Here you can edit details about your game that will be used when packaging your game. This data will also be used for generating a README.txt file
+
+Much of this information is optional, so don't feel like you have to fill out every single field, you can just leave most of them blank if you want.

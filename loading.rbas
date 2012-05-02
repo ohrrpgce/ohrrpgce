@@ -2873,6 +2873,7 @@ SUB load_distrib_state(byref distinfo as DistribState, byval node as Reload.Node
   distinfo.email            = node."email".string
   distinfo.website          = node."website".string
   distinfo.description      = node."description".string
+  distinfo.more_description = node."more_description".string
   distinfo.license          = node."license".string
   distinfo.external_license = node."external_license".string
  END READNODE
@@ -2909,6 +2910,7 @@ SUB save_distrib_state(byref distinfo as DistribState, byval node as Reload.Node
  SetChildNode node, "email",       distinfo.email
  SetChildNode node, "website",     distinfo.website
  SetChildNode node, "description", distinfo.description
+ SetChildNode node, "more_description", distinfo.more_description
  SetChildNode node, "license",     distinfo.license
  SetChildNode node, "external_license", distinfo.external_license
 END SUB

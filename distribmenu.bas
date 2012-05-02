@@ -56,6 +56,8 @@ DECLARE SUB kill_debtmp_dir(debtmp as string, basename as string)
 DECLARE FUNCTION can_run_windows_exes () as integer
 DECLARE FUNCTION can_make_debian_packages () as integer
 DECLARE SUB edit_distrib_info ()
+DECLARE FUNCTION sanitize_email(s as string) as string
+DECLARE FUNCTION sanitize_url(s as string) as string
 
 CONST distmenuEXIT as integer = 1
 CONST distmenuZIP as integer = 2
@@ -136,13 +138,13 @@ SUB edit_distrib_info ()
  DIM menu as SimpleMenuItem vector
  v_new menu, 0
 
- append_simplemenu_item menu, "Previous Menu...", , , distmenuEXIT
+ append_simplemenu_item menu, "Previous Menu..."
 
  append_simplemenu_item menu, "Package name: " & distinfo.pkgname
  append_simplemenu_item menu, "Game name: " & distinfo.gamename
- 'append_simplemenu_item menu, "Author: " & distinfo.author
- 'append_simplemenu_item menu, "Email: " & distinfo.email
- 'append_simplemenu_item menu, "Website: " & distinfo.website
+ append_simplemenu_item menu, "Author: " & distinfo.author
+ append_simplemenu_item menu, "Email: " & distinfo.email
+ append_simplemenu_item menu, "Website: " & distinfo.website
 
  DIM st AS MenuState
  init_menu_state st, cast(BasicMenuItem vector, menu)
@@ -154,21 +156,39 @@ SUB edit_distrib_info ()
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "edit_distrib_info"
   IF enter_or_space() THEN
-   SELECT CASE menu[st.pt].dat
-    CASE distmenuEXIT: EXIT DO
+   SELECT CASE st.pt
+    CASE 0: EXIT DO
+    CASE 5:
+     distinfo.website = sanitize_url(multiline_string_editor(distinfo.website, "edit_distrib_info_website"))
+     menu[st.pt].text = "Website: " & distinfo.website
    END SELECT
   END IF
    
   SELECT CASE st.pt
    CASE 1:
     IF strgrabber(distinfo.pkgname, 40) THEN
-     distinfo.gamename = LCASE(special_char_sanitize(exclude(distinfo.gamename, "/\ ""'")))
+     distinfo.pkgname = LCASE(special_char_sanitize(exclude(distinfo.pkgname, "/\ ""'")))
      menu[st.pt].text = "Package name: " & distinfo.pkgname
     END IF
    CASE 2:
     IF strgrabber(distinfo.gamename, 40) THEN
      distinfo.gamename = special_char_sanitize(exclude(distinfo.gamename, "/\"""))
      menu[st.pt].text = "Game name: " & distinfo.gamename
+    END IF
+   CASE 3:
+    IF strgrabber(distinfo.author, 40) THEN
+     distinfo.author = special_char_sanitize(exclude(distinfo.author, "<>@"""))
+     menu[st.pt].text = "Author: " & distinfo.author
+    END IF
+   CASE 4:
+    IF strgrabber(distinfo.email, 40) THEN
+     distinfo.email = sanitize_email(distinfo.email)
+     menu[st.pt].text = "Email: " & distinfo.email
+    END IF
+   CASE 5:
+    IF strgrabber(distinfo.website, 1024) THEN
+     distinfo.website = sanitize_url(distinfo.website)
+     menu[st.pt].text = "Website: " & distinfo.website
     END IF
   END SELECT
 
@@ -190,6 +210,16 @@ SUB edit_distrib_info ()
  save_distrib_state distinfo, workingdir & SLASH & "distrib.reld"
 
 END SUB
+
+FUNCTION sanitize_email(s as string) as string
+ '--This e-mail address sanitization is far from perfect, but good enough for most cases
+ RETURN special_char_sanitize(exclusive(s, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_@.+"))
+END FUNCTION
+
+FUNCTION sanitize_url(s as string) as string
+ '--This website address sanitization is far from perfect, but probably good enough for most cases
+ RETURN special_char_sanitize(exclusive(s, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-.:/_+%:;?@=&"))
+END FUNCTION
 
 SUB distribute_game_as_zip ()
 
@@ -846,15 +876,23 @@ END SUB
 
 SUB write_debian_control_file(controlfile as string, basename as string, pkgver as string, size_in_kibibytes as integer, byref distinfo as DistribState)
  DIM LF as string = CHR(10)
+
+ DIM author as string = distinfo.author
+ IF author = "" THEN author = "Anonymous"
+ DIM email as string = distinfo.email
+ IF email = "" THEN email = "anonymous_author@no.email.specified"
+ DIM website as string = distinfo.website
+ IF LEN(website) > 0 THEN
+  IF NOT starts_with(website, "http://") ANDALSO NOT starts_with(website, "https://") THEN
+   website = "http://" & website
+  END IF
+ END IF
+
  DIM fh as integer = FREEFILE
  OPEN controlfile for output as #fh
  PUT #fh, , "Package: " & basename & LF
  PUT #fh, , "Priority: optional" & LF 
  PUT #fh, , "Section: games" & LF
- DIM author as string = distinfo.author
- IF author = "" THEN author = "Anonymous"
- DIM email as string = distinfo.email
- IF email = "" THEN email = "anonymous_author@no.email.specified" 
  PUT #fh, , "Maintainer: """ & author & """ <" & email & ">" & LF
  PUT #fh, , "Architecture: i386" & LF
  PUT #fh, , "Version: " & pkgver & LF
@@ -863,13 +901,16 @@ SUB write_debian_control_file(controlfile as string, basename as string, pkgver 
  'FIXME: Is there an easy way to verify which is the minimum libc version to depend upon?
  PUT #fh, , "Depends: libc6 (>= 2.3), libncurses5 (>= 5.4), libsdl-mixer1.2 (>= 1.2), libsdl1.2debian (>> 1.2), libx11-6, libxext6, libxpm4, libxrandr2, libxrender1" & LF
  'FIXME: it would be best to let the user edit the description
+ IF LEN(website) > 0 THEN
+  PUT #fh, , "Homepage: " & website & LF
+ END IF
  PUT #fh, , "Description: " & special_char_sanitize(distinfo.gamename) & LF
  IF LEN(TRIM(special_char_sanitize(load_aboutline()))) > 0 THEN
   PUT #fh, , " " & special_char_sanitize(load_aboutline()) & LF
  END IF
  IF LEN(TRIM(distinfo.description)) > 0 THEN
   PUT #fh, , " ." & LF
-  PUT #fh, , " " & distinfo.description & LF
+  PUT #fh, , " " & TRIM(exclude(distinfo.description, LF)) & LF
  END IF
  CLOSE #fh
 END SUB
