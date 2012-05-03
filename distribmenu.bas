@@ -56,6 +56,7 @@ DECLARE SUB kill_debtmp_dir(debtmp as string, basename as string)
 DECLARE FUNCTION can_run_windows_exes () as integer
 DECLARE FUNCTION can_make_debian_packages () as integer
 DECLARE SUB edit_distrib_info ()
+DECLARE FUNCTION sanitize_pkgname(s as string) as string
 DECLARE FUNCTION sanitize_email(s as string) as string
 DECLARE FUNCTION sanitize_url(s as string) as string
 
@@ -144,6 +145,8 @@ SUB edit_distrib_info ()
  append_simplemenu_item menu, "Game name: " & distinfo.gamename
  append_simplemenu_item menu, "Author: " & distinfo.author
  append_simplemenu_item menu, "Email: " & distinfo.email
+ append_simplemenu_item menu, "Description: " & distinfo.description
+ append_simplemenu_item menu, "More Description: " & distinfo.more_description
  append_simplemenu_item menu, "Website: " & distinfo.website
 
  DIM st AS MenuState
@@ -154,51 +157,70 @@ SUB edit_distrib_info ()
   setkeys YES
 
   IF keyval(scEsc) > 1 THEN EXIT DO
-  IF keyval(scF1) > 1 THEN show_help "edit_distrib_info"
+  IF keyval(scF1) > 1 THEN
+   SELECT CASE st.pt
+    CASE 1: show_help "edit_distrib_info_pkgname"
+    CASE 2: show_help "edit_distrib_info_gamename"
+    CASE 3: show_help "edit_distrib_info_author"
+    CASE 4: show_help "edit_distrib_info_email"
+    CASE 5: show_help "edit_distrib_info_description"
+    CASE 6: show_help "edit_distrib_info_more_description"
+    CASE 7: show_help "edit_distrib_info_website"
+    CASE ELSE
+    show_help "edit_distrib_info"
+   END SELECT
+  END IF
   IF enter_or_space() THEN
    SELECT CASE st.pt
     CASE 0: EXIT DO
-    CASE 5:
-     distinfo.website = sanitize_url(multiline_string_editor(distinfo.website, "edit_distrib_info_website"))
-     menu[st.pt].text = "Website: " & distinfo.website
    END SELECT
+  END IF
+  IF keyval(scEnter) > 1 THEN
+   SELECT CASE st.pt
+    CASE 1: distinfo.pkgname = multiline_string_editor(distinfo.pkgname, "edit_distrib_info_pkgname")
+    CASE 2: distinfo.gamename = multiline_string_editor(distinfo.gamename, "edit_distrib_info_gamename")
+    CASE 3: distinfo.author = multiline_string_editor(distinfo.author, "edit_distrib_info_author")
+    CASE 4: distinfo.email = multiline_string_editor(distinfo.email, "edit_distrib_info_email")
+    CASE 5: distinfo.description = multiline_string_editor(distinfo.description, "edit_distrib_info_description")
+    CASE 6: distinfo.more_description = multiline_string_editor(distinfo.more_description, "edit_distrib_info_more_description")
+    CASE 7: distinfo.website = multiline_string_editor(distinfo.website, "edit_distrib_info_website")
+   END SELECT
+   st.need_update = YES
   END IF
    
   SELECT CASE st.pt
-   CASE 1:
-    IF strgrabber(distinfo.pkgname, 40) THEN
-     distinfo.pkgname = LCASE(special_char_sanitize(exclude(distinfo.pkgname, "/\ ""'")))
-     menu[st.pt].text = "Package name: " & distinfo.pkgname
-    END IF
-   CASE 2:
-    IF strgrabber(distinfo.gamename, 40) THEN
-     distinfo.gamename = special_char_sanitize(exclude(distinfo.gamename, "/\"""))
-     menu[st.pt].text = "Game name: " & distinfo.gamename
-    END IF
-   CASE 3:
-    IF strgrabber(distinfo.author, 40) THEN
-     distinfo.author = special_char_sanitize(exclude(distinfo.author, "<>@"""))
-     menu[st.pt].text = "Author: " & distinfo.author
-    END IF
-   CASE 4:
-    IF strgrabber(distinfo.email, 40) THEN
-     distinfo.email = sanitize_email(distinfo.email)
-     menu[st.pt].text = "Email: " & distinfo.email
-    END IF
-   CASE 5:
-    IF strgrabber(distinfo.website, 1024) THEN
-     distinfo.website = sanitize_url(distinfo.website)
-     menu[st.pt].text = "Website: " & distinfo.website
-    END IF
+   CASE 1: IF strgrabber(distinfo.pkgname, 32767) THEN st.need_update = YES
+   CASE 2: IF strgrabber(distinfo.gamename, 32767) THEN st.need_update = YES
+   CASE 3: IF strgrabber(distinfo.author, 32767) THEN st.need_update = YES
+   CASE 4: IF strgrabber(distinfo.email, 32767) THEN st.need_update = YES
+   CASE 5: IF strgrabber(distinfo.description, 32767) THEN st.need_update = YES
+   CASE 6: IF strgrabber(distinfo.more_description, 32767) THEN st.need_update = YES
+   CASE 7: IF strgrabber(distinfo.website, 32767) THEN st.need_update = YES
   END SELECT
 
   usemenu st, cast(BasicMenuItem vector, menu)
   
   IF st.need_update THEN
+   distinfo.pkgname = sanitize_pkgname(distinfo.pkgname)
+   distinfo.gamename = special_char_sanitize(exclude(distinfo.gamename, "/\""" & CHR(10)))
+   distinfo.author = special_char_sanitize(exclude(distinfo.author, "<>@""" & CHR(10)))
+   distinfo.email = sanitize_email(distinfo.email)
+   distinfo.website = sanitize_url(distinfo.website)
+   menu[1].text = "Package name: " & distinfo.pkgname
+   menu[2].text = "Game name: " & distinfo.gamename
+   menu[3].text = "Author: " & distinfo.author
+   menu[4].text = "Email: " & distinfo.email
+   menu[5].text = "Description: " & distinfo.description
+   menu[6].text = "More Description: " & distinfo.more_description
+   menu[7].text = "Website: " & distinfo.website
+   st.need_update = NO
   END IF
 
   clearpage dpage
   standardmenu cast(BasicMenuItem vector, menu), st, 0, 0, dpage
+  IF (st.pt >= 5 ANDALSO st.pt <= 6) ORELSE LEN(menu[st.pt].text) >= 40 THEN
+   edgeprint "Press ENTER to edit multiple lines", 0, 190, uilook(uiText), dpage
+  END IF
   
   SWAP vpage, dpage
   setvispage vpage
@@ -210,6 +232,10 @@ SUB edit_distrib_info ()
  save_distrib_state distinfo, workingdir & SLASH & "distrib.reld"
 
 END SUB
+
+FUNCTION sanitize_pkgname(s as string) as string
+ RETURN LCASE(special_char_sanitize(exclude(s, "/\ ""'" + CHR(10))))
+END FUNCTION
 
 FUNCTION sanitize_email(s as string) as string
  '--This e-mail address sanitization is far from perfect, but good enough for most cases
