@@ -63,6 +63,7 @@ DECLARE FUNCTION sanitize_email(s as string) as string
 DECLARE FUNCTION sanitize_url(s as string) as string
 DECLARE SUB export_readme_text_file (LE as string=LINE_END, byval wrap as integer=72)
 DECLARE SUB write_readme_text_file (filename as string, LE as string=LINE_END, byval wrap as integer=72)
+DECLARE SUB maybe_write_license_text_file (filename as string)
 DECLARE FUNCTION is_known_license(license_code as string) as integer
 DECLARE FUNCTION generate_copyright_line(distinfo as DistribState) as string
 DECLARE FUNCTION browse_licenses(old_license as string) as string
@@ -341,6 +342,25 @@ SUB write_readme_text_file (filename as string, LE as string=LINE_END, byval wra
   
 END SUB
 
+SUB maybe_write_license_text_file (filename as string)
+
+ 'For some types of licenses, include a text copy
+
+ DIM distinfo as DistribState
+ load_distrib_state distinfo
+
+ IF distinfo.license = "COPYRIGHT" THEN EXIT SUB
+ IF distinfo.license = "PUBLICDOMAIN" THEN EXIT SUB
+ 
+ DIM helpdir as string = get_help_dir()
+ DIM lic_file as string = helpdir & SLASH & "license_" & LCASE(distinfo.license) & ".txt"
+ 
+ IF NOT isfile(lic_file) THEN debug lic_file & " does not exist": EXIT SUB
+ 
+ copyfile lic_file, filename
+ 
+END SUB
+
 SUB write_debian_copyright_file (filename as string)
 
  DIM LF as string = CHR(10)
@@ -465,6 +485,7 @@ SUB distribute_game_as_zip ()
  
   'Write readme with DOS/Window line endings
   write_readme_text_file ziptmp & SLASH & "README-" & basename & ".txt", CHR(13) & CHR(10)
+  maybe_write_license_text_file ziptmp & SLASH & "LICENSE.txt"
  
   DIM args as string = "-r -j """ & destzip & """ """ & ziptmp & """"
   spawn_ret = spawn_and_wait(zip, args)
@@ -691,6 +712,8 @@ SUB distribute_game_as_windows_installer ()
 
   'Write readme with DOS/Window line endings
   write_readme_text_file isstmp & SLASH & "README-" & basename & ".txt", CHR(13) & CHR(10)
+
+  maybe_write_license_text_file isstmp & SLASH & "LICENSE.txt"
   
   write_innosetup_script basename, distinfo.gamename, isstmp
 
@@ -738,6 +761,9 @@ SUB write_innosetup_script (basename as string, gamename as string, isstmp as st
  s &= "SolidCompression=yes" & E
  s &= "OutputBaseFilename=setup-" & basename & E
  s &= "InfoAfterFile=README-" & basename & ".txt" & E
+ IF isfile(isstmp & SLASH & "LICENSE.txt") THEN
+  s &= "LicenseFile=LICENSE.txt" & E
+ END IF
 
  s &= E & "[Languages]" & E
  s &= "Name: ""eng""; MessagesFile: ""compiler:Default.isl""" & E
@@ -750,6 +776,9 @@ SUB write_innosetup_script (basename as string, gamename as string, isstmp as st
  add_innosetup_file s, isstmp & SLASH & "SDL_mixer.dll"
  add_innosetup_file s, isstmp & SLASH & "LICENSE-binary.txt"
  add_innosetup_file s, isstmp & SLASH & "README-" & basename & ".txt"
+ IF isfile(isstmp & SLASH & "LICENSE.txt") THEN
+  add_innosetup_file s, isstmp & SLASH & "LICENSE.txt"
+ END IF
 
  s &= E & "[Icons]" & E
  s &= "Name: ""{userdesktop}\" & gamename & """; Filename: ""{app}\" & basename & ".exe""; WorkingDir: ""{app}"";" & E
@@ -898,8 +927,17 @@ SUB distribute_game_as_debian_package ()
   DIM gamedocsdir as string = docsdir & SLASH & basename
   MKDIR gamedocsdir
   write_readme_text_file gamedocsdir & SLASH & "README.txt", CHR(10)
-  IF gzip_file(gamedocsdir & SLASH & "README.txt") = NO THEN EXIT DO
+  gzip_file gamedocsdir & SLASH & "README.txt"
   write_debian_copyright_file gamedocsdir & SLASH & "copyright"
+
+  IF distinfo.license <> "GPL" THEN
+   '--only write non-GPL license files because Debian policy prefers referencing the local copy
+   DIM lic_file as string = gamedocsdir & SLASH & "LICENSE-" & distinfo.license & ".txt"
+   maybe_write_license_text_file lic_file
+   IF isfile(lic_file) THEN
+    gzip_file lic_file
+   END IF
+  END IF
 
   debuginfo "Calculate Installed-Size"
   DIM size_in_kibibytes as integer = count_directory_size(debtmp & SLASH & "usr") / 1024
@@ -930,7 +968,7 @@ SUB distribute_game_as_debian_package ()
  LOOP
 
  '--Cleanup temp files
- 'kill_debtmp_dir debtmp
+ kill_debtmp_dir debtmp, basename
  
 END SUB
 
