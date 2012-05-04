@@ -1,0 +1,5 @@
+This should be a short description of your game. You should probably try to make it at least one sentence, but no more than one paragraph.
+
+This will be used as the first paragraph of your generated README file.
+
+If you need a long description, you should put the rest of it in the "More Description" section.

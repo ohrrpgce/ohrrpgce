@@ -167,8 +167,10 @@ DECLARE FUNCTION load_aboutline (filename as string="") as string
 DECLARE SUB save_gamename (s as string, filename as string="")
 DECLARE SUB save_aboutline (s as string, filename as string="")
 
+DECLARE SUB load_distrib_state OVERLOAD (byref distinfo as DistribState)
 DECLARE SUB load_distrib_state OVERLOAD (byref distinfo as DistribState, filename as string)
 DECLARE SUB load_distrib_state OVERLOAD (byref distinfo as DistribState, byval node as Reload.NodePtr)
+DECLARE SUB save_distrib_state OVERLOAD (byref distinfo as DistribState)
 DECLARE SUB save_distrib_state OVERLOAD (byref distinfo as DistribState, filename as string)
 DECLARE SUB save_distrib_state OVERLOAD (byref distinfo as DistribState, byval node as Reload.NodePtr)
 

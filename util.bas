@@ -1657,6 +1657,11 @@ FUNCTION starts_with(s as string, prefix as string) as integer
  RETURN MID(s, 1, LEN(prefix)) = prefix
 END FUNCTION
 
+FUNCTION ends_with(s as string, suffix as string) as integer
+ 'Return YES if the string ends with a specific prefix
+ RETURN RIGHT(s, LEN(suffix)) = suffix
+END FUNCTION
+
 FUNCTION byte_size_of_file(filename as string) as integer
  DIM fh as integer = FREEFILE
  OPEN filename for binary access read as #fh

@@ -59,12 +59,15 @@ DECLARE SUB edit_distrib_info ()
 DECLARE FUNCTION sanitize_pkgname(s as string) as string
 DECLARE FUNCTION sanitize_email(s as string) as string
 DECLARE FUNCTION sanitize_url(s as string) as string
+DECLARE SUB export_readme_text_file (LE as string=LINE_END, byval wrap as integer=72)
+DECLARE SUB write_readme_text_file (filename as string, LE as string=LINE_END, byval wrap as integer=72)
 
 CONST distmenuEXIT as integer = 1
 CONST distmenuZIP as integer = 2
 CONST distmenuWINSETUP as integer = 3
 CONST distmenuDEBSETUP as integer = 4
 CONST distmenuINFO as integer = 5
+CONST distmenuREADME as integer = 6
 
 SUB distribute_game ()
  
@@ -89,6 +92,8 @@ SUB distribute_game ()
   append_simplemenu_item menu, " (requires ar+tar+gzip)", YES, uilook(uiDisabledItem)
  END IF
 
+ append_simplemenu_item menu, "Export README text file", , , distmenuREADME
+
  DIM st AS MenuState
  init_menu_state st, cast(BasicMenuItem vector, menu)
 
@@ -112,6 +117,8 @@ SUB distribute_game ()
      distribute_game_as_debian_package
     CASE distmenuINFO:
      edit_distrib_info
+    CASE distmenuREADME:
+     export_readme_text_file
    END SELECT
   END IF
 
@@ -134,7 +141,7 @@ END SUB
 SUB edit_distrib_info ()
 
  DIM distinfo as DistribState
- load_distrib_state distinfo, workingdir & SLASH & "distrib.reld"
+ load_distrib_state distinfo
 
  DIM menu as SimpleMenuItem vector
  v_new menu, 0
@@ -229,7 +236,7 @@ SUB edit_distrib_info ()
  setkeys
  v_free menu
 
- save_distrib_state distinfo, workingdir & SLASH & "distrib.reld"
+ save_distrib_state distinfo
 
 END SUB
 
@@ -247,10 +254,59 @@ FUNCTION sanitize_url(s as string) as string
  RETURN special_char_sanitize(exclusive(s, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-.:/_+%:;?@=&"))
 END FUNCTION
 
+SUB export_readme_text_file (LE as string=LINE_END, byval wrap as integer=72)
+
+ DIM distinfo as DistribState
+ load_distrib_state distinfo
+
+ DIM txtfile as string = trimfilename(sourcerpg) & SLASH & "README-" & distinfo.pkgname & ".txt"
+ 
+ write_readme_text_file txtfile, LE
+ 
+END SUB
+
+SUB write_readme_text_file (filename as string, LE as string=LINE_END, byval wrap as integer=72)
+ 'LE is passed instead of using LINE_END directly so we can override it easily.
+
+ DIM LF as string = CHR(10)
+
+ DIM shortname as string = trimpath(filename)
+ IF isfile(filename) THEN
+  IF yesno(shortname & " already exists, are you sure you want to overwrite it?", NO) = NO THEN RETURN
+ END IF
+ safekill filename
+ 
+ DIM distinfo as DistribState
+ load_distrib_state distinfo
+
+ DIM s as string = ""
+ s &= distinfo.gamename & LF & LF & distinfo.description
+ IF NOT ends_with(s, LF) THEN s &= LF
+ IF LEN(TRIM(distinfo.more_description)) THEN
+  s &= LF & distinfo.more_description
+ END IF
+ IF NOT ends_with(s, LF) THEN s &= LF
+ 
+ s = wordwrap(s, wrap)
+ 
+ IF LF <> LE THEN
+  'If we want this text to have DOS/Windows line endings, convert it now
+  replacestr(s, LF, LE)
+ END IF
+
+ DIM fh as integer = FREEFILE
+ OPEN filename for binary as #fh
+ PUT #fh, , s
+ CLOSE #fh
+ 
+ IF isfile(filename) THEN visible_debug "Created " & shortname
+ 
+END SUB
+
 SUB distribute_game_as_zip ()
 
  DIM distinfo as DistribState
- load_distrib_state distinfo, workingdir & SLASH & "distrib.reld"
+ load_distrib_state distinfo
 
  DIM zip as string = find_helper_app("zip", YES)
  IF zip = "" THEN
@@ -491,7 +547,7 @@ END FUNCTION
 SUB distribute_game_as_windows_installer ()
 
  DIM distinfo as DistribState
- load_distrib_state distinfo, workingdir & SLASH & "distrib.reld"
+ load_distrib_state distinfo
 
  DIM basename as string = distinfo.pkgname
  DIM installer as string = trimfilename(sourcerpg) & SLASH & "setup-" & basename & ".exe"
@@ -669,7 +725,7 @@ END FUNCTION
 SUB distribute_game_as_debian_package ()
 
  DIM distinfo as DistribState
- load_distrib_state distinfo, workingdir & SLASH & "distrib.reld"
+ load_distrib_state distinfo
 
  DIM basename as string = get_debian_package_name()
  DIM pkgver as string = get_debian_package_version()
@@ -926,14 +982,10 @@ SUB write_debian_control_file(controlfile as string, basename as string, pkgver 
  'FIXME: the Depends: line could vary depending on gfx and music backends
  'FIXME: Is there an easy way to verify which is the minimum libc version to depend upon?
  PUT #fh, , "Depends: libc6 (>= 2.3), libncurses5 (>= 5.4), libsdl-mixer1.2 (>= 1.2), libsdl1.2debian (>> 1.2), libx11-6, libxext6, libxpm4, libxrandr2, libxrender1" & LF
- 'FIXME: it would be best to let the user edit the description
  IF LEN(website) > 0 THEN
   PUT #fh, , "Homepage: " & website & LF
  END IF
  PUT #fh, , "Description: " & special_char_sanitize(distinfo.gamename) & LF
- IF LEN(TRIM(special_char_sanitize(load_aboutline()))) > 0 THEN
-  PUT #fh, , " " & special_char_sanitize(load_aboutline()) & LF
- END IF
  IF LEN(TRIM(distinfo.description)) > 0 THEN
   PUT #fh, , " ." & LF
   PUT #fh, , " " & TRIM(exclude(distinfo.description, LF)) & LF
@@ -943,7 +995,7 @@ END SUB
 
 FUNCTION get_debian_package_name() as string
  DIM distinfo as DistribState
- load_distrib_state distinfo, workingdir & SLASH & "distrib.reld"
+ load_distrib_state distinfo
  DIM s as string
  s = distinfo.pkgname
  s = LCASE(s)

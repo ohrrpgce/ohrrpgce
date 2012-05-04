@@ -1,0 +1,1 @@
+You are editing the name of your game. it is probably best to leave this blank, and instead edit the "Long Name" in the "Edit General Game Data" menu.

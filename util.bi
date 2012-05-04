@@ -343,6 +343,7 @@ declare sub invert_permutation(indices() as integer)
 declare function strhash overload (byval strp as zstring ptr, byval leng as integer) as unsigned integer
 declare function strhash overload (hstr as string) as unsigned integer
 declare function starts_with(s as string, prefix as string) as integer
+declare function ends_with(s as string, suffix as string) as integer
 
 'Euclidean modulo (always positive)
 #DEFINE POSMOD(dividend, divisor) ((((dividend) MOD (divisor)) + (divisor)) MOD (divisor))

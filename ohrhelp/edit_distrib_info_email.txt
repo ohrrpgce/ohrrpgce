@@ -1,0 +1,5 @@
+Here you can optionally type your e-mail address. People who install your game might use this e-mail address to ask you questions about the game.
+
+Don't use a personal address that you want to keep secret, only use a public e-mail address.
+
+Please only type one e-mail address, even if the game has multiple authors. This should be the e-mail of the primary author or project leader. If you want to list other e-mail addresses, it is better to put them in the "More Description" section

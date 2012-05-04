@@ -2842,6 +2842,11 @@ SUB save_aboutline (s as string, filename as string="")
  storerecord tempbuf(), f, 40
 END SUB
 
+SUB load_distrib_state(byref distinfo as DistribState)
+ DIM filename as string = workingdir & SLASH & "distrib.reld"
+ load_distrib_state distinfo, filename
+END SUB
+
 SUB load_distrib_state(byref distinfo as DistribState, filename as string)
 
  DIM doc as DocPtr
@@ -2882,6 +2887,11 @@ SUB load_distrib_state(byref distinfo as DistribState, byval node as Reload.Node
  IF distinfo.pkgname = "" THEN distinfo.pkgname = trimextension(trimpath(sourcerpg))
  IF distinfo.gamename = "" THEN distinfo.gamename = special_char_sanitize(load_gamename)
 
+END SUB
+
+SUB save_distrib_state(byref distinfo as DistribState)
+ DIM filename as string = workingdir & SLASH & "distrib.reld"
+ save_distrib_state distinfo, filename
 END SUB
 
 SUB save_distrib_state(byref distinfo as DistribState, filename as string)

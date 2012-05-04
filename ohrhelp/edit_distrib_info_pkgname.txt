@@ -1,0 +1,5 @@
+You are editing the package name. This will be the filename of your distribution package, and the filename that your .RPG file is renamed to.
+
+Keep it simple!
+
+It is usually a good idea to leave this the same as your RPG file name.

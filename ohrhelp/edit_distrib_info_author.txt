@@ -1,0 +1,5 @@
+This is where you put your name, as author of the game.
+
+If the game is a collaberation between multiple authors, you can list them all, separated by commas, but it might be better to just list the primary author, or the project leader, and then list other authors in the "More Description" section.
+
+Because this is used for your game's copyright notice, you might consider using your real name instead of your internet nickname (but only if you don't mind letting people know your real name)
