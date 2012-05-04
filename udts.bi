@@ -903,7 +903,7 @@ TYPE DistribState
   description as string
   more_description as string
   license as string
-  external_license as string
+  copyright_year as string
 END TYPE
 
 #ENDIF

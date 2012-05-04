@@ -1,0 +1,33 @@
+(The OHRRPGCE is not a Lawyer, and neither are any of its programmers. If you have questions about copyright law, you should ask an expert.)
+
+Press ENTER to choose a license.
+
+---
+COPYRIGHT
+
+In most countries, all creative works automatically get copyright protection. This means people can't do anything with your game without permission. By giving people your game, or selling people your game, you give them permission to play it, but not to share it or make changes. If you don't know what license to choose, plain COPYRIGHT is a good safe choice.
+
+---
+PUBLICDOMAIN
+
+Public Domain means you are abandoning your copyright, and giving your game away with no restrictions of any kind. People can do anything they want with your game.
+
+---
+GPL
+
+The GNU General Public License means that anybody can share copies of your game, and anybody can also make changes to your game, as long as they promise to share all their changes under the terms the GPL also. To learn more, visit http://gnu.org/licenses/gpl.html
+
+---
+MIT
+
+The MIT License means that anybody can do anything with your game as long as they don't remove their copyright notice. To learn more, visit http://opensource.org/licenses/mit
+
+---
+CC-Licenses
+
+The various CC (Creative Commons) licenses give you a lot of control over who can use your game and what they are allowed to do with it. To pick a CC license, visit http://creativecommons.org/choose
+
+---
+OTHER
+
+If you want another license, you can choose COPYRIGHT and then type your license in the "Description" or the "More Description" sections.

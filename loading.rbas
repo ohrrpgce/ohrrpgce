@@ -2880,12 +2880,14 @@ SUB load_distrib_state(byref distinfo as DistribState, byval node as Reload.Node
   distinfo.description      = node."description".string
   distinfo.more_description = node."more_description".string
   distinfo.license          = node."license".string
-  distinfo.external_license = node."external_license".string
+  distinfo.copyright_year   = node."copyright_year".string
  END READNODE
 
  '--Set up defaults
  IF distinfo.pkgname = "" THEN distinfo.pkgname = trimextension(trimpath(sourcerpg))
  IF distinfo.gamename = "" THEN distinfo.gamename = special_char_sanitize(load_gamename)
+ IF distinfo.copyright_year = "" THEN distinfo.copyright_year = MID(DATE, 7, 4)
+ IF distinfo.license = "" THEN distinfo.license = "COPYRIGHT"
 
 END SUB
 
@@ -2922,6 +2924,6 @@ SUB save_distrib_state(byref distinfo as DistribState, byval node as Reload.Node
  SetChildNode node, "description", distinfo.description
  SetChildNode node, "more_description", distinfo.more_description
  SetChildNode node, "license",     distinfo.license
- SetChildNode node, "external_license", distinfo.external_license
+ SetChildNode node, "copyright_year", distinfo.copyright_year
 END SUB
 

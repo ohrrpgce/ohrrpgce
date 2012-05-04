@@ -1,0 +1,11 @@
+This is the year that you first release your game, This is the year your copyright starts. for example:
+
+2007
+
+If you have multiple releases over time, you can write several years separated by commas:
+
+2006, 2007, 2008
+
+You can also put a range of years:
+
+2006 - 2012

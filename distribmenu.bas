@@ -61,6 +61,9 @@ DECLARE FUNCTION sanitize_email(s as string) as string
 DECLARE FUNCTION sanitize_url(s as string) as string
 DECLARE SUB export_readme_text_file (LE as string=LINE_END, byval wrap as integer=72)
 DECLARE SUB write_readme_text_file (filename as string, LE as string=LINE_END, byval wrap as integer=72)
+DECLARE FUNCTION is_known_license(license_code as string) as integer
+DECLARE FUNCTION generate_copyright_line(distinfo as DistribState) as string
+DECLARE FUNCTION browse_licenses(old_license as string) as string
 
 CONST distmenuEXIT as integer = 1
 CONST distmenuZIP as integer = 2
@@ -140,6 +143,16 @@ END SUB
 
 SUB edit_distrib_info ()
 
+ DIM rootsl as Slice Ptr
+ rootsl = NewSliceOfType(slRoot)
+ rootsl->Fill = YES
+ DIM infosl as Slice Ptr
+ infosl = NewSliceOfType(slText, rootsl)
+ infosl->Width = 320
+ infosl->AnchorVert = 2
+ infosl->AlignVert = 2
+ ChangeTextSlice infosl, , uilook(uiText), YES, YES
+
  DIM distinfo as DistribState
  load_distrib_state distinfo
 
@@ -155,9 +168,12 @@ SUB edit_distrib_info ()
  append_simplemenu_item menu, "Description: " & distinfo.description
  append_simplemenu_item menu, "More Description: " & distinfo.more_description
  append_simplemenu_item menu, "Website: " & distinfo.website
+ append_simplemenu_item menu, "Copyright year: " & distinfo.copyright_year
+ append_simplemenu_item menu, "License: " & distinfo.license
 
  DIM st AS MenuState
  init_menu_state st, cast(BasicMenuItem vector, menu)
+ st.need_update = YES
 
  DO
   setwait 55
@@ -173,8 +189,10 @@ SUB edit_distrib_info ()
     CASE 5: show_help "edit_distrib_info_description"
     CASE 6: show_help "edit_distrib_info_more_description"
     CASE 7: show_help "edit_distrib_info_website"
+    CASE 8: show_help "edit_distrib_info_copyright_year"
+    CASE 9: show_help "edit_distrib_info_license"
     CASE ELSE
-    show_help "edit_distrib_info"
+     show_help "edit_distrib_info"
    END SELECT
   END IF
   IF enter_or_space() THEN
@@ -191,6 +209,8 @@ SUB edit_distrib_info ()
     CASE 5: distinfo.description = multiline_string_editor(distinfo.description, "edit_distrib_info_description")
     CASE 6: distinfo.more_description = multiline_string_editor(distinfo.more_description, "edit_distrib_info_more_description")
     CASE 7: distinfo.website = multiline_string_editor(distinfo.website, "edit_distrib_info_website")
+    CASE 8: distinfo.copyright_year = multiline_string_editor(distinfo.website, "edit_distrib_info_copyright_year")
+    CASE 9: distinfo.license = browse_licenses(distinfo.license)
    END SELECT
    st.need_update = YES
   END IF
@@ -203,9 +223,10 @@ SUB edit_distrib_info ()
    CASE 5: IF strgrabber(distinfo.description, 32767) THEN st.need_update = YES
    CASE 6: IF strgrabber(distinfo.more_description, 32767) THEN st.need_update = YES
    CASE 7: IF strgrabber(distinfo.website, 32767) THEN st.need_update = YES
+   CASE 8: IF strgrabber(distinfo.copyright_year, 32767) THEN st.need_update = YES
   END SELECT
 
-  usemenu st, cast(BasicMenuItem vector, menu)
+  IF usemenu(st, cast(BasicMenuItem vector, menu)) THEN st.need_update = YES
   
   IF st.need_update THEN
    distinfo.pkgname = sanitize_pkgname(distinfo.pkgname)
@@ -213,6 +234,7 @@ SUB edit_distrib_info ()
    distinfo.author = special_char_sanitize(exclude(distinfo.author, "<>@""" & CHR(10)))
    distinfo.email = sanitize_email(distinfo.email)
    distinfo.website = sanitize_url(distinfo.website)
+   distinfo.copyright_year = exclusive(distinfo.copyright_year, "0123456789 -,")
    menu[1].text = "Package name: " & distinfo.pkgname
    menu[2].text = "Game name: " & distinfo.gamename
    menu[3].text = "Author: " & distinfo.author
@@ -220,14 +242,21 @@ SUB edit_distrib_info ()
    menu[5].text = "Description: " & distinfo.description
    menu[6].text = "More Description: " & distinfo.more_description
    menu[7].text = "Website: " & distinfo.website
+   menu[8].text = "Copyright year: " & distinfo.copyright_year
+   menu[9].text = "License: " & distinfo.license
+   IF st.pt = 8 ORELSE st.pt = 9 THEN
+    ChangeTextSlice infosl, generate_copyright_line(distinfo)
+   ELSEIF (st.pt >= 5 ANDALSO st.pt <= 6) ORELSE LEN(menu[st.pt].text) >= 40 THEN
+    ChangeTextSlice infosl, "Press ENTER to edit multiple lines"
+   ELSE
+    ChangeTextSlice infosl, ""
+   END IF
    st.need_update = NO
   END IF
 
   clearpage dpage
+  DrawSlice rootsl, dpage
   standardmenu cast(BasicMenuItem vector, menu), st, 0, 0, dpage
-  IF (st.pt >= 5 ANDALSO st.pt <= 6) ORELSE LEN(menu[st.pt].text) >= 40 THEN
-   edgeprint "Press ENTER to edit multiple lines", 0, 190, uilook(uiText), dpage
-  END IF
   
   SWAP vpage, dpage
   setvispage vpage
@@ -262,6 +291,7 @@ SUB export_readme_text_file (LE as string=LINE_END, byval wrap as integer=72)
  DIM txtfile as string = trimfilename(sourcerpg) & SLASH & "README-" & distinfo.pkgname & ".txt"
  
  write_readme_text_file txtfile, LE
+ IF isfile(txtfile) THEN visible_debug "Created " & trimpath(txtfile)
  
 END SUB
 
@@ -279,14 +309,21 @@ SUB write_readme_text_file (filename as string, LE as string=LINE_END, byval wra
  DIM distinfo as DistribState
  load_distrib_state distinfo
 
+ '--Construct the file
  DIM s as string = ""
- s &= distinfo.gamename & LF & LF & distinfo.description
+ 
+ s &= distinfo.gamename & LF
+ s &= generate_copyright_line(distinfo) & LF
+ 
+ s &= LF & distinfo.description
  IF NOT ends_with(s, LF) THEN s &= LF
+ 
  IF LEN(TRIM(distinfo.more_description)) THEN
   s &= LF & distinfo.more_description
  END IF
  IF NOT ends_with(s, LF) THEN s &= LF
  
+ '--format the lines
  s = wordwrap(s, wrap)
  
  IF LF <> LE THEN
@@ -294,14 +331,63 @@ SUB write_readme_text_file (filename as string, LE as string=LINE_END, byval wra
   replacestr(s, LF, LE)
  END IF
 
+ '--write the file to disk
  DIM fh as integer = FREEFILE
  OPEN filename for binary as #fh
  PUT #fh, , s
  CLOSE #fh
- 
- IF isfile(filename) THEN visible_debug "Created " & shortname
- 
+  
 END SUB
+
+FUNCTION browse_licenses(old_license as string) as string
+ 'duplicated known_licenses because global string arrays are a pain in the ass
+ DIM known_licenses(9) as string = {"COPYRIGHT", "PUBLICDOMAIN", "GPL", "MIT", "CC-BY", "CC-BY-SA", "CC-BY-ND", "CC-BY-NC", "CC-BY-NC-SA", "CC-BY-NC-ND"}
+ DIM old_index as integer = 0
+ FOR i as integer = 0 TO UBOUND(known_licenses)
+  IF old_license = known_licenses(i) THEN old_index = i
+ NEXT i
+ DIM which as integer
+ which = multichoice("Choose a copyright license", known_licenses(), old_index, , "edit_distrib_info_license")
+ IF which = -1 THEN RETURN old_license
+ RETURN known_licenses(which)
+END FUNCTION
+
+FUNCTION is_known_license(license_code as string) as integer
+ 'duplicated known_licenses because global string arrays are a pain in the ass
+ DIM known_licenses(9) as string = {"COPYRIGHT", "PUBLICDOMAIN", "GPL", "MIT", "CC-BY", "CC-BY-SA", "CC-BY-ND", "CC-BY-NC", "CC-BY-NC-SA", "CC-BY-NC-ND"}
+ FOR i as integer = 0 TO UBOUND(known_licenses)
+  IF license_code = known_licenses(i) THEN RETURN YES
+ NEXT i
+ RETURN NO
+END FUNCTION
+
+FUNCTION generate_copyright_line(distinfo as DistribState) as string
+ DIM c_y_by as string = "(C) Copyright " & distinfo.copyright_year & " " & distinfo.author
+ SELECT CASE distinfo.license
+  CASE "COPYRIGHT":
+   RETURN c_y_by
+  CASE "PUBLICDOMAIN":
+   RETURN "Copyright released by " & distinfo.author & " into the Public Domain."
+  CASE "GPL":
+   RETURN c_y_by & ". this game is distributed under the terms of the GNU General Public License."
+  CASE "MIT":
+   RETURN c_y_by & ". this game is distributed under the terms of the MIT license."
+  CASE "CC-BY":
+   RETURN c_y_by & ". This game is licensed under a Creative Commons Attribution 3.0 Unported License."
+  CASE "CC-BY-SA":
+   RETURN c_y_by & ". This game is licensed under a Creative Commons Attribution-ShareAlike 3.0 Unported License."
+  CASE "CC-BY-ND":
+   RETURN c_y_by & ". This game is licensed under a Creative Commons Attribution-NoDerivs 3.0 Unported License."
+  CASE "CC-BY-NC":
+   RETURN c_y_by & ". This game is licensed under a Creative Commons Attribution-NonCommercial 3.0 Unported License."
+  CASE "CC-BY-NC-SA":
+   RETURN c_y_by & ". This game is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License."
+  CASE "CC-BY-NC-ND":
+   RETURN c_y_by & ". This game is licensed under a Creative Commons Attribution-NonCommercial-NoDerivs 3.0 Unported License."
+  CASE ELSE:
+   RETURN distinfo.license & " is not in the list of licenses that this program understands"
+ END SELECT
+END FUNCTION
 
 SUB distribute_game_as_zip ()
 
@@ -351,6 +437,9 @@ SUB distribute_game_as_zip ()
   IF use_gameplayer THEN
    IF copy_windows_gameplayer(gameplayer, basename, ziptmp) = NO THEN EXIT DO
   END IF
+ 
+  'Write readme with DOS/Window line endings
+  write_readme_text_file ziptmp & SLASH & "README-" & basename & ".txt", CHR(13) & CHR(10)
  
   DIM args as string = "-r -j """ & destzip & """ """ & ziptmp & """"
   spawn_ret = spawn_and_wait(zip, args)
@@ -574,6 +663,9 @@ SUB distribute_game_as_windows_installer ()
   gameplayer = get_windows_gameplayer()
   IF gameplayer = "" THEN visible_debug "ERROR: game.exe is not available" : EXIT DO
   IF copy_windows_gameplayer(gameplayer, basename, isstmp) = NO THEN EXIT DO
+
+  'Write readme with DOS/Window line endings
+  write_readme_text_file isstmp & SLASH & "README-" & basename & ".txt", CHR(13) & CHR(10)
   
   write_innosetup_script basename, distinfo.gamename, isstmp
 
@@ -619,7 +711,8 @@ SUB write_innosetup_script (basename as string, gamename as string, isstmp as st
  s &= "DefaultDirName={pf}\OHRRPGCE Games\" & gamename & E
  s &= "DefaultGroupName=" & gamename & E
  s &= "SolidCompression=yes" & E
- s &= "OutputBaseFilename=setup-" & basename
+ s &= "OutputBaseFilename=setup-" & basename & E
+ s &= "InfoAfterFile=README-" & basename & ".txt" & E
 
  s &= E & "[Languages]" & E
  s &= "Name: ""eng""; MessagesFile: ""compiler:Default.isl""" & E
@@ -631,6 +724,7 @@ SUB write_innosetup_script (basename as string, gamename as string, isstmp as st
  add_innosetup_file s, isstmp & SLASH & "SDL.dll"
  add_innosetup_file s, isstmp & SLASH & "SDL_mixer.dll"
  add_innosetup_file s, isstmp & SLASH & "LICENSE-binary.txt"
+ add_innosetup_file s, isstmp & SLASH & "README-" & basename & ".txt"
 
  s &= E & "[Icons]" & E
  s &= "Name: ""{userdesktop}\" & gamename & """; Filename: ""{app}\" & basename & ".exe""; WorkingDir: ""{app}"";" & E
