@@ -293,8 +293,13 @@ SUB export_readme_text_file (LE as string=LINE_END, byval wrap as integer=72)
 
  DIM txtfile as string = trimfilename(sourcerpg) & SLASH & "README-" & distinfo.pkgname & ".txt"
  
+ DIM shortname as string = trimpath(txtfile)
+ IF isfile(txtfile) THEN
+  IF yesno(shortname & " already exists, are you sure you want to overwrite it?", NO) = NO THEN RETURN
+ END IF
+ safekill txtfile
  write_readme_text_file txtfile, LE
- IF isfile(txtfile) THEN visible_debug "Created " & trimpath(txtfile)
+ IF isfile(txtfile) THEN visible_debug "Created " & shortname
  
 END SUB
 
@@ -302,12 +307,6 @@ SUB write_readme_text_file (filename as string, LE as string=LINE_END, byval wra
  'LE is passed instead of using LINE_END directly so we can override it easily.
 
  DIM LF as string = CHR(10)
-
- DIM shortname as string = trimpath(filename)
- IF isfile(filename) THEN
-  IF yesno(shortname & " already exists, are you sure you want to overwrite it?", NO) = NO THEN RETURN
- END IF
- safekill filename
  
  DIM distinfo as DistribState
  load_distrib_state distinfo
@@ -325,6 +324,11 @@ SUB write_readme_text_file (filename as string, LE as string=LINE_END, byval wra
   s &= LF & distinfo.more_description
  END IF
  IF NOT ends_with(s, LF) THEN s &= LF
+
+ s &= LF
+
+ IF LEN(distinfo.website) THEN s &= distinfo.website & LF
+ IF LEN(distinfo.email) THEN s &= distinfo.email & LF
  
  '--format the lines
  s = wordwrap(s, wrap)
