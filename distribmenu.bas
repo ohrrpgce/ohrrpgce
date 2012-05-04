@@ -47,6 +47,8 @@ DECLARE SUB write_linux_menu_file(title as string, filename as string, basename 
 DECLARE SUB write_linux_desktop_file(title as string, filename as string, basename as string)
 DECLARE SUB write_debian_binary_file (filename as string)
 DECLARE SUB write_debian_control_file(controlfile as string, basename as string, pkgver as string, size_in_kibibytes as integer, byref distinfo as DistribState)
+DECLARE SUB write_debian_copyright_file (filename as string)
+DECLARE FUNCTION gzip_file (filename as string) as integer
 DECLARE FUNCTION create_tarball(start_in_dir as string, tarball as string, files as string) as integer
 DECLARE FUNCTION create_ar_archive(start_in_dir as string, archive as string, files as string) as integer
 DECLARE SUB fix_deb_group_permissions(start_at_dir as string)
@@ -337,6 +339,29 @@ SUB write_readme_text_file (filename as string, LE as string=LINE_END, byval wra
  PUT #fh, , s
  CLOSE #fh
   
+END SUB
+
+SUB write_debian_copyright_file (filename as string)
+
+ DIM LF as string = CHR(10)
+
+ DIM distinfo as DistribState
+ load_distrib_state distinfo
+
+ '--Construct the file
+ DIM s as string = ""
+ 
+ s &= distinfo.gamename & LF
+ s &= generate_copyright_line(distinfo) & LF
+ IF distinfo.license = "GPL" THEN
+  s &= LF & "See /usr/share/common-licenses/GPL-3 for details" & LF
+ END IF
+
+ '--write the file to disk
+ DIM fh as integer = FREEFILE
+ OPEN filename for binary as #fh
+ PUT #fh, , s
+ CLOSE #fh
 END SUB
 
 FUNCTION browse_licenses(old_license as string) as string
@@ -867,6 +892,15 @@ SUB distribute_game_as_debian_package ()
   MKDIR applicationsdir
   write_linux_desktop_file distinfo.gamename, applicationsdir & SLASH & basename & ".desktop", basename
 
+  debuginfo "Create docs"
+  DIM docsdir as string = debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "doc"
+  MKDIR docsdir
+  DIM gamedocsdir as string = docsdir & SLASH & basename
+  MKDIR gamedocsdir
+  write_readme_text_file gamedocsdir & SLASH & "README.txt", CHR(10)
+  IF gzip_file(gamedocsdir & SLASH & "README.txt") = NO THEN EXIT DO
+  write_debian_copyright_file gamedocsdir & SLASH & "copyright"
+
   debuginfo "Calculate Installed-Size"
   DIM size_in_kibibytes as integer = count_directory_size(debtmp & SLASH & "usr") / 1024
  
@@ -906,6 +940,8 @@ SUB kill_debtmp_dir(debtmp as string, basename as string)
  killdir debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "applications"
  killdir debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "games" & SLASH & basename
  killdir debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "games"
+ killdir debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "doc" & SLASH & basename
+ killdir debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "doc"
  killdir debtmp & SLASH & "usr" & SLASH & "games"
  killdir debtmp & SLASH & "usr" & SLASH & "share"
  killdir debtmp & SLASH & "usr"
@@ -1012,6 +1048,7 @@ FUNCTION create_tarball(start_in_dir as string, tarball as string, files as stri
  
  DIM tar as string = find_helper_app("tar", YES)
  IF tar = "" THEN visible_debug "ERROR: tar is not available": RETURN NO
+
  DIM gzip as string = find_helper_app("gzip", YES)
  IF gzip = "" THEN visible_debug "ERROR: gzip is not available": RETURN NO
 
@@ -1034,12 +1071,27 @@ FUNCTION create_tarball(start_in_dir as string, tarball as string, files as stri
  spawn_ret = spawn_and_wait(tar, args)
  IF LEN(spawn_ret) THEN visible_debug spawn_ret : RETURN NO
 
- args = """" & uncompressed & """"
- debug args
- spawn_ret = spawn_and_wait(gzip, args)
- IF LEN(spawn_ret) THEN visible_debug spawn_ret : RETURN NO
+ IF gzip_file(uncompressed) = NO THEN RETURN NO
  
  IF NOT isfile(tarball) THEN visible_debug "Could not create " & tarball : RETURN NO
+ RETURN YES
+END FUNCTION
+
+FUNCTION gzip_file (filename as string) as integer
+ 'Returns YES on success, NO on failure
+ DIM gzip as string = find_helper_app("gzip", YES)
+ IF gzip = "" THEN visible_debug "ERROR: gzip is not available": RETURN NO
+ 
+ DIM args as string
+ args = """" & filename & """"
+ debug args
+ DIM spawn_ret as string
+ spawn_ret = spawn_and_wait(gzip, args)
+ IF LEN(spawn_ret) THEN visible_debug spawn_ret : RETURN NO
+ IF NOT isfile(filename & ".gz") THEN
+  visible_debug "ERROR: gzip completed but " & filename & ".gz was not created"
+ END IF
+
  RETURN YES
 END FUNCTION
 
