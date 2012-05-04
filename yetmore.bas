@@ -146,9 +146,12 @@ DO WHILE start < LEN(text)
     CASE "C": '--Hero name by caterpillar position
      '--defaults blank if not found
      insert = ""
-     DIM where as integer = herobyrank(arg)
-     IF where >= 0 THEN
-      insert = names(where)
+     DIM heroid as integer = herobyrank(arg)
+     IF heroid >= 0 THEN
+      DIM where as integer = findhero(heroid + 1, 0, 40, 1)
+      IF where >= 0 ANDALSO where <= UBOUND(names) THEN
+       insert = names(where)
+      END IF
      END IF
     CASE "V": '--global variable by ID
      '--defaults blank if out-of-range

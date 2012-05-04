@@ -88,6 +88,8 @@ WHAT IS NEW?
     * The pause key didn't pause battles anymore [Ralph]
     * Bug 945: Attacks used from a hero's spell list out-of-battle
       used the average party stats instead of that hero's [Ralph]
+    * Fix ${C#} codes in textboxes which have been (embarrasingly)
+      broken for as long as the feature has existed [James]
 
   * New Plotscripting Stuff
     * You can now have global variables up to 16383 instead of 4095

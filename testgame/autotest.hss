@@ -125,6 +125,7 @@ script, hero tests, begin
   hero exp and levels tests
   hero stat growth test
   hero misc tests
+  hero box names tests
 end
 
 ## spell lists
@@ -262,6 +263,49 @@ script, hero party management tests, begin
   assert(hero by slot(2) == hero:Olaf)
   swap by position(3, find hero(hero:Frumpy))
   assert(hero by slot(3) == hero:Frumpy)
+end
+
+script, hero box names tests, begin
+  variable(h0, h1, h2, h3)
+  # remember the old party order
+  h0 := hero by slot(0)
+  h1 := hero by slot(1)
+  h2 := hero by slot(2)
+  h3 := hero by slot(3)
+  
+  swap by position(0, find hero(hero:Olaf))
+  swap out hero(hero by slot(1))
+  swap out hero(hero by slot(2))
+  swap out hero(hero by slot(3))
+  $0="Olaf,X,X,X", show string(0), w
+  show box names
+  swap by position(2, find hero(hero:Olaf))
+  $0="X,X,Olaf,X", show string(0), w
+  show box names
+  swap by position(0, find hero(hero:Frumpy))
+  $0="Frumpy,X,Olaf,X", show string(0), w
+  show box names
+  swap by position(1, find hero(hero:Olaf))
+  swap by position(3, find hero(hero:Frumpy))
+  $0="X,Olaf,X,Frumpy", show string(0), w
+  show box names
+  show no value, w
+
+  # restore old party order  
+  swap by position(0, find hero(h0))  
+  swap by position(1, find hero(h1))
+  swap by position(2, find hero(h2))
+  swap by position(3, find hero(h3))
+  show box names
+end
+
+script, show box names, begin
+  show text box(9)
+  w(10)
+  show text box(10)
+  w(10)
+  show text box(11)
+  w(10)
 end
 
 ## Party management
