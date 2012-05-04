@@ -212,7 +212,7 @@ SUB edit_distrib_info ()
     CASE 5: distinfo.description = multiline_string_editor(distinfo.description, "edit_distrib_info_description")
     CASE 6: distinfo.more_description = multiline_string_editor(distinfo.more_description, "edit_distrib_info_more_description")
     CASE 7: distinfo.website = multiline_string_editor(distinfo.website, "edit_distrib_info_website")
-    CASE 8: distinfo.copyright_year = multiline_string_editor(distinfo.website, "edit_distrib_info_copyright_year")
+    CASE 8: distinfo.copyright_year = multiline_string_editor(distinfo.copyright_year, "edit_distrib_info_copyright_year")
     CASE 9: distinfo.license = browse_licenses(distinfo.license)
    END SELECT
    st.need_update = YES
