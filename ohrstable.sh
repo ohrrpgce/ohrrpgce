@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# James runs this script on HamsterRepublic.com to update the symbolic links for the latest stable release
+
 WEBROOT=~/HamsterRepublic.com
 ARCHIVE="${WEBROOT}"/ohrrpgce/archive
 DL="${WEBROOT}"/dl
@@ -91,3 +93,5 @@ updatelink "${REL}" "${VER}" "ohrrpgce"               "zip" "custom" ""
 updatelink "${REL}" "${VER}" "ohrrpgce-minimal"        "zip" "ohrrpgce-floppy" "ohrrpgce_play"
 updatelink "${REL}" "${VER}" "ohrrpgce-linux-x86"     "tar.bz2" "" ""
 updatelink "${REL}" "${VER}" "OHRRPGCE"               "dmg" "" ""
+updatelink "${REL}" "${VER}" "ohrrpgce-player-linux-bin-minimal" "zip" "" ""
+
