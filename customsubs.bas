@@ -21,8 +21,8 @@
 OPTION EXPLICIT
 
 'Subs and functions only used here
-DECLARE SUB import_textboxes_warn (BYREF warn as string, s as string)
-DECLARE SUB seekscript (BYREF temp as integer, BYVAL seekdir as integer, BYVAL triggertype as integer)
+DECLARE SUB import_textboxes_warn (byref warn as string, s as string)
+DECLARE SUB seekscript (byref temp as integer, byval seekdir as integer, byval triggertype as integer)
 DECLARE SUB cond_editor (cond as Condition, byval default as integer = 0)
 
 'Module-local variables
@@ -38,7 +38,7 @@ comp_strings(6) = ">="
 comp_strings(7) = "tag"   'debugging use only
 
 
-FUNCTION safe_tag_name(BYVAL tagnum as integer) as string 
+FUNCTION safe_tag_name(byval tagnum as integer) as string 
  IF tagnum >= 1 AND tagnum <= gen(genMaxTagName) THEN
   RETURN load_tag_name(tagnum)
  ELSE
@@ -48,7 +48,7 @@ END FUNCTION
 
 'allowspecial indicates whether to allow picking 'special' tags: those automatically
 'set, eg. based on inventory conditions
-FUNCTION tag_grabber (BYREF n as integer, BYVAL min as integer=-999, BYVAL max as integer=999, BYVAL allowspecial as integer=YES) as integer
+FUNCTION tag_grabber (byref n as integer, byval min as integer=-999, byval max as integer=999, byval allowspecial as integer=YES) as integer
  IF intgrabber(n, min, max) THEN RETURN YES
  IF enter_or_space() THEN
   DIM browse_tag as integer
@@ -512,7 +512,7 @@ FUNCTION condition_string (cond as Condition, byval selected as integer, default
 END FUNCTION
 
 'Returns true if the string has changed
-FUNCTION strgrabber (s as string, BYVAL maxl as integer) as integer
+FUNCTION strgrabber (s as string, byval maxl as integer) as integer
  STATIC clip as string
  DIM old as string = s
 
@@ -903,7 +903,7 @@ SUB make_ui_color_editor_menu(m() as string, colors() as integer)
  NEXT i
 END SUB
 
-FUNCTION pick_ogg_quality(BYREF quality as integer) as integer
+FUNCTION pick_ogg_quality(byref quality as integer) as integer
  STATIC q as integer = 4
  DIM i as integer
  DIM descrip as string
@@ -944,7 +944,7 @@ FUNCTION pick_ogg_quality(BYREF quality as integer) as integer
  RETURN 0
 END FUNCTION
 
-FUNCTION needaddset (BYREF pt as integer, BYREF check as integer, what as string) as integer
+FUNCTION needaddset (byref pt as integer, byref check as integer, what as string) as integer
  IF pt <= check THEN RETURN NO
  IF yesno("Add new " & what & "?") THEN
   check += 1
@@ -959,7 +959,7 @@ END FUNCTION
 'add a new set. DOES NOT INCREMENT max. Check whether pt > max to see whether this
 'needs to be handled.
 'maxmax is max value of max, of course
-FUNCTION intgrabber_with_addset(BYREF pt as integer, BYVAL min as integer, BYVAL max as integer, BYVAL maxmax as integer=32767, what as string, BYVAL less as integer=scLeft, BYVAL more as integer=scRight) as integer
+FUNCTION intgrabber_with_addset(byref pt as integer, byval min as integer, byval max as integer, byval maxmax as integer=32767, what as string, byval less as integer=scLeft, byval more as integer=scRight) as integer
  IF keyval(more) > 1 AND pt = max AND max < maxmax THEN
   IF yesno("Add new " & what & "?") THEN
    pt += 1
@@ -1296,7 +1296,7 @@ FUNCTION textbox_preview_line(box as TextBox) as string
  RETURN "" 
 END FUNCTION
 
-SUB onetimetog(BYREF tagnum as integer)
+SUB onetimetog(byref tagnum as integer)
  IF tagnum > 0 THEN
   setbit gen(), genOneTimeNPCBits, tagnum - 1, 0
   tagnum = 0
@@ -1311,7 +1311,7 @@ SUB onetimetog(BYREF tagnum as integer)
  setbit gen(), genOneTimeNPCBits, gen(genOneTimeNPC), 1
 END SUB
 
-FUNCTION pal16browse (BYVAL curpal as integer, BYVAL picset as integer, BYVAL picnum as integer) as integer
+FUNCTION pal16browse (byval curpal as integer, byval picset as integer, byval picnum as integer) as integer
 
  DIM buf(7) as integer
  DIM sprite(9) as Frame PTR
@@ -1446,7 +1446,7 @@ END FUNCTION
 
 FUNCTION seconds_estimate(ticks as integer) as string
  IF ticks = 0 THEN RETURN "0.0"
- DIM sec as DOUBLE
+ DIM sec as double
  sec = ticks * (1 / 18.2)
  DIM s as string = STR(sec)
  DIM dot as integer = INSTR(s, ".")
@@ -1458,7 +1458,7 @@ FUNCTION seconds_estimate(ticks as integer) as string
  RETURN prefix & "." & suffix
 END FUNCTION
 
-SUB load_text_box_portrait (BYREF box as TextBox, BYREF gfx as GraphicPair)
+SUB load_text_box_portrait (byref box as TextBox, byref gfx as GraphicPair)
  'WARNING: There is another version of this in yetmore.bas
  'If you update this here, make sure to update that one too!
  DIM img_id as integer = -1
@@ -1712,13 +1712,13 @@ FUNCTION export_textboxes (filename as string, metadata() as integer) as integer
  RETURN YES
 END FUNCTION
 
-SUB import_textboxes_warn (BYREF warn as string, s as string)
+SUB import_textboxes_warn (byref warn as string, s as string)
  debug "import_textboxes: " & s
  IF warn <> "" THEN warn = warn & " "
  warn = warn & s
 END SUB
 
-FUNCTION import_textboxes (filename as string, BYREF warn as string) as integer
+FUNCTION import_textboxes (filename as string, byref warn as string) as integer
  DIM fh as integer = FREEFILE
  IF OPEN(filename FOR INPUT as #fh) THEN
   import_textboxes_warn warn, "Failed to open """ & filename & """."
@@ -1952,7 +1952,7 @@ FUNCTION str2bool(q as string, default as integer = NO, invert as integer = NO) 
  RETURN default
 END FUNCTION
 
-SUB xy_position_on_slice (sl as Slice Ptr, BYREF x as integer, BYREF y as integer, caption as string, helpkey as string)
+SUB xy_position_on_slice (sl as Slice Ptr, byref x as integer, byref y as integer, caption as string, helpkey as string)
  DIM col as integer
  DIM tog as integer
  DIM root as Slice Ptr
@@ -1989,7 +1989,7 @@ SUB xy_position_on_slice (sl as Slice Ptr, BYREF x as integer, BYREF y as intege
  LOOP
 END SUB
 
-SUB xy_position_on_sprite (spr as GraphicPair, BYREF x as integer, BYREF y as integer, BYVAL frame as integer, BYVAL wide as integer, byval high as integer, caption as string, helpkey as string)
+SUB xy_position_on_sprite (spr as GraphicPair, byref x as integer, byref y as integer, byval frame as integer, byval wide as integer, byval high as integer, caption as string, helpkey as string)
  DIM col as integer
  DIM tog as integer
  setkeys
@@ -2152,7 +2152,7 @@ END FUNCTION
 
 'Edit array of bits. The bits don't have to be consecutive, but they do have to be in ascending order.
 'The bits corresponding to any blank entries in names() are skipped over.
-SUB editbitset (array() as integer, BYVAL wof as integer, BYVAL last as integer, names() as string, helpkey as string="editbitset")
+SUB editbitset (array() as integer, byval wof as integer, byval last as integer, names() as string, helpkey as string="editbitset")
 
  '---DIM AND INIT---
  DIM state as MenuState
@@ -2218,13 +2218,13 @@ SUB editbitset (array() as integer, BYVAL wof as integer, BYVAL last as integer,
  LOOP
 END SUB
 
-SUB scriptbrowse (BYREF trigger as integer, BYVAL triggertype as integer, scrtype as string)
+SUB scriptbrowse (byref trigger as integer, byval triggertype as integer, scrtype as string)
  'For when you don't care about the return value of scriptbrowse_string()
  DIM s as string
  s = scriptbrowse_string(trigger, triggertype, scrtype)
 END SUB
 
-FUNCTION scriptbrowse_string (BYREF trigger as integer, BYVAL triggertype as integer, scrtype as string) as string
+FUNCTION scriptbrowse_string (byref trigger as integer, byval triggertype as integer, scrtype as string) as string
  DIM localbuf(20)
  REDIM scriptnames(0) as string, scriptids(0)
  DIM numberedlast as integer = 0
@@ -2403,7 +2403,7 @@ FUNCTION scriptbrowse_string (BYREF trigger as integer, BYVAL triggertype as int
 
 END FUNCTION
 
-FUNCTION scrintgrabber (BYREF n as integer, BYVAL min as integer, BYVAL max as integer, BYVAL less as integer=75, BYVAL more as integer=77, BYVAL scriptside as integer, BYVAL triggertype as integer) as integer
+FUNCTION scrintgrabber (byref n as integer, byval min as integer, byval max as integer, byval less as integer=75, byval more as integer=77, byval scriptside as integer, byval triggertype as integer) as integer
  'script side is 1 or -1: on which side of zero are the scripts
  'min or max on side of scripts is ignored
 
@@ -2456,11 +2456,11 @@ FUNCTION scrintgrabber (BYREF n as integer, BYVAL min as integer, BYVAL max as i
  IF keyval(scMinus) > 1 OR keyval(scNumpadMinus) > 1 THEN temp = bound(-temp, min, gen(genMaxRegularScript))
 
  temp = temp * SGN(scriptside)
- scrintgrabber = (temp <> n) ' Returns true if BYREF n has changed
+ scrintgrabber = (temp <> n) ' Returns true if byref n has changed
  n = temp
 END FUNCTION
 
-SUB seekscript (BYREF temp as integer, BYVAL seekdir as integer, BYVAL triggertype as integer)
+SUB seekscript (byref temp as integer, byval seekdir as integer, byval triggertype as integer)
  'temp = -1 means scroll to last script
  'returns 0 when scrolled past first script, -1 when went past last
 
@@ -2648,7 +2648,7 @@ SUB script_usage_list ()
  DIM s as string
  DIM fh as integer
  DIM i as integer
- 'DIM t as DOUBLE = TIMER
+ 'DIM t as double = TIMER
 
  'Build script_usage_menu, which is an list of menu items, initially out of order.
  'The integer in each pair is used to sort the menu items into the right order:
@@ -2907,7 +2907,7 @@ SUB autofix_broken_old_scripts()
  visit_scripts @autofix_old_script_visitor
 END SUB
 
-FUNCTION sublist (s() as string, helpkey as string="", BYVAL x as integer=0, BYVAL y as integer=0, BYVAL page as integer=-1) as integer
+FUNCTION sublist (s() as string, helpkey as string="", byval x as integer=0, byval y as integer=0, byval page as integer=-1) as integer
  DIM state as MenuState
  state.pt = 0
  state.last = UBOUND(s)
@@ -2956,7 +2956,7 @@ TYPE GlobalTextStringsMenu
  curitem as integer
 END TYPE
 
-PRIVATE SUB GTS_add_to_menu (menu as GlobalTextStringsMenu, description as string, BYVAL index as integer, default as string, BYVAL maxlen as integer, helpfile as string = "")
+PRIVATE SUB GTS_add_to_menu (menu as GlobalTextStringsMenu, description as string, byval index as integer, default as string, byval maxlen as integer, helpfile as string = "")
  WITH menu
   IF .curitem > GTSnumitems THEN fatalerror "GlobalTextStringsMenu.curitem too large"
   .index(.curitem) = index
@@ -3233,7 +3233,7 @@ SUB writeglobalstring (index as integer, s as string, maxlen as integer)
  loadglobalstrings
 END SUB
 
-FUNCTION safe_caption(caption_array() as string, BYVAL index as integer, description as string) as string
+FUNCTION safe_caption(caption_array() as string, byval index as integer, description as string) as string
  IF index >= LBOUND(caption_array) AND index <= UBOUND(caption_array) THEN
   RETURN caption_array(index)
  ELSE
@@ -3241,7 +3241,7 @@ FUNCTION safe_caption(caption_array() as string, BYVAL index as integer, descrip
  END IF
 END FUNCTION
 
-SUB update_attack_editor_for_chain (BYVAL mode as integer, BYREF caption1 as string, BYREF max1 as integer, BYREF min1 as integer, BYREF menutype1 as integer, BYREF caption2 as string, BYREF max2 as integer, BYREF min2 as integer, BYREF menutype2 as integer)
+SUB update_attack_editor_for_chain (byval mode as integer, byref caption1 as string, byref max1 as integer, byref min1 as integer, byref menutype1 as integer, byref caption2 as string, byref max2 as integer, byref min2 as integer, byref menutype2 as integer)
  SELECT CASE mode
   CASE 0 '--no special condition
    caption1 = ""
@@ -3291,7 +3291,7 @@ SUB update_attack_editor_for_chain (BYVAL mode as integer, BYREF caption1 as str
  END SELECT
 END SUB
 
-FUNCTION attack_chain_browser (BYVAL start_attack as integer) as integer
+FUNCTION attack_chain_browser (byval start_attack as integer) as integer
  DIM state as AttackChainBrowserState
  DIM selected as integer = start_attack
  
@@ -3392,7 +3392,7 @@ FUNCTION find_free_attack_preview_slot(slots() as Slice Ptr) as integer
  RETURN -1
 END FUNCTION
 
-SUB init_attack_chain_screen(BYVAL attack_id as integer, state as AttackChainBrowserState)
+SUB init_attack_chain_screen(byval attack_id as integer, state as AttackChainBrowserState)
  DIM atk as AttackData
  loadattackdata atk, attack_id
  
@@ -3462,7 +3462,7 @@ SUB position_chain_preview_boxes(sl_list() as Slice ptr, st as MenuState)
  IF st.last = -1 THEN st.last = 0
 END SUB
 
-FUNCTION create_attack_preview_slice(caption as string, BYVAL attack_id as integer, BYVAL parent as Slice Ptr) as Slice Ptr
+FUNCTION create_attack_preview_slice(caption as string, byval attack_id as integer, byval parent as Slice Ptr) as Slice Ptr
  DIM atk as AttackData
  loadattackdata atk, attack_id
  
@@ -3502,7 +3502,7 @@ FUNCTION create_attack_preview_slice(caption as string, BYVAL attack_id as integ
  RETURN box
 END FUNCTION
 
-SUB attack_preview_slice_focus(BYVAL sl as Slice Ptr)
+SUB attack_preview_slice_focus(byval sl as Slice Ptr)
  IF sl = 0 THEN EXIT SUB
  ChangeRectangleSlice sl, , , , 0
  DIM ch as Slice Ptr = sl->FirstChild
@@ -3514,7 +3514,7 @@ SUB attack_preview_slice_focus(BYVAL sl as Slice Ptr)
  WEND
 END SUB
 
-SUB attack_preview_slice_defocus(BYVAL sl as Slice Ptr)
+SUB attack_preview_slice_defocus(byval sl as Slice Ptr)
  IF sl = 0 THEN EXIT SUB
  ChangeRectangleSlice sl, , , , -1
  DIM ch as Slice Ptr = sl->FirstChild
@@ -3737,7 +3737,7 @@ SUB fontedit_import_font(font() as integer)
  END IF
 END SUB
 
-SUB cropafter (BYVAL index as integer, BYREF limit as integer, BYVAL flushafter as integer, lump as string, BYVAL bytes as integer, BYVAL prompt as integer=YES)
+SUB cropafter (byval index as integer, byref limit as integer, byval flushafter as integer, lump as string, byval bytes as integer, byval prompt as integer=YES)
  'flushafter -1 = flush records
  'flushafter 0 = trim file
  DIM i as integer
@@ -3925,7 +3925,7 @@ END SUB
 
 SUB stat_growth_chart ()
  'midpoint should stored in gen()
- DIM midpoint as DOUBLE = 0.3219  'default to current
+ DIM midpoint as double = 0.3219  'default to current
  DIM midpoint_repr as string = format_percent(midpoint, 4)
 
  DIM menu(2) as string
@@ -3979,19 +3979,19 @@ SUB stat_growth_chart ()
   drawline rect.x, origin_y, rect.x, rect.y, uilook(uiDisabledItem), vpage
   drawline rect.x, origin_y, rect.x + rect.wide, origin_y, uilook(uiDisabledItem), vpage
   'line (drawn so that if genMaxLevel is small, you get a lot of steps, and never sloped line segments)
-  DIM lasty as DOUBLE
+  DIM lasty as double
   FOR x as integer = 0 TO rect.wide - 1
    DIM lev as integer = INT((gen(genMaxLevel) + 1) * x / rect.wide)  'floor
-   DIM y as DOUBLE = atlevel_quadratic(lev, 0, rect.high * 100, midpoint) / 100
+   DIM y as double = atlevel_quadratic(lev, 0, rect.high * 100, midpoint) / 100
    IF x = 0 THEN lasty = y
    drawline x + rect.x, origin_y - y, x + rect.x, origin_y - lasty, uilook(uiHighlight), vpage
    lasty = y
   NEXT
 
   'Draw crosshair
-  DIM crosshair_lev as DOUBLE
+  DIM crosshair_lev as double
   IF state.pt = 2 THEN crosshair_lev = preview_lev ELSE crosshair_lev = gen(genMaxLevel) / 2
-  DIM as DOUBLE crosshairx, crosshairy  'in pixels
+  DIM as double crosshairx, crosshairy  'in pixels
   crosshairx = rect.wide * crosshair_lev / gen(genMaxLevel)
   crosshairy = atlevel_quadratic(crosshair_lev, 0, rect.high * 100, midpoint) / 100
   drawline rect.x + crosshairx - 3, origin_y - crosshairy, rect.x + crosshairx + 3, origin_y - crosshairy, uilook(uiHighlight2), vpage
