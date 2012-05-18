@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-??? ? 2012 [Alectormancy]
+Jun ? 2012 [Alectormancy]
 
   * New Features
     * Adjustable global HP thresholds for hero and enemy Weak states
@@ -119,12 +119,17 @@ WHAT IS NEW?
       "get default hero hand y" [James]
     * Increased number of strings to 100 (0 to 99) [Ralph]
 
-  * Vikings of Midgard
-
   * Stuff Only Developers Will Notice
     * Certain special engine-related Slices are marked as protected
       to indicate that plotscripts are not permitted to delete or
       reparent them.
+    * New comand-line options:
+      -autosnap N         Automatically save a screen snapshot every N ticks
+      -runfast            Run quickly (without speed control)
+      -autotest           Run quickly and write screenshots on _checkpoints
+      -recordinput file   Record keyboard input to a file
+      -replayinput file   Replay keyboard input from a previously recorded file
+      -no-native-kbd      Use US keyboard layout instead of OS-based text input
 
 May 6 2011 [Zenzizenzic]
 
