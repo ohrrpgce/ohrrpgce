@@ -1157,7 +1157,7 @@ FUNCTION handle_dirty_workingdir () as integer
 END FUNCTION
 
 SUB secret_menu ()
- DIM menu(...) as string = {"Reload Editor", "Editor Editor", "Conditions and More Tests", "Transformed Quads", "Sprite editor with arbitrary sizes", "Text tests", "Font tests"}
+ DIM menu(...) as string = {"Reload Editor", "Editor Editor", "Conditions and More Tests", "Transformed Quads", "Sprite editor with arbitrary sizes", "Text tests", "Font tests", "Stat Growth Chart"}
  DIM st as MenuState
  st.size = 24
  st.last = UBOUND(menu)
@@ -1174,6 +1174,7 @@ SUB secret_menu ()
    IF st.pt = 4 THEN arbitrary_sprite_editor
    IF st.pt = 5 THEN text_test_menu
    IF st.pt = 6 THEN font_test_menu
+   IF st.pt = 7 THEN stat_growth_chart
   END IF
   usemenu st
   clearpage vpage

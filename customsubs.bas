@@ -3855,6 +3855,8 @@ SUB experience_chart ()
   .need_update = YES
  END WITH
 
+ STATIC first_view as integer = YES
+
  setkeys
  DO
   setwait 55
@@ -3930,6 +3932,11 @@ SUB experience_chart ()
   standardmenu menu(), state, 0, 0, vpage, , , 312  'wide=312
   setvispage vpage
   dowait
+
+  IF first_view THEN
+   first_view = NO
+    visible_debug "This screen is informational only. You cannot customize the experience formula yet"
+  END IF
  LOOP 
 END SUB
 
