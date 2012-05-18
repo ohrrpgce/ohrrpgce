@@ -21,8 +21,8 @@
 OPTION EXPLICIT
 
 'Subs and functions only used here
-DECLARE SUB import_textboxes_warn (BYREF warn AS STRING, s AS STRING)
-DECLARE SUB seekscript (BYREF temp AS INTEGER, BYVAL seekdir AS INTEGER, BYVAL triggertype AS INTEGER)
+DECLARE SUB import_textboxes_warn (BYREF warn as string, s as string)
+DECLARE SUB seekscript (BYREF temp as integer, BYVAL seekdir as integer, BYVAL triggertype as integer)
 DECLARE SUB cond_editor (cond as Condition, byval default as integer = 0)
 
 'Module-local variables
@@ -38,7 +38,7 @@ comp_strings(6) = ">="
 comp_strings(7) = "tag"   'debugging use only
 
 
-FUNCTION safe_tag_name(BYVAL tagnum AS INTEGER) AS STRING 
+FUNCTION safe_tag_name(BYVAL tagnum as integer) as string 
  IF tagnum >= 1 AND tagnum <= gen(genMaxTagName) THEN
   RETURN load_tag_name(tagnum)
  ELSE
@@ -48,10 +48,10 @@ END FUNCTION
 
 'allowspecial indicates whether to allow picking 'special' tags: those automatically
 'set, eg. based on inventory conditions
-FUNCTION tag_grabber (BYREF n AS INTEGER, BYVAL min AS INTEGER=-999, BYVAL max AS INTEGER=999, BYVAL allowspecial as integer=YES) AS INTEGER
+FUNCTION tag_grabber (BYREF n as integer, BYVAL min as integer=-999, BYVAL max as integer=999, BYVAL allowspecial as integer=YES) as integer
  IF intgrabber(n, min, max) THEN RETURN YES
  IF enter_or_space() THEN
-  DIM browse_tag AS INTEGER
+  DIM browse_tag as integer
   browse_tag = tags_menu(n, YES, allowspecial)
   IF browse_tag >= 2 OR browse_tag <= -2 THEN
    n = browse_tag
@@ -67,8 +67,8 @@ END SUB
 
 'If picktag is true, then can be used to pick a tag. In that case, allowspecial indicates whether to allow
 'picking 'special' tags: those automatically set, eg. based on inventory conditions
-FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, byval allowspecial as integer=YES) AS INTEGER
- DIM state AS MenuState
+FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, byval allowspecial as integer=YES) as integer
+ DIM state as MenuState
  DIM thisname as string
  DIM ret as integer = starttag
  IF gen(genMaxTagname) < 1 THEN gen(genMaxTagname) = 1
@@ -93,7 +93,7 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
   END IF
  NEXT i
 
- DIM tagsign AS INTEGER
+ DIM tagsign as integer
  tagsign = SGN(starttag)
  IF tagsign = 0 THEN tagsign = 1
 
@@ -104,12 +104,12 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
  IF ABS(starttag) >= 2 THEN state.pt = small(ABS(starttag) - 1, gen(genMaxTagName))
  thisname = safe_tag_name(state.pt + 1)
 
- DIM int_browsing AS INTEGER = NO
- DIM uninterrupted_alt_press AS INTEGER = NO
+ DIM int_browsing as integer = NO
+ DIM uninterrupted_alt_press as integer = NO
  'Usually equal to state.pt + 1, but can reach 0
- DIM alt_pt AS INTEGER 
+ DIM alt_pt as integer 
 
- DIM tog AS INTEGER = 0
+ DIM tog as integer = 0
  setkeys YES
  DO
   setwait 55
@@ -165,7 +165,7 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
   clearpage dpage
   draw_fullscreen_scrollbar state, , dpage
   standardmenu menu, state, 0, 0, dpage
-  DIM tmpstr AS STRING
+  DIM tmpstr as string
   IF int_browsing THEN
    textcolor uilook(uiText), uilook(uiHighlight)
    tmpstr = "Tag " & alt_pt
@@ -213,7 +213,7 @@ FUNCTION cond_grabber (cond as Condition, byval default as integer = NO, byval a
   'enter_or_space
   IF .type = compTag AND alwaysedit = 0 THEN
    IF enter_or_space() THEN
-    DIM browse_tag AS INTEGER
+    DIM browse_tag as integer
     browse_tag = tags_menu(.tag, YES, YES)
     IF browse_tag >= 2 OR browse_tag <= -2 THEN
      .tag = browse_tag
@@ -512,9 +512,9 @@ FUNCTION condition_string (cond as Condition, byval selected as integer, default
 END FUNCTION
 
 'Returns true if the string has changed
-FUNCTION strgrabber (s AS STRING, BYVAL maxl AS INTEGER) AS INTEGER
- STATIC clip AS STRING
- DIM old AS STRING = s
+FUNCTION strgrabber (s as string, BYVAL maxl as integer) as integer
+ STATIC clip as string
+ DIM old as string = s
 
  '--BACKSPACE support
  IF keyval(scBackspace) > 1 THEN s = LEFT(s, LEN(s) - 1)
@@ -537,14 +537,14 @@ FUNCTION strgrabber (s AS STRING, BYVAL maxl AS INTEGER) AS INTEGER
  RETURN (s <> old)
 END FUNCTION
 
-FUNCTION charpicker() AS STRING
- STATIC pt AS INTEGER
+FUNCTION charpicker() as string
+ STATIC pt as integer
 
- DIM i AS INTEGER
- DIM f(255) AS INTEGER
- DIM last AS INTEGER = -1
- DIM linesize AS INTEGER
- DIM offset AS XYPair
+ DIM i as integer
+ DIM f(255) as integer
+ DIM last as integer = -1
+ DIM linesize as integer
+ DIM offset as XYPair
 
  FOR i = 32 TO 255
   last = last + 1
@@ -555,7 +555,7 @@ FUNCTION charpicker() AS STRING
  offset.x = 160 - (linesize * 9) \ 2
  offset.y = 100 - ((last \ linesize) * 9) \ 2
 
- DIM tog AS INTEGER = 0
+ DIM tog as integer = 0
  setkeys
  DO
   setwait 55
@@ -781,12 +781,12 @@ SUB percent_cond_editor (cond as AttackElementCondition, byval min as double, by
  LOOP
 END SUB
 
-SUB ui_color_editor(palnum AS INTEGER)
- DIM i AS INTEGER
- DIM index AS INTEGER
- DIM default_colors(uiColors) AS INTEGER
+SUB ui_color_editor(palnum as integer)
+ DIM i as integer
+ DIM index as integer
+ DIM default_colors(uiColors) as integer
 
- DIM sample_menu AS MenuDef
+ DIM sample_menu as MenuDef
  ClearMenuData sample_menu
  WITH sample_menu
   .anchor.x = 1
@@ -799,7 +799,7 @@ SUB ui_color_editor(palnum AS INTEGER)
  append_menu_item sample_menu, "Disabled"
  sample_menu.last->disabled = YES
  
- DIM sample_state AS MenuState
+ DIM sample_state as MenuState
  sample_state.active = YES
  init_menu_state sample_state, sample_menu
 
@@ -807,14 +807,14 @@ SUB ui_color_editor(palnum AS INTEGER)
 
  LoadUIColors uilook(), palnum
 
- DIM color_menu(uiColors + 1) AS STRING
+ DIM color_menu(uiColors + 1) as string
  make_ui_color_editor_menu color_menu(), uilook()
 
- DIM state AS MenuState
+ DIM state as MenuState
  state.size = 22
  state.last = UBOUND(color_menu)
 
- DIM tog AS INTEGER = 0
+ DIM tog as integer = 0
  setkeys
  DO
   setwait 55
@@ -885,13 +885,13 @@ SUB ui_color_editor(palnum AS INTEGER)
  ClearMenuData sample_menu
 END SUB
 
-SUB make_ui_color_editor_menu(m() AS STRING, colors() AS INTEGER)
- DIM cap(17) AS STRING = {"Background", "Menu item", "Disabled item", _
+SUB make_ui_color_editor_menu(m() as string, colors() as integer)
+ DIM cap(17) as string = {"Background", "Menu item", "Disabled item", _
      "Selected item (A)", "Selected item (B)", "Selected disabled item (A)", _
       "Selected disabled item (B)", "Hilight (A)", "Hilight (B)", "Time bar", _
       "Time bar (full)", "Health bar", "Health bar (flash)", "Default Text", _
       "Text outline", "Spell description", "Total money", "Vehicle shadow"}
- DIM i AS INTEGER
+ DIM i as integer
  m(0) = "Previous Menu"
  FOR i = 0 TO 17
   m(1 + i) = cap(i) & ": " & colors(i)
@@ -903,7 +903,7 @@ SUB make_ui_color_editor_menu(m() AS STRING, colors() AS INTEGER)
  NEXT i
 END SUB
 
-FUNCTION pick_ogg_quality(BYREF quality AS INTEGER) AS INTEGER
+FUNCTION pick_ogg_quality(BYREF quality as integer) as integer
  STATIC q as integer = 4
  DIM i as integer
  DIM descrip as string
@@ -944,7 +944,7 @@ FUNCTION pick_ogg_quality(BYREF quality AS INTEGER) AS INTEGER
  RETURN 0
 END FUNCTION
 
-FUNCTION needaddset (BYREF pt AS INTEGER, BYREF check AS INTEGER, what AS STRING) AS INTEGER
+FUNCTION needaddset (BYREF pt as integer, BYREF check as integer, what as string) as integer
  IF pt <= check THEN RETURN NO
  IF yesno("Add new " & what & "?") THEN
   check += 1
@@ -959,7 +959,7 @@ END FUNCTION
 'add a new set. DOES NOT INCREMENT max. Check whether pt > max to see whether this
 'needs to be handled.
 'maxmax is max value of max, of course
-FUNCTION intgrabber_with_addset(BYREF pt AS INTEGER, BYVAL min AS INTEGER, BYVAL max AS INTEGER, BYVAL maxmax AS INTEGER=32767, what AS STRING, BYVAL less AS INTEGER=scLeft, BYVAL more AS INTEGER=scRight) AS INTEGER
+FUNCTION intgrabber_with_addset(BYREF pt as integer, BYVAL min as integer, BYVAL max as integer, BYVAL maxmax as integer=32767, what as string, BYVAL less as integer=scLeft, BYVAL more as integer=scRight) as integer
  IF keyval(more) > 1 AND pt = max AND max < maxmax THEN
   IF yesno("Add new " & what & "?") THEN
    pt += 1
@@ -1017,22 +1017,22 @@ FUNCTION explain_two_tag_condition(prefix as string, truetext as string, falsete
   RETURN ret
 END FUNCTION
 
-SUB edit_npc (npcdata AS NPCType, gmap() AS integer, zmap AS ZoneMap)
- DIM i AS INTEGER
+SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
+ DIM i as integer
 
- DIM itemname AS STRING
- DIM boxpreview AS STRING
- DIM scrname AS STRING
- DIM vehiclename AS STRING
- DIM caption AS STRING
+ DIM itemname as string
+ DIM boxpreview as string
+ DIM scrname as string
+ DIM vehiclename as string
+ DIM caption as string
 
- DIM walk AS INTEGER = 0
- DIM tog AS INTEGER = 0
+ DIM walk as integer = 0
+ DIM tog as integer = 0
 
- DIM unpc(16) AS INTEGER, lnpc(16) AS INTEGER
- DIM menucaption(16) AS STRING
+ DIM unpc(16) as integer, lnpc(16) as integer
+ DIM menucaption(16) as string
 
- DIM state AS MenuState
+ DIM state as MenuState
  state.size = 24
  state.first = -1
  state.last = UBOUND(menucaption)
@@ -1085,7 +1085,7 @@ SUB edit_npc (npcdata AS NPCType, gmap() AS integer, zmap AS ZoneMap)
  menucaption(14) = "Vehicle: "
  menucaption(15) = "Movement Zone:"
  menucaption(16) = "Avoidance Zone:"
- DIM movetype(8) AS STRING
+ DIM movetype(8) as string
  movetype(0) = "Stand Still"
  movetype(1) = "Wander"
  movetype(2) = "Pace"
@@ -1095,7 +1095,7 @@ SUB edit_npc (npcdata AS NPCType, gmap() AS integer, zmap AS ZoneMap)
  movetype(6) = "Chase You"
  movetype(7) = "Avoid You"
  movetype(8) = "Walk In Place"
- DIM pushtype(7) AS STRING
+ DIM pushtype(7) as string
  pushtype(0) = "Off"
  pushtype(1) = "Full"
  pushtype(2) = "Vertical"
@@ -1104,11 +1104,11 @@ SUB edit_npc (npcdata AS NPCType, gmap() AS integer, zmap AS ZoneMap)
  pushtype(5) = "Right Only"
  pushtype(6) = "Down Only"
  pushtype(7) = "Left Only"
- DIM usetype(2) AS STRING
+ DIM usetype(2) as string
  usetype(0) = "Use"
  usetype(1) = "Touch"
  usetype(2) = "Step On"
- DIM facetype(2) AS STRING
+ DIM facetype(2) as string
  facetype(0) = "Change Direction"
  facetype(1) = "Face Player"
  facetype(2) = "Do Not Face Player"
@@ -1260,35 +1260,35 @@ SUB edit_npc (npcdata AS NPCType, gmap() AS integer, zmap AS ZoneMap)
  palette16_unload @npcdata.pal
 END SUB
 
-FUNCTION load_vehicle_name(vehID AS INTEGER) AS STRING
+FUNCTION load_vehicle_name(vehID as integer) as string
  IF vehID < 0 OR vehID > gen(genMaxVehicle) THEN RETURN ""
- DIM vehicle AS VehicleData
+ DIM vehicle as VehicleData
  LoadVehicle game + ".veh", vehicle, vehID
  RETURN vehicle.name
 END FUNCTION
 
-FUNCTION load_item_name (it AS INTEGER, hidden AS INTEGER, offbyone AS INTEGER) AS STRING
+FUNCTION load_item_name (it as integer, hidden as integer, offbyone as integer) as string
  'it - the item number
  'hidden - whether to *not* prefix the item number
  'offbyone - whether it is the item number (1), or the itemnumber + 1 (0)
  IF it <= 0 AND offbyone = NO THEN RETURN "NONE"
- DIM itn AS INTEGER
+ DIM itn as integer
  IF offbyone THEN itn = it ELSE itn = it - 1
- DIM result AS STRING = readitemname(itn)
+ DIM result as string = readitemname(itn)
  IF hidden = 0 THEN result = itn & " " & result
  RETURN result
 END FUNCTION
 
-FUNCTION textbox_preview_line(boxnum AS INTEGER) AS STRING
+FUNCTION textbox_preview_line(boxnum as integer) as string
  IF boxnum <= 0 OR boxnum > gen(genMaxTextBox) THEN RETURN ""
- DIM box AS TextBox
+ DIM box as TextBox
  LoadTextBox box, boxnum
  RETURN textbox_preview_line(box)
 END FUNCTION
 
-FUNCTION textbox_preview_line(box AS TextBox) AS STRING
- DIM s AS STRING
- DIM i AS INTEGER
+FUNCTION textbox_preview_line(box as TextBox) as string
+ DIM s as string
+ DIM i as integer
  FOR i = 0 TO 7
   s= TRIM(box.text(i))
   IF LEN(s) > 0 THEN RETURN s 
@@ -1296,13 +1296,13 @@ FUNCTION textbox_preview_line(box AS TextBox) AS STRING
  RETURN "" 
 END FUNCTION
 
-SUB onetimetog(BYREF tagnum AS INTEGER)
+SUB onetimetog(BYREF tagnum as integer)
  IF tagnum > 0 THEN
   setbit gen(), genOneTimeNPCBits, tagnum - 1, 0
   tagnum = 0
   EXIT SUB
  END IF
- DIM i AS INTEGER = 0
+ DIM i as integer = 0
  DO
   gen(genOneTimeNPC) = loopvar(gen(genOneTimeNPC), 0, 999, 1)
   i = i + 1: IF i > 1000 THEN EXIT SUB 'Revisit this later
@@ -1311,16 +1311,16 @@ SUB onetimetog(BYREF tagnum AS INTEGER)
  setbit gen(), genOneTimeNPCBits, gen(genOneTimeNPC), 1
 END SUB
 
-FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL picnum AS INTEGER) AS INTEGER
+FUNCTION pal16browse (BYVAL curpal as integer, BYVAL picset as integer, BYVAL picnum as integer) as integer
 
- DIM buf(7) AS INTEGER
- DIM sprite(9) AS Frame PTR
- DIM pal16(9) AS Palette16 PTR
+ DIM buf(7) as integer
+ DIM sprite(9) as Frame PTR
+ DIM pal16(9) as Palette16 PTR
 
- DIM AS INTEGER i, o, j, k
- DIM c AS INTEGER
+ DIM as integer i, o, j, k
+ DIM c as integer
 
- DIM state AS MenuState
+ DIM state as MenuState
  state.need_update = YES
  state.top = curpal - 1
  state.first = -1
@@ -1349,7 +1349,7 @@ FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL pi
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "pal16browse"
   IF usemenu(state) THEN state.need_update = YES
-  DIM temppt AS INTEGER = large(state.pt, 0)
+  DIM temppt as integer = large(state.pt, 0)
   IF intgrabber(temppt, 0, state.last, , , YES) THEN
    state.pt = temppt
    state.top = bound(state.top, state.pt - state.size, state.pt)
@@ -1425,17 +1425,17 @@ FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL pi
  RETURN curpal
 END FUNCTION
 
-FUNCTION step_estimate(freq AS INTEGER, low AS INTEGER, high AS INTEGER, infix AS STRING="-", suffix AS STRING= "", zero AS STRING="never") AS STRING
+FUNCTION step_estimate(freq as integer, low as integer, high as integer, infix as string="-", suffix as string= "", zero as string="never") as string
  IF freq = 0 THEN RETURN zero
- DIM low_est  AS INTEGER = INT(low / freq)
- DIM high_est AS INTEGER = INT(high / freq)
+ DIM low_est  as integer = INT(low / freq)
+ DIM high_est as integer = INT(high / freq)
  RETURN low_est & infix & high_est & suffix
 END FUNCTION
 
-FUNCTION speed_estimate(speed AS INTEGER, suffix AS STRING=" seconds", zero AS STRING="infinity") AS STRING
+FUNCTION speed_estimate(speed as integer, suffix as string=" seconds", zero as string="infinity") as string
  IF speed = 0 THEN RETURN zero
- DIM ticks AS INTEGER = INT(1000 / speed)
- DIM result AS STRING
+ DIM ticks as integer = INT(1000 / speed)
+ DIM result as string
  result = STR(INT(ticks * 10 \ 18) / 10)
  'Special case for dumb floating point math freak-outs
  WHILE INSTR(result, ".") AND RIGHT(result, 2) = "99"
@@ -1444,26 +1444,26 @@ FUNCTION speed_estimate(speed AS INTEGER, suffix AS STRING=" seconds", zero AS S
  RETURN result & suffix
 END FUNCTION
 
-FUNCTION seconds_estimate(ticks AS INTEGER) AS STRING
+FUNCTION seconds_estimate(ticks as integer) as string
  IF ticks = 0 THEN RETURN "0.0"
- DIM sec AS DOUBLE
+ DIM sec as DOUBLE
  sec = ticks * (1 / 18.2)
- DIM s AS STRING = STR(sec)
- DIM dot AS INTEGER = INSTR(s, ".")
- DIM prefix AS STRING = LEFT(s, dot - 1)
- DIM suffix AS STRING = MID(s, dot + 1, 2)
+ DIM s as string = STR(sec)
+ DIM dot as integer = INSTR(s, ".")
+ DIM prefix as string = LEFT(s, dot - 1)
+ DIM suffix as string = MID(s, dot + 1, 2)
  WHILE LEN(suffix) > 1 ANDALSO RIGHT(suffix, 1) = "0"
   suffix = LEFT(suffix, LEN(suffix) - 1)
  WEND
  RETURN prefix & "." & suffix
 END FUNCTION
 
-SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
+SUB load_text_box_portrait (BYREF box as TextBox, BYREF gfx as GraphicPair)
  'WARNING: There is another version of this in yetmore.bas
  'If you update this here, make sure to update that one too!
- DIM img_id AS INTEGER = -1
- DIM pal_id AS INTEGER = -1
- DIM her AS HeroDef
+ DIM img_id as integer = -1
+ DIM pal_id as integer = -1
+ DIM her as HeroDef
  WITH gfx
   IF .sprite THEN frame_unload @.sprite
   IF .pal    THEN palette16_unload @.pal
@@ -1489,10 +1489,10 @@ SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
  END WITH
 END SUB
 
-FUNCTION askwhatmetadata (metadata() AS INTEGER, metadatalabels() AS STRING) AS INTEGER
- DIM tog AS INTEGER
+FUNCTION askwhatmetadata (metadata() as integer, metadatalabels() as string) as integer
+ DIM tog as integer
  
- DIM state AS MenuState
+ DIM state as MenuState
  state.size = UBOUND(metadata) + 1
  state.first = -1
  state.last = UBOUND(metadata)
@@ -1519,7 +1519,7 @@ FUNCTION askwhatmetadata (metadata() AS INTEGER, metadatalabels() AS STRING) AS 
   
   IF state.pt <> -1 THEN textcolor uilook(uiText), 0 ELSE textcolor uilook(uiSelectedItem + tog), 1
   printstr "Done", 4, 4 + 9, dpage
-  FOR i AS INTEGER = 0 TO UBOUND(metadatalabels)
+  FOR i as integer = 0 TO UBOUND(metadatalabels)
    IF state.pt = i THEN
     IF metadata(i) = YES THEN textcolor uilook(uiSelectedItem + tog), 1 ELSE textcolor uilook(uiSelectedDisabled), 1
    ELSE
@@ -1534,12 +1534,12 @@ FUNCTION askwhatmetadata (metadata() AS INTEGER, metadatalabels() AS STRING) AS 
  LOOP
 END FUNCTION
 
-FUNCTION export_textboxes (filename AS STRING, metadata() AS INTEGER) AS INTEGER
- DIM fh AS INTEGER = FREEFILE
- IF OPEN(filename FOR OUTPUT AS #fh) THEN debug "export_textboxes: Failed to open " & filename : RETURN NO
- DIM box AS TextBox
- DIM blank AS INTEGER
- DIM AS INTEGER i, j, k
+FUNCTION export_textboxes (filename as string, metadata() as integer) as integer
+ DIM fh as integer = FREEFILE
+ IF OPEN(filename FOR OUTPUT as #fh) THEN debug "export_textboxes: Failed to open " & filename : RETURN NO
+ DIM box as TextBox
+ DIM blank as integer
+ DIM as integer i, j, k
  FOR i = 0 TO gen(genMaxTextBox)
   LoadTextBox box, i
   '--Write the header guide
@@ -1712,30 +1712,30 @@ FUNCTION export_textboxes (filename AS STRING, metadata() AS INTEGER) AS INTEGER
  RETURN YES
 END FUNCTION
 
-SUB import_textboxes_warn (BYREF warn AS STRING, s AS STRING)
+SUB import_textboxes_warn (BYREF warn as string, s as string)
  debug "import_textboxes: " & s
  IF warn <> "" THEN warn = warn & " "
  warn = warn & s
 END SUB
 
-FUNCTION import_textboxes (filename AS STRING, BYREF warn AS STRING) AS INTEGER
- DIM fh AS INTEGER = FREEFILE
- IF OPEN(filename FOR INPUT AS #fh) THEN
+FUNCTION import_textboxes (filename as string, BYREF warn as string) as integer
+ DIM fh as integer = FREEFILE
+ IF OPEN(filename FOR INPUT as #fh) THEN
   import_textboxes_warn warn, "Failed to open """ & filename & """."
   RETURN NO
  END IF
- DIM warn_length AS INTEGER = 0
- DIM warn_skip AS INTEGER = 0
- DIM warn_append AS INTEGER = 0
- DIM box AS TextBox
- DIM index AS INTEGER = 0
- DIM getindex AS INTEGER = 0 
- DIM mode AS INTEGER = 0
- DIM s AS STRING
- DIM firstline AS INTEGER = YES
- DIM line_number AS INTEGER = 0
- DIM boxlines AS INTEGER = 0
- DIM i AS INTEGER
+ DIM warn_length as integer = 0
+ DIM warn_skip as integer = 0
+ DIM warn_append as integer = 0
+ DIM box as TextBox
+ DIM index as integer = 0
+ DIM getindex as integer = 0 
+ DIM mode as integer = 0
+ DIM s as string
+ DIM firstline as integer = YES
+ DIM line_number as integer = 0
+ DIM boxlines as integer = 0
+ DIM i as integer
  DO WHILE NOT EOF(fh)
   line_number += 1
   LINE INPUT #1, s
@@ -1942,7 +1942,7 @@ FUNCTION import_textboxes (filename AS STRING, BYREF warn AS STRING) AS INTEGER
  RETURN YES
 END FUNCTION
 
-FUNCTION str2bool(q AS STRING, default AS INTEGER = NO, invert AS INTEGER = NO) AS INTEGER
+FUNCTION str2bool(q as string, default as integer = NO, invert as integer = NO) as integer
  IF LCASE(LEFT(TRIM(q), 3)) = "yes" THEN
   IF invert THEN RETURN NO ELSE RETURN YES
  END IF
@@ -1952,10 +1952,10 @@ FUNCTION str2bool(q AS STRING, default AS INTEGER = NO, invert AS INTEGER = NO) 
  RETURN default
 END FUNCTION
 
-SUB xy_position_on_slice (sl AS Slice Ptr, BYREF x AS INTEGER, BYREF y AS INTEGER, caption AS STRING, helpkey AS STRING)
- DIM col AS INTEGER
- DIM tog AS INTEGER
- DIM root AS Slice Ptr
+SUB xy_position_on_slice (sl as Slice Ptr, BYREF x as integer, BYREF y as integer, caption as string, helpkey as string)
+ DIM col as integer
+ DIM tog as integer
+ DIM root as Slice Ptr
  
  setkeys
  DO
@@ -1989,9 +1989,9 @@ SUB xy_position_on_slice (sl AS Slice Ptr, BYREF x AS INTEGER, BYREF y AS INTEGE
  LOOP
 END SUB
 
-SUB xy_position_on_sprite (spr AS GraphicPair, BYREF x AS INTEGER, BYREF y AS INTEGER, BYVAL frame AS INTEGER, BYVAL wide AS INTEGER, byval high AS INTEGER, caption AS STRING, helpkey AS STRING)
- DIM col AS INTEGER
- DIM tog AS INTEGER
+SUB xy_position_on_sprite (spr as GraphicPair, BYREF x as integer, BYREF y as integer, BYVAL frame as integer, BYVAL wide as integer, byval high as integer, caption as string, helpkey as string)
+ DIM col as integer
+ DIM tog as integer
  setkeys
  DO
   setwait 55
@@ -2025,9 +2025,9 @@ SUB xy_position_on_sprite (spr AS GraphicPair, BYREF x AS INTEGER, BYREF y AS IN
  LOOP
 END SUB
 
-SUB edit_menu_bits (menu AS MenuDef)
- DIM bitname(8) AS STRING
- DIM bits(0) AS INTEGER
+SUB edit_menu_bits (menu as MenuDef)
+ DIM bitname(8) as string
+ DIM bits(0) as integer
  
  bitname(0) = "Translucent box"
  bitname(1) = "Never show scrollbar"
@@ -2044,9 +2044,9 @@ SUB edit_menu_bits (menu AS MenuDef)
  MenuBitsFromArray menu, bits()  
 END SUB
 
-SUB edit_menu_item_bits (mi AS MenuDefItem)
- DIM bitname(2) AS STRING
- DIM bits(0) AS INTEGER
+SUB edit_menu_item_bits (mi as MenuDefItem)
+ DIM bitname(2) as string
+ DIM bits(0) as integer
  
  bitname(0) = "Hide if disabled"
  bitname(1) = "Close menu if selected"
@@ -2057,8 +2057,8 @@ SUB edit_menu_item_bits (mi AS MenuDefItem)
  MenuItemBitsFromArray mi, bits()  
 END SUB
 
-SUB reposition_menu (menu AS MenuDef, mstate AS MenuState)
- DIM shift AS INTEGER
+SUB reposition_menu (menu as MenuDef, mstate as MenuState)
+ DIM shift as integer
 
  setkeys
  DO
@@ -2087,10 +2087,10 @@ SUB reposition_menu (menu AS MenuDef, mstate AS MenuState)
  LOOP
 END SUB
 
-SUB reposition_anchor (menu AS MenuDef, mstate AS MenuState)
- DIM tog AS INTEGER = 0
- DIM x AS INTEGER
- DIM y AS INTEGER
+SUB reposition_anchor (menu as MenuDef, mstate as MenuState)
+ DIM tog as integer = 0
+ DIM x as integer
+ DIM y as integer
  setkeys
  DO
   setwait 55
@@ -2152,10 +2152,10 @@ END FUNCTION
 
 'Edit array of bits. The bits don't have to be consecutive, but they do have to be in ascending order.
 'The bits corresponding to any blank entries in names() are skipped over.
-SUB editbitset (array() AS INTEGER, BYVAL wof AS INTEGER, BYVAL last AS INTEGER, names() AS STRING, helpkey AS STRING="editbitset")
+SUB editbitset (array() as integer, BYVAL wof as integer, BYVAL last as integer, names() as string, helpkey as string="editbitset")
 
  '---DIM AND INIT---
- DIM state AS MenuState
+ DIM state as MenuState
  WITH state
   .pt = -1
   .top = -1
@@ -2164,13 +2164,13 @@ SUB editbitset (array() AS INTEGER, BYVAL wof AS INTEGER, BYVAL last AS INTEGER,
   .size = 24
  END WITH
 
- DIM menu(-1 to last) AS STRING
- DIM bits(-1 to last) AS INTEGER
+ DIM menu(-1 to last) as string
+ DIM bits(-1 to last) as integer
 
  menu(-1) = "Previous Menu"
 
- DIM nextbit AS INTEGER = 0
- FOR i AS INTEGER = 0 to last
+ DIM nextbit as integer = 0
+ FOR i as integer = 0 to last
   IF names(i) <> "" THEN
    menu(nextbit) = names(i)
    bits(nextbit) = i
@@ -2179,7 +2179,7 @@ SUB editbitset (array() AS INTEGER, BYVAL wof AS INTEGER, BYVAL last AS INTEGER,
  NEXT
  state.last = nextbit - 1
 
- DIM col AS INTEGER
+ DIM col as integer
 
  '---MAIN LOOP---
  setkeys
@@ -2199,7 +2199,7 @@ SUB editbitset (array() AS INTEGER, BYVAL wof AS INTEGER, BYVAL last AS INTEGER,
   END IF
   clearpage dpage
   draw_fullscreen_scrollbar state, , dpage
-  FOR i AS INTEGER = state.top TO small(state.top + state.size, state.last)
+  FOR i as integer = state.top TO small(state.top + state.size, state.last)
    IF i >= 0 THEN
     col = IIF(readbit(array(), wof, bits(i)), uilook(uiMenuItem), uilook(uiDisabledItem))
     IF state.pt = i THEN col = IIF(readbit(array(), wof, bits(i)), uilook(uiSelectedItem + state.tog), uilook(uiSelectedDisabled + state.tog))
@@ -2218,41 +2218,41 @@ SUB editbitset (array() AS INTEGER, BYVAL wof AS INTEGER, BYVAL last AS INTEGER,
  LOOP
 END SUB
 
-SUB scriptbrowse (BYREF trigger AS INTEGER, BYVAL triggertype AS INTEGER, scrtype AS STRING)
+SUB scriptbrowse (BYREF trigger as integer, BYVAL triggertype as integer, scrtype as string)
  'For when you don't care about the return value of scriptbrowse_string()
- DIM s AS STRING
+ DIM s as string
  s = scriptbrowse_string(trigger, triggertype, scrtype)
 END SUB
 
-FUNCTION scriptbrowse_string (BYREF trigger AS INTEGER, BYVAL triggertype AS INTEGER, scrtype AS STRING) AS STRING
+FUNCTION scriptbrowse_string (BYREF trigger as integer, BYVAL triggertype as integer, scrtype as string) as string
  DIM localbuf(20)
- REDIM scriptnames(0) AS STRING, scriptids(0)
- DIM numberedlast AS INTEGER = 0
- DIM firstscript AS INTEGER = 0
- DIM scriptmax AS INTEGER = 0
+ REDIM scriptnames(0) as string, scriptids(0)
+ DIM numberedlast as integer = 0
+ DIM firstscript as integer = 0
+ DIM scriptmax as integer = 0
  
- DIM chara AS INTEGER
- DIM charb AS INTEGER
+ DIM chara as integer
+ DIM charb as integer
  
- DIM fh AS INTEGER
- DIM i AS INTEGER
- DIM j AS INTEGER
+ DIM fh as integer
+ DIM i as integer
+ DIM j as integer
 
- DIM tempstr AS STRING
+ DIM tempstr as string
  tempstr = scriptname(trigger, triggertype)
  IF tempstr <> "[none]" AND LEFT$(tempstr, 1) = "[" THEN firstscript = 2 ELSE firstscript = 1
 
  IF triggertype = 1 THEN
   'plotscripts
   fh = FREEFILE
-  OPEN workingdir + SLASH + "plotscr.lst" FOR BINARY AS #fh
+  OPEN workingdir + SLASH + "plotscr.lst" FOR BINARY as #fh
   'numberedlast = firstscript + LOF(fh) \ 40 - 1
   numberedlast = firstscript + gen(genNumPlotscripts) - 1
 
-  REDIM scriptnames(numberedlast) AS STRING, scriptids(numberedlast)
+  REDIM scriptnames(numberedlast) as string, scriptids(numberedlast)
 
   i = firstscript
-  FOR j AS INTEGER = firstscript TO numberedlast
+  FOR j as integer = firstscript TO numberedlast
    loadrecord localbuf(), fh, 20
    IF localbuf(0) < 16384 THEN
     scriptids(i) = localbuf(0)
@@ -2266,7 +2266,7 @@ FUNCTION scriptbrowse_string (BYREF trigger AS INTEGER, BYVAL triggertype AS INT
  END IF
 
  fh = FREEFILE
- OPEN workingdir + SLASH + "lookup" + STR$(triggertype) + ".bin" FOR BINARY AS #fh
+ OPEN workingdir + SLASH + "lookup" + STR$(triggertype) + ".bin" FOR BINARY as #fh
  scriptmax = numberedlast + LOF(fh) \ 40
 
  IF scriptmax < firstscript THEN
@@ -2285,7 +2285,7 @@ FUNCTION scriptbrowse_string (BYREF trigger AS INTEGER, BYVAL triggertype AS INT
  END IF
 
  i = numberedlast + 1
- FOR j AS INTEGER = numberedlast + 1 TO scriptmax
+ FOR j as integer = numberedlast + 1 TO scriptmax
   loadrecord localbuf(), fh, 20
   IF localbuf(0) <> 0 THEN
    scriptids(i) = 16384 + j - (numberedlast + 1)
@@ -2299,7 +2299,7 @@ FUNCTION scriptbrowse_string (BYREF trigger AS INTEGER, BYVAL triggertype AS INT
 
  'insertion sort numbered scripts by id
  FOR i = firstscript + 1 TO numberedlast
-  FOR j AS INTEGER = i - 1 TO firstscript STEP -1
+  FOR j as integer = i - 1 TO firstscript STEP -1
    IF scriptids(j + 1) < scriptids(j) THEN
     SWAP scriptids(j + 1), scriptids(j)
     SWAP scriptnames(j + 1), scriptnames(j)
@@ -2311,8 +2311,8 @@ FUNCTION scriptbrowse_string (BYREF trigger AS INTEGER, BYVAL triggertype AS INT
 
  'sort trigger scripts by name
  FOR i = numberedlast + 1 TO scriptmax - 1
-  FOR j AS INTEGER = scriptmax TO i + 1 STEP -1
-   FOR k AS INTEGER = 0 TO small(LEN(scriptnames(i)), LEN(scriptnames(j)))
+  FOR j as integer = scriptmax TO i + 1 STEP -1
+   FOR k as integer = 0 TO small(LEN(scriptnames(i)), LEN(scriptnames(j)))
     chara = ASC(LCASE$(CHR$(scriptnames(i)[k])))
     charb = ASC(LCASE$(CHR$(scriptnames(j)[k])))
     IF chara < charb THEN
@@ -2326,7 +2326,7 @@ FUNCTION scriptbrowse_string (BYREF trigger AS INTEGER, BYVAL triggertype AS INT
   NEXT
  NEXT
 
- DIM state AS MenuState
+ DIM state as MenuState
  WITH state
   .pt = 0
   .last = scriptmax
@@ -2341,8 +2341,8 @@ FUNCTION scriptbrowse_string (BYREF trigger AS INTEGER, BYVAL triggertype AS INT
   NEXT
  END IF
  state.top = large(0, small(state.pt - 10, scriptmax - 21))
- DIM id AS INTEGER = scriptids(state.pt)
- DIM iddisplay AS INTEGER = 0
+ DIM id as integer = scriptids(state.pt)
+ DIM iddisplay as integer = 0
  setkeys YES
  DO
   setwait 55
@@ -2370,8 +2370,8 @@ FUNCTION scriptbrowse_string (BYREF trigger AS INTEGER, BYVAL triggertype AS INT
   END IF
   DIM intext as string = LEFT(getinputtext, 1)
   IF LEN(intext) > 0 THEN
-   DIM AS INTEGER j = state.pt + 1
-   FOR ctr AS INTEGER = numberedlast + 1 TO scriptmax
+   DIM as integer j = state.pt + 1
+   FOR ctr as integer = numberedlast + 1 TO scriptmax
     IF j > scriptmax THEN j = numberedlast + 1
     tempstr$ = LCASE(LEFT(scriptnames(j), 1))
     IF tempstr$ = intext THEN state.pt = j: EXIT FOR
@@ -2403,11 +2403,11 @@ FUNCTION scriptbrowse_string (BYREF trigger AS INTEGER, BYVAL triggertype AS INT
 
 END FUNCTION
 
-FUNCTION scrintgrabber (BYREF n AS INTEGER, BYVAL min AS INTEGER, BYVAL max AS INTEGER, BYVAL less AS INTEGER=75, BYVAL more AS INTEGER=77, BYVAL scriptside AS INTEGER, BYVAL triggertype AS INTEGER) AS INTEGER
+FUNCTION scrintgrabber (BYREF n as integer, BYVAL min as integer, BYVAL max as integer, BYVAL less as integer=75, BYVAL more as integer=77, BYVAL scriptside as integer, BYVAL triggertype as integer) as integer
  'script side is 1 or -1: on which side of zero are the scripts
  'min or max on side of scripts is ignored
 
- DIM temp AS INTEGER = n
+ DIM temp as integer = n
  IF scriptside < 0 THEN
   temp = -n
   SWAP less, more
@@ -2416,14 +2416,14 @@ FUNCTION scrintgrabber (BYREF n AS INTEGER, BYVAL min AS INTEGER, BYVAL max AS I
   SWAP min, max
  END IF
 
- DIM seekdir AS INTEGER = 0
+ DIM seekdir as integer = 0
  IF keyval(more) > 1 THEN
   seekdir = 1
  ELSEIF keyval(less) > 1 THEN
   seekdir = -1
  END IF
 
- DIM scriptscroll AS INTEGER = NO
+ DIM scriptscroll as integer = NO
  IF seekdir <> 0 THEN
   scriptscroll = NO
   IF temp = min AND seekdir = -1 THEN
@@ -2460,17 +2460,17 @@ FUNCTION scrintgrabber (BYREF n AS INTEGER, BYVAL min AS INTEGER, BYVAL max AS I
  n = temp
 END FUNCTION
 
-SUB seekscript (BYREF temp AS INTEGER, BYVAL seekdir AS INTEGER, BYVAL triggertype AS INTEGER)
+SUB seekscript (BYREF temp as integer, BYVAL seekdir as integer, BYVAL triggertype as integer)
  'temp = -1 means scroll to last script
  'returns 0 when scrolled past first script, -1 when went past last
 
  DIM buf(19), plotids(gen(genMaxRegularScript))
- DIM recordsloaded AS INTEGER = 0
- DIM screxists AS INTEGER = 0
+ DIM recordsloaded as integer = 0
+ DIM screxists as integer = 0
 
- DIM fh AS INTEGER = FREEFILE
- OPEN workingdir & SLASH & "lookup" & triggertype & ".bin" FOR BINARY AS #fh
- DIM triggernum AS INTEGER = LOF(fh) \ 40
+ DIM fh as integer = FREEFILE
+ OPEN workingdir & SLASH & "lookup" & triggertype & ".bin" FOR BINARY as #fh
+ DIM triggernum as integer = LOF(fh) \ 40
  IF temp = -1 THEN temp = triggernum + 16384
 
  DO
@@ -2516,7 +2516,7 @@ END SUB
 '--is a script set there; however fields which specify either a script or
 '--something else, eg. either a script or a textbox, may be skipped)
 SUB visit_scripts(byval visitor as FnScriptVisitor)
- DIM AS INTEGER i, j, idtmp, resave
+ DIM as integer i, j, idtmp, resave
 
  '--global scripts
  visitor(gen(genNewGameScript), "new game", "")
@@ -2524,8 +2524,8 @@ SUB visit_scripts(byval visitor as FnScriptVisitor)
  visitor(gen(genGameoverScript), "game over", "")
 
  '--Text box scripts
- DIM box AS TextBox
- FOR i AS INTEGER = 0 TO gen(genMaxTextbox)
+ DIM box as TextBox
+ FOR i as integer = 0 TO gen(genMaxTextbox)
   LoadTextBox box, i
   resave = NO
   IF box.instead < 0 THEN
@@ -2545,7 +2545,7 @@ SUB visit_scripts(byval visitor as FnScriptVisitor)
  
  '--Map scripts and NPC scripts
  DIM gmaptmp(dimbinsize(binMAP))
- REDIM npctmp(0) AS NPCType
+ REDIM npctmp(0) as NPCType
  FOR i = 0 TO gen(genMaxMap)
   resave = NO
   loadrecord gmaptmp(), game & ".map", getbinsize(binMAP) \ 2, i
@@ -2569,7 +2569,7 @@ SUB visit_scripts(byval visitor as FnScriptVisitor)
  NEXT i
  
  '--vehicle scripts
- DIM vehicle AS VehicleData
+ DIM vehicle as VehicleData
  FOR i = 0 TO gen(genMaxVehicle)
   resave = NO
   LoadVehicle game & ".veh", vehicle, i
@@ -2596,7 +2596,7 @@ SUB visit_scripts(byval visitor as FnScriptVisitor)
  
  '--shop scripts
  DIM shoptmp(19)
- DIM shopname AS STRING
+ DIM shopname as string
  FOR i = 0 TO gen(genMaxShop)
   loadrecord shoptmp(), game & ".sho", 20, i
   shopname = readbadbinstring(shoptmp(), 0, 15)
@@ -2606,10 +2606,10 @@ SUB visit_scripts(byval visitor as FnScriptVisitor)
  NEXT i
  
  '--menu scripts
- DIM menu_set AS MenuSet
+ DIM menu_set as MenuSet
  menu_set.menufile = workingdir + SLASH + "menus.bin"
  menu_set.itemfile = workingdir + SLASH + "menuitem.bin"
- DIM menutmp AS MenuDef
+ DIM menutmp as MenuDef
  FOR i = 0 TO gen(genMaxMenu)
   resave = NO
   LoadMenuData menu_set, menutmp, i
@@ -2630,25 +2630,25 @@ SUB visit_scripts(byval visitor as FnScriptVisitor)
 END SUB
 
 'For script_usage_list and script_usage_visitor
-DIM SHARED plotscript_order() AS INTEGER
-DIM SHARED script_usage_menu() AS IntStrPair
+DIM SHARED plotscript_order() as integer
+DIM SHARED script_usage_menu() as IntStrPair
 
 PRIVATE FUNCTION script_usage_visitor(byref trig as integer, description as string, caption as string) as integer
  IF trig = 0 THEN RETURN NO
  '--See script_usage_list about rank calculation
- DIM rank AS INTEGER = trig
+ DIM rank as integer = trig
  IF trig >= 16384 THEN rank = 100000 + plotscript_order(trig - 16384)
  intstr_array_append script_usage_menu(), rank, "  " & description & " " & caption
  RETURN NO  'trig not modified
 END FUNCTION
 
 SUB script_usage_list ()
- DIM buf(20) AS INTEGER
- DIM id AS INTEGER
- DIM s AS STRING
- DIM fh AS INTEGER
- DIM i AS INTEGER
- 'DIM t AS DOUBLE = TIMER
+ DIM buf(20) as integer
+ DIM id as integer
+ DIM s as string
+ DIM fh as integer
+ DIM i as integer
+ 'DIM t as DOUBLE = TIMER
 
  'Build script_usage_menu, which is an list of menu items, initially out of order.
  'The integer in each pair is used to sort the menu items into the right order:
@@ -2663,8 +2663,8 @@ SUB script_usage_list ()
 
  'Loop through old-style non-autonumbered scripts
  fh = FREEFILE
- OPEN workingdir & SLASH & "plotscr.lst" FOR BINARY AS #fh
- FOR i AS INTEGER = 0 TO gen(genNumPlotscripts) - 1
+ OPEN workingdir & SLASH & "plotscr.lst" FOR BINARY as #fh
+ FOR i as integer = 0 TO gen(genNumPlotscripts) - 1
   loadrecord buf(), fh, 20, i
   id = buf(0)
   IF id <= 16383 THEN
@@ -2678,8 +2678,8 @@ SUB script_usage_list ()
 
  'First, a detour: determine the alphabetic rank of each plotscript
  fh = FREEFILE
- OPEN workingdir & SLASH & "lookup1.bin" FOR BINARY AS #fh
- REDIM plotscripts(0) AS STRING
+ OPEN workingdir & SLASH & "lookup1.bin" FOR BINARY as #fh
+ REDIM plotscripts(0) as string
  WHILE loadrecord(buf(), fh, 20)
   s = readbinstring(buf(), 1, 38)
   str_array_append plotscripts(), s
@@ -2710,13 +2710,13 @@ SUB script_usage_list ()
  visit_scripts @script_usage_visitor
 
  'sort, and build menu() (for standardmenu)
- DIM indices(UBOUND(script_usage_menu)) AS INTEGER
- REDIM menu(UBOUND(script_usage_menu)) AS STRING
+ DIM indices(UBOUND(script_usage_menu)) as integer
+ REDIM menu(UBOUND(script_usage_menu)) as string
  sort_integers_indices indices(), @script_usage_menu(0).i, UBOUND(script_usage_menu) + 1, sizeof(IntStrPair)
 
- DIM currentscript AS INTEGER = -1
- DIM j AS INTEGER = 0
- FOR i AS INTEGER = 0 TO UBOUND(script_usage_menu)
+ DIM currentscript as integer = -1
+ DIM j as integer = 0
+ FOR i as integer = 0 TO UBOUND(script_usage_menu)
   WITH script_usage_menu(indices(i))
    IF MID(.s, 1, 1) = " " THEN
     'script trigger
@@ -2736,7 +2736,7 @@ SUB script_usage_list ()
 
  'debug "script usage in " & ((TIMER - t) * 1000) & "ms"
 
- DIM state AS MenuState
+ DIM state as MenuState
  state.size = 24
  state.last = UBOUND(menu)
  
@@ -2763,8 +2763,8 @@ END SUB
 
 '--A similar function exists in yetmore2.bas for game. it differs only in error-reporting
 FUNCTION decodetrigger (trigger as integer, trigtype as integer) as integer
- DIM buf(19) AS INTEGER
- DIM fname AS STRING
+ DIM buf(19) as integer
+ DIM fname as string
  IF trigger >= 16384 THEN
   fname = workingdir & SLASH & "lookup" & trigtype & ".bin"
   IF loadrecord (buf(), fname$, 20, trigger - 16384) THEN
@@ -2779,15 +2779,15 @@ FUNCTION decodetrigger (trigger as integer, trigtype as integer) as integer
 END FUNCTION
 
 '--This could be used in more places; makes sense to load plotscr.lst into a global
-DIM SHARED script_ids_list() AS INTEGER
+DIM SHARED script_ids_list() as integer
 
 SUB load_script_ids_list()
  REDIM script_ids_list(large(0, gen(genNumPlotscripts) - 1))
- DIM buf(19) AS INTEGER
- DIM fh AS INTEGER
+ DIM buf(19) as integer
+ DIM fh as integer
  fh = FREEFILE
- OPEN workingdir & SLASH & "plotscr.lst" FOR BINARY AS #fh
- FOR i AS INTEGER = 0 TO gen(genNumPlotscripts) - 1
+ OPEN workingdir & SLASH & "plotscr.lst" FOR BINARY as #fh
+ FOR i as integer = 0 TO gen(genNumPlotscripts) - 1
   loadrecord buf(), fh, 20, i
   script_ids_list(i) = buf(0)
  NEXT i
@@ -2795,12 +2795,12 @@ SUB load_script_ids_list()
 END SUB
 
 '--For script_broken_trigger_list and check_broken_script_trigger
-DIM SHARED missing_script_trigger_list() AS STRING
+DIM SHARED missing_script_trigger_list() as string
 
 PRIVATE FUNCTION check_broken_script_trigger(byref trig as integer, description as string, caption as string) as integer
  IF trig <= 0 THEN RETURN NO ' No script trigger
  '--decode script trigger
- DIM id AS INTEGER
+ DIM id as integer
  id = decodetrigger(trig, plottrigger)
  '--Check for missing new-style script
  IF id = 0 THEN
@@ -2818,7 +2818,7 @@ SUB script_broken_trigger_list()
  'Cache plotscr.lst
  load_script_ids_list
 
- REDIM missing_script_trigger_list(0) AS STRING
+ REDIM missing_script_trigger_list(0) as string
  missing_script_trigger_list(0) = "back to previous menu..."
 
  visit_scripts @check_broken_script_trigger
@@ -2827,7 +2827,7 @@ SUB script_broken_trigger_list()
   str_array_append missing_script_trigger_list(), "No broken triggers found!"
  END IF
 
- DIM state AS MenuState
+ DIM state as MenuState
  state.size = 24
  state.last = UBOUND(missing_script_trigger_list)
 
@@ -2860,14 +2860,14 @@ FUNCTION autofix_old_script_visitor(byref id as integer, description as string, 
  IF id >= 16384 THEN RETURN NO 'New-style script
  IF int_array_find(script_ids_list(), id) <> -1 THEN RETURN NO 'Found okay
 
- DIM buf(19) AS INTEGER
- DIM fh AS INTEGER
+ DIM buf(19) as integer
+ DIM fh as integer
   
- DIM found_name AS STRING = ""
+ DIM found_name as string = ""
  
  fh = FREEFILE
- OPEN tmpdir & "plotscr.lst.tmp" FOR BINARY ACCESS READ AS #fh
- FOR i AS INTEGER = 0 TO (LOF(fh) \ 40) - 1
+ OPEN tmpdir & "plotscr.lst.tmp" FOR BINARY ACCESS READ as #fh
+ FOR i as integer = 0 TO (LOF(fh) \ 40) - 1
   loadrecord buf(), fh, 20, i
   IF buf(0) = id THEN '--Yay! found it in the old file!
    found_name = readbinstring(buf(), 1, 38)
@@ -2879,8 +2879,8 @@ FUNCTION autofix_old_script_visitor(byref id as integer, description as string, 
  IF found_name = "" THEN RETURN NO '--broken but unfixable (no old name)
 
  fh = FREEFILE
- OPEN workingdir & SLASH & "lookup1.bin" FOR BINARY AS #fh
- FOR i AS INTEGER = 0 TO (LOF(fh) \ 40) - 1
+ OPEN workingdir & SLASH & "lookup1.bin" FOR BINARY as #fh
+ FOR i as integer = 0 TO (LOF(fh) \ 40) - 1
   loadrecord buf(), fh, 20, i
   IF found_name = readbinstring(buf(), 1, 38) THEN '--Yay! found it in the new file!
    id = 16384 + i
@@ -2907,13 +2907,13 @@ SUB autofix_broken_old_scripts()
  visit_scripts @autofix_old_script_visitor
 END SUB
 
-FUNCTION sublist (s() AS STRING, helpkey AS STRING="", BYVAL x AS INTEGER=0, BYVAL y AS INTEGER=0, BYVAL page AS INTEGER=-1) AS INTEGER
- DIM state AS MenuState
+FUNCTION sublist (s() as string, helpkey as string="", BYVAL x as integer=0, BYVAL y as integer=0, BYVAL page as integer=-1) as integer
+ DIM state as MenuState
  state.pt = 0
  state.last = UBOUND(s)
  state.size = 22
 
- DIM holdscreen AS INTEGER
+ DIM holdscreen as integer
  holdscreen = allocatepage
  IF page > -1 THEN
   copypage page, holdscreen
@@ -2947,13 +2947,13 @@ END FUNCTION
 CONST GTSnumitems = 209
 
 TYPE GlobalTextStringsMenu
- index(-1 TO GTSnumitems) AS INTEGER
- description(-1 TO GTSnumitems) AS STRING
- shaded(-1 TO GTSnumitems) AS INTEGER
- text(-1 TO GTSnumitems) AS STRING
- maxlen(GTSnumitems) AS INTEGER
- help(GTSnumitems) AS STRING
- curitem AS INTEGER
+ index(-1 TO GTSnumitems) as integer
+ description(-1 TO GTSnumitems) as string
+ shaded(-1 TO GTSnumitems) as integer
+ text(-1 TO GTSnumitems) as string
+ maxlen(GTSnumitems) as integer
+ help(GTSnumitems) as string
+ curitem as integer
 END TYPE
 
 PRIVATE SUB GTS_add_to_menu (menu as GlobalTextStringsMenu, description as string, BYVAL index as integer, default as string, BYVAL maxlen as integer, helpfile as string = "")
@@ -2979,20 +2979,20 @@ PRIVATE SUB GTS_menu_header (menu as GlobalTextStringsMenu, description as strin
 END SUB
 
 SUB edit_global_text_strings()
- DIM search AS STRING = ""
- DIM state AS MenuState
+ DIM search as string = ""
+ DIM state as MenuState
  DIM menu as GlobalTextStringsMenu
- DIM rect AS RectType
+ DIM rect as RectType
  rect.wide = 320
  rect.high = 192
 
  '--load current names
 
  'getelementnames handles the double-defaulting of element names
- DIM elementnames() AS STRING
+ DIM elementnames() as string
  getelementnames elementnames()
 
- FOR i AS INTEGER = -1 TO UBOUND(menu.index)
+ FOR i as integer = -1 TO UBOUND(menu.index)
   'initialize unused menu items to -1 because if you leave them at 0
   'they collide with HP
   menu.index(i) = -1
@@ -3015,13 +3015,13 @@ SUB edit_global_text_strings()
  GTS_add_to_menu menu, "Spell cost %",               31, "SpellCost%", 10
 
  GTS_menu_header menu, "Elements:"
- FOR i AS INTEGER = 0 TO gen(genNumElements) - 1
+ FOR i as integer = 0 TO gen(genNumElements) - 1
   GTS_add_to_menu menu, "Elemental " & i,            174 + i*2, elementnames(i), 14
  NEXT i
 
  GTS_menu_header menu, "Equip slots:"
  GTS_add_to_menu menu, "Weapon",                     38, "Weapon", 10
- FOR i AS INTEGER = 1 TO 4
+ FOR i as integer = 1 TO 4
   GTS_add_to_menu menu, "Armor " & i,                24 + i, "Armor " & i, 10
  NEXT i
 
@@ -3172,8 +3172,8 @@ SUB edit_global_text_strings()
   END IF
   IF keyval(scCTRL) > 0 AND keyval(scS) > 1 THEN
    IF prompt_for_string(search, "Search (descriptions & values)") THEN
-    FOR i AS INTEGER = 0 TO state.last
-     DIM idx AS INTEGER = (state.pt + 1 + i) MOD (state.last + 1)
+    FOR i as integer = 0 TO state.last
+     DIM idx as integer = (state.pt + 1 + i) MOD (state.last + 1)
      IF INSTR(LCASE(menu.text(idx)), LCASE(search)) OR INSTR(LCASE(menu.description(idx)), LCASE(search)) THEN
       state.pt = idx
       clamp_menu_state state
@@ -3209,22 +3209,22 @@ SUB edit_global_text_strings()
  'Note: it is safe to write the strings to file out of order as long as we write
  'all of them. Any gaps in the file will be filled with garbage: do not leave
  'unused global string indices, or you won't be able to use them later!
- FOR i AS INTEGER = 0 TO GTSnumitems
+ FOR i as integer = 0 TO GTSnumitems
   writeglobalstring menu.index(i), menu.text(i), menu.maxlen(i)
  NEXT i
  'Write defaults for all elements that don't appear in the menu
- FOR i AS INTEGER = gen(genNumElements) TO 63
+ FOR i as integer = gen(genNumElements) TO 63
   writeglobalstring 174 + i*2, "Element" & i+1, 14
  NEXT i
 
  getstatnames statnames()
 END SUB
 
-SUB writeglobalstring (index AS INTEGER, s AS STRING, maxlen AS INTEGER)
+SUB writeglobalstring (index as integer, s as string, maxlen as integer)
  IF index < 0 THEN EXIT SUB
- DIM fh AS INTEGER = FREEFILE
- OPEN game & ".stt" FOR BINARY AS #fh
- DIM ch AS STRING
+ DIM fh as integer = FREEFILE
+ OPEN game & ".stt" FOR BINARY as #fh
+ DIM ch as string
  ch = CHR(small(LEN(s), small(maxlen, 255)))
  PUT #fh, 1 + index * 11, ch
  ch = LEFT(s, small(maxlen, 255))
@@ -3233,7 +3233,7 @@ SUB writeglobalstring (index AS INTEGER, s AS STRING, maxlen AS INTEGER)
  loadglobalstrings
 END SUB
 
-FUNCTION safe_caption(caption_array() AS STRING, BYVAL index AS INTEGER, description AS STRING) AS STRING
+FUNCTION safe_caption(caption_array() as string, BYVAL index as integer, description as string) as string
  IF index >= LBOUND(caption_array) AND index <= UBOUND(caption_array) THEN
   RETURN caption_array(index)
  ELSE
@@ -3241,7 +3241,7 @@ FUNCTION safe_caption(caption_array() AS STRING, BYVAL index AS INTEGER, descrip
  END IF
 END FUNCTION
 
-SUB update_attack_editor_for_chain (BYVAL mode AS INTEGER, BYREF caption1 AS STRING, BYREF max1 AS INTEGER, BYREF min1 AS INTEGER, BYREF menutype1 AS INTEGER, BYREF caption2 AS STRING, BYREF max2 AS INTEGER, BYREF min2 AS INTEGER, BYREF menutype2 AS INTEGER)
+SUB update_attack_editor_for_chain (BYVAL mode as integer, BYREF caption1 as string, BYREF max1 as integer, BYREF min1 as integer, BYREF menutype1 as integer, BYREF caption2 as string, BYREF max2 as integer, BYREF min2 as integer, BYREF menutype2 as integer)
  SELECT CASE mode
   CASE 0 '--no special condition
    caption1 = ""
@@ -3291,9 +3291,9 @@ SUB update_attack_editor_for_chain (BYVAL mode AS INTEGER, BYREF caption1 AS STR
  END SELECT
 END SUB
 
-FUNCTION attack_chain_browser (BYVAL start_attack AS INTEGER) AS INTEGER
- DIM state AS AttackChainBrowserState
- DIM selected AS INTEGER = start_attack
+FUNCTION attack_chain_browser (BYVAL start_attack as integer) as integer
+ DIM state as AttackChainBrowserState
+ DIM selected as integer = start_attack
  
  state.before.size = 2
  state.after.size = 2
@@ -3301,11 +3301,11 @@ FUNCTION attack_chain_browser (BYVAL start_attack AS INTEGER) AS INTEGER
  DO
   '--Init
 
-  FOR i AS INTEGER = 0 TO UBOUND(state.chainto)
+  FOR i as integer = 0 TO UBOUND(state.chainto)
    state.chainto(i) = 0
   NEXT i
 
-  FOR i AS INTEGER = 0 TO UBOUND(state.chainfrom)
+  FOR i as integer = 0 TO UBOUND(state.chainfrom)
    state.chainfrom(i) = 0
   NEXT i
   
@@ -3384,16 +3384,16 @@ FUNCTION attack_chain_browser (BYVAL start_attack AS INTEGER) AS INTEGER
  RETURN selected
 END FUNCTION
 
-FUNCTION find_free_attack_preview_slot(slots() AS Slice Ptr) AS INTEGER
- FOR i AS INTEGER = 0 TO UBOUND(slots)
+FUNCTION find_free_attack_preview_slot(slots() as Slice Ptr) as integer
+ FOR i as integer = 0 TO UBOUND(slots)
   IF slots(i) = 0 THEN RETURN i
  NEXT i
  'Oops! Can't hold any more 'FIXME: if/when FreeBasic supports resizeable arrays in types, use them here
  RETURN -1
 END FUNCTION
 
-SUB init_attack_chain_screen(BYVAL attack_id AS INTEGER, state AS AttackChainBrowserState)
- DIM atk AS AttackData
+SUB init_attack_chain_screen(BYVAL attack_id as integer, state as AttackChainBrowserState)
+ DIM atk as AttackData
  loadattackdata atk, attack_id
  
  state.current = create_attack_preview_slice("", attack_id, state.root)
@@ -3401,7 +3401,7 @@ SUB init_attack_chain_screen(BYVAL attack_id AS INTEGER, state AS AttackChainBro
  state.current->AlignHoriz = 1
  state.current->Y = 6
  
- DIM slot AS INTEGER
+ DIM slot as integer
  IF atk.instead.atk_id > 0 THEN
   slot = find_free_attack_preview_slot(state.chainto())
   IF slot >= 0 THEN
@@ -3424,7 +3424,7 @@ SUB init_attack_chain_screen(BYVAL attack_id AS INTEGER, state AS AttackChainBro
  position_chain_preview_boxes(state.chainto(), state.after)
 
  '--now search for attacks that chain to this one
- FOR i AS INTEGER = 0 TO gen(genMaxAttack)
+ FOR i as integer = 0 TO gen(genMaxAttack)
   loadattackdata atk, i
   IF atk.chain.atk_id - 1 = attack_id THEN
    slot = find_free_attack_preview_slot(state.chainfrom())
@@ -3447,10 +3447,10 @@ SUB init_attack_chain_screen(BYVAL attack_id AS INTEGER, state AS AttackChainBro
 
 END SUB
 
-SUB position_chain_preview_boxes(sl_list() AS Slice ptr, st AS MenuState)
+SUB position_chain_preview_boxes(sl_list() as Slice ptr, st as MenuState)
  st.last = -1
- DIM y AS INTEGER = 6
- FOR i AS INTEGER = 0 TO UBOUND(sl_list)
+ DIM y as integer = 6
+ FOR i as integer = 0 TO UBOUND(sl_list)
   IF sl_list(i) <> 0 THEN
    WITH *(sl_list(i))
     .Y = y
@@ -3462,35 +3462,35 @@ SUB position_chain_preview_boxes(sl_list() AS Slice ptr, st AS MenuState)
  IF st.last = -1 THEN st.last = 0
 END SUB
 
-FUNCTION create_attack_preview_slice(caption AS STRING, BYVAL attack_id AS INTEGER, BYVAL parent AS Slice Ptr) AS Slice Ptr
- DIM atk AS AttackData
+FUNCTION create_attack_preview_slice(caption as string, BYVAL attack_id as integer, BYVAL parent as Slice Ptr) as Slice Ptr
+ DIM atk as AttackData
  loadattackdata atk, attack_id
  
- DIM box AS Slice Ptr = NewSliceOfType(slRectangle, parent)
+ DIM box as Slice Ptr = NewSliceOfType(slRectangle, parent)
  box->Width = 80
  box->Height = 50
  ChangeRectangleSlice box, 0
  ChangeRectangleSlice box, , , , -1
 
- DIM spr AS Slice Ptr = NewSliceOfType(slSprite, box)
+ DIM spr as Slice Ptr = NewSliceOfType(slSprite, box)
  ChangeSpriteSlice spr, 6, atk.picture, atk.pal, 2
  spr->AnchorHoriz = 1
  spr->AlignHoriz = 1
  spr->AnchorVert = 2
  spr->AlignVert = 2
 
- DIM numsl AS Slice Ptr = NewSliceOfType(slText, box)
+ DIM numsl as Slice Ptr = NewSliceOfType(slText, box)
  ChangeTextSlice numsl, STR(attack_id), , YES
  numsl->AnchorHoriz = 1
  numsl->AlignHoriz = 1
  
- DIM namesl AS Slice Ptr = NewSliceOfType(slText, box)
+ DIM namesl as Slice Ptr = NewSliceOfType(slText, box)
  ChangeTextSlice namesl, atk.name, , YES
  namesl->AnchorHoriz = 1
  namesl->AlignHoriz = 1
  namesl->Y = 10
 
- DIM capsl AS Slice Ptr = NewSliceOfType(slText, box)
+ DIM capsl as Slice Ptr = NewSliceOfType(slText, box)
  ChangeTextSlice capsl, caption, , -1
  capsl->AnchorHoriz = 1
  capsl->AlignHoriz = 1
@@ -3502,10 +3502,10 @@ FUNCTION create_attack_preview_slice(caption AS STRING, BYVAL attack_id AS INTEG
  RETURN box
 END FUNCTION
 
-SUB attack_preview_slice_focus(BYVAL sl AS Slice Ptr)
+SUB attack_preview_slice_focus(BYVAL sl as Slice Ptr)
  IF sl = 0 THEN EXIT SUB
  ChangeRectangleSlice sl, , , , 0
- DIM ch AS Slice Ptr = sl->FirstChild
+ DIM ch as Slice Ptr = sl->FirstChild
  WHILE ch
   IF ch->SliceType= slText THEN
    ChangeTextSlice ch, , uilook(uiSelectedItem)
@@ -3514,10 +3514,10 @@ SUB attack_preview_slice_focus(BYVAL sl AS Slice Ptr)
  WEND
 END SUB
 
-SUB attack_preview_slice_defocus(BYVAL sl AS Slice Ptr)
+SUB attack_preview_slice_defocus(BYVAL sl as Slice Ptr)
  IF sl = 0 THEN EXIT SUB
  ChangeRectangleSlice sl, , , , -1
- DIM ch AS Slice Ptr = sl->FirstChild
+ DIM ch as Slice Ptr = sl->FirstChild
  WHILE ch
   IF ch->SliceType = slText THEN
    ChangeTextSlice ch, , uilook(uiText)
@@ -3527,27 +3527,27 @@ SUB attack_preview_slice_defocus(BYVAL sl AS Slice Ptr)
 END SUB
 
 SUB fontedit (font() as integer)
- DIM f(255) AS INTEGER
- DIM copybuf(4) AS INTEGER
- DIM menu(3) AS STRING
+ DIM f(255) as integer
+ DIM copybuf(4) as integer
+ DIM menu(3) as string
 
  menu(0) = "Previous Menu"
  menu(1) = "Edit Font..."
  menu(2) = "Import Font..."
  menu(3) = "Export Font..."
 
- DIM i AS INTEGER
+ DIM i as integer
 
- DIM last AS INTEGER = -1
+ DIM last as integer = -1
  FOR i = 32 TO 255
   last += 1
   f(last) = i
  NEXT i
 
- DIM mode AS INTEGER = -1
+ DIM mode as integer = -1
 
  'This state is used for the menu, not the charpicker
- DIM state AS MenuState
+ DIM state as MenuState
  WITH state
   .pt = 0
   .top = 0
@@ -3555,16 +3555,16 @@ SUB fontedit (font() as integer)
   .size = 22
  END WITH
 
- DIM linesize AS INTEGER = 14
- DIM pt AS INTEGER = -1 * linesize
+ DIM linesize as integer = 14
+ DIM pt as integer = -1 * linesize
 
- DIM x AS INTEGER
- DIM y AS INTEGER
+ DIM x as integer
+ DIM y as integer
  
- DIM xoff AS INTEGER
- DIM yoff AS INTEGER
+ DIM xoff as integer
+ DIM yoff as integer
  
- DIM c AS INTEGER
+ DIM c as integer
 
  setkeys
  DO
@@ -3658,7 +3658,7 @@ SUB fontedit (font() as integer)
     yoff = 4
     rectangle xoff, yoff, 160, 160, uilook(uiDisabledItem), dpage
     FOR i = 0 TO 7
-     FOR j AS INTEGER = 0 TO 7
+     FOR j as integer = 0 TO 7
       IF readbit(font(), 0, (f(pt) * 8 + i) * 8 + j) THEN
        rectangle xoff + i * 20, yoff + j * 20, 20, 20, uilook(uiMenuItem), dpage
       END IF
@@ -3696,9 +3696,9 @@ EXIT SUB
 
 END SUB
 
-SUB fontedit_export_font(font() AS INTEGER)
+SUB fontedit_export_font(font() as integer)
 
- DIM newfont AS STRING = "newfont"
+ DIM newfont as string = "newfont"
  newfont = inputfilename("Input a filename to save to", ".ohf", "", "input_file_export_font") 
 
  IF newfont <> "" THEN
@@ -3708,16 +3708,16 @@ SUB fontedit_export_font(font() AS INTEGER)
 
 END SUB
 
-SUB fontedit_import_font(font() AS INTEGER)
+SUB fontedit_import_font(font() as integer)
 
- STATIC default AS STRING
- DIM newfont AS STRING = browse(0, default, "*.ohf", "", , "browse_font")
+ STATIC default as string
+ DIM newfont as string = browse(0, default, "*.ohf", "", , "browse_font")
  
  IF newfont <> "" THEN
   writeablecopyfile newfont, game & ".fnt"
 
-  DIM i AS INTEGER
-  DIM font_tmp(1023) AS INTEGER
+  DIM i as integer
+  DIM font_tmp(1023) as integer
 
   '--character 0 (actually font(0)) contains metadata (marks as ASCII or Latin-1)
   '--character 1 to 31 are internal icons and should never be overwritten
@@ -3737,7 +3737,7 @@ SUB fontedit_import_font(font() AS INTEGER)
  END IF
 END SUB
 
-SUB cropafter (BYVAL index AS INTEGER, BYREF limit AS INTEGER, BYVAL flushafter AS INTEGER, lump AS STRING, BYVAL bytes AS INTEGER, BYVAL prompt AS INTEGER=YES)
+SUB cropafter (BYVAL index as integer, BYREF limit as integer, BYVAL flushafter as integer, lump as string, BYVAL bytes as integer, BYVAL prompt as integer=YES)
  'flushafter -1 = flush records
  'flushafter 0 = trim file
  DIM i as integer
@@ -3754,7 +3754,7 @@ SUB cropafter (BYVAL index AS INTEGER, BYREF limit AS INTEGER, BYVAL flushafter 
   END IF
  END IF
 
- DIM buf(bytes \ 2 - 1) AS INTEGER
+ DIM buf(bytes \ 2 - 1) as integer
  FOR i = 0 TO index
   loadrecord buf(), lump, bytes \ 2, i
   storerecord buf(), tmpdir & "_cropped.tmp", bytes \ 2, i
@@ -3775,12 +3775,12 @@ SUB cropafter (BYVAL index AS INTEGER, BYREF limit AS INTEGER, BYVAL flushafter 
  safekill tmpdir & "_cropped.tmp"
 END SUB
 
-FUNCTION numbertail (s AS STRING) AS STRING
- DIM n AS INTEGER
+FUNCTION numbertail (s as string) as string
+ DIM n as integer
 
  IF s = "" THEN RETURN "BLANK"
 
- FOR i AS INTEGER = 1 TO LEN(s)
+ FOR i as integer = 1 TO LEN(s)
   IF is_int(MID(s, i)) THEN
    n = str2int(MID(s, i)) + 1
    RETURN LEFT(s, i - 1) & n
@@ -3823,22 +3823,22 @@ END SUB
 
 SUB experience_chart ()
 
- 'DIM exp_first_level AS INTEGER = 30
- 'DIM exp_multiplier AS SINGLE = 1.2
- 'DIM exp_adder AS INTEGER = 5
- 'DIM exp_uppercap AS INTEGER = 1000000
+ 'DIM exp_first_level as integer = 30
+ 'DIM exp_multiplier as SINGLE = 1.2
+ 'DIM exp_adder as integer = 5
+ 'DIM exp_uppercap as integer = 1000000
 
- DIM mode AS INTEGER = 0
- STATIC hero_count AS INTEGER = 4
- STATIC enemy_id AS INTEGER = 0
- DIM enemy AS EnemyDef
+ DIM mode as integer = 0
+ STATIC hero_count as integer = 4
+ STATIC enemy_id as integer = 0
+ DIM enemy as EnemyDef
 
- STATIC form_id AS INTEGER = 0
+ STATIC form_id as integer = 0
 
- DIM startfrom AS INTEGER = 3
- DIM menu(startfrom + gen(genMaxLevel)) AS STRING
+ DIM startfrom as integer = 3
+ DIM menu(startfrom + gen(genMaxLevel)) as string
  menu(0) = "Previous menu..."
- DIM state AS MenuState
+ DIM state as MenuState
  WITH state
   .size = 24
   .last = UBOUND(menu)
@@ -3871,8 +3871,8 @@ SUB experience_chart ()
   END IF
 
   IF state.need_update THEN
-   DIM test_exp AS INTEGER = 0
-   DIM test_name AS STRING
+   DIM test_exp as integer = 0
+   DIM test_name as string
    IF mode = 0 THEN
     menu(1) = "Preview mode: Total Exp."
     menu(2) = "Compared to N/A"
@@ -3886,7 +3886,7 @@ SUB experience_chart ()
     DIM form as Formation
     LoadFormation form, form_id
     test_exp = 0
-    FOR i AS INTEGER = 0 TO 7
+    FOR i as integer = 0 TO 7
      IF form.slots(i).id >= 0 THEN
       loadenemydata enemy, form.slots(i).id
       test_exp += enemy.reward.exper
@@ -3897,9 +3897,9 @@ SUB experience_chart ()
     test_name = "Formation" & form_id
    END IF
    menu(3) = "Distributed to a party of: " & hero_count & " heroes"
-   DIM suffix AS STRING
-   DIM killcount AS STRING
-   FOR lev AS INTEGER = 1 TO gen(genMaxLevel)
+   DIM suffix as string
+   DIM killcount as string
+   FOR lev as integer = 1 TO gen(genMaxLevel)
     IF mode = 0 THEN
      suffix = "total " & total_exp_to_level(lev)
     ELSE
@@ -3925,22 +3925,22 @@ END SUB
 
 SUB stat_growth_chart ()
  'midpoint should stored in gen()
- DIM midpoint AS DOUBLE = 0.3219  'default to current
- DIM midpoint_repr AS STRING = format_percent(midpoint, 4)
+ DIM midpoint as DOUBLE = 0.3219  'default to current
+ DIM midpoint_repr as string = format_percent(midpoint, 4)
 
- DIM menu(2) AS STRING
+ DIM menu(2) as string
  menu(0) = "Previous menu..."
- DIM state AS MenuState
+ DIM state as MenuState
  WITH state
   .size = 24
   .last = UBOUND(menu)
   .need_update = YES
  END WITH
 
- DIM preview_lev AS INTEGER = gen(genMaxLevel) \ 2
+ DIM preview_lev as integer = gen(genMaxLevel) \ 2
 
  'Position and size of the graph
- DIM rect AS RectType
+ DIM rect as RectType
  rect.x = 150
  rect.y = 40
  rect.wide = 150
@@ -3979,19 +3979,19 @@ SUB stat_growth_chart ()
   drawline rect.x, origin_y, rect.x, rect.y, uilook(uiDisabledItem), vpage
   drawline rect.x, origin_y, rect.x + rect.wide, origin_y, uilook(uiDisabledItem), vpage
   'line (drawn so that if genMaxLevel is small, you get a lot of steps, and never sloped line segments)
-  DIM lasty AS DOUBLE
-  FOR x AS INTEGER = 0 TO rect.wide - 1
-   DIM lev AS INTEGER = INT((gen(genMaxLevel) + 1) * x / rect.wide)  'floor
-   DIM y AS DOUBLE = atlevel_quadratic(lev, 0, rect.high * 100, midpoint) / 100
+  DIM lasty as DOUBLE
+  FOR x as integer = 0 TO rect.wide - 1
+   DIM lev as integer = INT((gen(genMaxLevel) + 1) * x / rect.wide)  'floor
+   DIM y as DOUBLE = atlevel_quadratic(lev, 0, rect.high * 100, midpoint) / 100
    IF x = 0 THEN lasty = y
    drawline x + rect.x, origin_y - y, x + rect.x, origin_y - lasty, uilook(uiHighlight), vpage
    lasty = y
   NEXT
 
   'Draw crosshair
-  DIM crosshair_lev AS DOUBLE
+  DIM crosshair_lev as DOUBLE
   IF state.pt = 2 THEN crosshair_lev = preview_lev ELSE crosshair_lev = gen(genMaxLevel) / 2
-  DIM AS DOUBLE crosshairx, crosshairy  'in pixels
+  DIM as DOUBLE crosshairx, crosshairy  'in pixels
   crosshairx = rect.wide * crosshair_lev / gen(genMaxLevel)
   crosshairy = atlevel_quadratic(crosshair_lev, 0, rect.high * 100, midpoint) / 100
   drawline rect.x + crosshairx - 3, origin_y - crosshairy, rect.x + crosshairx + 3, origin_y - crosshairy, uilook(uiHighlight2), vpage
