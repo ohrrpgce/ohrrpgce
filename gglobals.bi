@@ -32,6 +32,7 @@ EXTERN custom_version as string
 EXTERN master_channel as IPCChannel
 EXTERN modified_lumps as string vector
 EXTERN lump_reloading as LumpReloadOptions
+EXTERN force_prefsdir_save as integer
 
 'Input handling globals
 EXTERN as integer carray(), csetup()

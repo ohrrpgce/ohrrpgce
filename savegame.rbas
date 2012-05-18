@@ -100,7 +100,7 @@ SUB init_save_system()
  '--set up new rsav folder
  
  DIM rpg_folder as STRING = trimfilename(sourcerpg)
- IF diriswriteable(rpg_folder) THEN
+ IF diriswriteable(rpg_folder) ANDALSO force_prefsdir_save = NO THEN
   '--default location is same as the RPG file (if possible)
   savedir = trimextension(sourcerpg) & ".saves"
  ELSE

@@ -89,6 +89,7 @@ DIM custom_version as STRING  'when running as slave
 DIM master_channel as IPCChannel = NULL_CHANNEL  'when running as slave
 DIM modified_lumps as STRING VECTOR  'when running as slave
 v_new modified_lumps
+DIM force_prefsdir_save as integer = NO
 
 orig_dir = CURDIR()
 processcommandline
@@ -364,7 +365,9 @@ IF gam.autorungame = NO THEN
   IF isfile(appres & "/bundledgame") THEN
    DIM bundledname as string
    bundledname = TRIM(string_from_file(appres & "/bundledgame"), ANY !" \t\r\n")
-   seek_rpg_or_rpgdir_and_play_it exepath & "/../Resources", bundledname
+   IF seek_rpg_or_rpgdir_and_play_it(exepath & "/../Resources", bundledname) THEN
+    force_prefsdir_save = YES
+   END IF
   END IF
  END IF
 END IF
