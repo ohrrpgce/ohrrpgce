@@ -33,6 +33,7 @@ mkdir -p tmp
 
 echo Erasing old distribution files
 rm -f distrib/OHRRPGCE*.dmg
+rm -f distrib/ohrrpgce-mac-minimal*.zip
 
 echo "Packaging binary distribution of CUSTOM"
 
@@ -81,3 +82,8 @@ mv OHRRPGCE-$CODE tmp
 
 echo "Erasing contents of temporary directory"
 rm -Rf tmp/*
+
+echo "Create minimal player zip"
+zip -r -q distrib/ohrrpgce-mac-minimal-$TODAY-$CODE.zip OHRRPGCE-Game.app README-mac-minimal.txt LICENSE-binary.txt
+
+
