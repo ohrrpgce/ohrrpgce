@@ -339,8 +339,8 @@ ELSE  'NOT running_as_slave
 
 END IF  'NOT running_as_slave
 
-IF gam.autorungame = NO THEN
 #IFDEF __FB_LINUX__
+IF gam.autorungame = NO THEN
  IF exename <> "ohrrpgce-game" THEN
   DO 'single-pass loop for breaking
    IF starts_with(exepath, "/usr/local") THEN
@@ -353,8 +353,22 @@ IF gam.autorungame = NO THEN
    END IF
   EXIT DO : LOOP '--end of single-pass loop for breaking
  END IF
-#ENDIF
 END IF
+#ENDIF
+
+#IFDEF __FB_DARWIN__
+IF gam.autorungame = NO THEN
+ IF ends_with(exepath, ".app/Contents/MacOS") THEN
+  DIM appres as string
+  appres = exepath & "/../Resources"
+  IF isfile(appres & "/bundledgame") THEN
+   DIM bundledname as string
+   bundledname = TRIM(string_from_file(appres & "/bundledgame"), ANY !" \t\r\n")
+   seek_rpg_or_rpgdir_and_play_it exepath & "/../Resources", bundledname
+  END IF
+ END IF
+END IF
+#ENDIF
 
 IF gam.autorungame = NO THEN
  IF LCASE(exename) <> "game" ANDALSO exename <> "ohrrpgce-game" THEN
