@@ -64,13 +64,10 @@ mv distrib/ohrrpgce-linux-*-wip.tar.bz2 distrib/ohrrpgce-linux-wip.tar.bz2
 scp -p distrib/ohrrpgce-linux-wip.tar.bz2 $UPLOAD_DEST/ohrrpgce/nightly/
 rm distrib/ohrrpgce-linux-wip.tar.bz2
 
+mv distrib/ohrrpgce-player-linux-bin-minimal-*-wip.zip distrib/ohrrpgce-player-linux-bin-minimal.zip
+scp -p distrib/ohrrpgce-player-linux-bin-minimal.zip $UPLOAD_DEST/ohrrpgce/nightly/
+rm distrib/ohrrpgce-player-linux-bin-minimal.zip
+
 ssh $UPLOAD_SERVER rm "$UPLOAD_FOLDER/ohrrpgce/nightly/ohrrpgce_*.deb"
 scp -p distrib/ohrrpgce_*.wip-*_i386.deb $UPLOAD_DEST/ohrrpgce/nightly/
 rm distrib/ohrrpgce_*.deb
-
-# Make the minimal binary dist
-cp ohrrpgce-game tmp/
-strip tmp/ohrrpgce-game
-zip -j distrib/ohrrpgce-player-linux-bin-minimal.zip tmp/ohrrpgce-game LICENSE-binary.txt README-linux-bin-minimal.txt
-rm tmp/ohrrpgce-game
-scp -p distrib/ohrrpgce-player-linux-bin-minimal.zip $UPLOAD_DEST/ohrrpgce/nightly/

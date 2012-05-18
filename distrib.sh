@@ -90,6 +90,12 @@ mv distrib/ohrrpgce-linux-x86.tar.bz2 distrib/ohrrpgce-linux-x86-$TODAY-$CODE.ta
 echo "Erasing contents of temporary directory"
 rm -Rf tmp/*
 
+echo "Prepare minimal player zip"
+cp ohrrpgce-game tmp/
+strip tmp/ohrrpgce-game
+zip -j distrib/ohrrpgce-player-linux-bin-minimal-$TODAY-$CODE.zip tmp/ohrrpgce-game LICENSE-binary.txt README-linux-bin-minimal.txt
+rm tmp/ohrrpgce-game
+
 echo "Building Debian/Ubuntu packages"
 cd linux
 if [ -f *.deb ] ; then

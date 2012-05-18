@@ -651,11 +651,14 @@ FUNCTION get_linux_gameplayer() as string
  DIM url as string
  DIM dlfile as string
  
- 'Ideally we might check IF version_branch = "wip" and handle wip versions
- 'differently than stable versions, but there is not a stable linux binary zip
- 'yet for any stable releases.
- 
- url = "http://hamsterrepublic.com/ohrrpgce/nightly/ohrrpgce-player-linux-bin-minimal.zip"
+
+ IF version_branch = "wip" THEN
+  'If using any wip release, get the latest wip release
+  url = "http://hamsterrepublic.com/ohrrpgce/nightly/ohrrpgce-player-linux-bin-minimal.zip"
+ ELSE
+  'If using any stable release, get the latest stable release
+  url = "http://hamsterrepublic.com/dl/ohrrpgce-player-linux-bin-minimal.zip"
+ END IF
  dlfile = "ohrrpgce-player-linux-bin-minimal.zip"
 
  '--Ask the user for permission the first time we download (subsequent updates don't ask)
