@@ -10,6 +10,8 @@ fi
 
 echo Building binaries
 scons
+echo Bundling apps
+./bundle-apps.sh
 
 echo "Downloading import media"
 if [ -f import.zip ] ; then
