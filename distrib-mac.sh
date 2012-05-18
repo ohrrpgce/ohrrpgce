@@ -9,9 +9,7 @@ if [ ! -f distrib-mac.sh ] ; then
 fi
 
 echo Building binaries
-make || exit 1
-./makeutil.sh || exit 1
-./bundle-apps.sh || exit 1
+scons
 
 echo "Downloading import media"
 if [ -f import.zip ] ; then
