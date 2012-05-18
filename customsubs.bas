@@ -5,6 +5,14 @@
 '
 ' This file is for general purpose code use by CUSTOM but not by GAME.
 
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
+#endif
+
 #include "config.bi"
 #include "allmodex.bi"
 #include "common.bi"
@@ -17,8 +25,6 @@
 #include "ver.txt"
 
 #include "customsubs.bi"
-
-OPTION EXPLICIT
 
 'Subs and functions only used here
 DECLARE SUB import_textboxes_warn (byref warn as string, s as string)
@@ -1118,7 +1124,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
 
  itemname = load_item_name(npcdata.item, 0, 0)
  boxpreview = textbox_preview_line(npcdata.textbox)
- scrname = scriptname$(npcdata.script, plottrigger)
+ scrname = scriptname(npcdata.script, plottrigger)
  vehiclename = load_vehicle_name(npcdata.vehicle - 1)
 
  setkeys
@@ -1181,7 +1187,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
     IF enter_or_space() THEN
      scrname = scriptbrowse_string(npcdata.script, plottrigger, "NPC use plotscript")
     ELSEIF scrintgrabber(npcdata.script, 0, 0, scLeft, scRight, 1, plottrigger) THEN
-     scrname = scriptname$(npcdata.script, plottrigger)
+     scrname = scriptname(npcdata.script, plottrigger)
     END IF
    CASE 13
     intgrabber(npcdata.scriptarg, lnpc(state.pt), unpc(state.pt))
@@ -1207,7 +1213,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
    caption = " " & read_npc_int(npcdata, i)
    SELECT CASE i
     CASE 1
-     caption = " " & defaultint$(npcdata.palette)
+     caption = " " & defaultint(npcdata.palette)
     CASE 2
      caption = " = " & safe_caption(movetype(), npcdata.movetype, "movetype")
     CASE 3
@@ -1552,7 +1558,7 @@ FUNCTION export_textboxes (filename as string, metadata() as integer) as integer
     PRINT #fh, "Instead Tag: " & box.instead_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.instead_tag, , "Never")) & ")"
     PRINT #fh, "Instead Box: " & box.instead;
     IF box.instead < 0 THEN
-     PRINT #fh, " (Plotscript " & scriptname$(box.instead * -1, plottrigger) & ")"
+     PRINT #fh, " (Plotscript " & scriptname(box.instead * -1, plottrigger) & ")"
     ELSE
      PRINT #fh, " (Textbox)"
     END IF
@@ -1561,7 +1567,7 @@ FUNCTION export_textboxes (filename as string, metadata() as integer) as integer
     PRINT #fh, "Next Tag: " & box.after_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.after_tag, , "Never")) & ")"
     PRINT #fh, "Next Box: " & box.after;
     IF box.after < 0 THEN
-     PRINT #fh, " (Plotscript " & scriptname$(box.after * -1, plottrigger) & ")"
+     PRINT #fh, " (Plotscript " & scriptname(box.after * -1, plottrigger) & ")"
     ELSE
      PRINT #fh, " (Textbox)"
     END IF
@@ -1581,7 +1587,7 @@ FUNCTION export_textboxes (filename as string, metadata() as integer) as integer
     PRINT #fh, "Shop: " & box.shop;
     IF box.shop = 0 THEN PRINT #fh, " (Restore HP/MP)"
     IF box.shop < 0 THEN PRINT #fh, " (Inn for $" & (box.shop * -1) & ")"
-    IF box.shop > 0 THEN PRINT #fh, " (" & escape_nonprintable_ascii(readshopname$(box.shop - 1)) & ")"
+    IF box.shop > 0 THEN PRINT #fh, " (" & escape_nonprintable_ascii(readshopname(box.shop - 1)) & ")"
    END IF
    IF box.hero_tag <> 0 THEN
     PRINT #fh, "Hero Tag: " & box.hero_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.hero_tag, , "Never")) & ")"
@@ -1629,9 +1635,9 @@ FUNCTION export_textboxes (filename as string, metadata() as integer) as integer
     PRINT #fh, "Item Tag: " & box.item_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.item_tag, , "Never")) & ")"
     PRINT #fh, "Item: " & box.item;
     IF box.item < 0 THEN
-     PRINT #fh, " (Remove " & escape_nonprintable_ascii(readitemname$((box.item * -1) - 1)) & ")"
+     PRINT #fh, " (Remove " & escape_nonprintable_ascii(readitemname((box.item * -1) - 1)) & ")"
     ELSE
-     PRINT #fh, " (Add " & escape_nonprintable_ascii(readitemname$(box.item - 1)) & ")"
+     PRINT #fh, " (Add " & escape_nonprintable_ascii(readitemname(box.item - 1)) & ")"
     END IF
    END IF
   END IF
@@ -2225,8 +2231,9 @@ SUB scriptbrowse (byref trigger as integer, byval triggertype as integer, scrtyp
 END SUB
 
 FUNCTION scriptbrowse_string (byref trigger as integer, byval triggertype as integer, scrtype as string) as string
- DIM localbuf(20)
- REDIM scriptnames(0) as string, scriptids(0)
+ DIM localbuf(20) as integer
+ REDIM scriptnames(0) as string
+ REDIM scriptids(0) as integer
  DIM numberedlast as integer = 0
  DIM firstscript as integer = 0
  DIM scriptmax as integer = 0
@@ -2240,7 +2247,7 @@ FUNCTION scriptbrowse_string (byref trigger as integer, byval triggertype as int
 
  DIM tempstr as string
  tempstr = scriptname(trigger, triggertype)
- IF tempstr <> "[none]" AND LEFT$(tempstr, 1) = "[" THEN firstscript = 2 ELSE firstscript = 1
+ IF tempstr <> "[none]" AND LEFT(tempstr, 1) = "[" THEN firstscript = 2 ELSE firstscript = 1
 
  IF triggertype = 1 THEN
   'plotscripts
@@ -2256,7 +2263,7 @@ FUNCTION scriptbrowse_string (byref trigger as integer, byval triggertype as int
    loadrecord localbuf(), fh, 20
    IF localbuf(0) < 16384 THEN
     scriptids(i) = localbuf(0)
-    scriptnames(i) = STR$(localbuf(0)) + " " + readbinstring(localbuf(), 1, 36)
+    scriptnames(i) = STR(localbuf(0)) + " " + readbinstring(localbuf(), 1, 36)
     i += 1
    END IF
   NEXT
@@ -2266,7 +2273,7 @@ FUNCTION scriptbrowse_string (byref trigger as integer, byval triggertype as int
  END IF
 
  fh = FREEFILE
- OPEN workingdir + SLASH + "lookup" + STR$(triggertype) + ".bin" FOR BINARY as #fh
+ OPEN workingdir + SLASH + "lookup" + STR(triggertype) + ".bin" FOR BINARY as #fh
  scriptmax = numberedlast + LOF(fh) \ 40
 
  IF scriptmax < firstscript THEN
@@ -2313,8 +2320,8 @@ FUNCTION scriptbrowse_string (byref trigger as integer, byval triggertype as int
  FOR i = numberedlast + 1 TO scriptmax - 1
   FOR j as integer = scriptmax TO i + 1 STEP -1
    FOR k as integer = 0 TO small(LEN(scriptnames(i)), LEN(scriptnames(j)))
-    chara = ASC(LCASE$(CHR$(scriptnames(i)[k])))
-    charb = ASC(LCASE$(CHR$(scriptnames(j)[k])))
+    chara = ASC(LCASE(CHR(scriptnames(i)[k])))
+    charb = ASC(LCASE(CHR(scriptnames(j)[k])))
     IF chara < charb THEN
      EXIT FOR
     ELSEIF chara > charb THEN
@@ -2373,8 +2380,10 @@ FUNCTION scriptbrowse_string (byref trigger as integer, byval triggertype as int
    DIM as integer j = state.pt + 1
    FOR ctr as integer = numberedlast + 1 TO scriptmax
     IF j > scriptmax THEN j = numberedlast + 1
-    tempstr$ = LCASE(LEFT(scriptnames(j), 1))
-    IF tempstr$ = intext THEN state.pt = j: EXIT FOR
+    IF LCASE(LEFT(scriptnames(j), 1)) = intext THEN
+     state.pt = j
+     EXIT FOR
+    END IF
     j += 1
    NEXT
   END IF
@@ -2382,11 +2391,11 @@ FUNCTION scriptbrowse_string (byref trigger as integer, byval triggertype as int
   clearpage dpage
   draw_fullscreen_scrollbar state, , dpage
   textcolor uilook(uiText), 0
-  printstr "Pick a " + scrtype$, 0, 0, dpage
+  printstr "Pick a " & scrtype, 0, 0, dpage
   standardmenu scriptnames(), state, 8, 10, dpage
   IF iddisplay THEN
    textcolor uilook(uiMenuItem), uilook(uiHighlight)
-   printstr STR$(id), 8, 190, dpage
+   printstr STR(id), 8, 190, dpage
   END IF
 
   SWAP dpage, vpage
@@ -2464,7 +2473,8 @@ SUB seekscript (byref temp as integer, byval seekdir as integer, byval triggerty
  'temp = -1 means scroll to last script
  'returns 0 when scrolled past first script, -1 when went past last
 
- DIM buf(19), plotids(gen(genMaxRegularScript))
+ DIM buf(19) as integer
+ DIM plotids(gen(genMaxRegularScript)) as integer
  DIM recordsloaded as integer = 0
  DIM screxists as integer = 0
 
@@ -2544,7 +2554,7 @@ SUB visit_scripts(byval visitor as FnScriptVisitor)
  NEXT i
  
  '--Map scripts and NPC scripts
- DIM gmaptmp(dimbinsize(binMAP))
+ DIM gmaptmp(dimbinsize(binMAP)) as integer
  REDIM npctmp(0) as NPCType
  FOR i = 0 TO gen(genMaxMap)
   resave = NO
@@ -2595,7 +2605,7 @@ SUB visit_scripts(byval visitor as FnScriptVisitor)
  NEXT i
  
  '--shop scripts
- DIM shoptmp(19)
+ DIM shoptmp(19) as integer
  DIM shopname as string
  FOR i = 0 TO gen(genMaxShop)
   loadrecord shoptmp(), game & ".sho", 20, i
@@ -2767,7 +2777,7 @@ FUNCTION decodetrigger (trigger as integer, trigtype as integer) as integer
  DIM fname as string
  IF trigger >= 16384 THEN
   fname = workingdir & SLASH & "lookup" & trigtype & ".bin"
-  IF loadrecord (buf(), fname$, 20, trigger - 16384) THEN
+  IF loadrecord (buf(), fname, 20, trigger - 16384) THEN
    RETURN buf(0)
   ELSE
    debug "decodetrigger: record " & (trigger - 16384) & " could not be loaded"
@@ -3945,7 +3955,7 @@ SUB stat_growth_chart ()
  rect.y = 40
  rect.wide = 150
  rect.high = 140
- DIM origin_y = rect.y + rect.high
+ DIM origin_y as integer = rect.y + rect.high
 
  setkeys YES
  DO
