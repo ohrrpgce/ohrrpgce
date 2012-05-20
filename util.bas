@@ -1700,14 +1700,13 @@ FUNCTION count_directory_size(directory as string) as integer
  RETURN bytes
 END FUNCTION
 
-FUNCTION string_from_file (filename as string) as string
- 'Read an entire file and return it as a single string.
- 'Makes no attempt to do any line-ending conversion
+FUNCTION string_from_first_line_of_file (filename as string) as string
+ 'Read the first line of a text file and return it as a string.
+ 'ignore/removes any line-ending chars
  DIM fh as integer = FREEFILE
  DIM result as string
- OPEN filename for binary access read as #fh
- result = STRING(LOF(fh), 0)
- GET #fh, , result
+ OPEN filename for input as #fh
+ LINE INPUT #fh, result
  CLOSE #fh
  RETURN result
 END FUNCTION

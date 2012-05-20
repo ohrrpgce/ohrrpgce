@@ -364,7 +364,7 @@ IF gam.autorungame = NO THEN
   appres = exepath & "/../Resources"
   IF isfile(appres & "/bundledgame") THEN
    DIM bundledname as string
-   bundledname = TRIM(string_from_file(appres & "/bundledgame"), ANY !" \t\r\n")
+   bundledname = TRIM(string_from_first_line_of_file(appres & "/bundledgame"), ANY !" \t\r\n")
    IF seek_rpg_or_rpgdir_and_play_it(exepath & "/../Resources", bundledname) THEN
     force_prefsdir_save = YES
    END IF
