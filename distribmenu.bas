@@ -54,7 +54,6 @@ DECLARE FUNCTION create_ar_archive(start_in_dir as string, archive as string, fi
 DECLARE SUB fix_deb_group_permissions(start_at_dir as string)
 DECLARE SUB write_debian_postrm_script (filename as string)
 DECLARE SUB write_debian_postinst_script (filename as string)
-DECLARE SUB kill_debtmp_dir(debtmp as string, basename as string)
 DECLARE FUNCTION can_run_windows_exes () as integer
 DECLARE FUNCTION can_make_debian_packages () as integer
 DECLARE SUB edit_distrib_info ()
@@ -67,13 +66,15 @@ DECLARE SUB maybe_write_license_text_file (filename as string)
 DECLARE FUNCTION is_known_license(license_code as string) as integer
 DECLARE FUNCTION generate_copyright_line(distinfo as DistribState) as string
 DECLARE FUNCTION browse_licenses(old_license as string) as string
+DECLARE SUB distribute_game_as_mac_app ()
 
 CONST distmenuEXIT as integer = 1
 CONST distmenuZIP as integer = 2
 CONST distmenuWINSETUP as integer = 3
-CONST distmenuDEBSETUP as integer = 4
-CONST distmenuINFO as integer = 5
-CONST distmenuREADME as integer = 6
+CONST distmenuMACSETUP as integer = 4
+CONST distmenuDEBSETUP as integer = 5
+CONST distmenuINFO as integer = 6
+CONST distmenuREADME as integer = 7
 
 SUB distribute_game ()
  
@@ -92,6 +93,8 @@ SUB distribute_game ()
   append_simplemenu_item menu, "Can't Export Windows Installer", YES, uilook(uiDisabledItem)
   append_simplemenu_item menu, " (requires Windows or wine)", YES, uilook(uiDisabledItem)
  END IF
+
+ 'append_simplemenu_item menu, "Export Mac OS X App Bundle", , , distmenuMACSETUP
 
  append_simplemenu_item menu, "Export Debian Linux Package", , , distmenuDEBSETUP
  IF NOT can_make_debian_packages() THEN
@@ -118,6 +121,9 @@ SUB distribute_game ()
     CASE distmenuWINSETUP:
      save_current_game
      distribute_game_as_windows_installer
+    CASE distmenuMACSETUP:
+     save_current_game
+     distribute_game_as_mac_app
     CASE distmenuDEBSETUP:
      save_current_game
      distribute_game_as_debian_package
@@ -894,7 +900,7 @@ SUB distribute_game_as_debian_package ()
  DIM debtmp as string = trimfilename(sourcerpg) & SLASH & "debpkg.tmp"
  IF isdir(debtmp) THEN
   debuginfo "Clean up old " & debtmp
-  kill_debtmp_dir debtmp, basename
+  killdir debtmp, YES
  END IF
  
  debuginfo "Prepare package data files..."
@@ -975,22 +981,8 @@ SUB distribute_game_as_debian_package ()
  LOOP
 
  '--Cleanup temp files
- kill_debtmp_dir debtmp, basename
+ killdir debtmp, YES
  
-END SUB
-
-SUB kill_debtmp_dir(debtmp as string, basename as string)
- 'killdir doesn't recurse into directories, so we need to be a bit explicit here
- killdir debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "menu"
- killdir debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "applications"
- killdir debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "games" & SLASH & basename
- killdir debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "games"
- killdir debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "doc" & SLASH & basename
- killdir debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "doc"
- killdir debtmp & SLASH & "usr" & SLASH & "games"
- killdir debtmp & SLASH & "usr" & SLASH & "share"
- killdir debtmp & SLASH & "usr"
- killdir debtmp
 END SUB
 
 SUB write_debian_postinst_script (filename as string)
@@ -1234,3 +1226,6 @@ IF find_helper_app("tar") = "" THEN RETURN NO
 IF find_helper_app("gzip") = "" THEN RETURN NO
 RETURN YES
 END FUNCTION
+
+SUB distribute_game_as_mac_app ()
+END SUB

@@ -1159,12 +1159,21 @@ SUB copyfiles(src as string, dest as string, byval copyhidden as integer = 0)
  NEXT
 END SUB
 
-SUB killdir(directory as string)
+SUB killdir(directory as string, recurse as integer=0)
   DIM filelist() as string
   findfiles directory, ALLFILES, fileTypeFile, -1, filelist()
   FOR i as integer = 0 TO UBOUND(filelist)
     safekill directory + SLASH + filelist(i)
   NEXT
+  IF recurse THEN
+   DIM dirlist() as string
+   findfiles directory, ALLFILES, fileTypeDirectory, -1, dirlist()
+   FOR i as integer = 0 TO UBOUND(dirlist)
+    IF dirlist(i) = "." ORELSE dirlist(i) = ".." THEN CONTINUE FOR
+    'debuginfo "recurse to " & directory & SLASH & dirlist(i)
+    killdir directory & SLASH & dirlist(i), -1
+   NEXT i
+  END IF
   IF RMDIR(directory) THEN
     'errno would get overwritten while building the error message
     DIM err_string as STRING = *get_sys_err_string()

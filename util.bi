@@ -271,7 +271,7 @@ declare sub extendfile (byval fh as integer, byval length as integer)
 declare sub findfiles (directory as STRING, namemask as STRING = "", byval filetype as integer = fileTypeFile, byval findhidden as integer = 0, filelist() as STRING)
 declare sub writeablecopyfile (src as string, dest as string)
 declare sub copyfiles (src as string, dest as string, byval copyhidden as integer = 0)
-declare sub killdir (directory as string)
+declare sub killdir (directory as string, recurse as integer=0)
 declare function makedir (directory as string) as integer
 declare sub safekill (f as string)
 declare function fileisreadable(f as string) as integer
