@@ -352,6 +352,21 @@ FUNCTION confirmed_copy (srcfile as string, destfile as string) as integer
  RETURN YES
 END FUNCTION
 
+FUNCTION confirmed_copydirectory(src as string, dest as string) as integer
+ 'Copy a directory, but if it fails, clean up any partial copy and show a visible warning
+ 'Returns YES for success and NO for failure
+ DIM result as string
+ result = copydirectory(src, dest, YES)
+ IF result <> "" THEN
+  visible_debug result
+  IF isdir(dest) THEN
+   killdir dest, YES
+  END IF
+  RETURN NO
+ END IF
+ RETURN YES
+END FUNCTION
+
 FUNCTION getfixbit(byval bitnum as integer) as integer
  DIM f as string
  f = workingdir + SLASH + "fixbits.bin"

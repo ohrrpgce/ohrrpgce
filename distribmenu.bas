@@ -30,6 +30,7 @@ DECLARE SUB distribute_game_as_zip ()
 DECLARE SUB distribute_game_as_windows_installer ()
 DECLARE FUNCTION get_windows_gameplayer() as string
 DECLARE FUNCTION get_linux_gameplayer() as string
+DECLARE FUNCTION get_mac_gameplayer() as string
 DECLARE FUNCTION find_or_download_innosetup () as string
 DECLARE FUNCTION find_innosetup () as string
 DECLARE FUNCTION win_or_wine_drive(letter as string) as string
@@ -49,13 +50,14 @@ DECLARE SUB write_debian_binary_file (filename as string)
 DECLARE SUB write_debian_control_file(controlfile as string, basename as string, pkgver as string, size_in_kibibytes as integer, byref distinfo as DistribState)
 DECLARE SUB write_debian_copyright_file (filename as string)
 DECLARE FUNCTION gzip_file (filename as string) as integer
-DECLARE FUNCTION create_tarball(start_in_dir as string, tarball as string, files as string) as integer
+DECLARE FUNCTION create_tarball(start_in_dir as string, tarball as string, files as string, byval force_exec_bit as integer=NO) as integer
 DECLARE FUNCTION create_ar_archive(start_in_dir as string, archive as string, files as string) as integer
 DECLARE SUB fix_deb_group_permissions(start_at_dir as string)
 DECLARE SUB write_debian_postrm_script (filename as string)
 DECLARE SUB write_debian_postinst_script (filename as string)
 DECLARE FUNCTION can_run_windows_exes () as integer
 DECLARE FUNCTION can_make_debian_packages () as integer
+DECLARE FUNCTION can_make_mac_packages () as integer
 DECLARE SUB edit_distrib_info ()
 DECLARE FUNCTION sanitize_pkgname(s as string) as string
 DECLARE FUNCTION sanitize_email(s as string) as string
@@ -94,7 +96,10 @@ SUB distribute_game ()
   append_simplemenu_item menu, " (requires Windows or wine)", YES, uilook(uiDisabledItem)
  END IF
 
- 'append_simplemenu_item menu, "Export Mac OS X App Bundle", , , distmenuMACSETUP
+ append_simplemenu_item menu, "Export Mac OS X App Bundle", , , distmenuMACSETUP
+ IF NOT can_make_mac_packages() THEN
+  append_simplemenu_item menu, " (requires tar+gzip)", YES, uilook(uiDisabledItem)
+ END IF
 
  append_simplemenu_item menu, "Export Debian Linux Package", , , distmenuDEBSETUP
  IF NOT can_make_debian_packages() THEN
@@ -1075,7 +1080,7 @@ FUNCTION create_ar_archive(start_in_dir as string, archive as string, files as s
  
 END FUNCTION
 
-FUNCTION create_tarball(start_in_dir as string, tarball as string, files as string) as integer
+FUNCTION create_tarball(start_in_dir as string, tarball as string, files as string, byval force_exec_bit as integer=NO) as integer
  '--Returns YES if successful, or NO if failed
 
  ' start_in_dir only applies to the tar command. The tarball filename should still be either absolute or relative to the default CURDIR
@@ -1091,20 +1096,25 @@ FUNCTION create_tarball(start_in_dir as string, tarball as string, files as stri
 
  DIM uncompressed as string = trimextension(tarball)
 
- DIM platform_args as string = ""
+ DIM more_args as string = ""
  #IFDEF __UNIX__
  'These arguments are broken on Windows tar.exe for some stupid reason
- platform_args = " --owner=root --group=root"
+ more_args = " --owner=root --group=root"
  #ENDIF
  #IFDEF __FB_WIN32__
  'This is a hack to replace tar.exe's horrendous default permissions, and to (clumsily) mark the executables with the executable bit
- platform_args = " --mode=755"
+ force_exec_bit = YES
  #ENDIF
+
+ IF force_exec_bit THEN
+  more_args = " --mode=755"
+ END IF
 
  DIM spawn_ret as string
  DIM args as string
 
- args = " -c -C """ & start_in_dir & """ " & platform_args & " -f """ & uncompressed & """ " & files
+ args = " -c -C """ & start_in_dir & """ " & more_args & " -f """ & uncompressed & """ " & files
+ debug args
  spawn_ret = spawn_and_wait(tar, args)
  IF LEN(spawn_ret) THEN visible_debug spawn_ret : RETURN NO
 
@@ -1121,7 +1131,6 @@ FUNCTION gzip_file (filename as string) as integer
  
  DIM args as string
  args = """" & filename & """"
- debug args
  DIM spawn_ret as string
  spawn_ret = spawn_and_wait(gzip, args)
  IF LEN(spawn_ret) THEN visible_debug spawn_ret : RETURN NO
@@ -1227,5 +1236,129 @@ IF find_helper_app("gzip") = "" THEN RETURN NO
 RETURN YES
 END FUNCTION
 
+FUNCTION can_make_mac_packages () as integer
+'--check to see if we can find the tools needed to compress a mac .app package
+IF find_helper_app("tar") = "" THEN RETURN NO
+IF find_helper_app("gzip") = "" THEN RETURN NO
+RETURN YES
+END FUNCTION
+
 SUB distribute_game_as_mac_app ()
+
+ 'FIXME: remove this when nasty mac bugs are fixed!
+ IF yesno("WARNING: The Mac OS X version is not stable yet, are you sure you want to use it anyway?") = NO THEN
+  RETURN
+ END IF
+
+ DIM distinfo as DistribState
+ load_distrib_state distinfo
+
+ DIM destname as string = trimfilename(sourcerpg) & SLASH & distinfo.pkgname & "-mac.tar.gz"
+
+ IF isfile(destname) THEN
+  IF yesno(trimpath(destname) & " already exists. Overwrite it?") = NO THEN RETURN
+  safekill destname
+ END IF
+
+ DIM apptmp as string = trimfilename(sourcerpg) & SLASH & "macapp.tmp"
+ IF isdir(apptmp) THEN
+  debuginfo "Clean up old " & apptmp
+  killdir apptmp, YES
+ END IF
+ 
+ makedir apptmp
+
+ DO '--single pass loop for breaking
+
+  debuginfo "Copy mac game player" 
+  DIM gameplayer as string
+  gameplayer = get_mac_gameplayer()
+  IF gameplayer = "" THEN visible_debug "ERROR: OHRRPGCE-Game.app is not available" : EXIT DO
+  DIM app as string = apptmp & SLASH & distinfo.pkgname & ".app"
+  IF confirmed_copydirectory(gameplayer, app) = NO THEN EXIT DO
+  IF confirmed_copy(trimfilename(gameplayer) & SLASH & "LICENSE-binary.txt", apptmp & SLASH & "LICENSE-binary.txt") = NO THEN EXIT DO
+
+  debuginfo "Copy rpg file"
+  DIM gameshortname as string
+  gameshortname = trimextension(trimpath(sourcerpg))
+  DIM resources as string
+  resources = app & SLASH & "Contents" & SLASH & "Resources"
+  IF copy_or_relump(sourcerpg, resources & SLASH & gameshortname & ".rpg") = NO THEN EXIT DO
+  
+  debuginfo "Create bundledgame file"
+  DIM fh as integer = FREEFILE
+  OPEN resources & SLASH & "bundledgame" FOR OUTPUT AS #fh
+  PRINT #fh, gameshortname
+  CLOSE #fh
+
+  write_readme_text_file apptmp & SLASH & "README-" & distinfo.pkgname & ".txt", CHR(10)
+
+  maybe_write_license_text_file apptmp & SLASH & "LICENSE.txt"
+
+  DIM olddir as string = CURDIR
+  CHDIR apptmp
+  IF create_tarball(apptmp, destname, "*.app *.txt", YES) = NO THEN
+   CHDIR olddir
+   EXIT DO
+  END IF
+  CHDIR olddir
+  
+  visible_debug trimpath(destname) & " was successfully created!"
+  EXIT DO 'this loop is only ever one pass
+ LOOP
+
+ '--Cleanup temp files
+ killdir apptmp, YES
+
 END SUB
+
+FUNCTION get_mac_gameplayer() as string
+ 'Download OHRRPGCE-Game.app,
+ 'unzip it, and return the full path.
+ 'Returns "" for failure.
+
+ '--Find the folder that we are going to download OHRRPGCE-Game.app into
+ DIM support as string = find_support_dir()
+ IF support = "" THEN visible_debug "ERROR: Unable to find support directory": RETURN ""
+ DIM dldir as string = support & SLASH & "gameplayer"
+ IF NOT isdir(dldir) THEN makedir dldir
+ IF NOT isdir(dldir) THEN visible_debug "ERROR: Unable to create support/gameplayer directory": RETURN ""
+  
+ '--Decide which url to download
+ DIM url as string
+ DIM dlfile as string
+
+ IF version_branch = "wip" THEN
+  'If using any wip release, get the latest wip release
+  url = "http://hamsterrepublic.com/ohrrpgce/nightly/ohrrpgce-mac-minimal.zip"
+ ELSE
+  'If using any stable release, get the latest stable release
+  url = "http://hamsterrepublic.com/dl/ohrrpgce-mac-minimal.zip"
+ END IF
+ dlfile = "ohrrpgce-mac-minimal.zip"
+
+ '--Ask the user for permission the first time we download (subsequent updates don't ask)
+ DIM destzip as string = dldir & SLASH & dlfile
+ IF NOT isfile(destzip) THEN
+  IF yesno("Is it okay to download the Mac OS X version of OHRRPGCE from HamsterRepublic.com now?") = NO THEN RETURN ""
+ END IF
+
+ '--Actually download the dang file
+ wget_download url, dldir
+ 
+ '--Find the unzip tool
+ DIM unzip as string = find_helper_app("unzip", YES)
+ IF unzip = "" THEN visible_debug "ERROR: Couldn't find unzip tool": RETURN ""
+ 
+ '--Unzip the desired files
+ DIM args as string = "-o """ & destzip & """ OHRRPGCE-Game.app" & SLASH & "* LICENSE-binary.txt -d """ & dldir & """"
+ DIM spawn_ret as string = spawn_and_wait(unzip, args)
+ IF LEN(spawn_ret) > 0 THEN visible_debug "ERROR: unzip failed: " & spawn_ret : RETURN ""
+ 
+ IF NOT isdir(dldir & SLASH & "OHRRPGCE-Game.app")   THEN visible_debug "ERROR: Failed to unzip OHRRPGCE-Game.app" : RETURN ""
+ IF NOT isfile(dldir & SLASH & "OHRRPGCE-Game.app" & SLASH & "Contents" & SLASH & "MacOS" & SLASH & "ohrrpgce-game")   THEN visible_debug "ERROR: Failed to completely unzip OHRRPGCE-Game.app" : RETURN ""
+ IF NOT isfile(dldir & SLASH & "LICENSE-binary.txt") THEN visible_debug "ERROR: Failed to unzip LICENSE-binary.txt" : RETURN ""
+ 
+ RETURN dldir & SLASH & "OHRRPGCE-Game.app"
+
+END FUNCTION

@@ -1159,6 +1159,38 @@ SUB copyfiles(src as string, dest as string, byval copyhidden as integer = 0)
  NEXT
 END SUB
 
+FUNCTION copydirectory (src as string, dest as string, byval copyhidden as integer = -1) as string
+ 'Recursively copy directory src to directory dest. Dest should not already exist
+ 'returns "" on success, or an error string on failure. Failure might leave behind a partial copy.
+ IF isdir(dest) THEN RETURN "copydirectory: Destination """ & dest & """ must not already exist"
+ 
+ '--create the dest directory
+ IF makedir(dest) <> 0 THEN RETURN "copydirectory: Couldn't create """ & dest & """"
+
+ '--copy all the files
+ DIM filelist() as string
+ findfiles src, ALLFILES, fileTypeFile, copyhidden, filelist()
+ FOR i as integer = 0 TO UBOUND(filelist)
+  writeablecopyfile src & SLASH & filelist(i), dest & SLASH & filelist(i)
+  IF NOT isfile(dest & SLASH & filelist(i)) THEN
+   RETURN "copydirectory: Couldn't copy file """ & dest & SLASH & filelist(i) & """"
+  END IF
+ NEXT i
+
+ '--recursively copy all the subdirectories
+ DIM result as string = ""
+ DIM dirlist() as string
+ findfiles src, ALLFILES, fileTypeDirectory, copyhidden, dirlist()
+ FOR i as integer = 0 TO UBOUND(dirlist)
+  IF dirlist(i) = "." ORELSE dirlist(i) = ".." THEN CONTINUE FOR
+  result = copydirectory(src & SLASH & dirlist(i), dest & SLASH & dirlist(i), copyhidden)
+  IF result <> "" THEN RETURN result
+ NEXT i
+ 
+ RETURN ""
+ 
+END FUNCTION
+
 SUB killdir(directory as string, recurse as integer=0)
   DIM filelist() as string
   findfiles directory, ALLFILES, fileTypeFile, -1, filelist()
