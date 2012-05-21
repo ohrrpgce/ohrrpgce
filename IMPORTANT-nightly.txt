@@ -16,6 +16,12 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/index.php/Bugzilla.html
 ------------------------------------------------------------------------------
 
+2012-05-21:
+Mac Nightly builds are up, but PLEASE DO **NOT** use them yet.
+Mac-only bug 946 and bug 933 make most games unplayable, and have a risk
+of data corruption. If you do test them, make certain you do backups
+of your RPG files first!
+
 2011-08-20:
 You'll notice a new option, "Test Game" in Custom. You should definitely
 read the help file that pops up. Please note that there are probably lots
