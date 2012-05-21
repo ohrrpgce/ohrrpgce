@@ -71,3 +71,5 @@ rm distrib/ohrrpgce-player-linux-bin-minimal.zip
 ssh $UPLOAD_SERVER rm "$UPLOAD_FOLDER/ohrrpgce/nightly/ohrrpgce_*.deb"
 scp -p distrib/ohrrpgce_*.wip-*_i386.deb $UPLOAD_DEST/ohrrpgce/nightly/
 rm distrib/ohrrpgce_*.deb
+
+scp -p IMPORTANT-nightly.txt $UPLOAD_DEST/ohrrpgce/nightly/
