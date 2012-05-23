@@ -90,8 +90,9 @@ function updatelink () {
 
 updatelink "${REL}" "${VER}" "ohrrpgce-win-installer" "exe" "" ""
 updatelink "${REL}" "${VER}" "ohrrpgce"               "zip" "custom" ""
-updatelink "${REL}" "${VER}" "ohrrpgce-minimal"        "zip" "ohrrpgce-floppy" "ohrrpgce_play"
+updatelink "${REL}" "${VER}" "ohrrpgce-minimal"       "zip" "ohrrpgce-floppy" "ohrrpgce_play"
 updatelink "${REL}" "${VER}" "ohrrpgce-linux-x86"     "tar.bz2" "" ""
-updatelink "${REL}" "${VER}" "OHRRPGCE"               "dmg" "" ""
 updatelink "${REL}" "${VER}" "ohrrpgce-player-linux-bin-minimal" "zip" "" ""
+updatelink "${REL}" "${VER}" "OHRRPGCE"               "dmg" "" ""
+updatelink "${REL}" "${VER}" "ohrrpgce-mac-minimal"   "tar.gz" "" ""
 
