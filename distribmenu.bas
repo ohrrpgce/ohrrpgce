@@ -50,7 +50,9 @@ DECLARE SUB write_debian_binary_file (filename as string)
 DECLARE SUB write_debian_control_file(controlfile as string, basename as string, pkgver as string, size_in_kibibytes as integer, byref distinfo as DistribState)
 DECLARE SUB write_debian_copyright_file (filename as string)
 DECLARE FUNCTION gzip_file (filename as string) as integer
-DECLARE FUNCTION create_tarball(start_in_dir as string, tarball as string, files as string, byval force_exec_bit as integer=NO) as integer
+DECLARE FUNCTION gunzip_file (filename as string) as integer
+DECLARE FUNCTION create_tarball(start_in_dir as string, tarball as string, files as string) as integer
+DECLARE FUNCTION extract_tarball(into_dir as string, tarball as string, files as string) as integer
 DECLARE FUNCTION create_ar_archive(start_in_dir as string, archive as string, files as string) as integer
 DECLARE SUB fix_deb_group_permissions(start_at_dir as string)
 DECLARE SUB write_debian_postrm_script (filename as string)
@@ -1080,7 +1082,7 @@ FUNCTION create_ar_archive(start_in_dir as string, archive as string, files as s
  
 END FUNCTION
 
-FUNCTION create_tarball(start_in_dir as string, tarball as string, files as string, byval force_exec_bit as integer=NO) as integer
+FUNCTION create_tarball(start_in_dir as string, tarball as string, files as string) as integer
  '--Returns YES if successful, or NO if failed
 
  ' start_in_dir only applies to the tar command. The tarball filename should still be either absolute or relative to the default CURDIR
@@ -1103,12 +1105,8 @@ FUNCTION create_tarball(start_in_dir as string, tarball as string, files as stri
  #ENDIF
  #IFDEF __FB_WIN32__
  'This is a hack to replace tar.exe's horrendous default permissions, and to (clumsily) mark the executables with the executable bit
- force_exec_bit = YES
- #ENDIF
-
- IF force_exec_bit THEN
   more_args = " --mode=755"
- END IF
+ #ENDIF
 
  DIM spawn_ret as string
  DIM args as string
@@ -1124,6 +1122,33 @@ FUNCTION create_tarball(start_in_dir as string, tarball as string, files as stri
  RETURN YES
 END FUNCTION
 
+FUNCTION extract_tarball(into_dir as string, tarball as string, files as string) as integer
+ '--Returns YES if successful, or NO if failed
+ 
+ 'The tarball must already be decompressed. Don't pass in a .tar.gz (this is inconsistent
+ 'with create_tarball, I know. )
+
+ ' into_dir only applies to the tar command. The tarball filename should still be either absolute or relative to the default CURDIR
+
+ 'files is a list of space-separated filenames and directory names to include in the tarball
+ 'if they contain spaces they must be quoted
+ 
+ 
+ DIM tar as string = find_helper_app("tar", YES)
+ IF tar = "" THEN visible_debug "ERROR: tar is not available": RETURN NO
+
+ DIM spawn_ret as string
+ DIM args as string
+
+ args = " -x -C """ & into_dir & """ -f """ & tarball & """ " & files
+ debug args
+ spawn_ret = spawn_and_wait(tar, args)
+ IF LEN(spawn_ret) THEN visible_debug spawn_ret : RETURN NO
+ 
+ RETURN YES
+
+END FUNCTION
+
 FUNCTION gzip_file (filename as string) as integer
  'Returns YES on success, NO on failure
  DIM gzip as string = find_helper_app("gzip", YES)
@@ -1136,6 +1161,23 @@ FUNCTION gzip_file (filename as string) as integer
  IF LEN(spawn_ret) THEN visible_debug spawn_ret : RETURN NO
  IF NOT isfile(filename & ".gz") THEN
   visible_debug "ERROR: gzip completed but " & filename & ".gz was not created"
+ END IF
+
+ RETURN YES
+END FUNCTION
+
+FUNCTION gunzip_file (filename as string) as integer
+ 'Returns YES on success, NO on failure
+ DIM gzip as string = find_helper_app("gzip", YES)
+ IF gzip = "" THEN visible_debug "ERROR: gzip is not available": RETURN NO
+ 
+ DIM args as string
+ args = " -d -f """ & filename & """"
+ DIM spawn_ret as string
+ spawn_ret = spawn_and_wait(gzip, args)
+ IF LEN(spawn_ret) THEN visible_debug spawn_ret : RETURN NO
+ IF NOT isfile(trimextension(filename)) THEN
+  visible_debug "ERROR: gzip -d completed but " & filename & ".gz was not uncompressed"
  END IF
 
  RETURN YES
@@ -1297,7 +1339,7 @@ SUB distribute_game_as_mac_app ()
 
   DIM olddir as string = CURDIR
   CHDIR apptmp
-  IF create_tarball(apptmp, destname, "*.app *.txt", YES) = NO THEN
+  IF create_tarball(apptmp, destname, "*.app *.txt") = NO THEN
    CHDIR olddir
    EXIT DO
   END IF
@@ -1330,34 +1372,34 @@ FUNCTION get_mac_gameplayer() as string
 
  IF version_branch = "wip" THEN
   'If using any wip release, get the latest wip release
-  url = "http://hamsterrepublic.com/ohrrpgce/nightly/ohrrpgce-mac-minimal.zip"
+  url = "http://hamsterrepublic.com/ohrrpgce/nightly/ohrrpgce-mac-minimal.tar.gz"
  ELSE
   'If using any stable release, get the latest stable release
-  url = "http://hamsterrepublic.com/dl/ohrrpgce-mac-minimal.zip"
+  url = "http://hamsterrepublic.com/dl/ohrrpgce-mac-minimal.tar.gz"
  END IF
- dlfile = "ohrrpgce-mac-minimal.zip"
+ dlfile = "ohrrpgce-mac-minimal.tar.gz"
 
  '--Ask the user for permission the first time we download (subsequent updates don't ask)
- DIM destzip as string = dldir & SLASH & dlfile
- IF NOT isfile(destzip) THEN
+ DIM destgz as string = dldir & SLASH & dlfile
+ DIM desttar as string = trimextension(destgz)
+ IF NOT isfile(destgz) ANDALSO NOT isfile(desttar) THEN
   IF yesno("Is it okay to download the Mac OS X version of OHRRPGCE from HamsterRepublic.com now?") = NO THEN RETURN ""
  END IF
 
  '--Actually download the dang file
  wget_download url, dldir
+
+ '--remove the old uncompressed files
+ safekill dldir & SLASH & "LICENSE-binary.txt"
+ killdir dldir & SLASH & "OHRRPGCE-Game.app", YES
  
- '--Find the unzip tool
- DIM unzip as string = find_helper_app("unzip", YES)
- IF unzip = "" THEN visible_debug "ERROR: Couldn't find unzip tool": RETURN ""
+ '--Untar the desired files
+ IF gunzip_file(destgz) = NO THEN RETURN ""
+ IF extract_tarball(dldir, desttar, "OHRRPGCE-Game.app LICENSE-binary.txt") = NO THEN RETURN ""
  
- '--Unzip the desired files
- DIM args as string = "-o """ & destzip & """ OHRRPGCE-Game.app" & SLASH & "* LICENSE-binary.txt -d """ & dldir & """"
- DIM spawn_ret as string = spawn_and_wait(unzip, args)
- IF LEN(spawn_ret) > 0 THEN visible_debug "ERROR: unzip failed: " & spawn_ret : RETURN ""
- 
- IF NOT isdir(dldir & SLASH & "OHRRPGCE-Game.app")   THEN visible_debug "ERROR: Failed to unzip OHRRPGCE-Game.app" : RETURN ""
- IF NOT isfile(dldir & SLASH & "OHRRPGCE-Game.app" & SLASH & "Contents" & SLASH & "MacOS" & SLASH & "ohrrpgce-game")   THEN visible_debug "ERROR: Failed to completely unzip OHRRPGCE-Game.app" : RETURN ""
- IF NOT isfile(dldir & SLASH & "LICENSE-binary.txt") THEN visible_debug "ERROR: Failed to unzip LICENSE-binary.txt" : RETURN ""
+ IF NOT isdir(dldir & SLASH & "OHRRPGCE-Game.app")   THEN visible_debug "ERROR: Failed to untar OHRRPGCE-Game.app" : RETURN ""
+ IF NOT isfile(dldir & SLASH & "OHRRPGCE-Game.app" & SLASH & "Contents" & SLASH & "MacOS" & SLASH & "ohrrpgce-game")   THEN visible_debug "ERROR: Failed to completely untar OHRRPGCE-Game.app" : RETURN ""
+ IF NOT isfile(dldir & SLASH & "LICENSE-binary.txt") THEN visible_debug "ERROR: Failed to untar LICENSE-binary.txt" : RETURN ""
  
  RETURN dldir & SLASH & "OHRRPGCE-Game.app"
 
