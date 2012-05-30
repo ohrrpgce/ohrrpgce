@@ -46,6 +46,7 @@ CONST build_info as string = "" _GSTR _ESTR _SSTR _PSTR
 '__FB_UNIX__ only defined in FB 0.21 on (I think)
 'Note: it's always defined, either to 0 or -1. HATE
 #IF __FB_UNIX__
+'STRANGE: For some reason I have to add a comment here or FreeBasic 0.24-pre doesn't compile it
  #IFNDEF __UNIX__
   #DEFINE __UNIX__
  #ENDIF
