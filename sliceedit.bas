@@ -291,13 +291,15 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
 
   IF state.need_update = NO THEN
    IF copy_keychord() THEN
-    #IFDEF IS_GAME
-     IF menu(state.pt).handle->Lookup < 0 THEN
-      notification "Can't copy special slices!"
-      CONTINUE DO
-     END IF
-    #ENDIF
-    slice_editor_copy ses, menu(state.pt).handle
+    IF menu(state.pt).handle THEN
+     #IFDEF IS_GAME
+      IF menu(state.pt).handle->Lookup < 0 THEN
+       notification "Can't copy special slices!"
+       CONTINUE DO
+      END IF
+     #ENDIF
+     slice_editor_copy ses, menu(state.pt).handle
+    END IF
    ELSEIF paste_keychord() THEN
     slice_editor_paste ses, menu(state.pt).handle, edslice
     state.need_update = YES
