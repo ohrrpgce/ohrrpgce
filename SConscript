@@ -174,7 +174,9 @@ if linkgcc:
         fbcinfo = get_run_command("fbc -version")
         target = re.findall("target:([a-z]*)", fbcinfo)
         if len(target) == 0:
-            raise Exception("Couldn't determine fbc target")
+            target = re.findall("\) for ([a-z0-9]+)\n", fbcinfo)
+            if len(target) == 0:
+                raise Exception("Couldn't determine fbc target")
         target = target[0]
     
     fblibpaths = [[fbc_path, 'lib', target],
