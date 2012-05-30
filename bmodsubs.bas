@@ -1719,7 +1719,7 @@ SUB try_to_reload_files_inbattle ()
  DIM i as integer = 0
  WHILE i < v_len(modified_lumps)
   DIM handled as integer = NO
-  DIM base as string = trimextension(modified_lumps[i])
+  DIM basename as string = trimextension(modified_lumps[i])
   DIM extn as string = justextension(modified_lumps[i])
 
   'Nothing here yet!!

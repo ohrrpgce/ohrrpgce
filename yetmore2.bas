@@ -1204,15 +1204,15 @@ END FUNCTION
 'Currently supports: T, P, E, Z, N, L
 'Elsewhere: MAP, DOX
 'Not going to bother with: MN, D
-FUNCTION try_reload_map_lump(base as string, extn as string) as integer
+FUNCTION try_reload_map_lump(basename as string, extn as string) as integer
  DIM typecode as string
  DIM mapnum as integer = -1
 
  'Check for .X## and map###.X
  DIM extnnum as integer = -1
  IF LEN(extn) = 3 THEN extnnum = str2int(MID(extn, 2), -1)
- DIM basenum as integer = str2int(base, -1)
- '--Don't bother to actually check base=archinym
+ DIM basenum as integer = str2int(basename, -1)
+ '--Don't bother to actually check basename=archinym
  mapnum = IIF(basenum >= 100 AND extnnum = -1, basenum, extnnum)
  IF mapnum = -1 THEN RETURN NO
  typecode = LEFT(extn, 1)
@@ -1249,7 +1249,7 @@ FUNCTION try_reload_map_lump(base as string, extn as string) as integer
 
   'This is one of the current map's lumps
 
-  DIM newhash as integer = hash_file(workingdir + base + "." + extn)
+  DIM newhash as integer = hash_file(workingdir + basename + "." + extn)
 
   SELECT CASE typecode
    CASE "t"  '--all modes supported
@@ -1310,10 +1310,10 @@ FUNCTION try_reload_map_lump(base as string, extn as string) as integer
 END FUNCTION
 
 'Returns true (and reloads as needed) if this file is a music file (.## or song##.xxx)
-FUNCTION try_reload_music_lump(base as string, extn as string) as integer
+FUNCTION try_reload_music_lump(basename as string, extn as string) as integer
  DIM songnum as integer = str2int(extn, -1)
  IF songnum = -1 THEN
-  IF LEFT(base, 4) = "song" THEN songnum = str2int(MID(base, 5))
+  IF LEFT(basename, 4) = "song" THEN songnum = str2int(MID(basename, 5))
  END IF
  IF songnum = -1 THEN RETURN NO
  IF songnum = presentsong THEN
@@ -1341,7 +1341,7 @@ SUB try_reload_lumps_anywhere ()
  DIM i as integer = 0
  WHILE i < v_len(modified_lumps)
   DIM handled as integer = NO
-  DIM base as string = trimextension(modified_lumps[i])
+  DIM basename as string = trimextension(modified_lumps[i])
   DIM extn as string = justextension(modified_lumps[i])
 
   IF v_find(ignorable_extns, extn) > -1 THEN
@@ -1367,7 +1367,7 @@ SUB try_reload_lumps_anywhere ()
    setfont current_font()
    handled = YES
 
-  ELSEIF try_reload_music_lump(base, extn) THEN                           '.## and song##.xxx (music)
+  ELSEIF try_reload_music_lump(basename, extn) THEN                       '.## and song##.xxx (music)
    handled = YES
 
   ELSEIF extn = "itm" THEN                                                '.ITM
@@ -1401,7 +1401,7 @@ SUB try_to_reload_files_onmap ()
  DIM i as integer = 0
  WHILE i < v_len(modified_lumps)
   DIM handled as integer = NO
-  DIM base as string = trimextension(modified_lumps[i])
+  DIM basename as string = trimextension(modified_lumps[i])
   DIM extn as string = justextension(modified_lumps[i])
 
   IF extn = "map" THEN                                                    '.MAP
@@ -1420,7 +1420,7 @@ SUB try_to_reload_files_onmap ()
   ELSEIF modified_lumps[i] = "plotscr.lst" THEN                           'PLOTSCR.LST
    handled = YES  'ignore
 
-  ELSEIF try_reload_map_lump(base, extn) THEN                             '.T, .P, .E, .Z, .N, .L
+  ELSEIF try_reload_map_lump(basename, extn) THEN                         '.T, .P, .E, .Z, .N, .L
    handled = YES
 
   ELSEIF extn = "tap" THEN                                                '.TAP
