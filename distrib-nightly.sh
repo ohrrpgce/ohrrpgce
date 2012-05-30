@@ -39,8 +39,13 @@ echo uploading new nightly snapshot
 scp -p ohrrpgce-source-nightly.zip $UPLOAD_DEST/ohrrpgce/nightly/
 
 echo uploading plotscripting docs
+cd wip/docs
+./update-html.sh
+cd ../..
 scp -p wip/docs/plotdict.xml $UPLOAD_DEST/ohrrpgce/docs/
 scp -p wip/docs/htmlplot.xsl $UPLOAD_DEST/ohrrpgce/docs/
+scp -p wip/docs/plotdictionary.html $UPLOAD_DEST/ohrrpgce/docs/
+
 
 echo Now we go to build the linux nightlies
 
