@@ -108,7 +108,7 @@ DECLARE SUB slice_editor_save(byval edslice as Slice Ptr, filename as string)
 DECLARE FUNCTION slice_lookup_code_caption(byval code as integer, slicelookup() as string) as string
 DECLARE FUNCTION edit_slice_lookup_codes(slicelookup() as string, byval start_at_code as integer) as integer
 DECLARE FUNCTION slice_caption (sl as Slice Ptr, slicelookup() as string) as string
-DECLARE SUB slice_editor_copy(byref ses as SliceEditState, byval slice as Slice Ptr)
+DECLARE SUB slice_editor_copy(byref ses as SliceEditState, byval slice as Slice Ptr, byval edslice as Slice Ptr)
 DECLARE SUB slice_editor_paste(byref ses as SliceEditState, byval slice as Slice Ptr, byval edslice as Slice Ptr)
 
 'Functions that need to be aware of magic numbers for SliceType
@@ -291,15 +291,13 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
 
   IF state.need_update = NO THEN
    IF copy_keychord() THEN
-    IF menu(state.pt).handle THEN
-     #IFDEF IS_GAME
-      IF menu(state.pt).handle->Lookup < 0 THEN
-       notification "Can't copy special slices!"
-       CONTINUE DO
-      END IF
-     #ENDIF
-     slice_editor_copy ses, menu(state.pt).handle
-    END IF
+    #IFDEF IS_GAME
+     IF menu(state.pt).handle ANDALSO menu(state.pt).handle->Lookup < 0 THEN
+      notification "Can't copy special slices!"
+      CONTINUE DO
+     END IF
+    #ENDIF
+    slice_editor_copy ses, menu(state.pt).handle, edslice
    ELSEIF paste_keychord() THEN
     slice_editor_paste ses, menu(state.pt).handle, edslice
     state.need_update = YES
@@ -458,18 +456,33 @@ SUB slice_editor_save(byval edslice as Slice Ptr, filename as string)
  END IF
 END SUB
 
-SUB slice_editor_copy(byref ses as SliceEditState, byval slice as Slice Ptr)
+SUB slice_editor_copy(byref ses as SliceEditState, byval slice as Slice Ptr, byval edslice as Slice Ptr)
  IF ses.clipboard THEN DeleteSlice @ses.clipboard
- ses.clipboard = CloneSliceTree(slice)
+ DIM sl as Slice Ptr
+ IF slice THEN
+  ses.clipboard = NewSliceOfType(slContainer)
+  sl = CloneSliceTree(slice)
+  SetSliceParent sl, ses.clipboard
+ ELSE
+  ses.clipboard = CloneSliceTree(edslice)
+ END IF
 END SUB
 
+'Insert pasted slices before 'slice'
 SUB slice_editor_paste(byref ses as SliceEditState, byval slice as Slice Ptr, byval edslice as Slice Ptr)
  IF ses.clipboard THEN
-  IF slice THEN
-   InsertSliceBefore slice, CloneSliceTree(ses.clipboard)
-  ELSE
-   SetSliceParent CloneSliceTree(ses.clipboard), edslice
-  END IF
+  DIM child as Slice Ptr
+  child = LastChild(ses.clipboard)
+  WHILE child
+   DIM copied as Slice Ptr = CloneSliceTree(child)
+   IF slice THEN
+    InsertSliceBefore slice, copied
+   ELSE
+    SetSliceParent copied, edslice
+   END IF
+   slice = copied
+   child = child->PrevSibling
+  WEND
  END IF
 END SUB
 
