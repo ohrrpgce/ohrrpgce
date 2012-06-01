@@ -6,7 +6,7 @@ SUB test(filename as string)
  DIM fh as integer
 
  fh = FREEFILE
- OPEN filename FOR BINARY AS #fh
+ IF OPEN(filename FOR BINARY AS #fh) THEN PRINT filename & " [CANNOT BE OPENED]" : EXIT SUB
   '--Read the first 10 bytes
   size = LOF(fh)
   GET #fh, , chunk1
@@ -15,7 +15,7 @@ SUB test(filename as string)
  IF size >= 4096 THEN EXIT SUB
 
  fh = FREEFILE
- OPEN filename FOR BINARY ACCESS READ AS #fh
+ IF OPEN(filename FOR BINARY ACCESS READ AS #fh) THEN PRINT filename & " [CANNOT BE OPENED ACCESS READ]" : EXIT SUB
   '--Read the first 10 bytes
   GET #fh, , chunk2
  CLOSE #fh
