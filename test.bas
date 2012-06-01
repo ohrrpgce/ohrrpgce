@@ -12,6 +12,8 @@ SUB test(filename as string)
   GET #fh, , chunk1
  CLOSE #fh
 
+ IF size >= 4096 THEN EXIT SUB
+
  fh = FREEFILE
  OPEN filename FOR BINARY ACCESS READ AS #fh
   '--Read the first 10 bytes
@@ -24,7 +26,7 @@ SUB test(filename as string)
   info = "[BAD!]"
  END IF
 
- PRINT size & " " & info
+ PRINT filename & " " & size & " " & info
 
 END SUB
 
