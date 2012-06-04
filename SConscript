@@ -183,7 +183,8 @@ if linkgcc:
                   [fbc_path, '..', 'lib', target],
                   [fbc_path, '..', 'lib', 'freebasic', target],
                   ['/usr/share/freebasic/lib', target],
-                  ['/usr/local/lib/freebasic', target]]
+                  ['/usr/local/lib/freebasic', target],
+                  ['/usr/local/lib/freebasic']]
     fblibpaths = [os.path.join(*pathparts) for pathparts in fblibpaths]
     for path in fblibpaths:
         #print "Looking for FB libs in", path
