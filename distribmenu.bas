@@ -575,12 +575,15 @@ FUNCTION get_windows_gameplayer() as string
 
 #IFDEF __FB_WIN32__
 
- '--If this is Windows, we already have the correct version of game.exe
- IF isfile(exepath & SLASH & "game.exe") THEN
-  RETURN exepath & SLASH & "game.exe"
- ELSE
-  visible_debug "ERROR: game.exe wasn't found in the same folder as custom.exe. (This shouldn't happen!)" : RETURN ""
- END IF
+'FIXME: this is disabled until I decide on a good way to handle the .dll files for
+'a build with non-default backends.
+
+ ''--If this is Windows, we already have the correct version of game.exe
+ 'IF isfile(exepath & SLASH & "game.exe") THEN
+ ' 'RETURN exepath & SLASH & "game.exe"
+ 'ELSE
+ ' visible_debug "ERROR: game.exe wasn't found in the same folder as custom.exe. (This shouldn't happen!)" : RETURN ""
+ 'END IF
 
 #ENDIF
  '--For Non-Windows platforms, we need to download game.exe
