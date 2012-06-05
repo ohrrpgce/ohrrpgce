@@ -1,4 +1,14 @@
 --------------------------------------------------
+6/6/12
+v1.18
+
+-Fixed bug 956: on some computers, graphics mangled on startup until the window is resized
+ (Was fixed earlier, but version number not bumped)
+
+
+
+
+--------------------------------------------------
 3/2/12
 v1.17
 

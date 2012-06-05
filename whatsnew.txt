@@ -90,6 +90,8 @@ Jun ? 2012 [Alectormancy]
       used the average party stats instead of that hero's [Ralph]
     * Fix ${C#} codes in textboxes which have been (embarrasingly)
       broken for as long as the feature has existed [James]
+    * Bug 956: gfx_directx: graphics could be mangled at startup
+      until the window is resized [Jay]
 
   * New Plotscripting Stuff
     * You can now have global variables up to 16383 instead of 4095
