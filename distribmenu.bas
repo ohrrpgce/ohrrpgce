@@ -558,7 +558,6 @@ FUNCTION copy_windows_gameplayer (gameplayer as string, basename as string, dest
  find_required_dlls gameplayer, otherf
  
  FOR i as integer = 0 TO v_len(otherf) - 1
-  debuginfo "copying " & otherf[i]
   IF confirmed_copy(gamedir & SLASH & otherf[i], destdir & SLASH & otherf[i]) = NO THEN
    v_free otherf
    RETURN NO
@@ -574,31 +573,23 @@ SUB find_required_dlls(gameplayer as string, byref files as string vector)
 #IFDEF __FB_WIN32__
  IF gameplayer = exepath & SLASH & "game.exe" THEN
   '--if we are using a copy of the currently windows version,
-  '--the backends might be non-default
-  DIM gfxlist as string = gfxbackendinfo
-  replacestr gfxlist, "gfx_", ""
-  DIM gfxarr() as string
-  split gfxlist, gfxarr(), "+"
-  FOR i as integer = 0 to UBOUND(gfxarr)
-   SELECT CASE gfxarr(i)
-    CASE "directx":
-     IF v_find(files, "gfx_directx.dll") = -1 THEN v_append(files, "gfx_directx.dll")
-    CASE "sdl":
-     IF v_find(files, "SDL.dll") = -1 THEN v_append(files, "SDL.dll")
-    CASE "alleg":
-     IF v_find(files, "alleg40.dll") = -1 THEN v_append(files, "alleg40.dll")
-    CASE "fb":
-     'gfx_fb requires no dll files
-   END SELECT
-  NEXT i
-  DIM musicname as string = musicbackendinfo
-  replacestr musicname, "music_", ""
-  SELECT CASE musicname
+  '--the backend might be non-default
+  SELECT CASE gfxbackend
+   CASE "directx":
+    IF v_find(files, "gfx_directx.dll") = -1 THEN v_append(files, "gfx_directx.dll")
+   CASE "sdl":
+    IF v_find(files, "SDL.dll") = -1 THEN v_append(files, "SDL.dll")
+   CASE "alleg":
+    IF v_find(files, "alleg40.dll") = -1 THEN v_append(files, "alleg40.dll")
+   CASE "fb":
+    'gfx_fb requires no dll files
+  END SELECT
+  SELECT CASE musicbackend
    CASE "sdl":
     IF v_find(files, "SDL.dll") = -1 THEN v_append(files, "SDL.dll")
     IF v_find(files, "SDL_mixer.dll") = -1 THEN v_append(files, "SDL_mixer.dll")
    CASE "native", "native2":
-    IF v_find(files, "audierre.dll") = -1 THEN v_append(files, "audierre.dll")
+    IF v_find(files, "audiere.dll") = -1 THEN v_append(files, "audiere.dll")
    CASE "silence":
     'music_silence requires no dll files
   END SELECT
@@ -635,7 +626,7 @@ FUNCTION get_windows_gameplayer() as string
 
  '--If this is Windows, we already have the correct version of game.exe
  IF isfile(exepath & SLASH & "game.exe") THEN
-  'RETURN exepath & SLASH & "game.exe"
+  RETURN exepath & SLASH & "game.exe"
  ELSE
   visible_debug "ERROR: game.exe wasn't found in the same folder as custom.exe. (This shouldn't happen!)" : RETURN ""
  END IF
@@ -854,7 +845,6 @@ SUB write_innosetup_script (basename as string, gamename as string, isstmp as st
  DIM dlls() as string
  findfiles isstmp, "*.dll", fileTypeFile, YES, dlls()
  FOR i as integer = 0 TO UBOUND(dlls)
-  debuginfo "innosetup " & dlls(i)
   add_innosetup_file s, isstmp & SLASH & dlls(i)
  NEXT i
  
