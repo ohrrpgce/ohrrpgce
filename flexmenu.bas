@@ -1274,8 +1274,8 @@ DO
   '--in case new attacks have been added
   max(AtkLimChainTo) = gen(genMaxAttack) + 1
   '--in case chain mode has changed
-  update_attack_editor_for_chain recbuf(AtkDatChainMode), menu(AtkChainVal1), max(AtkLimChainVal1), min(AtkLimChainVal1), menutype(AtkChainVal1), menu(AtkChainVal2), max(AtkLimChainVal2), min(AtkLimChainVal2), menutype(AtkChainVal2)
-  update_attack_editor_for_chain recbuf(AtkDatElseChainMode), menu(AtkElseChainVal1), max(AtkLimElseChainVal1), min(AtkLimElseChainVal1), menutype(AtkElseChainVal1), menu(AtkElseChainVal2), max(AtkLimElseChainVal2), min(AtkLimElseChainVal2), menutype(AtkElseChainVal2)
+  update_attack_editor_for_chain recbuf(AtkDatChainMode),        menu(AtkChainVal1),        max(AtkLimChainVal1),        min(AtkLimChainVal1),        menutype(AtkChainVal1),        menu(AtkChainVal2),        max(AtkLimChainVal2),        min(AtkLimChainVal2),        menutype(AtkChainVal2)
+  update_attack_editor_for_chain recbuf(AtkDatElseChainMode),    menu(AtkElseChainVal1),    max(AtkLimElseChainVal1),    min(AtkLimElseChainVal1),    menutype(AtkElseChainVal1),    menu(AtkElseChainVal2),    max(AtkLimElseChainVal2),    min(AtkLimElseChainVal2),    menutype(AtkElseChainVal2)
   update_attack_editor_for_chain recbuf(AtkDatInsteadChainMode), menu(AtkInsteadChainVal1), max(AtkLimInsteadChainVal1), min(AtkLimInsteadChainVal1), menutype(AtkInsteadChainVal1), menu(AtkInsteadChainVal2), max(AtkLimInsteadChainVal2), min(AtkLimInsteadChainVal2), menutype(AtkInsteadChainVal2)
   '--re-enforce bounds, as they might have just changed
   enforceflexbounds menuoff(), menutype(), menulimits(), recbuf(), min(), max()
@@ -1398,7 +1398,7 @@ DIM changed AS INTEGER = 0
 DIM s AS STRING
 
 SELECT CASE menutype(nowindex)
- CASE 0, 8, 12 TO 17, 19, 1000 TO 3999' integers
+ CASE 0, 8, 12 TO 17, 19, 20, 1000 TO 3999' integers
   changed = intgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)), maxtable(menulimits(nowindex)))
  CASE 7, 9 TO 11 'offset integers
   changed = zintgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)) - 1, maxtable(menulimits(nowindex)) - 1)
