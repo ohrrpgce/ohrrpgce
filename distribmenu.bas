@@ -575,30 +575,33 @@ SUB find_required_dlls(gameplayer as string, byref files as string vector)
  IF gameplayer = exepath & SLASH & "game.exe" THEN
   '--if we are using a copy of the currently windows version,
   '--the backends might be non-default
-  DIM gfxlist as string = replacestr(gfxbackendinfo, "gfx_", "")
+  DIM gfxlist as string = gfxbackendinfo
+  replacestr gfxlist, "gfx_", ""
   DIM gfxarr() as string
   split gfxlist, gfxarr(), "+"
   FOR i as integer = 0 to UBOUND(gfxarr)
    SELECT CASE gfxarr(i)
     CASE "directx":
-     IF v_find(files, "gfx_directx.dll") == -1 THEN v_append(files, "gfx_directx.dll")
-    CASE "sdl"
-     IF v_find(files, "SDL.dll") == -1 THEN v_append(files, "SDL.dll")
-    CASE "alleg"
-     IF v_find(files, "alleg40.dll") == -1 THEN v_append(files, "alleg40.dll")
-    CASE "fb"
+     IF v_find(files, "gfx_directx.dll") = -1 THEN v_append(files, "gfx_directx.dll")
+    CASE "sdl":
+     IF v_find(files, "SDL.dll") = -1 THEN v_append(files, "SDL.dll")
+    CASE "alleg":
+     IF v_find(files, "alleg40.dll") = -1 THEN v_append(files, "alleg40.dll")
+    CASE "fb":
      'gfx_fb requires no dll files
    END SELECT
   NEXT i
-  DIM musicname as string = replacestr(musicbackendinfo, "music_", "")
-   SELECT CASE gfxarr(i)
-    CASE "sdl":
-     IF v_find(files, "SDL.dll") == -1 THEN v_append(files, "SDL.dll")
-     IF v_find(files, "SDL_mixer.dll") == -1 THEN v_append(files, "SDL_mixer.dll")
-    CASE "native", "native2"
-     IF v_find(files, "audierre.dll") == -1 THEN v_append(files, "audierre.dll")
-    CASE "silence"
-     'music_silence requires no dll files
+  DIM musicname as string = musicbackendinfo
+  replacestr musicname, "music_", ""
+  SELECT CASE musicname
+   CASE "sdl":
+    IF v_find(files, "SDL.dll") = -1 THEN v_append(files, "SDL.dll")
+    IF v_find(files, "SDL_mixer.dll") = -1 THEN v_append(files, "SDL_mixer.dll")
+   CASE "native", "native2":
+    IF v_find(files, "audierre.dll") = -1 THEN v_append(files, "audierre.dll")
+   CASE "silence":
+    'music_silence requires no dll files
+  END SELECT
   EXIT SUB
  END IF
 #ENDIF 
