@@ -40,6 +40,7 @@ DECLARE SUB add_innosetup_file (s as string, filename as string)
 DECLARE FUNCTION win_path (filename as string) as string
 DECLARE FUNCTION copy_or_relump (src_rpg_or_rpgdir as string, dest_rpg as string) as integer
 DECLARE FUNCTION copy_windows_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
+DECLARE SUB find_required_dlls(gameplayer as string, byref files as string vector)
 DECLARE FUNCTION copy_linux_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
 DECLARE SUB distribute_game_as_debian_package ()
 DECLARE FUNCTION get_debian_package_version() as string
@@ -548,12 +549,66 @@ FUNCTION copy_windows_gameplayer (gameplayer as string, basename as string, dest
  'Returns true on success, false on failure
  IF confirmed_copy(gameplayer, destdir & SLASH & basename & ".exe") = NO THEN RETURN NO
  DIM gamedir as string = trimfilename(gameplayer)
- DIM otherf(3) as string = {"gfx_directx.dll", "SDL.dll", "SDL_mixer.dll", "LICENSE-binary.txt"}
- FOR i as integer = 0 TO UBOUND(otherf)
-  IF confirmed_copy(gamedir & SLASH & otherf(i), destdir & SLASH & otherf(i)) = NO THEN RETURN NO
+
+ 
+ DIM otherf as string vector
+ v_new otherf
+ v_append otherf, "LICENSE-binary.txt"
+
+ find_required_dlls gameplayer, otherf
+ 
+ FOR i as integer = 0 TO v_len(otherf) - 1
+  debuginfo "copying " & otherf[i]
+  IF confirmed_copy(gamedir & SLASH & otherf[i], destdir & SLASH & otherf[i]) = NO THEN
+   v_free otherf
+   RETURN NO
+  END IF
  NEXT i
+
+ v_free otherf
  RETURN YES
 END FUNCTION
+
+SUB find_required_dlls(gameplayer as string, byref files as string vector)
+
+#IFDEF __FB_WIN32__
+ IF gameplayer = exepath & SLASH & "game.exe" THEN
+  '--if we are using a copy of the currently windows version,
+  '--the backends might be non-default
+  DIM gfxlist as string = replacestr(gfxbackendinfo, "gfx_", "")
+  DIM gfxarr() as string
+  split gfxlist, gfxarr(), "+"
+  FOR i as integer = 0 to UBOUND(gfxarr)
+   SELECT CASE gfxarr(i)
+    CASE "directx":
+     IF v_find(files, "gfx_directx.dll") == -1 THEN v_append(files, "gfx_directx.dll")
+    CASE "sdl"
+     IF v_find(files, "SDL.dll") == -1 THEN v_append(files, "SDL.dll")
+    CASE "alleg"
+     IF v_find(files, "alleg40.dll") == -1 THEN v_append(files, "alleg40.dll")
+    CASE "fb"
+     'gfx_fb requires no dll files
+   END SELECT
+  NEXT i
+  DIM musicname as string = replacestr(musicbackendinfo, "music_", "")
+   SELECT CASE gfxarr(i)
+    CASE "sdl":
+     IF v_find(files, "SDL.dll") == -1 THEN v_append(files, "SDL.dll")
+     IF v_find(files, "SDL_mixer.dll") == -1 THEN v_append(files, "SDL_mixer.dll")
+    CASE "native", "native2"
+     IF v_find(files, "audierre.dll") == -1 THEN v_append(files, "audierre.dll")
+    CASE "silence"
+     'music_silence requires no dll files
+  EXIT SUB
+ END IF
+#ENDIF 
+ 
+ '--for all other cases and all other platforms, we use
+ '--the dll files for the default backend(s) on windows
+ v_append files, "gfx_directx.dll"
+ v_append files, "SDL.dll"
+ v_append files, "SDL_mixer.dll"
+END SUB
 
 FUNCTION copy_linux_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
  'Returns true on success, false on failure
@@ -575,15 +630,12 @@ FUNCTION get_windows_gameplayer() as string
 
 #IFDEF __FB_WIN32__
 
-'FIXME: this is disabled until I decide on a good way to handle the .dll files for
-'a build with non-default backends.
-
- ''--If this is Windows, we already have the correct version of game.exe
- 'IF isfile(exepath & SLASH & "game.exe") THEN
- ' 'RETURN exepath & SLASH & "game.exe"
- 'ELSE
- ' visible_debug "ERROR: game.exe wasn't found in the same folder as custom.exe. (This shouldn't happen!)" : RETURN ""
- 'END IF
+ '--If this is Windows, we already have the correct version of game.exe
+ IF isfile(exepath & SLASH & "game.exe") THEN
+  'RETURN exepath & SLASH & "game.exe"
+ ELSE
+  visible_debug "ERROR: game.exe wasn't found in the same folder as custom.exe. (This shouldn't happen!)" : RETURN ""
+ END IF
 
 #ENDIF
  '--For Non-Windows platforms, we need to download game.exe
@@ -794,9 +846,15 @@ SUB write_innosetup_script (basename as string, gamename as string, isstmp as st
  s &= E & "[Files]" & E
  add_innosetup_file s, isstmp & SLASH & basename & ".rpg"
  add_innosetup_file s, isstmp & SLASH & basename & ".exe"
- add_innosetup_file s, isstmp & SLASH & "gfx_directx.dll"
- add_innosetup_file s, isstmp & SLASH & "SDL.dll"
- add_innosetup_file s, isstmp & SLASH & "SDL_mixer.dll"
+
+ 'include whichever .dll files are in the isstmp folder
+ DIM dlls() as string
+ findfiles isstmp, "*.dll", fileTypeFile, YES, dlls()
+ FOR i as integer = 0 TO UBOUND(dlls)
+  debuginfo "innosetup " & dlls(i)
+  add_innosetup_file s, isstmp & SLASH & dlls(i)
+ NEXT i
+ 
  add_innosetup_file s, isstmp & SLASH & "LICENSE-binary.txt"
  add_innosetup_file s, isstmp & SLASH & "README-" & basename & ".txt"
  IF isfile(isstmp & SLASH & "LICENSE.txt") THEN
