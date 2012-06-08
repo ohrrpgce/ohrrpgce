@@ -388,6 +388,9 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
    DrawSliceAnts menu(state.pt).handle, dpage
   END IF
   IF ses.hide_menu = NO THEN
+   IF state.last > state.size THEN
+    draw_fullscreen_scrollbar state, , dpage
+   END IF
    standardmenu plainmenu(), state, 0, 0, dpage, YES, , , YES  'edged=YES, highlight=YES
    edgeprint "+ to add a slice. SHIFT+arrows to sort", 0, 190, uilook(uiText), dpage
   END IF
