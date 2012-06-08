@@ -40,8 +40,8 @@ For each chain, there are several different options.
     either as an absolute number
     or as a percentage.
 
-[NOTE: Same-Target Chains]
-Note that for all three chain types, if the target class and target setting of the chain-starter and the chaned attack are the same, then the chained attack will use the exact same target as the chain-starter. Same-target chains will be interrupted if the target dies.
+[NOTE: Same-Target Chains With 0 Delay]
+Note that for all three chain types, if the target class and target setting of the chain-starter and the chaned attack are the same, and the chained attack has 0 delay, then the chained attack will use the exact same target as the chain-starter. Same-target chains will be interrupted if the target dies.
 
 [NOTE: Different-Target Chains]
 When the target class or target setting are different, the chained attack will pick a new target automatically according to its "preferred target" rules. This will not be interrupted if the first attack's target dies.
