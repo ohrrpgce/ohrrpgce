@@ -24,9 +24,7 @@ global variable(107, export global 2)
 global variable(5000, global 5000)
 
 #string 0 = error messages
-#string 1 = temporary misc
-#string 2 = temporary misc
-#string 3 = temporary misc
+#string 1-9 = temporary misc
 #string 10 = error message arg
 #string 11 = asserts
 #string 95-96 = temp misc
@@ -121,11 +119,13 @@ end
 
 script, hero tests, begin
   hero party management tests
+  # The party now contains heroes 0, 1, 2, 3 in that order
   hero caterpillar tests
   hero exp and levels tests
   hero stat growth test
   hero misc tests
-  hero box names tests
+  hero names embed tests
+  # The party should continue to be 0, 1, 2, 3
 end
 
 ## spell lists
@@ -265,7 +265,9 @@ script, hero party management tests, begin
   assert(hero by slot(3) == hero:Frumpy)
 end
 
-script, hero box names tests, begin
+script, hero names embed tests, begin
+  $0="hero names embed tests"
+
   variable(h0, h1, h2, h3)
   # remember the old party order
   h0 := hero by slot(0)
@@ -277,25 +279,65 @@ script, hero box names tests, begin
   swap out hero(hero by slot(1))
   swap out hero(hero by slot(2))
   swap out hero(hero by slot(3))
-  $0="Olaf,X,X,X", show string(0), w
-  show box names
+
+  $1="Olaf,,,"
+  $2="Olaf,,,"
+  $3="Freki,Helga,Olaf,Frumpy,Styrge"
+  hero names embed helper
+
   swap by position(2, find hero(hero:Olaf))
-  $0="X,X,Olaf,X", show string(0), w
-  show box names
+  $1="Olaf,,,"
+  $2=",,Olaf,"
+  hero names embed helper
+
   swap by position(0, find hero(hero:Frumpy))
-  $0="Frumpy,X,Olaf,X", show string(0), w
-  show box names
+  $1="Frumpy,Olaf,,"
+  $2="Frumpy,,Olaf,"
+  hero names embed helper
+
   swap by position(1, find hero(hero:Olaf))
   swap by position(3, find hero(hero:Frumpy))
-  $0="X,Olaf,X,Frumpy", show string(0), w
-  show box names
+  $1="Olaf,Frumpy,,"
+  $2=",Olaf,,Frumpy"
+  hero names embed helper
+
+  add hero(hero:Olaf)  # slot 1
+  $4="Nolaf"
+  set hero name(4, 1)
+  $1="Olaf,Nolaf,Frumpy,"
+  $2="Olaf,Nolaf,,Frumpy"
+  hero names embed helper
+
+  swap by position(0, find hero(hero:Frumpy))
+  $1="Frumpy,Nolaf,Olaf,"
+  $2="Frumpy,Nolaf,,Olaf"
+  $3="Freki,Helga,Nolaf,Frumpy,Styrge"
+  hero names embed helper
+
   show no value, w
 
-  # restore old party order  
+  # restore old party order
+  swap by position(0, 1)  # Nolaf to front
+  delete hero(hero:Olaf)
   swap by position(0, find hero(h0))  
   swap by position(1, find hero(h1))
   swap by position(2, find hero(h2))
   swap by position(3, find hero(h3))
+  show box names
+  advance textbox
+end
+
+script, hero names embed helper, begin
+  show string(2)
+  $4="${C0},${C1},${C2},${C3}"
+  expand string(4)
+  $5="${P0},${P1},${P2},${P3}"
+  expand string(5)
+  $6="${H0},${H1},${H2},${H3},${H4}"
+  expand string(6)
+  assert(string compare(1, 4))
+  assert(string compare(2, 5))
+  assert(string compare(3, 6))
   show box names
 end
 
