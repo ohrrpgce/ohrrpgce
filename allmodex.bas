@@ -174,6 +174,9 @@ dim shared remember_mouse_grab(3) as integer = {-1, -1, -1, -1}
 
 dim shared remember_title as string
 
+dim shared crappyrandstate as integer = 0
+dim shared crappyrandbuf(79) as single = {0.669,0.969,0.438,0.797,0.207,0.270,0.707,0.720,0.948,0.930,0.666,0.627,0.589,0.789,0.039,0.063,0.834,0.540,0.237,0.005,0.681,0.895,0.424,0.561,0.180,0.532,0.016,0.255,0.643,0.090,0.295,0.248,0.319,0.419,0.420,0.027,0.796,0.896,0.688,0.460,0.818,0.638,0.888,0.949,0.475,0.025,0.078,0.060,0.576,0.468,0.864,0.936,0.784,0.091,0.800,0.222,0.848,0.359,0.540,0.202,0.366,0.735,0.379,0.666,0.371,0.869,0.620,0.251,0.760,0.768,0.907,0.789,0.314,0.208,0.457,0.742,0.797,0.603,0.898,0.148}
+
 sub modex_init()
 	'initialise software gfx library
 
@@ -256,6 +259,18 @@ SUB mersenne_twister (byval seed as double)
 	RANDOMIZE seed, 3
 	debug "mersenne_twiser seed=" & seed
 END SUB
+
+'Crappyrand is just for the frame_dissolve code to be deterministic-yet-pseudorandom without
+'messing up the state of the mersenne twister
+SUB seedcrappyrand()
+	crappyrandstate = 0
+END SUB
+
+FUNCTION crappyrand(byval limit as integer) as integer
+	dim n as single = crappyrandbuf(crappyrandstate)
+	crappyrandstate = loopvar(crappyrandstate, 0, UBOUND(crappyrandbuf), 1)
+	RETURN INT(n * limit)
+END FUNCTION
 
 SUB settemporarywindowtitle (title as string)
 	'just like setwindowtitle but does not memorize the title
@@ -5176,20 +5191,22 @@ function frame_dissolved(byval spr as frame ptr, byval tlength as integer, byval
 
 	select case style
 		case 0 'scattered pixel dissolve
-			dim seed as double = rando()
-			randomize 1, 2 ' use the same random seed for each frame (fast PRNG)
+		
+			'--Use this crappy not-really-random sequence because we don't want to mess up the state of the real RNG
+			seedcrappyrand()
 
 			dim cutoff as unsigned integer = 2 ^ 30 * t / (tlength - 0.5)
-			'some random randomness
+			
+			'use a crude PRNG instead of RND because we don't want to mess with its state.
 			dim randomness(cpy->w + 15) as unsigned integer
 			for i = 0 to cpy->w + 15
-				randomness(i) = randint(2 ^ 30)
+				randomness(i) = crappyrand(2 ^ 30)
 			next
 
 			for sy = 0 to cpy->h - 1
 				dim mptr as ubyte ptr = @cpy->mask[sy * cpy->pitch]
-				dim key as unsigned integer = randint(2 ^ 30)
-				dim shift as integer = randint(16)
+				dim key as unsigned integer = crappyrand(2 ^ 30)
+				dim shift as integer = crappyrand(16)
 				for sx = 0 to cpy->w - 1
 					'What we would ideally want is a new randomness buffer for each line.
 					'You can simulate this by xoring with key; however this results in artifacts.
@@ -5200,7 +5217,6 @@ function frame_dissolved(byval spr as frame ptr, byval tlength as integer, byval
 					end if
 				next
 			next
-			randomize seed, 3 're-seed random (MT PRNG)
 
 		case 1 'crossfade
 			'interesting idea: could maybe replace all this with calls to generalised fuzzyrect
