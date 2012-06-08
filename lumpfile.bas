@@ -422,7 +422,7 @@ function FileLump_tempfromlump(byref lmp as Lump) as FileLump ptr
 	else
 		'new file, in a Lump wrapper
 		dim filename as string
-		filename = tmpdir & int(RND * 100000000) & "_" & lmp.lumpname
+		filename = tmpdir & randint(100000000) & "_" & lmp.lumpname
 
 		if Lump_unlumpfile(lmp, tmpdir) = 0 then return NULL
 		rename tmpdir + lmp.lumpname, filename

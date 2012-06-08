@@ -73,9 +73,9 @@ SUB airbrush (x, y, d, m, c, p)
 ' mist_amount sets how many pixels to place i put 100 and it ran fast so
 ' it works EXCELLENTLY with a mouse on the DTE =)
 
-FOR count = 1 TO RND * m
- x2 = RND * d
- y2 = RND * d
+FOR count = 1 TO randint(m)
+ x2 = randint(d)
+ y2 = randint(d)
  x3 = x - d / 2
  y3 = y - d / 2
  IF ABS((x3 + x2) - x) ^ 2 + ABS((y3 + y2) - y) ^ 2 <= d ^ 2 / 4 THEN
@@ -1222,7 +1222,7 @@ DO
     ellipse overlay, ts.holdpos.x, ts.holdpos.y, ts.radius, 1
    CASE mark_tool
     IF tog = 0 THEN drawbox overlay, small(ts.x, ts.holdpos.x), small(ts.y, ts.holdpos.y), ABS(ts.x - ts.holdpos.x) + 1, ABS(ts.y - ts.holdpos.y) + 1, 15, 1
-    overlaypal->col(15) = INT(RND * 10)
+    overlaypal->col(15) = randint(10)
   END SELECT
  END IF
  frame_draw overlay, iif(overlay_use_palette, overlaypal, NULL), 80, 0, 8, YES, dpage  'Draw tool overlay, at 8x zoom
@@ -1937,7 +1937,7 @@ SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditS
 
  rectangle 4 + (ss.x * ss.zoom), 1 + (ss.y * ss.zoom), ss.zoom, ss.zoom, IIF(state.tog, uilook(uiBackground), uilook(uiText)), dpage
  IF ss.hold = YES AND ss.tool = mark_tool AND state.tog = 0 THEN
-  ss.curcolor = INT(RND * 255) ' Random color when marking a clone region
+  ss.curcolor = randint(255) ' Random color when marking a clone region
   drawbox 4 + small(ss.x, ss.holdpos.x) * ss.zoom, 1 + small(ss.y, ss.holdpos.y) * ss.zoom, (ABS(ss.x - ss.holdpos.x) + 1) * ss.zoom, (ABS(ss.y - ss.holdpos.y) + 1) * ss.zoom, ss.curcolor, ss.zoom, dpage
   drawbox ss.previewpos.x + small(ss.x, ss.holdpos.x), ss.previewpos.y + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.curcolor, 1, dpage
  END IF

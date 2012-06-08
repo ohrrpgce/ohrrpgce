@@ -236,8 +236,8 @@ SUB battle_init(byref bat as BattleState, bslot() as BattleSprite)
    .stun   = 1000
    .mute   = 1000
   END WITH
-  bslot(i).poison_repeat = INT(RND * 2000)
-  bslot(i).regen_repeat = INT(RND * 2000)
+  bslot(i).poison_repeat = randint(2000)
+  bslot(i).regen_repeat = randint(2000)
  NEXT i
 
  '--sanity-check afliction indicators and set defaults for old games that don't have them yet. 
@@ -673,7 +673,7 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
 
  'random target
  IF bat.targ.roulette THEN
-  FOR i = 0 TO INT(RND * 2)
+  FOR i = 0 TO randint(2)
    bat.targ.pointer = loopvar(bat.targ.pointer, 0, 11, 1)
    WHILE bat.targ.mask(bat.targ.pointer) = 0
     bat.targ.pointer = loopvar(bat.targ.pointer, 0, 11, 1)
@@ -1010,7 +1010,7 @@ SUB battle_animate(byref bat as BattleState, bslot() as BattleSprite)
     .frame = bat.animpat(.anim_pattern).frame(.anim_index)
     IF .frame = -1 THEN
      '--if the frame get set to -1 that indicates an empty pattern, so randomize instead
-     .frame = INT(RND * 3)
+     .frame = randint(3)
     END IF
    END WITH
   END IF
@@ -1093,7 +1093,7 @@ SUB battle_crappy_run_handler(byref bat as BattleState, bslot() as BattleSprite)
   FOR i = 4 TO 11
    stupid_run_threshold += bslot(i).stat.cur.spd
   NEXT i
-  IF RND * stupid_run_threshold < bat.flee THEN
+  IF randint(stupid_run_threshold) < bat.flee THEN
    bat.away = 1
    bat.flee = 2
    FOR i = 0 TO 3
@@ -1269,7 +1269,7 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
  
  FOR i = 0 TO 11
   IF readbit(gen(), genBits2, 6) = 0 THEN
-   bslot(i).ready_meter = INT(RND * 500) '--randomize ready-meter
+   bslot(i).ready_meter = randint(500) '--randomize ready-meter
   END IF
  NEXT i
  
@@ -2008,13 +2008,13 @@ SUB dead_enemy(byval deadguy as integer, byval killing_attack as integer, byref 
    bat.rew.plunder += .enemy.reward.gold
    bat.rew.exper += .enemy.reward.exper
    IF bat.rew.exper > 1000000 THEN bat.rew.exper = 1000000 '--this one million limit is totally arbitrary
-   IF INT(RND * 100) < .enemy.reward.item_rate THEN '---GET ITEMS FROM FOES-----
+   IF randint(100) < .enemy.reward.item_rate THEN '---GET ITEMS FROM FOES-----
     FOR j = 0 TO 16
      IF bat.rew.found(j).num = 0 THEN bat.rew.found(j).id = .enemy.reward.item: bat.rew.found(j).num = 1: EXIT FOR
      IF bat.rew.found(j).id = .enemy.reward.item THEN bat.rew.found(j).num = bat.rew.found(j).num + 1: EXIT FOR
     NEXT j
    ELSE '------END NORMAL ITEM---------------
-    IF INT(RND * 100) < .enemy.reward.rare_item_rate THEN
+    IF randint(100) < .enemy.reward.rare_item_rate THEN
      FOR j = 0 TO 16
       IF bat.rew.found(j).num = 0 THEN bat.rew.found(j).id = .enemy.reward.rare_item: bat.rew.found(j).num = 1: EXIT FOR
       IF bat.rew.found(j).id = .enemy.reward.rare_item THEN bat.rew.found(j).num = bat.rew.found(j).num + 1: EXIT FOR
@@ -2072,9 +2072,9 @@ SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as For
  DO
   WITH bslot(bat.enemy_turn)
    SELECT CASE ai
-    CASE 0: atk_id = .enemy.regular_ai(INT(RND * 5))
-    CASE 1: atk_id = .enemy.desperation_ai(INT(RND * 5))
-    CASE 2: atk_id = .enemy.alone_ai(INT(RND * 5))
+    CASE 0: atk_id = .enemy.regular_ai(randint(5))
+    CASE 1: atk_id = .enemy.desperation_ai(randint(5))
+    CASE 2: atk_id = .enemy.alone_ai(randint(5))
    END SELECT
   END WITH
   IF atk_id > 0 THEN
@@ -2206,8 +2206,8 @@ SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, menubits() as i
     IF spellcount > 0 THEN '-- don't attempt to pick randomly from an empty list
      DIM safety as integer
      DIM rptr as integer
-     rptr = INT(RND * 24)
-     FOR i = 0 TO INT(RND * spellcount)
+     rptr = randint(24)
+     FOR i = 0 TO randint(spellcount)
       safety = 0
       DO
        rptr = loopvar(rptr, 0, 23, 1)
@@ -2486,7 +2486,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  DIM numhits as integer
  numhits = attack.hits
  IF xreadbit(gen(), 13, genBits2) = NO THEN
-  numhits += INT(RND * (bslot(bat.acting).stat.cur.hits + 1))
+  numhits += randint(bslot(bat.acting).stat.cur.hits + 1)
  ELSE
  END IF
  IF attack.ignore_extra_hits THEN numhits = attack.hits
@@ -2539,7 +2539,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
      anim_zmove 12 + i, -10, 20
     END IF
     IF attack.attack_anim = 6 THEN
-     anim_absmove 12 + i, INT(RND * 270), INT(RND * 150), 6, 6
+     anim_absmove 12 + i, randint(270), randint(150), 6, 6
     END IF
    NEXT i
    if attack.sound_effect > 0  then anim_sound(attack.sound_effect - 1)
@@ -2957,7 +2957,7 @@ END FUNCTION
 FUNCTION check_attack_chain(byref ch as AttackDataChain, byref bat as BattleState, bslot() as BattleSprite) as integer
  'Returns YES if the chain may proceed, or NO if it fails
  
- IF INT(RND * 100) >= ch.rate THEN RETURN NO '--random percentage failed
+ IF randint(100) >= ch.rate THEN RETURN NO '--random percentage failed
  
  IF ch.must_know = YES THEN
   IF knows_attack(bat.acting, ch.atk_id - 1, bslot()) = NO THEN RETURN NO

@@ -104,12 +104,12 @@ RETURN YES
 END FUNCTION 'stat
 
 FUNCTION checktheftchance (byval item as integer, byval itemP as integer, byval rareitem as integer, byval rareitemP as integer) as integer
-IF RND * 100 < itemP THEN
+IF randint(100) < itemP THEN
  '--success!
  getitem item + 1, 1
  checktheftchance = item + 1
 ELSE
- IF RND * 100 < rareitemP THEN
+ IF randint(100) < rareitemP THEN
   '--rare success!
   getitem rareitem + 1, 1
   checktheftchance = rareitem + 1
@@ -358,8 +358,8 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
   DIM attackhit as integer
   attackhit = range(acc, 75) >= range(dog * dogm, 75)
   IF attack.aim_math = 3 THEN attackhit = YES
-  IF attack.aim_math = 5 OR attack.aim_math = 7 THEN attackhit = RND * 100 < (acc * (100 - dog)) / 100 
-  IF attack.aim_math = 6 OR attack.aim_math = 8 THEN attackhit = RND * 100 < acc
+  IF attack.aim_math = 5 OR attack.aim_math = 7 THEN attackhit = randint(100) < (acc * (100 - dog)) / 100 
+  IF attack.aim_math = 6 OR attack.aim_math = 8 THEN attackhit = randint(100) < acc
   IF attackhit = NO THEN
    target.harm.text = readglobalstring$(120, "miss", 20)
    RETURN NO
@@ -396,7 +396,7 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
    CASE 3
     ap = attacker.stat.max.hp - attacker.stat.cur.hp
    CASE 4
-    ap = INT(RND * 999)
+    ap = randint(999)
    CASE 5
     ap = 100
    CASE 6 TO 17
@@ -1301,7 +1301,7 @@ SUB autotarget (byval who as integer, byref atk as AttackData, bslot() as Battle
    confirm_auto_spread who, tmask(), bslot(), t()
 
   CASE 2: '-- optional spread
-   IF INT(RND * 100) < 33 THEN
+   IF randint(100) < 33 THEN
     confirm_auto_spread who, tmask(), bslot(), t()
    ELSE
     confirm_auto_focus who, tmask(), atk, bslot(), t()
@@ -1418,7 +1418,7 @@ FUNCTION find_preferred_target(tmask() as integer, byval who as integer, atk as 
  CASE 4 '--Random
   search = 0
   DO
-   found = INT(RND * 12)
+   found = randint(12)
    IF tmask(found) <> 0 THEN RETURN found
    search = search + 1
   LOOP UNTIL search > 999 ' safety

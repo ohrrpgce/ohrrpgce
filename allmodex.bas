@@ -254,6 +254,7 @@ end sub
 SUB mersenne_twister (byval seed as double)
 	IF play_input ORELSE rec_input THEN exit sub 'Seeding not allowed in play/record modes
 	RANDOMIZE seed, 3
+	debug "mersenne_twiser seed=" & seed
 END SUB
 
 SUB settemporarywindowtitle (title as string)
@@ -5175,20 +5176,20 @@ function frame_dissolved(byval spr as frame ptr, byval tlength as integer, byval
 
 	select case style
 		case 0 'scattered pixel dissolve
-			dim seed as double = rnd
+			dim seed as double = rando()
 			randomize 1, 2 ' use the same random seed for each frame (fast PRNG)
 
 			dim cutoff as unsigned integer = 2 ^ 30 * t / (tlength - 0.5)
 			'some random randomness
 			dim randomness(cpy->w + 15) as unsigned integer
 			for i = 0 to cpy->w + 15
-				randomness(i) = int(rnd * (2 ^ 30))
+				randomness(i) = randint(2 ^ 30)
 			next
 
 			for sy = 0 to cpy->h - 1
 				dim mptr as ubyte ptr = @cpy->mask[sy * cpy->pitch]
-				dim key as unsigned integer = int(rnd * (2 ^ 30))
-				dim shift as integer = int(rnd * 16)
+				dim key as unsigned integer = randint(2 ^ 30)
+				dim shift as integer = randint(16)
 				for sx = 0 to cpy->w - 1
 					'What we would ideally want is a new randomness buffer for each line.
 					'You can simulate this by xoring with key; however this results in artifacts.
@@ -5317,9 +5318,9 @@ function frame_dissolved(byval spr as frame ptr, byval tlength as integer, byval
 			dim vapoury as integer = (cpy->h - 1) * (t / tlength)
 			dim vspeed as integer = large(cint(cpy->h / tlength), 1)
 			for sx = 0 to cpy->w - 1
-				dim chunklength as integer = rnd * (vspeed + 5)
+				dim chunklength as integer = randint(vspeed + 5)
 				for i = -2 to 9999
-					if rnd < 0.3 then exit for
+					if rando() < 0.3 then exit for
 				next
 
 				dim fragy as integer = large(vapoury - large(i, 0) - (chunklength - 1), 0)

@@ -411,7 +411,7 @@ FUNCTION acquiretempdir () as string
   tmp = tmp & SLASH
  #ENDIF
  DIM as string d = DATE, t = TIME
- tmp += MID(d,7,4) & MID(d,1,2) & MID(d,4,2) & MID(t,1,2) & MID(t,4,2) & MID(t,7,2) & "." & CINT(RND * 1000) & ".tmp" & SLASH
+ tmp += MID(d,7,4) & MID(d,1,2) & MID(d,4,2) & MID(t,1,2) & MID(t,4,2) & MID(t,7,2) & "." & randint(1000) & ".tmp" & SLASH
  RETURN tmp
 END FUNCTION
 
@@ -1117,8 +1117,8 @@ FUNCTION createminimap (map() as TileMap, tilesets() as TilesetData ptr, byref z
   FOR i as integer = 0 TO zoom * map(0).wide - 1
    tx = i \ zoom
    ty = j \ zoom
-   x = INT(((i MOD zoom) + RND) * fraction)
-   y = INT(((j MOD zoom) + RND) * fraction)
+   x = INT(((i MOD zoom) + rando()) * fraction)
+   y = INT(((j MOD zoom) + rando()) * fraction)
    'layers but not overhead tiles
    pixel = 0
    FOR k as integer = UBOUND(map) TO 0 STEP -1
@@ -2112,7 +2112,7 @@ FUNCTION spawn_and_wait (app as string, args as string) as string
  IF term_wrap = "" THEN RETURN missing_helper_message("Terminal_wrapper.sh")
 
  DIM fh as integer
- DIM dummyscript as string = tmpdir + "dummyscript" & RND * 10000 & ".sh"
+ DIM dummyscript as string = tmpdir + "dummyscript" & randint(10000) & ".sh"
  fh = FREEFILE
  OPEN dummyscript FOR OUTPUT as #fh
  PRINT #fh, "#!/bin/sh"
@@ -2223,7 +2223,7 @@ IF isfile(exepath & "/support/" & appname) THEN RETURN exepath & "/support/" & a
 DIM as integer fh
 DIM as string tempfile
 DIM as string s
-tempfile = tmpdir & "find_helper_app." & INT(RND * 10000) & ".tmp"
+tempfile = tmpdir & "find_helper_app." & randint(10000) & ".tmp"
 'Use the standard util "which" to search the path
 SHELL "which " & appname & " > " & tempfile
 IF NOT isfile(tempfile) THEN debug "find_helper_app(" & appname & ") failed" : RETURN ""
@@ -2354,7 +2354,7 @@ END FUNCTION
 FUNCTION mp3_to_ogg (in_file as string, out_file as string, byval quality as integer = 4) as string
  DIM as string tempwav
  DIM as string ret
- tempwav = tmpdir & "temp." & INT(RND * 100000) & ".wav"
+ tempwav = tmpdir & "temp." & randint(100000) & ".wav"
  ret = mp3_to_wav(in_file, tempwav)
  IF LEN(ret) THEN RETURN ret
  ret = wav_to_ogg(tempwav, out_file, quality)
@@ -2641,7 +2641,7 @@ FUNCTION generatepassword(byval hash as integer) as string
  DO
   DIM p as string = ""
   FOR i as integer = 0 TO 3
-   p += CHR(ASC("a") + RND * 25)
+   p += CHR(ASC("a") + randint(25))
   NEXT
   IF passwordhash(p) = hash THEN RETURN p
  LOOP
@@ -2660,7 +2660,7 @@ SUB writepassword (pass as string)
  ELSE
   '--Write unguessable garbage 3rd-style password
   FOR i as integer = 1 TO 17
-   dummypw += CHR(CINT(RND * 254))
+   dummypw += CHR(randint(254))
   NEXT i
  END IF
  gen(genPW3Rot) = 0

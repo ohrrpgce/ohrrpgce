@@ -1367,8 +1367,8 @@ SUB pick_npc_action(npci as NPCInst, npcdata as NPCType)
   IF movetype = 1 THEN
    rand = 25
    IF wraptouch(npci.x, npci.y, catx(0), caty(0), 20) THEN rand = 5
-   IF INT(RND * 100) < rand THEN
-    temp = INT(RND * 4)
+   IF randint(100) < rand THEN
+    temp = randint(4)
     npci.dir = temp
     IF temp = 0 THEN npci.ygo = 20
     IF temp = 2 THEN npci.ygo = -20
@@ -1386,19 +1386,19 @@ SUB pick_npc_action(npci as NPCInst, npcdata as NPCType)
   'CHASE/FLEE---
   IF movetype = 6 OR movetype = 7 THEN
    rand = 100
-   IF INT(RND * 100) < rand THEN
-    IF INT(RND * 100) < 50 THEN
+   IF randint(100) < rand THEN
+    IF randint(100) < 50 THEN
      IF caty(0) < npci.y THEN temp = 0
      IF caty(0) > npci.y THEN temp = 2
      IF gmap(5) = 1 AND caty(0) - mapsizetiles.y * 10 > npci.y THEN temp = 0
      IF gmap(5) = 1 AND caty(0) + mapsizetiles.y * 10 < npci.y THEN temp = 2
-     IF caty(0) = npci.y THEN temp = INT(RND * 4)
+     IF caty(0) = npci.y THEN temp = randint(4)
     ELSE
      IF catx(0) < npci.x THEN temp = 3
      IF catx(0) > npci.x THEN temp = 1
      IF gmap(5) = 1 AND catx(0) - mapsizetiles.x * 10 > npci.x THEN temp = 3
      IF gmap(5) = 1 AND catx(0) + mapsizetiles.x * 10 < npci.x THEN temp = 1
-     IF catx(0) = npci.x THEN temp = INT(RND * 4)
+     IF catx(0) = npci.x THEN temp = randint(4)
     END IF
     IF movetype = 7 THEN temp = loopvar(temp, 0, 3, 2)  'Flee
     npci.dir = temp
@@ -1508,7 +1508,7 @@ SUB npchitwall(npci as NPCInst, npcdata as NPCType)
   IF npcdata.movetype = 2 THEN npci.dir = loopvar(npci.dir, 0, 3, 2)  'Pace
   IF npcdata.movetype = 3 THEN npci.dir = loopvar(npci.dir, 0, 3, 1)  'Right Turns
   IF npcdata.movetype = 4 THEN npci.dir = loopvar(npci.dir, 0, 3, -1) 'Left Turns
-  IF npcdata.movetype = 5 THEN npci.dir = INT(RND * 4)                'Random Turns
+  IF npcdata.movetype = 5 THEN npci.dir = randint(4)                'Random Turns
  END IF
 END SUB
 
@@ -2907,7 +2907,7 @@ FUNCTION random_formation (byval set as integer) as integer
  'surprisingly, this is actually slightly effective at reducing the rate of the
  'same slot being picked consecutively, so I'll leave it be for now
  'FIXME: When this was written, I confused the meaning of range; should improve this
- FOR i = 0 TO INT(RND * range(19, 27))
+ FOR i = 0 TO randint(range(19, 27))
   DO
    foenext = loopvar(foenext, 0, UBOUND(formset.formations), 1)
   LOOP WHILE formset.formations(foenext) = -1

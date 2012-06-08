@@ -1010,7 +1010,7 @@ END SUB
 SUB import_convert_mp3(BYREF mp3 AS STRING, BYREF oggtemp AS STRING)
  DIM ogg_quality AS INTEGER
  IF (pick_ogg_quality(ogg_quality)) THEN mp3 = "" : EXIT SUB
- oggtemp = tmpdir & "temp." & INT(RND * 100000) & ".ogg"
+ oggtemp = tmpdir & "temp." & randint(100000) & ".ogg"
  clearpage vpage
  centerbox 160, 100, 300, 20, 4, vpage
  edgeprint "Please wait, converting to OGG...", 28, 96, uilook(uiText), vpage
@@ -1033,7 +1033,7 @@ END SUB
 SUB import_convert_wav(BYREF wav AS STRING, BYREF oggtemp AS STRING)
  DIM ogg_quality AS INTEGER
  IF (pick_ogg_quality(ogg_quality)) THEN wav = "" : EXIT SUB
- oggtemp = tmpdir & "temp." & INT(RND * 100000) & ".ogg"
+ oggtemp = tmpdir & "temp." & randint(100000) & ".ogg"
  clearpage vpage
  centerbox 160, 100, 300, 20, 4, vpage
  edgeprint "Please wait, converting to OGG...", 28, 96, uilook(uiText), vpage
@@ -1365,7 +1365,7 @@ SUB equipmergemenu
  DIM tog as integer
 
  'Random example which changes on entering the menu
- DIM ex9(3) as single = {RND, 3*RND-1.5, 1+RND}
+ DIM ex9(3) as single = {rando(), 3*rando()-1.5, 1+rando()}
 
  menu(0) = "Previous Menu"
  menu(1) = "Old awful formula (multiplication-like)"

@@ -102,10 +102,24 @@ FUNCTION small (byval n1 as double, byval n2 as double) as double
  IF n2 < n1 THEN RETURN n2 ELSE RETURN n1
 END FUNCTION
 
+FUNCTION rando () as double
+ 'STATIC count as integer = 0
+ 'This is a simple wrapper for RND to facilitate debugging
+ DIM n as double = RND
+ 'debug count & " RND=" & n
+ 'count += 1
+ RETURN n
+END FUNCTION
+
+FUNCTION randint (byval limit as integer) as integer
+ 'Returns a random integer >=0 and < limit
+ RETURN INT(rando() * limit)
+END FUNCTION
+
 FUNCTION range (number as integer, percent as integer) as integer
  DIM a as integer
  a = (number / 100) * percent
- RETURN number + INT(RND * (a * 2)) - a
+ RETURN number + randint((a * 2)) - a
 END FUNCTION
 
 FUNCTION isnan (byval value as DOUBLE) as integer
@@ -1077,7 +1091,7 @@ SUB findfiles (directory as STRING, namemask as STRING = "", byval filetype as i
   'this is super hacky, but works around the apparent uselessness of DIR
   'FIXME: rewrite this in C, in os_unix.c. This doesn't work with symbolic links
   DIM as STRING grep, shellout
-  shellout = "/tmp/ohrrpgce-findfiles-" + STR(RND * 10000) + ".tmp"
+  shellout = "/tmp/ohrrpgce-findfiles-" & randint(10000) & ".tmp"
   grep = "-v '/$'"
   IF filetype = fileTypeDirectory THEN grep = "'/$'"
   searchdir = """" + escape_string(searchdir, """`\$") + """"
@@ -1286,7 +1300,7 @@ FUNCTION diriswriteable(d as string) as integer
    'able to mark a folder read-only, instead it makes the contents read-only.
     if fileiswriteable(d + SLASH + "archinym.lmp") = 0 then return 0
   end if
-  dim testfile as string = d & SLASH & "__testwrite_" & INT(RND * 100000) & ".tmp"
+  dim testfile as string = d & SLASH & "__testwrite_" & randint(100000) & ".tmp"
   if fileiswriteable(testfile) then
     safekill testfile
     return -1

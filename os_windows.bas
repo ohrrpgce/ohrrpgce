@@ -408,7 +408,7 @@ function open_piped_process (program as string, args as string, byval iopipe as 
 	end if
 
 	dim pipename as string
-	pipename = "\\.\pipe\AnonPipe." & (100000 * RND)
+	pipename = "\\.\pipe\AnonPipe." & (100000 * rando())
 
 	dim as NamedPipeInfo ptr serverpipe, clientpipe
 

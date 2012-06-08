@@ -1837,7 +1837,7 @@ SUB draw_zone_tileset3(BYVAL zonetileset as Frame ptr)
  DIM as integer zone, tileno, temp, safecol
  'Pick an unused colour
  WHILE 1
-  safecol = 1 + RND * 254
+  safecol = 1 + randint(254)
   FOR zone = 0 TO 7
    IF safecol = uilook(uiTextBox + 2 * zone + 1) THEN CONTINUE WHILE
   NEXT
@@ -1896,9 +1896,9 @@ END SUB
 SUB mapedit_zonespam(st as MapEditState, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
  DIM t as double = TIMER
  DIM as integer x, y, i, temp, count = st.cur_zinfo->numtiles
- FOR i = 0 TO INT((1 + RND) * zmap.high / 8)
-  y = INT(RND * zmap.high)
-  temp = INT(RND * zmap.wide)
+ FOR i = 0 TO INT((1 + rando()) * zmap.high / 8)
+  y = randint(zmap.high)
+  temp = randint(zmap.wide)
   FOR x = temp TO small(temp + 12, zmap.wide - 1)
    zonebrush st, x, y, 1, map(), pass, emap, zmap
   NEXT

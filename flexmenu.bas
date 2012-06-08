@@ -1342,7 +1342,7 @@ SUB atk_edit_preview(BYVAL pattern AS INTEGER, sl as Slice Ptr)
   IF pattern = 0 THEN anim1 = anim1 + 1: IF anim1 > 2 THEN anim1 = 0
   IF pattern = 1 THEN anim1 = anim1 - 1: IF anim1 < 0 THEN anim1 = 2
   IF pattern = 2 THEN anim1 = anim1 + 1: IF anim1 > 2 THEN anim1 = -1
-  IF pattern = 3 THEN anim1 = INT(RND * 3)
+  IF pattern = 3 THEN anim1 = randint(3)
  END IF
  ChangeSpriteSlice sl, , , ,ABS(anim1)
 END SUB
