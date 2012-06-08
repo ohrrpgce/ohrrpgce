@@ -652,7 +652,7 @@ END SUB
 SUB scriptmath
  SELECT CASE as CONST curcmd->value
   CASE 0' random
-   scriptret = retvals(0) + randint((1.0 + retvals(1) - retvals(0))) 'handles the case max-min = 2^32
+   scriptret = INT(retvals(0) + RND * (1.0 + retvals(1) - retvals(0))) 'handles the case max-min = 2^32
   CASE 1' exponent
    IF retvals(0) = 0 and retvals(1) < 0 THEN
     scripterr "Tried to take negative power of zero, 0^" & retvals(1), 5
