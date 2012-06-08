@@ -19,8 +19,6 @@ DECLARE SUB setmodex ()
 DECLARE SUB modex_quit ()
 DECLARE SUB restoremode ()
 DECLARE SUB mersenne_twister (byval seed as double)
-DECLARE SUB seedcrappyrand()
-DECLARE FUNCTION crappyrand(byval limit as integer) as integer
 DECLARE SUB setwindowtitle (title as string)
 DECLARE FUNCTION allocatepage(byval w as integer = 320, byval h as integer = 200) as integer
 DECLARE FUNCTION duplicatepage (byval page as integer) as integer
