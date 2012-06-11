@@ -1341,11 +1341,6 @@ END FUNCTION
 
 SUB distribute_game_as_mac_app ()
 
- 'FIXME: remove this when nasty mac bugs are fixed!
- IF yesno("WARNING: The Mac OS X version is not stable yet, are you sure you want to use it anyway?") = NO THEN
-  RETURN
- END IF
-
  DIM distinfo as DistribState
  load_distrib_state distinfo
 
