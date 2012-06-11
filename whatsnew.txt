@@ -11,7 +11,7 @@ Jun ? 2012 [Alectormancy]
       option works [Ralph]
     * Master Palettes menu: added export option [Ralph]
     * Play-as-you-edit, AKA live previewing of games, with a new
-      "Test Game" option in Custom. **Very unfinished!**  [Ralph]
+      "Test Game" option in Custom. Still unfinished! [Ralph]
       * New debug key: press F5 in-game to access a menu where you can
         reload various game data. Most useful when live-previewing a
         game. The old F5 and Ctrl+F5 debug keys (free camera movement)
