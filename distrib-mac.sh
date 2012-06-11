@@ -10,6 +10,7 @@ fi
 
 echo Building binaries
 scons
+scons hspeak unlump relump
 echo Bundling apps
 ./bundle-apps.sh
 
@@ -40,17 +41,9 @@ echo "Packaging binary distribution of CUSTOM"
 echo "  Including binaries"
 cp -pR OHRRPGCE-Custom.app tmp
 cp -pR OHRRPGCE-Game.app tmp
-#cp -p unlump tmp
-#cp -p relump tmp
-#tar -xf mac/utilities.tar.gz -C tmp hspeak
-
-echo "  Including support files"
-cp -p plotscr.hsd tmp
-cp -p scancode.hsi tmp
 
 echo "  Including readmes"
-cp -p README-game.txt tmp
-cp -p README-custom.txt tmp
+cp -p README-mac.txt tmp
 cp -p LICENSE-binary.txt tmp
 cp -p whatsnew.txt tmp
 if [ $CODE == 'wip' ] ; then
@@ -58,9 +51,10 @@ if [ $CODE == 'wip' ] ; then
 fi
 
 echo "  Including Vikings of Midgard"
-./relump vikings/vikings.rpgdir tmp/vikings.rpg
-cp -pR "vikings/Vikings script files" tmp
-cp -p "vikings/README-vikings.txt" tmp
+mkdir tmp/"Vikings of Midgard"
+./relump vikings/vikings.rpgdir tmp/"Vikings of Midgard"/vikings.rpg
+cp -pR "vikings/Vikings script files" tmp/"Vikings of Midgard"
+cp -p "vikings/README-vikings.txt" tmp/"Vikings of Midgard"
 
 echo "  Including import"
 mkdir tmp/import
@@ -86,3 +80,5 @@ rm -Rf tmp/*
 echo "Create minimal player tarball"
 tar -zcf distrib/ohrrpgce-mac-minimal-$TODAY-$CODE.tar.gz OHRRPGCE-Game.app README-mac-minimal.txt LICENSE-binary.txt
 
+echo "Creating utilities zip"
+zip distrib/utilities-mac.zip unlump relump hspeak plotscr.hsd scancode.hsi LICENSE-binary.txt
