@@ -2170,7 +2170,10 @@ FUNCTION spawn_and_wait (app as string, args as string) as string
  'Generic UNIX: xterm is everywhere, isn't it?
 
  'os_* process handling functions only currently implemented on Windows
- SHELL "xterm -bg black -fg gray90 -e """ & app & " " & args & """"
+ DIM cmd as string
+ cmd = "xterm -bg black -fg gray90 -e '" & escape_string(app & " " & args, "'") & "'"
+ 'debuginfo cmd
+ SHELL cmd
  RETURN ""
 
 END FUNCTION
