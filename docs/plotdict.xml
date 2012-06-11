@@ -662,31 +662,26 @@ end</example>
 		<command id="npccopycount">
 			<canon>NPC copy count (ID)</canon>
 			<shortname>NPC copy count</shortname>
-			<description>This command tells you how many copys of a particular NPC ID exist on the map. This can be very useful if you want apply the same action to each copy of an NPC on the map. However if the NPCs with t</description>
-			<example>include,plotscr.hsd
+			<description>This command tells you how many copies of a particular NPC ID exist on the map. This can be very useful if you want apply the same action to each copy of an NPC on the map by looping over them. Generally this is used together with the <ref>npcreference</ref> command.</description>
+			<example>include, plotscr.hsd
 
 #---NPC copy count example---
 
-plotscript,every NPC example,begin
+plotscript, every NPC example, begin
 
-  variable(loop,guard count,current guard)
+  variable(copy number, guard count, current guard)
 
-  # the guard is NPC 10, and there are many copies of him on the map
+  # The guard is NPC 10, and there are many copies of him on the map
   guard count := NPC copy count(10)
 
-  # this loop repeats once for each copy of NPC 10
-  for(loop,0,guard count) do,begin
+  # This loop repeats once for each copy of NPC 10
+  for (copy number, 0, guard count -- 1) do, begin
+    current guard := NPC reference(10, copy number)
+    walk NPC(current guard, south, 4)
 
-    current guard := NPC reference(10,loop)
-    walk NPC(current guard,south,4)
     # if we added a "wait for NPC(current guard)" right here
     # then the guards would walk one at time
-
   end
-
-  # but we want them to all walk at the same time,
-  # so we just wait here
-  wait for all
 
 end</example>
 		</command>
