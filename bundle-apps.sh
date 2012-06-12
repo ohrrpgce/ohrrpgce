@@ -32,6 +32,4 @@ cp ohrrpgce.new OHRRPGCE-Custom.app/Contents/Resources/ &&
 cp mac/Terminal_wrapper.sh OHRRPGCE-Custom.app/Contents/MacOS/support/ &&
 cp plotscr.hsd scancode.hsi OHRRPGCE-Custom.app/Contents/MacOS/support/ &&
 tar xf mac/utilities.tar.gz -C OHRRPGCE-Custom.app/Contents/MacOS/support/ && 
-cp hspeak OHRRPGCE-Custom.app/Contents/MacOS/support/ &&
-cp plotscr.hsd OHRRPGCE-Custom.app/Contents/MacOS/support/ &&
-cp scancode.hsi OHRRPGCE-Custom.app/Contents/MacOS/support/ || exit 1
+cp hspeak OHRRPGCE-Custom.app/Contents/MacOS/support/ || exit 1
