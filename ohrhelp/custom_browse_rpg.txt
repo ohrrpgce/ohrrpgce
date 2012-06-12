@@ -1,4 +1,4 @@
-Choose a .RPG file to edit.
+Choose an .RPG file to edit.
 
 Navigate using the Up and Down arrow keys (or PgUp, PgDn, Home, and End).
 

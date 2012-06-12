@@ -1189,7 +1189,7 @@ IF mode > 1 AND drawloop = 0 THEN
  END IF
 
  IF w = scF1 THEN
-  show_help("script_debugger")
+  show_help("game_script_debugger")
   GOTO redraw
  END IF
 

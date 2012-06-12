@@ -381,7 +381,7 @@ END IF
 
 IF gam.autorungame = NO THEN
  'DEBUG debug "browse for RPG"
- sourcerpg = browse(7, "", "*.rpg", tmpdir, 1, "browse_rpg")
+ sourcerpg = browse(7, "", "*.rpg", tmpdir, 1, "game_browse_rpg")
  IF sourcerpg = "" THEN exitprogram 0
  IF isdir(sourcerpg) THEN
   usepreunlump = YES

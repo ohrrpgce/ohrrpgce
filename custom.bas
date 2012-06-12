@@ -511,7 +511,7 @@ SUB choose_rpg_to_open ()
        EXIT DO
      END IF
     CASE 1
-     sourcerpg = browse(7, "", "*.rpg", tmpdir, 0, "browse_rpg")
+     sourcerpg = browse(7, "", "*.rpg", tmpdir, 0, "custom_browse_rpg")
      game = trimextension(trimpath(sourcerpg))
      IF game <> "" THEN EXIT DO
     CASE 2

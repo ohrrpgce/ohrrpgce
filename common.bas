@@ -1801,7 +1801,7 @@ SUB show_help(helpkey as string)
     END IF
    END IF
    IF keyval(scF1) and helpkey <> "helphelp" THEN
-    show_help "helphelp"
+    show_help "share_helphelp"
    END IF
    IF editing THEN
     dat->first_line = small(dat->first_line, cursor_line - 1)

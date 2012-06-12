@@ -1,0 +1,9 @@
+Choose an .RPG file to play.
+
+Navigate using the Up and Down arrow keys (or PgUp, PgDn, Home, and End).
+
+Press ENTER or SPACE on a folder (blue font) to open it.
+
+Press ENTER or SPACE on a game to play it.
+
+Press ESC to cancel and quit.

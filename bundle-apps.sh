@@ -14,6 +14,8 @@ rm -Rf OHRRPGCE-Game.app/Contents/.svn &&
 rm -Rf OHRRPGCE-Game.app/Contents/Resources/.svn &&
 mkdir -p OHRRPGCE-Game.app/Contents/MacOS &&
 sed -i -e "s/#VERSION#/O.H.R.RPG.C.E version ${CODE} ${TODAY}/g" OHRRPGCE-Game.app/Contents/Info.plist &&
+mkdir -p OHRRPGCE-Game.app/Contents/Resources/ohrhelp &&
+cp -R ohrhelp/game_*.txt ohrhelp/share_*.txt OHRRPGCE-Game.app/Contents/Resources/ohrhelp &&
 cp ohrrpgce-game OHRRPGCE-Game.app/Contents/MacOS/ &&
 tar xf mac/Frameworks.tar.gz -C OHRRPGCE-Game.app/Contents || exit 1
 
