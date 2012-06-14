@@ -1,3 +1,11 @@
 If the single paragraph "Description" is not long enough for you, you can put the rest of your description here. It can be as long as you want.
 
 This is a good place to describe how to play, include credits and special thanks, or anything else you want to include in your README file.
+
+Press ENTER to edit the description in multiline mode.
+
+While in multiline mode, you can press:
+
+F2 - save the description to a text file
+
+F3 - import text from a text file
