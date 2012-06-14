@@ -33,4 +33,4 @@ The following things do not currently reload at all:
 -Default palettes (which palette is the default for a sprite)
 -Equipped items
 
-You can force a manual reload of scripts from the F5 menu but currently running scripts will not be reloaded, and may even throw errors. For that reason, ireloading is not automatic.
+You can force a manual reload of scripts from the F5 menu but currently running scripts will not be reloaded, and may even throw errors. For that reason, reloading is not automatic.
