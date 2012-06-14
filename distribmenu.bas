@@ -297,7 +297,7 @@ END FUNCTION
 
 FUNCTION sanitize_url(s as string) as string
  '--This website address sanitization is far from perfect, but probably good enough for most cases
- RETURN special_char_sanitize(exclusive(s, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-.:/_+%:;?@=&"))
+ RETURN special_char_sanitize(exclusive(s, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-.:/_+%:;?@=&'"))
 END FUNCTION
 
 SUB export_readme_text_file (LE as string=LINE_END, byval wrap as integer=72)
