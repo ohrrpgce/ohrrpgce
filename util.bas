@@ -1756,3 +1756,29 @@ FUNCTION string_from_first_line_of_file (filename as string) as string
  CLOSE #fh
  RETURN result
 END FUNCTION
+
+FUNCTION string_from_file (filename as string) as string
+ 'Read an entire file as a string.
+ 'convert the line endings to LF only
+ DIM fh as integer = FREEFILE
+ DIM result as string = ""
+ DIM s as string
+ OPEN filename for input as #fh
+ DO WHILE NOT EOF(fh)
+  LINE INPUT #fh, s
+  s = RTRIM(s)
+  result &= s & CHR(10)
+ LOOP
+ CLOSE #fh
+ RETURN result
+END FUNCTION
+
+SUB string_to_file (string_to_write as string, filename as string)
+ 'Write a string to a text file using native line endings
+ DIM s as string = string_to_write
+ replacestr string_to_write, !"\n", LINE_END
+ DIM fh as integer = FREEFILE
+ OPEN filename FOR BINARY AS #FH
+ PUT #fh, , s
+ CLOSE #fh
+END SUB

@@ -1,0 +1,1 @@
+Browse for a text file to import. Press ESC if you want to cancel.

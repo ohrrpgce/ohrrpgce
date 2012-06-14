@@ -1927,7 +1927,9 @@ FUNCTION multiline_string_editor(s as string, helpkey as string="") as string
    END IF
   END IF
   IF deadkeys = 0 THEN 
-   IF keyval(scF1) AND helpkey <> "" THEN show_help helpkey
+   IF keyval(scF1) ANDALSO helpkey <> "" THEN show_help helpkey
+   IF keyval(scF2) THEN export_string_to_file dat->s
+   IF keyval(scF3) THEN import_string_from_file dat->s
    dat->first_line = small(dat->first_line, cursor_line - 1)
    dat->first_line = large(dat->first_line, cursor_line - (dat->line_limit - 2))
    dat->first_line = bound(dat->first_line, 0, large(0, dat->line_count - dat->line_limit))
@@ -1971,6 +1973,43 @@ FUNCTION multiline_string_editor(s as string, helpkey as string="") as string
  
  RETURN result
 END FUNCTION
+
+SUB export_string_to_file(s as string)
+ DIM filename as string
+ filename = inputfilename("Name of text file to export to?", ".txt", "", "export_string_to_file")
+ IF filename = "" THEN RETURN
+ filename &= ".txt"
+ IF isfile(filename) THEN
+  IF yesno("""" & filename & """ already exists. Do you want to overwrite it?", NO, NO) = NO THEN RETURN
+ END IF
+ IF NOT fileiswriteable(filename) THEN visible_debug "File """ & filename & """  is not writeable" : RETURN
+
+ string_to_file s, filename
+ 
+ visible_debug "Successfully wrote the text to """ & filename & """"
+END SUB
+
+SUB import_string_from_file(s as string)
+
+ DIM prefix as string = ""
+
+ IF s <> "" THEN
+  SELECT CASE twochoice("Do you want to append to the text or replace it?", "Append", "Replace", 0, -1, "import_string_from_file_append")
+   CASE 0: 'append
+    prefix = s & !"\n"
+   CASE 1: 'replace
+   CASE ELSE 'cancel
+    RETURN
+  END SELECT
+ END IF
+
+ DIM filename as string
+ filename = browse(0, "", "*.txt", tmpdir, 0, "import_string_from_file")
+ IF filename = "" THEN RETURN
+ 
+ s = prefix & string_from_file(filename)
+ 
+END SUB
 
 FUNCTION multichoice(capt as string, choices() as string, byval defaultval as integer=0, byval escval as integer=-1, helpkey as string="") as integer
  DIM state as MenuState

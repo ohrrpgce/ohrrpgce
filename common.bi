@@ -209,6 +209,8 @@ DECLARE SUB save_help_file(helpkey as string, text as string)
 
 DECLARE SUB show_help(helpkey as string)
 DECLARE FUNCTION multiline_string_editor(s as string, helpkey as string="") as string
+DECLARE SUB export_string_to_file(s as string)
+DECLARE SUB import_string_from_file(s as string)
 
 DECLARE FUNCTION int_from_xy(pos as XYPair, byval wide as integer, byval high as integer) as integer
 DECLARE FUNCTION xy_from_int(byval n as integer, byval wide as integer, byval high as integer) as XYPair
