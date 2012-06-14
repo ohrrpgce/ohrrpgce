@@ -381,12 +381,14 @@ script, do hero cater tests, who, begin
   walk hero to y(who, 10), w
   wait for hero(who)
   assert(hero y(who) == 10)
+  camera follows hero(who)
   walk hero to x(who, 9), w
   wait for hero(who)
   assert(hero x(who) == 9)
   walk hero to y(who, 8), w
   wait for hero(who)
   assert(hero y(who) == 8)
+  camera follows hero(0)
   walk hero to x (who, 6), w
   wait for hero(who)
   assert(hero x(who) == 6)

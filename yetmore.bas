@@ -978,7 +978,7 @@ SELECT CASE as CONST id
   scriptret = rankincaterpillar(retvals(0))
  CASE 38'--camera follows hero
   gen(cameramode) = herocam
-  gen(cameraArg) = bound(retvals(0), 0, 3) * 5
+  gen(cameraArg) = bound(retvals(0), 0, 3)
  CASE 40'--pan camera
   gen(cameramode) = pancam
   gen(cameraArg) = small(large(retvals(0), 0), 3)
