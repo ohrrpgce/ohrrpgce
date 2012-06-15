@@ -1,5 +1,5 @@
 ------------------------------------------------------------
- O.H.R.RPG.C.E Game Player         (May 6 2011 zenzizenzic)
+ O.H.R.RPG.C.E Game Player      (June 15 2012 alectormancy)
 ------------------------------------------------------------
 Official Hamster Republic RPG Construction Engine
 
@@ -7,11 +7,8 @@ Official Hamster Republic RPG Construction Engine
 This package contains the files you need to play OHRRPGCE games in .RPG
 format.
 
-To learn how to use the OHRRPGCE, please visit
+To learn more about the OHRRPGCE, please visit
 http://HamsterRepublic.com/ohrrpgce/
-
-If you have questions, read the FAQ at
-http://hamsterrepublic.com/ohrrpgce/F.A.Q.html
 
 ---
 DISTRIBUTION INFO

@@ -1,5 +1,5 @@
 ------------------------------------------------------------
- O.H.R.RPG.C.E                   (June ? 2012 alectormancy)
+ O.H.R.RPG.C.E                  (June 15 2012 alectormancy)
 ------------------------------------------------------------
 Official Hamster Republic RPG Construction Engine
 for Mac OS X

@@ -8,7 +8,7 @@ up-to-date information, especially
 http://rpg.HamsterRepublic.com/ohrrpgce/Compiling
 -----------------------------------------------------------------------------
 WINDOWS/LINUX:
-  Recommends FreeBasic version 0.21.1b
+  Recommends FreeBasic version 0.23b
   Requires minimum FreeBasic version 0.20.0b
   Download FreeBasic from http://freebasic.net/
   Compiling requires Python and Scons
