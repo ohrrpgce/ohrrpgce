@@ -1,6 +1,8 @@
 WHAT IS NEW?
 
-Jun ? 2012 [Alectormancy]
+??? ?? 2012 [Beelzebufo]
+
+Jun 15 2012 [Alectormancy]
 
   * New Features
     * Adjustable global HP thresholds for hero and enemy Weak states
