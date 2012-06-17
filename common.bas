@@ -2287,7 +2287,7 @@ IF try_install THEN
  IF choice = 0 THEN
   DIM extenstion as string = "zip"
   IF appname = "unzip" THEN extenstion = "exe"
-  wget_download "http://HamsterRepublic.com/ohrrpgce/support/" & appname & "." & extenstion, support
+  download_file "http://HamsterRepublic.com/ohrrpgce/support/" & appname & "." & extenstion, support
   IF NOT isfile(support & SLASH & appname & "." & extenstion) THEN
    visible_debug "Unable to download " & appname & "." & extenstion
    RETURN ""
@@ -2315,37 +2315,61 @@ RETURN ""
 #ENDIF
 END FUNCTION
 
-FUNCTION wget_download (url as string, destdir as string, forcefilename as string="") as integer
+FUNCTION download_file (url as string, destdir as string, forcefilename as string="") as integer
  'Returns True on success, false on failure.
  '
- 'Downloads a url to a file. uses wget's -N option to only re-download
- ' an existing file if the remote file is newer.
+ 'wget is the first choice because its -N option can prevent unneeded redundant
+ 'downloads when the file has not changed. curl is an important fallback because
+ 'it is installed by default on Mac OS X
  '
  'If you specify forcefilename, the -N option will do nothing,
  ' and the file will be re-downloaded even if it has not changed
  ' since the last time it was downloaded.
 
+ DIM spawn_ret as string
+ DIM args as string
+
  '--Find the wget to to do the downloading
  DIM wget as string = find_helper_app("wget")
- IF wget = "" THEN visible_debug "ERROR: Can't find wget download tool": RETURN NO
+ IF wget <> "" THEN
 
- '--prepare the command line
- DIM args as string
- IF forcefilename = "" THEN
-  args = "-N -P """ & destdir & """"
- ELSE
-  args = "-O """ & destdir & SLASH & forcefilename & """"
+  '--prepare the command line
+  IF forcefilename = "" THEN
+   args = "-N -P """ & destdir & """"
+  ELSE
+   args = "-O """ & destdir & SLASH & forcefilename & """"
+  END IF
+  args &= " """ & url & """"
+ 
+  '--Do the download
+  spawn_ret = spawn_and_wait(wget, args)
+ 
+  '--Check to see if the download worked
+  IF LEN(spawn_ret) = 0 THEN RETURN YES
+  debug "ERROR: wget download failed: " & spawn_ret
  END IF
- args &= " """ & url & """"
  
- '--Do the download
- DIM spawn_ret as string
- spawn_ret = spawn_and_wait(wget, args)
+ '--find curl to do the downloading
+ DIM curl as string = find_helper_app("curl")
+ IF curl <> "" THEN
+  
+  DIM destfile as string = forcefilename
+  IF destfile = "" THEN
+   destfile = trimpath(url)
+  END IF
+  
+  args = "-o """ & destdir & SLASH & destfile & """ """ & url & """"
+  
+  '--Do the download
+  spawn_ret = spawn_and_wait(curl, args)
  
- '--Check to see if the download worked
- IF LEN(spawn_ret) > 0 THEN visible_debug "ERROR: wget download failed: " & spawn_ret : RETURN NO
- 
- RETURN YES
+  '--Check to see if the download worked
+  IF LEN(spawn_ret) = 0 THEN RETURN YES
+  debug "ERROR: curl download failed: " & spawn_ret
+ END IF
+
+ visible_debug "Download failed (tried both wget and curl)" 
+ RETURN NO
 END FUNCTION
 
 'Not used

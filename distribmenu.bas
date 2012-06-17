@@ -662,7 +662,7 @@ FUNCTION get_windows_gameplayer() as string
  END IF
 
  '--Actually download the dang file
- wget_download url, dldir
+ download_file url, dldir
  
  '--Find the unzip tool
  DIM unzip as string = find_helper_app("unzip", YES)
@@ -730,7 +730,7 @@ FUNCTION get_linux_gameplayer() as string
  END IF
 
  '--Actually download the dang file
- wget_download url, dldir
+ download_file url, dldir
  
  '--Find the unzip tool
  DIM unzip as string = find_helper_app("unzip", YES)
@@ -889,7 +889,7 @@ FUNCTION find_or_download_innosetup () as string
   IF yesno("Inno Setup 5 is required to create windows installation packages. Would you like to download it from jrsoftware.org now?") THEN
    DIM support as string = find_support_dir()
    IF support = "" THEN visible_debug "ERROR: Can't find support dir" : RETURN ""
-   wget_download "http://www.jrsoftware.org/download.php/is.exe", support, "is.exe"
+   download_file "http://www.jrsoftware.org/download.php/is.exe", support, "is.exe"
    DIM spawn_ret as string
    spawn_ret = win_or_wine_spawn_and_wait(support & SLASH & "is.exe")
    safekill support & SLASH & "is.exe"
@@ -1431,7 +1431,7 @@ FUNCTION get_mac_gameplayer() as string
  END IF
 
  '--Actually download the dang file
- wget_download url, dldir
+ download_file url, dldir
 
  '--remove the old uncompressed files
  safekill dldir & SLASH & "LICENSE-binary.txt"
