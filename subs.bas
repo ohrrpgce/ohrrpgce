@@ -1841,8 +1841,8 @@ SUB hero_editor_stats_menu (her as HeroDef)
    IF keyval(scLeftShift) > 1 THEN
     debug "0=" & atlevel(0, n0, nMax) & " max(" & gen(genMaxLevel) & ")=" & atlevel(gen(genMaxLevel), n0, nMax) & " 99=" & atlevel(99, n0, nMax)
    END IF
-   IF keyval(scZ) > 1 THEN gen(genMaxLevel) -= 1 : debug "gen(genMaxLevel)=" & gen(genMaxLevel)
-   IF keyval(scX) > 1 THEN gen(genMaxLevel) += 1 : debug "gen(genMaxLevel)=" & gen(genMaxLevel)
+   IF keyval(scF7) > 1 AND gen(genMaxLevel) > 1 THEN gen(genMaxLevel) -= 1 : debug "gen(genMaxLevel)=" & gen(genMaxLevel)
+   IF keyval(scF8) > 1 THEN gen(genMaxLevel) += 1 : debug "gen(genMaxLevel)=" & gen(genMaxLevel)
   END IF
 
   IF statnum = statSpeed THEN
