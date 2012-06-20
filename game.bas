@@ -71,6 +71,10 @@ app_dir = exepath
   data_dir = parentdir(exepath, 1) + "Resources"
   app_dir = parentdir(exepath, 3)
  END IF
+ IF app_dir = "/Applications/" THEN
+  app_dir = ENVIRON("HOME") & SLASH & "Documents"
+  CHDIR app_dir
+ END IF
 #ENDIF
 
 start_new_debug
@@ -481,6 +485,7 @@ setwindowtitle wintitle
 rpg_sanity_checks
 
 xbload game + ".fnt", current_font(), "font missing from " + sourcerpg
+
 
 '--upgrade obsolete RPG files (if possible)
 IF NOT running_as_slave THEN upgrade

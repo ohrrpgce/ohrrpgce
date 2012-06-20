@@ -130,6 +130,10 @@ app_dir = exepath  'Note that exepath is a FreeBasic builtin, and not derived fr
   data_dir = parentdir(exepath, 1) + "Resources"
   app_dir = parentdir(exepath, 3)
  END IF
+ IF app_dir = "/Applications/" THEN
+  app_dir = ENVIRON("HOME") & SLASH & "Documents"
+  CHDIR app_dir
+ END IF
 #ENDIF
 
 'temporarily set current directory, will be changed to game directory later if writable
