@@ -70,6 +70,19 @@ DIM orig_dir as string
 'Used on Mac to point to the app bundle Resources directory
 DIM data_dir as string
 
+DIM settings_dir as string
+'This is for application-wide settings, and prefsdir for games will be a subdirectory of it.
+#IFDEF __UNIX__
+settings_dir = ENVIRON("HOME") & SLASH & ".ohrrpgce"
+#ELSE
+settings_dir = ENVIRON("APPDATA") & SLASH & "OHRRPGCE"
+'--APPDATA enviroment variable doesn't exist in Windows 98 so we need a fallback
+IF ENVIRON("APPDATA") = "" THEN
+ settings_dir = exepath & SLASH & "OHRRPGCE-settings"
+END IF
+#ENDIF
+IF NOT isdir(settings_dir) THEN makedir settings_dir
+
 'Used by intgrabber, reset by usemenu
 DIM negative_zero as integer = NO
 

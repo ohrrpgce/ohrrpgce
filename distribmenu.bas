@@ -636,11 +636,9 @@ FUNCTION get_windows_gameplayer() as string
  '(NOTE: This all should work fine on Windows too, but it is best to use the installed game.exe)
 
  '--Find the folder that we are going to download game.exe into
- DIM support as string = find_support_dir()
- IF support = "" THEN visible_debug "ERROR: Unable to find support directory": RETURN ""
- DIM dldir as string = support & SLASH & "gameplayer"
+ DIM dldir as string = settings_dir & SLASH & "gameplayer"
  IF NOT isdir(dldir) THEN makedir dldir
- IF NOT isdir(dldir) THEN visible_debug "ERROR: Unable to create support/gameplayer directory": RETURN ""
+ IF NOT isdir(dldir) THEN visible_debug "ERROR: Unable to create """ & dldir & """ directory": RETURN ""
   
  '--Decide which url to download
  DIM url as string
@@ -703,11 +701,9 @@ FUNCTION get_linux_gameplayer() as string
  '(NOTE: This all should work fine on Linux too, but it is best to use the installed ohrrpgce-game)
 
  '--Find the folder that we are going to download ohrrpgce-game into
- DIM support as string = find_support_dir()
- IF support = "" THEN visible_debug "ERROR: Unable to find support directory": RETURN ""
- DIM dldir as string = support & SLASH & "gameplayer"
+ DIM dldir as string = settings_dir & SLASH & "gameplayer"
  IF NOT isdir(dldir) THEN makedir dldir
- IF NOT isdir(dldir) THEN visible_debug "ERROR: Unable to create support/gameplayer directory": RETURN ""
+ IF NOT isdir(dldir) THEN visible_debug "ERROR: Unable to create """ & dldir & """ directory": RETURN ""
   
  '--Decide which url to download
  DIM url as string
@@ -887,12 +883,10 @@ FUNCTION find_or_download_innosetup () as string
  DIM iscc as string = find_innosetup()
  IF iscc = "" THEN
   IF yesno("Inno Setup 5 is required to create windows installation packages. Would you like to download it from jrsoftware.org now?") THEN
-   DIM support as string = find_support_dir()
-   IF support = "" THEN visible_debug "ERROR: Can't find support dir" : RETURN ""
-   download_file "http://www.jrsoftware.org/download.php/is.exe", support, "is.exe"
+   download_file "http://www.jrsoftware.org/download.php/is.exe", settings_dir, "is.exe"
    DIM spawn_ret as string
-   spawn_ret = win_or_wine_spawn_and_wait(support & SLASH & "is.exe")
-   safekill support & SLASH & "is.exe"
+   spawn_ret = win_or_wine_spawn_and_wait(settings_dir & SLASH & "is.exe")
+   safekill settings_dir & SLASH & "is.exe"
    IF LEN(spawn_ret) THEN visible_debug "ERROR: Inno Setup installer failed: " & spawn_ret : RETURN ""
    '--re-search for iscc now that it may have been installed
    iscc = find_innosetup()
@@ -1404,11 +1398,9 @@ FUNCTION get_mac_gameplayer() as string
  'Returns "" for failure.
 
  '--Find the folder that we are going to download OHRRPGCE-Game.app into
- DIM support as string = find_support_dir()
- IF support = "" THEN visible_debug "ERROR: Unable to find support directory": RETURN ""
- DIM dldir as string = support & SLASH & "gameplayer"
+ DIM dldir as string = settings_dir & SLASH & "gameplayer"
  IF NOT isdir(dldir) THEN makedir dldir
- IF NOT isdir(dldir) THEN visible_debug "ERROR: Unable to create support/gameplayer directory": RETURN ""
+ IF NOT isdir(dldir) THEN visible_debug "ERROR: Unable to create """ & dldir & """ directory": RETURN ""
   
  '--Decide which url to download
  DIM url as string

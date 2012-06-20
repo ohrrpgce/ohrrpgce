@@ -394,14 +394,10 @@ IF gam.autorungame = NO THEN
 END IF
 
 '-- set up prefs dir
-#IFDEF __UNIX__
-'This is important on unix in case you are playing an rpg file installed in /usr/share/games
-prefsdir = ENVIRON("HOME") + SLASH + ".ohrrpgce" + SLASH + trimextension(trimpath(sourcerpg))
+IF NOT isdir(settings_dir) THEN debug "Ooops! Why doesn't """ & settings_dir & """ exist yet?"
+prefsdir = settings_dir & SLASH & trimextension(trimpath(sourcerpg))
 IF NOT isdir(prefsdir) THEN makedir prefsdir
-#ELSE
-'This is not used anywhere yet in the Windows version
-prefsdir = ENVIRON("APPDATA") + SLASH + "OHRRPGCE" + SLASH + trimextension(trimpath(sourcerpg))
-#ENDIF
+debug "prefsdir=" & prefsdir
 
 end_debug 'delete unimportant messages generated before this point, or from previous game
 
