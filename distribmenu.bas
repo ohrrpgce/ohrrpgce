@@ -686,7 +686,8 @@ FUNCTION get_linux_gameplayer() as string
  'unzip it, and return the full path.
  'Returns "" for failure.
 
-#IFDEF __FB_LINUX__
+#IFDEF __UNIX__
+#IFNDEF __FB_DARWIN__
 
  '--If this is Linux, we already have the correct version of ohrrpgce-game
  IF isfile(exepath & SLASH & "ohrrpgce-game") THEN
@@ -695,6 +696,7 @@ FUNCTION get_linux_gameplayer() as string
   visible_debug "ERROR: ohrrpgce-game wasn't found in the same directory as ohrrpgce-custom. (This probably shouldn't happen!)" : RETURN ""
  END IF
 
+#ENDIF
 #ENDIF
 
  '--For Non-Linux platforms, we need to download ohrrpgce-game
@@ -1143,8 +1145,10 @@ FUNCTION create_tarball(start_in_dir as string, tarball as string, files as stri
 
  DIM more_args as string = ""
  #IFDEF __UNIX__
+ #IFNDEF __FB_DARWIN__
  'These arguments are broken on Windows tar.exe for some stupid reason
  more_args = " --owner=root --group=root"
+ #ENDIF
  #ENDIF
  #IFDEF __FB_WIN32__
  'This is a hack to replace tar.exe's horrendous default permissions, and to (clumsily) mark the executables with the executable bit
