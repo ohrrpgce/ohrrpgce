@@ -636,7 +636,7 @@ FUNCTION get_windows_gameplayer() as string
  '(NOTE: This all should work fine on Windows too, but it is best to use the installed game.exe)
 
  '--Find the folder that we are going to download game.exe into
- DIM dldir as string = settings_dir & SLASH & "gameplayer"
+ DIM dldir as string = settings_dir & SLASH & "_gameplayer"
  IF NOT isdir(dldir) THEN makedir dldir
  IF NOT isdir(dldir) THEN visible_debug "ERROR: Unable to create """ & dldir & """ directory": RETURN ""
   
@@ -701,7 +701,7 @@ FUNCTION get_linux_gameplayer() as string
  '(NOTE: This all should work fine on Linux too, but it is best to use the installed ohrrpgce-game)
 
  '--Find the folder that we are going to download ohrrpgce-game into
- DIM dldir as string = settings_dir & SLASH & "gameplayer"
+ DIM dldir as string = settings_dir & SLASH & "_gameplayer"
  IF NOT isdir(dldir) THEN makedir dldir
  IF NOT isdir(dldir) THEN visible_debug "ERROR: Unable to create """ & dldir & """ directory": RETURN ""
   
@@ -1398,7 +1398,7 @@ FUNCTION get_mac_gameplayer() as string
  'Returns "" for failure.
 
  '--Find the folder that we are going to download OHRRPGCE-Game.app into
- DIM dldir as string = settings_dir & SLASH & "gameplayer"
+ DIM dldir as string = settings_dir & SLASH & "_gameplayer"
  IF NOT isdir(dldir) THEN makedir dldir
  IF NOT isdir(dldir) THEN visible_debug "ERROR: Unable to create """ & dldir & """ directory": RETURN ""
   
