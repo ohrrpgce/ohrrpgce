@@ -1115,7 +1115,12 @@ FUNCTION create_ar_archive(start_in_dir as string, archive as string, files as s
  IF ar = "" THEN visible_debug "ERROR: ar is not available" : RETURN NO
 
  DIM args as string
- args = " qcD """ & archive & """ " & files
+ args = " qc"
+ #IFNDEF __FB_DARWIN__
+ 'Non-mac platforms can use the D arg for deterministic mode
+ args &= "D"
+ #ENDIF
+ args &= " """ & archive & """ " & files
  'debug ar & " " & args
  DIM spawn_ret as string
  
