@@ -1114,14 +1114,17 @@ FUNCTION create_ar_archive(start_in_dir as string, archive as string, files as s
  DIM ar as string = find_helper_app("ar", YES)
  IF ar = "" THEN visible_debug "ERROR: ar is not available" : RETURN NO
 
- DIM olddir as string = CURDIR
- CHDIR start_in_dir
  DIM args as string
  args = " qcD """ & archive & """ " & files
+ 'debug ar & " " & args
  DIM spawn_ret as string
+ 
+ DIM olddir as string = CURDIR
+ CHDIR start_in_dir
  spawn_ret = spawn_and_wait(ar, args)
- IF LEN(spawn_ret) THEN visible_debug spawn_ret : RETURN NO
  CHDIR olddir
+ 
+ IF LEN(spawn_ret) THEN visible_debug spawn_ret : RETURN NO
  IF NOT isfile(archive) THEN visible_debug "Could not create " & archive : RETURN NO
  RETURN YES
  
@@ -1154,13 +1157,18 @@ FUNCTION create_tarball(start_in_dir as string, tarball as string, files as stri
  'This is a hack to replace tar.exe's horrendous default permissions, and to (clumsily) mark the executables with the executable bit
   more_args = " --mode=755"
  #ENDIF
-
+ 
  DIM spawn_ret as string
  DIM args as string
 
- args = " -c -C """ & start_in_dir & """ " & more_args & " -f """ & uncompressed & """ " & files
- debug args
+ args = " -c " & more_args & " -f """ & uncompressed & """ " & files
+ 'debug tar & " " & args
+ 
+ DIM olddir as string = CURDIR
+ CHDIR start_in_dir
  spawn_ret = spawn_and_wait(tar, args)
+ CHDIR olddir
+ 
  IF LEN(spawn_ret) THEN visible_debug spawn_ret : RETURN NO
 
  IF gzip_file(uncompressed) = NO THEN RETURN NO
@@ -1187,9 +1195,14 @@ FUNCTION extract_tarball(into_dir as string, tarball as string, files as string)
  DIM spawn_ret as string
  DIM args as string
 
- args = " -x -C """ & into_dir & """ -f """ & tarball & """ " & files
- debug args
+ args = " -x -f """ & tarball & """ " & files
+ 'debug tar & " " & args
+ 
+ DIM olddir as string = CURDIR
+ CHDIR into_dir
  spawn_ret = spawn_and_wait(tar, args)
+ CHDIR olddir
+ 
  IF LEN(spawn_ret) THEN visible_debug spawn_ret : RETURN NO
  
  RETURN YES
@@ -1392,7 +1405,7 @@ SUB distribute_game_as_mac_app ()
  LOOP
 
  '--Cleanup temp files
- 'killdir apptmp, YES
+ killdir apptmp, YES
 
 END SUB
 

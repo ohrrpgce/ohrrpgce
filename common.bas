@@ -384,6 +384,13 @@ FUNCTION os_shell_move(src as string, dest as string) as integer
  'When used to move a directory on unixes, this should preserve bits and symlinks.
  'When used to move a directory on Windows this is just a dang ol' move.
  'Returns YES for success or NO for failure
+ 
+ IF isfile(dest) THEN
+  safekill dest
+ ELSEIF isdir(dest) THEN
+  killdir dest, YES
+ END IF
+ 
  DIM spawn_ret as string
  DIM mv as string
  DIM args as string
