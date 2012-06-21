@@ -1354,12 +1354,12 @@ SUB distribute_game_as_mac_app ()
 
  DO '--single pass loop for breaking
 
-  debuginfo "Copy mac game player" 
+  debuginfo "Rename mac game player" 
   DIM gameplayer as string
   gameplayer = get_mac_gameplayer()
   IF gameplayer = "" THEN visible_debug "ERROR: OHRRPGCE-Game.app is not available" : EXIT DO
   DIM app as string = apptmp & SLASH & distinfo.pkgname & ".app"
-  IF confirmed_copydirectory(gameplayer, app) = NO THEN EXIT DO
+  IF os_shell_move(gameplayer, app) = NO THEN visible_debug "Couldn't copy " & gameplayer & " to " & app : EXIT DO
   IF confirmed_copy(trimfilename(gameplayer) & SLASH & "LICENSE-binary.txt", apptmp & SLASH & "LICENSE-binary.txt") = NO THEN EXIT DO
 
   debuginfo "Copy rpg file"
@@ -1392,7 +1392,7 @@ SUB distribute_game_as_mac_app ()
  LOOP
 
  '--Cleanup temp files
- killdir apptmp, YES
+ 'killdir apptmp, YES
 
 END SUB
 

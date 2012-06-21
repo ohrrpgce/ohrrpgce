@@ -380,6 +380,30 @@ FUNCTION confirmed_copydirectory(src as string, dest as string) as integer
  RETURN YES
 END FUNCTION
 
+FUNCTION os_shell_move(src as string, dest as string) as integer
+ 'When used to move a directory on unixes, this should preserve bits and symlinks.
+ 'When used to move a directory on Windows this is just a dang ol' move.
+ 'Returns YES for success or NO for failure
+ DIM spawn_ret as string
+ DIM mv as string
+ DIM args as string
+ #IFDEF __UNIX__
+  mv = "mv"
+  args = " -f"
+ #ENDIF
+ #IFDEF __FB_WIN32__
+  mv = "move"
+  args = " /Y"
+ #ENDIF
+ args &= " """ & src & """ """ & dest & """"
+ spawn_ret = spawn_and_wait(mv, args)
+ 
+ IF LEN(spawn_ret) THEN debug "os_shell_move: spawn failed: " & spawn_ret : RETURN NO
+ IF NOT isdir(dest) THEN debug "os_shell_move: dest file not created: " & dest : RETURN NO
+ 
+ RETURN YES
+END FUNCTION
+
 FUNCTION getfixbit(byval bitnum as integer) as integer
  DIM f as string
  f = workingdir + SLASH + "fixbits.bin"
