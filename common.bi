@@ -166,6 +166,7 @@ DECLARE FUNCTION twochoice(capt as string, strA as string="Yes", strB as string=
 DECLARE FUNCTION yesno(capt as string, byval defaultval as integer=YES, byval escval as integer=NO) as integer
 DECLARE FUNCTION confirmed_copy (srcfile as string, destfile as string) as integer
 DECLARE FUNCTION confirmed_copydirectory(src as string, dest as string) as integer
+DECLARE FUNCTION os_shell_move(src as string, dest as string) as integer
 
 DECLARE SUB create_default_menu(menu as MenuDef)
 
