@@ -2614,7 +2614,7 @@ END SUB
 SUB ClearFormation (form as Formation)
  WITH form
   FOR i as integer = 0 TO 7
-   .slots(i).id = 0
+   .slots(i).id = -1 '--default to empty slots
    .slots(i).pos.x = 0
    .slots(i).pos.y = 0
   NEXT
