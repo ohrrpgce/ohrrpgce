@@ -1323,6 +1323,8 @@ SUB generate_equipmerge_preview(BYVAL formula as integer, menu() as string, grey
  DIM ex6(3) as single = {-1, -1, -1, _NaN}
  DIM ex7(3) as single = {2, 0.5, 0.5, _NaN}
  DIM ex8(3) as single = {1, -1.2, -1.2, _NaN}
+ ex9(3) = _NaN
+
  IF formula = -1 THEN
   menu(9) = "Select a formula to see examples"
  ELSE
