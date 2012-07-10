@@ -1024,6 +1024,15 @@ sub update_inputtext ()
 		inputtext = ""
 		for i as integer = 0 to len(w_in) - 1
 			if w_in[i] > 255 then
+				select case w_in[i]
+					case &hF700 to &hF746:
+						'Ignore Mac unicode for arrow keys, pgup+pgdown,
+						' delete, misc other keys. I don't know if the
+						' upper bound of &hF746 is high enough, but it
+						' blocks all the keys I could find on my keyboard.
+						' --James
+						continue for
+				end select
 				'print "unicode char " & w_in[i]
 				inputtext += "?"
 			elseif (w_in[i] < 32) or (w_in[i] >= &h7F and w_in[i] <= &hA0) then
