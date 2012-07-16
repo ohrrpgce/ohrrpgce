@@ -88,8 +88,10 @@ echo ${URL} > url.txt
 echo "compressing..."
 tar -jcf mirror.tar.bz2 ./*
 
-echo "uploading mirror..."
+echo "uploading stable to dreamhost..."
 scp -p mirror.tar.bz2 james_paige@motherhamster.org:mirror.motherhamster.org/
+
+echo "run the mirror mirror unpacker..."
 ssh james_paige@motherhamster.org mirror.motherhamster.org/expand.sh wiki
 
 ### This part is obsolete
