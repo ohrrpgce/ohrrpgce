@@ -382,7 +382,7 @@ END FUNCTION
 
 FUNCTION os_shell_move(src as string, dest as string) as integer
  'When used to move a directory on unixes, this should preserve bits and symlinks.
- 'When used to move a directory on Windows this is just a dang ol' move.
+ 'When used to move a directory on Windows this should just be a dang ol' move... except it doesn't work at all :(
  'Returns YES for success or NO for failure
  
  IF isfile(dest) THEN

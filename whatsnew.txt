@@ -2,6 +2,22 @@ WHAT IS NEW?
 
 ??? ?? 2012 [Beelzebufo]
 
+Jun ?? 2012 [Alectormancy+1]
+
+  * Bugfixes
+    * Fix the arrow key problem in Custom on Mac OS X
+    * Fix new enemy formations being filled with enemy 0 instead of
+      empty slots
+    * Mac OS X version now defaults to your Documents folder instead of
+      defaulting to the Applications folder
+    * Fix "Distribute Game as Mac OS X App" when running on Windows
+    * Fix "Distribute Game as Debian Package" when running on Mac OS X
+    * Fix "Distribute Game as Windows Installer" when running from
+      Linux+Wine
+    * Fix distribute failures caused by trying to download support
+      utilities into read-only locations.
+    * Use curl when wget isn't available
+
 Jun 15 2012 [Alectormancy]
 
   * New Features
