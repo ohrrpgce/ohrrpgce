@@ -1377,7 +1377,12 @@ SUB distribute_game_as_mac_app ()
   gameplayer = get_mac_gameplayer()
   IF gameplayer = "" THEN visible_debug "ERROR: OHRRPGCE-Game.app is not available" : EXIT DO
   DIM app as string = apptmp & SLASH & distinfo.pkgname & ".app"
-  IF os_shell_move(gameplayer, app) = NO THEN visible_debug "Couldn't copy " & gameplayer & " to " & app : EXIT DO
+#IFDEF __FB_WIN32__
+  IF confirmed_copydirectory(gameplayer, app) = NO THEN visible_debug "Couldn't copy " & gameplayer & " to " & app : EXIT DO
+#ELSE
+  'Mac and Linux do it this way to preserve symlinks and permissions
+  IF os_shell_move(gameplayer, app) = NO THEN visible_debug "Couldn't move " & gameplayer & " to " & app : EXIT DO
+#ENDIF
   IF confirmed_copy(trimfilename(gameplayer) & SLASH & "LICENSE-binary.txt", apptmp & SLASH & "LICENSE-binary.txt") = NO THEN EXIT DO
 
   debuginfo "Copy rpg file"
@@ -1428,14 +1433,20 @@ FUNCTION get_mac_gameplayer() as string
  DIM url as string
  DIM dlfile as string
 
+#IFDEF __FB_WIN32__
+ 'Windows tar cannot preserve symlinks so we need to use the bloated linkless tarball
+ dlfile = "ohrrpgce-mac-minimal-linkless.tar.gz"
+#ELSE
+ dlfile = "ohrrpgce-mac-minimal.tar.gz"
+#ENDIF
+
  IF version_branch = "wip" THEN
   'If using any wip release, get the latest wip release
-  url = "http://hamsterrepublic.com/ohrrpgce/nightly/ohrrpgce-mac-minimal.tar.gz"
+  url = "http://hamsterrepublic.com/ohrrpgce/nightly/" & dlfile
  ELSE
   'If using any stable release, get the latest stable release
-  url = "http://hamsterrepublic.com/dl/ohrrpgce-mac-minimal.tar.gz"
+  url = "http://hamsterrepublic.com/dl/" & dlfile
  END IF
- dlfile = "ohrrpgce-mac-minimal.tar.gz"
 
  '--Ask the user for permission the first time we download (subsequent updates don't ask)
  DIM destgz as string = dldir & SLASH & dlfile
