@@ -3152,8 +3152,8 @@ SUB edit_global_text_strings()
  GTS_add_to_menu menu, "Found (gold)",               125, "Found", 10
 
  GTS_menu_header menu, "Misc:"
- GTS_add_to_menu menu, "Status Prompt",              104, "Who's Status?", 20
- GTS_add_to_menu menu, "Spells Prompt",              106, "Who's Spells?", 20
+ GTS_add_to_menu menu, "Status Prompt",              104, "Whose Status?", 20
+ GTS_add_to_menu menu, "Spells Prompt",              106, "Whose Spells?", 20
  GTS_add_to_menu menu, "Equip Prompt",               108, "Equip Who?", 20
  GTS_add_to_menu menu, "Plotscript: pick hero",      135, "Which Hero?", 20
  GTS_add_to_menu menu, "Hero name prompt",           137, "Name the Hero", 20
