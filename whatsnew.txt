@@ -6,6 +6,8 @@ Jun ?? 2012 [Alectormancy+1]
     * Fix the arrow key problem in Custom on Mac OS X
     * Fix new enemy formations being filled with enemy 0 instead of
       empty slots
+    * NPCs that are intended to disappear when a text box advances
+      no longer disappear when it first opens.
     * Mac OS X version now defaults to your Documents folder instead of
       defaulting to the Applications folder
     * Fix "Distribute Game as Mac OS X App" when running on Windows

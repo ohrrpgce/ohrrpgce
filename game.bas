@@ -2714,8 +2714,8 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as int
 END FUNCTION
 
 'Call this any time a tag is changed!
-SUB tag_updates
- visnpc
+SUB tag_updates (byval npc_visibility as integer=YES)
+ IF npc_visibility THEN visnpc
  check_menu_tags
 END SUB
 
@@ -3741,9 +3741,14 @@ SUB usenpc(byval cause as integer, byval npcnum as integer)
  IF npcs(id).textbox > 0 THEN
   txt.sayer = npcnum
   loadsay npcs(id).textbox
+  'NOTE: don't force NPC tag visibility to be updated after a text box
+  '  is displayed because that could cause premature NPC disappearance,
+  '  and because tag_updates will always be called when the box advances
+  tag_updates NO
+ ELSE
+  'Several different ways to modify tags in this sub
+  tag_updates
  END IF
- 'Several different ways to modify tags in this sub
- tag_updates
 END SUB
 
 FUNCTION want_to_check_for_walls(byval who as integer) as integer

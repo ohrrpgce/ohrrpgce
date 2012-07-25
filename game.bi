@@ -43,7 +43,7 @@ declare function menus_allow_gameplay () as integer
 declare function menus_allow_player () as integer
 declare sub player_menu_keys ()
 declare sub check_menu_tags ()
-declare sub tag_updates ()
+declare sub tag_updates (byval npc_visibility as integer=YES)
 declare function game_usemenu (state as menustate) as integer
 declare function find_menu_id (byval id as integer) as integer
 declare function find_menu_handle (byval handle as integer) as integer
