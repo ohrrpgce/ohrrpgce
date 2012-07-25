@@ -3702,7 +3702,10 @@ NEXT j
 IF istag(txt.box.settag_tag, 0) THEN
  settag txt.box.settag1
  settag txt.box.settag2
- tag_updates
+ 'NOTE: We just changed tags, but we do not want tag_updates to update
+ '  NPC visibility until after the box adances. We do however update
+ '  menu tags right away.
+ tag_updates NO
 END IF
 
 '--make a sound if the choicebox is enabled
