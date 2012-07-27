@@ -18,6 +18,8 @@ Jun ?? 2012 [Alectormancy+1]
       utilities into read-only locations.
     * Use curl when wget isn't available
 
+  * Update to Vikings of Midgard
+
 Jun 15 2012 [Alectormancy]
 
   * New Features
