@@ -2,7 +2,7 @@ WHAT IS NEW?
 
 ??? ?? 2012 [Beelzebufo]
 
-Jun ?? 2012 [Alectormancy+1]
+July 27 2012 [Alectormancy+1]
 
   * Bugfixes
     * Fix the arrow key problem in Custom on Mac OS X
