@@ -51,7 +51,9 @@ function mirror_info($dir){
 <a href="wiki/">OHRRPGCE Documentation Wiki Mirror<br>
 <img src="wiki.png"><br></a>
 <small>
-<?php mirror_info("wiki") ?>
+<?php mirror_info("wiki") ?><br>
+<a href="mirror.tar.bz2">Tarball of the OHRRPGCE wiki for offline viewing</a><br>
+(If you can't extract the tarball, try <a href="http://www.7-zip.org/">7-Zip</a>)
 </small>
 </p>
 </center>
