@@ -17,9 +17,10 @@ mkdir "${DIR}.new"
 cd "${DIR}.new"
 echo "Decompressing..."
 tar -jmxf ../mirror.tar.bz2 && GOOD="true" > /dev/null
+cp index.php.mirror index.php
 cd ..
 
-rm mirror.tar.bz2
+#rm mirror.tar.bz2
 
 if [ "${GOOD}" ] ; then
   mv "${DIR}" "${DIR}.old"
@@ -32,3 +33,8 @@ else
   exit 1
 fi
 
+if [ -d "${DIR}.static" ] ; then
+  cd "${DIR}"
+  ln -s ../"${DIR}".static/* .
+  cd ..
+fi

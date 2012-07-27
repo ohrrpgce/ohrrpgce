@@ -25,6 +25,17 @@ function mirror_info($dir){
 <td>
 <center>
 <p>
+<a href="slimesalad/">SlimeSalad Game List Mirror<br>
+<img src="slimesalad.png"><br></a>
+<small>
+</small>
+</p>
+</center>
+</td>
+
+<td>
+<center>
+<p>
 <a href="cp/">Castle Paradox Game List Mirror<br>
 <img src="cp.jpg"><br></a>
 <small>
@@ -46,6 +57,9 @@ function mirror_info($dir){
 </center>
 </td>
 
+</tr>
+<tr>
+
 <td>
 <center>
 <p>
@@ -53,6 +67,18 @@ function mirror_info($dir){
 <img src="tsugumo.gif"><br></a>
 <small>
 mirror of http://pixeltutorial.cjb.net/ (dead link)
+</small>
+</p>
+</center>
+</td>
+
+<td>
+<center>
+<p>
+<a href="shaelriley/">Shael Riley - Live at the Western Front (Cambridgeport, MA 2006.10.20) mirror<br>
+<img src="shaelriley.png"><br></a>
+<small>
+mirror of <a href="http://jeremy.subbuteoclub.com/music/shaelriley-thewesternfront/">http://jeremy.subbuteoclub.com/music/shaelriley-thewesternfront/</a>
 </small>
 </p>
 </center>
