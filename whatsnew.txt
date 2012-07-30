@@ -1,5 +1,11 @@
 WHAT IS NEW?
 
+July 31 2012 [Alectormancy+2]
+
+  * Bugfixes
+    * An arrow key fix from Alectormancy+1 broke adding new sprite
+      sets in the sprite editor. This release fixes it properly.
+
 July 27 2012 [Alectormancy+1]
 
   * Bugfixes
