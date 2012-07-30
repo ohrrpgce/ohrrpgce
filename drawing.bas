@@ -1734,7 +1734,7 @@ DO
   END IF
  END IF
  DIM oldtop AS INTEGER = state.top
- IF intgrabber_with_addset(state.pt, 0, sets, 32767, "graphics", scPeriod, scComma) THEN
+ IF intgrabber_with_addset(state.pt, 0, sets, 32767, "graphics", scUp, scDown) THEN
   IF state.pt > sets THEN
    sets = state.pt
    '--Add a new blank sprite set

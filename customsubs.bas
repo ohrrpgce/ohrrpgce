@@ -973,7 +973,12 @@ FUNCTION intgrabber_with_addset(byref pt as integer, byval min as integer, byval
   END IF
   RETURN NO
  ELSE
-  RETURN intgrabber(pt, min, max, less, more, NO, NO)
+  IF less = scUp ANDALSO more = scDown THEN
+   'special case to work around a strange bug in mac os x sprite brows menu arrow key handling
+   RETURN intgrabber(pt, min, max, scComma, scPeriod, NO, NO)
+  ELSE
+   RETURN intgrabber(pt, min, max, less, more, NO, NO)
+  END IF 
  END IF
 END FUNCTION
 
