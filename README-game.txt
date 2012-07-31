@@ -1,5 +1,5 @@
 ------------------------------------------------------------
- O.H.R.RPG.C.E Game Player    (July 27 2012 alectormancy+1)
+ O.H.R.RPG.C.E Game Player    (July 31 2012 alectormancy+2)
 ------------------------------------------------------------
 Official Hamster Republic RPG Construction Engine
 
