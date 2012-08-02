@@ -1102,6 +1102,47 @@ SUB setkeyrepeat (byval repeat_wait as integer = 500, byval repeat_rate as integ
 	keyrepeatrate = repeat_rate
 END SUB
 
+'Without changing the results of keyval or readmouse, check whether a key has been pressed,
+'mouse button clicked, or window close requested since the last call to setkeys
+'NOTE: any such keypresses are lost! This is OK for the current purposes
+function interrupting_keypress () as integer
+	io_pollkeyevents()
+	
+	dim keybd_dummy(-1 to 127) as integer
+	dim mouse as MouseInfo
+
+	mutexlock keybdmutex
+	io_keybits(@keybd_dummy(0))
+	io_mousebits(mouse.x, mouse.y, mouse.wheel, mouse.buttons, mouse.clicks)
+	mutexunlock keybdmutex
+
+	if closerequest then
+		'closerequest = 0
+		keybd_dummy(-1) = 1
+	end if
+	if keybd_dummy(scPageup) > 0 and keybd_dummy(scPagedown) > 0 and keybd_dummy(scEsc) > 1 then keybd_dummy(-1) = 1
+
+	'Quick abort (could probably do better, just moving this here for now)
+	if keybd_dummy(-1) then
+#ifdef IS_GAME
+		'uncomment for slice debugging
+		'DestroyGameSlices YES
+		exitprogram 0
+#else
+		return YES
+#endif
+	end if
+
+	for i as integer = 0 to 127
+		'Check for new keypresses
+		if keybd_dummy(i) and 2 then return YES
+	next
+
+	if mouse.clicks then return YES
+
+	return NO
+end function
+
 SUB setkeys_update_keybd
 	dim winstate as WindowState ptr
 	winstate = gfx_getwindowstate()

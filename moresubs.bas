@@ -2024,6 +2024,10 @@ SUB scripterr (e as string, byval errorlevel as integer = 5)
   master(i) = remember_master(i)
  NEXT
  setpal master()
+ next_interpreter_check_time = TIMER + scriptCheckDelay
+
+ 'Note: when we resume after a script error, the keyboard state changes, which might break a script
+ 'Not worth worrying about this.
 END SUB
 
 FUNCTION settingstring (searchee as string, setting as string, result as string) as integer

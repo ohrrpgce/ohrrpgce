@@ -27,6 +27,7 @@
 #include "hsinterpreter.bi"
 
 'local subs and functions
+DECLARE FUNCTION interpreter_occasional_checks () as integer
 DECLARE FUNCTION functiondone () as integer
 DECLARE SUB subread (byref si as ScriptInst)
 DECLARE SUB subdoarg (byref si as ScriptInst)
@@ -68,6 +69,7 @@ reloadscript scrat(nowscript)
 #ENDIF
 
 scrat(nowscript).started = YES
+next_interpreter_check_time = TIMER + scriptCheckDelay
 
 interpretloop:
 WITH scrat(nowscript)
@@ -107,6 +109,7 @@ DO
         SELECT CASE .curargn
          CASE 2
           '--if a while statement finishes normally (argn is 2) then it repeats.
+          IF interpreter_occasional_checks THEN EXIT DO
           scrst.pos -= 2
           .curargn = 0
          CASE ELSE
@@ -118,6 +121,7 @@ DO
         SELECT CASE .curargn
          CASE 5
           '--normal for termination means repeat
+          IF interpreter_occasional_checks THEN EXIT DO
           scrst.pos -= 1
           tmpvar = reads(scrst, -3)
           writescriptvar tmpvar, readscriptvar(tmpvar) + reads(scrst, 0)
@@ -139,6 +143,8 @@ DO
          '--WARNING: WITH pointer probably corrupted
         END IF
        CASE flowcontinue
+        '--continue could be used to cause an infinite loop (including in a floating do), so also needs these checks
+        IF interpreter_occasional_checks THEN EXIT DO
         pops(scrst, temp)
         unwindtodo(scrat(nowscript), temp)
         IF curcmd->kind = tyflow AND curcmd->value = flowswitch THEN
@@ -404,6 +410,21 @@ scrat(nowscript).state = streturn'---return
 RETRACE
 
 END SUB
+
+'Returns true if current script should be aborted
+FUNCTION interpreter_occasional_checks () as integer
+ 'Ideally any keypresses during the initial delay would be ignored, rather than have a delayed effect
+ IF TIMER > next_interpreter_check_time THEN
+  IF interrupting_keypress THEN
+   'Just die for now
+   debug "Script interpreter: exiting due to interruption"
+   killallscripts
+   RETURN YES
+  END IF
+  next_interpreter_check_time = TIMER + scriptCheckInterval
+ END IF
+ RETURN NO
+END FUNCTION
 
 SUB killallscripts
 'this kills all running scripts.
@@ -1247,6 +1268,8 @@ IF nowscript >= 0 THEN
 END IF
 
 IF resetpal THEN setpal master()
+
+next_interpreter_check_time = TIMER + scriptCheckDelay
 
 END SUB
 
