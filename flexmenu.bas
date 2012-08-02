@@ -3,9 +3,14 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
-OPTION EXPLICIT
-DEFINT A-Z
-'$DYNAMIC
+
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
+#endif
 
 #include "config.bi"
 #include "allmodex.bi"
@@ -26,8 +31,7 @@ DECLARE SUB clearallpages ()
 'Local
 DECLARE SUB update_attack_editor_for_fail_conds(recbuf() as integer, caption() as string, byval AtkCapFailConds as integer)
 
-REM $STATIC
-SUB addcaption (caption() AS STRING, indexer, cap AS STRING)
+SUB addcaption (caption() as string, byref indexer as integer, cap as string)
  str_array_append caption(), cap
  indexer = UBOUND(caption) + 1
 END SUB
@@ -35,14 +39,14 @@ END SUB
 SUB attackdata
 
 clearallpages
-DIM i AS INTEGER
+DIM i as integer
 
-DIM elementnames() AS STRING
+DIM elementnames() as string
 getelementnames elementnames()
 
 '--bitsets
 
-DIM atkbit(-1 TO 128) AS STRING
+DIM atkbit(-1 TO 128) as string
 
 atkbit(0) = "Cure Instead of Harm"
 atkbit(1) = "Divide Spread Damage"
@@ -61,7 +65,7 @@ FOR i = 0 TO 7
  atkbit(i + 37) = "Cannot target enemy slot " & i
 NEXT i
 FOR i = 0 TO 3
- atkbit$(i + 45) = "Cannot target hero slot " & i
+ atkbit(i + 45) = "Cannot target hero slot " & i
 NEXT i
 
 atkbit(49) = "Ignore attacker's extra hits"
@@ -111,7 +115,7 @@ atkbit(86) = "Force battle exit (no run animation)"
 
 'These bits are edited separately, because it would be a pain to linearise them somehow,
 'editbitset doesn't support it.
-DIM elementbit(-1 TO 79) AS STRING
+DIM elementbit(-1 TO 79) as string
 FOR i = 0 TO small(15, gen(genNumElements) - 1)
  elementbit(i + 5) = elementnames(i) & " Damage"  'bits 5-20
 NEXT i
@@ -120,14 +124,14 @@ FOR i = 16 TO gen(genNumElements) - 1
 NEXT i
 
 
-DIM atk_chain_bitset_names(3) AS STRING
+DIM atk_chain_bitset_names(3) as string
 atk_chain_bitset_names(0) = "Attacker must know chained attack"
 atk_chain_bitset_names(1) = "Ignore chained attack's delay"
 atk_chain_bitset_names(2) = "Delay doesn't block further actions"
 atk_chain_bitset_names(3) = "Don't retarget if target is lost"
 
 '----------------------------------------------------------
-DIM recbuf(40 + curbinsize(binATTACK) \ 2 - 1) AS INTEGER '--stores the combined attack data from both .DT6 and ATTACK.BIN
+DIM recbuf(40 + curbinsize(binATTACK) \ 2 - 1) as integer '--stores the combined attack data from both .DT6 and ATTACK.BIN
 
 CONST AtkDatPic = 0
 CONST AtkDatPal = 1
@@ -193,9 +197,10 @@ CONST AtkDatElementalFail = 121 'to 312
 
 
 '----------------------------------------------------------
-DIM capindex AS INTEGER = 0
-REDIM caption(-1 TO -1) AS STRING
-DIM max(39), min(39)
+DIM capindex as integer = 0
+REDIM caption(-1 TO -1) as string
+DIM max(39) as integer
+DIM min(39) as integer
 
 'Limit(0) is not used
 
@@ -217,7 +222,7 @@ max(AtkLimPic) = gen(genMaxAttackPic)
 
 CONST AtkLimAnimPattern = 2
 max(AtkLimAnimPattern) = 3
-DIM AtkCapAnimPattern AS INTEGER = capindex
+DIM AtkCapAnimPattern as integer = capindex
 addcaption caption(), capindex, "Cycle Forward"
 addcaption caption(), capindex, "Cycle Back"
 addcaption caption(), capindex, "Oscillate"
@@ -225,7 +230,7 @@ addcaption caption(), capindex, "Random"
 
 CONST AtkLimTargClass = 3
 max(AtkLimTargClass) = 12
-DIM AtkCapTargClass AS INTEGER = capindex
+DIM AtkCapTargClass as integer = capindex
 addcaption caption(), capindex, "Enemy"
 addcaption caption(), capindex, "Ally"
 addcaption caption(), capindex, "Self"
@@ -242,7 +247,7 @@ addcaption caption(), capindex, "Thankvenge (whole battle)"
 
 CONST AtkLimTargSetting = 4
 max(AtkLimTargSetting) = 4
-DIM AtkCapTargSetting AS INTEGER = capindex
+DIM AtkCapTargSetting as integer = capindex
 addcaption caption(), capindex, "Focused"
 addcaption caption(), capindex, "Spread"
 addcaption caption(), capindex, "Optional Spread"
@@ -251,7 +256,7 @@ addcaption caption(), capindex, "First Target"
 
 CONST AtkLimDamageEq = 5
 max(AtkLimDamageEq) = 6
-DIM AtkCapDamageEq AS INTEGER = capindex
+DIM AtkCapDamageEq as integer = capindex
 addcaption caption(), capindex, "Normal: ATK - DEF*.5"
 addcaption caption(), capindex, "Blunt: ATK*.8 - DEF*.1"
 addcaption caption(), capindex, "Sharp: ATK*1.3 - DEF"
@@ -262,7 +267,7 @@ addcaption caption(), capindex, "Set = N% of Current"
 
 CONST AtkLimAimEq = 6
 max(AtkLimAimEq) = 8
-DIM AtkCapAimEq AS INTEGER = capindex
+DIM AtkCapAimEq as integer = capindex
 addcaption caption(), capindex, "Normal: " & statnames(statAim) & "*4 ~ " & statnames(statDodge)
 addcaption caption(), capindex, "Poor: " & statnames(statAim) & "*2 ~ " & statnames(statDodge)
 addcaption caption(), capindex, "Bad: " & statnames(statAim) & " ~ " & statnames(statDodge)
@@ -275,7 +280,7 @@ addcaption caption(), capindex, "Percentage: " & statnames(statMagic) & "%"
 
 CONST AtkLimBaseAtk = 7
 max(AtkLimBaseAtk) = 22 + (UBOUND(statnames) - 11)
-DIM AtkCapBaseAtk AS INTEGER = capindex
+DIM AtkCapBaseAtk as integer = capindex
 addcaption caption(), capindex, statnames(statAtk)
 addcaption caption(), capindex, statnames(statMagic)
 addcaption caption(), capindex, statnames(statHP)
@@ -307,7 +312,7 @@ min(AtkLimChainRate) = 0
 
 CONST AtkLimAnimAttacker = 14
 max(AtkLimAnimAttacker) = 8
-DIM AtkCapAnimAttacker AS INTEGER = capindex
+DIM AtkCapAnimAttacker as integer = capindex
 addcaption caption(), capindex, "Strike"
 addcaption caption(), capindex, "Cast"
 addcaption caption(), capindex, "Dash In"
@@ -320,7 +325,7 @@ addcaption caption(), capindex, "Teleport"
 
 CONST AtkLimAnimAttack = 15
 max(AtkLimAnimAttack) = 10
-DIM AtkCapAnimAttack AS INTEGER = capindex
+DIM AtkCapAnimAttack as integer = capindex
 addcaption caption(), capindex, "Normal"
 addcaption caption(), capindex, "Projectile"
 addcaption caption(), capindex, "Reverse Projectile"
@@ -342,7 +347,7 @@ min(AtkLimHitX) = 1
 
 CONST AtkLimTargStat = 18
 max(AtkLimTargStat) = 15 + (UBOUND(statnames) - 11)
-DIM AtkCapTargStat AS INTEGER = capindex
+DIM AtkCapTargStat as integer = capindex
 FOR i = 0 TO 11
  addcaption caption(), capindex, statnames(i)
 NEXT
@@ -358,7 +363,7 @@ CONST AtkLimCapTime = 20
 max(AtkLimCapTime) = 16383
 min(AtkLimCapTime) = -1
 addcaption caption(), capindex, "Ticks"
-DIM AtkCapCapTime AS INTEGER = capindex
+DIM AtkCapCapTime as integer = capindex
 addcaption caption(), capindex, "Full Duration of Attack"
 addcaption caption(), capindex, "Not at All"
 
@@ -368,7 +373,7 @@ min(AtkLimCaptDelay) = 0
 
 CONST AtkLimBaseDef = 22
 max(AtkLimBaseDef) = 1 + UBOUND(statnames)
-DIM AtkCapBaseDef AS INTEGER = capindex
+DIM AtkCapBaseDef as integer = capindex
 addcaption caption(), capindex, "Default"
 FOR i = 0 TO UBOUND(statnames)
  addcaption caption(), capindex, statnames(i)
@@ -380,7 +385,7 @@ min(AtkLimTag) = -1000
 
 CONST AtkLimTagIf = 24
 max(AtkLimTagIf) = 4
-DIM AtkCapTagIf AS INTEGER = capindex
+DIM AtkCapTagIf as integer = capindex
 addcaption caption(), capindex, "Never" '0
 addcaption caption(), capindex, "On Use"   '1
 addcaption caption(), capindex, "On Hit"   '2
@@ -406,7 +411,7 @@ min(AtkLimPal16) = -1
 CONST AtkLimPreferTarg = 29
 max(AtkLimPreferTarg) = 8
 min(AtkLimPreferTarg) = 0
-DIM AtkCapPreferTarg AS INTEGER = capindex
+DIM AtkCapPreferTarg as integer = capindex
 addcaption caption(), capindex, "default"    '0
 addcaption caption(), capindex, "first"      '1
 addcaption caption(), capindex, "closest"    '2
@@ -420,7 +425,7 @@ addcaption caption(), capindex, "strongest%" '8
 CONST AtkLimPrefTargStat = 30
 max(AtkLimPrefTargStat) = 16
 min(AtkLimPrefTargStat) = 0
-DIM AtkCapPrefTargStat AS INTEGER = capindex
+DIM AtkCapPrefTargStat as integer = capindex
 addcaption caption(), capindex, "same as target stat" '0
 FOR i = 0 TO 11  '1 - 12
  addcaption caption(), capindex, statnames(i)
@@ -435,7 +440,7 @@ NEXT
 
 CONST AtkLimChainMode = 31
 max(AtkLimChainMode) = 5
-DIM AtkCapChainMode AS INTEGER = capindex
+DIM AtkCapChainMode as integer = capindex
 addcaption caption(), capindex, "No special conditions" '0
 addcaption caption(), capindex, "Tag Check"     '1
 addcaption caption(), capindex, "Attacker stat > value" '2
@@ -470,7 +475,7 @@ min(AtkLimInsteadChainVal2) = 0 '--updated by update_attack_editor_for_chain()
 CONST AtkLimTransmogStats = 38
 max(AtkLimTransmogStats) = 3
 min(AtkLimTransmogStats) = 0
-DIM AtkCapTransmogStats AS INTEGER = capindex
+DIM AtkCapTransmogStats as integer = capindex
 addcaption caption(), capindex, "keep old current"  '0
 addcaption caption(), capindex, "restore to new max"  '1
 addcaption caption(), capindex, "preserve % of max"   '2
@@ -480,7 +485,7 @@ CONST AtkLimTransmogEnemy = 39
 max(AtkLimTransmogEnemy) = gen(genMaxEnemy) + 1
 min(AtkLimTransmogEnemy) = 0
 
-DIM AtkCapFailConds AS INTEGER = capindex
+DIM AtkCapFailConds as integer = capindex
 FOR i = 0 TO 63
  addcaption caption(), capindex, " [No Condition]"
  addcaption caption(), capindex, "" '--updated by update_attack_editor_for_fail_conds()
@@ -491,7 +496,10 @@ NEXT
 '----------------------------------------------------------------------
 '--menu content
 CONST MnuItems = 140
-DIM menu(MnuItems) AS STRING, menutype(MnuItems), menuoff(MnuItems), menulimits(MnuItems)
+DIM menu(MnuItems) as string
+DIM menutype(MnuItems) as integer
+DIM menuoff(MnuItems) as integer
+DIM menulimits(MnuItems) as integer
 
 CONST AtkBackAct = 0
 menu(AtkBackAct) = "Previous Menu"
@@ -927,11 +935,12 @@ menutype(AtkElemBitAct) = 1
 
 '----------------------------------------------------------
 '--menu structure
-DIM workmenu(65), dispmenu(65) AS STRING
+DIM workmenu(65) as integer
+DIM dispmenu(65) as string
 DIM state as MenuState
 state.size = 22
 
-DIM mainMenu(13)
+DIM mainMenu(13) as integer
 mainMenu(0) = AtkBackAct
 mainMenu(1) = AtkChooseAct
 mainMenu(2) = AtkName
@@ -947,7 +956,7 @@ mainMenu(11) = AtkElementFailAct
 mainMenu(12) = AtkTagAct
 mainMenu(13) = AtkTransmogAct
 
-DIM appearMenu(10)
+DIM appearMenu(10) as integer
 appearMenu(0) = AtkBackAct
 appearMenu(1) = AtkPic
 appearMenu(2) = AtkPal
@@ -960,7 +969,7 @@ appearMenu(8) = AtkCaptDelay
 appearMenu(9) = AtkSoundEffect
 appearMenu(10) = AtkLearnSoundEffect
 
-DIM dmgMenu(8)
+DIM dmgMenu(8) as integer
 dmgMenu(0) = AtkBackAct
 dmgMenu(1) = AtkDamageEq
 dmgMenu(2) = AtkBaseAtk
@@ -971,14 +980,14 @@ dmgMenu(6) = AtkAimEq
 dmgMenu(7) = AtkHitX
 dmgMenu(8) = AtkDelay
 
-DIM targMenu(4)
+DIM targMenu(4) as integer
 targMenu(0) = AtkBackAct
 targMenu(1) = AtkTargClass
 targMenu(2) = AtkTargSetting
 targMenu(3) = AtkPreferTarg
 targMenu(4) = AtkPrefTargStat
 
-DIM costMenu(9)
+DIM costMenu(9) as integer
 costMenu(0) = AtkBackAct
 costMenu(1) = AtkMPCost
 costMenu(2) = AtkHPCost
@@ -990,7 +999,7 @@ costMenu(7) = AtkItemCost2
 costMenu(8) = AtkItem3
 costMenu(9) = AtkItemCost3
 
-DIM chainMenu(22)
+DIM chainMenu(22) as integer
 chainMenu(0) = AtkBackAct
 chainMenu(1) = AtkChainBrowserAct
 chainMenu(2) = AtkChainHeader
@@ -1015,7 +1024,7 @@ chainMenu(20) = AtkInsteadChainMode
 chainMenu(21) = AtkInsteadChainVal1
 chainMenu(22) = AtkInsteadChainVal2
 
-DIM tagMenu(6)
+DIM tagMenu(6) as integer
 tagMenu(0) = AtkBackAct
 tagMenu(1) = AtkTagIf
 tagMenu(2) = AtkTagAnd
@@ -1024,13 +1033,13 @@ tagMenu(4) = AtkTagIf2
 tagMenu(5) = AtkTagAnd2
 tagMenu(6) = AtkTag2
 
-DIM transmogMenu(3)
+DIM transmogMenu(3) as integer
 transmogMenu(0) = AtkBackAct
 transmogMenu(1) = AtkTransmogEnemy
 transmogMenu(2) = AtkTransmogHp
 transmogMenu(3) = AtkTransmogStats
 
-DIM elementFailMenu(gen(genNumElements) + 1)
+DIM elementFailMenu(gen(genNumElements) + 1) as integer
 elementFailMenu(0) = AtkBackAct
 elementFailMenu(1) = AtkElementalFailHeader
 FOR i = 0 TO gen(genNumElements) - 1
@@ -1038,7 +1047,7 @@ FOR i = 0 TO gen(genNumElements) - 1
 NEXT
 
 '--Create the box that holds the preview
-DIM preview_box AS Slice Ptr
+DIM preview_box as Slice Ptr
 preview_box = NewSliceOfType(slRectangle)
 ChangeRectangleSlice preview_box, ,uilook(uiDisabledItem), uilook(uiMenuItem), , transOpaque
 '--Align the box in the bottom right
@@ -1054,7 +1063,7 @@ WITH *preview_box
 END WITH
 
 '--Create the preview sprite. It will be updated before it is drawn.
-DIM preview AS Slice Ptr
+DIM preview as Slice Ptr
 preview = NewSliceOfType(slSprite, preview_box)
 '--Align the sprite to the center of the containing box
 WITH *preview
@@ -1067,26 +1076,26 @@ END WITH
 '--default starting menu
 setactivemenu workmenu(), mainMenu(), state
 
-DIM menudepth AS INTEGER = 0
-DIM laststate AS MenuState
+DIM menudepth as integer = 0
+DIM laststate as MenuState
 laststate.pt = 0
 laststate.top = 0
-DIM recindex AS INTEGER = 0
-DIM lastindex AS INTEGER = 0
+DIM recindex as integer = 0
+DIM lastindex as integer = 0
 laststate.need_update = NO
 
-DIM rememberindex AS INTEGER = -1
-DIM show_name AS INTEGER = 0
-DIM drawpreview AS INTEGER = YES
-STATIC warned_old_fail_bit AS INTEGER = NO
+DIM rememberindex as integer = -1
+DIM show_name as integer = 0
+DIM drawpreview as integer = YES
+STATIC warned_old_fail_bit as integer = NO
 
 'load data here
 loadattackdata recbuf(), recindex
 update_attack_editor_for_fail_conds recbuf(), caption(), AtkCapFailConds
 state.need_update = YES
 
-DIM helpkey AS STRING = "attacks"
-DIM tmpstr AS STRING
+DIM helpkey as string = "attacks"
+DIM tmpstr as string
 
 '------------------------------------------------------------------------
 '--main loop
@@ -1319,7 +1328,7 @@ DeleteSlice @preview_box
 
 END SUB
 
-SUB atk_edit_backptr(workmenu() AS INTEGER, mainMenu() AS INTEGER, state AS MenuState, laststate AS menustate, BYREF menudepth AS INTEGER)
+SUB atk_edit_backptr(workmenu() as integer, mainMenu() as integer, state as MenuState, laststate as menustate, byref menudepth as integer)
  setactivemenu workmenu(), mainMenu(), state
  menudepth = 0
  state.pt = laststate.pt
@@ -1327,15 +1336,15 @@ SUB atk_edit_backptr(workmenu() AS INTEGER, mainMenu() AS INTEGER, state AS Menu
  state.need_update = YES
 END SUB
 
-SUB atk_edit_pushptr(state AS MenuState, laststate AS MenuState, BYREF menudepth AS INTEGER)
+SUB atk_edit_pushptr(state as MenuState, laststate as MenuState, byref menudepth as integer)
  laststate.pt = state.pt
  laststate.top = state.top
  menudepth = 1
 END SUB
 
-SUB atk_edit_preview(BYVAL pattern AS INTEGER, sl as Slice Ptr)
- STATIC anim0 AS INTEGER
- STATIC anim1 AS INTEGER
+SUB atk_edit_preview(byval pattern as integer, sl as Slice Ptr)
+ STATIC anim0 as integer
+ STATIC anim1 as integer
  anim0 = anim0 + 1
  IF anim0 > 3 THEN
   anim0 = 0
@@ -1347,7 +1356,7 @@ SUB atk_edit_preview(BYVAL pattern AS INTEGER, sl as Slice Ptr)
  ChangeSpriteSlice sl, , , ,ABS(anim1)
 END SUB
 
-FUNCTION editflexmenu (nowindex AS INTEGER, menutype() AS INTEGER, menuoff() AS INTEGER, menulimits() AS INTEGER, datablock() AS INTEGER, caption() AS STRING, mintable() AS INTEGER, maxtable() AS INTEGER) AS INTEGER
+FUNCTION editflexmenu (nowindex as integer, menutype() as integer, menuoff() as integer, menulimits() as integer, datablock() as integer, caption() as string, mintable() as integer, maxtable() as integer) as integer
 '--returns true if data has changed, false it not
 
 'nowindex is the index into the menu data of the currently selected menuitem
@@ -1394,8 +1403,8 @@ FUNCTION editflexmenu (nowindex AS INTEGER, menutype() AS INTEGER, menuoff() AS 
 'mintable() is minimum integer values
 'maxtable() is maximum int values and string limits
 
-DIM changed AS INTEGER = 0
-DIM s AS STRING
+DIM changed as integer = 0
+DIM s as string
 
 SELECT CASE menutype(nowindex)
  CASE 0, 8, 12 TO 17, 19, 20, 1000 TO 3999' integers
@@ -1438,7 +1447,7 @@ END SELECT
 '--preview sound effects
 IF menutype(nowindex) = 11 AND changed THEN resetsfx
 IF menutype(nowindex) = 11 AND enter_or_space() THEN
- DIM sfx AS INTEGER = datablock(menuoff(nowindex))
+ DIM sfx as integer = datablock(menuoff(nowindex))
  IF sfx > 0 AND sfx <= gen(genMaxSFX) + 1 THEN
   playsfx sfx - 1
  END IF
@@ -1448,9 +1457,9 @@ RETURN changed
 
 END FUNCTION
 
-SUB enforceflexbounds (menuoff() AS INTEGER, menutype() AS INTEGER, menulimits() AS INTEGER, recbuf() AS INTEGER, min() AS INTEGER, max() AS INTEGER)
+SUB enforceflexbounds (menuoff() as integer, menutype() as integer, menulimits() as integer, recbuf() as integer, min() as integer, max() as integer)
 
-FOR i AS INTEGER = 0 TO UBOUND(menuoff)
+FOR i as integer = 0 TO UBOUND(menuoff)
  SELECT CASE menutype(i)
   CASE 0, 8, 12 TO 17, 1000 TO 3999
    '--bound ints
@@ -1466,8 +1475,8 @@ NEXT i
 
 END SUB
 
-SUB setactivemenu (workmenu(), newmenu(), BYREF state AS MenuState)
- DIM i AS INTEGER
+SUB setactivemenu (workmenu() as integer, newmenu() as integer, byref state as MenuState)
+ DIM i as integer
  FOR i = 0 TO UBOUND(newmenu)
   workmenu(i) = newmenu(i)
  NEXT i
@@ -1477,7 +1486,7 @@ SUB setactivemenu (workmenu(), newmenu(), BYREF state AS MenuState)
  state.need_update = YES
 END SUB
 
-SUB updateflexmenu (mpointer AS INTEGER, nowmenu() AS STRING, nowdat() AS INTEGER, size AS INTEGER, menu() AS STRING, menutype() AS INTEGER, menuoff() AS INTEGER, menulimits() AS INTEGER, datablock() AS INTEGER, caption() AS STRING, maxtable() AS INTEGER, recindex AS INTEGER)
+SUB updateflexmenu (mpointer as integer, nowmenu() as string, nowdat() as integer, size as integer, menu() as string, menutype() as integer, menuoff() as integer, menulimits() as integer, datablock() as integer, caption() as string, maxtable() as integer, recindex as integer)
 
 '--generates a nowmenu subset from generic menu data
 
@@ -1531,13 +1540,13 @@ SUB updateflexmenu (mpointer AS INTEGER, nowmenu() AS STRING, nowdat() AS INTEGE
 'caption() available captions for postcaptioned ints
 'maxtable() used here only for max string lengths
 
-DIM maxl AS INTEGER
-DIM capnum AS INTEGER
-DIM dat AS INTEGER
-DIM i AS INTEGER
+DIM maxl as integer
+DIM capnum as integer
+DIM dat as integer
+DIM i as integer
 FOR i = 0 TO size
- DIM nospace AS INTEGER = NO
- DIM datatext AS STRING
+ DIM nospace as integer = NO
+ DIM datatext as string
  dat = datablock(menuoff(nowdat(i)))
  nowmenu(i) = menu(nowdat(i))
  SELECT CASE menutype(nowdat(i))
@@ -1651,13 +1660,13 @@ FOR i = 0 TO size
 NEXT i
 END SUB
 
-FUNCTION isStringField(mnu AS INTEGER)
+FUNCTION isStringField(byval mnu as integer) as integer
   IF mnu = 3 OR mnu = 4 OR mnu = 6 THEN RETURN -1
   RETURN 0
 END FUNCTION
 
-SUB flexmenu_skipper (BYREF state AS MenuState, workmenu(), menutype())
- DIM loop_safety AS INTEGER = 0
+SUB flexmenu_skipper (byref state as MenuState, workmenu() as integer, menutype() as integer)
+ DIM loop_safety as integer = 0
  DO WHILE menutype(workmenu(state.pt)) = 18 '--skipper
   '--re-call usemenu in order to cause the keypress to be evaluated again
   usemenu state
@@ -1683,22 +1692,22 @@ END SUB
 
 SUB menu_editor ()
 
-DIM menu_set AS MenuSet
+DIM menu_set as MenuSet
 menu_set.menufile = workingdir & SLASH & "menus.bin"
 menu_set.itemfile = workingdir & SLASH & "menuitem.bin"
 
-DIM record AS INTEGER = 0
+DIM record as integer = 0
 
-DIM state AS MenuState 'top level
+DIM state as MenuState 'top level
 state.active = YES
 state.need_update = YES
-DIM mstate AS MenuState 'menu
+DIM mstate as MenuState 'menu
 mstate.active = NO
 mstate.need_update = YES
-DIM dstate AS MenuState 'detail state
+DIM dstate as MenuState 'detail state
 dstate.active = NO
 
-DIM edmenu AS MenuDef
+DIM edmenu as MenuDef
 ClearMenuData edmenu
 edmenu.align = -1
 edmenu.anchor.x = -1
@@ -1708,9 +1717,9 @@ edmenu.offset.y = -100
 edmenu.boxstyle = 3
 edmenu.translucent = YES
 edmenu.min_chars = 38
-DIM menudata AS MenuDef
+DIM menudata as MenuDef
 LoadMenuData menu_set, menudata, record
-DIM detail AS MenuDef
+DIM detail as MenuDef
 ClearMenuData detail
 detail.align = -1
 detail.anchor.x = -1
@@ -1719,7 +1728,7 @@ detail.offset.x = -152
 detail.offset.y = 92
 detail.min_chars = 36
 
-DIM box_preview AS STRING = ""
+DIM box_preview as string = ""
 
 setkeys YES
 DO
@@ -1784,7 +1793,7 @@ ClearMenuData detail
 
 END SUB
 
-SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuDef, record, menu_set AS MenuSet)
+SUB menu_editor_keys (state as MenuState, mstate as MenuState, menudata as MenuDef, byref record as integer, menu_set as MenuSet)
  IF keyval(scESC) > 1 THEN state.active = NO
  IF keyval(scF1) > 1 THEN show_help "menu_editor_main"
  
@@ -1796,7 +1805,7 @@ SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuD
     state.active = NO
    END IF
   CASE 1
-   DIM saverecord AS INTEGER = record
+   DIM saverecord as integer = record
    IF intgrabber_with_addset(record, 0, gen(genMaxMenu), 32767, "menu") THEN
     IF record > gen(genMaxMenu) THEN gen(genMaxMenu) = record
     SaveMenuData menu_set, menudata, saverecord
@@ -1855,9 +1864,9 @@ SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuD
  END SELECT
 END SUB
 
-SUB menu_editor_menu_keys (mstate AS MenuState, dstate AS MenuState, menudata AS MenuDef, record AS INTEGER)
- DIM i AS INTEGER
- DIM elem AS INTEGER
+SUB menu_editor_menu_keys (mstate as MenuState, dstate as MenuState, menudata as MenuDef, byval record as integer)
+ DIM i as integer
+ DIM elem as integer
 
  IF keyval(scESC) > 1 THEN
   mstate.active = NO
@@ -1926,8 +1935,8 @@ SUB menu_editor_menu_keys (mstate AS MenuState, dstate AS MenuState, menudata AS
  
 END SUB
 
-SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, detail AS MenuDef, mi AS MenuDefItem)
- DIM max AS INTEGER
+SUB menu_editor_detail_keys(dstate as MenuState, mstate as MenuState, detail as MenuDef, mi as MenuDefItem)
+ DIM max as integer
 
  IF keyval(scESC) > 1 THEN
   dstate.active = NO
@@ -1992,8 +2001,8 @@ SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, detail AS 
 
 END SUB
 
-SUB update_menu_editor_menu(record, edmenu AS MenuDef, menu AS MenuDef)
- DIM cap AS STRING
+SUB update_menu_editor_menu(byval record as integer, edmenu as MenuDef, menu as MenuDef)
+ DIM cap as string
  DeleteMenuItems edmenu
  
  append_menu_item edmenu, "Previous Menu"
@@ -2024,10 +2033,10 @@ SUB update_menu_editor_menu(record, edmenu AS MenuDef, menu AS MenuDef)
  append_menu_item edmenu, "Cancel button: " & cap
 END SUB
 
-SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
- DIM i AS INTEGER
- DIM cap AS STRING
- DIM index AS INTEGER
+SUB update_detail_menu(detail as MenuDef, mi as MenuDefItem)
+ DIM i as integer
+ DIM cap as string
+ DIM index as integer
  DeleteMenuItems detail
  
  append_menu_item detail, "Go Back"

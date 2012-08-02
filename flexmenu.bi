@@ -9,25 +9,25 @@
 #include "udts.bi"
 
 DECLARE SUB menu_editor ()
-DECLARE SUB update_menu_editor_menu(record, edmenu AS MenuDef, menu AS MenuDef)
-DECLARE SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
-DECLARE SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuDef, record, menu_set AS MenuSet)
-DECLARE SUB menu_editor_menu_keys (mstate AS MenuState, dstate AS MenuState, menudata AS MenuDef, record AS INTEGER)
-DECLARE SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, detail AS MenuDef, mi AS MenuDefItem)
+DECLARE SUB update_menu_editor_menu(byval record as integer, edmenu as MenuDef, menu as MenuDef)
+DECLARE SUB update_detail_menu(detail as MenuDef, mi as MenuDefItem)
+DECLARE SUB menu_editor_keys (state as MenuState, mstate as MenuState, menudata as MenuDef, byref record as integer, menu_set as MenuSet)
+DECLARE SUB menu_editor_menu_keys (mstate as MenuState, dstate as MenuState, menudata as MenuDef, byval record as integer)
+DECLARE SUB menu_editor_detail_keys(dstate as MenuState, mstate as MenuState, detail as MenuDef, mi as MenuDefItem)
 
-DECLARE SUB setactivemenu (workmenu(), newmenu(), BYREF state AS MenuState)
-DECLARE SUB flexmenu_skipper (BYREF state AS MenuState, workmenu(), menutype())
+DECLARE SUB setactivemenu (workmenu() as integer, newmenu() as integer, byref state as MenuState)
+DECLARE SUB flexmenu_skipper (byref state as MenuState, workmenu() as integer, menutype() as integer)
 
-DECLARE SUB atk_edit_preview(BYVAL pattern AS INTEGER, sl AS Slice Ptr)
-DECLARE SUB atk_edit_pushptr(state AS MenuState, laststate AS MenuState, BYREF menudepth AS INTEGER)
-DECLARE SUB atk_edit_backptr(workmenu() AS INTEGER, mainMenu() AS INTEGER, state AS MenuState, laststate AS menustate, BYREF menudepth AS INTEGER)
+DECLARE SUB atk_edit_preview(byval pattern as integer, sl as Slice Ptr)
+DECLARE SUB atk_edit_pushptr(state as MenuState, laststate as MenuState, byref menudepth as integer)
+DECLARE SUB atk_edit_backptr(workmenu() as integer, mainMenu() as integer, state as MenuState, laststate as menustate, byref menudepth as integer)
 
-DECLARE FUNCTION editflexmenu (nowindex AS INTEGER, menutype() AS INTEGER, menuoff() AS INTEGER, menulimits() AS INTEGER, datablock() AS INTEGER, caption() AS STRING, mintable() AS INTEGER, maxtable() AS INTEGER) AS INTEGER
-DECLARE SUB updateflexmenu (mpointer AS INTEGER, nowmenu() AS STRING, nowdat() AS INTEGER, size AS INTEGER, menu() AS STRING, menutype() AS INTEGER, menuoff() AS INTEGER, menulimits() AS INTEGER, datablock() AS INTEGER, caption() AS STRING, maxtable() AS INTEGER, recindex AS INTEGER)
-DECLARE SUB enforceflexbounds (menuoff() AS INTEGER, menutype() AS INTEGER, menulimits() AS INTEGER, recbuf() AS INTEGER, min() AS INTEGER, max() AS INTEGER)
-DECLARE SUB addcaption (caption() AS STRING, indexer AS INTEGER, cap AS STRING)
+DECLARE FUNCTION editflexmenu (nowindex as integer, menutype() as integer, menuoff() as integer, menulimits() as integer, datablock() as integer, caption() as string, mintable() as integer, maxtable() as integer) as integer
+DECLARE SUB updateflexmenu (mpointer as integer, nowmenu() as string, nowdat() as integer, size as integer, menu() as string, menutype() as integer, menuoff() as integer, menulimits() as integer, datablock() as integer, caption() as string, maxtable() as integer, recindex as integer)
+DECLARE SUB enforceflexbounds (menuoff() as integer, menutype() as integer, menulimits() as integer, recbuf() as integer, min() as integer, max() as integer)
+DECLARE SUB addcaption (caption() as string, byref indexer as integer, cap as string)
 DECLARE SUB attackdata ()
-DECLARE FUNCTION isStringField(mnu AS INTEGER)
+DECLARE FUNCTION isStringField(byval mnu as integer) as integer
 
 
 #ENDIF
