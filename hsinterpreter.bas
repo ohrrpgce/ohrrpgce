@@ -89,7 +89,7 @@ DO
      CASE tymath, tyfunct
       '--complete math and functions, nice and easy.
       FOR i as integer = curcmd->argc - 1 TO 0 STEP -1
-       pops(scrst, retvals(i))
+       popstack(scrst, retvals(i))
       NEXT i
       .state = streturn
       IF curcmd->kind = tymath THEN
@@ -123,8 +123,8 @@ DO
           '--normal for termination means repeat
           IF interpreter_occasional_checks THEN EXIT DO
           scrst.pos -= 1
-          tmpvar = reads(scrst, -3)
-          writescriptvar tmpvar, readscriptvar(tmpvar) + reads(scrst, 0)
+          tmpvar = readstack(scrst, -3)
+          writescriptvar tmpvar, readscriptvar(tmpvar) + readstack(scrst, 0)
           .curargn = 4
          CASE ELSE
           scripterr "for fell out of bounds, landed on " & .curargn, 7
@@ -132,10 +132,10 @@ DO
           EXIT DO
         END SELECT
        CASE flowreturn
-        pops(scrst, .ret)
+        popstack(scrst, .ret)
         .state = streturn'---return
        CASE flowbreak
-        pops(scrst, temp)
+        popstack(scrst, temp)
         unwindtodo(scrat(nowscript), temp)
         '--for and while need to be broken
         IF curcmd->kind = tyflow AND (curcmd->value = flowfor OR curcmd->value = flowwhile) THEN
@@ -145,13 +145,13 @@ DO
        CASE flowcontinue
         '--continue could be used to cause an infinite loop (including in a floating do), so also needs these checks
         IF interpreter_occasional_checks THEN EXIT DO
-        pops(scrst, temp)
+        popstack(scrst, temp)
         unwindtodo(scrat(nowscript), temp)
         IF curcmd->kind = tyflow AND curcmd->value = flowswitch THEN
          '--set state to 2
          scrst.pos -= 2
-         pushs(scrst, 2)
-         pushs(scrst, 0) '-- dummy value
+         pushstack(scrst, 2)
+         pushstack(scrst, 0) '-- dummy value
         ELSEIF NOT (curcmd->kind = tyflow AND (curcmd->value = flowfor OR curcmd->value = flowwhile)) THEN
          '--if this do isn't a for's or while's, then just repeat it, discarding the returned value
          scrst.pos -= 1
@@ -160,7 +160,7 @@ DO
        CASE flowexit
         unwindtodo(scrat(nowscript), 9999)
        CASE flowexitreturn
-        pops(scrst, .ret)
+        popstack(scrst, .ret)
         unwindtodo(scrat(nowscript), 9999)
        CASE flowswitch
         scrst.pos -= 3
@@ -177,7 +177,7 @@ DO
       IF rsr = 1 THEN
        '--fill heap with return values
        FOR i as integer = .curargc - 1 TO 0 STEP -1   '--be VERY careful... runscript set curargc, WITH points to nowscript-1
-        pops(scrst, temp)
+        popstack(scrst, temp)
         setScriptArg i, temp
        NEXT i
       END IF
@@ -204,13 +204,13 @@ DO
           CASE 0
            .state = stdoarg'---call conditional
           CASE 1
-           IF reads(scrst, 0) THEN
+           IF readstack(scrst, 0) THEN
             'scrst.pos -= 1
             .state = stdoarg'---call then block
            ELSE
             .curargn = 2
             '--if-else needs one extra thing on the stack to account for the then that didnt get used.
-            pushs(scrst, 0)
+            pushstack(scrst, 0)
             .state = stdoarg'---call else block
            END IF
           CASE 2
@@ -225,7 +225,7 @@ DO
           CASE 0
            .state = stdoarg'---call condition
           CASE 1
-           IF reads(scrst, 0) THEN
+           IF readstack(scrst, 0) THEN
             .state = stdoarg'---call do block
             '--don't pop: number of words on stack should equal argn (for simplicity when unwinding stack)
            ELSE
@@ -250,15 +250,15 @@ DO
            .state = stdoarg
           CASE 2
            '--set variable to start val before getting end
-           writescriptvar reads(scrst, -1), reads(scrst, 0)
+           writescriptvar readstack(scrst, -1), readstack(scrst, 0)
            '---now get end value
            .state = stdoarg
           CASE 4
            IF scrwatch AND breakloopbrch THEN breakpoint scrwatch, 5
-           tmpstep = reads(scrst, 0)
-           tmpend = reads(scrst, -1)
-           tmpstart = reads(scrst, -2)
-           tmpvar = reads(scrst, -3)
+           tmpstep = readstack(scrst, 0)
+           tmpend = readstack(scrst, -1)
+           tmpstart = readstack(scrst, -2)
+           tmpvar = readstack(scrst, -3)
            tmpnow = readscriptvar(tmpvar)
            IF (tmpnow > tmpend AND tmpstep > 0) OR (tmpnow < tmpend AND tmpstep < 0) THEN
             '--breakout
@@ -278,15 +278,15 @@ DO
          ELSEIF .curargn = 1 THEN
           '--set up state - push a 0: not fallen in
           '--assume first statement is a case, run it
-          pushs(scrst, 0)
+          pushstack(scrst, 0)
           .state = stdoarg
          ELSE
-          pops(scrst, tmpcase)
-          pops(scrst, tmpstate)
+          popstack(scrst, tmpcase)
+          popstack(scrst, tmpstate)
           DIM as integer doseek = 0 ' whether or not to search argument list for something to execute
           IF tmpstate = 0 THEN
            '--not fallen in, check tmpvar
-           IF tmpcase = reads(scrst, 0) THEN 
+           IF tmpcase = readstack(scrst, 0) THEN 
             tmpstate = 1
            END IF
            doseek = 1 '--search for a case or do
@@ -307,7 +307,7 @@ DO
            IF (tmpstate = 1 AND tmpkind = tyflow) OR (tmpstate = 0 AND (tmpkind <> tyflow OR .curargn = curcmd->argc - 1)) THEN
             '--fall into a do, execute a case, or run default (last arg)
             .state = stdoarg
-            pushs(scrst, tmpstate)
+            pushstack(scrst, tmpstate)
             EXIT WHILE
            END IF
            IF .curargn >= curcmd->argc THEN
@@ -325,7 +325,7 @@ DO
       CASE tymath
        SELECT CASE curcmd->value
         CASE 20'--logand
-         IF reads(scrst, 0) THEN
+         IF readstack(scrst, 0) THEN
           .state = stdoarg'---call 2nd argument
          ELSE
           '--shortcut evaluate to false
@@ -335,7 +335,7 @@ DO
           .state = streturn'---return
          END IF
         CASE 21'--logor
-         IF reads(scrst, 0) THEN
+         IF readstack(scrst, 0) THEN
           '--shortcut evaluate to true
           scriptret = 1
           '--pop all args
@@ -523,22 +523,22 @@ DIM as ScriptCommand ptr cmdptr = cast(ScriptCommand ptr, dataptr + curcmd->args
 
 SELECT CASE cmdptr->kind
  CASE tynumber
-  pushs(scrst, cmdptr->value)
+  pushstack(scrst, cmdptr->value)
  CASE tyglobal
   IF cmdptr->value < 0 OR cmdptr->value > maxScriptGlobals THEN
    scripterr "Illegal global variable id " & cmdptr->value, 5
    si.state = sterror
    EXIT SUB
   END IF
-  pushs(scrst, global(cmdptr->value))
+  pushstack(scrst, global(cmdptr->value))
  CASE tylocal
-  pushs(scrst, heap(si.heap + cmdptr->value))
+  pushstack(scrst, heap(si.heap + cmdptr->value))
  CASE IS >= tymath, tyflow
   si.depth += 1
   '2 for state + args + 5 just-in-case for extra state stuff pushed to stack (atm just switch, +1 ought to be sufficient)
   checkoverflow(scrst, 7 + cmdptr->argc)
-  pushs(scrst, si.ptr)
-  pushs(scrst, si.curargn)
+  pushstack(scrst, si.ptr)
+  pushstack(scrst, si.curargn)
   curcmd = cmdptr
   si.ptr = (cast(integer, cmdptr) - cast(integer, dataptr)) shr 2
   si.curargn = 0
@@ -569,22 +569,22 @@ IF si.curargn >= curcmd->argc THEN
   'Optimisation
 /'  Here's the prologue (from a *previous* iteration through the above SELECT)
   si.depth += 1
-  pushs(scrst, si.ptr)
-  pushs(scrst, si.curargn)
+  pushstack(scrst, si.ptr)
+  pushstack(scrst, si.curargn)
   curcmd = cmdptr
   si.ptr = (cast(integer, cmdptr) - cast(integer, dataptr)) shr 2
   si.curargn = 0
   scriptret = 0'--default returnvalue is zero
 '/
-  IF curcmd->argc = 2 THEN pops(scrst, retvals(1))
-  pops(scrst, retvals(0))
+  IF curcmd->argc = 2 THEN popstack(scrst, retvals(1))
+  popstack(scrst, retvals(0))
   scriptmath
   si.depth -= 1
-  pops(scrst, si.curargn)
-  pops(scrst, si.ptr)
+  popstack(scrst, si.curargn)
+  popstack(scrst, si.ptr)
   curcmd = cast(ScriptCommand ptr, si.scrdata + si.ptr)
   '--push return value
-  pushs(scrst, scriptret)
+  pushstack(scrst, scriptret)
   GOTO finishedarg
  END IF
  EXIT SUB
@@ -599,11 +599,11 @@ si.depth -= 1
 IF si.depth < 0 THEN
  si.state = stdone
 ELSE
- pops(scrst, si.curargn)
- pops(scrst, si.ptr)
+ popstack(scrst, si.curargn)
+ popstack(scrst, si.ptr)
  curcmd = cast(ScriptCommand ptr, si.scrdata + si.ptr)
  '--push return value
- pushs(scrst, scriptret)
+ pushstack(scrst, scriptret)
  si.curargn += 1
  si.state = stnext'---try next arg
  IF si.curargn >= curcmd->argc THEN EXIT SUB
@@ -626,8 +626,8 @@ WHILE levels > 0
   EXIT SUB
  END IF
 
- pops(scrst, si.curargn)
- pops(scrst, si.ptr)
+ popstack(scrst, si.curargn)
+ popstack(scrst, si.ptr)
  curcmd = cast(ScriptCommand ptr, si.scrdata + si.ptr)
 
  IF curcmd->kind = tyflow AND curcmd->value = flowdo THEN
@@ -1274,8 +1274,8 @@ next_interpreter_check_time = TIMER + scriptCheckDelay
 END SUB
 
 SUB readstackcommand (byref state as ScriptInst, byref stk as Stack, byref i as integer)
- state.curargn = reads(stk, i)
- state.ptr = reads(stk, i - 1)
+ state.curargn = readstack(stk, i)
+ state.ptr = readstack(stk, i - 1)
  DIM cmdptr as ScriptCommand ptr = cast(ScriptCommand ptr, state.scrdata + state.ptr)
  state.curkind = cmdptr->kind
  state.curvalue = cmdptr->value
@@ -1392,12 +1392,12 @@ FUNCTION scriptstate (byval targetscript as integer, byval recurse as integer = 
 
    'DIM dstr as string = ""
    'FOR i as integer = stkbottom + 1 TO stkpos
-   ' dstr = dstr & " " & reads(scrst,i)
+   ' dstr = dstr & " " & readstack(scrst,i)
    'NEXT
    'debug "stack contents = " + dstr
    'dstr = ""
    'FOR i as integer = stkpos + 1 TO stkpos + state.curargn
-   ' dstr = dstr & " " & reads(scrst,i)
+   ' dstr = dstr & " " & readstack(scrst,i)
    'NEXT
    'debug "above stack args = " + dstr
 
@@ -1408,7 +1408,7 @@ FUNCTION scriptstate (byval targetscript as integer, byval recurse as integer = 
  END IF
 
 ' FOR i as integer = stkbottom + 1 TO 0
-'  dstr = dstr & " " & reads(scrst,i)
+'  dstr = dstr & " " & readstack(scrst,i)
 ' NEXT
 ' debug "stack contents = " + dstr
 
@@ -1447,7 +1447,7 @@ FUNCTION scriptstate (byval targetscript as integer, byval recurse as integer = 
       IF state.curargn = 0 THEN
        cmd += ":"
       ELSE
-       cmd += "(" & reads(scrst, stkpos + 1) & ")"   ' ????
+       cmd += "(" & readstack(scrst, stkpos + 1) & ")"   ' ????
        IF state.curargn + 1 = state.curargc THEN
         cmd += " else"
         'hack to replace the 'do' with 'else' (hspeak outputs a do instead of an else)
@@ -1501,9 +1501,9 @@ FUNCTION scriptstate (byval targetscript as integer, byval recurse as integer = 
       FOR i as integer = 1 TO state.curargn
        IF i = 1 ANDALSO ((state.curkind = tymath AND state.curvalue >= 16 AND state.curvalue <= 18) _
                          ORELSE (state.curkind = tyflow AND state.curvalue = flowfor)) THEN
-        cmd += mathvariablename(reads(scrst, stkpos + i), state.scr->args)
+        cmd += mathvariablename(readstack(scrst, stkpos + i), state.scr->args)
        ELSE
-        cmd += STR(reads(scrst, stkpos + i))
+        cmd += STR(readstack(scrst, stkpos + i))
        END IF
        IF i <> argnum THEN cmd += ","
       NEXT

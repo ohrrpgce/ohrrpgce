@@ -140,10 +140,11 @@ END TYPE
 declare sub createstack (st as Stack)
 declare sub destroystack (st as Stack)
 declare sub checkoverflow (st as Stack, byval amount as integer = 1)
-#define pushs(stack, datum) *(stack).pos = (datum) : (stack).pos += 1
-#define pops(stack, var) (stack).pos -= 1 : (var) = *(stack).pos
-'read from a stack offset from the last push (eg. 0 is last int pushed, -1 is previous)
-#define reads(stack, off) stack.pos[(off) - 1]
+#define stackposition(stack)          ((stack).pos - (stack).bottom)
+#define pushstack(stack, datum)       *(stack).pos = (datum) : (stack).pos += 1
+#define popstack(stack, var)          (stack).pos -= 1 : (var) = *(stack).pos
+'read from a stack offset from the last push (eg. 0 is last int pushed, -1 is below that)
+#define readstack(stack, off)         stack.pos[(off) - 1]
 #define checkunderflow(stack, amount) ((stack).pos - (amount) < (stack).bottom)
 
 'Old allmodex stack (FIXME: get rid of this)
