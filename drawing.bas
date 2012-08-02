@@ -1642,7 +1642,7 @@ END SUB
 
 OPTION EXPLICIT '======== FIXME: move this up as code gets cleaned up =====================
 
-SUB sprite (xw, yw, sets, perset, soff, info$(), zoom, fileset, fullset AS INTEGER=NO, cursor_start AS INTEGER=0, cursor_top AS INTEGER=0)
+SUB sprite (byval xw as integer, byval yw as integer, byref sets as integer, byval perset as integer, byval soff as integer, info() as string, byval zoom as integer, byval fileset as integer, byval fullset as integer=NO, byval cursor_start as integer=0, byval cursor_top as integer=0)
 STATIC ss_save AS SpriteEditStatic
 
 DIM ss AS SpriteEditState

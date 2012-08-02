@@ -35,7 +35,7 @@ DECLARE SUB importbmp (f as string, cap as string, count as integer)
 DECLARE SUB vehicles ()
 DECLARE SUB scriptman ()
 DECLARE SUB map_picker ()
-DECLARE SUB sprite (xw, yw, sets, perset, soff, info() as string, zoom, fileset, fullset as integer=NO, cursor_start as integer=0, cursor_top as integer=0)
+DECLARE SUB sprite (byval xw as integer, byval yw as integer, byref sets as integer, byval perset as integer, byval soff as integer, info() as string, byval zoom as integer, byval fileset as integer, byval fullset as integer=NO, byval cursor_start as integer=0, byval cursor_top as integer=0)
 DECLARE SUB importsong ()
 DECLARE SUB importsfx ()
 DECLARE SUB gendata ()
@@ -48,7 +48,7 @@ DECLARE SUB maptile ()
 DECLARE SUB importscripts (f as string)
 
 'Local function declarations
-DECLARE FUNCTION newRPGfile (templatefile as string, newrpg as string)
+DECLARE FUNCTION newRPGfile (templatefile as string, newrpg as string) as integer
 DECLARE FUNCTION makeworkingdir () as integer
 DECLARE FUNCTION handle_dirty_workingdir () as integer
 DECLARE SUB shopdata ()
@@ -84,7 +84,7 @@ REDIM uilook(uiColors)
 DIM statnames() as string
 REDIM herotags(59) as HeroTagsCache
 REDIM itemtags(maxMaxItems) as ItemTagsCache
-DIM joy(4)
+DIM joy(4) as integer
 DIM vpage as integer = 0
 DIM dpage as integer = 1
 DIM activepalette as integer
@@ -922,7 +922,7 @@ SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as integer)
  SELECT CASE stufbuf(17)
   CASE 0' This is an item
    stuf.thingname = load_item_name(stufbuf(18),1,1)
-   DIM item_tmp(dimbinsize(binITM))
+   DIM item_tmp(dimbinsize(binITM)) as integer
    loaditemdata item_tmp(), stufbuf(18)
    stufbuf(24) = item_tmp(46) ' default buy price
    stufbuf(27) = item_tmp(46) \ 2 ' default sell price
@@ -1030,7 +1030,7 @@ SUB shop_save_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufb
  storeset game & ".stf", shop_id * 50 + stuf.thing, 0
 END SUB
 
-FUNCTION newRPGfile (templatefile as string, newrpg as string)
+FUNCTION newRPGfile (templatefile as string, newrpg as string) as integer
  newRPGfile = 0 ' default return value 0 means failure
  IF newrpg = "" THEN EXIT FUNCTION
  textcolor uilook(uiSelectedDisabled), 0
