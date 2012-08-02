@@ -29,7 +29,7 @@ DECLARE SUB masterpalettemenu ()
 DECLARE SUB statcapsmenu ()
 DECLARE SUB battleoptionsmenu ()
 DECLARE SUB equipmergemenu ()
-DECLARE FUNCTION importmasterpal (f$, palnum%)
+DECLARE FUNCTION importmasterpal (f as string, byval palnum as integer) as integer
 DECLARE SUB titlescreenbrowse ()
 DECLARE SUB import_convert_mp3(BYREF mp3 AS STRING, BYREF oggtemp AS STRING)
 DECLARE SUB import_convert_wav(BYREF wav AS STRING, BYREF oggtemp AS STRING)
@@ -927,20 +927,20 @@ RETRACE
 
 END SUB
 
-FUNCTION importmasterpal (f$, palnum)
-STATIC default AS STRING
+FUNCTION importmasterpal (f as string, byval palnum as integer) as integer
+STATIC default as string
 DIM bmpd AS BitmapInfoHeader
-IF f$ = "" THEN f$ = browse$(4, default, "", "",, "browse_import_master_palette")
-IF f$ <> "" THEN
- IF LCASE$(justextension$(f$)) = "mas" THEN
-  xbload f$, buffer(), "MAS load error"
+IF f = "" THEN f = browse$(4, default, "", "",, "browse_import_master_palette")
+IF f <> "" THEN
+ IF LCASE$(justextension$(f)) = "mas" THEN
+  xbload f, buffer(), "MAS load error"
   convertpalette buffer(), master()
  ELSE
-  bmpinfo(f$, bmpd)
+  bmpinfo(f, bmpd)
   IF bmpd.biBitCount = 24 THEN
-   bitmap2pal f$, master()
+   bitmap2pal f, master()
   ELSE
-   loadbmppal f$, master()
+   loadbmppal f, master()
   END IF
  END IF
  'get a default set of ui colours - nearest match to the current
