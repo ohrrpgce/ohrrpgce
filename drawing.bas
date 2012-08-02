@@ -3,6 +3,15 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
+
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
+#endif
+
 #include "config.bi"
 #include "udts.bi"
 #include "custom_udts.bi"
@@ -14,7 +23,7 @@ DECLARE FUNCTION importmasterpal (f as string, byval palnum as integer) as integ
 
 'Local SUBs and FUNCTIONS
 DECLARE SUB picktiletoedit (byref tmode as integer, byref pagenum as integer, mapfile as string)
-DECLARE SUB editmaptile (ts as TileEditState, mover(), mouse as MouseInfo, area() as MouseArea)
+DECLARE SUB editmaptile (ts as TileEditState, mover() as integer, mouse as MouseInfo, area() as MouseArea)
 DECLARE SUB tilecut (ts as TileEditState, mouse as MouseInfo, area() as MouseArea)
 DECLARE SUB refreshtileedit (mover() as integer, state as TileEditState)
 DECLARE SUB writeundoblock (mover() as integer, state as TileEditState)
@@ -25,29 +34,29 @@ DECLARE SUB clicktile (mover() as integer, ts as TileEditState, byval newkeypres
 DECLARE SUB tilecopy (cutnpaste() as integer, ts as TileEditState)
 DECLARE SUB tilepaste (cutnpaste() as integer, ts as TileEditState)
 DECLARE SUB tiletranspaste (cutnpaste() as integer, ts as TileEditState)
-DECLARE SUB copymapblock (buf() as integer, sx as integer, sy as integer, byref sp as integer, byref dx as integer, byref dy as integer, byref dp as integer)
-DECLARE SUB changepal (byref palval as integer, byref palchange as integer, workpal() as integer, byref aindex as integer)
+DECLARE SUB copymapblock (buf() as integer, byref sx as integer, byref sy as integer, byref sp as integer, byref dx as integer, byref dy as integer, byref dp as integer)
+DECLARE SUB changepal (byref palval as integer, byval palchange as integer, workpal() as integer, byval aindex as integer)
 DECLARE SUB airbrush (byval x as integer, byval y as integer, byval d as integer, byval m as integer, byval c as integer, byval p as integer)
 DECLARE SUB testanimpattern (tastuf() as integer, byref taset as integer)
 DECLARE SUB setanimpattern (tastuf() as integer, taset as integer, tilesetnum as integer)
-DECLARE FUNCTION mouseover (byval mousex as integer, byval mousey as integer, byref zox, byref zoy, byref zcsr, area() as MouseArea) as integer
+DECLARE FUNCTION mouseover (byval mousex as integer, byval mousey as integer, byref zox as integer, byref zoy as integer, byref zcsr as integer, area() as MouseArea) as integer
 DECLARE SUB maptile ()
 DECLARE SUB tileedit_set_tool (ts as TileEditState, toolinfo() as ToolInfoType, byval toolnum as integer)
 
-DECLARE SUB spriteedit_load_what_you_see(j, top, sets, ss as SpriteEditState, soff, placer(), workpal(), poffset())
-DECLARE SUB spriteedit_save_what_you_see(j, top, sets, ss as SpriteEditState, soff, placer(), workpal(), poffset())
-DECLARE SUB spriteedit_save_all_you_see(top, sets, ss as SpriteEditState, soff, placer(), workpal(), poffset())
-DECLARE SUB spriteedit_load_all_you_see(top, sets, ss as SpriteEditState, soff, placer(), workpal(), poffset())
+DECLARE SUB spriteedit_load_what_you_see(byval j as integer, byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, placer() as integer, workpal() as integer, poffset() as integer)
+DECLARE SUB spriteedit_save_what_you_see(byval j as integer, byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, placer() as integer, workpal() as integer, poffset() as integer)
+DECLARE SUB spriteedit_save_all_you_see(byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, placer() as integer, workpal() as integer, poffset() as integer)
+DECLARE SUB spriteedit_load_all_you_see(byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, placer() as integer, workpal() as integer, poffset() as integer)
 DECLARE SUB sprite_editor(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, state as MenuState, soff as integer, workpal() as integer, poffset() as integer, info() as string, byval sets as integer)
 DECLARE SUB init_sprite_zones(area() as MouseArea, ss as SpriteEditState)
 DECLARE SUB spriteedit_draw_icon(ss as SpriteEditState, icon as string, area() as MouseArea, byval areanum as integer, byval highlight as integer = NO)
 DECLARE SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic, state as MenuState, placer() as integer, workpal() as integer, poffset() as integer, info() as string, toolinfo() as ToolInfoType, area() as MouseArea, mouse as MouseInfo)
 DECLARE SUB spriteedit_import16(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, byref state as MenuState, placer() as integer, workpal() as integer, poffset() as integer, info() as string, toolinfo() as ToolInfoType, area() as MouseArea, mouse as MouseInfo)
-DECLARE SUB spriteedit_scroll (placer(), ss as SpriteEditState, byval shiftx as integer, byval shifty as integer)
+DECLARE SUB spriteedit_scroll (placer() as integer, ss as SpriteEditState, byval shiftx as integer, byval shifty as integer)
 DECLARE SUB spriteedit_rotate_sprite_buffer(sprbuf() as integer, nulpal() as integer, counterclockwise as integer=NO)
 DECLARE SUB spriteedit_rotate_sprite(sprbuf() as integer, ss as SpriteEditState, counterclockwise as integer=NO)
-DECLARE SUB spriteedit_clip (placer(), ss as SpriteEditState)
-DECLARE SUB writeundospr (placer(), ss as SpriteEditState, is_rotate as integer=NO)
+DECLARE SUB spriteedit_clip (placer() as integer, ss as SpriteEditState)
+DECLARE SUB writeundospr (placer() as integer, ss as SpriteEditState, is_rotate as integer=NO)
 DECLARE FUNCTION spriteedit_export_name (ss as SpriteEditState, state as MenuState) as string
 DECLARE SUB spriteedit_export OVERLOAD (default_name as string, placer() as integer, nulpal() as integer, palnum as integer)
 DECLARE SUB spriteedit_export OVERLOAD (default_name as string, img as GraphicPair)
@@ -69,11 +78,11 @@ SUB airbrush (byval x as integer, byval y as integer, byval d as integer, byval 
 ' mist_amount sets how many pixels to place i put 100 and it ran fast so
 ' it works EXCELLENTLY with a mouse on the DTE =)
 
-FOR count = 1 TO randint(m)
- x2 = randint(d)
- y2 = randint(d)
- x3 = x - d / 2
- y3 = y - d / 2
+FOR count as integer = 1 TO randint(m)
+ DIM x2 as integer = randint(d)
+ DIM y2 as integer = randint(d)
+ DIM x3 as integer = x - d / 2
+ DIM y3 as integer = y - d / 2
  IF ABS((x3 + x2) - x) ^ 2 + ABS((y3 + y2) - y) ^ 2 <= d ^ 2 / 4 THEN
   putpixel x3 + x2, y3 + y2, c, p
  END IF
@@ -81,7 +90,7 @@ NEXT
 
 END SUB
 
-SUB changepal (palval, palchange, workpal(), aindex)
+SUB changepal (byref palval as integer, byval palchange as integer, workpal() as integer, byval aindex as integer)
 
 storepal16 workpal(), aindex, palval
 palval = bound(palval + palchange, 0, 32767)
@@ -89,11 +98,11 @@ getpal16 workpal(), aindex, palval
 
 END SUB
 
-SUB copymapblock (buf(), sx, sy, sp, dx, dy, dp)
+SUB copymapblock (buf() as integer, byref sx as integer, byref sy as integer, byref sp as integer, byref dx as integer, byref dy as integer, byref dp as integer)
 
 'buf() is a 20-byte array
 
-FOR i = 0 TO 19
+FOR i as integer = 0 TO 19
  loadsprite buf(), 0, sx, sy + i, 40, 1, sp
  stosprite buf(), 0, dx, dy + i, dp
 NEXT i
@@ -123,8 +132,12 @@ submenu(0) = "Import with current Master Palette"
 submenu(1) = "Import with new Master Palette"
 submenu(2) = "Do not remap colours"
 DIM srcbmp as string
-
-pt = 0 'backdrop number
+DIM csr2 as integer
+DIM tog as integer
+DIM cx as integer
+DIM cy as integer
+DIM paloption as integer
+DIM pt as integer = 0 'backdrop number
 
 IF count = 0 THEN count = 1
 loadpalette pmask(), activepalette
@@ -135,9 +148,9 @@ DO
  setwait 55
  setkeys
  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 THEN
-  this = count - 1
-  cropafter pt, this, 3, game + f, 64000
-  count = this + 1
+  DIM crop_this as integer = count - 1
+  cropafter pt, crop_this, 3, game + f, 64000
+  count = crop_this + 1
  END IF
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "importbmp"
@@ -158,7 +171,7 @@ DO
   IF mstate.pt = 3 AND count < 32767 THEN
    srcbmp = browse(3, default, "*.bmp", "",,"browse_import_" & cap)
    IF srcbmp <> "" THEN
-    oldpt = pt
+    DIM oldpt as integer = pt
     pt = count
     GOSUB bimport
     IF pt = count THEN pt = oldpt 'cancelled
@@ -214,8 +227,8 @@ DO
  textcolor uilook(uiMenuItem), 0: IF csr2 = 0 THEN textcolor uilook(uiSelectedItem + tog), 0
  printstr "Previous Menu", 0, 0, dpage
  IF csr2 = 1 THEN rectangle 0 + cx * 10, 8 + cy * 10, 10, 10, uilook(uiSelectedItem + tog), dpage
- FOR i = 0 TO 15
-  FOR o = 0 TO 15
+ FOR i as integer = 0 TO 15
+  FOR o as integer = 0 TO 15
    rectangle 1 + o * 10, 9 + i * 10, 8, 8, i * 16 + o, dpage
   NEXT o
  NEXT i
@@ -242,8 +255,8 @@ IF bmpd.biBitCount = 8 THEN
  img = frame_import_bmp_raw(srcbmp)
  IF paloption = 0 THEN
   convertbmppal srcbmp, pmask(), palmapping(), 0
-  FOR y = 0 TO img->h - 1
-   FOR x = 0 TO img->w - 1
+  FOR y as integer = 0 TO img->h - 1
+   FOR x as integer = 0 TO img->w - 1
     putpixel img, x, y, palmapping(readpixel(img, x, y))
    NEXT
   NEXT
@@ -262,14 +275,15 @@ END SUB
 SUB maptile ()
 DIM menu(10) as string
 DIM tastuf(40) as integer
-
 DIM mapfile as string = game & ".til"
-
-bnum = 0
-tmode = 0
-pagenum = -1
-top = -1
-taptr = 0
+DIM bnum as integer = 0
+DIM tmode as integer = 0
+DIM pagenum as integer = -1
+DIM top as integer = -1
+DIM taptr as integer = 0
+DIM taset as integer
+DIM tog as integer
+DIM animpos as XYPair
 
 clearpage 3
 setkeys
@@ -293,7 +307,7 @@ DO
  IF usemenu(pagenum, top, -1, gen(genMaxTile), 20) THEN
   IF pagenum = -1 THEN clearpage 3 ELSE loadmxs mapfile, pagenum, vpages(3)
  END IF
- tempnum = large(pagenum, 0)
+ DIM tempnum as integer = large(pagenum, 0)
  IF intgrabber(tempnum, 0, gen(genMaxTile), , , YES) THEN
   pagenum = tempnum
   top = bound(top, pagenum - 20, pagenum)
@@ -302,8 +316,8 @@ DO
  IF enter_or_space() AND pagenum > -1 THEN GOSUB tilemode
 
  copypage 3, dpage
- FOR i = top TO small(top + 20, gen(genMaxTile))
-  c = uilook(uiMenuItem)
+ FOR i as integer = top TO small(top + 20, gen(genMaxTile))
+  DIM c as integer = uilook(uiMenuItem)
   IF pagenum = i THEN c = uilook(uiSelectedItem + tog)
   IF i < 0 THEN
    edgeprint "Return to Main Menu", 10, 8 + (i - top) * 8, c, dpage
@@ -346,8 +360,8 @@ DO
   END SELECT
  END IF
  copypage 3, dpage
- FOR i = 0 TO 5
-  c = uilook(uiMenuItem)
+ FOR i as integer = 0 TO 5
+  DIM c as integer = uilook(uiMenuItem)
   IF tmode = i THEN c = uilook(uiSelectedItem + tog)
   edgeprint menu(i), 10, 8 * (i + 1), c, dpage
  NEXT i
@@ -393,7 +407,7 @@ DO
   IF taptr = 5 THEN testanimpattern tastuf(), taset
  END IF
  clearpage dpage
- FOR i = 0 TO 5
+ FOR i as integer = 0 TO 5
   textcolor uilook(uiMenuItem), uilook(uiOutline)
   IF taptr = i THEN textcolor uilook(uiSelectedItem + tog), uilook(uiOutline)
   printstr menu(i), 10, 8 * (i + 1), dpage
@@ -432,20 +446,25 @@ savetanim pagenum, tastuf()
 RETRACE
 
 drawanimrange:
-x = 0: y = 0
-FOR i = 0 TO 159
+animpos.x = 0
+animpos.y = 0
+FOR i as integer = 0 TO 159
  IF i < tastuf(0 + 20 * taset) OR i > tastuf(0 + 20 * taset) + 47 THEN
-  fuzzyrect x * 20, y * 20, 20, 20, uilook(uiText), dpage
+  fuzzyrect animpos.x * 20, animpos.y * 20, 20, 20, uilook(uiText), dpage
  END IF
- x = x + 1: IF x > 15 THEN x = 0: y = y + 1
+ animpos.x += 1
+ IF animpos.x > 15 THEN
+  animpos.x = 0
+  animpos.y += 1
+ END IF
 NEXT i
 RETRACE
 
 END SUB
 
-FUNCTION mouseover (byval mousex as integer, byval mousey as integer, byref zox, byref zoy, byref zcsr, area() as MouseArea) as integer
+FUNCTION mouseover (byval mousex as integer, byval mousey as integer, byref zox as integer, byref zoy as integer, byref zcsr as integer, area() as MouseArea) as integer
 
-FOR i = UBOUND(area) TO 0 STEP -1
+FOR i as integer = UBOUND(area) TO 0 STEP -1
  IF area(i).w <> 0 AND area(i).h <> 0 THEN
   IF mousex >= area(i).x AND mousex < area(i).x + area(i).w THEN
    IF mousey >= area(i).y AND mousey < area(i).y + area(i).h THEN
@@ -472,11 +491,11 @@ stuff(4) = "left"
 stuff(5) = "wait"
 stuff(6) = "if tag do rest"
 stuff(7) = "unknown command"
-FOR i = 1 TO 2
+FOR i as integer = 1 TO 2
  llim(i) = 0
  ulim(i) = 9
 NEXT i
-FOR i = 3 TO 4
+FOR i as integer = 3 TO 4
  llim(i) = 0
  ulim(i) = 159
 NEXT i
@@ -484,12 +503,18 @@ llim(5) = 0
 ulim(5) = 32767
 llim(6) = -999
 ulim(6) = 999
+DIM ta_temp as integer
+DIM pt as integer = 0
+DIM ptr2 as integer = 0
+DIM context as integer = 0
+DIM index as integer = 0
+DIM tog as integer
+DIM anim_a as integer
+DIM anim_b as integer
+DIM anim_i as integer
+DIM forcebounds_tmp as integer
 
 GOSUB refreshmenu
-pt = 0
-ptr2 = 0
-context = 0
-index = 0
 setkeys
 DO
  setwait 55
@@ -529,7 +554,7 @@ DO
  END SELECT
  '--Draw screen
  clearpage dpage
- FOR i = 0 TO 9
+ FOR i as integer = 0 TO 9
   textcolor uilook(uiMenuItem), 0
   IF i = pt THEN
    textcolor uilook(uiSelectedItem + tog), 0
@@ -538,7 +563,7 @@ DO
   printstr menu(i), 0, i * 8, dpage
  NEXT i
  IF pt > 0 THEN
-  FOR i = 0 TO 1
+  FOR i as integer = 0 TO 1
    textcolor uilook(uiMenuItem), 0
    IF context = 1 AND i = ptr2 THEN
     textcolor uilook(uiSelectedItem + tog), 0
@@ -556,39 +581,39 @@ EXIT SUB
 
 refreshmenu:
 GOSUB forcebounds
-FOR i = 1 TO 9
+FOR i as integer = 1 TO 9
  menu(i) = "-"
 NEXT i
 menu(10) = ""
-FOR i = 0 TO 8
- a = bound(tastuf((2 + i) + 20 * taset), 0, 7)
- b = tastuf((11 + i) + 20 * taset)
- menu(i + 1) = stuff(a)
- IF a = 0 THEN EXIT FOR
- IF a > 0 AND a < 6 THEN menu(i + 1) = menu(i + 1) & " " & b
- IF a = 6 THEN menu(i + 1) = menu(i + 1) & " (" & load_tag_name(b) & ")"
-NEXT i
-IF i = 8 THEN menu(10) = "end of animation"
+FOR anim_i = 0 TO 8
+ anim_a = bound(tastuf((2 + anim_i) + 20 * taset), 0, 7)
+ anim_b = tastuf((11 + anim_i) + 20 * taset)
+ menu(anim_i + 1) = stuff(anim_a)
+ IF anim_a = 0 THEN EXIT FOR
+ IF anim_a > 0 AND anim_a < 6 THEN menu(anim_i + 1) = menu(anim_i + 1) & " " & anim_b
+ IF anim_a = 6 THEN menu(anim_i + 1) = menu(anim_i + 1) & " (" & load_tag_name(anim_b) & ")"
+NEXT anim_i
+IF anim_i = 8 THEN menu(10) = "end of animation"
 menu(10) = "Action=" + stuff(bound(tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset), 0, 7))
 menu(11) = "Value="
-this = tastuf(11 + bound(pt - 1, 0, 8) + 20 * taset)
+ta_temp = tastuf(11 + bound(pt - 1, 0, 8) + 20 * taset)
 SELECT CASE tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset)
  CASE 1 TO 4
-  menu(11) = menu(11) + STR(this) + " Tiles"
+  menu(11) = menu(11) + STR(ta_temp) + " Tiles"
  CASE 5
-  menu(11) = menu(11) + STR(this) + " Ticks"
+  menu(11) = menu(11) + STR(ta_temp) + " Ticks"
  CASE 6
-  menu(11) = menu(11) + tag_condition_caption(this, , "Never")
+  menu(11) = menu(11) + tag_condition_caption(ta_temp, , "Never")
  CASE ELSE
   menu(11) = menu(11) + "N/A"
 END SELECT
 RETRACE
 
 forcebounds:
-FOR i = 0 TO 8
- j = bound(i, 0, 8) + 20 * taset
- tastuf(2 + j) = bound(tastuf(2 + j), 0, 7)
- tastuf(11 + j) = bound(tastuf(11 + j), llim(tastuf(2 + j)), ulim(tastuf(2 + j)))
+FOR i as integer = 0 TO 8
+ forcebounds_tmp = bound(i, 0, 8) + 20 * taset
+ tastuf(2 + forcebounds_tmp) = bound(tastuf(2 + forcebounds_tmp), 0, 7)
+ tastuf(11 + forcebounds_tmp) = bound(tastuf(11 + forcebounds_tmp), llim(tastuf(2 + forcebounds_tmp)), ulim(tastuf(2 + forcebounds_tmp)))
 NEXT i
 RETRACE
 
@@ -600,12 +625,16 @@ DIM sample as TileMap
 DIM tilesetview as TileMap
 DIM tanim_state(1) as TileAnimState
 DIM tileset as Frame ptr = NULL
+DIM tog as integer
+DIM csr as integer
+DIM x as integer
+DIM y as integer
 
 tileset = frame_to_tileset(vpages(3))
 
 cleantilemap tilesetview, 16, 3
-FOR y = 0 TO 2
- FOR x = 0 TO 15
+FOR y as integer = 0 TO 2
+ FOR x as integer = 0 TO 15
   writeblock tilesetview, x, y, tastuf(20 * taset) + x + y * 16
  NEXT
 NEXT
@@ -682,13 +711,13 @@ area(1).y = 160
 area(1).w = 320
 area(1).h = 32
 'TOOLS (more at 21+)
-FOR i = 0 TO 5
+FOR i as integer = 0 TO 5
  area(2 + i).x = 4 + i * 9
  area(2 + i).y = 32
  area(2 + i).w = 8
  area(2 + i).h = 8
 NEXT i
-FOR i = 0 TO 3
+FOR i as integer = 0 TO 3
  area(12 + i).x = 4 + i * 9
  area(12 + i).y = 42
  area(12 + i).w = 8
@@ -726,7 +755,7 @@ area(19).y = 76
 area(19).w = 8
 area(19).h = 8
 area(19).hidecursor = NO
-FOR i = 0 TO 1  'mark and clone
+FOR i as integer = 0 TO 1  'mark and clone
  area(21 + i).x = 49 + i * 9
  area(21 + i).y = 42
  area(21 + i).w = 8
@@ -764,7 +793,7 @@ END IF
 
 loadmxs mapfile, pagenum, vpages(3)
 'pick block to draw/import/default
-bnum = 0
+DIM bnum as integer = 0
 setkeys
 DO
  setwait 17, 70
@@ -784,7 +813,7 @@ DO
   bnum = (mouse.y \ 20) * 16 + mouse.x \ 20
  END IF
  IF tmode <> 3 OR keyval(scCtrl) = 0 THEN
-  movedcsr = NO
+  DIM movedcsr as integer = NO
   IF slowkey(scLeft, 100) THEN bnum = (bnum + 159) MOD 160: movedcsr = YES
   IF slowkey(scRight, 100) THEN bnum = (bnum + 1) MOD 160: movedcsr = YES
   IF slowkey(scUp, 100) THEN bnum = (bnum + 144) MOD 160: movedcsr = YES
@@ -797,7 +826,7 @@ DO
  END IF
  IF tmode = 3 THEN
   '--pass mode shortcuts
-  FOR i = 0 TO 7
+  FOR i as integer = 0 TO 7
    IF keyval(scCtrl) > 0 OR i > 3 THEN
     IF keyval(pastogkey(i)) > 1 THEN
      ts.defaultwalls[bnum] XOR= 1 SHL i
@@ -840,8 +869,8 @@ DO
   edgeprint "Tile " & bnum, 0, IIF(bnum < 112, 190, 0), uilook(uiText), dpage
  END IF
  IF tmode = 3 THEN
-  FOR o = 0 TO 9
-   FOR i = 0 TO 15
+  FOR o as integer = 0 TO 9
+   FOR i as integer = 0 TO 15
     IF (ts.defaultwalls[i + o * 16] AND 1) THEN rectangle i * 20, o * 20, 20, 3, uilook(uiMenuItem + tog), dpage
     IF (ts.defaultwalls[i + o * 16] AND 2) THEN rectangle i * 20 + 17, o * 20, 3, 20, uilook(uiMenuItem + tog), dpage
     IF (ts.defaultwalls[i + o * 16] AND 4) THEN rectangle i * 20, o * 20 + 17, 20, 3, uilook(uiMenuItem + tog), dpage
@@ -892,7 +921,7 @@ state.allowundo = 1
 END SUB
 
 SUB readundoblock (mover(), state as TileEditState)
-FOR j = 0 TO 5
+FOR j as integer = 0 TO 5
  rectangle 270, 16 + (j * 21), 8, 8, 0, 2
 NEXT j
 copymapblock mover(), 280, 10 + (state.undo * 21), 2, state.tilex * 20, state.tiley * 20, 3
@@ -901,7 +930,7 @@ printstr ">", 270, 16 + (state.undo * 21), 2
 refreshtileedit mover(), state
 END SUB
 
-SUB editmaptile (ts as TileEditState, mover(), mouse as MouseInfo, area() as MouseArea)
+SUB editmaptile (ts as TileEditState, mover() as integer, mouse as MouseInfo, area() as MouseArea)
 STATIC clone as TileCloneBuffer
 DIM spot as XYPair
 
@@ -982,30 +1011,34 @@ overlay = frame_new(20, 20, , YES)
 DIM overlaypal as Palette16 ptr
 overlaypal = palette16_new()
 
-tog = 0
-tick = 0
+DIM tog as integer = 0
+DIM tick as integer = 0
 ts.lastcpos = TYPE(ts.x, ts.y)
 ts.justpainted = 0
 ts.didscroll = NO
 ts.undo = 0
 ts.allowundo = 0
 ts.delay = 10
-zox = ts.x * 8 + 4
-zoy = ts.y * 8 + 4
+DIM zox as integer = ts.x * 8 + 4
+DIM zoy as integer = ts.y * 8 + 4
+DIM zcsr as integer
+DIM overlay_use_palette as integer
+DIM fgcol as integer
+DIM bgcol as integer
 mouse.x = area(0).x + zox
 mouse.y = area(0).y + zoy
 movemouse mouse.x, mouse.y
 clearpage 2
 '--Undo boxes
-FOR i = 0 TO 5
+FOR i as integer = 0 TO 5
  edgebox 279, 9 + (i * 21), 22, 22, uilook(uiBackground), uilook(uiMenuItem), 2
 NEXT i
 refreshtileedit mover(), ts
 textcolor uilook(uiMenuItem), 0
 printstr ">", 270, 16 + (ts.undo * 21), 2
 '--Draw master palette
-FOR j = 0 TO 7
- FOR i = 0 TO 15
+FOR j as integer = 0 TO 7
+ FOR i as integer = 0 TO 15
   rectangle i * 10, j * 4 + 160, 10, 4, j * 16 + i, 2
   rectangle i * 10 + 160, j * 4 + 160, 10, 4, j * 16 + i + 128, 2
  NEXT i
@@ -1064,7 +1097,7 @@ DO
  END IF
  '---KEYBOARD SHORTCUTS FOR TOOLS------------
  IF keyval(scCtrl) = 0 THEN
-  FOR i = 0 TO UBOUND(toolinfo)
+  FOR i as integer = 0 TO UBOUND(toolinfo)
    IF keyval(toolinfo(i).shortcut) > 1 THEN
     tileedit_set_tool ts, toolinfo(), i
    END IF
@@ -1130,7 +1163,7 @@ DO
  CASE 13 TO 16
   IF mouse.clicks AND mouseLeft THEN fliptile mover(), ts
  END SELECT
- FOR i = 0 TO UBOUND(toolinfo)
+ FOR i as integer = 0 TO UBOUND(toolinfo)
   IF toolinfo(i).areanum = ts.zone - 1 THEN
    IF mouse.clicks AND mouseLeft THEN
     tileedit_set_tool ts, toolinfo(), i
@@ -1139,7 +1172,7 @@ DO
  NEXT i
  '--mouse over undo
  IF mouse.x >= 280 AND mouse.x < 300 THEN
-  FOR i = 0 TO 5
+  FOR i as integer = 0 TO 5
    IF mouse.y >= (10 + (i * 21)) AND mouse.y < (30 + (i * 21)) THEN
     IF (mouse.clicks AND mouseLeft) ANDALSO ts.allowundo THEN
      ts.undo = i
@@ -1171,8 +1204,8 @@ DO
   END IF
  END IF
  IF keyval(scBackspace) > 1 OR keyval(scLeftBracket) > 1 OR keyval(scRightBracket) > 1 THEN fliptile mover(), ts
- cy = (ts.curcolor \ 16) MOD 8
- cx = (ts.curcolor AND 15) + (ts.curcolor \ 128) * 16
+ DIM cy as integer = (ts.curcolor \ 16) MOD 8
+ DIM cx as integer = (ts.curcolor AND 15) + (ts.curcolor \ 128) * 16
  ts.lastcpos = TYPE<XYPair>(ts.x, ts.y)
 
  '--Draw screen (Some of the editor is predrawn to page 2)
@@ -1195,8 +1228,8 @@ DO
  IF ts.tool = clone_tool AND tog = 0 THEN
   IF clone.exists = YES THEN
    overlay_use_palette = NO  'Don't use the palette, so colour 0 is drawn transparently
-   FOR i = 0 TO clone.size.y - 1
-    FOR j = 0 TO clone.size.x - 1
+   FOR i as integer = 0 TO clone.size.y - 1
+    FOR j as integer = 0 TO clone.size.x - 1
      spot.x = ts.x - clone.offset.x + j
      spot.y = ts.y - clone.offset.y + i
      IF ts.readjust = YES THEN
@@ -1232,14 +1265,15 @@ DO
  printstr toolinfo(ts.tool).name, 8, 8, dpage
  printstr "Tool", 8, 16, dpage
  printstr "Undo", 274, 1, dpage
- FOR i = 0 TO UBOUND(toolinfo)
-  fgcol = uilook(uiMenuItem): bgcol = uilook(uiDisabledItem)
+ FOR i as integer = 0 TO UBOUND(toolinfo)
+  fgcol = uilook(uiMenuItem)
+  bgcol = uilook(uiDisabledItem)
   IF ts.tool = i THEN fgcol = uilook(uiText): bgcol = uilook(uiMenuItem)
   IF ts.zone - 1 = toolinfo(i).areanum THEN bgcol = uilook(uiSelectedDisabled)
   textcolor fgcol, bgcol
   printstr toolinfo(i).icon, area(toolinfo(i).areanum).x, area(toolinfo(i).areanum).y, dpage
  NEXT i
- FOR i = 0 TO 3
+ FOR i as integer = 0 TO 3
   textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF ts.zone = 13 + i THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
   printstr CHR(7 + i), 4 + i * 9, 42, dpage
  NEXT i
@@ -1259,7 +1293,7 @@ DO
   printstr CHR(26), 36, 76, dpage
  END IF
  IF ts.gotmouse THEN
-  c = zcsr
+  DIM c as integer = zcsr
   IF c = -1 THEN
    c = ts.drawcursor
    IF ts.hidemouse THEN c = -2
@@ -1331,14 +1365,14 @@ SELECT CASE ts.tool
   IF newkeypress THEN
    writeundoblock mover(), ts
    rectangle 0, 0, 22, 22, ts.curcolor, dpage
-   FOR i = 0 TO 19
-    FOR j = 0 TO 19
+   FOR i as integer = 0 TO 19
+    FOR j as integer = 0 TO 19
      putpixel 1 + i, 1 + j, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
     NEXT j
    NEXT i
    paintat vpages(dpage), 1 + ts.x, 1 + ts.y, ts.curcolor
-   FOR i = 0 TO 19
-    FOR j = 0 TO 19
+   FOR i as integer = 0 TO 19
+    FOR j as integer = 0 TO 19
      putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, readpixel(1 + i, 1 + j, dpage), 3
     NEXT j
    NEXT i
@@ -1356,14 +1390,14 @@ SELECT CASE ts.tool
    IF ts.hold = YES THEN
     writeundoblock mover(), ts
     rectangle 0, 0, 22, 22, uilook(uiText), dpage
-    FOR i = 0 TO 19
-     FOR j = 0 TO 19
+    FOR i as integer = 0 TO 19
+     FOR j as integer = 0 TO 19
       putpixel 1 + i, 1 + j, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
      NEXT j
     NEXT i
     ellipse vpages(dpage), 1 + ts.holdpos.x, 1 + ts.holdpos.y, ts.radius, ts.curcolor
-    FOR i = 0 TO 19
-     FOR j = 0 TO 19
+    FOR i as integer = 0 TO 19
+     FOR j as integer = 0 TO 19
       putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, readpixel(1 + i, 1 + j, dpage), 3
      NEXT j
     NEXT i
@@ -1380,14 +1414,14 @@ SELECT CASE ts.tool
   IF ts.justpainted = 0 THEN writeundoblock mover(), ts
   ts.justpainted = 3
   rectangle 19, 119, 22, 22, uilook(uiText), dpage
-  FOR i = 0 TO 19
-   FOR j = 0 TO 19
+  FOR i as integer = 0 TO 19
+   FOR j as integer = 0 TO 19
     putpixel 20 + i, 120 + j, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
    NEXT j
   NEXT i
   airbrush 20 + ts.x, 120 + ts.y, ts.airsize, ts.mist, ts.curcolor, dpage
-  FOR i = 0 TO 19
-   FOR j = 0 TO 19
+  FOR i as integer = 0 TO 19
+   FOR j as integer = 0 TO 19
     putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, readpixel(20 + i, 120 + j, dpage), 3
    NEXT j
   NEXT i
@@ -1397,8 +1431,8 @@ SELECT CASE ts.tool
    IF ts.hold = YES THEN
     clone.size.x = ABS(ts.x - ts.holdpos.x) + 1
     clone.size.y = ABS(ts.y - ts.holdpos.y) + 1
-    FOR i = 0 TO clone.size.y - 1
-     FOR j = 0 TO clone.size.x - 1
+    FOR i as integer = 0 TO clone.size.y - 1
+     FOR j as integer = 0 TO clone.size.x - 1
       clone.buf(j, i) = readpixel(small(ts.tilex * 20 + ts.x, ts.tilex * 20 + ts.holdpos.x) + j, small(ts.tiley * 20 + ts.y, ts.tiley * 20 + ts.holdpos.y) + i, 3)
      NEXT j
     NEXT i
@@ -1422,8 +1456,8 @@ SELECT CASE ts.tool
    IF ts.justpainted = 0 THEN writeundoblock mover(), ts
    ts.justpainted = 3
    IF clone.exists = YES THEN
-    FOR i = 0 TO clone.size.y - 1
-     FOR j = 0 TO clone.size.x - 1
+    FOR i as integer = 0 TO clone.size.y - 1
+     FOR j as integer = 0 TO clone.size.x - 1
       spot.x = ts.x - clone.offset.x + j + ts.adjustpos.x
       spot.y = ts.y - clone.offset.y + i + ts.adjustpos.y
       IF spot.x >= 0 AND spot.x <= 19 AND spot.y >= 0 AND spot.y <= 19 AND clone.buf(j, i) > 0 THEN
@@ -1450,15 +1484,17 @@ SUB scrolltile (mover(), ts as TileEditState, byval shiftx as integer, byval shi
  ts.didscroll = YES
 
  rectangle 0, 0, 20, 20, uilook(uiBackground), dpage
- FOR i = 0 TO 19
-  FOR j = 0 TO 19
+ DIM tempx as integer
+ DIM tempy as integer
+ FOR i as integer = 0 TO 19
+  FOR j as integer = 0 TO 19
    tempx = (i + shiftx + 20) MOD 20
    tempy = (j + shifty + 20) MOD 20
    putpixel tempx, tempy, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
   NEXT j
  NEXT i
- FOR i = 0 TO 19
-  FOR j = 0 TO 19
+ FOR i as integer = 0 TO 19
+  FOR j as integer = 0 TO 19
    putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, readpixel(i, j, dpage), 3
   NEXT j
  NEXT i
@@ -1469,19 +1505,22 @@ END SUB
 SUB fliptile (mover(), ts as TileEditState)
 writeundoblock mover(), ts
 rectangle 0, 0, 20, 20, uilook(uiBackground), dpage
-flipx = 0: flipy = 0
+DIM flipx as integer = 0
+DIM flipy as integer = 0
+DIM tempx as integer
+DIM tempy as integer
 IF (ts.zone = 13 OR ts.zone = 16) OR keyval(scLeftBracket) > 1 OR (keyval(scBackspace) > 1 AND keyval(scCtrl) = 0) THEN flipx = 19
 IF ts.zone = 14 OR ts.zone = 15 OR keyval(scRightBracket) > 1 OR (keyval(scBackspace) > 1 AND keyval(scCtrl) > 0) THEN flipy = 19
-FOR i = 0 TO 19
- FOR j = 0 TO 19
+FOR i as integer = 0 TO 19
+ FOR j as integer = 0 TO 19
   tempx = ABS(i - flipx)
   tempy = ABS(j - flipy)
   IF (ts.zone = 15 OR ts.zone = 16) OR (keyval(scLeftBrace) > 1 OR keyval(scRightBrace) > 1) THEN SWAP tempx, tempy
   putpixel tempx, tempy, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
  NEXT j
 NEXT i
-FOR i = 0 TO 19
- FOR j = 0 TO 19
+FOR i as integer = 0 TO 19
+ FOR j as integer = 0 TO 19
   putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, readpixel(i, j, dpage), 3
  NEXT j
 NEXT i
@@ -1494,12 +1533,15 @@ IF ts.gotmouse THEN
  movemouse ts.x, ts.y
 END IF
 ts.delay = 3
-previewticks = 0
+DIM previewticks as integer = 0
 IF ts.cuttileset THEN
  loadmxs game + ".til", ts.cutfrom, vpages(2)
 ELSE
  loadmxs game + ".mxs", ts.cutfrom, vpages(2)
 END IF
+DIM tog as integer
+DIM zcsr as integer
+DIM inc as integer
 setkeys
 DO
  setwait 110
@@ -1529,8 +1571,8 @@ DO
  IF keyval(scRight) AND 5 THEN ts.x = small(ts.x + inc, 300): IF ts.gotmouse THEN movemouse ts.x, ts.y
  IF enter_or_space() OR (mouse.clicks > 0 AND ts.zone < 11) THEN
   IF ts.delay = 0 THEN
-   FOR i = 0 TO 19
-    FOR j = 0 TO 19
+   FOR i as integer = 0 TO 19
+    FOR j as integer = 0 TO 19
      putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, readpixel(ts.x + i, ts.y + j, 2), 3
     NEXT j
    NEXT i
@@ -1551,8 +1593,13 @@ DO
   END IF
  END IF
  '---PICK BACKGROUND PAGE------
- oldcut = ts.cutfrom
- IF ts.cuttileset THEN maxset = gen(genMaxTile) ELSE maxset = gen(genNumBackdrops) - 1
+ DIM oldcut as integer = ts.cutfrom
+ DIM maxset as integer
+ IF ts.cuttileset THEN
+  maxset = gen(genMaxTile)
+ ELSE
+  maxset = gen(genNumBackdrops) - 1
+ END IF
  intgrabber ts.cutfrom, 0, maxset, scLeftCaret, scRightCaret
  IF ts.zone = 11 AND mouse.clicks > 0 THEN ts.cutfrom = loopvar(ts.cutfrom, 0, maxset, -1)
  IF ts.zone = 12 AND mouse.clicks > 0 THEN ts.cutfrom = loopvar(ts.cutfrom, 0, maxset, 1)
@@ -1562,7 +1609,7 @@ DO
  '----
  IF previewticks THEN
   DIM preview as Frame ptr
-  previewy = bound(ts.tiley * 20 - 20, 0, 140)
+  DIM previewy as integer = bound(ts.tiley * 20 - 20, 0, 140)
   preview = frame_new_view(vpages(3), 0, previewy, vpages(3)->w, 59)
 
   copypage 2, dpage
@@ -1611,8 +1658,8 @@ END IF
 END SUB
 
 SUB tilecopy (cutnpaste(), ts as TileEditState)
-FOR i = 0 TO 19
- FOR j = 0 TO 19
+FOR i as integer = 0 TO 19
+ FOR j as integer = 0 TO 19
   cutnpaste(i, j) = readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3)
  NEXT j
 NEXT i
@@ -1621,8 +1668,8 @@ END SUB
 
 SUB tilepaste (cutnpaste(), ts as TileEditState)
 IF ts.canpaste THEN
- FOR i = 0 TO 19
-  FOR j = 0 TO 19
+ FOR i as integer = 0 TO 19
+  FOR j as integer = 0 TO 19
    putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, cutnpaste(i, j), 3
   NEXT j
  NEXT i
@@ -1632,16 +1679,14 @@ END SUB
 
 SUB tiletranspaste (cutnpaste(), ts as TileEditState)
 IF ts.canpaste THEN
- FOR i = 0 TO 19
-  FOR j = 0 TO 19
+ FOR i as integer = 0 TO 19
+  FOR j as integer = 0 TO 19
    IF cutnpaste(i, j) THEN putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, cutnpaste(i, j), 3
   NEXT j
  NEXT i
  IF slave_channel <> NULL_CHANNEL THEN storemxs game + ".til", ts.tilesetnum, vpages(3)
 END IF
 END SUB
-
-OPTION EXPLICIT '======== FIXME: move this up as code gets cleaned up =====================
 
 SUB sprite (byval xw as integer, byval yw as integer, byref sets as integer, byval perset as integer, byval soff as integer, info() as string, byval zoom as integer, byval fileset as integer, byval fullset as integer=NO, byval cursor_start as integer=0, byval cursor_top as integer=0)
 STATIC ss_save as SpriteEditStatic
@@ -1857,7 +1902,7 @@ EXIT SUB
 
 END SUB '----END of sprite()
 
-SUB spriteedit_clip (placer(), ss as SpriteEditState)
+SUB spriteedit_clip (placer() as integer, ss as SpriteEditState)
  'clip possibly rotated sprite buffer to sprite's frame size
  DIM holdscreen as integer
  holdscreen = allocatepage
@@ -1866,7 +1911,7 @@ SUB spriteedit_clip (placer(), ss as SpriteEditState)
  freepage holdscreen
 END SUB
 
-SUB writeundospr (placer(), ss as SpriteEditState, is_rotate as integer=NO)
+SUB writeundospr (placer() as integer, ss as SpriteEditState, is_rotate as integer=NO)
  IF placer(0) <> ss.wide OR placer(1) <> ss.high THEN
   IF is_rotate THEN
    '--if we haven't done anything since the last rotate, skip this undo write entirely
@@ -2124,19 +2169,19 @@ SUB init_sprite_zones(area() as MouseArea, ss as SpriteEditState)
 
 END SUB
 
-SUB spriteedit_save_all_you_see(top, sets, ss as SpriteEditState, soff, placer(), workpal(), poffset())
+SUB spriteedit_save_all_you_see(byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, placer() as integer, workpal() as integer, poffset() as integer)
  FOR j as integer = top TO top + ss.at_a_time
   spriteedit_save_what_you_see(j, top, sets, ss, soff, placer(), workpal(), poffset()) 
  NEXT j
 END SUB
 
-SUB spriteedit_load_all_you_see(top, sets, ss as SpriteEditState, soff, placer(), workpal(), poffset())
+SUB spriteedit_load_all_you_see(byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, placer() as integer, workpal() as integer, poffset() as integer)
  FOR j as integer = top TO top + ss.at_a_time
   spriteedit_load_what_you_see(j, top, sets, ss, soff, placer(), workpal(), poffset())
  NEXT j
 END SUB
 
-SUB spriteedit_load_what_you_see(j, top, sets, ss as SpriteEditState, soff, placer(), workpal(), poffset())
+SUB spriteedit_load_what_you_see(byval j as integer, byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, placer() as integer, workpal() as integer, poffset() as integer)
  DIM i as integer
  getpal16 workpal(), j - top, poffset(j)
  IF j <= sets THEN
@@ -2149,7 +2194,7 @@ SUB spriteedit_load_what_you_see(j, top, sets, ss as SpriteEditState, soff, plac
  END IF
 END SUB
 
-SUB spriteedit_save_what_you_see(j, top, sets, ss as SpriteEditState, soff, placer(), workpal(), poffset())
+SUB spriteedit_save_what_you_see(byval j as integer, byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, placer() as integer, workpal() as integer, poffset() as integer)
  DIM i as integer
  IF j <= sets THEN
   setpicstuf buffer(), ss.setsize, 2
@@ -2933,7 +2978,7 @@ getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
 RETRACE
 END SUB
 
-SUB spriteedit_scroll (placer(), ss as SpriteEditState, byval shiftx as integer, byval shifty as integer)
+SUB spriteedit_scroll (placer() as integer, ss as SpriteEditState, byval shiftx as integer, byval shifty as integer)
  'Save an undo before the first of a consecutive scrolls
  IF shiftx = 0 AND shifty = 0 THEN EXIT SUB
  IF ss.didscroll = NO THEN writeundospr placer(), ss
