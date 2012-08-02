@@ -619,7 +619,7 @@ FUNCTION isbit (bb() as integer, byval w as integer, byval b as integer) as inte
  END IF
 END FUNCTION
 
-FUNCTION scriptname (byval num as integer, byval trigger as integer = 0) as string
+FUNCTION scriptname (byval num as integer) as string
 DIM a as string
 
 #ifdef IS_GAME
@@ -630,8 +630,8 @@ DIM a as string
 #endif
 
 DIM buf(19) as integer
-IF num >= 16384 AND trigger > 0 THEN
- IF loadrecord (buf(), workingdir + SLASH + "lookup" + STR(trigger) + ".bin", 20, num - 16384, NO) THEN
+IF num >= 16384 THEN
+ IF loadrecord (buf(), workingdir + SLASH + "lookup1.bin", 20, num - 16384, NO) THEN
   DIM sname as string = readbinstring(buf(), 1, 36)
   IF buf(0) THEN
    a = sname

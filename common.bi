@@ -58,7 +58,7 @@ DECLARE SUB center_edgeboxstyle (byval x as integer, byval y as integer, byval w
 DECLARE SUB edgebox OVERLOAD (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval col as integer, byval bordercol as integer, byval p as integer, byval trans as RectTransTypes=transOpaque, byval border as integer=-1, byval fuzzfactor as integer=50)
 DECLARE SUB edgebox OVERLOAD (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval col as integer, byval bordercol as integer, byval fr as Frame Ptr, byval trans as RectTransTypes=transOpaque, byval border as integer=-1, byval fuzzfactor as integer=50)
 DECLARE FUNCTION isbit (bb() as integer, byval w as integer, byval b as integer) as integer
-DECLARE FUNCTION scriptname (byval num as integer, byval trigger as integer = 0) as string
+DECLARE FUNCTION scriptname (byval num as integer) as string
 DECLARE Function seconds2str(byval sec as integer, f as string = " %m: %S") as string
 
 DECLARE SUB loaddefaultpals (byval fileset as integer, poffset() as integer, byval sets as integer)

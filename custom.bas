@@ -788,7 +788,7 @@ SUB shop_menu_update(byref shopst as ShopEditState, shopbuf() as integer)
  shopst.menu(2) = "Name: " & shopst.name
  shopst.menu(5) = "Inn Price: " & shopbuf(18)
  IF readbit(shopbuf(), 17, 3) = 0 THEN shopst.menu(5) = "Inn Price: N/A"
- shopst.menu(6) = "Inn Script: " & scriptname(shopbuf(19), plottrigger)
+ shopst.menu(6) = "Inn Script: " & scriptname(shopbuf(19))
  IF readbit(shopbuf(), 17, 0) ORELSE readbit(shopbuf(), 17, 1) ORELSE readbit(shopbuf(), 17, 2) THEN
   shopst.havestuf = YES
  ELSE

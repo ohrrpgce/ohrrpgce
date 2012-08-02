@@ -2023,7 +2023,7 @@ SUB update_menu_editor_menu(byval record as integer, edmenu as MenuDef, menu as 
  append_menu_item edmenu, "Minimum width: " & zero_default(menu.min_chars, "Automatic")
  append_menu_item edmenu, "Maximum width: " & zero_default(menu.max_chars, "None")
  append_menu_item edmenu, "Border size: " & zero_default(menu.bordersize)
- append_menu_item edmenu, "On-close script: " & scriptname(menu.on_close, plottrigger)
+ append_menu_item edmenu, "On-close script: " & scriptname(menu.on_close)
  IF menu.esc_menu = 0 THEN
   cap = "just closes this menu"
  ELSE
@@ -2074,7 +2074,7 @@ SUB update_detail_menu(detail as MenuDef, mi as MenuDefItem)
    CASE 2
     .caption = .caption & " " & getmenuname(mi.sub_t)
    CASE 4
-    .caption = "Subtype: " & scriptname$(mi.sub_t, plottrigger)
+    .caption = "Subtype: " & scriptname(mi.sub_t)
    CASE ELSE
     .caption = "Subtype: " & mi.sub_t
   END SELECT

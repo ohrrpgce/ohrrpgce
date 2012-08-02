@@ -890,12 +890,12 @@ SUB deletetemps
 END SUB
 
 '--A similar function exists in customsubs.bas for custom. it differs only in error-reporting
-FUNCTION decodetrigger (byval trigger as integer, byval trigtype as integer) as integer
+FUNCTION decodetrigger (byval trigger as integer) as integer
  REDIM buf(19) as integer
- 'debug "decoding " + STR(trigger) + " type " + STR(trigtype)
+ 'debug "decoding " + STR(trigger)
  decodetrigger = trigger  'default
  IF trigger >= 16384 THEN
-  DIM fname as string = workingdir & SLASH & "lookup" & trigtype & ".bin"
+  DIM fname as string = workingdir & SLASH & "lookup1.bin"
   IF loadrecord (buf(), fname, 20, trigger - 16384) THEN
    decodetrigger = buf(0)
    IF buf(0) = 0 THEN

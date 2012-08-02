@@ -1054,7 +1054,7 @@ FUNCTION get_menu_item_caption (mi as MenuDefItem, menu as MenuDef) as STRING
    CASE 3 ' Text Box
     cap = "Text Box " & mi.sub_t
    CASE 4 ' Run Script
-    cap = scriptname(mi.sub_t, plottrigger)
+    cap = scriptname(mi.sub_t)
   END SELECT
  END IF
  IF menu.edit_mode = YES AND LEN(TRIM(cap)) = 0 THEN cap = "[BLANK]" 

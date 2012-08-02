@@ -49,7 +49,7 @@ DECLARE SUB reloadmap_passmap(byval merge as integer)
 DECLARE SUB reloadmap_foemap()
 DECLARE SUB reloadmap_zonemap()
 DECLARE SUB deletetemps
-DECLARE FUNCTION decodetrigger (byval trigger as integer, byval trigtype as integer) as integer
+DECLARE FUNCTION decodetrigger (byval trigger as integer) as integer
 DECLARE SUB debug_npcs ()
 DECLARE SUB npc_debug_display ()
 DECLARE FUNCTION game_setoption(opt as string, arg as string) as integer

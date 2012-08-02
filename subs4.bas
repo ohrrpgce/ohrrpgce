@@ -188,7 +188,7 @@ FOR i = 0 TO 1
   CASE 0
    tmp$ = "dismount"
   CASE ELSE
-   tmp$ = "script " + scriptname$(ABS(veh(offset(10 + i))), plottrigger)
+   tmp$ = "script " + scriptname$(ABS(veh(offset(10 + i))))
  END SELECT
  IF i = 0 THEN menu(10 + i) = "Use button: " + tmp$'12
  IF i = 1 THEN menu(10 + i) = "Menu button: " + tmp$'13
@@ -200,7 +200,7 @@ SELECT CASE veh(offset(13))
  CASE 0
   tmp$ = "[script/textbox]"
  CASE IS < 0
-  tmp$ = "run script " + scriptname$(ABS(veh(offset(13))), plottrigger)
+  tmp$ = "run script " + scriptname(ABS(veh(offset(13))))
  CASE IS > 0
   tmp$ = "text box " & veh(offset(13))
 END SELECT
@@ -210,7 +210,7 @@ SELECT CASE veh(offset(14))
  CASE 0
   tmp$ = "[script/textbox]"
  CASE IS < 0
-  tmp$ = "run script " + scriptname$(ABS(veh(offset(14))), plottrigger)
+  tmp$ = "run script " + scriptname(ABS(veh(offset(14))))
  CASE IS > 0
   tmp$ = "text box " & veh(offset(14))
 END SELECT
@@ -230,7 +230,7 @@ menu(2) = "game-over plotscript"
 menu(3) = "load-game plotscript"
 scrname(0) = ""
 FOR i = 1 TO 3
- scrname(i) = ": " + scriptname$(gen(scriptgenoff(i)), plottrigger)
+ scrname(i) = ": " + scriptname(gen(scriptgenoff(i)))
 NEXT
 
 pt = 0
@@ -249,7 +249,7 @@ DO
   IF enter_or_space() THEN
    scrname(pt) = ": " & scriptbrowse_string(gen(scriptgenoff(pt)), plottrigger, menu(pt))
   ELSEIF scrintgrabber(gen(scriptgenoff(pt)), 0, 0, scLeft, scRight, 1, plottrigger) THEN
-   scrname(pt) = ": " + scriptname$(gen(scriptgenoff(pt)), plottrigger)
+   scrname(pt) = ": " + scriptname(gen(scriptgenoff(pt)))
   END IF
  END IF
  clearpage dpage

@@ -240,7 +240,8 @@ SUB addtrigger (scrname$, id, triggers AS TRIGGERSET)
 END SUB
 
 SUB importscripts (f$)
- DIM triggers(1 TO 15) AS triggerset, triggercount(15), temp AS SHORT
+ DIM triggers as TriggerSet
+ DIM triggercount as integer, temp as short
  
  'Under the best conditions this check is redundant, but it is still good to check anyway...
  IF NOT isfile(f$) THEN
@@ -285,12 +286,11 @@ SUB importscripts (f$)
    OPEN tmpdir + "scripts.txt" FOR INPUT AS #fptr
   END IF
 
-  'load in existing trigger tables
-  FOR i = 1 TO 15
-   WITH triggers(i)
+  'load in existing trigger table
+  WITH triggers
     fh = 0
     .size = 0
-    fname$ = workingdir + SLASH + "lookup" + STR$(i) + ".bin"
+    fname$ = workingdir + SLASH + "lookup1.bin"
     IF isfile(fname$) THEN
      fh = FREEFILE
      OPEN fname$ FOR BINARY AS #fh
@@ -312,8 +312,7 @@ SUB importscripts (f$)
      NEXT
      CLOSE fh
     END IF
-   END WITH
-  NEXT
+  END WITH
 
   '--save a temporary backup copy of plotscr.lst
   IF isfile(workingdir & SLASH & "plotscr.lst") THEN
@@ -353,9 +352,9 @@ SUB importscripts (f$)
    IF buffer(0) > gen(genMaxRegularScript) AND buffer(0) < 16384 THEN gen(genMaxRegularScript) = buffer(0)
 
    'process trigger
-   IF trigger > 0 AND trigger < 16 THEN
-    addtrigger names, id, triggers(trigger)
-    triggercount(trigger) += 1
+   IF trigger <> 0 THEN
+    addtrigger names, id, triggers
+    triggercount += 1
    END IF
 
    'display progress
@@ -365,21 +364,19 @@ SUB importscripts (f$)
    END IF
   LOOP
 
-  'output the updated trigger tables
-  FOR i = 1 TO 15
-   WITH triggers(i)
+  'output the updated trigger table
+  WITH triggers
     FOR j = 0 TO .size - 1
      IF BIT(.usedbits[j \ 32], j MOD 32) = 0 THEN .trigs[j].id = 0
      buffer(0) = .trigs[j].id
      writebinstring .trigs[j].name, buffer(), 1, 36
-     storerecord buffer(), workingdir + SLASH + "lookup" + STR$(i) + ".bin", 20, j
+     storerecord buffer(), workingdir + SLASH + "lookup1.bin", 20, j
      .trigs[j].DESTRUCTOR()
     NEXT
 
     DEALLOCATE(.trigs)
     DEALLOCATE(.usedbits)
-   END WITH
-  NEXT
+  END WITH
 
   CLOSE #fptr
   IF dotbin THEN safekill tmpdir & "scripts.bin" ELSE safekill tmpdir & "scripts.txt"
@@ -829,7 +826,7 @@ SUB textbox_update_conditional_menu(BYREF box AS TextBox, menu() AS STRING)
   CASE 0
    menu(1) = " use [text box or script] instead"
   CASE IS < 0
-   menu(1) = " run " & scriptname(-box.instead, plottrigger) & " instead"
+   menu(1) = " run " & scriptname(-box.instead) & " instead"
   CASE IS > 0
    menu(1) = " jump to text box " & box.instead & " instead"
  END SELECT
@@ -879,7 +876,7 @@ SUB textbox_update_conditional_menu(BYREF box AS TextBox, menu() AS STRING)
  menu(21) = textbox_condition_caption(box.after_tag, "AFTER")
  SELECT CASE box.after
   CASE 0 :      menu(22) = " use [text box or script] next"
-  CASE IS < 0 : menu(22) = " run " & scriptname(-box.after, plottrigger) & " next"
+  CASE IS < 0 : menu(22) = " run " & scriptname(-box.after) & " next"
   CASE IS > 0 : menu(22) = " jump to text box " & box.after & " next"
  END SELECT
 END SUB
@@ -930,13 +927,13 @@ SUB update_textbox_editor_main_menu (BYREF box AS TextBox, menu() AS STRING)
    IF box.after >= 0 THEN
     menu(6) = "Next: Box " & box.after
    ELSE
-    menu(6) = "Next: script " & scriptname$(ABS(box.after), plottrigger)
+    menu(6) = "Next: script " & scriptname(ABS(box.after))
    END IF
   CASE ELSE
    IF box.after >= 0 THEN
     menu(6) = "Next: Box " & box.after & " (conditional)"
    ELSE
-    menu(6) = "Next: script " & scriptname$(ABS(box.after), plottrigger) & " (conditional)"
+    menu(6) = "Next: script " & scriptname(ABS(box.after)) & " (conditional)"
    END IF
  END SELECT
 END SUB
@@ -1601,7 +1598,7 @@ SUB textbox_connection_captions(BYREF node AS TextboxConnectNode, id AS INTEGER,
   END IF
  ELSE
   node.lines(0) = topcation & " " & "SCRIPT"
-  preview_line = scriptname(ABS(id), plottrigger)
+  preview_line = scriptname(ABS(id))
   node.lines(1) = LEFT(preview_line, 13)
   node.lines(2) = MID(preview_line, 13, 13)
  END IF

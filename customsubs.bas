@@ -1129,7 +1129,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
 
  itemname = load_item_name(npcdata.item, 0, 0)
  boxpreview = textbox_preview_line(npcdata.textbox)
- scrname = scriptname(npcdata.script, plottrigger)
+ scrname = scriptname(npcdata.script)
  vehiclename = load_vehicle_name(npcdata.vehicle - 1)
 
  setkeys
@@ -1192,7 +1192,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
     IF enter_or_space() THEN
      scrname = scriptbrowse_string(npcdata.script, plottrigger, "NPC use plotscript")
     ELSEIF scrintgrabber(npcdata.script, 0, 0, scLeft, scRight, 1, plottrigger) THEN
-     scrname = scriptname(npcdata.script, plottrigger)
+     scrname = scriptname(npcdata.script)
     END IF
    CASE 13
     intgrabber(npcdata.scriptarg, lnpc(state.pt), unpc(state.pt))
@@ -1563,7 +1563,7 @@ FUNCTION export_textboxes (filename as string, metadata() as integer) as integer
     PRINT #fh, "Instead Tag: " & box.instead_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.instead_tag, , "Never")) & ")"
     PRINT #fh, "Instead Box: " & box.instead;
     IF box.instead < 0 THEN
-     PRINT #fh, " (Plotscript " & scriptname(box.instead * -1, plottrigger) & ")"
+     PRINT #fh, " (Plotscript " & scriptname(box.instead * -1) & ")"
     ELSE
      PRINT #fh, " (Textbox)"
     END IF
@@ -1572,7 +1572,7 @@ FUNCTION export_textboxes (filename as string, metadata() as integer) as integer
     PRINT #fh, "Next Tag: " & box.after_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.after_tag, , "Never")) & ")"
     PRINT #fh, "Next Box: " & box.after;
     IF box.after < 0 THEN
-     PRINT #fh, " (Plotscript " & scriptname(box.after * -1, plottrigger) & ")"
+     PRINT #fh, " (Plotscript " & scriptname(box.after * -1) & ")"
     ELSE
      PRINT #fh, " (Textbox)"
     END IF
@@ -2251,34 +2251,32 @@ FUNCTION scriptbrowse_string (byref trigger as integer, byval triggertype as int
  DIM j as integer
 
  DIM tempstr as string
- tempstr = scriptname(trigger, triggertype)
+ tempstr = scriptname(trigger)
  IF tempstr <> "[none]" AND LEFT(tempstr, 1) = "[" THEN firstscript = 2 ELSE firstscript = 1
 
- IF triggertype = 1 THEN
-  'plotscripts
-  fh = FREEFILE
-  OPEN workingdir + SLASH + "plotscr.lst" FOR BINARY as #fh
-  'numberedlast = firstscript + LOF(fh) \ 40 - 1
-  numberedlast = firstscript + gen(genNumPlotscripts) - 1
+ 'Look through lists of definescript scripts too
+ fh = FREEFILE
+ OPEN workingdir + SLASH + "plotscr.lst" FOR BINARY as #fh
+ 'numberedlast = firstscript + LOF(fh) \ 40 - 1
+ numberedlast = firstscript + gen(genNumPlotscripts) - 1
 
-  REDIM scriptnames(numberedlast) as string, scriptids(numberedlast)
+ REDIM scriptnames(numberedlast) as string, scriptids(numberedlast)
 
-  i = firstscript
-  FOR j as integer = firstscript TO numberedlast
-   loadrecord localbuf(), fh, 20
-   IF localbuf(0) < 16384 THEN
-    scriptids(i) = localbuf(0)
-    scriptnames(i) = STR(localbuf(0)) + " " + readbinstring(localbuf(), 1, 36)
-    i += 1
-   END IF
-  NEXT
-  numberedlast = i - 1
+ i = firstscript
+ FOR j as integer = firstscript TO numberedlast
+  loadrecord localbuf(), fh, 20
+  IF localbuf(0) < 16384 THEN
+   scriptids(i) = localbuf(0)
+   scriptnames(i) = STR(localbuf(0)) + " " + readbinstring(localbuf(), 1, 36)
+   i += 1
+  END IF
+ NEXT
+ numberedlast = i - 1
 
-  CLOSE #fh
- END IF
+ CLOSE #fh
 
  fh = FREEFILE
- OPEN workingdir + SLASH + "lookup" + STR(triggertype) + ".bin" FOR BINARY as #fh
+ OPEN workingdir + SLASH + "lookup1.bin" FOR BINARY as #fh
  scriptmax = numberedlast + LOF(fh) \ 40
 
  IF scriptmax < firstscript THEN
@@ -2477,49 +2475,49 @@ END FUNCTION
 SUB seekscript (byref temp as integer, byval seekdir as integer, byval triggertype as integer)
  'temp = -1 means scroll to last script
  'returns 0 when scrolled past first script, -1 when went past last
+ 'triggertype not used (yet?)
 
  DIM buf(19) as integer
  DIM plotids(gen(genMaxRegularScript)) as integer
  DIM recordsloaded as integer = 0
- DIM screxists as integer = 0
+ DIM screxists as integer = NO
 
  DIM fh as integer = FREEFILE
- OPEN workingdir & SLASH & "lookup" & triggertype & ".bin" FOR BINARY as #fh
- DIM triggernum as integer = LOF(fh) \ 40
- IF temp = -1 THEN temp = triggernum + 16384
+ OPEN workingdir & SLASH & "lookup1.bin" FOR BINARY as #fh
+ DIM num_triggers as integer = LOF(fh) \ 40
+ IF temp = -1 THEN temp = num_triggers + 16384
 
  DO
   temp += seekdir
   IF temp > gen(genMaxRegularScript) AND temp < 16384 THEN
    IF seekdir > 0 THEN
     temp = 16384
-   ELSEIF triggertype = plottrigger THEN
-    temp = gen(genMaxRegularScript)
    ELSE
-    temp = 0
+    temp = gen(genMaxRegularScript)
    END IF
   END IF
   IF temp <= 0 THEN EXIT DO
-  IF temp >= triggernum + 16384 THEN
+  IF temp >= num_triggers + 16384 THEN
    temp = -1
    EXIT DO
   END IF
   'check script exists, else keep looking
-  IF temp < 16384 AND triggertype = plottrigger THEN
+  IF temp < 16384 THEN
    IF plotids(temp) THEN
-    screxists = -1
+    screxists = YES
    ELSE
+    ' Find out which script IDs < 16384 are used (do this just once)
     WHILE recordsloaded < gen(genNumPlotscripts)
      loadrecord buf(), workingdir + SLASH + "plotscr.lst", 20, recordsloaded
      recordsloaded += 1
-     IF buf(0) = temp THEN screxists = -1: EXIT WHILE
-     IF buf(0) <= gen(genMaxRegularScript) THEN plotids(buf(0)) = -1
+     IF buf(0) = temp THEN screxists = YES: EXIT WHILE
+     IF buf(0) <= gen(genMaxRegularScript) THEN plotids(buf(0)) = YES
     WEND
    END IF
   END IF
   IF temp >= 16384 THEN
    loadrecord buf(), fh, 20, temp - 16384
-   IF buf(0) THEN screxists = -1
+   IF buf(0) THEN screxists = YES
   END IF
   IF screxists THEN EXIT DO
  LOOP
@@ -2777,11 +2775,11 @@ SUB script_usage_list ()
 END SUB
 
 '--A similar function exists in yetmore2.bas for game. it differs only in error-reporting
-FUNCTION decodetrigger (trigger as integer, trigtype as integer) as integer
+FUNCTION decodetrigger (trigger as integer) as integer
  DIM buf(19) as integer
  DIM fname as string
  IF trigger >= 16384 THEN
-  fname = workingdir & SLASH & "lookup" & trigtype & ".bin"
+  fname = workingdir & SLASH & "lookup1.bin"
   IF loadrecord (buf(), fname, 20, trigger - 16384) THEN
    RETURN buf(0)
   ELSE
@@ -2816,10 +2814,10 @@ PRIVATE FUNCTION check_broken_script_trigger(byref trig as integer, description 
  IF trig <= 0 THEN RETURN NO ' No script trigger
  '--decode script trigger
  DIM id as integer
- id = decodetrigger(trig, plottrigger)
+ id = decodetrigger(trig)
  '--Check for missing new-style script
  IF id = 0 THEN
-  str_array_append missing_script_trigger_list(), description & " " & scriptname(trig, plottrigger) & " missing. " & caption 
+  str_array_append missing_script_trigger_list(), description & " " & scriptname(trig) & " missing. " & caption 
  ELSEIF id < 16384 THEN
   '--now check for missing old-style scripts
   IF int_array_find(script_ids_list(), id) <> -1 THEN RETURN NO 'Found okay

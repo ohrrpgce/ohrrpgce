@@ -65,7 +65,7 @@ DECLARE SUB visit_scripts(byval visit as FnScriptVisitor)
 DECLARE SUB gather_script_usage(list() as string, byval id as integer, byval trigger as integer=0, byref meter as integer, byval meter_times as integer=1, box_instead_cache() as integer, box_after_cache() as integer, box_preview_cache() as string)
 DECLARE SUB script_usage_list ()
 DECLARE SUB script_broken_trigger_list()
-DECLARE FUNCTION decodetrigger (trigger as integer, trigtype as integer) as integer
+DECLARE FUNCTION decodetrigger (trigger as integer) as integer
 DECLARE SUB autofix_broken_old_scripts()
 DECLARE FUNCTION sublist (s() as string, helpkey as string="", byval x as integer=0, byval y as integer=0, byval page as integer=-1) as integer
 DECLARE SUB edit_global_text_strings()

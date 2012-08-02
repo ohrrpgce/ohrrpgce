@@ -2027,7 +2027,7 @@ SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER, zmap as ZoneMa
 
  DIM gmapscr(5) AS STRING
  FOR i AS INTEGER = 0 TO 4
-  gmapscr(i) = scriptname(gmap(gmapscrof(i)), plottrigger)
+  gmapscr(i) = scriptname(gmap(gmapscrof(i)))
  NEXT i
 
  'default out-of-bounds walkabout layering to prevent crashes on corrupted general map data
@@ -2068,7 +2068,7 @@ SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER, zmap as ZoneMa
     IF enter_or_space() THEN
      gmapscr(scridx) = scriptbrowse_string(gmap(idx), plottrigger, "plotscript")
     ELSEIF scrintgrabber(gmap(idx), 0, 0, scLeft, scRight, 1, plottrigger) THEN
-     gmapscr(scridx) = scriptname(gmap(idx), plottrigger)
+     gmapscr(scridx) = scriptname(gmap(idx))
     END IF
    CASE 10' Harm tile color
     intgrabber gmap(idx), gdmin(idx), gdmax(idx)

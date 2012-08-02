@@ -1249,7 +1249,7 @@ SUB trigger_script (byval id as integer, byval double_trigger_check as integer, 
  END IF
 
  WITH *last_queued_script
-  IF trigger <> 0 THEN id = decodetrigger(id, trigger)
+  IF trigger <> 0 THEN id = decodetrigger(id)
   .id = id
   .scripttype = scripttype
   .log_line = scriptname(id) & "("
@@ -1481,7 +1481,7 @@ FUNCTION runscript (byval id as integer, byval newcall as integer, byval double_
 'double_trigger_check: whether "no double-triggering" should take effect
 
 DIM n as integer
-IF trigger <> 0 THEN n = decodetrigger(id, trigger) ELSE n = id
+IF trigger <> 0 THEN n = decodetrigger(id) ELSE n = id
 
 IF n = 0 THEN
  runscript = 2 '--quiet failure (though decodetrigger might have shown a scripterr)
