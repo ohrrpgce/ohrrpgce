@@ -481,7 +481,10 @@ NEXT i
 END FUNCTION
 
 SUB setanimpattern (tastuf() as integer, taset as integer, tilesetnum as integer)
-DIM menu(12) as string, stuff(7) as string, llim(7), ulim(7)
+DIM menu(12) as string
+DIM stuff(7) as string
+DIM llim(7) as integer
+DIM ulim(7) as integer
 menu(0) = "Previous Menu"
 stuff(0) = "end of animation"
 stuff(1) = "up"
@@ -619,7 +622,7 @@ RETRACE
 
 END SUB
 
-SUB testanimpattern (tastuf(), taset)
+SUB testanimpattern (tastuf() as integer, byref taset as integer)
 
 DIM sample as TileMap
 DIM tilesetview as TileMap
@@ -688,9 +691,12 @@ RETRACE
 
 END SUB
 
-SUB picktiletoedit (tmode, pagenum, mapfile as string)
-STATIC cutnpaste(19, 19), oldpaste
-DIM ts as TileEditState, mover(12), area(24) as MouseArea
+SUB picktiletoedit (byref tmode as integer, byref pagenum as integer, mapfile as string)
+STATIC cutnpaste(19, 19) as integer
+STATIC oldpaste as integer
+DIM ts as TileEditState
+DIM mover(12) as integer
+DIM area(24) as MouseArea
 DIM mouse as MouseInfo
 ts.tilesetnum = pagenum
 ts.drawframe = frame_new(20, 20, , YES)
@@ -770,7 +776,8 @@ area(24).y = 42
 area(24).w = 8
 area(24).h = 8
 
-DIM pastogkey(7), bitmenu(10) as string
+DIM pastogkey(7) as integer
+DIM bitmenu(10) as string
 IF tmode = 3 THEN
  pastogkey(0) = scUp
  pastogkey(1) = scRight
@@ -906,12 +913,12 @@ frame_unload @ts.drawframe
 unhidemousecursor
 END SUB
 
-SUB refreshtileedit (mover(), state as TileEditState)
+SUB refreshtileedit (mover() as integer, state as TileEditState)
 copymapblock mover(), state.tilex * 20, state.tiley * 20, 3, 280, 10 + (state.undo * 21), 2
 frame_draw vpages(3), NULL, -state.tilex * 20, -state.tiley * 20, , NO, state.drawframe  'Blit the tile onto state.drawframe
 END SUB
 
-SUB writeundoblock (mover(), state as TileEditState)
+SUB writeundoblock (mover() as integer, state as TileEditState)
 rectangle 270, 16 + (state.undo * 21), 8, 8, 0, 2
 state.undo = loopvar(state.undo, 0, 5, 1)
 copymapblock mover(), state.tilex * 20, state.tiley * 20, 3, 280, 10 + (state.undo * 21), 2
@@ -920,7 +927,7 @@ printstr ">", 270, 16 + (state.undo * 21), 2
 state.allowundo = 1
 END SUB
 
-SUB readundoblock (mover(), state as TileEditState)
+SUB readundoblock (mover() as integer, state as TileEditState)
 FOR j as integer = 0 TO 5
  rectangle 270, 16 + (j * 21), 8, 8, 0, 2
 NEXT j
@@ -1324,7 +1331,7 @@ SUB tileedit_set_tool (ts as TileEditState, toolinfo() as ToolInfoType, byval to
  ts.drawcursor = toolinfo(ts.tool).cursor + 1
 END SUB
 
-SUB clicktile (mover(), ts as TileEditState, byval newkeypress as integer, byref clone as TileCloneBuffer)
+SUB clicktile (mover() as integer, ts as TileEditState, byval newkeypress as integer, byref clone as TileCloneBuffer)
 DIM spot as XYPair
 
 IF ts.delay > 0 THEN EXIT SUB
@@ -1477,7 +1484,7 @@ SELECT CASE ts.tool
 END SELECT
 END SUB
 
-SUB scrolltile (mover(), ts as TileEditState, byval shiftx as integer, byval shifty as integer)
+SUB scrolltile (mover() as integer, ts as TileEditState, byval shiftx as integer, byval shifty as integer)
  'Save an undo before the first of a consecutive scrolls
  IF shiftx = 0 AND shifty = 0 THEN EXIT SUB
  IF ts.didscroll = NO THEN writeundoblock mover(), ts
@@ -1502,7 +1509,7 @@ SUB scrolltile (mover(), ts as TileEditState, byval shiftx as integer, byval shi
  rectangle 0, 0, 20, 20, uilook(uiBackground), dpage
 END SUB
 
-SUB fliptile (mover(), ts as TileEditState)
+SUB fliptile (mover() as integer, ts as TileEditState)
 writeundoblock mover(), ts
 rectangle 0, 0, 20, 20, uilook(uiBackground), dpage
 DIM flipx as integer = 0
@@ -1657,7 +1664,7 @@ IF ts.gotmouse THEN
 END IF
 END SUB
 
-SUB tilecopy (cutnpaste(), ts as TileEditState)
+SUB tilecopy (cutnpaste() as integer, ts as TileEditState)
 FOR i as integer = 0 TO 19
  FOR j as integer = 0 TO 19
   cutnpaste(i, j) = readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3)
@@ -1666,7 +1673,7 @@ NEXT i
 ts.canpaste = 1
 END SUB
 
-SUB tilepaste (cutnpaste(), ts as TileEditState)
+SUB tilepaste (cutnpaste() as integer, ts as TileEditState)
 IF ts.canpaste THEN
  FOR i as integer = 0 TO 19
   FOR j as integer = 0 TO 19
@@ -1677,7 +1684,7 @@ IF ts.canpaste THEN
 END IF 
 END SUB
 
-SUB tiletranspaste (cutnpaste(), ts as TileEditState)
+SUB tiletranspaste (cutnpaste() as integer, ts as TileEditState)
 IF ts.canpaste THEN
  FOR i as integer = 0 TO 19
   FOR j as integer = 0 TO 19
@@ -1721,9 +1728,9 @@ WITH ss
  .previewpos.y = 119
 END WITH
 
-DIM placer(2 + (ss.wide * ss.high * ss.perset) \ 4)
-DIM workpal(8 * (ss.at_a_time + 1))
-REDIM poffset(large(sets, ss.at_a_time))
+DIM placer(2 + (ss.wide * ss.high * ss.perset) \ 4) as integer
+DIM workpal(8 * (ss.at_a_time + 1)) as integer
+REDIM poffset(large(sets, ss.at_a_time)) as integer
 DIM as integer do_paste = 0
 DIM as integer paste_transparent = 0
 DIM as integer debug_palettes = 0
@@ -2313,7 +2320,7 @@ SUB spriteedit_import16(byref ss as SpriteEditState, byref ss_save as SpriteEdit
  frame_draw impsprite, 0, 0, 0, 1, 0, holdscreen
 
  'Temporaraly update the palette. This will be done again after the transparent color is chosen
- DIM temppal(7)
+ DIM temppal(7) as integer
  '--first copy the old palette in the current slot
  FOR i as integer = 0 To 7
   temppal(i) = workpal((state.pt - state.top) * 8 + i)
@@ -2420,7 +2427,7 @@ END SUB
 SUB sprite_editor(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, state as MenuState, soff as integer, workpal() as integer, poffset() as integer, info() as string, byval sets as integer)
  'spriteage
 
- DIM placer(2 + (ss.wide * ss.high * ss.perset) \ 4)
+ DIM placer(2 + (ss.wide * ss.high * ss.perset) \ 4) as integer
  DIM mouse as MouseInfo
 
  DIM pclip(8) as integer
