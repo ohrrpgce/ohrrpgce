@@ -58,6 +58,7 @@ if 'profile' in ARGUMENTS:
     CFLAGS.append ('-pg')
     CXXFLAGS.append ('-pg')
     FB_g = True
+    GCC_strip = False
 if 'scriptprofile' in ARGUMENTS:
     FBFLAGS += ['-d','SCRIPTPROFILE']
 if ARGUMENTS.get ('valgrind', 0):
@@ -507,8 +508,12 @@ Options:
   music=BACKEND       Music backend. Options:
                         """ + " ".join (music_map.keys ()) + """
                       Current (default) value: """ + "+".join (music) + """
-  debug=0|1           Debugging build: with -exx and without optimisation.
-                      Set to 0 to force building without -exx.
+  debug=0|1           Debugging builds:
+                      Default: with or without -exx (FB error checking) depending
+                               on platform, with C/C++ optimisation
+                      debug=0: without -exx, strip executable.
+                      debug=1: with -exx and without C/C++ optimisation
+                      In all cases, compile with -g
   valgrind=1          valgrinding build.
   profile=1           Profiling build for gprof.
   scriptprofile=1     Script profiling build.
