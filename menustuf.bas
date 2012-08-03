@@ -599,7 +599,7 @@ FOR i as integer = 0 to 1
  gam.hero(target).stat.max.sta(i) = target_obj.stat.max.sta(i)
 NEXT i
 
-IF readbit(gen(), genBits2, 15) = NO THEN  '"Don't reset stat maxs after OOB attack"
+IF readbit(gen(), genBits2, 15) = NO THEN  '"Don't reset max stats after OOB attack"
  '--Then update just the max for the other stats
  '--this kinda sucks but it is consistent with the way outside of battle cure has always worked.
  '--Its need so that items which permanently change stats out of battle can work, but it's

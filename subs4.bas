@@ -1630,7 +1630,7 @@ SUB gendata ()
     bitname(28) = "Harm tiles harm non-caterpillar heroes"
     bitname(29) = "Attacks will ignore extra hits stat"
     bitname(30) = "Don't divide experience between heroes"
-    bitname(31) = "Don't reset stat maxs after OOB attack"
+    bitname(31) = "Don't reset max stats after OOB attack"
     bittemp(0) = gen(genBits)
     bittemp(1) = gen(genBits2)
     bittemp(2) = gen(genBits2+1)

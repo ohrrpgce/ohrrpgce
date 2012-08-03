@@ -3,7 +3,7 @@ WHAT IS NEW?
 ??? ?? 2012 [Beelzebufo]
 
   * New Features
-    * General preference bitset "Don't reset stat maxs after OOB attack"
+    * General preference bitset "Don't reset max stats after OOB attack"
       to prevent stat maximum values from being altered by attacks and
       items outside of battle [Ralph]
 
