@@ -3,8 +3,13 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
-'$DYNAMIC
-DEFINT A-Z
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
+#endif
 
 #include "config.bi"
 #include "allmodex.bi"
@@ -31,21 +36,36 @@ DECLARE SUB battleoptionsmenu ()
 DECLARE SUB equipmergemenu ()
 DECLARE FUNCTION importmasterpal (f as string, byval palnum as integer) as integer
 DECLARE SUB titlescreenbrowse ()
-DECLARE SUB import_convert_mp3(BYREF mp3 AS STRING, BYREF oggtemp AS STRING)
-DECLARE SUB import_convert_wav(BYREF wav AS STRING, BYREF oggtemp AS STRING)
+DECLARE SUB import_convert_mp3(byref mp3 as string, byref oggtemp as string)
+DECLARE SUB import_convert_wav(byref wav as string, byref oggtemp as string)
 DECLARE SUB inputpasw ()
-DECLARE FUNCTION dissolve_type_caption(n AS INTEGER) AS STRING
-DECLARE SUB nearestui (mimicpal, newpal() as RGBcolor, newui())
-DECLARE SUB remappalette (oldmaster() as RGBcolor, oldpal(), newmaster() as RGBcolor, newpal())
-
-REM $STATIC
+DECLARE FUNCTION dissolve_type_caption(n as integer) as string
+DECLARE SUB nearestui (byval mimicpal as integer, newpal() as RGBcolor, newui() as integer)
+DECLARE SUB remappalette (oldmaster() as RGBcolor, oldpal() as integer, newmaster() as RGBcolor, newpal() as integer)
+DECLARE SUB importsong_save_song_data(sname as string, byval snum as integer)
+DECLARE SUB importsong_exportsong(songfile as string, bamfile as string, file_ext as string)
+DECLARE SUB importsong_get_song_info (sname as string, songfile as string, byval snum as integer, file_ext as string, menu() as string, byref optionsbottom as integer)
+DECLARE SUB importsong_import_song_file (sname as string, songfile as string, byval snum as integer)
+DECLARE SUB importsfx_get_sfx_info(sname as string, sfxfile as string, byval snum as integer, file_ext as string, menu() as string)
+DECLARE SUB importsfx_save_sfx_data(sname as string, byval snum as integer)
+DECLARE SUB importsfx_exportsfx(sfxfile as string, file_ext as string)
+DECLARE SUB importsfx_importsfxfile(sname as string, sfxfile as string, byval snum as integer, file_ext as string)
 
 SUB vehicles
 
-DIM menu(20) AS STRING, veh(39), min(39), max(39), offset(39), vehbit(15) AS STRING, tiletype(8) AS STRING
-DIM vehname AS STRING = ""
+DIM menu(20) as string
+DIM veh(39) as integer
+DIM min(39) as integer
+DIM max(39) as integer
+DIM offset(39) as integer
+DIM vehbit(15) as string
+DIM tiletype(8) as string
+DIM vehname as string = ""
 
-pt = 0: csr = 0: top = 0
+DIM pt as integer = 0
+DIM csr as integer = 0
+DIM top as integer = 0
+DIM tog as integer
 
 vehbit(0) = "Pass through walls"
 vehbit(1) = "Pass through NPCs"
@@ -68,7 +88,7 @@ tiletype(7) = "neither A nor B"
 tiletype(8) = "everywhere"
 
 min(3) = 0: max(3) = 5: offset(3) = 8             'speed
-FOR i = 0 TO 3
+FOR i as integer = 0 TO 3
  min(5 + i) = 0: max(5 + i) = 8: offset(5 + i) = 17 + i
 NEXT i
 min(9) = -1: max(9) = 255: offset(9) = 11 'battles
@@ -96,7 +116,7 @@ DO
     EXIT DO
    END IF
   CASE 1
-   savept = pt
+   DIM savept as integer = pt
    IF intgrabber_with_addset(pt, 0, gen(genMaxVehicle), 32767, "vehicle") THEN
     SaveVehicle game + ".veh", veh(), vehname, savept
     IF pt > gen(genMaxVehicle) THEN  '--adding set
@@ -109,9 +129,9 @@ DO
     GOSUB vehmenu
    END IF
   CASE 2
-   oldname$ = vehname
+   DIM oldname as string = vehname
    strgrabber vehname, 15
-   IF oldname$ <> vehname THEN GOSUB vehmenu
+   IF oldname <> vehname THEN GOSUB vehmenu
   CASE 3, 5 TO 9, 15
    IF intgrabber(veh(offset(csr)), min(csr), max(csr)) THEN
     GOSUB vehmenu
@@ -134,7 +154,7 @@ DO
    END IF
   CASE 13, 14
    IF enter_or_space() THEN
-    temptrig = large(0, -veh(offset(csr)))
+    DIM temptrig as integer = large(0, -veh(offset(csr)))
     scriptbrowse temptrig, plottrigger, "vehicle plotscript"
     veh(offset(csr)) = -temptrig
     GOSUB vehmenu
@@ -156,8 +176,11 @@ menu(0) = "Previous Menu"
 menu(1) = "Vehicle " & pt
 menu(2) = "Name: " + vehname
 
-IF veh(offset(3)) = 3 THEN tmp$ = "10" ELSE tmp$ = STR(veh(8))
-menu(3) = "Speed: " + tmp$
+IF veh(offset(3)) = 3 THEN
+ menu(3) = "Speed: 10"
+ELSE
+ menu(3) = "Speed: " & veh(8)
+END IF
 
 menu(4) = "Vehicle Bitsets..." '9,10
 
@@ -165,56 +188,58 @@ menu(5) = "Override walls: "
 menu(6) = "Blocked by: "
 menu(7) = "Mount from: "
 menu(8) = "Dismount to: "
-FOR i = 0 TO 3
+FOR i as integer = 0 TO 3
  menu(5 + i) = menu(5 + i) + tiletype(bound(veh(offset(5 + i)), 0, 8))
 NEXT i
 
+DIM tmp as string
+
 SELECT CASE veh(offset(9))
  CASE -1
-  tmp$ = "disabled"
+  tmp = "disabled"
  CASE 0
-  tmp$ = "enabled"
+  tmp = "enabled"
  CASE ELSE
-  tmp$ = "formation set " & veh(offset(9))
+  tmp = "formation set " & veh(offset(9))
 END SELECT
-menu(9) = "Random Battles: " + tmp$ '11
+menu(9) = "Random Battles: " + tmp '11
 
-FOR i = 0 TO 1
+FOR i as integer = 0 TO 1
  SELECT CASE veh(offset(10 + i))
   CASE -2
-   tmp$ = "disabled"
+   tmp = "disabled"
   CASE -1
-   tmp$ = "menu"
+   tmp = "menu"
   CASE 0
-   tmp$ = "dismount"
+   tmp = "dismount"
   CASE ELSE
-   tmp$ = "script " + scriptname$(ABS(veh(offset(10 + i))))
+   tmp = "script " + scriptname(ABS(veh(offset(10 + i))))
  END SELECT
- IF i = 0 THEN menu(10 + i) = "Use button: " + tmp$'12
- IF i = 1 THEN menu(10 + i) = "Menu button: " + tmp$'13
+ IF i = 0 THEN menu(10 + i) = "Use button: " + tmp'12
+ IF i = 1 THEN menu(10 + i) = "Menu button: " + tmp'13
 NEXT i
 
 menu(12) = tag_set_caption(veh(offset(12)), "If riding set tag")
 
 SELECT CASE veh(offset(13))
  CASE 0
-  tmp$ = "[script/textbox]"
+  tmp = "[script/textbox]"
  CASE IS < 0
-  tmp$ = "run script " + scriptname(ABS(veh(offset(13))))
+  tmp = "run script " + scriptname(ABS(veh(offset(13))))
  CASE IS > 0
-  tmp$ = "text box " & veh(offset(13))
+  tmp = "text box " & veh(offset(13))
 END SELECT
-menu(13) = "On Mount: " + tmp$
+menu(13) = "On Mount: " + tmp
 
 SELECT CASE veh(offset(14))
  CASE 0
-  tmp$ = "[script/textbox]"
+  tmp = "[script/textbox]"
  CASE IS < 0
-  tmp$ = "run script " + scriptname(ABS(veh(offset(14))))
+  tmp = "run script " + scriptname(ABS(veh(offset(14))))
  CASE IS > 0
-  tmp$ = "text box " & veh(offset(14))
+  tmp = "text box " & veh(offset(14))
 END SELECT
-menu(14) = "On Dismount: " + tmp$
+menu(14) = "On Dismount: " + tmp
 
 menu(15) = "Elevation: " & veh(offset(15)) & " pixels"
 RETRACE
@@ -222,19 +247,21 @@ RETRACE
 END SUB
 
 SUB generalscriptsmenu ()
-DIM menu(3) AS STRING, scrname(3) AS STRING
-DIM scriptgenoff(3) = {0, 41, 42, 57}
+DIM menu(3) as string
+DIM scrname(3) as string
+DIM scriptgenoff(3) as integer = {0, 41, 42, 57}
 menu(0) = "Previous Menu"
 menu(1) = "new-game plotscript"
 menu(2) = "game-over plotscript"
 menu(3) = "load-game plotscript"
 scrname(0) = ""
-FOR i = 1 TO 3
+FOR i as integer = 1 TO 3
  scrname(i) = ": " + scriptname(gen(scriptgenoff(i)))
 NEXT
 
-pt = 0
-menusize = 3
+DIM pt as integer = 0
+DIM menusize as integer = 3
+DIM tog as integer
 setkeys
 DO
  tog = tog XOR 1
@@ -253,7 +280,7 @@ DO
   END IF
  END IF
  clearpage dpage
- FOR i = 0 TO menusize
+ FOR i as integer = 0 TO menusize
   IF pt = i THEN textcolor uilook(uiSelectedItem + tog), 0 ELSE textcolor uilook(uiMenuItem), 0
   printstr menu(i) + scrname(i), 0, i * 8, dpage
  NEXT i
@@ -287,7 +314,7 @@ SUB generalmusicsfxmenu ()
   menu(14) = "Can't Buy Sound: "
   menu(15) = "Can't Sell Sound: "
 
-  FOR i = 1 to num
+  FOR i as integer = 1 to num
     IF gen(index(i)) > 0 THEN
       IF i <= lastmusicitem THEN
         disp(i) = menu(i) & getsongname(gen(index(i)) - 1, -1)  'prefixes number
@@ -298,8 +325,8 @@ SUB generalmusicsfxmenu ()
       disp(i) = menu(i) & "None"
     END IF
   NEXT
-  pt = 0
-  menusize = num
+  DIM pt as integer = 0
+  DIM menusize as integer = num
   setkeys
   DO
     setwait 55
@@ -310,7 +337,7 @@ SUB generalmusicsfxmenu ()
     usemenu pt, 0, 0, menusize, 24
 
     IF enter_or_space() THEN
-      SELECT CASE AS CONST pt
+      SELECT CASE as CONST pt
       CASE 0
         EXIT DO
       CASE 1 TO lastmusicitem
@@ -320,7 +347,7 @@ SUB generalmusicsfxmenu ()
       END SELECT
     END IF
 
-    SELECT CASE AS CONST pt
+    SELECT CASE as CONST pt
     CASE 1 TO lastmusicitem
       IF zintgrabber(gen(index(pt)), -1, gen(genMaxSong)) THEN
         pausesong
@@ -352,7 +379,7 @@ SUB generalmusicsfxmenu ()
   resetsfx
 END SUB
 
-SUB delete_song (BYVAL songnum as integer, songfile AS STRING)
+SUB delete_song (byval songnum as integer, songfile as string)
  #IFDEF __FB_WIN32__
   'Only needed on windows, and not currently implemented on unix anyway
   IF slave_channel <> NULL_CHANNEL THEN
@@ -363,26 +390,27 @@ SUB delete_song (BYVAL songnum as integer, songfile AS STRING)
    END IF
   END IF
  #ENDIF
- safekill songfile$
+ safekill songfile
  'FIXME: handle deleting from rpgdirs (bug 247)... and the same for soundeffects
 END SUB
 
 SUB importsong ()
-STATIC default AS STRING
-DIM oggtemp AS STRING
-DIM menu(10) AS STRING, submenu(2) AS STRING
+DIM oggtemp as string
+DIM menu(10) as string
 menu(0) = "Previous Menu"
 menu(3) = "Import Song..."
 menu(4) = "Export Song..."
 menu(5) = "Delete Song"
 
-csr = 1
-snum = 0
-sname$ = ""
-songfile$ = ""
-bamfile$ = ""
-optionsbottom = 0
-GOSUB getsonginfo
+DIM csr as integer = 1
+DIM snum as integer = 0
+DIM sname as string = ""
+DIM songfile as string = ""
+DIM bamfile as string = ""
+DIM optionsbottom as integer = 0
+DIM newsong as integer
+DIM file_ext as string
+importsong_get_song_info sname, songfile, snum, file_ext, menu(), optionsbottom
 
 setkeys YES
 DO
@@ -393,48 +421,51 @@ DO
 
  usemenu csr, 0, 0, optionsbottom, 22
 
- IF csr = 2 AND songfile$ <> "" THEN
-  strgrabber sname$, 30
-  menu(2) = "Name: " + sname$
+ IF csr = 2 AND songfile <> "" THEN
+  strgrabber sname, 30
+  menu(2) = "Name: " + sname
  ELSE
   '-- check for switching song
   newsong = snum
   IF intgrabber(newsong, 0, gen(genMaxSong), scLeftCaret, scRightCaret) THEN
-   GOSUB ssongdata
+   importsong_save_song_data sname, snum
    snum = newsong
-   GOSUB getsonginfo
+   importsong_get_song_info sname, songfile, snum, file_ext, menu(), optionsbottom
   END IF
   IF keyval(scLeft) > 1 AND snum > 0 THEN
-   GOSUB ssongdata
+   importsong_save_song_data sname, snum
    snum = snum - 1
-   GOSUB getsonginfo
+   importsong_get_song_info sname, songfile, snum, file_ext, menu(), optionsbottom
   END IF
   IF keyval(scRight) > 1 AND snum < 32767 THEN
-   GOSUB ssongdata
+   importsong_save_song_data sname, snum
    snum = snum + 1
-   IF needaddset(snum, gen(genMaxSong), "song") THEN sname$ = ""
-   GOSUB getsonginfo
+   IF needaddset(snum, gen(genMaxSong), "song") THEN sname = ""
+   importsong_get_song_info sname, songfile, snum, file_ext, menu(), optionsbottom
   END IF
  END IF
  IF enter_or_space() THEN
   IF csr = 0 THEN EXIT DO
-  IF csr = 3 THEN GOSUB importsongfile
-  IF csr = 4 AND songfile$ <> "" THEN GOSUB exportsong
-  IF csr = 5 AND songfile$ <> "" THEN  'delete song
+  IF csr = 3 THEN
+   importsong_import_song_file sname, songfile, snum
+   importsong_get_song_info sname, songfile, snum, file_ext, menu(), optionsbottom
+  END IF
+  IF csr = 4 AND songfile <> "" THEN importsong_exportsong songfile, bamfile, file_ext
+  IF csr = 5 AND songfile <> "" THEN  'delete song
    IF yesno("Really delete this song?", NO, NO) THEN
     music_stop
     'closemusic  'music_stop not always enough to cause the music backend to let go of the damn file!
     'setupmusic
-    delete_song snum, songfile$
-    safekill bamfile$
-    IF slave_channel <> NULL_CHANNEL THEN send_lump_modified_msg(songfile$)  'only need to send any valid filename for this song
-    GOSUB getsonginfo
+    delete_song snum, songfile
+    safekill bamfile
+    IF slave_channel <> NULL_CHANNEL THEN send_lump_modified_msg(songfile)  'only need to send any valid filename for this song
+    importsong_get_song_info sname, songfile, snum, file_ext, menu(), optionsbottom
    END IF
   END IF
   IF csr = 6 THEN  'delete BAM fallback
    IF yesno("Really delete this BAM song?", NO, NO) THEN
-    safekill bamfile$
-    GOSUB getsonginfo
+    safekill bamfile
+    importsong_get_song_info sname, songfile, snum, file_ext, menu(), optionsbottom
     csr = 0
    END IF
   END IF
@@ -447,168 +478,179 @@ DO
  setvispage vpage
  dowait
 LOOP
-GOSUB ssongdata
+importsong_save_song_data sname, snum
 pausesong
 EXIT SUB
 
-getsonginfo:
-pausesong
-
-'-- first job: find the song's name
-temp$ = workingdir + SLASH + "song" + STR$(snum)
-songfile$ = ""
-songtype$ = "NO FILE"
-'-- BAM special case and least desirable, so check first and override
-IF snum > 99 THEN
- IF isfile(temp$ + ".bam") THEN file_ext$ = ".bam" : songfile$ = temp$ + file_ext$ : songtype$ = "Bob's Adlib Music (BAM)"
-ELSE
- IF isfile(game + "." + STR$(snum)) THEN file_ext$ = ".bam" : songfile$ = game + "." + STR$(snum) : songtype$ = "Bob's Adlib Music (BAM)"
-END IF
-bamfile$ = songfile$
-
-IF isfile(temp$ + ".ogg") THEN
- file_ext$ = ".ogg"
- songfile$ = temp$ + file_ext$
- songtype$ = "OGG Vorbis (OGG)"
-ELSEIF isfile(temp$ + ".s3m") THEN
- file_ext$ = ".s3m"
- songfile$ = temp$ + file_ext$
- songtype$ = "Screamtracker (S3M)"
-ELSEIF isfile(temp$ + ".it") THEN
- file_ext$ = ".it"
- songfile$ = temp$ + file_ext$
- songtype$ = "Impulse Tracker (IT)"
-ELSEIF isfile(temp$ + ".xm") THEN
- file_ext$ = ".xm"
- songfile$ = temp$ + file_ext$
- songtype$ = "Extended Module (XM)"
-ELSEIF isfile(temp$ + ".mod") THEN
- file_ext$ = ".mod"
- songfile$ = temp$ + file_ext$
- songtype$ = "Module (MOD)"
-ELSEIF isfile(temp$ + ".mp3") THEN ' Obsolete. only present in some Ubersetzung WIP games
- file_ext$ = ".mp3"
- songfile$ = temp$ + file_ext$
- songtype$ = "MPEG Layer III (MP3) OBSOLETE"
-ELSEIF isfile(temp$ + ".mid") THEN
-  file_ext$ = ".mid"
-  songfile$ = temp$ + file_ext$
-  songtype$ = "MIDI Music (MID)"
-END IF
-'--add more formats here
-
-sname$ = getsongname$(snum)
-
-IF songfile$ <> "" THEN '--song exists
- loadsong songfile$
-ELSE
- sname$ = ""
-END IF
-
-menu(1) = "<- Song " + STR$(snum) + " of " + STR$(gen(genMaxSong)) + " ->"
-IF songfile$ <> "" THEN menu(2) = "Name: " + sname$ ELSE menu(2) = "-Unused-"
-menu(7) = ""
-menu(8) = "Type: " + songtype$
-menu(9) = "Filesize: " + filesize$(songfile$)
-IF bamfile$ <> songfile$ AND bamfile$ <> "" THEN
- menu(10) = "BAM fallback exists. Filesize: " + filesize$(bamfile$)
- menu(6) = "Delete BAM fallback"
- optionsbottom = 6
-ELSE
- menu(10) = ""
- menu(6) = ""
- optionsbottom = 5
-END IF
-'-- add author, length, etc, info here
-RETRACE
-
-importsongfile:
-music_stop
-'closemusic  'music_stop not always enough to cause the music backend to let go of the damn file!
-'setupmusic
-
-'browse for new song
-sourcesong$ = browse$(5, default, "", "",, "browse_import_song")
-
-'Get song name
-a$ = trimextension$(trimpath$(sourcesong$))
-
-'Convert MP3
-IF getmusictype(sourcesong$) = FORMAT_MP3 THEN
- import_convert_mp3 sourcesong$, oggtemp
-ELSE
- oggtemp = ""
-END IF
-
-'If no song was selected, go back
-IF sourcesong$ = "" THEN
- GOSUB getsonginfo 'to play the song again
- RETRACE
-END IF
-
-delete_song snum, songfile$
-
-sname$ = a$
-
-'generate lump name
-extension$ = LCASE(justextension(sourcesong$))
-IF extension$ = "bam" AND snum <= 99 THEN
- songfile$ = game + "." + STR$(snum)
-ELSE
- songfile$ = workingdir + SLASH + "song" + STR$(snum) + "." + extension$
-END IF
-
-'Copy in new lump (this implicitly sends a notification to Game if it's been spawned)
-copyfile sourcesong$, songfile$
-
-IF oggtemp <> "" THEN KILL oggtemp
-
-GOSUB ssongdata
-GOSUB getsonginfo
-RETRACE
-
-exportsong:
-query$ = "Name of file to export to?"
-IF bamfile$ <> songfile$ AND bamfile$ <> "" THEN
- submenu(0) = "Export " + file_ext$ + " file"
- submenu(1) = "Export .bam fallback file"
- submenu(2) = "Cancel"
- choice = sublist(submenu(), "export_song")
- IF choice = 1 THEN file_ext$ = ".bam" : songfile$ = bamfile$
- IF choice = 2 THEN RETRACE
-END IF
-outfile$ = inputfilename(query$, file_ext$, "", "input_file_export_song")
-IF outfile$ = "" THEN RETRACE
-copyfile songfile$, outfile$ + file_ext$
-RETRACE
-
-ssongdata:
-flusharray buffer(), dimbinsize(binSONGDATA), 0
-setpicstuf buffer(), curbinsize(binSONGDATA), -1
-writebinstring sname$, buffer(), 0, 30
-storeset workingdir + SLASH + "songdata.bin", snum, 0
-RETRACE
-
 END SUB
 
+SUB importsong_import_song_file (sname as string, songfile as string, byval snum as integer)
+ STATIC default as string
+ music_stop
+ 'closemusic  'music_stop not always enough to cause the music backend to let go of the damn file!
+ 'setupmusic
+
+ 'browse for new song
+ DIM sourcesong as string = browse(5, default, "", "",, "browse_import_song")
+
+ 'Get song name
+ DIM a as string = trimextension(trimpath(sourcesong))
+
+ 'Convert MP3
+ DIM oggtemp as string
+ IF getmusictype(sourcesong) = FORMAT_MP3 THEN
+  import_convert_mp3 sourcesong, oggtemp
+ ELSE
+  oggtemp = ""
+ END IF
+
+ 'If no song was selected, go back
+ IF sourcesong = "" THEN
+  EXIT SUB
+ END IF
+
+ delete_song snum, songfile
+
+ sname = a
+
+ 'generate lump name
+ DIM extension as string = LCASE(justextension(sourcesong))
+ IF extension = "bam" AND snum <= 99 THEN
+  songfile = game + "." & snum
+ ELSE
+  songfile = workingdir & SLASH & "song" & snum & "." & extension
+ END IF
+
+ 'Copy in new lump (this implicitly sends a notification to Game if it's been spawned)
+ copyfile sourcesong, songfile
+
+ IF oggtemp <> "" THEN KILL oggtemp
+
+ importsong_save_song_data sname, snum
+END SUB
+
+SUB importsong_get_song_info (sname as string, songfile as string, byval snum as integer, file_ext as string, menu() as string, byref optionsbottom as integer)
+ pausesong
+
+ DIM temp as string
+ '-- first job: find the song's name
+ temp = workingdir & SLASH & "song" & snum
+ songfile = ""
+ DIM songtype as string = "NO FILE"
+ '-- BAM special case and least desirable, so check first and override
+ IF snum > 99 THEN
+  IF isfile(temp & ".bam") THEN
+   file_ext = ".bam"
+   songfile = temp & file_ext
+   songtype = "Bob's Adlib Music (BAM)"
+  END IF
+ ELSE
+  IF isfile(game & "." & snum) THEN
+   file_ext = ".bam"
+   songfile = game & "." & snum
+   songtype = "Bob's Adlib Music (BAM)"
+  END IF
+ END IF
+ DIM bamfile as string = songfile
+
+ IF isfile(temp & ".ogg") THEN
+  file_ext = ".ogg"
+  songfile = temp & file_ext
+  songtype = "OGG Vorbis (OGG)"
+ ELSEIF isfile(temp & ".s3m") THEN
+  file_ext = ".s3m"
+  songfile = temp & file_ext
+  songtype = "Screamtracker (S3M)"
+ ELSEIF isfile(temp & ".it") THEN
+  file_ext = ".it"
+  songfile = temp & file_ext
+  songtype = "Impulse Tracker (IT)"
+ ELSEIF isfile(temp & ".xm") THEN
+  file_ext = ".xm"
+  songfile = temp & file_ext
+  songtype = "Extended Module (XM)"
+ ELSEIF isfile(temp & ".mod") THEN
+  file_ext = ".mod"
+  songfile = temp & file_ext
+  songtype = "Module (MOD)"
+ ELSEIF isfile(temp & ".mp3") THEN ' Obsolete. only present in some Ubersetzung WIP games
+  file_ext = ".mp3"
+  songfile = temp & file_ext
+  songtype = "MPEG Layer III (MP3) OBSOLETE"
+ ELSEIF isfile(temp & ".mid") THEN
+  file_ext = ".mid"
+  songfile = temp & file_ext
+  songtype = "MIDI Music (MID)"
+ END IF
+ '--add more formats here
+
+ sname = getsongname(snum)
+
+ IF songfile <> "" THEN '--song exists
+  loadsong songfile
+ ELSE
+  sname = ""
+ END IF
+
+ menu(1) = "<- Song " & snum & " of " & gen(genMaxSong) & " ->"
+ IF songfile <> "" THEN menu(2) = "Name: " & sname ELSE menu(2) = "-Unused-"
+ menu(7) = ""
+ menu(8) = "Type: " & songtype
+ menu(9) = "Filesize: " & filesize(songfile)
+ IF bamfile <> songfile AND bamfile <> "" THEN
+  menu(10) = "BAM fallback exists. Filesize: " & filesize(bamfile)
+  menu(6) = "Delete BAM fallback"
+  optionsbottom = 6
+ ELSE
+  menu(10) = ""
+  menu(6) = ""
+  optionsbottom = 5
+ END IF
+ '-- add author, length, etc, info here
+END SUB
+
+SUB importsong_exportsong(songfile as string, bamfile as string, file_ext as string)
+'exportsong:
+ IF bamfile <> songfile AND bamfile <> "" THEN
+  DIM submenu(2) as string
+  submenu(0) = "Export " + file_ext + " file"
+  submenu(1) = "Export .bam fallback file"
+  submenu(2) = "Cancel"
+  DIM choice as integer = sublist(submenu(), "export_song")
+  IF choice = 1 THEN file_ext = ".bam" : songfile = bamfile
+  IF choice = 2 THEN EXIT SUB
+ END IF
+ DIM query as string = "Name of file to export to?"
+ DIM outfile as string = inputfilename(query, file_ext, "", "input_file_export_song")
+ IF outfile = "" THEN EXIT SUB
+ copyfile songfile, outfile & file_ext
+END SUB
+
+SUB importsong_save_song_data(sname as string, byval snum as integer)
+ DIM songbuf(dimbinsize(binSONGDATA)) as integer
+ setpicstuf songbuf(), curbinsize(binSONGDATA), -1
+ writebinstring sname, songbuf(), 0, 30
+ storeset workingdir & SLASH & "songdata.bin", snum, 0
+END SUB
 
 SUB importsfx ()
-STATIC default AS STRING
-DIM oggtemp AS STRING
 
-DIM menu(11) AS STRING, submenu(2) AS STRING, optionsbottom
-optionsbottom = 6
+DIM menu(11) as string
+DIM submenu(2) as string
+DIM optionsbottom as integer = 6
 menu(0) = "Previous Menu"
 menu(3) = "Import Sound..."
 menu(4) = "Export Sound..."
 menu(5) = "Delete Sound"
 menu(6) = "Play Sound"
 
-csr = 1
-snum = 0
-sname$ = ""
-sfxfile$ = ""
-GOSUB getsfxinfo
+DIM csr as integer = 1
+DIM snum as integer = 0
+DIM sname as string = ""
+DIM sfxfile as string = ""
+DIM newsfx as integer
+DIM file_ext as string
+importsfx_get_sfx_info sname, sfxfile, snum, file_ext, menu()
 
 setkeys YES
 DO
@@ -619,27 +661,27 @@ DO
 
  usemenu csr, 0, 0, optionsbottom, 22
 
- IF csr = 2 AND sfxfile$ <> "" THEN
-  strgrabber sname$, 30
-  menu(2) = "Name: " + sname$
+ IF csr = 2 AND sfxfile <> "" THEN
+  strgrabber sname, 30
+  menu(2) = "Name: " + sname
  ELSE
   '-- check for switching sfx
   newsfx = snum
   IF intgrabber(newsfx, 0, gen(genMaxSFX), scLeftCaret, scRightCaret) THEN
-   GOSUB ssfxdata
+   importsfx_save_sfx_data sname, snum
    snum = newsfx
-   GOSUB getsfxinfo
+   importsfx_get_sfx_info sname, sfxfile, snum, file_ext, menu()
   END IF
   IF keyval(scLeft) > 1 AND snum > 0 THEN
-   GOSUB ssfxdata
+   importsfx_save_sfx_data sname, snum
    snum = snum - 1
-   GOSUB getsfxinfo
+   importsfx_get_sfx_info sname, sfxfile, snum, file_ext, menu()
   END IF
   IF keyval(scRight) > 1 AND snum < 32767 THEN
-   GOSUB ssfxdata
+   importsfx_save_sfx_data sname, snum
    snum = snum + 1
-   IF needaddset(snum, gen(genMaxSFX), "sfx") THEN sname$ = ""
-   GOSUB getsfxinfo
+   IF needaddset(snum, gen(genMaxSFX), "sfx") THEN sname = ""
+   importsfx_get_sfx_info sname, sfxfile, snum, file_ext, menu()
   END IF
  END IF
  IF enter_or_space() THEN
@@ -647,19 +689,20 @@ DO
   CASE 0
     EXIT DO
   CASE 3
-    GOSUB importsfxfile
+    importsfx_importsfxfile sname, sfxfile, snum, file_ext
+    importsfx_get_sfx_info sname, sfxfile, snum, file_ext, menu()
   CASE 4
-    IF sfxfile$ <> "" THEN GOSUB exportsfx
+    IF sfxfile <> "" THEN importsfx_exportsfx sfxfile, file_ext
   CASE 5
-    IF sfxfile$ <> "" THEN  'delete sfx
+    IF sfxfile <> "" THEN  'delete sfx
       IF yesno("Really delete this sound?", NO, NO) THEN
         freesfx snum
-        safekill sfxfile$
-        GOSUB getsfxinfo
+        safekill sfxfile
+        importsfx_get_sfx_info sname, sfxfile, snum, file_ext, menu()
       END IF
     END IF
   CASE 1, 6
-    IF sfxfile$ <> "" THEN 'play sfx
+    IF sfxfile <> "" THEN 'play sfx
       playsfx snum, 0
     END IF
 
@@ -673,98 +716,100 @@ DO
  setvispage vpage
  dowait
 LOOP
-GOSUB ssfxdata
+importsfx_save_sfx_data sname, snum
 
 EXIT SUB
 
-getsfxinfo:
-'-- first job: find the sfx's name
-temp$ = workingdir + SLASH + "sfx" + STR$(snum)
-sfxfile$ = ""
-sfxtype$ = "NO FILE"
 
-IF isfile(temp$ + ".ogg") THEN
- file_ext$ = ".ogg"
- sfxfile$ = temp$ + file_ext$
- sfxtype$ = "OGG Vorbis (OGG)"
-ELSEIF isfile(temp$ + ".wav") THEN ' Obsolete, only present in Pre-Ubersetzung games
- file_ext$ = ".wav"
- sfxfile$ = temp$ + file_ext$
- sfxtype$ = "Waveform (WAV) OBSOLETE"
-ELSEIF isfile(temp$ + ".mp3") THEN ' Obsolete, only present in some Ubersetzung WIP games
- file_ext$ = ".mp3"
- sfxfile$ = temp$ + file_ext$
- sfxtype$ = "MPEG Layer III (MP3) OBSOLETE"
-END IF
 
-'--add more formats here
+END SUB
 
-if sfxfile$ <> "" then
- 'playsfx snum, 0
- sname$ = getsfxname$(snum)
-ELSE '--sfx doesn't exist
- sname$ = ""
-END IF
+SUB importsfx_importsfxfile(sname as string, sfxfile as string, byval snum as integer, file_ext as string)
+ STATIC default as string
 
-menu(1) = "<- SFX " + STR$(snum) + " of " + STR$(gen(genMaxSFX)) + " ->"
-IF sfxfile$ <> "" THEN menu(2) = "Name: " + sname$ ELSE menu(2) = "-Unused-"
-menu(8) = ""
-menu(9) = "Type: " + sfxtype$
-menu(10) = "Filesize: " + filesize$(sfxfile$)
+ DIM sourcesfx as string = browse(6, default, "", "",, "browse_import_sfx")
 
-'-- add author, length, etc, info here
-RETRACE
+ '-- get name
+ DIM a as string = trimextension(trimpath(sourcesfx))
 
-importsfxfile:
+ 'Convert MP3
+ DIM oggtemp as string
+ IF getmusictype(sourcesfx) = FORMAT_MP3 THEN
+  import_convert_mp3 sourcesfx, oggtemp
+ ELSEIF getmusictype(sourcesfx) = FORMAT_WAV THEN
+  import_convert_wav sourcesfx, oggtemp
+ ELSE
+  oggtemp = ""
+ END IF
 
-sourcesfx$ = browse$(6, default, "", "",, "browse_import_sfx")
+ IF sourcesfx = "" THEN EXIT SUB
 
-'-- get name
-a$ = trimextension$(trimpath$(sourcesfx$))
+ safekill sfxfile
 
-'Convert MP3
-IF getmusictype(sourcesfx$) = FORMAT_MP3 THEN
- import_convert_mp3 sourcesfx$, oggtemp
-ELSEIF getmusictype(sourcesfx$) = FORMAT_WAV THEN
- import_convert_wav sourcesfx$, oggtemp
-ELSE
- oggtemp = ""
-END IF
+ sname = a
 
-IF sourcesfx$ = "" THEN RETRACE
+ '-- calculate lump name
+ sfxfile = workingdir & SLASH & "sfx" & snum & "." & LCASE(justextension(sourcesfx))
 
-safekill sfxfile$
+ '--copy in the new lump
+ copyfile sourcesfx, sfxfile
 
-sname$ = a$
+ IF oggtemp <> "" THEN KILL oggtemp
 
-'-- calculate lump name
-sfxfile$ = workingdir + SLASH + "sfx" + STR$(snum) + "." + LCASE(justextension$(sourcesfx$))
+ '--save and update
+ importsfx_save_sfx_data sname, snum
+END SUB
 
-'--copy in the new lump
-copyfile sourcesfx$, sfxfile$
+SUB importsfx_exportsfx(sfxfile as string, file_ext as string)
+ DIM query as string = "Name of file to export to?"
+ DIM outfile as string = inputfilename(query, file_ext, "", "input_file_export_sfx")
+ IF outfile = "" THEN EXIT SUB
+ copyfile sfxfile, outfile & file_ext
+END SUB
 
-IF oggtemp <> "" THEN KILL oggtemp
+SUB importsfx_save_sfx_data(sname as string, byval snum as integer)
+ freesfx snum
+ DIM sfxbuf(dimbinsize(binSFXDATA)) as integer
+ setpicstuf sfxbuf(), curbinsize(binSFXDATA), -1
+ writebinstring sname, sfxbuf(), 0, 30
+ storeset workingdir & SLASH & "sfxdata.bin", snum, 0
+END SUB
 
-'--save and update
-GOSUB ssfxdata
-GOSUB getsfxinfo
-RETRACE
+SUB importsfx_get_sfx_info(sname as string, sfxfile as string, byval snum as integer, file_ext as string, menu() as string)
+ '-- first job: find the sfx's name
+ DIM temp as string = workingdir & SLASH & "sfx" & snum
+ DIM sfxtype as string = "NO FILE"
 
-exportsfx:
-query$ = "Name of file to export to?"
-outfile$ = inputfilename(query$, file_ext$, "", "input_file_export_sfx")
-IF outfile$ = "" THEN RETRACE
-copyfile sfxfile$, outfile$ + file_ext$
-RETRACE
+ IF isfile(temp & ".ogg") THEN
+  file_ext = ".ogg"
+  sfxfile = temp & file_ext
+  sfxtype = "OGG Vorbis (OGG)"
+ ELSEIF isfile(temp & ".wav") THEN ' Obsolete, only present in Pre-Ubersetzung games
+  file_ext = ".wav"
+  sfxfile = temp & file_ext
+  sfxtype = "Waveform (WAV) OBSOLETE"
+ ELSEIF isfile(temp & ".mp3") THEN ' Obsolete, only present in some Ubersetzung WIP games
+  file_ext = ".mp3"
+  sfxfile = temp & file_ext
+  sfxtype = "MPEG Layer III (MP3) OBSOLETE"
+ END IF
 
-ssfxdata:
-freesfx snum
-flusharray buffer(), curbinsize(binSFXDATA) / 2, 0
-setpicstuf buffer(), curbinsize(binSFXDATA), -1
-writebinstring sname$, buffer(), 0, 30
-storeset workingdir + SLASH + "sfxdata.bin", snum, 0
-RETRACE
+ '--add more formats here
 
+ if sfxfile <> "" then
+  'playsfx snum, 0
+  sname = getsfxname(snum)
+ ELSE '--sfx doesn't exist
+  sname = ""
+ END IF
+
+ menu(1) = "<- SFX " & snum & " of " & gen(genMaxSFX) & " ->"
+ IF sfxfile <> "" THEN menu(2) = "Name: " & sname ELSE menu(2) = "-Unused-"
+ menu(8) = ""
+ menu(9) = "Type: " & sfxtype
+ menu(10) = "Filesize: " & filesize(sfxfile)
+
+ '-- add author, length, etc, info here
 END SUB
 
 SUB export_master_palette ()
@@ -792,10 +837,12 @@ SUB export_master_palette ()
 END SUB
 
 SUB masterpalettemenu
-DIM menu(8) AS STRING, oldpal
-
-csr = 1
-palnum = activepalette
+DIM menu(8) as string
+DIM oldpal as integer
+DIM csr as integer = 1
+DIM tog as integer
+DIM palnum as integer = activepalette
+DIM col as integer
 loadpalette master(), palnum
 setpal master()
 LoadUIColors uilook(), palnum
@@ -871,7 +918,7 @@ DO
 
  'draw the menu
  clearpage dpage
- FOR i = 0 TO UBOUND(menu)
+ FOR i as integer = 0 TO UBOUND(menu)
   IF (i = 7 AND palnum = gen(genMasterPal)) OR ((i = 5 OR i = 6 OR i = 8) AND palnum = activepalette) THEN
    col = uilook(uiDisabledItem)
    IF csr = i THEN col = uilook(uiSelectedDisabled + tog)
@@ -883,11 +930,11 @@ DO
   printstr menu(i), 0, i * 8, dpage
  NEXT i
 
- FOR i = 0 TO 255
+ FOR i as integer = 0 TO 255
   rectangle 34 + (i MOD 16) * 16, 78 + (i \ 16) * 7, 12, 5, i, dpage
  NEXT
  IF csr = 4 OR csr = 5 OR csr = 6 THEN
-  FOR i = 0 TO uiColors
+  FOR i as integer = 0 TO uiColors
    drawbox 33 + (uilook(i) MOD 16) * 16, 77 + (uilook(i) \ 16) * 7, 14, 7, uilook(uiHighlight + tog), 1, dpage
   NEXT
  END IF
@@ -929,10 +976,10 @@ END SUB
 
 FUNCTION importmasterpal (f as string, byval palnum as integer) as integer
 STATIC default as string
-DIM bmpd AS BitmapInfoHeader
-IF f = "" THEN f = browse$(4, default, "", "",, "browse_import_master_palette")
+DIM bmpd as BitmapInfoHeader
+IF f = "" THEN f = browse(4, default, "", "",, "browse_import_master_palette")
 IF f <> "" THEN
- IF LCASE$(justextension$(f)) = "mas" THEN
+ IF LCASE(justextension(f)) = "mas" THEN
   xbload f, buffer(), "MAS load error"
   convertpalette buffer(), master()
  ELSE
@@ -954,16 +1001,17 @@ END IF
 RETURN 0
 END FUNCTION
 
-SUB nearestui (mimicpal, newmaster() as RGBcolor, newui())
+SUB nearestui (byval mimicpal as integer, newmaster() as RGBcolor, newui() as integer)
  'finds the nearest match newui() in newpal() to mimicpal's ui colours
- DIM referencepal(255) as RGBcolor, referenceui(uiColors)
+ DIM referencepal(255) as RGBcolor
+ DIM referenceui(uiColors) as integer
  loadpalette referencepal(), mimicpal
  LoadUIColors referenceui(), mimicpal
  remappalette referencepal(), referenceui(), newmaster(), newui()
 END SUB
 
-SUB remappalette (oldmaster() as RGBcolor, oldpal(), newmaster() as RGBcolor, newpal())
- FOR i = 0 TO UBOUND(oldpal)
+SUB remappalette (oldmaster() as RGBcolor, oldpal() as integer, newmaster() as RGBcolor, newpal() as integer)
+ FOR i as integer = 0 TO UBOUND(oldpal)
   WITH oldmaster(oldpal(i))
    IF .col = newmaster(oldpal(i)).col THEN
     newpal(i) = oldpal(i)
@@ -976,9 +1024,11 @@ END SUB
 
 'FIXME:recursively enter backdrop editor instead?
 SUB titlescreenbrowse
-loadmxs game + ".mxs", gen(genTitle), vpages(2)
+loadmxs game & ".mxs", gen(genTitle), vpages(2)
 setkeys
-gcsr = 0
+DIM gcsr as integer = 0
+DIM tog as integer
+DIM col as integer
 DO
  setwait 55
  setkeys
@@ -1000,22 +1050,22 @@ DO
  IF gcsr = 0 THEN col = uilook(uiSelectedItem + tog) ELSE col = uilook(uiMenuItem)
  edgeprint "Go Back", 1, 1, col, dpage
  IF gcsr = 1 THEN col = uilook(uiSelectedItem + tog) ELSE col = uilook(uiMenuItem)
- edgeprint CHR$(27) + "Browse" + CHR$(26), 1, 11, col, dpage
+ edgeprint CHR(27) + "Browse" + CHR(26), 1, 11, col, dpage
  SWAP vpage, dpage
  setvispage vpage
  dowait
 LOOP
 END SUB
 
-SUB import_convert_mp3(BYREF mp3 AS STRING, BYREF oggtemp AS STRING)
- DIM ogg_quality AS INTEGER
+SUB import_convert_mp3(byref mp3 as string, byref oggtemp as string)
+ DIM ogg_quality as integer
  IF (pick_ogg_quality(ogg_quality)) THEN mp3 = "" : EXIT SUB
  oggtemp = tmpdir & "temp." & randint(100000) & ".ogg"
  clearpage vpage
  centerbox 160, 100, 300, 20, 4, vpage
  edgeprint "Please wait, converting to OGG...", 28, 96, uilook(uiText), vpage
  setvispage vpage
- DIM ret AS STRING = mp3_to_ogg(mp3, oggtemp, ogg_quality)
+ DIM ret as string = mp3_to_ogg(mp3, oggtemp, ogg_quality)
  IF LEN(ret) THEN
   visible_debug ret
   mp3 = ""
@@ -1030,15 +1080,15 @@ SUB import_convert_mp3(BYREF mp3 AS STRING, BYREF oggtemp AS STRING)
  mp3 = oggtemp
 END SUB
 
-SUB import_convert_wav(BYREF wav AS STRING, BYREF oggtemp AS STRING)
- DIM ogg_quality AS INTEGER
+SUB import_convert_wav(byref wav as string, byref oggtemp as string)
+ DIM ogg_quality as integer
  IF (pick_ogg_quality(ogg_quality)) THEN wav = "" : EXIT SUB
  oggtemp = tmpdir & "temp." & randint(100000) & ".ogg"
  clearpage vpage
  centerbox 160, 100, 300, 20, 4, vpage
  edgeprint "Please wait, converting to OGG...", 28, 96, uilook(uiText), vpage
  setvispage vpage
- DIM ret AS STRING = wav_to_ogg(wav, oggtemp, ogg_quality)
+ DIM ret as string = wav_to_ogg(wav, oggtemp, ogg_quality)
  IF LEN(ret) THEN
   visible_debug ret
   wav = ""
@@ -1054,9 +1104,9 @@ SUB import_convert_wav(BYREF wav AS STRING, BYREF oggtemp AS STRING)
 END SUB
 
 SUB inputpasw()
-DIM tog AS INTEGER = 0
-DIM oldpassword AS INTEGER = (checkpassword("") = 0)
-DIM pas AS STRING
+DIM tog as integer = 0
+DIM oldpassword as integer = (checkpassword("") = 0)
+DIM pas as string
 setkeys YES
 DO
  setwait 55
@@ -1095,7 +1145,7 @@ DO
 LOOP
 END SUB
 
-FUNCTION dissolve_type_caption(n AS INTEGER) AS STRING
+FUNCTION dissolve_type_caption(n as integer) as string
  SELECT CASE n
   CASE 0: RETURN "Random scatter"
   CASE 1: RETURN "Crossfade"
@@ -1112,18 +1162,15 @@ FUNCTION dissolve_type_caption(n AS INTEGER) AS STRING
  END SELECT
 END FUNCTION
 
-'======== FIXME: move this up as code gets cleaned up ===========
-OPTION EXPLICIT
-
 SUB generate_battlesystem_menu(menu() as string)
  menu(0) = "Previous Menu"
  menu(1) = "Stat Caps..."
  menu(2) = "Hero Elemental Resistance Calculation..."
 
  menu(4) = "Number of Elements: " & gen(genNumElements)
- menu(5) = "Poison Indicator: " & gen(genPoison) & " " & CHR$(gen(genPoison))
- menu(6) = "Stun Indicator: " & gen(genStun) & " " & CHR$(gen(genStun))
- menu(7) = "Mute Indicator: " & gen(genMute) & " " & CHR$(gen(genMute))
+ menu(5) = "Poison Indicator: " & gen(genPoison) & " " & CHR(gen(genPoison))
+ menu(6) = "Stun Indicator: " & gen(genStun) & " " & CHR(gen(genStun))
+ menu(7) = "Mute Indicator: " & gen(genMute) & " " & CHR(gen(genMute))
  menu(8) = "Default Enemy Dissolve: " & dissolve_type_caption(gen(genEnemyDissolve))
  menu(9) = "Damage Display Time: " & gen(genDamageDisplayTicks) & " ticks (" & seconds_estimate(gen(genDamageDisplayTicks)) & " sec)"
  menu(10) = "Damage Display Rises: " & gen(genDamageDisplayRise) & " pixels"
@@ -1139,11 +1186,12 @@ END SUB
 
 SUB battleoptionsmenu ()
  CONST maxMenu = 17
- DIM menu(maxMenu) AS STRING
- DIM min(maxMenu), max(maxMenu)
- DIM index(maxMenu)
- DIM enabled(maxMenu)
- DIM state AS MenuState
+ DIM menu(maxMenu) as string
+ DIM min(maxMenu) as integer
+ DIM max(maxMenu) as integer
+ DIM index(maxMenu) as integer
+ DIM enabled(maxMenu) as integer
+ DIM state as MenuState
  WITH state
   .size = 24
   .last = maxMenu
@@ -1165,7 +1213,7 @@ SUB battleoptionsmenu ()
  index(5) = genPoison
  index(6) = genStun
  index(7) = genMute
- FOR i AS INTEGER = 5 TO 7
+ FOR i as integer = 5 TO 7
   min(i) = 32
   max(i) = 255
  NEXT
@@ -1229,27 +1277,27 @@ END SUB
 
 SUB statcapsmenu
  CONST maxMenu = 15
- DIM m(maxMenu) AS STRING
- DIM max(maxMenu)
- DIM index(maxMenu)
- DIM state AS MenuState
+ DIM m(maxMenu) as string
+ DIM max(maxMenu) as integer
+ DIM index(maxMenu) as integer
+ DIM state as MenuState
  state.last = maxMenu
  state.size = 24
  state.need_update = YES
- DIM i AS INTEGER
+ DIM i as integer
 
  index(1) = genDamageCap
- FOR i = 2 TO 13
+ FOR i as integer = 2 TO 13
   index(i) = genStatCap + (i - 2)
  NEXT
  index(14) = genLevelCap
  index(15) = genMaxLevel
 
  max(1) = 32767
- FOR i = 2 to 3 'shut up (~snicker~)
+ FOR i as integer = 2 to 3 'shut up (~snicker~)
   max(i) = 9999 'HP + MP
  NEXT
- FOR i = 4 to 11
+ FOR i as integer = 4 to 11
   max(i) = 999 'Regular stats
  NEXT
  max(12) = 100 'MP~
@@ -1271,7 +1319,7 @@ SUB statcapsmenu
    m(0) = "Previous Menu"
    m(1) = "Damage Cap: "
    IF gen(genDamageCap) = 0 THEN m(1) += "None" ELSE m(1) &= gen(genDamageCap)
-   FOR i = 0 to 11
+   FOR i as integer = 0 to 11
     m(2 + i) = statnames(i) + " Cap: "
     IF gen(genStatCap + i) = 0 THEN m(2 + i) = m(2 + i) + "None" ELSE m(2 + i) = m(2 + i) & gen(genStatCap + i)
    NEXT
@@ -1303,7 +1351,7 @@ FUNCTION merge_elementals_example(byval exampleno as integer, example() as singl
  RETURN ret
 END FUNCTION
 
-SUB generate_equipmerge_preview(BYVAL formula as integer, menu() as string, greyed_out() as integer, ex9() as single)
+SUB generate_equipmerge_preview(byval formula as integer, menu() as string, greyed_out() as integer, ex9() as single)
  FOR i as integer = 1 TO 3
   greyed_out(i) = YES
  NEXT
@@ -1412,14 +1460,14 @@ END SUB
 
 SUB startingdatamenu
  CONST maxMenu = 4
- DIM m(maxMenu) AS STRING
- DIM max(maxMenu)
- DIM index(maxMenu)
- DIM state AS MenuState
+ DIM m(maxMenu) as string
+ DIM max(maxMenu) as integer
+ DIM index(maxMenu) as integer
+ DIM state as MenuState
  state.last = maxMenu
  state.size = 24
  state.need_update = YES
- DIM AS INTEGER lastmap = -1
+ DIM as integer lastmap = -1
 
  index(1) = genStartX
  index(2) = genStartY
@@ -1440,9 +1488,9 @@ SUB startingdatamenu
   IF state.need_update THEN
    state.need_update = NO
    IF lastmap <> gen(genStartMap) THEN
-    DIM fh AS INTEGER
+    DIM fh as integer
     fh = FREEFILE
-    OPEN maplumpname$(gen(genStartMap), "t") FOR BINARY AS #fh
+    OPEN maplumpname(gen(genStartMap), "t") FOR BINARY as #fh
     SEEK #fh, 8
     max(1) = Readshort(fh, -1) - 1 'map width
     max(2) = ReadShort(fh, -1) - 1 'map height
@@ -1466,40 +1514,41 @@ SUB startingdatamenu
  LOOP
 END SUB
 
-SUB generate_gen_menu(m$(), longname$, aboutline$)
- m$(1) = "Long Name:" + longname$
- m$(2) = "About Line:" + aboutline$
+SUB generate_gen_menu(m() as string, longname as string, aboutline as string)
+ m(1) = "Long Name:" + longname
+ m(2) = "About Line:" + aboutline
  IF gen(genMaxInventory) = 0 THEN
-  m$(12) = "Inventory size: Default (" & (last_inv_slot() \ 3) + 1 & " rows)"
+  m(12) = "Inventory size: Default (" & (last_inv_slot() \ 3) + 1 & " rows)"
  ELSE
-  m$(12) = "Inventory size: " & (Last_inv_slot() \ 3) + 1 & " rows, " & gen(genMaxInventory) + 1 & " slots"
+  m(12) = "Inventory size: " & (Last_inv_slot() \ 3) + 1 & " rows, " & gen(genMaxInventory) + 1 & " slots"
  END IF
- m$(13) = "Inventory autosort: "
+ m(13) = "Inventory autosort: "
  SELECT CASE gen(genAutosortScheme)
-  CASE 0: m$(13) += "by item type/uses"
-  CASE 1: m$(13) += "by whether usable"
-  CASE 2: m$(13) += "alphabetically"
-  CASE 3: m$(13) += "by item ID number"
-  CASE 4: m$(13) += "no reordering"
+  CASE 0: m(13) += "by item type/uses"
+  CASE 1: m(13) += "by whether usable"
+  CASE 2: m(13) += "alphabetically"
+  CASE 3: m(13) += "by item ID number"
+  CASE 4: m(13) += "no reordering"
  END SELECT
- m$(14) = "Script errors: "
+ m(14) = "Script errors: "
  SELECT CASE gen(genErrorLevel)
-  CASE 2: m$(14) += "Show all warnings"
-  CASE 3: m$(14) += "Hide nit-picking warnings"
-  CASE 4: m$(14) += "Hide all warnings"
-  CASE 5: m$(14) += "Hide errors not reported in old versions"
-  CASE 6: m$(14) += "Hide all ignoreable errors"
+  CASE 2: m(14) += "Show all warnings"
+  CASE 3: m(14) += "Hide nit-picking warnings"
+  CASE 4: m(14) += "Hide all warnings"
+  CASE 5: m(14) += "Hide errors not reported in old versions"
+  CASE 6: m(14) += "Hide all ignoreable errors"
  END SELECT
 END SUB
 
 SUB gendata ()
  CONST maxMenu = 14
- DIM m(maxMenu) AS STRING
- DIM min(maxMenu), max(maxMenu)
- DIM index(maxMenu)
- DIM enabled(maxMenu)
+ DIM m(maxMenu) as string
+ DIM min(maxMenu) as integer
+ DIM max(maxMenu) as integer
+ DIM index(maxMenu) as integer
+ DIM enabled(maxMenu) as integer
 
- DIM state AS MenuState
+ DIM state as MenuState
  WITH state
   .size = 24
   .last = maxMenu
@@ -1529,8 +1578,8 @@ SUB gendata ()
  max(14) = 6
  min(14) = 2
 
- DIM aboutline AS STRING = load_aboutline()
- DIM longname AS STRING = load_gamename()
+ DIM aboutline as string = load_aboutline()
+ DIM longname as string = load_gamename()
 
  setkeys YES
  DO
@@ -1548,8 +1597,8 @@ SUB gendata ()
   IF enter_or_space() THEN
    IF state.pt = 0 THEN EXIT DO
    IF state.pt = 3 THEN
-    DIM bittemp(2) AS INTEGER
-    DIM bitname(30) AS STRING
+    DIM bittemp(2) as integer
+    DIM bitname(30) as string
     bitname(0) = "Pause on Battle Sub-menus"
     bitname(1) = "Enable Caterpillar Party"
     bitname(2) = "Don't Restore HP on Levelup"
@@ -1602,7 +1651,7 @@ SUB gendata ()
   ELSEIF state.pt = 2 THEN
    IF strgrabber(aboutline, 38) THEN state.need_update = YES
   ELSEIF index(state.pt) = genMaxInventory THEN
-   DIM AS INTEGER temp = (gen(genMaxInventory) + 1) \ 3
+   DIM as integer temp = (gen(genMaxInventory) + 1) \ 3
    IF intgrabber(temp, min(state.pt), max(state.pt)) THEN
     gen(genMaxInventory) = temp * 3 - 1
     IF temp = 0 THEN gen(genMaxInventory) = 0
