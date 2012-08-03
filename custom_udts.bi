@@ -209,6 +209,20 @@ TYPE MapEditState
   defaultwalls as integer VECTOR VECTOR  'indexed by layer (variable length) and then by tile (always 0-159)
   menustate as MenuState     'The top-level menu state
   temptilemap as TileMap     'A temporary TileMap. Normally remains uninitialised
+  moved as integer          'used when detecting cursor movement
+  walk as integer           'used for animating NPC walking
+  
+  'Most of these could become locals after mapping gosub is broken into real subs
+  tiny as integer           'whether or not to show the tiny screen relative to map area
+  anim_newtile as integer   'used when setting animated tiles
+  anim_old as integer       'used when setting animated tiles
+  pass_overtile as integer  'used when setting pasability
+  npc_d as integer          'used when placing npcs
+  oldpos as XYPair           'used when detecting cursor movement
+  oldrel as XYPair           'used when detecting cursor movement
+  rate as XYPair             'used for fast cursor movement when holding shift
+  replace_old as integer    'used for replacing tiles
+  jig as XYPair              'used for display jiggling
 
   message as string          'Message shown at the top of the screen
   message_ticks as integer   'Remaining ticks to display message
