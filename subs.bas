@@ -3,9 +3,13 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
-'$DYNAMIC
-DEFINT A-Z
-'basic subs and functions
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
+#endif
 
 #include "config.bi"
 #include "const.bi"
@@ -24,7 +28,7 @@ DEFINT A-Z
 #include "flexmenu.bi"
 
 'Menus.bas
-DECLARE FUNCTION dissolve_type_caption(n AS INTEGER) AS STRING
+DECLARE FUNCTION dissolve_type_caption(n as integer) as string
 
 'Defined in this file:
 
@@ -33,20 +37,20 @@ DECLARE SUB formation_set_editor ()
 DECLARE sub drawformsprites(form as Formation, egraphics() as GraphicPair, byval slot as integer)
 DECLARE sub formpics(ename() as string, form as Formation, egraphics() as GraphicPair)
 
-DECLARE SUB load_item_names (item_strings() AS STRING)
-DECLARE FUNCTION item_attack_name(n AS INTEGER) AS STRING
-DECLARE SUB generate_item_edit_menu (menu() AS STRING, itembuf() AS INTEGER, csr AS INTEGER, pt AS INTEGER, item_name AS STRING, info_string AS STRING, equip_types() AS STRING, BYREF box_preview AS STRING)
+DECLARE SUB load_item_names (item_strings() as string)
+DECLARE FUNCTION item_attack_name(n as integer) as string
+DECLARE SUB generate_item_edit_menu (menu() as string, itembuf() as integer, csr as integer, pt as integer, item_name as string, info_string as string, equip_types() as string, byref box_preview as string)
 
-DECLARE SUB item_editor_equipbits(itembuf())
-DECLARE SUB item_editor_elementals(itembuf() AS INTEGER)
-DECLARE SUB item_editor_init_new(itembuf() AS INTEGER)
+DECLARE SUB item_editor_equipbits(itembuf() as integer)
+DECLARE SUB item_editor_elementals(itembuf() as integer)
+DECLARE SUB item_editor_init_new(itembuf() as integer)
 
-DECLARE SUB enforce_hero_data_limits(her AS HeroDef)
-DECLARE SUB update_hero_appearance_menu(BYREF st AS HeroEditState, menu() AS STRING, her AS HeroDef)
-DECLARE SUB update_hero_preview_pics(BYREF st AS HeroEditState, her AS HeroDef)
-DECLARE SUB animate_hero_preview(BYREF st AS HeroEditState)
-DECLARE SUB clear_hero_preview_pics(BYREF st AS HeroEditState)
-DECLARE SUB draw_hero_preview(st AS HeroEditState, her AS HeroDef)
+DECLARE SUB enforce_hero_data_limits(her as HeroDef)
+DECLARE SUB update_hero_appearance_menu(byref st as HeroEditState, menu() as string, her as HeroDef)
+DECLARE SUB update_hero_preview_pics(byref st as HeroEditState, her as HeroDef)
+DECLARE SUB animate_hero_preview(byref st as HeroEditState)
+DECLARE SUB clear_hero_preview_pics(byref st as HeroEditState)
+DECLARE SUB draw_hero_preview(st as HeroEditState, her as HeroDef)
 
 DECLARE SUB hero_editor
 DECLARE SUB hero_editor_load_hero (st as HeroEditState, her as HeroDef, byval hero_id as integer)
@@ -60,10 +64,7 @@ DECLARE SUB hero_editor_tags (byval hero_id as integer, byref hero as HeroDef)
 DECLARE SUB hero_editor_appearance (byref st as HeroEditState, byref her as HeroDef)
 DECLARE SUB hero_editor_equipment_list (byval hero_id as integer, byref her as HeroDef)
 DECLARE SUB hero_editor_equipbits (byval hero_id as integer, byval equip_type as integer)
-DECLARE SUB hero_editor_elementals(BYREF her AS HeroDef)
-
-
-REM $STATIC
+DECLARE SUB hero_editor_elementals(byref her as HeroDef)
 
 SUB clearallpages
 clearpage 0 'UPDATE as of fbc v0.20
@@ -80,7 +81,7 @@ END SUB
 
 SUB enemydata
 
-DIM elementnames() AS STRING
+DIM elementnames() as string
 getelementnames elementnames()
 
 clearallpages
@@ -88,9 +89,9 @@ clearallpages
 '-------------------------------------------------------------------------
 
 '--bitsets
-DIM ebit(64) AS STRING
+DIM ebit(64) as string
 
-FOR i = 32 TO 53
+FOR i as integer = 32 TO 53
  ebit(i) = "" 'preferable to be blank, so we can hide it
 NEXT i
 ebit(54) = "Harmed by Cure"
@@ -108,7 +109,7 @@ ebit(64) = "Ignored for ""Alone"" AI"
 '-------------------------------------------------------------------------
 
 '--record buffer
-DIM recbuf(dimbinsize(binDT1))
+DIM recbuf(dimbinsize(binDT1)) as integer
 
 CONST EnDatName = 0' to 16
 CONST EnDatStealAvail = 17
@@ -150,9 +151,10 @@ CONST EnDatElemResist = 239' to 366
 
 '-------------------------------------------------------------------------
 
-capindex = 0
-REDIM caption(-1 TO -1) AS STRING
-DIM max(26), min(26)
+DIM capindex as integer = 0
+REDIM caption(-1 TO -1) as string
+DIM max(26) as integer
+DIM min(26) as integer
 'Limit 0 is not used
 
 CONST EnLimPic = 1
@@ -163,7 +165,7 @@ max(EnLimUInt) = 32767
 
 CONST EnLimPicSize = 3
 max(EnLimPicSize) = 2
-EnCapPicSize = capindex
+DIM EnCapPicSize as integer = capindex
 addcaption caption(), capindex, "Small 34x34"
 addcaption caption(), capindex, "Medium 50x50"
 addcaption caption(), capindex, "Big 80x80"
@@ -175,9 +177,9 @@ CONST EnLimPercent = 5
 max(EnLimPercent) = 100
 
 CONST EnLimStat = 6' to 17
-FOR i = 0 TO 1:  max(EnLimStat + i) = 32767: NEXT i ' HP and MP
-FOR i = 2 TO 8:  max(EnLimStat + i) = 999:   NEXT i ' regular stats
-FOR i = 9 TO 10: max(EnLimStat + i) = 100:   NEXT i ' focus, counter
+FOR i as integer = 0 TO 1:  max(EnLimStat + i) = 32767: NEXT i ' HP and MP
+FOR i as integer = 2 TO 8:  max(EnLimStat + i) = 999:   NEXT i ' regular stats
+FOR i as integer = 9 TO 10: max(EnLimStat + i) = 100:   NEXT i ' focus, counter
 max(EnLimStat + 11) = 10        ' max hits
 
 CONST EnLimSpawn = 18
@@ -196,7 +198,7 @@ CONST EnLimStealAvail = 22
 min(EnLimStealAvail) = -1
 max(EnLimStealAvail) = 1
 addcaption caption(), capindex, "Disabled"
-EnCapStealAvail = capindex
+DIM EnCapStealAvail as integer = capindex
 addcaption caption(), capindex, "Only one"
 addcaption caption(), capindex, "Unlimited"
 
@@ -207,9 +209,9 @@ min(EnLimPal16) = -1
 CONST EnLimDissolve = 24
 min(EnLimDissolve) = 0
 max(EnLimDissolve) = dissolveTypeMax + 1
-EnCapDissolve = capindex
+DIM EnCapDissolve as integer = capindex
 addcaption caption(), capindex, "Global Default"
-FOR i = 0 TO dissolveTypeMax
+FOR i as integer = 0 TO dissolveTypeMax
  addcaption caption(), capindex, dissolve_type_caption(i)
 NEXT
 
@@ -221,8 +223,8 @@ CONST EnLimDeathSFX = 26
 min(EnLimDeathSFX) = -1
 max(EnLimDeathSFX) = gen(genMaxSFX) + 1
 
-EnCapElemResist = capindex
-FOR i = 0 TO gen(genNumElements) - 1
+DIM EnCapElemResist as integer = capindex
+FOR i as integer = 0 TO gen(genNumElements) - 1
  addcaption caption(), capindex, ""  '--updated in update_enemy_editor_for_elementals
 NEXT
 
@@ -230,7 +232,10 @@ NEXT
 
 '-------------------------------------------------------------------------
 '--menu content
-DIM menu(259) AS STRING, menutype(259), menuoff(259), menulimits(259)
+DIM menu(259) as string
+DIM menutype(259) as integer
+DIM menuoff(259) as integer
+DIM menulimits(259) as integer
 
 CONST EnMenuBackAct = 0
 menu(EnMenuBackAct) = "Previous Menu"
@@ -325,7 +330,7 @@ menuoff(EnMenuRareItemP) = EnDatRareItemP
 menulimits(EnMenuRareItemP) = EnLimPercent
 
 CONST EnMenuStat = 18' to 29
-FOR i = 0 TO 11
+FOR i as integer = 0 TO 11
  menu(EnMenuStat + i) = statnames(i) + ":"
  menutype(EnMenuStat + i) = 0
  menuoff(EnMenuStat + i) = EnDatStat + i
@@ -358,7 +363,7 @@ menuoff(EnMenuSpawnNEHit) = EnDatSpawnNEHit
 menulimits(EnMenuSpawnNEHit) = EnLimSpawn
 
 CONST EnMenuSpawnElement = 34' to 93
-FOR i = 0 TO gen(genNumElements) - 1
+FOR i as integer = 0 TO gen(genNumElements) - 1
  menu(EnMenuSpawnElement + i) = "on " & elementnames(i) & " Hit:"
  menutype(EnMenuSpawnElement + i) = 9
  IF i < 8 THEN
@@ -376,7 +381,7 @@ menuoff(EnMenuSpawnNum) = EnDatSpawnNum
 menulimits(EnMenuSpawnNum) = EnLimSpawnNum
 
 CONST EnMenuAtkNormal = 95' to 99
-FOR i = 0 TO 4
+FOR i as integer = 0 TO 4
  menu(EnMenuAtkNormal + i) = "Normal:"
  menutype(EnMenuAtkNormal + i) = 7
  menuoff(EnMenuAtkNormal + i) = EnDatAtkNormal + i
@@ -384,7 +389,7 @@ FOR i = 0 TO 4
 NEXT i
 
 CONST EnMenuAtkDesp = 100' to 104
-FOR i = 0 TO 4
+FOR i as integer = 0 TO 4
  menu(EnMenuAtkDesp + i) = "Desperation:"
  menutype(EnMenuAtkDesp + i) = 7
  menuoff(EnMenuAtkDesp + i) = EnDatAtkDesp + i
@@ -392,7 +397,7 @@ FOR i = 0 TO 4
 NEXT i
 
 CONST EnMenuAtkAlone = 105' to 109
-FOR i = 0 TO 4
+FOR i as integer = 0 TO 4
  menu(EnMenuAtkAlone + i) = "Alone:"
  menutype(EnMenuAtkAlone + i) = 7
  menuoff(EnMenuAtkAlone + i) = EnDatAtkAlone + i
@@ -452,7 +457,7 @@ menu(EnMenuCursorOffset) = "Cursor Offset..."
 menutype(EnMenuCursorOffset) = 1
 
 CONST EnMenuElemCtr = 119' to 182
-FOR i = 0 TO gen(genNumElements) - 1
+FOR i as integer = 0 TO gen(genNumElements) - 1
  menu(EnMenuElemCtr + i) = "Counter element " & elementnames(i) & ":"
  menutype(EnMenuElemCtr + i) = 7
  IF i < 8 THEN
@@ -464,7 +469,7 @@ FOR i = 0 TO gen(genNumElements) - 1
 NEXT i
 
 CONST EnMenuStatCtr = 183' to 194
-FOR i = 0 TO 11
+FOR i as integer = 0 TO 11
  menu(EnMenuStatCtr + i) = "Counter damage to " & statnames(i) & ":"
  menutype(EnMenuStatCtr + i) = 7
  menuoff(EnMenuStatCtr + i) = EnDatStatCtr + i
@@ -476,7 +481,7 @@ menu(EnMenuElementalsAct) = "Elemental Resistances..."
 menutype(EnMenuElementalsAct) = 1
 
 CONST EnMenuElemDmg = 196' to 259
-FOR i = 0 TO gen(genNumElements) - 1
+FOR i as integer = 0 TO gen(genNumElements) - 1
  menu(EnMenuElemDmg + i) = "Damage from " + rpad(elementnames(i), " ", 15) + ":"
  menutype(EnMenuElemDmg + i) = 5000 + EnCapElemResist + i  'percent_grabber
  menuoff(EnMenuElemDmg + i) = 239 + i*2 
@@ -484,11 +489,12 @@ NEXT
 
 '-------------------------------------------------------------------------
 '--menu structure
-DIM workmenu(91), dispmenu(91) AS STRING
-DIM state AS MenuState
+DIM workmenu(91) as integer
+DIM dispmenu(91) as string
+DIM state as MenuState
 state.size = 24
 
-DIM mainMenu(9)
+DIM mainMenu(9) as integer
 mainMenu(0) = EnMenuBackAct
 mainMenu(1) = EnMenuChooseAct
 mainMenu(2) = EnMenuName
@@ -500,7 +506,7 @@ mainMenu(7) = EnMenuElementalsAct
 mainMenu(8) = EnMenuSpawnAct
 mainMenu(9) = EnMenuAtkAct
 
-DIM appearMenu(7)
+DIM appearMenu(7) as integer
 appearMenu(0) = EnMenuBackAct
 appearMenu(1) = EnMenuPicSize
 appearMenu(2) = EnMenuPic
@@ -510,7 +516,7 @@ appearMenu(5) = EnMenuDissolveTime
 appearMenu(6) = EnMenuDeathSFX
 appearMenu(7) = EnMenuCursorOffset
 
-DIM rewardMenu(11)
+DIM rewardMenu(11) as integer
 rewardMenu(0) = EnMenuBackAct
 rewardMenu(1) = EnMenuGold
 rewardMenu(2) = EnMenuExp
@@ -524,47 +530,47 @@ rewardMenu(9) = EnMenuStealItemP
 rewardMenu(10) = EnMenuStealRItem
 rewardMenu(11) = EnMenuStealRItemP
 
-DIM statMenu(12)
+DIM statMenu(12) as integer
 statMenu(0) = EnMenuBackAct
-FOR i = 0 TO 11
+FOR i as integer = 0 TO 11
  statMenu(1 + i) = EnMenuStat + i
 NEXT i
 
-DIM spawnMenu(5 + gen(genNumElements))
+DIM spawnMenu(5 + gen(genNumElements)) as integer
 spawnMenu(0) = EnMenuBackAct
 spawnMenu(1) = EnMenuSpawnNum
 spawnMenu(2) = EnMenuSpawnDeath
 spawnMenu(3) = EnMenuSpawnNEDeath
 spawnMenu(4) = EnMenuSpawnAlone
 spawnMenu(5) = EnMenuSpawnNEHit
-FOR i = 0 TO gen(genNumElements) - 1
+FOR i as integer = 0 TO gen(genNumElements) - 1
  spawnMenu(6 + i) = EnMenuSpawnElement + i
 NEXT i
 
-DIM atkMenu(27 + gen(genNumElements))
+DIM atkMenu(27 + gen(genNumElements)) as integer
 atkMenu(0) = EnMenuBackAct
-FOR i = 0 TO 4
+FOR i as integer = 0 TO 4
  atkMenu(1 + i) = EnMenuAtkNormal + i
  atkMenu(6 + i) = EnMenuAtkDesp + i
  atkMenu(11 + i) = EnMenuAtkAlone + i
 NEXT i
-FOR i = 0 TO gen(genNumElements) - 1
+FOR i as integer = 0 TO gen(genNumElements) - 1
  atkMenu(16 + i) = EnMenuElemCtr + i
 NEXT i
-FOR i = 0 TO 11
+FOR i as integer = 0 TO 11
  atkMenu(16 + gen(genNumElements) + i) = EnMenuStatCtr + i
 NEXT i
 
-DIM elementalMenu(gen(genNumElements))
+DIM elementalMenu(gen(genNumElements)) as integer
 elementalMenu(0) = EnMenuBackAct
-FOR i = 0 TO gen(genNumElements) - 1
+FOR i as integer = 0 TO gen(genNumElements) - 1
  elementalMenu(1 + i) = EnMenuElemDmg + i
 NEXT i
 
-DIM helpkey AS STRING = "enemy"
+DIM helpkey as string = "enemy"
 
 '--Create the box that holds the preview
-DIM preview_box AS Slice Ptr
+DIM preview_box as Slice Ptr
 preview_box = NewSliceOfType(slRectangle)
 ChangeRectangleSlice preview_box, ,uilook(uiDisabledItem), uilook(uiMenuItem), , transOpaque
 '--Align the box in the bottom right
@@ -580,7 +586,7 @@ WITH *preview_box
 END WITH
 
 '--Create the preview sprite. It will be updated before it is drawn.
-DIM preview AS Slice Ptr
+DIM preview as Slice Ptr
 preview = NewSliceOfType(slSprite, preview_box)
 '--Align the sprite to the bottom center of the containing box
 WITH *preview
@@ -601,14 +607,16 @@ dissolve_ticks = -1
 '--default starting menu
 setactivemenu workmenu(), mainMenu(), state
 
-menudepth = 0
-lastptr = 0
-lasttop = 0
-recindex = 0
+DIM menudepth as integer = 0
+DIM lastptr as integer = 0
+DIM lasttop as integer = 0
+DIM recindex as integer = 0
 
-DIM rememberindex AS INTEGER = -1
-DIM show_name AS INTEGER = 0
-DIM drawpreview AS INTEGER = YES
+DIM rememberindex as integer = -1
+DIM show_name as integer = 0
+DIM drawpreview as integer = YES
+
+DIM tog as integer
 
 'load data here
 GOSUB EnLoadSub
@@ -639,7 +647,7 @@ DO
  usemenu state
 
  IF workmenu(state.pt) = EnMenuChooseAct OR (keyval(scAlt) > 0 and NOT isStringField(menutype(workmenu(state.pt)))) THEN
-  lastindex = recindex
+  DIM lastindex as integer = recindex
   IF intgrabber_with_addset(recindex, 0, gen(genMaxEnemy), 32767, "enemy") THEN
    saveenemydata recbuf(), lastindex
    IF recindex > gen(genMaxEnemy) THEN
@@ -770,9 +778,9 @@ DO
  draw_fullscreen_scrollbar state, , vpage
  IF keyval(scAlt) > 0 OR show_name > 0 THEN 'holding ALT or just pressed TAB
   show_name = large(0, show_name - 1)
-  tmp$ = readbadbinstring$(recbuf(), EnDatName, 15, 0) & " " & recindex
+  DIM tmpstr as string = readbadbinstring(recbuf(), EnDatName, 15, 0) & " " & recindex
   textcolor uilook(uiText), uilook(uiHighlight)
-  printstr tmp$, 320 - LEN(tmp$) * 8, 0, vpage
+  printstr tmpstr, 320 - LEN(tmpstr) * 8, 0, vpage
  END IF
 
  setvispage vpage
@@ -929,7 +937,7 @@ SUB formation_set_editor
   menu(1) = CHR(27) & "Formation Set " & set_id & CHR(26)
   menu(2) = "Battle Frequency: " & formset.frequency & " (" & step_estimate(formset.frequency, 60, 100, "-", " steps") & ")"
   menu(3) = tag_condition_caption(formset.tag, "Only if tag", "No tag check")
-  FOR i = 0 TO 19
+  FOR i as integer = 0 TO 19
    IF formset.formations(i) = -1 THEN
     menu(4 + i) = "Empty"
    ELSE
@@ -943,7 +951,7 @@ SUB formation_set_editor
   setvispage vpage
   dowait
  LOOP
- FOR i = 0 TO 7
+ FOR i as integer = 0 TO 7
   unload_sprite_and_pal egraphics(i)
  NEXT
  EXIT SUB
@@ -1073,7 +1081,7 @@ SUB individual_formation_editor ()
    END IF'--DONE SELECTING DIFFERENT FORMATION
    IF state.pt >= 6 THEN
     WITH form.slots(slot)
-     oldenemy = .id
+     DIM oldenemy as integer = .id
      IF intgrabber(.id, -1, gen(genMaxEnemy)) THEN
       'This would treat the x/y position as being the bottom middle of enemies, which makes much more
       'sense, but that would change where enemies of different sizes are spawned in slots in existing games
@@ -1103,7 +1111,7 @@ SUB individual_formation_editor ()
   copypage 2, dpage
 
   drawformsprites form, egraphics(), slot
-  FOR i = 0 TO 3
+  FOR i as integer = 0 TO 3
    edgeboxstyle 240 + i * 8, 75 + i * 22, 32, 40, 0, dpage, NO, YES
   NEXT i
   IF csr3 = 0 THEN
@@ -1125,7 +1133,7 @@ SUB individual_formation_editor ()
    ELSEIF form.music >= 0 THEN
      menu(5) &= " " & form.music & " " & getsongname(form.music)
    END IF
-   FOR i = 0 TO 7
+   FOR i as integer = 0 TO 7
     menu(6 + i) = "Enemy:" + ename(i)
    NEXT i
    standardmenu menu(), state, 0, 0, dpage, YES
@@ -1137,7 +1145,7 @@ SUB individual_formation_editor ()
 
  SaveFormation form, form_id
  pausesong
- FOR i = 0 TO 7
+ FOR i as integer = 0 TO 7
   unload_sprite_and_pal egraphics(i)
  NEXT
 END SUB
@@ -1182,31 +1190,44 @@ SUB drawformsprites(form as Formation, egraphics() as GraphicPair, byval slot as
 END SUB
 
 SUB itemdata
-DIM a(dimbinsize(binITM)), menu(20) AS STRING, bmenu(40) AS STRING, eqst(5) AS STRING, max(18), min(18), sbmax(11), frame
-DIM item(maxMaxItems) AS STRING
-DIM wep_img AS GraphicPair 'This is only used in edititem
-DIM box_preview AS STRING = "" 'This is only used in edititem
-'DIM ibitnames(-1 TO 59) AS STRING
-imax = 32
+DIM a(dimbinsize(binITM)) as integer
+DIM menu(20) as string
+DIM bmenu(40) as string
+DIM eqst(5) as string
+DIM max(18) as integer
+DIM min(18) as integer
+DIM sbmax(11) as integer
+DIM frame as integer
+DIM item(maxMaxItems) as string
+DIM info as string
+DIM wep_img as GraphicPair 'This is only used in edititem
+DIM box_preview as string = "" 'This is only used in edititem
+'DIM ibitnames(-1 TO 59) as string
+DIM imax as integer = 32
 
 eqst(0) = "NEVER EQUIPPED"
 eqst(1) = "Weapon"
-FOR i = 0 TO 3
+FOR i as integer = 0 TO 3
  eqst(i + 2) = readglobalstring(25 + i, "Armor" & i+1)
 NEXT i
-FOR i = 0 TO 1
+FOR i as integer = 0 TO 1
  sbmax(i) = 9999
 NEXT i
-FOR i = 2 TO 8
+FOR i as integer = 2 TO 8
  sbmax(i) = 999
 NEXT i
-FOR i = 9 TO 10
+FOR i as integer = 9 TO 10
  sbmax(i) = 100
 NEXT i
 sbmax(11) = 10
 
-csr = 0: top = -1: pt = 0
-DIM caption AS STRING
+DIM csr as integer = 0
+DIM top as integer = -1
+DIM pt as integer = 0
+DIM tog as integer
+DIM need_update as integer = NO
+DIM ptr2 as integer
+DIM caption as string
 load_item_names item()
 setkeys
 DO
@@ -1234,12 +1255,21 @@ DO
   IF csr <= gen(genMaxItem) THEN
    GOSUB edititem
    saveitemdata a(), csr
-   i = csr: GOSUB sitemname
+   loaditemdata a(), csr
+   a(0) = LEN(item(csr))
+   FOR o as integer = 1 TO a(0)
+    a(o) = ASC(MID(item(csr), o, 1))
+   NEXT o
+   a(9) = LEN(info)
+   FOR o as integer = 10 TO 9 + a(9)
+    a(o) = ASC(MID(info, o - 9, 1))
+   NEXT o
+   saveitemdata a(), csr
   END IF
  END IF
 
  clearpage dpage
- FOR i = top TO top + 23
+ FOR i as integer = top TO top + 23
   IF i <= gen(genMaxItem) + 1 THEN
    textcolor uilook(uiMenuItem), 0
    IF i = csr THEN textcolor uilook(uiSelectedItem + tog), 0
@@ -1268,7 +1298,7 @@ EXIT SUB
 
 edititem:
 loaditemdata a(), csr
-info$ = readbadbinstring$(a(), 9, 35, 0)
+info = readbadbinstring(a(), 9, 35, 0)
 
 menu(0) = "Back to Item Menu"
 menu(18) = "Stat Bonuses..."
@@ -1291,7 +1321,7 @@ max(14) = 999
 max(15) = 999
 
 loaditemdata a(), csr
-generate_item_edit_menu menu(), a(), csr, pt, item(csr), info$, eqst(), box_preview
+generate_item_edit_menu menu(), a(), csr, pt, item(csr), info, eqst(), box_preview
 
 IF wep_img.sprite THEN frame_unload @wep_img.sprite
 IF wep_img.pal    THEN palette16_unload @wep_img.pal
@@ -1348,8 +1378,8 @@ DO
    strgrabber item(csr), 8
    menu(1) = "Name:" + item(csr)
   CASE 2
-   strgrabber info$, 36
-   menu(2) = "Info:" + info$
+   strgrabber info, 36
+   menu(2) = "Info:" + info
   CASE 3, 6, 9, 10
    IF intgrabber(a(46 + (pt - 3)), min(pt), max(pt)) THEN
     need_update = YES
@@ -1378,7 +1408,7 @@ DO
  END SELECT
  IF need_update THEN
   need_update = NO
-  generate_item_edit_menu menu(), a(), csr, pt, item(csr), info$, eqst(), box_preview
+  generate_item_edit_menu menu(), a(), csr, pt, item(csr), info, eqst(), box_preview
   IF wep_img.sprite THEN frame_unload @wep_img.sprite
   IF wep_img.pal    THEN palette16_unload @wep_img.pal
   wep_img.sprite = frame_load(5, a(52))
@@ -1386,7 +1416,7 @@ DO
  END IF
 
  clearpage dpage
- FOR i = 0 TO 20
+ FOR i as integer = 0 TO 20
   textcolor uilook(uiMenuItem), 0
   IF pt = i THEN textcolor uilook(uiSelectedItem + tog), 0
   IF (i >= 18 AND a(49) = 0) OR ((i = 16 OR i = 17) AND a(49) <> 1) THEN
@@ -1433,7 +1463,7 @@ DO
  textcolor uilook(uiMenuItem), 0
  IF ptr2 = -1 THEN textcolor uilook(uiSelectedItem + tog), 0
  printstr "Previous Menu", 0, 0, dpage
- FOR i = 0 TO 11
+ FOR i as integer = 0 TO 11
   textcolor uilook(uiMenuItem), 0
   IF ptr2 = i THEN textcolor uilook(uiSelectedItem + tog), 0
   printstr statnames(i) + " Bonus: " & a(54 + i), 0, 8 + i * 8, dpage
@@ -1443,27 +1473,10 @@ DO
  dowait
 LOOP
 
-sitemname:
-loaditemdata a(), i
-a(0) = LEN(item(i))
-FOR o = 1 TO a(0)
- a(o) = ASC(MID$(item(i), o, 1))
-NEXT o
-a(9) = LEN(info$)
-FOR o = 10 TO 9 + a(9)
- a(o) = ASC(MID$(info$, o - 9, 1))
-NEXT o
-saveitemdata a(), i
-RETRACE
-
 END SUB
 
 
-'======== FIXME: move this up as code gets cleaned up ===========
-OPTION EXPLICIT
-
-
-SUB generate_item_edit_menu (menu() AS STRING, itembuf() AS INTEGER, csr AS INTEGER, pt AS INTEGER, item_name AS STRING, info_string AS STRING, equip_types() AS STRING, BYREF box_preview AS STRING)
+SUB generate_item_edit_menu (menu() as string, itembuf() as integer, csr as integer, pt as integer, item_name as string, info_string as string, equip_types() as string, byref box_preview as string)
  menu(1) = "Name:" & item_name
  menu(2) = "Info:" & info_string
  menu(3) = "Value: " & itembuf(46)
@@ -1479,7 +1492,7 @@ SUB generate_item_edit_menu (menu() AS STRING, itembuf() AS INTEGER, csr AS INTE
   box_preview = textbox_preview_line(ABS(itembuf(51)))
  END IF
  menu(9) = "Weapon Picture: " & itembuf(52)
- menu(10) = "Weapon Palette: " & defaultint$(itembuf(53))
+ menu(10) = "Weapon Palette: " & defaultint(itembuf(53))
  IF itembuf(49) <> 1 THEN menu(9) = "Weapon Picture: N/A": menu(10) = "Weapon Palette: N/A"
  menu(11) = "Unlimited Use"
  IF itembuf(73) = 1 THEN menu(11) = "Consumed By Use"
@@ -1496,22 +1509,22 @@ SUB generate_item_edit_menu (menu() AS STRING, itembuf() AS INTEGER, csr AS INTE
  END IF
 END SUB
 
-FUNCTION item_attack_name(n AS INTEGER) AS STRING
+FUNCTION item_attack_name(n as integer) as string
  IF n <= 0 THEN RETURN "NOTHING"
- RETURN n - 1 & " " & readattackname$(n - 1)
+ RETURN n - 1 & " " & readattackname(n - 1)
 END FUNCTION
 
-SUB load_item_names (item_strings() AS STRING)
- DIM i AS INTEGER
- FOR i = 0 TO gen(genMaxItem)
+SUB load_item_names (item_strings() as string)
+ DIM i as integer
+ FOR i as integer = 0 TO gen(genMaxItem)
   item_strings(i) = load_item_name(i, YES, YES)
  NEXT i
 END SUB
 
-SUB handle_npc_def_delete (npc() AS NPCType, BYVAL id AS INTEGER, BYREF num_npc_defs AS INTEGER, npc_insts() AS NPCInst)
+SUB handle_npc_def_delete (npc() as NPCType, byval id as integer, byref num_npc_defs as integer, npc_insts() as NPCInst)
 
  '--Count number of uses
- DIM AS INTEGER uses = 0
+ DIM as integer uses = 0
  FOR i as integer = 0 to 299
   IF npc_insts(i).id = id + 1 THEN uses += 1
  NEXT
@@ -1526,7 +1539,7 @@ SUB handle_npc_def_delete (npc() AS NPCType, BYVAL id AS INTEGER, BYREF num_npc_
  END IF
 
  '--Wiping a definition clear, or completely deleting it?
- DIM AS INTEGER deleting = NO
+ DIM as integer deleting = NO
  '--Can't delete ID 0; must always have at least one NPC
  IF id > 0 AND id = num_npc_defs - 1 THEN deleting = YES
 
@@ -1540,17 +1553,17 @@ SUB handle_npc_def_delete (npc() AS NPCType, BYVAL id AS INTEGER, BYREF num_npc_
 
 END SUB
 
-SUB npcdef (st AS MapEditState, npc_img() AS GraphicPair, gmap() AS integer, zmap AS ZoneMap)
+SUB npcdef (st as MapEditState, npc_img() as GraphicPair, gmap() as integer, zmap as ZoneMap)
 'npc_img() should be of fixed size (0 TO max_npc_defs - 1), like st.npc_def(), with the actual number passed in st.num_npc_defs
 
-DIM boxpreview(st.num_npc_defs - 1) AS STRING
-DIM AS INTEGER tog, i, top = 0, cur = 0, menumax, need_update_selected = NO
+DIM boxpreview(st.num_npc_defs - 1) as string
+DIM as integer tog, i, top = 0, cur = 0, menumax, need_update_selected = NO
 
 '--If there's room for more, add "Add new NPC" option to end
 menumax = st.num_npc_defs - 1
 IF st.num_npc_defs < max_npc_defs THEN menumax += 1
 
-FOR i = 0 TO st.num_npc_defs - 1
+FOR i as integer = 0 TO st.num_npc_defs - 1
  boxpreview(i) = textbox_preview_line(st.npc_def(i).textbox)
 NEXT i
 setkeys
@@ -1612,7 +1625,7 @@ DO
  END IF
 
  clearpage dpage
- FOR i = top TO top + 7
+ FOR i as integer = top TO top + 7
   IF i > menumax THEN EXIT FOR
   IF cur = i THEN edgebox 0, (i - top) * 25, 320, 22, uilook(uiDisabledItem), uilook(uiMenuItem), dpage
   textcolor uilook(uiMenuItem), 0
@@ -1778,7 +1791,7 @@ SUB hero_editor_stats_menu (her as HeroDef)
  END WITH
 
  DIM min(11) as integer, max(11) as integer
- FOR i = 0 TO UBOUND(min)
+ FOR i as integer = 0 TO UBOUND(min)
   min(i) = 0
   max(i) = 999
  NEXT
@@ -1811,7 +1824,7 @@ SUB hero_editor_stats_menu (her as HeroDef)
 
   IF mstate.need_update THEN
    mstate.need_update = NO
-   FOR i = 0 TO UBOUND(her.Lev0.sta)
+   FOR i as integer = 0 TO UBOUND(her.Lev0.sta)
     leftmenu[3 + i].text = statnames(i) & " " & her.Lev0.sta(i)
     rightmenu[3 + i].text = statnames(i) & " " & her.LevMax.sta(i)
    NEXT i
@@ -1830,7 +1843,7 @@ SUB hero_editor_stats_menu (her as HeroDef)
    printstr statnames(statnum), 310 - LEN(statnames(statnum)) * 8, 180, dpage
    DIM as integer stepper, n0, nMax, ordinate
    stepper = CEIL(gen(genMaxLevel) / 25)
-   FOR i = 0 TO gen(genMaxLevel) STEP stepper
+   FOR i as integer = 0 TO gen(genMaxLevel) STEP stepper
     n0 = her.Lev0.sta(statnum)
     nMax = her.LevMax.sta(statnum)
     ordinate = atlevel(i, n0, nMax) * (100 / max(statnum))
@@ -2108,7 +2121,7 @@ SUB enforce_hero_data_limits(her as HeroDef)
  NEXT i
 END SUB
 
-SUB update_hero_appearance_menu(BYREF st AS HeroEditState, menu() AS STRING, her AS HeroDef)
+SUB update_hero_appearance_menu(byref st as HeroEditState, menu() as string, her as HeroDef)
  menu(1) = "Battle Picture: " & her.sprite
  menu(2) = "Battle Palette: " & defaultint(her.sprite_pal)
  menu(3) = "Walkabout Picture: " & her.walk_sprite
@@ -2125,7 +2138,7 @@ SUB update_hero_appearance_menu(BYREF st AS HeroEditState, menu() AS STRING, her
  st.changed = NO
 END SUB
 
-SUB update_hero_preview_pics(BYREF st AS HeroEditState, her AS HeroDef)
+SUB update_hero_preview_pics(byref st as HeroEditState, her as HeroDef)
  clear_hero_preview_pics st
  WITH st
   .battle.sprite    = frame_load(0, her.sprite)
@@ -2139,7 +2152,7 @@ SUB update_hero_preview_pics(BYREF st AS HeroEditState, her AS HeroDef)
  END WITH
 END SUB
 
-SUB clear_hero_preview_pics(BYREF st AS HeroEditState)
+SUB clear_hero_preview_pics(byref st as HeroEditState)
  WITH st
   IF .battle.sprite    THEN frame_unload    @.battle.sprite
   IF .battle.pal       THEN palette16_unload @.battle.pal
@@ -2150,11 +2163,11 @@ SUB clear_hero_preview_pics(BYREF st AS HeroEditState)
  END WITH
 END SUB
 
-SUB draw_hero_preview(st AS HeroEditState, her AS HeroDef)
- STATIC tog AS INTEGER
+SUB draw_hero_preview(st as HeroEditState, her as HeroDef)
+ STATIC tog as integer
  tog = tog XOR 1
  
- DIM frame AS INTEGER
+ DIM frame as integer
  IF st.previewframe <> -1 THEN
   frame = st.previewframe + 2
  ELSE
@@ -2163,7 +2176,7 @@ SUB draw_hero_preview(st AS HeroEditState, her AS HeroDef)
  frame_draw st.battle.sprite + frame, st.battle.pal, 250, 25,,,dpage
  frame = st.preview_walk_direction * 2 + tog
  frame_draw st.walkabout.sprite + frame, st.walkabout.pal, 230 + st.preview_walk_pos.x, 5 + st.preview_walk_pos.y,,,dpage
- DIM hand AS XYPair
+ DIM hand as XYPair
  IF st.previewframe <> -1 THEN
   hand.x = her.hand_pos(st.previewframe).x
   hand.y = her.hand_pos(st.previewframe).y
@@ -2175,7 +2188,7 @@ SUB draw_hero_preview(st AS HeroEditState, her AS HeroDef)
  IF st.portrait.sprite THEN frame_draw st.portrait.sprite, st.portrait.pal, 240, 110,,,dpage
 END SUB
 
-SUB animate_hero_preview(BYREF st AS HeroEditState)
+SUB animate_hero_preview(byref st as HeroEditState)
  WITH st
   .preview_steps += 1
   IF .preview_steps >= 15 THEN
@@ -2189,11 +2202,11 @@ SUB animate_hero_preview(BYREF st AS HeroEditState)
  END WITH
 END SUB
 
-SUB hero_editor_appearance(BYREF st AS HeroEditState, BYREF her AS HeroDef)
+SUB hero_editor_appearance(byref st as HeroEditState, byref her as HeroDef)
  
- DIM menu(11) AS STRING
- DIM min(11) AS INTEGER
- DIM max(11) AS INTEGER
+ DIM menu(11) as string
+ DIM min(11) as integer
+ DIM max(11) as integer
  menu(0) = "Previous Menu"
  min(1) = 0: max(1) = gen(genMaxHeroPic)
  min(2) = -1: max(2) = 32767
@@ -2207,7 +2220,7 @@ SUB hero_editor_appearance(BYREF st AS HeroEditState, BYREF her AS HeroDef)
  min(10) = -1:max(10) = gen(genMaxPortrait)
  min(11) = -1:max(11) = 32767
 
- DIM state AS MenuState
+ DIM state as MenuState
  WITH state
   .pt = 0
   .last = UBOUND(menu)
@@ -2297,16 +2310,16 @@ SUB hero_editor_appearance(BYREF st AS HeroEditState, BYREF her AS HeroDef)
  st.previewframe = -1
 END SUB
 
-SUB hero_editor_equipment_list (BYVAL hero_id AS INTEGER, BYREF her AS HeroDef)
- DIM menu(5) AS STRING
- DIM state AS MenuState
+SUB hero_editor_equipment_list (byval hero_id as integer, byref her as HeroDef)
+ DIM menu(5) as string
+ DIM state as MenuState
  WITH state
   .last = 5
   .size = 22
  END WITH
  menu(0) = "Previous menu"
  menu(1) = her.name & "'s " & readglobalstring(38, "Weapon", 10) & " items"
- FOR i AS INTEGER = 0 TO 3
+ FOR i as integer = 0 TO 3
   menu(2+i) = her.name & "'s " & readglobalstring(25+i, "Armor " & (1+i), 10) & " items"
  NEXT i
  
@@ -2333,14 +2346,14 @@ SUB hero_editor_equipment_list (BYVAL hero_id AS INTEGER, BYREF her AS HeroDef)
  LOOP
 END SUB
 
-SUB hero_editor_equipbits (BYVAL hero_id AS INTEGER, BYVAL equip_type AS INTEGER)
+SUB hero_editor_equipbits (byval hero_id as integer, byval equip_type as integer)
  '--equip_type is 0 for none (which would be silly) 1 for weapons and 2-5 for armor
- DIM tempbits(gen(genMaxItem) \ 16 + 1) AS INTEGER 
- DIM itemname(gen(genMaxItem)) AS STRING
- DIM item_id(gen(genMaxItem)) AS INTEGER
- DIM itembuf(dimbinsize(binITM)) AS INTEGER
- DIM nextbit AS INTEGER = 0
- FOR i AS INTEGER = 0 TO gen(genMaxItem)
+ DIM tempbits(gen(genMaxItem) \ 16 + 1) as integer 
+ DIM itemname(gen(genMaxItem)) as string
+ DIM item_id(gen(genMaxItem)) as integer
+ DIM itembuf(dimbinsize(binITM)) as integer
+ DIM nextbit as integer = 0
+ FOR i as integer = 0 TO gen(genMaxItem)
   loaditemdata itembuf(), i
   IF itembuf(49) = equip_type THEN
    itemname(nextbit) = readitemname(i)
@@ -2350,7 +2363,7 @@ SUB hero_editor_equipbits (BYVAL hero_id AS INTEGER, BYVAL equip_type AS INTEGER
   END IF
  NEXT i
  editbitset tempbits(), 0, nextbit-1, itemname()
- FOR i AS INTEGER = 0 TO nextbit-1
+ FOR i as integer = 0 TO nextbit-1
   loaditemdata itembuf(), item_id(i)
   setbit itembuf(), 66, hero_id, readbit(tempbits(), 0, i)
   saveitemdata itembuf(), item_id(i)
@@ -2359,7 +2372,7 @@ END SUB
 
 'This elemental resistance editor is shared by the hero and item editors
 SUB common_elementals_editor(elementals() as single, helpfile as string, byval showsign as integer = 0)
- DIM elementnames() AS STRING
+ DIM elementnames() as string
  getelementnames elementnames()
  DIM float_reprs(gen(genNumElements) - 1) as string
  DIM menu(1 + gen(genNumElements) - 1) as string
@@ -2406,21 +2419,21 @@ SUB common_elementals_editor(elementals() as single, helpfile as string, byval s
  setkeys
 END SUB
 
-SUB hero_editor_elementals(BYREF her as HeroDef)
+SUB hero_editor_elementals(byref her as HeroDef)
  common_elementals_editor her.elementals(), "hero_elementals"
 END SUB
 
 '--Item Editor stuff---------------------------------------------------
 
-SUB item_editor_equipbits(itembuf() AS INTEGER)
- DIM ibit(-1 TO maxMaxHero) AS STRING
- FOR i AS INTEGER = 0 TO gen(genMaxHero)
+SUB item_editor_equipbits(itembuf() as integer)
+ DIM ibit(-1 TO maxMaxHero) as string
+ FOR i as integer = 0 TO gen(genMaxHero)
   ibit(i) = "Equipable by " & getheroname(i)
  NEXT i
  editbitset itembuf(), 66, gen(genMaxHero), ibit()
 END SUB
 
-SUB item_editor_elementals(itembuf() AS INTEGER)
+SUB item_editor_elementals(itembuf() as integer)
  DIM elementals(gen(genNumElements) - 1) as single
  FOR i as integer = 0 TO gen(genNumElements) - 1
   elementals(i) = DeSerSingle(itembuf(), 82 + i * 2)
@@ -2437,7 +2450,7 @@ SUB item_editor_elementals(itembuf() AS INTEGER)
  NEXT
 END SUB
 
-SUB item_editor_init_new(itembuf() AS INTEGER)
+SUB item_editor_init_new(itembuf() as integer)
  flusharray itembuf(), dimbinsize(binITM), 0
  FOR i as integer = 0 TO maxElements - 1
   SerSingle itembuf(), 82 + i * 2, 1.0
