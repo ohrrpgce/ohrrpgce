@@ -1,0 +1,797 @@
+include, plotscr.hsd
+
+define constant, begin
+  4, NUM RUNS
+
+  # Number of loops to run micro-benchmarks
+  500000, MICRO LOOP COUNT
+
+  # Global variable IDs
+  50, TIMES ARRAY
+  99, UNUSED GLOBAL
+  100, fire array
+
+  1, BENCHMARK NAME STRING
+end
+
+
+plotscript, main, begin
+  variable (score, loops)
+
+  wait (2)
+  $2 = "Micro-benchmarks"
+  trace (2)
+  $2 = ""
+  trace (2)
+
+  loops := MICRO LOOPCOUNT
+
+  $1 = "for loop"
+  score += run benchmark (@benchmark: for loop, loops)
+  $1 = "while loop"
+  score += run benchmark (@benchmark: while loop, loops)
+  $1 = "continue loop"
+  score += run benchmark (@benchmark: continue loop, loops)
+  $1 = "if"
+  score += run benchmark (@benchmark: if, loops)
+  $1 = "enter for"
+  score += run benchmark (@benchmark: enter for, loops)
+  $1 = "one arg overhead"
+  score += run benchmark (@benchmark: one arg overhead, loops)
+  $1 = "two arg overhead"
+  score += run benchmark (@benchmark: two arg overhead, loops)
+  $1 = "assignment"
+  score += run benchmark (@benchmark: assignment, loops)
+  $1 = "addition"
+  score += run benchmark (@benchmark: addition, loops)
+  $1 = "string assignment"
+  score += run benchmark (@benchmark: string assignment, loops)
+  $1 = "scriptmisc command overhead"
+  score += run benchmark (@benchmark: scriptmisc command overhead, loops)
+  $1 = "sfunctions command overhead"
+  score += run benchmark (@benchmark: sfunctions command overhead, loops)
+  $1 = "milliseconds"
+  score += run benchmark (@benchmark: milliseconds, loops)
+  $1 = "one arg command"
+  score += run benchmark (@benchmark: one arg command, loops)
+  $1 = "one arg command with variable"
+  score += run benchmark (@benchmark: one arg command with variable, loops)
+  $1 = "more complex one arg command"
+  score += run benchmark (@benchmark: more complex one arg command, loops)
+  $1 = "slice X"
+  score += run benchmark (@benchmark: slice X, loops)
+  $1 = "first child"
+  score += run benchmark (@benchmark: first child, loops)
+  $1 = "creating and deleting slices"
+  score += run benchmark (@benchmark: creating and deleting slices, loops)
+  $1 = "call script"
+  score += run benchmark (@benchmark: call script, loops)
+  $1 = "run script by id"
+  score += run benchmark (@benchmark: run script by id, loops)
+  $1 = "call and return value"
+  score += run benchmark (@benchmark: call and return value, loops)
+  $1 = "call and exit returning value"
+  score += run benchmark (@benchmark: call and exit returning value, loops)
+  $1 = "read global"
+  score += run benchmark (@benchmark: read global, loops)
+  $1 = "write global"
+  score += run benchmark (@benchmark: write global, loops)
+
+  $2 = ""
+  trace (2)
+  $2 = "General benchmarks"
+  trace (2)
+  $2 = ""
+  trace (2)
+
+  # The general benchmarks are tweaked so that they all use roughly the same 
+  # amount of time (at time of writing)
+
+  $1 = "recursive fibonacci"
+  score += run benchmark (@benchmark: recursive fibonacci, 1)
+  $1 = "eat soap mania"
+  score += run benchmark (@benchmark: eat soap mania, 1)
+  $1 = "xor map"
+  score += run benchmark (@benchmark: xor map, 1)
+  $1 = "crappy sqrt"
+  score += run benchmark (@benchmark: crappy sqrt, 1)
+  $1 = "DOOM flames recalc"
+  score += run benchmark (@benchmark: DOOM flames recalc, 1)
+  $1 = "DOOM flames create and destroy"
+  score += run benchmark (@benchmark: DOOM flames create and destroy, 1)
+  $1 = "DOOM flames update"
+  DOOM initialise flames
+  score += run benchmark (@benchmark: DOOM flames update, 1)
+  free slice (flames container)
+
+
+  $2 = "All done. Score (lower's better):"
+  append number (2, score)
+  trace (2)
+  show string (2)
+  wait (40)
+  game over
+end
+
+# Given 100*X, append X to 'string' as a decimal
+script, append decimal 100, string, number, begin
+  append number (string, number / 100)
+  $string + "."
+  variable (i)
+  for (i, 1, 0, -1) do (
+    append ascii (string, 48 + (number / (10 ^ i)), mod, 10)
+  )
+end
+
+script, run benchmark, script id, loops, begin
+  variable (i, time, best)
+
+  $2 = "Benchmark: "
+  2 $+ 1
+  show string (2)
+  wait (1)
+
+  for (i, 0, NUM RUNS -- 1) do (
+    time := milliseconds
+    run script by id (script id)
+    time := milliseconds -- time
+    write global (TIMES ARRAY + i, time)
+  )
+
+  2 $= 1
+  $2 + " times:"
+  trace (2)
+
+  best := 999999
+  $2 = ""
+  for (i, 0, NUM RUNS -- 1) do (
+    time := read global (TIMES ARRAY + i)
+    $2 + " "
+    append number (2, time)
+    if (time << best) then (best := time)
+  )
+  trace (2)
+
+  if (loops == 1) then (
+    # General benchmark
+    $2 = " best milliseconds per run: "
+    append number (2, best)
+
+  ) else (
+    # Micro-benchmark
+    $2 = " best microseconds per run: "
+    append decimal 100 (2, 100000 * best / loops)
+  )
+  trace (2)
+  $2 = ""
+  trace (2)
+
+  # Return a score (total score is actually just total time spent)
+  return (best)
+end
+
+
+###################################### MICRO BENCHMARKS #######################################
+
+
+script, benchmark: for loop, begin
+  variable (i)
+  for (i, 0, MICRO LOOPCOUNT) do ()
+end
+
+script, benchmark: while loop, begin
+  variable (i)
+  i := MICRO LOOPCOUNT
+  while (i) do (i -= 1)
+end
+
+script, benchmark: continue loop, begin
+  variable (i)
+  i := MICRO LOOPCOUNT
+  do (
+    i -= 1
+    if (i) then (continue)
+  )
+end
+
+# script, benchmark: for loop overhead, begin
+#   variable (i)
+#   for (i, 0, MICRO LOOPCOUNT) do ()
+# end
+
+script, benchmark: if, begin
+  variable (i)
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    if (i) then ()
+    if (i) then ()
+    if (i) then ()
+    if (i) then ()
+    if (i) then ()
+    if (i) then ()
+    if (i) then ()
+    if (i) then ()
+    if (i) then ()
+    if (i) then ()
+  )
+end
+
+script, benchmark: enter for, begin
+  variable (i, j)
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    for (j, 0, 0, 1) do ()
+    for (j, 0, 0, 1) do ()
+    for (j, 0, 0, 1) do ()
+    for (j, 0, 0, 1) do ()
+    for (j, 0, 0, 1) do ()
+    for (j, 0, 0, 1) do ()
+    for (j, 0, 0, 1) do ()
+    for (j, 0, 0, 1) do ()
+    for (j, 0, 0, 1) do ()
+    for (j, 0, 0, 1) do ()
+  )
+end
+
+script, benchmark: one arg overhead, begin
+  variable (i, x)
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    x
+    x
+    x
+    x
+    x
+    x
+    x
+    x
+    x
+    x
+  )
+end
+
+script, benchmark: two arg overhead, begin
+  variable (i, x)
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    x, 0
+    x, 0
+    x, 0
+    x, 0
+    x, 0
+    x, 0
+    x, 0
+    x, 0
+    x, 0
+    x, 0
+  )
+end
+
+script, benchmark: assignment, begin
+  variable (i, x)
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    x := 0
+    x := 0
+    x := 0
+    x := 0
+    x := 0
+    x := 0
+    x := 0
+    x := 0
+    x := 0
+    x := 0
+  )
+end
+
+script, benchmark: addition, begin
+  variable (i, x, y)
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    x + y
+    x + y
+    x + y
+    x + y
+    x + y
+    x + y
+    x + y
+    x + y
+    x + y
+    x + y
+  )
+end
+
+script, benchmark: string assignment, begin
+  variable (i, x)
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    $3 = "foo"
+    $3 = "foo"
+    $3 = "foo"
+    $3 = "foo"
+    $3 = "foo"
+    $3 = "foo"
+    $3 = "foo"
+    $3 = "foo"
+    $3 = "foo"
+    $3 = "foo"
+  )
+end
+
+script, benchmark: scriptmisc command overhead, begin
+  variable (i)
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    # a command with trivial implementation, in scriptmisc
+    last formation
+    last formation
+    last formation
+    last formation
+    last formation
+    last formation
+    last formation
+    last formation
+    last formation
+    last formation
+  )
+end
+
+script, benchmark: sfunctions command overhead, begin
+  variable (i)
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    # a command with trivial implementation, in sfunctions
+    current map
+    current map
+    current map
+    current map
+    current map
+    current map
+    current map
+    current map
+    current map
+    current map
+  )
+end
+
+script, benchmark: milliseconds, begin
+  variable (i)
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    # a command with trivial implementation, in sfunctions
+    milliseconds
+    milliseconds
+    milliseconds
+    milliseconds
+    milliseconds
+    milliseconds
+    milliseconds
+    milliseconds
+    milliseconds
+    milliseconds
+  )
+end
+
+script, benchmark: one arg command, begin
+  variable (i)
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    # a command that does a minimal amount of error checking/processing with its argument
+    set money (0)
+    set money (0)
+    set money (0)
+    set money (0)
+    set money (0)
+    set money (0)
+    set money (0)
+    set money (0)
+    set money (0)
+    set money (0)
+  )
+end
+
+script, benchmark: one arg command with variable, begin
+  variable (i, x)
+  x := 0
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    # I expect there to be no difference to the above
+    set money (x)
+    set money (x)
+    set money (x)
+    set money (x)
+    set money (x)
+    set money (x)
+    set money (x)
+    set money (x)
+    set money (x)
+    set money (x)
+  )
+end
+
+script, benchmark: more complex one arg command, begin
+  variable (i, sl)
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    item in slot (0)
+    item in slot (0)
+    item in slot (0)
+    item in slot (0)
+    item in slot (0)
+    item in slot (0)
+    item in slot (0)
+    item in slot (0)
+    item in slot (0)
+    item in slot (0)
+  )
+end
+
+script, benchmark: slice X, begin
+  variable (i, sl)
+  sl := sprite layer
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    # testing the overhead of a typical slice command
+    slice x (sl)
+    slice x (sl)
+    slice x (sl)
+    slice x (sl)
+    slice x (sl)
+    slice x (sl)
+    slice x (sl)
+    slice x (sl)
+    slice x (sl)
+    slice x (sl)
+  )
+end
+
+script, benchmark: first child, begin
+  variable (i, sl)
+  sl := sprite layer
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    # testing the overhead of a slice command returning a slice handle
+    first child (sl)
+    first child (sl)
+    first child (sl)
+    first child (sl)
+    first child (sl)
+    first child (sl)
+    first child (sl)
+    first child (sl)
+    first child (sl)
+    first child (sl)
+  )
+end
+
+script, benchmark: creating and deleting slices, begin
+  variable (i, sl)
+  sl := sprite layer
+  for (i, 0, MICRO LOOPCOUNT) do (
+    # testing the overhead of a slice command returning a slice handle
+    sl := create container (0, 0)
+    free slice (sl)
+  )
+end
+
+script, empty script, begin
+end
+
+script, return value, begin
+  return (0)
+end
+
+script, exit return value, begin
+  exit returning (0)
+end
+
+script, benchmark: call script, begin
+  variable (i)
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    empty script
+    empty script
+    empty script
+    empty script
+    empty script
+    empty script
+    empty script
+    empty script
+    empty script
+    empty script
+  )
+end
+
+script, benchmark: run script by id, begin
+  variable (i)
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    run script by id (@empty script)
+    run script by id (@empty script)
+    run script by id (@empty script)
+    run script by id (@empty script)
+    run script by id (@empty script)
+    run script by id (@empty script)
+    run script by id (@empty script)
+    run script by id (@empty script)
+    run script by id (@empty script)
+    run script by id (@empty script)
+  )
+end
+
+script, benchmark: call and return value, begin
+  variable (i)
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    return value
+    return value
+    return value
+    return value
+    return value
+    return value
+    return value
+    return value
+    return value
+    return value
+  )
+end
+
+script, benchmark: call and exit returning value, begin
+  variable (i)
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    exit return value
+    exit return value
+    exit return value
+    exit return value
+    exit return value
+    exit return value
+    exit return value
+    exit return value
+    exit return value
+    exit return value
+  )
+end
+
+script, benchmark: read global, begin
+  variable (i)
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    read global (0)
+    read global (0)
+    read global (0)
+    read global (0)
+    read global (0)
+    read global (0)
+    read global (0)
+    read global (0)
+    read global (0)
+    read global (0)
+  )
+end
+
+script, benchmark: write global, begin
+  variable (i)
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    write global (UNUSED GLOBAL, 0)
+    write global (UNUSED GLOBAL, 0)
+    write global (UNUSED GLOBAL, 0)
+    write global (UNUSED GLOBAL, 0)
+    write global (UNUSED GLOBAL, 0)
+    write global (UNUSED GLOBAL, 0)
+    write global (UNUSED GLOBAL, 0)
+    write global (UNUSED GLOBAL, 0)
+    write global (UNUSED GLOBAL, 0)
+    write global (UNUSED GLOBAL, 0)
+  )
+end
+
+
+###################################### GENERAL BENCHMARKS #######################################
+
+
+script, fibonacci, n, begin
+  if (n <= 1) then (return (1))
+  else (
+    return (fibonacci (n -- 1) + fibonacci (n -- 2))
+  )
+end
+
+script, benchmark: recursive fibonacci, begin
+  fibonacci (27)
+end
+
+#------------------- some scripts from Don't Eat Soap -----------------------------
+
+define constant(2, bubble push speed)
+
+script, get force x, sl, begin
+  exit returning(get force(sl, x axis))
+end
+
+script, get force y, sl, begin
+  exit returning(get force(sl, y axis))
+end
+
+script, set force x, sl, n, sign_=1, begin
+  set force(sl, x axis, n, sign_)
+end
+
+script, set force y, sl, n, sign_=1, begin
+  set force(sl, y axis, n, sign_)
+end
+
+script, set force, sl, axis, value, sign_=1, begin
+  set slice extra(sl, get force extra slot(axis), value * sign_)
+end
+
+script, get force, sl, axis, begin
+  exit returning(get slice extra(sl, get force extra slot(axis)))
+end
+
+script, get force extra slot, axis, begin
+  switch(axis) do(
+    case(x axis) do(exit returning(extra 0))
+    case(y axis) do(exit returning(extra 1))
+  )
+end
+
+script, sgn, n, begin
+  if(n >> 0) then(exit returning(1))
+  if(n << 0) then(exit returning(-1))
+  exit returning(0)
+end
+
+script, push bubble away, who, bub, begin
+  variable(xdiff, ydiff)
+  xdiff := slice edge x(bub, edge:center) -- slice edge x(who, edge:center)
+  ydiff := slice edge y(bub, edge:center) -- slice edge y(who, edge:center)
+  set force x(bub, get force x(bub) + bubble push speed * sgn(xdiff))
+  set force y(bub, get force y(bub) + bubble push speed * sgn(ydiff))
+end
+
+#------------------------------------------------------------------------
+
+# Test lots of calls of tiny scripts
+script, benchmark: eat soap mania, begin
+  variable (i, sl)
+  sl := create container
+  for (i, 0, 50000) do (
+    push bubble away (sl, sl)
+  )
+end
+
+script, benchmark: xor map, begin
+  variable (i, x, y, layer)
+  for (i, 0, 29) do (
+    for (y, 0, 63) do (
+      for (x, 0, 63) do (
+        for (layer, 0, 2) do (
+          write map block (x, y, (255, xor, read map block (x, y, layer)), layer)
+        )
+        write pass block (x, y, (255, xor, read pass block (x, y)))
+      )
+    )
+  )
+end
+
+script, crappy sqrt, fi, begin
+  variable (start, divi, approx)
+  approx := -1
+  if (fi >= 32581) then (return (181)) else, begin  #Prevent overflows
+
+    if (fi << 100) then (start := 0, divi := start ^ 2) else (
+
+      if (fi >= 22500) then (start := 150) else (
+        if (fi >= 14400) then (start := 120) else (
+          if (fi >= 8100) then (start := 90) else (
+            if (fi >= 4225) then (start := 65) else (
+              if (fi >= 1600) then (start := 40) else (
+                if (fi >= 900) then (start := 30) else (
+                  if (fi >= 400) then (start := 20) else (start := 10)
+      ))))))
+      divi := start ^ 2
+      if (fi / 3 >> divi / 2) then (start := (start / 5) * 6, divi := start ^ 2)
+      if (fi / 4 >> divi / 3) then (start := (start / 7) * 8, divi := start ^ 2)
+    )
+    while (approx == -1) do, begin
+      if (divi >= fi) then (approx := start) else (
+        increment (start)
+        divi := start ^ 2
+      )
+    end
+    if (divi == fi) then (return (approx)) else, begin
+      if ((divi -- approx) == fi) then (return (approx -- 1)) else (return (fi / approx + 1))
+    end
+  end
+end
+
+# Test flow control
+script, benchmark: crappy sqrt, begin
+  variable (i)
+  for (i, 0, 30000) do (crappy sqrt (i))
+end
+
+
+#------------------- some scripts from DoomRPG (stripped down) -----------------------------
+
+global variable, begin
+  1, flames container
+end
+
+define constant, begin
+  # Starting ID of a 2D array of FIRE HEIGHT * FIRE WIDTH global variables.
+  # Cells from bottom to top, left to right. Each contains a value from 0 to 255
+  #300, fire array
+
+  3, CELL WIDTH
+  3, CELL HEIGHT
+  107, FIRE WIDTH
+  37, FIRE HEIGHT
+  201, FIELD HEIGHT
+  383, DECAY
+  12, COOLING MIN MIN
+  40, COOLING MIN MAX
+  12, COOLING RANGE
+end
+
+script, DOOM initialise flames, begin
+  variable (x, y, i, sl)
+  flames container := create container (320, FIELD HEIGHT)
+
+  # create the "pixel" slices
+  for (i, 0, FIRE HEIGHT -- 1) do (
+    for (x, 0, 320 -- 1, CELL WIDTH) do (
+      y := FIELD HEIGHT -- i * CELL HEIGHT
+      sl := load border sprite (0)
+      set parent (sl, flames container)
+      put slice (sl, x, y)
+    )
+  )
+end
+
+script, DOOM flames recalc, begin
+  variable (xi, yi, val, ptr, ptr below, new val, low limit)
+  for (yi, 1, FIRE HEIGHT -- 1) do (
+    ptr := fire array + yi * FIRE WIDTH + 1
+    ptr below := ptr -- FIRE WIDTH
+
+    low limit := COOLING MIN MIN + (COOLING MIN MAX -- COOLING MIN MIN) * yi / (FIREHEIGHT -- 1)
+      
+    for (xi, 1, FIRE WIDTH -- 2) do (
+      write global (ptr, 
+          67 * (2 * (read global(ptr) + read global(ptr below)) + read global(ptr below -- 1) + read global(ptr below + 1)
+                 -- random(low limit, low limit + COOLING RANGE)
+                ) / (DECAY)
+            )
+      ptr += 1
+      ptr below += 1
+    )
+  )
+end
+
+script, DOOM flames update, begin
+  # update slices (bottom to top)
+  variable (sl, ptr, i, x, y, val)
+  sl := slice child (flames container, FIRE WIDTH)   #skip first row
+  ptr := fire array + FIRE WIDTH
+  for (i, FIRE WIDTH, FIRE WIDTH * FIRE HEIGHT -- 1) do (
+    y := FIREHEIGHT -- i / FIRE WIDTH
+    x := i, mod, FIRE WIDTH
+    val := read global (ptr) 
+ 
+    if (val >= 16 * 16) then (
+      set sprite frame (sl, 0)
+    ) else (
+      val += read map block (x, y) *60/ 100
+      set sprite frame (sl, 15 -- (abs(val) + val) / (16 * 2))
+    )
+    
+    ptr += 1
+    sl := next sibling (sl)
+  )
+end
+
+#------------------------------------------------------------------------
+
+# Test reading and writing globals with quite a bit of math
+script, benchmark: DOOM flames recalc, begin
+  variable (i)
+  for (i, 0, 49) do (
+    DOOM flames recalc
+  )
+end
+
+# Test creating and deleting lots of slices
+script, benchmark: DOOM flames create and destroy, begin
+  DOOM initialise flames
+  free slice (flames container)
+end
+
+# Test iterating over slices, reading globals and map blocks, and "set sprite frame", with some math/logic
+script, benchmark: DOOM flames update, begin
+  variable (i)
+  for (i, 0, 49) do (
+    DOOM flames update
+  )
+end
