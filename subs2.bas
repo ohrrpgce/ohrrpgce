@@ -6,20 +6,25 @@
 'FIXME: A large majority of the code in subs2.bas is textbox editor related.
 '       Maybe this file should be renamed textboxedit.bas ?
 '
-'$DYNAMIC
-DEFINT A-Z
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
+#endif
 
 'Types
 
 TYPE TriggerData
- name AS STRING
- id AS INTEGER
+ name as string
+ id as integer
 END TYPE
 
 TYPE TriggerSet
- size AS INTEGER
- trigs AS TriggerData PTR
- usedbits AS UNSIGNED INTEGER PTR
+ size as integer
+ trigs as TriggerData PTR
+ usedbits as UNSIGNED INTEGER PTR
 END TYPE
 
 #include "config.bi"
@@ -37,32 +42,32 @@ END TYPE
 
 '--Local subs and functions
 DECLARE FUNCTION compilescripts (fname as string) as string
-DECLARE SUB writeconstant (filehandle%, num%, names AS STRING, unique() AS STRING, prefix$)
-DECLARE FUNCTION isunique (s AS STRING, set() AS STRING) AS INTEGER
+DECLARE SUB writeconstant (byval filehandle as integer, byval num as integer, names as string, unique() as string, prefix as string)
+DECLARE FUNCTION isunique (s as string, set() as string) as integer
 DECLARE SUB exportnames ()
-DECLARE SUB addtrigger (scrname$, id%, BYREF triggers AS TRIGGERSET)
+DECLARE SUB addtrigger (scrname as string, byval id as integer, byref triggers as TRIGGERSET)
 
-DECLARE FUNCTION textbox_condition_caption(tag AS INTEGER, prefix AS STRING = "") AS STRING
-DECLARE FUNCTION textbox_condition_short_caption(tag AS INTEGER) AS STRING
-DECLARE SUB write_box_conditional_by_menu_index(BYREF box AS TextBox, menuindex AS INTEGER, num AS INTEGER)
-DECLARE FUNCTION read_box_conditional_by_menu_index(BYREF box AS TextBox, menuindex AS INTEGER) AS INTEGER
-DECLARE FUNCTION box_conditional_type_by_menu_index(menuindex AS INTEGER) AS INTEGER
-DECLARE SUB update_textbox_editor_main_menu (BYREF box AS TextBox, menu() AS STRING)
-DECLARE SUB textbox_edit_load (BYREF box AS TextBox, BYREF st AS TextboxEditState, menu() AS STRING)
-DECLARE SUB textbox_edit_preview (BYREF box AS TextBox, BYREF st AS TextboxEditState, override_y AS INTEGER=-1, suppress_text AS INTEGER=NO)
-DECLARE SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
-DECLARE SUB update_textbox_appearance_editor_menu (menu() AS STRING, BYREF box AS TextBox, BYREF st AS TextboxEditState)
-DECLARE SUB textbox_position_portrait (BYREF box AS TextBox, BYREF st AS TextboxEditState, holdscreen AS INTEGER)
-DECLARE SUB textbox_seek(BYREF box AS TextBox, BYREF st AS TextboxEditState)
-DECLARE SUB textbox_create_from_box (BYVAL template_box_id AS INTEGER=0, BYREF box AS TextBox, BYREF st AS TextboxEditState)
-DECLARE SUB textbox_line_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
-DECLARE SUB textbox_copy_style_from_box (BYVAL template_box_id AS INTEGER=0, BYREF box AS TextBox, BYREF st AS TextboxEditState)
-DECLARE SUB textbox_connections(BYREF box AS TextBox, BYREF st AS TextboxEditState, menu() AS STRING)
-DECLARE SUB textbox_connection_captions(BYREF node AS TextboxConnectNode, id AS INTEGER, tag AS INTEGER, box AS TextBox, topcation AS STRING, use_tag AS INTEGER = YES)
-DECLARE SUB textbox_connection_draw_node(BYREF node AS TextboxConnectNode, x AS INTEGER, y AS INTEGER, selected AS INTEGER)
-DECLARE SUB textbox_choice_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
-DECLARE SUB textbox_conditionals(BYREF box AS TextBox)
-DECLARE SUB textbox_update_conditional_menu(BYREF box AS TextBox, menu() AS STRING)
+DECLARE FUNCTION textbox_condition_caption(tag as integer, prefix as string = "") as string
+DECLARE FUNCTION textbox_condition_short_caption(tag as integer) as string
+DECLARE SUB write_box_conditional_by_menu_index(byref box as TextBox, menuindex as integer, num as integer)
+DECLARE FUNCTION read_box_conditional_by_menu_index(byref box as TextBox, menuindex as integer) as integer
+DECLARE FUNCTION box_conditional_type_by_menu_index(menuindex as integer) as integer
+DECLARE SUB update_textbox_editor_main_menu (byref box as TextBox, menu() as string)
+DECLARE SUB textbox_edit_load (byref box as TextBox, byref st as TextboxEditState, menu() as string)
+DECLARE SUB textbox_edit_preview (byref box as TextBox, byref st as TextboxEditState, override_y as integer=-1, suppress_text as integer=NO)
+DECLARE SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditState)
+DECLARE SUB update_textbox_appearance_editor_menu (menu() as string, byref box as TextBox, byref st as TextboxEditState)
+DECLARE SUB textbox_position_portrait (byref box as TextBox, byref st as TextboxEditState, holdscreen as integer)
+DECLARE SUB textbox_seek(byref box as TextBox, byref st as TextboxEditState)
+DECLARE SUB textbox_create_from_box (byval template_box_id as integer=0, byref box as TextBox, byref st as TextboxEditState)
+DECLARE SUB textbox_line_editor (byref box as TextBox, byref st as TextboxEditState)
+DECLARE SUB textbox_copy_style_from_box (byval template_box_id as integer=0, byref box as TextBox, byref st as TextboxEditState)
+DECLARE SUB textbox_connections(byref box as TextBox, byref st as TextboxEditState, menu() as string)
+DECLARE SUB textbox_connection_captions(byref node as TextboxConnectNode, id as integer, tag as integer, box as TextBox, topcation as string, use_tag as integer = YES)
+DECLARE SUB textbox_connection_draw_node(byref node as TextboxConnectNode, x as integer, y as integer, selected as integer)
+DECLARE SUB textbox_choice_editor (byref box as TextBox, byref st as TextboxEditState)
+DECLARE SUB textbox_conditionals(byref box as TextBox)
+DECLARE SUB textbox_update_conditional_menu(byref box as TextBox, menu() as string)
 
 'These are used in the TextBox conditional editor
 CONST condEXIT   = -1
@@ -77,123 +82,121 @@ CONST condBOX    = 7
 CONST condMENU   = 8
 CONST condSETTAG = 9
 
-REM $STATIC
-
 SUB exportnames ()
 
-REDIM u(0) AS STRING
-DIM her AS HeroDef
-DIM menu_set AS MenuSet
+REDIM u(0) as string
+DIM her as HeroDef
+DIM menu_set as MenuSet
 menu_set.menufile = workingdir & SLASH & "menus.bin"
 menu_set.itemfile = workingdir & SLASH & "menuitem.bin"
 
-outf$ = trimextension$(trimpath$(sourcerpg)) + ".hsi"
+DIM outf as string = trimextension(trimpath(sourcerpg)) + ".hsi"
 
 clearpage 0
 setvispage 0
 textcolor uilook(uiText), 0
-pl = 0
+DIM pl as integer = 0
 printstr "exporting HamsterSpeak Definitions to:", 0, pl * 8, 0: pl = pl + 1
-printstr RIGHT$(outf$, 40), 0, pl * 8, 0: pl = pl + 1
+printstr RIGHT(outf, 40), 0, pl * 8, 0: pl = pl + 1
 'Need to call this quite a lot to refresh the screen for FB. Bit of a
 'compromise between showing the process and slowing things down, since
 'it will refresh the window every time.
 setvispage 0
 
-fh = FREEFILE
-OPEN outf$ FOR OUTPUT AS #fh
-PRINT #fh, "# HamsterSpeak constant definitions for " & trimpath$(sourcerpg)
+DIM fh as integer = FREEFILE
+OPEN outf FOR OUTPUT as #fh
+PRINT #fh, "# HamsterSpeak constant definitions for " & trimpath(sourcerpg)
 PRINT #fh, ""
 PRINT #fh, "define constant, begin"
 
 printstr "tag names", 0, pl * 8, 0: pl = pl + 1
-REDIM u(0) AS STRING
-FOR i = 2 TO 999
+REDIM u(0) as string
+FOR i as integer = 2 TO 999
  writeconstant fh, i, load_tag_name(i), u(), "tag"
 NEXT i
 
 printstr "song names", 0, pl * 8, 0: pl = pl + 1
-REDIM u(0) AS STRING
-FOR i = 0 TO gen(genMaxSong)
- writeconstant fh, i, getsongname$(i), u(), "song"
+REDIM u(0) as string
+FOR i as integer = 0 TO gen(genMaxSong)
+ writeconstant fh, i, getsongname(i), u(), "song"
 NEXT i
 setvispage 0
 
 printstr "sound effect names", 0, pl * 8, 0: pl = pl + 1
-REDIM u(0) AS STRING
-FOR i = 0 TO gen(genMaxSFX)
- writeconstant fh, i, getsfxname$(i), u(), "sfx"
+REDIM u(0) as string
+FOR i as integer = 0 TO gen(genMaxSFX)
+ writeconstant fh, i, getsfxname(i), u(), "sfx"
 NEXT i
 setvispage 0
 
 printstr "hero names", 0, pl * 8, 0: pl = pl + 1
-REDIM u(0) AS STRING
-FOR i = 0 TO gen(genMaxHero)
+REDIM u(0) as string
+FOR i as integer = 0 TO gen(genMaxHero)
  loadherodata @her, i
  writeconstant fh, i, her.name, u(), "hero"
 NEXT i
 
 printstr "item names", 0, pl * 8, 0: pl = pl + 1
-REDIM u(0) AS STRING
-FOR i = 0 TO gen(genMaxItem)
- writeconstant fh, i, readitemname$(i), u(), "item"
+REDIM u(0) as string
+FOR i as integer = 0 TO gen(genMaxItem)
+ writeconstant fh, i, readitemname(i), u(), "item"
 NEXT i
 setvispage 0
 
 printstr "stat names", 0, pl * 8, 0: pl = pl + 1
-REDIM u(0) AS STRING
-FOR i = 0 TO UBOUND(statnames)
+REDIM u(0) as string
+FOR i as integer = 0 TO UBOUND(statnames)
  writeconstant fh, i, statnames(i), u(), "stat"
 NEXT i
 
 printstr "slot names", 0, pl * 8, 0: pl = pl + 1
-REDIM u(0) AS STRING
+REDIM u(0) as string
 writeconstant fh, 1, "Weapon", u(), "slot"
 writeconstant fh, 1, readglobalstring(38, "Weapon"), u(), "slot"
-FOR i = 0 TO 3
+FOR i as integer = 0 TO 3
  writeconstant fh, i + 2, readglobalstring(25 + i, "Armor" & i+1), u(), "slot"
 NEXT i
 setvispage 0
 
 printstr "map names", 0, pl * 8, 0: pl = pl + 1
-REDIM u(0) AS STRING
-FOR i = 0 TO gen(genMaxMap)
- writeconstant fh, i, getmapname$(i), u(), "map"
+REDIM u(0) as string
+FOR i as integer = 0 TO gen(genMaxMap)
+ writeconstant fh, i, getmapname(i), u(), "map"
 NEXT i
 
 printstr "attack names", 0, pl * 8, 0: pl = pl + 1
-REDIM u(0) AS STRING
-FOR i = 0 TO gen(genMaxAttack)
- writeconstant fh, i + 1, readattackname$(i), u(), "atk"
+REDIM u(0) as string
+FOR i as integer = 0 TO gen(genMaxAttack)
+ writeconstant fh, i + 1, readattackname(i), u(), "atk"
 NEXT i
 setvispage 0
 
 printstr "shop names", 0, pl * 8, 0: pl = pl + 1
-REDIM u(0) AS STRING
-FOR i = 0 TO gen(genMaxShop)
- writeconstant fh, i, readshopname$(i), u(), "shop"
+REDIM u(0) as string
+FOR i as integer = 0 TO gen(genMaxShop)
+ writeconstant fh, i, readshopname(i), u(), "shop"
 NEXT i
 setvispage 0
 
 printstr "menu names", 0, pl * 8, 0: pl = pl + 1
-REDIM u(0) AS STRING
-FOR i = 0 TO gen(genMaxMenu)
+REDIM u(0) as string
+FOR i as integer = 0 TO gen(genMaxMenu)
  writeconstant fh, i, getmenuname(i), u(), "menu"
 NEXT i
 setvispage 0
 
 printstr "enemy names", 0, pl * 8, 0: pl = pl + 1
-REDIM u(0) AS STRING
-FOR i = 0 TO gen(genMaxEnemy)
- writeconstant fh, i, readenemyname$(i), u(), "enemy"
+REDIM u(0) as string
+FOR i as integer = 0 TO gen(genMaxEnemy)
+ writeconstant fh, i, readenemyname(i), u(), "enemy"
 NEXT i
 setvispage 0
 
 printstr "slice lookup names", 0, pl * 8, 0: pl = pl + 1
-REDIM u(0) AS STRING
-REDIM slicelookup(0) AS STRING
+REDIM u(0) as string
+REDIM slicelookup(0) as string
 load_string_list slicelookup(), workingdir & SLASH & "slicelookup.txt"
-FOR i = 1 TO UBOUND(slicelookup)
+FOR i as integer = 1 TO UBOUND(slicelookup)
  writeconstant fh, i, slicelookup(i), u(), "sli"
 NEXT i
 setvispage 0
@@ -207,10 +210,10 @@ waitforanykey
 
 END SUB
 
-SUB addtrigger (scrname$, id, triggers AS TRIGGERSET)
+SUB addtrigger (scrname as string, byval id as integer, triggers as TRIGGERSET)
  WITH triggers
-  FOR i = 0 TO .size - 1
-   IF .trigs[i].name = scrname$ THEN
+  FOR i as integer = 0 TO .size - 1
+   IF .trigs[i].name = scrname THEN
     .trigs[i].id = id
     .usedbits[i \ 32] = BITSET(.usedbits[i \ 32], i MOD 32)
     EXIT SUB
@@ -218,49 +221,54 @@ SUB addtrigger (scrname$, id, triggers AS TRIGGERSET)
   NEXT
 
   'add to the end
-  .trigs[.size].name = scrname$
+  .trigs[.size].name = scrname
   .trigs[.size].id = id
   .usedbits[.size \ 32] = BITSET(.usedbits[.size \ 32], .size MOD 32)
 
   'expand
   .size += 1
   IF .size MOD 32 = 0 THEN
-   allocnum = .size + 32
+   DIM allocnum as integer = .size + 32
    .usedbits = REALLOCATE(.usedbits, allocnum \ 8)  'bits/byte
    .trigs = REALLOCATE(.trigs, allocnum * SIZEOF(TriggerData))
 
    IF .usedbits = 0 OR .trigs = 0 THEN showerror "Could not allocate memory for script importation": EXIT SUB
 
-   FOR i = .size TO allocnum - 1
-    DIM dummy AS TriggerData ptr = NEW (@.trigs[i]) TriggerData  'placement new, initialise those strings
+   FOR i as integer = .size TO allocnum - 1
+    DIM dummy as TriggerData ptr = NEW (@.trigs[i]) TriggerData  'placement new, initialise those strings
    NEXT
    .usedbits[.size \ 32] = 0
   END IF
  END WITH
 END SUB
 
-SUB importscripts (f$)
+SUB importscripts (f as string)
  DIM triggers as TriggerSet
- DIM triggercount as integer, temp as short
+ DIM triggercount as integer
+ DIM temp as short
+ DIM fptr as integer
+ DIM dotbin as integer
+ DIM headersize as integer
+ DIM recordsize as integer
  
  'Under the best conditions this check is redundant, but it is still good to check anyway...
- IF NOT isfile(f$) THEN
-  pop_warning f$ & " does not exist."
+ IF NOT isfile(f) THEN
+  pop_warning f & " does not exist."
   EXIT SUB
  END IF
 
  setpicstuf buffer(), 7, -1
- loadset f$, 0, 0
+ loadset f, 0, 0
  reset_console
  IF buffer(0) = 21320 AND buffer(1) = 0 THEN
 
-  writeablecopyfile f$, game + ".hsp"
+  writeablecopyfile f, game + ".hsp"
   textcolor uilook(uiMenuItem), 0
   unlumpfile(game + ".hsp", "scripts.bin", tmpdir)
   IF isfile(tmpdir & "scripts.bin") THEN
    dotbin = -1
    fptr = FREEFILE
-   OPEN tmpdir + "scripts.bin" FOR BINARY AS #fptr
+   OPEN tmpdir + "scripts.bin" FOR BINARY as #fptr
    'load header
    GET #fptr, , temp
    headersize = temp
@@ -270,7 +278,7 @@ SUB importscripts (f$)
    
    'the scripts.bin lump does not have a format version field in its header, instead use header size
    IF headersize <> 4 THEN
-    pop_warning f$ + " is in an unrecognised format. Please upgrade to the latest version of CUSTOM."
+    pop_warning f + " is in an unrecognised format. Please upgrade to the latest version of CUSTOM."
     EXIT SUB
    END IF
   ELSE
@@ -278,37 +286,37 @@ SUB importscripts (f$)
    unlumpfile(game + ".hsp", "scripts.txt", tmpdir)
 
    IF isfile(tmpdir + "scripts.txt") = 0 THEN
-    pop_warning f$ + " appears to be corrupt. Please try to recompile your scripts."
+    pop_warning f + " appears to be corrupt. Please try to recompile your scripts."
     EXIT SUB
    END IF
 
    fptr = FREEFILE
-   OPEN tmpdir + "scripts.txt" FOR INPUT AS #fptr
+   OPEN tmpdir + "scripts.txt" FOR INPUT as #fptr
   END IF
 
   'load in existing trigger table
   WITH triggers
-    fh = 0
+    DIM fh as integer = 0
     .size = 0
-    fname$ = workingdir + SLASH + "lookup1.bin"
-    IF isfile(fname$) THEN
+    DIM fname as string = workingdir & SLASH & "lookup1.bin"
+    IF isfile(fname) THEN
      fh = FREEFILE
-     OPEN fname$ FOR BINARY AS #fh
+     OPEN fname FOR BINARY as #fh
      .size = LOF(fh) \ 40
     END IF
 
     'number of triggers rounded to next multiple of 32 (as triggers get added, allocate space for 32 at a time)
-    allocnum = (.size \ 32) * 32 + 32
+    DIM allocnum as integer = (.size \ 32) * 32 + 32
     .trigs = CALLOCATE(allocnum, SIZEOF(TriggerData))
     .usedbits = CALLOCATE(allocnum \ 8)
 
     IF .usedbits = 0 OR .trigs = 0 THEN showerror "Could not allocate memory for script importation": EXIT SUB
    
     IF fh THEN
-     FOR j = 0 TO .size - 1
+     FOR j as integer = 0 TO .size - 1
       loadrecord buffer(), fh, 20, j
       .trigs[j].id = buffer(0)
-      .trigs[j].name = readbinstring$(buffer(), 1, 36)
+      .trigs[j].name = readbinstring(buffer(), 1, 36)
      NEXT
      CLOSE fh
     END IF
@@ -321,8 +329,13 @@ SUB importscripts (f$)
 
   gen(genNumPlotscripts) = 0
   gen(genMaxRegularScript) = 0
-  viscount = 0
-  DIM names AS STRING = ""
+  DIM viscount as integer = 0
+  DIM names as string = ""
+  DIM num as string
+  DIM argc as string
+  DIM dummy as string
+  DIM id as integer
+  DIM trigger as integer
   DO
    IF EOF(fptr) THEN EXIT DO
    IF dotbin THEN 
@@ -330,18 +343,18 @@ SUB importscripts (f$)
     loadrecord buffer(), fptr, recordsize \ 2
     id = buffer(0)
     trigger = buffer(1)
-    names = readbinstring$(buffer(), 2, 36)
+    names = readbinstring(buffer(), 2, 36)
    ELSE
     'read from scripts.txt
     LINE INPUT #fptr, names
-    LINE INPUT #fptr, num$
-    LINE INPUT #fptr, argc$
-    FOR i = 1 TO str2int(argc$)
-     LINE INPUT #fptr, dummy$
+    LINE INPUT #fptr, num
+    LINE INPUT #fptr, argc
+    FOR i as integer = 1 TO str2int(argc)
+     LINE INPUT #fptr, dummy
     NEXT i
-    id = str2int(num$)
+    id = str2int(num)
     trigger = 0
-    names = LEFT$(names, 36)
+    names = LEFT(names, 36)
    END IF
 
    'save to plotscr.lst
@@ -366,7 +379,7 @@ SUB importscripts (f$)
 
   'output the updated trigger table
   WITH triggers
-    FOR j = 0 TO .size - 1
+    FOR j as integer = 0 TO .size - 1
      IF BIT(.usedbits[j \ 32], j MOD 32) = 0 THEN .trigs[j].id = 0
      buffer(0) = .trigs[j].id
      writebinstring .trigs[j].name, buffer(), 1, 36
@@ -392,17 +405,17 @@ SUB importscripts (f$)
   show_message "imported " & viscount & " scripts"
   waitforanykey
  ELSE
-  pop_warning f$ + " is not really a compiled .hs file. Did you create it by compiling a" _
+  pop_warning f + " is not really a compiled .hs file. Did you create it by compiling a" _
               " script file with hspeak.exe, or did you just give your script a name that" _
               " ends in .hs and hoped it would work? Use hspeak.exe to create real .hs files"
  END IF
 END SUB
 
-FUNCTION isunique (s AS STRING, set() AS STRING) AS INTEGER
- DIM key AS STRING
+FUNCTION isunique (s as string, set() as string) as integer
+ DIM key as string
  key = sanitize_script_identifier(LCASE(s), NO)
 
- FOR i = 1 TO UBOUND(set)
+ FOR i as integer = 1 TO UBOUND(set)
   IF key = set(i) THEN RETURN NO
  NEXT i
 
@@ -414,14 +427,16 @@ SUB scriptman ()
 STATIC defaultdir as string
 DIM menu(5) as string
 
-menumax = 4
+DIM menumax as integer = 4
 menu(0) = "Previous Menu"
 menu(1) = "Compile and/or Import scripts (.hss/.hs)"
 menu(2) = "Export names for scripts (.hsi)"
 menu(3) = "Check where scripts are used..."
 menu(4) = "Find broken script triggers..."
 
-pt = 1
+DIM f as string
+DIM pt as integer = 1
+DIM tog as integer
 setkeys
 DO
  setwait 55
@@ -435,18 +450,18 @@ DO
    CASE 0
     EXIT DO
    CASE 1
-    f$ = browse(9, defaultdir, "", "",, "browse_hs")
-    IF f$ <> "" THEN
-     IF justextension(f$) <> "hs" THEN
+    f = browse(9, defaultdir, "", "",, "browse_hs")
+    IF f <> "" THEN
+     IF justextension(f) <> "hs" THEN
       clearkey scEnter
       clearkey scSpace
-      f$ = compilescripts(f$)
-      IF f$ <> "" THEN
-       importscripts f$
+      f = compilescripts(f)
+      IF f <> "" THEN
+       importscripts f
       END IF
-      safekill f$  'reduce clutter
+      safekill f  'reduce clutter
      ELSE
-      importscripts f$
+      importscripts f
      END IF
     END IF
    CASE 2
@@ -466,10 +481,6 @@ DO
  dowait
 LOOP
 END SUB
-
-'======== FIXME: move this up as code gets cleaned up ===========
-OPTION EXPLICIT
-
 
 'Returns filename of .hs file
 FUNCTION compilescripts(fname as string) as string
@@ -496,24 +507,24 @@ END FUNCTION
 
 SUB text_box_editor () 'textage
  STATIC browse_default as string
- DIM menu(10) AS STRING
- DIM h(2) AS STRING
- DIM tagmn AS STRING
- DIM gcsr AS INTEGER
- DIM tcur AS INTEGER
- DIM box AS TextBox
- DIM st AS TextboxEditState
+ DIM menu(10) as string
+ DIM h(2) as string
+ DIM tagmn as string
+ DIM gcsr as integer
+ DIM tcur as integer
+ DIM box as TextBox
+ DIM st as TextboxEditState
  WITH st
   .id = 1
   .search = ""
  END WITH
 
  '--For the import/export support
- DIM box_text_file AS STRING
- DIM overwrite AS INTEGER = NO
- DIM remember_boxcount AS INTEGER
- DIM backup_say AS STRING
- DIM import_warn AS STRING = ""
+ DIM box_text_file as string
+ DIM overwrite as integer = NO
+ DIM remember_boxcount as integer
+ DIM backup_say as string
+ DIM import_warn as string = ""
 
  menu(0) = "Return to Main Menu"
  menu(1) = "Text Box"
@@ -527,15 +538,15 @@ SUB text_box_editor () 'textage
  menu(9) = "Export text boxes..."
  menu(10) = "Import text boxes..."
  
- DIM state AS MenuState
+ DIM state as MenuState
  state.pt = 0
  state.last = UBOUND(menu)
  state.size = 24
  
- DIM style_clip AS INTEGER = 0
+ DIM style_clip as integer = 0
  
- DIM remptr AS INTEGER
- DIM temptrig AS INTEGER
+ DIM remptr as integer
+ DIM temptrig as integer
  
  textbox_edit_load box, st, menu()
  setkeys YES
@@ -614,8 +625,8 @@ SUB text_box_editor () 'textage
     textbox_connections box, st, menu()
    END IF
    IF state.pt = 9 THEN '--Export textboxes to a .TXT file
-    STATIC metadata(3) AS INTEGER
-    DIM metadatalabels(3) AS STRING
+    STATIC metadata(3) as integer
+    DIM metadatalabels(3) as string
     metadatalabels(0) = "Text"
     metadata(0) = YES '--by default, export text
     metadatalabels(1) = "Conditionals"
@@ -694,17 +705,17 @@ SUB text_box_editor () 'textage
  'See wiki for .SAY file format docs
 END SUB
 
-SUB textbox_conditionals(BYREF box AS TextBox)
- DIM menu(-1 TO 22) AS STRING
+SUB textbox_conditionals(byref box as TextBox)
+ DIM menu(-1 TO 22) as string
  
- DIM state AS MenuState
+ DIM state as MenuState
  state.top = -1
  state.pt = 0
  state.first = -1
  state.last = 22
  state.size = 21
 
- DIM grey(-1 TO 22)
+ DIM grey(-1 TO 22) as integer
  'This array tells which rows in the conditional editor are grey
  grey(-1) = NO
  grey(0) = YES
@@ -731,9 +742,9 @@ SUB textbox_conditionals(BYREF box AS TextBox)
  grey(21) = YES 'Menu Tag
  grey(22) = NO
 
- DIM num AS INTEGER
- DIM temptrig AS INTEGER
- DIM c AS INTEGER
+ DIM num as integer
+ DIM temptrig as integer
+ DIM c as integer
 
  textbox_update_conditional_menu box, menu()
  setkeys
@@ -795,7 +806,7 @@ SUB textbox_conditionals(BYREF box AS TextBox)
   END IF
 
   clearpage dpage
-  FOR i AS INTEGER = state.top TO state.top + state.size
+  FOR i as integer = state.top TO state.top + state.size
    textcolor uilook(uiMenuItem), 0
    IF grey(i) = YES THEN
     c = uilook(uiSelectedDisabled)
@@ -819,7 +830,7 @@ SUB textbox_conditionals(BYREF box AS TextBox)
  LOOP
 END SUB
 
-SUB textbox_update_conditional_menu(BYREF box AS TextBox, menu() AS STRING)
+SUB textbox_update_conditional_menu(byref box as TextBox, menu() as string)
  menu(-1) = "Go Back"
  menu(0) = textbox_condition_caption(box.instead_tag, "INSTEAD")
  SELECT CASE box.instead
@@ -881,8 +892,8 @@ SUB textbox_update_conditional_menu(BYREF box AS TextBox, menu() AS STRING)
  END SELECT
 END SUB
 
-SUB textbox_edit_preview (BYREF box AS TextBox, BYREF st AS TextboxEditState, override_y AS INTEGER=-1, suppress_text AS INTEGER=NO)
- DIM ypos AS INTEGER
+SUB textbox_edit_preview (byref box as TextBox, byref st as TextboxEditState, override_y as integer=-1, suppress_text as integer=NO)
+ DIM ypos as integer
  IF override_y >= 0 THEN
   ypos = override_y
  ELSE
@@ -892,9 +903,9 @@ SUB textbox_edit_preview (BYREF box AS TextBox, BYREF st AS TextboxEditState, ov
   edgeboxstyle 4, ypos, 312, get_text_box_height(box), box.boxstyle, dpage, (box.opaque = NO)
  END IF
  IF suppress_text = NO THEN
-  DIM col AS INTEGER
-  DIM i AS INTEGER
-  FOR i = 0 TO 7
+  DIM col as integer
+  DIM i as integer
+  FOR i as integer = 0 TO 7
    col = uilook(uiText)
    IF box.textcolor > 0 THEN col = box.textcolor
    edgeprint box.text(i), 8, 3 + ypos + i * 10, col, dpage
@@ -908,13 +919,13 @@ SUB textbox_edit_preview (BYREF box AS TextBox, BYREF st AS TextboxEditState, ov
  END WITH
 END SUB
 
-SUB textbox_edit_load (BYREF box AS TextBox, BYREF st AS TextboxEditState, menu() AS STRING)
+SUB textbox_edit_load (byref box as TextBox, byref st as TextboxEditState, menu() as string)
  LoadTextBox box, st.id
  update_textbox_editor_main_menu box, menu()
  load_text_box_portrait box, st.portrait
 END SUB
 
-SUB update_textbox_editor_main_menu (BYREF box AS TextBox, menu() AS STRING)
+SUB update_textbox_editor_main_menu (byref box as TextBox, menu() as string)
  IF box.after = 0 THEN
   box.after_tag = 0
  ELSE
@@ -938,8 +949,8 @@ SUB update_textbox_editor_main_menu (BYREF box AS TextBox, menu() AS STRING)
  END SELECT
 END SUB
 
-FUNCTION textbox_condition_caption(tag AS INTEGER, prefix AS STRING = "") AS STRING
- DIM prefix2 AS STRING
+FUNCTION textbox_condition_caption(tag as integer, prefix as string = "") as string
+ DIM prefix2 as string
  IF LEN(prefix) > 0 THEN prefix2 = prefix & ": "
  IF tag = 0 THEN RETURN prefix2 & "Never do the following"
  IF tag = 1 THEN RETURN prefix2 & "If tag 1 = ON [Never]"
@@ -947,18 +958,18 @@ FUNCTION textbox_condition_caption(tag AS INTEGER, prefix AS STRING = "") AS STR
  RETURN prefix2 & "If tag " & ABS(tag) & " = " + onoroff(tag) & " (" & load_tag_name(tag) & ")"
 END FUNCTION
 
-FUNCTION textbox_condition_short_caption(tag AS INTEGER) AS STRING
+FUNCTION textbox_condition_short_caption(tag as integer) as string
  IF tag = 0 THEN RETURN "NEVER"
  IF tag = 1 THEN RETURN "NEVER(1)"
  IF tag = -1 THEN RETURN "ALWAYS"
  RETURN "IF TAG " & ABS(tag) & "=" + UCASE(onoroff(tag))
 END FUNCTION
 
-SUB writeconstant (filehandle AS INTEGER, num AS INTEGER, names AS STRING, unique() AS STRING, prefix AS STRING)
+SUB writeconstant (byval filehandle as integer, byval num as integer, names as string, unique() as string, prefix as string)
  'prints a hamsterspeak constant to already-open filehandle
- DIM s AS STRING
- DIM n AS INTEGER = 2
- DIM suffix AS STRING
+ DIM s as string
+ DIM n as integer = 2
+ DIM suffix as string
  s = TRIM(sanitize_script_identifier(names))
  IF s <> "" THEN
   WHILE NOT isunique(s + suffix, unique())
@@ -970,7 +981,7 @@ SUB writeconstant (filehandle AS INTEGER, num AS INTEGER, names AS STRING, uniqu
  END IF
 END SUB
 
-SUB write_box_conditional_by_menu_index(BYREF box AS TextBox, menuindex AS INTEGER, num AS INTEGER)
+SUB write_box_conditional_by_menu_index(byref box as TextBox, menuindex as integer, num as integer)
  WITH box
   SELECT CASE menuindex
    CASE 0:  .instead_tag = num
@@ -1000,7 +1011,7 @@ SUB write_box_conditional_by_menu_index(BYREF box AS TextBox, menuindex AS INTEG
  END WITH
 END SUB
 
-FUNCTION read_box_conditional_by_menu_index(BYREF box AS TextBox, menuindex AS INTEGER) AS INTEGER
+FUNCTION read_box_conditional_by_menu_index(byref box as TextBox, menuindex as integer) as integer
  WITH box
   SELECT CASE menuindex
    CASE 0:  RETURN .instead_tag
@@ -1030,7 +1041,7 @@ FUNCTION read_box_conditional_by_menu_index(BYREF box AS TextBox, menuindex AS I
  END WITH
 END FUNCTION
 
-FUNCTION box_conditional_type_by_menu_index(menuindex AS INTEGER) AS INTEGER
+FUNCTION box_conditional_type_by_menu_index(menuindex as integer) as integer
  SELECT CASE menuindex
   CASE -1      : RETURN condEXIT
   CASE 1, 22   : RETURN condBOX
@@ -1046,9 +1057,9 @@ FUNCTION box_conditional_type_by_menu_index(menuindex AS INTEGER) AS INTEGER
  END SELECT
 END FUNCTION
 
-SUB textbox_position_portrait (BYREF box AS TextBox, BYREF st AS TextboxEditState, holdscreen AS INTEGER)
- DIM speed AS INTEGER = 1
- DIM tog AS INTEGER = 0
+SUB textbox_position_portrait (byref box as TextBox, byref st as TextboxEditState, holdscreen as integer)
+ DIM speed as integer = 1
+ DIM tog as integer = 0
  setkeys
  DO
   setwait 55
@@ -1072,22 +1083,22 @@ SUB textbox_position_portrait (BYREF box AS TextBox, BYREF st AS TextboxEditStat
  LOOP
 END SUB
 
-SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
- DIM menu(16) AS STRING
- DIM state AS MenuState
+SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditState)
+ DIM menu(16) as string
+ DIM state as MenuState
  state.size = 20
  state.last = UBOUND(menu)
  state.need_update = YES
  
  'Show backdrop
- DIM holdscreen AS INTEGER
+ DIM holdscreen as integer
  holdscreen = allocatepage
  IF box.backdrop > 0 THEN
   loadmxs game & ".mxs", box.backdrop - 1, vpages(holdscreen)
  END IF
 
- DIM i AS INTEGER
- DIM col AS INTEGER
+ DIM i as integer
+ DIM col as integer
 
  setkeys
  DO
@@ -1169,7 +1180,7 @@ SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditStat
 
   copypage holdscreen, dpage
   textbox_edit_preview box, st
-  FOR i = 0 TO UBOUND(menu)
+  FOR i as integer = 0 TO UBOUND(menu)
    col = uilook(uimenuItem)
    IF i = state.pt THEN col = uilook(uiSelectedItem + state.tog)
    edgeprint menu(i), 0, i * 10, col, dpage
@@ -1183,7 +1194,7 @@ SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditStat
  pausesong
 END SUB
 
-SUB update_textbox_appearance_editor_menu (menu() AS STRING, BYREF box AS TextBox, BYREF st AS TextboxEditState)
+SUB update_textbox_appearance_editor_menu (menu() as string, byref box as TextBox, byref st as TextboxEditState)
  menu(0) = "Go Back"
  menu(1) = "Position:"
  menu(2) = "Shrink:"
@@ -1201,9 +1212,9 @@ SUB update_textbox_appearance_editor_menu (menu() AS STRING, BYREF box AS TextBo
  menu(14) = "Position Portrait..."
  menu(15) = "Sound Effect:"
  menu(16) = "Stop sound after box:"
- DIM menutemp AS STRING
- DIM i AS INTEGER
- FOR i = 0 TO UBOUND(menu)
+ DIM menutemp as string
+ DIM i as integer
+ FOR i as integer = 0 TO UBOUND(menu)
   menutemp = ""
   SELECT CASE i
    CASE 1: menutemp = "" & box.vertical_offset
@@ -1216,7 +1227,7 @@ SUB update_textbox_appearance_editor_menu (menu() AS STRING, BYREF box AS TextBo
    CASE 3: menutemp = "" & box.textcolor
    CASE 4: menutemp = "" & box.boxstyle
    CASE 5: IF box.backdrop THEN menutemp = "" & box.backdrop - 1 ELSE menutemp = "NONE"
-   CASE 6: IF box.music THEN menutemp = (box.music - 1) & " " & getsongname$(box.music - 1) ELSE menutemp = "NONE"
+   CASE 6: IF box.music THEN menutemp = (box.music - 1) & " " & getsongname(box.music - 1) ELSE menutemp = "NONE"
    CASE 7: menutemp = yesorno(NOT box.no_box)
    CASE 8: menutemp = yesorno(NOT box.opaque)
    CASE 9: menutemp = yesorno(box.restore_music)
@@ -1258,11 +1269,11 @@ SUB update_textbox_appearance_editor_menu (menu() AS STRING, BYREF box AS TextBo
  load_text_box_portrait box, st.portrait
 END SUB
 
-SUB textbox_seek(BYREF box AS TextBox, BYREF st AS TextboxEditState)
+SUB textbox_seek(byref box as TextBox, byref st as TextboxEditState)
  SaveTextBox box, st.id
- DIM remember_id AS INTEGER = st.id
+ DIM remember_id as integer = st.id
  st.id += 1
- DIM foundstr AS INTEGER = NO
+ DIM foundstr as integer = NO
  DO
   IF st.id > gen(genMaxTextBox) THEN st.id = 0
   IF st.id = remember_id THEN
@@ -1274,7 +1285,7 @@ SUB textbox_seek(BYREF box AS TextBox, BYREF st AS TextboxEditState)
   END IF
   LoadTextBox box, st.id
   foundstr = NO
-  FOR i AS INTEGER = 0 TO UBOUND(box.text)
+  FOR i as integer = 0 TO UBOUND(box.text)
    IF INSTR(UCASE(box.text(i)), UCASE(st.search)) > 0 THEN foundstr = YES
   NEXT i
   IF foundstr THEN EXIT DO
@@ -1282,15 +1293,15 @@ SUB textbox_seek(BYREF box AS TextBox, BYREF st AS TextboxEditState)
  LOOP
 END SUB
 
-SUB textbox_create_from_box (BYVAL template_box_id AS INTEGER=0, BYREF box AS TextBox, BYREF st AS TextboxEditState)
+SUB textbox_create_from_box (byval template_box_id as integer=0, byref box as TextBox, byref st as TextboxEditState)
  '--this inits a new text box, and copies in values from another box for defaults
  ClearTextBox box
  textbox_copy_style_from_box template_box_id, box, st
 END SUB
 
-SUB textbox_copy_style_from_box (BYVAL template_box_id AS INTEGER=0, BYREF box AS TextBox, BYREF st AS TextboxEditState)
+SUB textbox_copy_style_from_box (byval template_box_id as integer=0, byref box as TextBox, byref st as TextboxEditState)
  '--copies in styles values from another box for defaults
- DIM boxcopier AS TextBox
+ DIM boxcopier as TextBox
  LoadTextBox boxcopier, template_box_id
  WITH box
   .no_box          = boxcopier.no_box
@@ -1311,13 +1322,13 @@ SUB textbox_copy_style_from_box (BYVAL template_box_id AS INTEGER=0, BYREF box A
  SaveTextBox box, st.id
 END SUB
 
-SUB textbox_line_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
- DIM state AS MenuState
+SUB textbox_line_editor (byref box as TextBox, byref st as TextboxEditState)
+ DIM state as MenuState
  WITH state
   state.size = 22
   state.last = UBOUND(box.text)
  END WITH
- DIM insertpt AS INTEGER = -1
+ DIM insertpt as integer = -1
  setkeys YES
  DO
   setwait 55
@@ -1335,7 +1346,7 @@ SUB textbox_line_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
   clearpage dpage
   textbox_edit_preview box, st, 4, YES
   'Display the lines in the box
-  FOR i AS INTEGER = state.first TO state.last
+  FOR i as integer = state.first TO state.last
    textcolor uilook(uiText), 0
    IF box.textcolor > 0 THEN textcolor box.textcolor, 0
    IF state.pt = i THEN
@@ -1362,14 +1373,14 @@ SUB textbox_line_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
  LOOP
 END SUB
 
-SUB textbox_choice_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
+SUB textbox_choice_editor (byref box as TextBox, byref st as TextboxEditState)
  'tchoice:
- DIM state AS MenuState
+ DIM state as MenuState
  WITH state
   .last = 5
   .size = 24
  END WITH
- DIM menu(5) AS STRING
+ DIM menu(5) as string
  menu(0) = "Go Back"
  setkeys YES
  DO
@@ -1386,12 +1397,12 @@ SUB textbox_choice_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
   IF state.pt = 1 THEN
    IF keyval(scLeft) > 1 OR keyval(scRight) > 1 THEN box.choice_enabled = (NOT box.choice_enabled)
   END IF
-  FOR i AS INTEGER = 0 TO 1
+  FOR i as integer = 0 TO 1
    IF state.pt = 2 + (i * 2) THEN strgrabber box.choice(i), 15
    IF state.pt = 3 + (i * 2) THEN tag_grabber box.choice_tag(i), , , NO
   NEXT i
   IF box.choice_enabled THEN menu(1) = "Choice = Enabled" ELSE menu(1) = "Choice = Disabled"
-  FOR i AS INTEGER = 0 TO 1
+  FOR i as integer = 0 TO 1
    menu(2 + (i * 2)) = "Option " & i & " text:" + box.choice(i)
    menu(3 + (i * 2)) = tag_set_caption(box.choice_tag(i))
   NEXT i
@@ -1405,29 +1416,29 @@ SUB textbox_choice_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
  LOOP
 END SUB
 
-SUB textbox_connections(BYREF box AS TextBox, BYREF st AS TextboxEditState, menu() AS STRING)
+SUB textbox_connections(byref box as TextBox, byref st as TextboxEditState, menu() as string)
 'FIXME: menu() should be moved to become a member of st, then we wouldn't have to pass it around
  SaveTextBox box, st.id
- DIM do_search AS INTEGER = YES
- REDIM prev(5) AS TextboxConnectNode
- DIM current AS TextboxConnectNode
- REDIM nxt(2) AS TextboxConnectNode
+ DIM do_search as integer = YES
+ REDIM prev(5) as TextboxConnectNode
+ DIM current as TextboxConnectNode
+ REDIM nxt(2) as TextboxConnectNode
 
- DIM column AS INTEGER = 1
- DIM col_limit_left AS INTEGER = 1
- DIM col_limit_right AS INTEGER = 1
+ DIM column as integer = 1
+ DIM col_limit_left as integer = 1
+ DIM col_limit_right as integer = 1
  
- DIM state AS MenuState
+ DIM state as MenuState
  state.size = 6
- DIM nxt_state AS MenuState
+ DIM nxt_state as MenuState
  nxt_state.size = 2
- DIM searchbox AS TextBox
+ DIM searchbox as TextBox
  
- DIM nxt_add_type AS INTEGER
- DIM remember_insert AS INTEGER
- DIM remember_insert_tag AS INTEGER
+ DIM nxt_add_type as integer
+ DIM remember_insert as integer
+ DIM remember_insert_tag as integer
  
- DIM y AS INTEGER
+ DIM y as integer
 
  setkeys
  DO
@@ -1443,7 +1454,7 @@ SUB textbox_connections(BYREF box AS TextBox, BYREF st AS TextboxEditState, menu
    nxt_state.last = -1
    nxt_state.pt = 0
    nxt_state.top = 0
-   REDIM nxt(2) AS TextboxConnectNode
+   REDIM nxt(2) as TextboxConnectNode
    IF box.instead_tag <> 0 THEN
     nxt_state.last += 1
     LoadTextBox searchbox, box.instead
@@ -1465,7 +1476,7 @@ SUB textbox_connections(BYREF box AS TextBox, BYREF st AS TextboxEditState, menu
    state.last = -1
    state.pt = 0
    state.top = 0
-   FOR i AS INTEGER = 0 TO gen(genMaxTextBox)
+   FOR i as integer = 0 TO gen(genMaxTextBox)
     LoadTextBox searchbox, i
     WITH searchbox
      IF .instead = st.id AND .instead_tag <> 0 THEN
@@ -1559,7 +1570,7 @@ SUB textbox_connections(BYREF box AS TextBox, BYREF st AS TextboxEditState, menu
   textbox_edit_preview box, st, 96
   '--Draw previous
   IF state.last >= 0 THEN
-   FOR i AS INTEGER = state.top TO small(state.last, state.top + state.size)
+   FOR i as integer = state.top TO small(state.last, state.top + state.size)
     y = (i - state.top) * 25
     textbox_connection_draw_node prev(i), 0, y, (column = 0 AND state.pt = i)
    NEXT i
@@ -1571,7 +1582,7 @@ SUB textbox_connections(BYREF box AS TextBox, BYREF st AS TextboxEditState, menu
   textbox_connection_draw_node current, 106, y, (column = 1)
   '--Draw next
   IF nxt_state.last >= 0 THEN
-   FOR i AS INTEGER = nxt_state.top TO small(nxt_state.last, nxt_state.top + nxt_state.size)
+   FOR i as integer = nxt_state.top TO small(nxt_state.last, nxt_state.top + nxt_state.size)
     y = (i - nxt_state.top) * 25
     textbox_connection_draw_node nxt(i), 212, y, (column = 2 AND nxt_state.pt = i)
    NEXT i
@@ -1584,8 +1595,8 @@ SUB textbox_connections(BYREF box AS TextBox, BYREF st AS TextboxEditState, menu
  LOOP
 END SUB
 
-SUB textbox_connection_captions(BYREF node AS TextboxConnectNode, id AS INTEGER, tag AS INTEGER, box AS TextBox, topcation AS STRING, use_tag AS INTEGER = YES)
- DIM preview_line AS STRING
+SUB textbox_connection_captions(byref node as TextboxConnectNode, id as integer, tag as integer, box as TextBox, topcation as string, use_tag as integer = YES)
+ DIM preview_line as string
  IF id >= 0 THEN
   node.lines(0) = topcation & " " & id
   preview_line = textbox_preview_line(box)
@@ -1605,15 +1616,15 @@ SUB textbox_connection_captions(BYREF node AS TextboxConnectNode, id AS INTEGER,
  node.id = id
 END SUB
 
-SUB textbox_connection_draw_node(BYREF node AS TextboxConnectNode, x AS INTEGER, y AS INTEGER, selected AS INTEGER)
- STATIC tog AS INTEGER = 0
+SUB textbox_connection_draw_node(byref node as TextboxConnectNode, x as integer, y as integer, selected as integer)
+ STATIC tog as integer = 0
  edgeboxstyle x, y, 104, 26, node.style, dpage, (NOT selected), YES
  textcolor uilook(uiMenuItem), 0
  IF selected THEN
   textcolor uilook(uiSelectedItem + tog), 0
   tog = tog XOR 1
  END IF
- FOR i AS INTEGER = 0 TO 2
+ FOR i as integer = 0 TO 2
   printstr node.lines(i), x + 1, y + i * 8 + 1, dpage
  NEXT i
 END SUB
