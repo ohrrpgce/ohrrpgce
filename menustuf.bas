@@ -598,12 +598,18 @@ FOR i as integer = 0 to 1
  gam.hero(target).stat.cur.sta(i) = target_obj.stat.cur.sta(i)
  gam.hero(target).stat.max.sta(i) = target_obj.stat.max.sta(i)
 NEXT i
-'--Then update just the max for the other stats
-'--this kinda sucks but it is consistent with the way outside of battle cure has always worked
-FOR i as integer = 2 to 11
- gam.hero(target).stat.max.sta(i) = target_obj.stat.cur.sta(i)
- gam.hero(target).stat.cur.sta(i) = gam.hero(target).stat.max.sta(i)
-NEXT i
+
+IF readbit(gen(), genBits2, 15) = NO THEN  '"Don't reset stat maxs after OOB attack"
+ '--Then update just the max for the other stats
+ '--this kinda sucks but it is consistent with the way outside of battle cure has always worked.
+ '--Its need so that items which permanently change stats out of battle can work, but it's
+ '--also a bad thing if script expects the max valeus to not change.
+ '--Note that an item can't permanently change HP or MP!
+ FOR i as integer = 2 to 11
+  gam.hero(target).stat.max.sta(i) = target_obj.stat.cur.sta(i)
+  gam.hero(target).stat.cur.sta(i) = gam.hero(target).stat.max.sta(i)
+ NEXT i
+END IF
 
 'Sound effect
 MenuSound attack.sound_effect

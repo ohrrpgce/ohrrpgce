@@ -31,3 +31,5 @@ The "Simulate __ bug" bitsets are for backwards compatibility with old games, an
 "Harm tiles harm non-caterpillar heroes" causes all heroes in the active party to be harmed when the leader walks over a harm tile if the caterpillar party isn't enabled. This defaults to off in old games.
 
 "Don't divide experience between heroes" causes all heroes to get the full amount of experience after battles, rather than dividing the experience depending on the number of heroes in your active party.
+
+"Don't reset stat maxs after OOB attack" prevents maximum values for stats other than HP and MP from being reset to the current values after an attack occurs out of battle (either from the Spells menu, attached to an item, or using the "map cure" script command). Turning this on prevents items that permanently alter a stat (other than HP and MP) from working properly! You only need to enable this bitset if you are using scripts which cause your current and maximum stat values to differ and you don't want an OOB attack to clobber the values.
