@@ -4,8 +4,13 @@
 '' part of OHRRPGCE - see elsewhere for license details
 ''
 
-option explicit
-
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
+#endif
 
 '#include "crt.bi"
 
@@ -73,7 +78,8 @@ option explicit
 #IFDEF IS_GAME
 #include once "gglobals.bi"
 #ELSE
-dim shared tag(2000), global(1025)
+dim shared tag(2000) as integer
+dim shared global(1025) as integer
 #ENDIF
 
 
@@ -124,7 +130,7 @@ function openMidi() as integer
     #IFDEF __FB_WIN32__
     dim moc as MIDIOUTCAPS
     midiOutGetDevCaps MIDI_MAPPER, @moc, len(MIDIOUTCAPS)
-    'debug "Midi port supports Volume changes:" + str$(moc.dwSupport AND MIDICAPS_VOLUME)
+    'debug "Midi port supports Volume changes:" + str(moc.dwSupport AND MIDICAPS_VOLUME)
 
     return midiOutOpen (@midi_handle,MIDI_MAPPER,0,0,0)
     #ENDIF
@@ -288,7 +294,7 @@ end sub
 
 sub music_play(songname as string, byval fmt as integer)
 	if music_on then
-		songname = rtrim$(songname)	'lose any added nulls
+		songname = rtrim(songname)	'lose any added nulls
     dim ext as string = lcase(justextension(songname))
 		if fmt = FORMAT_BAM then
 			dim midname as string
@@ -297,7 +303,7 @@ sub music_play(songname as string, byval fmt as integer)
 			'use last 3 hex digits of length as a kind of hash,
 			'to verify that the .bmd does belong to this file
 			flen = flen and &h0fff
-			midname = tmpdir & trimpath$(songname) & "-" & lcase(hex(flen)) & ".bmd"
+			midname = tmpdir & trimpath(songname) & "-" & lcase(hex(flen)) & ".bmd"
 			'check if already converted
 			if isfile(midname) = 0 then
 				bam2mid(songname, midname,1)
@@ -402,13 +408,14 @@ function music_getvolume() as single
 end function
 
 Sub dumpdata(m as MIDI_EVENT ptr)
-	dim d$, i as integer
+	dim d as string
+	dim i as integer
 
 	'for i = 0 to m->extralen - 1
-	'	d$ += hex$(m->extradata[i]) + " "
+	'	d += hex(m->extradata[i]) + " "
 	'next
 
-	'debug d$
+	'debug d
 
 end sub
 
@@ -615,24 +622,24 @@ sysex:
 					end if
 			  'case &H30 'load sound
 			  '  p += 1
-			  '  debug "load sound(" + str$(BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) + "," + str$(curevent->extradata[p+2]) + ")"
+			  '  debug "load sound(" + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) + "," + str(curevent->extradata[p+2]) + ")"
 			  '
-			  '  sound_load cint(*(curevent->extradata + p + 2)),soundfile$(BE_SHORT(*Cptr(short ptr, curevent->extradata + p)))
+			  '  sound_load cint(*(curevent->extradata + p + 2)),soundfile(BE_SHORT(*Cptr(short ptr, curevent->extradata + p)))
 			  '
 			  '  p += 3
 			  case &H31 'play sound
 			    p += 1
-			    'debug "play sound (" + str$(curevent->extradata[p]) + "," + str$(curevent->extradata[p+1]) + ")"
+			    'debug "play sound (" + str(curevent->extradata[p]) + "," + str(curevent->extradata[p+1]) + ")"
 			    sound_play curevent->extradata[p], curevent->extradata[p + 1] <> 0
 			    p += 2
 			  case &H32 'stop sound
 			    p += 1
-			    'debug "stop sound (" + str$(curevent->extradata[p]) + ")"
+			    'debug "stop sound (" + str(curevent->extradata[p]) + ")"
 			    sound_stop curevent->extradata[p]
 			    p += 1
 			  'case &H33 'free sound
 			  '  p += 1
-			  '  debug "free sound(" + str$(curevent->extradata[p]) + ")"
+			  '  debug "free sound(" + str(curevent->extradata[p]) + ")"
 			  '  sound_free curevent->extradata[p]
 			  '  p += 1
 				end select

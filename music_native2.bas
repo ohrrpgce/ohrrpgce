@@ -4,8 +4,13 @@
 '' part of OHRRPGCE - see elsewhere for license details
 ''
 
-option explicit
-
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
+#endif
 
 '#include "crt.bi"
 
@@ -17,7 +22,8 @@ option explicit
 #IFDEF IS_GAME
 #include once "gglobals.bi"
 #ELSE
-dim shared tag(2000), global(1025)
+dim shared tag(2000) as integer
+dim shared global(1025) as integer
 #ENDIF
 
 '#IFNDEF USE_ALLEGRO
@@ -107,7 +113,7 @@ dim shared current_size as integer, buffer_size as integer
 dim shared skip_ticks as integer
 dim shared buffer_thread as any ptr = NULL
 
-declare function DebugWndProc (byval hwnd as HWND, byval uMsg as uinteger, byval wParam as WPARAM, byval lParam as LPARAM)
+declare function DebugWndProc (byval hwnd as HWND, byval uMsg as uinteger, byval wParam as WPARAM, byval lParam as LPARAM) as integer
 Declare sub DebugWindowThread(byval useless as any ptr)
 
 #include once "fbgfx.bi"
