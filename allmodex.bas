@@ -1,6 +1,14 @@
 'The OHRRPGCE graphics, audio and user input library!
 'Please read LICENSE.txt for GNU GPL license details and disclaimer of liability
 
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
+#endif
+
 #include "config.bi"
 #include "crt/limits.bi"
 #include "common.bi"

@@ -4,6 +4,14 @@
 '' part of OHRRPGCE - see elsewhere for license details
 ''
 
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
+#endif
+
 #include "music.bi"
 #include "util.bi"
 #include "common.bi"

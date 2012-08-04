@@ -4,6 +4,14 @@
 
 'Used by music_sdl, but could be used with other SDL libraries
 
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
+#endif
+
 #include "config.bi"
 #include "SDL/SDL.bi"
 #include "lumpfile.bi"

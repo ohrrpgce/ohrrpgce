@@ -4,6 +4,14 @@
 'See README.txt for code docs and apologies for crappyness of this code ;)
 'Except, this module isn't very crappy
 '
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
+#endif
+
 #ifdef IS_GAME
 extern plotslices() as integer
 #endif

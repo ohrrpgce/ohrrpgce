@@ -7,6 +7,14 @@
 ' any FreeBasic program. Nothing in here can depend on Allmodex, nor on any
 ' gfx or music backend, nor on any other part of the OHR
 
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
+#endif
+
 CONST STACK_SIZE_INC = 512 ' in integers
 
 #include "file.bi"   'FB header

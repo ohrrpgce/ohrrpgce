@@ -43,6 +43,9 @@ if 'asm' in ARGUMENTS:
 if 'gengcc' in ARGUMENTS:
     FBFLAGS += ["-gen", "gcc"]
 
+if 'langfb' in ARGUMENTS:
+    FBFLAGS += ["-d", "TRY_LANG_FB"]
+
 linkgcc = int (ARGUMENTS.get ('linkgcc', True))
 
 environ = os.environ
@@ -85,7 +88,7 @@ music = [music.lower ()]
 env = Environment (FBFLAGS = FBFLAGS,
                    FBLIBS = [],
                    CFLAGS = CFLAGS,
-                   FBC = fbc + ' -lang fb',
+                   FBC = fbc + ' -lang deprecated',
                    CXXFLAGS = CXXFLAGS,
                    CXXLINKFLAGS = [],
                    VAR_PREFIX = '',
@@ -521,6 +524,7 @@ Options:
 Experimental options:
   raster=1            Include new graphics API and rasterizer.
   gengcc=1            Compile using GCC emitter.
+  langfb=1            Compiles certain source files using the "fb" dialect
 
 Targets:
   """ + gamename + """ (or game)

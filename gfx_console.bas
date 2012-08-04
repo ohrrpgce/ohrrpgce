@@ -5,6 +5,15 @@
 '' Part of the OHRRPGCE - See LICENSE.txt for GNU GPL License details and disclaimer of liability
 ''
 
+
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
+#endif
+
 #include "config.bi"
 #include "gfx_newRenderPlan.bi"
 #include "gfx.bi"

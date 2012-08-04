@@ -5,6 +5,14 @@
 '
 ' This file is for general purpose code use by CUSTOM but not by GAME.
 
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
+#endif
+
 #include "config.bi"
 #include "allmodex.bi"
 #include "common.bi"

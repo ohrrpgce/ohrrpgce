@@ -1,6 +1,8 @@
 #include "config.bi"
 #include "util.bi"
 
+OPTION EXPLICIT
+
 '''''''''''''''''''''''''''''''' Testing Stuff '''''''''''''''''''''''''''''''''
 
 #include "testing.bi"
