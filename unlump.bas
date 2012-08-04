@@ -5,10 +5,16 @@
 '
 ' Compile with makeutil.sh or makeutil.bat
 '
-'$DYNAMIC
-DEFINT A-Z
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION DYNAMIC
+ OPTION EXPLICIT
+#endif
+
 'basic subs and functions
-DECLARE FUNCTION editstr$ (stri$, key$, cur%, max%, number%)
+DECLARE FUNCTION editstr (stri as string, key as string, byref cur as integer, byref max as integer, byref number as integer) as string
 DECLARE SUB fatalcleanup ()
 DECLARE FUNCTION checkpassword (pass as string) as integer
 
@@ -20,13 +26,15 @@ DECLARE FUNCTION checkpassword (pass as string) as integer
 
 cleanup_function = @fatalcleanup
 
-DIM SHARED createddir = 0, dest$, olddir$
+DIM SHARED createddir as integer = 0
+DIM SHARED dest as string
+DIM SHARED olddir as string
 
-cur = 0
+DIM cur as integer = 0
 
-olddir$ = curdir
+olddir = curdir
 
-IF COMMAND$ = "" THEN
+IF COMMAND = "" THEN
  PRINT "O.H.R.RPG.C.E. game unlumping utility"
  PRINT ""
  PRINT "syntax:"
@@ -41,137 +49,144 @@ IF COMMAND$ = "" THEN
  PRINT "to unlump it."
  PRINT ""
  PRINT "[Press a Key]"
- dummy$ = readkey$()
+ DIM dummy as string = readkey()
  fatalerror ""
 END IF
 
-lumped$ = COMMAND$(1)
-dest$ = COMMAND$(2)
+DIM lumped as string = COMMAND(1)
+dest = COMMAND(2)
 
 'check whether it is an RPG file (assume all RPG files contain BROWSE.TXT)
-isrpg = islumpfile(lumped$, "browse.txt")
+DIM isrpg as integer = islumpfile(lumped, "browse.txt")
 
-IF dest$ = "" THEN
- IF LEN(rightafter(lumped$, ".")) = LEN(lumped$) - 1 THEN fatalerror "please specify an output directory"
+IF dest = "" THEN
+ IF LEN(rightafter(lumped, ".")) = LEN(lumped) - 1 THEN fatalerror "please specify an output directory"
  IF isrpg THEN
-  dest$ = trimextension$(lumped$) + ".rpgdir"
+  dest = trimextension(lumped) + ".rpgdir"
  ELSE
-  dest$ = trimextension$(lumped$) + ".unlmp"
+  dest = trimextension(lumped) + ".unlmp"
  END IF
 END IF
 
-IF NOT isfile(lumped$) THEN fatalerror "lump file `" + lumped$ + "' was not found"
+IF NOT isfile(lumped) THEN fatalerror "lump file `" + lumped + "' was not found"
 
-PRINT "From " + lumped$ + " to " + dest$
+PRINT "From " + lumped + " to " + dest
 
 '--Get old-style game (only matters for ancient RPG files that are missing the archinym.lmp)
 dim game as string
-game = trimextension(trimpath(lumped$))
+game = trimextension(trimpath(lumped))
 
-IF isfile(dest$) THEN fatalerror "destination directory `" + dest$ + "' already exists as a file"
+IF isfile(dest) THEN fatalerror "destination directory `" + dest + "' already exists as a file"
 
-IF isdir(dest$) THEN
- PRINT "Destination directory `" + dest$ + "' already exists. Delete it? (y/n)"
- w$ = readkey
- IF w$ <> "Y" AND w$ <> "y" THEN SYSTEM
- killdir dest$
+IF isdir(dest) THEN
+ PRINT "Destination directory `" + dest + "' already exists. Delete it? (y/n)"
+ DIM w as string = readkey
+ IF w <> "Y" AND w <> "y" THEN SYSTEM
+ killdir dest
 END IF
-makedir dest$
+makedir dest
 createddir = -1
 
-IF NOT isdir(dest$) THEN fatalerror "unable to create destination directory `" + dest$ + "'"
+IF NOT isdir(dest) THEN fatalerror "unable to create destination directory `" + dest + "'"
 
 IF NOT isrpg THEN
- unlump lumped$, dest$ + SLASH
- CHDIR olddir$
+ unlump lumped, dest + SLASH
+ CHDIR olddir
  PRINT "Done."
  SYSTEM
 END IF
  
-unlumpfile lumped$, "archinym.lmp", dest$ + SLASH
+unlumpfile lumped, "archinym.lmp", dest + SLASH
 
 '--set game according to the archinym
-IF isfile(dest$ + SLASH + "archinym.lmp") THEN
- fh = FREEFILE
- OPEN dest$ + SLASH + "archinym.lmp" FOR INPUT AS #fh
- LINE INPUT #fh, a$
+IF isfile(dest + SLASH + "archinym.lmp") THEN
+ DIM fh as integer = FREEFILE
+ OPEN dest + SLASH + "archinym.lmp" FOR INPUT AS #fh
+ DIM a as string
+ LINE INPUT #fh, a
  CLOSE #fh
- IF LEN(a$) <= 8 THEN
-  game = a$
+ IF LEN(a) <= 8 THEN
+  game = a
  END IF
- KILL dest$ + SLASH + "archinym.lmp"
+ KILL dest + SLASH + "archinym.lmp"
 END IF
 
-unlumpfile lumped$, game + ".gen", dest$ + SLASH
-DIM SHARED gen(360)
-xbload dest$ + SLASH + LCASE(game) + ".gen", gen(), "unable to open general data"
+unlumpfile lumped, game + ".gen", dest + SLASH
+DIM SHARED gen(360) as integer
+xbload dest + SLASH + LCASE(game) + ".gen", gen(), "unable to open general data"
 
-KILL dest$ + SLASH + game + ".gen"
+KILL dest + SLASH + game + ".gen"
 
-passokay = -1
+DIM passokay as integer = -1
 
 IF checkpassword("") = 0 THEN
  passokay = 0
  '-----get inputed password-----
  print "Password Required"
- pas$ = ""
+ DIM pas as string = ""
+ DIM w as string
  DO
-  w$ = readkey$
-  IF w$ = CHR$(13) THEN
+  w = readkey
+  IF w = CHR(13) THEN
    PRINT ""
-   IF checkpassword(pas$) = 0 THEN fatalerror "password mismatch"
+   IF checkpassword(pas) = 0 THEN fatalerror "password mismatch"
    passokay = -1
    EXIT DO
   END IF
-  LOCATE , 1: FOR i = 1 TO LEN(pas$): PRINT " "; : NEXT i
-  pas$ = editstr(pas$, w$, cur, 17, 0)
-  LOCATE , 1: FOR i = 1 TO LEN(pas$): PRINT "*"; : NEXT i
+  LOCATE , 1
+  FOR i as integer = 1 TO LEN(pas)
+   PRINT " "; 
+  NEXT i
+  pas = editstr(pas, w, cur, 17, 0)
+  LOCATE , 1
+  FOR i as integer = 1 TO LEN(pas)
+   PRINT "*"; 
+  NEXT i
   sleep 80,1
  LOOP
 END IF
 
 IF passokay THEN
- unlump lumped$, dest$ + SLASH
+ unlump lumped, dest + SLASH
 END IF
 
-CHDIR olddir$
+CHDIR olddir
 PRINT "Done."
 SYSTEM
 
-REM $STATIC
-FUNCTION editstr$ (stri$, key$, cur, max, number)
+FUNCTION editstr (stri as string, key as string, byref cur as integer, byref max as integer, byref number as integer) as string
 
-pre$ = LEFT$(stri$, cur)
-post$ = RIGHT$(stri$, LEN(stri$) - cur)
+DIM pre as string = LEFT(stri, cur)
+DIM post as string = RIGHT(stri, LEN(stri) - cur)
 
-SELECT CASE key$
- CASE CHR$(8)
+SELECT CASE key
+ CASE CHR(8)
   'backspace
-  IF LEN(pre$) > 0 THEN pre$ = LEFT$(pre$, LEN(pre$) - 1): cur = cur - 1
- CASE CHR$(0) + CHR$(83)
+  IF LEN(pre) > 0 THEN pre = LEFT(pre, LEN(pre) - 1): cur = cur - 1
+ CASE CHR(0) + CHR(83)
   'delete
-  IF LEN(post$) > 0 THEN post$ = RIGHT$(post$, LEN(post$) - 1)
+  IF LEN(post) > 0 THEN post = RIGHT(post, LEN(post) - 1)
  CASE ELSE
-  IF LEN(key$) > 0 THEN
-   IF (ASC(key$) >= 32 AND ASC(key$) < 127 AND key$ <> "," AND key$ <> "~" AND number = 0) OR (ASC(key$) >= 48 AND ASC(key$) <= 57 AND number) THEN
-    IF LEN(post$) = 0 AND LEN(pre$) < max THEN post$ = " "
-    IF LEN(post$) > 0 THEN
-     MID$(post$, 1, 1) = key$
-     cur = bound(cur + 1, 0, LEN(pre$ + post$))
+  IF LEN(key) > 0 THEN
+   IF (ASC(key) >= 32 AND ASC(key) < 127 AND key <> "," AND key <> "~" AND number = 0) OR (ASC(key) >= 48 AND ASC(key) <= 57 AND number) THEN
+    IF LEN(post) = 0 AND LEN(pre) < max THEN post = " "
+    IF LEN(post) > 0 THEN
+     MID(post, 1, 1) = key
+     cur = bound(cur + 1, 0, LEN(pre + post))
     END IF
    END IF
   END IF
 END SELECT
 
-editstr$ = pre$ + post$
+RETURN pre + post
 
 
 END FUNCTION
 
 SUB fatalcleanup ()
- 'RMDIR does not work unless isdir$ is called first. If I tried to figure out why, my brain would explode
- isdir$(dest$)
- IF createddir THEN killdir dest$
+ 'RMDIR does not work unless isdir is called first. If I tried to figure out why, my brain would explode
+ isdir(dest)
+ IF createddir THEN killdir dest
  SYSTEM
 END SUB
 
