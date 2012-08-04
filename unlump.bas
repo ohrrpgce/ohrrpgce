@@ -5,13 +5,6 @@
 '
 ' Compile with makeutil.sh or makeutil.bat
 '
-#ifdef TRY_LANG_FB
- #define __langtok #lang
- __langtok "fb"
-#else
- OPTION DYNAMIC
- OPTION EXPLICIT
-#endif
 
 'basic subs and functions
 DECLARE FUNCTION editstr (stri as string, key as string, byref cur as integer, byref max as integer, byref number as integer) as string

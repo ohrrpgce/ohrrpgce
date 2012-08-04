@@ -5,14 +5,6 @@
 'Type definitions for the basic builtin types. Place other DEFINE_VECTOR_OF_TYPE macros in another
 'module (somewhere where your type definitions are actually available, they aren't here)
 
-#ifdef TRY_LANG_FB
- #define __langtok #lang
- __langtok "fb"
-#else
- OPTION STATIC
- OPTION EXPLICIT
-#endif
-
 #include "util.bi"
 #include "common_base.bi"
 

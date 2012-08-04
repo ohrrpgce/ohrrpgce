@@ -4,14 +4,6 @@
 '' part of OHRRPGCE - see elsewhere for license details
 ''
 
-#ifdef TRY_LANG_FB
- #define __langtok #lang
- __langtok "fb"
-#else
- OPTION STATIC
- OPTION EXPLICIT
-#endif
-
 #include "gfx.bi"
 #undef Font
 #include "allegro.bi"

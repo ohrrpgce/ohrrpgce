@@ -6,13 +6,6 @@
 'FIXME: A large majority of the code in subs2.bas is textbox editor related.
 '       Maybe this file should be renamed textboxedit.bas ?
 '
-#ifdef TRY_LANG_FB
- #define __langtok #lang
- __langtok "fb"
-#else
- OPTION STATIC
- OPTION EXPLICIT
-#endif
 
 'Types
 

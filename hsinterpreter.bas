@@ -7,14 +7,6 @@
 'scripterr, runscript, loadscript, freescripts, load/saveglobalvars, commandname, decodetrigger.
 'Probably runscript, loadscript, freescripts will eventually be moved here
 
-#ifdef TRY_LANG_FB
- #define __langtok #lang
- __langtok "fb"
-#else
- OPTION STATIC
- OPTION EXPLICIT
-#endif
-
 #include "config.bi"
 #include "util.bi"
 #include "misc.bi"

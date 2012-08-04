@@ -5,14 +5,6 @@
 '
 ' Compile with makeutil.sh or makeutil.bat
 
-#ifdef TRY_LANG_FB
- #define __langtok #lang
- __langtok "fb"
-#else
- OPTION DYNAMIC
- OPTION EXPLICIT
-#endif
-
 #include "config.bi"
 #include "util.bi"
 #include "const.bi"

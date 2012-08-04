@@ -5,24 +5,14 @@
 '' part of OHRRPGCE - see elsewhere for license details
 ''
 
-#ifdef TRY_LANG_FB
- #define __langtok #lang
- __langtok "fb"
-#else
- OPTION STATIC
- OPTION EXPLICIT
-#endif
-
 #include "config.bi"
 #include "fbgfx.bi"
 #include "gfx_newRenderPlan.bi"
 #include "gfx.bi"
 #include "common.bi"
 
-#ifdef TRY_LANG_FB
 'Use the FB namespace for the types and constants from fbgfx
 USING FB
-#endif
 
 #include once "crt.bi"
 #undef abort

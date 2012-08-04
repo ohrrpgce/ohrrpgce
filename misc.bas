@@ -5,14 +5,6 @@
 '
 'FIXME: move this crud elsewhere
 
-#ifdef TRY_LANG_FB
- #define __langtok #lang
- __langtok "fb"
-#else
- OPTION STATIC
- OPTION EXPLICIT
-#endif
-
 #include "config.bi"
 #include "ver.txt"
 #include "misc.bi"

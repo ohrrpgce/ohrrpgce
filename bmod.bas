@@ -3,14 +3,6 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 
-#ifdef TRY_LANG_FB
- #define __langtok #lang
- __langtok "fb"
-#else
- OPTION DYNAMIC
- OPTION EXPLICIT
-#endif
-
 'misc
 #include "config.bi"
 #include "common.bi"
