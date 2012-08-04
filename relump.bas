@@ -5,7 +5,13 @@
 '
 ' Compile with makeutil.sh or makeutil.bat
 
-DEFINT A-Z
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION DYNAMIC
+ OPTION EXPLICIT
+#endif
 
 #include "config.bi"
 #include "util.bi"
@@ -14,9 +20,9 @@ DEFINT A-Z
 #include "lumpfile.bi"
 #include "common_base.bi"
 
-olddir$ = curdir
+DIM olddir as string = curdir
 
-IF COMMAND$ = "" THEN
+IF COMMAND = "" THEN
  PRINT "O.H.R.RPG.C.E. lumping utility"
  PRINT ""
  PRINT "syntax:"
@@ -29,41 +35,42 @@ IF COMMAND$ = "" THEN
  PRINT "to relump it."
  PRINT ""
  PRINT "[Press a Key]"
- dummy$ = readkey$()
+ DIM dummy as string = readkey()
  fatalerror ""
 END IF
 
-src$ = COMMAND$(1)
-dest$ = COMMAND$(2)
+DIM src as string = COMMAND(1)
+DIM dest as string = COMMAND(2)
 
-IF RIGHT(src$,1)=SLASH THEN src$=LEFT(src$,LEN(src$)-1)
+IF RIGHT(src,1)=SLASH THEN src=LEFT(src,LEN(src)-1)
 
-IF NOT isdir(src$) THEN
-  IF isfile(src$) THEN fatalerror src$ + "' is a file, not a folder"
-  fatalerror "rpgdir folder `" + src$ + "' was not found"
+IF NOT isdir(src) THEN
+  IF isfile(src) THEN fatalerror src + "' is a file, not a folder"
+  fatalerror "rpgdir folder `" + src + "' was not found"
 END IF
 
-IF dest$ = "" THEN
- IF RIGHT(src$,7) = ".rpgdir" THEN
-  dest$ = trimextension$(src$) + ".rpg"
+IF dest = "" THEN
+ IF RIGHT(src,7) = ".rpgdir" THEN
+  dest = trimextension(src) + ".rpg"
  ELSE
   fatalerror "please specify an output folder"
  END IF
 END IF
 
-PRINT "From " + src$ + " to " + dest$
+PRINT "From " + src + " to " + dest
 
-IF isfile(dest$) THEN
- PRINT "destination file " + dest$ + " already exists. Replace it? (y/n)"
- w$ = readkey
- IF w$ <> "Y" AND w$ <> "y" THEN SYSTEM
+IF isfile(dest) THEN
+ PRINT "destination file " + dest + " already exists. Replace it? (y/n)"
+ DIM w as string
+ w = readkey
+ IF w <> "Y" AND w <> "y" THEN SYSTEM
 END IF
 
-IF isdir(dest$) THEN fatalerror "destination file " + dest$ + " already exists as a folder."
+IF isdir(dest) THEN fatalerror "destination file " + dest + " already exists as a folder."
 
 '--build the list of files to lump
 REDIM filelist() as string
-findfiles src$, ALLFILES, fileTypefile, NO, filelist()
+findfiles src, ALLFILES, fileTypefile, NO, filelist()
 fixlumporder filelist()
 '---relump data into lumpfile package---
-lumpfiles filelist(), dest$, src$ + SLASH
+lumpfiles filelist(), dest, src + SLASH
