@@ -5,6 +5,14 @@
 'This module is for code to be linked into utilities, but not Game and Custom.
 'Currently mostly replacements for common.bas functions.
 
+#ifdef TRY_LANG_FB
+ #define __langtok #lang
+ __langtok "fb"
+#else
+ OPTION STATIC
+ OPTION EXPLICIT
+#endif
+
 #include "common_base.bi"
 #include "file.bi"
 
@@ -50,7 +58,7 @@ END FUNCTION
 
 FUNCTION rightafter (s as string, d as string) as string
   DIM result as string
-  FOR i = LEN(s) TO 1 STEP -1
+  FOR i as integer = LEN(s) TO 1 STEP -1
    IF MID(s, i, 1) = d THEN
     RETURN result
    END IF
