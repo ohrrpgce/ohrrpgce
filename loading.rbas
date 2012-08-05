@@ -2714,6 +2714,33 @@ END SUB
 
 
 '==========================================================================================
+'                                          Scripts
+'==========================================================================================
+
+
+'Load script triggers lookup table
+'There's a lot of similar loading code in importscripts. I think ideally it should be rewritten
+SUB load_lookup1_bin(table() as TriggerData)
+ DIM as integer fh = FREEFILE
+ IF OPEN(workingdir + SLASH + "lookup1.bin" FOR BINARY AS #fh) THEN
+  'failure
+  REDIM table(-1 TO -1)
+  EXIT SUB
+ END IF
+ DIM as integer records = LOF(fh) \ 40
+ REDIM table(-1 TO records - 1)
+
+ DIM buf(19) as integer
+ FOR j as integer = 0 TO records - 1
+  loadrecord buffer(), fh, 20, j
+  table(j).id = buffer(0)
+  table(j).name = readbinstring(buffer(), 1, 36)
+ NEXT
+ CLOSE fh
+END SUB
+
+
+'==========================================================================================
 '                                           Misc
 '==========================================================================================
 

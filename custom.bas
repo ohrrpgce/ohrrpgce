@@ -84,6 +84,7 @@ REDIM uilook(uiColors)
 DIM statnames() as string
 REDIM herotags(59) as HeroTagsCache
 REDIM itemtags(maxMaxItems) as ItemTagsCache
+REDIM lookup1_bin_cache(-1 TO -1) as TriggerData
 DIM joy(4) as integer
 DIM vpage as integer = 0
 DIM dpage as integer = 1
@@ -275,6 +276,7 @@ IF hsfile <> "" THEN import_scripts_and_terminate hsfile
 loadglobalstrings
 getstatnames statnames()
 load_special_tag_caches
+load_lookup1_bin lookup1_bin_cache()
 
 setupmusic
 

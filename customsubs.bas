@@ -2774,23 +2774,6 @@ SUB script_usage_list ()
  LOOP 
 END SUB
 
-'--A similar function exists in yetmore2.bas for game. it differs only in error-reporting
-FUNCTION decodetrigger (trigger as integer) as integer
- DIM buf(19) as integer
- DIM fname as string
- IF trigger >= 16384 THEN
-  fname = workingdir & SLASH & "lookup1.bin"
-  IF loadrecord (buf(), fname, 20, trigger - 16384) THEN
-   RETURN buf(0)
-  ELSE
-   debug "decodetrigger: record " & (trigger - 16384) & " could not be loaded"
-  END IF
- ELSE
-  '--this is an old-style script
-  RETURN trigger
- END IF
-END FUNCTION
-
 '--This could be used in more places; makes sense to load plotscr.lst into a global
 DIM SHARED script_ids_list() as integer
 
@@ -2823,6 +2806,10 @@ PRIVATE FUNCTION check_broken_script_trigger(byref trig as integer, description 
   IF int_array_find(script_ids_list(), id) <> -1 THEN RETURN NO 'Found okay
 
   str_array_append missing_script_trigger_list(), description & " ID " & id & " missing. " & caption
+ ELSEIF id >= 16384 AND id = trig THEN
+  '--The trigger was not decoded, which should not happen since you can't select autonumbered scripts!
+  '--Prehaps a lump was copied from a different .rpg file
+  visible_debug description & " (" & caption & ") script trigger " & (trig - 16384) & " is invalid"
  END IF
  RETURN NO
 END FUNCTION

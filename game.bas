@@ -233,6 +233,7 @@ REDIM retvals(32) as integer
 REDIM scrat(128) as ScriptInst
 REDIM script(scriptTableSize - 1) as ScriptData Ptr
 REDIM plotstr(maxScriptStrings) as Plotstring
+REDIM lookup1_bin_cache(-1 TO -1) as TriggerData
 DIM scrst as Stack
 DIM curcmd as ScriptCommand ptr
 DIM insideinterpreter as integer
@@ -398,7 +399,7 @@ END IF
 IF NOT isdir(settings_dir) THEN debug "Ooops! Why doesn't """ & settings_dir & """ exist yet?"
 prefsdir = settings_dir & SLASH & trimextension(trimpath(sourcerpg))
 IF NOT isdir(prefsdir) THEN makedir prefsdir
-debug "prefsdir=" & prefsdir
+debuginfo "prefsdir=" & prefsdir
 
 end_debug 'delete unimportant messages generated before this point, or from previous game
 
@@ -528,6 +529,7 @@ lastformation = -1
 scrwatch = 0
 menu_set.menufile = workingdir & SLASH & "menus.bin"
 menu_set.itemfile = workingdir & SLASH & "menuitem.bin"
+load_lookup1_bin lookup1_bin_cache()
 
 makebackups 'make a few backup lumps
 

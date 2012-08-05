@@ -8,6 +8,7 @@ WHAT IS NEW?
       items outside of battle [Ralph]
 
   * Bugfixes
+    * "run script by id" was far slower than it should have been [Ralph]
 
   * New Plotscripting Stuff
 

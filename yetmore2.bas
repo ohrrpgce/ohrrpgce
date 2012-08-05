@@ -889,22 +889,6 @@ SUB deletetemps
  NEXT
 END SUB
 
-'--A similar function exists in customsubs.bas for custom. it differs only in error-reporting
-FUNCTION decodetrigger (byval trigger as integer) as integer
- REDIM buf(19) as integer
- 'debug "decoding " + STR(trigger)
- decodetrigger = trigger  'default
- IF trigger >= 16384 THEN
-  DIM fname as string = workingdir & SLASH & "lookup1.bin"
-  IF loadrecord (buf(), fname, 20, trigger - 16384) THEN
-   decodetrigger = buf(0)
-   IF buf(0) = 0 THEN
-    scripterr "Script " + readbinstring(buf(), 1, 36) + " is used but has not been imported", 6
-   END IF
-  END IF
- END IF
-END FUNCTION
-
 SUB debug_npcs ()
  debug "NPC types:"
  FOR i as integer = 0 TO UBOUND(npcs)
@@ -1382,6 +1366,19 @@ SUB try_reload_lumps_anywhere ()
    loadglobalstrings
    getstatnames statnames()
    handled = YES
+                                                                          ''' Script stufff
+
+  ELSEIF extn = "hsp" THEN                                                '.HSP
+   'Could add an option for automatic reloading, with suitable warnings...
+   lump_reloading.hsp.changed = YES
+   handled = YES
+
+  ELSEIF modified_lumps[i] = "plotscr.lst" THEN                           'PLOTSCR.LST
+   handled = YES  'ignore
+
+  ELSEIF modified_lumps[i] = "lookup1.bin" THEN                           'LOOKUP1.BIN
+   load_lookup1_bin lookup1_bin_cache()
+   handled = YES
 
   END IF
 
@@ -1411,14 +1408,6 @@ SUB try_to_reload_files_onmap ()
   ELSEIF extn = "dox" THEN                                                '.DOX
    DeSerDoors(game + ".dox", gam.map.door(), gam.map.id)
    handled = YES
-
-  ELSEIF extn = "hsp" THEN                                                '.HSP
-   'Could add an option for automatic reloading, with suitable warnings...
-   lump_reloading.hsp.changed = YES
-   handled = YES
-
-  ELSEIF modified_lumps[i] = "plotscr.lst" THEN                           'PLOTSCR.LST
-   handled = YES  'ignore
 
   ELSEIF try_reload_map_lump(basename, extn) THEN                         '.T, .P, .E, .Z, .N, .L
    handled = YES

@@ -619,6 +619,23 @@ FUNCTION isbit (bb() as integer, byval w as integer, byval b as integer) as inte
  END IF
 END FUNCTION
 
+FUNCTION decodetrigger (byval trigger as integer) as integer
+ 'debug "decoding " + STR(trigger)
+ IF trigger >= 16384 AND trigger - 16384 <= UBOUND(lookup1_bin_cache) THEN
+  WITH lookup1_bin_cache(trigger - 16384)
+#ifdef IS_GAME
+   IF .id = 0 THEN
+    ' Not an error in Custom as we're not trying to actually run it
+    scripterr "Script " + .name + " is used but has not been imported", 6
+   END IF
+#endif
+   RETURN .id
+  END WITH
+ ELSE
+  RETURN trigger
+ END IF
+END FUNCTION
+
 FUNCTION scriptname (byval num as integer) as string
 DIM a as string
 

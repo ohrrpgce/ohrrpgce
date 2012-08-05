@@ -14,19 +14,6 @@
  OPTION EXPLICIT
 #endif
 
-'Types
-
-TYPE TriggerData
- name as string
- id as integer
-END TYPE
-
-TYPE TriggerSet
- size as integer
- trigs as TriggerData PTR
- usedbits as UNSIGNED INTEGER PTR
-END TYPE
-
 #include "config.bi"
 #include "udts.bi"
 #include "custom_udts.bi"
@@ -39,6 +26,14 @@ END TYPE
 #include "cglobals.bi"
 
 #include "scrconst.bi"
+
+'Types
+
+TYPE TriggerSet
+ size as integer
+ trigs as TriggerData ptr
+ usedbits as unsigned integer ptr
+END TYPE
 
 '--Local subs and functions
 DECLARE FUNCTION compilescripts (fname as string) as string
@@ -393,6 +388,9 @@ SUB importscripts (f as string)
 
   CLOSE #fptr
   IF dotbin THEN safekill tmpdir & "scripts.bin" ELSE safekill tmpdir & "scripts.txt"
+
+  '--reload cache (we only cache this to share code between Game and Custom)
+  load_lookup1_bin lookup1_bin_cache()
 
   '--fix the references to any old-style plotscripts that have been converted to new-style scripts.
   append_message " ...autofix broken triggers..."

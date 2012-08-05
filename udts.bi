@@ -346,6 +346,11 @@ TYPE Plotstring
   bits as integer
 END TYPE
 
+TYPE TriggerData
+  name as string
+  id as integer
+END TYPE
+
 'WARNING: don't add strings to this
 TYPE ScriptData
   id as integer         'id number of script  (set to 0 to mark as unused slot)
