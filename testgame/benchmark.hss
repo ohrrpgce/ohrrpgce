@@ -32,10 +32,18 @@ plotscript, main, begin
   score += run benchmark (@benchmark: while loop, loops)
   $1 = "continue loop"
   score += run benchmark (@benchmark: continue loop, loops)
-  $1 = "if"
-  score += run benchmark (@benchmark: if, loops)
+  $1 = "if then"
+  score += run benchmark (@benchmark: if then, loops)
+  $1 = "if else"
+  score += run benchmark (@benchmark: if else, loops)
   $1 = "enter for"
   score += run benchmark (@benchmark: enter for, loops)
+  $1 = "double break"
+  score += run benchmark (@benchmark: double break, loops)
+  $1 = "trivial switch"
+  score += run benchmark (@benchmark: trivial switch, loops)
+  $1 = "bigger switch"
+  score += run benchmark (@benchmark: bigger switch, loops)
   $1 = "one arg overhead"
   score += run benchmark (@benchmark: one arg overhead, loops)
   $1 = "two arg overhead"
@@ -66,6 +74,8 @@ plotscript, main, begin
   score += run benchmark (@benchmark: creating and deleting slices, loops)
   $1 = "call script"
   score += run benchmark (@benchmark: call script, loops)
+  $1 = "call multiarg script"
+  score += run benchmark (@benchmark: call multiarg script, loops)
   $1 = "run script by id"
   score += run benchmark (@benchmark: run script by id, loops)
   $1 = "call and return value"
@@ -199,7 +209,7 @@ end
 #   for (i, 0, MICRO LOOPCOUNT) do ()
 # end
 
-script, benchmark: if, begin
+script, benchmark: if then, begin
   variable (i)
   for (i, 0, MICRO LOOPCOUNT / 10) do (
     if (i) then ()
@@ -212,6 +222,22 @@ script, benchmark: if, begin
     if (i) then ()
     if (i) then ()
     if (i) then ()
+  )
+end
+
+script, benchmark: if else, begin
+  variable (i, dummy)
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    if (dummy) then ()
+    if (dummy) then ()
+    if (dummy) then ()
+    if (dummy) then ()
+    if (dummy) then ()
+    if (dummy) then ()
+    if (dummy) then ()
+    if (dummy) then ()
+    if (dummy) then ()
+    if (dummy) then ()
   )
 end
 
@@ -231,6 +257,56 @@ script, benchmark: enter for, begin
   )
 end
 
+script, benchmark: double break, begin
+  variable (i)
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    do( do(break(2)) )
+    do( do(break(2)) )
+    do( do(break(2)) )
+    do( do(break(2)) )
+    do( do(break(2)) )
+    do( do(break(2)) )
+    do( do(break(2)) )
+    do( do(break(2)) )
+    do( do(break(2)) )
+    do( do(break(2)) )
+  )
+end
+
+script, benchmark: trivial switch, begin
+  variable (i)
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    switch (i) do ( case(0) do() )
+    switch (i) do ( case(0) do() )
+    switch (i) do ( case(0) do() )
+    switch (i) do ( case(0) do() )
+    switch (i) do ( case(0) do() )
+    switch (i) do ( case(0) do() )
+    switch (i) do ( case(0) do() )
+    switch (i) do ( case(0) do() )
+    switch (i) do ( case(0) do() )
+    switch (i) do ( case(0) do() )
+  )
+end
+
+script, benchmark: bigger switch, begin
+  variable (i)
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    switch (i) do ( case(0)do() case(1)do() case(2)do() case(3)do() case(4)do() )
+    switch (i) do ( case(0)do() case(1)do() case(2)do() case(3)do() case(4)do() )
+    switch (i) do ( case(0)do() case(1)do() case(2)do() case(3)do() case(4)do() )
+    switch (i) do ( case(0)do() case(1)do() case(2)do() case(3)do() case(4)do() )
+    switch (i) do ( case(0)do() case(1)do() case(2)do() case(3)do() case(4)do() )
+    switch (i) do ( case(0)do() case(1)do() case(2)do() case(3)do() case(4)do() )
+    switch (i) do ( case(0)do() case(1)do() case(2)do() case(3)do() case(4)do() )
+    switch (i) do ( case(0)do() case(1)do() case(2)do() case(3)do() case(4)do() )
+    switch (i) do ( case(0)do() case(1)do() case(2)do() case(3)do() case(4)do() )
+    switch (i) do ( case(0)do() case(1)do() case(2)do() case(3)do() case(4)do() )
+  )
+end
+
+# Note this is not a test of actual overhead (difference between two commands
+# taking one and two args and not doing anything would be better)
 script, benchmark: one arg overhead, begin
   variable (i, x)
   for (i, 0, MICRO LOOPCOUNT / 10) do (
@@ -462,6 +538,9 @@ end
 script, empty script, begin
 end
 
+script, empty multiarg script, a, b, c, d, begin
+end
+
 script, return value, begin
   return (0)
 end
@@ -483,6 +562,22 @@ script, benchmark: call script, begin
     empty script
     empty script
     empty script
+  )
+end
+
+script, benchmark: call multiarg script, begin
+  variable (i)
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    empty multiarg script (i, i, i, i)
+    empty multiarg script (i, i, i, i)
+    empty multiarg script (i, i, i, i)
+    empty multiarg script (i, i, i, i)
+    empty multiarg script (i, i, i, i)
+    empty multiarg script (i, i, i, i)
+    empty multiarg script (i, i, i, i)
+    empty multiarg script (i, i, i, i)
+    empty multiarg script (i, i, i, i)
+    empty multiarg script (i, i, i, i)
   )
 end
 
@@ -718,6 +813,7 @@ end
 script, DOOM initialise flames, begin
   variable (x, y, i, sl)
   flames container := create container (320, FIELD HEIGHT)
+  set slice visible (flames container, false)
 
   # create the "pixel" slices
   for (i, 0, FIRE HEIGHT -- 1) do (
