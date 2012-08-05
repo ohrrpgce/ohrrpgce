@@ -108,7 +108,7 @@ declare function __array_is_temp cdecl alias "array_is_temp" (byval this as any 
   declare function v_type overload alias "array_type" (byval this as T vector) as TypeTable ptr
 
   'Returns 'this'
-  declare function v_append overload alias "array_append" (byref this as T vector, value as T) as T vector
+  declare function v_append overload alias "array_append" (byref this as T vector, byref value as T) as T vector
 
   'Concatenate two vectors. Returns 'this'
   declare function v_extend overload alias "array_extend" (byref this as T vector, byref append as T vector) as T vector
@@ -131,14 +131,14 @@ declare function __array_is_temp cdecl alias "array_is_temp" (byval this as any 
   declare function v_inequal overload alias "array_inequal" (byref lhs as T vector, byref rhs as T vector) as integer
 
   'Returns the index of the first element equal to 'item', or -1 if not found
-  declare function v_find overload alias "array_find" (byval this as T vector, value as T) as integer
+  declare function v_find overload alias "array_find" (byval this as T vector, byref value as T) as integer
 
   'Insert an element at some position. Returns 'this'
-  declare function v_insert overload alias "array_insert" (byref this as T vector, byval pos as integer, value as T) as T vector
+  declare function v_insert overload alias "array_insert" (byref this as T vector, byval pos as integer, byref value as T) as T vector
 
   'Remove the first instance of value. No error or warning if it isn't found.
   'Returns the index of the item if it was found, or -1 if not
-  declare function v_remove overload alias "array_remove" (byref this as T vector, value as T) as integer
+  declare function v_remove overload alias "array_remove" (byref this as T vector, byref value as T) as integer
 
   'Delete the range [from, to). Returns 'this'
   declare function v_delete_slice overload alias "array_delete_slice" (byref this as T vector, byval from as integer, byval to as integer) as T vector
