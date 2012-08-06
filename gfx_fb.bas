@@ -5,10 +5,9 @@
 '' part of OHRRPGCE - see elsewhere for license details
 ''
 
-#ifdef TRY_LANG_FB
+#ifdef LANG_DEPRECATED
  #define __langtok #lang
- __langtok "fb"
-#else
+ __langtok "deprecated"
  OPTION STATIC
  OPTION EXPLICIT
 #endif
@@ -19,7 +18,7 @@
 #include "gfx.bi"
 #include "common.bi"
 
-#ifdef TRY_LANG_FB
+#ifndef LANG_DEPRECATED
 'Use the FB namespace for the types and constants from fbgfx
 USING FB
 #endif

@@ -1,10 +1,9 @@
 'The OHRRPGCE graphics, audio and user input library!
 'Please read LICENSE.txt for GNU GPL license details and disclaimer of liability
 
-#ifdef TRY_LANG_FB
+#ifdef LANG_DEPRECATED
  #define __langtok #lang
- __langtok "fb"
-#else
+ __langtok "deprecated"
  OPTION STATIC
  OPTION EXPLICIT
 #endif

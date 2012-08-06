@@ -7,10 +7,9 @@
 'scripterr, runscript, loadscript, freescripts, load/saveglobalvars, commandname, decodetrigger.
 'Probably runscript, loadscript, freescripts will eventually be moved here
 
-#ifdef TRY_LANG_FB
+#ifdef LANG_DEPRECATED
  #define __langtok #lang
- __langtok "fb"
-#else
+ __langtok "deprecated"
  OPTION STATIC
  OPTION EXPLICIT
 #endif

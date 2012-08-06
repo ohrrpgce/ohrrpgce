@@ -5,10 +5,9 @@
 'This module is for code to be linked into utilities, but not Game and Custom.
 'Currently mostly replacements for common.bas functions.
 
-#ifdef TRY_LANG_FB
+#ifdef LANG_DEPRECATED
  #define __langtok #lang
- __langtok "fb"
-#else
+ __langtok "deprecated"
  OPTION STATIC
  OPTION EXPLICIT
 #endif

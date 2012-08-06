@@ -4,10 +4,9 @@
 '' Part of the OHRRPGCE - See LICENSE.txt for GNU GPL License details and disclaimer of liability
 ''
 
-#ifdef TRY_LANG_FB
+#ifdef LANG_DEPRECATED
  #define __langtok #lang
- __langtok "fb"
-#else
+ __langtok "deprecated"
  OPTION STATIC
  OPTION EXPLICIT
 #endif

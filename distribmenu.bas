@@ -4,10 +4,9 @@
 'See README.txt for code docs and apologies for crappyness of this code ;)
 'Except, this module isn't much crappier than it needs to be
 '
-#ifdef TRY_LANG_FB
+#ifdef LANG_DEPRECATED
  #define __langtok #lang
- __langtok "fb"
-#else
+ __langtok "deprecated"
  OPTION STATIC
  OPTION EXPLICIT
 #endif

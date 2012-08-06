@@ -5,11 +5,11 @@
 'Except, this module APOLOGISES FOR NOTHING!
 '
 
-#ifdef __FB_LANG__
-  #if __FB_LANG__ <> "fb"
-'$DYNAMIC
-    Option Explicit
-  #endif
+#ifdef LANG_DEPRECATED
+ #define __langtok #lang
+ __langtok "deprecated"
+ OPTION STATIC
+ OPTION EXPLICIT
 #endif
 
 #include "config.bi"

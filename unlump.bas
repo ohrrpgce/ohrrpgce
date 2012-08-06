@@ -5,11 +5,10 @@
 '
 ' Compile with makeutil.sh or makeutil.bat
 '
-#ifdef TRY_LANG_FB
+#ifdef LANG_DEPRECATED
  #define __langtok #lang
- __langtok "fb"
-#else
- OPTION DYNAMIC
+ __langtok "deprecated"
+ OPTION STATIC
  OPTION EXPLICIT
 #endif
 

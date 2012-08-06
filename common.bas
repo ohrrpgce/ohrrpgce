@@ -7,10 +7,9 @@
 ' Code that is not OHRRPGCE-specific that would be of general use
 ' to any FreeBasic program belongs in util.bas instead
 
-#ifdef TRY_LANG_FB
+#ifdef LANG_DEPRECATED
  #define __langtok #lang
- __langtok "fb"
-#else
+ __langtok "deprecated"
  OPTION STATIC
  OPTION EXPLICIT
 #endif

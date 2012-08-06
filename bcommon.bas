@@ -2,10 +2,9 @@
 '(C) Copyright 1997-2005 James Paige and Hamster Republic Productions
 'Please read LICENSE.txt for GNU GPL details and disclaimer of liability
 
-#ifdef TRY_LANG_FB
+#ifdef LANG_DEPRECATED
  #define __langtok #lang
- __langtok "fb"
-#else
+ __langtok "deprecated"
  OPTION STATIC
  OPTION EXPLICIT
 #endif

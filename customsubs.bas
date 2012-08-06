@@ -5,10 +5,9 @@
 '
 ' This file is for general purpose code use by CUSTOM but not by GAME.
 
-#ifdef TRY_LANG_FB
+#ifdef LANG_DEPRECATED
  #define __langtok #lang
- __langtok "fb"
-#else
+ __langtok "deprecated"
  OPTION STATIC
  OPTION EXPLICIT
 #endif
