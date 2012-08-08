@@ -392,6 +392,10 @@ DO
    '--note that there's no thought out plan for handling errors
    killallscripts
    EXIT DO
+  CASE stexit '--used only to exit this loop
+   'Note: this is a bit of a hack: if we get here then nowscript has already
+   'changed so we're not really meant to be reading .state
+   EXIT DO
  END SELECT
 LOOP
 END WITH
@@ -436,18 +440,45 @@ SUB killtopscript
  END WITH
 END SUB
 
+SUB killscriptthread
+ IF insideinterpreter = NO THEN fatalerror "Inappropriate killscriptthread"
+
+ 'Hack: in case this function is called from within the interpreter we set the new state of the
+ 'old script so that the main loop sees it using a stale WITH pointer.
+ 'Come to think of it, there's no good reason for the interpreter state to be stored in scrat instead
+ 'of being global.
+ scrat(nowscript).state = stdone
+
+ WHILE nowscript >= 0
+  WITH scrat(nowscript)
+   IF .state < 0 THEN EXIT WHILE
+   IF .scr <> NULL THEN .scr->refcount -= 1
+  END WITH
+  nowscript -= 1
+ WEND
+ gam.script_log.last_logged = -1
+
+ 'Go back a script, let functiondone handle the script exit
+ nowscript += 1
+ reloadscript scrat(nowscript)  'Avoid possible null ptr deref in functiondone
+ setstackposition(scrst, scrat(nowscript).stackbase)
+
+END SUB
+
 SUB killallscripts
 'this kills all running scripts.
 'for use in cases of massive errors, quiting to titlescreen or loading a game.
 
- FOR i as integer = nowscript TO 0 STEP -1 
+ 'Hack, see explanation in killscriptthread
+ IF nowscript >= 0 THEN scrat(nowscript).state = stexit
+
+ FOR i as integer = nowscript TO 0 STEP -1
   IF scrat(i).scr <> NULL THEN scrat(i).scr->refcount -= 1
  NEXT
  nowscript = -1
  gam.script_log.last_logged = -1
 
- destroystack(scrst)  'temp
- createstack(scrst)
+ setstackposition(scrst, 0)
 
  dequeue_scripts
 END SUB

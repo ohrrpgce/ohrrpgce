@@ -17,6 +17,7 @@ CONST stdoarg = 5
 CONST stdone = 6
 CONST sttriggered = 7
 CONST sterror = 8
+CONST stexit = 9
 '--SCRIPT STATEMENT TYPES---
 CONST tystop = 0    '0 terminate script (not really legal)
 CONST tynumber = 1  '1 literal number
