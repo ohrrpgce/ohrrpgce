@@ -1528,11 +1528,12 @@ WITH scrat(index)
  'increment refcount once loading is successful
 
  'erase state, pointer, return value and depth, set id
- .state = stread
+ .state = ststart
  .ptr = 0
  .ret = 0
  .depth = 0
  .id = n
+ .stackbase = -1
  .scrdata = .scr->ptr
  .watched = NO
  .started = NO

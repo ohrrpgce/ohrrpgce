@@ -374,6 +374,7 @@ TYPE ScriptInst
   scr as ScriptData ptr 'script in script() hashtable
   scrdata as integer ptr 'convenience pointer to scr->ptr
   heap as integer       'position of the script's local vars in the buffer
+  stackbase as integer  'position where this script's stack data starts in scrst
   state as integer      'what the script is doing right now
   ptr as integer        'the execution pointer (in int32's from the start of the script data)
   ret as integer        'the scripts current return value

@@ -1263,7 +1263,7 @@ SELECT CASE as CONST id
   DIM rsr as integer
   rsr = runscript(retvals(0), NO, NO, "indirect", plottrigger) 'possible to get ahold of triggers
   IF rsr = 1 THEN
-   '--fill heap with return values
+   '--fill heap with arguments
    FOR i as integer = 1 TO scrat(nowscript - 1).curargc - 1  'flexible argument number! (note that argc has been saved here by runscript)
     setScriptArg i - 1, retvals(i)
    NEXT i

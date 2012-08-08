@@ -28,7 +28,7 @@
 'local subs and functions
 DECLARE FUNCTION interpreter_occasional_checks () as integer
 DECLARE FUNCTION functiondone () as integer
-DECLARE SUB subread (byref si as ScriptInst)
+DECLARE SUB substart (byref si as ScriptInst)
 DECLARE SUB subdoarg (byref si as ScriptInst)
 DECLARE SUB subreturn (byref si as ScriptInst)
 DECLARE SUB unwindtodo (byref si as ScriptInst, byval levels as integer)
@@ -157,10 +157,10 @@ DO
          .curargn -= 1
         END IF
        CASE flowexit
-        unwindtodo(scrat(nowscript), 9999)
+        killtopscript
        CASE flowexitreturn
         popstack(scrst, .ret)
-        unwindtodo(scrat(nowscript), 9999)
+        killtopscript
        CASE flowswitch
         scrst.pos -= 3
         scriptret = 0
@@ -174,7 +174,7 @@ DO
      CASE tyscript
       rsr = runscript(curcmd->value, NO, NO, "indirect", 0)
       IF rsr = 1 THEN
-       '--fill heap with return values
+       '--fill heap with arguments
        FOR i as integer = .curargc - 1 TO 0 STEP -1   '--be VERY careful... runscript set curargc, WITH points to nowscript-1
         popstack(scrst, temp)
         setScriptArg i, temp
@@ -357,10 +357,10 @@ DO
   CASE stdoarg'---do argument
    '--evaluate an arg, either directly or by changing state. stnext will be next
    subdoarg scrat(nowscript)
-  CASE stread'---read statement
+  CASE ststart'---read statement
    '--FIRST STATE
    '--just load the first command
-   subread scrat(nowscript)
+   substart scrat(nowscript)
   CASE stwait'---begin waiting for something
    .curkind = curcmd->kind
    .curvalue = curcmd->value
@@ -387,7 +387,7 @@ DO
   CASE sttriggered'---special initial state used just for script trigger logging
    IF gam.script_log.enabled THEN watched_script_triggered *last_queued_script
    .started = YES
-   .state = stread
+   .state = ststart
   CASE sterror'---some error has occurred, crash and burn
    '--note that there's no thought out plan for handling errors
    killallscripts
@@ -424,6 +424,17 @@ FUNCTION interpreter_occasional_checks () as integer
  END IF
  RETURN NO
 END FUNCTION
+
+SUB killtopscript
+ 'Forces the topmost script to return
+ 'Possible to use unwindtodo instead (used to do this) but that can't be done from
+ 'everywhere, and is slower
+ 'unwindtodo(scrat(nowscript), 9999)
+ WITH scrat(nowscript)
+  setstackposition(scrst, .stackbase)
+  .state = stdone
+ END WITH
+END SUB
 
 SUB killallscripts
 'this kills all running scripts.
@@ -493,12 +504,13 @@ END IF
 
 END FUNCTION
 
-SUB subread (si as ScriptInst)
+SUB substart (si as ScriptInst)
 'this sets up a new script by preparing to run at the root command (which should be do)
 curcmd = cast(ScriptCommand ptr, si.scrdata + si.ptr)
 scriptret = 0'--default returnvalue is zero
 'si.curargn = 0'--moved to runscript to prevent scriptstate crash
 si.state = stnext
+si.stackbase = stackposition(scrst)
 
 '+5 just-in-case for extra state stuff pushed to stack (atm just switch, +1 ought to be sufficient)
 checkoverflow(scrst, curcmd->argc + 5)
@@ -546,7 +558,7 @@ SELECT CASE cmdptr->kind
   'this breakpoint is a perfect duplicate of breakstnext, but originally it also caught
   'streturn on evaluating numbers, locals and globals
   'edit: it's moved about even more now. needs rewriting
-  'IF scrwatch AND breakstread THEN breakpoint scrwatch, 3
+  'IF scrwatch AND breakststart THEN breakpoint scrwatch, 3
   'scriptdump "subdoarg"
 
 
@@ -812,7 +824,7 @@ END SUB
 SUB breakpoint (byref mode as integer, byval callspot as integer)
 ' callspot = 1  stnext
 ' callspot = 2  stdone
-' callspot = 3  stread  - (skipping to end of a command?)
+' callspot = 3  ststart
 ' callspot = 4  at top of main loop, after loading onkeypress
 
 DIM argn as integer
@@ -1182,8 +1194,13 @@ END IF 'end drawing scripts list
 IF mode > 1 AND drawloop = 0 THEN
  setvispage page
  DIM w as integer = waitforanykey
- IF w = scF10 THEN mode = 0: clearkey(scF10)
- IF w = scEsc THEN mode = 0: clearkey(scEsc)
+ IF w = scEsc OR w = scF10 THEN
+  mode = 0
+  clearkey(scF10)
+  clearkey(scEsc)
+  clearpage page
+  setvispage page
+ END IF
  IF w = scV THEN viewmode = loopvar(viewmode, 0, 4, 1): GOTO redraw
  IF w = scPageUp THEN
   selectedscript += 1
@@ -1237,12 +1254,12 @@ IF mode > 1 AND drawloop = 0 THEN
   stepmode = stependscript
  END IF
  IF w = scS THEN
-  mode or= breakstread OR breakstnext OR breakloopbrch
+  mode or= breakststart OR breakstnext OR breakloopbrch
   stepmode = stepnext
   waitforscript = 999
  END IF
  IF w = scF THEN
-  'mode or= breakstread
+  'mode or= breakststart
   mode or= breakstnext OR breakloopbrch
   stepmode = stepargsdone
   waitforscript = nowscript
@@ -1428,7 +1445,7 @@ FUNCTION scriptstate (byval targetscript as integer, byval recurse as integer = 
      cmd = flowname(state.curvalue)
      hidearg = -3
      IF state.depth = 0 THEN cmd = scriptname(state.id)
-     IF state.state = stread THEN hidearg = -1
+     IF state.state = ststart THEN hidearg = -1
 
      IF flowtype(state.curvalue) = 0 THEN IF state.curargc = 0 THEN hidearg = -1: cmd += "()"
      IF flowtype(state.curvalue) = 1 THEN hidearg = 0 ': IF state.curargn = 0 THEN cmd += ":"

@@ -140,6 +140,7 @@ END TYPE
 declare sub createstack (st as Stack)
 declare sub destroystack (st as Stack)
 declare sub checkoverflow (st as Stack, byval amount as integer = 1)
+declare sub setstackposition (st as Stack, byval position as integer)
 #define stackposition(stack)          ((stack).pos - (stack).bottom)
 #define pushstack(stack, datum)       *(stack).pos = (datum) : (stack).pos += 1
 #define popstack(stack, var)          (stack).pos -= 1 : (var) = *(stack).pos

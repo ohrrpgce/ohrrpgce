@@ -330,6 +330,13 @@ SUB checkoverflow (st as Stack, byval amount as integer = 1)
   END WITH
 END SUB
 
+SUB setstackposition (st as Stack, byval position as integer)
+  IF position < 0 OR position > stackposition(st) THEN
+    fatalerror "setstackposition invalid, " & position
+  END IF
+  st.pos = st.bottom + position
+END SUB
+
 '------------- Old allmodex stack  -------------
 
 dim shared stackbottom as ubyte ptr

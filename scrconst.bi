@@ -10,7 +10,7 @@
 'suspended scripts have negative states
 CONST stnone = 0
 CONST stwait = 1
-CONST stread = 2
+CONST ststart = 2
 CONST streturn = 3
 CONST stnext = 4
 CONST stdoarg = 5
@@ -70,7 +70,7 @@ CONST stepup = 3
 CONST stependscript = 4
 CONST stepscript = 8
 
-CONST breakstread = 4
+CONST breakststart = 4
 CONST breakstnext = 8
 CONST breakstdone = 16
 CONST breaklooptop = 32 'above interpret
