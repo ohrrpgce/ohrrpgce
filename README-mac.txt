@@ -1,5 +1,5 @@
 ------------------------------------------------------------
- O.H.R.RPG.C.E                   (June ? 2012 alectormancy)
+ O.H.R.RPG.C.E                   (WIP version)
 ------------------------------------------------------------
 Official Hamster Republic RPG Construction Engine
 for Mac OS X
@@ -8,13 +8,13 @@ for Mac OS X
 INSTALLATION
 
 Copy OHRRPGCE-Game.app and OHRRPGCE-Custom.app to your
-Applications folder
+Applications folder.
 
 The "import" folder contains sample importable music,
 sounds, fonts and palettes. You can copy it to somewhere
-in your home folder
+in your home folder.
 
-The "Vikings of Midguard" folder contains the sample game.
+The "Vikings of Midgard" folder contains the sample game.
 Copy it anywhere in your home folder.
 
 ---

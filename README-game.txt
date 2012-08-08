@@ -1,5 +1,5 @@
 ------------------------------------------------------------
- O.H.R.RPG.C.E Game Player         (May 6 2011 zenzizenzic)
+ O.H.R.RPG.C.E Game Player         (WIP version)
 ------------------------------------------------------------
 Official Hamster Republic RPG Construction Engine
 

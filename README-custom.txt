@@ -1,5 +1,5 @@
 ------------------------------------------------------------
- O.H.R.RPG.C.E Editor              (May 6 2011 zenzizenzic)
+ O.H.R.RPG.C.E Editor              (WIP version)
 ------------------------------------------------------------
 Official Hamster Republic RPG Construction Engine
 
@@ -26,7 +26,7 @@ Any .RPG files you create are yours to distribute as you please.
 You may freely distribute GAME.EXE, with your .RPG files provided
 that you include a copy of LICENSE-binary.txt so that people will
 know where to get the source code. No other files are needed for
-people to play your RPG files
+people to play your RPG files.
 
 If you have questions, read the FAQ at
 http://hamsterrepublic.com/ohrrpgce/F.A.Q.html
