@@ -205,7 +205,7 @@ CONST scriptmemMax = 65536 'in 4-byte ints (256kb)
 CONST scriptTableSize = 256  'hash table size, power of 2 please
 CONST maxLoadedScripts = 360
 #ENDIF
-CONST scriptCheckDelay = 1.5     'How long, in seconds, before the script interpreter becomes interruptable
+CONST scriptCheckDelay = 1.1     'How long, in seconds, before the script interpreter becomes interruptable
 CONST scriptCheckInterval = 0.1  'How often, in seconds, that the script interpreter should perform checks
 
 '--- Binary files in BINSIZE.BIN for getbinsize()

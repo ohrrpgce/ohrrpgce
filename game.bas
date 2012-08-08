@@ -226,6 +226,7 @@ DIM numloadedscr as integer
 DIM totalscrmem as integer
 DIM scrwatch as integer
 DIM next_interpreter_check_time as double
+DIM interruption_grace_period as integer
 REDIM heap(2048) as integer
 REDIM global(maxScriptGlobals) as integer
 REDIM retvals(32) as integer

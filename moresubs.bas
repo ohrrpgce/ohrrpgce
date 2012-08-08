@@ -1871,6 +1871,21 @@ FUNCTION commandname (byval id as integer) as string
  RETURN ret
 END FUNCTION
 
+FUNCTION script_call_chain (byval trim_front as integer = YES) as string
+ IF nowscript < 0 THEN
+  RETURN "Funny... no scripts running!"
+ END IF
+
+ DIM scriptlocation as string
+ scriptlocation = scriptname(scrat(nowscript).id)
+ FOR i as integer = nowscript - 1 TO 0 STEP -1
+  IF scrat(i).state < 0 THEN EXIT FOR 'suspended: not part of the call chain
+  scriptlocation = scriptname(scrat(i).id) + " -> " + scriptlocation
+ NEXT
+ IF trim_front AND LEN(scriptlocation) > 150 THEN scriptlocation = " ..." + RIGHT(scriptlocation, 150)
+ RETURN "  Call chain (current script last):" + CHR(10) + scriptlocation
+END FUNCTION
+
 'errorlevel scheme:
 '1: informative messages
 '2: possibly suspicious operation, eg. re-freeing a slice
@@ -1888,7 +1903,6 @@ SUB scripterr (e as string, byval errorlevel as integer = 5)
  REDIM PRESERVE ignorelist(UBOUND(ignorelist))
 
  DIM as string errtext()
- DIM as string scriptlocation
  DIM as integer scriptcmdhash
 
  debug "Scripterr(" & errorlevel & "): " + e
@@ -1904,17 +1918,7 @@ SUB scripterr (e as string, byval errorlevel as integer = 5)
  IF errorlevel = 6 THEN e = "Script data may be corrupt or unsupported:" + CHR(10) + e
  IF errorlevel >= 7 THEN e = "PLEASE REPORT THIS POSSIBLE ENGINE BUG" + CHR(10) + e
 
- IF nowscript < 0 THEN
-  e = e + CHR(10) + CHR(10) + "Funny... no scripts running!"
- ELSE
-  scriptlocation = scriptname(scrat(nowscript).id)
-  FOR i as integer = nowscript - 1 TO 0 STEP -1
-   IF scrat(i).state < 0 THEN EXIT FOR 'suspended: not part of the call chain
-   scriptlocation = scriptname(scrat(i).id) + " -> " + scriptlocation
-  NEXT
-  IF LEN(scriptlocation) > 150 THEN scriptlocation = " ..." + RIGHT(scriptlocation, 150)
-  e = e + CHR(10) + CHR(10) + "  Call chain (current script last):" + CHR(10) + scriptlocation
- END IF
+ e = e + CHR(10) + CHR(10) + script_call_chain
  split(wordwrap(e, 38), errtext())
 
  DIM state as MenuState
@@ -1960,6 +1964,8 @@ SUB scripterr (e as string, byval errorlevel as integer = 5)
    EXIT DO 
   END IF
 
+  IF keyval(scF1) > 1 THEN show_help("game_scripterr")
+
   IF enter_or_space() THEN
    SELECT CASE state.pt
     CASE 0 'ignore
@@ -1970,6 +1976,7 @@ SUB scripterr (e as string, byval errorlevel as integer = 5)
     CASE 3 'hide errors from this command
      int_array_append(ignorelist(), scriptcmdhash)
     CASE 4
+     debug "scripterr: User opted to quit"
      exitprogram 0
     CASE 5
      scrwatch = 2
@@ -2029,6 +2036,119 @@ SUB scripterr (e as string, byval errorlevel as integer = 5)
  'Note: when we resume after a script error, the keyboard state changes, which might break a script
  'Not worth worrying about this.
 END SUB
+
+FUNCTION script_interrupt () as integer
+ DIM as integer ret = NO
+ DIM as string errtext()
+ DIM as string msg
+
+ msg = "A script may be stuck in an infinite loop. Press F1 for more help" + CHR(10) + CHR(10) + script_call_chain
+ debug script_call_chain(NO)
+ split(wordwrap(msg, 38), errtext())
+
+ DIM state as MenuState
+ state.pt = 0
+ DIM menu as MenuDef
+ ClearMenuData menu
+ menu.anchor.y = -1
+ menu.offset.y = -100 + 38 + 10 * UBOUND(errtext) 'menus are always offset from the center of the screen
+ menu.bordersize = -4
+
+ append_menu_item menu, "Continue running"
+ 'append_menu_item menu, "Exit the top-most script"
+ append_menu_item menu, "Stop the script thread"
+ append_menu_item menu, "Stop all scripts"
+ append_menu_item menu, "Exit game"
+ append_menu_item menu, "Enter script debugger"
+ IF running_as_slave THEN append_menu_item menu, "Reload scripts"
+
+ state.active = YES
+ init_menu_state state, menu
+
+ 'Modify master() because the script debugger or other menus may setpal 
+ REDIM remember_master(255) as RGBcolor
+ FOR i as integer = 0 TO 255
+  remember_master(i) = master(i)
+ NEXT
+ loadpalette master(), gen(genMasterPal)
+ setpal master()
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+
+  IF keyval(scEsc) > 1 THEN 'continue
+   EXIT DO 
+  END IF
+
+  IF keyval(scF1) > 1 THEN show_help("game_script_interrupt")
+
+  IF enter_or_space() THEN
+   SELECT CASE state.pt
+    CASE 0 'continue
+     ret = NO
+    'CASE 1 'exit topmost  ... probably not too helpful
+    ' killtopscript
+    ' ret = YES
+    CASE 1 'exit whole 'thread'
+     killscriptthread
+     ret = YES
+    CASE 2 'kill everything
+     killallscripts
+     ret = YES
+    CASE 3 'die
+     debug "script_interrupt: User opted to quit"
+     exitprogram 0
+    CASE 4 'script debugger
+     scrwatch = 2
+     scriptwatcher scrwatch, 0 'clean mode, script state view mode
+     ret = YES
+    CASE 5 'reload scripts
+     reload_scripts
+     ret = NO
+   END SELECT
+   EXIT DO
+  END IF
+  
+  usemenu state
+
+  clearpage vpage
+
+  centerbox 160, 12, 310, 15, 3, vpage
+  textcolor uilook(uiText), 0
+  printstr "A script is stuck", 160 - 17*4, 7, vpage
+
+  FOR i as integer = 0 TO UBOUND(errtext)
+   printstr errtext(i), 8, 25 + 10 * i, vpage
+  NEXT
+
+  draw_menu menu, state, vpage
+
+  IF state.pt = 4 THEN
+   textcolor uilook(uiSelectedItem), 0 
+   printstr "The debugger is a usability train-wreck!", 0, 184, vpage
+   printstr "Press F1 inside the debugger to see help", 0, 192, vpage
+  END IF
+  setvispage vpage
+
+  dowait
+ LOOP
+ ClearMenuData menu
+ setkeys
+
+ FOR i as integer = 0 TO 255
+  master(i) = remember_master(i)
+ NEXT
+ setpal master()
+ clearpage vpage
+ setvispage vpage
+ next_interpreter_check_time = TIMER + scriptCheckDelay
+
+ 'Note: when we resume after a script interruption, the keyboard state changes, which might break a script
+ 'Not worth worrying about this.
+ RETURN ret
+END FUNCTION
 
 FUNCTION settingstring (searchee as string, setting as string, result as string) as integer
 

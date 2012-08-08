@@ -69,6 +69,7 @@ reloadscript scrat(nowscript)
 
 scrat(nowscript).started = YES
 next_interpreter_check_time = TIMER + scriptCheckDelay
+interruption_grace_period = YES
 
 interpretloop:
 WITH scrat(nowscript)
@@ -108,7 +109,7 @@ DO
         SELECT CASE .curargn
          CASE 2
           '--if a while statement finishes normally (argn is 2) then it repeats.
-          IF interpreter_occasional_checks THEN EXIT DO
+          IF interpreter_occasional_checks THEN CONTINUE DO
           scrst.pos -= 2
           .curargn = 0
          CASE ELSE
@@ -120,7 +121,7 @@ DO
         SELECT CASE .curargn
          CASE 5
           '--normal for termination means repeat
-          IF interpreter_occasional_checks THEN EXIT DO
+          IF interpreter_occasional_checks THEN CONTINUE DO
           scrst.pos -= 1
           tmpvar = readstack(scrst, -3)
           writescriptvar tmpvar, readscriptvar(tmpvar) + readstack(scrst, 0)
@@ -143,7 +144,7 @@ DO
         END IF
        CASE flowcontinue
         '--continue could be used to cause an infinite loop (including in a floating do), so also needs these checks
-        IF interpreter_occasional_checks THEN EXIT DO
+        IF interpreter_occasional_checks THEN CONTINUE DO
         popstack(scrst, temp)
         unwindtodo(scrat(nowscript), temp)
         IF curcmd->kind = tyflow AND curcmd->value = flowswitch THEN
@@ -414,17 +415,21 @@ RETRACE
 
 END SUB
 
-'Returns true if current script should be aborted
+'Returns true if current interpreter block should be aborted
 FUNCTION interpreter_occasional_checks () as integer
- 'Ideally any keypresses during the initial delay would be ignored, rather than have a delayed effect
  IF TIMER > next_interpreter_check_time THEN
   IF interrupting_keypress THEN
-   'Just die for now
-   debug "Script interpreter: exiting due to interruption"
-   killallscripts
-   RETURN YES
+   IF interruption_grace_period THEN
+    debuginfo "Script interpreter: ignoring interruption"
+    'The call to interruptting keypress causes the new-keypress flags to be cleared, and also has the benefit
+    'of processing quit requests, etc
+   ELSE
+    debug "Script interpreter: received interruption"
+    RETURN script_interrupt()
+   END IF
   END IF
   next_interpreter_check_time = TIMER + scriptCheckInterval
+  interruption_grace_period = NO
  END IF
  RETURN NO
 END FUNCTION
@@ -1317,6 +1322,7 @@ END IF
 IF resetpal THEN setpal master()
 
 next_interpreter_check_time = TIMER + scriptCheckDelay
+interruption_grace_period = YES
 
 END SUB
 

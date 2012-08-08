@@ -11,6 +11,8 @@ WHAT IS NEW?
     * "run script by id" was far slower than it should have been [Ralph]
 
   * New Plotscripting Stuff
+    * If a script runs for a long time without "wait"ing you can now
+      interrupt it by pressing any key. [Ralph]
 
   * Stuff Only Developers Will Notice
 
