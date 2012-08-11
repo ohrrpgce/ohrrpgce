@@ -1497,6 +1497,23 @@ script, battle tests, begin
   w(5)
   fight formation(5)
   w(5)
+  # Test attacks setting tags.
+  set tag(4, false)
+  set tag(5, false)
+  fight formation(6)
+  w(5)
+  # The first time should NOT set tag 5 because tag 4 was not set
+  assert(not(check tag(5))), w
+  set tag(4, true)
+  fight formation(6)
+  w(5)
+  # The second time SHOULD set tag 5 because tag 4 WAS set
+  assert(check tag(5)), w
+  set tag(6, false)
+  fight formation(7)
+  w(5)
+  # The third one should never turn the tag on because the tag check is 0.
+  assert(not(check tag(6))), w
 end
 
 # Formation set should be 1-3
