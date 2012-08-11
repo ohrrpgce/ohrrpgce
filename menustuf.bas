@@ -47,6 +47,7 @@ DECLARE SUB spells_menu_control(sp as SpellsMenuState)
 DECLARE SUB spells_menu_paint (byref sp as SpellsMenuState)
 DECLARE SUB picksave_draw(menu() as string, byval loading as integer, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval page as integer)
 DECLARE FUNCTION picksave_confirm(menu() as string, byval loading as integer, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval holdscreen as integer, byval page as integer) as integer
+DECLARE SUB sellstuff_refresh(byval last_stuff as integer, byval recordsize as integer, permask() as integer, price() as integer, stuffdata() as integer)
 
 SUB buystuff (byval id as integer, byval shoptype as integer, storebuf() as integer)
 DIM b((getbinsize(binSTF) \ 2) * 50 - 1) as integer
@@ -957,7 +958,7 @@ DIM info as string = ""
 DIM quit as integer = 0
 
 menusound gen(genAcceptSFX)
-GOSUB refreshs
+sellstuff_refresh storebuf(16), recordsize, permask(), price(), b()
 
 GOSUB sellinfostr
 setkeys
@@ -1054,7 +1055,7 @@ IF carray(ccUse) > 1  AND inventory(ic).used THEN
   'UPDATE ITEM POSESSION TAGS--------
   evalitemtags
   'REFRESH DISPLAY--------
-  GOSUB refreshs
+  sellstuff_refresh storebuf(16), recordsize, permask(), price(), b()
   GOSUB sellinfostr
  ELSE
   menusound gen(genCantSellSFX)
@@ -1094,25 +1095,38 @@ IF carray(ccRight) > 1 THEN
 END IF
 RETRACE
 
-refreshs:
-FOR i as integer = 0 TO last_inv_slot()
- IF inventory(i).used THEN
-  loaditemdata buffer(), inventory(i).id
-  IF buffer(73) = 2 THEN setbit permask(), 0, i, 1
-  price(i) = INT(buffer(46) * .5)
-  FOR o as integer = 0 TO storebuf(16)
-   IF b(o * recordsize + 18) = inventory(i).id THEN
-    IF ABS(b(o * recordsize + 21)) > 0 THEN IF readbit(tag(), 0, ABS(b(o * recordsize + 21))) <> SGN(SGN(b(o * recordsize + 21)) + 1) THEN setbit permask(), 0, i, 1
-    IF b(o * recordsize + 17) = 0 THEN
-     price(i) = b(o * recordsize + 27)
-     IF b(o * recordsize + 26) = 3 THEN setbit permask(), 0, i, 1
-    END IF
-   END IF
-  NEXT o
- END IF
-NEXT i
-RETRACE
+END SUB
 
+SUB sellstuff_refresh(byval last_stuff as integer, byval recordsize as integer, permask() as integer, price() as integer, stuffdata() as integer)
+ DIM itemdata(dimbinsize(binITM)) as integer
+ DIM thing_type as integer
+ DIM num as integer
+ DIM sell_req_tag as integer
+ DIM sell_price as integer
+ DIM sell_mode as integer
+ FOR i as integer = 0 TO last_inv_slot()
+  IF inventory(i).used THEN
+   loaditemdata itemdata(), inventory(i).id
+   IF itemdata(73) = 2 THEN setbit permask(), 0, i, 1
+   price(i) = INT(itemdata(46) * .5)
+   FOR o as integer = 0 TO last_stuff
+    thing_type   = stuffdata(o * recordsize + 17)
+    num          = stuffdata(o * recordsize + 18)
+    sell_req_tag = stuffdata(o * recordsize + 21)
+    sell_mode    = stuffdata(o * recordsize + 26)
+    sell_price   = stuffdata(o * recordsize + 27)
+    IF num = inventory(i).id THEN
+     IF ABS(sell_req_tag) > 0 THEN
+      IF NOT istag(sell_req_tag, 0) THEN setbit permask(), 0, i, 1
+     END IF
+     IF thing_type = 0 THEN
+      price(i) = sell_price
+      IF sell_mode = 3 THEN setbit permask(), 0, i, 1
+     END IF
+    END IF
+   NEXT o
+  END IF
+ NEXT i
 END SUB
 
 'Format one of the strings on the second Status menu screen
