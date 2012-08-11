@@ -2688,7 +2688,7 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as int
  LOOP
  IF activated THEN
   IF ABS(mi.settag) > 1 THEN settag mi.settag : updatetags = YES
-  IF mi.togtag > 1 THEN settag mi.togtag, (readbit(tag(), 0, mi.togtag) XOR 1) : updatetags = YES
+  IF mi.togtag > 1 THEN settag mi.togtag, NOT istag(mi.togtag, 0) : updatetags = YES
   IF mi.close_if_selected THEN
    remove_menu menuslot, (mi.skip_close_script = NO)
 
