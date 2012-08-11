@@ -1512,8 +1512,8 @@ script, battle tests, begin
   set tag(6, false)
   fight formation(7)
   w(5)
-  # The third one should never turn the tag on because the tag check is 0.
-  assert(not(check tag(6))), w
+  # The third one should always turn the tag on because the tag check is 0.
+  assert(check tag(6)), w
 end
 
 # Formation set should be 1-3
