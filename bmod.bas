@@ -1647,7 +1647,9 @@ SUB checkTagCond (byref t as AttackDataTag, byval check as integer)
  't.tag - the tag to be set
  't.tagcheck - the tag to check
  IF t.condition = check THEN
-  IF t.tagcheck <> 0 AND readbit(tag(), 0, ABS(t.tagcheck)) <> SGN(SGN(t.tagcheck) + 1) THEN EXIT SUB
+  IF t.tagcheck <> 0 THEN
+   IF NOT istag(t.tagcheck, 0) THEN EXIT SUB
+  END IF
   settag t.tag  'Set the original damned tag!
  END IF
 END SUB
