@@ -1371,8 +1371,17 @@ show_load_index z, "unused"
 z=z+1 'fix an old bug
 
 show_load_index z, "tags"
+DIM tagtemp(126) as integer
 FOR i = 0 TO 126
- tag(i) = buffer(z): z = z + 1
+ tagtemp(i) = buffer(z): z = z + 1
+NEXT i
+FOR i = 0 TO 999
+ 'copy over the tags
+ setbit tag(), 0, i, readbit(tagtemp(), 0, i)
+NEXT i
+FOR i = 0 TO 1031
+ 'copy over the onetime bits
+ setbit onetime(), 0, i, readbit(tagtemp(), 0, i + 1000)
 NEXT i
 show_load_index z, "heroes"
 FOR i = 0 TO 40
