@@ -2425,7 +2425,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
   end with
  NEXT i
  
- DIM tcount as integer = -1
+ DIM tcount as integer = 0
  DIM pdir as integer = 0
  
  bat.atk.has_consumed_costs = NO
@@ -2460,7 +2460,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  NEXT i
  
  'ABORT IF TARGETLESS
- IF tcount = -1 THEN
+ IF tcount = 0 THEN
   bat.atk.id = -1
   EXIT SUB
  END IF
@@ -2505,7 +2505,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
   FOR j as integer = 1 TO numhits
    IF is_hero(bat.acting) THEN anim_hero bat.acting, attack, bslot(), t()
    IF is_enemy(bat.acting) THEN anim_enemy bat.acting, attack, bslot(), t()
-   FOR i = 0 TO tcount
+   FOR i = 0 TO tcount - 1
     anim_inflict t(i), tcount
    NEXT i
    anim_disappear 24
@@ -2515,8 +2515,8 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  END IF
 
  '----NORMAL, DROP, SPREAD-RING, and SCATTER
- IF attack.attack_anim = 0 OR attack.attack_anim = 3 OR attack.attack_anim = 6 OR (attack.attack_anim = 4 AND tcount > 0) THEN
- FOR i = 0 TO tcount
+ IF attack.attack_anim = 0 OR attack.attack_anim = 3 OR attack.attack_anim = 6 OR (attack.attack_anim = 4 AND tcount > 1) THEN
+ FOR i = 0 TO tcount - 1
   yt = (bslot(t(i)).h - 50) + 2
   xt = 0: IF t(i) = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> 7 THEN xt = -20
   anim_setpos 12 + i, bslot(t(i)).x + xt, bslot(t(i)).y + yt, atkimgdirection
@@ -2531,7 +2531,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  FOR j as integer = 1 TO numhits
   IF is_hero(bat.acting) THEN anim_hero bat.acting, attack, bslot(), t()
   IF is_enemy(bat.acting) THEN anim_enemy bat.acting, attack, bslot(), t()
-   FOR i = 0 TO tcount
+   FOR i = 0 TO tcount - 1
     anim_appear 12 + i
     IF attack.attack_anim = 4 THEN
      anim_absmove 12 + i, bslot(t(i)).x + xt - bslot(t(i)).w, bslot(t(i)).y + yt, 3, 3
@@ -2551,34 +2551,34 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    anim_setframe bat.acting, 0
    anim_disappear 24
    IF attack.attack_anim = 4 THEN
-    FOR i = 0 TO tcount
+    FOR i = 0 TO tcount - 1
      anim_absmove 12 + i, bslot(t(i)).x + xt, bslot(t(i)).y + yt + bslot(t(i)).w, 3, 3
     NEXT i
     anim_waitforall
-    FOR i = 0 TO tcount
+    FOR i = 0 TO tcount - 1
      anim_absmove 12 + i, bslot(t(i)).x + xt + bslot(t(i)).w, bslot(t(i)).y + yt, 3, 3
     NEXT i
     anim_waitforall
-    FOR i = 0 TO tcount
+    FOR i = 0 TO tcount - 1
      anim_absmove 12 + i, bslot(t(i)).x + xt, bslot(t(i)).y + yt - bslot(t(i)).w, 3, 3
     NEXT i
     anim_waitforall
    END IF
-   FOR i = 0 TO tcount
+   FOR i = 0 TO tcount - 1
     anim_inflict t(i), tcount
     anim_flinchstart t(i), bslot(), attack
    NEXT i
    IF attack.attack_anim <> 4 THEN
     anim_wait 3
    END IF
-   FOR i = 0 TO tcount
+   FOR i = 0 TO tcount - 1
     anim_disappear 12 + i
     anim_flinchdone t(i), bslot(), attack
    NEXT i
    anim_wait 2
   NEXT j
   anim_retreat bat.acting, attack, bslot()
-  FOR i = 0 TO tcount
+  FOR i = 0 TO tcount - 1
    anim_setframe t(i), 0
   NEXT i
   anim_end
@@ -2603,7 +2603,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    'play the sound effect
    IF attack.sound_effect > 0 THEN anim_sound(attack.sound_effect - 1)
    'repeat the following for each target...
-   FOR i = 0 TO tcount
+   FOR i = 0 TO tcount - 1
     'find the target's position
     yt = (bslot(t(i)).h - 50) + 2
     xt = 0
@@ -2644,7 +2644,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
   IF is_hero(bat.acting) THEN projectile_start_x_offset = -50
   anim_advance bat.acting, attack, bslot(), t()
   FOR j as integer = 1 TO numhits
-   FOR i = 0 TO tcount
+   FOR i = 0 TO tcount - 1
     yt = (bslot(t(i)).h - 50) + 2
     xt = 0
     IF t(i) = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> 7 THEN xt = -20
@@ -2666,7 +2666,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    NEXT i
    IF is_hero(bat.acting) THEN anim_hero bat.acting, attack, bslot(), t()
    IF is_enemy(bat.acting) THEN anim_enemy bat.acting, attack, bslot(), t()
-   FOR i = 0 TO tcount
+   FOR i = 0 TO tcount - 1
     anim_appear 12 + i
     yt = (bslot(t(i)).h - 50) + 2
     xt = 0
@@ -2685,19 +2685,19 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    anim_wait 8
    anim_disappear 24
    anim_setframe bat.acting, 0
-   FOR i = 0 TO tcount
+   FOR i = 0 TO tcount - 1
     anim_inflict t(i), tcount
     anim_flinchstart t(i), bslot(), attack
    NEXT i
    anim_wait 3
-   FOR i = 0 TO tcount
+   FOR i = 0 TO tcount - 1
     anim_disappear 12 + i
     anim_flinchdone t(i), bslot(), attack
    NEXT i
    anim_wait 3
   NEXT j
   anim_retreat bat.acting, attack, bslot()
-  FOR i = 0 TO tcount
+  FOR i = 0 TO tcount - 1
    anim_setframe t(i), 0
   NEXT i
   anim_end
@@ -2707,7 +2707,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  IF attack.attack_anim = 9 THEN
   anim_advance bat.acting, attack, bslot(), t()
   FOR j as integer = 1 TO numhits
-   FOR i = 0 TO tcount
+   FOR i = 0 TO tcount - 1
     yt = (bslot(t(i)).h - 50) + 2
     IF is_hero(bat.acting) THEN
      anim_setpos 12 + i, 320, bslot(t(i)).y + yt, atkimgdirection
@@ -2718,7 +2718,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    NEXT i
    IF is_hero(bat.acting) THEN anim_hero bat.acting, attack, bslot(), t()
    IF is_enemy(bat.acting) THEN anim_enemy bat.acting, attack, bslot(), t()
-   FOR i = 0 TO tcount
+   FOR i = 0 TO tcount - 1
     anim_appear 12 + i
     yt = (bslot(t(i)).h - 50) + 2
     anim_absmove 12 + i, bslot(t(i)).x + xt, bslot(t(i)).y + yt, 8, 8
@@ -2728,7 +2728,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    anim_disappear 24
    anim_setframe bat.acting, 0
    anim_waitforall
-   FOR i = 0 TO tcount
+   FOR i = 0 TO tcount - 1
     anim_inflict t(i), tcount
     anim_flinchstart t(i), bslot(), attack
     yt = (bslot(t(i)).h - 50) + 2
@@ -2740,21 +2740,21 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
     END IF
    NEXT i
    anim_waitforall
-   FOR i = 0 TO tcount
+   FOR i = 0 TO tcount - 1
     anim_disappear 12 + i
     anim_flinchdone t(i), bslot(), attack
    NEXT i
    anim_wait 3
   NEXT j
   anim_retreat bat.acting, attack, bslot()
-  FOR i = 0 TO tcount
+  FOR i = 0 TO tcount - 1
    anim_setframe t(i), 0
   NEXT i
   anim_end
  END IF
  
  '----FOCUSED RING
- IF attack.attack_anim = 4 AND tcount = 0 THEN
+ IF attack.attack_anim = 4 AND tcount = 1 THEN
   anim_advance bat.acting, attack, bslot(), t()
   FOR j as integer = 1 TO numhits
    i = 0
@@ -2785,7 +2785,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    anim_wait 8
    anim_disappear 24
    anim_setframe bat.acting, 0
-   FOR i = 0 TO tcount
+   FOR i = 0 TO tcount - 1
     anim_inflict t(i), tcount
     anim_flinchstart t(i), bslot(), attack
    NEXT i
@@ -2793,13 +2793,13 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    FOR i = 0 TO 7
     anim_disappear 12 + i
    NEXT i
-   FOR i = 0 TO tcount
+   FOR i = 0 TO tcount - 1
     anim_flinchdone t(i), bslot(), attack
    NEXT i
    anim_wait 3
   NEXT j
   anim_retreat bat.acting, attack, bslot()
-  FOR i = 0 TO tcount
+  FOR i = 0 TO tcount - 1
    anim_setframe t(i), 0
   NEXT i
   anim_end
@@ -2817,7 +2817,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
   anim_advance bat.acting, attack, bslot(), t()
   FOR j as integer = 1 TO numhits
    FOR i = 0 TO 11
-    IF tcount > 0 OR attack.targ_set = 1 THEN
+    IF tcount > 1 OR attack.targ_set = 1 THEN
      anim_setpos 12 + i, wave_start_x, i * 15, atkimgdirection
     ELSE
      anim_setpos 12 + i, wave_start_x, yt, atkimgdirection
@@ -2834,7 +2834,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    anim_wait 15
    anim_disappear 24
    anim_setframe bat.acting, 0
-   FOR i = 0 TO tcount
+   FOR i = 0 TO tcount - 1
     anim_inflict t(i), tcount
     anim_flinchstart t(i), bslot(), attack
    NEXT i
@@ -2842,13 +2842,13 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    FOR i = 0 TO 11
     anim_disappear 12 + i
    NEXT i
-   FOR i = 0 TO tcount
+   FOR i = 0 TO tcount - 1
     anim_flinchdone t(i), bslot(), attack
    NEXT i
    anim_wait 2
   NEXT j
   anim_retreat bat.acting, attack, bslot()
-  FOR i = 0 TO tcount
+  FOR i = 0 TO tcount - 1
    anim_setframe t(i), 0
   NEXT i
   anim_end

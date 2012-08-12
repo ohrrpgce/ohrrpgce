@@ -319,10 +319,10 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
   attacker.stored_targs_can_be_dead = hit_dead
  END IF
  IF attack.delete_stored_targ THEN
-  FOR i as integer = 0 TO 11
+  FOR i as integer = 0 TO UBOUND(attacker.stored_targs)
    attacker.stored_targs(i) = NO
-   attacker.stored_targs_can_be_dead = NO
   NEXT i
+  attacker.stored_targs_can_be_dead = NO
  END IF
  
  'no damage
@@ -481,7 +481,7 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
   END IF
  
   'spread damage
-  IF attack.divide_spread_damage = YES THEN h = h / (tcount + 1)
+  IF attack.divide_spread_damage = YES THEN h = h / tcount
  
   'cap under
   IF immune ANDALSO readbit(gen(), genBits2, 10) THEN
@@ -495,8 +495,7 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
   DIM remtargstat as integer = target.stat.cur.sta(targstat)
   DIM rematkrstat as integer = attacker.stat.cur.sta(targstat)
  
-  'pre-calculate percentage damage for display
-  DIM chp as integer = target.stat.cur.sta(targstat)
+  DIM chp as integer = target.stat.cur.sta(targstat)  'for convenience, not for remembering value
   DIM mhp as integer = target.stat.max.sta(targstat)
   IF attack.percent_damage_not_set = YES THEN
    'percentage attacks do damage
@@ -510,10 +509,13 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
      cure = 0
    END SELECT
   END IF
- 
-  IF attack.cure_instead_of_harm = YES THEN h = ABS(h) * -1 'cure bit
-  IF target.harmed_by_cure = YES THEN h = ABS(h)  'zombie
-  IF cure = 1 THEN h = ABS(h) * -1                  'elemental absorb
+
+  IF cure = 1 THEN
+   h = ABS(h) * -1                  'elemental absorb
+  ELSE
+   IF attack.cure_instead_of_harm = YES THEN h = ABS(h) * -1 'cure bit
+   IF target.harmed_by_cure = YES THEN h = ABS(h)  'zombie
+  END IF
  
   IF attack.do_not_exceed_targ_stat THEN
    IF h > 0 THEN 'damage

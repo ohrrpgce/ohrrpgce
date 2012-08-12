@@ -11,7 +11,7 @@ DECLARE FUNCTION items_menu () as integer
 DECLARE FUNCTION use_item_by_id(byval item_id as integer, byref trigger_box as integer, name_override as STRING="") as integer
 DECLARE FUNCTION use_item_in_slot(byval slot as integer, byref trigger_box as integer, byref consumed as integer) as integer
 DECLARE SUB update_inventory_caption (byval i as integer)
-DECLARE SUB oobcure (byval attacker as integer, byval target as integer, byval atk as integer, byval spread as integer)
+DECLARE SUB oobcure (byval attacker as integer, byval target as integer, byval atk as integer, byval target_count as integer)
 DECLARE SUB patcharray (array() as integer, n as string)
 DECLARE FUNCTION picksave (byval loading as integer) as integer
 DECLARE SUB sellstuff (byval id as integer, storebuf() as integer)

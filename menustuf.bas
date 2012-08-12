@@ -541,7 +541,7 @@ ELSE
 END IF
 END SUB
 
-SUB oobcure (byval attacker as integer, byval target as integer, byval atk as integer, byval spread as integer)
+SUB oobcure (byval attacker as integer, byval target as integer, byval atk as integer, byval target_count as integer)
 '--outside-of-battle cure
 ' attacker and target are hero slots; attacker may be -1
 
@@ -590,7 +590,7 @@ END IF
 '--out of battle attacks aren't allowed to miss.
 attack.aim_math = 3
 
-inflict(0, 1, attacker_obj, target_obj, attack, spread)
+inflict(0, 1, attacker_obj, target_obj, attack, target_count)
 
 '--copy back stats that need copying back
 '--first copy HP and MP normally
@@ -1444,15 +1444,21 @@ END FUNCTION
 FUNCTION outside_battle_cure (byval atk as integer, byref target as integer, byval attacker as integer, byval spread as integer) as integer
  DIM i as integer
  DIM didcure as integer = NO
- IF spread = 0 THEN
+
+ IF spread = NO THEN
   IF chkOOBtarg(target, atk) THEN
-   oobcure attacker, target, atk, spread
+   oobcure attacker, target, atk, 1
    didcure = YES
   END IF
  ELSE
+  DIM target_count as integer = 0
+  FOR i = 0 TO 3
+   IF chkOOBtarg(i, atk) THEN target_count += 1
+  NEXT i
+
   FOR i = 0 TO 3
    IF chkOOBtarg(i, atk) THEN
-    oobcure attacker, i, atk, spread
+    oobcure attacker, i, atk, target_count
     didcure = YES
    END IF 
   NEXT i
@@ -2107,7 +2113,7 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
  menu_attack_targ_picker = NO
 
  STATIC targ as integer
- STATIC spread as integer
+ STATIC spread as integer  'boolean
 
  '--Preserve background for display beneath the targ picker menu
  DIM page as integer
@@ -2147,24 +2153,8 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
   NEXT i
  END IF
 
- IF allow_spread THEN
-  IF spread > 0 THEN
-   '--if a spread target was previously recorded, update it
-   spread = 0
-   FOR i as integer = 0 TO 3
-    IF chkOOBtarg(i, attack_id) THEN spread += 1
-   NEXT i
-  END IF
- ELSE
-  spread = 0
- END IF
-
- IF must_spread THEN
-  spread = 0
-  FOR i as integer = 0 TO 3
-   IF chkOOBtarg(i, attack_id) THEN spread += 1
-  NEXT i
- END IF
+ IF allow_spread = NO THEN spread = NO
+ IF must_spread THEN spread = YES
 
  setkeys
  DO
@@ -2180,7 +2170,7 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
    menusound gen(genCancelSFX)
    EXIT DO
   END IF
-  IF spread = 0 THEN
+  IF spread = NO THEN
    IF carray(ccUp) > 1 THEN
     getOOBtarg -1, targ, attack_id
     MenuSound gen(genCursorSFX)
@@ -2194,13 +2184,7 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
   IF allow_spread THEN
    IF carray(ccLeft) > 1 OR carray(ccRight) > 1 THEN
     MenuSound gen(genCursorSFX)
-    IF spread = 0 THEN
-     FOR i as integer = 0 TO 3
-      IF chkOOBtarg(i, attack_id) THEN spread += 1
-     NEXT i
-    ELSE
-     spread = 0
-    END IF
+    spread = spread XOR YES
    END IF
   END IF
   
@@ -2240,9 +2224,9 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
 
   '--draw the targ picker menu
   centerbox 160 + x_offset, 47, 160, 88, 2, page
-  IF spread = 0 AND targ >= 0 THEN
+  IF spread = NO AND targ >= 0 THEN
    rectangle 84 + x_offset, 8 + targ * 20, 152, 20, uilook(uiHighlight2), page
-  ELSEIF spread <> 0 THEN
+  ELSEIF spread THEN
    rectangle 84 + x_offset, 8, 152, 80, uilook(uiHighlight2 * tog), page
   END IF
   DIM cater_slot as integer = 0
