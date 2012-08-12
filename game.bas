@@ -3718,7 +3718,7 @@ SUB usenpc(byval cause as integer, byval npcnum as integer)
  END IF
  IF npcs(id).usetag > 0 THEN
   '--One-time-use tag
-  settag 1000 + npcs(id).usetag, YES
+  settag onetime(), npcs(id).usetag, YES
  END IF
  IF npcs(id).script > 0 THEN
   '--summon a script directly from an NPC

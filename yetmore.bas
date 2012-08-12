@@ -606,7 +606,7 @@ SUB visnpc()
   END IF
  
   '--check tags
-  IF istag(npcs(npc_id).tag1, 1) ANDALSO istag(npcs(npc_id).tag2, 1) ANDALSO istag(1000 + npcs(npc_id).usetag, 0) = 0 THEN
+  IF istag(npcs(npc_id).tag1, 1) ANDALSO istag(npcs(npc_id).tag2, 1) ANDALSO istag(onetime(), npcs(npc_id).usetag, 0) = 0 THEN
    npc(i).id = npc_id + 1
   ELSE
    npc(i).id = -npc_id - 1

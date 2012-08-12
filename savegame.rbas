@@ -439,7 +439,7 @@ SUB gamestate_onetime_from_reload(byval node as Reload.NodePtr)
  LoadBitsetArray(node."data".ptr, buf(), UBOUND(buf))
  
  FOR i as integer = 0 TO count - 1
-  settag 1000 + i, readbit(buf(), 0, i)
+  settag onetime(), i, readbit(buf(), 0, i)
  NEXT i
 END SUB
 
