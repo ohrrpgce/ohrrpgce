@@ -690,22 +690,39 @@ END SUB
 
 'Either pass a tag number and specify YES/NO, or pass just a tag number; +ve/-ve indicates value
 SUB settag (byval tagnum as integer, byval value as integer = 4444)
- IF value <> 4444 THEN
-  IF ABS(tagnum) > 1 THEN setbit tag(), 0, ABS(tagnum), value
- ELSEIF tagnum < -1 THEN
-  setbit tag(), 0, ABS(tagnum), NO
- ELSEIF tagnum > 1 THEN
-  setbit tag(), 0, tagnum, YES
+ IF ABS(tagnum) <= 999 THEN
+  settag tag(), tagnum, value
+ ELSE
+  settag onetime(), tagnum - 1000 * SGN(tagnum), value
  END IF
 END SUB
 
 FUNCTION istag (byval num as integer, byval zero as integer) as integer
+ IF ABS(num) <= 999 THEN
+  RETURN istag(tag(), num, zero)
+ ELSE
+  RETURN istag(onetime(), num - 1000 * SGN(num), zero)
+ END IF
+END FUNCTION
+
+'Either pass a tag number and specify YES/NO, or pass just a tag number; +ve/-ve indicates value
+SUB settag (tagbits() as integer, byval tagnum as integer, byval value as integer = 4444)
+ IF value <> 4444 THEN
+  IF ABS(tagnum) > 1 THEN setbit tagbits(), 0, ABS(tagnum), value
+ ELSEIF tagnum < -1 THEN
+  setbit tagbits(), 0, ABS(tagnum), NO
+ ELSEIF tagnum > 1 THEN
+  setbit tagbits(), 0, tagnum, YES
+ END IF
+END SUB
+
+FUNCTION istag (tagbits() as integer, byval num as integer, byval zero as integer) as integer
  IF num = 0 THEN RETURN zero 'why go through all that just to return defaults?
  IF num = 1 THEN RETURN 0
  IF num = -1 THEN RETURN -1
- IF ABS(num) >= UBOUND(tag) * 16 + 16 THEN RETURN zero ' use default in case of an invalid tag
+ IF ABS(num) >= UBOUND(tagbits) * 16 + 16 THEN RETURN zero ' use default in case of an invalid tag
 
- DIM ret as integer = readbit(tag(), 0, ABS(num)) 'raw bit: 0 or -1
+ DIM ret as integer = readbit(tagbits(), 0, ABS(num)) 'raw bit: 0 or -1
 
  IF num > 0 AND ret <> 0 THEN RETURN -1
  IF num < 0 AND ret = 0 THEN RETURN -1
@@ -1096,7 +1113,8 @@ scriptout = ""
 xbload game + ".gen", gen(), "General data is missing from " + sourcerpg
 
 CleanNPCL npc()
-flusharray tag(), 126, 0
+flusharray tag()
+flusharray onetime()
 flusharray hero(), 40, 0
 FOR i as integer = 0 TO 40
  FOR j as integer = 0 TO 11

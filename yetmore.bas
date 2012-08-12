@@ -919,8 +919,13 @@ SELECT CASE as CONST id
  CASE 12'--check tag
   scriptret = ABS(istag(retvals(0), 0))
  CASE 13'--set tag
-  IF retvals(0) > 1 AND retvals(0) < 2000 THEN  'there are actually 2048 tags
-   setbit tag(), 0, retvals(0), retvals(1)
+  IF retvals(0) > 1 THEN
+   IF retvals(0) <= 999 THEN
+    settag tag(), retvals(0), retvals(1)
+   ELSE
+    debug "Setting onetime tags with the settag command is deprecated"
+    settag onetime(), retvals(0) - 1000, retvals(1)
+   END IF
    tag_updates
   END IF
  CASE 17'--get item

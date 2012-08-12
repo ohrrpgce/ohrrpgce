@@ -36,7 +36,8 @@
 DECLARE SUB setup_sprite_sizes ()
 
 #IFDEF IS_GAME
-DECLARE FUNCTION istag (byval num as integer, byval zero as integer) as integer
+DECLARE FUNCTION istag OVERLOAD (byval num as integer, byval zero as integer) as integer
+DECLARE FUNCTION istag OVERLOAD (tagbits() as integer, byval num as integer, byval zero as integer) as integer
 DECLARE SUB scripterr (e as string, byval errorlevel as integer = 5)
 DECLARE FUNCTION commandname (byval id as integer) as string
 DECLARE SUB exitprogram (byval need_fade_out as integer = NO, byval errorout as integer = NO)

@@ -43,6 +43,7 @@ EXTERN as MouseInfo mouse
 EXTERN gam AS GameState
 EXTERN txt AS TextBoxState
 EXTERN tag() as integer
+EXTERN onetime() as integer
 
 'Vehicle globals
 EXTERN vstate AS VehicleState
