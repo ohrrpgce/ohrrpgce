@@ -74,13 +74,6 @@
 
 #DEFINE ESCAPE_SEQUENCE Goto endOfSong
 
-#IFDEF IS_GAME
-#include once "gglobals.bi"
-#ELSE
-dim shared tag(2000) as integer
-dim shared global(1025) as integer
-#ENDIF
-
 
 #include "music_native_subs.bas"
 
@@ -526,87 +519,6 @@ sysex:
 						curevent = choruswas
 						choruswas = 0
 					end if
-				#IFNDEF IS_CUSTOM
-				#IF FALSE
-				case &H6 'unset tag
-					p +=1
-					'debug "Unset tag # " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p)))
-					settag BE_SHORT(*Cptr(short ptr, curevent->extradata + p)), NO
-				case &H7 'set tag
-					p +=1
-					'debug "Set tag # " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p)))
-					settag BE_SHORT(*Cptr(short ptr, curevent->extradata + p)), YES
-				case &H8 'set variable
-					p+=1
-					'debug "Set variable # " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) + " to " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p + 2)))
-					global(BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) = BE_SHORT(*Cptr(short ptr, curevent->extradata + p + 2))
-				case &H9 'variable ++
-					p+=1
-					'debug "Increment variable # " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) + " by " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p + 2)))
-					global(BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) += BE_SHORT(*Cptr(short ptr, curevent->extradata + p + 2))
-				case &HA 'variable --
-					p+=1
-					'debug "Decrement variable # " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) + " by " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p + 2)))
-					global(BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) -= BE_SHORT(*Cptr(short ptr, curevent->extradata + p + 2))
-				#ENDIF
-				case &H10 'if tag
-					p+=1
-					'debug "If Tag # " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p)))
-					'dumpdata(curevent)
-					if readbit (tag(), 0, BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) then
-						p += 2
-						goto sysex
-					end if
-				case &H11 'if variable
-					p+=1
-					'debug "If variable # " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) + " = " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p + 2)))
-					if global(BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) = BE_SHORT(*Cptr(short ptr, curevent->extradata + p + 2)) then
-						p += 4
-						goto sysex
-					end if
-				case &H12 'if variable >
-					p+=1
-					'debug "If variable # " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) + " > " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p + 2)))
-					if global(BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) > BE_SHORT(*Cptr(short ptr, curevent->extradata + p + 2)) then
-						p += 4
-						goto sysex
-					end if
-				case &H13 'if variable <
-					p+=1
-					'debug "If variable # " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) + " < " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p + 2)))
-					if global(BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) < BE_SHORT(*Cptr(short ptr, curevent->extradata + p + 2)) then
-						p += 4
-						goto sysex
-					end if
-				case &H20 'if !tag
-					p+=1
-					'debug "If Tag # " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p)))
-					if readbit (tag(), 0, BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) = 0 then
-						p += 2
-						goto sysex
-					end if
-				case &H21 'if !variable
-					p+=1
-					'debug "If variable # " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) + " = " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p + 2)))
-					if global(BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) <> BE_SHORT(*Cptr(short ptr, curevent->extradata + p + 2)) then
-						p += 4
-						goto sysex
-					end if
-				case &H22 'if !variable >
-					p+=1
-					'debug "If variable # " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) + " > " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p + 2)))
-					if global(BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) <= BE_SHORT(*Cptr(short ptr, curevent->extradata + p + 2)) then
-						p += 4
-						goto sysex
-					end if
-				case &H23 'if !variable <
-					p+=1
-					'debug "If variable # " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) + " < " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p + 2)))
-					if global(BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) >= BE_SHORT(*Cptr(short ptr, curevent->extradata + p + 2)) then
-						p += 4
-						goto sysex
-					end if
-				#ENDIF
 				case &H14 'sfx playing
 				  p += 1
 			    if sfxisplaying(BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) then

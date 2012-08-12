@@ -18,13 +18,6 @@
 #include "util.bi"
 
 
-#IFDEF IS_GAME
-#include once "gglobals.bi"
-#ELSE
-dim shared tag(2000) as integer
-dim shared global(1025) as integer
-#ENDIF
-
 '#IFNDEF USE_ALLEGRO
 #IFDEF __FB_WIN32__
 	#undef getcommandline
