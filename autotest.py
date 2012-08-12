@@ -12,8 +12,11 @@ import textwrap
 ########################################################################
 
 def handle_stderr(s, exitcode=None):
-    if s == 'Function "abort" not defined.\n':
-        # Ignore this puzzling error
+    if not all("Could not load shared library symbols" in line
+               or "solib-search-path" in line
+               or 'Function "abort" not defined.' in line
+               for line in s.strip().split()):
+        # Ignore these annoying warnings
         return
     if len(s):
         raise ExecError(exitcode, "subprocess.Popen().communicate() returned stderr:\n'%s'" % (s))
