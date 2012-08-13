@@ -3552,10 +3552,14 @@ IF getfixbit(fixDefaultMaxLevel) = 0 THEN
  gen(genMaxLevel) = 99
 END IF
 
-IF getfixbit(fixDefaultMaxTag) = 0 THEN
- upgrade_message "Set max tag to 999..."
- setfixbit(fixDefaultMaxTag, 1)
- gen(genMaxTag) = 999
+IF getfixbit(fixUNUSED23) = 1 THEN
+ 'James says: this bit was originally planned to initialise gen(192)
+ 'with the maximum tag number 999, but then it was decided that it would
+ 'be better to use a general bitset rather than storing the specific
+ 'number of allowed tags.
+ upgrade_message "Clear wasted fixbit 23"
+ setfixbit(fixUNUSED23, 0)
+ gen(192) = 0
 END IF
 
 IF getfixbit(fixOldElementalFailBit) = 0 THEN
@@ -4804,4 +4808,12 @@ FUNCTION atlevel_quadratic (byval lev as double, byval a0 as double, byval aMax 
   a = 1 - b
   DIM as DOUBLE x = lev / gen(genMaxLevel)
   RETURN (a * x^2 + b * x) * (aMax - a0) + a0 + .1
+END FUNCTION
+
+FUNCTION max_tag() as integer
+ IF readbit(gen(), genBits2, 16) THEN
+  return 16000
+ ELSE
+  RETURN 1000
+ END IF
 END FUNCTION

@@ -2968,7 +2968,7 @@ FUNCTION check_attack_chain(byref ch as AttackDataChain, byref bat as BattleStat
   CASE 0 '--no special conditions
    RETURN YES
   CASE 1 '--tag checks
-   IF ABS(ch.val1) <= gen(genMaxTag) AND ABS(ch.val2) <= gen(genMaxTag) THEN
+   IF ABS(ch.val1) <= max_tag() AND ABS(ch.val2) <= max_tag() THEN
     RETURN istag(ch.val1, YES) AND istag(ch.val2, YES)
    ELSE
     debug "chain: invalid tag check " & ch.val1 & " " & ch.val2

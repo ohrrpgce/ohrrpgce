@@ -810,8 +810,8 @@ SUB shop_stuff_edit (byval shop_id as integer, stufbuf() as integer, byref thing
  stuf.min(5) = -1
  stuf.max(5) = 99
  FOR i as integer = 6 TO 9
-  stuf.min(i) = -gen(genMaxTag)
-  stuf.max(i) = gen(genMaxTag)
+  stuf.min(i) = -max_tag()
+  stuf.max(i) = max_tag()
  NEXT i
  stuf.min(10) = -32767
  stuf.max(10) = 32767

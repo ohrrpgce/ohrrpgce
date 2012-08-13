@@ -1314,10 +1314,10 @@ max(9) = gen(genMaxWeaponPic)
 max(10) = 32767
 min(10) = -1
 max(11) = 2
-max(12) = gen(genMaxTag)
-max(13) = gen(genMaxTag)
-max(14) = gen(genMaxTag)
-max(15) = gen(genMaxTag)
+max(12) = max_tag()
+max(13) = max_tag()
+max(14) = max_tag()
+max(15) = max_tag()
 
 loaditemdata a(), csr
 generate_item_edit_menu menu(), a(), csr, pt, item(csr), info, eqst(), box_preview

@@ -137,7 +137,6 @@ CONST genHeroWeakHP = 188       '%HP for heroes to use Weak state
 CONST genEnemyWeakHP = 189      '%HP for enemies to use Desperation AI
 CONST genAutosortScheme = 190   'Method used to autosort inventory
 CONST genMaxLevel = 191         'Maximum level (not to be confused with changeable genLevelCap)
-CONST genMaxTag = 192           'index of the last tag (defaults to 999)
 '193 to 198 unused
 '199 to 359 used to be the scattertable for PW2, now zeroed out
 '360 to 499 unused
@@ -181,7 +180,7 @@ CONST fixItemElementals = 19     'Set equipment elemental resists from old weak/
 CONST fixNumElements = 20        'Set genNumElements to 16
 CONST fixRemoveDamageMP = 21     'Removed the obsolete Damage MP attack bit
 CONST fixDefaultMaxLevel = 22    'Set max level to 99 (not to be confused with level cap)
-CONST fixDefaultMaxTag = 23      'Set genMaxTag to 999
+CONST fixUNUSED23 = 23           'Don't use this bit for anything. It was wasted in a plan that changed
 
 CONST sizefixbits = 23 ' *** Update this when adding fix bits ***
 

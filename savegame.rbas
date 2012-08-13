@@ -412,9 +412,9 @@ END SUB
 SUB gamestate_tags_from_reload(byval node as Reload.NodePtr)
  DIM count as integer
  count = node."count"
- IF count > (gen(genMaxTag)+1) THEN
-  rsav_warn "too many saved tags " & (gen(genMaxTag)+1) & " < " & count
-  count = gen(genMaxTag)+1
+ IF count > (max_tag()+1) THEN
+  rsav_warn "too many saved tags " & (max_tag()+1) & " < " & count
+  count = max_tag()+1
  END IF
 
  DIM buf(count \ 16) as integer
@@ -884,7 +884,7 @@ SUB gamestate_tags_to_reload(byval parent as Reload.NodePtr)
  DIM node as NodePtr
  node = SetChildNode(parent, "tags")
  
- DIM count as integer = gen(genMaxTag)+1
+ DIM count as integer = max_tag()+1
  SetChildNode(node, "count", count)
  
  DIM buf(INT(count / 16)) as integer

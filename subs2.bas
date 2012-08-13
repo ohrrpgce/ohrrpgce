@@ -105,7 +105,7 @@ PRINT #fh, "define constant, begin"
 
 printstr "tag names", 0, pl * 8, 0: pl = pl + 1
 REDIM u(0) as string
-FOR i as integer = 2 TO gen(genMaxTag)
+FOR i as integer = 2 TO max_tag()
  writeconstant fh, i, load_tag_name(i), u(), "tag"
 NEXT i
 

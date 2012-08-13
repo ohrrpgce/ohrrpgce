@@ -690,18 +690,18 @@ END SUB
 
 'Either pass a tag number and specify YES/NO, or pass just a tag number; +ve/-ve indicates value
 SUB settag (byval tagnum as integer, byval value as integer = 4444)
- IF ABS(tagnum) <= gen(genMaxTag) THEN
+ IF ABS(tagnum) <= max_tag() THEN
   settag tag(), tagnum, value
  ELSE
-  settag onetime(), tagnum - (gen(genMaxTag)+1) * SGN(tagnum), value
+  settag onetime(), tagnum - (max_tag()+1) * SGN(tagnum), value
  END IF
 END SUB
 
 FUNCTION istag (byval num as integer, byval zero as integer=NO) as integer
- IF ABS(num) <= gen(genMaxTag) THEN
+ IF ABS(num) <= max_tag() THEN
   RETURN istag(tag(), num, zero)
  ELSE
-  RETURN istag(onetime(), num - (gen(genMaxTag)+1) * SGN(num), zero)
+  RETURN istag(onetime(), num - (max_tag()+1) * SGN(num), zero)
  END IF
 END FUNCTION
 
@@ -2411,7 +2411,7 @@ SUB tagdisplay
 DIM c as integer
 STATIC st as menustate
 st.size = 6
-st.last = gen(genMaxTag)
+st.last = max_tag()
 
 IF keyval(scCtrl) > 0 THEN
  IF keyval(scNumpadMinus) > 1 OR keyval(scMinus) > 1 THEN

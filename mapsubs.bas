@@ -2931,8 +2931,8 @@ SUB link_one_door(st as MapEditState, mapnum as integer, linknum as integer, lin
  ulim(0) = 99: llim(0) = -1
  ulim(1) = 99: llim(1) = 0
  ulim(2) = gen(genMaxMap): llim(2) = 0
- ulim(3) = gen(genMaxTag): llim(3) = -gen(genMaxTag)
- ulim(4) = gen(genMaxTag): llim(4) = -gen(genMaxTag)
+ ulim(3) = max_tag(): llim(3) = -max_tag()
+ ulim(4) = max_tag(): llim(4) = -max_tag()
 
  DIM menu(-1 TO 4) as string
  menu(-1) = "Go Back"

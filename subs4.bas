@@ -93,7 +93,7 @@ NEXT i
 min(9) = -1: max(9) = 255: offset(9) = 11 'battles
 min(10) = -2: max(10) = gen(genMaxRegularScript): offset(10) = 12 'use button
 min(11) = -2: max(11) = gen(genMaxRegularScript): offset(11) = 13 'menu button
-min(12) = -gen(genMaxTag): max(12) = gen(genMaxTag): offset(12) = 14 'tag
+min(12) = -max_tag(): max(12) = max_tag(): offset(12) = 14 'tag
 min(13) = gen(genMaxRegularScript) * -1: max(13) = gen(genMaxTextbox): offset(13) = 15'mount
 min(14) = gen(genMaxRegularScript) * -1: max(14) = gen(genMaxTextbox): offset(14) = 16'dismount
 min(15) = 0: max(15) = 99: offset(15) = 21'dismount
@@ -1540,7 +1540,7 @@ SUB generate_gen_menu(m() as string, longname as string, aboutline as string)
 END SUB
 
 SUB gendata ()
- CONST maxMenu = 14
+ CONST maxMenu = 15
  DIM m(maxMenu) as string
  DIM min(maxMenu) as integer
  DIM max(maxMenu) as integer
@@ -1576,6 +1576,8 @@ SUB gendata ()
  index(14) = genErrorLevel
  max(14) = 6
  min(14) = 2
+ max(15) = 16000
+ min(15) = 999
 
  DIM aboutline as string = load_aboutline()
  DIM longname as string = load_gamename()

@@ -503,8 +503,8 @@ FOR i as integer = 3 TO 4
 NEXT i
 llim(5) = 0
 ulim(5) = 32767
-llim(6) = -gen(genMaxTag)
-ulim(6) = gen(genMaxTag)
+llim(6) = -max_tag()
+ulim(6) = max_tag()
 DIM ta_temp as integer
 DIM pt as integer = 0
 DIM ptr2 as integer = 0
