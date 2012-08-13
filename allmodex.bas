@@ -61,6 +61,8 @@ declare sub update_inputtext ()
 declare sub record_input_tick ()
 declare sub replay_input_tick ()
 
+declare function hexptr(p as any ptr) as string
+
 'global
 dim vpages() as Frame ptr
 dim vpagesp as Frame ptr ptr  'points to vpages(0) for debugging: fbc outputs typeless debugging symbol
@@ -5056,16 +5058,20 @@ sub frame_unload(byval p as frame ptr ptr)
 	*p = 0
 end sub
 
+function hexptr(p as any ptr) as string
+	return hex(cast(unsigned integer, p))
+end function
+
 function frame_describe(byval p as frame ptr) as string
 	if p = 0 then return "'(null)'"
 	dim temp as string
 	if p->sprset then
-		temp = "spriteset:<" & p->sprset->numframes & " frames: 0x" & hex(p->sprset->frames) _
-		       & "," & p->sprset->numanimations & " animations: 0x" & hex(p->sprset->animations) & ">"
+		temp = "spriteset:<" & p->sprset->numframes & " frames: 0x" & hexptr(p->sprset->frames) _
+		       & "," & p->sprset->numanimations & " animations: 0x" & hexptr(p->sprset->animations) & ">"
 	end if
-	return "'(0x" & hex(p) & ") " & p->arraylen & "x" & p->w & "x" & p->h & " img=0x" & hex(p->image) _
-	       & " msk=0x" & hex(p->mask) & " pitch=" & p->pitch & " cached=" & p->cached & " aelem=" _
-	       & p->arrayelem & " view=" & p->isview & " base=0x" & hex(p->base) & " refc=" & p->refcount & "' " _
+	return "'(0x" & hexptr(p) & ") " & p->arraylen & "x" & p->w & "x" & p->h & " img=0x" & hexptr(p->image) _
+	       & " msk=0x" & hexptr(p->mask) & " pitch=" & p->pitch & " cached=" & p->cached & " aelem=" _
+	       & p->arrayelem & " view=" & p->isview & " base=0x" & hexptr(p->base) & " refc=" & p->refcount & "' " _
 	       & temp
 end function
 

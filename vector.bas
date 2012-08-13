@@ -56,7 +56,7 @@ FUNCTION integer_str CDECL (byval this as integer ptr) as string
 END FUNCTION
 
 FUNCTION ptr_str CDECL (byval this as any ptr ptr) as string
-  RETURN "0x" + HEX(*this)
+  RETURN "0x" + HEX(cast(unsigned integer, *this))
 END FUNCTION
 
 FUNCTION double_str CDECL (byval this as double ptr) as string
