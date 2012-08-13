@@ -275,6 +275,9 @@
 		<a href="#about-checknpcwall">check NPC wall (who, direction)</a><br>
 		
 	
+		<a href="#about-checkonetime">check onetime (onetime)</a><br>
+		
+	
 		<a href="#about-checkparentage">check parentage (handle, parent handle)</a><br>
 		
 	
@@ -1818,6 +1821,9 @@
 		
 	
 		<a href="#about-setnpcusable">set NPC usable (who, value)</a><br>
+		
+	
+		<a href="#about-setonetime">set onetime (onetime,value)</a><br>
 		
 	
 		<a href="#about-setonkeypressscript">set on keypress script (id)</a><br>
@@ -8975,6 +8981,22 @@ write pass block(15,3,pass)
 			
 			
 		</tt></p>
+		<a name="about-setonetime"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set onetime (onetime,value)</font></b><br>
+			Sets the value of an NPC onetime use number. NPC onetime use behave like tags but are stored separately. The available constants are: <a href="#about-booleanconstants" class="ref">off</a>, <a href="#about-booleanconstants" class="ref">on</a>, <a href="#about-booleanconstants" class="ref">true</a>, or <a href="#about-booleanconstants" class="ref">false</a>.<br>
+			
+			
+		</tt></p>
+		<a name="about-checkonetime"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">check onetime (onetime)</font></b><br>
+			A function that checks the value of an NPC onetime numer, and returns <a href="#about-booleanconstants" class="ref">true</a> if the one-time npc has already been used, and <a href="#about-booleanconstants" class="ref">false</a> if the onetime npc has not yet been used. It can be used in <a href="#about-if" class="ref">if</a> and <a href="#about-while" class="ref">while</a> statements. NPC onetime numbers are similar to tags, but stored separately.<br>
+			
+			
+		</tt></p>
 
 		<hr>
 	
@@ -11039,7 +11061,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 760 commands in this file, of which 56 are only references to other commands.</p>
+	<p>Stats: There are 762 commands in this file, of which 56 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

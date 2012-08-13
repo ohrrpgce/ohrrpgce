@@ -548,6 +548,8 @@ define function, begin
 537,getherohandy,2,0,0           #Read hero hand position for battle weapons (who, frame)
 538,getdefaultherohandx,2,0,0    #Read default hero hand position for battle weapons (who, frame)
 539,getdefaultherohandy,2,0,0    #Read default hero hand position for battle weapons (who, frame)
+540,checkonetime,1,0             #returns the value of a onetime npc tag
+541,setonetime,2,0,0             #set onetime npc tag(#,true/false)
 end
 
 #--------------------------------------------------------------------------

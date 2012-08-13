@@ -3016,6 +3016,13 @@ SELECT CASE as CONST id
     scriptret = GetHeroHandPos(hero(retvals(0))-1, retvals(1), YES)
    END IF
   END IF
+ CASE 540'--check onetime
+  scriptret = ABS(istag(onetime(), retvals(0), 0))
+ CASE 541'--set onetime
+  IF retvals(0) >= 0 THEN
+   settag onetime(), retvals(0), retvals(1)
+   tag_updates
+  END IF
 
 'old scriptnpc
 

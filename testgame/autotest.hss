@@ -881,6 +881,7 @@ script, npc tests, begin
   npc movement tests(1)
   npc movement tests(NPC reference(1))
   npc id tests(NPC reference(1))
+  npc onetime tests
 end
 
 script, npc movement tests, n, begin
@@ -921,6 +922,40 @@ script, npc id tests, n, begin
   change npc id(n, 2), w(4)
   assert(get npc id(n) == 2)
   change npc id(n, 1), w
+end
+
+script, npc onetime tests, begin
+  $0="npc onetime tests"
+  variable(hx, hy, n)
+  # Moving the hero in this script is a little silly,
+  # but ensures that the onetime NPCs are on-screen
+  # ...which they probably would have been anyway
+  hx := hero x(me)
+  hy := hero y(me)
+  walk hero to y(me, 12)
+  wait for hero(me), w
+  walk hero to x(me, 4)
+  wait for hero(me), w
+  
+  assert(check onetime(3) == false)
+  assert(check onetime(4) == false)
+  use npc(3), w
+  assert(check onetime(3) == true)
+  assert(check onetime(4) == false)
+  use npc(4), w
+  assert(check onetime(3) == true)
+  assert(check onetime(4) == true)
+  w
+  n := npc reference(4)
+  assert(n == false)
+  set onetime(4, false), w
+  n := npc reference(4)
+  assert(n <> false)
+  
+  walk hero to x(me, hx)
+  wait for hero(me), w
+  walk hero to y(me, hy)
+  wait for hero(me), w
 end
 
 ########################################################################
