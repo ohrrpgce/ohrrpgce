@@ -881,7 +881,7 @@ script, npc tests, begin
   npc movement tests(1)
   npc movement tests(NPC reference(1))
   npc id tests(NPC reference(1))
-  npc onetime tests
+  npc tag and onetime tests
 end
 
 script, npc movement tests, n, begin
@@ -924,7 +924,7 @@ script, npc id tests, n, begin
   change npc id(n, 1), w
 end
 
-script, npc onetime tests, begin
+script, npc tag and onetime tests, begin
   $0="npc onetime tests"
   variable(hx, hy, n)
   # Moving the hero in this script is a little silly,
@@ -951,6 +951,16 @@ script, npc onetime tests, begin
   set onetime(4, false), w
   n := npc reference(4)
   assert(n <> false)
+  
+  assert(check tag(10000) == false)
+  w
+  n := npc reference(5)
+  assert(n <> false)
+  set tag(10000, true)
+  w
+  n := npc reference(5)
+  assert(n == false)
+  assert(check tag(10000) == true)
   
   walk hero to x(me, hx)
   wait for hero(me), w
