@@ -53,7 +53,9 @@ END FUNCTION
 
 'allowspecial indicates whether to allow picking 'special' tags: those automatically
 'set, eg. based on inventory conditions
-FUNCTION tag_grabber (byref n as integer, byval min as integer=-999, byval max as integer=999, byval allowspecial as integer=YES) as integer
+FUNCTION tag_grabber (byref n as integer, byval min as integer=-99999, byval max as integer=99999, byval allowspecial as integer=YES) as integer
+ min = large(min, -gen(genMaxTag))
+ max = small(max, gen(genMaxTag))
  IF intgrabber(n, min, max) THEN RETURN YES
  IF enter_or_space() THEN
   DIM browse_tag as integer
@@ -157,9 +159,9 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
     save_tag_name thisname, state.pt + 1
     menu[state.pt].text = "Tag " & state.pt + 1 & ":" & thisname
     IF state.pt + 1 = gen(genMaxTagName) + 1 THEN
-     IF gen(genMaxTagName) < 999 THEN
+     IF gen(genMaxTagName) < gen(genMaxTag) THEN
       gen(genMaxTagName) += 1
-	  v_resize menu, gen(genMaxTagName) + 1
+      v_resize menu, gen(genMaxTagName) + 1
       menu[gen(genMaxTagName)].text = "Tag " & gen(genMaxTagName) + 1 & ":"
       state.last += 1
      END IF
@@ -291,7 +293,7 @@ FUNCTION cond_grabber (cond as Condition, byval default as integer = NO, byval a
   IF .type = compNone THEN
    'No need to check for entered_operator: the type would have changed
    .tag = 0
-   IF intgrabber(.tag, -999, 999) THEN
+   IF intgrabber(.tag, -gen(genMaxTag), gen(genMaxTag)) THEN
     .type = compTag
    END IF
   ELSEIF .type = compTag THEN
@@ -299,7 +301,7 @@ FUNCTION cond_grabber (cond as Condition, byval default as integer = NO, byval a
    IF INSTR(intxt, "!") THEN
     .tag = -.tag
    ELSE
-    intgrabber(.tag, -999, 999)
+    intgrabber(.tag, -gen(genMaxTag), gen(genMaxTag))
    END IF
   ELSE  'Globals
    'editstate is just a state id, defining the way the condition is edited and displayed
@@ -1059,8 +1061,8 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
  unpc(6) = gen(genMaxItem) + 1
  unpc(7) = 7
  unpc(8) = 2
- unpc(9) = 999
- unpc(10) = 999
+ unpc(9) = gen(genMaxTag)
+ unpc(10) = gen(genMaxTag)
  unpc(11) = 1
  unpc(12) = gen(genMaxRegularScript)'max scripts
  unpc(13) = 32767
@@ -1072,8 +1074,8 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
   lnpc(i) = 0
  NEXT i
  lnpc(1) = -1
- lnpc(9) = -999
- lnpc(10) = -999
+ lnpc(9) = -gen(genMaxTag)
+ lnpc(10) = -gen(genMaxTag)
  lnpc(13) = -32767
  lnpc(15) = -1
  lnpc(16) = -1
@@ -1233,11 +1235,11 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
     CASE 8
      caption = safe_caption(usetype(), npcdata.activation, "usetype")
     CASE 9
-	 caption = tag_condition_caption(npcdata.tag1, "", "Always")
+     caption = tag_condition_caption(npcdata.tag1, "", "Always")
     CASE 10
-	 caption = tag_condition_caption(npcdata.tag2, "", "Always")
+     caption = tag_condition_caption(npcdata.tag2, "", "Always")
     CASE 11
-     IF npcdata.usetag THEN caption = " Only Once (tag " & (1000 + npcdata.usetag) & ")" ELSE caption = " Repeatedly"
+     IF npcdata.usetag THEN caption = " Only Once (onetime " & (npcdata.usetag) & ")" ELSE caption = " Repeatedly"
     CASE 12 'script
      caption = scrname
     CASE 13 'script arg
@@ -3253,12 +3255,12 @@ SUB update_attack_editor_for_chain (byval mode as integer, byref caption1 as str
    menutype2 = 18'skipper
   CASE 1 '--tagcheck
    caption1 = "  if Tag:"
-   max1 = 1000
-   min1 = -1000
+   max1 = gen(genMaxTag)
+   min1 = -gen(genMaxTag)
    menutype1 = 2
    caption2 = "  and Tag:"
-   max2 = 1000
-   min2 = -1000
+   max2 = gen(genMaxTag)
+   min2 = -gen(genMaxTag)
    menutype2 = 2
   CASE 2 TO 5
    caption1 = "  if attacker"

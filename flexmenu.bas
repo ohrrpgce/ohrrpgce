@@ -379,8 +379,8 @@ FOR i = 0 TO UBOUND(statnames)
 NEXT
 
 CONST AtkLimTag = 23
-max(AtkLimTag) = 1000
-min(AtkLimTag) = -1000
+max(AtkLimTag) = gen(genMaxTag)
+min(AtkLimTag) = -gen(genMaxTag)
 
 CONST AtkLimTagIf = 24
 max(AtkLimTagIf) = 4
@@ -392,8 +392,8 @@ addcaption caption(), capindex, "On Miss"  '3
 addcaption caption(), capindex, "On Kill"  '4
 
 CONST AtkLimTagAnd = 25
-max(AtkLimTag) = 1000
-min(AtkLimTag) = -1000
+max(AtkLimTag) = gen(genMaxTag)
+min(AtkLimTag) = -gen(genMaxTag)
 
 CONST AtkLimItem = 26
 max(AtkLimItem) = gen(genMaxItem) + 1
@@ -1411,9 +1411,9 @@ SELECT CASE menutype(nowindex)
  CASE 7, 9 TO 11 'offset integers
   changed = zintgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)) - 1, maxtable(menulimits(nowindex)) - 1)
  CASE 2' tag condition
-  changed = tag_grabber(datablock(menuoff(nowindex)), -999, 999, YES)
+  changed = tag_grabber(datablock(menuoff(nowindex)), -gen(genMaxTag), gen(genMaxTag), YES)
  CASE 21' set tag (non-special)
-  changed = tag_grabber(datablock(menuoff(nowindex)), -999, 999, NO)
+  changed = tag_grabber(datablock(menuoff(nowindex)), -gen(genMaxTag), gen(genMaxTag), NO)
  CASE 3' string
   s = readbinstring$(datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)))
   IF strgrabber(s, maxtable(menulimits(nowindex))) THEN changed = 1

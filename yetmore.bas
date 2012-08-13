@@ -920,11 +920,11 @@ SELECT CASE as CONST id
   scriptret = ABS(istag(retvals(0), 0))
  CASE 13'--set tag
   IF retvals(0) > 1 THEN
-   IF retvals(0) <= 999 THEN
+   IF retvals(0) <= gen(genMaxTag) THEN
     settag tag(), retvals(0), retvals(1)
    ELSE
     debug "Setting onetime tags with the settag command is deprecated"
-    settag onetime(), retvals(0) - 1000, retvals(1)
+    settag onetime(), retvals(0) - (gen(genMaxTag)+1), retvals(1)
    END IF
    tag_updates
   END IF

@@ -12,7 +12,7 @@
 
 TYPE FnScriptVisitor as function (byref trig as integer, description as string, caption as string) as integer
 
-DECLARE FUNCTION tag_grabber (byref n as integer, byval min as integer=-999, byval max as integer=999, byval allowspecial as integer=YES) as integer
+DECLARE FUNCTION tag_grabber (byref n as integer, byval min as integer=-99999, byval max as integer=99999, byval allowspecial as integer=YES) as integer
 DECLARE FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, byval allowspecial as integer=YES) as integer
 DECLARE FUNCTION tag_toggle_caption(byval n as integer, prefix as string="Toggle tag", byval allowspecial as integer=NO) as string
 DECLARE FUNCTION tag_set_caption(byval n as integer, prefix as string="Set Tag", byval allowspecial as integer=NO) as string
