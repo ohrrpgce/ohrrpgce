@@ -4812,8 +4812,8 @@ END FUNCTION
 
 FUNCTION max_tag() as integer
  IF readbit(gen(), genBits2, 16) THEN
-  return 16000
+  return 15999
  ELSE
-  RETURN 1000
+  RETURN 999
  END IF
 END FUNCTION
