@@ -18,8 +18,8 @@ DECLARE FUNCTION findhero (byval who as integer, byval first as integer, byval l
 DECLARE SUB hero_swap_menu (byval iAll as integer)
 DECLARE SUB settag OVERLOAD (byval tagnum as integer, byval value as integer = 4444)
 DECLARE SUB settag OVERLOAD (tagbits() as integer, byval tagnum as integer, byval value as integer = 4444)
-DECLARE FUNCTION istag OVERLOAD (byval num as integer, byval zero as integer) as integer
-DECLARE FUNCTION istag OVERLOAD (tagbits() as integer, byval num as integer, byval zero as integer) as integer
+DECLARE FUNCTION istag OVERLOAD (byval num as integer, byval zero as integer=NO) as integer
+DECLARE FUNCTION istag OVERLOAD (tagbits() as integer, byval num as integer, byval zero as integer=NO) as integer
 DECLARE SUB loaddoor (byval map as integer)
 DECLARE SUB minimap (byval x as integer, byval y as integer)
 DECLARE FUNCTION teleporttool () as integer

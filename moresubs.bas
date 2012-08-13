@@ -697,7 +697,7 @@ SUB settag (byval tagnum as integer, byval value as integer = 4444)
  END IF
 END SUB
 
-FUNCTION istag (byval num as integer, byval zero as integer) as integer
+FUNCTION istag (byval num as integer, byval zero as integer=NO) as integer
  IF ABS(num) <= 999 THEN
   RETURN istag(tag(), num, zero)
  ELSE
@@ -716,7 +716,7 @@ SUB settag (tagbits() as integer, byval tagnum as integer, byval value as intege
  END IF
 END SUB
 
-FUNCTION istag (tagbits() as integer, byval num as integer, byval zero as integer) as integer
+FUNCTION istag (tagbits() as integer, byval num as integer, byval zero as integer=NO) as integer
  IF num = 0 THEN RETURN zero 'why go through all that just to return defaults?
  IF num = 1 THEN RETURN 0
  IF num = -1 THEN RETURN -1
