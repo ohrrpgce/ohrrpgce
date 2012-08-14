@@ -1310,17 +1310,26 @@ END FUNCTION
 
 SUB onetimetog(byref tagnum as integer)
  IF tagnum > 0 THEN
-  setbit gen(), genOneTimeNPCBits, tagnum - 1, 0
   tagnum = 0
   EXIT SUB
  END IF
- DIM i as integer = 0
- DO
-  gen(genOneTimeNPC) = loopvar(gen(genOneTimeNPC), 0, 999, 1)
-  i = i + 1: IF i > 1000 THEN EXIT SUB 'Revisit this later
- LOOP UNTIL readbit(gen(), genOneTimeNPCBits, gen(genOneTimeNPC)) = 0
- tagnum = gen(genOneTimeNPC) + 1
- setbit gen(), genOneTimeNPCBits, gen(genOneTimeNPC), 1
+ DIM onetimeusage(64) as integer
+ 'FIXME: this only checks NPC definitions that have already been written
+ '  to disk, so it would not notice onetime tags that have been edited
+ '  before this one in your current session of the NPC definition editor.
+ '  this is only a problem when available onetime tags have just run out
+ check_used_onetime_npcs onetimeusage()
+ DIM i as integer = gen(genOneTimeNPC) + 1
+ DO WHILE readbit(onetimeusage(), 0, i)
+  i += 1
+  IF i > 1000 THEN i = 0
+  IF i = gen(genOneTimeNPC) THEN
+   visible_debug "All onetime usage numbers have been used up!"
+   tagnum = 0
+  END IF
+ LOOP
+ tagnum = i
+ gen(genOneTimeNPC) = i
 END SUB
 
 FUNCTION pal16browse (byval curpal as integer, byval picset as integer, byval picnum as integer) as integer
@@ -4157,9 +4166,9 @@ SUB check_used_onetime_npcs(bits() as integer)
   FOR i as integer = 0 TO UBOUND(npcdata)
    WITH npcdata(i)
     IF .usetag > 0 THEN
-     debug "Map " & m & " NPC " & i & " uses onetime " & .usetag
+     'debug "Map " & m & " NPC " & i & " uses onetime " & .usetag
      IF readbit(bits(), 0, .usetag) THEN
-      debug "WARNING: NPC onetime number " & .usetag & " is used more than once. This should not be possible!"
+      'Don't show a warning for duplicate onetime tags because it happens all the time with map copying
      END IF
      setbit bits(), 0, .usetag, YES
     END IF

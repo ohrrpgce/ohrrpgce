@@ -209,24 +209,6 @@ SUB map_picker ()
  DIM state as MenuState
  DIM temppt as integer
  
- debug "Verifying npc onetime usage"
- DIM onetimeusage(64) as integer
- check_used_onetime_npcs onetimeusage()
- DIM bitc as integer
- DIM bitg as integer
- DIM check_count as integer = 0
- DIM gencache_count as integer = 0
- FOR i as integer = 0 TO 1000
-  bitc = readbit(onetimeusage(), 0, i)
-  bitg = readbit(gen(), genOneTimeNPCBits, i-1)
-  IF bitc THEN check_count += 1
-  IF bitg THEN gencache_count += 1
-  IF bitc <> bitg THEN
-   debug "WARNING: onetime bit " & i & " mismatch. check=" & bitc & " gencache=" & bitg
-  END IF
- NEXT i
- debug "check has " & check_count & " bits, gencache has " & gencache_count & " bits"
- 
  make_map_picker_menu topmenu(), state
 
  setkeys
