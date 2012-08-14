@@ -92,4 +92,6 @@ DECLARE SUB dolumpfiles (filetolump as string)
 DECLARE SUB move_unwriteable_rpg (filetolump as string)
 DECLARE SUB save_current_game()
 
+DECLARE SUB check_used_onetime_npcs(bits() as integer)
+
 #endif

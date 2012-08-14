@@ -4145,3 +4145,25 @@ SUB move_unwriteable_rpg (filetolump as string)
  waitforanykey
  filetolump = newfile
 END SUB
+
+SUB check_used_onetime_npcs(bits() as integer)
+ 'Search through all the NPC definitions and figure out which NPC onetime
+ ' bits have been used. The result is a bitset array with 0 bits for unused
+ ' onetimes and 1 bits for used onetimes.
+ flusharray bits()
+ REDIM npcdata(0) as NPCType
+ FOR m as integer = 0 TO gen(genMaxMap)
+  LoadNPCD maplumpname(m, "n"), npcdata()
+  FOR i as integer = 0 TO UBOUND(npcdata)
+   WITH npcdata(i)
+    IF .usetag > 0 THEN
+     debug "Map " & m & " NPC " & i & " uses onetime " & .usetag
+     IF readbit(bits(), 0, .usetag) THEN
+      debug "WARNING: NPC onetime number " & .usetag & " is used more than once. This should not be possible!"
+     END IF
+     setbit bits(), 0, .usetag, YES
+    END IF
+   END WITH
+  NEXT i
+ NEXT m
+END SUB

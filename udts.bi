@@ -285,7 +285,7 @@ TYPE NPCType
   activation as integer  '+8
   tag1 as integer        '+9   appear only if
   tag2 as integer        '+10  appear only if 2
-  usetag as integer      '+11
+  usetag as integer      '+11  onetime use bit or 0 for none
   script as integer      '+12
   scriptarg as integer   '+13
   vehicle as integer     '+14
