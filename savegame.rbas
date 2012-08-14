@@ -429,9 +429,9 @@ END SUB
 SUB gamestate_onetime_from_reload(byval node as Reload.NodePtr)
  DIM count as integer
  count = node."count"
- IF count > 1032 THEN
-  rsav_warn "too many saved onetime tags 1032 < " & count
-  count = 1032
+ IF count > max_onetime THEN
+  rsav_warn "too many saved onetime tags " & count & " > " & max_onetime
+  count = max_onetime + 1
  END IF
 
  DIM buf(count \ 16) as integer
@@ -901,7 +901,7 @@ SUB gamestate_onetime_to_reload(byval parent as Reload.NodePtr)
  DIM node as NodePtr
  node = SetChildNode(parent, "onetime")
  
- DIM count as integer = 1032
+ DIM count as integer = max_onetime + 1
  SetChildNode(node, "count", count)
  
  DIM buf(INT(count / 16)) as integer
@@ -1380,7 +1380,7 @@ FOR i = 0 TO 999
  setbit tag(), 0, i, readbit(tagtemp(), 0, i)
 NEXT i
 FOR i = 0 TO 1031
- 'copy over the onetime bits
+ 'copy over the onetime bits (only to 1031 because that max was hardcoded in the old format)
  setbit onetime(), 0, i, readbit(tagtemp(), 0, i + 1000)
 NEXT i
 show_load_index z, "heroes"

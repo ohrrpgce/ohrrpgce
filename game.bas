@@ -123,8 +123,8 @@ DIM SHARED scriptout as string
 DIM gam as GameState
 DIM txt as TextBoxState
 REDIM gen(360) as integer
-REDIM tag(1000) as integer
-REDIM onetime(64) as integer
+REDIM tag(1000) as integer '16000 bitsets
+REDIM onetime(1000) as integer '16000 bitsets
 
 REDIM herotags(59) as HeroTagsCache
 REDIM itemtags(maxMaxItems) as ItemTagsCache

@@ -1313,7 +1313,7 @@ SUB onetimetog(byref tagnum as integer)
   tagnum = 0
   EXIT SUB
  END IF
- DIM onetimeusage(64) as integer
+ DIM onetimeusage(1000) as integer
  'FIXME: this only checks NPC definitions that have already been written
  '  to disk, so it would not notice onetime tags that have been edited
  '  before this one in your current session of the NPC definition editor.
@@ -1322,7 +1322,7 @@ SUB onetimetog(byref tagnum as integer)
  DIM i as integer = gen(genOneTimeNPC) + 1
  DO WHILE readbit(onetimeusage(), 0, i)
   i += 1
-  IF i > 1000 THEN i = 0
+  IF i > max_onetime THEN i = 1
   IF i = gen(genOneTimeNPC) THEN
    visible_debug "All onetime usage numbers have been used up!"
    tagnum = 0
@@ -4165,7 +4165,9 @@ SUB check_used_onetime_npcs(bits() as integer)
   LoadNPCD maplumpname(m, "n"), npcdata()
   FOR i as integer = 0 TO UBOUND(npcdata)
    WITH npcdata(i)
-    IF .usetag > 0 THEN
+    IF .usetag > max_onetime THEN
+     debug "WARNING: out-of-range onetime tag " & .usetag & " for NPC " & i & " on map " & m
+    ELSEIF .usetag > 0 THEN
      'debug "Map " & m & " NPC " & i & " uses onetime " & .usetag
      IF readbit(bits(), 0, .usetag) THEN
       'Don't show a warning for duplicate onetime tags because it happens all the time with map copying

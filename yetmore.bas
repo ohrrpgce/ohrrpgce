@@ -3019,7 +3019,7 @@ SELECT CASE as CONST id
  CASE 540'--check onetime
   scriptret = ABS(istag(onetime(), retvals(0), 0))
  CASE 541'--set onetime
-  IF retvals(0) >= 0 THEN
+  IF retvals(0) >= 1 THEN
    settag onetime(), retvals(0), retvals(1)
    tag_updates
   END IF
