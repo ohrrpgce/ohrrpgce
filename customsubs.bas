@@ -2363,12 +2363,17 @@ FUNCTION scriptbrowse_string (byref trigger as integer, byval triggertype as int
  state.top = large(0, small(state.pt - 10, scriptmax - 21))
  DIM id as integer = scriptids(state.pt)
  DIM iddisplay as integer = 0
+ DIM jumpto as string = ""
  setkeys YES
  DO
   setwait 55
   setkeys YES
   IF keyval(scESC) > 1 THEN
-   RETURN tempstr
+   IF LEN(jumpto) > 0 THEN
+    jumpto = ""
+   ELSE
+    RETURN tempstr
+   END IF
   END IF
   IF keyval(scF1) > 1 THEN show_help "scriptbrowse"
   IF enter_or_space() THEN EXIT DO
@@ -2378,6 +2383,7 @@ FUNCTION scriptbrowse_string (byref trigger as integer, byval triggertype as int
     FOR i = 0 TO numberedlast
      IF id = scriptids(i) THEN state.pt = i
     NEXT
+    jumpto = ""
    END IF
   END IF
   IF usemenu(state) THEN
@@ -2387,18 +2393,26 @@ FUNCTION scriptbrowse_string (byref trigger as integer, byval triggertype as int
     id = 0
     iddisplay = 0
    END IF
+   jumpto = ""
   END IF
-  DIM intext as string = LEFT(getinputtext, 1)
+  DIM intext as string = LEFT(getinputtext(), 1)
+  IF keyval(scBackspace) > 1 THEN
+   jumpto = LEFT(jumpto, LEN(jumpto) - 1)
+  END IF
   IF LEN(intext) > 0 THEN
-   DIM as integer j = state.pt + 1
+   jumpto &= intext
+   DIM as integer j = state.pt
    FOR ctr as integer = numberedlast + 1 TO scriptmax
     IF j > scriptmax THEN j = numberedlast + 1
-    IF LCASE(LEFT(scriptnames(j), 1)) = intext THEN
+    IF LCASE(LEFT(scriptnames(j), LEN(jumpto))) = jumpto THEN
      state.pt = j
      EXIT FOR
     END IF
     j += 1
    NEXT
+   'Calling usemenu again updates MenuState.top without triggering the
+   'jumpto="" that is required with the normal usemenu
+   usemenu(state)
   END IF
 
   clearpage dpage
@@ -2409,6 +2423,9 @@ FUNCTION scriptbrowse_string (byref trigger as integer, byval triggertype as int
   IF iddisplay THEN
    textcolor uilook(uiMenuItem), uilook(uiHighlight)
    printstr STR(id), 8, 190, dpage
+  ELSEIF jumpto <> "" THEN
+   textcolor uilook(uiMenuItem), uilook(uiHighlight)
+   printstr jumpto, 8, 190, dpage
   END IF
 
   SWAP dpage, vpage

@@ -17,6 +17,8 @@ WHAT IS NEW?
       interrupt it by pressing any key. [Ralph]
     * New commands "set onetime" and "check onetime" that work similarly
       to "set tag" and "check tag" [James]
+    * When browsing plotscripts in custom, you can jump to scripts by
+      typing more than just the first letter of the scripts name [James]
 
   * Stuff Only Developers Will Notice
 
