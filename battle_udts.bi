@@ -7,154 +7,154 @@
 UNION BattleStatsSingle
   'See also HeroStatsSingle '-- the two of these can probably be unified eventually
   TYPE
-    hp AS INTEGER   '0
-    mp AS INTEGER   '1
-    str AS INTEGER  '2
-    acc AS INTEGER  '3
-    def AS INTEGER  '4
-    dog AS INTEGER  '5
-    mag AS INTEGER  '6
-    wil AS INTEGER  '7
-    spd AS INTEGER  '8
-    ctr AS INTEGER  '9
-    foc AS INTEGER  '10
-    hits AS INTEGER '11
-    poison AS INTEGER
-    regen AS INTEGER
-    stun AS INTEGER
-    mute AS INTEGER
+    hp as integer   '0
+    mp as integer   '1
+    str as integer  '2
+    acc as integer  '3
+    def as integer  '4
+    dog as integer  '5
+    mag as integer  '6
+    wil as integer  '7
+    spd as integer  '8
+    ctr as integer  '9
+    foc as integer  '10
+    hits as integer '11
+    poison as integer
+    regen as integer
+    stun as integer
+    mute as integer
   END TYPE
-  sta(15) AS INTEGER
+  sta(15) as integer
 End UNION
 
 TYPE BattleStats
-  cur AS BattleStatsSingle
-  max AS BattleStatsSingle
+  cur as BattleStatsSingle
+  max as BattleStatsSingle
 END TYPE
 
 TYPE BattleHeroMenu
-  menu AS INTEGER 'Same as bmenu(hero,slot)
-  caption AS STRING
-  atk AS INTEGER 'Attack ID (or -1 for none)
-  spell_list AS INTEGER ' index of spell list (or -10 for items or -1 for none)
+  menu as integer 'Same as bmenu(hero,slot)
+  caption as string
+  atk as integer 'Attack ID (or -1 for none)
+  spell_list as integer ' index of spell list (or -10 for items or -1 for none)
 END TYPE
 
 TYPE HarmText 'FIXME: when battle display is converted to slices, this can go away entirely
- text AS STRING
- col AS INTEGER
- pos AS XYPair
- ticks AS INTEGER
+ text as string
+ col as integer
+ pos as XYPair
+ ticks as integer
 END TYPE
 
 TYPE BattleSprite
-  name AS STRING
-  basex AS INTEGER
-  basey AS INTEGER
-  x AS INTEGER
-  y AS INTEGER
-  z AS INTEGER
-  w AS INTEGER
-  h AS INTEGER
-  d AS INTEGER
-  xmov AS INTEGER
-  ymov AS INTEGER
-  zmov AS INTEGER
-  xspeed AS INTEGER
-  yspeed AS INTEGER
-  zspeed AS INTEGER
-  vis AS INTEGER
+  name as string
+  basex as integer
+  basey as integer
+  x as integer
+  y as integer
+  z as integer
+  w as integer
+  h as integer
+  d as integer
+  xmov as integer
+  ymov as integer
+  zmov as integer
+  xspeed as integer
+  yspeed as integer
+  zspeed as integer
+  vis as integer
   '--stats
-  stat AS BattleStats
-  elementaldmg(maxElements - 1) AS SINGLE
+  stat as BattleStats
+  elementaldmg(maxElements - 1) as SINGLE
   '--level-mp
-  consume_lmp AS INTEGER '0 for no LMP consumption, >= 1 to indicate which level of MP should be deducted
+  consume_lmp as integer '0 for no LMP consumption, >= 1 to indicate which level of MP should be deducted
                          'FIXME: consume_lmp would probably be better as a member of the AttackState or AttackQueue later on.
   '--item consumption
-  consume_item AS INTEGER ' -1 means no item consumed, >=0 indicates which inventory slot will be used (NOT item ID)
+  consume_item as integer ' -1 means no item consumed, >=0 indicates which inventory slot will be used (NOT item ID)
                          'FIXME: consume_item would probably be better as a member of the AttackState or AttackQueue later on.
   '--misc
-  dissolve AS INTEGER
-  flee AS INTEGER ' used to indicate when a sprite animates running away (not to be confused with BattleState.flee)
-  attack_succeeded AS INTEGER
+  dissolve as integer
+  flee as integer ' used to indicate when a sprite animates running away (not to be confused with BattleState.flee)
+  attack_succeeded as integer
   sprites as Frame ptr 'the graphic set
-  sprite_num AS INTEGER 'how many frames
-  frame AS INTEGER 'the current frame
-  walk AS INTEGER 'used by heroes when animating walking
-  anim_pattern AS INTEGER 'used by attack sprites
-  anim_index AS INTEGER 'used by attack sprites
+  sprite_num as integer 'how many frames
+  frame as integer 'the current frame
+  walk as integer 'used by heroes when animating walking
+  anim_pattern as integer 'used by attack sprites
+  anim_index as integer 'used by attack sprites
   pal as palette16 ptr 'yeah
-  deathtype AS INTEGER 'for enemies (0 = default, otherwise is type + 1)
-  deathtime AS INTEGER '0 = default, otherwise is time + 1
-  death_sfx AS INTEGER '0 = default, -1 = none, >0 = sfx ID + 1
-  revengeharm AS INTEGER 'The last damage dealt TO this hero or enemy
-  thankvengecure AS INTEGER 'The cure damage undealt TO this hero or enemy (as a positive number!)
-  repeatharm AS INTEGER 'The last damage dealy BY this hero or enemy
-  cursorpos AS XYPair
-  menu(5)   AS BattleHeroMenu 'Only applies to heroes. blank for enemies
-  menu_size AS INTEGER 'actually the index of the last used element in .menu()
-  harm AS HarmText
+  deathtype as integer 'for enemies (0 = default, otherwise is type + 1)
+  deathtime as integer '0 = default, otherwise is time + 1
+  death_sfx as integer '0 = default, -1 = none, >0 = sfx ID + 1
+  revengeharm as integer 'The last damage dealt TO this hero or enemy
+  thankvengecure as integer 'The cure damage undealt TO this hero or enemy (as a positive number!)
+  repeatharm as integer 'The last damage dealy BY this hero or enemy
+  cursorpos as XYPair
+  menu(5)   as BattleHeroMenu 'Only applies to heroes. blank for enemies
+  menu_size as integer 'actually the index of the last used element in .menu()
+  harm as HarmText
   '--affliction state
-  poison_repeat AS INTEGER
-  regen_repeat AS INTEGER
+  poison_repeat as integer
+  regen_repeat as integer
   '--Turn-taking
-  ready_meter AS INTEGER '0-1000, fills based on speed. When 1000, set .ready=YES
-  ready  AS INTEGER  ' YES if the hero or enemy can have a turn, NO if they are not ready yet
-  attack AS INTEGER  ' ID number +1 of the attack that this hero or enemy is going to do next
+  ready_meter as integer '0-1000, fills based on speed. When 1000, set .ready=YES
+  ready  as integer  ' YES if the hero or enemy can have a turn, NO if they are not ready yet
+  attack as integer  ' ID number +1 of the attack that this hero or enemy is going to do next
   '--Targetting
-  revenge             AS INTEGER 'ID of last hero or enemy who damaged this hero or enemy, or -1 for none
-  thankvenge          AS INTEGER 'ID of last hero or enemy who cured this hero or enemy, or -1 for none
-  revengemask(11)     AS INTEGER 'YES for each hero or enemy who has damaged this hero/enemy at least once, otherwise NO
-  thankvengemask(11)  AS INTEGER 'YES for each hero or enemy who has cured this hero/enemy at least once, otherwise NO
-  last_targs(11)      AS INTEGER 'YES for each target previously hit by this hero/enemy, otherwise NO
-  stored_targs(11)    AS INTEGER 'YES for each stored target for ths hero/enemy, otherwise NO
-  stored_targs_can_be_dead AS INTEGER
+  revenge             as integer 'ID of last hero or enemy who damaged this hero or enemy, or -1 for none
+  thankvenge          as integer 'ID of last hero or enemy who cured this hero or enemy, or -1 for none
+  revengemask(11)     as integer 'YES for each hero or enemy who has damaged this hero/enemy at least once, otherwise NO
+  thankvengemask(11)  as integer 'YES for each hero or enemy who has cured this hero/enemy at least once, otherwise NO
+  last_targs(11)      as integer 'YES for each target previously hit by this hero/enemy, otherwise NO
+  stored_targs(11)    as integer 'YES for each stored target for ths hero/enemy, otherwise NO
+  stored_targs_can_be_dead as integer
   '--Bitsets
-  harmed_by_cure AS INTEGER 'YES/NO
-  mp_idiot       AS INTEGER 'YES/NO for turn loss when using MP-consuming attacks after MP runs out
-  is_boss        AS INTEGER 'YES/NO
-  unescapable    AS INTEGER 'YES/NO
-  die_without_boss    AS INTEGER 'YES/NO
-  flee_instead_of_die AS INTEGER 'YES/NO
-  enemy_untargetable  AS INTEGER 'YES/NO
-  hero_untargetable   AS INTEGER 'YES/NO
-  death_unneeded AS INTEGER 'YES/NO
-  never_flinch   AS INTEGER 'YES/NO
-  ignore_for_alone    AS INTEGER 'YES/NO
+  harmed_by_cure as integer 'YES/NO
+  mp_idiot       as integer 'YES/NO for turn loss when using MP-consuming attacks after MP runs out
+  is_boss        as integer 'YES/NO
+  unescapable    as integer 'YES/NO
+  die_without_boss    as integer 'YES/NO
+  flee_instead_of_die as integer 'YES/NO
+  enemy_untargetable  as integer 'YES/NO
+  hero_untargetable   as integer 'YES/NO
+  death_unneeded as integer 'YES/NO
+  never_flinch   as integer 'YES/NO
+  ignore_for_alone    as integer 'YES/NO
   '--counterattacking
-  elem_counter_attack(maxElements - 1) AS INTEGER
-  stat_counter_attack(11) AS INTEGER
+  elem_counter_attack(maxElements - 1) as integer
+  stat_counter_attack(11) as integer
   '--
-  enemy AS EnemyDef '--only populated if this slot holds an enemy
+  enemy as EnemyDef '--only populated if this slot holds an enemy
   '--
-  lifemeter AS INTEGER 'FIXME: this can be replaced by the width property of the lifemeter slice
+  lifemeter as integer 'FIXME: this can be replaced by the width property of the lifemeter slice
                        'when lifemeters have been converted to slices
 END TYPE
 
 'This type stores the state of the currently animating attack
 TYPE AttackState
- id AS INTEGER            'Attack ID of the current attack or -1 for none.
+ id as integer            'Attack ID of the current attack or -1 for none.
                           ' only set when the attack delay is over, and
                           ' cleared when animation finishes
- was_id AS INTEGER        'Attack ID of the animating attack. Cleared after fulldeathcheck is finished
+ was_id as integer        'Attack ID of the animating attack. Cleared after fulldeathcheck is finished
  '--Elementals are stored in AttackState just for the benefit of elemental spawning
- non_elemental AS INTEGER 'YES or NO
- elemental(maxElements - 1) AS INTEGER  'YES or NO for each element
- has_consumed_costs AS INTEGER 'YES or NO, prevents multi-hit attacks from consuming MP more than once
+ non_elemental as integer 'YES or NO
+ elemental(maxElements - 1) as integer  'YES or NO for each element
+ has_consumed_costs as integer 'YES or NO, prevents multi-hit attacks from consuming MP more than once
 END TYPE
 
 'This type stores the state of target selection.
 TYPE TargettingState
-  mode AS INTEGER         'targNONE targSETUP targMANUAL targAUTO
-  pointer AS INTEGER      'Slot number of the currently selected (but not yet chosen) target slot
-  hit_dead AS INTEGER     'YES if this is a "Life" spell, or NO for all other attacks
-  mask(11) AS INTEGER     'For the currently targetting hero, a list of 1/0 values indicating
+  mode as integer         'targNONE targSETUP targMANUAL targAUTO
+  pointer as integer      'Slot number of the currently selected (but not yet chosen) target slot
+  hit_dead as integer     'YES if this is a "Life" spell, or NO for all other attacks
+  mask(11) as integer     'For the currently targetting hero, a list of 1/0 values indicating
                           'which targets are valid for the currently targetting attack
-  selected(11) AS INTEGER 'For the currently targetting hero, a list of 1/0 values indicating
+  selected(11) as integer 'For the currently targetting hero, a list of 1/0 values indicating
                           ' which targets from .mask() are currently selected.
-  opt_spread AS INTEGER   '0 no, 1 allowed, 2 spread
-  interactive AS INTEGER  'YES or NO for current attack
-  roulette AS INTEGER     'YES or NO for current attack
-  force_first AS INTEGER  'YES or NO for current attack
+  opt_spread as integer   '0 no, 1 allowed, 2 spread
+  interactive as integer  'YES or NO for current attack
+  roulette as integer     'YES or NO for current attack
+  force_first as integer  'YES or NO for current attack
 END TYPE
 '.mode > 0 means hero picking a target
 CONST targNONE   = 0 'means hero not currently picking a target
@@ -164,23 +164,23 @@ CONST targAUTO   = 3 'means autotargeting
 
 'This type stores the visual state of the victory display
 TYPE VictoryState
- state AS INTEGER 'vicSTATENAME or 0 for none
- box AS INTEGER   'NO when not displaying a box, YES when displaying a box
- showlearn AS INTEGER 'NO when not showing spell learning, YES when already showing a learned spell
- learnwho AS INTEGER 'battle slot of hero currently displaying learned spells
- learnlist AS INTEGER 'spell list of hero currently displaying learned spells
- learnslot AS INTEGER 'spell list slot of hero currently displaying learned spells
- item_name AS STRING 'name of currently displaying found item or "" for none
- found_index AS INTEGER 'index into the found() array that lists items found in this battle
- gold_caption AS STRING
- exp_caption AS STRING
- item_caption AS STRING
- plural_item_caption AS STRING
- gold_name AS STRING
- exp_name AS STRING
- level_up_caption AS STRING
- levels_up_caption AS STRING
- learned_caption AS STRING
+ state as integer 'vicSTATENAME or 0 for none
+ box as integer   'NO when not displaying a box, YES when displaying a box
+ showlearn as integer 'NO when not showing spell learning, YES when already showing a learned spell
+ learnwho as integer 'battle slot of hero currently displaying learned spells
+ learnlist as integer 'spell list of hero currently displaying learned spells
+ learnslot as integer 'spell list slot of hero currently displaying learned spells
+ item_name as string 'name of currently displaying found item or "" for none
+ found_index as integer 'index into the found() array that lists items found in this battle
+ gold_caption as string
+ exp_caption as string
+ item_caption as string
+ plural_item_caption as string
+ gold_name as string
+ exp_name as string
+ level_up_caption as string
+ levels_up_caption as string
+ learned_caption as string
 END TYPE
 CONST vicGOLDEXP = 1
 CONST vicLEVELUP = 2
@@ -192,81 +192,81 @@ CONST vicEXIT    = -2
 
 'This type is just used by RewardState
 TYPE RewardsStateItem
- id AS INTEGER
- num AS INTEGER
+ id as integer
+ num as integer
 END TYPE
 
 'This type controls the state of rewards gathered in the current battle
 TYPE RewardsState
- plunder AS INTEGER
- exper AS INTEGER
- found(16) AS RewardsStateItem
+ plunder as integer
+ exper as integer
+ found(16) as RewardsStateItem
 END TYPE
 
 'These handle the state of the currently displaying spell menu
 TYPE SpellMenuItem
- name AS STRING
- desc AS STRING
- cost AS STRING
- atk_id AS INTEGER
- enable AS INTEGER 'YES or NO
+ name as string
+ desc as string
+ cost as string
+ atk_id as integer
+ enable as integer 'YES or NO
 END TYPE
 TYPE SpellMenuState
- slot(23) AS SpellMenuItem
+ slot(23) as SpellMenuItem
 END TYPE
 
 '--These patterns are used for attack animation frame oscillation
 TYPE AttackAnimationPattern
- frame(10) AS INTEGER
+ frame(10) as integer
 END TYPE
 
 'This type stores the state of the battle engine, for example,
 'who's turn it is, what each character is doing, and targetting information
 TYPE BattleState
- acting AS INTEGER     'Hero or enemy who is currently taking their turn to act
- hero_turn AS INTEGER  'Hero currently selecting an attack
- enemy_turn AS INTEGER 'Enemy currently selecting an attack
- next_hero AS INTEGER  'counter that controls which ready hero will get their turn next
- next_enemy AS INTEGER 'counter that controls which ready enemy will get their turn next
- menu_mode AS INTEGER  'batMENUHERO batMENUSPELL or batMENUITEM
- death_mode AS INTEGER 'deathNOBODY deathENEMIES deathHEROES
- have_written_stats AS INTEGER 'writestats has been called. Don't do it again!
- targ AS TargettingState
- atk AS AttackState
- pt AS INTEGER         'menu cursor for hero menu
- listslot AS INTEGER   'currently active hero spell list slot
- sptr AS INTEGER       'menu cursor for hero spell list menu
- item AS MenuState     'menu cursor for items menu
- item_desc AS STRING   'description of currently selected item in item menu
- caption AS STRING     'currently displaying caption
- caption_time AS INTEGER 'time for the currently displaying caption
- caption_delay AS INTEGER 'delay before current caption displays
- anim_ready AS INTEGER 'YES or NO indicating whether the current animation has ben generated
- anim_t(11) AS INTEGER 'targets for currently animating attack
- anim_blocking_delay AS INTEGER 'whether the currently animating attack had a blocking delay (to make chains inherit non-blocking)
- animpat(3) AS AttackAnimationPattern = _
+ acting as integer     'Hero or enemy who is currently taking their turn to act
+ hero_turn as integer  'Hero currently selecting an attack
+ enemy_turn as integer 'Enemy currently selecting an attack
+ next_hero as integer  'counter that controls which ready hero will get their turn next
+ next_enemy as integer 'counter that controls which ready enemy will get their turn next
+ menu_mode as integer  'batMENUHERO batMENUSPELL or batMENUITEM
+ death_mode as integer 'deathNOBODY deathENEMIES deathHEROES
+ have_written_stats as integer 'writestats has been called. Don't do it again!
+ targ as TargettingState
+ atk as AttackState
+ pt as integer         'menu cursor for hero menu
+ listslot as integer   'currently active hero spell list slot
+ sptr as integer       'menu cursor for hero spell list menu
+ item as MenuState     'menu cursor for items menu
+ item_desc as string   'description of currently selected item in item menu
+ caption as string     'currently displaying caption
+ caption_time as integer 'time for the currently displaying caption
+ caption_delay as integer 'delay before current caption displays
+ anim_ready as integer 'YES or NO indicating whether the current animation has ben generated
+ anim_t(11) as integer 'targets for currently animating attack
+ anim_blocking_delay as integer 'whether the currently animating attack had a blocking delay (to make chains inherit non-blocking)
+ animpat(3) as AttackAnimationPattern = _
         { ({0,0,1,1,2,2,-1}), _
           ({2,2,1,1,0,0,-1}), _
           ({0,0,1,1,2,2,1,1,0,0,-1}), _
           ({-1,-1}) }
- curbg AS INTEGER      'Current background
- bg_tick AS INTEGER    'Number of ticks since last background frame change
- wait_frames AS INTEGER 'used by the attack animation
- level_mp_caption AS STRING
- cannot_run_caption AS STRING
- cancel_spell_caption AS STRING
- flee AS INTEGER 'used by the crappy running system, not to be confused with BattleSprite.flee
- away AS INTEGER 'used by the crappy running system.
- alert_ticks AS INTEGER
- alert AS STRING
- tog AS INTEGER 'alternates 0,1,0,1 tick by tick
- laststun AS DOUBLE
- vic AS VictoryState
- rew AS RewardsState
- spell AS SpellMenuState
- inv_scroll AS MenuState
- inv_scroll_rect AS RectType
- iuse(inventoryMax / 16) AS INTEGER 'bitsets for whether items can be used by the current hero
+ curbg as integer      'Current background
+ bg_tick as integer    'Number of ticks since last background frame change
+ wait_frames as integer 'used by the attack animation
+ level_mp_caption as string
+ cannot_run_caption as string
+ cancel_spell_caption as string
+ flee as integer 'used by the crappy running system, not to be confused with BattleSprite.flee
+ away as integer 'used by the crappy running system.
+ alert_ticks as integer
+ alert as string
+ tog as integer 'alternates 0,1,0,1 tick by tick
+ laststun as DOUBLE
+ vic as VictoryState
+ rew as RewardsState
+ spell as SpellMenuState
+ inv_scroll as MenuState
+ inv_scroll_rect as RectType
+ iuse(inventoryMax / 16) as integer 'bitsets for whether items can be used by the current hero
 END TYPE
 
 CONST batMENUHERO = 0
@@ -278,13 +278,13 @@ CONST deathENEMIES = 1
 CONST deathHEROES  = 2
 
 TYPE AttackQueue
- used     AS INTEGER 'YES when used, NO when recycleable
- attack   AS INTEGER 'attack ID number
- attacker AS INTEGER 'slot number of attacker
- t(11)    AS INTEGER 'Targeted slots, -1 for empty, or slot number.
- blocking AS INTEGER 'YES to block attacker from acting, NO for nonblocking
- delay    AS INTEGER 'Number of ticks that should pass before this attack happens
- dont_retarget AS INTEGER
+ used     as integer 'YES when used, NO when recycleable
+ attack   as integer 'attack ID number
+ attacker as integer 'slot number of attacker
+ t(11)    as integer 'Targeted slots, -1 for empty, or slot number.
+ blocking as integer 'YES to block attacker from acting, NO for nonblocking
+ delay    as integer 'Number of ticks that should pass before this attack happens
+ dont_retarget as integer
 END TYPE
 
 #ENDIF
