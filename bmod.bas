@@ -953,7 +953,7 @@ SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata a
 
  '--decrement stun and mute
 
- IF bat.ticks > bat.laststun + 18 THEN
+ IF bat.ticks >= bat.laststun + 18 THEN
   FOR i = 0 TO 11
    bslot(i).stat.cur.mute = small(bslot(i).stat.cur.mute + 1, bslot(i).stat.max.mute)
    bslot(i).stat.cur.stun = small(bslot(i).stat.cur.stun + 1, bslot(i).stat.max.stun)
