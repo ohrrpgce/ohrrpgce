@@ -195,6 +195,7 @@ FUNCTION battle (byval form as integer) as integer
   SWAP vpage, dpage
   setvispage vpage
   check_for_queued_fade_in
+  bat.ticks += 1
   dowait
  LOOP
  IF fatal THEN battle = 0
@@ -952,7 +953,7 @@ SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata a
 
  '--decrement stun and mute
 
- IF TIMER > bat.laststun + 1 THEN
+ IF bat.ticks > bat.laststun + 18 THEN
   FOR i = 0 TO 11
    bslot(i).stat.cur.mute = small(bslot(i).stat.cur.mute + 1, bslot(i).stat.max.mute)
    bslot(i).stat.cur.stun = small(bslot(i).stat.cur.stun + 1, bslot(i).stat.max.stun)
@@ -962,7 +963,7 @@ SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata a
     IF bat.enemy_turn = i THEN bat.enemy_turn = -1
    END IF
   NEXT i
-  bat.laststun = TIMER
+  bat.laststun = bat.ticks
  END IF
 
  '--decrement attack queue delays
@@ -1509,6 +1510,8 @@ SUB reset_battle_state (byref bat as BattleState)
 
  WITH bat
 
+  .ticks = 0
+
   WITH .inv_scroll
    .first = 0
    .last = INT(last_inv_slot() / 3)
@@ -1542,7 +1545,7 @@ SUB reset_battle_state (byref bat as BattleState)
   .next_enemy = 0
   .menu_mode = batMENUHERO
 
-  .laststun = TIMER
+  .laststun = 0
 
  END WITH
  

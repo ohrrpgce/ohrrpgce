@@ -223,6 +223,7 @@ END TYPE
 'This type stores the state of the battle engine, for example,
 'who's turn it is, what each character is doing, and targetting information
 TYPE BattleState
+ ticks as integer      'number of ticks since the battle was initialized
  acting as integer     'Hero or enemy who is currently taking their turn to act
  hero_turn as integer  'Hero currently selecting an attack
  enemy_turn as integer 'Enemy currently selecting an attack
@@ -260,7 +261,7 @@ TYPE BattleState
  alert_ticks as integer
  alert as string
  tog as integer 'alternates 0,1,0,1 tick by tick
- laststun as DOUBLE
+ laststun as integer
  vic as VictoryState
  rew as RewardsState
  spell as SpellMenuState
