@@ -4817,3 +4817,9 @@ FUNCTION max_tag() as integer
   RETURN 999
  END IF
 END FUNCTION
+
+FUNCTION ideal_ticks_per_second() as double
+ 'This is an idealized estimate, NOT a measurment of actual FPS
+ 'This is fixed for now, but will be customizable later.
+ RETURN 18.3
+END FUNCTION

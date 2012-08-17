@@ -240,6 +240,8 @@ DECLARE FUNCTION atlevel_quadratic (byval lev as double, byval a0 as double, byv
 
 DECLARE FUNCTION max_tag() as integer
 
+DECLARE FUNCTION ideal_ticks_per_second() as double
+
 'Global variables
 EXTERN sourcerpg as string
 EXTERN as string game, tmpdir, exename, workingdir, homedir, app_dir
