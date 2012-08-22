@@ -11,6 +11,8 @@ WHAT IS NEW?
 
   * Bugfixes
     * "run script by id" was far slower than it should have been [Ralph]
+    * ${H#} codes in text boxes are no longer limited to heroes that
+      are in the party.
 
   * New Plotscripting Stuff
     * If a script runs for a long time without "wait"ing you can now

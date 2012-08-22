@@ -130,9 +130,12 @@ DO WHILE start < LEN(text)
     CASE "H": '--Hero name by ID
      '--defaults blank if not found
      insert = ""
+     '--first search for a copy of the hero in the party
      DIM where as integer = findhero(arg + 1, 0, 40, 1)
      IF where >= 0 THEN
       insert = names(where)
+     ELSE
+      insert = getheroname(arg)
      END IF
     CASE "P": '--Hero name by Party position
      IF arg < 40 THEN
