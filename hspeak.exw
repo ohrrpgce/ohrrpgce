@@ -16,6 +16,7 @@
 --3P  2012-08-18 Change way include is lexed: quotes no longer needed
 --               [], {}, . now totally disallowed
 --               Add < and > operators
+--               Add plotscrversion block and new HS header lump
 --3Of 2012-08-18 Lexer bugfix
 --3Oe 2012-04-11 Add \n and \t escape codes
 --3Od 2012-03-03 Change directory search order slightly
@@ -129,12 +130,18 @@ constant false=0
 constant true=1
 
 -- increment COMPILER_VERSION only for major language-altering changes
-constant COMPILER_VERSION=3
+constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
 constant COMPILER_SUB_VERSION="P "
 constant COPYRIGHT_DATE="2002"
+
+--This is the oldest version of plotscr.hsd which is supported (feel free to
+--increment this whenever using an older plotscr.hsd means you're missing out
+--on new but nonessential features; there's no harm)
+--*Should be 3 characters long, same captialisation as COMPILER_SUB_VERSION*
+constant MIN_PLOTSCR_VERSION="3P "
 
 --these constants are color-flags. May add more colors, up to #F8FF
 --(these codes are at the end of the first private use area)
@@ -237,6 +244,9 @@ constant TIMING_DESCRIPTION=2
 constant TIMING_TIME=3
 constant TIMING_ACTIVE=4
 
+--Version number for the .hs/.hsp format (not including HSZ files!)
+constant HSP_FORMAT_VERSION=1
+
 constant CODE_START_BYTE_OFFSET=12
 constant SCRIPT_FORMAT_VERSION=2
 
@@ -328,6 +338,8 @@ integer error_file        error_file=false
 sequence used_globals     used_globals={}
 sequence used_locals      used_locals={}
 sequence string_table     string_table={}
+sequence plotscr_version  plotscr_version=""
+integer max_used_function max_used_function=0 --maximum id of a function used in a script
 integer fast_mode         fast_mode=false
 integer end_anchor_kludge end_anchor_kludge=false
 integer was_warnings      was_warnings=false
@@ -656,7 +668,7 @@ end procedure
 --prints out the copyright info, usage info, and command-line options
 procedure check_arg_count(sequence args)
   if length(args)=2 then
-    wrap_print("HamsterSpeak semicompiler v%d%s (C)%s James Paige&Hamster Republic Productions\n",{COMPILER_VERSION,COMPILER_SUB_VERSION,COPYRIGHT_DATE})
+    wrap_print("HamsterSpeak semicompiler v%s%s (C)%s James Paige&Hamster Republic Productions\n",{COMPILER_VERSION,COMPILER_SUB_VERSION,COPYRIGHT_DATE})
     wrap_print("Please read LICENSE.txt for GPL License details and disclaimer of liability",{})
     wrap_print(COLYEL&"%s [-acdfknstwuyz] source.hss [dest.hs]"&COLWHI&"\n\n",{hs_upper(file_only(args[2]))})
     color_print("   -f fast mode. Disables some optimization\n",{})
@@ -807,6 +819,7 @@ procedure init()
           ,{"globalvariable",RESERVE_CORE}
           ,{"definefunction",RESERVE_CORE}
           ,{"definescript"  ,RESERVE_CORE}
+          ,{"plotscrversion",RESERVE_CORE}
           ,{"include"       ,RESERVE_CORE}  --should never appear, in theory
           ,{"do"            ,RESERVE_FLOW}
           ,{"begin"         ,RESERVE_BEGIN}
@@ -1349,15 +1362,6 @@ function translate_plotstrings(sequence tokens)
       else  --we saw a + (or illegal =) inside the string number expression
         state=1
       end if
-    else
-      if tokens[i][CMD_TEXT][1]='"' then
-        src_error(
-          sprintf_utf(
-            "The string "&COLYEL&"%s"&COLRED&" is illegal here: strings may only be used as part of a $...=\"...\" or $...+\"...\" construct",
-            {shorten_string(tokens[i][CMD_TEXT],15)}),
-          tokens[i][CMD_POS]
-        )
-      end if
     end if
     if state=1 and compare(tokens[i][CMD_TEXT],"=")=0 then
       string_func={"setstringfromtable",pos}
@@ -1712,6 +1716,31 @@ end procedure
 
 ---------------------------------------------------------------------------
 
+procedure parse_version_block(sequence block)
+  sequence req_version
+  if length(block)<2 then
+    --Don't have a srcpos
+    simple_error(COLYEL&"plotscr.hsd"&COLRED&" is malformed (empty 'plotscr version' block)")
+  end if
+  plotscr_version=block[1][CMD_TEXT] --version ID of this plotscr.hsd version (equal to the version of HSpeak at the time)
+  req_version=block[2][CMD_TEXT] --the minimum version of HSpeak which supports this plotscr.hsd
+  --trim quote marks
+  if plotscr_version[1]!='"' or req_version[1]!='"' then
+    simple_error(COLYEL&"plotscr.hsd"&COLRED&" is malformed (expected strings in 'plotscr version')")
+  end if
+  plotscr_version=plotscr_version[2..$-1]
+  req_version=req_version[2..$-1]
+  if compare(plotscr_version, MIN_PLOTSCR_VERSION) < 0 then
+    simple_error("You have included a copy of "&COLYEL&"plotscr.hsd"&COLRED&" from an old release of the OHRRPGCE. Please use the latest version.")
+  end if
+  --printf(stdout,"'%s' '%s'\n", {req_version, COMPILER_VERSION&COMPILER_SUB_VERSION})
+  if compare(req_version, COMPILER_VERSION&COMPILER_SUB_VERSION) > 0 then
+    simple_error("You have included a copy of "&COLYEL&"plotscr.hsd"&COLRED&" from a newer version of the OHRRPGCE than supported by this version of HSpeak. Please use the latest version of HSpeak.")
+  end if
+end procedure
+
+---------------------------------------------------------------------------
+
 procedure create_global(integer id,sequence name,srcpos pos)
   integer at
   at=find(id,global_list[PAIR_NUM])
@@ -1840,13 +1869,17 @@ procedure primary_parse_pass()
   while get_cmd_pointer<=length(cmd) do
     --read a top-level command
     this=get_cmd()
-    if compare("defineconstant",this[CMD_TEXT])=0 then
+    if equal("defineconstant",this[CMD_TEXT]) then
       parse_constant_block(get_cmd_block(false))
-    end if
-    if compare("definetrigger",this[CMD_TEXT])=0 then
+    elsif equal("definetrigger",this[CMD_TEXT]) then
       parse_trigger_block(get_cmd_block(false))
+    elsif equal("plotscrversion",this[CMD_TEXT]) then
+      parse_version_block(get_cmd_block(false))
     end if
   end while
+  if equal(plotscr_version,"") then
+    simple_error("You have included a copy of "&COLYEL&"plotscr.hsd"&COLRED&" from an old release of the OHRRPGCE. Please use the latest version.")    
+  end if
   if find("script",column(trigger_list,PAIR_NUM))=0 then
     trigger_list=append(trigger_list,{0,"script"})
   end if
@@ -1947,6 +1980,9 @@ procedure parse_top_level()
       function_list=parse_define_block(get_cmd_block(true),function_list,RESERVE_FUNCTION)
     elsif compare("definescript",this[CMD_TEXT])=0 then
       script_list=parse_define_block(get_cmd_block(true),script_list,RESERVE_SCRIPT)
+    elsif compare("plotscrversion",this[CMD_TEXT])=0 then
+      --ignore
+      get_cmd_block(false)
     elsif find(this[CMD_TEXT],triggers)>0 then
       parse_script(this)
     else
@@ -2289,6 +2325,13 @@ function what_kind_and_id(sequence command,sequence local_vars)
   elsif keyword=RESERVE_MACRO then
     kind=KIND_MACRO
     id=0
+  elsif length(s) and s[1] = '"' then
+    src_error(
+      sprintf_utf(
+        "The string "&COLYEL&"%s"&COLRED&" is illegal here: strings may only be used as part of a $...=\"...\" or $...+\"...\" construct",
+        {shorten_string(s,15)}),
+      command[CMD_POS]
+    )
   else
     src_error(sprintf_utf("Unrecognised name "&COLYEL&"%s"&COLRED&". It has not been defined as script, constant, variable, or anything else",{s}),command[CMD_POS])
   end if
@@ -2326,6 +2369,13 @@ function what_kind(sequence command,sequence local_vars, integer look_for_operat
     kind=KIND_MATH
   elsif keyword=RESERVE_MACRO then
     kind=KIND_MACRO
+  elsif length(s) and s[1] = '"' then
+    src_error(
+      sprintf_utf(
+        "The string "&COLYEL&"%s"&COLRED&" is illegal here: strings may only be used as part of a $...=\"...\" or $...+\"...\" construct",
+        {shorten_string(s,15)}),
+      command[CMD_POS]
+    )
   else
     src_error(sprintf_utf("Unrecognised name "&COLYEL&"%s"&COLRED&". It has not been defined as script, constant, variable, or anything else",{s}),command[CMD_POS])
   end if
@@ -3066,6 +3116,9 @@ function binary_compile_recurse(sequence tree,sequence vars,sequence done_code)
     elsif kind=KIND_FUNCTION then
       at=find(s,column(function_list,PAIR_NAME))
       id=function_list[at][PAIR_NUM]
+      if max_used_function<id then
+        max_used_function=id
+      end if
     elsif kind=KIND_FLOW then
       at=find(s,column(flow_list,PAIR_NAME))
       id=flow_list[at][PAIR_NUM]
@@ -3832,15 +3885,17 @@ end procedure
 ---------------------------------------------------------------------------
 
 procedure write_output_file()
+  sequence header
   integer fh
   object lh
   enter_timing_zone("Writing output file")
+  header=sprintf("HamsterSpeak\n%s\n%d\n%s\n%d\n%d\n",{COMPILER_VERSION & COMPILER_SUB_VERSION,HSP_FORMAT_VERSION,plotscr_version,SCRIPT_FORMAT_VERSION,max_used_function})
   if length(all_scripts) then
     fh=open(dest_file,"wb")
     if fh!=-1 then
       wrap_print("writing output file "&COLBWHI&"%s"&COLWHI&"\n",{dest_file})
       --write header and version
-      if write_lump(fh,"HS","HamsterSpeak"&output_word(COMPILER_VERSION)&COMPILER_SUB_VERSION)=false then
+      if write_lump(fh,"HS",header)=false then
         simple_error("unable to write header")
       end if
       --write script index (old file)

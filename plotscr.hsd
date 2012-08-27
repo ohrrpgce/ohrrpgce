@@ -3,8 +3,11 @@
 # modifying this file may have undesired/disasterous effects,
 # but reading it can be somewhat educational. Especially the constants.
 
-# functions marked with an x have not been implemented yet.
-# functions marked with a ? are implemented but untested
+# Use same capitalisation as HSpeak does, pad to length 3
+plotscr version, begin
+  "3P ",  # plotscr.hsd version number
+  "3P "   # minimum supported version of hspeak
+end
 
 #--------------------------------------------------------------------------
 # hard coded functions
