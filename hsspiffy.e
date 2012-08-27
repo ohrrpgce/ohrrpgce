@@ -14,18 +14,18 @@ include get.e
 
 ---constants---
 
-constant true=1 
+constant true=1
 constant false=0
 
 global constant stdin=0
 global constant stdout=1
 global constant failure=-1
-                                      
+
 --globals--
 global integer PATH_SLASH
 
 ifdef WINDOWS then
-  PATH_SLASH='\\'  
+  PATH_SLASH='\\'
 elsedef
   PATH_SLASH='/'
 end ifdef
@@ -104,13 +104,13 @@ global function redundx(sequence s,object c)
   if compare(s[i],c)=0 then
    if i<length(s) then
     if compare(s[i+1],c)!=0 then
-     n=append(n,s[i]) 
+     n=append(n,s[i])
     end if
    else
-    n=append(n,s[i]) 
+    n=append(n,s[i])
    end if
   else
-   n=append(n,s[i]) 
+   n=append(n,s[i])
   end if
  end for
  return n
@@ -123,10 +123,10 @@ global function redundall(sequence s)
  for i=1 to length(s) do
   if i<length(s) then
    if compare(s[i+1],s[i])!=0 then
-    n=append(n,s[i]) 
+    n=append(n,s[i])
    end if
   else
-   n=append(n,s[i]) 
+   n=append(n,s[i])
   end if
  end for
  return n
@@ -230,7 +230,7 @@ global function without_suffix(sequence s,sequence delim)
   if length(broken)>1 then
     return implode(broken[1..length(broken)-1],delim)&delim
   else
-    return ""  
+    return ""
   end if
 end function
 
@@ -256,7 +256,7 @@ global function without_extension(sequence filename)
   if length(result) then
     return result
   else
-    return filename&"."  
+    return filename&"."
   end if
 end function
 
@@ -288,7 +288,7 @@ global function decapitate(sequence s)
   if length(s) then
     return s[2..length(s)]
   else
-    return s  
+    return s
   end if
 end function
 
@@ -313,7 +313,7 @@ global function insert_element(sequence s,object ob,integer index)
   elsif index=length(s)+1 then
     return(append(s,ob))
   else
-    return(append(s[1..index-1],ob)&s[index..length(s)])  
+    return(append(s[1..index-1],ob)&s[index..length(s)])
   end if
 end function
 
@@ -324,13 +324,13 @@ global function insert_sequence(sequence s,sequence new,integer index)
   elsif index=length(s)+1 then
     return(s&new)
   else
-    return(s[1..index-1]&new&s[index..length(s)])  
+    return(s[1..index-1]&new&s[index..length(s)])
   end if
 end function
 
 --delete an element of a sequence
 global function delete_element(sequence s,integer index)
-  return(s[1..index-1]&s[index+1..length(s)])    
+  return(s[1..index-1]&s[index+1..length(s)])
 end function
 
 --delete a slice from a sequence--
@@ -423,7 +423,7 @@ global function alpha_tree_seek(sequence tree,sequence string)
     end if
     return(find(string,tree[firstchar][1]))
   else
-    return(false)  
+    return(false)
   end if
 end function
 
@@ -552,7 +552,7 @@ global function before_wrap_point(sequence string)
           if length(word[1])>size then
             result &= word[1][1..large(0,size-length(result))]
           end if
-          exit  
+          exit
         end if
       end while
     else
@@ -574,7 +574,7 @@ global function after_wrap_point(sequence string)
   if length(result) then
     if result[1]='\n' then
       result=decapitate(result)
-    end if  
+    end if
   end if
   return result
 end function

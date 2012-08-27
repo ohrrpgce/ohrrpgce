@@ -319,7 +319,7 @@ define function, begin
 306,layertileset,1,0          #layer tileset(layer) returns tileset number in use
 307,getformationsong,1,0      #returns the song associated with a given formation
 308,addenemytoformation,5,0,0,85,95,-1 #add enemy to formation(formation, enemy id, x, y, slot = -1) returns slot or -1
-309,findenemyinformation,3,0,0,0       #find enemy in formation(formation, enemy id, number) returns slot or -1 
+309,findenemyinformation,3,0,0,0       #find enemy in formation(formation, enemy id, number) returns slot or -1
 310,deleteenemyfromformation,2,0,0     #delete enemy from formation(formation, slot)
 311,formationslotenemy,2,0,0  #formation slot enemy (formation, slot) returns enemy in slot
 312,formationslotx,2,0,0      #formation slot x(formation, slot) returns x of enemy in slot
@@ -509,9 +509,9 @@ define function, begin
 494,replacebackdropsprite,2,0,-1 # replaces the sprite with a backdrop sprite (handle, number)
 495,getspritetrans,1,0        # whether the sprite is drawn transparently (handle)
 496,setspritetrans,2,0,1      # set whether the sprite is drawn transparently (handle, bool)
-497,setherobaseelementalresist,3,-1,0,100 # set percentage damage taken from an element (hero, element, percent) 
-498,herobaseelementalresistasint,2,-1,0   # percentage damage taken from an element rounded to an int (hero, element) 
-499,herototalelementalresistasint,2,-1,0  # percentage damage taken from an element rounded to an int (hero, element) 
+497,setherobaseelementalresist,3,-1,0,100 # set percentage damage taken from an element (hero, element, percent)
+498,herobaseelementalresistasint,2,-1,0   # percentage damage taken from an element rounded to an int (hero, element)
+499,herototalelementalresistasint,2,-1,0  # percentage damage taken from an element rounded to an int (hero, element)
 500,setslicevelocityx,3,0,0,-1   #set slice velocity x(sl, pixels per tick, ticks) # negative left, positive right
 501,setslicevelocityy,3,0,0,-1   #set slice velocity y(sl, pixels per tick, ticks) # negative up, positive down
 502,getslicevelocityx,1,0        #return x velocity in pixels per tick

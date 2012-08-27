@@ -282,7 +282,7 @@ sequence flow_list        flow_list={
                               {0,"do"}
                              ,{1,"begin"}
                              ,{2,"end"}
-                             ,{3,"return"} 
+                             ,{3,"return"}
                              ,{4,"if"}
                              ,{5,"then"}
                              ,{6,"else"}
@@ -297,28 +297,28 @@ sequence flow_list        flow_list={
                           }
 sequence math_list        math_list={
                               {0,"random",{0,1}}
-                             ,{1,"exponent",{0,2}} 
-                             ,{2,"modulus",{0,1}} 
-                             ,{3,"divide",{0,1}} 
-                             ,{4,"multiply",{0,0}} 
-                             ,{5,"subtract",{0,0}} 
-                             ,{6,"add",{0,0}} 
-                             ,{7,"xor",{0,0}} 
-                             ,{8,"or",{0,0}} 
-                             ,{9,"and",{0,0}} 
-                             ,{10,"equal",{0,0}} 
-                             ,{11,"notequal",{0,0}} 
-                             ,{12,"lessthan",{0,0}} 
-                             ,{13,"greaterthan",{0,0}} 
-                             ,{14,"lessthanorequalto",{0,0}} 
-                             ,{15,"greaterthanorequalto",{0,0}} 
-                             ,{16,"setvariable",{0,0}} 
-                             ,{17,"increment",{0,1}} 
-                             ,{18,"decrement",{0,1}} 
-                             ,{19,"not",{0}} 
-                             ,{20,"logand",{0,0}} 
-                             ,{21,"logor",{0,0}} 
-                             ,{22,"logxor",{0,0}} 
+                             ,{1,"exponent",{0,2}}
+                             ,{2,"modulus",{0,1}}
+                             ,{3,"divide",{0,1}}
+                             ,{4,"multiply",{0,0}}
+                             ,{5,"subtract",{0,0}}
+                             ,{6,"add",{0,0}}
+                             ,{7,"xor",{0,0}}
+                             ,{8,"or",{0,0}}
+                             ,{9,"and",{0,0}}
+                             ,{10,"equal",{0,0}}
+                             ,{11,"notequal",{0,0}}
+                             ,{12,"lessthan",{0,0}}
+                             ,{13,"greaterthan",{0,0}}
+                             ,{14,"lessthanorequalto",{0,0}}
+                             ,{15,"greaterthanorequalto",{0,0}}
+                             ,{16,"setvariable",{0,0}}
+                             ,{17,"increment",{0,1}}
+                             ,{18,"decrement",{0,1}}
+                             ,{19,"not",{0}}
+                             ,{20,"logand",{0,0}}
+                             ,{21,"logor",{0,0}}
+                             ,{22,"logxor",{0,0}}
                              ,{23,"abs",{0}}
                              ,{24,"sign",{0}}
                              ,{25,"sqrt",{0}}
@@ -331,7 +331,7 @@ sequence separator_list   separator_list={
 sequence lexer_table      lexer_table={}
 sequence lexer_table_key2 lexer_table_key2={}
 
-sequence all_scripts      all_scripts={}                        
+sequence all_scripts      all_scripts={}
 sequence current_script   current_script=""   --name of current script
 integer cur_script_num    cur_script_num=0    --index into script_cmd of current script
 integer colors_enabled    colors_enabled=true
@@ -562,10 +562,10 @@ function html_char_convert(sequence s)
       buffer&="&lt;"
     elsif s[i]='>' then
       buffer&="&gt;"
-    else  
+    else
       buffer&=s[i]
     end if
-  end for 
+  end for
   if length(buffer) then
     result&=buffer
   end if
@@ -594,10 +594,10 @@ function error_string_convert(sequence s)
       end if
     elsif s[i]='\n' then
       buffer&="<br>\n"
-    else  
+    else
       buffer&=s[i]
     end if
-  end for 
+  end for
   if length(buffer) then
     result&=buffer
   end if
@@ -756,7 +756,7 @@ procedure init()
       optlist=optlist&hs_lower(args[index][2..length(args[index])])
       args=delete_element(args,index)
     else
-      index+=1  
+      index+=1
     end if
   end while
   check_arg_count(args)
@@ -804,7 +804,7 @@ procedure init()
           exit
         elsif hs_lower(key)='n' then
           simple_error("output file overwrite cancelled by user")
-        else  
+        else
           wrap_print(COLYEL&"%s"&COLWHI&"? "&COLYEL&"%s"&COLWHI&"!? How is that Y or N?",{key,hs_upper(key)})
         end if
       end while
@@ -844,7 +844,7 @@ procedure init()
           ,{"="             ,RESERVE_UNIMPLEMENTED}
           ,{"tracevalue"    ,RESERVE_MACRO}
           ,{"assert"        ,RESERVE_MACRO}
-        })--end mass_insert   
+        })--end mass_insert
   for i=1 to length(math_list) do
     reserved=alpha_tree_insert(reserved,math_list[i][PAIR_NAME],RESERVE_BUILTIN)
   end for
@@ -939,7 +939,7 @@ procedure src_warn(sequence s,srcpos pos)
     --do not warn if -w is set
     simple_warn(form_error_text(s,pos))
     error_file_print("</a>\n<hr>\n")
-  end if  
+  end if
 end procedure
 
 ---------------------------------------------------------------------------
@@ -1000,7 +1000,7 @@ procedure load_include(sequence include_name,srcpos pos)
   --try source directory
   if file_exists(path_only(source_file)&include_name) then
     load_source(normalize_filename(path_only(source_file)&include_name),"including",pos)
-  else  
+  else
     --try current directory
     if file_exists(include_name) then
       load_source(include_name,"including",pos)
@@ -1008,7 +1008,7 @@ procedure load_include(sequence include_name,srcpos pos)
       --try compiler_directory
       if file_exists(compiler_dir&include_name) then
         load_source(normalize_filename(compiler_dir&include_name),"including",pos)
-      else  
+      else
         --give up
         load_source(include_name,"including",pos)
       end if
@@ -1023,7 +1023,7 @@ procedure show_source_info()
   if total_lines then
     wrap_print("%d lines read from %d files\n",{total_lines,length(file_list)})
   else
-    simple_error("no data to compile\n")  
+    simple_error("no data to compile\n")
   end if
   if length(file_list)>512 then
     simple_warn("You have included over 512 files! In-game error messages will only report line numbers for errors in the first 512 files.")
@@ -1081,7 +1081,7 @@ end function
 ---------------------------------------------------------------------------
 
 function lexer_read_number(sequence s,integer i,integer stop,srcpos pos)
-  integer state 
+  integer state
   atom val
   integer sign
   sequence text
@@ -1412,7 +1412,7 @@ function tree_original_text(sequence tree)
       leftmost=subtree[TREE_TRUNK][CMD_POS]
     end if
   end while
-  
+
   rightmost=tree[TREE_TRUNK][CMD_POS]
   subtree=tree
   while length(subtree[TREE_BRANCHES]) do
@@ -1532,7 +1532,7 @@ procedure check_for_reserved(sequence s,srcpos pos,sequence expect)
       )
     elsif compare("user script name",expect)=0 then
       src_error(sprintf_utf("Expected %s, but found %s "&COLYEL&"%s"&COLRED,{expect,RESERVE_NAMES[alpha_tree_data(reserved,s,0)],s}),pos)
-    else  
+    else
       src_error(sprintf_utf("Expected %s, but found %s "&COLYEL&"%s"&COLRED,{expect,RESERVE_NAMES[alpha_tree_data(reserved,s,0)],s}),pos)
     end if
   end if
@@ -1627,7 +1627,7 @@ function enforce_constants(sequence s)
       return(sprintf("%d",{v}))
     end if
   end if
-  return(s)  
+  return(s)
 end function
 
 ---------------------------------------------------------------------------
@@ -1669,7 +1669,7 @@ function get_cmd_block(integer convert_constants)
   while true do
     if convert_constants then
       this=get_cmd()
-    else  
+    else
       this=get_cmd_no_constants()
     end if
     if compare("begin",this[CMD_TEXT])=0 then
@@ -1677,7 +1677,7 @@ function get_cmd_block(integer convert_constants)
     elsif compare("end",this[CMD_TEXT])=0 then
       exit--break out of the while
     else
-      result=append(result,this)  
+      result=append(result,this)
     end if
   end while
   return(result)
@@ -1708,7 +1708,7 @@ procedure parse_trigger_block(sequence block)
   for i=1 to length(block) by 2 do
     if i+1>length(block) then
       src_error("Expected name but script trigger definition block ended",block[i][CMD_POS])
-    end if  
+    end if
     num=force_16_bit(try_string_to_number(block[i]),block[i][CMD_POS])
     check_undefined_string(block[i+1],"script trigger name")
     name=block[i+1][CMD_TEXT]
@@ -1881,7 +1881,7 @@ procedure primary_parse_pass()
     end if
   end while
   if equal(plotscr_version,"") then
-    simple_error("You have included a copy of "&COLYEL&"plotscr.hsd"&COLRED&" from an old release of the OHRRPGCE. Please use the latest version.")    
+    simple_error("You have included a copy of "&COLYEL&"plotscr.hsd"&COLRED&" from an old release of the OHRRPGCE. Please use the latest version.")
   end if
   if find("script",column(trigger_list,PAIR_NUM))=0 then
     trigger_list=append(trigger_list,{0,"script"})
@@ -2013,7 +2013,7 @@ procedure dump_script_and_function_info(integer fh,sequence list)
     this=list[i]
     if this[PAIR_NUM]>autonumber_id then
       id_string=sprintf("AUTONUMBER=%d",{this[PAIR_NUM]})
-    else  
+    else
       id_string=sprintf("ID=%d",{this[PAIR_NUM]})
     end if
     src_position=decode_srcpos(this[FUNC_POS])
@@ -2048,7 +2048,7 @@ function seek_string_by_id(integer id,sequence list,sequence name)
   at=find(id,column(list,PAIR_NUM))
   if at then
     return(list[at][PAIR_NAME])
-  else  
+  else
     simple_error(sprintf_utf("decompiler couldnt find %s ID "&COLYEL&"%d"&COLRED,{name,id}))
   end if
   return("")
@@ -2066,7 +2066,7 @@ function name_lookup(sequence pair)
     at=find(pair[2],global_list[PAIR_NUM])
     if at then
       return(global_list[PAIR_NAME][at])
-    else  
+    else
       simple_error(sprintf_utf("decompiler couldnt find global variable ID "&COLYEL&"%d"&COLRED,{pair[2]}))
     end if
   elsif pair[1]=KIND_FLOW then
@@ -2077,7 +2077,7 @@ function name_lookup(sequence pair)
     return(seek_string_by_id(pair[2],function_list,"hardcoded function"))
   elsif pair[1]=KIND_MATH then
     return(seek_string_by_id(pair[2],math_list,"built-in function"))
-  else  
+  else
     simple_error(sprintf_utf("decompiler found illegal kind "&COLYEL&"%d"&COLRED,{pair[1]}))
   end if
 end function
@@ -2118,7 +2118,7 @@ function dump_script_binary(sequence bin,integer offset,integer depth)
         result&=dump_script_binary(bin,new_offset,depth+2)
       end for
       result&=repeat(' ',depth)&")\n"
-    else  
+    else
       result&="()\n"
     end if
   else
@@ -2185,12 +2185,12 @@ procedure dump_debug_report()
   if find('d',optlist) then
     if length(path_only(dest_file))>1 then
       debug_file=normalize_filename(path_only(dest_file)&"hs_debug.txt")
-    else  
+    else
       debug_file="hs_debug.txt"
     end if
     fh=open(debug_file,"w")
     if fh!=failure then
-      wrap_print("writing debug report file "&COLBWHI&"%s"&COLWHI&"\n",{debug_file})  
+      wrap_print("writing debug report file "&COLBWHI&"%s"&COLWHI&"\n",{debug_file})
       -------------------------------------
       print_utf(fh,"[Scripts]\n",{})
       dump_script_and_function_info(fh,script_list)
@@ -2258,7 +2258,7 @@ procedure dump_debug_report()
       -------------------------------------
       close(fh)
     else
-      wrap_print("Error opening debug report file "&COLBWHI&"%s"&COLRED&"\n",{debug_file})  
+      wrap_print("Error opening debug report file "&COLBWHI&"%s"&COLRED&"\n",{debug_file})
     end if
   end if
 end procedure
@@ -2284,7 +2284,7 @@ function get_cmd_depth(integer ptr,sequence data,integer depth)
     if depth=0 then
       exit --break out of the while
     else
-      result=append(result,this)  
+      result=append(result,this)
     end if
   end while
   return({ptr,result})
@@ -2410,7 +2410,7 @@ function how_many_args(sequence name,integer kind)
   elsif kind=KIND_SCRIPT then
     at=find(name[CMD_TEXT],column(script_list,PAIR_NAME))
     result=length(script_list[at][FUNC_ARGS])
-  else  
+  else
     --numbers, variables, etc do not permit args
     result=0
   end if
@@ -2470,7 +2470,7 @@ function get_script_cmd(integer ptr,sequence data,sequence vars)
         after=after[2]
         if length(after)=0 and kind=KIND_PARENS then
           src_error("found empty parentheses not associated with a function call",command[CMD_POS])
-        end if 
+        end if
       end if
     end if
   end if
@@ -2594,7 +2594,7 @@ function expand_macros(sequence tree)
       pos=tree[ptr][TREE_TRUNK][CMD_POS]
       src_position=decode_srcpos(pos)
       if length(tree[ptr][TREE_BRANCHES])!=1 then
-        src_error(sprintf_utf(COLYEL&"assert"&COLRED&" statement takes exactly one argument: a condition. It has %d",{length(tree[ptr][TREE_BRANCHES])}),pos)        
+        src_error(sprintf_utf(COLYEL&"assert"&COLRED&" statement takes exactly one argument: a condition. It has %d",{length(tree[ptr][TREE_BRANCHES])}),pos)
       end if
       newtree={{{"if",pos},{}}, {{"then",pos},{}}}
       newtree[1][TREE_BRANCHES]={{{"not",pos},{tree[ptr][TREE_BRANCHES][1]}}}
@@ -2847,11 +2847,11 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
             if equal("else",nextcmd) or equal("elseif",nextcmd) then
               tree=build_else_node(tree,ptr)
             else
-              --no else found, but thats okay.  
+              --no else found, but thats okay.
               --add dummy else
               tree[ptr][TREE_BRANCHES]&={ {{"else",pos},{}} }
-            end if  
-          else  
+            end if
+          else
             --add dummy else
             tree[ptr][TREE_BRANCHES]&={ {{"else",pos},{}} }
           end if
@@ -2859,28 +2859,28 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
           --add dummy then before else
           tree[ptr][TREE_BRANCHES]&={ {{"then",pos},{}} }
           tree=build_else_node(tree,ptr)
-        else  
+        else
           --found neither then nor else
           src_error(sprintf_utf("expected "&COLYEL&"then"&COLRED&" or "&COLYEL&"else"&COLRED&" but found "&COLYEL&"%s"&COLRED,{nextcmd}),tree[ptr+1][TREE_TRUNK][CMD_POS])
         end if
       else
         --no room for then or else
-        src_error(COLYEL&"if"&COLRED&" should be followed by "&COLYEL&"then"&COLRED&" or "&COLYEL&"else"&COLRED,pos)  
+        src_error(COLYEL&"if"&COLRED&" should be followed by "&COLYEL&"then"&COLRED&" or "&COLYEL&"else"&COLRED,pos)
       end if
 
     elsif compare("then",s)=0 then
       if compare("if",parent)!=0 or ptr!=2 then
-        src_error(COLYEL&"then"&COLRED&" should follow an "&COLYEL&"if"&COLRED&" or "&COLYEL&"else if"&COLRED,pos)  
+        src_error(COLYEL&"then"&COLRED&" should follow an "&COLYEL&"if"&COLRED&" or "&COLYEL&"else if"&COLRED,pos)
       end if
 
     elsif compare("else",s)=0 then
       if compare("if",parent)!=0 or ptr!=3 then
-        src_error(COLYEL&"else"&COLRED&" should follow an "&COLYEL&"if"&COLRED&" or "&COLYEL&"then"&COLRED&" or "&COLYEL&"else if"&COLRED,pos)  
+        src_error(COLYEL&"else"&COLRED&" should follow an "&COLYEL&"if"&COLRED&" or "&COLYEL&"then"&COLRED&" or "&COLYEL&"else if"&COLRED,pos)
       end if
 
     elsif compare("elseif",s)=0 then
       --Should be absorbed by now
-      src_error(COLYEL&"else if"&COLRED&" should follow an "&COLYEL&"if"&COLRED&" or "&COLYEL&"then"&COLRED,pos)  
+      src_error(COLYEL&"else if"&COLRED&" should follow an "&COLYEL&"if"&COLRED&" or "&COLYEL&"then"&COLRED,pos)
 
     elsif compare("while",s)=0 then
       if length(tree[ptr][TREE_BRANCHES])>1 then
@@ -2927,7 +2927,7 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
         ),tree[ptr][TREE_BRANCHES][1][TREE_TRUNK][CMD_POS])
         var_at=find(tree[ptr][TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT],global_list[PAIR_NAME])
         tree[ptr][TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT]=sprintf("%d",{global_list[PAIR_NUM][var_at]})
-      else  
+      else
         --only variables allowed as the first argument of a "for"
         src_error(
            sprintf_utf("first argument of "&COLYEL&"for"&COLRED&" statement must be a variable, not %s "&COLYEL&"%s"&COLRED,{
@@ -2946,7 +2946,7 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
         else
           src_error(sprintf_utf(COLYEL&"for"&COLRED&" should be followed by "&COLYEL&"do"&COLRED&", not by "&COLYEL&"%s"&COLRED&".",{tree[ptr+1][TREE_TRUNK][CMD_TEXT]}),tree[ptr+1][TREE_TRUNK][CMD_POS])
         end if
-      else  
+      else
         src_error(sprintf_utf(COLYEL&"for"&COLRED&" should be followed by "&COLYEL&"do"&COLRED,{}),pos)
       end if
 
@@ -2988,7 +2988,7 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
     tree[ptr][TREE_BRANCHES]=normalize_flow_control(tree[ptr][TREE_BRANCHES],vars,tree[ptr][TREE_TRUNK][CMD_TEXT])
     ptr+=1
   end while
-  return(tree)  
+  return(tree)
 end function
 
 ---------------------------------------------------------------------------
@@ -3014,7 +3014,7 @@ function convert_operators_recurse(sequence tree,integer priority)
             else
               --convert the operator to its true function name (which might be the same)
               tree[ptr][TREE_TRUNK][CMD_TEXT]=operator_list[j][OPER_TRUENAME]
-              --grab the operands and turn them into REAL args  
+              --grab the operands and turn them into REAL args
               tree[ptr][TREE_BRANCHES]={tree[ptr-1],tree[ptr+1]}
               --delete the operands
               tree=delete_element(tree,ptr+1)
@@ -3088,7 +3088,7 @@ function fix_arguments(sequence tree,integer kind,sequence list,sequence vars)
             ,{tree[TREE_TRUNK][CMD_TEXT],argnum}
           ),tree[TREE_TRUNK][CMD_POS])
         elsif argnum = 1 then
-          --make defaults for second arg of variable function  
+          --make defaults for second arg of variable function
           if list[at][PAIR_NUM]=16 then
             --setvariable
             tree[TREE_BRANCHES]=append(tree[TREE_BRANCHES],{
@@ -3096,7 +3096,7 @@ function fix_arguments(sequence tree,integer kind,sequence list,sequence vars)
               ,{}
             })
           else
-            --increment and decrement  
+            --increment and decrement
             tree[TREE_BRANCHES]=append(tree[TREE_BRANCHES],{
                {"1",tree[TREE_TRUNK][CMD_POS]}
               ,{}
@@ -3104,7 +3104,7 @@ function fix_arguments(sequence tree,integer kind,sequence list,sequence vars)
           end if
         end if
       end if
-    else  
+    else
       --normal processing for script and function
       for i=argnum+1 to maxargs do
         if equal(list[at][FUNC_ARGS][i],NO_DEFAULT) then
@@ -3161,7 +3161,7 @@ function normalize_arguments(sequence tree,sequence vars)
       tree[i][TREE_BRANCHES]=normalize_arguments(tree[i][TREE_BRANCHES],vars)
     end if
   end for
-  return(tree)  
+  return(tree)
 end function
 
 ---------------------------------------------------------------------------
@@ -3658,7 +3658,7 @@ function optimize_script(sequence tree,sequence vars)
       tree[i][TREE_BRANCHES]=optimize_script(tree[i][TREE_BRANCHES],vars)
     end if
   end for
-  return(tree)  
+  return(tree)
 end function
 
 ---------------------------------------------------------------------------
@@ -3914,7 +3914,7 @@ function generate_scripts_dot_txt()
   elsif find('s',optlist) then
     print_scripts = 1
   end if
-  
+
   for i=1 to length(script_list) do
     result&=encode_ohr(sprintf_utf("%s\r\n%d\r\n%d\r\n",{script_list[i][PAIR_NAME],script_list[i][PAIR_NUM],length(script_list[i][FUNC_ARGS])}))
     for j=1 to length(script_list[i][FUNC_ARGS]) do
@@ -3940,7 +3940,7 @@ function generate_scripts_dot_bin()
   result=output_word(4)
   --record size in bytes
   result&=output_word(42)
-  
+
   for i=1 to length(all_scripts) do
     result&=output_word(all_scripts[i][1])  --id
     result&=output_word(all_scripts[i][2])  --trigger type
@@ -4027,7 +4027,7 @@ procedure write_script_files(integer fh)
   sequence temp
   --because script files with identical names in different directories can be
   --included, append a number to lump names which would be duplicate
-  integer suffix 
+  integer suffix
   sequence names_used
   names_used={}
   for i=1 to length(file_list) do
@@ -4093,10 +4093,10 @@ procedure write_output_file()
       end if
       close(fh)
     else
-      simple_error(sprintf_utf("attempt to open"&COLYEL&"%s"&COLRED&" failed",{dest_file}))  
+      simple_error(sprintf_utf("attempt to open"&COLYEL&"%s"&COLRED&" failed",{dest_file}))
     end if
-  else  
-    color_print("no scripts to output\n",{})  
+  else
+    color_print("no scripts to output\n",{})
   end if
   exit_timing_zone()
 end procedure

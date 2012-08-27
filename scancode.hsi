@@ -133,7 +133,7 @@ define constant,begin
 108,key:Numpad 4  # previously key:Left
 109,key:Numpad 5
 110,key:Numpad 6  # previously key:Right
-112,key:Numpad 1  # previously key:End 
+112,key:Numpad 1  # previously key:End
 113,key:Numpad 2  # previously key:Down
 114,key:Numpad 3  # previously key:Page Down
 115,key:Numpad 0  # previously key:Insert
