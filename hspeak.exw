@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Of 2012-08-18 Lexer bugfix
 --3Oe 2012-04-11 Add \n and \t escape codes
 --3Od 2012-03-03 Change directory search order slightly
 --3Oc 2012-02-07 Increased MAXGLOBAL to 16383
@@ -129,7 +130,7 @@ constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Oe"
+constant COMPILER_SUB_VERSION="Of"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags. May add more colors, up to #F8FF
@@ -1083,7 +1084,7 @@ function lexer_read_number(sequence s,integer i,integer stop,srcpos pos)
     else
       state=LEX_CHAR
     end if
-    --color_print("lexing %d=%s state %d\n",{s[i],{s[i]},state})
+    --color_print("lexing number i=%d %d=%s state %d\n",{i,s[i],{s[i]},state})
     if state=LEX_DIGIT then
       text&=s[i]
       val=val*10+s[i]-'0'
@@ -1121,6 +1122,7 @@ function lex_line(sequence s,integer i,integer stop,srcpos pos)
   sequence ident  --identifier text being built up
   sequence temp
   sequence masked
+  integer oldi
   integer found
   integer textstart  --the column at which this identifier starts, otherwise 0
   sequence remem_ident
@@ -1137,7 +1139,7 @@ function lex_line(sequence s,integer i,integer stop,srcpos pos)
     else
       state=LEX_CHAR
     end if
-    --color_print("lexing %d=%s state %d\n",{s[i],{s[i]},state})
+    --color_print("lexing i=%d %d=%s state %d nonnum=%d ident=%s\n",{i,s[i],{s[i]},state,nonnumeral,ident})
     if state=LEX_CHAR then
       ident=ident & toLower(s[i])
       if textstart=0 then
@@ -1206,6 +1208,7 @@ function lex_line(sequence s,integer i,integer stop,srcpos pos)
             i-=1
             exit
           end if
+          --otherwise, it's a space character
         end while
         --now i+1 is the start of another token, or > length(s)
         found=false
@@ -1222,13 +1225,19 @@ function lex_line(sequence s,integer i,integer stop,srcpos pos)
         if found=false then
           --need to backtrack, in particular for -
           ident=remem_ident & masked[1]
+          oldi=i+1
           i=textstart
           if length(remem_ident) then
             tokens=tokens[1..$-1]
             textstart=remem_textstart
             nonnumeral=true
-          else
+          elsif equal(ident,"-") then
             --nonnumeral remains false: we've seen exactly "-"
+          else
+            --a keyword character followed by garbage
+            src_error(
+              sprintf_utf("Expected to see the rest of an operator (like "&COLYEL&":="&COLRED&") but found "&COLYEL&"%s"&COLRED&" instead",{{s[oldi]}}),
+              pos+oldi)
           end if
         else
           textstart=0
