@@ -18,6 +18,7 @@
 --               Add < and > operators
 --               Add plotscrversion block and new HS header lump
 --               New switch syntax: do after case optional, case(else)
+--               Added elseif
 --3Of 2012-08-18 Lexer bugfix
 --3Oe 2012-04-11 Add \n and \t escape codes
 --3Od 2012-03-03 Change directory search order slightly
@@ -829,6 +830,7 @@ procedure init()
           ,{"if"            ,RESERVE_FLOW}
           ,{"then"          ,RESERVE_FLOW}
           ,{"else"          ,RESERVE_FLOW}
+          ,{"elseif"        ,RESERVE_FLOW}
           ,{"for"           ,RESERVE_FLOW}
           ,{"cfor"          ,RESERVE_UNIMPLEMENTED}
           ,{"foreach"       ,RESERVE_UNIMPLEMENTED}
@@ -2615,8 +2617,50 @@ end function
 
 ---------------------------------------------------------------------------
 
+--tree[ptr] is a partially constructed if node (lacking else child), followed either by an else or elseif node.
+--Handle else/elseif, parenting to tree[pt], and return the new tree.
+function build_else_node(sequence tree, integer ptr)
+  sequence elseargs
+  sequence nextcmd
+  integer eptr
+  srcpos pos
+
+  nextcmd=tree[ptr+1][TREE_TRUNK][CMD_TEXT]
+  pos=tree[ptr+1][TREE_TRUNK][CMD_POS]
+  if equal("else",nextcmd) then
+    --found else
+    tree[ptr][TREE_BRANCHES]&={tree[ptr+1]}
+    tree=delete_element(tree,ptr+1)
+  else  -- equal("elseif",nextcmd)
+    --Split off the if
+    elseargs={ {{"if",pos},tree[ptr+1][TREE_BRANCHES]} }
+
+    --Grab the rest of this if,elseif,...,else chain, to put inside the else
+    eptr=ptr+2
+    while eptr<=length(tree) do
+      nextcmd=tree[eptr][TREE_TRUNK][CMD_TEXT]
+      --Stop when we see an else but otherwise we don't check correctness until we recurse
+      if equal(nextcmd,"else") then
+        eptr+=1
+        exit
+      elsif find(nextcmd,{"elseif","then"}) then
+        --continue
+      else
+        exit
+      end if
+      eptr+=1
+    end while
+    elseargs&=tree[ptr+2..eptr-1]
+    tree=tree[1..ptr]&tree[eptr..$]
+    tree[ptr][TREE_BRANCHES]&={ {{"else",pos},elseargs} }
+  end if
+  return tree
+end function
+
+---------------------------------------------------------------------------
+
 --Build switch AST nodes, return new tree
-function process_switch_node(sequence tree,sequence vars,integer ptr)
+function build_switch_node(sequence tree,sequence vars,integer ptr)
   srcpos pos
   srcpos argpos
   sequence args
@@ -2664,8 +2708,8 @@ function process_switch_node(sequence tree,sequence vars,integer ptr)
       src_error(sprintf_utf(COLYEL&"switch() do("&COLRED&" should be followed with a "&COLYEL&"case"&COLRED&", not with "&COLYEL&"%s"&COLRED&"."
                         ,{thiscmd[CMD_TEXT]}),argpos)
     end if
-    --to resolve the ambiguity of an else, we always suppose that they belong to an 'if' if possible
-    if equal("else",thiscmd[CMD_TEXT]) and equal(lastnodename,"if")=false and equal(lastnodename,"then")=false then
+    --to resolve the ambiguity of an else, we always suppose that they belong to an 'if' (or elseif) if possible
+    if equal("else",thiscmd[CMD_TEXT]) and find(lastnodename,{"if","then","elseif"})=0 then
       --Old syntax else(...) block
       if length(collected) then
         args&={collected}
@@ -2773,6 +2817,7 @@ end function
 function normalize_flow_control(sequence tree,sequence vars,sequence parent)
   integer ptr
   sequence s
+  sequence nextcmd
   srcpos pos
   integer argkind
   integer var_at
@@ -2792,49 +2837,50 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
       end if
       if ptr<length(tree) then
         --there is room
-        if compare("then",tree[ptr+1][TREE_TRUNK][CMD_TEXT])=0 then
-          --found then
-          tree[ptr][TREE_BRANCHES]=append(tree[ptr][TREE_BRANCHES],tree[ptr+1])
+        nextcmd=tree[ptr+1][TREE_TRUNK][CMD_TEXT]
+        if compare("then",nextcmd)=0 then
+          tree[ptr][TREE_BRANCHES]&={tree[ptr+1]}
           tree=delete_element(tree,ptr+1)
           if ptr<length(tree) then
             --there is room for else
-            if compare("else",tree[ptr+1][TREE_TRUNK][CMD_TEXT])=0 then
-              --found else after then
-              tree[ptr][TREE_BRANCHES]=append(tree[ptr][TREE_BRANCHES],tree[ptr+1])
-              tree=delete_element(tree,ptr+1)
+            nextcmd=tree[ptr+1][TREE_TRUNK][CMD_TEXT]
+            if equal("else",nextcmd) or equal("elseif",nextcmd) then
+              tree=build_else_node(tree,ptr)
             else
               --no else found, but thats okay.  
               --add dummy else
-              tree[ptr][TREE_BRANCHES]=append(tree[ptr][TREE_BRANCHES],{{"else",pos},{}})
+              tree[ptr][TREE_BRANCHES]&={ {{"else",pos},{}} }
             end if  
           else  
             --add dummy else
-            tree[ptr][TREE_BRANCHES]=append(tree[ptr][TREE_BRANCHES],{{"else",pos},{}})
+            tree[ptr][TREE_BRANCHES]&={ {{"else",pos},{}} }
           end if
-        elsif compare("else",tree[ptr+1][TREE_TRUNK][CMD_TEXT])=0 then
-          --found else
+        elsif equal("else",nextcmd) or equal("elseif",nextcmd) then
           --add dummy then before else
-          tree[ptr][TREE_BRANCHES]=append(tree[ptr][TREE_BRANCHES],{{"then",pos},{}})
-          tree[ptr][TREE_BRANCHES]=append(tree[ptr][TREE_BRANCHES],tree[ptr+1])
-          tree=delete_element(tree,ptr+1)
+          tree[ptr][TREE_BRANCHES]&={ {{"then",pos},{}} }
+          tree=build_else_node(tree,ptr)
         else  
           --found neither then nor else
-          src_error(sprintf_utf("expected "&COLYEL&"then"&COLRED&" or "&COLYEL&"else"&COLRED&" but found "&COLYEL&"%s"&COLRED,{tree[ptr+1][TREE_TRUNK][CMD_TEXT]}),tree[ptr+1][TREE_TRUNK][CMD_POS])
+          src_error(sprintf_utf("expected "&COLYEL&"then"&COLRED&" or "&COLYEL&"else"&COLRED&" but found "&COLYEL&"%s"&COLRED,{nextcmd}),tree[ptr+1][TREE_TRUNK][CMD_POS])
         end if
       else
         --no room for then or else
-        src_error(COLYEL&"if"&COLRED&" does not have "&COLYEL&"then"&COLRED&" or "&COLYEL&"else"&COLRED,pos)  
+        src_error(COLYEL&"if"&COLRED&" should be followed by "&COLYEL&"then"&COLRED&" or "&COLYEL&"else"&COLRED,pos)  
       end if
 
     elsif compare("then",s)=0 then
       if compare("if",parent)!=0 or ptr!=2 then
-        src_error(COLYEL&"then"&COLRED&" should follow an "&COLYEL&"if"&COLRED,pos)  
+        src_error(COLYEL&"then"&COLRED&" should follow an "&COLYEL&"if"&COLRED&" or "&COLYEL&"else if"&COLRED,pos)  
       end if
 
     elsif compare("else",s)=0 then
       if compare("if",parent)!=0 or ptr!=3 then
-        src_error(COLYEL&"else"&COLRED&" should follow an "&COLYEL&"if"&COLRED&" or "&COLYEL&"then"&COLRED,pos)  
+        src_error(COLYEL&"else"&COLRED&" should follow an "&COLYEL&"if"&COLRED&" or "&COLYEL&"then"&COLRED&" or "&COLYEL&"else if"&COLRED,pos)  
       end if
+
+    elsif compare("elseif",s)=0 then
+      --Should be absorbed by now
+      src_error(COLYEL&"else if"&COLRED&" should follow an "&COLYEL&"if"&COLRED&" or "&COLYEL&"then"&COLRED,pos)  
 
     elsif compare("while",s)=0 then
       if length(tree[ptr][TREE_BRANCHES])>1 then
@@ -2849,7 +2895,7 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
         --there is room
         if compare("do",tree[ptr+1][TREE_TRUNK][CMD_TEXT])=0 then
           --found do
-          tree[ptr][TREE_BRANCHES]=append(tree[ptr][TREE_BRANCHES],tree[ptr+1])
+          tree[ptr][TREE_BRANCHES]&={tree[ptr+1]}
           tree=delete_element(tree,ptr+1)
         else
           src_error(sprintf_utf(COLYEL&"while"&COLRED&" should be followed by "&COLYEL&"do"&COLRED&", not by "&COLYEL&"%s"&COLRED&".",{tree[ptr+1][TREE_TRUNK][CMD_TEXT]}),tree[ptr+1][TREE_TRUNK][CMD_POS])
@@ -2865,7 +2911,7 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
         src_error(sprintf_utf(COLYEL&"for"&COLRED&" statement has too many arguments (%d)",{length(tree[ptr][TREE_BRANCHES])}),tree[ptr][TREE_BRANCHES][5][TREE_TRUNK][CMD_POS])
       elsif length(tree[ptr][TREE_BRANCHES])=3 then
         --append default step value
-        tree[ptr][TREE_BRANCHES]=append(tree[ptr][TREE_BRANCHES],{{"1",tree[ptr][TREE_TRUNK][CMD_POS]},{}})
+        tree[ptr][TREE_BRANCHES]&={ {{"1",tree[ptr][TREE_TRUNK][CMD_POS]},{}} }
       end if
       argkind=what_kind(tree[ptr][TREE_BRANCHES][1][TREE_TRUNK],vars,true)
       if argkind=KIND_LOCAL then
@@ -2895,7 +2941,7 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
         --there is room
         if compare("do",tree[ptr+1][TREE_TRUNK][CMD_TEXT])=0 then
           --found do
-          tree[ptr][TREE_BRANCHES]=append(tree[ptr][TREE_BRANCHES],tree[ptr+1])
+          tree[ptr][TREE_BRANCHES]&={tree[ptr+1]}
           tree=delete_element(tree,ptr+1)
         else
           src_error(sprintf_utf(COLYEL&"for"&COLRED&" should be followed by "&COLYEL&"do"&COLRED&", not by "&COLYEL&"%s"&COLRED&".",{tree[ptr+1][TREE_TRUNK][CMD_TEXT]}),tree[ptr+1][TREE_TRUNK][CMD_POS])
@@ -2934,7 +2980,7 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
       end if
 
     elsif compare("switch",s)=0 then
-      tree=process_switch_node(tree,vars,ptr)
+      tree=build_switch_node(tree,vars,ptr)
 
     elsif compare("case",s)=0 then
       src_error(COLYEL&"case"&COLRED&" is not allowed outside of "&COLYEL&"switch"&COLRED,pos)

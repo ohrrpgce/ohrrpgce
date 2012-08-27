@@ -33,6 +33,10 @@ WHAT IS NEW?
               case (north, south) return (1)
               case (else)         return (0)
             )
+      * "else if" is a shortcut which lets you omit a pair of brackets:
+            if (condition) then (...)
+            else if(condition 2) then (...)
+            else (...)
       [Ralph]
 
   * Stuff Only Developers Will Notice

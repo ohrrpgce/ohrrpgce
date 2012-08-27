@@ -4915,8 +4915,8 @@ write pass block(15,3,pass)
 			<canon>begin,other commands,end</canon>
 			<shortname>begin</shortname>
 			<description>Begin is a synonym for ( and end is a synonym for ). Parentheses are normally used for bracketing things that all fit on the same line, and begin/end statements are often used to enclose very long things such as whole scripts or long flow control blocks that take up several lines. For example, the following two blocks of code are identical:</description>
-			<example>if (check tag(2)) then (show text box (5),wait for text box)</example>
-			<example>if (check tag(2)) then
+			<example>if (check tag(tag:have rusty sword)) then (show text box (5), wait for text box)</example>
+			<example>if (check tag(tag:have rusty sword)) then
 begin
 	show text box (5)
 	wait for text box
@@ -4929,8 +4929,25 @@ end</example>
 		<command id="if">
 			<canon>if(condition) then(commands) else(commands)</canon>
 			<shortname>if</shortname>
-			<description>The if statement checks the value of its condition, and if the value is <ref>true</ref>, it runs the commands in the then block. If the value is <ref>false</ref>, it runs the commands in its else block. The conditional is usually an equality operator such as <ref>equal</ref> or <ref>notequal</ref>, or it is a <ref>checktag</ref> command. The else is optional as long as you have a then, and the then is optional as long as you have an else. There are some examples of if statements in the HamsterSpeak Specification, and throughout this document.</description>
+			<description>The <p>if</p> statement checks the value of its condition, and if the value is <ref>true</ref> (or actually any value other than <ref>false</ref>, which is zero), it runs the commands in the <p>then</p> block. If the value is <ref>false</ref>, it runs the commands in its <p>else</p> block. The conditional is usually a comparison operator such as <ref>equal</ref> or <ref>notequal</ref>, or a command which returns either true or false, such as <ref>checktag</ref>. The <p>else</p> is optional as long as you have a <p>then</p>, and the <p>then</p> is optional as long as you have an <p>else</p>. There are several examples of <p>if</p> statements in the HamsterSpeak Specification, and throughout this document. You can also place one or more <ref>elseif</ref>s after the <p>then</p> (or immediately after the <p>if</p> if you skip the <p>then</p>) instead of nesting multiple <p>if</p> statements.</description>
+                        <seealso><ref>elseif</ref></seealso>
 		</command>
+		<command id="elseif">
+			<canon>... else if(condition) then(commands) ...</canon>
+			<shortname>else if</shortname>
+			<description>This can appear after an <ref>if</ref> or <ref>then</ref> block. It is a shortcut for <ref>else</ref> followed by <ref>if</ref> which lets you omit a pairs of brackets/<ref>begin</ref> and <ref>end</ref>, as this example shows:
+                        <example>if (inventory (item:apple)) then (
+  show text box (10)  # "Apples! My favourite!"
+) else if (inventory (item:orange)) then (
+  show text box (11)  # "My, what a tasty looking orange..."
+) else if (inventory (item:pear)) then (
+  show text box (12)  # "Perhaps if you gave me that pear..."
+) else (
+  show text box (13)  # "Come back when you have something tasty for me!"
+)</example>
+			</description>
+		</command>
+
 		<command id="then">
 			<alias>if</alias>
 			<shortname>then</shortname>
@@ -4947,10 +4964,11 @@ end</example>
 		<command id="do">
 			<canon>do</canon>
 			<shortname>do</shortname>
-			<description />
+			<description>Used to group several statements together. Normally appears after a <ref>while</ref>, <ref>for</ref> or <ref>switch</ref>.</description>
 			<seealso>
 				<ref>while</ref>
 				<ref>for</ref>
+				<ref>switch</ref>
 			</seealso>
 		</command>
 		<command id="for">
