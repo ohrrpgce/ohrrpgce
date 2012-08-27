@@ -343,6 +343,12 @@ SUB importscripts (f as string)
   DIM dummy as string
   DIM id as integer
   DIM trigger as integer
+  DIM plotscr_lsth as integer = FREEFILE
+  IF OPEN(workingdir + SLASH + "plotscr.lst" FOR BINARY AS #plotscr_lsth) THEN
+   visible_debug "Could not open " + workingdir + SLASH + "plotscr.lst"
+   CLOSE fptr
+   EXIT SUB
+  END IF
   DO
    IF EOF(fptr) THEN EXIT DO
    IF dotbin THEN 
@@ -367,7 +373,7 @@ SUB importscripts (f as string)
    'save to plotscr.lst
    buffer(0) = id
    writebinstring names, buffer(), 1, 36
-   storerecord buffer(), workingdir + SLASH + "plotscr.lst", 20, gen(genNumPlotscripts)
+   storerecord buffer(), plotscr_lsth, 20, gen(genNumPlotscripts)
    gen(genNumPlotscripts) = gen(genNumPlotscripts) + 1
    IF buffer(0) > gen(genMaxRegularScript) AND buffer(0) < 16384 THEN gen(genMaxRegularScript) = buffer(0)
 
@@ -383,6 +389,7 @@ SUB importscripts (f as string)
     append_message names & ", "
    END IF
   LOOP
+  CLOSE plotscr_lsth
 
   'output the updated trigger table
   WITH triggers
