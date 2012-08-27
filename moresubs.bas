@@ -1662,7 +1662,7 @@ FUNCTION loadscript (byval n as unsigned integer) as ScriptData ptr
   ELSE
    scrformat = 0
   END IF
-  IF scrformat > 2 THEN
+  IF scrformat > CURRENT_HSZ_VERSION THEN
    scripterr "script " & n & " is in an unsupported format", 6
    CLOSE #f
    deallocate(thisscr)

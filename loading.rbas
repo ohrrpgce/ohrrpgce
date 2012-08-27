@@ -2717,6 +2717,45 @@ END SUB
 '==========================================================================================
 
 
+'reads ths HS/HSS header lump of a .hs/.hsp file
+SUB load_hsp_header(filename as string, header as HSHeader)
+ WITH header
+  .valid = NO
+  DIM fh as integer = FREEFILE
+  IF OPEN(filename FOR INPUT AS #fh) THEN
+   debug "load_hsp_header: Could not open " & filename
+   EXIT SUB
+  END IF
+  DIM buf as string
+  LINE INPUT #fh, buf
+  IF MID(buf, 1, 12) <> "HamsterSpeak" THEN
+   debug "load_hsp_header: bad header '" & buf & "'"
+   CLOSE fh
+   EXIT SUB
+  END IF
+  .valid = YES
+  IF buf = "HamsterSpeak" THEN
+   'New header format
+   INPUT #fh, .hspeak_version
+   INPUT #fh, .hsp_format
+   INPUT #fh, .plotscr_version
+   INPUT #fh, .script_format
+   INPUT #fh, .max_function_id
+  ELSE
+   'Old format
+   'Next two characters are major version as a short: take one byte, skip the next
+   'Then append minor version (as a string)
+   .hspeak_version = CAST(integer, buf[12]) & MID(buf, 15)
+   .plotscr_version = ""
+   .script_format = 0
+   .hsp_format = 0
+   .max_function_id = 0
+  END IF
+  'debug "HS header: hspeak ver='" & .hspeak_version & "' plotscr ver='" & .plotscr_version & "' hsp ver=" & .hsp_format & " hsz ver=" & .script_format & " max func=" & .max_function_id
+  CLOSE fh
+ END WITH
+END SUB
+
 'Load script triggers lookup table
 'There's a lot of similar loading code in importscripts. I think ideally it should be rewritten
 SUB load_lookup1_bin(table() as TriggerData)

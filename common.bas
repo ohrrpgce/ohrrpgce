@@ -3770,6 +3770,27 @@ SUB rpg_sanity_checks
   'We would definitely crash if we didn't cap this
   gen(genNumElements) = 64
  END IF
+
+ 'Check script file formats
+ IF isfile(game + ".hsp") THEN
+  unlumpfile game + ".hsp", "hs", tmpdir
+
+  DIM hs_header as HSHeader
+  load_hsp_header tmpdir + SLASH + "hs", hs_header
+  WITH hs_header
+   IF .valid = NO THEN
+    pop_warning "The scripts in this game appear to be corrupt."
+   ELSEIF .hsp_format > CURRENT_HSP_VERSION OR .script_format > CURRENT_HSZ_VERSION THEN
+    debug "Future HS format: hspeak ver='" & .hspeak_version & "' plotscr ver='" & .plotscr_version _
+           & "' hsp ver=" & .hsp_format & " hsz ver=" & .script_format & " max func=" & .max_function_id
+    pop_warning "This game has scripts that are not supported in this version of the OHRRPGCE. Download the latest version at http://HamsterRepublic.com"
+   END IF
+   'Could also check .max_function_id here (this is a good way to catch
+   'games made with a newer nightly, since all the other file format version
+   'numbers are rarely incremented).
+  END WITH
+ END IF
+
 END SUB
 
 SUB loadglobalstrings

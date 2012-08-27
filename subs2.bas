@@ -244,17 +244,28 @@ SUB importscripts (f as string)
  DIM dotbin as integer
  DIM headersize as integer
  DIM recordsize as integer
- 
+
  'Under the best conditions this check is redundant, but it is still good to check anyway...
  IF NOT isfile(f) THEN
   pop_warning f & " does not exist."
   EXIT SUB
  END IF
 
- setpicstuf buffer(), 7, -1
- loadset f, 0, 0
- reset_console
- IF buffer(0) = 21320 AND buffer(1) = 0 THEN
+ DIM headerbuf(1) as integer
+ loadrecord headerbuf(), f, 2
+ IF headerbuf(0) = 21320 AND headerbuf(1) = 0 THEN  'Check first 4 bytes are "HS\0\0"
+  unlumpfile(f, "hs", tmpdir)
+  DIM header as HSHeader
+  load_hsp_header tmpdir & SLASH & "hs", header
+  IF header.valid = NO THEN
+   pop_warning f & " appears to be corrupt."
+   EXIT SUB
+  END IF
+  IF header.hsp_format > CURRENT_HSP_VERSION THEN
+   debug f & " hsp_format=" & header.hsp_format & " from future, hspeak version " & header.hspeak_version
+   pop_warning "This compiled .hs script file is in a format not understood by this version of Custom. Please ensure Custom and HSpeak are from the same release of the OHRRPGCE."
+   EXIT SUB
+  END IF
 
   writeablecopyfile f, game + ".hsp"
   textcolor uilook(uiMenuItem), 0
@@ -320,6 +331,8 @@ SUB importscripts (f as string)
   IF isfile(workingdir & SLASH & "plotscr.lst") THEN
    copyfile workingdir & SLASH & "plotscr.lst", tmpdir & "plotscr.lst.tmp"
   END IF
+
+  reset_console
 
   gen(genNumPlotscripts) = 0
   gen(genMaxRegularScript) = 0

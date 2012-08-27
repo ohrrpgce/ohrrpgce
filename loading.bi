@@ -147,6 +147,7 @@ DECLARE SUB SaveFormation OVERLOAD (form as Formation, filename as string, byval
 DECLARE SUB LoadFormationSet (formset as FormationSet, byval index as integer)
 DECLARE SUB SaveFormationSet (formset as FormationSet, byval index as integer)
 
+DECLARE SUB load_hsp_header(filename as string, header as HSHeader)
 DECLARE SUB load_lookup1_bin(table() as TriggerData)
 
 DECLARE SUB save_string_list(array() as string, filename as string)

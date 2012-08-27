@@ -346,6 +346,15 @@ TYPE Plotstring
   bits as integer
 END TYPE
 
+Type HSHeader
+  valid as integer
+  hspeak_version as string
+  hsp_format as integer
+  script_format as integer    'Same as the .HSZ format number, or 0 if not known
+  max_function_id as integer  'Maximum ID of a used function, or 0 if not known
+  plotscr_version as string   'empty if not known
+End Type
+
 TYPE TriggerData
   name as string
   id as integer

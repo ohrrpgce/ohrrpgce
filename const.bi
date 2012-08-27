@@ -36,6 +36,15 @@ CONST CURRENT_RSAV_VERSION = 2
 ' 2 - alectormancy wip increased global limit from 4095 to 16383
 
 CONST CURRENT_TESTING_IPC_VERSION = 4
+' Version of the IPC protocol used when live-previewing
+
+CONST CURRENT_HSZ_VERSION = 2
+' .hsz script binary format
+
+CONST CURRENT_HSP_VERSION = 1
+' .hs/.hsp file format version
+' 0 - HS Header doesn't contain a version number
+' 1 - HSpeak 3P
 
 CONST max_onetime = 15999
 
