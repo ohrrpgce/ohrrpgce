@@ -15,6 +15,7 @@
 --Changelog
 --3P  2012-08-18 Change way include is lexed: quotes no longer needed
 --               [], {}, . now totally disallowed
+--               Add < and > operators
 --3Of 2012-08-18 Lexer bugfix
 --3Oe 2012-04-11 Add \n and \t escape codes
 --3Od 2012-03-03 Change directory search order slightly
@@ -313,7 +314,7 @@ sequence math_list        math_list={
 
 sequence separator_list   separator_list={
                              "+=","-=","$+","$=","$","+","--","/","*","^^","^"
-                             ,"==","<>",">>","<<","<=",">=",":=","=","&&","||"
+                             ,"==","<>",">>","<<","<=",">=",">","<",":=","=","&&","||"
                           }
 sequence lexer_table      lexer_table={}
 sequence lexer_table_key2 lexer_table_key2={}

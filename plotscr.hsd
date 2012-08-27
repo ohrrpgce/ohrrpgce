@@ -1423,6 +1423,8 @@ define operator,begin
 50 <>  notequal
 50 <<  lessthan
 50 >>  greaterthan
+50 <   lessthan
+50 >   greaterthan
 50 <=  lessthanorequalto
 50 >=  greaterthanorequalto
 60,xor,xor

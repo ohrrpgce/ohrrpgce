@@ -25,6 +25,7 @@ WHAT IS NEW?
     * "include" syntax is more lenient like it used to be. Quotes around
       filenames containing paths, upper case or spaces optional [Ralph]
     * The characters '{', '}', '[', ']', '.' are now totally disallowed
+    * < and > can be used instead of << and >>
 
   * Stuff Only Developers Will Notice
 
