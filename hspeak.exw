@@ -14,6 +14,7 @@
 
 --Changelog
 --3P  2012-08-18 Change way include is lexed: quotes no longer needed
+--               [], {}, . now totally disallowed
 --3Of 2012-08-18 Lexer bugfix
 --3Oe 2012-04-11 Add \n and \t escape codes
 --3Od 2012-03-03 Change directory search order slightly
@@ -689,8 +690,8 @@ procedure init_lexer()
   sequence table_insert
 
   --main table
-  table_insert={" (),\n#\t\"[]{}",
-                {LEX_SPACE,LEX_BEGIN,LEX_END,LEX_COMMA,LEX_COMMA,LEX_COMMENT,LEX_SPACE,LEX_STRING,LEX_WARN,LEX_WARN,LEX_WARN,LEX_WARN}}
+  table_insert={" (),\n#\t\"[]{}.",
+                {LEX_SPACE,LEX_BEGIN,LEX_END,LEX_COMMA,LEX_COMMA,LEX_COMMENT,LEX_SPACE,LEX_STRING,LEX_WARN,LEX_WARN,LEX_WARN,LEX_WARN,LEX_WARN}}
   --by default each character is either binary, or an allowed identifier
   --character. This is for backwards compatibility
   lexer_table=repeat(LEX_BINARY,32) & repeat(LEX_CHAR,127-32) & repeat(LEX_BINARY,#A1-127) & repeat(LEX_CHAR,256-#A1)
@@ -1214,7 +1215,7 @@ function lex_line(sequence s,integer i,integer stop,srcpos pos)
         textstart=i
       end if
       nonnumeral=true
-      src_warn(sprintf_utf("FUTURE COMPATIBILITY PROBLEM: "&COLYEL&"%s"&COLRED&" should not be used in names!", {s[i]}), pos+i)
+      src_error(sprintf_utf(COLYEL&"%s"&COLRED&" is reserved and not allowed in names (identifiers)!", {s[i]}), pos+i)
     else
       remem_ident=ident  --for backtracking
       remem_textstart=textstart

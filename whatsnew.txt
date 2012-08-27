@@ -24,6 +24,7 @@ WHAT IS NEW?
     * "delete npc" as an alias to "destroy npc"
     * "include" syntax is more lenient like it used to be. Quotes around
       filenames containing paths, upper case or spaces optional [Ralph]
+    * The characters '{', '}', '[', ']', '.' are now totally disallowed
 
   * Stuff Only Developers Will Notice
 
