@@ -17,6 +17,7 @@
 --               [], {}, . now totally disallowed
 --               Add < and > operators
 --               Add plotscrversion block and new HS header lump
+--               New switch syntax: do after case optional, case(else)
 --3Of 2012-08-18 Lexer bugfix
 --3Oe 2012-04-11 Add \n and \t escape codes
 --3Od 2012-03-03 Change directory search order slightly
@@ -2614,18 +2615,172 @@ end function
 
 ---------------------------------------------------------------------------
 
+--Build switch AST nodes, return new tree
+function process_switch_node(sequence tree,sequence vars,integer ptr)
+  srcpos pos
+  srcpos argpos
+  sequence args
+  sequence thiscmd
+  sequence rawargs
+  sequence caseargs
+  sequence casecmd
+  sequence lastnodename
+  sequence collected
+  integer have_else
+  srcpos elsepos
+  integer expect_case
+  integer kind
+
+  pos=tree[ptr][TREE_TRUNK][CMD_POS]
+
+  if length(tree[ptr][TREE_BRANCHES])>1 then
+    src_error(sprintf_utf(
+                  COLYEL&"switch"&COLRED&" statement has %d expressions. It should have only one."
+                  ,{length(tree[ptr][TREE_BRANCHES])}
+                ),tree[ptr][TREE_BRANCHES][2][TREE_TRUNK][CMD_POS])
+  elsif length(tree[ptr][TREE_BRANCHES])=0 then
+    src_error(COLYEL&"switch"&COLRED&" statement has no expression to match! Write "&COLYEL&"switch (expression) do (...)"&COLRED,pos)
+  end if
+  if ptr>=length(tree) then
+    src_error(COLYEL&"switch"&COLRED&" should be followed by "&COLYEL&"do"&COLRED,pos)
+  end if
+  thiscmd=tree[ptr+1][TREE_TRUNK]
+  if equal("do",thiscmd[CMD_TEXT])=0 then
+    src_error(sprintf_utf(COLYEL&"switch"&COLRED&" should be followed by "&COLYEL&"do"&COLRED&", not by "&COLYEL&"%s"&COLRED&".",{thiscmd[CMD_TEXT]}),thiscmd[CMD_POS])
+  end if
+
+  --found do, processing starts here (build arguments to switch, after the expression)
+  args=tree[ptr][TREE_BRANCHES]  --start with the condition, length 1
+  rawargs=tree[ptr+1][TREE_BRANCHES]  --contents of the 'do'
+  lastnodename=""
+  have_else=false
+  expect_case=false
+  collected={}
+
+  for j=1 to length(rawargs) do
+    thiscmd=rawargs[j][TREE_TRUNK]
+    argpos=thiscmd[CMD_POS]
+    if j=1 and equal("case",thiscmd[CMD_TEXT])=0 then
+      src_error(sprintf_utf(COLYEL&"switch() do("&COLRED&" should be followed with a "&COLYEL&"case"&COLRED&", not with "&COLYEL&"%s"&COLRED&"."
+                        ,{thiscmd[CMD_TEXT]}),argpos)
+    end if
+    --to resolve the ambiguity of an else, we always suppose that they belong to an 'if' if possible
+    if equal("else",thiscmd[CMD_TEXT]) and equal(lastnodename,"if")=false and equal(lastnodename,"then")=false then
+      --Old syntax else(...) block
+      if length(collected) then
+        args&={collected}
+        collected={}
+      end if
+      if have_else then
+        src_error(COLYEL&"else"&COLRED&" case should be placed last inside a "&COLYEL&"switch"&COLRED&" block",elsepos)
+      end if
+      expect_case=false
+
+      if length(args) and equal(args[$][TREE_TRUNK][CMD_TEXT],"do")=false then
+        --Last case is new-style syntax and wasn't followed by any statements
+        --Lets just disallow this to prevent a little confusion
+        src_error(COLYEL&"case(...) else(...)"&COLRED&" is ambiguous. "&
+                  "Write either "&COLYEL&"case(..., else) ..."&COLRED&" or "&COLYEL&"case(...) do() else(...)"&COLRED&" as fits your intentions."
+                  ,rawargs[j-1][TREE_TRUNK][CMD_POS])
+      end if
+
+      if j!=length(rawargs) then
+        src_error(COLYEL&"else"&COLRED&" should be placed last inside a "&COLYEL&"switch"&COLRED&" block",argpos)
+      end if
+      --convert it to a do
+      args&={ {{"do",argpos},rawargs[j][TREE_BRANCHES]} }
+      elsepos=argpos
+      have_else=true
+
+    elsif equal("case",thiscmd[CMD_TEXT]) then
+      if length(collected) then
+        args&={collected}
+        collected={}
+      end if
+      if have_else then
+        --Note we disallow  case(else) case(1)  but allow  case(else,1)
+        src_error(COLYEL&"else"&COLRED&" case should be placed last inside a "&COLYEL&"switch"&COLRED&" block",elsepos)
+      end if
+      expect_case=false
+
+      caseargs=rawargs[j][TREE_BRANCHES]
+
+      --Call a couple passes early here, so that constant expressions are allowed
+      caseargs=collapse_floaty_brackets(caseargs)
+      caseargs=optimize_script(caseargs,vars)
+
+      --Check contents are only either integers, or "else", and append to args
+      for k=1 to length(caseargs) do
+        casecmd=caseargs[k][TREE_TRUNK]
+        if equal(casecmd[CMD_TEXT],"else") then
+          if have_else then
+            src_error(COLYEL&"else"&COLRED&" appears multiple times inside this "&COLYEL&"switch"&COLRED&" block",casecmd[CMD_POS])
+          end if
+          have_else=true
+          elsepos=argpos
+          --don't emit anything: next do is the 'else' one
+        else
+          kind=what_kind(casecmd,vars,false)
+          if kind!=KIND_NUMBER and kind!=KIND_REFERENCE then
+            src_error(sprintf_utf(COLYEL&"%s"&COLRED&" is not allowed inside a "&COLYEL&"case"&COLRED&", only integer constants are."
+                          ,{casecmd[CMD_TEXT]}),casecmd[CMD_POS])
+          end if
+          args&={caseargs[k]}
+        end if
+      end for
+    else
+      --Disallow "case() do() garbage"
+      if expect_case then
+        src_error(sprintf_utf("Expected "&COLYEL&"case"&COLRED&" or "&COLYEL&"else"&COLRED&" to follow "&COLYEL&"case(...) do(...)"&COLRED&" but found "&COLYEL&"%s"&COLRED,{thiscmd[CMD_TEXT]}),argpos)
+      end if
+      if length(collected)=0 then
+        --Start collecting into a do. But if it is a do (old syntax), don't double encapsulate it
+        if equal("do",thiscmd[CMD_TEXT]) then
+          args&={rawargs[j]}
+          expect_case=true
+        else
+          collected={{"do",argpos},{rawargs[j]}}
+        end if
+      else
+        --Continue collecting
+        collected[TREE_BRANCHES]&={rawargs[j]}
+      end if
+    end if
+    lastnodename=thiscmd[CMD_TEXT]
+  end for
+  if length(collected) then
+    args&={collected}
+  end if
+  if length(args) and equal(args[$][TREE_TRUNK][CMD_TEXT],"do")=false then
+    --Last case (possibly an else) is new-style syntax and wasn't followed by any statements,
+    --so add the missing do. Don't need to do this, but I'd like to keep things tidy
+    --(srcpos is of the last case)
+    args&={ {{"do",argpos},{}} }
+  end if
+  if have_else=false then
+    --Insert a dummy do default block since else has been left out
+    args&={ {{"do",pos},{}} }
+  end if
+
+  tree[ptr][TREE_BRANCHES]=args
+  --delete the do block
+  return delete_element(tree,ptr+1)
+end function
+
+---------------------------------------------------------------------------
+
 --parse the script tree and make if absorb then and else, for and while absorb do, switch absorb stuff, check correctness of flow statements
 function normalize_flow_control(sequence tree,sequence vars,sequence parent)
   integer ptr
   sequence s
   srcpos pos
-  srcpos argpos
   integer argkind
   integer var_at
   ptr=1
   while ptr<=length(tree) do
     s=tree[ptr][TREE_TRUNK][CMD_TEXT]
     pos=tree[ptr][TREE_TRUNK][CMD_POS]
+
     if compare("if",s)=0 then
       if length(tree[ptr][TREE_BRANCHES])>1 then
         src_error(sprintf_utf(
@@ -2670,14 +2825,17 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
         --no room for then or else
         src_error(COLYEL&"if"&COLRED&" does not have "&COLYEL&"then"&COLRED&" or "&COLYEL&"else"&COLRED,pos)  
       end if
+
     elsif compare("then",s)=0 then
       if compare("if",parent)!=0 or ptr!=2 then
         src_error(COLYEL&"then"&COLRED&" should follow an "&COLYEL&"if"&COLRED,pos)  
       end if
+
     elsif compare("else",s)=0 then
       if compare("if",parent)!=0 or ptr!=3 then
         src_error(COLYEL&"else"&COLRED&" should follow an "&COLYEL&"if"&COLRED&" or "&COLYEL&"then"&COLRED,pos)  
       end if
+
     elsif compare("while",s)=0 then
       if length(tree[ptr][TREE_BRANCHES])>1 then
         src_error(sprintf_utf(
@@ -2696,9 +2854,10 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
         else
           src_error(sprintf_utf(COLYEL&"while"&COLRED&" should be followed by "&COLYEL&"do"&COLRED&", not by "&COLYEL&"%s"&COLRED&".",{tree[ptr+1][TREE_TRUNK][CMD_TEXT]}),tree[ptr+1][TREE_TRUNK][CMD_POS])
         end if
-      else  
+      else
         src_error(sprintf_utf(COLYEL&"while"&COLRED&" should be followed by "&COLYEL&"do"&COLRED,{}),pos)
-      end if    
+      end if
+
     elsif compare("for",s)=0 then
       if length(tree[ptr][TREE_BRANCHES])<3 then
         src_error(sprintf_utf(COLYEL&"for"&COLRED&" statement needs three arguments",{}),pos)
@@ -2744,6 +2903,7 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
       else  
         src_error(sprintf_utf(COLYEL&"for"&COLRED&" should be followed by "&COLYEL&"do"&COLRED,{}),pos)
       end if
+
     elsif compare("return",s)=0 or compare("exitreturning",s)=0 then
       if length(tree[ptr][TREE_BRANCHES])>1 then
         src_error(sprintf_utf(
@@ -2753,6 +2913,7 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
       elsif length(tree[ptr][TREE_BRANCHES])=0 then
         src_error(sprintf_utf(COLYEL&s&COLRED&" statement has no argument. It should have one. Prehaps you meant to use "&COLYEL&"exit script"&COLRED,{}),pos)
       end if
+
     elsif compare("break",s)=0 or compare("continue",s)=0 then
       if length(tree[ptr][TREE_BRANCHES])>1 then
         src_error(sprintf_utf(
@@ -2763,6 +2924,7 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
         --append default value
         tree[ptr][TREE_BRANCHES]={{{"1",tree[ptr][TREE_TRUNK][CMD_POS]},{}}}
       end if
+
     elsif compare("exitscript",s)=0 then
       if length(tree[ptr][TREE_BRANCHES])>0 then
         src_error(sprintf_utf(
@@ -2770,57 +2932,12 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
                       ,{length(tree[ptr][TREE_BRANCHES])}
                     ),tree[ptr][TREE_BRANCHES][1][TREE_TRUNK][CMD_POS])
       end if
+
     elsif compare("switch",s)=0 then
-      if length(tree[ptr][TREE_BRANCHES])>1 then
-        src_error(sprintf_utf(
-                      COLYEL&s&COLRED&" statement has %d expressions. It should have only one."
-                      ,{length(tree[ptr][TREE_BRANCHES])}
-                    ),tree[ptr][TREE_BRANCHES][2][TREE_TRUNK][CMD_POS])
-      elsif length(tree[ptr][TREE_BRANCHES])=0 then
-        src_error(sprintf_utf(
-                      COLYEL&s&COLRED&" statement has no expression to match! Write "&COLYEL&"switch (expression) do (...)"&COLRED
-                      ,{length(tree[ptr][TREE_BRANCHES])}
-                    ),pos)
-      end if
-      if ptr<length(tree) then
-        --there is room
-        if compare("do",tree[ptr+1][TREE_TRUNK][CMD_TEXT])=0 then
-          --found do, move its arguments to switch, behind the expression
-          for j=1 to length(tree[ptr+1][TREE_BRANCHES]) do
-            argpos=tree[ptr+1][TREE_BRANCHES][j][TREE_TRUNK][CMD_POS]
-            if j=1 and compare("case",tree[ptr+1][TREE_BRANCHES][j][TREE_TRUNK][CMD_TEXT]) then
-              src_error(sprintf_utf(COLYEL&"switch() do("&COLRED&" should be followed with a "&COLYEL&"case"&COLRED&", not with "&COLYEL&"%s"&COLRED&"."
-                                ,{tree[ptr+1][TREE_BRANCHES][j][TREE_TRUNK][CMD_TEXT]}),argpos)
-            end if
-            if compare("else",tree[ptr+1][TREE_BRANCHES][j][TREE_TRUNK][CMD_TEXT])=0 then
-              if j=length(tree[ptr+1][TREE_BRANCHES]) then
-                --convert the else to a do
-                tree[ptr][TREE_BRANCHES]&={ {{"do",argpos},tree[ptr+1][TREE_BRANCHES][j][TREE_BRANCHES]} }
-              else
-                src_error(sprintf_utf(COLYEL&"else"&COLRED&" should be last statement inside a "&COLYEL&"switch"&COLRED&" block",{}),argpos)
-              end if
-            elsif compare("case",tree[ptr+1][TREE_BRANCHES][j][TREE_TRUNK][CMD_TEXT])=0 then
-              --expand case
-              tree[ptr][TREE_BRANCHES]&=tree[ptr+1][TREE_BRANCHES][j][TREE_BRANCHES]
-            elsif compare("do",tree[ptr+1][TREE_BRANCHES][j][TREE_TRUNK][CMD_TEXT])=0 then
-              tree[ptr][TREE_BRANCHES]&={tree[ptr+1][TREE_BRANCHES][j]}
-              if j=length(tree[ptr+1][TREE_BRANCHES]) then
-                --insert a dummy do default block since else has been left out
-                tree[ptr][TREE_BRANCHES]&={ {{"do",pos},{}} }
-              end if
-            else
-              src_error(sprintf_utf("Expected "&COLYEL&"case(...) do"&COLRED&" or "&COLYEL&"else"&COLRED&", but found "&COLYEL&"%s"&COLRED&".",{tree[ptr+1][TREE_BRANCHES][j][TREE_TRUNK][CMD_TEXT]}),argpos)
-            end if
-          end for
-          tree=delete_element(tree,ptr+1)
-        else
-          src_error(sprintf_utf(COLYEL&"switch"&COLRED&" should be followed by "&COLYEL&"do"&COLRED&", not by "&COLYEL&"%s"&COLRED&".",{tree[ptr+1][TREE_TRUNK][CMD_TEXT]}),tree[ptr+1][TREE_TRUNK][CMD_POS])
-        end if
-      else  
-        src_error(sprintf_utf(COLYEL&"switch"&COLRED&" should be followed by "&COLYEL&"do"&COLRED,{}),pos)
-      end if
+      tree=process_switch_node(tree,vars,ptr)
+
     elsif compare("case",s)=0 then
-      src_error(sprintf_utf(COLYEL&"case"&COLRED&" is not allowed outside of "&COLYEL&"switch"&COLRED,{}),pos)
+      src_error(COLYEL&"case"&COLRED&" is not allowed outside of "&COLYEL&"switch"&COLRED,pos)
     end if
     tree[ptr][TREE_BRANCHES]=normalize_flow_control(tree[ptr][TREE_BRANCHES],vars,tree[ptr][TREE_TRUNK][CMD_TEXT])
     ptr+=1

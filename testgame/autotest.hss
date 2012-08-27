@@ -79,6 +79,66 @@ end
 
 ########################################################################
 
+script, switch A, x, begin
+  return(1)
+  switch (x) do(
+    case(5) do()
+    case(zero)
+    case(2) return(100)
+            return(101)
+    case(7) return(-1)
+            while(1) do(continue(2))
+            return(-1)
+    case(1) return(102)
+    case(3, 4, 2)
+            return(103)
+            break
+            return(104)
+    case(6, else)
+      return(99) 
+  )
+end
+
+script, switch B, x, begin
+  return(1)
+  switch(x) do(
+    case(5) do()
+    case(2) do(
+      return(100)
+      break
+      return(101)
+    )
+    case(1) return(102)
+    case((2+1), 2*2, zero)
+      if(x) then(return(103))
+      else(return(104))
+    else(return(99))
+  )
+end
+
+script, switch tests, begin
+  $0="switch tests"
+  assert(switch A(0) == 101)
+  assert(switch A(1) == 102)
+  assert(switch A(2) == 101)
+  assert(switch A(3) == 103)
+  assert(switch A(4) == 103)
+  assert(switch A(5) == 1)
+  assert(switch A(6) == 99)
+  assert(switch A(7) == 102)
+  assert(switch A(8) == 99)
+
+  assert(switch B(0) == 104)
+  assert(switch B(1) == 102)
+  assert(switch B(2) == 100)
+  assert(switch B(3) == 103)
+  assert(switch B(4) == 103)
+  assert(switch B(5) == 1)
+  assert(switch B(6) == 99)
+end
+
+########################################################################
+
 # include a file with UTF-16 encoding
 include, "utf16 encoding test.hss"
 
@@ -103,6 +163,8 @@ script, hspeak tests, begin
   
   global 5000 := 99999
   assert(global 5000 == 99999)
+
+  switch tests
 end
 
 ########################################################################
@@ -2350,7 +2412,6 @@ end
 #suspend random enemies
 #suspend random enemys
 #suspend timers
-#switch(expression)
 #system day
 #system hour
 #system minute

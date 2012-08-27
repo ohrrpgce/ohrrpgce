@@ -4961,7 +4961,9 @@ end</example>
 		<command id="return">
 			<canon>return(value)</canon>
 			<shortname>return</shortname>
-			<description>Sets the value to be returned by the script. This is only useful when the script has been called as a function from another script. It is irrelevant to scripts called directly from your RPG, for example, text box scripts or menu scripts. This command only matters when you are calling one script from another script. This command does NOT cause the script to terminate, it just sets the return value. If you never use the <p>return</p> command, the script will return a zero. If return is used more than once in the same script, only the last one executed matters.
+			<description>
+<note><p>return</p> in HamsterSpeak is completely different from <p>return</p> in nearly all other programming languages!</note>
+Sets the value to be returned by the script. This is only useful when the script has been called as a function from another script. It is irrelevant to scripts called directly from your RPG, for example, text box scripts or menu scripts. This command only matters when you are calling one script from another script. This command does NOT cause the script to terminate, it just sets the return value. If you never use the <p>return</p> command, the script will return zero. If return is used more than once in the same script, only the last one executed matters.
 <example>
 script, key wait, ticks, begin
   # Returns true if a key was pressed during the wait,
@@ -5049,66 +5051,59 @@ The <p>exit returning</p> command works exactly the same as the <ref>return</ref
 			<canon>break</canon>
 			<shortname>break</shortname>
 			<added>ubersetzung</added>
-			<description>breaks out of a <ref>for</ref> or <ref>while</ref> command and continue the script after the end of the <ref>do</ref> block.</description>
+			<description>Breaks out of a <ref>for</ref> or <ref>while</ref> loop or <ref>switch</ref> and continues the script after the end of the <ref>do</ref> block.</description>
 		</command>
 		<command id="continue">
 			<canon>continue</canon>
 			<shortname>continue</shortname>
 			<added>ubersetzung</added>
-			<description>When used inside the <ref>do</ref> block of a <ref>for</ref> or <ref>while</ref> command, continue skips the rest of the do block and continues on to the next loop. When used inside a <ref>switch</ref> statement, continue flows on to the next <ref>case</ref> block</description>
+			<description>When used inside the <ref>do</ref> block of a <ref>for</ref> or <ref>while</ref> command, <p>continue</p> skips the rest of the do block and continues on to the next loop. When used inside a <ref>switch</ref> statement, continue causes a jump to after the next <ref>case</ref> block.</description>
 		</command>
 		<command id="switch">
 			<canon>switch(expression)</canon>
 			<shortname>switch</shortname>
 			<added>ubersetzung</added>
-			<description>select between a number of <ref>case</ref> statements based on the value of an expression.
+			<description>Select between a number of <ref>case</ref> blocks to execute based on the value of an expression. The switch command is an alternative to a big block of nested <ref>if</ref>/then/else commands that all check the same value. Switch can be easier to read than a lot of if's. Consider the follow script snippet:
+<example>if (v == 0) then (
+  do something
+) else if (v == 1 || v == 2) then (
+  do something else
+) else if (v == 3 || v == 4) then (
+  do yet another thing
+) else if (v == 10) then (
+  #do nothing
+) else (
+  do something if none of the other ifs are true
+)</example>
+This is a good candidate for using switch. The example below shows how this can be done:
 <example>switch(v) do(
   case(0) do(
-    do foo
+    do something
   )
-  case(1) do(
-    do bar
-  )
-  case(2) do(
-    do baz
-  )
-  case(3) do(
+  case(1, 2) do(  # A case can contain multiple values...
     do something else
   )
-  case(10) do(
+  case(3)
+  case(4) do(  # ...or you can use multiple cases after another
     do yet another thing
   )
+  case(10) do()  #do nothing
   else(
     do something if none of the cases happen
   )
 )</example>
-The select command is an alternative to a big block of nested <ref>if</ref>/then/else commands that all check the same value. Switch can be easier to read than a lot of if's. The example below shows how the same switch stattement would be written with if/then/else
-<example>if(v == 0) then(
-  do foo
-)else(
-  if(v == 1) then(
-    do bar
-  )else(
-    if(v == 2) then(
-      do baz
-    )else(
-      if(v == 3) then(
-        do something else
-      )else(
-        if(v == 10) then(
-          do yet another thing
-        )else(
-          do something if none of the other ifs are true
-        )
-      )
-    )
-  )
+The <p>else</p> section is optional.
+There are two different styles (syntaxes) in which switch can be written. The second style looks like this (completely equivalent to the above example):
+<example>switch(v) do(
+  case(0)    do something
+  case(1, 2) do something else
+  case(3)    
+  case(4)    do yet another thing
+  case(10)   do() #nothing
+  case(else) do something if none of the cases happen
 )</example>
-Besides readability, there is one other important difference between these two examples. The switch command only checks the value of v once. the if/the/else method checks v repeatedly, so it could be slower, and could be suceptible to errors if you accidentally change the value of v somewhere in the middle. The <p>else</p> section is optional.
-		</description>
-		<seealso>
-			<ref>case</ref>
-		</seealso>
+Besides readability, there is one other important difference between using switch and using a sequence of if's. The switch command only checks the value of the expression (v) once. The if/then/else method checks v repeatedly, so it could be slower, and could be susceptible to errors if you accidentally change the value of v somewhere in the middle.
+			</description>
 		</command>
 		<command id="case">
 			<canon>case(value)</canon>

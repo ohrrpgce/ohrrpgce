@@ -22,10 +22,18 @@ WHAT IS NEW?
     * When browsing plotscripts in custom, you can jump to scripts by
       typing more than just the first letter of the scripts name [James]
     * "delete npc" as an alias to "destroy npc"
-    * "include" syntax is more lenient like it used to be. Quotes around
-      filenames containing paths, upper case or spaces optional [Ralph]
-    * The characters '{', '}', '[', ']', '.' are now totally disallowed
-    * < and > can be used instead of << and >>
+    * HamsterSpeak syntax changes:
+      * "include" syntax is more lenient, like it used to be. Quotes
+        around filenames containing paths, upper case or spaces optional
+      * The characters '{', '}', '[', ']', '.' are now totally disallowed
+      * < and > can be used instead of << and >>
+      * "do" after a case is optional, and you may write case(else) ...
+        instead of else(...). Example:
+            switch (dir) do (
+              case (north, south) return (1)
+              case (else)         return (0)
+            )
+      [Ralph]
 
   * Stuff Only Developers Will Notice
 
