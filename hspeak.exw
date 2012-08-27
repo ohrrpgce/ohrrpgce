@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3P  2012-08-18 Change way include is lexed: quotes no longer needed
 --3Of 2012-08-18 Lexer bugfix
 --3Oe 2012-04-11 Add \n and \t escape codes
 --3Od 2012-03-03 Change directory search order slightly
@@ -130,7 +131,7 @@ constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Of"
+constant COMPILER_SUB_VERSION="P "
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags. May add more colors, up to #F8FF
@@ -1114,6 +1115,51 @@ end function
 
 ---------------------------------------------------------------------------
 
+--Clean the rest of a line for seek_include after 'include' occurs
+function lexer_read_include_line(sequence tokens, sequence s, integer i, srcpos pos)
+  integer at
+  sequence temp
+
+  if not equal(tokens[1][CMD_TEXT],"include") then
+    src_error(COLYEL&"include"&COLRED&" must be the only statement on the line. Maybe you tried to use this reserved keyword illegally?",tokens[$][CMD_POS])
+  end if
+
+  i+=1
+  s=s[i..$]
+  at=find('\n',s)
+  if at then
+    s=s[1..at-1]
+  end if
+  at=find('#',s)
+  if at then
+    s=s[1..at-1]
+  end if
+  if length(s) then
+    while s[1]=' ' or s[1]='\t' do
+      s=s[2..length(s)]
+      i+=1
+    end while
+    --s=trim_whitespace(s)
+    if s[1]='"' then
+      temp=lexer_read_string(s,2,length(s),pos+i-1)
+      s=temp[2]
+      --so we ignore everything after the string.... ugh
+    end if
+    tokens=append(tokens,{s,pos+i-1})
+  end if
+
+  if length(tokens)=1 then
+    src_error("Expected name of file to follow "&COLYEL&"include"&COLRED,tokens[1][CMD_POS])
+  end if
+  if length(tokens)>2 then
+    src_error(sprintf_utf("Found unexpected syntax "&COLYEL&"%s"&COLRED&" instead of filename to include. Syntax of an include statement is "&COLYEL&"include, filename"&COLRED&" possibly with a path",{tokens[2][CMD_TEXT]}),tokens[2][CMD_POS])
+  end if
+
+  return(tokens)
+end function
+
+---------------------------------------------------------------------------
+
 -- s is the text for the whole file, the interval i to stop is a single line,
 -- and pos is the srcpos for the beginning of the file
 function lex_line(sequence s,integer i,integer stop,srcpos pos)
@@ -1128,6 +1174,7 @@ function lex_line(sequence s,integer i,integer stop,srcpos pos)
   sequence remem_ident
   integer remem_textstart
   integer nonnumeral  --whether we are definitely inside an identifier, ie. a digit doesn't indicate a number
+  integer backtracked
 
   ident=""
   nonnumeral=false
@@ -1171,6 +1218,7 @@ function lex_line(sequence s,integer i,integer stop,srcpos pos)
     else
       remem_ident=ident  --for backtracking
       remem_textstart=textstart
+      backtracked=false
       if length(ident) then
         tokens=append(tokens,{ident,pos+textstart})
       end if
@@ -1224,6 +1272,8 @@ function lex_line(sequence s,integer i,integer stop,srcpos pos)
         end for
         if found=false then
           --need to backtrack, in particular for -
+          --color_print("backtracking on '%s'\n", {masked})
+          backtracked=true
           ident=remem_ident & masked[1]
           oldi=i+1
           i=textstart
@@ -1245,10 +1295,20 @@ function lex_line(sequence s,integer i,integer stop,srcpos pos)
       elsif state=LEX_BINARY then
         lexer_binary_error(pos+i)
       end if
+      if backtracked=false then
+        if equal(remem_ident,"include") then
+          --include is a special case, as normal lexing rules don't apply for rest of line
+          if length(ident) then
+            simple_error("compiler bug!\n")
+          end if
+          return lexer_read_include_line(tokens,s,i,pos)
+        end if
+      end if
     end if
     i+=1
   end while
   if length(ident) then
+    --ought to check whether ident is 'include'...
     tokens=append(tokens,{ident,pos+textstart})
   end if
   return(tokens)
@@ -1387,25 +1447,15 @@ end function
 
 ---------------------------------------------------------------------------
 
-function seek_include(sequence s)
-  integer at
-  at=find("include",column(s,CMD_TEXT))
-  if at then
-    if at!=1 then 
-      src_error(COLYEL&"include"&COLRED&" must be the only statement on the line. Maybe you tried to use this reserved keyword illegally?",s[at][CMD_POS])
+function seek_include(sequence tokens)
+  sequence ret
+  if length(tokens) and equal(tokens[1][CMD_TEXT],"include") then
+    ret=tokens[2][CMD_TEXT]
+    if ret[1]='"' then
+      --trim quote marks
+      ret=ret[2..$-1]
     end if
-    if length(s)=1 then
-      src_error("Expected name of file to follow "&COLYEL&"include"&COLRED,s[at][CMD_POS])
-    end if
-    if length(s)>2 then
-      src_error(sprintf_utf("Found garbage "&COLYEL&"%s"&COLRED&" after name of file to include. Try enclosing the filename in \"quote marks\"?",{s[3][CMD_TEXT]}),s[3][CMD_POS])
-    end if
-    if s[at+1][CMD_TEXT][1]='"' then --each element of s guaranteed nonzero length
-      --is a string
-      return(s[at+1][CMD_TEXT][2..$-1])
-    end if
-    --can we throw a warning if quote marks should have been used?
-    return(s[at+1][CMD_TEXT])
+    return(ret)
   end if
   return("")
 end function

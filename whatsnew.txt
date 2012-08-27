@@ -22,6 +22,8 @@ WHAT IS NEW?
     * When browsing plotscripts in custom, you can jump to scripts by
       typing more than just the first letter of the scripts name [James]
     * "delete npc" as an alias to "destroy npc"
+    * "include" syntax is more lenient like it used to be. Quotes around
+      filenames containing paths, upper case or spaces optional [Ralph]
 
   * Stuff Only Developers Will Notice
 
