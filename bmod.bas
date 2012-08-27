@@ -2489,11 +2489,10 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  
  DIM numhits as integer
  numhits = attack.hits
- IF xreadbit(gen(), 13, genBits2) = NO THEN
+ ' "Attacks will ignore extra hits stat" gen bitset
+ IF xreadbit(gen(), 13, genBits2) = NO AND attack.ignore_extra_hits = NO THEN
   numhits += randint(bslot(bat.acting).stat.cur.hits + 1)
- ELSE
  END IF
- IF attack.ignore_extra_hits THEN numhits = attack.hits
 
  DIM atkimgdirection as integer
  atkimgdirection = pdir

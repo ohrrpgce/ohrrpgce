@@ -382,6 +382,11 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
     RETURN NO
    END IF
   END WITH
+
+  'resetting
+  IF attack.reset_targ_stat_before_hit = YES THEN
+   target.stat.cur.sta(targstat) = target.stat.max.sta(targstat)
+  END IF
  
   'attack power and defense power
   DIM ap as integer = attacker.stat.cur.str
@@ -421,11 +426,6 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
   IF attack.damage_math = 1 THEN am = 0.8  : dm = 0.1 'atk*.8-def*.5
   IF attack.damage_math = 2 THEN am = 1.3 : dm = 1.0  'atk-1.3-def
   IF attack.damage_math = 3 THEN am = 1.0 : dm = 0.0  'atk
- 
-  'resetting
-  IF attack.reset_targ_stat_before_hit = YES THEN
-   target.stat.cur.sta(targstat) = target.stat.max.sta(targstat)
-  END IF
  
   'calc harm
   h = (ap * am) - (dp * dm)
@@ -517,17 +517,6 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
    IF target.harmed_by_cure = YES THEN h = ABS(h)  'zombie
   END IF
  
-  IF attack.do_not_exceed_targ_stat THEN
-   IF h > 0 THEN 'damage
-    h = small(h, target.stat.cur.sta(targstat))
-   ELSEIF h < 0 THEN ' cure
-    DIM diff as integer = target.stat.max.sta(targstat) - target.stat.cur.sta(targstat)
-    IF diff >= 0 THEN
-     h = large(h, diff * -1)
-    END IF
-   END IF
-  END IF
-
   DIM capdamage as integer = YES
  
   IF attack.percent_damage_not_set = NO THEN
@@ -545,6 +534,19 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
    END SELECT
   END IF
  
+  'Maybe cap damage to max possible damage
+  'Note that unlike the damage cap, this still happens if not inflicting
+  IF attack.do_not_exceed_targ_stat AND capdamage THEN
+   IF h > 0 THEN 'damage
+    h = small(h, target.stat.cur.sta(targstat))
+   ELSEIF h < 0 THEN ' cure
+    DIM diff as integer = target.stat.max.sta(targstat) - target.stat.cur.sta(targstat)
+    IF diff >= 0 THEN
+     h = large(h, diff * -1)
+    END IF
+   END IF
+  END IF
+
   'inflict
   IF attack.show_damage_without_inflicting = NO THEN
    'I think that not applying the damage cap when only showing damage is pretty dodgy...
@@ -568,14 +570,14 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
      .stat.cur.sta(targstat) += h
     END WITH
    END IF
-  END IF
- 
-  'enforce bounds
-  target.stat.cur.sta(targstat) = large(target.stat.cur.sta(targstat), 0)
-  attacker.stat.cur.sta(targstat) = large(attacker.stat.cur.sta(targstat), 0)
-  IF attack.allow_cure_to_exceed_maximum = NO THEN
-   target.stat.cur.sta(targstat) = small(target.stat.cur.sta(targstat), large(target.stat.max.sta(targstat), remtargstat))
-   attacker.stat.cur.sta(targstat) = small(attacker.stat.cur.sta(targstat), large(attacker.stat.max.sta(targstat), rematkrstat))
+
+   'enforce stat bounds
+   target.stat.cur.sta(targstat) = large(target.stat.cur.sta(targstat), 0)
+   attacker.stat.cur.sta(targstat) = large(attacker.stat.cur.sta(targstat), 0)
+   IF attack.allow_cure_to_exceed_maximum = NO THEN
+    target.stat.cur.sta(targstat) = small(target.stat.cur.sta(targstat), large(target.stat.max.sta(targstat), remtargstat))
+    attacker.stat.cur.sta(targstat) = small(attacker.stat.cur.sta(targstat), large(attacker.stat.max.sta(targstat), rematkrstat))
+   END IF
   END IF
  
   'set damage display
