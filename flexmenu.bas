@@ -35,6 +35,158 @@ SUB addcaption (caption() as string, byref indexer as integer, cap as string)
  indexer = UBOUND(caption) + 1
 END SUB
 
+'------------------------------ Attack Editor ----------------------------------
+
+'--ID numbers for menu item definitions
+
+CONST AtkBackAct = 0
+CONST AtkName = 1
+CONST AtkAppearAct = 2
+CONST AtkDmgAct = 3
+CONST AtkTargAct = 4
+CONST AtkCostAct = 5
+CONST AtkChainAct = 6
+CONST AtkBitAct = 7
+CONST AtkPic = 8
+CONST AtkPal = 9
+CONST AtkAnimPattern = 10
+CONST AtkTargClass = 11
+CONST AtkTargSetting = 12
+CONST AtkChooseAct = 13
+CONST AtkDamageEq = 14
+CONST AtkAimEq = 15
+CONST AtkBaseAtk = 16
+CONST AtkMPCost = 17
+CONST AtkHPCost = 18
+CONST AtkMoneyCost = 19
+CONST AtkExtraDamage = 20
+CONST AtkChainTo = 21
+CONST AtkChainRate = 22
+CONST AtkAnimAttacker = 23
+CONST AtkAnimAttack = 24
+CONST AtkDelay = 25
+CONST AtkHitX = 26
+CONST AtkTargStat = 27
+CONST AtkCaption = 28
+CONST AtkCapTime = 29
+CONST AtkCaptDelay = 30
+CONST AtkBaseDef = 31
+CONST AtkTag = 32
+CONST AtkTagIf = 33
+CONST AtkTagAnd = 34
+CONST AtkTag2 = 35
+CONST AtkTagIf2 = 36
+CONST AtkTagAnd2 = 37
+CONST AtkTagAct = 38
+CONST AtkDescription = 39
+CONST AtkItem1 = 40
+CONST AtkItemCost1 = 41
+CONST AtkItem2 = 42
+CONST AtkItemCost2 = 43
+CONST AtkItem3 = 44
+CONST AtkItemCost3 = 45
+CONST AtkSoundEffect = 46
+CONST AtkPreferTarg = 47
+CONST AtkPrefTargStat = 48
+CONST AtkChainMode = 49
+CONST AtkChainVal1 = 50
+CONST AtkChainVal2 = 51
+CONST AtkChainBits = 52
+CONST AtkElseChainTo = 53
+CONST AtkElseChainRate = 54
+CONST AtkElseChainMode = 55
+CONST AtkElseChainVal1 = 56
+CONST AtkElseChainVal2 = 57
+CONST AtkElseChainBits = 58
+CONST AtkChainHeader = 59
+CONST AtkElseChainHeader = 60
+CONST AtkInsteadChainHeader = 61
+CONST AtkInsteadChainTo = 62
+CONST AtkInsteadChainRate = 63
+CONST AtkInsteadChainMode = 64
+CONST AtkInsteadChainVal1 = 65
+CONST AtkInsteadChainVal2 = 66
+CONST AtkInsteadChainBits = 67
+CONST AtkChainBrowserAct = 68
+CONST AtkLearnSoundEffect = 69
+CONST AtkTransmogAct = 70
+CONST AtkTransmogEnemy = 71
+CONST AtkTransmogHp = 72
+CONST AtkTransmogStats = 73
+CONST AtkElementFailAct = 74
+CONST AtkElementalFailHeader = 75
+CONST AtkElementalFails = 76
+CONST AtkElemBitAct = 140
+
+'Next menu item is 141 (remember to update MnuItems)
+
+
+'--Offsets in the attack data record (combined DT6 + ATTACK.BIN)
+
+CONST AtkDatPic = 0
+CONST AtkDatPal = 1
+CONST AtkDatAnimPattern = 2
+CONST AtkDatTargClass = 3
+CONST AtkDatTargSetting = 4
+CONST AtkDatDamageEq = 5
+CONST AtkDatAimEq = 6
+CONST AtkDatBaseAtk = 7
+CONST AtkDatMPCost = 8
+CONST AtkDatHPCost = 9
+CONST AtkDatMoneyCost = 10
+CONST AtkDatExtraDamage = 11
+CONST AtkDatChainTo = 12
+CONST AtkDatChainRate = 13 'See also the hacky usage of this value in updateflexmenu
+CONST AtkDatAnimAttacker = 14
+CONST AtkDatAnimAttack = 15
+CONST AtkDatDelay = 16
+CONST AtkDatHitX = 17
+CONST AtkDatTargStat = 18
+CONST AtkDatPreferTarg = 19
+CONST AtkDatBitsets = 20' to 23
+CONST AtkDatName = 24'to 35
+CONST AtkDatCapTime = 36
+CONST AtkDatCaption = 37'to 56
+CONST AtkDatCaptDelay = 57
+CONST AtkDatBaseDef = 58
+CONST AtkDatTag = 59
+CONST AtkDatTagIf = 60
+CONST AtkDatTagAnd = 61
+CONST AtkDatTag2 = 62
+CONST AtkDatTagIf2 = 63
+CONST AtkDatTagAnd2 = 64
+CONST AtkDatBitsets2 = 65' to 72
+CONST AtkDatDescription = 73'to 92
+CONST AtkDatItem = 93', 95, 97
+CONST AtkDatItemCost = 94', 96, 98
+CONST AtkDatSoundEffect = 99
+CONST AtkDatPrefTargStat = 100
+CONST AtkDatChainMode = 101
+CONST AtkDatChainVal1 = 102
+CONST AtkDatChainVal2 = 103
+CONST AtkDatChainBits = 104
+CONST AtkDatElseChainTo = 105
+CONST AtkDatElseChainMode = 106
+CONST AtkDatElseChainRate = 107
+CONST AtkDatElseChainVal1 = 108
+CONST AtkDatElseChainVal2 = 109
+CONST AtkDatElseChainBits = 110
+CONST AtkDatInsteadChainTo = 111
+CONST AtkDatInsteadChainMode = 112
+CONST AtkDatInsteadChainRate = 113
+CONST AtkDatInsteadChainVal1 = 114
+CONST AtkDatInsteadChainVal2 = 115
+CONST AtkDatInsteadChainBits = 116
+CONST AtkDatLearnSoundEffect = 117
+CONST AtkDatTransmogEnemy = 118
+CONST AtkDatTransmogHp = 119
+CONST AtkDatTransmogStats = 120
+CONST AtkDatElementalFail = 121 'to 312
+
+'anything past this requires expanding the data
+
+
+
 SUB attackdata
 
 clearallpages
@@ -132,70 +284,6 @@ atk_chain_bitset_names(3) = "Don't retarget if target is lost"
 '----------------------------------------------------------
 DIM recbuf(40 + curbinsize(binATTACK) \ 2 - 1) as integer '--stores the combined attack data from both .DT6 and ATTACK.BIN
 
-CONST AtkDatPic = 0
-CONST AtkDatPal = 1
-CONST AtkDatAnimPattern = 2
-CONST AtkDatTargClass = 3
-CONST AtkDatTargSetting = 4
-CONST AtkDatDamageEq = 5
-CONST AtkDatAimEq = 6
-CONST AtkDatBaseAtk = 7
-CONST AtkDatMPCost = 8
-CONST AtkDatHPCost = 9
-CONST AtkDatMoneyCost = 10
-CONST AtkDatExtraDamage = 11
-CONST AtkDatChainTo = 12
-CONST AtkDatChainRate = 13 'See also the hacky usage of this value in updateflexmenu
-CONST AtkDatAnimAttacker = 14
-CONST AtkDatAnimAttack = 15
-CONST AtkDatDelay = 16
-CONST AtkDatHitX = 17
-CONST AtkDatTargStat = 18
-CONST AtkDatPreferTarg = 19
-CONST AtkDatBitsets = 20' to 23
-CONST AtkDatName = 24'to 35
-CONST AtkDatCapTime = 36
-CONST AtkDatCaption = 37'to 56
-CONST AtkDatCaptDelay = 57
-CONST AtkDatBaseDef = 58
-CONST AtkDatTag = 59
-CONST AtkDatTagIf = 60
-CONST AtkDatTagAnd = 61
-CONST AtkDatTag2 = 62
-CONST AtkDatTagIf2 = 63
-CONST AtkDatTagAnd2 = 64
-CONST AtkDatBitsets2 = 65' to 72
-CONST AtkDatDescription = 73'to 92
-CONST AtkDatItem = 93', 95, 97
-CONST AtkDatItemCost = 94', 96, 98
-CONST AtkDatSoundEffect = 99
-CONST AtkDatPrefTargStat = 100
-CONST AtkDatChainMode = 101
-CONST AtkDatChainVal1 = 102
-CONST AtkDatChainVal2 = 103
-CONST AtkDatChainBits = 104
-CONST AtkDatElseChainTo = 105
-CONST AtkDatElseChainMode = 106
-CONST AtkDatElseChainRate = 107
-CONST AtkDatElseChainVal1 = 108
-CONST AtkDatElseChainVal2 = 109
-CONST AtkDatElseChainBits = 110
-CONST AtkDatInsteadChainTo = 111
-CONST AtkDatInsteadChainMode = 112
-CONST AtkDatInsteadChainRate = 113
-CONST AtkDatInsteadChainVal1 = 114
-CONST AtkDatInsteadChainVal2 = 115
-CONST AtkDatInsteadChainBits = 116
-CONST AtkDatLearnSoundEffect = 117
-CONST AtkDatTransmogEnemy = 118
-CONST AtkDatTransmogHp = 119
-CONST AtkDatTransmogStats = 120
-CONST AtkDatElementalFail = 121 'to 312
-
-'anything past this requires expanding the data
-
-
-'----------------------------------------------------------
 DIM capindex as integer = 0
 REDIM caption(-1 TO -1) as string
 DIM max(39) as integer
@@ -500,437 +588,357 @@ DIM menutype(MnuItems) as integer
 DIM menuoff(MnuItems) as integer
 DIM menulimits(MnuItems) as integer
 
-CONST AtkBackAct = 0
 menu(AtkBackAct) = "Previous Menu"
 menutype(AtkBackAct) = 1
 
-CONST AtkName = 1
 menu(AtkName) = "Name:"
 menutype(AtkName) = 6
 menuoff(AtkName) = AtkDatName
 menulimits(AtkName) = AtkLimStr10
 
-CONST AtkAppearAct = 2
 menu(AtkAppearAct) = "Appearance & Sounds..."
 menutype(AtkAppearAct) = 1
 
-CONST AtkDmgAct = 3
 menu(AtkDmgAct) = "Damage Settings..."
 menutype(AtkDmgAct) = 1
 
-CONST AtkTargAct = 4
 menu(AtkTargAct) = "Target Settings..."
 menutype(AtkTargAct) = 1
 
-CONST AtkCostAct = 5
 menu(AtkCostAct) = "Cost..."
 menutype(AtkCostAct) = 1
 
-CONST AtkChainAct = 6
 menu(AtkChainAct) = "Chaining..."
 menutype(AtkChainAct) = 1
 
-CONST AtkBitAct = 7
 menu(AtkBitAct) = "Bitsets..."
 menutype(AtkBitAct) = 1
 
-CONST AtkPic = 8
 menu(AtkPic) = "Picture:"
 menutype(AtkPic) = 0
 menuoff(AtkPic) = AtkDatPic
 menulimits(AtkPic) = AtkLimPic
 
-CONST AtkPal = 9
 menu(AtkPal) = "Palette:"
 menutype(AtkPal) = 12
 menuoff(AtkPal) = AtkDatPal
 menulimits(AtkPal) = AtkLimPal16
 
-CONST AtkAnimPattern = 10
 menu(AtkAnimPattern) = "Animation Pattern:"
 menutype(AtkAnimPattern) = 2000 + AtkCapAnimPattern
 menuoff(AtkAnimPattern) = AtkDatAnimPattern
 menulimits(AtkAnimPattern) = AtkLimAnimPattern
 
-CONST AtkTargClass = 11
 menu(AtkTargClass) = "Target Class:"
 menutype(AtkTargClass) = 2000 + AtkCapTargClass
 menuoff(AtkTargClass) = AtkDatTargClass
 menulimits(AtkTargClass) = AtkLimTargClass
 
-CONST AtkTargSetting = 12
 menu(AtkTargSetting) = "Target Setting:"
 menutype(AtkTargSetting) = 2000 + AtkCapTargSetting
 menuoff(AtkTargSetting) = AtkDatTargSetting
 menulimits(AtkTargSetting) = AtkLimTargSetting
 
-CONST AtkChooseAct = 13
 menu(AtkChooseAct) = "Attack"
 menutype(AtkChooseAct) = 5
 
-CONST AtkDamageEq = 14
 menu(AtkDamageEq) = "Damage Math:"
 menutype(AtkDamageEq) = 2000 + AtkCapDamageEq
 menuoff(AtkDamageEq) = AtkDatDamageEq
 menulimits(AtkDamageEq) = AtkLimDamageEq
 
-CONST AtkAimEq = 15
 menu(AtkAimEq) = "Aim Math:"
 menutype(AtkAimEq) = 2000 + AtkCapAimEq
 menuoff(AtkAimEq) = AtkDatAimEq
 menulimits(AtkAimEq) = AtkLimAimEq
 
-CONST AtkBaseAtk = 16
 menu(AtkBaseAtk) = "Base ATK Stat:"
 menutype(AtkBaseAtk) = 2000 + AtkCapBaseAtk
 menuoff(AtkBaseAtk) = AtkDatBaseAtk
 menulimits(AtkBaseAtk) = AtkLimBaseAtk
 
-CONST AtkMPCost = 17
 menu(AtkMPCost) = statnames(statMP) & " Cost:"
 menutype(AtkMPCost) = 0
 menuoff(AtkMPCost) = AtkDatMPCost
 menulimits(AtkMPCost) = AtkLimInt
 
-CONST AtkHPCost = 18
 menu(AtkHPCost) = statnames(statHP) & " Cost:"
 menutype(AtkHPCost) = 0
 menuoff(AtkHPCost) = AtkDatHPCost
 menulimits(AtkHPCost) = AtkLimInt
 
-CONST AtkMoneyCost = 19
 menu(AtkMoneyCost) = readglobalstring(32, "Money") & " Cost:"
 menutype(AtkMoneyCost) = 0
 menuoff(AtkMoneyCost) = AtkDatMoneyCost
 menulimits(AtkMoneyCost) = AtkLimInt
 
-CONST AtkExtraDamage = 20
 menu(AtkExtraDamage) = "Extra Damage:"
 menutype(AtkExtraDamage) = 17 'int%
 menuoff(AtkExtraDamage) = AtkDatExtraDamage
 menulimits(AtkExtraDamage) = AtkLimExtraDamage
 
-CONST AtkChainTo = 21
 menu(AtkChainTo) = "  Attack:"
 menutype(AtkChainTo) = 7 '--special class for showing an attack name
 menuoff(AtkChainTo) = AtkDatChainTo
 menulimits(AtkChainTo) = AtkLimChainTo
 
-CONST AtkChainRate = 22
 menu(AtkChainRate) = "  Rate:"
 menutype(AtkChainRate) = 17
 menuoff(AtkChainRate) = AtkDatChainRate
 menulimits(AtkChainRate) = AtkLimChainRate
 
-CONST AtkAnimAttacker = 23
 menu(AtkAnimAttacker) = "Attacker Animation:"
 menutype(AtkAnimAttacker) = 2000 + AtkCapAnimAttacker
 menuoff(AtkAnimAttacker) = AtkDatAnimAttacker
 menulimits(AtkAnimAttacker) = AtkLimAnimAttacker
 
-CONST AtkAnimAttack = 24
 menu(AtkAnimAttack) = "Attack Animation:"
 menutype(AtkAnimAttack) = 2000 + AtkCapAnimAttack
 menuoff(AtkAnimAttack) = AtkDatAnimAttack
 menulimits(AtkAnimAttack) = AtkLimAnimAttack
 
-CONST AtkDelay = 25
 menu(AtkDelay) = "Delay Before Attack:"
 menutype(AtkDelay) = 19'ticks
 menuoff(AtkDelay) = AtkDatDelay
 menulimits(AtkDelay) = AtkLimDelay
 
-CONST AtkHitX = 26
 menu(AtkHitX) = "Number of Hits:"
 menutype(AtkHitX) = 0
 menuoff(AtkHitX) = AtkDatHitX
 menulimits(AtkHitX) = AtkLimHitX
 
-CONST AtkTargStat = 27
 menu(AtkTargStat) = "Target Stat:"
 menutype(AtkTargStat) = 2000 + AtkCapTargStat
 menuoff(AtkTargStat) = AtkDatTargStat
 menulimits(AtkTargStat) = AtkLimTargStat
 
-CONST AtkCaption = 28
 menu(AtkCaption) = "Caption:"
 menutype(AtkCaption) = 3'goodstring
 menuoff(AtkCaption) = AtkDatCaption
 menulimits(AtkCaption) = AtkLimStr38
 
-CONST AtkCapTime = 29
 menu(AtkCapTime) = "Display Caption:"
 menutype(AtkCapTime) = 3000 + AtkCapCapTime
 menuoff(AtkCapTime) = AtkDatCapTime
 menulimits(AtkCapTime) = AtkLimCapTime
 
-CONST AtkCaptDelay = 30
 menu(AtkCaptDelay) = "Delay Before Caption:"
 menutype(AtkCaptDelay) = 19'ticks
 menuoff(AtkCaptDelay) = AtkDatCaptDelay
 menulimits(AtkCaptDelay) = AtkLimCaptDelay
 
-CONST AtkBaseDef = 31
 menu(AtkBaseDef) = "Base DEF Stat:"
 menutype(AtkBaseDef) = 2000 + AtkCapBaseDef
 menuoff(AtkBaseDef) = AtkDatBaseDef
 menulimits(AtkBaseDef) = AtkLimBaseDef
 
-CONST AtkTag = 32
 menu(AtkTag) = "Set Tag"
 menutype(AtkTag) = 21
 menuoff(AtkTag) = AtkDatTag
 menulimits(AtkTag) = AtkLimTag
 
-CONST AtkTagIf = 33
 menu(AtkTagIf) = ""
 menutype(AtkTagIf) = 2000 + AtkCapTagIf
 menuoff(AtkTagIf) = AtkDatTagIf
 menulimits(AtkTagIf) = AtkLimTagIf
 
-CONST AtkTagAnd = 34
 menu(AtkTagAnd) = "If Tag"
 menutype(AtkTagAnd) = 2
 menuoff(AtkTagAnd) = AtkDatTagAnd
 menulimits(AtkTagAnd) = AtkLimTagAnd
 
-CONST AtkTag2 = 35
 menu(AtkTag2) = "Set Tag"
 menutype(AtkTag2) = 21
 menuoff(AtkTag2) = AtkDatTag2
 menulimits(AtkTag2) = AtkLimTag
 
-CONST AtkTagIf2 = 36
 menu(AtkTagIf2) = ""
 menutype(AtkTagIf2) = 2000 + AtkCapTagIf
 menuoff(AtkTagIf2) = AtkDatTagIf2
 menulimits(AtkTagIf2) = AtkLimTagIf
 
-CONST AtkTagAnd2 = 37
 menu(AtkTagAnd2) = "If Tag"
 menutype(AtkTagAnd2) = 2
 menuoff(AtkTagAnd2) = AtkDatTagAnd2
 menulimits(AtkTagAnd2) = AtkLimTagAnd
 
-CONST AtkTagAct = 38
 menu(AtkTagAct) = "Tags..."
 menutype(AtkTagAct) = 1
 
-CONST AtkDescription = 39
 menu(AtkDescription) = "Description:"
 menutype(AtkDescription) = 3
 menuoff(AtkDescription) = AtkDatDescription
 menulimits(AtkDescription) = AtkLimStr38
 
-CONST AtkItem1 = 40
 menu(AtkItem1) = "Item 1:"
 menutype(AtkItem1) = 10
 menuoff(AtkItem1) = AtkDatItem
 menulimits(AtkItem1) = AtkLimItem
 
-CONST AtkItemCost1 = 41
 menu(AtkItemCost1) = "  Cost:"
 menutype(AtkItemCost1) = 0
 menuoff(AtkItemCost1) = AtkDatItemCost
 menulimits(AtkItemCost1) = AtkLimInt
 
-CONST AtkItem2 = 42
 menu(AtkItem2) = "Item 2:"
 menutype(AtkItem2) = 10
 menuoff(AtkItem2) = AtkDatItem + 2
 menulimits(AtkItem2) = AtkLimItem
 
-CONST AtkItemCost2 = 43
 menu(AtkItemCost2) = "  Cost:"
 menutype(AtkItemCost2) = 0
 menuoff(AtkItemCost2) = AtkDatItemCost + 2
 menulimits(AtkItemCost2) = AtkLimInt
 
-CONST AtkItem3 = 44
 menu(AtkItem3) = "Item 3:"
 menutype(AtkItem3) = 10
 menuoff(AtkItem3) = AtkDatItem + 4
 menulimits(AtkItem3) = AtkLimItem
 
-CONST AtkItemCost3 = 45
 menu(AtkItemCost3) = "  Cost:"
 menutype(AtkItemCost3) = 0
 menuoff(AtkItemCost3) = AtkDatItemCost + 4
 menulimits(AtkItemCost3) = AtkLimInt
 
-CONST AtkSoundEffect = 46
 menu(AtkSoundEffect) = "Sound Effect:"
 menutype(AtkSoundEffect) = 11
 menuoff(AtkSoundEffect) = AtkDatSoundEffect
 menulimits(AtkSoundEffect) = AtkLimSFX
 
-CONST AtkPreferTarg = 47
 menu(AtkPreferTarg) = "Prefer Target:"
 menutype(AtkPreferTarg) = 2000 + AtkCapPreferTarg
 menuoff(AtkPreferTarg) = AtkDatPreferTarg
 menulimits(AtkPreferTarg) = AtkLimPreferTarg
 
-CONST AtkPrefTargStat = 48
 menu(AtkPrefTargStat) = "Weak/Strong Stat:"
 menutype(AtkPrefTargStat) = 2000 + AtkCapPrefTargStat
 menuoff(AtkPrefTargStat) = AtkDatPrefTargStat
 menulimits(AtkPrefTargStat) = AtkLimPrefTargStat
 
-CONST AtkChainMode = 49
 menu(AtkChainMode) = "  Condition:"
 menutype(AtkChainMode) = 2000 + AtkCapChainMode
 menuoff(AtkChainMode) = AtkDatChainMode
 menulimits(AtkChainMode) = AtkLimChainMode
 
-CONST AtkChainVal1 = 50
 menu(AtkChainVal1) = "" '--updated by update_attack_editor_for_chain()
 menutype(AtkChainVal1) = 18 'skipper
 menuoff(AtkChainVal1) = AtkDatChainVal1
 menulimits(AtkChainVal1) = AtkLimChainVal1
 
-CONST AtkChainVal2 = 51
 menu(AtkChainVal2) = "" '--updated by update_attack_editor_for_chain()
 menutype(AtkChainVal2) = 18 'skipper
 menuoff(AtkChainVal2) = AtkDatChainVal2
 menulimits(AtkChainVal2) = AtkLimChainVal2
 
-CONST AtkChainBits = 52
 menu(AtkChainBits) = "  Option bitsets..."
 menutype(AtkChainBits) = 1
 
-CONST AtkElseChainTo = 53
 menu(AtkElseChainTo) = "  Attack:"
 menutype(AtkElseChainTo) = 7 '--special class for showing an attack name
 menuoff(AtkElseChainTo) = AtkDatElseChainTo
 menulimits(AtkElseChainTo) = AtkLimChainTo
 
-CONST AtkElseChainRate = 54
 menu(AtkElseChainRate) = "  Rate:"
 menutype(AtkElseChainRate) = 20 'Hacky specific type
 menuoff(AtkElseChainRate) = AtkDatElseChainRate
 menulimits(AtkElseChainRate) = AtkLimChainRate
 
-CONST AtkElseChainMode = 55
 menu(AtkElseChainMode) = "  Condition:"
 menutype(AtkElseChainMode) = 2000 + AtkCapChainMode
 menuoff(AtkElseChainMode) = AtkDatElseChainMode
 menulimits(AtkElseChainMode) = AtkLimChainMode
 
-CONST AtkElseChainVal1 = 56
 menu(AtkElseChainVal1) = "" '--updated by update_attack_editor_for_chain()
 menutype(AtkElseChainVal1) = 18'skipper
 menuoff(AtkElseChainVal1) = AtkDatElseChainVal1
 menulimits(AtkElseChainVal1) = AtkLimElseChainVal1
 
-CONST AtkElseChainVal2 = 57
 menu(AtkElseChainVal2) = "" '--updated by update_attack_editor_for_chain()
 menutype(AtkElseChainVal2) = 18'skipper
 menuoff(AtkElseChainVal2) = AtkDatElseChainVal2
 menulimits(AtkElseChainVal2) = AtkLimElseChainVal2
 
-CONST AtkElseChainBits = 58
 menu(AtkElseChainBits) = "  Option bitsets..."
 menutype(AtkElseChainBits) = 1
 
-CONST AtkChainHeader = 59
 menu(AtkChainHeader) = "[Regular Chain]"
 menutype(AtkChainHeader) = 18'skipper
 
-CONST AtkElseChainHeader = 60
 menu(AtkElseChainHeader) = "[Else-Chain]"
 menutype(AtkElseChainHeader) = 18'skipper
 
-CONST AtkInsteadChainHeader = 61
 menu(AtkInsteadChainHeader) = "[Instead-Chain]"
 menutype(AtkInsteadChainHeader) = 18'skipper
 
-CONST AtkInsteadChainTo = 62
 menu(AtkInsteadChainTo) = "  Attack:"
 menutype(AtkInsteadChainTo) = 7 '--special class for showing an attack name
 menuoff(AtkInsteadChainTo) = AtkDatInsteadChainTo
 menulimits(AtkInsteadChainTo) = AtkLimChainTo
 
-CONST AtkInsteadChainRate = 63
 menu(AtkInsteadChainRate) = "  Rate:"
 menutype(AtkInsteadChainRate) = 17
 menuoff(AtkInsteadChainRate) = AtkDatInsteadChainRate
 menulimits(AtkInsteadChainRate) = AtkLimChainRate
 
-CONST AtkInsteadChainMode = 64
 menu(AtkInsteadChainMode) = "  Condition:"
 menutype(AtkInsteadChainMode) = 2000 + AtkCapChainMode
 menuoff(AtkInsteadChainMode) = AtkDatInsteadChainMode
 menulimits(AtkInsteadChainMode) = AtkLimChainMode
 
-CONST AtkInsteadChainVal1 = 65
 menu(AtkInsteadChainVal1) = "" '--updated by update_attack_editor_for_chain()
 menutype(AtkInsteadChainVal1) = 18'skipper
 menuoff(AtkInsteadChainVal1) = AtkDatInsteadChainVal1
 menulimits(AtkInsteadChainVal1) = AtkLimInsteadChainVal1
 
-CONST AtkInsteadChainVal2 = 66
 menu(AtkInsteadChainVal2) = "" '--updated by update_attack_editor_for_chain()
 menutype(AtkInsteadChainVal2) = 18'skipper
 menuoff(AtkInsteadChainVal2) = AtkDatInsteadChainVal2
 menulimits(AtkInsteadChainVal2) = AtkLimInsteadChainVal2
 
-CONST AtkInsteadChainBits = 67
 menu(AtkInsteadChainBits) = "  Option bitsets..."
 menutype(AtkInsteadChainBits) = 1
 
-CONST AtkChainBrowserAct = 68
 menu(AtkChainBrowserAct) = "Browse chain..."
 menutype(AtkChainBrowserAct) = 1
 
-CONST AtkLearnSoundEffect = 69
 menu(AtkLearnSoundEffect) = "Sound When Learned:"
 menutype(AtkLearnSoundEffect) = 11
 menuoff(AtkLearnSoundEffect) = AtkDatLearnSoundEffect
 menulimits(AtkLearnSoundEffect) = AtkLimSFX
 
-CONST AtkTransmogAct = 70
 menu(AtkTransmogAct) = "Transmogrification..."
 menutype(AtkTransmogAct) = 1
 
-CONST AtkTransmogEnemy = 71
 menu(AtkTransmogEnemy) = "Enemy target becomes:"
 menutype(AtkTransmogEnemy) = 9 'enemy name
 menuoff(AtkTransmogEnemy) = AtkDatTransmogEnemy
 menulimits(AtkTransmogEnemy) = AtkLimTransmogEnemy
 
-CONST AtkTransmogHp = 72
 menu(AtkTransmogHp) = "Health:"
 menutype(AtkTransmogHp) = 2000 + AtkCapTransmogStats
 menuoff(AtkTransmogHp) = AtkDatTransmogHp
 menulimits(AtkTransmogHp) = AtkLimTransmogStats
 
-CONST AtkTransmogStats = 73
 menu(AtkTransmogStats) = "Other stats:"
 menutype(AtkTransmogStats) = 2000 + AtkCapTransmogStats
 menuoff(AtkTransmogStats) = AtkDatTransmogStats
 menulimits(AtkTransmogStats) = AtkLimTransmogStats
 
-CONST AtkElementFailAct = 74
 menu(AtkElementFailAct) = "Elemental failure conditions..."
 menutype(AtkElementFailAct) = 1
 
-CONST AtkElementalFailHeader = 75
 menu(AtkElementalFailHeader) = "Fail when target's damage..."
 menutype(AtkElementalFailHeader) = 18  'skip
 
-CONST AtkElementalFails = 76
 FOR i = 0 TO small(63, gen(genNumElements) - 1)
  menu(AtkElementalFails + i) = " from " + rpad(elementnames(i), " ", 15)
  menutype(AtkElementalFails + i) = 4000 + AtkCapFailConds + i * 2  'percent_cond_grabber
  menuoff(AtkElementalFails + i) = AtkDatElementalFail + i * 3
 NEXT
 
-CONST AtkElemBitAct = 140
 menu(AtkElemBitAct) = "Elemental bits..."
 menutype(AtkElemBitAct) = 1
 
-
-'Next menu item is 141 (remember to update the dims)
 
 '----------------------------------------------------------
 '--menu structure
