@@ -284,6 +284,15 @@ atk_chain_bitset_names(3) = "Don't retarget if target is lost"
 '----------------------------------------------------------
 DIM recbuf(40 + curbinsize(binATTACK) \ 2 - 1) as integer '--stores the combined attack data from both .DT6 and ATTACK.BIN
 
+CONST MnuItems = 140
+DIM menu(MnuItems) as string
+DIM menutype(MnuItems) as integer
+DIM menuoff(MnuItems) as integer
+DIM menulimits(MnuItems) as integer
+DIM menucapoff(MnuItems) as integer
+
+'----------------------------------------------------------
+
 DIM capindex as integer = 0
 REDIM caption(-1 TO -1) as string
 DIM max(39) as integer
@@ -309,7 +318,7 @@ max(AtkLimPic) = gen(genMaxAttackPic)
 
 CONST AtkLimAnimPattern = 2
 max(AtkLimAnimPattern) = 3
-DIM AtkCapAnimPattern as integer = capindex
+menucapoff(AtkAnimPattern) = capindex
 addcaption caption(), capindex, "Cycle Forward"
 addcaption caption(), capindex, "Cycle Back"
 addcaption caption(), capindex, "Oscillate"
@@ -317,7 +326,7 @@ addcaption caption(), capindex, "Random"
 
 CONST AtkLimTargClass = 3
 max(AtkLimTargClass) = 12
-DIM AtkCapTargClass as integer = capindex
+menucapoff(AtkTargClass) = capindex
 addcaption caption(), capindex, "Enemy"
 addcaption caption(), capindex, "Ally"
 addcaption caption(), capindex, "Self"
@@ -334,7 +343,7 @@ addcaption caption(), capindex, "Thankvenge (whole battle)"
 
 CONST AtkLimTargSetting = 4
 max(AtkLimTargSetting) = 4
-DIM AtkCapTargSetting as integer = capindex
+menucapoff(AtkTargSetting) = capindex
 addcaption caption(), capindex, "Focused"
 addcaption caption(), capindex, "Spread"
 addcaption caption(), capindex, "Optional Spread"
@@ -343,7 +352,7 @@ addcaption caption(), capindex, "First Target"
 
 CONST AtkLimDamageEq = 5
 max(AtkLimDamageEq) = 6
-DIM AtkCapDamageEq as integer = capindex
+menucapoff(AtkDamageEq) = capindex
 addcaption caption(), capindex, "Normal: ATK - DEF*.5"
 addcaption caption(), capindex, "Blunt: ATK*.8 - DEF*.1"
 addcaption caption(), capindex, "Sharp: ATK*1.3 - DEF"
@@ -354,7 +363,7 @@ addcaption caption(), capindex, "Set = N% of Current"
 
 CONST AtkLimAimEq = 6
 max(AtkLimAimEq) = 8
-DIM AtkCapAimEq as integer = capindex
+menucapoff(AtkAimEq) = capindex
 addcaption caption(), capindex, "Normal: " & statnames(statAim) & "*4 ~ " & statnames(statDodge)
 addcaption caption(), capindex, "Poor: " & statnames(statAim) & "*2 ~ " & statnames(statDodge)
 addcaption caption(), capindex, "Bad: " & statnames(statAim) & " ~ " & statnames(statDodge)
@@ -367,7 +376,7 @@ addcaption caption(), capindex, "Percentage: " & statnames(statMagic) & "%"
 
 CONST AtkLimBaseAtk = 7
 max(AtkLimBaseAtk) = 22 + (UBOUND(statnames) - 11)
-DIM AtkCapBaseAtk as integer = capindex
+menucapoff(AtkBaseAtk) = capindex
 addcaption caption(), capindex, statnames(statAtk)
 addcaption caption(), capindex, statnames(statMagic)
 addcaption caption(), capindex, statnames(statHP)
@@ -399,7 +408,7 @@ min(AtkLimChainRate) = 0
 
 CONST AtkLimAnimAttacker = 14
 max(AtkLimAnimAttacker) = 8
-DIM AtkCapAnimAttacker as integer = capindex
+menucapoff(AtkAnimAttacker) = capindex
 addcaption caption(), capindex, "Strike"
 addcaption caption(), capindex, "Cast"
 addcaption caption(), capindex, "Dash In"
@@ -412,7 +421,7 @@ addcaption caption(), capindex, "Teleport"
 
 CONST AtkLimAnimAttack = 15
 max(AtkLimAnimAttack) = 10
-DIM AtkCapAnimAttack as integer = capindex
+menucapoff(AtkAnimAttack) = capindex
 addcaption caption(), capindex, "Normal"
 addcaption caption(), capindex, "Projectile"
 addcaption caption(), capindex, "Reverse Projectile"
@@ -434,7 +443,7 @@ min(AtkLimHitX) = 1
 
 CONST AtkLimTargStat = 18
 max(AtkLimTargStat) = 15 + (UBOUND(statnames) - 11)
-DIM AtkCapTargStat as integer = capindex
+menucapoff(AtkTargStat) = capindex
 FOR i = 0 TO 11
  addcaption caption(), capindex, statnames(i)
 NEXT
@@ -450,7 +459,7 @@ CONST AtkLimCapTime = 20
 max(AtkLimCapTime) = 16383
 min(AtkLimCapTime) = -1
 addcaption caption(), capindex, "Ticks"
-DIM AtkCapCapTime as integer = capindex
+menucapoff(AtkCapTime) = capindex
 addcaption caption(), capindex, "Full Duration of Attack"
 addcaption caption(), capindex, "Not at All"
 
@@ -460,7 +469,7 @@ min(AtkLimCaptDelay) = 0
 
 CONST AtkLimBaseDef = 22
 max(AtkLimBaseDef) = 1 + UBOUND(statnames)
-DIM AtkCapBaseDef as integer = capindex
+menucapoff(AtkBaseDef) = capindex
 addcaption caption(), capindex, "Default"
 FOR i = 0 TO UBOUND(statnames)
  addcaption caption(), capindex, statnames(i)
@@ -472,7 +481,7 @@ min(AtkLimTag) = -max_tag()
 
 CONST AtkLimTagIf = 24
 max(AtkLimTagIf) = 4
-DIM AtkCapTagIf as integer = capindex
+menucapoff(AtkTagIf) = capindex
 addcaption caption(), capindex, "Never" '0
 addcaption caption(), capindex, "On Use"   '1
 addcaption caption(), capindex, "On Hit"   '2
@@ -498,7 +507,7 @@ min(AtkLimPal16) = -1
 CONST AtkLimPreferTarg = 29
 max(AtkLimPreferTarg) = 8
 min(AtkLimPreferTarg) = 0
-DIM AtkCapPreferTarg as integer = capindex
+menucapoff(AtkPreferTarg) = capindex
 addcaption caption(), capindex, "default"    '0
 addcaption caption(), capindex, "first"      '1
 addcaption caption(), capindex, "closest"    '2
@@ -512,7 +521,7 @@ addcaption caption(), capindex, "strongest%" '8
 CONST AtkLimPrefTargStat = 30
 max(AtkLimPrefTargStat) = 16
 min(AtkLimPrefTargStat) = 0
-DIM AtkCapPrefTargStat as integer = capindex
+menucapoff(AtkPrefTargStat) = capindex
 addcaption caption(), capindex, "same as target stat" '0
 FOR i = 0 TO 11  '1 - 12
  addcaption caption(), capindex, statnames(i)
@@ -527,7 +536,7 @@ NEXT
 
 CONST AtkLimChainMode = 31
 max(AtkLimChainMode) = 5
-DIM AtkCapChainMode as integer = capindex
+menucapoff(AtkChainMode) = capindex
 addcaption caption(), capindex, "No special conditions" '0
 addcaption caption(), capindex, "Tag Check"     '1
 addcaption caption(), capindex, "Attacker stat > value" '2
@@ -562,7 +571,7 @@ min(AtkLimInsteadChainVal2) = 0 '--updated by update_attack_editor_for_chain()
 CONST AtkLimTransmogStats = 38
 max(AtkLimTransmogStats) = 3
 min(AtkLimTransmogStats) = 0
-DIM AtkCapTransmogStats as integer = capindex
+menucapoff(AtkTransmogStats) = capindex
 addcaption caption(), capindex, "keep old current"  '0
 addcaption caption(), capindex, "restore to new max"  '1
 addcaption caption(), capindex, "preserve % of max"   '2
@@ -572,6 +581,7 @@ CONST AtkLimTransmogEnemy = 39
 max(AtkLimTransmogEnemy) = gen(genMaxEnemy) + 1
 min(AtkLimTransmogEnemy) = 0
 
+'Special case!
 DIM AtkCapFailConds as integer = capindex
 FOR i = 0 TO 63
  addcaption caption(), capindex, " [No Condition]"
@@ -582,11 +592,6 @@ NEXT
 
 '----------------------------------------------------------------------
 '--menu content
-CONST MnuItems = 140
-DIM menu(MnuItems) as string
-DIM menutype(MnuItems) as integer
-DIM menuoff(MnuItems) as integer
-DIM menulimits(MnuItems) as integer
 
 menu(AtkBackAct) = "Previous Menu"
 menutype(AtkBackAct) = 1
@@ -625,17 +630,17 @@ menuoff(AtkPal) = AtkDatPal
 menulimits(AtkPal) = AtkLimPal16
 
 menu(AtkAnimPattern) = "Animation Pattern:"
-menutype(AtkAnimPattern) = 2000 + AtkCapAnimPattern
+menutype(AtkAnimPattern) = 2000 + menucapoff(AtkAnimPattern)
 menuoff(AtkAnimPattern) = AtkDatAnimPattern
 menulimits(AtkAnimPattern) = AtkLimAnimPattern
 
 menu(AtkTargClass) = "Target Class:"
-menutype(AtkTargClass) = 2000 + AtkCapTargClass
+menutype(AtkTargClass) = 2000 + menucapoff(AtkTargClass)
 menuoff(AtkTargClass) = AtkDatTargClass
 menulimits(AtkTargClass) = AtkLimTargClass
 
 menu(AtkTargSetting) = "Target Setting:"
-menutype(AtkTargSetting) = 2000 + AtkCapTargSetting
+menutype(AtkTargSetting) = 2000 + menucapoff(AtkTargSetting)
 menuoff(AtkTargSetting) = AtkDatTargSetting
 menulimits(AtkTargSetting) = AtkLimTargSetting
 
@@ -643,17 +648,17 @@ menu(AtkChooseAct) = "Attack"
 menutype(AtkChooseAct) = 5
 
 menu(AtkDamageEq) = "Damage Math:"
-menutype(AtkDamageEq) = 2000 + AtkCapDamageEq
+menutype(AtkDamageEq) = 2000 + menucapoff(AtkDamageEq)
 menuoff(AtkDamageEq) = AtkDatDamageEq
 menulimits(AtkDamageEq) = AtkLimDamageEq
 
 menu(AtkAimEq) = "Aim Math:"
-menutype(AtkAimEq) = 2000 + AtkCapAimEq
+menutype(AtkAimEq) = 2000 + menucapoff(AtkAimEq)
 menuoff(AtkAimEq) = AtkDatAimEq
 menulimits(AtkAimEq) = AtkLimAimEq
 
 menu(AtkBaseAtk) = "Base ATK Stat:"
-menutype(AtkBaseAtk) = 2000 + AtkCapBaseAtk
+menutype(AtkBaseAtk) = 2000 + menucapoff(AtkBaseAtk)
 menuoff(AtkBaseAtk) = AtkDatBaseAtk
 menulimits(AtkBaseAtk) = AtkLimBaseAtk
 
@@ -688,12 +693,12 @@ menuoff(AtkChainRate) = AtkDatChainRate
 menulimits(AtkChainRate) = AtkLimChainRate
 
 menu(AtkAnimAttacker) = "Attacker Animation:"
-menutype(AtkAnimAttacker) = 2000 + AtkCapAnimAttacker
+menutype(AtkAnimAttacker) = 2000 + menucapoff(AtkAnimAttacker)
 menuoff(AtkAnimAttacker) = AtkDatAnimAttacker
 menulimits(AtkAnimAttacker) = AtkLimAnimAttacker
 
 menu(AtkAnimAttack) = "Attack Animation:"
-menutype(AtkAnimAttack) = 2000 + AtkCapAnimAttack
+menutype(AtkAnimAttack) = 2000 + menucapoff(AtkAnimAttack)
 menuoff(AtkAnimAttack) = AtkDatAnimAttack
 menulimits(AtkAnimAttack) = AtkLimAnimAttack
 
@@ -708,7 +713,7 @@ menuoff(AtkHitX) = AtkDatHitX
 menulimits(AtkHitX) = AtkLimHitX
 
 menu(AtkTargStat) = "Target Stat:"
-menutype(AtkTargStat) = 2000 + AtkCapTargStat
+menutype(AtkTargStat) = 2000 + menucapoff(AtkTargStat)
 menuoff(AtkTargStat) = AtkDatTargStat
 menulimits(AtkTargStat) = AtkLimTargStat
 
@@ -718,7 +723,7 @@ menuoff(AtkCaption) = AtkDatCaption
 menulimits(AtkCaption) = AtkLimStr38
 
 menu(AtkCapTime) = "Display Caption:"
-menutype(AtkCapTime) = 3000 + AtkCapCapTime
+menutype(AtkCapTime) = 3000 + menucapoff(AtkCapTime)
 menuoff(AtkCapTime) = AtkDatCapTime
 menulimits(AtkCapTime) = AtkLimCapTime
 
@@ -728,7 +733,7 @@ menuoff(AtkCaptDelay) = AtkDatCaptDelay
 menulimits(AtkCaptDelay) = AtkLimCaptDelay
 
 menu(AtkBaseDef) = "Base DEF Stat:"
-menutype(AtkBaseDef) = 2000 + AtkCapBaseDef
+menutype(AtkBaseDef) = 2000 + menucapoff(AtkBaseDef)
 menuoff(AtkBaseDef) = AtkDatBaseDef
 menulimits(AtkBaseDef) = AtkLimBaseDef
 
@@ -738,7 +743,7 @@ menuoff(AtkTag) = AtkDatTag
 menulimits(AtkTag) = AtkLimTag
 
 menu(AtkTagIf) = ""
-menutype(AtkTagIf) = 2000 + AtkCapTagIf
+menutype(AtkTagIf) = 2000 + menucapoff(AtkTagIf)
 menuoff(AtkTagIf) = AtkDatTagIf
 menulimits(AtkTagIf) = AtkLimTagIf
 
@@ -753,7 +758,7 @@ menuoff(AtkTag2) = AtkDatTag2
 menulimits(AtkTag2) = AtkLimTag
 
 menu(AtkTagIf2) = ""
-menutype(AtkTagIf2) = 2000 + AtkCapTagIf
+menutype(AtkTagIf2) = 2000 + menucapoff(AtkTagIf)
 menuoff(AtkTagIf2) = AtkDatTagIf2
 menulimits(AtkTagIf2) = AtkLimTagIf
 
@@ -806,17 +811,17 @@ menuoff(AtkSoundEffect) = AtkDatSoundEffect
 menulimits(AtkSoundEffect) = AtkLimSFX
 
 menu(AtkPreferTarg) = "Prefer Target:"
-menutype(AtkPreferTarg) = 2000 + AtkCapPreferTarg
+menutype(AtkPreferTarg) = 2000 + menucapoff(AtkPreferTarg)
 menuoff(AtkPreferTarg) = AtkDatPreferTarg
 menulimits(AtkPreferTarg) = AtkLimPreferTarg
 
 menu(AtkPrefTargStat) = "Weak/Strong Stat:"
-menutype(AtkPrefTargStat) = 2000 + AtkCapPrefTargStat
+menutype(AtkPrefTargStat) = 2000 + menucapoff(AtkPrefTargStat)
 menuoff(AtkPrefTargStat) = AtkDatPrefTargStat
 menulimits(AtkPrefTargStat) = AtkLimPrefTargStat
 
 menu(AtkChainMode) = "  Condition:"
-menutype(AtkChainMode) = 2000 + AtkCapChainMode
+menutype(AtkChainMode) = 2000 + menucapoff(AtkChainMode)
 menuoff(AtkChainMode) = AtkDatChainMode
 menulimits(AtkChainMode) = AtkLimChainMode
 
@@ -844,7 +849,7 @@ menuoff(AtkElseChainRate) = AtkDatElseChainRate
 menulimits(AtkElseChainRate) = AtkLimChainRate
 
 menu(AtkElseChainMode) = "  Condition:"
-menutype(AtkElseChainMode) = 2000 + AtkCapChainMode
+menutype(AtkElseChainMode) = 2000 + menucapoff(AtkChainMode)
 menuoff(AtkElseChainMode) = AtkDatElseChainMode
 menulimits(AtkElseChainMode) = AtkLimChainMode
 
@@ -881,7 +886,7 @@ menuoff(AtkInsteadChainRate) = AtkDatInsteadChainRate
 menulimits(AtkInsteadChainRate) = AtkLimChainRate
 
 menu(AtkInsteadChainMode) = "  Condition:"
-menutype(AtkInsteadChainMode) = 2000 + AtkCapChainMode
+menutype(AtkInsteadChainMode) = 2000 + menucapoff(AtkChainMode)
 menuoff(AtkInsteadChainMode) = AtkDatInsteadChainMode
 menulimits(AtkInsteadChainMode) = AtkLimChainMode
 
@@ -915,12 +920,12 @@ menuoff(AtkTransmogEnemy) = AtkDatTransmogEnemy
 menulimits(AtkTransmogEnemy) = AtkLimTransmogEnemy
 
 menu(AtkTransmogHp) = "Health:"
-menutype(AtkTransmogHp) = 2000 + AtkCapTransmogStats
+menutype(AtkTransmogHp) = 2000 + menucapoff(AtkTransmogStats)
 menuoff(AtkTransmogHp) = AtkDatTransmogHp
 menulimits(AtkTransmogHp) = AtkLimTransmogStats
 
 menu(AtkTransmogStats) = "Other stats:"
-menutype(AtkTransmogStats) = 2000 + AtkCapTransmogStats
+menutype(AtkTransmogStats) = 2000 + menucapoff(AtkTransmogStats)
 menuoff(AtkTransmogStats) = AtkDatTransmogStats
 menulimits(AtkTransmogStats) = AtkLimTransmogStats
 
@@ -1296,10 +1301,10 @@ DO
   '--re-enforce bounds, as they might have just changed
   enforceflexbounds menuoff(), menutype(), menulimits(), recbuf(), min(), max()
   '--fix caption attack caption duration
-  caption(AtkCapCapTime - 1) = "ticks (" & seconds_estimate(recbuf(AtkDatCapTime)) & " sec)"
+  caption(menucapoff(AtkCapTime) - 1) = "ticks (" & seconds_estimate(recbuf(AtkDatCapTime)) & " sec)"
   '--percentage damage shows target stat
-  caption(AtkCapDamageEq + 5) = caption(AtkCapTargStat + recbuf(AtkDatTargStat)) + " = " + STR(100 + recbuf(AtkDatExtraDamage)) + "% of Maximum"
-  caption(AtkCapDamageEq + 6) = caption(AtkCapTargStat + recbuf(AtkDatTargStat)) + " = " + STR(100 + recbuf(AtkDatExtraDamage)) + "% of Current"
+  caption(menucapoff(AtkDamageEq) + 5) = caption(menucapoff(AtkTargStat) + recbuf(AtkDatTargStat)) + " = " & (100 + recbuf(AtkDatExtraDamage)) & "% of Maximum"
+  caption(menucapoff(AtkDamageEq) + 6) = caption(menucapoff(AtkTargStat) + recbuf(AtkDatTargStat)) + " = " & (100 + recbuf(AtkDatExtraDamage)) & "% of Current"
   updateflexmenu state.pt, dispmenu(), workmenu(), state.last, menu(), menutype(), menuoff(), menulimits(), recbuf(), caption(), max(), recindex
   '--update the picture and palette preview
   ChangeSpriteSlice preview, 6, recbuf(AtkDatPic), recbuf(AtkDatPal)
