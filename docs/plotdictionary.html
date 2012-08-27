@@ -389,6 +389,9 @@
 		<a href="#about-deletemenuitem">delete menu item(menu item handle)</a><br>
 		
 	
+		
+		<a href="#about-destroynpc">delete NPC (reference)</a><br>
+	
 		<a href="#about-deletesave">delete save (slot)</a><br>
 		
 	
@@ -3279,12 +3282,22 @@ end</pre>
 		<tt>
 		<b><font color="yellow">destroy NPC (reference)</font></b><br>
 			This command will erase the specified NPC. You can use either an <a href="#about-npcreference" class="ref">NPC reference</a> or the NPC's ID number. The deletion is not permanent. Unless this is an NPC that you created with <a href="#about-createnpc" class="ref">create NPC</a>, the NPC will be back again next time the map gets loaded. If you need to permanently remove an NPC, use tags. <div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">This only deletes the one NPC you specify. If you use an NPC ID number as the argument, only the first copy of the NPC on the map will be deleted<br clear="all">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">This only deletes the one NPC you specify. If you use an NPC ID number as the argument, only the first copy of the NPC on the map will be deleted.<br clear="all">
+</div>
+<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">This command can be also be written as <span class="param">delete NPC</span>.<br clear="all">
 </div>
 <br>
 			
 			
 		</tt></p>
+		<a name="about-deletenpc"></a>
+		<p>
+		<tt>
+		
+				<b><font color="yellow">delete NPC (reference)</font></b><br>
+				See <a href="#about-destroynpc">destroy NPC</a>
+			</tt></p>
 		<a name="about-putnpc"></a>
 		<p>
 		<tt>
@@ -11061,7 +11074,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 762 commands in this file, of which 56 are only references to other commands.</p>
+	<p>Stats: There are 763 commands in this file, of which 57 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

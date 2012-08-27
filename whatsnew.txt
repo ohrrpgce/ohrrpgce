@@ -21,6 +21,7 @@ WHAT IS NEW?
       to "set tag" and "check tag" [James]
     * When browsing plotscripts in custom, you can jump to scripts by
       typing more than just the first letter of the scripts name [James]
+    * "delete npc" as an alias to "destroy npc"
 
   * Stuff Only Developers Will Notice
 
