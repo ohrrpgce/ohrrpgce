@@ -1088,6 +1088,9 @@ END WITH
 '--default starting menu
 setactivemenu workmenu(), mainMenu(), state
 
+DIM selectable() as integer
+flexmenu_update_selectable workmenu(), menutype(), selectable()
+
 DIM menudepth as integer = 0
 DIM laststate as MenuState
 laststate.pt = 0
@@ -1120,6 +1123,7 @@ DO
  IF keyval(scESC) > 1 THEN
   IF menudepth = 1 THEN
    atk_edit_backptr workmenu(), mainMenu(), state, laststate, menudepth
+   flexmenu_update_selectable workmenu(), menutype(), selectable()
    helpkey = "attacks"
    drawpreview = YES
   ELSE
@@ -1140,9 +1144,8 @@ DO
   END IF
  END IF
 
- IF usemenu(state) THEN
+ IF usemenu(state, selectable()) THEN
   state.need_update = YES
-  flexmenu_skipper state, workmenu(), menutype()
  END IF
 
  IF workmenu(state.pt) = AtkChooseAct OR (keyval(scAlt) > 0 and NOT isStringField(menutype(workmenu(state.pt)))) THEN
@@ -1306,6 +1309,7 @@ DO
   caption(menucapoff(AtkDamageEq) + 5) = caption(menucapoff(AtkTargStat) + recbuf(AtkDatTargStat)) + " = " & (100 + recbuf(AtkDatExtraDamage)) & "% of Maximum"
   caption(menucapoff(AtkDamageEq) + 6) = caption(menucapoff(AtkTargStat) + recbuf(AtkDatTargStat)) + " = " & (100 + recbuf(AtkDatExtraDamage)) & "% of Current"
   updateflexmenu state.pt, dispmenu(), workmenu(), state.last, menu(), menutype(), menuoff(), menulimits(), recbuf(), caption(), max(), recindex
+  flexmenu_update_selectable workmenu(), menutype(), selectable()
   '--update the picture and palette preview
   ChangeSpriteSlice preview, 6, recbuf(AtkDatPic), recbuf(AtkDatPal)
   '--done updating
@@ -1352,6 +1356,13 @@ SUB atk_edit_pushptr(state as MenuState, laststate as MenuState, byref menudepth
  laststate.pt = state.pt
  laststate.top = state.top
  menudepth = 1
+END SUB
+
+SUB flexmenu_update_selectable(workmenu() as integer, menutype() as integer, selectable() as integer)
+ REDIM selectable(UBOUND(workmenu))
+ FOR i as integer = 0 TO UBOUND(workmenu)
+  selectable(i) = menutype(workmenu(i)) <> 18  'skippable
+ NEXT
 END SUB
 
 SUB atk_edit_preview(byval pattern as integer, sl as Slice Ptr)
@@ -1677,20 +1688,6 @@ FUNCTION isStringField(byval mnu as integer) as integer
   RETURN 0
 END FUNCTION
 
-SUB flexmenu_skipper (byref state as MenuState, workmenu() as integer, menutype() as integer)
- DIM loop_safety as integer = 0
- DO WHILE menutype(workmenu(state.pt)) = 18 '--skipper
-  '--re-call usemenu in order to cause the keypress to be evaluated again
-  usemenu state
-  IF state.pt = state.first THEN EXIT DO
-  IF state.pt = state.last THEN EXIT DO
-  loop_safety += 1
-  IF loop_safety > 50 THEN
-   debug "loop safety problem in flexmenu_skipper"
-   EXIT DO
-  END IF
- LOOP
-END SUB
 
 SUB update_attack_editor_for_fail_conds(recbuf() as integer, caption() as string, byval AtkCapFailConds as integer)
  DIM cond as AttackElementCondition

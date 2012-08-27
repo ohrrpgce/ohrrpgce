@@ -16,7 +16,6 @@ DECLARE SUB menu_editor_menu_keys (mstate as MenuState, dstate as MenuState, men
 DECLARE SUB menu_editor_detail_keys(dstate as MenuState, mstate as MenuState, detail as MenuDef, mi as MenuDefItem)
 
 DECLARE SUB setactivemenu (workmenu() as integer, newmenu() as integer, byref state as MenuState)
-DECLARE SUB flexmenu_skipper (byref state as MenuState, workmenu() as integer, menutype() as integer)
 
 DECLARE SUB atk_edit_preview(byval pattern as integer, sl as Slice Ptr)
 DECLARE SUB atk_edit_pushptr(state as MenuState, laststate as MenuState, byref menudepth as integer)
@@ -24,6 +23,7 @@ DECLARE SUB atk_edit_backptr(workmenu() as integer, mainMenu() as integer, state
 
 DECLARE FUNCTION editflexmenu (nowindex as integer, menutype() as integer, menuoff() as integer, menulimits() as integer, datablock() as integer, caption() as string, mintable() as integer, maxtable() as integer) as integer
 DECLARE SUB updateflexmenu (mpointer as integer, nowmenu() as string, nowdat() as integer, size as integer, menu() as string, menutype() as integer, menuoff() as integer, menulimits() as integer, datablock() as integer, caption() as string, maxtable() as integer, recindex as integer)
+DECLARE SUB flexmenu_update_selectable (workmenu() as integer, menutype() as integer, selectable() as integer)
 DECLARE SUB enforceflexbounds (menuoff() as integer, menutype() as integer, menulimits() as integer, recbuf() as integer, min() as integer, max() as integer)
 DECLARE SUB addcaption (caption() as string, byref indexer as integer, cap as string)
 DECLARE SUB attackdata ()
