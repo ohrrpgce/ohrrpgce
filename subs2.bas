@@ -492,18 +492,58 @@ DO
 LOOP
 END SUB
 
+FUNCTION get_hspeak_version(hspeak_path as string) as string
+ DIM tempf as string = tmpdir & "hspeak_ver.txt"
+ SHELL hspeak_path & " -k > " & tempf
+ DIM fh as integer = FREEFILE
+ IF OPEN(tempf FOR INPUT AS fh) THEN
+  debug "Couldn't run " & hspeak_path
+  RETURN ""
+ END IF
+ DIM line1 as string
+ INPUT #fh, line1
+ CLOSE fh
+ 'safekill tempf
+ DIM version as string = MID(line1, INSTR(line1, " v") + 2, 3)
+ IF LEN(version) <> 3 OR isdigit(version[0]) = NO THEN
+  debug "Couldn't get HSpeak version from head line: " & line1
+  RETURN ""
+ END IF
+ RETURN version
+END FUNCTION
+
 'Returns filename of .hs file
 FUNCTION compilescripts(fname as string) as string
- DIM as string outfile, hspeak, errmsg
+ DIM as string outfile, hspeak, errmsg, hspeak_ver, args
  hspeak = find_helper_app("hspeak")
  IF hspeak = "" THEN
   notification missing_helper_message("hspeak")
   RETURN ""
  END IF
+ args = "-y"
+
+ IF slave_channel <> NULL_CHANNEL THEN
+  IF isfile(game & ".hsp") THEN
+   'Try to reuse script IDs from existing scripts if any, so that currently running scripts
+   'don't start calling the wrong scripts due to ID remapping
+   hspeak_ver = get_hspeak_version(hspeak)
+   'debug "hspeak version '" & hspeak_ver & "'"
+   IF strcmp(STRPTR(hspeak_ver), STRPTR("3Pa")) < 0 THEN
+    'If get_hspeak_version failed (returning ""), then spawn_and_wait should as well
+    IF LEN(hspeak_ver) THEN
+     notification "Your copy of HSpeak is out of date. You should use the latest version."
+    END IF
+   ELSE
+    unlumpfile game & ".hsp", "scripts.bin", tmpdir
+    'scripts.bin will be missing in scripts compiled with very old HSpeak versions
+    args += " --reuse-ids """ & tmpdir & "scripts.bin"""
+   END IF
+  END IF
+ END IF
  outfile = trimextension(fname) + ".hs"
  safekill outfile
  'Wait for keys: we spawn a command prompt/xterm/Terminal.app, which will be closed when HSpeak exits
- errmsg = spawn_and_wait(hspeak, "-y """ + simplify_path_further(fname, curdir) & """")
+ errmsg = spawn_and_wait(hspeak, args & " """ & simplify_path_further(fname, curdir) & """")
  IF LEN(errmsg) THEN
   notification errmsg
   RETURN ""

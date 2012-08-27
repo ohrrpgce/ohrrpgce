@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Pa 2012-08-24 --reuse-ids option
 --3P  2012-08-18 Change way include is lexed: quotes no longer needed
 --               [], {}, . now totally disallowed
 --               Add < and > operators
@@ -136,7 +137,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="P "
+constant COMPILER_SUB_VERSION="Pa"
 constant COPYRIGHT_DATE="2002"
 
 --This is the oldest version of plotscr.hsd which is supported (feel free to
@@ -263,6 +264,7 @@ sequence optlist          optlist={}
 sequence file_list        file_list={}
 integer total_lines       total_lines=0
 sequence cmd              cmd={}
+sequence reuse_ids        reuse_ids={}
 sequence constant_list    constant_list=alpha_tree_create()
 sequence trigger_list     trigger_list={}
 sequence operator_list    operator_list={}
@@ -689,6 +691,8 @@ procedure check_arg_count(sequence args)
     --Undocumented arguments:
     --              --unicode-cols
     --                 used by Hamster Whisper for piped output
+    --              --reuse-ids scripts.bin
+    --                 Read the provided scripts.bin file from a previous compilation, and reuse script ID mapping
     wrap_print("\nFor more info about HamsterSpeak visit "&COLBWHI&"http://HamsterRepublic.com/ohrrpgce"&COLWHI&"\n",{})
     wrap_print("\nThis is a command-line program. You should either run it from the command-line (DOS prompt) or you should drag and drop your script file onto it.\n",{})
     opt_wait_for_key()
@@ -752,6 +756,10 @@ procedure init()
     if equal(args[index],"--unicode-cols") then
       simple_colorcodes=true
       args=delete_element(args,index)
+    elsif equal(args[index],"--reuse-ids") then
+      color_print("Reusing script ID numbers from previous compile\n",{})
+      reuse_ids=read_scripts_dot_bin(args[index+1])
+      args=delete_slice(args,index,index+1)
     elsif args[index][1]='-' then
       optlist=optlist&hs_lower(args[index][2..length(args[index])])
       args=delete_element(args,index)
@@ -1800,6 +1808,7 @@ end procedure
 --VAR_ARGS indicating a variable (unlimited) number of arguments.
 function create_function(sequence list,integer id,sequence name,object arglist,integer func_type,srcpos pos)
   integer at
+  sequence encoded
   if func_type=RESERVE_SCRIPT then
     at=find(id,column(list,PAIR_NUM))
     if at then
@@ -1808,8 +1817,24 @@ function create_function(sequence list,integer id,sequence name,object arglist,i
     if id=0 then
       src_error(sprintf_utf("ID "&COLYEL&"%d"&COLRED&" is not valid",{id}),pos)
     elsif id<0 then
-      id=autonumber_id
-      autonumber_id-=1
+      if length(reuse_ids) then
+        encoded=encode_ohr(name)
+        if length(encoded)>36 then
+          encoded=encoded[1..36]
+        end if
+        at=find_in_column(encoded,reuse_ids,PAIR_NAME)
+        if at then
+          id=reuse_ids[at][PAIR_NUM]
+        end if
+      end if
+      if id<0 then
+        id=autonumber_id
+        loop do
+          autonumber_id-=1
+          id=autonumber_id
+          until find_in_column(id,reuse_ids,PAIR_NUM)=0
+        end loop
+      end if
     end if
   end if
   list=append(list,{id,name,arglist,pos})
@@ -2090,6 +2115,18 @@ function binstring_to_int(sequence encoded)
   temp=and_bits(encoded[1],#FF)+and_bits(encoded[2],#FF)*#100+and_bits(encoded[3],#FF)*#10000+and_bits(encoded[4],#FF)*#1000000
   if and_bits(temp,#80000000) then
     return(temp-#100000000)
+  end if
+  return(temp)
+end function
+
+---------------------------------------------------------------------------
+
+function read_word(sequence encoded)
+  --opposite of output_word
+  integer temp
+  temp=and_bits(encoded[1],#FF)+and_bits(encoded[2],#FF)*#100
+  if and_bits(temp,#8000) then
+    return(temp-#10000)
   end if
   return(temp)
 end function
@@ -3924,7 +3961,7 @@ function generate_scripts_dot_txt()
         result&=sprintf("%d\r\n",{script_list[i][FUNC_ARGS][j]})
       end if
     end for
-    if print_scripts and ((script_list[i][PAIR_NUM]<autonumber_id and print_scripts=1) or (print_scripts=2)) then
+    if (print_scripts=1 and script_list[i][PAIR_NUM]<autonumber_id) or print_scripts=2 then
       wrap_print("%s\r\n",{script_list[i][PAIR_NAME]})
     end if
   end for
@@ -3950,6 +3987,40 @@ function generate_scripts_dot_bin()
     result&=repeat(0,36-length(encoded_name))
   end for
   return(result)
+end function
+
+---------------------------------------------------------------------------
+
+--Returns a list of {id, encode_ohr(script_name)[1..36]} pairs
+function read_scripts_dot_bin(sequence filename)
+  object data
+  integer header_size
+  integer rec_size
+  integer offset
+  integer id
+  integer name_len
+  sequence ret
+
+  data=read_file(filename)
+  if equal(data,-1) then
+    simple_error("Could not read "&filename)
+  end if
+
+  header_size=read_word(data[1..2])
+  if header_size!=4 then
+    simple_error(filename&" in unrecognised format. Use the latest version of HSpeak")
+  end if
+  rec_size=read_word(data[3..4])
+
+  ret={}
+  for i=0 to (length(data)-header_size) / rec_size - 1 do
+    offset=header_size + i*rec_size
+    id=read_word(data[offset+1..offset+2])
+    name_len=read_word(data[offset+5..offset+6])
+    ret&={ {id,data[offset+7..offset+7+name_len-1]} }
+  end for
+  --pretty_print(stdout,ret,{3})
+  return ret
 end function
 
 ---------------------------------------------------------------------------
