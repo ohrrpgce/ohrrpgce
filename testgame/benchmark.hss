@@ -1,13 +1,13 @@
 include, plotscr.hsd
 
 define constant, begin
-  4, NUM RUNS
+  100, NUM RUNS
 
   # Number of loops to run micro-benchmarks
-  500000, MICRO LOOP COUNT
+  1000, MICRO LOOP COUNT
 
   # Global variable IDs
-  50, TIMES ARRAY
+  5000, TIMES ARRAY
   99, UNUSED GLOBAL
   100, fire array
 
@@ -16,9 +16,9 @@ end
 
 
 plotscript, main, begin
-  variable (score, loops)
+  variable (score, score2, loops)
 
-  wait (2)
+  wait (50)
   $2 = "Micro-benchmarks"
   trace (2)
   $2 = ""
@@ -71,7 +71,7 @@ plotscript, main, begin
   $1 = "first child"
   score += run benchmark (@benchmark: first child, loops)
   $1 = "creating and deleting slices"
-  score += run benchmark (@benchmark: creating and deleting slices, loops)
+  score2 += run benchmark (@benchmark: creating and deleting slices, loops)
   $1 = "call script"
   score += run benchmark (@benchmark: call script, loops)
   $1 = "call multiarg script"
@@ -95,31 +95,37 @@ plotscript, main, begin
   trace (2)
 
   # The general benchmarks are tweaked so that they all use roughly the same 
-  # amount of time (at time of writing)
+  # amount of time (at time of writing), aside from "DOOM flames create and destroy"
+  # Give these more weight in the total benchmark score
 
   $1 = "recursive fibonacci"
-  score += run benchmark (@benchmark: recursive fibonacci, 1)
+  score += run benchmark (@benchmark: recursive fibonacci, 1) * 2
   $1 = "eat soap mania"
-  score += run benchmark (@benchmark: eat soap mania, 1)
+  score2 += run benchmark (@benchmark: eat soap mania, 1) * 2
   $1 = "xor map"
-  score += run benchmark (@benchmark: xor map, 1)
+  score2 += run benchmark (@benchmark: xor map, 1) * 2
   $1 = "crappy sqrt"
-  score += run benchmark (@benchmark: crappy sqrt, 1)
+  score += run benchmark (@benchmark: crappy sqrt, 1) * 2
   $1 = "DOOM flames recalc"
-  score += run benchmark (@benchmark: DOOM flames recalc, 1)
+  score += run benchmark (@benchmark: DOOM flames recalc, 1) * 2
   $1 = "DOOM flames create and destroy"
-  score += run benchmark (@benchmark: DOOM flames create and destroy, 1)
+  score2 += run benchmark (@benchmark: DOOM flames create and destroy, 1)
   $1 = "DOOM flames update"
   DOOM initialise flames
-  score += run benchmark (@benchmark: DOOM flames update, 1)
+  score += run benchmark (@benchmark: DOOM flames update, 1) * 2
   free slice (flames container)
 
+  $1 = "Pure HS benchmark score:"
+  append number (1, score)
+  trace (1)
+  show string at (1, 0, 180)
 
-  $2 = "All done. Score (lower's better):"
+  score += score2
+  $2 = "Total score (lower's better):"
   append number (2, score)
   trace (2)
   show string (2)
-  wait (40)
+  wait (60)
   game over
 end
 
@@ -134,7 +140,7 @@ script, append decimal 100, string, number, begin
 end
 
 script, run benchmark, script id, loops, begin
-  variable (i, time, best)
+  variable (i, j, n, time, best, worst, avg)
 
   $2 = "Benchmark: "
   2 $+ 1
@@ -142,9 +148,9 @@ script, run benchmark, script id, loops, begin
   wait (1)
 
   for (i, 0, NUM RUNS -- 1) do (
-    time := milliseconds
+    time := microseconds
     run script by id (script id)
-    time := milliseconds -- time
+    time := microseconds -- time
     write global (TIMES ARRAY + i, time)
   )
 
@@ -164,7 +170,7 @@ script, run benchmark, script id, loops, begin
 
   if (loops == 1) then (
     # General benchmark
-    $2 = " best milliseconds per run: "
+    $2 = " best microseconds per run: "
     append number (2, best)
 
   ) else (
@@ -173,11 +179,44 @@ script, run benchmark, script id, loops, begin
     append decimal 100 (2, 100000 * best / loops)
   )
   trace (2)
+
+  # remove top half in a really lazy way
+  for (i, 1, NUM RUNS / 2) do (
+    worst := 0
+    for (j, 0, NUM RUNS -- 1) do (
+      time := read global (TIMES ARRAY + j)
+      if (time > worst) then (worst := time)
+    )
+
+    for (j, 0, NUM RUNS -- 1) do (
+      time := read global (TIMES ARRAY + j)
+      if (time == worst) then (
+        write global (TIMES ARRAY + j, 0)
+        break
+      )
+    )
+  )
+
+  # average
+  
+  for (j, 0, NUM RUNS -- 1) do (
+    time := read global (TIMES ARRAY + j)
+    if (time > 0) then (
+      avg += time * 100
+      n += 1
+    )
+  )
+  avg := avg / n
+
+  $2 = " average microseconds (excl. outliers): "
+  append decimal 100 (2, avg)
+  trace (2)
+
   $2 = ""
   trace (2)
 
   # Return a score (total score is actually just total time spent)
-  return (best)
+  return (avg / 100)
 end
 
 
@@ -673,7 +712,7 @@ script, fibonacci, n, begin
 end
 
 script, benchmark: recursive fibonacci, begin
-  fibonacci (27)
+  fibonacci (14)
 end
 
 #------------------- some scripts from Don't Eat Soap -----------------------------
@@ -731,23 +770,23 @@ end
 script, benchmark: eat soap mania, begin
   variable (i, sl)
   sl := create container
-  for (i, 0, 50000) do (
+  for (i, 0, 60) do (
     push bubble away (sl, sl)
   )
 end
 
 script, benchmark: xor map, begin
   variable (i, x, y, layer)
-  for (i, 0, 29) do (
-    for (y, 0, 63) do (
-      for (x, 0, 63) do (
+  #for (i, 0, 29) do (
+    for (y, 0, 15) do (
+      for (x, 0, 15) do (
         for (layer, 0, 2) do (
           write map block (x, y, (255, xor, read map block (x, y, layer)), layer)
         )
         write pass block (x, y, (255, xor, read pass block (x, y)))
       )
     )
-  )
+  #)
 end
 
 script, crappy sqrt, fi, begin
@@ -784,7 +823,7 @@ end
 # Test flow control
 script, benchmark: crappy sqrt, begin
   variable (i)
-  for (i, 0, 30000) do (crappy sqrt (i))
+  for (i, 0, 80) do (crappy sqrt (i))
 end
 
 
@@ -802,8 +841,8 @@ define constant, begin
   3, CELL WIDTH
   3, CELL HEIGHT
   107, FIRE WIDTH
-  37, FIRE HEIGHT
-  201, FIELD HEIGHT
+  5, FIRE HEIGHT
+  15, FIELD HEIGHT
   383, DECAY
   12, COOLING MIN MIN
   40, COOLING MIN MAX
@@ -873,9 +912,9 @@ end
 # Test reading and writing globals with quite a bit of math
 script, benchmark: DOOM flames recalc, begin
   variable (i)
-  for (i, 0, 49) do (
+  #for (i, 0, 49) do (
     DOOM flames recalc
-  )
+  #)
 end
 
 # Test creating and deleting lots of slices
@@ -887,7 +926,7 @@ end
 # Test iterating over slices, reading globals and map blocks, and "set sprite frame", with some math/logic
 script, benchmark: DOOM flames update, begin
   variable (i)
-  for (i, 0, 49) do (
+  #for (i, 0, 49) do (
     DOOM flames update
-  )
+  #)
 end
