@@ -3026,6 +3026,8 @@ SELECT CASE as CONST id
    settag onetime(), retvals(0), retvals(1)
    tag_updates
   END IF
+ CASE 542 '--microseconds
+  scriptret = fmod((TIMER * 1e6) + 2147483648.0, 4294967296.0) - 2147483648.0
 
 'old scriptnpc
 

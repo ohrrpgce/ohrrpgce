@@ -5864,6 +5864,14 @@ end</example>
 			<canon>milliseconds</canon>
 			<shortname>milliseconds</shortname>
 			<description>Use to measure time intervals accurately. Subtract two values returned by milliseconds at different times to find the number of ms (1000ths of a second) elapsed in between. A single value is useless (the computer's uptime or any random value).</description>
+			<seealso>
+				<ref>microseconds</ref>
+			</seealso>
+		</command>
+		<command id="microseconds">
+			<canon>microseconds</canon>
+			<shortname>microseconds</shortname>
+			<description>An alternative to <ref>milliseconds</ref> which measures millionths of a second. This command only exists for accurate benchmarking.</description>
 		</command>
 	</section>
 	<section title="Predefined Constants">
