@@ -486,9 +486,11 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
    IF attack.damage_can_be_zero = NO THEN h = 1 ELSE h = 0
   END IF
  
+  IF attack.show_damage_without_inflicting = NO THEN
    'resetting
-  IF attack.reset_targ_stat_before_hit = YES THEN
-   target.stat.cur.sta(targstat) = target.stat.max.sta(targstat)
+   IF attack.reset_targ_stat_before_hit = YES THEN
+    target.stat.cur.sta(targstat) = target.stat.max.sta(targstat)
+   END IF
   END IF
 
   DIM chp as integer = target.stat.cur.sta(targstat)  'for convenience, not for remembering value

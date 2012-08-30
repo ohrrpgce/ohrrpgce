@@ -14,7 +14,8 @@ WHAT IS NEW?
     * ${H#} codes in text boxes are no longer limited to heroes that
       are in the party.
     * Bug 968: "Reset target stat to max before hit" attack bit takes
-      effect even if attack fails due to elemental resist [Ralph]
+      effect even if the attack fails due to elemental resistance or
+      "Show damage without inflicting" is set [Ralph]
 
   * New Plotscripting Stuff
     * If a script runs for a long time without "wait"ing you can now
