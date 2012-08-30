@@ -13,6 +13,8 @@ WHAT IS NEW?
     * "run script by id" was far slower than it should have been [Ralph]
     * ${H#} codes in text boxes are no longer limited to heroes that
       are in the party.
+    * Bug 968: "Reset target stat to max before hit" attack bit takes
+      effect even if attack fails due to elemental resist [Ralph]
 
   * New Plotscripting Stuff
     * If a script runs for a long time without "wait"ing you can now
@@ -35,7 +37,7 @@ WHAT IS NEW?
             )
       * "else if" is a shortcut which lets you omit a pair of brackets:
             if (condition) then (...)
-            else if(condition 2) then (...)
+            else if (condition 2) then (...)
             else (...)
       [Ralph]
 

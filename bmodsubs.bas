@@ -382,11 +382,6 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
     RETURN NO
    END IF
   END WITH
-
-  'resetting
-  IF attack.reset_targ_stat_before_hit = YES THEN
-   target.stat.cur.sta(targstat) = target.stat.max.sta(targstat)
-  END IF
  
   'attack power and defense power
   DIM ap as integer = attacker.stat.cur.str
@@ -491,10 +486,11 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
    IF attack.damage_can_be_zero = NO THEN h = 1 ELSE h = 0
   END IF
  
-  'remember target stat
-  DIM remtargstat as integer = target.stat.cur.sta(targstat)
-  DIM rematkrstat as integer = attacker.stat.cur.sta(targstat)
- 
+   'resetting
+  IF attack.reset_targ_stat_before_hit = YES THEN
+   target.stat.cur.sta(targstat) = target.stat.max.sta(targstat)
+  END IF
+
   DIM chp as integer = target.stat.cur.sta(targstat)  'for convenience, not for remembering value
   DIM mhp as integer = target.stat.max.sta(targstat)
   IF attack.percent_damage_not_set = YES THEN
@@ -533,7 +529,7 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
      capdamage = NO
    END SELECT
   END IF
- 
+
   'Maybe cap damage to max possible damage
   'Note that unlike the damage cap, this still happens if not inflicting
   IF attack.do_not_exceed_targ_stat AND capdamage THEN
@@ -546,6 +542,10 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
     END IF
    END IF
   END IF
+
+  'remember target stat
+  DIM remtargstat as integer = target.stat.cur.sta(targstat)
+  DIM rematkrstat as integer = attacker.stat.cur.sta(targstat)
 
   'inflict
   IF attack.show_damage_without_inflicting = NO THEN
@@ -578,6 +578,22 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
     target.stat.cur.sta(targstat) = small(target.stat.cur.sta(targstat), large(target.stat.max.sta(targstat), remtargstat))
     attacker.stat.cur.sta(targstat) = small(attacker.stat.cur.sta(targstat), large(attacker.stat.max.sta(targstat), rematkrstat))
    END IF
+
+   'remember revenge data
+   'NOTE: revenge & thankvenge record difference AFTER "reset target stat to max" takes effect
+   IF remtargstat > target.stat.cur.sta(targstat) THEN
+    target.revengemask(attackerslot) = YES
+    target.revenge = attackerslot
+    target.revengeharm = remtargstat - target.stat.cur.sta(targstat)
+    attacker.repeatharm = remtargstat - target.stat.cur.sta(targstat)
+   END IF
+
+   'remember thankvenge data
+   IF remtargstat < target.stat.cur.sta(targstat) THEN
+    target.thankvengemask(attackerslot) = YES
+    target.thankvenge = attackerslot
+    target.thankvengecure = ABS(remtargstat - target.stat.cur.sta(targstat))
+   END IF
   END IF
  
   'set damage display
@@ -585,21 +601,6 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
    target.harm.text = STR(ABS(h))
    '--if cure, show + sign
    IF h < 0 THEN target.harm.text = "+" + target.harm.text
-  END IF
- 
-  'remember revenge data
-  IF remtargstat > target.stat.cur.sta(targstat) THEN
-   target.revengemask(attackerslot) = YES
-   target.revenge = attackerslot
-   target.revengeharm = remtargstat - target.stat.cur.sta(targstat)
-   attacker.repeatharm = remtargstat - target.stat.cur.sta(targstat)
-  END IF
- 
-  'remember thankvenge data
-  IF remtargstat < target.stat.cur.sta(targstat) THEN
-   target.thankvengemask(attackerslot) = YES
-   target.thankvenge = attackerslot
-   target.thankvengecure = ABS(remtargstat - target.stat.cur.sta(targstat))
   END IF
  
  END IF 'skips to here if no damage
