@@ -1,0 +1,40 @@
+This is a list of attack bitsets affecting damage - simple OFF or ON settings. Bitsets that are turned ON are highlighted.
+
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the list.
+
+Modify bitsets with Left, Right, SPACE and ENTER.
+
+Some of these bitsets will be hidden if they have no effect, based on other damage settings which override them.
+
+* Cure Instead of Harm
+When this bitset is on, the attack will cure (increase) the target stat instead of damaging (decreasing) it, unless the target has the "Harmed by Cure" bit set (enemies only). (This works for any target stat, not just HP.)
+
+* Divide Spread Damage
+When the attack is targeted to more than one target, this will divide the damage evenly between them.
+
+* Absorb Damage
+Any damage dealt will be added to the attacker's target stat. If the attack increases the target stat then it will instead harm (decrease) the attacker's stat. (This works for any target stat, not just HP.)
+
+* Ignore attacker's extra hits
+Normally the attacker may repeat the attack several times according to their Extra Hits stat. Turning this bitset on makes the attack is not repeated even if the attacker has extra hits.
+
+* Show damage without inflicting
+When this bitset is turned on, no damage will be done, but the amount of damage that would have been done will still be displayed. Revenge and thankvenge damage will not be remembered.
+
+* Reset target stat to max before hit
+Causes the target stat of the attack's target to be reset to the maximum before any damage is dealt. This is most often used with attacks that change stats like strength or speed or defense to prevent the effect from stacking. This bitset is also useful for attacks that target the effect register, such as poison and stun. Displayed damage (and the revenge or thankvenge stored damage) will show only the amount of damage done after the reset, not the total change.
+
+* Allow Cure to exceed maximum
+When an attack cures (the "Cure instead of harm" bitset is on, or due to absorbing an element), this allows the target stat to be increased to more than its maximum. If absorbing damage, it also allows the attacker's stat to be increased past its maximum. (All hero stats except HP and MP are reset to their maximums when the battle ends.)
+
+* Do not randomize
+Normally damage is randomized (uniformly) to within plus or minus 20%. Turning this bitset on disables the randomization.
+
+* Damage can be Zero
+Normally the minimum amount of damage (or healing) that an attack can do is 1. This bitset allows damage to be 0.
+
+* % based attacks damage instead of set
+This bitset only affects attacks with percentage damage math. The percentage will be used as damage instead of setting the target stat to a percentage of its maximum value.
+
+* Don't allow damage to exceed target stat
+This bitset prevents the attack from doing any more damage than the target's target stat. For example, if an attack is capable of doing 100 damage, but the target only has 25 HP left, this bitset would limit the damage to 25. This also works for curing attacks. For example, if a cure spell can restore 100 HP, but the target is only 25 HP below max, this bitset will limit the cure to 25 HP. That means that when this bit is on, an attack can never increase a stat past its maximum. (This bitset also works for other target stats besides HP.)

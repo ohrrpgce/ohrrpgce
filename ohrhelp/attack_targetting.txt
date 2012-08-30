@@ -1,4 +1,4 @@
-This is the attack target editor.
+This is the editor screen for attack targets and aiming.
 
 Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate through the menu.
 
@@ -6,9 +6,37 @@ Use the Left and Right arrow keys to change values, or you can type in numbers.
 
 You can also hold the ALT key and press the left and right arrow keys to change which attack you are editing, or while holding ALT you can type an attack ID number.
 
+Aim Math: Determines the chance for the attack to hit the target. For Normal, Poor, and Bad aiming, the attacker's Aim and target's Dodge stats are first modified by some multipliers then random values nearby (+/- 75%) to those values are compared. So if the Aim and Dodge stats are equal, for 'Bad' aiming there is a 50% chance to hit. Here is an explanation of other accuracy values.
+
+-Never Misses: Ensures that the
+  attack always hits no matter what.
+  (It might still fail due to other
+  conditions.) Great for many
+  purposes, such as healing spells
+  or attacks that serve other
+  purposes.
+
+-Magic: Uses different stats to
+  emphasize magical aptitude and
+  enemy resistace to magic to
+  determine whether an attack hits,
+  rather than normal accuracy stats.
+  Its use is rather self-explanatory.
+
+-Percentage based formulas: These
+  formulas use the stats as
+  percentages out of 100 to determine
+  the success rate of attacks.  The
+  symbol * here means that the first
+  percentage is taken into account,
+  and then if it was successful the
+  second percentage is used to decide
+  if the target avoided the attack.
+
+
 Target Class: This controls who the attack can be used on.
 
-* Enemy - For heros this means the
+* Enemy - For heroes this means the
   attack is targetted to enemies. For
   enemies this means that the attack
   is targetted to heroes.
@@ -64,15 +92,16 @@ Target Class: This controls who the attack can be used on.
   not be able to use this attack at
   all.
 
-* Deal Allies (hero only) - This
+* Dead Allies (hero only) - This
   attack can only target dead heroes.
   If no heroes are dead, the attack
   will be unusable. The attack cannot
   be used by enemies.
 
-* Thankvenge (last to cure attacker)    This means the attack will only be
+* Thankvenge (last to cure attacker)
+  This means the attack will only be
   able to target the last hero or
-  enemy to deal negative damage
+  enemy to deal negative damage to
   (cure) the attacker. If the
   attacker has not been cured in the
   current battle, the attack will be

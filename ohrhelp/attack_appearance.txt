@@ -131,6 +131,8 @@ Attacker Animation: This controls how the attacker moves when doing the attack.
   this attack is used by a hero, the
   hero's weapon will display.
 
+Delay Before Attack: How long it takes (measured in ticks) before the attack is executed.
+
 Caption: A line of text that will be displayed at the bottom of the screen whenever the attack is used.
 
 Display Caption: Controls how long the attack caption is displayed. Press left and right arrow keys to change this value. This can be one of:

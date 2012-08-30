@@ -28,14 +28,20 @@
 DECLARE SUB clearallpages ()
 
 'Local
+DECLARE SUB atk_edit_merge_bitsets(recbuf() as integer, tempbuf() as integer)
+DECLARE SUB atk_edit_split_bitsets(recbuf() as integer, tempbuf() as integer)
 DECLARE SUB update_attack_editor_for_fail_conds(recbuf() as integer, caption() as string, byval AtkCapFailConds as integer)
+DECLARE SUB attack_editor_build_damage_menu(recbuf() as integer, menu() as string, menutype() as integer, caption() as string, menucapoff() as integer, workmenu() as integer, state as MenuState, dmgbit() as string, maskeddmgbit() as string, damagepreview as string)
+
 
 SUB addcaption (caption() as string, byref indexer as integer, cap as string)
  str_array_append caption(), cap
  indexer = UBOUND(caption) + 1
 END SUB
 
+
 '------------------------------ Attack Editor ----------------------------------
+
 
 '--ID numbers for menu item definitions
 
@@ -115,10 +121,12 @@ CONST AtkTransmogHp = 72
 CONST AtkTransmogStats = 73
 CONST AtkElementFailAct = 74
 CONST AtkElementalFailHeader = 75
-CONST AtkElementalFails = 76
+CONST AtkElementalFails = 76  ' to 139
 CONST AtkElemBitAct = 140
+CONST AtkDamageBitAct = 141
+CONST AtkBlankMenuItem = 142  ' Generic blank skippable menu item
 
-'Next menu item is 141 (remember to update MnuItems)
+'Next menu item is 143 (remember to update MnuItems)
 
 
 '--Offsets in the attack data record (combined DT6 + ATTACK.BIN)
@@ -199,9 +207,6 @@ getelementnames elementnames()
 
 DIM atkbit(-1 TO 128) as string
 
-atkbit(0) = "Cure Instead of Harm"
-atkbit(1) = "Divide Spread Damage"
-atkbit(2) = "Absorb Damage"          'was bounceable!
 atkbit(3) = "Unreversable Picture"
 atkbit(4) = "Steal Item"
 
@@ -219,27 +224,19 @@ FOR i = 0 TO 3
  atkbit(i + 45) = "Cannot target hero slot " & i
 NEXT i
 
-atkbit(49) = "Ignore attacker's extra hits"
 atkbit(50) = "Erase rewards (Enemy target only)"
-atkbit(51) = "Show damage without inflicting"
 atkbit(52) = "Store Target"
 atkbit(53) = "Delete Stored Target"
 atkbit(54) = "Automatically choose target"
 atkbit(55) = "Show attack name"
 atkbit(56) = "Do not display Damage"
-atkbit(57) = "Reset target stat to max before hit"
-atkbit(58) = "Allow Cure to exceed maximum"
 atkbit(59) = "Useable Outside of Battle"
-'atkbit(60) = "Damage " & statnames(statMP) & " (obsolete)"
-atkbit(61) = "Do not randomize"
-atkbit(62) = "Damage can be Zero"
 atkbit(63) = "Cause heroes to run away"
 atkbit(64) = "Mutable"
 atkbit(65) = "Fail if target is poisoned"
 atkbit(66) = "Fail if target is regened"
 atkbit(67) = "Fail if target is stunned"
 atkbit(68) = "Fail if target is muted"
-atkbit(69) = "% based attacks damage instead of set"
 atkbit(70) = "Check costs when used as a weapon"
 atkbit(71) = "Do not chain if attack fails"
 atkbit(72) = "Reset Poison register"
@@ -247,18 +244,37 @@ atkbit(73) = "Reset Regen register"
 atkbit(74) = "Reset Stun register"
 atkbit(75) = "Reset Mute register"
 atkbit(76) = "Cancel target's attack"
-atkbit(77) = "Can't be canceled by other attacks"
+atkbit(77) = "Can't be cancelled by other attacks"
 atkbit(78) = "Do not trigger spawning on hit"
 atkbit(79) = "Do not trigger spawning on kill"
 atkbit(80) = "Check costs when used as an item"
 atkbit(81) = "Re-check costs after attack delay"
 atkbit(82) = "Do not cause target to flinch"
-atkbit(83) = "Don't allow damage to exceed target stat"
 atkbit(84) = "Delay doesn't block further actions"
 atkbit(85) = "Force victory"
 atkbit(86) = "Force battle exit (no run animation)"
 '             ^---------------------------------------^
 '               the amount of room you have (39 chars)
+
+DIM dmgbit(-1 TO 128) as string
+DIM maskeddmgbit(-1 TO 128) as string  'Built in attack_editor_build_damage_menu
+
+dmgbit(0)  = "Cure Instead of Harm"
+dmgbit(1)  = "Divide Spread Damage"
+dmgbit(2)  = "Absorb Damage"          'was bounceable!
+dmgbit(49) = "Ignore attacker's extra hits"
+dmgbit(51) = "Show damage without inflicting"
+dmgbit(57) = "Reset target stat to max before hit"
+dmgbit(58) = "Allow Cure to exceed maximum"
+'dmgbit(60) = "Damage " & statnames(statMP) & " (obsolete)"
+dmgbit(61) = "Do not randomize"
+dmgbit(62) = "Damage can be Zero"
+dmgbit(69) = "% based attacks damage instead of set"
+dmgbit(83) = "Don't allow damage to exceed target stat"
+'             ^---------------------------------------^
+'               the amount of room you have (39 chars)
+
+
 
 '--191 attack bits allowed in menu.
 '--Data is split, See AtkDatBits and AtkDatBits2 for offsets
@@ -284,7 +300,7 @@ atk_chain_bitset_names(3) = "Don't retarget if target is lost"
 '----------------------------------------------------------
 DIM recbuf(40 + curbinsize(binATTACK) \ 2 - 1) as integer '--stores the combined attack data from both .DT6 and ATTACK.BIN
 
-CONST MnuItems = 140
+CONST MnuItems = 142
 DIM menu(MnuItems) as string
 DIM menutype(MnuItems) as integer
 DIM menuoff(MnuItems) as integer
@@ -607,7 +623,7 @@ menutype(AtkAppearAct) = 1
 menu(AtkDmgAct) = "Damage Settings..."
 menutype(AtkDmgAct) = 1
 
-menu(AtkTargAct) = "Target Settings..."
+menu(AtkTargAct) = "Target and Aiming Settings..."
 menutype(AtkTargAct) = 1
 
 menu(AtkCostAct) = "Cost..."
@@ -944,13 +960,19 @@ NEXT
 menu(AtkElemBitAct) = "Elemental bits..."
 menutype(AtkElemBitAct) = 1
 
+menu(AtkDamageBitAct) = "Damage bitsets..."
+menutype(AtkDamageBitAct) = 1
+
+menu(AtkBlankMenuItem) = ""
+menutype(AtkBlankMenuItem) = 18  'skip
+
 
 '----------------------------------------------------------
 '--menu structure
 DIM workmenu(65) as integer
 DIM dispmenu(65) as string
 DIM state as MenuState
-state.size = 22
+state.size = 23
 
 DIM mainMenu(13) as integer
 mainMenu(0) = AtkBackAct
@@ -958,8 +980,8 @@ mainMenu(1) = AtkChooseAct
 mainMenu(2) = AtkName
 mainMenu(3) = AtkDescription
 mainMenu(4) = AtkAppearAct
-mainMenu(5) = AtkDmgAct
-mainMenu(6) = AtkTargAct
+mainMenu(5) = AtkTargAct
+mainMenu(6) = AtkDmgAct
 mainMenu(7) = AtkCostAct
 mainMenu(8) = AtkChainAct
 mainMenu(9) = AtkBitAct
@@ -968,36 +990,27 @@ mainMenu(11) = AtkElementFailAct
 mainMenu(12) = AtkTagAct
 mainMenu(13) = AtkTransmogAct
 
-DIM appearMenu(10) as integer
+DIM appearMenu(11) as integer
 appearMenu(0) = AtkBackAct
 appearMenu(1) = AtkPic
 appearMenu(2) = AtkPal
 appearMenu(3) = AtkAnimAttack
 appearMenu(4) = AtkAnimPattern
 appearMenu(5) = AtkAnimAttacker
-appearMenu(6) = AtkCaption
-appearMenu(7) = AtkCapTime
-appearMenu(8) = AtkCaptDelay
-appearMenu(9) = AtkSoundEffect
-appearMenu(10) = AtkLearnSoundEffect
+appearMenu(6) = AtkDelay
+appearMenu(7) = AtkCaption
+appearMenu(8) = AtkCapTime
+appearMenu(9) = AtkCaptDelay
+appearMenu(10) = AtkSoundEffect
+appearMenu(11) = AtkLearnSoundEffect
 
-DIM dmgMenu(8) as integer
-dmgMenu(0) = AtkBackAct
-dmgMenu(1) = AtkDamageEq
-dmgMenu(2) = AtkBaseAtk
-dmgMenu(3) = AtkBaseDef
-dmgMenu(4) = AtkTargStat
-dmgMenu(5) = AtkExtraDamage
-dmgMenu(6) = AtkAimEq
-dmgMenu(7) = AtkHitX
-dmgMenu(8) = AtkDelay
-
-DIM targMenu(4) as integer
+DIM targMenu(5) as integer
 targMenu(0) = AtkBackAct
-targMenu(1) = AtkTargClass
-targMenu(2) = AtkTargSetting
-targMenu(3) = AtkPreferTarg
-targMenu(4) = AtkPrefTargStat
+targMenu(1) = AtkAimEq
+targMenu(2) = AtkTargClass
+targMenu(3) = AtkTargSetting
+targMenu(4) = AtkPreferTarg
+targMenu(5) = AtkPrefTargStat
 
 DIM costMenu(9) as integer
 costMenu(0) = AtkBackAct
@@ -1085,6 +1098,8 @@ WITH *preview
  .AlignVert = 1
 END WITH
 
+DIM damagepreview as string
+
 '--default starting menu
 setactivemenu workmenu(), mainMenu(), state
 
@@ -1109,6 +1124,8 @@ loadattackdata recbuf(), recindex
 update_attack_editor_for_fail_conds recbuf(), caption(), AtkCapFailConds
 state.need_update = YES
 
+'As a hack (I blame it on flexmenu itself which tries to be more "flexible" than possible),
+'helpkey is used to tell us which submenu we're in
 DIM helpkey as string = "attacks"
 DIM tmpstr as string
 
@@ -1126,6 +1143,7 @@ DO
    flexmenu_update_selectable workmenu(), menutype(), selectable()
    helpkey = "attacks"
    drawpreview = YES
+   damagepreview = ""
   ELSE
    EXIT DO
   END IF
@@ -1159,6 +1177,7 @@ DO
     loadattackdata recbuf(), recindex
    END IF
    update_attack_editor_for_fail_conds recbuf(), caption(), AtkCapFailConds
+
    state.need_update = YES
   END IF
  END IF
@@ -1176,6 +1195,34 @@ DO
   END IF
  END IF
 
+ 'Debug key: edit all bitsets
+ IF keyval(scCtrl) > 0 AND keyval(scB) > 1 THEN
+  DIM allbits(-1 TO 128) as string
+  FOR i = 0 TO UBOUND(allbits)
+   allbits(i) = "  bit " & i
+  NEXT
+  FOR i = 0 TO UBOUND(atkbit)
+   IF LEN(atkbit(i)) THEN allbits(i) = atkbit(i)
+  NEXT
+  FOR i = 0 TO UBOUND(dmgbit)
+   IF LEN(dmgbit(i)) THEN allbits(i) = dmgbit(i)
+  NEXT
+
+  'Obsolete bits; changes will have no effect
+  FOR i = 0 TO 7
+   allbits(i + 5) = elementnames(i) & " Damage" '05-12
+   allbits(i + 13) = "Bonus vs " & readglobalstring(9 + i, "EnemyType" & i+1) '13-20
+   allbits(i + 21) = "Fail vs " & elementnames(i) & " resistance" '21-28
+   allbits(i + 29) = "Fail vs " & readglobalstring(9 + i, "EnemyType" & i+1) '29-36
+  NEXT i
+  allbits(60) = "Damage " & statnames(statMP) & " (obsolete)"
+
+  atk_edit_merge_bitsets recbuf(), buffer()
+  editbitset buffer(), 0, UBOUND(allbits), allbits(), "attack_bitsets"
+  atk_edit_split_bitsets recbuf(), buffer()
+  state.need_update = YES
+ END IF
+
  IF enter_or_space() THEN
   SELECT CASE workmenu(state.pt)
    CASE AtkBackAct
@@ -1183,6 +1230,7 @@ DO
      atk_edit_backptr workmenu(), mainMenu(), state, laststate, menudepth
      helpkey = "attacks"
      drawpreview = YES
+     damagepreview = ""
     ELSE
      EXIT DO
     END IF
@@ -1191,9 +1239,12 @@ DO
     setactivemenu workmenu(), appearMenu(), state
     helpkey = "attack_appearance"
    CASE AtkDmgAct
+    'Special case
     atk_edit_pushptr state, laststate, menudepth
-    setactivemenu workmenu(), dmgMenu(), state
+    state.pt = 0
+    state.need_update = YES
     helpkey = "attack_damage"
+    drawpreview = NO
    CASE AtkTargAct
     atk_edit_pushptr state, laststate, menudepth
     setactivemenu workmenu(), targMenu(), state
@@ -1228,21 +1279,15 @@ DO
     recbuf(AtkDatPal) = pal16browse(recbuf(AtkDatPal), 6, recbuf(AtkDatPic))
     state.need_update = YES
    CASE AtkBitAct
-    'merge the two blocks of bitsets into the buffer
-    FOR i = 0 TO 3
-     buffer(i) = recbuf(AtkDatBitsets + i)
-    NEXT i
-    FOR i = 0 TO 7
-     buffer(4 + i) = recbuf(AtkDatBitsets2 + i)
-    NEXT i
+    atk_edit_merge_bitsets recbuf(), buffer()
     editbitset buffer(), 0, UBOUND(atkbit), atkbit(), "attack_bitsets"
-    'split the buffer to the two bitset blocks
-    FOR i = 0 TO 3
-     recbuf(AtkDatBitsets + i) = buffer(i)
-    NEXT i
-    FOR i = 0 TO 7
-     recbuf(AtkDatBitsets2 + i) = buffer(4 + i)
-    NEXT i
+    atk_edit_split_bitsets recbuf(), buffer()
+   CASE AtkDamageBitAct
+    atk_edit_merge_bitsets recbuf(), buffer()
+    editbitset buffer(), 0, UBOUND(maskeddmgbit), maskeddmgbit(), "attack_damage_bitsets"
+    atk_edit_split_bitsets recbuf(), buffer()
+    'Bitsets have complicated effects
+    state.need_update = YES
    CASE AtkElemBitAct
     'merge the two blocks of bitsets into the buffer
     FOR i = 0 TO 1
@@ -1293,6 +1338,9 @@ DO
  END IF
 
  IF state.need_update THEN
+  IF helpkey = "attack_damage" THEN
+   attack_editor_build_damage_menu recbuf(), menu(), menutype(), caption(), menucapoff(), workmenu(), state, dmgbit(), maskeddmgbit(), damagepreview
+  END IF
   'update_attack_editor_for_fail_conds should not be called here, but only when
   'the record number changes! (Well, it could be called more often than that)
   '--in case new attacks have been added
@@ -1305,9 +1353,6 @@ DO
   enforceflexbounds menuoff(), menutype(), menulimits(), recbuf(), min(), max()
   '--fix caption attack caption duration
   caption(menucapoff(AtkCapTime) - 1) = "ticks (" & seconds_estimate(recbuf(AtkDatCapTime)) & " sec)"
-  '--percentage damage shows target stat
-  caption(menucapoff(AtkDamageEq) + 5) = caption(menucapoff(AtkTargStat) + recbuf(AtkDatTargStat)) + " = " & (100 + recbuf(AtkDatExtraDamage)) & "% of Maximum"
-  caption(menucapoff(AtkDamageEq) + 6) = caption(menucapoff(AtkTargStat) + recbuf(AtkDatTargStat)) + " = " & (100 + recbuf(AtkDatExtraDamage)) & "% of Current"
   updateflexmenu state.pt, dispmenu(), workmenu(), state.last, menu(), menutype(), menuoff(), menulimits(), recbuf(), caption(), max(), recindex
   flexmenu_update_selectable workmenu(), menutype(), selectable()
   '--update the picture and palette preview
@@ -1321,6 +1366,11 @@ DO
   atk_edit_preview recbuf(AtkDatAnimPattern), preview
   DrawSlice preview_box, dpage
  END IF
+
+ 'Damage preview, blank on most menus.
+ 'It really can get 13 lines long! *shudder*
+ textcolor uilook(uiMenuItem), 0
+ printstr vpages(dpage), damagepreview, 0, 77, 320, 0
 
  standardmenu dispmenu(), state, 0, 0, dpage
  IF keyval(scAlt) > 0 OR show_name > 0 THEN 'holding ALT or just tab-flipped, show ID and name
@@ -1344,6 +1394,355 @@ DeleteSlice @preview_box
 
 END SUB
 
+SUB atk_edit_merge_bitsets(recbuf() as integer, tempbuf() as integer)
+  'merge the two blocks of bitsets into the buffer
+  DIM i as integer
+  FOR i = 0 TO 3
+    tempbuf(i) = recbuf(AtkDatBitsets + i)
+  NEXT i
+  FOR i = 0 TO 7
+    tempbuf(4 + i) = recbuf(AtkDatBitsets2 + i)
+  NEXT i
+END SUB
+
+SUB atk_edit_split_bitsets(recbuf() as integer, tempbuf() as integer)
+  'split the buffer to the two bitset blocks
+  DIM i as integer
+  FOR i = 0 TO 3
+    recbuf(AtkDatBitsets + i) = tempbuf(i)
+  NEXT i
+  FOR i = 0 TO 7
+    recbuf(AtkDatBitsets2 + i) = tempbuf(4 + i)
+  NEXT i
+END SUB
+
+SUB update_attack_editor_for_fail_conds(recbuf() as integer, caption() as string, byval AtkCapFailConds as integer)
+ DIM cond as AttackElementCondition
+ FOR i as integer = 0 TO 63
+  DeSerAttackElementCond cond, recbuf(), 121 + i * 3
+  caption(AtkCapFailConds + i * 2 + 1) = format_percent_cond(cond, " [No Condition]")
+ NEXT
+END SUB
+
+'Wherein we show how to avoid the limitations of flexmenu by avoiding its use
+SUB attack_editor_build_damage_menu(recbuf() as integer, menu() as string, menutype() as integer, caption() as string, menucapoff() as integer, workmenu() as integer, state as MenuState, dmgbit() as string, maskeddmgbit() as string, preview as string)
+  DIM i as integer
+  DIM attack as AttackData
+  convertattackdata(recbuf(), attack)
+  DIM targetstat as string = caption(menucapoff(AtkTargStat) + attack.targ_stat)
+  DIM iselemental as integer = NO
+  DIM target_is_register as integer = NO
+  DIM percentage_attack as integer = NO
+
+  IF attack.targ_stat >= 12 AND attack.targ_stat <= 15 THEN target_is_register = YES
+  IF attack.damage_math = 5 OR attack.damage_math = 6 THEN percentage_attack = YES
+
+  FOR i = 0 TO gen(genNumElements) - 1
+    IF attack.elemental_damage(i) THEN iselemental = YES
+  NEXT
+
+  ' Blank the menu
+  FOR i as integer = 2 TO UBOUND(workmenu)
+   workmenu(i) = AtkBlankMenuItem
+  NEXT
+  state.top = 0
+  state.last = 23
+  state.need_update = YES
+
+  ' By default, all bitsets shown. We'll blank ones to hide later
+  FOR i = 0 TO UBOUND(dmgbit)
+    maskeddmgbit(i) = dmgbit(i)
+  NEXT
+
+
+  ' Start building
+  workmenu(0) = AtkBackAct   'Previous
+  workmenu(1) = AtkHitX      'Number of hits
+  workmenu(2) = AtkDamageEq  'Damage equation
+  DIM nextslot as integer = 3
+
+  ' "Attacks will ignore extra hits stat" gen bitset
+  IF xreadbit(gen(), 13, genBits2) THEN
+    maskeddmgbit(49) = ""  'Ignore attacker's extra hits
+  END IF
+
+  IF xreadbit(gen(), 13, genBits2) = NO AND attack.ignore_extra_hits = NO THEN
+    preview = "Hits " & attack.hits & " to " & attack.hits & " + attacker " + statnames(statHitX) + !" times\n"
+  ELSE
+    IF attack.hits = 1 THEN
+      preview = !"Hits 1 time\n"
+    ELSE
+      preview = "Hits " & attack.hits & !" times\n"
+    END IF
+  END IF
+
+  IF target_is_register THEN
+    'Pointless, register stats are capped (in the battle main loop, not in inflict)
+    maskeddmgbit(58) = ""  'Allow Cure to exceed maximum
+  END IF
+
+  'If Damage Math is No Damage
+  '(Note that this also disables nearly all aiming and failure logic!)
+  IF attack.damage_math = 4 THEN
+    'Nada... and only one of the bitsets apply
+
+    workmenu(nextslot) = AtkDamageBitAct   'Damage bitsets menu
+    nextslot += 1
+
+    FOR i = 0 TO UBOUND(maskeddmgbit)
+      IF i <> 49 THEN maskeddmgbit(i) = ""  'Ignore attacker's extra hits
+    NEXT
+
+    'Also "Do not display damage" has no effect, but that's not in this menu
+
+  ELSE
+    'Doing damage
+
+    DIM setvalue as integer = NO  'Setting target stat directly to a value (percentage of something)
+    DIM elemental_modifiers as integer = iselemental  'absorbable due to elements?
+
+    'A normal attack
+    IF attack.damage_math <= 3 THEN
+      workmenu(nextslot) = AtkBaseAtk      'Base attack value/stat
+      nextslot += 1
+      IF attack.damage_math <> 3 THEN
+        workmenu(nextslot) = AtkBaseDef    'Base defense stat
+        nextslot += 1
+      END IF
+
+      menu(AtkExtraDamage) = "Extra Damage:"
+      menutype(AtkExtraDamage) = 17  'value%
+
+      preview += "${LM48}DMG = "
+
+      DIM as string amult, dmult, astat, dstat
+
+      astat = caption(menucapoff(AtkBaseAtk) + attack.base_atk_stat)
+      dstat = caption(menucapoff(AtkBaseDef) + attack.base_def_stat)
+      IF attack.base_def_stat = 0 THEN  'Default
+        IF attack.base_atk_stat = 1 THEN  'Magic attack
+          dstat = statnames(statWill)
+        ELSE
+          dstat = statnames(statDef)
+        END IF
+      END IF
+
+      IF attack.damage_math = 0 THEN amult = "" : dmult = "0.5 * "  'Normal
+      IF attack.damage_math = 1 THEN amult = "0.8 * " : dmult = "0.1 * "  'Blunt
+      IF attack.damage_math = 2 THEN amult = "1.3 * " : dmult = ""  'Sharp
+
+      DIM show_extra_damage as integer = (attack.extra_damage <> 0)
+
+      IF attack.damage_math = 3 THEN  'Pure damage
+        'Some special case simplifications
+        IF attack.base_atk_stat = 4 THEN
+          'randint(999)
+          preview += "Random(0 to " & INT(9.99 * (100 + attack.extra_damage)) & ")"
+          show_extra_damage = NO
+        ELSEIF attack.base_atk_stat = 5 THEN
+          '100
+          preview += STR(100 + attack.extra_damage)
+          show_extra_damage = NO
+        ELSE
+          preview += astat
+        END IF
+      ELSE
+        preview += "(" + amult + astat + " - " + dmult + dstat + ")"
+      END IF
+
+      IF show_extra_damage THEN
+        preview += " * " & (attack.extra_damage + 100) & "%"
+      END IF
+      IF iselemental THEN
+        preview += " * Elemental Bonuses"
+      END IF
+
+      IF attack.do_not_randomize = NO THEN
+        preview += !"\nDMG = DMG +/- 20%"
+      END IF
+
+      'Only show if the attack is actually spreadable
+      IF attack.targ_set = 1 OR attack.targ_set = 2 THEN
+        IF attack.divide_spread_damage THEN preview += " / Num Targets"
+      ELSE
+        maskeddmgbit(1) = ""  'Divide spread damage
+      END IF
+
+      '--mask bitsets which have no effect
+      maskeddmgbit(69) = "" '% based attacks damage instead of set
+
+
+    ELSEIF attack.damage_math = 5 OR attack.damage_math = 6 THEN
+      '%-based attacks. Two big alternative damage formulae!
+
+      elemental_modifiers = NO
+
+      DIM as string tempcap
+
+      preview += "${LM48}"
+
+      IF attack.percent_damage_not_set = NO THEN
+        setvalue = YES
+
+        '--percentage damage shows target stat
+        tempcap = caption(menucapoff(AtkTargStat) + recbuf(AtkDatTargStat)) + " = " & (100 + attack.extra_damage) & "%"
+        caption(menucapoff(AtkDamageEq) + 5) = tempcap + " of Maximum"
+        caption(menucapoff(AtkDamageEq) + 6) = tempcap + " of Current"
+
+        IF attack.show_damage_without_inflicting THEN
+          'Ugh, special case it to show damage instead
+          'preview += "DMG = "  + caption(menucapoff(AtkDamageEq) + attack.damage_math) + " - Current " + targetstat
+          IF attack.damage_math = 5 THEN tempcap = "maximum " + targetstat
+          IF attack.damage_math = 6 THEN tempcap = "current " + targetstat
+          preview += "DMG = current " + targetstat + " - " & (100 + attack.extra_damage) & "% of " + tempcap
+        ELSE
+          preview += "Target " + caption(menucapoff(AtkDamageEq) + attack.damage_math)
+        END IF
+
+        '--mask bitsets which have no effect
+        maskeddmgbit(0) = ""  'Cure instead of harm
+        maskeddmgbit(83) = "" 'Don't allow damage to exceed target stat
+        'Enemy's "Harmed by cure" bitset also does nothing
+
+      ELSE
+        tempcap = (100 + attack.extra_damage) & "%"
+        caption(menucapoff(AtkDamageEq) + 5) = tempcap + " of Maximum"
+        caption(menucapoff(AtkDamageEq) + 6) = tempcap + " of Current"
+
+        preview += "DMG = " + caption(menucapoff(AtkDamageEq) + attack.damage_math) + " " + targetstat
+
+      END IF
+
+      menu(AtkExtraDamage) = "Percentage:"
+      menutype(AtkExtraDamage) = 22  '(100 + value)%
+
+      '--mask bitsets which have no effect
+      maskeddmgbit(1) = ""   'Divide spread damage
+      maskeddmgbit(61) = ""  'Do not randomize
+      maskeddmgbit(62) = ""  'Damage can be zero
+      
+    ELSE
+      fatalerror "Impossible damage math setting"
+    END IF
+
+    'Add rest of menu items
+    IF attack.show_damage_without_inflicting = NO OR percentage_attack THEN
+      'If not inflicting, only need to select target stat if it affects damage
+      workmenu(nextslot) = AtkTargStat     'Target stat
+      nextslot += 1
+    END IF
+    workmenu(nextslot) = AtkExtraDamage  'Extra damage %
+    nextslot += 1
+    workmenu(nextslot) = AtkDamageBitAct 'Damage bitsets menu
+    nextslot += 1
+
+    'If this bit is set, then damage caps and "Allow cure to exceed maximum" and absorbing
+    'don't take effect, but "Do not exceed target stat" and min 1 damage still do
+    IF attack.show_damage_without_inflicting = YES THEN
+      maskeddmgbit(2)  = ""  'Absorb Damage
+      maskeddmgbit(58) = ""  'Allow Cure to exceed maximum
+    END IF
+
+    IF attack.show_damage_without_inflicting = NO AND setvalue = NO AND gen(genDamageCap) > 0 THEN
+      'Both damage caps takes effect
+      IF attack.damage_can_be_zero THEN
+        preview += !"\nDMG = limit(DMG, 0 to " & gen(genDamageCap) & ")"
+      ELSE
+        preview += !"\nDMG = limit(DMG, 1 to " & gen(genDamageCap) & ")"
+      END IF
+    ELSEIF percentage_attack = NO THEN
+      'Cap damage below
+      IF attack.damage_can_be_zero = NO THEN
+        preview += !"\nIf DMG <= 0 then DMG = 1"
+      ELSE
+        preview += !"\nIf DMG < 0 then DMG = 0"
+      END IF
+    END IF
+
+    DIM might_otherwise_exceed_max as integer = NO  'Could "allow cure to exceed max" be needed for THE TARGET
+
+    IF elemental_modifiers THEN
+      '(setvalue is NO)
+      IF attack.cure_instead_of_harm THEN
+        preview += !"\nNegate DMG if target absorbs element or not `Harmed by cure'"
+      ELSE
+        preview += !"\nNegate DMG if target absorbs element"
+      END IF
+      might_otherwise_exceed_max = YES
+    ELSEIF attack.cure_instead_of_harm AND setvalue = NO THEN
+      'AKA damage-not-set percentage-based attack
+      preview += !"\nNegate DMG if target not `Harmed by cure'"
+      might_otherwise_exceed_max = YES
+    ELSEIF setvalue = YES AND attack.extra_damage > 0 THEN
+      might_otherwise_exceed_max = YES
+    END IF
+
+    IF setvalue = NO AND attack.do_not_exceed_targ_stat THEN
+      preview += !"\nDMG = limit(DMG, -target lost " + targetstat + " to target " + targetstat + ")"
+
+      'In this case, we can never cure the target, but we ONLY hide "Allow Cure to exceed maximum"
+      'if we are not absorbing, because it still affects the attacker's target stat!
+      IF attack.absorb_damage = NO THEN
+        maskeddmgbit(58) = ""  'Allow Cure to exceed maximum
+      END IF
+      might_otherwise_exceed_max = NO
+    END IF
+
+    IF attack.show_damage_without_inflicting = NO THEN
+      IF setvalue THEN
+        'Special case, "Target stat = ..." line already added
+        IF attack.absorb_damage THEN
+          preview += !"\nAttacker " + targetstat + " -= change to target's " + targetstat
+        END IF
+      ELSE
+
+        IF attack.reset_targ_stat_before_hit THEN
+          preview += !"\nTarget " + targetstat + " = Max " + targetstat + " - DMG"
+        ELSE
+          preview += !"\nTarget " + targetstat + " -= DMG"
+        END IF
+        IF attack.absorb_damage THEN
+          preview += !"\nAttacker " + targetstat + " += DMG"
+        END IF
+      END IF
+
+      IF attack.allow_cure_to_exceed_maximum = NO AND target_is_register = NO THEN
+        'Might the target stat be capped?
+        'Don't bother stating this for registers, as they are always capped (and the preview gets way too longer)
+        IF might_otherwise_exceed_max THEN
+          'preview += !"\nIf Target " + targetstat + " > Maximum then " + targetstat + " = Maximum"
+          preview += !"\nLimit Target " + targetstat + " to <= Max"
+        END IF
+        IF attack.absorb_damage THEN
+          'preview += !"\nIf Attacker " + targetstat + " > Maximum then " + targetstat + " = Maximum"
+          preview += !"\nLimit Attacker " + targetstat + " to <= Max"
+        END IF
+      END IF
+    END IF
+  END IF
+
+  state.pt = small(state.pt, nextslot - 1)
+
+END SUB
+
+SUB atk_edit_preview(byval pattern as integer, sl as Slice Ptr)
+ STATIC anim0 as integer
+ STATIC anim1 as integer
+ anim0 = anim0 + 1
+ IF anim0 > 3 THEN
+  anim0 = 0
+  IF pattern = 0 THEN anim1 = anim1 + 1: IF anim1 > 2 THEN anim1 = 0
+  IF pattern = 1 THEN anim1 = anim1 - 1: IF anim1 < 0 THEN anim1 = 2
+  IF pattern = 2 THEN anim1 = anim1 + 1: IF anim1 > 2 THEN anim1 = -1
+  IF pattern = 3 THEN anim1 = randint(3)
+ END IF
+ ChangeSpriteSlice sl, , , ,ABS(anim1)
+END SUB
+
+
+'--------------------------- Nearly Generic Flexmenu Stuff ---------------------
+
+
 SUB atk_edit_backptr(workmenu() as integer, mainMenu() as integer, state as MenuState, laststate as menustate, byref menudepth as integer)
  setactivemenu workmenu(), mainMenu(), state
  menudepth = 0
@@ -1363,20 +1762,6 @@ SUB flexmenu_update_selectable(workmenu() as integer, menutype() as integer, sel
  FOR i as integer = 0 TO UBOUND(workmenu)
   selectable(i) = menutype(workmenu(i)) <> 18  'skippable
  NEXT
-END SUB
-
-SUB atk_edit_preview(byval pattern as integer, sl as Slice Ptr)
- STATIC anim0 as integer
- STATIC anim1 as integer
- anim0 = anim0 + 1
- IF anim0 > 3 THEN
-  anim0 = 0
-  IF pattern = 0 THEN anim1 = anim1 + 1: IF anim1 > 2 THEN anim1 = 0
-  IF pattern = 1 THEN anim1 = anim1 - 1: IF anim1 < 0 THEN anim1 = 2
-  IF pattern = 2 THEN anim1 = anim1 + 1: IF anim1 > 2 THEN anim1 = -1
-  IF pattern = 3 THEN anim1 = randint(3)
- END IF
- ChangeSpriteSlice sl, , , ,ABS(anim1)
 END SUB
 
 FUNCTION editflexmenu (nowindex as integer, menutype() as integer, menuoff() as integer, menulimits() as integer, datablock() as integer, caption() as string, mintable() as integer, maxtable() as integer) as integer
@@ -1406,6 +1791,7 @@ FUNCTION editflexmenu (nowindex as integer, menutype() as integer, menuoff() as 
 '           19=ticks (with seconds estimate)
 '           20=Else-Chain Rate hack (clumsy hack to force myself to do this elegantly in editedit --James)
 '           21=set tag, excluding special tags
+'           22=(int+100) with a % sign after it
 '           1000-1999=postcaptioned int (caption-start-offset=n-1000)
 '                     (be careful about negatives!)
 '           2000-2999=caption-only int (caption-start-offset=n-1000)
@@ -1430,7 +1816,7 @@ DIM changed as integer = 0
 DIM s as string
 
 SELECT CASE menutype(nowindex)
- CASE 0, 8, 12 TO 17, 19, 20, 1000 TO 3999' integers
+ CASE 0, 8, 12 TO 17, 19, 20, 22, 1000 TO 3999' integers
   changed = intgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)), maxtable(menulimits(nowindex)))
  CASE 7, 9 TO 11 'offset integers
   changed = zintgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)) - 1, maxtable(menulimits(nowindex)) - 1)
@@ -1484,7 +1870,7 @@ SUB enforceflexbounds (menuoff() as integer, menutype() as integer, menulimits()
 
 FOR i as integer = 0 TO UBOUND(menuoff)
  SELECT CASE menutype(i)
-  CASE 0, 8, 12 TO 17, 1000 TO 3999
+  CASE 0, 8, 12 TO 17, 19, 20, 22, 1000 TO 3999
    '--bound ints
    IF menulimits(i) > 0 THEN
     '--only bound items that have real limits
@@ -1541,6 +1927,7 @@ SUB updateflexmenu (mpointer as integer, nowmenu() as string, nowdat() as intege
 '           19=ticks (with seconds estimate)
 '           20=Else-Chain Rate hack (clumsy hack to force myself to do this elegantly in editedit --James)
 '           21=set tag, excluding special tags
+'           22=(int+100) with a % sign after it
 '           1000-1999=postcaptioned int (caption-start-offset=n-1000)
 '                     (be careful about negatives!)
 '           2000-2999=caption-only int (caption-start-offset=n-2000)
@@ -1651,6 +2038,8 @@ FOR i = 0 TO size
    END IF
   CASE 21 '--set tag, not including specials
    datatext = tag_set_caption(dat, "")
+  CASE 22 '--(int+100)%
+   datatext = (dat + 100) & "%"
   CASE 1000 TO 1999 '--captioned int
    capnum = menutype(nowdat(i)) - 1000
    datatext = dat & " " & caption(capnum + dat)
@@ -1689,15 +2078,8 @@ FUNCTION isStringField(byval mnu as integer) as integer
 END FUNCTION
 
 
-SUB update_attack_editor_for_fail_conds(recbuf() as integer, caption() as string, byval AtkCapFailConds as integer)
- DIM cond as AttackElementCondition
- FOR i as integer = 0 TO 63
-  DeSerAttackElementCond cond, recbuf(), 121 + i * 3
-  caption(AtkCapFailConds + i * 2 + 1) = format_percent_cond(cond, " [No Condition]")
- NEXT
-END SUB
+'----------------------------------- Menu Editor -------------------------------
 
-'-----------------------------------------------------------------------
 
 SUB menu_editor ()
 

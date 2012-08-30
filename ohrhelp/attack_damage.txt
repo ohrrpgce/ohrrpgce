@@ -1,11 +1,25 @@
 This screen allows you to change how
 much damage an attack will do and how it will come up with the numbers.
 
+Options appear and disappear as you change other options: those with no effect are hidden.
+
+At the bottom of the screen, the calculation of the damage (DMG) and effect on the target is previewed in detail. Note that DMG is positive if harming and negative ("negated") when healing (as subtracting a negative value will increase the target stat). "limit(X, Y to Z)" means limit the value X to within the range Y to Z (no less than Y, no more than Z).
+
 Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu.
 
 Use the Left or Right arrow keys to change the values.
 
 Hold ALT and press the left or right arrow keys to change which attack you are editing, or type in an ID number.
+
+*************************************
+
+Number of Hits: The number of hits
+ you want the attack to do. But if
+ the attacker's Hits stat is not zero
+ then an additional, random number of
+ hits will occur, unless you disable
+ that by either the attack or General
+ Preference bitset.
 
 *************************************
 
@@ -31,11 +45,10 @@ how much damage is done. The formula for each choice is shown on-screen.  Below 
 
   Good for making stats weaker or       stronger without stacking if used     more than once such as a Haste or     Protect spell.
 
-  If the "percent is damage instead     of set" bitset is turned on
-  (bitsets are accessed from the
-  previous menu), then this becomes
-  great for things such as Healing
-  33% of HP.
+  If the "percent is damage instead
+  of set" damage bitset is turned on,
+  then this becomes great for things
+  such as healing 33% of HP.
 
   The percent, [N]%, can be changed     by changing the 'Extra Damage'        number.
 
@@ -104,37 +117,3 @@ Target Stat: What stat you want to     actually change. Normally HP, but     can
 *************************************
 
 Extra Damage: Increase in percentage   (100% = 2x, 1000% = 11x, etc..) in    how much more (or less) damage is     done. Values above 0% increase the    damage, and values below decrease     it.
-
-*************************************
-
-Aim Math: Basically how accurate       attacks are. Normal, Poor, and Bad    all change how much power the         accuracy stat has when determining    whether the attack hits or mises.
-
- Besides Normal, Poor, and Bad, here   is an explantion of other accuracy    values.
-
--Never Misses: Ensures that the         attack always hits no matter what.    Great for many purposes, such as      healing spells or attacks that        serve other purposes.
-
--Magic: Uses different stats to         emphasize magical aptitude and
-  enemy resistace to magic to
-  determine whether an attack hits,
-  rather than normal accuracy means.
-  Its use is rather self-explanatory.
-
--Percentage based formulas: These       formulas use the stats as
-  percentages out of 100 to determine
-  the success rate of attacks.  The
-  symbol * here means that the first
-  percentage is taken into account,
-  and then if it was successful the
-  second percentage is used to decide
-  if the target avoided the attack.
-
-*************************************
-
-Number of Hits: Self-explanatory, how
- many hits you want the attack to
- do.
-
-*************************************
-
-Delay Before Attack: How long it       takes (measured in ticks) before
- the attack is executed.
