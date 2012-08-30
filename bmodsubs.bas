@@ -395,7 +395,7 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
    CASE 3
     ap = attacker.stat.max.hp - attacker.stat.cur.hp
    CASE 4
-    ap = randint(999)
+    ap = randint(1000)  '0 to 999
    CASE 5
     ap = 100
    CASE 6 TO 17
@@ -436,9 +436,9 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
     'What's a good cut off for immunity? When we switch to 32bit HP values, maybe
     'you'll want to be able to do 1/1000,000 normal damage without triggering immunity?
     IF ABS(target.elementaldmg(i)) < 0.000005 THEN
-     immune = 1
+     immune = YES
     ELSEIF target.elementaldmg(i) < 0.0 THEN
-     cure = 1  'absorb
+     cure = YES  'absorb
     END IF
    END IF
    WITH attack.elemental_fail_conds(i)
@@ -501,18 +501,20 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
    SELECT CASE attack.damage_math
     CASE 5'% of max
      h = mhp + (attack.extra_damage * mhp / 100)
-     cure = 0
+     cure = NO
     CASE 6'% of cur
      h = chp + (attack.extra_damage * chp / 100)
-     cure = 0
+     cure = NO
    END SELECT
   END IF
 
-  IF cure = 1 THEN
-   h = ABS(h) * -1                  'elemental absorb
-  ELSE
-   IF attack.cure_instead_of_harm = YES THEN h = ABS(h) * -1 'cure bit
-   IF target.harmed_by_cure = YES THEN h = ABS(h)  'zombie
+  'h should always be nonnegative at this point
+  IF h < 0 THEN debug "inflict: negative h!"
+
+  IF cure THEN
+   h *= -1      'elemental absorb
+  ELSEIF attack.cure_instead_of_harm = YES AND target.harmed_by_cure = NO THEN
+   h *= -1      'cure bit
   END IF
  
   DIM capdamage as integer = YES
@@ -532,12 +534,13 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
    END SELECT
   END IF
 
-  'Maybe cap damage to max possible damage
+  'Maybe cap damage to max possible damage/cure
   'Note that unlike the damage cap, this still happens if not inflicting
   IF attack.do_not_exceed_targ_stat AND capdamage THEN
    IF h > 0 THEN 'damage
     h = small(h, target.stat.cur.sta(targstat))
    ELSEIF h < 0 THEN ' cure
+    'Note: this cure can no exceed max regardless of "allow cure to exceed maximum" bit
     DIM diff as integer = target.stat.max.sta(targstat) - target.stat.cur.sta(targstat)
     IF diff >= 0 THEN
      h = large(h, diff * -1)
