@@ -67,6 +67,10 @@ def escape_string(s):
     print "RESULT :", ret
     return ret
 
+def readbit(array, bitnum, offset = 0):
+    assert array.itemsize == 1
+    return array[offset + bitnum / 8] & (1 << (bitnum % 8)) != 0
+
 class RPGInfo(object):
     def loadname(self, rpg):
         if rpg.lump_size('browse.txt'):
