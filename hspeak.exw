@@ -694,7 +694,7 @@ procedure check_arg_count(sequence args)
     --              --reuse-ids scripts.bin
     --                 Read the provided scripts.bin file from a previous compilation, and reuse script ID mapping
     wrap_print("\nFor more info about HamsterSpeak visit "&COLBWHI&"http://HamsterRepublic.com/ohrrpgce"&COLWHI&"\n",{})
-    wrap_print("\nThis is a command-line program. You should either run it from the command-line (DOS prompt) or you should drag and drop your script file onto it.\n",{})
+    wrap_print("\nThis is a command-line program. You should either run it from the command-line or you should drag and drop your script file onto it.\n",{})
     opt_wait_for_key()
     abort(0)
   end if
