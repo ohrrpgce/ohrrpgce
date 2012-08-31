@@ -2173,7 +2173,9 @@ END FUNCTION
 
 'Edit array of bits. The bits don't have to be consecutive, but they do have to be in ascending order.
 'The bits corresponding to any blank entries in names() are skipped over.
-SUB editbitset (array() as integer, byval wof as integer, byval last as integer, names() as string, helpkey as string="editbitset")
+'if remem_pt is not -2 (initialise to -1) it is used to store the selected bit (index in names())
+'If immediate_quit is true, then toggling a bit causes the menu to quit immediately and return YES (otherwise NO)
+FUNCTION editbitset (array() as integer, byval wof as integer, byval last as integer, names() as string, helpkey as string="editbitset", byref remem_pt as integer = -2, byval immediate_quit as integer = NO) as integer
 
  '---DIM AND INIT---
  DIM state as MenuState
@@ -2195,11 +2197,13 @@ SUB editbitset (array() as integer, byval wof as integer, byval last as integer,
   IF names(i) <> "" THEN
    menu(nextbit) = names(i)
    bits(nextbit) = i
+   IF remem_pt = i THEN state.pt = nextbit
    nextbit += 1
   END IF
  NEXT
  state.last = nextbit - 1
 
+ DIM ret as integer = NO
  DIM col as integer
 
  '---MAIN LOOP---
@@ -2214,7 +2218,10 @@ SUB editbitset (array() as integer, byval wof as integer, byval last as integer,
   IF state.pt >= 0 THEN
    IF keyval(scLeft) > 1 OR keyval(scComma) > 1 THEN setbit array(), wof, bits(state.pt), 0
    IF keyval(scRight) > 1 OR keyval(scPeriod) > 1 THEN setbit array(), wof, bits(state.pt), 1
-   IF enter_or_space() THEN setbit array(), wof, bits(state.pt), readbit(array(), wof, bits(state.pt)) XOR 1
+   IF enter_or_space() THEN
+    setbit array(), wof, bits(state.pt), readbit(array(), wof, bits(state.pt)) XOR 1
+    IF immediate_quit THEN ret = YES: EXIT DO
+   END IF
   ELSE
    IF enter_or_space() THEN EXIT DO
   END IF
@@ -2237,7 +2244,15 @@ SUB editbitset (array() as integer, byval wof as integer, byval last as integer,
   setvispage vpage
   dowait
  LOOP
-END SUB
+ IF remem_pt <> -2 THEN
+  IF state.pt = -1 THEN
+   remem_pt = -1
+  ELSE
+   remem_pt = bits(state.pt)
+  END IF
+ END IF
+ RETURN ret
+END FUNCTION
 
 SUB scriptbrowse (byref trigger as integer, byval triggertype as integer, scrtype as string)
  'For when you don't care about the return value of scriptbrowse_string()
