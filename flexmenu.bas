@@ -1115,6 +1115,9 @@ DIM lastindex as integer = 0
 laststate.need_update = NO
 
 DIM rememberindex as integer = -1
+DIM remember_atk_bit as integer = -1
+DIM remember_dmg_bit as integer = -1
+DIM remember_elmt_bit as integer = -1
 DIM show_name as integer = 0
 DIM drawpreview as integer = YES
 STATIC warned_old_fail_bit as integer = NO
@@ -1280,12 +1283,20 @@ DO
     state.need_update = YES
    CASE AtkBitAct
     atk_edit_merge_bitsets recbuf(), buffer()
-    editbitset buffer(), 0, UBOUND(atkbit), atkbit(), "attack_bitsets"
+    editbitset buffer(), 0, UBOUND(atkbit), atkbit(), "attack_bitsets", remember_atk_bit
     atk_edit_split_bitsets recbuf(), buffer()
    CASE AtkDamageBitAct
-    atk_edit_merge_bitsets recbuf(), buffer()
-    editbitset buffer(), 0, UBOUND(maskeddmgbit), maskeddmgbit(), "attack_damage_bitsets"
-    atk_edit_split_bitsets recbuf(), buffer()
+    DIM updatebits as integer
+    DO
+     atk_edit_merge_bitsets recbuf(), buffer()
+     updatebits = editbitset(buffer(), 0, UBOUND(maskeddmgbit), maskeddmgbit(), "attack_damage_bitsets", remember_dmg_bit, YES)
+     atk_edit_split_bitsets recbuf(), buffer()
+     IF updatebits THEN
+      attack_editor_build_damage_menu recbuf(), menu(), menutype(), caption(), menucapoff(), workmenu(), state, dmgbit(), maskeddmgbit(), damagepreview
+     ELSE
+      EXIT DO
+     END IF
+    LOOP
     'Bitsets have complicated effects
     state.need_update = YES
    CASE AtkElemBitAct
@@ -1298,7 +1309,7 @@ DO
      'bits 80 - 127
      buffer(2 + i) = recbuf(AtkDatBitsets2 + 5 + i)
     NEXT i
-    editbitset buffer(), 0, UBOUND(elementbit), elementbit(), "attack_element_bitsets"
+    editbitset buffer(), 0, UBOUND(elementbit), elementbit(), "attack_element_bitsets", remember_elmt_bit
     'split the buffer to the two bitset blocks
     FOR i = 0 TO 1
      recbuf(AtkDatBitsets + i) = buffer(i)
@@ -1448,6 +1459,7 @@ SUB attack_editor_build_damage_menu(recbuf() as integer, menu() as string, menut
   state.top = 0
   state.last = 23
   state.need_update = YES
+  preview = ""
 
   ' By default, all bitsets shown. We'll blank ones to hide later
   FOR i = 0 TO UBOUND(dmgbit)
@@ -1467,12 +1479,12 @@ SUB attack_editor_build_damage_menu(recbuf() as integer, menu() as string, menut
   END IF
 
   IF xreadbit(gen(), 13, genBits2) = NO AND attack.ignore_extra_hits = NO THEN
-    preview = "Hits " & attack.hits & " to " & attack.hits & " + attacker " + statnames(statHitX) + !" times\n"
+    preview += "Hits " & attack.hits & " to " & attack.hits & " + attacker " + statnames(statHitX) + !" times\n"
   ELSE
     IF attack.hits = 1 THEN
-      preview = !"Hits 1 time\n"
+      preview += !"Hits 1 time\n"
     ELSE
-      preview = "Hits " & attack.hits & !" times\n"
+      preview += "Hits " & attack.hits & !" times\n"
     END IF
   END IF
 
@@ -1501,11 +1513,12 @@ SUB attack_editor_build_damage_menu(recbuf() as integer, menu() as string, menut
     DIM setvalue as integer = NO  'Setting target stat directly to a value (percentage of something)
     DIM elemental_modifiers as integer = iselemental  'absorbable due to elements?
 
-    'A normal attack
+    'A normal attack (not percentage-based)
     IF attack.damage_math <= 3 THEN
       workmenu(nextslot) = AtkBaseAtk      'Base attack value/stat
       nextslot += 1
       IF attack.damage_math <> 3 THEN
+        'Not pure damage
         workmenu(nextslot) = AtkBaseDef    'Base defense stat
         nextslot += 1
       END IF
@@ -1536,7 +1549,7 @@ SUB attack_editor_build_damage_menu(recbuf() as integer, menu() as string, menut
       IF attack.damage_math = 3 THEN  'Pure damage
         'Some special case simplifications
         IF attack.base_atk_stat = 4 THEN
-          'randint(999)
+          '0 to 999
           preview += "Random(0 to " & INT(9.99 * (100 + attack.extra_damage)) & ")"
           show_extra_damage = NO
         ELSEIF attack.base_atk_stat = 5 THEN
@@ -1561,7 +1574,7 @@ SUB attack_editor_build_damage_menu(recbuf() as integer, menu() as string, menut
         preview += !"\nDMG = DMG +/- 20%"
       END IF
 
-      'Only show if the attack is actually spreadable
+      'If the attack is actually spreadable (Spread or Optional Spread)
       IF attack.targ_set = 1 OR attack.targ_set = 2 THEN
         IF attack.divide_spread_damage THEN preview += " / Num Targets"
       ELSE
@@ -1640,6 +1653,7 @@ SUB attack_editor_build_damage_menu(recbuf() as integer, menu() as string, menut
     'don't take effect, but "Do not exceed target stat" and min 1 damage still do
     IF attack.show_damage_without_inflicting = YES THEN
       maskeddmgbit(2)  = ""  'Absorb Damage
+      maskeddmgbit(57) = ""  'Reset target stat to max before hit
       maskeddmgbit(58) = ""  'Allow Cure to exceed maximum
     END IF
 
@@ -1661,6 +1675,7 @@ SUB attack_editor_build_damage_menu(recbuf() as integer, menu() as string, menut
 
     DIM might_otherwise_exceed_max as integer = NO  'Could "allow cure to exceed max" be needed for THE TARGET
 
+    'Check whether (and say when) this attack might cure the target
     IF elemental_modifiers THEN
       '(setvalue is NO)
       IF attack.cure_instead_of_harm THEN
@@ -1708,7 +1723,7 @@ SUB attack_editor_build_damage_menu(recbuf() as integer, menu() as string, menut
 
       IF attack.allow_cure_to_exceed_maximum = NO AND target_is_register = NO THEN
         'Might the target stat be capped?
-        'Don't bother stating this for registers, as they are always capped (and the preview gets way too longer)
+        'Don't bother stating this for registers, as they are always capped (and the preview gets way too long)
         IF might_otherwise_exceed_max THEN
           'preview += !"\nIf Target " + targetstat + " > Maximum then " + targetstat + " = Maximum"
           preview += !"\nLimit Target " + targetstat + " to <= Max"

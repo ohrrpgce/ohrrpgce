@@ -612,6 +612,7 @@ DIM lasttop as integer = 0
 DIM recindex as integer = 0
 
 DIM rememberindex as integer = -1
+DIM remember_bit as integer = -1
 DIM show_name as integer = 0
 DIM drawpreview as integer = YES
 
@@ -724,7 +725,7 @@ DO
     IF recbuf(EnDatDeathSFX) >= 1 THEN playsfx recbuf(EnDatDeathSFX) - 1
     IF recbuf(EnDatDeathSFX) = 0 THEN playsfx gen(genDefaultDeathSFX) - 1
    CASE EnMenuBitsetAct
-    editbitset recbuf(), EnDatBitset, UBOUND(ebit), ebit(), "enemy_bitsets"
+    editbitset recbuf(), EnDatBitset, UBOUND(ebit), ebit(), "enemy_bitsets", remember_bit
    CASE EnMenuDissolve, EnMenuDissolveTime
     IF recbuf(EnDatDissolve) THEN dissolve_type = recbuf(EnDatDissolve) - 1 ELSE dissolve_type = gen(genEnemyDissolve)
     dissolve_time = recbuf(EnDatDissolveTime) 
