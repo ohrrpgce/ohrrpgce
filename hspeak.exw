@@ -1165,7 +1165,7 @@ function lexer_read_include_line(sequence tokens, sequence s, integer i, srcpos 
       s=s[2..length(s)]
       i+=1
     end while
-    --s=trim_whitespace(s)
+    s=trim_whitespace(s)
     if s[1]='"' then
       temp=lexer_read_string(s,2,length(s),pos+i-1)
       s=temp[2]
