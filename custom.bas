@@ -62,7 +62,7 @@ DECLARE SUB shop_stuff_edit (byval shop_id as integer, stufbuf() as integer, byr
 DECLARE SUB shop_save_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
 DECLARE SUB shop_load_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
 DECLARE SUB update_shop_stuff_menu (byref stuf as ShopStuffState, stufbuf() as integer, byval thing_total as integer)
-DECLARE SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as integer)
+DECLARE SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as integer, byval reset_name as integer=NO)
 DECLARE SUB shop_menu_update(byref shopst as ShopEditState, shopbuf() as integer)
 DECLARE SUB shop_save (byref shopst as ShopEditState, shopbuf() as integer)
 DECLARE SUB shop_load (byref shopst as ShopEditState, shopbuf() as integer)
@@ -873,7 +873,7 @@ SUB shop_stuff_edit (byval shop_id as integer, stufbuf() as integer, byref thing
    CASE 3 TO 4 'type
     IF intgrabber(stufbuf(17 + stuf.st.pt - 3), stuf.min(stuf.st.pt), stuf.max(stuf.st.pt)) THEN
      stuf.st.need_update = YES
-     update_shop_stuff_type stuf, stufbuf()
+     update_shop_stuff_type stuf, stufbuf(), YES
     END IF
    CASE 6 TO 7 '--condition tags
     IF tag_grabber(stufbuf(17 + stuf.st.pt - 3), , , YES) THEN stuf.st.need_update = YES
@@ -920,11 +920,13 @@ SUB shop_stuff_edit (byval shop_id as integer, stufbuf() as integer, byref thing
 
 END SUB ' last
 
-SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as integer)
+SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as integer, byval reset_name as integer=NO)
  '--Re-load default names and default prices
  SELECT CASE stufbuf(17)
   CASE 0' This is an item
-   stuf.thingname = load_item_name(stufbuf(18),1,1)
+   IF reset_name THEN
+    stuf.thingname = load_item_name(stufbuf(18),1,1)
+   END IF
    DIM item_tmp(dimbinsize(binITM)) as integer
    loaditemdata item_tmp(), stufbuf(18)
    stufbuf(24) = item_tmp(46) ' default buy price
@@ -936,8 +938,10 @@ SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as integer)
    stuf.max(19) = 3 ' Item sell-type
   CASE 1
    DIM her AS HeroDef
-   loadherodata @her, stufbuf(18)
-   stuf.thingname = her.name
+   IF reset_name THEN
+    loadherodata @her, stufbuf(18)
+    stuf.thingname = her.name
+   END IF
    stufbuf(24) = 0 ' default buy price
    stufbuf(27) = 0 ' default sell price
    stuf.st.last = 19
