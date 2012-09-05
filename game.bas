@@ -3213,18 +3213,16 @@ SUB advance_text_box ()
  IF istag(txt.box.shop_tag, 0) THEN
   IF txt.box.shop > 0 THEN
    shop txt.box.shop - 1
-  END IF
-  DIM inn as integer = 0
-  IF txt.box.shop < 0 THEN
+  ELSEIF txt.box.shop < 0 THEN
    '--Preserve background for display beneath the top-level shop menu
    DIM holdscreen as integer = duplicatepage(vpage)
-   IF useinn(inn, -txt.box.shop, holdscreen) THEN
+   IF useinn(-txt.box.shop, holdscreen) THEN
+    innRestore
     fadeout 0, 0, 80
     queue_fade_in
    END IF
    freepage holdscreen
-  END IF
-  IF txt.box.shop <= 0 AND inn = 0 THEN
+  ELSEIF txt.box.shop = 0 THEN
    innRestore
   END IF
  END IF

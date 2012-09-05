@@ -20,6 +20,8 @@ WHAT IS NEW?
     * Bug 968: "Reset target stat to max before hit" attack bit takes
       effect even if the attack fails due to elemental resistance or
       "Show damage without inflicting" is set [Ralph]
+    * Fix inns called directly from textboxes with no shop, which were
+      restoring the party even if you refused to pay [James]
 
   * New Plotscripting Stuff
     * If a script runs for a long time without "wait"ing you can now

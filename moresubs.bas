@@ -2274,11 +2274,8 @@ DO
    IF temp >= 0 THEN savegame temp
   END IF
   IF menuid(st.pt) = 3 THEN '--INN
-   inn = 0
-   IF useinn(inn, storebuf(18), holdscreen) THEN
-    IF inn = 0 THEN
-     innRestore
-    END IF
+   IF useinn(storebuf(18), holdscreen) THEN
+    innRestore
     IF storebuf(19) > 0 THEN
      '--Run animation for Inn
      trigger_script storebuf(19), NO, "inn", "ID " & id, scrqBackcompat()
@@ -2331,8 +2328,9 @@ RETRACE
 END SUB
 
 'holdscreen is a copy of vpage (not a compatpage)
-FUNCTION useinn (byval inn as integer, byval price as integer, byval holdscreen as integer) as integer
-DIM menu(1) as STRING
+FUNCTION useinn (byval price as integer, byval holdscreen as integer) as integer
+DIM inn as integer = 0
+DIM menu(1) as string
 DIM i as integer
 DIM y as integer
 DIM col as integer
@@ -2355,7 +2353,7 @@ DO
  playtimer
  control
  IF carray(ccMenu) > 1 THEN
-  inn = 1 '?? Remember cursor position maybe?
+  inn = 1
   menusound gen(genCancelSFX)
   EXIT DO
  END IF

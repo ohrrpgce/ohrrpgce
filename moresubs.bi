@@ -52,7 +52,7 @@ DECLARE SUB scripterr (e as string, byval errorlevel as integer = 5)
 DECLARE FUNCTION script_interrupt () as integer
 DECLARE FUNCTION settingstring (searchee as string, setting as string, result as string) as integer
 DECLARE SUB shop (byval id as integer)
-DECLARE FUNCTION useinn (byval inn as integer, byval price as integer, byval holdscreen as integer) as integer
+DECLARE FUNCTION useinn (byval price as integer, byval holdscreen as integer) as integer
 DECLARE SUB tagdisplay
 DECLARE SUB writejoysettings
 DECLARE FUNCTION herocount (byval last as integer = 3) as integer
