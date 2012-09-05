@@ -865,6 +865,7 @@ SUB shop_stuff_edit (byval shop_id as integer, stufbuf() as integer, byref thing
       storeset game & ".stf", shop_id * 50 + stuf.thing, 0
      END IF
      shop_load_stf shop_id, stuf, stufbuf()
+     update_shop_stuff_type stuf, stufbuf()
      stuf.st.need_update = YES
     END IF
    CASE 2 'name
