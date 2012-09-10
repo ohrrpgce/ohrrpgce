@@ -62,7 +62,7 @@ DECLARE SUB shop_stuff_edit (byval shop_id as integer, stufbuf() as integer, byr
 DECLARE SUB shop_save_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
 DECLARE SUB shop_load_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
 DECLARE SUB update_shop_stuff_menu (byref stuf as ShopStuffState, stufbuf() as integer, byval thing_total as integer)
-DECLARE SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as integer, byval reset_name as integer=NO)
+DECLARE SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as integer, byval reset_name_and_price as integer=NO)
 DECLARE SUB shop_menu_update(byref shopst as ShopEditState, shopbuf() as integer)
 DECLARE SUB shop_save (byref shopst as ShopEditState, shopbuf() as integer)
 DECLARE SUB shop_load (byref shopst as ShopEditState, shopbuf() as integer)
@@ -972,17 +972,17 @@ SUB shop_stuff_edit (byval shop_id as integer, stufbuf() as integer, byref thing
 
 END SUB ' last
 
-SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as integer, byval reset_name as integer=NO)
+SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as integer, byval reset_name_and_price as integer=NO)
  '--Re-load default names and default prices
  SELECT CASE stufbuf(17)
   CASE 0' This is an item
-   IF reset_name THEN
-    stuf.thingname = load_item_name(stufbuf(18),1,1)
-   END IF
    DIM item_tmp(dimbinsize(binITM)) as integer
    loaditemdata item_tmp(), stufbuf(18)
-   stufbuf(24) = item_tmp(46) ' default buy price
-   stufbuf(27) = item_tmp(46) \ 2 ' default sell price
+   IF reset_name_and_price THEN
+    stuf.thingname = load_item_name(stufbuf(18),1,1)
+    stufbuf(24) = item_tmp(46) ' default buy price
+    stufbuf(27) = item_tmp(46) \ 2 ' default sell price
+   END IF
    stuf.st.last = 22
    stuf.max(4) = gen(genMaxItem)
    IF stufbuf(18) > stuf.max(4) THEN stufbuf(18) = 0
@@ -990,12 +990,12 @@ SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as integer, b
    stuf.max(19) = 3 ' Item sell-type
   CASE 1
    DIM her AS HeroDef
-   IF reset_name THEN
+   IF reset_name_and_price THEN
     loadherodata @her, stufbuf(18)
     stuf.thingname = her.name
+    stufbuf(24) = 0 ' default buy price
+    stufbuf(27) = 0 ' default sell price
    END IF
-   stufbuf(24) = 0 ' default buy price
-   stufbuf(27) = 0 ' default sell price
    stuf.st.last = 19
    stuf.max(4) = gen(genMaxHero)
    IF stufbuf(18) > gen(genMaxHero) THEN stufbuf(18) = 0
