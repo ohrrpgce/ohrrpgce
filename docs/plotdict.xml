@@ -2510,7 +2510,7 @@ The example above creates a container and then puts two hero sprites inside it, 
 		<command id="createellipse">
 			<canon>create ellipse (width, height, border color, fill color)</canon>
 			<shortname>create ellipse</shortname>
-			<description>Create a new ellipse slice and return a handle to it. You can provide an optional <p>width</p> and <p>height</p>, and an optional <p>border color</p>. and an optional <p>fill color</p>. The ellipse will be transparent if you do not specify a fill color. Like all slice types, an ellipse slice can be used as a container for other slices with <ref>setparent</ref></description>
+			<description>Create a new ellipse slice and return a handle to it. You can provide an optional <p>width</p> and <p>height</p>, an optional <p>border color</p> and an optional <p>fill color</p>. The ellipse will be hollow if you do not specify a fill color. Like all slice types, an ellipse slice can be used as a container for other slices with <ref>setparent</ref></description>
 		</command>
 		<command id="sliceisvalid">
 			<canon>slice is valid (id)</canon>
@@ -3575,7 +3575,7 @@ end
 		<command id="getellipsefillcol">
 			<canon>get ellipse fill col (handle)</canon>
 			<shortname>get ellipse fill col</shortname>
-			<description>Given an ellipse slice <p>handle</p>, return the color it uses for its fill. This will be a number from 0 to 255 representing a color from the master palette. 0 means transparent fill.</description>
+			<description>Given an ellipse slice <p>handle</p>, return the color it uses for its fill. This will be a number from 1 to 255 representing a color from the master palette, or 0 meaning transparent fill (hollow).</description>
 			<seealso>
 				<ref>setellipsebordercol</ref>
 				<ref>getellipsebordercol</ref>
@@ -3586,7 +3586,7 @@ end
 		<command id="setellipsefillcol">
 			<canon>set ellipse fill col (handle, color)</canon>
 			<shortname>set ellipse fill col</shortname>
-			<description>Given an ellipse slice <p>handle</p>, change the color it uses for its fill. The <p>color</p> should be a number from 0 to 255 representing a color from the master palette. 0 means transparent fill.</description>
+			<description>Given an ellipse slice <p>handle</p>, change the color it uses for its fill. The <p>color</p> should be a number from 1 to 255 representing a color from the master palette, or 0 meaning transparent fill (hollow).</description>
 			<seealso>
 				<ref>setellipsebordercol</ref>
 				<ref>getellipsebordercol</ref>

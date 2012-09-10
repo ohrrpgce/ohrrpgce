@@ -3271,6 +3271,20 @@ IF uirecords < gen(genMaxMasterPal) + 1 THEN
  NEXT
 END IF
 
+'Work around a bug: vehicle shadow colour shouldn't be 0
+DIM uilook_temp(uiColors) as integer
+DIM master_temp(255) as RGBcolor
+FOR i as integer = 0 TO gen(genMaxMasterPal)
+ LoadUIColors uilook_temp(), i
+ IF uilook_temp(uiShadow) = 0 THEN
+  loadpalette master_temp(), i
+  'This is a hack. Unfortunately ellipse slice border and fill colors can't be 0 as that
+  'counts as transparent. This is a design mistake in ellipse slices, but is too much trouble to fix
+  uilook_temp(uiShadow) = nearcolor(master_temp(), 0, 1)
+  SaveUIColors uilook_temp(), i
+ END IF
+NEXT
+
 IF gen(genPassVersion) = 256 THEN
  '--Update PW3 to PW4
  upgrade_message "Updating PW3 password storage format"

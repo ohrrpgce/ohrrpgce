@@ -795,9 +795,9 @@ SUB slice_edit_detail_refresh (byref state as MenuState, menu() as string, sl as
    CASE slEllipse
     DIM dat as EllipseSliceData Ptr
     dat = .SliceData
-    str_array_append menu(), "Border Color: " & zero_default(dat->bordercol)
+    str_array_append menu(), "Border Color: " & zero_default(dat->bordercol, "transparent")
     sliceed_rule rules(), "bordercol", erIntgrabber, @(dat->bordercol), 0, 255, slgrPICKCOL
-    str_array_append menu(), "Fill Color: " & zero_default(dat->fillcol)
+    str_array_append menu(), "Fill Color: " & zero_default(dat->fillcol, "transparent")
     sliceed_rule rules(), "fillcol", erIntgrabber, @(dat->fillcol), 0, 255, slgrPICKCOL
   END SELECT
   str_array_append menu(), "Visible: " & yesorno(.Visible)

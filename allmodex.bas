@@ -4234,13 +4234,13 @@ FUNCTION bmpinfo (f as string, byref info as BITMAPINFOHEADER) as integer
 	return 2
 END FUNCTION
 
-function nearcolor(pal() as RGBcolor, byval red as ubyte, byval green as ubyte, byval blue as ubyte) as ubyte
+function nearcolor(pal() as RGBcolor, byval red as ubyte, byval green as ubyte, byval blue as ubyte, byval firstindex as integer = 0) as ubyte
 'figure out nearest palette colour
 	dim as integer i, diff, best, save, rdif, bdif, gdif
 
 	best = 1000000
 	save = 0
-	for i = 0 to 255
+	for i = firstindex to 255
 		rdif = red - pal(i).r
 		gdif = green - pal(i).g
 		bdif = blue - pal(i).b
@@ -4258,6 +4258,12 @@ function nearcolor(pal() as RGBcolor, byval red as ubyte, byval green as ubyte, 
 	next
 
 	nearcolor = save
+end function
+
+function nearcolor(pal() as RGBcolor, byval index as integer, byval firstindex as integer = 0) as ubyte
+	with pal(index)
+		return nearcolor(pal(), .r, .g, .b, firstindex)
+	end with
 end function
 
 

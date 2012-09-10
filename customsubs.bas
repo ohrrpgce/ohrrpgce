@@ -829,7 +829,14 @@ SUB ui_color_editor(palnum as integer)
   tog = tog XOR 1
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "ui_color_editor"
-  usemenu state
+  IF usemenu(state) THEN
+   IF uilook(uiShadow) = 0 THEN
+    'This is a hack. Unfortunately ellipse slice border and fill colors can't be 0 as that
+    'counts as transparent. This is a design mistake in ellipse slices, but is too much trouble to fix
+    uilook(uiShadow) = nearcolor(master(), 0, 1)
+    make_ui_color_editor_menu color_menu(), uilook() 
+   END IF
+  END IF
 
   index = state.pt - 1
 
