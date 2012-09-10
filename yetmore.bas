@@ -926,6 +926,8 @@ SELECT CASE as CONST id
    IF retvals(0) <= max_tag() THEN
     settag tag(), retvals(0), retvals(1)
    ELSE
+    'This is the sort of thing scripterr level 1 was for, except we can't go adding
+    'those to existing commands
     debug "Setting onetime tags with the settag command is deprecated"
     settag onetime(), retvals(0) - (max_tag()+1), retvals(1)
    END IF
@@ -3020,9 +3022,11 @@ SELECT CASE as CONST id
    END IF
   END IF
  CASE 540'--check onetime
-  scriptret = ABS(istag(onetime(), retvals(0), 0))
+  IF bound_arg(retvals(0), 1, 15999, "onetime use tag") THEN
+   scriptret = ABS(istag(onetime(), retvals(0), 0))
+  END IF
  CASE 541'--set onetime
-  IF retvals(0) >= 1 THEN
+  IF bound_arg(retvals(0), 1, 15999, "onetime use tag") THEN
    settag onetime(), retvals(0), retvals(1)
    tag_updates
   END IF
