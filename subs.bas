@@ -31,6 +31,8 @@ DECLARE FUNCTION dissolve_type_caption(n as integer) as string
 
 'Defined in this file:
 
+DECLARE SUB enemy_edit_add_new (recbuf() as integer, byref recindex as integer, preview_box as Slice Ptr)
+
 DECLARE SUB individual_formation_editor ()
 DECLARE SUB formation_set_editor ()
 DECLARE sub drawformsprites(form as Formation, egraphics() as GraphicPair, byval slot as integer)
@@ -52,6 +54,7 @@ DECLARE SUB clear_hero_preview_pics(byref st as HeroEditState)
 DECLARE SUB draw_hero_preview(st as HeroEditState, her as HeroDef)
 
 DECLARE SUB hero_editor
+DECLARE SUB hero_editor_add_new (st as HeroEditState, her as HeroDef, byref hero_id as integer)
 DECLARE SUB hero_editor_load_hero (st as HeroEditState, her as HeroDef, byval hero_id as integer)
 DECLARE SUB hero_editor_stats_menu (her as HeroDef)
 DECLARE SUB hero_editor_spell_lists_toplevel (her as HeroDef)
@@ -652,8 +655,7 @@ DO
    saveenemydata recbuf(), lastindex
    IF recindex > gen(genMaxEnemy) THEN
     '--adding a new set
-    gen(genMaxEnemy) = recindex
-    clearenemydata recbuf()
+    enemy_edit_add_new recbuf(), recindex, preview_box
     update_enemy_editor_for_elementals recbuf(), caption(), EnCapElemResist
     GOSUB EnUpdateMenu
    ELSE
@@ -704,13 +706,13 @@ DO
     GOSUB EnPushPtrSub
     setactivemenu workmenu(), spawnMenu(), state
     helpkey = "enemy_spawning"
-   	drawpreview = NO
+    drawpreview = NO
     GOSUB EnUpdateMenu
    CASE EnMenuAtkAct
     GOSUB EnPushPtrSub
     setactivemenu workmenu(), atkMenu(), state
     helpkey = "enemy_attacks"
-   	drawpreview = NO
+    drawpreview = NO
     GOSUB EnUpdateMenu
    CASE EnMenuElementalsAct
     GOSUB EnPushPtrSub
@@ -851,6 +853,65 @@ RETRACE
 
 '-----------------------------------------------------------------------
 END SUB
+
+SUB enemy_edit_add_new (recbuf() as integer, byref recindex as integer, preview_box as Slice Ptr)
+  DIM enemy as EnemyDef
+  DIM menu(2) as string
+  DIM enemytocopy as integer = 0
+  DIM preview as Slice ptr = preview_box->FirstChild
+  DIM state as MenuState
+  state.last = UBOUND(menu)
+  state.size = 24
+  state.pt = 1
+
+  state.need_update = YES
+  setkeys
+  DO
+    setwait 55
+    setkeys
+    IF keyval(scESC) > 1 THEN  'cancel
+      recindex -= 1
+      EXIT SUB
+    END IF
+    IF keyval(scF1) > 1 THEN show_help "enemy_new"
+    usemenu state
+    IF state.pt = 2 THEN
+      IF intgrabber(enemytocopy, 0, gen(genMaxEnemy)) THEN state.need_update = YES
+    END IF
+    IF state.need_update THEN
+      state.need_update = NO
+      loadenemydata recbuf(), enemytocopy
+      loadenemydata enemy, enemytocopy
+      ChangeSpriteSlice preview, 1 + enemy.size, enemy.pic, enemy.pal, , YES
+
+      menu(0) = "Cancel"
+      menu(1) = "New Blank Enemy"
+      menu(2) = "Copy of Enemy " & enemytocopy & " " & enemy.name
+    END IF
+    IF enter_or_space() THEN
+      SELECT CASE state.pt
+        CASE 0 ' cancel
+          recindex -= 1
+        CASE 1 ' blank
+          gen(genMaxEnemy) = recindex
+          clearenemydata recbuf()
+        CASE 2 ' copy
+          gen(genMaxEnemy) = recindex
+      END SELECT
+      EXIT SUB
+    END IF
+
+    clearpage vpage
+    standardmenu menu(), state, 0, 0, vpage
+    IF state.pt = 2 THEN DrawSlice preview_box, vpage
+    setvispage vpage
+    dowait
+  LOOP
+END SUB
+
+
+'--------------------------------- Formation Editor ----------------------------
+
 
 SUB formation_editor
  DIM as integer csr, tog
@@ -1741,7 +1802,8 @@ SUB hero_editor
     saveherodata @her, hero_id
     hero_id += 1
     IF needaddset(hero_id, gen(genMaxHero), "hero") THEN
-     ClearHeroData her
+     gen(genMaxHero) -= 1  'Incremented by both needaddset and hero_editor_add_new
+     hero_editor_add_new st, her, hero_id
      saveherodata @her, hero_id
     END IF
     hero_editor_load_hero st, her, hero_id
@@ -1765,6 +1827,60 @@ SUB hero_editor
  LOOP
  saveherodata @her, hero_id
  clear_hero_preview_pics st
+END SUB
+
+SUB hero_editor_add_new (st as HeroEditState, her as HeroDef, byref recindex as integer)
+  DIM menu(2) as string
+  DIM herotocopy as integer = 0
+  DIM state as MenuState
+  state.last = UBOUND(menu)
+  state.size = 24
+  state.pt = 1
+
+  state.need_update = YES
+  setkeys
+  DO
+    setwait 55
+    animate_hero_preview st
+    setkeys
+    IF keyval(scESC) > 1 THEN  'cancel
+      recindex -= 1
+      EXIT DO
+    END IF
+    IF keyval(scF1) > 1 THEN show_help "hero_new"
+    usemenu state
+    IF state.pt = 2 THEN
+      IF intgrabber(herotocopy, 0, gen(genMaxHero)) THEN state.need_update = YES
+    END IF
+    IF state.need_update THEN
+      state.need_update = NO
+      loadherodata @her, herotocopy
+      update_hero_preview_pics st, her
+      menu(0) = "Cancel"
+      menu(1) = "New Blank Hero"
+      menu(2) = "Copy of Hero " & herotocopy & " " & her.name
+    END IF
+    IF enter_or_space() THEN
+      SELECT CASE state.pt
+        CASE 0 ' cancel
+          recindex -= 1
+        CASE 1 ' blank
+          gen(genMaxHero) += 1
+          ClearHeroData her
+        CASE 2 ' copy
+          gen(genMaxHero) += 1
+      END SELECT
+      EXIT DO
+    END IF
+
+    clearpage dpage
+    standardmenu menu(), state, 0, 0, dpage
+    IF state.pt = 2 THEN
+      draw_hero_preview st, her
+    END IF
+    setvispage dpage
+    dowait
+  LOOP
 END SUB
 
 SUB hero_editor_stats_menu (her as HeroDef)

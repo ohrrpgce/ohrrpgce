@@ -28,6 +28,7 @@
 DECLARE SUB clearallpages ()
 
 'Local
+DECLARE SUB atk_edit_add_new(recbuf() as integer, byref recindex as integer, byval preview_box as Slice Ptr)
 DECLARE SUB atk_edit_merge_bitsets(recbuf() as integer, tempbuf() as integer)
 DECLARE SUB atk_edit_split_bitsets(recbuf() as integer, tempbuf() as integer)
 DECLARE SUB update_attack_editor_for_fail_conds(recbuf() as integer, caption() as string, byval AtkCapFailConds as integer)
@@ -1174,8 +1175,7 @@ DO
   IF intgrabber_with_addset(recindex, 0, gen(genMaxAttack), 32767, "attack") THEN
    saveattackdata recbuf(), lastindex
    IF recindex > gen(genMaxAttack) THEN
-    gen(genMaxAttack) = recindex
-    flusharray recbuf(), 39 + curbinsize(binATTACK) \ 2, 0
+    atk_edit_add_new recbuf(), recindex, preview_box
    ELSE
     loadattackdata recbuf(), recindex
    END IF
@@ -1403,6 +1403,66 @@ resetsfx
 clearallpages
 DeleteSlice @preview_box
 
+END SUB
+
+SUB atk_edit_add_new (recbuf() as integer, byref recindex as integer, preview_box as Slice Ptr)
+  DIM attack as AttackData
+  DIM menu(2) as string
+  DIM attacktocopy as integer = 0
+  DIM preview as Slice ptr = preview_box->FirstChild
+  DIM state as MenuState
+  state.last = UBOUND(menu)
+  state.size = 24
+  state.pt = 1
+
+  state.need_update = YES
+  setkeys
+  DO
+    setwait 55
+    setkeys
+    IF keyval(scESC) > 1 THEN  'cancel
+      recindex -= 1
+      EXIT SUB
+    END IF
+    IF keyval(scF1) > 1 THEN show_help "attack_new"
+    usemenu state
+    IF state.pt = 2 THEN
+      IF intgrabber(attacktocopy, 0, gen(genMaxAttack)) THEN state.need_update = YES
+    END IF
+    IF state.need_update THEN
+      state.need_update = NO
+      loadattackdata recbuf(), attacktocopy
+      convertattackdata recbuf(), attack
+      ChangeSpriteSlice preview, 6, recbuf(AtkDatPic), recbuf(AtkDatPal)
+      menu(0) = "Cancel"
+      menu(1) = "New Blank Attack"
+      menu(2) = "Copy of Attack " & attacktocopy
+    END IF
+    IF enter_or_space() THEN
+      SELECT CASE state.pt
+        CASE 0 ' cancel
+          recindex -= 1
+        CASE 1 ' blank
+          gen(genMaxAttack) = recindex
+          flusharray recbuf(), UBOUND(recbuf)
+        CASE 2 ' copy
+          gen(genMaxAttack) = recindex
+      END SELECT
+      EXIT SUB
+    END IF
+
+    clearpage vpage
+    standardmenu menu(), state, 0, 0, vpage
+    IF state.pt = 2 THEN
+      textcolor uilook(uiMenuItem), 0
+      printstr " Name: " & attack.name, 0, 28, vpage
+      printstr RIGHT(" Description: " & attack.description, 40), 0, 36, vpage
+      atk_edit_preview recbuf(AtkDatAnimPattern), preview
+      DrawSlice preview_box, vpage
+    END IF
+    setvispage vpage
+    dowait
+  LOOP
 END SUB
 
 SUB atk_edit_merge_bitsets(recbuf() as integer, tempbuf() as integer)

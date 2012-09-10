@@ -12,6 +12,8 @@ WHAT IS NEW?
       Settings Menu, which now dynamically hides settings and bitsets
       that have no effect, and shows in detail how the attack damage
       will actually be calculated. [Ralph]
+    * When adding a new hero, attack, enemy or shop, added the option
+      to copy an existing one [Ralph]
 
   * Bugfixes
     * "run script by id" was far slower than it should have been [Ralph]

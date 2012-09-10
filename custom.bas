@@ -66,6 +66,7 @@ DECLARE SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as in
 DECLARE SUB shop_menu_update(byref shopst as ShopEditState, shopbuf() as integer)
 DECLARE SUB shop_save (byref shopst as ShopEditState, shopbuf() as integer)
 DECLARE SUB shop_load (byref shopst as ShopEditState, shopbuf() as integer)
+DECLARE SUB shop_add_new (shopst as ShopEditState)
 DECLARE SUB cleanupfiles ()
 DECLARE SUB cleanup_and_terminate ()
 DECLARE SUB import_scripts_and_terminate (hsfile as string)
@@ -711,16 +712,7 @@ SUB shopdata ()
     shop_save shopst, shopbuf()
     shopst.id = new_shop_id
     IF shopst.id > gen(genMaxShop) THEN
-     gen(genMaxShop) = shopst.id
-     '--Create a new shop record
-     flusharray shopbuf(), 19, 0
-     setpicstuf shopbuf(), 40, -1
-     storeset game + ".sho", shopst.id, 0
-     '--create a new shop stuff record
-     flusharray stufbuf(), dimbinsize(binSTF), 0
-     setpicstuf stufbuf(), getbinsize(binSTF), -1
-     stufbuf(19) = -1 ' When adding new stuff, default in-stock to infinite
-     storeset game + ".stf", shopst.id * 50 + 0, 0
+     shop_add_new shopst
     END IF
     shop_load shopst, shopbuf()
    END IF
@@ -796,6 +788,66 @@ SUB shop_menu_update(byref shopst as ShopEditState, shopbuf() as integer)
   shopst.havestuf = NO
  END IF
  shopst.st.need_update = NO
+END SUB
+
+SUB shop_add_new (shopst as ShopEditState)
+  DIM menu(2) as string
+  DIM shoptocopy as integer = 0
+  DIM state as MenuState
+  state.last = UBOUND(menu)
+  state.size = 24
+  state.pt = 1
+
+  state.need_update = YES
+  setkeys
+  DO
+    setwait 55
+    setkeys
+    IF keyval(scESC) > 1 THEN  'cancel
+      shopst.id -= 1
+      EXIT DO
+    END IF
+    IF keyval(scF1) > 1 THEN show_help "shop_new"
+    usemenu state
+    IF state.pt = 2 THEN
+      IF intgrabber(shoptocopy, 0, gen(genMaxShop)) THEN state.need_update = YES
+    END IF
+    IF state.need_update THEN
+      state.need_update = NO
+      menu(0) = "Cancel"
+      menu(1) = "New Blank Shop"
+      menu(2) = "Copy of Shop " & shoptocopy & " " & readshopname(shoptocopy) 'readbadbinstring(shopbuf(), 0, 15, 0)
+    END IF
+    IF enter_or_space() THEN
+      DIM shopbuf(19) as integer
+      DIM stufbuf(curbinsize(binSTF) \ 2 - 1) as integer
+      SELECT CASE state.pt
+        CASE 0 ' cancel
+          shopst.id -= 1
+          EXIT DO
+        CASE 1 ' blank
+          gen(genMaxShop) += 1
+          '--Create a new shop record
+          flusharray shopbuf()
+          '--Create a new shop stuff record
+          flusharray stufbuf()
+          stufbuf(19) = -1  'Default in-stock to infinite
+        CASE 2 ' copy
+          gen(genMaxShop) += 1
+          loadrecord shopbuf(), game + ".sho", 20, shoptocopy
+          loadrecord stufbuf(), game + ".stf", 50 * getbinsize(binSTF) \ 2, shoptocopy
+      END SELECT
+      storerecord shopbuf(), game + ".sho", 20, shopst.id
+      'Save all 50 shop stock items at once
+      storerecord stufbuf(), game + ".stf", 50 * getbinsize(binSTF) \ 2, shopst.id
+      EXIT DO
+    END IF
+
+    clearpage vpage
+    standardmenu menu(), state, 0, 0, vpage
+    setvispage vpage
+    dowait
+  LOOP
 END SUB
 
 SUB shop_stuff_edit (byval shop_id as integer, stufbuf() as integer, byref thing_total as integer)
