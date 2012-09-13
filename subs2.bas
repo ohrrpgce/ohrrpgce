@@ -83,6 +83,8 @@ DIM her as HeroDef
 DIM menu_set as MenuSet
 menu_set.menufile = workingdir & SLASH & "menus.bin"
 menu_set.itemfile = workingdir & SLASH & "menuitem.bin"
+DIM elementnames() as string
+getelementnames elementnames()
 
 DIM outf as string = trimextension(trimpath(sourcerpg)) + ".hsi"
 
@@ -141,6 +143,12 @@ printstr "stat names", 0, pl * 8, 0: pl = pl + 1
 REDIM u(0) as string
 FOR i as integer = 0 TO UBOUND(statnames)
  writeconstant fh, i, statnames(i), u(), "stat"
+NEXT i
+
+printstr "element names", 0, pl * 8, 0: pl = pl + 1
+REDIM u(0) as string
+FOR i as integer = 0 TO gen(genNumElements) - 1
+ writeconstant fh, i, elementnames(i), u(), "element"
 NEXT i
 
 printstr "slot names", 0, pl * 8, 0: pl = pl + 1
