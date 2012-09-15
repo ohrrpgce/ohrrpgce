@@ -81,6 +81,7 @@ support\cp README-game.txt tmpdist
 support\cp README-custom.txt tmpdist
 support\cp IMPORTANT-nightly.txt tmpdist
 support\cp LICENSE-binary.txt tmpdist
+support\cp whatsnew.txt tmpdist
 support\cp SDL.dll tmpdist
 support\cp SDL_mixer.dll tmpdist
 support\cp gfx_directx.dll tmpdist
@@ -117,6 +118,7 @@ support\cp ohrrpgce.new tmpdist
 support\cp README-game.txt tmpdist
 support\cp README-custom.txt tmpdist
 support\cp IMPORTANT-nightly.txt tmpdist
+support\cp whatsnew.txt tmpdist
 support\cp LICENSE.txt tmpdist
 support\cp LICENSE-binary.txt tmpdist
 support\cp plotscr.hsd tmpdist
