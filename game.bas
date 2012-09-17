@@ -323,7 +323,7 @@ ELSE  'NOT running_as_slave
   DIM arg as string = cmdline_args(i)
 
  #IFDEF __FB_WIN32__
-  IF MID(arg, 2, 1) <> ":" THEN arg = curdir + SLASH + arg
+  IF MID(arg, 2, 1) <> ":" ANDALSO LEFT(arg, 2) <> "\\" THEN arg = curdir + SLASH + arg
  #ELSE
   IF MID(arg, 1, 1) <> SLASH THEN arg = curdir + SLASH + arg
  #ENDIF
