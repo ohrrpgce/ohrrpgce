@@ -204,12 +204,7 @@ IF game = "" THEN
  choose_rpg_to_open()
 END IF
 
-'--Detect non-absolute paths
-#IFDEF __FB_WIN32__
- IF MID(sourcerpg, 2, 1) <> ":" ANDALSO LEFT(sourcerpg, 2) <> "\\" THEN sourcerpg = curdir + SLASH + sourcerpg
-#ELSE
- IF MID(sourcerpg, 1, 1) <> SLASH THEN sourcerpg = curdir + SLASH + sourcerpg
-#ENDIF
+IF NOT is_absolute_path(sourcerpg) THEN sourcerpg = absolute_path(sourcerpg)
 
 DIM dir_to_change_into as string = trimfilename(sourcerpg)
 

@@ -322,11 +322,8 @@ ELSE  'NOT running_as_slave
  FOR i as integer = 1 TO UBOUND(cmdline_args)
   DIM arg as string = cmdline_args(i)
 
- #IFDEF __FB_WIN32__
-  IF MID(arg, 2, 1) <> ":" ANDALSO LEFT(arg, 2) <> "\\" THEN arg = curdir + SLASH + arg
- #ELSE
-  IF MID(arg, 1, 1) <> SLASH THEN arg = curdir + SLASH + arg
- #ENDIF
+ IF NOT is_absolute_path(arg) THEN arg = absolute_path(arg)
+ 
   IF LCASE(RIGHT(arg, 4)) = ".rpg" AND isfile(arg) THEN
    sourcerpg = arg
    gam.autorungame = YES
