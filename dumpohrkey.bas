@@ -1,34 +1,13 @@
 '$lang: "fb"
-#include "scancodes.bi"
+#include "util.bi"
 
-DECLARE FUNCTION keyname (byval k as integer) as string
 DECLARE SUB start_replaying_input (filename as string)
 DECLARE SUB stop_replaying_input (msg as string="")
 DECLARE SUB replay_input ()
 DECLARE SUB print_usage (errmsg as string = "")
 
-dim shared key2text(53) as string*1 => {"", "", "1","2","3","4","5","6","7","8","9","0","-","=","","","q","w","e","r","t","y","u","i","o","p","[","]","","","a","s","d","f","g","h","j","k","l",";","'","`","","\","z","x","c","v","b","n","m",",",".","/"}
 dim shared play_input_file as integer
 dim shared ohrkey_ver as integer = -1
-
-FUNCTION keyname (byval k as integer) as string
- SELECT CASE k
-  CASE scEsc: return "ESC"
-  CASE scEnter: return "ENTER"
-  CASE scSpace: return "SPACE"
-  CASE scAlt: return "ALT"
-  CASE scCtrl: return "CTRL"
-  CASE scUp: return "Up"
-  CASE scRight: return "Right"
-  CASE scDown: return "Down"
-  CASE scLeft: return "Left"
-  CASE scNumLock: return "NumLock"
- END SELECT
- IF k >= lbound(key2text) and k <= ubound(key2text) THEN
-  IF key2text(k) <> "" THEN return key2text(k)
- END IF
- return "scancode" & k
-END FUNCTION
 
 SUB start_replaying_input (filename as string)
  print "Displaying keyboard input from: """ & filename & """"

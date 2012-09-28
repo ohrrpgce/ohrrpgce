@@ -30,7 +30,7 @@ declare function fgetiob alias "fb_FileGetIOB" ( byval fnum as integer, byval po
 init_runtime
 
 
- '------------- Other -------------
+ '------------- (Some) math and string operations -------------
 
 FUNCTION bitcount (byval v as unsigned integer) as integer
   'From the "Software Optimization Guide for AMD Athlon 64 and Opteron Processors". Thanks, AMD!
@@ -1702,17 +1702,29 @@ FUNCTION readbit (bb() as integer, byval w as integer, byval b as integer)  as i
 	end if
 end FUNCTION
 
+'Prehaps doesn't belong here because scancodes are OHR-specific. However, OHR
+'scancodes are 95% the same as FB scancodes
+FUNCTION keyname (byval k as integer) as string
+ 'static scancodenames(...) as string * 12 = { ... }
+ #INCLUDE "scancodenames.bi"
+
+ IF k >= lbound(scancodenames) and k <= ubound(scancodenames) THEN
+  IF scancodenames(k) <> "" THEN return scancodenames(k)
+ END IF
+ return "scancode" & k
+END FUNCTION
+
 FUNCTION special_char_sanitize(s as string) as string
  'This is a datalossy function.
- 'Remove special characters from and OHR string to make it 7-bit ASCII safe.
- 'Also translates the OHR copyright char to (C)
- DIM s2 as string = s
- replacestr(s2, CHR(134), "(C)")
+ 'Remove special characters from an OHR string to make it 7-bit ASCII safe.
+ 'Also translates the old OHR and the new Latin-1 copyright chars to (C)
  DIM result as string = ""
- FOR i as integer = 0 TO LEN(s2) - 1
-  SELECT CASE s2[i]
+ FOR i as integer = 0 TO LEN(s) - 1
+  SELECT CASE s[i]
    CASE 32 TO 126:
-    result &= CHR(s2[i])
+    result &= CHR(s[i])
+   CASE 134, 169:
+    result &= "(C)"
   END SELECT
  NEXT i
  RETURN result
