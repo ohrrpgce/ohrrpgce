@@ -42,7 +42,6 @@ DECLARE SUB getdefaultfont (font() as integer)
 DECLARE SUB getbrowserfont (font() as integer)
 
 DECLARE SUB crashexplain ()
-DECLARE function with_orig_path(dir_name as string, byval add_slash as integer=0) as string
 declare sub processcommandline()
 DECLARE FUNCTION ReadShort overload (byval fh as integer, byval p as long=-1) as short
 DECLARE FUNCTION ReadShort overload (filename as string, byval p as integer) as short

@@ -10,6 +10,10 @@
 #DEFINE NULL 0
 #ENDIF
 
+'---For some crazy reason TRUE and FALSE don't work well as const even though they are not reserved
+CONST YES = -1
+CONST NO = 0
+
 #include "vector.bi"
 
 
@@ -266,6 +270,7 @@ declare function trimextension (filename as string) as string
 declare function justextension (filename as string) as string
 declare function is_absolute_path (sDir as string) as integer
 declare function absolute_path (pathname as string) as string
+declare function absolute_with_orig_path (file_or_dir as string, byval add_slash as integer = NO) as string
 declare function parentdir (pathname as string, byval upamount as integer = 1) as string
 declare function anycase (filename as string) as string
 declare sub touchfile (filename as string)
@@ -369,5 +374,14 @@ DECLARE SUB setbit (b() as integer, byval w as integer, byval b as integer, byva
 DECLARE FUNCTION readbit (b() as integer, byval w as integer, byval b as integer) as integer
 DECLARE SUB array2str (arr() as integer, byval o as integer, s as string)
 DECLARE SUB str2array (s as string, arr() as integer, byval o as integer)
+
+
+'----------------------------------------------------------------------
+'              Globals (think twice before adding more)
+
+
+'Ideally would not be in this module
+EXTERN orig_dir as string
+
 
 #ENDIF

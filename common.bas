@@ -64,9 +64,6 @@ REDIM cmdline_args(0) as string
 'holds the directory to dump logfiles into
 DIM log_dir as string
 
-'It is very important for this to be populated _before_ any calls to CHDIR
-DIM orig_dir as string
-
 'Used on Mac to point to the app bundle Resources directory
 DIM data_dir as string
 
@@ -135,7 +132,7 @@ FUNCTION common_setoption(opt as string, arg as string) as integer
   full_upgrade = YES
   RETURN 1  'arg not used
  ELSEIF opt = "recordinput" then
-  DIM f as string = with_orig_path(arg)
+  DIM f as string = absolute_with_orig_path(arg)
   IF fileiswriteable(f) THEN
    start_recording_input f
    RETURN 2 'arg used
@@ -145,7 +142,7 @@ FUNCTION common_setoption(opt as string, arg as string) as integer
    RETURN 1
   END IF
  ELSEIF opt = "replayinput" then
-  DIM f as string = with_orig_path(arg)
+  DIM f as string = absolute_with_orig_path(arg)
   IF fileisreadable(f) THEN
    start_replaying_input f
    RETURN 2 'arg used

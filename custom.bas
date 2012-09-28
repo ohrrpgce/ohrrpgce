@@ -618,7 +618,7 @@ SUB import_scripts_and_terminate (hsfile as string)
  debuginfo "Importing scripts from " & hsfile
  xbload game & ".gen", gen(), "general data is missing, RPG file corruption is likely"
  upgrade 'needed because it has not already happened because we are doing command-line import
- importscripts with_orig_path(hsfile)
+ importscripts absolute_with_orig_path(hsfile)
  xbsave game & ".gen", gen(), 1000
  save_current_game
  cleanupfiles

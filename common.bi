@@ -258,7 +258,6 @@ EXTERN statnames() as string
 EXTERN cmdline_args() as string
 EXTERN settings_dir as string
 EXTERN log_dir as string
-EXTERN orig_dir as string
 EXTERN data_dir as string
 EXTERN negative_zero as integer
 #ifdef IS_CUSTOM

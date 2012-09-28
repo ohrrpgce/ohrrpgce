@@ -7,10 +7,6 @@
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
 
-'---For some crazy reason TRUE and FALSE don't work well as const even though they are not reserved
-CONST YES = -1
-CONST NO = 0
-
 CONST CURRENT_RPG_VERSION = 17
 ' It is a good idea to increment this number each time a major feature
 ' has been added, if opening a new game in an old editor would cause data-loss

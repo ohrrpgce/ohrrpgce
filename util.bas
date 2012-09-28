@@ -26,6 +26,9 @@ CONST STACK_SIZE_INC = 512 ' in integers
 declare function fgetiob alias "fb_FileGetIOB" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger, byval bytesread as uinteger ptr ) as integer
 
 
+'It is very important for this to be populated _before_ any calls to CHDIR
+DIM orig_dir as string
+
 'This is needed for mbstowcs. Placing it here seems like the simplest way to ensure it's run in all utilities
 init_runtime
 
@@ -878,10 +881,17 @@ FUNCTION is_absolute_path (sDir as string) as integer
   RETURN 0
 END FUNCTION
 
-'Make a path absolute. See also with_orig_dir in misc.bas
+'Make a path absolute. See also absolute_with_orig_path
 FUNCTION absolute_path(pathname as string) as string
   IF NOT is_absolute_path(pathname) THEN RETURN CURDIR & SLASH & pathname
   RETURN pathname
+END FUNCTION
+
+FUNCTION absolute_with_orig_path(file_or_dir as string, byval add_slash as integer = NO) as string
+  DIM d as string = file_or_dir
+  IF NOT is_absolute_path(d) THEN d = orig_dir & SLASH & d
+  IF add_slash AND RIGHT(d, 1) <> SLASH THEN d = d & SLASH
+  RETURN d
 END FUNCTION
 
 'Remove redundant ../, ./, // in a path. Handles both relative and absolute paths
