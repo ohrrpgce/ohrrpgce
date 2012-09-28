@@ -14,7 +14,7 @@ def get_run_command(cmd):
         raise Exception("subprocess.Popen(%s) returned stderr:\n%s" % (cmd, errtext))
     return proc.stdout.read().strip()
 
-include_re = re.compile(r'^#include\s+"(\S+)"', re.M | re.I)
+include_re = re.compile(r'^\s*#include\s+"(\S+)"', re.M | re.I)
 
 standard_bi = ['crt', 'SDL', 'libxml', 'fbgfx.bi', 
                'file.bi', 'allegro.bi', 'string.bi', 'curses.bi']
