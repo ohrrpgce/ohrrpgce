@@ -111,8 +111,6 @@ DIM hsfile as string
 DIM archinym as string
 DIM SHARED nocleanup as integer = NO
 
-DIM cmdline as string
-
 '--Startup
 
 'seed the random number generator
@@ -179,24 +177,18 @@ workingdir = tmpdir & "working.tmp"
 IF makeworkingdir() = NO THEN cleanup_and_terminate
 
 FOR i as integer = 1 TO UBOUND(cmdline_args)
- cmdline = cmdline_args(i)
+ DIM arg as string
+ arg = absolute_with_orig_path(cmdline_args(i))
+ DIM extn as string = LCASE(justextension(arg))
 
- IF isfile(cmdline) = 0 AND isdir(cmdline) = 0 THEN
-  centerbox 160, 40, 300, 50, 3, 0
-  edgeprint "File not found/invalid option:", 15, 30, uilook(uiText), 0
-  edgeprint RIGHT(cmdline,35), 15, 40, uilook(uiText), 0
-  setvispage 0
-  waitforanykey
+ IF extn = "hs" AND isfile(arg) THEN
+  hsfile = arg
   CONTINUE FOR
- END IF
- IF LCASE(justextension(cmdline)) = "hs" AND isfile(cmdline) THEN
-  hsfile = cmdline
-  CONTINUE FOR
- END IF
-
- IF (LCASE(justextension(cmdline)) = "rpg" AND isfile(cmdline)) OR isdir(cmdline) THEN
-  sourcerpg = cmdline
+ ELSEIF (extn = "rpg" AND isfile(arg)) ORELSE isdir(arg) THEN
+  sourcerpg = arg
   game = trimextension(trimpath(sourcerpg))
+ ELSE
+  visible_debug !"File not found/invalid option:\n" & cmdline_args(i)
  END IF
 NEXT
 IF game = "" THEN

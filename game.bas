@@ -321,8 +321,7 @@ ELSE  'NOT running_as_slave
  'DEBUG debug "searching commandline for game"
  FOR i as integer = 1 TO UBOUND(cmdline_args)
   DIM arg as string = cmdline_args(i)
-
- IF NOT is_absolute_path(arg) THEN arg = absolute_path(arg)
+  arg = absolute_path(arg)
  
   IF LCASE(RIGHT(arg, 4)) = ".rpg" AND isfile(arg) THEN
    sourcerpg = arg
@@ -338,7 +337,7 @@ ELSE  'NOT running_as_slave
    END IF
    EXIT FOR
   ELSE
-   visible_debug "Unrecognised commandline argument " & arg & " ignored"
+   visible_debug "Unrecognised commandline argument " & cmdline_args(i) & " ignored"
   END IF
  NEXT
 
