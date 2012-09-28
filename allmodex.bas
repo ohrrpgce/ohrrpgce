@@ -127,6 +127,7 @@ dim shared rec_input_file as integer
 dim shared play_input as integer = NO
 dim shared play_input_file as integer
 dim shared replaytick as integer
+dim shared debug_replay as integer = NO  'set to YES by editing this line; maybe add a commandline option
 
 dim shared closerequest as integer = 0
 
@@ -1398,7 +1399,7 @@ SUB stop_recording_input ()
 	if rec_input then
 		close #rec_input_file
 		rec_input = NO
-		debug "STOP recording input"
+		debuginfo "STOP recording input"
 	end if
 END SUB
 
@@ -1432,14 +1433,15 @@ SUB start_replaying_input (filename as string)
 	next i
 END SUB
 
-SUB stop_replaying_input (msg as string="")
+'errorlevel: defaults to using 'debug', 1 for 'debuginfo'
+SUB stop_replaying_input (msg as string="", byval errorlevel as integer = 2)
 	if msg <> "" then
-		debug msg
+		debugc msg, errorlevel
 	end if
 	if play_input then
 		close #play_input_file
 		play_input = NO
-		debug "STOP replaying input"
+		debugc "STOP replaying input", errorlevel
 	end if
 END SUB
 
@@ -1474,9 +1476,10 @@ SUB replay_input_tick ()
 	tick += 1
 	do
 		if EOF(play_input_file) then
-			stop_replaying_input "The end of the input playback file was reached."
+			stop_replaying_input "The end of the input playback file was reached.", 1  'debuginfo
 			exit sub
 		end if
+		dim fpos as integer = LOC(play_input_file)
 		if replaytick = -1 then
 			GET #play_input_file,, replaytick
 		end if
@@ -1506,21 +1509,32 @@ SUB replay_input_tick ()
 			stop_replaying_input "input replay tick " & replaytick & " has invalid number of keypresses " & presses
 			exit sub
 		end if
+
+		dim as string info
+		if debug_replay then
+			info = "L:" & fpos & " T:" & replaytick & " ms:" & setkeys_elapsed_ms & " ("
+		end if
+
 		dim key as ubyte
 		dim kb as ubyte
 		for i as integer = 1 to presses
 			GET #play_input_file,, key
 			GET #play_input_file,, kb
 			keybd(key) = kb
+			if debug_replay then info &= " " & keyname(key) & "=" & kb
 		next i
+		info &= " )"
 		dim input_len as ubyte
 		GET #play_input_file,, input_len
 		if input_len then
 			inputtext = space(input_len)
 			GET #play_input_file,, inputtext
+			if debug_replay then info &= " input: '" & inputtext & "'"
 		else
 			inputtext = ""
 		end if
+
+		if debug_replay then debuginfo info
 
 		'In case the replay somehow became out of sync, keep looping
 		'(Probably hopeless though)

@@ -149,7 +149,7 @@ DECLARE SUB setquitflag ()
 DECLARE SUB start_recording_input (filename as string)
 DECLARE SUB stop_recording_input ()
 DECLARE SUB start_replaying_input (filename as string)
-DECLARE SUB stop_replaying_input (msg as string="")
+DECLARE SUB stop_replaying_input (msg as string="", byval errorlevel as integer = 2)
 
 DECLARE FUNCTION havemouse () as integer
 DECLARE SUB hidemousecursor ()
