@@ -1593,9 +1593,14 @@ SUB xbload (filename as string, array() as integer, errmsg as string)
 		dim i as integer
 		
 		ff = FreeFile
-		OPEN filename FOR BINARY as #ff
+		IF OPEN(filename FOR BINARY ACCESS READ as #ff) THEN
+			fatalerror errmsg
+		END IF
 		GET #ff,, byt 'Magic number, always 253
-		IF byt <> 253 THEN fatalerror errmsg
+		IF byt <> 253 THEN
+			CLOSE #ff
+			fatalerror errmsg & " (bad header)"  'file may also be zero length
+		END IF
 		GET #ff,, seg 'Segment, no use anymore
 		GET #ff,, offset 'Offset into the array, not used now
 		GET #ff,, length 'Length
