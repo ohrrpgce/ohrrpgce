@@ -233,10 +233,16 @@ DO
   build_listing tree(), br
   br.changed = 1
  END IF
+
  '--Draw screen
  clearpage dpage
  edgeboxstyle 4, 3, 312, 14, 0, dpage, NO, YES
- edgeprint br.nowdir, 8, 6, uilook(uiText), dpage
+ IF br.special = 7 AND tree(br.treeptr).kind = bkSelectable THEN
+  'Selected item is an RPG
+  edgeprint shorten_to_left(br.nowdir + tree(br.treeptr).filename, 304), 8, 6, uilook(uiText), dpage
+ ELSE
+  edgeprint br.nowdir, 8, 6, uilook(uiText), dpage
+ END IF
  edgeboxstyle 4, 31 + br.viewsize * 9, 312, 14, 0, dpage, NO, YES
  edgeprint br.alert, 8, 34 + br.viewsize * 9, uilook(uiText), dpage
  IF br.special = 7 THEN
