@@ -1007,6 +1007,30 @@ SUB showerror (msg as string, byval isfatal as integer = NO)
  entered = 0
 END SUB
 
+'Return the right end of a string, trimming and prepending '...' if longer than wide pixels
+'(Might sometimes want to handle this using text slices instead)
+FUNCTION shorten_to_left (text as string, byval wide as integer) as string
+ DIM w as integer = textwidth(text)
+ IF w <= wide THEN RETURN text
+ wide -= textwidth("...")
+
+ DIM curspos as StringCharPos
+ find_point_in_text @curspos, wide, 0, text, , , , 0  'font 0
+ RETURN "..." + RIGHT(text, curspos.charnum)
+END FUNCTION
+
+'Return the left end of a string, trimming and appending '...' if longer than wide pixels
+'(Might sometimes want to handle this using text slices instead)
+FUNCTION shorten_to_right (text as string, byval wide as integer) as string
+ DIM w as integer = textwidth(text)
+ IF w <= wide THEN RETURN text
+ wide -= textwidth("...")
+
+ DIM curspos as StringCharPos
+ find_point_in_text @curspos, wide, 0, text, , , , 0  'font 0
+ RETURN LEFT(text, curspos.charnum) + "..."
+END FUNCTION
+
 'Returns left edge x coord of a string centred at given x
 FUNCTION xstring (s as string, byval x as integer) as integer
  return small(large(x - LEN(s) * 4, 0), 319 - LEN(s) * 8)

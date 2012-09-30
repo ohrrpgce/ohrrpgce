@@ -2791,7 +2791,7 @@ FUNCTION textwidth(z as string, byval fontnum as integer = 0, byval withtags as 
 end function
 
 'xpos and ypos passed to use same cached state
-sub find_point_in_text (byval retsize as StringCharPos ptr, byval seekx as integer, byval seeky as integer, z as string, byval wide as integer = 999999, byval xpos as integer, byval ypos as integer, byval fontnum as integer, byval withtags as integer = YES, byval withnewlines as integer = YES)
+sub find_point_in_text (byval retsize as StringCharPos ptr, byval seekx as integer, byval seeky as integer, z as string, byval wide as integer = 999999, byval xpos as integer = 0, byval ypos as integer = 0, byval fontnum as integer, byval withtags as integer = YES, byval withnewlines as integer = YES)
 
 	dim state as PrintStrState
 	with state
