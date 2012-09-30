@@ -8,7 +8,6 @@ extern "C"
 #ifndef size_t
 type size_t as integer
 #endif
-type bool as integer
 
 
 'In blit.c

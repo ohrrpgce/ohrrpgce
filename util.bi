@@ -10,6 +10,8 @@
 #DEFINE NULL 0
 #ENDIF
 
+TYPE bool as integer
+
 '---For some crazy reason TRUE and FALSE don't work well as const even though they are not reserved
 CONST YES = -1
 CONST NO = 0
