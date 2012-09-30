@@ -34,6 +34,7 @@
 
 'Subs and functions only used here
 DECLARE SUB setup_sprite_sizes ()
+DECLARE SUB check_map_count ()
 
 #IFDEF IS_GAME
 DECLARE FUNCTION istag OVERLOAD (byval num as integer, byval zero as integer=NO) as integer
@@ -3638,18 +3639,29 @@ fix_record_count gen(genMaxTile),     320 * 200, game & ".til", "Tilesets"
 fix_record_count gen(genNumBackdrops), 320 * 200, game & ".mxs", "Backdrops", , -1
 'FIXME: .dt0 lump is always padded up to 60 records
 'fix_record_count gen(genMaxHero),     getbinsize(binDT0), game & ".dt0", "Heroes"
-'FIXME: Attack data is split over two lumps. Must handle mismatch
 fix_record_count gen(genMaxEnemy),     getbinsize(binDT1), game & ".dt1", "Enemies"
 fix_record_count gen(genMaxFormation), 80, game & ".for", "Battle Formations"
 fix_record_count gen(genMaxPal),       16, game & ".pal", "16-color Palettes", 16
 fix_record_count gen(genMaxTextbox),   getbinsize(binSAY), game & ".say", "Text Boxes"
 fix_record_count gen(genMaxVehicle),   80, game & ".veh", "Vehicles"
 fix_record_count gen(genMaxTagname),   42, game & ".tmn", "Tag names", -84 'Note: no records for tags 0 and 1, so we handle that with a negative header size.
-'FIXME: What is wrong with my menu record sizes?
-'fix_record_count gen(genMaxMenu),      getbinsize(binMENUS), workingdir & SLASH & "menus.bin", "Menus"
-'fix_record_count gen(genMaxMenuItem),  getbinsize(binMENUITEM), workingdir & SLASH & "menus.bin", "Menu Items"
-fix_record_count gen(genMaxItem), getbinsize(binITM), game & ".itm", "Items"
-'Warning: don't deduce number of map from length of .MAP or .MN: may be appended with garbage
+'In older versions menus.bin is always 2 bytes short... except when it's zero length or missing.
+'In fact, it might be zero length even if the menu has been modified (menuitem.bin contains the modified items)!!
+fix_record_count gen(genMaxMenu),      getbinsize(binMENUS), workingdir & SLASH & "menus.bin", "Menus"
+fix_record_count gen(genMaxMenuItem),  getbinsize(binMENUITEM), workingdir & SLASH & "menuitem.bin", "Menu Items"
+fix_record_count gen(genMaxItem),      getbinsize(binITM), game & ".itm", "Items"
+fix_record_count gen(genMaxMasterPal), 256 * 3, workingdir & "palettes.bin", "Master Palettes", 4
+'Warning: don't deduce number of maps from length of .MAP or .MN: may be appended with garbage
+
+'FIXME: Attack data is split over two lumps. Must handle mismatch. In the meantime, a quick fix (increase only)
+DIM dt6_records as integer = (filelen(game & ".dt6") + 79) \ 80
+IF dt6_records > gen(genMaxAttack) + 1 THEN
+ upgrade_message "Increasing number of attacks from " & (gen(genMaxAttack) + 1) & " to " & dt6_records
+ gen(genMaxAttack) = dt6_records - 1
+END IF
+
+'Check the number of maps, updating gen(genMaxMap), and check all lumps are present
+check_map_count
 
 IF time_rpg_upgrade THEN
  upgrade_message "Upgrades complete."
@@ -3677,14 +3689,17 @@ END SUB
 SUB fix_record_count(byref last_rec_index as integer, byref record_byte_size as integer, lumpname as string, info as string, byval skip_header_bytes as integer=0, byval count_offset as integer=0)
  DIM rec_count as integer = last_rec_index + 1 + count_offset
  IF NOT isfile(lumpname) THEN
-  'debug "fix_record_count: " & info & " lump " & trimpath(lumpname) & " does not exist." 
+  debuginfo "fix_record_count: " & info & " lump " & trimpath(lumpname) & " does not exist." 
   EXIT SUB
  END IF
- DIM fh as integer
- fh = FREEFILE
- OPEN lumpname FOR BINARY ACCESS READ as #fh
- DIM total_bytes as integer = LOF(fh) - skip_header_bytes
- CLOSE #fh
+ DIM total_bytes as integer = filelen(lumpname) - skip_header_bytes
+ IF total_bytes <= 0 THEN
+  debug "fix_record_count: " & lumpname & " has no records! (Adjusting record count from " & rec_count & " -> 1)" 
+  'Setting the record count to 0 is likely to cause a crash, set it to 1 instead
+  '(generally this will cause the relevant editor to fix the file (quite by accident))
+  last_rec_index = 0 - count_offset
+  EXIT SUB
+ END IF
  IF total_bytes MOD record_byte_size <> 0 THEN
   DIM diffsize as integer
   diffsize = total_bytes - record_byte_size * rec_count
@@ -3696,7 +3711,7 @@ SUB fix_record_count(byref last_rec_index as integer, byref record_byte_size as 
   END IF
   debug "fix_record_count mismatch for " & info & " lump, " & total_bytes & " is not evenly divisible by " & record_byte_size & " (" & mismatch & ")"
   '--expand the lump to have a valid total size
-  fh = FREEFILE
+  DIM fh as integer = FREEFILE
   OPEN lumpname FOR BINARY as #fh
   DO WHILE total_bytes MOD record_byte_size <> 0
    total_bytes += 1
@@ -3757,6 +3772,45 @@ SUB future_rpg_warning ()
  #ENDIF
 END SUB
 
+SUB check_map_count
+ DIM maplumps(...) as string = {"t", "p", "e", "l", "n", "d"}
+ DIM maplumptypes(...) as string = {"tilemap", "passmap", "foemap", "NPC locations", "NPC definitions", "door links"}
+ 'Zonemaps are optional due to being added later
+
+ DIM oldmapmax as integer = gen(genMaxMap)
+ gen(genMaxMap) = 0
+ DO
+  DIM havelump(UBOUND(maplumps)) as bool
+  DIM lumpcount as integer = 0
+
+  FOR i as integer = 0 TO UBOUND(maplumps)
+   havelump(i) = isfile(maplumpname(gen(genMaxMap), maplumps(i)))
+   IF havelump(i) THEN lumpcount += 1
+  NEXT
+
+  IF lumpcount = 0 THEN
+   gen(genMaxMap) -= 1
+   EXIT DO
+  END IF
+
+  IF lumpcount < UBOUND(maplumps) + 1 THEN
+   'Game actually runs just fine when anything except the foemap is missing; Custom
+   'has some (crappy) map lump fix code in the map editor
+   FOR i as integer = 0 TO UBOUND(havelump)
+    IF havelump(i) = NO THEN showerror "map " & gen(genMaxMap) & " " & maplumptypes(i) & " is missing!"
+   NEXT
+   'Continue even if lumps missing, as following maps may be alright
+  END IF
+
+  gen(genMaxMap) += 1
+ LOOP
+
+ 'Note we don't check/fix number of records in .map and .mn
+
+ IF gen(genMaxMap) < 0 THEN fatalerror "Game has no maps!"
+ IF gen(genMaxMap) <> oldmapmax THEN upgrade_message "Fixed number of maps from " & (oldmapmax + 1) & " to " & (gen(genMaxMap) + 1)
+END SUB
+
 'Check for corruption and unsupported RPG features (maybe someone forgot to update CURRENT_RPG_VERSION)
 SUB rpg_sanity_checks
 
@@ -3786,17 +3840,6 @@ SUB rpg_sanity_checks
    debug "Unknown fixbit " & i & " set"
    future_rpg_warning
   END IF
- NEXT
-
- FOR i as integer = 0 TO gen(genMaxMap)
-  'Game actually runs just fine when anything except the foemap is missing; Custom
-  'has some (crappy) map lump fix code in the map editor
-  IF NOT isfile(maplumpname(i, "t")) THEN showerror "map" + filenum(i) + " tilemap is missing!"
-  IF NOT isfile(maplumpname(i, "p")) THEN showerror "map" + filenum(i) + " passmap is missing!"
-  IF NOT isfile(maplumpname(i, "e")) THEN showerror "map" + filenum(i) + " foemap is missing!"
-  IF NOT isfile(maplumpname(i, "l")) THEN showerror "map" + filenum(i) + " NPClocations are missing!"
-  IF NOT isfile(maplumpname(i, "n")) THEN showerror "map" + filenum(i) + " NPCdefinitions are missing!"
-  IF NOT isfile(maplumpname(i, "d")) THEN showerror "map" + filenum(i) + " doorlinks are missing!"
  NEXT
 
  'Should this be in upgrade? I can't make up my mind!

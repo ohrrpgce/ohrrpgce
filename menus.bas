@@ -600,6 +600,7 @@ SUB LoadMenuData(menu_set as MenuSet, dat as MenuDef, byval record as integer, b
   .bordersize = ReadShort(f)
   .on_close = ReadShort(f)
   .esc_menu = ReadShort(f)
+  ReadShort(f)  'garbage INT
   IF .items THEN
    DeleteMenuItems dat
   ELSE
@@ -703,6 +704,7 @@ SUB SaveMenuData(menu_set as MenuSet, dat as MenuDef, byval record as integer)
   WriteShort(f, -1, .bordersize)
   WriteShort(f, -1, .on_close)
   WriteShort(f, -1, .esc_menu)
+  WriteShort(f, -1, 0)  'wasted garbage INT
  END WITH
  CLOSE #f
  SaveMenuItems menu_set, dat, record
