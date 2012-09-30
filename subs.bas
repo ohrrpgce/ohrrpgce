@@ -1614,7 +1614,7 @@ SUB handle_npc_def_delete (npc() as NPCType, byval id as integer, byref num_npc_
 
 END SUB
 
-SUB npcdef (st as MapEditState, npc_img() as GraphicPair, gmap() as integer, zmap as ZoneMap)
+SUB npcdef (st as MapEditState, byval mapnum as integer, npc_img() as GraphicPair, gmap() as integer, zmap as ZoneMap)
 'npc_img() should be of fixed size (0 TO max_npc_defs - 1), like st.npc_def(), with the actual number passed in st.num_npc_defs
 
 DIM boxpreview(st.num_npc_defs - 1) as string
@@ -1643,6 +1643,8 @@ DO
    CleanNPCDefinition st.npc_def(st.num_npc_defs - 1)
   ELSE
    '--An NPC
+   'First save NPCs so that we can correctly search for unused one-time use tags (see onetimetog)
+   SaveNPCD_fixedlen maplumpname(mapnum, "n"), st.npc_def(), st.num_npc_defs
    edit_npc st.npc_def(cur), gmap(), zmap
   END IF
   need_update_selected = YES

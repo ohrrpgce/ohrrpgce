@@ -16,7 +16,7 @@
 #include "custom_udts.bi"
 
 'external subs and functions
-DECLARE SUB npcdef (st as MapEditState, npc_img() as GraphicPair, gmap() as integer, zmap as ZoneMap)
+DECLARE SUB npcdef (st as MapEditState, byval mapnum as integer, npc_img() as GraphicPair, gmap() as integer, zmap as ZoneMap)
 
 'local subs and functions
 DECLARE SUB make_map_picker_menu (topmenu() as string, state as MenuState)
@@ -529,8 +529,8 @@ DO
    CASE 3
     mapedit_layers st, gmap(), visible(), map()
    CASE 4
-    'This may change st.num_npc_defs, and delete NPC instances
-    npcdef st, npc_img(), gmap(), zmap
+    'This may change st.num_npc_defs, delete NPC instances, and write npc definitions to disk
+    npcdef st, mapnum, npc_img(), gmap(), zmap
    CASE 5 TO 10
     st.seteditmode = st.menustate.pt - 5
     GOSUB mapping

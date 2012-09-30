@@ -1315,24 +1315,24 @@ FUNCTION textbox_preview_line(box as TextBox) as string
  RETURN "" 
 END FUNCTION
 
+' This only checks NPC definitions that have already been written
+' to disk, so that should be done so before calling
 SUB onetimetog(byref tagnum as integer)
  IF tagnum > 0 THEN
   tagnum = 0
   EXIT SUB
  END IF
  DIM onetimeusage(1000) as integer
- 'FIXME: this only checks NPC definitions that have already been written
- '  to disk, so it would not notice onetime tags that have been edited
- '  before this one in your current session of the NPC definition editor.
- '  this is only a problem when available onetime tags have just run out
  check_used_onetime_npcs onetimeusage()
- DIM i as integer = gen(genOneTimeNPC) + 1
- DO WHILE readbit(onetimeusage(), 0, i)
+ DIM i as integer = gen(genOneTimeNPC)
+ DO
   i += 1
   IF i > max_onetime THEN i = 1
+  IF readbit(onetimeusage(), 0, i) = NO THEN EXIT DO
   IF i = gen(genOneTimeNPC) THEN
    visible_debug "All onetime usage numbers have been used up!"
    tagnum = 0
+   EXIT SUB
   END IF
  LOOP
  tagnum = i
