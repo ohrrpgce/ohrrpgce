@@ -256,7 +256,7 @@ end sub
 SUB mersenne_twister (byval seed as double)
 	IF play_input ORELSE rec_input THEN exit sub 'Seeding not allowed in play/record modes
 	RANDOMIZE seed, 3
-	debug "mersenne_twiser seed=" & seed
+	debuginfo "mersenne_twister seed=" & seed
 END SUB
 
 SUB settemporarywindowtitle (title as string)

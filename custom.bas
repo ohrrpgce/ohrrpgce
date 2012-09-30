@@ -113,9 +113,6 @@ DIM SHARED nocleanup as integer = NO
 
 '--Startup
 
-'seed the random number generator
-mersenne_twister TIMER
-
 exename = trimextension(trimpath(COMMAND(0)))
 
 'why do we use different temp dirs in game and custom?
@@ -149,6 +146,9 @@ END IF
 start_new_debug
 debuginfo long_version & build_info 
 debuginfo DATE & " " & TIME
+
+'seed the random number generator
+mersenne_twister TIMER
 
 #IFDEF __UNIX__
  tmpdir = homedir + SLASH + ".ohrrpgce" + SLASH

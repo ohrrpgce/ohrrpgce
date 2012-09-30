@@ -850,7 +850,7 @@ SUB write_innosetup_script (basename as string, gamename as string, isstmp as st
  s &= "Name: ""{userdesktop}\" & gamename & """; Filename: ""{app}\" & basename & ".exe""; WorkingDir: ""{app}"";" & E
  s &= "Name: ""{group}\" & gamename & """; Filename: ""{app}\" & basename & ".exe""; WorkingDir: ""{app}"";" & E
  
- debug s
+ debuginfo s
  
  DIM fh as integer = FREEFILE
  OPEN iss_script FOR BINARY AS #fh
@@ -923,12 +923,12 @@ FUNCTION win_or_wine_spawn_and_wait (cmd as string, args as string="") as string
  DIM spawn_ret as string
 #IFDEF __FB_WIN32__
  'On Windows this is nice and simple
- debug "spawn_and_wait: " & cmd & " " & args
+ debuginfo "spawn_and_wait: " & cmd & " " & args
  RETURN spawn_and_wait(cmd, args)
 #ELSE
  DIM wine_args as string = """" & cmd & """ " & escape_string(args, "\")
- debug "spawn_and_wait: wine " & cmd & " " & wine_args
- debug "wine_args =" & wine_args
+ debuginfo "spawn_and_wait: wine " & cmd & " " & wine_args
+ debuginfo "wine_args =" & wine_args
  RETURN spawn_and_wait("wine", wine_args)
 #ENDIF
  
