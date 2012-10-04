@@ -101,11 +101,10 @@ Target Class: This controls who the attack can be used on.
 * Thankvenge (last to cure attacker)
   This means the attack will only be
   able to target the last hero or
-  enemy to deal negative damage to
-  (cure) the attacker. If the
-  attacker has not been cured in the
-  current battle, the attack will be
-  unusable.
+  enemy who cured the attacker. If
+  the attacker has not been cured in
+  the current battle, the attack will
+  be unusable.
 
 * Thankvenge (whole battle) - This
   means the attack will be able to
@@ -113,7 +112,7 @@ Target Class: This controls who the attack can be used on.
   dealt negative damage (cure) to the
   attacker over the course of the
   entire battle. If the attacker has
-  never been cuured, the attack will
+  never been cured, the attack will
   be unusable.
 
 Target Setting: This controls how the attack can be targetted if more than one valid target is available in the chosen target class.
