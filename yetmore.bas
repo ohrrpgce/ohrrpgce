@@ -2707,7 +2707,7 @@ SELECT CASE as CONST id
    REDIM zoneshere() as integer
    GetZonesAtTile(zmap, zoneshere(), retvals(0), retvals(1))
    IF retvals(2) = -1 THEN  'getcount
-    scriptret = UBOUND(zoneshere)
+    scriptret = UBOUND(zoneshere) + 1
    ELSEIF retvals(2) < -1 THEN
     scripterr "zone at spot: bad 'count' argument " & retvals(2), 5
    ELSE

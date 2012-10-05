@@ -24,6 +24,7 @@ WHAT IS NEW?
       "Show damage without inflicting" is set [Ralph]
     * Fix inns called directly from textboxes with no shop, which were
       restoring the party even if you refused to pay [James]
+    * zone at spot(X, Y, getcount) returned 1 less than the actual count
 
   * New Plotscripting Stuff
     * If a script runs for a long time without "wait"ing you can now
