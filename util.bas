@@ -1284,6 +1284,19 @@ SUB safekill (filename as string)
   END IF
 END SUB
 
+'FIXME/NOTE: On Unix this can not move between different filesystems, so only use between "nearby" locations!
+'NOTE: An alternative function is os_shell_move 
+'Returns zero on success 
+FUNCTION local_file_move(frompath as string, topath as string) as integer
+  'FB's NAME is translated directly to a rename() call, so is no better
+  IF rename(frompath, topath) THEN
+    DIM err_string as string = *get_sys_err_string()  'errno would get overwritten while building the error message
+    debug "rename(" & frompath & ", " & topath & ") failed (dest exists=" & isfile(topath) & ") Reason: " & err_string
+    RETURN 1
+  END IF
+  RETURN 0
+END FUNCTION
+
 FUNCTION fileisreadable(filename as string) as integer
   dim fh as integer, err_code as integer
   fh = freefile

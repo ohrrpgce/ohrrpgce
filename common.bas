@@ -401,9 +401,11 @@ FUNCTION os_shell_move(src as string, dest as string) as integer
   args = " /Y"
  #ENDIF
  args &= " """ & src & """ """ & dest & """"
- spawn_ret = spawn_and_wait(mv, args)
+
+ 'spawn_ret = spawn_and_wait(mv, args)
+ SHELL mv & args
  
- IF LEN(spawn_ret) THEN debug "os_shell_move: spawn failed: " & spawn_ret : RETURN NO
+ 'IF LEN(spawn_ret) THEN debug "os_shell_move: spawn failed: " & spawn_ret : RETURN NO
  IF NOT isdir(dest) THEN debug "os_shell_move: dest file not created: " & dest : RETURN NO
  
  RETURN YES
@@ -2729,9 +2731,8 @@ IF getbinsize(bindex) < curbinsize(bindex) THEN
   DIM tempf as string = lumpf & ".resize.tmp"
 
   'This tends to break (it's a C/unix system call), hence all the paranoia
-  IF rename(lumpf, tempf) THEN
-   DIM err_string as string = *get_sys_err_string()  'errno would get overwritten while building the error message
-   fatalerror "Impossible to upgrade game: Could not rename " & lumpf & " to " & tempf & " (exists=" & isfile(tempf) & ") Reason: " & err_string
+  IF local_file_move(lumpf, tempf) THEN
+   fatalerror "Impossible to upgrade game: Could not move " & lumpf
   END IF
 
   DIM inputf as integer = FREEFILE

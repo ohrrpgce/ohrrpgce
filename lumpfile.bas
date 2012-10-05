@@ -424,7 +424,7 @@ function FileLump_tempfromlump(byref lmp as Lump) as FileLump ptr
 		filename = tmpdir & randint(100000000) & "_" & lmp.lumpname
 
 		if Lump_unlumpfile(lmp, tmpdir) = 0 then return NULL
-		rename tmpdir + lmp.lumpname, filename
+		local_file_move(tmpdir + lmp.lumpname, filename)
 
 		flump = callocate(sizeof(FileLump))
 		with *flump
