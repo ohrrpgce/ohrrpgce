@@ -827,11 +827,11 @@ SUB reset_game_final_cleanup()
  palette16_empty_cache()
  cleanup_game_slices()
  SliceDebugDump YES
+ stopsong
+ resetsfx
  IF gam.autorungame THEN exitprogram (NOT abortg)
  cleanuptemp
  fadeout 0, 0, 0
- stopsong
- resetsfx
  clearpage 0
  clearpage 1
  clearpage 2
