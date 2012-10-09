@@ -698,11 +698,11 @@ end extern
 '                           Lumped files
 
 
-sub unlump (lumpfile as string, ulpath as string)
-	unlumpfile(lumpfile, "", ulpath)
+sub unlump (lumpfile as string, ulpath as string, byval showerrors as bool = YES)
+	unlumpfile(lumpfile, "", ulpath, showerrors)
 end sub
 
-sub unlumpfile (lumpfile as string, fmask as string, path as string)
+sub unlumpfile (lumpfile as string, fmask as string, path as string, byval showerrors as bool = YES)
 	dim lf as integer
 	dim dat as ubyte
 	dim size as integer
@@ -713,7 +713,8 @@ sub unlumpfile (lumpfile as string, fmask as string, path as string)
 	dim nowildcards as integer = 0
 
 	if NOT fileisreadable(lumpfile) then
-		debug "unlumpfile: " + lumpfile + " not readable"
+		debug "unlumpfile: " + lumpfile + " is not readable"
+		if showerrors then showerror lumpfile + " is not readable"
 		exit sub
 	end if
 	lf = freefile
@@ -747,6 +748,7 @@ sub unlumpfile (lumpfile as string, fmask as string, path as string)
 		wend
 		if i > 50 then
 			debug "unlumpfile: corrupt lump file " + lumpfile + " : lump name too long: '" & lname & "'"
+			if showerrors then showerror "File " + lumpfile + " seems to be corrupt"
 			exit while
 		end if
 		lname = lcase(lname)
@@ -754,6 +756,7 @@ sub unlumpfile (lumpfile as string, fmask as string, path as string)
 
 		if lname <> exclusive(lname, "abcdefghijklmnopqrstuvwxyz0123456789_-. ") then
 			debug "corrupt lump file " + lumpfile + " : unallowable lump name '" + lname + "'"
+			if showerrors then showerror "File " + lumpfile + " seems to be corrupt"
 			exit while
 		end if
 
@@ -769,10 +772,13 @@ sub unlumpfile (lumpfile as string, fmask as string, path as string)
 			size = size or (dat shl 8)
 			if size > maxsize then
 				debug lumpfile + ": corrupt lump size " & size & " exceeds source size " & maxsize
+				if showerrors then showerror "File " + lumpfile + " seems to be corrupt (possibly cut short)"
 				exit while
 			end if
 
 			'debug "lump size " + str(size)
+
+			dim skiplump as bool = YES
 
 			'do we want this file?
 			if matchmask(lname, lcase(fmask)) then
@@ -780,27 +786,34 @@ sub unlumpfile (lumpfile as string, fmask as string, path as string)
 				dim of as integer
 				dim csize as integer
 
-				if NOT fileiswriteable(path + lname) then
-					debug "unlumpfile(" + lumpfile + "): " + path + lname + " not writeable"
-					exit while
-				end if
 				of = freefile
-				open path + lname for binary access write as #of
+				if open(path + lname for binary access write as #of) then
+					debug "unlumpfile(" + lumpfile + ", " + fmask + "): " + path + lname + " not writable, skipping"
+					if isfile(path + lname) then
+						debug "(file already exists)"
+					end if
+					if showerrors then showerror "Could not unlump " & lname & " from " & lumpfile & ". Some game data will be missing."
+					'exit while
+				else
+					skiplump = NO
 
-				'copy the data
-				while size > 0
-					csize = small(16384, size)
-					'copy a chunk of file
-					fget lf, , bufr, csize
-					fput of, , bufr, csize
-					size = size - csize
-				wend
+					'copy the data
+					while size > 0
+						csize = small(16384, size)
+						'copy a chunk of file
+						fget lf, , bufr, csize
+						fput of, , bufr, csize
+						size = size - csize
+					wend
 
-				close #of
+					close #of
+				end if
 
 				'early out if we're only looking for one file
 				if nowildcards then exit while
-			else
+			end if
+
+			if skiplump then
 				'skip to next name
 				i = seek(lf)
 				i = i + size
@@ -827,7 +840,10 @@ sub copylump(package as string, lump as string, dest as string, byval ignoremiss
 		writeablecopyfile package + SLASH + lump, dest + lump
 	else
 		'lumpfile
-		unlumpfile package, lump, dest
+		'Don't show errors if we don't really care (actually this matters only in one place:
+		'don't show a very scary error when browsing for RPGs if there is a corrupt file in
+		'the directory)
+		unlumpfile package, lump, dest, ignoremissing = NO
 	end if
 end sub
 

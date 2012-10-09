@@ -211,7 +211,7 @@ debuginfo long_version & build_info
 debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo & "  " & systeminfo
 
 'For getdisplayname
-copylump sourcerpg, "archinym.lmp", workingdir, -1
+copylump sourcerpg, "archinym.lmp", workingdir, YES
 
 debuginfo "Editing game " & sourcerpg & " (" & getdisplayname(" ") & ") " & DATE & " " & TIME
 setwindowtitle "O.H.R.RPG.C.E - " + trimpath(sourcerpg)

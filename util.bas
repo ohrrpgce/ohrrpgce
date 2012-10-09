@@ -1315,7 +1315,7 @@ END FUNCTION
 FUNCTION fileiswriteable(filename as string) as integer
   dim fh as integer
   fh = freefile
-  if open (filename for binary access read write as #fh) = 2 then
+  if open (filename for binary access read write as #fh) then
     ''debug filename & " unreadable (ignored)"
     return 0 
   end if

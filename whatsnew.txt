@@ -25,6 +25,8 @@ WHAT IS NEW?
     * Fix inns called directly from textboxes with no shop, which were
       restoring the party even if you refused to pay [James]
     * zone at spot(X, Y, getcount) returned 1 less than the actual count
+    * Bug 973: Strange behaviour when closing one game and playing
+      another without quitting Game [Ralph]
 
   * New Plotscripting Stuff
     * If a script runs for a long time without "wait"ing you can now
