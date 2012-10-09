@@ -44,6 +44,22 @@ global function hs_upper(object x)
     return x - (x >= 'a' and x <= 'z') * ('a' - 'A')
 end function
 
+-- convert unprintable characters to \x escape codes
+global function escape_string(sequence s)
+  sequence result
+  result=""
+  for i=1 to length(s) do
+    if s[i]=10 then
+      result&="\\n"
+    elsif s[i]<32 or s[i]>=127 then
+      result&=sprintf("\\x%02x",{s[i]})
+    else
+      result&={s[i]}
+    end if
+  end for
+  return result
+end function
+
 ---convert a delimited string into a sequence of strings---
 global function explode(sequence s,sequence delim)
   sequence result

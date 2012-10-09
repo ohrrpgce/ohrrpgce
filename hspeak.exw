@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Pb 2012-10-08 \x escape code
 --3Pa 2012-08-24 --reuse-ids option
 --3P  2012-08-18 Change way include is lexed: quotes no longer needed
 --               [], {}, . now totally disallowed
@@ -137,7 +138,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Pa"
+constant COMPILER_SUB_VERSION="Pb"
 constant COPYRIGHT_DATE="2002"
 
 --This is the oldest version of plotscr.hsd which is supported (feel free to
@@ -332,6 +333,8 @@ sequence separator_list   separator_list={
                           }
 sequence lexer_table      lexer_table={}
 sequence lexer_table_key2 lexer_table_key2={}
+sequence hex_chars        hex_chars="0123456789abcedfABCDEF"
+sequence hex_char_values  hex_char_values={0,1,2,3,4,5,6,7,8,9,#a,#b,#c,#e,#d,#f,#A,#B,#C,#D,#E,#F}
 
 sequence all_scripts      all_scripts={}
 sequence current_script   current_script=""   --name of current script
@@ -1051,19 +1054,36 @@ end procedure
 function lexer_read_string(sequence s,integer i,integer stop,srcpos pos)
   sequence string
   integer escaping
+  integer at1, at2
   escaping=false
   string="\""
   while true do
     if i>stop then  --did not find a closing " so not a valid string
       src_error("Expected \" at end of line to end string (multi-line strings are not supported)",pos+stop)
     end if
+    if s[i]<256 and lexer_table[s[i]+1]=LEX_BINARY then
+      lexer_binary_error(pos+i)
+    end if
     if escaping then
-      if s[i]='"' or s[i]='\\' then
+      if s[i]='"' or s[i]='\\' or s[i]='\'' then
+        --including ' for closer compatibility with Python
         string&=s[i]
       elsif s[i]='n' then
         string&=10
       elsif s[i]='t' then
         string&=9
+      elsif s[i]='x' then
+        --escape 8 bit values (later will add \u and \U for 16 bit and 32 bit escapes)
+        at1=0
+        if i+2<=stop then
+          at1=find(s[i+1],hex_chars)
+          at2=find(s[i+1],hex_chars)
+        end if
+        if at1=0 or at2=0 then
+          src_error("Expected two hexidecimal characters to follow \\x escape code",pos+i)
+        end if
+        string&={16*hex_char_values[at1]+hex_char_values[at2]}
+        i+=2
       else
         --invalid sequence
         string&='\\'
@@ -1078,9 +1098,6 @@ function lexer_read_string(sequence s,integer i,integer stop,srcpos pos)
       else
         string&=s[i]
       end if
-    end if
-    if s[i]<256 and lexer_table[s[i]+1]=LEX_BINARY then
-      lexer_binary_error(pos+i)
     end if
     i+=1
   end while
@@ -2203,7 +2220,7 @@ function dump_script_strings(sequence bin)
   while offset<length(bin) do
     len=binstring_to_int(bin[offset..offset+3])
     result&=sprintf("string offset %-4d: \"",{offset/4})
-    result&=bin[offset+4..offset+4+len-1] & "\"\n"
+    result&=escape_string(bin[offset+4..offset+4+len-1]) & "\"\n"
     offset+=4+len
     if remainder(len,4) then
       offset+=4-remainder(len,4)
