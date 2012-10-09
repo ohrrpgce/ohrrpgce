@@ -2763,6 +2763,8 @@ function build_switch_node(sequence tree,sequence vars,integer ptr)
   srcpos elsepos
   integer expect_case
   integer kind
+  sequence else_error_msg
+  else_error_msg=COLYEL&"else"&COLRED&" case should be placed last inside a "&COLYEL&"switch"&COLRED&" block"
 
   pos=tree[ptr][TREE_TRUNK][CMD_POS]
 
@@ -2805,7 +2807,7 @@ function build_switch_node(sequence tree,sequence vars,integer ptr)
         collected={}
       end if
       if have_else then
-        src_error(COLYEL&"else"&COLRED&" case should be placed last inside a "&COLYEL&"switch"&COLRED&" block",elsepos)
+        src_error(else_error_msg,elsepos)
       end if
       expect_case=false
 
@@ -2818,7 +2820,10 @@ function build_switch_node(sequence tree,sequence vars,integer ptr)
       end if
 
       if j!=length(rawargs) then
-        src_error(COLYEL&"else"&COLRED&" should be placed last inside a "&COLYEL&"switch"&COLRED&" block",argpos)
+        if length(rawargs[j][TREE_BRANCHES])=0 then
+          else_error_msg&=". Did you forget to enclose the else block with brackets, like "&COLYEL&"else(...)"&COLRED&"?"
+        end if
+        src_error(else_error_msg,argpos)
       end if
       --convert it to a do
       args&={ {{"do",argpos},rawargs[j][TREE_BRANCHES]} }
@@ -2832,7 +2837,7 @@ function build_switch_node(sequence tree,sequence vars,integer ptr)
       end if
       if have_else then
         --Note we disallow  case(else) case(1)  but allow  case(else,1)
-        src_error(COLYEL&"else"&COLRED&" case should be placed last inside a "&COLYEL&"switch"&COLRED&" block",elsepos)
+        src_error(else_error_msg,elsepos)
       end if
       expect_case=false
 
