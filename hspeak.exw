@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Pc 2012-10-09 Change srcpos encoding to remove source size limits
 --3Pb 2012-10-08 \x escape code
 --3Pa 2012-08-24 --reuse-ids option
 --3P  2012-08-18 Change way include is lexed: quotes no longer needed
@@ -138,7 +139,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Pb"
+constant COMPILER_SUB_VERSION="Pc"
 constant COPYRIGHT_DATE="2002"
 
 --This is the oldest version of plotscr.hsd which is supported (feel free to
@@ -263,6 +264,7 @@ sequence source_file      source_file=""
 sequence dest_file        dest_file=""
 sequence optlist          optlist={}
 sequence file_list        file_list={}
+integer max_srcpos        max_srcpos=0
 integer total_lines       total_lines=0
 sequence cmd              cmd={}
 sequence reuse_ids        reuse_ids={}
@@ -354,19 +356,12 @@ integer was_warnings      was_warnings=false
 ---------------------------------------------------------------------------
 --types--
 
---A position in the script source. A (large) integer, where
---the bottom 22 bits store the character number in the file, 1-based
---(where newlines are one character) and higher bits the file index
---in file_list minus one.
---See decode_srcpos
+--A position in the script source. An integer, encoding an index in file_list
+--and a character number that file (where newlines are one character).
+--See encode_srcpos and decode_srcpos
 type srcpos(atom pos)
-  integer fileno
-  fileno=floor(pos/power(2,23))+1
   --need to allow 0 as a dummy value
-  if pos=0 or (pos>0 and pos=floor(pos) and fileno<=length(file_list)
-       and and_bits(pos,power(2,23)-1)<=length(file_list[fileno][FILE_TEXT])) then
-    --odd, or and and only seem to shortcut when used as if condition, not
-    --in a general expression
+  if pos=floor(pos) and pos>=0 and pos<=max_srcpos then
     return true
   else
     return false
@@ -864,15 +859,58 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-function srcpos_file_number(srcpos pos)
-  return(floor(pos/power(2,23))+1)
+--returns {filenumber,file position} pair
+function decode_srcpos_file(srcpos pos)
+  integer val
+  val=pos
+
+  --0 is an invalid srcpos
+  if val=0 then
+    simple_error("compiler bug: can't decode uninitialised srcpos")
+  end if
+  val-=1
+
+  for i=1 to length(file_list) do
+    --an offset of 0 is reserved, but currently unused
+    if val=0 then
+      simple_error("compiler bug: 0 srcpos file offset")
+    end if
+
+    if val<=length(file_list[i][FILE_TEXT]) then
+      return {i,val}
+    end if
+    val-=length(file_list[i][FILE_TEXT])+1
+  end for
+  simple_error(sprintf_utf("compiler bug: can't decode invalid srcpos %d",{pos}))
 end function
 
 ---------------------------------------------------------------------------
 
---returns 1-based character number in file
+function srcpos_file_number(srcpos pos)
+  sequence temp
+  temp=decode_srcpos_file(pos)
+  return temp[1]
+end function
+
+---------------------------------------------------------------------------
+
+--Returns 1-based character number in file
 function srcpos_point(srcpos pos)
-  return(and_bits(pos,power(2,23)-1))
+  sequence temp
+  temp=decode_srcpos_file(pos)
+  return temp[2]
+end function
+
+---------------------------------------------------------------------------
+
+--Encode offset (1-based characters from start of file) in a file as a srcpos
+function encode_srcpos(integer filenum, integer offset)
+  srcpos pos
+  pos=1
+  for i=1 to filenum-1 do
+    pos+=length(file_list[i][FILE_TEXT])+1
+  end for
+  return pos+offset
 end function
 
 ---------------------------------------------------------------------------
@@ -885,14 +923,13 @@ function decode_srcpos(srcpos pos)
   integer lineno
   sequence filetext
   sequence lines
+  sequence temp
 
-  point=and_bits(pos,power(2,23)-1)
-  filenum=floor(pos/power(2,23))+1
+  temp=decode_srcpos_file(pos)
+  filenum=temp[1]
+  point=temp[2]
   filetext=file_list[filenum][FILE_TEXT]
   lines=file_list[filenum][FILE_LINE_EXTENTS]
-  if point>length(filetext) then
-    simple_error(sprintf_utf("compiler bug: invalid source position %d in file of length %d",{point,length(filetext)}))
-  end if
 
   lineno=length(lines)
   for i=1 to length(lines) do
@@ -995,6 +1032,7 @@ procedure load_source(sequence filename,sequence reading_how,srcpos pos)
     end if
     total_lines+=length(line_extents)
     file_list=append(file_list,{filename,file_text,line_extents})
+    max_srcpos+=length(file_text)+1
   else
     if pos then
       src_error(sprintf_utf("file "&COLYEL&"%s"&COLRED&" not found\n",{filename}),pos)
@@ -1035,9 +1073,6 @@ procedure show_source_info()
     wrap_print("%d lines read from %d files\n",{total_lines,length(file_list)})
   else
     simple_error("no data to compile\n")
-  end if
-  if length(file_list)>512 then
-    simple_warn("You have included over 512 files! In-game error messages will only report line numbers for errors in the first 512 files.")
   end if
 end procedure
 
@@ -1502,7 +1537,7 @@ procedure read_commands(integer file_num,sequence include_stack)
   sequence lines
   integer include_num
   srcpos pos
-  pos=(file_num-1)*power(2,23)
+  pos=encode_srcpos(file_num,0)
   include_stack=append(include_stack,file_list[file_num][FILE_NAME])
 
   lines=file_list[file_num][FILE_LINE_EXTENTS]
