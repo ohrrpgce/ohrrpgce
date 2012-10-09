@@ -3474,8 +3474,12 @@ function collapse_floaty_brackets(sequence tree)
     if length(tree[i][TREE_TRUNK][CMD_TEXT])=0 then
       --found a floaty-bracket
       graft=tree[i][TREE_BRANCHES]
-      tree=delete_element(tree,i)
-      tree=insert_sequence(tree,graft,i)
+      if length(graft)!=1 then
+        src_error(sprintf_utf("Found unexpected pair of brackets containing %d expressions. Either the brackets should not exist at all, or should only enclose a single expression",{length(graft)}),tree[i][TREE_TRUNK][CMD_POS])
+      end if
+      tree[i]=graft[1]
+      --delete_element(tree,i)
+      --tree=insert_sequence(tree,graft,i)
     else
       if length(tree[i][TREE_BRANCHES]) then
         tree[i][TREE_BRANCHES]=collapse_floaty_brackets(tree[i][TREE_BRANCHES])
