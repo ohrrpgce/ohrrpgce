@@ -3608,14 +3608,16 @@ SUB wrappedsong (byval songnumber as integer)
   playsongnum songnumber
   presentsong = songnumber
  ELSE
-  resumesong
+  'Has this ever worked? Maybe in old DOS versions
+  'resumesong
+  
  END IF
 
 END SUB
 
 SUB stopsong
  presentsong = -1
- pausesong 'this is how you stop the music
+ music_stop
 END SUB
 
 FUNCTION backcompat_sound_id (byval id as integer) as integer

@@ -171,7 +171,7 @@ DO
  IF enter_or_space() THEN
   br.alert = ""
   br.changed = 1
-  IF br.special = 1 OR br.special = 5 THEN pausesong
+  IF br.special = 1 OR br.special = 5 THEN music_stop
   SELECT CASE tree(br.treeptr).kind
    CASE bkDrive
     'this could take a while...
@@ -272,7 +272,7 @@ ELSE
  default = br.nowdir
 END IF
 remember = default
-pausesong
+music_stop
 IF br.snd >= 0 THEN sound_stop(br.snd, -1) : UnloadSound(br.snd)
 RETURN ret
 
@@ -297,7 +297,7 @@ SUB browse_hover_file(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
  DIM bmpd as BitmapInfoHeader
  SELECT CASE br.special
   CASE 1 'music bam only (is this still used?)
-   pausesong
+   music_stop
    IF tree(br.treeptr).kind = bkSelectable OR tree(br.treeptr).kind = bkUnselectable THEN
     IF validmusicfile(br.nowdir + tree(br.treeptr).filename, FORMAT_BAM) THEN
      loadsong br.nowdir + tree(br.treeptr).filename
@@ -306,7 +306,7 @@ SUB browse_hover_file(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
     END IF
    END IF
   CASE 5 'music
-   pausesong
+   music_stop
    br.alert = tree(br.treeptr).about
    IF validmusicfile(br.nowdir + tree(br.treeptr).filename, PREVIEWABLE_MUSIC_FORMAT) THEN
     loadsong br.nowdir + tree(br.treeptr).filename

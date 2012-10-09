@@ -3439,13 +3439,14 @@ SUB loadsong (f as string)
 	music_play(songname, songtype)
 end SUB
 
-SUB pausesong ()
-	music_pause()
-end SUB
-
-SUB resumesong ()
-	music_resume
-end SUB
+'Doesn't work in SDL_mixer for MIDI music, so avoid
+'SUB pausesong ()
+'	music_pause()
+'end SUB
+'
+'SUB resumesong ()
+'	music_resume
+'end SUB
 
 FUNCTION get_music_volume () as single
 	return music_getvolume

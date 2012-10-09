@@ -1120,7 +1120,7 @@ SUB individual_formation_editor ()
    END IF
    IF state.pt = 5 THEN
     IF intgrabber(form.music, -2, gen(genMaxSong)) THEN
-     pausesong
+     music_stop
     END IF
    END IF
    IF state.pt = 1 THEN '---SELECT A DIFFERENT FORMATION
@@ -1205,7 +1205,7 @@ SUB individual_formation_editor ()
  LOOP
 
  SaveFormation form, form_id
- pausesong
+ music_stop
  FOR i as integer = 0 TO 7
   unload_sprite_and_pal egraphics(i)
  NEXT

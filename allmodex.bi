@@ -115,8 +115,8 @@ DECLARE SUB setpicstuf (buf() as integer, byval b as integer, byval p as integer
 DECLARE SUB setupmusic
 DECLARE SUB closemusic ()
 DECLARE SUB loadsong (f as string)
-DECLARE SUB pausesong ()
-DECLARE SUB resumesong ()
+'DECLARE SUB pausesong ()
+'DECLARE SUB resumesong ()
 DECLARE FUNCTION get_music_volume () as single
 DECLARE SUB set_music_volume (byval vol as single)
 

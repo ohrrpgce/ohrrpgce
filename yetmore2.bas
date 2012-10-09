@@ -1128,7 +1128,7 @@ SUB receive_file_updates ()
  entered = NO
 END SUB
 
-SUB inspect_MAP_lump()
+SUB reload_MAP_lump()
  WITH lump_reloading
 
   'Only compare part of each MAP record... OK, this is getting really perfectionist
@@ -1140,7 +1140,7 @@ SUB inspect_MAP_lump()
   'Compare with backup to find the changes
   REDIM changed_records(0) as integer
   IF compare_files_by_record(changed_records(), game + ".map", tmpdir + "mapbackup.map", getbinsize(binMAP) \ 2, @compare_mask(0)) = NO THEN
-   debug "inspect_MAP_lump: couldn't compare!"
+   debug "reload_MAP_lump: couldn't compare!"
    EXIT SUB
   END IF
 
@@ -1300,7 +1300,7 @@ FUNCTION try_reload_music_lump(basename as string, extn as string) as integer
  END IF
  IF songnum = -1 THEN RETURN NO
  IF songnum = presentsong THEN
-  pausesong
+  stopsong
   playsongnum presentsong
  END IF
  RETURN YES
@@ -1401,7 +1401,7 @@ SUB try_to_reload_files_onmap ()
   DIM extn as string = justextension(modified_lumps[i])
 
   IF extn = "map" THEN                                                    '.MAP
-   inspect_MAP_lump
+   reload_MAP_lump
    handled = YES
 
   ELSEIF extn = "dox" THEN                                                '.DOX

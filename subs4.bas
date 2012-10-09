@@ -349,7 +349,7 @@ SUB generalmusicsfxmenu ()
     SELECT CASE as CONST pt
     CASE 1 TO lastmusicitem
       IF zintgrabber(gen(index(pt)), -1, gen(genMaxSong)) THEN
-        pausesong
+        music_stop
         IF gen(index(pt)) > 0 THEN
           disp(pt) = menu(pt) & getsongname(gen(index(pt)) - 1, -1)  'prefixes number
         ELSE
@@ -374,7 +374,7 @@ SUB generalmusicsfxmenu ()
     setvispage vpage
     dowait
   LOOP
-  pausesong
+  music_stop
   resetsfx
 END SUB
 
@@ -478,7 +478,7 @@ DO
  dowait
 LOOP
 importsong_save_song_data sname, snum
-pausesong
+music_stop
 EXIT SUB
 
 END SUB
@@ -529,7 +529,7 @@ SUB importsong_import_song_file (sname as string, songfile as string, byval snum
 END SUB
 
 SUB importsong_get_song_info (sname as string, songfile as string, byval snum as integer, file_ext as string, menu() as string, byref optionsbottom as integer)
- pausesong
+ music_stop
 
  DIM temp as string
  '-- first job: find the song's name

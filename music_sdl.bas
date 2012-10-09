@@ -282,6 +282,7 @@ end sub
 
 sub music_pause()
 	'Pause is broken in SDL_Mixer, so just stop.
+	'A look at the source indicates that it won't work for MIDI
 	if music_on = 1 then
 		if music_song > 0 then
 			Mix_HaltMusic

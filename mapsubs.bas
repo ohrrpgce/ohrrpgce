@@ -2063,7 +2063,7 @@ SUB mapedit_gmapdata(st as MapEditState, gmap() as integer, zmap as ZoneMap)
     IF enter_or_space() THEN EXIT DO
    CASE 1 'music
     IF zintgrabber(gmap(idx), gdmin(idx) - 1, gdmax(idx) - 1) THEN 'song is optional
-     pausesong
+     music_stop
     END IF
     IF enter_or_space() THEN
      IF gmap(idx) > 0 THEN playsongnum gmap(idx) - 1
@@ -2186,7 +2186,7 @@ SUB mapedit_gmapdata(st as MapEditState, gmap() as integer, zmap as ZoneMap)
   setvispage vpage
   dowait
  LOOP
- pausesong
+ music_stop
  unloadtilemap sampmap
 END SUB
 

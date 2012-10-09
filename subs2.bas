@@ -1218,7 +1218,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
    CASE 6:
     IF zintgrabber(box.music, -1, gen(genMaxSong)) THEN
      state.need_update = YES
-     pausesong
+     music_stop
     END IF
    CASE 10:
     state.need_update = intgrabber(box.portrait_type, 0, 3)
@@ -1256,7 +1256,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
  LOOP
  freepage holdscreen
  resetsfx
- pausesong
+ music_stop
 END SUB
 
 SUB update_textbox_appearance_editor_menu (menu() as string, byref box as TextBox, byref st as TextboxEditState)
