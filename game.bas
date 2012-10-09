@@ -431,9 +431,9 @@ IF usepreunlump THEN
  archinym = readarchinym(workingdir, sourcerpg)
  xbload workingdir & SLASH & archinym & ".gen", gen(), "general game data missing from " + sourcerpg
 ELSE
- copylump sourcerpg, "archinym.lmp", tmpdir, -1
+ copylump sourcerpg, "archinym.lmp", tmpdir, YES
  archinym = readarchinym(tmpdir, sourcerpg)
- copylump sourcerpg, archinym + ".gen", tmpdir, -1
+ copylump sourcerpg, archinym + ".gen", tmpdir, YES
  xbload tmpdir + archinym + ".gen", gen(), "general game data missing from " + sourcerpg
 END IF
 

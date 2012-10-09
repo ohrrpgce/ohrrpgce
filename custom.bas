@@ -217,7 +217,7 @@ debuginfo "Editing game " & sourcerpg & " (" & getdisplayname(" ") & ") " & DATE
 setwindowtitle "O.H.R.RPG.C.E - " + trimpath(sourcerpg)
 
 '--set game according to the archinym
-copylump sourcerpg, "archinym.lmp", workingdir, -1
+copylump sourcerpg, "archinym.lmp", workingdir, YES
 archinym = readarchinym(workingdir, sourcerpg)
 game = workingdir + SLASH + archinym
 

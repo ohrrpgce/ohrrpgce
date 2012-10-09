@@ -439,7 +439,7 @@ FOR i as integer = 0 TO UBOUND(filelist)
  END IF
  '--RPG files
  IF br.special = 7 THEN
-  copylump filename, "browse.txt", br.tmp, -1
+  copylump filename, "browse.txt", br.tmp, YES
   tree(br.treesize).caption = load_gamename(br.tmp & "browse.txt")
   tree(br.treesize).about = load_aboutline(br.tmp & "browse.txt")
   safekill br.tmp & "browse.txt"
