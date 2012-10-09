@@ -593,7 +593,7 @@ end</example>
 		<command id="npcatspot">
 			<canon>NPC at spot (x, y, number)</canon>
 			<shortname>NPC at spot</shortname>
-			<description>This command returns a reference to the NPC at the given X and Y coordinate, in tiles, on the map. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom-most NPC, which is number 0). <ref>false</ref> is returned if there is no NPC there, or <p>number</p> is too large. You can also pass the constant <ref>getcount</ref> for the third argument to return the total number of npcs on that tile. <note>An NPC's tile is the tile its top left corner is on.</note></description>
+			<description>This command returns a reference to the NPC at the given X and Y coordinate, in tiles, on the map. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom-most NPC, which is number 0). <ref>false</ref> is returned if there is no NPC there, or <p>number</p> is too large (greater than or equal to the number of NPCs). You can also pass the constant <ref>getcount</ref> for the third argument to return the total number of npcs on that tile. <note>An NPC's tile is the tile its top left corner is on.</note></description>
 			<seealso>
 				<ref>npcreference</ref>
 			</seealso>
@@ -601,7 +601,7 @@ end</example>
 		<command id="npcatpixel">
 			<canon>NPC at pixel (x, y, number)</canon>
 			<shortname>NPC at pixel</shortname>
-			<description>This command returns a reference to the NPC at the given X and Y coordinate in pixels. That is, any npc whose 20x20 sprite (including transparent sections) is over that pixel. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom-most NPC, which is number 0). <ref>false</ref> is returned if there is no NPC there, or <p>number</p> is too large. You can also pass the constant <ref>getcount</ref> for the third argument to return the total number of npcs on that tile.</description>
+			<description>This command returns a reference to the NPC at the given X and Y coordinate in pixels. That is, any npc whose 20x20 sprite (including transparent sections) is over that pixel. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom-most NPC, which is number 0). <ref>false</ref> is returned if there is no NPC there, or <p>number</p> is too large (greater than or equal to the number of NPCs). You can also pass the constant <ref>getcount</ref> for the third argument to return the total number of npcs on that tile.</description>
 			<seealso>
 				<ref>npcreference</ref>
 			</seealso>
@@ -1276,7 +1276,7 @@ end</example>
 		<command id="spellslearned">
 			<canon>spells learned (hero,number)</canon>
 			<shortname>spells learned</shortname>
-			<description>Returns the id numbers (+1) of spells the hero learned from the last battle or <ref>giveexperience</ref>, <ref>setherolevel</ref> or <ref>setexperience</ref> command that targetted either this hero or the whole party. If the second argument is <ref>getcount</ref> then the number of spells that the hero learned is returned. Pass 0 for number to get the first spell learnt, 1 the second, etc. You can use a loop and strings to list to the player all the spells a hero learned:
+			<description>Returns the id numbers (+1) of spells the hero learned from the last battle or <ref>giveexperience</ref>, <ref>setherolevel</ref> or <ref>setexperience</ref> command that targetted either this hero or the whole party. If the second argument is <ref>getcount</ref> then the number of spells that the hero learned is returned. Pass 0 for number to get the first spell learnt, 1 to get the second, etc. You can use a loop and strings to list to the player all the spells a hero learned:
 			<note>If you want to use this command with attack ID numbers, you must add 1 to the ID number.</note>
 			</description>
 			<example># the following script uses strings 0, 1, 2 for its use (will be overwritten)
@@ -3940,7 +3940,7 @@ end
 		<command id="zoneatspot">
 			<canon>zone at spot (x, y, count)</canon>
 			<shortname>zone at spot</shortname>
-			<description>Used to get the set of all IDs of zones that contain the tile at (<p>x,y</p>). Since zones may overlap, <p>count</p> is used to specify which zone ID to return: 0 is the first, 1 the second, and so on. <p>count</p> may also be the constant <ref>getcount</ref>, in which case the total number of zones which overlap there is returned. If <p>count</p> is too large, 0 (<ref>false</ref>) is returned. <note>The order in which the ID numbers are returned is completely arbitrary.</note></description>
+			<description>Used to get the set of all IDs of zones that contain the tile at (<p>x,y</p>). Since zones may overlap, <p>count</p> is used to specify which zone ID to return: 0 is the first, 1 the second, and so on. <p>count</p> may also be the constant <ref>getcount</ref>, in which case the total number of zones which overlap there is returned. If <p>count</p> too large (greater than or equal to the number of zones), 0 (<ref>false</ref>) is returned. <note>The order in which the ID numbers are returned is completely arbitrary.</note></description>
 			<seealso>
 				<ref>readzone</ref>
 			</seealso>
