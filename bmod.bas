@@ -2486,10 +2486,10 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    IF attack.override_wep_pic THEN
     wpic = attack.wep_picture
     wpal = attack.wep_pal
-    .hand(0).x = 0 'FIXME zeroes here is always going to be the wrong thing!
-    .hand(0).y = 0
-    .hand(1).x = 0
-    .hand(1).y = 0
+    .hand(0).x = attack.wep_handle(0).x
+    .hand(0).y = attack.wep_handle(0).y
+    .hand(1).x = attack.wep_handle(1).x
+    .hand(1).y = attack.wep_handle(1).y
    ELSE
     wpic = gam.hero(bat.acting).wep_pic
     wpal = gam.hero(bat.acting).wep_pal

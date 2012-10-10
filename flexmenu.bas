@@ -40,9 +40,7 @@ SUB addcaption (caption() as string, byref indexer as integer, cap as string)
  indexer = UBOUND(caption) + 1
 END SUB
 
-
 '------------------------------ Attack Editor ----------------------------------
-
 
 '--ID numbers for menu item definitions
 
@@ -128,8 +126,10 @@ CONST AtkDamageBitAct = 141
 CONST AtkBlankMenuItem = 142  ' Generic blank skippable menu item
 CONST AtkWepPic = 143
 CONST AtkWepPal = 144
+CONST AtkWepHand0 = 145
+CONST AtkWepHand1 = 146
 
-'Next menu item is 145 (remember to update MnuItems)
+'Next menu item is 147 (remember to update MnuItems)
 
 
 '--Offsets in the attack data record (combined DT6 + ATTACK.BIN)
@@ -195,6 +195,10 @@ CONST AtkDatTransmogStats = 120
 CONST AtkDatElementalFail = 121 'to 312
 CONST AtkDatWepPic = 313
 CONST AtkDatWepPal = 314
+CONST AtkDatWepHand0X = 315
+CONST AtkDatWepHand0Y = 316
+CONST AtkDatWepHand1X = 317
+CONST AtkDatWepHand1Y = 318
 
 'anything past this requires expanding the data
 
@@ -305,7 +309,7 @@ atk_chain_bitset_names(3) = "Don't retarget if target is lost"
 '----------------------------------------------------------
 DIM recbuf(40 + curbinsize(binATTACK) \ 2 - 1) as integer '--stores the combined attack data from both .DT6 and ATTACK.BIN
 
-CONST MnuItems = 144
+CONST MnuItems = 146
 DIM menu(MnuItems) as string
 DIM menutype(MnuItems) as integer
 DIM menuoff(MnuItems) as integer
@@ -984,6 +988,12 @@ menutype(AtkWepPal) = 12
 menuoff(AtkWepPal) = AtkDatWepPal
 menulimits(AtkWepPal) = AtkLimPal16
 
+menu(AtkWepHand0) = "Weapon handle for first frame"
+menutype(AtkWepHand0) = 1
+
+menu(AtkWepHand1) = "Weapon handle for second frame"
+menutype(AtkWepHand1) = 1
+
 '----------------------------------------------------------
 '--menu structure
 DIM workmenu(65) as integer
@@ -1360,6 +1370,12 @@ DO
     SerAttackElementCond cond, recbuf(), menuoff(workmenu(state.pt))
     update_attack_editor_for_fail_conds recbuf(), caption(), AtkCapFailConds
     state.need_update = YES
+   CASE AtkWepHand0
+    xy_position_on_slice weppreview, recbuf(AtkDatWepHand0X), recbuf(AtkDatWepHand0Y), "weapon handle position", "xy_weapon_handle"
+   CASE AtkWepHand1
+    ChangeSpriteSlice weppreview, , , , 1
+    xy_position_on_slice weppreview, recbuf(AtkDatWepHand1X), recbuf(AtkDatWepHand1Y), "weapon handle position", "xy_weapon_handle"
+    ChangeSpriteSlice weppreview, , , , 0
   END SELECT
  END IF
 
@@ -1553,7 +1569,9 @@ SUB attack_editor_build_appearance_menu(recbuf() as integer, workmenu() as integ
    state.last = 12
    IF recbuf(AtkDatWepPic) > 0 THEN
     workmenu(13) = AtkWepPal
-    state.last = 13
+    workmenu(14) = AtkWepHand0
+    workmenu(15) = AtkWepHand1
+    state.last = 15
    END IF
   END IF
    

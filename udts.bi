@@ -599,6 +599,7 @@ Type AttackData
 	override_wep_pic as integer 'YES if wep_picture and wep_pal are to be used.
 	wep_picture as integer
 	wep_pal as integer
+	wep_handle(1) as XYPair 'Handle offset ONLY applies when override_wep_pic is YES. Ignored when the hero's equipped weapon is used
 	anim_pattern as integer
 	targ_class as integer
 	targ_set as integer

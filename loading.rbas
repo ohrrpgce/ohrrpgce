@@ -2132,6 +2132,10 @@ SUB convertattackdata(buf() as integer, byref atkdat as AttackData)
    .override_wep_pic = YES
    .wep_picture = buf(313) - 1
    .wep_pal = buf(314)
+   FOR i as integer = 0 TO 1
+    .wep_handle(i).x = buf(315 + i * 2)
+    .wep_handle(i).y = buf(316 + i * 2)
+   NEXT i
   END IF
   '----Chaining----
   loadattackchain .chain, buf(), 12, 13, 101, 102, 103, 104
