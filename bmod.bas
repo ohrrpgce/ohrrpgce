@@ -2479,10 +2479,27 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
   'load weapon sprites
   with bslot(24)
    .sprite_num = 2
+   DIM wpic as integer
+   DIM wpal as integer
    frame_unload @.sprites
-   .sprites = frame_load(5, gam.hero(bat.acting).wep_pic)
    palette16_unload @.pal
-   .pal = palette16_load(gam.hero(bat.acting).wep_pal, 5, gam.hero(bat.acting).wep_pic)
+   IF attack.override_wep_pic THEN
+    wpic = attack.wep_picture
+    wpal = attack.wep_pal
+    .hand(0).x = 0 'FIXME zeroes here is always going to be the wrong thing!
+    .hand(0).y = 0
+    .hand(1).x = 0
+    .hand(1).y = 0
+   ELSE
+    wpic = gam.hero(bat.acting).wep_pic
+    wpal = gam.hero(bat.acting).wep_pal
+    .hand(0).x = GetWeaponPos(eqstuf(bat.acting,0)-1,1,0)
+    .hand(0).y = GetWeaponPos(eqstuf(bat.acting,0)-1,1,1)
+    .hand(1).x = GetWeaponPos(eqstuf(bat.acting,0)-1,0,0)
+    .hand(1).y = GetWeaponPos(eqstuf(bat.acting,0)-1,0,1)
+   END IF
+   .sprites = frame_load(5, wpic)
+   .pal = palette16_load(wpal, 5, wpic)
    .frame = 0
   end with
  END IF

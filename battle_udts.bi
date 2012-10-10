@@ -93,6 +93,7 @@ TYPE BattleSprite
   menu(5)   as BattleHeroMenu 'Only applies to heroes. blank for enemies
   menu_size as integer 'actually the index of the last used element in .menu()
   harm as HarmText
+  hand(1) as XYPair ' For weapons = handle pos. For heroes, intended as hand position but not used yet
   '--affliction state
   poison_repeat as integer
   regen_repeat as integer

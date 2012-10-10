@@ -2125,6 +2125,14 @@ SUB convertattackdata(buf() as integer, byref atkdat as AttackData)
   .transmog_enemy = buf(118)
   .transmog_hp = buf(119)
   .transmog_stats = buf(120)
+  .override_wep_pic = NO
+  .wep_picture = -1
+  .wep_pal = -1
+  IF buf(313) > 0 THEN
+   .override_wep_pic = YES
+   .wep_picture = buf(313) - 1
+   .wep_pal = buf(314)
+  END IF
   '----Chaining----
   loadattackchain .chain, buf(), 12, 13, 101, 102, 103, 104
   loadattackchain .elsechain, buf(), 105, 107, 106, 108, 109, 110

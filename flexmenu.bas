@@ -33,7 +33,7 @@ DECLARE SUB atk_edit_merge_bitsets(recbuf() as integer, tempbuf() as integer)
 DECLARE SUB atk_edit_split_bitsets(recbuf() as integer, tempbuf() as integer)
 DECLARE SUB update_attack_editor_for_fail_conds(recbuf() as integer, caption() as string, byval AtkCapFailConds as integer)
 DECLARE SUB attack_editor_build_damage_menu(recbuf() as integer, menu() as string, menutype() as integer, caption() as string, menucapoff() as integer, workmenu() as integer, state as MenuState, dmgbit() as string, maskeddmgbit() as string, damagepreview as string)
-
+DECLARE SUB attack_editor_build_appearance_menu(recbuf() as integer, workmenu() as integer, state as MenuState)
 
 SUB addcaption (caption() as string, byref indexer as integer, cap as string)
  str_array_append caption(), cap
@@ -126,8 +126,10 @@ CONST AtkElementalFails = 76  ' to 139
 CONST AtkElemBitAct = 140
 CONST AtkDamageBitAct = 141
 CONST AtkBlankMenuItem = 142  ' Generic blank skippable menu item
+CONST AtkWepPic = 143
+CONST AtkWepPal = 144
 
-'Next menu item is 143 (remember to update MnuItems)
+'Next menu item is 145 (remember to update MnuItems)
 
 
 '--Offsets in the attack data record (combined DT6 + ATTACK.BIN)
@@ -191,6 +193,8 @@ CONST AtkDatTransmogEnemy = 118
 CONST AtkDatTransmogHp = 119
 CONST AtkDatTransmogStats = 120
 CONST AtkDatElementalFail = 121 'to 312
+CONST AtkDatWepPic = 313
+CONST AtkDatWepPal = 314
 
 'anything past this requires expanding the data
 
@@ -301,7 +305,7 @@ atk_chain_bitset_names(3) = "Don't retarget if target is lost"
 '----------------------------------------------------------
 DIM recbuf(40 + curbinsize(binATTACK) \ 2 - 1) as integer '--stores the combined attack data from both .DT6 and ATTACK.BIN
 
-CONST MnuItems = 142
+CONST MnuItems = 144
 DIM menu(MnuItems) as string
 DIM menutype(MnuItems) as integer
 DIM menuoff(MnuItems) as integer
@@ -312,8 +316,8 @@ DIM menucapoff(MnuItems) as integer
 
 DIM capindex as integer = 0
 REDIM caption(-1 TO -1) as string
-DIM max(39) as integer
-DIM min(39) as integer
+DIM max(40) as integer
+DIM min(40) as integer
 
 'Limit(0) is not used
 
@@ -605,7 +609,10 @@ FOR i = 0 TO 63
  addcaption caption(), capindex, "" '--updated by update_attack_editor_for_fail_conds()
 NEXT
 
-'next limit is 40 (remember to update the dim)
+CONST AtkLimWepPic = 40
+max(AtkLimWepPic) = gen(genMaxWeaponPic) + 1 ' the +1 is because 0 is used for "default"
+
+'next limit is 41 (remember to update the dim)
 
 '----------------------------------------------------------------------
 '--menu content
@@ -967,6 +974,15 @@ menutype(AtkDamageBitAct) = 1
 menu(AtkBlankMenuItem) = ""
 menutype(AtkBlankMenuItem) = 18  'skip
 
+menu(AtkWepPic) = "Weapon Picture:"
+menutype(AtkWepPic) = 13
+menuoff(AtkWepPic) = AtkDatWepPic
+menulimits(AtkWepPic) = AtkLimWepPic
+
+menu(AtkWepPal) = "Weapon Palette:"
+menutype(AtkWepPal) = 12
+menuoff(AtkWepPal) = AtkDatWepPal
+menulimits(AtkWepPal) = AtkLimPal16
 
 '----------------------------------------------------------
 '--menu structure
@@ -990,20 +1006,6 @@ mainMenu(10) = AtkElemBitAct
 mainMenu(11) = AtkElementFailAct
 mainMenu(12) = AtkTagAct
 mainMenu(13) = AtkTransmogAct
-
-DIM appearMenu(11) as integer
-appearMenu(0) = AtkBackAct
-appearMenu(1) = AtkPic
-appearMenu(2) = AtkPal
-appearMenu(3) = AtkAnimAttack
-appearMenu(4) = AtkAnimPattern
-appearMenu(5) = AtkAnimAttacker
-appearMenu(6) = AtkDelay
-appearMenu(7) = AtkCaption
-appearMenu(8) = AtkCapTime
-appearMenu(9) = AtkCaptDelay
-appearMenu(10) = AtkSoundEffect
-appearMenu(11) = AtkLearnSoundEffect
 
 DIM targMenu(5) as integer
 targMenu(0) = AtkBackAct
@@ -1097,6 +1099,17 @@ WITH *preview
  .AlignHoriz = 1
  .AnchorVert = 1
  .AlignVert = 1
+END WITH
+
+'--Create the weapon preview sprite. It will be updated before it is drawn.
+DIM weppreview as Slice Ptr
+weppreview = NewSliceOfType(slSprite, preview_box)
+'--Align the sprite to the top of the containing box
+WITH *weppreview
+ .AnchorHoriz = 1
+ .AlignHoriz = 1
+ .AnchorVert = 2
+ .AlignVert = 0
 END WITH
 
 DIM damagepreview as string
@@ -1238,8 +1251,11 @@ DO
      EXIT DO
     END IF
    CASE AtkAppearAct
+    'Special case
     atk_edit_pushptr state, laststate, menudepth
-    setactivemenu workmenu(), appearMenu(), state
+    state.pt = 0
+    state.need_update = YES
+    drawpreview = YES
     helpkey = "attack_appearance"
    CASE AtkDmgAct
     'Special case
@@ -1281,6 +1297,11 @@ DO
    CASE AtkPal
     recbuf(AtkDatPal) = pal16browse(recbuf(AtkDatPal), 6, recbuf(AtkDatPic))
     state.need_update = YES
+   CASE AtkWepPal
+    IF recbuf(AtkDatWepPic) > 0 THEN
+     recbuf(AtkDatWepPal) = pal16browse(recbuf(AtkDatWepPal), 6, recbuf(AtkDatWepPic))
+     state.need_update = YES
+    END IF
    CASE AtkBitAct
     atk_edit_merge_bitsets recbuf(), buffer()
     editbitset buffer(), 0, UBOUND(atkbit), atkbit(), "attack_bitsets", remember_atk_bit
@@ -1349,6 +1370,9 @@ DO
  END IF
 
  IF state.need_update THEN
+  IF helpkey = "attack_appearance" THEN
+   attack_editor_build_appearance_menu recbuf(), workmenu(), state
+  END IF
   IF helpkey = "attack_damage" THEN
    attack_editor_build_damage_menu recbuf(), menu(), menutype(), caption(), menucapoff(), workmenu(), state, dmgbit(), maskeddmgbit(), damagepreview
   END IF
@@ -1368,6 +1392,13 @@ DO
   flexmenu_update_selectable workmenu(), menutype(), selectable()
   '--update the picture and palette preview
   ChangeSpriteSlice preview, 6, recbuf(AtkDatPic), recbuf(AtkDatPal)
+  '--update the weapon picture and palette preview
+  IF recbuf(AtkDatWepPic) = 0 THEN
+   weppreview->visible = NO
+  ELSE
+   weppreview->visible = YES
+   ChangeSpriteSlice weppreview, 5, recbuf(AtkDatWepPic) - 1, recbuf(AtkDatWepPal)
+  END IF
   '--done updating
   state.need_update = NO
  END IF
@@ -1445,6 +1476,8 @@ SUB atk_edit_add_new (recbuf() as integer, byref recindex as integer, preview_bo
         CASE 1 ' blank
           gen(genMaxAttack) = recindex
           flusharray recbuf(), UBOUND(recbuf)
+          recbuf(AtkDatPal) = -1
+          recbuf(AtkDatWepPal) = -1
         CASE 2 ' copy
           gen(genMaxAttack) = recindex
       END SELECT
@@ -1493,6 +1526,39 @@ SUB update_attack_editor_for_fail_conds(recbuf() as integer, caption() as string
   DeSerAttackElementCond cond, recbuf(), 121 + i * 3
   caption(AtkCapFailConds + i * 2 + 1) = format_percent_cond(cond, " [No Condition]")
  NEXT
+END SUB
+
+SUB attack_editor_build_appearance_menu(recbuf() as integer, workmenu() as integer, state as MenuState)
+  FOR i as integer = 2 TO UBOUND(workmenu)
+   workmenu(i) = AtkBlankMenuItem
+  NEXT
+  workmenu(0) = AtkBackAct
+  workmenu(1) = AtkPic
+  workmenu(2) = AtkPal
+  workmenu(3) = AtkAnimAttack
+  workmenu(4) = AtkAnimPattern
+  workmenu(5) = AtkAnimAttacker
+  workmenu(6) = AtkDelay
+  workmenu(7) = AtkCaption
+  workmenu(8) = AtkCapTime
+  workmenu(9) = AtkCaptDelay
+  workmenu(10) = AtkSoundEffect
+  workmenu(11) = AtkLearnSoundEffect
+  state.last = 11
+  
+  DIM anim as integer = recbuf(AtkDatAnimAttacker)
+  IF anim = 0 ORELSE anim = 2 ORELSE anim = 3 ORELSE anim = 8 THEN
+   'Attack picture only matters for Stike, Dash-In, Spinstrike and Teleport
+   workmenu(12) = AtkWepPic
+   state.last = 12
+   IF recbuf(AtkDatWepPic) > 0 THEN
+    workmenu(13) = AtkWepPal
+    state.last = 13
+   END IF
+  END IF
+   
+  state.top = 0
+  state.need_update = YES
 END SUB
 
 'Wherein we show how to avoid the limitations of flexmenu by avoiding its use

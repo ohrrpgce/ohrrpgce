@@ -288,6 +288,7 @@ END FUNCTION
 
 Function GetWeaponPos(byval w as integer, byval f as integer, byval isY as integer) as integer'or x?
  'FIXME: Ack! Lets just make handle position a member of bslot()
+ 'FIXME: Ack! Already did the above... using this sub!
  DIM fh as integer
  IF w >= 0 THEN
   fh = FREEFILE
@@ -1135,8 +1136,8 @@ SUB anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSpri
   
    hx = gam.hero(who).hand_pos(0).x
    hy = gam.hero(who).hand_pos(0).y
-   wx = GetWeaponPos(eqstuf(who,0)-1,1,0)
-   wy = GetWeaponPos(eqstuf(who,0)-1,1,1)
+   wx = bslot(24).hand(0).x
+   wy = bslot(24).hand(0).y
    dx = hx - wx
    dy = hy - wy
   
@@ -1158,8 +1159,8 @@ SUB anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSpri
   
    hx = gam.hero(who).hand_pos(1).x
    hy = gam.hero(who).hand_pos(1).y
-   wx = GetWeaponPos(eqstuf(who,0)-1,0,0)
-   wy = GetWeaponPos(eqstuf(who,0)-1,0,1)
+   wx = bslot(24).hand(1).x
+   wy = bslot(24).hand(1).y
    dx = hx - wx
    dy = hy - wy
   

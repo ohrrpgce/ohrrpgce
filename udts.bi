@@ -596,6 +596,9 @@ Type AttackData
 	description as string
 	picture as integer
 	pal as integer
+	override_wep_pic as integer 'YES if wep_picture and wep_pal are to be used.
+	wep_picture as integer
+	wep_pal as integer
 	anim_pattern as integer
 	targ_class as integer
 	targ_set as integer
