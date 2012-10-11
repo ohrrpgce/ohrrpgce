@@ -4015,7 +4015,7 @@ PRIVATE SUB loadbmp24(byval bf as integer, byval fr as Frame ptr, pal() as RGBco
 			*sptr = nearcolor(pal(), pix.rgbtRed, pix.rgbtGreen, pix.rgbtBlue)
 			sptr += 1
 		next
-			'padding to dword boundary
+		'padding to dword boundary
 		for w = 0 to pad-1
 			get #bf, , ub
 		next
@@ -4055,8 +4055,9 @@ PRIVATE SUB loadbmp4(byval bf as integer, byval fr as Frame ptr)
 	dim sptr as ubyte ptr
 	dim pad as integer
 
-	pad = 4 - ((fr->w \ 2) mod 4)
-	if pad = 4 then	pad = 0
+	dim numbytes as integer = (fr->w + 1) \ 2  'per line
+	pad = 4 - (numbytes mod 4)
+	if pad = 4 then pad = 0
 
 	for h = fr->h - 1 to 0 step -1
 		sptr = fr->image + h * fr->pitch
@@ -4119,7 +4120,7 @@ PRIVATE SUB loadbmprle4(byval bf as integer, byval fr as Frame ptr)
 							fr->image[h * fr->pitch + w] = bval
 							w += 1
 						next
-						if (ub + 1) mod 4 > 1 then	'is this right?
+						if (ub mod 4 = 1) or (ub mod 4 = 2) then
 							get #bf, , ub 'pad to word bound
 						end if
 				end select
@@ -4149,13 +4150,14 @@ private sub loadbmp1(byval bf as integer, byval fr as Frame ptr)
 	dim sptr as ubyte ptr
 	dim pad as integer
 
-	pad = 4 - ((fr->w \ 8) mod 4)
+	dim numbytes as integer = (fr->w + 7) \ 8  'per line
+	pad = 4 - (numbytes mod 4)
 	if pad = 4 then	pad = 0
 
 	for h = fr->h - 1 to 0 step -1
 		sptr = fr->image + h * fr->pitch
 		for w = 0 to fr->w - 1
-			if (w MOD 8) = 0 then
+			if (w mod 8) = 0 then
 				get #bf, , ub
 			end if
 			*sptr = ub shr 7
