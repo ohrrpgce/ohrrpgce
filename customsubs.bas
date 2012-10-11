@@ -4060,13 +4060,14 @@ END SUB
 
 FUNCTION pick_channel_name() as string
  #ifdef __FB_WIN32__
-  return "\\.\pipe\ohrrpgce_lump_updates_testing_" + trimpath(sourcerpg)
+  return "\\.\pipe\ohrrpgce_lump_updates_testing_" & randint(100000)
  #else
   return tmpdir + ".lump_updates.txt"
  #endif
 END FUNCTION
 
-SUB spawn_game
+'Returns true if successfully spawned
+FUNCTION spawn_game() as bool
  IF slave_process <> 0 THEN
   'First clean up after the last time we ran Game
   cleanup_process @slave_process
@@ -4076,8 +4077,8 @@ SUB spawn_game
  DIM channel_name as string
  channel_name = pick_channel_name()
  IF channel_open_server(slave_channel, channel_name) = NO THEN
-  notification "Couldn't open channel"
-  EXIT SUB
+  notification "Couldn't open channel to communicate with Game"
+  RETURN NO
  END IF
  debuginfo "Successfully opened IPC channel " + channel_name
 
@@ -4094,46 +4095,47 @@ SUB spawn_game
  END IF
 #endif
  IF isfile(executable) = NO THEN
-  notification "Couldn't find " & gameexename
-  EXIT SUB
+  notification "Couldn't find " & gameexename & !"\nIt should be in the same directory as " & CUSTOMEXE
+  RETURN NO
  END IF
  slave_process = open_process(executable, "-slave " & channel_name)
  IF slave_process = 0 THEN
   notification "Couldn't run " & gameexename
-  EXIT SUB
+  RETURN NO
  END IF
  'We currently do nothing at all with slave_process except cleanup (nothing is implemented
  'on Unix). Instead we test Game is still running with slave_channel <> NULL_CHANNEL
 
  'Need Game to connect before we can safely write to the pipe; wait up to 3000ms
  IF channel_wait_for_client_connection(slave_channel, 3000) = 0 THEN
-  notification "Couldn't connect to " & gameexename
+  notification "Error communicating with " & gameexename & " (couldn't connect); aborting"
   channel_close slave_channel
   cleanup_process @slave_process
-  EXIT SUB
+  RETURN NO
  END IF
 
  'Write version info
  DIM tmp as string
  'msgtype magickey,proto_ver,program_ver,version_string
  tmp = "V OHRRPGCE," & CURRENT_TESTING_IPC_VERSION & "," & version_revision & "," & version
- IF channel_write_line(slave_channel, tmp) = 0 THEN
-  'good idea to test writing is working at least once
-  notification "Channel write failure; aborting"
-  channel_close slave_channel
-  cleanup_process @slave_process
-  EXIT SUB
- END IF
+ channel_write_line(slave_channel, tmp)
  tmp = "G " & sourcerpg
  channel_write_line(slave_channel, tmp)
  tmp = "W " & workingdir
  channel_write_line(slave_channel, tmp)
+ 'If any of these writes fails, slave_channel is closed
 
  IF slave_channel <> NULL_CHANNEL THEN
   'If we got this far, start sending lump updates and locking files before writing
   set_OPEN_hook @inworkingdir, YES, @slave_channel
+ ELSE
+  notification "Error communicating with " & gameexename & " (channel write failure); aborting"
+  channel_close slave_channel
+  cleanup_process @slave_process
+  RETURN NO
  END IF
-END SUB
+ RETURN YES
+END FUNCTION
 
 SUB spawn_game_menu
  'Prod the channel to see whether it's still up (send ping)
@@ -4142,9 +4144,10 @@ SUB spawn_game_menu
  IF slave_channel <> NULL_CHANNEL THEN
   notification "Game is already running! Running multiple test copies of a game is not yet supported."
  ELSE
-  spawn_game
-  notification !"You're running your game in live preview mode. Please press F1 now to read the help file for this if you haven't already.\n\nPress any key"
-  IF keyval(scF1) > 1 THEN show_help "test_game"
+  IF spawn_game THEN
+   notification !"You're running your game in live preview mode. Please press F1 now to read the help file for this if you haven't already.\n\nPress any key"
+   IF keyval(scF1) > 1 THEN show_help "test_game"
+  END IF
  END IF
 END SUB
 

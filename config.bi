@@ -146,7 +146,7 @@ option nokeyword gosub
 #define SLASH "\"
 #define ispathsep(character) (character = ASC("/") OR character = ASC("\"))
 #define LINE_END !"\r\n"
-#define CUSTOMEXE "CUSTOM.EXE"
+#define CUSTOMEXE "custom.exe"
 #define GAMEEXE "game.exe"
 #define DOTEXE ".exe"
 #define ALLFILES "*.*"
