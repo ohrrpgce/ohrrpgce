@@ -28,6 +28,7 @@ WHAT IS NEW?
     * zone at spot(X, Y, getcount) returned 1 less than the actual count
     * Bug 973: Strange behaviour when closing one game and playing
       another without quitting Game [Ralph]
+    * Loop points in module music work in music_sdl again (Windows only)
 
   * New Plotscripting Stuff
     * If a script runs for a long time without "wait"ing you can now
