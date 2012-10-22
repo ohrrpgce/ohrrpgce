@@ -31,6 +31,7 @@ rm import.zip
 echo "Erasing contents of temporary directory"
 rm -Rf tmp/*
 mkdir -p tmp
+mkdir -p distrib
 
 echo Erasing old distribution files
 rm -f distrib/OHRRPGCE*.dmg
