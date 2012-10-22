@@ -1521,7 +1521,7 @@ SUB replay_input_tick ()
 			GET #play_input_file,, key
 			GET #play_input_file,, kb
 			keybd(key) = kb
-			if debug_replay then info &= " " & keyname(key) & "=" & kb
+			if debug_replay then info &= " " & scancodename(key) & "=" & kb
 		next i
 		info &= " )"
 		dim input_len as ubyte

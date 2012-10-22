@@ -1727,7 +1727,7 @@ end FUNCTION
 
 'Prehaps doesn't belong here because scancodes are OHR-specific. However, OHR
 'scancodes are 95% the same as FB scancodes
-FUNCTION keyname (byval k as integer) as string
+FUNCTION scancodename (byval k as integer) as string
  'static scancodenames(...) as string * 12 = { ... }
  #INCLUDE "scancodenames.bi"
 

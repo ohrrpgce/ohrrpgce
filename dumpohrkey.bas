@@ -63,7 +63,7 @@ SUB replay_input ()
   for i as integer = 1 to presses
    GET #play_input_file,, key
    GET #play_input_file,, kb
-   info = info & " " & keyname(key) & "=" & kb
+   info = info & " " & scancodename(key) & "=" & kb
   next i
   info = info & " )"
 
