@@ -4,6 +4,7 @@
 # write access to your automatic build machine. Don't do it unless you trust them all.
 # (which James fortunately does, and the build machine is reasonably sandboxed, so!)
 
+MORE_ARGS=$*
 UPLOAD_SERVER="james_paige@motherhamster.org"
 UPLOAD_FOLDER="HamsterRepublic.com"
 UPLOAD_DEST="$UPLOAD_SERVER:$UPLOAD_FOLDER"
@@ -23,7 +24,7 @@ UPDATE=`wc -l < ../nightly-temp.txt`
 cat ../nightly-temp.txt
 rm ../nightly-temp.txt
 
-if [ ${UPDATE} -eq 1 -a "${1}" != "force" ] ; then
+if [ ${UPDATE} -eq 1 ] ; then
   echo no changes, no need to update nightly.
   exit
 fi
@@ -35,7 +36,7 @@ svn update
 
 cd wip
 
-./distrib-mac.sh
+./distrib-mac.sh ${MORE_ARGS}
 
 mv distrib/OHRRPGCE-*-wip.dmg distrib/OHRRPGCE-wip.dmg
 scp -p distrib/OHRRPGCE-wip.dmg $UPLOAD_DEST/ohrrpgce/nightly/
