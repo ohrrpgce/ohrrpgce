@@ -107,6 +107,23 @@ if win32:
         w32_env.Append(CPPPATH = os.path.join(os.environ['DXSDK_DIR'], 'Include'))
         w32_env.Append(LIBPATH = os.path.join(os.environ['DXSDK_DIR'], 'Lib', 'x86'))
 
+if mac:
+    macsdk = ARGUMENTS.get ('macsdk', '')
+    macSDKpath = ''
+    env['FBLIBS'] += ['-Wl', '-F,' + FRAMEWORKS_PATH]
+    env['CXXLINKFLAGS'] += ['-F', FRAMEWORKS_PATH]
+    if macsdk:
+        macSDKpath = 'MacOSX' + macsdk + '.sdk'
+        if macsdk == '10.4':
+            macSDKpath = 'MacOSX10.4u.sdk'
+        macSDKpath = '/Developer/SDKs/' + macSDKpath
+        if not os.path.isdir(macSDKpath):
+            raise Exception('Mac SDK ' + macsdk + ' not installed: ' + macSDKpath + ' is missing')
+        env['FBLIBS'] += ['-Wl', '-mmacosx-version-min=' + macsdk]
+        env['CFLAGS'] += ['-mmacosx-version-min=' + macsdk]
+        env['CXXFLAGS'] += ['-mmacosx-version-min=' + macsdk]
+
+
 def prefix_targets(target, source, env):
     target = [File(env['VAR_PREFIX'] + str(a)) for a in target]
     return target, source
@@ -213,6 +230,8 @@ if linkgcc:
         env['CXXLINKFLAGS'] += ['-lncurses', '-lpthread', 'linux/fb_icon.c']
     if mac:
         env['CXXLINKFLAGS'] += [os.path.join(libpath, 'operatornew.o')]
+        if macSDKpath:
+            env['CXXLINKFLAGS'] += ["-isysroot", macSDKpath]  # "-static-libgcc", '-weak-lSystem']
 
     def compile_main_module(target, source, env):
         """
@@ -285,8 +304,6 @@ if win32:
     commonenv['FBFLAGS'] += ['-s','gui']
 elif mac:
     base_modules += ['os_unix.c']
-    commonenv['FBLIBS'] += ['-Wl', '-F,' + FRAMEWORKS_PATH, '-Wl', '-mmacosx-version-min=10.4']
-    commonenv['CXXLINKFLAGS'] += ['-F', FRAMEWORKS_PATH, '-mmacosx-version-min=10.4']
     libraries += ['Cocoa']  # For CoreServices
     if 'sdl' in gfx:
         common_modules += ['mac/SDLmain.m']
@@ -520,6 +537,9 @@ Options:
   linkgcc=0           Link using fbc instead of g++.
   asm=1               Produce .asm files instead of compiling.
   fbc=PATH            Override fbc.
+  macsdk=version      Target a previous version of Mac OS X, eg. 10.4
+                      You will need the relevant SDK installed, and need to use a
+                      copy of FB built against that SDK.
 
 Experimental options:
   raster=1            Include new graphics API and rasterizer.
