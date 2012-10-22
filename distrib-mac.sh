@@ -1,5 +1,7 @@
 #!/bin/sh
 
+EXTRA_SCONS_OPTIONS=$*
+
 TODAY=`date "+%Y-%m-%d"`
 CODE=`cat codename.txt | tr -d "\r"`
 
@@ -9,8 +11,9 @@ if [ ! -f distrib-mac.sh ] ; then
 fi
 
 echo Building binaries
-scons
-scons hspeak unlump relump
+
+scons ${EXTRA_SCONS_OPTIONS} game custom hspeak unlump relump
+
 echo Bundling apps
 ./bundle-apps.sh
 
