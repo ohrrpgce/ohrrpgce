@@ -229,7 +229,8 @@ if linkgcc:
     else:
         env['CXXLINKFLAGS'] += ['-lncurses', '-lpthread', 'linux/fb_icon.c']
     if mac:
-        env['CXXLINKFLAGS'] += [os.path.join(libpath, 'operatornew.o')]
+        # -no_pie (no position-independent execution) fixes a warning
+        env['CXXLINKFLAGS'] += [os.path.join(libpath, 'operatornew.o'), '-Wl,-no_pie']
         if macSDKpath:
             env['CXXLINKFLAGS'] += ["-isysroot", macSDKpath]  # "-static-libgcc", '-weak-lSystem']
 
