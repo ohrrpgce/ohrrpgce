@@ -1286,10 +1286,20 @@ FUNCTION attack_can_hit_dead(byval who as integer, attack as AttackData, byval s
  RETURN NO
 END FUNCTION
 
+SUB autotarget (byval who as integer, byval atk_id as integer, bslot() as BattleSprite, byval queue as integer=YES, byval override_blocking as integer=-2, byval dont_retarget as integer=NO)
+ DIM t(11) as integer
+ autotarget who, atk_id, bslot(), t(), queue, override_blocking, dont_retarget
+END SUB
+
 SUB autotarget (byval who as integer, byval atk_id as integer, bslot() as BattleSprite, t() as integer, byval queue as integer=YES, byval override_blocking as integer=-2, byval dont_retarget as integer=NO)
  DIM attack as AttackData
  loadattackdata attack, atk_id
  autotarget who, attack, bslot(), t(), queue, override_blocking, dont_retarget
+END SUB
+
+SUB autotarget (byval who as integer, byref atk as AttackData, bslot() as BattleSprite, byval queue as integer=YES, byval override_blocking as integer=-2, byval dont_retarget as integer=NO)
+ DIM t(11) as integer
+ autotarget who, atk, bslot(), t(), queue, override_blocking, dont_retarget
 END SUB
 
 SUB autotarget (byval who as integer, byref atk as AttackData, bslot() as BattleSprite, t() as integer, byval queue as integer=YES, byval override_blocking as integer=-2, byval dont_retarget as integer=NO)

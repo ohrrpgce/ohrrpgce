@@ -656,8 +656,7 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
  IF bat.targ.mode = targSETUP THEN setup_targetting bat, bslot()
 
  IF bat.targ.mode = targAUTO THEN
-  DIM t(11) as integer
-  autotarget bat.hero_turn, bslot(bat.hero_turn).attack - 1, bslot(), t()
+  autotarget bat.hero_turn, bslot(bat.hero_turn).attack - 1, bslot()
   bslot(bat.hero_turn).ready_meter = 0
   bslot(bat.hero_turn).ready = NO
   bslot(bat.hero_turn).attack = 0
@@ -2114,8 +2113,7 @@ SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as For
   END IF
  LOOP
 
- DIM t(11) as integer
- autotarget bat.enemy_turn, atk, bslot(), t()
+ autotarget bat.enemy_turn, atk, bslot()
 
  'ready for next attack
  bslot(bat.enemy_turn).ready = NO
@@ -3062,8 +3060,7 @@ FUNCTION spawn_chained_attack(byref ch as AttackDataChain, byref attack as Attac
    'if the chained attack has a different target class/type then re-target
    'also retarget if the chained attack has target setting "random roulette"
    'also retarget if the chained attack's preferred target is explicitly set
-   DIM t(11) as integer
-   autotarget bat.acting, chained_attack, bslot(), t(), , blocking, ch.dont_retarget
+   autotarget bat.acting, chained_attack, bslot(), , blocking, ch.dont_retarget
    bat.atk.id = -1
   ELSEIF delayed_attack_id > 0 THEN
    'if the old target info is reused, and this is not an immediate chain, copy it to the queue right away
@@ -3443,13 +3440,12 @@ SUB battle_sort_away_dead_t_target(byval deadguy as integer, t() as integer)
 END SUB
 
 SUB battle_counterattacks(byval h as integer, byval targstat as integer, byval who as integer, attack as AttackData, bslot() as BattleSprite)
- DIM t(11) as integer
  '--first elementals
  FOR i as integer = 0 TO gen(genNumElements) - 1
   IF attack.elemental_damage(i) THEN
    IF bslot(who).elem_counter_attack(i) > 0 THEN
     'counterattacks are forced non-blocking
-    autotarget who, bslot(who).elem_counter_attack(i) - 1, bslot(), t(), YES, NO
+    autotarget who, bslot(who).elem_counter_attack(i) - 1, bslot(), YES, NO
     EXIT SUB '-- only one counterattack per trigger attack
    END IF
   END IF
@@ -3459,7 +3455,7 @@ SUB battle_counterattacks(byval h as integer, byval targstat as integer, byval w
   IF h > 0 AND targstat = i THEN
    IF bslot(who).stat_counter_attack(i) > 0 THEN
     'counterattacks are forced non-blocking
-    autotarget who, bslot(who).stat_counter_attack(i) - 1, bslot(), t(), YES, NO
+    autotarget who, bslot(who).stat_counter_attack(i) - 1, bslot(), YES, NO
     EXIT SUB '-- only one counterattack per trigger attack
    END IF
   END IF
