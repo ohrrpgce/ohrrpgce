@@ -5382,7 +5382,7 @@ end</example>
 		<command id="seteachstepscript">
 			<canon>set each step script (id)</canon>
 			<shortname>set each step script</shortname>
-			<description>Changes the script that is run when you take a step. The argument is the script&apos;s ID number, NOT the script&apos;s name. Calling set each step script with no argument disables the each step script. The effect goes away if you change maps or fight a battle.</description>
+			<description>Changes the script that is run when you take a step. The argument is the script&apos;s name preceded by an @ sign. You can also use the ID number for old-style scripts. Calling set each step script with no argument disables the each step script. The effect goes away if you change maps or fight a battle.</description>
 		</command>
 		<command id="geteachstepscript">
 			<canon>get each step script</canon>

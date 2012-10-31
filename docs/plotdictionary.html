@@ -434,6 +434,9 @@
 		
 		<a href="#about-if">else</a><br>
 	
+		<a href="#about-elseif">... else if(condition) then(commands) ...</a><br>
+		
+	
 		<a href="#about-enableinputtext">enable input text (enable)</a><br>
 		
 	
@@ -1156,6 +1159,9 @@
 	
 		
 		<a href="#about-keyconstants">menu key</a><br>
+	
+		<a href="#about-microseconds">microseconds</a><br>
+		
 	
 		<a href="#about-milliseconds">milliseconds</a><br>
 		
@@ -3135,7 +3141,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">NPC at spot (x, y, number)</font></b><br>
-			This command returns a reference to the NPC at the given X and Y coordinate, in tiles, on the map. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom-most NPC, which is number 0). <a href="#about-booleanconstants" class="ref">false</a> is returned if there is no NPC there, or <span class="param">number</span> is too large. You can also pass the constant <a href="#about-getcount" class="ref">get count</a> for the third argument to return the total number of npcs on that tile. <div style="background-color:#EFF;" class="note">
+			This command returns a reference to the NPC at the given X and Y coordinate, in tiles, on the map. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom-most NPC, which is number 0). <a href="#about-booleanconstants" class="ref">false</a> is returned if there is no NPC there, or <span class="param">number</span> is too large (greater than or equal to the number of NPCs). You can also pass the constant <a href="#about-getcount" class="ref">get count</a> for the third argument to return the total number of npcs on that tile. <div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">An NPC's tile is the tile its top left corner is on.<br clear="all">
 </div>
 <br>
@@ -3146,7 +3152,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">NPC at pixel (x, y, number)</font></b><br>
-			This command returns a reference to the NPC at the given X and Y coordinate in pixels. That is, any npc whose 20x20 sprite (including transparent sections) is over that pixel. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom-most NPC, which is number 0). <a href="#about-booleanconstants" class="ref">false</a> is returned if there is no NPC there, or <span class="param">number</span> is too large. You can also pass the constant <a href="#about-getcount" class="ref">get count</a> for the third argument to return the total number of npcs on that tile.<br>
+			This command returns a reference to the NPC at the given X and Y coordinate in pixels. That is, any npc whose 20x20 sprite (including transparent sections) is over that pixel. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom-most NPC, which is number 0). <a href="#about-booleanconstants" class="ref">false</a> is returned if there is no NPC there, or <span class="param">number</span> is too large (greater than or equal to the number of NPCs). You can also pass the constant <a href="#about-getcount" class="ref">get count</a> for the third argument to return the total number of npcs on that tile.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-npcreference" class="ref">NPC reference</a></li></ul>
 		</tt></p>
@@ -4176,7 +4182,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">spells learned (hero,number)</font></b><br>
-			Returns the id numbers (+1) of spells the hero learned from the last battle or <a href="#about-giveexperience" class="ref">give experience</a>, <a href="#about-setherolevel" class="ref">set hero level</a> or <a href="#about-setexperience" class="ref">set experience</a> command that targetted either this hero or the whole party. If the second argument is <a href="#about-getcount" class="ref">get count</a> then the number of spells that the hero learned is returned. Pass 0 for number to get the first spell learnt, 1 the second, etc. You can use a loop and strings to list to the player all the spells a hero learned:
+			Returns the id numbers (+1) of spells the hero learned from the last battle or <a href="#about-giveexperience" class="ref">give experience</a>, <a href="#about-setherolevel" class="ref">set hero level</a> or <a href="#about-setexperience" class="ref">set experience</a> command that targetted either this hero or the whole party. If the second argument is <a href="#about-getcount" class="ref">get count</a> then the number of spells that the hero learned is returned. Pass 0 for number to get the first spell learnt, 1 to get the second, etc. You can use a loop and strings to list to the player all the spells a hero learned:
 			<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">If you want to use this command with attack ID numbers, you must add 1 to the ID number.<br clear="all">
 </div>
@@ -5958,7 +5964,7 @@ set horiz align(sl, edge:right)
 		<p>
 		<tt>
 		<b><font color="yellow">create ellipse (width, height, border color, fill color)</font></b><br>
-			Create a new ellipse slice and return a handle to it. You can provide an optional <span class="param">width</span> and <span class="param">height</span>, and an optional <span class="param">border color</span>. and an optional <span class="param">fill color</span>. The ellipse will be transparent if you do not specify a fill color. Like all slice types, an ellipse slice can be used as a container for other slices with <a href="#about-setparent" class="ref">set parent</a><br>
+			Create a new ellipse slice and return a handle to it. You can provide an optional <span class="param">width</span> and <span class="param">height</span>, an optional <span class="param">border color</span> and an optional <span class="param">fill color</span>. The ellipse will be hollow if you do not specify a fill color. Like all slice types, an ellipse slice can be used as a container for other slices with <a href="#about-setparent" class="ref">set parent</a><br>
 			
 			
 		</tt></p>
@@ -7391,7 +7397,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">get ellipse fill col (handle)</font></b><br>
-			Given an ellipse slice <span class="param">handle</span>, return the color it uses for its fill. This will be a number from 0 to 255 representing a color from the master palette. 0 means transparent fill.<br>
+			Given an ellipse slice <span class="param">handle</span>, return the color it uses for its fill. This will be a number from 1 to 255 representing a color from the master palette, or 0 meaning transparent fill (hollow).<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -7407,7 +7413,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">set ellipse fill col (handle, color)</font></b><br>
-			Given an ellipse slice <span class="param">handle</span>, change the color it uses for its fill. The <span class="param">color</span> should be a number from 0 to 255 representing a color from the master palette. 0 means transparent fill.<br>
+			Given an ellipse slice <span class="param">handle</span>, change the color it uses for its fill. The <span class="param">color</span> should be a number from 1 to 255 representing a color from the master palette, or 0 meaning transparent fill (hollow).<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -7869,7 +7875,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">zone at spot (x, y, count)</font></b><br>
-			Used to get the set of all IDs of zones that contain the tile at (<span class="param">x,y</span>). Since zones may overlap, <span class="param">count</span> is used to specify which zone ID to return: 0 is the first, 1 the second, and so on. <span class="param">count</span> may also be the constant <a href="#about-getcount" class="ref">get count</a>, in which case the total number of zones which overlap there is returned. If <span class="param">count</span> is too large, 0 (<a href="#about-booleanconstants" class="ref">false</a>) is returned. <div style="background-color:#EFF;" class="note">
+			Used to get the set of all IDs of zones that contain the tile at (<span class="param">x,y</span>). Since zones may overlap, <span class="param">count</span> is used to specify which zone ID to return: 0 is the first, 1 the second, and so on. <span class="param">count</span> may also be the constant <a href="#about-getcount" class="ref">get count</a>, in which case the total number of zones which overlap there is returned. If <span class="param">count</span> too large (greater than or equal to the number of zones), 0 (<a href="#about-booleanconstants" class="ref">false</a>) is returned. <div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">The order in which the ID numbers are returned is completely arbitrary.<br clear="all">
 </div>
 <br>
@@ -9239,8 +9245,8 @@ write pass block(15,3,pass)
 		<tt>
 		<b><font color="yellow">begin,other commands,end</font></b><br>
 			Begin is a synonym for ( and end is a synonym for ). Parentheses are normally used for bracketing things that all fit on the same line, and begin/end statements are often used to enclose very long things such as whole scripts or long flow control blocks that take up several lines. For example, the following two blocks of code are identical:<br>
-			<pre>if (check tag(2)) then (show text box (5),wait for text box)</pre>
-<pre>if (check tag(2)) then
+			<pre>if (check tag(tag:have rusty sword)) then (show text box (5), wait for text box)</pre>
+<pre>if (check tag(tag:have rusty sword)) then
 begin
 	show text box (5)
 	wait for text box
@@ -9258,7 +9264,25 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">if(condition) then(commands) else(commands)</font></b><br>
-			The if statement checks the value of its condition, and if the value is <a href="#about-booleanconstants" class="ref">true</a>, it runs the commands in the then block. If the value is <a href="#about-booleanconstants" class="ref">false</a>, it runs the commands in its else block. The conditional is usually an equality operator such as <a href="#about-equal" class="ref">==</a> or <a href="#about-notequal" class="ref">&lt;&gt;</a>, or it is a <a href="#about-checktag" class="ref">check tag</a> command. The else is optional as long as you have a then, and the then is optional as long as you have an else. There are some examples of if statements in the HamsterSpeak Specification, and throughout this document.<br>
+			The <span class="param">if</span> statement checks the value of its condition, and if the value is <a href="#about-booleanconstants" class="ref">true</a> (or actually any value other than <a href="#about-booleanconstants" class="ref">false</a>, which is zero), it runs the commands in the <span class="param">then</span> block. If the value is <a href="#about-booleanconstants" class="ref">false</a>, it runs the commands in its <span class="param">else</span> block. The conditional is usually a comparison operator such as <a href="#about-equal" class="ref">==</a> or <a href="#about-notequal" class="ref">&lt;&gt;</a>, or a command which returns either true or false, such as <a href="#about-checktag" class="ref">check tag</a>. The <span class="param">else</span> is optional as long as you have a <span class="param">then</span>, and the <span class="param">then</span> is optional as long as you have an <span class="param">else</span>. There are several examples of <span class="param">if</span> statements in the HamsterSpeak Specification, and throughout this document. You can also place one or more <a href="#about-elseif" class="ref">else if</a>s after the <span class="param">then</span> (or immediately after the <span class="param">if</span> if you skip the <span class="param">then</span>) instead of nesting multiple <span class="param">if</span> statements.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-elseif" class="ref">else if</a></li></ul>
+		</tt></p>
+		<a name="about-elseif"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">... else if(condition) then(commands) ...</font></b><br>
+			This can appear after an <a href="#about-if" class="ref">if</a> or <a href="#about-if" class="ref">then</a> block. It is a shortcut for <a href="#about-if" class="ref">else</a> followed by <a href="#about-if" class="ref">if</a> which lets you omit a pairs of brackets/<a href="#about-begin" class="ref">begin</a> and <a href="#about-begin" class="ref">end</a>, as this example shows:
+                        <pre>if (inventory (item:apple)) then (
+  show text box (10)  # "Apples! My favourite!"
+) else if (inventory (item:orange)) then (
+  show text box (11)  # "My, what a tasty looking orange..."
+) else if (inventory (item:pear)) then (
+  show text box (12)  # "Perhaps if you gave me that pear..."
+) else (
+  show text box (13)  # "Come back when you have something tasty for me!"
+)</pre>
+			<br>
 			
 			
 		</tt></p>
@@ -9288,12 +9312,14 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">do</font></b><br>
-			<br>
+			Used to group several statements together. Normally appears after a <a href="#about-while" class="ref">while</a>, <a href="#about-for" class="ref">for</a> or <a href="#about-switch" class="ref">switch</a>.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
 <a href="#about-while" class="ref">while</a>, </li>
-<li><a href="#about-for" class="ref">for</a></li>
+<li>
+<a href="#about-for" class="ref">for</a>, </li>
+<li><a href="#about-switch" class="ref">switch</a></li>
 </ul>
 		</tt></p>
 		<a name="about-for"></a>
@@ -9308,7 +9334,11 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">return(value)</font></b><br>
-			Sets the value to be returned by the script. This is only useful when the script has been called as a function from another script. It is irrelevant to scripts called directly from your RPG, for example, text box scripts or menu scripts. This command only matters when you are calling one script from another script. This command does NOT cause the script to terminate, it just sets the return value. If you never use the <span class="param">return</span> command, the script will return a zero. If return is used more than once in the same script, only the last one executed matters.
+			
+<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon"><span class="param">return</span> in HamsterSpeak is completely different from <span class="param">return</span> in nearly all other programming languages!<br clear="all">
+</div>
+Sets the value to be returned by the script. This is only useful when the script has been called as a function from another script. It is irrelevant to scripts called directly from your RPG, for example, text box scripts or menu scripts. This command only matters when you are calling one script from another script. This command does NOT cause the script to terminate, it just sets the return value. If you never use the <span class="param">return</span> command, the script will return zero. If return is used more than once in the same script, only the last one executed matters.
 <pre>
 script, key wait, ticks, begin
   # Returns true if a key was pressed during the wait,
@@ -9396,7 +9426,7 @@ The <span class="param">exit returning</span> command works exactly the same as 
 		<p>
 		<tt>
 		<b><font color="yellow">break</font></b><br>
-			breaks out of a <a href="#about-for" class="ref">for</a> or <a href="#about-while" class="ref">while</a> command and continue the script after the end of the <a href="#about-do" class="ref">do</a> block.<br>
+			Breaks out of a <a href="#about-for" class="ref">for</a> or <a href="#about-while" class="ref">while</a> loop or <a href="#about-switch" class="ref">switch</a> and continues the script after the end of the <a href="#about-do" class="ref">do</a> block.<br>
 			
 			
 		</tt></p>
@@ -9404,7 +9434,7 @@ The <span class="param">exit returning</span> command works exactly the same as 
 		<p>
 		<tt>
 		<b><font color="yellow">continue</font></b><br>
-			When used inside the <a href="#about-do" class="ref">do</a> block of a <a href="#about-for" class="ref">for</a> or <a href="#about-while" class="ref">while</a> command, continue skips the rest of the do block and continues on to the next loop. When used inside a <a href="#about-switch" class="ref">switch</a> statement, continue flows on to the next <a href="#about-case" class="ref">case</a> block<br>
+			When used inside the <a href="#about-do" class="ref">do</a> block of a <a href="#about-for" class="ref">for</a> or <a href="#about-while" class="ref">while</a> command, <span class="param">continue</span> skips the rest of the do block and continues on to the next loop. When used inside a <a href="#about-switch" class="ref">switch</a> statement, continue causes a jump to after the next <a href="#about-case" class="ref">case</a> block.<br>
 			
 			
 		</tt></p>
@@ -9412,53 +9442,49 @@ The <span class="param">exit returning</span> command works exactly the same as 
 		<p>
 		<tt>
 		<b><font color="yellow">switch(expression)</font></b><br>
-			select between a number of <a href="#about-case" class="ref">case</a> statements based on the value of an expression.
+			Select between a number of <a href="#about-case" class="ref">case</a> blocks to execute based on the value of an expression. The switch command is an alternative to a big block of nested <a href="#about-if" class="ref">if</a>/then/else commands that all check the same value. Switch can be easier to read than a lot of if's. Consider the follow script snippet:
+<pre>if (v == 0) then (
+  do something
+) else if (v == 1 || v == 2) then (
+  do something else
+) else if (v == 3 || v == 4) then (
+  do yet another thing
+) else if (v == 10) then (
+  #do nothing
+) else (
+  do something if none of the other ifs are true
+)</pre>
+This is a good candidate for using switch. The example below shows how this can be done:
 <pre>switch(v) do(
   case(0) do(
-    do foo
+    do something
   )
-  case(1) do(
-    do bar
-  )
-  case(2) do(
-    do baz
-  )
-  case(3) do(
+  case(1, 2) do(  # A case can contain multiple values...
     do something else
   )
-  case(10) do(
+  case(3)
+  case(4) do(  # ...or you can use multiple cases after another
     do yet another thing
   )
+  case(10) do()  #do nothing
   else(
     do something if none of the cases happen
   )
 )</pre>
-The select command is an alternative to a big block of nested <a href="#about-if" class="ref">if</a>/then/else commands that all check the same value. Switch can be easier to read than a lot of if's. The example below shows how the same switch stattement would be written with if/then/else
-<pre>if(v == 0) then(
-  do foo
-)else(
-  if(v == 1) then(
-    do bar
-  )else(
-    if(v == 2) then(
-      do baz
-    )else(
-      if(v == 3) then(
-        do something else
-      )else(
-        if(v == 10) then(
-          do yet another thing
-        )else(
-          do something if none of the other ifs are true
-        )
-      )
-    )
-  )
+The <span class="param">else</span> section is optional.
+There are two different styles (syntaxes) in which switch can be written. The second style looks like this (completely equivalent to the above example):
+<pre>switch(v) do(
+  case(0)    do something
+  case(1, 2) do something else
+  case(3)    
+  case(4)    do yet another thing
+  case(10)   do() #nothing
+  case(else) do something if none of the cases happen
 )</pre>
-Besides readability, there is one other important difference between these two examples. The switch command only checks the value of v once. the if/the/else method checks v repeatedly, so it could be slower, and could be suceptible to errors if you accidentally change the value of v somewhere in the middle. The <span class="param">else</span> section is optional.
-		<br>
+Besides readability, there is one other important difference between using switch and using a sequence of if's. The switch command only checks the value of the expression (v) once. The if/then/else method checks v repeatedly, so it could be slower, and could be susceptible to errors if you accidentally change the value of v somewhere in the middle.
+			<br>
 			
-			<br>See also: <ul class="seealso"><li><a href="#about-case" class="ref">case</a></li></ul>
+			
 		</tt></p>
 		<a name="about-case"></a>
 		<p>
@@ -9862,7 +9888,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set each step script (id)</font></b><br>
-			Changes the script that is run when you take a step. The argument is the script's ID number, NOT the script's name. Calling set each step script with no argument disables the each step script. The effect goes away if you change maps or fight a battle.<br>
+			Changes the script that is run when you take a step. The argument is the script's name preceded by an @ sign. You can also use the ID number for old-style scripts. Calling set each step script with no argument disables the each step script. The effect goes away if you change maps or fight a battle.<br>
 			
 			
 		</tt></p>
@@ -10523,6 +10549,14 @@ end</pre>
 		<b><font color="yellow">milliseconds</font></b><br>
 			Use to measure time intervals accurately. Subtract two values returned by milliseconds at different times to find the number of ms (1000ths of a second) elapsed in between. A single value is useless (the computer's uptime or any random value).<br>
 			
+			<br>See also: <ul class="seealso"><li><a href="#about-microseconds" class="ref">microseconds</a></li></ul>
+		</tt></p>
+		<a name="about-microseconds"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">microseconds</font></b><br>
+			An alternative to <a href="#about-milliseconds" class="ref">milliseconds</a> which measures millionths of a second. This command only exists for accurate benchmarking.<br>
+			
 			
 		</tt></p>
 
@@ -11074,7 +11108,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 763 commands in this file, of which 57 are only references to other commands.</p>
+	<p>Stats: There are 765 commands in this file, of which 57 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
