@@ -3307,12 +3307,16 @@ SUB battle_check_delays(byref bat as BattleState, bslot() as BattleSprite)
       CONTINUE FOR
      END IF
      IF bslot(.t(0)).stat.cur.hp <= 0 AND NOT attack_can_hit_dead(.attacker, .attack, bslot(.attacker).stored_targs_can_be_dead) THEN
-      IF .dont_retarget THEN
-       debuginfo "queued attack " & readattackname(.attack) & " for " & bslot(.attacker).name & .attacker & " in slot " & i & " has dead target, and should not retarget, clearing."
-       clear_attack_queue_slot i
+      IF .t(0) = .attacker ANDALSO bslot(.attacker).bequesting THEN
+       'If a bequesting attacker is targetting itself, we don't care that it is dead
       ELSE
-       debuginfo "queued attack " & readattackname(.attack) & " for " & bslot(.attacker).name & .attacker & " in slot " & i & " has dead target, retargetting."
-       autotarget .attacker, .attack, bslot(), .t(), NO
+       IF .dont_retarget THEN
+        debuginfo "queued attack " & readattackname(.attack) & " for " & bslot(.attacker).name & .attacker & " in slot " & i & " has dead target, and should not retarget, clearing."
+        clear_attack_queue_slot i
+       ELSE
+        debuginfo "queued attack " & readattackname(.attack) & " for " & bslot(.attacker).name & .attacker & " in slot " & i & " has dead target, retargetting."
+        autotarget .attacker, .attack, bslot(), .t(), NO
+       END IF
       END IF
      END IF
      bat.atk.id = .attack

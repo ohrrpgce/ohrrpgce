@@ -1075,25 +1075,24 @@ SUB get_valid_targs(tmask() as integer, byval who as integer, byref atk as Attac
   IF atk.cannot_target_hero_slot(i) THEN tmask(i) = 0
  NEXT i
 
+ FOR i = 0 TO 11
+  'If a target is doing an on-death bequest attack,
+  ' it cannot be targeted by anyone but itself
+  IF bslot(i).bequesting AND i <> who THEN
+   tmask(i) = 0
+  END IF
+ NEXT i
+
  'Some restrictions are only applied when the target class is not "self"
  IF atk.targ_class <> 2 THEN
- 
   FOR i = 0 TO 11
-  
    'enforce untargetability
    IF is_hero(who) THEN
     IF bslot(i).hero_untargetable = YES THEN tmask(i) = 0
    ELSEIF is_enemy(who) THEN
     IF bslot(i).enemy_untargetable = YES THEN tmask(i) = 0
    END IF
-
-   'prevent targeting bequesting targets
-   IF bslot(i).bequesting THEN
-    tmask(i) = 0
-   END IF
-   
   NEXT i
-  
  END IF
 
 END SUB

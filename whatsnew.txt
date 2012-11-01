@@ -15,6 +15,7 @@ WHAT IS NEW?
     * When adding a new hero, attack, enemy or shop, added the option
       to copy an existing one [Ralph]
     * Attack can optionally override the hero's weapon sprite [James]
+    * Enemies can do an On-Death Bequest attack when killed [James]
 
   * Bugfixes
     * "run script by id" was far slower than it should have been [Ralph]
