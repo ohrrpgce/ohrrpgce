@@ -150,6 +150,7 @@ CONST EnDatStatCtr = 115' to 126
 CONST EnDatElemCtr2 = 127' to 182
 CONST EnDatSpawnElement2 = 183' to 238
 CONST EnDatElemResist = 239' to 366
+CONST EnDatAtkBequest = 367
 
 '-------------------------------------------------------------------------
 
@@ -234,10 +235,10 @@ NEXT
 
 '-------------------------------------------------------------------------
 '--menu content
-DIM menu(259) as string
-DIM menutype(259) as integer
-DIM menuoff(259) as integer
-DIM menulimits(259) as integer
+DIM menu(260) as string
+DIM menutype(260) as integer
+DIM menuoff(260) as integer
+DIM menulimits(260) as integer
 
 CONST EnMenuBackAct = 0
 menu(EnMenuBackAct) = "Previous Menu"
@@ -489,6 +490,12 @@ FOR i as integer = 0 TO gen(genNumElements) - 1
  menuoff(EnMenuElemDmg + i) = 239 + i*2 
 NEXT
 
+CONST EnMenuAtkBequest = 260
+menu(EnMenuAtkBequest) = "On-Death Bequest Attack:"
+menutype(EnMenuAtkBequest) = 7
+menuoff(EnMenuAtkBequest) = EnDatAtkBequest
+menulimits(EnMenuAtkBequest) = EnLimAtk
+
 '-------------------------------------------------------------------------
 '--menu structure
 DIM workmenu(91) as integer
@@ -549,18 +556,19 @@ FOR i as integer = 0 TO gen(genNumElements) - 1
  spawnMenu(6 + i) = EnMenuSpawnElement + i
 NEXT i
 
-DIM atkMenu(27 + gen(genNumElements)) as integer
+DIM atkMenu(28 + gen(genNumElements)) as integer
 atkMenu(0) = EnMenuBackAct
 FOR i as integer = 0 TO 4
  atkMenu(1 + i) = EnMenuAtkNormal + i
  atkMenu(6 + i) = EnMenuAtkDesp + i
  atkMenu(11 + i) = EnMenuAtkAlone + i
 NEXT i
+atkMenu(16) = EnMenuAtkBequest
 FOR i as integer = 0 TO gen(genNumElements) - 1
- atkMenu(16 + i) = EnMenuElemCtr + i
+ atkMenu(17 + i) = EnMenuElemCtr + i
 NEXT i
 FOR i as integer = 0 TO 11
- atkMenu(16 + gen(genNumElements) + i) = EnMenuStatCtr + i
+ atkMenu(17 + gen(genNumElements) + i) = EnMenuStatCtr + i
 NEXT i
 
 DIM elementalMenu(gen(genNumElements)) as integer

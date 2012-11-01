@@ -773,6 +773,7 @@ TYPE EnemyDef
   alone_ai(4) as integer 'id+1, 0=none
   elem_counter_attack(maxElements - 1) as integer 'id+1, 0=none
   stat_counter_attack(11) as integer 'id+1, 0=none
+  bequest_attack as integer 'id+1, 0=none
   '--bitsets
   harmed_by_cure AS INTEGER 'YES/NO
   mp_idiot       AS INTEGER 'YES/NO for turn loss when using MP-consuming attacks after MP runs out

@@ -1337,7 +1337,7 @@ SUB autotarget (byval who as integer, byref atk as AttackData, bslot() as Battle
   queue_attack atk.id, who, t(), override_blocking, dont_retarget
  END IF
 
-END SUB 'bslot(
+END SUB
 
 SUB confirm_auto_spread (byval who as integer, tmask() as integer, bslot() as BattleSprite, t() as integer)
  DIM i as integer
@@ -1586,6 +1586,7 @@ SUB loadfoe (byval slot as integer, formdata as Formation, byref bat as BattleSt
     .stored_targs(i) = NO
     .thankvengemask(i) = NO
    NEXT i
+   .bequesting = NO
   END WITH
   setup_non_volitile_enemy_state slot, bslot()
   
@@ -1658,6 +1659,7 @@ SUB setup_non_volitile_enemy_state(byval slot as integer, bslot() as BattleSprit
   .cursorpos.x = .w / 2 - .enemy.cursor_offset.x '--X offset is subtracted instead of added because enemies are always h-flipped
   .cursorpos.y = .enemy.cursor_offset.y
   .death_sfx = .enemy.death_sound
+  .bequesting = NO
  END WITH
 END SUB
 

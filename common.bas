@@ -859,7 +859,7 @@ FUNCTION curbinsize (byval id as integer) as integer
  IF id = 8 THEN RETURN 412 '.say
  IF id = 9 THEN RETURN 34  '.n##
  IF id = 10 THEN RETURN 858 '.dt0
- IF id = 11 THEN RETURN 734 '.dt1
+ IF id = 11 THEN RETURN 736 '.dt1
  IF id = 12 THEN RETURN 420 '.itm
  RETURN 0
 END FUNCTION

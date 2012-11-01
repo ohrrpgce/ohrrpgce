@@ -2506,6 +2506,8 @@ SUB loadenemydata (enemy as EnemyDef, byval index as integer, byval altfile as i
    .stat_counter_attack(i) = buf(115 + i)
   NEXT i
   
+  .bequest_attack = buf(367)
+  
  END WITH
 END SUB
 

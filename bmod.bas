@@ -76,6 +76,7 @@ DECLARE SUB battle_reevaluate_dead_targets (byval deadguy as integer, byref bat 
 DECLARE SUB battle_sort_away_dead_t_target(byval deadguy as integer, t() as integer)
 DECLARE SUB battle_counterattacks(byval h as integer, byval targstat as integer, byval who as integer, attack as AttackData, bslot() as BattleSprite)
 DECLARE SUB show_first_battle_timer ()
+DECLARE FUNCTION has_queued_attacks(byval who as integer) as integer
 
 'these are the battle global variables
 DIM bstackstart as integer
@@ -1212,6 +1213,7 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
     .death_sfx = -1 'No death sounds for heroes (for now)
     .cursorpos.x = .w / 2
     .cursorpos.y = 0
+    .bequesting = NO
    END WITH
    
    '--copy hero's outside-battle stats to their inside-battle stats
@@ -1853,10 +1855,12 @@ SUB anim_flinchdone(byval who as integer, bslot() as BattleSprite, byref attack 
 END SUB
 
 FUNCTION count_dissolving_enemies(bslot() as BattleSprite) as integer
+ 'Counts enemies that are in the process of dying, but have not finished dying yet
+ 'This includes both dissolve animations and on-death bequest attacks
  DIM i as integer
  DIM count as integer = 0
  FOR i = 4 TO 11
-  IF bslot(i).dissolve > 0 THEN count += 1
+  IF bslot(i).dissolve > 0 ORELSE bslot(i).bequesting THEN count += 1
  NEXT i
  RETURN count
 END FUNCTION
@@ -1953,11 +1957,26 @@ SUB check_death(byval deadguy as integer, byval killing_attack as integer, byref
 'killing_attack contains attack id or -1 when no attack is relevant.
 
  IF is_enemy(deadguy) THEN
+  '--Ignore empty enemy slots.
   IF formdata.slots(deadguy - 4).id = -1 THEN EXIT SUB
  END IF
+ 
+ '--Check to see if this is an already-dead enemy doing a bequest attack
+ DIM already_bequested as integer = NO
+ IF bslot(deadguy).bequesting = YES THEN
+  IF has_queued_attacks(deadguy) THEN
+   EXIT SUB
+  END IF
+  bslot(deadguy).bequesting = NO
+  already_bequested = YES
+  triggerfade deadguy, bslot()
+ END IF
+
+ '--Do not proceed unless the target is dead
  IF bslot(deadguy).stat.cur.hp <> 0 THEN EXIT SUB
+
  '--deadguy is really dead (includes already dead and empty hero slots??)
- 'Death animation is not done yet here, so be cautious about what gets cleand up here.
+ 'Death animation is not done yet here, so be cautious about what gets cleaned up here.
  'Full cleanup of bslot() records belongs in loadfoe
  bslot(deadguy).vis = 0
  bslot(deadguy).ready = NO
@@ -1986,7 +2005,21 @@ SUB check_death(byval deadguy as integer, byval killing_attack as integer, byref
  END IF
  '-- if it is a dead enemy's turn, cancel ai
  IF bat.enemy_turn = deadguy THEN bat.enemy_turn = -1
- IF is_enemy(deadguy) THEN '------PLUNDER AND EXPERIENCE AND ITEMS------
+ 
+ IF is_enemy(deadguy) ANDALSO bslot(deadguy).enemy.bequest_attack > 0 ANDALSO NOT already_bequested THEN
+  'Trigger an on-death bequest attack, and defer dying until later.
+  autotarget deadguy, bslot(deadguy).enemy.bequest_attack - 1, bslot()
+  WITH bslot(deadguy)
+   .bequesting = YES
+   .vis = 1
+   .dissolve = 0
+   .flee = 0
+  END WITH
+  EXIT SUB
+ END IF
+ 
+ '------PLUNDER AND EXPERIENCE AND ITEMS------
+ IF is_enemy(deadguy) THEN 
   IF bslot(deadguy).death_sfx = 0 THEN
    IF gen(genDefaultDeathSFX) > 0 THEN
     playsfx gen(genDefaultDeathSFX) - 1
@@ -1995,7 +2028,8 @@ SUB check_death(byval deadguy as integer, byval killing_attack as integer, byref
    playsfx bslot(deadguy).death_sfx - 1
   END IF
   dead_enemy deadguy, killing_attack, bat, bslot(), formdata
- END IF'------------END PLUNDER-------------------
+ END IF
+ '------------END PLUNDER-------------------
  battle_reevaluate_dead_targets deadguy, bat, bslot()
 END SUB
 
@@ -3192,6 +3226,20 @@ SUB display_attack_queue (bslot() as BattleSprite)
   END WITH
  NEXT i
 END SUB
+
+FUNCTION has_queued_attacks(byval who as integer) as integer
+ '--Returns YES if the specified hero or enemy has at least one attack queued.
+ '--Returns NO if they do not.
+ '--This is intended to check for both blocking and non-blocking queued attacks.
+ FOR i as integer = 0 TO UBOUND(atkq)
+  WITH atkq(i)
+   IF .used THEN
+    IF .attacker = who THEN RETURN YES
+   END IF
+  END WITH
+ NEXT i
+ RETURN NO
+END FUNCTION
 
 FUNCTION battle_time_can_pass(bat as BattleState) as integer
  IF bat.atk.id <> -1 THEN RETURN NO 'an attack animation is going on right now
