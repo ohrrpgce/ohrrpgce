@@ -80,6 +80,7 @@ define constant,begin
 53,key:Question Mark
 54,key:Right Shift
 55,key:Numpad Asterix
+55,key:Numpad Asterisk
 56,key:Alt
 57,key:Space
 58,key:Capslock
