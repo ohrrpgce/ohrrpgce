@@ -19,6 +19,7 @@ define constant,begin
 08,key:Ampersand
 09,key:8
 09,key:Asterix
+09,key:Asterisk
 10,key:9
 10,key:Left Parenthesis
 11,key:0
