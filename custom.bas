@@ -44,7 +44,7 @@ DECLARE SUB enemydata ()
 DECLARE SUB hero_editor ()
 DECLARE SUB text_box_editor ()
 DECLARE SUB maptile ()
-DECLARE SUB importscripts (f as string)
+DECLARE SUB compile_andor_import_scripts (f as string)
 
 'Local function declarations
 DECLARE FUNCTION newRPGfile (templatefile as string, newrpg as string) as integer
@@ -69,7 +69,7 @@ DECLARE SUB shop_load (byref shopst as ShopEditState, shopbuf() as integer)
 DECLARE SUB shop_add_new (shopst as ShopEditState)
 DECLARE SUB cleanupfiles ()
 DECLARE SUB cleanup_and_terminate ()
-DECLARE SUB import_scripts_and_terminate (hsfile as string)
+DECLARE SUB import_scripts_and_terminate (scriptfile as string)
 DECLARE SUB prompt_for_password()
 DECLARE SUB prompt_for_save_and_quit()
 DECLARE SUB choose_rpg_to_open ()
@@ -107,7 +107,7 @@ EXTERN running_as_slave as integer
 DIM running_as_slave as integer = NO  'This is just for the benefit of gfx_sdl
 
 'Local variables (declaring these up here is often necessary due to gosubs)
-DIM hsfile as string
+DIM scriptfile as string
 DIM archinym as string
 DIM SHARED nocleanup as integer = NO
 
@@ -181,8 +181,8 @@ FOR i as integer = 1 TO UBOUND(cmdline_args)
  arg = absolute_with_orig_path(cmdline_args(i))
  DIM extn as string = LCASE(justextension(arg))
 
- IF extn = "hs" AND isfile(arg) THEN
-  hsfile = arg
+ IF (extn = "hs" OR extn = "hss" OR extn = "txt") AND isfile(arg) THEN
+  scriptfile = arg
   CONTINUE FOR
  ELSEIF (extn = "rpg" AND isfile(arg)) ORELSE isdir(arg) THEN
   sourcerpg = arg
@@ -192,7 +192,7 @@ FOR i as integer = 1 TO UBOUND(cmdline_args)
  END IF
 NEXT
 IF game = "" THEN
- hsfile = ""
+ scriptfile = ""
  choose_rpg_to_open()
 END IF
 
@@ -259,7 +259,7 @@ LoadUIColors uilook(), activepalette
 xbload game + ".fnt", current_font(), "Font not loaded"
 setfont current_font()
 
-IF hsfile <> "" THEN import_scripts_and_terminate hsfile
+IF scriptfile <> "" THEN import_scripts_and_terminate scriptfile
 
 loadglobalstrings
 getstatnames statnames()
@@ -606,11 +606,11 @@ SUB prompt_for_password()
  LOOP
 END SUB
 
-SUB import_scripts_and_terminate (hsfile as string)
- debuginfo "Importing scripts from " & hsfile
+SUB import_scripts_and_terminate (scriptfile as string)
+ debuginfo "Importing scripts from " & scriptfile
  xbload game & ".gen", gen(), "general data is missing, RPG file corruption is likely"
  upgrade 'needed because it has not already happened because we are doing command-line import
- importscripts absolute_with_orig_path(hsfile)
+ compile_andor_import_scripts absolute_with_orig_path(scriptfile)
  xbsave game & ".gen", gen(), 1000
  save_current_game
  cleanupfiles

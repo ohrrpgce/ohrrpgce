@@ -36,6 +36,7 @@ END TYPE
 
 '--Local subs and functions
 DECLARE FUNCTION compilescripts (fname as string) as string
+DECLARE SUB importscripts (f as string)
 DECLARE SUB writeconstant (byval filehandle as integer, byval num as integer, names as string, unique() as string, prefix as string)
 DECLARE FUNCTION isunique (s as string, set() as string) as integer
 DECLARE SUB exportnames ()
@@ -242,6 +243,18 @@ SUB addtrigger (scrname as string, byval id as integer, triggers as TRIGGERSET)
    .usedbits[.size \ 32] = 0
   END IF
  END WITH
+END SUB
+
+SUB compile_andor_import_scripts (f as string)
+ IF justextension(f) <> "hs" THEN
+  f = compilescripts(f)
+  IF f <> "" THEN
+   importscripts f
+   safekill f  'reduce clutter
+  END IF
+ ELSE
+  importscripts f
+ END IF
 END SUB
 
 SUB importscripts (f as string)
@@ -477,17 +490,9 @@ DO
    CASE 1
     f = browse(9, defaultdir, "", "",, "browse_hs")
     IF f <> "" THEN
-     IF justextension(f) <> "hs" THEN
-      clearkey scEnter
-      clearkey scSpace
-      f = compilescripts(f)
-      IF f <> "" THEN
-       importscripts f
-      END IF
-      safekill f  'reduce clutter
-     ELSE
-      importscripts f
-     END IF
+     'clearkey scEnter
+     'clearkey scSpace
+     compile_andor_import_scripts f
     END IF
    CASE 2
     exportnames
