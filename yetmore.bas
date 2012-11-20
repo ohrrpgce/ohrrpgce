@@ -3736,7 +3736,6 @@ IF txt.box.choice_enabled THEN MenuSound gen(genAcceptSFX)
 '-- update backdrop if necessary
 IF txt.box.backdrop > 0 THEN
  gen(genTextboxBackdrop) = txt.box.backdrop
- correctbackdrop
 END IF
 
 '-- change music if necessary

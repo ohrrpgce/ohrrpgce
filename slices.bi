@@ -35,6 +35,7 @@ CONST SL_HERO_LAYER       = -100011
 CONST SL_NPC_LAYER        = -100012
 CONST SL_WALKABOUT_SPRITE_COMPONENT = -100013
 CONST SL_WALKABOUT_SHADOW_COMPONENT = -100014
+CONST SL_BACKDROP         = -100015
 CONST SL_MAP_LAYER0       = -101000
 CONST SL_MAP_LAYER1       = -101001
 CONST SL_MAP_LAYER2       = -101002
@@ -158,6 +159,7 @@ TYPE SliceTable_
   maproot as Slice Ptr
   maplayer(maplayerMax) as Slice Ptr
   obsoleteoverhead as Slice Ptr
+  Backdrop as Slice Ptr
   Walkabout as Slice Ptr
   HeroLayer as Slice Ptr
   NPCLayer as Slice Ptr
@@ -230,11 +232,13 @@ Type MapSliceData
  pass as TileMap ptr 'NOTE: ptr to pass in game.bas (Not owned!) May be NULL for non-overhead layers
 End Type
 
+'Not used
 Type MenuSliceData
  selected as integer
  tog as integer
 End Type
 
+'Not used
 Type MenuItemSliceData
  ordinal as integer
  caption as string

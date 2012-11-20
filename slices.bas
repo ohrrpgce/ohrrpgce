@@ -144,6 +144,10 @@ Sub SetupGameSlices
  
  SetupMapSlices maplayerMax
 
+ SliceTable.Backdrop = NewSliceOfType(slSprite, SliceTable.Root, SL_BACKDROP)
+ SliceTable.Backdrop->Protect = YES
+ ChangeSpriteSlice SliceTable.Backdrop, sprTypeMXS
+
  SliceTable.ScriptSprite = NewSliceOfType(slSpecial, SliceTable.Root, SL_SCRIPT_LAYER)
  SliceTable.ScriptSprite->Fill = YES
  RefreshSliceScreenPos(SliceTable.ScriptSprite)
@@ -154,7 +158,8 @@ Sub SetupGameSlices
  
  'Not used yet, so don't create it!
  'SliceTable.Menu = NewSliceOfType(slSpecial, SliceTable.Root)
- 
+
+ 'Not used yet either, actually 
  SliceTable.ScriptString = NewSliceOfType(slSpecial, SliceTable.Root, SL_STRING_LAYER)
 
 End Sub
@@ -192,6 +197,7 @@ Sub DestroyGameSlices (Byval dumpdebug as integer=0)
   SliceTable.MapLayer(i) = 0
  NEXT
  SliceTable.ObsoleteOverhead = 0
+ SliceTable.Backdrop = 0
  SliceTable.ScriptSprite = 0
  SliceTable.TextBox = 0
  SliceTable.Menu = 0
@@ -264,6 +270,7 @@ FUNCTION SliceLookupCodename (byval code as integer) as string
   CASE SL_NPC_LAYER: RETURN "npc_layer"
   CASE SL_WALKABOUT_SPRITE_COMPONENT: RETURN "walkabout_sprite_component"
   CASE SL_WALKABOUT_SHADOW_COMPONENT: RETURN "walkabout_shadow_component"
+  CASE SL_BACKDROP: RETURN "backdrop"
   CASE SL_MAP_LAYER0: RETURN "map_layer0"
   CASE SL_MAP_LAYER1: RETURN "map_layer1"
   CASE SL_MAP_LAYER2: RETURN "map_layer2"

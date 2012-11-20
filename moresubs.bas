@@ -364,7 +364,7 @@ party_change_updates
 'hero(40), bmenu(40,5), spell(40,3,23), lmp(40,7), names(40), eqstuf(40,4)
 END SUB
 
-SUB drawsay ()
+SUB update_textbox ()
 STATIC tog as integer
 tog = tog XOR 1
 

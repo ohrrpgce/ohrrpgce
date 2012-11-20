@@ -876,37 +876,32 @@ END SUB
 
 SUB displayall()
  update_walkabout_slices()
+
+ IF readbit(gen(), genSuspendBits, suspendoverlay) THEN
+  ChangeMapSlice SliceTable.MapLayer(0), , , , 0   'draw all
+  SliceTable.ObsoleteOverhead->Visible = NO
+ ELSE
+  ChangeMapSlice SliceTable.MapLayer(0), , , , 1   'draw non-overhead only
+  SliceTable.ObsoleteOverhead->Visible = YES
+ END IF
  setmapxy  'Update camera position
- IF gen(genTextboxBackdrop) = 0 AND gen(genScrBackdrop) = 0 THEN
-  '---NORMAL DISPLAY---
-  'DEBUG debug "drawmap"
-  IF readbit(gen(), genSuspendBits, suspendoverlay) THEN
-   ChangeMapSlice SliceTable.MapLayer(0), , , , 0   'draw all
-   SliceTable.ObsoleteOverhead->Visible = NO
-  ELSE
-   ChangeMapSlice SliceTable.MapLayer(0), , , , 1   'draw non-overhead only
-   SliceTable.ObsoleteOverhead->Visible = YES
-  END IF
-  WITH *(SliceTable.MapRoot)
-   .X = mapx * -1
-   .Y = mapy * -1
-  END WITH
+ WITH *(SliceTable.MapRoot)
+  .X = mapx * -1
+  .Y = mapy * -1
+ END WITH
+ update_backdrop_slice
 
-  DrawSlice SliceTable.MapRoot, dpage
-  DrawSlice SliceTable.ScriptSprite, dpage 'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
+ DrawSlice(SliceTable.Root, dpage)
 
-  animatetilesets tilesets()
-  IF harmtileflash = YES THEN
-   rectangle 0, 0, 320, 200, gmap(10), dpage
-   harmtileflash = NO
-  END IF
- ELSE '---END NORMAL DISPLAY---
-  'DEBUG debug "backdrop display"
-  copypage 3, dpage
- END IF '---END BACKDROP DISPLAY---
- 'DEBUG debug "text box"
- DrawSlice(SliceTable.TextBox, dpage) 'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
- IF txt.showing = YES THEN drawsay
+ 'The order in which we update and draw things is a little strange; I'm just preserving what it was
+ animatetilesets tilesets()
+ IF harmtileflash = YES THEN
+  rectangle 0, 0, 320, 200, gmap(10), dpage
+  harmtileflash = NO
+ END IF
+ IF txt.showing = YES THEN update_textbox
+
+ 'FIXME: Eventually we want to draw the rest of this stuff using slices, but for now draw it on top
  update_menu_states
  FOR i as integer = 0 TO topmenu
   draw_menu menus(i), mstates(i), dpage
@@ -1715,10 +1710,8 @@ WITH scrat(nowscript)
     END IF
    CASE 32'--show backdrop
     gen(genScrBackdrop) = bound(retvals(0) + 1, 0, gen(genNumBackdrops))
-    correctbackdrop
    CASE 33'--show map
     gen(genScrBackdrop) = 0
-    correctbackdrop
    CASE 34'--dismount vehicle
     forcedismount catd()
    CASE 35'--use NPC
@@ -2287,7 +2280,6 @@ SUB loadmap_gmap(byval mapnum as integer)
  loadmaptilesets tilesets(), gmap()
  refresh_map_slice_tilesets
 
- correctbackdrop
  SELECT CASE gmap(5) '--outer edge wrapping
   CASE 0, 1'--crop edges or wrap
    setoutside -1
@@ -3161,7 +3153,6 @@ SUB advance_text_box ()
  IF txt.box.backdrop > 0 THEN
   '--backdrop needs resetting
   gen(genTextboxBackdrop) = 0
-  correctbackdrop
  END IF
  '---IF MADE A CHOICE---
  IF txt.box.choice_enabled THEN
@@ -3252,7 +3243,6 @@ SUB advance_text_box ()
  END IF
  IF txt.box.backdrop > 0 THEN
   gen(genTextboxBackdrop) = 0
-  correctbackdrop
  END IF
  WITH txt.portrait
   IF .sprite THEN frame_unload @.sprite

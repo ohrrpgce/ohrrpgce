@@ -1665,6 +1665,7 @@ define constant, begin
 -100012, sl:npc layer
 -100013, sl:walkabout sprite component
 -100014, sl:walkabout shadow component
+-100015, sl:backdrop
 -101000, sl:map layer0
 -101001, sl:map layer1
 -101002, sl:map layer2

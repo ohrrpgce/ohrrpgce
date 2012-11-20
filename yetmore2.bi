@@ -14,7 +14,7 @@ DECLARE SUB limitcamera (byref x as integer, byref y as integer)
 DECLARE SUB showplotstrings
 DECLARE SUB makebackups
 DECLARE SUB make_map_backups
-DECLARE SUB correctbackdrop
+DECLARE SUB update_backdrop_slice
 DECLARE SUB cleanuptemp
 DECLARE FUNCTION checkfordeath () as integer
 DECLARE SUB aheadxy (byref x as integer, byref y as integer, byval direction as integer, byval distance as integer)

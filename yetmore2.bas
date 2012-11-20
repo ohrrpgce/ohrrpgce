@@ -276,22 +276,20 @@ SUB make_map_backups
  writeablecopyfile game + ".map", tmpdir & "mapbackup.map"
 END SUB
 
-SUB correctbackdrop
-
-IF gen(genTextboxBackdrop) THEN
- '--restore text box backdrop
- loadmxs game + ".mxs", gen(genTextboxBackdrop) - 1, vpages(3)
- EXIT SUB
-END IF
-
-IF gen(genScrBackdrop) THEN
- '--restore script backdrop
- loadmxs game + ".mxs", gen(genScrBackdrop) - 1, vpages(3)
- EXIT SUB
-END IF
-
-'loadmxs game + ".til", gmap(0), vpages(3)
-
+SUB update_backdrop_slice
+ DIM backdrop as integer
+ IF gen(genTextboxBackdrop) THEN
+  backdrop = gen(genTextboxBackdrop) - 1
+ ELSEIF gen(genScrBackdrop) THEN
+  backdrop = gen(genScrBackdrop) - 1
+ ELSE
+  SliceTable.MapRoot->Visible = YES
+  SliceTable.Backdrop->Visible = NO
+  EXIT SUB
+ END IF
+  SliceTable.MapRoot->Visible = NO
+ SliceTable.Backdrop->Visible = YES
+ ChangeSpriteSlice SliceTable.Backdrop, sprTypeMXS, backdrop
 END SUB
 
 SUB cleanuptemp
@@ -525,7 +523,6 @@ SUB loadmapstate_gmap (byval mapnum as integer, prefix as string, byval dontfall
 
  loadmaptilesets tilesets(), gmap()
  refresh_map_slice_tilesets
- correctbackdrop
  SELECT CASE gmap(5) '--outer edge wrapping
   CASE 0, 1'--crop edges or wrap
    setoutside -1
