@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Pd 2012-10-24 Fix \x escape code
 --3Pc 2012-10-09 Change srcpos encoding to remove source size limits
 --3Pb 2012-10-08 \x escape code
 --3Pa 2012-08-24 --reuse-ids option
@@ -139,7 +140,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Pc"
+constant COMPILER_SUB_VERSION="Pd"
 constant COPYRIGHT_DATE="2002"
 
 --This is the oldest version of plotscr.hsd which is supported (feel free to
@@ -1112,7 +1113,7 @@ function lexer_read_string(sequence s,integer i,integer stop,srcpos pos)
         at1=0
         if i+2<=stop then
           at1=find(s[i+1],hex_chars)
-          at2=find(s[i+1],hex_chars)
+          at2=find(s[i+2],hex_chars)
         end if
         if at1=0 or at2=0 then
           src_error("Expected two hexidecimal characters to follow \\x escape code",pos+i)
