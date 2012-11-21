@@ -3270,17 +3270,22 @@ SUB init_text_box_slices(txt as TextBoxState)
   '--free any already-loaded textbox
   DeleteSlice @(txt.sl)
  END IF
- txt.sl = NewSliceOfType(slContainer, SliceTable.TextBox)
- txt.sl->Fill = Yes
+ txt.sl = NewSliceOfType(slContainer, SliceTable.TextBox, SL_TEXTBOX_ROOT)
+ WITH *txt.sl
+  '.Fill = YES
+  .Width = 320
+  .Height = 200
+ END WITH
 
  '--Create a new slice for the text box
  DIM text_box as Slice Ptr
 
  '--set up box style
+ text_box = NewSliceOfType(slRectangle, txt.sl, SL_TEXTBOX_BOX)
  IF txt.box.no_box THEN
-  text_box = NewSliceOfType(slContainer, txt.sl)
+  'Invisible box (for the benefit of scripts)
+  ChangeRectangleSlice text_box, txt.box.boxstyle, , , -2, transHollow
  ELSE
-  text_box = NewSliceOfType(slRectangle, txt.sl)
   ChangeRectangleSlice text_box, txt.box.boxstyle, , , , iif(txt.box.opaque, transOpaque, transFuzzy)
  END IF
 
@@ -3290,14 +3295,6 @@ SUB init_text_box_slices(txt as TextBoxState)
   .Y = 4 + txt.box.vertical_offset * 4
   .Width = 312
   .Height = get_text_box_height(txt.box)
- END WITH
-
- '--A frame that handles the padding around the text
- DIM text_frame as Slice Ptr
- text_frame = NewSliceOfType(slContainer, text_box)
-  '--set up padding
- WITH *text_frame
-  .Fill = YES
   .PaddingLeft = 4
   .PaddingRight = 4
   .PaddingTop = 3
@@ -3315,7 +3312,7 @@ SUB init_text_box_slices(txt as TextBoxState)
  NEXT i
 
  DIM text_sl as Slice Ptr
- text_sl = NewSliceOfType(slText, text_frame, SL_TEXTBOX_TEXT)
+ text_sl = NewSliceOfType(slText, text_box, SL_TEXTBOX_TEXT)
  text_sl->Fill = YES
  ChangeTextSlice text_sl, s, col, YES, NO
 
@@ -3351,11 +3348,12 @@ SUB init_text_box_slices(txt as TextBoxState)
  IF img_id >= 0 THEN
   '--First set up the box that holds the portrait
   DIM img_box as Slice Ptr
+  img_box = NewSliceOfType(slRectangle, text_box, SL_TEXTBOX_PORTRAIT_BOX)
   IF txt.box.portrait_box THEN
-   img_box = NewSliceOfType(slRectangle, text_box)
    ChangeRectangleSlice img_box, txt.box.boxstyle, , , , transFuzzy
   ELSE
-   img_box = NewSliceOfType(slContainer, text_box)
+   'Invisible box
+   ChangeRectangleSlice img_box, txt.box.boxstyle, , , -2, transHollow
   END IF
   img_box->Width = 50
   img_box->Height = 50
@@ -3373,7 +3371,7 @@ SUB init_text_box_slices(txt as TextBoxState)
   'IF tempy > 160 THEN tempy = 20
   'centerbox 160, tempy + 12, 10 + large(LEN(txt.box.choice(0)) * 8, LEN(txt.box.choice(1)) * 8), 24, txt.box.boxstyle + 1, dpage
   DIM choice_box as Slice Ptr
-  choice_box = NewSliceOfType(slRectangle, txt.sl)
+  choice_box = NewSliceOfType(slRectangle, txt.sl, SL_TEXTBOX_CHOICE_BOX)
   WITH *choice_box
    '--center the box
    .AnchorHoriz = 1

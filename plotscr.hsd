@@ -1655,6 +1655,10 @@ define constant, begin
 -100002, sl:textbox portrait
 -100003, sl:textbox choice0
 -100004, sl:textbox choice1
+-100016, sl:textbox box
+-100017, sl:textbox portrait box
+-100018, sl:textbox choice box
+-100019, sl:textbox root
 -100005, sl:script layer
 -100006, sl:textbox layer
 -100007, sl:string layer
