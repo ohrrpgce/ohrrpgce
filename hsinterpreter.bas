@@ -963,8 +963,9 @@ DIM page as integer
 DIM resetpal as integer = NO  'need setpal master()
 
 IF mode >= 2 THEN
+ 'In case of a fade out
  REDIM default_palette(255) as RGBcolor
- loadpalette default_palette(), gen(genMasterPal)
+ loadpalette default_palette(), gam.current_master_palette
  setpal default_palette()
  resetpal = YES
 END IF

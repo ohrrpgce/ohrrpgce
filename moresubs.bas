@@ -1970,7 +1970,7 @@ SUB scripterr (e as string, byval errorlevel as integer = 5)
  FOR i as integer = 0 TO 255
   remember_master(i) = master(i)
  NEXT
- loadpalette master(), gen(genMasterPal)
+ loadpalette master(), gam.current_master_palette
  setpal master()
 
  setkeys
@@ -2088,7 +2088,7 @@ FUNCTION script_interrupt () as integer
  FOR i as integer = 0 TO 255
   remember_master(i) = master(i)
  NEXT
- loadpalette master(), gen(genMasterPal)
+ loadpalette master(), gam.current_master_palette
  setpal master()
 
  setkeys

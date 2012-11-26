@@ -515,8 +515,9 @@ reset_game_state
 
 DO' This loop encloses the playable game for a specific RPG file
 
-loadpalette master(), gen(genMasterPal)
-LoadUIColors uilook(), gen(genMasterPal)
+gam.current_master_palette = gen(genMasterPal)
+loadpalette master(), gam.current_master_palette
+LoadUIColors uilook(), gam.current_master_palette
 init_default_text_colors
 
 initgamedefaults

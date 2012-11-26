@@ -37,18 +37,20 @@ DECLARE SUB setup_sprite_sizes ()
 DECLARE SUB check_map_count ()
 
 #IFDEF IS_GAME
+#include "game_udts.bi"
+#include "gglobals.bi"
+
 DECLARE FUNCTION istag OVERLOAD (byval num as integer, byval zero as integer=NO) as integer
 DECLARE FUNCTION istag OVERLOAD (tagbits() as integer, byval num as integer, byval zero as integer=NO) as integer
 DECLARE SUB scripterr (e as string, byval errorlevel as integer = 5)
 DECLARE FUNCTION commandname (byval id as integer) as string
 DECLARE SUB exitprogram (byval need_fade_out as integer = NO, byval errorout as integer = NO)
 DECLARE SUB show_wrong_spawned_version_error
-EXTERN insideinterpreter as integer
-EXTERN curcmd as ScriptCommand ptr
-EXTERN running_as_slave as integer
 #ENDIF
 
 #IFDEF IS_CUSTOM
+#include "cglobals.bi"
+
 DECLARE FUNCTION charpicker() as string
 #ENDIF
 
@@ -1001,10 +1003,15 @@ SUB showerror (msg as string, byval isfatal as integer = NO)
                 uilook(uiText), 0
   setvispage 0
   waitforanykey
- #ENDIF
 
- 'Restore game's master palette and ui colors
- LoadUIColors uilook(), gen(genMasterPal)
+  loadpalette master(), activepalette
+  LoadUIColors uilook(), activepalette
+ #ELSE
+
+  'Restore game's master palette and ui colors
+  loadpalette master(), gam.current_master_palette
+  LoadUIColors uilook(), gam.current_master_palette
+ #ENDIF
  setpal master()
 
  entered = 0
@@ -1226,10 +1233,10 @@ END FUNCTION
 
 FUNCTION createminimap (layer as TileMap, tileset as TilesetData ptr, byref zoom as integer = -1) as Frame PTR
  DIM layers(0) as TileMap
- DIM tilesets(0) as TilesetData ptr
+ DIM tilesetsdata(0) as TilesetData ptr
  layers(0) = layer
- tilesets(0) = tileset
- RETURN createminimap(layers(), tilesets(), zoom)
+ tilesetsdata(0) = tileset
+ RETURN createminimap(layers(), tilesetsdata(), zoom)
 END FUNCTION
 
 FUNCTION readattackname (byval index as integer) as string
@@ -2895,7 +2902,6 @@ FUNCTION getpassword () as string
 END FUNCTION
 
 SUB upgrade ()
-DIM pal16(8) as integer
 DIM o as integer
 DIM p as integer
 DIM y as integer
@@ -3068,7 +3074,8 @@ IF gen(genVersion) = 4 THEN
  upgrade_message "March 31 2001 format (5)"
  gen(genVersion) = 5
  upgrade_message "Upgrading 16-color Palette Format..."
- setpicstuf pal16(), 16, -1
+ DIM temppal16(8) as integer
+ setpicstuf temppal16(), 16, -1
  xbload game + ".pal", buffer(), "16-color palettes missing from " + sourcerpg
  KILL game + ".pal"
  '--find last used palette
@@ -3086,16 +3093,16 @@ IF gen(genVersion) = 4 THEN
  NEXT j
  upgrade_message "Last used palette is " & last
  '--write header
- pal16(0) = 4444
- pal16(1) = last
+ temppal16(0) = 4444
+ temppal16(1) = last
  FOR i as integer = 2 TO 7
-  pal16(i) = 0
+  temppal16(i) = 0
  NEXT i
  storeset game + ".pal", 0, 0
  '--convert palettes
  FOR j as integer = 0 TO last
   FOR i as integer = 0 TO 7
-   pal16(i) = buffer(j * 8 + i)
+   temppal16(i) = buffer(j * 8 + i)
   NEXT i
   storeset game + ".pal", 1 + j, 0
  NEXT j
@@ -3258,12 +3265,12 @@ updaterecordlength workingdir + SLASH + "menus.bin", binMENUS
 updaterecordlength workingdir + SLASH + "menuitem.bin", binMENUITEM
 IF NOT isfile(workingdir + SLASH + "menuitem.bin") THEN
  upgrade_message "Creating default menu file..."
- DIM menu_set as MenuSet
- menu_set.menufile = workingdir + SLASH + "menus.bin"
- menu_set.itemfile = workingdir + SLASH + "menuitem.bin"
+ DIM def_menu_set as MenuSet
+ def_menu_set.menufile = workingdir + SLASH + "menus.bin"
+ def_menu_set.itemfile = workingdir + SLASH + "menuitem.bin"
  DIM menu as MenuDef
  create_default_menu menu
- SaveMenuData menu_set, menu, 0
+ SaveMenuData def_menu_set, menu, 0
  ClearMenuData menu
 END IF
 updaterecordlength game & ".say", binSAY

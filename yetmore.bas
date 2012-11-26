@@ -1111,8 +1111,8 @@ SELECT CASE as CONST id
    scriptret = catd(retvals(0) * 5)
   END IF
  CASE 103'--reset palette
-  loadpalette master(), gen(genMasterPal)
-  LoadUIColors uilook(), gen(genMasterPal)
+  loadpalette master(), gam.current_master_palette
+  LoadUIColors uilook(), gam.current_master_palette
  CASE 104'--tweak palette
   IF bound_arg(retvals(3), 0, 255, "start pal index") THEN
    IF bound_arg(retvals(4), 0, 255, "end pal index") THEN
@@ -1700,7 +1700,7 @@ SELECT CASE as CONST id
    CASE 2
     scriptret = c.b
   END SELECT
- CASE 268'--loadpalette
+ CASE 268'--load palette
   IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxMasterPal) THEN
    loadpalette master(), retvals(0)
    LoadUIColors uilook(), retvals(0)

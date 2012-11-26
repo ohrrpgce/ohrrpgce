@@ -92,6 +92,7 @@ TYPE GameState
   autorungame as integer
   need_fade_in as integer
   fade_in_delay as integer
+  current_master_palette as integer  'Modified by "load palette" command
   showtext as string                 'Used for map names and other alerts
   showtext_ticks as integer          'Remaining number of ticks
   getinputtext_enabled as integer
