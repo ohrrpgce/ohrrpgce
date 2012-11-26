@@ -5,51 +5,51 @@
 #INCLUDE "util.bi"
 
 'Forward declarations
-TYPE SliceFwd AS Slice
+TYPE SliceFwd as Slice
 
 UNION XYPair
   TYPE
-   x AS INTEGER
-   y AS INTEGER
+   x as integer
+   y as integer
   END TYPE
   TYPE
-   w AS INTEGER
-   h AS INTEGER
+   w as integer
+   h as integer
   END TYPE
-  n(1) AS INTEGER
+  n(1) as integer
 END UNION
 
 'TYPE RectType
-'  x AS INTEGER
-'  y AS INTEGER
-'  wide AS INTEGER
-'  high AS INTEGER
+'  x as integer
+'  y as integer
+'  wide as integer
+'  high as integer
 'END TYPE
 
 UNION RectType
   TYPE
-    x AS INTEGER
-    y AS INTEGER
-    wide AS INTEGER
-    high AS INTEGER
+    x as integer
+    y as integer
+    wide as integer
+    high as integer
   END TYPE
   TYPE
-    p1 AS XYPair
-    p2 AS XYPair
+    p1 as XYPair
+    p2 as XYPair
   END TYPE
 END UNION
 
 TYPE MouseInfo
-  x AS INTEGER
-  y AS INTEGER
-  clicks AS INTEGER  'Button down event since last tick; MouseButton array (see scancodes.bi)
-  buttons AS INTEGER 'Buttons currently down OR clicked; MouseButton array
-  wheel AS INTEGER   'Wheel movement since last tick; NOT SUPPORTED ON ALL BACKENDS
-  dragging AS INTEGER 'MouseButton array, but only one button at once can be dragged.
+  x as integer
+  y as integer
+  clicks as integer  'Button down event since last tick; MouseButton array (see scancodes.bi)
+  buttons as integer 'Buttons currently down OR clicked; MouseButton array
+  wheel as integer   'Wheel movement since last tick; NOT SUPPORTED ON ALL BACKENDS
+  dragging as integer 'MouseButton array, but only one button at once can be dragged.
                       'A dragged button is one held down for at least 2 ticks. 
                       'So on the first tick, you see click=button=true, dragging=false
                       'And on the subsequent ticks, you see dragging=button=true, click=false
-  clickstart AS XYPair 'Mouse position at start of click/drag (Note: no backend currently
+  clickstart as XYPair 'Mouse position at start of click/drag (Note: no backend currently
                        'supports reporting the position of click, so currently equal to .x/.y)
 END TYPE
 
@@ -169,16 +169,16 @@ TYPE ClipState
 END TYPE
 
 TYPE MenuSet
-  menufile AS STRING
-  itemfile AS STRING
+  menufile as string
+  itemfile as string
 END TYPE
 
 TYPE BasicMenuItem
-  text AS STRING
-  col AS INTEGER
-  bgcol AS INTEGER
-  unselectable AS INTEGER
-  disabled AS INTEGER  'Appear greyed out. Any other meaning of this is up to the user
+  text as string
+  col as integer
+  bgcol as integer
+  unselectable as integer
+  disabled as integer  'Appear greyed out. Any other meaning of this is up to the user
 END TYPE
 
 DECLARE_VECTOR_OF_TYPE(BasicMenuItem, BasicMenuItem)
@@ -188,85 +188,85 @@ MAKETYPE_DListItem(MenuDefItem)
 
 TYPE MenuDefItem  'EXTENDS BasicMenuItem
   'members copied from BasicMenuItem
-  text AS STRING  ' This is the caption actually displayed
-  col AS INTEGER
-  bgcol AS INTEGER  ' Not used
-  unselectable AS INTEGER  ' Not used (yet)
-  disabled AS INTEGER ' set at run-time based on .tag1 and .tag2
+  text as string  ' This is the caption actually displayed
+  col as integer
+  bgcol as integer  ' Not used
+  unselectable as integer  ' Not used (yet)
+  disabled as integer ' set at run-time based on .tag1 and .tag2
 
   'Other members
-  handle    AS INTEGER
-  caption   AS STRING  ' This is the caption as set in the menu editor/set menu item caption
-  trueorder AS DListItem(MenuDefItem) ' contains next, prev
-  t         AS INTEGER
-  sub_t     AS INTEGER
-  tag1      AS INTEGER
-  tag2      AS INTEGER
-  settag    AS INTEGER
-  togtag    AS INTEGER
-  extra(2)  AS INTEGER
-  hide_if_disabled  AS INTEGER ' Bitset
-  close_if_selected AS INTEGER ' Bitset
-  skip_close_script AS INTEGER ' Bitset
-  dataptr   AS ANY PTR 'Use this with caution!
+  handle    as integer
+  caption   as string  ' This is the caption as set in the menu editor/set menu item caption
+  trueorder as DListItem(MenuDefItem) ' contains next, prev
+  t         as integer
+  sub_t     as integer
+  tag1      as integer
+  tag2      as integer
+  settag    as integer
+  togtag    as integer
+  extra(2)  as integer
+  hide_if_disabled  as integer ' Bitset
+  close_if_selected as integer ' Bitset
+  skip_close_script as integer ' Bitset
+  dataptr   as ANY PTR 'Use this with caution!
 END TYPE
 
 DECLARE_VECTOR_OF_TYPE(MenuDefItem, MenuDefItem)
 
 '*** Requires construction (with ClearMenuData or LoadMenuData) + destruction (with DeleteMenuItems) ***
 TYPE MenuDef
-  record    AS INTEGER
-  handle    AS INTEGER
-  name      AS STRING
-  boxstyle  AS INTEGER
-  textcolor AS INTEGER
-  maxrows   AS INTEGER
-  edit_mode AS INTEGER 'Never hide disabled items, allow selection of unselectable items
-  items     AS MenuDefItem Ptr Ptr
+  record    as integer
+  handle    as integer
+  name      as string
+  boxstyle  as integer
+  textcolor as integer
+  maxrows   as integer
+  edit_mode as integer 'Never hide disabled items, allow selection of unselectable items
+  items     as MenuDefItem Ptr Ptr
   'adds first, last, numitems, itemlist members
   INHERITAS_DoubleList(MenuDefItem, itemlist) 'True order of menu items, ignoring sort-invisible-items-to-end
-  translucent      AS INTEGER ' Bitset 0
-  no_scrollbar     AS INTEGER ' Bitset 1
-  allow_gameplay   AS INTEGER ' Bitset 2
-  suspend_player   AS INTEGER ' Bitset 3
-  no_box           AS INTEGER ' Bitset 4
-  no_close         AS INTEGER ' Bitset 5
-  no_controls      AS INTEGER ' Bitset 6
-  prevent_main_menu AS INTEGER ' Bitset 7
-  advance_textbox  AS INTEGER ' Bitset 8
-  rect      AS RectType
-  offset    AS XYPair
-  anchor    AS XYPair
-  align     AS INTEGER
-  min_chars AS INTEGER
-  max_chars AS INTEGER
-  bordersize AS INTEGER
-  on_close  AS INTEGER 'script trigger
-  esc_menu  AS INTEGER
+  translucent      as integer ' Bitset 0
+  no_scrollbar     as integer ' Bitset 1
+  allow_gameplay   as integer ' Bitset 2
+  suspend_player   as integer ' Bitset 3
+  no_box           as integer ' Bitset 4
+  no_close         as integer ' Bitset 5
+  no_controls      as integer ' Bitset 6
+  prevent_main_menu as integer ' Bitset 7
+  advance_textbox  as integer ' Bitset 8
+  rect      as RectType
+  offset    as XYPair
+  anchor    as XYPair
+  align     as integer
+  min_chars as integer
+  max_chars as integer
+  bordersize as integer
+  on_close  as integer 'script trigger
+  esc_menu  as integer
 END TYPE
 
 TYPE MenuState
-  active    AS INTEGER 'boolean
-  pt        AS INTEGER 'currently selected item (.first - 1 if menu is empty)
-  top       AS INTEGER 'scroll position for long lists
-  first     AS INTEGER 'first element (usually zero)
-  last      AS INTEGER 'last element (.first - 1 if menu is empty)
-  size      AS INTEGER 'number of elements to display at a time - 1
-  need_update AS INTEGER 'menu needs some kind of update
-  tog       AS INTEGER ' For flashing cursor
+  active    as integer 'boolean
+  pt        as integer 'currently selected item (.first - 1 if menu is empty)
+  top       as integer 'scroll position for long lists
+  first     as integer 'first element (usually zero)
+  last      as integer 'last element (.first - 1 if menu is empty)
+  size      as integer 'number of elements to display at a time - 1
+  need_update as integer 'menu needs some kind of update
+  tog       as integer ' For flashing cursor
 END TYPE
 
 'For when a string array is too crude, but a MenuDef is overkill
 TYPE SimpleMenuItem  'EXTENDS BasicMenuItem
   'members copied from BasicMenuItem
-  text AS STRING
-  col AS INTEGER
-  bgcol AS INTEGER
-  unselectable AS INTEGER
-  disabled AS INTEGER  'Appear greyed out. Other meaning of this depend on use 
+  text as string
+  col as integer
+  bgcol as integer
+  unselectable as integer
+  disabled as integer  'Appear greyed out. Other meaning of this depend on use 
 
   'other members
-  dat AS INTEGER  'For your own use
+  dat as integer  'For your own use
 END TYPE
 
 DECLARE_VECTOR_OF_TYPE(SimpleMenuItem, SimpleMenuItem)
@@ -297,7 +297,7 @@ END TYPE
 
 'Don't forget to update CleanNPCL and savegame.bas when adding to this
 TYPE NPCInst
-  sl AS SliceFwd Ptr
+  sl as SliceFwd Ptr
   '--stored values
   x as integer      'npcl+0
   y as integer      'npcl+300
@@ -428,9 +428,9 @@ UNION RGBcolor
 END UNION
 
 Type TileAnimState
-  cycle AS INTEGER
-  pt AS INTEGER
-  skip AS INTEGER
+  cycle as integer
+  pt as integer
+  skip as integer
 END Type
 
 Type TilesetData
@@ -775,17 +775,17 @@ TYPE EnemyDef
   stat_counter_attack(11) as integer 'id+1, 0=none
   bequest_attack as integer 'id+1, 0=none
   '--bitsets
-  harmed_by_cure AS INTEGER 'YES/NO
-  mp_idiot       AS INTEGER 'YES/NO for turn loss when using MP-consuming attacks after MP runs out
-  is_boss        AS INTEGER 'YES/NO
-  unescapable    AS INTEGER 'YES/NO
-  die_without_boss    AS INTEGER 'YES/NO
-  flee_instead_of_die AS INTEGER 'YES/NO
-  enemy_untargetable  AS INTEGER 'YES/NO
-  hero_untargetable   AS INTEGER 'YES/NO
-  death_unneeded AS INTEGER 'YES/NO
-  never_flinch   AS INTEGER 'YES/NO
-  ignore_for_alone    AS INTEGER 'YES/NO
+  harmed_by_cure as integer 'YES/NO
+  mp_idiot       as integer 'YES/NO for turn loss when using MP-consuming attacks after MP runs out
+  is_boss        as integer 'YES/NO
+  unescapable    as integer 'YES/NO
+  die_without_boss    as integer 'YES/NO
+  flee_instead_of_die as integer 'YES/NO
+  enemy_untargetable  as integer 'YES/NO
+  hero_untargetable   as integer 'YES/NO
+  death_unneeded as integer 'YES/NO
+  never_flinch   as integer 'YES/NO
+  ignore_for_alone    as integer 'YES/NO
 END TYPE
 
 TYPE FormationSlot
@@ -808,89 +808,90 @@ TYPE FormationSet
 END TYPE
 
 TYPE TextBox
-  text(7) AS STRING
-  instead_tag AS INTEGER
-  instead     AS INTEGER
-  settag_tag  AS INTEGER
-  settag1     AS INTEGER
-  settag2     AS INTEGER
-  battle_tag  AS INTEGER
-  battle      AS INTEGER
-  shop_tag    AS INTEGER
-  shop        AS INTEGER
-  hero_tag    AS INTEGER
-  hero_addrem AS INTEGER
-  hero_swap   AS INTEGER
-  hero_lock   AS INTEGER
-  after_tag   AS INTEGER
-  after       AS INTEGER
-  money_tag   AS INTEGER
-  money       AS INTEGER
-  door_tag    AS INTEGER
-  door        AS INTEGER
-  item_tag    AS INTEGER
-  item        AS INTEGER
-  menu_tag    AS INTEGER
-  menu        AS INTEGER
-  choice_enabled AS INTEGER
-  no_box      AS INTEGER
-  opaque      AS INTEGER
-  restore_music AS INTEGER
-  choice(1)   AS STRING
-  choice_tag(1) AS INTEGER
-  vertical_offset AS INTEGER ' in 4-pixel increments
-  shrink      AS INTEGER     ' in 4-pixel increments, -1 is "Auto"
-  textcolor   AS INTEGER     ' 0=default
-  boxstyle    AS INTEGER
-  backdrop    AS INTEGER     ' +1
-  music       AS INTEGER     ' +1
-  portrait_box  AS INTEGER
-  portrait_type AS INTEGER
-  portrait_id   AS INTEGER
-  portrait_pal  AS INTEGER
-  portrait_pos  AS XYPair
-  sound_effect AS INTEGER    ' +1, 0 means none
-  stop_sound_after AS INTEGER 'bitset
+  text(7) as string
+  instead_tag as integer
+  instead     as integer
+  settag_tag  as integer
+  settag1     as integer
+  settag2     as integer
+  battle_tag  as integer
+  battle      as integer
+  shop_tag    as integer
+  shop        as integer
+  hero_tag    as integer
+  hero_addrem as integer
+  hero_swap   as integer
+  hero_lock   as integer
+  after_tag   as integer
+  after       as integer
+  money_tag   as integer
+  money       as integer
+  door_tag    as integer
+  door        as integer
+  item_tag    as integer
+  item        as integer
+  menu_tag    as integer
+  menu        as integer
+  choice_enabled as integer
+  no_box      as integer
+  opaque      as integer
+  restore_music as integer
+  backdrop_trans as integer
+  choice(1)   as string
+  choice_tag(1) as integer
+  vertical_offset as integer ' in 4-pixel increments
+  shrink      as integer     ' in 4-pixel increments, -1 is "Auto"
+  textcolor   as integer     ' 0=default
+  boxstyle    as integer
+  backdrop    as integer     ' +1
+  music       as integer     ' +1
+  portrait_box  as integer
+  portrait_type as integer
+  portrait_id   as integer
+  portrait_pal  as integer
+  portrait_pos  as XYPair
+  sound_effect as integer    ' +1, 0 means none
+  stop_sound_after as integer 'bitset
 END TYPE
 
 TYPE VehicleData
-  name           AS STRING
-  speed          AS INTEGER
-  random_battles AS INTEGER
-  use_button     AS INTEGER
-  menu_button    AS INTEGER
-  riding_tag     AS INTEGER
-  on_mount       AS INTEGER
-  on_dismount    AS INTEGER
-  override_walls AS INTEGER
-  blocked_by       AS INTEGER
-  mount_from     AS INTEGER
-  dismount_to    AS INTEGER
-  elevation      AS INTEGER
+  name           as string
+  speed          as integer
+  random_battles as integer
+  use_button     as integer
+  menu_button    as integer
+  riding_tag     as integer
+  on_mount       as integer
+  on_dismount    as integer
+  override_walls as integer
+  blocked_by       as integer
+  mount_from     as integer
+  dismount_to    as integer
+  elevation      as integer
   '--bitsets
-  pass_walls     AS INTEGER
-  pass_npcs      AS INTEGER
-  enable_npc_activation AS INTEGER
-  enable_door_use       AS INTEGER
-  do_not_hide_leader    AS INTEGER
-  do_not_hide_party     AS INTEGER
-  dismount_ahead        AS INTEGER
-  pass_walls_while_dismounting AS INTEGER
-  disable_flying_shadow AS INTEGER
+  pass_walls     as integer
+  pass_npcs      as integer
+  enable_npc_activation as integer
+  enable_door_use       as integer
+  do_not_hide_leader    as integer
+  do_not_hide_party     as integer
+  dismount_ahead        as integer
+  pass_walls_while_dismounting as integer
+  disable_flying_shadow as integer
 END TYPE
 
 TYPE VehicleState
-  active    AS INTEGER 'Is mounting/in/dismounting. If this is false, the rest is garbage
-  id        AS INTEGER 'vehicle defintion id that is loaded into .dat
-  dat       AS VehicleData
-  npc       AS INTEGER 'npc reference number
-  old_speed AS INTEGER 'hero speed before mount
-  mounting  AS INTEGER '0
-  rising    AS INTEGER '1
-  falling   AS INTEGER '2
-  init_dismount AS INTEGER '3
-  trigger_cleanup AS INTEGER '4
-  ahead     AS INTEGER '5
+  active    as integer 'Is mounting/in/dismounting. If this is false, the rest is garbage
+  id        as integer 'vehicle defintion id that is loaded into .dat
+  dat       as VehicleData
+  npc       as integer 'npc reference number
+  old_speed as integer 'hero speed before mount
+  mounting  as integer '0
+  rising    as integer '1
+  falling   as integer '2
+  init_dismount as integer '3
+  trigger_cleanup as integer '4
+  ahead     as integer '5
 END TYPE
 
 TYPE PlotSprite
@@ -907,11 +908,11 @@ TYPE PlotSprite
 END TYPE
 
 TYPE SpriteSize
- name AS STRING
- size AS XYPair
- frames AS INTEGER
- genmax AS INTEGER 'Offset in gen() where max record index is stored
- genmax_offset AS INTEGER 'if gen() actually stores num instead of max, this is -1
+ name as string
+ size as XYPair
+ frames as integer
+ genmax as integer 'Offset in gen() where max record index is stored
+ genmax_offset as integer 'if gen() actually stores num instead of max, this is -1
 END TYPE
 
 TYPE DistribState
