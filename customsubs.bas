@@ -854,10 +854,12 @@ SUB ui_color_editor(palnum as integer)
    CASE 0 TO 47
     IF intgrabber(uilook(index), 0, 255) THEN
      make_ui_color_editor_menu color_menu(), uilook()
+     SaveUIColors uilook(), palnum
     END IF
    CASE 48 TO 62
     IF zintgrabber(uilook(index), -1, gen(genMaxBoxBorder)) THEN
      make_ui_color_editor_menu color_menu(), uilook()
+     SaveUIColors uilook(), palnum
     END IF
   END SELECT
 
@@ -865,6 +867,7 @@ SUB ui_color_editor(palnum as integer)
    IF keyval(scCtrl) > 0 AND keyval(scD) > 1 THEN ' Ctrl+D
     uilook(index) = default_colors(index)
     make_ui_color_editor_menu color_menu(), uilook()
+    SaveUIColors uilook(), palnum
    END IF
   END IF
 

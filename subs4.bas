@@ -908,6 +908,8 @@ DO
     SaveUIColors uilook(), palnum
   CASE 7
     gen(genMasterPal) = palnum
+    'Instant live-previewing
+    xbsave game + ".gen", gen(), 1000
     GOSUB buildmenu
   CASE 8
     activepalette = palnum

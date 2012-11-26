@@ -1331,6 +1331,15 @@ SUB try_reload_lumps_anywhere ()
   ELSEIF extn = "gen" THEN                                                '.GEN
    REDIM newgen(360) as integer
    xbload game + ".gen", newgen(), "reload lumps: .gen unreadable"
+   IF gam.current_master_palette = gen(genMasterPal) _
+       AND newgen(genMasterPal) <> gen(genMasterPal) THEN
+    gam.current_master_palette = newgen(genMasterPal)
+    loadpalette master(), gam.current_master_palette
+    setpal master()
+    LoadUIColors uilook(), gam.current_master_palette
+    'Change color of script strings
+    init_default_text_colors
+   END IF
    FOR j as integer = 0 TO UBOUND(gen)
     SELECT CASE j
      CASE 44 TO 54, 58, 60
@@ -1338,6 +1347,19 @@ SUB try_reload_lumps_anywhere ()
       gen(j) = newgen(j)
     END SELECT
    NEXT
+   'FIXME: does anything else need to be reloaded when gen() changes?
+   'Number of elements maybe?
+   handled = YES
+
+  ELSEIF modified_lumps[i] = "palettes.bin" THEN                          'PALETTES.BIN
+   loadpalette master(), gam.current_master_palette
+   setpal master()
+   handled = YES
+
+  ELSEIF modified_lumps[i] = "uicolors.bin" THEN                          'UICOLORS.BIN
+   LoadUIColors uilook(), gam.current_master_palette
+   'Change color of script strings
+   'init_default_text_colors
    handled = YES
 
   ELSEIF try_reload_gfx_lump(extn) THEN                                   '.PT#, .TIL
@@ -1363,6 +1385,10 @@ SUB try_reload_lumps_anywhere ()
    loadglobalstrings
    getstatnames statnames()
    handled = YES
+
+  ELSEIF modified_lumps[i] = "browse.txt" THEN                            'BROWSE.TXT
+   handled = YES  'ignore
+
                                                                           ''' Script stufff
 
   ELSEIF extn = "hsp" THEN                                                '.HSP
