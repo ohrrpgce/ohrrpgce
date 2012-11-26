@@ -1812,6 +1812,7 @@ SUB LoadTextBox (byref box as TextBox, byval record as integer)
   .restore_music  = xreadbit(boxbuf(), 3, 174)
   .portrait_box   = xreadbit(boxbuf(), 4, 174)
   .stop_sound_after = xreadbit(boxbuf(), 5, 174)
+  .backdrop_trans = xreadbit(boxbuf(), 6, 174)
   '--Get choicebox data
   FOR i = 0 TO 1
    .choice(i) = STRING(15, 0)
@@ -1888,7 +1889,7 @@ SUB SaveTextBox (byref box as TextBox, byval record as integer)
   setbit boxbuf(), 174, 3, .restore_music
   setbit boxbuf(), 174, 4, .portrait_box
   setbit boxbuf(), 174, 5, .stop_sound_after
-  setbit boxbuf(), 174, 6, NO 'Unused
+  setbit boxbuf(), 174, 6, .backdrop_trans
   setbit boxbuf(), 174, 7, NO 'Unused
   '--Transcribe choice text
   FOR i = 0 TO 1

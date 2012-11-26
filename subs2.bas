@@ -1154,7 +1154,7 @@ SUB textbox_position_portrait (byref box as TextBox, byref st as TextboxEditStat
 END SUB
 
 SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditState)
- DIM menu(16) as string
+ DIM menu(17) as string
  DIM state as MenuState
  state.size = 20
  state.last = UBOUND(menu)
@@ -1187,6 +1187,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
     CASE 8: box.opaque = (NOT box.opaque)
     CASE 9: box.restore_music = (NOT box.restore_music)
     CASE 16: box.stop_sound_after = (NOT box.stop_sound_after)
+    CASE 17: box.backdrop_trans = (NOT box.backdrop_trans)
     CASE 12:
      IF box.portrait_type = 1 THEN
       box.portrait_pal = pal16browse(box.portrait_pal, 8, box.portrait_id)
@@ -1204,6 +1205,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
     CASE 9: box.restore_music = (NOT box.restore_music)
     CASE 13: box.portrait_box = (NOT box.portrait_box)
     CASE 16: box.stop_sound_after = (NOT box.stop_sound_after)
+    CASE 17: box.backdrop_trans = (NOT box.backdrop_trans)
    END SELECT
    state.need_update = YES
   END IF
@@ -1282,6 +1284,7 @@ SUB update_textbox_appearance_editor_menu (menu() as string, byref box as TextBo
  menu(14) = "Position Portrait..."
  menu(15) = "Sound Effect:"
  menu(16) = "Stop sound after box:"
+ menu(17) = "Transparent backdrop:"
  DIM menutemp as string
  DIM i as integer
  FOR i as integer = 0 TO UBOUND(menu)
@@ -1332,6 +1335,12 @@ SUB update_textbox_appearance_editor_menu (menu() as string, byref box as TextBo
      menutemp = menutemp & box.sound_effect - 1 & " " & getsfxname(box.sound_effect - 1)
     END IF
    CASE 16: menutemp = yesorno(box.stop_sound_after)
+   CASE 17:
+    IF box.backdrop > 0 THEN
+     menutemp = yesorno(box.backdrop_trans)
+    ELSE
+     menutemp = "(N/A)"
+    END IF
   END SELECT
   IF LEN(menutemp) THEN menutemp = " " & menutemp
   menu(i) = menu(i) & menutemp

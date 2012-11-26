@@ -288,6 +288,7 @@ SUB gamestate_state_from_reload(byval node as Reload.NodePtr)
    gen(genSeconds) = ch."seconds"
   END READNODE
 
+  'FIXME: There is no point to restoring this with no other textbox state being saved
   gen(genTextboxBackdrop) = node."textbox"."backdrop"
 
   READNODE node."status_char" as ch, default
@@ -779,6 +780,7 @@ SUB gamestate_state_to_reload(byval parent as Reload.NodePtr)
  SetChildNode(ch, "minutes", gen(genMinutes))
  SetChildNode(ch, "seconds", gen(genSeconds))
 
+ 'FIXME: There is no point to saving this with no other textbox state being saved
  ch = SetChildNode(node, "textbox")
  SetChildNode(ch, "backdrop", gen(genTextboxBackdrop))
  

@@ -278,18 +278,18 @@ END SUB
 
 SUB update_backdrop_slice
  DIM backdrop as integer
+ DIM transparent as integer = NO
  IF gen(genTextboxBackdrop) THEN
   backdrop = gen(genTextboxBackdrop) - 1
+  transparent = txt.box.backdrop_trans
  ELSEIF gen(genScrBackdrop) THEN
   backdrop = gen(genScrBackdrop) - 1
  ELSE
-  SliceTable.MapRoot->Visible = YES
   SliceTable.Backdrop->Visible = NO
   EXIT SUB
  END IF
-  SliceTable.MapRoot->Visible = NO
  SliceTable.Backdrop->Visible = YES
- ChangeSpriteSlice SliceTable.Backdrop, sprTypeMXS, backdrop, , , , , NO
+ ChangeSpriteSlice SliceTable.Backdrop, sprTypeMXS, backdrop, , , , , transparent
  
 END SUB
 

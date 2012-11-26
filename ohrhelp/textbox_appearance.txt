@@ -54,3 +54,5 @@ Position Portrait: Position where the portrait will appear onscreen.
 Sound Effect: Choose a special sound effect to play when this text box is displayed.
 
 Stop sound after box: Have the game automatically stop the sound effect when the player proceeds past this text box.
+
+Transparent Backdrop: This only matters if the text box has a backdrop. If YES, color 0 will be transparent, and will allow the map to show through behind the backdrop.

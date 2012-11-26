@@ -852,7 +852,6 @@ TYPE TextBox
   no_box      as integer
   opaque      as integer
   restore_music as integer
-  backdrop_trans as integer
   choice(1)   as string
   choice_tag(1) as integer
   vertical_offset as integer ' in 4-pixel increments
@@ -868,6 +867,7 @@ TYPE TextBox
   portrait_pos  as XYPair
   sound_effect as integer    ' +1, 0 means none
   stop_sound_after as integer 'bitset
+  backdrop_trans as integer 'bitset
 END TYPE
 
 TYPE VehicleData
