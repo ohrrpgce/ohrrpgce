@@ -1336,7 +1336,7 @@ end function
 
 'All arguments default to no-change
 Sub ChangeSpriteSlice(byval sl as slice ptr,_
-                      byval spritetype as integer=-1,_
+                      byval spritetype as SpriteType = sprTypeInvalid,_
                       byval record as integer=-1,_
                       byval pal as integer = -2,_
                       byval frame as integer = -1,_
@@ -1347,7 +1347,7 @@ Sub ChangeSpriteSlice(byval sl as slice ptr,_
  if sl->SliceType <> slSprite then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a sprite", 5 : exit sub
  dim dat as SpriteSliceData Ptr = sl->SliceData
  with *dat
-  if spritetype >= 0 then
+  if spritetype <> sprTypeInvalid then
    .spritetype = spritetype
    .paletted = (spritetype <> sprTypeMXS)
    .loaded = NO

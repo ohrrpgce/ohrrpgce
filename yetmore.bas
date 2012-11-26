@@ -3943,7 +3943,7 @@ FUNCTION find_plotslice_handle(byval sl as Slice Ptr) as integer
 END FUNCTION
 
 'By default, no palette set
-FUNCTION load_sprite_plotslice(byval spritetype as integer, byval record as integer, byval pal as integer=-2) as integer
+FUNCTION load_sprite_plotslice(byval spritetype as SpriteType, byval record as integer, byval pal as integer=-2) as integer
  WITH sprite_sizes(spritetype)
   IF bound_arg(record, 0, gen(.genmax) + .genmax_offset, "sprite record number") THEN
    DIM sl as Slice Ptr
@@ -3956,7 +3956,7 @@ FUNCTION load_sprite_plotslice(byval spritetype as integer, byval record as inte
 END FUNCTION
 
 'By default, no palette change
-SUB replace_sprite_plotslice(byval handle as integer, byval spritetype as integer, byval record as integer, byval pal as integer=-2)
+SUB replace_sprite_plotslice(byval handle as integer, byval spritetype as SpriteType, byval record as integer, byval pal as integer=-2)
  WITH sprite_sizes(spritetype)
   IF valid_plotsprite(handle) THEN
    IF bound_arg(record, 0, gen(.genmax) + .genmax_offset, "sprite record number") THEN

@@ -206,13 +206,9 @@ Type TextSliceData
  line_count as integer 'automatically populated when the slice changes
 End Type
 
-CONST sprTypeMXS = 9   'can't change this
-CONST sprTypeLast = 9   'last sprite type selectable in slice editor
-CONST sprTypeFrame = 10  'free to change this later (never saved)
-
 'FIXME: Support for modifying sprites and flipping is pretty tacked on; generalise!
 Type SpriteSliceData
- spritetype as integer 'PT0 thru PT8, 9=MXS, 10=loaded from Frame
+ spritetype as SpriteType
  record as integer     'meaningless if spritetype is sptTypeFrame
  paletted as integer   'UNSAVED: YES: 4-bit, NO: 8-bit  (could remove this when 256-colour palettes added, or change meaning)
  pal as integer     '(UNSAVED if unpaletted) Set pal to -1 for the default. Ignored for unpaletted
@@ -374,7 +370,7 @@ DECLARE Function GetSpriteSliceData(byval sl as slice ptr) as SpriteSliceData pt
 DECLARE Sub SetSpriteToFrame(byval sl as slice ptr, byval fr as Frame ptr, byval pal as integer)
 DECLARE Function NewSpriteSlice(byval parent as Slice ptr, byref dat as SpriteSliceData) as slice ptr
 DECLARE Sub ChangeSpriteSlice(byval sl as slice ptr,_
-                      byval spritetype as integer=-1,_
+                      byval spritetype as SpriteType = sprTypeInvalid,_
                       byval record as integer=-1,_
                       byval pal as integer = -2,_
                       byval frame as integer = -1,_

@@ -4409,7 +4409,7 @@ SUB setup_sprite_sizes ()
  END WITH
 END SUB
 
-SUB load_sprite_and_pal (byref img as GraphicPair, byval spritetype as integer, byval index as integer, byval palnum as integer=-1)
+SUB load_sprite_and_pal (byref img as GraphicPair, byval spritetype as SpriteType, byval index as integer, byval palnum as integer=-1)
  unload_sprite_and_pal img
  IF spritetype = sprTypeMXS THEN
   img.sprite = loadmxs(game + ".mxs", index)

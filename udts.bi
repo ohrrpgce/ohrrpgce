@@ -80,6 +80,22 @@ TYPE Condition
   lastinput as ubyte
 END TYPE
 
+Enum SpriteType
+ sprTypeInvalid = -1
+ sprTypePT0   'Heroes
+ sprTypePT1   'Small enemies
+ sprTypePT2   'Medium enemies
+ sprTypePT3   'Large enemies
+ sprTypePT4   'Walkabouts
+ sprTypePT5   'Weapons
+ sprTypePT6   'Attacks
+ sprTypePT7   'Box borders
+ sprTypePT8   'Portraits
+ sprTypeMXS = 9   'Can't change this! Saved in .slice files
+ sprTypeLast = 9   'Last sprite type selectable in slice editor
+ sprTypeFrame = 10  'A sprite not loaded from file, but from a Frame. Free to change this later (never saved)
+End Enum
+
 'WARNING: don't add strings to this
 TYPE Palette16
 	col(15) as ubyte 'indices into the master palette
