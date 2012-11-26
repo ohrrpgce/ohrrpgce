@@ -289,7 +289,8 @@ SUB update_backdrop_slice
  END IF
   SliceTable.MapRoot->Visible = NO
  SliceTable.Backdrop->Visible = YES
- ChangeSpriteSlice SliceTable.Backdrop, sprTypeMXS, backdrop
+ ChangeSpriteSlice SliceTable.Backdrop, sprTypeMXS, backdrop, , , , , NO
+ 
 END SUB
 
 SUB cleanuptemp
