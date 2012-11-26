@@ -942,9 +942,11 @@ Sub ChangeRectangleSlice(byval sl as slice ptr,_
                       byval border as integer=-3,_
                       byval translucent as RectTransTypes=transUndef,_
                       byval fuzzfactor as integer=0)
- 'Note that style overrides border, so you should not pass style if you want to manually change border
  if sl = 0 then debug "ChangeRectangleSlice null ptr" : exit sub
  if sl->SliceType <> slRectangle then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a rectangle", 5 : exit sub
+ if style > -2 andalso border > -3 then
+  debug "WARNING: attempted to simultaneously set style and border on a rectangle slice"
+ end if
  dim dat as RectangleSliceData Ptr = sl->SliceData
  with *dat
   if bgcol >= 0 then
