@@ -1540,7 +1540,7 @@ SUB generate_gen_menu(m() as string, longname as string, aboutline as string)
 END SUB
 
 SUB gendata ()
- CONST maxMenu = 15
+ CONST maxMenu = 14
  DIM m(maxMenu) as string
  DIM min(maxMenu) as integer
  DIM max(maxMenu) as integer
@@ -1576,8 +1576,6 @@ SUB gendata ()
  index(14) = genErrorLevel
  max(14) = 6
  min(14) = 2
- max(15) = 16000
- min(15) = 999
 
  DIM aboutline as string = load_aboutline()
  DIM longname as string = load_gamename()
