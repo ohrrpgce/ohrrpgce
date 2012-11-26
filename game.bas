@@ -3284,7 +3284,7 @@ SUB init_text_box_slices(txt as TextBoxState)
  text_box = NewSliceOfType(slRectangle, txt.sl, SL_TEXTBOX_BOX)
  IF txt.box.no_box THEN
   'Invisible box (for the benefit of scripts)
-  ChangeRectangleSlice text_box, txt.box.boxstyle, , , -2, transHollow
+  ChangeRectangleSlice text_box, , , , -2, transHollow
  ELSE
   ChangeRectangleSlice text_box, txt.box.boxstyle, , , , iif(txt.box.opaque, transOpaque, transFuzzy)
  END IF
@@ -3353,7 +3353,7 @@ SUB init_text_box_slices(txt as TextBoxState)
    ChangeRectangleSlice img_box, txt.box.boxstyle, , , , transFuzzy
   ELSE
    'Invisible box
-   ChangeRectangleSlice img_box, txt.box.boxstyle, , , -2, transHollow
+   ChangeRectangleSlice img_box, , , , -2, transHollow
   END IF
   img_box->Width = 50
   img_box->Height = 50
