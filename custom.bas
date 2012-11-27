@@ -30,7 +30,7 @@
 #include "distribmenu.bi"
 
 'FIXME: add header files for these declarations
-DECLARE SUB importbmp (f as string, cap as string, count as integer)
+DECLARE SUB importbmp (f as string, cap as string, byref count as integer)
 DECLARE SUB vehicles ()
 DECLARE SUB scriptman ()
 DECLARE SUB map_picker ()

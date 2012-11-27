@@ -108,7 +108,7 @@ NEXT i
 
 END SUB
 
-SUB importbmp (f as string, cap as string, count as integer)
+SUB importbmp (f as string, cap as string, byref count as integer)
 STATIC default as string
 DIM palmapping(255) as integer
 DIM bmpd as BitmapInfoHeader
