@@ -743,7 +743,8 @@ SUB importsfx_importsfxfile(sname as string, sfxfile as string, byval snum as in
 
  IF sourcesfx = "" THEN EXIT SUB
 
- safekill sfxfile
+ 'Delete the old file. We cannot assume it will be overwritten because the extension might change
+ IF sfxfile <> "" THEN safekill sfxfile
 
  sname = a
 
@@ -778,6 +779,8 @@ SUB importsfx_get_sfx_info(sname as string, sfxfile as string, byval snum as int
  '-- first job: find the sfx's name
  DIM temp as string = workingdir & SLASH & "sfx" & snum
  DIM sfxtype as string = "NO FILE"
+ 
+ sfxfile = "" ' this will be rebuilt below
 
  IF isfile(temp & ".ogg") THEN
   file_ext = ".ogg"
