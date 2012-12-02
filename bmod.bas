@@ -82,6 +82,9 @@ DECLARE SUB decrement_attack_queue_delays(bslot() as BattleSprite)
 DECLARE SUB ready_all_valid_units(bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB active_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+DECLARE SUB do_poison(byval who as integer, bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+DECLARE SUB do_regen(byval who as integer, bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+DECLARE SUB start_next_turn (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 
 'these are the battle global variables
 DIM bstackstart as integer
@@ -918,8 +921,8 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, menubits(
 END SUB
 
 SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
- '--This advances time in turnACTIVE mode.
- 'FIXME: move poison and regen the heck out of here!
+ '--This advances time in turnACTIVE mode
+ '--it also handles active-mode poison, regen, stun and mute
  
  IF bat.away > 0 THEN EXIT SUB '--skip all this if the heroes have already run away
  
@@ -939,11 +942,7 @@ SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata a
     bslot(i).poison_repeat += large(.cur.spd, 7)
     IF bslot(i).poison_repeat >= 1500 THEN
      bslot(i).poison_repeat = 0
-     DIM harm as integer = .max.poison - .cur.poison
-     harm = range(harm, 20)
-     quickinflict harm, i, bslot()
-     triggerfade i, bslot()
-     fulldeathcheck -1, bat, bslot(), formdata
+     do_poison i, bat, bslot(), formdata
     END IF
    END IF
   END WITH
@@ -954,12 +953,7 @@ SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata a
     bslot(i).regen_repeat += large(.cur.spd, 7)
     IF bslot(i).regen_repeat >= 1500 THEN
      bslot(i).regen_repeat = 0
-     DIM heal as integer = .max.regen - .cur.regen
-     heal = heal * -1
-     heal = range(heal, 20)
-     quickinflict heal, i, bslot()
-     triggerfade i, bslot()
-     fulldeathcheck -1, bat, bslot(), formdata
+     do_regen i, bat, bslot(), formdata
     END IF
    END IF
   END WITH
@@ -990,6 +984,25 @@ SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata a
  
  decrement_attack_queue_delays bslot()
 
+END SUB
+
+SUB do_poison(byval who as integer, bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+ DIM harm as integer
+ harm = bslot(who).stat.max.poison - bslot(who).stat.cur.poison
+ harm = range(harm, 20)
+ quickinflict harm, who, bslot()
+ triggerfade who, bslot()
+ fulldeathcheck -1, bat, bslot(), formdata
+END SUB
+
+SUB do_regen(byval who as integer, bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+ DIM heal as integer
+ heal = bslot(who).stat.max.regen - bslot(who).stat.cur.regen
+ heal = heal * -1
+ heal = range(heal, 20)
+ quickinflict heal, who, bslot()
+ triggerfade who, bslot()
+ fulldeathcheck -1, bat, bslot(), formdata
 END SUB
 
 SUB decrement_attack_queue_delays(bslot() as BattleSprite)
@@ -3631,16 +3644,31 @@ SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formda
   
  '--animating/inflicting attacks
  IF pending_attacks_for_this_turn(bat) = NO THEN
-  'A new turn starts!
-  bat.turn.number += 1
-  bat.turn.choosing_attacks = YES
-  bat.next_hero = 0
-  bat.next_enemy = 4
-  ready_all_valid_units bslot(), formdata
-  debug "Turn #" & bat.turn.number
+  start_next_turn bat, bslot(), formdata
+  
  ELSE
   battle_check_delays bat, bslot()
   decrement_attack_queue_delays bslot()
  END IF
 
+END SUB
+
+SUB start_next_turn (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+  'A new turn starts! (turnTURN mode only!)
+
+  bat.turn.number += 1
+  bat.turn.choosing_attacks = YES
+
+  bat.next_hero = 0
+  bat.next_enemy = 4
+  ready_all_valid_units bslot(), formdata
+
+  FOR i as integer = 0 to 11
+   WITH bslot(i).stat
+    IF .cur.poison < .max.poison THEN do_poison i, bat, bslot(), formdata
+    IF .cur.regen < .max.regen THEN do_regen i, bat, bslot(), formdata
+   END WITH
+  NEXT i
+  
+  debug "Turn #" & bat.turn.number & " has begun!"
 END SUB
