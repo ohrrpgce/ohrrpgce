@@ -227,14 +227,26 @@ TYPE AttackAnimationPattern
  frame(10) as integer
 END TYPE
 
+CONST turnACTIVE = 0 'Take turns when asynchonous ready-meters fill
+CONST turnTURN = 1 'Everyone takes turns together
+TYPE TurnManager
+ mode as integer = turnACTIVE
+ '--stuff used by all modes
+ '--stuff used only by turnACTIVE
+ '--stuff used only by turnTURN
+ choosing_attacks as integer 'YES/NO
+ number as integer ' number of the current turn (merely debugging information)
+END TYPE
+
 'This type stores the state of the battle engine, for example,
 'who's turn it is, what each character is doing, and targetting information
 TYPE BattleState
+ turn as TurnManager
  ticks as integer      'number of ticks since the battle was initialized
  acting as integer     'Hero or enemy who is currently taking their turn to act
- hero_turn as integer  'Hero currently selecting an attack
- enemy_turn as integer 'Enemy currently selecting an attack
- next_hero as integer  'counter that controls which ready hero will get their turn next
+ hero_turn as integer  '(MOVEME) Hero currently selecting an attack
+ enemy_turn as integer '(MOVEME) Enemy currently selecting an attack
+ next_hero as integer  '(MOVEME) counter that controls which ready hero will get their turn next
  next_enemy as integer 'counter that controls which ready enemy will get their turn next
  menu_mode as integer  'batMENUHERO batMENUSPELL or batMENUITEM
  death_mode as integer 'deathNOBODY deathENEMIES deathHEROES

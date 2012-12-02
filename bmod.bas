@@ -77,6 +77,11 @@ DECLARE SUB battle_sort_away_dead_t_target(byval deadguy as integer, t() as inte
 DECLARE SUB battle_counterattacks(byval h as integer, byval targstat as integer, byval who as integer, attack as AttackData, bslot() as BattleSprite)
 DECLARE SUB show_first_battle_timer ()
 DECLARE FUNCTION has_queued_attacks(byval who as integer) as integer
+DECLARE FUNCTION pending_attacks_for_this_turn(bat as BattleState) as integer
+DECLARE SUB decrement_attack_queue_delays(bslot() as BattleSprite)
+DECLARE SUB ready_all_valid_heroes(bslot() as BattleSprite)
+DECLARE SUB active_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+DECLARE SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite)
 
 'these are the battle global variables
 DIM bstackstart as integer
@@ -130,6 +135,7 @@ FUNCTION battle (byval form as integer) as integer
    '--debug keys
    IF keyval(scF4) > 1 THEN bat.away = 11 ' Instant-cheater-running
    IF keyval(scF5) > 1 THEN bat.rew.exper = 1000000  'Million experience!
+   IF keyval(scF6) > 1 THEN bat.turn.mode XOR= 1 : debug "bat.turn.mode=" & bat.turn.mode
    IF keyval(scF11) > 1 THEN show_info_mode = loopvar(show_info_mode, 0, 2, 1)  'Draw debug info
   END IF
   IF keyval(scPause) > 1 THEN battle_pause
@@ -137,20 +143,28 @@ FUNCTION battle (byval form as integer) as integer
    battle = 0
    EXIT DO
   END IF
+  
+  '--An attack should happen, prepare its animation
   IF bat.atk.id >= 0 AND bat.anim_ready = NO AND bat.vic.state = 0 THEN
    generate_atkscript attack, bat, bslot(), bat.anim_t()
   END IF
+  
+  '--Playback the current attack animation
   IF bat.atk.id >= 0 AND bat.anim_ready = YES AND bat.vic.state = 0 AND bat.away = 0 THEN
    battle_attack_anim_playback attack, bat, bslot(), formdata
   END IF
+  
+  '--Apply more generic animation effects. These are often triggered by
+  '--battle_attack_anim_playback() but do not have
   battle_animate bat, bslot()
   
-  IF battle_time_can_pass(bat) THEN
-   battle_meters bat, bslot(), formdata
-   battle_check_delays bat, bslot()
-  END IF
-  battle_check_for_hero_turns bat, bslot()
-  battle_check_for_enemy_turns bat, bslot()
+  SELECT CASE bat.turn.mode
+  
+   CASE turnACTIVE: active_mode_state_machine bat, bslot(), formdata
+     
+   CASE turnTURN: turn_mode_state_machine bat, bslot()
+  END SELECT
+  
   IF bat.vic.state = 0 THEN
    IF bat.enemy_turn >= 0 THEN enemy_ai bat, bslot(), formdata
    IF bat.hero_turn >= 0 AND bat.targ.mode = targNONE THEN
@@ -161,25 +175,32 @@ FUNCTION battle (byval form as integer) as integer
    IF bat.hero_turn >= 0 AND bat.targ.mode > targNONE THEN battle_targetting bat, bslot()
   END IF
  
-  '--Begin display 
+  '--display the backdrop
   copypage 2, dpage
+  '--display the sprites
   draw_battle_sprites bslot()
+  '--display menus and meters
   battle_display bat, bslot(), menubits(), st()
+  
   IF bat.vic.state = vicEXITDELAY THEN bat.vic.state = vicEXIT
   IF bat.vic.state > 0 THEN show_victory bat, bslot()
+  
   IF show_info_mode = 1 THEN
    show_enemy_meters bat, bslot(), formdata
   ELSEIF show_info_mode = 2 THEN
    display_attack_queue bslot()
   END IF
+  
   IF bat.death_mode = deathENEMIES AND bat.vic.state = 0 THEN
    IF count_dissolving_enemies(bslot()) = 0 THEN trigger_victory bat, bslot()
   END IF
+  
   IF bat.vic.state = vicEXIT THEN EXIT DO 'normal victory exit
   IF bat.death_mode = deathHEROES THEN
    fatal = 1
    EXIT DO
   END IF
+  
   IF bat.alert_ticks > 0 THEN
    bat.alert_ticks -= 1
    centerfuz 160, 190, 100, 16, 3, dpage
@@ -199,6 +220,7 @@ FUNCTION battle (byval form as integer) as integer
   bat.ticks += 1
   dowait
  LOOP
+ 
  IF fatal THEN battle = 0
  battle_cleanup bat, bslot()
  evalherotags
@@ -897,8 +919,10 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, menubits(
  END IF'--end if bat.vic.state = 0
 END SUB
 
-
 SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+ '--This advances time in turnACTIVE mode.
+ 'FIXME: move poison and regen the heck out of here!
+ 
  IF bat.away > 0 THEN EXIT SUB '--skip all this if the heroes have already run away
  
  '--if a menu is up, and pause-on-menus is ON then no time passes (as long as at least one visible targetable enemy is alive)
@@ -965,10 +989,13 @@ SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata a
   NEXT i
   bat.laststun = bat.ticks
  END IF
+ 
+ decrement_attack_queue_delays bslot()
 
- '--decrement attack queue delays
+END SUB
 
- FOR i = 0 TO UBOUND(atkq)
+SUB decrement_attack_queue_delays(bslot() as BattleSprite)
+ FOR i as integer = 0 TO UBOUND(atkq)
   WITH atkq(i)
    IF .used THEN
     IF bslot(.attacker).stat.cur.stun >= bslot(.attacker).stat.max.stun THEN   
@@ -977,7 +1004,6 @@ SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata a
    END IF
   END WITH
  NEXT i
-
 END SUB
 
 SUB battle_animate(byref bat as BattleState, bslot() as BattleSprite)
@@ -3524,4 +3550,78 @@ SUB show_first_battle_timer ()
    EXIT FOR 'Only print the first timer if there are many of them
   END IF
  NEXT i
+END SUB
+
+FUNCTION pending_attacks_for_this_turn(bat as BattleState) as integer
+ 'Used by turnTURN mode
+ 
+ 'Check for a currently animating attack
+ IF bat.atk.id >= 0 THEN RETURN YES
+ 
+ 'Check for queued attacks
+ FOR i as integer = 0 TO UBOUND(atkq)
+  WITH atkq(i)
+   IF .used THEN
+    '--only blocking queued attacks are considered part of the current
+    ' turn (although it is always perfectly possible for a nonblocking
+    ' attack to happen in the current turn)
+    IF .blocking THEN RETURN YES
+   END IF
+  END WITH
+ NEXT i
+ 
+ RETURN NO
+END FUNCTION
+
+SUB ready_all_valid_heroes(bslot() as BattleSprite)
+ 'In turnTURN mode, force all valid living heroes to be ready to take their turn
+ FOR i as integer = 0 TO 3
+  IF hero(i) > 0 ANDALSO bslot(i).stat.cur.hp > 0 THEN
+   bslot(i).ready = YES
+   bslot(i).ready_meter = 1000 'Filling the ready meter only matters for visual indication
+  END IF
+ NEXT i
+END SUB
+
+SUB active_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+ IF battle_time_can_pass(bat) THEN
+  battle_meters bat, bslot(), formdata
+  battle_check_delays bat, bslot()
+ END IF
+ battle_check_for_hero_turns bat, bslot()
+ battle_check_for_enemy_turns bat, bslot()
+END SUB
+
+SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite)
+ IF bat.turn.choosing_attacks THEN
+  IF bat.hero_turn >= 0 THEN
+   'somebody already taking a turn, so wait patiently
+  ELSE
+   DO
+    IF bat.next_hero > 3 THEN
+     debug "Last hero turn done"
+     EXIT DO
+    END IF
+    IF battle_check_a_hero_turn(bat, bslot(), bat.next_hero) THEN
+     debug "Hero " & bat.hero_turn & " turn has started."
+     bat.next_hero += 1
+     EXIT DO
+    END IF
+    bat.next_hero += 1
+   LOOP
+  END IF
+ ELSE
+  '--animating/inflicting attacks
+  IF pending_attacks_for_this_turn(bat) = NO THEN
+   'A new turn starts!
+   bat.turn.number += 1
+   bat.turn.choosing_attacks = YES
+   bat.next_hero = 0
+   ready_all_valid_heroes bslot()
+   debug "Turn #" & bat.turn.number
+  ELSE
+   battle_check_delays bat, bslot()
+   decrement_attack_queue_delays bslot()
+  END IF
+ END IF
 END SUB
