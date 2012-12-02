@@ -79,9 +79,9 @@ DECLARE SUB show_first_battle_timer ()
 DECLARE FUNCTION has_queued_attacks(byval who as integer) as integer
 DECLARE FUNCTION pending_attacks_for_this_turn(bat as BattleState) as integer
 DECLARE SUB decrement_attack_queue_delays(bslot() as BattleSprite)
-DECLARE SUB ready_all_valid_heroes(bslot() as BattleSprite)
+DECLARE SUB ready_all_valid_units(bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB active_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
-DECLARE SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite)
+DECLARE SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 
 'these are the battle global variables
 DIM bstackstart as integer
@@ -159,10 +159,8 @@ FUNCTION battle (byval form as integer) as integer
   battle_animate bat, bslot()
   
   SELECT CASE bat.turn.mode
-  
    CASE turnACTIVE: active_mode_state_machine bat, bslot(), formdata
-     
-   CASE turnTURN: turn_mode_state_machine bat, bslot()
+   CASE turnTURN: turn_mode_state_machine bat, bslot(), formdata
   END SELECT
   
   IF bat.vic.state = 0 THEN
@@ -3573,12 +3571,18 @@ FUNCTION pending_attacks_for_this_turn(bat as BattleState) as integer
  RETURN NO
 END FUNCTION
 
-SUB ready_all_valid_heroes(bslot() as BattleSprite)
- 'In turnTURN mode, force all valid living heroes to be ready to take their turn
+SUB ready_all_valid_units(bslot() as BattleSprite, formdata as Formation)
+ 'In turnTURN mode, force all valid living heroes and enemies to be ready to take their turn
  FOR i as integer = 0 TO 3
   IF hero(i) > 0 ANDALSO bslot(i).stat.cur.hp > 0 THEN
    bslot(i).ready = YES
    bslot(i).ready_meter = 1000 'Filling the ready meter only matters for visual indication
+  END IF
+ NEXT i
+ FOR i as integer = 4 TO 11
+  IF formdata.slots(i - 4).id >= 0 ANDALSO bslot(i).stat.cur.hp > 0 THEN
+   bslot(i).ready = YES
+   bslot(i).ready_meter = 1000 'Filling the ready meter only to be consistent with the heroes
   END IF
  NEXT i
 END SUB
@@ -3592,36 +3596,51 @@ SUB active_mode_state_machine (bat as BattleState, bslot() as BattleSprite, form
  battle_check_for_enemy_turns bat, bslot()
 END SUB
 
-SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite)
+SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+
+ IF bat.vic.state <> 0 THEN EXIT SUB 'victory has already happened
+
+ IF bat.atk.id > 0 THEN EXIT SUB 'an attack is animating now, wait patiently.
+
+ IF bat.hero_turn >= 0 THEN EXIT SUB 'somebody already taking a turn, so wait patiently
+ IF bat.enemy_turn >= 0 THEN EXIT SUB
+
  IF bat.turn.choosing_attacks THEN
-  IF bat.hero_turn >= 0 THEN
-   'somebody already taking a turn, so wait patiently
-  ELSE
-   DO
-    IF bat.next_hero > 3 THEN
-     debug "Last hero turn done"
-     EXIT DO
-    END IF
-    IF battle_check_a_hero_turn(bat, bslot(), bat.next_hero) THEN
-     debug "Hero " & bat.hero_turn & " turn has started."
-     bat.next_hero += 1
-     EXIT DO
-    END IF
+  
+  DO WHILE bat.next_hero <= 3
+   IF battle_check_a_hero_turn(bat, bslot(), bat.next_hero) THEN
+    debug "Hero " & bat.hero_turn & " " & bslot(bat.hero_turn).name & "'s turn has started."
     bat.next_hero += 1
-   LOOP
-  END IF
- ELSE
-  '--animating/inflicting attacks
-  IF pending_attacks_for_this_turn(bat) = NO THEN
-   'A new turn starts!
-   bat.turn.number += 1
-   bat.turn.choosing_attacks = YES
-   bat.next_hero = 0
-   ready_all_valid_heroes bslot()
-   debug "Turn #" & bat.turn.number
-  ELSE
-   battle_check_delays bat, bslot()
-   decrement_attack_queue_delays bslot()
-  END IF
+    EXIT SUB
+   END IF
+   bat.next_hero += 1
+  LOOP
+  
+  DO WHILE bat.next_enemy <= 11
+   IF battle_check_an_enemy_turn(bat, bslot(), bat.next_enemy) THEN
+    debug "Enemy " & bat.enemy_turn & " " & bslot(bat.enemy_turn).name & "'s turn has started."
+    bat.next_enemy += 1
+    EXIT SUB
+   END IF
+   bat.next_enemy += 1
+  LOOP
+  
+  '--Attack selection is finished, animate this turn!
+  bat.turn.choosing_attacks = NO
  END IF
+  
+ '--animating/inflicting attacks
+ IF pending_attacks_for_this_turn(bat) = NO THEN
+  'A new turn starts!
+  bat.turn.number += 1
+  bat.turn.choosing_attacks = YES
+  bat.next_hero = 0
+  bat.next_enemy = 4
+  ready_all_valid_units bslot(), formdata
+  debug "Turn #" & bat.turn.number
+ ELSE
+  battle_check_delays bat, bslot()
+  decrement_attack_queue_delays bslot()
+ END IF
+
 END SUB
