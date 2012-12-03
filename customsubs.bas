@@ -1328,9 +1328,10 @@ SUB onetimetog(byref tagnum as integer)
  DIM onetimeusage(1000) as integer
  check_used_onetime_npcs onetimeusage()
  DIM i as integer = gen(genOneTimeNPC)
+ IF i = 0 THEN i+=1 'skip bit 1
  DO
   i += 1
-  IF i > max_onetime THEN i = 1
+  IF i > max_onetime THEN i = 2 'skip bit 1
   IF readbit(onetimeusage(), 0, i) = NO THEN EXIT DO
   IF i = gen(genOneTimeNPC) THEN
    visible_debug "All onetime usage numbers have been used up!"
@@ -4205,6 +4206,7 @@ SUB check_used_onetime_npcs(bits() as integer)
  ' bits have been used. The result is a bitset array with 0 bits for unused
  ' onetimes and 1 bits for used onetimes.
  flusharray bits()
+ setbit bits(), 0, 0, YES ' bit 1 always on to prevent it from being used
  REDIM npcdata(0) as NPCType
  FOR m as integer = 0 TO gen(genMaxMap)
   LoadNPCD maplumpname(m, "n"), npcdata()
