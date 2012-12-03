@@ -87,6 +87,7 @@ DECLARE SUB do_regen(byval who as integer, bat as BattleState, bslot() as Battle
 DECLARE SUB start_next_turn (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB calc_initiative_order (bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB apply_initiative_order (bslot() as BattleSprite)
+DECLARE SUB turn_mode_time_passage (bat as BattleState, bslot() as battleSprite)
 
 'these are the battle global variables
 DIM bstackstart as integer
@@ -160,7 +161,7 @@ FUNCTION battle (byval form as integer) as integer
   END IF
   
   '--Apply more generic animation effects. These are often triggered by
-  '--battle_attack_anim_playback() but do not have
+  '--battle_attack_anim_playback() but do not have to be
   battle_animate bat, bslot()
   
   SELECT CASE bat.turn.mode
@@ -355,7 +356,7 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
      END IF
     NEXT i
     bat.atk.id = -1
-   CASE 1 '???()
+   CASE 1 '??? Reset hero positions, I guess? FIXME: figure out when this is used
     FOR i = 0 TO 3
      formdata.slots(i).pos.x = bslot(4 + i).x
      formdata.slots(i).pos.y = bslot(4 + i).y
@@ -1021,7 +1022,7 @@ END SUB
 
 SUB battle_animate(byref bat as BattleState, bslot() as BattleSprite)
  'This sub is intended to apply animation effects triggered elsewhere.
- 'FIXME: due to messy code, some stuff animation stuff might still happen elsewhere
+ 'FIXME: due to messy code, plenty of animation stuff might still happen elsewhere
  DIM i as integer
  '--First, things that only heroes can do
  FOR i = 0 TO 3
@@ -3665,9 +3666,24 @@ SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formda
   start_next_turn bat, bslot(), formdata
  ELSE
   battle_check_delays bat, bslot()
-  decrement_attack_queue_delays bslot()
+  turn_mode_time_passage bat, bslot()
  END IF
 
+END SUB
+
+SUB turn_mode_time_passage (bat as BattleState, bslot() as battleSprite)
+
+ IF bat.atk.id >= 0 THEN EXIT SUB 'Check for a currently animating attack
+
+ IF bat.away > 0 THEN EXIT SUB 'no time if the heroes have already run away
+ 
+ DIM isenemytargs as integer = (targenemycount(bslot()) > 0)
+ IF isenemytargs THEN
+  IF bat.menu_mode > 0 THEN EXIT SUB '--no time on spell/item menus
+  IF bat.menu_mode >= 0 AND bat.hero_turn >= 0 THEN EXIT SUB '--no time if hero menu is open
+ END IF
+
+ decrement_attack_queue_delays bslot()
 END SUB
 
 SUB start_next_turn (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
@@ -3734,7 +3750,12 @@ SUB calc_initiative_order (bslot() as BattleSprite, formdata as Formation)
  FOR i as integer = 0 TO 11-1
   IF speeds(order(i)) >= 0 ANDALSO speeds(order(i)) = speeds(order(i+1)) THEN
    debug "Flipping coin for " & bslot(order(i)).name & " " & order(i) & " and " & bslot(order(i+1)).name & " " & order(i+1)
-   IF randint(100) < 50 THEN SWAP order(i), order(i+1)
+   IF randint(100) < 50 THEN
+    SWAP order(i), order(i+1)
+    debug "  Heads! (swap)"
+   ELSE
+    debug "  Tails! (do nothing)"
+   END IF
   END IF
  NEXT i
  
