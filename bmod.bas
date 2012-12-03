@@ -85,6 +85,7 @@ DECLARE SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite
 DECLARE SUB do_poison(byval who as integer, bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB do_regen(byval who as integer, bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB start_next_turn (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+DECLARE SUB calc_initiative_order (bslot() as BattleSprite, formdata as Formation)
 
 'these are the battle global variables
 DIM bstackstart as integer
@@ -3651,7 +3652,7 @@ SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formda
     .cur.stun = small(.cur.stun + 1, .max.stun)
    END WITH
   NEXT i
-  
+    
   '--Attack selection is finished, animate this turn!
   bat.turn.choosing_attacks = NO
  END IF
@@ -3688,6 +3689,48 @@ SUB start_next_turn (bat as BattleState, bslot() as BattleSprite, formdata as Fo
     END IF
    END WITH
   NEXT i
+
+  '--figure out initiative_order based on speed
+  calc_initiative_order bslot(), formdata
   
   debug "Turn #" & bat.turn.number & " has begun!"
+END SUB
+
+SUB calc_initiative_order (bslot() as BattleSprite, formdata as Formation)
+ '--Only used for turnTURN mode
+ 
+ '--first clear old initiative
+ FOR i as integer = 0 to 11
+  bslot(i).initiative_order = 0
+ NEXT i
+ 
+ DIM speeds(11) as integer
+ FOR i as integer = 0 to 11
+  IF is_hero(i) THEN
+   IF NOT (hero(i) > 0 ANDALSO bslot(i).stat.cur.hp > 0) THEN
+    speeds(i) = -1
+    CONTINUE FOR
+   END IF
+  END IF
+  IF is_enemy(i) THEN
+   IF NOT (formdata.slots(i - 4).id >= 0 ANDALSO bslot(i).stat.cur.hp > 0) THEN
+    speeds(i) = -1
+    CONTINUE FOR
+   END IF
+  END IF
+  speeds(i) = bslot(i).stat.cur.spd
+  debug bslot(i).name & " speed = " & speeds(i)
+ NEXT i
+ 
+ DIM order(11) as integer
+ sort_integers_indices order(), @speeds(0)
+ 
+ DIM j as integer = 0
+ FOR i as integer = 11 TO 0 STEP -1
+  IF speeds(order(i)) = -1 THEN EXIT FOR
+  bslot(order(i)).initiative_order = j
+  debug "Initiative " & j & " " & bslot(order(i)).name
+  j += 1
+ NEXT i
+
 END SUB
