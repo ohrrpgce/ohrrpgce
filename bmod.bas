@@ -3704,6 +3704,7 @@ SUB calc_initiative_order (bslot() as BattleSprite, formdata as Formation)
   bslot(i).initiative_order = 0
  NEXT i
  
+ '--Copy speeds into a temporary integer array
  DIM speeds(11) as integer
  FOR i as integer = 0 to 11
   IF is_hero(i) THEN
@@ -3722,8 +3723,17 @@ SUB calc_initiative_order (bslot() as BattleSprite, formdata as Formation)
   debug bslot(i).name & " speed = " & speeds(i)
  NEXT i
  
+ '--Sort indexes by speed
  DIM order(11) as integer
  sort_integers_indices order(), @speeds(0)
+ 
+ '--Randomize order when speed is a tie.
+ FOR i as integer = 0 TO 11-1
+  IF speeds(order(i)) >= 0 ANDALSO speeds(order(i)) = speeds(order(i+1)) THEN
+   debug "Flipping coin for " & bslot(order(i)).name & " " & order(i) & " and " & bslot(order(i+1)).name & " " & order(i+1)
+   IF randint(100) < 50 THEN SWAP order(i), order(i+1)
+  END IF
+ NEXT i
  
  DIM j as integer = 0
  FOR i as integer = 11 TO 0 STEP -1
