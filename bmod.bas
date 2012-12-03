@@ -77,7 +77,7 @@ DECLARE SUB battle_sort_away_dead_t_target(byval deadguy as integer, t() as inte
 DECLARE SUB battle_counterattacks(byval h as integer, byval targstat as integer, byval who as integer, attack as AttackData, bslot() as BattleSprite)
 DECLARE SUB show_first_battle_timer ()
 DECLARE FUNCTION has_queued_attacks(byval who as integer) as integer
-DECLARE FUNCTION pending_attacks_for_this_turn(bat as BattleState) as integer
+DECLARE FUNCTION pending_attacks_for_this_turn(bat as BattleState, bslot() as BattleSprite) as integer
 DECLARE SUB decrement_attack_queue_delays(bslot() as BattleSprite)
 DECLARE SUB ready_all_valid_units(bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB active_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
@@ -3563,7 +3563,7 @@ SUB show_first_battle_timer ()
  NEXT i
 END SUB
 
-FUNCTION pending_attacks_for_this_turn(bat as BattleState) as integer
+FUNCTION pending_attacks_for_this_turn(bat as BattleState, bslot() as BattleSprite) as integer
  'Used by turnTURN mode
  
  'Check for a currently animating attack
@@ -3573,6 +3573,12 @@ FUNCTION pending_attacks_for_this_turn(bat as BattleState) as integer
  FOR i as integer = 0 TO UBOUND(atkq)
   WITH atkq(i)
    IF .used THEN
+    '--queued attacks for stunned attackers don't count.
+    IF .attacker >= 0 THEN
+     WITH bslot(.attacker)
+      IF .stat.cur.stun < .stat.max.stun THEN CONTINUE FOR
+     END WITH
+    END IF
     '--only blocking queued attacks are considered part of the current
     ' turn (although it is always perfectly possible for a nonblocking
     ' attack to happen in the current turn)
@@ -3638,14 +3644,21 @@ SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formda
    bat.next_enemy += 1
   LOOP
   
+  '--All attacks are chosen, update stun and mute.
+  FOR i as integer = 0 to 11
+   WITH bslot(i).stat
+    .cur.mute = small(.cur.mute + 1, .max.mute)
+    .cur.stun = small(.cur.stun + 1, .max.stun)
+   END WITH
+  NEXT i
+  
   '--Attack selection is finished, animate this turn!
   bat.turn.choosing_attacks = NO
  END IF
   
  '--animating/inflicting attacks
- IF pending_attacks_for_this_turn(bat) = NO THEN
+ IF pending_attacks_for_this_turn(bat, bslot()) = NO THEN
   start_next_turn bat, bslot(), formdata
-  
  ELSE
   battle_check_delays bat, bslot()
   decrement_attack_queue_delays bslot()
@@ -3655,7 +3668,7 @@ END SUB
 
 SUB start_next_turn (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
   'A new turn starts! (turnTURN mode only!)
-
+  
   bat.turn.number += 1
   bat.turn.choosing_attacks = YES
 
@@ -3663,10 +3676,16 @@ SUB start_next_turn (bat as BattleState, bslot() as BattleSprite, formdata as Fo
   bat.next_enemy = 4
   ready_all_valid_units bslot(), formdata
 
+  '--update poison and regen
   FOR i as integer = 0 to 11
    WITH bslot(i).stat
     IF .cur.poison < .max.poison THEN do_poison i, bat, bslot(), formdata
     IF .cur.regen < .max.regen THEN do_regen i, bat, bslot(), formdata
+    IF .cur.stun < .max.stun THEN
+     '--note that stun and mute are updated after the attacks are chosen
+     bslot(i).ready = NO
+     bslot(i).ready_meter = 0 '--cosmetic
+    END IF
    END WITH
   NEXT i
   
