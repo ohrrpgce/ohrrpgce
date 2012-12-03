@@ -86,6 +86,7 @@ DECLARE SUB do_poison(byval who as integer, bat as BattleState, bslot() as Battl
 DECLARE SUB do_regen(byval who as integer, bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB start_next_turn (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB calc_initiative_order (bslot() as BattleSprite, formdata as Formation)
+DECLARE SUB apply_initiative_order (bslot() as BattleSprite)
 
 'these are the battle global variables
 DIM bstackstart as integer
@@ -3629,7 +3630,7 @@ SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formda
   
   DO WHILE bat.next_hero <= 3
    IF battle_check_a_hero_turn(bat, bslot(), bat.next_hero) THEN
-    debug "Hero " & bat.hero_turn & " " & bslot(bat.hero_turn).name & "'s turn has started."
+    debug "Hero " & bat.hero_turn & " " & bslot(bat.hero_turn).name & " is picking attack"
     bat.next_hero += 1
     EXIT SUB
    END IF
@@ -3638,7 +3639,7 @@ SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formda
   
   DO WHILE bat.next_enemy <= 11
    IF battle_check_an_enemy_turn(bat, bslot(), bat.next_enemy) THEN
-    debug "Enemy " & bat.enemy_turn & " " & bslot(bat.enemy_turn).name & "'s turn has started."
+    debug "Enemy " & bat.enemy_turn & " " & bslot(bat.enemy_turn).name & " is picking attack"
     bat.next_enemy += 1
     EXIT SUB
    END IF
@@ -3652,7 +3653,9 @@ SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formda
     .cur.stun = small(.cur.stun + 1, .max.stun)
    END WITH
   NEXT i
-    
+  
+  apply_initiative_order bslot()
+  
   '--Attack selection is finished, animate this turn!
   bat.turn.choosing_attacks = NO
  END IF
@@ -3743,4 +3746,19 @@ SUB calc_initiative_order (bslot() as BattleSprite, formdata as Formation)
   j += 1
  NEXT i
 
+END SUB
+
+SUB apply_initiative_order (bslot() as BattleSprite)
+ FOR i as integer = 0 to 11
+  '--For each living hero and enemy...
+  IF bslot(i).stat.cur.hp > 0 THEN
+   '--For each blocking attack in the queue for this hero or enemy
+   FOR j as integer = 0 to UBOUND(atkq)
+    IF atkq(j).used ANDALSO atkq(j).attacker = i ANDALSO atkq(j).blocking THEN
+     debug "Applying initiative: adjust " & bslot(i).name & "'s attack " & atkq(j).attack & " delay " & atkq(j).delay & "+" & bslot(i).initiative_order
+     atkq(j).delay += bslot(i).initiative_order
+    END IF
+   NEXT j
+  END IF
+ NEXT i
 END SUB
