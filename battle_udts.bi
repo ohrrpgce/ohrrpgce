@@ -238,6 +238,7 @@ TYPE TurnManager
  '--stuff used only by turnTURN
  choosing_attacks as integer 'YES/NO
  number as integer ' number of the current turn (merely debugging information)
+ reverse as integer 'YES/NO
 END TYPE
 
 'This type stores the state of the battle engine, for example,

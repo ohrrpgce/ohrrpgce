@@ -88,6 +88,8 @@ DECLARE SUB start_next_turn (bat as BattleState, bslot() as BattleSprite, formda
 DECLARE SUB calc_initiative_order (bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB apply_initiative_order (bslot() as BattleSprite)
 DECLARE SUB turn_mode_time_passage (bat as BattleState, bslot() as battleSprite)
+DECLARE FUNCTION hero_can_take_a_turn (byval who as integer, bat as BattleState, bslot() as BattleSprite) as integer
+DECLARE SUB cancel_blocking_attacks_for_hero_or_enemy(byval who as integer)
 
 'these are the battle global variables
 DIM bstackstart as integer
@@ -2218,8 +2220,13 @@ SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, menubits() as i
  
  IF carray(ccMenu) > 1 THEN
   '--skip turn
+  debug "Requested to cancel picking attacks"
   bat.next_hero = bat.hero_turn
   bat.hero_turn = -1
+  IF bat.turn.mode = turnTURN THEN
+   '--wait mode switches into reverse
+   bat.turn.reverse = YES
+  END IF
   'Don't loop the sound effect while holding down Menu to allow time to pass
   IF carray(ccMenu) AND 4 THEN menusound gen(genCancelSFX)
   EXIT SUB
@@ -3397,8 +3404,15 @@ SUB battle_check_for_hero_turns(byref bat as BattleState, bslot() as BattleSprit
  NEXT i
 END SUB
 
+FUNCTION hero_can_take_a_turn (byval who as integer, bat as BattleState, bslot() as BattleSprite) as integer
+ IF bslot(who).ready = NO THEN RETURN NO
+ IF bslot(who).stat.cur.hp <= 0 THEN RETURN NO
+ IF bat.death_mode <> deathNOBODY THEN RETURN NO
+ RETURN YES
+END FUNCTION
+
 FUNCTION battle_check_a_hero_turn(byref bat as BattleState, bslot() as BattleSprite, byval index as integer) as integer
- IF bslot(index).ready = YES AND bslot(index).stat.cur.hp > 0 AND bat.death_mode = deathNOBODY THEN
+ IF hero_can_take_a_turn(index, bat, bslot()) THEN
   bat.hero_turn = index
   bat.pt = 0
   bat.menu_mode = batMENUHERO
@@ -3633,6 +3647,24 @@ SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formda
 
  IF bat.turn.choosing_attacks THEN
   
+  IF bat.turn.reverse THEN
+   debug "Reverse! bat.next_hero=" & bat.next_hero
+   DO
+    bat.next_hero = large(0, bat.next_hero - 1)
+    WITH bslot(bat.next_hero)
+     IF .stat.cur.hp >= 0 THEN
+      cancel_blocking_attacks_for_hero_or_enemy bat.next_hero
+      bslot(bat.next_hero).ready = YES
+      bslot(bat.next_hero).ready_meter = 1000
+      EXIT DO
+     END IF
+    END WITH
+    IF bat.next_hero = 0 THEN EXIT DO
+   LOOP
+   debug "  END LOOP bat.next_hero=" & bat.next_hero
+   bat.turn.reverse = NO
+  END IF
+  
   DO WHILE bat.next_hero <= 3
    IF battle_check_a_hero_turn(bat, bslot(), bat.next_hero) THEN
     debug "Hero " & bat.hero_turn & " " & bslot(bat.hero_turn).name & " is picking attack"
@@ -3785,5 +3817,15 @@ SUB apply_initiative_order (bslot() as BattleSprite)
     END IF
    NEXT j
   END IF
+ NEXT i
+END SUB
+
+SUB cancel_blocking_attacks_for_hero_or_enemy(byval who as integer)
+ FOR i as integer = 0 TO UBOUND(atkq)
+  WITH atkq(i)
+   IF .used ANDALSO .attacker = who ANDALSO .blocking THEN
+    clear_attack_queue_slot i
+   END IF
+  END WITH
  NEXT i
 END SUB
