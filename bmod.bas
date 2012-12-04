@@ -3652,7 +3652,7 @@ SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formda
    DO
     bat.next_hero = large(0, bat.next_hero - 1)
     WITH bslot(bat.next_hero)
-     IF .stat.cur.hp >= 0 THEN
+     IF .stat.cur.hp >= 0 ANDALSO .stat.cur.stun >= .stat.max.stun THEN
       cancel_blocking_attacks_for_hero_or_enemy bat.next_hero
       bslot(bat.next_hero).ready = YES
       bslot(bat.next_hero).ready_meter = 1000
