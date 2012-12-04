@@ -3304,7 +3304,9 @@ FUNCTION battle_run_away(byref bat as BattleState, bslot() as BattleSprite) as i
  '--this function is called every tick of battle. It returns YES if
  '-- a successful run has completed, thus ending battle.
  
- battle_crappy_run_handler bat, bslot()
+ IF bat.turn.mode = turnACTIVE THEN
+  battle_crappy_run_handler bat, bslot()
+ END IF
  
  '--bat.away will be set to a positive number if running has succeeded
  IF bat.away > 0 THEN
