@@ -3621,6 +3621,7 @@ END SUB
 SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 
  IF bat.vic.state <> 0 THEN EXIT SUB 'victory has already happened
+ IF bat.death_mode <> deathNOBODY THEN EXIT SUB 'Death animation is happening
 
  IF bat.atk.id > 0 THEN EXIT SUB 'an attack is animating now, wait patiently.
 
