@@ -3335,6 +3335,7 @@ SUB battle_animate_running_away (bslot() as BattleSprite)
 END SUB
 
 SUB battle_check_delays(byref bat as BattleState, bslot() as BattleSprite)
+ IF bat.atk.id >= 0 THEN EXIT SUB 'this check is redundant in active mode, but needed in wait mode
  '--check the attack queue delays
  FOR i as integer = 0 TO UBOUND(atkq)
   WITH atkq(i)
