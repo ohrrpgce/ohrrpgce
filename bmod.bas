@@ -779,6 +779,11 @@ SUB battle_confirm_target(byref bat as BattleState, bslot() as BattleSprite)
  NEXT i
  queue_attack bslot(bat.hero_turn).attack - 1, bat.hero_turn, t()
  bslot(bat.hero_turn).attack = 0
+
+ IF bat.turn.mode = turnACTIVE THEN
+  bslot(bat.hero_turn).active_turn_num += 1
+  debug "Hero " & bat.hero_turn & " " & bslot(bat.hero_turn).name & " turn #" & bslot(bat.hero_turn).active_turn_num
+ END IF
  
  bslot(bat.hero_turn).ready_meter = 0
  bslot(bat.hero_turn).ready = NO
@@ -2202,6 +2207,11 @@ SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as For
  LOOP
 
  autotarget bat.enemy_turn, atk, bslot()
+
+ IF bat.turn.mode = turnACTIVE THEN
+  bslot(bat.enemy_turn).active_turn_num += 1
+  debug "Enemy " & bat.enemy_turn & " " & bslot(bat.enemy_turn).name & " turn #" & bslot(bat.enemy_turn).active_turn_num
+ END IF
 
  'ready for next attack
  bslot(bat.enemy_turn).ready = NO

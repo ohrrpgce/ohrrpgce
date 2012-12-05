@@ -96,6 +96,8 @@ TYPE BattleSprite
   hand(1) as XYPair ' For weapons = handle pos. For heroes, intended as hand position but not used yet
   '--used only for turnTURN mode
   initiative_order as integer
+  '--used only for turnACTIVE mode
+  active_turn_num as integer
   '--affliction state
   poison_repeat as integer
   regen_repeat as integer
