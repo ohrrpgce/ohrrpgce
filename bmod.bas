@@ -74,7 +74,7 @@ DECLARE FUNCTION battle_check_an_enemy_turn(byref bat as BattleState, bslot() as
 DECLARE SUB battle_attack_cancel_target_attack(byval targ as integer, byref bat as BattleState, bslot() as BattleSprite, byref attack as AttackData)
 DECLARE SUB battle_reevaluate_dead_targets (byval deadguy as integer, byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB battle_sort_away_dead_t_target(byval deadguy as integer, t() as integer)
-DECLARE SUB battle_counterattacks(byval h as integer, byval targstat as integer, byval who as integer, attack as AttackData, bslot() as BattleSprite)
+DECLARE SUB battle_counterattacks(bat as BattleState, byval h as integer, byval targstat as integer, byval who as integer, attack as AttackData, bslot() as BattleSprite)
 DECLARE SUB show_first_battle_timer ()
 DECLARE FUNCTION has_queued_attacks(byval who as integer) as integer
 DECLARE FUNCTION pending_attacks_for_this_turn(bat as BattleState, bslot() as BattleSprite) as integer
@@ -554,7 +554,7 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
   bslot(targ).dissolve = 0
  END IF
  IF is_enemy(targ) AND attack.no_spawn_on_attack = NO THEN battle_spawn_on_hit targ, bat, bslot(), formdata
- battle_counterattacks h, targstat, targ, attack, bslot()
+ battle_counterattacks bat, h, targstat, targ, attack, bslot()
  IF bat.atk.has_consumed_costs = NO THEN
   '--if the attack costs MP, we want to actually consume MP
   IF attack.mp_cost > 0 THEN bslot(bat.acting).stat.cur.mp = large(bslot(bat.acting).stat.cur.mp - focuscost(attack.mp_cost, bslot(bat.acting).stat.cur.foc), 0)
@@ -3560,13 +3560,15 @@ SUB battle_sort_away_dead_t_target(byval deadguy as integer, t() as integer)
  IF t(UBOUND(t)) = deadguy THEN t(UBOUND(t)) = -1
 END SUB
 
-SUB battle_counterattacks(byval h as integer, byval targstat as integer, byval who as integer, attack as AttackData, bslot() as BattleSprite)
+SUB battle_counterattacks(bat as BattleState, byval h as integer, byval targstat as integer, byval who as integer, attack as AttackData, bslot() as BattleSprite)
+ DIM blocking as integer = NO
+ 'counterattacks are forced non-blocking for active-mode
+ IF bat.turn.mode = turnTURN THEN blocking = YES 'But in turn-based mode, they are blocking
  '--first elementals
  FOR i as integer = 0 TO gen(genNumElements) - 1
   IF attack.elemental_damage(i) THEN
    IF bslot(who).elem_counter_attack(i) > 0 THEN
-    'counterattacks are forced non-blocking
-    autotarget who, bslot(who).elem_counter_attack(i) - 1, bslot(), YES, NO
+    autotarget who, bslot(who).elem_counter_attack(i) - 1, bslot(), YES, blocking
     EXIT SUB '-- only one counterattack per trigger attack
    END IF
   END IF
@@ -3576,7 +3578,7 @@ SUB battle_counterattacks(byval h as integer, byval targstat as integer, byval w
   IF h > 0 AND targstat = i THEN
    IF bslot(who).stat_counter_attack(i) > 0 THEN
     'counterattacks are forced non-blocking
-    autotarget who, bslot(who).stat_counter_attack(i) - 1, bslot(), YES, NO
+    autotarget who, bslot(who).stat_counter_attack(i) - 1, bslot(), YES, blocking
     EXIT SUB '-- only one counterattack per trigger attack
    END IF
   END IF
