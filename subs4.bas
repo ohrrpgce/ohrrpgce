@@ -1171,25 +1171,31 @@ SUB generate_battlesystem_menu(menu() as string)
  menu(1) = "Stat Caps..."
  menu(2) = "Hero Elemental Resistance Calculation..."
 
- menu(4) = "Number of Elements: " & gen(genNumElements)
- menu(5) = "Poison Indicator: " & gen(genPoison) & " " & CHR(gen(genPoison))
- menu(6) = "Stun Indicator: " & gen(genStun) & " " & CHR(gen(genStun))
- menu(7) = "Mute Indicator: " & gen(genMute) & " " & CHR(gen(genMute))
- menu(8) = "Default Enemy Dissolve: " & dissolve_type_caption(gen(genEnemyDissolve))
- menu(9) = "Damage Display Time: " & gen(genDamageDisplayTicks) & " ticks (" & seconds_estimate(gen(genDamageDisplayTicks)) & " sec)"
- menu(10) = "Damage Display Rises: " & gen(genDamageDisplayRise) & " pixels"
- menu(11) = "Experience given to heroes..."
- menu(12) = " ...swapped-out and unlocked: " & gen(genUnlockedReserveXP) & "%"
- menu(13) = " ...swapped-out and locked: " & gen(genLockedReserveXP) & "%"
- menu(14) = "Hero Weak state below: " & gen(genHeroWeakHP) & "% " & statnames(statHP)
- menu(15) = "Enemy Weak state below: " & gen(genEnemyWeakHP) & "% " & statnames(statHP)
- menu(17) = "View Experience Chart..."
+ menu(4) = "Battle Mode: "
+ IF gen(genBattleMode) = 0 THEN
+  menu(4) &= "Active-time"
+ ELSE
+  menu(4) &= "Turn-based [EXPERIMENTAL!]"
+ END IF
+ menu(5) = "Number of Elements: " & gen(genNumElements)
+ menu(6) = "Poison Indicator: " & gen(genPoison) & " " & CHR(gen(genPoison))
+ menu(7) = "Stun Indicator: " & gen(genStun) & " " & CHR(gen(genStun))
+ menu(8) = "Mute Indicator: " & gen(genMute) & " " & CHR(gen(genMute))
+ menu(9) = "Default Enemy Dissolve: " & dissolve_type_caption(gen(genEnemyDissolve))
+ menu(10) = "Damage Display Time: " & gen(genDamageDisplayTicks) & " ticks (" & seconds_estimate(gen(genDamageDisplayTicks)) & " sec)"
+ menu(11) = "Damage Display Rises: " & gen(genDamageDisplayRise) & " pixels"
+ menu(12) = "Experience given to heroes..."
+ menu(13) = " ...swapped-out and unlocked: " & gen(genUnlockedReserveXP) & "%"
+ menu(14) = " ...swapped-out and locked: " & gen(genLockedReserveXP) & "%"
+ menu(15) = "Hero Weak state below: " & gen(genHeroWeakHP) & "% " & statnames(statHP)
+ menu(16) = "Enemy Weak state below: " & gen(genEnemyWeakHP) & "% " & statnames(statHP)
+ menu(18) = "View Experience Chart..."
  '--Disabled because it is not ready yet
- 'menu(18) = "Stat Growth Options..."
+ 'menu(19) = "Stat Growth Options..."
 END SUB
 
 SUB battleoptionsmenu ()
- CONST maxMenu = 17
+ CONST maxMenu = 18
  DIM menu(maxMenu) as string
  DIM min(maxMenu) as integer
  DIM max(maxMenu) as integer
@@ -1207,37 +1213,45 @@ SUB battleoptionsmenu ()
  IF gen(genStun) <= 0 THEN gen(genStun) = 159
  IF gen(genMute) <= 0 THEN gen(genMute) = 163
  
+ IF gen(genBattleMode) < 0 ORELSE gen(genBattleMode) > 1 THEN
+  debug "WARNING: invalid gen(genBattleMode) " & gen(genBattleMode) & " resorting to active mode"
+  gen(genBattleMode) = 0
+ END IF
+ 
  flusharray enabled(), UBOUND(enabled), YES
  enabled(3) = NO
- enabled(11) = NO
- enabled(16) = NO
- index(4) = genNumElements
- min(4) = 1
- max(4) = 64
- index(5) = genPoison
- index(6) = genStun
- index(7) = genMute
- FOR i as integer = 5 TO 7
+ enabled(12) = NO
+ enabled(17) = NO
+ index(4) = genBattleMode
+ min(4) = 0
+ max(4) = 1
+ index(5) = genNumElements
+ min(5) = 1
+ max(5) = 64
+ index(6) = genPoison
+ index(7) = genStun
+ index(8) = genMute
+ FOR i as integer = 6 TO 8
   min(i) = 32
   max(i) = 255
  NEXT
- index(8) = genEnemyDissolve
- max(8) = dissolveTypeMax
- index(9) = genDamageDisplayTicks
- max(9) = 1000
- index(10) = genDamageDisplayRise
+ index(9) = genEnemyDissolve
+ max(9) = dissolveTypeMax
+ index(10) = genDamageDisplayTicks
  max(10) = 1000
- min(10) = -1000
- index(12) = genUnlockedReserveXP
- max(12) = 1000
- index(13) = genLockedReserveXP
+ index(11) = genDamageDisplayRise
+ max(11) = 1000
+ min(11) = -1000
+ index(13) = genUnlockedReserveXP
  max(13) = 1000
- min(14) = 1
- max(14) = 100
- index(14) = genHeroWeakHP
+ index(14) = genLockedReserveXP
+ max(14) = 1000
  min(15) = 1
  max(15) = 100
- index(15) = genEnemyWeakHP
+ index(15) = genHeroWeakHP
+ min(16) = 1
+ max(16) = 100
+ index(16) = genEnemyWeakHP
 
  setkeys
  DO
@@ -1251,8 +1265,8 @@ SUB battleoptionsmenu ()
    IF state.pt = 0 THEN EXIT DO
    IF state.pt = 1 THEN statcapsmenu
    IF state.pt = 2 THEN equipmergemenu
-   IF state.pt = 17 THEN experience_chart
-   'IF state.pt = 18 THEN stat_growth_chart
+   IF state.pt = 18 THEN experience_chart
+   'IF state.pt = 19 THEN stat_growth_chart
 
    IF min(state.pt) = 32 AND max(state.pt) = 255 THEN  'Character field
     DIM d as string = charpicker

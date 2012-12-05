@@ -97,7 +97,7 @@ REDIM learnmask(245) as integer '6 shorts of bits per hero
 
 FUNCTION battle (byval form as integer) as integer
  battle = 1 'default return value
-
+ 
  DIM formdata as Formation
  DIM attack as AttackData
  DIM st(3) as HeroDef
@@ -107,6 +107,16 @@ FUNCTION battle (byval form as integer) as integer
  clear_attack_queue()
  DIM bslot(24) as BattleSprite
  DIM show_info_mode as integer = 0
+
+ SELECT CASE gen(genBattleMode)
+  CASE 0:
+   bat.turn.mode = turnACTIVE
+  CASE 1:
+   bat.turn.mode = turnTURN
+  CASE ELSE:
+   debug "WARNING: invalid gen(genBattleMode) " & gen(genBattleMode) & " resorting to turnACTIVE"
+   bat.turn.mode = turnACTIVE
+ END SELECT
 
  '--lastformation is a global
  lastformation = form
