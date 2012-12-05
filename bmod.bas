@@ -3600,6 +3600,8 @@ FUNCTION pending_attacks_for_this_turn(bat as BattleState, bslot() as BattleSpri
  
  'Check for a currently animating attack
  IF bat.atk.id >= 0 THEN RETURN YES
+
+ IF bat.caption_time > 0 THEN RETURN YES 'Check for attack captions
  
  'Check for queued attacks
  FOR i as integer = 0 TO UBOUND(atkq)
@@ -3722,6 +3724,8 @@ END SUB
 SUB turn_mode_time_passage (bat as BattleState, bslot() as battleSprite)
 
  IF bat.atk.id >= 0 THEN EXIT SUB 'Check for a currently animating attack
+
+ IF bat.caption_time > 0 THEN EXIT SUB 'Check for attack captions
 
  IF bat.away > 0 THEN EXIT SUB 'no time if the heroes have already run away
  
