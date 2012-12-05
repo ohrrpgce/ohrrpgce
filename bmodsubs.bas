@@ -1595,6 +1595,7 @@ SUB loadfoe (byval slot as integer, formdata as Formation, byref bat as BattleSt
     .thankvengemask(i) = NO
    NEXT i
    .bequesting = NO
+   .active_turn_num = 0
   END WITH
   setup_non_volitile_enemy_state slot, bslot()
   
