@@ -57,6 +57,7 @@ DECLARE SUB orphan_hero_slices()
 DECLARE SUB reparent_npc_slices()
 DECLARE SUB orphan_npc_slices()
 DECLARE FUNCTION seek_rpg_or_rpgdir_and_play_it(where as string, gamename as string) as integer
+DECLARE SUB misc_debug_menu()
 
 REMEMBERSTATE
 
@@ -749,8 +750,7 @@ DO
    IF keyval(scF1) > 1 AND txt.showing = NO THEN minimap catx(0), caty(0)
    IF keyval(scF4) > 1 THEN gam.debug_showtags = NOT gam.debug_showtags : scrwatch = 0
    IF keyval(scF5) > 1 THEN live_preview_menu
-   IF keyval(scF8) > 1 THEN patcharray gen(), "gen"
-   IF keyval(scF9) > 1 THEN patcharray gmap(), "gmap"
+   IF keyval(scF8) > 1 THEN misc_debug_menu
    IF keyval(scF10) > 1 THEN scrwatch = loopvar(scrwatch, 0, 2, 1): gam.debug_showtags = NO
    IF keyval(scF11) > 1 THEN gam.walk_through_walls = NOT gam.walk_through_walls
   END IF
@@ -3891,3 +3891,19 @@ FUNCTION seek_rpg_or_rpgdir_and_play_it(where as string, gamename as string) as 
  RETURN NO
 END FUNCTION
 
+SUB misc_debug_menu()
+ STATIC default as integer = 0
+ DIM menu(2) as string
+ menu(0) = "View/Edit Slice Tree"
+ menu(1) = "Manipulate gen() array"
+ menu(2) = "Manipulate gmap() array"
+ DIM result as integer
+ result = multichoice("Misc. Debug", menu(), default, , "game_misc_debug")
+ IF result = -1 THEN EXIT SUB
+ default = result
+ SELECT CASE result
+  CASE 0: slice_editor SliceTable.Root
+  CASE 1: patcharray gen(), "gen"
+  CASE 2: patcharray gmap(), "gmap"
+ END SELECT
+END SUB
