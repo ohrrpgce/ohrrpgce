@@ -3895,8 +3895,8 @@ END FUNCTION
 SUB misc_debug_menu()
  STATIC default as integer = 0
  DIM menu(3) as string
- menu(0) = "View/Edit Slice Tree"
- menu(1) = "Test Battles"
+ menu(0) = "Test Battles"
+ menu(1) = "View/Edit Slice Tree"
  menu(2) = "Manipulate gen() array"
  menu(3) = "Manipulate gmap() array"
  DIM result as integer
@@ -3904,8 +3904,8 @@ SUB misc_debug_menu()
  IF result = -1 THEN EXIT SUB
  default = result
  SELECT CASE result
-  CASE 0: slice_editor SliceTable.Root
-  CASE 1: battle_formation_testing_menu
+  CASE 0: battle_formation_testing_menu
+  CASE 1: slice_editor SliceTable.Root
   CASE 2: patcharray gen(), "gen"
   CASE 3: patcharray gmap(), "gmap"
  END SELECT
