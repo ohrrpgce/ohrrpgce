@@ -244,6 +244,8 @@ DECLARE FUNCTION max_tag() as integer
 
 DECLARE FUNCTION ideal_ticks_per_second() as double
 
+DECLARE FUNCTION describe_formation(formdata as Formation) as string
+
 'Global variables
 EXTERN sourcerpg as string
 EXTERN as string game, tmpdir, exename, workingdir, homedir, app_dir

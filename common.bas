@@ -4930,3 +4930,46 @@ FUNCTION ideal_ticks_per_second() as double
  'This is fixed for now, but will be customizable later.
  RETURN 18.3
 END FUNCTION
+
+FUNCTION describe_formation(formdata as Formation) as string
+ 'Return a string that describes a battle formation
+ DIM max as integer = UBOUND(formdata.slots)
+ DIM counts(max) as XYPair 'x=id y=count
+ FOR i as integer = 0 TO max
+  counts(i).x = -1
+ NEXT i
+ 
+ DIM id as integer
+ FOR i as integer = 0 TO max
+  id = formdata.slots(i).id
+  IF id >= 0 THEN
+   FOR j as integer = 0 TO max
+    IF counts(j).x = id THEN
+     counts(j).y += 1
+     EXIT FOR
+    END IF
+    IF counts(j).x = -1 THEN
+     counts(j).x = id
+     counts(j).y = 1
+     EXIT FOR
+    END IF
+   NEXT j
+  END IF
+ NEXT i
+
+ DIM nam as string 
+ DIM num as integer
+ DIM result as string = ""
+ FOR i as integer = 0 TO UBOUND(counts)
+  id = counts(i).x
+  num = counts(i).y
+  IF id >= 0 THEN
+   nam = exclude(readenemyname(id), " ")
+   IF result <> "" THEN result &= " "
+   result &= nam
+   IF num <> 1 THEN result &= "*" & num 
+  END IF
+ NEXT i
+ 
+ RETURN result
+END FUNCTION

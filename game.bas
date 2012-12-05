@@ -58,6 +58,7 @@ DECLARE SUB reparent_npc_slices()
 DECLARE SUB orphan_npc_slices()
 DECLARE FUNCTION seek_rpg_or_rpgdir_and_play_it(where as string, gamename as string) as integer
 DECLARE SUB misc_debug_menu()
+DECLARE SUB battle_formation_testing_menu()
 
 REMEMBERSTATE
 
@@ -3893,17 +3894,100 @@ END FUNCTION
 
 SUB misc_debug_menu()
  STATIC default as integer = 0
- DIM menu(2) as string
+ DIM menu(3) as string
  menu(0) = "View/Edit Slice Tree"
- menu(1) = "Manipulate gen() array"
- menu(2) = "Manipulate gmap() array"
+ menu(1) = "Test Battles"
+ menu(2) = "Manipulate gen() array"
+ menu(3) = "Manipulate gmap() array"
  DIM result as integer
  result = multichoice("Misc. Debug", menu(), default, , "game_misc_debug")
  IF result = -1 THEN EXIT SUB
  default = result
  SELECT CASE result
   CASE 0: slice_editor SliceTable.Root
-  CASE 1: patcharray gen(), "gen"
-  CASE 2: patcharray gmap(), "gmap"
+  CASE 1: battle_formation_testing_menu
+  CASE 2: patcharray gen(), "gen"
+  CASE 3: patcharray gmap(), "gmap"
  END SELECT
+END SUB
+
+SUB battle_formation_testing_menu()
+
+ STATIC defaultval as integer = 0
+ DIM form_num as integer
+ DIM state as MenuState
+ DIM menu as MenuDef
+ ClearMenuData menu
+
+ DIM battle_formation_set as integer
+ battle_formation_set = readblock(foemap, catx(0) \ 20, caty(0) \ 20)
+
+ IF battle_formation_set = 0 THEN
+  append_menu_item(menu, "Formation set: None", 0, 1)
+  menu.last->disabled = YES
+  menu.last->extra(0) = -1
+ ELSE
+  DIM formset as FormationSet
+  LoadFormationSet formset, battle_formation_set
+  append_menu_item(menu, "Formation set: " & battle_formation_set & " freq=" & formset.frequency)
+  menu.last->disabled = YES
+  menu.last->extra(0) = -1
+  FOR i as integer = 0 TO UBOUND(formset.formations)
+   form_num = formset.formations(i)
+   IF form_num >= 0 THEN
+    DIM formdata as Formation
+    LoadFormation formdata, form_num
+    DIM desc as string = describe_formation(formdata)
+    append_menu_item(menu, form_num & ": " & LEFT(desc, 35))
+    menu.last->extra(0) = form_num
+    IF defaultval = 0 THEN defaultval = 1
+   END IF
+  NEXT i
+ END IF
+ 
+ state.active = YES
+ menu.align = -1
+ menu.maxrows = 16
+ init_menu_state state, menu
+ state.pt = defaultval
+ menu.anchor.Y = -1
+ menu.offset.Y = -90
+
+ 'Keep whatever was on the screen already as a background (NOTE: this doesn't always work (not necessarily vpage))
+ DIM holdscreen as integer
+ holdscreen = allocatepage
+ copypage vpage, holdscreen
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+
+  IF keyval(scEsc) > 1 THEN
+   EXIT DO
+  END IF
+
+  IF enter_or_space() THEN
+   form_num = menu.items[state.pt]->extra(0)
+   IF form_num >= 0 THEN
+    defaultval = state.pt
+    fatal = 0
+    gam.wonbattle = battle(form_num)
+    prepare_map YES
+    queue_fade_in 1
+   END IF 
+   EXIT DO
+  END IF
+  
+  usemenu state
+
+  copypage holdscreen, vpage
+  draw_menu menu, state, vpage
+  setvispage vpage
+  dowait
+ LOOP
+ setkeys
+ freepage holdscreen
+ ClearMenuData menu
+
 END SUB
