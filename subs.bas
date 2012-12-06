@@ -498,8 +498,9 @@ menulimits(EnMenuAtkBequest) = EnLimAtk
 
 '-------------------------------------------------------------------------
 '--menu structure
-DIM workmenu(91) as integer
-DIM dispmenu(91) as string
+'WARNING: make these big enough to hold atkMenu when genNumElements is maxed out
+DIM workmenu(92) as integer
+DIM dispmenu(92) as string
 DIM state as MenuState
 state.size = 24
 
