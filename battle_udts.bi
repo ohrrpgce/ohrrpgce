@@ -96,6 +96,7 @@ TYPE BattleSprite
   hand(1) as XYPair ' For weapons = handle pos. For heroes, intended as hand position but not used yet
   '--used only for turnTURN mode
   initiative_order as integer
+  no_attack_this_turn as integer
   '--used only for turnACTIVE mode
   active_turn_num as integer
   '--affliction state
@@ -309,6 +310,7 @@ TYPE AttackQueue
  t(11)    as integer 'Targeted slots, -1 for empty, or slot number.
  blocking as integer 'YES to block attacker from acting, NO for nonblocking
  delay    as integer 'Number of ticks that should pass before this attack happens
+ turn_delay as integer 'Number of turns to wait before the tick delay begins.
  dont_retarget as integer
 END TYPE
 

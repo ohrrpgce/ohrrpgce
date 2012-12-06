@@ -53,8 +53,8 @@ DECLARE FUNCTION knows_attack(byval who as integer, byval atk as integer, bslot(
 DECLARE FUNCTION distribute_party_experience (byval exper as integer) as integer
 
 DECLARE SUB queue_attack OVERLOAD (byval attack as integer, byval who as integer, targs() as integer, byval override_blocking as integer=-2, byval dont_retarget as integer = NO)
-DECLARE SUB queue_attack OVERLOAD (byval attack as integer, byval who as integer, byval delay as integer, targs() as integer, byval blocking as integer=YES, byval dont_retarget as integer = NO)
-DECLARE SUB set_attack_queue_slot(byval slot as integer, byval attack as integer, byval who as integer, byval delay as integer, targs() as integer, byval blocking as integer=YES, byval dont_retarget as integer = NO)
+DECLARE SUB queue_attack OVERLOAD (byval attack as integer, byval who as integer, byval delay as integer, byval turn_delay as integer, targs() as integer, byval blocking as integer=YES, byval dont_retarget as integer = NO)
+DECLARE SUB set_attack_queue_slot(byval slot as integer, byval attack as integer, byval who as integer, byval delay as integer, byval turn_delay as integer, targs() as integer, byval blocking as integer=YES, byval dont_retarget as integer = NO)
 DECLARE SUB clear_attack_queue()
 DECLARE SUB clear_attack_queue_slot(byval slot as integer)
 DECLARE SUB display_attack_queue (bslot() as BattleSprite)

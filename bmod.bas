@@ -88,8 +88,10 @@ DECLARE SUB start_next_turn (bat as BattleState, bslot() as BattleSprite, formda
 DECLARE SUB calc_initiative_order (bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB apply_initiative_order (bslot() as BattleSprite)
 DECLARE SUB turn_mode_time_passage (bat as BattleState, bslot() as battleSprite)
-DECLARE FUNCTION hero_can_take_a_turn (byval who as integer, bat as BattleState, bslot() as BattleSprite) as integer
+DECLARE FUNCTION hero_or_enemy_can_take_a_turn (byval who as integer, bat as BattleState, bslot() as BattleSprite) as integer
 DECLARE SUB cancel_blocking_attacks_for_hero_or_enemy(byval who as integer)
+DECLARE SUB update_turn_delays_in_attack_queue (byval who as integer)
+DECLARE FUNCTION has_blocking_turn_delayed_attacks(byval who as integer) as integer
 
 'these are the battle global variables
 DIM bstackstart as integer
@@ -1029,8 +1031,10 @@ SUB decrement_attack_queue_delays(bslot() as BattleSprite)
  FOR i as integer = 0 TO UBOUND(atkq)
   WITH atkq(i)
    IF .used THEN
-    IF bslot(.attacker).stat.cur.stun >= bslot(.attacker).stat.max.stun THEN   
-     .delay = large(0, .delay - 1)
+    IF .turn_delay = 0 THEN
+     IF bslot(.attacker).stat.cur.stun >= bslot(.attacker).stat.max.stun THEN   
+      .delay = large(0, .delay - 1)
+     END IF
     END IF
    END IF
   END WITH
@@ -3214,10 +3218,10 @@ SUB queue_attack(byval attack as integer, byval who as integer, targs() as integ
  loadattackdata atk, attack
  DIM blocking as integer = (atk.nonblocking = NO)
  IF override_blocking > -2 THEN blocking = override_blocking
- queue_attack attack, who, atk.attack_delay, targs(), blocking, dont_retarget
+ queue_attack attack, who, atk.attack_delay, atk.turn_delay, targs(), blocking, dont_retarget
 END SUB
 
-SUB queue_attack(byval attack as integer, byval who as integer, byval delay as integer, targs() as integer, byval blocking as integer=YES, byval dont_retarget as integer = NO)
+SUB queue_attack(byval attack as integer, byval who as integer, byval delay as integer, byval turn_delay as integer, targs() as integer, byval blocking as integer=YES, byval dont_retarget as integer = NO)
  'DIM targstr as STRING = ""
  'FOR i as integer = 0 TO UBOUND(targs)
  ' IF targs(i) > -1 THEN targstr &= " " & i & "=" & targs(i)
@@ -3227,7 +3231,7 @@ SUB queue_attack(byval attack as integer, byval who as integer, byval delay as i
  FOR i as integer = 0 TO UBOUND(atkq)
   IF atkq(i).used = NO THEN
    'Recycle a queue slot
-   set_attack_queue_slot i, attack, who, delay, targs(), blocking, dont_retarget
+   set_attack_queue_slot i, attack, who, delay, turn_delay, targs(), blocking, dont_retarget
    EXIT SUB
   END IF
  NEXT i
@@ -3237,15 +3241,16 @@ SUB queue_attack(byval attack as integer, byval who as integer, byval delay as i
  FOR i as integer = oldbound + 2 TO UBOUND(atkq)
   clear_attack_queue_slot i
  NEXT i
- set_attack_queue_slot oldbound + 1, attack, who, delay, targs(), blocking
+ set_attack_queue_slot oldbound + 1, attack, who, delay, turn_delay, targs(), blocking
 END SUB
 
-SUB set_attack_queue_slot(byval slot as integer, byval attack as integer, byval who as integer, byval delay as integer, targs() as integer, byval blocking as integer=YES, byval dont_retarget as integer = NO)
+SUB set_attack_queue_slot(byval slot as integer, byval attack as integer, byval who as integer, byval delay as integer, byval turn_delay as integer, targs() as integer, byval blocking as integer=YES, byval dont_retarget as integer = NO)
  WITH atkq(slot)
   .used = YES
   .attack = attack
   .attacker = who
   .delay = delay
+  .turn_delay = turn_delay
   FOR i as integer = 0 TO UBOUND(.t)
    .t(i) = targs(i)
   NEXT i
@@ -3266,6 +3271,7 @@ SUB clear_attack_queue_slot(byval slot as integer)
   .attack = -1
   .attacker = -1
   .delay = 0
+  .turn_delay = 0
   FOR i as integer = 0 TO UBOUND(.t)
    .t(i) = -1
   NEXT i
@@ -3280,7 +3286,7 @@ SUB display_attack_queue (bslot() as BattleSprite)
  FOR i as integer = 0 TO UBOUND(atkq)
   WITH atkq(i)
    IF .used THEN
-    s = .delay & " " & bslot(.attacker).name & ":" & .attacker & " " & readattackname(.attack) & ":" & .attack & " "
+    s = .turn_delay & "/" & .delay & " " & bslot(.attacker).name & ":" & .attacker & " " & readattackname(.attack) & ":" & .attack & " "
     targstr = ""
     FOR j as integer = 0 TO UBOUND(.t)
      IF .t(j) > -1 THEN
@@ -3369,7 +3375,7 @@ SUB battle_check_delays(byref bat as BattleState, bslot() as BattleSprite)
  FOR i as integer = 0 TO UBOUND(atkq)
   WITH atkq(i)
    IF .used THEN
-    IF .delay <= 0 THEN
+    IF .turn_delay = 0 ANDALSO .delay <= 0 THEN
      'debug "queue trigger! " & bslot(.attacker).name & .attacker & ":" & readattackname(.attack)
      IF .t(0) = -1 THEN
       'debuginfo "queued attack " & readattackname(.attack) & " for " & bslot(.attacker).name & .attacker & " in slot " & i & " has null target."
@@ -3424,15 +3430,17 @@ SUB battle_check_for_hero_turns(byref bat as BattleState, bslot() as BattleSprit
  NEXT i
 END SUB
 
-FUNCTION hero_can_take_a_turn (byval who as integer, bat as BattleState, bslot() as BattleSprite) as integer
+FUNCTION hero_or_enemy_can_take_a_turn (byval who as integer, bat as BattleState, bslot() as BattleSprite) as integer
  IF bslot(who).ready = NO THEN RETURN NO
  IF bslot(who).stat.cur.hp <= 0 THEN RETURN NO
  IF bat.death_mode <> deathNOBODY THEN RETURN NO
+ IF has_blocking_turn_delayed_attacks(who) THEN RETURN NO
+ IF bslot(who).no_attack_this_turn THEN RETURN NO
  RETURN YES
 END FUNCTION
 
 FUNCTION battle_check_a_hero_turn(byref bat as BattleState, bslot() as BattleSprite, byval index as integer) as integer
- IF hero_can_take_a_turn(index, bat, bslot()) THEN
+ IF hero_or_enemy_can_take_a_turn(index, bat, bslot()) THEN
   bat.hero_turn = index
   bat.pt = 0
   bat.menu_mode = batMENUHERO
@@ -3454,7 +3462,7 @@ SUB battle_check_for_enemy_turns(byref bat as BattleState, bslot() as BattleSpri
 END SUB
 
 FUNCTION battle_check_an_enemy_turn(byref bat as BattleState, bslot() as BattleSprite, byval index as integer) as integer
- IF bslot(index).ready = YES AND bslot(index).stat.cur.hp > 0 AND bat.death_mode = deathNOBODY THEN
+ IF hero_or_enemy_can_take_a_turn(index, bat, bslot()) THEN
   bat.enemy_turn = index
   RETURN YES
  END IF
@@ -3464,7 +3472,7 @@ END FUNCTION
 FUNCTION blocked_by_attack (byval who as integer) as integer
  FOR i as integer = 0 TO UBOUND(atkq)
   WITH atkq(i)
-   IF .used ANDALSO .attacker = who ANDALSO .delay > 0 ANDALSO .blocking THEN RETURN YES
+   IF .used ANDALSO .attacker = who ANDALSO (.delay > 0 ORELSE .turn_delay > 0) ANDALSO .blocking THEN RETURN YES
   END WITH
  NEXT i
  RETURN NO
@@ -3623,6 +3631,8 @@ FUNCTION pending_attacks_for_this_turn(bat as BattleState, bslot() as BattleSpri
       IF .stat.cur.stun < .stat.max.stun THEN CONTINUE FOR
      END WITH
     END IF
+    '--attacks with a turn delay don't count
+    IF .turn_delay > 0 THEN CONTINUE FOR
     '--only blocking queued attacks are considered part of the current
     ' turn (although it is always perfectly possible for a nonblocking
     ' attack to happen in the current turn)
@@ -3636,6 +3646,9 @@ END FUNCTION
 
 SUB ready_all_valid_units(bslot() as BattleSprite, formdata as Formation)
  'In turnTURN mode, force all valid living heroes and enemies to be ready to take their turn
+ FOR i as integer = 0 TO 11
+  bslot(i).no_attack_this_turn = NO
+ NEXT i
  FOR i as integer = 0 TO 3
   IF hero(i) > 0 ANDALSO bslot(i).stat.cur.hp > 0 THEN
    bslot(i).ready = YES
@@ -3676,7 +3689,7 @@ SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formda
    DO
     bat.next_hero = large(0, bat.next_hero - 1)
     WITH bslot(bat.next_hero)
-     IF .stat.cur.hp >= 0 ANDALSO .stat.cur.stun >= .stat.max.stun THEN
+     IF .stat.cur.hp >= 0 ANDALSO .no_attack_this_turn = NO THEN
       cancel_blocking_attacks_for_hero_or_enemy bat.next_hero
       bslot(bat.next_hero).ready = YES
       bslot(bat.next_hero).ready_meter = 1000
@@ -3758,8 +3771,8 @@ SUB start_next_turn (bat as BattleState, bslot() as BattleSprite, formdata as Fo
   bat.next_enemy = 4
   ready_all_valid_units bslot(), formdata
 
-  '--update poison and regen
   FOR i as integer = 0 to 11
+   '--update poison and regen
    WITH bslot(i).stat
     IF .cur.poison < .max.poison THEN do_poison i, bat, bslot(), formdata
     IF .cur.regen < .max.regen THEN do_regen i, bat, bslot(), formdata
@@ -3767,12 +3780,24 @@ SUB start_next_turn (bat as BattleState, bslot() as BattleSprite, formdata as Fo
      '--note that stun and mute are updated after the attacks are chosen
      bslot(i).ready = NO
      bslot(i).ready_meter = 0 '--cosmetic
+     bslot(i).no_attack_this_turn = YES
     END IF
    END WITH
+   '--no turn for heroes with blocking turn-delayed attacks
+   IF has_blocking_turn_delayed_attacks(i) THEN
+    bslot(i).ready = NO
+    bslot(i).ready_meter = 0 '--cosmetic
+    bslot(i).no_attack_this_turn = YES
+   END IF
   NEXT i
 
   '--figure out initiative_order based on speed
   calc_initiative_order bslot(), formdata
+
+  '--update turn delays in attack queue
+  FOR i as integer = 0 to 11
+   update_turn_delays_in_attack_queue i
+  NEXT I
   
   debug "Turn #" & bat.turn.number & " has begun!"
 END SUB
@@ -3837,7 +3862,7 @@ SUB apply_initiative_order (bslot() as BattleSprite)
   IF bslot(i).stat.cur.hp > 0 THEN
    '--For each blocking attack in the queue for this hero or enemy
    FOR j as integer = 0 to UBOUND(atkq)
-    IF atkq(j).used ANDALSO atkq(j).attacker = i ANDALSO atkq(j).blocking THEN
+    IF atkq(j).used ANDALSO atkq(j).attacker = i ANDALSO atkq(j).blocking ANDALSO atkq(j).turn_delay = 0 THEN
      debug "Applying initiative: adjust " & bslot(i).name & "'s attack " & atkq(j).attack & " delay " & atkq(j).delay & "+" & bslot(i).initiative_order
      atkq(j).delay += bslot(i).initiative_order
     END IF
@@ -3855,3 +3880,24 @@ SUB cancel_blocking_attacks_for_hero_or_enemy(byval who as integer)
   END WITH
  NEXT i
 END SUB
+
+SUB update_turn_delays_in_attack_queue (byval who as integer)
+ FOR i as integer = 0 TO UBOUND(atkq)
+  WITH atkq(i)
+   IF .used ANDALSO .attacker = who ANDALSO .turn_delay > 0 THEN
+    .turn_delay -= 1
+   END IF
+  END WITH
+ NEXT i
+END SUB
+
+FUNCTION has_blocking_turn_delayed_attacks(byval who as integer) as integer
+ FOR i as integer = 0 TO UBOUND(atkq)
+  WITH atkq(i)
+   IF .used ANDALSO .attacker = who ANDALSO .turn_delay > 0 ANDALSO .blocking THEN
+    RETURN YES
+   END IF
+  END WITH
+ NEXT i
+ RETURN NO
+END FUNCTION
