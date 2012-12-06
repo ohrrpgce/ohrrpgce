@@ -18,6 +18,9 @@ WHAT IS NEW?
     * Enemies can do an On-Death Bequest attack when killed [James]
     * Textbox backdrops can optionally allow color 0 to be transparent
       [Ralph, James]
+    * The battle system can now be switched into Turn-based mode [James]
+    * Attacks can be given a turn-delay in addition to a tick delay
+      [James]
 
   * Bugfixes
     * "run script by id" was far slower than it should have been [Ralph]

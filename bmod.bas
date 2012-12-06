@@ -768,6 +768,11 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
 END SUB
  
 SUB battle_confirm_target(byref bat as BattleState, bslot() as BattleSprite)
+
+ IF bat.turn.mode = turnACTIVE THEN
+  update_turn_delays_in_attack_queue bat.hero_turn
+ END IF
+
  bat.targ.selected(bat.targ.pointer) = 1
 
  DIM t(11) as integer
@@ -811,7 +816,7 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, menubits(
      edgeboxstyle 1, 4 + i * 10, 132, 11, 0, dpage, YES, YES
      IF bslot(i).stat.cur.hp > 0 THEN
       DIM j as integer = bslot(i).ready_meter / 7.7
-      IF blocked_by_attack(i) OR bslot(i).attack > 0 OR (bat.atk.id >= 0 AND bat.acting = i) THEN
+      IF blocked_by_attack(bat, i) OR bslot(i).attack > 0 OR (bat.atk.id >= 0 AND bat.acting = i) THEN
        col = uilook(uiTimeBar)
        j = 130
       END IF
@@ -981,10 +986,18 @@ SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata a
   END WITH
 
   '--if not doing anything, not dying, not ready, and not stunned
-  IF ready_meter_may_grow(bslot(), i) THEN
+  IF ready_meter_may_grow(bat, bslot(), i) THEN
    '--increment ctr by speed
    bslot(i).ready_meter = small(1000, bslot(i).ready_meter + bslot(i).stat.cur.spd)
-   IF bslot(i).ready_meter = 1000 AND bat.wait_frames = 0 THEN bslot(i).ready = YES
+   IF bslot(i).ready_meter = 1000 AND bat.wait_frames = 0 THEN
+    IF has_blocking_turn_delayed_attacks(i) THEN
+     debug "Unit " & i & " " & bslot(i).name & " blocked turn #" & bslot(i).active_turn_num
+     bslot(i).ready_meter = 0
+     update_turn_delays_in_attack_queue i
+    ELSE
+     bslot(i).ready = YES
+    END IF
+   END IF
   END IF
 
  NEXT i
@@ -2210,6 +2223,10 @@ SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as For
   END IF
  LOOP
 
+ IF bat.turn.mode = turnACTIVE THEN
+  update_turn_delays_in_attack_queue bat.hero_turn
+ END IF
+
  autotarget bat.enemy_turn, atk, bslot()
 
  IF bat.turn.mode = turnACTIVE THEN
@@ -2499,7 +2516,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
 
  DIM safety as integer = 0
  DO WHILE spawn_chained_attack(attack.instead, attack, bat, bslot())
-  IF blocked_by_attack(bat.acting) THEN EXIT SUB
+  IF blocked_by_attack(bat, bat.acting) THEN EXIT SUB
   IF bat.atk.id = -1 THEN EXIT SUB
   loadattackdata attack, bat.atk.id
   safety += 1
@@ -3141,7 +3158,7 @@ FUNCTION spawn_chained_attack(byref ch as AttackDataChain, byref attack as Attac
   loadattackdata chained_attack, ch.atk_id - 1
 
   DIM delayed_attack_id as integer = 0
-  IF chained_attack.attack_delay > 0 AND ch.no_delay = NO THEN
+  IF (chained_attack.attack_delay > 0 ORELSE chained_attack.turn_delay > 0) ANDALSO ch.no_delay = NO THEN
    '--chain is delayed, queue the attack
    bat.atk.id = -1 '--terminate the attack that lead to this chain
    delayed_attack_id = ch.atk_id
@@ -3469,23 +3486,31 @@ FUNCTION battle_check_an_enemy_turn(byref bat as BattleState, bslot() as BattleS
  RETURN NO
 END FUNCTION
 
-FUNCTION blocked_by_attack (byval who as integer) as integer
+FUNCTION blocked_by_attack (bat as BattleState, byval who as integer) as integer
  FOR i as integer = 0 TO UBOUND(atkq)
   WITH atkq(i)
-   IF .used ANDALSO .attacker = who ANDALSO (.delay > 0 ORELSE .turn_delay > 0) ANDALSO .blocking THEN RETURN YES
+   IF .used ANDALSO .attacker = who ANDALSO .blocking THEN
+    SELECT CASE bat.turn.mode
+     CASE turnACTIVE:
+      IF .turn_delay = 0 ANDALSO .delay > 0 THEN RETURN YES
+     CASE turnTURN:
+      IF .delay > 0 ORELSE .turn_delay > 0 THEN RETURN YES
+    END SELECT
+   END IF
   END WITH
  NEXT i
  RETURN NO
 END FUNCTION
 
-FUNCTION ready_meter_may_grow (bslot() as BattleSprite, byval who as integer) as integer
+FUNCTION ready_meter_may_grow (bat as BattleState, bslot() as BattleSprite, byval who as integer) as integer
+ '--Only used in turnACTIVE mode
  WITH bslot(who)
   IF .attack <> 0 THEN RETURN NO
   IF .dissolve <> 0 THEN RETURN NO
   IF .stat.cur.stun < .stat.max.stun THEN RETURN NO
   IF .ready = YES THEN RETURN NO
  END WITH
- IF blocked_by_attack(who) THEN RETURN NO
+ IF blocked_by_attack(bat, who) THEN RETURN NO
  RETURN YES
 END FUNCTION
 

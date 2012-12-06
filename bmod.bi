@@ -58,7 +58,7 @@ DECLARE SUB set_attack_queue_slot(byval slot as integer, byval attack as integer
 DECLARE SUB clear_attack_queue()
 DECLARE SUB clear_attack_queue_slot(byval slot as integer)
 DECLARE SUB display_attack_queue (bslot() as BattleSprite)
-DECLARE FUNCTION blocked_by_attack (byval who as integer) as integer
-DECLARE FUNCTION ready_meter_may_grow (bslot() as BattleSprite, byval who as integer) as integer
+DECLARE FUNCTION blocked_by_attack (bat as BattleState, byval who as integer) as integer
+DECLARE FUNCTION ready_meter_may_grow (bat as BattleState, bslot() as BattleSprite, byval who as integer) as integer
 
 #ENDIF
