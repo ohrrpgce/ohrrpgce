@@ -850,7 +850,7 @@ END FUNCTION
 
 FUNCTION curbinsize (byval id as integer) as integer
  'returns the native size in BYTES of the records for the version you are running
- IF id = 0 THEN RETURN 558 'attack.bin
+ IF id = 0 THEN RETURN 560 'attack.bin
  IF id = 1 THEN RETURN 84  '.stf
  IF id = 2 THEN RETURN 32  'songdata.bin
  IF id = 3 THEN RETURN 34  'sfxdata.bin

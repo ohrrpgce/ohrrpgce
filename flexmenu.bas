@@ -128,8 +128,9 @@ CONST AtkWepPic = 143
 CONST AtkWepPal = 144
 CONST AtkWepHand0 = 145
 CONST AtkWepHand1 = 146
+CONST AtkTurnDelay = 147
 
-'Next menu item is 147 (remember to update MnuItems)
+'Next menu item is 148 (remember to update MnuItems)
 
 
 '--Offsets in the attack data record (combined DT6 + ATTACK.BIN)
@@ -199,6 +200,7 @@ CONST AtkDatWepHand0X = 315
 CONST AtkDatWepHand0Y = 316
 CONST AtkDatWepHand1X = 317
 CONST AtkDatWepHand1Y = 318
+CONST AtkDatTurnDelay = 319
 
 'anything past this requires expanding the data
 
@@ -309,7 +311,7 @@ atk_chain_bitset_names(3) = "Don't retarget if target is lost"
 '----------------------------------------------------------
 DIM recbuf(40 + curbinsize(binATTACK) \ 2 - 1) as integer '--stores the combined attack data from both .DT6 and ATTACK.BIN
 
-CONST MnuItems = 146
+CONST MnuItems = 147
 DIM menu(MnuItems) as string
 DIM menutype(MnuItems) as integer
 DIM menuoff(MnuItems) as integer
@@ -320,8 +322,8 @@ DIM menucapoff(MnuItems) as integer
 
 DIM capindex as integer = 0
 REDIM caption(-1 TO -1) as string
-DIM max(40) as integer
-DIM min(40) as integer
+DIM max(41) as integer
+DIM min(41) as integer
 
 'Limit(0) is not used
 
@@ -616,7 +618,11 @@ NEXT
 CONST AtkLimWepPic = 40
 max(AtkLimWepPic) = gen(genMaxWeaponPic) + 1 ' the +1 is because 0 is used for "default"
 
-'next limit is 41 (remember to update the dim)
+CONST AtkLimTurnDelay = 41
+max(AtkLimTurnDelay) = 1000
+min(AtkLimTurnDelay) = 0
+
+'next limit is 42 (remember to update the dim)
 
 '----------------------------------------------------------------------
 '--menu content
@@ -730,7 +736,7 @@ menutype(AtkAnimAttack) = 2000 + menucapoff(AtkAnimAttack)
 menuoff(AtkAnimAttack) = AtkDatAnimAttack
 menulimits(AtkAnimAttack) = AtkLimAnimAttack
 
-menu(AtkDelay) = "Delay Before Attack:"
+menu(AtkDelay) = "Delay Ticks Before Attack:"
 menutype(AtkDelay) = 19'ticks
 menuoff(AtkDelay) = AtkDatDelay
 menulimits(AtkDelay) = AtkLimDelay
@@ -993,6 +999,11 @@ menutype(AtkWepHand0) = 1
 
 menu(AtkWepHand1) = "Weapon handle for second frame"
 menutype(AtkWepHand1) = 1
+
+menu(AtkTurnDelay) = "Delay Turns Before Attack:"
+menutype(AtkTurnDelay) = 0
+menuoff(AtkTurnDelay) = AtkDatTurnDelay
+menulimits(AtkTurnDelay) = AtkLimTurnDelay
 
 '----------------------------------------------------------
 '--menu structure
@@ -1555,12 +1566,13 @@ SUB attack_editor_build_appearance_menu(recbuf() as integer, workmenu() as integ
   workmenu(4) = AtkAnimPattern
   workmenu(5) = AtkAnimAttacker
   workmenu(6) = AtkDelay
-  workmenu(7) = AtkCaption
-  workmenu(8) = AtkCapTime
-  workmenu(9) = AtkCaptDelay
-  workmenu(10) = AtkSoundEffect
-  workmenu(11) = AtkLearnSoundEffect
-  state.last = 11
+  workmenu(7) = AtkTurnDelay
+  workmenu(8) = AtkCaption
+  workmenu(9) = AtkCapTime
+  workmenu(10) = AtkCaptDelay
+  workmenu(11) = AtkSoundEffect
+  workmenu(12) = AtkLearnSoundEffect
+  state.last = 12
   
   DIM anim as integer = recbuf(AtkDatAnimAttacker)
   IF anim = 0 ORELSE anim = 2 ORELSE anim = 3 ORELSE anim = 8 THEN

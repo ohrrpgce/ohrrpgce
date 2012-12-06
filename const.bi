@@ -7,7 +7,7 @@
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
 
-CONST CURRENT_RPG_VERSION = 17
+CONST CURRENT_RPG_VERSION = 18
 ' It is a good idea to increment this number each time a major feature
 ' has been added, if opening a new game in an old editor would cause data-loss
 ' Don't be afraid to increment this. Backcompat warnings are a good thing!
@@ -23,6 +23,7 @@ CONST CURRENT_RPG_VERSION = 17
 ' 15 - zenzizenzic wip made .DT1 binsize-sized, and added binsize.bin, fixbits.bit safeguards
 ' 16 - zenzizenzic wip made .ITM binsize-sized
 ' 17 - alectormancy wip increase global limit from 4095 to 16383
+' 18 - beelzebufo turn-based support
 
 CONST CURRENT_RSAV_VERSION = 2
 ' Increment this number any time that loading and resaving a game in either
