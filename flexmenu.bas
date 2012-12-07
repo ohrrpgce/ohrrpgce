@@ -34,6 +34,7 @@ DECLARE SUB atk_edit_split_bitsets(recbuf() as integer, tempbuf() as integer)
 DECLARE SUB update_attack_editor_for_fail_conds(recbuf() as integer, caption() as string, byval AtkCapFailConds as integer)
 DECLARE SUB attack_editor_build_damage_menu(recbuf() as integer, menu() as string, menutype() as integer, caption() as string, menucapoff() as integer, workmenu() as integer, state as MenuState, dmgbit() as string, maskeddmgbit() as string, damagepreview as string)
 DECLARE SUB attack_editor_build_appearance_menu(recbuf() as integer, workmenu() as integer, state as MenuState)
+DECLARE FUNCTION browse_base_attack_stat(byval base_num as integer) as integer
 
 SUB addcaption (caption() as string, byref indexer as integer, cap as string)
  str_array_append caption(), cap
@@ -402,7 +403,7 @@ addcaption caption(), capindex, "Percentage: " & statnames(statMagic) & "% * " &
 addcaption caption(), capindex, "Percentage: " & statnames(statMagic) & "%"
 
 CONST AtkLimBaseAtk = 7
-max(AtkLimBaseAtk) = 34
+max(AtkLimBaseAtk) = 58
 menucapoff(AtkBaseAtk) = capindex
 addcaption caption(), capindex, statnames(statAtk) & " (attacker)"
 addcaption caption(), capindex, statnames(statMagic) & " (attacker)"
@@ -420,6 +421,12 @@ addcaption caption(), capindex, "last cure to attacker"
 addcaption caption(), capindex, "last cure to target"
 FOR i = 0 TO 11
  addcaption caption(), capindex, statnames(i) & " (target)"
+NEXT
+FOR i = 0 TO 11
+ addcaption caption(), capindex, "Max " & statnames(i) & " (attacker)"
+NEXT
+FOR i = 0 TO 11
+ addcaption caption(), capindex, "Max " & statnames(i) & " (target)"
 NEXT
 
 CONST AtkLimExtraDamage = 11
@@ -1381,6 +1388,9 @@ DO
     ChangeSpriteSlice weppreview, , , , 1
     xy_position_on_slice weppreview, recbuf(AtkDatWepHand1X), recbuf(AtkDatWepHand1Y), "weapon handle position", "xy_weapon_handle"
     ChangeSpriteSlice weppreview, , , , 0
+   CASE AtkBaseAtk
+    recbuf(AtkDatBaseAtk) = browse_base_attack_stat(recbuf(AtkDatBaseAtk))
+    state.need_update = YES
   END SELECT
  END IF
 
@@ -2645,3 +2655,141 @@ SUB update_detail_menu(detail as MenuDef, mi as MenuDefItem)
   append_menu_item detail, "Extra data " & i & ": " & mi.extra(i)
  NEXT i
 END SUB
+
+FUNCTION browse_base_attack_stat(byval base_num as integer) as integer
+
+ IF base_num = 1 THEN base_num = 12 'redundant attacker magic entry
+ IF base_num = 2 THEN base_num = 6 'redundant attacker HP entry
+
+ DIM hstate as MenuState
+ hstate.last = 4
+ DIM state(4) as MenuState
+ DIM wide(4) as integer
+ DIM menu(4) as MenuDef
+ FOR i as integer = 0 TO 4
+  ClearMenuData menu(i)
+ NEXT i
+
+ append_menu_item(menu(0), "Default(Atk)")
+ menu(0).last->extra(0) = 0
+ append_menu_item(menu(0), "100")
+ menu(0).last->extra(0) = 5
+ append_menu_item(menu(0), "Lost HP")
+ menu(0).last->extra(0) = 3
+ append_menu_item(menu(0), "Random 0-999")
+ menu(0).last->extra(0) = 4
+ append_menu_item(menu(0), "Previous attack")
+ menu(0).last->extra(0) = 18
+ append_menu_item(menu(0), "Last damage to attacker")
+ menu(0).last->extra(0) = 19
+ append_menu_item(menu(0), "Last damage to target")
+ menu(0).last->extra(0) = 20
+ append_menu_item(menu(0), "Last cure to attacker")
+ menu(0).last->extra(0) = 21
+ append_menu_item(menu(0), "Last cure to target")
+ menu(0).last->extra(0) = 22
+
+ FOR i as integer = 0 TO 11
+  append_menu_item(menu(1), statnames(i) & " (attacker)")
+  menu(1).last->extra(0) = 6 + i
+  append_menu_item(menu(2), statnames(i) & " (target)")
+  menu(2).last->extra(0) = 23 + i
+  append_menu_item(menu(3), "Max " & statnames(i) & " (attacker)")
+  menu(3).last->extra(0) = 35 + i
+  append_menu_item(menu(4), "Max " & statnames(i) & " (target)")
+  menu(4).last->extra(0) = 47 + i
+ NEXT i
+ 
+ FOR i as integer = 0 TO 4
+  FOR j as integer = 0 TO menu(i).numitems - 1
+   state(i).active = NO
+   IF menu(i).items[j]->extra(0) = base_num THEN
+    state(i).active = YES
+    state(i).pt = j
+    hstate.pt = i
+   END IF
+   wide(i) = large(wide(i), LEN(menu(i).items[j]->caption) * 8)
+  NEXT j
+  menu(i).align = -1
+  menu(i).anchor.x = -1
+  menu(i).anchor.y = -1
+  menu(i).offset.y = -95
+  menu(i).maxrows = 22
+  IF i = 0 THEN
+   menu(i).offset.x = -160
+  ELSE
+   menu(i).offset.x = menu(i-1).offset.x + wide(i-1)
+  END IF
+  init_menu_state state(i), menu(i)
+ NEXT i
+
+ DO
+  FOR i as integer = 0 TO 4
+   draw_menu menu(i), state(i), vpage
+  NEXT i
+  IF menu(hstate.pt).rect.x < 0 THEN
+   FOR i as integer = 0 TO 4
+    menu(i).offset.x += 16
+   NEXT i
+  ELSEIF menu(hstate.pt).rect.x + menu(hstate.pt).rect.wide > 320 THEN
+   FOR i as integer = 0 TO 4
+    menu(i).offset.x -= 16
+   NEXT i
+  ELSE
+   EXIT DO
+  END IF
+ LOOP
+
+ DIM oldpt as integer
+ DIM result as integer
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+
+  IF keyval(scEsc) > 1 THEN
+   result = base_num
+   EXIT DO
+  END IF
+
+  IF keyval(scF1) > 1 THEN show_help "attack_browse_base_stat"
+
+  IF enter_or_space() THEN
+   result = menu(hstate.pt).items[state(hstate.pt).pt]->extra(0)
+   EXIT DO
+  END IF
+  
+  oldpt = hstate.pt
+  IF usemenu(hstate, scLeft, scRight) THEN
+   state(hstate.pt).pt = small(state(oldpt).pt, state(hstate.pt).last)
+  END IF
+  FOR i as integer = 0 TO 4
+   state(i).active = (i = hstate.pt)
+   usemenu state(i)
+  NEXT i
+
+  IF menu(hstate.pt).rect.x < 0 THEN
+   FOR i as integer = 0 TO 4
+    menu(i).offset.x += 16
+   NEXT i
+  ELSEIF menu(hstate.pt).rect.x + menu(hstate.pt).rect.wide > 320 THEN
+   FOR i as integer = 0 TO 4
+    menu(i).offset.x -= 16
+   NEXT i
+  END IF
+
+  clearpage vpage
+  FOR i as integer = 0 TO 4
+   draw_menu menu(i), state(i), vpage
+  NEXT i  
+  setvispage vpage
+  dowait
+ LOOP
+ 
+ setkeys
+ FOR i as integer = 0 TO 4
+  ClearMenuData menu(i)
+ NEXT i
+ RETURN result
+END FUNCTION

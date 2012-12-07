@@ -21,6 +21,11 @@ WHAT IS NEW?
     * The battle system can now be switched into Turn-based mode [James]
     * Attacks can be given a turn-delay in addition to a tick delay
       [James]
+    * Attack base stat is no longer limited to the attacker's current
+      stat. Now it can also be attacker's max stat, targets current
+      stat, or target's max stat [James]
+    * Press Enter or Space on "Base ATK Stat" to browse a menu of all
+      available base attack stats [James]
 
   * Bugfixes
     * "run script by id" was far slower than it should have been [Ralph]
