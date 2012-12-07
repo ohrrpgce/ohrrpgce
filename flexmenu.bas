@@ -402,24 +402,24 @@ addcaption caption(), capindex, "Percentage: " & statnames(statMagic) & "% * " &
 addcaption caption(), capindex, "Percentage: " & statnames(statMagic) & "%"
 
 CONST AtkLimBaseAtk = 7
-max(AtkLimBaseAtk) = 22 + (UBOUND(statnames) - 11)
+max(AtkLimBaseAtk) = 34
 menucapoff(AtkBaseAtk) = capindex
-addcaption caption(), capindex, statnames(statAtk)
-addcaption caption(), capindex, statnames(statMagic)
-addcaption caption(), capindex, statnames(statHP)
-addcaption caption(), capindex, "Lost " & statnames(statHP)
+addcaption caption(), capindex, statnames(statAtk) & " (attacker)"
+addcaption caption(), capindex, statnames(statMagic) & " (attacker)"
+addcaption caption(), capindex, statnames(statHP) & " (attacker)"
+addcaption caption(), capindex, "Lost " & statnames(statHP) & " (attacker)"
 addcaption caption(), capindex, "Random 0 to 999"
 addcaption caption(), capindex, "100"
 FOR i = 0 TO 11
- addcaption caption(), capindex, statnames(i)
+ addcaption caption(), capindex, statnames(i) & " (attacker)"
 NEXT
 addcaption caption(), capindex, "previous attack"
 addcaption caption(), capindex, "last damage to attacker"
 addcaption caption(), capindex, "last damage to target"
 addcaption caption(), capindex, "last cure to attacker"
 addcaption caption(), capindex, "last cure to target"
-FOR i = 12 TO UBOUND(statnames)
- addcaption caption(), capindex, statnames(i)
+FOR i = 0 TO 11
+ addcaption caption(), capindex, statnames(i) & " (target)"
 NEXT
 
 CONST AtkLimExtraDamage = 11
@@ -469,7 +469,7 @@ max(AtkLimHitX) = 20
 min(AtkLimHitX) = 1
 
 CONST AtkLimTargStat = 18
-max(AtkLimTargStat) = 15 + (UBOUND(statnames) - 11)
+max(AtkLimTargStat) = 15
 menucapoff(AtkTargStat) = capindex
 FOR i = 0 TO 11
  addcaption caption(), capindex, statnames(i)
@@ -478,9 +478,6 @@ addcaption caption(), capindex, "poison register"
 addcaption caption(), capindex, "regen register"
 addcaption caption(), capindex, "stun register"
 addcaption caption(), capindex, "mute register"
-FOR i = 12 TO UBOUND(statnames)
- addcaption caption(), capindex, statnames(i)
-NEXT
 
 CONST AtkLimCapTime = 20
 max(AtkLimCapTime) = 16383
@@ -557,9 +554,6 @@ addcaption caption(), capindex, "poison register"'13
 addcaption caption(), capindex, "regen register" '14 
 addcaption caption(), capindex, "stun register"  '15
 addcaption caption(), capindex, "mute register"  '16
-FOR i = 12 TO UBOUND(statnames) '17+
- addcaption caption(), capindex, statnames(i)
-NEXT
 
 CONST AtkLimChainMode = 31
 max(AtkLimChainMode) = 5
