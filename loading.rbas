@@ -1603,6 +1603,7 @@ SUB save_hero_as_reload(hero as HeroDef ptr, byval parent as NodePtr)
  IF hero->max_name_len > 0 THEN
   SetChildNode ch, "maxlen", hero->max_name_len
  END IF
+
  DIM appear as NodePtr
  appear = SetChildNode(parent, "appearance")
  WritePicPalNode appear, "walkabout", hero->walk_sprite, hero->walk_sprite_pal
@@ -1612,7 +1613,90 @@ SUB save_hero_as_reload(hero as HeroDef ptr, byval parent as NodePtr)
  WriteXYPairNode ch, "hand_b", hero->hand_pos(1)
  IF hero->def_level >= 0 THEN SetChildNode parent, "default_level", hero->def_level
  SetChildNode parent, "default_weapon", hero->def_weapon
+
+ WriteStatsNode(parent, "stats_at_zero", hero->Lev0)
+ WriteStatsNode(parent, "stats_at_max", hero->LevMax)
+
+ DIM batmen as NodePtr
+ batmen = SetChildNode(parent, "battle_menus")
+ DIM bm as NodePtr
+ DIM kind as NodePtr
+ 'FIXME: These are not yet customizable, but will be eventually
+ bm = AppendChildNode(batmen, "menu", 0)
+ kind = SetChildNode(bm, "kind")
+ SetChildNode kind, "weapon"
+ FOR i as integer = 0 TO 3
+  bm = AppendChildNode(batmen, "menu", 0)
+  kind = SetChildNode(bm, "kind")
+  SetChildNode kind, "spells", i
+ NEXT i
+ bm = AppendChildNode(batmen, "menu", 0)
+ kind = SetChildNode(bm, "kind")
+ SetChildNode kind, "item"
+
+ DIM splists as NodePtr
+ DIM splist as NodePtr
+ DIM spells as NodePtr
+ DIM sp as NodePtr
+ splists = SetChildNode(parent, "spell_lists")
+ FOR i as integer = 0 TO 3
+  splist = AppendChildNode(splists, "list", i)
+  SetChildNode splist, "name", hero->list_name(i)
+  spells = SetChildNode(splist, "spells")
+  FOR j as integer = 0 to 23
+   WITH hero->spell_lists(i, j)
+    IF .attack > 0 THEN
+     sp = AppendChildNode(spells, "spell", j)
+     SetChildNode sp, "attack", .attack - 1
+     IF .learned > 0 THEN
+      SetChildNode sp, "learnlev", .learned - 1
+     ELSE
+      SetChildNode sp, "itemlearn"
+     END IF
+     'FIXME: tag goes here when supported
+    END IF
+   END WITH
+  NEXT j
+  IF hero->list_type(i) = 1 THEN
+   SetChildNode splist, "use_lmp"
+  END IF
+  IF hero->list_type(i) = 2 THEN
+   SetChildNode splist, "random"
+  END IF
+ NEXT i
+ 
+ DIM elements as NodePtr
+ elements = SetChildNode(parent, "elements")
+ FOR i as integer = 0 to gen(genNumElements) - 1
+  IF INT(hero->elementals(i) * 10000) <> 10000 THEN
+   ch = AppendChildNode(elements, "element", i)
+   SetChildNode ch, "damage", cast(double, hero->elementals(i))
+  END IF
+ NEXT i
+ 
+ IF xreadbit(hero->bits(), 24) THEN SetChildNode parent, "rename_on_add"
+ IF xreadbit(hero->bits(), 25) THEN SetChildNode parent, "rename_on_status"
+ IF xreadbit(hero->bits(), 26) THEN SetChildNode parent, "hide_empty_lists"
+ 
+ DIM tagnode as NodePtr
+ tagnode = SetChildNode(parent, "tags")
+ IF hero->have_tag > 0 THEN SetChildNode tagnode, "have_hero"
+ IF hero->alive_tag > 0 THEN SetChildNode tagnode, "is_alive"
+ IF hero->leader_tag > 0 THEN SetChildNode tagnode, "is_leader"
+ IF hero->active_tag > 0 THEN SetChildNode tagnode, "is_active"
+ 
 END SUB
+
+FUNCTION WriteStatsNode (byval parent as NodePtr, nodename as string, statobj as Stats) as NodePtr
+ DIM node as NodePtr
+ node = AppendChildNode(parent, nodename)
+ DIM ch as NodePtr
+ FOR i as integer = 0 TO UBOUND(statobj.sta)
+  ch = AppendChildNode(node, "stat", i)
+  SetChildNode(ch, "value", statobj.sta(i))
+ NEXT i
+ RETURN node
+END FUNCTION
 
 FUNCTION WriteXYPairNode (byval parent as NodePtr, nodename as string, pair as XYPair) as NodePtr
  DIM node as NodePtr
