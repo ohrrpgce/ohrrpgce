@@ -177,4 +177,6 @@ DECLARE SUB save_distrib_state OVERLOAD (byref distinfo as DistribState)
 DECLARE SUB save_distrib_state OVERLOAD (byref distinfo as DistribState, filename as string)
 DECLARE SUB save_distrib_state OVERLOAD (byref distinfo as DistribState, byval node as Reload.NodePtr)
 
+DECLARE SUB save_hero_as_reload(hero as HeroDef ptr, byval parent as NodePtr)
+
 #ENDIF

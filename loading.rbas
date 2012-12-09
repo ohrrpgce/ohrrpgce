@@ -1528,7 +1528,52 @@ SUB loadherodata (hero as herodef ptr, byval index as integer)
 END SUB
 
 SUB saveherodata (hero as herodef ptr, byval index as integer)
-  serherodef game & ".dt0", hero, index
+ '--save the old way
+ serherodef game & ".dt0", hero, index
+ '--save the new way
+ 
+ DIM filename as string = workingdir & SLASH & "heroes.reld"
+ DIM doc as DocPtr
+ doc = LoadDocument(filename)
+ IF doc = 0 THEN
+  debuginfo "heroes doc not found, create it"
+  doc = CreateDocument()
+ END IF
+ 
+ DIM heroes as NodePtr
+ heroes = DocumentRoot(doc)
+ IF heroes = 0 THEN
+  heroes = CreateNode(doc, "heroes")
+  SetRootNode(doc, heroes)
+ END IF
+
+ DIM saved as integer = NO
+ READNODE heroes
+  WITHNODE heroes."hero" as n
+   DIM i as integer = GetInteger(n)
+   SELECT CASE i
+    CASE 0 TO gen(genMaxHero)
+     IF i = index THEN
+      save_hero_as_reload hero, n
+      saved = YES
+     END IF
+   END SELECT
+  END WITHNODE
+ END READNODE
+
+ IF NOT saved THEN
+  DIM n as NodePtr = AppendChildNode(heroes, "hero", index)
+  save_hero_as_reload hero, n
+ END IF
+ 
+ SerializeBin filename, doc
+ FreeDocument doc
+ 
+END SUB
+
+SUB save_hero_as_reload(hero as HeroDef ptr, byval parent as NodePtr)
+ FreeChildren parent
+ SetChildNode parent, "name", hero->name
 END SUB
 
 SUB ClearHeroData (hero as HeroDef)
