@@ -1571,10 +1571,66 @@ SUB saveherodata (hero as herodef ptr, byval index as integer)
  
 END SUB
 
+'Type HeroDef
+'	name as string
+'	sprite as integer
+'	sprite_pal as integer
+'	walk_sprite as integer
+'	walk_sprite_pal as integer
+'	portrait as integer
+'	portrait_pal as integer
+'	def_level as integer
+'	def_weapon as integer
+'	Lev0 as stats
+'	LevMax as stats
+'	spell_lists(3,23) as SpellList
+'	elementals(maxElements - 1) as single
+'	bits(2) as integer
+'	list_name(3) as string
+'	list_type(3) as integer
+'	have_tag as integer
+'	alive_tag as integer
+'	leader_tag as integer
+'	active_tag as integer
+'	max_name_len as integer
+'	hand_pos(1) as XYPair
+'End Type
+
 SUB save_hero_as_reload(hero as HeroDef ptr, byval parent as NodePtr)
  FreeChildren parent
- SetChildNode parent, "name", hero->name
+ DIM ch as NodePtr
+ ch = SetChildNode(parent, "name", hero->name)
+ IF hero->max_name_len > 0 THEN
+  SetChildNode ch, "maxlen", hero->max_name_len
+ END IF
+ DIM appear as NodePtr
+ appear = SetChildNode(parent, "appearance")
+ WritePicPalNode appear, "walkabout", hero->walk_sprite, hero->walk_sprite_pal
+ WritePicPalNode appear, "portrait", hero->portrait, hero->portrait_pal
+ ch = WritePicPalNode(appear, "battle", hero->sprite, hero->sprite_pal)
+ WriteXYPairNode ch, "hand_a", hero->hand_pos(0)
+ WriteXYPairNode ch, "hand_b", hero->hand_pos(1)
+ IF hero->def_level >= 0 THEN SetChildNode parent, "default_level", hero->def_level
+ SetChildNode parent, "default_weapon", hero->def_weapon
 END SUB
+
+FUNCTION WriteXYPairNode (byval parent as NodePtr, nodename as string, pair as XYPair) as NodePtr
+ DIM node as NodePtr
+ node = SetChildNode(parent, nodename)
+ SetChildNode node, "x", pair.x
+ SetChildNode node, "y", pair.y
+ RETURN node
+END FUNCTION
+
+FUNCTION WritePicPalNode (byval parent as NodePtr, nodename as string, byval pic as integer, byval pal as integer=-1) as NodePtr
+ DIM node as NodePtr
+ node = SetChildNode(parent, nodename)
+ SetChildNode node, "pic", pic
+ IF pal >= 0 THEN
+  SetChildNode node, "pal", pal
+ END IF
+ RETURN node
+END FUNCTION
 
 SUB ClearHeroData (hero as HeroDef)
   memset @hero, 0, sizeof(HeroDef)
