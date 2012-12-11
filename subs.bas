@@ -1096,7 +1096,7 @@ SUB individual_formation_editor ()
     IF state.pt = 0 THEN
      EXIT DO
     END IF
-    IF state.pt = 1 THEN
+    IF state.pt = 5 THEN
      IF form.music >= 0 THEN playsongnum form.music
     END IF
     IF state.pt >= 6 THEN 'an enemy
