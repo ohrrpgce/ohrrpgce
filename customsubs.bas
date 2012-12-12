@@ -1505,12 +1505,12 @@ SUB load_text_box_portrait (byref box as TextBox, byref gfx as GraphicPair)
     pal_id = box.portrait_pal
    CASE 2' Hero by caterpillar
     'In custom, no party exists, so preview using the first hero
-    loadherodata @her, 0
+    loadherodata her, 0
     img_id = her.portrait
     pal_id = her.portrait_pal
    CASE 3' Hero by party slot
     'In custom, no party exists, so preview using the first hero
-    loadherodata @her, 0
+    loadherodata her, 0
     img_id = her.portrait
     pal_id = her.portrait_pal
   END SELECT

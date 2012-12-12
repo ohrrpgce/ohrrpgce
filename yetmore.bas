@@ -401,7 +401,7 @@ SELECT CASE as CONST id
   IF really_valid_hero_party(i, 3) THEN  'suppressed error
    IF bound_arg(j, 0, 1, "in or out of battle") THEN
     DIM her as herodef
-    loadherodata @her, hero(i) - 1
+    loadherodata her, hero(i) - 1
     IF j = 0 THEN gam.hero(i).battle_pic = her.sprite
     IF j = 1 THEN gam.hero(i).pic = her.walk_sprite
     IF i < 4 THEN vishero
@@ -413,7 +413,7 @@ SELECT CASE as CONST id
   IF really_valid_hero_party(i, 3) THEN  'suppressed error
    IF bound_arg(j, 0, 1, "in or out of battle") THEN
     DIM her as herodef
-    loadherodata @her, hero(i) - 1
+    loadherodata her, hero(i) - 1
     IF j = 0 THEN gam.hero(i).battle_pal = her.sprite_pal
     IF j = 1 THEN gam.hero(i).pal = her.walk_sprite_pal
     IF i < 4 THEN vishero
@@ -1209,7 +1209,7 @@ SELECT CASE as CONST id
   ELSE
    IF retvals(1) > 0 THEN
     DIM her as herodef
-    loadherodata @her, heroID
+    loadherodata her, heroID
     FOR i as integer = 0 TO 3
      FOR j as integer = 0 TO 23
       IF spell(partyslot, i, j) = 0 THEN
@@ -3788,7 +3788,7 @@ SUB load_text_box_portrait (byref box as TextBox, byref gfx as GraphicPair)
     END IF
   END SELECT
   IF hero_id >= 0 THEN
-   loadherodata @her, hero_id
+   loadherodata her, hero_id
    img_id = her.portrait
    pal_id = her.portrait_pal
   END IF

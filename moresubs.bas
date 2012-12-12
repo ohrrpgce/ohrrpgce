@@ -57,7 +57,7 @@ DIM wbuf(dimbinsize(binITM)) as integer
 DIM her as HeroDef
 
 '--load hero's data
-loadherodata @her, who - 1
+loadherodata her, who - 1
 
 '--load data of hero's default weapon
 loaditemdata wbuf(), her.def_weapon
@@ -1047,7 +1047,7 @@ END SUB
 SUB renamehero (byval who as integer, byval escapable as integer)
 
 DIM her as herodef
-loadherodata @her, hero(who) - 1
+loadherodata her, hero(who) - 1
 
 DIM limit as integer = her.max_name_len
 IF limit = 0 THEN limit = 16

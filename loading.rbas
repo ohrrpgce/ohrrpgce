@@ -1526,7 +1526,7 @@ Sub save_hero_as_old_dt0(filename as string, hero as herodef, byval record as in
 	close #f
 end sub
 
-SUB loadherodata (hero as herodef ptr, byval index as integer)
+SUB loadherodata (hero as herodef, byval index as integer)
  '--first try to load the data from heroes.reld
  '--and then fall back on the .DT0 lump only if not found.
 
@@ -1561,7 +1561,7 @@ SUB loadherodata (hero as herodef ptr, byval index as integer)
    SELECT CASE i
     CASE 0 TO gen(genMaxHero)
      IF i = index THEN
-      load_hero_from_reload *hero, n
+      load_hero_from_reload hero, n
       loaded = YES
       FreeDocument doc
       EXIT DO
@@ -1575,7 +1575,7 @@ SUB loadherodata (hero as herodef ptr, byval index as integer)
 
  'IF NOT loaded THEN
   debuginfo "falling back to " & game & ".dt0" & " slot " & index
-  load_hero_from_old_dt0 game & ".dt0", *hero, index
+  load_hero_from_old_dt0 game & ".dt0", hero, index
  'END IF
 END SUB
 

@@ -459,7 +459,7 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
 
       IF slot."id".exists THEN
        hero(i) = slot."id" + 1
-       loadherodata @her, hero(i) - 1      
+       loadherodata her, hero(i) - 1      
 
        'Load defaults (for older saves which don't contain elemental data)
        FOR j = 0 TO gen(genNumElements) - 1
@@ -1596,7 +1596,7 @@ DIM her as HeroDef
 
 FOR i = 0 TO 40
  IF hero(i) > 0 THEN
-  loadherodata @her, hero(i) - 1
+  loadherodata her, hero(i) - 1
 
   gam.hero(i).rename_on_status = readbit(her.bits(), 0, 25)
 
@@ -1743,7 +1743,7 @@ SUB old_get_save_slot_preview(byval slot as integer, pv as SaveSlotPreview)
    '--backcompat (for ancient SAV files)
    IF pv.hero_id(i) > 0 THEN
     DIM her as HeroDef
-    loadherodata @her, pv.hero_id(i) - 1
+    loadherodata her, pv.hero_id(i) - 1
     pv.hero(i).battle_pic = her.sprite
     pv.hero(i).battle_pal = her.sprite_pal
     pv.hero(i).pic = her.walk_sprite

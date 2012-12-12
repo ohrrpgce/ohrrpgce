@@ -824,7 +824,7 @@ SUB updatestatslevelup (byval hero_slot as integer, byval allowforget as integer
  IF gam.hero(hero_slot).lev_gain THEN
 
   dim her as herodef
-  loadherodata @her, hero(hero_slot) - 1
+  loadherodata her, hero(hero_slot) - 1
 
   'update stats
   DIM n0 as integer
@@ -881,7 +881,7 @@ SUB learn_spells_for_current_level(byval who as integer, byval allowforget as in
  NEXT
 
  dim her as herodef
- loadherodata @her, hero(who) - 1
+ loadherodata her, hero(who) - 1
 
  'learn spells
  FOR j as integer = 0 TO 3

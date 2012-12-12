@@ -3342,7 +3342,7 @@ SUB init_text_box_slices(txt as TextBoxState)
    END IF
  END SELECT
  IF hero_id >= 0 THEN
-  loadherodata @her, hero_id
+  loadherodata her, hero_id
   img_id = her.portrait
   pal_id = her.portrait_pal
  END IF

@@ -1255,7 +1255,7 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
  DIM newm as integer
  FOR i = 0 TO 3
   IF hero(i) > 0 THEN
-   loadherodata @st(i), hero(i) - 1
+   loadherodata st(i), hero(i) - 1
    newm = 0
    
    'Loop through hero battle menu, populating bslot().menu() with the ones that should be displayed

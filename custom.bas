@@ -979,7 +979,7 @@ SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as integer, b
   CASE 1
    DIM her AS HeroDef
    IF reset_name_and_price THEN
-    loadherodata @her, stufbuf(18)
+    loadherodata her, stufbuf(18)
     stuf.thingname = her.name
     stufbuf(24) = 0 ' default buy price
     stufbuf(27) = 0 ' default sell price

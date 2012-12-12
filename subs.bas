@@ -1727,7 +1727,7 @@ END SUB
 '--Hero Editor stuff---------------------------------------------------
 
 SUB hero_editor_load_hero (st as HeroEditState, her as HeroDef, byval hero_id as integer)
- loadherodata @her, hero_id
+ loadherodata her, hero_id
  enforce_hero_data_limits her
  update_hero_preview_pics st, her
 END SUB
@@ -1865,7 +1865,7 @@ SUB hero_editor_add_new (st as HeroEditState, her as HeroDef, byref recindex as 
     END IF
     IF state.need_update THEN
       state.need_update = NO
-      loadherodata @her, herotocopy
+      loadherodata her, herotocopy
       update_hero_preview_pics st, her
       menu(0) = "Cancel"
       menu(1) = "New Blank Hero"

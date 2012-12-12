@@ -364,7 +364,7 @@ END IF
 IF b(itemno * recordsize + 17) = 1 THEN
  'hire
  dim her as herodef
- loadherodata @her, b(itemno * recordsize + 18)
+ loadherodata her, b(itemno * recordsize + 18)
  loaditemdata wbuf(), her.def_weapon
  IF her.def_level < 0 THEN her.def_level = averagelev
  eqinfo = (atlevel(her.def_level, her.lev0.hp, her.levMax.hp) & wbuf(54 + 0)) & " " & statnames(statHP)
@@ -1305,8 +1305,7 @@ EXIT SUB
 
 buildmenu: '--loads the hero whose slot is held in pt
 '--load the hero data lump only to get the spell list types
-'loadherodata buffer(), hero(pt) - 1
-loadherodata @her, hero(pt) - 1
+loadherodata her, hero(pt) - 1
 
 FOR i as integer = 0 TO 5
  mtype(i) = -1
@@ -1360,7 +1359,7 @@ DIM result as integer = 0
 
 dim her as herodef
 '--load the hero's data.
-loadherodata @her, hero(who) - 1
+loadherodata her, hero(who) - 1
 
 '--for each spell list
 FOR j as integer = 0 TO 3
@@ -2423,7 +2422,7 @@ END SUB
 
 SUB spells_menu_refresh_hero(sp as SpellsMenuState)
  DIM her as HeroDef
- loadherodata @her, hero(sp.hero) - 1 'hero() is a global
+ loadherodata her, hero(sp.hero) - 1 'hero() is a global
  
  '--first blank out lists
  FOR i as integer = 0 TO UBOUND(sp.lists)

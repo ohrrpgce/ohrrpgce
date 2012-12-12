@@ -455,7 +455,7 @@ WITH toolinfo(paint_tool)
 END WITH
 
 '--load hero graphics--
-loadherodata @her, 0
+loadherodata her, 0
 load_sprite_and_pal hero_gfx, 4, her.walk_sprite, her.walk_sprite_pal
 
 

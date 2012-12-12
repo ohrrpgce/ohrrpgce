@@ -781,7 +781,7 @@ SUB guessdefaultpals(byval fileset as integer, poffset() as integer, byval sets 
  SELECT CASE fileset
  CASE 0 'Heroes
   FOR j as integer = 0 TO gen(genMaxHero)
-   loadherodata @her, j
+   loadherodata her, j
    IF her.sprite >= 0 AND her.sprite <= sets THEN poffset(her.sprite) = her.sprite_pal
   NEXT
  CASE 1 TO 3 'Enemies
@@ -795,7 +795,7 @@ SUB guessdefaultpals(byval fileset as integer, poffset() as integer, byval sets 
   NEXT j
  CASE 4 'Walkabouts
   FOR j as integer = 0 TO gen(genMaxHero)
-   loadherodata @her, j
+   loadherodata her, j
    IF her.walk_sprite >= 0 AND her.walk_sprite <= sets THEN
 	poffset(her.walk_sprite) = her.walk_sprite_pal
    END IF
@@ -3530,7 +3530,7 @@ IF getfixbit(fixHeroPortrait) = 0 OR getfixbit(fixHeroElementals) = 0 THEN
 
  DIM her as HeroDef
  FOR i as integer = 0 TO gen(genMaxHero)
-  loadherodata @her, i
+  loadherodata her, i
 
   WITH her
    IF do_portraits THEN
@@ -3956,7 +3956,7 @@ END SUB
 SUB load_special_tag_caches()
  DIM her as herodef
  FOR i as integer = 0 TO small(gen(genMaxHero), 59)
-  loadherodata @her, i
+  loadherodata her, i
   herotags(i).have_tag = her.have_tag
   herotags(i).alive_tag = her.alive_tag
   herotags(i).leader_tag = her.leader_tag
@@ -4304,7 +4304,7 @@ END FUNCTION
 FUNCTION getheroname (byval hero_id as integer) as string
  DIM her as HeroDef
  IF hero_id >= 0 THEN
-  loadherodata @her, hero_id
+  loadherodata her, hero_id
   RETURN her.name
  END IF
  RETURN ""

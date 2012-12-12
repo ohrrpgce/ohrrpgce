@@ -129,7 +129,7 @@ setvispage 0
 printstr "hero names", 0, pl * 8, 0: pl = pl + 1
 REDIM u(0) as string
 FOR i as integer = 0 TO gen(genMaxHero)
- loadherodata @her, i
+ loadherodata her, i
  writeconstant fh, i, her.name, u(), "hero"
 NEXT i
 
