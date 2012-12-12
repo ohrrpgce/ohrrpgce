@@ -1402,10 +1402,10 @@ Sub SaveStats2(byval fh as integer, lev0 as stats ptr, levMax as stats ptr)
 	next i
 end sub
 
-Sub DeSerHeroDef(filename as string, hero as herodef ptr, byval record as integer)
+Sub load_hero_from_old_dt0(filename as string, hero as herodef, byval record as integer)
 	'WARNING: this is the loader for the old-style binary hero data lump. See loadherodata
-	if record < 0 or record > gen(genMaxHero) then debug "DeSerHeroDef: fail on record:" & record : exit sub
-	if not fileisreadable(filename) or hero = 0 then exit sub
+	if record < 0 or record > gen(genMaxHero) then debug "load_hero_from_old_dt0: fail on record:" & record : exit sub
+	if not fileisreadable(filename) then exit sub
 	
 	dim as integer f = freefile, i, j
 	
@@ -1414,7 +1414,7 @@ Sub DeSerHeroDef(filename as string, hero as herodef ptr, byval record as intege
 	seek #f, record * recordsize + 1
 	
 	'begin (this makes the baby jesus cry :'( )
-	with *hero
+	with hero
 		.name              = readvstr(f, 16)
 		.sprite            = readshort(f)
 		.sprite_pal        = readshort(f)
@@ -1574,7 +1574,7 @@ SUB loadherodata (hero as herodef ptr, byval index as integer)
 
  'IF NOT loaded THEN
   debuginfo "falling back to " & game & ".dt0" & " slot " & index
-  deserherodef game & ".dt0", hero, index
+  load_hero_from_old_dt0 game & ".dt0", *hero, index
  'END IF
 END SUB
 
