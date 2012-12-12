@@ -84,7 +84,7 @@ declare Sub LoadStats2(byval fh as integer, lev0 as stats ptr, levMax as stats p
 declare Sub SaveStats2(byval fh as integer, lev0 as stats ptr, levMax as stats ptr)
 
 declare Sub load_hero_from_old_dt0(filename as string, hero as herodef, byval record as integer)
-declare Sub SerHeroDef(filename as string, hero as herodef ptr, byval record as integer)
+declare Sub save_hero_as_old_dt0(filename as string, hero as herodef, byval record as integer)
 declare sub loadherodata (hero as herodef ptr, byval index as integer)
 declare sub saveherodata (hero as herodef ptr, byval index as integer)
 declare sub ClearHeroData (hero as HeroDef)

@@ -1459,9 +1459,10 @@ Sub load_hero_from_old_dt0(filename as string, hero as herodef, byval record as 
 	close #f
 end sub
 
-Sub SerHeroDef(filename as string, hero as herodef ptr, byval record as integer)
+Sub save_hero_as_old_dt0(filename as string, hero as herodef, byval record as integer)
 	'WARNING: this is the saver for the old-style binary hero data lump. See saveherodata
-	if not fileiswriteable(filename) or hero = 0 then exit sub
+	'FIXME: this sub is deprecated, and will eventually be removed.
+	if not fileiswriteable(filename) then exit sub
 	
 	dim as integer f = freefile, i, j
 	
@@ -1470,7 +1471,7 @@ Sub SerHeroDef(filename as string, hero as herodef ptr, byval record as integer)
 	seek #f, record * getbinsize(binDT0) + 1
 	
 	'begin (this makes the baby jesus cry :'( )
-	with *hero
+	with hero
 		writevstr(f,16,.name)
 		writeshort(f,-1,.sprite)
 		writeshort(f,-1,.sprite_pal)
@@ -1673,7 +1674,7 @@ END SUB
 
 SUB saveherodata (hero as herodef ptr, byval index as integer)
  '--save the old way
- serherodef game & ".dt0", hero, index
+ save_hero_as_old_dt0 game & ".dt0", *hero, index
 
  '--save the new way
  DIM filename as string = workingdir & SLASH & "heroes.reld"
