@@ -1403,6 +1403,7 @@ Sub SaveStats2(byval fh as integer, lev0 as stats ptr, levMax as stats ptr)
 end sub
 
 Sub DeSerHeroDef(filename as string, hero as herodef ptr, byval record as integer)
+	'WARNING: this is the loader for the old-style binary hero data lump. See loadherodata
 	if record < 0 or record > gen(genMaxHero) then debug "DeSerHeroDef: fail on record:" & record : exit sub
 	if not fileisreadable(filename) or hero = 0 then exit sub
 	
@@ -1459,6 +1460,7 @@ Sub DeSerHeroDef(filename as string, hero as herodef ptr, byval record as intege
 end sub
 
 Sub SerHeroDef(filename as string, hero as herodef ptr, byval record as integer)
+	'WARNING: this is the saver for the old-style binary hero data lump. See saveherodata
 	if not fileiswriteable(filename) or hero = 0 then exit sub
 	
 	dim as integer f = freefile, i, j
@@ -1524,14 +1526,156 @@ Sub SerHeroDef(filename as string, hero as herodef ptr, byval record as integer)
 end sub
 
 SUB loadherodata (hero as herodef ptr, byval index as integer)
+ '--first try to load the data from heroes.reld
+ '--and then fall back on the .DT0 lump only if not found.
+
+ DIM loaded as integer = NO 
+ DO 'single-pass loop for breaking
+ 
+ DIM filename as string = workingdir & SLASH & "heroes.reld"
+ IF NOT isfile(filename) THEN
+  debuginfo "Lump does not exists " & filename
+  EXIT DO
+ END IF
+ 
+ DIM doc as DocPtr
+ doc = LoadDocument(filename)
+ IF doc = 0 THEN
+  debuginfo "heroes.reld doc load failed"
+  FreeDocument doc
+  EXIT DO
+ END IF
+ 
+ DIM heroes as NodePtr
+ heroes = DocumentRoot(doc)
+ IF heroes = 0 THEN
+  debuginfo "heroes.reld failed to get document root"
+  FreeDocument doc
+  EXIT DO
+ END IF
+
+ READNODE heroes
+  WITHNODE heroes."hero" as n
+   DIM i as integer = GetInteger(n)
+   SELECT CASE i
+    CASE 0 TO gen(genMaxHero)
+     IF i = index THEN
+      load_hero_from_reload hero, n
+      loaded = YES
+      FreeDocument doc
+      EXIT DO
+     END IF
+   END SELECT
+  END WITHNODE
+ END READNODE
+
+ EXIT DO' single-pass loop
+ LOOP
+
+ 'IF NOT loaded THEN
+  debuginfo "falling back to " & game & ".dt0" & " slot " & index
   deserherodef game & ".dt0", hero, index
+ 'END IF
+END SUB
+
+SUB load_hero_from_reload(hero as HeroDef ptr, byval parent as NodePtr)
+ ClearHeroData *hero
+ READNODE parent, default
+  WITHNODE parent."name" as heroname
+   hero->name = GetString(heroname)
+   hero->max_name_len = heroname."maxlen".default(0).integer
+   IF hero->max_name_len > 0 THEN hero->name = LEFT(hero->name, hero->max_name_len)
+  END WITHNODE
+  READNODE parent."appearance" as appearance
+   WITHNODE appearance."walkabout" as sprite
+    hero->walk_sprite = sprite."pic".integer
+    hero->walk_sprite_pal = sprite."pal".default(-1).integer
+   END WITHNODE
+   WITHNODE appearance."battle" as sprite
+    hero->sprite = sprite."pic".integer
+    hero->sprite_pal = sprite."pal".default(-1).integer
+    WITHNODE sprite."hand_a" as hand
+     hero->hand_pos(0).x = hand."x"
+     hero->hand_pos(0).y = hand."y"
+    END WITHNODE
+    WITHNODE sprite."hand_b" as hand
+     hero->hand_pos(1).x = hand."x"
+     hero->hand_pos(1).y = hand."y"
+    END WITHNODE
+   END WITHNODE
+   WITHNODE appearance."portrait" as sprite
+    hero->portrait = sprite."pic".integer
+    hero->portrait_pal = sprite."pal".default(-1).integer
+   END WITHNODE
+  END READNODE
+  hero->def_level = parent."default_level".default(-1).integer
+  hero->def_weapon = parent."default_weapon".integer
+  ReadStatsNode parent."stats_at_zero".ptr, hero->Lev0
+  ReadStatsNode parent."stats_at_max".ptr, hero->LevMax
+  READNODE parent."battle_menus" as battle_menus
+   WITHNODE battle_menus."menu" as menu
+    DIM i as integer = GetInteger(menu)
+    'FIXME there is no data structure for these yet
+    'menu."kind"
+    'menu."tag"
+   END WITHNODE
+  END READNODE
+  READNODE parent."spell_lists" as spell_lists
+   WITHNODE spell_lists."list" as list
+    DIM i as integer = GetInteger(list)
+    SELECT CASE i
+     CASE 0 TO 3
+      hero->list_name(i) = list."name".string
+      IF list."use_lmp".exists THEN hero->list_type(i) = 1
+      IF list."random".exists THEN hero->list_type(i) = 2
+      READNODE list."spells" as spells
+       WITHNODE spells."spell" as spell
+        DIM slot as integer = GetInteger(spell)
+        WITH hero->spell_lists(i, slot)
+         .attack = spell."attack".integer + 1
+         IF spell."itemlearn".exists THEN
+          .learned = 0
+         ELSE
+          .learned = spell."learnlev".integer + 1
+         END IF
+         'spell."tag"
+        END WITH
+       END WITHNODE
+      END READNODE
+     CASE ELSE
+      debuginfo "unknown spell list " & i & " for hero " & hero->name
+    END SELECT
+   END WITHNODE
+  END READNODE
+  READNODE parent."elements" as elements
+   WITHNODE elements."element" as element
+    DIM i as integer = GetInteger(element)
+    SELECT CASE i
+     CASE 0 TO maxElements - 1
+      hero->elementals(i) = CAST(single, element."damage".default(1.0).double)
+     CASE ELSE
+      debuginfo "unknown elemental " & i & " for hero " & hero->name
+    END SELECT
+   END WITHNODE
+  END READNODE
+  IF parent."rename_on_add".exists    THEN setbit hero->bits(), 0, 24, YES
+  IF parent."rename_on_status".exists THEN setbit hero->bits(), 0, 25, YES
+  IF parent."hide_empty_lists".exists THEN setbit hero->bits(), 0, 26, YES
+  READNODE parent."tags" as tags, default
+   hero->have_tag = tags."have_hero".integer
+   hero->alive_tag = tags."is_alive".integer
+   hero->leader_tag = tags."is_leader".integer
+   hero->active_tag = tags."is_active".integer
+  END READNODE
+ END READNODE
+ print "Loaded hero from reload: " & hero->name
 END SUB
 
 SUB saveherodata (hero as herodef ptr, byval index as integer)
  '--save the old way
  serherodef game & ".dt0", hero, index
+
  '--save the new way
- 
  DIM filename as string = workingdir & SLASH & "heroes.reld"
  DIM doc as DocPtr
  doc = LoadDocument(filename)
@@ -1571,31 +1715,6 @@ SUB saveherodata (hero as herodef ptr, byval index as integer)
  
 END SUB
 
-'Type HeroDef
-'	name as string
-'	sprite as integer
-'	sprite_pal as integer
-'	walk_sprite as integer
-'	walk_sprite_pal as integer
-'	portrait as integer
-'	portrait_pal as integer
-'	def_level as integer
-'	def_weapon as integer
-'	Lev0 as stats
-'	LevMax as stats
-'	spell_lists(3,23) as SpellList
-'	elementals(maxElements - 1) as single
-'	bits(2) as integer
-'	list_name(3) as string
-'	list_type(3) as integer
-'	have_tag as integer
-'	alive_tag as integer
-'	leader_tag as integer
-'	active_tag as integer
-'	max_name_len as integer
-'	hand_pos(1) as XYPair
-'End Type
-
 SUB save_hero_as_reload(hero as HeroDef ptr, byval parent as NodePtr)
  FreeChildren parent
  DIM ch as NodePtr
@@ -1626,11 +1745,11 @@ SUB save_hero_as_reload(hero as HeroDef ptr, byval parent as NodePtr)
  kind = SetChildNode(bm, "kind")
  SetChildNode kind, "weapon"
  FOR i as integer = 0 TO 3
-  bm = AppendChildNode(batmen, "menu", 0)
+  bm = AppendChildNode(batmen, "menu", 1+i)
   kind = SetChildNode(bm, "kind")
   SetChildNode kind, "spells", i
  NEXT i
- bm = AppendChildNode(batmen, "menu", 0)
+ bm = AppendChildNode(batmen, "menu", 5)
  kind = SetChildNode(bm, "kind")
  SetChildNode kind, "item"
 
@@ -1680,11 +1799,25 @@ SUB save_hero_as_reload(hero as HeroDef ptr, byval parent as NodePtr)
  
  DIM tagnode as NodePtr
  tagnode = SetChildNode(parent, "tags")
- IF hero->have_tag > 0 THEN SetChildNode tagnode, "have_hero"
- IF hero->alive_tag > 0 THEN SetChildNode tagnode, "is_alive"
- IF hero->leader_tag > 0 THEN SetChildNode tagnode, "is_leader"
- IF hero->active_tag > 0 THEN SetChildNode tagnode, "is_active"
+ IF hero->have_tag > 0 THEN SetChildNode tagnode, "have_hero", hero->have_tag
+ IF hero->alive_tag > 0 THEN SetChildNode tagnode, "is_alive", hero->alive_tag
+ IF hero->leader_tag > 0 THEN SetChildNode tagnode, "is_leader", hero->leader_tag
+ IF hero->active_tag > 0 THEN SetChildNode tagnode, "is_active", hero->active_tag
  
+END SUB
+
+SUB ReadStatsNode (byval stats as NodePtr, statobj as Stats)
+ READNODE stats
+  WITHNODE stats."stat" as stat
+   DIM i as integer = GetInteger(stat)
+   SELECT CASE i
+    CASE 0 to statLast
+     statobj.sta(i) = stat."value".integer
+    CASE ELSE
+     debuginfo "ReadStatsNode: unknown stat id " & i
+   END SELECT
+  END WITHNODE
+ END READNODE
 END SUB
 
 FUNCTION WriteStatsNode (byval parent as NodePtr, nodename as string, statobj as Stats) as NodePtr
@@ -1720,6 +1853,7 @@ SUB ClearHeroData (hero as HeroDef)
   memset @hero, 0, sizeof(HeroDef)
   hero.sprite_pal = -1      'default battle palette
   hero.walk_sprite_pal = -1 'default walkabout palette
+  hero.portrait_pal = -1
   FOR i as integer = 0 TO maxElements - 1
     hero.elementals(i) = 1.0f
   NEXT

@@ -178,9 +178,12 @@ DECLARE SUB save_distrib_state OVERLOAD (byref distinfo as DistribState, filenam
 DECLARE SUB save_distrib_state OVERLOAD (byref distinfo as DistribState, byval node as Reload.NodePtr)
 
 DECLARE SUB save_hero_as_reload(hero as HeroDef ptr, byval parent as NodePtr)
+DECLARE SUB load_hero_from_reload(hero as HeroDef ptr, byval parent as NodePtr)
 
 DECLARE FUNCTION WriteXYPairNode (byval parent as NodePtr, nodename as string, pair as XYPair) as NodePtr
 DECLARE FUNCTION WritePicPalNode (byval parent as NodePtr, nodename as string, byval pic as integer, byval pal as integer=-1) as NodePtr
 DECLARE FUNCTION WriteStatsNode (byval parent as NodePtr, nodename as string, statobj as Stats) as NodePtr
+
+DECLARE SUB ReadStatsNode (byval stats as NodePtr, statobj as Stats)
 
 #ENDIF

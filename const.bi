@@ -164,6 +164,10 @@ CONST statCtr = 9
 CONST statFocus = 10
 CONST statHitX = 11
 CONST statUser = 12              'Additional user defined stats, if any, start here
+                                  'none exist yet.
+
+CONST statLast = 11 'Index of last actually defined stat.
+                     'FIXME: There are a ton of places that should use this, but don't yet
 
 '---Format fix bits
 CONST fixAttackitems = 0         'zero out attack data for item cost (ammunition)
