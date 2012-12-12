@@ -1561,7 +1561,7 @@ SUB loadherodata (hero as herodef ptr, byval index as integer)
    SELECT CASE i
     CASE 0 TO gen(genMaxHero)
      IF i = index THEN
-      load_hero_from_reload hero, n
+      load_hero_from_reload *hero, n
       loaded = YES
       FreeDocument doc
       EXIT DO
@@ -1579,40 +1579,40 @@ SUB loadherodata (hero as herodef ptr, byval index as integer)
  'END IF
 END SUB
 
-SUB load_hero_from_reload(hero as HeroDef ptr, byval parent as NodePtr)
- ClearHeroData *hero
+SUB load_hero_from_reload(hero as HeroDef, byval parent as NodePtr)
+ ClearHeroData hero
  READNODE parent, default
   WITHNODE parent."name" as heroname
-   hero->name = GetString(heroname)
-   hero->max_name_len = heroname."maxlen".default(0).integer
-   IF hero->max_name_len > 0 THEN hero->name = LEFT(hero->name, hero->max_name_len)
+   hero.name = GetString(heroname)
+   hero.max_name_len = heroname."maxlen".default(0).integer
+   IF hero.max_name_len > 0 THEN hero.name = LEFT(hero.name, hero.max_name_len)
   END WITHNODE
   READNODE parent."appearance" as appearance
    WITHNODE appearance."walkabout" as sprite
-    hero->walk_sprite = sprite."pic".integer
-    hero->walk_sprite_pal = sprite."pal".default(-1).integer
+    hero.walk_sprite = sprite."pic".integer
+    hero.walk_sprite_pal = sprite."pal".default(-1).integer
    END WITHNODE
    WITHNODE appearance."battle" as sprite
-    hero->sprite = sprite."pic".integer
-    hero->sprite_pal = sprite."pal".default(-1).integer
+    hero.sprite = sprite."pic".integer
+    hero.sprite_pal = sprite."pal".default(-1).integer
     WITHNODE sprite."hand_a" as hand
-     hero->hand_pos(0).x = hand."x"
-     hero->hand_pos(0).y = hand."y"
+     hero.hand_pos(0).x = hand."x"
+     hero.hand_pos(0).y = hand."y"
     END WITHNODE
     WITHNODE sprite."hand_b" as hand
-     hero->hand_pos(1).x = hand."x"
-     hero->hand_pos(1).y = hand."y"
+     hero.hand_pos(1).x = hand."x"
+     hero.hand_pos(1).y = hand."y"
     END WITHNODE
    END WITHNODE
    WITHNODE appearance."portrait" as sprite
-    hero->portrait = sprite."pic".integer
-    hero->portrait_pal = sprite."pal".default(-1).integer
+    hero.portrait = sprite."pic".integer
+    hero.portrait_pal = sprite."pal".default(-1).integer
    END WITHNODE
   END READNODE
-  hero->def_level = parent."default_level".default(-1).integer
-  hero->def_weapon = parent."default_weapon".integer
-  ReadStatsNode parent."stats_at_zero".ptr, hero->Lev0
-  ReadStatsNode parent."stats_at_max".ptr, hero->LevMax
+  hero.def_level = parent."default_level".default(-1).integer
+  hero.def_weapon = parent."default_weapon".integer
+  ReadStatsNode parent."stats_at_zero".ptr, hero.Lev0
+  ReadStatsNode parent."stats_at_max".ptr, hero.LevMax
   READNODE parent."battle_menus" as battle_menus
    WITHNODE battle_menus."menu" as menu
     DIM i as integer = GetInteger(menu)
@@ -1626,13 +1626,13 @@ SUB load_hero_from_reload(hero as HeroDef ptr, byval parent as NodePtr)
     DIM i as integer = GetInteger(list)
     SELECT CASE i
      CASE 0 TO 3
-      hero->list_name(i) = list."name".string
-      IF list."use_lmp".exists THEN hero->list_type(i) = 1
-      IF list."random".exists THEN hero->list_type(i) = 2
+      hero.list_name(i) = list."name".string
+      IF list."use_lmp".exists THEN hero.list_type(i) = 1
+      IF list."random".exists THEN hero.list_type(i) = 2
       READNODE list."spells" as spells
        WITHNODE spells."spell" as spell
         DIM slot as integer = GetInteger(spell)
-        WITH hero->spell_lists(i, slot)
+        WITH hero.spell_lists(i, slot)
          .attack = spell."attack".integer + 1
          IF spell."itemlearn".exists THEN
           .learned = 0
@@ -1644,7 +1644,7 @@ SUB load_hero_from_reload(hero as HeroDef ptr, byval parent as NodePtr)
        END WITHNODE
       END READNODE
      CASE ELSE
-      debuginfo "unknown spell list " & i & " for hero " & hero->name
+      debuginfo "unknown spell list " & i & " for hero " & hero.name
     END SELECT
    END WITHNODE
   END READNODE
@@ -1653,23 +1653,23 @@ SUB load_hero_from_reload(hero as HeroDef ptr, byval parent as NodePtr)
     DIM i as integer = GetInteger(element)
     SELECT CASE i
      CASE 0 TO maxElements - 1
-      hero->elementals(i) = CAST(single, element."damage".default(1.0).double)
+      hero.elementals(i) = CAST(single, element."damage".default(1.0).double)
      CASE ELSE
-      debuginfo "unknown elemental " & i & " for hero " & hero->name
+      debuginfo "unknown elemental " & i & " for hero " & hero.name
     END SELECT
    END WITHNODE
   END READNODE
-  IF parent."rename_on_add".exists    THEN setbit hero->bits(), 0, 24, YES
-  IF parent."rename_on_status".exists THEN setbit hero->bits(), 0, 25, YES
-  IF parent."hide_empty_lists".exists THEN setbit hero->bits(), 0, 26, YES
+  IF parent."rename_on_add".exists    THEN setbit hero.bits(), 0, 24, YES
+  IF parent."rename_on_status".exists THEN setbit hero.bits(), 0, 25, YES
+  IF parent."hide_empty_lists".exists THEN setbit hero.bits(), 0, 26, YES
   READNODE parent."tags" as tags, default
-   hero->have_tag = tags."have_hero".integer
-   hero->alive_tag = tags."is_alive".integer
-   hero->leader_tag = tags."is_leader".integer
-   hero->active_tag = tags."is_active".integer
+   hero.have_tag = tags."have_hero".integer
+   hero.alive_tag = tags."is_alive".integer
+   hero.leader_tag = tags."is_leader".integer
+   hero.active_tag = tags."is_active".integer
   END READNODE
  END READNODE
- print "Loaded hero from reload: " & hero->name
+ print "Loaded hero from reload: " & hero.name
 END SUB
 
 SUB saveherodata (hero as herodef ptr, byval index as integer)
@@ -1699,7 +1699,7 @@ SUB saveherodata (hero as herodef ptr, byval index as integer)
    SELECT CASE i
     CASE 0 TO gen(genMaxHero)
      IF i = index THEN
-      save_hero_as_reload hero, n
+      save_hero_as_reload *hero, n
       saved = YES
      END IF
    END SELECT
@@ -1708,7 +1708,7 @@ SUB saveherodata (hero as herodef ptr, byval index as integer)
 
  IF NOT saved THEN
   DIM n as NodePtr = AppendChildNode(heroes, "hero", index)
-  save_hero_as_reload hero, n
+  save_hero_as_reload *hero, n
  END IF
  
  SerializeBin filename, doc
@@ -1716,26 +1716,26 @@ SUB saveherodata (hero as herodef ptr, byval index as integer)
  
 END SUB
 
-SUB save_hero_as_reload(hero as HeroDef ptr, byval parent as NodePtr)
+SUB save_hero_as_reload(hero as HeroDef, byval parent as NodePtr)
  FreeChildren parent
  DIM ch as NodePtr
- ch = SetChildNode(parent, "name", hero->name)
- IF hero->max_name_len > 0 THEN
-  SetChildNode ch, "maxlen", hero->max_name_len
+ ch = SetChildNode(parent, "name", hero.name)
+ IF hero.max_name_len > 0 THEN
+  SetChildNode ch, "maxlen", hero.max_name_len
  END IF
 
  DIM appear as NodePtr
  appear = SetChildNode(parent, "appearance")
- WritePicPalNode appear, "walkabout", hero->walk_sprite, hero->walk_sprite_pal
- WritePicPalNode appear, "portrait", hero->portrait, hero->portrait_pal
- ch = WritePicPalNode(appear, "battle", hero->sprite, hero->sprite_pal)
- WriteXYPairNode ch, "hand_a", hero->hand_pos(0)
- WriteXYPairNode ch, "hand_b", hero->hand_pos(1)
- IF hero->def_level >= 0 THEN SetChildNode parent, "default_level", hero->def_level
- SetChildNode parent, "default_weapon", hero->def_weapon
+ WritePicPalNode appear, "walkabout", hero.walk_sprite, hero.walk_sprite_pal
+ WritePicPalNode appear, "portrait", hero.portrait, hero.portrait_pal
+ ch = WritePicPalNode(appear, "battle", hero.sprite, hero.sprite_pal)
+ WriteXYPairNode ch, "hand_a", hero.hand_pos(0)
+ WriteXYPairNode ch, "hand_b", hero.hand_pos(1)
+ IF hero.def_level >= 0 THEN SetChildNode parent, "default_level", hero.def_level
+ SetChildNode parent, "default_weapon", hero.def_weapon
 
- WriteStatsNode(parent, "stats_at_zero", hero->Lev0)
- WriteStatsNode(parent, "stats_at_max", hero->LevMax)
+ WriteStatsNode(parent, "stats_at_zero", hero.Lev0)
+ WriteStatsNode(parent, "stats_at_max", hero.LevMax)
 
  DIM batmen as NodePtr
  batmen = SetChildNode(parent, "battle_menus")
@@ -1761,10 +1761,10 @@ SUB save_hero_as_reload(hero as HeroDef ptr, byval parent as NodePtr)
  splists = SetChildNode(parent, "spell_lists")
  FOR i as integer = 0 TO 3
   splist = AppendChildNode(splists, "list", i)
-  SetChildNode splist, "name", hero->list_name(i)
+  SetChildNode splist, "name", hero.list_name(i)
   spells = SetChildNode(splist, "spells")
   FOR j as integer = 0 to 23
-   WITH hero->spell_lists(i, j)
+   WITH hero.spell_lists(i, j)
     IF .attack > 0 THEN
      sp = AppendChildNode(spells, "spell", j)
      SetChildNode sp, "attack", .attack - 1
@@ -1777,10 +1777,10 @@ SUB save_hero_as_reload(hero as HeroDef ptr, byval parent as NodePtr)
     END IF
    END WITH
   NEXT j
-  IF hero->list_type(i) = 1 THEN
+  IF hero.list_type(i) = 1 THEN
    SetChildNode splist, "use_lmp"
   END IF
-  IF hero->list_type(i) = 2 THEN
+  IF hero.list_type(i) = 2 THEN
    SetChildNode splist, "random"
   END IF
  NEXT i
@@ -1788,22 +1788,22 @@ SUB save_hero_as_reload(hero as HeroDef ptr, byval parent as NodePtr)
  DIM elements as NodePtr
  elements = SetChildNode(parent, "elements")
  FOR i as integer = 0 to gen(genNumElements) - 1
-  IF INT(hero->elementals(i) * 10000) <> 10000 THEN
+  IF INT(hero.elementals(i) * 10000) <> 10000 THEN
    ch = AppendChildNode(elements, "element", i)
-   SetChildNode ch, "damage", cast(double, hero->elementals(i))
+   SetChildNode ch, "damage", cast(double, hero.elementals(i))
   END IF
  NEXT i
  
- IF xreadbit(hero->bits(), 24) THEN SetChildNode parent, "rename_on_add"
- IF xreadbit(hero->bits(), 25) THEN SetChildNode parent, "rename_on_status"
- IF xreadbit(hero->bits(), 26) THEN SetChildNode parent, "hide_empty_lists"
+ IF xreadbit(hero.bits(), 24) THEN SetChildNode parent, "rename_on_add"
+ IF xreadbit(hero.bits(), 25) THEN SetChildNode parent, "rename_on_status"
+ IF xreadbit(hero.bits(), 26) THEN SetChildNode parent, "hide_empty_lists"
  
  DIM tagnode as NodePtr
  tagnode = SetChildNode(parent, "tags")
- IF hero->have_tag > 0 THEN SetChildNode tagnode, "have_hero", hero->have_tag
- IF hero->alive_tag > 0 THEN SetChildNode tagnode, "is_alive", hero->alive_tag
- IF hero->leader_tag > 0 THEN SetChildNode tagnode, "is_leader", hero->leader_tag
- IF hero->active_tag > 0 THEN SetChildNode tagnode, "is_active", hero->active_tag
+ IF hero.have_tag > 0 THEN SetChildNode tagnode, "have_hero", hero.have_tag
+ IF hero.alive_tag > 0 THEN SetChildNode tagnode, "is_alive", hero.alive_tag
+ IF hero.leader_tag > 0 THEN SetChildNode tagnode, "is_leader", hero.leader_tag
+ IF hero.active_tag > 0 THEN SetChildNode tagnode, "is_active", hero.active_tag
  
 END SUB
 

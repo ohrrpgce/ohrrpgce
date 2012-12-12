@@ -83,6 +83,8 @@ declare Sub SaveStats(byval fh as integer, sta as stats ptr)
 declare Sub LoadStats2(byval fh as integer, lev0 as stats ptr, levMax as stats ptr)
 declare Sub SaveStats2(byval fh as integer, lev0 as stats ptr, levMax as stats ptr)
 
+DECLARE SUB save_hero_as_reload(hero as HeroDef, byval parent as NodePtr)
+DECLARE SUB load_hero_from_reload(hero as HeroDef, byval parent as NodePtr)
 declare Sub load_hero_from_old_dt0(filename as string, hero as herodef, byval record as integer)
 declare Sub save_hero_as_old_dt0(filename as string, hero as herodef, byval record as integer)
 declare sub loadherodata (hero as herodef ptr, byval index as integer)
@@ -176,9 +178,6 @@ DECLARE SUB load_distrib_state OVERLOAD (byref distinfo as DistribState, byval n
 DECLARE SUB save_distrib_state OVERLOAD (byref distinfo as DistribState)
 DECLARE SUB save_distrib_state OVERLOAD (byref distinfo as DistribState, filename as string)
 DECLARE SUB save_distrib_state OVERLOAD (byref distinfo as DistribState, byval node as Reload.NodePtr)
-
-DECLARE SUB save_hero_as_reload(hero as HeroDef ptr, byval parent as NodePtr)
-DECLARE SUB load_hero_from_reload(hero as HeroDef ptr, byval parent as NodePtr)
 
 DECLARE FUNCTION WriteXYPairNode (byval parent as NodePtr, nodename as string, pair as XYPair) as NodePtr
 DECLARE FUNCTION WritePicPalNode (byval parent as NodePtr, nodename as string, byval pic as integer, byval pal as integer=-1) as NodePtr
