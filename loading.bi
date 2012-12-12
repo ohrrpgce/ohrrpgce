@@ -88,7 +88,7 @@ DECLARE SUB load_hero_from_reload(hero as HeroDef, byval parent as NodePtr)
 declare Sub load_hero_from_old_dt0(filename as string, hero as herodef, byval record as integer)
 declare Sub save_hero_as_old_dt0(filename as string, hero as herodef, byval record as integer)
 declare sub loadherodata (hero as herodef, byval index as integer)
-declare sub saveherodata (hero as herodef ptr, byval index as integer)
+declare sub saveherodata (hero as herodef, byval index as integer)
 declare sub ClearHeroData (hero as HeroDef)
 declare function GetHeroHandPos(byval hero_id as integer, byval which_frame as integer, byval isy as integer) as integer
 

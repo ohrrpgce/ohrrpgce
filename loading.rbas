@@ -1672,9 +1672,9 @@ SUB load_hero_from_reload(hero as HeroDef, byval parent as NodePtr)
  print "Loaded hero from reload: " & hero.name
 END SUB
 
-SUB saveherodata (hero as herodef ptr, byval index as integer)
+SUB saveherodata (hero as herodef, byval index as integer)
  '--save the old way
- save_hero_as_old_dt0 game & ".dt0", *hero, index
+ save_hero_as_old_dt0 game & ".dt0", hero, index
 
  '--save the new way
  DIM filename as string = workingdir & SLASH & "heroes.reld"
@@ -1699,7 +1699,8 @@ SUB saveherodata (hero as herodef ptr, byval index as integer)
    SELECT CASE i
     CASE 0 TO gen(genMaxHero)
      IF i = index THEN
-      save_hero_as_reload *hero, n
+      '-a node for this hero already exists, must replace it
+      save_hero_as_reload hero, n
       saved = YES
      END IF
    END SELECT
@@ -1707,8 +1708,9 @@ SUB saveherodata (hero as herodef ptr, byval index as integer)
  END READNODE
 
  IF NOT saved THEN
+  'This is a new hero, save in a new node
   DIM n as NodePtr = AppendChildNode(heroes, "hero", index)
-  save_hero_as_reload *hero, n
+  save_hero_as_reload hero, n
  END IF
  
  SerializeBin filename, doc

@@ -3550,7 +3550,7 @@ IF getfixbit(fixHeroPortrait) = 0 OR getfixbit(fixHeroElementals) = 0 THEN
    END IF
   END WITH
 
-  saveherodata @her, i
+  saveherodata her, i
  NEXT i
 END IF
 

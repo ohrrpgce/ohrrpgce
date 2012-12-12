@@ -1801,21 +1801,21 @@ SUB hero_editor
   IF mstate.pt = 1 THEN
    DIM remem_hero_id as integer = hero_id
    IF intgrabber(hero_id, 0, gen(genMaxHero), scLeftCaret, scRightCaret) THEN
-    saveherodata @her, remem_hero_id
+    saveherodata her, remem_hero_id
     hero_editor_load_hero st, her, hero_id
    END IF
    IF keyval(scLeft) > 1 AND hero_id > 0 THEN
-    saveherodata @her, hero_id
+    saveherodata her, hero_id
     hero_id -= 1
     hero_editor_load_hero st, her, hero_id
    END IF
    IF keyval(scRight) > 1 AND hero_id < 59 THEN
-    saveherodata @her, hero_id
+    saveherodata her, hero_id
     hero_id += 1
     IF needaddset(hero_id, gen(genMaxHero), "hero") THEN
      gen(genMaxHero) -= 1  'Incremented by both needaddset and hero_editor_add_new
      hero_editor_add_new st, her, hero_id
-     saveherodata @her, hero_id
+     saveherodata her, hero_id
     END IF
     hero_editor_load_hero st, her, hero_id
    END IF
@@ -1836,7 +1836,7 @@ SUB hero_editor
   setvispage vpage
   dowait
  LOOP
- saveherodata @her, hero_id
+ saveherodata her, hero_id
  clear_hero_preview_pics st
 END SUB
 
