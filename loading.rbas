@@ -29,6 +29,15 @@ EXTERN slave_channel as IPCChannel
 #ENDIF
 
 '==========================================================================================
+'                                      Local Functions
+'==========================================================================================
+
+declare sub save_hero_as_reload(hero as HeroDef, byval parent as NodePtr)
+declare sub load_hero_from_reload(hero as HeroDef, byval parent as NodePtr)
+declare Sub load_hero_from_old_dt0(filename as string, hero as herodef, byval record as integer)
+declare Sub save_hero_as_old_dt0(filename as string, hero as herodef, byval record as integer)
+
+'==========================================================================================
 '                                      Helper Functions
 '==========================================================================================
 
