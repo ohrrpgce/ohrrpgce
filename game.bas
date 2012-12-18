@@ -3359,8 +3359,8 @@ SUB init_text_box_slices(txt as TextBoxState)
   END IF
   img_box->Width = 50
   img_box->Height = 50
-  img_box->X = txt.box.portrait_pos.x
-  img_box->Y = txt.box.portrait_pos.y
+  img_box->X = txt.box.portrait_pos.x - 4
+  img_box->Y = txt.box.portrait_pos.y - 3
   '--Then load the portrait
   DIM img_sl as Slice Ptr
   img_sl = NewSliceOfType(slSprite, img_box, SL_TEXTBOX_PORTRAIT)

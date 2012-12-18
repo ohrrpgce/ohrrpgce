@@ -1614,6 +1614,9 @@ script, textbox tests, begin
   if(current textbox <> 5) then(crash)
   advance text box, w
   if(current textbox <> -1) then(crash)
+  w
+  show text box(12), w, advance text box, w
+  show text box(13), w, advance text box, w
 end
 
 ########################################################################
