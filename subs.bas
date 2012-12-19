@@ -67,6 +67,7 @@ DECLARE SUB hero_editor_equipment_list (byval hero_id as integer, byref her as H
 DECLARE SUB hero_editor_equipbits (byval hero_id as integer, byval equip_type as integer)
 DECLARE SUB hero_editor_elementals(byref her as HeroDef)
 DECLARE SUB hero_editor_edit_spell_list_slot (slot as SpellList)
+DECLARE SUB hero_editor_battle_menu (her as HeroDef)
 
 SUB clearallpages
 clearpage 0 'UPDATE as of fbc v0.20
@@ -1744,17 +1745,18 @@ SUB hero_editor
   .previewframe = -1
  END WITH
 
- DIM menu(9) as string
+ DIM menu(10) as string
  menu(0) = "Return to Main Menu"
  menu(1) = CHR(27) & "Pick Hero " & hero_id & CHR(26)
  menu(2) = "Name:"
  menu(3) = "Appearance and Misc..."
  menu(4) = "Edit Stats..."
  menu(5) = "Edit Spell Lists..."
- menu(6) = "Bitsets..."
- menu(7) = "Elemental Resistances..."
- menu(8) = "Hero Tags..."
- menu(9) = "Equipment..."
+ menu(6) = "Edit Battle Menu..."
+ menu(7) = "Bitsets..."
+ menu(8) = "Elemental Resistances..."
+ menu(9) = "Hero Tags..."
+ menu(10) = "Equipment..."
 
  DIM mstate as MenuState
  WITH mstate
@@ -1789,10 +1791,11 @@ SUB hero_editor
     CASE 3: hero_editor_appearance st, her
     CASE 4: hero_editor_stats_menu her
     CASE 5: hero_editor_spell_lists_toplevel her
-    CASE 6: editbitset her.bits(), 0, 26, hbit()
-    CASE 7: hero_editor_elementals her
-    CASE 8: hero_editor_tags hero_id, her
-    CASE 9: hero_editor_equipment_list hero_id, her
+    CASE 6: hero_editor_battle_menu her
+    CASE 7: editbitset her.bits(), 0, 26, hbit()
+    CASE 8: hero_editor_elementals her
+    CASE 9: hero_editor_tags hero_id, her
+    CASE 10: hero_editor_equipment_list hero_id, her
    END SELECT
   END IF
 
@@ -2286,6 +2289,42 @@ SUB hero_editor_edit_spell_list_slot (slot as SpellList)
  freepage holdscreen
  setkeys
  ClearMenuData menu
+END SUB
+
+SUB hero_editor_battle_menu (her as HeroDef)
+ DIM menu(-1 TO 5) as string
+ menu(-1) = "Previous menu..."
+ 
+ DIM st as MenuState
+ st.pt = -1
+ st.top = -1
+ st.first = -1
+ st.last = UBOUND(menu)
+ st.need_update = YES
+ 
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scF1) > 1 THEN show_help "hero_battle_menu_edit"
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  
+  usemenu st
+  
+  IF st.need_update THEN
+   FOR i as integer = 0 TO 5
+   NEXT i
+   st.need_update = NO
+  END IF
+  
+  clearpage dpage
+  standardmenu menu(), st, 0, 0, dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  
+  dowait
+ LOOP
+ 
 END SUB
 
 SUB update_hero_tags_menu (byref hero as HeroDef, menu() as string)
