@@ -1,5 +1,0 @@
-Here you can type names for each of the hero's four spell lists. Don't bother to give names to spell lists that you don't plan to use.
-
-Use the Up and Down arrows to navigate the menu.
-
-Press ESC to return to the previous menu.

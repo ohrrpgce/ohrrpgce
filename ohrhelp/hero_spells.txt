@@ -1,15 +1,18 @@
-This is the spell list editor. It is divided into two columns. The column on the left shows the ID number and name of each attack in the spell list. The column on the right shows how the hero learns the spell.
+This is the spell list editor.
 
-Use the arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu.
+Use the arrow keys to navigate the menu.
 
-In the left column you can type in attack ID numbers, or browse through available attacks with the < and > keys.
+Each spell list consists of 24 spell slots, arranged in 3 columns.
 
-In the right column, the available choices are "Learned from Item" or "Learned at Level". You can type in a level number, or hit BACKSPACE to set "Learned from Item".
+When you have selected a spell slot press ENTER or SPACE to edit it, you can also type an attack ID number, or browse through available attacks with the < and > keys.
 
-"Learned from Item" means that the Hero will not be able to use the spell until the player uses an item which is set to "Teach" that spell.
+You can also edit the name of the spell list, and change the spell list type.
 
-"Learned at Level0" means the hero will always be able to use the spell.
+Here is a description of each type of spell list:
 
-"Learned at level#" means that the hero will gain the spell automatically when they reach that experience level.
+"Normal" This is the most commonly used spell list type. This is a simple list that the player will pick spells from. If the spells have MP cost or item cost, those costs will be displayed.
 
-You can also press ENTER or SPACE on any value if you want to change it using the Left and Right arrow keys. Press ENTER or SPACE again to return the arrow keys to normal motion. (Why anybody would want to do this is a mystery to everyone!)
+"Level MP (FF1 Style)" This is similar to Normal spell lists, except that each row of spells uses a shared pool of "Level MP" points. This is intended to emulate the somewhat unusual MP system used in the NES version of Final Fantasy 1.
+
+"Random Effects" This spell list type does not show the player any spell menu. It just randomly picks an attack from the list and does it. Random Effects only work in battle. They are not available in the "Spells" menu outside of battle.
+

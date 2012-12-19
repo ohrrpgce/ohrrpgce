@@ -1544,7 +1544,7 @@ SUB loadherodata (hero as herodef, byval index as integer)
  
  DIM filename as string = workingdir & SLASH & "heroes.reld"
  IF NOT isfile(filename) THEN
-  debuginfo "Lump does not exists " & filename
+  debuginfo "Lump does not exist " & filename
   EXIT DO
  END IF
  

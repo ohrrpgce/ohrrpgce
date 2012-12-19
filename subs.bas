@@ -58,8 +58,7 @@ DECLARE SUB hero_editor_add_new (st as HeroEditState, her as HeroDef, byref hero
 DECLARE SUB hero_editor_load_hero (st as HeroEditState, her as HeroDef, byval hero_id as integer)
 DECLARE SUB hero_editor_stats_menu (her as HeroDef)
 DECLARE SUB hero_editor_spell_lists_toplevel (her as HeroDef)
-DECLARE SUB update_hero_spell_list_menu (her as HeroDef, byval listnum as integer, leftmenu() as string, rightmenu() as string)
-DECLARE SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer, listtype as string)
+DECLARE SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer)
 DECLARE SUB hero_editor_spell_list_names (her as HeroDef)
 DECLARE SUB update_hero_tags_menu (byref hero as HeroDef, menu() as string)
 DECLARE SUB hero_editor_tags (byval hero_id as integer, byref hero as HeroDef)
@@ -67,6 +66,7 @@ DECLARE SUB hero_editor_appearance (byref st as HeroEditState, byref her as Hero
 DECLARE SUB hero_editor_equipment_list (byval hero_id as integer, byref her as HeroDef)
 DECLARE SUB hero_editor_equipbits (byval hero_id as integer, byval equip_type as integer)
 DECLARE SUB hero_editor_elementals(byref her as HeroDef)
+DECLARE SUB hero_editor_edit_spell_list_slot (slot as SpellList)
 
 SUB clearallpages
 clearpage 0 'UPDATE as of fbc v0.20
@@ -1744,18 +1744,17 @@ SUB hero_editor
   .previewframe = -1
  END WITH
 
- DIM menu(10) as string
+ DIM menu(9) as string
  menu(0) = "Return to Main Menu"
  menu(1) = CHR(27) & "Pick Hero " & hero_id & CHR(26)
  menu(2) = "Name:"
  menu(3) = "Appearance and Misc..."
  menu(4) = "Edit Stats..."
  menu(5) = "Edit Spell Lists..."
- menu(6) = "Name Spell Lists..."
- menu(7) = "Bitsets..."
- menu(8) = "Elemental Resistances..."
- menu(9) = "Hero Tags..."
- menu(10) = "Equipment..."
+ menu(6) = "Bitsets..."
+ menu(7) = "Elemental Resistances..."
+ menu(8) = "Hero Tags..."
+ menu(9) = "Equipment..."
 
  DIM mstate as MenuState
  WITH mstate
@@ -1790,11 +1789,10 @@ SUB hero_editor
     CASE 3: hero_editor_appearance st, her
     CASE 4: hero_editor_stats_menu her
     CASE 5: hero_editor_spell_lists_toplevel her
-    CASE 6: hero_editor_spell_list_names her
-    CASE 7: editbitset her.bits(), 0, 26, hbit()
-    CASE 8: hero_editor_elementals her
-    CASE 9: hero_editor_tags hero_id, her
-    CASE 10: hero_editor_equipment_list hero_id, her
+    CASE 6: editbitset her.bits(), 0, 26, hbit()
+    CASE 7: hero_editor_elementals her
+    CASE 8: hero_editor_tags hero_id, her
+    CASE 9: hero_editor_equipment_list hero_id, her
    END SELECT
   END IF
 
@@ -1998,28 +1996,11 @@ SUB hero_editor_stats_menu (her as HeroDef)
  v_free rightmenu
 END SUB
 
-SUB update_hero_spell_list_menu (her as HeroDef, byval listnum as integer, leftmenu() as string, rightmenu() as string)
- leftmenu(0) = "Previous Menu"
- FOR i as integer = 0 TO 23
-  WITH her.spell_lists(listnum, i)
-   IF .attack > 0 THEN
-    leftmenu(i + 1) = (.attack - 1) & ":" & readattackname(.attack - 1)
-    IF .learned = 0 THEN rightmenu(i + 1) = "Learned from Item"
-    IF .learned > 0 THEN rightmenu(i + 1) = "Learned at Level" & (.learned - 1)
-   ELSE
-    leftmenu(i + 1) = "EMPTY"
-    rightmenu(i + 1) = ""
-   END IF
-  END WITH
- NEXT i
-END SUB
-
 SUB hero_editor_spell_lists_toplevel (her as HeroDef)
  DIM spell_list_types(3) as string
- spell_list_types(0) = "Spells (MP Based)"
- spell_list_types(1) = "Spells (FF1 Style)"
+ spell_list_types(0) = ""
+ spell_list_types(1) = "Level-MP (FF1 Style)"
  spell_list_types(2) = "Random Effects"
- spell_list_types(3) = "Item Consuming (not implemented)"
 
  DIM menu(4) as string
  menu(0) = "Previous Menu"
@@ -2032,152 +2013,279 @@ SUB hero_editor_spell_lists_toplevel (her as HeroDef)
   .size = 24
  END WITH
 
- setkeys
- DO
-  setwait 55
-  setkeys
-  IF keyval(scESC) > 1 THEN EXIT DO
-  IF keyval(scF1) > 1 THEN show_help "hero_spell_menu_types"
-  usemenu mstate
-  DIM listnum as integer = mstate.pt - 1
-  IF mstate.pt >= 1 THEN intgrabber her.list_type(listnum), 0, 2
-  IF enter_or_space() THEN
-   IF mstate.pt = 0 THEN EXIT DO
-   IF mstate.pt >= 1 AND mstate.pt <= 4 THEN
-    hero_editor_edit_spell_list her, listnum, spell_list_types(her.list_type(listnum))
-   END IF
-  END IF
-
-  FOR i as integer = 0 TO 3
-   menu(1 + i) =  "Type " & i & " Spells: " & spell_list_types(her.list_type(i))
-  NEXT i
-  clearpage dpage
-  standardmenu menu(), mstate, 0, 0, dpage
-  SWAP vpage, dpage
-  setvispage vpage
-  dowait
- LOOP
-END SUB
-
-SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer, listtype as string)
- DIM leftmenu(24) as string
- DIM rightmenu(24) as string
- DIM activemenu as integer = 0  '0 or 1 for left or right menu
- DIM sticky as integer = 0
- DIM as integer leftkey, rightkey
-
- DIM mstate as MenuState
- WITH mstate
-  .last = UBOUND(leftmenu)
-  .size = 24
- END WITH
- update_hero_spell_list_menu her,  listnum, leftmenu(), rightmenu()
-
- setkeys
- DO
-  setwait 55
-  setkeys
-  IF keyval(scF1) > 1 THEN show_help "hero_spells"
-
-  IF sticky THEN
-   IF keyval(scEsc) > 1 THEN sticky = 0
-  ELSE
-   IF keyval(scEsc) > 1 THEN EXIT DO
-   IF usemenu(mstate) THEN
-    IF mstate.pt > 0 THEN
-     IF her.spell_lists(listnum, mstate.pt - 1).attack = 0 THEN activemenu = 0
-    ELSE
-     activemenu = 0
-    END IF
-   END IF
-   IF keyval(scLeft) > 1 OR keyval(scRight) > 1 THEN
-    activemenu = activemenu XOR 1
-    IF mstate.pt > 0 THEN
-     IF her.spell_lists(listnum, mstate.pt - 1).attack = 0 THEN activemenu = 0
-    ELSE
-     activemenu = 0
-    END IF
-   END IF
-  END IF
-
-  IF enter_or_space() THEN
-   IF mstate.pt = 0 THEN
-    EXIT DO
-   ELSE
-    '--sticky-typing mode
-    sticky = sticky XOR 1
-   END IF
-  END IF
-
-  IF sticky THEN
-   leftkey = scLeft
-   rightkey = scRight
-  ELSE
-   leftkey = scLeftCaret
-   rightkey = scRightCaret
-  END IF
-
-  IF mstate.pt > 0 THEN
-   IF activemenu = 0 THEN
-    IF zintgrabber(her.spell_lists(listnum, mstate.pt - 1).attack, -1, gen(genMaxAttack), leftkey, rightkey) THEN
-     mstate.need_update = YES
-    END IF
-   ELSE
-    IF zintgrabber(her.spell_lists(listnum, mstate.pt - 1).learned, -1, 99, leftkey, rightkey) THEN
-     mstate.need_update = YES
-    END IF
-   END IF
-  END IF
-
-  IF mstate.need_update THEN
-   mstate.need_update = NO
-   update_hero_spell_list_menu her, listnum, leftmenu(), rightmenu()
-  END IF
-
-  '--Draw screen
-  clearpage dpage
-  textcolor uilook(uiDescription), 0
-  printstr listtype, 300 - LEN(listtype) * 8, 0, dpage
-  standardmenu leftmenu(), mstate, 0, 0, dpage, , (activemenu = 0), 160, sticky  'hidecursor=(...), wide=160, highlight=sticky
-  standardmenu rightmenu(), mstate, 160, 0, dpage, , (activemenu = 1), 160, sticky  'hidecursor=(...), wide=160, highlight=sticky
-  SWAP vpage, dpage
-  setvispage vpage
-  dowait
- LOOP
-END SUB
-
-SUB hero_editor_spell_list_names (her as HeroDef)
- DIM menu(4) as string
- DIM mstate as MenuState
- WITH mstate
-  .size = 22
-  .last = UBOUND(menu)
- END WITH
-
+ DIM hint as string
+ 
  setkeys YES
  DO
   setwait 55
   setkeys YES
   IF keyval(scESC) > 1 THEN EXIT DO
-  IF keyval(scF1) > 1 THEN show_help "hero_spell_menu_names"
+  IF keyval(scF1) > 1 THEN show_help "hero_spell_menu_types"
   usemenu mstate
-  IF mstate.pt = 0 THEN
-   IF enter_or_space() THEN EXIT DO
-  ELSE
-   strgrabber her.list_name(mstate.pt - 1), 10
+  DIM listnum as integer = mstate.pt - 1
+  IF mstate.pt >= 1 THEN
+   strgrabber her.list_name(listnum), 10
+  END IF
+  IF keyval(scEnter) > 1 THEN
+   IF mstate.pt = 0 THEN EXIT DO
+   IF mstate.pt >= 1 AND mstate.pt <= 4 THEN
+    IF LEN(her.list_name(listnum)) > 0 THEN
+     hero_editor_edit_spell_list her, listnum
+    END IF
+   END IF
   END IF
 
-  menu(0) = "Previous Menu"
-  menu(1) = "Spell List 1:" + her.list_name(0)
-  menu(2) = "Spell List 2:" + her.list_name(1)
-  menu(3) = "Spell List 3:" + her.list_name(2)
-  menu(4) = "Spell List 4:" + her.list_name(3)
-
-  clearpage vpage
-  standardmenu menu(), mstate, 0, 0, vpage
+  FOR i as integer = 0 TO 3
+   menu(1 + i) =  "Spell list " & i & ": " & her.list_name(i)
+  NEXT i
+  clearpage dpage
+  standardmenu menu(), mstate, 0, 0, dpage
+  IF listnum >= 0 THEN
+   edgeprint spell_list_types(her.list_type(listnum)), 0, 180, uilook(uiSelectedDisabled), dpage
+   IF LEN(her.list_name(listnum)) > 0 THEN
+    hint = "Press ENTER to edit spells in this list."
+   ELSE
+    hint = "Type a name for this spell list."
+   END IF
+   edgeprint hint, 0, 190, uilook(uiDisabledItem), dpage
+  END IF
+  SWAP vpage, dpage
   setvispage vpage
   dowait
  LOOP
+END SUB
+
+SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer)
+
+ DIM menu(2) as string
+ DIM spellnames(23) as string
+ DIM col as integer
+ DIM bgcol as integer
+
+ DIM root as Slice Ptr
+ root = NewSliceOfType(slRoot)
+ WITH *root
+  .Fill = YES
+ END WITH
+ DIM spellbox as Slice Ptr
+ spellbox = NewSliceOfType(slRectangle, root)
+ WITH *spellbox
+  .x = 6
+  .y = 34
+  .width = 308
+  .height = 80
+  ChangeRectangleSlice spellbox, 1
+ END WITH
+ DIM infobox as Slice Ptr
+ RefreshSliceScreenPos root
+ infobox = NewSliceOfType(slText, root)
+ ChangeTextSlice infobox, "", , , YES ' make wrapping
+ WITH *infobox
+  .Width = root->Width
+  .AlignVert = 2
+  .AnchorVert = 2
+ END WITH
+ 
+ DIM info as string
+
+ DIM mstate as MenuState
+ WITH mstate
+  .first = -3
+  .pt = -3
+  .top = -3
+  .last = UBOUND(spellnames)
+  .need_update = YES
+ END WITH
+ menu(0) = "Previous Menu..."
+
+ setkeys YES
+ DO
+  setwait 55
+  setkeys YES
+  IF keyval(scF1) > 1 THEN show_help "hero_spells"
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  
+  IF mstate.pt >= 0 THEN
+   IF usemenu(mstate, scLeft, scRight) THEN
+    mstate.need_update = YES
+   ELSE
+    IF keyval(scUp) > 1 THEN
+     mstate.pt -= 3
+     IF mstate.pt < 0 THEN mstate.pt = -1
+     mstate.need_update = YES
+    ELSEIF keyval(scDown) > 1 THEN
+     mstate.pt += 3
+     IF mstate.pt > mstate.last THEN mstate.pt = mstate.first
+     mstate.need_update = YES
+    END IF
+   END IF
+  ELSE
+   IF usemenu(mstate) THEN mstate.need_update = YES
+  END IF
+
+  IF enter_or_space() THEN
+   IF mstate.pt = -3 THEN
+    EXIT DO
+   END IF
+   IF mstate.pt >= 0 THEN
+    hero_editor_edit_spell_list_slot her.spell_lists(listnum, mstate.pt)
+    mstate.need_update = YES
+   END IF
+  END IF
+  
+  IF mstate.pt = -2 THEN
+   IF strgrabber(her.list_name(listnum), 10) THEN mstate.need_update = YES
+  END IF
+
+  IF mstate.pt = -1 THEN
+   IF intgrabber(her.list_type(listnum), 0, 2) THEN mstate.need_update = YES
+  END IF
+
+  IF mstate.pt >= 0 THEN
+   IF zintgrabber(her.spell_lists(listnum, mstate.pt).attack, -1, gen(genMaxAttack), scLeftCaret, scRightCaret) THEN mstate.need_update = YES
+  END IF
+
+  IF mstate.need_update THEN
+   menu(1) = "Spell list name: " & her.list_name(listnum)
+   menu(2) = "List Type: "
+   SELECT CASE her.list_type(listnum)
+    CASE 0: menu(2) &= "Normal"
+    CASE 1: menu(2) &= "Use Level-MP (FF1-Style)"
+    CASE 2: menu(2) &= "Random Effects"
+    CASE ELSE: menu(2) &= "???Unknown " & her.list_type(listnum)
+   END SELECT
+   FOR i as integer = 0 TO UBOUND(spellnames)
+    WITH her.spell_lists(listnum, i)
+     IF .attack > 0 THEN
+      spellnames(i) = readattackname(.attack - 1)
+     ELSE
+      spellnames(i) = ""
+     END IF
+     spellnames(i) = rpad(spellnames(i), " ",  10)
+    END WITH
+   NEXT i
+   info = ""
+   IF mstate.pt >= 0 THEN
+    WITH her.spell_lists(listnum, mstate.pt)
+     IF .learned > 0 THEN
+      info &= "Learned at level " & (.learned - 1) & !"\n"
+     ELSE
+      info &= "Learned from an item" & !"\n"
+     END IF
+    END WITH
+    IF her.list_type(listnum) = 1 THEN
+     info &= "1 point of level " & INT(mstate.pt / 3) + 1 & " " & readglobalstring(160, "Level MP", 20)
+    END IF
+   END IF
+   ChangeTextSlice infobox, info
+   mstate.need_update = NO
+  END IF
+
+  '--Draw screen
+  mstate.tog XOR= 1
+  clearpage dpage
+  drawslice root, dpage
+  FOR i as integer = 0 TO 2
+   col = uiLook(uiMenuItem)
+   IF mstate.pt + 3 = i THEN col = uiLook(uiSelectedItem) + mstate.tog
+   edgeprint menu(i), 0, 10 * i, col, dpage
+  NEXT i
+  FOR i as integer = 0 TO mstate.last
+   col = uiLook(uiMenuItem)
+   bgcol = 0
+   IF mstate.pt = i THEN
+    col = uiLook(uiSelectedItem) + mstate.tog
+    bgcol = uilook(uiHighlight)
+   END IF
+   textcolor col, bgcol
+   printstr spellnames(i), 12 + (i MOD 3) * 104, 40 + (i \ 3) * 8, dpage
+  NEXT i
+
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+ 
+ DeleteSlice @root
+END SUB
+
+SUB hero_editor_edit_spell_list_slot (slot as SpellList)
+
+ DIM menu as MenuDef
+ ClearMenuData menu
+ append_menu_item menu, "Previous menu..."
+ append_menu_item menu, "Attack:"
+ append_menu_item menu, "Learned at level:"
+ append_menu_item menu, "Learned from an item:"
+ menu.align = -1
+ 
+ DIM st as MenuState
+ init_menu_state st, menu
+ st.pt = 1
+ st.need_update = YES
+ st.active = YES
+
+ DIM cap as string = ""
+
+ DIM holdscreen as integer
+ holdscreen = allocatepage
+ copypage vpage, holdscreen
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scF1) > 1 THEN show_help "hero_spells_slot"
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  
+  usemenu st
+
+  SELECT CASE st.pt
+   CASE 0:
+    IF enter_or_space() THEN
+     EXIT DO
+    END IF
+   CASE 1:
+    IF zintgrabber(slot.attack, -1, gen(genMaxAttack)) THEN st.need_update = YES
+   CASE 2:
+    IF zintgrabber(slot.learned, -1, 99) THEN st.need_update = YES
+   CASE 3:
+    IF enter_or_space() ORELSE keyval(scLeft) > 1 ORELSE keyval(scRight) > 1 THEN
+     IF slot.learned > 0 THEN
+      slot.learned = 0
+     ELSE
+      slot.learned = 1
+     END IF
+     st.need_update = YES
+    END IF
+  END SELECT
+  
+  IF st.need_update THEN
+   cap = ""
+   IF slot.attack > 0 THEN cap = (slot.attack - 1) & " " & readattackname(slot.attack - 1)
+   menu.items[1]->caption = "Attack: " & cap
+
+   cap = ""
+   IF slot.learned > 0 THEN cap = STR(slot.learned - 1)
+   menu.items[2]->caption = "Learned at level: " & cap
+
+   cap = "NO"
+   IF slot.learned = 0 THEN cap = "YES"
+   menu.items[3]->caption = "Learned from an item: " & cap
+   
+   st.need_update = NO
+   copypage holdscreen, vpage
+  END IF
+
+  draw_menu menu, st, vpage
+  setvispage vpage
+  
+  dowait
+ LOOP
+
+ freepage holdscreen
+ setkeys
+ ClearMenuData menu
 END SUB
 
 SUB update_hero_tags_menu (byref hero as HeroDef, menu() as string)

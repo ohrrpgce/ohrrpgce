@@ -1,13 +1,5 @@
 This menu allows you to choose which of the hero's four spell menus that you want to edit.
 
-Use the Up and Down arrow keys to navigate the menu. Press ENTER or SPACE to begin editing a spell list.
+Use the Up and Down arrow keys to navigate the menu. Press ENTER to begin editing a spell list.
 
-You can also change the type of a spell list by pressing the left and right arrow keys. There are three types of spell lists.
-
-"Spells (MP Based)" This is the most commonly used spell list type. This is a simple list that the player will pick spells from. The MP cost will be displayed.
-
-"Spells (FF1 Style)" This is similar to the MP Based spells, except that each row of spells uses a shared pool of "Level MP" points. This is intended to emulate the somewhat unusual MP system used in the NES version of Final Fantasy 1.
-
-"Random Effects" This spell list type does not show the player any menu. it just randomly picks an attack from the list and does it. Random Effects only work in battle. They are not available in the "Spells" menu outside of battle.
-
-Also remember that if you are going to use a spell list, you need to give that spell list a name. You can't do that here. Press ESC to go back to the main hero editor menu, then choose "Name Spell Lists".
+You must type a name for a spell list in order to enable it.

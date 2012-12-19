@@ -26,6 +26,8 @@ WHAT IS NEW?
       stat, or target's max stat [James]
     * Press Enter or Space on "Base ATK Stat" to browse a menu of all
       available base attack stats [James]
+    * Revamped the hero spell list editor to make it easier to use
+      [James] 
 
   * Bugfixes
     * "run script by id" was far slower than it should have been [Ralph]
