@@ -2230,6 +2230,16 @@ FUNCTION spawn_and_wait (app as string, args as string) as string
  'It may be better to pass arguments in an array (the Unix way), so that
  'we can do all the necessary quoting required for Windows here.
 
+ IF gfxbackend = "console" THEN
+  CLS
+  SHELL app & " " & args
+  'Sync actual and backend-internal screens
+  CLS
+  clearpage vpage
+  setvispage vpage
+  RETURN ""
+ END IF
+
 #IFDEF __FB_DARWIN__
 
  basic_textbox "Please wait, running " & trimpath(app), uilook(uiText), vpage
