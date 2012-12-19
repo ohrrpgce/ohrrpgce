@@ -14,6 +14,7 @@
 #include "menus.bi"
 #include "const.bi"
 #include "misc.bi"  'for nulzstr
+#include "reload.bi"
 
 #ifdef COMMON_BASE_BI
 #error Include at most one of common.bi, common_base.bi
@@ -246,6 +247,8 @@ DECLARE FUNCTION ideal_ticks_per_second() as double
 
 DECLARE FUNCTION describe_formation(formdata as Formation) as string
 
+DECLARE SUB cleanup_global_reload_doc ()
+
 'Global variables
 EXTERN sourcerpg as string
 EXTERN as string game, tmpdir, exename, workingdir, homedir, app_dir
@@ -264,6 +267,7 @@ EXTERN settings_dir as string
 EXTERN log_dir as string
 EXTERN data_dir as string
 EXTERN negative_zero as integer
+EXTERN global_reload_doc as reload.DocPtr
 #ifdef IS_CUSTOM
  EXTERN cleanup_on_error as integer
 #endif

@@ -6,6 +6,7 @@
 
 'Forward declarations
 TYPE SliceFwd as Slice
+TYPE NodeFwd as reload_Node
 
 UNION XYPair
   TYPE
@@ -726,6 +727,9 @@ Type HeroDef
 	active_tag as integer
 	max_name_len as integer
 	hand_pos(1) as XYPair
+	reld as NodeFwd ptr
+	
+	Declare Destructor () 'declared in common.bas
 End Type
 
 'This caches the tags needed by evalherotag/tag_is_special

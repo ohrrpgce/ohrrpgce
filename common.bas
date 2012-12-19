@@ -28,6 +28,7 @@
 #include "uiconst.bi"
 #include "common.bi"
 #include "slices.bi"
+#include "reload.bi"
 
 #include "music.bi"
 #include "loading.bi"
@@ -85,6 +86,10 @@ IF NOT isdir(settings_dir) THEN makedir settings_dir
 
 'Used by intgrabber, reset by usemenu
 DIM negative_zero as integer = NO
+
+DIM global_reload_doc as reload.DocPtr
+global_reload_doc = reload.CreateDocument()
+reload.SetRootNode(global_reload_doc, reload.CreateNode(global_reload_doc, ""))
 
 #IFDEF IS_CUSTOM
  'show/fatalerror option (Custom only): have we started editing?
@@ -4983,3 +4988,28 @@ FUNCTION describe_formation(formdata as Formation) as string
  
  RETURN result
 END FUNCTION
+
+SUB cleanup_global_reload_doc ()
+ DIM rnod as reload.NodePtr = reload.DocumentRoot(global_reload_doc)
+ DIM num as integer = reload.NumChildren(rnod)
+ IF num > 0 THEN
+  debug "===WARNING: Leaked " & num & " global reload nodes==="
+  DIM n as reload.NodePtr = reload.FirstChild(rnod)
+  DO WHILE n
+   debug "node: " & reload.GetString(n)
+   n = reload.NextSibling(n)
+  LOOP
+ END IF
+ reload.FreeDocument(global_reload_doc)
+END SUB
+
+Destructor HeroDef ()
+ if this.reld <> 0 then
+  debuginfo "Freeing a HeroDef's reload node!"
+  'The cast here is just to avoid a compile-time warning
+  'because of the NodeFwd nonsense that udts.bi has to do.
+  FreeNode CAST(reload.NodePtr, this.reld)
+ else
+  debuginfo "HeroDef didn't bother freeing reload node because it was never loaded"
+ end if
+End Destructor

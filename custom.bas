@@ -639,6 +639,7 @@ SUB cleanup_and_terminate ()
  'catch sprite leaks
  sprite_empty_cache
  palette16_empty_cache
+ cleanup_global_reload_doc
  IF keyval(-1) = 0 THEN
   clearpage vpage
   ' Don't let Spoonweaver's cat near your power cord!

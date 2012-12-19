@@ -829,6 +829,7 @@ SUB reset_game_final_cleanup()
  palette16_empty_cache()
  cleanup_game_slices()
  SliceDebugDump YES
+ cleanup_global_reload_doc
  stopsong
  resetsfx
  IF gam.autorungame THEN exitprogram (NOT abortg)

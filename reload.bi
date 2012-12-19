@@ -25,6 +25,9 @@
 #define null 0
 #endif
 
+'Used for foward declarations in udts.bi
+TYPE reload_Node as Node
+
 Namespace Reload
 
 ENUM NodeInTypes
