@@ -514,7 +514,9 @@ END SUB
 
 FUNCTION get_hspeak_version(hspeak_path as string) as string
  DIM tempf as string = tmpdir & "hspeak_ver.txt"
- SHELL hspeak_path & " -k > " & tempf
+ 'Note this will momentarily pop up a console window on Windows, unpleasant.
+ 'Could get around this by using open_piped_process
+ safe_shell escape_filename(hspeak_path) & " -k > " & escape_filename(tempf)
  DIM fh as integer = FREEFILE
  IF OPEN(tempf FOR INPUT AS fh) THEN
   debug "Couldn't run " & hspeak_path
@@ -556,14 +558,14 @@ FUNCTION compilescripts(fname as string) as string
    ELSE
     unlumpfile game & ".hsp", "scripts.bin", tmpdir
     'scripts.bin will be missing in scripts compiled with very old HSpeak versions
-    args += " --reuse-ids """ & tmpdir & "scripts.bin"""
+    args += " --reuse-ids " & escape_filename(tmpdir & "scripts.bin")
    END IF
   END IF
  END IF
  outfile = trimextension(fname) + ".hs"
  safekill outfile
  'Wait for keys: we spawn a command prompt/xterm/Terminal.app, which will be closed when HSpeak exits
- errmsg = spawn_and_wait(hspeak, args & " """ & simplify_path_further(fname, curdir) & """")
+ errmsg = spawn_and_wait(hspeak, args & " " & escape_filename(simplify_path_further(fname, curdir)))
  IF LEN(errmsg) THEN
   notification errmsg
   RETURN ""

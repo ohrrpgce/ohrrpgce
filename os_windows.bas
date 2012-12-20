@@ -381,7 +381,7 @@ end function
 'If successful, you should call cleanup_process with the handle after you don't need it any longer.
 'This is for gui processes
 function open_process (program as string, args as string) as ProcessHandle
-	dim argstemp as string = """" + program + """ " + args
+	dim argstemp as string = escape_filename(program) + " " + args
 	dim flags as integer = 0
 	dim sinfo as STARTUPINFO
 	sinfo.cb = sizeof(STARTUPINFO)
@@ -400,7 +400,7 @@ end function
 'Returns 0 on failure.
 'If successful, you should call cleanup_process with the handle after you don't need it any longer.
 function open_piped_process (program as string, args as string, byval iopipe as NamedPipeInfo ptr ptr) as ProcessHandle
-	dim argstemp as string = """" + program + """ " + args
+	dim argstemp as string = escape_filename(program) + " " + args
 	dim flags as integer = 0
 	dim pinfop as ProcessHandle  'PROCESS_INFORMATION ptr
 	dim sinfo as STARTUPINFO
@@ -469,7 +469,7 @@ end function
 'This is currently designed for running console applications. Could be
 'generalised in future as needed.
 function open_console_process (program as string, args as string) as ProcessHandle
-	dim argstemp as string = """" + program + """ " + args
+	dim argstemp as string = escape_filename(program) + " " + args
 	dim flags as integer = 0
 	dim sinfo as STARTUPINFO
 	sinfo.cb = sizeof(STARTUPINFO)

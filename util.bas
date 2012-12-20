@@ -33,7 +33,7 @@ DIM orig_dir as string
 init_runtime
 
 
- '------------- (Some) math and string operations -------------
+'------------- Math operations -------------
 
 FUNCTION bitcount (byval v as unsigned integer) as integer
   'From the "Software Optimization Guide for AMD Athlon 64 and Opteron Processors". Thanks, AMD!
@@ -156,6 +156,9 @@ FUNCTION fuzzythreshold (byval value as DOUBLE, byval low as DOUBLE, byval high 
   RETURN (value - low) / (high - low)
  END IF
 END FUNCTION
+
+
+'---------------- String operations --------------
 
 FUNCTION rpad (s as STRING, pad_char as STRING, size as integer) as STRING
  DIM result as STRING
@@ -448,6 +451,7 @@ FUNCTION zero_default(n as integer, zerocaption as STRING="default", displayoffs
  RETURN "" & (n + displayoffset)
 END FUNCTION
 
+'FIXME: Can be replaced by IIF in most recent FB version, once we switch to it
 FUNCTION iif_string(byval condition as integer, s1 as string, s2 as string) as string
  IF condition THEN RETURN s1 ELSE RETURN s2
 END FUNCTION
@@ -1022,6 +1026,29 @@ FUNCTION anycase (filename as string) as string
 #ENDIF
 END FUNCTION
 
+FUNCTION escape_filename (filename as string) as string
+  'This is intended for escaping filenames for use in shells
+#IFDEF __UNIX__
+  'Don't escape '
+  RETURN """" & escape_string(filename, """`\$|<>&#;()") & """"
+#ELSE
+  'Note " is not allowed in filenames
+  RETURN """" & filename & """"
+#ENDIF
+END FUNCTION
+
+'This is a replacement for SHELL. It needs to be used on Windows if the executable was escaped (so contains quotes)
+SUB safe_shell (cmd as string)
+#IFDEF __FB_WIN32__
+  'SHELL wraps system() which calls cmd.exe (or command.com on older OSes)
+  'cmd.exe will remove the first and last quotes from the string and leave the rest.
+  'Therefore, there need to be two quotes at the beginning of the string!
+  SHELL """" & cmd & """"
+#ELSE
+  SHELL cmd
+#ENDIF
+END SUB
+
 SUB touchfile (filename as string)
   dim as integer fh = FREEFILE
   OPEN filename FOR BINARY as #fh
@@ -1110,7 +1137,7 @@ SUB findfiles (directory as STRING, namemask as STRING = "", byval filetype as i
   shellout = "/tmp/ohrrpgce-findfiles-" & randint(10000) & ".tmp"
   grep = "-v '/$'"
   IF filetype = fileTypeDirectory THEN grep = "'/$'"
-  searchdir = """" + escape_string(searchdir, """`\$") + """"
+  searchdir = escape_filename(searchdir)
   IF findhidden THEN
     searchdir = searchdir + nmask + " " + searchdir + "." + nmask
   ELSE
@@ -1265,7 +1292,7 @@ FUNCTION makedir (directory as string) as integer
 #ifdef __FB_LINUX__
   ' work around broken file permissions in dirs created by linux version
   ' MKDIR creates with mode 644, should create with mode 755
-  SHELL "chmod +x """ + directory + """"
+  SHELL "chmod +x " + escape_filename(directory)
 #endif
   RETURN 0
 END FUNCTION
@@ -1347,8 +1374,7 @@ END FUNCTION
 FUNCTION isdir (sDir as string) as integer
 #IFDEF __UNIX__
   'Special hack for broken Linux dir() behavior
-  dim temp as string = escape_string(sDir, """`\$")
-  isdir = SHELL("[ -d """ + temp + """ ]") = 0
+  isdir = SHELL("[ -d " + escape_filename(sDir) + " ]") = 0
 #ELSE
   'Windows just uses dir (ugh)
   'Have to remove trailing slash, otherwise dir always returns nothing

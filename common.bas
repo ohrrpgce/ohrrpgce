@@ -407,7 +407,7 @@ FUNCTION os_shell_move(src as string, dest as string) as integer
   mv = "move"
   args = " /Y"
  #ENDIF
- args &= " """ & src & """ """ & dest & """"
+ args &= " " & escape_filename(src) & " " & escape_filename(dest)
 
  'spawn_ret = spawn_and_wait(mv, args)
  SHELL mv & args
@@ -2226,10 +2226,11 @@ SUB playsongnum (byval songnum as integer)
 END SUB
 
 FUNCTION spawn_and_wait (app as string, args as string) as string
- 'Run a commandline program in a terminal emulator and wait for it to finish. 
+ 'Run a commandline program in a terminal emulator and wait for it to finish.
  'On Windows the program is run asynchronously and users are offered the option to kill it.
  'On other platforms the program just freezes.
  'You can of course also kill the program on all platforms with Ctrl+C
+ 'app should be a path to an executable (not escaped), while args should be escaped as needed.
  'Returns an error message, or "" if no apparent failure
 
  'It may be better to pass arguments in an array (the Unix way), so that
@@ -2237,7 +2238,7 @@ FUNCTION spawn_and_wait (app as string, args as string) as string
 
  IF gfxbackend = "console" THEN
   CLS
-  SHELL app & " " & args
+  safe_shell escape_filename(app) & " " & args
   'Sync actual and backend-internal screens
   CLS
   clearpage vpage
@@ -2262,12 +2263,12 @@ FUNCTION spawn_and_wait (app as string, args as string) as string
  fh = FREEFILE
  OPEN dummyscript FOR OUTPUT as #fh
  PRINT #fh, "#!/bin/sh"
- PRINT #fh, "cd " & curdir()
+ PRINT #fh, "cd " & escape_filename(curdir())
  PRINT #fh, "clear"
- PRINT #fh, app + " " + args
+ PRINT #fh, escape_filename(app) + " " + args
  CLOSE #fh
- SHELL "chmod +x " + dummyscript
- SHELL term_wrap + " " + dummyscript
+ SHELL "chmod +x " + escape_filename(dummyscript)
+ SHELL escape_filename(term_wrap) + " " + escape_filename(dummyscript)
  safekill dummyscript
  RETURN ""
 
@@ -2317,7 +2318,7 @@ FUNCTION spawn_and_wait (app as string, args as string) as string
 
  'os_* process handling functions only currently implemented on Windows
  DIM cmd as string
- cmd = "xterm -bg black -fg gray90 -e '" & escape_string(app & " " & args, "'") & "'"
+ cmd = "xterm -bg black -fg gray90 -e """ & escape_string(escape_filename(app) & " " & args, """\") & """"
  'debuginfo cmd
  SHELL cmd
  RETURN ""
@@ -2407,7 +2408,7 @@ IF try_install THEN
    END IF
    ' -q quiet -o overwrite -C case-insenstive -L make lowercase -j junk directories
    DIM arglist as string
-   arglist =  " -qoCLj """ & support & SLASH & appname & ".zip"" -d """ & support & """"
+   arglist =  " -qoCLj " & escape_filename(support & SLASH & appname & ".zip") & " -d " & escape_filename(support)
    DIM spawn_ret as string
    spawn_ret = spawn_and_wait(unzip, arglist)
    IF NOT isfile(support & SLASH & appname & ".exe") THEN
@@ -2442,11 +2443,11 @@ FUNCTION download_file (url as string, destdir as string, forcefilename as strin
 
   '--prepare the command line
   IF forcefilename = "" THEN
-   args = "-N -P """ & destdir & """"
+   args = "-N -P " & escape_filename(destdir)
   ELSE
-   args = "-O """ & destdir & SLASH & forcefilename & """"
+   args = "-O " & escape_filename(destdir & SLASH & forcefilename)
   END IF
-  args &= " """ & url & """"
+  args &= " " & escape_filename(url)
  
   '--Do the download
   spawn_ret = spawn_and_wait(wget, args)
@@ -2465,7 +2466,7 @@ FUNCTION download_file (url as string, destdir as string, forcefilename as strin
    destfile = trimpath(url)
   END IF
   
-  args = "-o """ & destdir & SLASH & destfile & """ """ & url & """"
+  args = "-o " & escape_filename(destdir & SLASH & destfile) & " " & escape_filename(url)
   
   '--Do the download
   spawn_ret = spawn_and_wait(curl, args)
@@ -2542,7 +2543,7 @@ FUNCTION mp3_to_wav (in_file as string, out_file as string) as string
  app = find_madplay()
  IF app = "" THEN RETURN "Can not read MP3 files: " + missing_helper_message("madplay" + DOTEXE)
 
- args = " -o wave:""" & out_file & """ """ & in_file & """"
+ args = " -o wave:" & escape_filename(out_file) & " " & escape_filename(in_file)
  ret = spawn_and_wait(app, args)
  IF LEN(ret) THEN
   safekill out_file
@@ -2560,7 +2561,7 @@ FUNCTION wav_to_ogg (in_file as string, out_file as string, byval quality as int
  app = find_oggenc()
  IF app = "" THEN RETURN "Can not convert to OGG: " + missing_helper_message("oggenc" DOTEXE " and oggenc2" DOTEXE)
 
- args = " -q " & quality & " -o """ & out_file & """ """ & in_file & """"
+ args = " -q " & quality & " -o " & escape_filename(out_file) & " " & escape_filename(in_file)
  ret = spawn_and_wait(app, args)
  IF LEN(ret) THEN
   safekill out_file

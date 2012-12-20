@@ -275,6 +275,8 @@ declare function absolute_path (pathname as string) as string
 declare function absolute_with_orig_path (file_or_dir as string, byval add_slash as integer = NO) as string
 declare function parentdir (pathname as string, byval upamount as integer = 1) as string
 declare function anycase (filename as string) as string
+declare function escape_filename (filename as string) as string
+declare sub safe_shell (cmd as string)
 declare sub touchfile (filename as string)
 declare sub extendfile (byval fh as integer, byval length as integer)
 declare sub findfiles (directory as STRING, namemask as STRING = "", byval filetype as integer = fileTypeFile, byval findhidden as integer = 0, filelist() as STRING)
@@ -298,7 +300,7 @@ declare sub string_to_file (string_to_write as string, filename as string)
 
 
 '----------------------------------------------------------------------
-'                              Other
+'                              Math
 
 
 'Why is crt/float.bi missing these?
@@ -333,6 +335,15 @@ declare function isnan overload (byval value as single) as integer
 declare function isfinite overload (byval value as double) as integer
 declare function isfinite overload (byval value as single) as integer
 declare function fuzzythreshold (byval value as double, byval low as double, byval high as double) as double
+
+'Euclidean modulo (always positive)
+#DEFINE POSMOD(dividend, divisor) ((((dividend) MOD (divisor)) + (divisor)) MOD (divisor))
+
+
+'----------------------------------------------------------------------
+'                              Other
+
+
 declare function rpad (s as string, pad_char as string, size as integer) as string
 declare function instr_nth overload (byval start as integer, s as string, substring as string, byval nth as integer) as integer
 declare function instr_nth overload (s as string, substring as string, byval nth as integer) as integer
@@ -350,6 +361,7 @@ declare function sign_string(n as integer, neg_str as string, zero_str as string
 declare function iif_string(byval condition as integer, s1 as string, s2 as string) as string
 declare function zero_default(n as integer, zerocaption as STRING="default", displayoffset as integer = 0) as string
 declare Function wordwrap(z as string, byval width as integer, sep as string = chr(10)) as string
+
 declare sub split(in as string, ret() as string, sep as string = chr(10))
 declare sub flusharray (array() as integer, byval size as integer=-1, byval value as integer=0)
 declare sub sort_integers_indices(indices() as integer, byval start as integer ptr, byval number as integer = 0, byval stride as integer = SIZEOF(integer))
@@ -358,13 +370,11 @@ declare sub qsort_strings_indices(indices() as integer, byval start as string pt
 declare function integer_compare cdecl (byval a as integer ptr, byval b as integer ptr) as integer
 declare function string_compare cdecl (byval a as string ptr, byval b as string ptr) as integer
 declare sub invert_permutation(indices() as integer)
+
 declare function strhash overload (byval strp as zstring ptr, byval leng as integer) as unsigned integer
 declare function strhash overload (hstr as string) as unsigned integer
 declare function starts_with(s as string, prefix as string) as integer
 declare function ends_with(s as string, suffix as string) as integer
-
-'Euclidean modulo (always positive)
-#DEFINE POSMOD(dividend, divisor) ((((dividend) MOD (divisor)) + (divisor)) MOD (divisor))
 
 
 '----------------------------------------------------------------------

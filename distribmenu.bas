@@ -504,7 +504,7 @@ SUB distribute_game_as_zip ()
   write_readme_text_file ziptmp & SLASH & "README-" & basename & ".txt", CHR(13) & CHR(10)
   maybe_write_license_text_file ziptmp & SLASH & "LICENSE.txt"
  
-  DIM args as string = "-r -j """ & destzip & """ """ & ziptmp & """"
+  DIM args as string = "-r -j " & escape_filename(destzip) & " " & escape_filename(ziptmp)
   spawn_ret = spawn_and_wait(zip, args)
   IF LEN(spawn_ret) ORELSE NOT isfile(destzip) THEN
    safekill destzip
@@ -531,7 +531,7 @@ FUNCTION copy_or_relump (src_rpg_or_rpgdir as string, dest_rpg as string) as int
   relump = find_helper_app("relump", YES)
   IF relump = "" THEN visible_debug "Can't find relump" & DOTEXE & " utility." : RETURN NO
   DIM spawn_ret as string
-  spawn_ret = spawn_and_wait(relump, """" & src_rpg_or_rpgdir & """ """ & dest_rpg & """")
+  spawn_ret = spawn_and_wait(relump, escape_filename(src_rpg_or_rpgdir) & " " & escape_filename(dest_rpg))
   IF LEN(spawn_ret) ORELSE NOT isfile(dest_rpg) THEN
    visible_debug "ERROR: failed relumping " & src_rpg_or_rpgdir & " " & spawn_ret 
    RETURN NO
@@ -609,9 +609,9 @@ FUNCTION copy_linux_gameplayer (gameplayer as string, basename as string, destdi
 #IFDEF __UNIX__
   '--just in case we are playing with a debug build,
   '--strip the copy of the binary that goes in the distribution file.
-  SHELL "strip '" & destdir & SLASH & basename & "'"
+  SHELL "strip " & escape_filename(destdir & SLASH & basename)
   '--fix the permissions
-  SHELL "chmod +x '" & destdir & SLASH & basename & "'"
+  SHELL "chmod +x " & escape_filename(destdir & SLASH & basename)
 #ENDIF
  RETURN YES
 END FUNCTION
@@ -666,7 +666,7 @@ FUNCTION get_windows_gameplayer() as string
  IF unzip = "" THEN visible_debug "ERROR: Couldn't find unzip tool": RETURN ""
  
  '--Unzip the desired files
- DIM args as string = "-o """ & destzip & """ game.exe gfx_directx.dll SDL.dll SDL_mixer.dll LICENSE-binary.txt -d """ & dldir & """"
+ DIM args as string = "-o " & escape_filename(destzip) & " game.exe gfx_directx.dll SDL.dll SDL_mixer.dll LICENSE-binary.txt -d " & escape_filename(dldir)
  DIM spawn_ret as string = spawn_and_wait(unzip, args)
  IF LEN(spawn_ret) > 0 THEN visible_debug "ERROR: unzip failed: " & spawn_ret : RETURN ""
  
@@ -734,7 +734,7 @@ FUNCTION get_linux_gameplayer() as string
  IF unzip = "" THEN visible_debug "ERROR: Couldn't find unzip tool": RETURN ""
  
  '--Unzip the desired files
- DIM args as string = "-o """ & destzip & """ ohrrpgce-game LICENSE-binary.txt -d """ & dldir & """"
+ DIM args as string = "-o " & escape_filename(destzip) & " ohrrpgce-game LICENSE-binary.txt -d " & escape_filename(dldir)
  DIM spawn_ret as string = spawn_and_wait(unzip, args)
  IF LEN(spawn_ret) > 0 THEN visible_debug "ERROR: unzip failed: " & spawn_ret : RETURN ""
  
@@ -786,10 +786,12 @@ SUB distribute_game_as_windows_installer ()
   DIM iss_script as string = isstmp & SLASH & "innosetup_script.iss"
  
   DIM args as string
+  'FIXME: The following does not escape all problem characters that could occur in iss_script,
+  'but I'm not sure what the best way to do that is, so leaving it for now.
   args = """" & win_path(iss_script) & """"
   
   DIM spawn_ret as string
-  spawn_ret = win_or_wine_spawn_and_wait(iscc,  args)
+  spawn_ret = win_or_wine_spawn_and_wait(iscc, args)
   IF LEN(spawn_ret) THEN visible_debug "ERROR: iscc.exe failed: " & spawn_ret : EXIT DO
   IF confirmed_copy(isstmp & SLASH & "Output" & SLASH & "setup-" & basename & ".exe", installer) = NO THEN
    visible_debug "ERROR: iscc.exe completed but installer was not created"
@@ -926,9 +928,9 @@ FUNCTION win_or_wine_spawn_and_wait (cmd as string, args as string="") as string
  debuginfo "spawn_and_wait: " & cmd & " " & args
  RETURN spawn_and_wait(cmd, args)
 #ELSE
- DIM wine_args as string = """" & cmd & """ " & escape_string(args, "\")
+ 'args is probably insufficiently escaped, but not sure how to fix that
+ DIM wine_args as string = escape_filename(cmd) & " " & escape_string(args, "\")
  debuginfo "spawn_and_wait: wine " & cmd & " " & wine_args
- debuginfo "wine_args =" & wine_args
  RETURN spawn_and_wait("wine", wine_args)
 #ENDIF
  
@@ -1048,7 +1050,7 @@ SUB write_debian_postinst_script (filename as string)
  CLOSE #fh
  #IFDEF __UNIX__
  DIM cmd as string
- cmd = "chmod +x " & filename
+ cmd = "chmod +x " & escape_filename(filename)
  debuginfo cmd
  SHELL cmd
  #ENDIF
@@ -1066,7 +1068,7 @@ SUB write_debian_postrm_script (filename as string)
  CLOSE #fh
  #IFDEF __UNIX__
  DIM cmd as string
- cmd = "chmod +x " & filename
+ cmd = "chmod +x " & escape_filename(filename)
  debuginfo cmd
  SHELL cmd
  #ENDIF
@@ -1076,7 +1078,7 @@ SUB fix_deb_group_permissions(start_at_dir as string)
 #IFDEF __UNIX__
  'This is needed because the user's umask might have given group write access to the files
  DIM cmd as string
- cmd = "chmod -R g-w " & start_at_dir
+ cmd = "chmod -R g-w " & escape_filename(start_at_dir)
  debuginfo cmd
  SHELL cmd
 #ENDIF
@@ -1119,7 +1121,7 @@ FUNCTION create_ar_archive(start_in_dir as string, archive as string, files as s
  'Non-mac platforms can use the D arg for deterministic mode
  args &= "D"
  #ENDIF
- args &= " """ & archive & """ " & files
+ args &= " " & escape_filename(archive) & " " & files
  'debug ar & " " & args
  DIM spawn_ret as string
  
@@ -1165,7 +1167,7 @@ FUNCTION create_tarball(start_in_dir as string, tarball as string, files as stri
  DIM spawn_ret as string
  DIM args as string
 
- args = " -c " & more_args & " -f """ & uncompressed & """ " & files
+ args = " -c " & more_args & " -f " & escape_filename(uncompressed) & " " & files
  'debug tar & " " & args
  
  DIM olddir as string = CURDIR
@@ -1189,17 +1191,17 @@ FUNCTION extract_tarball(into_dir as string, tarball as string, files as string)
 
  ' into_dir only applies to the tar command. The tarball filename should still be either absolute or relative to the default CURDIR
 
- 'files is a list of space-separated filenames and directory names to include in the tarball
+ 'files is a list of space-separated filenames and directory names to extract from the tarball
  'if they contain spaces they must be quoted
  
  
  DIM tar as string = find_helper_app("tar", YES)
- IF tar = "" THEN visible_debug "ERROR: tar is not available": RETURN NO
+ IF tar = "" THEN visible_debug "ERROR: tar utility is not available": RETURN NO
 
  DIM spawn_ret as string
  DIM args as string
 
- args = " -x -f """ & tarball & """ " & files
+ args = " -x -f " & escape_filename(tarball) & " " & files
  'debug tar & " " & args
  
  DIM olddir as string = CURDIR
@@ -1219,7 +1221,7 @@ FUNCTION gzip_file (filename as string) as integer
  IF gzip = "" THEN visible_debug "ERROR: gzip is not available": RETURN NO
  
  DIM args as string
- args = """" & filename & """"
+ args = escape_filename(filename)
  DIM spawn_ret as string
  spawn_ret = spawn_and_wait(gzip, args)
  IF LEN(spawn_ret) THEN visible_debug spawn_ret : RETURN NO
@@ -1236,7 +1238,7 @@ FUNCTION gunzip_file (filename as string) as integer
  IF gzip = "" THEN visible_debug "ERROR: gzip is not available": RETURN NO
  
  DIM args as string
- args = " -d -f """ & filename & """"
+ args = " -d -f " & escape_filename(filename)
  DIM spawn_ret as string
  spawn_ret = spawn_and_wait(gzip, args)
  IF LEN(spawn_ret) THEN visible_debug spawn_ret : RETURN NO

@@ -42,6 +42,8 @@ WHAT IS NEW?
     * Bug 973: Strange behaviour when closing one game and playing
       another without quitting Game [Ralph]
     * Loop points in module music work in music_sdl again (Windows only)
+    * Problems when Custom or a game was placed in a folder containing
+      spaces or other special characters, especially on Mac [Ralph]
 
   * New Plotscripting Stuff
     * If a script runs for a long time without "wait"ing you can now
