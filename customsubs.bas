@@ -4142,6 +4142,13 @@ FUNCTION spawn_game() as bool
 END FUNCTION
 
 SUB spawn_game_menu
+ #IFDEF __FB_WIN32__
+  IF is_windows_9x() THEN
+   notification "Testing your game while editing isn't supported on your version of Windows; it requires an NT-based Windows release"
+   EXIT SUB
+  END IF
+ #ENDIF
+
  'Prod the channel to see whether it's still up (send ping)
  channel_write_line(slave_channel, "P ")
 
