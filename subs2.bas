@@ -519,15 +519,16 @@ FUNCTION get_hspeak_version(hspeak_path as string) as string
  safe_shell escape_filename(hspeak_path) & " -k > " & escape_filename(tempf)
  DIM fh as integer = FREEFILE
  IF OPEN(tempf FOR INPUT AS fh) THEN
-  debug "Couldn't run " & hspeak_path
+  debug "get_hspeak_version: Couldn't run " & hspeak_path
   RETURN ""
  END IF
  DIM line1 as string
  INPUT #fh, line1
  CLOSE fh
- 'safekill tempf
+ safekill tempf
+ 'debug "line1: " & line1
  DIM version as string = MID(line1, INSTR(line1, " v") + 2, 3)
- IF LEN(version) <> 3 OR isdigit(version[0]) = NO THEN
+ IF LEN(version) <> 3 ORELSE isdigit(version[0]) = NO THEN
   debug "Couldn't get HSpeak version from head line: " & line1
   RETURN ""
  END IF
@@ -550,7 +551,7 @@ FUNCTION compilescripts(fname as string) as string
    'don't start calling the wrong scripts due to ID remapping
    hspeak_ver = get_hspeak_version(hspeak)
    'debug "hspeak version '" & hspeak_ver & "'"
-   IF strcmp(STRPTR(hspeak_ver), STRPTR("3Pa")) < 0 THEN
+   IF hspeak_ver = "" ORELSE strcmp(STRPTR(hspeak_ver), STRPTR("3Pa")) < 0 THEN
     'If get_hspeak_version failed (returning ""), then spawn_and_wait should as well
     IF LEN(hspeak_ver) THEN
      notification "Your copy of HSpeak is out of date. You should use the latest version."
