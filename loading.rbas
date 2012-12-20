@@ -1418,6 +1418,8 @@ Sub load_hero_from_old_dt0(filename as string, hero as herodef, byval record as 
 	
 	dim as integer f = freefile, i, j
 	
+	ClearHeroData hero
+	
 	open filename for binary access read as #f
 	dim recordsize as integer = getbinsize(binDT0)  'in BYTES
 	seek #f, record * recordsize + 1
@@ -1550,8 +1552,6 @@ end sub
 SUB loadherodata (hero as herodef, byval index as integer)
  '--first try to load the data from heroes.reld
  '--and then fall back on the .DT0 lump only if not found.
-
- IF hero.reld <> 0 THEN FreeNode(CAST(NodePtr, hero.reld))
 
  DIM loaded as integer = NO 
  DO 'single-pass loop for breaking
@@ -1857,6 +1857,10 @@ FUNCTION WritePicPalNode (byval parent as NodePtr, nodename as string, byval pic
 END FUNCTION
 
 SUB ClearHeroData (hero as HeroDef)
+  IF hero.reld <> 0 THEN
+   'debuginfo "Freeing a HeroDef's reload node in ClearHeroData"
+   FreeNode(CAST(NodePtr, hero.reld))
+  END IF
   memset @hero, 0, sizeof(HeroDef)
   hero.sprite_pal = -1      'default battle palette
   hero.walk_sprite_pal = -1 'default walkabout palette

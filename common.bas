@@ -5005,12 +5005,10 @@ END SUB
 
 Destructor HeroDef ()
  if this.reld <> 0 then
-  debuginfo "Freeing a HeroDef's reload node!"
-  'The cast here is just to avoid a compile-time warning
-  'because of the NodeFwd nonsense that udts.bi has to do.
-  FreeNode CAST(reload.NodePtr, this.reld)
+  'debuginfo "Freeing a HeroDef's reload node in the destructor!"
+  FreeNode CAST(NodePtr, this.reld)
  else
-  debuginfo "HeroDef didn't bother freeing reload node because it was never loaded"
+  'debuginfo "HeroDef didn't bother freeing reload node because it was never loaded"
  end if
 End Destructor
 
