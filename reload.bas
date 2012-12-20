@@ -1734,10 +1734,23 @@ Sub SwapSiblingNodes(byval nod1 as NodePtr, byval nod2 as NodePtr)
 	par->lastChild = holder(ubound(holder))
 End Sub
 
-'This clones a node and all its children and returns the cloned (paretnless) node
-Function CloneNodeTree(byval nod as NodePtr) as NodePtr
+'This clones a node and all its children and returns the cloned (parentless) node.
+'The doc is an optional doc ptr that new new node should belong to. If ommitted, the clone
+'will be in the same doc as the original node
+'nod_for_doc is an optional NodePtr to get the DocPtr from
+Function CloneNodeTree(byval nod as NodePtr, byval doc as DocPtr=0, byval nod_for_doc as NodePtr=0) as NodePtr
+	if doc <> 0 and nod_for_doc <> 0 then
+		debug "Can't set doc by both DocPtr and NodePtr"
+		return 0
+	end if
 	dim n as NodePtr
-	n = CreateNode(nod, NodeName(nod))
+	if doc then
+		n = CreateNode(doc, NodeName(nod))
+	elseif nod_for_doc then
+		n = CreateNode(nod_for_doc, NodeName(nod))
+	else
+		n = CreateNode(nod, NodeName(nod))
+	end if
 	select case NodeType(nod)
 		case rltInt:
 			SetContent(n, GetInteger(nod))
@@ -1749,7 +1762,7 @@ Function CloneNodeTree(byval nod as NodePtr) as NodePtr
 	dim ch as NodePtr
 	ch = FirstChild(nod)
 	while ch
-		AddChild(n, CloneNodeTree(ch))
+		AddChild(n, CloneNodeTree(ch, doc, nod_for_doc))
 		ch = NextSibling(ch)
 	wend
 	return n

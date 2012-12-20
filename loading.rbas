@@ -1466,6 +1466,18 @@ Sub load_hero_from_old_dt0(filename as string, hero as herodef, byval record as 
 	end with
 	
 	close #f
+	
+	'Now construct any reload nodes that we need in memory.
+	hero.reld = CAST(reload_Node ptr, get_reload_empty("hero"))
+	SetContent(CAST(NodePtr, hero.reld), record)
+	DIM batmenus as NodePtr
+	batmenus = SetChildNode(CAST(NodePtr, hero.reld), "battle_menus")
+	add_hero_battle_menu_item batmenus, "weapon"
+	for i as integer = 0 to 3
+		add_hero_battle_menu_item batmenus, "spells", i
+	next
+	add_hero_battle_menu_item batmenus, "items"
+	
 end sub
 
 Sub save_hero_as_old_dt0(filename as string, hero as herodef, byval record as integer)
@@ -1538,6 +1550,8 @@ end sub
 SUB loadherodata (hero as herodef, byval index as integer)
  '--first try to load the data from heroes.reld
  '--and then fall back on the .DT0 lump only if not found.
+
+ IF hero.reld <> 0 THEN FreeNode(CAST(NodePtr, hero.reld))
 
  DIM loaded as integer = NO 
  DO 'single-pass loop for breaking
@@ -1622,14 +1636,6 @@ SUB load_hero_from_reload(hero as HeroDef, byval parent as NodePtr)
   hero.def_weapon = parent."default_weapon".integer
   ReadStatsNode parent."stats_at_zero".ptr, hero.Lev0
   ReadStatsNode parent."stats_at_max".ptr, hero.LevMax
-  READNODE parent."battle_menus" as battle_menus
-   WITHNODE battle_menus."menu" as menu
-    DIM i as integer = GetInteger(menu)
-    'FIXME there is no data structure for these yet
-    'menu."kind"
-    'menu."tag"
-   END WITHNODE
-  END READNODE
   READNODE parent."spell_lists" as spell_lists
    WITHNODE spell_lists."list" as list
     DIM i as integer = GetInteger(list)
@@ -1677,7 +1683,9 @@ SUB load_hero_from_reload(hero as HeroDef, byval parent as NodePtr)
    hero.leader_tag = tags."is_leader".integer
    hero.active_tag = tags."is_active".integer
   END READNODE
+  parent."battle_menus".ignore
  END READNODE
+ hero.reld = CAST(reload_Node ptr, get_reload_copy(parent))
  print "Loaded hero from reload: " & hero.name
 END SUB
 
@@ -1748,22 +1756,9 @@ SUB save_hero_as_reload(hero as HeroDef, byval parent as NodePtr)
  WriteStatsNode(parent, "stats_at_zero", hero.Lev0)
  WriteStatsNode(parent, "stats_at_max", hero.LevMax)
 
- DIM batmen as NodePtr
- batmen = SetChildNode(parent, "battle_menus")
- DIM bm as NodePtr
- DIM kind as NodePtr
- 'FIXME: These are not yet customizable, but will be eventually
- bm = AppendChildNode(batmen, "menu", 0)
- kind = SetChildNode(bm, "kind")
- SetChildNode kind, "weapon"
- FOR i as integer = 0 TO 3
-  bm = AppendChildNode(batmen, "menu", 1+i)
-  kind = SetChildNode(bm, "kind")
-  SetChildNode kind, "spells", i
- NEXT i
- bm = AppendChildNode(batmen, "menu", 5)
- kind = SetChildNode(bm, "kind")
- SetChildNode kind, "item"
+ DIM reld as NodePtr
+ reld = CAST(NodePtr, hero.reld)
+ AddChild(parent, CloneNodeTree(reld."battle_menus".ptr, , parent))
 
  DIM splists as NodePtr
  DIM splist as NodePtr

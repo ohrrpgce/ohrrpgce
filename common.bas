@@ -4996,7 +4996,7 @@ SUB cleanup_global_reload_doc ()
   debug "===WARNING: Leaked " & num & " global reload nodes==="
   DIM n as reload.NodePtr = reload.FirstChild(rnod)
   DO WHILE n
-   debug "node: " & reload.GetString(n)
+   debug "node: """ & reload.NodeName(n) & """ " & reload.GetString(n)
    n = reload.NextSibling(n)
   LOOP
  END IF
@@ -5013,3 +5013,33 @@ Destructor HeroDef ()
   debuginfo "HeroDef didn't bother freeing reload node because it was never loaded"
  end if
 End Destructor
+
+'Copy a reload node from wherever into the global_reload_doc
+FUNCTION get_reload_copy (byval n as NodePtr) as NodePtr
+ DIM result as NodePtr
+ result = CloneNodeTree(n, global_reload_doc)
+ AddChild DocumentRoot(global_reload_doc), result
+ RETURN result
+END FUNCTION
+
+'Return an empty reload node attached to the global_reload_doc
+FUNCTION get_reload_empty (nodename as string = "") as NodePtr
+ DIM result as NodePtr
+ result = CreateNode(global_reload_doc, nodename)
+ AddChild DocumentRoot(global_reload_doc), result
+ RETURN result
+END FUNCTION
+
+FUNCTION add_hero_battle_menu_item(byval parent as NodePtr, kind as string, byval value as integer = 0) as NodePtr
+ DIM bmenu as NodePtr
+ bmenu = AppendChildNode(parent, "menu")
+ DIM kindnode as NodePtr
+ kindnode = SetChildNode(bmenu, "kind")
+ SELECT CASE kind
+  CASE "weapon", "items":
+   SetChildNode(kindnode, kind)
+  CASE "attack", "spells":
+   SetChildNode(kindnode, kind, value)
+ END SELECT
+ RETURN bmenu
+END FUNCTION
