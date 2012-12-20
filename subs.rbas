@@ -2292,16 +2292,19 @@ SUB hero_editor_edit_spell_list_slot (slot as SpellList)
 END SUB
 
 SUB hero_editor_battle_menu (her as HeroDef)
- DIM menu(-1 TO 5) as string
- menu(-1) = "Previous menu..."
- 
+ DIM menu as MenuDef
+ DIM preview as MenuDef
+  
  DIM st as MenuState
- st.pt = -1
- st.top = -1
- st.first = -1
- st.last = UBOUND(menu)
+ st.active = YES
  st.need_update = YES
  
+ DIM prst as MenuState
+ 
+ DIM node as NodePtr = CAST(NodePtr, her.reld)
+
+ DIM itembuf(dimbinsize(binITM)) as integer
+
  setkeys
  DO
   setwait 55
@@ -2311,14 +2314,62 @@ SUB hero_editor_battle_menu (her as HeroDef)
   
   usemenu st
   
+  IF st.pt = 0 THEN
+   IF enter_or_space() THEN EXIT DO
+  END IF
+  
   IF st.need_update THEN
-   FOR i as integer = 0 TO 5
-   NEXT i
+   ClearMenuData menu
+   WITH menu
+    .no_box = YES
+    .align = -1
+    .anchor.x = -1
+    .anchor.y = -1
+    .offset.x = -160
+    .offset.y = -100
+   END WITH
+   ClearMenuData preview
+   WITH preview
+    .align = -1
+    .anchor.x = 1
+    .anchor.y = -1
+    .offset.x = 160
+    .offset.y = -100
+   END WITH
+   append_menu_item menu, "Previous menu..."
+   READNODE node."battle_menus" as batmen, ignoreall
+    WITHNODE batmen."menu" as bmenu
+     DIM k as NodePtr = bmenu."kind".ptr
+     IF k."weapon".exists THEN
+      append_menu_item menu, "Weapon"
+      loaditemdata itembuf(), her.def_weapon
+      append_menu_item preview, readattackname(itembuf(48) - 1)
+     END IF
+     IF k."items".exists THEN
+      append_menu_item menu, "Items"
+      append_menu_item preview, readglobalstring(60, "Items", 10)
+     END IF
+     IF k."spells".exists THEN
+      DIM listname as string = her.list_name(k."spells".integer)
+      append_menu_item menu, "Spell List " & k."spells".integer & " " & listname
+      IF LEN(listname) THEN
+       append_menu_item preview, listname
+      END IF
+     END IF
+     IF k."attack".exists THEN
+      append_menu_item menu, "Attack " & k."attack".integer
+      append_menu_item preview, readattackname(k."attack".integer)
+     END IF
+    END WITHNODE
+   END READNODE
+   init_menu_state st, menu
+   init_menu_state prst, preview
    st.need_update = NO
   END IF
   
   clearpage dpage
-  standardmenu menu(), st, 0, 0, dpage
+  draw_menu preview, prst, dpage
+  draw_menu menu, st, dpage
   SWAP vpage, dpage
   setvispage vpage
   
