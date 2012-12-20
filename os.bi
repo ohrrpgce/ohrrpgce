@@ -6,6 +6,11 @@
 
 #include "util.bi"
 
+#ifdef __FB_WIN32__
+declare function is_windows_9x () as bool
+declare function get_windows_version () as string
+#endif
+
 extern "C"
 
 declare sub init_runtime ()

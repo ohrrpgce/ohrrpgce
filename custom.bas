@@ -144,7 +144,7 @@ END IF
 
 'Start debug file as soon as the directory is set
 start_new_debug
-debuginfo long_version & build_info 
+debuginfo long_version & build_info & " " & systeminfo
 debuginfo DATE & " " & TIME
 
 'seed the random number generator

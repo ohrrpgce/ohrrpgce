@@ -499,3 +499,7 @@ systeminfo &= response & "."
 Gestalt(*cast(integer ptr, @"3sys"), @response)  'gestaltSystemVersionBugFix
 systeminfo &= response
 #endif
+
+#ifdef __FB_WIN32__
+systeminfo = get_windows_version()
+#endif

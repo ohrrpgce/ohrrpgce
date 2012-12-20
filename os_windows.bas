@@ -50,6 +50,39 @@ private function file_handle_to_read_FILE (byval fhandle as HANDLE, funcname as 
 	return fh
 end function
 
+'Returns true only on Windows 95, 98 and ME
+function is_windows_9x () as bool
+	dim verinfo as OSVERSIONINFO
+	verinfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO)
+	if GetVersionEx(@verinfo) then
+		return verinfo.dwPlatformId <= 1
+	else
+		return NO  'simply most likely
+	end if
+end function
+
+function get_windows_version () as string
+	dim ret as string
+	dim verinfo as OSVERSIONINFO
+	verinfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO)
+	if GetVersionEx(@verinfo) then
+		ret = "Windows " & verinfo.dwMajorVersion & "." & verinfo.dwMinorVersion & "." & verinfo.dwBuildNumber
+		select case verinfo.dwPlatformId * 1000 + verinfo.dwMajorVersion * 100 + verinfo.dwMinorVersion
+			case 1400:  ret += " (95)"
+			case 1410:  ret += " (98)"
+			case 1490:  ret += " (ME)"
+			case 2000 to 2499:  ret += " (NT)"
+			case 2500:  ret += " (2000)"
+			case 2501:  ret += " (XP)"
+			case 2502:  ret += " (XP x64/Server 2003)"
+			case 2600:  ret += " (Vista/Server 2008)"
+			case 2601:  ret += " (7/Server 2008 R2)"
+			case 2602:  ret += " (8/Server 2012)"
+		end select
+		ret += " " + verinfo.szCSDVersion
+	end if
+	return ret
+end function
 
 extern "C"
 

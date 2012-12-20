@@ -79,7 +79,7 @@ app_dir = exepath
 #ENDIF
 
 start_new_debug
-debuginfo long_version & build_info
+debuginfo long_version & build_info & " " & systeminfo
 debuginfo DATE & " " & TIME
 
 'DEBUG debug "randomize timer"
@@ -465,7 +465,7 @@ ELSEIF NOT running_as_slave THEN  'Won't upgrade if running as slave
 END IF
 
 debuginfo long_version & build_info
-debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo  & "  " & systeminfo
+debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo & "  " & systeminfo
 debuginfo "Playing game " & sourcerpg & " (" & getdisplayname(" ") & ") " & DATE & " " & TIME
 IF running_as_slave THEN debuginfo "Spawned from Custom (" & custom_version & ")"
 
