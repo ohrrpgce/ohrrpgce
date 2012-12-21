@@ -1596,10 +1596,10 @@ SUB loadherodata (hero as herodef, byval index as integer)
  EXIT DO' single-pass loop
  LOOP
 
- 'IF NOT loaded THEN
+ IF NOT loaded THEN
   debuginfo "falling back to " & game & ".dt0" & " slot " & index
   load_hero_from_old_dt0 game & ".dt0", hero, index
- 'END IF
+ END IF
 END SUB
 
 SUB load_hero_from_reload(hero as HeroDef, byval parent as NodePtr)
@@ -1691,6 +1691,8 @@ END SUB
 
 SUB saveherodata (hero as herodef, byval index as integer)
  '--save the old way
+ 'WARNING: this is lossy, and serves no purpose other than
+ 'allowing people to downgrade to older versions WITH DATA LOSS
  save_hero_as_old_dt0 game & ".dt0", hero, index
 
  '--save the new way
