@@ -24,7 +24,7 @@ CONST CURRENT_RPG_VERSION = 19
 ' 16 - zenzizenzic wip made .ITM binsize-sized
 ' 17 - alectormancy wip increase global limit from 4095 to 16383
 ' 18 - beelzebufo turn-based support
-' 19 - beelzebufo replaced .dt0 with heroes.reld
+' 19 - beelzebufo replaced .DT0 with heroes.reld
 
 CONST CURRENT_RSAV_VERSION = 2
 ' Increment this number any time that loading and resaving a game in either
