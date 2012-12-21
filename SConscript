@@ -371,7 +371,7 @@ edit_modules = ['custom',
                 'distribmenu']
 
 game_modules = ['game',
-                'bmod',
+                'bmod.rbas',
                 'bmodsubs',
                 'menustuf',
                 'moresubs',

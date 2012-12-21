@@ -2342,11 +2342,13 @@ SUB hero_editor_battle_menu (her as HeroDef)
      IF k."weapon".exists THEN
       append_menu_item menu, "Weapon"
       loaditemdata itembuf(), her.def_weapon
-      append_menu_item preview, readattackname(itembuf(48) - 1)
+      DIM atk_id as integer = itembuf(48) - 1
+      IF atk_id < 0 THEN atk_id = 0
+      append_menu_item preview, readattackname(atk_id)
      END IF
      IF k."items".exists THEN
       append_menu_item menu, "Items"
-      append_menu_item preview, readglobalstring(60, "Items", 10)
+      append_menu_item preview, readglobalstring(34, "Item", 10)
      END IF
      IF k."spells".exists THEN
       DIM listname as string = her.list_name(k."spells".integer)

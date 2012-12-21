@@ -92,6 +92,7 @@ DECLARE FUNCTION hero_or_enemy_can_take_a_turn (byval who as integer, bat as Bat
 DECLARE SUB cancel_blocking_attacks_for_hero_or_enemy(byval who as integer)
 DECLARE SUB update_turn_delays_in_attack_queue (byval who as integer)
 DECLARE FUNCTION has_blocking_turn_delayed_attacks(byval who as integer) as integer
+DECLARE SUB populate_battle_menu_menudef (menu as MenuDef, hero as HeroDef)
 
 'these are the battle global variables
 DIM bstackstart as integer
@@ -157,6 +158,14 @@ FUNCTION battle (byval form as integer) as integer
    IF keyval(scF5) > 1 THEN bat.rew.exper = 1000000  'Million experience!
    IF keyval(scF6) > 1 THEN bat.turn.mode XOR= 1 : debug "bat.turn.mode=" & bat.turn.mode
    IF keyval(scF11) > 1 THEN show_info_mode = loopvar(show_info_mode, 0, 2, 1)  'Draw debug info
+   IF keyval(scF12) > 1 THEN
+    bat.test_view_mode = loopvar(bat.test_view_mode, 0, 2, 1)
+    SELECT CASE bat.test_view_mode
+     CASE 0: bat.test_future = NO : debuginfo "bat.test_view_mode Classic"
+     CASE 1: debuginfo "bat.test_view_mode Flicker"
+     CASE 2: bat.test_future = YES : debuginfo "bat.test_view_mode Future"
+    END SELECT
+   END IF
   END IF
   IF keyval(scPause) > 1 THEN battle_pause
   IF battle_run_away(bat, bslot()) THEN
@@ -192,6 +201,8 @@ FUNCTION battle (byval form as integer) as integer
    END IF
    IF bat.hero_turn >= 0 AND bat.targ.mode > targNONE THEN battle_targetting bat, bslot()
   END IF
+ 
+  IF bat.test_view_mode = 1 THEN bat.test_future = NOT bat.test_future
  
   '--display the backdrop
   copypage 2, dpage
@@ -868,24 +879,32 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, menubits(
     edgeprint bat.caption, xstring(bat.caption, 160), 181, uilook(uiText), dpage
    END IF
   END IF
+  
+  '--Draw menus for a hero that is currently taking a turn
   IF bat.hero_turn >= 0 THEN
-   centerbox 268, 5 + (4 * (bslot(bat.hero_turn).menu_size + 2)), 88, 8 * (bslot(bat.hero_turn).menu_size + 2), 1, dpage
-   DIM bg as integer
-   DIM fg as integer
-   FOR i = 0 TO bslot(bat.hero_turn).menu_size
-    bg = 0
-    fg = uilook(uiMenuItem)
-    IF bat.pt = i THEN
-     fg = uilook(uiSelectedItem + bat.tog)
-     bg = uilook(uiHighlight)
-    END IF
-    IF readbit(menubits(), 0, bat.hero_turn * 4 + i) THEN
-     fg = uilook(uiDisabledItem)
-     IF bat.pt = i THEN fg = uilook(uiSelectedDisabled + bat.tog)
-    END IF
-    textcolor fg, bg
-    printstr bslot(bat.hero_turn).menu(i).caption, 228, 9 + i * 8, dpage
-   NEXT i
+   
+   IF bat.test_future THEN
+    draw_menu bslot(bat.hero_turn).batmenu, bslot(bat.hero_turn).menust, dpage
+   ELSE
+    centerbox 268, 5 + (4 * (bslot(bat.hero_turn).menu_size + 2)), 88, 8 * (bslot(bat.hero_turn).menu_size + 2), 1, dpage
+    DIM bg as integer
+    DIM fg as integer
+    FOR i = 0 TO bslot(bat.hero_turn).menu_size
+     bg = 0
+     fg = uilook(uiMenuItem)
+     IF bat.pt = i THEN
+      fg = uilook(uiSelectedItem + bat.tog)
+      bg = uilook(uiHighlight)
+     END IF
+     IF readbit(menubits(), 0, bat.hero_turn * 4 + i) THEN
+      fg = uilook(uiDisabledItem)
+      IF bat.pt = i THEN fg = uilook(uiSelectedDisabled + bat.tog)
+     END IF
+     textcolor fg, bg
+     printstr bslot(bat.hero_turn).menu(i).caption, 228, 9 + i * 8, dpage
+    NEXT i
+   END IF
+   
    IF bat.targ.mode = targNONE AND readbit(gen(), genBits, 14) = 0 THEN
     edgeprint CHR$(24), bslot(bat.hero_turn).x + (bslot(bat.hero_turn).w / 2) - 4, bslot(bat.hero_turn).y - 5 + (bat.tog * 2), uilook(uiSelectedItem + bat.tog), dpage
    END IF
@@ -1257,7 +1276,7 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
   IF hero(i) > 0 THEN
    loadherodata st(i), hero(i) - 1
    newm = 0
-   
+      
    'Loop through hero battle menu, populating bslot().menu() with the ones that should be displayed
    'Note that bmenu() is a global.
    FOR oldm as integer = 0 TO 5
@@ -1269,7 +1288,7 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
     bslot(i).menu(newm).menu = bmenu(i,oldm)
     newm += 1
    NEXT oldm
-  
+
    '--init bslot() for each hero
    WITH bslot(i)
     .basex = (240 + i * 8)
@@ -1288,6 +1307,9 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
     .cursorpos.x = .w / 2
     .cursorpos.y = 0
     .bequesting = NO
+    populate_battle_menu_menudef .batmenu, st(i)
+    init_menu_state .menust, .batmenu
+    .menust.active = YES
    END WITH
    
    '--copy hero's outside-battle stats to their inside-battle stats
@@ -1315,7 +1337,7 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
       .spell_list = ABS(.menu) - 1
       .caption = st(i).list_name(.spell_list)
      ELSEIF .menu = -10 THEN
-      .caption = readglobalstring$(34, "Item", 10)
+      .caption = readglobalstring(34, "Item", 10)
       .spell_list = -10
       bslot(i).menu_size = o
      END IF
@@ -1383,6 +1405,64 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
   END IF
  NEXT i
  fulldeathcheck -1, bat, bslot(), formdata
+END SUB
+
+SUB populate_battle_menu_menudef (menu as MenuDef, hero as HeroDef)
+ DIM hero_node as NodePtr
+ hero_node = CAST(NodePtr, hero.reld)
+ DIM hero_id as integer = GetInteger(hero_node)
+ DIM caption as string
+ DIM k as NodePtr
+ DIM wep_id as integer
+ DIM atk_id as integer
+ DIM spells_id as integer
+ DIM itembuf(dimbinsize(binITM)) as integer
+
+ ClearMenuData menu
+ 
+ WITH menu
+  .offset.x = 160
+  .offset.y = -100
+  .anchor.x = 1
+  .anchor.y = -1
+  .align = -1
+  .bordersize = -4
+ END WITH
+ 
+ READNODE hero_node."battle_menus" as battle_menus
+  WITHNODE battle_menus."menu" as m
+   k = m."kind".ptr
+   IF k."weapon".exists THEN
+    wep_id = eqstuf(hero_id, 0) - 1
+    loaditemdata itembuf(), wep_id
+    atk_id = itembuf(48) - 1
+    IF atk_id < 0 THEN atk_id = 0
+    caption = readattackname(atk_id)
+    append_menu_item menu, caption, batmenu_ATTACK, atk_id
+   END IF
+   IF k."attack".exists THEN
+    atk_id = k."attack".integer
+    caption = readattackname(atk_id)
+    append_menu_item menu, caption, batmenu_ATTACK, atk_id
+   END IF
+   IF k."spells".exists THEN
+    spells_id = k."spells".integer
+    caption = hero.list_name(spells_id)
+    IF LEN(caption) > 0 THEN
+     '--only add the spell list if it is non-empty or if the bitset says we don't care if it is empty
+     IF readbit(hero.bits(),0,26) = 0 ORELSE count_available_spells(hero_id, spells_id) THEN
+      append_menu_item menu, caption, batmenu_SPELLS, spells_id
+     END IF
+    END IF
+   END IF
+   IF k."items".exists THEN
+    caption = readglobalstring(34, "Item", 10)
+    IF LEN(caption) > 0 THEN
+     append_menu_item menu, caption, batmenu_ITEMS
+    END IF
+   END IF
+  END WITHNODE
+ END READNODE
 END SUB
 
 SUB fulldeathcheck (byval killing_attack as integer, bat as BattleState, bslot() as BattleSprite, formdata as Formation)

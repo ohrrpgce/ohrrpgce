@@ -72,6 +72,11 @@ TYPE BattleSprite
   '--item consumption
   consume_item as integer ' -1 means no item consumed, >=0 indicates which inventory slot will be used (NOT item ID)
                          'FIXME: consume_item would probably be better as a member of the AttackState or AttackQueue later on.
+  '--battle menu
+  menu(5)   as BattleHeroMenu 'Only applies to heroes. blank for enemies
+  menu_size as integer 'actually the index of the last used element in .menu()
+  batmenu as MenuDef
+  menust as MenuState
   '--misc
   dissolve as integer
   flee as integer ' used to indicate when a sprite animates running away (not to be confused with BattleState.flee)
@@ -90,8 +95,6 @@ TYPE BattleSprite
   thankvengecure as integer 'The cure damage undealt TO this hero or enemy (as a positive number!)
   repeatharm as integer 'The last damage dealy BY this hero or enemy
   cursorpos as XYPair
-  menu(5)   as BattleHeroMenu 'Only applies to heroes. blank for enemies
-  menu_size as integer 'actually the index of the last used element in .menu()
   harm as HarmText
   hand(1) as XYPair ' For weapons = handle pos. For heroes, intended as hand position but not used yet
   '--used only for turnTURN mode
@@ -293,15 +296,22 @@ TYPE BattleState
  inv_scroll as MenuState
  inv_scroll_rect as RectType
  iuse(inventoryMax / 16) as integer 'bitsets for whether items can be used by the current hero
+ test_view_mode as integer 'used for debugging new display stuff with F12
+ test_future as integer    'used for debugging new display stuff with F12
 END TYPE
 
-CONST batMENUHERO = 0
+'--Used by the .menu_mode member
+CONST batMENUHERO = 0 
 CONST batMENUSPELL = 1
 CONST batMENUITEM = 2
 '--Used by the .deathmode member
 CONST deathNOBODY  = 0
 CONST deathENEMIES = 1
 CONST deathHEROES  = 2
+'--used by the .t member of the menu items in the .batmenu member
+CONST batmenu_ATTACK = -1000
+CONST batmenu_SPELLS = -1001
+CONST batmenu_ITEMS  = -1002
 
 TYPE AttackQueue
  used     as integer 'YES when used, NO when recycleable
