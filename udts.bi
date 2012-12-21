@@ -230,7 +230,7 @@ END TYPE
 
 DECLARE_VECTOR_OF_TYPE(MenuDefItem, MenuDefItem)
 
-'*** Requires construction (with ClearMenuData or LoadMenuData) + destruction (with DeleteMenuItems) ***
+'*** Requires construction (with ClearMenuData or LoadMenuData) ***
 TYPE MenuDef
   record    as integer
   handle    as integer
@@ -260,6 +260,7 @@ TYPE MenuDef
   bordersize as integer
   on_close  as integer 'script trigger
   esc_menu  as integer
+  Declare Destructor () 'declared in menus.bas
 END TYPE
 
 TYPE MenuState

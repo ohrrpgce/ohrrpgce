@@ -2288,7 +2288,6 @@ SUB hero_editor_edit_spell_list_slot (slot as SpellList)
 
  freepage holdscreen
  setkeys
- DeleteMenuItems menu
 END SUB
 
 SUB hero_editor_battle_menu (her as HeroDef)
@@ -2375,9 +2374,6 @@ SUB hero_editor_battle_menu (her as HeroDef)
   
   dowait
  LOOP
- 
- DeleteMenuItems menu
- DeleteMenuItems preview
  
 END SUB
 

@@ -437,26 +437,6 @@ SUB DeleteMenuItems(menu as MenuDef)
  END WITH
 END SUB
 
-'This is not used anywhere currently. This has nothing to do with deleting a menu item!
-SUB ClearMenuItem(mi as MenuDefItem)
- DIM bits(0) as integer
- DIM i as integer
- WITH mi
-  .caption = ""
-  .t = 0
-  .sub_t = 0
-  .tag1 = 0
-  .tag2 = 0
-  .settag = 0
-  .togtag = 0
-  FOR i = 0 TO 2
-   .extra(i) = 0
-  NEXT i
- END WITH
- bits(0) = 0
- MenuItemBitsFromArray mi, bits()
-END SUB
-
 'recreate a menu's items[] array, which sorts visible items to the top
 SUB SortMenuItems(menu as MenuDef)
  DIM as integer i, j, lowest, found
@@ -571,6 +551,9 @@ END SUB
 '                        Saving/Loading/(De)serializing MenuDefs
 '==========================================================================================
 
+Destructor MenuDef ()
+ DeleteMenuItems this
+End Destructor
 
 SUB LoadMenuData(menu_set as MenuSet, dat as MenuDef, byval record as integer, byval ignore_items as integer=NO)
  DIM f as integer

@@ -169,7 +169,6 @@ SUB editor_editor()
   dowait
  LOOP
 
- DeleteMenuItems st.menu
  IF st.clipboard <> 0 THEN FreeNode(st.clipboard)
  FreeDocument(st.doc)
  
@@ -627,8 +626,6 @@ FUNCTION widget_editor(BYVAL widget AS NodePtr) AS INTEGER
   setvispage vpage
   dowait
  LOOP
-
- DeleteMenuItems st.menu
 
  RETURN NO 
 END FUNCTION

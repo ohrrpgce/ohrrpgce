@@ -141,7 +141,6 @@ SUB reload_editor()
   dowait
  LOOP
 
- DeleteMenuItems st.menu
  IF st.clipboard <> 0 THEN Reload.FreeNode(st.clipboard)
  Reload.FreeDocument(st.doc)
  

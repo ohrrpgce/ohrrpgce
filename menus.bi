@@ -6,7 +6,7 @@
 #ifndef MENUS_BI
 #define MENUS_BI
 
-'*** Requires construction (with ClearMenuData or LoadMenuData) + destruction (with DeleteMenuItems) ***
+'*** Requires construction (with ClearMenuData or LoadMenuData) ***
 
 '' Generic MenuState Stuff
 DECLARE SUB init_menu_state OVERLOAD (byref state as MenuState, menu() as SimpleMenuItem)
@@ -27,7 +27,6 @@ DECLARE SUB standardmenu OVERLOAD (byval menu as BasicMenuItem vector, state as 
 '' MenuDef
 DECLARE SUB ClearMenuData(dat as MenuDef)
 DECLARE SUB DeleteMenuItems(menu as MenuDef)
-DECLARE SUB ClearMenuItem(mi as MenuDefItem)
 DECLARE SUB SortMenuItems(menu as MenuDef)
 DECLARE FUNCTION getmenuname(byval record as integer) as STRING
 DECLARE SUB init_menu_state OVERLOAD (byref state as MenuState, menu as MenuDef)
