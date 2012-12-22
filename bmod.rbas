@@ -1428,6 +1428,7 @@ SUB populate_battle_menu_menudef (menu as MenuDef, hero as HeroDef)
   .align = -1
   .bordersize = -4
   .itemspacing = -2
+  .highlight_selection = YES
  END WITH
  
  READNODE hero_node."battle_menus" as battle_menus
