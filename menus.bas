@@ -415,6 +415,7 @@ SUB ClearMenuData(dat as MenuDef)
   .min_chars = 0
   .max_chars = 0
   .bordersize = 0
+  .itemspacing = 0
   IF .items THEN
    DeleteMenuItems dat
   ELSE
@@ -769,6 +770,7 @@ SUB MenuBitsToArray (menu as MenuDef, bits() as integer)
   setbit bits(), 0, 6, .no_controls
   setbit bits(), 0, 7, .prevent_main_menu
   setbit bits(), 0, 8, .advance_textbox
+  setbit bits(), 0, 9, .highlight_selection
  END WITH
 END SUB
 
@@ -783,6 +785,7 @@ SUB MenuBitsFromArray (menu as MenuDef, bits() as integer)
   .no_controls    = xreadbit(bits(), 6)
   .prevent_main_menu = xreadbit(bits(), 7)
   .advance_textbox   = xreadbit(bits(), 8)
+  .highlight_selection = xreadbit(bits(), 9)
  END WITH
 END SUB
 
@@ -934,20 +937,26 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
  END WITH
 
  state.tog = state.tog XOR 1
+ DIM selected as integer
 
  FOR i = 0 TO state.size
+  selected = NO
   elem = state.top + i
   IF elem >= 0 AND elem < menu.numitems THEN
    col = menu.textcolor
    IF col = 0 THEN col = uilook(uiMenuItem)
    IF state.pt = elem AND state.active THEN col = uilook(uiSelectedItem + state.tog)
    WITH *menu.items[elem]
+    selected = (state.pt = elem ANDALSO state.active)
     IF .disabled THEN
      col = uilook(uiDisabledItem)
-     IF state.pt = elem AND state.active THEN col = uilook(uiSelectedDisabled + state.tog)
+     IF selected THEN col = uilook(uiSelectedDisabled + state.tog)
     END IF
     IF NOT (.disabled AND .hide_if_disabled) THEN
      position_menu_item menu, .text, i, where
+     IF menu.highlight_selection ANDALSO selected THEN
+      rectangle menu.rect.x + 4, where.y, menu.rect.wide - 8, 8, uiLook(uiHighlight), page
+     END IF
      IF .t = 1 AND .sub_t = 11 THEN ' volume meter
       edgeboxstyle where.x, where.y, get_music_volume * 48, 10, menu.boxstyle, page, NO, YES
      END IF

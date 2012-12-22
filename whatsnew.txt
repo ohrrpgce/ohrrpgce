@@ -29,6 +29,9 @@ WHAT IS NEW?
     * Revamped the hero spell list editor to make it easier to use
       [James]
     * Menu editor now allows you to adjust the line-spacing [James]
+    * Menu editor allows the selected item to be highlighted with
+      the highlight background color in addition to flickering the text
+      [James]
     
 
   * Bugfixes

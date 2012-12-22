@@ -1421,12 +1421,13 @@ SUB populate_battle_menu_menudef (menu as MenuDef, hero as HeroDef)
  ClearMenuData menu
  
  WITH menu
-  .offset.x = 160
-  .offset.y = -100
+  .offset.x = 152
+  .offset.y = -96
   .anchor.x = 1
   .anchor.y = -1
   .align = -1
   .bordersize = -4
+  .itemspacing = -2
  END WITH
  
  READNODE hero_node."battle_menus" as battle_menus

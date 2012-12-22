@@ -2058,7 +2058,7 @@ SUB xy_position_on_sprite (spr as GraphicPair, byref x as integer, byref y as in
 END SUB
 
 SUB edit_menu_bits (menu as MenuDef)
- DIM bitname(8) as string
+ DIM bitname(9) as string
  DIM bits(0) as integer
  
  bitname(0) = "Translucent box"
@@ -2070,6 +2070,7 @@ SUB edit_menu_bits (menu as MenuDef)
  bitname(6) = "No player control of menu"
  bitname(7) = "Prevent main menu activation"
  bitname(8) = "Advance text box when menu closes"
+ bitname(9) = "Highlight selection background"
 
  MenuBitsToArray menu, bits()
  editbitset bits(), 0, UBOUND(bitname), bitname(), "menu_editor_bitsets"

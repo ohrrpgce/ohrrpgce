@@ -251,6 +251,7 @@ TYPE MenuDef
   no_controls      as integer ' Bitset 6
   prevent_main_menu as integer ' Bitset 7
   advance_textbox  as integer ' Bitset 8
+  highlight_selection as integer 'Bitset 9
   rect      as RectType
   offset    as XYPair
   anchor    as XYPair
