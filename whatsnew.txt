@@ -27,7 +27,9 @@ WHAT IS NEW?
     * Press Enter or Space on "Base ATK Stat" to browse a menu of all
       available base attack stats [James]
     * Revamped the hero spell list editor to make it easier to use
-      [James] 
+      [James]
+    * Menu editor now allows you to adjust the line-spacing [James]
+    
 
   * Bugfixes
     * "run script by id" was far slower than it should have been [Ralph]

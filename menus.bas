@@ -584,6 +584,7 @@ SUB LoadMenuData(menu_set as MenuSet, dat as MenuDef, byval record as integer, b
   .on_close = ReadShort(f)
   .esc_menu = ReadShort(f)
   ReadShort(f)  'garbage INT
+  .itemspacing = ReadShort(f)
   IF .items THEN
    DeleteMenuItems dat
   ELSE
@@ -688,6 +689,7 @@ SUB SaveMenuData(menu_set as MenuSet, dat as MenuDef, byval record as integer)
   WriteShort(f, -1, .on_close)
   WriteShort(f, -1, .esc_menu)
   WriteShort(f, -1, 0)  'wasted garbage INT
+  WriteShort(f, -1, .itemspacing)
  END WITH
  CLOSE #f
  SaveMenuItems menu_set, dat, record
@@ -969,7 +971,7 @@ SUB position_menu_item (menu as MenuDef, cap as STRING, byval i as integer, byre
    CASE 1
     where.x = .x + .wide - bord - LEN(cap) * 8
   END SELECT
-  where.y = .y + bord + (i * 10)
+  where.y = .y + bord + (i * (10 + menu.itemspacing))
  END WITH
 END SUB
 
@@ -985,7 +987,8 @@ SUB position_menu (menu as MenuDef, byval page as integer)
   WITH *menu.items[i]
    menu.rect.wide = large(menu.rect.wide, LEN(.text) * 8 + bord * 2)
    IF .disabled AND .hide_if_disabled THEN CONTINUE FOR 'hidden matter for auto-width but not auto-height
-   menu.rect.high = menu.rect.high + 10
+   menu.rect.high += 10
+   IF i <> 0 THEN menu.rect.high += menu.itemspacing
   END WITH
  NEXT i
  '--enforce min width

@@ -258,6 +258,9 @@ TYPE MenuDef
   min_chars as integer
   max_chars as integer
   bordersize as integer
+  itemspacing as integer 'pixels added to the default item spacing.
+                          'negative shrinks, positive grows. this
+                          'alters the vertical size of the whole menu!
   on_close  as integer 'script trigger
   esc_menu  as integer
   Declare Destructor () 'declared in menus.bas

@@ -2419,13 +2419,15 @@ SUB menu_editor_keys (state as MenuState, mstate as MenuState, menudata as MenuD
    IF intgrabber(menudata.max_chars, 0, 38) THEN state.need_update = YES
   CASE 13 ' border size
    IF intgrabber(menudata.bordersize, -100, 100) THEN state.need_update = YES
-  CASE 14: ' on-close script
+  CASE 14 ' item spacing
+   IF intgrabber(menudata.itemspacing, -10, 100) THEN state.need_update = YES
+  CASE 15: ' on-close script
    IF enter_or_space() THEN
     scriptbrowse menudata.on_close, plottrigger, "menu on-close plotscript"
     state.need_update = YES
    END IF
    IF scrintgrabber(menudata.on_close, 0, 0, scLeft, scRight, 1, plottrigger) THEN state.need_update = YES
-  CASE 15: ' esc menu
+  CASE 16: ' esc menu
    IF zintgrabber(menudata.esc_menu, -1, gen(genMaxMenu)) THEN state.need_update = YES
  END SELECT
 END SUB
@@ -2589,6 +2591,7 @@ SUB update_menu_editor_menu(byval record as integer, edmenu as MenuDef, menu as 
  append_menu_item edmenu, "Minimum width: " & zero_default(menu.min_chars, "Automatic")
  append_menu_item edmenu, "Maximum width: " & zero_default(menu.max_chars, "None")
  append_menu_item edmenu, "Border size: " & zero_default(menu.bordersize)
+ append_menu_item edmenu, "Item spacing: " & zero_default(menu.itemspacing)
  append_menu_item edmenu, "On-close script: " & scriptname(menu.on_close)
  IF menu.esc_menu = 0 THEN
   cap = "just closes this menu"
