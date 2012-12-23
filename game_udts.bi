@@ -9,7 +9,7 @@
 TYPE MapModeState
   id       as integer
   lastmap  as integer 'ID of the last loaded map
-  same     as integer 'YES/NO flag that indicates when your are moving through a same-map door
+  same     as bool    'flag that indicates when you are moving through a same-map door
   name     as string
   door(99) as Door
   doorlinks(199) as doorlink
@@ -49,11 +49,11 @@ TYPE HeroState
  wep_pal as integer
  battle_pic as integer
  battle_pal as integer
- def_wep as integer '-default weapon
+ def_wep as integer  'default weapon
  pic as integer
  pal as integer
- rename_on_status as integer 'Renameable in status menu
- elementals(maxElements - 1) as SINGLE
+ rename_on_status as bool  'Renameable in status menu
+ elementals(maxElements - 1) as single
  hand_pos(1) as XYPair
 END TYPE
 
@@ -68,11 +68,11 @@ TYPE HeroWalkabout
 END TYPE
 
 TYPE ScriptLoggingState
-  enabled as integer
+  enabled as bool
   filename as string
   tick as integer                    'Number of times interpret has been called
   last_logged as integer             'scrat index
-  output_flag as integer             'Set to true after script_log_out called
+  output_flag as bool                'Set to true after script_log_out called
   last_wait_msg as string
   wait_msg_repeats as integer        'Number of ticks in a row with identical last_wait_msg
 END TYPE
@@ -84,27 +84,27 @@ TYPE GameState
   random_battle_countdown as integer
   stock(99, 49) as integer           'Keeps track of available inventory at each shop
   foe_freq(254) as integer           'A cache of the fight frequency for each formation set
-  walk_through_walls as integer      'used for F11 cheat mode
-  mouse_enabled as integer           'initmouse called
+  walk_through_walls as bool         'used for F11 cheat mode
+  mouse_enabled as bool              'initmouse called
   hero(40) as HeroState
-  debug_showtags as integer
-  debug_npc_info as integer
-  autorungame as integer
-  need_fade_in as integer
+  debug_showtags as bool
+  debug_npc_info as bool
+  autorungame as bool                'Game was autorun, not selected from RPG browser
+  need_fade_in as bool
   fade_in_delay as integer
   current_master_palette as integer  'Modified by "load palette" command
   showtext as string                 'Used for map names and other alerts
   showtext_ticks as integer          'Remaining number of ticks
-  getinputtext_enabled as integer
+  getinputtext_enabled as bool
   script_log as ScriptLoggingState
 END TYPE
 
 TYPE TextBoxState
   id             as integer 'ID Number of the current box or -1 for none
-  box            as TextBox '--Contains the data about the content of the textbox
-  showing        as integer 'YES or NO
-  fully_shown    as integer 'YES or NO. All lines have been displayed, player is allowed to advance
-  choice_cursor  as integer
+  box            as TextBox 'Contains the data about the content of the textbox
+  showing        as bool
+  fully_shown    as bool    'All lines have been displayed, player is allowed to advance
+  choice_cursor  as integer 'Selected item in choicebox
   remember_music as integer
   show_lines     as integer 'Number of lines currently on display
   sayer          as integer 'The NPC reference who triggered this textbox as a positive number, or -1 for none
@@ -135,15 +135,15 @@ TYPE ItemsMenuState
   sel    as integer
   top    as integer
   info   as string
-  re_use as integer
-  trigger_box as integer
-  quit   as integer
+  re_use as bool
+  trigger_box as integer  '0, or ID of textbox to open
+  quit   as bool
   scroll as MenuState
   scrollrect as RectType
-  refresh as integer
+  refresh as bool
   page as integer
   rect as RectType
-  tog as integer
+  tog as bool
   special(-3 TO 0) as string 'upper bound should be -1, had to change due to FB bug #2898546
 END TYPE
 
@@ -169,20 +169,20 @@ TYPE SpellsMenuState
   last      as integer 'last occupied slot in .lists()
   lists(4)  as SpellsMenuList
   spell(24) as SpellsMenuSlot
-  quit      as integer
+  quit      as bool
   cursor    as integer
   mset      as integer
-  re_use    as integer
+  re_use    as bool
   page      as integer
-  tog       as integer
+  tog       as bool
   cancel_menu_caption as string
   has_none_caption as string
 END TYPE
 
 TYPE LumpReloadState
   mode      as integer  'one of the loadmode constants in const.bi
-  dirty     as integer  'whether a script has modified this for the current map
-  changed   as integer  'whether modified by Custom and not reloaded
+  dirty     as bool     'whether a script has modified this for the current map
+  changed   as bool     'whether modified by Custom and not reloaded
   hash      as integer  'used to store file_hash of last version loaded
 END TYPE
 
