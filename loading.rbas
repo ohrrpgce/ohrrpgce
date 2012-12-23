@@ -1565,7 +1565,7 @@ SUB loadherodata (hero as herodef, byval index as integer)
  DIM doc as DocPtr
  doc = LoadDocument(filename)
  IF doc = 0 THEN
-  debuginfo "heroes.reld doc load failed"
+  debug "heroes.reld doc load failed"
   FreeDocument doc
   EXIT DO
  END IF
@@ -1573,7 +1573,7 @@ SUB loadherodata (hero as herodef, byval index as integer)
  DIM heroes as NodePtr
  heroes = DocumentRoot(doc)
  IF heroes = 0 THEN
-  debuginfo "heroes.reld failed to get document root"
+  debug "heroes.reld failed to get document root"
   FreeDocument doc
   EXIT DO
  END IF
@@ -1659,7 +1659,7 @@ SUB load_hero_from_reload(hero as HeroDef, byval parent as NodePtr)
        END WITHNODE
       END READNODE
      CASE ELSE
-      debuginfo "unknown spell list " & i & " for hero " & hero.name
+      debug "unknown spell list " & i & " for hero " & hero.name
     END SELECT
    END WITHNODE
   END READNODE
@@ -1670,7 +1670,7 @@ SUB load_hero_from_reload(hero as HeroDef, byval parent as NodePtr)
      CASE 0 TO maxElements - 1
       hero.elementals(i) = CAST(single, element."damage".default(1.0).double)
      CASE ELSE
-      debuginfo "unknown elemental " & i & " for hero " & hero.name
+      debug "unknown elemental " & i & " for hero " & hero.name
     END SELECT
    END WITHNODE
   END READNODE
