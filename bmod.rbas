@@ -64,7 +64,7 @@ DECLARE SUB battle_pause ()
 DECLARE SUB battle_cleanup(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB battle_init(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB battle_background_anim(byref bat as BattleState, formdata as Formation)
-DECLARE FUNCTION battle_run_away(byref bat as BattleState, bslot() as BattleSprite) as integer
+DECLARE FUNCTION battle_run_away(byref bat as BattleState, bslot() as BattleSprite) as bool
 DECLARE SUB battle_animate_running_away (bslot() as BattleSprite)
 DECLARE SUB battle_check_delays(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB battle_check_for_hero_turns(byref bat as BattleState, bslot() as BattleSprite)
@@ -99,8 +99,8 @@ DECLARE SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() a
 DIM bstackstart as integer
 REDIM learnmask(245) as integer '6 shorts of bits per hero
 
-FUNCTION battle (byval form as integer) as integer
- battle = 1 'default return value
+FUNCTION battle (byval form as integer) as bool
+ battle = YES 'default return value
  
  DIM formdata as Formation
  DIM attack as AttackData
@@ -169,7 +169,7 @@ FUNCTION battle (byval form as integer) as integer
   END IF
   IF keyval(scPause) > 1 THEN battle_pause
   IF battle_run_away(bat, bslot()) THEN
-   battle = 0
+   battle = NO
    EXIT DO
   END IF
   
@@ -250,7 +250,7 @@ FUNCTION battle (byval form as integer) as integer
   dowait
  LOOP
  
- IF fatal THEN battle = 0
+ IF fatal THEN battle = NO
  battle_cleanup bat, bslot()
  evalherotags
  evalitemtags
@@ -3386,7 +3386,7 @@ SUB battle_background_anim(byref bat as BattleState, formdata as Formation)
  END IF
 END SUB
 
-FUNCTION battle_run_away(byref bat as BattleState, bslot() as BattleSprite) as integer
+FUNCTION battle_run_away(byref bat as BattleState, bslot() as BattleSprite) as bool
  '--this function is called every tick of battle. It returns YES if
  '-- a successful run has completed, thus ending battle.
  

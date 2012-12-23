@@ -10,7 +10,7 @@
 #INCLUDE "udts.bi"
 #INCLUDE "battle_udts.bi"
 
-declare function battle (byval form as integer) as integer
+declare function battle (byval form as integer) as bool
 declare function checknorunbit (bslot() as battlesprite) as integer
 DECLARE SUB checkTagCond (byref t as AttackDataTag, byval check as integer)
 declare function focuscost (byval cost as integer, byval focus as integer) as integer

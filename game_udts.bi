@@ -79,7 +79,7 @@ END TYPE
 
 TYPE GameState
   map as MapModeState
-  wonbattle as integer               'Indicates the status of the last battle, 1 for victory 0 for running away
+  wonbattle as bool                  'Indicates the status of the last battle (won as opposed to dying or running or 'force exit')
   remembermusic as integer           'Remembers music from before battle starts
   random_battle_countdown as integer
   stock(99, 49) as integer           'Keeps track of available inventory at each shop

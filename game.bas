@@ -1534,7 +1534,7 @@ WITH scrat(nowscript)
     CASE 15, 35, 61'--use door, use NPC, teleport to map
      .state = streturn
     CASE 16'--fight formation
-     scriptret = gam.wonbattle
+     scriptret = IIF(gam.wonbattle, 1, 0)
      .state = streturn
     CASE 1'--wait number of ticks
      .waitarg -= 1
@@ -3011,7 +3011,7 @@ SUB prepare_map (byval afterbat as integer=NO, byval afterload as integer=NO)
   IF gmap(12) > 0 THEN
    trigger_script gmap(12), NO, "afterbattle", "", scrqBackcompat()
    '--afterbattle script gets one arg telling if you won or ran
-   trigger_script_arg 0, gam.wonbattle, "wonbattle"
+   trigger_script_arg 0, IIF(gam.wonbattle, 1, 0), "wonbattle"
   END IF
  END IF
  gam.map.same = NO
