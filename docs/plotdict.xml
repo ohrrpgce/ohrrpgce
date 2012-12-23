@@ -761,7 +761,7 @@ wait for text box # wait until the player continues</example>
 		<command id="fightformation">
 			<canon>fight formation (number)</canon>
 			<shortname>fight formation</shortname>
-			<description>Starts a battle with the numbered enemy formation. This command returns <ref>false</ref> if you ran from battle, or <ref>true</ref> if you won. If you lose the battle, the game will still end as normal unless you set a death script. In that case, <ref>false</ref> is returned. <note>An automatic <ref>wait</ref>(1) occurs immediately after this command.</note></description>
+			<description>Starts a battle with the numbered enemy formation. This command returns <ref>false</ref> if you ran from battle (or if an attack with the "Force battle exit" bit ended the battle), or <ref>true</ref> if you won (including victory due to a "Force victory" attack). If you lose the battle, the game will still end as normal unless you set a death script. In that case, <ref>false</ref> is returned (after the death script has finished). <note>An automatic <ref>wait</ref>(1) occurs immediately after this command.</note></description>
 			<seealso>
 				<ref>setdeathscript</ref>
 			</seealso>
