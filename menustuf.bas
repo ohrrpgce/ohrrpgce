@@ -1347,15 +1347,18 @@ RETRACE
 
 END SUB
 
-FUNCTION trylearn (byval who as integer, byval atk as integer, byval learntype as integer) as integer
-'first arg is hero position in the party
+FUNCTION trylearn (byval who as integer, byval atk as integer) as bool
+'Try to add a spell to a hero's spelllists whereever it is set to be learnable from an item.
+'who is hero position in the party, atk is attack ID + 1
 
-'--returns 1 when the spell was learned, 0 when it was not learned
+'--returns whether the spell was learned at least once
 
-IF hero(who) = 0 THEN debug "trylearn fail on empty party slot " & who : RETURN 0
+IF hero(who) = 0 THEN
+ debug "trylearn fail on empty party slot " & who
+ RETURN NO
+END IF
 
-'--fail by default
-DIM result as integer = 0
+DIM result as bool = NO
 
 dim her as herodef
 '--load the hero's data.
@@ -1366,15 +1369,15 @@ FOR j as integer = 0 TO 3
  '--for each spell slot
  FOR o as integer = 0 TO 23
   '--if this slot is empty and accepts this spell
-  '--and is learnable by learntype
-  IF spell(who, j, o) = 0 AND her.spell_lists(j,o).attack = atk AND her.spell_lists(j,o).learned = learntype THEN
+  '--and is learnable by an item
+  IF spell(who, j, o) = 0 AND her.spell_lists(j,o).attack = atk AND her.spell_lists(j,o).learned = 0 THEN
    spell(who, j, o) = atk
-   result = 1
+   result = YES
   END IF
  NEXT o
 NEXT j
 
-trylearn = result
+RETURN result
 
 END FUNCTION
 
@@ -2196,8 +2199,7 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
    END IF
    'if can teach a spell
    IF learn_id >= 0 THEN '--teach spell
-    '--trylearn
-    IF trylearn(targ, learn_id+1, 0) THEN
+    IF trylearn(targ, learn_id + 1) THEN
      '--announce learn
      menusound gen(genItemLearnSFX)
      caption = names(targ) & " " & readglobalstring(124, "learned", 10) & " " & learn_attack.name

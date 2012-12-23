@@ -1163,7 +1163,7 @@ SELECT CASE as CONST id
    END IF
   END IF
  CASE 127'--teach spell
-  scriptret = trylearn(bound(retvals(0), 0, 40), retvals(1), retvals(2))
+  scriptret = trylearn(bound(retvals(0), 0, 40), retvals(1))
  CASE 128'--forget spell
   scriptret = 0
   retvals(0) = bound(retvals(0), 0, 40)

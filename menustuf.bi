@@ -17,7 +17,7 @@ DECLARE FUNCTION picksave (byval loading as integer) as integer
 DECLARE SUB sellstuff (byval id as integer, storebuf() as integer)
 DECLARE SUB spells_menu (byval who as integer)
 DECLARE SUB status (byval pt as integer)
-DECLARE FUNCTION trylearn (byval who as integer, byval atk as integer, byval learntype as integer) as integer
+DECLARE FUNCTION trylearn (byval who as integer, byval atk as integer) as bool
 DECLARE SUB unequip (byval who as integer, byval where as integer, byval defwep as integer, byval resetdw as integer)
 DECLARE SUB loadshopstuf (array() as integer, byval id as integer)
 DECLARE FUNCTION count_available_spells(byval who as integer, byval list as integer) as integer

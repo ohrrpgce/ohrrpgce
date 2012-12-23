@@ -139,7 +139,7 @@ define function, begin
 125,createNPC,4,0,0,0,2     # create an NPC by ID at a location and return its reference
 126,destroyNPC,1,0          # destroy the referenced NPC
 126,deleteNPC,1,0           # alias
-127,teachspell,3,0,0,0      # (who,spell,learntype) tries to teach a hero a spell
+127,teachspell,2,0,0        # (who,spell) tries to teach a hero a spell
 128,forgetspell,2,0,0       # (who,spell) forget a learned spell
 129,readspell,3,0,0,0       # (who,list,slot) returns the number of the spell in a slot
 130,writespell,4,0,0,0,0    # (who,list,slot,spell) forces a hero to learn a spell

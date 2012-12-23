@@ -1241,7 +1241,7 @@ end</example>
 		<command id="teachspell">
 			<canon>teach spell (hero,attack)</canon>
 			<shortname>teach spell</shortname>
-			<description>Tries to teach a hero a spell. The first argument is the hero&apos;s position in the party (as returned by <ref>findhero</ref>). The second argument is the attack to learn. You can use the names defined in your .HSI file in the form atk:attackname (You may also use the attack&apos;s ID number. This is the number you see in the attack editor + 1). If the hero is capable of learning the spell, teach spell will return <ref>true</ref>, or if the hero cannot learn the spell it will return <ref>false</ref>. Note that this only works when a spell is set to "learned from item". It will not work for spells learned based on level.</description>
+			<description>Tries to teach a hero a spell. This only works when the spell is set to "learned from item" in one of the hero's spell lists; it will not work for spells learned based on level. The first argument is the hero&apos;s position in the party (as returned by <ref>findhero</ref>). The second argument is the attack to learn. You can use the names defined in your .HSI file in the form atk:attackname. (You may also use the attack&apos;s ID number. This is the number you see in the attack editor + 1.) If the hero was taught the spell, teach spell will return <ref>true</ref>, or if the hero cannot learn the spell (perhaps because they already know it) it will return <ref>false</ref>. Use <ref>writespell</ref> to add a spell to a spell list without restriction.</description>
 		</command>
 		<command id="forgetspell">
 			<canon>forget spell (hero,attack)</canon>
