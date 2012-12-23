@@ -39,7 +39,7 @@ DECLARE SUB anim_setdir(byval who as integer, byval d as integer)
 DECLARE FUNCTION dieWOboss(byval who as integer, bslot() as BattleSprite) as integer
 DECLARE SUB dead_enemy(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
-DECLARE SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, menubits() as integer, st() as herodef)
+DECLARE SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as herodef)
 DECLARE SUB spellmenu (byref bat as BattleState, st() as HeroDef, bslot() as BattleSprite)
 DECLARE SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, t() as integer)
 DECLARE SUB enforce_weak_picture(byval who as integer, bslot() as BattleSprite, byref bat as BattleState)

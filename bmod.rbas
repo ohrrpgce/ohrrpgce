@@ -53,7 +53,7 @@ DECLARE SUB battle_crappy_run_handler(byref bat as BattleState, bslot() as Battl
 DECLARE SUB show_enemy_meters(bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB battle_animate(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
-DECLARE SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, menubits() as integer, st() as HeroDef)
+DECLARE SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef)
 DECLARE SUB battle_confirm_target(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB battle_spawn_on_hit(byval targ as integer, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
@@ -92,7 +92,8 @@ DECLARE FUNCTION hero_or_enemy_can_take_a_turn (byval who as integer, bat as Bat
 DECLARE SUB cancel_blocking_attacks_for_hero_or_enemy(byval who as integer)
 DECLARE SUB update_turn_delays_in_attack_queue (byval who as integer)
 DECLARE FUNCTION has_blocking_turn_delayed_attacks(byval who as integer) as integer
-DECLARE SUB populate_battle_menu_menudef (menu as MenuDef, hero as HeroDef)
+DECLARE SUB populate_battle_menu_menudef (byval hero_id as integer, menu as MenuDef, hero as HeroDef)
+DECLARE SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDef)
 
 'these are the battle global variables
 DIM bstackstart as integer
@@ -104,7 +105,6 @@ FUNCTION battle (byval form as integer) as integer
  DIM formdata as Formation
  DIM attack as AttackData
  DIM st(3) as HeroDef
- REDIM menubits(2) as integer
  DIM bat as BattleState
  REDIM atkq(15) as AttackQueue
  clear_attack_queue()
@@ -197,7 +197,7 @@ FUNCTION battle (byval form as integer) as integer
    IF bat.hero_turn >= 0 AND bat.targ.mode = targNONE THEN
     IF bat.menu_mode = batMENUITEM  THEN itemmenu bat, bslot()
     IF bat.menu_mode = batMENUSPELL THEN spellmenu bat, st(), bslot()
-    IF bat.menu_mode = batMENUHERO  THEN heromenu bat, bslot(), menubits(), st()
+    IF bat.menu_mode = batMENUHERO  THEN heromenu bat, bslot(), st()
    END IF
    IF bat.hero_turn >= 0 AND bat.targ.mode > targNONE THEN battle_targetting bat, bslot()
   END IF
@@ -209,7 +209,7 @@ FUNCTION battle (byval form as integer) as integer
   '--display the sprites
   draw_battle_sprites bslot()
   '--display menus and meters
-  battle_display bat, bslot(), menubits(), st()
+  battle_display bat, bslot(), st()
   
   IF bat.vic.state = vicEXITDELAY THEN bat.vic.state = vicEXIT
   IF bat.vic.state > 0 THEN show_victory bat, bslot()
@@ -810,7 +810,7 @@ SUB battle_confirm_target(byref bat as BattleState, bslot() as BattleSprite)
  bat.targ.hit_dead = NO
 END SUB
 
-SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, menubits() as integer, st() as HeroDef)
+SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef)
  'display:
  '--this sub currently draws the user-interface. In the future it will update
  '--user interface slices
@@ -884,7 +884,23 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, menubits(
   IF bat.hero_turn >= 0 THEN
    
    IF bat.test_future THEN
-    draw_menu bslot(bat.hero_turn).batmenu, bslot(bat.hero_turn).menust, dpage
+    DIM atk as AttackData
+    WITH bslot(bat.hero_turn)
+     FOR i as integer = 0 TO .batmenu.numitems - 1
+      WITH *.batmenu.items[i]
+       IF .t = batmenu_ATTACK THEN
+        .disabled = NO
+        loadattackdata atk, .sub_t
+        IF atk.check_costs_as_weapon THEN
+         IF atkallowed(atk, bat.hero_turn, 0, 0, bslot()) = 0 THEN
+          .disabled = YES
+         END IF
+        END IF
+       END IF
+      END WITH
+     NEXT i
+     draw_menu .batmenu, .menust, dpage
+    END WITH
    ELSE
     centerbox 268, 5 + (4 * (bslot(bat.hero_turn).menu_size + 2)), 88, 8 * (bslot(bat.hero_turn).menu_size + 2), 1, dpage
     DIM bg as integer
@@ -892,13 +908,9 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, menubits(
     FOR i = 0 TO bslot(bat.hero_turn).menu_size
      bg = 0
      fg = uilook(uiMenuItem)
-     IF bat.pt = i THEN
+     IF bslot(bat.hero_turn).menust.pt = i THEN
       fg = uilook(uiSelectedItem + bat.tog)
       bg = uilook(uiHighlight)
-     END IF
-     IF readbit(menubits(), 0, bat.hero_turn * 4 + i) THEN
-      fg = uilook(uiDisabledItem)
-      IF bat.pt = i THEN fg = uilook(uiSelectedDisabled + bat.tog)
      END IF
      textcolor fg, bg
      printstr bslot(bat.hero_turn).menu(i).caption, 228, 9 + i * 8, dpage
@@ -1307,7 +1319,7 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
     .cursorpos.x = .w / 2
     .cursorpos.y = 0
     .bequesting = NO
-    populate_battle_menu_menudef .batmenu, st(i)
+    populate_battle_menu_menudef i, .batmenu, st(i)
     init_menu_state .menust, .batmenu
     .menust.active = YES
    END WITH
@@ -1407,10 +1419,9 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
  fulldeathcheck -1, bat, bslot(), formdata
 END SUB
 
-SUB populate_battle_menu_menudef (menu as MenuDef, hero as HeroDef)
+SUB populate_battle_menu_menudef (byval hero_id as integer, menu as MenuDef, hero as HeroDef)
  DIM hero_node as NodePtr
  hero_node = CAST(NodePtr, hero.reld)
- DIM hero_id as integer = GetInteger(hero_node)
  DIM caption as string
  DIM k as NodePtr
  DIM wep_id as integer
@@ -1422,13 +1433,14 @@ SUB populate_battle_menu_menudef (menu as MenuDef, hero as HeroDef)
  
  WITH menu
   .offset.x = 152
-  .offset.y = -96
+  .offset.y = -95
   .anchor.x = 1
   .anchor.y = -1
   .align = -1
-  .bordersize = -4
+  .bordersize = -5
   .itemspacing = -2
   .highlight_selection = YES
+  .min_chars = 10
  END WITH
  
  READNODE hero_node."battle_menus" as battle_menus
@@ -2323,23 +2335,7 @@ SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as For
 
 END SUB
 
-SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, menubits() as integer, st() as herodef)
-
- DIM atk as AttackData
- DIM spellcount as integer = 0
- DIM i as integer
- 
- FOR i = 0 TO 5
-  setbit menubits(), 0, bat.hero_turn * 4 + i, 0
-  IF bslot(bat.hero_turn).menu(i).atk >= 0 THEN
-   loadattackdata atk, bslot(bat.hero_turn).menu(i).atk
-   IF atk.check_costs_as_weapon THEN
-    IF atkallowed(atk, bat.hero_turn, 0, 0, bslot()) = 0 THEN
-     setbit menubits(), 0, bat.hero_turn * 4 + i, 1
-    END IF
-   END IF
-  END IF
- NEXT i
+SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as herodef)
  
  IF carray(ccMenu) > 1 THEN
   '--skip turn
@@ -2355,87 +2351,96 @@ SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, menubits() as i
   EXIT SUB
  END IF
  usemenusounds
- usemenu bat.pt, 0, 0, bslot(bat.hero_turn).menu_size, 999
+ usemenu bslot(bat.hero_turn).menust
  IF carray(ccUse) > 1 THEN
   '--use menu item
   menusound gen(genAcceptSFX)
-  IF bslot(bat.hero_turn).menu(bat.pt).atk >= 0 THEN 'simple attack
-   IF readbit(menubits(), 0, bat.hero_turn * 4 + bat.pt) = 0 THEN
-    bslot(bat.hero_turn).attack = bslot(bat.hero_turn).menu(bat.pt).atk + 1
-    bat.targ.mode = targSETUP
-    flusharray carray(), 7, 0
-    EXIT SUB
+  WITH *(bslot(bat.hero_turn).batmenu.items[bslot(bat.hero_turn).menust.pt])
+   IF NOT .disabled THEN
+    SELECT CASE .t
+     CASE batmenu_ATTACK:
+      bslot(bat.hero_turn).attack = .sub_t + 1
+      bat.targ.mode = targSETUP
+      flusharray carray(), 7, 0
+      EXIT SUB
+     CASE batmenu_SPELLS:
+      bat.listslot = .sub_t
+      init_spell_menu bat, bslot(), st()
+     CASE batmenu_ITEMS:
+      bat.menu_mode = batMENUITEM
+      bat.item.pt = 0
+      bat.item.top = 0
+      checkitemusability bat.iuse(), bslot(), bat.hero_turn
+      bat.item_desc = ""
+      IF inventory(bat.item.pt).used THEN
+       bat.item_desc = readitemdescription(inventory(bat.item.pt).id)
+      END IF
+    END SELECT
    END IF
-  END IF
-  IF bslot(bat.hero_turn).menu(bat.pt).spell_list >= 0 THEN '--this is a spell list
-   bat.listslot = bslot(bat.hero_turn).menu(bat.pt).spell_list
-   IF st(bat.hero_turn).list_type(bat.listslot) < 2 THEN '--the type of this spell list is one that displays a menu
-    '--init spell menu
-    bat.menu_mode = batMENUSPELL
-    bat.sptr = 0
-    FOR i = 0 TO 23 '-- loop through the spell list setting up menu items for each
-     WITH bat.spell.slot(i)
-      .name = ""
-      .desc = ""
-      .cost = ""
-      .atk_id = -1
-     END WITH
-     bat.spell.slot(i).enable = NO
-     IF spell(bat.hero_turn, bat.listslot, i) > 0 THEN '--there is a spell in this slot
-      spellcount += 1
-      bat.spell.slot(i).atk_id = spell(bat.hero_turn, bat.listslot, i) - 1
-      loadattackdata atk, bat.spell.slot(i).atk_id
-      bat.spell.slot(i).name = atk.name
-      bat.spell.slot(i).desc = atk.description
-      IF st(bat.hero_turn).list_type(bat.listslot) = 0 THEN
-       '--regular MP
-       bat.spell.slot(i).cost = " " & focuscost(atk.mp_cost, bslot(bat.hero_turn).stat.cur.foc) & " " & statnames(statMP) & " " & bslot(bat.hero_turn).stat.cur.mp & "/" & bslot(bat.hero_turn).stat.max.mp
-      END IF
-      IF st(bat.hero_turn).list_type(bat.listslot) = 1 THEN
-       '--level MP
-       bat.spell.slot(i).cost = bat.level_mp_caption & " " & (INT(i / 3) + 1) & ":  " & lmp(bat.hero_turn, INT(i / 3))
-      END IF
-      IF atkallowed(atk, bat.hero_turn, st(bat.hero_turn).list_type(bat.listslot), INT(i / 3), bslot()) THEN
-       '-- check whether or not the spell is allowed
-       bat.spell.slot(i).enable = YES
-      END IF
-     END IF
-     bat.spell.slot(i).name = rpad(bat.spell.slot(i).name, " ", 10) '-- pad the spell menu caption
-    NEXT i
-   ELSEIF st(bat.hero_turn).list_type(bat.listslot) = 2 THEN '-- this is a random spell list
-    spellcount = 0
-    FOR i = 0 TO 23 '-- loop through the spell list storing attack ID numbers
-     bat.spell.slot(i).atk_id = -1
-     IF spell(bat.hero_turn, bat.listslot, i) > 0 THEN '--there is a spell in this slot
-      spellcount += 1
-      bat.spell.slot(i).atk_id = spell(bat.hero_turn, bat.listslot, i) - 1
-     END IF
-    NEXT i
-    IF spellcount > 0 THEN '-- don't attempt to pick randomly from an empty list
-     DIM safety as integer
-     DIM rptr as integer
-     rptr = randint(24)
-     FOR i = 0 TO randint(spellcount)
-      safety = 0
-      DO
-       rptr = loopvar(rptr, 0, 23, 1)
-       safety += 1
-      LOOP UNTIL bat.spell.slot(rptr).atk_id > -1 OR safety > 999 '--loop until we have found a spell (or give up after 999 tries)
-     NEXT i
-     bslot(bat.hero_turn).attack = bat.spell.slot(rptr).atk_id + 1
-     bat.targ.mode = targSETUP
-     flusharray carray(), 7, 0
+  END WITH
+ END IF
+END SUB
+
+SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDef)
+ DIM atk as AttackData
+ DIM spellcount as integer = 0
+ DIM i as integer
+ IF st(bat.hero_turn).list_type(bat.listslot) < 2 THEN '--the type of this spell list is one that displays a menu
+  '--init spell menu
+  bat.menu_mode = batMENUSPELL
+  bat.sptr = 0
+  FOR i = 0 TO 23 '-- loop through the spell list setting up menu items for each
+   WITH bat.spell.slot(i)
+    .name = ""
+    .desc = ""
+    .cost = ""
+    .atk_id = -1
+   END WITH
+   bat.spell.slot(i).enable = NO
+   IF spell(bat.hero_turn, bat.listslot, i) > 0 THEN '--there is a spell in this slot
+    spellcount += 1
+    bat.spell.slot(i).atk_id = spell(bat.hero_turn, bat.listslot, i) - 1
+    loadattackdata atk, bat.spell.slot(i).atk_id
+    bat.spell.slot(i).name = atk.name
+    bat.spell.slot(i).desc = atk.description
+    IF st(bat.hero_turn).list_type(bat.listslot) = 0 THEN
+     '--regular MP
+     bat.spell.slot(i).cost = " " & focuscost(atk.mp_cost, bslot(bat.hero_turn).stat.cur.foc) & " " & statnames(statMP) & " " & bslot(bat.hero_turn).stat.cur.mp & "/" & bslot(bat.hero_turn).stat.max.mp
+    END IF
+    IF st(bat.hero_turn).list_type(bat.listslot) = 1 THEN
+     '--level MP
+     bat.spell.slot(i).cost = bat.level_mp_caption & " " & (INT(i / 3) + 1) & ":  " & lmp(bat.hero_turn, INT(i / 3))
+    END IF
+    IF atkallowed(atk, bat.hero_turn, st(bat.hero_turn).list_type(bat.listslot), INT(i / 3), bslot()) THEN
+     '-- check whether or not the spell is allowed
+     bat.spell.slot(i).enable = YES
     END IF
    END IF
-  ELSEIF bslot(bat.hero_turn).menu(bat.pt).spell_list = -10 THEN '--items menu
-   bat.menu_mode = batMENUITEM
-   bat.item.pt = 0
-   bat.item.top = 0
-   checkitemusability bat.iuse(), bslot(), bat.hero_turn
-   bat.item_desc = ""
-   IF inventory(bat.item.pt).used THEN
-    bat.item_desc = readitemdescription(inventory(bat.item.pt).id)
+   bat.spell.slot(i).name = rpad(bat.spell.slot(i).name, " ", 10) '-- pad the spell menu caption
+  NEXT i
+ ELSEIF st(bat.hero_turn).list_type(bat.listslot) = 2 THEN '-- this is a random spell list
+  spellcount = 0
+  FOR i = 0 TO 23 '-- loop through the spell list storing attack ID numbers
+   bat.spell.slot(i).atk_id = -1
+   IF spell(bat.hero_turn, bat.listslot, i) > 0 THEN '--there is a spell in this slot
+    spellcount += 1
+    bat.spell.slot(i).atk_id = spell(bat.hero_turn, bat.listslot, i) - 1
    END IF
+  NEXT i
+  IF spellcount > 0 THEN '-- don't attempt to pick randomly from an empty list
+   DIM safety as integer
+   DIM rptr as integer
+   rptr = randint(24)
+   FOR i = 0 TO randint(spellcount)
+    safety = 0
+    DO
+     rptr = loopvar(rptr, 0, 23, 1)
+     safety += 1
+    LOOP UNTIL bat.spell.slot(rptr).atk_id > -1 OR safety > 999 '--loop until we have found a spell (or give up after 999 tries)
+   NEXT i
+   bslot(bat.hero_turn).attack = bat.spell.slot(rptr).atk_id + 1
+   bat.targ.mode = targSETUP
+   flusharray carray(), 7, 0
   END IF
  END IF
 END SUB
@@ -3541,7 +3546,7 @@ END FUNCTION
 FUNCTION battle_check_a_hero_turn(byref bat as BattleState, bslot() as BattleSprite, byval index as integer) as integer
  IF hero_or_enemy_can_take_a_turn(index, bat, bslot()) THEN
   bat.hero_turn = index
-  bat.pt = 0
+  bslot(bat.hero_turn).menust.pt = 0
   bat.menu_mode = batMENUHERO
   RETURN YES
  END IF

@@ -262,7 +262,6 @@ TYPE BattleState
  have_written_stats as integer 'writestats has been called. Don't do it again!
  targ as TargettingState
  atk as AttackState
- pt as integer         'menu cursor for hero menu
  listslot as integer   'currently active hero spell list slot
  sptr as integer       'menu cursor for hero spell list menu
  item as MenuState     'menu cursor for items menu
