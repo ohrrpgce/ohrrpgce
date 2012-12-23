@@ -883,39 +883,23 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
   '--Draw menus for a hero that is currently taking a turn
   IF bat.hero_turn >= 0 THEN
    
-   IF bat.test_future THEN
-    DIM atk as AttackData
-    WITH bslot(bat.hero_turn)
-     FOR i as integer = 0 TO .batmenu.numitems - 1
-      WITH *.batmenu.items[i]
-       IF .t = batmenu_ATTACK THEN
-        .disabled = NO
-        loadattackdata atk, .sub_t
-        IF atk.check_costs_as_weapon THEN
-         IF atkallowed(atk, bat.hero_turn, 0, 0, bslot()) = 0 THEN
-          .disabled = YES
-         END IF
+   DIM atk as AttackData
+   WITH bslot(bat.hero_turn)
+    FOR i as integer = 0 TO .batmenu.numitems - 1
+     WITH *.batmenu.items[i]
+      IF .t = batmenu_ATTACK THEN
+       .disabled = NO
+       loadattackdata atk, .sub_t
+       IF atk.check_costs_as_weapon THEN
+        IF atkallowed(atk, bat.hero_turn, 0, 0, bslot()) = 0 THEN
+         .disabled = YES
         END IF
        END IF
-      END WITH
-     NEXT i
-     draw_menu .batmenu, .menust, dpage
-    END WITH
-   ELSE
-    centerbox 268, 5 + (4 * (bslot(bat.hero_turn).menu_size + 2)), 88, 8 * (bslot(bat.hero_turn).menu_size + 2), 1, dpage
-    DIM bg as integer
-    DIM fg as integer
-    FOR i = 0 TO bslot(bat.hero_turn).menu_size
-     bg = 0
-     fg = uilook(uiMenuItem)
-     IF bslot(bat.hero_turn).menust.pt = i THEN
-      fg = uilook(uiSelectedItem + bat.tog)
-      bg = uilook(uiHighlight)
-     END IF
-     textcolor fg, bg
-     printstr bslot(bat.hero_turn).menu(i).caption, 228, 9 + i * 8, dpage
+      END IF
+     END WITH
     NEXT i
-   END IF
+    draw_menu .batmenu, .menust, dpage
+   END WITH
    
    IF bat.targ.mode = targNONE AND readbit(gen(), genBits, 14) = 0 THEN
     edgeprint CHR$(24), bslot(bat.hero_turn).x + (bslot(bat.hero_turn).w / 2) - 4, bslot(bat.hero_turn).y - 5 + (bat.tog * 2), uilook(uiSelectedItem + bat.tog), dpage
@@ -1283,23 +1267,9 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
  'Otherwise formdata.music = -2: same music as map
  
  DIM attack as AttackData
- DIM newm as integer
  FOR i = 0 TO 3
   IF hero(i) > 0 THEN
    loadherodata st(i), hero(i) - 1
-   newm = 0
-      
-   'Loop through hero battle menu, populating bslot().menu() with the ones that should be displayed
-   'Note that bmenu() is a global.
-   FOR oldm as integer = 0 TO 5
-    IF bmenu(i, oldm) < 0 AND bmenu(i, oldm) > -5 AND readbit(st(i).bits(),0,26) <> 0 THEN
-     'this is a spell list, and the hide empty spell lists bitset is on...
-     'count the spells, and skip if empty
-     IF count_available_spells(i, ABS(bmenu(i, oldm)) - 1) = 0 THEN CONTINUE FOR
-    END IF
-    bslot(i).menu(newm).menu = bmenu(i,oldm)
-    newm += 1
-   NEXT oldm
 
    '--init bslot() for each hero
    WITH bslot(i)
@@ -1333,29 +1303,6 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
    calc_hero_elementals bslot(i).elementaldmg(), i
 
    bslot(i).name = names(i)
-   
-   '--load hero menu captions
-   FOR o as integer = 0 TO 5
-    WITH bslot(i).menu(o)
-     .caption = ""
-     .atk = -1 'none
-     .spell_list = -1 'none
-     IF .menu > 0 THEN
-      '--positive number is a fixed attack number (currently only for equipped weapon)
-      .atk = .menu - 1
-      loadattackdata attack, .atk
-      .caption = attack.name
-     ELSEIF .menu < 0 AND .menu > -5 THEN
-      .spell_list = ABS(.menu) - 1
-      .caption = st(i).list_name(.spell_list)
-     ELSEIF .menu = -10 THEN
-      .caption = readglobalstring(34, "Item", 10)
-      .spell_list = -10
-      bslot(i).menu_size = o
-     END IF
-     .caption = rpad(.caption, " ", 10)
-    END WITH
-   NEXT o
    
   ELSE
    '--blank empty hero slots
@@ -3291,16 +3238,18 @@ FUNCTION knows_attack(byval who as integer, byval atk as integer, bslot() as Bat
  'spell() is a global array
 
  '--different handling for heroes and monsters
- 
+
  IF is_hero(who) THEN
-  FOR i as integer = 0 TO 5
-   WITH bslot(who).menu(i)
-    IF .atk = atk THEN RETURN YES 'Knows the attack by an equipped weapon
-    IF .spell_list >= 0 THEN
-     FOR j as integer = 0 TO 23
-      IF spell(who, .spell_list, j) = atk THEN RETURN YES 'Knows the attack in a spell list
-     NEXT j
-    END IF
+  FOR i as integer = 0 TO bslot(who).batmenu.numitems - 1
+   WITH *bslot(who).batmenu.items[i]
+    SELECT CASE .t
+     CASE batmenu_ATTACK:
+      IF atk = .sub_t THEN RETURN YES
+     CASE batmenu_SPELLS:
+      FOR j as integer = 0 TO 23
+       IF spell(who, .sub_t, j) = atk THEN RETURN YES 'Knows the attack in a spell list
+      NEXT j
+    END SELECT
    END WITH
   NEXT i
  END IF

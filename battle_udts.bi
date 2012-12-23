@@ -32,13 +32,6 @@ TYPE BattleStats
   max as BattleStatsSingle
 END TYPE
 
-TYPE BattleHeroMenu
-  menu as integer 'Same as bmenu(hero,slot)
-  caption as string
-  atk as integer 'Attack ID (or -1 for none)
-  spell_list as integer ' index of spell list (or -10 for items or -1 for none)
-END TYPE
-
 TYPE HarmText 'FIXME: when battle display is converted to slices, this can go away entirely
  text as string
  col as integer
@@ -73,8 +66,6 @@ TYPE BattleSprite
   consume_item as integer ' -1 means no item consumed, >=0 indicates which inventory slot will be used (NOT item ID)
                          'FIXME: consume_item would probably be better as a member of the AttackState or AttackQueue later on.
   '--battle menu
-  menu(5)   as BattleHeroMenu 'Only applies to heroes. blank for enemies
-  menu_size as integer 'actually the index of the last used element in .menu()
   batmenu as MenuDef
   menust as MenuState
   '--misc
