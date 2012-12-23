@@ -955,7 +955,7 @@ DIM tog as integer
 DIM alert as integer = 0
 DIM alert_str as string = ""
 DIM info as string = ""
-DIM quit as integer = 0
+DIM quit as bool = NO
 
 menusound gen(genAcceptSFX)
 sellstuff_refresh storebuf(16), recordsize, permask(), price(), b()
@@ -1026,7 +1026,7 @@ IF info = "" THEN info = worthnothing
 RETRACE
 
 keysell:
-IF carray(ccMenu) > 1 THEN quit = 1
+IF carray(ccMenu) > 1 THEN quit = YES
 IF carray(ccUse) > 1  AND inventory(ic).used THEN
  IF readbit(permask(), 0, ic) = 0 THEN
   menusound gen(genSellSFX)
@@ -1767,10 +1767,11 @@ SUB equip_menu_stat_bonus(byref st as EquipMenuState)
 
 END SUB
 
+'Returns 0, or ID of textbox to open (box 0 can't be opened)
 FUNCTION items_menu () as integer
  DIM istate as ItemsMenuState
  WITH istate
-  .trigger_box = -1
+  .trigger_box = 0
   .cursor = -3
   .top = -3
   .sel = -4
@@ -2015,7 +2016,7 @@ END SUB
 FUNCTION use_item_in_slot(byval slot as integer, byref trigger_box as integer, byref consumed as integer) as integer
  '--slot is the index in your inventory
  
- '--trigger_box is used to communicate when an item has triggered a text box.
+ '--trigger_box is used to communicate when an item has triggered a text box (note, box 0 can't be triggered)
 
  '--consumed communicates whether the item was actually consumed
  
@@ -2381,7 +2382,7 @@ SUB spells_menu_refresh_list(sp as SpellsMenuState)
    .desc = ""
    .cost = ""
    .id = -1
-   .can_use = 0
+   .can_use = NO
    .targt = 0
    .tstat = 0
    'NOTE: spell() is a global
@@ -2389,7 +2390,7 @@ SUB spells_menu_refresh_list(sp as SpellsMenuState)
     .id = spell(sp.hero, sp.lists(sp.listnum).menu_index, i) - 1
     loadattackdata atk, .id
     IF atk.useable_outside_battle THEN
-     .can_use = atk.targ_class + 1
+     .can_use = YES
      .targt = atk.targ_set
      .tstat = atk.targ_stat
     END IF
@@ -2397,13 +2398,13 @@ SUB spells_menu_refresh_list(sp as SpellsMenuState)
     
     'FIXME: should use the same cost-checking sub that the battle spell menu uses
     IF sp.lists(sp.listnum).magic_type = 0 AND gam.hero(sp.hero).stat.cur.mp < cost THEN
-     .can_use = 0
+     .can_use = NO
     END IF
     IF sp.lists(sp.listnum).magic_type = 1 AND lmp(sp.hero, INT(i / 3)) = 0 THEN
-     .can_use = 0
+     .can_use = NO
     END IF
     IF gam.hero(sp.hero).stat.cur.hp = 0 THEN
-     .can_use = 0
+     .can_use = NO
     END IF
     
     .name = atk.name
@@ -2547,7 +2548,7 @@ SUB spells_menu_control(sp as SpellsMenuState)
   IF carray(ccUse) > 1 OR sp.re_use THEN
    sp.re_use = NO
    IF sp.cursor = 24 THEN sp.mset = 0
-   IF sp.spell(sp.cursor).can_use > 0 THEN
+   IF sp.spell(sp.cursor).can_use THEN
     '--spell that can be used oob
     
     DIM atk as AttackData
@@ -2644,13 +2645,17 @@ SUB spells_menu_paint (byref sp as SpellsMenuState)
  'bottom menu (spells in spell list)
  IF sp.lists(sp.listnum).menu_index >= 0 THEN
   FOR o as integer = 0 TO 23
-  'Note: this will give yellow when .can_use is -1 (is it ever?), orig would give blue
-   textcolor uilook(uiDisabledItem - SGN(sp.spell(o).can_use)), 0
    IF sp.cursor = o AND sp.mset = 1 THEN
-    IF sp.spell(o).can_use > 0 THEN 
+    IF sp.spell(o).can_use THEN 
      textcolor uilook(uiSelectedItem + sp.tog), uilook(uiHighlight) 
     ELSE 
      textcolor uilook(uiMenuItem), uilook(uiHighlight)
+    END IF
+   ELSE
+    IF sp.spell(o).can_use THEN
+     textcolor uilook(uiMenuItem), 0
+    ELSE
+     textcolor uilook(uiDisabledItem), 0
     END IF
    END IF
    printstr sp.spell(o).name, 12 + (o MOD 3) * 104, 90 + (o \ 3) * 8, sp.page 'spells

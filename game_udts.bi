@@ -152,7 +152,7 @@ TYPE SpellsMenuSlot
   name    as string
   desc    as string
   cost    as string
-  can_use as integer
+  can_use as bool       'Useable OOB
   targt   as integer
   tstat   as integer
 END TYPE
