@@ -3632,7 +3632,7 @@ FUNCTION backcompat_sound_id (byval id as integer) as integer
  END IF
 END FUNCTION
 
-SUB vehscramble(byref mode_val as integer, byval trigger_cleanup as integer, byval targx as integer, byval targy as integer)
+SUB vehscramble(byref mode_val as bool, byval trigger_cleanup as bool, byval targx as integer, byval targy as integer)
  DIM tmp as integer = 0
  DIM count as integer = herocount()
  DIM scramx as integer

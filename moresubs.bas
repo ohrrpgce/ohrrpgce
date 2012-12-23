@@ -1216,7 +1216,7 @@ FOR i as integer = 0 TO ubound(timers)
   .trigger = 0
   .flags = 0
   .st = 0
-  .pause = 0
+  .pause = NO
  END WITH
 NEXT i
 
@@ -1242,7 +1242,7 @@ SUB resetlmp (byval slot as integer, byval lev as integer)
  NEXT i
 END SUB
 
-SUB trigger_script (byval id as integer, byval double_trigger_check as integer, scripttype as string, trigger_loc as string, scrqueue() as QueuedScript, byval trigger as integer = plottrigger)
+SUB trigger_script (byval id as integer, byval double_trigger_check as bool, scripttype as string, trigger_loc as string, scrqueue() as QueuedScript, byval trigger as integer = plottrigger)
  'Add a script to one of the script queues, unless already inside the interpreter.
  'In that case, run immediately.
  'scrqueue should be one of the scrq* arrays
@@ -1493,7 +1493,7 @@ SUB script_log_tick
  END WITH
 END SUB
 
-FUNCTION runscript (byval id as integer, byval newcall as integer, byval double_trigger_check as integer, byval scripttype as zstring ptr, byval trigger as integer) as integer
+FUNCTION runscript (byval id as integer, byval newcall as integer, byval double_trigger_check as bool, byval scripttype as zstring ptr, byval trigger as integer) as integer
 'newcall: whether his script is triggered rather than called from a script
 'double_trigger_check: whether "no double-triggering" should take effect
 

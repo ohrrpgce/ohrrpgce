@@ -43,10 +43,10 @@ END UNION
 TYPE MouseInfo
   x as integer
   y as integer
-  clicks as integer  'Button down event since last tick; MouseButton array (see scancodes.bi)
-  buttons as integer 'Buttons currently down OR clicked; MouseButton array
+  clicks as integer  'Button down event since last tick; MouseButton bitvector (see scancodes.bi)
+  buttons as integer 'Buttons currently down OR clicked; MouseButton bitvector
   wheel as integer   'Wheel movement since last tick; NOT SUPPORTED ON ALL BACKENDS
-  dragging as integer 'MouseButton array, but only one button at once can be dragged.
+  dragging as integer 'MouseButton bitvector, but only one button at once can be dragged.
                       'A dragged button is one held down for at least 2 ticks. 
                       'So on the first tick, you see click=button=true, dragging=false
                       'And on the subsequent ticks, you see dragging=button=true, click=false
@@ -168,7 +168,7 @@ TYPE SpriteState
 	anim as Animation ptr
 	anim_step as integer
 	anim_wait as integer
-	anim_loop as integer '-1:infinite, 0<:number of times to play after current
+	anim_loop as integer  '-1:infinite, 0<:number of times to play after current
 	offset as XYPair
 END TYPE
 
@@ -194,8 +194,8 @@ TYPE BasicMenuItem
   text as string
   col as integer
   bgcol as integer
-  unselectable as integer
-  disabled as integer  'Appear greyed out. Any other meaning of this is up to the user
+  unselectable as bool
+  disabled as bool  'Appear greyed out. Any other meaning of this is up to the user
 END TYPE
 
 DECLARE_VECTOR_OF_TYPE(BasicMenuItem, BasicMenuItem)
@@ -208,8 +208,8 @@ TYPE MenuDefItem  'EXTENDS BasicMenuItem
   text as string  ' This is the caption actually displayed
   col as integer
   bgcol as integer  ' Not used
-  unselectable as integer  ' Not used (yet)
-  disabled as integer ' set at run-time based on .tag1 and .tag2
+  unselectable as bool  ' Not used (yet)
+  disabled as bool  ' set at run-time based on .tag1 and .tag2
 
   'Other members
   handle    as integer
@@ -222,10 +222,10 @@ TYPE MenuDefItem  'EXTENDS BasicMenuItem
   settag    as integer
   togtag    as integer
   extra(2)  as integer
-  hide_if_disabled  as integer ' Bitset
-  close_if_selected as integer ' Bitset
-  skip_close_script as integer ' Bitset
-  dataptr   as ANY PTR 'Use this with caution!
+  hide_if_disabled  as bool
+  close_if_selected as bool
+  skip_close_script as bool
+  dataptr   as any ptr  'Use this with caution!
 END TYPE
 
 DECLARE_VECTOR_OF_TYPE(MenuDefItem, MenuDefItem)
@@ -238,20 +238,20 @@ TYPE MenuDef
   boxstyle  as integer
   textcolor as integer
   maxrows   as integer
-  edit_mode as integer 'Never hide disabled items, allow selection of unselectable items
+  edit_mode as bool   'Never hide disabled items, allow selection of unselectable items
   items     as MenuDefItem Ptr Ptr
   'adds first, last, numitems, itemlist members
   INHERITAS_DoubleList(MenuDefItem, itemlist) 'True order of menu items, ignoring sort-invisible-items-to-end
-  translucent      as integer ' Bitset 0
-  no_scrollbar     as integer ' Bitset 1
-  allow_gameplay   as integer ' Bitset 2
-  suspend_player   as integer ' Bitset 3
-  no_box           as integer ' Bitset 4
-  no_close         as integer ' Bitset 5
-  no_controls      as integer ' Bitset 6
-  prevent_main_menu as integer ' Bitset 7
-  advance_textbox  as integer ' Bitset 8
-  highlight_selection as integer 'Bitset 9
+  translucent      as bool ' Bitset 0
+  no_scrollbar     as bool ' Bitset 1
+  allow_gameplay   as bool ' Bitset 2
+  suspend_player   as bool ' Bitset 3
+  no_box           as bool ' Bitset 4
+  no_close         as bool ' Bitset 5
+  no_controls      as bool ' Bitset 6
+  prevent_main_menu as bool ' Bitset 7
+  advance_textbox  as bool ' Bitset 8
+  highlight_selection as bool 'Bitset 9
   rect      as RectType
   offset    as XYPair
   anchor    as XYPair
@@ -260,22 +260,22 @@ TYPE MenuDef
   max_chars as integer
   bordersize as integer
   itemspacing as integer 'pixels added to the default item spacing.
-                          'negative shrinks, positive grows. this
+                          'negative shrinks, positive grows. This
                           'alters the vertical size of the whole menu!
   on_close  as integer 'script trigger
   esc_menu  as integer
-  Declare Destructor () 'declared in menus.bas
+  Declare Destructor () 'defined in menus.bas
 END TYPE
 
 TYPE MenuState
-  active    as integer 'boolean
+  active    as bool
   pt        as integer 'currently selected item (.first - 1 if menu is empty)
   top       as integer 'scroll position for long lists
   first     as integer 'first element (usually zero)
   last      as integer 'last element (.first - 1 if menu is empty)
   size      as integer 'number of elements to display at a time - 1
-  need_update as integer 'menu needs some kind of update
-  tog       as integer ' For flashing cursor
+  need_update as bool  'menu needs some kind of update
+  tog       as bool    'For flashing cursor
 END TYPE
 
 'For when a string array is too crude, but a MenuDef is overkill
@@ -284,8 +284,8 @@ TYPE SimpleMenuItem  'EXTENDS BasicMenuItem
   text as string
   col as integer
   bgcol as integer
-  unselectable as integer
-  disabled as integer  'Appear greyed out. Other meaning of this depend on use 
+  unselectable as bool
+  disabled as bool  'Appear greyed out. Other meaning of this depend on use 
 
   'other members
   dat as integer  'For your own use
@@ -331,20 +331,20 @@ TYPE NPCInst
   dir as integer    'npcl+900
   frame as integer  'npcl+1200   0-3: ticks in walk animation loop (2 ticks per frame)
   extra(2) as integer
-  ignore_walls as integer  'ignore passmap
-  not_obstruction as integer 'can walk through npcs+heroes and vice-versa
-  suspend_use as integer   'not activatable 
-  suspend_ai as integer    'ignore movetype (effectively 'stand still')
+  ignore_walls as bool  'ignore passmap
+  not_obstruction as bool 'can walk through npcs+heroes and vice-versa
+  suspend_use as bool   'not activatable 
+  suspend_ai as bool    'ignore movetype (effectively 'stand still')
   curzones as integer vector  'sorted vector of zones this NPC is currently inside
 END TYPE
 
 TYPE InventSlot
-  used as integer	'use this to check if empty, not num!
+  used as bool          'use this to check if empty, not num!
 
-  'following fields should not be used if used = 0
-  id as integer		'read ID number starting at 0, not +1!!
+  'following fields should not be used if used = NO
+  id as integer	        'read ID number starting at 0, not +1!!
   num as integer
-  text as string	'text field which shows up in inventory, blank if empty
+  text as string        'text field which shows up in inventory, blank if empty
   sortorder as integer  'contains garbage nearly always: only used in items_menu_autosort
 END TYPE
 
@@ -353,9 +353,9 @@ TYPE PlotTimer
   speed as integer
   ticks as integer
   trigger as integer
-  flags as integer '1=critical 2=battle 4=menu 8+=undefined
-  st as integer 'string, but both str and string are reserved
-  pause as integer '0 unpaused, -1 paused
+  flags as integer  '1=critical 2=battle 4=menu 8+=undefined
+  st as integer     'string, but both str and string are reserved
+  pause as bool
   finished_tick as integer  'tick at which this last triggered; 0 if never
 END TYPE
 
@@ -365,11 +365,11 @@ TYPE Plotstring
   Y as integer
   col as integer
   bgcol as integer
-  bits as integer
+  bits as integer   '1=visible, 2=edgeless text
 END TYPE
 
 Type HSHeader
-  valid as integer
+  valid as bool
   hspeak_version as string
   hsp_format as integer
   script_format as integer    'Same as the .HSZ format number, or 0 if not known
@@ -414,8 +414,8 @@ TYPE ScriptInst
   id as integer         'id number of current script
   waitarg as integer    'wait state argument 1
   waitarg2 as integer   'wait state argument 2
-  watched as integer    'true for scripts which are being logged
-  started as integer    'used only if watched is true: whether the script has started
+  watched as bool       'true for scripts which are being logged
+  started as bool       'used only if watched is true: whether the script has started
 
   'these 3 items are only current/correct for inactive scripts. The active script's current
   'command is pointed to by the curcmd (ScriptCommand ptr) global, and copied here
@@ -429,7 +429,7 @@ TYPE QueuedScript
   id as integer         'Triggers pre-decoded
   scripttype as string
   trigger_loc as string 'More information about how it was triggered
-  double_trigger_check as integer
+  double_trigger_check as bool  'Whether to prevent double triggering
   log_line as string    'Debugging aid: Comprised from scripttype, arg names and values and trigger_loc
   argc as integer       'The number of args passed
   args(3) as integer
@@ -443,16 +443,16 @@ TYPE ScriptCommand
 END TYPE
 
 UNION RGBcolor
-	as uinteger col
-		TYPE
-			as ubyte b, g, r, a
-		END TYPE
+  as uinteger col
+  TYPE
+    as ubyte b, g, r, a
+  END TYPE
 END UNION
 
 Type TileAnimState
-  cycle as integer
-  pt as integer
-  skip as integer
+  cycle as integer 'Current tile offset (tile to show)
+  pt as integer    'Step number of the next step in the animation
+  skip as integer  'Number of ticks left in current wait
 END Type
 
 Type TilesetData
@@ -486,13 +486,13 @@ End Type
 Type ZoneInfo
   id as integer
   name as string
-  hidden as integer  'used in the map editor only, not saved
+  hidden as bool  'used in the map editor only, not saved
   numtiles as integer  'number of set tiles
   extra(2) as integer
 End Type
 
 'A set of zones
-'See loading.bas for documentation.
+'See loading.rbas for documentation.
 '*** Requires construction + destruction ***
 Type ZoneMap
   numzones as integer
@@ -522,36 +522,36 @@ Type FontLayer
 End Type
 
 Type Font
-	initialised as integer
+	initialised as bool
 	layers(1) as FontLayer ptr	'single layer fonts should use sprite(1) only
 	w(255) as integer	'width of each character
 	h as integer		'height of a line
 	offset as XYPair	'added to coordinates when printing
 	cols as integer		'number of used colours, not including colour 0 (transparency), so at most <s>255</s> 15
-	pal as Palette16 ptr '(Default) palette template to use, or NULL if this font is unpaletted (foreground colour only)
-	pal_id as integer   'id of pal. Not used by render_text
-	outline_col as integer 'palette entry which should be filled with uiOutline, or -1 for none
+	pal as Palette16 ptr    '(Default) palette template to use, or NULL if this font is unpaletted (foreground colour only)
+	pal_id as integer       'id of pal. Not used by render_text
+	outline_col as integer  'palette entry which should be filled with uiOutline, or -1 for none
 End Type
 
 'text_layout_dimensions returns this struct
 Type StringSize
-	h as integer  'Height (in pixels)
-	w as integer  'Greatest width of any line
-	endchar as integer  'For when maxlines is specified: one character past last line
-	lastw as integer  'Width of last line fragment
-	lasth as integer  'Height of last line fragment
-	lines as integer  'Number of lines (always at least 1)   FIXME:  not true
+	h as integer         'Height (in pixels)
+	w as integer         'Greatest width of any line
+	endchar as integer   'For when maxlines is specified: one character past last line
+	lastw as integer     'Width of last line fragment
+	lasth as integer     'Height of last line fragment
+	lines as integer     'Number of lines (always at least 1)   FIXME:  not true
 	finalfont as Font ptr
 End Type
 
 Type StringCharPos
-	charnum as integer  'offset in string; equal to len(text) if off the end
-	exacthit as integer  'actually on this character, or just the nearest (eg. off end of line)
-	x as integer  'position is in screen coordinates
+	charnum as integer   'offset in string; equal to len(text) if off the end
+	exacthit as bool     'whether actually on this character, or just the nearest (eg. off end of line)
+	x as integer         'position is in screen coordinates
 	y as integer
-	'w as integer  'Size of the selected character (do we really need this?)
+	'w as integer        'Size of the selected character (do we really need this?)
 	h as integer
-	lineh as integer  'height of containing line fragment
+	lineh as integer     'height of containing line fragment
 End Type
 
 Type PrintStrStatePtr as PrintStrState ptr
@@ -601,10 +601,10 @@ Type AttackDataChain
 	val1 as integer
 	val2 as integer
 	'--bitsets
-	must_know as integer
-	no_delay as integer
-	nonblocking as integer
-	dont_retarget as integer
+	must_know as bool
+	no_delay as bool
+	nonblocking as bool
+	dont_retarget as bool
 End Type
 
 Type AttackElementCondition
@@ -618,7 +618,7 @@ Type AttackData
 	description as string
 	picture as integer
 	pal as integer
-	override_wep_pic as integer 'YES if wep_picture and wep_pal are to be used.
+	override_wep_pic as bool 'YES if wep_picture and wep_pal are to be used.
 	wep_picture as integer
 	wep_pal as integer
 	wep_handle(1) as XYPair 'Handle offset ONLY applies when override_wep_pic is YES. Ignored when the hero's equipped weapon is used
@@ -656,57 +656,58 @@ Type AttackData
 	transmog_hp as integer
 	transmog_stats as integer
 	'----Bitsets----
-	cure_instead_of_harm as integer
-	divide_spread_damage as integer
-	absorb_damage as integer
-	unreversable_picture as integer
-	can_steal_item as integer
-	elemental_damage(maxElements - 1) as integer
-	cannot_target_enemy_slot(7) as integer
-	cannot_target_hero_slot(3) as integer
-	ignore_extra_hits as integer
-	erase_rewards as integer
-	show_damage_without_inflicting as integer
-	store_targ as integer
-	delete_stored_targ as integer
-	automatic_targ as integer
-	show_name as integer
-	do_not_display_damage as integer
-	reset_targ_stat_before_hit as integer
-	allow_cure_to_exceed_maximum as integer
-	useable_outside_battle as integer
-	obsolete_damage_mp as integer
-	do_not_randomize as integer
-	damage_can_be_zero as integer
-	force_run as integer
-	force_victory as integer
-	force_battle_exit as integer
-	mutable as integer
-	fail_if_targ_poison as integer
-	fail_if_targ_regen as integer
-	fail_if_targ_stun as integer
-	fail_if_targ_mute as integer
-	percent_damage_not_set as integer
-	check_costs_as_weapon as integer
-	no_chain_on_failure as integer
-	reset_poison as integer
-	reset_regen as integer
-	reset_stun as integer
-	reset_mute as integer
-	cancel_targets_attack as integer
-	not_cancellable_by_attacks as integer
-	no_spawn_on_attack as integer
-	no_spawn_on_kill as integer
-	check_costs_as_item as integer
-	recheck_costs_after_delay as integer
-	targ_does_not_flinch as integer
-	do_not_exceed_targ_stat as integer
-	nonblocking as integer
+	cure_instead_of_harm as bool
+	divide_spread_damage as bool
+	absorb_damage as bool
+	unreversable_picture as bool
+	can_steal_item as bool
+	elemental_damage(maxElements - 1) as bool
+	cannot_target_enemy_slot(7) as bool
+	cannot_target_hero_slot(3) as bool
+	ignore_extra_hits as bool
+	erase_rewards as bool
+	show_damage_without_inflicting as bool
+	store_targ as bool
+	delete_stored_targ as bool
+	automatic_targ as bool
+	show_name as bool
+	do_not_display_damage as bool
+	reset_targ_stat_before_hit as bool
+	allow_cure_to_exceed_maximum as bool
+	useable_outside_battle as bool
+	obsolete_damage_mp as bool
+	do_not_randomize as bool
+	damage_can_be_zero as bool
+	force_run as bool
+	force_victory as bool
+	force_battle_exit as bool
+	mutable as bool
+	fail_if_targ_poison as bool
+	fail_if_targ_regen as bool
+	fail_if_targ_stun as bool
+	fail_if_targ_mute as bool
+	percent_damage_not_set as bool
+	check_costs_as_weapon as bool
+	no_chain_on_failure as bool
+	reset_poison as bool
+	reset_regen as bool
+	reset_stun as bool
+	reset_mute as bool
+	cancel_targets_attack as bool
+	not_cancellable_by_attacks as bool
+	no_spawn_on_attack as bool
+	no_spawn_on_kill as bool
+	check_costs_as_item as bool
+	recheck_costs_after_delay as bool
+	targ_does_not_flinch as bool
+	do_not_exceed_targ_stat as bool
+	nonblocking as bool
 End Type
 
+'An item in a hero's spell list definition (actual spell lists in spell() array of integers)
 Type SpellList
-	attack as integer
-	learned as integer
+	attack as integer   'attack id+1, 0 for unused
+	learned as integer  '0 if learnable from an item, or level+1 if learnt at level
 End Type
 
 Type HeroDef
@@ -734,7 +735,7 @@ Type HeroDef
 	hand_pos(1) as XYPair
 	reld as NodeFwd ptr
 	
-	Declare Destructor () 'declared in common.bas
+	Declare Destructor ()  'defined in common.bas
 End Type
 
 'This caches the tags needed by evalherotag/tag_is_special
@@ -773,10 +774,10 @@ END TYPE
 
 TYPE EnemySpawnDef
   how_many as integer
-  on_death as integer 'id+1, 0=none
-  non_elemental_death as integer 'id+1, 0=none
-  when_alone as integer 'id+1, 0=none
-  non_elemental_hit as integer 'id+1, 0=none
+  on_death as integer                       'id+1, 0=none
+  non_elemental_death as integer            'id+1, 0=none
+  when_alone as integer                     'id+1, 0=none
+  non_elemental_hit as integer              'id+1, 0=none
   elemental_hit(maxElements - 1) as integer 'id+1, 0=none
 END TYPE
 
@@ -794,24 +795,24 @@ TYPE EnemyDef
   stat as stats
   elementals(maxElements - 1) as single
   spawn as EnemySpawnDef
-  regular_ai(4) as integer 'id+1, 0=none
+  regular_ai(4) as integer     'id+1, 0=none
   desperation_ai(4) as integer 'id+1, 0=none
-  alone_ai(4) as integer 'id+1, 0=none
+  alone_ai(4) as integer       'id+1, 0=none
   elem_counter_attack(maxElements - 1) as integer 'id+1, 0=none
   stat_counter_attack(11) as integer 'id+1, 0=none
-  bequest_attack as integer 'id+1, 0=none
+  bequest_attack as integer    'id+1, 0=none
   '--bitsets
-  harmed_by_cure as integer 'YES/NO
-  mp_idiot       as integer 'YES/NO for turn loss when using MP-consuming attacks after MP runs out
-  is_boss        as integer 'YES/NO
-  unescapable    as integer 'YES/NO
-  die_without_boss    as integer 'YES/NO
-  flee_instead_of_die as integer 'YES/NO
-  enemy_untargetable  as integer 'YES/NO
-  hero_untargetable   as integer 'YES/NO
-  death_unneeded as integer 'YES/NO
-  never_flinch   as integer 'YES/NO
-  ignore_for_alone    as integer 'YES/NO
+  harmed_by_cure as bool
+  mp_idiot       as bool  'for turn loss when using MP-consuming attacks after MP runs out
+  is_boss        as bool
+  unescapable    as bool
+  die_without_boss    as bool
+  flee_instead_of_die as bool
+  enemy_untargetable  as bool
+  hero_untargetable   as bool
+  death_unneeded as bool
+  never_flinch   as bool
+  ignore_for_alone    as bool
 END TYPE
 
 TYPE FormationSlot
@@ -823,7 +824,7 @@ TYPE Formation
   slots(7) as FormationSlot
   music as integer              '-1: none, -2: same as map
   background as integer
-  background_frames as integer  'always >= 1
+  background_frames as integer  'always >= 1 (no animation if == 1)
   background_ticks as integer
 END TYPE
 
@@ -858,10 +859,10 @@ TYPE TextBox
   item        as integer
   menu_tag    as integer
   menu        as integer
-  choice_enabled as integer
-  no_box      as integer
-  opaque      as integer
-  restore_music as integer
+  choice_enabled as bool
+  no_box      as bool
+  opaque      as bool
+  restore_music as bool
   choice(1)   as string
   choice_tag(1) as integer
   vertical_offset as integer ' in 4-pixel increments
@@ -876,8 +877,8 @@ TYPE TextBox
   portrait_pal  as integer
   portrait_pos  as XYPair
   sound_effect as integer    ' +1, 0 means none
-  stop_sound_after as integer 'bitset
-  backdrop_trans as integer 'bitset
+  stop_sound_after as bool
+  backdrop_trans as bool
 END TYPE
 
 TYPE VehicleData
@@ -895,42 +896,29 @@ TYPE VehicleData
   dismount_to    as integer
   elevation      as integer
   '--bitsets
-  pass_walls     as integer
-  pass_npcs      as integer
-  enable_npc_activation as integer
-  enable_door_use       as integer
-  do_not_hide_leader    as integer
-  do_not_hide_party     as integer
-  dismount_ahead        as integer
-  pass_walls_while_dismounting as integer
-  disable_flying_shadow as integer
+  pass_walls     as bool
+  pass_npcs      as bool
+  enable_npc_activation as bool
+  enable_door_use       as bool
+  do_not_hide_leader    as bool
+  do_not_hide_party     as bool
+  dismount_ahead        as bool
+  pass_walls_while_dismounting as bool
+  disable_flying_shadow as bool
 END TYPE
 
 TYPE VehicleState
-  active    as integer 'Is mounting/in/dismounting. If this is false, the rest is garbage
+  active    as bool 'Is mounting/in/dismounting. If this is false, the rest is garbage
   id        as integer 'vehicle defintion id that is loaded into .dat
   dat       as VehicleData
   npc       as integer 'npc reference number
   old_speed as integer 'hero speed before mount
-  mounting  as integer '0
-  rising    as integer '1
-  falling   as integer '2
-  init_dismount as integer '3
-  trigger_cleanup as integer '4
-  ahead     as integer '5
-END TYPE
-
-TYPE PlotSprite
- used as integer
- sprite as Frame Ptr
- pal as Palette16 Ptr
- spr_type as integer 'hero, walkabout, etc...
- spr_num as integer
- frame as integer
- frames as integer
- visible as integer
- x as integer
- y as integer
+  mounting  as bool
+  rising    as bool
+  falling   as bool
+  init_dismount as bool
+  trigger_cleanup as bool
+  ahead     as bool
 END TYPE
 
 TYPE SpriteSize
