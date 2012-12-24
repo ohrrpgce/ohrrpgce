@@ -75,6 +75,7 @@ TYPE NodePtr as Node ptr
 		stringHash as HashPtr
 		delayLoading as integer
 		fileHandle as FILE ptr
+		'fileName as string
 
 		'The following members are used only by RELOADBASIC
 		RBSignature as integer
@@ -140,6 +141,7 @@ Declare Function AddChild(byval par as NodePtr, byval nod as NodePtr) as NodePtr
 Declare sub SetRootNode(byval doc as DocPtr, byval nod as NodePtr)
 
 Declare Function LoadDocument(fil as string, byval options as LoadOptions = optNone) as DocPtr
+Declare Function LoadNode overload(byval ret as nodeptr, byval recursive as bool = YES) as bool
 
 Declare sub SerializeXML overload (byval doc as DocPtr, byval fh as integer, byval debugging as integer = NO)
 Declare sub SerializeXML (byval nod as NodePtr, byval fh as integer, byval debugging as integer, byval ind as integer = 0)
@@ -189,8 +191,6 @@ declare Sub WriteVLI overload(byval f as integer, byval v as Longint)
 Declare Function MemoryUsage(byval doc as DocPtr) as LongInt
 
 #if defined(RELOADINTERNAL) or __FB_DEBUG__
-	Declare Function LoadNode overload(byval ret as nodeptr) as integer
-
 	'ReloadBasic stuff
 
 	Type RBNodeName
