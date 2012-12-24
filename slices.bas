@@ -2550,7 +2550,7 @@ Sub SliceLoadFromFile(byval sl as Slice Ptr, filename as string)
  
  'First create a reload document
  dim doc as Reload.DocPtr
- doc = Reload.LoadDocument(filename)
+ doc = Reload.LoadDocument(filename, optNoDelay)
  if doc = null then 'the root node will never be null -- Mike
    debug "Reload.LoadDocument failed in SliceLoadFromFile"
    exit sub

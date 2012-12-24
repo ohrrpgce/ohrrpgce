@@ -429,7 +429,7 @@ END FUNCTION
 FUNCTION ee_load(filename AS STRING, BYREF st AS EEState) AS INTEGER
  st.filename = ""
  FreeDocument st.doc
- st.doc = LoadDocument(filename)
+ st.doc = LoadDocument(filename, optNoDelay)
  IF st.doc = 0 THEN debug "load '" & filename & "' failed: null doc": RETURN NO
  st.root = DocumentRoot(st.doc)
  IF st.root = 0 THEN debug "load '" & filename & "' failed: null root node": RETURN NO

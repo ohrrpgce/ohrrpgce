@@ -356,7 +356,7 @@ SUB load_npc_locations (filename as string, npc() as NPCInst)
  END IF
 
  DIM doc as DocPtr
- doc = LoadDocument(filename)
+ doc = LoadDocument(filename, optNoDelay)
  
  DIM node as NodePtr
  node = DocumentRoot(doc)
@@ -1162,7 +1162,7 @@ SUB LoadZoneMap(zmap as ZoneMap, filename as string)
   DIM as DocPtr doc
   DIM as NodePtr root, zonesnode, node, subnode
   DIM as integer w, h
-  doc = LoadDocument(filename)
+  doc = LoadDocument(filename, optNoDelay)
   IF doc = NULL THEN EXIT SUB
 
   root = DocumentRoot(doc)
@@ -1570,6 +1570,7 @@ SUB loadherodata (hero as herodef, byval index as integer)
     SELECT CASE i
      CASE 0 TO gen(genMaxHero)
       IF i = index THEN
+       LoadNode n
        load_hero_from_reload hero, n
        loaded = YES
        'EXIT DO
@@ -1682,7 +1683,7 @@ SUB saveherodata (hero as herodef, byval index as integer)
  '--save the new way
  DIM filename as string = workingdir & SLASH & "heroes.reld"
  DIM doc as DocPtr
- doc = LoadDocument(filename)
+ doc = LoadDocument(filename, optNoDelay)
  IF doc = 0 THEN
   debuginfo "heroes doc not found, create it"
   doc = CreateDocument()
@@ -3247,7 +3248,7 @@ END SUB
 SUB load_distrib_state(byref distinfo as DistribState, filename as string)
 
  DIM doc as DocPtr
- doc = LoadDocument(filename)
+ doc = LoadDocument(filename, optNoDelay)
  IF doc = 0 THEN
   debuginfo "distrib doc not found, create it"
   doc = CreateDocument()

@@ -198,7 +198,7 @@ SUB new_loadgame(byval slot as integer)
  END IF
 
  DIM doc as DocPtr
- doc = LoadDocument(filename)
+ doc = LoadDocument(filename, optNoDelay)
  
  DIM node as NodePtr
  node = DocumentRoot(doc)
@@ -1139,7 +1139,7 @@ SUB saveglobalvars (byval slot as integer, byval first as integer, byval last as
   globals_node = SetChildNode(script_node, "globals")
  ELSE
   '--save already exists
-  doc = LoadDocument(filename)
+  doc = LoadDocument(filename, optNoDelay)
 
   '--get the old globals node
   rsav_node = DocumentRoot(doc)

@@ -425,7 +425,7 @@ END FUNCTION
 FUNCTION reload_editor_load(filename AS STRING, BYREF st AS ReloadEditorState) AS INTEGER
  st.filename = ""
  Reload.FreeDocument st.doc
- st.doc = Reload.LoadDocument(filename)
+ st.doc = Reload.LoadDocument(filename, optNoDelay)
  IF st.doc = 0 THEN debug "load '" & filename & "' failed: null doc": RETURN NO
  st.root = Reload.DocumentRoot(st.doc)
  IF st.root = 0 THEN debug "load '" & filename & "' failed: null root node": RETURN NO

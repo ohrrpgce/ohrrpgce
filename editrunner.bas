@@ -68,7 +68,7 @@ SUB editor_runner(editor_definition_file AS STRING)
  END IF
  
  DIM doc AS DocPtr
- doc = LoadDocument(editor_definition_file)
+ doc = LoadDocument(editor_definition_file, optNoDelay)
  
  DIM root AS NodePtr
  
