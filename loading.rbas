@@ -1608,7 +1608,6 @@ SUB load_hero_from_reload(hero as HeroDef, byval parent as NodePtr)
   WITHNODE parent."name" as heroname
    hero.name = GetString(heroname)
    hero.max_name_len = heroname."maxlen".default(0).integer
-   IF hero.max_name_len > 0 THEN hero.name = LEFT(hero.name, hero.max_name_len)
   END WITHNODE
   READNODE parent."appearance" as appearance
    WITHNODE appearance."walkabout" as sprite

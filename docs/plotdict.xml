@@ -1451,16 +1451,16 @@ end</example>
 		<command id="getheroname">
 			<canon>get hero name (ID, hero)</canon>
 			<shortname>get hero name</shortname>
-			<description>This command will take the name of hero #<p>hero</p>, and stick it in string #<p>ID</p>, overwriting its contents. <note>Remember that this command expects the hero's position in the party, not the hero:name constants nor the hero's position in the walkabout party. If you want to get the name of a hero according to their position in the walkabout party, you should use <ref>herobyrank</ref> and <ref>findhero</ref></note></description>
+			<description>This command will take the name of the hero in the party slot #<p>hero</p>, and stick it in string #<p>ID</p>, overwriting its contents. <note>Remember that this command expects the hero's position in the party, not the hero:name constants nor the hero's position in the walkabout party. If you want to get the name of a hero according to their position in the walkabout party, you should use <ref>herobyrank</ref> and <ref>findhero</ref></note></description>
 			<example># This example gets the name of the leader and stores it in string ID 1
 
-get hero name (1,find hero(hero by rank(0))) 
+get hero name (1, find hero (leader))
 </example>
 		</command>
 		<command id="setheroname">
 			<canon>set hero name (ID, hero)</canon>
 			<shortname>set hero name</shortname>
-			<description>This command will take string #<p>ID</p>, and set hero #<p>hero</p>&apos;s name to it.</description>
+			<description>This command changes the name of the hero in party slot #<p>hero</p> (as returned by <ref>findhero</ref>) to the contents of string #<p>ID</p>. The length is not limited by the hero's Max Name Length setting.</description>
 		</command>
 		<command id="getitemname">
 			<canon>get item name (ID, item)</canon>
