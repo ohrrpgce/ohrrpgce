@@ -1067,7 +1067,7 @@ sub fixlumporder (filelist() as string)
 	writepos = 0
 	for readpos = 0 to ubound(filelist)
 		if lcase(right(filelist(readpos), 4)) <> ".tmp" then
-			swap readpos, writepos
+			swap filelist(readpos), filelist(writepos)
 			writepos += 1
 		end if
 	next
