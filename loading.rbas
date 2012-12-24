@@ -1554,47 +1554,32 @@ SUB loadherodata (hero as herodef, byval index as integer)
  '--and then fall back on the .DT0 lump only if not found.
 
  DIM loaded as integer = NO 
- DO 'single-pass loop for breaking
- 
+
  DIM filename as string = workingdir & SLASH & "heroes.reld"
- IF NOT isfile(filename) THEN
-  debuginfo "Lump does not exist " & filename
-  EXIT DO
- END IF
- 
  DIM doc as DocPtr
  doc = LoadDocument(filename)
- IF doc = 0 THEN
-  debug "heroes.reld doc load failed"
-  FreeDocument doc
-  EXIT DO
- END IF
- 
- DIM heroes as NodePtr
- heroes = DocumentRoot(doc)
- IF heroes = 0 THEN
-  debug "heroes.reld failed to get document root"
-  FreeDocument doc
-  EXIT DO
+ IF doc THEN
+  'file present
+
+  DIM heroes as NodePtr
+  heroes = DocumentRoot(doc)
+
+  READNODE heroes
+   WITHNODE heroes."hero" as n
+    DIM i as integer = GetInteger(n)
+    SELECT CASE i
+     CASE 0 TO gen(genMaxHero)
+      IF i = index THEN
+       load_hero_from_reload hero, n
+       loaded = YES
+       'EXIT DO
+      END IF
+    END SELECT
+   END WITHNODE
+  END READNODE
  END IF
 
- READNODE heroes
-  WITHNODE heroes."hero" as n
-   DIM i as integer = GetInteger(n)
-   SELECT CASE i
-    CASE 0 TO gen(genMaxHero)
-     IF i = index THEN
-      load_hero_from_reload hero, n
-      loaded = YES
-      FreeDocument doc
-      EXIT DO
-     END IF
-   END SELECT
-  END WITHNODE
- END READNODE
-
- EXIT DO' single-pass loop
- LOOP
+ IF doc THEN FreeDocument doc
 
  IF NOT loaded THEN
   debuginfo "falling back to " & game & ".dt0" & " slot " & index
