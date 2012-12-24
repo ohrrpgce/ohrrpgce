@@ -1741,7 +1741,11 @@ End Sub
 Function CloneNodeTree(byval nod as NodePtr, byval doc as DocPtr=0, byval nod_for_doc as NodePtr=0) as NodePtr
 	if doc <> 0 and nod_for_doc <> 0 then
 		debug "Can't set doc by both DocPtr and NodePtr"
-		return 0
+		return null
+	end if
+	if nod = null then
+		debug "CloneNodeTree: null node pointer"
+		return null
 	end if
 	dim n as NodePtr
 	if doc then

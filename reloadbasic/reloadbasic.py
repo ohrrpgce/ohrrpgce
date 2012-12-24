@@ -686,10 +686,11 @@ class ReloadBasicFunction(object):
         self.nodenames.add(name)
         return self.global_scope.nameindex(name)
 
-    def ensure_nameindex_table(self, nodeptr):
+    def ensure_nameindex_table(self, nodeptr, node_not_null):
         """
         Ensure that a given NodePtr variable belongs to a RELOAD document with a namenum->nameindex
         table that has a superset of all the node names used in this function.
+        node_not_null is true if the nodeptr is known to not be null.
         """
         if not self.be_careful:
             if nodeptr in self.derived_relation:
@@ -699,6 +700,8 @@ class ReloadBasicFunction(object):
 
         if nodeptr not in self.nameindex_tables:
             buildtable = "BuildNameIndexTable(%s->doc, _nodenames(), %s, RB_FUNC_BITS_ARRAY_SZ, RB_SIGNATURE, RB_NUM_NAMES)\n" % (nodeptr, self.function_num)
+            if not node_not_null:
+                buildtable = "IF %s THEN %s" % (nodeptr, buildtable)
             self.nameindex_tables[nodeptr] = None
             return nodeptr, buildtable
         return nodeptr, ""
@@ -709,7 +712,7 @@ class ReloadBasicFunction(object):
         Returns (nametable_var, prologue1, prologue2)
         prologue1 is normal, prologue2 should be protected with a  nodeptr <> NULL guard.
         """
-        nodeptr, buildtable = self.ensure_nameindex_table(nodeptr)
+        nodeptr, buildtable = self.ensure_nameindex_table(nodeptr, True)
 
         if self.nameindex_tables[nodeptr] != None:
             return self.nameindex_tables[nodeptr], "", ""
@@ -735,7 +738,7 @@ class ReloadBasicFunction(object):
         else:
             note = []
             
-            _, prologue = self.ensure_nameindex_table(nodespec.root_var)
+            _, prologue = self.ensure_nameindex_table(nodespec.root_var, False)
             for namenode in nodespec.indices:
                 nodeptr = 'GetChildByNameIndex(%s, %s)' % (nodeptr, self.intern_nodename(get_string(namenode)))
                 note.append(get_string(namenode))
