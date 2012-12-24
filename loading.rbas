@@ -1471,17 +1471,6 @@ Sub load_hero_from_old_dt0(filename as string, hero as herodef, byval record as 
 	
 	close #f
 	
-	'Now construct any reload nodes that we need in memory.
-	hero.reld = CAST(reload_Node ptr, get_reload_empty("hero"))
-	SetContent(CAST(NodePtr, hero.reld), record)
-	DIM batmenus as NodePtr
-	batmenus = SetChildNode(CAST(NodePtr, hero.reld), "battle_menus")
-	add_hero_battle_menu_item batmenus, "weapon"
-	for i as integer = 0 to 3
-		add_hero_battle_menu_item batmenus, "spells", i
-	next
-	add_hero_battle_menu_item batmenus, "items"
-	
 end sub
 
 Sub save_hero_as_old_dt0(filename as string, hero as herodef, byval record as integer)
@@ -1845,6 +1834,15 @@ FUNCTION WritePicPalNode (byval parent as NodePtr, nodename as string, byval pic
  RETURN node
 END FUNCTION
 
+Destructor HeroDef ()
+ if this.reld <> 0 then
+  'debuginfo "Freeing a HeroDef's reload node in the destructor!"
+  FreeNode CAST(NodePtr, this.reld)
+ else
+  'debuginfo "HeroDef didn't bother freeing reload node because it was never loaded"
+ end if
+End Destructor
+
 SUB ClearHeroData (hero as HeroDef)
   free_hero_reld hero
   memset @hero, 0, sizeof(HeroDef)
@@ -1867,7 +1865,6 @@ END SUB
 SUB create_blank_hero_reld(hero as HeroDef)
   'Construct any reload nodes that we need in memory.
   hero.reld = CAST(reload_Node ptr, get_reload_empty("hero"))
-  SetContent(CAST(NodePtr, hero.reld), record)
   DIM batmenus as NodePtr
   batmenus = SetChildNode(CAST(NodePtr, hero.reld), "battle_menus")
   add_hero_battle_menu_item batmenus, "weapon"

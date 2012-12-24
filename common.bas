@@ -5004,15 +5004,6 @@ SUB cleanup_global_reload_doc ()
  reload.FreeDocument(global_reload_doc)
 END SUB
 
-Destructor HeroDef ()
- if this.reld <> 0 then
-  'debuginfo "Freeing a HeroDef's reload node in the destructor!"
-  FreeNode CAST(NodePtr, this.reld)
- else
-  'debuginfo "HeroDef didn't bother freeing reload node because it was never loaded"
- end if
-End Destructor
-
 'Copy a reload node from wherever into the global_reload_doc
 FUNCTION get_reload_copy (byval n as NodePtr) as NodePtr
  DIM result as NodePtr
