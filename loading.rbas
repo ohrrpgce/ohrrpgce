@@ -36,6 +36,8 @@ declare sub save_hero_as_reload(hero as HeroDef, byval parent as NodePtr)
 declare sub load_hero_from_reload(hero as HeroDef, byval parent as NodePtr)
 declare Sub load_hero_from_old_dt0(filename as string, hero as herodef, byval record as integer)
 declare Sub save_hero_as_old_dt0(filename as string, hero as herodef, byval record as integer)
+declare sub create_blank_hero_reld(hero as HeroDef)
+declare sub free_hero_reld(hero as HeroDef)
 
 '==========================================================================================
 '                                      Helper Functions
@@ -1589,7 +1591,7 @@ SUB loadherodata (hero as herodef, byval index as integer)
 END SUB
 
 SUB load_hero_from_reload(hero as HeroDef, byval parent as NodePtr)
- ClearHeroData hero
+ free_hero_reld hero
  READNODE parent, default
   WITHNODE parent."name" as heroname
    hero.name = GetString(heroname)
@@ -1844,10 +1846,7 @@ FUNCTION WritePicPalNode (byval parent as NodePtr, nodename as string, byval pic
 END FUNCTION
 
 SUB ClearHeroData (hero as HeroDef)
-  IF hero.reld <> 0 THEN
-   'debuginfo "Freeing a HeroDef's reload node in ClearHeroData"
-   FreeNode(CAST(NodePtr, hero.reld))
-  END IF
+  free_hero_reld hero
   memset @hero, 0, sizeof(HeroDef)
   hero.sprite_pal = -1      'default battle palette
   hero.walk_sprite_pal = -1 'default walkabout palette
@@ -1855,7 +1854,29 @@ SUB ClearHeroData (hero as HeroDef)
   FOR i as integer = 0 TO maxElements - 1
     hero.elementals(i) = 1.0f
   NEXT
+  create_blank_hero_reld hero
 END SUB
+
+SUB free_hero_reld(hero as HeroDef)
+  IF hero.reld <> 0 THEN
+   'debuginfo "Freeing a HeroDef's reload node in free_hero_reld"
+   FreeNode(CAST(NodePtr, hero.reld))
+  END IF
+END SUB
+
+SUB create_blank_hero_reld(hero as HeroDef)
+  'Construct any reload nodes that we need in memory.
+  hero.reld = CAST(reload_Node ptr, get_reload_empty("hero"))
+  SetContent(CAST(NodePtr, hero.reld), record)
+  DIM batmenus as NodePtr
+  batmenus = SetChildNode(CAST(NodePtr, hero.reld), "battle_menus")
+  add_hero_battle_menu_item batmenus, "weapon"
+  for i as integer = 0 to 3
+    add_hero_battle_menu_item batmenus, "spells", i
+  next
+  add_hero_battle_menu_item batmenus, "items"
+END SUB
+
 
 Function GetHeroHandPos(byval hero_id as integer, byval which_frame as integer, byval isY as integer) as integer
  'which-frame is 0 for attack A and 1 for attack B
