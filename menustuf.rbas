@@ -450,7 +450,6 @@ END WITH
 IF where = 0 THEN
  gam.hero(who).wep_pic = buffer(52) 'remember weapon pic
  gam.hero(who).wep_pal = buffer(53) 'remember weapon pal
- bmenu(who, 0) = large(buffer(48), 1) 'put weapon attack in battle menu
 END IF
 
 '--set equipment
@@ -2436,35 +2435,35 @@ SUB spells_menu_refresh_hero(sp as SpellsMenuState)
   END WITH
  NEXT i
 
- DIM bmenu_id as integer
  DIM slot as integer = 0
- '--loop through the battle menu looking for valid lists
- FOR i as integer = 0 TO UBOUND(bmenu, 2)
-  bmenu_id = bmenu(sp.hero, i)
-  IF bmenu_id < 0 AND bmenu_id > -10 THEN
-   'Positive numbers in bmenu() are attacks (from weapon)
-   '-10 in bmenu is the item menu.
-   'In theory -1 thru -9 are spell lists, but in reality only -1 thru -4 ever exist
-   WITH sp.lists(slot)
-    .menu_index = ABS(bmenu_id + 1)
-    .magic_type = her.list_type(.menu_index)
-    IF .magic_type = 0 OR .magic_type = 1 THEN
-     'Only display MP-based and LMP-based spell lists. Ignore Random lists.
-     IF readbit(her.bits(), 0, 26) <> 0 THEN
-      'If the bitset to hide empty lists is turned on...
-      IF count_available_spells(sp.hero, .menu_index) = 0 THEN CONTINUE FOR
+ DIM listnum as integer
+ DIM hero_node as NodePtr
+ hero_node = CAST(NodePtr, her.reld)
+ READNODE hero_node."battle_menus" as batmenus
+  WITHNODE batmenus."menu" as m
+   DIM k as NodePtr
+   k = m."kind".ptr
+   IF k."spells".exists THEN
+    listnum = k."spells".integer
+    WITH sp.lists(slot)
+     .menu_index = listnum
+     .magic_type = her.list_type(.menu_index)
+     IF .magic_type = 0 OR .magic_type = 1 THEN
+      'Only display MP-based and LMP-based spell lists. Ignore Random lists.
+      IF readbit(her.bits(), 0, 26) = NO ORELSE count_available_spells(sp.hero, .menu_index) > 0 THEN
+       .name = her.list_name(.menu_index)
+       IF .name <> "" THEN
+        'Only show lists with non-blank names
+        .name = rpad(.name, " ", 10)
+        slot += 1
+       END IF
+      END IF
      END IF
-     .name = her.list_name(.menu_index)
-     IF .name <> "" THEN
-      'Only show lists with non-blank names
-      .name = rpad(.name, " ", 10)
-      slot += 1
-     END IF
-    END IF
-   END WITH 
-  END IF
- NEXT i
- 
+    END WITH 
+   END IF
+  END WITHNODE
+ END READNODE
+
  sp.last = slot
  
  WITH sp.lists(sp.last)
