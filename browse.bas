@@ -65,7 +65,7 @@ DECLARE SUB browse_hover_file(tree() as BrowseMenuEntry, byref br as BrowseMenuS
 DECLARE SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as BrowseMenuState, tree() as BrowseMenuEntry)
 DECLARE FUNCTION validmusicfile (file as string, byval typemask as integer) as integer
 DECLARE FUNCTION browse_sanity_check_reload(filename as string, info as string) as integer
-DECLARE FUNCTION check_for_plotscr_inclusion(filename as string) as integer
+DECLARE FUNCTION check_for_plotscr_inclusion(filename as string) as bool
 
 FUNCTION browse (byval special as integer, default as string, fmask as string, tmp as string, byref needf as integer, helpkey as string) as string
 STATIC remember as string
@@ -760,17 +760,17 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
 
 END SUB
 
-FUNCTION check_for_plotscr_inclusion(filename as string) as integer
+FUNCTION check_for_plotscr_inclusion(filename as string) as bool
  'This script is a hack to allow people who name their scripts .txt to use the import
  'feature without cluttering the browse interface with non-plotscript .txt files
- 'Note that scanscripts.py uses completely different autodetection method
- DIM result as integer = NO
+ 'Note that scanscripts.py uses a completely different autodetection method
+ DIM result as bool = NO
  
  DIM fh as integer = FREEFILE
  OPEN filename FOR INPUT AS #fh
  DIM s as string
- FOR i as integer = 0 TO 29 'Only bother to check the first 30 lines
-  INPUT #fh, s
+ FOR i as integer = 0 TO 49 'Only bother to check the first 50 lines
+  LINE INPUT #fh, s
   IF INSTR(LTRIM(LCASE(s)), "include") = 1 ANDALSO INSTR(LCASE(s), "plotscr.hsd") > 0 THEN
    result = YES
    EXIT FOR
