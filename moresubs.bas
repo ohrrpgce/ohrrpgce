@@ -72,7 +72,6 @@ IF her.def_level < 0 THEN her.def_level = averagelev
 hero(slot) = who
 
 '---MUST SET DEFAULT EQUIP---
-DIM wep as integer = large(wbuf(48), 1)
 FOR i as integer = 0 TO 4
  eqstuf(slot, i) = 0
 NEXT i
@@ -88,23 +87,6 @@ END WITH
 '--weapon picture and palette
 gam.hero(slot).wep_pic = wbuf(52)
 gam.hero(slot).wep_pal = wbuf(53)
-
-'--weapon attack
-bmenu(slot, 0) = wep
-
-'--clear spell lists
-FOR i as integer = 1 TO 5
- bmenu(slot, i) = 0
-NEXT i
-
-'--include spell lists that have names
-DIM o as integer = 1
-FOR i as integer = 0 TO 3
- IF her.list_name(i) <> "" THEN bmenu(slot, o) = (i + 1) * -1: o = o + 1
-NEXT i
-
-'--add item list to the end
-bmenu(slot, o) = -10
 
 '--put spells in spell list
 FOR i as integer = 0 TO 3
@@ -325,11 +307,6 @@ setbit hmask(), 0, s, a
 '---Hero index
 SWAP hero(s), hero(d)
 
-'---Battle menu
-FOR i as integer = 0 TO 5
- SWAP bmenu(s, i), bmenu(d, i)
-NEXT i
-
 '---Spell lists
 FOR i as integer = 0 TO 3
  FOR o as integer = 0 TO 23
@@ -361,7 +338,7 @@ NEXT i
 '--set tags, reload hero pictures and palettes, etc
 party_change_updates
 
-'hero(40), bmenu(40,5), spell(40,3,23), lmp(40,7), names(40), eqstuf(40,4)
+'hero(40), spell(40,3,23), lmp(40,7), names(40), eqstuf(40,4)
 END SUB
 
 SUB update_textbox ()
@@ -1138,11 +1115,6 @@ FOR i as integer = 0 TO 40
   gam.hero(i).hand_pos(j).x = 0
   gam.hero(i).hand_pos(j).y = 0
  NEXT j
-NEXT i
-FOR i as integer = 0 TO 40
- FOR o as integer = 0 TO 5
-  bmenu(i, o) = 0
- NEXT o
 NEXT i
 FOR i as integer = 0 TO 40
  FOR o as integer = 0 TO 3

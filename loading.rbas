@@ -1580,6 +1580,7 @@ SUB loadherodata (hero as herodef, byval index as integer)
 END SUB
 
 SUB load_hero_from_reload(hero as HeroDef, byval parent as NodePtr)
+ ClearHeroData hero
  free_hero_reld hero
  READNODE parent, default
   WITHNODE parent."name" as heroname

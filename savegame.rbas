@@ -544,23 +544,8 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
 
        .rename_on_status = slot."rename_on_status".exists
      
-       READNODE slot."battle_menus" as ch
-        WITHNODE ch."menu" as n
-         j = GetInteger(n)
-         SELECT CASE j
-          CASE 0 TO 5
-           IF n."attack".exists THEN
-            bmenu(i, j) = n."attack" + 1
-           ELSEIF n."items".exists THEN
-            bmenu(i, j) = -10
-           ELSEIF n."spells".exists THEN
-            bmenu(i, j) = (n."spells" + 1) * -1
-           END IF
-          CASE ELSE
-           rsav_warn "invalid battle menu id " & j
-         END SELECT
-        END WITHNODE
-       END READNODE
+       'This node is obsolete. Don't use it.
+       slot."battle_menus".ignore
 
        READNODE slot."spell_lists".warn as ch
         WITHNODE ch."list" as n
@@ -978,22 +963,6 @@ SUB gamestate_party_to_reload(byval parent as Reload.NodePtr)
    SetChildNode(ch, "pic", .pic)
    SetChildNode(ch, "pal", .pal)
    
-   ch = SetChildNode(slot, "battle_menus")
-   FOR j as integer = 0 TO 5
-    n = AppendChildNode(ch, "menu", j)
-    SELECT CASE bmenu(i, j)
-     CASE IS > 0:
-      '--attack from weapon
-      SetChildNode(n, "attack", bmenu(i, j) - 1)
-     CASE -10:
-      '--items menu
-      SetChildNode(n, "items")
-     CASE -4 TO -1:
-      '--spell list
-      SetChildNode(n, "spells", ABS(bmenu(i, j)) - 1)
-    END SELECT
-   NEXT j
-   
    ch = SetChildNode(slot, "spell_lists")
    FOR j as integer = 0 TO 3
     n = AppendChildNode(ch, "list", j)
@@ -1410,7 +1379,8 @@ NEXT i
 show_load_index z, "bmenu"
 FOR i = 0 TO 40
  FOR o = 0 TO 5
-  bmenu(i, o) = buffer(z): z = z + 1
+  'this was the obsolete bmenu() array
+  z = z + 1
  NEXT o
 NEXT i
 show_load_index z, "spell"

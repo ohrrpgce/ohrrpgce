@@ -133,7 +133,6 @@ REDIM itemtags(maxMaxItems) as ItemTagsCache
 
 'Party stuff
 REDIM hero(40) as integer
-REDIM bmenu(40, 5) as integer
 REDIM spell(40, 3, 23) as integer
 REDIM lmp(40, 7) as integer
 REDIM names(40) as string
