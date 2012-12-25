@@ -17,9 +17,10 @@ http://hamsterrepublic.com/ohrrpgce/index.php/Bugzilla.html
 ------------------------------------------------------------------------------
 
 2012-12-25:
-Some recent nightlies could corrupt hero battle menus.
+Some recent nightlies could cause corruption.
 Make sure you are using a nightly build from Dec 25 or newer to avoid.
-r5507-r5529 Could not save hero data on Windows
+r5507-r5529 on Windows usually would not save hero data and could delete
+            user interface colours or the zone maps for the last map.
 r5484-r5550 deleted "Items" from hero battle menus.
 r5507-r5530 newly created heroes would have completely blank battle menus
 
