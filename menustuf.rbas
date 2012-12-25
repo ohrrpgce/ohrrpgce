@@ -39,7 +39,7 @@ DECLARE SUB items_menu_paint (istate as ItemsMenuState, iuse() as integer, perma
 DECLARE SUB items_menu_infostr(state as ItemsMenuState, permask() as integer)
 DECLARE SUB items_menu_autosort(iuse() as integer, permask() as integer)
 DECLARE SUB item_menu_use_item(byval slot as integer, istate as ItemsMenuState, iuse() as integer, permask() as integer)
-DECLARE FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as integer, byval attacker as integer, use_caption as STRING, byval x_offset as integer=0, byval really_use_attack as integer=YES) as integer
+DECLARE FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as integer, byval attacker as integer, use_caption as string, byval x_offset as integer=0, byval really_use_attack as integer=YES) as integer
 DECLARE SUB items_menu_control (istate as ItemsMenuState, iuse() as integer, permask() as integer)
 DECLARE SUB spells_menu_refresh_list(sp as SpellsMenuState)
 DECLARE SUB spells_menu_refresh_hero(sp as SpellsMenuState)
@@ -48,6 +48,7 @@ DECLARE SUB spells_menu_paint (byref sp as SpellsMenuState)
 DECLARE SUB picksave_draw(menu() as string, byval loading as integer, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval page as integer)
 DECLARE FUNCTION picksave_confirm(menu() as string, byval loading as integer, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval holdscreen as integer, byval page as integer) as integer
 DECLARE SUB sellstuff_refresh(byval last_stuff as integer, byval recordsize as integer, permask() as integer, price() as integer, stuffdata() as integer)
+DECLARE SUB status_buildmenu(her as HeroDef, byval pt as integer, mtype() as integer, elementaldmg() as single, elementnames() as string, elementalmenu() as string, elementalmenu_st as MenuState, portrait as GraphicPair)
 
 SUB buystuff (byval id as integer, byval shoptype as integer, storebuf() as integer)
 DIM b((getbinsize(binSTF) \ 2) * 50 - 1) as integer
@@ -683,9 +684,9 @@ END SUB
 
 FUNCTION picksave (byval loading as integer) as integer
 
-DIM mapname(3) as STRING
-DIM lev(3) as STRING
-DIM menu(1) as STRING
+DIM mapname(3) as string
+DIM lev(3) as string
+DIM menu(1) as string
 DIM sprites(3, 3) as GraphicPair
 DIM st as MenuState
 
@@ -1129,8 +1130,8 @@ SUB sellstuff_refresh(byval last_stuff as integer, byval recordsize as integer, 
 END SUB
 
 'Format one of the strings on the second Status menu screen
-FUNCTION hero_elemental_resist_msg (element as STRING, damage as SINGLE) as STRING
- DIM raw as STRING
+FUNCTION hero_elemental_resist_msg (element as string, damage as SINGLE) as string
+ DIM raw as string
  IF ABS(damage) < 0.000005 THEN
   raw = readglobalstring(168, "Immune to $E", 30)
  ELSEIF damage < 0.0 THEN
@@ -1156,11 +1157,11 @@ DIM portrait as GraphicPair
 DIM page as integer
 DIM holdscreen as integer
 
-DIM exper_caption as STRING = readglobalstring(33, "Experience", 10)
-DIM level_caption as STRING = readglobalstring(43, "Level", 10)
-DIM level_mp_caption as STRING = readglobalstring(160, "Level MP", 20)
+DIM exper_caption as string = readglobalstring(33, "Experience", 10)
+DIM level_caption as string = readglobalstring(43, "Level", 10)
+DIM level_mp_caption as string = readglobalstring(160, "Level MP", 20)
 
-DIM elementalmenu() as STRING
+DIM elementalmenu() as string
 DIM elementalmenu_st as MenuState
 DIM elementalmenu_scrollrect as RectType
 WITH elementalmenu_scrollrect
@@ -1170,7 +1171,7 @@ WITH elementalmenu_scrollrect
  .high = 120
 END WITH
 
-DIM elementnames() as STRING
+DIM elementnames() as string
 getelementnames elementnames()
 
 DIM elementaldmg(maxElements - 1) as SINGLE
@@ -1178,7 +1179,7 @@ DIM elementaldmg(maxElements - 1) as SINGLE
 DIM mode as integer = 0
 DIM tog as integer
 
-GOSUB buildmenu
+status_buildmenu her, pt, mtype(), elementaldmg(), elementnames(), elementalmenu(), elementalmenu_st, portrait
 '--Preserve background for display under status menu
 page = compatpage
 holdscreen = allocatepage
@@ -1194,8 +1195,8 @@ DO
  control
  IF carray(ccMenu) > 1 THEN EXIT DO
  IF carray(ccUse) > 1 THEN mode = loopvar(mode, 0, 2, 1): menusound gen(genCursorSFX)
- IF carray(ccLeft) > 1 THEN DO: pt = loopvar(pt, 0, 3, -1): LOOP UNTIL hero(pt) > 0: menusound gen(genCursorSFX): GOSUB buildmenu
- IF carray(ccRight) > 1 THEN DO: pt = loopvar(pt, 0, 3, 1): LOOP UNTIL hero(pt) > 0: menusound gen(genCursorSFX): GOSUB buildmenu
+ IF carray(ccLeft) > 1 THEN DO: pt = loopvar(pt, 0, 3, -1): LOOP UNTIL hero(pt) > 0: menusound gen(genCursorSFX): status_buildmenu her, pt, mtype(), elementaldmg(), elementnames(), elementalmenu(), elementalmenu_st, portrait
+ IF carray(ccRight) > 1 THEN DO: pt = loopvar(pt, 0, 3, 1): LOOP UNTIL hero(pt) > 0: menusound gen(genCursorSFX): status_buildmenu her, pt, mtype(), elementaldmg(), elementnames(), elementalmenu(), elementalmenu_st, portrait
 
  centerfuz 160, 100, 304, 184, 1, page
  centerbox 160, 36, 292, 40, 4, page
@@ -1300,49 +1301,50 @@ freepage holdscreen
 FOR t as integer = 4 TO 5
  carray(t) = 0
 NEXT t
-EXIT SUB
 
-buildmenu: '--loads the hero whose slot is held in pt
-'--load the hero data lump only to get the spell list types
-loadherodata her, hero(pt) - 1
+END SUB
 
-FOR i as integer = 0 TO 5
- mtype(i) = -1
- IF bmenu(pt, i) < 0 AND bmenu(pt, i) > -10 THEN
-  IF her.list_name((bmenu(pt, i) + 1) * -1) <> "" THEN
-   mtype(i) = her.list_type((bmenu(pt, i) + 1) * -1)
+SUB status_buildmenu(her as HeroDef, byval pt as integer, mtype() as integer, elementaldmg() as single, elementnames() as string, elementalmenu() as string, elementalmenu_st as MenuState, portrait as GraphicPair)
+ '--loads the hero whose slot is held in pt
+ '--load the hero data lump only to get the spell list types
+ loadherodata her, hero(pt) - 1
+ 
+ FOR i as integer = 0 TO 5
+  mtype(i) = -1
+  IF bmenu(pt, i) < 0 AND bmenu(pt, i) > -10 THEN
+   IF her.list_name((bmenu(pt, i) + 1) * -1) <> "" THEN
+    mtype(i) = her.list_type((bmenu(pt, i) + 1) * -1)
+   END IF
   END IF
- END IF
-NEXT i
-
-'--get this hero's elemental resists, with worn equipment
-calc_hero_elementals elementaldmg(), pt
-
-'--build elemental strings
-REDIM elementalmenu(-1 TO -1)
-DIM msg as string = readglobalstring(302, "Elemental Effects:", 30)
-IF LEN(msg) THEN str_array_append elementalmenu(), msg
-FOR i as integer = 0 TO gen(genNumElements) - 1
- msg = hero_elemental_resist_msg(elementnames(i), elementaldmg(i))
+ NEXT i
+ 
+ '--get this hero's elemental resists, with worn equipment
+ calc_hero_elementals elementaldmg(), pt
+ 
+ '--build elemental strings
+ REDIM elementalmenu(-1 TO -1)
+ DIM msg as string = readglobalstring(302, "Elemental Effects:", 30)
  IF LEN(msg) THEN str_array_append elementalmenu(), msg
-NEXT
-
-'Well, if you set some blank global text strings, you could get this message
-'even if not everything is level, but that's a bonus.
-IF UBOUND(elementalmenu) = 0 THEN elementalmenu(0) = readglobalstring(130, "No Elemental Effects", 30)
-
-WITH elementalmenu_st
- .last = UBOUND(elementalmenu)
- .size = 10
-END WITH
-
-IF portrait.sprite THEN frame_unload @portrait.sprite
-IF portrait.pal    THEN palette16_unload @portrait.pal
-IF her.portrait >= 0 THEN
- portrait.sprite = frame_load(8, her.portrait)
- portrait.pal    = palette16_load(her.portrait_pal, 8, her.portrait)
-END IF
-RETRACE
+ FOR i as integer = 0 TO gen(genNumElements) - 1
+  msg = hero_elemental_resist_msg(elementnames(i), elementaldmg(i))
+  IF LEN(msg) THEN str_array_append elementalmenu(), msg
+ NEXT
+ 
+ 'Well, if you set some blank global text strings, you could get this message
+ 'even if not everything is level, but that's a bonus.
+ IF UBOUND(elementalmenu) = 0 THEN elementalmenu(0) = readglobalstring(130, "No Elemental Effects", 30)
+ 
+ WITH elementalmenu_st
+  .last = UBOUND(elementalmenu)
+  .size = 10
+ END WITH
+ 
+ IF portrait.sprite THEN frame_unload @portrait.sprite
+ IF portrait.pal    THEN palette16_unload @portrait.pal
+ IF her.portrait >= 0 THEN
+  portrait.sprite = frame_load(8, her.portrait)
+  portrait.pal    = palette16_load(her.portrait_pal, 8, her.portrait)
+ END IF
 
 END SUB
 
@@ -1478,14 +1480,14 @@ END FUNCTION
 SUB equip (byval who as integer)
 
 '--dim stuff
-DIM m(4) as STRING, menu(6) as STRING
+DIM m(4) as string, menu(6) as string
 DIM page as integer = compatpage
 DIM holdscreen as integer = allocatepage
 DIM st as EquipMenuState
 
 DIM i as integer
 DIM tog as integer = 0
-DIM stat_caption as STRING
+DIM stat_caption as string
 DIM col as integer
 DIM item_id as integer
 
@@ -1881,7 +1883,7 @@ END FUNCTION
 
 SUB items_menu_paint (istate as ItemsMenuState, iuse() as integer, permask() as integer)
  edgeboxstyle istate.rect.x, istate.rect.y, istate.rect.wide, istate.rect.high, 0, istate.page
- DIM display as STRING
+ DIM display as string
  FOR i as integer = istate.top TO small(istate.top + 62, last_inv_slot())
   textcolor uilook(uiDisabledItem), 0
   IF readbit(iuse(), 0, 3 + i) = 1 THEN textcolor uilook(uiMenuItem), 0
@@ -2029,7 +2031,7 @@ FUNCTION use_item_in_slot(byval slot as integer, byref trigger_box as integer, b
 
  DIM itemdata(dimbinsize(binITM)) as integer
  loaditemdata itemdata(), inventory(slot).id
- DIM attack_name as STRING = readbadbinstring(itemdata(), 0, 8, 0)
+ DIM attack_name as string = readbadbinstring(itemdata(), 0, 8, 0)
  DIM should_consume as integer = (itemdata(73) = 1)
  DIM attack_id as integer = itemdata(51) - 1
  DIM is_attack_item as integer = ( itemdata(51) > 0 ANDALSO NOT itemdata(50) > 0 )
@@ -2050,7 +2052,7 @@ FUNCTION use_item_in_slot(byval slot as integer, byref trigger_box as integer, b
  RETURN NO
 END FUNCTION
 
-FUNCTION use_item_by_id(byval item_id as integer, byref trigger_box as integer, name_override as STRING="") as integer
+FUNCTION use_item_by_id(byval item_id as integer, byref trigger_box as integer, name_override as string="") as integer
  '--item_id is the actual ID number, not offset.
 
  '--trigger_box communicates the box id if this item triggerd a text box.
@@ -2072,7 +2074,7 @@ FUNCTION use_item_by_id(byval item_id as integer, byref trigger_box as integer, 
  DIM itemdata(dimbinsize(binITM)) as integer
  loaditemdata itemdata(), item_id
 
- DIM caption as STRING
+ DIM caption as string
  IF name_override <> "" THEN
   caption = name_override
  ELSE
@@ -2104,7 +2106,7 @@ FUNCTION use_item_by_id(byval item_id as integer, byref trigger_box as integer, 
  RETURN NO
 END FUNCTION
 
-FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as integer, byval attacker as integer, use_caption as STRING, byval x_offset as integer=0, byval really_use_attack as integer=YES) as integer
+FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as integer, byval attacker as integer, use_caption as string, byval x_offset as integer=0, byval really_use_attack as integer=YES) as integer
  'Lets the player pick a target, and then performs an attack or teaches a spell
  '(FIXME: should move to separate function!)
  'attacker == -1 when not using an attack from a spell list. In that case, use party's avg stats
@@ -2129,7 +2131,7 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
  DIM col as integer
  DIM atk as AttackData
  DIM learn_attack as AttackData
- DIM caption as STRING
+ DIM caption as string
  DIM check_consume as integer = NO
  DIM allow_spread as integer = NO
  DIM must_spread as integer = NO
