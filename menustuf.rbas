@@ -1861,7 +1861,7 @@ FUNCTION items_menu () as integer
  
   control
   items_menu_control istate, iuse(), permask()
-  IF istate.trigger_box >= 0 THEN
+  IF istate.trigger_box > 0 THEN
    '--return the box number to trigger
    items_menu = istate.trigger_box
    EXIT DO
