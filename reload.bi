@@ -8,7 +8,7 @@
 '
 
 #include "config.bi"
-#include "udts.bi"
+#include "util.bi"
 
 
 #if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)
@@ -24,9 +24,6 @@
 #ifndef null
 #define null 0
 #endif
-
-'Used for foward declarations in udts.bi
-TYPE reload_Node as Node
 
 Namespace Reload
 

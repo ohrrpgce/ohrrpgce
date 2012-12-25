@@ -3,10 +3,10 @@
 
 #INCLUDE "const.bi"
 #INCLUDE "util.bi"
+#INCLUDE "reload.bi"
 
 'Forward declarations
 TYPE SliceFwd as Slice
-TYPE NodeFwd as reload_Node
 
 UNION XYPair
   TYPE
@@ -733,7 +733,7 @@ Type HeroDef
 	active_tag as integer
 	max_name_len as integer
 	hand_pos(1) as XYPair
-	reld as NodeFwd ptr
+	reld as Reload.NodePtr
 	
 	Declare Destructor ()  'defined in common.bas
 End Type

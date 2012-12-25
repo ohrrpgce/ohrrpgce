@@ -2300,7 +2300,7 @@ SUB hero_editor_battle_menu (her as HeroDef)
  
  DIM prst as MenuState
  
- DIM node as NodePtr = CAST(NodePtr, her.reld)
+ DIM node as NodePtr = her.reld
 
  DIM itembuf(dimbinsize(binITM)) as integer
 

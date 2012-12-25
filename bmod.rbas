@@ -1368,7 +1368,7 @@ END SUB
 
 SUB populate_battle_menu_menudef (byval hero_id as integer, menu as MenuDef, hero as HeroDef)
  DIM hero_node as NodePtr
- hero_node = CAST(NodePtr, hero.reld)
+ hero_node = hero.reld
  DIM caption as string
  DIM k as NodePtr
  DIM wep_id as integer

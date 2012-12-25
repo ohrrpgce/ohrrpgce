@@ -1662,7 +1662,7 @@ SUB load_hero_from_reload(hero as HeroDef, byval parent as NodePtr)
   END READNODE
   parent."battle_menus".ignore
  END READNODE
- hero.reld = CAST(reload_Node ptr, get_reload_copy(parent))
+ hero.reld = get_reload_copy(parent)
  print "Loaded hero from reload: " & hero.name
 END SUB
 
@@ -1735,8 +1735,7 @@ SUB save_hero_as_reload(hero as HeroDef, byval parent as NodePtr)
  WriteStatsNode(parent, "stats_at_zero", hero.Lev0)
  WriteStatsNode(parent, "stats_at_max", hero.LevMax)
 
- DIM reld as NodePtr
- reld = CAST(NodePtr, hero.reld)
+ DIM reld as NodePtr = hero.reld
  AddChild(parent, CloneNodeTree(reld."battle_menus".ptr, , parent))
 
  DIM splists as NodePtr
@@ -1838,7 +1837,7 @@ END FUNCTION
 Destructor HeroDef ()
  if this.reld <> 0 then
   'debuginfo "Freeing a HeroDef's reload node in the destructor!"
-  FreeNode CAST(NodePtr, this.reld)
+  FreeNode this.reld
  else
   'debuginfo "HeroDef didn't bother freeing reload node because it was never loaded"
  end if
@@ -1859,15 +1858,15 @@ END SUB
 SUB free_hero_reld(hero as HeroDef)
   IF hero.reld <> 0 THEN
    'debuginfo "Freeing a HeroDef's reload node in free_hero_reld"
-   FreeNode(CAST(NodePtr, hero.reld))
+   FreeNode(hero.reld)
   END IF
 END SUB
 
 SUB create_blank_hero_reld(hero as HeroDef)
   'Construct any reload nodes that we need in memory.
-  hero.reld = CAST(reload_Node ptr, get_reload_empty("hero"))
+  hero.reld = get_reload_empty("hero")
   DIM batmenus as NodePtr
-  batmenus = SetChildNode(CAST(NodePtr, hero.reld), "battle_menus")
+  batmenus = SetChildNode(hero.reld, "battle_menus")
   add_hero_battle_menu_item batmenus, "weapon"
   for i as integer = 0 to 3
     add_hero_battle_menu_item batmenus, "spells", i
