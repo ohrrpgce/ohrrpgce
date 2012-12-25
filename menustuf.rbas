@@ -1309,14 +1309,26 @@ SUB status_buildmenu(her as HeroDef, byval pt as integer, mtype() as integer, el
  '--load the hero data lump only to get the spell list types
  loadherodata her, hero(pt) - 1
  
- FOR i as integer = 0 TO 5
+ FOR i as integer = 0 TO UBOUND(mtype)
   mtype(i) = -1
-  IF bmenu(pt, i) < 0 AND bmenu(pt, i) > -10 THEN
-   IF her.list_name((bmenu(pt, i) + 1) * -1) <> "" THEN
-    mtype(i) = her.list_type((bmenu(pt, i) + 1) * -1)
-   END IF
-  END IF
  NEXT i
+ 
+ DIM mtype_i as integer = 0
+ DIM hero_node as NodePtr
+ hero_node = CAST(NodePtr, her.reld)
+ READNODE hero_node."battle_menus" as batmenu
+  WITHNODE batmenu."menu" as m
+   DIM k as NodePtr
+   k = m."kind".ptr
+   IF k."spells".exists THEN
+    DIM listnum as integer = k."spells".integer
+    IF LEN(her.list_name(listnum)) > 0 THEN
+     mtype(mtype_i) = her.list_type(listnum)
+     mtype_i += 1
+    END IF
+   END IF
+  END WITHNODE
+ END READNODE
  
  '--get this hero's elemental resists, with worn equipment
  calc_hero_elementals elementaldmg(), pt
