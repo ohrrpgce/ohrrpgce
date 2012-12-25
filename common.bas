@@ -2923,11 +2923,15 @@ DIM p as integer
 DIM y as integer
 DIM temp as integer
 DIM fh as integer
+DIM uilook_temp(uiColors) as integer
+DIM master_temp(255) as RGBcolor
 
 upgrademessages = 0
 last_upgrade_time = 0.0
 upgrade_start_time = TIMER
 upgrade_overhead_time = 0.0
+
+DIM original_genVersion as integer = gen(genVersion)
 
 'Custom and Game should both have provided a writeable workingdir. Double check.
 '(This is partially in vain, as we could crash if any of the lumps are unwriteable)
@@ -3310,16 +3314,22 @@ updaterecordlength workingdir + SLASH + "uicolors.bin", binUICOLORS
 DIM uirecords as integer = FILELEN(workingdir + SLASH + "uicolors.bin") \ getbinsize(binUICOLORS)
 IF uirecords < gen(genMaxMasterPal) + 1 THEN
  upgrade_message "Adding default UI colors..."
- DIM defaultcols(uiColors) as integer
- OldDefaultUIColors defaultcols()
+
  FOR i as integer = uirecords TO gen(genMaxMasterPal)
-  SaveUIColors defaultcols(), i
+  'In old games (before uicolors.bin was added), use the old fixed color indices, for compatibility
+  IF original_genVersion <= 7 THEN  'Before Ypsiliform WIPs
+   OldDefaultUIColors uilook_temp()
+   SaveUIColors uilook_temp(), i
+  ELSE
+   'Otherwise, missing records is a bug. Do nearest match with default
+   loadpalette master_temp(), i
+   GuessDefaultUIColors master_temp(), uilook_temp()
+   SaveUIColors uilook_temp(), i
+  END IF
  NEXT
 END IF
 
 'Work around a bug: vehicle shadow colour shouldn't be 0
-DIM uilook_temp(uiColors) as integer
-DIM master_temp(255) as RGBcolor
 FOR i as integer = 0 TO gen(genMaxMasterPal)
  LoadUIColors uilook_temp(), i
  IF uilook_temp(uiShadow) = 0 THEN

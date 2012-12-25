@@ -2022,7 +2022,7 @@ SUB DefaultUIColors (colarray() as integer)
  'debug "defaults: " & hexstring
 END SUB
 
-SUB GuessDefaultUIColors (colarray() as integer)
+SUB GuessDefaultUIColors (masterpal() as RGBcolor, colarray() as integer)
  DIM as integer fixeddefaults(uiColors) = {&h000000,&hA19CB0,&h4F595A,&hFFFC62,&hFFFFFF,&h8E6B00,&hA19CB0,_
        &h003B95,&h228B22,&h001D48,&h153289,&h154C15,&h228B22,&hFFFFFF,&h000000,&h6BEB61,&hFFFC62,&h000000,_
        &h001D48,&h8084D0,&h123D12,&h98FA90,&h500000,&hFF7F7F,&h4F7A54,&hD3F88E,&h5E4600,&hF1EA89,&h471747,_
@@ -2032,7 +2032,7 @@ SUB GuessDefaultUIColors (colarray() as integer)
  DIM temp as RGBcolor
  FOR i = 0 TO 47
   temp.col = fixeddefaults(i)
-  colarray(i) = nearcolor(master(), temp.r, temp.g, temp.b)
+  colarray(i) = nearcolor(masterpal(), temp.r, temp.g, temp.b)
  NEXT
  FOR i = 48 TO 62
   'Box border pictures default to zero (none)

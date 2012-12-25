@@ -98,7 +98,7 @@ declare Sub SaveUIColors (colarray() as integer, byval palnum as integer)
 declare Sub LoadUIColors (colarray() as integer, byval palnum as integer=-1)
 declare Sub DefaultUIColors (colarray() as integer)
 declare Sub OldDefaultUIColors (colarray() as integer)
-declare Sub GuessDefaultUIColors (colarray() as integer)
+declare Sub GuessDefaultUIColors (masterpal() as RGBcolor, colarray() as integer)
 
 declare Sub LoadTextBox (byref box as TextBox, byval record as integer)
 declare Sub SaveTextBox (byref box as TextBox, byval record as integer)
