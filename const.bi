@@ -26,12 +26,13 @@ CONST CURRENT_RPG_VERSION = 19
 ' 18 - beelzebufo turn-based support
 ' 19 - beelzebufo replaced .DT0 with heroes.reld
 
-CONST CURRENT_RSAV_VERSION = 2
+CONST CURRENT_RSAV_VERSION = 3
 ' Increment this number any time that loading and resaving a game in either
 ' new or old versions of Game leads to data-loss, or major new features are
 ' added.
 ' 1 - zenzizenzic wip removed nativehbits related nodes
 ' 2 - alectormancy wip increased global limit from 4095 to 16383
+' 3 - stopped writing obsolete battle_menus node
 
 CONST CURRENT_TESTING_IPC_VERSION = 4
 ' Version of the IPC protocol used when live-previewing
