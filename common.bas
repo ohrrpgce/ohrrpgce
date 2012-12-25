@@ -5011,7 +5011,7 @@ SUB cleanup_global_reload_doc ()
    n = reload.NextSibling(n)
   LOOP
  END IF
- reload.FreeDocument(global_reload_doc)
+ FreeChildren rnod
 END SUB
 
 'Copy a reload node from wherever into the global_reload_doc
