@@ -1400,13 +1400,11 @@ SUB populate_battle_menu_menudef (byval hero_id as integer, menu as MenuDef, her
     IF atk_id < 0 THEN atk_id = 0
     caption = readattackname(atk_id)
     append_menu_item menu, caption, batmenu_ATTACK, atk_id
-   END IF
-   IF k."attack".exists THEN
+   ELSEIF k."attack".exists THEN
     atk_id = k."attack".integer
     caption = readattackname(atk_id)
     append_menu_item menu, caption, batmenu_ATTACK, atk_id
-   END IF
-   IF k."spells".exists THEN
+   ELSEIF k."spells".exists THEN
     spells_id = k."spells".integer
     caption = hero.list_name(spells_id)
     IF LEN(caption) > 0 THEN
@@ -1415,12 +1413,13 @@ SUB populate_battle_menu_menudef (byval hero_id as integer, menu as MenuDef, her
       append_menu_item menu, caption, batmenu_SPELLS, spells_id
      END IF
     END IF
-   END IF
-   IF k."items".exists THEN
+   ELSEIF k."items".exists THEN
     caption = readglobalstring(34, "Item", 10)
     IF LEN(caption) > 0 THEN
      append_menu_item menu, caption, batmenu_ITEMS
     END IF
+   ELSE
+    debug "Unknown battle menu item kind"
    END IF
   END WITHNODE
  END READNODE
