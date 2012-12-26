@@ -1,0 +1,36 @@
+Choose the base attack stat, and press ENTER or SPACE
+
+Base attack stat controls how much damage the attack will do.
+
+You can chose any stat of the target or the attacker.
+
+Here are a few special base stats:
+
+  100  If you want an attack to do a
+       specific amount of damage
+       regardless of stats, use this
+       as your base stat. You can
+       then adjust "Extra Damage%"
+       to customise the specific
+       amount.
+
+  Random 1-999
+       Base damage will be a random          number. You can cutsomize the
+       range using"Extra Damage%"
+
+  Previous Attack
+       Base damage will be the actual
+       damage of the last attack
+       performed by this attacker.
+
+  Last damage to (Revenge)
+       Base damage will be the last
+       actual damage infliced to the
+       attacker or the target
+       regardless of who inflicted it
+
+  Last cure to (Thankvenge)
+       Base damage will be the last
+       cure applied to the target.
+
+When choosing a stat for base damage, you normally do not want to use the "Max" stat. Max stats as base damage will ignore any buffs or debuffs to that stat.
