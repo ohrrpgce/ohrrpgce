@@ -1,0 +1,18 @@
+Pick which kind of menu item will be in the battle menu.
+
+Weapon:
+  Use the attack selected by the item
+  the hero currently has equipped as
+  a weapon.
+
+Specific Attack:
+  Use a specific attack, by ID number
+
+Spell List:
+  Use one of the hero's spell lists.
+  The list must be named if you want
+  it to appear in the menu.
+
+Items Menu:
+  Let the hero use items from the
+  items menu.

@@ -1,0 +1,16 @@
+This menu allows you to customize the battle menu for a hero.
+
+A preview of the battle menu is shown in the top right corner of the screen.
+
+Use the up and down arrow keys to select the battle menu item you want to customize, and press ENTER or SPACE
+
+You can add new battle menu items with INSERT and you can remove battle menu items with DELETE
+
+The default battle menu is:
+
+  Weapon
+  Spell List 0
+  Spell List 1
+  Spell List 2
+  Spell List 3
+  Items

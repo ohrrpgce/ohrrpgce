@@ -68,6 +68,9 @@ DECLARE SUB hero_editor_equipbits (byval hero_id as integer, byval equip_type as
 DECLARE SUB hero_editor_elementals(byref her as HeroDef)
 DECLARE SUB hero_editor_edit_spell_list_slot (slot as SpellList)
 DECLARE SUB hero_editor_battle_menu (her as HeroDef)
+DECLARE SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
+DECLARE SUB browse_battle_menu_kinds (byval menu_node as NodePtr)
+DECLARE SUB change_battle_menu_kind (byval menu_node as NodePtr, new_kind as string, init_integer as bool=NO)
 
 SUB clearallpages
 clearpage 0 'UPDATE as of fbc v0.20
@@ -2300,7 +2303,8 @@ SUB hero_editor_battle_menu (her as HeroDef)
  
  DIM prst as MenuState
  
- DIM node as NodePtr = her.reld
+ DIM hero_node as NodePtr = her.reld
+ DIM edit_node as NodePtr
 
  DIM itembuf(dimbinsize(binITM)) as integer
 
@@ -2310,13 +2314,7 @@ SUB hero_editor_battle_menu (her as HeroDef)
   setkeys
   IF keyval(scF1) > 1 THEN show_help "hero_battle_menu_edit"
   IF keyval(scEsc) > 1 THEN EXIT DO
-  
-  usemenu st
-  
-  IF st.pt = 0 THEN
-   IF enter_or_space() THEN EXIT DO
-  END IF
-  
+
   IF st.need_update THEN
    ClearMenuData menu
    WITH menu
@@ -2326,40 +2324,50 @@ SUB hero_editor_battle_menu (her as HeroDef)
     .anchor.y = -1
     .offset.x = -160
     .offset.y = -100
+    .bordersize = -8
    END WITH
    ClearMenuData preview
    WITH preview
     .align = -1
     .anchor.x = 1
     .anchor.y = -1
-    .offset.x = 160
-    .offset.y = -100
+    .offset.x = 154
+    .offset.y = -86
+    .bordersize = -5
+    .itemspacing = -2
+    .highlight_selection = YES
+    .min_chars = 10
    END WITH
    append_menu_item menu, "Previous menu..."
-   READNODE node."battle_menus" as batmen, ignoreall
+   READNODE hero_node."battle_menus" as batmen, ignoreall
     WITHNODE batmen."menu" as bmenu
      DIM k as NodePtr = bmenu."kind".ptr
      IF k."weapon".exists THEN
       append_menu_item menu, "Weapon"
+      menu.last->dataptr = bmenu
       loaditemdata itembuf(), her.def_weapon
       DIM atk_id as integer = itembuf(48) - 1
       IF atk_id < 0 THEN atk_id = 0
       append_menu_item preview, readattackname(atk_id)
      ELSEIF k."items".exists THEN
       append_menu_item menu, "Items"
+      menu.last->dataptr = bmenu
       append_menu_item preview, readglobalstring(34, "Item", 10)
      ELSEIF k."spells".exists THEN
       DIM listname as string = her.list_name(k."spells".integer)
       append_menu_item menu, "Spell List " & k."spells".integer & " " & listname
+      menu.last->dataptr = bmenu
       IF LEN(listname) THEN
        append_menu_item preview, listname
       END IF
      ELSEIF k."attack".exists THEN
-      append_menu_item menu, "Attack " & k."attack".integer
+      append_menu_item menu, "Attack " & k."attack".integer & " " & readattackname(k."attack".integer)
+      menu.last->dataptr = bmenu
       append_menu_item preview, readattackname(k."attack".integer)
      ELSE
       debug "Unknown battle menu item " & GetInteger(bmenu)
       append_menu_item menu, "???"
+      menu.last->dataptr = bmenu
      END IF
     END WITHNODE
    END READNODE
@@ -2368,7 +2376,45 @@ SUB hero_editor_battle_menu (her as HeroDef)
    st.need_update = NO
   END IF
   
+  usemenu st
+  
+  IF enter_or_space() THEN
+   IF st.pt = 0 THEN EXIT DO
+   edit_node = menu.items[st.pt]->dataptr
+   edit_battle_menu_item her, edit_node
+   st.need_update = YES
+  END IF
+
+  IF keyval(scInsert) > 1 THEN
+   DIM ins_node as NodePtr
+   ins_node = AppendChildNode(hero_node."battle_menus".ptr, "menu")
+   DIM other_node as NodePtr
+   other_node = menu.items[st.pt]->dataptr
+   IF other_node = 0 THEN other_node = FirstChild(hero_node."battle_menus".ptr)
+   IF other_node THEN
+    'FIXME: why doesn't this work??
+    AddSiblingAfter(other_node, ins_node)
+   END IF
+   DIM k as NodePtr
+   k = SetChildNode(ins_node, "kind")
+   SetChildNode(k, "attack", 0)
+   st.need_update = YES
+  END IF
+  
+  IF keyval(scDelete) > 1 THEN
+   DIM del_node as NodePtr
+   del_node = menu.items[st.pt]->dataptr
+   IF del_node THEN
+    IF yesno("Really delete this menu item?", NO, NO) THEN
+     FreeNode del_node
+     st.need_update = YES
+    END IF
+   END IF
+  END IF
+    
   clearpage dpage
+  edgeprint "Preview", 256, 0, uilook(uiText), dpage
+  edgeprint "INSERT=add, DEL=delete, F1=help", 0, 190, uilook(uiSelectedDisabled), dpage
   draw_menu preview, prst, dpage
   draw_menu menu, st, dpage
   SWAP vpage, dpage
@@ -2377,6 +2423,179 @@ SUB hero_editor_battle_menu (her as HeroDef)
   dowait
  LOOP
  
+END SUB
+
+CONST edbatmenu_EXIT = 0
+CONST edbatmenu_KIND = 1
+CONST edbatmenu_NUM = 2 'extra 0 = lower limit, extra 1 = upper limit
+
+SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
+ IF edit_node = 0 THEN debug "edit_battle_menu_item null NodePtr": EXIT SUB
+
+ DIM holdscreen as integer
+ holdscreen = allocatepage
+ copypage vpage, holdscreen
+
+ DIM menu as MenuDef
+ DIM st as MenuState
+ st.active = YES
+ st.need_update = YES
+ 
+ DIM k as NodePtr
+ DIM v as integer
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scF1) > 1 THEN show_help "hero_battle_menu_item"
+  IF keyval(scEsc) > 1 THEN EXIT DO
+
+  IF st.need_update THEN
+   ClearMenuData menu
+   WITH menu
+    .boxstyle = 1
+    .align = -1
+    .min_chars = 36
+   END WITH
+   append_menu_item menu, "Previous menu...", edbatmenu_EXIT
+   k = edit_node."kind".ptr
+   IF k."weapon".exists THEN
+    append_menu_item menu, "Kind: Weapon's Attack", edbatmenu_KIND
+   ELSEIF k."attack".exists THEN
+    append_menu_item menu, "Kind: Specific Attack", edbatmenu_KIND
+    v = k."attack".integer
+    append_menu_item menu, "Attack: " & v & " " & readattackname(v), edbatmenu_NUM
+    menu.last->dataptr = k."attack".ptr
+    menu.last->extra(0) = 0
+    menu.last->extra(1) = gen(genMaxAttack)
+   ELSEIF k."spells".exists THEN
+    append_menu_item menu, "Kind: Spell List", edbatmenu_KIND
+    v = k."spells".integer
+    append_menu_item menu, "List Number: " & v & " " & hero.list_name(v), edbatmenu_NUM
+    menu.last->dataptr = k."spells".ptr
+    menu.last->extra(0) = 0
+    menu.last->extra(1) = 3
+   ELSEIF k."items".exists THEN
+    append_menu_item menu, "Kind: Items Menu", edbatmenu_KIND
+   ELSE
+    debug "Unknown battle menu kind"
+    append_menu_item menu, "Kind: ???", edbatmenu_KIND
+   END IF
+
+   init_menu_state st, menu
+   st.need_update = NO
+  END IF
+  
+  usemenu st
+  
+  WITH *menu.items[st.pt]
+   IF enter_or_space() THEN
+    SELECT CASE .t
+     CASE edbatmenu_EXIT: EXIT DO
+     CASE edbatmenu_KIND:
+      browse_battle_menu_kinds edit_node
+      st.need_update = YES
+    END SELECT
+   END IF
+   IF .t = edbatmenu_NUM THEN
+    v = GetInteger(.dataptr)
+    IF intgrabber(v, .extra(0), .extra(1)) THEN
+     SetContent(.dataptr, v)
+     st.need_update = YES
+    END IF
+   END IF
+  END WITH
+  
+  copypage holdscreen, vpage
+  fuzzyrect 0, 0, 320, 200, uilook(uiBackground), vpage
+  draw_menu menu, st, vpage
+  setvispage vpage
+  
+  dowait
+ LOOP
+
+ freepage holdscreen
+ setkeys
+END SUB
+
+SUB browse_battle_menu_kinds (byval menu_node as NodePtr)
+ IF menu_node = 0 THEN debug "browse_battle_menu_kinds null NodePtr": EXIT SUB
+
+ DIM holdscreen as integer
+ holdscreen = allocatepage
+ copypage vpage, holdscreen
+
+ DIM menu as MenuDef
+ DIM st as MenuState
+ st.active = YES
+ st.need_update = YES
+ 
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scF1) > 1 THEN show_help "browse_battle_menu_kinds"
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  
+  IF st.need_update THEN
+   ClearMenuData menu
+   append_menu_item menu, "Previous Menu...", 0
+   append_menu_item menu, "Weapon's Attack", 1
+   append_menu_item menu, "Specific Attack", 2
+   append_menu_item menu, "Spell List", 3
+   append_menu_item menu, "Items Menu", 4
+   init_menu_state st, menu
+   st.need_update = NO
+  END IF
+
+  usemenu st
+  
+  IF enter_or_space() THEN
+   WITH *menu.items[st.pt]
+    SELECT CASE .t
+     CASE 1: change_battle_menu_kind menu_node, "weapon"
+     CASE 2: change_battle_menu_kind menu_node, "attack", YES
+     CASE 3: change_battle_menu_kind menu_node, "spells", YES
+     CASE 4: change_battle_menu_kind menu_node, "items"
+    END SELECT
+   END WITH
+   EXIT DO
+  END IF
+
+  copypage holdscreen, vpage
+  draw_menu menu, st, vpage
+  setvispage vpage
+  
+  dowait
+ LOOP
+
+ freepage holdscreen
+ setkeys
+END SUB
+
+SUB change_battle_menu_kind (byval menu_node as NodePtr, new_kind as string, init_integer as bool=NO)
+ IF menu_node = 0 THEN debug "change_battle_menu_kind null NodePtr": EXIT SUB
+ SELECT CASE new_kind
+  CASE "weapon":
+  CASE "attack":
+  CASE "spells":
+  CASE "items":
+  CASE ELSE:
+   debug "change_battle_menu_kind attempted to set invalid kind: """ & new_kind & """"
+   EXIT SUB
+ END SELECT
+ DIM k as NodePtr
+ k = menu_node."kind".ptr
+ IF k."weapon".exists THEN FreeNode k."weapon".ptr
+ IF k."attack".exists THEN FreeNode k."attack".ptr
+ IF k."spells".exists THEN FreeNode k."spells".ptr
+ IF k."items".exists THEN FreeNode k."items".ptr
+ DIM n as NodePtr
+ n = SetChildNode(k, new_kind)
+ IF init_integer THEN
+  SetContent n, 0
+ END IF
 END SUB
 
 SUB update_hero_tags_menu (byref hero as HeroDef, menu() as string)

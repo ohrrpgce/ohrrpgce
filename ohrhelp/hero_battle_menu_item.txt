@@ -1,0 +1,13 @@
+This screen allows you to edit a single battle menu item. Use the up and down arrow keys to navigate the menu.
+
+Press ENTER or SPACE on the "Kind" if you want to change the type of menu item.
+
+Some kinds of menu items require a number, for example:
+
+Kind: Specific Attack
+  Type the ID number of the attack
+  that will appear in the menu.
+
+Kind: Spell List
+  Type the ID number of the hero's
+  Spell Menu (0 thru 3)
