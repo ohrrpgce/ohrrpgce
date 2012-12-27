@@ -3684,7 +3684,7 @@ fix_record_count gen(genMaxTagname),   42, game & ".tmn", "Tag names", -84 'Note
 fix_record_count gen(genMaxMenu),      getbinsize(binMENUS), workingdir & SLASH & "menus.bin", "Menus"
 fix_record_count gen(genMaxMenuItem),  getbinsize(binMENUITEM), workingdir & SLASH & "menuitem.bin", "Menu Items"
 fix_record_count gen(genMaxItem),      getbinsize(binITM), game & ".itm", "Items"
-fix_record_count gen(genMaxMasterPal), 256 * 3, workingdir & "palettes.bin", "Master Palettes", 4
+fix_record_count gen(genMaxMasterPal), 256 * 3, workingdir & SLASH & "palettes.bin", "Master Palettes", 4
 'Warning: don't deduce number of maps from length of .MAP or .MN: may be appended with garbage
 
 'FIXME: Attack data is split over two lumps. Must handle mismatch. In the meantime, a quick fix (increase only)
