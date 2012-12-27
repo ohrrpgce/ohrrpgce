@@ -6,6 +6,8 @@ Use the up and down arrow keys to select the battle menu item you want to custom
 
 You can add new battle menu items with INSERT and you can remove battle menu items with DELETE
 
+Hold SHIFT and press the up and down arrow keys to re-order the menu items.
+
 The default battle menu is:
 
   Weapon

@@ -4233,3 +4233,31 @@ SUB check_used_onetime_npcs(bits() as integer)
   NEXT i
  NEXT m
 END SUB
+
+SUB menu_of_reorderable_nodes(st as MenuState, menu as MenuDef)
+ 'This is intended for menus that represent sibling Nodes. The NodePtr
+ 'is in the .dataptr of the selected menu item
+ WITH *menu.items[st.pt]
+  IF .dataptr <> 0 THEN
+   DIM node as NodePtr = .dataptr
+   IF reorderable_node(node) THEN
+    st.need_update = YES
+   END IF
+  END IF
+ END WITH
+END SUB
+
+FUNCTION reorderable_node(byval node as NodePtr) as integer
+ IF keyval(scShift) > 0 THEN
+  IF node THEN
+   IF keyval(scUp) > 1 THEN
+    SwapNodePrev node
+    RETURN YES
+   ELSEIF keyval(scDown) > 1 THEN
+    SwapNodeNext node
+    RETURN YES
+   END IF
+  END IF
+ END IF
+ RETURN NO
+END FUNCTION

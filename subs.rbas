@@ -2376,6 +2376,7 @@ SUB hero_editor_battle_menu (her as HeroDef)
    st.need_update = NO
   END IF
   
+  menu_of_reorderable_nodes st, menu
   usemenu st
   
   IF enter_or_space() THEN
