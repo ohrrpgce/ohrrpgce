@@ -1388,6 +1388,7 @@ SUB populate_battle_menu_menudef (byval hero_id as integer, menu as MenuDef, her
   .itemspacing = -2
   .highlight_selection = YES
   .min_chars = 10
+  .maxrows = 23
  END WITH
  
  READNODE hero_node."battle_menus" as battle_menus

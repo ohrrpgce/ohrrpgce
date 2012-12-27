@@ -2337,6 +2337,7 @@ SUB hero_editor_battle_menu (her as HeroDef)
     .itemspacing = -2
     .highlight_selection = YES
     .min_chars = 10
+    .maxrows = 22
    END WITH
    append_menu_item menu, "Previous menu..."
    READNODE hero_node."battle_menus" as batmen, ignoreall

@@ -1005,7 +1005,9 @@ SUB position_menu (menu as MenuDef, byval page as integer)
  '--enforce screen boundaries
  menu.rect.wide = small(menu.rect.wide, vpages(page)->w)
  menu.rect.high = small(menu.rect.high, vpages(page)->h)
- IF menu.maxrows > 0 THEN menu.rect.high = small(menu.rect.high, menu.maxrows * 10 + bord * 2)
+ IF menu.maxrows > 0 THEN
+  menu.rect.high = small(menu.rect.high, menu.maxrows * (10 + menu.itemspacing) - menu.itemspacing + bord * 2)
+ END IF
 
  WITH menu
   .rect.x = vpages(page)->w \ 2 - anchor_point(.anchor.x, .rect.wide) + menu.offset.x
