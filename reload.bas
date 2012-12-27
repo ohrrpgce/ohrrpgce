@@ -1736,6 +1736,22 @@ Sub SwapSiblingNodes(byval nod1 as NodePtr, byval nod2 as NodePtr)
 	par->lastChild = holder(ubound(holder))
 End Sub
 
+sub SwapNodePrev(byval node as Nodeptr)
+	if node = 0 then exit sub
+	dim sib as NodePtr
+	sib = PrevSibling(node)
+	IF sib = 0 then exit sub
+	SwapSiblingNodes(node, sib)
+end sub
+
+sub SwapNodeNext(byval node as Nodeptr)
+	if node = 0 then exit sub
+	dim sib as NodePtr
+	sib = NextSibling(node)
+	if sib = 0 then exit sub
+	SwapSiblingNodes(node, sib)
+end sub
+
 'This clones a node and all its children and returns the cloned (parentless) node.
 'The doc is an optional doc ptr that new new node should belong to. If ommitted, the clone
 'will be in the same doc as the original node

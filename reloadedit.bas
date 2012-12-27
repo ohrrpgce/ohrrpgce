@@ -52,8 +52,6 @@ DECLARE FUNCTION reload_editor_edit_node_name(BYVAL node AS Reload.Nodeptr) AS I
 DECLARE FUNCTION reload_editor_edit_node_value(BYREF st AS ReloadEditorState, BYVAL node AS Reload.Nodeptr) AS INTEGER
 DECLARE FUNCTION reload_editor_edit_node_type(BYVAL node AS Reload.Nodeptr) AS INTEGER
 DECLARE SUB reload_editor_rearrange(BYREF st AS ReloadEditorState, mi AS MenuDefItem Ptr)
-DECLARE SUB reload_editor_swap_node_up(BYVAL node AS Reload.Nodeptr)
-DECLARE SUB reload_editor_swap_node_down(BYVAL node AS Reload.Nodeptr)
 DECLARE SUB reload_editor_swap_node_left(BYVAL node AS Reload.Nodeptr)
 DECLARE SUB reload_editor_swap_node_right(BYVAL node AS Reload.Nodeptr)
 DECLARE SUB reload_editor_focus_node(BYREF st AS ReloadEditorState, BYVAL node AS Reload.Nodeptr)
@@ -188,12 +186,12 @@ SUB reload_editor_rearrange(BYREF st AS ReloadEditorState, mi AS MenuDefItem Ptr
  
  IF keyval(scShift) > 0 THEN
   IF keyval(scUP) > 1 THEN
-   reload_editor_swap_node_up node
+   Reload.SwapNodePrev node
    st.seeknode = node
    changed = YES
   END IF
   IF keyval(scDOWN) > 1 THEN
-   reload_editor_swap_node_down node
+   Reload.SwapNodeNext node
    st.seeknode = node
    changed = YES
   END IF
@@ -222,22 +220,6 @@ SUB reload_editor_rearrange(BYREF st AS ReloadEditorState, mi AS MenuDefItem Ptr
   st.state.need_update = YES
   st.changed = YES
  END IF
-END SUB
-
-SUB reload_editor_swap_node_up(BYVAL node AS Reload.Nodeptr)
- IF node = 0 THEN EXIT SUB
- DIM sib AS Reload.NodePtr
- sib = Reload.PrevSibling(node)
- IF sib = 0 THEN EXIT SUB
- Reload.SwapSiblingNodes(node, sib)
-END SUB
-
-SUB reload_editor_swap_node_down(BYVAL node AS Reload.Nodeptr)
- IF node = 0 THEN EXIT SUB
- DIM sib AS Reload.NodePtr
- sib = Reload.NextSibling(node)
- IF sib = 0 THEN EXIT SUB
- Reload.SwapSiblingNodes(node, sib)
 END SUB
 
 SUB reload_editor_swap_node_left(BYVAL node AS Reload.Nodeptr)

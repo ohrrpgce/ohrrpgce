@@ -164,6 +164,8 @@ Declare Function PrevSibling(byval nod as NodePtr, byval name as zstring ptr = n
 Declare Function NodeType(byval nod as NodePtr) as NodeTypes
 Declare Function NodeName(byval nod as NodePtr) as String
 Declare Sub SwapSiblingNodes(byval nod1 as NodePtr, byval nod2 as NodePtr)
+Declare Sub SwapNodePrev(byval node as Nodeptr)
+Declare Sub SwapNodeNext(byval node as Nodeptr)
 Declare Function CloneNodeTree(byval nod as NodePtr, byval doc as DocPtr=0, byval nod_for_doc as NodePtr=0) as NodePtr
 Declare Function NodeHasAncestor(byval nod as NodePtr, byval possible_parent as NodePtr) as integer
 
