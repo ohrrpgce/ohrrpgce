@@ -35,6 +35,8 @@ DECLARE SUB equip_menu_setup (byref st as EquipMenuState, menu() as string)
 DECLARE SUB equip_menu_do_equip(byval item as integer, byref st as EquipMenuState, menu() as string)
 DECLARE SUB equip_menu_back_to_menu(byref st as EquipMenuState, menu() as string)
 DECLARE SUB equip_menu_stat_bonus(byref st as EquipMenuState)
+DECLARE FUNCTION equip_menu_update_equipped_item_info(st as EquipMenuState, eqstuf() as integer) as string
+DECLARE FUNCTION equip_menu_update_available_item_info(st as EquipMenuState) as string
 DECLARE SUB items_menu_paint (istate as ItemsMenuState, iuse() as integer, permask() as integer)
 DECLARE SUB items_menu_infostr(state as ItemsMenuState, permask() as integer)
 DECLARE SUB items_menu_autosort(iuse() as integer, permask() as integer)
@@ -1492,7 +1494,8 @@ END FUNCTION
 SUB equip (byval who as integer)
 
 '--dim stuff
-DIM m(4) as string, menu(6) as string
+DIM m(4) as string
+DIM menu(6) as string
 DIM page as integer = compatpage
 DIM holdscreen as integer = allocatepage
 DIM st as EquipMenuState
@@ -1502,6 +1505,7 @@ DIM tog as integer = 0
 DIM stat_caption as string
 DIM col as integer
 DIM item_id as integer
+DIM item_info as string
 
 '--get names
 m(0) = readglobalstring(38, "Weapon", 10)
@@ -1521,6 +1525,8 @@ WITH st
  .unequip_caption = rpad(readglobalstring(110, "Nothing", 10), " ", 11)
 END WITH
 equip_menu_setup st, menu()
+
+item_info = equip_menu_update_equipped_item_info(st, eqstuf())
 
 '--prepare the backdrop
 'preserve the background behind the equip menu
@@ -1546,14 +1552,18 @@ DO
    DO: st.who = loopvar(st.who, 0, 3, -1): LOOP UNTIL hero(st.who) > 0
    equip_menu_setup st, menu()
    MenuSound gen(genCursorSFX)
+   item_info = equip_menu_update_equipped_item_info(st, eqstuf())
   END IF
   IF carray(ccRight) > 1 THEN 'Right: next hero
    DO: st.who = loopvar(st.who, 0, 3, 1): LOOP UNTIL hero(st.who) > 0
    equip_menu_setup st, menu()
    MenuSound gen(genCursorSFX)
+   item_info = equip_menu_update_equipped_item_info(st, eqstuf())
   END IF
   usemenusounds
-  usemenu st.slot, 0, 0, 6, 6
+  IF usemenu(st.slot, 0, 0, 6, 6) THEN
+   item_info = equip_menu_update_equipped_item_info(st, eqstuf())
+  END IF
 
   IF carray(ccUse) > 1 THEN
    IF st.slot < 5 THEN
@@ -1567,6 +1577,7 @@ DO
      st.eq_cursor.last = (st.eq(st.slot).count + 1) - 1
      equip_menu_stat_bonus st
      MenuSound gen(genAcceptSFX)
+     item_info = equip_menu_update_available_item_info(st)
     END IF
     'UPDATE ITEM POSSESSION BITSETS
     evalitemtags
@@ -1589,10 +1600,12 @@ DO
    st.mode = 0
    flusharray st.stat_bonus()
    MenuSound gen(genCancelSFX)
+   item_info = equip_menu_update_equipped_item_info(st, eqstuf())
   END IF
   usemenusounds
   IF usemenu(st.eq_cursor) THEN
    equip_menu_stat_bonus st
+   item_info = equip_menu_update_available_item_info(st)
   END IF
   IF carray(ccUse) > 1 THEN
    IF st.eq_cursor.pt = st.eq(st.slot).count THEN
@@ -1671,6 +1684,8 @@ DO
    END IF
   NEXT i
  END IF
+ centerbox 160, 192, 312, 16, 4, page
+ edgeprint item_info, xstring(item_info, 160), 187, uilook(uiText), page
  setvispage vpage
  copypage holdscreen, page
  dowait
@@ -1680,6 +1695,21 @@ freepage holdscreen
 MenuSound gen(genCancelSFX)
 'tags handled in unequip, doequip
 END SUB
+
+FUNCTION equip_menu_update_equipped_item_info(st as EquipMenuState, eqstuf() as integer) as string
+ IF st.slot < 5 ANDALSO eqstuf(st.who, st.slot) > 0 THEN
+  RETURN readitemdescription(eqstuf(st.who, st.slot) - 1)
+ END IF
+ RETURN ""
+END FUNCTION
+
+FUNCTION equip_menu_update_available_item_info(st as EquipMenuState) as string
+ DIM slot_id as integer = st.eq(st.slot).offset(st.eq_cursor.pt)
+ IF slot_id >= 0 THEN
+  RETURN readitemdescription(inventory(slot_id).id)
+ END IF
+ RETURN ""
+END FUNCTION
 
 SUB equip_menu_setup (byref st as EquipMenuState, menu() as string)
  st.default_weapon = gam.hero(st.who).def_wep
