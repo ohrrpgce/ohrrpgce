@@ -32,6 +32,9 @@ WHAT IS NEW?
     * Menu editor allows the selected item to be highlighted with
       the highlight background color in addition to flickering the text
       [James]
+    * Hero battle menus are now customizable. You can remove weapon
+      attack and the items menu, add specific attacks, add more than 6
+      menu items, and reorder battle menu items [James]
     
 
   * Bugfixes
