@@ -1227,10 +1227,13 @@ DO
  SELECT CASE mode
   CASE 0
    '--show stats
+   DIM stat_v_offset as integer = 0
    FOR i as integer = 0 TO 9
-    edgeprint statnames(i + 2), 20, 62 + i * 10, uilook(uiText), page
+    IF should_hide_hero_stat(her, i + 2) THEN CONTINUE FOR
+    edgeprint statnames(i + 2), 20, 62 + stat_v_offset * 10, uilook(uiText), page
     DIM stat_str as string = STR(gam.hero(pt).stat.cur.sta(i + 2))
-    edgeprint stat_str, 148 - LEN(stat_str) * 8, 62 + i * 10, uilook(uiText), page
+    edgeprint stat_str, 148 - LEN(stat_str) * 8, 62 + stat_v_offset * 10, uilook(uiText), page
+    stat_v_offset += 1
    NEXT i
 
    'current/max HP
@@ -1242,9 +1245,11 @@ DO
    DIM mp_str as string
    FOR i as integer = 0 TO 5
     IF mtype(i) = 0 THEN
-     edgeprint statnames(statMP), 236 - LEN(statnames(statMP)) * 4, 95, uilook(uiText), page
-     mp_str = STR(ABS(gam.hero(pt).stat.cur.mp)) & "/" & STR(ABS(gam.hero(pt).stat.max.mp))
-     edgeprint mp_str, 236 - LEN(mp_str) * 4, 105, uilook(uiText), page
+     IF NOT should_hide_hero_stat(her, statMP) THEN
+      edgeprint statnames(statMP), 236 - LEN(statnames(statMP)) * 4, 95, uilook(uiText), page
+      mp_str = STR(ABS(gam.hero(pt).stat.cur.mp)) & "/" & STR(ABS(gam.hero(pt).stat.max.mp))
+      edgeprint mp_str, 236 - LEN(mp_str) * 4, 105, uilook(uiText), page
+     END IF
     END IF
     IF mtype(i) = 1 THEN
      edgeprint level_mp_caption, 236 - LEN(level_mp_caption) * 4, 125, uilook(uiText), page
@@ -1308,7 +1313,6 @@ END SUB
 
 SUB status_buildmenu(her as HeroDef, byval pt as integer, mtype() as integer, elementaldmg() as single, elementnames() as string, elementalmenu() as string, elementalmenu_st as MenuState, portrait as GraphicPair)
  '--loads the hero whose slot is held in pt
- '--load the hero data lump only to get the spell list types
  loadherodata her, hero(pt) - 1
  
  FOR i as integer = 0 TO UBOUND(mtype)
