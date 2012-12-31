@@ -1660,7 +1660,9 @@ SUB load_hero_from_reload(hero as HeroDef, byval parent as NodePtr)
    hero.leader_tag = tags."is_leader".integer
    hero.active_tag = tags."is_active".integer
   END READNODE
+  '-- Ignore the following because the are kept as Nodes
   parent."battle_menus".ignore
+  parent."stat_options".ignore
  END READNODE
  hero.reld = get_reload_copy(parent)
  print "Loaded hero from reload: " & hero.name
@@ -1788,6 +1790,13 @@ SUB save_hero_as_reload(hero as HeroDef, byval parent as NodePtr)
  IF hero.alive_tag > 0 THEN SetChildNode tagnode, "is_alive", hero.alive_tag
  IF hero.leader_tag > 0 THEN SetChildNode tagnode, "is_leader", hero.leader_tag
  IF hero.active_tag > 0 THEN SetChildNode tagnode, "is_active", hero.active_tag
+
+ IF reld."stat_options".exists THEN
+  AddChild(parent, CloneNodeTree(reld."stat_options".ptr, , parent))
+ ELSE
+  '-empty node if not found
+  SetChildNode(parent, "stat_options")
+ END IF
  
 END SUB
 
@@ -1872,6 +1881,7 @@ SUB create_blank_hero_reld(hero as HeroDef)
     add_hero_battle_menu_item batmenus, "spells", i
   next
   add_hero_battle_menu_item batmenus, "items"
+  SetChildNode(hero.reld, "stat_options")
 END SUB
 
 

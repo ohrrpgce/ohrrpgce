@@ -5043,3 +5043,18 @@ FUNCTION add_hero_battle_menu_item(byval parent as NodePtr, kind as string, byva
  END SELECT
  RETURN bmenu
 END FUNCTION
+
+FUNCTION should_hide_hero_stat(hero as HeroDef, byval statnum as integer) as bool
+ DIM hero_node as NodePtr
+ hero_node = hero.reld
+ READNODE hero_node."stat_options" as opt
+  WITHNODE opt."stat" as stat
+   DIM n as integer
+   n = GetInteger(stat)
+   IF n = statnum THEN
+    IF stat."hide".exists THEN RETURN YES
+   END IF
+  END WITHNODE
+ END READNODE
+ RETURN NO
+END FUNCTION

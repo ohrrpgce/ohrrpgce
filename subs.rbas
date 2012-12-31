@@ -71,6 +71,7 @@ DECLARE SUB hero_editor_battle_menu (her as HeroDef)
 DECLARE SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
 DECLARE SUB browse_battle_menu_kinds (byval menu_node as NodePtr)
 DECLARE SUB change_battle_menu_kind (byval menu_node as NodePtr, new_kind as string, init_integer as bool=NO)
+DECLARE SUB hero_editor_stat_visibility (hero as HeroDef)
 
 SUB clearallpages
 clearpage 0 'UPDATE as of fbc v0.20
@@ -1898,21 +1899,66 @@ SUB hero_editor_add_new (st as HeroEditState, her as HeroDef, byref recindex as 
   LOOP
 END SUB
 
+SUB hero_editor_stat_visibility (hero as HeroDef)
+ DIM tmpbits(0) as integer
+ REDIM menu(statLast) as string
+ getstatnames menu()
+ FOR i as integer = 0 TO statLast
+  menu(i) = "Hide " & menu(i)
+ NEXT i
+ 
+ DIM hero_node as NodePtr
+ hero_node = hero.reld
+ READNODE hero_node."stat_options" as opt
+  WITHNODE opt."stat" as stat
+   DIM i as integer = GetInteger(stat)
+   IF stat."hide".exists THEN setbit tmpbits(), 0, i, YES
+  END WITHNODE
+ END READNODE
+
+ editbitset tmpbits(), 0, statLast, menu()
+ 
+ DIM stat_options as NodePtr
+ stat_options = hero_node."stat_options".ptr
+ IF stat_options = 0 THEN stat_options = SetChildNode(hero_node, "stat_options")
+
+ DIM stat as NodePtr
+ FOR i as integer = 0 TO statLast
+  stat = NodeByPath(stat_options, "/stat[" & i & "]")
+  IF stat = 0 THEN
+   'Node does not exist yet
+   IF xreadbit(tmpbits(), i) THEN
+    stat = AppendChildNode(stat_options, "stat", i)
+    SetChildNode(stat, "hide")
+   END IF
+  ELSE
+   'Node already exists
+   IF xreadbit(tmpbits(), i) THEN
+    SetChildNode(stat, "hide")
+   ELSE
+    IF stat."hide".exists THEN FreeNode stat."hide".ptr
+   END IF
+  END IF
+ NEXT i
+ 
+END SUB
+
 SUB hero_editor_stats_menu (her as HeroDef)
  DIM i as integer
  DIM activemenu as integer = 0  '0 or 1 indicating left or rightmenu
 
  '.unselectable attribute only used from leftmenu
  DIM as BasicMenuItem vector leftmenu, rightmenu
- v_new leftmenu, 3 + 12
- v_new rightmenu, 3 + 12
+ v_new leftmenu, 4 + 12
+ v_new rightmenu, 4 + 12
  leftmenu[0].text = "Previous Menu"
- leftmenu[1].unselectable = YES
- leftmenu[2].text = "LEVEL ZERO"
+ leftmenu[1].text = "Stat Visibility..."
  leftmenu[2].unselectable = YES
- leftmenu[2].col = uilook(uiDescription)
- rightmenu[2].text = "LEVEL " & gen(genMaxLevel)
- rightmenu[2].col = uilook(uiDescription)
+ leftmenu[3].text = "LEVEL ZERO"
+ leftmenu[3].unselectable = YES
+ leftmenu[3].col = uilook(uiDescription)
+ rightmenu[3].text = "LEVEL " & gen(genMaxLevel)
+ rightmenu[3].col = uilook(uiDescription)
 
  DIM mstate as MenuState
  WITH mstate
@@ -1939,9 +1985,15 @@ SUB hero_editor_stats_menu (her as HeroDef)
   IF keyval(scF1) > 1 THEN show_help "hero_stats"
 
   usemenu mstate, leftmenu
-  DIM statnum as integer = mstate.pt - 3
+  DIM statnum as integer = mstate.pt - 4
 
-  IF enter_or_space() AND mstate.pt = 0 THEN EXIT DO
+  IF enter_or_space() THEN
+   IF mstate.pt = 0 THEN EXIT DO
+   IF mstate.pt = 1 THEN
+    hero_editor_stat_visibility her
+    mstate.need_update = YES
+   END IF
+  END IF
   IF statnum < 0 THEN
    activemenu = 0
   ELSE
@@ -1956,8 +2008,16 @@ SUB hero_editor_stats_menu (her as HeroDef)
   IF mstate.need_update THEN
    mstate.need_update = NO
    FOR i as integer = 0 TO UBOUND(her.Lev0.sta)
-    leftmenu[3 + i].text = statnames(i) & " " & her.Lev0.sta(i)
-    rightmenu[3 + i].text = statnames(i) & " " & her.LevMax.sta(i)
+    WITH leftmenu[4 + i]
+     .text = statnames(i) & " " & her.Lev0.sta(i)
+     .col = uiLook(uiMenuItem)
+     IF should_hide_hero_stat(her, i) THEN .col = uiLook(uiDisabledItem)
+    END WITH
+    WITH rightmenu[4 + i]
+     .text = statnames(i) & " " & her.LevMax.sta(i)
+     .col = uiLook(uiMenuItem)
+     IF should_hide_hero_stat(her, i) THEN .col = uiLook(uiDisabledItem)
+    END WITH
    NEXT i
   END IF
 

@@ -35,7 +35,6 @@ WHAT IS NEW?
     * Hero battle menus are now customizable. You can remove weapon
       attack and the items menu, add specific attacks, add more than 6
       menu items, and reorder battle menu items [James]
-    
 
   * Bugfixes
     * "run script by id" was far slower than it should have been [Ralph]
