@@ -1916,7 +1916,7 @@ SUB hero_editor_stat_visibility (hero as HeroDef)
   END WITHNODE
  END READNODE
 
- editbitset tmpbits(), 0, statLast, menu()
+ editbitset tmpbits(), 0, statLast, menu(), "hero_stat_visibility"
  
  DIM stat_options as NodePtr
  stat_options = hero_node."stat_options".ptr

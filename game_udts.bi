@@ -128,6 +128,7 @@ TYPE EquipMenuState
   unequip_caption     as string
   eq(4)               as EquippableList
   stat_bonus(11)      as integer 'Cache stat bonuses for currently selected equippable
+  hero                as HeroDef
 END TYPE
 
 TYPE ItemsMenuState

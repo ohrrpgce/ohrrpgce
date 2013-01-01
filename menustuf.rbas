@@ -1632,11 +1632,13 @@ DO
  centerbox 84, 102, 140, 130, 4, page  'stats
  centerbox 236, 75, 80, 78, 4, page    'equipment
  edgeprint names(st.who), 84 - LEN(names(st.who)) * 4, 13, uilook(uiText), page
+ DIM stat_v_offset as integer = 0
  FOR i = 0 TO 11
+  IF should_hide_hero_stat(st.hero, i) THEN CONTINUE FOR
   stat_caption = ""
   IF st.stat_bonus(i) > 0 THEN stat_caption = stat_caption & "+" & st.stat_bonus(i)
   IF st.stat_bonus(i) < 0 THEN stat_caption = stat_caption & st.stat_bonus(i)
-  edgeprint statnames(i) & stat_caption, 20, 42 + i * 10, uilook(uiMenuItem), page
+  edgeprint statnames(i) & stat_caption, 20, 42 + stat_v_offset * 10, uilook(uiMenuItem), page
   col = uilook(uiMenuItem)
   IF st.stat_bonus(i) < 0 THEN col = uilook(uiDisabledItem)
   IF st.stat_bonus(i) > 0 THEN col = uilook(uiSelectedItem + tog)
@@ -1645,7 +1647,8 @@ DO
   ELSE
    stat_caption = STR(gam.hero(st.who).stat.max.sta(i) + st.stat_bonus(i))
   END IF
-  edgeprint stat_caption, 148 - LEN(stat_caption) * 8, 42 + i * 10, col, page
+  edgeprint stat_caption, 148 - LEN(stat_caption) * 8, 42 + stat_v_offset * 10, col, page
+  stat_v_offset += 1
  NEXT i
  IF st.mode = 0 THEN
   '--main menu display
@@ -1716,6 +1719,7 @@ FUNCTION equip_menu_update_available_item_info(st as EquipMenuState) as string
 END FUNCTION
 
 SUB equip_menu_setup (byref st as EquipMenuState, menu() as string)
+ loadherodata st.hero, hero(st.who) - 1
  st.default_weapon = gam.hero(st.who).def_wep
  st.default_weapon_name = rpad(readitemname(st.default_weapon - 1), " ", 11)
  IF LEN(TRIM(st.default_weapon_name)) = 0 THEN
