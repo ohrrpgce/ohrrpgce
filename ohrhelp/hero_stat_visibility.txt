@@ -1,0 +1,3 @@
+Here you can choose stats that will be hidden on the Status and Equip menu for this hero.
+
+Hiding a stat does not prevent you from using it, it only prevents it from being displayed.
