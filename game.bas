@@ -668,43 +668,11 @@ DO
   IF keyval(scF3) > 1 AND txt.showing = NO THEN
    IF yesno("Load quick-saved game?") THEN wantloadgame = 33
   END IF
-  IF keyval(scCtrl) = 0 AND keyval(scF7) > 1 THEN
-   SELECT CASE gen(cameramode)
-    CASE herocam
-     IF gen(cameraArg) < 15 THEN
-      gen(cameraArg) = gen(cameraArg) + 5
-     ELSE
-      gen(cameraArg) = 0
-     END IF
-    CASE ELSE
-     gen(cameramode) = herocam
-     gen(cameraArg) = 0
-   END SELECT
-  END IF
   IF keyval(scCtrl) > 0 AND keyval(scF7) > 1 THEN
    catx(0) = (catx(0) \ 20) * 20
    caty(0) = (caty(0) \ 20) * 20
    herow(0).xgo = 0
    herow(0).ygo = 0
-  END IF
-  IF keyval(scF6) > 0 AND gen(cameramode) <> pancam THEN
-   '--only permit movement when not already panning
-   IF keyval(scUp) > 0 THEN
-    gen(cameraArg) = 0 'north
-    setdebugpan
-   END IF
-   IF keyval(scRight) > 0 THEN
-    gen(cameraArg) = 1 'east
-    setdebugpan
-   END IF
-   IF keyval(scDown) > 0 THEN
-    gen(cameraArg) = 2 'south
-    setdebugpan
-   END IF
-   IF keyval(scLeft) > 0 THEN
-    gen(cameraArg) = 3 'west
-    setdebugpan
-   END IF
   END IF
   IF keyval(scCtrl) > 0 THEN ' holding CTRL
    IF keyval(scF1) > 1 AND txt.showing = NO THEN

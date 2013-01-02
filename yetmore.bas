@@ -3278,12 +3278,6 @@ END SELECT
 
 END SUB
 
-SUB setdebugpan
- gen(cameramode) = pancam
- gen(cameraArg2) = 1
- gen(cameraArg3) = 5
-END SUB
-
 SUB tweakpalette (byval r as integer, byval g as integer, byval b as integer, byval first as integer = 0, byval last as integer = 255)
  FOR i as integer = first TO last
   master(i).r = bound(master(i).r + r * 4, 0, 255)
