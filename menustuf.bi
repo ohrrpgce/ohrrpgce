@@ -4,7 +4,7 @@ DECLARE SUB buystuff (byval id as integer, byval shoptype as integer, storebuf()
 DECLARE FUNCTION chkOOBtarg (byval target as integer, byval atk as integer) as integer
 DECLARE SUB doequip (byval toequip as integer, byval who as integer, byval where as integer, byval defwep as integer)
 DECLARE SUB equip (byval who as integer)
-DECLARE SUB getitem (byval getit as integer, byval num as integer)
+DECLARE SUB getitem (byval item_id as integer, byval num as integer=1)
 DECLARE FUNCTION getOOBtarg (byval search_direction as integer, byref target as integer, byval atk as integer, byval recheck as integer=NO) as integer
 DECLARE SUB itemmenuswap (invent() as InventSlot, iuse() as integer, permask() as integer, byval it1 as integer, byval it2 as integer)
 DECLARE FUNCTION items_menu () as integer

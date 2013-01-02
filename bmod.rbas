@@ -605,7 +605,7 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
      IF .number > 0 THEN 'remove items
       delitem(.id, .number)
      ELSEIF .number < 0 THEN 'add items
-      getitem(.id, abs(.number))
+      getitem(.id - 1, abs(.number))
      END IF
      'Update tags when items have changed because it could affect chain conditionals
      evalitemtags
@@ -1600,7 +1600,7 @@ SELECT CASE bat.vic.state
    '--get the item name
    bat.vic.item_name = readitemname$(bat.rew.found(bat.vic.found_index).id)
    '--actually acquire the item
-   getitem bat.rew.found(bat.vic.found_index).id + 1, bat.rew.found(bat.vic.found_index).num
+   getitem bat.rew.found(bat.vic.found_index).id, bat.rew.found(bat.vic.found_index).num
   END IF
   '--if the present item is gotten, show the caption
   IF bat.rew.found(bat.vic.found_index).num = 1 THEN

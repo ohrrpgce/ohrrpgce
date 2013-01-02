@@ -3163,7 +3163,7 @@ SUB advance_text_box ()
  END IF
  '---GAIN/LOSE ITEM--------
  IF istag(txt.box.item_tag, 0) THEN
-  IF txt.box.item > 0 THEN getitem txt.box.item, 1
+  IF txt.box.item > 0 THEN getitem txt.box.item - 1
   IF txt.box.item < 0 THEN delitem -txt.box.item, 1
  END IF
  '---SHOP/INN/SAVE/ETC------------
@@ -3658,7 +3658,7 @@ SUB usenpc(byval cause as integer, byval npcnum as integer)
  '---Item from NPC---
  DIM getit as integer = npcs(id).item
  IF getit THEN
-  getitem getit, 1
+  getitem getit - 1
   evalitemtags
  END IF
  '---DIRECTION CHANGING-----------------------

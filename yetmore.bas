@@ -936,7 +936,7 @@ SELECT CASE as CONST id
  CASE 17'--get item
   IF valid_item(retvals(0)) THEN
    IF retvals(1) >= 1 THEN
-    getitem retvals(0) + 1, retvals(1)
+    getitem retvals(0), retvals(1)
     evalitemtags
     tag_updates
    END IF

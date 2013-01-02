@@ -105,12 +105,12 @@ END FUNCTION 'stat
 FUNCTION checktheftchance (byval item as integer, byval itemP as integer, byval rareitem as integer, byval rareitemP as integer) as integer
 IF randint(100) < itemP THEN
  '--success!
- getitem item + 1, 1
+ getitem item
  checktheftchance = item + 1
 ELSE
  IF randint(100) < rareitemP THEN
   '--rare success!
-  getitem rareitem + 1, 1
+  getitem rareitem
   checktheftchance = rareitem + 1
  ELSE
   checktheftchance = 0
