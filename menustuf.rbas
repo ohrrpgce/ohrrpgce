@@ -51,6 +51,7 @@ DECLARE SUB picksave_draw(menu() as string, byval loading as integer, sprites() 
 DECLARE FUNCTION picksave_confirm(menu() as string, byval loading as integer, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval holdscreen as integer, byval page as integer) as integer
 DECLARE SUB sellstuff_refresh(byval last_stuff as integer, byval recordsize as integer, permask() as integer, price() as integer, stuffdata() as integer)
 DECLARE SUB status_buildmenu(her as HeroDef, byval pt as integer, mtype() as integer, elementaldmg() as single, elementnames() as string, elementalmenu() as string, elementalmenu_st as MenuState, portrait as GraphicPair)
+DECLARE SUB inventory_overflow_handler(byval item_id as integer, byval numitems as integer)
 
 SUB buystuff (byval id as integer, byval shoptype as integer, storebuf() as integer)
 DIM b((getbinsize(binSTF) \ 2) * 50 - 1) as integer
@@ -504,6 +505,13 @@ SUB getitem (byval item_id as integer, byval num as integer=1)
   END IF
  NEXT
  
+ 'No slot was found to put this item into!
+ inventory_overflow_handler item_id, numitems
+ 
+END SUB
+
+SUB inventory_overflow_handler(byval item_id as integer, byval numitems as integer)
+ debug "Didn't have room for " & readitemname(item_id) & "x" & numitems
 END SUB
 
 FUNCTION getOOBtarg (byval search_direction as integer, byref target as integer, byval atk as integer, byval recheck as integer=NO) as integer
