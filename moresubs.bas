@@ -281,20 +281,20 @@ FUNCTION countitem (byval it as integer) as integer
  RETURN total
 END FUNCTION
 
-SUB delitem (byval it as integer, byval amount as integer)
-FOR o as integer = 0 TO last_inv_slot()
- IF inventory(o).used AND it - 1 = inventory(o).id THEN
-  IF inventory(o).num <= amount THEN
-   amount -= inventory(o).num
-   inventory(o).used = 0
-  ELSE
-   inventory(o).num -= amount
-   amount = 0
+SUB delitem (byval item_id as integer, byval amount as integer=1)
+ FOR o as integer = 0 TO last_inv_slot()
+  IF inventory(o).used AND item_id = inventory(o).id THEN
+   IF inventory(o).num <= amount THEN
+    amount -= inventory(o).num
+    inventory(o).used = 0
+   ELSE
+    inventory(o).num -= amount
+    amount = 0
+   END IF
+   update_inventory_caption o
+   IF amount = 0 THEN EXIT FOR
   END IF
-  update_inventory_caption o
-  IF amount = 0 THEN EXIT FOR
- END IF
-NEXT o
+ NEXT o
 END SUB
 
 SUB doswap (byval s as integer, byval d as integer)

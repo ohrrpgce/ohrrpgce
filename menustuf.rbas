@@ -155,7 +155,7 @@ DO
    IF tradingitems THEN '---TRADE IN ITEMS----------
     FOR i as integer = 0 TO 3
      IF tradestf(i, 0) > -1 THEN
-      delitem tradestf(i, 0) + 1, tradestf(i, 1)
+      delitem tradestf(i, 0), tradestf(i, 1)
      END IF
     NEXT
    END IF '-------END TRADE IN ITEM----------------------------
@@ -462,7 +462,7 @@ eqstuf(who, where) = toequip
 IF toequip = defwep AND where = 0 THEN
 ELSE
  '--delete the item from inventory
- delitem toequip, 1
+ delitem toequip - 1
 END IF
 
 evalitemtags

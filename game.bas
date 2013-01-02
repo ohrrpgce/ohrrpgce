@@ -3164,7 +3164,7 @@ SUB advance_text_box ()
  '---GAIN/LOSE ITEM--------
  IF istag(txt.box.item_tag, 0) THEN
   IF txt.box.item > 0 THEN getitem txt.box.item - 1
-  IF txt.box.item < 0 THEN delitem -txt.box.item, 1
+  IF txt.box.item < 0 THEN delitem (-txt.box.item) - 1
  END IF
  '---SHOP/INN/SAVE/ETC------------
  IF istag(txt.box.shop_tag, 0) THEN

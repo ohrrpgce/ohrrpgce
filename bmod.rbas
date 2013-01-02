@@ -603,7 +603,7 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
    WITH attack.item(i)
     IF .id > 0 THEN 'this slot is used
      IF .number > 0 THEN 'remove items
-      delitem(.id, .number)
+      delitem(.id - 1, .number)
      ELSEIF .number < 0 THEN 'add items
       getitem(.id - 1, abs(.number))
      END IF

@@ -8,7 +8,7 @@ DECLARE FUNCTION averagelev () as integer
 DECLARE SUB calibrate
 DECLARE FUNCTION consumeitem (byval index as integer) as integer
 DECLARE FUNCTION countitem (byval it as integer) as integer
-DECLARE SUB delitem (byval it as integer, byval amount as integer)
+DECLARE SUB delitem (byval item_id as integer, byval amount as integer=1)
 DECLARE SUB doswap (byval s as integer, byval d as integer)
 DECLARE SUB update_textbox ()
 DECLARE SUB party_change_updates ()

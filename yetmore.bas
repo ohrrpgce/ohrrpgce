@@ -944,7 +944,7 @@ SELECT CASE as CONST id
  CASE 18'--delete item
   IF valid_item(retvals(0)) THEN
    IF retvals(1) >= 1 THEN
-    delitem retvals(0) + 1, retvals(1)
+    delitem retvals(0), retvals(1)
     evalitemtags
     tag_updates
    END IF
