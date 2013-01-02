@@ -1175,7 +1175,7 @@ SUB generate_battlesystem_menu(menu() as string)
  IF gen(genBattleMode) = 0 THEN
   menu(4) &= "Active-time"
  ELSE
-  menu(4) &= "Turn-based [EXPERIMENTAL!]"
+  menu(4) &= "Turn-based"
  END IF
  menu(5) = "Number of Elements: " & gen(genNumElements)
  menu(6) = "Poison Indicator: " & gen(genPoison) & " " & CHR(gen(genPoison))
