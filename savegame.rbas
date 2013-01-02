@@ -117,7 +117,7 @@ SUB loadgame (byval slot as integer)
   DIM filename as STRING
   filename = savedir & SLASH & slot & ".rsav"
   IF isfile(filename) THEN
-   debuginfo "loading awesome new loadgame from " & filename
+   'debuginfo "loading awesome new loadgame from " & filename
    new_loadgame slot
    EXIT SUB
   END IF
@@ -131,7 +131,7 @@ SUB loadglobalvars (byval slot as integer, byval first as integer, byval last as
   DIM filename as STRING
   filename = savedir & SLASH & slot & ".rsav"
   IF isfile(filename) THEN
-   debuginfo "loading awesome new loadglobalvars from " & filename
+   'debuginfo "loading awesome new loadglobalvars from " & filename
    new_loadglobalvars slot, first, last
    EXIT SUB
   END IF
@@ -141,10 +141,10 @@ END SUB
 
 SUB get_save_slot_preview(byval slot as integer, pv as SaveSlotPreview)
  IF new_save_slot_used(slot) THEN
-  debuginfo "use nifty new save slot preview for slot " & slot
+  'debuginfo "use nifty new save slot preview for slot " & slot
   new_get_save_slot_preview slot, pv
  ELSE
-  debuginfo "fall back to boring old save slot preview for " & slot
+  'debuginfo "fall back to boring old save slot preview for " & slot
   old_get_save_slot_preview slot, pv
  END IF
 END SUB
@@ -1301,7 +1301,7 @@ loadset sg, slot * 2, 0
 
 DIM savver as integer = buffer(0)
 IF savver < 2 OR savver > 3 THEN EXIT SUB
-debuginfo "loading from slot " & slot & " of boring old " & old_savefile
+'debuginfo "loading from slot " & slot & " of boring old " & old_savefile
 
 gam.map.id = buffer(1)
 loadrecord gmaptmp(), game + ".map", getbinsize(binMAP) \ 2, gam.map.id
@@ -1597,7 +1597,7 @@ SUB old_loadglobalvars (byval slot as integer, byval first as integer, byval las
 DIM i as integer
 DIM buf((last - first + 1) * 2) as integer = ANY
 IF isfile(old_savefile) THEN
- debuginfo "loadglobalvars from slot " & slot & " of boring old " & old_savefile
+ 'debuginfo "loadglobalvars from slot " & slot & " of boring old " & old_savefile
 
  DIM fh as integer = FREEFILE
  OPEN old_savefile FOR BINARY as #fh

@@ -800,7 +800,7 @@ SUB battle_confirm_target(byref bat as BattleState, bslot() as BattleSprite)
 
  IF bat.turn.mode = turnACTIVE THEN
   bslot(bat.hero_turn).active_turn_num += 1
-  debug "Hero " & bat.hero_turn & " " & bslot(bat.hero_turn).name & " turn #" & bslot(bat.hero_turn).active_turn_num
+  'debug "Hero " & bat.hero_turn & " " & bslot(bat.hero_turn).name & " turn #" & bslot(bat.hero_turn).active_turn_num
  END IF
  
  bslot(bat.hero_turn).ready_meter = 0
@@ -1006,7 +1006,7 @@ SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata a
    bslot(i).ready_meter = small(1000, bslot(i).ready_meter + bslot(i).stat.cur.spd)
    IF bslot(i).ready_meter = 1000 AND bat.wait_frames = 0 THEN
     IF has_blocking_turn_delayed_attacks(i) THEN
-     debug "Unit " & i & " " & bslot(i).name & " blocked turn #" & bslot(i).active_turn_num
+     'debug "Unit " & i & " " & bslot(i).name & " blocked turn #" & bslot(i).active_turn_num
      bslot(i).ready_meter = 0
      update_turn_delays_in_attack_queue i
     ELSE
@@ -2272,7 +2272,7 @@ SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as For
 
  IF bat.turn.mode = turnACTIVE THEN
   bslot(bat.enemy_turn).active_turn_num += 1
-  debug "Enemy " & bat.enemy_turn & " " & bslot(bat.enemy_turn).name & " turn #" & bslot(bat.enemy_turn).active_turn_num
+  'debug "Enemy " & bat.enemy_turn & " " & bslot(bat.enemy_turn).name & " turn #" & bslot(bat.enemy_turn).active_turn_num
  END IF
 
  'ready for next attack
@@ -2286,7 +2286,7 @@ SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as herodef
  
  IF carray(ccMenu) > 1 THEN
   '--skip turn
-  debug "Requested to cancel picking attacks"
+  'debug "Requested to cancel picking attacks"
   bat.next_hero = bat.hero_turn
   bat.hero_turn = -1
   IF bat.turn.mode = turnTURN THEN
@@ -3440,10 +3440,10 @@ SUB battle_check_delays(byref bat as BattleState, bslot() as BattleSprite)
        'If a bequesting attacker is targetting itself, we don't care that it is dead
       ELSE
        IF .dont_retarget THEN
-        debuginfo "queued attack " & readattackname(.attack) & " for " & bslot(.attacker).name & .attacker & " in slot " & i & " has dead target, and should not retarget, clearing."
+        'debuginfo "queued attack " & readattackname(.attack) & " for " & bslot(.attacker).name & .attacker & " in slot " & i & " has dead target, and should not retarget, clearing."
         clear_attack_queue_slot i
        ELSE
-        debuginfo "queued attack " & readattackname(.attack) & " for " & bslot(.attacker).name & .attacker & " in slot " & i & " has dead target, retargetting."
+        'debuginfo "queued attack " & readattackname(.attack) & " for " & bslot(.attacker).name & .attacker & " in slot " & i & " has dead target, retargetting."
         autotarget .attacker, .attack, bslot(), .t(), NO
        END IF
       END IF
@@ -3600,7 +3600,7 @@ SUB battle_reevaluate_dead_targets (byval deadguy as integer, byref bat as Battl
     IF .t(0) = -1 THEN
      'if no targets left, auto-re-target
      IF .dont_retarget THEN
-      debuginfo "queued " & readattackname(.attack) & " for " & bslot(.attacker).name & " - last targ died and should not retarget"
+      'debuginfo "queued " & readattackname(.attack) & " for " & bslot(.attacker).name & " - last targ died and should not retarget"
       clear_attack_queue_slot i
      ELSE
       autotarget .attacker, .attack, bslot(), .t(), NO
@@ -3746,7 +3746,7 @@ SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formda
  IF bat.turn.choosing_attacks THEN
   
   IF bat.turn.reverse THEN
-   debug "Reverse! bat.next_hero=" & bat.next_hero
+   'debug "Reverse! bat.next_hero=" & bat.next_hero
    DO
     bat.next_hero = large(0, bat.next_hero - 1)
     WITH bslot(bat.next_hero)
@@ -3759,13 +3759,13 @@ SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formda
     END WITH
     IF bat.next_hero = 0 THEN EXIT DO
    LOOP
-   debug "  END LOOP bat.next_hero=" & bat.next_hero
+   'debug "  END LOOP bat.next_hero=" & bat.next_hero
    bat.turn.reverse = NO
   END IF
   
   DO WHILE bat.next_hero <= 3
    IF battle_check_a_hero_turn(bat, bslot(), bat.next_hero) THEN
-    debug "Hero " & bat.hero_turn & " " & bslot(bat.hero_turn).name & " is picking attack"
+    'debug "Hero " & bat.hero_turn & " " & bslot(bat.hero_turn).name & " is picking attack"
     bat.next_hero += 1
     EXIT SUB
    END IF
@@ -3774,7 +3774,7 @@ SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formda
   
   DO WHILE bat.next_enemy <= 11
    IF battle_check_an_enemy_turn(bat, bslot(), bat.next_enemy) THEN
-    debug "Enemy " & bat.enemy_turn & " " & bslot(bat.enemy_turn).name & " is picking attack"
+    'debug "Enemy " & bat.enemy_turn & " " & bslot(bat.enemy_turn).name & " is picking attack"
     bat.next_enemy += 1
     EXIT SUB
    END IF
@@ -3860,7 +3860,7 @@ SUB start_next_turn (bat as BattleState, bslot() as BattleSprite, formdata as Fo
    update_turn_delays_in_attack_queue i
   NEXT I
   
-  debug "Turn #" & bat.turn.number & " has begun!"
+  'debug "Turn #" & bat.turn.number & " has begun!"
 END SUB
 
 SUB calc_initiative_order (bslot() as BattleSprite, formdata as Formation)
@@ -3887,7 +3887,7 @@ SUB calc_initiative_order (bslot() as BattleSprite, formdata as Formation)
    END IF
   END IF
   speeds(i) = bslot(i).stat.cur.spd
-  debug bslot(i).name & " speed = " & speeds(i)
+  'debug bslot(i).name & " speed = " & speeds(i)
  NEXT i
  
  '--Sort indexes by speed
@@ -3897,12 +3897,12 @@ SUB calc_initiative_order (bslot() as BattleSprite, formdata as Formation)
  '--Randomize order when speed is a tie.
  FOR i as integer = 0 TO 11-1
   IF speeds(order(i)) >= 0 ANDALSO speeds(order(i)) = speeds(order(i+1)) THEN
-   debug "Flipping coin for " & bslot(order(i)).name & " " & order(i) & " and " & bslot(order(i+1)).name & " " & order(i+1)
+   'debug "Flipping coin for " & bslot(order(i)).name & " " & order(i) & " and " & bslot(order(i+1)).name & " " & order(i+1)
    IF randint(100) < 50 THEN
     SWAP order(i), order(i+1)
-    debug "  Heads! (swap)"
+    'debug "  Heads! (swap)"
    ELSE
-    debug "  Tails! (do nothing)"
+    'debug "  Tails! (do nothing)"
    END IF
   END IF
  NEXT i
@@ -3911,7 +3911,7 @@ SUB calc_initiative_order (bslot() as BattleSprite, formdata as Formation)
  FOR i as integer = 11 TO 0 STEP -1
   IF speeds(order(i)) = -1 THEN EXIT FOR
   bslot(order(i)).initiative_order = j
-  debug "Initiative " & j & " " & bslot(order(i)).name
+  'debug "Initiative " & j & " " & bslot(order(i)).name
   j += 1
  NEXT i
 
@@ -3924,7 +3924,7 @@ SUB apply_initiative_order (bslot() as BattleSprite)
    '--For each blocking attack in the queue for this hero or enemy
    FOR j as integer = 0 to UBOUND(atkq)
     IF atkq(j).used ANDALSO atkq(j).attacker = i ANDALSO atkq(j).blocking ANDALSO atkq(j).turn_delay = 0 THEN
-     debug "Applying initiative: adjust " & bslot(i).name & "'s attack " & atkq(j).attack & " delay " & atkq(j).delay & "+" & bslot(i).initiative_order
+     'debug "Applying initiative: adjust " & bslot(i).name & "'s attack " & atkq(j).attack & " delay " & atkq(j).delay & "+" & bslot(i).initiative_order
      atkq(j).delay += bslot(i).initiative_order
     END IF
    NEXT j
