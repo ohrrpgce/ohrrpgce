@@ -128,44 +128,50 @@ DO
  usemenusounds
  IF usemenu(buyst.st) THEN buystuff_curinfo buyst, stufbuf(), stuff(buyst.st.pt).dat, itembuf()
  IF carray(ccMenu) > 1 THEN EXIT DO
- IF carray(ccUse) > 1 THEN '---PRESS ENTER---------------------
-  IF stuff(buyst.st.pt).disabled = NO THEN '---CHECK TO SEE IF YOU CAN AFFORD IT---
+ IF carray(ccUse) > 1 THEN
+  IF stuff(buyst.st.pt).disabled = NO THEN '--CHECK TO SEE IF YOU CAN BUY IT
    IF gam.stock(buyst.shop_id, buyst.itemno) > 1 THEN gam.stock(buyst.shop_id, buyst.itemno) -= 1
    settag stufbuf(buyst.itemno * buyst.recordsize + 22)
    gold = gold - stufbuf(buyst.itemno * buyst.recordsize + 24)
-   IF buyst.tradingitems THEN '---TRADE IN ITEMS----------
+   IF buyst.tradingitems THEN '--TRADE IN ITEMS
     FOR i as integer = 0 TO 3
      IF buyst.tradestf(i, 0) > -1 THEN
       delitem buyst.tradestf(i, 0), buyst.tradestf(i, 1)
      END IF
     NEXT
-   END IF '-------END TRADE IN ITEM----------------------------
-   IF stufbuf(buyst.itemno * buyst.recordsize + 17) = 0 THEN '---BUY ITEM-------------------
+   END IF '--END TRADE IN ITEM
+   IF buyst.shoptype = 0 THEN '--BUY ITEM
     menusound gen(genBuySFX)
     getitem stufbuf(buyst.itemno * buyst.recordsize + 18)
     buyst.alert_box_style = 4
-    buyst.alert_ticks = 10
+    buyst.alert_ticks = 18
     buyst.alert_str = buyst.purchased & " " & stuff(buyst.st.pt).text
-   END IF '-------END IF ITEM-------------------------------------
-   IF stufbuf(buyst.itemno * buyst.recordsize + 17) = 1 THEN '---HIRE HERO------------------
+   END IF '--END IF ITEM
+   IF buyst.shoptype = 1 THEN '--HIRE HERO
     menusound gen(genHireSFX)
     slot = first_free_slot_in_active_party()
     IF slot >= 0 THEN
      addhero stufbuf(buyst.itemno * buyst.recordsize + 18) + 1, slot, stufbuf(buyst.itemno * buyst.recordsize + 26)
      buyst.alert_box_style = 4
-     buyst.alert_ticks = 10
+     buyst.alert_ticks = 18
      buyst.alert_str = stuff(buyst.st.pt).text & " " & buyst.joined
     END IF
-   END IF '-------END IF HERO-------------------------------------
+   END IF '--END IF HERO
    'the last thing to do is re-eval the item and hero tags in case
    'something changed: we do this immediately because the tags affect purchaseability
    evalherotags
    evalitemtags
-  ELSE ' WHEN CANNOT AFFORD------------------------------------
+  ELSE ' WHEN CANNOT BUY
    menusound gen(genCantBuySFX)
    buyst.alert_box_style = 3
-   buyst.alert_ticks = 10
-   buyst.alert_str = buyst.buytype(1, buyst.shoptype) & stuff(buyst.st.pt).text
+   buyst.alert_ticks = 18
+   IF buyst.shoptype = 0 ANDALSO NOT room_for_item(stuff(buyst.st.pt).dat) THEN
+    'No room in inventory
+    buyst.alert_str = "No room in inventory"
+   ELSE
+    'Cannot afford
+    buyst.alert_str = buyst.buytype(1, buyst.shoptype) & stuff(buyst.st.pt).text
+   END IF
   END IF '--------END BUY THING------------
   buystuff_buildmenu buyst, stuff(), stufbuf()
   IF buyst.st.last = -1 THEN GOTO cleanupquit
@@ -368,11 +374,10 @@ SUB buystuff_buildmenu (buyst as ShopBuyState, stuff() as SimpleMenuItem, stufbu
     END IF
    NEXT
    '---PREVENT OVERFLOW
-   IF stufbuf(i * buyst.recordsize + 17) = 0 THEN
+   IF buyst.shoptype = 0 THEN
     '--is an item
-    debuginfo itemname & " " & readitemname(stufbuf(i * buyst.recordsize + 18)) & " " & room_for_item(stufbuf(i * buyst.recordsize + 18))
     IF NOT room_for_item(stufbuf(i * buyst.recordsize + 18)) THEN .disabled = YES
-   ELSE
+   ELSEIF buyst.shoptype = 1 THEN
     '--is a hero
     IF buyst.room_to_hire = NO THEN .disabled = YES
    END IF
