@@ -29,7 +29,7 @@
 #include "bmod.bi"
 
 '--SUBs and FUNCTIONS only used locally
-DECLARE SUB loadtrades(byval index as integer, tradestf() as integer, b() as integer, byval recordsize as integer)
+DECLARE SUB buystuff_loadtrades (buyst as ShopBuyState, byval index as integer, b() as integer, byval recordsize as integer)
 DECLARE SUB buystuff_setshopstock (buyst as ShopBuyState, byval recordsize as integer, stufbuf() as integer)
 DECLARE SUB equip_menu_setup (byref st as EquipMenuState, menu() as string)
 DECLARE SUB equip_menu_do_equip(byval item as integer, byref st as EquipMenuState, menu() as string)
@@ -66,7 +66,6 @@ DIM b((getbinsize(binSTF) \ 2) * 50 - 1) as integer
 DIM buytype(5, 1) as string
 DIM wbuf(dimbinsize(binITM)) as integer
 DIM walks(15) as integer
-DIM tradestf(3, 1) as integer
 DIM is_equipable as integer
 DIM itembuf(dimbinsize(binITM)) as integer
 DIM hiresprite as Frame PTR
@@ -163,8 +162,8 @@ DO
    gold = gold - b(itemno * recordsize + 24)
    IF tradingitems THEN '---TRADE IN ITEMS----------
     FOR i as integer = 0 TO 3
-     IF tradestf(i, 0) > -1 THEN
-      delitem tradestf(i, 0), tradestf(i, 1)
+     IF buyst.tradestf(i, 0) > -1 THEN
+      delitem buyst.tradestf(i, 0), buyst.tradestf(i, 1)
      END IF
     NEXT
    END IF '-------END TRADE IN ITEM----------------------------
@@ -294,10 +293,10 @@ FOR i as integer = 0 TO buyst.last_stuff
  stuff(UBOUND(stuff)).text = itemname
  stuff(UBOUND(stuff)).dat = i
  IF b(i * recordsize + 24) > gold THEN stuff(UBOUND(stuff)).disabled = YES
- loadtrades i, tradestf(), b(), recordsize
+ buystuff_loadtrades buyst, i, b(), recordsize
  FOR j as integer = 0 TO 3
-  IF tradestf(j, 0) > -1 THEN
-   IF countitem(tradestf(j, 0) + 1) < tradestf(j, 1) THEN stuff(UBOUND(stuff)).disabled = YES
+  IF buyst.tradestf(j, 0) > -1 THEN
+   IF countitem(buyst.tradestf(j, 0) + 1) < buyst.tradestf(j, 1) THEN stuff(UBOUND(stuff)).disabled = YES
   END IF
  NEXT
  '---PREVENT PARTY OVERFLOW
@@ -321,23 +320,23 @@ info1 = ""
 info2 = ""
 IF b(itemno * recordsize + 24) > 0 THEN price = b(itemno * recordsize + 24) & " " & readglobalstring(32, "Money")
 '--load must trade in item types+amounts
-loadtrades itemno, tradestf(), b(), recordsize
+buystuff_loadtrades buyst, itemno, b(), recordsize
 FOR i as integer = 0 TO 3
- IF tradestf(i, 0) > -1 THEN
+ IF buyst.tradestf(i, 0) > -1 THEN
   tradingitems = 1
   IF price = "" THEN
    price = buytype(0, buyst.shoptype)
   ELSE
-   IF tradestf(i, 1) = 1 THEN
+   IF buyst.tradestf(i, 1) = 1 THEN
     price = price & " " & anda & " "
    ELSE
     price = price & " " & andsome & " "
    END IF
   END IF
-  IF tradestf(i, 1) = 1 THEN
-   price = price & readitemname(tradestf(i, 0))
+  IF buyst.tradestf(i, 1) = 1 THEN
+   price = price & readitemname(buyst.tradestf(i, 0))
   ELSE
-   price = price & STR(tradestf(i, 1)) & " " & readitemname(tradestf(i, 0))
+   price = price & STR(buyst.tradestf(i, 1)) & " " & readitemname(buyst.tradestf(i, 0))
   END IF
  END IF
 NEXT
@@ -408,12 +407,12 @@ FOR i = 0 TO buyst.last_stuff
 NEXT i
 END SUB
 
-SUB loadtrades(byval index as integer, tradestf() as integer, b() as integer, byval recordsize as integer)
- tradestf(0, 0) = b(index * recordsize + 25) - 1
- tradestf(0, 1) = b(index * recordsize + 30) + 1
+SUB buystuff_loadtrades(buyst as ShopBuyState, byval index as integer, b() as integer, byval recordsize as integer)
+ buyst.tradestf(0, 0) = b(index * recordsize + 25) - 1
+ buyst.tradestf(0, 1) = b(index * recordsize + 30) + 1
  FOR i as integer = 1 TO 3
-  tradestf(i, 0) = b(index * recordsize + i * 2 + 29) - 1
-  tradestf(i, 1) = b(index * recordsize + i * 2 + 30) + 1
+  buyst.tradestf(i, 0) = b(index * recordsize + i * 2 + 29) - 1
+  buyst.tradestf(i, 1) = b(index * recordsize + i * 2 + 30) + 1
  NEXT i
 END SUB
 

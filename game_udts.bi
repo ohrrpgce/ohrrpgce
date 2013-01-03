@@ -181,9 +181,10 @@ TYPE SpellsMenuState
 END TYPE
 
 TYPE ShopBuyState
- shop_id as integer
- shoptype as integer
- last_stuff as integer
+ shop_id        as integer
+ shoptype       as integer
+ last_stuff     as integer
+ tradestf(3, 1) as integer
 END TYPE
 
 TYPE LumpReloadState
