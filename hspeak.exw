@@ -3090,62 +3090,74 @@ end function
 
 ---------------------------------------------------------------------------
 
-function convert_operators_recurse(sequence tree,integer priority)
+--A modification of Dijkstra's shunting-yard algorithm
+--(This could probably subsume compile_commands too)
+function convert_operators(sequence tree)
+  sequence new_tree
+  sequence stack
+  sequence opnode
   integer ptr
+  integer at
+  integer priority
+  integer nonoperator_before
+  stack={}
+  new_tree={}
   ptr=1
+  nonoperator_before=false
   while ptr<=length(tree) do
     --for each peer branch on the tree
-    for j=1 to length(operator_list) do
-      if priority=operator_list[j][PAIR_NUM] then
-        --for each operator that matches the current priority
-        if compare(operator_list[j][PAIR_NAME],tree[ptr][TREE_TRUNK][CMD_TEXT])=0 then
-          --found an operator
-          if length(tree[ptr][TREE_BRANCHES])=0 then
-            --has no args. if it has args, we assume it is an "or" "and" or "xor" that has already been converted
-            if ptr=1 then
-              --there is no room for the before-operands. Bad!
-              src_error(sprintf_utf("operator "&COLYEL&"%s"&COLRED&" is missing its left-side operand",{tree[ptr][TREE_TRUNK][CMD_TEXT]}),tree[ptr][TREE_TRUNK][CMD_POS])
-            elsif ptr=length(tree) then
-              --there is no room for the after-operand. Bad!
-              src_error(sprintf_utf("operator "&COLYEL&"%s"&COLRED&" is missing its right-side operand",{tree[ptr][TREE_TRUNK][CMD_TEXT]}),tree[ptr][TREE_TRUNK][CMD_POS])
-            else
-              --convert the operator to its true function name (which might be the same)
-              tree[ptr][TREE_TRUNK][CMD_TEXT]=operator_list[j][OPER_TRUENAME]
-              --grab the operands and turn them into REAL args
-              tree[ptr][TREE_BRANCHES]={tree[ptr-1],tree[ptr+1]}
-              --delete the operands
-              tree=delete_element(tree,ptr+1)
-              tree=delete_element(tree,ptr-1)
-              --re-align the pointer
-              ptr-=1
-            end if
-          end if
-        end if
+    at=find_in_column(tree[ptr][TREE_TRUNK][CMD_TEXT],operator_list,PAIR_NAME)
+
+    if at>0 then
+      if nonoperator_before=false then
+        --there is no room for the before-operand. Bad!
+        src_error(sprintf_utf("operator "&COLYEL&"%s"&COLRED&" is missing its left-side operand (did not expect to see an operator here)",{tree[ptr][TREE_TRUNK][CMD_TEXT]}),tree[ptr][TREE_TRUNK][CMD_POS])
+      elsif ptr=length(tree) then
+        --there is no room for the after-operand. Bad!
+        src_error(sprintf_utf("operator "&COLYEL&"%s"&COLRED&" is missing its right-side operand",{tree[ptr][TREE_TRUNK][CMD_TEXT]}),tree[ptr][TREE_TRUNK][CMD_POS])
       end if
-    end for
-    --recurse
-    tree[ptr][TREE_BRANCHES]=convert_operators_recurse(tree[ptr][TREE_BRANCHES],priority)
+
+      priority=operator_list[at][PAIR_NUM]
+      --convert the operator to its true function name (which might be the same)
+      tree[ptr][TREE_TRUNK][CMD_TEXT]=operator_list[at][OPER_TRUENAME]
+      while length(stack) and priority>=stack[$][1] do
+        --pop the operator from the stack and "apply" it to the tree
+        opnode=stack[$][2]
+        stack=stack[1..$-1]
+        opnode[TREE_BRANCHES]=new_tree[$-1..$]
+        new_tree=new_tree[1..$-2]&{opnode}
+      end while
+      stack&={{priority,tree[ptr]}}
+      nonoperator_before=false
+    else
+      if nonoperator_before then
+        --Two non-ops in a row means moved onto the new argument in this argument list, so finish processing operators first
+        while length(stack) do
+          --pop the operator from the stack and "apply" it to the tree
+          opnode=stack[$][2]
+          stack=stack[1..$-1]
+          opnode[TREE_BRANCHES]=new_tree[$-1..$]
+          new_tree=new_tree[1..$-2]&{opnode}
+        end while
+      end if
+      tree[ptr][TREE_BRANCHES]=convert_operators(tree[ptr][TREE_BRANCHES])
+      new_tree&={tree[ptr]}
+      nonoperator_before=true
+    end if
+
     ptr+=1
   end while
-  return(tree)
-end function
 
----------------------------------------------------------------------------
+  --copy of above
+  while length(stack) do
+    --pop the operator from the stack and "apply" it to the tree
+    opnode=stack[$][2]
+    stack=stack[1..$-1]
+    opnode[TREE_BRANCHES]=new_tree[$-1..$]
+    new_tree=new_tree[1..$-2]&{opnode}
+  end while
 
-function convert_operators(sequence tree)
-  sequence priority_list
-  priority_list={}
-  --build a list of valid priorities
-  for i=1 to length(operator_list) do
-    if not find(operator_list[i][PAIR_NUM],priority_list) then
-      priority_list=append(priority_list,operator_list[i][PAIR_NUM])
-    end if
-  end for
-  priority_list=sort(priority_list)
-  for i=1 to length(priority_list) do
-    tree=convert_operators_recurse(tree,priority_list[i])
-  end for
-  return(tree)
+  return new_tree
 end function
 
 ---------------------------------------------------------------------------
