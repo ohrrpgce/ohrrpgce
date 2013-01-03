@@ -3161,6 +3161,7 @@ SUB edit_global_text_strings()
  GTS_add_to_menu menu, "Equipability prefix",        99, "Equip:", 10
  GTS_add_to_menu menu, "Cannot buy prefix",          89, "Cannot Afford", 20
  GTS_add_to_menu menu, "Cannot hire prefix",         91, "Cannot Hire", 20
+ GTS_add_to_menu menu, "Inventory full warning",     305, "No room in inventory", 30
  GTS_add_to_menu menu, "Party full warning",         100, "No Room In Party", 20
  GTS_add_to_menu menu, "Buy alert",                  93, "Purchased", 20
  GTS_add_to_menu menu, "Hire alert (suffix)",        95, "Joined!", 20
@@ -3202,7 +3203,7 @@ SUB edit_global_text_strings()
  GTS_add_to_menu menu, "Plotscript: pick hero",      135, "Which Hero?", 20
  GTS_add_to_menu menu, "Hero name prompt",           137, "Name the Hero", 20
 
- '**** next unused index is 305
+ '**** next unused index is 308
 
  'NOTE: if you add global strings here, be sure to update the limit-checking on
  'the implementation of the "get global string" plotscripting command

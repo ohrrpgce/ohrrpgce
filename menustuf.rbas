@@ -167,7 +167,7 @@ DO
    buyst.alert_ticks = 18
    IF buyst.shoptype = 0 ANDALSO NOT room_for_item(stuff(buyst.st.pt).dat) THEN
     'No room in inventory
-    buyst.alert_str = "No room in inventory"
+    buyst.alert_str = readglobalstring(305, "No room in inventory", 30)
    ELSE
     'Cannot afford
     buyst.alert_str = buyst.buytype(1, buyst.shoptype) & stuff(buyst.st.pt).text
