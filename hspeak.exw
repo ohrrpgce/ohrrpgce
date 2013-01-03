@@ -339,6 +339,8 @@ sequence lexer_table_key2 lexer_table_key2={}
 sequence hex_chars        hex_chars="0123456789abcedfABCDEF"
 sequence hex_char_values  hex_char_values={0,1,2,3,4,5,6,7,8,9,#a,#b,#c,#e,#d,#f,#A,#B,#C,#D,#E,#F}
 
+sequence compiled_data    compiled_data={}    --used inside binary_compile only; compiled data for the current script
+
 sequence all_scripts      all_scripts={}
 sequence current_script   current_script=""   --name of current script
 integer cur_script_num    cur_script_num=0    --index into script_cmd of current script
@@ -3316,17 +3318,21 @@ end function
 
 ---------------------------------------------------------------------------
 
---return value is a sequence when new command data was appended, and an integer when an offset is returned
-function binary_compile_recurse(sequence tree,sequence vars,sequence done_code)
+--returns the offset where this node was either added, or references an existing node
+function binary_compile_recurse(sequence tree,sequence vars)
   sequence result
   integer kind,id
   integer at
   sequence s
   integer offset
   sequence value_temp, str_temp
-  object sub_result
-  sequence done_code_plus_result
+  integer recurse_result
+  integer can_reference  --whether can return a pointer to an earlier node
+  integer initial_data_len
   result={}
+  can_reference=true
+  initial_data_len=length(compiled_data)
+
   kind=what_kind(tree[TREE_TRUNK],vars,false)
   s=tree[TREE_TRUNK][CMD_TEXT]
   if kind=KIND_NUMBER then
@@ -3389,44 +3395,57 @@ function binary_compile_recurse(sequence tree,sequence vars,sequence done_code)
     result&=length(tree[TREE_BRANCHES])
     for i=1 to length(tree[TREE_BRANCHES]) do
       --add placeholders for each argoffset
-      result&=1234.5678 --this nonsense value will never be matched when looking for duplicate data
+      result&=1234.876 --this nonsense value will never be matched when looking for duplicate data
     end for
+    --Temporarily add result, so that recursive calls can add nodes to compiled_data if they need to
+    compiled_data&=result
+
     for i=1 to length(tree[TREE_BRANCHES]) do
       --actually evaluate each argument and set the real offsets
-      done_code_plus_result=done_code&result --prefabricating this is faster, since we use it twice
-      offset=length(done_code_plus_result) --offset is in double words
-      sub_result=binary_compile_recurse(tree[TREE_BRANCHES][i],vars,done_code_plus_result)
-      if sequence(sub_result) then
-        --if new data was added, append it
-        result&=sub_result
-      else
-        --if a matching reference was available use it
-        offset=sub_result
+      recurse_result=binary_compile_recurse(tree[TREE_BRANCHES][i],vars)
+      if recurse_result >= initial_data_len then
+        can_reference=false
       end if
-      result[3+i]=offset
+      result[3+i]=recurse_result
     end for
+    --Now either remove or replace the temporary stuff
+    if can_reference then
+      compiled_data=compiled_data[1..initial_data_len]
+    else
+      compiled_data[initial_data_len+1 .. initial_data_len+length(result)]=result
+      return(initial_data_len)
+    end if
   else
     src_error(sprintf_utf("Compiler Bug! Illegal kind "&COLYEL&"%d"&COLRED&" for "&COLYEL&"%s"&COLRED,{kind,s}),tree[TREE_TRUNK][CMD_POS])
   end if
-  if not fast_mode then
-    at=match(result,done_code)
+
+  if not fast_mode and can_reference then
+    at=match(result,compiled_data)
     if at>0 then
+      if initial_data_len!=length(compiled_data) then
+        simple_error("compiler bug! Unexpected compiled_data length")
+      end if
       --found existing data exactly like this command, so just return a reference to it
+      if at=1 then
+        simple_error("compiler bug! node matches root node")
+      end if
       return(at-1)
     end if
   end if
-  --return the data for this command to be appended
-  return(result)
+  --append data directly
+  compiled_data&=result
+  return(initial_data_len)
 end function
 
 ---------------------------------------------------------------------------
 
 function binary_compile(integer id,sequence tree,sequence vars)
   sequence result
-  sequence compiled_data
   integer at
+  integer recurse_ret
 
   string_table={}
+  compiled_data={}
 
   --binary data is in a mix of 16-bit and 32-bit signed words.
   --the header is (mostly) 16-bit and the data (script format version 1+) is 32-bit.
@@ -3458,9 +3477,13 @@ function binary_compile(integer id,sequence tree,sequence vars)
     simple_error(sprintf_utf("compiler bug! script tree has %s root nodes",{length(tree)}))
   end if
   reenter_timing_zone("binary_compile_recurse")
-  compiled_data=binary_compile_recurse(tree[1],vars,"")
+  recurse_ret=binary_compile_recurse(tree[1],vars)
+  if recurse_ret!=0 then
+    simple_error(sprintf_utf("compiler bug! Root binary_compile_recurse call returned %d",{recurse_ret}))
+  end if
   exit_timing_zone()
   result&=convert_to_bytes(compiled_data)
+  compiled_data={}
   --append with a table of string literals and give its offset
   if length(string_table)>0 then
     result[9..12]=int_to_bytes(length(result))
