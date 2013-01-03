@@ -185,6 +185,7 @@ TYPE ShopBuyState
  shoptype       as integer
  last_stuff     as integer
  tradestf(3, 1) as integer
+ st             as MenuState
 END TYPE
 
 TYPE LumpReloadState

@@ -75,7 +75,6 @@ DIM heropal(3) as Palette16 PTR
 DIM heroframe as integer
 DIM heropos as XYPair
 DIM room_to_hire as integer = NO
-DIM st as MenuState
 REDIM stuff(-1 TO -1) as SimpleMenuItem   ' .dat of each menu item is item index
 DIM itemno as integer   ' always equal to stuff(st.pt).dat
 DIM recordsize as integer = curbinsize(binSTF) \ 2 ' get size in INTs
@@ -136,10 +135,10 @@ walks(14) = 3
 loadshopstuf b(), buyst.shop_id
 
 buystuff_setshopstock buyst, recordsize, b()
-st.pt = 0
-st.size = 15
+buyst.st.pt = 0
+buyst.st.size = 15
 GOSUB buildmenu
-IF st.last = -1 THEN GOTO cleanupquit
+IF buyst.st.last = -1 THEN GOTO cleanupquit
 
 GOSUB curinfo
 
@@ -153,10 +152,10 @@ DO
  playtimer
  control
  usemenusounds
- IF usemenu(st) THEN GOSUB curinfo
+ IF usemenu(buyst.st) THEN GOSUB curinfo
  IF carray(ccMenu) > 1 THEN EXIT DO
  IF carray(ccUse) > 1 THEN '---PRESS ENTER---------------------
-  IF stuff(st.pt).disabled = NO THEN '---CHECK TO SEE IF YOU CAN AFFORD IT---
+  IF stuff(buyst.st.pt).disabled = NO THEN '---CHECK TO SEE IF YOU CAN AFFORD IT---
    IF gam.stock(buyst.shop_id, itemno) > 1 THEN gam.stock(buyst.shop_id, itemno) -= 1
    settag b(itemno * recordsize + 22)
    gold = gold - b(itemno * recordsize + 24)
@@ -172,7 +171,7 @@ DO
     getitem b(itemno * recordsize + 18)
     acol = 4
     alert = 10
-    alert_str = purchased & " " & stuff(st.pt).text
+    alert_str = purchased & " " & stuff(buyst.st.pt).text
    END IF '-------END IF ITEM-------------------------------------
    IF b(itemno * recordsize + 17) = 1 THEN '---HIRE HERO------------------
     menusound gen(genHireSFX)
@@ -181,7 +180,7 @@ DO
      addhero b(itemno * recordsize + 18) + 1, slot, b(itemno * recordsize + 26)
      acol = 4
      alert = 10
-     alert_str = stuff(st.pt).text & " " & joined
+     alert_str = stuff(buyst.st.pt).text & " " & joined
     END IF
    END IF '-------END IF HERO-------------------------------------
    'the last thing to do is re-eval the item and hero tags in case
@@ -192,10 +191,10 @@ DO
    menusound gen(genCantBuySFX)
    acol = 3
    alert = 10
-   alert_str = buytype(1, buyst.shoptype) & stuff(st.pt).text
+   alert_str = buytype(1, buyst.shoptype) & stuff(buyst.st.pt).text
   END IF '--------END BUY THING------------
   GOSUB buildmenu
-  IF st.last = -1 THEN GOTO cleanupquit
+  IF buyst.st.last = -1 THEN GOTO cleanupquit
   GOSUB curinfo
  END IF '---------END TRY BUY THING--------
 
@@ -207,7 +206,7 @@ DO
  centerbox 240, 19, LEN(gold_str) * 8 + 8, 14, 4, page
  edgeprint gold_str, xstring(gold_str, 240), 14, uilook(uiText), page
  DIM linenum as integer = 0
- edgeprint stuff(st.pt).text, xstring(stuff(st.pt).text, 240), 30 + linenum * 10, uilook(uiMenuItem), page: linenum += 1
+ edgeprint stuff(buyst.st.pt).text, xstring(stuff(buyst.st.pt).text, 240), 30 + linenum * 10, uilook(uiMenuItem), page: linenum += 1
  IF info1 <> "" THEN edgeprint info1, xstring(info1, 240), 30 + linenum * 10, uilook(uiDisabledItem), page: linenum += 1
  IF info2 <> "" THEN edgeprint info2, xstring(info2, 240), 30 + linenum * 10, uilook(uiDisabledItem), page: linenum += 1
  IF eqinfo <> "" THEN edgeprint eqinfo, xstring(eqinfo, 240), 30 + linenum * 10, uilook(uiMenuItem), page: linenum += 1
@@ -241,13 +240,16 @@ DO
   NEXT i
  END IF
  '-----LEFT PANEL-------------------------------------------
- FOR i as integer = st.top TO small(st.top + st.size, UBOUND(stuff))
+ FOR i as integer = buyst.st.top TO small(buyst.st.top + buyst.st.size, UBOUND(stuff))
   DIM c as integer = uilook(uiMenuItem)
-  IF st.pt = i THEN c = uilook(uiSelectedItem + tog)
-  IF stuff(i).disabled THEN c = uilook(uiDisabledItem): IF st.pt = i THEN c = uilook(uiMenuItem + tog)
-  edgeprint stuff(i).text, 10, 15 + (i - st.top) * 10, c, page
+  IF buyst.st.pt = i THEN c = uilook(uiSelectedItem + tog)
+  IF stuff(i).disabled THEN
+   c = uilook(uiDisabledItem):
+   IF buyst.st.pt = i THEN c = uilook(uiMenuItem + tog)
+  END IF
+  edgeprint stuff(i).text, 10, 15 + (i - buyst.st.top) * 10, c, page
  NEXT i
- draw_scrollbar st, left_panel, , page
+ draw_scrollbar buyst.st, left_panel, , page
  IF price <> "" THEN
   centerbox 160, 187, LEN(price) * 8 + 8, 14 + xtralines * 10, 1, page
   edgeprint price, xstring(price, 160), 182 - xtralines * 5, uilook(uiText), page
@@ -304,11 +306,11 @@ FOR i as integer = 0 TO buyst.last_stuff
   IF room_to_hire = NO THEN stuff(UBOUND(stuff)).disabled = YES
  END IF
 NEXT i
-init_menu_state st, stuff()
+init_menu_state buyst.st, stuff()
 RETRACE
 
 curinfo:
-itemno = stuff(st.pt).dat
+itemno = stuff(buyst.st.pt).dat
 tradingitems = 0
 xtralines = 0
 showhero = -1
