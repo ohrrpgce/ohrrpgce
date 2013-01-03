@@ -331,7 +331,7 @@ FUNCTION room_for_item (byval item_id as integer, byval num as integer = 1) as b
  FOR i as integer = 0 TO last_inv_slot()
   ' Loop through all inventory slots looking for a slot that already contains the item
   room = 99 - inventory(i).num
-  IF inventory(i).used AND item_id - 1 = inventory(i).id AND room > 0 THEN
+  IF inventory(i).used AND item_id = inventory(i).id AND room > 0 THEN
    IF room >= num THEN
     RETURN YES
    END IF

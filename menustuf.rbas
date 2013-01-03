@@ -357,19 +357,26 @@ SUB buystuff_buildmenu (buyst as ShopBuyState, stuff() as SimpleMenuItem, stufbu
  
   DIM itemname as string = readbadbinstring(stufbuf(), i * buyst.recordsize, 16)
   REDIM PRESERVE stuff(-1 TO UBOUND(stuff) + 1)
-  stuff(UBOUND(stuff)).text = itemname
-  stuff(UBOUND(stuff)).dat = i
-  IF stufbuf(i * buyst.recordsize + 24) > gold THEN stuff(UBOUND(stuff)).disabled = YES
-  buystuff_loadtrades buyst, i, stufbuf()
-  FOR j as integer = 0 TO 3
-   IF buyst.tradestf(j, 0) > -1 THEN
-    IF countitem(buyst.tradestf(j, 0)) < buyst.tradestf(j, 1) THEN stuff(UBOUND(stuff)).disabled = YES
+  WITH stuff(UBOUND(stuff))
+   .text = itemname
+   .dat = i
+   IF stufbuf(i * buyst.recordsize + 24) > gold THEN .disabled = YES
+   buystuff_loadtrades buyst, i, stufbuf()
+   FOR j as integer = 0 TO 3
+    IF buyst.tradestf(j, 0) > -1 THEN
+     IF countitem(buyst.tradestf(j, 0)) < buyst.tradestf(j, 1) THEN .disabled = YES
+    END IF
+   NEXT
+   '---PREVENT OVERFLOW
+   IF stufbuf(i * buyst.recordsize + 17) = 0 THEN
+    '--is an item
+    debuginfo itemname & " " & readitemname(stufbuf(i * buyst.recordsize + 18)) & " " & room_for_item(stufbuf(i * buyst.recordsize + 18))
+    IF NOT room_for_item(stufbuf(i * buyst.recordsize + 18)) THEN .disabled = YES
+   ELSE
+    '--is a hero
+    IF buyst.room_to_hire = NO THEN .disabled = YES
    END IF
-  NEXT
-  '---PREVENT PARTY OVERFLOW
-  IF stufbuf(i * buyst.recordsize + 17) = 1 THEN
-   IF buyst.room_to_hire = NO THEN stuff(UBOUND(stuff)).disabled = YES
-  END IF
+  END WITH
  NEXT i
  init_menu_state buyst.st, stuff()
 END SUB
