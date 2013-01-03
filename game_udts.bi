@@ -183,6 +183,7 @@ END TYPE
 TYPE ShopBuyState
  shop_id as integer
  shoptype as integer
+ last_stuff as integer
 END TYPE
 
 TYPE LumpReloadState

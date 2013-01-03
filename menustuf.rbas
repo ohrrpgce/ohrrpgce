@@ -30,7 +30,7 @@
 
 '--SUBs and FUNCTIONS only used locally
 DECLARE SUB loadtrades(byval index as integer, tradestf() as integer, b() as integer, byval recordsize as integer)
-DECLARE SUB buystuff_setshopstock (buyst as ShopBuyState, byval recordsize as integer, storebuf() as integer, stufbuf() as integer)
+DECLARE SUB buystuff_setshopstock (buyst as ShopBuyState, byval recordsize as integer, stufbuf() as integer)
 DECLARE SUB equip_menu_setup (byref st as EquipMenuState, menu() as string)
 DECLARE SUB equip_menu_do_equip(byval item as integer, byref st as EquipMenuState, menu() as string)
 DECLARE SUB equip_menu_back_to_menu(byref st as EquipMenuState, menu() as string)
@@ -59,6 +59,7 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
  WITH buyst
   .shop_id = shop_id
   .shoptype = shoptype
+  .last_stuff = storebuf(16)
  END WITH
 
 DIM b((getbinsize(binSTF) \ 2) * 50 - 1) as integer
@@ -135,7 +136,7 @@ walks(14) = 3
 
 loadshopstuf b(), buyst.shop_id
 
-buystuff_setshopstock buyst, recordsize, storebuf(), b()
+buystuff_setshopstock buyst, recordsize, b()
 st.pt = 0
 st.size = 15
 GOSUB buildmenu
@@ -282,7 +283,7 @@ buildmenu:
 '--this figures out if it is okay to buy (or hire) particular stuff.
 REDIM stuff(-1 TO -1)
 room_to_hire = herocount(3) < 4 ANDALSO free_slots_in_party() > 0
-FOR i as integer = 0 TO storebuf(16)
+FOR i as integer = 0 TO buyst.last_stuff
  '--for each shop-thing
  IF gam.stock(buyst.shop_id, i) = 1 THEN CONTINUE FOR
  IF b(i * recordsize + 17) = (buyst.shoptype XOR 1) THEN CONTINUE FOR
@@ -394,9 +395,9 @@ END IF
 RETRACE
 END SUB
 
-SUB buystuff_setshopstock (buyst as ShopBuyState, byval recordsize as integer, storebuf() as integer, stufbuf() as integer)
+SUB buystuff_setshopstock (buyst as ShopBuyState, byval recordsize as integer, stufbuf() as integer)
 DIM i as integer
-FOR i = 0 TO storebuf(16)
+FOR i = 0 TO buyst.last_stuff
  '--for each shop-stuff
  IF gam.stock(buyst.shop_id, i) = 0 THEN
   '--if unloaded, reload stock
