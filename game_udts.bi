@@ -186,6 +186,8 @@ TYPE ShopBuyState
  last_stuff     as integer
  tradestf(3, 1) as integer
  st             as MenuState
+ room_to_hire   as bool
+ recordsize     as integer
 END TYPE
 
 TYPE LumpReloadState

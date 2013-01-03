@@ -29,8 +29,9 @@
 #include "bmod.bi"
 
 '--SUBs and FUNCTIONS only used locally
-DECLARE SUB buystuff_loadtrades (buyst as ShopBuyState, byval index as integer, b() as integer, byval recordsize as integer)
-DECLARE SUB buystuff_setshopstock (buyst as ShopBuyState, byval recordsize as integer, stufbuf() as integer)
+DECLARE SUB buystuff_loadtrades (buyst as ShopBuyState, byval index as integer, stufbuf() as integer)
+DECLARE SUB buystuff_setshopstock (buyst as ShopBuyState, stufbuf() as integer)
+DECLARE SUB buystuff_buildmenu (buyst as ShopBuyState, stuff() as SimpleMenuItem, stufbuf() as integer)
 DECLARE SUB equip_menu_setup (byref st as EquipMenuState, menu() as string)
 DECLARE SUB equip_menu_do_equip(byval item as integer, byref st as EquipMenuState, menu() as string)
 DECLARE SUB equip_menu_back_to_menu(byref st as EquipMenuState, menu() as string)
@@ -60,9 +61,10 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
   .shop_id = shop_id
   .shoptype = shoptype
   .last_stuff = storebuf(16)
+  .recordsize = curbinsize(binSTF) \ 2 ' get size in INTs
  END WITH
 
-DIM b((getbinsize(binSTF) \ 2) * 50 - 1) as integer
+DIM stufbuf((getbinsize(binSTF) \ 2) * 50 - 1) as integer
 DIM buytype(5, 1) as string
 DIM wbuf(dimbinsize(binITM)) as integer
 DIM walks(15) as integer
@@ -74,10 +76,8 @@ DIM herosprite(3) as Frame PTR
 DIM heropal(3) as Palette16 PTR
 DIM heroframe as integer
 DIM heropos as XYPair
-DIM room_to_hire as integer = NO
 REDIM stuff(-1 TO -1) as SimpleMenuItem   ' .dat of each menu item is item index
 DIM itemno as integer   ' always equal to stuff(st.pt).dat
-DIM recordsize as integer = curbinsize(binSTF) \ 2 ' get size in INTs
 
 '--Preserve background for display beneath the buy menu
 DIM page as integer
@@ -132,12 +132,12 @@ walks(12) = 2
 walks(13) = 3
 walks(14) = 3
 
-loadshopstuf b(), buyst.shop_id
+loadshopstuf stufbuf(), buyst.shop_id
 
-buystuff_setshopstock buyst, recordsize, b()
+buystuff_setshopstock buyst, stufbuf()
 buyst.st.pt = 0
 buyst.st.size = 15
-GOSUB buildmenu
+buystuff_buildmenu buyst, stuff(), stufbuf()
 IF buyst.st.last = -1 THEN GOTO cleanupquit
 
 GOSUB curinfo
@@ -157,8 +157,8 @@ DO
  IF carray(ccUse) > 1 THEN '---PRESS ENTER---------------------
   IF stuff(buyst.st.pt).disabled = NO THEN '---CHECK TO SEE IF YOU CAN AFFORD IT---
    IF gam.stock(buyst.shop_id, itemno) > 1 THEN gam.stock(buyst.shop_id, itemno) -= 1
-   settag b(itemno * recordsize + 22)
-   gold = gold - b(itemno * recordsize + 24)
+   settag stufbuf(itemno * buyst.recordsize + 22)
+   gold = gold - stufbuf(itemno * buyst.recordsize + 24)
    IF tradingitems THEN '---TRADE IN ITEMS----------
     FOR i as integer = 0 TO 3
      IF buyst.tradestf(i, 0) > -1 THEN
@@ -166,18 +166,18 @@ DO
      END IF
     NEXT
    END IF '-------END TRADE IN ITEM----------------------------
-   IF b(itemno * recordsize + 17) = 0 THEN '---BUY ITEM-------------------
+   IF stufbuf(itemno * buyst.recordsize + 17) = 0 THEN '---BUY ITEM-------------------
     menusound gen(genBuySFX)
-    getitem b(itemno * recordsize + 18)
+    getitem stufbuf(itemno * buyst.recordsize + 18)
     acol = 4
     alert = 10
     alert_str = purchased & " " & stuff(buyst.st.pt).text
    END IF '-------END IF ITEM-------------------------------------
-   IF b(itemno * recordsize + 17) = 1 THEN '---HIRE HERO------------------
+   IF stufbuf(itemno * buyst.recordsize + 17) = 1 THEN '---HIRE HERO------------------
     menusound gen(genHireSFX)
     slot = first_free_slot_in_active_party()
     IF slot >= 0 THEN
-     addhero b(itemno * recordsize + 18) + 1, slot, b(itemno * recordsize + 26)
+     addhero stufbuf(itemno * buyst.recordsize + 18) + 1, slot, stufbuf(itemno * buyst.recordsize + 26)
      acol = 4
      alert = 10
      alert_str = stuff(buyst.st.pt).text & " " & joined
@@ -193,7 +193,7 @@ DO
    alert = 10
    alert_str = buytype(1, buyst.shoptype) & stuff(buyst.st.pt).text
   END IF '--------END BUY THING------------
-  GOSUB buildmenu
+  buystuff_buildmenu buyst, stuff(), stufbuf()
   IF buyst.st.last = -1 THEN GOTO cleanupquit
   GOSUB curinfo
  END IF '---------END TRY BUY THING--------
@@ -280,35 +280,6 @@ evalitemtags
 party_change_updates
 EXIT SUB
 
-buildmenu:
-'--this figures out if it is okay to buy (or hire) particular stuff.
-REDIM stuff(-1 TO -1)
-room_to_hire = herocount(3) < 4 ANDALSO free_slots_in_party() > 0
-FOR i as integer = 0 TO buyst.last_stuff
- '--for each shop-thing
- IF gam.stock(buyst.shop_id, i) = 1 THEN CONTINUE FOR
- IF b(i * recordsize + 17) = (buyst.shoptype XOR 1) THEN CONTINUE FOR
- IF NOT istag(b(i * recordsize + 20), -1) THEN CONTINUE FOR
-
- DIM itemname as string = readbadbinstring(b(), i * recordsize, 16)
- REDIM PRESERVE stuff(-1 TO UBOUND(stuff) + 1)
- stuff(UBOUND(stuff)).text = itemname
- stuff(UBOUND(stuff)).dat = i
- IF b(i * recordsize + 24) > gold THEN stuff(UBOUND(stuff)).disabled = YES
- buystuff_loadtrades buyst, i, b(), recordsize
- FOR j as integer = 0 TO 3
-  IF buyst.tradestf(j, 0) > -1 THEN
-   IF countitem(buyst.tradestf(j, 0) + 1) < buyst.tradestf(j, 1) THEN stuff(UBOUND(stuff)).disabled = YES
-  END IF
- NEXT
- '---PREVENT PARTY OVERFLOW
- IF b(i * recordsize + 17) = 1 THEN
-  IF room_to_hire = NO THEN stuff(UBOUND(stuff)).disabled = YES
- END IF
-NEXT i
-init_menu_state buyst.st, stuff()
-RETRACE
-
 curinfo:
 itemno = stuff(buyst.st.pt).dat
 tradingitems = 0
@@ -320,9 +291,9 @@ price2 = ""
 eqinfo = ""
 info1 = ""
 info2 = ""
-IF b(itemno * recordsize + 24) > 0 THEN price = b(itemno * recordsize + 24) & " " & readglobalstring(32, "Money")
+IF stufbuf(itemno * buyst.recordsize + 24) > 0 THEN price = stufbuf(itemno * buyst.recordsize + 24) & " " & readglobalstring(32, "Money")
 '--load must trade in item types+amounts
-buystuff_loadtrades buyst, itemno, b(), recordsize
+buystuff_loadtrades buyst, itemno, stufbuf()
 FOR i as integer = 0 TO 3
  IF buyst.tradestf(i, 0) > -1 THEN
   tradingitems = 1
@@ -350,9 +321,9 @@ IF LEN(price) > 38 THEN
  price = LEFT(price, i - 1)
  xtralines = 1
 END IF
-IF b(itemno * recordsize + 17) = 0 THEN
+IF stufbuf(itemno * buyst.recordsize + 17) = 0 THEN
  'This is an item
- loaditemdata itembuf(), b(itemno * recordsize + 18)
+ loaditemdata itembuf(), stufbuf(itemno * buyst.recordsize + 18)
  'The itembuf remains and is used later to show equipability.
  IF itembuf(49) = 1 THEN eqinfo = eqprefix & " " & wepslot
  IF itembuf(49) > 1 THEN eqinfo = eqprefix & " " & readglobalstring(23 + itembuf(49), "Armor" & itembuf(49)-1)
@@ -374,10 +345,10 @@ IF b(itemno * recordsize + 17) = 0 THEN
   is_equipable = YES
  END IF
 END IF
-IF b(itemno * recordsize + 17) = 1 THEN
+IF stufbuf(itemno * buyst.recordsize + 17) = 1 THEN
  'hire
  dim her as herodef
- loadherodata her, b(itemno * recordsize + 18)
+ loadherodata her, stufbuf(itemno * buyst.recordsize + 18)
  loaditemdata wbuf(), her.def_weapon
  IF her.def_level < 0 THEN her.def_level = averagelev
  eqinfo = (atlevel(her.def_level, her.lev0.hp, her.levMax.hp) & wbuf(54 + 0)) & " " & statnames(statHP)
@@ -391,30 +362,59 @@ IF b(itemno * recordsize + 17) = 1 THEN
  hirepal = palette16_load(her.sprite_pal, 0, showhero)
  IF hirepal = 0 THEN debug "Failed to load palette for hireable hero (#" & her.sprite_pal & ")"
 
- IF room_to_hire = NO THEN info1 = noroom
+ IF buyst.room_to_hire = NO THEN info1 = noroom
 END IF
 RETRACE
 END SUB
 
-SUB buystuff_setshopstock (buyst as ShopBuyState, byval recordsize as integer, stufbuf() as integer)
-DIM i as integer
-FOR i = 0 TO buyst.last_stuff
- '--for each shop-stuff
- IF gam.stock(buyst.shop_id, i) = 0 THEN
-  '--if unloaded, reload stock
-  gam.stock(buyst.shop_id, i) = stufbuf(i * recordsize + 19)
-  '--zero means unloaded, 1 means no-stock, 2+n means 1+n in stock
-  IF gam.stock(buyst.shop_id, i) > -1 THEN gam.stock(buyst.shop_id, i) = gam.stock(buyst.shop_id, i) + 1
- END IF
-NEXT i
+SUB buystuff_buildmenu (buyst as ShopBuyState, stuff() as SimpleMenuItem, stufbuf() as integer)
+ '--this figures out if it is okay to buy (or hire) particular stuff.
+ REDIM stuff(-1 TO -1)
+ buyst.room_to_hire = herocount(3) < 4 ANDALSO free_slots_in_party() > 0
+ FOR i as integer = 0 TO buyst.last_stuff
+  '--for each shop-thing
+  IF gam.stock(buyst.shop_id, i) = 1 THEN CONTINUE FOR
+  IF stufbuf(i * buyst.recordsize + 17) <> buyst.shoptype THEN CONTINUE FOR
+  IF NOT istag(stufbuf(i * buyst.recordsize + 20), -1) THEN CONTINUE FOR
+ 
+  DIM itemname as string = readbadbinstring(stufbuf(), i * buyst.recordsize, 16)
+  REDIM PRESERVE stuff(-1 TO UBOUND(stuff) + 1)
+  stuff(UBOUND(stuff)).text = itemname
+  stuff(UBOUND(stuff)).dat = i
+  IF stufbuf(i * buyst.recordsize + 24) > gold THEN stuff(UBOUND(stuff)).disabled = YES
+  buystuff_loadtrades buyst, i, stufbuf()
+  FOR j as integer = 0 TO 3
+   IF buyst.tradestf(j, 0) > -1 THEN
+    IF countitem(buyst.tradestf(j, 0) + 1) < buyst.tradestf(j, 1) THEN stuff(UBOUND(stuff)).disabled = YES
+   END IF
+  NEXT
+  '---PREVENT PARTY OVERFLOW
+  IF stufbuf(i * buyst.recordsize + 17) = 1 THEN
+   IF buyst.room_to_hire = NO THEN stuff(UBOUND(stuff)).disabled = YES
+  END IF
+ NEXT i
+ init_menu_state buyst.st, stuff()
 END SUB
 
-SUB buystuff_loadtrades(buyst as ShopBuyState, byval index as integer, b() as integer, byval recordsize as integer)
- buyst.tradestf(0, 0) = b(index * recordsize + 25) - 1
- buyst.tradestf(0, 1) = b(index * recordsize + 30) + 1
+SUB buystuff_setshopstock (buyst as ShopBuyState, stufbuf() as integer)
+ DIM i as integer
+ FOR i = 0 TO buyst.last_stuff
+  '--for each shop-stuff
+  IF gam.stock(buyst.shop_id, i) = 0 THEN
+   '--if unloaded, reload stock
+   gam.stock(buyst.shop_id, i) = stufbuf(i * buyst.recordsize + 19)
+   '--zero means unloaded, 1 means no-stock, 2+n means 1+n in stock
+   IF gam.stock(buyst.shop_id, i) > -1 THEN gam.stock(buyst.shop_id, i) = gam.stock(buyst.shop_id, i) + 1
+  END IF
+ NEXT i
+END SUB
+
+SUB buystuff_loadtrades(buyst as ShopBuyState, byval index as integer, stufbuf() as integer)
+ buyst.tradestf(0, 0) = stufbuf(index * buyst.recordsize + 25) - 1
+ buyst.tradestf(0, 1) = stufbuf(index * buyst.recordsize + 30) + 1
  FOR i as integer = 1 TO 3
-  buyst.tradestf(i, 0) = b(index * recordsize + i * 2 + 29) - 1
-  buyst.tradestf(i, 1) = b(index * recordsize + i * 2 + 30) + 1
+  buyst.tradestf(i, 0) = stufbuf(index * buyst.recordsize + i * 2 + 29) - 1
+  buyst.tradestf(i, 1) = stufbuf(index * buyst.recordsize + i * 2 + 30) + 1
  NEXT i
 END SUB
 
