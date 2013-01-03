@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Pe 2013-01-03 Faster compile times
 --3Pd 2012-10-24 Fix \x escape code
 --3Pc 2012-10-09 Change srcpos encoding to remove source size limits
 --3Pb 2012-10-08 \x escape code
@@ -140,7 +141,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Pd"
+constant COMPILER_SUB_VERSION="Pe"
 constant COPYRIGHT_DATE="2002"
 
 --This is the oldest version of plotscr.hsd which is supported (feel free to
@@ -1963,7 +1964,7 @@ procedure primary_parse_pass()
   if equal(plotscr_version,"") then
     simple_error("You have included a copy of "&COLYEL&"plotscr.hsd"&COLRED&" from an old release of the OHRRPGCE. Please use the latest version.")
   end if
-  if find("script",column(trigger_list,PAIR_NUM))=0 then
+  if find_in_column("script",trigger_list,PAIR_NUM)=0 then
     trigger_list=append(trigger_list,{0,"script"})
   end if
   exit_timing_zone()
@@ -1980,7 +1981,7 @@ procedure parse_script(sequence trigger)
   integer depth
   integer temp
   name=get_cmd()
-  if not find(name[CMD_TEXT],column(script_list,PAIR_NAME)) then
+  if not find_in_column(name[CMD_TEXT],script_list,PAIR_NAME) then
     --Doesn't appear in a definescript block; if it did the name is already reserved
     --Note that we won't add it to script_list yet; that happens later in check_script_declarations
     check_undefined_string(name,"user script name")
@@ -2125,7 +2126,7 @@ end procedure
 
 function seek_string_by_id(integer id,sequence list,sequence name)
   integer at
-  at=find(id,column(list,PAIR_NUM))
+  at=find_in_column(id,list,PAIR_NUM)
   if at then
     return(list[at][PAIR_NAME])
   else
@@ -2399,24 +2400,24 @@ function what_kind_and_id(sequence command,sequence local_vars)
     kind=KIND_REFERENCE
     id=0 -- ID always resolves to 0 for references here, since it is too early to know all
          -- script IDs. The real work is done in binary_compile_recurse
-  elsif find(s,column(local_vars,CMD_TEXT)) then
+  elsif find_in_column(s,local_vars,CMD_TEXT) then
     kind=KIND_LOCAL
-    id=find(s,column(local_vars,CMD_TEXT))
+    id=find_in_column(s,local_vars,CMD_TEXT)
   elsif keyword=RESERVE_GLOBAL then
     kind=KIND_GLOBAL
     id=global_list[PAIR_NUM][find(s,global_list[PAIR_NAME])]
   elsif keyword=RESERVE_FLOW then
     kind=KIND_FLOW
-    id=flow_list[find(s,column(flow_list,PAIR_NAME))][PAIR_NUM]
+    id=flow_list[find_in_column(s,flow_list,PAIR_NAME)][PAIR_NUM]
   elsif keyword=RESERVE_FUNCTION then
     kind=KIND_FUNCTION
-    id=function_list[find(s,column(function_list,PAIR_NAME))][PAIR_NUM]
+    id=function_list[find_in_column(s,function_list,PAIR_NAME)][PAIR_NUM]
   elsif keyword=RESERVE_SCRIPT then
     kind=KIND_SCRIPT
-    id=script_list[find(s,column(script_list,PAIR_NAME))][PAIR_NUM]
+    id=script_list[find_in_column(s,script_list,PAIR_NAME)][PAIR_NUM]
   elsif keyword=RESERVE_BUILTIN then
     kind=KIND_MATH
-    id=math_list[find(s,column(math_list,PAIR_NAME))][PAIR_NUM]
+    id=math_list[find_in_column(s,math_list,PAIR_NAME)][PAIR_NUM]
   elsif keyword=RESERVE_MACRO then
     kind=KIND_MACRO
     id=0
@@ -2446,11 +2447,11 @@ function what_kind(sequence command,sequence local_vars, integer look_for_operat
     kind=KIND_NUMBER
   elsif length(s) and s[1] = '@' then
     kind=KIND_REFERENCE
-  elsif find(s,column(local_vars,CMD_TEXT)) then
+  elsif find_in_column(s,local_vars,CMD_TEXT) then
     kind=KIND_LOCAL
   elsif length(s)=0 then
     kind=KIND_PARENS
-  elsif look_for_operators and find(s,column(operator_list,PAIR_NAME)) then
+  elsif look_for_operators and find_in_column(s,operator_list,PAIR_NAME) then
     kind=KIND_OPERATOR --this MUST go before KIND_MATH, because some operators and math functions have the same name
   elsif keyword=RESERVE_GLOBAL then
     kind=KIND_GLOBAL
@@ -2490,17 +2491,17 @@ function how_many_args(sequence name,integer kind)
   elsif kind=KIND_OPERATOR then
     result=0 -- its important that operators behave as zero-arg-thingamabobs before they are translated into builtin math functions
   elsif kind=KIND_MATH then
-    at=find(name[CMD_TEXT],column(math_list,PAIR_NAME))
+    at=find_in_column(name[CMD_TEXT],math_list,PAIR_NAME)
     result=length(math_list[at][FUNC_ARGS])
   elsif kind=KIND_FUNCTION then
-    at=find(name[CMD_TEXT],column(function_list,PAIR_NAME))
+    at=find_in_column(name[CMD_TEXT],function_list,PAIR_NAME)
     if equal(function_list[at][FUNC_ARGS],VAR_ARGS) then
       result=-1
     else
       result=length(function_list[at][FUNC_ARGS])
     end if
   elsif kind=KIND_SCRIPT then
-    at=find(name[CMD_TEXT],column(script_list,PAIR_NAME))
+    at=find_in_column(name[CMD_TEXT],script_list,PAIR_NAME)
     result=length(script_list[at][FUNC_ARGS])
   else
     --numbers, variables, etc do not permit args
@@ -2624,7 +2625,7 @@ function gather_local_vars(sequence vars,sequence data)
             exit--break the while
           end if
           check_undefined_string(this,"local variable name")
-          at=find(this[CMD_TEXT],column(vars,CMD_TEXT))
+          at=find_in_column(this[CMD_TEXT],vars,CMD_TEXT)
           if at then
             src_position=decode_srcpos(vars[at][CMD_POS])
             src_error(
@@ -3014,7 +3015,7 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
       if argkind=KIND_LOCAL then
         --translate into a numeric reference to a variable
         used_locals=append(used_locals,tree[ptr][TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT])
-        var_at=find(tree[ptr][TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT],column(vars,CMD_TEXT))
+        var_at=find_in_column(tree[ptr][TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT],vars,CMD_TEXT)
         tree[ptr][TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT]=sprintf("-%d",{var_at})
       elsif argkind=KIND_GLOBAL then
         --warn, then translate into a numeric reference to a variable
@@ -3167,7 +3168,7 @@ function fix_arguments(sequence tree,integer kind,sequence list,sequence vars)
   integer argkind
   integer argnum,maxargs
   argnum=length(tree[TREE_BRANCHES])
-  at=find(tree[TREE_TRUNK][CMD_TEXT],column(list,PAIR_NAME))
+  at=find_in_column(tree[TREE_TRUNK][CMD_TEXT],list,PAIR_NAME)
   if equal(list[at][FUNC_ARGS],VAR_ARGS) then
     return(tree[TREE_BRANCHES])
   else
@@ -3234,7 +3235,7 @@ function fix_arguments(sequence tree,integer kind,sequence list,sequence vars)
     argkind=what_kind(tree[TREE_BRANCHES][1][TREE_TRUNK],vars,false)
     if argkind=KIND_LOCAL then
       --its local. translate it to a numeric reference
-      var_at=find(tree[TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT],column(vars,CMD_TEXT))
+      var_at=find_in_column(tree[TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT],vars,CMD_TEXT)
       tree[TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT]=sprintf("-%d",{var_at})
     elsif argkind=KIND_GLOBAL then
       --its global. translate it to a numeric reference
@@ -3361,7 +3362,7 @@ function binary_compile_recurse(sequence tree,sequence vars)
       result&=global_list[PAIR_NUM][at]
     else
       --is it a script?
-      at=find(str_temp,column(script_list,PAIR_NAME))
+      at=find_in_column(str_temp,script_list,PAIR_NAME)
       if at then
         --yes, it is a script. Compile to a script ID
         result&=KIND_NUMBER
@@ -3382,24 +3383,24 @@ function binary_compile_recurse(sequence tree,sequence vars)
     result&=kind
     result&=global_list[PAIR_NUM][at]
   elsif kind=KIND_LOCAL then
-    at=find(s,column(vars,CMD_TEXT))
+    at=find_in_column(s,vars,CMD_TEXT)
     result&=kind
     result&=at-1
   elsif kind=KIND_SCRIPT or kind=KIND_FUNCTION or kind=KIND_FLOW or kind=KIND_MATH then
     if kind=KIND_SCRIPT then
-      at=find(s,column(script_list,PAIR_NAME))
+      at=find_in_column(s,script_list,PAIR_NAME)
       id=script_list[at][PAIR_NUM]
     elsif kind=KIND_FUNCTION then
-      at=find(s,column(function_list,PAIR_NAME))
+      at=find_in_column(s,function_list,PAIR_NAME)
       id=function_list[at][PAIR_NUM]
       if max_used_function<id then
         max_used_function=id
       end if
     elsif kind=KIND_FLOW then
-      at=find(s,column(flow_list,PAIR_NAME))
+      at=find_in_column(s,flow_list,PAIR_NAME)
       id=flow_list[at][PAIR_NUM]
     elsif kind=KIND_MATH then
-      at=find(s,column(math_list,PAIR_NAME))
+      at=find_in_column(s,math_list,PAIR_NAME)
       id=math_list[at][PAIR_NUM]
     end if
     result&=kind
@@ -3468,7 +3469,7 @@ function binary_compile(integer id,sequence tree,sequence vars)
   --the second word is the number of local variables
   result&=output_word(length(vars))
   --the third word is the number of arguments the script takes (also in SCRIPTS.TXT)
-  at=find(id,column(script_list,PAIR_NUM))
+  at=find_in_column(id,script_list,PAIR_NUM)
   result&=output_word(length(script_list[at][FUNC_ARGS]))
   --the fourth word is the format of the command data (presently used to indicate 32-bit encoding)
   result&=output_word(SCRIPT_FORMAT_VERSION)
