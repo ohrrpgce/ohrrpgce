@@ -6,9 +6,13 @@
 DECLARE SUB addhero (byval who as integer, byval slot as integer, byval forcelevel as integer=-1)
 DECLARE FUNCTION averagelev () as integer
 DECLARE SUB calibrate
-DECLARE FUNCTION consumeitem (byval index as integer) as integer
-DECLARE FUNCTION countitem (byval it as integer) as integer
+
+DECLARE FUNCTION consumeitem (byval index as integer) as bool
+DECLARE FUNCTION countitem (byval item_id as integer) as integer
+DECLARE SUB getitem (byval item_id as integer, byval num as integer=1)
 DECLARE SUB delitem (byval item_id as integer, byval amount as integer=1)
+DECLARE FUNCTION room_for_item (byval itemid as integer, byval num as integer = 1) as bool
+
 DECLARE SUB doswap (byval s as integer, byval d as integer)
 DECLARE SUB update_textbox ()
 DECLARE SUB party_change_updates ()

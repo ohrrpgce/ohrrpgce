@@ -1075,7 +1075,7 @@ SELECT CASE as CONST id
    herow(retvals(0)).speed = bound(retvals(1), 0, 20)
   END IF
  CASE 82'--inventory
-  scriptret = countitem(retvals(0) + 1)
+  scriptret = countitem(retvals(0))
  CASE 84'--suspend box advance
   setbit gen(), genSuspendBits, suspendboxadvance, 1
  CASE 85'--resume box advance

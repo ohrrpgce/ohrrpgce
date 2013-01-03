@@ -89,7 +89,7 @@ FOR i as integer = 0 to 2
   itemcount = atk.item(i).number
   IF itemid > 0 THEN 'this slot is used
     IF attacker <= 3 THEN ' Only hero items are checked right now
-      IF countitem(itemid) < itemcount THEN
+      IF countitem(itemid - 1) < itemcount THEN
         'yes, this still works for adding items.
         RETURN NO
       END IF

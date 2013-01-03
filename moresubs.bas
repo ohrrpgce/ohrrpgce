@@ -37,6 +37,7 @@
 
 '--Local subs and functions
 DECLARE SUB teleporttooltend (byref mini as Frame Ptr, maptilesX() as TileMap, tilesets2() as TilesetData ptr, byref zoom as integer, byval map as integer, byref mapsize as XYPair, byref minisize as XYPair, byref offset as XYPair)
+DECLARE SUB inventory_overflow_handler(byval item_id as integer, byval numitems as integer)
 
 '--Global variables
 
@@ -259,26 +260,94 @@ LOOP
 
 END SUB
 
-FUNCTION consumeitem (byval index as integer) as integer
-'--subtracts one of an item at a location. If the item is depleted, returns true. If there are some of the item left, it returns false
-'--argument is the inventory slot index, not the item ID
-consumeitem = 0
-inventory(index).num -= 1
-IF inventory(index).num <= 0 THEN
- inventory(index).used = 0
- consumeitem = -1
-END IF
-update_inventory_caption index
+FUNCTION consumeitem (byval index as integer) as bool
+ '--Subtracts one of an item at a location. If the item is depleted, returns true. If there are some of the item left, it returns false
+ '--Argument is the inventory slot index, not the item ID
+ consumeitem = 0
+ inventory(index).num -= 1
+ IF inventory(index).num <= 0 THEN
+  inventory(index).used = NO
+  consumeitem = -1
+ END IF
+ update_inventory_caption index
 END FUNCTION
 
-FUNCTION countitem (byval it as integer) as integer
+FUNCTION countitem (byval item_id as integer) as integer
  DIM total as integer = 0
  FOR o as integer = 0 TO last_inv_slot()
-  IF inventory(o).used AND it - 1 = inventory(o).id THEN
+  IF inventory(o).used AND item_id = inventory(o).id THEN
    total += inventory(o).num
   END IF
  NEXT o
  RETURN total
+END FUNCTION
+
+SUB getitem (byval item_id as integer, byval num as integer=1)
+
+ DIM numitems as integer = num
+ DIM room as integer
+
+ FOR i as integer = 0 TO last_inv_slot()
+  ' Loop through all inventory slots looking for a slot that already
+  ' contains the item we are adding. If found increment that slot
+  room = 99 - inventory(i).num
+  IF inventory(i).used AND item_id = inventory(i).id AND room > 0 THEN
+   IF room < numitems THEN
+    inventory(i).num = 99
+    update_inventory_caption i
+    numitems -= room
+   ELSE
+    inventory(i).num += numitems
+    update_inventory_caption i
+    EXIT SUB
+   END IF
+  END IF
+ NEXT i
+ 
+ FOR i as integer = 0 TO last_inv_slot()
+  'loop through each inventory slot looking for an empty slot to populate 
+  IF inventory(i).used = 0 THEN
+   inventory(i).used = -1
+   inventory(i).id = item_id
+   inventory(i).num = small(numitems, 99)
+   numitems -= inventory(i).num
+   update_inventory_caption i
+   IF numitems = 0 THEN EXIT SUB
+  END IF
+ NEXT
+ 
+ 'No slot was found to put this item into!
+ inventory_overflow_handler item_id, numitems
+ 
+END SUB
+
+SUB inventory_overflow_handler(byval item_id as integer, byval numitems as integer)
+ debug "Didn't have room for " & readitemname(item_id) & "x" & numitems
+END SUB
+
+FUNCTION room_for_item (byval item_id as integer, byval num as integer = 1) as bool
+ DIM room as integer
+
+ FOR i as integer = 0 TO last_inv_slot()
+  ' Loop through all inventory slots looking for a slot that already contains the item
+  room = 99 - inventory(i).num
+  IF inventory(i).used AND item_id - 1 = inventory(i).id AND room > 0 THEN
+   IF room >= num THEN
+    RETURN YES
+   END IF
+   num -= room
+  END IF
+ NEXT
+ FOR i as integer = 0 TO last_inv_slot()
+  'loop through each inventory slot looking for an empty slot to populate 
+  IF inventory(i).used = NO THEN
+   IF num <= 99 THEN
+    RETURN YES
+   END IF
+   num -= 99
+  END IF
+ NEXT
+ RETURN NO
 END FUNCTION
 
 SUB delitem (byval item_id as integer, byval amount as integer=1)
