@@ -32,6 +32,7 @@
 DECLARE SUB buystuff_loadtrades (buyst as ShopBuyState, byval index as integer, stufbuf() as integer)
 DECLARE SUB buystuff_setshopstock (buyst as ShopBuyState, stufbuf() as integer)
 DECLARE SUB buystuff_buildmenu (buyst as ShopBuyState, stuff() as SimpleMenuItem, stufbuf() as integer)
+DECLARE SUB buystuff_curinfo (buyst as ShopBuyState, stufbuf() as integer, byval selected_stuff as integer, itembuf() as integer)
 DECLARE SUB equip_menu_setup (byref st as EquipMenuState, menu() as string)
 DECLARE SUB equip_menu_do_equip(byval item as integer, byref st as EquipMenuState, menu() as string)
 DECLARE SUB equip_menu_back_to_menu(byref st as EquipMenuState, menu() as string)
@@ -64,19 +65,11 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
  END WITH
 
 DIM stufbuf((getbinsize(binSTF) \ 2) * 50 - 1) as integer
-DIM buytype(5, 1) as string
-DIM wbuf(dimbinsize(binITM)) as integer
 DIM walks(15) as integer
-DIM is_equipable as integer
 DIM itembuf(dimbinsize(binITM)) as integer
-DIM hiresprite as Frame PTR
-DIM hirepal as Palette16 PTR
-DIM herosprite(3) as Frame PTR
-DIM heropal(3) as Palette16 PTR
 DIM heroframe as integer
 DIM heropos as XYPair
 REDIM stuff(-1 TO -1) as SimpleMenuItem   ' .dat of each menu item is item index
-DIM itemno as integer   ' always equal to stuff(st.pt).dat
 
 '--Preserve background for display beneath the buy menu
 DIM page as integer
@@ -88,39 +81,21 @@ copypage page, holdscreen
 DIM left_panel as RectType = (5, 10, 150, 168)
 DIM right_panel as RectType = (165, 10, 150, 168)
 
-buytype(0, 0) = readglobalstring(85, "Trade for", 20) + " "
-buytype(0, 1) = readglobalstring(87, "Joins for", 20) + " "
-buytype(1, 0) = readglobalstring(89, "Cannot Afford", 20) + " "
-buytype(1, 1) = readglobalstring(91, "Cannot Hire", 20) + " "
-DIM wepslot as string = readglobalstring(38, "Weapon", 10)
-DIM purchased as string = readglobalstring(93, "Purchased", 20)
-DIM joined as string = readglobalstring(95, "Joined!", 20)
-DIM instock as string = readglobalstring(97, "in stock", 20)
-DIM anda as string = readglobalstring(81, "and a", 10)
-DIM andsome as string = readglobalstring(153, "and", 10)
-DIM eqprefix as string = readglobalstring(99, "Equip:", 10)
-DIM noroom as string = readglobalstring(100, "No Room in Party", 20)
+buyst.buytype(0, 0) = readglobalstring(85, "Trade for", 20) + " "
+buyst.buytype(0, 1) = readglobalstring(87, "Joins for", 20) + " "
+buyst.buytype(1, 0) = readglobalstring(89, "Cannot Afford", 20) + " "
+buyst.buytype(1, 1) = readglobalstring(91, "Cannot Hire", 20) + " "
+buyst.purchased = readglobalstring(93, "Purchased", 20)
+buyst.joined = readglobalstring(95, "Joined!", 20)
+buyst.instock = readglobalstring(97, "in stock", 20)
 
-DIM xtralines as integer
-DIM price as string
-DIM price2 as string
-DIM info1 as string
-DIM info2 as string
-DIM eqinfo as string
-DIM showhero as integer
-DIM tradingitems as integer
-DIM acol as integer
-DIM alert as integer
-DIM alert_str as string
-DIM tog as integer
-DIM walk as integer
 DIM slot as integer
 
 FOR i as integer = 0 TO 3
- herosprite(i) = frame_load(0, gam.hero(i).battle_pic)
- IF herosprite(i) = 0 THEN debug "Couldn't load hero sprite: " & game & ".pt0#" & gam.hero(i).battle_pic
- heropal(i) = palette16_load(gam.hero(i).battle_pal, 0, gam.hero(i).battle_pic)
- IF heropal(i) = 0 THEN debug "Failed to load palette for hero (#" & i & ")"
+ buyst.herosprite(i).sprite = frame_load(0, gam.hero(i).battle_pic)
+ IF buyst.herosprite(i).sprite = 0 THEN debug "Couldn't load hero sprite: " & game & ".pt0#" & gam.hero(i).battle_pic
+ buyst.herosprite(i).pal = palette16_load(gam.hero(i).battle_pal, 0, gam.hero(i).battle_pic)
+ IF buyst.herosprite(i).pal = 0 THEN debug "Failed to load palette for hero (#" & i & ")"
 NEXT i
 
 FOR i as integer = 0 TO 10 STEP 2
@@ -139,47 +114,47 @@ buyst.st.size = 15
 buystuff_buildmenu buyst, stuff(), stufbuf()
 IF buyst.st.last = -1 THEN GOTO cleanupquit
 
-GOSUB curinfo
+buystuff_curinfo buyst, stufbuf(), stuff(buyst.st.pt).dat, itembuf()
 
 menusound gen(genAcceptSFX)
 setkeys
 DO
  setwait speedcontrol
  setkeys
- tog = tog XOR 1
- IF tog THEN walk = loopvar(walk, 0, 15, 1)
+ buyst.tog = buyst.tog XOR 1
+ IF buyst.tog THEN buyst.walk = loopvar(buyst.walk, 0, 15, 1)
  playtimer
  control
  usemenusounds
- IF usemenu(buyst.st) THEN GOSUB curinfo
+ IF usemenu(buyst.st) THEN buystuff_curinfo buyst, stufbuf(), stuff(buyst.st.pt).dat, itembuf()
  IF carray(ccMenu) > 1 THEN EXIT DO
  IF carray(ccUse) > 1 THEN '---PRESS ENTER---------------------
   IF stuff(buyst.st.pt).disabled = NO THEN '---CHECK TO SEE IF YOU CAN AFFORD IT---
-   IF gam.stock(buyst.shop_id, itemno) > 1 THEN gam.stock(buyst.shop_id, itemno) -= 1
-   settag stufbuf(itemno * buyst.recordsize + 22)
-   gold = gold - stufbuf(itemno * buyst.recordsize + 24)
-   IF tradingitems THEN '---TRADE IN ITEMS----------
+   IF gam.stock(buyst.shop_id, buyst.itemno) > 1 THEN gam.stock(buyst.shop_id, buyst.itemno) -= 1
+   settag stufbuf(buyst.itemno * buyst.recordsize + 22)
+   gold = gold - stufbuf(buyst.itemno * buyst.recordsize + 24)
+   IF buyst.tradingitems THEN '---TRADE IN ITEMS----------
     FOR i as integer = 0 TO 3
      IF buyst.tradestf(i, 0) > -1 THEN
       delitem buyst.tradestf(i, 0), buyst.tradestf(i, 1)
      END IF
     NEXT
    END IF '-------END TRADE IN ITEM----------------------------
-   IF stufbuf(itemno * buyst.recordsize + 17) = 0 THEN '---BUY ITEM-------------------
+   IF stufbuf(buyst.itemno * buyst.recordsize + 17) = 0 THEN '---BUY ITEM-------------------
     menusound gen(genBuySFX)
-    getitem stufbuf(itemno * buyst.recordsize + 18)
-    acol = 4
-    alert = 10
-    alert_str = purchased & " " & stuff(buyst.st.pt).text
+    getitem stufbuf(buyst.itemno * buyst.recordsize + 18)
+    buyst.alert_box_style = 4
+    buyst.alert_ticks = 10
+    buyst.alert_str = buyst.purchased & " " & stuff(buyst.st.pt).text
    END IF '-------END IF ITEM-------------------------------------
-   IF stufbuf(itemno * buyst.recordsize + 17) = 1 THEN '---HIRE HERO------------------
+   IF stufbuf(buyst.itemno * buyst.recordsize + 17) = 1 THEN '---HIRE HERO------------------
     menusound gen(genHireSFX)
     slot = first_free_slot_in_active_party()
     IF slot >= 0 THEN
-     addhero stufbuf(itemno * buyst.recordsize + 18) + 1, slot, stufbuf(itemno * buyst.recordsize + 26)
-     acol = 4
-     alert = 10
-     alert_str = stuff(buyst.st.pt).text & " " & joined
+     addhero stufbuf(buyst.itemno * buyst.recordsize + 18) + 1, slot, stufbuf(buyst.itemno * buyst.recordsize + 26)
+     buyst.alert_box_style = 4
+     buyst.alert_ticks = 10
+     buyst.alert_str = stuff(buyst.st.pt).text & " " & buyst.joined
     END IF
    END IF '-------END IF HERO-------------------------------------
    'the last thing to do is re-eval the item and hero tags in case
@@ -188,13 +163,13 @@ DO
    evalitemtags
   ELSE ' WHEN CANNOT AFFORD------------------------------------
    menusound gen(genCantBuySFX)
-   acol = 3
-   alert = 10
-   alert_str = buytype(1, buyst.shoptype) & stuff(buyst.st.pt).text
+   buyst.alert_box_style = 3
+   buyst.alert_ticks = 10
+   buyst.alert_str = buyst.buytype(1, buyst.shoptype) & stuff(buyst.st.pt).text
   END IF '--------END BUY THING------------
   buystuff_buildmenu buyst, stuff(), stufbuf()
   IF buyst.st.last = -1 THEN GOTO cleanupquit
-  GOSUB curinfo
+  buystuff_curinfo buyst, stufbuf(), stuff(buyst.st.pt).dat, itembuf()
  END IF '---------END TRY BUY THING--------
 
  'Draw the screen
@@ -206,18 +181,18 @@ DO
  edgeprint gold_str, xstring(gold_str, 240), 14, uilook(uiText), page
  DIM linenum as integer = 0
  edgeprint stuff(buyst.st.pt).text, xstring(stuff(buyst.st.pt).text, 240), 30 + linenum * 10, uilook(uiMenuItem), page: linenum += 1
- IF info1 <> "" THEN edgeprint info1, xstring(info1, 240), 30 + linenum * 10, uilook(uiDisabledItem), page: linenum += 1
- IF info2 <> "" THEN edgeprint info2, xstring(info2, 240), 30 + linenum * 10, uilook(uiDisabledItem), page: linenum += 1
- IF eqinfo <> "" THEN edgeprint eqinfo, xstring(eqinfo, 240), 30 + linenum * 10, uilook(uiMenuItem), page: linenum += 1
- IF gam.stock(buyst.shop_id, itemno) > 1 THEN
-  edgeprint (gam.stock(buyst.shop_id, itemno) - 1) & " " & instock & " ", xstring((gam.stock(buyst.shop_id, itemno) - 1) & " " & instock & " ", 240), 30 + linenum * 10, uilook(uiMenuItem), page: linenum += 1
+ IF buyst.info1 <> "" THEN edgeprint buyst.info1, xstring(buyst.info1, 240), 30 + linenum * 10, uilook(uiDisabledItem), page: linenum += 1
+ IF buyst.info2 <> "" THEN edgeprint buyst.info2, xstring(buyst.info2, 240), 30 + linenum * 10, uilook(uiDisabledItem), page: linenum += 1
+ IF buyst.eqinfo <> "" THEN edgeprint buyst.eqinfo, xstring(buyst.eqinfo, 240), 30 + linenum * 10, uilook(uiMenuItem), page: linenum += 1
+ IF gam.stock(buyst.shop_id, buyst.itemno) > 1 THEN
+  edgeprint (gam.stock(buyst.shop_id, buyst.itemno) - 1) & " " & buyst.instock & " ", xstring((gam.stock(buyst.shop_id, buyst.itemno) - 1) & " " & buyst.instock & " ", 240), 30 + linenum * 10, uilook(uiMenuItem), page: linenum += 1
  END IF
- IF showhero > -1 THEN
+ IF buyst.showhero > -1 THEN
   'This happens only if a hireable hero is selected
   centerbox 240, 130, 36, 44, 4, page
-  frame_draw(hiresprite + walks(walk), hirepal, 224, 110, 1, -1, page)
+  frame_draw(buyst.hiresprite.sprite + walks(buyst.walk), buyst.hiresprite.pal, 224, 110, 1, -1, page)
  END IF
- IF is_equipable THEN
+ IF buyst.is_equipable THEN
   FOR i as integer = 0 TO 3
    heropos.x = 170 + i * 36
    heropos.y = 130
@@ -227,37 +202,37 @@ DO
     'If there is a hero in this slot
     IF readbit(itembuf(), 66, hero(i) - 1) <> 0 THEN
      '-- animation heroes when this item is equipable
-     heroframe = walks(walk)
+     heroframe = walks(buyst.walk)
      col = 3
     END IF
    END IF
    edgeboxstyle heropos.x - 1, heropos.y - 2, 34, 44, col, page, , YES
    IF hero(i) > 0 THEN
     'If there is a hero in this slot
-    frame_draw(herosprite(i) + heroframe, heropal(i), heropos.x, heropos.y, 1, -1, page)
+    frame_draw(buyst.herosprite(i).sprite + heroframe, buyst.herosprite(i).pal, heropos.x, heropos.y, 1, -1, page)
    END IF
   NEXT i
  END IF
  '-----LEFT PANEL-------------------------------------------
  FOR i as integer = buyst.st.top TO small(buyst.st.top + buyst.st.size, UBOUND(stuff))
   DIM c as integer = uilook(uiMenuItem)
-  IF buyst.st.pt = i THEN c = uilook(uiSelectedItem + tog)
+  IF buyst.st.pt = i THEN c = uilook(uiSelectedItem + buyst.tog)
   IF stuff(i).disabled THEN
    c = uilook(uiDisabledItem):
-   IF buyst.st.pt = i THEN c = uilook(uiMenuItem + tog)
+   IF buyst.st.pt = i THEN c = uilook(uiMenuItem + buyst.tog)
   END IF
   edgeprint stuff(i).text, 10, 15 + (i - buyst.st.top) * 10, c, page
  NEXT i
  draw_scrollbar buyst.st, left_panel, , page
- IF price <> "" THEN
-  centerbox 160, 187, LEN(price) * 8 + 8, 14 + xtralines * 10, 1, page
-  edgeprint price, xstring(price, 160), 182 - xtralines * 5, uilook(uiText), page
-  IF xtralines >= 1 THEN edgeprint price2, xstring(price2, 160), 187, uilook(uiText), page
+ IF buyst.price <> "" THEN
+  centerbox 160, 187, LEN(buyst.price) * 8 + 8, 14 + buyst.xtralines * 10, 1, page
+  edgeprint buyst.price, xstring(buyst.price, 160), 182 - buyst.xtralines * 5, uilook(uiText), page
+  IF buyst.xtralines >= 1 THEN edgeprint buyst.price2, xstring(buyst.price2, 160), 187, uilook(uiText), page
  END IF
- IF alert THEN
-  alert = alert - 1
-  centerbox 160, 178, LEN(alert_str) * 8 + 8, 14, acol, page
-  edgeprint alert_str, xstring(alert_str, 160), 173, uilook(uiSelectedItem + tog), page
+ IF buyst.alert_ticks > 0 THEN
+  buyst.alert_ticks -= 1
+  centerbox 160, 178, LEN(buyst.alert_str) * 8 + 8, 14, buyst.alert_box_style, page
+  edgeprint buyst.alert_str, xstring(buyst.alert_str, 160), 173, uilook(uiSelectedItem + buyst.tog), page
  END IF
  setvispage vpage
  copypage holdscreen, page
@@ -267,11 +242,11 @@ LOOP
 cleanupquit:
 'Unload the sprites used to display the heroes
 FOR i as integer = 0 TO 3
- frame_unload(@herosprite(i))
- palette16_unload(@heropal(i))
+ frame_unload(@buyst.herosprite(i).sprite)
+ palette16_unload(@buyst.herosprite(i).pal)
 NEXT i
-frame_unload(@hiresprite)
-palette16_unload(@hirepal)
+frame_unload(@buyst.hiresprite.sprite)
+palette16_unload(@buyst.hiresprite.pal)
 freepage page
 freepage holdscreen
 menusound gen(genCancelSFX)
@@ -279,91 +254,95 @@ evalitemtags
 party_change_updates
 EXIT SUB
 
-curinfo:
-itemno = stuff(buyst.st.pt).dat
-tradingitems = 0
-xtralines = 0
-showhero = -1
-is_equipable = NO
-price = ""
-price2 = ""
-eqinfo = ""
-info1 = ""
-info2 = ""
-IF stufbuf(itemno * buyst.recordsize + 24) > 0 THEN price = stufbuf(itemno * buyst.recordsize + 24) & " " & readglobalstring(32, "Money")
-'--load must trade in item types+amounts
-buystuff_loadtrades buyst, itemno, stufbuf()
-FOR i as integer = 0 TO 3
- IF buyst.tradestf(i, 0) > -1 THEN
-  tradingitems = 1
-  IF price = "" THEN
-   price = buytype(0, buyst.shoptype)
-  ELSE
-   IF buyst.tradestf(i, 1) = 1 THEN
-    price = price & " " & anda & " "
+END SUB
+
+SUB buystuff_curinfo (buyst as ShopBuyState, stufbuf() as integer, byval selected_stuff as integer, itembuf() as integer)
+ buyst.itemno = selected_stuff
+ buyst.tradingitems = NO
+ buyst.xtralines = 0
+ buyst.showhero = -1
+ buyst.is_equipable = NO
+ buyst.price = ""
+ buyst.price2 = ""
+ buyst.eqinfo = ""
+ buyst.info1 = ""
+ buyst.info2 = ""
+ IF stufbuf(buyst.itemno * buyst.recordsize + 24) > 0 THEN buyst.price = stufbuf(buyst.itemno * buyst.recordsize + 24) & " " & readglobalstring(32, "Money")
+ '--load must trade in item types+amounts
+ buystuff_loadtrades buyst, buyst.itemno, stufbuf()
+ FOR i as integer = 0 TO 3
+  IF buyst.tradestf(i, 0) > -1 THEN
+   buyst.tradingitems = YES
+   IF buyst.price = "" THEN
+    buyst.price = buyst.buytype(0, buyst.shoptype)
    ELSE
-    price = price & " " & andsome & " "
+    IF buyst.tradestf(i, 1) = 1 THEN
+     buyst.price = buyst.price & " " & readglobalstring(81, "and a", 10) & " "
+    ELSE
+     buyst.price = buyst.price & " " & readglobalstring(153, "and", 10) & " "
+    END IF
+   END IF
+   IF buyst.tradestf(i, 1) = 1 THEN
+    buyst.price = buyst.price & readitemname(buyst.tradestf(i, 0))
+   ELSE
+    buyst.price = buyst.price & STR(buyst.tradestf(i, 1)) & " " & readitemname(buyst.tradestf(i, 0))
    END IF
   END IF
-  IF buyst.tradestf(i, 1) = 1 THEN
-   price = price & readitemname(buyst.tradestf(i, 0))
-  ELSE
-   price = price & STR(buyst.tradestf(i, 1)) & " " & readitemname(buyst.tradestf(i, 0))
+ NEXT
+ IF LEN(buyst.price) > 38 THEN
+  '--have to split in 2! ARGH
+  DIM i as integer = 38
+  WHILE i > 19 AND MID(buyst.price, i, 1) <> " ": i = i - 1: WEND
+  buyst.price2 = MID(buyst.price, i + 1)
+  buyst.price = LEFT(buyst.price, i - 1)
+  buyst.xtralines = 1
+ END IF
+ IF stufbuf(buyst.itemno * buyst.recordsize + 17) = 0 THEN
+  'This is an item
+  loaditemdata itembuf(), stufbuf(buyst.itemno * buyst.recordsize + 18)
+  'The itembuf remains and is used later to show equipability.
+  DIM eqprefix as string = readglobalstring(99, "Equip:", 10)
+  IF itembuf(49) = 1 THEN buyst.eqinfo = eqprefix & " " & readglobalstring(38, "Weapon", 10)
+  IF itembuf(49) > 1 THEN buyst.eqinfo = eqprefix & " " & readglobalstring(23 + itembuf(49), "Armor" & itembuf(49)-1)
+  buyst.info1 = readbadbinstring(itembuf(), 9, 36, 0)
+  IF LEN(buyst.info1) > 17 THEN
+   DIM o as integer
+   FOR o = 18 TO 1 STEP -1
+    IF MID(buyst.info1, o, 1) = " " OR MID(buyst.info1, o, 1) = "-" OR MID(buyst.info1, o, 1) = "," OR MID(buyst.info1, o, 1) = "." THEN EXIT FOR
+   NEXT o
+   IF o > 1 THEN
+    buyst.info2 = RIGHT(buyst.info1, LEN(buyst.info1) - o)
+    buyst.info1 = LEFT(buyst.info1, o)
+   END IF
+   IF RIGHT(buyst.info1, 1) = " " THEN buyst.info1 = LEFT(buyst.info1, LEN(buyst.info1) - 1)
+   buyst.info1 = LEFT(buyst.info1, 18)
+  END IF
+  IF itembuf(49) > 0 THEN
+   'This item is equippable
+   buyst.is_equipable = YES
   END IF
  END IF
-NEXT
-IF LEN(price) > 38 THEN
- '--have to split in 2! ARGH
- DIM i as integer = 38
- WHILE i > 19 AND MID(price, i, 1) <> " ": i = i - 1: WEND
- price2 = MID(price, i + 1)
- price = LEFT(price, i - 1)
- xtralines = 1
-END IF
-IF stufbuf(itemno * buyst.recordsize + 17) = 0 THEN
- 'This is an item
- loaditemdata itembuf(), stufbuf(itemno * buyst.recordsize + 18)
- 'The itembuf remains and is used later to show equipability.
- IF itembuf(49) = 1 THEN eqinfo = eqprefix & " " & wepslot
- IF itembuf(49) > 1 THEN eqinfo = eqprefix & " " & readglobalstring(23 + itembuf(49), "Armor" & itembuf(49)-1)
- info1 = readbadbinstring(itembuf(), 9, 36, 0)
- IF LEN(info1) > 17 THEN
-  DIM o as integer
-  FOR o = 18 TO 1 STEP -1
-   IF MID(info1, o, 1) = " " OR MID(info1, o, 1) = "-" OR MID(info1, o, 1) = "," OR MID(info1, o, 1) = "." THEN EXIT FOR
-  NEXT o
-  IF o > 1 THEN
-   info2 = RIGHT(info1, LEN(info1) - o)
-   info1 = LEFT(info1, o)
-  END IF
-  IF RIGHT(info1, 1) = " " THEN info1 = LEFT(info1, LEN(info1) - 1)
-  info1 = LEFT(info1, 18)
- END IF
- IF itembuf(49) > 0 THEN
-  'This item is equippable
-  is_equipable = YES
- END IF
-END IF
-IF stufbuf(itemno * buyst.recordsize + 17) = 1 THEN
- 'hire
- dim her as herodef
- loadherodata her, stufbuf(itemno * buyst.recordsize + 18)
- loaditemdata wbuf(), her.def_weapon
- IF her.def_level < 0 THEN her.def_level = averagelev
- eqinfo = (atlevel(her.def_level, her.lev0.hp, her.levMax.hp) & wbuf(54 + 0)) & " " & statnames(statHP)
- showhero = her.sprite
+ IF stufbuf(buyst.itemno * buyst.recordsize + 17) = 1 THEN
+  'hire
+  dim her as herodef
+  loadherodata her, stufbuf(buyst.itemno * buyst.recordsize + 18)
+  DIM wbuf(dimbinsize(binITM)) as integer
+  loaditemdata wbuf(), her.def_weapon
+  IF her.def_level < 0 THEN her.def_level = averagelev
+  buyst.eqinfo = (atlevel(her.def_level, her.lev0.hp, her.levMax.hp) & wbuf(54 + 0)) & " " & statnames(statHP)
+  buyst.showhero = her.sprite
+  
+  'Load the sprite for the hireable hero
+  frame_unload @buyst.hiresprite.sprite
+  buyst.hiresprite.sprite = frame_load(0, buyst.showhero)
+  IF buyst.hiresprite.sprite = 0 THEN debug "Couldn't load hero sprite: " & game & ".pt0#" & buyst.showhero
+  palette16_unload @buyst.hiresprite.pal
+  buyst.hiresprite.pal = palette16_load(her.sprite_pal, 0, buyst.showhero)
+  IF buyst.hiresprite.pal = 0 THEN debug "Failed to load palette for hireable hero (#" & her.sprite_pal & ")"
  
- 'Load the sprite for the hireable hero
- frame_unload @hiresprite
- hiresprite = frame_load(0, showhero)
- IF hiresprite = 0 THEN debug "Couldn't load hero sprite: " & game & ".pt0#" & showhero
- palette16_unload @hirepal
- hirepal = palette16_load(her.sprite_pal, 0, showhero)
- IF hirepal = 0 THEN debug "Failed to load palette for hireable hero (#" & her.sprite_pal & ")"
+  IF buyst.room_to_hire = NO THEN buyst.info1 = readglobalstring(100, "No Room in Party", 20)
+ END IF
 
- IF buyst.room_to_hire = NO THEN info1 = noroom
-END IF
-RETRACE
 END SUB
 
 SUB buystuff_buildmenu (buyst as ShopBuyState, stuff() as SimpleMenuItem, stufbuf() as integer)
@@ -913,8 +892,6 @@ copypage page, holdscreen
 DIM cannotsell as string = readglobalstring(75, "CANNOT SELL", 20)
 DIM worth as string = readglobalstring(77, "Worth", 20)
 DIM tradefor as string = readglobalstring(79, "Trade for", 20)
-DIM anda as string = readglobalstring(81, "and a", 10)
-DIM andsome as string = readglobalstring(153, "and", 10)
 DIM worthnothing as string = readglobalstring(82, "Worth Nothing", 20)
 DIM sold as string = readglobalstring(84, "Sold", 10)
 
@@ -989,9 +966,9 @@ FOR i as integer = 0 TO storebuf(16)
     info = tradefor & " "
    ELSE
     IF b(i * recordsize + 29) > 0 THEN
-     info = info & " " & andsome & " "
+     info = info & " " & readglobalstring(153, "and", 10) & " "
     ELSE
-     info = info & " " & anda & " "
+     info = info & " " & readglobalstring(81, "and a", 10) & " "
     END IF
    END IF
    IF b(i * recordsize + 29) > 0 THEN info = info & STR(b(i * recordsize + 29) + 1) & " "
