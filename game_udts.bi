@@ -180,6 +180,11 @@ TYPE SpellsMenuState
   has_none_caption as string
 END TYPE
 
+TYPE ShopBuyState
+ shop_id as integer
+ shoptype as integer
+END TYPE
+
 TYPE LumpReloadState
   mode      as integer  'one of the loadmode constants in const.bi
   dirty     as bool     'whether a script has modified this for the current map

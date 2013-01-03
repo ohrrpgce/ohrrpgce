@@ -1,6 +1,6 @@
 #ifndef MENUSTUF_BI
 #define MENUSTUF_BI
-DECLARE SUB buystuff (byval id as integer, byval shoptype as integer, storebuf() as integer)
+DECLARE SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as integer)
 DECLARE FUNCTION chkOOBtarg (byval target as integer, byval atk as integer) as integer
 DECLARE SUB doequip (byval toequip as integer, byval who as integer, byval where as integer, byval defwep as integer)
 DECLARE SUB equip (byval who as integer)

@@ -30,7 +30,7 @@
 
 '--SUBs and FUNCTIONS only used locally
 DECLARE SUB loadtrades(byval index as integer, tradestf() as integer, b() as integer, byval recordsize as integer)
-DECLARE SUB setshopstock (byval id as integer, byval recordsize as integer, storebuf() as integer, stufbuf() as integer)
+DECLARE SUB buystuff_setshopstock (buyst as ShopBuyState, byval recordsize as integer, storebuf() as integer, stufbuf() as integer)
 DECLARE SUB equip_menu_setup (byref st as EquipMenuState, menu() as string)
 DECLARE SUB equip_menu_do_equip(byval item as integer, byref st as EquipMenuState, menu() as string)
 DECLARE SUB equip_menu_back_to_menu(byref st as EquipMenuState, menu() as string)
@@ -53,7 +53,14 @@ DECLARE SUB sellstuff_refresh(byval last_stuff as integer, byval recordsize as i
 DECLARE SUB status_buildmenu(her as HeroDef, byval pt as integer, mtype() as integer, elementaldmg() as single, elementnames() as string, elementalmenu() as string, elementalmenu_st as MenuState, portrait as GraphicPair)
 DECLARE SUB inventory_overflow_handler(byval item_id as integer, byval numitems as integer)
 
-SUB buystuff (byval id as integer, byval shoptype as integer, storebuf() as integer)
+SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as integer)
+
+ DIM buyst as ShopBuyState
+ WITH buyst
+  .shop_id = shop_id
+  .shoptype = shoptype
+ END WITH
+
 DIM b((getbinsize(binSTF) \ 2) * 50 - 1) as integer
 DIM buytype(5, 1) as string
 DIM wbuf(dimbinsize(binITM)) as integer
@@ -126,9 +133,9 @@ walks(12) = 2
 walks(13) = 3
 walks(14) = 3
 
-loadshopstuf b(), id
+loadshopstuf b(), buyst.shop_id
 
-setshopstock id, recordsize, storebuf(), b()
+buystuff_setshopstock buyst, recordsize, storebuf(), b()
 st.pt = 0
 st.size = 15
 GOSUB buildmenu
@@ -150,7 +157,7 @@ DO
  IF carray(ccMenu) > 1 THEN EXIT DO
  IF carray(ccUse) > 1 THEN '---PRESS ENTER---------------------
   IF stuff(st.pt).disabled = NO THEN '---CHECK TO SEE IF YOU CAN AFFORD IT---
-   IF gam.stock(id, itemno) > 1 THEN gam.stock(id, itemno) -= 1
+   IF gam.stock(buyst.shop_id, itemno) > 1 THEN gam.stock(buyst.shop_id, itemno) -= 1
    settag b(itemno * recordsize + 22)
    gold = gold - b(itemno * recordsize + 24)
    IF tradingitems THEN '---TRADE IN ITEMS----------
@@ -185,7 +192,7 @@ DO
    menusound gen(genCantBuySFX)
    acol = 3
    alert = 10
-   alert_str = buytype(1, shoptype) & stuff(st.pt).text
+   alert_str = buytype(1, buyst.shoptype) & stuff(st.pt).text
   END IF '--------END BUY THING------------
   GOSUB buildmenu
   IF st.last = -1 THEN GOTO cleanupquit
@@ -204,8 +211,8 @@ DO
  IF info1 <> "" THEN edgeprint info1, xstring(info1, 240), 30 + linenum * 10, uilook(uiDisabledItem), page: linenum += 1
  IF info2 <> "" THEN edgeprint info2, xstring(info2, 240), 30 + linenum * 10, uilook(uiDisabledItem), page: linenum += 1
  IF eqinfo <> "" THEN edgeprint eqinfo, xstring(eqinfo, 240), 30 + linenum * 10, uilook(uiMenuItem), page: linenum += 1
- IF gam.stock(id, itemno) > 1 THEN
-  edgeprint (gam.stock(id, itemno) - 1) & " " & instock & " ", xstring((gam.stock(id, itemno) - 1) & " " & instock & " ", 240), 30 + linenum * 10, uilook(uiMenuItem), page: linenum += 1
+ IF gam.stock(buyst.shop_id, itemno) > 1 THEN
+  edgeprint (gam.stock(buyst.shop_id, itemno) - 1) & " " & instock & " ", xstring((gam.stock(buyst.shop_id, itemno) - 1) & " " & instock & " ", 240), 30 + linenum * 10, uilook(uiMenuItem), page: linenum += 1
  END IF
  IF showhero > -1 THEN
   'This happens only if a hireable hero is selected
@@ -277,8 +284,8 @@ REDIM stuff(-1 TO -1)
 room_to_hire = herocount(3) < 4 ANDALSO free_slots_in_party() > 0
 FOR i as integer = 0 TO storebuf(16)
  '--for each shop-thing
- IF gam.stock(id, i) = 1 THEN CONTINUE FOR
- IF b(i * recordsize + 17) = (shoptype XOR 1) THEN CONTINUE FOR
+ IF gam.stock(buyst.shop_id, i) = 1 THEN CONTINUE FOR
+ IF b(i * recordsize + 17) = (buyst.shoptype XOR 1) THEN CONTINUE FOR
  IF NOT istag(b(i * recordsize + 20), -1) THEN CONTINUE FOR
 
  DIM itemname as string = readbadbinstring(b(), i * recordsize, 16)
@@ -318,7 +325,7 @@ FOR i as integer = 0 TO 3
  IF tradestf(i, 0) > -1 THEN
   tradingitems = 1
   IF price = "" THEN
-   price = buytype(0, shoptype)
+   price = buytype(0, buyst.shoptype)
   ELSE
    IF tradestf(i, 1) = 1 THEN
     price = price & " " & anda & " "
@@ -387,15 +394,15 @@ END IF
 RETRACE
 END SUB
 
-SUB setshopstock (byval id as integer, byval recordsize as integer, storebuf() as integer, stufbuf() as integer)
+SUB buystuff_setshopstock (buyst as ShopBuyState, byval recordsize as integer, storebuf() as integer, stufbuf() as integer)
 DIM i as integer
 FOR i = 0 TO storebuf(16)
  '--for each shop-stuff
- IF gam.stock(id, i) = 0 THEN
+ IF gam.stock(buyst.shop_id, i) = 0 THEN
   '--if unloaded, reload stock
-  gam.stock(id, i) = stufbuf(i * recordsize + 19)
+  gam.stock(buyst.shop_id, i) = stufbuf(i * recordsize + 19)
   '--zero means unloaded, 1 means no-stock, 2+n means 1+n in stock
-  IF gam.stock(id, i) > -1 THEN gam.stock(id, i) = gam.stock(id, i) + 1
+  IF gam.stock(buyst.shop_id, i) > -1 THEN gam.stock(buyst.shop_id, i) = gam.stock(buyst.shop_id, i) + 1
  END IF
 NEXT i
 END SUB
