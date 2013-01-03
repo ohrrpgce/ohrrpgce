@@ -335,7 +335,7 @@ SUB buystuff_curinfo (buyst as ShopBuyState, stufbuf() as integer, byval selecte
   DIM wbuf(dimbinsize(binITM)) as integer
   loaditemdata wbuf(), her.def_weapon
   IF her.def_level < 0 THEN her.def_level = averagelev
-  buyst.eqinfo = (atlevel(her.def_level, her.lev0.hp, her.levMax.hp) & wbuf(54 + 0)) & " " & statnames(statHP)
+  buyst.eqinfo = (atlevel(her.def_level, her.lev0.hp, her.levMax.hp) + wbuf(54 + 0)) & " " & statnames(statHP)
   buyst.showhero = her.sprite
   
   'Load the sprite for the hireable hero
