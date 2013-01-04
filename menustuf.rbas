@@ -179,6 +179,7 @@ DO
  END IF '---------END TRY BUY THING--------
 
  'Draw the screen
+ copypage holdscreen, page
  edgeboxstyle left_panel, 0, page
  edgeboxstyle right_panel, 0, page
  '-----RIGHT PANEL------------------------------------------
@@ -241,7 +242,6 @@ DO
   edgeprint buyst.alert_str, xstring(buyst.alert_str, 160), 173, uilook(uiSelectedItem + buyst.tog), page
  END IF
  setvispage vpage
- copypage holdscreen, page
  dowait
 LOOP
 
@@ -778,9 +778,9 @@ DO
    END IF
   END IF
  END IF
+ copypage holdscreen, page
  picksave_draw menu(), loading, sprites(), pv(), mapname(), lev(), st, page
  setvispage vpage
- copypage holdscreen, page
  check_for_queued_fade_in
  dowait
 LOOP
@@ -938,6 +938,11 @@ DO
  control
  GOSUB keysell
  IF quit THEN EXIT DO
+ 
+ '--Draw the sell screen
+ 'FIXME: Some of this is redundant to the inventory display code.
+ '       figure out how much can reasonably be re-used
+ copypage holdscreen, page
  centerbox 160, 92, 304, 176, 1, page
  FOR i as integer = top TO top + 62
   textcolor uilook(uiMenuItem), 0
@@ -957,7 +962,6 @@ DO
   edgeprint alert_str, xstring(alert_str, 160), 173, uilook(uiSelectedItem + tog), page
  END IF
  setvispage vpage
- copypage holdscreen, page
  dowait
 LOOP
 freepage page
@@ -1166,6 +1170,7 @@ DO
  IF carray(ccLeft) > 1 THEN DO: pt = loopvar(pt, 0, 3, -1): LOOP UNTIL hero(pt) > 0: menusound gen(genCursorSFX): status_buildmenu her, pt, mtype(), elementaldmg(), elementnames(), elementalmenu(), elementalmenu_st, portrait
  IF carray(ccRight) > 1 THEN DO: pt = loopvar(pt, 0, 3, 1): LOOP UNTIL hero(pt) > 0: menusound gen(genCursorSFX): status_buildmenu her, pt, mtype(), elementaldmg(), elementnames(), elementalmenu(), elementalmenu_st, portrait
 
+ copypage holdscreen, page
  centerfuz 160, 100, 304, 184, 1, page
  centerbox 160, 36, 292, 40, 4, page
  SELECT CASE mode
@@ -1263,7 +1268,6 @@ DO
  END SELECT
 
  setvispage vpage
- copypage holdscreen, page
  dowait
 LOOP
 menusound gen(genCancelSFX)
@@ -1593,6 +1597,7 @@ DO
  END IF
 
  '--display
+ copypage holdscreen, page
  centerfuz 160, 100, 304, 184, 1, page 'backdrop box
  centerbox 84, 18, 140, 16, 4, page    'hero name
  centerbox 84, 102, 140, 130, 4, page  'stats
@@ -1660,7 +1665,6 @@ DO
  centerbox 160, 192, 312, 16, 4, page
  edgeprint item_info, xstring(item_info, 160), 187, uilook(uiText), page
  setvispage vpage
- copypage holdscreen, page
  dowait
 LOOP
 freepage page
@@ -1877,12 +1881,15 @@ FUNCTION items_menu () as integer
   IF istate.refresh THEN
    items_menu_infostr istate, permask()
   END IF
+
+  IF istate.re_use = NO THEN
+   copypage holdscreen, istate.page
+  END IF
   
   items_menu_paint istate, iuse(), permask()
   
   IF istate.re_use = NO THEN
    setvispage vpage
-   copypage holdscreen, istate.page
    dowait
   END IF
  LOOP
@@ -2242,6 +2249,7 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
   END IF '--done using attack
 
   '--draw the targ picker menu
+  copypage holdscreen, page
   centerbox 160 + x_offset, 47, 160, 88, 2, page
   IF spread = NO AND targ >= 0 THEN
    rectangle 84 + x_offset, 8 + targ * 20, 152, 20, uilook(uiHighlight2), page
@@ -2274,7 +2282,6 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
   edgeprint use_caption, xstring(use_caption, 160 + x_offset), 95, uilook(uiText), page
  
   setvispage vpage
-  copypage holdscreen, page
   dowait
  LOOP
  
@@ -2628,9 +2635,9 @@ SUB spells_menu (byval who as integer)
   control
   spells_menu_control sp
   IF sp.quit THEN EXIT DO
+  copypage holdscreen, sp.page
   spells_menu_paint sp
   setvispage vpage
-  copypage holdscreen, sp.page
   IF sp.re_use = NO THEN
    dowait
   END IF

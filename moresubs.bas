@@ -653,9 +653,9 @@ DO
   LOOP '--this loop just exists for convenient breaking with EXIT DO
  END IF
 
+ copypage holdscreen, page
  GOSUB showswapmenu
  setvispage vpage
- copypage holdscreen, page
  dowait
 LOOP
 carray(4) = 0
@@ -2331,6 +2331,7 @@ DO
   END IF
   IF autopick THEN EXIT DO
  END IF
+ copypage holdscreen, vpage
  h = (st.last + 2) * 10
  centerbox 160, 104 + (h * .5), 96, h, 1, page
  centerbox 160, 90, LEN(sn) * 8 + 8, 16, 1, page
@@ -2340,7 +2341,6 @@ DO
   edgeprint menu(i), xstring(menu(i), 160), 109 + i * 10, c, page
  NEXT i
  setvispage vpage
- copypage holdscreen, vpage
  check_for_queued_fade_in
  dowait
 LOOP
