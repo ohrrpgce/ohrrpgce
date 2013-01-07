@@ -548,3 +548,10 @@ plotscript, delete hero test, begin
   trace(31)
   wait(2)
 end
+
+plotscript, step on suspend, begin
+  suspend player
+  wait(36)
+  resume player
+end
+
