@@ -1211,6 +1211,10 @@ DO
    saveattackdata recbuf(), lastindex
    IF recindex > gen(genMaxAttack) THEN
     atk_edit_add_new recbuf(), recindex, preview_box
+    IF NOT recindex > gen(genMaxAttack) THEN
+     'cancelled add
+     loadattackdata recbuf(), recindex
+    END IF
    ELSE
     loadattackdata recbuf(), recindex
    END IF
