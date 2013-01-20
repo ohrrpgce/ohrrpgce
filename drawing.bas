@@ -332,7 +332,9 @@ clearpage 3
 clearpage 2
 clearpage 1
 clearpage 0
-tileset_empty_cache
+'tileset_empty_cache
+'Robust againts tileset leaks
+sprite_update_cache_tilesets
 EXIT SUB
 
 tilemode:
@@ -1899,7 +1901,10 @@ LOOP
 changepal poffset(state.pt), 0, workpal(), state.pt - state.top
 spriteedit_save_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
 savedefaultpals ss.fileset, poffset(), sets
-sprite_empty_cache
+'sprite_empty_cache
+'Robust against sprite leaks
+IF ss.fileset > -1 THEN sprite_update_cache_pt ss.fileset
+
 clearpage 0
 clearpage 1
 clearpage 2
