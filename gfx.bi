@@ -1,6 +1,7 @@
 '' External graphics and IO functions
 
 #include "udts.bi"
+#include "const.bi"
 
 extern "C"
 
@@ -18,6 +19,9 @@ declare sub Gfx_backend_init (byval terminate_signal_handler as sub cdecl (), by
 
 extern Gfx_init as function (byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
 extern Gfx_close as sub ()
+
+'(optional, ptr may be NULL)
+extern Gfx_setdebugfunc as sub (byval debugc as sub cdecl (byval errorlevel as ErrorLevelEnum, byval message as zstring ptr))
 
 'API version. Must return 1
 extern Gfx_getversion as function () as integer

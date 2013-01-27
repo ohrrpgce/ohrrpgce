@@ -19,8 +19,6 @@
 
 extern "C"
 
-'Old graphics backend function pointers
-
 dim gfx_Initialize as function (byval pCreationData as const GFX_INIT ptr) as integer
 dim gfx_Shutdown as sub ()
 dim gfx_SendMessage as function (byval msg as unsigned integer, byval dwParam as unsigned integer, byval pvParam as Any ptr) as integer
@@ -44,8 +42,11 @@ dim gfx_GetJoystickMovement as function (byval nDevice as integer, byref dx as i
 dim gfx_GetJoystickPosition as function (byval nDevice as integer, byref x as integer, byref y as integer, byref buttons as integer) as integer
 dim gfx_SetJoystickPosition as function (byval nDevice as integer, byval x as integer, byval y as integer) as integer
 
+'Old graphics backend function pointers
+
 dim gfx_init as function (byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
 dim gfx_close as sub ()
+dim gfx_setdebugfunc as sub (byval debugc as sub cdecl (byval errorlevel as ErrorLevelEnum, byval message as zstring ptr))
 dim gfx_getversion as function () as integer
 dim gfx_showpage as sub (byval raw as ubyte ptr, byval w as integer, byval h as integer)
 dim gfx_setpal as sub (byval pal as RGBcolor ptr)
@@ -185,6 +186,7 @@ function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filename as 
 
 	gfx_init = dylibsymbol(hFile, "gfx_init")
 	gfx_close = dylibsymbol(hFile, "gfx_close")
+	gfx_setdebugfunc = dylibsymbol(hFile, "gfx_setdebugfunc")
 	gfx_showpage = dylibsymbol(hFile, "gfx_showpage")
 	gfx_setpal = dylibsymbol(hFile, "gfx_setpal")
 	gfx_screenshot = dylibsymbol(hFile, "gfx_screenshot")
@@ -404,6 +406,7 @@ function load_backend(which as GFxBackendStuff ptr) as integer
 
 	'Set up default function pointers
 	default_gfx_render_procs()
+	gfx_setdebugfunc = NULL
 	Gfx_getresize = @gfx_dummy_getresize
 	Gfx_setresizable = @gfx_dummy_setresizable
 	Io_textinput = NULL
@@ -421,6 +424,10 @@ function load_backend(which as GFxBackendStuff ptr) as integer
 		if gfx_load_library(which, filename) = 0 then return 0
 	else
 		if which->load() = 0 then return 0
+	end if
+
+	if gfx_setdebugfunc then
+		gfx_setdebugfunc(@debugc)
 	end if
 
 	currentgfxbackend = which
@@ -471,7 +478,7 @@ sub gfx_backend_init(byval terminate_signal_handler as sub cdecl (), byval windo
 		end with
 	next
 
-	display_help_string "No working graphic backend!"
+	display_help_string "No working graphics backend!"
 	system 1
 end sub
 
