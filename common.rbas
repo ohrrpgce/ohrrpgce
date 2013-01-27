@@ -2800,7 +2800,14 @@ IF getbinsize(bindex) < curbinsize(bindex) THEN
   DIM outputf as integer = FREEFILE
   OPEN lumpf FOR BINARY as outputf
 
-  DIM records as integer = (LOF(inputf) - headersize) \ oldsize
+  'Round up record count. Due to various bugs a record might be short. Will be zero-extended.
+  '(Note that if a partial record is not extended here, then fix_record_count will do so)
+  DIM total_bytes as integer = LOF(inputf) - headersize
+  DIM records as integer = total_bytes \ oldsize
+  IF total_bytes MOD oldsize THEN
+   debuginfo "updaterecordslength: last record of " & trimpath(lumpf) & " is " & (total_bytes MOD oldsize) & " bytes, expected " & oldsize & ". Extending."
+   records += 1
+  END IF
 
   IF headersize > 0 THEN
    DIM headerbuf(headersize - 1) as BYTE
@@ -3791,7 +3798,7 @@ SUB fix_record_count(byref last_rec_index as integer, byref record_byte_size as 
   CLOSE #fh
   debug "Expanded " & info & " lump to " & total_bytes & " bytes"
  END IF
- DIM records as integer = total_bytes / record_byte_size
+ DIM records as integer = total_bytes \ record_byte_size
  IF records <> rec_count THEN
   upgrade_message "Adjusting record count for " & info & " lump, " & rec_count & " -> " & records & " (" & records - rec_count & ")"
   last_rec_index = records - 1 - count_offset
