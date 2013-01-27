@@ -2758,7 +2758,7 @@ END SUB
 'Note that this form of loadenemydata does not do fixEnemyElementals fixes!
 'Don't use this anywhere in Game where those need to be applied! (Of course,
 'you probably would never use this in Game)
-SUB loadenemydata (array() as integer, byval index as integer, byval altfile as integer = 0)
+SUB loadenemydata (array() as integer, byval index as integer, byval altfile as bool = NO)
  DIM filename as string
  IF altfile THEN
   filename = tmpdir & "dt1.tmp"
@@ -2768,7 +2768,7 @@ SUB loadenemydata (array() as integer, byval index as integer, byval altfile as 
  loadrecord array(), filename, getbinsize(binDT1) \ 2, index
 END SUB
 
-SUB loadenemydata (enemy as EnemyDef, byval index as integer, byval altfile as integer = 0)
+SUB loadenemydata (enemy as EnemyDef, byval index as integer, byval altfile as bool = NO)
  DIM buf(dimbinsize(binDT1)) as integer
  loadenemydata buf(), index, altfile
  WITH enemy
@@ -2858,7 +2858,7 @@ SUB loadenemydata (enemy as EnemyDef, byval index as integer, byval altfile as i
  END WITH
 END SUB
 
-SUB saveenemydata (array() as integer, byval index as integer, byval altfile as integer = 0)
+SUB saveenemydata (array() as integer, byval index as integer, byval altfile as bool = NO)
  DIM filename as string
  IF altfile THEN
   filename = tmpdir & "dt1.tmp"
@@ -2868,7 +2868,7 @@ SUB saveenemydata (array() as integer, byval index as integer, byval altfile as 
  storerecord array(), filename, getbinsize(binDT1) \ 2, index
 END SUB
 
-SUB saveenemydata (enemy as EnemyDef, byval index as integer, byval altfile as integer = 0)
+SUB saveenemydata (enemy as EnemyDef, byval index as integer, byval altfile as bool = NO)
  DIM buf(dimbinsize(binDT1)) as integer
  WITH enemy
   buf(0) = LEN(.name)

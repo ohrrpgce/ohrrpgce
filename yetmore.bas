@@ -3032,6 +3032,14 @@ SELECT CASE as CONST id
   END IF
  CASE 542 '--microseconds
   scriptret = fmod((TIMER * 1e6) + 2147483648.0, 4294967296.0) - 2147483648.0
+ CASE 543 '--enemy elemental resist as int (enemy, element)
+  IF bound_arg(retvals(0), 0, gen(genMaxEnemy), "enemy id", , , serrBadOp) THEN
+   IF bound_arg(retvals(1), 0, gen(genNumElements) - 1, "element number") THEN
+    DIM enemy as EnemyDef
+    loadenemydata enemy, retvals(0), YES
+    scriptret = 100 * enemy.elementals(retvals(1))  'rounds to nearest int
+   END IF
+  END IF
 
 'old scriptnpc
 

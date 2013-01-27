@@ -3,12 +3,16 @@
 define constant, begin
 2,tag:box chain test
 3,tag:menu tag test
+4,tag:req for atk use tag
+5,tag:atk use test tag
+6,tag:atk use test no req
 0,hero:Freki
 1,hero:Helga
 2,hero:Olaf
 3,hero:Frumpy
 4,hero:Styrge
 5,hero:Kitt
+6,hero:Bram
 0,stat:HP
 1,stat:MP
 2,stat:Atk
@@ -21,6 +25,22 @@ define constant, begin
 9,stat:Ctr
 10,stat:MP~
 11,stat:Hits
+0,element:Fire
+1,element:Ice
+2,element:Lit
+3,element:Earth
+4,element:Other
+5,element:Other 2
+6,element:Other 3
+7,element:Other 4
+8,element:Type 1killer
+9,element:Type 2killer
+10,element:Type 3killer
+11,element:Type 4killer
+12,element:Type 5killer
+13,element:Type 6killer
+14,element:Type 7killer
+15,element:Type 8killer
 1,slot:Weapon
 1,slot:Weapon 2
 2,slot:Head
@@ -31,14 +51,22 @@ define constant, begin
 1,map:Afterbattle script map
 2,map:Insteadofbattle script map
 3,map:InsteadAfter battle map
+4,map:Door dest map
 1,atk:SelfStab
 2,atk:L10 Wolf
 3,atk:Force Run
 4,atk:Force Vict
 5,atk:Force Exit
+6,atk:BecomeMush
+7,atk:AtkTagUse
+8,atk:AtTagNoReq
 2,menu:Menu from menu
 0,enemy:Mushboom
 1,enemy:Run Forcer
 2,enemy:Victory Forcer
 3,enemy:Exit Forcer
+4,enemy:ZombBoom
+5,enemy:AtkTagUseTester
+6,enemy:AtkTagTestNoReq
+7,enemy:Data read test
 end

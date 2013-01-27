@@ -82,6 +82,7 @@ WHAT IS NEW?
             else if (condition 2) then (...)
             else (...)
       [Ralph]
+    * "enemy elemental resist as int" [Ralph]
 
   * Stuff Only Developers Will Notice
 

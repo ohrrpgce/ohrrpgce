@@ -131,10 +131,10 @@ DECLARE FUNCTION backcompat_element_dmg (byval weak as integer, byval strong as 
 DECLARE FUNCTION loadoldenemyresist (array() as integer, byval element as integer) as SINGLE
 DECLARE SUB clearenemydata OVERLOAD (enemy as EnemyDef)
 DECLARE SUB clearenemydata OVERLOAD (buf() as integer)
-DECLARE SUB loadenemydata OVERLOAD (array() as integer, byval index as integer, byval altfile as integer = 0)
-DECLARE SUB loadenemydata OVERLOAD (enemy as EnemyDef, byval index as integer, byval altfile as integer = 0)
-DECLARE SUB saveenemydata OVERLOAD (array() as integer, byval index as integer, byval altfile as integer = 0)
-DECLARE SUB saveenemydata OVERLOAD (enemy as EnemyDef, byval index as integer, byval altfile as integer = 0)
+DECLARE SUB loadenemydata OVERLOAD (array() as integer, byval index as integer, byval altfile as bool = NO)
+DECLARE SUB loadenemydata OVERLOAD (enemy as EnemyDef, byval index as integer, byval altfile as bool = NO)
+DECLARE SUB saveenemydata OVERLOAD (array() as integer, byval index as integer, byval altfile as bool = NO)
+DECLARE SUB saveenemydata OVERLOAD (enemy as EnemyDef, byval index as integer, byval altfile as bool = NO)
 
 DECLARE SUB ClearFormation (form as Formation)
 DECLARE SUB LoadFormation OVERLOAD (form as Formation, byval index as integer)

@@ -46,6 +46,7 @@ plotscript, run all tests, begin
   npc tests
   menu tests
   textbox tests
+  enemy tests
   battle tests
   timer tests
   $0="TESTS SUCCEEDED"
@@ -1710,6 +1711,38 @@ end
 
 ########################################################################
 
+script, enemy tests, begin
+  $0="enemy tests"
+
+  assert(enemy elemental resist as int(enemy:Data Read Test, 2) == 0)
+  assert(enemy elemental resist as int(enemy:Data Read Test, 15) == -5)
+
+  # Name
+  get enemy name(enemy:Data Read Test, 1)
+  $2 = "Data read test"
+  assert(string compare(1, 2))
+  $2 = "Data read test2"
+  set enemy name(enemy:Data Read Test, 2)
+  get enemy name(enemy:Data Read Test, 1)
+  assert(string compare(1, 2))
+
+  # Stats
+  assert(get enemy stat(enemy:Data Read Test, stat:HP) == 13)
+  set enemy stat(enemy:Data Read Test, stat:Hits, 6)
+  assert(get enemy stat(enemy:Data Read Test, stat:Hits) == 6)
+
+  # Other
+  set enemy appearance(enemy:Data Read Test, Enemy:PictureSize, EnemySize:large)
+  assert(get enemy appearance(enemy:Data Read Test, Enemy:PictureSize) == EnemySize:large)
+  assert(get enemy appearance(enemy:Data Read Test, Enemy:Palette) == -1)
+  assert(read enemy data(enemy:Data Read Test, Enemy:Item) == 1)
+  assert(read enemy data(enemy:Data Read Test, Enemy:ItemPercent) == 50)
+  write enemy data(enemy:Data Read Test, Enemy:RareItem, 2)
+  assert(read enemy data(enemy:Data Read Test, Enemy:RareItem) == 2)
+end
+
+########################################################################
+
 script, timer tests, begin
   variable(i)
   
@@ -2122,9 +2155,6 @@ end
 #get each step script
 #get ellipse border col (handle)
 #get ellipse fill col (handle)
-#get enemy appearance (enemyid, appearance)
-#get enemy name (enemyid, stringid)
-#get enemy stat(enemy, stat)
 #get foot offset
 #get formation background (formation, background)
 #get formation song (formation)
@@ -2269,7 +2299,6 @@ end
 #random formation (formation set)
 #read attack name (ID, attack)
 #read color (index, element)
-#read enemy data (enemyid, data)
 #read global (id)
 #read map block (x,y,layer)
 #read NPC (who,NPCstat)
@@ -2317,9 +2346,6 @@ end
 #set each step script (id)
 #set ellipse border col (handle, color)
 #set ellipse fill col (handle, color)
-#set enemy appearance (enemyid, appearance,value)
-#set enemy name (enemyid, stringid)
-#set enemy stat(enemy, stat, value)
 #set foot offset (offset)
 #set formation background (formation, background, animation frames, animation ticks)
 #set formation song (formation, song)
@@ -2473,7 +2499,6 @@ end
 #walk NPC to X (who, X)
 #walk NPC to Y (who, Y)
 #write color (index, element, value)
-#write enemy data (enemyid, data, value)
 #write global (id,value)
 #write map block (x,y,value,layer)
 #write pass block (x,y,value)

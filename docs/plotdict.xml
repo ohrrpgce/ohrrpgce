@@ -4489,6 +4489,7 @@ set timer (0, 300, 18, timer: game over, 0, timerflag: battle)</example>
 			<description>Returns the selected stat from the selected enemy. The first argument is the number of the enemy whose stats you want to check. The second argument is the name of the stat that you want to check. The names of the stats are also defined in your HSI file in the form stat:name. </description>
 			<seealso>
 				<ref>setenemystat</ref>
+				<ref>enemyelementalresistasint</ref>
 				<ref>getherostat</ref>
 				<ref>setherostat</ref>
 			</seealso>
@@ -4501,6 +4502,15 @@ set timer (0, 300, 18, timer: game over, 0, timerflag: battle)</example>
 				<ref>getenemystat</ref>
 				<ref>getherostat</ref>
 				<ref>setherostat</ref>
+			</seealso>
+		</command>
+		<command id="enemyelementalresistasint">
+			<canon>enemy elemental resist as int (enemy, element)</canon>
+			<shortname>enemy elemental resist as int</shortname>
+			<description>Gets the amount of damage that an enemy receives from attacks of a certain element, as a percentage of normal. The argument <p>enemy</p> is the enemy's ID number. The argument <p>element</p> is a number from 0 to whatever the highest enabled element is. The result is rounded to the nearest integer. For example, if the enemy takes 2.6% damage (1/40th normal), then the result will be 3.<note>When floating point support is added to HamsterSpeak, an alternative to this command will be added.</note></description>
+			<seealso>
+				<ref>getenemystat</ref>
+				<ref>herototalelementalresistasint</ref>
 			</seealso>
 		</command>
 		<command id="getenemyname">
@@ -5546,7 +5556,7 @@ end</example>
 		<command id="herobaseelementalresistasint">
 			<canon>hero base elemental resist as int (who, element)</canon>
 			<shortname>hero base elemental resist as int</shortname>
-			<description>Gets the 'intrinsic' amount of damage that a hero receives from attacks of a certain element, as a percentage of normal. (That is, the value entered in the 'Elemental Resistances' menu in Custom. Equipment elemental modifiers are added onto this value.) The argument <p>who</p> is the hero's position in the party, as returned by <ref>findhero</ref>. The argument <p>element</p> is a number from 0 to whatever the highest enabled element is. The result is rounded to the nearest integer. For example, if the hero takes 2.5% damage (1/40 normal), then the result will be 3.<note>When floating point support is added to HamsterSpeak, an alternative to this command will be added.</note></description>
+			<description>Gets the 'intrinsic' amount of damage that a hero receives from attacks of a certain element, as a percentage of normal. (That is, the value entered in the 'Elemental Resistances' menu in Custom. Equipment elemental modifiers are added onto this value.) The argument <p>who</p> is the hero's position in the party, as returned by <ref>findhero</ref>. The argument <p>element</p> is a number from 0 to whatever the highest enabled element is. The result is rounded to the nearest integer. For example, if the hero takes 2.6% damage (1/40 normal), then the result will be 3.<note>When floating point support is added to HamsterSpeak, an alternative to this command will be added.</note></description>
 			<seealso>
 				<ref>setherobaseelementalresist</ref>
 				<ref>herototalelementalresistasint</ref>
@@ -5563,7 +5573,7 @@ end</example>
 		<command id="herototalelementalresistasint">
 			<canon>hero total elemental resist as int (who, element)</canon>
 			<shortname>hero total elemental resist as int</shortname>
-			<description>Gets the amount of damage that a hero receives from attacks of a certain element, as a percentage of normal. The argument <p>who</p> is the hero's position in the party, as returned by <ref>findhero</ref>. The argument <p>element</p> is a number from 0 to whatever the highest enabled element is. The result is rounded to the nearest integer. For example, if the hero takes 2.5% damage (1/40 normal), then the result will be 3. This is the value calculated from the hero's 'intrinsic' resistances combined with the equipment they are wearing.<note>When floating point support is added to HamsterSpeak, an alternative to this command will be added.</note></description>
+			<description>Gets the amount of damage that a hero receives from attacks of a certain element, as a percentage of normal. The argument <p>who</p> is the hero's position in the party, as returned by <ref>findhero</ref>. The argument <p>element</p> is a number from 0 to whatever the highest enabled element is. The result is rounded to the nearest integer. For example, if the hero takes 2.6% damage (1/40 normal), then the result will be 3. This is the value calculated from the hero's 'intrinsic' resistances combined with the equipment they are wearing.<note>When floating point support is added to HamsterSpeak, an alternative to this command will be added.</note></description>
 			<seealso>
 				<ref>herobaseelementalresistasint</ref>
 			</seealso>
