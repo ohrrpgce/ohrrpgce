@@ -36,6 +36,7 @@
 'Subs and functions only used here
 DECLARE SUB setup_sprite_sizes ()
 DECLARE SUB check_map_count ()
+DECLARE SUB fatal_error_shutdown ()
 
 #IFDEF IS_GAME
 #include "game_udts.bi"
@@ -288,18 +289,35 @@ SUB debug (s as string)
  debuginfo s
 END SUB
 
-SUB debugc CDECL (byval s as zstring ptr, byval errorlevel as integer)
- 'Fine grained errorlevels unimplemented, but here's the current suggestion:
- ' 1 current debuginfo
- ' 2 current debug, mostly for debugging, including "trace"
- ' 3 recovered error, log and ask the user (when they quit?) to send the debug log
- ' 4 possibly recoverable error, ask the user whether they want to continue
- ' 5 fatal error, tell the user to report, and then quit
- ' 6 fatal error which prevents the display of a visible error message;
- '   attempt to print a stacktrace and quit
+SUB debugc CDECL (byval errorlevel as errorLevelEnum, byval s as zstring ptr)
+ 'This both provides a C interface to 'debug', and error levels to distinguish the significance of
+ 'different messages
+ 'See enum in const.bi for error level details
+ 'Unimplemented: the idea is that 'Bug' error levels could prompt the user to send a bug report somehow
 
- IF errorlevel >= 2 THEN importantdebug = -1
- debuginfo *s
+ SELECT CASE errorlevel
+  CASE errInfo
+   debuginfo *s
+  CASE errDebug
+   debug *s
+  CASE errError
+   debug "Error: " & *s
+  CASE errBug
+   debug "(BUG) " & *s
+  CASE errPrompt
+   showerror *s
+  CASE errPromptBug
+   showerror "(BUG) " & *s
+  CASE errFatal
+   showerror *s, YES
+  CASE errFatalBug
+   showerror "(BUG) " & *s, YES
+  CASE errDie
+   'TODO: Maybe print a stacktrace
+   PRINT "DIE: " & *s
+   debug "DIE: " & *s
+   fatal_error_shutdown
+ END SELECT
 END SUB
 
 SUB debuginfo (s as string)
@@ -939,17 +957,48 @@ FUNCTION maplumpname (byval map as integer, oldext as string) as string
  END IF
 END FUNCTION
 
+SUB fatal_error_shutdown
+ #IFDEF IS_CUSTOM
+  IF cleanup_on_error THEN
+   touchfile workingdir & SLASH & "__danger.tmp"
+   killdir workingdir
+  END IF
+
+  closemusic
+  restoremode
+
+  'no need for end_debug
+  SYSTEM 1
+ #ELSE
+  exitprogram 0, 1
+ #ENDIF
+END SUB
+
 SUB fatalerror (msg as string)
  showerror msg, YES
 END SUB
 
-'cleanup: (Custom only) whether to delete working.tmp
+'Ask the user if they want to continue (only if isfatal is false), otherwise quit.
+'cleanup_on_error: (Custom only) whether to delete working.tmp
 SUB showerror (msg as string, byval isfatal as integer = NO)
  STATIC entered as integer = 0  'don't allow reentry
- IF entered THEN EXIT SUB
+ IF entered THEN
+  IF isfatal AND entered = 1 THEN
+   entered = 2
+   fatal_error_shutdown
+  END IF
+  EXIT SUB
+ END IF
  entered = 1
- debug "error: " + msg
- PRINT "error: " + msg
+ DIM printmsg as string
+ printmsg = iif_string(isfatal, "FATAL: ", "ERROR: ") + msg
+ debug printmsg
+ PRINT printmsg
+ IF modex_initialised = NO THEN
+  debug "showerror: modex_initialised false"
+  PRINT "showerror: modex_initialised false"
+  fatal_error_shutdown
+ END IF
 
  DIM quitmsg as string
  quitmsg = !"\n\n"   '"${K" & uilook(uiMenuItem) & "}"
@@ -982,21 +1031,9 @@ SUB showerror (msg as string, byval isfatal as integer = NO)
  dowait
  DIM key as integer = waitforanykey
  IF isfatal ORELSE key = scEsc THEN
- #IFDEF IS_CUSTOM
-  IF cleanup_on_error THEN
-   touchfile workingdir & SLASH & "__danger.tmp"
-   killdir workingdir
-  END IF
-
-  closemusic
-  restoremode
-
-  'no need for end_debug
-  SYSTEM 1
- #ELSE
-  exitprogram 0, 1
- #ENDIF
+  fatal_error_shutdown
  END IF
+ debug "showerror: user continued"
 
  #IFDEF IS_CUSTOM
   'Continuing to edit

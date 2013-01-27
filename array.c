@@ -49,18 +49,17 @@ typedef struct _array_header {
 void array_free(array_t *array);
 
 
-void (*debug_hook)(const char *msg, int errorlevel) = debugc;
+void (*debug_hook)(enum ErrorLevel errorlevel, const char *msg) = debugc;
 
 // This is for the benefit of testing tools (vectortest)
-void set_debug_hook(void (*new_debug_hook)(const char *msg, int errorlevel)) {
+void set_debug_hook(void (*new_debug_hook)(enum ErrorLevel errorlevel, const char *msg)) {
 	if (new_debug_hook)
 		debug_hook = new_debug_hook;
 	else
 		debug_hook = debugc;
 }
 
-// fatal if errorlevel >= 5
-void _throw_error(int errorlevel, const char *srcfile, int linenum, const char *msg, ...) {
+void _throw_error(enum ErrorLevel errorlevel, const char *srcfile, int linenum, const char *msg, ...) {
 	va_list vl;
 	va_start(vl, msg);
 	char buf[256];
@@ -70,7 +69,7 @@ void _throw_error(int errorlevel, const char *srcfile, int linenum, const char *
 		emitted = snprintf(buf, 255, "On line %d in %s: ", linenum, srcfile);
 	vsnprintf(buf + emitted, 255 - emitted, msg, vl);
 	va_end(vl);
-	debug_hook(buf, errorlevel);
+	debug_hook(errorlevel, buf);
 	/*
 	if (errorlevel >= 5) {
 		// Ah, what the heck, shouldn't run, but I already wrote it (NULLs indicate no RESUME support)
@@ -114,7 +113,7 @@ static short alloc_header() {
 			return i;
 		}
 	}
-	throw_error("header_table is full: 65536 arrays are allocated. Compile without -DVALGRIND_ARRAYS");
+	debug(errFatal, "header_table is full: 65536 arrays are allocated. Compile without -DVALGRIND_ARRAYS");
 }
 
 static void free_header(short id) {
@@ -157,7 +156,7 @@ static void free_header(short id) {
 
 /*static*/ /*inline*/ void *nth_elem(array_t array, int n) {
 	typetable *tytbl = get_type(array);
-        return (char *)array + tytbl->element_len * n;
+	return (char *)array + tytbl->element_len * n;
 }
 
 
@@ -168,7 +167,7 @@ static void free_header(short id) {
 /*static*/ array_t mem_alloc(typetable *typetbl, unsigned int len) {
 	void *mem = malloc(ARRAY_OVERHEAD + len * typetbl->element_len);
 	if (!mem)
-		throw_error("out of memory");
+		debug(errFatal, "out of memory");
 	array_t array = get_array_ptr(mem);
 #ifdef VALGRIND_ARRAYS
 	*(short *)mem = alloc_header();
@@ -210,7 +209,7 @@ static void free_header(short id) {
 	free(mem);
 #endif
 	if (!newmem)
-		throw_error("out of memory");
+		debug(errFatal, "out of memory");
 #ifndef VALGRIND_ARRAYS
 	header = newmem;
 #endif
@@ -325,7 +324,7 @@ array_t array_append(array_t *array, void *value) {
 	} else {
 		memcpy(elmt, value, tytbl->element_len);
 	}
-        return *array;
+	return *array;
 }
 
 
@@ -493,7 +492,7 @@ void *array_index(array_t array, int n) {
 	if (!array)
 		throw_error("array_index: array uninitialised");
 	if (n < 0 || n >= length(array)) {
-		debug(4, "array_index: out of bounds array access, index %d in length %d array of %s", n, length(array), get_type(array)->name);
+		debug(errPromptBug, "array_index: out of bounds array access, index %d in length %d array of %s", n, length(array), get_type(array)->name);
 		return NULL;
 	}
 	return nth_elem(array, n);
@@ -598,7 +597,7 @@ array_t array_insert(array_t *array, int pos, void *value) {
 	unsigned int len = length(*array);
 
 	if (pos < 0 || pos > len) {
-		debug(4, "array_insert: tried to insert at position %d of array of length %d", pos, len);
+		debug(errPromptBug, "array_insert: tried to insert at position %d of array of length %d", pos, len);
 		return *array;
 	}
 
@@ -636,7 +635,7 @@ array_t array_delete_slice(array_t *array, int from, int to) {
 	unsigned int len = length(*array);
 
 	if (from < 0 || to > len || from > to) {
-		debug(4, "array_delete_slice: invalid slice [%d, %d) of array of length %d", from, to, len);
+		debug(errPromptBug, "array_delete_slice: invalid slice [%d, %d) of array of length %d", from, to, len);
 		return *array;
 	}
 	if (from == to)

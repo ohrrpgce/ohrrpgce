@@ -29,7 +29,7 @@ DECLARE SUB fadeout (byval red as integer, byval green as integer, byval blue as
 DECLARE SUB start_new_debug ()
 DECLARE SUB end_debug ()
 DECLARE SUB debug (s as string)
-DECLARE SUB debugc CDECL ALIAS "debugc" (byval s as zstring ptr, byval errorlevel as integer)
+DECLARE SUB debugc CDECL ALIAS "debugc" (byval errorlevel as errorLevelEnum, byval s as zstring ptr)
 DECLARE SUB debuginfo (s as string)
 DECLARE FUNCTION soundfile (byval sfxnum as integer) as string
 DECLARE FUNCTION filesize (file as string) as string

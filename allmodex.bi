@@ -149,7 +149,7 @@ DECLARE SUB setquitflag ()
 DECLARE SUB start_recording_input (filename as string)
 DECLARE SUB stop_recording_input ()
 DECLARE SUB start_replaying_input (filename as string)
-DECLARE SUB stop_replaying_input (msg as string="", byval errorlevel as integer = 2)
+DECLARE SUB stop_replaying_input (msg as string="", byval errorlevel as ErrorLevelEnum = errError)
 
 DECLARE FUNCTION havemouse () as integer
 DECLARE SUB hidemousecursor ()
@@ -210,6 +210,7 @@ declare sub palette16_update_cache(fil as string, byval num as integer)
 
 
 'globals
+extern modex_initialised as bool
 extern vpages() as Frame ptr
 extern vpagesp as Frame ptr ptr
 extern key2text(3,53) as string*1

@@ -64,9 +64,10 @@ declare sub replay_input_tick ()
 declare function hexptr(p as any ptr) as string
 
 'global
+dim modex_initialised as bool = NO
 dim vpages() as Frame ptr
 dim vpagesp as Frame ptr ptr  'points to vpages(0) for debugging: fbc outputs typeless debugging symbol
-dim disable_native_text_input as integer = NO
+dim disable_native_text_input as bool = NO
 redim fonts(3) as Font
 
 'Convert scancodes to text; Enter does not insert newline!
@@ -221,6 +222,8 @@ sub setmodex()
 	fpstime = TIMER
 	fpsframes = 0
 	fpsstring = ""
+
+	modex_initialised = YES
 end sub
 
 sub modex_quit()
@@ -240,6 +243,9 @@ sub modex_quit()
 end sub
 
 sub restoremode()
+	if modex_initialised = NO then exit sub
+	modex_initialised = NO
+
 	'clean up io stuff
 	if keybdthread then
 		endpollthread = 1
@@ -250,7 +256,7 @@ sub restoremode()
 
 	gfx_close()
 
-        modex_quit
+	modex_quit
 end sub
 
 SUB mersenne_twister (byval seed as double)
@@ -1433,15 +1439,14 @@ SUB start_replaying_input (filename as string)
 	next i
 END SUB
 
-'errorlevel: defaults to using 'debug', 1 for 'debuginfo'
-SUB stop_replaying_input (msg as string="", byval errorlevel as integer = 2)
+SUB stop_replaying_input (msg as string="", byval errorlevel as ErrorLevelEnum = errError)
 	if msg <> "" then
-		debugc msg, errorlevel
+		debugc errorlevel, msg
 	end if
 	if play_input then
 		close #play_input_file
 		play_input = NO
-		debugc "STOP replaying input", errorlevel
+		debugc errorlevel, "STOP replaying input"
 	end if
 END SUB
 
@@ -1476,7 +1481,7 @@ SUB replay_input_tick ()
 	tick += 1
 	do
 		if EOF(play_input_file) then
-			stop_replaying_input "The end of the input playback file was reached.", 1  'debuginfo
+			stop_replaying_input "The end of the input playback file was reached.", errInfo
 			exit sub
 		end if
 		dim fpos as integer = LOC(play_input_file)

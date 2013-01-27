@@ -1,5 +1,6 @@
 #include "config.bi"
 #include "util.bi"
+#include "const.bi"
 
 '''''''''''''''''''''''''''''''' Testing Stuff '''''''''''''''''''''''''''''''''
 
@@ -19,7 +20,7 @@
 #endmacro
 
 extern "C"
-	type FnDebugHook as sub (byval msg as zstring ptr, byval errorlevel as integer)
+	type FnDebugHook as sub (byval errorlevel as ErrorLevelEnum, byval msg as zstring ptr)
 	declare sub set_debug_hook (byval new_debug_hook as FnDebugHook)
 end extern
 
@@ -688,7 +689,7 @@ endTest
 
 dim shared num_errors as integer = 0
 
-sub error_counter cdecl (byval msg as zstring ptr, byval errorlevel as integer)
+sub error_counter cdecl (byval errorlevel as ErrorLevelEnum, byval msg as zstring ptr)
 	if errorlevel > 4 then
 		print "unexpected error (errlvl=" & errorlevel & "), on vectortest.bas line " & errorpos & ": " & msg
 		end 1

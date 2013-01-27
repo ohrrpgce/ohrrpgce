@@ -28,9 +28,10 @@ SUB debuginfo (s as string)
   print s
 END SUB
 
-SUB debugc cdecl alias "debugc" (byval s as zstring ptr, byval errorlevel as integer)
-  IF errorlevel >= 4 THEN fatalerror *s
-  IF errorlevel = 3 THEN print "ERROR: ",
+SUB debugc cdecl alias "debugc" (byval errorlevel as errorLevelEnum, byval s as zstring ptr)
+  IF errorlevel >= errFatal THEN fatalerror *s
+  IF errorlevel = errBug OR errorlevel = errPromptBug OR errorlevel = errFatalBug THEN print "(BUG) ",
+  IF errorlevel >= errError THEN print "ERROR: ",
   print *s
 END SUB
 

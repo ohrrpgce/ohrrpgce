@@ -6,6 +6,8 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+#include "errorlevel.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -34,21 +36,22 @@ extern "C" {
 //# define inline
 #endif
 
+
 // in common.bas
-void debugc(const char *msg, int errorlevel);
+void debugc(enum ErrorLevel errorlevel, const char *msg);
 
 // libfb.a
 void (*fb_ErrorThrowAt(int line_num, const char *mod_name, void *res_label, void *resnext_label))(void) noreturn;
 
 // in array.c (meh)
-void _throw_error(int errorlevel, const char *srcfile, int linenum, const char *msg, ...) format_chk(4);
-extern void (*debug_hook)(const char *msg, int errorlevel);
-void set_debug_hook(void (*new_debug_hook)(const char *msg, int errorlevel));
+void _throw_error(enum ErrorLevel errorlevel, const char *srcfile, int linenum, const char *msg, ...) format_chk(4);
+extern void (*debug_hook)(enum ErrorLevel errorlevel, const char *msg);
+void set_debug_hook(void (*new_debug_hook)(enum ErrorLevel errorlevel, const char *msg));
 
 #define debug(errorlevel, ...) _throw_error(errorlevel, NULL, 0, __VA_ARGS__)
-#define debuginfo(...) _throw_error(1, NULL, 0, __VA_ARGS__)
-#define throw_error(...) _throw_error(5, __FILE__, __LINE__, __VA_ARGS__)
-#define fatal_error(...) _throw_error(6, __FILE__, __LINE__, __VA_ARGS__)
+#define debuginfo(...) _throw_error(errInfo, NULL, 0, __VA_ARGS__)
+#define throw_error(...) _throw_error(errFatalBug, __FILE__, __LINE__, __VA_ARGS__)
+#define fatal_error(...) _throw_error(errFatal, __FILE__, __LINE__, __VA_ARGS__)
 
 
 #ifdef __cplusplus

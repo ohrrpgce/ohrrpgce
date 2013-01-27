@@ -43,7 +43,7 @@ int file_wrapper_close(FB_FILE *handle) {
 	//debuginfo("closing %s, read-lock:%d write-lock:%d", info.name.c_str(), test_locked(info.name.c_str(), 0), test_locked(info.name.c_str(), 1));
 	if (info.dirty && !allow_lump_writes) {
 		// It's not really safe to call debug in here
-		debug(3, "ENGINE BUG: illegally wrote to %s", info.name.c_str());
+		debug(errBug, "illegally wrote to %s", info.name.c_str());
 	}
 	if (info.dirty) {
 		//fprintf(stderr, "%s was dirty\n", info.name.c_str());
@@ -98,12 +98,12 @@ static FB_FILE_HOOKS lumpfile_hooks = {
 };
 
 void dump_openfiles() {
-	debug(2, "%d open files:", (int)openfiles.size());
+	debug(errDebug, "%d open files:", (int)openfiles.size());
 	for (openfiles_iterator_t it = openfiles.begin(); it != openfiles.end(); ++it) {
 		const char *fname = it->second.name.c_str();
-		debug(2, " %p (%s)", it->first, fname);
+		debug(errDebug, " %p (%s)", it->first, fname);
 		if (lock_lumps)
-			debug(2, "   read-lock:%d write-lock:%d", test_locked(fname, 0), test_locked(fname, 1));
+			debug(errDebug, "   read-lock:%d write-lock:%d", test_locked(fname, 0), test_locked(fname, 1));
 	}
 }
 
