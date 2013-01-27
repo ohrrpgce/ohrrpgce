@@ -1041,18 +1041,22 @@ SUB showerror (msg as string, byval isfatal as integer = NO)
   dowait
   clearpage 0
   basic_textbox "Warning! If you had unsaved changes to your game you should backup the old .RPG file " _
-                "before attempting to save, because there is a chance that saving will produce a corrupt file.", _
+                "BEFORE attempting to save, because there is a chance that saving will produce a corrupt file.", _
                 uilook(uiText), 0
   setvispage 0
   waitforanykey
 
-  loadpalette master(), activepalette
-  LoadUIColors uilook(), activepalette
+  IF activepalette > -1 THEN
+   loadpalette master(), activepalette
+   LoadUIColors uilook(), activepalette
+  END IF
  #ELSE
 
   'Restore game's master palette and ui colors
-  loadpalette master(), gam.current_master_palette
-  LoadUIColors uilook(), gam.current_master_palette
+  IF gam.current_master_palette > -1 THEN
+   loadpalette master(), gam.current_master_palette
+   LoadUIColors uilook(), gam.current_master_palette
+  END IF
  #ENDIF
  setpal master()
 

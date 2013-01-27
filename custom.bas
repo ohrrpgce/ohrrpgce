@@ -88,7 +88,7 @@ REDIM lookup1_bin_cache(-1 TO -1) as TriggerData
 DIM joy(4) as integer
 DIM vpage as integer = 0
 DIM dpage as integer = 1
-DIM activepalette as integer
+DIM activepalette as integer = -1
 DIM fadestate as integer
 
 'FIXME: too many directory variables! Clean this nonsense up

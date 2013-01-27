@@ -265,23 +265,25 @@ DO 'This is a big loop that encloses the entire program (more than it should). T
 
 '----(Re)initialise graphics/window/IO options
 
+dpage = 1: vpage = 0
+presentsong = -1
+
+gam.current_master_palette = -1
+load_default_master_palette master()
+DefaultUIColors uilook()
+getdefaultfont current_font()
+setfont current_font()
+
 '-- Init joysticks
 FOR i as integer = 0 TO 1
  gotj(i) = readjoy(joy(), i)
 NEXT i
 
-dpage = 1: vpage = 0
-presentsong = -1
 gen(genJoy) = 0  'joystick disabled by default
 defaultc  'set up default controls
 
 'Read joyset.ini
 readjoysettings
-
-load_default_master_palette master()
-DefaultUIColors uilook()
-getdefaultfont current_font()
-setfont current_font()
 
 setwindowtitle "O.H.R.RPG.C.E"
 unhidemousecursor  'init mouse state
