@@ -2497,7 +2497,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">global variable (id,name)</font></b><br>
-			Creates a global variable that can be used in any script. The first argument to the global variable declaration is a unique ID number. The second argument is the name of the variable. The ID number for a global variable is a number from 0 to 4095. Each global variable must have a unique number, but this number will not conflict with the ID numbers you use for scripts. It is all right to have a script and a global variable with the same ID number. See also <a href="#about-variable" class="ref">variable</a><br>
+			Creates a global variable that can be used in any script. The first argument to the global variable declaration is a unique ID number. The second argument is the name of the variable. The ID number for a global variable is a number from 0 to 16383. Each global variable must have a unique number, but this number will not conflict with the ID numbers you use for scripts. It is all right to have a script and a global variable with the same ID number. See also <a href="#about-variable" class="ref">variable</a><br>
 			<pre># any script can read and set the value of a global
 global variable(1,mini game score)</pre>
 			
@@ -3409,7 +3409,7 @@ resume box advance # go back to normal</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">fight formation (number)</font></b><br>
-			Starts a battle with the numbered enemy formation. This command returns <a href="#about-booleanconstants" class="ref">false</a> if you ran from battle, or <a href="#about-booleanconstants" class="ref">true</a> if you won. If you lose the battle, the game will still end as normal unless you set a death script. In that case, <a href="#about-booleanconstants" class="ref">false</a> is returned. <div style="background-color:#EFF;" class="note">
+			Starts a battle with the numbered enemy formation. This command returns <a href="#about-booleanconstants" class="ref">false</a> if you ran from battle (or if an attack with the "Force battle exit" bit ended the battle), or <a href="#about-booleanconstants" class="ref">true</a> if you won (including victory due to a "Force victory" attack). If you lose the battle, the game will still end as normal unless you set a death script. In that case, <a href="#about-booleanconstants" class="ref">false</a> is returned (after the death script has finished). <div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">An automatic <a href="#about-wait" class="ref">wait</a>(1) occurs immediately after this command.<br clear="all">
 </div>
 <br>
@@ -4126,7 +4126,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">teach spell (hero,attack)</font></b><br>
-			Tries to teach a hero a spell. The first argument is the hero's position in the party (as returned by <a href="#about-findhero" class="ref">find hero</a>). The second argument is the attack to learn. You can use the names defined in your .HSI file in the form atk:attackname (You may also use the attack's ID number. This is the number you see in the attack editor + 1). If the hero is capable of learning the spell, teach spell will return <a href="#about-booleanconstants" class="ref">true</a>, or if the hero cannot learn the spell it will return <a href="#about-booleanconstants" class="ref">false</a>. Note that this only works when a spell is set to "learned from item". It will not work for spells learned based on level.<br>
+			Tries to teach a hero a spell. This only works when the spell is set to "learned from item" in one of the hero's spell lists; it will not work for spells learned based on level. The first argument is the hero's position in the party (as returned by <a href="#about-findhero" class="ref">find hero</a>). The second argument is the attack to learn. You can use the names defined in your .HSI file in the form atk:attackname. (You may also use the attack's ID number. This is the number you see in the attack editor + 1.) If the hero was taught the spell, teach spell will return <a href="#about-booleanconstants" class="ref">true</a>, or if the hero cannot learn the spell (perhaps because they already know it) it will return <a href="#about-booleanconstants" class="ref">false</a>. Use <a href="#about-writespell" class="ref">write spell</a> to add a spell to a spell list without restriction.<br>
 			
 			
 		</tt></p>
@@ -4444,13 +4444,13 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get hero name (ID, hero)</font></b><br>
-			This command will take the name of hero #<span class="param">hero</span>, and stick it in string #<span class="param">ID</span>, overwriting its contents. <div style="background-color:#EFF;" class="note">
+			This command will take the name of the hero in the party slot #<span class="param">hero</span>, and stick it in string #<span class="param">ID</span>, overwriting its contents. <div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Remember that this command expects the hero's position in the party, not the hero:name constants nor the hero's position in the walkabout party. If you want to get the name of a hero according to their position in the walkabout party, you should use <a href="#about-herobyrank" class="ref">hero by rank</a> and <a href="#about-findhero" class="ref">find hero</a><br clear="all">
 </div>
 <br>
 			<pre># This example gets the name of the leader and stores it in string ID 1
 
-get hero name (1,find hero(hero by rank(0))) 
+get hero name (1, find hero (leader))
 </pre>
 			
 		</tt></p>
@@ -4458,7 +4458,7 @@ get hero name (1,find hero(hero by rank(0)))
 		<p>
 		<tt>
 		<b><font color="yellow">set hero name (ID, hero)</font></b><br>
-			This command will take string #<span class="param">ID</span>, and set hero #<span class="param">hero</span>'s name to it.<br>
+			This command changes the name of the hero in party slot #<span class="param">hero</span> (as returned by <a href="#about-findhero" class="ref">find hero</a>) to the contents of string #<span class="param">ID</span>. The length is not limited by the hero's Max Name Length setting.<br>
 			
 			
 		</tt></p>
@@ -5871,6 +5871,10 @@ lookup slice(sl:textbox text)
 lookup slice(sl:textbox portrait)
 lookup slice(sl:textbox choice0)
 lookup slice(sl:textbox choice1)
+lookup slice(sl:textbox box)
+lookup slice(sl:textbox portrait box)
+lookup slice(sl:textbox choice box)
+lookup slice(sl:textbox root)
 lookup slice(sl:script layer)
 lookup slice(sl:textbox layer)
 lookup slice(sl:string layer)
@@ -5881,6 +5885,7 @@ lookup slice(sl:hero layer)
 lookup slice(sl:npc layer)
 lookup slice(sl:walkabout sprite component)
 lookup slice(sl:walkabout shadow component)
+lookup slice(sl:backdrop)
 lookup slice(sl:map layer0)
 lookup slice(sl:map layer1)
 lookup slice(sl:map layer2)
@@ -10336,7 +10341,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">export globals (slot, first, last)</font></b><br>
-			Writes a range of globals to a save game slot, overwriting the saved game's globals. <span class="param">slot</span> is the save slot number, from 1 to 32. Note that only slots 1-4 appear on the save/load menus. <span class="param">first</span> and <span class="param">last</span> are the id numbers of the globals at the beginning and end of the range. <span class="param">first</span> defaults to 0, and <span class="param">last</span> defaults to 4095. Therefore, if you pass no range, all the globals will be written.<div style="background-color:#EFF;" class="note">
+			Writes a range of globals to a save game slot, overwriting the saved game's globals. <span class="param">slot</span> is the save slot number, from 1 to 32. Note that only slots 1-4 appear on the save/load menus. <span class="param">first</span> and <span class="param">last</span> are the id numbers of the globals at the beginning and end of the range. <span class="param">first</span> defaults to 0, and <span class="param">last</span> defaults to 16383. Therefore, if you pass no range, all the globals will be written.<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You can export globals to an empty slot! This doesn't create a visible save game that the player can load, however you will still be able to read them with <a href="#about-importglobals" class="ref">import globals</a>.<br clear="all">
 </div>
 <div style="background-color:#EFF;" class="note">

@@ -150,7 +150,7 @@ end</example>
 		<command id="globalvariable">
 			<canon>global variable (id,name)</canon>
 			<shortname>global variable</shortname>
-			<description>Creates a global variable that can be used in any script. The first argument to the global variable declaration is a unique ID number. The second argument is the name of the variable. The ID number for a global variable is a number from 0 to 4095. Each global variable must have a unique number, but this number will not conflict with the ID numbers you use for scripts. It is all right to have a script and a global variable with the same ID number. See also <ref>variable</ref></description>
+			<description>Creates a global variable that can be used in any script. The first argument to the global variable declaration is a unique ID number. The second argument is the name of the variable. The ID number for a global variable is a number from 0 to 16383. Each global variable must have a unique number, but this number will not conflict with the ID numbers you use for scripts. It is all right to have a script and a global variable with the same ID number. See also <ref>variable</ref></description>
 			<example># any script can read and set the value of a global
 global variable(1,mini game score)</example>
 		</command>
@@ -5716,7 +5716,7 @@ end</example>
 		<command id="exportglobals">
 			<canon>export globals (slot, first, last)</canon>
 			<shortname>export globals</shortname>
-			<description>Writes a range of globals to a save game slot, overwriting the saved game's globals. <p>slot</p> is the save slot number, from 1 to 32. Note that only slots 1-4 appear on the save/load menus. <p>first</p> and <p>last</p> are the id numbers of the globals at the beginning and end of the range. <p>first</p> defaults to 0, and <p>last</p> defaults to 4095. Therefore, if you pass no range, all the globals will be written.<note>You can export globals to an empty slot! This doesn't create a visible save game that the player can load, however you will still be able to read them with <ref>importglobals</ref>.</note><note>Unlike importglobals, 'export globals (slot, first)' does NOT export a single global variable!</note></description>
+			<description>Writes a range of globals to a save game slot, overwriting the saved game's globals. <p>slot</p> is the save slot number, from 1 to 32. Note that only slots 1-4 appear on the save/load menus. <p>first</p> and <p>last</p> are the id numbers of the globals at the beginning and end of the range. <p>first</p> defaults to 0, and <p>last</p> defaults to 16383. Therefore, if you pass no range, all the globals will be written.<note>You can export globals to an empty slot! This doesn't create a visible save game that the player can load, however you will still be able to read them with <ref>importglobals</ref>.</note><note>Unlike importglobals, 'export globals (slot, first)' does NOT export a single global variable!</note></description>
 			<seealso>
 				<ref>importglobals</ref>
 				<ref>writeglobal</ref>
