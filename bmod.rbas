@@ -837,8 +837,9 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
     IF readbit(gen(), genBits, 7) = 0 THEN
      '--hp-meter--
      col = uiLook(uiHealthBar)
-     IF bslot(i).lifemeter < INT((87 / large(bslot(i).stat.max.hp, 1)) * bslot(i).stat.cur.hp) THEN bslot(i).lifemeter += 1
-     IF bslot(i).lifemeter > INT((87 / large(bslot(i).stat.max.hp, 1)) * bslot(i).stat.cur.hp) THEN bslot(i).lifemeter -= 1
+     DIM target_lifemeter_len as integer = CINT(bslot(i).stat.cur.hp * 87 / large(bslot(i).stat.max.hp, 1))
+     IF bslot(i).lifemeter < target_lifemeter_len THEN bslot(i).lifemeter += 1
+     IF bslot(i).lifemeter > target_lifemeter_len THEN bslot(i).lifemeter -= 1
      IF bslot(i).lifemeter > 87 THEN
       bslot(i).lifemeter = 87
       col = uiLook(uiHealthBar + bat.tog)
