@@ -997,8 +997,7 @@ DIM w as integer = rank_to_party_slot(0)
 IF alone = 0 AND herocount() <= 1 THEN onwho = w: setkeys: EXIT FUNCTION
 
 menusound gen(genAcceptSFX)
-copypage dpage, vpage
-setvispage vpage
+copypage vpage, dpage
 DIM page as integer = compatpage
 DIM tog as integer
 DIM wtg as integer
