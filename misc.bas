@@ -136,14 +136,15 @@ sub processcommandline()
 			if commandline_flag(arg) then arg = ""
 
 			argsused = backends_setoption(opt, arg)  'this must be first, it loads the backend if needed
-			if argsused = 0 then argsused = gfx_setoption(opt, arg)
+			if argsused = 0 then argsused = gfx_setoption(cstring(opt), cstring(arg))
 			if argsused = 0 then argsused = usage_setoption(opt, arg)
 			if argsused = 0 then argsused = common_setoption(opt, arg)
 			#ifdef IS_GAME
 				if argsused = 0 then argsused = game_setoption(opt, arg)
 			#endif
+
+			'debug "commandline opt = " & opt & " arg = " & arg & " used = " & argsused
 		end if
-		'debug "opt = " & opt & " arg = " & arg & " used = " & argsused
 
 		if argsused = 0 then
 			'everything else falls through and is stored for Game/Custom to catch

@@ -160,6 +160,14 @@ END FUNCTION
 
 '---------------- String operations --------------
 
+'FB will usually produces a NULL ptr when converting an empty string to a zstring ptr,
+'which is not acceptable in C
+FUNCTION cstring (s as string) as zstring ptr
+ DIM ret as zstring ptr = strptr(s)
+ IF ret = NULL THEN RETURN strptr("")
+ RETURN ret
+END FUNCTION
+
 FUNCTION rpad (s as STRING, pad_char as STRING, size as integer) as STRING
  DIM result as STRING
  result = LEFT(s, size)

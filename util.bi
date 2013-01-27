@@ -344,6 +344,7 @@ declare function fuzzythreshold (byval value as double, byval low as double, byv
 '                              Other
 
 
+declare function cstring (s as string) as zstring ptr
 declare function rpad (s as string, pad_char as string, size as integer) as string
 declare function instr_nth overload (byval start as integer, s as string, substring as string, byval nth as integer) as integer
 declare function instr_nth overload (s as string, substring as string, byval nth as integer) as integer
