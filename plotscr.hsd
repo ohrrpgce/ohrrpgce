@@ -825,8 +825,9 @@ end
 #read/write enemy wrappers
 
 script,getenemyname,hsd:enemyID,hsd:stringID,begin
-variable(hsd:t)
-  for (hsd:t,1,readenemydata(hsd:enemyID,0))do(
+  variable(hsd:t)
+  clearstring(hsd:stringID)
+  for (hsd:t,1,readenemydata(hsd:enemyID,0)) do(
     appendascii(hsd:stringID,readenemydata(hsd:enemyID,hsd:t))
   end
 end
@@ -840,11 +841,11 @@ script,setenemystat,hsd:enemyID,hsd:stat,hsd:value,begin
 end
 
 script,setenemyname,hsd:enemyID,hsd:stringID,begin
-variable(hsd:t,hsd:t2)
-if(stringlength(hsd:stringID)>=16)then(hsd:t2:=16)else(hsd:t2:=stringlength(hsd:stringID))
- writeenemydata(hsd:enemyID,0,hsd:t2)
- for(hsd:t,1,hsd:t2)do(
-  writeenemydata(hsd:enemyID,hsd:t,asciifromstring(hsd:stringID,hsd:t))
+  variable(hsd:t,hsd:t2)
+  if(stringlength(hsd:stringID)>=16) then (hsd:t2:=16) else (hsd:t2:=stringlength(hsd:stringID))
+  writeenemydata(hsd:enemyID,0,hsd:t2)
+  for(hsd:t,1,hsd:t2) do (
+    writeenemydata(hsd:enemyID,hsd:t,asciifromstring(hsd:stringID,hsd:t))
   )
 end
 
