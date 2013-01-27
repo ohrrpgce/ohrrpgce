@@ -178,8 +178,8 @@ DECLARE FUNCTION os_shell_move(src as string, dest as string) as integer
 
 DECLARE SUB create_default_menu(menu as MenuDef)
 
-DECLARE FUNCTION bound_arg(byval n as integer, byval min as integer, byval max as integer, argname as ZSTRING PTR, context as ZSTRING PTR=nulzstr, byval fromscript as integer=YES, byval errlvl as integer = 4) as integer
-DECLARE SUB reporterr(msg as string, byval errlvl as integer = 5)
+DECLARE FUNCTION bound_arg(byval n as integer, byval min as integer, byval max as integer, argname as ZSTRING PTR, context as ZSTRING PTR=nulzstr, byval fromscript as integer=YES, byval errlvl as scriptErrEnum = serrBound) as integer
+DECLARE SUB reporterr(msg as string, byval errlvl as scriptErrEnum = serrBadOp)
 
 DECLARE FUNCTION load_tag_name (byval index as integer) as string
 DECLARE SUB save_tag_name (tagname as string, byval index as integer)

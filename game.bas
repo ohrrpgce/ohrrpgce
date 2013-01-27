@@ -181,7 +181,7 @@ DIM abortg as integer
 DIM resetg as integer
 DIM presentsong as integer
 
-DIM err_suppress_lvl as integer
+DIM err_suppress_lvl as scriptErrEnum
 DIM tmpdir as string
 DIM exename as string
 DIM game as string
@@ -498,7 +498,8 @@ setfont current_font()
 loadglobalstrings
 getstatnames statnames()
 
-IF err_suppress_lvl = 0 THEN err_suppress_lvl = bound(gen(genErrorLevel) - 1, 0, 5)  'might be changed by -errlvl
+'Might be changed by --errlvl commandline option
+IF err_suppress_lvl = 0 THEN err_suppress_lvl = bound(gen(genErrorLevel) - 1, 0, 5)
 nowscript = -1
 numloadedscr = 0
 totalscrmem = 0
@@ -1491,10 +1492,10 @@ IF nowscript >= 0 THEN
 WITH scrat(nowscript)
  SELECT CASE .state
   CASE IS < stnone
-   scripterr "illegally suspended script", 7
+   scripterr "illegally suspended script", serrBug
    .state = ABS(.state)
   CASE stnone
-   scripterr "script " & nowscript & " became stateless", 7
+   scripterr "script " & nowscript & " became stateless", serrBug
   CASE stwait
    '--evaluate wait conditions
    SELECT CASE .curvalue
@@ -1524,7 +1525,7 @@ WITH scrat(nowscript)
      END IF
     CASE 3'--wait for hero
      IF .waitarg < 0 OR .waitarg > 3 THEN
-      scripterr "waiting for nonexistant hero " & .waitarg, 7  'should be bound by waitforhero
+      scripterr "waiting for nonexistant hero " & .waitarg, serrBug  'should be bound by waitforhero
       .state = streturn
      ELSE
       IF herow(.waitarg).xgo = 0 AND herow(.waitarg).ygo = 0 THEN
@@ -1580,7 +1581,7 @@ WITH scrat(nowscript)
       .state = streturn
      END IF
     CASE ELSE
-     scripterr "illegal wait substate " & .curvalue, 7
+     scripterr "illegal wait substate " & .curvalue, serrBug
      .state = streturn
    END SELECT
    IF .state = streturn THEN
@@ -2160,7 +2161,7 @@ WITH scrat(nowscript)
     mislot = find_menu_item_handle(retvals(0), menuslot)
     IF valid_menuslot_and_mislot(menuslot, mislot) THEN
      scriptret = dlist_find(menus(menuslot).itemlist, menus(menuslot).items[mislot])
-     IF scriptret < 0 THEN scripterr "menuitemtrueslot: dlist corruption", 7
+     IF scriptret < 0 THEN scripterr "menuitemtrueslot: dlist corruption", serrBug
     END IF
 
    CASE ELSE '--try all the scripts implemented in subs (insanity!)
@@ -2183,7 +2184,7 @@ FUNCTION valid_hero_party(byval who as integer, byval minimum as integer=0) as i
  RETURN bound_arg(who, minimum, 40, "hero party slot")
 END FUNCTION
 
-FUNCTION really_valid_hero_party(byval who as integer, byval maxslot as integer=40, byval errlvl as integer=5) as integer
+FUNCTION really_valid_hero_party(byval who as integer, byval maxslot as integer=40, byval errlvl as scriptErrEnum = serrBadOp) as integer
  'Defaults to a non-suppressed error
  IF bound_arg(who, 0, maxslot, "hero party slot", , , errlvl) = NO THEN RETURN NO
  IF hero(who) = 0 THEN
@@ -2204,7 +2205,7 @@ FUNCTION valid_menuslot_and_mislot(byval menuslot as integer, byval mislot as in
  RETURN NO
 END FUNCTION
 
-FUNCTION valid_plotstr(byval n as integer, byval errlvl as integer=4) as integer
+FUNCTION valid_plotstr(byval n as integer, byval errlvl as scriptErrEnum = serrBound) as integer
  RETURN bound_arg(n, 0, UBOUND(plotstr), "string ID", , , errlvl)
 END FUNCTION
 
@@ -2220,14 +2221,14 @@ FUNCTION valid_formation_slot(byval form as integer, byval slot as integer) as i
 END FUNCTION
 
 FUNCTION valid_zone(byval id as integer) as integer
- RETURN bound_arg(id, 1, 9999, "zone ID", , , 5)
+ RETURN bound_arg(id, 1, 9999, "zone ID", , , serrBadOp)
 END FUNCTION
 
 FUNCTION valid_door(byval id as integer) as integer
- IF bound_arg(id, 0, UBOUND(gam.map.door), "door", , , 5) = NO THEN RETURN NO
+ IF bound_arg(id, 0, UBOUND(gam.map.door), "door", , , serrBadOp) = NO THEN RETURN NO
  IF readbit(gam.map.door(id).bits(), 0, 0) = 0 THEN
   'Door doesn't exist
-  scripterr commandname(curcmd->value) & ": invalid door id " & id, 5
+  scripterr commandname(curcmd->value) & ": invalid door id " & id, serrBadOp
   RETURN NO
  END IF
  RETURN YES
@@ -2235,7 +2236,7 @@ END FUNCTION
 
 FUNCTION valid_tile_pos(byval x as integer, byval y as integer) as integer
  IF x < 0 OR y < 0 OR x >= mapsizetiles.x OR y >= mapsizetiles.y THEN
-  scripterr commandname(curcmd->value) + ": invalid map position " & x & "," & y & " -- map is " & mapsizetiles.x & "*" & mapsizetiles.y & " tiles", 5
+  scripterr commandname(curcmd->value) + ": invalid map position " & x & "," & y & " -- map is " & mapsizetiles.x & "*" & mapsizetiles.y & " tiles", serrBadOp
   RETURN NO
  END IF
  RETURN YES
@@ -2463,7 +2464,10 @@ FUNCTION add_menu (byval record as integer, byval allow_duplicate as integer=NO)
 END FUNCTION
 
 SUB remove_menu (byval slot as integer, byval run_on_close as integer=YES)
- IF slot < 0 OR slot > UBOUND(menus) THEN debug "remove_menu: invalid slot " & slot : EXIT SUB
+ IF slot < 0 OR slot > UBOUND(menus) THEN
+  debugc errBug, "remove_menu: invalid slot " & slot
+  EXIT SUB
+ END IF
  bring_menu_forward slot
  IF menus(topmenu).advance_textbox = YES THEN
   'Advance an open text box.
@@ -2488,7 +2492,10 @@ END SUB
 
 SUB bring_menu_forward (byval slot as integer)
  DIM i as integer
- IF slot < 0 OR slot > UBOUND(menus) OR slot > topmenu THEN scripterr "bring_menu_forward: invalid slot " & slot, 4 : EXIT SUB
+ IF slot < 0 OR slot > UBOUND(menus) OR slot > topmenu THEN
+  scripterr "bring_menu_forward: invalid slot " & slot, serrBound
+  EXIT SUB
+ END IF
  mstates(topmenu).active = NO
  FOR i = slot TO topmenu - 1
   SWAP menus(i), menus(i + 1)

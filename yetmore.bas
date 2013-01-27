@@ -489,7 +489,7 @@ END FUNCTION
 'Given NPC ref or NPC ID, return npc() index, or throw a scripterr and return -1
 'Note this is stricter than getnpcref: invalid npc refs are not alright!
 'References to Hidden/Disabled NPCs are alright.
-FUNCTION get_valid_npc (byval seekid as integer, byval errlvl as integer = 5) as integer
+FUNCTION get_valid_npc (byval seekid as integer, byval errlvl as scriptErrEnum = serrBadOp) as integer
  IF seekid < 0 THEN
   DIM npcidx as integer = (seekid + 1) * -1
   IF npcidx > 299 ORELSE npc(npcidx).id = 0 THEN
@@ -508,7 +508,7 @@ END FUNCTION
 
 'Given NPC ref or NPC ID, return an NPC ID, or throw a scripterr and return -1
 'References to Hidden/Disabled NPCs are alright.
-FUNCTION get_valid_npc_id (byval seekid as integer, byval errlvl as integer = 5) as integer
+FUNCTION get_valid_npc_id (byval seekid as integer, byval errlvl as scriptErrEnum = serrBadOp) as integer
  IF seekid >= 0 THEN
   IF seekid > UBOUND(npcs) THEN
    scripterr commandname(curcmd->value) & ": invalid NPC ID " & seekid, errlvl
@@ -871,7 +871,7 @@ SELECT CASE as CONST id
 'old scriptmisc
 
  CASE 0'--noop
-  scripterr "encountered clean noop", 1
+  scripterr "encountered clean noop", serrInfo
  CASE 1'--Wait (cycles)
   IF retvals(0) > 0 THEN
    scrat(nowscript).waitarg = retvals(0)
@@ -981,7 +981,7 @@ SELECT CASE as CONST id
    'keyval() reports a 3rd bit, but didn't at the time that this command was (re-)documented
    scriptret = script_keyval(retvals(0)) AND 3
   ELSE
-   scripterr "invalid scancode keyval(" & retvals(0) & ")", 4
+   scripterr "invalid scancode keyval(" & retvals(0) & ")", serrBound
   END IF
  CASE 31'--rank in caterpillar
   scriptret = rankincaterpillar(retvals(0))
@@ -1146,13 +1146,13 @@ SELECT CASE as CONST id
   IF retvals(0) >= 0 AND retvals(0) <= maxScriptGlobals THEN
    scriptret = global(retvals(0))
   ELSE
-   scripterr "readglobal: Cannot read global " & retvals(0) & ". Out of range", 5
+   scripterr "readglobal: Cannot read global " & retvals(0) & ". Out of range", serrBadOp
   END IF
  CASE 115'--write global
   IF retvals(0) >= 0 AND retvals(0) <= maxScriptGlobals THEN
    global(retvals(0)) = retvals(1)
   ELSE
-   scripterr "writeglobal: Cannot write global " & retvals(0) & ". Out of range", 5
+   scripterr "writeglobal: Cannot write global " & retvals(0) & ". Out of range", serrBadOp
   END IF
  CASE 116'--hero is walking
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
@@ -1205,7 +1205,7 @@ SELECT CASE as CONST id
   partyslot = bound(retvals(0), 0, 40)
   heroID = hero(partyslot) - 1
   IF heroID = -1 THEN
-   scripterr "can learn spell: fail on empty party slot " & partyslot, 4
+   scripterr "can learn spell: fail on empty party slot " & partyslot, serrBound
   ELSE
    IF retvals(1) > 0 THEN
     DIM her as herodef
@@ -1279,7 +1279,7 @@ SELECT CASE as CONST id
    NEXT i
    'NOTE: scriptret is not set here when this command is successful. The return value of the called script will be returned.
   ELSE
-   scripterr "run script by id failed loading " & retvals(0), 6
+   scripterr "run script by id failed loading " & retvals(0), serrError
    scriptret = -1
   END IF
  CASE 180'--mapwidth([map])
@@ -1287,7 +1287,7 @@ SELECT CASE as CONST id
   IF curcmd->argc = 0 ORELSE retvals(0) = -1 ORELSE retvals(0) = gam.map.id THEN
    scriptret = mapsizetiles.x
   ELSE
-   IF bound_arg(retvals(0), 0, gen(genMaxMap), "map number", , , 5) THEN
+   IF bound_arg(retvals(0), 0, gen(genMaxMap), "map number", , , serrBadOp) THEN
     DIM as TilemapInfo mapsize
     GetTilemapInfo maplumpname(retvals(0), "t"), mapsize
     scriptret = mapsize.wide
@@ -1298,7 +1298,7 @@ SELECT CASE as CONST id
   IF curcmd->argc = 0 ORELSE retvals(0) = -1 ORELSE retvals(0) = gam.map.id THEN
    scriptret = mapsizetiles.y
   ELSE
-   IF bound_arg(retvals(0), 0, gen(genMaxMap), "map number", , , 5) THEN
+   IF bound_arg(retvals(0), 0, gen(genMaxMap), "map number", , , serrBadOp) THEN
     DIM as TilemapInfo mapsize
     GetTilemapInfo maplumpname(retvals(0), "t"), mapsize
     scriptret = mapsize.high
@@ -1631,7 +1631,7 @@ SELECT CASE as CONST id
    WITH *scrat(nowscript).scr
     DIM stringp as integer PTR = .ptr + .strtable + retvals(1)
     IF .strtable + retvals(1) >= .size ORELSE .strtable + (stringp[0] + 3) \ 4 >= .size THEN
-     scripterr "script corrupt: illegal string offset", 6
+     scripterr "script corrupt: illegal string offset", serrError
     ELSE
      plotstr(retvals(0)).s = read32bitstring(stringp)
     END IF
@@ -1642,7 +1642,7 @@ SELECT CASE as CONST id
    WITH *scrat(nowscript).scr
     DIM stringp as integer PTR = .ptr + .strtable + retvals(1)
     IF .strtable + retvals(1) >= .size ORELSE .strtable + (stringp[0] + 3) \ 4 >= .size THEN
-     scripterr "script corrupt: illegal string offset", 6
+     scripterr "script corrupt: illegal string offset", serrError
     ELSE
      plotstr(retvals(0)).s += read32bitstring(stringp)
     END IF
@@ -1829,7 +1829,7 @@ SELECT CASE as CONST id
    IF plotslices(retvals(0))->SliceType = slSprite THEN
     DeleteSlice @plotslices(retvals(0))
    ELSE
-    scripterr "free sprite: slice " & retvals(0) & " is a " & SliceTypeName(plotslices(retvals(0))), 5
+    scripterr "free sprite: slice " & retvals(0) & " is a " & SliceTypeName(plotslices(retvals(0))), serrBadOp
    END IF
   END IF
  CASE 324 '--put slice  (previously place sprite)
@@ -1928,25 +1928,25 @@ SELECT CASE as CONST id
   END IF
  CASE 354 '--set horiz align
   IF valid_plotslice(retvals(0)) THEN
-   IF bound_arg(retvals(1), 0, 2, "edge:... constant", , , 5) THEN
+   IF bound_arg(retvals(1), 0, 2, "edge:... constant", , , serrBadOp) THEN
     plotslices(retvals(0))->AlignHoriz = retvals(1)
    END IF
   END IF
  CASE 355 '--set vert align
   IF valid_plotslice(retvals(0)) THEN
-   IF bound_arg(retvals(1), 0, 2, "edge:... constant", , , 5) THEN
+   IF bound_arg(retvals(1), 0, 2, "edge:... constant", , , serrBadOp) THEN
     plotslices(retvals(0))->AlignVert = retvals(1)
    END IF
   END IF
  CASE 356 '--set horiz anchor
   IF valid_plotslice(retvals(0)) THEN
-   IF bound_arg(retvals(1), 0, 2, "edge:... constant", , , 5) THEN
+   IF bound_arg(retvals(1), 0, 2, "edge:... constant", , , serrBadOp) THEN
     plotslices(retvals(0))->AnchorHoriz = retvals(1)
    END IF
   END IF
  CASE 357 '--set vert anchor
   IF valid_plotslice(retvals(0)) THEN
-   IF bound_arg(retvals(1), 0, 2, "edge:... constant", , , 5) THEN
+   IF bound_arg(retvals(1), 0, 2, "edge:... constant", , , serrBadOp) THEN
     plotslices(retvals(0))->AnchorVert = retvals(1)
    END IF
   END IF
@@ -1966,7 +1966,7 @@ SELECT CASE as CONST id
    DIM sl as Slice Ptr
    sl = plotslices(retvals(0))
    IF sl->Protect THEN
-    scripterr "free slice: cannot free protected " & SliceTypeName(sl) & " slice " & retvals(0), 5
+    scripterr "free slice: cannot free protected " & SliceTypeName(sl) & " slice " & retvals(0), serrBadOp
    ELSE
     DeleteSlice @plotslices(retvals(0))
    END IF
@@ -1994,7 +1994,7 @@ SELECT CASE as CONST id
    DIM sl as Slice Ptr
    sl = plotslices(retvals(0))
    IF sl->Protect THEN
-    scripterr "free slice: cannot reparent protected " & SliceTypeName(sl) & " slice " & retvals(0), 5
+    scripterr "free slice: cannot reparent protected " & SliceTypeName(sl) & " slice " & retvals(0), serrBadOp
    ELSE
     SetSliceParent sl, plotslices(retvals(1))
    END IF
@@ -2194,7 +2194,7 @@ SELECT CASE as CONST id
    DIM sl as Slice Ptr
    sl = plotslices(retvals(0))
    IF sl->Parent = 0 THEN
-    scripterr "slice to back: invalid on root slice", 5
+    scripterr "slice to back: invalid on root slice", serrBadOp
    ELSE
     InsertSliceBefore sl->Parent->FirstChild, sl
    END IF
@@ -2253,7 +2253,7 @@ SELECT CASE as CONST id
   IF valid_plotsprite(retvals(0)) THEN
    DIM dat as SpriteSliceData Ptr = plotslices(retvals(0))->SliceData
    IF dat->paletted = NO THEN
-    scripterr "get sprite palette: this sprite is unpaletted", 2
+    scripterr "get sprite palette: this sprite is unpaletted", serrWarn
    ELSE
     scriptret = dat->pal
    END IF
@@ -2450,7 +2450,7 @@ SELECT CASE as CONST id
    ELSEIF bound_arg(retvals(1), 1, 99, "count") THEN
     WITH inventory(retvals(0))
      IF .used = NO THEN
-      scripterr "set item count in slot: can't set count for empty slot " & retvals(0), 4
+      scripterr "set item count in slot: can't set count for empty slot " & retvals(0), serrBound
      ELSE
       .num = retvals(1)
      END IF
@@ -2470,10 +2470,10 @@ SELECT CASE as CONST id
  CASE 446 '--move slice below
   IF valid_plotslice(retvals(0)) ANDALSO valid_plotslice(retvals(1)) THEN
    IF retvals(0) = retvals(1) THEN
-    scripterr "moveslicebelow: tried to move a slice below itself", 5
+    scripterr "moveslicebelow: tried to move a slice below itself", serrBadOp
    ELSE
     IF plotslices(retvals(0))->Protect ANDALSO plotslices(retvals(0))->Parent <> plotslices(retvals(1))->Parent THEN
-     scripterr "moveslicebelow: tried to change the parent of a protected slice", 5
+     scripterr "moveslicebelow: tried to change the parent of a protected slice", serrBadOp
     ELSE
      InsertSliceBefore plotslices(retvals(1)), plotslices(retvals(0))
     END IF
@@ -2482,17 +2482,17 @@ SELECT CASE as CONST id
  CASE 447 '--move slice above
   IF valid_plotslice(retvals(0)) ANDALSO valid_plotslice(retvals(1)) THEN
    IF retvals(0) = retvals(1) THEN
-    scripterr "movesliceabove: tried to move a slice above itself", 5
+    scripterr "movesliceabove: tried to move a slice above itself", serrBadOp
    ELSE
     IF plotslices(retvals(0))->Protect ANDALSO plotslices(retvals(0))->Parent <> plotslices(retvals(1))->Parent THEN
-     scripterr "movesliceabove: tried to change the parent of a protected slice", 5
+     scripterr "movesliceabove: tried to change the parent of a protected slice", serrBadOp
     ELSE
      DIM sl as Slice Ptr = plotslices(retvals(1))
      IF sl->NextSibling THEN
       InsertSliceBefore sl->NextSibling, plotslices(retvals(0))
      ELSE
       IF sl->Parent = NULL THEN
-       scripterr "movesliceabove: Root shouldn't have siblings", 5
+       scripterr "movesliceabove: Root shouldn't have siblings", serrBadOp
       ELSE
        'sets as last child
        SetSliceParent plotslices(retvals(0)), sl->Parent
@@ -2569,7 +2569,7 @@ SELECT CASE as CONST id
    SliceLoadFromFile sl, workingdir & SLASH & "slicetree_0_" & retvals(0) & ".reld"
    scriptret = create_plotslice_handle(sl)
   ELSE
-   scripterr commandname(curcmd->value) & ": invalid slice collection id " & retvals(0), 5
+   scripterr commandname(curcmd->value) & ": invalid slice collection id " & retvals(0), serrBadOp
    scriptret = 0
   END IF
  CASE 462 '--set slice edge x
@@ -2595,9 +2595,9 @@ SELECT CASE as CONST id
  CASE 465 '--set slice lookup
   IF valid_plotslice(retvals(0)) THEN
    IF retvals(1) < 0 THEN
-    scripterr commandname(curcmd->value) & ": negative lookup codes are reserved, they can't be set."
+    scripterr commandname(curcmd->value) & ": negative lookup codes are reserved, they can't be set.", serrBadOp
    ELSEIF plotslices(retvals(0))->Lookup < 0 THEN
-    scripterr commandname(curcmd->value) & ": can't modify the lookup code of a special slice."
+    scripterr commandname(curcmd->value) & ": can't modify the lookup code of a special slice.", serrBadOp
    ELSE
     plotslices(retvals(0))->Lookup = retvals(1)
    END IF
@@ -2610,7 +2610,7 @@ SELECT CASE as CONST id
     WITH *scrat(nowscript).scr
      DIM stringp as integer PTR = .ptr + .strtable + retvals(i)
      IF .strtable + retvals(i) >= .size ORELSE .strtable + (stringp[0] + 3) \ 4 >= .size THEN
-      scripterr "script corrupt: illegal string offset", 6
+      scripterr "script corrupt: illegal string offset", serrError
      ELSE
       result &= read32bitstring(stringp) & " = "
      END IF
@@ -2649,7 +2649,7 @@ SELECT CASE as CONST id
    IF retvals(1) = -1 THEN scriptret = found  'getcount
   END IF
  CASE 470'--allocate timers
-  IF bound_arg(retvals(0), 0, 100000, "number of timers", , , 5) THEN
+  IF bound_arg(retvals(0), 0, 100000, "number of timers", , , serrBadOp) THEN
    REDIM PRESERVE timers(large(0, retvals(0) - 1))
    IF retvals(0) = 0 THEN
     'Unfortunately, have to have at least one timer. Deactivate/blank it, in case the player
@@ -2693,8 +2693,8 @@ SELECT CASE as CONST id
     IF retvals(3) THEN
      IF SetZoneTile(zmap, retvals(0), retvals(1), retvals(2)) = 0 THEN
       scriptret = 1
-      'Is error level 2 the best for commands which fail? Do we need another?
-      scripterr "writezone: the maximum number of zones, 15, already overlap at " & retvals(1) & "," & retvals(2) & "; attempt to add another failed", 2
+      'Is serrWarn the best for commands which fail? Do we need another?
+      scripterr "writezone: the maximum number of zones, 15, already overlap at " & retvals(1) & "," & retvals(2) & "; attempt to add another failed", serrWarn
      END IF
     ELSE
      UnsetZoneTile(zmap, retvals(0), retvals(1), retvals(2))
@@ -2709,7 +2709,7 @@ SELECT CASE as CONST id
    IF retvals(2) = -1 THEN  'getcount
     scriptret = UBOUND(zoneshere) + 1
    ELSEIF retvals(2) < -1 THEN
-    scripterr "zone at spot: bad 'count' argument " & retvals(2), 5
+    scripterr "zone at spot: bad 'count' argument " & retvals(2), serrBadOp
    ELSE
     IF retvals(2) <= UBOUND(zoneshere) THEN scriptret = zoneshere(retvals(2))
    END IF
@@ -2734,11 +2734,11 @@ SELECT CASE as CONST id
    plotstr(retvals(0)).s = GetZoneInfo(zmap, retvals(1))->name
   END IF
  CASE 488'--get zone extra (id, extra)
-  IF valid_zone(retvals(0)) AND bound_arg(retvals(1), 0, 2, "extra data number", , , 5) THEN
+  IF valid_zone(retvals(0)) AND bound_arg(retvals(1), 0, 2, "extra data number", , , serrBadOp) THEN
    scriptret = GetZoneInfo(zmap, retvals(0))->extra(retvals(1))
   END IF
  CASE 489'--set zone extra (id, extra, value)
-  IF valid_zone(retvals(0)) AND bound_arg(retvals(1), 0, 2, "extra data number", , , 5) THEN
+  IF valid_zone(retvals(0)) AND bound_arg(retvals(1), 0, 2, "extra data number", , , serrBadOp) THEN
    GetZoneInfo(zmap, retvals(0))->extra(retvals(1)) = retvals(2)
    lump_reloading.zonemap.dirty = YES
   END IF
@@ -2806,7 +2806,7 @@ SELECT CASE as CONST id
  CASE 506 '--move slice to (handle, x, y, ticks)
   IF valid_plotslice(retvals(0)) THEN
    IF retvals(3) < 1 THEN
-     scripterr commandname(curcmd->value) & ": ticks arg " & retvals(3) & " mustn't be < 1", 5
+     scripterr commandname(curcmd->value) & ": ticks arg " & retvals(3) & " mustn't be < 1", serrBadOp
    ELSE
     SetSliceTarg plotslices(retvals(0)), retvals(1), retvals(2), retvals(3)
    END IF
@@ -2814,7 +2814,7 @@ SELECT CASE as CONST id
  CASE 507 '--move slice by (handle, rel x, rel y, ticks)
   IF valid_plotslice(retvals(0)) THEN
    IF retvals(3) < 1 THEN
-     scripterr commandname(curcmd->value) & ": ticks arg " & retvals(3) & " mustn't be < 1", 5
+     scripterr commandname(curcmd->value) & ": ticks arg " & retvals(3) & " mustn't be < 1", serrBadOp
    ELSE
     WITH *plotslices(retvals(0))
      SetSliceTarg plotslices(retvals(0)), .X + retvals(1), .Y + retvals(2), retvals(3)
@@ -2919,7 +2919,7 @@ SELECT CASE as CONST id
    scriptret = readbit(gam.map.door(retvals(0)).bits(), 0, 0)
   END IF
  CASE 526 '--get attack caption
-  IF valid_plotstr(retvals(0), 5) AND bound_arg(retvals(1), 1, gen(genMaxAttack)+1, "attack ID", , , 5) THEN
+  IF valid_plotstr(retvals(0), 5) AND bound_arg(retvals(1), 1, gen(genMaxAttack)+1, "attack ID", , , serrBadOp) THEN
    plotstr(retvals(0)).s = readattackcaption(retvals(1) - 1)
    scriptret = 1
   END IF
@@ -2937,7 +2937,7 @@ SELECT CASE as CONST id
   END IF
  CASE 528 '--set rect fuzziness (slice, percent)
   IF valid_plotrect(retvals(0)) THEN
-   IF bound_arg(retvals(1), 0, 100, "fuzziness percentage", , , 5) THEN
+   IF bound_arg(retvals(1), 0, 100, "fuzziness percentage", , , serrBadOp) THEN
     IF retvals(1) = 0 THEN
      'Reset fuzzfactor to default 50% for future "set rect trans (sl, trans:fuzzy)"
      ChangeRectangleSlice plotslices(retvals(0)), , , , , transHollow, 50
@@ -2950,10 +2950,10 @@ SELECT CASE as CONST id
   END IF
  CASE 529 '-- textbox line (string, box, line, expand, strip)
   IF valid_plotstr(retvals(0), 5) ANDALSO _
-     bound_arg(retvals(1), 0, gen(genMaxTextbox), "textbox", , , 5) THEN
+     bound_arg(retvals(1), 0, gen(genMaxTextbox), "textbox", , , serrBadOp) THEN
    IF retvals(2) < 0 THEN
     'There's no upper bound on valid textbox line numbers
-    scripterr "textbox line: invalid line number " & retvals(2), 5
+    scripterr "textbox line: invalid line number " & retvals(2), serrBadOp
    ELSEIF retvals(2) > 7 THEN
     'On the other hand, this is currently impossible
     plotstr(retvals(0)).s = ""
@@ -2966,7 +2966,7 @@ SELECT CASE as CONST id
    END IF
   END IF
  CASE 530 '--get slice text (string, slice)
-  IF valid_plotstr(retvals(0), 5) THEN
+  IF valid_plotstr(retvals(0), serrBadOp) THEN
    IF valid_plottextslice(retvals(1)) THEN
     DIM dat as TextSliceData Ptr
     dat = plotslices(retvals(1))->SliceData
@@ -2976,7 +2976,7 @@ SELECT CASE as CONST id
  CASE 531 '--get input text (string)
   IF valid_plotstr(retvals(0)) THEN
    IF gam.getinputtext_enabled = NO THEN
-    scripterr "'get input text' needs to be enabled with 'enable input text'", 5
+    scripterr "'get input text' needs to be enabled with 'enable input text'", serrBadOp
    ELSE
     plotstr(retvals(0)).s = getinputtext()
    END IF
@@ -3160,12 +3160,12 @@ SELECT CASE as CONST id
     FOR i = UBOUND(npc) TO 0 STEP -1
      IF npc(i).id <= 0 THEN EXIT FOR
     NEXT
-    'I don't want to raise a scripterr here, again because it probably happens in routine in games like SoJ
+    'I don't want to raise an error here, again because it probably happens in routine in games like SoJ
     DIM msgtemp as string = "create NPC: trying to create NPC id " & retvals(0) & " at " & retvals(1)*20 & "," & retvals(2)*20
     IF i = -1 THEN 
-     scripterr msgtemp & "; failed: too many NPCs exist", 4
+     scripterr msgtemp & "; failed: too many NPCs exist", serrBound
     ELSE
-     scripterr msgtemp & "; warning: had to overwrite tag-disabled NPC id " & ABS(npc(i).id)-1 & " at " & npc(i).x & "," & npc(i).y & ": too many NPCs exist", 4
+     scripterr msgtemp & "; warning: had to overwrite tag-disabled NPC id " & ABS(npc(i).id)-1 & " at " & npc(i).x & "," & npc(i).y & ": too many NPCs exist", serrBound
     END IF
    END IF
    IF i > -1 THEN
@@ -3794,16 +3794,16 @@ SUB load_text_box_portrait (byref box as TextBox, byref gfx as GraphicPair)
 END SUB
 
 FUNCTION valid_spriteslice_dat(byval sl as Slice Ptr) as integer
- IF sl = 0 THEN scripterr "null slice ptr in valid_spriteslice_dat", 7 : RETURN NO
+ IF sl = 0 THEN scripterr "null slice ptr in valid_spriteslice_dat", serrBug : RETURN NO
  DIM dat as SpriteSliceData Ptr = sl->SliceData
  IF dat = 0 THEN
-  scripterr SliceTypeName(sl) & " handle " & retvals(0) & " has null dat pointer", 7
+  scripterr SliceTypeName(sl) & " handle " & retvals(0) & " has null dat pointer", serrBug
   RETURN NO
  END IF
  RETURN YES
 END FUNCTION
 
-FUNCTION valid_plotslice(byval handle as integer, byval errlev as integer=5) as integer
+FUNCTION valid_plotslice(byval handle as integer, byval errlev as scriptErrEnum = serrBadOp) as integer
  IF handle < LBOUND(plotslices) OR handle > UBOUND(plotslices) THEN
   scripterr commandname(curcmd->value) & ": invalid slice handle " & handle, errlev
   RETURN NO
@@ -3814,7 +3814,7 @@ FUNCTION valid_plotslice(byval handle as integer, byval errlev as integer=5) as 
  END IF
  IF ENABLE_SLICE_DEBUG THEN
   IF SliceDebugCheck(plotslices(handle)) = NO THEN
-   scripterr commandname(curcmd->value) & ": slice " & handle & " " & plotslices(handle) & " is not in the slice debug table!", 7
+   scripterr commandname(curcmd->value) & ": slice " & handle & " " & plotslices(handle) & " is not in the slice debug table!", serrBug
    RETURN NO
   END IF
  END IF
@@ -3828,7 +3828,7 @@ FUNCTION valid_plotsprite(byval handle as integer) as integer
     RETURN YES
    END IF
   ELSE
-   scripterr commandname(curcmd->value) & ": slice handle " & handle & " is not a sprite", 5
+   scripterr commandname(curcmd->value) & ": slice handle " & handle & " is not a sprite", serrBadOp
   END IF
  END IF
  RETURN NO
@@ -3839,7 +3839,7 @@ FUNCTION valid_plotrect(byval handle as integer) as integer
   IF plotslices(handle)->SliceType = slRectangle THEN
    RETURN YES
   ELSE
-   scripterr commandname(curcmd->value) & ": slice handle " & handle & " is not a rect", 5
+   scripterr commandname(curcmd->value) & ": slice handle " & handle & " is not a rect", serrBadOp
   END IF
  END IF
  RETURN NO
@@ -3849,12 +3849,12 @@ FUNCTION valid_plottextslice(byval handle as integer) as integer
  IF valid_plotslice(handle) THEN
   IF plotslices(handle)->SliceType = slText THEN
    IF plotslices(handle)->SliceData = 0 THEN
-    scripterr commandname(curcmd->value) & ": text slice handle " & handle & " has null data", 7
+    scripterr commandname(curcmd->value) & ": text slice handle " & handle & " has null data", serrBug
     RETURN NO
    END IF
    RETURN YES
   ELSE
-   scripterr commandname(curcmd->value) & ": slice handle " & handle & " is not text", 5
+   scripterr commandname(curcmd->value) & ": slice handle " & handle & " is not text", serrBadOp
   END IF
  END IF
  RETURN NO
@@ -3865,7 +3865,7 @@ FUNCTION valid_plotgridslice(byval handle as integer) as integer
   IF plotslices(handle)->SliceType = slGrid THEN
    RETURN YES
   ELSE
-   scripterr commandname(curcmd->value) & ": slice handle " & handle & " is not a grid", 5
+   scripterr commandname(curcmd->value) & ": slice handle " & handle & " is not a grid", serrBadOp
   END IF
  END IF
  RETURN NO
@@ -3879,20 +3879,20 @@ FUNCTION valid_resizeable_slice(byval handle as integer, byval ignore_fill as in
    IF sl->Fill = NO OR ignore_fill THEN
     RETURN YES
    ELSE
-    scripterr commandname(curcmd->value) & ": slice handle " & handle & " cannot be resized while filling parent", 5
+    scripterr commandname(curcmd->value) & ": slice handle " & handle & " cannot be resized while filling parent", serrBadOp
    END IF
   ELSE
    IF sl->SliceType = slText THEN
     DIM dat as TextSliceData ptr
     dat = sl->SliceData
-    IF dat = 0 THEN scripterr "sanity check fail, text slice " & handle & " has null data", 7 : RETURN NO
+    IF dat = 0 THEN scripterr "sanity check fail, text slice " & handle & " has null data", serrBug : RETURN NO
     IF dat->wrap = YES THEN
      RETURN YES
     ELSE
-     scripterr commandname(curcmd->value) & ": text slice handle " & handle & " cannot be resized unless wrap is enabled", 5
+     scripterr commandname(curcmd->value) & ": text slice handle " & handle & " cannot be resized unless wrap is enabled", serrBadOp
     END IF
    ELSE
-    scripterr commandname(curcmd->value) & ": slice handle " & handle & " is not resizeable", 5
+    scripterr commandname(curcmd->value) & ": slice handle " & handle & " is not resizeable", serrBadOp
    END IF
   END IF
  END IF
@@ -3900,10 +3900,10 @@ FUNCTION valid_resizeable_slice(byval handle as integer, byval ignore_fill as in
 END FUNCTION
 
 FUNCTION create_plotslice_handle(byval sl as Slice Ptr) as integer
- IF sl = 0 THEN scripterr "create_plotslice_handle null ptr", 7 : RETURN 0
+ IF sl = 0 THEN scripterr "create_plotslice_handle null ptr", serrBug : RETURN 0
  IF sl->TableSlot <> 0 THEN
   'this should not happen! Call find_plotslice_handle instead.
-  scripterr "Error: " & SliceTypeName(sl) & " " & sl & " references plotslices(" & sl->TableSlot & ") which has " & plotslices(sl->TableSlot), 7
+  scripterr "Error: " & SliceTypeName(sl) & " " & sl & " references plotslices(" & sl->TableSlot & ") which has " & plotslices(sl->TableSlot), serrBug
   RETURN 0
  END IF
  DIM i as integer
@@ -3967,7 +3967,7 @@ SUB change_rect_plotslice(byval handle as integer, byval style as integer=-2, by
   IF sl->SliceType = slRectangle THEN
    ChangeRectangleSlice sl, style, bgcol, fgcol, border, translucent
   ELSE
-   scripterr commandname(curcmd->value) & ": " & SliceTypeName(sl) & " is not a rect", 5
+   scripterr commandname(curcmd->value) & ": " & SliceTypeName(sl) & " is not a rect", serrBadOp
   END IF
  END IF
 END SUB

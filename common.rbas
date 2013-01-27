@@ -44,7 +44,7 @@ DECLARE SUB fatal_error_shutdown ()
 
 DECLARE FUNCTION istag OVERLOAD (byval num as integer, byval zero as integer=NO) as integer
 DECLARE FUNCTION istag OVERLOAD (tagbits() as integer, byval num as integer, byval zero as integer=NO) as integer
-DECLARE SUB scripterr (e as string, byval errorlevel as integer = 5)
+DECLARE SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
 DECLARE FUNCTION commandname (byval id as integer) as string
 DECLARE SUB exitprogram (byval need_fade_out as integer = NO, byval errorout as integer = NO)
 DECLARE SUB show_wrong_spawned_version_error
@@ -651,7 +651,7 @@ FUNCTION decodetrigger (byval trigger as integer) as integer
 #ifdef IS_GAME
    IF .id = 0 THEN
     ' Not an error in Custom as we're not trying to actually run it
-    scripterr "Script " + .name + " is used but has not been imported", 6
+    scripterr "Script " + .name + " is used but has not been imported", serrError
    END IF
 #endif
    RETURN .id
@@ -3988,7 +3988,7 @@ SUB create_default_menu(menu as MenuDef)
  menu.min_chars = 14
 END SUB
 
-FUNCTION bound_arg(byval n as integer, byval min as integer, byval max as integer, argname as ZSTRING PTR, context as ZSTRING PTR=nulzstr, byval fromscript as integer=YES, byval errlvl as integer = 4) as integer
+FUNCTION bound_arg(byval n as integer, byval min as integer, byval max as integer, argname as ZSTRING PTR, context as ZSTRING PTR=nulzstr, byval fromscript as integer=YES, byval errlvl as scriptErrEnum = serrBound) as integer
  'This function takes zstring ptr arguments because passing strings is actually really expensive
  '(it performs an allocation, copy, delete), and would be easily noticeable by scripts.
  IF n < min OR n > max THEN
@@ -4008,19 +4008,17 @@ FUNCTION bound_arg(byval n as integer, byval min as integer, byval max as intege
  RETURN YES
 END FUNCTION
 
-SUB reporterr(msg as string, byval errlvl as integer = 5)
+SUB reporterr(msg as string, byval errlvl as scriptErrEnum = serrBadOp)
  'this is a placeholder for some more detailed replacement of debug, so scripterrs can be thrown from slices.bas
 #IFDEF IS_GAME
  IF insideinterpreter THEN
   DIM msg2 as string = msg  'Don't modify passed-in strings
   IF curcmd->kind = tyfunct THEN msg2 = commandname(curcmd->value) + ": " + msg2
   scripterr msg2, errlvl
- ELSE
-  debug msg
+  EXIT SUB
  END IF
-#ELSE
- debug msg
 #ENDIF
+ debugc errPromptBug, msg
 END SUB
 
 SUB load_special_tag_caches()

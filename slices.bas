@@ -398,10 +398,10 @@ Sub DeleteSlice(Byval s as Slice ptr ptr, Byval debugme as integer=0)
     '--zero out the reference to this slice from the table
     plotslices(sl->TableSlot) = 0
    else
-    reporterr "DeleteSlice: TableSlot mismatch! Slice " & sl & " slot is " & sl->TableSlot & " which has " & plotslices(sl->TableSlot), 7
+    reporterr "DeleteSlice: TableSlot mismatch! Slice " & sl & " slot is " & sl->TableSlot & " which has " & plotslices(sl->TableSlot), serrBug
    end if
   else
-   reporterr "DeleteSlice: TableSlot for " & sl & " is invalid: " & sl->TableSlot, 7
+   reporterr "DeleteSlice: TableSlot for " & sl & " is invalid: " & sl->TableSlot, serrBug
   end if
  end if
 #endif
@@ -485,7 +485,7 @@ Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
  if sl = 0 then debug "SetSliceParent null ptr": exit sub
 
  if parent andalso verifySliceLineage(sl, parent) = 0 then
-  reporterr "Attempted to parent a slice to itself or descendents!", 5
+  reporterr "Attempted to parent a slice to itself or descendents!", serrBadOp
   exit sub
  end if
 
@@ -556,7 +556,7 @@ Sub SwapSiblingSlices(byval sl1 as slice ptr, byval sl2 as slice ptr)
  'Only intended for use by siblings of the same parent
  if sl1 = 0 or sl2 = 0 then EXIT SUB ' Exit quietly when an arg is null. Valid use case for attempted swap at the beginning or end of a list
  if sl1 = sl2 then EXIT SUB ' Ignore attempts to swap a slice with itself
- if sl1->Parent <> sl2->Parent then reporterr "SwapSiblingSlices: slices are not siblings", 5: EXIT SUB
+ if sl1->Parent <> sl2->Parent then reporterr "SwapSiblingSlices: slices are not siblings": EXIT SUB
  dim parent as slice ptr = sl1->Parent
  dim slice_list(parent->NumChildren - 1) as slice ptr
  UnlinkChildren parent, slice_list()
@@ -643,11 +643,11 @@ Sub InsertSliceBefore(byval sl as slice ptr, byval newsl as slice ptr)
                              ' to move a slice to the beginning of its sibling list when it is
                              ' already the first sibling
  if sl->PrevSibling = newsl then EXIT SUB 'already done
- if sl->Parent = 0 then reporterr "InsertSliceBefore: Root shouldn't have siblings", 5: EXIT SUB
+ if sl->Parent = 0 then reporterr "InsertSliceBefore: Root shouldn't have siblings" : EXIT SUB
 
  'Verify the family
  if verifySliceLineage(newsl, sl->Parent) = NO then
-  reporterr "InsertSliceBefore: attempted to parent a slice to itself or descendents", 5
+  reporterr "InsertSliceBefore: attempted to parent a slice to itself or descendents"
   EXIT SUB
  end if
 
@@ -943,7 +943,7 @@ Sub ChangeRectangleSlice(byval sl as slice ptr,_
                       byval translucent as RectTransTypes=transUndef,_
                       byval fuzzfactor as integer=0)
  if sl = 0 then debug "ChangeRectangleSlice null ptr" : exit sub
- if sl->SliceType <> slRectangle then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a rectangle", 5 : exit sub
+ if sl->SliceType <> slRectangle then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a rectangle" : exit sub
  if style > -2 andalso border > -3 then
   debug "WARNING: attempted to simultaneously set style and border on a rectangle slice"
  end if
@@ -1146,7 +1146,7 @@ Sub ChangeTextSlice(byval sl as slice ptr,_
                       byval wrap as integer=-2,_
                       byval bgcol as integer=-1)
  if sl = 0 then debug "ChangeTextSlice null ptr" : exit sub
- if sl->SliceType <> slText then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as text", 5 : exit sub
+ if sl->SliceType <> slText then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as text" : exit sub
  dim dat as TextSliceData Ptr = sl->SliceData
  with *dat
   if s <> CHR(1) & CHR(255) then
@@ -1198,11 +1198,11 @@ Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
   dim have_copy as integer = NO
   spr = .img.sprite
   if spr = 0 then
-   reporterr "null sprite ptr for slice " & sl, 7
+   reporterr "null sprite ptr for slice " & sl, serrBug
    exit sub
   end if
   if .frame >= sprite_sizes(.spritetype).frames or .frame < 0 then
-   reporterr "out of range frame " & .frame & " for slice " & sl, 7
+   reporterr "out of range frame " & .frame & " for slice " & sl, serrBug
    .frame = 0
   end if
   
@@ -1344,7 +1344,7 @@ Sub ChangeSpriteSlice(byval sl as slice ptr,_
                       byval flipv as integer = -2,_
                       byval trans as integer = -2)
  if sl = 0 then debug "ChangeSpriteSlice null ptr" : exit sub
- if sl->SliceType <> slSprite then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a sprite", 5 : exit sub
+ if sl->SliceType <> slSprite then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a sprite" : exit sub
  dim dat as SpriteSliceData Ptr = sl->SliceData
  with *dat
   if spritetype <> sprTypeInvalid then
@@ -1447,7 +1447,7 @@ end function
 
 Sub ChangeMapSliceTileset(byval sl as slice ptr, byval tileset as TilesetData ptr)
  if sl = 0 then debug "ChangeMapSliceTileset null ptr" : exit sub
- if sl->SliceType <> slMap then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a map", 5 : exit sub
+ if sl->SliceType <> slMap then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a map" : exit sub
  dim dat as MapSliceData Ptr = sl->SliceData
  dat->tileset = tileset 'NOTE: *shiver* pointers make me cringe.
 end sub
@@ -1458,7 +1458,7 @@ Sub ChangeMapSlice(byval sl as slice ptr,_
                    byval transparent as integer=-2,_
                    byval overlay as integer=-1)
  if sl = 0 then debug "ChangeMapSlice null ptr" : exit sub
- if sl->SliceType <> slMap then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a map", 5: exit sub
+ if sl->SliceType <> slMap then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a map" : exit sub
  dim dat as MapSliceData Ptr = sl->SliceData
  with *dat
   if tiles <> 1 then
@@ -1688,7 +1688,7 @@ Sub ChangeGridSlice(byval sl as slice ptr,_
                       byval rows as integer=0,_
                       byval cols as integer=0)
  if sl = 0 then debug "ChangeGridSlice null ptr" : exit sub
- if sl->SliceType <> slGrid then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a grid", 5 : exit sub
+ if sl->SliceType <> slGrid then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a grid" : exit sub
  dim dat as GridSliceData Ptr = sl->SliceData
  if rows > 0 then
   dat->rows = rows
@@ -1739,7 +1739,7 @@ Sub DrawEllipseSlice(byval sl as slice ptr, byval p as integer)
   end if
 
   if .frame = 0 then
-   reporterr "null frame ptr for ellipse slice " & sl, 7
+   reporterr "null frame ptr for ellipse slice " & sl, serrBug
    exit sub
   end if
 
@@ -1810,7 +1810,7 @@ Sub ChangeEllipseSlice(byval sl as slice ptr,_
                       byval bordercol as integer=-1,_
                       byval fillcol as integer=-1)
  if sl = 0 then debug "ChangeEllipseSlice null ptr" : exit sub
- if sl->SliceType <> slEllipse then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as an ellipse", 5 : exit sub
+ if sl->SliceType <> slEllipse then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as an ellipse" : exit sub
  dim dat as EllipseSliceData Ptr = sl->SliceData
  with *dat
   if bordercol >= 0 then
@@ -2290,7 +2290,7 @@ Sub SliceClamp(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr)
  'Don't confuse this with a slice's .Fill member. This is a one-shot attempt
  'to fit sl2 inside sl1 without doing any resizing.
  if sl1 = 0 or sl2 = 0 then exit sub
- if sl2->Fill then reporterr "SliceClamp cannot move slices with .Fill=ON", 5 : exit sub
+ if sl2->Fill then reporterr "SliceClamp cannot move slices with .Fill=ON" : exit sub
  RefreshSliceScreenPos(sl1)
  RefreshSliceScreenPos(sl2)
  dim diff as integer

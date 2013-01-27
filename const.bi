@@ -256,6 +256,17 @@ Enum errorLevelEnum
   errDie        'Exit immediately without attempting to show a message (especially for gfx backend errors)
 End Enum
 
+'Constants for scripterr and friends
+Enum scriptErrEnum
+  serrInfo = 1       'informative messages
+  serrWarn = 2       'possibly suspicious operation, eg. re-freeing a slice
+  serrSuspicious = 3 'suspicious operation on weak type or suspicious argument type (unimplemented)
+  serrBound = 4      'warning on auto-bound() argument  (suppressed in old games)
+  serrBadOp = 5      'bad argument/operation       (not suppressed by default)
+  serrError = 6      'corrupt script data/unimplemented feature/interpreter can't continue
+  serrBug = 7        'impossible condition; engine bug (interpreter stops)
+End Enum
+
 Enum constDirection
 	dirUp
 	dirRight

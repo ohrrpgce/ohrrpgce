@@ -83,7 +83,7 @@ DO
     '--scriptret would be set here, pushed at return
     SELECT CASE curcmd->kind
      CASE tystop
-      scripterr "stnext encountered noop " & curcmd->value & " at " & .ptr & " in " & nowscript, 6
+      scripterr "stnext encountered noop " & curcmd->value & " at " & .ptr & " in " & nowscript, serrError
       killallscripts
       EXIT DO
      CASE tymath, tyfunct
@@ -113,7 +113,7 @@ DO
           scrst.pos -= 2
           .curargn = 0
          CASE ELSE
-          scripterr "while fell out of bounds, landed on " & .curargn, 7
+          scripterr "while fell out of bounds, landed on " & .curargn, serrBug
           killallscripts
           EXIT DO
         END SELECT
@@ -127,7 +127,7 @@ DO
           writescriptvar tmpvar, readscriptvar(tmpvar) + readstack(scrst, 0)
           .curargn = 4
          CASE ELSE
-          scripterr "for fell out of bounds, landed on " & .curargn, 7
+          scripterr "for fell out of bounds, landed on " & .curargn, serrBug
           killallscripts
           EXIT DO
         END SELECT
@@ -218,7 +218,7 @@ DO
            GOSUB dumpandreturn
            '--WARNING: WITH pointer probably corrupted
           CASE ELSE
-           scripterr "if statement overstepped bounds", 7
+           scripterr "if statement overstepped bounds", serrBug
          END SELECT
         CASE flowwhile'--we got a while!
          SELECT CASE .curargn
@@ -235,7 +235,7 @@ DO
             .state = streturn'---return
            END IF
           CASE ELSE
-          scripterr "while statement has jumped the curb", 7
+          scripterr "while statement has jumped the curb", serrBug
          END SELECT
         CASE flowfor'--we got a for!
          SELECT CASE .curargn
@@ -269,7 +269,7 @@ DO
             .state = stdoarg'---execute the do block
            END IF
           CASE ELSE
-           scripterr "for statement is being difficult", 7
+           scripterr "for statement is being difficult", serrBug
          END SELECT
         CASE flowswitch
          IF .curargn = 0 THEN

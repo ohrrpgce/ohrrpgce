@@ -52,7 +52,7 @@ DECLARE SUB freescripts (byval mem as integer)
 
 DECLARE FUNCTION commandname (byval id as integer) as string
 DECLARE FUNCTION script_call_chain (byval trim_front as integer = YES) as string
-DECLARE SUB scripterr (e as string, byval errorlevel as integer = 5)
+DECLARE SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
 DECLARE FUNCTION script_interrupt () as integer
 DECLARE FUNCTION settingstring (searchee as string, setting as string, result as string) as integer
 DECLARE SUB shop (byval id as integer)

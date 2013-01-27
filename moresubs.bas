@@ -1945,15 +1945,8 @@ FUNCTION script_call_chain (byval trim_front as integer = YES) as string
  RETURN "  Call chain (current script last):" + CHR(10) + scriptlocation
 END FUNCTION
 
-'errorlevel scheme:
-'1: informative messages
-'2: possibly suspicious operation, eg. re-freeing a slice
-'3: suspicious operation on weak type or suspicious argument type (unimplemented)
-'4: warning on auto-bound() argument  (suppressed in old games)
-'5: bad argument/operation       (not suppressed by default)
-'6: corrupt script data/unimplemented feature/interpreter can't continue
-'7: impossible condition; engine bug
-SUB scripterr (e as string, byval errorlevel as integer = 5)
+'For errorlevel scheme, see scriptErrEnum in const.bi
+SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
  'mechanism to handle scriptwatch throwing errors
  STATIC as integer recursivecall
 
@@ -1974,8 +1967,8 @@ SUB scripterr (e as string, byval errorlevel as integer = 5)
 
  recursivecall += 1
 
- IF errorlevel = 6 THEN e = "Script data may be corrupt or unsupported:" + CHR(10) + e
- IF errorlevel >= 7 THEN e = "PLEASE REPORT THIS POSSIBLE ENGINE BUG" + CHR(10) + e
+ IF errorlevel = serrError THEN e = "Script data may be corrupt or unsupported:" + CHR(10) + e
+ IF errorlevel >= serrBug THEN e = "PLEASE REPORT THIS POSSIBLE ENGINE BUG" + CHR(10) + e
 
  e = e + CHR(10) + CHR(10) + script_call_chain
  split(wordwrap(e, 38), errtext())
@@ -2029,7 +2022,7 @@ SUB scripterr (e as string, byval errorlevel as integer = 5)
    SELECT CASE state.pt
     CASE 0 'ignore
     CASE 1 'hide errors (but not engine bugs)
-     err_suppress_lvl = 6
+     err_suppress_lvl = serrError
     CASE 2 'hide some errors
      err_suppress_lvl = errorlevel
     CASE 3 'hide errors from this command
@@ -2052,13 +2045,13 @@ SUB scripterr (e as string, byval errorlevel as integer = 5)
 
   centerbox 160, 12, 310, 15, 3, vpage
   textcolor uilook(uiText), 0
-  IF errorlevel >= 7 THEN
+  IF errorlevel >= serrBug THEN
    printstr "Impossible error/engine bug!", 160 - 28*4, 7, vpage
-  ELSEIF errorlevel >= 4 THEN
+  ELSEIF errorlevel >= serrBound THEN
    printstr "Script Error!", 160 - 13*4, 7, vpage
-  ELSEIF errorlevel >= 2 THEN
+  ELSEIF errorlevel >= serrWarn THEN
    printstr "Script Warning", 160 - 14*4, 7, vpage
-  ELSE
+  ELSEIF errorlevel = serrInfo THEN
    printstr "Script Diagnostic", 160 - 17*4, 7, vpage
   END IF
 
