@@ -83,6 +83,7 @@ WHAT IS NEW?
             else (...)
       [Ralph]
     * "enemy elemental resist as int" [Ralph]
+    * "hero Z" [Ralph]
 
   * Stuff Only Developers Will Notice
 

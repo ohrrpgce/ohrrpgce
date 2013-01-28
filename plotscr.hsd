@@ -556,6 +556,7 @@ define function, begin
 541,setonetime,2,0,0             #set onetime npc tag(#,true/false)
 542,microseconds,0               #microsecond timer
 543,enemyelementalresistasint,2,0,0  #get percentage elemental damage for an enemy (id, element)
+544,heroz,1,0                    #a hero's Z coordinate (party slot)
 end
 
 #--------------------------------------------------------------------------

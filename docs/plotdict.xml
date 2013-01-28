@@ -454,11 +454,20 @@ resume player # ok, done</example>
 			<canon>set hero position (who, x, y)</canon>
 			<shortname>set hero position</shortname>
 			<description>Instantly moves the specified hero to an X,Y position on the map. The coordinates are in units of tiles. For pixel-positioning use the <ref>puthero</ref> command.</description>
+			<seealso>
+				<ref>herox</ref>
+				<ref>heroy</ref>
+				<ref>heropixelx</ref>
+				<ref>heropixely</ref>
+			</seealso>
 		</command>
 		<command id="setheroz">
 			<canon>set hero z (who, z)</canon>
 			<shortname>set hero z</shortname>
-			<description>Sets the Z location of the specified hero. The Z location is the number of pixels above the tile they are standing on. Useful for scripts where you want a hero to jump or levitate.</description>
+			<description>Sets the Z location of the specified hero. The Z value is the number of pixels they are above the tile that they are 'standing' on. Useful for scripts where you want a hero to jump or levitate. All heroes normally have a Z value of 0 (even on maps with a foot offset) unless they are riding a vehicle which rises.</description>
+			<seealso>
+				<ref>heroz</ref>
+			</seealso>
 		</command>
 		<command id="walkherotox">
 			<canon>walk hero to x (who,x)</canon>
@@ -3999,6 +4008,14 @@ end
 			<canon>hero Y (who)</canon>
 			<shortname>hero Y</shortname>
 			<description>Returns the specified hero&apos;s Y position in tiles. Note that a hero's tile is the tile its top left corner is on.</description>
+		</command>
+		<command id="heroz">
+			<canon>hero Z (who)</canon>
+			<shortname>hero Z</shortname>
+			<description>Returns the specified hero&apos;s Z position in pixels. The Z value is the number of pixels they are above the tile that they are 'standing' on, not including the map's foot offset. All heroes normally have a Z value of 0 (even on maps with a foot offset) unless they are riding a vehicle which rises.</description>
+			<seealso>
+				<ref>setheroz</ref>
+			</seealso>
 		</command>
 		<command id="npcx">
 			<canon>NPC X (who)</canon>

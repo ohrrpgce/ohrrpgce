@@ -3040,6 +3040,10 @@ SELECT CASE as CONST id
     scriptret = 100 * enemy.elementals(retvals(1))  'rounds to nearest int
    END IF
   END IF
+ CASE 544 '--hero Z
+  IF really_valid_hero_party(retvals(0), 3) THEN
+   scriptret = catz(retvals(0) * 5)
+  END IF
 
 'old scriptnpc
 
