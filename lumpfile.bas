@@ -260,18 +260,20 @@ end function
 'handled transparently by the Lump object rather than actually occurring
 
 
-function loadrecord (buf() as integer, byval fh as integer, byval recordsize as integer, byval record as integer = -1) as integer
+function loadrecord (buf() as integer, byval fh as integer, byval recordsize as integer, byval record as integer = -1) as bool
 'common sense alternative to loadset, setpicstuf
 'loads 16bit records in an array
 'buf() = buffer to load shorts into, starting at buf(0)
 'fh = open file handle
 'recordsize = record size in shorts (not bytes)
 'record = record number, defaults to read from current file position
-'returns 1 if successful, 0 if failure (eg. file too short)
+'returns true if successful, false if failure (eg. file too short)
+'Even if the file is too short, reads as much as possible
+
 	dim idx as integer
-	if recordsize <= 0 then return 0
+	if recordsize <= 0 then return NO
 	if ubound(buf) < recordsize - 1 then
-		debug "loadrecord: " & recordsize & " ints will not fit in " & ubound(buf) + 1 & " element array"
+		debugc errBug, "loadrecord: " & recordsize & " ints will not fit in " & ubound(buf) + 1 & " element array"
 		'continue, fit in as much as possible
 	end if
 	dim readbuf(recordsize - 1) as short
@@ -279,28 +281,29 @@ function loadrecord (buf() as integer, byval fh as integer, byval recordsize as 
 	if record <> -1 then
 		seek #fh, recordsize * 2 * record + 1
 	end if
-	if seek(fh) + 2 * recordsize > lof(fh) + 1 then return 0
+	dim ret as bool = YES
+	if seek(fh) + 2 * recordsize > lof(fh) + 1 then ret = NO
 	get #fh, , readbuf()
 	for idx = 0 to small(recordsize - 1, ubound(buf))
 		buf(idx) = readbuf(idx)
 	next
-	loadrecord = 1
+	return ret
 end function
 
-function loadrecord (buf() as integer, filen as string, byval recordsize as integer, byval record as integer = 0, byval expectfile as integer = YES) as integer
+function loadrecord (buf() as integer, filen as string, byval recordsize as integer, byval record as integer = 0, byval expectfile as integer = YES) as bool
 'wrapper for above
 'set expectfile = NO to suppress errors
 	dim f as integer
 	dim i as integer
 
-	if recordsize <= 0 then return 0
+	if recordsize <= 0 then return NO
 
 	if NOT fileisreadable(filen) then
 		if expectfile = YES then debug "File not found loading record " & record & " from " & filen
 		for i = 0 to recordsize - 1
 			buf(i) = 0
 		next
-		return 0
+		return NO
 	end if
 	f = freefile
 	open filen for binary access read as #f
@@ -312,7 +315,7 @@ end function
 sub storerecord (buf() as integer, byval fh as integer, byval recordsize as integer, byval record as integer = -1)
 'same as loadrecord
 	if ubound(buf) < recordsize - 1 then
-		debug "storerecord: array has only " & ubound(buf) + 1 & " elements, record is " & recordsize & " ints"
+		debugc errBug, "storerecord: array has only " & ubound(buf) + 1 & " elements, record is " & recordsize & " ints"
 		'continue, write as much as possible
 	end if
 

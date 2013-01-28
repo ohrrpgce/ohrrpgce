@@ -16,6 +16,11 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/index.php/Bugzilla.html
 ------------------------------------------------------------------------------
 
+2013-01-29:
+Nightlies from the last two days (specifically r5584-r5595) might delete
+the settings for the last menu definition. They wouldn't touch the menu
+items, but would set the menu bitsets, position, etc. to defaults.
+
 2012-12-25:
 Some recent nightlies could cause corruption.
 Make sure you are using a nightly build from Dec 25 or newer to avoid.
@@ -23,6 +28,8 @@ r5507-r5529 on Windows usually would not save hero data and could delete
             user interface colours or the zone maps for the last map.
 r5484-r5550 deleted "Items" from hero battle menus.
 r5507-r5530 newly created heroes would have completely blank battle menus
+
+*** 2012-06-15 Alectormancy Released ***
 
 2012-05-21:
 Mac Nightly builds are up, but PLEASE DO **NOT** use them yet.
