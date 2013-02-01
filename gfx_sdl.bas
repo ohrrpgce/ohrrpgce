@@ -60,7 +60,7 @@ DIM SHARED remember_zoom AS INTEGER = -1   'We may change the zoom when fullscre
 DIM SHARED smooth AS INTEGER = 0
 DIM SHARED screensurface AS SDL_Surface PTR = NULL
 DIM SHARED screenbuffer AS SDL_Surface PTR = NULL
-DIM SHARED windowedmode AS INTEGER = -1
+DIM SHARED windowedmode AS BOOL = YES
 DIM SHARED resizable AS INTEGER = NO
 DIM SHARED resizerequested AS INTEGER = NO
 DIM SHARED resizerequest AS XYPair
@@ -274,15 +274,9 @@ END FUNCTION
 FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
   DIM flags AS Uint32 = 0
   IF resizable THEN flags = flags OR SDL_RESIZABLE
-  IF windowedmode = 0 THEN
+  IF windowedmode = NO THEN
     flags = flags OR SDL_FULLSCREEN
   END IF
-  WITH dest_rect
-    .x = 0
-    .y = 0
-    .w = framesize.w * zoom
-    .h = framesize.h * zoom
-  END WITH
 #IFDEF __FB_DARWIN__
   IF SDL_WasInit(SDL_INIT_VIDEO) THEN
     SDL_QuitSubSystem(SDL_INIT_VIDEO)
@@ -291,15 +285,33 @@ FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
     END IF
   END IF
   'Force clipping in fullscreen, and undo when leaving
-  set_forced_mouse_clipping (windowedmode = 0)
+  set_forced_mouse_clipping (windowedmode = NO)
 #ENDIF
-  screensurface = SDL_SetVideoMode(dest_rect.w, dest_rect.h, bitdepth, flags)
-  IF screensurface = NULL THEN
-    debug "Failed to open display: " & *SDL_GetError
-    RETURN 0
-  END IF
+  DO
+    WITH dest_rect
+      .x = 0
+      .y = 0
+      .w = framesize.w * zoom
+      .h = framesize.h * zoom
+    END WITH
+    screensurface = SDL_SetVideoMode(dest_rect.w, dest_rect.h, bitdepth, flags)
+    IF screensurface = NULL THEN
+      'This crude hack won't work for everyone if the SDL error messages are internationalised...
+      IF zoom > 1 ANDALSO strstr(SDL_GetError(), "No video mode large enough") THEN
+        debug "Failed to open display (windowed = " & windowedmode & ") (retrying with smaller zoom): " & *SDL_GetError
+        IF remember_zoom = -1 THEN
+          remember_zoom = zoom
+        END IF
+        zoom -= 1
+        CONTINUE DO
+      END IF
+      debug "Failed to open display (windowed = " & windowedmode & "): " & *SDL_GetError
+      RETURN 0
+    END IF
+    EXIT DO
+  LOOP
   SDL_WM_SetCaption(remember_windowtitle, remember_windowtitle)
-  IF windowedmode = 0 THEN
+  IF windowedmode = NO THEN
     SDL_ShowCursor(0)
   ELSE
     SDL_ShowCursor(rememmvis)
@@ -449,11 +461,25 @@ SUB gfx_sdl_setwindowed(byval iswindow as integer)
   END IF
 #ENDIF
   IF iswindow = 0 THEN
-    windowedmode = 0
+    windowedmode = NO
   ELSE
-    windowedmode = -1
+    windowedmode = YES
   END IF
   gfx_sdl_set_screen_mode()
+  IF screensurface = NULL THEN
+   'Attempt to fallback
+   windowedmode XOR= YES
+   IF remember_zoom <> -1 THEN
+     zoom = remember_zoom
+   END IF
+   DIM remem_error as string = *SDL_GetError
+   gfx_sdl_set_screen_mode()
+   IF screensurface THEN
+     notification "Could not toggle fullscreen mode: " & remem_error
+   ELSE
+     debugc errDie, "gfx_sdl: Could not recover after toggling fullscreen mode failed"
+   END IF
+  END IF
 END SUB
 
 SUB gfx_sdl_windowtitle(byval title as zstring ptr)
@@ -538,7 +564,7 @@ SUB keycombos_logic(evnt as SDL_Event)
 
   IF evnt.key.keysym.mod_ AND KMOD_ALT THEN
     IF evnt.key.keysym.sym = SDLK_RETURN THEN  'alt-enter (not processed normally when using SDL)
-      gfx_sdl_setwindowed(windowedmode XOR -1)
+      gfx_sdl_setwindowed(windowedmode XOR YES)
     END IF
     IF evnt.key.keysym.sym = SDLK_F4 THEN  'alt-F4
       post_terminate_signal
@@ -563,7 +589,7 @@ SUB keycombos_logic(evnt as SDL_Event)
       post_terminate_signal
     END IF
     IF evnt.key.keysym.sym = SDLK_f THEN
-      gfx_sdl_setwindowed(windowedmode XOR -1)
+      gfx_sdl_setwindowed(windowedmode XOR YES)
     END IF
     'SDL doesn't actually seem to send SDLK_QUESTION...
     IF evnt.key.keysym.sym = SDLK_SLASH AND evnt.key.keysym.mod_ AND KMOD_SHIFT THEN
