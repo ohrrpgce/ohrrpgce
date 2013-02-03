@@ -7,7 +7,9 @@
 
 #include <string.h>
 #include <errno.h>
+#include <stdlib.h>
 #include "allmodex.h"
+#include "common.h"
 
 //Doesn't belong here, but can't be bothered adding another .c file for it
 //Trying to read errno from FB is unlikely to even link, because it's normally a macro, so this has be in C
@@ -166,8 +168,20 @@ void smoothzoomblit_8_to_8bit(unsigned char *srcbuffer, unsigned char *destbuffe
 	unsigned char *sptr;
 	unsigned int mult = 1;
 	int i, j;
-	int fx, fy, pstep;  //for 2x/3x filtering
 	int wide = w * zoom, high = h * zoom;
+
+/*
+	if (zoom == 4 && smooth) {
+		// Do 2x scale smoothing twice
+		unsigned char *intermediate_buffer;
+		intermediate_buffer = malloc(w * h * 4);
+		if (!intermediate_buffer)
+			debugc errDie, "smoothzoomblit: malloc failed";
+		smoothzoomblit_8_to_8bit(srcbuffer, intermediate_buffer, w, h, w * 2, 2, smooth);
+		smoothzoomblit_8_to_8bit(intermediate_buffer, destbuffer, w * 2, h * 2, pitch, 2, smooth);
+		return;
+	}
+*/
 
 	sptr = destbuffer;
 
@@ -208,11 +222,12 @@ void smoothzoomblit_8_to_8bit(unsigned char *srcbuffer, unsigned char *destbuffe
 		}
 	}
 
-	if (smooth == 1 && (zoom == 2 || zoom == 3)) {
-		if (zoom == 3)
-			pstep = 1;
-		else
+	if (smooth == 1 && zoom >= 2) {
+		int fx, fy, pstep;
+		if (zoom == 2)
 			pstep = 2;
+		else
+			pstep = 1;
 		unsigned char *sptr1, *sptr2, *sptr3;
 		for (fy = 1; fy <= high - 2; fy += pstep) {
 			sptr1 = destbuffer + pitch * (fy - 1) + 1;  //(1,0)
@@ -249,7 +264,6 @@ void smoothzoomblit_8_to_32bit(unsigned char *srcbuffer, unsigned int *destbuffe
 	unsigned int *sptr;
 	int pixel;
 	int i, j;
-	int fx, fy, pstep;  //for 2x/3x filtering
 	int wide = w * zoom, high = h * zoom;
 
 	sptr = destbuffer;
@@ -274,11 +288,12 @@ void smoothzoomblit_8_to_32bit(unsigned char *srcbuffer, unsigned int *destbuffe
 			sptr += pitch;
 		}
 	}
-	if (smooth == 1 && (zoom == 2 || zoom == 3)) {
-		if (zoom == 3)
-			pstep = 1;
-		else
+	if (smooth == 1 && zoom >= 2) {
+		int fx, fy, pstep;
+		if (zoom == 2)
 			pstep = 2;
+		else
+			pstep = 1;
 		unsigned int *sptr1, *sptr2, *sptr3;
 		for (fy = 1; fy <= (high - 2); fy += pstep) {
 			sptr1 = destbuffer + pitch * (fy - 1) + 1;  //(1,0)
@@ -336,13 +351,12 @@ void smoothzoomblit_32_to_32bit(unsigned int *srcbuffer, unsigned int *destbuffe
 		}
 	}
 
-	if (smooth == 1 && (zoom == 2 || zoom == 3)) {
-		int fx, fy, pstep;  //for 2x/3x filtering
-
-		if (zoom == 3)
-			pstep = 1;
-		else
+	if (smooth == 1 && zoom >= 2) {
+		int fx, fy, pstep;
+		if (zoom == 2)
 			pstep = 2;
+		else
+			pstep = 1;
 		int *sptr1, *sptr2, *sptr3;
 		for (fy = 1; fy <= (high - 2); fy += pstep) {
 			sptr1 = (int *)destbuffer + pitch * (fy - 1) + 1;  //(1,0)
