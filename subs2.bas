@@ -277,7 +277,7 @@ SUB importscripts (f as string)
  IF headerbuf(0) = 21320 AND headerbuf(1) = 0 THEN  'Check first 4 bytes are "HS\0\0"
   unlumpfile(f, "hs", tmpdir)
   DIM header as HSHeader
-  load_hsp_header tmpdir & SLASH & "hs", header
+  load_hsp_header tmpdir & "hs", header
   IF header.valid = NO THEN
    pop_warning f & " appears to be corrupt."
    EXIT SUB

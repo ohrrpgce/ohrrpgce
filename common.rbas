@@ -2751,7 +2751,7 @@ IF isfile(data_dir & SLASH & filename) THEN RETURN data_dir & SLASH & filename
 IF isfile(exepath & SLASH & filename) THEN RETURN exepath & SLASH & filename
 #IFDEF __UNIX__
 '~/.ohrrpgce/
-IF isfile(tmpdir & SLASH & filename) THEN RETURN tmpdir & SLASH & filename
+IF isfile(tmpdir & filename) THEN RETURN tmpdir & filename
 #IFDEF DATAFILES
 IF isfile(DATAFILES & SLASH & filename) THEN RETURN DATAFILES & SLASH & filename
 #ENDIF
@@ -2768,7 +2768,7 @@ IF isdir(data_dir & SLASH & dirname) THEN RETURN data_dir & SLASH & dirname
 IF isdir(exepath & SLASH & dirname) THEN RETURN exepath & SLASH & dirname
 #IFDEF __UNIX__
 '~/.ohrrpgce/
-IF isdir(tmpdir & SLASH & dirname) THEN RETURN tmpdir & SLASH & dirname
+IF isdir(tmpdir & dirname) THEN RETURN tmpdir & dirname
 #IFDEF DATAFILES
 IF isdir(DATAFILES & SLASH & dirname) THEN RETURN DATAFILES & SLASH & dirname
 #ENDIF
@@ -3228,8 +3228,8 @@ IF NOT isfile(game + ".veh") THEN
  IF templatefile <> "" THEN
   unlumpfile(templatefile, "ohrrpgce.veh", tmpdir)
   'Recall it's best to avoid moving files across filesystems
-  copyfile tmpdir & SLASH & "ohrrpgce.veh", game & ".veh"
-  safekill tmpdir & SLASH & "ohrrpgce.veh"
+  copyfile tmpdir & "ohrrpgce.veh", game & ".veh"
+  safekill tmpdir & "ohrrpgce.veh"
   gen(genMaxVehicle) = 2
  END IF
 END IF
@@ -3936,7 +3936,7 @@ SUB rpg_sanity_checks
   unlumpfile game + ".hsp", "hs", tmpdir
 
   DIM hs_header as HSHeader
-  load_hsp_header tmpdir + SLASH + "hs", hs_header
+  load_hsp_header tmpdir & "hs", hs_header
   WITH hs_header
    IF .valid = NO THEN
     pop_warning "The scripts in this game appear to be corrupt."
