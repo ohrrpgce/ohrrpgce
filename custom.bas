@@ -150,13 +150,8 @@ debuginfo DATE & " " & TIME
 'seed the random number generator
 mersenne_twister TIMER
 
-#IFDEF __UNIX__
- tmpdir = homedir + SLASH + ".ohrrpgce" + SLASH
- IF NOT isdir(tmpdir) THEN makedir tmpdir
-#ELSE
- 'Custom on Windows works in the current dir
- tmpdir = CURDIR + SLASH
-#ENDIF
+tmpdir = settings_dir & SLASH
+IF NOT isdir(tmpdir) THEN makedir tmpdir
 
 processcommandline
 

@@ -102,6 +102,7 @@ processcommandline
 '---get temp dir---
 set_homedir
 tmpdir = acquiretempdir
+IF NOT isdir(tmpdir) THEN makedir tmpdir
 
 'DEBUG debug "set mode-X"
 setmodex
@@ -293,7 +294,6 @@ usepreunlump = NO
 
 '---get work dir and exe name---
 'DEBUG debug "setup directories"
-IF NOT isdir(tmpdir) THEN makedir tmpdir
 exename = trimextension(trimpath(COMMAND(0)))
 
 IF running_as_slave THEN
