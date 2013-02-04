@@ -12,9 +12,14 @@ FBFLAGS = os.environ.get ('FBFLAGS', []) + ['-mt']
 #CC and CXX are probably not needed anymore
 CC = ''
 CXX = ''
-CFLAGS = '-m32 -g -Wall --std=c99'.split ()
-CXXFLAGS = '-m32 -g -Wall -Wno-non-virtual-dtor'.split ()
-C_opt = True    # compile with -O2?
+# 32 bit compile. -m32 on x86_64 defaults to enabling SSE and SSE2, so disable that
+CFLAGS = '-m32 -mno-sse -g -Wall --std=c99'.split ()
+CXXFLAGS = '-m32 -mno-sse -g -Wall -Wno-non-virtual-dtor'.split ()
+# Recent versions of GCC default to assuming the stack is kept 16-byte aligned
+# (which a change in the Linux x86 ABI) but fbc is not yet updateed for that
+CFLAGS.append ('-mincoming-stack-boundary=2')
+CXXFLAGS.append ('-mincoming-stack-boundary=2')
+C_opt = True    # compile with optimisations?
 FB_exx = True   # compile with -exx?
 FB_g = True   # compile with -g?
 linkgcc = False  # link using g++?
@@ -70,8 +75,9 @@ if FB_exx:
 if FB_g:
     FBFLAGS.append ('-g')
 if C_opt:
-    CFLAGS.append ('-O2')
+    CFLAGS.append ('-O3')
     CXXFLAGS.append ('-O3')
+
 # Backend selection.
 if mac:
     gfx = 'sdl'
