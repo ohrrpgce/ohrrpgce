@@ -229,7 +229,7 @@ int gfx_renderQuadColor_SW( VertexPC* pQuad, uint32_t argbModifier, SurfaceRect*
 	if( pSurfaceDest->format == SF_8bit )
 		return -1; //can't have 8bit destination
 
-	SurfaceRect tmp = {0,0,pSurfaceDest->width-1,pSurfaceDest->height-1};
+	SurfaceRect tmp = {0, 0, int32_t(pSurfaceDest->width) - 1, int32_t(pSurfaceDest->height) - 1};
 	if( !pRectDest )
 		pRectDest = &tmp;
 	g_rasterizer.drawQuadColor(pQuad, argbModifier, pRectDest, pSurfaceDest);
@@ -241,7 +241,7 @@ int gfx_renderQuadTexture_SW( VertexPT* pQuad, Surface* pTexture, Palette* pPale
 	if( pSurfaceDest->format == SF_8bit )
 		return -1; //can't have 8bit destination
 
-	SurfaceRect tmp = {0,0,pSurfaceDest->width-1,pSurfaceDest->height-1};
+	SurfaceRect tmp = {0, 0, int32_t(pSurfaceDest->width) - 1, int32_t(pSurfaceDest->height) - 1};
 	if( !pRectDest )
 		pRectDest = &tmp;
 	g_rasterizer.drawQuadTexture(pQuad, pTexture, pPalette, bUseColorKey0, pRectDest, pSurfaceDest);
@@ -253,7 +253,7 @@ int gfx_renderQuadTextureColor_SW( VertexPTC* pQuad, Surface* pTexture, Palette*
 	if( pSurfaceDest->format == SF_8bit )
 		return -1; //can't have 8bit destination
 
-	SurfaceRect tmp = {0,0,pSurfaceDest->width-1,pSurfaceDest->height-1};
+	SurfaceRect tmp = {0, 0, int32_t(pSurfaceDest->width) - 1, int32_t(pSurfaceDest->height) - 1};
 	if( !pRectDest )
 		pRectDest = &tmp;
 	g_rasterizer.drawQuadTextureColor(pQuad, pTexture, pPalette, bUseColorKey0, argbModifier, pRectDest, pSurfaceDest);
@@ -265,7 +265,7 @@ int gfx_renderTriangleColor_SW( VertexPC* pTriangle, uint32_t argbModifier, Surf
 	if( pSurfaceDest->format == SF_8bit )
 		return -1; //can't have 8bit destination
 
-	SurfaceRect tmp = {0,0,pSurfaceDest->width-1,pSurfaceDest->height-1};
+	SurfaceRect tmp = {0, 0, int32_t(pSurfaceDest->width) - 1, int32_t(pSurfaceDest->height) - 1};
 	if( !pRectDest )
 		pRectDest = &tmp;
 	g_rasterizer.drawTriangleColor(pTriangle, argbModifier, pRectDest, pSurfaceDest);
@@ -277,7 +277,7 @@ int gfx_renderTriangleTexture_SW( VertexPT* pTriangle, Surface* pTexture, Palett
 	if( pSurfaceDest->format == SF_8bit )
 		return -1; //can't have 8bit destination
 
-	SurfaceRect tmp = {0,0,pSurfaceDest->width-1,pSurfaceDest->height-1};
+	SurfaceRect tmp = {0, 0, int32_t(pSurfaceDest->width) - 1, int32_t(pSurfaceDest->height) - 1};
 	if( !pRectDest )
 		pRectDest = &tmp;
 	g_rasterizer.drawTriangleTexture(pTriangle, pTexture, pPalette, bUseColorKey0, pRectDest, pSurfaceDest);
@@ -289,7 +289,7 @@ int gfx_renderTriangleTextureColor_SW( VertexPTC* pTriangle, Surface* pTexture, 
 	if( pSurfaceDest->format == SF_8bit )
 		return -1; //can't have 8bit destination
 
-	SurfaceRect tmp = {0,0,pSurfaceDest->width-1,pSurfaceDest->height-1};
+	SurfaceRect tmp = {0, 0, int32_t(pSurfaceDest->width) - 1, int32_t(pSurfaceDest->height) - 1};
 	if( !pRectDest )
 		pRectDest = &tmp;
 	g_rasterizer.drawTriangleTextureColor(pTriangle, pTexture, pPalette, bUseColorKey0, argbModifier, pRectDest, pSurfaceDest);

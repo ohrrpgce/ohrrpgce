@@ -1,4 +1,7 @@
+#include <stdlib.h>
 #include "rasterizer.h"
+
+
 
 Color Tex2DSampler::sample8bit(const Surface* pTexture, FPInt u, FPInt v) const
 {
