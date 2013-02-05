@@ -276,6 +276,7 @@ declare function absolute_with_orig_path (file_or_dir as string, byval add_slash
 declare function parentdir (pathname as string, byval upamount as integer = 1) as string
 declare function anycase (filename as string) as string
 declare function escape_filename (filename as string) as string
+declare function escape_filenamec cdecl alias "escape_filenamec" (byval filename as zstring ptr) as zstring ptr
 declare sub safe_shell (cmd as string)
 declare sub touchfile (filename as string)
 declare sub extendfile (byval fh as integer, byval length as integer)

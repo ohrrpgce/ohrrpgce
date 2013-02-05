@@ -24,7 +24,7 @@ void init_runtime() {
 	// Needed for mbstowcs
 	if (!setlocale(LC_ALL, "")) {
 		// This will actually end up in ?_debug_archive.txt ...
-		debug(2, "setlocale failed");
+		debug(errError, "setlocale failed");
 	}
 }
 
@@ -87,13 +87,13 @@ int copy_file_replacing(const char *source, const char *destination) {
 	
 	if (remove(destination)) {
 		if (errno != ENOENT) {
-			debug(2, "error while trying remove(%s): %s", destination, strerror(errno));
+			debug(errError, "error while trying remove(%s): %s", destination, strerror(errno));
 			//Can try continuing...
 		}
 	}
 	
 	if (!(src = fopen(source, "rb"))) {
-		debug(2, "copy_file_replacing: could not fopen(%s, r): %s", source, strerror(errno));
+		debug(errError, "copy_file_replacing: could not fopen(%s, r): %s", source, strerror(errno));
 		return 0;
 	}
 
@@ -102,18 +102,18 @@ int copy_file_replacing(const char *source, const char *destination) {
 	fseek(src, 0, SEEK_SET);
 	
 	if (!(dst = fopen(destination, "wb"))) {
-		debug(2, "copy_file_replacing: could not fopen(%s, w): %s", destination, strerror(errno));
+		debug(errError, "copy_file_replacing: could not fopen(%s, w): %s", destination, strerror(errno));
 		goto err;
 	}
 	
 	while (len > 0) {
 		bytes_to_copy = (len >= COPYBUF_SIZE) ? COPYBUF_SIZE : len;
 		if (fread(copybuf, 1, bytes_to_copy, src) != bytes_to_copy) {
-			debug(2, "copy_file_replacing: fread(%s) error: %s", source, strerror(errno));
+			debug(errError, "copy_file_replacing: fread(%s) error: %s", source, strerror(errno));
 			goto err;
 		}
 		if (fwrite(copybuf, 1, bytes_to_copy, dst) != bytes_to_copy) {
-			debug(2, "copy_file_replacing: fwrite(%s) error: %s", destination, strerror(errno));
+			debug(errError, "copy_file_replacing: fwrite(%s) error: %s", destination, strerror(errno));
 			goto err;
 		}
 		len -= bytes_to_copy;
@@ -252,7 +252,7 @@ void channel_close(PipeState **channelp) {
 static int fifo_open_read(char *name, int *out_fd) {
 	*out_fd = open(name, O_RDONLY | O_NONBLOCK);
 	if (*out_fd == -1) {
-		debug(2, "fifo_open_read: open(%s) error: %s", name, strerror(errno));
+		debug(errError, "fifo_open_read: open(%s) error: %s", name, strerror(errno));
 		return 0;
 	}
 	return 1;
@@ -270,12 +270,12 @@ static int fifo_open_write(char *filename, int *out_fd, int timeout_ms) {
 			return 1;
 		}
 		if (errno != ENXIO && errno != EINTR) {	
-			debug(2, "fifo_open_write: open(%s) error: %s", filename, strerror(errno));
+			debug(errError, "fifo_open_write: open(%s) error: %s", filename, strerror(errno));
 			return 0;
 		}
 		usleep(10000);
 	} while (milliseconds() < timeout);
-	debug(2, "timeout while waiting for writer to connect to %s", filename);
+	debug(errError, "timeout while waiting for writer to connect to %s", filename);
 	return 0;
 }
 
@@ -291,13 +291,13 @@ int channel_open_server(PipeState **result, FBSTRING *name) {
 
 	remove(writefile);
 	if (mkfifo(writefile, 0777) == -1) {
-		debug(2, "mkfifo(%s) failed: %s", writefile, strerror(errno));
+		debug(errError, "mkfifo(%s) failed: %s", writefile, strerror(errno));
 		return 0;
 	}
 
 	remove(readfile);
 	if (mkfifo(readfile, 0777) == -1) {
-		debug(2, "mkfifo(%s) failed: %s", readfile, strerror(errno));
+		debug(errError, "mkfifo(%s) failed: %s", readfile, strerror(errno));
 		remove(writefile);
 		return 0;
 	}
@@ -371,7 +371,7 @@ int channel_wait_for_client_connection(PipeState **channelp, int timeout_ms) {
 static int channel_write_internal(PipeState **channelp, const char *buf, int buflen) {
 	int fd = (*channelp)->writefd;
 	if (fd == -1) {
-		debug(3, "channel_write: no file descriptor! (forgot channel_wait_for_client_connection?)");
+		debug(errBug, "channel_write: no file descriptor! (forgot channel_wait_for_client_connection?)");
 		channel_close(channelp);
 		return 0;
 	}
@@ -387,7 +387,7 @@ static int channel_write_internal(PipeState **channelp, const char *buf, int buf
 				// Reading end closed
 				debuginfo("channel_write: pipe closed.");
 			else
-				debug(2, "channel_write: error: %s", strerror(errno));
+				debug(errError, "channel_write: error: %s", strerror(errno));
 			channel_close(channelp);
 			return 0;
 		}
@@ -511,7 +511,7 @@ int channel_input_line(PipeState **channelp, FBSTRING *output) {
 				if (outlen) {
 					// Strange -- expected newline! Lets wait for a bit
 					if (!wait_times)
-						debug(2, "channel_read_input: unexpected blocking input");
+						debug(errError, "channel_read_input: unexpected blocking input");
 					if (wait_times++ > 20)
 						goto cutshort;
 					usleep(1000);
@@ -519,7 +519,7 @@ int channel_input_line(PipeState **channelp, FBSTRING *output) {
 				}
 				// not sinister
 			} else {
-				debug(2, "channel_input_line: pipe closed due to error %s\n", strerror(errno));
+				debug(errError, "channel_input_line: pipe closed due to error %s\n", strerror(errno));
 				channel_close(channelp);
 			}
 			goto cutshort;
@@ -544,19 +544,27 @@ int channel_input_line(PipeState **channelp, FBSTRING *output) {
 
 
 //Partial implementation. Doesn't return a useful process handle
+//program is an unescaped path. Any paths in the arguments should be escaped
 ProcessHandle open_process (FBSTRING *program, FBSTRING *args) {
-	char *buf = malloc(strlen(program->data) + strlen(args->data) + 2);
-	sprintf(buf, "%s %s", program->data, args->data);
+	ProcessHandle ret = -1;  //default success: nonzero
+
+	char *program_escaped = escape_filenamec(program->data);
+	char *buf = malloc(strlen(program_escaped) + strlen(args->data) + 2);
+	sprintf(buf, "%s %s", program_escaped, args->data);
+
+        errno = 0;
 	FILE *res = popen(buf, "r");  //No intention to read or write
-	int err = errno;
+	int err = errno;  //errno from popen is not reliable
+	if (!res) {
+		debug(errError, "popen(%s, %s) failed: %s", program->data, args->data, strerror(err));
+		ret = 0;
+	}
+
+	free(program_escaped);
 	free(buf);
 	fb_hStrDelTemp(program);
 	fb_hStrDelTemp(args);
-	if (!res) {
-		debug(2, "popen(%s, %s) failed: %s", program->data, args->data, strerror(err));
-		return 0;
-	}
-	return -1;  //nonzero
+	return ret;
 }
 
 //Run a (hidden) commandline program and open a pipe which writes to its stdin & reads from stdout

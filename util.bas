@@ -1045,6 +1045,13 @@ FUNCTION escape_filename (filename as string) as string
 #ENDIF
 END FUNCTION
 
+FUNCTION escape_filenamec (byval filename as zstring ptr) as zstring ptr
+  DIM ret as string = escape_filename(*filename)
+  DIM retz as zstring ptr = malloc(LEN(ret) + 1)
+  strcpy retz, cstring(ret)
+  RETURN retz
+END FUNCTION
+
 'This is a replacement for SHELL. It needs to be used on Windows if the executable was escaped (so contains quotes)
 SUB safe_shell (cmd as string)
 #IFDEF __FB_WIN32__

@@ -36,6 +36,9 @@ extern "C" {
 //# define inline
 #endif
 
+// Escape a filename for use in a shell in a way suitable for this OS.
+// Returns a malloc'd string buffer
+char *escape_filenamec (const char *filename);
 
 // in common.bas
 void debugc(enum ErrorLevel errorlevel, const char *msg);

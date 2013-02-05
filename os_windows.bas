@@ -412,6 +412,7 @@ end function
 
 'Returns 0 on failure.
 'If successful, you should call cleanup_process with the handle after you don't need it any longer.
+'program is an unescaped path. Any paths in the arguments should be escaped
 'This is for gui processes
 function open_process (program as string, args as string) as ProcessHandle
 	dim argstemp as string = escape_filename(program) + " " + args

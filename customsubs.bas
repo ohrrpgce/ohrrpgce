@@ -4104,7 +4104,14 @@ FUNCTION spawn_game() as bool
   notification "Couldn't find " & gameexename & !"\nIt should be in the same directory as " & CUSTOMEXE
   RETURN NO
  END IF
- slave_process = open_process(executable, "-slave " & channel_name)
+ DIM game_args as string
+#ifdef __UNIX__
+ game_args = "-slave " & escape_filename(channel_name)
+#else
+ 'Not a filename
+ game_args = "-slave " & channel_name
+#endif
+ slave_process = open_process(executable, game_args)
  IF slave_process = 0 THEN
   notification "Couldn't run " & gameexename
   RETURN NO

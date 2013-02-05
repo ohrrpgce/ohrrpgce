@@ -1,5 +1,9 @@
-'OHHRPGCE COMMON - Header for OS-specific routines
+'OHRRPGCE COMMON - Header for OS-specific routines
 'Please read LICENSE.txt for GNU GPL License details and disclaimer of liability
+'
+'Implementations are in os_unix.c, os_windows.bas and os_windows2.c
+'Documentation is sadly to be found duplicated in those files, with many differences,
+'so check both Unix and Windows implementations before use
 
 #ifndef OS_BI
 #define OS_BI
