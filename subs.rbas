@@ -2233,10 +2233,13 @@ SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer)
    info = ""
    IF mstate.pt >= 0 THEN
     WITH her.spell_lists(listnum, mstate.pt)
-     IF .learned > 0 THEN
-      info &= "Learned at level " & (.learned - 1) & !"\n"
-     ELSE
-      info &= "Learned from an item" & !"\n"
+     IF .attack > 0 THEN
+      info &= "Attack ID = " & (.attack - 1) & !"\n"
+      IF .learned > 0 THEN
+       info &= "Learned at level " & (.learned - 1) & !"\n"
+      ELSE
+       info &= "Learned from an item" & !"\n"
+      END IF
      END IF
     END WITH
     IF her.list_type(listnum) = 1 THEN
