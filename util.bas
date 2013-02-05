@@ -1045,7 +1045,7 @@ FUNCTION escape_filename (filename as string) as string
 #ENDIF
 END FUNCTION
 
-FUNCTION escape_filenamec (byval filename as zstring ptr) as zstring ptr
+FUNCTION escape_filenamec CDECL (byval filename as zstring ptr) as zstring ptr
   DIM ret as string = escape_filename(*filename)
   DIM retz as zstring ptr = malloc(LEN(ret) + 1)
   strcpy retz, cstring(ret)
