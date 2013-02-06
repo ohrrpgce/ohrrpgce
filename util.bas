@@ -82,11 +82,11 @@ FUNCTION large (byval n1 as double, byval n2 as double) as double
  IF n2 > n1 THEN RETURN n2 ELSE RETURN n1
 END FUNCTION
 
-FUNCTION loopvar (byval value as integer, byval min as integer, byval max as integer, byval inc as integer) as integer
+FUNCTION loopvar (byval value as integer, byval min as integer, byval max as integer, byval inc as integer = 1) as integer
  RETURN POSMOD((value + inc) - min, (max - min) + 1) + min
 END FUNCTION
 
-FUNCTION loopvar (byval value as longint, byval min as longint, byval max as longint, byval inc as longint) as longint
+FUNCTION loopvar (byval value as longint, byval min as longint, byval max as longint, byval inc as longint = 1) as longint
  RETURN POSMOD((value + inc) - min, (max - min) + 1) + min
 END FUNCTION
 

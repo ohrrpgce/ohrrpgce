@@ -255,6 +255,16 @@ DECLARE FUNCTION get_reload_empty (nodename as string = "") as NodePtr
 DECLARE FUNCTION add_hero_battle_menu_item(byval parent as NodePtr, kind as string, byval value as integer = 0) as NodePtr
 DECLARE FUNCTION should_hide_hero_stat(hero as HeroDef, byval statnum as integer) as bool
 
+TYPE SelectTypeState
+ query as string              'String to search for
+ buffer as string             'Text the user has entered
+ last_input_time as double    'TIMER at last input
+END TYPE
+
+DECLARE FUNCTION find_on_word_boundary_excluding(needle as string, haystack as string, excludeword as string) as integer
+DECLARE FUNCTION find_on_word_boundary(needle as string, haystack as string) as integer
+DECLARE FUNCTION select_by_typing(selectst as SelectTypeState) as bool
+
 'Global variables
 EXTERN sourcerpg as string
 EXTERN as string game, tmpdir, exename, workingdir, homedir, app_dir

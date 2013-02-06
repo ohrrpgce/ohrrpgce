@@ -323,8 +323,8 @@ declare function in_bound (byval n as integer, byval lowest as integer, byval hi
 declare function large overload (byval n1 as integer, byval n2 as integer) as integer
 declare function large overload (byval n1 as longint, byval n2 as longint) as longint
 declare function large overload (byval n1 as double, byval n2 as double) as double
-declare function loopvar overload (byval var as integer, byval min as integer, byval max as integer, byval inc as integer) as integer
-declare function loopvar overload (byval value as longint, byval min as longint, byval max as longint, byval inc as longint) as longint
+declare function loopvar overload (byval var as integer, byval min as integer, byval max as integer, byval inc as integer = 1) as integer
+declare function loopvar overload (byval value as longint, byval min as longint, byval max as longint, byval inc as longint = 1) as longint
 declare function small overload (byval n1 as integer, byval n2 as integer) as integer
 declare function small overload (byval n1 as longint, byval n2 as longint) as longint
 declare function small overload (byval n1 as double, byval n2 as double) as double

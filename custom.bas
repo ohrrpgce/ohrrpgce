@@ -272,7 +272,6 @@ main_editor_menu
 
 SUB main_editor_menu()
  DIM menu(21) as string
- DIM menukeys(UBOUND(menu)) as string
  
  menu(0) = "Edit Graphics"
  menu(1) = "Edit Map Data"
@@ -296,15 +295,12 @@ SUB main_editor_menu()
  menu(19) = "Distribute Game"
  menu(20) = "Test Game"
  menu(21) = "Quit Editing"
- get_menu_hotkeys menu(), UBOUND(menu), menukeys(), "Edit"
  
+ DIM selectst as SelectTypeState
  DIM state as MenuState
  state.size = 24
  state.last = UBOUND(menu)
  
- DIM intext as string
- DIM passphrase as string
-
  setkeys YES
  DO
   setwait 55
@@ -316,16 +312,24 @@ SUB main_editor_menu()
   IF keyval(scF1) > 1 THEN
    show_help "main"
   END IF
-  intext = LCASE(getinputtext)
-  passphrase = RIGHT(passphrase & intext, 4)
-  IF passphrase = "spam" THEN
-   passphrase = ""
-   secret_menu
+
+  IF select_by_typing(selectst) THEN
+   IF selectst.buffer = "spam" THEN
+    selectst.buffer = ""
+    secret_menu
+   ELSE
+    DIM index as integer = state.pt
+    IF LEN(selectst.query) = 1 THEN index = loopvar(index, 0, state.last)
+    FOR ctr as integer = 0 TO state.last
+     IF find_on_word_boundary_excluding(selectst.query, LCASE(menu(index)), "edit") THEN
+      state.pt = index
+      EXIT FOR
+     END IF
+     index = loopvar(index, 0, state.last)
+    NEXT
+   END IF
   END IF
-  FOR i as integer = 1 TO state.last
-   DIM jumpto as integer = (state.pt + i) MOD (state.last + 1)
-   IF INSTR(menukeys(jumpto), intext) THEN state.pt = jumpto : EXIT FOR
-  NEXT
+
   usemenu state
   IF enter_or_space() THEN
    IF state.pt = 0 THEN gfx_editor_menu
@@ -375,7 +379,6 @@ END SUB
 SUB gfx_editor_menu()
 
  DIM menu(13) as string
- DIM menukeys(UBOUND(menu)) as string
 
  menu(0) = "Back to the main menu"
  menu(1) = "Edit Maptiles"
@@ -391,14 +394,11 @@ SUB gfx_editor_menu()
  menu(11) = "Import/Export Screens"
  menu(12) = "Import/Export Full Maptile Sets"
  menu(13) = "Change User-Interface Colors"
- 
- get_menu_hotkeys menu(), UBOUND(menu), menukeys()
 
+ DIM selectst as SelectTypeState
  DIM state as MenuState
  state.size = 24
  state.last = UBOUND(menu)
- 
- DIM intext as string
 
  DIM walkabout_frame_captions(7) as string = {"Up A","Up B","Right A","Right B","Down A","Down B","Left A","Left B"}
  DIM hero_frame_captions(7) as string = {"Standing","Stepping","Attack A","Attack B","Cast/Use","Hurt","Weak","Dead"}
@@ -419,11 +419,19 @@ SUB gfx_editor_menu()
   IF keyval(scF1) > 1 THEN
    show_help "gfxmain"
   END IF
-  intext = LCASE(getinputtext)
-  FOR i as integer = 1 TO state.last
-   DIM jumpto as integer = (state.pt + i) MOD (state.last + 1)
-   IF INSTR(menukeys(jumpto), intext) THEN state.pt = jumpto : EXIT FOR
-  NEXT
+
+  IF select_by_typing(selectst) THEN
+   DIM index as integer = state.pt
+   IF LEN(selectst.query) = 1 THEN index = loopvar(index, 0, state.last)
+   FOR ctr as integer = 0 TO state.last
+    IF find_on_word_boundary(selectst.query, LCASE(menu(index))) THEN
+     state.pt = index
+     EXIT FOR
+    END IF
+    index = loopvar(index, 0, state.last)
+   NEXT
+  END IF
+
   usemenu state
   IF enter_or_space() THEN
    IF state.pt = 0 THEN

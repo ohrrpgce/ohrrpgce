@@ -3844,10 +3844,10 @@ FUNCTION numbertail (s as string) as string
  RETURN s + "2"  
 END FUNCTION
 
-'Get a list of the first letters (lowercase) of every word in menu(), except
+'Get a list of the first letters (lowercase) of every word in each menu() string, except
 'those words listed in excludewords. excludewords should be a space-separated
 'list (case matters).
-'menukeys() should be staticaly sized.
+'menukeys() should be statically sized.
 SUB get_menu_hotkeys (menu() as string, byval menumax as integer, menukeys() as string, excludewords as string = "")
  'Easy exercise for the reader: Write this in three lines of Python
  DIM excludes() as string
