@@ -527,13 +527,12 @@ FUNCTION copy_or_relump (src_rpg_or_rpgdir as string, dest_rpg as string) as int
  DIM extension as string = LCASE(justextension(src_rpg_or_rpgdir))
 
  IF extension = "rpgdir" THEN
-  DIM relump as string
-  relump = find_helper_app("relump", YES)
-  IF relump = "" THEN visible_debug "Can't find relump" & DOTEXE & " utility." : RETURN NO
-  DIM spawn_ret as string
-  spawn_ret = spawn_and_wait(relump, escape_filename(src_rpg_or_rpgdir) & " " & escape_filename(dest_rpg))
-  IF LEN(spawn_ret) ORELSE NOT isfile(dest_rpg) THEN
-   visible_debug "ERROR: failed relumping " & src_rpg_or_rpgdir & " " & spawn_ret 
+  basic_textbox "LUMPING DATA: please wait...", uilook(uiText), vpage
+  setvispage vpage
+  dolumpfiles dest_rpg
+  clearpage vpage
+  IF NOT isfile(dest_rpg) THEN
+   visible_debug "ERROR: failed relumping " & src_rpg_or_rpgdir
    RETURN NO
   END IF
  ELSE 'simple case for regular .rpg files
