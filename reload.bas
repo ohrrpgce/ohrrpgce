@@ -1159,7 +1159,7 @@ end function
 sub SerializeXML (byval doc as DocPtr, byval fh as integer, byval debugging as integer = NO)
 	if doc = null then exit sub
 	
-        print #fh, "<?xml version=""1.0"" encoding=""iso-8859-1"" ?>"
+	print #fh, "<?xml version=""1.0"" encoding=""iso-8859-1"" ?>"
 	SerializeXML(doc->root, fh, debugging)
 end sub
 

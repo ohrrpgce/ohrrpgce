@@ -375,7 +375,7 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval 
      IF state.pt = i AND active THEN col = uilook(uiSelectedItem + tog)
     END IF
     DIM drawx as integer = x
-	'FIXME: This doesn't work if the text contains embedded tags!
+    'FIXME: This doesn't work if the text contains embedded tags!
     'IF state.pt = i AND linewidth > wide AND active THEN drawx = x + wide - linewidth
     IF edge THEN
      edgeprint .text, drawx, y + (i - state.top) * 8, col, page, YES

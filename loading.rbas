@@ -996,13 +996,13 @@ SUB ZoneToTileMap(zmap as ZoneMap, tmap as TileMap, byval id as integer, byval b
                 tileptr[x] OR= (1 SHL bitnum)
               ELSE
                 tileptr[x] AND= NOT (1 SHL bitnum)
-	      END IF
+              END IF
             ELSE
               IF bitvectors[x] AND bitmask THEN
                 tileptr[x] OR= (1 SHL bitnum)
               ELSE
                 tileptr[x] AND= NOT (1 SHL bitnum)
-	      END IF
+              END IF
             END IF
           NEXT
         NEXT

@@ -1655,11 +1655,11 @@ SUB delete_scriptdata (byval scriptd as ScriptData ptr)
 
   IF .refcount THEN
    FOR j as integer = 0 TO nowscript
-	IF scrat(j).scr = scriptd THEN
-	 'debug "marking scrat(" & j & ") (id = " & scrat(j).id & ") unloaded"
-	 scrat(j).scr = NULL
-	 scrat(j).scrdata = NULL
-	END IF
+    IF scrat(j).scr = scriptd THEN
+     'debug "marking scrat(" & j & ") (id = " & scrat(j).id & ") unloaded"
+     scrat(j).scr = NULL
+     scrat(j).scrdata = NULL
+    END IF
    NEXT
   END IF
  END WITH
@@ -1677,12 +1677,12 @@ SUB reload_scripts
   WHILE scrp
    nextp = scrp->next
    WITH *scrp
-	IF .refcount = 0 THEN
+    IF .refcount = 0 THEN
      delete_scriptdata scrp
-	ELSE
+    ELSE
      unfreeable += 1
-	 debuginfo "not reloading script " & scriptname(.id) & " because it's in use: refcount=" & .refcount
-	END IF
+     debuginfo "not reloading script " & scriptname(.id) & " because it's in use: refcount=" & .refcount
+    END IF
    END WITH
 
    scrp = nextp

@@ -552,7 +552,7 @@ ProcessHandle open_process (FBSTRING *program, FBSTRING *args) {
 	char *buf = malloc(strlen(program_escaped) + strlen(args->data) + 2);
 	sprintf(buf, "%s %s", program_escaped, args->data);
 
-        errno = 0;
+	errno = 0;
 	FILE *res = popen(buf, "r");  //No intention to read or write
 	int err = errno;  //errno from popen is not reliable
 	if (!res) {

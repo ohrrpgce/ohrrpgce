@@ -511,34 +511,34 @@ END WITH
 END SUB
 
 FUNCTION validmusicfile (file as string, byval typemask as integer) as integer
-'-- actually, doesn't need to be a music file, but only multi-filetype imported data right now
-	DIM as string hdmask, realhd
-	DIM as integer musfh, chk
-	chk = getmusictype(file)
+ '-- actually, doesn't need to be a music file, but only multi-filetype imported data right now
+ DIM as string hdmask, realhd
+ DIM as integer musfh, chk
+ chk = getmusictype(file)
 
-	if (chk AND typemask) = 0 then return 0
+ IF (chk AND typemask) = 0 THEN return 0
 
-	SELECT CASE chk
-	CASE FORMAT_BAM
-		hdmask = "    "
-		realhd = "CBMF"
-	CASE FORMAT_MIDI
-		hdmask = "    "
-		realhd = "MThd"
-	CASE FORMAT_XM
-		hdmask = "                 "
-		realhd = "Extended Module: "
-	END SELECT
+ SELECT CASE chk
+ CASE FORMAT_BAM
+  hdmask = "    "
+  realhd = "CBMF"
+ CASE FORMAT_MIDI
+  hdmask = "    "
+  realhd = "MThd"
+ CASE FORMAT_XM
+  hdmask = "                 "
+  realhd = "Extended Module: "
+ END SELECT
 
-	if LEN(hdmask) then
-		musfh = FREEFILE
-		OPEN file FOR BINARY as #musfh
-		GET #musfh, 1, hdmask
-		CLOSE #musfh
-		IF hdmask <> realhd THEN return 0
-	end if
+ IF LEN(hdmask) THEN
+  musfh = FREEFILE
+  OPEN file FOR BINARY as #musfh
+  GET #musfh, 1, hdmask
+  CLOSE #musfh
+  IF hdmask <> realhd THEN return 0
+ END IF
 
-	return 1
+ RETURN 1
 END FUNCTION
 
 SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)

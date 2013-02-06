@@ -496,7 +496,7 @@ startTest(setKeyValueSpeedTest1)
 	dim nod as NodePtr
 	dim itemname as string = "item"
 	for i as integer = 0 to 500
-	    SetKeyValueNode(hub, itemname, i, i * 2)
+		SetKeyValueNode(hub, itemname, i, i * 2)
 	next
 endTest
 

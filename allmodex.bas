@@ -1659,7 +1659,7 @@ SUB drawbox (byval dest as Frame ptr, byval x as integer, byval y as integer, by
 
 	if w = 0 or h = 0 then exit sub
 
-        dim as integer thickx = small(thick, w), thicky = small(thick, h)
+	dim as integer thickx = small(thick, w), thicky = small(thick, h)
 
 	rectangle dest, x, y, w, thicky, col
 	IF h > thicky THEN
@@ -1719,9 +1719,9 @@ SUB fuzzyrect (byval fr as Frame Ptr, byval x as integer, byval y as integer, by
 		setclip , , , , fr
 	end if
 
-        if fuzzfactor <= 0 then fuzzfactor = 1
-        dim grain as integer
-        dim r as integer = 0
+	if fuzzfactor <= 0 then fuzzfactor = 1
+	dim grain as integer
+	dim r as integer = 0
 	dim startr as integer = 0
 
 	if fuzzfactor <= 50 then grain = grain_table(fuzzfactor) else grain = grain_table(100 - fuzzfactor)
@@ -5259,14 +5259,14 @@ function frame_dissolved(byval spr as frame ptr, byval tlength as integer, byval
 
 	select case style
 		case 0 'scattered pixel dissolve
-                        dim prng_state as unsigned integer = cpy->w * tlength
+			dim prng_state as unsigned integer = cpy->w * tlength
 
 			dim cutoff as unsigned integer = 2 ^ 20 * t / (tlength - 0.5)
 
 			for sy = 0 to cpy->h - 1
 				dim mptr as ubyte ptr = @cpy->mask[sy * cpy->pitch]
 				for sx = 0 to cpy->w - 1
-                                        prng_state = (prng_state * 1103515245 + 12345)
+					prng_state = (prng_state * 1103515245 + 12345)
 					if (prng_state shr 12) < cutoff then
 						mptr[sx] = 0
 					end if

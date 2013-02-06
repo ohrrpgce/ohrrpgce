@@ -105,7 +105,7 @@ array_header **header_table;
 
 static short alloc_header() {
 	if (!header_table) {
-            header_table = calloc(65536 * sizeof(void *), 1);
+		header_table = calloc(65536 * sizeof(void *), 1);
 	}
 	for (int i = 0; i < 65536; i++) {
 		if (!header_table[i]) {
@@ -508,7 +508,7 @@ array_t array_temp(array_t array) {
 	if (!array)
 		throw_error("array_temp: array uninitialised");
 
-        get_header(array)->temp = 1;
+	get_header(array)->temp = 1;
 	return array;
 }
 
@@ -648,7 +648,7 @@ array_t array_delete_slice(array_t *array, int from, int to) {
 	void *to_ptr = nth_elem(*array, to);
 	memmove(from_ptr, to_ptr, (len - to) * tytbl->element_len);
 
-	return *array = mem_resize(*array, len - (to - from));        
+	return *array = mem_resize(*array, len - (to - from));
 }
 
 // (E)

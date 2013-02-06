@@ -1163,37 +1163,37 @@ FUNCTION handle_dirty_workingdir () as integer
   usemenu clean_choice, 0, 0, 2, 2
   IF enter_or_space() THEN
    IF clean_choice = 1 THEN
-	IF isfile(workingdir + SLASH + "__danger.tmp") THEN
-	 textcolor uilook(uiSelectedItem), uilook(uiHighlight) 'FIXME: new uilook for warning text colors?
-	 printstr "Data is corrupt, not safe to relump", 0, 100, vpage
-	 setvispage vpage 'refresh
-	 waitforanykey
-	ELSE '---END UNSAFE
-	 printstr "Saving as " + destfile, 0, 180, vpage
-	 printstr "LUMPING DATA: please wait...", 0, 190, vpage
-	 setvispage vpage 'refresh
-	 '--re-lump recovered files as BAK file
-	 dolumpfiles destfile
-	 clearpage vpage
-	 basic_textbox "The recovered data has been saved. If " + CUSTOMEXE + " crashed last time you " _
-				   "ran it and you lost work, you may be able to recover it. Make a backup " _
-				   "copy of your RPG and then rename " + destfile + !" to gamename.rpg\n" _
-				   "If you have questions, ask ohrrpgce-crash@HamsterRepublic.com", _
-				   uilook(uiText), vpage
-	 setvispage vpage
-	 waitforanykey
+    IF isfile(workingdir + SLASH + "__danger.tmp") THEN
+     textcolor uilook(uiSelectedItem), uilook(uiHighlight) 'FIXME: new uilook for warning text colors?
+     printstr "Data is corrupt, not safe to relump", 0, 100, vpage
+     setvispage vpage 'refresh
+     waitforanykey
+    ELSE '---END UNSAFE
+     printstr "Saving as " + destfile, 0, 180, vpage
+     printstr "LUMPING DATA: please wait...", 0, 190, vpage
+     setvispage vpage 'refresh
+     '--re-lump recovered files as BAK file
+     dolumpfiles destfile
+     clearpage vpage
+     basic_textbox "The recovered data has been saved. If " + CUSTOMEXE + " crashed last time you " _
+                   "ran it and you lost work, you may be able to recover it. Make a backup " _
+                   "copy of your RPG and then rename " + destfile + !" to gamename.rpg\n" _
+                   "If you have questions, ask ohrrpgce-crash@HamsterRepublic.com", _
+                   uilook(uiText), vpage
+     setvispage vpage
+     waitforanykey
      empty_workingdir
-	 RETURN YES  'continue
-	END IF '---END RELUMP
+     RETURN YES  'continue
+    END IF '---END RELUMP
    END IF
    IF clean_choice = 2 THEN empty_workingdir : RETURN YES  'continue
    IF clean_choice = 0 THEN nocleanup = YES: RETURN NO  'quit
   END IF
 
   basic_textbox !"A game was found unlumped.\n" _
-				 "This may mean that " + CUSTOMEXE + " crashed last time you used it, or it may mean " _
-				 "that another copy of " + CUSTOMEXE + " is already running in the background.", _
-				 uilook(uiText), dpage
+                 "This may mean that " + CUSTOMEXE + " crashed last time you used it, or it may mean " _
+                 "that another copy of " + CUSTOMEXE + " is already running in the background.", _
+                 uilook(uiText), dpage
   standardmenu cleanup_menu(), 2, 2, clean_choice, 0, 16, 150, dpage
 
   SWAP vpage, dpage

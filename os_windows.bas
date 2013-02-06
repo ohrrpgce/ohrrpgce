@@ -529,7 +529,7 @@ end function
 function process_running (byval process as ProcessHandle, byval exitcode as integer ptr = NULL) as integer
 	if process = NULL then return NO
 	dim waitret as integer = WaitForSingleObject(process->hProcess, 0)
-        if waitret = WAIT_FAILED then
+	if waitret = WAIT_FAILED then
 		dim errstr as string = error_string
 		debug "process_running failed: " & errstr
 		return NO
@@ -557,7 +557,7 @@ sub kill_process (byval process as ProcessHandle)
 	'for the process to die takes just a millisecond or two! Something ain't right.
 
 	dim waitret as integer = WaitForSingleObject(process->hProcess, 500)  'wait up to 500ms
-        if waitret <> 0 then
+	if waitret <> 0 then
 		dim errstr as string
 		if waitret = WAIT_FAILED then errstr = error_string
 		debug "couldn't wait for process to quit: " & waitret & " " & errstr

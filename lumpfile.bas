@@ -390,7 +390,7 @@ function compare_files_by_record(differences() as integer, leftfile as string, r
 						end if
 					end if
 				next
-			else      
+			else
 				if memcmp(@buf1(0), @buf2(0), recordsize * 4) then   '* 4 since array of ints!
 					differences(record) = 1
 				end if

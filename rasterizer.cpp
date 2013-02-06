@@ -111,9 +111,9 @@ void TriRasterizer::calculateRasterPixels(const Surface* pSurfaceDest, const T_V
 	int leftMostIndex, rightMostIndex;
 	float scale;
 	T_VertexType leftVertex, rightVertex;
-	for(int row = (clipRgn.top > triangleRgn.top ? clipRgn.top : triangleRgn.top),
-		    rowEnd = (clipRgn.bottom < triangleRgn.bottom ? clipRgn.bottom : triangleRgn.bottom);
-			row <= rowEnd; row++)
+	int row = (clipRgn.top > triangleRgn.top ? clipRgn.top : triangleRgn.top);
+	int rowEnd = (clipRgn.bottom < triangleRgn.bottom ? clipRgn.bottom : triangleRgn.bottom);
+	for(; row <= rowEnd; row++)
 	{
 		leftMost = triangleRgn.right + 1.0f;
 		leftMostIndex = -1;
@@ -227,9 +227,9 @@ void TriRasterizer::rasterTexture(const DrawingRange<VertexPT> &range, const Sur
 	//assumed that if source is 8bit, a palette was passed in
 
 	TexCoord texel;
-	float length(range.greatest.pos.x - range.least.pos.x+1.0f), 
-		  weightFirst,
-		  weightSecond;
+	float length(range.greatest.pos.x - range.least.pos.x+1.0f);
+	float weightFirst;
+	float weightSecond;
 
 	int start = 0, finish = 0;
 
@@ -303,9 +303,9 @@ void TriRasterizer::rasterTextureWithColorKey0(const DrawingRange<VertexPT> &ran
 	//assumed that if source is 8bit, a palette was passed in
 
 	TexCoord texel;
-	float length(range.greatest.pos.x - range.least.pos.x+1.0f), 
-		  weightFirst,
-		  weightSecond;
+	float length(range.greatest.pos.x - range.least.pos.x+1.0f);
+	float weightFirst;
+	float weightSecond;
 
 	int start = 0, finish = 0;
 
@@ -370,9 +370,9 @@ void TriRasterizer::rasterTextureColor(const DrawingRange<VertexPTC> &range, con
 	//assumed that if source is 8bit, a palette was passed in
 
 	TexCoord texel;
-	float length(range.greatest.pos.x - range.least.pos.x+1.0f), 
-		  weightFirst,
-		  weightSecond;
+	float length(range.greatest.pos.x - range.least.pos.x+1.0f);
+	float weightFirst;
+	float weightSecond;
 
 	int start = 0, finish = 0;
 
@@ -438,9 +438,9 @@ void TriRasterizer::rasterTextureColorWithColorKey0(const DrawingRange<VertexPTC
 	//assumed that if source is 8bit, a palette was passed in
 
 	TexCoord texel;
-	float length(range.greatest.pos.x - range.least.pos.x+1.0f), 
-		  weightFirst,
-		  weightSecond;
+	float length(range.greatest.pos.x - range.least.pos.x+1.0f);
+	float weightFirst;
+	float weightSecond;
 
 	int start = 0, finish = 0;
 

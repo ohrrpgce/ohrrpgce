@@ -488,7 +488,7 @@ startTest(intArrayCompatibility)
 	vector_to_array array(), vec
 	if ubound(array) >= 0 then fail
 	v_free vec
-endTest      
+endTest
 
 startTest(stringArrayCompatibility)
 	dim i as integer
@@ -509,7 +509,7 @@ startTest(stringArrayCompatibility)
 	if array(1) <> "index1" then fail
 	if array(2) <> "" then fail
 	v_free vec
-endTest      
+endTest
 
 function v_range(byval n as integer) as integer vector
 	dim ret as integer vector
