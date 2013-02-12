@@ -29,7 +29,8 @@
 	#include once "win/msacm.bi"
 	#include once "win/mmsystem.bi"
 #ELSE
-	'???
+	#error "music_native2 is Windows-only. Try music_native instead"
+	#error
 #ENDIF
 
 #undef rectangle

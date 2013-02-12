@@ -220,7 +220,7 @@ sub io_alleg_setmousevisibility(byval visible as integer)
  	end if
 end sub
 
-sub io_alleg_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as integer)
+sub io_alleg_getmouse(byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer)
 	mx = mouse_x \ 2		'allegro screen is double res
 	my = (mouse_y \ 2) - baroffset	'and centred
 	mwheel = mouse_z
