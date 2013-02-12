@@ -144,114 +144,110 @@ SUB control
 '  11=calibrate
 '  12=??? (comma)
 
-STATIC joyuse as integer
-STATIC joymenu as integer
+ STATIC joyuse as integer
+ STATIC joymenu as integer
 
-'Since this sub is called from lots of places, sticking this here is a stop-gap so
-'that messages from Custom are usually processed promptly
-IF running_as_slave THEN try_reload_lumps_anywhere
+ 'Since this sub is called from lots of places, sticking this here is a stop-gap so
+ 'that messages from Custom are usually processed promptly
+ IF running_as_slave THEN try_reload_lumps_anywhere
 
-FOR i as integer = 0 TO 7: carray(i) = 0: NEXT i
-
-'commented due to bug 619: gfx_sdl weirdness. Anyway, this check is from the DOS days
-'IF keyval(scNumlock) = 0 THEN ' no controls while PAUSE is pressed, because of its scancode wierdness
- GOSUB keyboard
- GOSUB joystick
-'END IF
-EXIT SUB
-
-keyboard:
-FOR i as integer = 0 TO 3
- carray(i) = keyval(csetup(i))
-NEXT i
-carray(ccUse) = keyval(csetup(4)) OR keyval(csetup(5)) OR keyval(csetup(6))
-carray(ccMenu) = keyval(csetup(7)) OR keyval(csetup(8))
-carray(ccRun) = keyval(csetup(9)) OR keyval(csetup(10))
-IF keyval(scCtrl) > 0 AND keyval(csetup(11)) > 1 THEN  'ctrl + J
- calibrate
- FOR i as integer = 0 TO 1
-  gotj(i) = readjoy(joy(), i)
+ FOR i as integer = 0 TO 7
+  carray(i) = 0
  NEXT i
-END IF
-carray(8) = keyval(csetup(12))
-RETRACE
 
-joystick:
+ 'commented due to bug 619: gfx_sdl weirdness. Anyway, this check is from the DOS days
+ 'IF keyval(scNumlock) <> 0 THEN EXIT SUB ' no controls while PAUSE is pressed, because of its scancode wierdness
 
-DIM proceed as integer = NO
-FOR i as integer = 0 TO 1
- IF gotj(i) THEN
-  gotj(i) = readjoy(joy(), i)
-  proceed = YES
-  EXIT FOR
+ 'Keyboard
+
+ FOR i as integer = 0 TO 3
+  carray(i) = keyval(csetup(i))
+ NEXT i
+ carray(ccUse) = keyval(csetup(4)) OR keyval(csetup(5)) OR keyval(csetup(6))
+ carray(ccMenu) = keyval(csetup(7)) OR keyval(csetup(8))
+ carray(ccRun) = keyval(csetup(9)) OR keyval(csetup(10))
+ IF keyval(scCtrl) > 0 AND keyval(csetup(11)) > 1 THEN  'ctrl + J
+  calibrate
+  FOR i as integer = 0 TO 1
+   gotj(i) = readjoy(joy(), i)
+  NEXT i
  END IF
-NEXT i
-if proceed = NO THEN RETRACE
+ carray(8) = keyval(csetup(12))
 
-if gen(genJoy) = 0 then retrace
+ 'Joystick
 
-'edgeprint XSTR$(i) + XSTR$(gotj(i)) + XSTR$(joy(0)) + XSTR$(joy(1)) + XSTR$(joy(2)) + XSTR$(joy(3)) + XSTR$(carray(4)) + XSTR$(carray(5)), 0, 170, uilook(uiSelectedItem), 0
-'edgeprint XSTR$(i) + XSTR$(gotj(i)) + XSTR$(joy(0)) + XSTR$(joy(1)) + XSTR$(joy(2)) + XSTR$(joy(3)) + XSTR$(carray(4)) + XSTR$(carray(5)), 0, 170, uilook(uiSelectedItem), 1
+ DIM proceed as integer = NO
+ FOR i as integer = 0 TO 1
+  IF gotj(i) THEN
+   gotj(i) = readjoy(joy(), i)
+   proceed = YES
+   EXIT FOR
+  END IF
+ NEXT i
+ IF proceed ANDALSO gen(genJoy) THEN
 
-IF joy(1) < joy(9) THEN
- carray(0) = 3
- IF carray(10) = 3 THEN carray(0) = 2
- IF carray(10) = 2 THEN carray(0) = 1
- IF carray(10) = 1 THEN carray(0) = 2
-END IF
-IF joy(1) > joy(10) THEN
- carray(1) = 3
- IF carray(11) = 3 THEN carray(1) = 1
- IF carray(11) = 2 THEN carray(1) = 1
- IF carray(11) = 1 THEN carray(1) = 2
-END IF
-IF joy(0) < joy(11) THEN
- carray(2) = 3
- IF carray(12) = 3 THEN carray(2) = 1
- IF carray(12) = 2 THEN carray(2) = 1
- IF carray(12) = 1 THEN carray(2) = 2
-END IF
-IF joy(0) > joy(12) THEN
- carray(3) = 3
- IF carray(13) = 3 THEN carray(3) = 1
- IF carray(13) = 2 THEN carray(3) = 1
- IF carray(13) = 1 THEN carray(3) = 2
-END IF
-'--Joystick buttons!
-'edgeprint XSTR$(joyuse) + XSTR$(joymenu) + XSTR$(joy(13)) + XSTR$(joy(14)), 0, 190, uilook(uiText), 0
-'edgeprint XSTR$(joyuse) + XSTR$(joymenu) + XSTR$(joy(13)) + XSTR$(joy(14)), 0, 190, uilook(uiText), 1
-SELECT CASE joyuse
- CASE 0
-  'IF joy(joy(13)) = 0 THEN joyuse = 1
-  IF joy(joy(13)) = 0 THEN joyuse = 2
- CASE 1
-  IF joy(joy(13)) <> 0 THEN joyuse = 2
- CASE 2
-  carray(ccUse) = 2
-  joyuse = 3
- CASE 3
-  carray(ccUse) = 1
-  joyuse = 0
-END SELECT
-SELECT CASE joymenu
- CASE 0
-  IF joy(joy(14)) = 0 THEN joymenu = 1
- CASE 1
-  carray(ccRun) = 2
-  IF joy(joy(14)) <> 0 THEN joymenu = 2
- CASE 2
-  carray(ccMenu) = 2
-  joymenu = 3
- CASE 3
-  carray(ccMenu) = 1
-  joymenu = 0
-END SELECT
+  'edgeprint XSTR$(i) + XSTR$(gotj(i)) + XSTR$(joy(0)) + XSTR$(joy(1)) + XSTR$(joy(2)) + XSTR$(joy(3)) + XSTR$(carray(4)) + XSTR$(carray(5)), 0, 170, uilook(uiSelectedItem), 0
+  'edgeprint XSTR$(i) + XSTR$(gotj(i)) + XSTR$(joy(0)) + XSTR$(joy(1)) + XSTR$(joy(2)) + XSTR$(joy(3)) + XSTR$(carray(4)) + XSTR$(carray(5)), 0, 170, uilook(uiSelectedItem), 1
 
-FOR i as integer = 0 TO 3
- carray(10 + i) = carray(i)
-NEXT i
-RETRACE
+  IF joy(1) < joy(9) THEN
+   carray(0) = 3
+   IF carray(10) = 3 THEN carray(0) = 2
+   IF carray(10) = 2 THEN carray(0) = 1
+   IF carray(10) = 1 THEN carray(0) = 2
+  END IF
+  IF joy(1) > joy(10) THEN
+   carray(1) = 3
+   IF carray(11) = 3 THEN carray(1) = 1
+   IF carray(11) = 2 THEN carray(1) = 1
+   IF carray(11) = 1 THEN carray(1) = 2
+  END IF
+  IF joy(0) < joy(11) THEN
+   carray(2) = 3
+   IF carray(12) = 3 THEN carray(2) = 1
+   IF carray(12) = 2 THEN carray(2) = 1
+   IF carray(12) = 1 THEN carray(2) = 2
+  END IF
+  IF joy(0) > joy(12) THEN
+   carray(3) = 3
+   IF carray(13) = 3 THEN carray(3) = 1
+   IF carray(13) = 2 THEN carray(3) = 1
+   IF carray(13) = 1 THEN carray(3) = 2
+  END IF
+  '--Joystick buttons!
+  'edgeprint XSTR$(joyuse) + XSTR$(joymenu) + XSTR$(joy(13)) + XSTR$(joy(14)), 0, 190, uilook(uiText), 0
+  'edgeprint XSTR$(joyuse) + XSTR$(joymenu) + XSTR$(joy(13)) + XSTR$(joy(14)), 0, 190, uilook(uiText), 1
+  SELECT CASE joyuse
+   CASE 0
+    'IF joy(joy(13)) = 0 THEN joyuse = 1
+    IF joy(joy(13)) = 0 THEN joyuse = 2
+   CASE 1
+    IF joy(joy(13)) <> 0 THEN joyuse = 2
+   CASE 2
+    carray(ccUse) = 2
+    joyuse = 3
+   CASE 3
+    carray(ccUse) = 1
+    joyuse = 0
+  END SELECT
+  SELECT CASE joymenu
+   CASE 0
+    IF joy(joy(14)) = 0 THEN joymenu = 1
+   CASE 1
+    carray(ccRun) = 2
+    IF joy(joy(14)) <> 0 THEN joymenu = 2
+   CASE 2
+    carray(ccMenu) = 2
+    joymenu = 3
+   CASE 3
+    carray(ccMenu) = 1
+    joymenu = 0
+  END SELECT
 
+  FOR i as integer = 0 TO 3
+   carray(10 + i) = carray(i)
+  NEXT i
+
+ END IF  'joystick input
 END SUB
 
 FUNCTION countai (byval ai as integer, byval them as integer, bslot() as BattleSprite) as integer
