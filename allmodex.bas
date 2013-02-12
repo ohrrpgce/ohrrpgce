@@ -1768,24 +1768,24 @@ END SUB
 
 SUB drawline (byval dest as Frame ptr, byval x1 as integer, byval y1 as integer, byval x2 as integer, byval y2 as integer, byval c as integer)
 'uses Bresenham's run-length slice algorithm
-  	dim as integer xdiff,ydiff
-  	dim as integer xdirection 	'direction of X travel from top to bottom point (1 or -1)
-  	dim as integer minlength  	'minimum length of a line strip
-  	dim as integer startLength 	'length of start strip (approx half 'minLength' to balance line)
-  	dim as integer runLength  	'current run-length to be used (minLength or minLength+1)
-  	dim as integer endLength   	'length of end of line strip (usually same as startLength)
+	dim as integer xdiff,ydiff
+	dim as integer xdirection 	'direction of X travel from top to bottom point (1 or -1)
+	dim as integer minlength  	'minimum length of a line strip
+	dim as integer startLength 	'length of start strip (approx half 'minLength' to balance line)
+	dim as integer runLength  	'current run-length to be used (minLength or minLength+1)
+	dim as integer endLength   	'length of end of line strip (usually same as startLength)
 
-  	dim as integer instep		'xdirection or 320 (inner loop)
+	dim as integer instep		'xdirection or 320 (inner loop)
 	dim as integer outstep		'xdirection or 320 (outer loop)
 	dim as integer shortaxis	'outer loop control
 	dim as integer longaxis
 
-  	dim as integer errorterm   	'when to draw an extra pixel
-  	dim as integer erroradd 	'add to errorTerm for each strip drawn
-  	dim as integer errorsub 	'subtract from errorterm when triggered
+	dim as integer errorterm   	'when to draw an extra pixel
+	dim as integer erroradd 	'add to errorTerm for each strip drawn
+	dim as integer errorsub 	'subtract from errorterm when triggered
 
-  	dim as integer i,j
-  	dim sptr as ubyte ptr
+	dim as integer i,j
+	dim sptr as ubyte ptr
 
 'Macro to simplify code
 #define DRAW_SLICE(a) for i=0 to a-1: *sptr = c: sptr += instep: next
@@ -1799,8 +1799,8 @@ SUB drawline (byval dest as Frame ptr, byval x1 as integer, byval y1 as integer,
 		exit sub
 	end if
 
-  	if y1 > y2 then
-  		'swap ends, we only draw downwards
+	if y1 > y2 then
+		'swap ends, we only draw downwards
 		i=y1: y1=y2: y2=i
 		i=x1: x1=x2: x2=i
 	end if
@@ -1808,46 +1808,46 @@ SUB drawline (byval dest as Frame ptr, byval x1 as integer, byval y1 as integer,
 	'point to start
 	sptr = dest->image + (y1 * dest->pitch) + x1
 
-  	xdiff = x2 - x1
-  	ydiff = y2 - y1
+	xdiff = x2 - x1
+	ydiff = y2 - y1
 
-  	if xDiff < 0 then
-  		'right to left
+	if xDiff < 0 then
+		'right to left
 		xdiff = -xdiff
 		xdirection = -1
-  	else
+	else
 		xdirection = 1
 	end if
 
 	'special case for vertical
-  	if xdiff = 0 then
-  		instep = dest->pitch
-  		DRAW_SLICE(ydiff+1)
+	if xdiff = 0 then
+		instep = dest->pitch
+		DRAW_SLICE(ydiff+1)
 		exit sub
-  	end if
+	end if
 
 	'and for horizontal
-  	if ydiff = 0 then
-  		instep = xdirection
-  		DRAW_SLICE(xdiff+1)
+	if ydiff = 0 then
+		instep = xdirection
+		DRAW_SLICE(xdiff+1)
 		exit sub
-  	end if
+	end if
 
-  	'and also for pure diagonals
-  	if xdiff = ydiff then
-  		instep = dest->pitch + xdirection
-  		DRAW_SLICE(ydiff+1)
+	'and also for pure diagonals
+	if xdiff = ydiff then
+		instep = dest->pitch + xdirection
+		DRAW_SLICE(ydiff+1)
 		exit sub
-  	end if
+	end if
 
 	'now the actual bresenham
-  	if xdiff > ydiff then
-  		longaxis = xdiff
+	if xdiff > ydiff then
+		longaxis = xdiff
 		shortaxis = ydiff
 
 		instep = xdirection
 		outstep = dest->pitch
-  	else
+	else
 		'other way round, draw vertical slices
 		longaxis = ydiff
 		shortaxis = xdiff
@@ -1870,10 +1870,10 @@ SUB drawline (byval dest as Frame ptr, byval x1 as integer, byval y1 as integer,
 
 	'If the minimum strip length is even
 	if (minLength and 1) <> 0 then
-  		errorterm += shortaxis 'adjust errorTerm
+		errorterm += shortaxis 'adjust errorTerm
 	else
 		'If the line had no remainder (x&yDiff divided evenly)
-  		if erroradd = 0 then
+		if erroradd = 0 then
 			startLength -= 1 'leave out extra start pixel
 		end if
 	end if
@@ -1884,16 +1884,16 @@ SUB drawline (byval dest as Frame ptr, byval x1 as integer, byval y1 as integer,
 
 	'draw the middle strips
 	for j = 1 to shortaxis-1
-	  	runLength = minLength
-  		errorTerm += erroradd
+		runLength = minLength
+		errorTerm += erroradd
 
-  		if errorTerm > 0 then
-  			errorTerm -= errorsub
+		if errorTerm > 0 then
+			errorTerm -= errorsub
 			runLength += 1
-  		end if
+		end if
 
-  		DRAW_SLICE(runlength)
-  		sptr += outstep
+		DRAW_SLICE(runlength)
+		sptr += outstep
 	next
 
 	DRAW_SLICE(endlength)
@@ -4447,45 +4447,43 @@ sub grabrect(byval page as integer, byval x as integer, byval y as integer, byva
 end sub
 '/
 
-
-#DEFINE ID(a,b,c,d) asc(a) SHL 0 + asc(b) SHL 8 + asc(c) SHL 16 + asc(d) SHL 24
 function isawav(fi as string) as integer
-  if not isfile(fi) then return 0 'duhhhhhh
+	if not isfile(fi) then return 0 'duhhhhhh
 
-  dim _RIFF as integer = ID("R","I","F","F") 'these are the "signatures" of a
-  dim _WAVE as integer = ID("W","A","V","E") 'wave file. RIFF is the format,
-  dim _fmt_ as integer = ID("f","m","t"," ") 'WAVE is the type, and fmt_ and
-  dim _data as integer = ID("d","a","t","a") 'data are the chunks
-#UNDEF ID
+#define ID(a,b,c,d) asc(a) SHL 0 + asc(b) SHL 8 + asc(c) SHL 16 + asc(d) SHL 24
+	dim _RIFF as integer = ID("R","I","F","F") 'these are the "signatures" of a
+	dim _WAVE as integer = ID("W","A","V","E") 'wave file. RIFF is the format,
+	dim _fmt_ as integer = ID("f","m","t"," ") 'WAVE is the type, and fmt_ and
+	dim _data as integer = ID("d","a","t","a") 'data are the chunks
+#undef ID
 
-  dim chnk_ID as integer
-  dim chnk_size as integer
-  dim f as integer = freefile
-  open fi for binary access read as #f
+	dim chnk_ID as integer
+	dim chnk_size as integer
+	dim f as integer = freefile
+	open fi for binary access read as #f
 
-  get #f,,chnk_ID
-  if chnk_ID <> _RIFF then
+	get #f,,chnk_ID
+	if chnk_ID <> _RIFF then
 		close #f
 		return 0 'not even a RIFF file
 	end if
 
-  get #f,,chnk_size 'don't care
+	get #f,,chnk_size 'don't care
 
-  get #f,,chnk_ID
+	get #f,,chnk_ID
 
-  if chnk_ID <> _WAVE then
+	if chnk_ID <> _WAVE then
 		close #f
 		return 0 'not a WAVE file, pffft
 	end if
 
-  'is this good enough? meh, sure.
-  close #f
-  return 1
-
+	'is this good enough? meh, sure.
+	close #f
+	return 1
 end function
 
 SUB playsfx (byval num as integer, byval l as integer=0)
-	sound_play(num,l)
+	sound_play(num, l)
 end sub
 
 SUB stopsfx (byval num as integer)
@@ -4507,46 +4505,46 @@ end Function
 FUNCTION getmusictype (file as string) as integer
 
 	if file = "" then
-	  'no further checking for blank names
-	  return 0
+		'no further checking for blank names
+		return 0
 	end if
 
 	if isdir(file) OR right(file, 1) = SLASH then
-	  'no further checking if this is a directory
-	  return 0
+		'no further checking if this is a directory
+		return 0
 	end if
 
-	DIM ext as string, chk as integer
+	dim ext as string, chk as integer
 	ext = lcase(justextension(file))
 
 	'special case
 	if str(cint(ext)) = ext then return FORMAT_BAM
 
-	SELECT CASE ext
-	CASE "bam"
+	select case ext
+	case "bam"
 		chk = FORMAT_BAM
-	CASE "mid"
+	case "mid"
 		chk = FORMAT_MIDI
-	CASE "xm"
+	case "xm"
 		chk = FORMAT_XM
-	CASE "it"
-	  chk = FORMAT_IT
-	CASE "wav"
-	  chk = FORMAT_WAV
-	CASE "ogg"
-	  chk = FORMAT_OGG
-	CASE "mp3"
-	  chk = FORMAT_MP3
-	CASE "s3m"
-	  chk = FORMAT_S3M
-	CASE "mod"
-	  chk = FORMAT_MOD
-	CASE ELSE
-	  debug "unknown format: " & file & " - " & ext
-	  chk = 0
-	END SELECT
+	case "it"
+		chk = FORMAT_IT
+	case "wav"
+		chk = FORMAT_WAV
+	case "ogg"
+		chk = FORMAT_OGG
+	case "mp3"
+		chk = FORMAT_MP3
+	case "s3m"
+		chk = FORMAT_S3M
+	case "mod"
+		chk = FORMAT_MOD
+	case else
+		debug "unknown format: " & file & " - " & ext
+		chk = 0
+	end select
 
-  return chk
+	return chk
 END FUNCTION
 
 'not to be used outside of the sprite functions
@@ -5381,7 +5379,7 @@ function frame_dissolved(byval spr as frame ptr, byval tlength as integer, byval
 				height(-1) = height(0)
 				height(cpy->w) = height(cpy->w - 1)
 				for sx = (sy mod 3) to cpy->w - 1 step 3
-					height(sx) =  height(sx - 1) \ 4 + height(sx) \ 2 + height(sx + 1) \ 4
+					height(sx) = height(sx - 1) \ 4 + height(sx) \ 2 + height(sx + 1) \ 4
 				next
 			next
 		case 6 'vapourise
