@@ -23,8 +23,6 @@ CONST STACK_SIZE_INC = 512 ' in integers
 #include "os.bi"
 #include "common_base.bi"
 
-declare function fgetiob alias "fb_FileGetIOB" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger, byval bytesread as uinteger ptr ) as integer
-
 
 'It is very important for this to be populated _before_ any calls to CHDIR
 DIM orig_dir as string

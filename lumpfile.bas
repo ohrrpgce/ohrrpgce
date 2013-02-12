@@ -14,10 +14,6 @@
 #include "lumpfile.bi"
 #include "lumpfilewrapper.bi"
 
-'slight hackery to get more versatile read function
-declare function fget alias "fb_FileGet" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger ) as integer
-declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as integer = 0, byval src as any ptr, byval bytes as uinteger ) as integer
-declare function fgetiob alias "fb_FileGetIOB" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger, byval bytesread as uinteger ptr ) as integer
 
 declare function matchmask(match as string, mask as string) as integer
 

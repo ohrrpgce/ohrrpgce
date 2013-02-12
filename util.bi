@@ -299,6 +299,15 @@ declare function string_from_first_line_of_file (filename as string) as string
 declare function string_from_file (filename as string) as string
 declare sub string_to_file (string_to_write as string, filename as string)
 
+'slight hackery to get more versatile read function
+'(fbc internally defines these functions differently from their actual prototypes,
+' leading to conflicts with -gen gcc, so use the fbc prototype)
+'declare function fget alias "fb_FileGet" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger ) as integer
+'declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as integer = 0, byval src as any ptr, byval bytes as uinteger ) as integer
+declare function fget alias "fb_FileGet" ( byval fnum as integer, byval pos as uinteger = 0, byval dst as any ptr, byval bytes as integer ) as integer
+declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as uinteger = 0, byval src as any ptr, byval bytes as integer ) as integer
+declare function fgetiob alias "fb_FileGetIOB" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger, byval bytesread as uinteger ptr ) as integer
+
 
 '----------------------------------------------------------------------
 '                              Math

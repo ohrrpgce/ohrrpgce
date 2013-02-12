@@ -51,10 +51,6 @@ declare function calcblock(tmap as TileMap, byval x as integer, byval y as integ
 
 declare sub font_unload(byval font as Font ptr)
 
-'slight hackery to get more versatile read function
-declare function fget alias "fb_FileGet" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger ) as integer
-declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as integer = 0, byval src as any ptr, byval bytes as uinteger ) as integer
-
 declare sub pollingthread(byval as any ptr)
 declare sub update_inputtext ()
 
