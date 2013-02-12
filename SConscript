@@ -191,7 +191,7 @@ if CXX:
     env.Replace (CXX = CXX)
 
 if linkgcc:
-    fbc_binary = env.WhereIs(fbc)
+    fbc_binary = ARGUMENTS.get ('fbc', env.WhereIs (fbc))
     if not fbc_binary:
         raise Exception("FreeBasic compiler is not installed!")
     fbc_path = os.path.dirname(fbc_binary)
@@ -200,7 +200,7 @@ if linkgcc:
         target = 'win32'
     else:
         import re
-        fbcinfo = get_run_command("fbc -version")
+        fbcinfo = get_run_command(fbc_binary + " -version")
         target = re.findall("target:([a-z]*)", fbcinfo)
         if len(target) == 0:
             target = re.findall("\) for ([a-z0-9]+)\n", fbcinfo)
@@ -208,17 +208,18 @@ if linkgcc:
                 raise Exception("Couldn't determine fbc target")
         target = target[0]
     
-    fblibpaths = [[fbc_path, 'lib', target],
-                  [fbc_path, '..', 'lib', target],
-                  [fbc_path, '..', 'lib', 'freebasic', target],
-                  ['/usr/share/freebasic/lib', target],
-                  ['/usr/local/lib/freebasic', target],
+    fblibpaths = [[fbc_path, 'lib'],
+                  [fbc_path, '..', 'lib'],
+                  [fbc_path, '..', 'lib', 'freebasic'],
+                  ['/usr/share/freebasic/lib'],
                   ['/usr/local/lib/freebasic']]
-    fblibpaths = [os.path.join(*pathparts) for pathparts in fblibpaths]
+    # FB since 0.25 doesn't seem to use a platform subdirectory in lib/
+    fblibpaths = sum([[pathparts, pathparts + [target]] for pathparts in fblibpaths], [])
+
     for path in fblibpaths:
-        #print "Looking for FB libs in", path
-        if os.path.isfile(os.path.join(path, 'fbrt0.o')):
-            libpath = path
+        libpath = os.path.join(*path)
+        #print "Looking for FB libs in", libpath
+        if os.path.isfile(os.path.join(libpath, 'fbrt0.o')):
             break
     else:
         raise Exception("Couldn't find the FreeBASIC lib directory")
