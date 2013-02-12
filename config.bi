@@ -14,6 +14,11 @@
 #ELSE
  #DEFINE _ESTR
 #ENDIF
+#IF __FB_GCC__
+ #DEFINE _GENSTR " -gen gcc"
+#ELSE
+ #DEFINE _GENSTR
+#ENDIF
 #IF     defined( __FB_LINUX__)
  #DEFINE _PSTR & " Linux"
  #DEFINE __UNIX__
@@ -41,7 +46,7 @@
 #ELSE
  #DEFINE _SSTR
 #ENDIF
-CONST build_info as string = "" _GSTR _ESTR _SSTR _PSTR
+CONST build_info as string = "" _GSTR _ESTR _GENSTR _SSTR _PSTR
 
 '__FB_UNIX__ only defined in FB 0.21 on (I think)
 'Note: it's always defined, either to 0 or -1. HATE

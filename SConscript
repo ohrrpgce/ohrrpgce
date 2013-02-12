@@ -51,7 +51,8 @@ if 'asm' in ARGUMENTS:
     FBFLAGS += ["-r", "-g"]
 
 if 'gengcc' in ARGUMENTS:
-    FBFLAGS += ["-gen", "gcc"]
+    # Due to FB bug #661, need to pass -m32 to gcc manually
+    FBFLAGS += ["-gen", "gcc", "-Wc", "-m32"]
 
 if 'deprecated' in ARGUMENTS:
     FBFLAGS += ["-d", "LANG_DEPRECATED"]

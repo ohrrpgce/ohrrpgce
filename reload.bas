@@ -1140,7 +1140,7 @@ end function
 private function GetBase64EncodedString(byval node as nodeptr) as string
 	if node = null orelse node->nodeType <> rltString then return ""
 
-	dim outbuf as byte ptr
+	dim outbuf as zstring ptr
 	dim outlen as integer
 	outlen = base64_encode_alloc(node->str, node->strSize, @outbuf)
 	if outbuf = NULL then
