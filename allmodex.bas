@@ -4449,8 +4449,8 @@ function isawav(fi as string) as integer
 #define ID(a,b,c,d) asc(a) SHL 0 + asc(b) SHL 8 + asc(c) SHL 16 + asc(d) SHL 24
 	dim _RIFF as integer = ID("R","I","F","F") 'these are the "signatures" of a
 	dim _WAVE as integer = ID("W","A","V","E") 'wave file. RIFF is the format,
-	dim _fmt_ as integer = ID("f","m","t"," ") 'WAVE is the type, and fmt_ and
-	dim _data as integer = ID("d","a","t","a") 'data are the chunks
+	'dim _fmt_ as integer = ID("f","m","t"," ") 'WAVE is the type, and fmt_ and
+	'dim _data as integer = ID("d","a","t","a") 'data are the chunks
 #undef ID
 
 	dim chnk_ID as integer
@@ -5111,12 +5111,13 @@ function frame_is_valid(byval p as frame ptr) as integer
 	if p->pitch < p->w then ret = 0
 	
 	if p->image = 0 then ret = 0
-	
-	if p->mask = &hBAADF00D or p->image = &hBAADF00D then ret = 0
-	if p->mask = &hFEEEFEEE or p->image = &hFEEEFEEE then ret = 0
+
+	'Patterns used by Windows and Linux to scrub memory
+	if cint(p->mask) = &hBAADF00D or cint(p->image) = &hBAADF00D then ret = 0
+	if cint(p->mask) = &hFEEEFEEE or cint(p->image) = &hFEEEFEEE then ret = 0
 	
 	if ret = 0 then
-		debug "Invalid sprite " & frame_describe(p)
+		debugc errBug, "Invalid sprite " & frame_describe(p)
 		'if we get here, we are probably doomed, but this might be a recovery
 		if p->cacheentry then sprite_remove_cache(p->cacheentry)
 	end if

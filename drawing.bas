@@ -275,7 +275,6 @@ SUB maptile ()
 DIM menu(10) as string
 DIM tastuf(40) as integer
 DIM mapfile as string = game & ".til"
-DIM bnum as integer = 0
 DIM tmode as integer = 0
 DIM pagenum as integer = -1
 DIM top as integer = -1

@@ -579,7 +579,6 @@ END IF
 load_special_tag_caches
 evalherotags
 queue_fade_in
-DIM force_step_check as integer = YES
 DIM tog as integer
 
 '--Reset some stuff related to debug keys

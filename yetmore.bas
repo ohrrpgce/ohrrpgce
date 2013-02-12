@@ -1309,7 +1309,6 @@ SELECT CASE as CONST id
  CASE 188'--setmusicvolume
   set_music_volume bound(retvals(0), 0, 255) / 255
  CASE 189, 307'--get formation song
-  DIM fh as integer = FREEFILE
   IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxFormation) THEN
    DIM form as Formation
    LoadFormation form, retvals(0)

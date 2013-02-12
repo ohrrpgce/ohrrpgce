@@ -373,16 +373,14 @@ SUB load_npc_locations (byval npcs_node as NodePtr, npc() as NPCInst)
   debug "WARNING: load_npc_locations expected a node named 'npcs' but found '" & NodeName(npcs_node) & "' instead."
  END IF
  FOR i as integer = 0 TO UBOUND(npc)
-  WITH npc(i)
-   '--disable/hide this NPC by default
-   CleanNPCInst npc(i)
+  '--disable/hide this NPC by default
+  CleanNPCInst npc(i)
 
-   DIM n as NodePtr
-   n = NodeByPath(npcs_node, "/npc[" & i & "]")
-   IF n THEN
-    load_npc_loc n, npc(i)
-   END IF
-  END WITH
+  DIM n as NodePtr
+  n = NodeByPath(npcs_node, "/npc[" & i & "]")
+  IF n THEN
+   load_npc_loc n, npc(i)
+  END IF
  NEXT i
 END SUB
 
@@ -977,8 +975,8 @@ END FUNCTION
 
 'Sets a certain bit in each tile to 1 or 0 depending on whether that tile is in a certain zone
 SUB ZoneToTileMap(zmap as ZoneMap, tmap as TileMap, byval id as integer, byval bitnum as integer)
-'static accum as double=0.0, samples as integer = 0
-  DIM t as double = timer
+  'static accum as double=0.0, samples as integer = 0
+  'DIM t as double = timer
   WITH zmap
     IF tmap.data = NULL THEN CleanTilemap tmap, .wide, .high
     DIM as integer segmentx, segmenty, x, y, bitmask, tilemask
@@ -1009,15 +1007,15 @@ SUB ZoneToTileMap(zmap as ZoneMap, tmap as TileMap, byval id as integer, byval b
       NEXT
     NEXT
   END WITH
-'accum += (timer - t)
-'samples += 1
+  'accum += (timer - t)
+  'samples += 1
   'debug "ZoneToTileMap in " & (timer - t) * 1000 & "ms, average=" & (accum * 1000 / samples)
 END SUB
 
 'Adds 'rows' node to a .Z## root RELOAD node describing the tile data.
 'rect.x/y give an offset, and rect.w/h a size to trim to; used for resizing a map.
 PRIVATE SUB SerializeZoneTiles(zmap as ZoneMap, byval root as NodePtr, rect as RectType)
-  DIM t as double = TIMER
+  'DIM t as double = TIMER
 
   DIM as NodePtr rowsnode, rownode, idnode, spannode
   rowsnode = AppendChildNode(root, "rows")
@@ -1124,7 +1122,7 @@ PRIVATE SUB DeserializeZoneTiles(zmap as ZoneMap, byval root as NodePtr)
 END SUB
 
 SUB SaveZoneMap(zmap as ZoneMap, filename as string, rsrect as RectType ptr = NULL)
-  DIM as double t = TIMER
+  'DIM as double t = TIMER
 
   DIM doc as DocPtr
   DIM as NodePtr root, zonesnode, node, subnode
@@ -1159,7 +1157,7 @@ SUB SaveZoneMap(zmap as ZoneMap, filename as string, rsrect as RectType ptr = NU
 END SUB
 
 SUB LoadZoneMap(zmap as ZoneMap, filename as string)
-  DIM as double t = TIMER
+  'DIM as double t = TIMER
 
   DIM as DocPtr doc
   DIM as NodePtr root, zonesnode, node, subnode

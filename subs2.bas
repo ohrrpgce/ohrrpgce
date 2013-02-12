@@ -594,7 +594,6 @@ SUB text_box_editor () 'textage
 
  '--For the import/export support
  DIM box_text_file as string
- DIM overwrite as integer = NO
  DIM remember_boxcount as integer
  DIM backup_say as string
  DIM import_warn as string = ""

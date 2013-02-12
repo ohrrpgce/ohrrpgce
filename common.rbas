@@ -1684,7 +1684,6 @@ SUB pop_warning(s as string, byval autoquit as integer = NO)
  dat->line_limit = 15
 
  DIM deadkeys as integer = 25
- DIM cursor_line as integer = 0
  DIM scrollbar_state as MenuState
  scrollbar_state.size = 16
 
@@ -4614,7 +4613,7 @@ FUNCTION fixfilename (s as string) as string
 END FUNCTION
 
 FUNCTION sanitize_script_identifier (ident as string, byval allow_whitespace as integer = YES) as string
- DIM tmp as string = exclude(ident, !"`!@#$%^&*()-+=[]{}\|<>,.;/\"")  ' :_'~? allowed
+ DIM tmp as string = exclude(ident, !"`!@#$%^&*()-+=[]{}\\|<>,.;/\"")  ' :_'~? allowed
  DIM lower_ascii_limit as integer = 32
  IF allow_whitespace THEN lower_ascii_limit = 31
  DIM ret as string

@@ -2155,7 +2155,6 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
  DIM atk as AttackData
  DIM learn_attack as AttackData
  DIM caption as string
- DIM check_consume as integer = NO
  DIM allow_spread as integer = NO
  DIM must_spread as integer = NO
  

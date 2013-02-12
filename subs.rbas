@@ -1278,7 +1278,6 @@ DIM info as string
 DIM wep_img as GraphicPair 'This is only used in edititem
 DIM box_preview as string = "" 'This is only used in edititem
 'DIM ibitnames(-1 TO 59) as string
-DIM imax as integer = 32
 
 eqst(0) = "NEVER EQUIPPED"
 eqst(1) = "Weapon"

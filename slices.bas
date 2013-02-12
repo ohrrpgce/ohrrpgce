@@ -11,10 +11,6 @@
  OPTION EXPLICIT
 #endif
 
-#ifdef IS_GAME
-extern plotslices() as integer
-#endif
-
 #include "config.bi"
 #include "allmodex.bi"
 #include "common.bi"
@@ -23,6 +19,10 @@ extern plotslices() as integer
 #include "uiconst.bi"
 
 #include "slices.bi"
+
+#ifdef IS_GAME
+extern plotslices() as slice ptr
+#endif
 
 '==============================================================================
 
@@ -1453,15 +1453,15 @@ Sub ChangeMapSliceTileset(byval sl as slice ptr, byval tileset as TilesetData pt
 end sub
 
 Sub ChangeMapSlice(byval sl as slice ptr,_
-                   byval tiles as TileMap ptr=cast(TileMap ptr, 1),_
-                   byval pass as TileMap ptr=cast(TileMap ptr, 1),_
+                   byval tiles as TileMap ptr = cast(TileMap ptr, 1),_
+                   byval pass as TileMap ptr = cast(TileMap ptr, 1),_
                    byval transparent as integer=-2,_
                    byval overlay as integer=-1)
  if sl = 0 then debug "ChangeMapSlice null ptr" : exit sub
  if sl->SliceType <> slMap then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a map" : exit sub
  dim dat as MapSliceData Ptr = sl->SliceData
  with *dat
-  if tiles <> 1 then
+  if tiles <> cast(TileMap ptr, 1) then
    .tiles = tiles
    if tiles = NULL then
     sl->Width = 0
@@ -1471,7 +1471,7 @@ Sub ChangeMapSlice(byval sl as slice ptr,_
     sl->Height = tiles->high * 20
    end if
   end if
-  if tiles <> 1 then
+  if tiles <> cast(TileMap ptr, 1) then
    '--passmap. If this slice doesn't draw overhead tiles, can set this to NULL
    .pass = pass
   end if

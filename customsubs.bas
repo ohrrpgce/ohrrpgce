@@ -4079,7 +4079,6 @@ FUNCTION spawn_game() as bool
   cleanup_process @slave_process
  END IF
 
- DIM fh as integer = FREEFILE
  DIM channel_name as string
  channel_name = pick_channel_name()
  IF channel_open_server(slave_channel, channel_name) = NO THEN

@@ -1134,8 +1134,6 @@ SUB anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSpri
  DIM hy as integer = 0
  DIM wx as integer = 0
  DIM wy as integer = 0
- DIM xt as integer = 0
- DIM yt as integer = 0
  DIM dx as integer = 0
  DIM dy as integer = 0
  
@@ -1524,7 +1522,7 @@ FUNCTION find_preferred_target(tmask() as integer, byval who as integer, atk as 
 END FUNCTION
 
 FUNCTION quick_battle_distance(byval who1 as integer, byval who2 as integer, bslot() as BattleSprite) as integer
- ' For speed, this function only implements exponent part of the pythagorean theorum
+ ' For speed, this function only implements the exponent part of Pythagoras' formula
  ' and not the square root part of it, making the results only directly useful for
  ' quick comparisons of distance
  DIM as integer distx, disty

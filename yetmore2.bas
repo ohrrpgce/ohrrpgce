@@ -486,7 +486,6 @@ SUB savemapstate_zonemap(byval mapnum as integer, prefix as string)
 END SUB
 
 SUB savemapstate (byval mapnum as integer, byval savemask as integer = 255, prefix as string)
-DIM fh as integer = FREEFILE
 IF savemask AND 1 THEN
  savemapstate_gmap mapnum, prefix
 END IF
