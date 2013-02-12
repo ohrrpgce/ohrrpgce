@@ -47,6 +47,11 @@ DIM SHARED waitfordepth as integer
 DIM SHARED stepmode as integer
 DIM SHARED lastscriptnum as integer
 
+#MACRO dumpandreturn()
+ scrst.pos -= scrat(nowscript).curargn
+ scriptret = 0
+ scrat(nowscript).state = streturn
+#ENDMACRO
 
 SUB scriptinterpreter ()
 DIM i as integer
@@ -139,8 +144,7 @@ DO
         unwindtodo(scrat(nowscript), temp)
         '--for and while need to be broken
         IF curcmd->kind = tyflow AND (curcmd->value = flowfor OR curcmd->value = flowwhile) THEN
-         GOSUB dumpandreturn
-         '--WARNING: WITH pointer probably corrupted
+         dumpandreturn()
         END IF
        CASE flowcontinue
         '--continue could be used to cause an infinite loop (including in a floating do), so also needs these checks
@@ -168,8 +172,7 @@ DO
         .state = streturn
        CASE ELSE
         '--do, then, etc... terminate normally
-        GOSUB dumpandreturn
-        '--WARNING: WITH pointer probably corrupted
+        dumpandreturn()
       END SELECT
       '.state = streturn'---return
      CASE tyscript
@@ -215,8 +218,7 @@ DO
            END IF
           CASE 2
            '--finished then but not at end of argument list: skip else
-           GOSUB dumpandreturn
-           '--WARNING: WITH pointer probably corrupted
+           dumpandreturn()
           CASE ELSE
            scripterr "if statement overstepped bounds", serrBug
          END SELECT
@@ -404,14 +406,6 @@ END WITH
 #IFDEF SCRIPTPROFILE
  IF nowscript >= 0 THEN TIMER_STOP(scrat(nowscript).scr->totaltime)
 #ENDIF
-EXIT SUB
-
-'GOSUB is faster than a function call
-dumpandreturn:
-scrst.pos -= scrat(nowscript).curargn
-scriptret = 0
-scrat(nowscript).state = streturn'---return
-RETRACE
 
 END SUB
 
