@@ -554,10 +554,15 @@ SUB prompt_for_save_and_quit()
   dolumpfiles lumpfile
   cleanup_and_terminate
   EXIT SUB
- END IF
- 
+ END IF 
+
  IF (quitnow = 2 OR quitnow = 3) AND slave_channel <> NULL_CHANNEL THEN
-  IF yesno("You are still running a copy of this game. Quitting will force " & GAMEEXE & " to quit as well. Really quit?") = NO THEN quitnow = 0
+  'Prod the channel to see whether it's still up (send ping)
+  channel_write_line(slave_channel, "P ")
+
+  IF slave_channel <> NULL_CHANNEL THEN
+   IF yesno("You are still running a copy of this game. Quitting will force " & GAMEEXE & " to quit as well. Really quit?") = NO THEN quitnow = 0
+  END IF
  END IF
  IF quitnow = 1 OR quitnow = 2 THEN
   save_current_game
