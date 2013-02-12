@@ -13,6 +13,7 @@
 			print
 			print "Expected " #vec " = " repr
 			print "In fact  " #vec " = " + temp
+			errorfile = __FILE__
 			errorpos = __LINE__
 			return 1
 		end if
@@ -379,7 +380,7 @@ startTest(moveTempStringArray)
 	v_new a1
 	v_append a1, "foo"
 	'fact that a1 is temp should be completely ignored
-	v_ret a1
+	v_ret(a1)
 	v_move a2, a1
 	if v_len(a2) <> 1 then fail
 	if a1 <> NULL then fail
@@ -390,16 +391,16 @@ endTest
 startTest(appendToTempArray)
 	dim as double vector a1, a2
 	v_new a1
-	v_ret a1
+	v_ret(a1)
 	v_append a1, 13.37
 	if v_len(a1) <> 1 then fail
 	v_resize a1, 2
 	a1[1] = a1[0] * 3.1415
 	'should still be temporary, because a1 never appeared as a 'src' argument
-	if __array_is_temp(a1) = 0 then fail
+	if array_is_temp(a1) = 0 then fail
 	v_copy a2, a1
 	if a1 <> NULL then fail
-	if __array_is_temp(a2) then fail
+	if array_is_temp(a2) then fail
 	if v_len(a2) <> 2 then fail
 	if a2[1] <> 42.001855 then fail
 	v_free a2
@@ -441,7 +442,7 @@ startTest(intReverseSort)
 	next
 	v_free arr
 	v_free arr2
-endTest	
+endTest
 
 startTest(stringSort)
 	dim arr as string vector
@@ -525,7 +526,7 @@ startTest(returnVector)
 	v_copy arr, v_range(5)  'or v_move
 	assertVector(arr, "[0, 1, 2, 3, 4]")
 	'Test address-of return value
-	v_extend_d arr, v_range(1)   'unneeded _d form
+	v_extend_d(arr, v_range(1))   'unneeded _d form
 	assertVector(arr, "[0, 1, 2, 3, 4, 0]")
 	v_free arr
 endTest
@@ -551,7 +552,7 @@ startTest(intVectorVectorCtors)
 	dim tmp as integer vector = *v_expand(arr)
 	if tmp <> arr[10] then fail
 	if v_len(tmp) <> 0 then fail
-	v_extend arr[10], arr[9]   'NOTE: passing tmp as first argument is not allowed!
+	v_extend(arr[10], arr[9])   'NOTE: passing tmp as first argument is not allowed!
 	arr[9][0] = 997
 	assertVector(arr, "[[], [], [], [], [], [], [], [], [], [997, 999], [998, 999]]")
 	v_free arr 
@@ -625,15 +626,15 @@ startTest(stringVectorVectorVector)
 	v_new arr, 1                                  'arr := [[]]
 	if arr[0] = NULL then fail
 	if v_len(arr[0]) <> 0 then fail
-	v_resize arr[0], 2                           'arr := [[[], []]]
+	v_resize arr[0], 2                            'arr := [[[], []]]
 	if v_len(arr[0][1]) <> 0 then fail
-	v_append arr[0][1], "~"                      'arr := [[[], ["~"]]]
+	v_append arr[0][1], "~"                       'arr := [[[], ["~"]]]
  	if v_len(arr[0][1]) <> 1 then fail
 	if arr[0][1][0] <> "~" then fail
-	v_resize arr, 3                              'arr := [[[], ["~"]], [], []]
-	v_append arr[1], arr[0][1]                   'arr := [[[], ["~"]], [["~"]], []]
+	v_resize arr, 3                               'arr := [[[], ["~"]], [], []]
+	v_append arr[1], arr[0][1]                    'arr := [[[], ["~"]], [["~"]], []]
 	if @arr[0][1][0] = @arr[1][0][0] then fail
-	v_append arr[1][0], "/.."                    'arr := [[[], ["~"]], [["~", "/.."]], []]
+	v_append arr[1][0], "/.."                     'arr := [[[], ["~"]], [["~", "/.."]], []]
 	assertVector(arr, "[[[], [""~""]], [[""~"", ""/..""]], []]")
 	v_new arr[2], 1                               'arr := [[[], ["~"]], [["~", "/.."]], [[]]]
 	v_new arr[2][0], 1                            'arr := [[[], ["~"]], [["~", "/.."]], [[""]]]
@@ -655,15 +656,15 @@ startTest(VecMap)
 	v_append arr, temp
 	VecMap_destruct temp
 
-	v_extend arr, arr
+	v_extend(arr, arr)
 	assertVector(arr, "[:[], N:[0, -1], E:[1, 0], :[], N:[0, -1], E:[1, 0]]")
 	v_resize arr, v_len(arr) - 2
 	assertVector(arr, "[:[], N:[0, -1], E:[1, 0], :[]]")
 	v_copy arr2, arr
 	if v_str(arr2) <> v_str(arr) then fail
-	v_extend_d arr, arr2
+	v_extend_d(arr, arr2)
 	'if arr2 <> NULL then fail
- 	assertVector(arr, "[:[], N:[0, -1], E:[1, 0], :[], :[], N:[0, -1], E:[1, 0], :[]]")
+	assertVector(arr, "[:[], N:[0, -1], E:[1, 0], :[], :[], N:[0, -1], E:[1, 0], :[]]")
 	v_free arr
 	v_free arr2
 	'? VecMap_counter
@@ -684,14 +685,14 @@ startTest(valgrind)
 endTest
 
 
-'Most error conditions in array.c raise a level 5 error (not-immediately fatal), but bounds checking
-'raises level 4 (probably fatal) errors
+'Most error conditions in array.c raise a errFatalBug error, but bounds checking
+'raises errPromptBug errors
 
 dim shared num_errors as integer = 0
 
 sub error_counter cdecl (byval errorlevel as ErrorLevelEnum, byval msg as zstring ptr)
-	if errorlevel > 4 then
-		print "unexpected error (errlvl=" & errorlevel & "), on vectortest.bas line " & errorpos & ": " & msg
+	if errorlevel > errPromptBug then
+		print "unexpected error (errlvl=" & errorlevel & "): " & *msg
 		end 1
 	end if
 	num_errors += 1

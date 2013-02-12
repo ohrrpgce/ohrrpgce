@@ -55,12 +55,76 @@ END TYPE
 
 #DEFINE type_table(T) type_tbl_##T
 
+''' array.c declarations (internal, do no use!)
+
+extern "C"
+
 'This one function in array.c is special: it needs to be passed a TypeTable which
 'depends on the overload. Therefore, we wrap it.
-declare sub __array_new cdecl alias "array_new" (byref this as any vector, byval length as integer, byval tbl as TypeTable ptr)
+declare sub array_new (byref this as any vector, byval length as integer, byval tbl as TypeTable ptr)
 
 'Undocumented, if you need this, you're probably doing something wrong
-declare function __array_is_temp cdecl alias "array_is_temp" (byval this as any vector) as integer
+declare function array_is_temp (byval this as any vector) as integer
+
+end extern
+
+'Current FB -gen -gcc bug: can't have multiple prototypes aliased to the same function.
+'So need to declare a single prototype for the vector functions, and use macros to point at them.
+'Where the return value is T ptr or T vector it's possible to set the correct return type only
+'by requiring parentheses around arguments.
+'Functions which take a literal as argument need special treatment; they have wrapper functions
+'in DECLARE_VECTOR_OF_TYPE.
+#IFDEF __FB_GCC__
+  extern "C"
+  declare sub array_free (byref this as any vector)
+  declare sub array_assign (byref dest as any vector, byref src as any vector)
+  declare sub array_assign_d (byref dest as any vector, byref src as any vector)
+  declare function array_temp (byval this as any vector) as any vector
+  declare function array_length (byval this as any vector) as uinteger
+  declare sub array_resize (byref this as any vector, byval len as uinteger)
+  declare function array_expand (byref this as any vector, byval amount as uinteger = 1) as any ptr
+  declare function array_index (byval this as any vector, byval index as integer) as any ptr
+  declare function array_end (byval this as any vector) as any ptr
+  declare function array_type (byval this as any vector) as TypeTable ptr
+  declare function array_append (byref this as any vector, byval value as any ptr) as any vector
+  declare function array_extend (byref this as any vector, byref append as any vector) as any vector
+  declare function array_extend_d (byref this as any vector, byref append as any vector) as any vector
+  declare function array_sort (byval this as any vector, byval compfunc as FnCompare = 0) as any vector
+  declare function array_reverse (byref this as any vector) as any vector
+  declare function array_equal (byval lhs as any vector, byval rhs as any vector) as integer
+  declare function array_inequal (byref lhs as any vector, byref rhs as any vector) as integer
+  declare function array_find (byval this as any vector, byval value as any ptr) as integer
+  declare function array_insert (byref this as any vector, byval pos as integer, byval value as any ptr) as any vector
+  declare function array_remove (byref this as any vector, byval value as any ptr) as integer
+  declare function array_delete_slice (byref this as any vector, byval from as integer, byval to as integer) as any vector
+  end extern
+
+  #DEFINE v_free array_free
+  #DEFINE v_copy array_assign
+  #DEFINE v_move array_assign_d
+  #DEFINE v_ret(this) cast(typeof(this), array_temp(this))
+  #DEFINE v_len array_length
+  #DEFINE v_resize array_resize
+  '#DEFINE v_expand(this, amount) cast(typeof(this), array_expand(this, amount))
+  #DEFINE v_at(this, index) cast(typeof(this), array_index(this, index))
+  #DEFINE v_end(this) cast(typeof(this), array_end(this))
+  #DEFINE v_type array_type
+  '#DEFINE v_append(this, value) cast(typeof(this), array_append(this, value))
+  #DEFINE v_extend(this, append) cast(typeof(this), array_extend(this, append))
+  #DEFINE v_extend_d(this, append) cast(typeof(this), array_extend_d(this, append))
+  #DEFINE v_sort array_sort
+  '#DEFINE v_sort(this, compfunc) cast(typeof(this), array_sort(this, compfunc))
+  #DEFINE v_reverse array_reverse
+  '#DEFINE v_reverse(this) cast(typeof(this), array_reverse(this))
+  #DEFINE v_equal array_equal
+  #DEFINE v_inequal array_inequal
+  '#DEFINE v_find array_find
+  '#DEFINE v_insert array_insert
+  '#DEFINE v_remove array_remove
+  #DEFINE v_delete_slice array_delete_slice
+  '#DEFINE v_delete_slice(this, from, to) cast(typeof(this), array_delete_slice(this, from, to))
+#ENDIF
+
 
 '''''''''''''''''''''''''''''' Declaration macro '''''''''''''''''''''''''''''''
 
@@ -72,8 +136,11 @@ declare function __array_is_temp cdecl alias "array_is_temp" (byval this as any 
 
   'Deletes any existing vector in 'this', creates a new vector.
   'Special case: this is a FB wrapper function
-  declare sub v_new overload (byref this as T vector, byval length as integer = 0)
+  private sub v_new overload (byref this as T vector, byval length as integer = 0)
+    array_new(this, length, @type_table(TID))
+  end sub
 
+#IFNDEF __FB_GCC__
   extern "c"
 
   'Deletes vector (if non-NULL), sets variable to NULL
@@ -134,7 +201,7 @@ declare function __array_is_temp cdecl alias "array_is_temp" (byval this as any 
   declare function v_find overload alias "array_find" (byval this as T vector, byref value as T) as integer
 
   'Insert an element at some position. Returns 'this'
-  declare function v_insert overload alias "array_insert" (byref this as T vector, byval pos as integer, byref value as T) as T vector
+  declare function v_insert overload alias "array_insert" (byref this as T vector, byval position as integer, byref value as T) as T vector
 
   'Remove the first instance of value. No error or warning if it isn't found.
   'Returns the index of the item if it was found, or -1 if not
@@ -145,7 +212,36 @@ declare function __array_is_temp cdecl alias "array_is_temp" (byval this as any 
 
   end extern
 
+#ELSE  'IFDEF __GEN_GCC__
+
+  'Can't use the "byref as T" trick when using #defines instead of aliases.
+  'So use wrapper functions instead (luckily GCC can optimise these away)
+
+  'Wrap just for the default argument
+  private function v_expand overload (byref this as T vector, byval amount as uinteger = 1) as T ptr
+    return cast(T ptr, array_expand(this, amount))
+  end function
+
+  private function v_append overload (byref this as T vector, byref value as T) as T vector
+    return cast(T vector, array_append(this, @value))
+  end function
+
+  private function v_find overload (byval this as T vector, byref value as T) as integer
+    return array_find(this, @value)
+  end function
+
+  private function v_insert overload (byref this as T vector, byval position as integer, byref value as T) as T vector
+    return cast(T vector, array_insert(this, position, @value))
+  end function
+
+  private function v_remove overload (byref this as T vector, byref value as T) as integer
+    return array_remove(this, @value)
+  end function
+
+#ENDIF
+
 #ENDMACRO
+
 
 'Accepts any type of vector, and returns a string representation, eg [3, 4]. Understands nested vectors.
 'Doesn't actually modify vec, ignore the byref. (Implemented in vector.bas)
@@ -154,7 +250,7 @@ DECLARE FUNCTION v_str CDECL (byref vec as any vector) as string
 
 'This stuff is commented out until we switch to a version of FB with variadic macros
 /'
-#DEFINE array_of(arg0, arg1)
+#MACRO array_of(arg0, arg1)
 'Special case for strings, as the type of a string literal is actually zstring
 # IF typeof(arg0) = zstring
    array_create(type_table(string), arg0, arg1)
@@ -241,17 +337,13 @@ declare function cdecl array_create(byval tbl as typeTable, ...)
      @#T                            /'name'/                 _
   )
 
-  sub v_new overload (byref this as T vector, byval length as integer = 0)
-    __array_new(this, length, @type_table(TID))
-  end sub
-
 #ENDMACRO
 
 'Defines T vector vector (which means the base type is 'T vector')
 #MACRO DEFINE_VECTOR_VECTOR_OF(T, TID)
   sub TID##_vector_ctor CDECL (byref this as T vector)
     this = NULL
-    __array_new this, 0, @type_table(TID)
+    array_new this, 0, @type_table(TID)
   end sub
 
   sub TID##_vector_copyctor CDECL (byref this as T vector, byref that as T vector)
