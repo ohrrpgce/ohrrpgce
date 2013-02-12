@@ -92,7 +92,7 @@ sub gfx_fb_close
 end sub
 
 function gfx_fb_getversion() as integer
-  return 1
+	return 1
 end function
 
 sub gfx_fb_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
@@ -295,7 +295,7 @@ sub process_key_event(e as Event, byval value as integer)
 	select case e.scancode
 		case scHome to scPageUp, scLeft to scRight, scEnd to scDelete
 #ifdef __FB_WIN32__
-			'If numlock is on, then when a numerical/period numpad key is pressed the key will 
+			'If numlock is on, then when a numerical/period numpad key is pressed the key will
 			'generate 0-9 or ., and can be differentiated from arrow and home, etc., keys.
 			if e.ascii then
 				extrakeys(e.scancode - scHome + scNumpad7) = value

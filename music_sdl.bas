@@ -1,4 +1,4 @@
-'' 
+''
 '' music_sdl.bas - External music functions implemented in SDL.
 ''
 '' part of OHRRPGCE - see elsewhere for license details
@@ -24,7 +24,7 @@ declare sub bam2mid(infile as string, outfile as string, byval useOHRm as intege
 declare function safe_RWops(byval rw as SDL_RWops ptr) as SDL_RWops ptr
 declare sub safe_RWops_close (byval rw as SDL_RWops ptr)
 
-extern "C" 
+extern "C"
 
 declare function SDL_RWFromLump(byval lump as Lump ptr) as SDL_RWops ptr
 
@@ -104,7 +104,7 @@ function music_get_info() as string
 			if i > 0 then ret += ","
 			ret += *Mix_GetMusicDecoder(i)
 		next
-		
+
 		ret += " Sample decoders:"
 		for i = 0 to Mix_GetNumChunkDecoders() - 1
 			if i > 0 then ret += ","
@@ -115,7 +115,7 @@ function music_get_info() as string
 		ret += ")"
 	end if
 
-	return ret       
+	return ret
 end function
 
 sub music_init()
@@ -124,7 +124,7 @@ sub music_init()
 		dim audio_format as Uint16
 		dim audio_channels as integer
 		dim audio_buffers as integer
-	
+
 		' We're going to be requesting certain things from our audio
 		' device, so we set them up beforehand
 		audio_rate = MIX_DEFAULT_FREQUENCY
@@ -132,8 +132,8 @@ sub music_init()
 		audio_channels = 2
 		'Despite the documentation, non power of 2 buffer size MAY work depending on the driver, and pygame even does it
 		'1024 seems to give much lower delay than 1536 before being played, maybe a non-power of two problem
-		audio_buffers = 1024 '1536  
-		
+		audio_buffers = 1024 '1536
+
 		if SDL_WasInit(0) = 0 then
 
 			if SDL_Init(SDL_INIT_AUDIO) then
@@ -158,7 +158,7 @@ sub music_init()
 				exit sub
 			'end if
 		end if
-		
+
 		music_vol = 64
 		music_on = 1
 		music_paused = 0
@@ -174,19 +174,19 @@ sub music_close()
 			'arbitrary medium value
 			Mix_VolumeMusic(64)
 		end if
-		
-		music_stop()		
+
+		music_stop()
 		Mix_CloseAudio()
 		quit_sdl_audio()
 
 		music_on = 0
-		callback_set_up = 0 	' For SFX
-		
+		callback_set_up = 0	' For SFX
+
 		if delhead <> null then
 			'delete temp files
 			dim ditem as delitem ptr
 			dim dlast as delitem ptr
-			
+
 			ditem = delhead
 			while ditem <> null
 				if isfile(*(ditem->fname)) then
@@ -209,12 +209,12 @@ end sub
 sub music_play(songname as string, byval fmt as integer)
 	if music_on = 1 then
 		songname = rtrim$(songname)	'lose any added nulls
-		
+
 		if fmt = FORMAT_BAM then
 			dim midname as string
 			dim as integer flen
 			flen = filelen(songname)
-			'use last 3 hex digits of length as a kind of hash, 
+			'use last 3 hex digits of length as a kind of hash,
 			'to verify that the .bmd does belong to this file
 			flen = flen and &h0fff
 			midname = tmpdir & trimpath$(songname) & "-" & lcase(hex(flen)) & ".bmd"
@@ -261,17 +261,17 @@ sub music_play(songname as string, byval fmt as integer)
 			debug "Could not load song " + songname + " : " & *Mix_GetError
 			exit sub
 		end if
-		
-		Mix_PlayMusic(music_song, -1)			
+
+		Mix_PlayMusic(music_song, -1)
 		music_paused = 0
 
 		'not really working when songs are being faded in.
 		if orig_vol = -1 then
 			orig_vol = Mix_VolumeMusic(-1)
 		end if
-					
+
 		Mix_VolumeMusic(music_vol)
-		
+
 		if fmt <> FORMAT_MIDI then
 			nonmidi_playing = -1
 		else
@@ -308,10 +308,10 @@ sub music_stop()
 		nonmidi_playing = 0
 	end if
 	if music_song_rw <> 0 then
-        	'Is safe even if has already been closed and freed
+		'Is safe even if has already been closed and freed
 		safe_RWops_close(music_song_rw)
 		music_song_rw = NULL
-	end if	
+	end if
 end sub
 
 sub music_setvolume(byval vol as single)
@@ -332,12 +332,12 @@ DECLARE sub SDL_done_playing cdecl(byval channel as integer)
 TYPE sound_effect
 	used as integer 'whether this slot is free
 	effectID as integer 'which sound is loaded
-	
+
 	paused as integer
 	playing as integer
-	
+
 	pause_pos as integer
-	
+
 	buf as Mix_Chunk ptr
 END TYPE
 
@@ -346,17 +346,17 @@ dim shared sfx_slots(7) as sound_effect
 dim shared sound_inited as integer 'must be non-zero for anything but _init to work
 
 sub sound_init
-  	'if this were called twice, the world would end.
-  	if sound_inited then exit sub
-  
-  	'anything that might be initialized here is done in music_init
-  	'but, I must do it here too
-   	music_init
-   	if (callback_set_up = 0) then
-  		Mix_channelFinished(@SDL_done_playing)
-	  	callback_set_up = 1
-  	end if
-  	sound_inited = 1
+	'if this were called twice, the world would end.
+	if sound_inited then exit sub
+
+	'anything that might be initialized here is done in music_init
+	'but, I must do it here too
+	music_init
+	if (callback_set_up = 0) then
+		Mix_channelFinished(@SDL_done_playing)
+		callback_set_up = 1
+	end if
+	sound_inited = 1
 end sub
 
 sub sound_reset
@@ -375,45 +375,45 @@ end sub
 
 
 function next_free_slot() as integer
-  	static retake_slot as integer = 0
-  	dim i as integer
+	static retake_slot as integer = 0
+	dim i as integer
 
-  	'Look for empty slots
-  	for i = 0 to ubound(sfx_slots)
-    	if sfx_slots(i).used = 0 then
-      		return i
-    	end if
-  	next
+	'Look for empty slots
+	for i = 0 to ubound(sfx_slots)
+		if sfx_slots(i).used = 0 then
+			return i
+		end if
+	next
 
-  	'Look for silent slots
-  	for i = 0 to ubound(sfx_slots)
-  		retake_slot = (retake_slot + 1) mod (ubound(sfx_slots)+1)
-  		with sfx_slots(retake_slot)
-    		if .playing = 0 and .paused = 0 then
-    			Mix_FreeChunk(.buf)
-    			.used = 0
-      			return retake_slot
-   		 	end if
-   		 end with
-  	next
+	'Look for silent slots
+	for i = 0 to ubound(sfx_slots)
+		retake_slot = (retake_slot + 1) mod (ubound(sfx_slots)+1)
+		with sfx_slots(retake_slot)
+			if .playing = 0 and .paused = 0 then
+				Mix_FreeChunk(.buf)
+				.used = 0
+				return retake_slot
+			end if
+		end with
+	next
 
-  	return -1 ' no slot found
+	return -1 ' no slot found
 end function
 
-sub sound_play(byval num as integer, byval l as integer,  byval s as integer = 0)
+sub sound_play(byval num as integer, byval l as integer, byval s as integer = 0)
 	dim slot as integer
-	
-	if s=0 then 
+
+	if s=0 then
 		slot=GetSlot(num)
-		if slot=-1 then 
+		if slot=-1 then
 			slot=LoadSound(num)
 		end if
 	else
 		slot=num
 	end if
-	
+
 	if slot=-1 then exit sub
-	
+
 	with sfx_slots(slot)
 		if .buf = 0 then
 			exit sub
@@ -436,17 +436,17 @@ sub sound_play(byval num as integer, byval l as integer,  byval s as integer = 0
 
 end sub
 
-sub sound_pause(byval num as integer,  byval s as integer = 0)
+sub sound_pause(byval num as integer, byval s as integer = 0)
 	dim slot as integer
 
-	if s=0 then 
-		slot=GetSlot(num)
+	if s = 0 then
+		slot = GetSlot(num)
 	else
-		slot=num
+		slot = num
 	end if
 
-	if slot=-1 then exit sub
-	
+	if slot = -1 then exit sub
+
 	with sfx_slots(slot)
 		if .playing <> 0 and .paused = 0 then
 			.paused = 1
@@ -455,95 +455,95 @@ sub sound_pause(byval num as integer,  byval s as integer = 0)
 	end with
 end sub
 
-sub sound_stop(byval num as integer,  byval s as integer = 0)
+sub sound_stop(byval num as integer, byval s as integer = 0)
 	dim slot as integer
-	
-	if s=0 then 
-		slot=GetSlot(num)
+
+	if s = 0 then
+		slot = GetSlot(num)
 	else
-		slot=num
+		slot = num
 	end if
-	
-	if slot=-1 then exit sub
-    with sfx_slots(slot)
-        if .playing <> 0 then
-          	Mix_HaltChannel(slot)
-          	.playing = 0
-          	.paused = 0
-        end if  
-    end with
+
+	if slot = -1 then exit sub
+	with sfx_slots(slot)
+		if .playing <> 0 then
+			Mix_HaltChannel(slot)
+			.playing = 0
+			.paused = 0
+		end if
+	end with
 end sub
 
 sub sound_free(byval num as integer)
-  dim i as integer
-  for i = 0 to ubound(sfx_slots)
-    with sfx_slots(i)
-      if .effectID = num then UnloadSound i
-    end with
-  next
+	dim i as integer
+	for i = 0 to ubound(sfx_slots)
+		with sfx_slots(i)
+			if .effectID = num then UnloadSound i
+		end with
+	next
 end sub
 
 function sound_playing(byval num as integer, byval s as integer=0) as integer
 	dim slot as integer
-	
-	if s=0 then 
-		slot=GetSlot(num)
+
+	if s = 0 then
+		slot = GetSlot(num)
 	else
-		slot=num
+		slot = num
 	end if
-	
-	if slot=-1 then return 0
+
+	if slot = -1 then return 0
 	if sfx_slots(slot).used = 0 then return 0
-	
-    return sfx_slots(slot).playing
+
+	return sfx_slots(slot).playing
 end function
 
 'Returns the slot in the sound pool which corresponds to the given sound effect
 'if the sound is not loaded, returns -1
 Function GetSlot(byval num as integer) as integer
-  dim i as integer
-  for i = 0 to ubound(sfx_slots)
-    with sfx_slots(i)
-      if .used AND .effectID = num then return i
-    end with
-  next
+	dim i as integer
+	for i = 0 to ubound(sfx_slots)
+		with sfx_slots(i)
+			if .used AND .effectID = num then return i
+		end with
+	next
 
-  return -1
+	return -1
 End Function
 
 'Loads an OHR sound (num) into a slot. Returns the slot number, or -1 if an error
 'occurs
 Function LoadSound overload(byval num as integer) as integer
-  dim ret as integer
-  ret = GetSlot(num)
-  if ret >= 0 then return ret
+	dim ret as integer
+	ret = GetSlot(num)
+	if ret >= 0 then return ret
 
-  return LoadSound(soundfile(num), num)
+	return LoadSound(soundfile(num), num)
 End Function
 
-function LoadSound overload(byval lump as Lump ptr,  byval num as integer = -1) as integer
+function LoadSound overload(byval lump as Lump ptr, byval num as integer = -1) as integer
 	return -1
 end function
 
 function LoadSound overload(f as string, byval num as integer = -1) as integer
 	dim slot as integer
 	dim sfx as Mix_Chunk ptr
-	
+
 	if f="" then return -1
 	if not isfile(f) then return -1
-	
+
 	'File size restriction to stop massive oggs being decompressed
 	'into memory.
 	'(this check is now only done in browse.bas when importing)
- 	'if filelen(f) > 500*1024 then 
- 	'	debug "Sound effect file too large (>500k): " & f 
- 	'	return -1
- 	'end if
-	
+	'if filelen(f) > 500*1024 then
+	'	debug "Sound effect file too large (>500k): " & f
+	'	return -1
+	'end if
+
 	sfx = Mix_LoadWav(@f[0])
-	
+
 	if (sfx = NULL) then return -1
-	
+
 	slot=next_free_slot()
 
 	if slot = -1 then
@@ -564,24 +564,24 @@ end function
 
 'Unloads a sound loaded in a slot. TAKES A CACHE SLOT, NOT AN SFX ID NUMBER!
 Sub UnloadSound(byval slot as integer)
-  	if sfx_slots(slot).used = 0 then exit sub
-  	with sfx_slots(slot)
-        Mix_FreeChunk(.buf)
-        .paused = 0
-        .playing = 0
-        .used = 0
+	if sfx_slots(slot).used = 0 then exit sub
+	with sfx_slots(slot)
+		Mix_FreeChunk(.buf)
+		.paused = 0
+		.playing = 0
+		.used = 0
 		.effectID = 0
-        .buf = 0
-  	end with
-End Sub
+		.buf = 0
+	end with
+end Sub
 
 sub SDL_done_playing cdecl(byval channel as integer)
-  	sfx_slots(channel).playing = 0
+	sfx_slots(channel).playing = 0
 end sub
 
 '-- for debugging
 function sfx_slot_info (byval slot as integer) as string
- with sfx_slots(slot)
-   return .used & " " & .effectID & " " & .paused & " " & .playing & " " & .pause_pos & " " & .buf
- end with
+	with sfx_slots(slot)
+		return .used & " " & .effectID & " " & .paused & " " & .playing & " " & .pause_pos & " " & .buf
+	end with
 end function

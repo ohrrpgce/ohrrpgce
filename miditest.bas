@@ -35,9 +35,9 @@ function openMidi() as integer
     'dim moc as MIDIOUTCAPS
     'midiOutGetDevCaps MIDI_MAPPER, @moc, len(MIDIOUTCAPS)
     'debug "Midi port supports Volume changes:" + str$(moc.dwSupport AND MIDICAPS_VOLUME)
-    
+
     return midiOutOpen (@midi_handle,MIDI_MAPPER,0,0,0)
-    
+
     #ENDIF
 end function
 
@@ -50,15 +50,15 @@ function closeMidi() as integer
 end function
 
 function shortMidi(event as UByte, a as UByte, b as UByte) as integer
-	#IFDEF __UNIX__
-	DIM packet(3) as UByte
-	packet(0) = SEQ_MIDIPUTC
-	packet(1) = event
-	_write(midi_handle,@packet(0),4)
-	packet(1) = a
-	_write(midi_handle,@packet(0),4)
-	packet(1) = b
-	_write(midi_handle,@packet(0),4)
+    #IFDEF __UNIX__
+    DIM packet(3) as UByte
+    packet(0) = SEQ_MIDIPUTC
+    packet(1) = event
+    _write(midi_handle,@packet(0),4)
+    packet(1) = a
+    _write(midi_handle,@packet(0),4)
+    packet(1) = b
+    _write(midi_handle,@packet(0),4)
     return 0
     #ELSE
     return midiOutShortMSG(midi_handle,event SHL 0 + a SHL 8 + b SHL 16)

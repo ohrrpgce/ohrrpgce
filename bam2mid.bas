@@ -1,8 +1,8 @@
 ''
 '' bam2mid -- convert a .BAM file to a General Midi .MID file
 ''		2005-10-11 - 1.0 - Ignores final infinite loop point and
-''						   sets velocity to 64. Don't know if that
-''						   is good or bad.
+''		                   sets velocity to 64. Don't know if that
+''		                   is good or bad.
 ''
 '' usage: bam2mid <infile> [<outfile>]
 '' <outfile> defaults to <infile>.mid if not specified.
@@ -22,8 +22,8 @@
 
 #define VELOCITY 		96
 
-#define NOTE_OFF 		&b10000000
-#define NOTE_ON  		&b10010000
+#define NOTE_OFF	&b10000000
+#define NOTE_ON		&b10010000
 #define PATCH_CHANGE 	&b11000000
 
 declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as integer = 0, byval src as any ptr, byval bytes as uinteger ) as integer
@@ -124,7 +124,7 @@ sub bam2mid(infile as string, outfile as string, byval useOHRm as integer)
 	dim delta as integer = 0
 	dim bc as integer
 	dim mb as ubyte
-	
+
 	'put the tempo in
 	bc = setvarval(0)
 	fput f2, , @bignum(0), bc	'variable length delta time
@@ -193,18 +193,18 @@ sub bam2mid(infile as string, outfile as string, byval useOHRm as integer)
 				case 80: 'set label
 					'save file position
 					if chan = 0 then
-					  bc = setvarval(delta)
-				    fput f2, , @bignum(0), bc	'variable length delta time
-				    tracklen += bc
-            mb = &HB0
-            put #f2,,mb
-            mb = 111
-            put #f2,,mb
-            mb = 127
-            put #f2,,mb
-           	tracklen += 3
-            delta = 0
-          end if
+						bc = setvarval(delta)
+						fput f2, , @bignum(0), bc	'variable length delta time
+						tracklen += bc
+						mb = &HB0
+						put #f2,,mb
+						mb = 111
+						put #f2,,mb
+						mb = 127
+						put #f2,,mb
+						tracklen += 3
+						delta = 0
+					end if
 					labelpos(chan) = seek(f1) + 1
 				case 96: 'jump
 					get #f1, , ub 'loop control

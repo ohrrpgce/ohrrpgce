@@ -236,7 +236,7 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
   'starting with svn revision 3964 custom actually supports capslock
   'as a toggle, so we no longer want to treat it like a regular key.
   'that is why these following lines are commented out
-  
+
   ''disable capslock/numlock/pause special keypress behaviour
   'putenv("SDL_DISABLE_LOCK_KEYS=1") 'SDL 1.2.14
   'putenv("SDL_NO_LOCK_KEYS=1")      'SDL SVN between 1.2.13 and 1.2.14
@@ -265,7 +265,7 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
 
   *info_buffer = *info_buffer & " (" & SDL_NumJoysticks() & " joysticks) Driver:"
   SDL_VideoDriverName(info_buffer + LEN(*info_buffer), info_buffer_size - LEN(*info_buffer))
-  
+
   framesize.w = 320
   framesize.h = 200
   RETURN gfx_sdl_set_screen_mode()
@@ -528,7 +528,7 @@ SUB gfx_sdl_set_zoom(byval value as integer)
         internal_set_mouserect 0, framesize.w - 1, 0, framesize.h - 1
       END IF
     END WITH
-  END IF 
+  END IF
 END SUB
 
 FUNCTION gfx_sdl_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as integer
@@ -631,7 +631,7 @@ SUB gfx_sdl_process_events()
         mouseclicks OR= SDL_BUTTON(evnt.button.button)
       CASE SDL_ACTIVEEVENT
         'debug "SDL_ACTIVEEVENT " & evnt.active.state
-        IF evnt.active.state AND SDL_APPINPUTFOCUS THEN 
+        IF evnt.active.state AND SDL_APPINPUTFOCUS THEN
           IF evnt.active.gain = 0 THEN
             SDL_ShowCursor(1)
             IF mouseclipped = 1 THEN
@@ -657,11 +657,11 @@ SUB gfx_sdl_process_events()
         END IF
       CASE SDL_VIDEORESIZE
         'debug "SDL_VIDEORESIZE: w=" & evnt.resize.w & " h=" & evnt.resize.h
-	IF resizable THEN
+        IF resizable THEN
           resizerequested = YES
-	  resizerequest.w = evnt.resize.w / zoom
-	  resizerequest.h = evnt.resize.h / zoom
-	END IF
+          resizerequest.w = evnt.resize.w / zoom
+          resizerequest.h = evnt.resize.h / zoom
+        END IF
     END SELECT
   WEND
 END SUB

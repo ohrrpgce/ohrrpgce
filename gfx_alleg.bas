@@ -1,4 +1,4 @@
-'' 
+''
 '' gfx_alleg.bas - External graphics functions implemented in Allegro
 ''
 '' part of OHRRPGCE - see elsewhere for license details
@@ -51,7 +51,7 @@ extern "C"
 function gfx_alleg_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
 	if init_gfx = 0 then
 		allegro_init()
-	
+
 		set_color_depth(8)
 		if windowed <> 0 then
 			set_gfx_mode(GFX_AUTODETECT_WINDOWED, 640, 400, 0, 0)
@@ -61,12 +61,12 @@ function gfx_alleg_init(byval terminate_signal_handler as sub cdecl (), byval wi
 			baroffset = 40
 		end if
 		clear_bitmap(screen)
-		
+
 		install_keyboard
 		install_mouse
 		unscare_mouse
 		set_window_close_hook(@post_terminate_signal)
-		
+
 		init_gfx = 1
 	end if
 	return 1
@@ -88,10 +88,10 @@ sub gfx_alleg_showpage(byval raw as ubyte ptr, byval w as integer, byval h as in
 	dim as integer x, y
 
 	if screenbuf = null then
-		'only create this once, to save a bit of time	
+		'only create this once, to save a bit of time
 		screenbuf = create_bitmap(320, 200)
 	end if
-	
+
 	for y = 0 to 199
 		for x = 0 to 319
 			#IFDEF putpixel8
@@ -102,21 +102,21 @@ sub gfx_alleg_showpage(byval raw as ubyte ptr, byval w as integer, byval h as in
 			raw += 1
 		next
 	next
-	
+
 	stretch_blit(screenbuf, screen, 0, 0, 320, 200, 0, baroffset, 640, 400)
-	
+
 end sub
 
 sub gfx_alleg_setpal(byval pal as RGBcolor ptr)
 'In 8 bit colour depth, allegro uses 6 bit colour components in the palette
 	dim as integer i
-	
+
 	for i = 0 to 255
 		alpal(i).r = pal[i].r \ 4
 		alpal(i).g = pal[i].g \ 4
 		alpal(i).b = pal[i].b \ 4
 	next
-	
+
 	set_palette(@alpal(0))
 end sub
 
@@ -127,9 +127,9 @@ end function
 sub gfx_alleg_setwindowed(byval iswindow as integer)
 	if iswindow <> 0 then iswindow = 1 'only 1 "true" value
 	if iswindow = windowed then exit sub
-	
+
 	windowed = iswindow
-	
+
 	if init_gfx = 1 then
 		if screenbuf <> null then
 			destroy_bitmap(screenbuf)
@@ -142,7 +142,7 @@ sub gfx_alleg_setwindowed(byval iswindow as integer)
 			set_gfx_mode(GFX_AUTODETECT_FULLSCREEN, 640, 480, 0, 0)
 			baroffset = 40
 		end if
-		set_palette(@alpal(0))		
+		set_palette(@alpal(0))
 	end if
 end sub
 

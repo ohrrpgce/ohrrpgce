@@ -40,54 +40,54 @@ end extern
 #endif
 
 type KeyMapPair
-  curses_key as integer
-  ohr_key as integer
+	curses_key as integer
+	ohr_key as integer
 end type
 
 dim shared keymappairs(...) as KeyMapPair => { _
-    (ASC("A"), scA), _
-    (ASC("B"), scB), _
-    (ASC("C"), scC), _
-    (ASC("D"), scD), _
-    (ASC("E"), scE), _
-    (ASC("F"), scF), _
-    (ASC("G"), scG), _
-    (ASC("H"), scH), _
-    (ASC("I"), scI), _
-    (ASC("J"), scJ), _
-    (ASC("K"), scK), _
-    (ASC("L"), scL), _
-    (ASC("M"), scM), _
-    (ASC("N"), scN), _
-    (ASC("O"), scO), _
-    (ASC("P"), scP), _
-    (ASC("Q"), scQ), _
-    (ASC("R"), scR), _
-    (ASC("S"), scS), _
-    (ASC("T"), scT), _
-    (ASC("U"), scU), _
-    (ASC("V"), scV), _
-    (ASC("W"), scW), _
-    (ASC("X"), scX), _
-    (ASC("Y"), scY), _
-    (ASC("Z"), scZ), _
-    (ASC("0"), sc0), _
-    (ASC("1"), sc1), _
-    (ASC("2"), sc2), _
-    (ASC("3"), sc3), _
-    (ASC("4"), sc4), _
-    (ASC("5"), sc5), _
-    (ASC("6"), sc6), _
-    (ASC("7"), sc7), _
-    (ASC("8"), sc8), _
-    (ASC("9"), sc9), _
-    (ASC(" "), scSpace), _
-    (ASC(","), scComma), _
-    (ASC("."), scPeriod), _
-    (ASC("["), scLeftBracket), _
-    (ASC("]"), scRightBracket), _
-    (ASC("-"), scMinus), _
-    (ASC("+"), scPlus), _
+	(ASC("A"), scA), _
+	(ASC("B"), scB), _
+	(ASC("C"), scC), _
+	(ASC("D"), scD), _
+	(ASC("E"), scE), _
+	(ASC("F"), scF), _
+	(ASC("G"), scG), _
+	(ASC("H"), scH), _
+	(ASC("I"), scI), _
+	(ASC("J"), scJ), _
+	(ASC("K"), scK), _
+	(ASC("L"), scL), _
+	(ASC("M"), scM), _
+	(ASC("N"), scN), _
+	(ASC("O"), scO), _
+	(ASC("P"), scP), _
+	(ASC("Q"), scQ), _
+	(ASC("R"), scR), _
+	(ASC("S"), scS), _
+	(ASC("T"), scT), _
+	(ASC("U"), scU), _
+	(ASC("V"), scV), _
+	(ASC("W"), scW), _
+	(ASC("X"), scX), _
+	(ASC("Y"), scY), _
+	(ASC("Z"), scZ), _
+	(ASC("0"), sc0), _
+	(ASC("1"), sc1), _
+	(ASC("2"), sc2), _
+	(ASC("3"), sc3), _
+	(ASC("4"), sc4), _
+	(ASC("5"), sc5), _
+	(ASC("6"), sc6), _
+	(ASC("7"), sc7), _
+	(ASC("8"), sc8), _
+	(ASC("9"), sc9), _
+	(ASC(" "), scSpace), _
+	(ASC(","), scComma), _
+	(ASC("."), scPeriod), _
+	(ASC("["), scLeftBracket), _
+	(ASC("]"), scRightBracket), _
+	(ASC("-"), scMinus), _
+	(ASC("+"), scPlus), _
 	(KEY_LEFT, scLeft), _
 	(KEY_RIGHT, scRight), _
 	(KEY_UP, scUp), _
@@ -133,7 +133,7 @@ function gfx_console_init(byval terminate_signal_handler as sub cdecl (), byval 
 	window_state.focused = YES
 	window_state.minimised = NO
 
-	if curses_mode then 
+	if curses_mode then
 		retstr = *curses_version()
 		init_keymap()
 		if init_gfx = 0 then

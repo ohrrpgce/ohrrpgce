@@ -32,7 +32,6 @@ Type MIDI_EVENT
 	tmp as Uinteger
 
 	next as MIDI_EVENT ptr
-
 End Type
 
 '/* Some macros that help us stay endianess-independant */
@@ -69,7 +68,6 @@ Function GetVLQ(Byval track as MidiTrack ptr,ByRef p as integer) as integer
 		end if
 		l = l shl 7
 	loop
-
 end function
 
 ' /* Create a single MIDI_EVENT */
@@ -209,8 +207,6 @@ Function MidiTracktoStream(track as Miditrack ptr) as MIDI_EVENT ptr
 	Deallocate head
 
 	return currentEvent
-
-
 end function
 
 
@@ -274,7 +270,7 @@ function MiditoStream(midiData as midifile ptr) as MIDI_EVENT ptr
  	currentEvent->next = 0
 
  	currentEvent = head->next
-    Deallocate track
+	Deallocate track
  	Deallocate head	'/* release the dummy head event */
  	return currentEvent
 end function
@@ -313,7 +309,7 @@ function readmidifile(mididata as midifile ptr, fp as FILE ptr) as integer
  	mididata->nTracks = tracks
 
 
-'     /* Allocate tracks */
+'	/* Allocate tracks */
 	mididata->track = cptr(MIDITrack ptr, CAllocate(len(MIDITrack) * mididata->nTracks))
 	if mididata->track = 0 then
 		goto bail
@@ -388,9 +384,9 @@ function CreateMIDIEventList(midifile as string, division as short ptr) as MIDI_
  		if mididata->track[trackID].data then Deallocate(mididata->track[trackID].data)
 	next
  	Deallocate(mididata->track)
-    Deallocate(mididata)
+	Deallocate(mididata)
 
-    return eventList
+	return eventList
 end function
 
 Sub ConvertToRelative(head as MIDI_EVENT ptr)
@@ -415,7 +411,7 @@ Sub ConvertToRelative(head as MIDI_EVENT ptr)
  		curevent = curevent->next
 
  	Loop
-end Sub
+end sub
 
 
 sub FreeMidiEventList(head as MIDI_EVENT ptr)
@@ -430,4 +426,3 @@ sub FreeMidiEventList(head as MIDI_EVENT ptr)
  		cur = n
  	loop
 end sub
-
