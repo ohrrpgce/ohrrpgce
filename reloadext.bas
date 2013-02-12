@@ -37,15 +37,15 @@ Sub SetBitset(byval node as Nodeptr, byval bit as integer, byval v as integer)
 	if byt >= GetZStringSize(node) then
 		if 0 = ResizeZString(node, byt + 1) then return 'memory failure...
 	end if
-	
-	dim d as zstring ptr = GetZString(node)
+
+	'Work around FB bug #662 gen gcc: zstring ptrs are indexed as char* instead of unsigned char* 
+	dim d as ubyte ptr = GetZString(node)
 	
 	if v then
 		d[byt] = d[byt] or (2 ^ b)
 	else 
 		d[byt] = d[byt] and not(2 ^ b)
 	end if
-	
 End sub
 
 Function GetBitset(byval node as Nodeptr, byval bit as integer) as integer
@@ -62,10 +62,9 @@ Function GetBitset(byval node as Nodeptr, byval bit as integer) as integer
 		return 0
 	end if
 	
-	dim d as zstring ptr = GetZString(node)
+	dim d as ubyte ptr = GetZString(node)
 	
 	return 0 <> (d[byt] and (2 ^ b))
-	
 End function
 
 'due to the needs of the client, although sizeof(bitset(0)) is 4, we are only using the lower 2 bytes.
@@ -73,8 +72,8 @@ sub LoadBitsetArray(byval node as NodePtr, bs() as integer, byval size as intege
 	if node = 0 then return
 	
 	if NodeType(node) <> rltString then return
-	
-	dim d as zstring ptr = GetZString(node)
+
+	dim d as ubyte ptr = GetZString(node)
 	
 	for i as integer = 0 to size * 2 step 2
 		if i < GetZStringSize(node) then
@@ -96,7 +95,7 @@ sub SaveBitsetArray(byval node as NodePtr, bs() as integer, byval size as intege
 	
 	ResizeZString(node, size * 2)
 	
-	dim d as zstring ptr = GetZString(node)
+	dim d as ubyte ptr = GetZString(node)
 	
 	for i as integer = 0 to size - 1
 		d[i * 2] = bs(i) and &hff

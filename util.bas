@@ -739,7 +739,7 @@ END SUB
 
 'Fairly fast (in original C) string hash, ported from from fb2c++ (as strihash,
 'original was case insensitive) which I wrote and tested myself
-FUNCTION strhash(byval strp as zstring ptr, byval leng as integer) as unsigned integer
+FUNCTION strhash(byval strp as ubyte ptr, byval leng as integer) as unsigned integer
  DIM as unsigned integer hash = &hbaad1dea
 
  IF (leng and 3) = 3 THEN
@@ -773,7 +773,7 @@ FUNCTION strhash(byval strp as zstring ptr, byval leng as integer) as unsigned i
 END FUNCTION
 
 FUNCTION strhash(hstr as string) as unsigned integer
- RETURN strhash(hstr, len(hstr))
+ RETURN strhash(cptr(ubyte ptr, strptr(hstr)), len(hstr))
 END FUNCTION
 
 
@@ -799,7 +799,7 @@ FUNCTION hash_file(filename as string) as unsigned integer
       debug "hash_file: fgetiob failed!"
       RETURN 0
     END IF
-    hash xor= strhash(cast(zstring ptr, @buf(0)), readamnt)
+    hash xor= strhash(@buf(0), readamnt)
     hash += ROT(hash, 5)
     size -= 4096
   WEND

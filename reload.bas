@@ -129,7 +129,7 @@ End Sub
 
 'Fed a list of 132010 english words, this produced 131957 unique hashes.
 'The old hash produced only 1931 unique hashes
-'If this changes, reload_HashZString in rparsergenerator.py needs to be updated too
+'If this changes, reload_HashZString in reloadbasic.py needs to be updated too
 Function HashZString(byval st as ZString ptr) as uinteger
 	dim as uinteger ret = 0, i = 0
 	
