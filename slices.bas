@@ -32,9 +32,9 @@ DECLARE Sub SaveProp OVERLOAD (node as Reload.Nodeptr, propname as string, s as 
 
 EXTERN "C"
 
-DECLARE Function LoadPropStr(node as Reload.Nodeptr, propname as string, default as string="") as string
-DECLARE Function LoadProp(node as Reload.Nodeptr, propname as string, byval default as integer=0) as integer
-DECLARE Function LoadPropBool(node as Reload.Nodeptr, propname as string, byval default as integer=NO) as integer
+DECLARE Function LoadPropStr(node as Reload.Nodeptr, propname as string, defaultval as string="") as string
+DECLARE Function LoadProp(node as Reload.Nodeptr, propname as string, byval defaultval as integer=0) as integer
+DECLARE Function LoadPropBool(node as Reload.Nodeptr, propname as string, byval defaultval as integer=NO) as integer
 
 'Other local subs and functions
 DECLARE Function SliceXAlign(byval sl as Slice Ptr, byval alignTo as Slice Ptr) as integer
@@ -2471,19 +2471,19 @@ End sub
 
 '--loading---------------------------------------------------------------------
 
-Function LoadPropStr(node as Reload.Nodeptr, propname as string, default as string="") as string
- if node = 0 then debug "LoadPropStr null node ptr": return default
- return Reload.GetChildNodeStr(node, propname, default)
+Function LoadPropStr(node as Reload.Nodeptr, propname as string, defaultval as string="") as string
+ if node = 0 then debug "LoadPropStr null node ptr": return defaultval
+ return Reload.GetChildNodeStr(node, propname, defaultval)
 End function
 
-Function LoadProp(node as Reload.Nodeptr, propname as string, byval default as integer=0) as integer
- if node = 0 then debug "LoadProp null node ptr": return default
- return Reload.GetChildNodeInt(node, propname, CLNGINT(default))
+Function LoadProp(node as Reload.Nodeptr, propname as string, byval defaultval as integer=0) as integer
+ if node = 0 then debug "LoadProp null node ptr": return defaultval
+ return Reload.GetChildNodeInt(node, propname, CLNGINT(defaultval))
 End function
 
-Function LoadPropBool(node as Reload.Nodeptr, propname as string, byval default as integer=NO) as integer
- if node = 0 then debug "LoadPropBool null node ptr": return default
- return Reload.GetChildNodeBool(node, propname, default)
+Function LoadPropBool(node as Reload.Nodeptr, propname as string, byval defaultval as integer=NO) as integer
+ if node = 0 then debug "LoadPropBool null node ptr": return defaultval
+ return Reload.GetChildNodeBool(node, propname, defaultval)
 End function
 
 Sub SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr)
