@@ -60,7 +60,6 @@ DECLARE FUNCTION seek_rpg_or_rpgdir_and_play_it(where as string, gamename as str
 DECLARE SUB misc_debug_menu()
 DECLARE SUB battle_formation_testing_menu()
 
-REMEMBERSTATE
 
 'FIXME: too many directory variables! Clean this nonsense up
 DIM app_dir as string  'global
@@ -782,7 +781,6 @@ LOOP
 LOOP ' This is the end of the DO that encloses a specific RPG file
 
 reset_game_final_cleanup
-RETRIEVESTATE
 LOOP ' This is the end of the DO that encloses the entire program.
 
 SUB reset_game_final_cleanup()

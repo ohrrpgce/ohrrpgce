@@ -30,9 +30,9 @@ end extern
 
 dim nulzstr as zstring ptr  '(see misc.bi)
 
-'Gosub workaround
-dim shared gosubbuf(31) as crt_jmp_buf
-dim shared gosubptr as integer = 0
+'Gosub workaround global variables
+dim gosubbuf(31) as crt_jmp_buf
+dim gosubptr as integer = 0
 #ifdef timer_variables
 dim timer_variables
 #endif

@@ -87,15 +87,8 @@ EXTERN as string gfxbackendinfo, musicbackendinfo, systeminfo
 # endif
 #endmacro
 
-#if  __FB_VERSION__ = "0.15"
-'use native gosubs
-
-#define retrace return
-#define retrievestate
-#define rememberstate
-#define crt_jmp_buf byte
-
-#elseif 1
+'GOSUB hack
+#ifndef __FB_GCC__
 'use nearly-as-fast assembly version (one extra jump)
 
 #undef gosub
@@ -103,8 +96,6 @@ EXTERN as string gfxbackendinfo, musicbackendinfo, systeminfo
 'the "if 0 then" is used to place a label after the goto
 #define _gosub_beta(a,b) asm : call gosub_##b##_line_##a end asm : if 0 then asm : gosub_##b##_line_##a: end asm : goto
 #define retrace asm ret
-#define retrievestate
-#define rememberstate
 #define crt_jmp_buf byte
 
 #else  'choose GOSUB workaround
@@ -122,13 +113,13 @@ declare function setjmp cdecl alias "setjmp" (byval as any ptr) as integer
 #endif
 declare sub longjmp cdecl alias "longjmp" (byval as any ptr, byval as integer)
 
-extern gosubbuf() as crt_jmp_buf
+extern gosubbuf(31) as crt_jmp_buf
 extern gosubptr as integer
-option nokeyword gosub
+'option nokeyword gosub
+#undef gosub
 #define gosub if setjmp(@gosubbuf(gosubptr)) then gosubptr-=1 else gosubptr+=1:goto
 #define retrace longjmp(@gosubbuf(gosubptr-1),1)
-#define retrievestate gosubptr=localgosubptr
-#define rememberstate localgosubptr=gosubptr
+
 #endif  'choose GOSUB workaround
 
 '#DEFINE CLEAROBJ(OBJ) memset(@(OBJ),0,LEN(OBJ))
