@@ -1,5 +1,3 @@
-option explicit
-
 #include "config.bi"
 #include "crt.bi"
 #IFDEF __UNIX__
@@ -65,20 +63,26 @@ function shortMidi(event as UByte, a as UByte, b as UByte) as integer
     #ENDIF
 end function
 
+sub waitforkey
+    sleep
+    'Clear keypress
+    dim dummy as string = inkey
+end sub
+
 print "(after each step, press a key)"
 
 print "Open midi"
 print openMidi
-sleep
+waitforkey
 
 print "Note on"
 print shortMidi(&H90,&H40,100)
-sleep
+waitforkey
 
 print "Note off"
 print shortMidi(&H80,&H40,0)
-sleep
+waitforkey
 
 print "Close midi"
 print closeMidi
-sleep
+waitforkey

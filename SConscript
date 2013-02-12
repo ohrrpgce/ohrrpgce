@@ -463,6 +463,7 @@ def env_exe(name, **kwargs):
 GAME = gameenv.BASEXE   (gamename, source = gamesrc, FBFLAGS = gameflags)
 CUSTOM = editenv.BASEXE (editname, source = editsrc, FBFLAGS = editflags)
 env_exe ('bam2mid')
+env_exe ('miditest')
 env_exe ('unlump', source = ['unlump.bas', 'lumpfile.o'] + base_objects)
 env_exe ('relump', source = ['relump.bas', 'lumpfile.o'] + base_objects)
 env_exe ('dumpohrkey', source = ['dumpohrkey.bas'] + base_objects)
@@ -576,6 +577,7 @@ Targets:
   gfx_directx_test    (Non-automated) gfx_directx.dll test
   dumpohrkey
   bam2mid
+  miditest
   reload              Compile all RELOAD utilities.
   autotest_rpg        Runs autotest.rpg. See autotest.py for improved harness.
   interactivetest     Runs interactivetest.rpg with recorded input.
