@@ -261,8 +261,8 @@ TYPE SelectTypeState
  last_input_time as double    'TIMER at last input
 END TYPE
 
-DECLARE FUNCTION find_on_word_boundary_excluding(needle as string, haystack as string, excludeword as string) as integer
-DECLARE FUNCTION find_on_word_boundary(needle as string, haystack as string) as integer
+DECLARE FUNCTION find_on_word_boundary_excluding(haystack as string, needle as string, excludeword as string) as integer
+DECLARE FUNCTION find_on_word_boundary(haystack as string, needle as string) as integer
 DECLARE FUNCTION select_by_typing(selectst as SelectTypeState) as bool
 
 'Global variables

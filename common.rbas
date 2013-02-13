@@ -5110,7 +5110,7 @@ END FUNCTION
 'want to start typing from the beginning.
 'For example needle="e" excludeword="edit" matches "edit enemy data" but not "edit items"
 'Returns 0 on no match.
-FUNCTION find_on_word_boundary_excluding(needle as string, haystack as string, excludeword as string) as integer
+FUNCTION find_on_word_boundary_excluding(haystack as string, needle as string, excludeword as string) as integer
  DIM excluding as bool = YES
  IF LEN(excludeword) = 0 OR LEFT(needle, LEN(excludeword)) = excludeword THEN
   excluding = NO
@@ -5129,8 +5129,8 @@ FUNCTION find_on_word_boundary_excluding(needle as string, haystack as string, e
  RETURN 0
 END FUNCTION
 
-FUNCTION find_on_word_boundary(needle as string, haystack as string) as integer
- RETURN find_on_word_boundary_excluding(needle, haystack, "")
+FUNCTION find_on_word_boundary(haystack as string, needle as string) as integer
+ RETURN find_on_word_boundary_excluding(haystack, needle, "")
 END FUNCTION
 
 CONST SELECT_TYPE_TIMEOUT as double = 0.7

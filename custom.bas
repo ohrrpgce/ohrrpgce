@@ -321,7 +321,7 @@ SUB main_editor_menu()
     DIM index as integer = state.pt
     IF LEN(selectst.query) = 1 THEN index = loopvar(index, 0, state.last)
     FOR ctr as integer = 0 TO state.last
-     IF find_on_word_boundary_excluding(selectst.query, LCASE(menu(index)), "edit") THEN
+     IF find_on_word_boundary_excluding(LCASE(menu(index)), selectst.query, "edit") THEN
       state.pt = index
       EXIT FOR
      END IF
@@ -424,7 +424,7 @@ SUB gfx_editor_menu()
    DIM index as integer = state.pt
    IF LEN(selectst.query) = 1 THEN index = loopvar(index, 0, state.last)
    FOR ctr as integer = 0 TO state.last
-    IF find_on_word_boundary(selectst.query, LCASE(menu(index))) THEN
+    IF find_on_word_boundary(LCASE(menu(index)), selectst.query) THEN
      state.pt = index
      EXIT FOR
     END IF

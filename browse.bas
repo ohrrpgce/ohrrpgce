@@ -213,7 +213,7 @@ DO
    FOR ctr as integer = 0 TO br.treesize
     'IF (tree(index).kind = bkParentDir OR tree(index).kind = bkSubDir OR tree(index).kind = bkSelectable) THEN
      'Search both display name (preferentially) and filename
-     IF find_on_word_boundary(selectst.query, LCASE(tree(index).caption)) ORELSE _
+     IF find_on_word_boundary(LCASE(tree(index).caption), selectst.query) ORELSE _
         INSTR(LCASE(tree(index).filename), selectst.query) = 1 THEN
       br.treeptr = index
       EXIT FOR
