@@ -2228,8 +2228,14 @@ FUNCTION editbitset (array() as integer, byval wof as integer, byval last as int
   IF keyval(scF1) > 1 THEN show_help helpkey
   usemenu state
   IF state.pt >= 0 THEN
-   IF keyval(scLeft) > 1 OR keyval(scComma) > 1 THEN setbit array(), wof, bits(state.pt), 0
-   IF keyval(scRight) > 1 OR keyval(scPeriod) > 1 THEN setbit array(), wof, bits(state.pt), 1
+   IF keyval(scLeft) > 1 OR keyval(scComma) > 1 THEN
+    setbit array(), wof, bits(state.pt), 0
+    IF immediate_quit THEN ret = YES: EXIT DO
+   END IF
+   IF keyval(scRight) > 1 OR keyval(scPeriod) > 1 THEN
+    setbit array(), wof, bits(state.pt), 1
+    IF immediate_quit THEN ret = YES: EXIT DO
+   END IF
    IF enter_or_space() THEN
     setbit array(), wof, bits(state.pt), readbit(array(), wof, bits(state.pt)) XOR 1
     IF immediate_quit THEN ret = YES: EXIT DO
