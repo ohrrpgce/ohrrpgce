@@ -1,4 +1,6 @@
-Choose a script file to import into your game.
+Choose a script file to import into your game. The file may be either an .HS file or an .HSS file.
+
+HSS files are the 'source code' you typed. HS files are compiled binary files produced by HSpeak from an HSS file. See the OHR wiki for more info.
 
 Navigate with the Up and Down arrow keys (or PgUp, PgDn, Home, and End).
 
@@ -6,6 +8,6 @@ Press ENTER or SPACE on a folder (blue font) to open it.
 
 Press ENTER or SPACE on a file (gray font) to import it.
 
-The file may be either an .HS file or an .HSS file.
+You can type in the beginning of a folder or file name to move the cursor to it. You can also press a letter repeatedly to cycle through files and folders starting with that letter.
 
-HSS files are the 'source code' you typed. HS files are compiled binary files produced by HSpeak from an HSS file. See the OHR wiki for more info.
+Press F5 to refresh the directory as well as poll the names of all removeable drives.

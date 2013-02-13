@@ -1,3 +1,7 @@
 Browse for a reload document to open. Press ENTER to confirm the file or to change into a different directory.
 
 Press ESC to cancel.
+
+You can type in the beginning of a folder or file name to move the cursor to it. You can also press a letter repeatedly to cycle through files and folders starting with that letter.
+
+Press F5 to refresh the directory as well as poll the names of all removeable drives.

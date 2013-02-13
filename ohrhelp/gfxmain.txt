@@ -1,6 +1,6 @@
 This is the Graphics Editor where you can edit the various graphical elements of your game. Navigate the menu using the arrow keys (or PgUp, PgDn, Home, and End). Press ENTER or SPACE to select a sub-menu, or press ESC to go back to the previous menu.
 
-You can also type in the first letter of one of the words making up the text of a menu option to jump to it. For example, press A to jump to Draw Attacks.
+You can also type in part of a menu option to jump to it. For example, type "bo" to jump to Draw Box Edges.
 
 Choose "Edit Maptiles" to edit and create new tilesets to use for the various layers of your maps.
 

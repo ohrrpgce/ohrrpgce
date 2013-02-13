@@ -44,17 +44,17 @@ Type BrowseMenuState
 	treesize as integer   'last entry
 	viewsize as integer
 	special as integer
-	ranalready as integer
+	ranalready as bool
 	meter as integer
-	drivesshown as integer  'number of drive entries (plus 1 for refresh)
+	drivesshown as integer  'number of drive entries (plus 1 for "refresh" option, if uncommented)
 	alert as string
 	mashead as string
 	paledithead as string
-	showHidden as integer
-	getdrivenames as integer
-	changed as integer
+	showHidden as bool
+	getdrivenames as bool   'Poll drive names on Windows? (can be slow)
+	changed as bool
 	fmask as string
-	snd as integer
+	snd as integer          'Slot of currently playing sound, or -1
 End Type
 
 'Subs and functions only used locally
@@ -71,6 +71,7 @@ FUNCTION browse (byval special as integer, default as string, fmask as string, t
 STATIC remember as string
 DIM ret as string
 
+DIM selectst as SelectTypeState
 DIM br as BrowseMenuState
 br.tmp = tmp
 br.special = special
@@ -96,7 +97,7 @@ br.paledithead = CHR(253) & CHR(217) & CHR(158) & CHR(0) & CHR(0) & CHR(7) & CHR
 REDIM tree(255) as BrowseMenuEntry
 DIM catfg(6) as integer, catbg(6) as integer
 
-br.showHidden = 0
+br.showHidden = NO
 
 'FIXME: do we need another uilook() constant for these "blue" directories instead of uilook(uiTextbox + 1)?
 catfg(0) = uilook(uiMenuItem)   : catbg(0) = uilook(uiHighlight)    'selectable drives (none on unix systems)
@@ -143,9 +144,9 @@ br.treeptr = 0
 br.treetop = 0
 br.treesize = 0
 br.drivesshown = 0
-br.getdrivenames = 0  'whether to fetch names of all drives, on if hit F5
+br.getdrivenames = NO
 
-br.ranalready = 0
+br.ranalready = NO
 build_listing tree(), br
 
 IF LEN(startfile) THEN
@@ -154,8 +155,8 @@ IF LEN(startfile) THEN
  NEXT
 END IF
 
-br.changed = 0
-IF br.alert = "" THEN br.changed = 1  'Don't clobber alert
+br.changed = NO
+IF br.alert = "" THEN br.changed = YES  'Don't clobber alert
 
 setkeys YES
 DO
@@ -165,12 +166,12 @@ DO
  IF keyval(scF1) > 1 THEN show_help helpkey
  IF usemenu(br.treeptr, br.treetop, 0, br.treesize, br.viewsize) OR br.changed THEN
   br.alert = ""
-  br.changed = 0
+  br.changed = NO
   browse_hover tree(), br
  END IF
  IF enter_or_space() THEN
   br.alert = ""
-  br.changed = 1
+  br.changed = YES
   IF br.special = 1 OR br.special = 5 THEN music_stop
   SELECT CASE tree(br.treeptr).kind
    CASE bkDrive
@@ -183,7 +184,7 @@ DO
      build_listing tree(), br
     ELSE
      br.alert = "No media"
-     br.changed = 0
+     br.changed = NO
     END IF
    CASE bkParentDir, bkRoot
     br.nowdir = ""
@@ -206,24 +207,28 @@ DO
    build_listing tree(), br
   END IF
  ELSE
-  'find by letter
-  DIM intext as string = LCASE(LEFT(getinputtext, 1))
-  IF LEN(intext) > 0 THEN
-   FOR j as integer = 1 TO br.treesize
-    DIM mappedj as integer
-    mappedj = (j + br.treeptr) MOD (br.treesize + 1)
-    IF (tree(mappedj).kind = bkParentDir OR tree(mappedj).kind = bkSubDir OR tree(mappedj).kind = bkSelectable) THEN
-     IF LCASE(LEFT(tree(mappedj).caption, 1)) = intext THEN br.treeptr = mappedj: EXIT FOR
-    END IF
+  IF select_by_typing(selectst) THEN
+   DIM index as integer = br.treeptr
+   IF LEN(selectst.query) = 1 THEN index = loopvar(index, 0, br.treesize)
+   FOR ctr as integer = 0 TO br.treesize
+    'IF (tree(index).kind = bkParentDir OR tree(index).kind = bkSubDir OR tree(index).kind = bkSelectable) THEN
+     'Search both display name (preferentially) and filename
+     IF find_on_word_boundary(selectst.query, LCASE(tree(index).caption)) ORELSE _
+        INSTR(LCASE(tree(index).filename), selectst.query) = 1 THEN
+      br.treeptr = index
+      EXIT FOR
+     END IF
+    'END IF
+    index = loopvar(index, 0, br.treesize)
    NEXT
   END IF
  END IF
- IF keyval(scF5) > 1 THEN  'F5
+ IF keyval(scF5) > 1 THEN
   'refresh
   br.drivesshown = 0
   br.getdrivenames = 1
   build_listing tree(), br
-  br.changed = 1
+  br.changed = YES
  END IF
  IF keyval(scBackspace) > 1 THEN 'backspace
   'go up a directory
@@ -231,7 +236,7 @@ DO
    IF br.nowdir[i - 1] = ASC(SLASH) THEN br.nowdir = LEFT(br.nowdir, i) : EXIT FOR
   NEXT
   build_listing tree(), br
-  br.changed = 1
+  br.changed = YES
  END IF
 
  '--Draw screen
@@ -581,7 +586,7 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
  END IF
 #ENDIF
  br.drivesshown = br.treesize + 1
- br.getdrivenames = 0
+ br.getdrivenames = NO
 
  IF br.nowdir = "" THEN
  ELSE
@@ -596,7 +601,7 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
 #IFDEF __FB_WIN32__
   IF hasmedia(b) = 0 THEN
    'Somebody pulled out the disk
-   br.changed = 0
+   br.changed = NO
    br.alert = "Disk not readable"
    br.treesize -= 1
    br.treeptr = 0
@@ -756,7 +761,7 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
  br.treetop = large(br.treetop, 0)
 
  '--don't display progress bar overtop of previous menu
- br.ranalready = 1
+ br.ranalready = YES
 
 END SUB
 

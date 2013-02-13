@@ -5,3 +5,7 @@ Your import files should be saved in BMP format with a bit depth of 8-bit (256 c
 The correct size for a background is 320x200 pixels. The pixel size must be exactly correct.
 
 The browser will display the size and bit depth of any BMP file you select, so you can easily identify files that will fail to import because they have the wrong pixel size or the wrong bit depth.
+
+You can type in the beginning of a folder or file name to move the cursor to it. You can also press a letter repeatedly to cycle through files and folders starting with that letter.
+
+Press F5 to refresh the directory as well as poll the names of all removeable drives.

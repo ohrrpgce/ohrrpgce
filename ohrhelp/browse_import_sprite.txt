@@ -2,7 +2,7 @@ Here you can browse for a BMP file to import as a sprite, for example, a sprite 
 
 Sprites should be saved in BMP format with 4-bit color (that is 16 colors)
 
-The browser will show you the bit-depth of any BMP file you highlight, so you can easily identify any file that will fail to import because it was saved.
+The browser will show you the bit-depth of any BMP file you highlight, so you can easily identify any file that will fail to import because of how it was saved.
 
 The correct pixel size for each sprite type is as follows:
 
@@ -14,8 +14,9 @@ The correct pixel size for each sprite type is as follows:
 50x50  Attacks
 24x24  Weapons
 16x16  Box borders
+50x50  Portraits
 
-Also, if you are in full-spriteset mode (CTRL+F on the sprit list)  you can import an entire sprite set from a single file. here are the sizes for sprite sets:
+Also, if you are in full-spriteset mode (CTRL+F on the sprit list)  you can import an entire sprite set from a single file. Here are the sizes for sprite sets:
 
 256x40  Hero battle picture sets
 160x20  Walkabout sets
@@ -23,4 +24,8 @@ Also, if you are in full-spriteset mode (CTRL+F on the sprit list)  you can impo
 48x24   Weapon sets
 256x16  Box border sets
 
-Note that you are allowed to import files that don't exactly match the correct sprite size. If the BMP is too big, the right and bottom edges will be cropped. If the BMP is too small, the right abd bottom edges will be padded with empty space.
+Note that you are allowed to import files that don't exactly match the correct sprite size. If the BMP is too big, the right and bottom edges will be cropped. If the BMP is too small, the right and bottom edges will be padded with empty space.
+
+You can type in the beginning of a folder or file name to move the cursor to it. You can also press a letter repeatedly to cycle through files and folders starting with that letter.
+
+Press F5 to refresh the directory as well as poll the names of all removeable drives.
