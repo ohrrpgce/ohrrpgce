@@ -28,7 +28,6 @@
 
 declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as uinteger = 0, byval src as any ptr, byval bytes as integer ) as integer
 
-declare sub bam2mid(infile as string, outfile as string, byval useOHRm as integer)
 declare sub setbigval(byval value as integer)
 declare sub setsmallval(byval value as integer)
 declare function setvarval(byval value as integer) as integer
@@ -42,7 +41,7 @@ declare sub magicSysexEnd(byval file as integer)
 dim shared bignum(0 to 3) as ubyte => { 0, 0, 0, 0 }
 dim shared smallnum(0 to 1) as ubyte => { 0, 0 }
 
-sub bam2mid(infile as string, outfile as string, byval useOHRm as integer)
+sub bam2mid(infile as string, outfile as string)
 
 	'fields for writing to midi file
 	dim magic as string * 4
@@ -379,7 +378,7 @@ if outfile = "" then
 end if
 
 
-bam2mid(infile, outfile, 0)
+bam2mid(infile, outfile)
 
 
 

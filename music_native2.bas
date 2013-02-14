@@ -62,12 +62,7 @@ end type
 #DEFINE USE_DEBUG_WINDOW 0
 
 
-
-'extern
-extern tmpdir as string
-
-declare sub bam2mid(infile as string, outfile as string, byval useOHRm as integer)
-
+' Local functions
 
 DECLARE Sub UpdateDelay(byref delay as integer, byval tempo as integer)
 DECLARE Sub StreamCallback(Byval handle as HMIDIOUT, byval umsg as Uinteger, byval dwInstance as UInteger, byval dwParam1 as UInteger, byval dwParam2 as UInteger)
@@ -75,6 +70,7 @@ DECLARE Sub PrepareNextBeat(byval unused as any ptr)
 Declare Sub ResetInternals()
 DECLARE function streamPosition as integer
 
+' Module-local variables
 
 dim shared music_on as integer = 0
 dim shared music_vol as single = 0.5
@@ -749,7 +745,7 @@ sub music_play(songname as string, byval fmt as integer)
 			midname = tmpdir & trimpath$(songname) & "-" & lcase(hex(flen)) & ".bmd"
 			'check if already converted
 			if isfile(midname) = 0 then
-				bam2mid(songname, midname,0)
+				bam2mid(songname, midname)
 				'add to list of temp files
 				dim ditem as delitem ptr
 				if delhead = null then

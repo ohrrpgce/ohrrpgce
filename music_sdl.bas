@@ -19,8 +19,8 @@
 #include "SDL\SDL.bi"
 #include "SDL\SDL_mixer.bi"
 
-'extern
-declare sub bam2mid(infile as string, outfile as string, byval useOHRm as integer)
+' External functions
+
 declare function safe_RWops(byval rw as SDL_RWops ptr) as SDL_RWops ptr
 declare sub safe_RWops_close (byval rw as SDL_RWops ptr)
 
@@ -35,6 +35,7 @@ declare function Mix_LoadMUS_RW (byval rw as SDL_RWops ptr) as Mix_Music ptr
 'Debian and Ubuntu Linux. We distribute our own copy of SDL_mixer for Windows and Mac,
 'so we don't have to worry there.
 #ifndef __FB_LINUX__
+#define ENUMERATE_DECODERS 
 declare function Mix_GetNumMusicDecoders () as integer
 declare function Mix_GetNumChunkDecoders () as integer
 declare function Mix_GetMusicDecoder (byval index as integer) as zstring ptr
@@ -43,9 +44,9 @@ declare function Mix_GetChunkDecoder (byval index as integer) as zstring ptr
 
 end extern
 
-extern tmpdir as string
 
-'local functions
+' Local functions
+
 declare function GetSlot(byval num as integer) as integer
 declare function next_free_slot() as integer
 declare function sfx_slot_info (byval slot as integer) as string
@@ -94,10 +95,7 @@ function music_get_info() as string
 		Mix_QuerySpec(@freq, @format, @channels)
 		ret += " (" & freq & "Hz"
 
-'The following are only available in SDL_mixer > 1.2.8 which is the version shipped with
-'Debian and Ubuntu Linux. We distribute our own copy of SDL_mixer for Windows and Mac,
-'so we don't have to worry there.
-#ifndef __FB_LINUX__
+#ifdef ENUMERATE_DECODERS
 		ret += ", Music decoders:"
 		dim i as integer
 		for i = 0 to Mix_GetNumMusicDecoders() - 1
@@ -220,7 +218,7 @@ sub music_play(songname as string, byval fmt as integer)
 			midname = tmpdir & trimpath$(songname) & "-" & lcase(hex(flen)) & ".bmd"
 			'check if already converted
 			if isfile(midname) = 0 then
-				bam2mid(songname, midname,0)
+				bam2mid(songname, midname)
 				'add to list of temp files
 				dim ditem as delitem ptr
 				if delhead = null then

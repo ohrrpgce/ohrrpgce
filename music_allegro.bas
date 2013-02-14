@@ -4,23 +4,21 @@
 '' part of OHRRPGCE - see elsewhere for license details
 ''
 
-option explicit
-
 #include "music.bi"
-#include "allegro.bi"
 #include "util.bi"
+#include "common.bi"
+
+#undef font
+#include "allegro.bi"
+
 
 'this should be in allegro.bi but isn't
 #define MIDI_AUTODETECT -1
 
-'extern
-extern tmpdir as string
-declare sub debug(s$)
-declare sub bam2mid(infile as string, outfile as string, byval useOHRm as integer)
-declare function isfile(n$) as integer
+' Module-shared variables
 
 dim shared music_on as integer = 0
-dim shared music_vol as integer
+dim shared music_vol as single
 dim shared music_paused as integer
 dim shared music_song as MIDI ptr = 0
 'dim shared orig_vol as integer = -1
@@ -34,13 +32,14 @@ end type
 
 dim shared delhead as delitem ptr = null
 
+
 sub music_init()	
 	'assumes allegro is already active for gfx, will need an 
 	'allegro_init call otherwise
 	if music_on = 0 then
 		install_sound(DIGI_AUTODETECT, MIDI_AUTODETECT, 0)
 		
-		music_vol = 8
+		music_vol = 0.5
 		music_on = 1
 		music_paused = 0
 		
@@ -97,7 +96,7 @@ sub music_play(songname as string, fmt as music_format)
 			midname = tmpdir & trimpath(songname) & "-" & lcase(hex(flen)) & ".bmd"
 			'check if already converted
 			if isfile(midname) = 0 then
-				bam2mid(songname, midname,0)
+				bam2mid(songname, midname)
 				'add to list of temp files
 				dim ditem as delitem ptr
 				if delhead = null then
@@ -169,13 +168,12 @@ end sub
 sub music_setvolume(byval vol as single)
 	music_vol = vol
 	if music_on = 1 then
-		'multiply by 17 to adjust for change in scale
-		'(17 * 15 = 255)
-		set_volume(-1, music_vol * 17)
+		'This sets only MIDI volume
+		set_volume(-1, music_vol * 255)
 	end if
 end sub
 
-function music_getvolume() as integer
+function music_getvolume() as single
 	music_getvolume = music_vol
 end function
 

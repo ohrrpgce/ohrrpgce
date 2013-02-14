@@ -96,11 +96,11 @@ def verprint (used_gfx, used_music, svn, git, fbc):
         else:
             exit("Unrecognised gfx backend " + g)
     for m in used_music:
-        if m in ('native','sdl','native2','silence'):
+        if m in ('native','sdl','native2','allegro','silence'):
             results.append ('#DEFINE MUSIC_%s_BACKEND' % m.upper())
             results.append ('#DEFINE MUSIC_BACKEND "%s"' % m)
         else:
-            exit("Unrecognised music backend " + g)
+            exit("Unrecognised music backend " + m)
     results.append ('#DEFINE SUPPORTED_GFX "%s "' % ' '.join (supported_gfx))
     tmp = ['gfx_choices(%d) = @%s_stuff' % (i, v) for i, v in enumerate (supported_gfx)]
     results.append ("#define GFX_CHOICES_INIT  " +\

@@ -299,6 +299,9 @@ music_map = {'native':
              'sdl':
                  {'shared_modules': 'music_sdl.bas sdl_lumprwops.bas',
                   'libraries': 'SDL SDL_mixer'},
+             'allegro':
+                 {'shared_modules': 'music_allegro.bas',
+                  'libraries': 'alleg'},
              'silence':
                  {'shared_modules': 'music_silence.bas'}
             }

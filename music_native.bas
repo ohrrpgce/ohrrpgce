@@ -89,17 +89,12 @@ dim shared midi_handle as FILE ptr
 #ENDIF
 
 
-
-'extern
-extern tmpdir as string
-
-declare sub bam2mid(infile as string, outfile as string, byval useOHRm as integer)
-
+' Local functions
 
 DECLARE Sub PlayBackThread(byval dummy as any ptr)
 DECLARE Sub UpdateDelay(byref delay as double, byval tempo as integer)
 
-
+' Module-local variables
 
 dim shared music_on as integer = 0
 dim shared music_vol as single = .5
@@ -294,7 +289,7 @@ sub music_play(songname as string, byval fmt as integer)
 			midname = tmpdir & trimpath(songname) & "-" & lcase(hex(flen)) & ".bmd"
 			'check if already converted
 			if isfile(midname) = 0 then
-				bam2mid(songname, midname,1)
+				bam2mid(songname, midname)
 				'add to list of temp files
 				dim ditem as delitem ptr
 				if delhead = null then

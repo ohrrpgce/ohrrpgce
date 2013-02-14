@@ -65,4 +65,10 @@ declare function LoadSound overload(filename as string,  byval num as integer = 
 
 declare sub UnloadSound(byval num as integer)
 
+
+'' Functions in bam2mid.bas
+
+declare sub bam2mid(infile as string, outfile as string)
+
+
 #ENDIF
