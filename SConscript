@@ -514,10 +514,13 @@ INTERTEST = env.Command ('interactivetest', source = GAME, action =
                          [File(gamename).abspath + tmp + ' --log . --runfast testgame/interactivetest.rpg'
                           ' --replayinput testgame/interactivetest.ohrkey',
                           'grep -q "TRACE: TESTS SUCCEEDED" g_debug.txt'])
+# This prevents more than one copy of Game from being run at once
+# (doesn't matter where g_debug.txt is actually placed)
+SideEffect ('g_debug.txt', [AUTOTEST, INTERTEST])
 
 testprogs = ['reloadtest', 'rbtest', 'vectortest']
 tests = [File(prog).abspath for prog in testprogs]
-# The has to be some better way to do this...
+# There has to be some better way to do this...
 env.Command ('test', source = testprogs + [XML2RELOAD, AUTOTEST, INTERTEST], action = tests)
 
 Default (GAME)
@@ -549,8 +552,7 @@ Options:
   valgrind=1          valgrinding build.
   profile=1           Profiling build for gprof.
   scriptprofile=1     Script profiling build.
-  linkgcc=0           Link using fbc instead of g++.
-  asm=1               Produce .asm files instead of compiling.
+  asm=1               Produce .asm or .c files instead of compiling.
   fbc=PATH            Override fbc.
   macsdk=version      Target a previous version of Mac OS X, eg. 10.4
                       You will need the relevant SDK installed, and need to use a
@@ -560,6 +562,7 @@ Experimental options:
   raster=1            Include new graphics API and rasterizer.
   gengcc=1            Compile using GCC emitter.
   deprecated=1        Compiles certain source files using the "deprecated" dialect
+  linkgcc=0           Link using fbc instead of g++.
 
 Targets:
   """ + gamename + """ (or game)
