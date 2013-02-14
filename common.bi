@@ -67,11 +67,11 @@ DECLARE FUNCTION scriptname (byval num as integer) as string
 
 DECLARE Function seconds2str(byval sec as integer, f as string = " %m: %S") as string
 
-DECLARE SUB loaddefaultpals (byval fileset as integer, poffset() as integer, byval sets as integer)
-DECLARE SUB savedefaultpals (byval fileset as integer, poffset() as integer, byval sets as integer)
-DECLARE SUB guessdefaultpals (byval fileset as integer, poffset() as integer, byval sets as integer)
-DECLARE FUNCTION getdefaultpal(byval fileset as integer, byval index as integer) as integer
-DECLARE FUNCTION abs_pal_num(byval num as integer, byval sprtype as integer, byval spr as integer) as integer
+DECLARE SUB loaddefaultpals (byval fileset as SpriteType, poffset() as integer, byval sets as integer)
+DECLARE SUB savedefaultpals (byval fileset as SpriteType, poffset() as integer, byval sets as integer)
+DECLARE SUB guessdefaultpals (byval fileset as SpriteType, poffset() as integer, byval sets as integer)
+DECLARE FUNCTION getdefaultpal(byval fileset as SpriteType, byval index as integer) as integer
+DECLARE FUNCTION abs_pal_num(byval num as integer, byval sprtype as SpriteType, byval spr as integer) as integer
 
 DECLARE FUNCTION getfixbit(byval bitnum as integer) as integer
 DECLARE SUB setfixbit(byval bitnum as integer, byval bitval as integer)
@@ -259,6 +259,11 @@ TYPE SelectTypeState
  query as string              'String to search for
  buffer as string             'Text the user has entered
  last_input_time as double    'TIMER at last input
+
+ 'Used by highlight_menu_selection
+ query_at as integer          'Offset in text of current menu item of match, or 0
+ remember_text as string
+ remember_pt as integer
 END TYPE
 
 DECLARE FUNCTION find_on_word_boundary_excluding(haystack as string, needle as string, excludeword as string) as integer

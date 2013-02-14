@@ -18,7 +18,7 @@ DECLARE SUB update_backdrop_slice
 DECLARE SUB cleanuptemp
 DECLARE FUNCTION checkfordeath () as integer
 DECLARE SUB aheadxy (byref x as integer, byref y as integer, byval direction as integer, byval distance as integer)
-DECLARE SUB exitprogram (byval need_fade_out as integer = NO, byval errorout as integer = NO)
+DECLARE SUB exitprogram (byval need_fade_out as bool = NO, byval errorout as integer = 0)
 DECLARE SUB keyboardsetup
 DECLARE SUB verify_quit
 DECLARE FUNCTION titlescreen () as integer

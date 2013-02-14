@@ -57,7 +57,7 @@ declare sub sound_pause(byval num as integer,  byval s as integer = 0)
 declare sub sound_stop(byval num as integer,  byval s as integer = 0)
 declare sub sound_free(byval num as integer)'only used by custom for the importing interface
 
-declare function sound_playing(byval num as integer,  byval s as integer = 0) as integer
+declare function sound_playing(byval num as integer,  byval s as integer = 0) as bool
 
 declare function LoadSound overload(byval num as integer) as integer
 declare function LoadSound overload(byval lump as Lump ptr,  byval num as integer = -1) as integer

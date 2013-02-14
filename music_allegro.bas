@@ -1,5 +1,5 @@
 '' 
-'' music_sdl.bas - External music functions implemented in SDL.
+'' music_allegro.bas - External music functions implemented in Allegro
 ''
 '' part of OHRRPGCE - see elsewhere for license details
 ''
@@ -321,9 +321,9 @@ sub sound_stop(byval slot as integer)
   end with
 end sub
 
-function sound_playing(byval slot as integer) as integer
+function sound_playing(byval slot as integer) as bool
   with sfx_slots(slot)
-    if .used = 0 then return 0
+    if .used = 0 then return NO
     
     return voice_get_position(.voice) <> -1
     

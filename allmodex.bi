@@ -26,7 +26,7 @@ DECLARE SUB freepage (byval page as integer)
 DECLARE FUNCTION registerpage (byval spr as Frame ptr) as integer
 DECLARE SUB copypage (byval page1 as integer, byval page2 as integer)
 DECLARE SUB clearpage (byval page as integer, byval colour as integer = -1)
-DECLARE FUNCTION updatepagesize (byval page as integer) as integer
+DECLARE FUNCTION updatepagesize (byval page as integer) as bool
 DECLARE SUB unlockresolution (byval min_w as integer = -1, byval min_h as integer = -1)
 DECLARE SUB setresolution (byval w as integer, byval h as integer)
 DECLARE SUB resetresolution ()
@@ -41,16 +41,16 @@ DECLARE FUNCTION tileset_load(byval num as integer) as Frame ptr
 DECLARE FUNCTION readblock (map as TileMap, byval x as integer, byval y as integer) as integer
 DECLARE SUB writeblock (map as TileMap, byval x as integer, byval y as integer, byval v as integer)
 
-DECLARE SUB drawmap OVERLOAD (tmap as TileMap, byval x as integer, byval y as integer, byval tileset as TilesetData ptr, byval p as integer, byval trans as integer = 0, byval overheadmode as integer = 0, byval pmapptr as TileMap ptr = NULL, byval ystart as integer = 0, byval yheight as integer = -1)
-DECLARE SUB drawmap OVERLOAD (tmap as TileMap, byval x as integer, byval y as integer, byval tilesetsprite as Frame ptr, byval p as integer, byval trans as integer = 0, byval overheadmode as integer = 0, byval pmapptr as TileMap ptr = NULL, byval ystart as integer = 0, byval yheight as integer = -1, byval largetileset as integer = NO)
-DECLARE SUB drawmap OVERLOAD (tmap as TileMap, byval x as integer, byval y as integer, byval tilesetsprite as Frame ptr, byval dest as Frame ptr, byval trans as integer = 0, byval overheadmode as integer = 0, byval pmapptr as TileMap ptr = NULL, byval largetileset as integer = NO)
+DECLARE SUB drawmap OVERLOAD (tmap as TileMap, byval x as integer, byval y as integer, byval tileset as TilesetData ptr, byval p as integer, byval trans as bool = NO, byval overheadmode as integer = 0, byval pmapptr as TileMap ptr = NULL, byval ystart as integer = 0, byval yheight as integer = -1)
+DECLARE SUB drawmap OVERLOAD (tmap as TileMap, byval x as integer, byval y as integer, byval tilesetsprite as Frame ptr, byval p as integer, byval trans as bool = NO, byval overheadmode as integer = 0, byval pmapptr as TileMap ptr = NULL, byval ystart as integer = 0, byval yheight as integer = -1, byval largetileset as bool = NO)
+DECLARE SUB drawmap OVERLOAD (tmap as TileMap, byval x as integer, byval y as integer, byval tilesetsprite as Frame ptr, byval dest as Frame ptr, byval trans as bool = NO, byval overheadmode as integer = 0, byval pmapptr as TileMap ptr = NULL, byval largetileset as bool = NO)
 
 DECLARE SUB setanim (byval cycle1 as integer, byval cycle2 as integer)
 DECLARE SUB setoutside (byval defaulttile as integer)
 
 '--box drawing
-DECLARE SUB drawbox OVERLOAD (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval col as integer, byval thick as integer = 1, byval p as integer)
-DECLARE SUB drawbox OVERLOAD (byval dest as Frame ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval col as integer, byval thick as integer = 1)
+DECLARE SUB drawbox OVERLOAD (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval col as integer, byval thickness as integer = 1, byval p as integer)
+DECLARE SUB drawbox OVERLOAD (byval dest as Frame ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval col as integer, byval thickness as integer = 1)
 DECLARE SUB rectangle OVERLOAD (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval c as integer, byval p as integer)
 DECLARE SUB rectangle OVERLOAD (byval fr as Frame Ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval c as integer)
 DECLARE SUB fuzzyrect OVERLOAD (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval c as integer, byval p as integer, byval fuzzfactor as integer = 50)
@@ -62,14 +62,14 @@ DECLARE SUB setclip (byval l as integer = 0, byval t as integer = 0, byval r as 
 DECLARE SUB shrinkclip(byval l as integer = 0, byval t as integer = 0, byval r as integer = 999999, byval b as integer = 999999, byval fr as Frame ptr)
 DECLARE SUB saveclip(byref buf as ClipState)
 DECLARE SUB loadclip(byref buf as ClipState)
-DECLARE SUB drawspritex (pic() as integer, byval picoff as integer, pal() as integer, byval po as integer, byval x as integer, byval y as integer, byval page as integer, byval scale as integer=1, byval trans as integer = -1)
-DECLARE SUB drawsprite (pic() as integer, byval picoff as integer, pal() as integer, byval po as integer, byval x as integer, byval y as integer, byval page as integer, byval trans as integer = -1)
-DECLARE SUB wardsprite (pic() as integer, byval picoff as integer, pal() as integer, byval po as integer, byval x as integer, byval y as integer, byval page as integer, byval trans as integer = -1)
+DECLARE SUB drawspritex (pic() as integer, byval picoff as integer, pal() as integer, byval po as integer, byval x as integer, byval y as integer, byval page as integer, byval scale as integer=1, byval trans as bool = YES)
+DECLARE SUB drawsprite (pic() as integer, byval picoff as integer, pal() as integer, byval po as integer, byval x as integer, byval y as integer, byval page as integer, byval trans as bool = YES)
+DECLARE SUB wardsprite (pic() as integer, byval picoff as integer, pal() as integer, byval po as integer, byval x as integer, byval y as integer, byval page as integer, byval trans as bool = YES)
 DECLARE SUB getsprite (pic() as integer, byval picoff as integer, byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval page as integer)
 DECLARE SUB stosprite (pic() as integer, byval picoff as integer, byval x as integer, byval y as integer, byval page as integer)
 DECLARE SUB loadsprite (pic() as integer, byval picoff as integer, byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval page as integer)
-DECLARE SUB bigsprite  (pic() as integer, pal() as integer, byval p as integer, byval x as integer, byval y as integer, byval page as integer, byval trans as integer = -1)
-DECLARE SUB hugesprite (pic() as integer, pal() as integer, byval p as integer, byval x as integer, byval y as integer, byval page as integer, byval trans as integer = -1)
+DECLARE SUB bigsprite  (pic() as integer, pal() as integer, byval p as integer, byval x as integer, byval y as integer, byval page as integer, byval trans as bool = YES)
+DECLARE SUB hugesprite (pic() as integer, pal() as integer, byval p as integer, byval x as integer, byval y as integer, byval page as integer, byval trans as bool = YES)
 DECLARE SUB putpixel OVERLOAD (byval spr as Frame ptr, byval x as integer, byval y as integer, byval c as integer)
 DECLARE SUB putpixel OVERLOAD (byval x as integer, byval y as integer, byval c as integer, byval p as integer)
 DECLARE FUNCTION readpixel OVERLOAD (byval spr as Frame ptr, byval x as integer, byval y as integer) as integer
@@ -84,23 +84,23 @@ DECLARE SUB storemxs (fil as string, byval record as integer, byval fr as Frame 
 DECLARE FUNCTION loadmxs (fil as string, byval record as integer, byval dest as Frame ptr = 0) as Frame ptr
 
 DECLARE SUB setwait (byval t as integer, byval flagt as integer = 0)
-DECLARE FUNCTION dowait () as integer
-DECLARE SUB enable_speed_control(byval setting as integer=YES)
+DECLARE FUNCTION dowait () as bool
+DECLARE SUB enable_speed_control(byval setting as bool = YES)
 DECLARE FUNCTION get_tickcount() as integer
 
 DECLARE FUNCTION parse_tag(z as string, byval offset as integer, byval action as string ptr, byval arg as integer ptr) as integer
 
 TYPE PrintStrStatePtr as PrintStrState Ptr
 
-DECLARE SUB text_layout_dimensions (byval retsize as StringSize ptr, z as string, byval endchar as integer = 999999, byval maxlines as integer = 999999, byval wide as integer = 999999, byval fontnum as integer, byval withtags as integer = YES, byval withnewlines as integer = YES)
-DECLARE SUB printstr OVERLOAD (byval dest as Frame ptr, s as string, byval x as integer, byval y as integer, byval wide as integer = 999999, byval fontnum as integer, byval withtags as integer = YES, byval withnewlines as integer = YES)
-DECLARE SUB printstr OVERLOAD (s as string, byval x as integer, byval y as integer, byval p as integer, byval withtags as integer = NO)
-DECLARE SUB edgeprint (s as string, byval x as integer, byval y as integer, byval c as integer, byval p as integer, byval withtags as integer = NO)
+DECLARE SUB text_layout_dimensions (byval retsize as StringSize ptr, z as string, byval endchar as integer = 999999, byval maxlines as integer = 999999, byval wide as integer = 999999, byval fontnum as integer, byval withtags as bool = YES, byval withnewlines as bool = YES)
+DECLARE SUB printstr OVERLOAD (byval dest as Frame ptr, s as string, byval x as integer, byval y as integer, byval wide as integer = 999999, byval fontnum as integer, byval withtags as bool = YES, byval withnewlines as bool = YES)
+DECLARE SUB printstr OVERLOAD (s as string, byval x as integer, byval y as integer, byval p as integer, byval withtags as bool = NO)
+DECLARE SUB edgeprint (s as string, byval x as integer, byval y as integer, byval c as integer, byval p as integer, byval withtags as bool = NO)
 DECLARE SUB textcolor (byval fg as integer, byval bg as integer)
 
-DECLARE FUNCTION textwidth (z as string, byval fontnum as integer = 0, byval withtags as integer = YES, byval withnewlines as integer = YES) as integer
+DECLARE FUNCTION textwidth (z as string, byval fontnum as integer = 0, byval withtags as bool = YES, byval withnewlines as bool = YES) as integer
 
-DECLARE SUB find_point_in_text (byval retsize as StringCharPos ptr, byval seekx as integer, byval seeky as integer, z as string, byval wide as integer = 999999, byval xpos as integer = 0, byval ypos as integer = 0, byval fontnum as integer, byval withtags as integer = YES, byval withnewlines as integer = YES)
+DECLARE SUB find_point_in_text (byval retsize as StringCharPos ptr, byval seekx as integer, byval seeky as integer, z as string, byval wide as integer = 999999, byval xpos as integer = 0, byval ypos as integer = 0, byval fontnum as integer, byval withtags as bool = YES, byval withnewlines as bool = YES)
 
 DECLARE SUB setfont (f() as integer)
 DECLARE SUB font_create_edged (byval font as Font ptr, byval basefont as Font ptr)
@@ -133,15 +133,15 @@ DECLARE FUNCTION nearcolor OVERLOAD (pal() as RGBcolor, byval red as ubyte, byva
 DECLARE FUNCTION nearcolor OVERLOAD (pal() as RGBcolor, byval index as integer, byval firstindex as integer = 0) as ubyte
 DECLARE FUNCTION bmpinfo (f as string, byref dat as BitmapInfoHeader) as integer
 
-DECLARE FUNCTION isawav(fi as string) as integer
+DECLARE FUNCTION isawav(fi as string) as bool
 
 DECLARE FUNCTION keyval (byval a as integer, byval repeat_wait as integer = 0, byval repeat_rate as integer = 0) as integer
 DECLARE FUNCTION getinputtext () as string
-DECLARE FUNCTION interrupting_keypress () as integer
-DECLARE FUNCTION anykeypressed (byval checkjoystick as integer = YES) as integer
+DECLARE FUNCTION interrupting_keypress () as bool
+DECLARE FUNCTION anykeypressed (byval checkjoystick as bool = YES) as integer
 DECLARE FUNCTION waitforanykey () as integer
 DECLARE SUB setkeyrepeat (byval repeat_wait as integer = 500, byval repeat_rate as integer = 55)
-DECLARE SUB setkeys (byval enable_inputtext as integer = NO)
+DECLARE SUB setkeys (byval enable_inputtext as bool = NO)
 DECLARE SUB clearkey (byval k as integer)
 DECLARE SUB setquitflag ()
 #DEFINE slowkey(key, ms) (keyval((key), (ms), (ms)) > 1)
@@ -151,22 +151,22 @@ DECLARE SUB stop_recording_input ()
 DECLARE SUB start_replaying_input (filename as string)
 DECLARE SUB stop_replaying_input (msg as string="", byval errorlevel as ErrorLevelEnum = errError)
 
-DECLARE FUNCTION havemouse () as integer
+DECLARE FUNCTION havemouse () as bool
 DECLARE SUB hidemousecursor ()
 DECLARE SUB unhidemousecursor ()
 DECLARE FUNCTION readmouse () as MouseInfo
 DECLARE SUB movemouse (byval x as integer, byval y as integer)
 DECLARE SUB mouserect (byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
 
-DECLARE FUNCTION readjoy OVERLOAD (joybuf() as integer, byval jnum as integer) as integer
-DECLARE FUNCTION readjoy (byval joynum as integer, byref buttons as integer, byref x as integer, byref y as integer) as integer
+DECLARE FUNCTION readjoy OVERLOAD (joybuf() as integer, byval jnum as integer) as bool
+DECLARE FUNCTION readjoy (byval joynum as integer, byref buttons as integer, byref x as integer, byref y as integer) as bool
 
 DECLARE SUB resetsfx ()
 DECLARE SUB playsfx (byval num as integer, byval l as integer=0) 'l is loop count. -1 for infinite loop
 DECLARE SUB stopsfx (byval num as integer)
 DECLARE SUB pausesfx (byval num as integer)
 DECLARE SUB freesfx (byval num as integer) ' only used by custom's importing interface
-DECLARE FUNCTION sfxisplaying (byval num as integer) as integer
+DECLARE FUNCTION sfxisplaying (byval num as integer) as bool
 DECLARE FUNCTION getmusictype (file as string) as integer
 'DECLARE SUB getsfxvol (byval num as integer)
 'DECLARE SUB setsfxvol (byval num as integer, byval vol as integer)
@@ -175,15 +175,15 @@ DECLARE FUNCTION getmusictype (file as string) as integer
 'DECLARE SUB setsoundvol (byval vol)
 
 'new sprite functions
-declare function frame_new(byval w as integer, byval h as integer, byval frames as integer = 1, byval clr as integer = NO, byval wantmask as integer = NO) as Frame ptr
+declare function frame_new(byval w as integer, byval h as integer, byval frames as integer = 1, byval clr as bool = NO, byval wantmask as bool = NO) as Frame ptr
 declare function frame_new_view(byval spr as Frame ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer) as Frame ptr
 declare function frame_new_from_buffer(pic() as integer, byval picoff as integer) as Frame ptr
 declare function frame_load overload (byval ptno as integer, byval rec as integer) as frame ptr
 declare function frame_load(as string, byval as integer, byval as integer , byval as integer, byval as integer) as frame ptr
 declare function frame_reference(byval p as frame ptr) as frame ptr
 declare sub frame_unload(byval p as frame ptr ptr)
-declare sub frame_draw overload (byval src as frame ptr, Byval pal as Palette16 ptr = NULL, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = -1, byval page as integer)
-declare sub frame_draw(byval src as Frame ptr, Byval pal as Palette16 ptr = NULL, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = YES, byval dest as Frame ptr)
+declare sub frame_draw overload (byval src as frame ptr, byval pal as Palette16 ptr = NULL, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as bool = YES, byval page as integer)
+declare sub frame_draw(byval src as Frame ptr, byval pal as Palette16 ptr = NULL, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as bool = YES, byval dest as Frame ptr)
 declare function frame_dissolved(byval spr as frame ptr, byval tlength as integer, byval t as integer, byval style as integer) as frame ptr
 declare function default_dissolve_time(byval style as integer, byval w as integer, byval h as integer) as integer
 declare sub frame_flip_horiz(byval spr as frame ptr)
@@ -196,7 +196,7 @@ declare sub sprite_empty_cache()
 declare sub sprite_update_cache_pt(byval ptno as integer)
 declare sub sprite_update_cache_tilesets()
 declare sub tileset_empty_cache()
-declare function frame_is_valid(byval p as frame ptr) as integer
+declare function frame_is_valid(byval p as frame ptr) as bool
 declare sub sprite_debug_cache()
 declare function frame_describe(byval p as frame ptr) as string
 

@@ -330,11 +330,11 @@ end function
 DECLARE sub SDL_done_playing cdecl(byval channel as integer)
 
 TYPE sound_effect
-	used as integer 'whether this slot is free
+	used as bool        'whether this slot is free
 	effectID as integer 'which sound is loaded
 
-	paused as integer
-	playing as integer
+	paused as bool
+	playing as bool
 
 	pause_pos as integer
 
@@ -380,7 +380,7 @@ function next_free_slot() as integer
 
 	'Look for empty slots
 	for i = 0 to ubound(sfx_slots)
-		if sfx_slots(i).used = 0 then
+		if sfx_slots(i).used = NO then
 			return i
 		end if
 	next
@@ -389,9 +389,9 @@ function next_free_slot() as integer
 	for i = 0 to ubound(sfx_slots)
 		retake_slot = (retake_slot + 1) mod (ubound(sfx_slots)+1)
 		with sfx_slots(retake_slot)
-			if .playing = 0 and .paused = 0 then
+			if .playing = NO and .paused = NO then
 				Mix_FreeChunk(.buf)
-				.used = 0
+				.used = NO
 				return retake_slot
 			end if
 		end with
@@ -423,14 +423,14 @@ sub sound_play(byval num as integer, byval l as integer, byval s as integer = 0)
 
 		if .paused then
 			Mix_Resume(slot)
-			.paused = 0
+			.paused = NO
 		end if
 
-		if .playing=0 then
+		if .playing = NO then
 			if mix_playchannel(slot,.buf,l) = -1 then
 				exit sub
 			end if
-			.playing = 1
+			.playing = YES
 		end if
 	end with
 
@@ -448,8 +448,8 @@ sub sound_pause(byval num as integer, byval s as integer = 0)
 	if slot = -1 then exit sub
 
 	with sfx_slots(slot)
-		if .playing <> 0 and .paused = 0 then
-			.paused = 1
+		if .playing <> NO and .paused = NO then
+			.paused = YES
 			Mix_Pause(slot)
 		end if
 	end with
@@ -466,10 +466,10 @@ sub sound_stop(byval num as integer, byval s as integer = 0)
 
 	if slot = -1 then exit sub
 	with sfx_slots(slot)
-		if .playing <> 0 then
+		if .playing <> NO then
 			Mix_HaltChannel(slot)
-			.playing = 0
-			.paused = 0
+			.playing = NO
+			.paused = NO
 		end if
 	end with
 end sub
@@ -483,7 +483,7 @@ sub sound_free(byval num as integer)
 	next
 end sub
 
-function sound_playing(byval num as integer, byval s as integer=0) as integer
+function sound_playing(byval num as integer, byval s as integer=0) as bool
 	dim slot as integer
 
 	if s = 0 then
@@ -492,8 +492,8 @@ function sound_playing(byval num as integer, byval s as integer=0) as integer
 		slot = num
 	end if
 
-	if slot = -1 then return 0
-	if sfx_slots(slot).used = 0 then return 0
+	if slot = -1 then return NO
+	if sfx_slots(slot).used = NO then return NO
 
 	return sfx_slots(slot).playing
 end function
@@ -550,11 +550,11 @@ function LoadSound overload(f as string, byval num as integer = -1) as integer
 		debug "LoadSound(""" & f & """, " & num & ") no more sound slots available"
 	else
 		with sfx_slots(slot)
-			.used = 1
+			.used = YES
 			.effectID = num
 			.buf = sfx
-			.playing = 0
-			.paused = 0
+			.playing = NO
+			.paused = NO
 		end with
 	end if
 
@@ -567,16 +567,16 @@ Sub UnloadSound(byval slot as integer)
 	if sfx_slots(slot).used = 0 then exit sub
 	with sfx_slots(slot)
 		Mix_FreeChunk(.buf)
-		.paused = 0
-		.playing = 0
-		.used = 0
+		.paused = NO
+		.playing = NO
+		.used = NO
 		.effectID = 0
 		.buf = 0
 	end with
 end Sub
 
 sub SDL_done_playing cdecl(byval channel as integer)
-	sfx_slots(channel).playing = 0
+	sfx_slots(channel).playing = NO
 end sub
 
 '-- for debugging

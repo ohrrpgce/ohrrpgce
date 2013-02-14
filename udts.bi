@@ -83,16 +83,17 @@ END TYPE
 
 Enum SpriteType
  sprTypeInvalid = -1
- sprTypePT0   'Heroes
- sprTypePT1   'Small enemies
- sprTypePT2   'Medium enemies
- sprTypePT3   'Large enemies
- sprTypePT4   'Walkabouts
- sprTypePT5   'Weapons
- sprTypePT6   'Attacks
- sprTypePT7   'Box borders
- sprTypePT8   'Portraits
- sprTypeMXS = 9   'Can't change this! Saved in .slice files
+ sprTypeHero = 0
+ sprTypeSmallEnemy = 1
+ sprTypeMediumEnemy = 2
+ sprTypeLargeEnemy = 3
+ sprTypeWalkabout = 4
+ sprTypeWeapon = 5
+ sprTypeAttack = 6
+ sprTypeBoxBorder = 7
+ sprTypePortrait = 8
+ sprTypeLastPT = 8
+ sprTypeMXS = 9    'Can't change this! Saved in .slice files
  sprTypeLast = 9   'Last sprite type selectable in slice editor
  sprTypeFrame = 10  'A sprite not loaded from file, but from a Frame. Free to change this later (never saved)
 End Enum

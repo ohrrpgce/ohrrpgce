@@ -2028,7 +2028,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
      int_array_append(ignorelist(), scriptcmdhash)
     CASE 4
      debug "scripterr: User opted to quit"
-     exitprogram 0
+     exitprogram NO
     CASE 5
      scrwatch = 2
      scriptwatcher scrwatch, 0 'clean mode, script state view mode
@@ -2069,7 +2069,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
 
   IF autotestmode THEN
     write_checkpoint
-    exitprogram 0, YES
+    exitprogram NO, 1
   END IF
 
   dowait
@@ -2150,7 +2150,7 @@ FUNCTION script_interrupt () as integer
      ret = YES
     CASE 3 'die
      debug "script_interrupt: User opted to quit"
-     exitprogram 0
+     exitprogram NO
     CASE 4 'script debugger
      scrwatch = 2
      scriptwatcher scrwatch, 0 'clean mode, script state view mode

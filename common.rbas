@@ -46,7 +46,7 @@ DECLARE FUNCTION istag OVERLOAD (byval num as integer, byval zero as integer=NO)
 DECLARE FUNCTION istag OVERLOAD (tagbits() as integer, byval num as integer, byval zero as integer=NO) as integer
 DECLARE SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
 DECLARE FUNCTION commandname (byval id as integer) as string
-DECLARE SUB exitprogram (byval need_fade_out as integer = NO, byval errorout as integer = NO)
+DECLARE SUB exitprogram (byval need_fade_out as bool = NO, byval errorout as integer = 0)
 DECLARE SUB show_wrong_spawned_version_error
 #ENDIF
 
@@ -745,12 +745,16 @@ Function seconds2str(byval sec as integer, f as string = "%m:%S") as string
   return ret
 end function
 
-FUNCTION getdefaultpal(byval fileset as integer, byval index as integer) as integer
- DIM v as SHORT
+FUNCTION getdefaultpal(byval fileset as SpriteType, byval index as integer) as integer
+ IF fileset < 0 OR fileset > sprTypeLastPT THEN
+  debugc errBug, "getdefaultpal: bad fileset " & fileset
+  RETURN -1
+ END IF
  DIM f as string = workingdir & SLASH & "defpal" & fileset & ".bin"
  IF isfile(f) THEN
   DIM fh as integer = FREEFILE
   OPEN f FOR BINARY as #fh
+  DIM v as short
   GET #fh, 1 + index * 2, v
   CLOSE #fh
   RETURN v
@@ -761,14 +765,14 @@ FUNCTION getdefaultpal(byval fileset as integer, byval index as integer) as inte
  END IF
 END FUNCTION
 
-FUNCTION abs_pal_num(byval num as integer, byval sprtype as integer, byval spr as integer) as integer
+FUNCTION abs_pal_num(byval num as integer, byval sprtype as SpriteType, byval spr as integer) as integer
  IF num >= 0 THEN RETURN num
  IF num = -1 THEN RETURN getdefaultpal(sprtype, spr)
  debug "decode_default_pal: invalid palette " & num
  RETURN 0
 END FUNCTION
 
-SUB loaddefaultpals(byval fileset as integer, poffset() as integer, byval sets as integer)
+SUB loaddefaultpals(byval fileset as SpriteType, poffset() as integer, byval sets as integer)
  DIM v as SHORT
  DIM f as string = workingdir & SLASH & "defpal" & fileset & ".bin"
  IF isfile(f) THEN
@@ -784,7 +788,7 @@ SUB loaddefaultpals(byval fileset as integer, poffset() as integer, byval sets a
  END IF
 END SUB
 
-SUB savedefaultpals(byval fileset as integer, poffset() as integer, byval sets as integer)
+SUB savedefaultpals(byval fileset as SpriteType, poffset() as integer, byval sets as integer)
  DIM v as SHORT
  DIM f as string = workingdir & SLASH & "defpal" & fileset & ".bin"
  DIM fh as integer = FREEFILE
@@ -796,7 +800,7 @@ SUB savedefaultpals(byval fileset as integer, poffset() as integer, byval sets a
  CLOSE #fh
 END SUB
 
-SUB guessdefaultpals(byval fileset as integer, poffset() as integer, byval sets as integer)
+SUB guessdefaultpals(byval fileset as SpriteType, poffset() as integer, byval sets as integer)
  DIM her as herodef
  DIM found as integer
  
@@ -970,7 +974,7 @@ SUB fatal_error_shutdown
   'no need for end_debug
   SYSTEM 1
  #ELSE
-  exitprogram 0, 1
+  exitprogram NO, 1
  #ENDIF
 END SUB
 
@@ -5138,18 +5142,24 @@ CONST SELECT_TYPE_TIMEOUT as double = 0.7
 'If the user typed something, returns YES and set select_query to a search string, to be used
 'with e.g. INSTR or find_on_word_boundary_excluding.
 FUNCTION select_by_typing(selectst as SelectTypeState) as bool
+ IF TIMER - selectst.last_input_time > SELECT_TYPE_TIMEOUT THEN
+  selectst.buffer = ""
+  selectst.query = ""
+ END IF
  IF LEN(getinputtext) = 0 THEN RETURN NO
-
- IF TIMER - selectst.last_input_time > SELECT_TYPE_TIMEOUT THEN selectst.buffer = ""
  selectst.last_input_time = TIMER
+
  selectst.buffer += LCASE(getinputtext)
  'If user has just typed the same character repeatedly, only search by that, otherwise by whole input
+ '...unless the user is entering a number
  selectst.query = LEFT(selectst.buffer, 1)
- FOR i as integer = 0 TO LEN(selectst.buffer) - 1
-  IF selectst.buffer[i] <> selectst.query[0] THEN
-   selectst.query = selectst.buffer
-   EXIT FOR
-  END IF
- NEXT
+ IF isdigit(selectst.query[0]) = 0 THEN
+  FOR i as integer = 0 TO LEN(selectst.buffer) - 1
+   IF selectst.buffer[i] <> selectst.query[0] THEN
+    selectst.query = selectst.buffer
+    EXIT FOR
+   END IF
+  NEXT
+ END IF
  RETURN YES
 END FUNCTION

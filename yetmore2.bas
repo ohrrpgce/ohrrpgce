@@ -337,7 +337,7 @@ IF direction = 3 THEN x = x - distance
 
 END SUB
 
-SUB exitprogram (byval need_fade_out as integer = NO, byval errorout as integer = NO)
+SUB exitprogram (byval need_fade_out as bool = NO, byval errorout as integer = 0)
 
 'DEBUG debug "Exiting Program"
 'DEBUG debug "fade screen"
@@ -364,7 +364,7 @@ v_free modified_lumps
 'DEBUG debug "Restore Old Graphics Mode"
 restoremode
 'DEBUG debug "Terminate NOW (boom!)"
-IF errorout = NO THEN end_debug
+IF errorout = 0 THEN end_debug
 END errorout
 
 END SUB

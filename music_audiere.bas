@@ -132,10 +132,10 @@ sub sound_free(byval num as integer)
   next
 end sub
 
-function sound_playing(byval num as integer,  byval s as integer = 0) as integer
+function sound_playing(byval num as integer,  byval s as integer = 0) as bool
   dim slot as integer
   if not s then slot = SoundSlot(num) else slot = num
-  if slot = -1 then return 0
+  if slot = -1 then return NO
 
   return AudIsPlaying(SoundPool(slot).soundID) <> 0
 

@@ -53,8 +53,8 @@ sub sound_stop(byval num as integer,  byval s as integer = 0) : end sub
 
 sub sound_free(byval num as integer) : end sub
 
-function sound_playing(byval num as integer,  byval s as integer = 0) as integer
-	return 0
+function sound_playing(byval num as integer,  byval s as integer = 0) as bool
+	return NO
 end function
 
 function LoadSound overload(byval num as integer) as integer

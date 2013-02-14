@@ -1,5 +1,7 @@
 'The OHRRPGCE graphics, audio and user input library!
 'Please read LICENSE.txt for GNU GPL license details and disclaimer of liability
+'
+'This module is completely bool-clean (bool always used when appropriate)
 
 #ifdef LANG_DEPRECATED
  #define __langtok #lang
@@ -20,7 +22,7 @@
 #include "uiconst.bi"
 
 #ifdef IS_GAME
-declare sub exitprogram (byval needfade as integer, byval errorout as integer = NO)
+declare sub exitprogram (byval need_fade_out as bool, byval errorout as integer = 0)
 #endif
 
 
@@ -35,8 +37,11 @@ type node 	'only used for floodfill
 	nextnode as node ptr
 end type
 
-declare sub drawohr(byval src as Frame ptr, byval dest as Frame ptr, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval trans as integer = -1)
-declare sub grabrect(byval page as integer, byval x as integer, byval y as integer, byval w as integer, byval h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
+
+'----------- Local functions ----------
+
+declare sub drawohr(byval src as Frame ptr, byval dest as Frame ptr, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval trans as bool = YES)
+'declare sub grabrect(byval page as integer, byval x as integer, byval y as integer, byval w as integer, byval h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
 declare function write_bmp_header(f as string, byval w as integer, byval h as integer, byval bitdepth as integer) as integer
 declare sub loadbmp24(byval bf as integer, byval fr as Frame ptr, pal() as RGBcolor)
 declare sub loadbmp8(byval bf as integer, byval fr as Frame ptr)
@@ -59,7 +64,9 @@ declare sub replay_input_tick ()
 
 declare function hexptr(p as any ptr) as string
 
-'global
+
+'------------ Global variables ------------
+
 dim modex_initialised as bool = NO
 dim vpages() as Frame ptr
 dim vpagesp as Frame ptr ptr  'points to vpages(0) for debugging: fbc outputs typeless debugging symbol
@@ -80,16 +87,18 @@ dim key2text(3,53) as string*1 => { _
 	{"", "", !"\177",!"\178",!"\179",!"\180",!"\181",!"\182",!"\183",!"\184",!"\185",!"\186",!"\187",!"\188","","",!"\189",!"\190",!"\191",!"\192",!"\193",!"\194",!"\195",!"\196",!"\197",!"\198",!"\199",!"\200","","",!"\201",!"\202",!"\203",!"\204",!"\205",!"\206",!"\207",!"\208",!"\209",!"\210",!"\211",!"\212","",!"\213",!"\214",!"\215",!"\216",!"\217",!"\218",!"\219",!"\220",!"\221",!"\222",!"\223"} _
 }
 
-'module shared
+
+'--------- Module shared variables ---------
+
 dim shared wrkpage as integer  'used by some legacy modex functions. Usually points at clippedframe
 dim shared clippedframe as Frame ptr  'used to track which Frame the clips are set for.
 dim shared as integer clipl, clipt, clipr, clipb 'drawable area on clippedframe; right, bottom margins are excluded
 
 'temporary exploratory variable resolution stuff
 dim shared windowsize as XYPair = (320, 200)
-dim shared variablerez as integer = NO
+dim shared variablerez as bool = NO
 dim shared minwinsize as XYPair
-dim shared forcevispageresize as integer = NO  'for mischief!
+dim shared forcevispageresize as bool = NO  'for mischief!
 
 'storeset/loadset stuff
 dim shared bptr as integer ptr	' buffer
@@ -103,35 +112,35 @@ dim shared anim2 as integer
 
 dim shared waittime as double
 dim shared flagtime as double = 0.0
-dim shared waitset as integer
+dim shared setwait_called as bool
 dim shared tickcount as integer = 0
-dim shared use_speed_control as integer = YES
+dim shared use_speed_control as bool = YES
 
 dim shared last_setkeys_time as double
-dim shared setkeys_elapsed_ms as integer 'Time since last setkeys call (used by keyval)
-dim shared keybd(-1 to 127) as integer  'keyval array
-dim shared key_down_ms(-1 to 127) as integer  'ms each key has been down
-dim shared last_keybd(127) as integer 'used only for input recording
+dim shared setkeys_elapsed_ms as integer       'Time since last setkeys call (used by keyval)
+dim shared keybd(-1 to 127) as integer         'keyval array
+dim shared key_down_ms(-1 to 127) as integer   'ms each key has been down
+dim shared last_keybd(127) as integer          'used only for input recording
 dim shared keyrepeatwait as integer = 500
 dim shared keyrepeatrate as integer = 55
 dim shared diagonalhack as integer
-dim shared delayed_alt_keydown as integer = NO
+dim shared delayed_alt_keydown as bool = NO
 dim shared inputtext as string
-dim shared inputtext_enabled as integer
+dim shared inputtext_enabled as bool = NO
 
-dim shared rec_input as integer = NO
-dim shared rec_input_file as integer
-dim shared play_input as integer = NO
-dim shared play_input_file as integer
+dim shared rec_input as bool = NO
+dim shared rec_input_file as integer     'file handle
+dim shared play_input as bool = NO
+dim shared play_input_file as integer    'file handle
 dim shared replaytick as integer
-dim shared debug_replay as integer = NO  'set to YES by editing this line; maybe add a commandline option
+dim shared debug_replay as bool = NO     'set to YES by editing this line; maybe add a commandline option
 
-dim shared closerequest as integer = 0
+dim shared closerequest as integer = NO
 
-dim shared keybdmutex as any ptr  'controls access to keybdstate(), mouseflags, mouselastflags, and various backend functions
-dim shared keybdthread as any ptr   'id of the polling thread
-dim shared endpollthread as integer  'signal the polling thread to quit
-dim shared keybdstate(127) as integer  '"real"time keyboard array
+dim shared keybdmutex as any ptr         'controls access to keybdstate(), mouseflags, mouselastflags, and various backend functions
+dim shared keybdthread as any ptr        'id of the polling thread
+dim shared endpollthread as bool         'signal the polling thread to quit
+dim shared keybdstate(127) as integer    '"real"time keyboard array
 dim shared mouseflags as integer
 dim shared mouselastflags as integer
 
@@ -142,13 +151,13 @@ dim shared mouse_dragmask as integer
 dim shared textfg as integer
 dim shared textbg as integer
 
-dim shared intpal(0 to 255) as RGBcolor	'current palette
-dim shared updatepal as integer  'setpal called, load new palette at next setvispage
+dim shared intpal(0 to 255) as RGBcolor	 'current palette
+dim shared updatepal as bool             'setpal called, load new palette at next setvispage
 
 dim shared fpsframes as integer = 0
 dim shared fpstime as double = 0.0
 dim shared fpsstring as string
-dim shared showfps as integer = 0
+dim shared showfps as bool = NO
 
 MAKETYPE_DoubleList(SpriteCacheEntry)
 MAKETYPE_DListItem(SpriteCacheEntry)
@@ -159,19 +168,25 @@ type SpriteCacheEntry
 	hashed as HashedItem
 	p as frame ptr
 	cost as integer
-	Bcached as integer
+	Bcached as bool
 end type
 
 dim shared sprcache as HashTable
 dim shared sprcacheB as DoubleList(SpriteCacheEntry)
-dim shared sprcacheB_used as integer  'number of slots full
+dim shared sprcacheB_used as integer    'number of slots full
 'dim shared as integer cachehit, cachemiss
 
-dim shared mouse_grab_requested as integer = 0
-dim shared mouse_grab_overridden as integer = 0
+dim shared mouse_grab_requested as bool = NO
+dim shared mouse_grab_overridden as bool = NO
 dim shared remember_mouse_grab(3) as integer = {-1, -1, -1, -1}
 
 dim shared remember_title as string
+
+
+'==========================================================================================
+'                                Initialisation and shutdown
+'==========================================================================================
+
 
 sub modex_init()
 	'initialise software gfx library
@@ -201,9 +216,9 @@ sub setmodex()
 	for i as integer = 0 to 127
 		keybd(i) = 0
 		keybdstate(i) = 0
- 		key_down_ms(i) = 0
+		key_down_ms(i) = 0
 	next
-	endpollthread = 0
+	endpollthread = NO
 	mouselastflags = 0
 	mouseflags = 0
 
@@ -244,7 +259,7 @@ sub restoremode()
 
 	'clean up io stuff
 	if keybdthread then
-		endpollthread = 1
+		endpollthread = YES
 		threadwait keybdthread
 		keybdthread = 0
 	end if
@@ -255,27 +270,33 @@ sub restoremode()
 	modex_quit
 end sub
 
-SUB mersenne_twister (byval seed as double)
+sub mersenne_twister (byval seed as double)
 	IF play_input ORELSE rec_input THEN exit sub 'Seeding not allowed in play/record modes
 	RANDOMIZE seed, 3
 	debuginfo "mersenne_twister seed=" & seed
-END SUB
+end sub
 
-SUB settemporarywindowtitle (title as string)
+sub settemporarywindowtitle (title as string)
 	'just like setwindowtitle but does not memorize the title
 	mutexlock keybdmutex
 	gfx_windowtitle(title)
 	mutexunlock keybdmutex
-END SUB
+end sub
 
-SUB setwindowtitle (title as string)
+sub setwindowtitle (title as string)
 	remember_title = title
 	mutexlock keybdmutex
 	gfx_windowtitle(title)
 	mutexunlock keybdmutex
-END SUB
+end sub
 
-SUB freepage (byval page as integer)
+
+'==========================================================================================
+'                                        Video pages
+'==========================================================================================
+
+
+sub freepage (byval page as integer)
 	if page < 0 orelse page > ubound(vpages) orelse vpages(page) = NULL then
 		debug "Tried to free unallocated/invalid page " & page
 		exit sub
@@ -283,9 +304,9 @@ SUB freepage (byval page as integer)
 
 	if page = wrkpage then wrkpage = 0 'no setclip call: legacy wrkpage code doesn't even use clips anyway
 	frame_unload(@vpages(page))
-END SUB
+end sub
 
-FUNCTION registerpage (byval spr as Frame ptr) as integer
+function registerpage (byval spr as Frame ptr) as integer
 	if spr->refcount <> NOREFC then	spr->refcount += 1
 	for i as integer = 0 to ubound(vpages)
 		if vpages(i) = NULL then
@@ -298,75 +319,81 @@ FUNCTION registerpage (byval spr as Frame ptr) as integer
 	vpagesp = @vpages(0)
 	vpages(ubound(vpages)) = spr
 	return ubound(vpages)
-END FUNCTION
+end function
 
-FUNCTION allocatepage(byval w as integer = 320, byval h as integer = 200) as integer
+function allocatepage(byval w as integer = 320, byval h as integer = 200) as integer
 	dim fr as Frame ptr = frame_new(w, h, , YES)
 
 	dim ret as integer = registerpage(fr)
 	frame_unload(@fr) 'we're not hanging onto it, vpages() is
-	
+
 	return ret
-END FUNCTION
+end function
 
 'creates a copy of a page, registering it (must be freed)
-FUNCTION duplicatepage (byval page as integer) as integer
+function duplicatepage (byval page as integer) as integer
 	dim fr as Frame ptr = frame_duplicate(vpages(page))
 	dim ret as integer = registerpage(fr)
 	frame_unload(@fr) 'we're not hanging onto it, vpages() is
 	return ret
-END FUNCTION
+end function
 
 'copy page1 to page2
 'should copying to a page of different size resize that page?
-SUB copypage (byval page1 as integer, byval page2 as integer)
+sub copypage (byval page1 as integer, byval page2 as integer)
 	'if vpages(page1)->w <> vpages(page2)->w or vpages(page1)->h <> vpages(page2)->h then
 	'	debug "warning, copied to page of unequal size"
 	'end if
 	frame_draw vpages(page1), , 0, 0, , NO, vpages(page2)
 end sub
 
-SUB clearpage (byval page as integer, byval colour as integer = -1)
+sub clearpage (byval page as integer, byval colour as integer = -1)
 	if colour = -1 then colour = uilook(uiBackground)
 	frame_clear vpages(page), colour
-end SUB
+end sub
 
 'TEMPORARY
 'resizes a page to match the 'window size' (which is a fake, currently) - if so, the page is erased
 'returns whether the page size was changed
-FUNCTION updatepagesize (byval page as integer) as integer
+function updatepagesize (byval page as integer) as bool
 	gfx_getresize(windowsize)
 	if vpages(page)->w = windowsize.w and vpages(page)->h = windowsize.h then return NO
 	frame_unload @vpages(page)
 	vpages(page) = frame_new(windowsize.w, windowsize.h, , YES)
 	return YES
-end FUNCTION
+end function
 
 'TEMPORARY
-SUB unlockresolution (byval min_w as integer = -1, byval min_h as integer = -1)
+sub unlockresolution (byval min_w as integer = -1, byval min_h as integer = -1)
 	variablerez = YES
 	minwinsize.w = iif(min_w = -1, 320, min_w)
 	minwinsize.h = iif(min_h = -1, 200, min_h)
 	windowsize.w = large(windowsize.w, minwinsize.w)
 	windowsize.h = large(windowsize.h, minwinsize.h)
-end SUB
+end sub
 
 'TEMPORARY
-SUB setresolution (byval w as integer, byval h as integer)
+sub setresolution (byval w as integer, byval h as integer)
 	windowsize.w = large(w, minwinsize.w)
 	windowsize.h = large(h, minwinsize.h)
-end SUB
+end sub
 
 'TEMPORARY
-SUB resetresolution ()
+sub resetresolution ()
 	variablerez = NO
 	windowsize = Type(320, 200)
 	for i as integer = 0 to ubound(vpages)
 		if vpages(i) then updatepagesize i
 	next
-end SUB
+end sub
 
-SUB setvispage (byval page as integer)
+
+'==========================================================================================
+'                                   setvispage and Fading
+'==========================================================================================
+
+
+sub setvispage (byval page as integer)
 	fpsframes += 1
 	if timer > fpstime + 1 then
 		fpsstring = "fps:" & INT(10 * fpsframes / (timer - fpstime)) / 10
@@ -381,7 +408,7 @@ SUB setvispage (byval page as integer)
 	mutexlock keybdmutex
 	if updatepal then
 		gfx_setpal(@intpal(0))
-		updatepal = 0
+		updatepal = NO
 	end if
 	with *vpages(page)
 		if .w = windowsize.w and .h = windowsize.h then
@@ -398,15 +425,15 @@ SUB setvispage (byval page as integer)
 
 	'for having fun
 	if forcevispageresize then updatepagesize page
-end SUB
+end sub
 
 sub setpal(pal() as RGBcolor)
 	memcpy(@intpal(0), @pal(0), 256 * SIZEOF(RGBcolor))
 
-	updatepal = -1
+	updatepal = YES
 end sub
 
-SUB fadeto (byval red as integer, byval green as integer, byval blue as integer)
+sub fadeto (byval red as integer, byval green as integer, byval blue as integer)
 	dim i as integer
 	dim j as integer
 	dim diff as integer
@@ -415,7 +442,7 @@ SUB fadeto (byval red as integer, byval green as integer, byval blue as integer)
 		mutexlock keybdmutex
 		gfx_setpal(@intpal(0))
 		mutexunlock keybdmutex
-		updatepal = 0
+		updatepal = NO
 	end if
 
 	for i = 1 to 32
@@ -424,23 +451,23 @@ SUB fadeto (byval red as integer, byval green as integer, byval blue as integer)
 			'red
 			diff = intpal(j).r - red
 			if diff > 0 then
-				intpal(j).r -= iif(diff >= 8, 8, diff) 
+				intpal(j).r -= iif(diff >= 8, 8, diff)
 			elseif diff < 0 then
-				intpal(j).r -= iif(diff <= -8, -8, diff) 
+				intpal(j).r -= iif(diff <= -8, -8, diff)
 			end if
 			'green
 			diff = intpal(j).g - green
 			if diff > 0 then
-				intpal(j).g -= iif(diff >= 8, 8, diff) 
+				intpal(j).g -= iif(diff >= 8, 8, diff)
 			elseif diff < 0 then
-				intpal(j).g -= iif(diff <= -8, -8, diff) 
+				intpal(j).g -= iif(diff <= -8, -8, diff)
 			end if
 			'blue
 			diff = intpal(j).b - blue
 			if diff > 0 then
-				intpal(j).b -= iif(diff >= 8, 8, diff) 
+				intpal(j).b -= iif(diff >= 8, 8, diff)
 			elseif diff < 0 then
-				intpal(j).b -= iif(diff <= -8, -8, diff) 
+				intpal(j).b -= iif(diff <= -8, -8, diff)
 			end if
 		next
 		mutexlock keybdmutex
@@ -453,9 +480,9 @@ SUB fadeto (byval red as integer, byval green as integer, byval blue as integer)
 	'This function was probably called in the middle of timed loop, call
 	'setwait to avoid "dowait without setwait" warnings
 	setwait 0
-end SUB
+end sub
 
-SUB fadetopal (pal() as RGBcolor)
+sub fadetopal (pal() as RGBcolor)
 	dim i as integer
 	dim j as integer
 	dim diff as integer
@@ -464,7 +491,7 @@ SUB fadetopal (pal() as RGBcolor)
 		mutexlock keybdmutex
 		gfx_setpal(@intpal(0))
 		mutexunlock keybdmutex
-		updatepal = 0
+		updatepal = NO
 	end if
 
 	for i = 1 to 32
@@ -473,23 +500,23 @@ SUB fadetopal (pal() as RGBcolor)
 			'red
 			diff = intpal(j).r - pal(j).r
 			if diff > 0 then
-				intpal(j).r -= iif(diff >= 8, 8, diff) 
+				intpal(j).r -= iif(diff >= 8, 8, diff)
 			elseif diff < 0 then
-				intpal(j).r -= iif(diff <= -8, -8, diff) 
+				intpal(j).r -= iif(diff <= -8, -8, diff)
 			end if
 			'green
 			diff = intpal(j).g - pal(j).g
 			if diff > 0 then
-				intpal(j).g -= iif(diff >= 8, 8, diff) 
+				intpal(j).g -= iif(diff >= 8, 8, diff)
 			elseif diff < 0 then
-				intpal(j).g -= iif(diff <= -8, -8, diff) 
+				intpal(j).g -= iif(diff <= -8, -8, diff)
 			end if
 			'blue
 				diff = intpal(j).b - pal(j).b
 			if diff > 0 then
-				intpal(j).b -= iif(diff >= 8, 8, diff) 
+				intpal(j).b -= iif(diff >= 8, 8, diff)
 			elseif diff < 0 then
-				intpal(j).b -= iif(diff <= -8, -8, diff) 
+				intpal(j).b -= iif(diff <= -8, -8, diff)
 			end if
 		next
 		mutexlock keybdmutex
@@ -501,46 +528,52 @@ SUB fadetopal (pal() as RGBcolor)
 	'This function was probably called in the middle of timed loop, call
 	'setwait to avoid "dowait without setwait" warnings
 	setwait 0
-end SUB
+end sub
 
 #define POINT_CLIPPED(x, y) ((x) < clipl orelse (x) > clipr orelse (y) < clipt orelse (y) > clipb)
 
 #define PAGEPIXEL(x, y, p) vpages(p)->image[vpages(p)->pitch * (y) + (x)]
 #define FRAMEPIXEL(x, y, fr) fr->image[fr->pitch * (y) + (x)]
 
-FUNCTION readblock (map as TileMap, byval x as integer, byval y as integer) as integer
+
+'==========================================================================================
+'                                      Map rendering
+'==========================================================================================
+
+
+function readblock (map as TileMap, byval x as integer, byval y as integer) as integer
 	if x < 0 OR x >= map.wide OR y < 0 OR y >= map.high then
 		debug "illegal readblock call " & x & " " & y
 		exit function
 	end if
 	return map.data[x + y * map.wide]
-END FUNCTION
+end function
 
-SUB writeblock (map as TileMap, byval x as integer, byval y as integer, byval v as integer)
+sub writeblock (map as TileMap, byval x as integer, byval y as integer, byval v as integer)
 	if x < 0 OR x >= map.wide OR y < 0 OR y >= map.high then
 		debug "illegal writeblock call " & x & " " & y
 		exit sub
 	end if
 	map.data[x + y * map.wide] = v
-END SUB
+end sub
 
-SUB drawmap (tmap as TileMap, byval x as integer, byval y as integer, byval tileset as TilesetData ptr, byval p as integer, byval trans as integer = 0, byval overheadmode as integer = 0, byval pmapptr as TileMap ptr = NULL, byval ystart as integer = 0, byval yheight as integer = -1)
+sub drawmap (tmap as TileMap, byval x as integer, byval y as integer, byval tileset as TilesetData ptr, byval p as integer, byval trans as bool = NO, byval overheadmode as integer = 0, byval pmapptr as TileMap ptr = NULL, byval ystart as integer = 0, byval yheight as integer = -1)
 	'overrides setanim
 	anim1 = tileset->tastuf(0) + tileset->anim(0).cycle
 	anim2 = tileset->tastuf(20) + tileset->anim(1).cycle
 	drawmap tmap, x, y, tileset->spr, p, trans, overheadmode, pmapptr, ystart, yheight
-END SUB
+end sub
 
-SUB drawmap (tmap as TileMap, byval x as integer, byval y as integer, byval tilesetsprite as Frame ptr, byval p as integer, byval trans as integer = 0, byval overheadmode as integer = 0, byval pmapptr as TileMap ptr = NULL, byval ystart as integer = 0, byval yheight as integer = -1, byval largetileset as integer = NO)
+sub drawmap (tmap as TileMap, byval x as integer, byval y as integer, byval tilesetsprite as Frame ptr, byval p as integer, byval trans as bool = NO, byval overheadmode as integer = 0, byval pmapptr as TileMap ptr = NULL, byval ystart as integer = 0, byval yheight as integer = -1, byval largetileset as bool = NO)
 'ystart is the distance from the top to start drawing, yheight the number of lines. yheight=-1 indicates extend to bottom of screen
 'There are no options in the X direction because they've never been used, and I don't forsee them being (can use Frames or slices instead)
 	dim mapview as Frame ptr
 	mapview = frame_new_view(vpages(p), 0, ystart, vpages(p)->w, iif(yheight = -1, vpages(p)->h, yheight))
 	drawmap tmap, x, y, tilesetsprite, mapview, trans, overheadmode, pmapptr, largetileset
 	frame_unload @mapview
-END SUB
+end sub
 
-SUB drawmap (tmap as TileMap, byval x as integer, byval y as integer, byval tilesetsprite as Frame ptr, byval dest as Frame ptr, byval trans as integer = 0, byval overheadmode as integer = 0, byval pmapptr as TileMap ptr = NULL, byval largetileset as integer = NO)
+sub drawmap (tmap as TileMap, byval x as integer, byval y as integer, byval tilesetsprite as Frame ptr, byval dest as Frame ptr, byval trans as bool = NO, byval overheadmode as integer = 0, byval pmapptr as TileMap ptr = NULL, byval largetileset as bool = NO)
 'This version of drawmap paints over the entire dest Frame given to it
 'overheadmode = 0 : draw all tiles normally
 'overheadmode = 1 : draw non overhead tiles only (to avoid double draw)
@@ -568,7 +601,7 @@ SUB drawmap (tmap as TileMap, byval x as integer, byval y as integer, byval tile
 	'copied from the asm
 	ypos = y \ 20
 	calc = y mod 20
-	if calc < 0 then  	'adjust for negative coords
+	if calc < 0 then	'adjust for negative coords
 		calc = calc + 20
 		ypos = ypos - 1
 	end if
@@ -620,31 +653,37 @@ SUB drawmap (tmap as TileMap, byval x as integer, byval y as integer, byval tile
 		ty = ty + 20
 		ypos = ypos + 1
 	wend
-end SUB
+end sub
 
-SUB setanim (byval cycle1 as integer, byval cycle2 as integer)
+sub setanim (byval cycle1 as integer, byval cycle2 as integer)
 	anim1 = cycle1
 	anim2 = cycle2
-end SUB
+end sub
 
-SUB setoutside (byval defaulttile as integer)
+sub setoutside (byval defaulttile as integer)
 	bordertile = defaulttile
-end SUB
+end sub
 
-SUB drawsprite (pic() as integer, byval picoff as integer, pal() as integer, byval po as integer, byval x as integer, byval y as integer, byval page as integer, byval trans as integer = -1)
+
+'==========================================================================================
+'                                 Old graphics API wrappers
+'==========================================================================================
+
+
+sub drawsprite (pic() as integer, byval picoff as integer, pal() as integer, byval po as integer, byval x as integer, byval y as integer, byval page as integer, byval trans as bool = YES)
 'draw sprite from pic(picoff) onto page using pal() starting at po
 	drawspritex(pic(), picoff, pal(), po, x, y, page, 1, trans)
 end sub
 
-SUB bigsprite (pic() as integer, pal() as integer, byval p as integer, byval x as integer, byval y as integer, byval page as integer, byval trans as integer = -1)
+sub bigsprite (pic() as integer, pal() as integer, byval p as integer, byval x as integer, byval y as integer, byval page as integer, byval trans as bool = YES)
 	drawspritex(pic(), 0, pal(), p, x, y, page, 2, trans)
-END SUB
+end sub
 
-SUB hugesprite (pic() as integer, pal() as integer, byval p as integer, byval x as integer, byval y as integer, byval page as integer, byval trans as integer = -1)
+sub hugesprite (pic() as integer, pal() as integer, byval p as integer, byval x as integer, byval y as integer, byval page as integer, byval trans as bool = YES)
 	drawspritex(pic(), 0, pal(), p, x, y, page, 4, trans)
-END SUB
+end sub
 
-FUNCTION palette16_new_from_buffer(pal() as integer, byval po as integer) as Palette16 ptr
+function Palette16_new_from_buffer(pal() as integer, byval po as integer) as Palette16 ptr
 	dim ret as Palette16 ptr
 	dim word as integer
 	ret = allocate(sizeof(Palette16))
@@ -659,9 +698,9 @@ FUNCTION palette16_new_from_buffer(pal() as integer, byval po as integer) as Pal
 		end if
 	next
 	return ret
-END FUNCTION
+end function
 
-FUNCTION frame_new_from_buffer(pic() as integer, byval picoff as integer) as Frame ptr
+function frame_new_from_buffer(pic() as integer, byval picoff as integer) as Frame ptr
 	dim sw as integer
 	dim sh as integer
 	dim hspr as frame ptr
@@ -684,7 +723,7 @@ FUNCTION frame_new_from_buffer(pic() as integer, byval picoff as integer) as Fra
 	nib = 0
 	row = 0
 	for i = 0 to (sw * sh) - 1
-		select case nib 			' 2 bytes = 4 nibbles in each int
+		select case nib			' 2 bytes = 4 nibbles in each int
 			case 0
 				spix = (pic(picoff) and &hf000) shr 12
 			case 1
@@ -698,7 +737,7 @@ FUNCTION frame_new_from_buffer(pic() as integer, byval picoff as integer) as Fra
 		*dspr = spix				' set image pixel
 		dspr = dspr + sw
 		row = row + 1
-		if (row >= sh) then 	'ugh
+		if (row >= sh) then	'ugh
 			dspr = dspr - (sw * sh)
 			dspr = dspr + 1
 			row = 0
@@ -707,28 +746,28 @@ FUNCTION frame_new_from_buffer(pic() as integer, byval picoff as integer) as Fra
 		nib = nib and 3
 	next
 	return hspr
-END FUNCTION
+end function
 
-SUB drawspritex (pic() as integer, byval picoff as integer, pal() as integer, byval po as integer, byval x as integer, byval y as integer, byval page as integer, byval scale as integer, byval trans as integer = -1)
+sub drawspritex (pic() as integer, byval picoff as integer, pal() as integer, byval po as integer, byval x as integer, byval y as integer, byval page as integer, byval scale as integer, byval trans as bool = YES)
 'draw sprite scaled, used for drawsprite(x1), bigsprite(x2) and hugesprite(x4)
 	if clippedframe <> vpages(page) then
 		setclip , , , , page
 	end if
-	
+
 	'convert the buffer into a Frame
 	dim hspr as frame ptr
-	dim hpal as palette16 ptr
+	dim hpal as Palette16 ptr
 	hspr = frame_new_from_buffer(pic(), picoff)
-	hpal = palette16_new_from_buffer(pal(), po)
-	
+	hpal = Palette16_new_from_buffer(pal(), po)
+
 	'now draw the image
 	frame_draw(hspr, hpal, x, y, scale, trans, page)
 	'what a waste
 	frame_unload(@hspr)
 	deallocate(hpal)
-end SUB
+end sub
 
-SUB wardsprite (pic() as integer, byval picoff as integer, pal() as integer, byval po as integer, byval x as integer, byval y as integer, byval page as integer, byval trans as integer = -1)
+sub wardsprite (pic() as integer, byval picoff as integer, pal() as integer, byval po as integer, byval x as integer, byval y as integer, byval page as integer, byval trans as bool = YES)
 'this just draws the sprite mirrored
 'the coords are still top-left
 	dim sw as integer
@@ -784,7 +823,7 @@ SUB wardsprite (pic() as integer, byval picoff as integer, pal() as integer, byv
 		*dspr = pix				' set image pixel
 		dspr = dspr + sw
 		row = row + 1
-		if (row >= sh) then 	'ugh
+		if (row >= sh) then	'ugh
 			dspr = dspr - (sw * sh)
 			dspr = dspr - 1		' right to left for wardsprite
 			row = 0
@@ -797,9 +836,9 @@ SUB wardsprite (pic() as integer, byval picoff as integer, pal() as integer, byv
 	frame_draw(hspr, NULL, x, y, , trans, page)
 
 	frame_unload(@hspr)
-end SUB
+end sub
 
-SUB stosprite (pic() as integer, byval picoff as integer, byval x as integer, byval y as integer, byval page as integer)
+sub stosprite (pic() as integer, byval picoff as integer, byval x as integer, byval y as integer, byval page as integer)
 'This is the opposite of loadsprite, ie store raw sprite data in screen p
 'starting at x, y.
 	dim i as integer
@@ -817,7 +856,7 @@ SUB stosprite (pic() as integer, byval picoff as integer, byval x as integer, by
 	h = pic(poff)
 	w = pic(poff + 1)
 	poff += 2
-	sbytes = ((w * h) + 1) \ 2 	'only 4 bits per pixel
+	sbytes = ((w * h) + 1) \ 2	'only 4 bits per pixel
 
 	y += x \ 320
 	x = x mod 320
@@ -834,12 +873,15 @@ SUB stosprite (pic() as integer, byval picoff as integer, byval x as integer, by
 			poff += 1
 		end if
 		x += 1
-		if x = 320 then y += 1: x = 0
+		if x = 320 then
+			y += 1
+			x = 0
+		end if
 	next
 
-end SUB
+end sub
 
-SUB loadsprite (pic() as integer, byval picoff as integer, byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval page as integer)
+sub loadsprite (pic() as integer, byval picoff as integer, byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval page as integer)
 'reads sprite from given page into pic(), starting at picoff
 	dim i as integer
 	dim poff as integer
@@ -851,7 +893,7 @@ SUB loadsprite (pic() as integer, byval picoff as integer, byval x as integer, b
 		setclip , , , , page
 	end if
 
-	sbytes = ((w * h) + 1) \ 2 	'only 4 bits per pixel
+	sbytes = ((w * h) + 1) \ 2	'only 4 bits per pixel
 
 	y += x \ 320
 	x = x mod 320
@@ -872,12 +914,15 @@ SUB loadsprite (pic() as integer, byval picoff as integer, byval x as integer, b
 		end if
 		toggle xor= 1
 		x += 1
-		if x = 320 then y += 1: x = 0
+		if x = 320 then
+			y += 1
+			x = 0
+		end if
 	next
 
-end SUB
+end sub
 
-SUB getsprite (pic() as integer, byval picoff as integer, byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval page as integer)
+sub getsprite (pic() as integer, byval picoff as integer, byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval page as integer)
 'This reads a rectangular region of a screen page into sprite buffer array pic() at picoff
 'It assumes that all the pixels it encounters will be colors 0-15 of the master palette
 'even though those colors will certainly be mapped to some other 16 color palette when drawn
@@ -918,9 +963,15 @@ SUB getsprite (pic() as integer, byval picoff as integer, byval x as integer, by
 		sbase = sbase + 1 'next col
 	next
 
-END SUB
+end sub
 
-FUNCTION keyval (byval a as integer, byval repeat_wait as integer = 0, byval repeat_rate as integer = 0) as integer
+
+'==========================================================================================
+'                                      Keyboard input
+'==========================================================================================
+
+
+function keyval (byval a as integer, byval repeat_wait as integer = 0, byval repeat_rate as integer = 0) as integer
 'except for special keys (like -1), each key reports 3 bits:
 '
 'bit 0: key was down at the last setkeys call
@@ -938,12 +989,12 @@ FUNCTION keyval (byval a as integer, byval repeat_wait as integer = 0, byval rep
 
 		'awful hack to avoid arrow keys firing alternatively when not pressed at the same time:
 		'save state of the first arrow key you query
-		dim arrowkey as integer = NO
+		dim arrowkey as bool = NO
 		if a = scLeft or a = scRight or a = scUp or a = scDown then arrowkey = YES
 		if arrowkey and diagonalhack <> -1 then return (result and 5) or (diagonalhack and keybd(a) > 0)
 
 		if key_down_ms(a) >= repeat_wait then
-			dim check_repeat as integer = YES
+			dim check_repeat as bool = YES
 
 			'if a = scAlt then
 				'alt can repeat (probably a bad idea not to), but only if nothing else has been pressed
@@ -966,9 +1017,9 @@ FUNCTION keyval (byval a as integer, byval repeat_wait as integer = 0, byval rep
 		end if
 	end if
 	return result
-end FUNCTION
+end function
 
-FUNCTION get_ascii_inputtext () as string
+function get_ascii_inputtext () as string
 	dim shift as integer = 0
 	dim ret as string
 
@@ -996,7 +1047,7 @@ FUNCTION get_ascii_inputtext () as string
 	return ret
 end function
 
-sub update_inputtext ()
+private sub update_inputtext ()
 	if disable_native_text_input then
 		inputtext = get_ascii_inputtext()
 		exit sub
@@ -1010,7 +1061,7 @@ sub update_inputtext ()
 	'method of entering extended characters (128 and up) using it. This will
 	'backfire if the key face/base characters aren't ASCII
 
-	dim force_native_input as integer = NO
+	dim force_native_input as bool = NO
 
 	for i as integer = 0 to len(w_in) - 1
 		if w_in[i] > 127 then force_native_input = YES
@@ -1059,7 +1110,7 @@ end function
 'Checks the keyboard and optionally joystick for keypress events.
 'Returns scancode if one is found, 0 otherwise.
 'Use this instead of looping over all keys, to make sure alt filtering and joysticks work
-function anykeypressed (byval checkjoystick as integer = YES) as integer
+function anykeypressed (byval checkjoystick as bool = YES) as integer
 	dim as integer joybutton, joyx, joyy
 
 	for i as integer = 1 to &h7f
@@ -1079,7 +1130,7 @@ function anykeypressed (byval checkjoystick as integer = YES) as integer
 end function
 
 'Returns a scancode or joystick button scancode
-FUNCTION waitforanykey () as integer
+function waitforanykey () as integer
 	dim as integer key, sleepjoy = 3
 
 	setkeys
@@ -1099,19 +1150,19 @@ FUNCTION waitforanykey () as integer
 			sleepjoy -= 1
 		end if
 	loop
-end FUNCTION
+end function
 
-SUB setkeyrepeat (byval repeat_wait as integer = 500, byval repeat_rate as integer = 55)
+sub setkeyrepeat (byval repeat_wait as integer = 500, byval repeat_rate as integer = 55)
 	keyrepeatwait = repeat_wait
 	keyrepeatrate = repeat_rate
-END SUB
+end sub
 
 'Without changing the results of keyval or readmouse, check whether a key has been pressed,
-'mouse button clicked, or window close requested since the last call to setkeys
+'mouse button clicked, or window close requested since the last call to setkeys.
 'NOTE: any such keypresses are lost! This is OK for the current purposes
-function interrupting_keypress () as integer
+function interrupting_keypress () as bool
 	io_pollkeyevents()
-	
+
 	dim keybd_dummy(-1 to 127) as integer
 	dim mouse as MouseInfo
 
@@ -1121,7 +1172,7 @@ function interrupting_keypress () as integer
 	mutexunlock keybdmutex
 
 	if closerequest then
-		'closerequest = 0
+		'closerequest = NO
 		keybd_dummy(-1) = 1
 	end if
 	if keybd_dummy(scPageup) > 0 and keybd_dummy(scPagedown) > 0 and keybd_dummy(scEsc) > 1 then keybd_dummy(-1) = 1
@@ -1131,7 +1182,7 @@ function interrupting_keypress () as integer
 #ifdef IS_GAME
 		'uncomment for slice debugging
 		'DestroyGameSlices YES
-		exitprogram 0
+		exitprogram NO
 #else
 		return YES
 #endif
@@ -1147,7 +1198,7 @@ function interrupting_keypress () as integer
 	return NO
 end function
 
-SUB setkeys_update_keybd
+sub setkeys_update_keybd
 	dim winstate as WindowState ptr
 	winstate = gfx_getwindowstate()
 
@@ -1183,9 +1234,9 @@ SUB setkeys_update_keybd
 			delayed_alt_keydown = NO
 		end if
 
-		keybd(scCtrl) and= 1 
-		keybd(scLeftCtrl) and= 1 
-		keybd(scRightCtrl) and= 1 
+		keybd(scCtrl) and= 1
+		keybd(scLeftCtrl) and= 1
+		keybd(scRightCtrl) and= 1
 	end if
 
 	'Calculate new "new keypress" bit (bit 2)
@@ -1245,7 +1296,7 @@ sub update_keydown_times ()
 	next
 end sub
 
-SUB setkeys (byval enable_inputtext as integer = NO)
+sub setkeys (byval enable_inputtext as bool = NO)
 'Updates the keybd array (which keyval() wraps) to reflect new keypresses
 'since the last call, also clears all keypress events (except key-is-down)
 '
@@ -1295,7 +1346,7 @@ SUB setkeys (byval enable_inputtext as integer = NO)
 	'to close the window (eg. clicking the X), set the magic keyboard
 	'index -1 if so. It can only be unset with clearkey.
 	if closerequest then
-		closerequest = 0
+		closerequest = NO
 		keybd(-1) = 1
 	end if
 	if keybd(scPageup) > 0 and keybd(scPagedown) > 0 and keybd(scEsc) > 1 then keybd(-1) = 1
@@ -1307,7 +1358,7 @@ SUB setkeys (byval enable_inputtext as integer = NO)
 	if keyval(-1) then
 		'uncomment for slice debugging
 		'DestroyGameSlices YES
-		exitprogram 0
+		exitprogram NO
 	end if
 #endif
 
@@ -1333,7 +1384,7 @@ SUB setkeys (byval enable_inputtext as integer = NO)
 			end if
 		end if
 		if keyval(scR) > 1 then
-			variablerez xor= 1
+			variablerez xor= YES
 			gfx_setresizable(variablerez)
 			if forcevispageresize = NO then
 				forcevispageresize = YES
@@ -1351,16 +1402,16 @@ SUB setkeys (byval enable_inputtext as integer = NO)
 #ELSE
 		if keyval(scScrollLock) > 1 then
 			clearkey(scScrollLock)
-#ENDIF
+#endIF
 			mouserect -1, -1, -1, -1
-			mouse_grab_requested = -1
-			mouse_grab_overridden = -1
+			mouse_grab_requested = YES
+			mouse_grab_overridden = YES
 		end if
 	end if
 
-end SUB
+end sub
 
-SUB clearkey(byval k as integer)
+sub clearkey(byval k as integer)
 	keybd(k) = 0
 	if k >= 0 then
 		key_down_ms(k) = 0
@@ -1368,11 +1419,17 @@ SUB clearkey(byval k as integer)
 end sub
 
 'Set keyval(-1) on. So ugly
-SUB setquitflag ()
+sub setquitflag ()
 	keybd(-1) = 1
-END SUB
+end sub
 
-SUB start_recording_input (filename as string)
+
+'==========================================================================================
+'                                  Recording and replay
+'==========================================================================================
+
+
+sub start_recording_input (filename as string)
 	if play_input then
 		debug "Can't record input because already replaying input!"
 		exit sub
@@ -1395,17 +1452,17 @@ SUB start_recording_input (filename as string)
 	for i as integer = 0 to ubound(last_keybd)
 		last_keybd(i) = 0
 	next i
-END SUB
+end sub
 
-SUB stop_recording_input ()
+sub stop_recording_input ()
 	if rec_input then
 		close #rec_input_file
 		rec_input = NO
 		debuginfo "STOP recording input"
 	end if
-END SUB
+end sub
 
-SUB start_replaying_input (filename as string)
+sub start_replaying_input (filename as string)
 	if rec_input then
 		debug "Can't replay input because already recording input!"
 		exit sub
@@ -1433,9 +1490,9 @@ SUB start_replaying_input (filename as string)
 	for i as integer = 0 to ubound(keybd)
 		keybd(i) = 0
 	next i
-END SUB
+end sub
 
-SUB stop_replaying_input (msg as string="", byval errorlevel as ErrorLevelEnum = errError)
+sub stop_replaying_input (msg as string="", byval errorlevel as ErrorLevelEnum = errError)
 	if msg <> "" then
 		debugc errorlevel, msg
 	end if
@@ -1444,9 +1501,9 @@ SUB stop_replaying_input (msg as string="", byval errorlevel as ErrorLevelEnum =
 		play_input = NO
 		debugc errorlevel, "STOP replaying input"
 	end if
-END SUB
+end sub
 
-SUB record_input_tick ()
+sub record_input_tick ()
 	static tick as integer = -1
 	tick += 1
 	dim presses as ubyte = 0
@@ -1470,9 +1527,9 @@ SUB record_input_tick ()
 	next i
 	PUT #rec_input_file,, cubyte(len(inputtext))
 	PUT #rec_input_file,, inputtext
-END SUB
+end sub
 
-SUB replay_input_tick ()
+sub replay_input_tick ()
 	static tick as integer = -1
 	tick += 1
 	do
@@ -1491,7 +1548,7 @@ SUB replay_input_tick ()
 			for i as integer = 0 to 127
 				if keybd(i) then
 					' There ought to be a tick in the input file so that we can set setkeys_elapsed_ms correctly
-					debug "bad recorded key input: key " & i & " is down, but expected tick " & tick & " is missing" 
+					debug "bad recorded key input: key " & i & " is down, but expected tick " & tick & " is missing"
 					exit for
 				end if
 			next
@@ -1545,29 +1602,35 @@ SUB replay_input_tick ()
 		end if
 		replaytick = -1
 	loop
-END SUB
+end sub
+
+
+'==========================================================================================
+'                       Compat layer for old graphics backend IO API
+'==========================================================================================
+
 
 'these are wrappers provided by the polling thread
-SUB io_amx_keybits cdecl (byval keybdarray as integer ptr)
+sub io_amx_keybits cdecl (byval keybdarray as integer ptr)
 	for a as integer = 0 to &h7f
 		keybdarray[a] = keybdstate(a)
 		keybdstate(a) = keybdstate(a) and 1
 	next
-END SUB
+end sub
 
-SUB io_amx_mousebits cdecl (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer)
+sub io_amx_mousebits cdecl (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer)
 	'get the mouse state one last time, for good measure
 	io_getmouse(mx, my, mwheel, mbuttons)
 	mclicks = mouseflags or (mbuttons and not mouselastflags)
 	mouselastflags = mbuttons
 	mouseflags = 0
 	mbuttons = mbuttons or mclicks
-END SUB
+end sub
 
-sub pollingthread(byval unused as any ptr)
+private sub pollingthread(byval unused as any ptr)
 	dim as integer a, dummy, buttons
 
-	while endpollthread = 0
+	while endpollthread = NO
 		mutexlock keybdmutex
 
 		io_updatekeys(@keybdstate(0))
@@ -1597,20 +1660,25 @@ sub pollingthread(byval unused as any ptr)
 end sub
 
 sub post_terminate_signal cdecl ()
-	'in future, we might like to do something here about infinite loops and bug 233, etc
-	closerequest = 1
+	closerequest = YES
 end sub
 
+
+'==========================================================================================
+'                                   Graphics primitives
+'==========================================================================================
+
+
 'No clipping!!
-SUB putpixel (byval spr as Frame ptr, byval x as integer, byval y as integer, byval c as integer)
+sub putpixel (byval spr as Frame ptr, byval x as integer, byval y as integer, byval c as integer)
 	if x < 0 orelse x >= spr->w orelse y < 0 orelse y >= spr->h then
 		exit sub
 	end if
 
 	FRAMEPIXEL(x, y, spr) = c
-end SUB
+end sub
 
-SUB putpixel (byval x as integer, byval y as integer, byval c as integer, byval p as integer)
+sub putpixel (byval x as integer, byval y as integer, byval c as integer, byval p as integer)
 	if clippedframe <> vpages(p) then
 		setclip , , , , p
 	end if
@@ -1621,17 +1689,17 @@ SUB putpixel (byval x as integer, byval y as integer, byval c as integer, byval 
 	end if
 
 	PAGEPIXEL(x, y, p) = c
-end SUB
+end sub
 
-FUNCTION readpixel (byval spr as Frame ptr, byval x as integer, byval y as integer) as integer
+function readpixel (byval spr as Frame ptr, byval x as integer, byval y as integer) as integer
 	if x < 0 orelse x >= spr->w orelse y < 0 orelse y >= spr->h then
 		exit function
 	end if
 
 	return FRAMEPIXEL(x, y, spr)
-end FUNCTION
+end function
 
-FUNCTION readpixel (byval x as integer, byval y as integer, byval p as integer) as integer
+function readpixel (byval x as integer, byval y as integer, byval p as integer) as integer
 	if clippedframe <> vpages(p) then
 		setclip , , , , p
 	end if
@@ -1642,36 +1710,36 @@ FUNCTION readpixel (byval x as integer, byval y as integer, byval p as integer) 
 	end if
 
 	return PAGEPIXEL(x, y, p)
-end FUNCTION
+end function
 
-SUB drawbox (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval col as integer, byval thick as integer = 1, byval p as integer)
-	drawbox vpages(p), x, y, w, h, col, thick
-END SUB
+sub drawbox (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval col as integer, byval thickness as integer = 1, byval p as integer)
+	drawbox vpages(p), x, y, w, h, col, thickness
+end sub
 
 'Draw a hollow box, with given edge thickness
-SUB drawbox (byval dest as Frame ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval col as integer, byval thick as integer = 1)
+sub drawbox (byval dest as Frame ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval col as integer, byval thickness as integer = 1)
 	if w < 0 then x = x + w + 1: w = -w
 	if h < 0 then y = y + h + 1: h = -h
 
 	if w = 0 or h = 0 then exit sub
 
-	dim as integer thickx = small(thick, w), thicky = small(thick, h)
+	dim as integer thickx = small(thickness, w), thicky = small(thickness, h)
 
 	rectangle dest, x, y, w, thicky, col
 	IF h > thicky THEN
 		rectangle dest, x, y + h - thicky, w, thicky, col
-	END IF
+	end IF
 	rectangle dest, x, y, thickx, h, col
 	IF w > thickx THEN
 		rectangle dest, x + w - thickx, y, thickx, h, col
-	END IF
-END SUB
+	end IF
+end sub
 
-SUB rectangle (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval c as integer, byval p as integer)
+sub rectangle (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval c as integer, byval p as integer)
 	rectangle vpages(p), x, y, w, h, c
-END SUB
+end sub
 
-SUB rectangle (byval fr as Frame Ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval c as integer)
+sub rectangle (byval fr as Frame Ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval c as integer)
 	if clippedframe <> fr then
 		setclip , , , , fr
 	end if
@@ -1695,13 +1763,13 @@ SUB rectangle (byval fr as Frame Ptr, byval x as integer, byval y as integer, by
 		sptr += fr->pitch
 		h -= 1
 	wend
-END SUB
+end sub
 
-SUB fuzzyrect (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval c as integer, byval p as integer, byval fuzzfactor as integer = 50)
+sub fuzzyrect (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval c as integer, byval p as integer, byval fuzzfactor as integer = 50)
 	fuzzyrect vpages(p), x, y, w, h, c, fuzzfactor
-END SUB
+end sub
 
-SUB fuzzyrect (byval fr as Frame Ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval c as integer, byval fuzzfactor as integer = 50)
+sub fuzzyrect (byval fr as Frame Ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval c as integer, byval fuzzfactor as integer = 50)
 	'How many magic constants could you wish for?
 	'These were half generated via magic formulas, and half hand picked (with magic criteria)
 	static grain_table(50) as integer = {_
@@ -1756,35 +1824,39 @@ SUB fuzzyrect (byval fr as Frame Ptr, byval x as integer, byval y as integer, by
 		h -= 1
 		sptr += fr->pitch
 	wend
-end SUB
+end sub
 
-SUB drawline (byval x1 as integer, byval y1 as integer, byval x2 as integer, byval y2 as integer, byval c as integer, byval p as integer)
+sub drawline (byval x1 as integer, byval y1 as integer, byval x2 as integer, byval y2 as integer, byval c as integer, byval p as integer)
 	drawline vpages(p), x1, y1, x2, y2, c
-END SUB
+end sub
 
-SUB drawline (byval dest as Frame ptr, byval x1 as integer, byval y1 as integer, byval x2 as integer, byval y2 as integer, byval c as integer)
+sub drawline (byval dest as Frame ptr, byval x1 as integer, byval y1 as integer, byval x2 as integer, byval y2 as integer, byval c as integer)
 'uses Bresenham's run-length slice algorithm
 	dim as integer xdiff,ydiff
-	dim as integer xdirection 	'direction of X travel from top to bottom point (1 or -1)
-	dim as integer minlength  	'minimum length of a line strip
-	dim as integer startLength 	'length of start strip (approx half 'minLength' to balance line)
-	dim as integer runLength  	'current run-length to be used (minLength or minLength+1)
-	dim as integer endLength   	'length of end of line strip (usually same as startLength)
+	dim as integer xdirection       'direction of X travel from top to bottom point (1 or -1)
+	dim as integer minlength        'minimum length of a line strip
+	dim as integer startLength      'length of start strip (approx half 'minLength' to balance line)
+	dim as integer runLength        'current run-length to be used (minLength or minLength+1)
+	dim as integer endLength        'length of end of line strip (usually same as startLength)
 
-	dim as integer instep		'xdirection or 320 (inner loop)
-	dim as integer outstep		'xdirection or 320 (outer loop)
-	dim as integer shortaxis	'outer loop control
+	dim as integer instep           'xdirection or 320 (inner loop)
+	dim as integer outstep          'xdirection or 320 (outer loop)
+	dim as integer shortaxis        'outer loop control
 	dim as integer longaxis
 
-	dim as integer errorterm   	'when to draw an extra pixel
-	dim as integer erroradd 	'add to errorTerm for each strip drawn
-	dim as integer errorsub 	'subtract from errorterm when triggered
+	dim as integer errorterm        'when to draw an extra pixel
+	dim as integer erroradd         'add to errorTerm for each strip drawn
+	dim as integer errorsub         'subtract from errorterm when triggered
 
-	dim as integer i,j
 	dim sptr as ubyte ptr
 
 'Macro to simplify code
-#define DRAW_SLICE(a) for i=0 to a-1: *sptr = c: sptr += instep: next
+#macro DRAW_SLICE(a)
+	for i as integer = 0 to a-1
+		*sptr = c
+		sptr += instep
+	next
+#endmacro
 
 	if clippedframe <> dest then
 		setclip , , , , dest
@@ -1797,8 +1869,8 @@ SUB drawline (byval dest as Frame ptr, byval x1 as integer, byval y1 as integer,
 
 	if y1 > y2 then
 		'swap ends, we only draw downwards
-		i=y1: y1=y2: y2=i
-		i=x1: x1=x2: x2=i
+		swap y1, y2
+		swap x1, x2
 	end if
 
 	'point to start
@@ -1879,7 +1951,7 @@ SUB drawline (byval dest as Frame ptr, byval x1 as integer, byval y1 as integer,
 	sptr += outstep
 
 	'draw the middle strips
-	for j = 1 to shortaxis-1
+	for j as integer = 1 to shortaxis - 1
 		runLength = minLength
 		errorTerm += erroradd
 
@@ -1893,9 +1965,9 @@ SUB drawline (byval dest as Frame ptr, byval x1 as integer, byval y1 as integer,
 	next
 
 	DRAW_SLICE(endlength)
-end SUB
+end sub
 
-SUB paintat (byval dest as Frame ptr, byval x as integer, byval y as integer, byval c as integer)
+sub paintat (byval dest as Frame ptr, byval x as integer, byval y as integer, byval c as integer)
 'a floodfill.
 	dim tcol as integer
 	dim queue as node ptr = null
@@ -1971,9 +2043,9 @@ SUB paintat (byval dest as Frame ptr, byval x as integer, byval y as integer, by
 	loop while queue <> null
 	'should only exit when queue has caught up with tail
 
-end SUB
+end sub
 
-SUB ellipse (byval fr as Frame ptr, byval x as double, byval y as double, byval radius as double, byval col as integer, byval fillcol as integer, byval semiminor as double = 0.0, byval angle as double = 0.0)
+sub ellipse (byval fr as Frame ptr, byval x as double, byval y as double, byval radius as double, byval col as integer, byval fillcol as integer, byval semiminor as double = 0.0, byval angle as double = 0.0)
 'radius is the semimajor axis if the ellipse is not a circle
 'angle is the angle of the semimajor axis to the x axis, in radians counter-clockwise
 
@@ -2050,7 +2122,7 @@ SUB ellipse (byval fr as Frame ptr, byval x as double, byval y as double, byval 
 			putpixel(fr, xs, ys - 1, col)
 		next
 
-		dim canskip as integer = YES
+		dim canskip as bool = YES
 		for xs = xstart to xend
 			putpixel(fr, xs, ys, col)
 			if canskip andalso xs >= lastxstart - 1 then
@@ -2069,11 +2141,11 @@ SUB ellipse (byval fr as Frame ptr, byval x as double, byval y as double, byval 
 		lastxend = xend
 		if discrim >= 0 then xend = xstart - 1  'To draw the last scanline, in the next loop
 	next
-END SUB
+end sub
 
 'Replaces one colour with another within a rectangular region.
 'Specifying the region is optional
-SUB replacecolor (byval fr as Frame ptr, byval c_old as integer, byval c_new as integer, byval x as integer = -1, byval y as integer = -1, byval w as integer = -1, byval h as integer = -1)
+sub replacecolor (byval fr as Frame ptr, byval c_old as integer, byval c_new as integer, byval x as integer = -1, byval y as integer = -1, byval w as integer = -1, byval h as integer = -1)
 	if clippedframe <> fr then
 		setclip , , , , fr
 	end if
@@ -2104,9 +2176,9 @@ SUB replacecolor (byval fr as Frame ptr, byval c_old as integer, byval c_new as 
 			if sptr[xi] = c_old then sptr[xi] = c_new
 		next
 	next
-END SUB
+end sub
 
-SUB storemxs (fil as string, byval record as integer, byval fr as Frame ptr)
+sub storemxs (fil as string, byval record as integer, byval fr as Frame ptr)
 'saves a screen page to a file. Doesn't support non-320x200 pages
 	dim f as integer
 	dim as integer x, y
@@ -2133,9 +2205,9 @@ SUB storemxs (fil as string, byval record as integer, byval fr as Frame ptr)
 	next
 
 	close #f
-end SUB
+end sub
 
-FUNCTION loadmxs (fil as string, byval record as integer, byval dest as Frame ptr = NULL) as Frame ptr
+function loadmxs (fil as string, byval record as integer, byval dest as Frame ptr = NULL) as Frame ptr
 'loads a 320x200 mode X format page from a file.
 'You may optionally pass in existing frame to load into.
 	dim f as integer
@@ -2178,33 +2250,42 @@ FUNCTION loadmxs (fil as string, byval record as integer, byval dest as Frame pt
 
 	close #f
 	return dest
-end FUNCTION
+end function
 
-SUB enable_speed_control(byval setting as integer=YES)
+
+'==========================================================================================
+'                                     Waits/Framerate
+'==========================================================================================
+
+
+sub enable_speed_control(byval setting as bool = YES)
 	use_speed_control = setting
-END SUB
+end sub
 
-SUB setwait (byval t as integer, byval flagt as integer = 0)
+sub setwait (byval t as integer, byval flagt as integer = 0)
 't is a value in milliseconds which, in the original, is used to set the event
 'frequency and is also used to set the wait time, but the resolution of the
 'dos timer means that the latter is always truncated to the last multiple of
 '55 milliseconds. We won't do this anymore. Try to make the target framerate.
+'flagt, if nonzero, is a count in milliseconds for the secondary timer, which is
+'accessed as the return value from dowait.
 	if use_speed_control = NO then exit sub
+	'Min wait: 60fps, max wait: 1.5x requested
 	waittime = bound(waittime + t / 1000, timer + 0.017, timer + t / 667)
-	if timer > flagtime then
-		flagtime = bound(flagtime + flagt / 1000, timer + 0.017, timer + flagt / 667)
-	end if
 	if flagt = 0 then
 		flagt = t
 	end if
-	waitset = 1
-end SUB
+	if timer > flagtime then
+		flagtime = bound(flagtime + flagt / 1000, timer + 0.017, timer + flagt / 667)
+	end if
+	setwait_called = YES
+end sub
 
-FUNCTION get_tickcount() as integer
- return tickcount
-END FUNCTION
+function get_tickcount() as integer
+	return tickcount
+end function
 
-FUNCTION dowait () as integer
+function dowait () as bool
 'wait until alarm time set in setwait()
 'returns true if the flag time has passed (since the last time it was passed)
 'In freebasic, sleep is in 1000ths, and a value of less than 100 will not
@@ -2216,19 +2297,25 @@ FUNCTION dowait () as integer
 		sleep i
 		io_waitprocessing()
 	loop
-	if waitset = 1 then
-		waitset = 0
+	if setwait_called then
+		setwait_called = NO
 	else
 		debug "dowait called without setwait"
 	end if
 	tickcount += 1
 	return timer >= flagtime
-end FUNCTION
+end function
+
+
+'==========================================================================================
+'                                      Text routines
+'==========================================================================================
+
 
 'Pass a string, a 0-based offset of the start of the tag (it is assumed the first two characters have already
 'been matched as ${ or \8{ as desired), and action and arg pointers, to fill with the parse results. (Action in UPPERCASE)
 'Returns 0 for an invalidly formed tag, otherwise the (0-based) offset of the closing }.
-FUNCTION parse_tag(z as string, byval offset as integer, byval action as string ptr, byval arg as integer ptr) as integer
+function parse_tag(z as string, byval offset as integer, byval action as string ptr, byval arg as integer ptr) as integer
 	dim closebrace as integer = INSTR((offset + 4) + 1, z, "}") - 1
 	if closebrace <> -1 then
 		*action = ""
@@ -2253,15 +2340,15 @@ FUNCTION parse_tag(z as string, byval offset as integer, byval action as string 
 		return closebrace
 	end if
 	return 0
-end FUNCTION
+end function
 
-Type PrintStrState
+type PrintStrState
 	as Font ptr thefont
 	as Font ptr initial_font    'Used when resetting thefont
 	as integer bgcolor          'Only used if not_transparent
 	as integer fgcolor          'Used when resetting localpal. May be -1 for none
 	as integer initial_fgcolor  'Used when resetting fgcolor
-	as integer not_transparent  'Force non-transparency of layer 0
+	as bool    not_transparent  'Force non-transparency of layer 0
 	as integer leftmargin
 	as integer rightmargin
 	as integer x
@@ -2269,7 +2356,7 @@ Type PrintStrState
 	as integer startx
 	as integer charnum
 	as Palette16 localpal
-End Type
+end type
 
 'Special signalling characters
 #define tcmdFirst   15
@@ -2295,7 +2382,7 @@ End Type
 		*Cast(integer ptr, @outbuf[ch + 3]) : _
 	ch += 6
 
-#define APPEND_CMD(outbuf, cmd_id, value) _
+#define APPend_CMD(outbuf, cmd_id, value) _
 	outbuf += CHR(cmd_id) & "    " : _
 	*Cast(integer ptr, @outbuf[len(outbuf) - 4]) = Cast(integer, value)
 
@@ -2316,15 +2403,15 @@ End Type
 'expensive. However, .x, .y and .charnum are updated at the end.
 'If updatecharnum is true, it is updated only when .charnum jumps; you still need to
 'increment after every printing character yourself.
-private function layout_line_fragment(z as string, byval endchar as integer, byval state as PrintStrState, byref line_width as integer, byref line_height as integer, byval pagewidth as integer, byval withtags as integer, byval withnewlines as integer, byval updatecharnum as integer = NO) as string
+private function layout_line_fragment(z as string, byval endchar as integer, byval state as PrintStrState, byref line_width as integer, byref line_height as integer, byval pagewidth as integer, byval withtags as bool, byval withnewlines as bool, byval updatecharnum as bool = NO) as string
 	dim lastspace as integer = -1
 	dim lastspace_x as integer
 	dim lastspace_outbuf_len as integer
 	dim lastspace_line_height as integer
-	dim endchar_x as integer  'x at endchar
-	dim endchar_outbuf_len as integer = 999999 'Length of outbuf at endchar
-	dim ch as integer  'We use this instead of modifying .charnum
-	dim visible_chars as integer  'Number non-control chars we will return
+	dim endchar_x as integer             'x at endchar
+	dim endchar_outbuf_len as integer = 999999  'Length of outbuf at endchar
+	dim ch as integer                    'We use this instead of modifying .charnum
+	dim visible_chars as integer         'Number non-control chars we will return
 	dim outbuf as string
 	'Appending characters one at a time to outbuf is slow, so we delay it.
 	'chars_to_add counts the number of delayed characters
@@ -2354,7 +2441,7 @@ private function layout_line_fragment(z as string, byval endchar as integer, byv
 					line_width = .x
 					UPDATE_STATE(outbuf, x, .startx)
 				end if
-				'Purposefully past endchar 
+				'Purposefully past endchar
 				UPDATE_STATE(outbuf, charnum, ch)
 				'Reset margins for next paragraph? No.
 				'UPDATE_STATE(outbuf, leftmargin, 0)
@@ -2409,7 +2496,7 @@ private function layout_line_fragment(z as string, byval endchar as integer, byv
 								else
 									goto badtexttag
 								end if
-								APPEND_CMD(outbuf, tcmdFont, .thefont)
+								APPend_CMD(outbuf, tcmdFont, .thefont)
 								line_height = large(line_height, .thefont->h)
 							else
 								goto badtexttag
@@ -2427,7 +2514,7 @@ private function layout_line_fragment(z as string, byval endchar as integer, byv
 							UPDATE_STATE(outbuf, fgcolor, col)
 						elseif action = "KP" then
 							if intarg >= 0 and intarg <= gen(genMaxPal) then
-								APPEND_CMD(outbuf, tcmdPalette, intarg)
+								APPend_CMD(outbuf, tcmdPalette, intarg)
 								'No need up update palette or fgcolor here
 								'(don't want to duplicate that logic here)
 							else
@@ -2536,8 +2623,8 @@ sub build_text_palette(byref state as PrintStrState, byval srcpal as Palette16 p
 	end with
 end sub
 
-'Processes a parsed line, updating the state passed to it, and also optionally draws one of the layers
-sub draw_line_fragment(byval dest as Frame ptr, byref state as PrintStrState, byval layer as integer, parsed_line as string, byval reallydraw as integer)
+'Processes a parsed line, updating the state passed to it, and also optionally draws one of the layers (if reallydraw)
+sub draw_line_fragment(byval dest as Frame ptr, byref state as PrintStrState, byval layer as integer, parsed_line as string, byval reallydraw as bool)
 	dim arg as integer
 	dim as Frame charframe
 	charframe.mask = NULL
@@ -2563,12 +2650,12 @@ sub draw_line_fragment(byval dest as Frame ptr, byref state as PrintStrState, by
 				READ_CMD(parsed_line, ch, arg)
 				if reallydraw then
 					dim pal as Palette16 ptr
-					pal = palette16_load(arg)
+					pal = Palette16_load(arg)
 					if pal then
 						'Palettes override the foreground colour (but not background or outline)
 						.fgcolor = -1
 						build_text_palette state, pal
-						palette16_unload @pal
+						Palette16_unload @pal
 					end if
 				end if
 			else
@@ -2588,7 +2675,7 @@ sub draw_line_fragment(byval dest as Frame ptr, byref state as PrintStrState, by
 							charframe.h = .h
 							charframe.pitch = .w
 'debug " <" & (state.x + .offx) & "," & (state.y + .offy) & ">"
-							dim trans as integer = YES
+							dim trans as bool = YES
 							if layer = 1 and state.not_transparent then trans = NO
 							drawohr(@charframe, dest, @state.localpal, state.x + .offx, state.y + .offy - state.thefont->h, trans)
 						end with
@@ -2643,8 +2730,8 @@ end sub
 'If you want to skip some number of lines, you should clip, and draw some number of pixels
 'above the clipping rectangle.
 '
-sub render_text (byval dest as Frame ptr, byref state as PrintStrState, text as string, byval endchar as integer = 999999, byval xpos as integer, byval ypos as integer, byval wide as integer = 999999, byval pal as Palette16 ptr = NULL, byval withtags as integer = YES, byval withnewlines as integer = YES)
-', byval cached_state as PrintStrStatePtr = NULL, byval use_cached_state as integer = YES)
+sub render_text (byval dest as Frame ptr, byref state as PrintStrState, text as string, byval endchar as integer = 999999, byval xpos as integer, byval ypos as integer, byval wide as integer = 999999, byval pal as Palette16 ptr = NULL, byval withtags as bool = YES, byval withnewlines as bool = YES)
+', byval cached_state as PrintStrStatePtr = NULL, byval use_cached_state as bool = YES)
 
 'static tog as integer = 0
 'tog xor= 1
@@ -2683,14 +2770,14 @@ sub render_text (byval dest as Frame ptr, byref state as PrintStrState, text as 
 			.rightmargin = wide
 		'end if
 
-		dim as integer visibleline  'Draw this line of text?
+		dim as bool visibleline  'Draw this line of text?
 
 		'We have to process both layers, even if the current font has only one layer,
 		'in case the string switches to a font that has two!
 		dim prev_state as PrintStrState = state
 		dim prev_parse as string
-		dim prev_visible as integer
-		dim draw_layer1 as integer = NO  'Don't draw on first loop
+		dim prev_visible as bool
+		dim draw_layer1 as bool = NO  'Don't draw on first loop
 
 		if endchar > len(text) then endchar = len(text)
 		do
@@ -2700,7 +2787,7 @@ sub render_text (byval dest as Frame ptr, byref state as PrintStrState, text as 
 			'Print at least one extra line above and below the visible region, in case the
 			'characters are big (we only approximate this policy, with the current font height)
 			visibleline = (.y + line_height > clipt - .thefont->h AND .y < clipb + .thefont->h)
-'if tog then visibleline = 0
+'if tog then visibleline = NO
 'debug "vis: " & visibleline
 
 			'FIXME: state caching was meant to kick in after the first visible line of text, not here;
@@ -2736,7 +2823,7 @@ sub render_text (byval dest as Frame ptr, byref state as PrintStrState, text as 
 end sub
 
 'Calculate size of part of a block of text when drawn, returned in retsize
-sub text_layout_dimensions (byval retsize as StringSize ptr, z as string, byval endchar as integer = 999999, byval maxlines as integer = 999999, byval wide as integer = 999999, byval fontnum as integer, byval withtags as integer = YES, byval withnewlines as integer = YES)
+sub text_layout_dimensions (byval retsize as StringSize ptr, z as string, byval endchar as integer = 999999, byval maxlines as integer = 999999, byval wide as integer = 999999, byval fontnum as integer, byval withtags as bool = YES, byval withnewlines as bool = YES)
 'debug "DIMEN char " & endchar
 	dim state as PrintStrState
 	with state
@@ -2760,7 +2847,7 @@ sub text_layout_dimensions (byval retsize as StringSize ptr, z as string, byval 
 			if .charnum > endchar then exit while
 			'If .charnum = endchar, the last line is zero length, but should be included.
 			'.charnum won't advance, so need extra check to prevent infinite loop!
-			dim exitloop as integer = (.charnum = endchar)
+			dim exitloop as bool = (.charnum = endchar)
 			dim parsed_line as string = layout_line_fragment(z, endchar, state, line_width, line_height, wide, withtags, withnewlines)
 			retsize->lines += 1
 'debug "parsed a line, line_width =" & line_width
@@ -2779,12 +2866,12 @@ sub text_layout_dimensions (byval retsize as StringSize ptr, z as string, byval 
 		retsize->lastw = line_width
 		retsize->lasth = line_height
 		retsize->finalfont = .thefont
-'debug "END DIM  char=" & .charnum
+'debug "end DIM  char=" & .charnum
 	end with
-end SUB
+end sub
 
 'Returns the length in pixels of the longest line of a *non-autowrapped* string.
-FUNCTION textwidth(z as string, byval fontnum as integer = 0, byval withtags as integer = YES, byval withnewlines as integer = YES) as integer
+function textwidth(z as string, byval fontnum as integer = 0, byval withtags as bool = YES, byval withnewlines as bool = YES) as integer
 	dim retsize as StringSize
 	text_layout_dimensions @retsize, z, len(z), , , fontnum, withtags, withnewlines
 'debug "width of '" & z & "' is "
@@ -2792,7 +2879,7 @@ FUNCTION textwidth(z as string, byval fontnum as integer = 0, byval withtags as 
 end function
 
 'xpos and ypos passed to use same cached state
-sub find_point_in_text (byval retsize as StringCharPos ptr, byval seekx as integer, byval seeky as integer, z as string, byval wide as integer = 999999, byval xpos as integer = 0, byval ypos as integer = 0, byval fontnum as integer, byval withtags as integer = YES, byval withnewlines as integer = YES)
+sub find_point_in_text (byval retsize as StringCharPos ptr, byval seekx as integer, byval seeky as integer, z as string, byval wide as integer = 999999, byval xpos as integer = 0, byval ypos as integer = 0, byval fontnum as integer, byval withtags as bool = YES, byval withnewlines as bool = YES)
 
 	dim state as PrintStrState
 	with state
@@ -2806,7 +2893,7 @@ sub find_point_in_text (byval retsize as StringCharPos ptr, byval seekx as integ
 		.leftmargin = 0
 		.rightmargin = wide
 
-		dim delayedmatch as integer = NO
+		dim delayedmatch as bool = NO
 		dim line_width as integer
 		dim line_height as integer
 		dim arg as integer
@@ -2875,10 +2962,10 @@ sub find_point_in_text (byval retsize as StringCharPos ptr, byval seekx as integ
 		retsize->h = .thefont->h
 		retsize->lineh = line_height
 	end with
-end SUB
+end sub
 
 'A flexible printstr for enduser code without weird font, pal arguments
-SUB printstr (byval dest as Frame ptr, s as string, byval x as integer, byval y as integer, byval wide as integer = 999999, byval fontnum as integer, byval withtags as integer = YES, byval withnewlines as integer = YES)
+sub printstr (byval dest as Frame ptr, s as string, byval x as integer, byval y as integer, byval wide as integer = 999999, byval fontnum as integer, byval withtags as bool = YES, byval withnewlines as bool = YES)
 	dim state as PrintStrState
 	state.thefont = @fonts(fontnum)
 	if textbg <> 0 then state.not_transparent = YES
@@ -2886,10 +2973,10 @@ SUB printstr (byval dest as Frame ptr, s as string, byval x as integer, byval y 
 	state.fgcolor = textfg
 
 	render_text (dest, state, s, , x, y, wide, , withtags, withnewlines)
-end SUB
+end sub
 
 'the old printstr -- no autowrapping
-SUB printstr (s as string, byval x as integer, byval y as integer, byval p as integer, byval withtags as integer = NO)
+sub printstr (s as string, byval x as integer, byval y as integer, byval p as integer, byval withtags as bool = NO)
 	dim state as PrintStrState
 	state.thefont = @fonts(0)
 	if textbg <> 0 then state.not_transparent = YES
@@ -2897,10 +2984,10 @@ SUB printstr (s as string, byval x as integer, byval y as integer, byval p as in
 	state.fgcolor = textfg
 
 	render_text (vpages(p), state, s, , x, y, , , withtags, NO)
-end SUB
+end sub
 
 'this doesn't autowrap either
-SUB edgeprint (s as string, byval x as integer, byval y as integer, byval c as integer, byval p as integer, byval withtags as integer = NO)
+sub edgeprint (s as string, byval x as integer, byval y as integer, byval c as integer, byval p as integer, byval withtags as bool = NO)
 	'preserve the old behaviour (edgeprint used to call textcolor)
 	textfg = c
 	textbg = 0
@@ -2910,15 +2997,21 @@ SUB edgeprint (s as string, byval x as integer, byval y as integer, byval c as i
 	state.fgcolor = c
 
 	render_text (vpages(p), state, s, , x, y, , , withtags, NO)
-END SUB
+end sub
 
-SUB textcolor (byval fg as integer, byval bg as integer)
+sub textcolor (byval fg as integer, byval bg as integer)
 	textfg = fg
 	textbg = bg
-end SUB
+end sub
 
-'This SUB doesn't actually delete the Font object
-SUB font_unload (byval font as Font ptr)
+
+'==========================================================================================
+'                                           Fonts
+'==========================================================================================
+
+
+'This sub doesn't actually delete the Font object
+sub font_unload (byval font as Font ptr)
 	if font = null then exit sub
 
 	for i as integer = 0 to 1
@@ -2932,14 +3025,14 @@ SUB font_unload (byval font as Font ptr)
 		end if
 	next
 
-	palette16_unload @font->pal
+	Palette16_unload @font->pal
 	memset(font, 0, sizeof(Font))
 	font->pal_id = -1
 	font->outline_col = -1
 	'font->cols = 0
 	'font->offset.x = 0
 	'font->offset.y = 0
-end SUB
+end sub
 
 'Doesn't create a Frame
 private function fontlayer_new () as FontLayer ptr
@@ -2959,7 +3052,7 @@ private function fontlayer_duplicate (byval srclayer as FontLayer ptr) as FontLa
 end function
 
 'Create a version of a font with an outline around each character (in a new palette colour)
-SUB font_create_edged (byval newfont as Font ptr, byval basefont as Font ptr)
+sub font_create_edged (byval newfont as Font ptr, byval basefont as Font ptr)
 	if newfont = null then exit sub
 
 	if basefont = null then
@@ -3044,10 +3137,10 @@ SUB font_create_edged (byval newfont as Font ptr, byval basefont as Font ptr)
 	font_unload newfont
 	memcpy(newfont, font, sizeof(Font))
 	deallocate(font)
-end SUB
+end sub
 
 'Create a version of a font with a drop shadow (in a new palette colour)
-SUB font_create_shadowed (byval newfont as Font ptr, byval basefont as Font ptr, byval xdrop as integer = 1, byval ydrop as integer = 1)
+sub font_create_shadowed (byval newfont as Font ptr, byval basefont as Font ptr, byval xdrop as integer = 1, byval ydrop as integer = 1)
 	if newfont = null then exit sub
 
 	if basefont = null then
@@ -3081,7 +3174,7 @@ SUB font_create_shadowed (byval newfont as Font ptr, byval basefont as Font ptr,
 			.offy += ydrop
 		end with
 	next
-			
+
 	with *font->layers(0)->spr
 		for i as integer = 0 to .w * .h - 1
 			if .image[i] then
@@ -3093,7 +3186,7 @@ SUB font_create_shadowed (byval newfont as Font ptr, byval basefont as Font ptr,
 	font_unload newfont
 	memcpy(newfont, font, sizeof(Font))
 	deallocate(font)
-end SUB
+end sub
 
 sub font_loadold1bit (byval font as Font ptr, byval fontdata as ubyte ptr)
 	if font = null then exit sub
@@ -3145,13 +3238,13 @@ sub font_loadold1bit (byval font as Font ptr, byval fontdata as ubyte ptr)
 		sptr += 8 * 8 - 8
 		'maskp += 8 * 8 - 8
 	next
-end SUB
+end sub
 
 'Load each character from an individual BMP in a directory, falling back to some other
 'font for missing BMPs
 'This sub is for testing purposes only, and will be removed unless this shows some use:
 'uses hardcoded values
-SUB font_loadbmps (byval newfont as Font ptr, directory as string, byval fallback as Font ptr = null)
+sub font_loadbmps (byval newfont as Font ptr, directory as string, byval fallback as Font ptr = null)
 	if newfont = null then exit sub
 	'We support fallback == font by writing to a temporary Font to begin with
 	dim font as Font ptr = callocate(sizeof(Font))
@@ -3230,10 +3323,10 @@ SUB font_loadbmps (byval newfont as Font ptr, directory as string, byval fallbac
 	font_unload newfont
 	memcpy(newfont, font, sizeof(Font))
 	deallocate(font)
-end SUB
+end sub
 
 'Load a font from a BMP which contains all 256 characters in a 16x16 grid (all characters the same size)
-SUB font_loadbmp_16x16 (byval font as Font ptr, filename as string)
+sub font_loadbmp_16x16 (byval font as Font ptr, filename as string)
 	if font = null then exit sub
 
 	dim bmp as Frame ptr
@@ -3291,14 +3384,20 @@ SUB font_loadbmp_16x16 (byval font as Font ptr, filename as string)
 	next
 
 	frame_unload @bmp
-end SUB
+end sub
 
-SUB setfont (f() as integer)
+sub setfont (f() as integer)
 	font_loadold1bit(@fonts(0), cast(ubyte ptr, @f(0)))
 	font_create_edged(@fonts(1), @fonts(0))
-end SUB
+end sub
 
-SUB storeset (fil as string, byval i as integer, byval l as integer)
+
+'==========================================================================================
+'                                     Old allmodex IO
+'==========================================================================================
+
+
+sub storeset (fil as string, byval i as integer, byval l as integer)
 ' i = index, l = line (only if reading from screen buffer)
 	dim f as integer
 	dim idx as integer
@@ -3343,9 +3442,9 @@ SUB storeset (fil as string, byval i as integer, byval l as integer)
 	end if
 
 	close #f
-end SUB
+end sub
 
-SUB loadset (fil as string, byval i as integer, byval l as integer)
+sub loadset (fil as string, byval i as integer, byval l as integer)
 ' i = index, l = line (only if reading to screen buffer)
 	dim f as integer
 	dim idx as integer
@@ -3395,10 +3494,10 @@ SUB loadset (fil as string, byval i as integer, byval l as integer)
 	end if
 
 	close #f
-end SUB
+end sub
 
 'b is in BYTES
-SUB setpicstuf (buf() as integer, byval b as integer, byval p as integer)
+sub setpicstuf (buf() as integer, byval b as integer, byval p as integer)
 	if p >= 0 then
 		if clippedframe <> vpages(p) then
 			setclip , , , , p
@@ -3408,27 +3507,31 @@ SUB setpicstuf (buf() as integer, byval b as integer, byval p as integer)
 	bptr = @buf(0) 'doesn't really work well with FB
 	bsize = b
 	bpage = p
-end SUB
+end sub
 
-'--------------------- Audio routines ----------------------
 
-SUB setupmusic
+'==========================================================================================
+'                                           Music
+'==========================================================================================
+
+
+sub setupmusic
 	music_init
 	sound_init
 	musicbackendinfo = music_get_info
 	debuginfo musicbackendinfo
-end SUB
+end sub
 
-SUB closemusic ()
+sub closemusic ()
 	music_close
 	sound_close
-end SUB
+end sub
 
-SUB resetsfx ()
+sub resetsfx ()
 	sound_reset
-end SUB
+end sub
 
-SUB loadsong (f as string)
+sub loadsong (f as string)
 	'check for extension
 	dim ext as string
 	dim songname as string
@@ -3438,40 +3541,46 @@ SUB loadsong (f as string)
 	songtype = getmusictype(f)
 
 	music_play(songname, songtype)
-end SUB
+end sub
 
 'Doesn't work in SDL_mixer for MIDI music, so avoid
-'SUB pausesong ()
+'sub pausesong ()
 '	music_pause()
-'end SUB
+'end sub
 '
-'SUB resumesong ()
+'sub resumesong ()
 '	music_resume
-'end SUB
+'end sub
 
-FUNCTION get_music_volume () as single
+function get_music_volume () as single
 	return music_getvolume
-end FUNCTION
+end function
 
-SUB set_music_volume (byval vol as single)
+sub set_music_volume (byval vol as single)
 	music_setvolume(vol)
-end SUB
+end sub
 
-SUB screenshot (f as string)
+
+'==========================================================================================
+'                                        Screenshots
+'==========================================================================================
+
+
+sub screenshot (f as string)
 	'try external first
 	if gfx_screenshot(f) = 0 then
 		'otherwise save it ourselves
 		frame_export_bmp8(f & ".bmp", vpages(vpage), intpal())
 	end if
-END SUB
+end sub
 
-SUB bmp_screenshot(f as string)
+sub bmp_screenshot(f as string)
 	'This is for when you explicitly want a bmp screenshot, and NOT the preferred
 	'screenshot type used by the current gfx backend
 	frame_export_bmp8(f & ".bmp", vpages(vpage), intpal())
-END SUB
+end sub
 
-sub snapshot_check
+private sub snapshot_check
 'The best of both worlds. Holding down F12 takes a screenshot each frame, however besides
 'the first, they're saved to the temporary directory until key repeat kicks in, and then
 'moved, to prevent littering
@@ -3507,7 +3616,7 @@ sub snapshot_check
 			next
 			exit for
 		next
-		backlog_num = n + 1		
+		backlog_num = n + 1
 
 		if keyval(scF12) = 1 then
 			shot = tmpdir + shot
@@ -3528,21 +3637,27 @@ sub snapshot_check
 	end if
 end sub
 
-FUNCTION havemouse() as integer
+
+'==========================================================================================
+'                                     Mouse and joystick
+'==========================================================================================
+
+
+function havemouse() as bool
 'atm, all backends support the mouse, or don't know
-	 return -1
-end FUNCTION
+	 return YES
+end function
 
-SUB hidemousecursor ()
+sub hidemousecursor ()
 	io_setmousevisibility(0)
-end SUB
+end sub
 
-SUB unhidemousecursor ()
+sub unhidemousecursor ()
 	io_setmousevisibility(-1)
 	io_mouserect(-1, -1, -1, -1)
-end SUB
+end sub
 
-FUNCTION readmouse () as MouseInfo
+function readmouse () as MouseInfo
 	dim info as MouseInfo
 
 	mutexlock keybdmutex   'is this necessary?
@@ -3589,29 +3704,29 @@ FUNCTION readmouse () as MouseInfo
 	end if
 
 	return info
-end FUNCTION
+end function
 
-SUB movemouse (byval x as integer, byval y as integer)
+sub movemouse (byval x as integer, byval y as integer)
 	io_setmouse(x, y)
-end SUB
+end sub
 
-SUB mouserect (byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
+sub mouserect (byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
 	if gfxbackend = "fb" or gfxbackend = "sdl" then
 		if xmin = -1 and xmax = -1 and ymin = -1 and ymax = -1 then
-			mouse_grab_requested = 0
+			mouse_grab_requested = NO
 			settemporarywindowtitle remember_title
 		else
 			remember_mouse_grab(0) = xmin
 			remember_mouse_grab(1) = xmax
 			remember_mouse_grab(2) = ymin
 			remember_mouse_grab(3) = ymax
-			mouse_grab_requested = -1
-			mouse_grab_overridden = 0
+			mouse_grab_requested = YES
+			mouse_grab_overridden = NO
 #IFDEF __FB_DARWIN__
 			settemporarywindowtitle remember_title & " (F14 to free mouse)"
 #ELSE
 			settemporarywindowtitle remember_title & " (ScrlLock to free mouse)"
-#ENDIF
+#endIF
 		end if
 	end if
 	mutexlock keybdmutex
@@ -3619,8 +3734,8 @@ SUB mouserect (byval xmin as integer, byval xmax as integer, byval ymin as integ
 	mutexunlock keybdmutex
 end sub
 
-FUNCTION readjoy (joybuf() as integer, byval jnum as integer) as integer
-'Return 0 if joystick is not present, or -1 (true) if joystick is present
+function readjoy (joybuf() as integer, byval jnum as integer) as bool
+'Return false if joystick is not present, or true if joystick is present
 'jnum is the joystick to read (QB implementation supports 0 and 1)
 'joybuf(0) = Analog X axis (scaled to -100 to 100)
 'joybuf(1) = Analog Y axis
@@ -3640,13 +3755,13 @@ FUNCTION readjoy (joybuf() as integer, byval jnum as integer) as integer
 	joybuf(2) = (buttons AND 1) = 0 '0 = pressed, not 0 = unpressed (why???)
 	joybuf(3) = (buttons AND 2) = 0 'ditto
 	return -1
-end FUNCTION
+end function
 
-FUNCTION readjoy (byval joynum as integer, byref buttons as integer, byref x as integer, byref y as integer) as integer
+function readjoy (byval joynum as integer, byref buttons as integer, byref x as integer, byref y as integer) as bool
 	return io_readjoysane(joynum, buttons, x, y)
-end FUNCTION
+end function
 
-function calcblock(tmap as TileMap, byval x as integer, byval y as integer, byval overheadmode as integer, pmapptr as TileMap ptr) as integer
+private function calcblock(tmap as TileMap, byval x as integer, byval y as integer, byval overheadmode as integer, pmapptr as TileMap ptr) as integer
 'returns -1 to draw no tile
 'overheadmode = 1 : draw non overhead tiles only (to avoid double draw)
 'overheadmode = 2 : draw overhead tiles only
@@ -3695,10 +3810,13 @@ function calcblock(tmap as TileMap, byval x as integer, byval y as integer, byva
 	return block
 end function
 
-'----------------------------------------------------------------------
-'BMP functions - other formats are probably quite simple
+
+'==========================================================================================
+'                                       BMP routines
+'==========================================================================================
+'other formats are probably quite simple
 'with Allegro or SDL or FreeImage, but we'll stick to this for now.
-'----------------------------------------------------------------------
+
 
 sub surface_export_bmp (f as string, byval surf as Surface Ptr, maspal() as RGBcolor)
 	if surf->format = SF_32bit then
@@ -3740,7 +3858,7 @@ sub surface_export_bmp24 (f as string, byval surf as Surface Ptr)
 	close #of
 end sub
 
-SUB frame_export_bmp8 (f as string, byval fr as Frame Ptr, maspal() as RGBcolor)
+sub frame_export_bmp8 (f as string, byval fr as Frame Ptr, maspal() as RGBcolor)
 	dim argb as RGBQUAD
 	dim as integer of, y, i, skipbytes
 	dim as ubyte ptr sptr
@@ -3767,9 +3885,9 @@ SUB frame_export_bmp8 (f as string, byval fr as Frame Ptr, maspal() as RGBcolor)
 	next
 
 	close #of
-end SUB
+end sub
 
-SUB frame_export_bmp4 (f as string, byval fr as Frame Ptr, maspal() as RGBcolor, byval pal as Palette16 ptr)
+sub frame_export_bmp4 (f as string, byval fr as Frame Ptr, maspal() as RGBcolor, byval pal as Palette16 ptr)
 	dim argb as RGBQUAD
 	dim as integer of, x, y, i, skipbytes
 	dim as ubyte ptr sptr
@@ -3806,7 +3924,7 @@ SUB frame_export_bmp4 (f as string, byval fr as Frame Ptr, maspal() as RGBcolor,
 	next
 
 	close #of
-end SUB
+end sub
 
 'Creates a new file and writes the bmp headers to it.
 'Returns a file handle, or -1 on error.
@@ -3896,7 +4014,7 @@ function open_bmp_and_read_header(bmp as string, byref header as BITMAPFILEHEADE
 	return bf
 end function
 
-FUNCTION frame_import_bmp24(bmp as string, pal() as RGBcolor) as Frame ptr
+function frame_import_bmp24(bmp as string, pal() as RGBcolor) as Frame ptr
 'loads the 24-bit bitmap bmp, mapped to palette pal()
 	dim header as BITMAPFILEHEADER
 	dim info as BITMAPINFOHEADER
@@ -3921,16 +4039,16 @@ FUNCTION frame_import_bmp24(bmp as string, pal() as RGBcolor) as Frame ptr
 
 	close #bf
 	return ret
-END FUNCTION
+end function
 
-SUB bitmap2pal (bmp as string, pal() as RGBcolor)
+sub bitmap2pal (bmp as string, pal() as RGBcolor)
 'loads the 24-bit 16x16 palette bitmap bmp into palette pal()
 'so, pixel (0,0) holds colour 0, (0,1) has colour 16, and (15,15) has colour 255
 	dim header as BITMAPFILEHEADER
 	dim info as BITMAPINFOHEADER
 	dim col as RGBTRIPLE
 	dim bf as integer
-	dim as integer w, h 
+	dim as integer w, h
 
 	bf = open_bmp_and_read_header(bmp, header, info)
 	if bf <= -1 then exit sub
@@ -3955,9 +4073,9 @@ SUB bitmap2pal (bmp as string, pal() as RGBcolor)
 	next
 
 	close #bf
-END SUB
+end sub
 
-FUNCTION frame_import_bmp_raw(bmp as string) as Frame ptr
+function frame_import_bmp_raw(bmp as string) as Frame ptr
 'load a 1-, 4- or 8-bit .BMP, ignoring the palette
 	dim header as BITMAPFILEHEADER
 	dim info as BITMAPINFOHEADER
@@ -3994,9 +4112,9 @@ FUNCTION frame_import_bmp_raw(bmp as string) as Frame ptr
 
 	close #bf
 	return ret
-END FUNCTION
+end function
 
-PRIVATE SUB loadbmp24(byval bf as integer, byval fr as Frame ptr, pal() as RGBcolor)
+private sub loadbmp24(byval bf as integer, byval fr as Frame ptr, pal() as RGBcolor)
 'takes an open file handle, an already size Frame pointer, and a 256 colour palette to map to
 	dim pix as RGBTRIPLE
 	dim ub as ubyte
@@ -4021,9 +4139,9 @@ PRIVATE SUB loadbmp24(byval bf as integer, byval fr as Frame ptr, pal() as RGBco
 			get #bf, , ub
 		next
 	next
-END SUB
+end sub
 
-PRIVATE SUB loadbmp8(byval bf as integer, byval fr as Frame ptr)
+private sub loadbmp8(byval bf as integer, byval fr as Frame ptr)
 'takes an open file handle and an already size Frame pointer, should only be called within loadbmp
 	dim ub as ubyte
 	dim as integer w, h
@@ -4047,9 +4165,9 @@ PRIVATE SUB loadbmp8(byval bf as integer, byval fr as Frame ptr)
 			get #bf, , ub
 		next
 	next
-END SUB
+end sub
 
-PRIVATE SUB loadbmp4(byval bf as integer, byval fr as Frame ptr)
+private sub loadbmp4(byval bf as integer, byval fr as Frame ptr)
 'takes an open file handle and an already size Frame pointer, should only be called within loadbmp
 	dim ub as ubyte
 	dim as integer w, h
@@ -4079,9 +4197,9 @@ PRIVATE SUB loadbmp4(byval bf as integer, byval fr as Frame ptr)
 			get #bf, , ub
 		next
 	next
-END SUB
+end sub
 
-PRIVATE SUB loadbmprle4(byval bf as integer, byval fr as Frame ptr)
+private sub loadbmprle4(byval bf as integer, byval fr as Frame ptr)
 'takes an open file handle and an already size Frame pointer, should only be called within loadbmp
 	dim pix as ubyte
 	dim ub as ubyte
@@ -4173,7 +4291,7 @@ private sub loadbmp1(byval bf as integer, byval fr as Frame ptr)
 	next
 end sub
 
-FUNCTION loadbmppal (f as string, pal() as RGBcolor) as integer
+function loadbmppal (f as string, pal() as RGBcolor) as integer
 'loads the palette of a 1-bit, 4-bit or 8-bit bmp into pal
 'returns the number of bits
 	dim header as BITMAPFILEHEADER
@@ -4197,9 +4315,9 @@ FUNCTION loadbmppal (f as string, pal() as RGBcolor) as integer
 	end if
 	close #bf
 	return info.biBitCount
-END FUNCTION
+end function
 
-SUB convertbmppal (f as string, mpal() as RGBcolor, pal() as integer, byval o as integer)
+sub convertbmppal (f as string, mpal() as RGBcolor, pal() as integer, byval o as integer)
 'find the nearest match palette mapping from a 1/4/8 bit bmp f to
 'the master palette mpal(), and store it in pal() starting at offset o
 'for 1/4 bit bmps, pal() is a 2 bytes per int packed format used for
@@ -4238,10 +4356,10 @@ SUB convertbmppal (f as string, mpal() as RGBcolor, pal() as integer, byval o as
 			pal(o + i) = nearcolor(mpal(), cols(i).r, cols(i).g, cols(i).b)
 		next
 	end if
-END SUB
+end sub
 
 'Returns 0 if invalid, otherwise fills 'info' and returns 1 if valid but unsupported, 2 if supported
-FUNCTION bmpinfo (f as string, byref info as BITMAPINFOHEADER) as integer
+function bmpinfo (f as string, byref info as BITMAPINFOHEADER) as integer
 	dim header as BITMAPFILEHEADER
 	dim bf as integer
 
@@ -4250,7 +4368,7 @@ FUNCTION bmpinfo (f as string, byref info as BITMAPINFOHEADER) as integer
 	if bf = -2 then return 1
 	close #bf
 	return 2
-END FUNCTION
+end function
 
 function nearcolor(pal() as RGBcolor, byval red as ubyte, byval green as ubyte, byval blue as ubyte, byval firstindex as integer = 0) as ubyte
 'figure out nearest palette colour
@@ -4285,7 +4403,10 @@ function nearcolor(pal() as RGBcolor, byval index as integer, byval firstindex a
 end function
 
 
-'-------------- Software GFX mode routines -----------------
+'==========================================================================================
+'                                  Misc graphics routines
+'==========================================================================================
+
 
 'NOTE: there is only one set of clipping values, shared globally for
 'all drawing operations... this is probably a bad thing, but that is how
@@ -4349,7 +4470,7 @@ end sub
 
 'trans: draw transparently, either using ->mask if available, or otherwise use colour 0 as transparent
 'warning! Make sure setclip has been called before calling this
-sub drawohr(byval src as Frame ptr, byval dest as Frame ptr, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval trans as integer = -1)
+private sub drawohr(byval src as Frame ptr, byval dest as Frame ptr, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval trans as bool = YES)
 	dim as integer startx, starty, endx, endy
 	dim as integer srcoffset
 
@@ -4409,7 +4530,7 @@ function frame_to_tileset(byval spr as Frame ptr) as Frame ptr
 end function
 
 /'
-sub grabrect(byval page as integer, byval x as integer, byval y as integer, byval w as integer, byval h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
+private sub grabrect(byval page as integer, byval x as integer, byval y as integer, byval w as integer, byval h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
 'this isn't used anywhere anymore, was used to grab tiles from the tileset videopage before loadtileset
 'maybe some possible future use?
 'ibuf should be pre-allocated
@@ -4443,8 +4564,14 @@ sub grabrect(byval page as integer, byval x as integer, byval y as integer, byva
 end sub
 '/
 
-function isawav(fi as string) as integer
-	if not isfile(fi) then return 0 'duhhhhhh
+
+'==========================================================================================
+'                                      Sound effects
+'==========================================================================================
+
+
+function isawav(fi as string) as bool
+	if not isfile(fi) then return NO 'duhhhhhh
 
 #define ID(a,b,c,d) asc(a) SHL 0 + asc(b) SHL 8 + asc(c) SHL 16 + asc(d) SHL 24
 	dim _RIFF as integer = ID("R","I","F","F") 'these are the "signatures" of a
@@ -4455,50 +4582,50 @@ function isawav(fi as string) as integer
 
 	dim chnk_ID as integer
 	dim chnk_size as integer
-	dim f as integer = freefile
-	open fi for binary access read as #f
+	dim fh as integer = freefile
+	open fi for binary access read as #fh
 
-	get #f,,chnk_ID
+	get #fh, , chnk_ID
 	if chnk_ID <> _RIFF then
-		close #f
-		return 0 'not even a RIFF file
+		close #fh
+		return NO 'not even a RIFF file
 	end if
 
-	get #f,,chnk_size 'don't care
+	get #fh, , chnk_size 'don't care
 
-	get #f,,chnk_ID
+	get #fh, , chnk_ID
 
 	if chnk_ID <> _WAVE then
-		close #f
-		return 0 'not a WAVE file, pffft
+		close #fh
+		return NO 'not a WAVE file, pffft
 	end if
 
 	'is this good enough? meh, sure.
-	close #f
-	return 1
+	close #fh
+	return YES
 end function
 
-SUB playsfx (byval num as integer, byval l as integer=0)
+sub playsfx (byval num as integer, byval l as integer=0)
 	sound_play(num, l)
 end sub
 
-SUB stopsfx (byval num as integer)
+sub stopsfx (byval num as integer)
 	sound_stop (num)
 end sub
 
-SUB pausesfx (byval num as integer)
+sub pausesfx (byval num as integer)
 	sound_pause(num)
 end sub
 
-SUB freesfx (byval num as integer)
+sub freesfx (byval num as integer)
 	sound_free(num)
 end sub
 
-Function sfxisplaying(byval num as integer) as integer
+function sfxisplaying(byval num as integer) as bool
 	return sound_playing(num)
-end Function
+end function
 
-FUNCTION getmusictype (file as string) as integer
+function getmusictype (file as string) as integer
 
 	if file = "" then
 		'no further checking for blank names
@@ -4541,7 +4668,13 @@ FUNCTION getmusictype (file as string) as integer
 	end select
 
 	return chk
-END FUNCTION
+end function
+
+
+'==========================================================================================
+'                                   Sprite (Frame) cache
+'==========================================================================================
+
 
 'not to be used outside of the sprite functions
 declare sub frame_delete_members(byval f as frame ptr)
@@ -4549,7 +4682,7 @@ declare sub frame_freemem(byval f as frame ptr)
 declare sub Palette16_delete(byval f as Palette16 ptr ptr)
 declare sub spriteset_freemem(byval sprset as SpriteSet ptr)
 'Assumes pitch == w
-declare sub frame_add_mask(byval fr as frame ptr, byval clr as integer = 0)
+declare sub frame_add_mask(byval fr as frame ptr, byval clr as bool = NO)
 
 
 'The sprite cache holds Frame ptrs, which may also be Frame arrays and SpriteSets. Since
@@ -4596,7 +4729,7 @@ end sub
 
 'Free some sprites from the end of the B cache
 'Returns true if enough space was freed
-private function sprite_cacheB_shrink(byval amount as integer) as integer
+private function sprite_cacheB_shrink(byval amount as integer) as bool
 	sprite_cacheB_shrink = (amount <= SPRCACHEB_SZ)
 	if sprcacheB_used + amount <= SPRCACHEB_SZ then exit function
 
@@ -4610,7 +4743,7 @@ private function sprite_cacheB_shrink(byval amount as integer) as integer
 	wend
 end function
 
-sub sprite_purge_cache(byval minkey as integer, byval maxkey as integer, leakmsg as string, byval freeleaks as integer = NO)
+sub sprite_purge_cache(byval minkey as integer, byval maxkey as integer, leakmsg as string, byval freeleaks as bool = NO)
 	dim iterstate as integer = 0
 	dim as SpriteCacheEntry ptr pt, nextpt
 
@@ -4675,7 +4808,7 @@ sub sprite_update_cache(byval minkey as integer, byval maxkey as integer)
 					'to be modified at all
 
 					dim refcount as integer = pt->p->refcount
-					dim wantmask as integer = (pt->p->mask <> NULL)
+					dim wantmask as bool = (pt->p->mask <> NULL)
 					'Remove the host's previous organs
 					frame_delete_members pt->p
 					'Insert the new organs
@@ -4775,7 +4908,7 @@ end sub
 ' search cache, update as required if found
 private function sprite_fetch_from_cache(byval key as integer) as Frame ptr
 	dim entry as SpriteCacheEntry ptr
-	
+
 	entry = hash_find(sprcache, key)
 
 	if entry then
@@ -4813,7 +4946,13 @@ private sub sprite_add_cache(byval key as integer, byval p as frame ptr)
 	#endif
 end sub
 
-function frame_new(byval w as integer, byval h as integer, byval frames as integer = 1, byval clr as integer = NO, byval wantmask as integer = NO) as Frame ptr
+
+'==========================================================================================
+'                                          Frames
+'==========================================================================================
+
+
+function frame_new(byval w as integer, byval h as integer, byval frames as integer = 1, byval clr as bool = NO, byval wantmask as bool = NO) as Frame ptr
 	dim ret as frame ptr
 	'this hack was Mike's idea, not mine!
 	ret = callocate(sizeof(Frame) * frames)
@@ -4844,7 +4983,7 @@ function frame_new(byval w as integer, byval h as integer, byval frames as integ
 				if wantmask then .mask = allocate(.pitch * h)
 			end if
 
-			if .image = 0 or (.mask = 0 and wantmask <> 0) then
+			if .image = 0 or (.mask = 0 and wantmask <> NO) then
 				debug "Could not allocate sprite frames, no memory"
 				'well, I don't really see the point freeing memory, but who knows...
 				frame_freemem(ret)
@@ -4910,7 +5049,7 @@ private sub frame_delete_members(byval f as frame ptr)
 	end if
 end sub
 
-' unconditionally frees a sprite from memory. 
+' unconditionally frees a sprite from memory.
 ' You should never need to call this: use frame_unload
 ' Should only be called on the head of an array (and not a view, obv)!
 ' Warning: not all code calls frame_freemem to free sprites! Grrr!
@@ -4977,58 +5116,58 @@ function frame_load(fi as string, byval rec as integer, byval num as integer, by
 	'first, we do a bit of math:
 	dim frsize as integer = wid * hei / 2
 	dim recsize as integer = frsize * num
-	
+
 	'make sure the file is real
 	if not isfile(fi) then
 		debug "frame_load: can't read " + fi
 		return 0
 	end if
-	
+
 	'now, we can load the sprite
 	dim f as integer = freefile
-	
+
 	'open() returns 0 for success
 	if open(fi for binary access read as #f) then
 		debug "sprites: could not open " & fi
 		return 0
 	end if
-	
+
 	'if we get here, we can assume that all's well, and allocate the memory
 	ret = frame_new(wid, hei, num)
-	
+
 	if ret = 0 then
 		close #f
 		return 0
 	end if
-	
+
 	'find the right sprite (remember, it's base-1)
 	seek #f, recsize * rec + 1
-	
+
 	dim i as integer, x as integer, y as integer, z as ubyte
-	
+
 	for i = 0 to num - 1
 		with ret[i]
 			'although it's a four-bit sprite, it IS an 8-bit bitmap.
-			
+
 			for x = 0 to wid - 1
 				for y = 0 to hei - 1
 					'pull up two pixels
 					get #f,,z
-					
+
 					'the high nybble is the first pixel
 					.image[y * wid + x] = (z SHR 4)
-					
+
 					y+=1
-					
+
 					'and the low nybble is the second one
 					.image[y * wid + x] = z AND 15
-					
+
 					'it is worth mentioning that sprites are stored in columns, not rows
 				next
 			next
 		end with
 	next
-	
+
 	close #f
 
 	return ret
@@ -5098,25 +5237,25 @@ function frame_describe(byval p as frame ptr) as string
 end function
 
 'this is mostly just a gimmick
-function frame_is_valid(byval p as frame ptr) as integer
-	if p = 0 then return 0
-	dim ret as integer = -1
-	
-	if p->refcount <> NOREFC and p->refcount <= 0 then ret = 0
-	
+function frame_is_valid(byval p as frame ptr) as bool
+	if p = 0 then return NO
+	dim ret as bool = YES
+
+	if p->refcount <> NOREFC and p->refcount <= 0 then ret = NO
+
 	'this is an arbitrary test, and in theory, could cause a false-negative, but I can't concieve of 100 thousand references to the same sprite.
-	if p->refcount > 100000 then ret = 0
-	
-	if p->w < 0 or p->h < 0 then ret = 0
-	if p->pitch < p->w then ret = 0
-	
-	if p->image = 0 then ret = 0
+	if p->refcount > 100000 then ret = NO
+
+	if p->w < 0 or p->h < 0 then ret = NO
+	if p->pitch < p->w then ret = NO
+
+	if p->image = 0 then ret = NO
 
 	'Patterns used by Windows and Linux to scrub memory
-	if cint(p->mask) = &hBAADF00D or cint(p->image) = &hBAADF00D then ret = 0
-	if cint(p->mask) = &hFEEEFEEE or cint(p->image) = &hFEEEFEEE then ret = 0
-	
-	if ret = 0 then
+	if cint(p->mask) = &hBAADF00D or cint(p->image) = &hBAADF00D then ret = NO
+	if cint(p->mask) = &hFEEEFEEE or cint(p->image) = &hFEEEFEEE then ret = NO
+
+	if ret = NO then
 		debugc errBug, "Invalid sprite " & frame_describe(p)
 		'if we get here, we are probably doomed, but this might be a recovery
 		if p->cacheentry then sprite_remove_cache(p->cacheentry)
@@ -5126,9 +5265,9 @@ end function
 
 'Add a mask. NOTE: Only valid on Frames with pitch == w!
 'clr: is true, blank mask, otherwise copy image
-sub frame_add_mask(byval fr as frame ptr, byval clr as integer = 0)
+private sub frame_add_mask(byval fr as frame ptr, byval clr as bool = NO)
 	if fr->mask then exit sub
-	if clr = 0 then
+	if clr = NO then
 		fr->mask = allocate(fr->w * fr->h)
 		'we can just copy .image in one go, since we just ensured it's contiguous
 		memcpy(fr->mask, fr->image, fr->w * fr->h)
@@ -5139,15 +5278,15 @@ end sub
 
 'for a copy you intend to modify. Otherwise use frame_reference
 'note: does not copy frame arrays, only single frames
-function frame_duplicate(byval p as frame ptr, byval clr as integer = 0, byval addmask as integer = 0) as frame ptr
+function frame_duplicate(byval p as frame ptr, byval clr as bool = NO, byval addmask as bool = NO) as frame ptr
 	dim ret as frame ptr, i as integer
-	
+
 	if p = 0 then return 0
-	
+
 	ret = callocate(sizeof(frame))
-	
+
 	if ret = 0 then return 0
-	
+
 	ret->w = p->w
 	ret->h = p->h
 	ret->pitch = p->w
@@ -5188,7 +5327,7 @@ function frame_duplicate(byval p as frame ptr, byval clr as integer = 0, byval a
 	elseif addmask then
 		frame_add_mask ret, clr
 	end if
-	
+
 	return ret
 end function
 
@@ -5205,7 +5344,7 @@ end function
 'Public:
 ' draws a sprite to a page. scale must be greater than or equal to 1. if trans is false, the
 ' mask will be wholly ignored. Just like drawohr, masks are optional, otherwise use colourkey 0
-sub frame_draw(byval src as frame ptr, Byval pal as Palette16 ptr = NULL, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = YES, byval page as integer)
+sub frame_draw(byval src as frame ptr, byval pal as Palette16 ptr = NULL, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as bool = YES, byval page as integer)
 	if src = 0 then
 		debug "trying to draw null frame"
 		exit sub
@@ -5214,7 +5353,7 @@ sub frame_draw(byval src as frame ptr, Byval pal as Palette16 ptr = NULL, Byval 
 	frame_draw src, pal, x, y, scale, trans, vpages(page)
 end sub
 
-sub frame_draw(byval src as Frame ptr, Byval pal as Palette16 ptr = NULL, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = YES, byval dest as Frame ptr)
+sub frame_draw(byval src as Frame ptr, byval pal as Palette16 ptr = NULL, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as bool = YES, byval dest as Frame ptr)
 	if dest <> clippedframe then
 		setclip , , , , dest
 	end if
@@ -5225,13 +5364,13 @@ sub frame_draw(byval src as Frame ptr, Byval pal as Palette16 ptr = NULL, Byval 
 	end if
 
 	dim as integer sxfrom, sxto, syfrom, syto
-	
+
 	sxfrom = large(clipl, x)
 	sxto = small(clipr, x + (src->w * scale) - 1)
-	
+
 	syfrom = large(clipt, y)
 	syto = small(clipb, y + (src->h * scale) - 1)
-	
+
 	blitohrscaled (src, dest, pal, x, y, sxfrom, syfrom, sxto, syto, trans, scale)
 end sub
 
@@ -5249,7 +5388,7 @@ function frame_dissolved(byval spr as frame ptr, byval tlength as integer, byval
 	dim cpy as frame ptr
 	cpy = frame_duplicate(spr, startblank, 1)
 	if cpy = 0 then return 0
-	
+
 	dim as integer i, j, sx, sy, tog
 
 	select case style
@@ -5311,7 +5450,7 @@ function frame_dissolved(byval spr as frame ptr, byval tlength as integer, byval
 		case 3 'sink into ground
 			dim fall as integer = cpy->h * t / tlength
 			for sy = cpy->h - 1 to 0 step -1
-				if sy < fall then 
+				if sy < fall then
 					memset(cpy->mask + sy * cpy->pitch, 0, cpy->w)
 				else
 					memcpy(cpy->image + sy * cpy->pitch, cpy->image + (sy - fall) * cpy->pitch, cpy->w)
@@ -5334,7 +5473,7 @@ function frame_dissolved(byval spr as frame ptr, byval tlength as integer, byval
 			'the current height of each column above the base of the frame
 			dim height(-1 to cpy->w) as integer
 			dim meltmap(cpy->h - 1) as integer
-			
+
 			for i = 0 to cpy->h - 1
 				'Gompertz sigmoid function, exp(-exp(-x))
 				'this is very close to 1 when k <= -1.5
@@ -5527,7 +5666,7 @@ end sub
 ' flips a sprite horizontally. In place: you are only allowed to do this on sprites with no other references
 sub frame_flip_horiz(byval spr as frame ptr)
 	if spr = 0 then exit sub
-	
+
 	if spr->refcount > 1 then
 		debug "illegal hflip on " & frame_describe(spr)
 		exit sub
@@ -5543,7 +5682,7 @@ end sub
 ' flips a sprite vertically. In place: you are only allowed to do this on sprites with no other references
 sub frame_flip_vert(byval spr as frame ptr)
 	if spr = 0 then exit sub
-	
+
 	if spr->refcount > 1 then
 		debug "illegal vflip on " & frame_describe(spr)
 		exit sub
@@ -5611,14 +5750,14 @@ sub frame_clear(byval spr as frame ptr, byval colour as integer = 0)
 end sub
 
 'Warning: this code is rotting; don't assume ->mask is used, etc. Anyway the whole thing should be replaced with a memmove call or two.
-' function frame_scroll(byval spr as frame ptr, byval h as integer = 0, byval v as integer = 0, byval wrap as integer = 0, byval direct as integer = 0) as frame ptr
+' function frame_scroll(byval spr as frame ptr, byval h as integer = 0, byval v as integer = 0, byval wrap as bool = NO, byval direct as bool = NO) as frame ptr
 
 ' 	dim ret as frame ptr, x as integer, y as integer
-' 	
+'
 ' 	ret = frame_clear(spr, -1)
-' 	
+'
 ' 	'first scroll horizontally
-' 	
+'
 ' 	if h <> 0 then
 ' 		if h > 0 then
 ' 			for y = 0 to spr->h - 1
@@ -5652,13 +5791,13 @@ end sub
 ' 			end if
 ' 		end if
 ' 	end if
-' 	
+'
 ' 	'then scroll vertically
-' 	
+'
 ' 	if v <> 0 then
-' 	
+'
 ' 	end if
-' 	
+'
 ' 	if direct then
 ' 		deallocate(spr->image)
 ' 		deallocate(spr->mask)
@@ -5673,13 +5812,19 @@ end sub
 ' 	end if
 ' end function
 
+
+'==========================================================================================
+'                                        Palette16
+'==========================================================================================
+
+
 'This should be replaced with a real hash
 'Note that the palette cache works completely differently to the sprite cache,
 'and the palette refcounting system too!
 
 type Palette16Cache
 	s as string
-	p as palette16 ptr
+	p as Palette16 ptr
 end type
 
 
@@ -5693,7 +5838,7 @@ sub Palette16_delete(byval f as Palette16 ptr ptr)
 	*f = 0
 end sub
 
-'Completely empty the palette16 cache
+'Completely empty the Palette16 cache
 'palettes aren't uncached either when they hit 0 references
 sub Palette16_empty_cache()
 	dim i as integer
@@ -5738,31 +5883,32 @@ sub Palette16_add_cache(s as string, byval p as Palette16 ptr, byval fr as integ
 			end if
 		end with
 	next
-	
+
 	if sec > 0 then
 		Palette16_delete(@palcache(sec).p)
 		palcache(sec).s = s
 		palcache(sec).p = p
 		exit sub
 	end if
-	
+
 	'no room? pah.
 	redim preserve palcache(ubound(palcache) * 1.3 + 5)
-	
+
 	Palette16_add_cache(s, p, i)
 end sub
 
-function palette16_new() as palette16 ptr
-	dim ret as palette16 ptr
+function Palette16_new() as Palette16 ptr
+	dim ret as Palette16 ptr
 	'--create a new palette which is not connected to any data file
-	ret = callocate(sizeof(palette16))
+	ret = callocate(sizeof(Palette16))
 	'--noncached palettes should be deleted when they are unloaded
 	ret->refcount = NOREFC
 	return ret
 end function
 
-function palette16_load(byval num as integer, byval autotype as integer = 0, byval spr as integer = 0) as palette16 ptr
-	dim as Palette16 ptr ret = palette16_load(game + ".pal", num, autotype, spr)
+'autotype: spriteset
+function Palette16_load(byval num as integer, byval autotype as integer = 0, byval spr as integer = 0) as Palette16 ptr
+	dim as Palette16 ptr ret = Palette16_load(game + ".pal", num, autotype, spr)
 	if ret = 0 then
 		if num >= 0 then
 			' Only bother to warn if a specific palette failed to load.
@@ -5773,8 +5919,7 @@ function palette16_load(byval num as integer, byval autotype as integer = 0, byv
 	return ret
 end function
 
-function palette16_load(fil as string, byval num as integer, byval autotype as integer = 0, byval spr as integer = 0) as palette16 ptr
-	dim f as integer, ret as palette16 ptr
+function Palette16_load(fil as string, byval num as integer, byval autotype as integer = 0, byval spr as integer = 0) as Palette16 ptr
 	dim hashstring as string
 	dim cache as Palette16Cache ptr
 	if num > -1 then
@@ -5787,68 +5932,67 @@ function palette16_load(fil as string, byval num as integer, byval autotype as i
 			return 0
 		end if
 	end if
-	
+
 	'debug "Loading: " & hashstring
-	cache = palette16_find_cache(hashstring)
-	
+	cache = Palette16_find_cache(hashstring)
+
 	if cache <> 0 then
 		cache->p->refcount += 1
 		return cache->p
 	end if
-	
+
 	if not isfile(fil) then return 0
-	
-	f = freefile
-	
-	if open(fil for binary access read as #f) then return 0
-	
-	
+
+	dim fh as integer = freefile
+
+	if open(fil for binary access read as #fh) then return 0
+
 	dim mag as short
-	
-	get #f, 1, mag
-	
+
+	get #fh, 1, mag
+
 	if mag = 4444 then
-		get #f,,mag
+		get #fh, , mag
 		if num > mag then
-			close #f
+			close #fh
 			return 0
 		end if
-		
-		seek #f, 17 + 16 * num
+
+		seek #fh, 17 + 16 * num
 	else
-		seek #f, 8 + 16 * num
+		seek #fh, 8 + 16 * num
 	end if
-	
-	ret = callocate(sizeof(palette16))
+
+	dim ret as Palette16 ptr
+	ret = callocate(sizeof(Palette16))
 	if ret = 0 then
-		close #f
+		close #fh
 		debug "Could not create palette, no memory"
 		return 0
 	end if
-	
+
 	'see, it's "mag"ic, since it's used for so many things
 	for mag = 0 to 15
-		get #f,, ret->col(mag)
+		get #fh, , ret->col(mag)
 	next
 	ret->refcount = 1
-	
-	close #f
-	
-	palette16_add_cache(hashstring, ret)
-	
+
+	close #fh
+
+	Palette16_add_cache(hashstring, ret)
+
 	'dim d as string
 	'd = hex(ret->col(0))
 	'for mag = 1 to 15
 	'	d &= "," & hex(ret->col(mag))
 	'next
-	
+
 	'debug d
-	
+
 	return ret
-	
 end function
 
-sub palette16_unload(byval p as palette16 ptr ptr)
+sub Palette16_unload(byval p as Palette16 ptr ptr)
 	if p = 0 then exit sub
 	if *p = 0 then exit sub
 	if (*p)->refcount = NOREFC then
@@ -5879,7 +6023,7 @@ sub Palette16_update_cache(fil as string, byval num as integer)
 		'force a reload, creating a temporary new palette
 		cache->s = ""
 		cache->p = NULL
-		palette16_load(num)
+		Palette16_load(num)
 		cache = Palette16_find_cache(hashstring)
 
 		'copy to old palette structure
@@ -5892,7 +6036,11 @@ sub Palette16_update_cache(fil as string, byval num as integer)
 	end if
 end sub
 
-'-------------- SpriteSet and SpriteState routines -----------------
+
+'==========================================================================================
+'                            SpriteSet and SpriteState routines
+'==========================================================================================
+
 
 function spriteset_load_from_pt(byval ptno as integer, byval rec as integer) as SpriteSet ptr
 	dim frameset as Frame ptr
@@ -5939,7 +6087,7 @@ function sprite_load(byval ptno as integer, byval rec as integer, byval palno as
 	ret = allocate(sizeof(SpriteState))
 	with *ret
 		.set = sprset
-		.pal = palette16_load(palno, ptno, rec)
+		.pal = Palette16_load(palno, ptno, rec)
 		.frame_id = 0
 		.curframe = @sprset->frames[.frame_id]
 	end with
@@ -5950,7 +6098,7 @@ sub sprite_unload(byval spr as SpriteState ptr ptr)
 	if spr = NULL then exit sub
 	if *spr = NULL then exit sub
 	spriteset_unload((*spr)->set)
-	palette16_unload(@(*spr)->pal)
+	Palette16_unload(@(*spr)->pal)
 	deallocate *spr
 	*spr = NULL
 end sub
@@ -5978,7 +6126,7 @@ sub sprite_animate(spr as SpriteState ptr)
 		dim looplimit as integer = 40
 		do
 			if .anim_step >= .anim->numitems then
-				if .anim_loop = 0 then 
+				if .anim_loop = 0 then
 					.anim = NULL
 					exit sub
 				end if
@@ -6022,7 +6170,7 @@ sub sprite_animate(spr as SpriteState ptr)
 	end with
 end sub
 
-sub sprite_draw(spr as SpriteState ptr, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as integer = -1, byval page as integer)
+sub sprite_draw(spr as SpriteState ptr, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as bool = YES, byval page as integer)
 	dim as integer realx, realy
 	realx = x + spr->curframe->offset.x + spr->offset.x
 	realy = y + spr->curframe->offset.y + spr->offset.y
