@@ -145,6 +145,7 @@ dim shared mouseflags as integer
 dim shared mouselastflags as integer
 
 'State saved from one readmouse call to the next
+dim shared mouse_lastpos as XYPair       'Position at last readmouse call
 dim shared mouse_clickstart as XYPair
 dim shared mouse_dragmask as integer
 
@@ -3694,6 +3695,8 @@ function readmouse () as MouseInfo
 		next
 	end if
 
+	info.moved = (mouse_lastpos.x <> info.x OR mouse_lastpos.y <> info.y)
+	mouse_lastpos = Type(info.x, info.y)
 	info.dragging = mouse_dragmask
 	info.clickstart = mouse_clickstart
 

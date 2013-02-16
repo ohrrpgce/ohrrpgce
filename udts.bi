@@ -43,6 +43,7 @@ END UNION
 TYPE MouseInfo
   x as integer
   y as integer
+  moved as bool      'Whether mouse has moved since last readmouse call.
   clicks as integer  'Button down event since last tick; MouseButton bitvector (see scancodes.bi)
   buttons as integer 'Buttons currently down OR clicked; MouseButton bitvector
   wheel as integer   'Wheel movement since last tick; NOT SUPPORTED ON ALL BACKENDS
