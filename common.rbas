@@ -4914,39 +4914,74 @@ FUNCTION int_from_xy(pair as XYPair, byval wide as integer, byval high as intege
 END FUNCTION
 
 FUNCTION color_browser_256(byval start_color as integer=0) as integer
+ DIM ret as integer = start_color
  DIM tog as integer = 0
+ DIM gridpos as XYPair = (64, 0)
+ DIM tilesize as XYPair = (12, 12)
  DIM spot as XYPair
  DIM cursor as XYPair
  cursor = xy_from_int(start_color, 16, 16)
+ DIM mouse as MouseInfo
+ DIM gotmouse as bool = havemouse()
+ hidemousecursor
  setkeys
  DO
-  setwait 55
+  setwait 17, 55
   setkeys
-  tog = (tog + 1) MOD 256
-  IF keyval(scESC) > 1 THEN RETURN start_color
+  mouse = readmouse
+
+  IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "color_browser"
 
-  IF enter_or_space() THEN RETURN int_from_xy(cursor, 16, 16)
+  IF mouse.moved OR mouse.clicks > 0 THEN
+   DIM newcursor as XYPair = ((mouse.x - gridpos.x) \ tilesize.x, (mouse.y - gridpos.y) \ tilesize.y)
+   IF in_bound(newcursor.x, 0, 15) AND in_bound(newcursor.y, 0, 15) THEN
+    cursor = newcursor
+    IF mouse.clicks > 0 THEN
+     ret = int_from_xy(cursor, 16, 16)
+     EXIT DO
+    END IF
+   END IF
+  END IF
 
-  IF keyval(scUp) > 1 THEN cursor.y = loopvar(cursor.y, 0, 15, -1)
-  IF keyval(scDown) > 1 THEN cursor.y = loopvar(cursor.y, 0, 15, 1)
-  IF keyval(scLeft) > 1 THEN cursor.x = loopvar(cursor.x, 0, 15, -1)
-  IF keyval(scRight) > 1 THEN cursor.x = loopvar(cursor.x, 0, 15, 1)
+  IF enter_or_space() THEN
+   ret = int_from_xy(cursor, 16, 16)
+   EXIT DO
+  END IF
+
+  DIM moved as bool = NO
+  IF keyval(scUp) > 1 THEN    moved = YES : cursor.y = loopvar(cursor.y, 0, 15, -1)
+  IF keyval(scDown) > 1 THEN  moved = YES : cursor.y = loopvar(cursor.y, 0, 15, 1)
+  IF keyval(scLeft) > 1 THEN  moved = YES : cursor.x = loopvar(cursor.x, 0, 15, -1)
+  IF keyval(scRight) > 1 THEN moved = YES : cursor.x = loopvar(cursor.x, 0, 15, 1)
+  IF moved THEN
+   mouse.x = gridpos.x + (cursor.x + 0.5) * tilesize.x
+   mouse.y = gridpos.y + (cursor.y + 0.5) * tilesize.y
+   movemouse mouse.x, mouse.y
+  END IF
 
   clearpage dpage
   FOR i as integer = 0 TO 255
    spot = xy_from_int(i, 16, 16)
    IF spot.x = cursor.x AND spot.y = cursor.y THEN
-    edgebox 64 + spot.x * 12 , 0 + spot.y * 12 , 12, 12, i, tog, dpage
+    edgebox gridpos.x + spot.x * tilesize.x , gridpos.y + spot.y * tilesize.y , tilesize.x, tilesize.y, i, tog, dpage
    ELSE
-    rectangle 64 + spot.x * 12 , 0 + spot.y * 12 , 12, 12, i, dpage
+    rectangle gridpos.x + spot.x * tilesize.x , gridpos.y + spot.y * tilesize.y , tilesize.x, tilesize.y, i, dpage
    END IF
   NEXT i
+  IF gotmouse THEN
+   textcolor tog, 0
+   'Mouse cursor is offset in the font
+   printstr CHR(2), mouse.x - 2, mouse.y - 2, dpage
+  END IF
 
   SWAP vpage, dpage
   setvispage vpage
-  dowait
+  'Only increment tog every 55ms (secondary setwait timer)
+  IF dowait THEN tog = (tog + 1) MOD 256
  LOOP
+ unhidemousecursor
+ RETURN ret
 END FUNCTION
 
 FUNCTION exptolevel (byval level as integer) as integer
