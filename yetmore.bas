@@ -681,7 +681,7 @@ SUB onkeyscript (byval scriptnum as integer)
  IF keyval(scUnfilteredAlt) > 1 THEN doit = YES
 
  IF gam.mouse_enabled THEN
-  IF mouse.clicks THEN doit = YES
+  IF gam.mouse.clicks THEN doit = YES
  END IF
  
  IF nowscript >= 0 THEN
@@ -825,19 +825,19 @@ SELECT CASE as CONST id
  CASE 159'--init mouse
   IF havemouse() THEN scriptret = 1 ELSE scriptret = 0
   hidemousecursor
-  mouse = readmouse  'Why do we do this?
+  gam.mouse = readmouse  'Why do we do this?
   gam.mouse_enabled = YES
  CASE 160'--get mouse x
-  scriptret = mouse.x
+  scriptret = gam.mouse.x
  CASE 161'--get mouse y
-  scriptret = mouse.y
+  scriptret = gam.mouse.y
  CASE 162'--mouse button
   IF retvals(0) <= 2 THEN
-   IF mouse.buttons AND (2 ^ retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
+   IF gam.mouse.buttons AND (2 ^ retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
   END IF
  CASE 163'--put mouse
   movemouse bound(retvals(0), 0, 319), bound(retvals(1), 0, 199)
-  mouse = readmouse
+  gam.mouse = readmouse
  CASE 164'--mouse region(xmin, xmax, ymin, ymax)
   IF retvals(0) = -1 AND retvals(1) = -1 AND retvals(2) = -1 AND retvals(3) = -1 THEN
    mouserect -1, -1, -1, -1
@@ -848,7 +848,7 @@ SELECT CASE as CONST id
    retvals(3) = bound(retvals(3), retvals(2), 199)
    mouserect retvals(0), retvals(1), retvals(2), retvals(3)
   END IF
-  mouse = readmouse
+  gam.mouse = readmouse
  CASE 178'--read gmap
   IF retvals(0) >= 0 AND retvals(0) <= 19 THEN
    scriptret = gmap(retvals(0))
@@ -865,7 +865,7 @@ SELECT CASE as CONST id
   END IF
  CASE 492'--mouse click
   IF retvals(0) <= 2 THEN
-   IF mouse.clicks AND (2 ^ retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
+   IF gam.mouse.clicks AND (2 ^ retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
   END IF
 
 'old scriptmisc

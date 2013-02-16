@@ -214,7 +214,6 @@ reset_vehicle vstate
 
 REDIM csetup(12) as integer
 REDIM carray(13) as integer
-DIM mouse as MouseInfo
 REDIM joy(14) as integer
 REDIM gotj(2) as integer
 
@@ -600,7 +599,7 @@ DO
 
  'DEBUG debug "read controls"
  setkeys gam.getinputtext_enabled
- mouse = readmouse  'didn't bother to check havemouse()
+ gam.mouse = readmouse  'didn't bother to check havemouse()
  control
 
  'debug "menu key handling:"

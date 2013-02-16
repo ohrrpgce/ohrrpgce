@@ -86,6 +86,7 @@ TYPE GameState
   foe_freq(254) as integer           'A cache of the fight frequency for each formation set
   walk_through_walls as bool         'used for F11 cheat mode
   mouse_enabled as bool              'initmouse called
+  mouse as MouseInfo
   hero(40) as HeroState
   debug_showtags as bool
   debug_npc_info as bool

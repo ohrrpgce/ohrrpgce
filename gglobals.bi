@@ -37,7 +37,6 @@ EXTERN force_prefsdir_save as integer
 'Input handling globals
 EXTERN as integer carray(), csetup()
 EXTERN as integer gotj(), joy()
-EXTERN as MouseInfo mouse
 
 'Game state globals
 EXTERN gam AS GameState
