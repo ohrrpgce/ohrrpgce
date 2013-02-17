@@ -4914,6 +4914,7 @@ FUNCTION int_from_xy(pair as XYPair, byval wide as integer, byval high as intege
 END FUNCTION
 
 FUNCTION color_browser_256(byval start_color as integer=0) as integer
+ DIM firsttick as bool = YES
  DIM ret as integer = start_color
  DIM tog as integer = 0
  DIM gridpos as XYPair = (64, 0)
@@ -4930,23 +4931,18 @@ FUNCTION color_browser_256(byval start_color as integer=0) as integer
   setkeys
   mouse = readmouse
 
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scESC) > 1 THEN
+   ret = start_color
+   EXIT DO
+  END IF
   IF keyval(scF1) > 1 THEN show_help "color_browser"
 
-  IF mouse.moved OR mouse.clicks > 0 THEN
-   DIM newcursor as XYPair = ((mouse.x - gridpos.x) \ tilesize.x, (mouse.y - gridpos.y) \ tilesize.y)
-   IF in_bound(newcursor.x, 0, 15) AND in_bound(newcursor.y, 0, 15) THEN
-    cursor = newcursor
-    IF mouse.clicks > 0 THEN
-     ret = int_from_xy(cursor, 16, 16)
-     EXIT DO
-    END IF
-   END IF
-  END IF
+  DIM mousecursor as XYPair = ((mouse.x - gridpos.x) \ tilesize.x, (mouse.y - gridpos.y) \ tilesize.y)
+  DIM mouse_over_grid as bool = in_bound(mousecursor.x, 0, 15) AND in_bound(mousecursor.y, 0, 15)
 
-  IF enter_or_space() THEN
-   ret = int_from_xy(cursor, 16, 16)
-   EXIT DO
+  'Ignore mouse movement first tick to preserve start_color selection
+  IF mouse.moved AND mouse_over_grid AND firsttick = NO THEN
+   cursor = mousecursor
   END IF
 
   DIM moved as bool = NO
@@ -4954,11 +4950,17 @@ FUNCTION color_browser_256(byval start_color as integer=0) as integer
   IF keyval(scDown) > 1 THEN  moved = YES : cursor.y = loopvar(cursor.y, 0, 15, 1)
   IF keyval(scLeft) > 1 THEN  moved = YES : cursor.x = loopvar(cursor.x, 0, 15, -1)
   IF keyval(scRight) > 1 THEN moved = YES : cursor.x = loopvar(cursor.x, 0, 15, 1)
-  IF moved THEN
+
+  'Arrow keys move the mouse cursor if on the grid.
+  'Also, if the mouse starts on the grid, move it, otherwise we won't start on start_color.
+  IF (moved OR firsttick) AND mouse_over_grid THEN
    mouse.x = gridpos.x + (cursor.x + 0.5) * tilesize.x
    mouse.y = gridpos.y + (cursor.y + 0.5) * tilesize.y
    movemouse mouse.x, mouse.y
   END IF
+  ret = int_from_xy(cursor, 16, 16)
+
+  IF enter_or_space() OR (mouse.clicks > 0 AND mouse_over_grid) THEN EXIT DO
 
   clearpage dpage
   FOR i as integer = 0 TO 255
@@ -4971,14 +4973,17 @@ FUNCTION color_browser_256(byval start_color as integer=0) as integer
   NEXT i
   IF gotmouse THEN
    textcolor tog, 0
-   'Mouse cursor is offset in the font
+   'Mouse cursor tip is offset in the font
    printstr CHR(2), mouse.x - 2, mouse.y - 2, dpage
   END IF
+  textcolor uilook(uiMenuItem), 0
+  printstr STR(ret), 296, 192, dpage
 
   SWAP vpage, dpage
   setvispage vpage
   'Only increment tog every 55ms (secondary setwait timer)
   IF dowait THEN tog = (tog + 1) MOD 256
+  firsttick = NO
  LOOP
  unhidemousecursor
  RETURN ret
