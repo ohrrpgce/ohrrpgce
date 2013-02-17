@@ -1103,8 +1103,9 @@ private sub update_inputtext ()
 	end if
 end sub
 
+'If using gfx_sdl and gfx_directx this is Latin-1, while gfx_fb doesn't currently support even that
 function getinputtext () as string
-	if inputtext_enabled = NO then debug "getinputtext: not enabled"
+	if inputtext_enabled = NO then visible_debug "getinputtext: not enabled"
 	return inputtext
 end function
 
@@ -1306,7 +1307,13 @@ sub setkeys (byval enable_inputtext as bool = NO)
 'specific stuff)
 '
 'enable_inputtext needs to be true for getinputtext to work;
-'however there is a one tick delay before coming into effect
+'however there is a one tick delay before coming into effect.
+'Passing enable_inputtext may cause certain "combining" keys to stop reporting
+'key presses. Currently this only happens with gfx_sdl on X11 (it is an X11
+'limitation). And it probably only effects punctuation keys such as ' or ~
+'(naturally those keys could be anywhere, but a good rule of thumb seems to be
+'to avoid QWERTY punctuation keys)
+'For more, see http://en.wikipedia.org/wiki/Dead_key
 '
 'Note that key repeat is NOT added to keybd (it's done by "post-processing" in keyval)
 
@@ -1526,6 +1533,7 @@ sub record_input_tick ()
 			last_keybd(i) = keybd(i)
 		end if
 	next i
+	'Currently inputtext is Latin-1, format will need changing in future
 	PUT #rec_input_file,, cubyte(len(inputtext))
 	PUT #rec_input_file,, inputtext
 end sub
@@ -1586,6 +1594,7 @@ sub replay_input_tick ()
 		dim input_len as ubyte
 		GET #play_input_file,, input_len
 		if input_len then
+			'Currently inputtext is Latin-1, format will need changing in future
 			inputtext = space(input_len)
 			GET #play_input_file,, inputtext
 			if debug_replay then info &= " input: '" & inputtext & "'"

@@ -67,6 +67,7 @@ extern Io_keybits as sub (byval keybdarray as integer ptr)
 extern Io_updatekeys as sub (byval keybd as integer ptr)
 
 '(optional) Enable or disable text input methods, possibly causing some keys to go dead
+'(stop reporting keypresses). See each backend or setkeys in allmodex.bas for details.
 extern Io_enable_textinput as sub (byval enable as integer)
 
 '(optional, ptr might be NULL) Get the inputted text since the last call, in UCS2 encoded unicode

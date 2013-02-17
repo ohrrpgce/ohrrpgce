@@ -4340,7 +4340,7 @@ end
 		<command id="enableinputtext">
 			<canon>enable input text (enable)</canon>
 			<shortname>enable input text</shortname>
-			<description>This command needs to be called before <ref>getinputtext</ref> can be used. If the optional argument is <ref>true</ref> or not given then <p>get input text</p> is enabled, otherwise it is disabled. Enabling <ref>getinputtext</ref> may cause some of the keys on international keyboards to go "dead" --- that is, commands such as <ref>keyispressed</ref> and <ref>waitforkey</ref> will stop showing that they are pressed. For that reason, <p>get input text</p> is disabled by default. You don't need to use this command before calling <ref>inputstring</ref>.</description>
+			<description>This command needs to be called before <ref>getinputtext</ref> can be used. If the optional argument is <ref>true</ref> or not given then <p>get input text</p> is enabled, otherwise it is disabled. Enabling <ref>getinputtext</ref> may cause some of the keys on international keyboards ("combining" keys, which are usually punctuation keys) to go "dead" --- that is, commands such as <ref>keyispressed</ref> and <ref>waitforkey</ref> will stop showing that they are pressed. For that reason, <p>get input text</p> is disabled by default. You don't need to use this command before calling <ref>inputstring</ref>.</description>
 			<seealso>
 				<ref>getinputtext</ref>
 			</seealso>
@@ -4348,7 +4348,7 @@ end
 		<command id="getinputtext">
 			<canon>get input text (string id)</canon>
 			<shortname>get input text</shortname>
-			<description>Places in the specified string any text that the player has typed since the last tick. (The string will be empty if nothing has been.) Textual input must be enabled using <ref>enableinputtext</ref> before this command can be used! See that command for details. You will normally call this every tick in a loop and use <ref>concatenatestrings</ref> to get the players complete input. However it is much easier to call the <ref>inputstring</ref> function instead, which does this for you.</description>
+			<description>Places in the specified string any text that the player has typed since the last tick. (The string will be empty if nothing has been.) Textual input must be enabled using <ref>enableinputtext</ref> before this command can be used! See that command for details. You will normally call this every tick in a loop and use <ref>concatenatestrings</ref> to read the player's complete input. However it is much easier to call the <ref>inputstring</ref> function instead, which does this for you.</description>
 			<seealso>
 				<ref>inputstring</ref>
 			</seealso>

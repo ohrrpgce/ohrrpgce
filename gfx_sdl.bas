@@ -714,6 +714,8 @@ SUB io_sdl_updatekeys(byval keybd as integer ptr)
   'supports io_keybits instead
 END SUB
 
+'Enabling unicode will cause combining keys to go dead on X11 (on non-US
+'layouts that have them). This usually means certain punctuation keys such as '
 SUB io_sdl_enable_textinput (byval enable as integer)
   SDL_EnableUNICODE(IIF(enable, 1, 0))
 END SUB
