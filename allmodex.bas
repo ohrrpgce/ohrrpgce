@@ -2343,36 +2343,53 @@ function parse_tag(z as string, byval offset as integer, byval action as string 
 	return 0
 end function
 
+'FIXME: refactor, making use of OO which we can now use
 type PrintStrState
+	'Public members (may set before passing to render_text)
 	as Font ptr thefont
-	as Font ptr initial_font    'Used when resetting thefont
-	as integer bgcolor          'Only used if not_transparent
 	as integer fgcolor          'Used when resetting localpal. May be -1 for none
-	as integer initial_fgcolor  'Used when resetting fgcolor
-	as bool    not_transparent  'Force non-transparency of layer 0
+	as integer bgcolor          'Only used if not_transparent
+	as bool    not_transparent  'Force non-transparency of layer 1
+
+	'Internal members
+	as Font ptr initial_font    'Used when resetting thefont
 	as integer leftmargin
 	as integer rightmargin
 	as integer x
 	as integer y
 	as integer startx
 	as integer charnum
+
+	'Internal members used only if drawing, as opposed to laying out/measuring
 	as Palette16 localpal
+	as integer initial_fgcolor  'Used when resetting fgcolor
+	as integer initial_bgcolor  'Used when resetting bgcolor
+	as bool    initial_not_trans 'Used when resetting bgcolor
 end type
 
 'Special signalling characters
-#define tcmdFirst   15
-#define tcmdState   15
-#define tcmdPalette 16
-#define tcmdFont    17
-#define tcmdLast    17
+#define tcmdFirst      15
+#define tcmdState      15
+#define tcmdPalette    16
+#define tcmdRepalette  17
+#define tcmdFont       18
+#define tcmdLast       18
 
 'Invisible argument: state. (member should not be . prefixed, unfortunately)
 'Modifies state, and appends a control sequence to the string outbuf to duplicate the change
-#define UPDATE_STATE(outbuf, member, value) _
-	outbuf += CHR(tcmdState) & "      " : _
-	*Cast(short ptr, @outbuf[len(outbuf) - 6]) = Offsetof(PrintStrState, member) : _
-	*Cast(integer ptr, @outbuf[len(outbuf) - 4]) = Cast(integer, value) : _
+'Assumes 32 bit.
+'Note: in order to support members that are less than 4 bytes (eg palette colours) some hackery is done, and
+'members greater than 4 bytes aren't supported
+#macro UPDATE_STATE(outbuf, member, value)
+	'Ugh! FB doesn't allow sizeof in #if conditions!
+	#if typeof(state.member) <> integer
+		#error "UPDATE_STATE: bad member type"
+	#endif
+	outbuf += CHR(tcmdState) & "      "
+	*Cast(short ptr, @outbuf[len(outbuf) - 6]) = Offsetof(PrintStrState, member)
+	*Cast(integer ptr, @outbuf[len(outbuf) - 4]) = Cast(integer, value)
 	state.member = value
+#endmacro
 
 'Interprets a control sequence (at 0-based offset ch in outbuf) written by UPDATE_STATE,
 'modifying state.
@@ -2383,7 +2400,10 @@ end type
 		*Cast(integer ptr, @outbuf[ch + 3]) : _
 	ch += 6
 
-#define APPend_CMD(outbuf, cmd_id, value) _
+#define APPEND_CMD0(outbuf, cmd_id) _
+	outbuf += CHR(cmd_id)
+
+#define APPEND_CMD1(outbuf, cmd_id, value) _
 	outbuf += CHR(cmd_id) & "    " : _
 	*Cast(integer ptr, @outbuf[len(outbuf) - 4]) = Cast(integer, value)
 
@@ -2458,7 +2478,9 @@ private function layout_line_fragment(z as string, byval endchar as integer, byv
 						outbuf += Mid(z, 1 + ch - chars_to_add, chars_to_add)
 						chars_to_add = 0
 						ch = closebrace
-						if updatecharnum then UPDATE_STATE(outbuf, charnum, ch)
+						if updatecharnum then
+							UPDATE_STATE(outbuf, charnum, ch)
+						end if
 						continue for
 					end if
 				end if
@@ -2468,7 +2490,9 @@ private function layout_line_fragment(z as string, byval endchar as integer, byv
 				outbuf += Mid(z, 1 + ch - chars_to_add, chars_to_add)
 				chars_to_add = 0
 				ch += 1	 'skip
-				if updatecharnum then UPDATE_STATE(outbuf, charnum, ch)
+				if updatecharnum then
+					UPDATE_STATE(outbuf, charnum, ch)
+				end if
 				continue for
 			elseif z[ch] = asc("$") then
 				if withtags and z[ch + 1] = asc("{") then
@@ -2483,6 +2507,7 @@ private function layout_line_fragment(z as string, byval endchar as integer, byv
 						outbuf += Mid(z, 1 + ch - chars_to_add, chars_to_add)
 						chars_to_add = 0
 						if action = "F" then
+							'Font
 							'Let's preserve the position offset when changing fonts. That way, plain text in
 							'the middle of edgetext is also offset +1,+1, so that it lines up visually with it
 							'.x += fonts(intarg).offset.x - .thefont->offset.x
@@ -2497,12 +2522,13 @@ private function layout_line_fragment(z as string, byval endchar as integer, byv
 								else
 									goto badtexttag
 								end if
-								APPend_CMD(outbuf, tcmdFont, .thefont)
+								APPEND_CMD1(outbuf, tcmdFont, .thefont)
 								line_height = large(line_height, .thefont->h)
 							else
 								goto badtexttag
 							end if
 						elseif action = "K" then
+							'Foreground colour
 							dim col as integer
 							if intarg <= -1 then
 								col = .initial_fgcolor
@@ -2511,11 +2537,34 @@ private function layout_line_fragment(z as string, byval endchar as integer, byv
 							else
 								goto badtexttag
 							end if
-							UPDATE_STATE(outbuf, localpal.col(1), col)
+							'UPDATE_STATE(outbuf, localpal.col(1), col)
 							UPDATE_STATE(outbuf, fgcolor, col)
+							APPEND_CMD0(outbuf, tcmdRepalette)
+							'No need to update localpal here by calling build_text_palette
+						elseif action = "KB" then
+							'Background colour
+							dim col as integer
+							if intarg <= -1 then
+								col = .initial_bgcolor
+								if .not_transparent <> .initial_not_trans then
+									UPDATE_STATE(outbuf, not_transparent, .initial_not_trans)
+								end if
+							elseif intarg <= 255 THEN
+								col = intarg
+								if .not_transparent = NO then
+									UPDATE_STATE(outbuf, not_transparent, YES)
+								end if
+							else
+								goto badtexttag
+							end if
+							'UPDATE_STATE(outbuf, localpal.col(0), col)
+							UPDATE_STATE(outbuf, bgcolor, col)
+							APPEND_CMD0(outbuf, tcmdRepalette)
+							'No need to update localpal here by calling build_text_palette
 						elseif action = "KP" then
+							'Font palette
 							if intarg >= 0 and intarg <= gen(genMaxPal) then
-								APPend_CMD(outbuf, tcmdPalette, intarg)
+								APPEND_CMD1(outbuf, tcmdPalette, intarg)
 								'No need up update palette or fgcolor here
 								'(don't want to duplicate that logic here)
 							else
@@ -2529,7 +2578,9 @@ private function layout_line_fragment(z as string, byval endchar as integer, byv
 							goto badtexttag
 						end if
 						ch = closebrace
-						if updatecharnum then UPDATE_STATE(outbuf, charnum, ch)
+						if updatecharnum then
+							UPDATE_STATE(outbuf, charnum, ch)
+						end if
 						continue for
 					end if
 
@@ -2658,6 +2709,13 @@ sub draw_line_fragment(byval dest as Frame ptr, byref state as PrintStrState, by
 						build_text_palette state, pal
 						Palette16_unload @pal
 					end if
+					'FIXME: in fact pal should be kept around, for tcmdRepalette
+				end if
+			elseif parsed_line[ch] = tcmdRepalette then
+				if reallydraw then
+					'FIXME: if we want to support switching to a non-font palette, then
+					'that palette should be stored in state and used here
+					build_text_palette state, .thefont->pal
 				end if
 			else
 				'Draw a character
@@ -2677,6 +2735,9 @@ sub draw_line_fragment(byval dest as Frame ptr, byref state as PrintStrState, by
 							charframe.pitch = .w
 'debug " <" & (state.x + .offx) & "," & (state.y + .offy) & ">"
 							dim trans as bool = YES
+							'FIXME: why do we only allow 1-layer fonts to be non transparent?
+							'(2-layer fonts would need layer 0 to be opaque)
+							'ALSO, this would stuff up ${KB#} on 2-layer fonts
 							if layer = 1 and state.not_transparent then trans = NO
 							drawohr(@charframe, dest, @state.localpal, state.x + .offx, state.y + .offy - state.thefont->h, trans)
 						end with
@@ -2700,8 +2761,9 @@ end sub
 '.fgcolor can be -1 for no colour (just use font palette).
 '.not_transparent and .bgcolor (only used if .not_transparent) may also be set
 '
-'At least one of pal and the (current) font pal and .fgcolor must be not NULL/-1.
+'At least one of <s>pal and</s> the (current) font pal and .fgcolor must be not NULL/-1.
 'This can be ensured by starting with either a palette or a .fgcolor!=-1
+'FIXME: pal is currently disabled; palette handling needs rewriting.
 '
 'endchar shouldn't be used; currently broken?
 '
@@ -2711,6 +2773,8 @@ end sub
 ' ${F#}  changes to font # or return to initial font if # == -1
 ' ${K#}  changes foreground/first colour, or return to initial colour if # == -1
 '        (Note that this does disable the foreground colour, unless the initial fg colour was -1!)
+' ${KB#} changes the background colour, and turns on not_transparent.
+'        Specify -1 to restore previous background colour and transparency
 ' ${KP#} changes to palette # (-1 is invalid) (Maybe should make ${F-1} return to the default)
 '        (Note, palette changes are per-font, and expire when the font changes)
 ' ${LM#} sets left margin for the current line, in pixels
@@ -2755,13 +2819,15 @@ sub render_text (byval dest as Frame ptr, byref state as PrintStrState, text as 
 			cached_state = NULL
 		else
 		'/
-			if pal then
-				build_text_palette state, pal
-			else
+			'if pal then
+			'	build_text_palette state, pal
+			'else
 				build_text_palette state, .thefont->pal
-			end if
+			'end if
 			.initial_font = .thefont
 			.initial_fgcolor = .fgcolor
+			.initial_bgcolor = .bgcolor
+			.initial_not_trans = .not_transparent
 			.charnum = 0
 			.x = xpos + .thefont->offset.x
 			.y = ypos + .thefont->offset.y
@@ -2828,7 +2894,7 @@ sub text_layout_dimensions (byval retsize as StringSize ptr, z as string, byval 
 'debug "DIMEN char " & endchar
 	dim state as PrintStrState
 	with state
-		'.localpal/fgcolor/initial_fgcolor uninitialised
+		'.localpal/?gcolor/initial_?gcolor/transparency non-initialised
 		.thefont = @fonts(fontnum)
 		.initial_font = .thefont
 		.charnum = 0
@@ -2884,7 +2950,7 @@ sub find_point_in_text (byval retsize as StringCharPos ptr, byval seekx as integ
 
 	dim state as PrintStrState
 	with state
-		'.localpal/fgcolor/initial_fgcolor uninitialised
+		'.localpal/?gcolor/initial_?gcolor/transparency non-initialised
 		.thefont = @fonts(fontnum)
 		.initial_font = .thefont
 		.charnum = 0
