@@ -1546,7 +1546,9 @@ SUB loadherodata (hero as herodef, byval index as integer)
 
  DIM filename as string = workingdir & SLASH & "heroes.reld"
  DIM doc as DocPtr
- doc = LoadDocument(filename)
+ IF isfile(filename) THEN
+  doc = LoadDocument(filename)
+ END IF
  IF doc THEN
   'file present
 
