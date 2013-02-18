@@ -573,7 +573,7 @@ SUB prompt_for_save_and_quit()
   quit_confirm(1) = "I am sure I don't want to save."
   IF sublist(quit_confirm()) <= 0 THEN quitnow = 0
  END IF
- setkeys
+ setkeys YES
  IF quitnow > 1 THEN cleanup_and_terminate
 
 END SUB

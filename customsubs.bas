@@ -2981,10 +2981,10 @@ FUNCTION sublist (s() as string, helpkey as string="", byval x as integer=0, byv
   clearpage holdscreen
  END IF
 
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
   usemenu state
   IF keyval(scESC) > 1 THEN
    sublist = -1
