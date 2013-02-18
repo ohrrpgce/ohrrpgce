@@ -86,7 +86,7 @@ DECLARE FUNCTION maplumpname (byval map as integer, oldext as string) as string
 DECLARE FUNCTION shorten_to_left (text as string, byval wide as integer) as string
 DECLARE FUNCTION shorten_to_right (text as string, byval wide as integer) as string
 DECLARE FUNCTION xstring (s as string, byval x as integer) as integer
-DECLARE FUNCTION defaultint (byval n as integer, default_caption as string="default") as string
+DECLARE FUNCTION defaultint (byval n as integer, default_caption as string="default", byval default_value as integer=-1) as string
 DECLARE FUNCTION caption_or_int (byval n as integer, captions() as string) as string
 DECLARE SUB poke8bit (array16() as integer, byval index as integer, byval val8 as integer)
 DECLARE FUNCTION peek8bit (array16() as integer, byval index as integer) as integer

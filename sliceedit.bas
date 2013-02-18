@@ -730,6 +730,8 @@ SUB slice_edit_detail_refresh (byref state as MenuState, menu() as string, sl as
     '--Not allow to change lookup code at all
     sliceed_rule_none rules(), "lookup"
    END IF
+   str_array_append menu(), "Script handle: " & defaultint(.TableSlot, "None", 0)
+   sliceed_rule_none rules(), "scripthandle"
   #ENDIF 
   SELECT CASE .SliceType
    CASE slRectangle

@@ -1,0 +1,3 @@
+The script handle is the reference number used to refer to this slice in scripts (eg. as returned by `create container'). If no script has ever asked for a handle for this slice, then it won't have one.
+
+The handle can't be changed.

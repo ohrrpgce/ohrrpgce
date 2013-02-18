@@ -1096,8 +1096,8 @@ FUNCTION xstring (s as string, byval x as integer) as integer
  return small(large(x - LEN(s) * 4, 0), 319 - LEN(s) * 8)
 END FUNCTION
 
-FUNCTION defaultint (byval n as integer, default_caption as string="default") as string
- IF n = -1 THEN RETURN default_caption
+FUNCTION defaultint (byval n as integer, default_caption as string="default", byval default_value as integer=-1) as string
+ IF n = default_value THEN RETURN default_caption
  RETURN STR(n)
 END FUNCTION
 
