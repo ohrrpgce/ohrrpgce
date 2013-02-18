@@ -4098,7 +4098,11 @@ FUNCTION spawn_game() as bool
  executable = exepath & SLASH & GAMEEXE
 
 #ifdef __FB_DARWIN__
- executable = app_dir + "/OHRRPGCE-Game.app/Contents/MacOS/ohrrpgce-game"
+ DIM mac_game_bundle as string = "/OHRRPGCE-Game.app/Contents/MacOS/ohrrpgce-game"
+ executable = app_dir & mac_game_bundle
+ IF isfile(executable) = NO THEN
+  executable = exepath & SLASH ".." & SLASH ".." & SLASH ".." & mac_game_bundle
+ END IF
  IF isfile(executable) = NO THEN
   executable = exepath & SLASH & GAMEEXE
  ELSE
