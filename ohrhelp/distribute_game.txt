@@ -6,5 +6,8 @@ This is the most popular format for game developers. It is a simple zip file wit
 [Windows Installer]
 This creates an easy-to-use setup installer that works on all major versions of Windows. This is good for sharing your game with casual players who don't know how to use zip files.
 
+[Mac OS X App Bundle]
+This creates an easy to install app bundle of your game for Macs. Users can drag and drop the game into their Applications folder. You do not need to zip up the .gz file. It is already compressed, and Mac users will be able to double-click it to extract their game.
+
 [Debian Linux Package]
-This exports a package for any Linux distribution that uses .deb packages. This includes Debian, Ubuntu, Linux Mint, and others.
+This exports a package for any Linux distribution that uses .deb packages. This includes Debian, Ubuntu, Linux Mint, and others. (NOTE: if you create a Debian package from Windows or Mac, the package will work, but will show "low package quality" warnings because of incorrect file ownership when the user first installs it)
