@@ -31,7 +31,7 @@ DECLARE FUNCTION dissolve_type_caption(n as integer) as string
 
 'Defined in this file:
 
-DECLARE SUB enemy_edit_add_new (recbuf() as integer, byref recindex as integer, preview_box as Slice Ptr)
+DECLARE FUNCTION enemy_edit_add_new (recbuf() as integer, byref recindex as integer, preview_box as Slice Ptr) as integer
 
 DECLARE SUB individual_formation_editor ()
 DECLARE SUB formation_set_editor ()
@@ -669,7 +669,11 @@ DO
    saveenemydata recbuf(), lastindex
    IF recindex > gen(genMaxEnemy) THEN
     '--adding a new set
-    enemy_edit_add_new recbuf(), recindex, preview_box
+    IF enemy_edit_add_new(recbuf(), recindex, preview_box) THEN
+     saveenemydata recbuf(), lastindex
+    ELSE
+     GOSUB EnLoadSub
+    END IF
     update_enemy_editor_for_elementals recbuf(), caption(), EnCapElemResist
     GOSUB EnUpdateMenu
    ELSE
@@ -868,7 +872,9 @@ RETRACE
 '-----------------------------------------------------------------------
 END SUB
 
-SUB enemy_edit_add_new (recbuf() as integer, byref recindex as integer, preview_box as Slice Ptr)
+FUNCTION enemy_edit_add_new (recbuf() as integer, byref recindex as integer, preview_box as Slice Ptr) as integer
+ 'Returns YES if a new record was added, or NO if cancelled.
+ 'The recbuf() will be populated with the new blank or cloned record
   DIM enemy as EnemyDef
   DIM menu(2) as string
   DIM enemytocopy as integer = 0
@@ -885,7 +891,7 @@ SUB enemy_edit_add_new (recbuf() as integer, byref recindex as integer, preview_
     setkeys
     IF keyval(scESC) > 1 THEN  'cancel
       recindex -= 1
-      EXIT SUB
+      RETURN NO
     END IF
     IF keyval(scF1) > 1 THEN show_help "enemy_new"
     usemenu state
@@ -906,13 +912,15 @@ SUB enemy_edit_add_new (recbuf() as integer, byref recindex as integer, preview_
       SELECT CASE state.pt
         CASE 0 ' cancel
           recindex -= 1
+          RETURN NO
         CASE 1 ' blank
           gen(genMaxEnemy) = recindex
           clearenemydata recbuf()
+          RETURN YES
         CASE 2 ' copy
           gen(genMaxEnemy) = recindex
+          RETURN YES
       END SELECT
-      EXIT SUB
     END IF
 
     clearpage vpage
@@ -921,7 +929,7 @@ SUB enemy_edit_add_new (recbuf() as integer, byref recindex as integer, preview_
     setvispage vpage
     dowait
   LOOP
-END SUB
+END FUNCTION
 
 
 '--------------------------------- Formation Editor ----------------------------
