@@ -295,6 +295,18 @@ END TYPE
 
 DECLARE_VECTOR_OF_TYPE(SimpleMenuItem, SimpleMenuItem)
 
+TYPE SelectTypeState
+ query as string              'String to search for
+ buffer as string             'Text the user has entered
+ last_input_time as double    'TIMER at last input
+
+ 'Used by highlight_menu_typing_selection
+ query_at as integer          'Offset in text of current menu item of match, or 0
+ highlight_at as integer      'Offset of match/no match text highlighting. Remembers last non-zero value of query_at.
+ remember_pt as integer       'Remember last state.pt value
+END TYPE
+
+
 'Warning: when editing NPCType, consider updating read/write_npc_int and serialization disasters
 'including updating readnpc, alternpc, plotscr.hsd constants, and plotdict.xml
 TYPE NPCType

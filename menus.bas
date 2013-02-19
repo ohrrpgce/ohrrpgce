@@ -317,7 +317,7 @@ SUB standardmenu (menu() as string, byref state as MenuState, shaded() as intege
 END SUB
 
 SUB standardmenu (menu() as STRING, byval size as integer, byval vis as integer, byval pt as integer, byval top as integer, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval wide as integer=9999, byval highlight as integer=NO)
-DIM state as MenuState
+ DIM state as MenuState
  state.pt = pt
  state.top = top
  state.last = size
@@ -389,6 +389,135 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval 
  NEXT i
 
  loadclip rememclip
+END SUB
+
+
+'==========================================================================================
+'                                   Selection by typing
+'==========================================================================================
+
+
+CONST SELECT_TYPE_TIMEOUT as double = 0.8
+
+'If the user typed something, returns YES and set select_query to a search string, to be used
+'with e.g. INSTR or find_on_word_boundary_excluding, or select_on_word_boundary[_excluding]
+'which handles all the details.
+'Example usage:
+'  setkeys YES
+'
+'  IF select_by_typing(selectst) THEN
+'   select_on_word_boundary menu(), selectst, state
+'  END IF
+'
+'  highlight_menu_typing_selection menu(), menu_display(), selectst, state
+'  standardmenu menu_display(), state, 0, 0, dpage 
+'
+FUNCTION select_by_typing(selectst as SelectTypeState) as bool
+ WITH selectst
+  IF TIMER - .last_input_time > SELECT_TYPE_TIMEOUT THEN
+   select_clear selectst
+  END IF
+  IF LEN(getinputtext) = 0 THEN RETURN NO
+  .last_input_time = TIMER
+
+  .buffer += LCASE(getinputtext)
+  'If user has just typed the same character repeatedly, only search by that, otherwise by whole input
+  '...unless the user is entering a number
+  .query = LEFT(.buffer, 1)
+  IF isdigit(.query[0]) = 0 THEN
+   FOR i as integer = 0 TO LEN(.buffer) - 1
+    IF .buffer[i] <> .query[0] THEN
+     .query = .buffer
+     EXIT FOR
+    END IF
+   NEXT
+  END IF
+  RETURN YES
+ END WITH
+END FUNCTION
+
+'Manually set select_by_typing state to inactive
+SUB select_clear(selectst as SelectTypeState)
+ selectst.buffer = ""
+ selectst.query = ""
+ selectst.highlight_at = 1
+END SUB
+
+'Copies contents of menu() to menu_display(), with text markup added to highlight
+'text matching selectst.query.
+'The calling menu should set selectst.query_at to the offset in menu(state.pt) which matches
+'the query, or 0 if no match, after doing text matching after calling select_by_typing.
+'Can also set query_at to -1 for an invisible match (no highlighting)
+'(The select_on_word_boundary SUB handles this.)
+'
+'Idea: could highlight all matches rather than just one on the current line
+SUB highlight_menu_typing_selection(menu() as string, menu_display() as string, selectst as SelectTypeState, state as MenuState)
+ 'If the user moves the cursor normally, reset
+ '(Yes, this is a rather regretable function in which to put this)
+ IF selectst.remember_pt <> state.pt THEN select_clear selectst
+ selectst.remember_pt = state.pt
+
+ FOR i as integer = LBOUND(menu) TO UBOUND(menu)
+  menu_display(i) = menu(i)
+ NEXT
+
+ menu_display(state.pt) = highlight_menu_typing_selection_string(menu(state.pt), selectst)
+END SUB
+
+'Internal function sometimes useful if a menu doesn't use a string array to store menu items
+FUNCTION highlight_menu_typing_selection_string(z as string, selectst as SelectTypeState) as string
+ WITH selectst
+  'Initialisation
+  IF .highlight_at = 0 THEN .highlight_at = 1
+
+  IF .query_at THEN
+   .highlight_at = .query_at
+  END IF
+
+  IF .highlight_at > 0 AND LEN(.query) > 0 THEN
+   'Length of .query that matches the text
+   DIM match_len as integer
+   FOR i as integer = .highlight_at TO LEN(z)
+    IF tolower(z[i - 1]) <> .query[i - .highlight_at] THEN EXIT FOR
+    match_len += 1
+   NEXT
+   'In order to have something visible
+   IF match_len = 0 THEN match_len = 1
+
+   'FIXME: should add a set of Custom-only UI colours instead of using these
+   DIM col as integer
+   IF .query_at THEN
+    col = uilook(uiHighlight2)
+   ELSE
+    col = uilook(uiSelectedDisabled)
+   END IF
+
+   RETURN MID(z, 1, .highlight_at - 1) _
+          & bgcol_text(MID(z, .highlight_at, match_len), col) _
+          & MID(z, .highlight_at + match_len)
+  END IF
+  RETURN z
+ END WITH
+END FUNCTION
+
+'Search menu() for a match to the typed query string using find_on_word_boundary_excluding.
+'Use in combination with select_by_typing and optionally highlight_menu_typing_selection
+SUB select_on_word_boundary_excluding(menu() as string, selectst as SelectTypeState, state as MenuState, excludeword as string)
+ DIM index as integer = state.pt
+ IF LEN(selectst.query) = 1 THEN index = loopvar(index, state.first, state.last)
+ FOR ctr as integer = state.first TO state.last
+  selectst.query_at = find_on_word_boundary_excluding(LCASE(menu(index)), selectst.query, excludeword)
+  IF selectst.query_at THEN
+   state.pt = index
+   selectst.remember_pt = index
+   EXIT FOR
+  END IF
+  index = loopvar(index, state.first, state.last)
+ NEXT
+END SUB
+
+SUB select_on_word_boundary(menu() as string, selectst as SelectTypeState, state as MenuState)
+ select_on_word_boundary_excluding menu(), selectst, state, ""
 END SUB
 
 

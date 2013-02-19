@@ -272,6 +272,7 @@ main_editor_menu
 
 SUB main_editor_menu()
  DIM menu(21) as string
+ DIM menu_display(UBOUND(menu)) as string
  
  menu(0) = "Edit Graphics"
  menu(1) = "Edit Map Data"
@@ -306,6 +307,8 @@ SUB main_editor_menu()
   setwait 55
   setkeys YES
   state.tog XOR= 1
+
+  usemenu state
   IF keyval(scEsc) > 1 THEN
    prompt_for_save_and_quit
   END IF
@@ -315,22 +318,13 @@ SUB main_editor_menu()
 
   IF select_by_typing(selectst) THEN
    IF selectst.buffer = "spam" THEN
-    selectst.buffer = ""
+    select_clear selectst
     secret_menu
    ELSE
-    DIM index as integer = state.pt
-    IF LEN(selectst.query) = 1 THEN index = loopvar(index, 0, state.last)
-    FOR ctr as integer = 0 TO state.last
-     IF find_on_word_boundary_excluding(LCASE(menu(index)), selectst.query, "edit") THEN
-      state.pt = index
-      EXIT FOR
-     END IF
-     index = loopvar(index, 0, state.last)
-    NEXT
+    select_on_word_boundary_excluding menu(), selectst, state, "edit"
    END IF
   END IF
 
-  usemenu state
   IF enter_or_space() THEN
    IF state.pt = 0 THEN gfx_editor_menu
    IF state.pt = 1 THEN map_picker
@@ -361,8 +355,9 @@ SUB main_editor_menu()
   END IF
  
   clearpage dpage
-  standardmenu menu(), state, 0, 0, dpage
- 
+  highlight_menu_typing_selection menu(), menu_display(), selectst, state
+  standardmenu menu_display(), state, 0, 0, dpage
+
   textcolor uilook(uiSelectedDisabled), 0
   printstr version_code, 0, 176, dpage
   printstr version_build, 0, 184, dpage
@@ -379,6 +374,7 @@ END SUB
 SUB gfx_editor_menu()
 
  DIM menu(13) as string
+ DIM menu_display(UBOUND(menu)) as string
 
  menu(0) = "Back to the main menu"
  menu(1) = "Edit Maptiles"
@@ -419,20 +415,12 @@ SUB gfx_editor_menu()
   IF keyval(scF1) > 1 THEN
    show_help "gfxmain"
   END IF
+  usemenu state
 
   IF select_by_typing(selectst) THEN
-   DIM index as integer = state.pt
-   IF LEN(selectst.query) = 1 THEN index = loopvar(index, 0, state.last)
-   FOR ctr as integer = 0 TO state.last
-    IF find_on_word_boundary(LCASE(menu(index)), selectst.query) THEN
-     state.pt = index
-     EXIT FOR
-    END IF
-    index = loopvar(index, 0, state.last)
-   NEXT
+   select_on_word_boundary menu(), selectst, state
   END IF
 
-  usemenu state
   IF enter_or_space() THEN
    IF state.pt = 0 THEN
     EXIT DO
@@ -460,7 +448,8 @@ SUB gfx_editor_menu()
   END IF
  
   clearpage dpage
-  standardmenu menu(), state, 0, 0, dpage
+  highlight_menu_typing_selection menu(), menu_display(), selectst, state
+  standardmenu menu_display(), state, 0, 0, dpage
  
   textcolor uilook(uiSelectedDisabled), 0
   printstr version_code, 0, 176, dpage

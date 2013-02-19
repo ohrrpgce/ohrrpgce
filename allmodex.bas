@@ -3080,6 +3080,14 @@ sub textcolor (byval fg as integer, byval bg as integer)
 	textbg = bg
 end sub
 
+function fgcol_text(text as string, byval colour as integer) as string
+	return "${K" & colour & "}" & text & "${K-1}"
+end function
+
+function bgcol_text(text as string, byval colour as integer) as string
+	return "${KB" & colour & "}" & text & "${KB-1}"
+end function
+
 
 '==========================================================================================
 '                                           Fonts

@@ -36,6 +36,7 @@ Type BrowseMenuEntry
 	about as string
 End type
 
+'FIXME: use MenuState instead of having treeptr, etc, members
 Type BrowseMenuState
 	nowdir as string
 	tmp as string
@@ -213,9 +214,13 @@ DO
    FOR ctr as integer = 0 TO br.treesize
     'IF (tree(index).kind = bkParentDir OR tree(index).kind = bkSubDir OR tree(index).kind = bkSelectable) THEN
      'Search both display name (preferentially) and filename
-     IF find_on_word_boundary(LCASE(tree(index).caption), selectst.query) ORELSE _
-        INSTR(LCASE(tree(index).filename), selectst.query) = 1 THEN
+     selectst.query_at = find_on_word_boundary(LCASE(tree(index).caption), selectst.query)
+     IF selectst.query_at = 0 THEN
+      IF INSTR(LCASE(tree(index).filename), selectst.query) = 1 THEN selectst.query_at = -1  'invisible match
+     END IF
+     IF selectst.query_at THEN
       br.treeptr = index
+      selectst.remember_pt = index
       EXIT FOR
      END IF
     'END IF
@@ -230,11 +235,9 @@ DO
   build_listing tree(), br
   br.changed = YES
  END IF
- IF keyval(scBackspace) > 1 THEN 'backspace
-  'go up a directory
-  FOR i as integer = LEN(br.nowdir) - 1 TO 1 STEP -1
-   IF br.nowdir[i - 1] = ASC(SLASH) THEN br.nowdir = LEFT(br.nowdir, i) : EXIT FOR
-  NEXT
+ IF keyval(scBackspace) > 1 THEN
+  'Go up a directory
+  br.nowdir = RTRIM(parentdir(br.nowdir), SLASH)
   build_listing tree(), br
   br.changed = YES
  END IF
@@ -257,11 +260,16 @@ DO
  END IF
  textcolor uilook(uiText), 0
  printstr ">", 0, 20 + (br.treeptr - br.treetop) * 9, dpage
+ 'This mess here because this menu doesn't use a standard MenuState
+ IF selectst.remember_pt <> br.treeptr THEN select_clear selectst
+ selectst.remember_pt = br.treeptr
+
  FOR i as integer = br.treetop TO small(br.treetop + br.viewsize, br.treesize)
   textcolor catfg(tree(i).kind), catbg(tree(i).kind)
-  DIM a as string = tree(i).caption
-  IF LEN(a) < 38 AND catbg(tree(i).kind) > 0 THEN a = a + STRING(38 - LEN(a), " ")
-  printstr a, 10, 20 + (i - br.treetop) * 9, dpage
+  DIM caption as string = tree(i).caption
+  IF LEN(caption) < 38 AND catbg(tree(i).kind) > 0 THEN caption += STRING(38 - LEN(caption), " ")
+  IF i = br.treeptr THEN caption = highlight_menu_typing_selection_string(caption, selectst)
+  printstr caption, 10, 20 + (i - br.treetop) * 9, dpage, YES
  NEXT i
  SWAP vpage, dpage
  setvispage vpage

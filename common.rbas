@@ -5176,30 +5176,3 @@ END FUNCTION
 FUNCTION find_on_word_boundary(haystack as string, needle as string) as integer
  RETURN find_on_word_boundary_excluding(haystack, needle, "")
 END FUNCTION
-
-CONST SELECT_TYPE_TIMEOUT as double = 0.7
-
-'If the user typed something, returns YES and set select_query to a search string, to be used
-'with e.g. INSTR or find_on_word_boundary_excluding.
-FUNCTION select_by_typing(selectst as SelectTypeState) as bool
- IF TIMER - selectst.last_input_time > SELECT_TYPE_TIMEOUT THEN
-  selectst.buffer = ""
-  selectst.query = ""
- END IF
- IF LEN(getinputtext) = 0 THEN RETURN NO
- selectst.last_input_time = TIMER
-
- selectst.buffer += LCASE(getinputtext)
- 'If user has just typed the same character repeatedly, only search by that, otherwise by whole input
- '...unless the user is entering a number
- selectst.query = LEFT(selectst.buffer, 1)
- IF isdigit(selectst.query[0]) = 0 THEN
-  FOR i as integer = 0 TO LEN(selectst.buffer) - 1
-   IF selectst.buffer[i] <> selectst.query[0] THEN
-    selectst.query = selectst.buffer
-    EXIT FOR
-   END IF
-  NEXT
- END IF
- RETURN YES
-END FUNCTION
