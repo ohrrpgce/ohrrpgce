@@ -936,7 +936,7 @@ FUNCTION simplify_path(sDir as string) as string
         i -= 1
       ELSE
         leading_updots += 1
-	i += 1
+        i += 1
       END IF
     ELSE
       i += 1
@@ -1007,7 +1007,9 @@ FUNCTION parentdir (path as string, byval upamount as integer = 1) as string
   FOR i as integer = 0 TO upamount - 1
    pathname += ".." + SLASH
   NEXT
-  RETURN simplify_path(pathname) + SLASH
+  DIM ret as string = simplify_path(pathname)
+  IF RIGHT(ret, 1) <> SLASH THEN ret += SLASH
+  RETURN ret
 END FUNCTION
 
 FUNCTION anycase (filename as string) as string

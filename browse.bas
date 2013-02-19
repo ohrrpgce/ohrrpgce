@@ -237,7 +237,7 @@ DO
  END IF
  IF keyval(scBackspace) > 1 THEN
   'Go up a directory
-  br.nowdir = RTRIM(parentdir(br.nowdir), SLASH)
+  br.nowdir = parentdir(br.nowdir)
   build_listing tree(), br
   br.changed = YES
  END IF
