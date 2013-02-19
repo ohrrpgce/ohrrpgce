@@ -675,7 +675,7 @@ DO
    IF recindex > gen(genMaxEnemy) THEN
     '--adding a new set
     IF enemy_edit_add_new(recbuf(), recindex, preview_box) THEN
-     saveenemydata recbuf(), lastindex
+     saveenemydata recbuf(), recindex
     ELSE
      enemy_edit_load recindex, recbuf(), state, caption(), EnCapElemResist
     END IF
