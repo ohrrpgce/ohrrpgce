@@ -28,7 +28,7 @@
 DECLARE SUB clearallpages ()
 
 'Local
-DECLARE SUB atk_edit_add_new(recbuf() as integer, byref recindex as integer, byval preview_box as Slice Ptr)
+DECLARE FUNCTION atk_edit_add_new(recbuf() as integer, byref recindex as integer, byval preview_box as Slice Ptr) as integer
 DECLARE SUB atk_edit_merge_bitsets(recbuf() as integer, tempbuf() as integer)
 DECLARE SUB atk_edit_split_bitsets(recbuf() as integer, tempbuf() as integer)
 DECLARE SUB update_attack_editor_for_fail_conds(recbuf() as integer, caption() as string, byval AtkCapFailConds as integer)
@@ -1210,9 +1210,11 @@ DO
   IF intgrabber_with_addset(recindex, 0, gen(genMaxAttack), 32767, "attack") THEN
    saveattackdata recbuf(), lastindex
    IF recindex > gen(genMaxAttack) THEN
-    atk_edit_add_new recbuf(), recindex, preview_box
-    IF NOT recindex > gen(genMaxAttack) THEN
-     'cancelled add
+    IF atk_edit_add_new(recbuf(), recindex, preview_box) THEN
+     'Added a new record (blank or copy)
+     saveattackdata recbuf(), recindex
+    ELSE
+     'cancelled add, reload the old last record
      loadattackdata recbuf(), recindex
     END IF
    ELSE
@@ -1471,7 +1473,9 @@ DeleteSlice @preview_box
 
 END SUB
 
-SUB atk_edit_add_new (recbuf() as integer, byref recindex as integer, preview_box as Slice Ptr)
+FUNCTION atk_edit_add_new (recbuf() as integer, byref recindex as integer, preview_box as Slice Ptr) as integer
+ '--returns YES if a new record was added, or NO if cancelled.
+ 'The recbuf() will be populated with blank or copy.
   DIM attack as AttackData
   DIM menu(2) as string
   DIM attacktocopy as integer = 0
@@ -1488,7 +1492,7 @@ SUB atk_edit_add_new (recbuf() as integer, byref recindex as integer, preview_bo
     setkeys
     IF keyval(scESC) > 1 THEN  'cancel
       recindex -= 1
-      EXIT SUB
+      RETURN NO
     END IF
     IF keyval(scF1) > 1 THEN show_help "attack_new"
     usemenu state
@@ -1508,15 +1512,17 @@ SUB atk_edit_add_new (recbuf() as integer, byref recindex as integer, preview_bo
       SELECT CASE state.pt
         CASE 0 ' cancel
           recindex -= 1
+          RETURN NO
         CASE 1 ' blank
           gen(genMaxAttack) = recindex
           flusharray recbuf(), UBOUND(recbuf)
           recbuf(AtkDatPal) = -1
           recbuf(AtkDatWepPal) = -1
+          RETURN YES
         CASE 2 ' copy
           gen(genMaxAttack) = recindex
+          RETURN YES
       END SELECT
-      EXIT SUB
     END IF
 
     clearpage vpage
@@ -1531,7 +1537,7 @@ SUB atk_edit_add_new (recbuf() as integer, byref recindex as integer, preview_bo
     setvispage vpage
     dowait
   LOOP
-END SUB
+END FUNCTION
 
 SUB atk_edit_merge_bitsets(recbuf() as integer, tempbuf() as integer)
   'merge the two blocks of bitsets into the buffer
