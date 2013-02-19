@@ -33,6 +33,7 @@ DECLARE FUNCTION dissolve_type_caption(n as integer) as string
 
 DECLARE FUNCTION enemy_edit_add_new (recbuf() as integer, byref recindex as integer, preview_box as Slice Ptr) as integer
 DECLARE SUB enemy_edit_update_menu(byval recindex as integer, state as MenuState, recbuf() as integer, menu() as string, menuoff() as integer, menutype() as integer, menulimits() as integer, min() as integer, max() as integer, dispmenu() as string, workmenu() as integer, caption() as string, byref preview_sprite as Frame ptr, preview as Slice Ptr, byval dissolve_ticks as integer, byval EnLimSpawn as integer, byval EnLimPic as integer, byval EnDatPic as integer, byval EnDatPal as integer, byval EnDatPicSize as integer)
+DECLARE SUB enemy_edit_load(byval recnum as integer, recbuf() as integer, state as MenuState, caption() as string, byval EnCapElemResist as integer)
 
 DECLARE SUB individual_formation_editor ()
 DECLARE SUB formation_set_editor ()
@@ -638,7 +639,7 @@ DIM drawpreview as integer = YES
 DIM tog as integer
 
 'load data here
-GOSUB EnLoadSub
+enemy_edit_load recindex, recbuf(), state, caption(), EnCapElemResist
 
 '------------------------------------------------------------------------
 '--main loop
@@ -674,12 +675,12 @@ DO
     IF enemy_edit_add_new(recbuf(), recindex, preview_box) THEN
      saveenemydata recbuf(), lastindex
     ELSE
-     GOSUB EnLoadSub
+     enemy_edit_load recindex, recbuf(), state, caption(), EnCapElemResist
     END IF
     update_enemy_editor_for_elementals recbuf(), caption(), EnCapElemResist
     state.need_update = YES
    ELSE
-    GOSUB EnLoadSub
+    enemy_edit_load recindex, recbuf(), state, caption(), EnCapElemResist
    END IF
   END IF
  END IF
@@ -692,7 +693,7 @@ DO
   ELSEIF rememberindex >= 0 AND rememberindex <= gen(genMaxEnemy) THEN
    saveenemydata recbuf(), recindex
    SWAP rememberindex, recindex
-   GOSUB EnLoadSub
+   enemy_edit_load recindex, recbuf(), state, caption(), EnCapElemResist
    show_name = 23
   END IF
  END IF
@@ -844,15 +845,12 @@ lasttop = state.top
 menudepth = 1
 RETRACE
 
-'-----------------------------------------------------------------------
+END SUB
 
-EnLoadSub:
-loadenemydata recbuf(), recindex
-update_enemy_editor_for_elementals recbuf(), caption(), EnCapElemResist
-state.need_update = YES
-RETRACE
-
-'-----------------------------------------------------------------------
+SUB enemy_edit_load(byval recnum as integer, recbuf() as integer, state as MenuState, caption() as string, byval EnCapElemResist as integer)
+ loadenemydata recbuf(), recnum
+ update_enemy_editor_for_elementals recbuf(), caption(), EnCapElemResist
+ state.need_update = YES
 END SUB
 
 SUB enemy_edit_update_menu(byval recindex as integer, state as MenuState, recbuf() as integer, menu() as string, menuoff() as integer, menutype() as integer, menulimits() as integer, min() as integer, max() as integer, dispmenu() as string, workmenu() as integer, caption() as string, byref preview_sprite as Frame ptr, preview as Slice Ptr, byval dissolve_ticks as integer, byval EnLimSpawn as integer, byval EnLimPic as integer, byval EnDatPic as integer, byval EnDatPal as integer, byval EnDatPicSize as integer)
