@@ -509,6 +509,7 @@ DIM workmenu(92) as integer
 DIM dispmenu(92) as string
 DIM state as MenuState
 state.size = 24
+state.need_update = YES
 
 DIM mainMenu(9) as integer
 mainMenu(0) = EnMenuBackAct
@@ -676,7 +677,7 @@ DO
      GOSUB EnLoadSub
     END IF
     update_enemy_editor_for_elementals recbuf(), caption(), EnCapElemResist
-    enemy_edit_update_menu recindex, state, recbuf(), menu(), menuoff(), menutype(), menulimits(), min(), max(), dispmenu(), workmenu(), caption(), preview_sprite, preview, dissolve_ticks, EnLimSpawn, EnLimPic, EnDatPic, EnDatPal, EnDatPicSize
+    state.need_update = YES
    ELSE
     GOSUB EnLoadSub
    END IF
@@ -710,38 +711,38 @@ DO
     GOSUB EnPushPtrSub
     setactivemenu workmenu(), appearMenu(), state
     helpkey = "enemy_appearance"
-    enemy_edit_update_menu recindex, state, recbuf(), menu(), menuoff(), menutype(), menulimits(), min(), max(), dispmenu(), workmenu(), caption(), preview_sprite, preview, dissolve_ticks, EnLimSpawn, EnLimPic, EnDatPic, EnDatPal, EnDatPicSize
+    state.need_update = YES
    CASE EnMenuRewardAct
     GOSUB EnPushPtrSub
     setactivemenu workmenu(), rewardMenu(), state
     helpkey = "enemy_rewards"
-    enemy_edit_update_menu recindex, state, recbuf(), menu(), menuoff(), menutype(), menulimits(), min(), max(), dispmenu(), workmenu(), caption(), preview_sprite, preview, dissolve_ticks, EnLimSpawn, EnLimPic, EnDatPic, EnDatPal, EnDatPicSize
+    state.need_update = YES
    CASE EnMenuStatAct
     GOSUB EnPushPtrSub
     setactivemenu workmenu(), statMenu(), state
     helpkey = "enemy_stats"
-    enemy_edit_update_menu recindex, state, recbuf(), menu(), menuoff(), menutype(), menulimits(), min(), max(), dispmenu(), workmenu(), caption(), preview_sprite, preview, dissolve_ticks, EnLimSpawn, EnLimPic, EnDatPic, EnDatPal, EnDatPicSize
+    state.need_update = YES
    CASE EnMenuSpawnAct
     GOSUB EnPushPtrSub
     setactivemenu workmenu(), spawnMenu(), state
     helpkey = "enemy_spawning"
     drawpreview = NO
-    enemy_edit_update_menu recindex, state, recbuf(), menu(), menuoff(), menutype(), menulimits(), min(), max(), dispmenu(), workmenu(), caption(), preview_sprite, preview, dissolve_ticks, EnLimSpawn, EnLimPic, EnDatPic, EnDatPal, EnDatPicSize
+    state.need_update = YES
    CASE EnMenuAtkAct
     GOSUB EnPushPtrSub
     setactivemenu workmenu(), atkMenu(), state
     helpkey = "enemy_attacks"
     drawpreview = NO
-    enemy_edit_update_menu recindex, state, recbuf(), menu(), menuoff(), menutype(), menulimits(), min(), max(), dispmenu(), workmenu(), caption(), preview_sprite, preview, dissolve_ticks, EnLimSpawn, EnLimPic, EnDatPic, EnDatPal, EnDatPicSize
+    state.need_update = YES
    CASE EnMenuElementalsAct
     GOSUB EnPushPtrSub
     setactivemenu workmenu(), elementalMenu(), state
     helpkey = "enemy_elementals"
     drawpreview = NO
-    enemy_edit_update_menu recindex, state, recbuf(), menu(), menuoff(), menutype(), menulimits(), min(), max(), dispmenu(), workmenu(), caption(), preview_sprite, preview, dissolve_ticks, EnLimSpawn, EnLimPic, EnDatPic, EnDatPal, EnDatPicSize
+    state.need_update = YES
    CASE EnMenuPal
     recbuf(EnDatPal) = pal16browse(recbuf(EnDatPal), recbuf(EnDatPicSize) + 1, recbuf(EnDatPic))
-    enemy_edit_update_menu recindex, state, recbuf(), menu(), menuoff(), menutype(), menulimits(), min(), max(), dispmenu(), workmenu(), caption(), preview_sprite, preview, dissolve_ticks, EnLimSpawn, EnLimPic, EnDatPic, EnDatPal, EnDatPicSize
+    state.need_update = YES
    CASE EnMenuDeathSFX
     IF recbuf(EnDatDeathSFX) >= 1 THEN playsfx recbuf(EnDatDeathSFX) - 1
     IF recbuf(EnDatDeathSFX) = 0 THEN playsfx gen(genDefaultDeathSFX) - 1
@@ -771,7 +772,7 @@ DO
 
  IF keyval(scAlt) = 0 or isStringField(menutype(workmenu(state.pt))) THEN 'not pressing ALT, or not allowed to
   IF editflexmenu(workmenu(state.pt), menutype(), menuoff(), menulimits(), recbuf(), caption(), min(), max()) THEN
-   enemy_edit_update_menu recindex, state, recbuf(), menu(), menuoff(), menutype(), menulimits(), min(), max(), dispmenu(), workmenu(), caption(), preview_sprite, preview, dissolve_ticks, EnLimSpawn, EnLimPic, EnDatPic, EnDatPal, EnDatPicSize
+   state.need_update = YES
   END IF
  END IF
 
@@ -779,7 +780,7 @@ DO
   dissolve_ticks += 1
   IF dissolve_ticks > dissolve_time + 15 THEN
    dissolve_ticks = -1
-   enemy_edit_update_menu recindex, state, recbuf(), menu(), menuoff(), menutype(), menulimits(), min(), max(), dispmenu(), workmenu(), caption(), preview_sprite, preview, dissolve_ticks, EnLimSpawn, EnLimPic, EnDatPic, EnDatPal, EnDatPicSize
+   state.need_update = YES
   ELSE
    IF dissolve_ticks <= dissolve_time THEN
     SetSpriteToFrame preview, frame_dissolved(preview_sprite, dissolve_time, dissolve_ticks, dissolve_type), _
@@ -789,6 +790,11 @@ DO
  END IF
  'lag time after fading out, to give a more realistic preview
  preview->Visible = (dissolve_ticks <= dissolve_time)
+
+ IF state.need_update THEN
+  state.need_update = NO
+  enemy_edit_update_menu recindex, state, recbuf(), menu(), menuoff(), menutype(), menulimits(), min(), max(), dispmenu(), workmenu(), caption(), preview_sprite, preview, dissolve_ticks, EnLimSpawn, EnLimPic, EnDatPic, EnDatPal, EnDatPicSize
+ END IF
 
  clearpage vpage
  IF drawpreview THEN
@@ -827,7 +833,7 @@ setactivemenu workmenu(), mainMenu(), state
 menudepth = 0
 state.pt = lastptr
 state.top = lasttop
-enemy_edit_update_menu recindex, state, recbuf(), menu(), menuoff(), menutype(), menulimits(), min(), max(), dispmenu(), workmenu(), caption(), preview_sprite, preview, dissolve_ticks, EnLimSpawn, EnLimPic, EnDatPic, EnDatPal, EnDatPicSize
+state.need_update = YES
 RETRACE
 
 '-----------------------------------------------------------------------
@@ -843,7 +849,7 @@ RETRACE
 EnLoadSub:
 loadenemydata recbuf(), recindex
 update_enemy_editor_for_elementals recbuf(), caption(), EnCapElemResist
-enemy_edit_update_menu recindex, state, recbuf(), menu(), menuoff(), menutype(), menulimits(), min(), max(), dispmenu(), workmenu(), caption(), preview_sprite, preview, dissolve_ticks, EnLimSpawn, EnLimPic, EnDatPic, EnDatPal, EnDatPicSize
+state.need_update = YES
 RETRACE
 
 '-----------------------------------------------------------------------
