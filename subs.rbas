@@ -32,6 +32,7 @@ DECLARE FUNCTION dissolve_type_caption(n as integer) as string
 'Defined in this file:
 
 DECLARE FUNCTION enemy_edit_add_new (recbuf() as integer, byref recindex as integer, preview_box as Slice Ptr) as integer
+DECLARE SUB enemy_edit_update_menu(byval recindex as integer, state as MenuState, recbuf() as integer, menu() as string, menuoff() as integer, menutype() as integer, menulimits() as integer, min() as integer, max() as integer, dispmenu() as string, workmenu() as integer, caption() as string, byref preview_sprite as Frame ptr, preview as Slice Ptr, byval dissolve_ticks as integer, byval EnLimSpawn as integer, byval EnLimPic as integer, byval EnDatPic as integer, byval EnDatPal as integer, byval EnDatPicSize as integer)
 
 DECLARE SUB individual_formation_editor ()
 DECLARE SUB formation_set_editor ()
@@ -675,7 +676,7 @@ DO
      GOSUB EnLoadSub
     END IF
     update_enemy_editor_for_elementals recbuf(), caption(), EnCapElemResist
-    GOSUB EnUpdateMenu
+    enemy_edit_update_menu recindex, state, recbuf(), menu(), menuoff(), menutype(), menulimits(), min(), max(), dispmenu(), workmenu(), caption(), preview_sprite, preview, dissolve_ticks, EnLimSpawn, EnLimPic, EnDatPic, EnDatPal, EnDatPicSize
    ELSE
     GOSUB EnLoadSub
    END IF
@@ -709,38 +710,38 @@ DO
     GOSUB EnPushPtrSub
     setactivemenu workmenu(), appearMenu(), state
     helpkey = "enemy_appearance"
-    GOSUB EnUpdateMenu
+    enemy_edit_update_menu recindex, state, recbuf(), menu(), menuoff(), menutype(), menulimits(), min(), max(), dispmenu(), workmenu(), caption(), preview_sprite, preview, dissolve_ticks, EnLimSpawn, EnLimPic, EnDatPic, EnDatPal, EnDatPicSize
    CASE EnMenuRewardAct
     GOSUB EnPushPtrSub
     setactivemenu workmenu(), rewardMenu(), state
     helpkey = "enemy_rewards"
-    GOSUB EnUpdateMenu
+    enemy_edit_update_menu recindex, state, recbuf(), menu(), menuoff(), menutype(), menulimits(), min(), max(), dispmenu(), workmenu(), caption(), preview_sprite, preview, dissolve_ticks, EnLimSpawn, EnLimPic, EnDatPic, EnDatPal, EnDatPicSize
    CASE EnMenuStatAct
     GOSUB EnPushPtrSub
     setactivemenu workmenu(), statMenu(), state
     helpkey = "enemy_stats"
-    GOSUB EnUpdateMenu
+    enemy_edit_update_menu recindex, state, recbuf(), menu(), menuoff(), menutype(), menulimits(), min(), max(), dispmenu(), workmenu(), caption(), preview_sprite, preview, dissolve_ticks, EnLimSpawn, EnLimPic, EnDatPic, EnDatPal, EnDatPicSize
    CASE EnMenuSpawnAct
     GOSUB EnPushPtrSub
     setactivemenu workmenu(), spawnMenu(), state
     helpkey = "enemy_spawning"
     drawpreview = NO
-    GOSUB EnUpdateMenu
+    enemy_edit_update_menu recindex, state, recbuf(), menu(), menuoff(), menutype(), menulimits(), min(), max(), dispmenu(), workmenu(), caption(), preview_sprite, preview, dissolve_ticks, EnLimSpawn, EnLimPic, EnDatPic, EnDatPal, EnDatPicSize
    CASE EnMenuAtkAct
     GOSUB EnPushPtrSub
     setactivemenu workmenu(), atkMenu(), state
     helpkey = "enemy_attacks"
     drawpreview = NO
-    GOSUB EnUpdateMenu
+    enemy_edit_update_menu recindex, state, recbuf(), menu(), menuoff(), menutype(), menulimits(), min(), max(), dispmenu(), workmenu(), caption(), preview_sprite, preview, dissolve_ticks, EnLimSpawn, EnLimPic, EnDatPic, EnDatPal, EnDatPicSize
    CASE EnMenuElementalsAct
     GOSUB EnPushPtrSub
     setactivemenu workmenu(), elementalMenu(), state
     helpkey = "enemy_elementals"
     drawpreview = NO
-    GOSUB EnUpdateMenu
+    enemy_edit_update_menu recindex, state, recbuf(), menu(), menuoff(), menutype(), menulimits(), min(), max(), dispmenu(), workmenu(), caption(), preview_sprite, preview, dissolve_ticks, EnLimSpawn, EnLimPic, EnDatPic, EnDatPal, EnDatPicSize
    CASE EnMenuPal
     recbuf(EnDatPal) = pal16browse(recbuf(EnDatPal), recbuf(EnDatPicSize) + 1, recbuf(EnDatPic))
-    GOSUB EnUpdateMenu
+    enemy_edit_update_menu recindex, state, recbuf(), menu(), menuoff(), menutype(), menulimits(), min(), max(), dispmenu(), workmenu(), caption(), preview_sprite, preview, dissolve_ticks, EnLimSpawn, EnLimPic, EnDatPic, EnDatPal, EnDatPicSize
    CASE EnMenuDeathSFX
     IF recbuf(EnDatDeathSFX) >= 1 THEN playsfx recbuf(EnDatDeathSFX) - 1
     IF recbuf(EnDatDeathSFX) = 0 THEN playsfx gen(genDefaultDeathSFX) - 1
@@ -770,7 +771,7 @@ DO
 
  IF keyval(scAlt) = 0 or isStringField(menutype(workmenu(state.pt))) THEN 'not pressing ALT, or not allowed to
   IF editflexmenu(workmenu(state.pt), menutype(), menuoff(), menulimits(), recbuf(), caption(), min(), max()) THEN
-   GOSUB EnUpdateMenu
+   enemy_edit_update_menu recindex, state, recbuf(), menu(), menuoff(), menutype(), menulimits(), min(), max(), dispmenu(), workmenu(), caption(), preview_sprite, preview, dissolve_ticks, EnLimSpawn, EnLimPic, EnDatPic, EnDatPal, EnDatPicSize
   END IF
  END IF
 
@@ -778,7 +779,7 @@ DO
   dissolve_ticks += 1
   IF dissolve_ticks > dissolve_time + 15 THEN
    dissolve_ticks = -1
-   GOSUB EnUpdateMenu
+   enemy_edit_update_menu recindex, state, recbuf(), menu(), menuoff(), menutype(), menulimits(), min(), max(), dispmenu(), workmenu(), caption(), preview_sprite, preview, dissolve_ticks, EnLimSpawn, EnLimPic, EnDatPic, EnDatPal, EnDatPicSize
   ELSE
    IF dissolve_ticks <= dissolve_time THEN
     SetSpriteToFrame preview, frame_dissolved(preview_sprite, dissolve_time, dissolve_ticks, dissolve_type), _
@@ -819,30 +820,6 @@ EXIT SUB
 
 '-----------------------------------------------------------------------
 
-EnUpdateMenu:
-
-'--in case new enemies have been added
-max(EnLimSpawn) = gen(genMaxEnemy) + 1
-
-'--in case the PicSize has changed
-max(EnLimPic) = gen(genMaxEnemy1Pic + bound(recbuf(EnDatPicSize), 0, 2))
-
-'--re-enforce bounds, as they might have just changed
-enforceflexbounds menuoff(), menutype(), menulimits(), recbuf(), min(), max()
-
-updateflexmenu state.pt, dispmenu(), workmenu(), state.last, menu(), menutype(), menuoff(), menulimits(), recbuf(), caption(), max(), recindex
-
-'--stop sounds
-resetsfx
-'--update the picture and palette preview
-frame_unload @preview_sprite
-preview_sprite = frame_load(1 + recbuf(EnDatPicSize), recbuf(EnDatPic))
-dissolve_ticks = -1
-'--resets if dissolved
-ChangeSpriteSlice preview, 1 + recbuf(EnDatPicSize), recbuf(EnDatPic), recbuf(EnDatPal), ,YES
-
-RETRACE
-
 '-----------------------------------------------------------------------
 
 EnBackSub:
@@ -850,7 +827,7 @@ setactivemenu workmenu(), mainMenu(), state
 menudepth = 0
 state.pt = lastptr
 state.top = lasttop
-GOSUB EnUpdateMenu
+enemy_edit_update_menu recindex, state, recbuf(), menu(), menuoff(), menutype(), menulimits(), min(), max(), dispmenu(), workmenu(), caption(), preview_sprite, preview, dissolve_ticks, EnLimSpawn, EnLimPic, EnDatPic, EnDatPal, EnDatPicSize
 RETRACE
 
 '-----------------------------------------------------------------------
@@ -866,10 +843,34 @@ RETRACE
 EnLoadSub:
 loadenemydata recbuf(), recindex
 update_enemy_editor_for_elementals recbuf(), caption(), EnCapElemResist
-GOSUB EnUpdateMenu
+enemy_edit_update_menu recindex, state, recbuf(), menu(), menuoff(), menutype(), menulimits(), min(), max(), dispmenu(), workmenu(), caption(), preview_sprite, preview, dissolve_ticks, EnLimSpawn, EnLimPic, EnDatPic, EnDatPal, EnDatPicSize
 RETRACE
 
 '-----------------------------------------------------------------------
+END SUB
+
+SUB enemy_edit_update_menu(byval recindex as integer, state as MenuState, recbuf() as integer, menu() as string, menuoff() as integer, menutype() as integer, menulimits() as integer, min() as integer, max() as integer, dispmenu() as string, workmenu() as integer, caption() as string, byref preview_sprite as Frame ptr, preview as Slice Ptr, byval dissolve_ticks as integer, byval EnLimSpawn as integer, byval EnLimPic as integer, byval EnDatPic as integer, byval EnDatPal as integer, byval EnDatPicSize as integer)
+
+ '--in case new enemies have been added
+ max(EnLimSpawn) = gen(genMaxEnemy) + 1
+ 
+ '--in case the PicSize has changed
+ max(EnLimPic) = gen(genMaxEnemy1Pic + bound(recbuf(EnDatPicSize), 0, 2))
+ 
+ '--re-enforce bounds, as they might have just changed
+ enforceflexbounds menuoff(), menutype(), menulimits(), recbuf(), min(), max()
+ 
+ updateflexmenu state.pt, dispmenu(), workmenu(), state.last, menu(), menutype(), menuoff(), menulimits(), recbuf(), caption(), max(), recindex
+ 
+ '--stop sounds
+ resetsfx
+ '--update the picture and palette preview
+ frame_unload @preview_sprite
+ preview_sprite = frame_load(1 + recbuf(EnDatPicSize), recbuf(EnDatPic))
+ dissolve_ticks = -1
+ '--resets if dissolved
+ ChangeSpriteSlice preview, 1 + recbuf(EnDatPicSize), recbuf(EnDatPic), recbuf(EnDatPal), ,YES
+
 END SUB
 
 FUNCTION enemy_edit_add_new (recbuf() as integer, byref recindex as integer, preview_box as Slice Ptr) as integer
