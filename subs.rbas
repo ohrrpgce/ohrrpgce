@@ -34,6 +34,8 @@ DECLARE FUNCTION dissolve_type_caption(n as integer) as string
 DECLARE FUNCTION enemy_edit_add_new (recbuf() as integer, byref recindex as integer, preview_box as Slice Ptr) as integer
 DECLARE SUB enemy_edit_update_menu(byval recindex as integer, state as MenuState, recbuf() as integer, menu() as string, menuoff() as integer, menutype() as integer, menulimits() as integer, min() as integer, max() as integer, dispmenu() as string, workmenu() as integer, caption() as string, byref preview_sprite as Frame ptr, preview as Slice Ptr, byval dissolve_ticks as integer, byval EnLimSpawn as integer, byval EnLimPic as integer, byval EnDatPic as integer, byval EnDatPal as integer, byval EnDatPicSize as integer)
 DECLARE SUB enemy_edit_load(byval recnum as integer, recbuf() as integer, state as MenuState, caption() as string, byval EnCapElemResist as integer)
+DECLARE SUB enemy_edit_pushmenu (state as MenuState, byref lastptr as integer, byref lasttop as integer, byref menudepth as bool)
+DECLARE SUB enemy_edit_backmenu (state as MenuState, byval lastptr as integer, byval lasttop as integer, byref menudepth as bool, workmenu() as integer, mainMenu() as integer)
 
 DECLARE SUB individual_formation_editor ()
 DECLARE SUB formation_set_editor ()
@@ -626,7 +628,7 @@ dissolve_ticks = -1
 '--default starting menu
 setactivemenu workmenu(), mainMenu(), state
 
-DIM menudepth as integer = 0
+DIM menudepth as bool = NO
 DIM lastptr as integer = 0
 DIM lasttop as integer = 0
 DIM recindex as integer = 0
@@ -650,8 +652,8 @@ DO
  setkeys YES
  tog = tog XOR 1
  IF keyval(scESC) > 1 THEN
-  IF menudepth = 1 THEN
-   GOSUB EnBackSub
+  IF menudepth THEN
+   enemy_edit_backmenu state, lastptr, lasttop, menudepth, workmenu(), mainMenu()
    helpkey = "enemy"
    drawpreview = YES
   ELSE
@@ -701,42 +703,42 @@ DO
  IF enter_or_space() THEN
   SELECT CASE workmenu(state.pt)
    CASE EnMenuBackAct
-    IF menudepth = 1 THEN
-     GOSUB EnBackSub
+    IF menudepth THEN
+     enemy_edit_backmenu state, lastptr, lasttop, menudepth, workmenu(), mainMenu()
      helpkey = "enemy"
      drawpreview = YES
     ELSE
      EXIT DO
     END IF
    CASE EnMenuAppearAct
-    GOSUB EnPushPtrSub
+    enemy_edit_pushmenu state, lastptr, lasttop, menudepth
     setactivemenu workmenu(), appearMenu(), state
     helpkey = "enemy_appearance"
     state.need_update = YES
    CASE EnMenuRewardAct
-    GOSUB EnPushPtrSub
+    enemy_edit_pushmenu state, lastptr, lasttop, menudepth
     setactivemenu workmenu(), rewardMenu(), state
     helpkey = "enemy_rewards"
     state.need_update = YES
    CASE EnMenuStatAct
-    GOSUB EnPushPtrSub
+    enemy_edit_pushmenu state, lastptr, lasttop, menudepth
     setactivemenu workmenu(), statMenu(), state
     helpkey = "enemy_stats"
     state.need_update = YES
    CASE EnMenuSpawnAct
-    GOSUB EnPushPtrSub
+    enemy_edit_pushmenu state, lastptr, lasttop, menudepth
     setactivemenu workmenu(), spawnMenu(), state
     helpkey = "enemy_spawning"
     drawpreview = NO
     state.need_update = YES
    CASE EnMenuAtkAct
-    GOSUB EnPushPtrSub
+    enemy_edit_pushmenu state, lastptr, lasttop, menudepth
     setactivemenu workmenu(), atkMenu(), state
     helpkey = "enemy_attacks"
     drawpreview = NO
     state.need_update = YES
    CASE EnMenuElementalsAct
-    GOSUB EnPushPtrSub
+    enemy_edit_pushmenu state, lastptr, lasttop, menudepth
     setactivemenu workmenu(), elementalMenu(), state
     helpkey = "enemy_elementals"
     drawpreview = NO
@@ -823,28 +825,20 @@ clearallpages
 DeleteSlice @preview_box
 frame_unload @preview_sprite
 
-EXIT SUB
+END SUB
 
-'-----------------------------------------------------------------------
+SUB enemy_edit_backmenu (state as MenuState, byval lastptr as integer, byval lasttop as integer, byref menudepth as bool, workmenu() as integer, mainMenu() as integer)
+ setactivemenu workmenu(), mainMenu(), state
+ menudepth = NO
+ state.pt = lastptr
+ state.top = lasttop
+ state.need_update = YES
+END SUB
 
-'-----------------------------------------------------------------------
-
-EnBackSub:
-setactivemenu workmenu(), mainMenu(), state
-menudepth = 0
-state.pt = lastptr
-state.top = lasttop
-state.need_update = YES
-RETRACE
-
-'-----------------------------------------------------------------------
-
-EnPushPtrSub:
-lastptr = state.pt
-lasttop = state.top
-menudepth = 1
-RETRACE
-
+SUB enemy_edit_pushmenu (state as MenuState, byref lastptr as integer, byref lasttop as integer, byref menudepth as bool)
+ lastptr = state.pt
+ lasttop = state.top
+ menudepth = YES
 END SUB
 
 SUB enemy_edit_load(byval recnum as integer, recbuf() as integer, state as MenuState, caption() as string, byval EnCapElemResist as integer)
