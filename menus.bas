@@ -397,7 +397,7 @@ END SUB
 '==========================================================================================
 
 
-CONST SELECT_TYPE_TIMEOUT as double = 0.8
+CONST SELECT_TYPE_TIMEOUT as double = 0.7
 
 'If the user typed something, returns YES and set select_query to a search string, to be used
 'with e.g. INSTR or find_on_word_boundary_excluding, or select_on_word_boundary[_excluding]
@@ -428,8 +428,10 @@ FUNCTION select_by_typing(selectst as SelectTypeState, byval allow_numbers as bo
   .buffer += LCASE(intext)
   'If user has just typed the same character repeatedly, only search by that, otherwise by whole input
   '...unless the user is entering a number
-  .query = LEFT(.buffer, 1)
-  IF isdigit(.query[0]) = 0 THEN
+  IF isdigit(.buffer[0]) THEN
+   .query = .buffer
+  ELSE
+   .query = LEFT(.buffer, 1)
    FOR i as integer = 0 TO LEN(.buffer) - 1
     IF .buffer[i] <> .query[0] THEN
      .query = .buffer
@@ -523,6 +525,22 @@ END SUB
 
 SUB select_on_word_boundary(menu() as string, selectst as SelectTypeState, state as MenuState)
  select_on_word_boundary_excluding menu(), selectst, state, ""
+END SUB
+
+'Search menu() for a match to the typed query string using INSTR.
+'Use in combination with select_by_typing and optionally highlight_menu_typing_selection
+SUB select_instr(menu() as string, selectst as SelectTypeState, state as MenuState)
+ DIM index as integer = state.pt
+ IF LEN(selectst.query) = 1 THEN index = loopvar(index, state.first, state.last)
+ FOR ctr as integer = state.first TO state.last
+  selectst.query_at = instr(LCASE(menu(index)), selectst.query)
+  IF selectst.query_at THEN
+   state.pt = index
+   selectst.remember_pt = index
+   EXIT FOR
+  END IF
+  index = loopvar(index, state.first, state.last)
+ NEXT
 END SUB
 
 

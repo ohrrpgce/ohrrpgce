@@ -463,36 +463,45 @@ END FUNCTION
 
 SUB scriptman ()
 STATIC defaultdir as string
-DIM menu(5) as string
+DIM menu(4) as string
+DIM menu_display(4) as string
 
-DIM menumax as integer = 4
 menu(0) = "Previous Menu"
 menu(1) = "Compile and/or Import scripts (.hss/.hs)"
 menu(2) = "Export names for scripts (.hsi)"
 menu(3) = "Check where scripts are used..."
 menu(4) = "Find broken script triggers..."
 
+DIM selectst as SelectTypeState
+DIM state as MenuState
 DIM f as string
-DIM pt as integer = 1
+state.pt = 1
+state.size = 24
+state.last = UBOUND(menu)
+
 DIM tog as integer
-setkeys
+setkeys YES
 DO
  setwait 55
- setkeys
+ setkeys YES
  tog = tog XOR 1
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "script_management"
- usemenu pt, 0, 0, menumax, 24
+ usemenu state
+ IF select_by_typing(selectst) THEN
+  select_on_word_boundary menu(), selectst, state
+ END IF
  IF enter_or_space() THEN
-  SELECT CASE pt
+  SELECT CASE state.pt
    CASE 0
     EXIT DO
    CASE 1
-    f = browse(9, defaultdir, "", "",, "browse_hs")
-    IF f <> "" THEN
+    DIM fname as string
+    fname = browse(9, defaultdir, "", "", , "browse_hs")
+    IF fname <> "" THEN
      'clearkey scEnter
      'clearkey scSpace
-     compile_andor_import_scripts f
+     compile_andor_import_scripts fname
     END IF
    CASE 2
     exportnames
@@ -504,7 +513,8 @@ DO
  END IF
 
  clearpage dpage
- standardmenu menu(), menumax, 22, pt, 0, 0, 0, dpage
+ highlight_menu_typing_selection menu(), menu_display(), selectst, state
+ standardmenu menu_display(), state, 0, 0, dpage
 
  SWAP vpage, dpage
  setvispage vpage

@@ -2284,6 +2284,7 @@ SUB scriptbrowse (byref trigger as integer, byval triggertype as integer, scrtyp
  s = scriptbrowse_string(trigger, triggertype, scrtype)
 END SUB
 
+'Modifies 'trigger' (a script trigger) and returns the display name of the selected script (which might "[none]")
 FUNCTION scriptbrowse_string (byref trigger as integer, byval triggertype as integer, scrtype as string) as string
  DIM localbuf(20) as integer
  REDIM scriptnames(0) as string
@@ -2299,9 +2300,11 @@ FUNCTION scriptbrowse_string (byref trigger as integer, byval triggertype as int
  DIM i as integer
  DIM j as integer
 
- DIM tempstr as string
- tempstr = scriptname(trigger)
- IF tempstr <> "[none]" AND LEFT(tempstr, 1) = "[" THEN firstscript = 2 ELSE firstscript = 1
+ DIM missing_script_name as string
+ missing_script_name = scriptname(trigger)
+ 'If trigger is a script that isn't imported, either numbered or a plotscript, then
+ 'show it as a special option at the top of the menu, equivalent to cancelling
+ IF missing_script_name <> "[none]" AND LEFT(missing_script_name, 1) = "[" THEN firstscript = 2 ELSE firstscript = 1
 
  'Look through lists of definescript scripts too
  fh = FREEFILE
@@ -2339,7 +2342,7 @@ FUNCTION scriptbrowse_string (byref trigger as integer, byval triggertype as int
  scriptnames(0) = "[none]"
  scriptids(0) = 0
  IF firstscript = 2 THEN
-  scriptnames(1) = tempstr
+  scriptnames(1) = missing_script_name
   scriptids(1) = trigger
  END IF
 
@@ -2353,6 +2356,8 @@ FUNCTION scriptbrowse_string (byref trigger as integer, byval triggertype as int
   END IF
  NEXT
  scriptmax = i - 1
+ REDIM PRESERVE scriptnames(scriptmax), scriptids(scriptmax)
+ DIM scriptnames_display(scriptmax) as string
 
  CLOSE #fh
 
@@ -2385,13 +2390,13 @@ FUNCTION scriptbrowse_string (byref trigger as integer, byval triggertype as int
   NEXT
  NEXT
 
+ DIM selectst as SelectTypeState
  DIM state as MenuState
  WITH state
   .pt = 0
   .last = scriptmax
   .size = 22
  END WITH
-
  IF firstscript = 2 THEN
   state.pt = 1
  ELSE
@@ -2400,73 +2405,26 @@ FUNCTION scriptbrowse_string (byref trigger as integer, byval triggertype as int
   NEXT
  END IF
  state.top = large(0, small(state.pt - 10, scriptmax - 21))
- DIM id as integer = scriptids(state.pt)
- DIM iddisplay as integer = 0
- DIM jumpto as string = ""
+
  setkeys YES
  DO
   setwait 55
   setkeys YES
-  IF keyval(scESC) > 1 THEN
-   IF LEN(jumpto) > 0 THEN
-    jumpto = ""
-   ELSE
-    RETURN tempstr
-   END IF
-  END IF
+  IF keyval(scESC) > 1 THEN RETURN missing_script_name
   IF keyval(scF1) > 1 THEN show_help "scriptbrowse"
   IF enter_or_space() THEN EXIT DO
-  IF scriptids(state.pt) < 16384 THEN
-   IF intgrabber(id, 0, 16383) THEN
-    iddisplay = -1
-    FOR i = 0 TO numberedlast
-     IF id = scriptids(i) THEN state.pt = i
-    NEXT
-    jumpto = ""
-   END IF
-  END IF
-  IF usemenu(state) THEN
-   IF scriptids(state.pt) < 16384 THEN
-    id = scriptids(state.pt)
-   ELSE
-    id = 0
-    iddisplay = 0
-   END IF
-   jumpto = ""
-  END IF
-  DIM intext as string = LEFT(getinputtext(), 1)
-  IF keyval(scBackspace) > 1 THEN
-   jumpto = LEFT(jumpto, LEN(jumpto) - 1)
-  END IF
-  IF LEN(intext) > 0 THEN
-   jumpto &= intext
-   DIM as integer j = state.pt
-   FOR ctr as integer = numberedlast + 1 TO scriptmax
-    IF j > scriptmax THEN j = numberedlast + 1
-    IF LCASE(LEFT(scriptnames(j), LEN(jumpto))) = jumpto THEN
-     state.pt = j
-     EXIT FOR
-    END IF
-    j += 1
-   NEXT
-   'Calling usemenu again updates MenuState.top without triggering the
-   'jumpto="" that is required with the normal usemenu
-   usemenu(state)
+  usemenu state
+
+  IF select_by_typing(selectst) THEN
+   select_instr scriptnames(), selectst, state
   END IF
 
   clearpage dpage
   draw_fullscreen_scrollbar state, , dpage
   textcolor uilook(uiText), 0
   printstr "Pick a " & scrtype, 0, 0, dpage
-  standardmenu scriptnames(), state, 8, 10, dpage
-  IF iddisplay THEN
-   textcolor uilook(uiMenuItem), uilook(uiHighlight)
-   printstr STR(id), 8, 190, dpage
-  ELSEIF jumpto <> "" THEN
-   textcolor uilook(uiMenuItem), uilook(uiHighlight)
-   printstr jumpto, 8, 190, dpage
-  END IF
-
+  highlight_menu_typing_selection scriptnames(), scriptnames_display(), selectst, state
+  standardmenu scriptnames_display(), state, 8, 10, dpage
   SWAP dpage, vpage
   setvispage vpage
   dowait
@@ -2478,7 +2436,6 @@ FUNCTION scriptbrowse_string (byref trigger as integer, byval triggertype as int
  ELSE
   RETURN scriptnames(state.pt)
  END IF
-
 END FUNCTION
 
 FUNCTION scrintgrabber (byref n as integer, byval min as integer, byval max as integer, byval less as integer=75, byval more as integer=77, byval scriptside as integer, byval triggertype as integer) as integer
@@ -2808,6 +2765,7 @@ SUB script_usage_list ()
   END WITH
  NEXT
  REDIM PRESERVE menu(j - 1)
+ DIM menu_display(j - 1) as string
 
  'Free memory
  REDIM plotscript_order(0)
@@ -2815,24 +2773,29 @@ SUB script_usage_list ()
 
  'debug "script usage in " & ((TIMER - t) * 1000) & "ms"
 
+ DIM selectst as SelectTypeState
  DIM state as MenuState
  state.size = 24
  state.last = UBOUND(menu)
  
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "script_usage_list"
   IF enter_or_space() THEN
    IF state.pt = 0 THEN EXIT DO
   END IF
   usemenu state
+  IF select_by_typing(selectst) THEN
+   select_on_word_boundary menu(), selectst, state
+  END IF
 
   clearpage dpage
-  draw_fullscreen_scrollbar state, , dpage 
-  standardmenu menu(), state, 0, 0, dpage
+  draw_fullscreen_scrollbar state, , dpage
+  highlight_menu_typing_selection menu(), menu_display(), selectst, state
+  standardmenu menu_display(), state, 0, 0, dpage
 
   SWAP vpage, dpage
   setvispage vpage

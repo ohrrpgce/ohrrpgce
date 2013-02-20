@@ -31,6 +31,7 @@ DECLARE SUB highlight_menu_typing_selection (menu() as string, menu_display() as
 DECLARE FUNCTION highlight_menu_typing_selection_string(z as string, selectst as SelectTypeState) as string
 DECLARE SUB select_on_word_boundary_excluding (menu() as string, selectst as SelectTypeState, state as MenuState, excludeword as string)
 DECLARE SUB select_on_word_boundary (menu() as string, selectst as SelectTypeState, state as MenuState)
+DECLARE SUB select_instr(menu() as string, selectst as SelectTypeState, state as MenuState)
 
 '' MenuDef
 DECLARE SUB ClearMenuData(dat as MenuDef)

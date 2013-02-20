@@ -2,9 +2,9 @@ This is the script browser. It shows a list of all the plotscripts that you have
 
 Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the list, and press ENTER or SPACE to choose a script.
 
-If some of your scripts have a number at the beginning of their names, that is because they are "old style" scripts.
+If some of your scripts have a number at the beginning of their names, that is because they are "old style" scripts using "define script".
 
-You can jump to a non-numbered script by typing the beginning of its name. You can find a numbered script by typing in its ID number.
+You can jump to a script by typing part of its name. You can find a numbered script by typing in its ID number.
 
 See the OHRRPGCE wiki for more information about scripts.
 http://HamsterRepublic.com/ohrrpgce/
