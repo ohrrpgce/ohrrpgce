@@ -25,7 +25,7 @@ DECLARE SUB standardmenu OVERLOAD (menu() as STRING, byval size as integer, byva
 DECLARE SUB standardmenu OVERLOAD (byval menu as BasicMenuItem vector, state as MenuState, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval active as integer=YES, byval wide as integer=9999, byval highlight as integer=NO)
 
 '' Selection by typing
-DECLARE FUNCTION select_by_typing (selectst as SelectTypeState) as bool
+DECLARE FUNCTION select_by_typing (selectst as SelectTypeState, byval allow_numbers as bool = YES) as bool
 DECLARE SUB select_clear (selectst as SelectTypeState)
 DECLARE SUB highlight_menu_typing_selection (menu() as string, menu_display() as string, selectst as SelectTypeState, state as MenuState)
 DECLARE FUNCTION highlight_menu_typing_selection_string(z as string, selectst as SelectTypeState) as string

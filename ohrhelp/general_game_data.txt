@@ -1,6 +1,6 @@
 This is the General Game Data Editor, where you can edit various aspects of your game that didn't seem to fit in any of the other menus.
 
-Navigate with the Up and Down arrow keys (or PgUp, PgDn, Home, and End).
+Navigate with the Up and Down arrow keys (or PgUp, PgDn, Home, and End), or type part of menu item to jump to it.
 
 Press ENTER or the SPACE bar to enter various submenus.
 

@@ -1647,10 +1647,10 @@ IF st.num_npc_defs < max_npc_defs THEN menumax += 1
 FOR i as integer = 0 TO st.num_npc_defs - 1
  boxpreview(i) = textbox_preview_line(st.npc_def(i).textbox)
 NEXT i
-setkeys
+setkeys YES
 DO
  setwait 55
- setkeys
+ setkeys YES
  tog = tog XOR 1
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "pick_npc_to_edit"

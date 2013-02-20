@@ -402,6 +402,8 @@ CONST SELECT_TYPE_TIMEOUT as double = 0.8
 'If the user typed something, returns YES and set select_query to a search string, to be used
 'with e.g. INSTR or find_on_word_boundary_excluding, or select_on_word_boundary[_excluding]
 'which handles all the details.
+'Special care required on menus using strgrabber, or even intgrabber.
+'Generally you should pass accept_numbers=NO on menus using intgrabber.
 'Example usage:
 '  setkeys YES
 '
@@ -412,15 +414,18 @@ CONST SELECT_TYPE_TIMEOUT as double = 0.8
 '  highlight_menu_typing_selection menu(), menu_display(), selectst, state
 '  standardmenu menu_display(), state, 0, 0, dpage 
 '
-FUNCTION select_by_typing(selectst as SelectTypeState) as bool
+FUNCTION select_by_typing(selectst as SelectTypeState, byval allow_numbers as bool = YES) as bool
  WITH selectst
   IF TIMER - .last_input_time > SELECT_TYPE_TIMEOUT THEN
    select_clear selectst
   END IF
-  IF LEN(getinputtext) = 0 THEN RETURN NO
+  DIM intext as string = getinputtext
+  IF LEN(intext) = 0 THEN RETURN NO
+  'Only test first character for simplicity
+  IF allow_numbers = NO ANDALSO (isdigit(intext[0]) ORELSE intext[0] = ASC("-")) THEN RETURN NO
   .last_input_time = TIMER
 
-  .buffer += LCASE(getinputtext)
+  .buffer += LCASE(intext)
   'If user has just typed the same character repeatedly, only search by that, otherwise by whole input
   '...unless the user is entering a number
   .query = LEFT(.buffer, 1)

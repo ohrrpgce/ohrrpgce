@@ -146,10 +146,10 @@ state.last = UBOUND(menu)
 state.size = 24
 
 state.need_update = YES
-setkeys
+setkeys YES
 DO
  setwait 55
- setkeys
+ setkeys YES
  IF keyval(scESC) > 1 THEN
   '--return cancel
   RETURN -2
@@ -196,7 +196,7 @@ SUB make_map_picker_menu(topmenu() as string, state as MenuState)
  REDIM topmenu(0)
  topmenu(0) = "Return to Main Menu"
  FOR i as integer = 0 TO gen(genMaxMap)
-  str_array_append topmenu(), "Map " + filenum(i) + ": " + getmapname(i)
+  str_array_append topmenu(), "Map " & i & ": " + getmapname(i)
  NEXT
  str_array_append topmenu(), "Add a New Map"
 
@@ -206,22 +206,21 @@ END SUB
 
 SUB map_picker ()
  DIM topmenu() as string
+ DIM topmenu_display() as string
  DIM state as MenuState
- DIM temppt as integer
+ DIM selectst as SelectTypeState
  
  make_map_picker_menu topmenu(), state
 
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "mapedit_choose_map"
   usemenu state
-  temppt = large(state.pt - 1, 0)
-  IF intgrabber(temppt, 0, gen(genMaxMap) + 1, , , YES) THEN
-   state.pt = temppt + 1
-   state.top = bound(state.top, state.pt - state.size, state.pt)
+  IF select_by_typing(selectst) THEN
+   select_on_word_boundary_excluding topmenu(), selectst, state, "map"
   END IF
 
   IF enter_or_space() THEN
@@ -236,7 +235,10 @@ SUB map_picker ()
   END IF
 
   clearpage vpage
-  standardmenu topmenu(), state, 0, 0, vpage
+
+  REDIM topmenu_display(LBOUND(topmenu) TO UBOUND(topmenu)) as string
+  highlight_menu_typing_selection topmenu(), topmenu_display(), selectst, state
+  standardmenu topmenu_display(), state, 0, 0, vpage
   setvispage vpage
   dowait
  LOOP
@@ -324,7 +326,6 @@ STATIC remember_menu_pt as integer = 0
 
 DIM st as MapEditState
 DIM modenames(5) as string
-DIM mapeditmenu(14) as string
 DIM gmap(dimbinsize(binMAP)) as integer
 DIM pal16(288) as integer
 DIM npcnum(max_npc_defs - 1) as integer
@@ -486,6 +487,9 @@ st.layer = 0
 st.cur_zone = 1
 st.cur_zinfo = GetZoneInfo(zmap, st.cur_zone)
 
+DIM mapeditmenu(14) as string
+DIM mapeditmenu_display(14) as string
+
 mapeditmenu(0) = "Return to Map Menu"
 mapeditmenu(1) = "Edit General Map Data..."
 mapeditmenu(2) = "Resize Map..."
@@ -502,9 +506,11 @@ mapeditmenu(12) = "Erase Map Data"
 mapeditmenu(13) = "Re-load Default Passability"
 mapeditmenu(14) = "Map name:"
 
+DIM selectst as SelectTypeState
 st.menustate.size = 24
 st.menustate.last = UBOUND(mapeditmenu)
 st.menustate.pt = remember_menu_pt  'preserved from any other maps for convenience
+st.menustate.need_update = YES
 
 setkeys YES
 DO
@@ -517,6 +523,13 @@ DO
  END IF
  IF keyval(scF1) > 1 THEN show_help "mapedit_menu"
  usemenu st.menustate
+ IF st.menustate.pt = 14 AND selectst.query = "" THEN
+  strgrabber mapname, 39
+  st.menustate.need_update = YES
+ ELSEIF select_by_typing(selectst) THEN
+  select_on_word_boundary mapeditmenu(), selectst, st.menustate
+ END IF
+
  IF enter_or_space() THEN
   SELECT CASE st.menustate.pt
    CASE 0
@@ -557,12 +570,16 @@ DO
    mapedit_savemap st, mapnum, map(), pass, emap, zmap, gmap(), doors(), link(), mapname
   END IF
  END IF
- IF st.menustate.pt = 14 THEN strgrabber mapname, 39
- mapeditmenu(14) = "Map name:" + mapname
- IF LEN(mapeditmenu(14)) > 40 THEN mapeditmenu(14) = mapname
+
+ IF st.menustate.need_update THEN
+  mapeditmenu(14) = "Map name:" + mapname
+  IF LEN(mapeditmenu(14)) > 40 THEN mapeditmenu(14) = mapname
+  st.menustate.need_update = NO
+ END IF
  
  clearpage vpage
- standardmenu mapeditmenu(), st.menustate, 0, 0, vpage
+ highlight_menu_typing_selection mapeditmenu(), mapeditmenu_display(), selectst, st.menustate
+ standardmenu mapeditmenu_display(), st.menustate, 0, 0, vpage
  setvispage vpage
  dowait
 LOOP
@@ -1919,9 +1936,11 @@ SUB mapedit_edit_zoneinfo(st as MapEditState, zmap as ZoneMap)
  'We could first build sorted list of zones, and only show those that actually exist?
 
  DIM menu(6) as string
+ DIM menu_display(6) as string
  DIM enabled(6) as integer
  flusharray enabled(), -1, YES
 
+ DIM selectst as SelectTypeState
  DIM state as MenuState
  state.last = UBOUND(menu)
  state.size = 24
@@ -1934,6 +1953,11 @@ SUB mapedit_edit_zoneinfo(st as MapEditState, zmap as ZoneMap)
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "mapedit_zone_edit"
   usemenu state, enabled()
+  DIM enable_strgrabber as bool = NO
+  IF state.pt = 3 AND selectst.query = "" THEN enable_strgrabber = YES
+  IF enable_strgrabber = NO ANDALSO select_by_typing(selectst, NO) THEN
+   select_on_word_boundary menu(), selectst, state
+  END IF
 
   SELECT CASE state.pt
    CASE 0
@@ -1944,7 +1968,7 @@ SUB mapedit_edit_zoneinfo(st as MapEditState, zmap as ZoneMap)
      st.cur_zinfo = GetZoneInfo(zmap, st.cur_zone)
     END IF
    CASE 3
-    IF strgrabber(st.cur_zinfo->name, 35) THEN state.need_update = YES
+    IF enable_strgrabber ANDALSO strgrabber(st.cur_zinfo->name, 35) THEN state.need_update = YES
    CASE 4 TO 6
     IF intgrabber(st.cur_zinfo->extra(state.pt - 4), -2147483648, 2147483647) THEN state.need_update = YES
   END SELECT
@@ -1963,7 +1987,8 @@ SUB mapedit_edit_zoneinfo(st as MapEditState, zmap as ZoneMap)
   END IF
 
   clearpage vpage
-  standardmenu menu(), state, 0, 0, vpage
+  highlight_menu_typing_selection menu(), menu_display(), selectst, state
+  standardmenu menu_display(), state, 0, 0, vpage
   setvispage vpage
   dowait
  LOOP
@@ -1973,6 +1998,7 @@ END SUB
 SUB mapedit_gmapdata(st as MapEditState, gmap() as integer, zmap as ZoneMap)
  DIM gdidx(20) as integer  'Index in gmap()
  DIM gdmenu(0 TO 20) as string
+ DIM menu_display(UBOUND(gdmenu)) as string
  gdidx(0) = -1:  gdmenu(0) = "Previous Menu"
  gdidx(1) = 1:   gdmenu(1) = "Ambient Music:"
  gdidx(2) = 2:   gdmenu(2) = "Minimap Available:"
@@ -2019,6 +2045,7 @@ SUB mapedit_gmapdata(st as MapEditState, gmap() as integer, zmap as ZoneMap)
  gdmax(32) = 9999:                gdmin(32) = 0
  gdmax(33) = 9999:                gdmin(33) = 0
 
+ DIM selectst as SelectTypeState
  DIM state as MenuState
  state.pt = 0
  state.last = UBOUND(gdmenu)
@@ -2049,10 +2076,10 @@ SUB mapedit_gmapdata(st as MapEditState, gmap() as integer, zmap as ZoneMap)
  DIM sampmap as TileMap
  cleantilemap sampmap, 1, 1
  
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
   state.tog = state.tog XOR 1
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "general_map_data"
@@ -2085,8 +2112,14 @@ SUB mapedit_gmapdata(st as MapEditState, gmap() as integer, zmap as ZoneMap)
     intgrabber gmap(idx), gdmin(idx), gdmax(idx)
   END SELECT
 
+  IF select_by_typing(selectst, NO) THEN
+   'You can only search the static part of the menu items, not the values
+   select_on_word_boundary gdmenu(), selectst, state
+  END IF
+
   '--Draw screen
   clearpage dpage
+  highlight_menu_typing_selection gdmenu(), menu_display(), selectst, state
   DIM scri as integer = 0  'Yuck!
   FOR i as integer = 0 TO UBOUND(gdmenu)
    DIM idx as integer = gdidx(i)
@@ -2169,7 +2202,7 @@ SUB mapedit_gmapdata(st as MapEditState, gmap() as integer, zmap as ZoneMap)
    END SELECT
    textcolor uilook(uiMenuItem), 0
    IF i = state.pt THEN textcolor uilook(uiSelectedItem + state.tog), 0
-   printstr gdmenu(i) & " " & caption, 0, 8 * i, dpage
+   printstr menu_display(i) & " " & caption, 0, 8 * i, dpage, YES
    IF i = 10 THEN
     'Harm tile flash color preview
     rectangle 4 + (8 * (LEN(gdmenu(i)) + 1 + LEN(caption))), 8 * i, 8, 8, gmap(i), dpage
@@ -2600,7 +2633,7 @@ SUB verify_map_size (st as MapEditState, mapnum as integer, map() as TileMap, pa
  DIM j as integer
  j = 0
  textcolor uilook(uiText), 0
- printstr "Map" & filenum(mapnum) & ":" & mapname, 0, j * 8, vpage
+ printstr "Map " & mapnum & ":" & mapname, 0, j * 8, vpage
  j += 2
  printstr "this map seems to be corrupted", 0, j * 8, vpage
  j += 2

@@ -1,4 +1,4 @@
-This menu allows you to choose which map you want to work on. Just use the Up and Down arrow keys (or PgDn, PgUp, Home, and End) to select a map, or type a map number, and press ENTER or SPACE to start editing it.
+This menu allows you to choose which map you want to work on. Just use the Up and Down arrow keys (or PgDn, PgUp, Home, and End) to select a map, or type a map number or part of a map name, and press ENTER or SPACE to start editing it.
 
 You can press ESC to go back to the previous menu.
 

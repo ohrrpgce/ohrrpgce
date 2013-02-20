@@ -1046,14 +1046,15 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
  DIM boxpreview as string
  DIM scrname as string
  DIM vehiclename as string
- DIM caption as string
 
  DIM walk as integer = 0
  DIM tog as integer = 0
 
  DIM unpc(16) as integer, lnpc(16) as integer
- DIM menucaption(16) as string
+ DIM menucaption(-1 TO 16) as string
+ DIM menu_display(-1 TO 16) as string
 
+ DIM selectst as SelectTypeState
  DIM state as MenuState
  state.size = 24
  state.first = -1
@@ -1090,6 +1091,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
  lnpc(15) = -1
  lnpc(16) = -1
 
+ menucaption(-1) = "Previous Menu"
  menucaption(0) = "Picture"
  menucaption(1) = "Palette"
  menucaption(2) = "Move Type"
@@ -1143,10 +1145,10 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
  scrname = scriptname(npcdata.script)
  vehiclename = load_vehicle_name(npcdata.vehicle - 1)
 
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
   tog = tog XOR 1
   IF npcdata.movetype > 0 THEN walk = walk + 1: IF walk > 3 THEN walk = 0
   IF keyval(scESC) > 1 THEN EXIT DO
@@ -1218,15 +1220,19 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
    CASE -1' previous menu
     IF enter_or_space() THEN EXIT DO
   END SELECT
+
+  IF select_by_typing(selectst, NO) THEN
+   select_on_word_boundary menucaption(), selectst, state
+  END IF
+
   '--Draw screen
   clearpage dpage
-  textcolor uilook(uiMenuItem), 0
-  IF state.pt = -1 THEN textcolor uilook(uiSelectedItem + tog), 0
-  printstr "Previous Menu", 0, 0, dpage
-  FOR i = 0 TO UBOUND(menucaption)
+  highlight_menu_typing_selection menucaption(), menu_display(), selectst, state
+  FOR i = LBOUND(menucaption) TO UBOUND(menucaption)
    textcolor uilook(uiMenuItem), 0
    IF state.pt = i THEN textcolor uilook(uiSelectedItem + tog), 0
-   caption = " " & read_npc_int(npcdata, i)
+   DIM caption as string
+   IF i >= 0 THEN caption = " " & read_npc_int(npcdata, i)
    SELECT CASE i
     CASE 1
      caption = " " & defaultint(npcdata.palette)
@@ -1265,7 +1271,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
     CASE 16 'default avoidance zone
      caption = editnpc_zone_caption(npcdata.defaultwallzone, gmap(33), zmap)
    END SELECT
-   printstr menucaption(i) + caption, 0, 8 + (8 * i), dpage
+   printstr menu_display(i) + caption, 0, 8 + (8 * i), dpage, YES
   NEXT i
   edgebox 9, 149, 22, 22, uilook(uiDisabledItem), uilook(uiText), dpage
   frame_draw npcdata.sprite + 4 + (walk \ 2), npcdata.pal, 10, 150, 1, YES, dpage

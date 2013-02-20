@@ -1,4 +1,4 @@
-This is the main map menu. Use the arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu, and press ENTER or SPACE to choose a menu item. See the various help files in each sub-menu for more info.
+This is the main map editor menu. Use the arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu, or type part of menu item to jump to, and press ENTER or SPACE to enter the menu. See the various help files in each sub-menu for more info.
 
 At the bottom of the menu you can type in a name for the map.
 

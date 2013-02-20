@@ -1,6 +1,6 @@
 This is the NPC editor. Here you can design NPCs to be used as townspeople, treasure chests, vehicles, script triggers, pushable barriers, and many other purposes.  In short, anything that the player can interact with on the map will be an NPC.
 
-Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu. Press the Left and Right arrow keys to change values. You can also type in numbers.
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu, or type part of menu item to jump to it. Press the Left and Right arrow keys to change values. You can also type in numbers.
 
 Picture: This is the ID number of the walkabout sprite that the NPC will use. You can see a preview below the menu.
 
