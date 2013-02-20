@@ -4771,27 +4771,23 @@ END SUB
 
 'See ReadByteStr for the straight-from-file version
 FUNCTION readbinstring (array() as integer, byval offset as integer, byval maxlen as integer) as string
-
- DIM result as string = ""
  DIM stringlen as integer = bound(array(offset), 0, maxlen)
- DIM i as integer
- DIM n as integer
+ DIM result as string = STRING(stringlen, 0)
+ 'The following is equivalent to
+ 'array2str array(), offset * 2 + 2, maxlen
 
- i = 1
- DO WHILE LEN(result) < stringlen
-  '--get an int
-  n = array(offset + i)
-  i = i + 1
+ DIM toggle as integer = 0
+ DIM index as integer = offset + 1
 
-  '--append the lowbyte as a char
-  result = result & CHR(n AND &HFF)
-
-  '--if we still care about the highbyte, append it as a char too
-  IF LEN(result) < stringlen THEN
-   result = result & CHR((n SHR 8) AND &HFF)
+ FOR i as integer = 0 TO stringlen - 1
+  IF toggle = 0 THEN
+   result[i] = array(index) AND &hff
+  ELSE
+   result[i] = (array(index) SHR 8) AND &hff
+   index += 1
   END IF
-
- LOOP
+  toggle XOR= 1
+ NEXT
 
  RETURN result
 END FUNCTION
