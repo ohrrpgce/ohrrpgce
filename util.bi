@@ -120,15 +120,18 @@ TYPE IntStrPair
   s as string
 END TYPE
 
-declare sub str_array_append (array() as string, s as string)
 declare function str_array_findcasei (array() as string, value as string) as integer
+declare function int_array_find (array() as integer, byval value as integer) as integer
+
+'These act on *dynamically typed* destination arrays only! Static arrays will segfault!
+declare sub str_array_append (array() as string, s as string)
 declare sub int_array_append (array() as integer, byval k as integer)
 declare sub intstr_array_append (array() as IntStrPair, byval k as integer, s as string)
-declare function int_array_find (array() as integer, byval value as integer) as integer
 declare sub int_array_remove (array() as integer, byval k as integer)
+declare sub int_array_copy (fromarray() as integer, toarray() as integer)
+
 /'
 declare sub int_array_exclude (() as integer, array() as integer)
-declare sub int_array_copy (dest() as integer, src() as integer)
 declare sub int_array_sort (dest() as integer, src() as integer)
 '/
 

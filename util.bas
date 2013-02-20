@@ -580,6 +580,12 @@ SUB int_array_remove (array() as integer, byval k as integer)
  WEND
 END SUB
 
+SUB int_array_copy (fromarray() as integer, toarray() as integer)
+ DIM as integer low = LBOUND(fromarray), high = UBOUND(fromarray)
+ REDIM toarray(low TO high)
+ memcpy @toarray(low), @fromarray(low), sizeof(integer) * (high - low + 1)
+END SUB
+
 'I've compared the speed of the following two. For random integers, the quicksort is faster
 'for arrays over length about 80. For arrays which are 90% sorted appended with 10% random data,
 'the cut off is about 600 (insertion sort did ~5x better on nearly-sort data at the 600 mark)
