@@ -1105,7 +1105,7 @@ end sub
 
 'If using gfx_sdl and gfx_directx this is Latin-1, while gfx_fb doesn't currently support even that
 function getinputtext () as string
-	if inputtext_enabled = NO then visible_debug "getinputtext: not enabled"
+	if inputtext_enabled = NO then debuginfo "getinputtext: not enabled"
 	return inputtext
 end function
 
