@@ -447,6 +447,9 @@ SUB importscripts (f as string)
               " script file with hspeak.exe, or did you just give your script a name that" _
               " ends in .hs and hoped it would work? Use hspeak.exe to create real .hs files"
  END IF
+
+ 'Cause the cache in scriptname() (and also in commandname()) to be dropped
+ game_unique_id = STR(randint(INT_MAX))
 END SUB
 
 FUNCTION isunique (s as string, set() as string) as integer

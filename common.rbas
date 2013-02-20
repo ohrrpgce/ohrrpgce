@@ -667,50 +667,45 @@ FUNCTION decodetrigger (byval trigger as integer) as integer
 END FUNCTION
 
 FUNCTION scriptname (byval num as integer) as string
-DIM a as string
+ DIM ret as string
 
-#ifdef IS_GAME
- 'Remember script names; can be a large speed up in script debugger,
- 'but don't do so in Custom
+ 'Remember script names; can be a large speed up in script debugger.
+ 'Done in Custom too: game_unique_id is changed after importing scripts
  STATIC cache(24) as IntStrPair
- a = search_string_cache(cache(), num, game_unique_id)
- IF LEN(a) THEN RETURN a
-#endif
+ ret = search_string_cache(cache(), num, game_unique_id)
+ IF LEN(ret) THEN RETURN ret
 
-DIM buf(19) as integer
-IF num >= 16384 THEN
- IF loadrecord (buf(), workingdir + SLASH + "lookup1.bin", 20, num - 16384, NO) THEN
-  DIM sname as string = readbinstring(buf(), 1, 36)
-  IF buf(0) THEN
-   a = sname
-  ELSE
-   a = "[" & sname & "]"
+ DIM buf(19) as integer
+ IF num >= 16384 THEN
+  IF loadrecord (buf(), workingdir + SLASH + "lookup1.bin", 20, num - 16384, NO) THEN
+   DIM scrname as string = readbinstring(buf(), 1, 36)
+   IF buf(0) THEN
+    ret = scrname
+   ELSE
+    ret = "[" & scrname & "]"
+   END IF
   END IF
-  GOTO theend
  END IF
-END IF
 
-IF num THEN
- a = "[id " & STR(num) & "]"
- DIM fh as integer = FREEFILE
- OPEN workingdir & SLASH & "plotscr.lst" FOR BINARY as #fh
- WHILE loadrecord (buf(), fh, 20)
-  IF buf(0) = num THEN
-   a = STRING(small(large(buf(1), 0), 38), " ")
-   array2str buf(), 4, a
-   EXIT WHILE
+ IF ret = "" THEN
+  IF num = 0 THEN
+   ret = "[none]"
+  ELSE
+   ret = "[id " & num & "]"
+   DIM fh as integer = FREEFILE
+   OPEN workingdir & SLASH & "plotscr.lst" FOR BINARY as #fh
+   WHILE loadrecord (buf(), fh, 20)
+    IF buf(0) = num THEN
+     ret = readbinstring(buf(), 1, 38)
+     EXIT WHILE
+    END IF
+   WEND
+   CLOSE fh
   END IF
- WEND
- CLOSE fh
-ELSE
- a = "[none]"
-END IF
+ END IF
 
-theend:
-#ifdef IS_GAME
- add_string_cache cache(), num, a
-#endif
-return a
+ add_string_cache cache(), num, ret
+ RETURN ret
 END FUNCTION
 
 Function seconds2str(byval sec as integer, f as string = "%m:%S") as string
