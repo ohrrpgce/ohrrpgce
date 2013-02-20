@@ -1361,6 +1361,11 @@ SUB try_reload_lumps_anywhere ()
    'init_default_text_colors
    handled = YES
 
+  ELSEIF modified_lumps[i] = "menus.bin" THEN                             'MENUS.BIN
+   'This is far from complete
+   'Cause cache in getmenuname to be dropped
+   game_unique_id = STR(randint(INT_MAX))
+
   ELSEIF try_reload_gfx_lump(extn) THEN                                   '.PT#, .TIL
    handled = YES
 

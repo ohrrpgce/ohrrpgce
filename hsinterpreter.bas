@@ -1686,4 +1686,7 @@ SUB reload_scripts
  IF unfreeable THEN
   notification unfreeable & " scripts are in use and couldn't be freed (see g_debug.txt for details)"
  END IF
+
+ 'Cause the cache in scriptname() (and also in commandname()) to be dropped
+ game_unique_id = STR(randint(INT_MAX))
 END SUB

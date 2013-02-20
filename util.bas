@@ -692,7 +692,8 @@ END SUB
 
 'These cache functions store a 'resetter' string, which causes search_string_cache
 'to automatically empty the cache when its value changes (eg, different game).
-'Note that you can resize the cache arrays as you want at any time.
+'Normally you would just use the game_unique_id global for this.
+'Note that you can resize the cache arrays (in either direction!) as you want at any time.
 FUNCTION search_string_cache (cache() as IntStrPair, byval key as integer, resetter as string) as string
  IF cache(0).s <> resetter THEN
   cache(0).s = resetter

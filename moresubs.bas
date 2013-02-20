@@ -1889,7 +1889,7 @@ FUNCTION commandname (byval id as integer) as string
 
  STATIC cache(32) as IntStrPair
  DIM as string ret
- ret = search_string_cache(cache(), id, game)
+ ret = search_string_cache(cache(), id, game_unique_id)
  IF ret <> "" THEN RETURN ret
  IF id >= 0 AND id <= UBOUND(cmd_default_names) THEN ret = cmd_default_names(id)
  IF ret = "" THEN ret = "cmd" & id

@@ -70,6 +70,7 @@ EXTERN as string gfxbackendinfo, musicbackendinfo, systeminfo
 
 'included only for $inclib?
 #include once "crt.bi"
+#include once "crt/limits.bi"
 #undef rand
 #undef abort
 #undef bound

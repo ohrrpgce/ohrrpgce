@@ -59,6 +59,11 @@ DECLARE FUNCTION charpicker() as string
 
 ''''' Global variables (anything else in common.bi missing here will be in game.bas or custom.bas)
 
+'Used for search_string_cache. Should change every time the current game changes; changing
+'it on reloading some lumps while live previewing also useful, to clear certain caches
+'(Always blank in Custom)
+DIM game_unique_id as string
+
 'Allocate sprite size table
 REDIM sprite_sizes(-1 TO 10) as SpriteSize
 setup_sprite_sizes
@@ -665,9 +670,10 @@ FUNCTION scriptname (byval num as integer) as string
 DIM a as string
 
 #ifdef IS_GAME
- 'remember script names; can be a large speed up in script debugger 
+ 'Remember script names; can be a large speed up in script debugger,
+ 'but don't do so in Custom
  STATIC cache(24) as IntStrPair
- a = search_string_cache(cache(), num, game)
+ a = search_string_cache(cache(), num, game_unique_id)
  IF LEN(a) THEN RETURN a
 #endif
 

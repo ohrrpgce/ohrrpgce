@@ -472,6 +472,7 @@ REDIM gmap(dimbinsize(binMAP)) as integer 'this must be declared here, after the
 
 '--set game
 game = workingdir + SLASH + archinym
+game_unique_id = STR(randint(INT_MAX))
 DIM wintitle as STRING = getdisplayname(trimpath(sourcerpg))
 IF running_as_slave THEN wintitle = "Testing " + wintitle
 setwindowtitle wintitle

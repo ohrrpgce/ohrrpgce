@@ -261,6 +261,7 @@ DECLARE FUNCTION find_on_word_boundary(haystack as string, needle as string) as 
 'Global variables
 EXTERN sourcerpg as string
 EXTERN as string game, tmpdir, exename, workingdir, homedir, app_dir
+EXTERN game_unique_id as string
 EXTERN uilook() as integer
 EXTERN as integer vpage, dpage
 EXTERN buffer() as integer

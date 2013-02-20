@@ -625,7 +625,7 @@ FUNCTION getmenuname(byval record as integer) as STRING
  DIM as string ret
 #IFDEF IS_GAME
  STATIC cache(32) as IntStrPair
- ret = search_string_cache(cache(), record, game)
+ ret = search_string_cache(cache(), record, game_unique_id)
  IF ret <> "" THEN RETURN ret
 #ENDIF
 
