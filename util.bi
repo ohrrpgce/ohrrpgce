@@ -383,7 +383,8 @@ declare sub qsort_integers_indices(indices() as integer, byval start as integer 
 declare sub qsort_strings_indices(indices() as integer, byval start as string ptr, byval number as integer, byval stride as integer)
 declare function integer_compare cdecl (byval a as integer ptr, byval b as integer ptr) as integer
 declare function string_compare cdecl (byval a as string ptr, byval b as string ptr) as integer
-declare sub invert_permutation(indices() as integer)
+declare sub invert_permutation overload (indices() as integer, inverse() as integer)
+declare sub invert_permutation overload (indices() as integer)
 
 declare function strhash overload (byval strp as ubyte ptr, byval leng as integer) as unsigned integer
 declare function strhash overload (hstr as string) as unsigned integer

@@ -685,13 +685,23 @@ SUB qsort_strings_indices(indices() as integer, byval start as string ptr, byval
  qsort_indices indices(), start, number, stride, CAST(FnCompare, @stringptr_compare)
 END SUB
 
-'Invert a permutation such as that returned by sort_integers_indices;
-'indices() should contain the integers 0 to UBOUND(indices)
+'Invert a (possibly partial) permutation such as that returned by sort_integers_indices;
+'indices() should normally contain the integers 0 to UBOUND(inverse),
+'result stored in inverse().
+'If an integer x between 0 and UBOUND(inverse) is missing from indices(),
+'then inverse(x) contains garbage. You may want to clear inverse() first.
+SUB invert_permutation(indices() as integer, inverse() as integer)
+ FOR i as integer = 0 TO UBOUND(indices)
+  DIM index as integer = indices(i)
+  IF index >= 0 AND index <= UBOUND(inverse) THEN
+   inverse(index) = i
+  END IF
+ NEXT
+END SUB
+
 SUB invert_permutation(indices() as integer)
  DIM inverse(UBOUND(indices)) as integer
- FOR i as integer = 0 TO UBOUND(indices)
-  inverse(indices(i)) = i
- NEXT
+ invert_permutation indices(), inverse()
  'Copy back
  memcpy(@indices(0), @inverse(0), sizeof(integer) * (UBOUND(indices) + 1))
 END SUB
