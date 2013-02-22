@@ -538,6 +538,1049 @@ end sub
 
 
 '==========================================================================================
+'                                     Waits/Framerate
+'==========================================================================================
+
+
+sub enable_speed_control(byval setting as bool = YES)
+	use_speed_control = setting
+end sub
+
+sub setwait (byval t as integer, byval flagt as integer = 0)
+'t is a value in milliseconds which, in the original, is used to set the event
+'frequency and is also used to set the wait time, but the resolution of the
+'dos timer means that the latter is always truncated to the last multiple of
+'55 milliseconds. We won't do this anymore. Try to make the target framerate.
+'flagt, if nonzero, is a count in milliseconds for the secondary timer, which is
+'accessed as the return value from dowait.
+	if use_speed_control = NO then exit sub
+	'Min wait: 60fps, max wait: 1.5x requested
+	waittime = bound(waittime + t / 1000, timer + 0.017, timer + t / 667)
+	if flagt = 0 then
+		flagt = t
+	end if
+	if timer > flagtime then
+		flagtime = bound(flagtime + flagt / 1000, timer + 0.017, timer + flagt / 667)
+	end if
+	setwait_called = YES
+end sub
+
+function get_tickcount() as integer
+	return tickcount
+end function
+
+function dowait () as bool
+'wait until alarm time set in setwait()
+'returns true if the flag time has passed (since the last time it was passed)
+'In freebasic, sleep is in 1000ths, and a value of less than 100 will not
+'be exited by a keypress, so sleep for 5ms until timer > waittime.
+	if use_speed_control = NO then tickcount += 1 : return YES
+	dim i as integer
+	do while timer <= waittime
+		i = bound((waittime - timer) * 1000, 1, 5)
+		sleep i
+		io_waitprocessing()
+	loop
+	if setwait_called then
+		setwait_called = NO
+	else
+		debug "dowait called without setwait"
+	end if
+	tickcount += 1
+	return timer >= flagtime
+end function
+
+
+'==========================================================================================
+'                                           Music
+'==========================================================================================
+
+
+sub setupmusic
+	music_init
+	sound_init
+	musicbackendinfo = music_get_info
+	debuginfo musicbackendinfo
+end sub
+
+sub closemusic ()
+	music_close
+	sound_close
+end sub
+
+sub resetsfx ()
+	sound_reset
+end sub
+
+sub loadsong (f as string)
+	'check for extension
+	dim ext as string
+	dim songname as string
+	dim songtype as integer
+
+	songname = f
+	songtype = getmusictype(f)
+
+	music_play(songname, songtype)
+end sub
+
+'Doesn't work in SDL_mixer for MIDI music, so avoid
+'sub pausesong ()
+'	music_pause()
+'end sub
+'
+'sub resumesong ()
+'	music_resume
+'end sub
+
+function get_music_volume () as single
+	return music_getvolume
+end function
+
+sub set_music_volume (byval vol as single)
+	music_setvolume(vol)
+end sub
+
+function getmusictype (file as string) as integer
+	if file = "" then
+		'no further checking for blank names
+		return 0
+	end if
+
+	if isdir(file) OR right(file, 1) = SLASH then
+		'no further checking if this is a directory
+		return 0
+	end if
+
+	dim ext as string, chk as integer
+	ext = lcase(justextension(file))
+
+	'special case
+	if str(cint(ext)) = ext then return FORMAT_BAM
+
+	select case ext
+	case "bam"
+		chk = FORMAT_BAM
+	case "mid"
+		chk = FORMAT_MIDI
+	case "xm"
+		chk = FORMAT_XM
+	case "it"
+		chk = FORMAT_IT
+	case "wav"
+		chk = FORMAT_WAV
+	case "ogg"
+		chk = FORMAT_OGG
+	case "mp3"
+		chk = FORMAT_MP3
+	case "s3m"
+		chk = FORMAT_S3M
+	case "mod"
+		chk = FORMAT_MOD
+	case else
+		debug "unknown format: " & file & " - " & ext
+		chk = 0
+	end select
+
+	return chk
+end function
+
+
+'==========================================================================================
+'                                      Sound effects
+'==========================================================================================
+
+
+function isawav(fi as string) as bool
+	if not isfile(fi) then return NO 'duhhhhhh
+
+#define ID(a,b,c,d) asc(a) SHL 0 + asc(b) SHL 8 + asc(c) SHL 16 + asc(d) SHL 24
+	dim _RIFF as integer = ID("R","I","F","F") 'these are the "signatures" of a
+	dim _WAVE as integer = ID("W","A","V","E") 'wave file. RIFF is the format,
+	'dim _fmt_ as integer = ID("f","m","t"," ") 'WAVE is the type, and fmt_ and
+	'dim _data as integer = ID("d","a","t","a") 'data are the chunks
+#undef ID
+
+	dim chnk_ID as integer
+	dim chnk_size as integer
+	dim fh as integer = freefile
+	open fi for binary access read as #fh
+
+	get #fh, , chnk_ID
+	if chnk_ID <> _RIFF then
+		close #fh
+		return NO 'not even a RIFF file
+	end if
+
+	get #fh, , chnk_size 'don't care
+
+	get #fh, , chnk_ID
+
+	if chnk_ID <> _WAVE then
+		close #fh
+		return NO 'not a WAVE file, pffft
+	end if
+
+	'is this good enough? meh, sure.
+	close #fh
+	return YES
+end function
+
+sub playsfx (byval num as integer, byval l as integer=0)
+	sound_play(num, l)
+end sub
+
+sub stopsfx (byval num as integer)
+	sound_stop (num)
+end sub
+
+sub pausesfx (byval num as integer)
+	sound_pause(num)
+end sub
+
+sub freesfx (byval num as integer)
+	sound_free(num)
+end sub
+
+function sfxisplaying(byval num as integer) as bool
+	return sound_playing(num)
+end function
+
+
+'==========================================================================================
+'                                      Keyboard input
+'==========================================================================================
+
+
+function keyval (byval a as integer, byval repeat_wait as integer = 0, byval repeat_rate as integer = 0) as integer
+'except for special keys (like -1), each key reports 3 bits:
+'
+'bit 0: key was down at the last setkeys call
+'bit 1: keypress event (either new keypress, or key-repeat) during last setkey-setkey interval
+'bit 2: new keypress during last setkey-setkey interval
+'
+'Note: Alt/Ctrl keys may behave strangely with gfx_fb (and old gfx_directx):
+'You won't see Left/Right keypresses even when scAlt/scCtrl is pressed, so do not
+'check "keyval(scLeftAlt) > 0 or keyval(scRightAlt) > 0" instead of "keyval(scAlt) > 0"
+
+	dim result as integer = keybd(a)
+	if a >= 0 then
+		if repeat_wait = 0 then repeat_wait = keyrepeatwait
+		if repeat_rate = 0 then repeat_rate = keyrepeatrate
+
+		'awful hack to avoid arrow keys firing alternatively when not pressed at the same time:
+		'save state of the first arrow key you query
+		dim arrowkey as bool = NO
+		if a = scLeft or a = scRight or a = scUp or a = scDown then arrowkey = YES
+		if arrowkey and diagonalhack <> -1 then return (result and 5) or (diagonalhack and keybd(a) > 0)
+
+		if key_down_ms(a) >= repeat_wait then
+			dim check_repeat as bool = YES
+
+			'if a = scAlt then
+				'alt can repeat (probably a bad idea not to), but only if nothing else has been pressed
+				'for i as integer = 1 to &h7f
+				'	if keybd(i) > 1 then check_repeat = NO
+				'next
+				'if delayed_alt_keydown = NO then check_repeat = NO
+			'end if
+
+			'Don't fire repeat presses for special toggle keys (note: these aren't actually
+			'toggle keys in all backends, eg. gfx_fb)
+			if a = scNumlock or a = scCapslock or a = scScrolllock then check_repeat = NO
+
+			if check_repeat then
+				'Keypress event at "wait + i * rate" ms after keydown
+				dim temp as integer = key_down_ms(a) - repeat_wait
+				if temp \ repeat_rate > (temp - setkeys_elapsed_ms) \ repeat_rate then result or= 2
+			end if
+			if arrowkey then diagonalhack = result and 2
+		end if
+	end if
+	return result
+end function
+
+sub setkeyrepeat (byval repeat_wait as integer = 500, byval repeat_rate as integer = 55)
+	keyrepeatwait = repeat_wait
+	keyrepeatrate = repeat_rate
+end sub
+
+function get_ascii_inputtext () as string
+	dim shift as integer = 0
+	dim ret as string
+
+	if keyval(scCtrl) > 0 then return ""
+
+	if keyval(scShift) and 1 then shift += 1
+	if keyval(scAlt) and 1 then shift += 2   'for characters 128 and up
+
+	for i as integer = 0 to 53
+		dim effective_shift as integer = shift
+		if shift <= 1 andalso keyval(scCapsLock) > 0 then
+			select case i
+				case scQ to scP, scA to scL, scZ to scM
+					effective_shift xor= 1
+			end select
+		end if
+		if keyval(i) > 1 then
+			ret &= key2text(effective_shift, i)
+		end if
+	next i
+
+	'Space missing from key2text
+	if keyval(scSpace) > 1 then ret &= " "
+
+	return ret
+end function
+
+private sub update_inputtext ()
+	if disable_native_text_input then
+		inputtext = get_ascii_inputtext()
+		exit sub
+	end if
+
+	dim w_in as wstring * 64
+	if io_textinput then io_textinput(w_in, 64)
+
+	'OK, so here's the hack: one of the alt keys (could be either) might be used
+	'as a 'shift' or compose key, but if it's not, we want to support the old
+	'method of entering extended characters (128 and up) using it. This will
+	'backfire if the key face/base characters aren't ASCII
+
+	dim force_native_input as bool = NO
+
+	for i as integer = 0 to len(w_in) - 1
+		if w_in[i] > 127 then force_native_input = YES
+	next
+
+	if force_native_input = NO andalso keyval(scAlt) and 1 then
+		'Throw away w_in
+		inputtext = get_ascii_inputtext()
+		exit sub
+	end if
+
+	if io_textinput then
+		'if len(w_in) then print #fh, "input :" & w_in
+		'convert to ascii
+		inputtext = ""
+		for i as integer = 0 to len(w_in) - 1
+			if w_in[i] > 255 then
+				select case w_in[i]
+					case &hF700 to &hF746:
+						'Ignore Mac unicode for arrow keys, pgup+pgdown,
+						' delete, misc other keys. I don't know if the
+						' upper bound of &hF746 is high enough, but it
+						' blocks all the keys I could find on my keyboard.
+						' --James
+						continue for
+				end select
+				'print "unicode char " & w_in[i]
+				inputtext += "?"
+			elseif (w_in[i] < 32) or (w_in[i] >= &h7F and w_in[i] <= &hA0) then
+				'Control character. What a waste of 8-bit code-space!
+				'Note that we ignore newlines... because we've always done it that way
+			else
+				inputtext += chr(w_in[i])
+			end if
+		next
+	else
+		inputtext = get_ascii_inputtext()
+	end if
+end sub
+
+'If using gfx_sdl and gfx_directx this is Latin-1, while gfx_fb doesn't currently support even that
+function getinputtext () as string
+	if inputtext_enabled = NO then debuginfo "getinputtext: not enabled"
+	return inputtext
+end function
+
+'Checks the keyboard and optionally joystick for keypress events.
+'Returns scancode if one is found, 0 otherwise.
+'Use this instead of looping over all keys, to make sure alt filtering and joysticks work
+function anykeypressed (byval checkjoystick as bool = YES) as integer
+	dim as integer joybutton, joyx, joyy
+
+	for i as integer = 1 to &h7f
+		'check scAlt only, so Alt-filtering (see setkeys) works
+		if i = scLeftAlt or i = scRightAlt or i = scUnfilteredAlt then continue for
+		if keyval(i) > 1 then
+			return i
+		end if
+	next
+	if checkjoystick then
+		if io_readjoysane(0, joybutton, joyx, joyy) then
+			for i as integer = 16 to 1 step -1
+				if joybutton and (i ^ 2) then return 127 + i
+			next i
+		end if
+	end if
+end function
+
+'Returns a scancode or joystick button scancode
+function waitforanykey () as integer
+	dim as integer key, sleepjoy = 3
+
+	setkeys
+	do
+		setwait 50
+		dowait
+		io_pollkeyevents()
+		setkeys
+		key = anykeypressed(sleepjoy = 0)
+		if key then
+			'prevent crazy fast pseudo-keyrepeat
+			sleep 25
+
+			return key
+		end if
+		if sleepjoy > 0 then
+			sleepjoy -= 1
+		end if
+	loop
+end function
+
+'Without changing the results of keyval or readmouse, check whether a key has been pressed,
+'mouse button clicked, or window close requested since the last call to setkeys.
+'NOTE: any such keypresses are lost! This is OK for the current purposes
+function interrupting_keypress () as bool
+	io_pollkeyevents()
+
+	dim keybd_dummy(-1 to 127) as integer
+	dim mouse as MouseInfo
+
+	mutexlock keybdmutex
+	io_keybits(@keybd_dummy(0))
+	io_mousebits(mouse.x, mouse.y, mouse.wheel, mouse.buttons, mouse.clicks)
+	mutexunlock keybdmutex
+
+	if closerequest then
+		'closerequest = NO
+		keybd_dummy(-1) = 1
+	end if
+	if keybd_dummy(scPageup) > 0 and keybd_dummy(scPagedown) > 0 and keybd_dummy(scEsc) > 1 then keybd_dummy(-1) = 1
+
+	'Quick abort (could probably do better, just moving this here for now)
+	if keybd_dummy(-1) then
+#ifdef IS_GAME
+		'uncomment for slice debugging
+		'DestroyGameSlices YES
+		exitprogram NO
+#else
+		return YES
+#endif
+	end if
+
+	for i as integer = 0 to 127
+		'Check for new keypresses
+		if keybd_dummy(i) and 2 then return YES
+	next
+
+	if mouse.clicks then return YES
+
+	return NO
+end function
+
+sub setkeys_update_keybd
+	dim winstate as WindowState ptr
+	winstate = gfx_getwindowstate()
+
+	mutexlock keybdmutex
+	io_keybits(@keybd(0))
+	mutexunlock keybdmutex
+
+	'Current state of keybd():
+	'bit 0: key currently down
+	'bit 1: key down since last io_keybits call
+	'bit 2: zero
+
+	'debug "raw scEnter = " & keybd(scEnter) & " scAlt = " & keybd(scAlt)
+
+	'DELETEME (after a lag period): This is a temporary fix for gfx_directx not knowing about scShift
+	'(or any other of the new scancodes, but none of the rest matter much (maybe
+	'scPause) since there are no games that use them).
+	'(Ignore bit 2, because that isn't set yet)
+	if ((keybd(scLeftShift) or keybd(scRightShift)) and 3) <> (keybd(scShift) and 3) then
+		keybd(scShift) = keybd(scLeftShift) or keybd(scRightShift)
+	end if
+
+	'Backends don't know about scAlt, only scUnfilteredAlt
+	keybd(scAlt) = keybd(scUnfilteredAlt)
+
+	'Don't fire ctrl presses when alt down due to large number of WM shortcuts containing ctrl+alt
+	'(Testing delayed_alt_keydown is just a hack to add one tick delay after alt up,
+	'which is absolutely required)
+	if (keybd(scAlt) and 1) or delayed_alt_keydown then
+
+		if keybd(scEnter) and 6 then
+			keybd(scEnter) and= 1
+			delayed_alt_keydown = NO
+		end if
+
+		keybd(scCtrl) and= 1
+		keybd(scLeftCtrl) and= 1
+		keybd(scRightCtrl) and= 1
+	end if
+
+	'Calculate new "new keypress" bit (bit 2)
+	for a as integer = 0 to &h7f
+		keybd(a) and= 3
+		if a = scAlt then
+			'Special behaviour for alt, to ignore pesky WM shortcuts like alt+tab, alt+enter:
+			'Wait until alt has been released, without losing focus, before
+			'causing a key-down event.
+			'Also, special case for alt+enter, since that doesn't remove focus
+
+			'Note: this is only for scAlt, not scLeftAlt, scRightAlt, which aren't used by
+			'the engine, only by games. Maybe those shoudl be blocked too
+			'Note: currently keyval causes key-repeat events for alt if delayed_alt_keydown = YES
+
+			if keybd(scAlt) and 2 then
+				if delayed_alt_keydown = NO then
+					keybd(scAlt) -= 2
+				end if
+				delayed_alt_keydown = YES
+			end if
+
+			/'
+			for scancode as integer = 0 to &h7f
+				if scancode <> scUnfilteredAlt and scancode <> scAlt and scancode <> scLeftAlt and scancode <> scRightAlt and (keybd(scancode) and 1) then
+					delayed_alt_keydown = NO
+				end if
+			next
+			'/
+			if winstate andalso winstate->focused = NO then
+				delayed_alt_keydown = NO
+			end if
+
+			if (keybd(scAlt) and 1) = 0 andalso delayed_alt_keydown then
+				keybd(scAlt) or= 6
+				delayed_alt_keydown = NO
+			end if
+
+		'elseif a = scCtrl or a = scLeftCtrl or a = scRightCtrl then
+
+		else
+			'Duplicate bit 1 to bit 2
+			 keybd(a) or= (keybd(a) and 2) shl 1
+		end if
+	next
+
+end sub
+
+sub update_keydown_times ()
+	for a as integer = 0 to &h7f
+		if (keybd(a) and 4) or (keybd(a) and 1) = 0 then
+			key_down_ms(a) = 0
+		end if
+		if keybd(a) and 1 then
+			key_down_ms(a) += setkeys_elapsed_ms
+		end if
+	next
+end sub
+
+sub setkeys (byval enable_inputtext as bool = NO)
+'Updates the keybd array (which keyval() wraps) to reflect new keypresses
+'since the last call, also clears all keypress events (except key-is-down)
+'
+'Also the place for low-level key hooks that work everywhere
+'(Note that backends also have some hooks, especially gfx_sdl.bas for OSX-
+'specific stuff)
+'
+'enable_inputtext needs to be true for getinputtext to work;
+'however there is a one tick delay before coming into effect.
+'Passing enable_inputtext may cause certain "combining" keys to stop reporting
+'key presses. Currently this only happens with gfx_sdl on X11 (it is an X11
+'limitation). And it probably only effects punctuation keys such as ' or ~
+'(naturally those keys could be anywhere, but a good rule of thumb seems to be
+'to avoid QWERTY punctuation keys)
+'For more, see http://en.wikipedia.org/wiki/Dead_key
+'
+'Note that key repeat is NOT added to keybd (it's done by "post-processing" in keyval)
+
+	if enable_inputtext then enable_inputtext = YES
+	if inputtext_enabled <> enable_inputtext then
+		inputtext_enabled = enable_inputtext
+		io_enable_textinput(inputtext_enabled)
+	end if
+
+	if play_input then
+		'Updates keybd(), setkeys_elapsed_ms, inputtext
+		replay_input_tick ()
+
+		update_keydown_times ()
+	else
+		setkeys_update_keybd ()
+
+		setkeys_elapsed_ms = bound(1000 * (TIMER - last_setkeys_time), 0, 255)
+		last_setkeys_time = TIMER
+
+		update_keydown_times ()
+
+		'AFAIK, this is will still work on all platforms except X11 with SDL
+		'even if inputtext was not enabled; however you'll get a warning when
+		'getinputtext is called. So we call this just so that making that error
+		'isn't too annoying (you'll still notice it)
+		update_inputtext()
+
+		if rec_input then
+			record_input_tick ()
+		end if
+	end if
+
+	'reset arrow key fire state
+	diagonalhack = -1
+
+	'Check to see if the backend has received a request
+	'to close the window (eg. clicking the X), set the magic keyboard
+	'index -1 if so. It can only be unset with clearkey.
+	if closerequest then
+		closerequest = NO
+		keybd(-1) = 1
+	end if
+	if keybd(scPageup) > 0 and keybd(scPagedown) > 0 and keybd(scEsc) > 1 then keybd(-1) = 1
+
+#ifdef IS_CUSTOM
+	if keybd(-1) then keybd(scEsc) = 7
+#elseif defined(IS_GAME)
+	'Quick abort (could probably do better, just moving this here for now)
+	if keyval(-1) then
+		'uncomment for slice debugging
+		'DestroyGameSlices YES
+		exitprogram NO
+	end if
+#endif
+
+	'F12 for screenshots handled here
+	snapshot_check
+
+	if keyval(scCtrl) > 0 and keyval(scTilde) and 4 then
+		showfps xor= 1
+	end if
+
+	'some debug keys for working on resolution independence
+	if keyval(scShift) > 0 and keyval(sc1) > 0 then
+		if variablerez then
+			if keyval(scRightBrace) > 1 then
+				windowsize.w += 10
+				windowsize.h += 10
+			end if
+			if keyval(scLeftBrace) > 1 then
+				windowsize.w -= 10
+				windowsize.h -= 10
+				windowsize.w = large(windowsize.w, minwinsize.w)
+				windowsize.h = large(windowsize.h, minwinsize.h)
+			end if
+		end if
+		if keyval(scR) > 1 then
+			variablerez xor= YES
+			gfx_setresizable(variablerez)
+			if forcevispageresize = NO then
+				forcevispageresize = YES
+			else
+				forcevispageresize = NO
+				resetresolution
+			end if
+		end if
+	end if
+
+	if mouse_grab_requested then
+#IFDEF __FB_DARWIN__
+		if keyval(scF14) > 1 then
+			clearkey(scF14)
+#ELSE
+		if keyval(scScrollLock) > 1 then
+			clearkey(scScrollLock)
+#endIF
+			mouserect -1, -1, -1, -1
+			mouse_grab_requested = YES
+			mouse_grab_overridden = YES
+		end if
+	end if
+
+end sub
+
+sub clearkey(byval k as integer)
+	keybd(k) = 0
+	if k >= 0 then
+		key_down_ms(k) = 0
+	end if
+end sub
+
+'Set keyval(-1) on. So ugly
+sub setquitflag ()
+	keybd(-1) = 1
+end sub
+
+sub post_terminate_signal cdecl ()
+	closerequest = YES
+end sub
+
+
+'==========================================================================================
+'                                     Mouse and joystick
+'==========================================================================================
+
+
+function havemouse() as bool
+'atm, all backends support the mouse, or don't know
+	 return YES
+end function
+
+sub hidemousecursor ()
+	io_setmousevisibility(0)
+end sub
+
+sub unhidemousecursor ()
+	io_setmousevisibility(-1)
+	io_mouserect(-1, -1, -1, -1)
+end sub
+
+function readmouse () as MouseInfo
+	dim info as MouseInfo
+
+	mutexlock keybdmutex   'is this necessary?
+	io_mousebits(info.x, info.y, info.wheel, info.buttons, info.clicks)
+	mutexunlock keybdmutex
+
+	'gfx_fb/sdl/alleg return last onscreen position when the mouse is offscreen
+	'gfx_fb: If you release a mouse button offscreen, it becomes stuck (FB bug)
+	'        wheel scrolls offscreen are registered when you move back onscreen
+	'gfx_alleg: button state continues to work offscreen but wheel scrolls are not registered
+	'gfx_sdl: button state works offscreen. wheel state not implemented yet
+
+	if mouse_dragmask then
+		'Test whether drag ended
+		if (info.clicks and mouse_dragmask) orelse (info.buttons and mouse_dragmask) = 0 then
+			mouse_dragmask = 0
+			mouse_clickstart = TYPE<XYPair>(0, 0)
+		end if
+	end if
+
+	if mouse_dragmask = 0 then
+		'Dragging is only tracked for a single button at a time, and clickstart is not updated
+		'while dragging either. So we may now test for new drags or clicks.
+		for i as integer = 0 to 2
+			dim mask as integer = 2 ^ i
+			if info.clicks and mask then
+				'Do not flag as dragging until the second tick
+				mouse_clickstart = TYPE<XYPair>(info.x, info.y)
+			elseif info.buttons and mask then
+				'left mouse button down, but no new click this tick
+				mouse_dragmask = mask
+				exit for
+			end if
+		next
+	end if
+
+	info.moved = (mouse_lastpos.x <> info.x OR mouse_lastpos.y <> info.y)
+	mouse_lastpos = Type(info.x, info.y)
+	info.dragging = mouse_dragmask
+	info.clickstart = mouse_clickstart
+
+	if info.clicks <> 0 then
+		if mouse_grab_requested andalso mouse_grab_overridden then
+			mouserect remember_mouse_grab(0), remember_mouse_grab(1), remember_mouse_grab(2), remember_mouse_grab(3)
+		end if
+	end if
+
+	return info
+end function
+
+sub movemouse (byval x as integer, byval y as integer)
+	io_setmouse(x, y)
+end sub
+
+sub mouserect (byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
+	if gfxbackend = "fb" or gfxbackend = "sdl" then
+		if xmin = -1 and xmax = -1 and ymin = -1 and ymax = -1 then
+			mouse_grab_requested = NO
+			settemporarywindowtitle remember_title
+		else
+			remember_mouse_grab(0) = xmin
+			remember_mouse_grab(1) = xmax
+			remember_mouse_grab(2) = ymin
+			remember_mouse_grab(3) = ymax
+			mouse_grab_requested = YES
+			mouse_grab_overridden = NO
+#IFDEF __FB_DARWIN__
+			settemporarywindowtitle remember_title & " (F14 to free mouse)"
+#ELSE
+			settemporarywindowtitle remember_title & " (ScrlLock to free mouse)"
+#endIF
+		end if
+	end if
+	mutexlock keybdmutex
+	io_mouserect(xmin, xmax, ymin, ymax)
+	mutexunlock keybdmutex
+end sub
+
+function readjoy (joybuf() as integer, byval jnum as integer) as bool
+'Return false if joystick is not present, or true if joystick is present
+'jnum is the joystick to read (QB implementation supports 0 and 1)
+'joybuf(0) = Analog X axis (scaled to -100 to 100)
+'joybuf(1) = Analog Y axis
+'joybuf(2) = button 1: 0=pressed nonzero=not pressed
+'joybuf(3) = button 2: 0=pressed nonzero=not pressed
+'Other values in joybuf() should be preserved.
+'If X and Y axis are not analog,
+'  upward motion when joybuf(0) < joybuf(9)
+'  down motion when joybuf(0) > joybuf(10)
+'  left motion when joybuf(1) < joybuf(11)
+'  right motion when joybuf(1) > joybuf(12)
+	dim as integer buttons, x, y
+	if io_readjoysane(jnum, buttons, x, y) = 0 then return 0
+
+	joybuf(0) = x
+	joybuf(1) = y
+	joybuf(2) = (buttons AND 1) = 0 '0 = pressed, not 0 = unpressed (why???)
+	joybuf(3) = (buttons AND 2) = 0 'ditto
+	return -1
+end function
+
+function readjoy (byval joynum as integer, byref buttons as integer, byref x as integer, byref y as integer) as bool
+	return io_readjoysane(joynum, buttons, x, y)
+end function
+
+
+'==========================================================================================
+'                       Compat layer for old graphics backend IO API
+'==========================================================================================
+
+
+'these are wrappers provided by the polling thread
+sub io_amx_keybits cdecl (byval keybdarray as integer ptr)
+	for a as integer = 0 to &h7f
+		keybdarray[a] = keybdstate(a)
+		keybdstate(a) = keybdstate(a) and 1
+	next
+end sub
+
+sub io_amx_mousebits cdecl (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer)
+	'get the mouse state one last time, for good measure
+	io_getmouse(mx, my, mwheel, mbuttons)
+	mclicks = mouseflags or (mbuttons and not mouselastflags)
+	mouselastflags = mbuttons
+	mouseflags = 0
+	mbuttons = mbuttons or mclicks
+end sub
+
+private sub pollingthread(byval unused as any ptr)
+	dim as integer a, dummy, buttons
+
+	while endpollthread = NO
+		mutexlock keybdmutex
+
+		io_updatekeys(@keybdstate(0))
+		'set key state for every key
+		'highest scancode in fbgfx.bi is &h79, no point overdoing it
+		for a = 0 to &h7f
+			if keybdstate(a) and 8 then
+				'decide whether to set the 'new key' bit, otherwise the keystate is preserved
+				if (keybdstate(a) and 1) = 0 then
+					'this is a new keypress
+					keybdstate(a) = keybdstate(a) or 2
+				end if
+			end if
+			'move the bit (clearing it) that io_updatekeys sets from 8 to 1
+			keybdstate(a) = (keybdstate(a) and 2) or ((keybdstate(a) shr 3) and 1)
+		next
+
+		io_getmouse(dummy, dummy, dummy, buttons)
+		mouseflags = mouseflags or (buttons and not mouselastflags)
+		mouselastflags = buttons
+
+		mutexunlock keybdmutex
+
+		'25ms was found to be sufficient
+		sleep 25
+	wend
+end sub
+
+
+'==========================================================================================
+'                                  Recording and replay
+'==========================================================================================
+
+
+sub start_recording_input (filename as string)
+	if play_input then
+		debug "Can't record input because already replaying input!"
+		exit sub
+	end if
+	if isfile(filename) then
+		debug "Replacing the input recording that already existed at """ & filename & """"
+		safekill filename
+	end if
+	rec_input_file = FREEFILE
+	open filename for binary access write as #rec_input_file
+	dim header as string = "OHRRPGCEkeys"
+	PUT #rec_input_file,, header
+	dim ohrkey_ver as integer = 4
+	PUT #rec_input_file,, ohrkey_ver
+	dim seed as double = TIMER
+	RANDOMIZE seed, 3
+	PUT #rec_input_file,, seed
+	rec_input = YES
+	debuginfo "Recording keyboard input to: """ & filename & """"
+	for i as integer = 0 to ubound(last_keybd)
+		last_keybd(i) = 0
+	next i
+end sub
+
+sub stop_recording_input ()
+	if rec_input then
+		close #rec_input_file
+		rec_input = NO
+		debuginfo "STOP recording input"
+	end if
+end sub
+
+sub start_replaying_input (filename as string)
+	if rec_input then
+		debug "Can't replay input because already recording input!"
+		exit sub
+	end if
+	play_input_file = FREEFILE
+	open filename for binary access read as #play_input_file
+	play_input = YES
+	dim header as string = STRING(12, 0)
+	GET #play_input_file,, header
+	if header <> "OHRRPGCEkeys" then
+		stop_replaying_input "No OHRRPGCEkeys header in """ & filename & """"
+		exit sub
+	end if
+	dim ohrkey_ver as integer = -1
+	GET #play_input_file,, ohrkey_ver
+	if ohrkey_ver <> 4 then
+		stop_replaying_input "Unknown ohrkey version code " & ohrkey_ver & " in """ & filename & """. Only know how to understand version 4"
+		exit sub
+	end if
+	dim seed as double
+	GET #play_input_file,, seed
+	RANDOMIZE seed, 3
+	debuginfo "Replaying keyboard input from: """ & filename & """"
+	replaytick = -1
+	for i as integer = 0 to ubound(keybd)
+		keybd(i) = 0
+	next i
+end sub
+
+sub stop_replaying_input (msg as string="", byval errorlevel as ErrorLevelEnum = errError)
+	if msg <> "" then
+		debugc errorlevel, msg
+	end if
+	if play_input then
+		close #play_input_file
+		play_input = NO
+		debugc errorlevel, "STOP replaying input"
+	end if
+end sub
+
+sub record_input_tick ()
+	static tick as integer = -1
+	tick += 1
+	dim presses as ubyte = 0
+	dim keys_down as integer = 0
+	for i as integer = 0 to ubound(keybd)
+		if keybd(i) <> last_keybd(i) then
+			presses += 1
+		end if
+		if keybd(i) then keys_down += 1  'must record setkeys_elapsed_ms
+	next i
+	if presses = 0 and keys_down = 0 and len(inputtext) = 0 then exit sub
+	PUT #rec_input_file,, tick
+	PUT #rec_input_file,, cubyte(setkeys_elapsed_ms)
+	PUT #rec_input_file,, presses
+	for i as ubyte = 0 to ubound(keybd)
+		if keybd(i) <> last_keybd(i) then
+			PUT #rec_input_file,, i
+			PUT #rec_input_file,, cubyte(keybd(i))
+			last_keybd(i) = keybd(i)
+		end if
+	next i
+	'Currently inputtext is Latin-1, format will need changing in future
+	PUT #rec_input_file,, cubyte(len(inputtext))
+	PUT #rec_input_file,, inputtext
+end sub
+
+sub replay_input_tick ()
+	static tick as integer = -1
+	tick += 1
+	do
+		if EOF(play_input_file) then
+			stop_replaying_input "The end of the input playback file was reached.", errInfo
+			exit sub
+		end if
+		dim fpos as integer = LOC(play_input_file)
+		if replaytick = -1 then
+			GET #play_input_file,, replaytick
+		end if
+		if replaytick < tick and replaytick <> -1 then
+			debug "input replay late for tick " & replaytick & " (" & replaytick - tick & ")"
+		elseif replaytick > tick then
+			'debug "saving replay input tick " & replaytick & " until its time has come (+" & replaytick - tick & ")"
+			for i as integer = 0 to 127
+				if keybd(i) then
+					' There ought to be a tick in the input file so that we can set setkeys_elapsed_ms correctly
+					debug "bad recorded key input: key " & i & " is down, but expected tick " & tick & " is missing"
+					exit for
+				end if
+			next
+			' Otherwise, this doesn't matter as it won't be used
+			setkeys_elapsed_ms = 1
+			inputtext = ""
+			exit sub
+		end if
+
+		dim tick_ms as ubyte
+		GET #play_input_file,, tick_ms
+		setkeys_elapsed_ms = tick_ms
+		dim presses as ubyte
+		GET #play_input_file,, presses
+		if presses < 0 orelse presses > ubound(keybd) + 1 then
+			stop_replaying_input "input replay tick " & replaytick & " has invalid number of keypresses " & presses
+			exit sub
+		end if
+
+		dim as string info
+		if debug_replay then
+			info = "L:" & fpos & " T:" & replaytick & " ms:" & setkeys_elapsed_ms & " ("
+		end if
+
+		dim key as ubyte
+		dim kb as ubyte
+		for i as integer = 1 to presses
+			GET #play_input_file,, key
+			GET #play_input_file,, kb
+			keybd(key) = kb
+			if debug_replay then info &= " " & scancodename(key) & "=" & kb
+		next i
+		info &= " )"
+		dim input_len as ubyte
+		GET #play_input_file,, input_len
+		if input_len then
+			'Currently inputtext is Latin-1, format will need changing in future
+			inputtext = space(input_len)
+			GET #play_input_file,, inputtext
+			if debug_replay then info &= " input: '" & inputtext & "'"
+		else
+			inputtext = ""
+		end if
+
+		if debug_replay then debuginfo info
+
+		'In case the replay somehow became out of sync, keep looping
+		'(Probably hopeless though)
+		if replaytick = tick then
+			replaytick = -1
+			exit sub
+		end if
+		replaytick = -1
+	loop
+end sub
+
+
+'==========================================================================================
 '                                      Map rendering
 '==========================================================================================
 
@@ -557,6 +1600,58 @@ sub writeblock (map as TileMap, byval x as integer, byval y as integer, byval v 
 	end if
 	map.data[x + y * map.wide] = v
 end sub
+
+private function calcblock (tmap as TileMap, byval x as integer, byval y as integer, byval overheadmode as integer, pmapptr as TileMap ptr) as integer
+'returns -1 to draw no tile
+'overheadmode = 1 : draw non overhead tiles only (to avoid double draw)
+'overheadmode = 2 : draw overhead tiles only
+	dim block as integer
+
+	'check bounds
+	if bordertile = -1 then
+		'wrap
+		while y < 0
+			y = y + tmap.high
+		wend
+		while y >= tmap.high
+			y = y - tmap.high
+		wend
+		while x < 0
+			x = x + tmap.wide
+		wend
+		while x >= tmap.wide
+			x = x - tmap.wide
+		wend
+	else
+		if (y < 0) or (y >= tmap.high) or (x < 0) or (x >= tmap.wide) then
+			if tmap.layernum = 0 and overheadmode <= 1 then
+				'only draw the border tile once!
+				return bordertile
+			else
+				return -1
+			end if
+		end if
+	end if
+
+	block = readblock(tmap, x, y)
+
+	if block = 0 and tmap.layernum > 0 then  'This could be an argument, maybe we could get rid of layernum
+		return -1
+	end if
+
+	if overheadmode > 0 then
+		if pmapptr = NULL then
+			debugc errPromptBug, "NULL passmap ptr"
+			block = -1
+		elseif x >= pmapptr->wide or y >= pmapptr->high then
+			if overheadmode = 2 then block = -1
+		elseif ((readblock(*pmapptr, x, y) and passObsoleteOverhead) <> 0) xor (overheadmode = 2) then
+			block = -1
+		end if
+	end if
+
+	return block
+end function
 
 sub drawmap (tmap as TileMap, byval x as integer, byval y as integer, byval tileset as TilesetData ptr, byval p as integer, byval trans as bool = NO, byval overheadmode as integer = 0, byval pmapptr as TileMap ptr = NULL, byval ystart as integer = 0, byval yheight as integer = -1)
 	'overrides setanim
@@ -968,710 +2063,195 @@ end sub
 
 
 '==========================================================================================
-'                                      Keyboard input
+'                                     Old allmodex IO
 '==========================================================================================
 
 
-function keyval (byval a as integer, byval repeat_wait as integer = 0, byval repeat_rate as integer = 0) as integer
-'except for special keys (like -1), each key reports 3 bits:
-'
-'bit 0: key was down at the last setkeys call
-'bit 1: keypress event (either new keypress, or key-repeat) during last setkey-setkey interval
-'bit 2: new keypress during last setkey-setkey interval
-'
-'Note: Alt/Ctrl keys may behave strangely with gfx_fb (and old gfx_directx):
-'You won't see Left/Right keypresses even when scAlt/scCtrl is pressed, so do not
-'check "keyval(scLeftAlt) > 0 or keyval(scRightAlt) > 0" instead of "keyval(scAlt) > 0"
+sub storeset (fil as string, byval i as integer, byval l as integer)
+' i = index, l = line (only if reading from screen buffer)
+	dim f as integer
+	dim idx as integer
+	dim bi as integer
+	dim ub as ubyte
+	dim toggle as integer
+	dim sptr as ubyte ptr
 
-	dim result as integer = keybd(a)
-	if a >= 0 then
-		if repeat_wait = 0 then repeat_wait = keyrepeatwait
-		if repeat_rate = 0 then repeat_rate = keyrepeatrate
+	if NOT fileiswriteable(fil) then exit sub
+	f = freefile
+	open fil for binary access read write as #f
 
-		'awful hack to avoid arrow keys firing alternatively when not pressed at the same time:
-		'save state of the first arrow key you query
-		dim arrowkey as bool = NO
-		if a = scLeft or a = scRight or a = scUp or a = scDown then arrowkey = YES
-		if arrowkey and diagonalhack <> -1 then return (result and 5) or (diagonalhack and keybd(a) > 0)
-
-		if key_down_ms(a) >= repeat_wait then
-			dim check_repeat as bool = YES
-
-			'if a = scAlt then
-				'alt can repeat (probably a bad idea not to), but only if nothing else has been pressed
-				'for i as integer = 1 to &h7f
-				'	if keybd(i) > 1 then check_repeat = NO
-				'next
-				'if delayed_alt_keydown = NO then check_repeat = NO
-			'end if
-
-			'Don't fire repeat presses for special toggle keys (note: these aren't actually
-			'toggle keys in all backends, eg. gfx_fb)
-			if a = scNumlock or a = scCapslock or a = scScrolllock then check_repeat = NO
-
-			if check_repeat then
-				'Keypress event at "wait + i * rate" ms after keydown
-				dim temp as integer = key_down_ms(a) - repeat_wait
-				if temp \ repeat_rate > (temp - setkeys_elapsed_ms) \ repeat_rate then result or= 2
-			end if
-			if arrowkey then diagonalhack = result and 2
-		end if
-	end if
-	return result
-end function
-
-function get_ascii_inputtext () as string
-	dim shift as integer = 0
-	dim ret as string
-
-	if keyval(scCtrl) > 0 then return ""
-
-	if keyval(scShift) and 1 then shift += 1
-	if keyval(scAlt) and 1 then shift += 2   'for characters 128 and up
-
-	for i as integer = 0 to 53
-		dim effective_shift as integer = shift
-		if shift <= 1 andalso keyval(scCapsLock) > 0 then
-			select case i
-				case scQ to scP, scA to scL, scZ to scM
-					effective_shift xor= 1
-			end select
-		end if
-		if keyval(i) > 1 then
-			ret &= key2text(effective_shift, i)
-		end if
-	next i
-
-	'Space missing from key2text
-	if keyval(scSpace) > 1 then ret &= " "
-
-	return ret
-end function
-
-private sub update_inputtext ()
-	if disable_native_text_input then
-		inputtext = get_ascii_inputtext()
-		exit sub
-	end if
-
-	dim w_in as wstring * 64
-	if io_textinput then io_textinput(w_in, 64)
-
-	'OK, so here's the hack: one of the alt keys (could be either) might be used
-	'as a 'shift' or compose key, but if it's not, we want to support the old
-	'method of entering extended characters (128 and up) using it. This will
-	'backfire if the key face/base characters aren't ASCII
-
-	dim force_native_input as bool = NO
-
-	for i as integer = 0 to len(w_in) - 1
-		if w_in[i] > 127 then force_native_input = YES
-	next
-
-	if force_native_input = NO andalso keyval(scAlt) and 1 then
-		'Throw away w_in
-		inputtext = get_ascii_inputtext()
-		exit sub
-	end if
-
-	if io_textinput then
-		'if len(w_in) then print #fh, "input :" & w_in
-		'convert to ascii
-		inputtext = ""
-		for i as integer = 0 to len(w_in) - 1
-			if w_in[i] > 255 then
-				select case w_in[i]
-					case &hF700 to &hF746:
-						'Ignore Mac unicode for arrow keys, pgup+pgdown,
-						' delete, misc other keys. I don't know if the
-						' upper bound of &hF746 is high enough, but it
-						' blocks all the keys I could find on my keyboard.
-						' --James
-						continue for
-				end select
-				'print "unicode char " & w_in[i]
-				inputtext += "?"
-			elseif (w_in[i] < 32) or (w_in[i] >= &h7F and w_in[i] <= &hA0) then
-				'Control character. What a waste of 8-bit code-space!
-				'Note that we ignore newlines... because we've always done it that way
+	seek #f, (i*bsize) + 1 'does this work properly with write?
+	'this is a horrible hack to get 2 bytes per integer, even though
+	'they are 4 bytes long in FB
+	bi = 0
+	toggle = 0
+	if bpage >= 0 then
+		'read from screen
+		sptr = vpages(wrkpage)->image
+		sptr = sptr + (vpages(wrkpage)->pitch * l)
+		idx = bsize
+		while idx > vpages(wrkpage)->w
+			fput(f, , sptr, vpages(wrkpage)->w)
+			idx -= vpages(wrkpage)->w
+			sptr += vpages(wrkpage)->pitch
+		wend
+		fput(f, , sptr, idx)
+	else
+		'debug "buffer size to read = " + str(bsize)
+		for idx = 0 to bsize - 1 ' this will be slow
+			if toggle = 0 then
+				ub = bptr[bi] and &hff
+				toggle = 1
 			else
-				inputtext += chr(w_in[i])
+				ub = (bptr[bi] and &hff00) shr 8
+				toggle = 0
+				bi = bi + 1
+			end if
+			put #f, , ub
+		next
+	end if
+
+	close #f
+end sub
+
+sub loadset (fil as string, byval i as integer, byval l as integer)
+' i = index, l = line (only if reading to screen buffer)
+	dim f as integer
+	dim idx as integer
+	dim bi as integer
+	dim ub as ubyte
+	dim toggle as integer
+	dim sptr as ubyte ptr
+
+	if NOT fileisreadable(fil) then exit sub
+	if i < 0 then debug "loadset: attempt to read index " & i & " of """ & fil & """": exit sub
+	f = freefile
+	open fil for binary access read as #f
+
+	seek #f, (i*bsize) + 1
+	'this is a horrible hack to get 2 bytes per integer, even though
+	'they are 4 bytes long in FB
+	bi = 0
+	toggle = 0
+	if bpage >= 0 then
+		'read to screen
+		sptr = vpages(wrkpage)->image
+		sptr = sptr + (vpages(wrkpage)->pitch * l)
+		idx = bsize
+		while idx > vpages(wrkpage)->w
+			fget(f, , sptr, vpages(wrkpage)->w)
+			idx -= vpages(wrkpage)->w
+			sptr += vpages(wrkpage)->pitch
+		wend
+		fget(f, , sptr, idx)
+	else
+		'debug "buffer size to read = " + str(bsize)
+		for idx = 0 to bsize - 1 ' this will be slow
+			get #f, , ub
+			if toggle = 0 then
+				bptr[bi] = ub
+				toggle = 1
+			else
+				bptr[bi] = bptr[bi] or (ub shl 8)
+				'check sign
+				if (bptr[bi] and &h8000) > 0 then
+					bptr[bi] = bptr[bi] or &hffff0000 'make -ve
+				end if
+				toggle = 0
+				bi = bi + 1
 			end if
 		next
-	else
-		inputtext = get_ascii_inputtext()
 	end if
+
+	close #f
 end sub
 
-'If using gfx_sdl and gfx_directx this is Latin-1, while gfx_fb doesn't currently support even that
-function getinputtext () as string
-	if inputtext_enabled = NO then debuginfo "getinputtext: not enabled"
-	return inputtext
-end function
-
-'Checks the keyboard and optionally joystick for keypress events.
-'Returns scancode if one is found, 0 otherwise.
-'Use this instead of looping over all keys, to make sure alt filtering and joysticks work
-function anykeypressed (byval checkjoystick as bool = YES) as integer
-	dim as integer joybutton, joyx, joyy
-
-	for i as integer = 1 to &h7f
-		'check scAlt only, so Alt-filtering (see setkeys) works
-		if i = scLeftAlt or i = scRightAlt or i = scUnfilteredAlt then continue for
-		if keyval(i) > 1 then
-			return i
-		end if
-	next
-	if checkjoystick then
-		if io_readjoysane(0, joybutton, joyx, joyy) then
-			for i as integer = 16 to 1 step -1
-				if joybutton and (i ^ 2) then return 127 + i
-			next i
+'b is in BYTES
+sub setpicstuf (buf() as integer, byval b as integer, byval p as integer)
+	if p >= 0 then
+		if clippedframe <> vpages(p) then
+			setclip , , , , p
 		end if
 	end if
-end function
 
-'Returns a scancode or joystick button scancode
-function waitforanykey () as integer
-	dim as integer key, sleepjoy = 3
-
-	setkeys
-	do
-		setwait 50
-		dowait
-		io_pollkeyevents()
-		setkeys
-		key = anykeypressed(sleepjoy = 0)
-		if key then
-			'prevent crazy fast pseudo-keyrepeat
-			sleep 25
-
-			return key
-		end if
-		if sleepjoy > 0 then
-			sleepjoy -= 1
-		end if
-	loop
-end function
-
-sub setkeyrepeat (byval repeat_wait as integer = 500, byval repeat_rate as integer = 55)
-	keyrepeatwait = repeat_wait
-	keyrepeatrate = repeat_rate
+	bptr = @buf(0) 'doesn't really work well with FB
+	bsize = b
+	bpage = p
 end sub
 
-'Without changing the results of keyval or readmouse, check whether a key has been pressed,
-'mouse button clicked, or window close requested since the last call to setkeys.
-'NOTE: any such keypresses are lost! This is OK for the current purposes
-function interrupting_keypress () as bool
-	io_pollkeyevents()
+sub storemxs (fil as string, byval record as integer, byval fr as Frame ptr)
+'saves a screen page to a file. Doesn't support non-320x200 pages
+	dim f as integer
+	dim as integer x, y
+	dim sptr as ubyte ptr
+	dim plane as integer
 
-	dim keybd_dummy(-1 to 127) as integer
-	dim mouse as MouseInfo
+	if NOT fileiswriteable(fil) then exit sub
+	f = freefile
+	open fil for binary access read write as #f
 
-	mutexlock keybdmutex
-	io_keybits(@keybd_dummy(0))
-	io_mousebits(mouse.x, mouse.y, mouse.wheel, mouse.buttons, mouse.clicks)
-	mutexunlock keybdmutex
+	'skip to index
+	seek #f, (record*64000) + 1 'will this work with write access?
 
-	if closerequest then
-		'closerequest = NO
-		keybd_dummy(-1) = 1
-	end if
-	if keybd_dummy(scPageup) > 0 and keybd_dummy(scPagedown) > 0 and keybd_dummy(scEsc) > 1 then keybd_dummy(-1) = 1
+	'modex format, 4 planes
+	for plane = 0 to 3
+		for y = 0 to 199
+			sptr = fr->image + fr->pitch * y + plane
 
-	'Quick abort (could probably do better, just moving this here for now)
-	if keybd_dummy(-1) then
-#ifdef IS_GAME
-		'uncomment for slice debugging
-		'DestroyGameSlices YES
-		exitprogram NO
-#else
-		return YES
-#endif
-	end if
-
-	for i as integer = 0 to 127
-		'Check for new keypresses
-		if keybd_dummy(i) and 2 then return YES
-	next
-
-	if mouse.clicks then return YES
-
-	return NO
-end function
-
-sub setkeys_update_keybd
-	dim winstate as WindowState ptr
-	winstate = gfx_getwindowstate()
-
-	mutexlock keybdmutex
-	io_keybits(@keybd(0))
-	mutexunlock keybdmutex
-
-	'Current state of keybd():
-	'bit 0: key currently down
-	'bit 1: key down since last io_keybits call
-	'bit 2: zero
-
-	'debug "raw scEnter = " & keybd(scEnter) & " scAlt = " & keybd(scAlt)
-
-	'DELETEME (after a lag period): This is a temporary fix for gfx_directx not knowing about scShift
-	'(or any other of the new scancodes, but none of the rest matter much (maybe
-	'scPause) since there are no games that use them).
-	'(Ignore bit 2, because that isn't set yet)
-	if ((keybd(scLeftShift) or keybd(scRightShift)) and 3) <> (keybd(scShift) and 3) then
-		keybd(scShift) = keybd(scLeftShift) or keybd(scRightShift)
-	end if
-
-	'Backends don't know about scAlt, only scUnfilteredAlt
-	keybd(scAlt) = keybd(scUnfilteredAlt)
-
-	'Don't fire ctrl presses when alt down due to large number of WM shortcuts containing ctrl+alt
-	'(Testing delayed_alt_keydown is just a hack to add one tick delay after alt up,
-	'which is absolutely required)
-	if (keybd(scAlt) and 1) or delayed_alt_keydown then
-
-		if keybd(scEnter) and 6 then
-			keybd(scEnter) and= 1
-			delayed_alt_keydown = NO
-		end if
-
-		keybd(scCtrl) and= 1
-		keybd(scLeftCtrl) and= 1
-		keybd(scRightCtrl) and= 1
-	end if
-
-	'Calculate new "new keypress" bit (bit 2)
-	for a as integer = 0 to &h7f
-		keybd(a) and= 3
-		if a = scAlt then
-			'Special behaviour for alt, to ignore pesky WM shortcuts like alt+tab, alt+enter:
-			'Wait until alt has been released, without losing focus, before
-			'causing a key-down event.
-			'Also, special case for alt+enter, since that doesn't remove focus
-
-			'Note: this is only for scAlt, not scLeftAlt, scRightAlt, which aren't used by
-			'the engine, only by games. Maybe those shoudl be blocked too
-			'Note: currently keyval causes key-repeat events for alt if delayed_alt_keydown = YES
-
-			if keybd(scAlt) and 2 then
-				if delayed_alt_keydown = NO then
-					keybd(scAlt) -= 2
-				end if
-				delayed_alt_keydown = YES
-			end if
-
-			/'
-			for scancode as integer = 0 to &h7f
-				if scancode <> scUnfilteredAlt and scancode <> scAlt and scancode <> scLeftAlt and scancode <> scRightAlt and (keybd(scancode) and 1) then
-					delayed_alt_keydown = NO
-				end if
+			for x = 0 to (80 - 1) '1/4 of a row
+				put #f, , *sptr
+				sptr = sptr + 4
 			next
-			'/
-			if winstate andalso winstate->focused = NO then
-				delayed_alt_keydown = NO
-			end if
-
-			if (keybd(scAlt) and 1) = 0 andalso delayed_alt_keydown then
-				keybd(scAlt) or= 6
-				delayed_alt_keydown = NO
-			end if
-
-		'elseif a = scCtrl or a = scLeftCtrl or a = scRightCtrl then
-
-		else
-			'Duplicate bit 1 to bit 2
-			 keybd(a) or= (keybd(a) and 2) shl 1
-		end if
-	next
-
-end sub
-
-sub update_keydown_times ()
-	for a as integer = 0 to &h7f
-		if (keybd(a) and 4) or (keybd(a) and 1) = 0 then
-			key_down_ms(a) = 0
-		end if
-		if keybd(a) and 1 then
-			key_down_ms(a) += setkeys_elapsed_ms
-		end if
-	next
-end sub
-
-sub setkeys (byval enable_inputtext as bool = NO)
-'Updates the keybd array (which keyval() wraps) to reflect new keypresses
-'since the last call, also clears all keypress events (except key-is-down)
-'
-'Also the place for low-level key hooks that work everywhere
-'(Note that backends also have some hooks, especially gfx_sdl.bas for OSX-
-'specific stuff)
-'
-'enable_inputtext needs to be true for getinputtext to work;
-'however there is a one tick delay before coming into effect.
-'Passing enable_inputtext may cause certain "combining" keys to stop reporting
-'key presses. Currently this only happens with gfx_sdl on X11 (it is an X11
-'limitation). And it probably only effects punctuation keys such as ' or ~
-'(naturally those keys could be anywhere, but a good rule of thumb seems to be
-'to avoid QWERTY punctuation keys)
-'For more, see http://en.wikipedia.org/wiki/Dead_key
-'
-'Note that key repeat is NOT added to keybd (it's done by "post-processing" in keyval)
-
-	if enable_inputtext then enable_inputtext = YES
-	if inputtext_enabled <> enable_inputtext then
-		inputtext_enabled = enable_inputtext
-		io_enable_textinput(inputtext_enabled)
-	end if
-
-	if play_input then
-		'Updates keybd(), setkeys_elapsed_ms, inputtext
-		replay_input_tick ()
-
-		update_keydown_times ()
-	else
-		setkeys_update_keybd ()
-
-		setkeys_elapsed_ms = bound(1000 * (TIMER - last_setkeys_time), 0, 255)
-		last_setkeys_time = TIMER
-
-		update_keydown_times ()
-
-		'AFAIK, this is will still work on all platforms except X11 with SDL
-		'even if inputtext was not enabled; however you'll get a warning when
-		'getinputtext is called. So we call this just so that making that error
-		'isn't too annoying (you'll still notice it)
-		update_inputtext()
-
-		if rec_input then
-			record_input_tick ()
-		end if
-	end if
-
-	'reset arrow key fire state
-	diagonalhack = -1
-
-	'Check to see if the backend has received a request
-	'to close the window (eg. clicking the X), set the magic keyboard
-	'index -1 if so. It can only be unset with clearkey.
-	if closerequest then
-		closerequest = NO
-		keybd(-1) = 1
-	end if
-	if keybd(scPageup) > 0 and keybd(scPagedown) > 0 and keybd(scEsc) > 1 then keybd(-1) = 1
-
-#ifdef IS_CUSTOM
-	if keybd(-1) then keybd(scEsc) = 7
-#elseif defined(IS_GAME)
-	'Quick abort (could probably do better, just moving this here for now)
-	if keyval(-1) then
-		'uncomment for slice debugging
-		'DestroyGameSlices YES
-		exitprogram NO
-	end if
-#endif
-
-	'F12 for screenshots handled here
-	snapshot_check
-
-	if keyval(scCtrl) > 0 and keyval(scTilde) and 4 then
-		showfps xor= 1
-	end if
-
-	'some debug keys for working on resolution independence
-	if keyval(scShift) > 0 and keyval(sc1) > 0 then
-		if variablerez then
-			if keyval(scRightBrace) > 1 then
-				windowsize.w += 10
-				windowsize.h += 10
-			end if
-			if keyval(scLeftBrace) > 1 then
-				windowsize.w -= 10
-				windowsize.h -= 10
-				windowsize.w = large(windowsize.w, minwinsize.w)
-				windowsize.h = large(windowsize.h, minwinsize.h)
-			end if
-		end if
-		if keyval(scR) > 1 then
-			variablerez xor= YES
-			gfx_setresizable(variablerez)
-			if forcevispageresize = NO then
-				forcevispageresize = YES
-			else
-				forcevispageresize = NO
-				resetresolution
-			end if
-		end if
-	end if
-
-	if mouse_grab_requested then
-#IFDEF __FB_DARWIN__
-		if keyval(scF14) > 1 then
-			clearkey(scF14)
-#ELSE
-		if keyval(scScrollLock) > 1 then
-			clearkey(scScrollLock)
-#endIF
-			mouserect -1, -1, -1, -1
-			mouse_grab_requested = YES
-			mouse_grab_overridden = YES
-		end if
-	end if
-
-end sub
-
-sub clearkey(byval k as integer)
-	keybd(k) = 0
-	if k >= 0 then
-		key_down_ms(k) = 0
-	end if
-end sub
-
-'Set keyval(-1) on. So ugly
-sub setquitflag ()
-	keybd(-1) = 1
-end sub
-
-
-'==========================================================================================
-'                                  Recording and replay
-'==========================================================================================
-
-
-sub start_recording_input (filename as string)
-	if play_input then
-		debug "Can't record input because already replaying input!"
-		exit sub
-	end if
-	if isfile(filename) then
-		debug "Replacing the input recording that already existed at """ & filename & """"
-		safekill filename
-	end if
-	rec_input_file = FREEFILE
-	open filename for binary access write as #rec_input_file
-	dim header as string = "OHRRPGCEkeys"
-	PUT #rec_input_file,, header
-	dim ohrkey_ver as integer = 4
-	PUT #rec_input_file,, ohrkey_ver
-	dim seed as double = TIMER
-	RANDOMIZE seed, 3
-	PUT #rec_input_file,, seed
-	rec_input = YES
-	debuginfo "Recording keyboard input to: """ & filename & """"
-	for i as integer = 0 to ubound(last_keybd)
-		last_keybd(i) = 0
-	next i
-end sub
-
-sub stop_recording_input ()
-	if rec_input then
-		close #rec_input_file
-		rec_input = NO
-		debuginfo "STOP recording input"
-	end if
-end sub
-
-sub start_replaying_input (filename as string)
-	if rec_input then
-		debug "Can't replay input because already recording input!"
-		exit sub
-	end if
-	play_input_file = FREEFILE
-	open filename for binary access read as #play_input_file
-	play_input = YES
-	dim header as string = STRING(12, 0)
-	GET #play_input_file,, header
-	if header <> "OHRRPGCEkeys" then
-		stop_replaying_input "No OHRRPGCEkeys header in """ & filename & """"
-		exit sub
-	end if
-	dim ohrkey_ver as integer = -1
-	GET #play_input_file,, ohrkey_ver
-	if ohrkey_ver <> 4 then
-		stop_replaying_input "Unknown ohrkey version code " & ohrkey_ver & " in """ & filename & """. Only know how to understand version 4"
-		exit sub
-	end if
-	dim seed as double
-	GET #play_input_file,, seed
-	RANDOMIZE seed, 3
-	debuginfo "Replaying keyboard input from: """ & filename & """"
-	replaytick = -1
-	for i as integer = 0 to ubound(keybd)
-		keybd(i) = 0
-	next i
-end sub
-
-sub stop_replaying_input (msg as string="", byval errorlevel as ErrorLevelEnum = errError)
-	if msg <> "" then
-		debugc errorlevel, msg
-	end if
-	if play_input then
-		close #play_input_file
-		play_input = NO
-		debugc errorlevel, "STOP replaying input"
-	end if
-end sub
-
-sub record_input_tick ()
-	static tick as integer = -1
-	tick += 1
-	dim presses as ubyte = 0
-	dim keys_down as integer = 0
-	for i as integer = 0 to ubound(keybd)
-		if keybd(i) <> last_keybd(i) then
-			presses += 1
-		end if
-		if keybd(i) then keys_down += 1  'must record setkeys_elapsed_ms
-	next i
-	if presses = 0 and keys_down = 0 and len(inputtext) = 0 then exit sub
-	PUT #rec_input_file,, tick
-	PUT #rec_input_file,, cubyte(setkeys_elapsed_ms)
-	PUT #rec_input_file,, presses
-	for i as ubyte = 0 to ubound(keybd)
-		if keybd(i) <> last_keybd(i) then
-			PUT #rec_input_file,, i
-			PUT #rec_input_file,, cubyte(keybd(i))
-			last_keybd(i) = keybd(i)
-		end if
-	next i
-	'Currently inputtext is Latin-1, format will need changing in future
-	PUT #rec_input_file,, cubyte(len(inputtext))
-	PUT #rec_input_file,, inputtext
-end sub
-
-sub replay_input_tick ()
-	static tick as integer = -1
-	tick += 1
-	do
-		if EOF(play_input_file) then
-			stop_replaying_input "The end of the input playback file was reached.", errInfo
-			exit sub
-		end if
-		dim fpos as integer = LOC(play_input_file)
-		if replaytick = -1 then
-			GET #play_input_file,, replaytick
-		end if
-		if replaytick < tick and replaytick <> -1 then
-			debug "input replay late for tick " & replaytick & " (" & replaytick - tick & ")"
-		elseif replaytick > tick then
-			'debug "saving replay input tick " & replaytick & " until its time has come (+" & replaytick - tick & ")"
-			for i as integer = 0 to 127
-				if keybd(i) then
-					' There ought to be a tick in the input file so that we can set setkeys_elapsed_ms correctly
-					debug "bad recorded key input: key " & i & " is down, but expected tick " & tick & " is missing"
-					exit for
-				end if
-			next
-			' Otherwise, this doesn't matter as it won't be used
-			setkeys_elapsed_ms = 1
-			inputtext = ""
-			exit sub
-		end if
-
-		dim tick_ms as ubyte
-		GET #play_input_file,, tick_ms
-		setkeys_elapsed_ms = tick_ms
-		dim presses as ubyte
-		GET #play_input_file,, presses
-		if presses < 0 orelse presses > ubound(keybd) + 1 then
-			stop_replaying_input "input replay tick " & replaytick & " has invalid number of keypresses " & presses
-			exit sub
-		end if
-
-		dim as string info
-		if debug_replay then
-			info = "L:" & fpos & " T:" & replaytick & " ms:" & setkeys_elapsed_ms & " ("
-		end if
-
-		dim key as ubyte
-		dim kb as ubyte
-		for i as integer = 1 to presses
-			GET #play_input_file,, key
-			GET #play_input_file,, kb
-			keybd(key) = kb
-			if debug_replay then info &= " " & scancodename(key) & "=" & kb
-		next i
-		info &= " )"
-		dim input_len as ubyte
-		GET #play_input_file,, input_len
-		if input_len then
-			'Currently inputtext is Latin-1, format will need changing in future
-			inputtext = space(input_len)
-			GET #play_input_file,, inputtext
-			if debug_replay then info &= " input: '" & inputtext & "'"
-		else
-			inputtext = ""
-		end if
-
-		if debug_replay then debuginfo info
-
-		'In case the replay somehow became out of sync, keep looping
-		'(Probably hopeless though)
-		if replaytick = tick then
-			replaytick = -1
-			exit sub
-		end if
-		replaytick = -1
-	loop
-end sub
-
-
-'==========================================================================================
-'                       Compat layer for old graphics backend IO API
-'==========================================================================================
-
-
-'these are wrappers provided by the polling thread
-sub io_amx_keybits cdecl (byval keybdarray as integer ptr)
-	for a as integer = 0 to &h7f
-		keybdarray[a] = keybdstate(a)
-		keybdstate(a) = keybdstate(a) and 1
-	next
-end sub
-
-sub io_amx_mousebits cdecl (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer)
-	'get the mouse state one last time, for good measure
-	io_getmouse(mx, my, mwheel, mbuttons)
-	mclicks = mouseflags or (mbuttons and not mouselastflags)
-	mouselastflags = mbuttons
-	mouseflags = 0
-	mbuttons = mbuttons or mclicks
-end sub
-
-private sub pollingthread(byval unused as any ptr)
-	dim as integer a, dummy, buttons
-
-	while endpollthread = NO
-		mutexlock keybdmutex
-
-		io_updatekeys(@keybdstate(0))
-		'set key state for every key
-		'highest scancode in fbgfx.bi is &h79, no point overdoing it
-		for a = 0 to &h7f
-			if keybdstate(a) and 8 then
-				'decide whether to set the 'new key' bit, otherwise the keystate is preserved
-				if (keybdstate(a) and 1) = 0 then
-					'this is a new keypress
-					keybdstate(a) = keybdstate(a) or 2
-				end if
-			end if
-			'move the bit (clearing it) that io_updatekeys sets from 8 to 1
-			keybdstate(a) = (keybdstate(a) and 2) or ((keybdstate(a) shr 3) and 1)
 		next
+	next
 
-		io_getmouse(dummy, dummy, dummy, buttons)
-		mouseflags = mouseflags or (buttons and not mouselastflags)
-		mouselastflags = buttons
-
-		mutexunlock keybdmutex
-
-		'25ms was found to be sufficient
-		sleep 25
-	wend
+	close #f
 end sub
 
-sub post_terminate_signal cdecl ()
-	closerequest = YES
-end sub
+function loadmxs (fil as string, byval record as integer, byval dest as Frame ptr = NULL) as Frame ptr
+'loads a 320x200 mode X format page from a file.
+'You may optionally pass in existing frame to load into.
+	dim f as integer
+	dim as integer x, y
+	dim sptr as ubyte ptr
+	dim plane as integer
+
+	if NOT fileisreadable(fil) then return 0
+	if record < 0 then
+		debug "loadmxs: attempted to read a negative record number " & record
+		return dest
+	end if
+	f = freefile
+	open fil for binary access read as #f
+
+	if lof(f) < (record + 1) * 64000 then
+		debug "loadpage: wanted page " & record & "; " & fil & " is only " & lof(f) & " bytes"
+		close #f
+		return dest
+	end if
+
+	'skip to index
+	seek #f, (record*64000) + 1
+
+	if dest = NULL then
+		dest = frame_new(320, 200)
+	end if
+
+	'modex format, 4 planes
+	for plane = 0 to 3
+		for y = 0 to 199
+			sptr = dest->image + dest->pitch * y + plane
+
+			for x = 0 to (80 - 1) '1/4 of a row
+				get #f, , *sptr
+				sptr = sptr + 4
+			next
+		next
+	next
+
+	close #f
+	return dest
+end function
 
 
 '==========================================================================================
@@ -2187,134 +2767,6 @@ sub replacecolor (byval fr as Frame ptr, byval c_old as integer, byval c_new as 
 		next
 	next
 end sub
-
-sub storemxs (fil as string, byval record as integer, byval fr as Frame ptr)
-'saves a screen page to a file. Doesn't support non-320x200 pages
-	dim f as integer
-	dim as integer x, y
-	dim sptr as ubyte ptr
-	dim plane as integer
-
-	if NOT fileiswriteable(fil) then exit sub
-	f = freefile
-	open fil for binary access read write as #f
-
-	'skip to index
-	seek #f, (record*64000) + 1 'will this work with write access?
-
-	'modex format, 4 planes
-	for plane = 0 to 3
-		for y = 0 to 199
-			sptr = fr->image + fr->pitch * y + plane
-
-			for x = 0 to (80 - 1) '1/4 of a row
-				put #f, , *sptr
-				sptr = sptr + 4
-			next
-		next
-	next
-
-	close #f
-end sub
-
-function loadmxs (fil as string, byval record as integer, byval dest as Frame ptr = NULL) as Frame ptr
-'loads a 320x200 mode X format page from a file.
-'You may optionally pass in existing frame to load into.
-	dim f as integer
-	dim as integer x, y
-	dim sptr as ubyte ptr
-	dim plane as integer
-
-	if NOT fileisreadable(fil) then return 0
-	if record < 0 then
-		debug "loadmxs: attempted to read a negative record number " & record
-		return dest
-	end if
-	f = freefile
-	open fil for binary access read as #f
-
-	if lof(f) < (record + 1) * 64000 then
-		debug "loadpage: wanted page " & record & "; " & fil & " is only " & lof(f) & " bytes"
-		close #f
-		return dest
-	end if
-
-	'skip to index
-	seek #f, (record*64000) + 1
-
-	if dest = NULL then
-		dest = frame_new(320, 200)
-	end if
-
-	'modex format, 4 planes
-	for plane = 0 to 3
-		for y = 0 to 199
-			sptr = dest->image + dest->pitch * y + plane
-
-			for x = 0 to (80 - 1) '1/4 of a row
-				get #f, , *sptr
-				sptr = sptr + 4
-			next
-		next
-	next
-
-	close #f
-	return dest
-end function
-
-
-'==========================================================================================
-'                                     Waits/Framerate
-'==========================================================================================
-
-
-sub enable_speed_control(byval setting as bool = YES)
-	use_speed_control = setting
-end sub
-
-sub setwait (byval t as integer, byval flagt as integer = 0)
-'t is a value in milliseconds which, in the original, is used to set the event
-'frequency and is also used to set the wait time, but the resolution of the
-'dos timer means that the latter is always truncated to the last multiple of
-'55 milliseconds. We won't do this anymore. Try to make the target framerate.
-'flagt, if nonzero, is a count in milliseconds for the secondary timer, which is
-'accessed as the return value from dowait.
-	if use_speed_control = NO then exit sub
-	'Min wait: 60fps, max wait: 1.5x requested
-	waittime = bound(waittime + t / 1000, timer + 0.017, timer + t / 667)
-	if flagt = 0 then
-		flagt = t
-	end if
-	if timer > flagtime then
-		flagtime = bound(flagtime + flagt / 1000, timer + 0.017, timer + flagt / 667)
-	end if
-	setwait_called = YES
-end sub
-
-function get_tickcount() as integer
-	return tickcount
-end function
-
-function dowait () as bool
-'wait until alarm time set in setwait()
-'returns true if the flag time has passed (since the last time it was passed)
-'In freebasic, sleep is in 1000ths, and a value of less than 100 will not
-'be exited by a keypress, so sleep for 5ms until timer > waittime.
-	if use_speed_control = NO then tickcount += 1 : return YES
-	dim i as integer
-	do while timer <= waittime
-		i = bound((waittime - timer) * 1000, 1, 5)
-		sleep i
-		io_waitprocessing()
-	loop
-	if setwait_called then
-		setwait_called = NO
-	else
-		debug "dowait called without setwait"
-	end if
-	tickcount += 1
-	return timer >= flagtime
-end function
 
 
 '==========================================================================================
@@ -3477,430 +3929,6 @@ end sub
 
 
 '==========================================================================================
-'                                     Old allmodex IO
-'==========================================================================================
-
-
-sub storeset (fil as string, byval i as integer, byval l as integer)
-' i = index, l = line (only if reading from screen buffer)
-	dim f as integer
-	dim idx as integer
-	dim bi as integer
-	dim ub as ubyte
-	dim toggle as integer
-	dim sptr as ubyte ptr
-
-	if NOT fileiswriteable(fil) then exit sub
-	f = freefile
-	open fil for binary access read write as #f
-
-	seek #f, (i*bsize) + 1 'does this work properly with write?
-	'this is a horrible hack to get 2 bytes per integer, even though
-	'they are 4 bytes long in FB
-	bi = 0
-	toggle = 0
-	if bpage >= 0 then
-		'read from screen
-		sptr = vpages(wrkpage)->image
-		sptr = sptr + (vpages(wrkpage)->pitch * l)
-		idx = bsize
-		while idx > vpages(wrkpage)->w
-			fput(f, , sptr, vpages(wrkpage)->w)
-			idx -= vpages(wrkpage)->w
-			sptr += vpages(wrkpage)->pitch
-		wend
-		fput(f, , sptr, idx)
-	else
-		'debug "buffer size to read = " + str(bsize)
-		for idx = 0 to bsize - 1 ' this will be slow
-			if toggle = 0 then
-				ub = bptr[bi] and &hff
-				toggle = 1
-			else
-				ub = (bptr[bi] and &hff00) shr 8
-				toggle = 0
-				bi = bi + 1
-			end if
-			put #f, , ub
-		next
-	end if
-
-	close #f
-end sub
-
-sub loadset (fil as string, byval i as integer, byval l as integer)
-' i = index, l = line (only if reading to screen buffer)
-	dim f as integer
-	dim idx as integer
-	dim bi as integer
-	dim ub as ubyte
-	dim toggle as integer
-	dim sptr as ubyte ptr
-
-	if NOT fileisreadable(fil) then exit sub
-	if i < 0 then debug "loadset: attempt to read index " & i & " of """ & fil & """": exit sub
-	f = freefile
-	open fil for binary access read as #f
-
-	seek #f, (i*bsize) + 1
-	'this is a horrible hack to get 2 bytes per integer, even though
-	'they are 4 bytes long in FB
-	bi = 0
-	toggle = 0
-	if bpage >= 0 then
-		'read to screen
-		sptr = vpages(wrkpage)->image
-		sptr = sptr + (vpages(wrkpage)->pitch * l)
-		idx = bsize
-		while idx > vpages(wrkpage)->w
-			fget(f, , sptr, vpages(wrkpage)->w)
-			idx -= vpages(wrkpage)->w
-			sptr += vpages(wrkpage)->pitch
-		wend
-		fget(f, , sptr, idx)
-	else
-		'debug "buffer size to read = " + str(bsize)
-		for idx = 0 to bsize - 1 ' this will be slow
-			get #f, , ub
-			if toggle = 0 then
-				bptr[bi] = ub
-				toggle = 1
-			else
-				bptr[bi] = bptr[bi] or (ub shl 8)
-				'check sign
-				if (bptr[bi] and &h8000) > 0 then
-					bptr[bi] = bptr[bi] or &hffff0000 'make -ve
-				end if
-				toggle = 0
-				bi = bi + 1
-			end if
-		next
-	end if
-
-	close #f
-end sub
-
-'b is in BYTES
-sub setpicstuf (buf() as integer, byval b as integer, byval p as integer)
-	if p >= 0 then
-		if clippedframe <> vpages(p) then
-			setclip , , , , p
-		end if
-	end if
-
-	bptr = @buf(0) 'doesn't really work well with FB
-	bsize = b
-	bpage = p
-end sub
-
-
-'==========================================================================================
-'                                           Music
-'==========================================================================================
-
-
-sub setupmusic
-	music_init
-	sound_init
-	musicbackendinfo = music_get_info
-	debuginfo musicbackendinfo
-end sub
-
-sub closemusic ()
-	music_close
-	sound_close
-end sub
-
-sub resetsfx ()
-	sound_reset
-end sub
-
-sub loadsong (f as string)
-	'check for extension
-	dim ext as string
-	dim songname as string
-	dim songtype as integer
-
-	songname = f
-	songtype = getmusictype(f)
-
-	music_play(songname, songtype)
-end sub
-
-'Doesn't work in SDL_mixer for MIDI music, so avoid
-'sub pausesong ()
-'	music_pause()
-'end sub
-'
-'sub resumesong ()
-'	music_resume
-'end sub
-
-function get_music_volume () as single
-	return music_getvolume
-end function
-
-sub set_music_volume (byval vol as single)
-	music_setvolume(vol)
-end sub
-
-
-'==========================================================================================
-'                                        Screenshots
-'==========================================================================================
-
-
-sub screenshot (f as string)
-	'try external first
-	if gfx_screenshot(f) = 0 then
-		'otherwise save it ourselves
-		frame_export_bmp8(f & ".bmp", vpages(vpage), intpal())
-	end if
-end sub
-
-sub bmp_screenshot(f as string)
-	'This is for when you explicitly want a bmp screenshot, and NOT the preferred
-	'screenshot type used by the current gfx backend
-	frame_export_bmp8(f & ".bmp", vpages(vpage), intpal())
-end sub
-
-private sub snapshot_check
-'The best of both worlds. Holding down F12 takes a screenshot each frame, however besides
-'the first, they're saved to the temporary directory until key repeat kicks in, and then
-'moved, to prevent littering
-'NOTE: global variables like tmpdir can change between calls, have to be lenient
-	static as string*4 image_exts(3) => {".bmp", ".png", ".jpg", ".dds"}
-	'dynamic static array. Redim before use.
-	static as string backlog()
-	redim preserve backlog(ubound(backlog))
-	static as integer backlog_num
-
-	dim as integer n, i
-
-	if keyval(scF12) = 0 then
-		'delete the backlog
-		for n = 1 to ubound(backlog)
-			'debug "killing " & backlog(n)
-			safekill backlog(n)
-		next
-		redim backlog(0)
-		backlog_num = 0
-	else
-		dim as string shot
-		dim as string gamename = trimextension(trimpath(sourcerpg))
-		if gamename = "" then
-			gamename = "ohrrpgce"
-		end if
-
-		for n = backlog_num to 9999
-			shot = gamename + right("000" & n, 4)
-			'checking curdir, which is export directory
-			for i = 0 to ubound(image_exts)
-				if isfile(shot + image_exts(i)) then continue for, for
-			next
-			exit for
-		next
-		backlog_num = n + 1
-
-		if keyval(scF12) = 1 then
-			shot = tmpdir + shot
-			screenshot shot
-			for i = 0 to ubound(image_exts)
-				if isfile(shot + image_exts(i)) then str_array_append(backlog(), shot + image_exts(i))
-			next
-		else
-			screenshot shot
-			'move our backlog of screenshots to the visible location
-			for n = 1 to ubound(backlog)
-				'debug "moving " & backlog(n) & " to " & curdir + slash + trimpath(backlog(n))
-				local_file_move backlog(n), curdir + slash + trimpath(backlog(n))
-			next
-			redim backlog(0)
-		end if
-		'debug "screen " & shot
-	end if
-end sub
-
-
-'==========================================================================================
-'                                     Mouse and joystick
-'==========================================================================================
-
-
-function havemouse() as bool
-'atm, all backends support the mouse, or don't know
-	 return YES
-end function
-
-sub hidemousecursor ()
-	io_setmousevisibility(0)
-end sub
-
-sub unhidemousecursor ()
-	io_setmousevisibility(-1)
-	io_mouserect(-1, -1, -1, -1)
-end sub
-
-function readmouse () as MouseInfo
-	dim info as MouseInfo
-
-	mutexlock keybdmutex   'is this necessary?
-	io_mousebits(info.x, info.y, info.wheel, info.buttons, info.clicks)
-	mutexunlock keybdmutex
-
-	'gfx_fb/sdl/alleg return last onscreen position when the mouse is offscreen
-	'gfx_fb: If you release a mouse button offscreen, it becomes stuck (FB bug)
-	'        wheel scrolls offscreen are registered when you move back onscreen
-	'gfx_alleg: button state continues to work offscreen but wheel scrolls are not registered
-	'gfx_sdl: button state works offscreen. wheel state not implemented yet
-
-	if mouse_dragmask then
-		'Test whether drag ended
-		if (info.clicks and mouse_dragmask) orelse (info.buttons and mouse_dragmask) = 0 then
-			mouse_dragmask = 0
-			mouse_clickstart = TYPE<XYPair>(0, 0)
-		end if
-	end if
-
-	if mouse_dragmask = 0 then
-		'Dragging is only tracked for a single button at a time, and clickstart is not updated
-		'while dragging either. So we may now test for new drags or clicks.
-		for i as integer = 0 to 2
-			dim mask as integer = 2 ^ i
-			if info.clicks and mask then
-				'Do not flag as dragging until the second tick
-				mouse_clickstart = TYPE<XYPair>(info.x, info.y)
-			elseif info.buttons and mask then
-				'left mouse button down, but no new click this tick
-				mouse_dragmask = mask
-				exit for
-			end if
-		next
-	end if
-
-	info.moved = (mouse_lastpos.x <> info.x OR mouse_lastpos.y <> info.y)
-	mouse_lastpos = Type(info.x, info.y)
-	info.dragging = mouse_dragmask
-	info.clickstart = mouse_clickstart
-
-	if info.clicks <> 0 then
-		if mouse_grab_requested andalso mouse_grab_overridden then
-			mouserect remember_mouse_grab(0), remember_mouse_grab(1), remember_mouse_grab(2), remember_mouse_grab(3)
-		end if
-	end if
-
-	return info
-end function
-
-sub movemouse (byval x as integer, byval y as integer)
-	io_setmouse(x, y)
-end sub
-
-sub mouserect (byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
-	if gfxbackend = "fb" or gfxbackend = "sdl" then
-		if xmin = -1 and xmax = -1 and ymin = -1 and ymax = -1 then
-			mouse_grab_requested = NO
-			settemporarywindowtitle remember_title
-		else
-			remember_mouse_grab(0) = xmin
-			remember_mouse_grab(1) = xmax
-			remember_mouse_grab(2) = ymin
-			remember_mouse_grab(3) = ymax
-			mouse_grab_requested = YES
-			mouse_grab_overridden = NO
-#IFDEF __FB_DARWIN__
-			settemporarywindowtitle remember_title & " (F14 to free mouse)"
-#ELSE
-			settemporarywindowtitle remember_title & " (ScrlLock to free mouse)"
-#endIF
-		end if
-	end if
-	mutexlock keybdmutex
-	io_mouserect(xmin, xmax, ymin, ymax)
-	mutexunlock keybdmutex
-end sub
-
-function readjoy (joybuf() as integer, byval jnum as integer) as bool
-'Return false if joystick is not present, or true if joystick is present
-'jnum is the joystick to read (QB implementation supports 0 and 1)
-'joybuf(0) = Analog X axis (scaled to -100 to 100)
-'joybuf(1) = Analog Y axis
-'joybuf(2) = button 1: 0=pressed nonzero=not pressed
-'joybuf(3) = button 2: 0=pressed nonzero=not pressed
-'Other values in joybuf() should be preserved.
-'If X and Y axis are not analog,
-'  upward motion when joybuf(0) < joybuf(9)
-'  down motion when joybuf(0) > joybuf(10)
-'  left motion when joybuf(1) < joybuf(11)
-'  right motion when joybuf(1) > joybuf(12)
-	dim as integer buttons, x, y
-	if io_readjoysane(jnum, buttons, x, y) = 0 then return 0
-
-	joybuf(0) = x
-	joybuf(1) = y
-	joybuf(2) = (buttons AND 1) = 0 '0 = pressed, not 0 = unpressed (why???)
-	joybuf(3) = (buttons AND 2) = 0 'ditto
-	return -1
-end function
-
-function readjoy (byval joynum as integer, byref buttons as integer, byref x as integer, byref y as integer) as bool
-	return io_readjoysane(joynum, buttons, x, y)
-end function
-
-private function calcblock(tmap as TileMap, byval x as integer, byval y as integer, byval overheadmode as integer, pmapptr as TileMap ptr) as integer
-'returns -1 to draw no tile
-'overheadmode = 1 : draw non overhead tiles only (to avoid double draw)
-'overheadmode = 2 : draw overhead tiles only
-	dim block as integer
-
-	'check bounds
-	if bordertile = -1 then
-		'wrap
-		while y < 0
-			y = y + tmap.high
-		wend
-		while y >= tmap.high
-			y = y - tmap.high
-		wend
-		while x < 0
-			x = x + tmap.wide
-		wend
-		while x >= tmap.wide
-			x = x - tmap.wide
-		wend
-	else
-		if (y < 0) or (y >= tmap.high) or (x < 0) or (x >= tmap.wide) then
-			if tmap.layernum = 0 and overheadmode <= 1 then
-				'only draw the border tile once!
-				return bordertile
-			else
-				return -1
-			end if
-		end if
-	end if
-
-	block = readblock(tmap, x, y)
-
-	if block = 0 and tmap.layernum > 0 then  'This could be an argument, maybe we could get rid of layernum
-		return -1
-	end if
-
-	if overheadmode > 0 then
-		if pmapptr = NULL then
-			debugc errPromptBug, "NULL passmap ptr"
-			block = -1
-		elseif x >= pmapptr->wide or y >= pmapptr->high then
-			if overheadmode = 2 then block = -1
-		elseif ((readblock(*pmapptr, x, y) and passObsoleteOverhead) <> 0) xor (overheadmode = 2) then
-			block = -1
-		end if
-	end if
-
-	return block
-end function
-
-
-'==========================================================================================
 '                                       BMP routines
 '==========================================================================================
 'other formats are probably quite simple
@@ -4493,7 +4521,84 @@ end function
 
 
 '==========================================================================================
-'                                  Misc graphics routines
+'                                        Screenshots
+'==========================================================================================
+
+
+sub screenshot (f as string)
+	'try external first
+	if gfx_screenshot(f) = 0 then
+		'otherwise save it ourselves
+		frame_export_bmp8(f & ".bmp", vpages(vpage), intpal())
+	end if
+end sub
+
+sub bmp_screenshot(f as string)
+	'This is for when you explicitly want a bmp screenshot, and NOT the preferred
+	'screenshot type used by the current gfx backend
+	frame_export_bmp8(f & ".bmp", vpages(vpage), intpal())
+end sub
+
+private sub snapshot_check
+'The best of both worlds. Holding down F12 takes a screenshot each frame, however besides
+'the first, they're saved to the temporary directory until key repeat kicks in, and then
+'moved, to prevent littering
+'NOTE: global variables like tmpdir can change between calls, have to be lenient
+	static as string*4 image_exts(3) => {".bmp", ".png", ".jpg", ".dds"}
+	'dynamic static array. Redim before use.
+	static as string backlog()
+	redim preserve backlog(ubound(backlog))
+	static as integer backlog_num
+
+	dim as integer n, i
+
+	if keyval(scF12) = 0 then
+		'delete the backlog
+		for n = 1 to ubound(backlog)
+			'debug "killing " & backlog(n)
+			safekill backlog(n)
+		next
+		redim backlog(0)
+		backlog_num = 0
+	else
+		dim as string shot
+		dim as string gamename = trimextension(trimpath(sourcerpg))
+		if gamename = "" then
+			gamename = "ohrrpgce"
+		end if
+
+		for n = backlog_num to 9999
+			shot = gamename + right("000" & n, 4)
+			'checking curdir, which is export directory
+			for i = 0 to ubound(image_exts)
+				if isfile(shot + image_exts(i)) then continue for, for
+			next
+			exit for
+		next
+		backlog_num = n + 1
+
+		if keyval(scF12) = 1 then
+			shot = tmpdir + shot
+			screenshot shot
+			for i = 0 to ubound(image_exts)
+				if isfile(shot + image_exts(i)) then str_array_append(backlog(), shot + image_exts(i))
+			next
+		else
+			screenshot shot
+			'move our backlog of screenshots to the visible location
+			for n = 1 to ubound(backlog)
+				'debug "moving " & backlog(n) & " to " & curdir + slash + trimpath(backlog(n))
+				local_file_move backlog(n), curdir + slash + trimpath(backlog(n))
+			next
+			redim backlog(0)
+		end if
+		'debug "screen " & shot
+	end if
+end sub
+
+
+'==========================================================================================
+'                                 Graphics render clipping
 '==========================================================================================
 
 
@@ -4590,174 +4695,6 @@ private sub drawohr(byval src as Frame ptr, byval dest as Frame ptr, byval pal a
 
 	blitohr(src, dest, pal, srcoffset, startx, starty, endx, endy, trans)
 end sub
-
-function frame_to_tileset(byval spr as Frame ptr) as Frame ptr
-	dim tileset as Frame ptr
-	tileset = frame_new(20, 20 * 160)
-
-	dim as ubyte ptr sptr = tileset->image
-	dim as ubyte ptr srcp
-	dim tilex as integer
-	dim tiley as integer
-	dim px as integer
-	dim py as integer
-
-	for tiley = 0 to 9
-		for tilex = 0 to 15
-			srcp = spr->image + tilex * 20 + tiley * 320 * 20
-			for py = 0 to 19
-				for px = 0 to 19
-					*sptr = *srcp
-					sptr += 1
-					srcp += 1
-				next
-				srcp += 320 - 20
-			next
-		next
-	next
-	return tileset
-end function
-
-/'
-private sub grabrect(byval page as integer, byval x as integer, byval y as integer, byval w as integer, byval h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
-'this isn't used anywhere anymore, was used to grab tiles from the tileset videopage before loadtileset
-'maybe some possible future use?
-'ibuf should be pre-allocated
-	dim sptr as ubyte ptr
-	dim as integer i, j, px, py, l
-
-	if ibuf = null then exit sub
-
-	sptr = vpages(page)->image
-
-	py = y
-	for i = 0 to h-1
-		px = x
-		for j = 0 to w-1
-			l = i * w + j
-			'ignore clip rect, but check screen bounds
-			if not (px < 0 or px >= vpages(page)->w or py < 0 or py >= vpages(page)->h) then
-				ibuf[l] = sptr[(py * vpages(page)->pitch) + px]
-				if tbuf then
-					if ibuf[l] = 0 then tbuf[l] = &hff else tbuf[l] = 0
-				end if
-			else
-				ibuf[l] = 0
-				tbuf[l] = 0
-			end if
-			px += 1
-		next
-		py += 1
-	next
-
-end sub
-'/
-
-
-'==========================================================================================
-'                                      Sound effects
-'==========================================================================================
-
-
-function isawav(fi as string) as bool
-	if not isfile(fi) then return NO 'duhhhhhh
-
-#define ID(a,b,c,d) asc(a) SHL 0 + asc(b) SHL 8 + asc(c) SHL 16 + asc(d) SHL 24
-	dim _RIFF as integer = ID("R","I","F","F") 'these are the "signatures" of a
-	dim _WAVE as integer = ID("W","A","V","E") 'wave file. RIFF is the format,
-	'dim _fmt_ as integer = ID("f","m","t"," ") 'WAVE is the type, and fmt_ and
-	'dim _data as integer = ID("d","a","t","a") 'data are the chunks
-#undef ID
-
-	dim chnk_ID as integer
-	dim chnk_size as integer
-	dim fh as integer = freefile
-	open fi for binary access read as #fh
-
-	get #fh, , chnk_ID
-	if chnk_ID <> _RIFF then
-		close #fh
-		return NO 'not even a RIFF file
-	end if
-
-	get #fh, , chnk_size 'don't care
-
-	get #fh, , chnk_ID
-
-	if chnk_ID <> _WAVE then
-		close #fh
-		return NO 'not a WAVE file, pffft
-	end if
-
-	'is this good enough? meh, sure.
-	close #fh
-	return YES
-end function
-
-sub playsfx (byval num as integer, byval l as integer=0)
-	sound_play(num, l)
-end sub
-
-sub stopsfx (byval num as integer)
-	sound_stop (num)
-end sub
-
-sub pausesfx (byval num as integer)
-	sound_pause(num)
-end sub
-
-sub freesfx (byval num as integer)
-	sound_free(num)
-end sub
-
-function sfxisplaying(byval num as integer) as bool
-	return sound_playing(num)
-end function
-
-function getmusictype (file as string) as integer
-
-	if file = "" then
-		'no further checking for blank names
-		return 0
-	end if
-
-	if isdir(file) OR right(file, 1) = SLASH then
-		'no further checking if this is a directory
-		return 0
-	end if
-
-	dim ext as string, chk as integer
-	ext = lcase(justextension(file))
-
-	'special case
-	if str(cint(ext)) = ext then return FORMAT_BAM
-
-	select case ext
-	case "bam"
-		chk = FORMAT_BAM
-	case "mid"
-		chk = FORMAT_MIDI
-	case "xm"
-		chk = FORMAT_XM
-	case "it"
-		chk = FORMAT_IT
-	case "wav"
-		chk = FORMAT_WAV
-	case "ogg"
-		chk = FORMAT_OGG
-	case "mp3"
-		chk = FORMAT_MP3
-	case "s3m"
-		chk = FORMAT_S3M
-	case "mod"
-		chk = FORMAT_MOD
-	case else
-		debug "unknown format: " & file & " - " & ext
-		chk = 0
-	end select
-
-	return chk
-end function
 
 
 '==========================================================================================
@@ -5307,6 +5244,33 @@ sub frame_unload(byval p as frame ptr ptr)
 	end with
 	*p = 0
 end sub
+
+function frame_to_tileset(byval spr as Frame ptr) as Frame ptr
+	dim tileset as Frame ptr
+	tileset = frame_new(20, 20 * 160)
+
+	dim as ubyte ptr sptr = tileset->image
+	dim as ubyte ptr srcp
+	dim tilex as integer
+	dim tiley as integer
+	dim px as integer
+	dim py as integer
+
+	for tiley = 0 to 9
+		for tilex = 0 to 15
+			srcp = spr->image + tilex * 20 + tiley * 320 * 20
+			for py = 0 to 19
+				for px = 0 to 19
+					*sptr = *srcp
+					sptr += 1
+					srcp += 1
+				next
+				srcp += 320 - 20
+			next
+		next
+	next
+	return tileset
+end function
 
 function hexptr(p as any ptr) as string
 	return hex(cast(unsigned integer, p))
@@ -5900,6 +5864,41 @@ end sub
 ' 		return ret
 ' 	end if
 ' end function
+
+/'
+private sub grabrect(byval page as integer, byval x as integer, byval y as integer, byval w as integer, byval h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
+'this isn't used anywhere anymore, was used to grab tiles from the tileset videopage before loadtileset
+'maybe some possible future use?
+'ibuf should be pre-allocated
+	dim sptr as ubyte ptr
+	dim as integer i, j, px, py, l
+
+	if ibuf = null then exit sub
+
+	sptr = vpages(page)->image
+
+	py = y
+	for i = 0 to h-1
+		px = x
+		for j = 0 to w-1
+			l = i * w + j
+			'ignore clip rect, but check screen bounds
+			if not (px < 0 or px >= vpages(page)->w or py < 0 or py >= vpages(page)->h) then
+				ibuf[l] = sptr[(py * vpages(page)->pitch) + px]
+				if tbuf then
+					if ibuf[l] = 0 then tbuf[l] = &hff else tbuf[l] = 0
+				end if
+			else
+				ibuf[l] = 0
+				tbuf[l] = 0
+			end if
+			px += 1
+		next
+		py += 1
+	next
+
+end sub
+'/
 
 
 '==========================================================================================
