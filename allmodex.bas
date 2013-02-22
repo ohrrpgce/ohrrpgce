@@ -3886,7 +3886,10 @@ private function calcblock(tmap as TileMap, byval x as integer, byval y as integ
 	end if
 
 	if overheadmode > 0 then
-		if x >= pmapptr->wide or y >= pmapptr->high or pmapptr = NULL then
+		if pmapptr = NULL then
+			debugc errPromptBug, "NULL passmap ptr"
+			block = -1
+		elseif x >= pmapptr->wide or y >= pmapptr->high then
 			if overheadmode = 2 then block = -1
 		elseif ((readblock(*pmapptr, x, y) and passObsoleteOverhead) <> 0) xor (overheadmode = 2) then
 			block = -1
