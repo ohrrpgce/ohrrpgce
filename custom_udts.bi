@@ -187,6 +187,7 @@ TYPE MapEditState
   num_npc_defs as integer
   npc_inst(299) as NPCInst
 
+  mapnum as integer          'Map ID number
   editmode as integer        'ENUM MapEditMode
   seteditmode as integer     'Normally -1, set to an editmode to cause a switch
   x as integer               'Cursor position, in tiles
