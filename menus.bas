@@ -272,7 +272,7 @@ SUB standard_to_basic_menu (menu() as string, byref state as MenuState, byref ba
  FOR i as integer = 0 TO state.last - state.first
   WITH basicmenu[i]
    .text = menu(state.first + i)
-   .col = uilook(uiMenuItem)
+   .col = 0  'Default, usually uilook(uiMenuItem)
    IF shaded THEN
     .disabled = shaded[state.first + i]
    END IF
@@ -367,11 +367,11 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval 
      rectangle x + 0, y + (i - state.top) * 8, IIF(linewidth, linewidth, 9999), 8, uilook(uiHighlight), page
     END IF
     DIM col as integer = .col
-    IF .col = 0 THEN col = uilook(uiMenuItem)
     IF .disabled THEN
      IF .col = 0 THEN col = uilook(uiDisabledItem)
      IF state.pt = i AND active THEN col = uilook(uiSelectedDisabled + tog)
     ELSE
+     IF .col = 0 THEN col = uilook(uiMenuItem)
      IF state.pt = i AND active THEN col = uilook(uiSelectedItem + tog)
     END IF
     DIM drawx as integer = x
