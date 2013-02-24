@@ -8,32 +8,6 @@ Minimap Available: Setting this to YES allows the player to view a minimap while
 
 Save Anywhere: Setting this to YES causes "Save" to appear in the default in-game menu while playing this map.
 
-Display Map Name: This is the number of game ticks that the map name will be automatically displayed when the player enters the map. A second is roughly 18 game ticks.
-
-Map Edge Mode: can be "crop", "wrap", or "use default edge tile". A cropping map cannot be scrolled past the edges at all. A wrapping map will loop around. If you go off the left edge of it, you will come around to the right edge seamlessly. "default edge tile" means that the empty space beyond the edge of the map will be filled with a default tile, maybe grass, or water, or blank void.
-
-Map Edge Tile only matters if you have set the map edge mode to "use default edge tile". You can type in a maptile ID number, or press the left and right arrows to browse. A preview of the chosen edge tile will display in the bottom left of the screen.
-
-Autorun Script: a plotscript that will be executed as soon as you enter the map. Press ENTER or SPACE to browse a list of scripts.
-
-Script Argument is an optional number that will be passed to the autorun script (if you don't feel comfortable with arguments, feel free to ignore this).
-
-Harm Tile Damage is the number of health points that will be subtracted each time a hero steps on a a maptile marked with an H in passability mode.
-
-Harm Tile Flash is a color that will be used for a visual flash to indicate when the hero has been hurt by a harm tile. You can type in a color index or press ENTER or SPACE to browse the master palette.
-
-Foot Offset: this allows you to move all heroes and NPCs up or down a certain number of pixels relative to the tile they are standing on. A foot offset that moves heroes and NPCs up a few pixels will make them look like they are standing in the middle of a tile, rather than standing on the bottom edge of the tile. You can type a number, and press - to switch between up and down.
-
-After-Battle Script: A plotscript that will be executed right after each random battle completes. Press ENTER or SPACE to browse a list of available scripts. The script gets one argument, which is true if the player won the battle, without running away.
-
-Instead-of-Battle Script: A plotscript that will be executed when a random battle is triggered. The script will be passed the formation number of the battle that would have occurred as the first argument, and the battle formation set as the second.
-
-Each-Step Script: A plotscript that will be run each time the hero takes a step on the current map. The script will be passed the X and Y coordinates of the hero and its direction as arguments in that order.
-
-On-Keypress Script: A plotscript that will be run each time the user presses any key on the current map.
-
-Walkabout Layering: Can be "Heroes over NPCs" or "NPCs over Heroes". This determines which will be drawn on top if heroes and NPCs overlap each other.
-
 "NPC Data" and "Tile data" affect how changes to NPCs (definitions and instances) and maptiles (tilemap, passmap, and zones) are handled when you leave the map (fighting a battle counts as leaving the map!) and come back again later:
 
 *"Don't save state when leaving" means that the map will be reset when you come back later. All NPCs will be back in their starting places, and any maptiles altered with plotscripting will be reset.
@@ -41,3 +15,37 @@ Walkabout Layering: Can be "Heroes over NPCs" or "NPCs over Heroes". This determ
 *"Remember state when leaving" means that NPCs and maptile changes will be remembered when you leave the map and come back later. Note that this only works for the current play session. If you save your game and quit, and then load your game later, the NPC and Tile state of maps you have visited will have been forgotten.
 
 *"Ignore saved state, load anew" means that even if the map's NPC or Tile data has been manually saved with plotscripting commands, it will not automatically be restored when you return to the map.
+
+Default NPC Move/Avoid Zone: The zone used when an NPC's Move or Avoid Zone is set to 'default' in the NPC editor.
+
+
+Display Settings:
+
+Foot Offset: this allows you to move all heroes and NPCs up or down a certain number of pixels relative to the tile they are standing on. A foot offset that moves heroes and NPCs up a few pixels will make them look like they are standing in the middle of a tile, rather than standing on the bottom edge of the tile. You can type a number, and press - to switch between up and down.
+
+Walkabout Layering: Can be "Heroes over NPCs" or "NPCs over Heroes". This determines which will be drawn on top if heroes and NPCs overlap each other.
+
+Display Map Name: This is the number of game ticks that the map name will be automatically displayed when the player enters the map. A second is roughly 18 game ticks.
+
+Harm Tile Flash is a color that will be used for a visual flash to indicate when a hero has been hurt by stepping on a harm tile (tiles marked with an H in passability mode). You can type in a color index or press ENTER or SPACE to browse the master palette.
+
+Harm Tile Damage is the number of health points that will be subtracted each time a hero steps on a harmtile.
+
+Map Edge Mode: can be "crop", "wrap", or "use default edge tile". A cropping map cannot be scrolled past the edges at all. A wrapping map will loop around. If you go off the left edge of it, you will come around to the right edge seamlessly. "default edge tile" means that the empty space beyond the edge of the map will be filled with a default tile, maybe grass, or water, or blank void.
+
+Map Edge Tile only matters if you have set the map edge mode to "use default edge tile". You can type in a maptile ID number, or press the left and right arrows to browse. A preview of the chosen tile is displayed.
+
+
+Script Settings:
+
+Autorun Script: a plotscript that will be executed as soon as you enter the map. Press ENTER or SPACE to browse a list of scripts.
+
+Script Argument is an optional number that will be passed to the autorun script (if you don't feel comfortable with arguments, feel free to ignore this).
+
+After-Battle Script: A plotscript that will be executed right after each random battle completes. Press ENTER or SPACE to browse a list of available scripts. The script gets one argument, which is true if the player won the battle, without running away.
+
+Instead-of-Battle Script: A plotscript that will be executed instead when a random battle would normally be triggered. The script will be passed the formation number of the battle that would have occurred as the first argument, and the battle formation set as the second. Hint: you can use the "fight formation" command to trigger the battle that would have happened.
+
+Each-Step Script: A plotscript that will be run each time the hero finished taking a step on the current map. The script will be passed the X and Y coordinates of the hero and its direction as arguments in that order.
+
+On-Keypress Script: A plotscript that will be run each time the user presses any key on the current map.

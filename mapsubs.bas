@@ -1996,31 +1996,139 @@ SUB mapedit_edit_zoneinfo(st as MapEditState, zmap as ZoneMap)
  
 END SUB
 
+SUB mapedit_gmapdata_buildmenu(byref menu as SimpleMenuItem vector, gdidx() as integer, midx() as integer, gmap() as integer, zmap as ZoneMap)
+
+ v_new menu
+ REDIM gdidx(23)
+ gdidx(0)  = -1: append_simplemenu_item menu, "Previous Menu"
+ gdidx(1)  = 1:  append_simplemenu_item menu, "Ambient Music: "
+ gdidx(2)  = 2:  append_simplemenu_item menu, "Minimap Available: "
+ gdidx(3)  = 3:  append_simplemenu_item menu, "Save Anywhere: "
+ gdidx(4)  = 18: append_simplemenu_item menu, "Tile Data: "
+ gdidx(5)  = 17: append_simplemenu_item menu, "NPC Data: "
+ gdidx(6)  = 32: append_simplemenu_item menu, "Default NPC Move Zone: "
+ gdidx(7)  = 33: append_simplemenu_item menu, "Default NPC Avoid Zone: "
+
+ gdidx(8)  = -1: append_simplemenu_item menu, "Display:", YES, uilook(uiText)
+
+ gdidx(9)  = 11: append_simplemenu_item menu, "Foot Offset: "
+ gdidx(10) = 16: append_simplemenu_item menu, "Walkabout Layering: "
+ gdidx(11) = 4:  append_simplemenu_item menu, "Display Map Name: "
+ gdidx(12) = 10: append_simplemenu_item menu, "Harm-Tile Flash: "   'flash colour drawn here
+ gdidx(13) = 9:  append_simplemenu_item menu, "Harm-Tile Damage: "
+ gdidx(14) = 5:  append_simplemenu_item menu, "Map Edge Mode: " 
+ gdidx(15) = 6:  append_simplemenu_item menu, "Default Edge Tile: " 'edge tile drawn here
+
+ 'Add an extra gap, for the edge tile preview
+ gdidx(16) = -1: append_simplemenu_item menu, "", YES
+
+ gdidx(17) = -1: append_simplemenu_item menu, "Scripts:", YES, uilook(uiText)
+ gdidx(18) = 7:  append_simplemenu_item menu, "Autorun Script: "
+ gdidx(19) = 8:  append_simplemenu_item menu, "Autorun Script Argument: "
+ gdidx(20) = 12: append_simplemenu_item menu, "After-Battle Script: "
+ gdidx(21) = 13: append_simplemenu_item menu, "Instead-of-Battle Script: "
+ gdidx(22) = 14: append_simplemenu_item menu, "Each-Step Script: "
+ gdidx(23) = 15: append_simplemenu_item menu, "On-Keypress Script: "
+
+ IF UBOUND(gdidx) + 1 <> v_len(menu) THEN debugc errFatalBug, "Wrong gdidx length!"
+ invert_permutation gdidx(), midx()
+
+ ' Music
+ IF gmap(1) = 0 THEN
+  menu[midx(1)].text &= "-silence-"
+ ELSEIF gmap(1) = -1 THEN
+  menu[midx(1)].text &= "-same as previous map-"
+ ELSE
+  menu[midx(1)].text &= (gmap(1) - 1) & " " & getsongname(gmap(1) - 1)
+ END IF
+ ' Minimap available and save anywhere
+ menu[midx(2)].text &= yesorno(gmap(2))
+ menu[midx(3)].text &= yesorno(gmap(3))
+ ' Show map name
+ IF gmap(4) = 0 THEN
+  menu[midx(4)].text &= "NO"
+ ELSE
+  menu[midx(4)].text &= gmap(4) & " ticks"
+ END IF
+ ' Map edge mode
+ SELECT CASE gmap(5)
+  CASE 0
+   menu[midx(5)].text &= "Crop"
+  CASE 1
+   menu[midx(5)].text &= "Wrap"
+  CASE 2
+   menu[midx(5)].text &= "use default edge tile"
+ END SELECT
+ ' Default edge tile
+ IF gmap(5) = 2 THEN
+  menu[midx(6)].text &= gmap(6)
+ ELSE
+  menu[midx(6)].text &= "N/A"
+ END IF
+ ' Scripts
+ menu[midx(7)].text &= scriptname(gmap(7))
+ FOR i as integer = 12 TO 15
+  menu[midx(i)].text &= scriptname(gmap(i))
+ NEXT
+ ' Autorun script argument
+ IF gmap(7) = 0 THEN
+  menu[midx(8)].text &= "N/A"
+ ELSE
+  menu[midx(8)].text &= gmap(8)
+ END IF
+ ' Harm tile damage
+ menu[midx(9)].text &= gmap(9)
+ ' Harm tile flash
+ IF gmap(10) = 0 THEN
+  menu[midx(10)].text &= "none"
+ ELSE
+  menu[midx(10)].text &= gmap(10)
+ END IF
+ ' Foot offset
+ SELECT CASE gmap(11)
+  CASE 0
+   menu[midx(11)].text &= "none"
+  CASE IS < 0
+   menu[midx(11)].text &= "up " & ABS(gmap(11)) & " pixels"
+  CASE IS > 0
+   menu[midx(11)].text &= "down " & gmap(11) & " pixels"
+ END SELECT
+ ' Hero/npc draw order
+ SELECT CASE gmap(16)
+  CASE 0: menu[midx(16)].text &= "Heroes over NPCs"
+  CASE 1: menu[midx(16)].text &= "NPCs over Heroes"
+  CASE 2: menu[midx(16)].text &= "Together (recommended)"
+ END SELECT
+ ' NPC and Tile data saving
+ FOR i as integer = 17 TO 18
+  SELECT CASE gmap(i)
+   CASE 0
+    menu[midx(i)].text &= "Don't save state when leaving"
+   CASE 1
+    menu[midx(i)].text &= "Remember state when leaving"
+   CASE 2
+    menu[midx(i)].text &= "Ignore saved state, load anew"
+  END SELECT
+ NEXT
+ ' Default zones
+ FOR i as integer = 32 TO 33
+  IF gmap(i) = 0 THEN
+   menu[midx(i)].text &= "None"
+  ELSE
+   menu[midx(i)].text &= gmap(i) & " " & GetZoneInfo(zmap, gmap(i))->name
+  END IF
+ NEXT
+END SUB
+
 SUB mapedit_gmapdata(st as MapEditState, gmap() as integer, zmap as ZoneMap)
- DIM gdidx(20) as integer  'Index in gmap()
- DIM gdmenu(0 TO 20) as string
- DIM menu_display(UBOUND(gdmenu)) as string
- gdidx(0) = -1:  gdmenu(0) = "Previous Menu"
- gdidx(1) = 1:   gdmenu(1) = "Ambient Music:"
- gdidx(2) = 2:   gdmenu(2) = "Minimap Available:"
- gdidx(3) = 3:   gdmenu(3) = "Save Anywhere:"
- gdidx(4) = 4:   gdmenu(4) = "Display Map Name:"
- gdidx(5) = 5:   gdmenu(5) = "Map Edge Mode:"
- gdidx(6) = 6:   gdmenu(6) = "Default Edge Tile:"
- gdidx(7) = 7:   gdmenu(7) = "Autorun Script: "
- gdidx(8) = 8:   gdmenu(8) = "Autorun Script Argument:"
- gdidx(9) = 9:   gdmenu(9) = "Harm-Tile Damage:"
- gdidx(10) = 10: gdmenu(10) = "Harm-Tile Flash:"
- gdidx(11) = 11: gdmenu(11) = "Foot Offset:"
- gdidx(12) = 12: gdmenu(12) = "After-Battle Script:"
- gdidx(13) = 13: gdmenu(13) = "Instead-of-Battle Script:"
- gdidx(14) = 14: gdmenu(14) = "Each-Step Script:"
- gdidx(15) = 15: gdmenu(15) = "On-Keypress Script:"
- gdidx(16) = 16: gdmenu(16) = "Walkabout Layering:"
- gdidx(17) = 17: gdmenu(17) = "NPC Data:"
- gdidx(18) = 18: gdmenu(18) = "Tile Data:"
- gdidx(19) = 32: gdmenu(19) = "Default NPC Move Zone:"
- gdidx(20) = 33: gdmenu(20) = "Default NPC Avoid Zone:"
+ DIM gdidx() as integer   'Index in gmap()
+ DIM menu as SimpleMenuItem vector
+ DIM menu_display as SimpleMenuItem vector
+
+ 'Maps gmap() index to menu() index
+ DIM midx(dimbinsize(binMAP)) as integer
+
+ mapedit_gmapdata_buildmenu menu, gdidx(), midx(), gmap(), zmap
 
  'These are indexed by *gmap index*, not by menu item index!
  DIM gdmax(dimbinsize(binMAP)) as integer
@@ -2049,28 +2157,19 @@ SUB mapedit_gmapdata(st as MapEditState, gmap() as integer, zmap as ZoneMap)
  DIM selectst as SelectTypeState
  DIM state as MenuState
  state.pt = 0
- state.last = UBOUND(gdmenu)
+ state.last = v_len(menu) - 1
  state.size = 24
 
- DIM gmapscrof(5) as integer
- gmapscrof(0) = 7  'autorun
- gmapscrof(1) = 12 'after-battle
- gmapscrof(2) = 13 'instead-of-battle
- gmapscrof(3) = 14 'each-step
- gmapscrof(4) = 15 'on-keypress
-
- DIM gmapscr(5) as string
- FOR i as integer = 0 TO 4
-  gmapscr(i) = scriptname(gmap(gmapscrof(i)))
- NEXT i
-
- 'default out-of-bounds walkabout layering to prevent crashes on corrupted general map data
- IF gmap(16) > gdmax(16) THEN gmap(16) = 2
- 
- FOR i as integer = 1 TO UBOUND(gdmenu)
+ 'Clamp data to bounds (only the gmap() indices edited in this menu)
+ FOR i as integer = 0 TO UBOUND(gdidx)
   'Safety-bounding of gmap data, prevents crashes in cases of corruption
   DIM idx as integer = gdidx(i)
-  gmap(idx) = bound(gmap(idx), gdmin(idx), gdmax(idx))
+  IF idx >= 0 THEN
+   IF NOT in_bound(gmap(idx), gdmin(idx), gdmax(idx)) THEN
+    debugc errError, "Map " & st.mapnum & "'s general data corrupt (or unsupported); clamping gmap(" & idx & ") = " & gmap(idx) & " -> 0"
+    gmap(idx) = 0
+   END IF
+  END IF
  NEXT i
 
  'A sample map of a single tile, used to preview the default edge tile
@@ -2082,146 +2181,70 @@ SUB mapedit_gmapdata(st as MapEditState, gmap() as integer, zmap as ZoneMap)
   setwait 55
   setkeys YES
   state.tog = state.tog XOR 1
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scESC) > 1 OR (state.pt = 0 AND enter_or_space()) THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "general_map_data"
-  usemenu state
+  usemenu state, cast(BasicMenuItem vector, menu)
   DIM idx as integer = gdidx(state.pt)
   SELECT CASE idx
    CASE -1
-    IF enter_or_space() THEN EXIT DO
    CASE 1 'music
     IF zintgrabber(gmap(idx), gdmin(idx) - 1, gdmax(idx) - 1) THEN 'song is optional
      music_stop
+     state.need_update = YES
     END IF
     IF enter_or_space() THEN
      IF gmap(idx) > 0 THEN playsongnum gmap(idx) - 1
     END IF
    CASE 7, 12 TO 15 'scripts
-    DIM scridx as integer
-    IF idx = 7 THEN scridx = 0 ELSE scridx = idx - 11
     IF enter_or_space() THEN
-     gmapscr(scridx) = scriptbrowse_string(gmap(idx), plottrigger, "plotscript")
+     scriptbrowse(gmap(idx), plottrigger, "plotscript")
+     state.need_update = YES
     ELSEIF scrintgrabber(gmap(idx), 0, 0, scLeft, scRight, 1, plottrigger) THEN
-     gmapscr(scridx) = scriptname(gmap(idx))
+     state.need_update = YES
     END IF
-   CASE 10' Harm tile color
-    intgrabber gmap(idx), gdmin(idx), gdmax(idx)
+   CASE 10 'Harm tile color
+    state.need_update OR= intgrabber(gmap(idx), gdmin(idx), gdmax(idx))
     IF enter_or_space() THEN
      gmap(idx) = color_browser_256(gmap(idx))
     END IF
-   CASE ELSE 'all other gmap data is simple integers
-    intgrabber gmap(idx), gdmin(idx), gdmax(idx)
+   CASE ELSE 'all other gmap data are simple integers
+    state.need_update OR= intgrabber(gmap(idx), gdmin(idx), gdmax(idx))
   END SELECT
 
+  IF state.need_update THEN
+   mapedit_gmapdata_buildmenu menu, gdidx(), midx(), gmap(), zmap
+   state.need_update = NO
+  END IF
+
   IF select_by_typing(selectst, NO) THEN
-   'You can only search the static part of the menu items, not the values
-   select_on_word_boundary gdmenu(), selectst, state
+   select_on_word_boundary cast(BasicMenuItem vector, menu), selectst, state
   END IF
 
   '--Draw screen
   clearpage dpage
-  highlight_menu_typing_selection gdmenu(), menu_display(), selectst, state
-  DIM scri as integer = 0  'Yuck!
-  FOR i as integer = 0 TO UBOUND(gdmenu)
-   DIM idx as integer = gdidx(i)
-   DIM caption as string
-   SELECT CASE idx
-    CASE 1 'music
-     IF gmap(1) = 0 THEN
-      caption = "-silence-"
-     ELSEIF gmap(1) = -1 THEN
-      caption = "-same as previous map-"
-     ELSE
-      caption = (gmap(1) - 1) & " " & getsongname(gmap(1) - 1)
-     END IF
-    CASE 2, 3 'minimap available and save anywhere
-     caption = yesorno(gmap(idx))
-    CASE 4 'show map name
-     IF gmap(idx) = 0 THEN caption = "NO" ELSE caption = gmap(idx) & " ticks"
-    CASE 5 'map edge mode
-     SELECT CASE gmap(idx)
-      CASE 0
-       caption = "Crop"
-      CASE 1
-       caption = "Wrap"
-      CASE 2
-       caption = "use default edge tile"
-     END SELECT
-    CASE 6 'default edge tile
-     IF gmap(5) = 2 THEN
-      caption = STR(gmap(idx))
-     ELSE
-      caption = "N/A"
-     END IF
-    CASE 7, 12 TO 15 'scripts
-     caption = gmapscr(scri)
-     scri += 1
-    CASE 8 'script argument
-     IF gmap(7) = 0 THEN
-      caption = "N/A"
-     ELSE
-      caption = STR(gmap(idx))
-     END IF
-    CASE 9 'harm tile damage
-     caption = STR(gmap(idx))
-    CASE 10 'harm tile flash
-     IF gmap(idx) = 0 THEN
-      caption = "none"
-     ELSE
-      caption = STR(gmap(idx))
-     END IF
-    CASE 11 'foot offset
-     SELECT CASE gmap(idx)
-      CASE 0
-       caption = "none"
-      CASE IS < 0
-       caption = "up " & ABS(gmap(idx)) & " pixels"
-      CASE IS > 0
-       caption = "down " & gmap(idx) & " pixels"
-     END SELECT
-    CASE 16 'hero/npc draw order
-     SELECT CASE gmap(idx)
-      CASE 0: caption = "Heroes over NPCs"
-      CASE 1: caption = "NPCs over Heroes"
-      CASE 2: caption = "Together (recommended)"
-     END SELECT
-    CASE 17, 18 'NPC and Tile data saving
-     SELECT CASE gmap(idx)
-      CASE 0
-       caption = "Don't save state when leaving"
-      CASE 1
-       caption = "Remember state when leaving"
-      CASE 2
-       caption = "Ignore saved state, load anew"
-     END SELECT
-    CASE 32, 33 'Default zones
-     IF gmap(idx) = 0 THEN
-      caption = "None"
-     ELSE
-      caption = gmap(idx) & " " & GetZoneInfo(zmap, gmap(idx))->name
-     END IF
-   END SELECT
-   textcolor uilook(uiMenuItem), 0
-   IF i = state.pt THEN textcolor uilook(uiSelectedItem + state.tog), 0
-   printstr menu_display(i) & " " & caption, 0, 8 * i, dpage, YES
-   IF i = 10 THEN
-    'Harm tile flash color preview
-    rectangle 4 + (8 * (LEN(gdmenu(i)) + 1 + LEN(caption))), 8 * i, 8, 8, gmap(i), dpage
-   END IF
-  NEXT
-  IF gmap(5) = 2 THEN
-   '--show default edge tile
-   writeblock sampmap, 0, 0, gmap(6)
-   drawmap sampmap, 0, 0, st.tilesets(0), dpage, , , , 180, 20
-   rectangle 20, 180, 300, 20, uilook(uiBackground), dpage 'that's hacky
+  highlight_menu_typing_selection cast(BasicMenuItem vector, menu), cast(BasicMenuItem vector, menu_display), selectst, state
+  standardmenu cast(BasicMenuItem vector, menu_display), state, 0, 0, dpage
+  IF gmap(10) THEN
+   'Harm tile flash color preview
+   rectangle 4 + 8 * LEN(menu[midx(10)].text), 8 * midx(10), 8, 8, gmap(10), dpage
   END IF
- 
+  IF gmap(5) = 2 THEN
+   'Show default edge tile
+   writeblock sampmap, 0, 0, gmap(6)
+   DIM tilepos as XYPair = (8 + 8 * LEN(menu[midx(6)].text), 8 * midx(6))
+   DIM tileview as Frame ptr
+   tileview = frame_new_view(vpages(dpage), tilepos.x, tilepos.y, 20, 20)
+   drawmap sampmap, 0, 0, st.tilesets(0)->spr, tileview ', NO, 0, NULL, NO
+   frame_unload @tileview
+  END IF
   SWAP vpage, dpage
   setvispage vpage
   dowait
  LOOP
  music_stop
  unloadtilemap sampmap
+ v_free menu
+ v_free menu_display
 END SUB
 
 SUB mapedit_layers (st as MapEditState, gmap() as integer, visible() as integer, map() as TileMap)
@@ -3484,6 +3507,8 @@ SUB savepasdefaults (byref defaults as integer VECTOR, tilesetnum as integer)
  storeset workingdir & SLASH & "defpass.bin", tilesetnum, 0
 END SUB
 
+'FIXME: if this were cleaned up to return a tile instead of modifying st.usetile, it could be called
+'from the general map settings menu. st.tilepick shouldn't exist.
 SUB mapedit_pickblock(st as MapEditState)
  DIM tog as integer = 0
  st.tilesetview.layernum = st.layer
