@@ -574,7 +574,7 @@ function indexlumpfile (lumpfile as string, byval keepopen as integer = YES) as 
 	dim size as integer
 	dim maxsize as integer
 	dim lname as string
-	dim i as integer
+	dim namelen as integer
 
 	if NOT fileisreadable(lumpfile) then
 		debug "indexlumpfile: could not read " + lumpfile
@@ -592,14 +592,14 @@ function indexlumpfile (lumpfile as string, byval keepopen as integer = YES) as 
 	do
 		'get lump name
 		lname = ""
-		i = 0
-		while not eof(lf) and i < 50
+		namelen = 0
+		while not eof(lf) and namelen <= 50
 			get #lf, , dat
 			if dat = 0 then exit while
 			lname = lname + chr(dat)
-			i += 1
+			namelen += 1
 		wend
-		if i >= 50 then 'corrupt file, really if i > 12
+		if namelen > 50 then
 			debug "indexlumpfile: corrupt lump file " & lumpfile & " : lump name too long: '" & lname & "'" 
 			exit do
 		end if
@@ -707,7 +707,7 @@ sub unlumpfile (lumpfile as string, fmask as string, path as string, byval showe
 	dim size as integer
 	dim maxsize as integer
 	dim lname as string
-	dim i as integer
+	dim namelen as integer  'not including nul
 	dim bufr as ubyte ptr
 	dim nowildcards as integer = 0
 
@@ -739,13 +739,13 @@ sub unlumpfile (lumpfile as string, fmask as string, path as string, byval showe
 	while not eof(lf)
 		'get lump name
 		lname = ""
-		i = 0
-		while not eof(lf) and dat <> 0 and i < 64
+		namelen = 0
+		while not eof(lf) and dat <> 0 and namelen < 64
 			lname = lname + chr(dat)
 			get #lf, , dat
-			i += 1
+			namelen += 1
 		wend
-		if i > 50 then
+		if namelen > 50 then
 			debug "unlumpfile: corrupt lump file " + lumpfile + " : lump name too long: '" & lname & "'"
 			if showerrors then showerror "File " + lumpfile + " seems to be corrupt"
 			exit while
@@ -753,7 +753,7 @@ sub unlumpfile (lumpfile as string, fmask as string, path as string, byval showe
 		lname = lcase(lname)
 		'debug "lump name " + lname
 
-		if lname <> exclusive(lname, "abcdefghijklmnopqrstuvwxyz0123456789_-. ") then
+		if lname <> exclusive(lname, "abcdefghijklmnopqrstuvwxyz0123456789_-~. ") then
 			debug "corrupt lump file " + lumpfile + " : unallowable lump name '" + lname + "'"
 			if showerrors then showerror "File " + lumpfile + " seems to be corrupt"
 			exit while
@@ -814,9 +814,9 @@ sub unlumpfile (lumpfile as string, fmask as string, path as string, byval showe
 
 			if skiplump then
 				'skip to next name
-				i = seek(lf)
-				i = i + size
-				seek #lf, i
+				dim endpos as integer
+				endpos = seek(lf) + size
+				seek #lf, endpos
 			end if
 
 			if not eof(lf) then
@@ -852,7 +852,7 @@ function islumpfile (lumpfile as string, fmask as string) as integer
 	dim size as integer
 	dim maxsize as integer
 	dim lname as string
-	dim i as integer
+	dim namelen as integer  'not including nul
 
 	islumpfile = 0
 
@@ -865,13 +865,13 @@ function islumpfile (lumpfile as string, fmask as string) as integer
 	while not eof(lf)
 		'get lump name
 		lname = ""
-		i = 0
-		while not eof(lf) and dat <> 0 and i < 64
+		namelen = 0
+		while not eof(lf) and dat <> 0 and namelen < 64
 			lname = lname + chr(dat)
 			get #lf, , dat
-			i += 1
+			namelen += 1
 		wend
-		if i > 50 then
+		if namelen > 50 then
 			debug "islumpfile: corrupt lump file " + lumpfile + " : lump name too long: '" & lname & "'"
 			exit while
 		end if
@@ -1204,10 +1204,12 @@ end sub
 '                     filelayer.cpp support stuff
 
 
-'This is called on EVERY OPEN call once the OPEN hook is registered! See openfile.c
-'Double as both a general callback, and 
+'This is called on EVERY OPEN call once the OPEN hook is registered!
+'See filelayer.cpp (where it is registered as pfnLumpfileFilter)
+'Returns whether the file is a normal lump file in workingdir.
+'This is used to determine whether the file should be hooked
 'writable: whether attempting to *explicitly* open with write access
-function inworkingdir(filename as string, byval writable as integer) as integer
+function inworkingdir(filename as string, byval writable as bool) as bool
 	if RIGHT(filename, 10) = "_debug.txt" then return NO
 	'if RIGHT(filename, 12) = "_archive.txt" then return NO
 	'Uncomment this for OPEN tracing (or you could just use strace...)

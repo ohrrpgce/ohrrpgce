@@ -197,7 +197,7 @@ declare sub set_OPEN_hook(byval lumpfile_filter as FnOpenCallback, byval lump_wr
 declare sub clear_OPEN_hook()
 end extern
 
-declare function inworkingdir(filename as string, byval writable as integer) as integer
+declare function inworkingdir(filename as string, byval writable as bool) as bool
 declare function channel_wait_for_msg(byref channel as IPCChannel, wait_for_prefix as string, line_in as string = "", byval timeout_ms as integer = 500) as integer
 
 #endif
