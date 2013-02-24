@@ -472,6 +472,19 @@ SUB highlight_menu_typing_selection(menu() as string, menu_display() as string, 
  menu_display(state.pt) = highlight_menu_typing_selection_string(menu(state.pt), selectst)
 END SUB
 
+SUB highlight_menu_typing_selection(byref menu as BasicMenuItem vector, byref menu_display as BasicMenuItem vector, selectst as SelectTypeState, state as MenuState)
+ 'Works with any type derived from BasicMenuItem.
+ 'If the user moves the cursor normally, reset
+ '(Yes, this is a rather regretable function in which to put this)
+ IF selectst.remember_pt <> state.pt THEN select_clear selectst
+ selectst.remember_pt = state.pt
+
+ IF state.first <> 0 OR v_len(menu) - 1 <> state.last THEN debugc errPromptBug, "highlight_menu_typing_selection: bad MenuState"
+ v_copy menu_display, menu
+
+ v_at(menu_display, state.pt)->text = highlight_menu_typing_selection_string(v_at(menu, state.pt)->text, selectst)
+END SUB
+
 'Internal function sometimes useful if a menu doesn't use a string array to store menu items
 FUNCTION highlight_menu_typing_selection_string(z as string, selectst as SelectTypeState) as string
  WITH selectst
@@ -508,40 +521,100 @@ FUNCTION highlight_menu_typing_selection_string(z as string, selectst as SelectT
  END WITH
 END FUNCTION
 
-'Search menu() for a match to the typed query string using find_on_word_boundary_excluding.
-'Use in combination with select_by_typing and optionally highlight_menu_typing_selection
-SUB select_on_word_boundary_excluding(menu() as string, selectst as SelectTypeState, state as MenuState, excludeword as string)
+
+'==========================================================================================
+'                               MenuSearch function family
+'==========================================================================================
+
+
+FUNCTION MenuSearcher.text(byval index as integer) as string
+ IF this.menu_array THEN
+  RETURN this.menu_array[index]
+ ELSE
+  RETURN v_at(this.menu_vector, index)->text
+ END IF
+END FUNCTION
+
+FUNCTION MenuSearcher.selectable(byval index as integer) as bool
+ IF this.menu_array THEN
+  RETURN YES
+ ELSE
+  RETURN NOT v_at(this.menu_vector, index)->unselectable
+ END IF
+END FUNCTION
+
+'Possibilities for MenuSearcher.findfunc
+
+FUNCTION MenuSearcher_find_word_boundary(this as MenuSearcher, itemtext as string, query as string) as integer
+ RETURN find_on_word_boundary_excluding(LCASE(itemtext), query, this.excludeword)
+END FUNCTION
+
+FUNCTION MenuSearcher_find_instr(this as MenuSearcher, itemtext as string, query as string) as integer
+ RETURN INSTR(LCASE(itemtext), query)
+END FUNCTION
+
+'End possibilities
+
+CONSTRUCTOR MenuSearcher(menu() as string)
+ this.menu_array = @menu(0)
+END CONSTRUCTOR
+
+CONSTRUCTOR MenuSearcher(byval menu_vector as BasicMenuItem vector)
+ this.menu_vector = menu_vector
+END CONSTRUCTOR
+
+'Internal generic implementation for select_* functions
+SUB select_menuitem(searcher as MenuSearcher, selectst as SelectTypeState, state as MenuState)
  DIM index as integer = state.pt
  IF LEN(selectst.query) = 1 THEN index = loopvar(index, state.first, state.last)
  FOR ctr as integer = state.first TO state.last
-  selectst.query_at = find_on_word_boundary_excluding(LCASE(menu(index)), selectst.query, excludeword)
+  selectst.query_at = searcher.findfunc(searcher, searcher.text(index), selectst.query)
   IF selectst.query_at THEN
+   'index may be an unselectable menu item. However moving the cursor to a selectable item
+   'doesn't act nicely. Ideal solution would be to add and use selectst.highlight_pt, but
+   'that's too much work to bother, so just allow selecting unselectable items for now.
+   'WHILE NOT searcher.selectable(index)
+   ' index = loopvar(index, state.first, state.last)
+   'WEND
    state.pt = index
-   selectst.remember_pt = index
+   selectst.remember_pt = state.pt
    EXIT FOR
   END IF
   index = loopvar(index, state.first, state.last)
  NEXT
+END SUB
+
+'Search menu() for a match to the typed query string using find_on_word_boundary_excluding.
+'Use in combination with select_by_typing and optionally highlight_menu_typing_selection
+SUB select_on_word_boundary_excluding(menu() as string, selectst as SelectTypeState, state as MenuState, excludeword as string)
+ DIM searcher as MenuSearcher = MenuSearcher(menu())
+ searcher.findfunc = @MenuSearcher_find_word_boundary
+ searcher.excludeword = excludeword
+ select_menuitem searcher, selectst, state
 END SUB
 
 SUB select_on_word_boundary(menu() as string, selectst as SelectTypeState, state as MenuState)
  select_on_word_boundary_excluding menu(), selectst, state, ""
 END SUB
 
+'Works with any type derived from BasicMenuItem.
+SUB select_on_word_boundary_excluding(byval menu as BasicMenuItem vector, selectst as SelectTypeState, state as MenuState, excludeword as string)
+ DIM searcher as MenuSearcher = MenuSearcher(menu)
+ searcher.findfunc = @MenuSearcher_find_word_boundary
+ searcher.excludeword = excludeword
+ select_menuitem searcher, selectst, state
+END SUB
+
+SUB select_on_word_boundary(byval menu as BasicMenuItem vector, selectst as SelectTypeState, state as MenuState)
+ select_on_word_boundary_excluding menu, selectst, state, ""
+END SUB
+
 'Search menu() for a match to the typed query string using INSTR.
 'Use in combination with select_by_typing and optionally highlight_menu_typing_selection
 SUB select_instr(menu() as string, selectst as SelectTypeState, state as MenuState)
- DIM index as integer = state.pt
- IF LEN(selectst.query) = 1 THEN index = loopvar(index, state.first, state.last)
- FOR ctr as integer = state.first TO state.last
-  selectst.query_at = instr(LCASE(menu(index)), selectst.query)
-  IF selectst.query_at THEN
-   state.pt = index
-   selectst.remember_pt = index
-   EXIT FOR
-  END IF
-  index = loopvar(index, state.first, state.last)
- NEXT
+ DIM searcher as MenuSearcher = MenuSearcher(menu())
+ searcher.findfunc = @MenuSearcher_find_instr
+ select_menuitem searcher, selectst, state
 END SUB
 
 

@@ -295,6 +295,27 @@ END TYPE
 
 DECLARE_VECTOR_OF_TYPE(SimpleMenuItem, SimpleMenuItem)
 
+'This type abstracts menu data (either a string array or a BasicMenuItem-derived vector)
+'and a search method for select_by_typing.
+'(The menu length must not change during the lifetime of this object!)
+TYPE MenuSearcher
+ 'Get the text of a menu item
+ 'getfunc as function(this as MenuSearcher, byval index as integer) as string
+ 'Search text for a query and return position in the text of a match, or 0 for no match
+ findfunc as function(this as MenuSearcher, itemtext as string, query as string) as integer
+
+ 'Exactly one of the following is non-null
+ menu_array as string ptr
+ menu_vector as BasicMenuItem vector
+
+ excludeword as string      'used only by MenuSearcher_find_word_boundary
+
+ declare Constructor(menu() as string)
+ declare Constructor(menu_vector as BasicMenuItem vector)
+ declare function text(byval index as integer) as string
+ declare function selectable(byval index as integer) as bool
+END TYPE
+
 TYPE SelectTypeState
  query as string              'String to search for
  buffer as string             'Text the user has entered
@@ -303,6 +324,7 @@ TYPE SelectTypeState
  'Used by highlight_menu_typing_selection
  query_at as integer          'Offset in text of current menu item of match, or 0
  highlight_at as integer      'Offset of match/no match text highlighting. Remembers last non-zero value of query_at.
+ 'highlight_pt as integer      'Menu index (line) where the highlighting is. Is different from state.pt only if unselectable
  remember_pt as integer       'Remember last state.pt value
 END TYPE
 

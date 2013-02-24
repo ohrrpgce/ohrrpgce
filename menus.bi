@@ -27,10 +27,13 @@ DECLARE SUB standardmenu OVERLOAD (byval menu as BasicMenuItem vector, state as 
 '' Selection by typing
 DECLARE FUNCTION select_by_typing (selectst as SelectTypeState, byval allow_numbers as bool = YES) as bool
 DECLARE SUB select_clear (selectst as SelectTypeState)
-DECLARE SUB highlight_menu_typing_selection (menu() as string, menu_display() as string, selectst as SelectTypeState, state as MenuState)
+DECLARE SUB highlight_menu_typing_selection OVERLOAD (menu() as string, menu_display() as string, selectst as SelectTypeState, state as MenuState)
+DECLARE SUB highlight_menu_typing_selection OVERLOAD (byref menu as BasicMenuItem vector, byref menu_display as BasicMenuItem vector, selectst as SelectTypeState, state as MenuState)
 DECLARE FUNCTION highlight_menu_typing_selection_string(z as string, selectst as SelectTypeState) as string
-DECLARE SUB select_on_word_boundary_excluding (menu() as string, selectst as SelectTypeState, state as MenuState, excludeword as string)
-DECLARE SUB select_on_word_boundary (menu() as string, selectst as SelectTypeState, state as MenuState)
+DECLARE SUB select_on_word_boundary_excluding OVERLOAD (menu() as string, selectst as SelectTypeState, state as MenuState, excludeword as string)
+DECLARE SUB select_on_word_boundary_excluding OVERLOAD (byval menu as BasicMenuItem vector, selectst as SelectTypeState, state as MenuState, excludeword as string)
+DECLARE SUB select_on_word_boundary OVERLOAD (menu() as string, selectst as SelectTypeState, state as MenuState)
+DECLARE SUB select_on_word_boundary OVERLOAD (byval menu as BasicMenuItem vector, selectst as SelectTypeState, state as MenuState)
 DECLARE SUB select_instr(menu() as string, selectst as SelectTypeState, state as MenuState)
 
 '' MenuDef
