@@ -671,6 +671,65 @@ startTest(VecMap)
 	if VecMap_counter <> 0 then fail
 endTest
 
+startTest(PolymorphismTest)
+	'Test polymorphism: v_new, v_append, v_insert, v_find, v_remove are the only functions which
+	'require that the target vector variable has exactly the right type, either (v_new) so that
+	'it can reference the right type table, or (all others) for obvious reason.
+	'So we can use polymorphism in this way; the type table for a vector contains sufficient data
+	'for all other operations.
+
+	dim as any vector poly_arr, poly_arr2
+
+	'Create a vector normally
+	dim as VecMap vector realarray
+	v_new realarray, 2
+
+	'Stuff data in
+	VecMap_set(realarray[1], "N", 0, -1)
+
+	dim temp as VecMap
+	VecMap_construct(temp)
+	VecMap_set(temp, "E", 1, 0)
+	v_append realarray, temp
+	VecMap_destruct temp
+
+	'Then store it in something else (normally a downcast to a type inherited from)
+	'and test
+	poly_arr = realarray
+	'Remember that realarray pointer is invalid once we start doing length-changing operations on poly_arr
+	realarray = NULL
+
+	v_extend(poly_arr, poly_arr)
+	assertVector(poly_arr, "[:[], N:[0, -1], E:[1, 0], :[], N:[0, -1], E:[1, 0]]")
+	v_resize poly_arr, v_len(poly_arr) - 2
+	assertVector(poly_arr, "[:[], N:[0, -1], E:[1, 0], :[]]")
+	v_copy poly_arr2, poly_arr
+	if v_equal(poly_arr, poly_arr2) <> YES then fail
+	if v_inequal(poly_arr2, poly_arr) then fail
+	if v_str(poly_arr2) <> v_str(poly_arr) then fail
+	v_extend_d(poly_arr, poly_arr2)
+	'if poly_arr2 <> NULL then fail
+	assertVector(poly_arr, "[:[], N:[0, -1], E:[1, 0], :[], :[], N:[0, -1], E:[1, 0], :[]]")
+	v_delete_slice(poly_arr, 1, 5)
+	assertVector(poly_arr, "[:[], N:[0, -1], E:[1, 0], :[]]")
+	v_reverse(poly_arr)
+	assertVector(poly_arr, "[:[], E:[1, 0], N:[0, -1], :[]]")
+
+	v_move poly_arr2, poly_arr
+	assertVector(poly_arr2, "[:[], E:[1, 0], N:[0, -1], :[]]")
+	v_copy poly_arr, poly_arr2
+
+	v_copy realarray, cast(VecMap vector, poly_arr)
+	assertVector(realarray, "[:[], E:[1, 0], N:[0, -1], :[]]")
+
+	v_free poly_arr
+	v_free poly_arr2
+	v_free realarray
+	'? VecMap_counter
+	if VecMap_counter <> 0 then fail
+endTest
+
+
 'The following should cause valgrind to display 3 'Invalid read' errors, if
 'compiled with 'scons valgrind=1 vectortest' (and only two without valgrind=1)
 startTest(valgrind)
