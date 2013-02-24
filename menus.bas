@@ -41,7 +41,7 @@ DEFINE_VECTOR_OF_CLASS(MenuDefItem, MenuDefItem)
 
 '(Re-)initialise menu state, preserving .pt if valid
 '.pt is moved to a selectable menu item.
-SUB init_menu_state (byref state AS MenuState, menu() AS SimpleMenuItem)
+SUB init_menu_state (byref state as MenuState, menu() as SimpleMenuItem)
  WITH state
   .first = 0
   .last = UBOUND(menu)
@@ -65,7 +65,7 @@ END SUB
 '
 'menu may in fact be a vector of any type inheriting from BasicMenuItem.
 'menu's typetable tells the size in bytes of each menu item
-SUB init_menu_state (byref state AS MenuState, byval menu AS BasicMenuItem vector)
+SUB init_menu_state (byref state as MenuState, byval menu as BasicMenuItem vector)
  WITH state
   .first = 0
   .last = v_len(menu) - 1
@@ -93,7 +93,7 @@ END SUB
 
 'Simple... and yet, more options than a regular menu item
 'Can also insert instead of appending... bad name
-SUB append_simplemenu_item (byref menu as SimpleMenuItem vector, caption as string, byval unselectable as integer = NO, byval col as integer = 0, byval dat as integer = 0, byval where as integer = -1)
+SUB append_simplemenu_item (byref menu as SimpleMenuItem vector, caption as string, byval unselectable as bool = NO, byval col as integer = 0, byval dat as integer = 0, byval where as integer = -1)
  IF where = -1 THEN
   v_expand menu, 1
   where = v_len(menu) - 1
@@ -108,13 +108,13 @@ SUB append_simplemenu_item (byref menu as SimpleMenuItem vector, caption as stri
  END WITH
 END SUB
 
-FUNCTION usemenu (byref state as MenuState, byval deckey as integer = scUp, byval inckey as integer = scDown) as integer
+FUNCTION usemenu (byref state as MenuState, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
  WITH state
   RETURN usemenu(.pt, .top, .first, .last, .size, deckey, inckey)
  END WITH
 END FUNCTION
 
-FUNCTION usemenu (byref pt as integer, byref top as integer, byval first as integer, byval last as integer, byval size as integer, byval deckey as integer = scUp, byval inckey as integer = scDown) as integer
+FUNCTION usemenu (byref pt as integer, byref top as integer, byval first as integer, byval last as integer, byval size as integer, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
  DIM oldptr as integer = pt
  DIM oldtop as integer = top
 
@@ -135,13 +135,13 @@ FUNCTION usemenu (byref pt as integer, byref top as integer, byval first as inte
  END IF
 END FUNCTION
 
-'a version for menus with unselectable items, skip items for which menudata[i].selectable = 0
+'a version for menus with unselectable items, skip items for which menudata[i].unselectable = YES
 'menu may in fact be a vector of any type inheriting from BasicMenuItem.
 'menu's typetable tells the size in bytes of each menu item
-FUNCTION usemenu (state as MenuState, byval menudata as BasicMenuItem vector, byval deckey as integer = scUp, byval inckey as integer = scDown) as integer
+FUNCTION usemenu (state as MenuState, byval menudata as BasicMenuItem vector, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
  WITH state
   '.pt = -1 when the menu has no selectable items
-  IF .pt = -1 THEN RETURN 0
+  IF .pt = -1 THEN RETURN NO
 
   DIM as integer oldptr, oldtop, d, moved_d
   oldptr = .pt
@@ -195,10 +195,10 @@ FUNCTION usemenu (state as MenuState, byval menudata as BasicMenuItem vector, by
 END FUNCTION
 
 'a version for menus with unselectable items, skip items for which selectable(i) = 0
-FUNCTION usemenu (state as MenuState, selectable() as INTEGER, byval deckey as integer = scUp, byval inckey as integer = scDown) as integer
+FUNCTION usemenu (state as MenuState, selectable() as bool, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
  WITH state
   '.pt = -1 when the menu has no selectable items
-  IF .pt = -1 THEN RETURN 0
+  IF .pt = -1 THEN RETURN NO
 
   DIM as integer oldptr, oldtop, d, moved_d
   oldptr = .pt
@@ -253,7 +253,8 @@ END FUNCTION
 
 'scrollmenu is like usemenu for menus where no menu item is selected:
 'you just want to scroll a menu up and down (modifies .top; .pt is ignored).
-FUNCTION scrollmenu (state as MenuState, byval deckey as integer = scUp, byval inckey as integer = scDown) as integer
+'Returns true when view changed.
+FUNCTION scrollmenu (state as MenuState, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
  WITH state
   DIM oldtop as integer = .top
   DIM lasttop as integer = large(.first, .last - .size)
@@ -267,7 +268,7 @@ FUNCTION scrollmenu (state as MenuState, byval deckey as integer = scUp, byval i
  END WITH
 END FUNCTION
 
-SUB standard_to_basic_menu (menu() as string, byref state as MenuState, byref basicmenu as BasicMenuItem vector, byval shaded as integer PTR=NULL)
+SUB standard_to_basic_menu (menu() as string, byref state as MenuState, byref basicmenu as BasicMenuItem vector, byval shaded as bool ptr = NULL)
  v_new basicmenu, state.last - state.first + 1
  FOR i as integer = 0 TO state.last - state.first
   WITH basicmenu[i]
@@ -298,7 +299,7 @@ SUB standardmenu (menu() as string, byref state as MenuState, byval x as integer
 END SUB
 
 'Version which allows items to be greyed out/disabled/shaded
-SUB standardmenu (menu() as string, byref state as MenuState, shaded() as integer, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval active as integer=YES, byval wide as integer=9999, byval highlight as integer=NO)
+SUB standardmenu (menu() as string, byref state as MenuState, shaded() as bool, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval active as integer=YES, byval wide as integer=9999, byval highlight as integer=NO)
  IF LBOUND(shaded) > LBOUND(menu) OR UBOUND(shaded) < UBOUND(menu) THEN fatalerror "standardmenu: shaded() too small"
  DIM basicmenu as BasicMenuItem vector
  standard_to_basic_menu menu(), state, basicmenu, @shaded(0)
@@ -316,7 +317,7 @@ SUB standardmenu (menu() as string, byref state as MenuState, shaded() as intege
  v_free basicmenu
 END SUB
 
-SUB standardmenu (menu() as STRING, byval size as integer, byval vis as integer, byval pt as integer, byval top as integer, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval wide as integer=9999, byval highlight as integer=NO)
+SUB standardmenu (menu() as string, byval size as integer, byval vis as integer, byval pt as integer, byval top as integer, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval wide as integer=9999, byval highlight as integer=NO)
  DIM state as MenuState
  state.pt = pt
  state.top = top
@@ -621,7 +622,7 @@ SUB SortMenuItems(menu as MenuDef)
  WEND
 END SUB
 
-FUNCTION getmenuname(byval record as integer) as STRING
+FUNCTION getmenuname(byval record as integer) as string
  DIM as string ret
 #IFDEF IS_GAME
  STATIC cache(32) as IntStrPair
@@ -656,7 +657,7 @@ SUB init_menu_state (byref state as MenuState, menu as MenuDef)
  END WITH
 END SUB
 
-FUNCTION append_menu_item(byref menu as MenuDef, caption as STRING, byval t as integer=0, byval sub_t as integer=0) as integer
+FUNCTION append_menu_item(byref menu as MenuDef, caption as string, byval t as integer=0, byval sub_t as integer=0) as integer
  DIM i as integer
  DIM item as MenuDefItem ptr
  item = NEW MenuDefItem
@@ -1120,7 +1121,7 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
  
 END SUB
 
-SUB position_menu_item (menu as MenuDef, cap as STRING, byval i as integer, byref where as XYPair)
+SUB position_menu_item (menu as MenuDef, cap as string, byval i as integer, byref where as XYPair)
  DIM bord as integer
  bord = 8 + menu.bordersize
  WITH menu.rect
@@ -1190,8 +1191,8 @@ FUNCTION count_menu_items (menu as MenuDef) as integer
  RETURN count
 END FUNCTION
 
-FUNCTION get_menu_item_caption (mi as MenuDefItem, menu as MenuDef) as STRING
- DIM cap as STRING
+FUNCTION get_menu_item_caption (mi as MenuDefItem, menu as MenuDef) as string
+ DIM cap as string
  cap = mi.caption
  IF LEN(cap) = 0 THEN
   'No caption, use the default
@@ -1221,8 +1222,8 @@ FUNCTION get_menu_item_caption (mi as MenuDefItem, menu as MenuDef) as STRING
  RETURN cap
 END FUNCTION
 
-FUNCTION get_special_menu_caption(byval subtype as integer, byval edit_mode as integer= NO) as STRING
- DIM cap as STRING
+FUNCTION get_special_menu_caption(byval subtype as integer, byval edit_mode as bool = NO) as string
+ DIM cap as string
  SELECT CASE subtype
   CASE 0: cap = readglobalstring(60, "Items", 10)
   CASE 1: cap = readglobalstring(61, "Spells", 10)
