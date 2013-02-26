@@ -42,7 +42,6 @@ DECLARE SUB formation_set_editor ()
 DECLARE sub drawformsprites(form as Formation, egraphics() as GraphicPair, byval slot as integer)
 DECLARE sub formpics(ename() as string, form as Formation, egraphics() as GraphicPair)
 
-DECLARE SUB load_item_names (item_strings() as string)
 DECLARE FUNCTION item_attack_name(n as integer) as string
 DECLARE SUB generate_item_edit_menu (menu() as string, itembuf() as integer, item_name as string, info_string as string, equip_types() as string, byref box_preview as string)
 
@@ -1275,7 +1274,6 @@ SUB drawformsprites(form as Formation, egraphics() as GraphicPair, byval slot as
 END SUB
 
 SUB item_editor
- DIM item(maxMaxItems) as string
  DIM menu() as string
  DIM shaded() as bool
 
@@ -1319,7 +1317,6 @@ SUB item_editor
   IF state.need_update THEN
    state.need_update = NO
    state.last = gen(genMaxItem) + 1
-   load_item_names item()
 
    REDIM shaded(-1 TO state.last)
    FOR i as integer = LBOUND(shaded) TO UBOUND(shaded)
@@ -1329,7 +1326,7 @@ SUB item_editor
    REDIM menu(-1 TO state.last)
    menu(-1) = "Return to Main Menu"
    FOR i as integer = 0 TO gen(genMaxItem)
-    menu(i) = i & " " & item(i)
+    menu(i) = i & " " & readitemname(i)
    NEXT
    IF gen(genMaxItem) < maxMaxItems THEN
     menu(UBOUND(menu)) = "Add a new item"
@@ -1356,8 +1353,6 @@ DIM min(18) as integer
 DIM wep_img as GraphicPair 'This is only used in edititem
 DIM box_preview as string = "" 'This is only used in edititem
 DIM frame as integer
-DIM item_name as string
-DIM info as string
 'DIM ibitnames(-1 TO 59) as string
 
 DIM pt as integer = 0
@@ -1371,8 +1366,9 @@ FOR i as integer = 0 TO 3
 NEXT i
 
 loaditemdata itembuf(), item_id
-item_name = load_item_name(item_id, YES, YES)
-info = readbadbinstring(itembuf(), 9, 35, 0)
+DIM item_name as string, info as string
+item_name = readbadbinstring(itembuf(), 0, 8)
+info = readbadbinstring(itembuf(), 9, 36)
 
 menu(0) = "Back to Item Menu"
 menu(18) = "Stat Bonuses..."
@@ -1514,19 +1510,9 @@ DO
 LOOP
 IF wep_img.sprite THEN frame_unload @wep_img.sprite
 IF wep_img.pal    THEN palette16_unload @wep_img.pal
-
+writebadbinstring item_name, itembuf(), 0, 8
+writebadbinstring info, itembuf(), 9, 36
 saveitemdata itembuf(), item_id
-loaditemdata itembuf(), item_id
-itembuf(0) = LEN(item_name)
-FOR o as integer = 1 TO itembuf(0)
- itembuf(o) = ASC(MID(item_name, o, 1))
-NEXT o
-itembuf(9) = LEN(info)
-FOR o as integer = 10 TO 9 + itembuf(9)
- itembuf(o) = ASC(MID(info, o - 9, 1))
-NEXT o
-saveitemdata itembuf(), item_id
-
 END SUB
 
 SUB generate_item_edit_menu (menu() as string, itembuf() as integer, item_name as string, info_string as string, equip_types() as string, byref box_preview as string)
@@ -1566,12 +1552,6 @@ FUNCTION item_attack_name(n as integer) as string
  IF n <= 0 THEN RETURN "NOTHING"
  RETURN n - 1 & " " & readattackname(n - 1)
 END FUNCTION
-
-SUB load_item_names (item_strings() as string)
- FOR i as integer = 0 TO gen(genMaxItem)
-  item_strings(i) = load_item_name(i, YES, YES)
- NEXT i
-END SUB
 
 SUB handle_npc_def_delete (npc() as NPCType, byval id as integer, byref num_npc_defs as integer, npc_insts() as NPCInst)
 
