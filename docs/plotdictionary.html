@@ -443,6 +443,9 @@
 		
 		<a href="#about-begin">end</a><br>
 	
+		<a href="#about-enemyelementalresistasint">enemy elemental resist as int (enemy, element)</a><br>
+		
+	
 		<a href="#about-equal">number == number</a><br>
 		
 	
@@ -954,6 +957,9 @@
 		
 	
 		<a href="#about-heroy">hero Y (who)</a><br>
+		
+	
+		<a href="#about-heroz">hero Z (who)</a><br>
 		
 	
 		<a href="#about-hidebattlehealthmeter">hide battle health meter (state)</a><br>
@@ -2515,7 +2521,7 @@ variable+=1 # add one to it</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">define constant (number,name)</font></b><br>
-			Creates a global constant. The first argument is the number that the constant will represent, and the second argument is the name of the constant. Use constants to replace commonly used numbers with friendly names. The following constants have been delacred for you in PLOTSRC.HSD:<br><a href="#about-numericconstants" class="ref">zero</a> <a href="#about-numericconstants" class="ref">one</a> <a href="#about-numericconstants" class="ref">two</a> <a href="#about-numericconstants" class="ref">three</a> <a href="#about-numericconstants" class="ref">four</a> <a href="#about-numericconstants" class="ref">five</a> <a href="#about-numericconstants" class="ref">six</a> <a href="#about-numericconstants" class="ref">seven</a> <a href="#about-numericconstants" class="ref">eight</a> <a href="#about-numericconstants" class="ref">nine</a> <a href="#about-numericconstants" class="ref">nine</a> <a href="#about-booleanconstants" class="ref">false</a> <a href="#about-booleanconstants" class="ref">true</a> <a href="#about-booleanconstants" class="ref">off</a> <a href="#about-booleanconstants" class="ref">on</a> <a href="#about-directionconstants" class="ref">north</a> <a href="#about-directionconstants" class="ref">east</a> <a href="#about-directionconstants" class="ref">south</a> <a href="#about-directionconstants" class="ref">west</a> <a href="#about-directionconstants" class="ref">up</a> <a href="#about-directionconstants" class="ref">down</a> <a href="#about-directionconstants" class="ref">left</a> <a href="#about-directionconstants" class="ref">right</a> <a href="#about-keyconstants" class="ref">up key</a> <a href="#about-keyconstants" class="ref">down key</a> <a href="#about-keyconstants" class="ref">left key</a> <a href="#about-keyconstants" class="ref">right key</a> <a href="#about-keyconstants" class="ref">use key</a> <a href="#about-keyconstants" class="ref">cancel key</a> <a href="#about-keyconstants" class="ref">menu key</a> <a href="#about-keyconstants" class="ref">any key</a> <a href="#about-me" class="ref">me</a> <a href="#about-none" class="ref">none</a> <a href="#about-autonumber" class="ref">autonumber</a> <a href="#about-currentstat" class="ref">current stat</a> <a href="#about-maximumstat" class="ref">maximum stat</a> <a href="#about-tileconstants" class="ref">north wall</a> <a href="#about-tileconstants" class="ref">east wall</a> <a href="#about-tileconstants" class="ref">south wall</a> <a href="#about-tileconstants" class="ref">west wall</a> <a href="#about-tileconstants" class="ref">vehicle A</a> <a href="#about-tileconstants" class="ref">vehicle A</a> <a href="#about-tileconstants" class="ref">harm tile</a> <a href="#about-tileconstants" class="ref">overhead tile</a><br>
+			Creates a global constant. The first argument is the number that the constant will represent, and the second argument is the name of the constant. Use constants to replace commonly used numbers with friendly names. The following constants have been declared for you in PLOTSRC.HSD:<br><a href="#about-numericconstants" class="ref">zero</a> <a href="#about-numericconstants" class="ref">one</a> <a href="#about-numericconstants" class="ref">two</a> <a href="#about-numericconstants" class="ref">three</a> <a href="#about-numericconstants" class="ref">four</a> <a href="#about-numericconstants" class="ref">five</a> <a href="#about-numericconstants" class="ref">six</a> <a href="#about-numericconstants" class="ref">seven</a> <a href="#about-numericconstants" class="ref">eight</a> <a href="#about-numericconstants" class="ref">nine</a> <a href="#about-numericconstants" class="ref">nine</a> <a href="#about-booleanconstants" class="ref">false</a> <a href="#about-booleanconstants" class="ref">true</a> <a href="#about-booleanconstants" class="ref">off</a> <a href="#about-booleanconstants" class="ref">on</a> <a href="#about-directionconstants" class="ref">north</a> <a href="#about-directionconstants" class="ref">east</a> <a href="#about-directionconstants" class="ref">south</a> <a href="#about-directionconstants" class="ref">west</a> <a href="#about-directionconstants" class="ref">up</a> <a href="#about-directionconstants" class="ref">down</a> <a href="#about-directionconstants" class="ref">left</a> <a href="#about-directionconstants" class="ref">right</a> <a href="#about-keyconstants" class="ref">up key</a> <a href="#about-keyconstants" class="ref">down key</a> <a href="#about-keyconstants" class="ref">left key</a> <a href="#about-keyconstants" class="ref">right key</a> <a href="#about-keyconstants" class="ref">use key</a> <a href="#about-keyconstants" class="ref">cancel key</a> <a href="#about-keyconstants" class="ref">menu key</a> <a href="#about-keyconstants" class="ref">any key</a> <a href="#about-me" class="ref">me</a> <a href="#about-none" class="ref">none</a> <a href="#about-autonumber" class="ref">autonumber</a> <a href="#about-currentstat" class="ref">current stat</a> <a href="#about-maximumstat" class="ref">maximum stat</a> <a href="#about-tileconstants" class="ref">north wall</a> <a href="#about-tileconstants" class="ref">east wall</a> <a href="#about-tileconstants" class="ref">south wall</a> <a href="#about-tileconstants" class="ref">west wall</a> <a href="#about-tileconstants" class="ref">vehicle A</a> <a href="#about-tileconstants" class="ref">vehicle B</a> <a href="#about-tileconstants" class="ref">harm tile</a> <a href="#about-tileconstants" class="ref">overhead tile</a><br>
 			
 			
 		</tt></p>
@@ -2607,7 +2613,7 @@ wait for NPC (2) # wait until he's done</pre>
 		<tt>
 		<b><font color="yellow">wait for camera</font></b><br>
 			Wait for the camera to stop panning after a <a href="#about-pancamera" class="ref">pan camera</a> or <a href="#about-focuscamera" class="ref">focus camera</a> command.<br>
-			<pre>pan camera (left,10) # show the villan 10 tiles off screen
+			<pre>pan camera (left,10) # show the villain 10 tiles off screen
 wait for camera # wait until he's on screen</pre>
 			
 		</tt></p>
@@ -2738,7 +2744,7 @@ resume NPC walls # back to mortality...</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">suspend caterpillar</font></b><br>
-			Stops your other heroes from following the leader. This is useful when you want to control them individually with <a href="#about-walkhero" class="ref">walk hero</a> commands. In earlier versions this was misspelled as suspend catapillar. The old spelling still works for backwards compatability.<br>
+			Stops your other heroes from following the leader. This is useful when you want to control them individually with <a href="#about-walkhero" class="ref">walk hero</a> commands. In earlier versions this was misspelled as suspend catapillar. The old spelling still works for backwards compatibility.<br>
 			<pre>suspend caterpillar # cutscene
 # move heroes, probably fight a battle or two...
 resume caterpillar # normal game again.</pre>
@@ -2748,7 +2754,7 @@ resume caterpillar # normal game again.</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">resume caterpillar</font></b><br>
-			Reverses the <a href="#about-suspendcaterpillar" class="ref">suspend caterpillar</a> command, and makes your other heroes follow the leader as normal. In earlier versions this was misspelled as resume catapillar. The old spelling still works for backwards compatability.<br>
+			Reverses the <a href="#about-suspendcaterpillar" class="ref">suspend caterpillar</a> command, and makes your other heroes follow the leader as normal. In earlier versions this was misspelled as resume catapillar. The old spelling still works for backwards compatibility.<br>
 			<pre>suspend caterpillar # cutscene
 # move heroes, probably fight a battle or two...
 resume caterpillar # normal game again.</pre>
@@ -2772,7 +2778,7 @@ resume caterpillar # normal game again.</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">suspend random enemies</font></b><br>
-			Prevents enemies from attacking your party while walking over tiles that can normally spawn random battles. This is useful to prevent battles from interrupting a plotscript. In earlier versions, this was misspelled as suspend random enemys. The old spelling still works for backwards compatability.<br>
+			Prevents enemies from attacking your party while walking over tiles that can normally spawn random battles. This is useful to prevent battles from interrupting a plotscript. In earlier versions, this was misspelled as suspend random enemys. The old spelling still works for backwards compatibility.<br>
 			<pre>suspend random enemies # no battles for now
 walk hero (me, up, 10) # cross pit of evil monsters of doom
 resume random enemies # back to normal</pre>
@@ -2782,7 +2788,7 @@ resume random enemies # back to normal</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">resume random enemies</font></b><br>
-			Undoes the <a href="#about-suspendrandomenemies" class="ref">suspend random enemies</a> command and allows random battles to occur as normal. In earlier versions, this was misspelled as resume random enemys. The old spelling still works for backwards compatability.<br>
+			Undoes the <a href="#about-suspendrandomenemies" class="ref">suspend random enemies</a> command and allows random battles to occur as normal. In earlier versions, this was misspelled as resume random enemys. The old spelling still works for backwards compatibility.<br>
 			<pre>suspend random enemies # no battles for now
 walk hero (me, up, 10) # cross pit of evil monsters of doom
 resume random enemies # back to normal</pre>
@@ -2908,14 +2914,14 @@ play song (get ambient music)</pre>
 			Makes the specified hero move in the specified direction for the specified number of tiles. The first argument tells who to move. Use <a href="#about-me" class="ref">me</a> or numbers 0-3. The second argument is the direction. Use the constants: <a href="#about-directionconstants" class="ref">north</a>, <a href="#about-directionconstants" class="ref">south</a>, <a href="#about-directionconstants" class="ref">east</a>, <a href="#about-directionconstants" class="ref">west</a>, <a href="#about-directionconstants" class="ref">up</a>, <a href="#about-directionconstants" class="ref">down</a>, <a href="#about-directionconstants" class="ref">left</a>, or <a href="#about-directionconstants" class="ref">right</a>. The third argument is the number of tiles to move. If you leave out the third argument, the hero will move one tile. Walk hero is usually used with the <a href="#about-waitforhero" class="ref">wait for hero</a> command. You should normally use the <a href="#about-suspendplayer" class="ref">suspend player</a> command before moving heroes, and if you want to move heroes other than the leader, you should use the <a href="#about-suspendcaterpillar" class="ref">suspend caterpillar</a> command.<br>
 			<pre>suspend player # stop player
 walk hero(me,up,3) # move him up 3 tiles
-resume player # ok, done</pre>
+resume player # OK, done</pre>
 			
 		</tt></p>
 		<a name="about-setherodirection"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">set hero direction (who, direction)</font></b><br>
-			Makes the specified hero face in the specified direction. The hero is specified by their rank in the walkabout caterpillar, 0-3. The following constants are avaialable for direction: <a href="#about-directionconstants" class="ref">north</a>, <a href="#about-directionconstants" class="ref">south</a>, <a href="#about-directionconstants" class="ref">east</a>, <a href="#about-directionconstants" class="ref">west</a>, <a href="#about-directionconstants" class="ref">up</a>, <a href="#about-directionconstants" class="ref">down</a>, <a href="#about-directionconstants" class="ref">left</a>, or <a href="#about-directionconstants" class="ref">right</a>.<br>
+			Makes the specified hero face in the specified direction. The hero is specified by their rank in the walkabout caterpillar, 0-3. The following constants are available for direction: <a href="#about-directionconstants" class="ref">north</a>, <a href="#about-directionconstants" class="ref">south</a>, <a href="#about-directionconstants" class="ref">east</a>, <a href="#about-directionconstants" class="ref">west</a>, <a href="#about-directionconstants" class="ref">up</a>, <a href="#about-directionconstants" class="ref">down</a>, <a href="#about-directionconstants" class="ref">left</a>, or <a href="#about-directionconstants" class="ref">right</a>.<br>
 			<pre>set hero direction (me,right) # face right</pre>
 			
 		</tt></p>
@@ -2933,15 +2939,23 @@ resume player # ok, done</pre>
 		<b><font color="yellow">set hero position (who, x, y)</font></b><br>
 			Instantly moves the specified hero to an X,Y position on the map. The coordinates are in units of tiles. For pixel-positioning use the <a href="#about-puthero" class="ref">put hero</a> command.<br>
 			
-			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-herox" class="ref">hero X</a>, </li>
+<li>
+<a href="#about-heroy" class="ref">hero Y</a>, </li>
+<li>
+<a href="#about-heropixelx" class="ref">hero pixel X</a>, </li>
+<li><a href="#about-heropixely" class="ref">hero pixel Y</a></li>
+</ul>
 		</tt></p>
 		<a name="about-setheroz"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">set hero z (who, z)</font></b><br>
-			Sets the Z location of the specified hero. The Z location is the number of pixels above the tile they are standing on. Useful for scripts where you want a hero to jump or levitate.<br>
+			Sets the Z location of the specified hero. The Z value is the number of pixels they are above the tile that they are 'standing' on. Useful for scripts where you want a hero to jump or levitate. All heroes normally have a Z value of 0 (even on maps with a foot offset) unless they are riding a vehicle which rises.<br>
 			
-			
+			<br>See also: <ul class="seealso"><li><a href="#about-heroz" class="ref">hero Z</a></li></ul>
 		</tt></p>
 		<a name="about-walkherotox"></a>
 		<p>
@@ -3141,7 +3155,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">NPC at spot (x, y, number)</font></b><br>
-			This command returns a reference to the NPC at the given X and Y coordinate, in tiles, on the map. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom-most NPC, which is number 0). <a href="#about-booleanconstants" class="ref">false</a> is returned if there is no NPC there, or <span class="param">number</span> is too large (greater than or equal to the number of NPCs). You can also pass the constant <a href="#about-getcount" class="ref">get count</a> for the third argument to return the total number of npcs on that tile. <div style="background-color:#EFF;" class="note">
+			This command returns a reference to the NPC at the given X and Y coordinate, in tiles, on the map. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom-most NPC, which is number 0). <a href="#about-booleanconstants" class="ref">false</a> is returned if there is no NPC there, or <span class="param">number</span> is too large (greater than or equal to the number of NPCs). You can also pass the constant <a href="#about-getcount" class="ref">get count</a> for the third argument to return the total number of NPCs on that tile. <div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">An NPC's tile is the tile its top left corner is on.<br clear="all">
 </div>
 <br>
@@ -3152,7 +3166,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">NPC at pixel (x, y, number)</font></b><br>
-			This command returns a reference to the NPC at the given X and Y coordinate in pixels. That is, any npc whose 20x20 sprite (including transparent sections) is over that pixel. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom-most NPC, which is number 0). <a href="#about-booleanconstants" class="ref">false</a> is returned if there is no NPC there, or <span class="param">number</span> is too large (greater than or equal to the number of NPCs). You can also pass the constant <a href="#about-getcount" class="ref">get count</a> for the third argument to return the total number of npcs on that tile.<br>
+			This command returns a reference to the NPC at the given X and Y coordinate in pixels. That is, any npc whose 20x20 sprite (including transparent sections) is over that pixel. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom-most NPC, which is number 0). <a href="#about-booleanconstants" class="ref">false</a> is returned if there is no NPC there, or <span class="param">number</span> is too large (greater than or equal to the number of NPCs). You can also pass the constant <a href="#about-getcount" class="ref">get count</a> for the third argument to return the total number of NPCs on that tile.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-npcreference" class="ref">NPC reference</a></li></ul>
 		</tt></p>
@@ -3168,7 +3182,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set NPC direction (who, direction)</font></b><br>
-			Makes the specified NPC face in the specified direction. The following constants are avaialable for direction: <a href="#about-directionconstants" class="ref">north</a>, <a href="#about-directionconstants" class="ref">south</a>, <a href="#about-directionconstants" class="ref">east</a>, <a href="#about-directionconstants" class="ref">west</a>, <a href="#about-directionconstants" class="ref">up</a>, <a href="#about-directionconstants" class="ref">down</a>, <a href="#about-directionconstants" class="ref">left</a>, or <a href="#about-directionconstants" class="ref">right</a>. You can use either an <a href="#about-npcreference" class="ref">NPC reference</a> or the NPC's ID number to specify which NPC will turn.<br>
+			Makes the specified NPC face in the specified direction. The following constants are available for direction: <a href="#about-directionconstants" class="ref">north</a>, <a href="#about-directionconstants" class="ref">south</a>, <a href="#about-directionconstants" class="ref">east</a>, <a href="#about-directionconstants" class="ref">west</a>, <a href="#about-directionconstants" class="ref">up</a>, <a href="#about-directionconstants" class="ref">down</a>, <a href="#about-directionconstants" class="ref">left</a>, or <a href="#about-directionconstants" class="ref">right</a>. You can use either an <a href="#about-npcreference" class="ref">NPC reference</a> or the NPC's ID number to specify which NPC will turn.<br>
 			
 			
 		</tt></p>
@@ -3233,7 +3247,7 @@ end</pre>
 		<tt>
 		<b><font color="yellow">get NPC ID (reference)</font></b><br>
 			This command is the opposite of <a href="#about-npcreference" class="ref">NPC reference</a>. If you give get NPC ID a reference to an NPC it will return the NPC&amp;s ID. If the NPC ID is not valid then <span class="param">get NPC ID</span> will return -1<br><div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">In some older versions, This command was useful if you needed to do an <a href="#about-alternpc" class="ref">alter NPC</a> or a <a href="#about-setnpcspeed" class="ref">set NPC speed</a> on an NPC that you are working with by reference. This is no longer neccisary, because both those commands now support NPC references (although they still affect every copy of that NPC on the map)<br clear="all">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">In some older versions, This command was useful if you needed to do an <a href="#about-alternpc" class="ref">alter NPC</a> or a <a href="#about-setnpcspeed" class="ref">set NPC speed</a> on an NPC that you are working with by reference. This is no longer necessary, because both those commands now support NPC references (although they still affect every copy of that NPC on the map)<br clear="all">
 </div>
 <br>
 			
@@ -3699,7 +3713,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">give experience (hero,amount)</font></b><br>
-			Gives experience to either a hero by position in party (use result returned by <a href="#about-findhero" class="ref">find hero</a> command if you want to give experience by name or ID) or the whole party, if the constant <a href="#about-party" class="ref">party</a> is passed as first argument. If you give experience to the whole party, then it will be split amongst the heroes as it is in battle; dead heroes get experience depending on whether the "Dead heroes gain share of experience" general bitset is set, and swapped out heroes gain according to the options in the Battle System Options menu. This command can cause heroes to level up and learn spells but does not inform the player or trigger any effects. See <a href="#about-herolevelled" class="ref">hero levelled</a> and <a href="#about-spellslearned" class="ref">spells learned</a> for dealing with this. This command can give negative experience, but it will never cause a hero to delevel. You should use <a href="#about-setexperience" class="ref">set experience</a> to remove experience in a way that allows delevelling. You can't give experience to heroes with level equal to or greater than the level cap (which is 99 usually), though you can temporially raise the cap using <a href="#about-setlevelcap" class="ref">set level cap</a> to get around this.<br>
+			Gives experience to either a hero by position in party (use result returned by <a href="#about-findhero" class="ref">find hero</a> command if you want to give experience by name or ID) or the whole party, if the constant <a href="#about-party" class="ref">party</a> is passed as first argument. If you give experience to the whole party, then it will be split amongst the heroes as it is in battle; dead heroes get experience depending on whether the "Dead heroes gain share of experience" general bitset is set, and swapped out heroes gain according to the options in the Battle System Options menu. This command can cause heroes to level up and learn spells but does not inform the player or trigger any effects. See <a href="#about-herolevelled" class="ref">hero levelled</a> and <a href="#about-spellslearned" class="ref">spells learned</a> for dealing with this. This command can give negative experience, but it will never cause a hero to delevel. You should use <a href="#about-setexperience" class="ref">set experience</a> to remove experience in a way that allows delevelling. You can't give experience to heroes with level equal to or greater than the level cap (which is 99 usually), though you can temporarily raise the cap using <a href="#about-setlevelcap" class="ref">set level cap</a> to get around this.<br>
 			
 			
 		</tt></p>
@@ -3739,7 +3753,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">unequip (hero,slot)</font></b><br>
-			Removes the item that the specified hero has equipped in the specified slot. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (use <a href="#about-findhero" class="ref">find hero</a> if you want to refer to the hero by name). The second argument is the slot to unequip. Use the number 1-5 or the names slot:weapon, slot:armor, etc.<br>
+			Removes the item that the specified hero has equipped in the specified slot. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (Use <a href="#about-findhero" class="ref">find hero</a> if you want to refer to the hero by name). The second argument is the slot to unequip. Use the slot:weapon, slot:armor, etc. constants from your .hsi file.<br>
 			
 			
 		</tt></p>
@@ -3747,7 +3761,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">force equip (hero,slot,item)</font></b><br>
-			Forces a hero to equip an item, even if it is not normally equipable. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (use <a href="#about-findhero" class="ref">find hero</a> if you want to refer to the hero by name). The second argument is the slot to equip. Use the number 1-5 or the names slot:weapon, slot:armor, etc. The third argument is the item to equip. you can use the item's number or the item:name constants from your .HSI file.<br>
+			Forces a hero to equip an item, even if it is not normally equipable. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (Use <a href="#about-findhero" class="ref">find hero</a> if you want to refer to the hero by name). The second argument is the slot to equip. Use the slot:weapon, slot:armor, etc. constants from your .hsi file. The third argument is the item to equip. You can use the item's number or the item:name constants from your .hsi file.<br>
 			
 			
 		</tt></p>
@@ -3755,7 +3769,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">equip where (hero,item)</font></b><br>
-			Returns the number of the slot that a hero can equip an item in, or false if the hero cannot equip it. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (use <a href="#about-findhero" class="ref">find hero</a> if you want to refer to the hero by name). The second argument is the item to check the equipability of. you can use the item's number or the item:name constants from your .HSI file.<br>
+			Returns the number of the slot that a hero can equip an item in, or false if the hero cannot equip it. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (Use <a href="#about-findhero" class="ref">find hero</a> if you want to refer to the hero by name). The second argument is the item to check the equipability of. you can use the item's number or the item:name constants from your .HSI file.<br>
 			
 			
 		</tt></p>
@@ -3763,7 +3777,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">check equipment (hero,slot)</font></b><br>
-			Returns the number of the item that the specified hero has equipped in the specified slot, or -1 if there is nothing equipped there. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (use <a href="#about-findhero" class="ref">find hero</a> if you want to refer to the hero by name). The second argument is the slot to check. Use the number 1-5 or the names slot:weapon, slot:armor, etc.<br>
+			Returns the number of the item that the specified hero has equipped in the specified slot, or -1 if there is nothing equipped there. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (Use <a href="#about-findhero" class="ref">find hero</a> if you want to refer to the hero by name). The second argument is the slot to check. Use the slot:weapon, slot:armor, etc. constants from your .hsi file.<br>
 			
 			
 		</tt></p>
@@ -3771,7 +3785,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get default weapon (hero)</font></b><br>
-			Returns the number of the item that the specified hero uses as a default weapon when no other weapon is equipped. The argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (use <a href="#about-findhero" class="ref">find hero</a> if you want to refer to the hero by name).<br>
+			Returns the number of the item that the specified hero uses as a default weapon when no other weapon is equipped. The argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (Use <a href="#about-findhero" class="ref">find hero</a> if you want to refer to the hero by name).<br>
 			
 			
 		</tt></p>
@@ -3779,7 +3793,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set default weapon (hero,item)</font></b><br>
-			Changes the item that the specified hero uses as a default weapon when no other weapon is equipped. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (use <a href="#about-findhero" class="ref">find hero</a> if you want to refer to the hero by name). The second argument is the item to use as the new default weapon. you can use the item's number or the item:name constants from your .HSI file.<br>
+			Changes the item that the specified hero uses as a default weapon when no other weapon is equipped. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (Use <a href="#about-findhero" class="ref">find hero</a> if you want to refer to the hero by name). The second argument is the item to use as the new default weapon. you can use the item's number or the item:name constants from your .HSI file.<br>
 			
 			
 		</tt></p>
@@ -3851,7 +3865,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">use item in slot(slot)</font></b><br>
-			Attempts to use whatever item is in a given inventory slot as if you had selected it in the items menu. The argument is the inventory slot number. This command will only work if there is actually an itme in the slot, and the item can be used outside of battle, either as a cure attack, or to teach a hero a spell, or to trigger a text box. The return value is true if you successfully used the item, or false if the item was unusable or the user cancelled.<br>
+			Attempts to use whatever item is in a given inventory slot as if you had selected it in the items menu. The argument is the inventory slot number. This command will only work if there is actually an item in the slot, and the item can be used outside of battle, either as a cure attack, or to teach a hero a spell, or to trigger a text box. The return value is true if you successfully used the item, or false if the item was unusable or the user cancelled.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-useitem" class="ref">use item</a></li></ul>
 		</tt></p>
@@ -3931,7 +3945,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set ambient music (song)</font></b><br>
-			Plays a song and sets it as the map's ambient music, that is the song that is played when you enter the map (if you call <a href="#about-savemapstate" class="ref">save map state</a> with mapstate:all or mapstate:mapsettings) or after a textbox with 'restore music' set. Unless you save the mapstate, the effect goes away if you change maps or fight a battle. You can use the constants <a href="#about-song:silence" class="ref">song: silence</a> and <a href="#about-song:sameaslastmap" class="ref">song: same as last map</a> for <span class="param">song</span>, the deault is silence.<br>
+			Plays a song and sets it as the map's ambient music, that is the song that is played when you enter the map (if you call <a href="#about-savemapstate" class="ref">save map state</a> with mapstate:all or mapstate:mapsettings) or after a textbox with 'restore music' set. Unless you save the mapstate, the effect goes away if you change maps or fight a battle. You can use the constants <a href="#about-song:silence" class="ref">song: silence</a> and <a href="#about-song:sameaslastmap" class="ref">song: same as last map</a> for <span class="param">song</span>, the default is silence.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-playsong" class="ref">play song</a></li></ul>
 		</tt></p>
@@ -3947,7 +3961,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set music volume (volume)</font></b><br>
-			Sets the volume at which music is played, <span class="param">volume</span> being a number on the scale of 0 to 255, 0 being silent, 255 loudest. If you want to manipulate the sound (e.g. fading out the music) you should take note of the original vulume that the player has set and return to this. The default volume is not the maximum 255, so you should not hardcode fades to begin at volume 255. <div style="background-color:#EFF;" class="note">
+			Sets the volume at which music is played, <span class="param">volume</span> being a number on the scale of 0 to 255, 0 being silent, 255 loudest. If you want to manipulate the sound (e.g. fading out the music) you should take note of the original volume that the player has set and return to this. The default volume is not the maximum 255, so you should not hardcode fades to begin at volume 255. <div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">The actual resolution at which the volume is set is not necessarily 1/255th of full volume but depends on your implementation. For example, music_sdl only supports 128 different volume levels. So if you set the volume and then read it back, it might change slightly.<br clear="all">
 </div>
 <br>
@@ -4166,7 +4180,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">can learn spell (hero,attack)</font></b><br>
-			Checks to see if a hero is capable of learning a spell from an item or from the teach spell command. The first argument is the hero's position in the party (as returned by <a href="#about-findhero" class="ref">find hero</a>). The second argument is the attack to check for. You can use the names defined in your .HSI file in the form atk:attackname (You may also use the attack's ID number. This is the number you see in the attack editor + 1). If the hero can learn the spell, can learn spell will return <a href="#about-booleanconstants" class="ref">true</a>. If the hero cannot learn the spell (or learns it from levelups), it will return <a href="#about-booleanconstants" class="ref">false</a><br>
+			Checks to see if a hero is capable of learning a spell from an item or from the teach spell command. The first argument is the hero's position in the party (as returned by <a href="#about-findhero" class="ref">find hero</a>). The second argument is the attack to check for. You can use the names defined in your .HSI file in the form atk:attackname (You may also use the attack's ID number. This is the number you see in the attack editor + 1). If the hero can learn the spell, can learn spell will return <a href="#about-booleanconstants" class="ref">true</a>. If the hero cannot learn the spell (or learns it from level-ups), it will return <a href="#about-booleanconstants" class="ref">false</a><br>
 			
 			
 		</tt></p>
@@ -4182,7 +4196,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">spells learned (hero,number)</font></b><br>
-			Returns the id numbers (+1) of spells the hero learned from the last battle or <a href="#about-giveexperience" class="ref">give experience</a>, <a href="#about-setherolevel" class="ref">set hero level</a> or <a href="#about-setexperience" class="ref">set experience</a> command that targetted either this hero or the whole party. If the second argument is <a href="#about-getcount" class="ref">get count</a> then the number of spells that the hero learned is returned. Pass 0 for number to get the first spell learnt, 1 to get the second, etc. You can use a loop and strings to list to the player all the spells a hero learned:
+			Returns the id numbers (+1) of spells the hero learned from the last battle or <a href="#about-giveexperience" class="ref">give experience</a>, <a href="#about-setherolevel" class="ref">set hero level</a> or <a href="#about-setexperience" class="ref">set experience</a> command that targeted either this hero or the whole party. If the second argument is <a href="#about-getcount" class="ref">get count</a> then the number of spells that the hero learned is returned. Pass 0 for number to get the first spell learnt, 1 to get the second, etc. You can use a loop and strings to list to the player all the spells a hero learned:
 			<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">If you want to use this command with attack ID numbers, you must add 1 to the ID number.<br clear="all">
 </div>
@@ -4222,7 +4236,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">map cure (attack, target, attacker)</font></b><br>
-			Uses an attack on a hero outside of battle as if you had used it from an item or cast it as a spell. In spite of the name, it works for both cure spells and damage spells. The first argument, <span class="param">attack</span> is name of the attack from your HSI file in the form atk:name. (You may also use the attack's ID number. This is the number you see in the attack editor + 1.) The second argument, <span class="param">target</span> is the position in the party of the hero to cure (or harm). The third optional argument, <span class="param">attacker</span> is the position in the party of the hero who is using the attack. If this argument is ommitted or set to -1, then the average stats of the active party will be used, just like when the attack is used from an item. The return value is <a href="#about-booleanconstants" class="ref">true</a> if the cure/attack succeeded, and <a href="#about-booleanconstants" class="ref">false</a> if it did nothing.
+			Uses an attack on a hero outside of battle as if you had used it from an item or cast it as a spell. In spite of the name, it works for both cure spells and damage spells. The first argument, <span class="param">attack</span> is name of the attack from your HSI file in the form atk:name. (You may also use the attack's ID number. This is the number you see in the attack editor + 1.) The second argument, <span class="param">target</span> is the position in the party of the hero to cure (or harm). The third optional argument, <span class="param">attacker</span> is the position in the party of the hero who is using the attack. If this argument is omitted or set to -1, then the average stats of the active party will be used, just like when the attack is used from an item. The return value is <a href="#about-booleanconstants" class="ref">true</a> if the cure/attack succeeded, and <a href="#about-booleanconstants" class="ref">false</a> if it did nothing.
 			<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">The <span class="param">map cure</span> command replaces the old command <span class="param">outside battle cure</span> which had a bug which required you to use <span class="param">atk:name -- 1</span><br clear="all">
 </div>
@@ -4318,7 +4332,7 @@ end</pre>
 		<a name="String%20Functions"></a>
 
 		<font color="#f06060" size="4">String Functions</font>
-		<p>When refering to a position in a string, <span class="param">position</span> is a 1-based index into the string, not a 0-based index. For example, given a string "ABCDEFG", position=3 is "C", not "D". This is because the string commands are based on BASIC string commands, which are 1-based. This also means that position 0 is invalid. Beware!<br>There is no limit on string length (previously, they were limited to 40 characters, the width of the screen)<br></p>
+		<p>When referring to a position in a string, <span class="param">position</span> is a 1-based index into the string, not a 0-based index. For example, given a string "ABCDEFG", position=3 is "C", not "D". This is because the string commands are based on BASIC string commands, which are 1-based. This also means that position 0 is invalid. Beware!<br>There is no limit on string length (previously, they were limited to 40 characters, the width of the screen)<br></p>
 		
 		<a name="about-showstring"></a>
 		<p>
@@ -4364,7 +4378,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">number from string (ID, default)</font></b><br>
-			Try to read the string specified by <span class="param">ID</span> as a number and return it. Blank spaces at the beginning of the string will be ignored, and thre string can start with a - sign for negatives. No other characters except numerical digits can appear in the string. You can also provide an optional default value that will be returned if the string is not a valid number (for example, if it contains a non-numeric letter)<br>
+			Try to read the string specified by <span class="param">ID</span> as a number and return it. Blank spaces at the beginning of the string will be ignored, and the string can start with a - sign for negatives. No other characters except numerical digits can appear in the string. You can also provide an optional default value that will be returned if the string is not a valid number (for example, if it contains a non-numeric letter)<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-appendnumber" class="ref">append number</a></li></ul>
 		</tt></p>
@@ -4412,7 +4426,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">delete char (ID, position)</font></b><br>
-			This deletes the character at <span class="param">postion</span> in string #<span class="param">ID</span>, causing all the following characters to move over a slot. The first position of the string is 1, and the last position of the string is the same as <a href="#about-stringlength" class="ref">string length</a>.<br>
+			This deletes the character at <span class="param">position</span> in string #<span class="param">ID</span>, causing all the following characters to move over a slot. The first position of the string is 1, and the last position of the string is the same as <a href="#about-stringlength" class="ref">string length</a>.<br>
 			
 			
 		</tt></p>
@@ -4567,7 +4581,7 @@ get hero name (1, find hero (leader))
 		<p>
 		<tt>
 		<b><font color="yellow">string color (ID, foreground color, background color)</font></b><br>
-			Changes the color of a string previously displayed with <a href="#about-showstringat" class="ref">show string at</a> or <a href="#about-centerstringat" class="ref">center string at</a>. Foreground color is the colour of the text itself. Background color has no meaning for style:outline strings (the outline is always black). For style:flat strings, it is the color of the solid background if 1 to 255, or causes no background if 0. If you ommit <span class="param">background color</span>, the background will be transparent.<br>
+			Changes the color of a string previously displayed with <a href="#about-showstringat" class="ref">show string at</a> or <a href="#about-centerstringat" class="ref">center string at</a>. Foreground color is the colour of the text itself. Background color has no meaning for style:outline strings (the outline is always black). For style:flat strings, it is the color of the solid background if 1 to 255, or causes no background if 0. If you omit <span class="param">background color</span>, the background will be transparent.<br>
 			
 			
 		</tt></p>
@@ -4675,7 +4689,7 @@ get hero name (1, find hero (leader))
 		<p>
 		<tt>
 		<b><font color="yellow">close menu(menu handle)</font></b><br>
-			Close a menu. The argument is a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a> or <a href="#about-topmenu" class="ref">top menu</a>)<br>
+			Close a menu. The argument is a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a> or <a href="#top%20menu" class="undef">top menu</a>)<br>
 			
 			
 		</tt></p>
@@ -5221,7 +5235,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set menu text align(menu handle, new align)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Change the text alingment of the menu. The <span class="param">new align</span> can be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Change the text alignment of the menu. The <span class="param">new align</span> can be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span><br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-getmenutextalign" class="ref">get menu text align</a></li></ul>
 		</tt></p>
@@ -5816,7 +5830,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">set sprite trans (handle, drawtransparent)</font></b><br>
-			Given a sprite slice <span class="param">handle</span>, sets whether it should be drawn with transparency (that is, color 0 is transparent). All sprites default to transparent, so you are unlikey to have any use for this command.<br>
+			Given a sprite slice <span class="param">handle</span>, sets whether it should be drawn with transparency (that is, color 0 is transparent). All sprites default to transparent, so you are unlikely to have any use for this command.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-getspritetrans" class="ref">get sprite trans</a></li></ul>
 		</tt></p>
@@ -5847,7 +5861,7 @@ end
 				<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Be aware that when there is more than one slice with the same lookup code, the <span class="param">lookup slice</span> command will only return the first one it finds in a depth-first search. If you need to find multiple slices with the same lookup code, you must search manually using <a href="#about-getslicelookup" class="ref">get slice lookup</a>.<br clear="all">
 </div>
-			You may <a href="#about-setparent" class="ref">set parent</a> a slice to a map layer to make it move with the camera just like heros and NPCs do.
+			You may <a href="#about-setparent" class="ref">set parent</a> a slice to a map layer to make it move with the camera just like heroes and NPCs do.
 			<br>
 			<pre>
 # this example loads a saved slice collection,
@@ -5861,7 +5875,7 @@ sl := lookup slice(sli:my special slice, collection)
 # this example gets a handle to the portrait of the currently displaying
 # text box (if any) and allows you to manipulate it.
 variable(portrait)
-protrait = lookup slice(sl:textbox portrait)
+portrait = lookup slice(sl:textbox portrait)
 if(portrait) then(
   replace portrait sprite(portrait, 5)
 )
@@ -6656,7 +6670,7 @@ set horiz align(sl, edge:right)
 		<p>
 		<tt>
 		<b><font color="yellow">get slice visible (handle)</font></b><br>
-			Returns the visibilty setting for slice <span class="param">handle</span>.  This is true for visible, or false for invisible. Note that this only tells you if the slice is set to be invisible, it will not tell you if the slice is invisible for some other reason, such as if it is offscreen, or if it is the child of an invisible parent or grandparent.<br>
+			Returns the visibility setting for slice <span class="param">handle</span>.  This is true for visible, or false for invisible. Note that this only tells you if the slice is set to be invisible, it will not tell you if the slice is invisible for some other reason, such as if it is offscreen, or if it is the child of an invisible parent or grandparent.<br>
 			
 			
 		</tt></p>
@@ -7356,7 +7370,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">set rect fuzziness (handle, percent)</font></b><br>
-			Sets the percentage translucency of a rect slice <span class="param">handle</span> to <span class="param">percent</span>. A <span class="param">percent</span> of 0 is equivalent to <a href="#about-setrecttrans" class="ref">set rect trans</a>(handle, trans:hollow), a <span class="param">percent</span> of 100 is equivalent to <a href="#about-setrecttrans" class="ref">set rect trans</a>(handle, trans:opaque), and anything inbetween 1 and 99 implicitly does <a href="#about-setrecttrans" class="ref">set rect trans</a>(handle, trans:fuzzy) as well as setting the percentage.<br>
+			Sets the percentage translucency of a rect slice <span class="param">handle</span> to <span class="param">percent</span>. A <span class="param">percent</span> of 0 is equivalent to <a href="#about-setrecttrans" class="ref">set rect trans</a>(handle, trans:hollow), a <span class="param">percent</span> of 100 is equivalent to <a href="#about-setrecttrans" class="ref">set rect trans</a>(handle, trans:opaque), and anything in between 1 and 99 implicitly does <a href="#about-setrecttrans" class="ref">set rect trans</a>(handle, trans:fuzzy) as well as setting the percentage.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -7854,7 +7868,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">write zone (zone id, x, y, value)</font></b><br>
-			Sets whether the tile at (<span class="param">x,y</span>) is part of the specified zone. <span class="param">zone id</span> is an ID number from 1 to 9999, and <span class="param">value</span> is intrepreted as either <span class="param">true</span> (non-zero) or <span class="param">false</span> (zero).<div style="background-color:#EFF;" class="note">
+			Sets whether the tile at (<span class="param">x,y</span>) is part of the specified zone. <span class="param">zone id</span> is an ID number from 1 to 9999, and <span class="param">value</span> is interpreted as either <span class="param">true</span> (non-zero) or <span class="param">false</span> (zero).<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Only up to 15 zones may overlap at each tile. If you try to place 16 zones at one tile, write zone will fail, returning <a href="#about-booleanconstants" class="ref">false</a>. Normally it returns <a href="#about-booleanconstants" class="ref">true</a>. If you choose to "Show all warnings" in General Game Settings in Custom, you will also get a warning message.<br clear="all">
 </div>
 <div style="background-color:#EFF;" class="note">
@@ -7969,6 +7983,14 @@ end
 			Returns the specified hero's Y position in tiles. Note that a hero's tile is the tile its top left corner is on.<br>
 			
 			
+		</tt></p>
+		<a name="about-heroz"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">hero Z (who)</font></b><br>
+			Returns the specified hero's Z position in pixels. The Z value is the number of pixels they are above the tile that they are 'standing' on, not including the map's foot offset. All heroes normally have a Z value of 0 (even on maps with a foot offset) unless they are riding a vehicle which rises.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-setheroz" class="ref">set hero z</a></li></ul>
 		</tt></p>
 		<a name="about-npcx"></a>
 		<p>
@@ -8216,7 +8238,7 @@ end
 			Returns <a href="#about-booleanconstants" class="ref">true</a> if the keyboard key with the specified scancode is being pressed (either held down or pressed since last tick), or <a href="#about-booleanconstants" class="ref">false</a> if it is not. The argument is a scancode, NOT the <a href="#about-keyconstants" class="ref">up key</a>, <a href="#about-keyconstants" class="ref">down key</a>, etc used with <a href="#about-waitforkey" class="ref">wait for key</a>. An extra include file, <span class="param">scancode.hsi</span>, is provided which you should <a href="#about-include" class="ref">include</a> in order to use the following scancode constants.<br>
 
 <div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Since Zenzizenic, keyboard support has been improved: some keys (such as key:down and key:numpad 2) which were previously the same scancode are now distinct (read scancode.hsi for the complete list). However for backwards compatibility, the old behaviour is emulated (so you won't be able to tell the two keys apart even if recompile and use the new, distinct scancodes) unless you turn on the "Enable better scancodes for scripts" Preference Bitset in the General Game Settings menu.<br clear="all">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Since Zenzizenzic, keyboard support has been improved: some keys (such as key:down and key:numpad 2) which were previously the same scancode are now distinct (read scancode.hsi for the complete list). However for backwards compatibility, the old behaviour is emulated (so you won't be able to tell the two keys apart even if recompile and use the new, distinct scancodes) unless you turn on the "Enable better scancodes for scripts" Preference Bitset in the General Game Settings menu.<br clear="all">
 </div>
 <div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You can't rely on the behaviour of the caps-, scroll- and num-lock keys. They might report on/off state instead of pressed/not pressed, depending on the graphics backend, operating system, and engine version.<br clear="all">
@@ -8257,7 +8279,7 @@ end
 <li>key:7</li>
 <li>key:Ampersand</li>
 <li>key:8</li>
-<li>key:Asterix</li>
+<li>key:Asterisk</li>
 <li>key:9</li>
 <li>key:Left Parenthesis</li>
 <li>key:0</li>
@@ -8344,7 +8366,7 @@ end
 <li>key:Numpad 8</li>
 <li>key:Numpad 9</li>
 <li>key:Numpad Period</li>
-<li>key:Numpad Asterix</li>
+<li>key:Numpad Asterisk</li>
 <li>key:Numpad Slash</li>
 <li>key:Numpad Plus</li>
 <li>key:Numpad Minus</li>
@@ -8393,7 +8415,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">enable input text (enable)</font></b><br>
-			This command needs to be called before <a href="#about-getinputtext" class="ref">get input text</a> can be used. If the optional argument is <a href="#about-booleanconstants" class="ref">true</a> or not given then <span class="param">get input text</span> is enabled, otherwise it is disabled. Enabling <a href="#about-getinputtext" class="ref">get input text</a> may cause some of the keys on international keyboards to go "dead" --- that is, commands such as <a href="#about-keyispressed" class="ref">key is pressed</a> and <a href="#about-waitforkey" class="ref">wait for key</a> will stop showing that they are pressed. For that reason, <span class="param">get input text</span> is disabled by default. You don't need to use this command before calling <a href="#about-inputstring" class="ref">input string</a>.<br>
+			This command needs to be called before <a href="#about-getinputtext" class="ref">get input text</a> can be used. If the optional argument is <a href="#about-booleanconstants" class="ref">true</a> or not given then <span class="param">get input text</span> is enabled, otherwise it is disabled. Enabling <a href="#about-getinputtext" class="ref">get input text</a> may cause some of the keys on international keyboards ("combining" keys, which are usually punctuation keys) to go "dead" --- that is, commands such as <a href="#about-keyispressed" class="ref">key is pressed</a> and <a href="#about-waitforkey" class="ref">wait for key</a> will stop showing that they are pressed. For that reason, <span class="param">get input text</span> is disabled by default. You don't need to use this command before calling <a href="#about-inputstring" class="ref">input string</a>.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-getinputtext" class="ref">get input text</a></li></ul>
 		</tt></p>
@@ -8401,7 +8423,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">get input text (string id)</font></b><br>
-			Places in the specified string any text that the player has typed since the last tick. (The string will be empty if nothing has been.) Textual input must be enabled using <a href="#about-enableinputtext" class="ref">enable input text</a> before this command can be used! See that command for details. You will normally call this every tick in a loop and use <a href="#about-concatenatestrings" class="ref">concatenate strings</a> to get the players complete input. However it is much easier to call the <a href="#about-inputstring" class="ref">input string</a> function instead, which does this for you.<br>
+			Places in the specified string any text that the player has typed since the last tick. (The string will be empty if nothing has been.) Textual input must be enabled using <a href="#about-enableinputtext" class="ref">enable input text</a> before this command can be used! See that command for details. You will normally call this every tick in a loop and use <a href="#about-concatenatestrings" class="ref">concatenate strings</a> to read the player's complete input. However it is much easier to call the <a href="#about-inputstring" class="ref">input string</a> function instead, which does this for you.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-inputstring" class="ref">input string</a></li></ul>
 		</tt></p>
@@ -8517,7 +8539,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">hero levelled (who)</font></b><br>
-			Returns the number of levels the specified hero gained. <span class="param">who</span> is the hero's position in the battle party. If you want to use <span class="param">hero:Name</span> you should use <a href="#about-findhero" class="ref">find hero</a>. This command only applies to the most recent battle or <a href="#about-giveexperience" class="ref">give experience</a>, <a href="#about-setherolevel" class="ref">set hero level</a> or <a href="#about-setexperience" class="ref">set experience</a> command that targetted either this hero (or who party) - levels gained from previous battles or commands are forgotten. If the hero lost levels, the result is negative. In other words, this does not return true or false, but can be be used in an if statement like:<br>
+			Returns the number of levels the specified hero gained. <span class="param">who</span> is the hero's position in the battle party. If you want to use <span class="param">hero:Name</span> you should use <a href="#about-findhero" class="ref">find hero</a>. This command only applies to the most recent battle or <a href="#about-giveexperience" class="ref">give experience</a>, <a href="#about-setherolevel" class="ref">set hero level</a> or <a href="#about-setexperience" class="ref">set experience</a> command that targeted either this hero (or who party) - levels gained from previous battles or commands are forgotten. If the hero lost levels, the result is negative. In other words, this does not return true or false, but can be be used in an if statement like:<br>
 			<pre>give experience (party, 50)
 if (herolevelled (find hero (hero: Bob))) then (
   $31="Bob gained "
@@ -8632,6 +8654,8 @@ set timer (0, 300, 18, timer: game over, 0, timerflag: battle)</pre>
 <li>
 <a href="#about-setenemystat" class="ref">set enemy stat</a>, </li>
 <li>
+<a href="#about-enemyelementalresistasint" class="ref">enemy elemental resist as int</a>, </li>
+<li>
 <a href="#about-getherostat" class="ref">get hero stat</a>, </li>
 <li><a href="#about-setherostat" class="ref">set hero stat</a></li>
 </ul>
@@ -8651,6 +8675,21 @@ set timer (0, 300, 18, timer: game over, 0, timerflag: battle)</pre>
 <li>
 <a href="#about-getherostat" class="ref">get hero stat</a>, </li>
 <li><a href="#about-setherostat" class="ref">set hero stat</a></li>
+</ul>
+		</tt></p>
+		<a name="about-enemyelementalresistasint"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">enemy elemental resist as int (enemy, element)</font></b><br>
+			Gets the amount of damage that an enemy receives from attacks of a certain element, as a percentage of normal. The argument <span class="param">enemy</span> is the enemy's ID number. The argument <span class="param">element</span> is a number from 0 to whatever the highest enabled element is. The result is rounded to the nearest integer. For example, if the enemy takes 2.6% damage (1/40th normal), then the result will be 3.<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">When floating point support is added to HamsterSpeak, an alternative to this command will be added.<br clear="all">
+</div>
+<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-getenemystat" class="ref">get enemy stat</a>, </li>
+<li><a href="#about-herototalelementalresistasint" class="ref">hero total elemental resist as int</a></li>
 </ul>
 		</tt></p>
 		<a name="about-getenemyname"></a>
@@ -8753,7 +8792,7 @@ set timer (0, 300, 18, timer: game over, 0, timerflag: battle)</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">find enemy in formation (formation, enemy id, copy number)</font></b><br>
-			Searchs for an enemy in a formation, returning the slot number, or -1 if not found. <span class="param">copy number</span> is optional, use 0 or greater specify which enemy to return if there is more than one, or the constant <a href="#about-getcount" class="ref">get count</a>. The first (searching the slots sequentially) enemy copy is number 0. The number of specified enemies in the formation is returned if the constant get count is used. <span class="param">enemy id</span> can be either an enemy id, or the constant <span class="param">any enemy</span>, which searches for any enemy (the first enemy in the formation by default), or the total number of enemies with <a href="#about-getcount" class="ref">get count</a>.<br>
+			Searches for an enemy in a formation, returning the slot number, or -1 if not found. <span class="param">copy number</span> is optional, use 0 or greater specify which enemy to return if there is more than one, or the constant <a href="#about-getcount" class="ref">get count</a>. The first (searching the slots sequentially) enemy copy is number 0. The number of specified enemies in the formation is returned if the constant get count is used. <span class="param">enemy id</span> can be either an enemy id, or the constant <span class="param">any enemy</span>, which searches for any enemy (the first enemy in the formation by default), or the total number of enemies with <a href="#about-getcount" class="ref">get count</a>.<br>
 			<pre>plotscript, look at formation, formation, begin
   # In this example, we'll pick a random enemy from a formation, and check if there are any plips.
   # You'll need an enemy named plip to try this out, or change the "enemy:plip" constant below to something else
@@ -8873,7 +8912,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">formation set frequency (formation set)</font></b><br>
-			Returns the formation frequency (from 0 to 99) of a <span class="param">formation set</span> (1 to 255). Note that the frequency is not actually a probability (as a percentage) of a battle occuring each step, but is roughly the number of battles per 80 steps, spaced semi-randomly.<br>
+			Returns the formation frequency (from 0 to 99) of a <span class="param">formation set</span> (1 to 255). Note that the frequency is not actually a probability (as a percentage) of a battle occurring each step, but is roughly the number of battles per 80 steps, spaced semi-randomly.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-randomformation" class="ref">random formation</a></li></ul>
 		</tt></p>
@@ -9009,7 +9048,7 @@ write pass block(15,3,pass)
 		<p>
 		<tt>
 		<b><font color="yellow">set onetime (onetime,value)</font></b><br>
-			Sets the value of an NPC onetime use number. NPC onetime use behave like tags but are stored separately. The available constants are: <a href="#about-booleanconstants" class="ref">off</a>, <a href="#about-booleanconstants" class="ref">on</a>, <a href="#about-booleanconstants" class="ref">true</a>, or <a href="#about-booleanconstants" class="ref">false</a>.<br>
+			Sets the value of an NPC onetime use flag. NPC onetime use flags behave like tags but are stored separately. The available constants are: <a href="#about-booleanconstants" class="ref">off</a>, <a href="#about-booleanconstants" class="ref">on</a>, <a href="#about-booleanconstants" class="ref">true</a>, or <a href="#about-booleanconstants" class="ref">false</a>.<br>
 			
 			
 		</tt></p>
@@ -9017,7 +9056,7 @@ write pass block(15,3,pass)
 		<p>
 		<tt>
 		<b><font color="yellow">check onetime (onetime)</font></b><br>
-			A function that checks the value of an NPC onetime numer, and returns <a href="#about-booleanconstants" class="ref">true</a> if the one-time npc has already been used, and <a href="#about-booleanconstants" class="ref">false</a> if the onetime npc has not yet been used. It can be used in <a href="#about-if" class="ref">if</a> and <a href="#about-while" class="ref">while</a> statements. NPC onetime numbers are similar to tags, but stored separately.<br>
+			A function that checks the value of an NPC onetime flag, and returns <a href="#about-booleanconstants" class="ref">true</a> if the one-time npc has already been used, and <a href="#about-booleanconstants" class="ref">false</a> if the onetime npc has not yet been used. It can be used in <a href="#about-if" class="ref">if</a> and <a href="#about-while" class="ref">while</a> statements. NPC onetime flags are similar to tags, but stored separately.<br>
 			
 			
 		</tt></p>
@@ -9073,7 +9112,7 @@ write pass block(15,3,pass)
 		<p>
 		<tt>
 		<b><font color="yellow">number -- number</font></b><br>
-			Subtracts the second number from the first number and returns the result. It is neccisary to use the double minus so that HSPEAK.EXE can tell the difference between subtraction, and a minus sign that indicates a negative number. You can also write subtract(number,number)<br>
+			Subtracts the second number from the first number and returns the result. It is necessary to use the double minus so that HSPEAK.EXE can tell the difference between subtraction, and a minus sign that indicates a negative number. You can also write subtract(number,number)<br>
 			
 			
 		</tt></p>
@@ -9543,7 +9582,7 @@ Besides readability, there is one other important difference between using switc
 		<p>
 		<tt>
 		<b><font color="yellow">reset hero picture (who,type)</font></b><br>
-			Resets a hero's picture that was previously changed with <a href="#about-setheropicture" class="ref">set hero picture</a> back to the default picture. The first argument is the hero's position in the party. (use <a href="#about-findhero" class="ref">find hero</a> if you want refer to the hero by name). The second argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a>, which determines if you are changing the hero's battle picture or their walkabout picture. If the last argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.<br>
+			Resets a hero's picture that was previously changed with <a href="#about-setheropicture" class="ref">set hero picture</a> back to the default picture. The first argument is the hero's position in the party. (Use <a href="#about-findhero" class="ref">find hero</a> if you want refer to the hero by name). The second argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a>, which determines if you are changing the hero's battle picture or their walkabout picture. If the last argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-setheropicture" class="ref">set hero picture</a></li></ul>
 		</tt></p>
@@ -9837,7 +9876,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get NPC usable (who)</font></b><br>
-			Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), returns false if normal activation of that NPC has been suspended with <a href="#about-setnpcusable" class="ref">set NPC usable</a>. This is always true otherwise, even for NPC types which are not activateable.<br>
+			Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), returns false if normal activation of that NPC has been suspended with <a href="#about-setnpcusable" class="ref">set NPC usable</a>. This is always true otherwise, even for NPC types which are not activatable.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-setnpcusable" class="ref">set NPC usable</a></li></ul>
 		</tt></p>
@@ -9933,7 +9972,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set harm tile flash (color)</font></b><br>
-			Sets the color (from the master palette) which the screen flashs when you step on a harm tile. Call with no argument to disable the flash. The effect goes away if you change maps or fight a battle.<br>
+			Sets the color (from the master palette) which the screen flashes when you step on a harm tile. Call with no argument to disable the flash. The effect goes away if you change maps or fight a battle.<br>
 			
 			
 		</tt></p>
@@ -9997,7 +10036,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">rank in caterpillar (who)</font></b><br>
-			Searches through your active party to see if the specified hero is there, and returns the position int the walkabout caterpillar where the hero was found, or -1 if the hero was not found. Use the names defined in your HSI file in the format hero:name. This is particularaly useful if you need to use a command like walk hero but you are not sure which position the hero is in.<br>
+			Searches through your active party to see if the specified hero is there, and returns the position int the walkabout caterpillar where the hero was found, or -1 if the hero was not found. Use the names defined in your HSI file in the format hero:name. This is particularly useful if you need to use a command like walk hero but you are not sure which position the hero is in.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-findhero" class="ref">find hero</a></li></ul>
 		</tt></p>
@@ -10073,7 +10112,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set hero level (who, level, forgetspells)</font></b><br>
-			A command that sets a hero's current level. The first argument is the position of the hero you want to change in your party as as returned by <a href="#about-findhero" class="ref">find hero</a>. You can specify any hero in the active or reserve party and any (non-negative) level (even above the level cap). Unlike old workarounds, this command teachs the hero any spells they would have learnt by that level and correctly sets the experience to next levelup (experience gained to the current next level is lost). You can also decrease the hero's level, which will cause spells to be forgotten, unless the optional 3rd argument (defaulting to true) is set as false.<br>
+			A command that sets a hero's current level. The first argument is the position of the hero you want to change in your party as as returned by <a href="#about-findhero" class="ref">find hero</a>. You can specify any hero in the active or reserve party and any (non-negative) level (even above the level cap). Unlike old workarounds, this command teaches the hero any spells they would have learnt by that level and correctly sets the experience to next level-up (experience gained to the current next level is lost). You can also decrease the hero's level, which will cause spells to be forgotten, unless the optional 3rd argument (defaulting to true) is set as false.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -10089,7 +10128,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set experience (who, experience, allowforget)</font></b><br>
-			Sets a hero's total experience and updates their experience level, stats and spell list. The argument is the position of the hero you want to check in your party as as returned by <a href="#about-findhero" class="ref">find hero</a>. To decrease a hero's level without forgetting spells which are learnt at a certain experience level, pass false as the optional third argument. Heroes won't level beyond the level cap (which is 99 usually), though you can temporially raise the cap using <a href="#about-setlevelcap" class="ref">set level cap</a> to get around this.<br>
+			Sets a hero's total experience and updates their experience level, stats and spell list. The argument is the position of the hero you want to check in your party as as returned by <a href="#about-findhero" class="ref">find hero</a>. To decrease a hero's level without forgetting spells which are learnt at a certain experience level, pass false as the optional third argument. Heroes won't level beyond the level cap (which is 99 usually), though you can temporarily raise the cap using <a href="#about-setlevelcap" class="ref">set level cap</a> to get around this.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -10121,7 +10160,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">hero base elemental resist as int (who, element)</font></b><br>
-			Gets the 'intrinsic' amount of damage that a hero receives from attacks of a certain element, as a percentage of normal. (That is, the value entered in the 'Elemental Resistances' menu in Custom. Equipment elemental modifiers are added onto this value.) The argument <span class="param">who</span> is the hero's position in the party, as returned by <a href="#about-findhero" class="ref">find hero</a>. The argument <span class="param">element</span> is a number from 0 to whatever the highest enabled element is. The result is rounded to the nearest integer. For example, if the hero takes 2.5% damage (1/40 normal), then the result will be 3.<div style="background-color:#EFF;" class="note">
+			Gets the 'intrinsic' amount of damage that a hero receives from attacks of a certain element, as a percentage of normal. (That is, the value entered in the 'Elemental Resistances' menu in Custom. Equipment elemental modifiers are added onto this value.) The argument <span class="param">who</span> is the hero's position in the party, as returned by <a href="#about-findhero" class="ref">find hero</a>. The argument <span class="param">element</span> is a number from 0 to whatever the highest enabled element is. The result is rounded to the nearest integer. For example, if the hero takes 2.6% damage (1/40 normal), then the result will be 3.<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">When floating point support is added to HamsterSpeak, an alternative to this command will be added.<br clear="all">
 </div>
 <br>
@@ -10147,7 +10186,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">hero total elemental resist as int (who, element)</font></b><br>
-			Gets the amount of damage that a hero receives from attacks of a certain element, as a percentage of normal. The argument <span class="param">who</span> is the hero's position in the party, as returned by <a href="#about-findhero" class="ref">find hero</a>. The argument <span class="param">element</span> is a number from 0 to whatever the highest enabled element is. The result is rounded to the nearest integer. For example, if the hero takes 2.5% damage (1/40 normal), then the result will be 3. This is the value calculated from the hero's 'intrinsic' resistances combined with the equipment they are wearing.<div style="background-color:#EFF;" class="note">
+			Gets the amount of damage that a hero receives from attacks of a certain element, as a percentage of normal. The argument <span class="param">who</span> is the hero's position in the party, as returned by <a href="#about-findhero" class="ref">find hero</a>. The argument <span class="param">element</span> is a number from 0 to whatever the highest enabled element is. The result is rounded to the nearest integer. For example, if the hero takes 2.6% damage (1/40 normal), then the result will be 3. This is the value calculated from the hero's 'intrinsic' resistances combined with the equipment they are wearing.<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">When floating point support is added to HamsterSpeak, an alternative to this command will be added.<br clear="all">
 </div>
 <br>
@@ -10190,7 +10229,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set no HP level up restore (state)</font></b><br>
-			Sets whether or not a hero regains full HP after a levelup. If the argument is <a href="#about-booleanconstants" class="ref">off</a> then HP is restored on a levelup. If the argument is <a href="#about-booleanconstants" class="ref">on</a> then the hero's HP is not restored on a levelup.<br>
+			Sets whether or not a hero regains full HP after a level-up. If the argument is <a href="#about-booleanconstants" class="ref">off</a> then HP is restored on a level-up. If the argument is <a href="#about-booleanconstants" class="ref">on</a> then the hero's HP is not restored on a level-up.<br>
 			
 			
 		</tt></p>
@@ -10198,7 +10237,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set no MP level up restore (state)</font></b><br>
-			Sets whether or not a hero regains full MP after a levelup. If the argument is <a href="#about-booleanconstants" class="ref">off</a> then MP is restored on a levelup. If the argument is <a href="#about-booleanconstants" class="ref">on</a> then the hero's MP is not restored on a levelup.<br>
+			Sets whether or not a hero regains full MP after a level-up. If the argument is <a href="#about-booleanconstants" class="ref">off</a> then MP is restored on a level-up. If the argument is <a href="#about-booleanconstants" class="ref">on</a> then the hero's MP is not restored on a level-up.<br>
 			
 			
 		</tt></p>
@@ -10302,7 +10341,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">delete save (slot)</font></b><br>
-			Deletes a saved game in the specified save slot (1 to 32, only 1 to 4 appear on the builtin menus). The save will no longer be visible on the load game menu or loadable with <a href="#about-loadfromslot" class="ref">load from slot</a>. However, <a href="#about-importglobals" class="ref">import globals</a> can still be used to read globals out of the slot.<br>
+			Deletes a saved game in the specified save slot (1 to 32, only 1 to 4 appear on the built-in menus). The save will no longer be visible on the load game menu or loadable with <a href="#about-loadfromslot" class="ref">load from slot</a>. However, <a href="#about-importglobals" class="ref">import globals</a> can still be used to read globals out of the slot.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-saveinslot" class="ref">save in slot</a></li></ul>
 		</tt></p>
@@ -10359,7 +10398,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">run script by ID (id, argument1, argument2, argument3...)</font></b><br>
-			The <span class="param">run script by id</span> allows you to run a script using its ID. The advantage of this as opposed to just calling the script directly is that the ID may be stored in a variable, or it could be the function return value of another script. Arguments after the ID will be passed to the script. The script can also return a value as normal. A runtime error is displayed and -1 is returned if the script does not exist. You can pass up to 31 arguments to the script.<div style="background-color:#EFF;" class="note">
+			The <span class="param">run script by id</span> allows you to run a script using its ID. The advantage of this as opposed to just calling the script directly is that the ID may be stored in a variable, or it could be the function return value of another script. Arguments after the ID will be passed to the script. The script can also return a value as normal. A run-time error is displayed and -1 is returned if the script does not exist. You can pass up to 31 arguments to the script.<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">No check on the correct number of arguments can be performed, so default arguments are not used.<br clear="all">
 </div>
 <br>
@@ -10552,7 +10591,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">milliseconds</font></b><br>
-			Use to measure time intervals accurately. Subtract two values returned by milliseconds at different times to find the number of ms (1000ths of a second) elapsed in between. A single value is useless (the computer's uptime or any random value).<br>
+			Use to measure time intervals accurately. Subtract two values returned by milliseconds at different times to find the number of ms (1000ths of a second) elapsed in between. A single value is useless (the computer's up-time or any random value).<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-microseconds" class="ref">microseconds</a></li></ul>
 		</tt></p>
@@ -11113,7 +11152,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 765 commands in this file, of which 57 are only references to other commands.</p>
+	<p>Stats: There are 767 commands in this file, of which 57 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

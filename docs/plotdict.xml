@@ -54,7 +54,7 @@ Case 1: Full command definition
   				Example: move hero to x
   <description> - This is a paragraph (or more) of text describing what the
   				  command does, and how to use it. Use <lb/> to put paragraphs
-  				  in, and <p></p> when refering to a parameter (to avoid user
+  				  in, and <p></p> when referring to a parameter (to avoid user
   				  confusion) No HTML is allowed (at this time) Example: Well, it
   				  would be pretty long...
   <example>* - Finally, most commands should have some sort of example on how to
@@ -106,7 +106,7 @@ everything out 10000000000 times. They are also indented properly for this file.
 
 #=====
 
-Which reminds me: Indentation. For each "level" you go down in the heirarchy,
+Which reminds me: Indentation. For each "level" you go down in the hierarchy,
 you indent once. Many code specific editors will maintain this indentation level
 for until you explicitly change it, so it isn't difficult. Notepad users will
 have to do it manually, but you MUST do it. Remember: 1 indent = 1 tab.
@@ -164,7 +164,7 @@ variable+=1 # add one to it</example>
 		<command id="defineconstant">
 			<canon>define constant (number,name)</canon>
 			<shortname>define constant</shortname>
-			<description>Creates a global constant. The first argument is the number that the constant will represent, and the second argument is the name of the constant. Use constants to replace commonly used numbers with friendly names. The following constants have been delacred for you in PLOTSRC.HSD:<lb /><ref>zero</ref> <ref>one</ref> <ref>two</ref> <ref>three</ref> <ref>four</ref> <ref>five</ref> <ref>six</ref> <ref>seven</ref> <ref>eight</ref> <ref>nine</ref> <ref>ten</ref> <ref>false</ref> <ref>true</ref> <ref>off</ref> <ref>on</ref> <ref>north</ref> <ref>east</ref> <ref>south</ref> <ref>west</ref> <ref>up</ref> <ref>down</ref> <ref>left</ref> <ref>right</ref> <ref>upkey</ref> <ref>downkey</ref> <ref>leftkey</ref> <ref>rightkey</ref> <ref>usekey</ref> <ref>cancelkey</ref> <ref>menukey</ref> <ref>anykey</ref> <ref>me</ref> <ref>none</ref> <ref>autonumber</ref> <ref>currentstat</ref> <ref>maximumstat</ref> <ref>northwall</ref> <ref>eastwall</ref> <ref>southwall</ref> <ref>westwall</ref> <ref>vehiclea</ref> <ref>vehiclea</ref> <ref>harmtile</ref> <ref>overheadtile</ref></description>
+			<description>Creates a global constant. The first argument is the number that the constant will represent, and the second argument is the name of the constant. Use constants to replace commonly used numbers with friendly names. The following constants have been declared for you in PLOTSRC.HSD:<lb /><ref>zero</ref> <ref>one</ref> <ref>two</ref> <ref>three</ref> <ref>four</ref> <ref>five</ref> <ref>six</ref> <ref>seven</ref> <ref>eight</ref> <ref>nine</ref> <ref>ten</ref> <ref>false</ref> <ref>true</ref> <ref>off</ref> <ref>on</ref> <ref>north</ref> <ref>east</ref> <ref>south</ref> <ref>west</ref> <ref>up</ref> <ref>down</ref> <ref>left</ref> <ref>right</ref> <ref>upkey</ref> <ref>downkey</ref> <ref>leftkey</ref> <ref>rightkey</ref> <ref>usekey</ref> <ref>cancelkey</ref> <ref>menukey</ref> <ref>anykey</ref> <ref>me</ref> <ref>none</ref> <ref>autonumber</ref> <ref>currentstat</ref> <ref>maximumstat</ref> <ref>northwall</ref> <ref>eastwall</ref> <ref>southwall</ref> <ref>westwall</ref> <ref>vehiclea</ref> <ref>vehicleb</ref> <ref>harmtile</ref> <ref>overheadtile</ref></description>
 		</command>
 		<command id="include">
 			<canon>include, filename</canon>
@@ -228,7 +228,7 @@ wait for NPC (2) # wait until he&apos;s done</example>
 			<canon>wait for camera</canon>
 			<shortname>wait for camera</shortname>
 			<description>Wait for the camera to stop panning after a <ref>pancamera</ref> or <ref>focuscamera</ref> command.</description>
-			<example>pan camera (left,10) # show the villan 10 tiles off screen
+			<example>pan camera (left,10) # show the villain 10 tiles off screen
 wait for camera # wait until he&apos;s on screen</example>
 		</command>
 		<command id="waitforall">
@@ -318,7 +318,7 @@ resume NPC walls # back to mortality...</example>
 		<command id="suspendcaterpillar">
 			<canon>suspend caterpillar</canon>
 			<shortname>suspend caterpillar</shortname>
-			<description>Stops your other heroes from following the leader. This is useful when you want to control them individually with <ref>walkhero</ref> commands. In earlier versions this was misspelled as suspend catapillar. The old spelling still works for backwards compatability.</description>
+			<description>Stops your other heroes from following the leader. This is useful when you want to control them individually with <ref>walkhero</ref> commands. In earlier versions this was misspelled as suspend catapillar. The old spelling still works for backwards compatibility.</description>
 			<example>suspend caterpillar # cutscene
 # move heroes, probably fight a battle or two...
 resume caterpillar # normal game again.</example>
@@ -326,7 +326,7 @@ resume caterpillar # normal game again.</example>
 		<command id="resumecaterpillar">
 			<canon>resume caterpillar</canon>
 			<shortname>resume caterpillar</shortname>
-			<description>Reverses the <ref>suspendcaterpillar</ref> command, and makes your other heroes follow the leader as normal. In earlier versions this was misspelled as resume catapillar. The old spelling still works for backwards compatability.</description>
+			<description>Reverses the <ref>suspendcaterpillar</ref> command, and makes your other heroes follow the leader as normal. In earlier versions this was misspelled as resume catapillar. The old spelling still works for backwards compatibility.</description>
 			<example c="suspendcaterpillar" />
 		</command>
 		<command id="suspendcatapillar">
@@ -342,7 +342,7 @@ resume caterpillar # normal game again.</example>
 		<command id="suspendrandomenemies">
 			<canon>suspend random enemies</canon>
 			<shortname>suspend random enemies</shortname>
-			<description>Prevents enemies from attacking your party while walking over tiles that can normally spawn random battles. This is useful to prevent battles from interrupting a plotscript. In earlier versions, this was misspelled as suspend random enemys. The old spelling still works for backwards compatability.</description>
+			<description>Prevents enemies from attacking your party while walking over tiles that can normally spawn random battles. This is useful to prevent battles from interrupting a plotscript. In earlier versions, this was misspelled as suspend random enemys. The old spelling still works for backwards compatibility.</description>
 			<example>suspend random enemies # no battles for now
 walk hero (me, up, 10) # cross pit of evil monsters of doom
 resume random enemies # back to normal</example>
@@ -350,7 +350,7 @@ resume random enemies # back to normal</example>
 		<command id="resumerandomenemies">
 			<canon>resume random enemies</canon>
 			<shortname>resume random enemies</shortname>
-			<description>Undoes the <ref>suspendrandomenemies</ref> command and allows random battles to occur as normal. In earlier versions, this was misspelled as resume random enemys. The old spelling still works for backwards compatability.</description>
+			<description>Undoes the <ref>suspendrandomenemies</ref> command and allows random battles to occur as normal. In earlier versions, this was misspelled as resume random enemys. The old spelling still works for backwards compatibility.</description>
 			<example c="suspendrandomenemies" />
 		</command>
 		<command id="suspendrandomenemys">
@@ -434,12 +434,12 @@ play song (get ambient music)</example>
 			<description>Makes the specified hero move in the specified direction for the specified number of tiles. The first argument tells who to move. Use <ref>me</ref> or numbers 0-3. The second argument is the direction. Use the constants: <ref>north</ref>, <ref>south</ref>, <ref>east</ref>, <ref>west</ref>, <ref>up</ref>, <ref>down</ref>, <ref>left</ref>, or <ref>right</ref>. The third argument is the number of tiles to move. If you leave out the third argument, the hero will move one tile. Walk hero is usually used with the <ref>waitforhero</ref> command. You should normally use the <ref>suspendplayer</ref> command before moving heroes, and if you want to move heroes other than the leader, you should use the <ref>suspendcaterpillar</ref> command.</description>
 			<example>suspend player # stop player
 walk hero(me,up,3) # move him up 3 tiles
-resume player # ok, done</example>
+resume player # OK, done</example>
 		</command>
 		<command id="setherodirection">
 			<canon>set hero direction (who, direction)</canon>
 			<shortname>set hero direction</shortname>
-			<description>Makes the specified hero face in the specified direction. The hero is specified by their rank in the walkabout caterpillar, 0-3. The following constants are avaialable for direction: <ref>north</ref>, <ref>south</ref>, <ref>east</ref>, <ref>west</ref>, <ref>up</ref>, <ref>down</ref>, <ref>left</ref>, or <ref>right</ref>.</description>
+			<description>Makes the specified hero face in the specified direction. The hero is specified by their rank in the walkabout caterpillar, 0-3. The following constants are available for direction: <ref>north</ref>, <ref>south</ref>, <ref>east</ref>, <ref>west</ref>, <ref>up</ref>, <ref>down</ref>, <ref>left</ref>, or <ref>right</ref>.</description>
 			<example>set hero direction (me,right) # face right</example>
 		</command>
 		<command id="setheroframe">
@@ -602,7 +602,7 @@ end</example>
 		<command id="npcatspot">
 			<canon>NPC at spot (x, y, number)</canon>
 			<shortname>NPC at spot</shortname>
-			<description>This command returns a reference to the NPC at the given X and Y coordinate, in tiles, on the map. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom-most NPC, which is number 0). <ref>false</ref> is returned if there is no NPC there, or <p>number</p> is too large (greater than or equal to the number of NPCs). You can also pass the constant <ref>getcount</ref> for the third argument to return the total number of npcs on that tile. <note>An NPC's tile is the tile its top left corner is on.</note></description>
+			<description>This command returns a reference to the NPC at the given X and Y coordinate, in tiles, on the map. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom-most NPC, which is number 0). <ref>false</ref> is returned if there is no NPC there, or <p>number</p> is too large (greater than or equal to the number of NPCs). You can also pass the constant <ref>getcount</ref> for the third argument to return the total number of NPCs on that tile. <note>An NPC's tile is the tile its top left corner is on.</note></description>
 			<seealso>
 				<ref>npcreference</ref>
 			</seealso>
@@ -610,7 +610,7 @@ end</example>
 		<command id="npcatpixel">
 			<canon>NPC at pixel (x, y, number)</canon>
 			<shortname>NPC at pixel</shortname>
-			<description>This command returns a reference to the NPC at the given X and Y coordinate in pixels. That is, any npc whose 20x20 sprite (including transparent sections) is over that pixel. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom-most NPC, which is number 0). <ref>false</ref> is returned if there is no NPC there, or <p>number</p> is too large (greater than or equal to the number of NPCs). You can also pass the constant <ref>getcount</ref> for the third argument to return the total number of npcs on that tile.</description>
+			<description>This command returns a reference to the NPC at the given X and Y coordinate in pixels. That is, any npc whose 20x20 sprite (including transparent sections) is over that pixel. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom-most NPC, which is number 0). <ref>false</ref> is returned if there is no NPC there, or <p>number</p> is too large (greater than or equal to the number of NPCs). You can also pass the constant <ref>getcount</ref> for the third argument to return the total number of NPCs on that tile.</description>
 			<seealso>
 				<ref>npcreference</ref>
 			</seealso>
@@ -623,7 +623,7 @@ end</example>
 		<command id="setnpcdirection">
 			<canon>set NPC direction (who, direction)</canon>
 			<shortname>set NPC direction</shortname>
-			<description>Makes the specified NPC face in the specified direction. The following constants are avaialable for direction: <ref>north</ref>, <ref>south</ref>, <ref>east</ref>, <ref>west</ref>, <ref>up</ref>, <ref>down</ref>, <ref>left</ref>, or <ref>right</ref>. You can use either an <ref>npcreference</ref> or the NPC&apos;s ID number to specify which NPC will turn.</description>
+			<description>Makes the specified NPC face in the specified direction. The following constants are available for direction: <ref>north</ref>, <ref>south</ref>, <ref>east</ref>, <ref>west</ref>, <ref>up</ref>, <ref>down</ref>, <ref>left</ref>, or <ref>right</ref>. You can use either an <ref>npcreference</ref> or the NPC&apos;s ID number to specify which NPC will turn.</description>
 		</command>
 		<command id="setnpcframe">
 			<canon>set NPC frame (who, frame)</canon>
@@ -666,7 +666,7 @@ end</example>
 		<command id="getnpcid">
 			<canon>get NPC ID (reference)</canon>
 			<shortname>get NPC ID</shortname>
-			<description>This command is the opposite of <ref>npcreference</ref>. If you give get NPC ID a reference to an NPC it will return the NPC&amp;s ID. If the NPC ID is not valid then <p>get NPC ID</p> will return -1<lb/><note>In some older versions, This command was useful if you needed to do an <ref>alternpc</ref> or a <ref>setnpcspeed</ref> on an NPC that you are working with by reference. This is no longer neccisary, because both those commands now support NPC references (although they still affect every copy of that NPC on the map)</note></description>
+			<description>This command is the opposite of <ref>npcreference</ref>. If you give get NPC ID a reference to an NPC it will return the NPC&amp;s ID. If the NPC ID is not valid then <p>get NPC ID</p> will return -1<lb/><note>In some older versions, This command was useful if you needed to do an <ref>alternpc</ref> or a <ref>setnpcspeed</ref> on an NPC that you are working with by reference. This is no longer necessary, because both those commands now support NPC references (although they still affect every copy of that NPC on the map)</note></description>
 		</command>
 		<command id="npccopycount">
 			<canon>NPC copy count (ID)</canon>
@@ -956,7 +956,7 @@ end</example>
 		<command id="giveexperience">
 			<canon>give experience (hero,amount)</canon>
 			<shortname>give experience</shortname>
-			<description>Gives experience to either a hero by position in party (use result returned by <ref>findhero</ref> command if you want to give experience by name or ID) or the whole party, if the constant <ref>party</ref> is passed as first argument. If you give experience to the whole party, then it will be split amongst the heroes as it is in battle; dead heroes get experience depending on whether the "Dead heroes gain share of experience" general bitset is set, and swapped out heroes gain according to the options in the Battle System Options menu. This command can cause heroes to level up and learn spells but does not inform the player or trigger any effects. See <ref>herolevelled</ref> and <ref>spellslearned</ref> for dealing with this. This command can give negative experience, but it will never cause a hero to delevel. You should use <ref>setexperience</ref> to remove experience in a way that allows delevelling. You can't give experience to heroes with level equal to or greater than the level cap (which is 99 usually), though you can temporially raise the cap using <ref>setlevelcap</ref> to get around this.</description>
+			<description>Gives experience to either a hero by position in party (use result returned by <ref>findhero</ref> command if you want to give experience by name or ID) or the whole party, if the constant <ref>party</ref> is passed as first argument. If you give experience to the whole party, then it will be split amongst the heroes as it is in battle; dead heroes get experience depending on whether the "Dead heroes gain share of experience" general bitset is set, and swapped out heroes gain according to the options in the Battle System Options menu. This command can cause heroes to level up and learn spells but does not inform the player or trigger any effects. See <ref>herolevelled</ref> and <ref>spellslearned</ref> for dealing with this. This command can give negative experience, but it will never cause a hero to delevel. You should use <ref>setexperience</ref> to remove experience in a way that allows delevelling. You can't give experience to heroes with level equal to or greater than the level cap (which is 99 usually), though you can temporarily raise the cap using <ref>setlevelcap</ref> to get around this.</description>
 		</command>
 	</section>
 	<section title="Items">
@@ -981,32 +981,32 @@ end</example>
 		<command id="unequip">
 			<canon>unequip (hero,slot)</canon>
 			<shortname>unequip</shortname>
-			<description>Removes the item that the specified hero has equipped in the specified slot. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (use <ref>findhero</ref> if you want to refer to the hero by name). The second argument is the slot to unequip. Use the number 1-5 or the names slot:weapon, slot:armor, etc.</description>
+			<description>Removes the item that the specified hero has equipped in the specified slot. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (Use <ref>findhero</ref> if you want to refer to the hero by name). The second argument is the slot to unequip. Use the slot:weapon, slot:armor, etc. constants from your .hsi file.</description>
 		</command>
 		<command id="forceequip">
 			<canon>force equip (hero,slot,item)</canon>
 			<shortname>force equip</shortname>
-			<description>Forces a hero to equip an item, even if it is not normally equipable. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (use <ref>findhero</ref> if you want to refer to the hero by name). The second argument is the slot to equip. Use the number 1-5 or the names slot:weapon, slot:armor, etc. The third argument is the item to equip. you can use the item&apos;s number or the item:name constants from your .HSI file.</description>
+			<description>Forces a hero to equip an item, even if it is not normally equipable. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (Use <ref>findhero</ref> if you want to refer to the hero by name). The second argument is the slot to equip. Use the slot:weapon, slot:armor, etc. constants from your .hsi file. The third argument is the item to equip. You can use the item&apos;s number or the item:name constants from your .hsi file.</description>
 		</command>
 		<command id="equipwhere">
 			<canon>equip where (hero,item)</canon>
 			<shortname>equip where</shortname>
-			<description>Returns the number of the slot that a hero can equip an item in, or false if the hero cannot equip it. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (use <ref>findhero</ref> if you want to refer to the hero by name). The second argument is the item to check the equipability of. you can use the item&apos;s number or the item:name constants from your .HSI file.</description>
+			<description>Returns the number of the slot that a hero can equip an item in, or false if the hero cannot equip it. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (Use <ref>findhero</ref> if you want to refer to the hero by name). The second argument is the item to check the equipability of. you can use the item&apos;s number or the item:name constants from your .HSI file.</description>
 		</command>
 		<command id="checkequipment">
 			<canon>check equipment (hero,slot)</canon>
 			<shortname>check equipment</shortname>
-			<description>Returns the number of the item that the specified hero has equipped in the specified slot, or -1 if there is nothing equipped there. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (use <ref>findhero</ref> if you want to refer to the hero by name). The second argument is the slot to check. Use the number 1-5 or the names slot:weapon, slot:armor, etc.</description>
+			<description>Returns the number of the item that the specified hero has equipped in the specified slot, or -1 if there is nothing equipped there. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (Use <ref>findhero</ref> if you want to refer to the hero by name). The second argument is the slot to check. Use the slot:weapon, slot:armor, etc. constants from your .hsi file.</description>
 		</command>
 		<command id="getdefaultweapon">
 			<canon>get default weapon (hero)</canon>
 			<shortname>get default weapon</shortname>
-			<description>Returns the number of the item that the specified hero uses as a default weapon when no other weapon is equipped. The argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (use <ref>findhero</ref> if you want to refer to the hero by name).</description>
+			<description>Returns the number of the item that the specified hero uses as a default weapon when no other weapon is equipped. The argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (Use <ref>findhero</ref> if you want to refer to the hero by name).</description>
 		</command>
 		<command id="setdefaultweapon">
 			<canon>set default weapon (hero,item)</canon>
 			<shortname>set default weapon</shortname>
-			<description>Changes the item that the specified hero uses as a default weapon when no other weapon is equipped. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (use <ref>findhero</ref> if you want to refer to the hero by name). The second argument is the item to use as the new default weapon. you can use the item&apos;s number or the item:name constants from your .HSI file.</description>
+			<description>Changes the item that the specified hero uses as a default weapon when no other weapon is equipped. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (Use <ref>findhero</ref> if you want to refer to the hero by name). The second argument is the item to use as the new default weapon. you can use the item&apos;s number or the item:name constants from your .HSI file.</description>
 		</command>
 		<command id="iteminslot">
 			<canon>item in slot (slot)</canon>
@@ -1055,7 +1055,7 @@ end</example>
 		<command id="useiteminslot">
 			<canon>use item in slot(slot)</canon>
 			<shortname>use item in slot</shortname>
-			<description>Attempts to use whatever item is in a given inventory slot as if you had selected it in the items menu. The argument is the inventory slot number. This command will only work if there is actually an itme in the slot, and the item can be used outside of battle, either as a cure attack, or to teach a hero a spell, or to trigger a text box. The return value is true if you successfully used the item, or false if the item was unusable or the user cancelled.</description>
+			<description>Attempts to use whatever item is in a given inventory slot as if you had selected it in the items menu. The argument is the inventory slot number. This command will only work if there is actually an item in the slot, and the item can be used outside of battle, either as a cure attack, or to teach a hero a spell, or to trigger a text box. The return value is true if you successfully used the item, or false if the item was unusable or the user cancelled.</description>
 			<seealso>
 				<ref>useitem</ref>
 			</seealso>
@@ -1105,7 +1105,7 @@ end</example>
 		<command id="setambientmusic">
 			<canon>set ambient music (song)</canon>
 			<shortname>set ambient music</shortname>
-			<description>Plays a song and sets it as the map's ambient music, that is the song that is played when you enter the map (if you call <ref>savemapstate</ref> with mapstate:all or mapstate:mapsettings) or after a textbox with 'restore music' set. Unless you save the mapstate, the effect goes away if you change maps or fight a battle. You can use the constants <ref>song:silence</ref> and <ref>song:sameaslastmap</ref> for <p>song</p>, the deault is silence.</description>
+			<description>Plays a song and sets it as the map's ambient music, that is the song that is played when you enter the map (if you call <ref>savemapstate</ref> with mapstate:all or mapstate:mapsettings) or after a textbox with 'restore music' set. Unless you save the mapstate, the effect goes away if you change maps or fight a battle. You can use the constants <ref>song:silence</ref> and <ref>song:sameaslastmap</ref> for <p>song</p>, the default is silence.</description>
 			<seealso>
 				<ref>playsong</ref>
 			</seealso>
@@ -1121,7 +1121,7 @@ end</example>
 		<command id="setmusicvolume">
 			<canon>set music volume (volume)</canon>
 			<shortname>set music volume</shortname>
-			<description>Sets the volume at which music is played, <p>volume</p> being a number on the scale of 0 to 255, 0 being silent, 255 loudest. If you want to manipulate the sound (e.g. fading out the music) you should take note of the original vulume that the player has set and return to this. The default volume is not the maximum 255, so you should not hardcode fades to begin at volume 255. <note>The actual resolution at which the volume is set is not necessarily 1/255th of full volume but depends on your implementation. For example, music_sdl only supports 128 different volume levels. So if you set the volume and then read it back, it might change slightly.</note></description>
+			<description>Sets the volume at which music is played, <p>volume</p> being a number on the scale of 0 to 255, 0 being silent, 255 loudest. If you want to manipulate the sound (e.g. fading out the music) you should take note of the original volume that the player has set and return to this. The default volume is not the maximum 255, so you should not hardcode fades to begin at volume 255. <note>The actual resolution at which the volume is set is not necessarily 1/255th of full volume but depends on your implementation. For example, music_sdl only supports 128 different volume levels. So if you set the volume and then read it back, it might change slightly.</note></description>
 		</command>
 		<command id="getmusicvolume">
 			<canon>get music volume</canon>
@@ -1275,7 +1275,7 @@ end</example>
 		<command id="canlearnspell">
 			<canon>can learn spell (hero,attack)</canon>
 			<shortname>can learn spell</shortname>
-			<description>Checks to see if a hero is capable of learning a spell from an item or from the teach spell command. The first argument is the hero&apos;s position in the party (as returned by <ref>findhero</ref>). The second argument is the attack to check for. You can use the names defined in your .HSI file in the form atk:attackname (You may also use the attack&apos;s ID number. This is the number you see in the attack editor + 1). If the hero can learn the spell, can learn spell will return <ref>true</ref>. If the hero cannot learn the spell (or learns it from levelups), it will return <ref>false</ref></description>
+			<description>Checks to see if a hero is capable of learning a spell from an item or from the teach spell command. The first argument is the hero&apos;s position in the party (as returned by <ref>findhero</ref>). The second argument is the attack to check for. You can use the names defined in your .HSI file in the form atk:attackname (You may also use the attack&apos;s ID number. This is the number you see in the attack editor + 1). If the hero can learn the spell, can learn spell will return <ref>true</ref>. If the hero cannot learn the spell (or learns it from level-ups), it will return <ref>false</ref></description>
 		</command>
 		<command id="spellslearnt">
 			<canon>spells learnt (hero,number)</canon>
@@ -1285,7 +1285,7 @@ end</example>
 		<command id="spellslearned">
 			<canon>spells learned (hero,number)</canon>
 			<shortname>spells learned</shortname>
-			<description>Returns the id numbers (+1) of spells the hero learned from the last battle or <ref>giveexperience</ref>, <ref>setherolevel</ref> or <ref>setexperience</ref> command that targetted either this hero or the whole party. If the second argument is <ref>getcount</ref> then the number of spells that the hero learned is returned. Pass 0 for number to get the first spell learnt, 1 to get the second, etc. You can use a loop and strings to list to the player all the spells a hero learned:
+			<description>Returns the id numbers (+1) of spells the hero learned from the last battle or <ref>giveexperience</ref>, <ref>setherolevel</ref> or <ref>setexperience</ref> command that targeted either this hero or the whole party. If the second argument is <ref>getcount</ref> then the number of spells that the hero learned is returned. Pass 0 for number to get the first spell learnt, 1 to get the second, etc. You can use a loop and strings to list to the player all the spells a hero learned:
 			<note>If you want to use this command with attack ID numbers, you must add 1 to the ID number.</note>
 			</description>
 			<example># the following script uses strings 0, 1, 2 for its use (will be overwritten)
@@ -1315,7 +1315,7 @@ end</example>
 		<command id="mapcure">
 			<canon>map cure (attack, target, attacker)</canon>
 			<shortname>map cure</shortname>
-			<description>Uses an attack on a hero outside of battle as if you had used it from an item or cast it as a spell. In spite of the name, it works for both cure spells and damage spells. The first argument, <p>attack</p> is name of the attack from your HSI file in the form atk:name. (You may also use the attack&apos;s ID number. This is the number you see in the attack editor + 1.) The second argument, <p>target</p> is the position in the party of the hero to cure (or harm). The third optional argument, <p>attacker</p> is the position in the party of the hero who is using the attack. If this argument is ommitted or set to -1, then the average stats of the active party will be used, just like when the attack is used from an item. The return value is <ref>true</ref> if the cure/attack succeeded, and <ref>false</ref> if it did nothing.
+			<description>Uses an attack on a hero outside of battle as if you had used it from an item or cast it as a spell. In spite of the name, it works for both cure spells and damage spells. The first argument, <p>attack</p> is name of the attack from your HSI file in the form atk:name. (You may also use the attack&apos;s ID number. This is the number you see in the attack editor + 1.) The second argument, <p>target</p> is the position in the party of the hero to cure (or harm). The third optional argument, <p>attacker</p> is the position in the party of the hero who is using the attack. If this argument is omitted or set to -1, then the average stats of the active party will be used, just like when the attack is used from an item. The return value is <ref>true</ref> if the cure/attack succeeded, and <ref>false</ref> if it did nothing.
 			<note>The <p>map cure</p> command replaces the old command <p>outside battle cure</p> which had a bug which required you to use <p>atk:name -- 1</p></note>
 			</description>
 		</command>
@@ -1375,7 +1375,7 @@ end</example>
 		</command>
 	</section>
 	<section title="String Functions">
-		<description>When refering to a position in a string, <p>position</p> is a 1-based index into the string, not a 0-based index. For example, given a string "ABCDEFG", position=3 is "C", not "D". This is because the string commands are based on BASIC string commands, which are 1-based. This also means that position 0 is invalid. Beware!<lb/>There is no limit on string length (previously, they were limited to 40 characters, the width of the screen)</description>
+		<description>When referring to a position in a string, <p>position</p> is a 1-based index into the string, not a 0-based index. For example, given a string "ABCDEFG", position=3 is "C", not "D". This is because the string commands are based on BASIC string commands, which are 1-based. This also means that position 0 is invalid. Beware!<lb/>There is no limit on string length (previously, they were limited to 40 characters, the width of the screen)</description>
 		<command id="showstring">
 			<canon>show string (ID)</canon>
 			<shortname>show string</shortname>
@@ -1407,7 +1407,7 @@ end</example>
 		<command id="numberfromstring">
 			<canon>number from string (ID, default)</canon>
 			<shortname>number from string</shortname>
-			<description>Try to read the string specified by <p>ID</p> as a number and return it. Blank spaces at the beginning of the string will be ignored, and thre string can start with a - sign for negatives. No other characters except numerical digits can appear in the string. You can also provide an optional default value that will be returned if the string is not a valid number (for example, if it contains a non-numeric letter)</description>
+			<description>Try to read the string specified by <p>ID</p> as a number and return it. Blank spaces at the beginning of the string will be ignored, and the string can start with a - sign for negatives. No other characters except numerical digits can appear in the string. You can also provide an optional default value that will be returned if the string is not a valid number (for example, if it contains a non-numeric letter)</description>
 			<seealso><ref>appendnumber</ref></seealso>
 		</command>
 		<command id="copystring">
@@ -1438,7 +1438,7 @@ end</example>
 		<command id="deletechar">
 			<canon>delete char (ID, position)</canon>
 			<shortname>delete char</shortname>
-			<description>This deletes the character at <p>postion</p> in string #<p>ID</p>, causing all the following characters to move over a slot. The first position of the string is 1, and the last position of the string is the same as <ref>stringlength</ref>.</description>
+			<description>This deletes the character at <p>position</p> in string #<p>ID</p>, causing all the following characters to move over a slot. The first position of the string is 1, and the last position of the string is the same as <ref>stringlength</ref>.</description>
 		</command>
 		<command id="asciifromstring">
 			<canon>ascii from string (ID, position)</canon>
@@ -1536,7 +1536,7 @@ get hero name (1, find hero (leader))
 		<command id="stringcolor">
 			<canon>string color (ID, foreground color, background color)</canon>
 			<shortname>string color</shortname>
-			<description>Changes the color of a string previously displayed with <ref>showstringat</ref> or <ref>centerstringat</ref>. Foreground color is the colour of the text itself. Background color has no meaning for style:outline strings (the outline is always black). For style:flat strings, it is the color of the solid background if 1 to 255, or causes no background if 0. If you ommit <p>background color</p>, the background will be transparent.</description>
+			<description>Changes the color of a string previously displayed with <ref>showstringat</ref> or <ref>centerstringat</ref>. Foreground color is the colour of the text itself. Background color has no meaning for style:outline strings (the outline is always black). For style:flat strings, it is the color of the solid background if 1 to 255, or causes no background if 0. If you omit <p>background color</p>, the background will be transparent.</description>
 		</command>
 		<command id="positionstring">
 			<canon>positionstring (ID, x, y)</canon>
@@ -1607,7 +1607,7 @@ get hero name (1, find hero (leader))
 		<command id="closemenu">
 			<canon>close menu(menu handle)</canon>
 			<shortname>close menu</shortname>
-			<description>Close a menu. The argument is a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref> or <ref>topmenu</ref>)</description>
+			<description>Close a menu. The argument is a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref> or <ref>top menu</ref>)</description>
 		</command>
 		<command id="topmenu">
 			<canon>top menu</canon>
@@ -1983,7 +1983,7 @@ end</example>
 		<command id="setmenutextalign">
 			<canon>set menu text align(menu handle, new align)</canon>
 			<shortname>set menu text align</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Change the text alingment of the menu. The <p>new align</p> can be <p>align:center</p>, <p>align:left</p> or <p>align:right</p></description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Change the text alignment of the menu. The <p>new align</p> can be <p>align:center</p>, <p>align:left</p> or <p>align:right</p></description>
 			<seealso>
 				<ref>getmenutextalign</ref>
 			</seealso>
@@ -2396,7 +2396,7 @@ end
 		<command id="setspritetrans">
 			<canon>set sprite trans (handle, drawtransparent)</canon>
 			<shortname>set sprite trans</shortname>
-			<description>Given a sprite slice <p>handle</p>, sets whether it should be drawn with transparency (that is, color 0 is transparent). All sprites default to transparent, so you are unlikey to have any use for this command.</description>
+			<description>Given a sprite slice <p>handle</p>, sets whether it should be drawn with transparency (that is, color 0 is transparent). All sprites default to transparent, so you are unlikely to have any use for this command.</description>
 			<seealso>
 				<ref>getspritetrans</ref>
 			</seealso>
@@ -2414,7 +2414,7 @@ end
 			<description>Search for an important slice using a lookup code, and return a handle to it, or 0 if it is not found. User defined slice lookup codes are defined in the slice collection editor. You will find them as constants in your .hsi file with sli: prefixes. There are also some special slice lookup codes with names that start with sl: prefixes. You can optionally specify a slice for the <p>lookup slice</p> command to start searching from, but if you do not, the whole slice tree will be searched.
 				<note>Although the user-defined slice lookup codes are always safe to use for any purpose, There is a lot of potential mischief that you can do with a handle to a special slice. If you do anything dubious, like reordering, reparenting, or god forbid freeing the special slice, don't expect your scripts to work in later versions of the engine, which are likely to impose stricter restrictions! You may parent your own slices to these special slices, but moving special slices around is definitely a bad idea.</note>
 				<note>Be aware that when there is more than one slice with the same lookup code, the <p>lookup slice</p> command will only return the first one it finds in a depth-first search. If you need to find multiple slices with the same lookup code, you must search manually using <ref>getslicelookup</ref>.</note>
-			You may <ref>setparent</ref> a slice to a map layer to make it move with the camera just like heros and NPCs do.
+			You may <ref>setparent</ref> a slice to a map layer to make it move with the camera just like heroes and NPCs do.
 			</description>
 <example>
 # this example loads a saved slice collection,
@@ -2428,7 +2428,7 @@ sl := lookup slice(sli:my special slice, collection)
 # this example gets a handle to the portrait of the currently displaying
 # text box (if any) and allows you to manipulate it.
 variable(portrait)
-protrait = lookup slice(sl:textbox portrait)
+portrait = lookup slice(sl:textbox portrait)
 if(portrait) then(
   replace portrait sprite(portrait, 5)
 )
@@ -2975,7 +2975,7 @@ The example above creates a container and then puts two hero sprites inside it, 
 		<command id="getslicevisible">
 			<canon>get slice visible (handle)</canon>
 			<shortname>get slice visible</shortname>
-			<description>Returns the visibilty setting for slice <p>handle</p>.  This is true for visible, or false for invisible. Note that this only tells you if the slice is set to be invisible, it will not tell you if the slice is invisible for some other reason, such as if it is offscreen, or if it is the child of an invisible parent or grandparent.</description>
+			<description>Returns the visibility setting for slice <p>handle</p>.  This is true for visible, or false for invisible. Note that this only tells you if the slice is set to be invisible, it will not tell you if the slice is invisible for some other reason, such as if it is offscreen, or if it is the child of an invisible parent or grandparent.</description>
 		</command>
 		<command id="setsliceclipping">
 			<canon>set slice clipping (handle, clip)</canon>
@@ -3557,7 +3557,7 @@ end
 		<command id="setrectfuzziness">
 			<canon>set rect fuzziness (handle, percent)</canon>
 			<shortname>set rect fuzziness</shortname>
-			<description>Sets the percentage translucency of a rect slice <p>handle</p> to <p>percent</p>. A <p>percent</p> of 0 is equivalent to <ref>setrecttrans</ref>(handle, trans:hollow), a <p>percent</p> of 100 is equivalent to <ref>setrecttrans</ref>(handle, trans:opaque), and anything inbetween 1 and 99 implicitly does <ref>setrecttrans</ref>(handle, trans:fuzzy) as well as setting the percentage.</description>
+			<description>Sets the percentage translucency of a rect slice <p>handle</p> to <p>percent</p>. A <p>percent</p> of 0 is equivalent to <ref>setrecttrans</ref>(handle, trans:hollow), a <p>percent</p> of 100 is equivalent to <ref>setrecttrans</ref>(handle, trans:opaque), and anything in between 1 and 99 implicitly does <ref>setrecttrans</ref>(handle, trans:fuzzy) as well as setting the percentage.</description>
 			<seealso>
 				<ref>setrecttrans</ref>
 				<ref>getrecttrans</ref>
@@ -3937,7 +3937,7 @@ end
 		<command id="writezone">
 			<canon>write zone (zone id, x, y, value)</canon>
 			<shortname>write zone</shortname>
-			<description>Sets whether the tile at (<p>x,y</p>) is part of the specified zone. <p>zone id</p> is an ID number from 1 to 9999, and <p>value</p> is intrepreted as either <p>true</p> (non-zero) or <p>false</p> (zero).<note>Only up to 15 zones may overlap at each tile. If you try to place 16 zones at one tile, write zone will fail, returning <ref>false</ref>. Normally it returns <ref>true</ref>. If you choose to "Show all warnings" in General Game Settings in Custom, you will also get a warning message.</note><note>Changes to zones are not stored in saved games, and are erased when you leave the map unless "Tile Data State" is saved when leaving in the General Map Data settings.</note></description>
+			<description>Sets whether the tile at (<p>x,y</p>) is part of the specified zone. <p>zone id</p> is an ID number from 1 to 9999, and <p>value</p> is interpreted as either <p>true</p> (non-zero) or <p>false</p> (zero).<note>Only up to 15 zones may overlap at each tile. If you try to place 16 zones at one tile, write zone will fail, returning <ref>false</ref>. Normally it returns <ref>true</ref>. If you choose to "Show all warnings" in General Game Settings in Custom, you will also get a warning message.</note><note>Changes to zones are not stored in saved games, and are erased when you leave the map unless "Tile Data State" is saved when leaving in the General Map Data settings.</note></description>
 			<seealso>
 				<ref>readzone</ref>
 			</seealso>
@@ -4186,7 +4186,7 @@ end
 			<shortname>key is pressed</shortname>
 			<description>Returns <ref>true</ref> if the keyboard key with the specified scancode is being pressed (either held down or pressed since last tick), or <ref>false</ref> if it is not. The argument is a scancode, NOT the <ref>upkey</ref>, <ref>downkey</ref>, etc used with <ref>waitforkey</ref>. An extra include file, <p>scancode.hsi</p>, is provided which you should <ref>include</ref> in order to use the following scancode constants.<lb/>
 
-<note>Since Zenzizenic, keyboard support has been improved: some keys (such as key:down and key:numpad 2) which were previously the same scancode are now distinct (read scancode.hsi for the complete list). However for backwards compatibility, the old behaviour is emulated (so you won't be able to tell the two keys apart even if recompile and use the new, distinct scancodes) unless you turn on the &quot;Enable better scancodes for scripts&quot; Preference Bitset in the General Game Settings menu.</note>
+<note>Since Zenzizenzic, keyboard support has been improved: some keys (such as key:down and key:numpad 2) which were previously the same scancode are now distinct (read scancode.hsi for the complete list). However for backwards compatibility, the old behaviour is emulated (so you won't be able to tell the two keys apart even if recompile and use the new, distinct scancodes) unless you turn on the &quot;Enable better scancodes for scripts&quot; Preference Bitset in the General Game Settings menu.</note>
 <note>You can't rely on the behaviour of the caps-, scroll- and num-lock keys. They might report on/off state instead of pressed/not pressed, depending on the graphics backend, operating system, and engine version.</note>
 <note>You can NOT wait for the player to press a key by continually polling <p>key is pressed</p> unless you stick a <ref>wait</ref> in your <ref>while</ref> loop. That's because <p>key is pressed</p> does not return real time data, but the state of the keyboard at the beginning of the current game tick.</note>
 			    Keyboard scan codes:
@@ -4425,7 +4425,7 @@ end
 		<command id="herolevelled">
 			<canon>hero levelled (who)</canon>
 			<shortname>hero levelled</shortname>
-			<description>Returns the number of levels the specified hero gained. <p>who</p> is the hero's position in the battle party. If you want to use <p>hero:Name</p> you should use <ref>findhero</ref>. This command only applies to the most recent battle or <ref>giveexperience</ref>, <ref>setherolevel</ref> or <ref>setexperience</ref> command that targetted either this hero (or who party) - levels gained from previous battles or commands are forgotten. If the hero lost levels, the result is negative. In other words, this does not return true or false, but can be be used in an if statement like:</description>
+			<description>Returns the number of levels the specified hero gained. <p>who</p> is the hero's position in the battle party. If you want to use <p>hero:Name</p> you should use <ref>findhero</ref>. This command only applies to the most recent battle or <ref>giveexperience</ref>, <ref>setherolevel</ref> or <ref>setexperience</ref> command that targeted either this hero (or who party) - levels gained from previous battles or commands are forgotten. If the hero lost levels, the result is negative. In other words, this does not return true or false, but can be be used in an if statement like:</description>
 			<example>give experience (party, 50)
 if (herolevelled (find hero (hero: Bob))) then (
   $31="Bob gained "
@@ -4597,7 +4597,7 @@ set timer (0, 300, 18, timer: game over, 0, timerflag: battle)</example>
 		<command id="findenemyinformation">
 			<canon>find enemy in formation (formation, enemy id, copy number)</canon>
 			<shortname>find enemy in formation</shortname>
-			<description>Searchs for an enemy in a formation, returning the slot number, or -1 if not found. <p>copy number</p> is optional, use 0 or greater specify which enemy to return if there is more than one, or the constant <ref>getcount</ref>. The first (searching the slots sequentially) enemy copy is number 0. The number of specified enemies in the formation is returned if the constant get count is used. <p>enemy id</p> can be either an enemy id, or the constant <p>any enemy</p>, which searches for any enemy (the first enemy in the formation by default), or the total number of enemies with <ref>getcount</ref>.</description>
+			<description>Searches for an enemy in a formation, returning the slot number, or -1 if not found. <p>copy number</p> is optional, use 0 or greater specify which enemy to return if there is more than one, or the constant <ref>getcount</ref>. The first (searching the slots sequentially) enemy copy is number 0. The number of specified enemies in the formation is returned if the constant get count is used. <p>enemy id</p> can be either an enemy id, or the constant <p>any enemy</p>, which searches for any enemy (the first enemy in the formation by default), or the total number of enemies with <ref>getcount</ref>.</description>
 			<example>plotscript, look at formation, formation, begin
   # In this example, we'll pick a random enemy from a formation, and check if there are any plips.
   # You'll need an enemy named plip to try this out, or change the "enemy:plip" constant below to something else
@@ -4705,7 +4705,7 @@ end
 		<command id="formationsetfrequency">
 			<canon>formation set frequency (formation set)</canon>
 			<shortname>formation set frequency</shortname>
-			<description>Returns the formation frequency (from 0 to 99) of a <p>formation set</p> (1 to 255). Note that the frequency is not actually a probability (as a percentage) of a battle occuring each step, but is roughly the number of battles per 80 steps, spaced semi-randomly.</description>
+			<description>Returns the formation frequency (from 0 to 99) of a <p>formation set</p> (1 to 255). Note that the frequency is not actually a probability (as a percentage) of a battle occurring each step, but is roughly the number of battles per 80 steps, spaced semi-randomly.</description>
 			<seealso>
 				<ref>randomformation</ref>
 			</seealso>
@@ -4801,12 +4801,12 @@ write pass block(15,3,pass)
 		<command id="setonetime">
 			<canon>set onetime (onetime,value)</canon>
 			<shortname>set onetime</shortname>
-			<description>Sets the value of an NPC onetime use number. NPC onetime use behave like tags but are stored separately. The available constants are: <ref>off</ref>, <ref>on</ref>, <ref>true</ref>, or <ref>false</ref>.</description>
+			<description>Sets the value of an NPC onetime use flag. NPC onetime use flags behave like tags but are stored separately. The available constants are: <ref>off</ref>, <ref>on</ref>, <ref>true</ref>, or <ref>false</ref>.</description>
 		</command>
 		<command id="checkonetime">
 			<canon>check onetime (onetime)</canon>
 			<shortname>check onetime</shortname>
-			<description>A function that checks the value of an NPC onetime numer, and returns <ref>true</ref> if the one-time npc has already been used, and <ref>false</ref> if the onetime npc has not yet been used. It can be used in <ref>if</ref> and <ref>while</ref> statements. NPC onetime numbers are similar to tags, but stored separately.</description>
+			<description>A function that checks the value of an NPC onetime flag, and returns <ref>true</ref> if the one-time npc has already been used, and <ref>false</ref> if the onetime npc has not yet been used. It can be used in <ref>if</ref> and <ref>while</ref> statements. NPC onetime flags are similar to tags, but stored separately.</description>
 		</command>
 	</section>
 	<section title="Working with Variables">
@@ -4836,7 +4836,7 @@ write pass block(15,3,pass)
 		<command id="subtract">
 			<canon>number -- number</canon>
 			<shortname>subtract</shortname>
-			<description>Subtracts the second number from the first number and returns the result. It is neccisary to use the double minus so that HSPEAK.EXE can tell the difference between subtraction, and a minus sign that indicates a negative number. You can also write subtract(number,number)</description>
+			<description>Subtracts the second number from the first number and returns the result. It is necessary to use the double minus so that HSPEAK.EXE can tell the difference between subtraction, and a minus sign that indicates a negative number. You can also write subtract(number,number)</description>
 		</command>
 		<command id="multiply">
 			<canon>number * number</canon>
@@ -5192,7 +5192,7 @@ Besides readability, there is one other important difference between using switc
 		<command id="resetheropicture">
 			<canon>reset hero picture (who,type)</canon>
 			<shortname>reset hero picture</shortname>
-			<description>Resets a hero&apos;s picture that was previously changed with <ref>setheropicture</ref> back to the default picture. The first argument is the hero's position in the party. (use <ref>findhero</ref> if you want refer to the hero by name). The second argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref>, which determines if you are changing the hero's battle picture or their walkabout picture. If the last argument is left out, <ref>outsidebattle</ref> is assumed.</description>
+			<description>Resets a hero&apos;s picture that was previously changed with <ref>setheropicture</ref> back to the default picture. The first argument is the hero's position in the party. (Use <ref>findhero</ref> if you want refer to the hero by name). The second argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref>, which determines if you are changing the hero's battle picture or their walkabout picture. If the last argument is left out, <ref>outsidebattle</ref> is assumed.</description>
 			<seealso>
 				<ref>setheropicture</ref>
 			</seealso>
@@ -5375,7 +5375,7 @@ end</example>
 		<command id="getnpcusable">
 			<canon>get NPC usable (who)</canon>
 			<shortname>get NPC usable</shortname>
-			<description>Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), returns false if normal activation of that NPC has been suspended with <ref>setnpcusable</ref>. This is always true otherwise, even for NPC types which are not activateable.</description>
+			<description>Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), returns false if normal activation of that NPC has been suspended with <ref>setnpcusable</ref>. This is always true otherwise, even for NPC types which are not activatable.</description>
 			<seealso>
 				<ref>setnpcusable</ref>
 			</seealso>
@@ -5439,7 +5439,7 @@ end</example>
 		<command id="setharmtileflash">
 			<canon>set harm tile flash (color)</canon>
 			<shortname>set harm tile flash</shortname>
-			<description>Sets the color (from the master palette) which the screen flashs when you step on a harm tile. Call with no argument to disable the flash. The effect goes away if you change maps or fight a battle.</description>
+			<description>Sets the color (from the master palette) which the screen flashes when you step on a harm tile. Call with no argument to disable the flash. The effect goes away if you change maps or fight a battle.</description>
 		</command>
 		<command id="setfootoffset">
 			<canon>set foot offset (offset)</canon>
@@ -5482,7 +5482,7 @@ end</example>
 		<command id="rankincaterpillar">
 			<canon>rank in caterpillar (who)</canon>
 			<shortname>rank in caterpillar</shortname>
-			<description>Searches through your active party to see if the specified hero is there, and returns the position int the walkabout caterpillar where the hero was found, or -1 if the hero was not found. Use the names defined in your HSI file in the format hero:name. This is particularaly useful if you need to use a command like walk hero but you are not sure which position the hero is in.</description>
+			<description>Searches through your active party to see if the specified hero is there, and returns the position int the walkabout caterpillar where the hero was found, or -1 if the hero was not found. Use the names defined in your HSI file in the format hero:name. This is particularly useful if you need to use a command like walk hero but you are not sure which position the hero is in.</description>
 			<seealso>
 				<ref>findhero</ref>
 			</seealso>
@@ -5541,7 +5541,7 @@ end</example>
 		<command id="setherolevel">
 			<canon>set hero level (who, level, forgetspells)</canon>
 			<shortname>set hero level</shortname>
-			<description>A command that sets a hero&apos;s current level. The first argument is the position of the hero you want to change in your party as as returned by <ref>findhero</ref>. You can specify any hero in the active or reserve party and any (non-negative) level (even above the level cap). Unlike old workarounds, this command teachs the hero any spells they would have learnt by that level and correctly sets the experience to next levelup (experience gained to the current next level is lost). You can also decrease the hero&apos;s level, which will cause spells to be forgotten, unless the optional 3rd argument (defaulting to true) is set as false.</description>
+			<description>A command that sets a hero&apos;s current level. The first argument is the position of the hero you want to change in your party as as returned by <ref>findhero</ref>. You can specify any hero in the active or reserve party and any (non-negative) level (even above the level cap). Unlike old workarounds, this command teaches the hero any spells they would have learnt by that level and correctly sets the experience to next level-up (experience gained to the current next level is lost). You can also decrease the hero&apos;s level, which will cause spells to be forgotten, unless the optional 3rd argument (defaulting to true) is set as false.</description>
 			<seealso>
 				<ref>getherolevel</ref>
 				<ref>herolevelled</ref>
@@ -5552,7 +5552,7 @@ end</example>
 		<command id="setexperience">
 			<canon>set experience (who, experience, allowforget)</canon>
 			<shortname>set experience</shortname>
-			<description>Sets a hero&apos;s total experience and updates their experience level, stats and spell list. The argument is the position of the hero you want to check in your party as as returned by <ref>findhero</ref>. To decrease a hero&apos;s level without forgetting spells which are learnt at a certain experience level, pass false as the optional third argument. Heroes won't level beyond the level cap (which is 99 usually), though you can temporially raise the cap using <ref>setlevelcap</ref> to get around this.</description>
+			<description>Sets a hero&apos;s total experience and updates their experience level, stats and spell list. The argument is the position of the hero you want to check in your party as as returned by <ref>findhero</ref>. To decrease a hero&apos;s level without forgetting spells which are learnt at a certain experience level, pass false as the optional third argument. Heroes won't level beyond the level cap (which is 99 usually), though you can temporarily raise the cap using <ref>setlevelcap</ref> to get around this.</description>
 			<seealso>
 				<ref>setherolevel</ref>
 				<ref>totalexperience</ref>
@@ -5624,12 +5624,12 @@ end</example>
 		<command id="setnohpleveluprestore">
 			<canon>set no HP level up restore (state)</canon>
 			<shortname>set no HP level up restore</shortname>
-			<description>Sets whether or not a hero regains full HP after a levelup. If the argument is <ref>off</ref> then HP is restored on a levelup. If the argument is <ref>on</ref> then the hero&apos;s HP is not restored on a levelup.</description>
+			<description>Sets whether or not a hero regains full HP after a level-up. If the argument is <ref>off</ref> then HP is restored on a level-up. If the argument is <ref>on</ref> then the hero&apos;s HP is not restored on a level-up.</description>
 		</command>
 		<command id="setnompleveluprestore">
 			<canon>set no MP level up restore (state)</canon>
 			<shortname>set no MP level up restore</shortname>
-			<description>Sets whether or not a hero regains full MP after a levelup. If the argument is <ref>off</ref> then MP is restored on a levelup. If the argument is <ref>on</ref> then the hero&apos;s MP is not restored on a levelup.</description>
+			<description>Sets whether or not a hero regains full MP after a level-up. If the argument is <ref>off</ref> then MP is restored on a level-up. If the argument is <ref>on</ref> then the hero&apos;s MP is not restored on a level-up.</description>
 		</command>
 		<command id="setinnnorevivemode">
 			<canon>set inn no revive mode (state)</canon>
@@ -5706,7 +5706,7 @@ end</example>
 		<command id="deletesave">
 			<canon>delete save (slot)</canon>
 			<shortname>delete save</shortname>
-			<description>Deletes a saved game in the specified save slot (1 to 32, only 1 to 4 appear on the builtin menus). The save will no longer be visible on the load game menu or loadable with <ref>loadfromslot</ref>. However, <ref>importglobals</ref> can still be used to read globals out of the slot.</description>
+			<description>Deletes a saved game in the specified save slot (1 to 32, only 1 to 4 appear on the built-in menus). The save will no longer be visible on the load game menu or loadable with <ref>loadfromslot</ref>. However, <ref>importglobals</ref> can still be used to read globals out of the slot.</description>
 			<seealso>
 				<ref>saveinslot</ref>
 			</seealso>
@@ -5752,7 +5752,7 @@ end</example>
 		<command id="runscriptbyid">
 			<canon>run script by ID (id, argument1, argument2, argument3...)</canon>
 			<shortname>run script by ID</shortname>
-			<description>The <p>run script by id</p> allows you to run a script using its ID. The advantage of this as opposed to just calling the script directly is that the ID may be stored in a variable, or it could be the function return value of another script. Arguments after the ID will be passed to the script. The script can also return a value as normal. A runtime error is displayed and -1 is returned if the script does not exist. You can pass up to 31 arguments to the script.<note>No check on the correct number of arguments can be performed, so default arguments are not used.</note></description>
+			<description>The <p>run script by id</p> allows you to run a script using its ID. The advantage of this as opposed to just calling the script directly is that the ID may be stored in a variable, or it could be the function return value of another script. Arguments after the ID will be passed to the script. The script can also return a value as normal. A run-time error is displayed and -1 is returned if the script does not exist. You can pass up to 31 arguments to the script.<note>No check on the correct number of arguments can be performed, so default arguments are not used.</note></description>
 			<example>plotscript,scriptcallingtest,begin
   show value (run script by id (@sum, 1, 2, 3))
 end
@@ -5895,7 +5895,7 @@ end</example>
 		<command id="milliseconds">
 			<canon>milliseconds</canon>
 			<shortname>milliseconds</shortname>
-			<description>Use to measure time intervals accurately. Subtract two values returned by milliseconds at different times to find the number of ms (1000ths of a second) elapsed in between. A single value is useless (the computer's uptime or any random value).</description>
+			<description>Use to measure time intervals accurately. Subtract two values returned by milliseconds at different times to find the number of ms (1000ths of a second) elapsed in between. A single value is useless (the computer's up-time or any random value).</description>
 			<seealso>
 				<ref>microseconds</ref>
 			</seealso>
