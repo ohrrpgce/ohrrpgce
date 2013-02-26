@@ -44,8 +44,10 @@ DECLARE sub formpics(ename() as string, form as Formation, egraphics() as Graphi
 
 DECLARE SUB load_item_names (item_strings() as string)
 DECLARE FUNCTION item_attack_name(n as integer) as string
-DECLARE SUB generate_item_edit_menu (menu() as string, itembuf() as integer, csr as integer, pt as integer, item_name as string, info_string as string, equip_types() as string, byref box_preview as string)
+DECLARE SUB generate_item_edit_menu (menu() as string, itembuf() as integer, item_name as string, info_string as string, equip_types() as string, byref box_preview as string)
 
+DECLARE SUB item_editor
+DECLARE SUB individual_item_editor(item_id as integer)
 DECLARE SUB item_editor_equipbits(itembuf() as integer)
 DECLARE SUB item_editor_elementals(itembuf() as integer)
 DECLARE SUB item_editor_init_new(itembuf() as integer)
@@ -1272,19 +1274,95 @@ SUB drawformsprites(form as Formation, egraphics() as GraphicPair, byval slot as
  NEXT
 END SUB
 
-SUB itemdata
-DIM a(dimbinsize(binITM)) as integer
+SUB item_editor
+ DIM item(maxMaxItems) as string
+ DIM menu() as string
+ DIM shaded() as bool
+
+ DIM state as MenuState
+ state.size = 24
+ state.first = -1
+ state.top = -1
+ state.last = gen(genMaxItem) + 1
+ state.need_update = YES
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "item_editor_pickitem"
+  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 AND state.pt >= 0 THEN
+   cropafter state.pt, gen(genMaxItem), 0, game + ".itm", getbinsize(binITM)
+   load_special_tag_caches
+   state.need_update = YES
+  END IF
+  usemenu state
+  intgrabber state.pt, -1, gen(genMaxItem) + 1
+  IF enter_or_space() THEN
+   IF state.pt = -1 THEN EXIT DO
+   IF state.pt = gen(genMaxItem) + 1 THEN
+    IF gen(genMaxItem) < maxMaxItems THEN
+     gen(genMaxItem) += 1
+     DIM itembuf(dimbinsize(binITM)) as integer
+     item_editor_init_new itembuf()
+     saveitemdata itembuf(), state.pt
+     state.need_update = YES
+    END IF
+   END IF
+   IF state.pt <= gen(genMaxItem) THEN
+    individual_item_editor state.pt
+    state.need_update = YES
+   END IF
+  END IF
+
+  IF state.need_update THEN
+   state.need_update = NO
+   state.last = gen(genMaxItem) + 1
+   load_item_names item()
+
+   REDIM shaded(-1 TO state.last)
+   FOR i as integer = LBOUND(shaded) TO UBOUND(shaded)
+    shaded(i) = NO
+   NEXT
+
+   REDIM menu(-1 TO state.last)
+   menu(-1) = "Return to Main Menu"
+   FOR i as integer = 0 TO gen(genMaxItem)
+    menu(i) = i & " " & item(i)
+   NEXT
+   IF gen(genMaxItem) < maxMaxItems THEN
+    menu(UBOUND(menu)) = "Add a new item"
+   ELSE
+    menu(UBOUND(menu)) = "No more items can be added"
+    shaded(UBOUND(menu)) = YES
+   END IF
+  END IF
+
+  clearpage dpage
+  standardmenu menu(), state, shaded(), 0, 0, dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+END SUB
+
+SUB individual_item_editor(item_id as integer)
+DIM itembuf(dimbinsize(binITM)) as integer
 DIM menu(20) as string
-DIM bmenu(40) as string
 DIM eqst(5) as string
 DIM max(18) as integer
 DIM min(18) as integer
-DIM frame as integer
-DIM item(maxMaxItems) as string
-DIM info as string
 DIM wep_img as GraphicPair 'This is only used in edititem
 DIM box_preview as string = "" 'This is only used in edititem
+DIM frame as integer
+DIM item_name as string
+DIM info as string
 'DIM ibitnames(-1 TO 59) as string
+
+DIM pt as integer = 0
+DIM tog as integer
+DIM need_update as integer = NO
 
 eqst(0) = "NEVER EQUIPPED"
 eqst(1) = "Weapon"
@@ -1292,84 +1370,9 @@ FOR i as integer = 0 TO 3
  eqst(i + 2) = readglobalstring(25 + i, "Armor" & i+1)
 NEXT i
 
-DIM csr as integer = 0
-DIM top as integer = -1
-DIM pt as integer = 0
-DIM tog as integer
-DIM need_update as integer = NO
-DIM ptr2 as integer
-DIM caption as string
-load_item_names item()
-setkeys
-DO
- setwait 55
- setkeys
- tog = tog XOR 1
- IF keyval(scESC) > 1 THEN EXIT DO
- IF keyval(scF1) > 1 THEN show_help "item_editor_pickitem"
- IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 AND csr >= 0 THEN
-  cropafter csr, gen(genMaxItem), 0, game + ".itm", getbinsize(binITM)
-  load_item_names item()
-  load_special_tag_caches
- END IF
- usemenu csr, top, -1, gen(genMaxItem) + 1, 23
- intgrabber csr, -1, gen(genMaxItem) + 1
- IF enter_or_space() THEN
-  IF csr = -1 THEN EXIT DO
-  IF csr = gen(genMaxItem) + 1 THEN
-   IF gen(genMaxItem) < maxMaxItems THEN
-    gen(genMaxItem) += 1
-    item_editor_init_new a()
-    saveitemdata a(), csr
-   END IF
-  END IF
-  IF csr <= gen(genMaxItem) THEN
-   GOSUB edititem
-   saveitemdata a(), csr
-   loaditemdata a(), csr
-   a(0) = LEN(item(csr))
-   FOR o as integer = 1 TO a(0)
-    a(o) = ASC(MID(item(csr), o, 1))
-   NEXT o
-   a(9) = LEN(info)
-   FOR o as integer = 10 TO 9 + a(9)
-    a(o) = ASC(MID(info, o - 9, 1))
-   NEXT o
-   saveitemdata a(), csr
-  END IF
- END IF
-
- clearpage dpage
- FOR i as integer = top TO top + 23
-  IF i <= gen(genMaxItem) + 1 THEN
-   textcolor uilook(uiMenuItem), 0
-   IF i = csr THEN textcolor uilook(uiSelectedItem + tog), 0
-   SELECT CASE i
-    CASE IS < 0
-     caption = "Return to Main Menu"
-    CASE IS > gen(genMaxItem)
-     IF gen(genMaxItem) < maxMaxItems THEN
-      caption = "Add a new item"
-     ELSE
-      caption = "No more items can be added"
-      textcolor uilook(uiDisabledItem), 0
-      IF i = csr THEN textcolor uilook(uiSelectedDisabled + tog), 0
-     END IF
-    CASE ELSE
-     caption = i & " " & item(i)
-   END SELECT
-   printstr caption, 0, (i - top) * 8, dpage
-  END IF
- NEXT i
- SWAP vpage, dpage
- setvispage vpage
- dowait
-LOOP
-EXIT SUB
-
-edititem:
-loaditemdata a(), csr
-info = readbadbinstring(a(), 9, 35, 0)
+loaditemdata itembuf(), item_id
+item_name = load_item_name(item_id, YES, YES)
+info = readbadbinstring(itembuf(), 9, 35, 0)
 
 menu(0) = "Back to Item Menu"
 menu(18) = "Stat Bonuses..."
@@ -1391,13 +1394,13 @@ max(13) = max_tag()
 max(14) = max_tag()
 max(15) = max_tag()
 
-loaditemdata a(), csr
-generate_item_edit_menu menu(), a(), csr, pt, item(csr), info, eqst(), box_preview
+loaditemdata itembuf(), item_id
+generate_item_edit_menu menu(), itembuf(), item_name, info, eqst(), box_preview
 
 IF wep_img.sprite THEN frame_unload @wep_img.sprite
 IF wep_img.pal    THEN palette16_unload @wep_img.pal
-wep_img.sprite = frame_load(5, a(52))
-wep_img.pal    = palette16_load(a(53), 5, a(52))
+wep_img.sprite = frame_load(5, itembuf(52))
+wep_img.pal    = palette16_load(itembuf(53), 5, itembuf(52))
 
 need_update = NO
 
@@ -1414,95 +1417,95 @@ DO
  IF pt = 17 THEN frame = 0
  IF enter_or_space() THEN
   IF pt = 0 THEN EXIT DO
-  IF a(49) > 0 THEN
+  IF itembuf(49) > 0 THEN
    IF pt = 16 THEN
-    xy_position_on_sprite wep_img, a(80), a(81), 0, 24, 24, "weapon handle position", "xy_weapon_handle"
+    xy_position_on_sprite wep_img, itembuf(80), itembuf(81), 0, 24, 24, "weapon handle position", "xy_weapon_handle"
     need_update = YES
    END IF
    IF pt = 17 THEN
-    xy_position_on_sprite wep_img, a(78), a(79), 1, 24, 24, "weapon handle position", "xy_weapon_handle"
+    xy_position_on_sprite wep_img, itembuf(78), itembuf(79), 1, 24, 24, "weapon handle position", "xy_weapon_handle"
     need_update = YES
    END IF
    IF pt = 18 THEN
-    item_editor_stat_bonuses a()
+    item_editor_stat_bonuses itembuf()
     need_update = YES
    END IF
    IF pt = 19 THEN
-    item_editor_elementals a()
+    item_editor_elementals itembuf()
    END IF
    'IF pt = 19 THEN
-   ' editbitset a(), 70, 23, ibitnames()
+   ' editbitset itembuf(), 70, 23, ibitnames()
    ' need_update = YES
    'END IF
    IF pt = 20 THEN
-    item_editor_equipbits a()
+    item_editor_equipbits itembuf()
     need_update = YES
    END IF
   END IF
   IF pt = 10 THEN '--palette picker
-   a(46 + (pt - 3)) = pal16browse(a(53), 5, a(52))
+   itembuf(46 + (pt - 3)) = pal16browse(itembuf(53), 5, itembuf(52))
    need_update = YES
   END IF
  END IF
  SELECT CASE pt
   CASE 1
-   strgrabber item(csr), 8
-   menu(1) = "Name:" + item(csr)
+   strgrabber item_name, 8
+   menu(1) = "Name:" + item_name
   CASE 2
    strgrabber info, 36
    menu(2) = "Info:" + info
   CASE 3, 6, 9, 10
-   IF intgrabber(a(46 + (pt - 3)), min(pt), max(pt)) THEN
+   IF intgrabber(itembuf(46 + (pt - 3)), min(pt), max(pt)) THEN
     need_update = YES
    END IF
   CASE 4, 5, 7
-   IF zintgrabber(a(46 + (pt - 3)), -1, max(pt)) THEN
+   IF zintgrabber(itembuf(46 + (pt - 3)), -1, max(pt)) THEN
     need_update = YES
    END IF
   CASE 8
-   IF xintgrabber(a(46 + (pt - 3)), 0, max(pt), -1, gen(genMaxTextbox) * -1) THEN
+   IF xintgrabber(itembuf(46 + (pt - 3)), 0, max(pt), -1, gen(genMaxTextbox) * -1) THEN
     need_update = YES
    END IF
   CASE 11
-   IF intgrabber(a(73), 0, 2) THEN
+   IF intgrabber(itembuf(73), 0, 2) THEN
     need_update = YES
    END IF
   CASE 12 TO 15
-   IF tag_grabber(a(74 + (pt - 12)), 0) THEN
+   IF tag_grabber(itembuf(74 + (pt - 12)), 0) THEN
     need_update = YES
     'Update cache
-    itemtags(csr).have_tag = a(74)
-    itemtags(csr).in_inventory_tag = a(75)
-    itemtags(csr).is_equipped_tag = a(76)
-    itemtags(csr).is_actively_equipped_tag = a(77)
+    itemtags(item_id).have_tag = itembuf(74)
+    itemtags(item_id).in_inventory_tag = itembuf(75)
+    itemtags(item_id).is_equipped_tag = itembuf(76)
+    itemtags(item_id).is_actively_equipped_tag = itembuf(77)
    END IF
  END SELECT
  IF need_update THEN
   need_update = NO
-  generate_item_edit_menu menu(), a(), csr, pt, item(csr), info, eqst(), box_preview
+  generate_item_edit_menu menu(), itembuf(), item_name, info, eqst(), box_preview
   IF wep_img.sprite THEN frame_unload @wep_img.sprite
   IF wep_img.pal    THEN palette16_unload @wep_img.pal
-  wep_img.sprite = frame_load(5, a(52))
-  wep_img.pal    = palette16_load(a(53), 5, a(52))
+  wep_img.sprite = frame_load(5, itembuf(52))
+  wep_img.pal    = palette16_load(itembuf(53), 5, itembuf(52))
  END IF
 
  clearpage dpage
  FOR i as integer = 0 TO 20
   textcolor uilook(uiMenuItem), 0
   IF pt = i THEN textcolor uilook(uiSelectedItem + tog), 0
-  IF (i >= 18 AND a(49) = 0) OR ((i = 16 OR i = 17) AND a(49) <> 1) THEN
+  IF (i >= 18 AND itembuf(49) = 0) OR ((i = 16 OR i = 17) AND itembuf(49) <> 1) THEN
    textcolor uilook(uiDisabledItem), 0
    IF pt = i THEN textcolor uilook(uiSelectedDisabled + tog), 0
   END IF
   printstr menu(i), 0, i * 8, dpage
  NEXT i
- IF a(49) = 1 THEN
+ IF itembuf(49) = 1 THEN
   frame_draw wep_img.sprite + 1 - frame, wep_img.pal, 280, 160,,,dpage
   textcolor uilook(uiMenuItem), 0
-  drawline 278 + a(78 + frame * 2),160 + a(79 + frame * 2),279 + a(78 + frame * 2), 160 + a(79 + frame * 2),14 + tog,dpage
-  drawline 280 + a(78 + frame * 2),158 + a(79 + frame * 2),280 + a(78 + frame * 2), 159 + a(79 + frame * 2),14 + tog,dpage
-  drawline 281 + a(78 + frame * 2),160 + a(79 + frame * 2),282 + a(78 + frame * 2), 160 + a(79 + frame * 2),14 + tog,dpage
-  drawline 280 + a(78 + frame * 2),161 + a(79 + frame * 2),280 + a(78 + frame * 2), 162 + a(79 + frame * 2),14 + tog,dpage
+  drawline 278 + itembuf(78 + frame * 2),160 + itembuf(79 + frame * 2),279 + itembuf(78 + frame * 2), 160 + itembuf(79 + frame * 2),14 + tog,dpage
+  drawline 280 + itembuf(78 + frame * 2),158 + itembuf(79 + frame * 2),280 + itembuf(78 + frame * 2), 159 + itembuf(79 + frame * 2),14 + tog,dpage
+  drawline 281 + itembuf(78 + frame * 2),160 + itembuf(79 + frame * 2),282 + itembuf(78 + frame * 2), 160 + itembuf(79 + frame * 2),14 + tog,dpage
+  drawline 280 + itembuf(78 + frame * 2),161 + itembuf(79 + frame * 2),280 + itembuf(78 + frame * 2), 162 + itembuf(79 + frame * 2),14 + tog,dpage
  END IF
  edgeprint box_preview, 0, 191, uilook(uiText), dpage
  SWAP vpage, dpage
@@ -1511,12 +1514,22 @@ DO
 LOOP
 IF wep_img.sprite THEN frame_unload @wep_img.sprite
 IF wep_img.pal    THEN palette16_unload @wep_img.pal
-RETRACE
+
+saveitemdata itembuf(), item_id
+loaditemdata itembuf(), item_id
+itembuf(0) = LEN(item_name)
+FOR o as integer = 1 TO itembuf(0)
+ itembuf(o) = ASC(MID(item_name, o, 1))
+NEXT o
+itembuf(9) = LEN(info)
+FOR o as integer = 10 TO 9 + itembuf(9)
+ itembuf(o) = ASC(MID(info, o - 9, 1))
+NEXT o
+saveitemdata itembuf(), item_id
 
 END SUB
 
-
-SUB generate_item_edit_menu (menu() as string, itembuf() as integer, csr as integer, pt as integer, item_name as string, info_string as string, equip_types() as string, byref box_preview as string)
+SUB generate_item_edit_menu (menu() as string, itembuf() as integer, item_name as string, info_string as string, equip_types() as string, byref box_preview as string)
  menu(1) = "Name:" & item_name
  menu(2) = "Info:" & info_string
  menu(3) = "Value: " & itembuf(46)
@@ -1555,7 +1568,6 @@ FUNCTION item_attack_name(n as integer) as string
 END FUNCTION
 
 SUB load_item_names (item_strings() as string)
- DIM i as integer
  FOR i as integer = 0 TO gen(genMaxItem)
   item_strings(i) = load_item_name(i, YES, YES)
  NEXT i

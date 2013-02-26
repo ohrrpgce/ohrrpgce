@@ -38,7 +38,7 @@ DECLARE SUB sprite (byval xw as integer, byval yw as integer, byref sets as inte
 DECLARE SUB importsong ()
 DECLARE SUB importsfx ()
 DECLARE SUB gendata ()
-DECLARE SUB itemdata ()
+DECLARE SUB item_editor ()
 DECLARE SUB formation_editor ()
 DECLARE SUB enemydata ()
 DECLARE SUB hero_editor ()
@@ -332,7 +332,7 @@ SUB main_editor_menu()
    IF state.pt = 3 THEN hero_editor
    IF state.pt = 4 THEN enemydata
    IF state.pt = 5 THEN attackdata
-   IF state.pt = 6 THEN itemdata
+   IF state.pt = 6 THEN item_editor
    IF state.pt = 7 THEN shopdata
    IF state.pt = 8 THEN formation_editor
    IF state.pt = 9 THEN text_box_editor
