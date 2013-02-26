@@ -1236,7 +1236,8 @@ FUNCTION getmapname (byval m as integer) as string
 END FUNCTION
 
 FUNCTION createminimap (map() as TileMap, tilesets() as TilesetData ptr, byref zoom as integer = -1) as Frame PTR
- 'if zoom is -1, calculate and store it
+ 'zoom = 1 is unzoomed, zoom = 20 is 1 pixel per tile.
+ 'If zoom is -1, calculate and store it
 
  IF zoom = -1 THEN
   'auto-detect best zoom
@@ -1255,13 +1256,15 @@ FUNCTION createminimap (map() as TileMap, tilesets() as TilesetData ptr, byref z
  DIM y as integer
  DIM block as integer
  DIM pixel as integer
+ DIM prng_state as uinteger = 0
  
  FOR j as integer = 0 TO zoom * map(0).high - 1
   FOR i as integer = 0 TO zoom * map(0).wide - 1
    tx = i \ zoom
    ty = j \ zoom
-   x = INT(((i MOD zoom) + rando()) * fraction)
-   y = INT(((j MOD zoom) + rando()) * fraction)
+   'Use INT for floor, not CINT
+   x = INT(((i MOD zoom) + simple_rand(prng_state)) * fraction)
+   y = INT(((j MOD zoom) + simple_rand(prng_state)) * fraction)
    'layers but not overhead tiles
    pixel = 0
    FOR k as integer = UBOUND(map) TO 0 STEP -1
