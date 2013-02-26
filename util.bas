@@ -116,6 +116,37 @@ FUNCTION randint (byval limit as integer) as integer
  RETURN INT(rando() * limit)
 END FUNCTION
 
+'Simple low quality psuedo random number generator with exposed state. Same speed as RND.
+'Initialise prng_state to a seed before first call.
+'Returns a float in the range [0.0, 1.0) but no where near a full double of precision.
+FUNCTION simple_rand (byref prng_state as uinteger) as double
+ prng_state = (prng_state * 1103515245 + 12345)
+ RETURN CAST(double, prng_state) * (1.0 / &hffffffffU)
+END FUNCTION
+
+'Simple low quality psuedo random number generator. Initialise prng_state to a seed before first call.
+'Returns an integer in the range 0 to limit - 1. limit should be <= 2^20
+FUNCTION simple_randint (byref prng_state as uinteger, byval limit as integer) as uinteger
+ prng_state = (prng_state * 1103515245 + 12345)
+ RETURN CINT((CAST(longint, prng_state) * limit) SHR 32)
+END FUNCTION
+
+'simple_rand simple test: create a bmp
+/'
+ DIM timestart as double = TIMER
+ DIM tframe as frame ptr = frame_new(256, 256)
+ DIM pstate as unsigned integer = 0
+ FOR yy as integer = 0 to 255
+  FOR xx as integer = 0 to 255
+   putpixel tframe, xx, yy, simple_randint(pstate, 16) * 15
+   'putpixel tframe, xx, yy, CINT(simple_rand(pstate) * 16) * 15
+  NEXT
+ NEXT
+ frame_export_bmp8 "randtest.bmp", tframe, master()
+ debug "testframe in " & (TIMER - timestart) * 1000 & "ms"
+ frame_unload @tframe
+'/
+
 FUNCTION range (number as integer, percent as integer) as integer
  DIM a as integer
  a = (number / 100) * percent

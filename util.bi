@@ -348,6 +348,8 @@ declare function isnan overload (byval value as single) as integer
 declare function isfinite overload (byval value as double) as integer
 declare function isfinite overload (byval value as single) as integer
 declare function fuzzythreshold (byval value as double, byval low as double, byval high as double) as double
+declare function simple_rand (byref prng_state as uinteger) as double
+declare function simple_randint (byref prng_state as uinteger, byval upperbound as integer) as uinteger
 
 'Euclidean modulo (always positive)
 #DEFINE POSMOD(dividend, divisor) ((((dividend) MOD (divisor)) + (divisor)) MOD (divisor))
