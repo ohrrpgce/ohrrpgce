@@ -49,6 +49,7 @@ DECLARE SUB generate_item_edit_menu (menu() as string, itembuf() as integer, csr
 DECLARE SUB item_editor_equipbits(itembuf() as integer)
 DECLARE SUB item_editor_elementals(itembuf() as integer)
 DECLARE SUB item_editor_init_new(itembuf() as integer)
+DECLARE SUB item_editor_stat_bonuses(itembuf() as integer)
 
 DECLARE SUB enforce_hero_data_limits(her as HeroDef)
 DECLARE SUB update_hero_appearance_menu(byref st as HeroEditState, menu() as string, her as HeroDef)
@@ -1278,7 +1279,6 @@ DIM bmenu(40) as string
 DIM eqst(5) as string
 DIM max(18) as integer
 DIM min(18) as integer
-DIM sbmax(11) as integer
 DIM frame as integer
 DIM item(maxMaxItems) as string
 DIM info as string
@@ -1291,16 +1291,6 @@ eqst(1) = "Weapon"
 FOR i as integer = 0 TO 3
  eqst(i + 2) = readglobalstring(25 + i, "Armor" & i+1)
 NEXT i
-FOR i as integer = 0 TO 1
- sbmax(i) = 9999
-NEXT i
-FOR i as integer = 2 TO 8
- sbmax(i) = 999
-NEXT i
-FOR i as integer = 9 TO 10
- sbmax(i) = 100
-NEXT i
-sbmax(11) = 10
 
 DIM csr as integer = 0
 DIM top as integer = -1
@@ -1434,7 +1424,7 @@ DO
     need_update = YES
    END IF
    IF pt = 18 THEN
-    GOSUB statbon
+    item_editor_stat_bonuses a()
     need_update = YES
    END IF
    IF pt = 19 THEN
@@ -1522,37 +1512,6 @@ LOOP
 IF wep_img.sprite THEN frame_unload @wep_img.sprite
 IF wep_img.pal    THEN palette16_unload @wep_img.pal
 RETRACE
-
-statbon:
-ptr2 = 0
-setkeys
-DO
- setwait 55
- setkeys
- tog = tog XOR 1
- IF keyval(scESC) > 1 THEN RETRACE
- IF keyval(scF1) > 1 THEN show_help "equipment_stat_bonuses"
- usemenu ptr2, 0, -1, 11, 24
- IF enter_or_space() THEN
-  IF ptr2 = -1 THEN RETRACE
- END IF
- IF ptr2 >= 0 THEN
-  intgrabber a(54 + ptr2), sbmax(ptr2) * -1, sbmax(ptr2)
- END IF
-
- clearpage dpage
- textcolor uilook(uiMenuItem), 0
- IF ptr2 = -1 THEN textcolor uilook(uiSelectedItem + tog), 0
- printstr "Previous Menu", 0, 0, dpage
- FOR i as integer = 0 TO 11
-  textcolor uilook(uiMenuItem), 0
-  IF ptr2 = i THEN textcolor uilook(uiSelectedItem + tog), 0
-  printstr statnames(i) + " Bonus: " & a(54 + i), 0, 8 + i * 8, dpage
- NEXT i
- SWAP vpage, dpage
- setvispage vpage
- dowait
-LOOP
 
 END SUB
 
@@ -3071,4 +3030,57 @@ SUB item_editor_init_new(itembuf() as integer)
  FOR i as integer = 0 TO maxElements - 1
   SerSingle itembuf(), 82 + i * 2, 1.0
  NEXT i
+END SUB
+
+SUB item_editor_stat_bonuses(itembuf() as integer)
+ DIM menu(-1 TO statLast) as string
+ menu(-1) = "Previous Menu"
+ DIM state as MenuState
+ state.first = -1
+ state.top = -1
+ state.last = UBOUND(menu)
+ state.size = 24
+ state.need_update = YES
+
+ DIM sbmax(statLast) as integer
+ FOR i as integer = 0 TO 1
+  sbmax(i) = 9999
+ NEXT i
+ FOR i as integer = 2 TO 8
+  sbmax(i) = 999
+ NEXT i
+ FOR i as integer = 9 TO 10
+  sbmax(i) = 100
+ NEXT i
+ sbmax(11) = 10
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "equipment_stat_bonuses"
+  usemenu state
+  IF enter_or_space() THEN
+   IF state.pt = -1 THEN EXIT DO
+  END IF
+  IF state.pt >= 0 THEN
+   IF intgrabber(itembuf(54 + state.pt), sbmax(state.pt) * -1, sbmax(state.pt)) THEN
+    state.need_update = YES
+   END IF
+  END IF
+
+  IF state.need_update THEN
+   state.need_update = NO
+   FOR i as integer = 0 TO statLast
+    menu(i) = statnames(i) + " Bonus: " & itembuf(54 + i)
+   NEXT
+  END IF
+
+  clearpage dpage
+  standardmenu menu(), state, 0, 0, dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
 END SUB
