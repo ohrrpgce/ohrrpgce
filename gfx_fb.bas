@@ -417,7 +417,7 @@ sub io_fb_updatekeys(byval keybd as integer ptr)
 	'Some other keys are also indistinguishable, and are mirrored
 	keybd[scNumpadSlash] or= keybd[scSlash] and 8
 	keybd[scNumpadEnter] or= keybd[scEnter] and 8
-	keybd[scPrintScreen] or= keybd[scNumpadAsterix] and 8
+	keybd[scPrintScreen] or= keybd[scNumpadAsterisk] and 8
 	keybd[scPause] or= keybd[scNumlock] and 8
 end sub
 

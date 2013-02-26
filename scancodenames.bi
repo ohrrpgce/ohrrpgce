@@ -21,7 +21,7 @@ static scancodenames(...) as string * 13  = { _
   "7",                        /' 08 '/ _
   /' "Ampersand", '/          /' 08 '/ _
   "8",                        /' 09 '/ _
-  /' "Asterix", '/            /' 09 '/ _
+  /' "Asterisk", '/           /' 09 '/ _
   "9",                        /' 10 '/ _
   /' "LeftParenthesis", '/    /' 10 '/ _
   "0",                        /' 11 '/ _
@@ -81,7 +81,7 @@ static scancodenames(...) as string * 13  = { _
   "Slash",                    /' 53 '/ _
   /' "QuestionMark", '/       /' 53 '/ _
   "RightShift",               /' 54 '/ _
-  "NumpadAsterix",            /' 55 '/ _
+  "NumpadAsterisk",           /' 55 '/ _
   "UnfilteredAlt",            /' 56 '/ _
   "Space",                    /' 57 '/ _
   "CapsLock",                 /' 58 '/ _

@@ -756,7 +756,7 @@ const int Keyboard::c_vk2fb[256] = {
 	SC_NUMPAD7,
 	SC_NUMPAD8,
 	SC_NUMPAD9,
-	SC_NUMPADASTERIX,
+	SC_NUMPADASTERISK,
 	SC_NUMPADPLUS,
 	0, //separator key?
 	SC_NUMPADMINUS,

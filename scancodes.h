@@ -21,7 +21,7 @@
 #define SC_7			8
 #define SC_AMPERSAND		8
 #define SC_8			9
-#define SC_ASTERIX		9
+#define SC_ASTERISK		9
 #define SC_9			10
 #define SC_LEFTPARENTHESIS     	10
 #define SC_0			11
@@ -81,7 +81,7 @@
 #define SC_SLASH	       	53
 #define SC_QUESTIONMARK		53
 #define SC_RIGHTSHIFT		54
-#define SC_NUMPADASTERIX       	55
+#define SC_NUMPADASTERISK      	55
 #define SC_ALT			56
 #define SC_SPACE	       	57
 #define SC_CAPSLOCK		58

@@ -38,7 +38,7 @@ dim shared scantrans(0 to 127) as integer => { _
 	scF10, scF11, scF12, scEsc, scTilde, scMinus, scEquals, scBackspace, _
 	scTab, scLeftBrace, scRightBrace, scEnter, scColon, scQuote, scBackslash, 0, _
 	scComma, scPeriod, scSlash, scSpace, scInsert, scDelete, scHome, scEnd, _
-	scPageup, scPagedown, scLeft, scRight, scUp, scDown, scNumpadSlash, scNumpadAsterix, _
+	scPageup, scPagedown, scLeft, scRight, scUp, scDown, scNumpadSlash, scNumpadAsterisk, _
 	scNumpadMinus, scNumpadPlus, scNumpadPeriod, scNumpadEnter, scPrintScreen, scPause, 0, 0, _
 	0, 0, 0, scAtSign, scCircumflex, 0, 0, scLeftShift, _
 	scRightShift, scLeftCtrl, scRightCtrl, scLeftAlt, scRightAlt, scLeftWinLogo, scRightWinLogo, scContext, _
