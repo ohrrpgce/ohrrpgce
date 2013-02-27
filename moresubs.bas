@@ -855,6 +855,8 @@ FUNCTION teleporttool () as integer
  state.size = 22
  state.first = 0
  state.last = UBOUND(menu)
+ DIM menuopts as MenuOptions
+ menuopts.edged = YES
 
  DIM preview_delay as integer = 0
  DIM pickpoint as integer = NO
@@ -935,7 +937,7 @@ FUNCTION teleporttool () as integer
   copypage vpage, dpage
   rectangle offset.x + dest.x * zoom - camera.x, offset.y + dest.y * zoom - camera.y, zoom, zoom, uilook(uiSelectedItem) * state.tog, dpage
   state.active = (pickpoint = NO)
-  standardmenu menu(), state, 0, 182, dpage, YES  'edged=YES
+  standardmenu menu(), state, 0, 182, dpage, menuopts
   setvispage dpage
   dowait
  LOOP

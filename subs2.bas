@@ -625,6 +625,8 @@ SUB text_box_editor () 'textage
  state.pt = 0
  state.last = UBOUND(menu)
  state.size = 24
+ DIM menuopts as MenuOptions
+ menuopts.edged = YES
  
  DIM style_clip as integer = 0
  
@@ -773,7 +775,7 @@ SUB text_box_editor () 'textage
   printstr "+ to copy", 248, 0, dpage
   printstr "ALT+C copy style", 192, 8, dpage
   IF style_clip > 0 THEN printstr "ALT+V paste style", 184, 16, dpage
-  standardmenu menu(), state, 0, 0, dpage, YES  'edged=YES
+  standardmenu menu(), state, 0, 0, dpage, menuopts
 
   SWAP vpage, dpage
   setvispage vpage

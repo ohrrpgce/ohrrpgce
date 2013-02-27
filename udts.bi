@@ -280,6 +280,15 @@ TYPE MenuState
   tog       as bool    'For flashing cursor
 END TYPE
 
+'A set of rendering options which can be passed to standardmenu.
+'This partially overlaps MenuDef, which is the reason it wasn't added to MenuState:
+'MenuState is used for drawing MenuDefs too, which would be confusing
+TYPE MenuOptions
+  edged as bool = NO
+  wide as integer = 9999
+  highlight as bool = NO
+END TYPE
+
 'For when a string array is too crude, but a MenuDef is overkill
 TYPE SimpleMenuItem  'EXTENDS BasicMenuItem
   'members copied from BasicMenuItem

@@ -208,6 +208,12 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
   .size = 21
   .need_update = YES
  END WITH
+ DIM menuopts as MenuOptions
+ WITH menuopts
+  .edged = YES
+  .highlight = YES
+ END WITH
+
  DIM cursor_seek as Slice Ptr = 0
 
  DIM slice_type as SliceTypes
@@ -390,7 +396,7 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
    IF state.last > state.size THEN
     draw_fullscreen_scrollbar state, , dpage
    END IF
-   standardmenu plainmenu(), state, 0, 0, dpage, YES, , YES  'edged=YES, highlight=YES
+   standardmenu plainmenu(), state, 0, 0, dpage, menuopts
    edgeprint "+ to add a slice. SHIFT+arrows to sort", 0, 190, uilook(uiText), dpage
   END IF
 
@@ -503,6 +509,11 @@ SUB slice_edit_detail (sl as Slice Ptr, byref ses as SliceEditState, rootsl as S
   .size = 22
   .need_update = YES
  END WITH
+ DIM menuopts as MenuOptions
+ WITH menuopts
+  .edged = YES
+  .highlight = YES
+ END WITH
 
  setkeys YES
  DO
@@ -527,7 +538,7 @@ SUB slice_edit_detail (sl as Slice Ptr, byref ses as SliceEditState, rootsl as S
   DrawSlice rootsl, dpage
   DrawSliceAnts sl, dpage
   IF ses.hide_menu = NO THEN
-   standardmenu menu(), state, 0, 0, dpage, YES, , YES  'edged=YES, highlight=YES
+   standardmenu menu(), state, 0, 0, dpage, menuopts
   END IF
 
   SWAP vpage, dpage
@@ -1104,6 +1115,8 @@ FUNCTION edit_slice_lookup_codes(slicelookup() as string, byval start_at_code as
    NEXT i
   END IF
  END WITH
+ DIM menuopts as MenuOptions
+ menuopts.highlight = YES
 
  setkeys YES
  DO
@@ -1131,7 +1144,7 @@ FUNCTION edit_slice_lookup_codes(slicelookup() as string, byval start_at_code as
 
   clearpage dpage
   draw_fullscreen_scrollbar state, , dpage
-  standardmenu slicelookup(), state, 0, 0, dpage, , , YES  'highlight=YES
+  standardmenu slicelookup(), state, 0, 0, dpage, menuopts
 
   SWAP vpage, dpage
   setvispage vpage

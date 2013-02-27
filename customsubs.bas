@@ -3006,6 +3006,7 @@ END SUB
 SUB edit_global_text_strings()
  DIM search as string = ""
  DIM state as MenuState
+ DIM menuopts as MenuOptions
  DIM menu as GlobalTextStringsMenu
  DIM rect as RectType
  rect.wide = 320
@@ -3220,7 +3221,8 @@ SUB edit_global_text_strings()
   'Since both halves of the menu share the same state and both are active,
   'they both toggle state.tog. So work around that
   state.tog XOR= 1
-  standardmenu menu.text(), state, 232, 0, dpage, , , YES  'highlight=YES
+  menuopts.highlight = YES
+  standardmenu menu.text(), state, 232, 0, dpage, menuopts
   draw_scrollbar state, rect, , dpage
   edgeprint "CTRL+S Search", 0, 191, uilook(uiDisabledItem), dpage
   IF state.pt >= 0 ANDALSO LEN(menu.help(state.pt)) THEN
@@ -3872,6 +3874,8 @@ SUB experience_chart ()
   .last = UBOUND(menu)
   .need_update = YES
  END WITH
+ DIM menuopts as MenuOptions
+ menuopts.wide = 312
 
  STATIC first_view as integer = YES
 
@@ -3947,7 +3951,7 @@ SUB experience_chart ()
 
   clearpage vpage
   draw_fullscreen_scrollbar state, , vpage
-  standardmenu menu(), state, 0, 0, vpage, , 312  'wide=312
+  standardmenu menu(), state, 0, 0, vpage, menuopts
   setvispage vpage
   dowait
 

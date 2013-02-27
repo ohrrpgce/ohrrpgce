@@ -975,6 +975,8 @@ SUB formation_set_editor
  DIM state as MenuState
  state.last = UBOUND(menu)
  state.size = 24
+ DIM menuopts as MenuOptions
+ menuopts.edged = YES
 
  LoadFormationSet formset, set_id
  GOSUB lpreviewform
@@ -1026,7 +1028,7 @@ SUB formation_set_editor
    END IF
   NEXT i
 
-  standardmenu menu(), state, 0, 0, dpage, YES  'edged=YES
+  standardmenu menu(), state, 0, 0, dpage, menuopts
 
   SWAP vpage, dpage
   setvispage vpage
@@ -1071,6 +1073,8 @@ SUB individual_formation_editor ()
  state.first = 0
  state.last = UBOUND(menu)
  state.size = 20
+ DIM menuopts as MenuOptions
+ menuopts.edged = YES
 
  DIM slot as integer = state.pt - 6
 
@@ -1216,7 +1220,7 @@ SUB individual_formation_editor ()
    FOR i as integer = 0 TO 7
     menu(6 + i) = "Enemy:" + ename(i)
    NEXT i
-   standardmenu menu(), state, 0, 0, dpage, YES
+   standardmenu menu(), state, 0, 0, dpage, menuopts
   END IF
   SWAP vpage, dpage
   setvispage vpage

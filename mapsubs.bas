@@ -1499,7 +1499,10 @@ DO
    'Draw zonemenu
    DIM xpos as integer = 320 - 13*8  'Where to put the menu
    IF (st.x * 20) - st.mapx > xpos AND st.tiny = 0 THEN xpos = 8
-   standardmenu cast(BasicMenuItem vector, zonemenu), zonemenustate, xpos, 40, dpage, YES, 13 * 8  'edged=YES, wide=13*8
+   DIM zmenuopts as MenuOptions
+   zmenuopts.edged = YES
+   zmenuopts.wide = 13 * 8
+   standardmenu cast(BasicMenuItem vector, zonemenu), zonemenustate, xpos, 40, dpage, zmenuopts
 
    IF zonemenustate.pt > -1 THEN
     ' A little right arrow
@@ -2246,6 +2249,8 @@ END SUB
 
 SUB mapedit_layers (st as MapEditState, gmap() as integer, visible() as integer, map() as TileMap)
  DIM state as MenuState
+ DIM menuopts as MenuOptions
+ menuopts.edged = YES
  DIM menu as LayerMenuItem vector
  
  DIM layerno as integer
@@ -2383,7 +2388,7 @@ SUB mapedit_layers (st as MapEditState, gmap() as integer, visible() as integer,
   END IF
   edgeprint "SHIFT+arrows to move layers, - to delete", 0, 190, uilook(uiText), dpage
 
-  standardmenu cast(BasicMenuItem vector, menu), state, 0, 0, dpage, YES  'edged=YES
+  standardmenu cast(BasicMenuItem vector, menu), state, 0, 0, dpage, menuopts
   /'  
   FOR i as integer = state.top TO state.top + state.size
    IF i <= state.last THEN

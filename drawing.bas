@@ -120,6 +120,8 @@ DIM submenu(2) as string
 DIM mstate as MenuState
 mstate.size = 24
 mstate.last = UBOUND(menu)
+DIM menuopts as MenuOptions
+menuopts.edged = YES
 menu(0) = "Return to Main Menu"
 menu(1) = CHR(27) + "Browse 0" + CHR(26)
 menu(2) = "Replace current " + cap
@@ -187,7 +189,7 @@ DO
  END IF
  copypage 2, dpage
  IF mstate.pt <> 6 THEN
-  standardmenu menu(), mstate, 0, 0, dpage, YES  'edged=YES
+  standardmenu menu(), mstate, 0, 0, dpage, menuopts
  END IF
  SWAP vpage, dpage
  setvispage vpage
