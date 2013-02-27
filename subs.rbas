@@ -1275,8 +1275,10 @@ END SUB
 
 SUB item_editor
  DIM menu() as string
+ DIM menu_display() as string
  DIM shaded() as bool
 
+ DIM selectst as SelectTypeState
  DIM state as MenuState
  state.size = 24
  state.first = -1
@@ -1284,10 +1286,10 @@ SUB item_editor
  state.last = gen(genMaxItem) + 1
  state.need_update = YES
 
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "item_editor_pickitem"
   IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 AND state.pt >= 0 THEN
@@ -1296,7 +1298,6 @@ SUB item_editor
    state.need_update = YES
   END IF
   usemenu state
-  intgrabber state.pt, -1, gen(genMaxItem) + 1
   IF enter_or_space() THEN
    IF state.pt = -1 THEN EXIT DO
    IF state.pt = gen(genMaxItem) + 1 THEN
@@ -1324,6 +1325,7 @@ SUB item_editor
    NEXT
 
    REDIM menu(-1 TO state.last)
+   REDIM menu_display(-1 TO state.last)
    menu(-1) = "Return to Main Menu"
    FOR i as integer = 0 TO gen(genMaxItem)
     menu(i) = i & " " & readitemname(i)
@@ -1335,9 +1337,13 @@ SUB item_editor
     shaded(UBOUND(menu)) = YES
    END IF
   END IF
+  IF select_by_typing(selectst) THEN
+   select_on_word_boundary menu(), selectst, state
+  END IF
 
   clearpage dpage
-  standardmenu menu(), state, shaded(), 0, 0, dpage
+  highlight_menu_typing_selection menu(), menu_display(), selectst, state
+  standardmenu menu_display(), state, shaded(), 0, 0, dpage
   SWAP vpage, dpage
   setvispage vpage
   dowait
@@ -1348,6 +1354,7 @@ SUB individual_item_editor(item_id as integer)
  DIM itembuf(dimbinsize(binITM)) as integer
  CONST menusize as integer = 20
  DIM menu(menusize) as string
+ DIM menu_display(menusize) as string
  DIM shaded(menusize) as bool
  DIM wep_img as GraphicPair
  DIM box_preview as string = ""
@@ -1400,6 +1407,8 @@ SUB individual_item_editor(item_id as integer)
  iidx(14) = 52 'weapon pic
  iidx(15) = 53 'weapon pal
 
+ DIM selectst as SelectTypeState
+ DIM enable_strgrabber as bool
  DIM state as MenuState
  state.size = 24
  state.last = menusize
@@ -1412,6 +1421,10 @@ SUB individual_item_editor(item_id as integer)
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "item_editor"
   usemenu state
+  enable_strgrabber = NO
+  IF LEN(selectst.query) = 0 AND (state.pt = 1 OR state.pt = 2) THEN
+   enable_strgrabber = YES
+  END IF
   IF enter_or_space() THEN
    IF state.pt = 0 THEN EXIT DO
    IF itembuf(49) = 1 THEN
@@ -1448,11 +1461,13 @@ SUB individual_item_editor(item_id as integer)
   END IF
   SELECT CASE state.pt
    CASE 1
-    strgrabber item_name, 8
-    menu(1) = "Name:" + item_name
+    IF enable_strgrabber ANDALSO strgrabber(item_name, 8) THEN
+     state.need_update = YES
+    END IF
    CASE 2
-    strgrabber info, 36
-    menu(2) = "Info:" + info
+    IF enable_strgrabber ANDALSO strgrabber(info, 36) THEN
+     state.need_update = YES
+    END IF
    CASE 3, 4, 9, 14, 15
     IF intgrabber(itembuf(iidx(state.pt)), min(state.pt), max(state.pt)) THEN  'FIXME!!!!
      state.need_update = YES
@@ -1480,9 +1495,13 @@ SUB individual_item_editor(item_id as integer)
    generate_item_edit_menu menu(), shaded(), itembuf(), item_name, info, eqst(), box_preview
    load_sprite_and_pal wep_img, sprTypeWeapon, itembuf(52), itembuf(53)
   END IF
+  IF enable_strgrabber = NO ANDALSO select_by_typing(selectst, NO) THEN
+   select_on_word_boundary menu(), selectst, state
+  END IF
 
   clearpage dpage
-  standardmenu menu(), state, shaded(), 0, 0, dpage
+  highlight_menu_typing_selection menu(), menu_display(), selectst, state
+  standardmenu menu_display(), state, shaded(), 0, 0, dpage
   IF itembuf(49) = 1 THEN
    'Is a weapon
    DIM frame as integer = 0
@@ -2961,9 +2980,11 @@ SUB common_elementals_editor(elementals() as single, helpfile as string, byval s
  getelementnames elementnames()
  DIM float_reprs(gen(genNumElements) - 1) as string
  DIM menu(1 + gen(genNumElements) - 1) as string
+ DIM menu_display(UBOUND(menu)) as string
+ DIM selectst as SelectTypeState
  DIM st as MenuState
  st.last = UBOUND(menu)
- st.size = 22
+ st.size = 24
  st.need_update = YES
 
  FOR i as integer = 0 TO gen(genNumElements) - 1
@@ -2995,9 +3016,13 @@ SUB common_elementals_editor(elementals() as single, helpfile as string, byval s
     menu(i + 1) += float_reprs(i)
    NEXT
   END IF
+  IF select_by_typing(selectst, NO) THEN
+   select_on_word_boundary menu(), selectst, st
+  END IF
 
   clearpage vpage
-  standardmenu menu(), st, 0, 0, vpage
+  highlight_menu_typing_selection menu(), menu_display(), selectst, st
+  standardmenu menu_display(), st, 0, 0, vpage
   setvispage vpage
   dowait
  LOOP
@@ -3044,7 +3069,9 @@ END SUB
 
 SUB item_editor_stat_bonuses(itembuf() as integer)
  DIM menu(-1 TO statLast) as string
+ DIM menu_display(-1 TO statLast) as string
  menu(-1) = "Previous Menu"
+ DIM selectst as SelectTypeState
  DIM state as MenuState
  state.first = -1
  state.top = -1
@@ -3064,10 +3091,10 @@ SUB item_editor_stat_bonuses(itembuf() as integer)
  NEXT i
  sbmax(11) = 10
 
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "equipment_stat_bonuses"
   usemenu state
@@ -3086,9 +3113,13 @@ SUB item_editor_stat_bonuses(itembuf() as integer)
     menu(i) = statnames(i) + " Bonus: " & itembuf(54 + i)
    NEXT
   END IF
+  IF select_by_typing(selectst, NO) THEN
+   select_on_word_boundary menu(), selectst, state
+  END IF
 
   clearpage dpage
-  standardmenu menu(), state, 0, 0, dpage
+  highlight_menu_typing_selection menu(), menu_display(), selectst, state
+  standardmenu menu_display(), state, 0, 0, dpage
   SWAP vpage, dpage
   setvispage vpage
   dowait

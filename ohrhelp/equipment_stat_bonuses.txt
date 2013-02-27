@@ -1,6 +1,6 @@
 This is the item stat bonus editor.
 
-Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu.
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu, or type a stat name to jump to it.
 
 Use the Left and Right arrow keys to change values, or type in numbers.
 
