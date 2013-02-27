@@ -2,14 +2,16 @@ This screen lets you choose a default tileset, and lets you customize each map l
 
 Press left and right to change values, or you can type in tileset numbers. Press ENTER to enable or disable a layer (layer 0 can not be disabled).
 
-Each map can have up to 8 layers, numbered 0 to 7 in the order in which they are drawn. Select a layer and press + to insert a new layer after it - beware, this will therefore renumber all the layers after it! Without a layer selected, pressing + appends a new layer.
+Each map can have up to 8 layers, numbered 0 to 7 in the order in which they are drawn. So layer 0 appears underneath everything else. Select a layer and press + to insert a new layer after it - beware, this will therefore renumber all the layers after it (naming layers is recommended)! Without a layer selected, pressing + appends a new layer.
 
 Layers 1 and above are transparent - the parts of each tile which are color 0, and also tile 0, are not drawn.
 
-You can uses layers above heroes and NPCs for tree-tops, or stone arches, or the upper parts of walls.
+You can create layers above heroes and NPCs, such as for tree-tops, or stone arches, or the upper parts of walls.
 
 To move a layer above or below heroes and NPCs, hold SHIFT and press up or down repeatedly. This will renumber map layers. The heroes and NPCs layers count as one layer for the purpose of ordering, and can not be separated. Layer 0 is always below heroes and NPCs.
 
+You can name a layer by selecting "Tile layer #" and typing a name.
+
 Each layer can optionally have its own tileset, or you can just choose one tileset for the whole map.
 
-It is also possible to make certain layers invisble in the editor, in case you want to work on just one layer at a time without the visual distraction of seeing the other layers. This doesn't affect playing the game; to hide a layer in-game, disable it. Disabling a layer doesn't delete it.
+It is also possible to make certain layers invisble in the editor, in case you want to work on just one layer at a time without the visual distraction of seeing the other layers. This doesn't affect playing the game; to hide a layer in-game, disable it. Disabling a layer doesn't delete it. You can't disable layer 0.

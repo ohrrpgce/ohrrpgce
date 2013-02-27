@@ -882,7 +882,7 @@ FUNCTION curbinsize (byval id as integer) as integer
  IF id = 1 THEN RETURN 84  '.stf
  IF id = 2 THEN RETURN 32  'songdata.bin
  IF id = 3 THEN RETURN 34  'sfxdata.bin
- IF id = 4 THEN RETURN 68  '.map
+ IF id = 4 THEN RETURN 404 '.map
  IF id = 5 THEN RETURN 54  'menus.bin
  IF id = 6 THEN RETURN 64  'menuitem.bin
  IF id = 7 THEN RETURN 126 'uicolors.bin

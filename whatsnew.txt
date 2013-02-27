@@ -37,6 +37,7 @@ WHAT IS NEW?
       menu items, and reorder battle menu items [James]
     * Stats can be hidden for a hero. This prevents them from appearing
       on the Status and Equip menus. [James]
+    * Map layers can now be named [Ralph]
 
   * Bugfixes
     * "run script by id" was far slower than it should have been [Ralph]

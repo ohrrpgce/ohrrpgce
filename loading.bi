@@ -21,6 +21,17 @@ USING RELOAD.EXT
 declare sub SerSingle (buf() as integer, byval index as integer, byval sing as single)
 declare function DeSerSingle (buf() as integer, byval index as integer) as single
 
+declare Sub SaveInventory16bit(invent() as InventSlot, byref z as integer, buf() as integer, byval first as integer=0, byval last as integer=-1)
+declare Sub LoadInventory16Bit(invent() as InventSlot, byref z as integer, buf() as integer, byval first as integer=0, byval last as integer=-1)
+declare sub serinventory8bit(invent() as inventslot, byref z as integer, buf() as integer)
+declare sub deserinventory8bit(invent() as inventslot, byref z as integer, buf() as integer)
+declare sub cleaninventory(invent() as inventslot)
+
+'' Maps
+
+declare function read_map_layer_name(gmap() as integer, layernum as integer) as string
+declare sub write_map_layer_name(gmap() as integer, layernum as integer, newname as string)
+
 'Sprites are not loaded by these functions; can use CleanNPCD to free them if you load them
 declare sub LoadNPCD(file as string, dat() as NPCType)
 declare sub LoadNPCD_fixedlen(file as string, dat() as NPCType, byref arraylen as integer)
@@ -37,12 +48,6 @@ declare sub DeserNPCL(npc() as npcinst, byref z as integer, buffer() as integer,
 declare sub CleanNPCInst(inst as NPCInst)
 declare sub CleanNPCL(dat() as npcinst)
 
-declare Sub SaveInventory16bit(invent() as InventSlot, byref z as integer, buf() as integer, byval first as integer=0, byval last as integer=-1)
-declare Sub LoadInventory16Bit(invent() as InventSlot, byref z as integer, buf() as integer, byval first as integer=0, byval last as integer=-1)
-declare sub serinventory8bit(invent() as inventslot, byref z as integer, buf() as integer)
-declare sub deserinventory8bit(invent() as inventslot, byref z as integer, buf() as integer)
-declare sub cleaninventory(invent() as inventslot)
-
 '*** Requires construction + destruction ***
 declare sub UnloadTilemap(map as TileMap)
 declare sub UnloadTilemaps(layers() as TileMap)
@@ -55,7 +60,6 @@ declare sub CleanTilemaps(layers() as TileMap, byval wide as integer, byval high
 declare function GetTilemapInfo(filename as string, info as TilemapInfo) as integer
 declare sub MergeTileMap(mine as TileMap, theirs_file as string, base_file as string)
 declare sub MergeTileMaps(mine() as TileMap, theirs_file as string, base_file as string)
-
 
 '*** Requires construction + destruction ***
 declare sub CleanZoneMap(zmap as ZoneMap, byval wide as integer, byval high as integer)
@@ -77,6 +81,7 @@ declare sub CleanDoorLinks(array() as doorlink)
 declare Sub DeSerDoors(filename as string, array() as door, byval record as integer)
 declare Sub SerDoors(filename as string, array() as door, byval record as integer)
 declare Sub CleanDoors(array() as door)
+
 
 declare Sub LoadStats(byval fh as integer, sta as stats ptr)
 declare Sub SaveStats(byval fh as integer, sta as stats ptr)
