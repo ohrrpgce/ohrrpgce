@@ -116,12 +116,10 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
  'Usually equal to state.pt + 1, but can reach 0
  DIM alt_pt as integer 
 
- DIM tog as integer = 0
  setkeys YES
  DO
   setwait 55
   setkeys YES
-  tog = tog XOR 1
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "tagnames"
   IF usemenu(state) THEN
@@ -821,12 +819,10 @@ SUB ui_color_editor(palnum as integer)
  state.size = 22
  state.last = UBOUND(color_menu)
 
- DIM tog as integer = 0
  setkeys
  DO
   setwait 55
   setkeys
-  tog = tog XOR 1
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "ui_color_editor"
   IF usemenu(state) THEN
@@ -3221,7 +3217,10 @@ SUB edit_global_text_strings()
  
   clearpage dpage
   standardmenu menu.description(), state, menu.shaded(), 0, 0, dpage
-  standardmenu menu.text(), state, 232, 0, dpage, , , , YES  'highlight=YES
+  'Since both halves of the menu share the same state and both are active,
+  'they both toggle state.tog. So work around that
+  state.tog XOR= 1
+  standardmenu menu.text(), state, 232, 0, dpage, , , YES  'highlight=YES
   draw_scrollbar state, rect, , dpage
   edgeprint "CTRL+S Search", 0, 191, uilook(uiDisabledItem), dpage
   IF state.pt >= 0 ANDALSO LEN(menu.help(state.pt)) THEN
@@ -3600,7 +3599,6 @@ SUB fontedit (font() as integer)
  DO
   setwait 55
   setkeys
-  state.tog = state.tog XOR 1
   IF keyval(scF1) > 1 THEN show_help "fontedit"
   SELECT CASE mode
    CASE -1
@@ -3949,7 +3947,7 @@ SUB experience_chart ()
 
   clearpage vpage
   draw_fullscreen_scrollbar state, , vpage
-  standardmenu menu(), state, 0, 0, vpage, , , 312  'wide=312
+  standardmenu menu(), state, 0, 0, vpage, , 312  'wide=312
   setvispage vpage
   dowait
 

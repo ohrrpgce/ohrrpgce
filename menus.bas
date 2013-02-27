@@ -281,7 +281,7 @@ SUB standard_to_basic_menu (menu() as string, byref state as MenuState, byref ba
  NEXT
 END SUB
 
-SUB standardmenu (menu() as string, byref state as MenuState, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval active as integer=YES, byval wide as integer=9999, byval highlight as integer=NO)
+SUB standardmenu (menu() as string, byref state as MenuState, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval wide as integer=9999, byval highlight as integer=NO)
  DIM basicmenu as BasicMenuItem vector
  standard_to_basic_menu menu(), state, basicmenu
  'Shift menu items so that state.first = 0
@@ -290,7 +290,7 @@ SUB standardmenu (menu() as string, byref state as MenuState, byval x as integer
  state.pt -= first
  state.last -= first
  state.first = 0
- standardmenu basicmenu, state, x, y, page, edge, active, wide, highlight
+ standardmenu basicmenu, state, x, y, page, edge, wide, highlight
  state.top += first
  state.pt += first
  state.last += first
@@ -299,7 +299,7 @@ SUB standardmenu (menu() as string, byref state as MenuState, byval x as integer
 END SUB
 
 'Version which allows items to be greyed out/disabled/shaded
-SUB standardmenu (menu() as string, byref state as MenuState, shaded() as bool, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval active as integer=YES, byval wide as integer=9999, byval highlight as integer=NO)
+SUB standardmenu (menu() as string, byref state as MenuState, shaded() as bool, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval wide as integer=9999, byval highlight as integer=NO)
  IF LBOUND(shaded) > LBOUND(menu) OR UBOUND(shaded) < UBOUND(menu) THEN fatalerror "standardmenu: shaded() too small"
  DIM basicmenu as BasicMenuItem vector
  standard_to_basic_menu menu(), state, basicmenu, @shaded(0)
@@ -309,7 +309,7 @@ SUB standardmenu (menu() as string, byref state as MenuState, shaded() as bool, 
  state.pt -= first
  state.last -= first
  state.first = 0
- standardmenu basicmenu, state, x, y, page, edge, active, wide, highlight
+ standardmenu basicmenu, state, x, y, page, edge, wide, highlight
  state.top += first
  state.pt += first
  state.last += first
@@ -320,10 +320,7 @@ END SUB
 'menu may in fact be a vector of any type inheriting from BasicMenuItem:
 ' standardmenu cast(BasicMenuItem vector, menu), ...
 'menu's typetable tells the size in bytes of each menu item
-SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval active as integer=YES, byval wide as integer=9999, byval highlight as integer=NO)
-
- STATIC rememtog as integer
- DIM tog as integer
+SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval wide as integer=9999, byval highlight as integer=NO)
 
  IF state.first <> 0 THEN
   'The following doesn't affect simple string array menus which are converted to BasicMenuItem menus
@@ -331,11 +328,8 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval 
   EXIT SUB
  END IF
 
- IF active THEN
-  rememtog = rememtog XOR 1
-  tog = rememtog
- ELSE
-  tog = 0
+ IF state.active THEN
+  state.tog XOR= 1
  END IF
 
  wide = small(wide, vpages(page)->w - x)
@@ -352,20 +346,20 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval 
     IF .bgcol THEN
      rectangle x + 0, y + (i - state.top) * 8, wide, 8, .bgcol, page
     END IF
-    IF state.pt = i AND active AND highlight <> NO THEN
+    IF state.pt = i AND state.active AND highlight <> NO THEN
      rectangle x + 0, y + (i - state.top) * 8, IIF(linewidth, linewidth, 9999), 8, uilook(uiHighlight), page
     END IF
     DIM col as integer = .col
     IF .disabled THEN
      IF .col = 0 THEN col = uilook(uiDisabledItem)
-     IF state.pt = i AND active THEN col = uilook(uiSelectedDisabled + tog)
+     IF state.pt = i AND state.active THEN col = uilook(uiSelectedDisabled + state.tog)
     ELSE
      IF .col = 0 THEN col = uilook(uiMenuItem)
-     IF state.pt = i AND active THEN col = uilook(uiSelectedItem + tog)
+     IF state.pt = i AND state.active THEN col = uilook(uiSelectedItem + state.tog)
     END IF
     DIM drawx as integer = x
     'FIXME: This doesn't work if the text contains embedded tags!
-    'IF state.pt = i AND linewidth > wide AND active THEN drawx = x + wide - linewidth
+    'IF state.pt = i AND linewidth > wide AND state.active THEN drawx = x + wide - linewidth
     IF edge THEN
      edgeprint .text, drawx, y + (i - state.top) * 8, col, page, YES
     ELSE

@@ -873,7 +873,6 @@ FUNCTION teleporttool () as integer
  DO
   setwait speedcontrol
   setkeys
-  state.tog = state.tog XOR 1
 
   IF preview_delay > 0 THEN
    preview_delay -= 1
@@ -935,7 +934,8 @@ FUNCTION teleporttool () as integer
 
   copypage vpage, dpage
   rectangle offset.x + dest.x * zoom - camera.x, offset.y + dest.y * zoom - camera.y, zoom, zoom, uilook(uiSelectedItem) * state.tog, dpage
-  standardmenu menu(), state, 0, 182, dpage, YES, (pickpoint=NO)  'edged=YES, active=(...)
+  state.active = (pickpoint = NO)
+  standardmenu menu(), state, 0, 182, dpage, YES  'edged=YES
   setvispage dpage
   dowait
  LOOP

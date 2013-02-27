@@ -517,7 +517,6 @@ setkeys YES
 DO
  setwait 55
  setkeys YES
- tog = tog XOR 1
  IF keyval(scESC) > 1 THEN
   mapedit_savemap st, map(), pass, emap, zmap, gmap(), doors(), link(), mapname
   EXIT DO
@@ -1500,7 +1499,7 @@ DO
    'Draw zonemenu
    DIM xpos as integer = 320 - 13*8  'Where to put the menu
    IF (st.x * 20) - st.mapx > xpos AND st.tiny = 0 THEN xpos = 8
-   standardmenu cast(BasicMenuItem vector, zonemenu), zonemenustate, xpos, 40, dpage, YES, , 13 * 8  'edged=YES, wide=13*8
+   standardmenu cast(BasicMenuItem vector, zonemenu), zonemenustate, xpos, 40, dpage, YES, 13 * 8  'edged=YES, wide=13*8
 
    IF zonemenustate.pt > -1 THEN
     ' A little right arrow
@@ -1557,7 +1556,6 @@ SUB mapedit_list_npcs_by_tile (st as MapEditState)
  DO
   setwait 55
   setkeys
-  state.tog XOR= 1
 
   IF keyval(scF1) > 1 THEN show_help "mapedit_npcs_by_tile"
   IF keyval(scESC) > 1 THEN EXIT DO
@@ -2180,7 +2178,6 @@ SUB mapedit_gmapdata(st as MapEditState, gmap() as integer, zmap as ZoneMap)
  DO
   setwait 55
   setkeys YES
-  state.tog = state.tog XOR 1
   IF keyval(scESC) > 1 OR (state.pt = 0 AND enter_or_space()) THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "general_map_data"
   usemenu state, cast(BasicMenuItem vector, menu)
@@ -2269,7 +2266,6 @@ SUB mapedit_layers (st as MapEditState, gmap() as integer, visible() as integer,
  DO 
   setwait 55
   setkeys
-  state.tog = state.tog XOR 1
 
   layerno = menu[state.pt].layernum
   fakelayerno = layerno

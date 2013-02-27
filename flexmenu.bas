@@ -1175,7 +1175,6 @@ setkeys YES
 DO
  setwait 55
  setkeys YES
- state.tog = state.tog XOR 1
  IF keyval(scESC) > 1 THEN
   IF menudepth = 1 THEN
    atk_edit_backptr workmenu(), mainMenu(), state, laststate, menudepth

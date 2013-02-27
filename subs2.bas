@@ -482,12 +482,10 @@ state.pt = 1
 state.size = 24
 state.last = UBOUND(menu)
 
-DIM tog as integer
 setkeys YES
 DO
  setwait 55
  setkeys YES
- tog = tog XOR 1
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "script_management"
  usemenu state
@@ -638,7 +636,6 @@ SUB text_box_editor () 'textage
  DO
   setwait 55
   setkeys YES
-  state.tog = state.tog XOR 1
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "textbox_main"
   IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN
@@ -1480,7 +1477,6 @@ SUB textbox_choice_editor (byref box as TextBox, byref st as TextboxEditState)
  DO
   setwait 55
   setkeys YES
-  state.tog = state.tog XOR 1
   IF keyval(scEsc) > 1 THEN EXIT SUB
   IF keyval(scF1) > 1 THEN show_help "textbox_choice_editor"
   usemenu state

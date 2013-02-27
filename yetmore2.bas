@@ -907,8 +907,6 @@ END SUB
 
 SUB npc_debug_display ()
  DIM temp as string
- STATIC tog as integer
- tog = tog XOR 1
  FOR i as integer = 0 TO 299
   WITH npc(i)
    IF .id <> 0 THEN

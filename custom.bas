@@ -307,7 +307,6 @@ SUB main_editor_menu()
  DO
   setwait 55
   setkeys YES
-  state.tog XOR= 1
 
   usemenu state
   IF keyval(scEsc) > 1 THEN
@@ -409,7 +408,6 @@ SUB gfx_editor_menu()
  DO
   setwait 55
   setkeys YES
-  state.tog XOR= 1
   IF keyval(scEsc) > 1 THEN
    EXIT DO
   END IF
@@ -484,7 +482,6 @@ SUB choose_rpg_to_open ()
  DO
   setwait 55
   setkeys
-  state.tog XOR= 1
   IF keyval(scEsc) > 1 THEN cleanup_and_terminate
   usemenu state
   IF enter_or_space() THEN
@@ -681,7 +678,6 @@ SUB shopdata ()
  DO
   setwait 55
   setkeys YES
-  shopst.st.tog XOR= 1
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "shop_main"
   IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN cropafter shopst.id, gen(genMaxShop), 0, game + ".sho", 40

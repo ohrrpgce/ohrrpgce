@@ -640,8 +640,6 @@ DIM remember_bit as integer = -1
 DIM show_name as integer = 0
 DIM drawpreview as integer = YES
 
-DIM tog as integer
-
 'load data here
 enemy_edit_load recindex, recbuf(), state, caption(), EnCapElemResist
 
@@ -652,7 +650,6 @@ setkeys YES
 DO
  setwait 55
  setkeys YES
- tog = tog XOR 1
  IF keyval(scESC) > 1 THEN
   IF menudepth THEN
    enemy_edit_backmenu state, lastptr, lasttop, menudepth, workmenu(), mainMenu()
@@ -973,7 +970,6 @@ SUB formation_set_editor
  DIM formset as FormationSet
  DIM set_id as integer = 1, form_id as integer
  DIM menu(23) as string
- DIM as integer tog, i
  DIM as GraphicPair egraphics(7)
  DIM as string ename(7)
  DIM state as MenuState
@@ -986,7 +982,6 @@ SUB formation_set_editor
  DO
   setwait 55
   setkeys
-  tog = tog XOR 1
   IF keyval(scESC) > 1 THEN
    SaveFormationSet formset, set_id
    EXIT DO
@@ -1062,7 +1057,7 @@ SUB individual_formation_editor ()
  DIM form as Formation
  DIM ename(7) as string
  DIM egraphics(7) as GraphicPair
- DIM as integer csr3, i, tog
+ DIM as integer csr3, i
  DIM as integer bgwait, bgctr
 
  LoadFormation form, form_id
@@ -1083,7 +1078,6 @@ SUB individual_formation_editor ()
  DO
   setwait 55
   setkeys
-  tog = tog XOR 1
   IF csr3 = 1 THEN
    '--enemy positioning mode
    IF keyval(scESC) > 1 OR enter_or_space() THEN setkeys: csr3 = 0
@@ -2022,11 +2016,11 @@ SUB hero_editor_stats_menu (her as HeroDef)
 
   '--Draw screen
   clearpage dpage
-  'Note that exactly one of the following two standardmenus should pass toggle=NO
+  'Note that exactly one of the following two standardmenus should be active, since they share 'state'
   mstate.active = (activemenu = 0)
-  standardmenu leftmenu, mstate, 8, 0, dpage, , (activemenu = 0)  'active=(...)
+  standardmenu leftmenu, mstate, 8, 0, dpage
   mstate.active = (activemenu = 1)
-  standardmenu rightmenu, mstate, 160, 0, dpage, , (activemenu = 1)  'active=(...)
+  standardmenu rightmenu, mstate, 160, 0, dpage
 
   IF statnum >= 0 THEN  '--Draw graph
    textcolor uilook(uiMenuItem), 0
@@ -2842,7 +2836,6 @@ SUB hero_editor_appearance(byref st as HeroEditState, byref her as HeroDef)
  DO
   setwait 55
   setkeys
-  state.tog = state.tog XOR 1
   animate_hero_preview st
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "hero_appearance"
@@ -2936,7 +2929,6 @@ SUB hero_editor_equipment_list (byval hero_id as integer, byref her as HeroDef)
  DO
   setwait 55
   setkeys
-  state.tog = state.tog XOR 1
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "hero_equipment"
   usemenu state
