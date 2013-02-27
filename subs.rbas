@@ -43,7 +43,7 @@ DECLARE sub drawformsprites(form as Formation, egraphics() as GraphicPair, byval
 DECLARE sub formpics(ename() as string, form as Formation, egraphics() as GraphicPair)
 
 DECLARE FUNCTION item_attack_name(n as integer) as string
-DECLARE SUB generate_item_edit_menu (menu() as string, itembuf() as integer, item_name as string, info_string as string, equip_types() as string, byref box_preview as string)
+DECLARE SUB generate_item_edit_menu (menu() as string, shaded() as bool, itembuf() as integer, item_name as string, info_string as string, equip_types() as string, byref box_preview as string)
 
 DECLARE SUB item_editor
 DECLARE SUB individual_item_editor(item_id as integer)
@@ -1345,183 +1345,179 @@ SUB item_editor
 END SUB
 
 SUB individual_item_editor(item_id as integer)
-DIM itembuf(dimbinsize(binITM)) as integer
-DIM menu(20) as string
-DIM eqst(5) as string
-DIM max(18) as integer
-DIM min(18) as integer
-DIM wep_img as GraphicPair 'This is only used in edititem
-DIM box_preview as string = "" 'This is only used in edititem
-DIM frame as integer
-'DIM ibitnames(-1 TO 59) as string
+ DIM itembuf(dimbinsize(binITM)) as integer
+ CONST menusize as integer = 20
+ DIM menu(menusize) as string
+ DIM shaded(menusize) as bool
+ DIM wep_img as GraphicPair
+ DIM box_preview as string = ""
+ 'DIM ibitnames(-1 TO 59) as string
 
-DIM pt as integer = 0
-DIM tog as integer
-DIM need_update as integer = NO
-
-eqst(0) = "NEVER EQUIPPED"
-eqst(1) = "Weapon"
-FOR i as integer = 0 TO 3
- eqst(i + 2) = readglobalstring(25 + i, "Armor" & i+1)
-NEXT i
-
-loaditemdata itembuf(), item_id
-DIM item_name as string, info as string
-item_name = readbadbinstring(itembuf(), 0, 8)
-info = readbadbinstring(itembuf(), 9, 36)
-
-menu(0) = "Back to Item Menu"
-menu(18) = "Stat Bonuses..."
-menu(19) = "Elemental Resists..."
-'menu(19) = "Equipment Bits..."
-menu(20) = "Who Can Equip?..."
-max(3) = 32767
-max(4) = gen(genMaxAttack)
-max(5) = gen(genMaxAttack)
-max(6) = 5
-max(7) = gen(genMaxAttack)
-max(8) = gen(genMaxAttack)
-max(9) = gen(genMaxWeaponPic)
-max(10) = 32767
-min(10) = -1
-max(11) = 2
-max(12) = max_tag()
-max(13) = max_tag()
-max(14) = max_tag()
-max(15) = max_tag()
-
-loaditemdata itembuf(), item_id
-generate_item_edit_menu menu(), itembuf(), item_name, info, eqst(), box_preview
-
-IF wep_img.sprite THEN frame_unload @wep_img.sprite
-IF wep_img.pal    THEN palette16_unload @wep_img.pal
-wep_img.sprite = frame_load(5, itembuf(52))
-wep_img.pal    = palette16_load(itembuf(53), 5, itembuf(52))
-
-need_update = NO
-
-setkeys YES
-DO
- setwait 55
- setkeys YES
- tog = tog XOR 1
- IF keyval(scESC) > 1 THEN EXIT DO
- IF keyval(scF1) > 1 THEN show_help "item_editor"
- usemenu pt, 0, 0, 20, 24
- frame = 0
- IF pt = 16 THEN frame = 1
- IF pt = 17 THEN frame = 0
- IF enter_or_space() THEN
-  IF pt = 0 THEN EXIT DO
-  IF itembuf(49) > 0 THEN
-   IF pt = 16 THEN
-    xy_position_on_sprite wep_img, itembuf(80), itembuf(81), 0, 24, 24, "weapon handle position", "xy_weapon_handle"
-    need_update = YES
-   END IF
-   IF pt = 17 THEN
-    xy_position_on_sprite wep_img, itembuf(78), itembuf(79), 1, 24, 24, "weapon handle position", "xy_weapon_handle"
-    need_update = YES
-   END IF
-   IF pt = 18 THEN
-    item_editor_stat_bonuses itembuf()
-    need_update = YES
-   END IF
-   IF pt = 19 THEN
-    item_editor_elementals itembuf()
-   END IF
-   'IF pt = 19 THEN
-   ' editbitset itembuf(), 70, 23, ibitnames()
-   ' need_update = YES
-   'END IF
-   IF pt = 20 THEN
-    item_editor_equipbits itembuf()
-    need_update = YES
-   END IF
-  END IF
-  IF pt = 10 THEN '--palette picker
-   itembuf(46 + (pt - 3)) = pal16browse(itembuf(53), 5, itembuf(52))
-   need_update = YES
-  END IF
- END IF
- SELECT CASE pt
-  CASE 1
-   strgrabber item_name, 8
-   menu(1) = "Name:" + item_name
-  CASE 2
-   strgrabber info, 36
-   menu(2) = "Info:" + info
-  CASE 3, 6, 9, 10
-   IF intgrabber(itembuf(46 + (pt - 3)), min(pt), max(pt)) THEN
-    need_update = YES
-   END IF
-  CASE 4, 5, 7
-   IF zintgrabber(itembuf(46 + (pt - 3)), -1, max(pt)) THEN
-    need_update = YES
-   END IF
-  CASE 8
-   IF xintgrabber(itembuf(46 + (pt - 3)), 0, max(pt), -1, gen(genMaxTextbox) * -1) THEN
-    need_update = YES
-   END IF
-  CASE 11
-   IF intgrabber(itembuf(73), 0, 2) THEN
-    need_update = YES
-   END IF
-  CASE 12 TO 15
-   IF tag_grabber(itembuf(74 + (pt - 12)), 0) THEN
-    need_update = YES
-    'Update cache
-    itemtags(item_id).have_tag = itembuf(74)
-    itemtags(item_id).in_inventory_tag = itembuf(75)
-    itemtags(item_id).is_equipped_tag = itembuf(76)
-    itemtags(item_id).is_actively_equipped_tag = itembuf(77)
-   END IF
- END SELECT
- IF need_update THEN
-  need_update = NO
-  generate_item_edit_menu menu(), itembuf(), item_name, info, eqst(), box_preview
-  IF wep_img.sprite THEN frame_unload @wep_img.sprite
-  IF wep_img.pal    THEN palette16_unload @wep_img.pal
-  wep_img.sprite = frame_load(5, itembuf(52))
-  wep_img.pal    = palette16_load(itembuf(53), 5, itembuf(52))
- END IF
-
- clearpage dpage
- FOR i as integer = 0 TO 20
-  textcolor uilook(uiMenuItem), 0
-  IF pt = i THEN textcolor uilook(uiSelectedItem + tog), 0
-  IF (i >= 18 AND itembuf(49) = 0) OR ((i = 16 OR i = 17) AND itembuf(49) <> 1) THEN
-   textcolor uilook(uiDisabledItem), 0
-   IF pt = i THEN textcolor uilook(uiSelectedDisabled + tog), 0
-  END IF
-  printstr menu(i), 0, i * 8, dpage
+ DIM eqst(5) as string
+ eqst(0) = "NEVER EQUIPPED"
+ eqst(1) = readglobalstring(38, "Weapon", 10)
+ FOR i as integer = 0 TO 3
+  eqst(i + 2) = readglobalstring(25 + i, "Armor" & i+1)
  NEXT i
- IF itembuf(49) = 1 THEN
-  frame_draw wep_img.sprite + 1 - frame, wep_img.pal, 280, 160,,,dpage
-  textcolor uilook(uiMenuItem), 0
-  drawline 278 + itembuf(78 + frame * 2),160 + itembuf(79 + frame * 2),279 + itembuf(78 + frame * 2), 160 + itembuf(79 + frame * 2),14 + tog,dpage
-  drawline 280 + itembuf(78 + frame * 2),158 + itembuf(79 + frame * 2),280 + itembuf(78 + frame * 2), 159 + itembuf(79 + frame * 2),14 + tog,dpage
-  drawline 281 + itembuf(78 + frame * 2),160 + itembuf(79 + frame * 2),282 + itembuf(78 + frame * 2), 160 + itembuf(79 + frame * 2),14 + tog,dpage
-  drawline 280 + itembuf(78 + frame * 2),161 + itembuf(79 + frame * 2),280 + itembuf(78 + frame * 2), 162 + itembuf(79 + frame * 2),14 + tog,dpage
- END IF
- edgeprint box_preview, 0, 191, uilook(uiText), dpage
- SWAP vpage, dpage
- setvispage vpage
- dowait
-LOOP
-IF wep_img.sprite THEN frame_unload @wep_img.sprite
-IF wep_img.pal    THEN palette16_unload @wep_img.pal
-writebadbinstring item_name, itembuf(), 0, 8
-writebadbinstring info, itembuf(), 9, 36
-saveitemdata itembuf(), item_id
+
+ loaditemdata itembuf(), item_id
+ DIM item_name as string, info as string
+ 'item_name and info aren't rewritten to itembuf() after changes until the menu is quit
+ item_name = readbadbinstring(itembuf(), 0, 8)
+ info = readbadbinstring(itembuf(), 9, 36)
+
+ 'Indexed by menu index, not by .itm/itembuf() index
+ DIM max(menusize) as integer
+ DIM min(menusize) as integer
+ max(3) = 32767
+ max(4) = 5
+ max(5) = gen(genMaxAttack)
+ max(6) = gen(genMaxAttack)
+ max(7) = gen(genMaxAttack)
+ max(8) = gen(genMaxAttack)
+ max(9) = 2
+ max(10) = max_tag()
+ max(11) = max_tag()
+ max(12) = max_tag()
+ max(13) = max_tag()
+ max(14) = gen(genMaxWeaponPic)
+ min(15) = -1
+ max(15) = 32767
+
+ 'Map from menu() indices to itembuf() indices
+ DIM iidx(menusize) as integer
+ iidx(3)  = 46 'value
+ iidx(4)  = 49 'equippable as
+ iidx(5)  = 47 'in battle use
+ iidx(6)  = 48 'weapon use
+ iidx(7)  = 50 'teach spell
+ iidx(8)  = 51 'out of battle use
+ iidx(9)  = 73 'consumption
+ iidx(10) = 74 'own item tag
+ iidx(11) = 75 'in inventory tag
+ iidx(12) = 76 'equipped tag
+ iidx(13) = 77 'actively equipped tag
+ iidx(14) = 52 'weapon pic
+ iidx(15) = 53 'weapon pal
+
+ DIM state as MenuState
+ state.size = 24
+ state.last = menusize
+ state.need_update = YES
+
+ setkeys YES
+ DO
+  setwait 55
+  setkeys YES
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "item_editor"
+  usemenu state
+  IF enter_or_space() THEN
+   IF state.pt = 0 THEN EXIT DO
+   IF itembuf(49) = 1 THEN
+    IF state.pt = 16 THEN
+     xy_position_on_sprite wep_img, itembuf(80), itembuf(81), 0, 24, 24, "weapon handle position", "xy_weapon_handle"
+     state.need_update = YES
+    END IF
+    IF state.pt = 17 THEN
+     xy_position_on_sprite wep_img, itembuf(78), itembuf(79), 1, 24, 24, "weapon handle position", "xy_weapon_handle"
+     state.need_update = YES
+    END IF
+   END IF
+   IF itembuf(49) > 0 THEN
+    IF state.pt = 18 THEN
+     item_editor_stat_bonuses itembuf()
+     state.need_update = YES
+    END IF
+    IF state.pt = 19 THEN
+     item_editor_elementals itembuf()
+    END IF
+    'IF state.pt = 19 THEN
+    ' editbitset itembuf(), 70, 23, ibitnames()
+    ' state.need_update = YES
+    'END IF
+    IF state.pt = 20 THEN
+     item_editor_equipbits itembuf()
+     state.need_update = YES
+    END IF
+   END IF
+   IF state.pt = 15 THEN '--palette picker
+    itembuf(53) = pal16browse(itembuf(53), 5, itembuf(52))
+    state.need_update = YES
+   END IF
+  END IF
+  SELECT CASE state.pt
+   CASE 1
+    strgrabber item_name, 8
+    menu(1) = "Name:" + item_name
+   CASE 2
+    strgrabber info, 36
+    menu(2) = "Info:" + info
+   CASE 3, 4, 9, 14, 15
+    IF intgrabber(itembuf(iidx(state.pt)), min(state.pt), max(state.pt)) THEN  'FIXME!!!!
+     state.need_update = YES
+    END IF
+   CASE 5, 6, 7
+    IF zintgrabber(itembuf(iidx(state.pt)), -1, max(state.pt)) THEN
+     state.need_update = YES
+    END IF
+   CASE 8
+    IF xintgrabber(itembuf(51), 0, max(state.pt), -1, gen(genMaxTextbox) * -1) THEN
+     state.need_update = YES
+    END IF
+   CASE 10 TO 13
+    IF tag_grabber(itembuf(74 + (state.pt - 10)), 0) THEN
+     state.need_update = YES
+     'Update cache
+     itemtags(item_id).have_tag = itembuf(74)
+     itemtags(item_id).in_inventory_tag = itembuf(75)
+     itemtags(item_id).is_equipped_tag = itembuf(76)
+     itemtags(item_id).is_actively_equipped_tag = itembuf(77)
+    END IF
+  END SELECT
+  IF state.need_update THEN
+   state.need_update = NO
+   generate_item_edit_menu menu(), shaded(), itembuf(), item_name, info, eqst(), box_preview
+   load_sprite_and_pal wep_img, sprTypeWeapon, itembuf(52), itembuf(53)
+  END IF
+
+  clearpage dpage
+  standardmenu menu(), state, shaded(), 0, 0, dpage
+  IF itembuf(49) = 1 THEN
+   'Is a weapon
+   DIM frame as integer = 0
+   IF state.pt = 16 THEN frame = 1
+   frame_draw wep_img.sprite + 1 - frame, wep_img.pal, 280, 160, , , dpage
+   DIM handle as XYPair
+   handle.x = 280 + itembuf(78 + frame * 2)
+   handle.y = 160 + itembuf(79 + frame * 2)
+   DIM col as integer = uilook(uiSelectedItem) + state.tog
+   drawline handle.x - 2, handle.y    , handle.x - 1, handle.y    , col, dpage
+   drawline handle.x    , handle.y - 2, handle.x    , handle.y - 1, col, dpage
+   drawline handle.x + 1, handle.y    , handle.x + 2, handle.y    , col, dpage
+   drawline handle.x    , handle.y + 1, handle.x    , handle.y + 2, col, dpage
+  END IF
+  edgeprint box_preview, 0, 191, uilook(uiText), dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+ IF wep_img.sprite THEN frame_unload @wep_img.sprite
+ IF wep_img.pal    THEN palette16_unload @wep_img.pal
+ writebadbinstring item_name, itembuf(), 0, 8
+ writebadbinstring info, itembuf(), 9, 36
+ saveitemdata itembuf(), item_id
 END SUB
 
-SUB generate_item_edit_menu (menu() as string, itembuf() as integer, item_name as string, info_string as string, equip_types() as string, byref box_preview as string)
+SUB generate_item_edit_menu (menu() as string, shaded() as bool, itembuf() as integer, item_name as string, info_string as string, equip_types() as string, byref box_preview as string)
+ DIM weapon as string = readglobalstring(38, "Weapon", 10)
+ menu(0) = "Back to Item Menu"
  menu(1) = "Name:" & item_name
  menu(2) = "Info:" & info_string
  menu(3) = "Value: " & itembuf(46)
- menu(4) = "When used in battle: " & item_attack_name(itembuf(47))
- menu(5) = "When used as a Weapon: " & item_attack_name(itembuf(48))
- menu(6) = "Equippable as: " & equip_types(bound(itembuf(49), 0, 5))
+ menu(4) = "Equippable as: " & equip_types(bound(itembuf(49), 0, 5))
+ menu(5) = "When used in battle: " & item_attack_name(itembuf(47))
+ menu(6) = "When used as a " & weapon & ": " & item_attack_name(itembuf(48))
  menu(7) = "Teach Spell: " & item_attack_name(itembuf(50))
  IF itembuf(51) >= 0 THEN
   menu(8) = "When used out of battle: " & item_attack_name(itembuf(51))
@@ -1530,22 +1526,44 @@ SUB generate_item_edit_menu (menu() as string, itembuf() as integer, item_name a
   menu(8) = "When used out of battle: Text " & ABS(itembuf(51))
   box_preview = textbox_preview_line(ABS(itembuf(51)))
  END IF
- menu(9) = "Weapon Picture: " & itembuf(52)
- menu(10) = "Weapon Palette: " & defaultint(itembuf(53))
- IF itembuf(49) <> 1 THEN menu(9) = "Weapon Picture: N/A": menu(10) = "Weapon Palette: N/A"
- menu(11) = "Unlimited Use"
- IF itembuf(73) = 1 THEN menu(11) = "Consumed By Use"
- IF itembuf(73) = 2 THEN menu(11) = "Cannot be Sold/Dropped"
- menu(12) = "own item TAG " & itembuf(74) & " " & load_tag_name(itembuf(74))
- menu(13) = "is in inventory TAG " & itembuf(75) & " " & load_tag_name(itembuf(75))
- menu(14) = "is equipped TAG " & itembuf(76) & " " & load_tag_name(itembuf(76))
- menu(15) = "eqpt by active hero TAG " & itembuf(77) & " " & load_tag_name(itembuf(77))
+ menu(9) = "Unlimited Use"
+ IF itembuf(73) = 1 THEN menu(9) = "Consumed By Use"
+ IF itembuf(73) = 2 THEN menu(9) = "Cannot be Sold/Dropped"
+ menu(10) = "own item TAG " & itembuf(74) & " " & load_tag_name(itembuf(74))
+ menu(11) = "is in inventory TAG " & itembuf(75) & " " & load_tag_name(itembuf(75))
+ menu(12) = "is equipped TAG " & itembuf(76) & " " & load_tag_name(itembuf(76))
+ menu(13) = "eqpt by active hero TAG " & itembuf(77) & " " & load_tag_name(itembuf(77))
+ menu(14) = "Weapon Picture: " & itembuf(52)
+ menu(15) = "Weapon Palette: " & defaultint(itembuf(53))
  menu(16) = "Handle position A..."
  menu(17) = "Handle position B..."
- IF itembuf(49) <> 1 THEN
-  menu(16) = menu(16) & " N/A"
-  menu(17) = menu(17) & " N/A"
+ menu(18) = "Stat Bonuses..."
+ menu(19) = "Elemental Resists..."
+ 'menu(19) = "Equipment Bits..."
+ menu(20) = "Who Can Equip?..."
+
+ FOR i as integer = 0 TO UBOUND(shaded)
+  shaded(i) = NO
+ NEXT
+ IF itembuf(49) <> 1 THEN  'Not a weapon
+  menu(6) = "When used as a " & weapon & ": N/A"
+  shaded(6) = YES
+  menu(14) = "Weapon Picture: N/A"
+  menu(15) = "Weapon Palette: N/A"
+  shaded(14) = YES
+  shaded(15) = YES
+  shaded(16) = YES
+  shaded(17) = YES
  END IF
+ IF itembuf(49) = 0 THEN  'Not equipable
+  'Don't N/A the tags, because they still take effect
+  shaded(12) = YES
+  shaded(13) = YES
+  shaded(18) = YES
+  shaded(19) = YES
+  shaded(20) = YES
+ END IF
+
 END SUB
 
 FUNCTION item_attack_name(n as integer) as string
