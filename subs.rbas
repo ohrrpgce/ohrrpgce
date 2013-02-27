@@ -937,28 +937,30 @@ END FUNCTION
 
 
 SUB formation_editor
- DIM as integer csr, tog
  DIM menu(2) as string
  menu(0) = "Return to Main Menu"
  menu(1) = "Edit Individual Formations..."
  menu(2) = "Construct Formation Sets..."
 
+ DIM state as MenuState
+ state.size = 24
+ state.last = UBOUND(menu)
+
  setkeys
  DO
   setwait 55
   setkeys
-  tog = tog XOR 1
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "formation_main"
-  usemenu csr, 0, 0, 2, 24
+  usemenu state
   IF enter_or_space() THEN
-   IF csr = 0 THEN EXIT DO
-   IF csr = 1 THEN individual_formation_editor
-   IF csr = 2 THEN formation_set_editor
+   IF state.pt = 0 THEN EXIT DO
+   IF state.pt = 1 THEN individual_formation_editor
+   IF state.pt = 2 THEN formation_set_editor
   END IF
 
   clearpage dpage
-  standardmenu menu(), 2, 22, csr, 0, 0, 0, dpage
+  standardmenu menu(), state, 0, 0, dpage
 
   SWAP vpage, dpage
   setvispage vpage
@@ -1626,11 +1628,14 @@ SUB npcdef (st as MapEditState, npc_img() as GraphicPair, gmap() as integer, zma
 'npc_img() should be of fixed size (0 TO max_npc_defs - 1), like st.npc_def(), with the actual number passed in st.num_npc_defs
 
 DIM boxpreview(st.num_npc_defs - 1) as string
-DIM as integer tog, i, top = 0, cur = 0, menumax, need_update_selected = NO
+DIM need_update_selected as bool = NO
+
+DIM state as MenuState
+state.size = 7
 
 '--If there's room for more, add "Add new NPC" option to end
-menumax = st.num_npc_defs - 1
-IF st.num_npc_defs < max_npc_defs THEN menumax += 1
+state.last = st.num_npc_defs - 1
+IF st.num_npc_defs < max_npc_defs THEN state.last += 1
 
 FOR i as integer = 0 TO st.num_npc_defs - 1
  boxpreview(i) = textbox_preview_line(st.npc_def(i).textbox)
@@ -1639,13 +1644,13 @@ setkeys YES
 DO
  setwait 55
  setkeys YES
- tog = tog XOR 1
+ state.tog = state.tog XOR 1
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "pick_npc_to_edit"
- intgrabber cur, 0, menumax
- usemenu cur, top, 0, menumax, 7
+ intgrabber state.pt, 0, state.last
+ usemenu state
  IF enter_or_space() THEN
-  IF cur = st.num_npc_defs THEN
+  IF state.pt = st.num_npc_defs THEN
    '--Add new NPC option
    st.num_npc_defs += 1
    CleanNPCDefinition st.npc_def(st.num_npc_defs - 1)
@@ -1653,7 +1658,7 @@ DO
    '--An NPC
    'First save NPCs so that we can correctly search for unused one-time use tags (see onetimetog)
    SaveNPCD_fixedlen maplumpname(st.mapnum, "n"), st.npc_def(), st.num_npc_defs
-   edit_npc st.npc_def(cur), gmap(), zmap
+   edit_npc st.npc_def(state.pt), gmap(), zmap
   END IF
   need_update_selected = YES
  END IF
@@ -1661,17 +1666,17 @@ DO
   '--Fast add button (for people who really want ID 134 for a task)
   st.num_npc_defs += 1
   CleanNPCDefinition st.npc_def(st.num_npc_defs - 1)
-  cur = st.num_npc_defs - 1
+  state.pt = st.num_npc_defs - 1
   need_update_selected = YES
  END IF
  IF keyval(scDelete) > 1 THEN
-  '--This updates st.num_npc_defs as needed, but not cur
-  handle_npc_def_delete st.npc_def(), cur, st.num_npc_defs, st.npc_inst()
-  IF cur > st.num_npc_defs - 1 THEN
+  '--This updates st.num_npc_defs as needed, but not state.pt
+  handle_npc_def_delete st.npc_def(), state.pt, st.num_npc_defs, st.npc_inst()
+  IF state.pt > st.num_npc_defs - 1 THEN
    '--Deleted last NPC def
-   frame_unload @npc_img(cur).sprite
-   palette16_unload @npc_img(cur).pal
-   cur = st.num_npc_defs - 1
+   frame_unload @npc_img(state.pt).sprite
+   palette16_unload @npc_img(state.pt).pal
+   state.pt = st.num_npc_defs - 1
   END IF
   need_update_selected = YES
  END IF
@@ -1679,41 +1684,41 @@ DO
  IF need_update_selected THEN
   '--Note not all, or even any, of these updates will be required in a given case
   '--Re-load the picture and palette
-  WITH npc_img(cur)
+  WITH npc_img(state.pt)
    IF .sprite THEN frame_unload(@.sprite)
-   .sprite = frame_load(4, st.npc_def(cur).picture)
+   .sprite = frame_load(4, st.npc_def(state.pt).picture)
    IF .pal THEN palette16_unload(@.pal)
-   .pal = palette16_load(st.npc_def(cur).palette, 4, st.npc_def(cur).picture)
+   .pal = palette16_load(st.npc_def(state.pt).palette, 4, st.npc_def(state.pt).picture)
   END WITH
   '--Update box preview line
   REDIM PRESERVE boxpreview(st.num_npc_defs - 1)
-  boxpreview(cur) = textbox_preview_line(st.npc_def(cur).textbox)
-  '--Update menumax
-  menumax = st.num_npc_defs - 1
-  IF st.num_npc_defs < max_npc_defs THEN menumax += 1
+  boxpreview(state.pt) = textbox_preview_line(st.npc_def(state.pt).textbox)
+  '--Update menu size
+  state.last = st.num_npc_defs - 1
+  IF st.num_npc_defs < max_npc_defs THEN state.last += 1
 
   need_update_selected = NO
  END IF
 
  clearpage dpage
- FOR i as integer = top TO top + 7
-  IF i > menumax THEN EXIT FOR
-  IF cur = i THEN edgebox 0, (i - top) * 25, 320, 22, uilook(uiDisabledItem), uilook(uiMenuItem), dpage
+ FOR i as integer = state.top TO state.top + 7
+  IF i > state.last THEN EXIT FOR
+  IF state.pt = i THEN edgebox 0, (i - state.top) * 25, 320, 22, uilook(uiDisabledItem), uilook(uiMenuItem), dpage
   textcolor uilook(uiMenuItem), 0
-  IF cur = i THEN textcolor uilook(uiSelectedItem + tog), 0
+  IF state.pt = i THEN textcolor uilook(uiSelectedItem + state.tog), 0
   IF i > st.num_npc_defs - 1 THEN
    '--Add new NPC option
-   printstr "Add new NPC", 0, ((i - top) * 25) + 5, dpage
+   printstr "Add new NPC", 0, ((i - state.top) * 25) + 5, dpage
   ELSE
    '--An NPC
-   printstr "" & i, 0, ((i - top) * 25) + 5, dpage
+   printstr "" & i, 0, ((i - state.top) * 25) + 5, dpage
    WITH npc_img(i)
     '--Down A frame
-    frame_draw .sprite + 4, .pal, 32, (i - top) * 25, 1, -1, dpage
+    frame_draw .sprite + 4, .pal, 32, (i - state.top) * 25, 1, -1, dpage
    END WITH
    textcolor uilook(uiMenuItem), uilook(uiHighlight)
-   IF cur = i THEN textcolor uilook(uiText), uilook(uiHighlight)
-   printstr boxpreview(i), 56, ((i - top) * 25) + 5, dpage
+   IF state.pt = i THEN textcolor uilook(uiText), uilook(uiHighlight)
+   printstr boxpreview(i), 56, ((i - state.top) * 25) + 5, dpage
   END IF
  NEXT i
  SWAP vpage, dpage

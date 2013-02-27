@@ -100,12 +100,13 @@ TYPE GameState
   script_log as ScriptLoggingState
 END TYPE
 
+'Note that .showing, .fully_shown, .sayer need to be always correct even if no box is up
 TYPE TextBoxState
   id             as integer 'ID Number of the current box or -1 for none
   box            as TextBox 'Contains the data about the content of the textbox
   showing        as bool
-  fully_shown    as bool    'All lines have been displayed, player is allowed to advance
-  choice_cursor  as integer 'Selected item in choicebox
+  fully_shown    as bool    'All lines have been displayed, player is allowed to advance. False if no textbox
+  choicestate    as MenuState 'Choicebox menu control
   remember_music as integer
   show_lines     as integer 'Number of lines currently on display
   sayer          as integer 'The NPC reference who triggered this textbox as a positive number, or -1 for none

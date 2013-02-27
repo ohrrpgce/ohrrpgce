@@ -448,7 +448,7 @@ IF txt.box.choice_enabled THEN
  IF choice_sl(0) <> 0 AND choice_sl(1) <> 0 THEN
   FOR i as integer = 0 TO 1
    col = uilook(uiMenuItem)
-   IF txt.choice_cursor = i THEN col = uilook(uiSelectedItem + tog)
+   IF txt.choicestate.pt = i THEN col = uilook(uiSelectedItem + tog)
    ChangeTextSlice choice_sl(i), ,col
   NEXT i
  END IF
@@ -2362,14 +2362,14 @@ END SUB
 
 'holdscreen is a copy of vpage (not a compatpage)
 FUNCTION useinn (byval price as integer, byval holdscreen as integer) as integer
-DIM inn as integer = 0
 DIM menu(1) as string
-DIM i as integer
-DIM y as integer
-DIM col as integer
 DIM page as integer
 page = compatpage
 DIM tog as integer
+
+DIM state as MenuState
+state.last = UBOUND(menu)
+state.size = 2
 
 useinn = 0 'default return value
 
@@ -2386,19 +2386,18 @@ DO
  playtimer
  control
  IF carray(ccMenu) > 1 THEN
-  inn = 1
   menusound gen(genCancelSFX)
   EXIT DO
  END IF
  usemenusounds
- usemenu inn, 0, 0, 1, 2
+ usemenu state
  'alternatively
  IF carray(ccLeft) > 1 OR carray(ccRight) > 1 THEN
   menusound gen(genCursorSFX)
-  inn = inn XOR 1
+  state.pt = state.pt XOR 1
  END IF
  IF carray(ccUse) > 1 THEN
-  IF inn = 0 AND gold >= price THEN
+  IF state.pt = 0 AND gold >= price THEN
    gold = gold - price
    useinn = -1
    menusound gen(genAcceptSFX)
@@ -2406,18 +2405,18 @@ DO
   ELSE
    menusound gen(genCancelSFX)
   END IF
-  IF inn = 1 THEN EXIT DO
+  IF state.pt = 1 THEN EXIT DO
  END IF
 
  'Draw screen
  copypage holdscreen, vpage
  edgeboxstyle 0, 3, 218, herocount() * 10 + 4, 0, page
- y = 0
+ DIM y as integer = 0
  FOR i as integer = 0 TO 3
   IF hero(i) > 0 THEN
-   col = uilook(uiText)
+   DIM col as integer = uilook(uiText)
    edgeprint names(i), 128 - LEN(names(i)) * 8, 5 + y * 10, col, page
-   edgeprint STR(ABS(gam.hero(i).stat.cur.hp)) + "/" + STR(ABS(gam.hero(i).stat.max.hp)), 136, 5 + y * 10, col, page
+   edgeprint STR(gam.hero(i).stat.cur.hp) + "/" + STR(gam.hero(i).stat.max.hp), 136, 5 + y * 10, col, page
    y = y + 1
   END IF
  NEXT i
@@ -2426,7 +2425,9 @@ DO
  edgeprint inncost & " " & price & " " & readglobalstring(32, "Money"), 160 - LEN(inncost & price & " " & readglobalstring(32, "Money")) * 4, 70, uilook(uiText), page
  edgeprint youhave & " " & gold & " " & readglobalstring(32, "Money"), 160 - LEN(youhave & gold & " " & readglobalstring(32, "Money")) * 4, 80, uilook(uiText), page
  FOR i as integer = 0 TO 1
-  col = uilook(uiMenuItem): IF inn = i THEN col = uilook(uiSelectedItem + tog)
+  DIM col as integer
+  col = uilook(uiMenuItem)
+  IF state.pt = i THEN col = uilook(uiSelectedItem + tog)
   edgeprint menu(i), 160 - LEN(menu(i)) * 4, 94 + i * 8, col, page
  NEXT i
 

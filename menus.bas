@@ -317,18 +317,6 @@ SUB standardmenu (menu() as string, byref state as MenuState, shaded() as bool, 
  v_free basicmenu
 END SUB
 
-SUB standardmenu (menu() as string, byval size as integer, byval vis as integer, byval pt as integer, byval top as integer, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval wide as integer=9999, byval highlight as integer=NO)
- DIM state as MenuState
- state.pt = pt
- state.top = top
- state.last = size
- state.size = vis
- DIM basicmenu as BasicMenuItem vector
- standard_to_basic_menu menu(), state, basicmenu
- standardmenu basicmenu, state, x, y, page, edge, YES, wide, highlight
- v_free basicmenu
-END SUB
-
 'menu may in fact be a vector of any type inheriting from BasicMenuItem:
 ' standardmenu cast(BasicMenuItem vector, menu), ...
 'menu's typetable tells the size in bytes of each menu item

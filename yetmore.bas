@@ -3719,7 +3719,11 @@ LOOP
 txt.id = box_id
 
 gen(genTextboxBackdrop) = 0
-txt.choice_cursor = 0
+WITH txt.choicestate
+ .pt = 0
+ .size = 2
+ .last = 1
+END WITH
 
 FOR j as integer = 0 TO 7
  embedtext txt.box.text(j), 38

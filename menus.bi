@@ -21,7 +21,6 @@ DECLARE FUNCTION scrollmenu (state as MenuState, byval deckey as integer = scUp,
 DECLARE SUB standard_to_basic_menu (menu() as string, byref state as MenuState, byref basicmenu as BasicMenuItem vector, byval shaded as bool ptr = NULL)
 DECLARE SUB standardmenu OVERLOAD (menu() as string, state as MenuState, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval active as integer=YES, byval wide as integer=9999, byval highlight as integer=NO)
 DECLARE SUB standardmenu OVERLOAD (menu() as string, state as MenuState, shaded() as bool, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval active as integer=YES, byval wide as integer=9999, byval highlight as integer=NO)
-DECLARE SUB standardmenu OVERLOAD (menu() as string, byval size as integer, byval vis as integer, byval pt as integer, byval top as integer, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval wide as integer=9999, byval highlight as integer=NO)
 DECLARE SUB standardmenu OVERLOAD (byval menu as BasicMenuItem vector, state as MenuState, byval x as integer, byval y as integer, byval page as integer, byval edge as integer=NO, byval active as integer=YES, byval wide as integer=9999, byval highlight as integer=NO)
 
 '' Selection by typing

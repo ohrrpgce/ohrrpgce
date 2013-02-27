@@ -4756,7 +4756,6 @@ SUB writebadbinstring (savestr as string, array() as integer, byval offset as in
  '--write current length
  array(offset) = small(LEN(savestr), maxlen)
 
-
  FOR i as integer = 1 TO small(LEN(savestr), maxlen)
   array(offset + skipword + i) = savestr[i - 1]
  NEXT i
@@ -4764,7 +4763,6 @@ SUB writebadbinstring (savestr as string, array() as integer, byval offset as in
  FOR i as integer = LEN(savestr) + 1 TO maxlen
   array(offset + skipword + i) = 0
  NEXT i
-
 END SUB
 
 'See ReadByteStr for the straight-from-file version

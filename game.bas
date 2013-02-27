@@ -541,7 +541,6 @@ wantteleport = 0
 wantusenpc = 0
 wantloadgame = 0
 
-txt.choice_cursor = 0
 txt.showing = NO
 txt.fully_shown = NO
 txt.show_lines = 0
@@ -651,7 +650,7 @@ DO
  END IF
  IF txt.fully_shown = YES AND txt.box.choice_enabled THEN
   usemenusounds
-  usemenu txt.choice_cursor, 0, 0, 1, 2
+  usemenu txt.choicestate
  END IF
  'DEBUG debug "hero movement"
  update_heroes()
@@ -3133,7 +3132,7 @@ SUB advance_text_box ()
  '---IF MADE A CHOICE---
  IF txt.box.choice_enabled THEN
   MenuSound gen(genAcceptSFX)
-  settag txt.box.choice_tag(txt.choice_cursor)
+  settag txt.box.choice_tag(txt.choicestate.pt)
  END IF
  '---RESET MUSIC----
  IF txt.box.restore_music THEN
@@ -3380,13 +3379,15 @@ SUB init_text_box_slices(txt as TextBoxState)
 
 END SUB
 
+'This is used for resetting game state. But only a few of the txt members
+'actually need to be cleaned up; most aren't used when no box is up
 SUB cleanup_text_box ()
  ClearTextBox txt.box
  WITH txt
   .id = -1
   .showing = NO
   .fully_shown = NO
-  .choice_cursor = 0
+  .choicestate.pt = 0
   .remember_music = NO
   .show_lines = 0
   .sayer = -1

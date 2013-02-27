@@ -1137,8 +1137,10 @@ FUNCTION handle_dirty_workingdir () as integer
  cleanup_menu(0) = "DO NOTHING"
  cleanup_menu(1) = "RECOVER IT"
  cleanup_menu(2) = "ERASE IT"
- DIM clean_choice as integer
- DIM tog as integer
+
+ DIM state as MenuState
+ state.size = 8
+ state.last = UBOUND(cleanup_menu)
 
  DIM index as integer = 0
  DIM destfile as string
@@ -1152,19 +1154,18 @@ FUNCTION handle_dirty_workingdir () as integer
  DO
   setwait 55
   setkeys
-  tog = tog XOR 1
-  usemenu clean_choice, 0, 0, 2, 2
+  usemenu state
   IF enter_or_space() THEN
-   IF clean_choice = 1 THEN
+   IF state.pt = 1 THEN
     IF isfile(workingdir + SLASH + "__danger.tmp") THEN
      textcolor uilook(uiSelectedItem), uilook(uiHighlight) 'FIXME: new uilook for warning text colors?
      printstr "Data is corrupt, not safe to relump", 0, 100, vpage
-     setvispage vpage 'refresh
+     setvispage vpage
      waitforanykey
     ELSE '---END UNSAFE
      printstr "Saving as " + destfile, 0, 180, vpage
      printstr "LUMPING DATA: please wait...", 0, 190, vpage
-     setvispage vpage 'refresh
+     setvispage vpage
      '--re-lump recovered files as BAK file
      dolumpfiles destfile
      clearpage vpage
@@ -1179,19 +1180,19 @@ FUNCTION handle_dirty_workingdir () as integer
      RETURN YES  'continue
     END IF '---END RELUMP
    END IF
-   IF clean_choice = 2 THEN empty_workingdir : RETURN YES  'continue
-   IF clean_choice = 0 THEN nocleanup = YES: RETURN NO  'quit
+   IF state.pt = 2 THEN empty_workingdir : RETURN YES  'continue
+   IF state.pt = 0 THEN nocleanup = YES : RETURN NO  'quit
   END IF
 
+  clearpage dpage
   basic_textbox !"A game was found unlumped.\n" _
                  "This may mean that " + CUSTOMEXE + " crashed last time you used it, or it may mean " _
                  "that another copy of " + CUSTOMEXE + " is already running in the background.", _
                  uilook(uiText), dpage
-  standardmenu cleanup_menu(), 2, 2, clean_choice, 0, 16, 150, dpage
+  standardmenu cleanup_menu(), state, 16, 150, dpage
 
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
  LOOP
 END FUNCTION

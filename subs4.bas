@@ -53,7 +53,7 @@ DECLARE SUB importsfx_importsfxfile(sname as string, sfxfile as string, byval sn
 
 SUB vehicles
 
-DIM menu(20) as string
+DIM menu(15) as string
 DIM veh(39) as integer
 DIM min(39) as integer
 DIM max(39) as integer
@@ -61,11 +61,11 @@ DIM offset(39) as integer
 DIM vehbit(15) as string
 DIM tiletype(8) as string
 DIM vehname as string = ""
+DIM vehicle_id as integer = 0
 
-DIM pt as integer = 0
-DIM csr as integer = 0
-DIM top as integer = 0
-DIM tog as integer
+DIM state as MenuState
+state.size = 24
+state.last = UBOUND(menu)
 
 vehbit(0) = "Pass through walls"
 vehbit(1) = "Pass through NPCs"
@@ -99,32 +99,31 @@ min(13) = gen(genMaxRegularScript) * -1: max(13) = gen(genMaxTextbox): offset(13
 min(14) = gen(genMaxRegularScript) * -1: max(14) = gen(genMaxTextbox): offset(14) = 16'dismount
 min(15) = 0: max(15) = 99: offset(15) = 21'dismount
 
-LoadVehicle game + ".veh", veh(), vehname, pt
+LoadVehicle game + ".veh", veh(), vehname, vehicle_id
 GOSUB vehmenu
 
 setkeys YES
 DO
  setwait 55
  setkeys YES
- tog = tog XOR 1
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "vehicle_editor"
- usemenu csr, top, 0, 15, 22
- SELECT CASE csr
+ usemenu state
+ SELECT CASE state.pt
   CASE 0
    IF enter_or_space() THEN
     EXIT DO
    END IF
   CASE 1
-   DIM savept as integer = pt
-   IF intgrabber_with_addset(pt, 0, gen(genMaxVehicle), 32767, "vehicle") THEN
+   DIM savept as integer = vehicle_id
+   IF intgrabber_with_addset(vehicle_id, 0, gen(genMaxVehicle), 32767, "vehicle") THEN
     SaveVehicle game + ".veh", veh(), vehname, savept
-    IF pt > gen(genMaxVehicle) THEN  '--adding set
-     gen(genMaxVehicle) = pt
+    IF vehicle_id > gen(genMaxVehicle) THEN  '--adding set
+     gen(genMaxVehicle) = vehicle_id
      flusharray veh()
      vehname = ""
     ELSE
-     LoadVehicle game + ".veh", veh(), vehname, pt
+     LoadVehicle game + ".veh", veh(), vehname, vehicle_id
     END IF
     GOSUB vehmenu
    END IF
@@ -133,11 +132,11 @@ DO
    strgrabber vehname, 15
    IF oldname <> vehname THEN GOSUB vehmenu
   CASE 3, 5 TO 9, 15
-   IF intgrabber(veh(offset(csr)), min(csr), max(csr)) THEN
+   IF intgrabber(veh(offset(state.pt)), min(state.pt), max(state.pt)) THEN
     GOSUB vehmenu
    END IF
   CASE 12 '--tags
-   IF tag_grabber(veh(offset(csr)), , , NO) THEN
+   IF tag_grabber(veh(offset(state.pt)), , , NO) THEN
     GOSUB vehmenu
    END IF
   CASE 4
@@ -146,34 +145,34 @@ DO
    END IF
   CASE 10, 11
    IF enter_or_space() THEN
-    veh(offset(csr)) = large(0, veh(offset(csr)))
-    scriptbrowse veh(offset(csr)), plottrigger, "vehicle plotscript"
+    veh(offset(state.pt)) = large(0, veh(offset(state.pt)))
+    scriptbrowse veh(offset(state.pt)), plottrigger, "vehicle plotscript"
     GOSUB vehmenu
-   ELSEIF scrintgrabber(veh(offset(csr)), min(csr), max(csr), scLeft, scRight, 1, plottrigger) THEN
+   ELSEIF scrintgrabber(veh(offset(state.pt)), min(state.pt), max(state.pt), scLeft, scRight, 1, plottrigger) THEN
     GOSUB vehmenu
    END IF
   CASE 13, 14
    IF enter_or_space() THEN
-    DIM temptrig as integer = large(0, -veh(offset(csr)))
+    DIM temptrig as integer = large(0, -veh(offset(state.pt)))
     scriptbrowse temptrig, plottrigger, "vehicle plotscript"
-    veh(offset(csr)) = -temptrig
+    veh(offset(state.pt)) = -temptrig
     GOSUB vehmenu
-   ELSEIF scrintgrabber(veh(offset(csr)), min(csr), max(csr), scLeft, scRight, -1, plottrigger) THEN
+   ELSEIF scrintgrabber(veh(offset(state.pt)), min(state.pt), max(state.pt), scLeft, scRight, -1, plottrigger) THEN
     GOSUB vehmenu
    END IF
  END SELECT
  clearpage dpage
- standardmenu menu(), 15, 15, csr, top, 0, 0, dpage
+ standardmenu menu(), state, 0, 0, dpage
  SWAP vpage, dpage
  setvispage vpage
  dowait
 LOOP
-SaveVehicle game + ".veh", veh(), vehname, pt
+SaveVehicle game + ".veh", veh(), vehname, vehicle_id
 EXIT SUB
 
 vehmenu:
 menu(0) = "Previous Menu"
-menu(1) = "Vehicle " & pt
+menu(1) = "Vehicle " & vehicle_id
 menu(2) = "Name: " + vehname
 
 IF veh(offset(3)) = 3 THEN

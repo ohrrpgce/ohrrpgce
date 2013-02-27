@@ -660,7 +660,7 @@ DIM menu(1) as string
 DIM sprites(3, 3) as GraphicPair
 DIM st as MenuState
 
-st.first = -1
+st.first = -1  'Note that st.pt can actually go down to -2
 st.last = 3
 st.size = 4
 
@@ -810,8 +810,11 @@ FUNCTION picksave_confirm(menu() as string, byval loading as integer, sprites() 
  menuwidth = 8 * large(LEN(confirm(0)), LEN(confirm(1)))
  DIM replacedat as string
  replacedat = readglobalstring(102, "Replace Old Data?", 20)
- 
- DIM allow as integer = 0
+
+ DIM state as MenuState
+ state.last = 1
+ state.size = 2
+
  MenuSound gen(genAcceptSFX)
  setkeys
  DO
@@ -824,9 +827,9 @@ FUNCTION picksave_confirm(menu() as string, byval loading as integer, sprites() 
    MenuSound gen(genCancelSFX)
    RETURN NO
   END IF
-  IF carray(ccUse) > 1 THEN RETURN allow
+  IF carray(ccUse) > 1 THEN RETURN state.pt
 
-  usemenu allow, 0, 0, 1, 2
+  usemenu state
   usemenusounds
  
   copypage holdscreen, page
@@ -835,7 +838,7 @@ FUNCTION picksave_confirm(menu() as string, byval loading as integer, sprites() 
   edgeprint replacedat, 200 - (LEN(replacedat) * 8), confirmboxY - 5, uilook(uiText), page
   FOR i as integer = 0 TO 1
    DIM col as integer = uilook(uiSelectedItem + tog)
-   IF allow = i THEN col = uilook(uiMenuItem)
+   IF state.pt = i THEN col = uilook(uiMenuItem)
    edgeprint confirm(i), 216, confirmboxY - 9 + (i * 9), col, page
   NEXT i
   setvispage vpage
@@ -1467,7 +1470,6 @@ END FUNCTION
 
 SUB equip (byval who as integer)
 
-'--dim stuff
 DIM m(4) as string
 DIM menu(6) as string
 DIM page as integer = compatpage
