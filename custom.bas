@@ -50,7 +50,6 @@ DECLARE SUB compile_andor_import_scripts (f as string)
 DECLARE FUNCTION newRPGfile (templatefile as string, newrpg as string) as integer
 DECLARE FUNCTION makeworkingdir () as integer
 DECLARE FUNCTION handle_dirty_workingdir () as integer
-DECLARE SUB shopdata ()
 DECLARE SUB secret_menu ()
 DECLARE SUB condition_test_menu ()
 DECLARE SUB quad_transforms_menu ()
@@ -58,7 +57,8 @@ DECLARE SUB arbitrary_sprite_editor ()
 DECLARE SUB text_test_menu ()
 DECLARE SUB font_test_menu ()
 
-DECLARE SUB shop_stuff_edit (byval shop_id as integer, stufbuf() as integer, byref thing_total as integer)
+DECLARE SUB shopdata ()
+DECLARE SUB shop_stuff_edit (byval shop_id as integer, byref thing_total as integer)
 DECLARE SUB shop_save_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
 DECLARE SUB shop_load_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
 DECLARE SUB update_shop_stuff_menu (byref stuf as ShopStuffState, stufbuf() as integer, byval thing_total as integer)
@@ -67,6 +67,7 @@ DECLARE SUB shop_menu_update(byref shopst as ShopEditState, shopbuf() as integer
 DECLARE SUB shop_save (byref shopst as ShopEditState, shopbuf() as integer)
 DECLARE SUB shop_load (byref shopst as ShopEditState, shopbuf() as integer)
 DECLARE SUB shop_add_new (shopst as ShopEditState)
+
 DECLARE SUB cleanupfiles ()
 DECLARE SUB cleanup_and_terminate ()
 DECLARE SUB import_scripts_and_terminate (scriptfile as string)
@@ -656,7 +657,6 @@ END SUB
 
 SUB shopdata ()
  DIM shopbuf(20) as integer
- DIM stufbuf(curbinsize(binSTF) \ 2 - 1) as integer
 
  DIM sbit(-1 TO 7) as string
  sbit(0) = "Buy"
@@ -670,15 +670,12 @@ SUB shopdata ()
 
  DIM shopst as ShopEditState
  shopst.havestuf = NO
- shopst.menu(0) = "Return to Main Menu"
- shopst.menu(3) = "Edit Available Stuff..."
- shopst.menu(4) = "Select Shop Menu Items..."
 
  shop_load shopst, shopbuf()
  shopst.st.last = 6
+ shopst.st.size = 24
 
  DIM new_shop_id as integer
- DIM c as integer
  
  setkeys YES
  DO
@@ -710,7 +707,7 @@ SUB shopdata ()
   IF enter_or_space() THEN
    IF shopst.st.pt = 0 THEN EXIT DO
    IF shopst.st.pt = 3 AND shopst.havestuf THEN
-    shop_stuff_edit shopst.id, stufbuf(), shopbuf(16)
+    shop_stuff_edit shopst.id, shopbuf(16)
    END IF
    IF shopst.st.pt = 4 THEN editbitset shopbuf(), 17, 7, sbit(): shopst.st.need_update = YES
    IF shopst.st.pt = 6 THEN
@@ -725,21 +722,12 @@ SUB shopdata ()
   END IF
   
   IF shopst.st.need_update THEN
+   shopst.st.need_update = NO
    shop_menu_update shopst, shopbuf()
   END IF
   
   clearpage dpage
-  
-  FOR i as integer = 0 TO shopst.st.last
-   c = uilook(uiMenuItem)
-   IF i = shopst.st.pt THEN c = uilook(uiSelectedItem + shopst.st.tog)
-   IF i = 3 AND shopst.havestuf = NO THEN
-    c = uilook(uiDisabledItem)
-    IF i = shopst.st.pt THEN c = uilook(uiSelectedDisabled + shopst.st.tog)
-   END IF
-   textcolor c, 0
-   printstr shopst.menu(i), 0, i * 8, dpage
-  NEXT i
+  standardmenu shopst.menu(), shopst.st, shopst.shaded(), 0, 0, dpage 
   SWAP vpage, dpage
   setvispage vpage
   dowait
@@ -763,17 +751,22 @@ SUB shop_save (byref shopst as ShopEditState, shopbuf() as integer)
 END SUB
 
 SUB shop_menu_update(byref shopst as ShopEditState, shopbuf() as integer)
+ shopst.menu(0) = "Return to Main Menu"
  shopst.menu(1) = CHR(27) & " Shop " & shopst.id & " of " & gen(genMaxShop) & CHR(26)
  shopst.menu(2) = "Name: " & shopst.name
+ shopst.menu(3) = "Edit Available Stuff..."
+ shopst.menu(4) = "Select Shop Menu Items..."
  shopst.menu(5) = "Inn Price: " & shopbuf(18)
  IF readbit(shopbuf(), 17, 3) = 0 THEN shopst.menu(5) = "Inn Price: N/A"
  shopst.menu(6) = "Inn Script: " & scriptname(shopbuf(19))
  IF readbit(shopbuf(), 17, 0) ORELSE readbit(shopbuf(), 17, 1) ORELSE readbit(shopbuf(), 17, 2) THEN
   shopst.havestuf = YES
+  shopst.shaded(3) = NO
  ELSE
   shopst.havestuf = NO
+  ' Grey out "Edit available stuff"
+  shopst.shaded(3) = YES
  END IF
- shopst.st.need_update = NO
 END SUB
 
 SUB shop_add_new (shopst as ShopEditState)
@@ -836,14 +829,9 @@ SUB shop_add_new (shopst as ShopEditState)
   LOOP
 END SUB
 
-SUB shop_stuff_edit (byval shop_id as integer, stufbuf() as integer, byref thing_total as integer)
-'shopstuf:
-
+SUB shop_stuff_edit (byval shop_id as integer, byref thing_total as integer)
  DIM stuf as ShopStuffState
- 
- DIM newthing as integer
 
- stuf.menu(0) = "Previous Menu"
  stuf.max(3) = 1
  stuf.min(5) = -1
  stuf.max(5) = 99
@@ -873,7 +861,9 @@ SUB shop_stuff_edit (byval shop_id as integer, stufbuf() as integer, byref thing
  
  stuf.st.pt = 0
  stuf.st.last = 2
+ stuf.st.size = 24
  
+ DIM stufbuf(curbinsize(binSTF) \ 2 - 1) as integer
  shop_load_stf shop_id, stuf, stufbuf()
  
  update_shop_stuff_menu stuf, stufbuf(), thing_total
@@ -883,15 +873,14 @@ SUB shop_stuff_edit (byval shop_id as integer, stufbuf() as integer, byref thing
  DO
   setwait 55
   setkeys YES
-  stuf.st.tog = stuf.st.tog XOR 1
 
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "shop_stuff"
-  IF stuf.st.pt = 0 THEN IF enter_or_space() THEN EXIT DO
+  IF stuf.st.pt = 0 ANDALSO enter_or_space() THEN EXIT DO
 
   SELECT CASE stuf.st.pt
    CASE 1 'browse shop stuff
-    newthing = stuf.thing
+    DIM newthing as integer = stuf.thing
     IF intgrabber_with_addset(newthing, 0, thing_total, 49, "Shop Thing") THEN
      shop_save_stf shop_id, stuf, stufbuf()
      stuf.thing = newthing
@@ -947,7 +936,7 @@ SUB shop_stuff_edit (byval shop_id as integer, stufbuf() as integer, byref thing
   END IF
    
   clearpage dpage
-  standardmenu stuf.menu(), stuf.st.last, 22, stuf.st.pt, 0, 0, 0, dpage
+  standardmenu stuf.menu(), stuf.st, 0, 0, dpage
  
   SWAP vpage, dpage
   setvispage vpage
@@ -956,7 +945,7 @@ SUB shop_stuff_edit (byval shop_id as integer, stufbuf() as integer, byref thing
 
  shop_save_stf shop_id, stuf, stufbuf()
 
-END SUB ' last
+END SUB
 
 SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as integer, byval reset_name_and_price as integer=NO)
  '--Re-load default names and default prices
@@ -995,18 +984,20 @@ END SUB
 
 SUB update_shop_stuff_menu (byref stuf as ShopStuffState, stufbuf() as integer, byval thing_total as integer)
 
+ stuf.menu(0) = "Previous Menu"
  stuf.menu(1) = CHR(27) & "Shop Thing " & stuf.thing & " of " & thing_total & CHR(26)
  stuf.menu(2) = "Name: " & stuf.thingname
- stuf.menu(3) = "Type: " & stufbuf(17) & "-" 
+ stuf.menu(3) = "Type: "
 
+ DIM typename as string
  SELECT CASE stufbuf(17)
-  CASE 0: stuf.menu(3) &= "Item"
-  CASE 1: stuf.menu(3) &= "Hero"
-  CASE 2: stuf.menu(3) &= "Script" 'This has never been supported
-  CASE ELSE: stuf.menu(3) &= "???"
+  CASE 0: typename = "Item"
+  CASE 1: typename = "Hero"
+  CASE ELSE: typename = "???"
  END SELECT
+ stuf.menu(3) &= typename
 
- stuf.menu(4) = "Number: " & stufbuf(18) & " " & stuf.default_thingname
+ stuf.menu(4) = typename & " ID: " & stufbuf(18) & " " & stuf.default_thingname
  
  SELECT CASE stufbuf(19)
   CASE IS > 0: stuf.menu(5) = "In Stock: " & stufbuf(19)

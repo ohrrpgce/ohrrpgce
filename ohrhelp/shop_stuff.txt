@@ -4,11 +4,11 @@ Use the arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu. Select t
 
 Press the Right arrow key on the last Shop Thing to define a new one.
 
-You can type a name for the item or hero. This is optional, and will be automatically pre-filled when you choose an item or hero ID number.
+You can type a name for the item or hero. This is optional, and will be automatically pre-filled when you choose an item or hero.
 
 Type can be either Item or Hero. Items are only available if the shop's "Buy" menu is enabled. Heroes are only available if the shop's "Hire" menu is enabled.
 
-Number is the ID number of the item or hero.
+Below this is "Hero ID" or "Item ID" where you actually select the hero/item for hire/sale.
 
 Stock can be "None", "Infinite" or a limited number. If your items fail to show up when you test your shops, make sure that they are not set to "None".
 

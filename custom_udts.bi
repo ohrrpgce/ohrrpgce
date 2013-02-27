@@ -288,7 +288,8 @@ TYPE ShopEditState
  st as MenuState
  name as string
  menu(24) as string
- havestuf as integer
+ shaded(24) as bool
+ havestuf as bool
 END TYPE
 
 TYPE ShopStuffState

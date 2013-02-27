@@ -33,6 +33,7 @@ DECLARE SUB masterpalettemenu ()
 DECLARE SUB statcapsmenu ()
 DECLARE SUB battleoptionsmenu ()
 DECLARE SUB equipmergemenu ()
+DECLARE SUB update_masterpalette_menu(menu() as string, shaded() as bool, palnum as integer)
 DECLARE FUNCTION importmasterpal (f as string, byval palnum as integer) as integer
 DECLARE SUB titlescreenbrowse ()
 DECLARE SUB import_convert_mp3(byref mp3 as string, byref oggtemp as string)
@@ -43,7 +44,7 @@ DECLARE SUB nearestui (byval mimicpal as integer, newpal() as RGBcolor, newui() 
 DECLARE SUB remappalette (oldmaster() as RGBcolor, oldpal() as integer, newmaster() as RGBcolor, newpal() as integer)
 DECLARE SUB importsong_save_song_data(sname as string, byval snum as integer)
 DECLARE SUB importsong_exportsong(songfile as string, bamfile as string, file_ext as string)
-DECLARE SUB importsong_get_song_info (sname as string, songfile as string, byval snum as integer, file_ext as string, menu() as string, byref optionsbottom as integer)
+DECLARE SUB importsong_get_song_info (sname as string, songfile as string, byval snum as integer, file_ext as string, menu() as string, selectable() as bool)
 DECLARE SUB importsong_import_song_file (sname as string, songfile as string, byval snum as integer)
 DECLARE SUB importsfx_get_sfx_info(sname as string, sfxfile as string, byval snum as integer, file_ext as string, menu() as string)
 DECLARE SUB importsfx_save_sfx_data(sname as string, byval snum as integer)
@@ -246,55 +247,56 @@ RETRACE
 END SUB
 
 SUB generalscriptsmenu ()
-DIM menu(3) as string
-DIM scrname(3) as string
-DIM scriptgenoff(3) as integer = {0, 41, 42, 57}
-menu(0) = "Previous Menu"
-menu(1) = "new-game plotscript"
-menu(2) = "game-over plotscript"
-menu(3) = "load-game plotscript"
-scrname(0) = ""
-FOR i as integer = 1 TO 3
- scrname(i) = ": " + scriptname(gen(scriptgenoff(i)))
-NEXT
+ DIM menu(3) as string
+ DIM scripttype(3) as string
+ scripttype(1) = "New-game plotscript"
+ scripttype(2) = "Game-over plotscript"
+ scripttype(3) = "Load-game plotscript"
+ DIM scriptgenoff(3) as integer = {0, genNewGameScript, genGameoverScript, genLoadGameScript}
 
-DIM pt as integer = 0
-DIM menusize as integer = 3
-DIM tog as integer
-setkeys
-DO
- tog = tog XOR 1
- setwait 55
+ DIM state as MenuState
+ state.size = 24
+ state.last = UBOUND(menu)
+
  setkeys
- IF keyval(scESC) > 1 THEN EXIT DO
- IF keyval(scF1) > 1 THEN show_help "global_scripts"
- usemenu pt, 0, 0, menusize, 24
- IF pt = 0 THEN
-  IF enter_or_space() THEN EXIT DO
- ELSE
-  IF enter_or_space() THEN
-   scrname(pt) = ": " & scriptbrowse_string(gen(scriptgenoff(pt)), plottrigger, menu(pt))
-  ELSEIF scrintgrabber(gen(scriptgenoff(pt)), 0, 0, scLeft, scRight, 1, plottrigger) THEN
-   scrname(pt) = ": " + scriptname(gen(scriptgenoff(pt)))
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "global_scripts"
+  usemenu state
+  IF state.pt = 0 THEN
+   IF enter_or_space() THEN EXIT DO
+  ELSE
+   IF enter_or_space() THEN
+    scriptbrowse(gen(scriptgenoff(state.pt)), plottrigger, scripttype(state.pt))
+   ELSE
+    scrintgrabber(gen(scriptgenoff(state.pt)), 0, 0, scLeft, scRight, 1, plottrigger)
+   END IF
   END IF
- END IF
- clearpage dpage
- FOR i as integer = 0 TO menusize
-  IF pt = i THEN textcolor uilook(uiSelectedItem + tog), 0 ELSE textcolor uilook(uiMenuItem), 0
-  printstr menu(i) + scrname(i), 0, i * 8, dpage
- NEXT i
- SWAP vpage, dpage
- setvispage vpage
- dowait
-LOOP
+
+  menu(0) = "Previous Menu"
+  FOR i as integer = 1 TO 3
+   menu(i) = scripttype(i) + ": " + scriptname(gen(scriptgenoff(i)))
+  NEXT
+
+  clearpage dpage
+  standardmenu menu(), state, 0, 0, dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
 END SUB
 
 SUB generalmusicsfxmenu ()
-  CONST num as integer = 15
+  CONST menusize as integer = 15
   CONST lastmusicitem as integer = 3
-  DIM as string menu(num), disp(num)
-  DIM as integer index(1 to num) = {genTitleMus, genBatMus, genVictMus, genAcceptSFX, genCancelSFX, genCursorSFX, genTextboxLine, genDefaultDeathSFX, genItemLearnSFX, genCantLearnSFX, genBuySFX, genHireSFX, genSellSFX, genCantBuySFX, genCantSellSFX}
-  DIM as integer menutop
+  DIM as string menu(menusize), disp(menusize)
+  DIM as integer index(1 to menusize) = { _
+          genTitleMus, genBatMus, genVictMus, genAcceptSFX, genCancelSFX, _
+          genCursorSFX, genTextboxLine, genDefaultDeathSFX, genItemLearnSFX, genCantLearnSFX, _
+          genBuySFX, genHireSFX, genSellSFX, genCantBuySFX, genCantSellSFX _
+  }
 
   disp(0) = "Previous Menu" 'don't need menu(0)
   menu(1) = "Title Music: "
@@ -313,19 +315,11 @@ SUB generalmusicsfxmenu ()
   menu(14) = "Can't Buy Sound: "
   menu(15) = "Can't Sell Sound: "
 
-  FOR i as integer = 1 to num
-    IF gen(index(i)) > 0 THEN
-      IF i <= lastmusicitem THEN
-        disp(i) = menu(i) & getsongname(gen(index(i)) - 1, -1)  'prefixes number
-      ELSE
-        disp(i) = menu(i) & (gen(index(i)) - 1) & " " & getsfxname(gen(index(i)) - 1)
-      END IF
-    ELSE
-      disp(i) = menu(i) & "None"
-    END IF
-  NEXT
-  DIM pt as integer = 0
-  DIM menusize as integer = num
+  DIM state as MenuState
+  state.size = 24
+  state.last = menusize
+  state.need_update = YES
+
   setkeys
   DO
     setwait 55
@@ -333,42 +327,50 @@ SUB generalmusicsfxmenu ()
 
     IF keyval(scESC) > 1 THEN EXIT DO
     IF keyval(scF1) > 1 THEN show_help "general_music_sfx"
-    usemenu pt, 0, 0, menusize, 24
+    usemenu state
 
     IF enter_or_space() THEN
-      SELECT CASE as CONST pt
+      SELECT CASE state.pt
       CASE 0
         EXIT DO
       CASE 1 TO lastmusicitem
-        IF gen(index(pt)) > 0 THEN playsongnum gen(index(pt)) - 1
-      CASE lastmusicitem + 1 TO num
-        IF gen(index(pt)) > 0 THEN playsfx gen(index(pt)) - 1
+        IF gen(index(state.pt)) > 0 THEN playsongnum gen(index(state.pt)) - 1
+      CASE lastmusicitem + 1 TO state.last
+        IF gen(index(state.pt)) > 0 THEN playsfx gen(index(state.pt)) - 1
       END SELECT
     END IF
 
-    SELECT CASE as CONST pt
+    SELECT CASE state.pt
     CASE 1 TO lastmusicitem
-      IF zintgrabber(gen(index(pt)), -1, gen(genMaxSong)) THEN
+      IF zintgrabber(gen(index(state.pt)), -1, gen(genMaxSong)) THEN
         music_stop
-        IF gen(index(pt)) > 0 THEN
-          disp(pt) = menu(pt) & getsongname(gen(index(pt)) - 1, -1)  'prefixes number
-        ELSE
-          disp(pt) = menu(pt) & "None"
-        END IF
+        state.need_update = YES
       END IF
-    CASE lastmusicitem + 1 TO num
-      IF zintgrabber(gen(index(pt)), -1, gen(genMaxSFX)) THEN
+    CASE lastmusicitem + 1 TO state.last
+      IF zintgrabber(gen(index(state.pt)), -1, gen(genMaxSFX)) THEN
         resetsfx
-        IF gen(index(pt)) > 0 THEN
-          disp(pt) = menu(pt) & (gen(index(pt))-1) & " " & getsfxname(gen(index(pt)) - 1)
-        ELSE
-          disp(pt) = menu(pt) & "None"
-        END IF
+        state.need_update = YES
       END IF
     END SELECT
 
+    IF state.need_update THEN
+      state.need_update = NO
+      FOR idx as integer = 1 to state.last
+        DIM value as integer = gen(index(idx)) - 1
+        IF value >= 0 THEN
+          IF idx <= lastmusicitem THEN
+            disp(idx) = menu(idx) & getsongname(value, -1)  'prefixes number
+          ELSE
+            disp(idx) = menu(idx) & value & " " & getsfxname(value)
+          END IF
+        ELSE
+          disp(idx) = menu(idx) & "None"
+        END IF
+      NEXT
+    END IF    
+
     clearpage dpage
-    standardmenu disp(), num, 22, pt, menutop, 0, 0, dpage
+    standardmenu disp(), state, 0, 0, dpage
 
     SWAP vpage, dpage
     setvispage vpage
@@ -396,20 +398,24 @@ END SUB
 SUB importsong ()
 DIM oggtemp as string
 DIM menu(10) as string
+DIM selectable(10) as bool
 menu(0) = "Previous Menu"
 menu(3) = "Import Song..."
 menu(4) = "Export Song..."
 menu(5) = "Delete Song"
 
-DIM csr as integer = 1
+DIM state as MenuState
+state.size = 24
+state.last = 10
+state.pt = 1
+
 DIM snum as integer = 0
 DIM sname as string = ""
 DIM songfile as string = ""
 DIM bamfile as string = ""
-DIM optionsbottom as integer = 0
 DIM newsong as integer
 DIM file_ext as string
-importsong_get_song_info sname, songfile, snum, file_ext, menu(), optionsbottom
+importsong_get_song_info sname, songfile, snum, file_ext, menu(), selectable()
 
 setkeys YES
 DO
@@ -418,9 +424,9 @@ DO
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "import_songs"
 
- usemenu csr, 0, 0, optionsbottom, 22
+ usemenu state, selectable()
 
- IF csr = 2 AND songfile <> "" THEN
+ IF state.pt = 2 AND songfile <> "" THEN
   strgrabber sname, 30
   menu(2) = "Name: " + sname
  ELSE
@@ -429,28 +435,28 @@ DO
   IF intgrabber(newsong, 0, gen(genMaxSong), scLeftCaret, scRightCaret) THEN
    importsong_save_song_data sname, snum
    snum = newsong
-   importsong_get_song_info sname, songfile, snum, file_ext, menu(), optionsbottom
+   importsong_get_song_info sname, songfile, snum, file_ext, menu(), selectable()
   END IF
   IF keyval(scLeft) > 1 AND snum > 0 THEN
    importsong_save_song_data sname, snum
    snum = snum - 1
-   importsong_get_song_info sname, songfile, snum, file_ext, menu(), optionsbottom
+   importsong_get_song_info sname, songfile, snum, file_ext, menu(), selectable()
   END IF
   IF keyval(scRight) > 1 AND snum < 32767 THEN
    importsong_save_song_data sname, snum
    snum = snum + 1
    IF needaddset(snum, gen(genMaxSong), "song") THEN sname = ""
-   importsong_get_song_info sname, songfile, snum, file_ext, menu(), optionsbottom
+   importsong_get_song_info sname, songfile, snum, file_ext, menu(), selectable()
   END IF
  END IF
  IF enter_or_space() THEN
-  IF csr = 0 THEN EXIT DO
-  IF csr = 3 THEN
+  IF state.pt = 0 THEN EXIT DO
+  IF state.pt = 3 THEN
    importsong_import_song_file sname, songfile, snum
-   importsong_get_song_info sname, songfile, snum, file_ext, menu(), optionsbottom
+   importsong_get_song_info sname, songfile, snum, file_ext, menu(), selectable()
   END IF
-  IF csr = 4 AND songfile <> "" THEN importsong_exportsong songfile, bamfile, file_ext
-  IF csr = 5 AND songfile <> "" THEN  'delete song
+  IF state.pt = 4 AND songfile <> "" THEN importsong_exportsong songfile, bamfile, file_ext
+  IF state.pt = 5 AND songfile <> "" THEN  'delete song
    IF yesno("Really delete this song?", NO, NO) THEN
     music_stop
     'closemusic  'music_stop not always enough to cause the music backend to let go of the damn file!
@@ -458,20 +464,20 @@ DO
     delete_song snum, songfile
     safekill bamfile
     IF slave_channel <> NULL_CHANNEL THEN send_lump_modified_msg(songfile)  'only need to send any valid filename for this song
-    importsong_get_song_info sname, songfile, snum, file_ext, menu(), optionsbottom
+    importsong_get_song_info sname, songfile, snum, file_ext, menu(), selectable()
    END IF
   END IF
-  IF csr = 6 THEN  'delete BAM fallback
+  IF state.pt = 6 THEN  'delete BAM fallback
    IF yesno("Really delete this BAM song?", NO, NO) THEN
     safekill bamfile
-    importsong_get_song_info sname, songfile, snum, file_ext, menu(), optionsbottom
-    csr = 0
+    importsong_get_song_info sname, songfile, snum, file_ext, menu(), selectable()
+    state.pt = 0
    END IF
   END IF
  END IF
 
  clearpage dpage
- standardmenu menu(), 10, 22, csr, 0, 0, 0, dpage
+ standardmenu menu(), state, 0, 0, dpage
 
  SWAP vpage, dpage
  setvispage vpage
@@ -528,7 +534,7 @@ SUB importsong_import_song_file (sname as string, songfile as string, byval snum
  importsong_save_song_data sname, snum
 END SUB
 
-SUB importsong_get_song_info (sname as string, songfile as string, byval snum as integer, file_ext as string, menu() as string, byref optionsbottom as integer)
+SUB importsong_get_song_info (sname as string, songfile as string, byval snum as integer, file_ext as string, menu() as string, selectable() as bool)
  music_stop
 
  DIM temp as string
@@ -591,6 +597,8 @@ SUB importsong_get_song_info (sname as string, songfile as string, byval snum as
   sname = ""
  END IF
 
+ DIM optionsbottom as integer
+
  menu(1) = "<- Song " & snum & " of " & gen(genMaxSong) & " ->"
  IF songfile <> "" THEN menu(2) = "Name: " & sname ELSE menu(2) = "-Unused-"
  menu(7) = ""
@@ -606,6 +614,10 @@ SUB importsong_get_song_info (sname as string, songfile as string, byval snum as
   optionsbottom = 5
  END IF
  '-- add author, length, etc, info here
+
+ FOR i as integer = 0 TO UBOUND(selectable)
+  selectable(i) = (i <= optionsbottom)
+ NEXT
 END SUB
 
 SUB importsong_exportsong(songfile as string, bamfile as string, file_ext as string)
@@ -634,16 +646,24 @@ END SUB
 
 SUB importsfx ()
 
-DIM menu(11) as string
+DIM menu(10) as string
+DIM selectable(10) as bool
 DIM submenu(2) as string
-DIM optionsbottom as integer = 6
 menu(0) = "Previous Menu"
 menu(3) = "Import Sound..."
 menu(4) = "Export Sound..."
 menu(5) = "Delete Sound"
 menu(6) = "Play Sound"
+FOR i as integer = 0 TO 6
+ selectable(i) = YES
+NEXT
 
-DIM csr as integer = 1
+
+DIM state as MenuState
+state.pt = 1
+state.size = 24
+state.last = UBOUND(menu)
+
 DIM snum as integer = 0
 DIM sname as string = ""
 DIM sfxfile as string = ""
@@ -658,9 +678,9 @@ DO
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "import_sfx"
 
- usemenu csr, 0, 0, optionsbottom, 22
+ usemenu state, selectable()
 
- IF csr = 2 AND sfxfile <> "" THEN
+ IF state.pt = 2 AND sfxfile <> "" THEN
   strgrabber sname, 30
   menu(2) = "Name: " + sname
  ELSE
@@ -684,7 +704,7 @@ DO
   END IF
  END IF
  IF enter_or_space() THEN
-  SELECT CASE csr
+  SELECT CASE state.pt
   CASE 0
     EXIT DO
   CASE 3
@@ -709,18 +729,13 @@ DO
  END IF
 
  clearpage dpage
- standardmenu menu(), 10, 22, csr, 0, 0, 0, dpage
+ standardmenu menu(), state, 0, 0, dpage
 
  SWAP vpage, dpage
  setvispage vpage
  dowait
 LOOP
 importsfx_save_sfx_data sname, snum
-
-EXIT SUB
-
-
-
 END SUB
 
 SUB importsfx_importsfxfile(sname as string, sfxfile as string, byval snum as integer, file_ext as string)
@@ -840,25 +855,28 @@ END SUB
 
 SUB masterpalettemenu
 DIM menu(8) as string
+DIM shaded(8) as bool
 DIM oldpal as integer
-DIM csr as integer = 1
-DIM tog as integer
 DIM palnum as integer = activepalette
-DIM col as integer
 loadpalette master(), palnum
 setpal master()
 LoadUIColors uilook(), palnum
-GOSUB buildmenu
+
+DIM state as MenuState
+state.size = 10
+state.last = UBOUND(menu)
+state.pt = 1
+
+update_masterpalette_menu menu(), shaded(), palnum
 
 setkeys
 DO
  setwait 55
  setkeys
- tog = tog XOR 1
 
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "master_palette_menu"
- usemenu csr, 0, 0, UBOUND(menu), 10
+ usemenu state
 
  oldpal = palnum
  IF keyval(scRight) > 1 AND palnum = gen(genMaxMasterPal) THEN
@@ -867,7 +885,7 @@ DO
    IF importmasterpal("", palnum) THEN
     setpal master()
     LoadUIColors uilook(), palnum
-    GOSUB buildmenu     
+    state.need_update = YES     
    ELSE
     palnum -= 1
     gen(genMaxMasterPal) = palnum
@@ -875,7 +893,7 @@ DO
   END IF
   setkeys
  END IF
- IF csr = 1 THEN
+ IF state.pt = 1 THEN
   intgrabber(palnum, 0, gen(genMaxMasterPal))
  ELSE
   IF keyval(scLeft) > 1 THEN palnum += gen(genMaxMasterPal)
@@ -886,18 +904,18 @@ DO
   loadpalette master(), palnum
   setpal master()
   LoadUIColors uilook(), palnum
-  GOSUB buildmenu
+  state.need_update = YES
  END IF
 
  IF enter_or_space() THEN
-  SELECT CASE csr
+  SELECT CASE state.pt
   CASE 0
     EXIT DO
   CASE 2
     IF importmasterpal("", palnum) THEN
      setpal master()
      LoadUIColors uilook(), palnum
-     GOSUB buildmenu
+     state.need_update = YES
     END IF
   CASE 3
     export_master_palette
@@ -913,33 +931,28 @@ DO
     gen(genMasterPal) = palnum
     'Instant live-previewing
     xbsave game + ".gen", gen(), 1000
-    GOSUB buildmenu
+    state.need_update = YES
   CASE 8
     activepalette = palnum
-    GOSUB buildmenu
+    state.need_update = YES
   END SELECT
+ END IF
+
+ IF state.need_update THEN
+  state.need_update = NO
+  update_masterpalette_menu menu(), shaded(), palnum
  END IF
 
  'draw the menu
  clearpage dpage
- FOR i as integer = 0 TO UBOUND(menu)
-  IF (i = 7 AND palnum = gen(genMasterPal)) OR ((i = 5 OR i = 6 OR i = 8) AND palnum = activepalette) THEN
-   col = uilook(uiDisabledItem)
-   IF csr = i THEN col = uilook(uiSelectedDisabled + tog)
-  ELSE
-   col = uilook(uiMenuItem)
-   IF csr = i THEN col = uilook(uiSelectedItem + tog)
-  END IF
-  textcolor col, 0
-  printstr menu(i), 0, i * 8, dpage
- NEXT i
+ standardmenu menu(), state, shaded(), 0, 0, dpage
 
  FOR i as integer = 0 TO 255
   rectangle 34 + (i MOD 16) * 16, 78 + (i \ 16) * 7, 12, 5, i, dpage
  NEXT
- IF csr = 4 OR csr = 5 OR csr = 6 THEN
+ IF state.pt = 4 OR state.pt = 5 OR state.pt = 6 THEN
   FOR i as integer = 0 TO uiColors
-   drawbox 33 + (uilook(i) MOD 16) * 16, 77 + (uilook(i) \ 16) * 7, 14, 7, uilook(uiHighlight + tog), 1, dpage
+   drawbox 33 + (uilook(i) MOD 16) * 16, 77 + (uilook(i) \ 16) * 7, 14, 7, uilook(uiHighlight + state.tog), 1, dpage
   NEXT
  END IF
 
@@ -954,28 +967,38 @@ IF activepalette <> palnum THEN
  LoadUIColors uilook(), activepalette
 END IF
 
-EXIT SUB
+END SUB
 
-buildmenu:
-menu(0) = "Previous Menu"
-menu(1) = "<- Master Palette " & palnum & " ->"
-menu(2) = "Replace this Master Palette"
-menu(3) = "Export this palette"
-menu(4) = "Edit User Interface Colors..."
-menu(5) = "Nearest-match active palette's UI colors"
-menu(6) = "Copy active palette's UI data"
-IF palnum = gen(genMasterPal) THEN
- menu(7) = "Current default in-game Master Palette"
-ELSE
- menu(7) = "Set as in-game Master Palette"
-END IF
-IF palnum = activepalette THEN
- menu(8) = "Current active editing palette"
-ELSE
- menu(8) = "Set as active editing palette"
-END IF
-RETRACE
+SUB update_masterpalette_menu(menu() as string, shaded() as bool, palnum as integer)
+ menu(0) = "Previous Menu"
+ menu(1) = "<- Master Palette " & palnum & " ->"
+ menu(2) = "Replace this Master Palette"
+ menu(3) = "Export this palette"
+ menu(4) = "Edit User Interface Colors..."
+ menu(5) = "Nearest-match active palette's UI colors"
+ menu(6) = "Copy active palette's UI data"
+ IF palnum = gen(genMasterPal) THEN
+  menu(7) = "Current default in-game Master Palette"
+ ELSE
+  menu(7) = "Set as in-game Master Palette"
+ END IF
+ IF palnum = activepalette THEN
+  menu(8) = "Current active editing palette"
+ ELSE
+  menu(8) = "Set as active editing palette"
+ END IF
 
+ FOR i as integer = 0 TO UBOUND(shaded)
+  shaded(i) = NO
+ NEXT
+ IF palnum = activepalette THEN
+  shaded(5) = YES
+  shaded(6) = YES
+  shaded(8) = YES
+ END IF
+ IF palnum = gen(genMasterPal) THEN
+  shaded(7) = YES
+ END IF
 END SUB
 
 FUNCTION importmasterpal (f as string, byval palnum as integer) as integer
