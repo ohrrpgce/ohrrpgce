@@ -335,6 +335,17 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval 
  DIM wide as integer
  wide = small(menuopts.wide, vpages(page)->w - x)
 
+ DIM rect as RectType
+ rect.x = x
+ rect.y = y
+ rect.wide = wide
+ rect.high = (state.size + 1) * 8
+ IF menuopts.scrollbar THEN
+  draw_scrollbar state, rect, 0, page
+ ELSEIF menuopts.fullscreen_scrollbar THEN
+  draw_fullscreen_scrollbar state, 0, page
+ END IF
+
  DIM rememclip as ClipState
  saveclip rememclip
  shrinkclip x, , x + wide - 1, , vpages(page)
@@ -343,7 +354,7 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval 
   IF i < v_len(menu) THEN
    WITH *v_at(menu, i)
 
-    DIM linewidth as integer = 8 * LEN(.text)
+    DIM linewidth as integer = textwidth(.text)
     IF .bgcol THEN
      rectangle x + 0, y + (i - state.top) * 8, wide, 8, .bgcol, page
     END IF
@@ -359,8 +370,11 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval 
      IF state.pt = i AND state.active THEN col = uilook(uiSelectedItem + state.tog)
     END IF
     DIM drawx as integer = x
-    'FIXME: This doesn't work if the text contains embedded tags!
-    'IF state.pt = i AND linewidth > wide AND state.active THEN drawx = x + wide - linewidth
+    IF linewidth > wide AND state.active THEN
+     IF state.pt = i OR menuopts.showright THEN
+      drawx = x + wide - linewidth
+     END IF
+    END IF
     IF menuopts.edged THEN
      edgeprint .text, drawx, y + (i - state.top) * 8, col, page, YES
     ELSE

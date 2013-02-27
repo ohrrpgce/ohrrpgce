@@ -284,9 +284,13 @@ END TYPE
 'This partially overlaps MenuDef, which is the reason it wasn't added to MenuState:
 'MenuState is used for drawing MenuDefs too, which would be confusing
 TYPE MenuOptions
-  edged as bool = NO
+  edged as bool
   wide as integer = 9999
-  highlight as bool = NO
+  highlight as bool
+  showright as bool       'Always show the right-most portion of text if too long,
+                          'instead of only doing so when selected.
+  scrollbar as bool       'Draw a scrollbar (boxstyle 0); position given by x, y, .wide and MenuState.size
+  fullscreen_scrollbar as bool 'Draw a scrollbar at the right edge of the screen
 END TYPE
 
 'For when a string array is too crude, but a MenuDef is overkill
