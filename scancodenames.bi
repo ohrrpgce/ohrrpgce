@@ -3,7 +3,7 @@
 'Please read LICENSE.txt for GNU GPL license details and disclaimer of liability
 '
 
-static scancodenames(...) as string * 13  = { _
+static scancodenames(...) as string * 14  = { _
   "",                         /' 0 '/ _
   "Esc",                      /' 01 '/ _
   "1",                        /' 02 '/ _
