@@ -8,6 +8,7 @@
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include "allmodex.h"
 #include "common.h"
 
@@ -160,13 +161,13 @@ void blitohrscaled(struct Frame *spr, struct Frame *destspr, struct Palette16 *p
 	}
 }
 
-void smoothzoomblit_8_to_8bit(unsigned char *srcbuffer, unsigned char *destbuffer, int w, int h, int pitch, int zoom, int smooth) {
+void smoothzoomblit_8_to_8bit(uint8_t *srcbuffer, uint8_t *destbuffer, int w, int h, int pitch, int zoom, int smooth) {
 //srcbuffer: source w x h buffer paletted 8 bit
 //destbuffer: destination scaled buffer pitch x h*zoom also 8 bit
-//supports zoom 1 to 4
+//supports zoom 1 to 16
+//smooth: true or false.
 
-	unsigned char *sptr;
-	unsigned int mult = 1;
+	uint8_t *sptr;
 	int i, j;
 	int wide = w * zoom, high = h * zoom;
 
@@ -192,48 +193,51 @@ void smoothzoomblit_8_to_8bit(unsigned char *srcbuffer, unsigned char *destbuffe
 			sptr += pitch;
 		}
 	} else {
-		for (i = 2; i <= zoom; i++)
-			mult = (mult << 8) + 1;
-
 		for (j = 0; j <= h - 1; j++) {
-			for (i = w / 4 - 1; i >= 0; i--) {
-				//could just multiple by &h1010101
-				*(int *)sptr = srcbuffer[0] * mult;
+			// Write up to 4 copies of a pixel at a time.
+			// Skip last 4 pixels so that we can never write off the end of the image buffer.
+			for (i = w; i >= 4; i--) {
+				uint32_t temp = *srcbuffer++;
+				temp *= 0x1010101;
+				//temp |= temp << 16;
+				//temp |= temp << 8;
+				((uint32_t *)sptr)[0] = temp;
+				if (zoom > 4) {
+					((uint32_t *)sptr)[1] = temp;
+					if (zoom > 8) {
+						((uint32_t *)sptr)[2] = temp;
+						if (zoom > 12)
+							((uint32_t *)sptr)[3] = temp;
+					}
+				}
 				sptr += zoom;
-				*(int *)sptr = srcbuffer[1] * mult;
-				sptr += zoom;
-				*(int *)sptr = srcbuffer[2] * mult;
-				sptr += zoom;
-				*(int *)sptr = srcbuffer[3] * mult;
-				sptr += zoom;
-				srcbuffer += 4;
 			}
-			for (i = (w % 4) - 1; i >= 0; i--) {
-				*(int *)sptr = srcbuffer[0] * mult;
-				sptr += zoom;
-				srcbuffer += 1;
+			while (i-- > 0) {
+				uint8_t temp = *srcbuffer++;
+				for (int ii = zoom; ii--; )
+					*sptr++ = temp;
 			}
 			sptr += pitch - wide;
 			//repeat row zoom times
 			for (i = 2; i <= zoom; i++) {
-				memcpy (sptr, sptr - pitch, wide);
+				memcpy(sptr, sptr - pitch, wide);
 				sptr += pitch;
 			}
 		}
 	}
 
 	if (smooth == 1 && zoom >= 2) {
-		int fx, fy, pstep;
+		int pstep;
 		if (zoom == 2)
 			pstep = 2;
 		else
 			pstep = 1;
-		unsigned char *sptr1, *sptr2, *sptr3;
-		for (fy = 1; fy <= high - 2; fy += pstep) {
+		uint8_t *sptr1, *sptr2, *sptr3;
+		for (int fy = 1; fy <= high - 2; fy += pstep) {
 			sptr1 = destbuffer + pitch * (fy - 1) + 1;  //(1,0)
 			sptr2 = sptr1 + pitch; //(1,1)
 			sptr3 = sptr2 + pitch; //(1,2)
-			for (fx = wide - 2; fx >= 1; fx--) {
+			for (int fx = wide - 2; fx >= 1; fx--) {
 				//p0=point(fx,fy)
 				//p1=point(fx-1,fy-1)//nw
 				//p2=point(fx+1,fy-1)//ne
@@ -256,20 +260,19 @@ void smoothzoomblit_8_to_8bit(unsigned char *srcbuffer, unsigned char *destbuffe
 	}
 }
 
-void smoothzoomblit_8_to_32bit(unsigned char *srcbuffer, unsigned int *destbuffer, int w, int h, int pitch, int zoom, int smooth, int pal[]) {
+void smoothzoomblit_8_to_32bit(uint8_t *srcbuffer, uint32_t *destbuffer, int w, int h, int pitch, int zoom, int smooth, int pal[]) {
 //srcbuffer: source w x h buffer paletted 8 bit
 //destbuffer: destination scaled buffer pitch x h*zoom 32 bit (so pitch is in pixels, not bytes)
-//supports zoom 1 to 4
+//supports any positive zoom
 
-	unsigned int *sptr;
-	int pixel;
+	uint32_t *sptr;
+	uint32_t pixel;
 	int i, j;
 	int wide = w * zoom, high = h * zoom;
 
 	sptr = destbuffer;
 
 	for (j = 0; j <= h - 1; j++) {
-		//repeat row zoom times
 		for (i = 0; i <= w - 1; i++) {
 			//get colour
 			pixel = pal[*srcbuffer];
@@ -280,26 +283,26 @@ void smoothzoomblit_8_to_32bit(unsigned char *srcbuffer, unsigned int *destbuffe
 			}
 			srcbuffer += 1;
 		}
-
 		sptr += pitch - wide;
 		//repeat row zoom times
 		for (i = 2; i <= zoom; i++) {
-			memcpy (sptr, sptr - pitch, 4 * wide);
+			memcpy(sptr, sptr - pitch, 4 * wide);
 			sptr += pitch;
 		}
 	}
+
 	if (smooth == 1 && zoom >= 2) {
-		int fx, fy, pstep;
+		int pstep;
 		if (zoom == 2)
 			pstep = 2;
 		else
 			pstep = 1;
-		unsigned int *sptr1, *sptr2, *sptr3;
-		for (fy = 1; fy <= (high - 2); fy += pstep) {
+		uint32_t *sptr1, *sptr2, *sptr3;
+		for (int fy = 1; fy <= (high - 2); fy += pstep) {
 			sptr1 = destbuffer + pitch * (fy - 1) + 1;  //(1,0)
 			sptr2 = sptr1 + pitch; //(1,1)
 			sptr3 = sptr2 + pitch; //(1,2)
-			for (fx = wide - 2; fx >= 1; fx--) {
+			for (int fx = wide - 2; fx >= 1; fx--) {
 				//p0=point(fx,fy)
 				//p1=point(fx-1,fy-1)//nw
 				//p2=point(fx+1,fy-1)//ne
@@ -322,17 +325,17 @@ void smoothzoomblit_8_to_32bit(unsigned char *srcbuffer, unsigned int *destbuffe
 	}
 }
 
-void smoothzoomblit_32_to_32bit(unsigned int *srcbuffer, unsigned int *destbuffer, int w, int h, int pitch, int zoom, int smooth) {
+void smoothzoomblit_32_to_32bit(uint32_t *srcbuffer, uint32_t *destbuffer, int w, int h, int pitch, int zoom, int smooth) {
 //srcbuffer: source w*h buffer, 32 bit
 //destbuffer: destination scaled buffer (pitch*zoom)*(h*zoom), 32 bit (so pitch is in pixels, not bytes)
-//supports zoom 1 to 4
+//supports any positive zoom
 
-	unsigned int *sptr;
-	int pixel;
+	uint32_t *sptr;
+	uint32_t pixel;
 	int i, j;
 	int wide = w * zoom, high = h * zoom;
 
-	sptr = (unsigned int*)destbuffer;
+	sptr = (uint32_t*)destbuffer;
 
 	for (j = 0; j <= h - 1; j++) {
 		for (i = 0; i <= w - 1; i++) {
@@ -342,27 +345,27 @@ void smoothzoomblit_32_to_32bit(unsigned int *srcbuffer, unsigned int *destbuffe
 			}
 		}
 		sptr += pitch - wide;
-		unsigned int *srcline = sptr - pitch;
+		uint32_t *srcline = sptr - pitch;
 
 		//repeat row zoom times
 		for (i = 2; i <= zoom; i++) {
-			memcpy (sptr, srcline, 4 * wide);
+			memcpy(sptr, srcline, 4 * wide);
 			sptr += pitch;
 		}
 	}
 
 	if (smooth == 1 && zoom >= 2) {
-		int fx, fy, pstep;
+		int pstep;
 		if (zoom == 2)
 			pstep = 2;
 		else
 			pstep = 1;
-		int *sptr1, *sptr2, *sptr3;
-		for (fy = 1; fy <= (high - 2); fy += pstep) {
-			sptr1 = (int *)destbuffer + pitch * (fy - 1) + 1;  //(1,0)
+		uint32_t *sptr1, *sptr2, *sptr3;
+		for (int fy = 1; fy <= (high - 2); fy += pstep) {
+			sptr1 = (uint32_t *)destbuffer + pitch * (fy - 1) + 1;  //(1,0)
 			sptr2 = sptr1 + pitch; //(1,1)
 			sptr3 = sptr2 + pitch; //(1,2)
-			for (fx = wide - 2; fx >= 1; fx--) {
+			for (int fx = wide - 2; fx >= 1; fx--) {
 				if (sptr1[1] == sptr3[-1])
 					sptr2[0] = sptr1[1];
 				else
