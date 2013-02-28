@@ -1817,7 +1817,7 @@ end FUNCTION
 'Prehaps doesn't belong here because scancodes are OHR-specific. However, OHR
 'scancodes are 95% the same as FB scancodes
 FUNCTION scancodename (byval k as integer) as string
- 'static scancodenames(...) as string * 12 = { ... }
+ 'static scancodenames(...) as string * 13 = { ... }
  #INCLUDE "scancodenames.bi"
 
  IF k >= lbound(scancodenames) and k <= ubound(scancodenames) THEN
