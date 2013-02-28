@@ -200,7 +200,7 @@ function gfx_fb_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as
 'handle command-line options in a generic way, so that they
 'can be ignored or supported as the library permits.
 'This version supports
-'	zoom (1, 2*, 3, 4),
+'	zoom (1, 2*, ..., 16),
 '	depth (8*, 32),
 '	border (0*, 1)
 '	smooth (0*, 1)
@@ -209,7 +209,7 @@ function gfx_fb_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as
 	dim as integer ret = 0
 	if init_gfx = 0 then
 		if *opt = "zoom" or *opt = "z" then
-			if value >= 1 and value <= 4 then
+			if value >= 1 and value <= 16 then
 				zoom = value
 			end if
 			ret = 1
@@ -259,23 +259,18 @@ sub calculate_screen_res()
 	elseif zoom = 2 then
 		screenmodex = 640
 		screenmodey = 400 + (bordered * BORDER * zoom)
-	elseif zoom = 3 then
-		bordered = 0 ' bordered mode is not supported in 3x zoom
+	elseif zoom >= 3 then
+		bordered = 0 ' bordered mode is not supported
 		screen_buffer_offset = 0
-		screenmodex = 960
-		screenmodey = 600
-	elseif zoom = 4 then
-		bordered = 0 ' bordered mode is not supported in 3x zoom
-		screen_buffer_offset = 0
-		screenmodex = 1280
-		screenmodey = 800
+		screenmodex = 320 * zoom
+		screenmodey = 200 * zoom
 	end if
 	'calculate offset
 	if bordered = 1 and zoom < 3 then screen_buffer_offset = (BORDER / 2) * zoom
 end sub
 
 function gfx_fb_describe_options() as zstring ptr
-	return @"-z -zoom [1|2|3|4]  Scale screen to 1,2,3 or 4x normal size (2x default)" LINE_END _
+	return @"-z -zoom [1...16]   Scale screen to 1,2, ... up to 16x normal size (2x default)" LINE_END _
 	        "-b -border [0|1]    Add a letterbox border (default off)" LINE_END _
 	        "-d -depth [8|32]    Set color bit-depth (default 8-bit)" LINE_END _
 	        "-s -smooth          Enable smoothing filter for zoom modes (default off)"

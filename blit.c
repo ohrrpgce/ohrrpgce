@@ -9,8 +9,15 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
+#include <assert.h>
 #include "allmodex.h"
 #include "common.h"
+
+void smoothzoomblit_8_to_8bit(uint8_t *srcbuffer, uint8_t *destbuffer, int w, int h, int pitch, int zoom, int smooth);
+void smoothzoomblit_8_to_32bit(uint8_t *srcbuffer, uint32_t *destbuffer, int w, int h, int pitch, int zoom, int smooth, int pal[]);
+void smoothzoomblit_32_to_32bit(uint32_t *srcbuffer, uint32_t *destbuffer, int w, int h, int pitch, int zoom, int smooth);
+
 
 //Doesn't belong here, but can't be bothered adding another .c file for it
 //Trying to read errno from FB is unlikely to even link, because it's normally a macro, so this has be in C
@@ -161,28 +168,71 @@ void blitohrscaled(struct Frame *spr, struct Frame *destspr, struct Palette16 *p
 	}
 }
 
+typedef void (*smoothblitfunc_t)(void *srcbuffer, void *destbuffer, int w, int h, int pitch, int zoom, int smooth);
+
+// The smoothzoomblit functions implement smoothing at 2x, 3x and 4x zooms.
+// This implements smoothing at other zooms by chaining together calls to those functions
+bool multismoothblit(int bitdepth1, int bitdepth2, void *srcbuffer, void *destbuffer, int w, int h, int pitch, int zoom, int *smooth) {
+	if (zoom < 4 || !*smooth)
+		return false;
+
+	smoothblitfunc_t func1, func2;
+	if (bitdepth1 == 32) {
+		assert(bitdepth2 == 32);
+		// Slow: have to use 32 bit whole way
+		func1 = func2 = (smoothblitfunc_t)smoothzoomblit_32_to_32bit;
+	} else {
+		assert(bitdepth1 == 8);
+		assert(bitdepth2 == 8 || bitdepth2 == 32);
+		// Use 8 bit for intermediate steps
+		func1 = (smoothblitfunc_t)smoothzoomblit_8_to_8bit;
+		if (bitdepth2 == 8)
+			func2 = (smoothblitfunc_t)smoothzoomblit_8_to_8bit;
+		else
+			func2 = (smoothblitfunc_t)smoothzoomblit_8_to_32bit;
+	}
+
+	// Scale in 2 or 3 steps
+	int zoom0 = 1, zoom1 = 0, zoom2 = 0;
+	int finalsmooth = 1;
+	if (zoom == 4) { zoom1 = 2; zoom2 = 2; }
+	else if (zoom == 6) { zoom1 = 3; zoom2 = 2; }
+	else if (zoom == 8) { zoom0 = 2, zoom1 = 2; zoom2 = 2; }
+	else if (zoom == 9) { zoom1 = 3; zoom2 = 3; }
+	else if (zoom == 12) { zoom0 = 2; zoom1 = 3; zoom2 = 2; }
+	else if (zoom == 16) { zoom0 = 2; zoom1 = 2; zoom2 = 4; finalsmooth = 0; }
+	else {
+		*smooth = 0;
+		return false;
+	}
+	int zoom01 = zoom0 * zoom1;
+
+	void *intermediate_buffer;
+	intermediate_buffer = malloc(w * h * zoom01 * zoom01 * bitdepth1 / 8);
+	if (!intermediate_buffer)
+		debugc(errDie, "multismoothblit: malloc failed");
+	void *first_buffer = srcbuffer;
+
+	if (zoom0 > 1) {
+		first_buffer = destbuffer;
+		func1(srcbuffer, first_buffer, w, h, w * zoom0, zoom0, 1);
+	}
+	func1(first_buffer, intermediate_buffer, w * zoom0, h * zoom0, w * zoom01, zoom1, 1);
+	func2(intermediate_buffer, destbuffer, w * zoom01, h * zoom01, pitch, zoom2, finalsmooth);
+	return true;
+}
+
 void smoothzoomblit_8_to_8bit(uint8_t *srcbuffer, uint8_t *destbuffer, int w, int h, int pitch, int zoom, int smooth) {
 //srcbuffer: source w x h buffer paletted 8 bit
 //destbuffer: destination scaled buffer pitch x h*zoom also 8 bit
 //supports zoom 1 to 16
-//smooth: true or false.
+
+	if (multismoothblit(8, 8, srcbuffer, destbuffer, w, h, pitch, zoom, &smooth))
+		return;
 
 	uint8_t *sptr;
 	int i, j;
 	int wide = w * zoom, high = h * zoom;
-
-/*
-	if (zoom == 4 && smooth) {
-		// Do 2x scale smoothing twice
-		unsigned char *intermediate_buffer;
-		intermediate_buffer = malloc(w * h * 4);
-		if (!intermediate_buffer)
-			debugc errDie, "smoothzoomblit: malloc failed";
-		smoothzoomblit_8_to_8bit(srcbuffer, intermediate_buffer, w, h, w * 2, 2, smooth);
-		smoothzoomblit_8_to_8bit(intermediate_buffer, destbuffer, w * 2, h * 2, pitch, 2, smooth);
-		return;
-	}
-*/
 
 	sptr = destbuffer;
 
@@ -228,7 +278,7 @@ void smoothzoomblit_8_to_8bit(uint8_t *srcbuffer, uint8_t *destbuffer, int w, in
 
 	if (smooth == 1 && zoom >= 2) {
 		int pstep;
-		if (zoom == 2)
+		if (zoom == 2 || zoom > 4)
 			pstep = 2;
 		else
 			pstep = 1;
@@ -264,6 +314,9 @@ void smoothzoomblit_8_to_32bit(uint8_t *srcbuffer, uint32_t *destbuffer, int w, 
 //srcbuffer: source w x h buffer paletted 8 bit
 //destbuffer: destination scaled buffer pitch x h*zoom 32 bit (so pitch is in pixels, not bytes)
 //supports any positive zoom
+
+	if (multismoothblit(8, 32, srcbuffer, destbuffer, w, h, pitch, zoom, &smooth))
+		return;
 
 	uint32_t *sptr;
 	uint32_t pixel;
@@ -329,6 +382,9 @@ void smoothzoomblit_32_to_32bit(uint32_t *srcbuffer, uint32_t *destbuffer, int w
 //srcbuffer: source w*h buffer, 32 bit
 //destbuffer: destination scaled buffer (pitch*zoom)*(h*zoom), 32 bit (so pitch is in pixels, not bytes)
 //supports any positive zoom
+
+	if (multismoothblit(32, 32, srcbuffer, destbuffer, w, h, pitch, zoom, &smooth))
+		return;
 
 	uint32_t *sptr;
 	uint32_t pixel;

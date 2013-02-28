@@ -512,7 +512,7 @@ FUNCTION gfx_sdl_getresize(byref ret as XYPair) as integer
 END FUNCTION
 
 SUB gfx_sdl_set_zoom(byval value as integer)
-  IF value >= 1 AND value <= 4 AND value <> zoom THEN
+  IF value >= 1 AND value <= 16 AND value <> zoom THEN
     zoom = value
     zoom_has_been_changed = YES
     IF SDL_WasInit(SDL_INIT_VIDEO) THEN
@@ -551,7 +551,7 @@ FUNCTION gfx_sdl_setoption(byval opt as zstring ptr, byval arg as zstring ptr) a
 END FUNCTION
 
 FUNCTION gfx_sdl_describe_options() as zstring ptr
-  return @"-z -zoom [1|2|3|4]  Scale screen to 1,2,3 or 4x normal size (2x default)" LINE_END _
+  return @"-z -zoom [1...16]   Scale screen to 1,2, ... up to 16x normal size (2x default)" LINE_END _
           "-s -smooth          Enable smoothing filter for zoom modes (default off)"
 END FUNCTION
 
