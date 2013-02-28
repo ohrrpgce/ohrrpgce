@@ -330,6 +330,7 @@ sequence math_list        math_list={
                              ,{24,"sign",{0}}
                              ,{25,"sqrt",{0}}
                           }
+--update is_simple_math_op on adding new operators
 
 sequence separator_list   separator_list={
                              "+=","-=","$+","$=","$","+","--","/","*","^^","^"
@@ -2480,6 +2481,13 @@ end function
 
 ---------------------------------------------------------------------------
 
+--Check whether a math operator is not an assignment, a compare operator, or 'random'
+function is_simple_math_op(integer id)
+  return (id >= 1 and id <= 9) or id >= 19
+end function
+
+---------------------------------------------------------------------------
+
 --this function not used anywhere
 function how_many_args(sequence name,integer kind)
   integer result
@@ -2763,10 +2771,12 @@ function build_switch_node(sequence tree,sequence vars,integer ptr)
   sequence casecmd
   sequence lastnodename
   sequence collected
+  sequence temp
   integer have_else
   srcpos elsepos
   integer expect_case
   integer kind
+  integer id
   sequence else_error_msg
   else_error_msg=COLYEL&"else"&COLRED&" case should be placed last inside a "&COLYEL&"switch"&COLRED&" block"
 
@@ -2862,9 +2872,11 @@ function build_switch_node(sequence tree,sequence vars,integer ptr)
           elsepos=argpos
           --don't emit anything: next do is the 'else' one
         else
-          kind=what_kind(casecmd,vars,false)
-          if kind!=KIND_NUMBER and kind!=KIND_REFERENCE then
-            src_error(sprintf_utf(COLYEL&"%s"&COLRED&" is not allowed inside a "&COLYEL&"case"&COLRED&", only integer constants are."
+          temp=what_kind_and_id(casecmd,vars)
+          kind=temp[1]
+          id=temp[2]
+          if kind=KIND_FLOW or (kind=KIND_MATH and is_simple_math_op(id)=false) then
+            src_error(sprintf_utf(COLYEL&"%s"&COLRED&" is not allowed inside a "&COLYEL&"case"&COLRED
                           ,{casecmd[CMD_TEXT]}),casecmd[CMD_POS])
           end if
           args&={caseargs[k]}
