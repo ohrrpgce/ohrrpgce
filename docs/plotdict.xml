@@ -5115,42 +5115,42 @@ The <p>exit returning</p> command works exactly the same as the <ref>return</ref
 			<added>ubersetzung</added>
 			<description>Select between a number of <ref>case</ref> blocks to execute based on the value of an expression. The switch command is an alternative to a big block of nested <ref>if</ref>/then/else commands that all check the same value. Switch can be easier to read than a lot of if's. Consider the follow script snippet:
 <example>if (v == 0) then (
-  do something
+  something
 ) else if (v == 1 || v == 2) then (
-  do something else
+  something else
 ) else if (v == 3 || v == 4) then (
-  do yet another thing
+  yet another thing
 ) else if (v == 10) then (
-  #do nothing
+  #nothing happens here
 ) else (
-  do something if none of the other ifs are true
+  something to do if none of the other ifs are true
 )</example>
 This is a good candidate for using switch. The example below shows how this can be done:
 <example>switch(v) do(
   case(0) do(
-    do something
+    something
   )
   case(1, 2) do(  # A case can contain multiple values...
-    do something else
+    something else
   )
   case(3)
   case(4) do(  # ...or you can use multiple cases after another
-    do yet another thing
+    yet another thing
   )
-  case(10) do()  #do nothing
+  case(10) do()  #nothing happens here
   else(
-    do something if none of the cases happen
+    something to do if none of the cases happen
   )
 )</example>
 The <p>else</p> section is optional.
 There are two different styles (syntaxes) in which switch can be written. The second style looks like this (completely equivalent to the above example):
 <example>switch(v) do(
-  case(0)    do something
-  case(1, 2) do something else
+  case(0)    something
+  case(1, 2) something else
   case(3)    
-  case(4)    do yet another thing
-  case(10)   do() #nothing
-  case(else) do something if none of the cases happen
+  case(4)    yet another thing
+  case(10)   do() #nothing happens here
+  case(else) something to do if none of the cases happen
 )</example>
 Besides readability, there is one other important difference between using switch and using a sequence of if's. The switch command only checks the value of the expression (v) once. The if/then/else method checks v repeatedly, so it could be slower, and could be susceptible to errors if you accidentally change the value of v somewhere in the middle.
 			</description>
