@@ -1216,7 +1216,7 @@ NEXT i
 
 FOR i as integer = 0 TO 99
  FOR o as integer = 0 TO 49
-  gam.stock(i, o) = -1 'default of -1 means no limit
+  gam.stock(i, o) = 0 'default of 0 means "unloaded". The actual value will be populated when you first visit the shop
  NEXT o
 NEXT i
 flusharray hmask()
