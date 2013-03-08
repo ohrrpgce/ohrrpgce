@@ -15,28 +15,9 @@ TYPE MapModeState
   doorlinks(199) as doorlink
 END TYPE
 
-UNION HeroStatsSingle
-  'See also BattleStatsSingle '-- the two of these can probably be unified eventually
-  TYPE
-    hp as integer   '0
-    mp as integer   '1
-    str as integer  '2
-    acc as integer  '3
-    def as integer  '4
-    dog as integer  '5
-    mag as integer  '6
-    wil as integer  '7
-    spd as integer  '8
-    ctr as integer  '9
-    foc as integer  '10
-    hits as integer '11
-  END TYPE
-  sta(11) as integer
-End UNION
-
 TYPE HeroStats
-  cur as HeroStatsSingle
-  max as HeroStatsSingle
+  cur as Stats
+  max as Stats
 END TYPE
 
 TYPE HeroState
