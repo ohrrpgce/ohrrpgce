@@ -58,6 +58,7 @@ WHAT IS NEW?
       them in your inventory [James]
     * Fixed F12 screenshots on the following menus: Items, Spells,
       Status, Equip, Order/Team, Shop, Save, Load [James, Ralph]
+    * Fixed shop-stock limits not working [James]
 
   * New Plotscripting Stuff
     * If a script runs for a long time without "wait"ing you can now
