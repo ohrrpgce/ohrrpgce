@@ -16,10 +16,12 @@ Buy Require Tag and Sell Require Tag allow you to restrict access to certain ite
 
 Buy Set Tag and sell set tag allow you to set a tag when certain items are purchased/sold in this shop.
 
-You can set the price of the item in this shop. This gets auto-filled to the item's value when you choose the item ID number, but you can then edit the price specially for this shop.
+You can set the Cost of the item in this shop. This gets auto-filled to the item's value when you choose the item ID number, but you can then edit the price specially for this shop.
 
 You can specify up to 4 items that have to be traded in to buy this item.
 
-You can specify a sell price (amount the player can sell this item back to the store for). This will be prefilled to half the item's value, but you can edit the sell price specially for this shop. Note that if you want an item to have a special sell price at a shop where it is not for sale, you can define it here and put none of it in stock.
+The Sell Type specifies what happens when the player sells this item to the shop. Set to "Refuse to Buy" to prevent the player from selling. The other possibilities determine what happens to the shop's stock of this item. "Increment Stock" increases the stock amount by 1 if it is not infinite. "Acquire Infinite Stock" and "Don't Change Stock" are the other options.
+
+You can specify a sell price (amount the player can sell this item back to the store for). This will be pre-filled to half the item's value, but you can edit the sell price specially for this shop. Note that if you want an item to have a special sell price at a shop where it is not for sale, you can define it here and put None of it in stock.
 
 You can specify one item to recieve as a trade-in if you sell this item.

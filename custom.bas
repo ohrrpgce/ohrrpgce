@@ -862,8 +862,8 @@ SUB shop_stuff_edit (byval shop_id as integer, byref thing_total as integer)
  DIM stufbuf(curbinsize(binSTF) \ 2 - 1) as integer
  shop_load_stf shop_id, stuf, stufbuf()
  
- update_shop_stuff_menu stuf, stufbuf(), thing_total
  update_shop_stuff_type stuf, stufbuf()
+ update_shop_stuff_menu stuf, stufbuf(), thing_total
  
  setkeys YES
  DO
@@ -949,10 +949,11 @@ SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as integer, b
   CASE 0' This is an item
    DIM item_tmp(dimbinsize(binITM)) as integer
    loaditemdata item_tmp(), stufbuf(18)
+   stuf.item_value = item_tmp(46)
    IF reset_name_and_price THEN
     stuf.thingname = load_item_name(stufbuf(18),1,1)
-    stufbuf(24) = item_tmp(46) ' default buy price
-    stufbuf(27) = item_tmp(46) \ 2 ' default sell price
+    stufbuf(24) = stuf.item_value ' default buy price
+    stufbuf(27) = stuf.item_value \ 2 ' default sell price
    END IF
    stuf.st.last = 22
    stuf.max(4) = gen(genMaxItem)
@@ -967,6 +968,7 @@ SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as integer, b
     stufbuf(24) = 0 ' default buy price
     stufbuf(27) = 0 ' default sell price
    END IF
+   stuf.item_value = 0
    stuf.st.last = 19
    stuf.max(4) = gen(genMaxHero)
    IF stufbuf(18) > gen(genMaxHero) THEN stufbuf(18) = 0
@@ -1007,6 +1009,9 @@ SUB update_shop_stuff_menu (byref stuf as ShopStuffState, stufbuf() as integer, 
  stuf.menu(8) = tag_set_caption(stufbuf(22), "Buy Set Tag")
  stuf.menu(9) = tag_set_caption(stufbuf(23), "Sell Set Tag")
  stuf.menu(10) = "Cost: " & stufbuf(24) & " " & readglobalstring(32, "Money")
+ IF stufbuf(17) = 0 AND stuf.item_value THEN  'item
+  stuf.menu(10) &= " (" & CINT(100.0 * stufbuf(24) / stuf.item_value) & "% of Value)"
+ END IF
  stuf.menu(11) = "Must Trade in " & (stufbuf(30) + 1) & " of: " & load_item_name(stufbuf(25),0,0)
  stuf.menu(12) = " (Change Amount)"
  stuf.menu(13) = "Must Trade in " & (stufbuf(32) + 1) & " of: " & load_item_name(stufbuf(31),0,0)
@@ -1019,14 +1024,21 @@ SUB update_shop_stuff_menu (byref stuf as ShopStuffState, stufbuf() as integer, 
  IF stufbuf(17) = 0 THEN
 
   SELECT CASE stufbuf(26)
-   CASE 0: stuf.menu(19) = "Sell type: Normal"
-   CASE 1: stuf.menu(19) = "Sell type: Aquire Inventory"
-   CASE 2: stuf.menu(19) = "Sell type: Increment Inventory"
+   CASE 0: stuf.menu(19) = "Sell type: Don't Change Stock"
+   CASE 1: stuf.menu(19) = "Sell type: Acquire Infinite Stock"
+   CASE 2:
+    stuf.menu(19) = "Sell type: Increment Stock"
+    IF stufbuf(19) = -1 THEN
+     stuf.menu(19) = "Sell type: Inc Stock (does nothing)"
+    END IF
    CASE 3: stuf.menu(19) = "Sell type: Refuse to Buy"
    CASE ELSE: stuf.menu(19) = "Sell type: " & stufbuf(26) & " ???"
   END SELECT
 
   stuf.menu(20) = "Sell for: " & stufbuf(27) & " " & readglobalstring(32, "Money")
+  IF stuf.item_value THEN
+   stuf.menu(20) &= " (" & CINT(100.0 * stufbuf(27) / stuf.item_value) & "% of Value)"
+  END IF
   stuf.menu(21) = "  and " & (stufbuf(29) + 1) & " of: " & load_item_name(stufbuf(28),0,0)
   stuf.menu(22) = " (Change Amount)"
  ELSE
