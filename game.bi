@@ -15,6 +15,7 @@ declare function valid_item_slot(byval item_slot as integer) as integer
 declare function valid_item(byval itemid as integer) as integer
 declare function valid_hero_party(byval who as integer, byval minimum as integer=0) as integer
 declare function really_valid_hero_party(byval who as integer, byval maxslot as integer=40, byval errlvl as scriptErrEnum = serrBadOp) as integer
+declare function valid_stat(byval statid as integer) as integer
 declare function valid_menuslot(byval menuslot as integer) as integer
 declare function valid_menuslot_and_mislot(byval menuslot as integer, byval mislot as integer) as integer
 declare function valid_plotstr(byval n as integer, byval errlvl as scriptErrEnum = serrBound) as integer

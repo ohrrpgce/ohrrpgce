@@ -2192,6 +2192,10 @@ FUNCTION really_valid_hero_party(byval who as integer, byval maxslot as integer=
  RETURN YES
 END FUNCTION
 
+FUNCTION valid_stat(byval statid as integer) as integer
+ RETURN bound_arg(statid, 0, statLast, "stat ID", , , serrBadOp)
+END FUNCTION
+
 FUNCTION valid_menuslot(byval menuslot as integer) as integer
  RETURN bound_arg(menuslot, 0, topmenu, "menu handle")
 END FUNCTION

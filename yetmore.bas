@@ -439,6 +439,12 @@ SELECT CASE as CONST id
     scriptret = 100 * elementals(retvals(1))  'rounds to nearest int
    END IF
   END IF
+ CASE 545 '--get hero stat cap (stat)
+  'Replaces a plotscr.hsd script
+  IF valid_stat(retvals(0)) THEN
+   scriptret = gen(genStatCap + retvals(0))
+  END IF
+
 END SELECT
 END SUB
 

@@ -557,6 +557,7 @@ define function, begin
 542,microseconds,0               #microsecond timer
 543,enemyelementalresistasint,2,0,0  #get percentage elemental damage for an enemy (id, element)
 544,heroz,1,0                    #a hero's Z coordinate (party slot)
+545,getherostatcap,1,0           #get the cap for a stat; 0 if none
 end
 
 #--------------------------------------------------------------------------
@@ -932,15 +933,11 @@ script,set dead heroes gain experience,hsd:bit=1,begin
   write general(177,(read general(177),and,-9)+hsd:bit)
 end
 
-script,get hero stat cap, hsd:stat, begin
- read general(65+hsd:stat)
-end
-
 script,set capped hero stat,hsd:who,hsd:stat,hsd:value,stat:cur or max=0,begin
  variable(hsd:cap)
  hsd:cap := get hero stat cap(hsd:stat)
  if(hsd:cap>>0, and, hsd:cap<<hsd:value) then(hsd:value:=hsd:cap)
- set hero stat(hsd:who,hsd:stat,stat:cur or max,hsd:value)
+ set hero stat(hsd:who,hsd:stat,hsd:value,stat:cur or max)
 end
 
 script,get damage cap,begin

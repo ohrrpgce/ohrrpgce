@@ -59,6 +59,7 @@ WHAT IS NEW?
     * Fixed F12 screenshots on the following menus: Items, Spells,
       Status, Equip, Order/Team, Shop, Save, Load [James, Ralph]
     * Fixed shop-stock limits not working [James]
+    * "get hero stat cap" and "set capped hero stat" didn't work [Ralph]
 
   * New Plotscripting Stuff
     * If a script runs for a long time without "wait"ing you can now
