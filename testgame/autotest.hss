@@ -219,6 +219,7 @@ script, hero tests, begin
   hero caterpillar tests
   hero exp and levels tests
   hero stat growth test
+  hero stat tests
   hero misc tests
   hero names embed tests
   # The party should continue to be 0, 1, 2, 3
@@ -941,6 +942,50 @@ script, hero stat growth test, begin
   assert(get hero stat(0, 0, maximum stat) == 1000)
   set hero level(0, 0, true)
   show no value, w
+end
+
+script, hero stat tests, begin
+  $0="hero stat tests"
+  # test hero stat commands, stat capping, equip stat bonuses, current vs. max quirks, negative stats
+
+  # check initial condition
+  assert(hero by slot(1) == hero:Helga)
+  assert(get hero level(1) == 0)
+  assert(get hero stat(1, stat:hp, current stat) == 10)
+  assert(get hero stat(1, stat:atk, current stat) == 10)
+  assert(get hero stat(1, stat:spd, current stat) == 30)
+
+  # test stat caps
+  assert(get hero stat cap(stat:hp) == 0)
+  assert(get hero stat cap(stat:atk) == 100)  #in-editor
+  assert(get hero stat cap(stat:spd) == 0)
+  # set capped hero stat
+  set capped hero stat(1, stat:atk, 110, current stat)
+  assert(get hero stat(1, stat:atk, current stat) == 100)
+  set capped hero stat(1, stat:atk, 120, maximum stat)
+  assert(get hero stat(1, stat:atk, maximum stat) == 100)
+  set capped hero stat(1, stat:hp, 999999, current stat)
+  assert(get hero stat(1, stat:hp, current stat) == 999999)
+  set hero stat(1, stat:hp, 10, current stat)  #back to original
+
+  # set hero stat should not be affected by caps
+  set hero stat(1, stat:atk, 110, current stat)
+  assert(get hero stat(1, stat:atk, current stat) == 110)
+  set hero stat(1, stat:atk, 100, current stat)
+  
+  # set hero stat cap(stat:hp, 5)
+  # set hero stat cap(stat:atk, -1)
+  # set hero stat cap(stat:spd, 10)
+  # assert(get hero stat cap(stat:hp) == 5)
+  # assert(get hero stat cap(stat:atk) == -1)
+  # assert(get hero stat cap(stat:spd) == 10)
+  # assert(get hero stat(1, stat:hp, current stat) == 5)
+  # assert(get hero stat(1, stat:atk, current stat) == -1)
+  # assert(get hero stat(1, stat:spd, current stat) == 10)
+  # assert(get hero stat(1, stat:hp, maximum stat) == 5)
+  # assert(get hero stat(1, stat:atk, maximum stat) == -1)
+  # assert(get hero stat(1, stat:spd, maximum stat) == 10)
+
 end
 
 script, hero misc tests, begin
