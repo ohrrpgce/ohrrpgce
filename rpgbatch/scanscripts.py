@@ -17,9 +17,25 @@ if len(sys.argv) < 2:
     print "Optionally pass plotscr.hs (plotscr.hsd compiled) as the first argument to identify the standard scripts."
     print "scriptdata.bin is created in the current directory, which can be passed using --resume"
     print "to combine runs of the utility."
+    print "More advanced options are available only by editing this file."
     print "Specify .rpg files, .rpgdir directories, .zip files, or directories containing any of these as arguments."
     sys.exit()
 things = sys.argv[1:]
+
+### CUSTOMISATION
+
+# In this file, scripts in plotscr.hsd are termed "standard scripts"
+
+# All uses of the following script commands will be logged and printed
+# You can also add standard script names to this, eg. 'minutesofplay':''
+# noop, stringfromtextbox, initmouse, readgeneral, writegeneral, readgmap, writegmap, readenemydata, writeenemydata
+cmd_logging = {0:'', 240:'', 159:'', 147:'', 148:'', 178:'', 179:'', 230:'', 231:''}
+
+# A list of script names, either standard or not. Every version of a script matching this name
+# will be decompiled and dumped
+decompile_scripts = []
+
+### END CUSTOMISATON
 
 table_size = 2000
 cmdcounts = np.zeros(shape = (0, table_size), dtype = np.int32)
@@ -35,11 +51,6 @@ scriptbytes = 0
 scriptuniquebytes = 0
 scriptnum = 0
 scriptuniquenum = 0
-
-# All uses of the following script commands will be logged and printed
-# You can also add standard script names to this, eg. 'minutesofplay':''
-# noop, stringfromtextbox, initmouse, readgeneral, writegeneral, readgmap, writegmap, readenemydata, writeenemydata
-cmd_logging = {0:'', 240:'', 159:'', 147:'', 148:'', 178:'', 179:'', 230:'', 231:''}
 
 strange_names = []
 
@@ -144,17 +155,17 @@ for rpg, gameinfo, zipinfo in rpgs:
 
         # Map script IDs to standardscrs indices
         id_to_standardindex = {}
-        for id, name in scriptset.scriptnames.iteritems():
+        for script_id, name in scriptset.scriptnames.iteritems():
             idx = standardindex.get(name)
             if idx:
-                id_to_standardindex[id] = idx
+                id_to_standardindex[script_id] = idx
 
         for name in scriptset.scriptnames.itervalues():
             if re.search('(^[0-9-]|[^a-z0-9:_-])', name):
                 strange_names.append((name, gameinfo.id))
 
-        for id in scriptset.scriptnames.iterkeys():
-            script = scriptset.script(id)
+        for script_id in scriptset.scriptnames.iterkeys():
+            script = scriptset.script(script_id)
             if not script:
                 continue
             scriptnum += 1
@@ -163,17 +174,32 @@ for rpg, gameinfo, zipinfo in rpgs:
             script.game = gameinfo.name  # RPG file and long name
             script.gamename = gameinfo.longname
             scriptbytes += script.lump_size
+            is_standard_script = script.name in standardindex
 
             # The first Script in each list of Scripts in scripthashes has a vector of
             # command usage counts for that script (hacky)
             md5 = script.invariate_md5()
-            if md5 in scripthashes:
+            seen_before = md5 in scripthashes
+
+            if script.name in decompile_scripts:
+                already_decompiled = False
+                if seen_before:
+                    for seen_script in scripthashes[md5]:
+                        if seen_script.name == script.name:
+                            already_decompiled = True
+                            break
+                if not already_decompiled:
+                    print
+                    print script
+                    print
+
+            if seen_before:
                 # Only need one copy of the script data
                 script.drop_data()
                 scripthashes[md5].append(script)
                 # Commands in standard scripts are only counted once per unique copy of the script.
                 # Commands in other scripts are counted for each game they appear in
-                if script.name not in standardindex:
+                if not is_standard_script:
                     cmdusage[0] += scripthashes[md5][0].cmdusage
             else:
                 script.cmdusage = np.zeros((table_size), np.int32)
@@ -184,21 +210,28 @@ for rpg, gameinfo, zipinfo in rpgs:
                 for node in iter_script_tree(script.root()):
                     kind = node.kind
                     if kind == kCmd:
+                        # Count command usage
                         script.cmdusage[node.id] += 1
-                        # Ignore occurrences in standard scripst
-                        if node.id in cmd_logging and id not in id_to_standardindex:
+                        # Ignore occurrences in standard scripts
+                        if node.id in cmd_logging and not is_standard_script:
                             cmd_logging[node.id] += "Found in " + script.name + " in " + gameinfo.name + ":\n" + str(node) + '\n'
                     elif kind == kScript:
+                        # Count standard script usage
                         idx = id_to_standardindex.get(node.id)
-                        # Ignore occurrences in standard scripts
-                        if idx and id not in id_to_standardindex:
+                        if idx:
                             script.cmdusage[2000 + idx] += 1
-                            if standardscrs['names'][idx] in cmd_logging:
-                                cmd_logging[standardscrs['names'][idx]] += "Found in " + script.name + " in " + gameinfo.name + ":\n" + str(node) + '\n'
-                if script.name in standardindex:
+                            # Ignore occurrences in standard scripts
+                            if not is_standard_script:
+                                node_script_name = standardscrs['names'][idx]
+                                if node_script_name in cmd_logging:
+                                    cmd_logging[node_script_name] += "Found in " + script.name + " in " + gameinfo.name + ":\n" + str(node) + '\n'
+                if is_standard_script:
                     cmdcounts_in_plotscrhsd += script.cmdusage
                 else:
                     cmdusage[0] += script.cmdusage
+
+        # When scriptset is closed underlying file is closed, practically equivalent to drop_data
+        # on all scripts in scripthashes
         scriptset.close()
         del scriptset
 
@@ -216,7 +249,7 @@ for md5, scripts in scripthashes.iteritems():
         games = []
         duptext = ''
         for script in scripts:
-            if script.game not in games:
+            if True:  #if script.game not in games:
                 games.append(script.game)
                 duptext += "\n   " + script.name + " in " + script.game
         if len(games) > 1:
