@@ -5515,18 +5515,28 @@ end</example>
 		<command id="setcappedherostat">
 			<canon>set capped hero stat (who,stat,value,type)</canon>
 			<shortname>set capped hero stat</shortname>
-			<description>A command that changes one of a hero&apos;s stats. The first argument is the position of the hero you want to change in your party as returned by find hero. The second argument is the name of the stat that you want to change. The names of the stats are also defined in your HSI file in the form stat:name. The third argument is the new value of the stat. The last argument is either <ref>currentstat</ref> or <ref>maximumstat</ref>. If you leave the last argument blank, <ref>currentstat</ref> will be assumed. Unlike <ref>setherostat</ref>, this command is not allowed to exceed the stat caps.</description>
+			<description>A command that changes one of a hero&apos;s stats. The first argument is the position of the hero you want to change in your party as returned by find hero. The second argument is the name of the stat that you want to change. The names of the stats are also defined in your HSI file in the form stat:name. The third argument is the new value of the stat. The last argument is either <ref>currentstat</ref> or <ref>maximumstat</ref>. If you leave the last argument out, <ref>currentstat</ref> will be assumed. Unlike <ref>setherostat</ref>, if you try to set a stat to a value larger than the stat cap it will be capped to stat cap (without an error).</description>
 			<seealso>
 				<ref>setherostat</ref>
 				<ref>getherostatcap</ref>
+				<ref>setherostatcap</ref>
 			</seealso>
 		</command>
 		<command id="getherostatcap">
 			<canon>get hero stat cap (stat)</canon>
 			<shortname>get hero stat cap</shortname>
-			<description>A function that returns the maximum allowed value for a hero stat. The argument is the stat you want to check, either as a number or using the stat:name constants defined in your HSI file. If the return value is 0 or false there is no stat cap for that stat.</description>
+			<description>A function that returns the maximum allowed value for a hero stat (as set in the Stat Caps menu in Custom). The argument is the stat you want to check; one of the stat:name constants defined in your HSI file. If the return value is 0 or false there is no stat cap for that stat.</description>
 			<seealso>
 				<ref>setcappedherostat</ref>
+				<ref>setherostatcap</ref>
+			</seealso>
+		</command>
+		<command id="setherostatcap">
+			<canon>set hero stat cap (stat, value)</canon>
+			<shortname>set hero stat cap</shortname>
+			<description>Set the maximum allowed value for a hero stat. The <p>stat</p> argument is the stat to affect; one of the stat:name constants defined in your HSI file. The <p>value</p> argument should be either greater than zero to set a cap, or 0/false to remove the cap for that stat. The ew cap comes into immediate force: the current and maximum values of <p>stat</p> of all heroes in the party are capped according to the new cap.</description>
+			<seealso>
+				<ref>getherostatcap</ref>
 			</seealso>
 		</command>
 		<command id="getherolevel">

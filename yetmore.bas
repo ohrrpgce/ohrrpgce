@@ -444,6 +444,15 @@ SELECT CASE as CONST id
   IF valid_stat(retvals(0)) THEN
    scriptret = gen(genStatCap + retvals(0))
   END IF
+ CASE 546 '--set hero stat cap (stat, value)
+  IF valid_stat(retvals(0)) THEN
+   IF retvals(1) < 0 THEN
+    scripterr "set hero stat cap: invalid negative cap value " & retvals(1)
+   ELSE
+    gen(genStatCap + retvals(0)) = retvals(1)
+    apply_updated_stat_cap retvals(0)
+   END IF
+  END IF
 
 END SELECT
 END SUB

@@ -971,20 +971,32 @@ script, hero stat tests, begin
   # set hero stat should not be affected by caps
   set hero stat(1, stat:atk, 110, current stat)
   assert(get hero stat(1, stat:atk, current stat) == 110)
-  set hero stat(1, stat:atk, 100, current stat)
-  
-  # set hero stat cap(stat:hp, 5)
-  # set hero stat cap(stat:atk, -1)
-  # set hero stat cap(stat:spd, 10)
-  # assert(get hero stat cap(stat:hp) == 5)
-  # assert(get hero stat cap(stat:atk) == -1)
-  # assert(get hero stat cap(stat:spd) == 10)
-  # assert(get hero stat(1, stat:hp, current stat) == 5)
-  # assert(get hero stat(1, stat:atk, current stat) == -1)
-  # assert(get hero stat(1, stat:spd, current stat) == 10)
-  # assert(get hero stat(1, stat:hp, maximum stat) == 5)
-  # assert(get hero stat(1, stat:atk, maximum stat) == -1)
-  # assert(get hero stat(1, stat:spd, maximum stat) == 10)
+
+  # modify caps  
+  set hero stat cap(stat:hp, 5)
+  assert(get hero stat cap(stat:hp) == 5)
+  assert(get hero stat(1, stat:hp, current stat) == 5)
+  assert(get hero stat(1, stat:hp, maximum stat) == 5)
+  # should not affect other stats which are over-cap
+  assert(get hero stat(1, stat:atk, current stat) == 110)
+  set hero stat(1, stat:atk, 10, current stat)  #back to original
+  set hero stat(1, stat:atk, 10, maximum stat)  #back to original
+
+  set hero stat cap(stat:atk, 0)
+  set hero stat cap(stat:spd, 10)
+  assert(get hero stat cap(stat:atk) == 0)
+  assert(get hero stat cap(stat:spd) == 10)
+  assert(get hero stat(1, stat:atk, current stat) == 10)
+  assert(get hero stat(1, stat:atk, maximum stat) == 10)
+  assert(get hero stat(1, stat:spd, current stat) == 10)
+  assert(get hero stat(1, stat:spd, maximum stat) == 10)
+  set hero stat cap(stat:hp, 0)
+  set hero stat cap(stat:spd, 0)
+
+  # test original stats restored
+  assert(get hero stat(1, stat:hp, current stat) == 10)
+  assert(get hero stat(1, stat:atk, current stat) == 10)
+  assert(get hero stat(1, stat:spd, current stat) == 30)
 
 end
 

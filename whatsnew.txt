@@ -87,6 +87,7 @@ WHAT IS NEW?
       [Ralph]
     * "enemy elemental resist as int" [Ralph]
     * "hero Z" [Ralph]
+    * "set hero stat cap" [Ralph]
 
   * Stuff Only Developers Will Notice
 

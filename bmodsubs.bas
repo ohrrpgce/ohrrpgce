@@ -865,6 +865,19 @@ SUB updatestatslevelup (byval hero_slot as integer, byval allowforget as integer
  END IF
 END SUB
 
+SUB apply_updated_stat_cap(byval stat as integer)
+ 'Called when a stat cap changes; applies the new cap (only for that one stat!) to all heroes
+ FOR hero_slot as integer = 0 TO UBOUND(gam.hero)
+  DIM cap as integer = gen(genStatCap + stat)
+  IF cap > 0 THEN
+   WITH gam.hero(hero_slot).stat
+    .max.sta(stat) = small(.max.sta(stat), cap)
+    .cur.sta(stat) = small(.cur.sta(stat), cap)
+   END WITH
+  END IF
+ NEXT
+END SUB
+
 SUB learn_spells_for_current_level(byval who as integer, byval allowforget as integer)
 
  'Teaches all spells that can be learned from level

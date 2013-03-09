@@ -557,7 +557,8 @@ define function, begin
 542,microseconds,0               #microsecond timer
 543,enemyelementalresistasint,2,0,0  #get percentage elemental damage for an enemy (id, element)
 544,heroz,1,0                    #a hero's Z coordinate (party slot)
-545,getherostatcap,1,0           #get the cap for a stat; 0 if none
+545,getherostatcap,1,0           #get the cap for a stat; 0 if none (stat)
+546,setherostatcap,2,0,0         #set the cap for a stat (stat, value or 0)
 end
 
 #--------------------------------------------------------------------------

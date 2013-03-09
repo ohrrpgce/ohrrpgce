@@ -41,6 +41,7 @@ declare sub traceshow (s as string)
 declare function trytheft (bat as BattleState, byval who as integer, byval targ as integer, attack as AttackData, bslot() as BattleSprite) as integer
 declare function hero_total_exp (byval hero_slot as integer) as integer
 declare sub updatestatslevelup (byval hero_slot as integer, byval allowforget as integer)
+declare sub apply_updated_stat_cap(byval stat as integer)
 declare sub learn_spells_for_current_level(byval who as integer, byval allowforget as integer)
 declare sub giveheroexperience (byval i as integer, byval exper as integer)
 declare sub setheroexperience (byval who as integer, byval amount as integer, byval allowforget as integer)
