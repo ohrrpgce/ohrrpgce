@@ -3355,16 +3355,15 @@ SUB init_text_box_slices(txt as TextBoxState)
    '--center the box
    .AnchorHoriz = 1
    .AlignHoriz = 1
-   .AnchorVert = 1
-   .AlignVert = 1
+   .AnchorVert = 0
+   .AlignVert = 0
    '--set box size
    .Width = 10 + large(LEN(txt.box.choice(0)) * 8, LEN(txt.box.choice(1)) * 8)
    .Height = 24
    '--FIXME: This hackyness just reproduces the old method of positioning the choicebox.
    '--FIXME: eventually the game author should have control over this.
-   .Y = (txt.box.vertical_offset * 4) - (txt.box.shrink * 4)
-   IF .Y > 60 THEN .Y = -80
-   .Y += 12
+   .Y = text_box->Y + text_box->Height + 12
+   IF .Y > vpages(dpage)->h - (.Height + 4) THEN .Y = 32
   END WITH
   ChangeRectangleSlice choice_box, txt.box.boxstyle
   REDIM choice_sl(1) as Slice Ptr
