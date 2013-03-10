@@ -88,6 +88,7 @@ WHAT IS NEW?
     * "enemy elemental resist as int" [Ralph]
     * "hero Z" [Ralph]
     * "set hero stat cap" [Ralph]
+    * "wait for sound"
 
   * Stuff Only Developers Will Notice
 

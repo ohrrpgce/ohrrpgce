@@ -1243,6 +1243,15 @@ end</example>
 			<seealso>
 				<ref>playsound</ref>
 				<ref>stopsound</ref>
+				<ref>waitforsound</ref>
+			</seealso>
+		</command>
+		<command id="waitforsound">
+			<canon>wait for sound (num)</canon>
+			<shortname>wait for sound</shortname>
+			<description>Waits until a sound effect has finished playing. Useful for synchronization, etc.</description>
+			<seealso>
+				<ref>soundisplaying</ref>
 			</seealso>
 		</command>
 	</section>

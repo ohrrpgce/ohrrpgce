@@ -824,6 +824,10 @@ script,currentdisplaytile,hsd:tile,hsd:layernumber=0,begin
   ) else(return(hsd:tile))
 end
 
+script, wait for sound, hsd:soundid, begin
+  while(sound is playing(hsd:soundid)) do(wait(1))
+end
+
 #--------------------------------------------------------------------------
 #read/write enemy wrappers
 
