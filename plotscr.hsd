@@ -938,11 +938,13 @@ script,set dead heroes gain experience,hsd:bit=1,begin
   write general(177,(read general(177),and,-9)+hsd:bit)
 end
 
-script,set capped hero stat,hsd:who,hsd:stat,hsd:value,stat:cur or max=0,begin
+script,set capped hero stat,hsd:who,hsd:stat,hsd:value,hsd:stat type=current stat,begin
  variable(hsd:cap)
- hsd:cap := get hero stat cap(hsd:stat)
- if(hsd:cap>>0, and, hsd:cap<<hsd:value) then(hsd:value:=hsd:cap)
- set hero stat(hsd:who,hsd:stat,hsd:value,stat:cur or max)
+ if (hsd:stat type <> base stat) then (
+   hsd:cap := get hero stat cap(hsd:stat)
+   if(hsd:cap>>0, and, hsd:cap<<hsd:value) then(hsd:value:=hsd:cap)
+ )
+ set hero stat(hsd:who,hsd:stat,hsd:value,hsd:stat type)
 end
 
 script,get damage cap,begin
@@ -1489,6 +1491,7 @@ define constant, begin
 -1,autonumber
 0,currentstat
 1,maximumstat
+2,basestat
 1,northwall
 2,eastwall
 4,southwall

@@ -215,6 +215,9 @@
 		<a href="#about-autosave">autosave</a><br>
 		
 	
+		<a href="#about-basestat">base stat</a><br>
+		
+	
 		<a href="#about-begin">begin,other commands,end</a><br>
 		
 	
@@ -1691,6 +1694,9 @@
 		<a href="#about-setherostat">set hero stat (who,stat,value,type)</a><br>
 		
 	
+		<a href="#about-setherostatcap">set hero stat cap (stat, value)</a><br>
+		
+	
 		<a href="#about-setheroz">set hero z (who, z)</a><br>
 		
 	
@@ -2253,7 +2259,7 @@
 		
 	
 		
-		<a href="#about-numericconstants">nine</a><br>
+		<a href="#about-numericconstants">ten</a><br>
 	
 		<a href="#about-textboxline">textbox line (string ID, textbox, line, expand, strip)</a><br>
 		
@@ -2382,6 +2388,9 @@
 		
 	
 		<a href="#about-waitforslice">wait for slice (handle)</a><br>
+		
+	
+		<a href="#about-waitforsound">wait for sound (num)</a><br>
 		
 	
 		<a href="#about-waitfortextbox">wait for text box</a><br>
@@ -2521,7 +2530,7 @@ variable+=1 # add one to it</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">define constant (number,name)</font></b><br>
-			Creates a global constant. The first argument is the number that the constant will represent, and the second argument is the name of the constant. Use constants to replace commonly used numbers with friendly names. The following constants have been declared for you in PLOTSRC.HSD:<br><a href="#about-numericconstants" class="ref">zero</a> <a href="#about-numericconstants" class="ref">one</a> <a href="#about-numericconstants" class="ref">two</a> <a href="#about-numericconstants" class="ref">three</a> <a href="#about-numericconstants" class="ref">four</a> <a href="#about-numericconstants" class="ref">five</a> <a href="#about-numericconstants" class="ref">six</a> <a href="#about-numericconstants" class="ref">seven</a> <a href="#about-numericconstants" class="ref">eight</a> <a href="#about-numericconstants" class="ref">nine</a> <a href="#about-numericconstants" class="ref">nine</a> <a href="#about-booleanconstants" class="ref">false</a> <a href="#about-booleanconstants" class="ref">true</a> <a href="#about-booleanconstants" class="ref">off</a> <a href="#about-booleanconstants" class="ref">on</a> <a href="#about-directionconstants" class="ref">north</a> <a href="#about-directionconstants" class="ref">east</a> <a href="#about-directionconstants" class="ref">south</a> <a href="#about-directionconstants" class="ref">west</a> <a href="#about-directionconstants" class="ref">up</a> <a href="#about-directionconstants" class="ref">down</a> <a href="#about-directionconstants" class="ref">left</a> <a href="#about-directionconstants" class="ref">right</a> <a href="#about-keyconstants" class="ref">up key</a> <a href="#about-keyconstants" class="ref">down key</a> <a href="#about-keyconstants" class="ref">left key</a> <a href="#about-keyconstants" class="ref">right key</a> <a href="#about-keyconstants" class="ref">use key</a> <a href="#about-keyconstants" class="ref">cancel key</a> <a href="#about-keyconstants" class="ref">menu key</a> <a href="#about-keyconstants" class="ref">any key</a> <a href="#about-me" class="ref">me</a> <a href="#about-none" class="ref">none</a> <a href="#about-autonumber" class="ref">autonumber</a> <a href="#about-currentstat" class="ref">current stat</a> <a href="#about-maximumstat" class="ref">maximum stat</a> <a href="#about-tileconstants" class="ref">north wall</a> <a href="#about-tileconstants" class="ref">east wall</a> <a href="#about-tileconstants" class="ref">south wall</a> <a href="#about-tileconstants" class="ref">west wall</a> <a href="#about-tileconstants" class="ref">vehicle A</a> <a href="#about-tileconstants" class="ref">vehicle B</a> <a href="#about-tileconstants" class="ref">harm tile</a> <a href="#about-tileconstants" class="ref">overhead tile</a><br>
+			Creates a global constant. The first argument is the number that the constant will represent, and the second argument is the name of the constant. Use constants to replace commonly used numbers with friendly names. The following are some general purpose constants have been declared for you in plotscr.hsd (there are hundreds more intended for specific commands):<br><a href="#about-numericconstants" class="ref">zero</a> <a href="#about-numericconstants" class="ref">one</a> <a href="#about-numericconstants" class="ref">two</a> <a href="#about-numericconstants" class="ref">three</a> <a href="#about-numericconstants" class="ref">four</a> <a href="#about-numericconstants" class="ref">five</a> <a href="#about-numericconstants" class="ref">six</a> <a href="#about-numericconstants" class="ref">seven</a> <a href="#about-numericconstants" class="ref">eight</a> <a href="#about-numericconstants" class="ref">nine</a> <a href="#about-numericconstants" class="ref">ten</a> <a href="#about-booleanconstants" class="ref">false</a> <a href="#about-booleanconstants" class="ref">true</a> <a href="#about-booleanconstants" class="ref">off</a> <a href="#about-booleanconstants" class="ref">on</a> <a href="#about-directionconstants" class="ref">north</a> <a href="#about-directionconstants" class="ref">east</a> <a href="#about-directionconstants" class="ref">south</a> <a href="#about-directionconstants" class="ref">west</a> <a href="#about-directionconstants" class="ref">up</a> <a href="#about-directionconstants" class="ref">down</a> <a href="#about-directionconstants" class="ref">left</a> <a href="#about-directionconstants" class="ref">right</a> <a href="#about-me" class="ref">me</a> <a href="#about-none" class="ref">none</a><br>
 			
 			
 		</tt></p>
@@ -3753,25 +3762,47 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">unequip (hero,slot)</font></b><br>
-			Removes the item that the specified hero has equipped in the specified slot. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (Use <a href="#about-findhero" class="ref">find hero</a> if you want to refer to the hero by name). The second argument is the slot to unequip. Use the slot:weapon, slot:armor, etc. constants from your .hsi file.<br>
+			Removes the item that the specified hero has equipped in the specified slot. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (Use <a href="#about-findhero" class="ref">find hero</a> if you want to refer to the hero by name). The second argument is the slot to unequip. Use the slot:weapon, slot:armor, etc. constants from your .hsi file.
+<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">When a hero's equipment changes, the current values of all stats other than HP and MP for the hero are reset to their new maximum values. The current values of the HP and MP stats are capped to the new maximums but not otherwise changed, so you might like to check and scale up the HP and MP of the hero (see <a href="#about-setherostat" class="ref">set hero stat</a>) if the new max is more than the old one.<br clear="all">
+</div>
+<br>
 			
-			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-forceequip" class="ref">force equip</a>, </li>
+<li><a href="#about-checkequipment" class="ref">check equipment</a></li>
+</ul>
 		</tt></p>
 		<a name="about-forceequip"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">force equip (hero,slot,item)</font></b><br>
-			Forces a hero to equip an item, even if it is not normally equipable. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (Use <a href="#about-findhero" class="ref">find hero</a> if you want to refer to the hero by name). The second argument is the slot to equip. Use the slot:weapon, slot:armor, etc. constants from your .hsi file. The third argument is the item to equip. You can use the item's number or the item:name constants from your .hsi file.<br>
+			Forces a hero to equip an item, even if it is not normally equipable. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (Use <a href="#about-findhero" class="ref">find hero</a> if you want to refer to the hero by name). The second argument is the slot to equip. Use the slot:weapon, slot:armor, etc. constants from your .hsi file. The third argument is the item to equip. You can use the item's number or the item:name constants from your .hsi file.
+<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">When a hero's equipment changes, the current values of all stats other than HP and MP for the hero are reset to their new maximum values. The current values of the HP and MP stats are capped to the new maximums but not otherwise changed, so you might like to check and scale up the HP and MP of the hero (see <a href="#about-setherostat" class="ref">set hero stat</a>) if the new max is more than the old one.<br clear="all">
+</div>
+<br>
 			
-			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-unequip" class="ref">unequip</a>, </li>
+<li>
+<a href="#about-equipwhere" class="ref">equip where</a>, </li>
+<li><a href="#about-checkequipment" class="ref">check equipment</a></li>
+</ul>
 		</tt></p>
 		<a name="about-equipwhere"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">equip where (hero,item)</font></b><br>
-			Returns the number of the slot that a hero can equip an item in, or false if the hero cannot equip it. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (Use <a href="#about-findhero" class="ref">find hero</a> if you want to refer to the hero by name). The second argument is the item to check the equipability of. you can use the item's number or the item:name constants from your .HSI file.<br>
+			Returns the number of the slot that a hero can equip an item in (a constant of the form slot:weapon, etc, in your .hsi file), or <a href="#about-booleanconstants" class="ref">false</a> if the hero cannot equip it. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (Use <a href="#about-findhero" class="ref">find hero</a> if you want to refer to the hero by name). The second argument is the item to check the equipability of. You can use the item's number or the item:name constants from your .hsi file.<br>
 			
-			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-unequip" class="ref">unequip</a>, </li>
+<li><a href="#about-checkequipment" class="ref">check equipment</a></li>
+</ul>
 		</tt></p>
 		<a name="about-checkequipment"></a>
 		<p>
@@ -3779,7 +3810,13 @@ end</pre>
 		<b><font color="yellow">check equipment (hero,slot)</font></b><br>
 			Returns the number of the item that the specified hero has equipped in the specified slot, or -1 if there is nothing equipped there. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (Use <a href="#about-findhero" class="ref">find hero</a> if you want to refer to the hero by name). The second argument is the slot to check. Use the slot:weapon, slot:armor, etc. constants from your .hsi file.<br>
 			
-			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-forceequip" class="ref">force equip</a>, </li>
+<li>
+<a href="#about-unequip" class="ref">unequip</a>, </li>
+<li><a href="#about-equipwhere" class="ref">equip where</a></li>
+</ul>
 		</tt></p>
 		<a name="about-getdefaultweapon"></a>
 		<p>
@@ -3793,7 +3830,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set default weapon (hero,item)</font></b><br>
-			Changes the item that the specified hero uses as a default weapon when no other weapon is equipped. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (Use <a href="#about-findhero" class="ref">find hero</a> if you want to refer to the hero by name). The second argument is the item to use as the new default weapon. you can use the item's number or the item:name constants from your .HSI file.<br>
+			Changes the item that the specified hero uses as a default weapon when no other weapon is equipped. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (Use <a href="#about-findhero" class="ref">find hero</a> if you want to refer to the hero by name). The second argument is the item to use as the new default weapon. You can use the item's number or the item:name constants from your .HSI file.<br>
 			
 			
 		</tt></p>
@@ -3817,7 +3854,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set item in slot (slot, item)</font></b><br>
-			Change the item ID number at a specific slot in your inventory. The <span class="param">slot</span> argument is the position in your inventory screen, and the <span class="param">item</span> argument is the item ID number, or one of the <span class="param">item:name</span> constants defined in your .hsi file. If you want to erase and item slot, use -1 as the item ID<br>
+			Change the item ID number at a specific slot in your inventory. The <span class="param">slot</span> argument is the position in your inventory screen (slots are numbered from 0 to <a href="#about-getinventorysize" class="ref">get inventory size</a>-1), and the <span class="param">item</span> argument is the item ID number, or one of the <span class="param">item:name</span> constants defined in your .hsi file. If you want to erase and item slot, use -1 as the item ID. If the slot was empty, one copy of the item will be placed in it. Otherwise the original item count is preserved.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -4125,8 +4162,18 @@ end</pre>
 			<br>See also: <ul class="seealso">
 <li>
 <a href="#about-playsound" class="ref">play sound</a>, </li>
-<li><a href="#about-stopsound" class="ref">stop sound</a></li>
+<li>
+<a href="#about-stopsound" class="ref">stop sound</a>, </li>
+<li><a href="#about-waitforsound" class="ref">wait for sound</a></li>
 </ul>
+		</tt></p>
+		<a name="about-waitforsound"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">wait for sound (num)</font></b><br>
+			Waits until a sound effect has finished playing. Useful for synchronization, etc.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-soundisplaying" class="ref">sound is playing</a></li></ul>
 		</tt></p>
 
 		<hr>
@@ -8648,7 +8695,7 @@ set timer (0, 300, 18, timer: game over, 0, timerflag: battle)</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get enemy stat(enemy, stat)</font></b><br>
-			Returns the selected stat from the selected enemy. The first argument is the number of the enemy whose stats you want to check. The second argument is the name of the stat that you want to check. The names of the stats are also defined in your HSI file in the form stat:name. <br>
+			Returns the selected stat from the selected enemy. The first argument is the number of the enemy whose stats you want to check. The second argument is the name of the stat that you want to check. The names of the stats are defined in your HSI file in the form stat:name. <br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -8664,7 +8711,7 @@ set timer (0, 300, 18, timer: game over, 0, timerflag: battle)</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set enemy stat(enemy, stat, value)</font></b><br>
-			Sets the selected stat of the selected enemy to the value you supply. The first argument is the number of the enemy whose stats you want to set. The second argument is the name of the stat that you want to set. The names of the stats are also defined in your HSI file in the form stat:name. The third is the new value of the stat.<div style="background-color:#EFF;" class="note">
+			Sets the selected stat of the selected enemy to the value you supply. The first argument is the number of the enemy whose stats you want to set. The second argument is the name of the stat that you want to set. The names of the stats are defined in your HSI file in the form stat:name. The third is the new value of the stat.<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Enemy stat changes are temporary. They are not saved in the game save.<br clear="all">
 </div>
 <br>
@@ -10052,7 +10099,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get hero stat (who,stat,type)</font></b><br>
-			A function that returns one of a hero's stats. The first argument is the position of the hero you want to check in your party as as returned by <a href="#about-findhero" class="ref">find hero</a>. The second argument is the name of the stat that you want to check. The names of the stats are also defined in your HSI file in the form stat:name. The third argument is either <a href="#about-currentstat" class="ref">current stat</a> or <a href="#about-maximumstat" class="ref">maximum stat</a>. If you leave the last argument blank, <a href="#about-currentstat" class="ref">current stat</a> will be assumed.<br>
+			A function that returns one of a hero's stats. The first argument is the position of the hero you want to check in your party as as returned by <a href="#about-findhero" class="ref">find hero</a>. The second argument is the name of the stat that you want to check. The names of the stats are defined in your HSI file in the form stat:name. The third argument is either <a href="#about-currentstat" class="ref">current stat</a> or <a href="#about-maximumstat" class="ref">maximum stat</a> or <a href="#about-basestat" class="ref">base stat</a>. Follow those links for explanations. If you leave the last argument blank, <a href="#about-currentstat" class="ref">current stat</a> will be assumed.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -10066,11 +10113,32 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set hero stat (who,stat,value,type)</font></b><br>
-			A command that changes one of a hero's stats. The first argument is the position of the hero you want to change in your party as returned by find hero. The second argument is the name of the stat that you want to change. The names of the stats are also defined in your HSI file in the form stat:name. The third argument is the new value of the stat. The last argument is either <a href="#about-currentstat" class="ref">current stat</a> or <a href="#about-maximumstat" class="ref">maximum stat</a>. If you leave the last argument blank, <a href="#about-currentstat" class="ref">current stat</a> will be assumed.<br>
-			
+			A command that changes one of a hero's stats. The first argument is the position of the hero you want to change in your party as returned by find hero. The second argument is the name of the stat that you want to change. The names of the stats are defined in your HSI file in the form stat:name. The third argument is the new value of the stat. The last argument is either <a href="#about-currentstat" class="ref">current stat</a> or <a href="#about-maximumstat" class="ref">maximum stat</a> or <a href="#about-basestat" class="ref">base stat</a>. Follow those links for explanations. If you leave the last argument blank, <a href="#about-currentstat" class="ref">current stat</a> will be assumed. You can set the current value of a stat to more than the maximum value. If you want to permanently change a stat you would change both the current value and just one of either the maximum value or the base value.
+<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Cap stats are ignored by this command. Use <a href="#about-setcappedherostat" class="ref">set capped hero stat</a> if you want to limit the current or maximum value of a stat to a cap. But the stat will be capped later due to certain events such as equipping or unequipping an item, levelling up, or using <a href="#about-setherostatcap" class="ref">set hero stat cap</a>. Caps don't apply to base stats.<br clear="all">
+</div>
+<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">The maximum and base values of a stat are tied together. Modifying the max will always modify the other by the same amount.<br clear="all">
+</div>
+<br>
+			<pre>
+# Use this script to reset a stat to its max value
+script, reset stat, hero slot, stat, begin
+  set hero stat(hero slot, stat, get hero stat(hero slot, stat, maximum stat), current stat) 
+end</pre>
+<pre>
+# Use this script to permanently increase (or decrease, if amount is negative) a stat, without violating stat caps
+script, adjust stat, hero slot, stat, amount, begin 
+  set capped hero stat(hero slot, stat, get hero stat(hero slot, stat, current stat) + amount, current stat) 
+  set hero stat(hero slot, stat, get hero stat(hero slot, stat, base stat) + amount, base stat) 
+end</pre>
 			<br>See also: <ul class="seealso">
 <li>
 <a href="#about-getherostat" class="ref">get hero stat</a>, </li>
+<li>
+<a href="#about-setcappedherostat" class="ref">set capped hero stat</a>, </li>
+<li>
+<a href="#about-setherostatcap" class="ref">set hero stat cap</a>, </li>
 <li>
 <a href="#about-setenemystat" class="ref">set enemy stat</a>, </li>
 <li><a href="#about-getenemystat" class="ref">get enemy stat</a></li>
@@ -10080,21 +10148,39 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set capped hero stat (who,stat,value,type)</font></b><br>
-			A command that changes one of a hero's stats. The first argument is the position of the hero you want to change in your party as returned by find hero. The second argument is the name of the stat that you want to change. The names of the stats are also defined in your HSI file in the form stat:name. The third argument is the new value of the stat. The last argument is either <a href="#about-currentstat" class="ref">current stat</a> or <a href="#about-maximumstat" class="ref">maximum stat</a>. If you leave the last argument blank, <a href="#about-currentstat" class="ref">current stat</a> will be assumed. Unlike <a href="#about-setherostat" class="ref">set hero stat</a>, this command is not allowed to exceed the stat caps.<br>
+			A command that changes one of a hero's stats. The first argument is the position of the hero you want to change in your party as returned by find hero. The second argument is the name of the stat that you want to change. The names of the stats are defined in your HSI file in the form stat:name. The third argument is the new value of the stat. Unlike <a href="#about-setherostat" class="ref">set hero stat</a>, if you try to set a stat to a value larger than the stat cap it will be reduced to the stat cap (without an error). The last argument is either <a href="#about-currentstat" class="ref">current stat</a> or <a href="#about-maximumstat" class="ref">maximum stat</a> (<a href="#about-basestat" class="ref">base stat</a> will also work but will not be capped). If you leave the last argument out, <a href="#about-currentstat" class="ref">current stat</a> will be assumed.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
 <a href="#about-setherostat" class="ref">set hero stat</a>, </li>
-<li><a href="#about-getherostatcap" class="ref">get hero stat cap</a></li>
+<li>
+<a href="#about-getherostatcap" class="ref">get hero stat cap</a>, </li>
+<li><a href="#about-setherostatcap" class="ref">set hero stat cap</a></li>
 </ul>
 		</tt></p>
 		<a name="about-getherostatcap"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">get hero stat cap (stat)</font></b><br>
-			A function that returns the maximum allowed value for a hero stat. The argument is the stat you want to check, either as a number or using the stat:name constants defined in your HSI file. If the return value is 0 or false there is no stat cap for that stat.<br>
+			A function that returns the maximum allowed value for a hero stat (as set in the Stat Caps menu in Custom). The argument is the stat you want to check; one of the stat:name constants defined in your HSI file. If the return value is 0 or false there is no stat cap for that stat.<br>
 			
-			<br>See also: <ul class="seealso"><li><a href="#about-setcappedherostat" class="ref">set capped hero stat</a></li></ul>
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-setcappedherostat" class="ref">set capped hero stat</a>, </li>
+<li><a href="#about-setherostatcap" class="ref">set hero stat cap</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setherostatcap"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set hero stat cap (stat, value)</font></b><br>
+			Set the maximum allowed value for a hero stat. The <span class="param">stat</span> argument is the stat to affect; one of the stat:name constants defined in your HSI file. The <span class="param">value</span> argument should be either greater than zero to set a cap, or 0/false to remove the cap for that stat.
+<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">The new cap comes into immediate force: the current and maximum values of all stats of all heroes in the party are capped according to the caps. In addition, the current values of all stats other than HP and MP for all heroes are reset to their new maximum values. The current values of the HP and MP stats are not otherwise changed aside from being capped, so you might like to check and scale up HP and MP of heroes if the new max is more than the old cap.<br clear="all">
+</div>
+<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-getherostatcap" class="ref">get hero stat cap</a></li></ul>
 		</tt></p>
 		<a name="about-getherolevel"></a>
 		<p>
@@ -10615,7 +10701,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">Numeric Constants</font></b><br>
-			PLOTSCR.HSD defines constants for the numbers from 0 to 10. you can use these constants to make your scripts look friendly :)<br>zero, one, two, three, four, five, six, seven, eight, nine, ten<br>
+			PLOTSCR.HSD defines constants for the numbers from 0 to 10. You can use these constants to make your scripts look friendly :)<br>zero, one, two, three, four, five, six, seven, eight, nine, ten<br>
 			
 			
 		</tt></p>
@@ -10693,7 +10779,7 @@ end</pre>
 		<p>
 		<tt>
 		
-				<b><font color="yellow">nine</font></b><br>
+				<b><font color="yellow">ten</font></b><br>
 				See <a href="#about-numericconstants">Numeric Constants</a>
 			</tt></p>
 		<a name="about-keyconstants"></a>
@@ -10764,7 +10850,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">Boolean Constants</font></b><br>
-			PLOTSCR.HSD defines constants for true and false, and for ON and OFF. These are useful for checking and setting the values of tags, and in conditional statements.<br>true, false, on, off<br>
+			PLOTSCR.HSD defines constants for true and false, and for ON and OFF. These are useful for checking and setting the values of tags, and in conditional statements. true/on are equal to 1, false/off are equal to 0.<br>true, false, on, off<br>
 			
 			
 		</tt></p>
@@ -10864,7 +10950,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">me</font></b><br>
-			me is a constant that can be used to refer to the first hero in your party (hero zero) in any command that takes a hero number as an argument.<br>
+			me is a constant that can be used to refer to the first hero in your party (hero zero) in any command that takes a hero number as an argument. It is equal to zero.<br>
 			
 			
 		</tt></p>
@@ -10888,7 +10974,8 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">current stat</font></b><br>
-			A constant for use with the <a href="#about-getherostat" class="ref">get hero stat</a> and <a href="#about-setherostat" class="ref">set hero stat</a> commands.<br>
+			A constant for use with the <a href="#about-getherostat" class="ref">get hero stat</a>, <a href="#about-setherostat" class="ref">set hero stat</a> and <a href="#about-setcappedherostat" class="ref">set capped hero stat</a> commands.
+<br>The current value of a stat is what is normally used. The current value of stats other than HP or MP is usually equal to the maximum value, except due to temporary buffs or debuffs in-battle (which wear off after the end of the battle) or if modified with <a href="#about-setherostat" class="ref">set hero stat</a>. Both maximum and current values of a stat are normally limited to the stat cap.<br>
 			
 			
 		</tt></p>
@@ -10896,7 +10983,17 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">maximum stat</font></b><br>
-			A constant for use with the <a href="#about-getherostat" class="ref">get hero stat</a> and <a href="#about-setherostat" class="ref">set hero stat</a> commands.<br>
+			A constant for use with the <a href="#about-getherostat" class="ref">get hero stat</a>, <a href="#about-setherostat" class="ref">set hero stat</a> and <a href="#about-setcappedherostat" class="ref">set capped hero stat</a> commands.
+<br>The maximum value of a stat is used for limiting it (such as for curing items) and for resetting it, such as on levelup or at an inn (if enabled by the game's general bitsets). See <a href="#about-currentstat" class="ref">current stat</a> for more information. Both maximum and current values of a stat are normally limited to the stat cap.<br>
+			
+			
+		</tt></p>
+		<a name="about-basestat"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">base stat</font></b><br>
+			A constant for use with the <a href="#about-getherostat" class="ref">get hero stat</a>, <a href="#about-setherostat" class="ref">set hero stat</a> and <a href="#about-setcappedherostat" class="ref">set capped hero stat</a> commands.
+<br>The base value of a stat is not displayed anywhere in-game, but tracks the value of a hero's stat without their equipment or stat caps taken into account. In other words the base value of a stat can continue to grow as a hero levels even if the current and max values have hit the cap. Hint: you can press F4 in the Status menu to display the base values of each stat in brackets.<br>
 			
 			
 		</tt></p>
@@ -11152,7 +11249,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 767 commands in this file, of which 57 are only references to other commands.</p>
+	<p>Stats: There are 770 commands in this file, of which 57 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
