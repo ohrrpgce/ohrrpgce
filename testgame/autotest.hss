@@ -1031,6 +1031,10 @@ script, hero stat tests, begin
   assert(get hero stat(1, stat:mp, current stat) == 20)
   assert(get hero stat(1, stat:atk, current stat) == 10)
   assert(get hero stat(1, stat:spd, current stat) == 30)
+  assert(get hero stat(1, stat:hp, base stat) == 10)
+  assert(get hero stat(1, stat:mp, base stat) == 20)
+  assert(get hero stat(1, stat:atk, base stat) == 9)  # default weapon has +1 atk
+  assert(get hero stat(1, stat:spd, base stat) == 30)
 
   # test stat caps
   assert(get hero stat cap(stat:hp) == 0)
@@ -1040,8 +1044,10 @@ script, hero stat tests, begin
   # set capped hero stat
   set capped hero stat(1, stat:atk, 110, current stat)
   assert(get hero stat(1, stat:atk, current stat) == 100)
+  assert(get hero stat(1, stat:atk, base stat) == 9)
   set capped hero stat(1, stat:atk, 120, maximum stat)
   assert(get hero stat(1, stat:atk, maximum stat) == 100)
+  assert(get hero stat(1, stat:atk, base stat) == 99)
   set capped hero stat(1, stat:hp, 999999, current stat)
   assert(get hero stat(1, stat:hp, current stat) == 999999)
   set hero stat(1, stat:hp, 10, current stat)  #back to original
@@ -1056,10 +1062,22 @@ script, hero stat tests, begin
   assert(get hero stat cap(stat:hp) == 5)
   assert(get hero stat(1, stat:hp, current stat) == 5)
   assert(get hero stat(1, stat:hp, maximum stat) == 5)
+  assert(get hero stat(1, stat:hp, base stat) == 10)
   assert(get hero stat(1, stat:mp, current stat) == 12)
   assert(get hero stat(1, stat:mp, maximum stat) == 12)
+  assert(get hero stat(1, stat:mp, base stat) == 20)
+
+  # set base stat
+  set hero stat(1, stat:atk, 20, base stat)
+  assert(get hero stat(1, stat:atk, maximum stat) == 21)  #+1 from weapon
+  set hero stat(1, stat:atk, 200, base stat)
+  assert(get hero stat(1, stat:atk, base stat) == 200)
+  assert(get hero stat(1, stat:atk, maximum stat) == 100)  #capped
   set hero stat(1, stat:atk, 10, current stat)  #back to original
-  set hero stat(1, stat:atk, 10, maximum stat)  #back to original
+  set hero stat(1, stat:atk, 10, maximum stat)  #original max stat but not base stat!
+  assert(get hero stat(1, stat:atk, base stat) == 110)
+  set hero stat(1, stat:atk, 9, base stat)  #back to original max and base
+  assert(get hero stat(1, stat:atk, maximum stat) == 10)
 
   set hero stat cap(stat:atk, 0)
   set hero stat cap(stat:spd, 10)
@@ -1075,11 +1093,15 @@ script, hero stat tests, begin
 
   # test original stats restored
   assert(get hero stat(1, stat:hp, maximum stat) == 10)
+  assert(get hero stat(1, stat:hp, base stat) == 10)
   assert(get hero stat(1, stat:mp, maximum stat) == 20)
+  assert(get hero stat(1, stat:mp, base stat) == 20)
   assert(get hero stat(1, stat:atk, current stat) == 10)
   assert(get hero stat(1, stat:atk, maximum stat) == 10)
+  assert(get hero stat(1, stat:atk, base stat) == 9)
   assert(get hero stat(1, stat:spd, current stat) == 30)
   assert(get hero stat(1, stat:spd, maximum stat) == 30)
+  assert(get hero stat(1, stat:spd, base stat) == 30)
   # but not current values for hp, mp
   assert(get hero stat(1, stat:hp, current stat) == 5)
   assert(get hero stat(1, stat:mp, current stat) == 12)
@@ -1109,8 +1131,10 @@ script, equipment tests, begin
   # test stat bonuses
   assert(get hero stat(1, stat:hp, current stat) == 10)
   assert(get hero stat(1, stat:hp, maximum stat) == 13)  # only affects max values of hp, mp
+  assert(get hero stat(1, stat:hp, base stat) == 10)
   assert(get hero stat(1, stat:spd, current stat) == 32)
   assert(get hero stat(1, stat:spd, maximum stat) == 32) # resets current value to max for other stats
+  assert(get hero stat(1, stat:spd, base stat) == 30)
 
   assert(inventory(item:SteelSho) == 0)
   assert(equip where(0, item:SteelSho) == slot:legs)  #equippable only by Freki
@@ -1120,7 +1144,7 @@ script, equipment tests, begin
   # in that case you get a free copy.
   # Force equip also allows equipping in wrong slot
   force equip(1, slot:weapon, item:SteelSho)
-  # stat bonuses: atk+3
+  # stat bonuses: atk+4  (default weapon has atk+1)
   assert(check equipment(1, slot:weapon) == item:SteelSho)
   assert(check equipment(1, slot:legs) == item:Boots)
   assert(inventory(item:DefltWep) == 0)  # shouldn't gain a default weapon
