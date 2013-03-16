@@ -13,6 +13,9 @@ define constant, begin
 4,hero:Styrge
 5,hero:Kitt
 6,hero:Bram
+0,item:DefltWep
+3,item:Boots
+4,item:SteelSho
 0,stat:HP
 1,stat:MP
 2,stat:Atk

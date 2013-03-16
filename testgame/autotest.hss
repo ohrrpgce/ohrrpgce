@@ -41,6 +41,7 @@ plotscript, run all tests, begin
   save load tests
   slice tests
   door tests
+  inventory tests
   hero tests
   trigger tests
   npc tests
@@ -213,6 +214,77 @@ end
 
 ########################################################################
 
+script, inventory tests, begin
+  $0="Inventory tests"
+  # This tests only the inventory and commands to manipulate it.
+  # Far more item tests including some equipment/inventory stuff is in 'equipment tests'
+
+  # Precondition: empty inventory
+
+  assert(get inventory size == 600)
+  variable(slot, lastslot)
+  for (slot, 0, get inventory size -- 1) do (
+    assert(item in slot(slot) == -1)
+    assert(item count in slot(slot) == 0)
+  )
+
+  # Simple stuff
+  get item(item:Boots, 3)
+  assert(inventory(item:Boots) == 3)
+  assert(item in slot(0) == item:Boots)
+  assert(item count in slot(0) == 3)
+  get item(item:Boots, 99)
+  assert(inventory(item:Boots) == 102)
+  delete item(item:Boots)
+  assert(inventory(item:Boots) == 101)
+  delete item(item:Boots, 101)
+  assert(inventory(item:Boots) == 0)
+
+  # test item slot commands
+
+  assert(item in slot(0) == -1)
+  assert(item count in slot(0) == 0)
+  assert(item in slot(1) == -1)
+  assert(item count in slot(1) == 0)
+
+  set item in slot(1, item:Boots)  # used on empty slot, adds one item
+  assert(item in slot(1) == item:Boots)
+  assert(item count in slot(1) == 1)
+  assert(inventory(item:Boots) == 1)
+  lastslot := get inventory size -- 1
+  set item in slot(lastslot, item:Boots)
+  assert(item in slot(lastslot) == item:Boots)
+  set item count in slot(lastslot, 99)
+  assert(inventory(item:Boots) == 100)
+
+  # check deleteitem deletes in right order
+  delete item(item:Boots, 5)
+  assert(inventory(item:Boots) == 95)
+  assert(item count in slot(1) == 0)
+  assert(item count in slot(lastslot) == 95)
+
+  # transmog a stack of items
+  set item in slot(lastslot, item:SteelSho)
+  assert(item in slot(lastslot) == item:SteelSho)
+  assert(item count in slot(lastslot) == 95)
+  assert(inventory(item:SteelSho) == 95)
+  assert(inventory(item:Boots) == 0)
+
+  # test the two additional ways of deleting items
+  set item in slot(lastslot, -1)
+  assert(item count in slot(lastslot) == 0)
+  set item in slot(2, item:Boots)
+  set item count in slot(2, 0)
+  assert(item in slot(2) == -1) 
+
+  # leave nothing
+  for (slot, 0, get inventory size -- 1) do (
+    assert(item in slot(slot) == -1)
+  )
+end
+
+########################################################################
+
 script, hero tests, begin
   hero party management tests
   # The party now contains heroes 0, 1, 2, 3 in that order
@@ -220,10 +292,13 @@ script, hero tests, begin
   hero exp and levels tests
   hero stat growth test
   hero stat tests
+  equipment tests
   hero misc tests
   hero names embed tests
   # The party should continue to be 0, 1, 2, 3
 end
+
+## hero commands left to test
 
 ## spell lists
 #can learn spell (hero,attack)
@@ -234,18 +309,9 @@ end
 #write spell (hero,list,slot,attack)
 
 ## Equipment
-#check equipment (hero,slot)
-#equip where (hero,item)
-#force equip (hero,slot,item)
-#get default weapon (hero)
 #set default weapon (hero,item)
-#unequip (hero,slot)
 
 ## Stats
-#get hero stat (who,stat,type)
-#set hero stat (who,stat,value,type)
-#get hero stat cap (stat)
-#set capped hero stat (who,stat,value,type)
 #get level MP (who, mp level slot)
 #set level MP (who, mp level slot, new value)
 
@@ -994,10 +1060,96 @@ script, hero stat tests, begin
   set hero stat cap(stat:spd, 0)
 
   # test original stats restored
-  assert(get hero stat(1, stat:hp, current stat) == 10)
-  assert(get hero stat(1, stat:atk, current stat) == 10)
-  assert(get hero stat(1, stat:spd, current stat) == 30)
+  # assert(get hero stat(1, stat:hp, current stat) == 10)
+  # assert(get hero stat(1, stat:atk, current stat) == 10)
+  # assert(get hero stat(1, stat:spd, current stat) == 30)
+end
 
+script, equipment tests, begin
+  $0="equipment tests"
+  # This is a continuation of 'hero stat tests', see that for preconditions
+  # additional precondition: empty inventory, as well as:
+  assert(find hero(hero:Freki) == 0)
+  assert(find hero(hero:Helga) == 1)
+
+  # test equipment commands
+  get item(item:Boots)
+  assert(inventory(item:Boots) == 1)
+  assert(equip where(1, item:Boots) == slot:legs)  # equippable by all heroes
+  assert(check equipment(1, slot:legs) == -1)
+  assert(check equipment(1, slot:weapon) == item:DefltWep)  # default weapon  (not properly tested)
+  assert(get default weapon(1) == item:DefltWep)
+
+  force equip(1, slot:legs, item:Boots)
+  # stat bonuses: spd+2 hp+3
+  assert(check equipment(1, slot:legs) == item:Boots)
+  assert(inventory(item:Boots) == 0)
+  # test stat bonuses
+  assert(get hero stat(1, stat:hp, current stat) == 10)
+  assert(get hero stat(1, stat:hp, maximum stat) == 13)  # only affects max values of hp, mp
+  assert(get hero stat(1, stat:spd, current stat) == 32)
+  assert(get hero stat(1, stat:spd, maximum stat) == 32) # resets current value to max for other stats
+
+  assert(inventory(item:SteelSho) == 0)
+  assert(equip where(0, item:SteelSho) == slot:legs)  #equippable only by Freki
+  assert(equip where(1, item:SteelSho) == false)
+
+  # Note that force equip can be used to equip an item not in the inventory,
+  # in that case you get a free copy.
+  # Force equip also allows equipping in wrong slot
+  force equip(1, slot:weapon, item:SteelSho)
+  # stat bonuses: atk+3
+  assert(check equipment(1, slot:weapon) == item:SteelSho)
+  assert(check equipment(1, slot:legs) == item:Boots)
+  assert(inventory(item:DefltWep) == 0)  # shouldn't gain a default weapon
+  assert(get hero stat(1, stat:atk, current stat) == 13)
+  assert(get hero stat(1, stat:atk, maximum stat) == 13)
+
+  # test unequipping
+  unequip(1, slot:legs)
+  assert(inventory(item:Boots) == 1)
+  assert(check equipment(1, slot:legs) == -1)
+
+  set hero stat(1, stat:hp, 29, current stat)  # check effects of unequipping... even on stats
+  set hero stat(1, stat:spd, 29, current stat) # which the equipment doesn't have bonuses on
+
+  unequip(1, slot:weapon)
+  assert(inventory(item:SteelSho) == 1)
+  assert(check equipment(1, slot:weapon) == item:DefltWep)
+
+  assert(get hero stat(1, stat:hp, current stat) == 10)  # current values of hp,mp should be capped to max
+  assert(get hero stat(1, stat:hp, maximum stat) == 10)
+  assert(get hero stat(1, stat:spd, current stat) == 30)
+  assert(get hero stat(1, stat:spd, maximum stat) == 30) # resets current value to max for other stats
+
+  # TODO: test equip elemental resists
+
+  # test for Bug 743 - Unequipping items with stat bonuses that exceed stat limits is broken
+  assert(get hero stat(1, stat:hp, current stat) == 10)  # preconditions (max same)
+  assert(get hero stat(1, stat:spd, current stat) == 30)
+  set hero stat cap(stat:hp, 5)
+  set hero stat cap(stat:spd, 5)
+  force equip(1, slot:legs, item:Boots)
+  assert(get hero stat(1, stat:hp, current stat) == 5)  # cap hp, mp to the cap
+  assert(get hero stat(1, stat:hp, maximum stat) == 5)
+  assert(get hero stat(1, stat:spd, current stat) == 5) # resets current value to max for other stats
+  assert(get hero stat(1, stat:spd, maximum stat) == 5)
+  unequip(1, slot:legs)
+  assert(get hero stat(1, stat:hp, current stat) == 5)
+  assert(get hero stat(1, stat:hp, maximum stat) == 5)
+  assert(get hero stat(1, stat:spd, current stat) == 5)
+  assert(get hero stat(1, stat:spd, maximum stat) == 5)
+  set hero stat cap(stat:hp, 0)
+  set hero stat cap(stat:spd, 0)
+  assert(get hero stat(1, stat:hp, current stat) == 5)  # only affects max values of hp, mp
+  assert(get hero stat(1, stat:hp, maximum stat) == 10)
+  set hero stat(1, stat:hp, 10, maximum stat)
+  assert(get hero stat(1, stat:spd, current stat) == 30)  # resets current value to max for other stats
+  assert(get hero stat(1, stat:spd, maximum stat) == 30)
+
+  # cleanup
+  delete item(item:SteelSho)
+  delete item(item:Boots)
 end
 
 script, hero misc tests, begin
@@ -2168,7 +2320,6 @@ end
 #decrement (variable,amount)
 #delete char (ID, position)
 #delete enemy from formation (formation, slot)
-#delete item (item,number)
 #delete map state (whichdata)
 #delete save (slot)
 #destroy NPC (reference)
@@ -2220,8 +2371,6 @@ end
 #get grid rows (handle)
 #get hero slice (who)
 #get instead of battle script
-#get inventory size
-#get item (item,number)
 #get item name (ID, item)
 #get left padding (handle)
 #get load script
@@ -2274,10 +2423,7 @@ end
 #hours of play
 #increment (variable,amount)
 #inside battle
-#inventory (item)
 #is filling parent (handle)
-#item count in slot (slot)
-#item in slot (slot)
 #last child(handle)
 #last formation
 #last save slot
@@ -2416,8 +2562,6 @@ end
 #set inn no revive mode (state)
 #set instead of battle script (id)
 #set inventory size (new size)
-#set item count in slot (slot, count)
-#set item in slot (slot, item)
 #set left padding (handle, pixels)
 #set load script (id)
 #set map edge mode (mode, default tile)

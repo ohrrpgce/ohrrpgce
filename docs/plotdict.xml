@@ -991,7 +991,7 @@ end</example>
 		<command id="equipwhere">
 			<canon>equip where (hero,item)</canon>
 			<shortname>equip where</shortname>
-			<description>Returns the number of the slot that a hero can equip an item in, or false if the hero cannot equip it. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (Use <ref>findhero</ref> if you want to refer to the hero by name). The second argument is the item to check the equipability of. you can use the item&apos;s number or the item:name constants from your .HSI file.</description>
+			<description>Returns the number of the slot that a hero can equip an item in (a constant of the form slot:weapon, etc, in your .hsi file), or <ref>false</ref> if the hero cannot equip it. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (Use <ref>findhero</ref> if you want to refer to the hero by name). The second argument is the item to check the equipability of. You can use the item&apos;s number or the item:name constants from your .hsi file.</description>
 		</command>
 		<command id="checkequipment">
 			<canon>check equipment (hero,slot)</canon>
@@ -1022,7 +1022,7 @@ end</example>
 		<command id="setiteminslot">
 			<canon>set item in slot (slot, item)</canon>
 			<shortname>set item in slot</shortname>
-			<description>Change the item ID number at a specific slot in your inventory. The <p>slot</p> argument is the position in your inventory screen, and the <p>item</p> argument is the item ID number, or one of the <p>item:name</p> constants defined in your .hsi file. If you want to erase and item slot, use -1 as the item ID</description>
+			<description>Change the item ID number at a specific slot in your inventory. The <p>slot</p> argument is the position in your inventory screen (slots are numbered from 0 to <ref>getinventorysize</ref>-1), and the <p>item</p> argument is the item ID number, or one of the <p>item:name</p> constants defined in your .hsi file. If you want to erase and item slot, use -1 as the item ID. If the slot was empty, one copy of the item will be placed in it. Otherwise the original item count is preserved.</description>
 			<seealso>
 				<ref>iteminslot</ref>
 				<ref>itemcountinslot</ref>
