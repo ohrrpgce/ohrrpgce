@@ -5543,7 +5543,7 @@ end</example>
 		<command id="setherostatcap">
 			<canon>set hero stat cap (stat, value)</canon>
 			<shortname>set hero stat cap</shortname>
-			<description>Set the maximum allowed value for a hero stat. The <p>stat</p> argument is the stat to affect; one of the stat:name constants defined in your HSI file. The <p>value</p> argument should be either greater than zero to set a cap, or 0/false to remove the cap for that stat. The ew cap comes into immediate force: the current and maximum values of <p>stat</p> of all heroes in the party are capped according to the new cap.</description>
+			<description>Set the maximum allowed value for a hero stat. The <p>stat</p> argument is the stat to affect; one of the stat:name constants defined in your HSI file. The <p>value</p> argument should be either greater than zero to set a cap, or 0/false to remove the cap for that stat. The ew cap comes into immediate force: the current and maximum values of all stats of all heroes in the party are capped according to the caps.</description>
 			<seealso>
 				<ref>getherostatcap</ref>
 			</seealso>

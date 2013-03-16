@@ -432,44 +432,50 @@ FUNCTION chkOOBtarg (byval target as integer, byval atk as integer) as integer
  RETURN YES
 END FUNCTION
 
+'After a change in equipment or stat caps, update the current and max values
+'according to slightly odd rule.
+SUB update_hero_max_and_cur_stats (byval who as integer)
+ recompute_hero_max_stats who
+
+ '--update current stats
+ WITH gam.hero(who).stat
+  FOR statnum as integer = 0 TO statLast
+   'max stats are already capped, so current stats will be too
+   IF statnum <> statHP AND statnum <> statMP THEN
+    .cur.sta(statnum) = .max.sta(statnum)
+   ELSE
+    .cur.sta(statnum) = small(.cur.sta(statnum), .max.sta(statnum))
+   END IF
+  NEXT statnum
+ END WITH
+END SUB
+
 SUB doequip (byval toequip as integer, byval who as integer, byval where as integer, byval defwep as integer)
+ IF eqstuf(who, where) THEN debugc errPromptBug, "doequip called without unequipping first"
 
-'--load the item data for this equipment
-loaditemdata buffer(), toequip -1
+ '--set equipment
+ eqstuf(who, where) = toequip
 
-'--apply the stat bonuses
-WITH gam.hero(who).stat
- FOR i as integer = 0 TO 11
-  'stat bonuses
-  .max.sta(i) += buffer(54 + i)
-  IF i > 1 THEN .cur.sta(i) = .max.sta(i)
-  .cur.sta(i) = small(.cur.sta(i), .max.sta(i))
-  IF gen(genStatCap + i) > 0 THEN
-   .cur.sta(i) = small(.cur.sta(i), gen(genStatCap + i))
-   .max.sta(i) = small(.max.sta(i), gen(genStatCap + i))
-  END IF
- NEXT i
-END WITH
+ update_hero_max_and_cur_stats who
 
-'--special handling for weapons
-IF where = 0 THEN
- gam.hero(who).wep_pic = buffer(52) 'remember weapon pic
- gam.hero(who).wep_pal = buffer(53) 'remember weapon pal
-END IF
+ '--special handling for weapons
+ IF where = 0 THEN
+  DIM itembuf(dimbinsize(binITM)) as integer
+  loaditemdata itembuf(), toequip - 1
+  gam.hero(who).wep_pic = itembuf(52) 'remember weapon pic
+  gam.hero(who).wep_pal = itembuf(53) 'remember weapon pal
+ END IF
 
-'--set equipment
-eqstuf(who, where) = toequip
+ '--equipping the default weapon does not delete it from inventory
+ IF toequip = defwep AND where = 0 THEN
+ ELSE
+  '--delete the item from inventory
+  delitem toequip - 1
+ END IF
 
-'--equipping the default weapon does not delete it from inventory
-IF toequip = defwep AND where = 0 THEN
-ELSE
- '--delete the item from inventory
- delitem toequip - 1
-END IF
-
-evalitemtags
-evalherotags  'You could kill someone, right?
-tag_updates
+ evalitemtags
+ evalherotags  'You could kill someone, right?
+ tag_updates
 END SUB
 
 FUNCTION getOOBtarg (byval search_direction as integer, byref target as integer, byval atk as integer, byval recheck as integer=NO) as integer
@@ -512,80 +518,100 @@ END IF
 END SUB
 
 SUB oobcure (byval attacker as integer, byval target as integer, byval atk as integer, byval target_count as integer)
-'--outside-of-battle cure
-' attacker and target are hero slots; attacker may be -1
+ '--outside-of-battle cure
+ ' attacker and target are hero slots; attacker may be -1
 
-DIM as BattleSprite attacker_obj, target_obj
+ WITH gam.hero(target).stat
+  DIM as BattleSprite attacker_obj, target_obj
 
-'--populate attacker object
-IF attacker = -1 THEN
- '--average stats for item-triggered spells
- DIM partysize as integer = 0
- FOR o as integer = 0 TO 3
-  IF hero(o) > 0 THEN
-   partysize += 1
-   FOR i as integer = 0 TO 11
-    attacker_obj.stat.cur.sta(i) += gam.hero(o).stat.cur.sta(i)
-    attacker_obj.stat.max.sta(i) += gam.hero(o).stat.max.sta(i)
+  '--populate attacker object
+  IF attacker = -1 THEN
+   '--average stats for item-triggered spells
+   DIM partysize as integer = 0
+   FOR o as integer = 0 TO 3
+    IF hero(o) > 0 THEN
+     partysize += 1
+     FOR i as integer = 0 TO statLast
+      attacker_obj.stat.cur.sta(i) += gam.hero(o).stat.cur.sta(i)
+      attacker_obj.stat.max.sta(i) += gam.hero(o).stat.max.sta(i)
+     NEXT i
+    END IF
+   NEXT o
+   FOR i as integer = 0 TO statLast
+    attacker_obj.stat.cur.sta(i) /= partysize
+    attacker_obj.stat.max.sta(i) /= partysize
+   NEXT i
+  ELSE
+   FOR i as integer = 0 TO statLast
+    attacker_obj.stat.cur.sta(i) = gam.hero(attacker).stat.cur.sta(i)
+    attacker_obj.stat.max.sta(i) = gam.hero(attacker).stat.max.sta(i)
    NEXT i
   END IF
- NEXT o
- FOR i as integer = 0 TO 11
-  attacker_obj.stat.cur.sta(i) /= partysize
-  attacker_obj.stat.max.sta(i) /= partysize
- NEXT i
-ELSE
- FOR i as integer = 0 TO 11
-  attacker_obj.stat.cur.sta(i) = gam.hero(attacker).stat.cur.sta(i)
-  attacker_obj.stat.max.sta(i) = gam.hero(attacker).stat.max.sta(i)
- NEXT i
-END IF
 
-'--populate the target object
-FOR i as integer = 0 to 11
- target_obj.stat.cur.sta(i) = gam.hero(target).stat.cur.sta(i)
- target_obj.stat.max.sta(i) = gam.hero(target).stat.max.sta(i)
-NEXT i
-calc_hero_elementals target_obj.elementaldmg(), target
+  '--populate the target object
+  FOR i as integer = 0 to statLast
+   target_obj.stat.cur.sta(i) = .cur.sta(i)
+   target_obj.stat.max.sta(i) = .max.sta(i)
+  NEXT i
+  calc_hero_elementals target_obj.elementaldmg(), target
 
-DIM attack as AttackData
-loadattackdata attack, atk
+  DIM attack as AttackData
+  loadattackdata attack, atk
 
-'--out of battle attacks that target stats other than HP and MP
-'--always affect the max stat, so force exceed_maximum on
-IF attack.targ_stat > 1 THEN
- attack.allow_cure_to_exceed_maximum = YES
-END IF
+  '--out of battle attacks that target stats other than HP and MP
+  '--always affect the max stat, so force exceed_maximum on
+  IF attack.targ_stat > 1 THEN
+   attack.allow_cure_to_exceed_maximum = YES
+  END IF
 
-'--out of battle attacks aren't allowed to miss.
-attack.aim_math = 3
+  '--out of battle attacks aren't allowed to miss.
+  attack.aim_math = 3
 
-inflict(0, 1, attacker_obj, target_obj, attack, target_count)
+  'Currently (bug 980) stat caps aren't enforced in-battle, which makes this easier.
+  'Once it's fixed, I think we'll want an argument (or attack bitset!) to disable capping.
+  'Also, we assume that inflict only modifies current values of stats.
+  inflict(0, 1, attacker_obj, target_obj, attack, target_count)
 
-'--copy back stats that need copying back
-'--first copy HP and MP normally
-FOR i as integer = 0 to 1
- gam.hero(target).stat.cur.sta(i) = target_obj.stat.cur.sta(i)
- gam.hero(target).stat.max.sta(i) = target_obj.stat.max.sta(i)
-NEXT i
+  '--copy back stats that need copying back
+  DIM last_plain_stat as integer = statMP
 
-IF readbit(gen(), genBits2, 15) = NO THEN  '"Don't reset max stats after OOB attack"
- '--Then update just the max for the other stats
- '--this kinda sucks but it is consistent with the way outside of battle cure has always worked.
- '--Its need so that items which permanently change stats out of battle can work, but it's
- '--also a bad thing if script expects the max valeus to not change.
- '--Note that an item can't permanently change HP or MP!
- FOR i as integer = 2 to 11
-  gam.hero(target).stat.max.sta(i) = target_obj.stat.cur.sta(i)
-  gam.hero(target).stat.cur.sta(i) = gam.hero(target).stat.max.sta(i)
- NEXT i
-END IF
+  IF readbit(gen(), genBits2, 15) = NO THEN  '"Don't reset max stats after OOB attack"
+   '--Then update just the max for the other stats
+   '--this kinda sucks but it is consistent with the way outside of battle cure has always worked.
+   '--It's needed so that items which permanently change stats out of battle can work, but it's
+   '--also a bad thing if a script expects the max values to not change.
+   '--Note that an item can't permanently change HP or MP!
+   '--Note also that this has bad results if cur != max to begin with: the cur becomes
+   '--the new max even if the attack does nothing! (We should probably change that)
+   FOR statnum as integer = 2 to statLast
+    'Indirectly update base
+    DIM diff as integer = target_obj.stat.cur.sta(statnum) - .max.sta(statnum)
+    .base.sta(statnum) += diff
+    'Previously we effectively did .max.sta(statnum) += diff
+   NEXT statnum
 
-'Sound effect
-MenuSound attack.sound_effect
+   recompute_hero_max_stats target
+   FOR statnum as integer = 2 to statLast
+    .cur.sta(statnum) = .max.sta(statnum)
+   NEXT
 
-'--TODO: Must add the attack-tag conditional stuff.
+  ELSE
+   last_plain_stat = statLast
+  END IF
 
+  '--Stats which are copied directly: usually just HP and MP
+  FOR statnum as integer = 0 to last_plain_stat
+   .cur.sta(statnum) = target_obj.stat.cur.sta(statnum)
+   DIM cap as integer = gen(genStatCap + statnum)
+   IF cap > 0 THEN
+    .cur.sta(statnum) = small(.cur.sta(statnum), cap)
+   END IF
+  NEXT statnum
+
+  MenuSound attack.sound_effect
+
+  '--TODO: Must add the attack-tag conditional stuff.
+ END WITH
 END SUB
 
 SUB patcharray (array() as integer, n as string)
@@ -1374,41 +1400,28 @@ RETURN result
 END FUNCTION
 
 SUB unequip (byval who as integer, byval where as integer, byval defwep as integer, byval resetdw as integer)
+ '--exit if nothing is equiped
+ IF eqstuf(who, where) = 0 THEN EXIT SUB
 
-'--exit if nothing is equiped
-IF eqstuf(who, where) = 0 THEN EXIT SUB
+ '--return item to inventory (if not the default weapon)
+ IF where = 0 AND eqstuf(who, where) = defwep THEN
+ ELSE
+  getitem eqstuf(who, where) - 1
+ END IF
 
-'--load the item data for the thing we are unequiping
-loaditemdata buffer(), eqstuf(who, where) - 1
+ '--blank out equipment
+ eqstuf(who, where) = 0
 
-'--remove stat bonuses
-WITH gam.hero(who).stat
- FOR i as integer = 0 TO 11
-  .max.sta(i) = .max.sta(i) - buffer(54 + i)
-  '--for non HP non MP stats, reset current to max
-  IF i > 1 THEN .cur.sta(i) = .max.sta(i)
-  '--prevent negatives
-  .cur.sta(i) = small(.cur.sta(i), .max.sta(i))
- NEXT i
-END WITH
+ update_hero_max_and_cur_stats who
 
-'--return item to inventory (if not the default weapon)
-IF where = 0 AND eqstuf(who, where) = defwep THEN
-ELSE
- getitem eqstuf(who, where) - 1
-END IF
+ IF where = 0 AND resetdw THEN
+  '--restore default weapon
+  doequip defwep, who, where, defwep
+ END IF
 
-'--blank out equipment
-eqstuf(who, where) = 0
-
-IF where = 0 AND resetdw THEN
- '--restore default weapon
- doequip defwep, who, where, defwep
-END IF
-
-evalitemtags
-evalherotags  'You could kill someone, right?
-tag_updates
+ evalitemtags
+ evalherotags  'You could kill someone, right?
+ tag_updates
 END SUB
 
 SUB loadshopstuf (array() as integer, byval id as integer)

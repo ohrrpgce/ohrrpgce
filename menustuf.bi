@@ -2,6 +2,7 @@
 #define MENUSTUF_BI
 DECLARE SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as integer)
 DECLARE FUNCTION chkOOBtarg (byval target as integer, byval atk as integer) as integer
+DECLARE SUB update_hero_max_and_cur_stats (byval who as integer)
 DECLARE SUB doequip (byval toequip as integer, byval who as integer, byval where as integer, byval defwep as integer)
 DECLARE SUB equip (byval who as integer)
 DECLARE FUNCTION getOOBtarg (byval search_direction as integer, byref target as integer, byval atk as integer, byval recheck as integer=NO) as integer

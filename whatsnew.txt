@@ -61,6 +61,7 @@ WHAT IS NEW?
     * Fixed shop-stock limits not working [James]
     * "get hero stat cap" and "set capped hero stat" didn't work [Ralph]
     * Bug 800: Choice boxes misplaced for autosized textboxes [Ralph]
+    * Fix a couple places where stat caps were not applied [Ralph]
 
   * New Plotscripting Stuff
     * If a script runs for a long time without "wait"ing you can now

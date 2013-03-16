@@ -16,6 +16,7 @@ TYPE MapModeState
 END TYPE
 
 TYPE HeroStats
+  base as Stats  'Without equipment, caps, (or in future buffs) applied
   cur as Stats
   max as Stats
 END TYPE
@@ -63,7 +64,10 @@ TYPE GameState
   wonbattle as bool                  'Indicates the status of the last battle (won as opposed to dying or running or 'force exit')
   remembermusic as integer           'Remembers music from before battle starts
   random_battle_countdown as integer
-  stock(99, 49) as integer           'Keeps track of available inventory at each shop
+  stock(99, 49) as integer           'Keeps track of available inventory at each shop (shop, stuffnum)
+                                     'Each entry is either -1 (infinite stock), 0 (not loaded; will be loaded
+                                     'when the shop is visited unless stuffnum is past the last stuff)
+                                     'or remainingstock+1 if >= 0
   foe_freq(254) as integer           'A cache of the fight frequency for each formation set
   walk_through_walls as bool         'used for F11 cheat mode
   mouse_enabled as bool              'initmouse called

@@ -14,6 +14,7 @@
 #include "ver.txt"
 #include "udts.bi"
 #include "allmodex.bi"
+#include "bmodsubs.bi"
 #include "common.bi"
 #include "gglobals.bi"
 #include "const.bi"
@@ -476,6 +477,8 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
 
       'Other data must be loaded even if the hero slot is empty, for compatibility
 
+      DIM base_stats_missing as bool = NO
+
       READNODE slot, default
        slot."id".ignore
 
@@ -487,9 +490,15 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
         WITHNODE ch."stat" as n
          j = GetInteger(n)
          SELECT CASE j
-          CASE 0 TO 11
+          CASE 0 TO statLast
+           '(All of cur, max, base are omitted if all zero)
            .stat.cur.sta(j) = n."cur"
            .stat.max.sta(j) = n."max"
+           IF n."base".exists THEN
+            .stat.base.sta(j) = n."base"
+           ELSE
+            base_stats_missing = YES
+           END IF
           CASE ELSE
            rsav_warn "invalid stat id " & j
          END SELECT
@@ -583,7 +592,11 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
         END WITHNODE
        END READNODE
 
-      END READNODE
+      END READNODE 'slot
+
+      IF base_stats_missing THEN
+       compute_hero_base_stats_from_max i
+      END IF
 
      END WITH 'gam.hero(i)
 
@@ -921,12 +934,13 @@ SUB gamestate_party_to_reload(byval parent as Reload.NodePtr)
   WITH gam.hero(i)
    
    ch = SetChildNode(slot, "stats")
-   FOR j as integer = 0 TO 11
+   FOR j as integer = 0 TO statLast
     WITH .stat
-     IF .cur.sta(j) <> 0 OR .max.sta(j) <> 0 THEN
+     IF .cur.sta(j) <> 0 OR .max.sta(j) <> 0 OR .base.sta(j) <> 0 THEN
       n = AppendChildNode(ch, "stat", j)
       SetChildNode(n, "cur", .cur.sta(j))
       SetChildNode(n, "max", .max.sta(j))
+      SetChildNode(n, "base", .base.sta(j))
      END IF
     END WITH
    NEXT j
@@ -1258,11 +1272,13 @@ SUB new_get_save_slot_preview(byval slot as integer, pv as SaveSlotPreview)
     END IF
     WITH pv.hero(i)
      .lev = h."lev"
-     FOR j as integer = 0 TO 11
+     FOR j as integer = 0 TO statLast
       stat = NodeByPath(h, "/stats/stat[" & j & "]")
       IF stat THEN
        .stat.cur.sta(j) = stat."cur"
        .stat.max.sta(j) = stat."max"
+       'We don't load the base stats here: they're not needed, and we would have to
+       'load equipment to compute them if they're missing
       END IF
      NEXT j
      .def_wep = h."def_wep"
@@ -1365,12 +1381,12 @@ FOR i = 0 TO 500
 NEXT i
 show_load_index z, "stats"
 FOR i = 0 TO 40
- FOR j = 0 TO 11
+ FOR j = 0 TO statLast
   gam.hero(i).stat.cur.sta(j) = buffer(z): z = z + 1
  NEXT j
  gam.hero(i).lev = buffer(z): z = z + 1
  gam.hero(i).wep_pic = buffer(z): z = z + 1
- FOR j = 0 TO 11
+ FOR j = 0 TO statLast
   gam.hero(i).stat.max.sta(j) = buffer(z): z = z + 1
  NEXT j
  gam.hero(i).lev_gain = buffer(z): z = z + 1
@@ -1588,6 +1604,8 @@ FOR i = 0 TO 40
    gam.hero(i).hand_pos(j).y = her.hand_pos(j).y
   NEXT j
  END IF
+
+ compute_hero_base_stats_from_max i
 NEXT i
 
 'See http://rpg.hamsterrepublic.com/ohrrpgce/SAV for docs
@@ -1663,14 +1681,15 @@ SUB old_get_save_slot_preview(byval slot as integer, pv as SaveSlotPreview)
  '-get stats
  DIM z as integer = 3305
  FOR i as integer = 0 TO 3
-  FOR j as integer = 0 TO 11
+  FOR j as integer = 0 TO statLast
    pv.hero(i).stat.cur.sta(j) = buffer(z): z += 1
   NEXT j
   pv.hero(i).lev = buffer(z): z += 1
   z += 1 'skip weapon pic because we could care less right now
-  FOR j as integer = 0 TO 11
+  FOR j as integer = 0 TO statLast
    pv.hero(i).stat.max.sta(j) = buffer(z): z += 1
   NEXT j
+  'base stats aren't loaded or computed: not needed
  NEXT i
 
  '--get play time

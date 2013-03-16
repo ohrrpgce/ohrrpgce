@@ -450,7 +450,10 @@ SELECT CASE as CONST id
     scripterr "set hero stat cap: invalid negative cap value " & retvals(1)
    ELSE
     gen(genStatCap + retvals(0)) = retvals(1)
-    apply_updated_stat_cap retvals(0)
+    FOR hero_slot as integer = 0 TO UBOUND(gam.hero)
+     'This is maybe a bit heavy handed, because it caps all stats to the caps.
+     update_hero_max_and_cur_stats hero_slot
+    NEXT
    END IF
   END IF
 

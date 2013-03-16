@@ -1043,8 +1043,6 @@ script, hero stat tests, begin
   assert(get hero stat cap(stat:hp) == 5)
   assert(get hero stat(1, stat:hp, current stat) == 5)
   assert(get hero stat(1, stat:hp, maximum stat) == 5)
-  # should not affect other stats which are over-cap
-  assert(get hero stat(1, stat:atk, current stat) == 110)
   set hero stat(1, stat:atk, 10, current stat)  #back to original
   set hero stat(1, stat:atk, 10, maximum stat)  #back to original
 

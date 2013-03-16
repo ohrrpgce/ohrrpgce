@@ -1296,9 +1296,11 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
    END WITH
    
    '--copy hero's outside-battle stats to their inside-battle stats
-   FOR o as integer = 0 TO 11
+   FOR o as integer = 0 TO statLast
     bslot(i).stat.cur.sta(o) = gam.hero(i).stat.cur.sta(o)
     bslot(i).stat.max.sta(o) = gam.hero(i).stat.max.sta(o)
+    'BattleSprites don't have base stats, though we might want them to have them in future
+    'if we allow changing equipment during battle
    NEXT o
 
    calc_hero_elementals bslot(i).elementaldmg(), i

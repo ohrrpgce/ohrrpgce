@@ -54,14 +54,10 @@ DIM SHARED trigger_script_failure as integer
 
 'who is the hero id + 1!
 SUB addhero (byval who as integer, byval slot as integer, byval forcelevel as integer=-1)
-DIM wbuf(dimbinsize(binITM)) as integer
 DIM her as HeroDef
 
 '--load hero's data
 loadherodata her, who - 1
-
-'--load data of hero's default weapon
-loaditemdata wbuf(), her.def_weapon
 
 '--do level forcing
 IF forcelevel >= 0 THEN her.def_level = forcelevel
@@ -78,14 +74,20 @@ FOR i as integer = 0 TO 4
 NEXT i
 eqstuf(slot, 0) = her.def_weapon + 1
 
+'--fill in stats
 WITH gam.hero(slot).stat
- '--fill in stats
- FOR i as integer = 0 TO 11
-  .cur.sta(i) = atlevel(her.def_level, her.Lev0.sta(i), her.LevMax.sta(i)) + wbuf(54 + i)
-  .max.sta(i) = .cur.sta(i)
- NEXT i
+ FOR statnum as integer = 0 TO statLast
+  .base.sta(statnum) = atlevel(her.def_level, her.Lev0.sta(statnum), her.LevMax.sta(statnum))
+ NEXT
+ recompute_hero_max_stats slot
+ FOR statnum as integer = 0 TO statLast
+  .cur.sta(statnum) = .max.sta(statnum)
+ NEXT
 END WITH
+
 '--weapon picture and palette
+DIM wbuf(dimbinsize(binITM)) as integer
+loaditemdata wbuf(), her.def_weapon
 gam.hero(slot).wep_pic = wbuf(52)
 gam.hero(slot).wep_pal = wbuf(53)
 
@@ -129,7 +131,7 @@ WITH gam.hero(slot)
  .battle_pal = her.sprite_pal
  .pic = her.walk_sprite
  .pal = her.walk_sprite_pal
- .def_wep = her.def_weapon + 1'default weapon
+ .def_wep = her.def_weapon + 1 'default weapon
  FOR i as integer = 0 to 1
   .hand_pos(i).x = her.hand_pos(i).x
   .hand_pos(i).y = her.hand_pos(i).y
@@ -1165,9 +1167,10 @@ flusharray tag()
 flusharray onetime()
 flusharray hero(), 40, 0
 FOR i as integer = 0 TO 40
- FOR j as integer = 0 TO 11
+ FOR j as integer = 0 TO statLast
   gam.hero(i).stat.cur.sta(j) = 0
   gam.hero(i).stat.max.sta(j) = 0
+  gam.hero(i).stat.base.sta(j) = 0
  NEXT j
  gam.hero(i).lev = 0
  gam.hero(i).lev_gain = 0

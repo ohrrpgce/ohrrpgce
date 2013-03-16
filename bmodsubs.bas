@@ -589,6 +589,11 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
     attacker.stat.cur.sta(targstat) = small(attacker.stat.cur.sta(targstat), large(attacker.stat.max.sta(targstat), rematkrstat))
    END IF
 
+   'FIXME: stat caps aren't observed (bug 980)
+   'HOWEVER, when bug 980 is fixed, need to be careful not to break out-of-battle permanent stat
+   'boosting items, which rely on the caps being exceeded, then update hero base stats as a result.
+   'See oobcure.
+
    'remember revenge data
    'NOTE: revenge & thankvenge record difference AFTER "reset target stat to max" takes effect
    IF remtargstat > target.stat.cur.sta(targstat) THEN
@@ -816,66 +821,93 @@ SUB updatestatslevelup (byval hero_slot as integer, byval allowforget as integer
   learnmask(o) = 0
  NEXT
 
- 'THIS PART UPDATES STATS FOR A LEVEL UP
- IF gam.hero(hero_slot).lev_gain THEN
+ WITH gam.hero(hero_slot)
 
-  dim her as herodef
-  loadherodata her, hero(hero_slot) - 1
+  'THIS PART UPDATES STATS FOR A LEVEL UP
+  IF .lev_gain THEN
 
-  'update stats
-  DIM n0 as integer
-  DIM nMax as integer
-  FOR o as integer = 0 TO 11
-   n0 = her.Lev0.sta(o)
-   nMax = her.LevMax.sta(o)
-   gam.hero(hero_slot).stat.max.sta(o) += (atlevel(gam.hero(hero_slot).lev, n0, nMax) - atlevel(gam.hero(hero_slot).lev - gam.hero(hero_slot).lev_gain, n0, nMax))
- 
+   DIM her as herodef
+   loadherodata her, hero(hero_slot) - 1
+
+   'stat increase/decrease
+   FOR statnum as integer = 0 TO statLast
+    DIM n0 as integer = her.Lev0.sta(statnum)
+    DIM nMax as integer = her.LevMax.sta(statnum)
+    DIM statgain as integer
+    statgain = atlevel(.lev, n0, nMax) - atlevel(.lev - .lev_gain, n0, nMax)
+    .stat.base.sta(statnum) += statgain
+   NEXT
+
    'simulate ancient levelup bug
    IF readbit(gen(), genBits, 9) = 1 THEN
-    FOR j as integer = 0 TO 4
-     IF eqstuf(hero_slot, j) > 0 THEN
-      loaditemdata buffer(), eqstuf(hero_slot, j) - 1
-      gam.hero(hero_slot).stat.max.sta(o) += buffer(54 + o) * gam.hero(hero_slot).lev_gain
-     END IF
-    NEXT j
+    DIM bonuses(statLast) as integer
+    hero_total_equipment_bonuses hero_slot, bonuses()
+    FOR statnum as integer = 0 TO statLast
+     .stat.base.sta(statnum) += bonuses(statnum) * .lev_gain
+    NEXT
+   END IF 
+
+   recompute_hero_max_stats hero_slot
+
+   'stat restoration
+   IF readbit(gen(), genBits, 2) = 0 THEN
+    '--HP restoration ON
+    .stat.cur.hp = .stat.max.hp 'set external cur to external max
    END IF
- 
-   'do stat caps
-   IF gen(genStatCap + o) > 0 THEN gam.hero(hero_slot).stat.max.sta(o) = small(gam.hero(hero_slot).stat.max.sta(o), gen(genStatCap + o))
-  NEXT o
- 
-  'stat restoration
-  IF readbit(gen(), genBits, 2) = 0 THEN
-   '--HP restoration ON
-   gam.hero(hero_slot).stat.cur.hp = gam.hero(hero_slot).stat.max.hp 'set external cur to external max
+   IF readbit(gen(), genBits, 3) = 0 THEN
+    '--MP restoration ON
+    .stat.cur.mp = .stat.max.mp 'set external cur to external max
+    resetlmp hero_slot, .lev
+   END IF
+
+   'make current stats match max stats
+   FOR statnum as integer = 2 TO 11
+    .stat.cur.sta(statnum) = .stat.max.sta(statnum)
+   NEXT statnum
+
+   learn_spells_for_current_level(hero_slot, allowforget)
+
   END IF
-  IF readbit(gen(), genBits, 3) = 0 THEN
-   '--MP restoration ON
-   gam.hero(hero_slot).stat.cur.mp = gam.hero(hero_slot).stat.max.mp 'set external cur to external max
-   resetlmp hero_slot, gam.hero(hero_slot).lev
-  END IF
- 
-  'make current stats match max stats
-  FOR o as integer = 2 TO 11
-   gam.hero(hero_slot).stat.cur.sta(o) = gam.hero(hero_slot).stat.max.sta(o)
-  NEXT o
- 
-  learn_spells_for_current_level(hero_slot, allowforget)
- 
- END IF
+ END WITH
 END SUB
 
-SUB apply_updated_stat_cap(byval stat as integer)
- 'Called when a stat cap changes; applies the new cap (only for that one stat!) to all heroes
- FOR hero_slot as integer = 0 TO UBOUND(gam.hero)
-  DIM cap as integer = gen(genStatCap + stat)
-  IF cap > 0 THEN
-   WITH gam.hero(hero_slot).stat
-    .max.sta(stat) = small(.max.sta(stat), cap)
-    .cur.sta(stat) = small(.cur.sta(stat), cap)
-   END WITH
+'Load sum of bonuses for all of a hero's equip in bonuses() (which should be sized to statLast)
+SUB hero_total_equipment_bonuses(byval hero_slot as integer, bonuses() as integer)
+ flusharray bonuses()
+ DIM itembuf(dimbinsize(binITM)) as integer
+ FOR slot as integer = 0 TO 4
+  IF eqstuf(hero_slot, slot) > 0 THEN    
+   loaditemdata itembuf(), eqstuf(hero_slot, slot) - 1
+   FOR statnum as integer = 0 TO statLast
+    bonuses(statnum) += itembuf(54 + statnum)
+   NEXT statnum
   END IF
- NEXT
+ NEXT slot
+END SUB
+
+'Recompute max stats from base
+'(See update_hero_max_and_cur_stats for wrapper that updates cur values too)
+SUB recompute_hero_max_stats(byval hero_slot as integer)
+ WITH gam.hero(hero_slot).stat
+  DIM bonuses(statLast) as integer
+  hero_total_equipment_bonuses hero_slot, bonuses()
+  FOR statnum as integer = 0 TO statLast
+   .max.sta(statnum) = .base.sta(statnum) + bonuses(statnum)
+   DIM cap as integer = gen(genStatCap + statnum)
+   IF cap > 0 THEN .max.sta(statnum) = small(.max.sta(statnum), cap)
+  NEXT
+ END WITH
+END SUB
+
+'This is used for backcompat
+SUB compute_hero_base_stats_from_max(byval hero_slot as integer)
+ WITH gam.hero(hero_slot).stat
+  DIM bonuses(statLast) as integer
+  hero_total_equipment_bonuses hero_slot, bonuses()
+  FOR statnum as integer = 0 TO statLast
+   .base.sta(statnum) = .max.sta(statnum) - bonuses(statnum)
+  NEXT
+ END WITH
 END SUB
 
 SUB learn_spells_for_current_level(byval who as integer, byval allowforget as integer)
