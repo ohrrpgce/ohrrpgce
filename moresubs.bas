@@ -355,6 +355,7 @@ SUB delitem (byval item_id as integer, byval amount as integer=1)
   IF inventory(o).used AND item_id = inventory(o).id THEN
    IF inventory(o).num <= amount THEN
     amount -= inventory(o).num
+    inventory(o).num = 0
     inventory(o).used = 0
    ELSE
     inventory(o).num -= amount

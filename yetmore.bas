@@ -2437,7 +2437,7 @@ SELECT CASE as CONST id
    ELSEIF valid_item(retvals(1)) THEN
     WITH inventory(retvals(0))
      .id = retvals(1)
-     IF .num < 1 THEN .num = 1
+     IF .num < 1 OR .used = NO THEN .num = 1
      .used = YES
     END WITH
    END IF
