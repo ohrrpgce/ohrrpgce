@@ -1178,6 +1178,7 @@ getelementnames elementnames()
 DIM elementaldmg(maxElements - 1) as SINGLE
 
 DIM mode as integer = 0
+DIM show_base_stats as bool = NO  'debugging
 DIM tog as integer
 
 status_buildmenu her, pt, mtype(), elementaldmg(), elementnames(), elementalmenu(), elementalmenu_st, portrait
@@ -1198,6 +1199,7 @@ DO
  IF carray(ccUse) > 1 THEN mode = loopvar(mode, 0, 2, 1): menusound gen(genCursorSFX)
  IF carray(ccLeft) > 1 THEN DO: pt = loopvar(pt, 0, 3, -1): LOOP UNTIL hero(pt) > 0: menusound gen(genCursorSFX): status_buildmenu her, pt, mtype(), elementaldmg(), elementnames(), elementalmenu(), elementalmenu_st, portrait
  IF carray(ccRight) > 1 THEN DO: pt = loopvar(pt, 0, 3, 1): LOOP UNTIL hero(pt) > 0: menusound gen(genCursorSFX): status_buildmenu her, pt, mtype(), elementaldmg(), elementnames(), elementalmenu(), elementalmenu_st, portrait
+ IF keyval(scF4) > 1 THEN show_base_stats XOR= YES
 
  copypage holdscreen, page
  centerfuz 160, 100, 304, 184, 1, page
@@ -1228,17 +1230,19 @@ DO
   CASE 0
    '--show stats
    DIM stat_v_offset as integer = 0
-   FOR i as integer = 0 TO 9
-    IF should_hide_hero_stat(her, i + 2) THEN CONTINUE FOR
-    edgeprint statnames(i + 2), 20, 62 + stat_v_offset * 10, uilook(uiText), page
-    DIM stat_str as string = STR(gam.hero(pt).stat.cur.sta(i + 2))
+   FOR statnum as integer = 2 TO statLast
+    IF should_hide_hero_stat(her, statnum) THEN CONTINUE FOR
+    edgeprint statnames(statnum), 20, 62 + stat_v_offset * 10, uilook(uiText), page
+    DIM stat_str as string = STR(gam.hero(pt).stat.cur.sta(statnum))
+    IF show_base_stats THEN stat_str &= "(" & gam.hero(pt).stat.base.sta(statnum) & ")"
     edgeprint stat_str, 148 - LEN(stat_str) * 8, 62 + stat_v_offset * 10, uilook(uiText), page
     stat_v_offset += 1
-   NEXT i
+   NEXT statnum
 
    'current/max HP
    edgeprint statnames(statHP), 236 - LEN(statnames(statHP)) * 4, 65, uilook(uiText), page
    DIM hp_str as string = STR(ABS(gam.hero(pt).stat.cur.hp)) & "/" & STR(ABS(gam.hero(pt).stat.max.hp))
+   IF show_base_stats THEN hp_str &= "(" & gam.hero(pt).stat.base.hp & ")"
    edgeprint hp_str, 236 - LEN(hp_str) * 4, 75, uilook(uiText), page
 
    '--MP and level MP
@@ -1248,6 +1252,7 @@ DO
      IF NOT should_hide_hero_stat(her, statMP) THEN
       edgeprint statnames(statMP), 236 - LEN(statnames(statMP)) * 4, 95, uilook(uiText), page
       mp_str = STR(ABS(gam.hero(pt).stat.cur.mp)) & "/" & STR(ABS(gam.hero(pt).stat.max.mp))
+      IF show_base_stats THEN mp_str &= "(" & gam.hero(pt).stat.base.mp & ")"
       edgeprint mp_str, 236 - LEN(mp_str) * 4, 105, uilook(uiText), page
      END IF
     END IF
@@ -1491,8 +1496,6 @@ DIM st as EquipMenuState
 
 DIM i as integer
 DIM tog as integer = 0
-DIM stat_caption as string
-DIM col as integer
 DIM item_id as integer
 DIM item_info as string
 
@@ -1619,21 +1622,30 @@ DO
  centerbox 236, 75, 80, 78, 4, page    'equipment
  edgeprint names(st.who), 84 - LEN(names(st.who)) * 4, 13, uilook(uiText), page
  DIM stat_v_offset as integer = 0
- FOR i = 0 TO 11
+ FOR i = 0 TO statLast
+  'Draw stats and bonuses
   IF should_hide_hero_stat(st.hero, i) THEN CONTINUE FOR
-  stat_caption = ""
-  IF st.stat_bonus(i) > 0 THEN stat_caption = stat_caption & "+" & st.stat_bonus(i)
-  IF st.stat_bonus(i) < 0 THEN stat_caption = stat_caption & st.stat_bonus(i)
-  edgeprint statnames(i) & stat_caption, 20, 42 + stat_v_offset * 10, uilook(uiMenuItem), page
-  col = uilook(uiMenuItem)
-  IF st.stat_bonus(i) < 0 THEN col = uilook(uiDisabledItem)
-  IF st.stat_bonus(i) > 0 THEN col = uilook(uiSelectedItem + tog)
-  IF gen(genStatCap + i) > 0 THEN
-   stat_caption = STR(small(gam.hero(st.who).stat.max.sta(i) + st.stat_bonus(i), gen(genStatCap + i)))
+  DIM as string stat_caption, stat_caption2
+  DIM statcol2 as integer
+  IF st.stat_bonus(i) < 0 THEN
+   stat_caption = STR(st.stat_bonus(i))
+   statcol2 = uilook(uiDisabledItem)
+  ELSEIF st.stat_bonus(i) > 0 THEN
+   stat_caption = "+" & st.stat_bonus(i)
+   statcol2 = uilook(uiSelectedItem + tog)
   ELSE
-   stat_caption = STR(gam.hero(st.who).stat.max.sta(i) + st.stat_bonus(i))
+   statcol2 = uilook(uiMenuItem)
   END IF
-  edgeprint stat_caption, 148 - LEN(stat_caption) * 8, 42 + stat_v_offset * 10, col, page
+  DIM resultant_stat as integer = gam.hero(st.who).stat.max.sta(i) + st.stat_bonus(i)
+  DIM cap as integer = gen(genStatCap + i)
+  IF cap > 0 AND resultant_stat > cap THEN
+   resultant_stat = cap
+   stat_caption = fgcol_text(stat_caption, uilook(uiSelectedDisabled))
+   statcol2 = uilook(uiSelectedDisabled + tog)
+  END IF
+  stat_caption2 = STR(resultant_stat)
+  edgeprint statnames(i) & stat_caption, 20, 42 + stat_v_offset * 10, uilook(uiMenuItem), page
+  edgeprint stat_caption2, 148 - LEN(stat_caption2) * 8, 42 + stat_v_offset * 10, statcol2, page
   stat_v_offset += 1
  NEXT i
  IF st.mode = 0 THEN
@@ -1761,12 +1773,13 @@ SUB equip_menu_back_to_menu(byref st as EquipMenuState, menu() as string)
 END SUB
 
 SUB equip_menu_stat_bonus(byref st as EquipMenuState)
- '--load stat bonuses of currently hovered weapon for display
+ '--load change in stat bonuses of currently hovered item for display
+ '(that is, bonuses of hovered item minus bonuses of equipped item)
 
  DIM item as integer = 0 ' Will be set to item ID + 1
 
  IF st.eq_cursor.pt = st.eq(st.slot).count THEN
-  '--unequip
+  '--last option: unequip
   IF st.slot = 0 THEN
    '--special handling for weapon
    '--load the default weapon info and continue as normal
@@ -1786,24 +1799,17 @@ SUB equip_menu_stat_bonus(byref st as EquipMenuState)
   flusharray st.stat_bonus()
  ELSE
   loaditemdata itembuf(), item - 1
-  FOR i as integer = 0 TO 11
+  FOR i as integer = 0 TO statLast
    st.stat_bonus(i) = itembuf(54 + i)
   NEXT i
  END IF
 
  IF eqstuf(st.who, st.slot) > 0 THEN
   loaditemdata itembuf(), eqstuf(st.who, st.slot) - 1
-  FOR i as integer = 0 TO 11
-   st.stat_bonus(i) = st.stat_bonus(i) - itembuf(54 + i)
+  FOR i as integer = 0 TO statLast
+   st.stat_bonus(i) -= itembuf(54 + i)
   NEXT i
  END IF
-
- FOR i as integer = 0 to 11
-  'FIXME: This should take the current stats into account to decide
-  'what the stat cap caps the bonus to
-  IF gen(genStatCap + i) > 0 THEN st.stat_bonus(i) = small(st.stat_bonus(i), gen(genStatCap + i))
- NEXT i
-
 END SUB
 
 'Returns 0, or ID of textbox to open (box 0 can't be opened)
