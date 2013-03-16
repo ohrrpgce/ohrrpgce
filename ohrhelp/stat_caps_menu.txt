@@ -1,6 +1,6 @@
 This is the Stat Cap Editor, where you can set global maximums for the various battle stats used in the game.
 
-Navigate with the Up and Down arrow keys (or PgUp, PgDn, Home, and End).
+Navigate with the Up and Down arrow keys (or PgUp, PgDn, Home, and End), or type a stat name to jump to it.
 
 Use the Left and Right arrow keys to change the values, or just type in a number.
 

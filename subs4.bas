@@ -247,20 +247,22 @@ END SUB
 
 SUB generalscriptsmenu ()
  DIM menu(3) as string
+ DIM menu_display(3) as string
  DIM scripttype(3) as string
  scripttype(1) = "New-game plotscript"
  scripttype(2) = "Game-over plotscript"
  scripttype(3) = "Load-game plotscript"
  DIM scriptgenoff(3) as integer = {0, genNewGameScript, genGameoverScript, genLoadGameScript}
 
+ DIM selectst as SelectTypeState
  DIM state as MenuState
  state.size = 24
  state.last = UBOUND(menu)
 
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "global_scripts"
   usemenu state
@@ -279,8 +281,13 @@ SUB generalscriptsmenu ()
    menu(i) = scripttype(i) + ": " + scriptname(gen(scriptgenoff(i)))
   NEXT
 
+  IF select_by_typing(selectst, NO) THEN
+   select_on_word_boundary menu(), selectst, state
+  END IF
+
   clearpage dpage
-  standardmenu menu(), state, 0, 0, dpage
+  highlight_menu_typing_selection menu(), menu_display(), selectst, state
+  standardmenu menu_display(), state, 0, 0, dpage
   SWAP vpage, dpage
   setvispage vpage
   dowait
@@ -290,7 +297,7 @@ END SUB
 SUB generalmusicsfxmenu ()
   CONST menusize as integer = 15
   CONST lastmusicitem as integer = 3
-  DIM as string menu(menusize), disp(menusize)
+  DIM as string menu(menusize), disp(menusize), menu_display(menusize)
   DIM as integer index(1 to menusize) = { _
           genTitleMus, genBatMus, genVictMus, genAcceptSFX, genCancelSFX, _
           genCursorSFX, genTextboxLine, genDefaultDeathSFX, genItemLearnSFX, genCantLearnSFX, _
@@ -314,15 +321,16 @@ SUB generalmusicsfxmenu ()
   menu(14) = "Can't Buy Sound: "
   menu(15) = "Can't Sell Sound: "
 
+  DIM selectst as SelectTypeState
   DIM state as MenuState
   state.size = 24
   state.last = menusize
   state.need_update = YES
 
-  setkeys
+  setkeys YES
   DO
     setwait 55
-    setkeys
+    setkeys YES
 
     IF keyval(scESC) > 1 THEN EXIT DO
     IF keyval(scF1) > 1 THEN show_help "general_music_sfx"
@@ -368,8 +376,13 @@ SUB generalmusicsfxmenu ()
       NEXT
     END IF    
 
+    IF select_by_typing(selectst, NO) THEN
+      select_on_word_boundary disp(), selectst, state
+    END IF
+
     clearpage dpage
-    standardmenu disp(), state, 0, 0, dpage
+    highlight_menu_typing_selection disp(), menu_display(), selectst, state
+    standardmenu menu_display(), state, 0, 0, dpage 
 
     SWAP vpage, dpage
     setvispage vpage
@@ -854,6 +867,7 @@ END SUB
 
 SUB masterpalettemenu
 DIM menu(8) as string
+DIM menu_display(8) as string
 DIM shaded(8) as bool
 DIM oldpal as integer
 DIM palnum as integer = activepalette
@@ -861,6 +875,7 @@ loadpalette master(), palnum
 setpal master()
 LoadUIColors uilook(), palnum
 
+DIM selectst as SelectTypeState
 DIM state as MenuState
 state.size = 10
 state.last = UBOUND(menu)
@@ -868,10 +883,10 @@ state.pt = 1
 
 update_masterpalette_menu menu(), shaded(), palnum
 
-setkeys
+setkeys YES
 DO
  setwait 55
- setkeys
+ setkeys YES
 
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "master_palette_menu"
@@ -942,9 +957,14 @@ DO
   update_masterpalette_menu menu(), shaded(), palnum
  END IF
 
+ IF select_by_typing(selectst) THEN
+  select_on_word_boundary menu(), selectst, state
+ END IF
+
  'draw the menu
  clearpage dpage
- standardmenu menu(), state, shaded(), 0, 0, dpage
+ highlight_menu_typing_selection menu(), menu_display(), selectst, state
+ standardmenu menu_display(), state, shaded(), 0, 0, dpage 
 
  FOR i as integer = 0 TO 255
   rectangle 34 + (i MOD 16) * 16, 78 + (i \ 16) * 7, 12, 5, i, dpage
@@ -1076,7 +1096,7 @@ DO
  IF gcsr = 0 THEN col = uilook(uiSelectedItem + tog) ELSE col = uilook(uiMenuItem)
  edgeprint "Go Back", 1, 1, col, dpage
  IF gcsr = 1 THEN col = uilook(uiSelectedItem + tog) ELSE col = uilook(uiMenuItem)
- edgeprint CHR(27) + "Browse" + CHR(26), 1, 11, col, dpage
+ edgeprint CHR(27) & "Backdrop " & gen(genTitle) & CHR(26), 1, 11, col, dpage
  SWAP vpage, dpage
  setvispage vpage
  dowait
@@ -1219,10 +1239,12 @@ END SUB
 SUB battleoptionsmenu ()
  CONST maxMenu = 18
  DIM menu(maxMenu) as string
+ DIM menu_display(maxMenu) as string
  DIM min(maxMenu) as integer
  DIM max(maxMenu) as integer
  DIM index(maxMenu) as integer
  DIM enabled(maxMenu) as integer
+ DIM selectst as SelectTypeState
  DIM state as MenuState
  WITH state
   .size = 24
@@ -1275,10 +1297,10 @@ SUB battleoptionsmenu ()
  max(16) = 100
  index(16) = genEnemyWeakHP
 
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
 
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "battle_system_options"
@@ -1307,9 +1329,14 @@ SUB battleoptionsmenu ()
    state.need_update = NO
   END IF
 
+  IF select_by_typing(selectst, NO) THEN
+   select_on_word_boundary menu(), selectst, state
+  END IF
+
   clearpage vpage
   draw_fullscreen_scrollbar state, , vpage
-  standardmenu menu(), state, 0, 0, vpage
+  highlight_menu_typing_selection menu(), menu_display(), selectst, state
+  standardmenu menu_display(), state, 0, 0, vpage
   setvispage vpage
   dowait
  LOOP
@@ -1318,8 +1345,10 @@ END SUB
 SUB statcapsmenu
  CONST maxMenu = 15
  DIM m(maxMenu) as string
+ DIM menu_display(maxMenu) as string
  DIM max(maxMenu) as integer
  DIM index(maxMenu) as integer
+ DIM selectst as SelectTypeState
  DIM state as MenuState
  state.last = maxMenu
  state.size = 24
@@ -1346,7 +1375,7 @@ SUB statcapsmenu
  max(15) = 99  'Max Level is capped to 99 ... FIXME: this could go higher!
  DO
   setwait 55
-  setkeys
+  setkeys YES
 
   IF keyval(scESC) > 1 OR (state.pt = 0 AND enter_or_space()) THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "stat_caps_menu"
@@ -1369,8 +1398,13 @@ SUB statcapsmenu
    m(15) = "Maximum Level: " & gen(genMaxLevel)
   END IF
 
+  IF select_by_typing(selectst, NO) THEN
+   select_on_word_boundary m(), selectst, state
+  END IF
+
   clearpage vpage
-  standardmenu m(), state, 0, 0, vpage
+  highlight_menu_typing_selection m(), menu_display(), selectst, state
+  standardmenu menu_display(), state, 0, 0, vpage
   setvispage vpage
   dowait
  LOOP
@@ -1501,8 +1535,10 @@ END SUB
 SUB startingdatamenu
  CONST maxMenu = 4
  DIM m(maxMenu) as string
+ DIM menu_display(maxMenu) as string
  DIM max(maxMenu) as integer
  DIM index(maxMenu) as integer
+ DIM selectst as SelectTypeState
  DIM state as MenuState
  state.last = maxMenu
  state.size = 24
@@ -1517,7 +1553,7 @@ SUB startingdatamenu
  max(4) = 32767
  DO
   setwait 55
-  setkeys
+  setkeys YES
 
   IF keyval(scESC) > 1 OR (state.pt = 0 AND enter_or_space()) THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "new_game_data"
@@ -1547,8 +1583,13 @@ SUB startingdatamenu
    m(4) = "Starting Money: " & gen(genStartMoney)
   END IF
 
+  IF select_by_typing(selectst, NO) THEN
+   select_on_word_boundary m(), selectst, state
+  END IF
+
   clearpage vpage
-  standardmenu m(), state, 0, 0, vpage
+  highlight_menu_typing_selection m(), menu_display(), selectst, state
+  standardmenu menu_display(), state, 0, 0, vpage
   setvispage vpage
   dowait
  LOOP
@@ -1583,11 +1624,13 @@ END SUB
 SUB gendata ()
  CONST maxMenu = 14
  DIM m(maxMenu) as string
+ DIM menu_display(maxMenu) as string
  DIM min(maxMenu) as integer
  DIM max(maxMenu) as integer
  DIM index(maxMenu) as integer
  DIM enabled(maxMenu) as integer
 
+ DIM selectst as SelectTypeState
  DIM state as MenuState
  WITH state
   .size = 24
@@ -1630,6 +1673,9 @@ SUB gendata ()
    generate_gen_menu m(), longname, aboutline
    state.need_update = NO
   END IF
+
+  DIM enable_strgrabber as bool = NO
+  IF LEN(selectst.query) = 0 AND (state.pt = 1 OR state.pt = 2) THEN enable_strgrabber = YES
 
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "general_game_data"
@@ -1689,9 +1735,9 @@ SUB gendata ()
    IF state.pt = 10 THEN inputpasw
   END IF
   IF state.pt = 1 THEN
-   IF strgrabber(longname, 38) THEN state.need_update = YES
+   IF enable_strgrabber ANDALSO strgrabber(longname, 38) THEN state.need_update = YES
   ELSEIF state.pt = 2 THEN
-   IF strgrabber(aboutline, 38) THEN state.need_update = YES
+   IF enable_strgrabber ANDALSO strgrabber(aboutline, 38) THEN state.need_update = YES
   ELSEIF index(state.pt) = genMaxInventory THEN
    DIM as integer temp = (gen(genMaxInventory) + 1) \ 3
    IF intgrabber(temp, min(state.pt), max(state.pt)) THEN
@@ -1703,9 +1749,14 @@ SUB gendata ()
    IF intgrabber(gen(index(state.pt)), min(state.pt), max(state.pt)) THEN state.need_update = YES
   END IF
 
+  IF enable_strgrabber = NO ANDALSO select_by_typing(selectst, NO) THEN
+   select_on_word_boundary m(), selectst, state
+  END IF
+
   clearpage dpage
   draw_fullscreen_scrollbar state, , dpage
-  standardmenu m(), state, 0, 0, dpage
+  highlight_menu_typing_selection m(), menu_display(), selectst, state
+  standardmenu menu_display(), state, 0, 0, dpage
 
   SWAP vpage, dpage
   setvispage vpage

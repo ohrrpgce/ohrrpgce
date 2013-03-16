@@ -1,6 +1,6 @@
 This is the Battle System Options Editor, where you can edit various global options for the battle and stat systems.
 
-Navigate with the Up and Down arrow keys (or PgUp, PgDn, Home, and End).
+Navigate with the Up and Down arrow keys (or PgUp, PgDn, Home, and End), or type part of a menu item to jump to it.
 
 Press ENTER or the SPACE bar to enter various submenus.
 

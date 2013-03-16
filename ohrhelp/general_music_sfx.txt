@@ -1,6 +1,6 @@
 Here you can pick default music and sound effects for a variety of different uses throughout your game.
 
-Navigate the menu with the Up and Down arrow keys (or PgUp, PgDn, Home, and End).
+Navigate the menu with the Up and Down arrow keys (or PgUp, PgDn, Home, and End), or type part of a menu item to jump to it.
 
 Choose songs and sound effects by number, either by using the Left and Right arrow keys or by typing the number in.
 

@@ -1,5 +1,5 @@
 This is the New Game Data Editor.
 
-Navigate with the Up and Down arrow keys (or PgUp, PgDn, Home, and End).
+Navigate with the Up and Down arrow keys (or PgUp, PgDn, Home, and End), or type part of a menu item to jump to it.
 
 Type in numbers for the various data that will be used when the player starts a new game.
