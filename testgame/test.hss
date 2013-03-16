@@ -529,6 +529,17 @@ end
 
 #-----------------------------------------------------------------------
 
+plotscript, dump stats, begin
+  variable (hero, stat)
+  for (hero, 0, 40) do (
+    for (stat, 0, 11) do (
+      trace value(hero, stat, getherostat(hero,stat,currentstat), getherostat(hero,stat,maximumstat))
+    )
+  )
+end
+
+#-----------------------------------------------------------------------
+
 plotscript, remote vehicle, begin
   use NPC(2)
 end
