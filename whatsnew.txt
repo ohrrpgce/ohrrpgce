@@ -40,6 +40,9 @@ WHAT IS NEW?
     * Map layers can now be named [Ralph]
 
   * Bugfixes
+    * Fix the arrow key problem in Custom on Mac OS X for the third
+      time (this time for real!) [Ralph]
+    * Mac OS 10.4 and 10.5 are now supported again [Ralph]
     * "run script by id" was far slower than it should have been [Ralph]
     * ${H#} codes in text boxes are no longer limited to heroes that
       are in the party.
@@ -62,6 +65,8 @@ WHAT IS NEW?
     * "get hero stat cap" and "set capped hero stat" didn't work [Ralph]
     * Bug 800: Choice boxes misplaced for autosized textboxes [Ralph]
     * Fix a couple places where stat caps were not applied [Ralph]
+    * Bug 743: Unequipping items when stats have reached stat limits
+      is broken [Ralph]
 
   * New Plotscripting Stuff
     * If a script runs for a long time without "wait"ing you can now
@@ -91,6 +96,9 @@ WHAT IS NEW?
     * "hero Z" [Ralph]
     * "set hero stat cap" [Ralph]
     * "wait for sound"
+    * Each of a hero's stats now has a base value in addition to
+      current and maximum values. See "base stat" in the Plotscripting
+      Dictionary for information. [Ralph]
 
   * Stuff Only Developers Will Notice
 
