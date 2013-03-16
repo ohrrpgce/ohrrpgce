@@ -252,6 +252,8 @@ activepalette = gen(genMasterPal)
 loadpalette master(), activepalette
 setpal master()
 LoadUIColors uilook(), activepalette
+clearpage dpage
+clearpage vpage
 xbload game + ".fnt", current_font(), "Font not loaded"
 setfont current_font()
 
