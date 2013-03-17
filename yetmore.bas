@@ -3090,6 +3090,17 @@ SELECT CASE as CONST id
   IF valid_item(retvals(0)) THEN
    scriptret = get_item_stack_size(retvals(0))
   END IF
+ CASE 548 '--npc Z
+  npcref = get_valid_npc(retvals(0))
+  IF npcref >= 0 THEN
+   scriptret = npc(npcref).z
+  END IF
+ CASE 549 '--set npc Z
+  npcref = get_valid_npc(retvals(0))
+  IF npcref >= 0 THEN
+   npc(npcref).z = retvals(1)
+  END IF
+
 
 'old scriptnpc
 
@@ -3441,6 +3452,7 @@ IF vstate.trigger_cleanup THEN '--clear
  herow(0).speed = vstate.old_speed
  npc(vstate.npc).xgo = 0
  npc(vstate.npc).ygo = 0
+ npc(vstate.npc).z = 0
  delete_walkabout_shadow npc(vstate.npc).sl
  '--clear vehicle (sets vstate.active=NO, etc)
  reset_vehicle vstate
@@ -3480,7 +3492,9 @@ IF vstate.active = YES AND vehicle_is_animating() = NO THEN
    END IF
   NEXT i
  END IF
-END IF'--normal
+END IF'--not animating
+
+IF vstate.active THEN npc(vstate.npc).z = catz(0)
 
 END SUB 'result
 

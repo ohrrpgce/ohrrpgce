@@ -336,6 +336,7 @@ SUB save_npc_loc (byval parent as NodePtr, byval index as integer, npc as NPCIns
   SetChildNode(n, "id", ABS(.id) - 1)
   SetChildNode(n, "x", .x - map_offset.x * 20)
   SetChildNode(n, "y", .y - map_offset.y * 20)
+  SetChildNode(n, "z", .z)
   SetChildNode(n, "d", .dir)
   SetChildNode(n, "fr", .frame)
   IF .xgo THEN SetChildNode(n, "xgo", .xgo)
@@ -400,6 +401,7 @@ SUB load_npc_loc (byval n as NodePtr, npc as NPCInst, map_offset as XYPair)
    .id = GetChildNodeInt(n, "id") + 1
    .x = GetChildNodeInt(n, "x") + map_offset.x * 20
    .y = GetChildNodeInt(n, "y") + map_offset.y * 20
+   .z = GetChildNodeInt(n, "z")
    .dir = GetChildNodeInt(n, "d")
    .frame = GetChildNodeInt(n, "fr")
    .xgo = GetChildNodeInt(n, "xgo")

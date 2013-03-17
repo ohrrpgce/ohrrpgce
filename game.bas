@@ -1219,23 +1219,20 @@ SUB update_walkabout_hero_slices()
 END SUB
 
 SUB update_walkabout_npc_slices()
- DIM z as integer
  DIM shadow as Slice Ptr
 
  FOR i as integer = 0 TO UBOUND(npc)
   IF npc(i).id > 0 THEN '-- if visible
-   z = 0
    IF vstate.active AND vstate.npc = i THEN
     '--This NPC is a currently active vehicle, so lets do some extra voodoo.
-    z = catz(0) 'use lead hero's z value
     IF npc(i).sl <> 0 THEN
      shadow = LookupSlice(SL_WALKABOUT_SHADOW_COMPONENT, npc(i).sl)
      IF shadow <> 0 THEN
-      shadow->Visible = (z > 0 ANDALSO vstate.dat.disable_flying_shadow = NO)
+      shadow->Visible = (npc(i).z > 0 ANDALSO vstate.dat.disable_flying_shadow = NO)
      END IF
     END IF
    END IF
-   update_walkabout_pos npc(i).sl, npc(i).x, npc(i).y, z
+   update_walkabout_pos npc(i).sl, npc(i).x, npc(i).y, npc(i).z
    IF npc(i).sl <> 0 THEN
     '--default NPC sort is by instance id
     npc(i).sl->Sorter = i
@@ -1295,6 +1292,8 @@ SUB update_npcs ()
      '--match vehicle to main hero
      npc(o).x = catx(0)
      npc(o).y = caty(0)
+     npc(o).z = catz(0)  'NPC Z value is matched to the hero in update_vehicle_state for simplicity, but
+                         'this is here in case of setheroz or setnpcz or loaded map state or other funkiness happens
      npc(o).dir = catd(0)
      npc(o).frame = herow(0).wtog
     END IF
@@ -2973,6 +2972,7 @@ SUB prepare_map (byval afterbat as integer=NO, byval afterload as integer=NO)
   FOR i = 0 TO 3
    catz(i) = vstate.dat.elevation
   NEXT i
+  npc(vstate.npc).z = vstate.dat.elevation
   herow(0).speed = vstate.dat.speed
   IF herow(0).speed = 3 THEN herow(0).speed = 10
  END IF

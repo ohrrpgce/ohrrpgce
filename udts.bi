@@ -366,12 +366,13 @@ TYPE NPCType
   pal as palette16 ptr
 END TYPE
 
-'Don't forget to update CleanNPCL and savegame.bas when adding to this
+'Don't forget to update CleanNPCL and load/save_npc_locations when adding to this
 TYPE NPCInst
   sl as SliceFwd Ptr
   '--stored values
   x as integer      'npcl+0
   y as integer      'npcl+300
+  z as integer      '            Does not include foot offset
   id as integer     'npcl+600    0 if unused, ID + 1 for normal NPCs, -ID - 1 for hidden NPCs
                     '  NOTE: NPCs with invalidly high ID numbers (on incompletely loaded maps)
                     '        are automatically hidden (and obviously unsafe to unhide)

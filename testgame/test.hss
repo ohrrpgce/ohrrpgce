@@ -109,6 +109,18 @@ end
 
 #-----------------------------------------------------------------------
 
+plotscript,wrapping map autorun,begin
+  map autorun
+  while (current map == map:foolish wrapping map place) do (
+    $31="Vehicle Z: "
+    append number(31, NPC Z(2))
+    show string(31)
+    wait
+  )
+end
+
+#-----------------------------------------------------------------------
+
 script,loader,begin
   suspend NPCs
   show value(random(-32000,32000))           
@@ -149,6 +161,11 @@ end
 
 # onkeypress on 'nameless other map' and 'foolish wrapping map place'
 script,key trigger,begin
+  if (current map == map:foolish wrapping map place) then (
+    if (key is pressed(key:plus)) then (set npc z(2, npc z(2) + 1))
+    if (key is pressed(key:minus)) then (set npc z(2, npc z(2) -- 1))
+  )
+
   if (key is pressed(key:E)) then (
     # test hero elemental commands
     # element 2 is <lit>

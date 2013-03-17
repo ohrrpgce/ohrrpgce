@@ -95,7 +95,7 @@ WHAT IS NEW?
             else (...)
       [Ralph]
     * "enemy elemental resist as int" [Ralph]
-    * "hero Z" [Ralph]
+    * "hero Z", "NPC Z", "set NPC Z" [Ralph]
     * "set hero stat cap" [Ralph]
     * "wait for sound"
     * Each of a hero's stats now has a base value in addition to

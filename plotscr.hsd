@@ -560,6 +560,8 @@ define function, begin
 545,getherostatcap,1,0           #get the cap for a stat; 0 if none (stat)
 546,setherostatcap,2,0,0         #set the cap for a stat (stat, value or 0)
 547,getitemmaximumstacksize,1,0  #get the maximum size of a stack of a certain item (item id)
+548,npcz,1,0                     #npc's Z value, in pixels (npcref)
+549,setnpcz,2,0,0                #set npc's Z value, in pixels (npcref, z)
 end
 
 #--------------------------------------------------------------------------
