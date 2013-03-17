@@ -54,7 +54,7 @@ DECLARE FUNCTION load_sprite_plotslice(byval spritetype as SpriteType, byval rec
 DECLARE SUB replace_sprite_plotslice(byval handle as integer, byval spritetype as SpriteType, byval record as integer, byval pal as integer=-2)
 DECLARE SUB change_rect_plotslice(byval handle as integer, byval style as integer=-2, byval bgcol as integer=-1, byval fgcol as integer=-1, byval border as integer=-3, byval translucent as RectTransTypes=transUndef)
 DECLARE FUNCTION valid_spriteslice_dat(byval sl as Slice Ptr) as integer
-DECLARE FUNCTION vehscramble(byval trigger_cleanup as bool, byval targx as integer, byval targy as integer) as bool
+DECLARE FUNCTION vehscramble(byval targx as integer, byval targy as integer) as bool
 DECLARE SUB write_checkpoint ()
 
 #endif

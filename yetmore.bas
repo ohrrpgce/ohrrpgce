@@ -3352,8 +3352,10 @@ IF vstate.mounting THEN '--scramble-----------------------
  '--part of the vehicle automount where heros scramble--
  IF npc(vstate.npc).xgo = 0 AND npc(vstate.npc).ygo = 0 THEN
   '--npc must stop before we mount
-  IF vehscramble(NO, npc(vstate.npc).x, npc(vstate.npc).y) THEN
+  IF vehscramble(npc(vstate.npc).x, npc(vstate.npc).y) THEN
+   'Finished scramble
    vstate.mounting = NO
+   IF vstate.dat.elevation > 0 THEN vstate.rising = YES
   END IF
  END IF
 END IF'--scramble mount
@@ -3450,9 +3452,10 @@ IF vstate.trigger_cleanup THEN '--clear
  NEXT i
  gam.random_battle_countdown = range(100, 60)
 END IF
-IF vstate.ahead THEN '--ahead
- IF vehscramble(YES, aheadx, aheady) THEN
+IF vstate.ahead THEN '--dismounting ahead
+ IF vehscramble(aheadx, aheady) THEN
   vstate.ahead = NO
+  vstate.trigger_cleanup = YES '--clear (happens next tick, maybe not intentionally)
  END IF
 END IF
 IF vstate.active = YES AND vehicle_is_animating() = NO THEN
@@ -3691,7 +3694,7 @@ FUNCTION backcompat_sound_id (byval id as integer) as integer
 END FUNCTION
 
 'Returns true if the scramble is finished
-FUNCTION vehscramble(byval trigger_cleanup as bool, byval targx as integer, byval targy as integer) as bool
+FUNCTION vehscramble(byval targx as integer, byval targy as integer) as bool
  DIM scrambled_heroes as integer = 0
  DIM count as integer = herocount()
  DIM scramx as integer
@@ -3736,11 +3739,6 @@ FUNCTION vehscramble(byval trigger_cleanup as bool, byval targx as integer, byva
    herow(i).xgo = 0
    herow(i).ygo = 0
   NEXT i
-  IF trigger_cleanup THEN
-   vstate.trigger_cleanup = YES '--clear (happens next tick)
-  ELSE
-   IF vstate.dat.elevation > 0 THEN vstate.rising = YES
-  END IF
   RETURN YES
  END IF
  RETURN NO
