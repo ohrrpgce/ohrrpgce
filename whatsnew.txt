@@ -102,6 +102,7 @@ WHAT IS NEW?
       current and maximum values. See "base stat" in the Plotscripting
       Dictionary for information. [Ralph]
     * "get item maximum stack size" [Ralph]
+    * "door at spot" [Ralph]
 
   * Stuff Only Developers Will Notice
 
@@ -239,7 +240,7 @@ Jun 15 2012 [Alectormancy]
     * "menu item true slot", "menu item by true slot" [Ralph]
     * "get hero slice" and "get NPC slice" commands [James]
     * "get door x", "get door y", "get door destination id",
-      "get door destination map", "door is active" [Mogri]
+      "get door destination map", "door exists" [Mogri]
     * "get attack caption" [Mogri]
     * "get rect fuzziness", "set rect fuzziness" [Ralph]
     * "textbox line" replaces "string from textbox", fixing the

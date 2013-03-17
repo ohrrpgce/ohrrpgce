@@ -3100,6 +3100,8 @@ SELECT CASE as CONST id
   IF npcref >= 0 THEN
    npc(npcref).z = retvals(1)
   END IF
+ CASE 550 '--door at spot
+  scriptret = find_door(retvals(0), retvals(1))
 
 
 'old scriptnpc

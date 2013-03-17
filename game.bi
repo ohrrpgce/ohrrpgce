@@ -90,6 +90,7 @@ DECLARE FUNCTION hero_layer() as Slice Ptr
 DECLARE FUNCTION npc_layer() as Slice Ptr
 DECLARE SUB queue_fade_in (byval delay as integer = 0)
 DECLARE SUB check_for_queued_fade_in ()
+DECLARE FUNCTION find_door (byval tilex as integer, byval tiley as integer) as integer
 DECLARE FUNCTION find_doorlink (byval door_id as integer) as integer
 
 DECLARE SUB update_hero_zones (byval who as integer)

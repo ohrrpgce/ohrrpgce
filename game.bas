@@ -3078,17 +3078,25 @@ SUB reset_map_state (map as MapModeState)
  map.name = ""
 END SUB
 
-SUB checkdoors ()
- 'If the leader is standing on a door, use it.
- IF vstate.active = YES AND vstate.dat.enable_door_use = NO THEN EXIT SUB 'Doors are disabled by a vehicle
+'Return the ID of a door at a tile, or -1 for none
+'(There should only be one door on each tile, because the editor doesn't let you place more)
+FUNCTION find_door (byval tilex as integer, byval tiley as integer) as integer
  FOR door_id as integer = 0 TO 99
-  IF readbit(gam.map.door(door_id).bits(),0,0) THEN 'Door is enabled
-   IF gam.map.door(door_id).x = catx(0) \ 20 AND gam.map.door(door_id).y = (caty(0) \ 20) + 1 THEN
-    usedoor door_id
-    EXIT SUB
+  IF readbit(gam.map.door(door_id).bits(), 0, 0) THEN  'Door exists
+   IF gam.map.door(door_id).x = tilex AND gam.map.door(door_id).y = tiley + 1 THEN
+    RETURN door_id
    END IF
   END IF
  NEXT door_id
+ RETURN -1
+END FUNCTION
+
+SUB checkdoors ()
+ 'If the leader is standing on a door, use it.
+ IF vstate.active = YES AND vstate.dat.enable_door_use = NO THEN EXIT SUB 'Doors are disabled by a vehicle
+ DIM door_id as integer
+ door_id = find_door(catx(0) \ 20, caty(0) \ 20)
+ IF door_id >= 0 THEN usedoor door_id
 END SUB
 
 FUNCTION find_doorlink (byval door_id as integer) as integer

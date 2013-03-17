@@ -3031,11 +3031,11 @@ SUB mapedit_linkdoors (st as MapEditState, map() as TileMap, pass as TileMap, gm
     ELSE
      menu_temp = "  only if tag "
      IF link(i).tag1 <> 0 THEN
-      menu_temp += ABS(link(i).tag1) & " = " & iif(link(i).tag1 > 0, 1, 0)
+      menu_temp += ABS(link(i).tag1) & " is " & sign_string(link(i).tag1, "OFF", "", "ON")
      END IF
      IF link(i).tag2 THEN
       IF link(i).tag1 THEN menu_temp += " and tag "
-      menu_temp += ABS(link(i).tag2) & " = " & iif(link(i).tag2 > 0, 1, 0)
+      menu_temp += ABS(link(i).tag2) & " is " & sign_string(link(i).tag2, "OFF", "", "ON")
      END IF
     END IF
     edgeprint menu_temp, 0, 10 + (i - state.top) * 16, col, dpage

@@ -6,6 +6,7 @@ define constant, begin
 4,tag:req for atk use tag
 5,tag:atk use test tag
 6,tag:atk use test no req
+7,tag:door req tag
 0,hero:Freki
 1,hero:Helga
 2,hero:Olaf
@@ -55,7 +56,7 @@ define constant, begin
 1,map:Afterbattle script map
 2,map:Insteadofbattle script map
 3,map:InsteadAfter battle map
-4,map:Door dest map
+4,map:Door test map
 1,atk:SelfStab
 2,atk:L10 Wolf
 3,atk:Force Run

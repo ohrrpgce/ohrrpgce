@@ -40,10 +40,10 @@ plotscript, run all tests, begin
   math tests
   save load tests
   slice tests
-  door tests
   inventory tests
   hero tests
   trigger tests
+  door tests
   npc tests
   menu tests
   textbox tests
@@ -2218,8 +2218,17 @@ end
 
 script, door tests, begin
   $0="Door tests"
+
+  # preconditions
+  assert(herox(me) == 6)
+  assert(heroy(me) == 6)
+
+  # querying doors
   assert(get door x(0) == 8)
   assert(get door y(0) == 5)
+  assert(door at spot(8, 5) == 0)
+  assert(door at spot(0, 0) == -1)  # lots of doors at 0,0 with exists=NO
+  assert(door at spot(1, 1) == 1)   # door 1 has no enabled doorlinks
   assert(get door destination id(0) == 1)
   assert(get door destination map(0) == 4)
   assert(door exists(0))
@@ -2227,6 +2236,37 @@ script, door tests, begin
   assert(get door destination map(1) == -1)
   assert(door exists(1))
   assert(door exists(2) == false)
+
+  # using doors
+  walk hero to x(0, 8)
+  wait for hero
+  walk hero to y(0, 5)
+  wait for hero
+  assert(current map == map:door test map)
+  assert(hero x(0) == 4)
+  assert(hero y(0) == 4)
+  walk hero(0, south, 1)
+  wait for hero
+  use door(1)  # shouldn't work, disabled by tag
+  assert(hero x(0) == 4)  # not triggered
+  walk hero(0, north, 1)
+  wait for hero
+  assert(hero x(0) == 4)  # not triggered
+  set tag(tag:door req tag, on)
+  wait
+  assert(hero x(0) == 4)  # not triggered by enabling a door underneath you
+  walk hero(0, south, 1)
+  wait for hero
+  walk hero(0, north, 1)
+  wait for hero
+  assert(hero x(0) == 11)  # triggered
+  assert(hero y(0) == 4)
+  use door(0)  # door underneath hero
+  assert(current map == map:test town)
+  walk hero to y(0, 6)
+  wait for hero
+  walk hero to x(0, 6)
+  wait for hero
 end
 
 ########################################################################
@@ -2750,7 +2790,6 @@ end
 #trim string (ID, start, length)
 #tweak palette (red, green, blue, first, last)
 #update palette
-#use door (number)
 #use item (item)
 #use item in slot(slot)
 #use NPC (who)

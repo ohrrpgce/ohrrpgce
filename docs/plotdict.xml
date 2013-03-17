@@ -506,11 +506,17 @@ resume player # OK, done</example>
 			<canon>get door x (number)</canon>
 			<shortname>get door x</shortname>
 			<description>Returns the x coordinate (in tiles) of the numbered door.</description>
+			<seealso>
+				<ref>dooratspot</ref>
+			</seealso>
 		</command>
 		<command id="getdoory">
 			<canon>get door y (number)</canon>
 			<shortname>get door y</shortname>
 			<description>Returns the y coordinate (in tiles) of the numbered door.</description>
+			<seealso>
+				<ref>dooratspot</ref>
+			</seealso>
 		</command>
 		<command id="getdoordestinationid">
 			<canon>get door destination id (number)</canon>
@@ -527,6 +533,16 @@ resume player # OK, done</example>
 			<shortname>get door destination map</shortname>
 			<description>Returns the map id of the door linked to by the numbered door. If door <p>number</p> does not exist, or is not currently linked to any other door, then -1 is returned. <note>A door's destination can vary depending on the current game state. Check your doorlinks if you get unexpected results!</note></description>
 		</command>
+		<command id="dooratspot">
+			<canon>door at spot (x, y)</canon>
+			<shortname>door at spot</shortname>
+			<description>Checks whether there is a door on the position given by <ref>x</ref>, <ref>y</ref> in tiles and if so returns its ID; otherwise returns -1. Note that the door might not have any active doorlink, or no door links at all. You can use <ref>getdoordestinationid</ref> to check if a door is active.</description>
+			<seealso>
+				<ref>getdoorx</ref>
+				<ref>getdoory</ref>
+			</seealso>
+		</command>
+
 		<command id="teleporttomap">
 			<canon>teleport to map (map, x, y)</canon>
 			<shortname>teleport to map</shortname>
