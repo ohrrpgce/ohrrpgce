@@ -3352,7 +3352,9 @@ IF vstate.mounting THEN '--scramble-----------------------
  '--part of the vehicle automount where heros scramble--
  IF npc(vstate.npc).xgo = 0 AND npc(vstate.npc).ygo = 0 THEN
   '--npc must stop before we mount
-  vehscramble vstate.mounting, NO, npc(vstate.npc).x, npc(vstate.npc).y
+  IF vehscramble(NO, npc(vstate.npc).x, npc(vstate.npc).y) THEN
+   vstate.mounting = NO
+  END IF
  END IF
 END IF'--scramble mount
 IF vstate.rising THEN '--rise----------------------
@@ -3421,6 +3423,8 @@ IF vstate.trigger_cleanup THEN '--clear
  IF vstate.dat.on_dismount > 0 THEN loadsay vstate.dat.on_dismount
  settag vstate.dat.riding_tag, NO
  IF vstate.dat.dismount_ahead = YES AND vstate.dat.pass_walls_while_dismounting = NO THEN
+  'FIXME: Why is this here, when dismounting is apparently also handled by vehscramble?
+  'Does this have to do with Bug 764 - "Blocked by" vehicle setting does nothing ?
   SELECT CASE catd(0)
    CASE 0
     herow(0).ygo = 20
@@ -3436,7 +3440,7 @@ IF vstate.trigger_cleanup THEN '--clear
  npc(vstate.npc).xgo = 0
  npc(vstate.npc).ygo = 0
  delete_walkabout_shadow npc(vstate.npc).sl
- '--clear vehicle
+ '--clear vehicle (sets vstate.active=NO, etc)
  reset_vehicle vstate
  FOR i as integer = 0 TO 15   'Why is this duplicated from dismounting?
   catx(i) = catx(0)
@@ -3447,7 +3451,9 @@ IF vstate.trigger_cleanup THEN '--clear
  gam.random_battle_countdown = range(100, 60)
 END IF
 IF vstate.ahead THEN '--ahead
- vehscramble vstate.ahead, YES, aheadx, aheady
+ IF vehscramble(YES, aheadx, aheady) THEN
+  vstate.ahead = NO
+ END IF
 END IF
 IF vstate.active = YES AND vehicle_is_animating() = NO THEN
  IF txt.showing = NO AND readbit(gen(), genSuspendBits, suspendplayer) = 0 THEN
@@ -3684,15 +3690,14 @@ FUNCTION backcompat_sound_id (byval id as integer) as integer
  END IF
 END FUNCTION
 
-SUB vehscramble(byref mode_val as bool, byval trigger_cleanup as bool, byval targx as integer, byval targy as integer)
- DIM tmp as integer = 0
+'Returns true if the scramble is finished
+FUNCTION vehscramble(byval trigger_cleanup as bool, byval targx as integer, byval targy as integer) as bool
+ DIM scrambled_heroes as integer = 0
  DIM count as integer = herocount()
  DIM scramx as integer
  DIM scramy as integer
  FOR i as integer = 0 TO 3
-  IF i >= count THEN
-   tmp += 1
-  ELSE
+  IF i < count THEN
    scramx = catx(i * 5)
    scramy = caty(i * 5)
    IF ABS(scramx - targx) < large(herow(i).speed, 4) THEN
@@ -3716,13 +3721,12 @@ SUB vehscramble(byref mode_val as bool, byval trigger_cleanup as bool, byval tar
     IF ABS(scramx - targx) > mapsizetiles.x * 20 / 2 THEN herow(i).xgo *= -1
     IF ABS(scramy - targy) > mapsizetiles.y * 20 / 2 THEN herow(i).ygo *= -1
    END IF
-   IF scramx - targx = 0 AND scramy - targy = 0 THEN tmp = tmp + 1
+   IF scramx - targx = 0 AND scramy - targy = 0 THEN scrambled_heroes += 1
    catx(i * 5) = scramx
    caty(i * 5) = scramy
   END IF
  NEXT i
- IF tmp = 4 THEN
-  mode_val = NO
+ IF scrambled_heroes = count THEN
   IF vstate.dat.on_mount < 0 THEN trigger_script ABS(vstate.dat.on_mount), YES, "vehicle on-mount", "", scrqBackcompat()
   IF vstate.dat.on_mount > 0 THEN loadsay vstate.dat.on_mount
   herow(0).speed = vstate.dat.speed
@@ -3732,10 +3736,15 @@ SUB vehscramble(byref mode_val as bool, byval trigger_cleanup as bool, byval tar
    herow(i).xgo = 0
    herow(i).ygo = 0
   NEXT i
-  IF trigger_cleanup THEN vstate.trigger_cleanup = YES '--clear
-  IF vstate.dat.elevation > 0 THEN vstate.rising = YES
+  IF trigger_cleanup THEN
+   vstate.trigger_cleanup = YES '--clear (happens next tick)
+  ELSE
+   IF vstate.dat.elevation > 0 THEN vstate.rising = YES
+  END IF
+  RETURN YES
  END IF
-END SUB
+ RETURN NO
+END FUNCTION
 
 SUB loadsay (byval box_id as integer)
 DIM j as integer
