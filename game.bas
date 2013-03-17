@@ -3094,6 +3094,8 @@ END FUNCTION
 SUB checkdoors ()
  'If the leader is standing on a door, use it.
  IF vstate.active = YES AND vstate.dat.enable_door_use = NO THEN EXIT SUB 'Doors are disabled by a vehicle
+ IF readbit(gen(), genSuspendBits, suspenddoors) = 1 THEN EXIT SUB
+
  DIM door_id as integer
  door_id = find_door(catx(0) \ 20, caty(0) \ 20)
  IF door_id >= 0 THEN usedoor door_id

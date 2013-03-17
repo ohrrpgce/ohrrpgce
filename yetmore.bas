@@ -3102,6 +3102,10 @@ SELECT CASE as CONST id
   END IF
  CASE 550 '--door at spot
   scriptret = find_door(retvals(0), retvals(1))
+ CASE 551 '--suspend doors
+  setbit gen(), genSuspendBits, suspenddoors, 1
+ CASE 552 '--resume doors
+  setbit gen(), genSuspendBits, suspenddoors, 0
 
 
 'old scriptnpc

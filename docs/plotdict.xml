@@ -339,6 +339,16 @@ resume caterpillar # normal game again.</example>
 			<shortname>resume catapillar</shortname>
 			<deprecated>May 22 2001</deprecated>
 		</command>
+		<command id="suspenddoors">
+			<canon>suspend doors</canon>
+			<shortname>suspend doors</shortname>
+			<description>Stops doors from triggering when stepped on by the lead hero. One use is to allow you to script your own transitions between maps, using <ref>dooratspot</ref>, etc. While doors are suspended <ref>usedoor</ref> still works.</description>
+		</command>
+		<command id="resumedoors">
+			<canon>resume doors</canon>
+			<shortname>resume doors</shortname>
+			<description>Restores normal door triggering after a <ref>suspenddoors</ref> command. If the lead hero is already standing on a door, it will not be triggered.</description>
+		</command>
 		<command id="suspendrandomenemies">
 			<canon>suspend random enemies</canon>
 			<shortname>suspend random enemies</shortname>
@@ -536,13 +546,12 @@ resume player # OK, done</example>
 		<command id="dooratspot">
 			<canon>door at spot (x, y)</canon>
 			<shortname>door at spot</shortname>
-			<description>Checks whether there is a door on the position given by <ref>x</ref>, <ref>y</ref> in tiles and if so returns its ID; otherwise returns -1. Note that the door might not have any active doorlink, or no door links at all. You can use <ref>getdoordestinationid</ref> to check if a door is active.</description>
+			<description>Checks whether there is a door on the position given by <ref>x</ref>, <ref>y</ref> in tiles and if so returns its ID; otherwise returns -1. Note that the door might not have any active doorlink, or no door links at all. You can use <ref>getdoordestinationid</ref> to check if a door is active. If you want to script your own map transitions, you will find <ref>suspenddoors</ref> helpful.</description>
 			<seealso>
 				<ref>getdoorx</ref>
 				<ref>getdoory</ref>
 			</seealso>
 		</command>
-
 		<command id="teleporttomap">
 			<canon>teleport to map (map, x, y)</canon>
 			<shortname>teleport to map</shortname>

@@ -102,7 +102,7 @@ WHAT IS NEW?
       current and maximum values. See "base stat" in the Plotscripting
       Dictionary for information. [Ralph]
     * "get item maximum stack size" [Ralph]
-    * "door at spot" [Ralph]
+    * "door at spot", "suspend doors", "resume doors" [Ralph]
 
   * Stuff Only Developers Will Notice
 

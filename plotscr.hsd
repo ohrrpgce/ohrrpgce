@@ -563,6 +563,8 @@ define function, begin
 548,npcz,1,0                     #npc's Z value, in pixels (npcref)
 549,setnpcz,2,0,0                #set npc's Z value, in pixels (npcref, z)
 550,dooratspot,2,0,0             #get door ID on tile, or -1 (x, y)
+551,suspenddoors,1,0             #doors don't trigger when stepped on
+552,resumedoors,1,0              #undoes suspend doors
 end
 
 #--------------------------------------------------------------------------

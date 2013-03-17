@@ -2255,6 +2255,15 @@ script, door tests, begin
   set tag(tag:door req tag, on)
   wait
   assert(hero x(0) == 4)  # not triggered by enabling a door underneath you
+  suspend doors
+  walk hero(0, south, 1)
+  wait for hero
+  walk hero(0, north, 1)
+  wait for hero
+  assert(hero x(0) == 4)  # not triggered
+  resume doors
+  wait
+  assert(hero x(0) == 4)  # door underneath hero not triggered
   walk hero(0, south, 1)
   wait for hero
   walk hero(0, north, 1)

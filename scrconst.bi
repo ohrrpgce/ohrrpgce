@@ -51,6 +51,7 @@ CONST suspendrandomenemies = 6
 CONST suspendboxadvance = 7
 CONST suspendoverlay = 8
 CONST suspendambientmusic = 9
+CONST suspenddoors = 10
 '--CAMERA CONSTANTS--
 CONST cameramode = 45
 CONST cameraArg = 46
