@@ -1352,7 +1352,7 @@ END SUB
 
 SUB individual_item_editor(item_id as integer)
  DIM itembuf(dimbinsize(binITM)) as integer
- CONST menusize as integer = 20
+ CONST menusize as integer = 21
  DIM menu(menusize) as string
  DIM menu_display(menusize) as string
  DIM shaded(menusize) as bool
@@ -1377,35 +1377,37 @@ SUB individual_item_editor(item_id as integer)
  DIM max(menusize) as integer
  DIM min(menusize) as integer
  max(3) = 32767
- max(4) = 5
- max(5) = gen(genMaxAttack)
+ max(4) = 99
+ max(5) = 5
  max(6) = gen(genMaxAttack)
  max(7) = gen(genMaxAttack)
  max(8) = gen(genMaxAttack)
- max(9) = 2
- max(10) = max_tag()
+ max(9) = gen(genMaxAttack)
+ max(10) = 2
  max(11) = max_tag()
  max(12) = max_tag()
  max(13) = max_tag()
- max(14) = gen(genMaxWeaponPic)
- min(15) = -1
- max(15) = 32767
+ max(14) = max_tag()
+ max(15) = gen(genMaxWeaponPic)
+ min(16) = -1
+ max(16) = 32767
 
  'Map from menu() indices to itembuf() indices
  DIM iidx(menusize) as integer
  iidx(3)  = 46 'value
- iidx(4)  = 49 'equippable as
- iidx(5)  = 47 'in battle use
- iidx(6)  = 48 'weapon use
- iidx(7)  = 50 'teach spell
- iidx(8)  = 51 'out of battle use
- iidx(9)  = 73 'consumption
- iidx(10) = 74 'own item tag
- iidx(11) = 75 'in inventory tag
- iidx(12) = 76 'equipped tag
- iidx(13) = 77 'actively equipped tag
- iidx(14) = 52 'weapon pic
- iidx(15) = 53 'weapon pal
+ iidx(4)  = 210 'stack size
+ iidx(5)  = 49 'equippable as
+ iidx(6)  = 47 'in battle use
+ iidx(7)  = 48 'weapon use
+ iidx(8)  = 50 'teach spell
+ iidx(9)  = 51 'out of battle use
+ iidx(10) = 73 'consumption
+ iidx(11) = 74 'own item tag
+ iidx(12) = 75 'in inventory tag
+ iidx(13) = 76 'equipped tag
+ iidx(14) = 77 'actively equipped tag
+ iidx(15) = 52 'weapon pic
+ iidx(16) = 53 'weapon pal
 
  DIM selectst as SelectTypeState
  DIM enable_strgrabber as bool
@@ -1428,33 +1430,33 @@ SUB individual_item_editor(item_id as integer)
   IF enter_or_space() THEN
    IF state.pt = 0 THEN EXIT DO
    IF itembuf(49) = 1 THEN
-    IF state.pt = 16 THEN
+    IF state.pt = 17 THEN
      xy_position_on_sprite wep_img, itembuf(80), itembuf(81), 0, 24, 24, "weapon handle position", "xy_weapon_handle"
      state.need_update = YES
     END IF
-    IF state.pt = 17 THEN
+    IF state.pt = 18 THEN
      xy_position_on_sprite wep_img, itembuf(78), itembuf(79), 1, 24, 24, "weapon handle position", "xy_weapon_handle"
      state.need_update = YES
     END IF
    END IF
    IF itembuf(49) > 0 THEN
-    IF state.pt = 18 THEN
+    IF state.pt = 19 THEN
      item_editor_stat_bonuses itembuf()
      state.need_update = YES
     END IF
-    IF state.pt = 19 THEN
+    IF state.pt = 20 THEN
      item_editor_elementals itembuf()
     END IF
-    'IF state.pt = 19 THEN
+    'IF state.pt = 20 THEN
     ' editbitset itembuf(), 70, 23, ibitnames()
     ' state.need_update = YES
     'END IF
-    IF state.pt = 20 THEN
+    IF state.pt = 21 THEN
      item_editor_equipbits itembuf()
      state.need_update = YES
     END IF
    END IF
-   IF state.pt = 15 THEN '--palette picker
+   IF state.pt = 16 THEN '--palette picker
     itembuf(53) = pal16browse(itembuf(53), 5, itembuf(52))
     state.need_update = YES
    END IF
@@ -1468,20 +1470,20 @@ SUB individual_item_editor(item_id as integer)
     IF enable_strgrabber ANDALSO strgrabber(info, 36) THEN
      state.need_update = YES
     END IF
-   CASE 3, 4, 9, 14, 15
-    IF intgrabber(itembuf(iidx(state.pt)), min(state.pt), max(state.pt)) THEN  'FIXME!!!!
+   CASE 3, 4, 5, 10, 15, 16
+    IF intgrabber(itembuf(iidx(state.pt)), min(state.pt), max(state.pt)) THEN
      state.need_update = YES
     END IF
-   CASE 5, 6, 7
+   CASE 6, 7, 8
     IF zintgrabber(itembuf(iidx(state.pt)), -1, max(state.pt)) THEN
      state.need_update = YES
     END IF
-   CASE 8
+   CASE 9
     IF xintgrabber(itembuf(51), 0, max(state.pt), -1, gen(genMaxTextbox) * -1) THEN
      state.need_update = YES
     END IF
-   CASE 10 TO 13
-    IF tag_grabber(itembuf(74 + (state.pt - 10)), 0) THEN
+   CASE 11 TO 14
+    IF tag_grabber(itembuf(74 + (state.pt - 11)), 0) THEN
      state.need_update = YES
      'Update cache
      itemtags(item_id).have_tag = itembuf(74)
@@ -1505,7 +1507,7 @@ SUB individual_item_editor(item_id as integer)
   IF itembuf(49) = 1 THEN
    'Is a weapon
    DIM frame as integer = 0
-   IF state.pt = 16 THEN frame = 1
+   IF state.pt = 17 THEN frame = 1
    frame_draw wep_img.sprite + 1 - frame, wep_img.pal, 280, 160, , , dpage
    DIM handle as XYPair
    handle.x = 280 + itembuf(78 + frame * 2)
@@ -1534,53 +1536,54 @@ SUB generate_item_edit_menu (menu() as string, shaded() as bool, itembuf() as in
  menu(1) = "Name:" & item_name
  menu(2) = "Info:" & info_string
  menu(3) = "Value: " & itembuf(46)
- menu(4) = "Equippable as: " & equip_types(bound(itembuf(49), 0, 5))
- menu(5) = "When used in battle: " & item_attack_name(itembuf(47))
- menu(6) = "When used as a " & weapon & ": " & item_attack_name(itembuf(48))
- menu(7) = "Teach Spell: " & item_attack_name(itembuf(50))
+ menu(4) = "Maximum stack size: " & defaultint(itembuf(210), "Default (" & gen(genItemStackSize) & ")", 0)
+ menu(5) = "Equippable as: " & equip_types(bound(itembuf(49), 0, 5))
+ menu(6) = "When used in battle: " & item_attack_name(itembuf(47))
+ menu(7) = "When used as a " & weapon & ": " & item_attack_name(itembuf(48))
+ menu(8) = "Teach Spell: " & item_attack_name(itembuf(50))
  IF itembuf(51) >= 0 THEN
-  menu(8) = "When used out of battle: " & item_attack_name(itembuf(51))
+  menu(9) = "When used out of battle: " & item_attack_name(itembuf(51))
   box_preview = ""
  ELSE
-  menu(8) = "When used out of battle: Text " & ABS(itembuf(51))
+  menu(9) = "When used out of battle: Text " & ABS(itembuf(51))
   box_preview = textbox_preview_line(ABS(itembuf(51)))
  END IF
- menu(9) = "Unlimited Use"
- IF itembuf(73) = 1 THEN menu(9) = "Consumed By Use"
- IF itembuf(73) = 2 THEN menu(9) = "Cannot be Sold/Dropped"
- menu(10) = "own item TAG " & itembuf(74) & " " & load_tag_name(itembuf(74))
- menu(11) = "is in inventory TAG " & itembuf(75) & " " & load_tag_name(itembuf(75))
- menu(12) = "is equipped TAG " & itembuf(76) & " " & load_tag_name(itembuf(76))
- menu(13) = "eqpt by active hero TAG " & itembuf(77) & " " & load_tag_name(itembuf(77))
- menu(14) = "Weapon Picture: " & itembuf(52)
- menu(15) = "Weapon Palette: " & defaultint(itembuf(53))
- menu(16) = "Handle position A..."
- menu(17) = "Handle position B..."
- menu(18) = "Stat Bonuses..."
- menu(19) = "Elemental Resists..."
- 'menu(19) = "Equipment Bits..."
- menu(20) = "Who Can Equip?..."
+ menu(10) = "Unlimited Use"
+ IF itembuf(73) = 1 THEN menu(10) = "Consumed By Use"
+ IF itembuf(73) = 2 THEN menu(10) = "Cannot be Sold/Dropped"
+ menu(11) = "own item TAG " & itembuf(74) & " " & load_tag_name(itembuf(74))
+ menu(12) = "is in inventory TAG " & itembuf(75) & " " & load_tag_name(itembuf(75))
+ menu(13) = "is equipped TAG " & itembuf(76) & " " & load_tag_name(itembuf(76))
+ menu(14) = "eqpt by active hero TAG " & itembuf(77) & " " & load_tag_name(itembuf(77))
+ menu(15) = "Weapon Picture: " & itembuf(52)
+ menu(16) = "Weapon Palette: " & defaultint(itembuf(53))
+ menu(17) = "Handle position A..."
+ menu(18) = "Handle position B..."
+ menu(19) = "Stat Bonuses..."
+ menu(20) = "Elemental Resists..."
+ 'menu(20) = "Equipment Bits..."
+ menu(21) = "Who Can Equip?..."
 
  FOR i as integer = 0 TO UBOUND(shaded)
   shaded(i) = NO
  NEXT
  IF itembuf(49) <> 1 THEN  'Not a weapon
-  menu(6) = "When used as a " & weapon & ": N/A"
-  shaded(6) = YES
-  menu(14) = "Weapon Picture: N/A"
-  menu(15) = "Weapon Palette: N/A"
-  shaded(14) = YES
+  menu(7) = "When used as a " & weapon & ": N/A"
+  shaded(7) = YES
+  menu(15) = "Weapon Picture: N/A"
+  menu(16) = "Weapon Palette: N/A"
   shaded(15) = YES
   shaded(16) = YES
   shaded(17) = YES
+  shaded(18) = YES
  END IF
  IF itembuf(49) = 0 THEN  'Not equipable
   'Don't N/A the tags, because they still take effect
-  shaded(12) = YES
   shaded(13) = YES
-  shaded(18) = YES
+  shaded(14) = YES
   shaded(19) = YES
   shaded(20) = YES
+  shaded(21) = YES
  END IF
 
 END SUB

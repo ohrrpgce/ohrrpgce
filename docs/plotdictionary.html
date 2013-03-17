@@ -701,6 +701,9 @@
 		<a href="#about-getitem">get item (item,number)</a><br>
 		
 	
+		<a href="#about-getitemmaximumstacksize">get item maximum stack size (item)</a><br>
+		
+	
 		<a href="#about-getitemname">get item name (ID, item)</a><br>
 		
 	
@@ -3854,7 +3857,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set item in slot (slot, item)</font></b><br>
-			Change the item ID number at a specific slot in your inventory. The <span class="param">slot</span> argument is the position in your inventory screen (slots are numbered from 0 to <a href="#about-getinventorysize" class="ref">get inventory size</a>-1), and the <span class="param">item</span> argument is the item ID number, or one of the <span class="param">item:name</span> constants defined in your .hsi file. If you want to erase and item slot, use -1 as the item ID. If the slot was empty, one copy of the item will be placed in it. Otherwise the original item count is preserved.<br>
+			Change the item ID number at a specific slot in your inventory. The <span class="param">slot</span> argument is the position in your inventory screen (slots are numbered from 0 to <a href="#about-getinventorysize" class="ref">get inventory size</a>-1), and the <span class="param">item</span> argument is the item ID number, or one of the <span class="param">item:name</span> constants defined in your .hsi file. If you want to erase and item slot, use -1 as the item ID. If the slot was empty, one copy of the item will be placed in it. Otherwise the original item count is preserved. If the maximum stack size of the new item type is less than the number of items in that slot, the extra items will be removed from that slot and placed whereever there is room.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -3863,7 +3866,9 @@ end</pre>
 <a href="#about-itemcountinslot" class="ref">item count in slot</a>, </li>
 <li>
 <a href="#about-setitemcountinslot" class="ref">set item count in slot</a>, </li>
-<li><a href="#about-getinventorysize" class="ref">get inventory size</a></li>
+<li>
+<a href="#about-getinventorysize" class="ref">get inventory size</a>, </li>
+<li><a href="#about-getitemmaximumstacksize" class="ref">get item maximum stack size</a></li>
 </ul>
 		</tt></p>
 		<a name="about-itemcountinslot"></a>
@@ -3879,14 +3884,16 @@ end</pre>
 <a href="#about-setiteminslot" class="ref">set item in slot</a>, </li>
 <li>
 <a href="#about-setitemcountinslot" class="ref">set item count in slot</a>, </li>
-<li><a href="#about-getinventorysize" class="ref">get inventory size</a></li>
+<li>
+<a href="#about-getinventorysize" class="ref">get inventory size</a>, </li>
+<li><a href="#about-getitemmaximumstacksize" class="ref">get item maximum stack size</a></li>
 </ul>
 		</tt></p>
 		<a name="about-setitemcountinslot"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">set item count in slot (slot, count)</font></b><br>
-			Change the count of items at a specific slot in your inventory. The <span class="param">count</span> argument is the new number of items from 1 to 99, or 0 if you want to delete any items currently in the slot. If the slot is empty, this command will fail.<br>
+			Change the count of items at a specific slot in your inventory. The <span class="param">count</span> argument is the new number of items from 1 up to the maximum count (which is dependent on the item, but no more than 99; see <a href="#about-getitemmaximumstacksize" class="ref">get item maximum stack size</a>), or 0 if you want to delete any items currently in the slot. If the slot is empty or if the item count is out of bounds, this command will fail.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -3895,7 +3902,9 @@ end</pre>
 <a href="#about-setiteminslot" class="ref">set item in slot</a>, </li>
 <li>
 <a href="#about-setitemcountinslot" class="ref">set item count in slot</a>, </li>
-<li><a href="#about-getinventorysize" class="ref">get inventory size</a></li>
+<li>
+<a href="#about-getinventorysize" class="ref">get inventory size</a>, </li>
+<li><a href="#about-getitemmaximumstacksize" class="ref">get item maximum stack size</a></li>
 </ul>
 		</tt></p>
 		<a name="about-useiteminslot"></a>
@@ -3920,7 +3929,7 @@ end</pre>
 		<b><font color="yellow">get inventory size</font></b><br>
 			Returns the number of inventory slots.<br>
 			
-			
+			<br>See also: <ul class="seealso"><li><a href="#about-setinventorysize" class="ref">set inventory size</a></li></ul>
 		</tt></p>
 		<a name="about-setinventorysize"></a>
 		<p>
@@ -3928,7 +3937,19 @@ end</pre>
 		<b><font color="yellow">set inventory size (new size)</font></b><br>
 			Changes the number of inventory slots that are available. Use the constant <span class="param">inv:max</span> to restore the maximum value. The number you give will be rounded up to the nearest multiple of 3.<br>
 			
+			<br>See also: <ul class="seealso"><li><a href="#about-getinventorysize" class="ref">get inventory size</a></li></ul>
+		</tt></p>
+		<a name="about-getitemmaximumstacksize"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get item maximum stack size (item)</font></b><br>
+			Returns the maximum allowed size of a stack of items in the inventory. The <span class="param">item</span> argument is an item ID; you can refer to the item by number, or you can use the constants defined in your .hsi file, which are in the form of item:name. If the item uses the default stack size, then the default value is returned.<br>
 			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-itemcountinslot" class="ref">item count in slot</a>, </li>
+<li><a href="#about-getinventorysize" class="ref">get inventory size</a></li>
+</ul>
 		</tt></p>
 
 		<hr>
@@ -11249,7 +11270,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 770 commands in this file, of which 57 are only references to other commands.</p>
+	<p>Stats: There are 771 commands in this file, of which 57 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

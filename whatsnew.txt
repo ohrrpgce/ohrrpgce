@@ -38,6 +38,8 @@ WHAT IS NEW?
     * Stats can be hidden for a hero. This prevents them from appearing
       on the Status and Equip menus. [James]
     * Map layers can now be named [Ralph]
+    * You can set the maximum size of a stack of items in the inventory
+      with per-item and default settings [Ralph]
 
   * Bugfixes
     * Fix the arrow key problem in Custom on Mac OS X for the third
@@ -99,6 +101,7 @@ WHAT IS NEW?
     * Each of a hero's stats now has a base value in addition to
       current and maximum values. See "base stat" in the Plotscripting
       Dictionary for information. [Ralph]
+    * "get item maximum stack size" [Ralph]
 
   * Stuff Only Developers Will Notice
 

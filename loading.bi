@@ -131,6 +131,7 @@ DECLARE SUB loaditemdata (array() as integer, byval index as integer)
 DECLARE SUB saveitemdata (array() as integer, byval index as integer)
 DECLARE FUNCTION LoadOldItemElemental (itembuf() as integer, byval element as integer) as SINGLE
 DECLARE SUB LoadItemElementals (byval index as integer, itemresists() as single)
+DECLARE FUNCTION get_item_stack_size (byval item_id as integer) as integer
 
 DECLARE FUNCTION backcompat_element_dmg (byval weak as integer, byval strong as integer, byval absorb as integer) as double
 DECLARE FUNCTION loadoldenemyresist (array() as integer, byval element as integer) as SINGLE

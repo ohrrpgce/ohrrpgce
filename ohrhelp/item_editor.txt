@@ -8,6 +8,8 @@ Info: Here you can type a longer descriptive line about the item which will be d
 
 Value: This is the suggested price when the item is added to a shop. The selling price when selling back to a shop will default to 1/2 of this value.
 
+Maximum stack size: The maximum number of copies of this item that can be placed in each inventory slot. The default value is set in General Game Settings.
+
 When used in battle: This is an attack that will be done by a hero who uses this item from their Items menu in battle. Remember that any action (including healing) in battle must be defined as an attack in the Attack Editor!
 
 When used as a Weapon: This is an attack that will be done if the item is equipped as a hero's weapon.

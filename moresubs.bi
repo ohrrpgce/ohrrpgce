@@ -7,7 +7,7 @@ DECLARE SUB addhero (byval who as integer, byval slot as integer, byval forcelev
 DECLARE FUNCTION averagelev () as integer
 DECLARE SUB calibrate
 
-DECLARE FUNCTION consumeitem (byval index as integer) as bool
+DECLARE FUNCTION consumeitem (byval invslot as integer) as bool
 DECLARE FUNCTION countitem (byval item_id as integer) as integer
 DECLARE SUB getitem (byval item_id as integer, byval num as integer=1)
 DECLARE SUB delitem (byval item_id as integer, byval amount as integer=1)

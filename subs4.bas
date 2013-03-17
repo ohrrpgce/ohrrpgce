@@ -1619,10 +1619,11 @@ SUB generate_gen_menu(m() as string, longname as string, aboutline as string)
   CASE 5: m(14) += "Hide errors not reported in old versions"
   CASE 6: m(14) += "Hide all ignoreable errors"
  END SELECT
+ m(15) = "Default maximum item stack size: " & gen(genItemStackSize)
 END SUB
 
 SUB gendata ()
- CONST maxMenu = 14
+ CONST maxMenu = 15
  DIM m(maxMenu) as string
  DIM menu_display(maxMenu) as string
  DIM min(maxMenu) as integer
@@ -1660,6 +1661,9 @@ SUB gendata ()
  index(14) = genErrorLevel
  max(14) = 6
  min(14) = 2
+ index(15) = genItemStackSize
+ max(15) = 99
+ min(15) = 1
 
  DIM aboutline as string = load_aboutline()
  DIM longname as string = load_gamename()

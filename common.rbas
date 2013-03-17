@@ -890,7 +890,7 @@ FUNCTION curbinsize (byval id as integer) as integer
  IF id = 9 THEN RETURN 34  '.n##
  IF id = 10 THEN RETURN 858 '.dt0
  IF id = 11 THEN RETURN 736 '.dt1
- IF id = 12 THEN RETURN 420 '.itm
+ IF id = 12 THEN RETURN 422 '.itm
  RETURN 0
 END FUNCTION
 
@@ -3704,6 +3704,10 @@ IF full_upgrade ANDALSO getfixbit(fixEnemyElementals) = 0 THEN
   NEXT
   saveenemydata dat(), i
  NEXT
+END IF
+
+IF gen(genItemStackSize) <= 0 OR gen(genItemStackSize) > 99 THEN
+ gen(genItemStackSize) = 99
 END IF
 
 IF full_upgrade ANDALSO getfixbit(fixItemElementals) = 0 THEN

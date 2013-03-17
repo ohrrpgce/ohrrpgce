@@ -262,16 +262,16 @@ LOOP
 
 END SUB
 
-FUNCTION consumeitem (byval index as integer) as bool
+FUNCTION consumeitem (byval invslot as integer) as bool
  '--Subtracts one of an item at a location. If the item is depleted, returns true. If there are some of the item left, it returns false
  '--Argument is the inventory slot index, not the item ID
  consumeitem = 0
- inventory(index).num -= 1
- IF inventory(index).num <= 0 THEN
-  inventory(index).used = NO
+ inventory(invslot).num -= 1
+ IF inventory(invslot).num <= 0 THEN
+  inventory(invslot).used = NO
   consumeitem = -1
  END IF
- update_inventory_caption index
+ update_inventory_caption invslot
 END FUNCTION
 
 FUNCTION countitem (byval item_id as integer) as integer
@@ -288,14 +288,15 @@ SUB getitem (byval item_id as integer, byval num as integer=1)
 
  DIM numitems as integer = num
  DIM room as integer
+ DIM stacksize as integer = get_item_stack_size(item_id)
 
  FOR i as integer = 0 TO last_inv_slot()
   ' Loop through all inventory slots looking for a slot that already
   ' contains the item we are adding. If found increment that slot
-  room = 99 - inventory(i).num
+  room = stacksize - inventory(i).num
   IF inventory(i).used AND item_id = inventory(i).id AND room > 0 THEN
    IF room < numitems THEN
-    inventory(i).num = 99
+    inventory(i).num = stacksize
     update_inventory_caption i
     numitems -= room
    ELSE
@@ -311,7 +312,7 @@ SUB getitem (byval item_id as integer, byval num as integer=1)
   IF inventory(i).used = 0 THEN
    inventory(i).used = -1
    inventory(i).id = item_id
-   inventory(i).num = small(numitems, 99)
+   inventory(i).num = small(numitems, stacksize)
    numitems -= inventory(i).num
    update_inventory_caption i
    IF numitems = 0 THEN EXIT SUB
@@ -329,10 +330,11 @@ END SUB
 
 FUNCTION room_for_item (byval item_id as integer, byval num as integer = 1) as bool
  DIM room as integer
+ DIM stacksize as integer = get_item_stack_size(item_id)
 
  FOR i as integer = 0 TO last_inv_slot()
   ' Loop through all inventory slots looking for a slot that already contains the item
-  room = 99 - inventory(i).num
+  room = stacksize - inventory(i).num
   IF inventory(i).used AND item_id = inventory(i).id AND room > 0 THEN
    IF room >= num THEN
     RETURN YES
@@ -343,10 +345,10 @@ FUNCTION room_for_item (byval item_id as integer, byval num as integer = 1) as b
  FOR i as integer = 0 TO last_inv_slot()
   'loop through each inventory slot looking for an empty slot to populate 
   IF inventory(i).used = NO THEN
-   IF num <= 99 THEN
+   IF num <= stacksize THEN
     RETURN YES
    END IF
-   num -= 99
+   num -= stacksize
   END IF
  NEXT
  RETURN NO
@@ -358,7 +360,8 @@ SUB delitem (byval item_id as integer, byval amount as integer=1)
    IF inventory(o).num <= amount THEN
     amount -= inventory(o).num
     inventory(o).num = 0
-    inventory(o).used = 0
+    inventory(o).id = 0
+    inventory(o).used = NO
    ELSE
     inventory(o).num -= amount
     amount = 0

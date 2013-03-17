@@ -148,7 +148,8 @@ CONST genEnemyWeakHP = 189      '%HP for enemies to use Desperation AI
 CONST genAutosortScheme = 190   'Method used to autosort inventory
 CONST genMaxLevel = 191         'Maximum level (not to be confused with changeable genLevelCap)
 CONST genBattleMode = 192       'Battle mode 0=Active-time, 1=Turn-based
-'193 to 198 unused
+CONST genItemStackSize = 193    'Default item stack size
+'194 to 198 unused
 '199 to 359 used to be the scattertable for PW2, now zeroed out
 '360 to 499 unused
 

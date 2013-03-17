@@ -281,6 +281,21 @@ script, inventory tests, begin
   for (slot, 0, get inventory size -- 1) do (
     assert(item in slot(slot) == -1)
   )
+
+  # test max stack sizes
+  assert(get item maximum stack size(item:Boots) == 99)
+  assert(get item maximum stack size(item:Bulky) == 3)
+  get item(item:Bulky, 6)
+  assert(inventory(item:Bulky) == 6)
+  assert(item count in slot(0) == 3)
+  assert(item count in slot(1) == 3)
+  set item in slot(2, item:Boots)
+  set item count in slot(2, 40)
+  # changing type should cause stacks to overflow if too large
+  set item in slot(2, item:Bulky)
+  assert(inventory(item:Bulky) == 46)
+  assert(item count in slot(2) == 3)
+  delete item(item:Bulky, 46)
 end
 
 ########################################################################

@@ -1042,12 +1042,13 @@ end</example>
 		<command id="setiteminslot">
 			<canon>set item in slot (slot, item)</canon>
 			<shortname>set item in slot</shortname>
-			<description>Change the item ID number at a specific slot in your inventory. The <p>slot</p> argument is the position in your inventory screen (slots are numbered from 0 to <ref>getinventorysize</ref>-1), and the <p>item</p> argument is the item ID number, or one of the <p>item:name</p> constants defined in your .hsi file. If you want to erase and item slot, use -1 as the item ID. If the slot was empty, one copy of the item will be placed in it. Otherwise the original item count is preserved.</description>
+			<description>Change the item ID number at a specific slot in your inventory. The <p>slot</p> argument is the position in your inventory screen (slots are numbered from 0 to <ref>getinventorysize</ref>-1), and the <p>item</p> argument is the item ID number, or one of the <p>item:name</p> constants defined in your .hsi file. If you want to erase and item slot, use -1 as the item ID. If the slot was empty, one copy of the item will be placed in it. Otherwise the original item count is preserved. If the maximum stack size of the new item type is less than the number of items in that slot, the extra items will be removed from that slot and placed whereever there is room.</description>
 			<seealso>
 				<ref>iteminslot</ref>
 				<ref>itemcountinslot</ref>
 				<ref>setitemcountinslot</ref>
 				<ref>getinventorysize</ref>
+				<ref>getitemmaximumstacksize</ref>
 			</seealso>
 		</command>
 		<command id="itemcountinslot">
@@ -1059,17 +1060,19 @@ end</example>
 				<ref>setiteminslot</ref>
 				<ref>setitemcountinslot</ref>
 				<ref>getinventorysize</ref>
+				<ref>getitemmaximumstacksize</ref>
 			</seealso>
 		</command>
 		<command id="setitemcountinslot">
 			<canon>set item count in slot (slot, count)</canon>
 			<shortname>set item count in slot</shortname>
-			<description>Change the count of items at a specific slot in your inventory. The <p>count</p> argument is the new number of items from 1 to 99, or 0 if you want to delete any items currently in the slot. If the slot is empty, this command will fail.</description>
+			<description>Change the count of items at a specific slot in your inventory. The <p>count</p> argument is the new number of items from 1 up to the maximum count (which is dependent on the item, but no more than 99; see <ref>getitemmaximumstacksize</ref>), or 0 if you want to delete any items currently in the slot. If the slot is empty or if the item count is out of bounds, this command will fail.</description>
 			<seealso>
 				<ref>iteminslot</ref>
 				<ref>setiteminslot</ref>
 				<ref>setitemcountinslot</ref>
 				<ref>getinventorysize</ref>
+				<ref>getitemmaximumstacksize</ref>
 			</seealso>
 		</command>
 		<command id="useiteminslot">
@@ -1089,11 +1092,26 @@ end</example>
 			<canon>get inventory size</canon>
 			<shortname>get inventory size</shortname>
 			<description>Returns the number of inventory slots.</description>
+			<seealso>
+				<ref>setinventorysize</ref>
+			</seealso>
 		</command>
 		<command id="setinventorysize">
 			<canon>set inventory size (new size)</canon>
 			<shortname>set inventory size</shortname>
 			<description>Changes the number of inventory slots that are available. Use the constant <p>inv:max</p> to restore the maximum value. The number you give will be rounded up to the nearest multiple of 3.</description>
+			<seealso>
+				<ref>getinventorysize</ref>
+			</seealso>
+		</command>
+		<command id="getitemmaximumstacksize">
+			<canon>get item maximum stack size (item)</canon>
+			<shortname>get item maximum stack size</shortname>
+			<description>Returns the maximum allowed size of a stack of items in the inventory. The <p>item</p> argument is an item ID; you can refer to the item by number, or you can use the constants defined in your .hsi file, which are in the form of item:name. If the item uses the default stack size, then the default value is returned.</description>
+			<seealso>
+				<ref>itemcountinslot</ref>
+				<ref>getinventorysize</ref>
+			</seealso>
 		</command>
 	</section>
 	<section title="Effects">

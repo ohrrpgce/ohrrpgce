@@ -2728,6 +2728,14 @@ SUB LoadItemElementals (byval index as integer, itemresists() as SINGLE)
  END IF
 END SUB
 
+FUNCTION get_item_stack_size (byval item_id as integer) as integer
+ DIM itembuf(dimbinsize(binITM)) as integer
+ loaditemdata itembuf(), item_id
+ DIM stacksize as integer = itembuf(210)
+ IF stacksize = 0 THEN stacksize = gen(genItemStackSize)
+ RETURN stacksize
+END FUNCTION
+
 
 '==========================================================================================
 '                                         Enemies

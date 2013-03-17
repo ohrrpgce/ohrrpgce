@@ -2462,6 +2462,12 @@ SELECT CASE as CONST id
      .id = retvals(1)
      IF .num < 1 OR .used = NO THEN .num = 1
      .used = YES
+     DIM stacksize as integer = get_item_stack_size(.id)
+     IF .num > stacksize THEN  'overflow the stack
+      DIM spare as integer = .num - stacksize
+      .num = stacksize
+      getitem retvals(1), spare
+     END IF
     END WITH
    END IF
    update_inventory_caption retvals(0)
@@ -2478,21 +2484,20 @@ SELECT CASE as CONST id
   END IF
  CASE 443'--set item count in slot
   IF valid_item_slot(retvals(0)) THEN
-   IF retvals(1) = 0 THEN
-    WITH inventory(retvals(0))
+   WITH inventory(retvals(0))
+    IF retvals(1) = 0 THEN
      .used = NO
      .id = 0
      .num = 0
-    END WITH
-   ELSEIF bound_arg(retvals(1), 1, 99, "count") THEN
-    WITH inventory(retvals(0))
-     IF .used = NO THEN
-      scripterr "set item count in slot: can't set count for empty slot " & retvals(0), serrBound
-     ELSE
+    ELSEIF .used = NO THEN
+     scripterr "set item count in slot: can't set count for empty slot " & retvals(0), serrBound
+    ELSE
+     DIM stacksize as integer = get_item_stack_size(.id)
+     IF bound_arg(retvals(1), 1, stacksize, "item count") THEN
       .num = retvals(1)
      END IF
-    END WITH
-   END IF
+    END IF
+   END WITH
    update_inventory_caption retvals(0)
    evalitemtags
    tag_updates
@@ -3080,6 +3085,10 @@ SELECT CASE as CONST id
  CASE 544 '--hero Z
   IF really_valid_hero_party(retvals(0), 3) THEN
    scriptret = catz(retvals(0) * 5)
+  END IF
+ CASE 547 '--item maximum stack size (item id)
+  IF valid_item(retvals(0)) THEN
+   scriptret = get_item_stack_size(retvals(0))
   END IF
 
 'old scriptnpc

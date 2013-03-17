@@ -16,6 +16,7 @@ define constant, begin
 0,item:DefltWep
 3,item:Boots
 4,item:SteelSho
+5,item:Bulky
 0,stat:HP
 1,stat:MP
 2,stat:Atk
