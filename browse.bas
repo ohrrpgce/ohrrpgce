@@ -81,15 +81,15 @@ br.snd = -1
 
 'special=0   no preview
 'special=1   just BAM
-'special=2   2 or 16 color BMP
-'special=3   background
-'special=4   master palette (*.mas, 8 bit *.bmp, 16x16 24 bit *.bmp) (fmask is ignored)
+'special=2   any BMP (sprite import)
+'special=3   320x200 background
+'special=4   master palette (*.mas, 8 bit *.bmp, 16x16 24/32 bit *.bmp) (fmask is ignored)
 'special=5   any supported music (currently *.bam, *.mid, *.ogg, *.mp3, *.mod, *.xm, *.it, *.s3m formats)  (fmask is ignored)
 'special=6   any supported SFX (currently *.ogg, *.wav, *.mp3) (fmask is ignored)
 'special=7   RPG files
 'special=8   RELOAD files
 'special=9   script files (.hs, .hss)
-'special=10  2, 16 or 256 colour BMP, any size (temporary, used by font_test_menu only)
+'special=10  2, 16 or 256 colour BMP, any size (used by font_test_menu only)
 
 br.mashead = CHR(253) & CHR(13) & CHR(158) & CHR(0) & CHR(0) & CHR(0) & CHR(6)
 br.paledithead = CHR(253) & CHR(217) & CHR(158) & CHR(0) & CHR(0) & CHR(7) & CHR(6)
@@ -307,7 +307,6 @@ SUB browse_hover(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
 END SUB
 
 SUB browse_hover_file(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
- DIM bmpd as BitmapInfoHeader
  SELECT CASE br.special
   CASE 1 'music bam only (is this still used?)
    music_stop
@@ -398,28 +397,22 @@ FOR i as integer = 0 TO UBOUND(filelist)
    tree(br.treesize).about = "File is too large (limit 500kB)"
   END IF
  END IF
- '---1- and 4-bit BMP browsing
+ '---Any BMP
  IF br.special = 2 THEN
-  IF browse_check_bmp(br, tree(), bmpd) THEN
-   IF bmpd.biBitCount > 4 OR bmpd.biWidth > 320 OR bmpd.biHeight > 200 THEN
-    tree(br.treesize).kind = bkUnselectable
-   END IF
+  IF browse_check_bmp(br, tree(), bmpd) = NO THEN
+   tree(br.treesize).kind = bkUnselectable
   END IF
  END IF
- '---320x200x24/8bit BMP files
+ '---320x200 BMP files (any supported bitdepth)
  IF br.special = 3 THEN
-  IF browse_check_bmp(br, tree(), bmpd) THEN
-   IF (bmpd.biBitCount <> 24 AND bmpd.biBitCount <> 8) OR bmpd.biWidth <> 320 OR bmpd.biHeight <> 200 THEN
-    tree(br.treesize).kind = bkUnselectable
-   END IF
+  IF browse_check_bmp(br, tree(), bmpd) = NO OR bmpd.biWidth <> 320 OR bmpd.biHeight <> 200 THEN
+   tree(br.treesize).kind = bkUnselectable
   END IF
  END IF
- '---1/4/8 bit BMP files
+ '---1/4/8 bit BMP files (fonts)
  IF br.special = 10 THEN
-  IF browse_check_bmp(br, tree(), bmpd) THEN
-   IF bmpd.biBitCount > 8 THEN
-    tree(br.treesize).kind = bkUnselectable
-   END IF
+  IF browse_check_bmp(br, tree(), bmpd) = NO OR bmpd.biBitCount > 8 THEN
+   tree(br.treesize).kind = bkUnselectable
   END IF
  END IF
  '--master palettes
@@ -440,11 +433,15 @@ FOR i as integer = 0 TO UBOUND(filelist)
      tree(br.treesize).kind = bkUnselectable
    END SELECT
   ELSE  'BMP as a master palette
-   IF browse_check_bmp(br, tree(), bmpd) THEN
-    IF bmpd.biBitCount = 8 THEN
+   IF browse_check_bmp(br, tree(), bmpd) = NO THEN
+    tree(br.treesize).kind = bkUnselectable
+   ELSE
+    IF bmpd.biBitCount <= 8 THEN
      'Don't care about the dimensions
      tree(br.treesize).about = bmpd.biBitCount & "-bit color BMP"
-    ELSEIF (bmpd.biBitCount = 24 AND (bmpd.biWidth = 16 AND bmpd.biHeight = 16)) = 0 THEN
+    ELSEIF bmpd.biBitCount >= 24 AND (bmpd.biWidth = 16 AND bmpd.biHeight = 16) THEN
+     'ok
+    ELSE
      tree(br.treesize).kind = bkUnselectable
     END IF
    END IF

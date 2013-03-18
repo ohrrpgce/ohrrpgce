@@ -50,7 +50,7 @@ DECLARE SUB sprite_editor(byref ss as SpriteEditState, byref ss_save as SpriteEd
 DECLARE SUB init_sprite_zones(area() as MouseArea, ss as SpriteEditState)
 DECLARE SUB spriteedit_draw_icon(ss as SpriteEditState, icon as string, area() as MouseArea, byval areanum as integer, byval highlight as integer = NO)
 DECLARE SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic, state as MenuState, placer() as integer, workpal() as integer, poffset() as integer, info() as string, toolinfo() as ToolInfoType, area() as MouseArea, mouse as MouseInfo)
-DECLARE SUB spriteedit_import16(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, byref state as MenuState, placer() as integer, workpal() as integer, poffset() as integer, info() as string, toolinfo() as ToolInfoType, area() as MouseArea, mouse as MouseInfo)
+DECLARE SUB spriteedit_import16(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, byref state as MenuState, placer() as integer, workpal() as integer, poffset() as integer)
 DECLARE SUB spriteedit_scroll (placer() as integer, ss as SpriteEditState, byval shiftx as integer, byval shifty as integer)
 DECLARE SUB spriteedit_rotate_sprite_buffer(sprbuf() as integer, nulpal() as integer, counterclockwise as integer=NO)
 DECLARE SUB spriteedit_rotate_sprite(sprbuf() as integer, ss as SpriteEditState, counterclockwise as integer=NO)
@@ -129,9 +129,6 @@ menu(3) = "Append a new " + cap
 menu(4) = "Disable palette colors for import"
 menu(5) = "Export " + cap + " as BMP"
 menu(6) = "Full screen view"
-submenu(0) = "Import with current Master Palette"
-submenu(1) = "Import with new Master Palette"
-submenu(2) = "Do not remap colours"
 DIM srcbmp as string
 DIM csr2 as integer
 DIM tog as integer
@@ -240,11 +237,17 @@ LOOP
 
 bimport:
 bmpinfo(srcbmp, bmpd)
-paloption = 2
-IF bmpd.biBitCount = 8 THEN
+IF bmpd.biBitCount <= 8 THEN
+ paloption = 2  'no remapping
  loadbmppal srcbmp, temppal()
  IF memcmp(@temppal(0), @master(0), 256 * sizeof(RGBcolor)) <> 0 THEN
-  paloption = sublist(submenu(), "importbmp_palette")
+  'the palette is inequal to the master palette 
+  clearpage vpage
+  submenu(0) = "Remap to current Master Palette"
+  submenu(1) = "Import with new Master Palette"
+  submenu(2) = "Do not remap colours"
+  paloption = multichoice("This BMP's palette is not identical to your master palette", _
+                          submenu(), , , "importbmp_palette")
   IF paloption = -1 THEN RETRACE
   IF paloption = 1 THEN
    importmasterpal srcbmp, gen(genMaxMasterPal) + 1
@@ -255,7 +258,7 @@ IF bmpd.biBitCount = 8 THEN
  END IF
  img = frame_import_bmp_raw(srcbmp)
  IF paloption = 0 THEN
-  convertbmppal srcbmp, pmask(), palmapping(), 0
+  convertbmppal srcbmp, pmask(), palmapping()
   FOR y as integer = 0 TO img->h - 1
    FOR x as integer = 0 TO img->w - 1
     putpixel img, x, y, palmapping(readpixel(img, x, y))
@@ -2258,148 +2261,352 @@ SUB spriteedit_export(default_name as string, img as GraphicPair)
  END IF
 END SUB
 
-SUB spriteedit_import16(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, byref state as MenuState, placer() as integer, workpal() as integer, poffset() as integer, info() as string, toolinfo() as ToolInfoType, area() as MouseArea, mouse as MouseInfo)
- DIM palstate as MenuState 
- DIM coltemp as integer
- DIM srcbmp as string
- DIM pickpos as XYPair
- DIM picksize as XYPair
- DIM pixelval as integer
- DIM movespeed as integer
- 
- STATIC default as string
- 
- srcbmp = browse(2, default, "*.bmp", "",, "browse_import_sprite")
- IF srcbmp = "" THEN EXIT SUB
- '--------------------
- 'DECIDE ABOUT PALETTE
- DIM pmenu(2) as string
- pmenu(0) = "Overwrite Current Palette"
- pmenu(1) = "Import Without Palette"
- pmenu(2) = "Cancel Import"
- 
- palstate.pt = 0
- palstate.last = 2
- setkeys
- DO
-  setwait 110
-  setkeys
-  palstate.tog = palstate.tog XOR 1
-  IF keyval(scESC) > 1 THEN EXIT SUB
-  IF keyval(scF1) > 1 THEN show_help "frame_import16"
-  IF keyval(scLeft) > 1 OR keyval(scLeftBracket) > 1 THEN
-   changepal poffset(state.pt), -1, workpal(), state.pt - state.top
-  END IF
-  IF keyval(scRight) > 1 OR keyval(scRightBracket) > 1 THEN
-   changepal poffset(state.pt), 1, workpal(), state.pt - state.top
-  END IF
-  usemenu palstate
-  IF enter_or_space() THEN
-   IF palstate.pt = 2 THEN EXIT SUB
-   EXIT DO
-  END IF
-  spriteedit_display ss, ss_save, state, placer(), workpal(), poffset(), info(), toolinfo(), area(), mouse
-  rectangle 4, 156, 208, 32, uilook(uiDisabledItem), dpage
-  FOR i as integer = 0 TO 2
-   coltemp = uilook(uiMenuItem): IF i = palstate.pt THEN coltemp = uilook(uiSelectedItem + palstate.tog)
-   edgeprint pmenu(i), 8, 160 + (i * 8), coltemp, dpage
-  NEXT i
-  SWAP vpage, dpage
-  setvispage vpage
-  copypage 2, dpage
-  dowait
- LOOP
-
- '---------------------
- 'PICK BACKGROUND COLOR
- 
- clearpage dpage
- DIM impsprite as Frame ptr
+SUB frame_to_4bit_buffer(byval spr as Frame ptr, buf() as integer, byval wid as integer, byval high as integer)
+ 'Allocate a 320x200 page instead of just registering spr as a page, because it might be smaller than wid*high
  DIM holdscreen as integer
-
- 'Load the bmp, and then alias it to a page because the rest of this function has
- 'not been rewritten for sanity yet
- impsprite = frame_import_bmp_raw(srcbmp)
- 'holdscreen = registerpage(impsprite)
  holdscreen = allocatepage
- frame_draw impsprite, 0, 0, 0, 1, 0, holdscreen
+ frame_draw spr, NULL, 0, 0, 1, YES, holdscreen
+ getsprite buf(), 0, 0, 0, wid, high, holdscreen
+ freepage holdscreen
+END SUB
 
- 'Temporaraly update the palette. This will be done again after the transparent color is chosen
- DIM temppal(7) as integer
- '--first copy the old palette in the current slot
- FOR i as integer = 0 To 7
-  temppal(i) = workpal((state.pt - state.top) * 8 + i)
- NEXT i
- IF palstate.pt = 0 THEN
-  convertbmppal srcbmp, master(), temppal(), 0
+'Load a BMP of any bitdepth into a Frame which has just 16 colours: those in pal16
+SUB spriteedit_import16_loadbmp(byref ss as SpriteEditState, srcbmp as string, byref impsprite as Frame ptr, byref pal16 as Palette16 ptr)
+ pal16 = palette16_new()
+
+ DIM bmpd as BitmapInfoHeader
+ bmpinfo(srcbmp, bmpd)
+ 'debuginfo "import16_load: bitdepth " & bmpd.biBitCount
+ IF bmpd.biBitCount <= 4 THEN
+  'If 4 bit or below, we preserve the colour indices from the BMP
+
+  impsprite = frame_import_bmp_raw(srcbmp)
+
+  'Map from impsprite colors to master pal indices
+  DIM bmppal(15) as integer
+  convertbmppal(srcbmp, master(), bmppal()) 'pal16->col())
+  FOR i as integer = 0 TO 15
+   pal16->col(i) = bmppal(i)
+  NEXT 
+
+ ELSE
+  'For higher bitdepths, try to shift used colour indices into 0-15
+
+  'map from impsprite colors to master pal indices
+  DIM bmppal(255) as integer
+
+  IF bmpd.biBitCount > 8 THEN
+   'notification srcbmp & " is a " & bmpd.biBitCount & "-bit BMP file. Colors will be mapped to the nearest entry in the master palette." _
+   '             " It's recommended that you save your graphics as 4-bit BMPs so that you can control which colours are used."
+   impsprite = frame_import_bmp24_or_32(srcbmp, master())
+   FOR i as integer = 0 TO 255
+    bmppal(i) = i
+   NEXT
+  ELSE  'biBitCount = 8
+   impsprite = frame_import_bmp_raw(srcbmp)
+   convertbmppal(srcbmp, master(), bmppal())
+  END IF
+
+  IF impsprite <> NULL THEN
+   'Find the set of colours used in impsprite, and remap impsprite
+   'to those colour indices
+   DIM vpal16 as integer vector
+   v_new vpal16
+   'v_append vpal16, 0
+
+   FOR x as integer = 0 TO impsprite->w - 1   'small(impsprite->w, ss.wide) - 1
+    FOR y as integer = 0 TO impsprite->h - 1  'small(impsprite->h, ss.high) - 1
+     DIM col as integer = bmppal(readpixel(impsprite, x, y))
+     DIM at as integer = v_find(vpal16, col)
+     IF at = -1 THEN
+      v_append vpal16, col
+      col = v_len(vpal16) - 1
+     ELSE
+      col = at
+     END IF
+     putpixel(impsprite, x, y, col)
+    NEXT
+   NEXT
+   debuginfo srcbmp & " contains " & v_len(vpal16) & " colors"
+
+   IF v_len(vpal16) > 16 THEN
+    notification "This image contains " & v_len(vpal16) & " colors (after finding nearest-matches to the master palette). At most 16 are allowed." _
+                 " Reduce the number of colors and try importing again."
+    palette16_unload @pal16
+    frame_unload @impsprite
+    v_free vpal16
+    EXIT SUB
+   ELSE
+    FOR i as integer = 0 TO v_len(vpal16) - 1
+     pal16->col(i) = vpal16[i]
+    NEXT i
+   END IF
+
+   v_free vpal16
+  END IF
  END IF
 
- DIM temp_placer(2 + (ss.wide * ss.high * ss.perset) \ 4) as integer
+ IF impsprite = NULL THEN
+  notification "Could not load " & srcbmp
+  palette16_unload @pal16
+  EXIT SUB
+ END IF
+END SUB
+
+'Lets the use pick one of the colour/pixels in impsprite, returns the colour index
+'Returns -1 is cancelled
+FUNCTION spriteedit_import16_pick_bgcol(byref ss as SpriteEditState, byref impsprite as Frame ptr, byref pal16 as Palette16 ptr) as integer
+ DIM tog as integer
+ DIM pickpos as XYPair
+ DIM picksize as XYPair
  pickpos.x = 0
  pickpos.y = 0
- '--set up cursor
  picksize.x = small(320, small(impsprite->w, ss.wide))
  picksize.y = small(200, small(impsprite->h, ss.high))
- 
+
  setkeys
  DO
-  setwait 110
+  setwait 55
   setkeys
-  palstate.tog = palstate.tog XOR 1
-  IF keyval(scESC) > 1 THEN 
-  '--Cancel
-   freepage holdscreen
-   frame_unload @impsprite
-   EXIT SUB
-  END IF
+  tog XOR= 1
+  IF keyval(scESC) > 1 THEN RETURN -1
   IF keyval(scF1) > 1 THEN show_help "frame_import16_pickbackground"
+  IF enter_or_space() THEN EXIT DO
+
+  DIM movespeed as integer
   IF keyval(scALT) THEN movespeed = 9 ELSE movespeed = 1
   IF keyval(scUp) > 0 THEN pickpos.y = large(pickpos.y - movespeed, 0)
   IF keyval(scDown) > 0 THEN pickpos.y = small(pickpos.y + movespeed, picksize.y - 1)
   IF keyval(scleft) > 0 THEN pickpos.x = large(pickpos.x - movespeed, 0)
   IF keyval(scRight) > 0 THEN pickpos.x = small(pickpos.x + movespeed, picksize.x - 1)
-  IF enter_or_space() THEN EXIT DO
-  '--Draw a preview of the sprite
-  getsprite temp_placer(), 0, 0, 0, ss.wide, ss.high, holdscreen
-  drawspritex temp_placer(), 0, temppal(), 0, 0, 0, dpage, ss.zoom
+
+  clearpage dpage
+  frame_draw impsprite, pal16, 4, 1, ss.zoom, NO, dpage
+  'Draw box around the proportion of the image that will be used
+  drawbox 3, 0, ss.wide * ss.zoom + 2, ss.high * ss.zoom + 2, uilook(uiText), 1, dpage
+
   '--Draw the pixel cursor
-  rectangle pickpos.x * ss.zoom, pickpos.y * ss.zoom, ss.zoom, ss.zoom, uilook(uiSelectedDisabled + palstate.tog), dpage
-  edgeprint "Pick Background Color", 0, 190, uilook(uiMenuItem), dpage
+  DIM col as integer
+  IF tog THEN col = uilook(uiBackground) ELSE col = uilook(uiText)
+  IF ss.zoom = 1 THEN
+   'A single pixel is too small
+   textcolor col, 0
+   printstr CHR(5), 4 + pickpos.x - 2, 1 + pickpos.y - 2, dpage
+  ELSE
+   rectangle 4 + pickpos.x * ss.zoom, 1 + pickpos.y * ss.zoom, ss.zoom, ss.zoom, col, dpage
+  END IF
+
+  edgeprint "Pick background (transparent) color", 0, 190, uilook(uiMenuItem), dpage
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
  LOOP
 
- '--picked a transparent pixel
- pixelval = readpixel(pickpos.x, pickpos.y, holdscreen)
- '--swap the transparent pixels to 0
- FOR i as integer = 0 TO picksize.x - 1
-  FOR o as integer = 0 TO picksize.y - 1
-   IF readpixel(i, o, holdscreen) = pixelval THEN
-    putpixel i, o, 0, holdscreen
-   ELSE
-    IF readpixel(i, o, holdscreen) = 0 THEN
-     putpixel i, o, pixelval, holdscreen
-    END IF
+ RETURN readpixel(impsprite, pickpos.x, pickpos.y)
+END FUNCTION
+
+'Set can_remap to whether a mapping from pal16 to workpal() exists,
+'and if so write it in palmapping().
+SUB spriteedit_import16_compare_palettes(workpal() as integer, byval palno as integer, byval pal16 as Palette16 ptr, palmapping() as integer, byref can_remap as bool, byref is_identical as bool)
+ DIM existingpal(15) as integer
+ FOR i as integer = 0 TO 15
+  existingpal(i) = peek8bit(workpal(), i + palno * 16)
+ NEXT
+
+ can_remap = YES
+ is_identical = YES
+ FOR i as integer = 1 TO 15
+  IF pal16->col(i) <> existingpal(i) THEN is_identical = NO
+  DIM found as bool = NO
+  FOR j as integer = 1 TO 15
+   IF pal16->col(i) = existingpal(j) THEN
+    palmapping(i) = j
+    found = YES
+    EXIT FOR
    END IF
-  NEXT o
- NEXT i
- '--swap the transparent palette entry to 0
- IF palstate.pt = 0 THEN
-  convertbmppal srcbmp, master(), workpal(), 8 * (state.pt - state.top)
-  'swap black with the transparent color
-  poke8bit workpal(), pixelval + (state.pt - state.top) * 16, peek8bit(workpal(), 0 + (state.pt - state.top) * 16)
-  poke8bit workpal(), 0 + (state.pt - state.top) * 16, 0
+  NEXT
+  IF found = NO THEN can_remap = NO
+ NEXT
+END SUB
+
+'Return value: see retval()
+'Also returns contents of palmapping()
+FUNCTION spriteedit_import16_remap_menu(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, byref state as MenuState, workpal() as integer, poffset() as integer, byref impsprite as Frame ptr, byref pal16 as Palette16 ptr, palmapping() as integer) as integer
+ DIM can_remap as bool
+ DIM is_identical as bool
+ DIM usepal as Palette16 ptr = palette16_new()
+ DIM ret as integer
+
+ DIM pmenu(2) as string
+ DIM retval(2) as integer
+ DIM palstate as MenuState 
+ palstate.pt = 0
+ palstate.last = 2
+ palstate.size = 2
+ palstate.need_update = YES
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scESC) > 1 THEN ret = 3 : EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "frame_import16"
+  IF keyval(scLeft) > 1 OR keyval(scLeftBrace) > 1 THEN
+   changepal poffset(state.pt), -1, workpal(), state.pt - state.top
+   palstate.need_update = YES
+  END IF
+  IF keyval(scRight) > 1 OR keyval(scRightBrace) > 1 THEN
+   changepal poffset(state.pt), 1, workpal(), state.pt - state.top
+   palstate.need_update = YES
+  END IF
+  IF usemenu(palstate) THEN palstate.need_update = YES
+  IF enter_or_space() THEN ret = retval(palstate.pt) : EXIT DO
+
+  IF palstate.need_update THEN
+   palstate.need_update = NO
+   spriteedit_import16_compare_palettes workpal(), state.pt - state.top, pal16, palmapping(), can_remap, is_identical
+
+   pmenu(0) = "Overwrite Current Palette"
+   retval(0) = 0
+   IF can_remap THEN
+    pmenu(1) = "Remap into Current Palette"
+    retval(1) = 1
+   ELSE
+    pmenu(1) = "Import Without Palette"
+    retval(1) = 2
+   END IF 
+   pmenu(2) = "Cancel Import"
+   retval(2) = 3
+
+   IF palstate.pt = 1 AND can_remap = NO THEN
+    'Preview import without palette
+    FOR i as integer = 0 TO 15
+     usepal->col(i) = peek8bit(workpal(), i + (state.pt - state.top) * 16)
+    NEXT
+   ELSE
+    FOR i as integer = 0 TO 15
+     usepal->col(i) = pal16->col(i)
+    NEXT
+   END IF
+  END IF
+
+  'Page 2 has rectangles around the sprite and preview and palette
+  copypage 2, dpage
+  frame_draw impsprite, usepal, 4, 1, ss.zoom, NO, dpage
+  frame_draw impsprite, usepal, ss.previewpos.x, ss.previewpos.y, 1, NO, dpage
+
+  'Draw palettes
+  textcolor uilook(uiText), 0
+  printstr bgcol_text(CHR(27), uilook(uiDisabledItem)) _
+           & rpad("Pal"  & poffset(state.pt), " ", 6) _
+           & bgcol_text(CHR(26), uilook(uiDisabledItem)), 248, 100, dpage, YES
+  drawbox 246, 109, 67, 8, uilook(uiText), 1, dpage
+  FOR i as integer = 0 TO 15
+   rectangle 248 + (i * 4), 111, 3, 5, peek8bit(workpal(), i + (state.pt - state.top) * 16), dpage
+  NEXT
+  printstr "Image Pal", 248, 80, dpage
+  drawbox 246, 89, 67, 8, uilook(uiText), 1, dpage
+  FOR i as integer = 0 TO 15
+   rectangle 248 + (i * 4), 91, 3, 5, pal16->col(i), dpage
+  NEXT
+
+  rectangle 4, 144, 224, 32, uilook(uiDisabledItem), dpage
+  standardmenu pmenu(), palstate, 8, 148, dpage
+  edgeprint "(Press LEFT or RIGHT to select palette)", 0, 188, uilook(uiMenuItem), dpage
+
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+
+ palette16_unload @usepal
+ RETURN ret
+END FUNCTION
+
+'state.pt is the current palette number
+SUB spriteedit_import16(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, byref state as MenuState, placer() as integer, workpal() as integer, poffset() as integer)
+ DIM srcbmp as string
+ STATIC default as string
+
+ 'Any BMP, any size
+ srcbmp = browse(2, default, "*.bmp", "", , "browse_import_sprite")
+ IF srcbmp = "" THEN EXIT SUB
+
+ DIM as Frame ptr impsprite, impsprite2
+ DIM pal16 as Palette16 ptr
+ spriteedit_import16_loadbmp ss, srcbmp, impsprite, pal16
+ IF impsprite = NULL THEN EXIT SUB
+ 'frame_export_bmp4 "debug0.bmp", impsprite, master(), pal16
+
+ 'Pick background color
+ DIM bgcol as integer
+ bgcol = spriteedit_import16_pick_bgcol(ss, impsprite, pal16)
+ IF bgcol = -1 THEN  'cancelled
+  frame_unload @impsprite
+  palette16_unload @pal16
+  EXIT SUB
+ END IF
+
+ 'Swap the transparent pixels to 0
+ frame_swap_colors impsprite, 0, bgcol
+ SWAP pal16->col(0), pal16->col(bgcol)
+
+ 'Trim or expand the image to final dimensions (only for spritedit_import16_remap_menu)
+ impsprite2 = frame_new(ss.wide, ss.high, , YES)
+ frame_draw impsprite, NULL, 0, 0, , NO, impsprite2
+ SWAP impsprite, impsprite2
+ frame_unload @impsprite2
+ 'frame_export_bmp4 "debug1.bmp", impsprite, master(), pal16
+
+ 'Check whether pal16 can be mapped directly onto the existing palette
+ '(ignoring background colours), and whether it's actually the same
+ DIM can_remap as bool
+ DIM is_identical as bool
+ DIM palmapping(15) as integer
+ spriteedit_import16_compare_palettes workpal(), state.pt - state.top, pal16, palmapping(), can_remap, is_identical
+
+ 'Prompt about remapping palette
+ DIM remap as integer
+ IF is_identical THEN
+  remap = 2
+  debuginfo "spriteedit_import16: is identical"
+ ELSE
+  remap = spriteedit_import16_remap_menu(ss, ss_save, state, workpal(), poffset(), impsprite, pal16, palmapping())
+ END IF
+
+ IF remap = 0 THEN
+  'Overwrite current palette
+  FOR i as integer = 0 TO 15
+   poke8bit workpal(), i + (state.pt - state.top) * 16, pal16->col(i)
+  NEXT i
   'If the palette has changed, update genMaxPal
   gen(genMaxPal) = large(gen(genMaxPal), poffset(state.pt))
+
+ ELSEIF remap = 1 THEN
+  'Remap into current palette
+  FOR x as integer = 0 TO impsprite->w - 1
+   FOR y as integer = 0 TO impsprite->h - 1
+    DIM col as integer = palmapping(readpixel(impsprite, x, y))
+    putpixel(impsprite, x, y, col)
+   NEXT
+  NEXT
+
+ ELSEIF remap = 2 THEN
+  'Import without palette
+
+ ELSEIF remap = 3 THEN
+  'Cancel Import
+  frame_unload @impsprite
+  palette16_unload @pal16
+  EXIT SUB
  END IF
- '--read the sprite
- getsprite placer(), 0, 0, 0, ss.wide, ss.high, holdscreen
- '--free the sprite and page it was aliased to
- freepage holdscreen
+
+ 'convert sprite
+ frame_to_4bit_buffer impsprite, placer(), ss.wide, ss.high
+
  frame_unload @impsprite
+ palette16_unload @pal16
 END SUB
+
 
 SUB spriteedit_rotate_sprite(sprbuf() as integer, ss as SpriteEditState, counterclockwise as integer=NO)
  writeundospr sprbuf(), ss, YES
@@ -2888,7 +3095,7 @@ IF ss.tool = scroll_tool AND keyval(scAlt) = 0 THEN
  spriteedit_scroll placer(), ss, scrolloff.x, scrolloff.y
 END IF
 IF keyval(scI) > 1 OR (ss.zonenum = 13 AND mouse.clicks > 0) THEN
- spriteedit_import16 ss, ss_save, state, placer(), workpal(), poffset(), info(), toolinfo(), area(), mouse
+ spriteedit_import16 ss, ss_save, state, placer(), workpal(), poffset()
  GOSUB spedbak
 END IF
 IF keyval(scE) > 1 OR (ss.zonenum = 26 AND mouse.clicks > 0) THEN

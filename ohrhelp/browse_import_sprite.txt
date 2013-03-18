@@ -1,8 +1,6 @@
 Here you can browse for a BMP file to import as a sprite, for example, a sprite that you drew in an external graphics editor.
 
-Sprites should be saved in BMP format with 4-bit color (that is 16 colors)
-
-The browser will show you the bit-depth of any BMP file you highlight, so you can easily identify any file that will fail to import because of how it was saved.
+Sprites should be saved in BMP format and use at most 16 colors. 1-, 4-, 8-, 24- and 32-bit BMP files can be imported as long as they use few enough colors. The order of the color indices is preserved when importing 4-bit BMPs, so that is the best format to use.
 
 The correct pixel size for each sprite type is as follows:
 

@@ -1030,7 +1030,7 @@ IF f <> "" THEN
   convertpalette buffer(), master()
  ELSE
   bmpinfo(f, bmpd)
-  IF bmpd.biBitCount = 24 THEN
+  IF bmpd.biBitCount >= 24 THEN
    bitmap2pal f, master()
   ELSE
    loadbmppal f, master()

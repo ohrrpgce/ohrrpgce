@@ -1,0 +1,7 @@
+Use the LEFT and RIGHT, or [ and ], keys to select a 16 color palette.
+
+Overwrite Current Palette: overwrites the current palette with the one from the image.
+
+Remap into Current Palette: this option is available if all the colors in the image exist in the selected palette, but in a different order, or with extra colors. This allows the image to be imported perfectly.
+
+Import Without Palette: don't change the palette at all. When you select this option the resulting image is previewed.

@@ -4551,6 +4551,12 @@ function loadbmppal (f as string, pal() as RGBcolor) as integer
 	bf = open_bmp_and_read_header(f, header, info)
 	if bf <= -1 then return 0
 
+	for i = 0 to ubound(pal)
+		pal(i).r = 0
+		pal(i).g = 0
+		pal(i).b = 0
+	next
+
 	'debug "loadbmppal(" & f & "): table at " & (seek(bf) - 1) & " = " & hex(seek(bf) - 1)
 	if info.biBitCount <= 8 then
 		for i = 0 to (1 shl info.biBitCount) - 1
@@ -4567,52 +4573,24 @@ function loadbmppal (f as string, pal() as RGBcolor) as integer
 			end if
 		next
 	else
-		debug "loadbmppal shouldn't have been called!"
+		debugc errBug, "loadbmppal shouldn't have been called!"
 	end if
 	close #bf
 	return info.biBitCount
 end function
 
-sub convertbmppal (f as string, mpal() as RGBcolor, pal() as integer, byval o as integer)
+sub convertbmppal (f as string, mpal() as RGBcolor, pal() as integer)
 'find the nearest match palette mapping from a 1/4/8 bit bmp f to
-'the master palette mpal(), and store it in pal() starting at offset o
-'for 1/4 bit bmps, pal() is a 2 bytes per int packed format used for
-'sprite palettes, 16 colours long, for 8bit bmps it is a simple array 256 colours long
-	dim col8 as integer
-	dim i as integer
-	dim p as integer
-	dim toggle as integer
+'the master palette mpal(), and store it in pal(), an array of mpal() indices
 	dim bitdepth as integer
 	dim cols(255) as RGBcolor
 
 	bitdepth = loadbmppal(f, cols())
 	if bitdepth = 0 then exit sub
 
-	if bitdepth <= 4 then
-		'read and translate the colour entries
-		p = o
-		toggle = p mod 2
-		for i = 0 to 15
-			if i < 2 ^ bitdepth then
-				col8 = nearcolor(mpal(), cols(i).r, cols(i).g, cols(i).b)
-			else
-				col8 = 0
-			end if
-			'debug "convertbmppal col " & i & " rgb " & cols(i).r & " " & cols(i).g & " " & cols(i).b & " -> " & col8
-			if toggle = 0 then
-				pal(p) = col8
-				toggle = 1
-			else
-				pal(p) = pal(p) or (col8 shl 8)
-				toggle = 0
-				p += 1
-			end if
-		next
-	elseif bitdepth = 8 then
-		for i = 0 to 255
-			pal(o + i) = nearcolor(mpal(), cols(i).r, cols(i).g, cols(i).b)
-		next
-	end if
+	for i as integer = 0 to small(UBOUND(pal), (1 SHL bitdepth) - 1)
+		pal(i) = nearcolor(mpal(), cols(i).r, cols(i).g, cols(i).b)
+	next
 end sub
 
 'Returns 0 if invalid, otherwise fills 'info' and returns 1 if valid but unsupported, 2 if supported
@@ -5119,6 +5097,8 @@ end sub
 
 
 function frame_new(byval w as integer, byval h as integer, byval frames as integer = 1, byval clr as bool = NO, byval wantmask as bool = NO) as Frame ptr
+	if w < 1 or h < 1 or frames < 1 then debugc errPromptBug, "frame_new: bad args"
+
 	dim ret as frame ptr
 	'this hack was Mike's idea, not mine!
 	ret = callocate(sizeof(Frame) * frames)
@@ -5940,6 +5920,18 @@ sub frame_clear(byval spr as frame ptr, byval colour as integer = 0)
 			next
 		end if
 	end if
+end sub
+
+sub frame_swap_colors(byval spr as Frame ptr, byval col1 as integer, byval col2 as integer)
+	for xx as integer = 0 to spr->w - 1
+		for yy as integer = 0 to spr->h - 1
+			if readpixel(spr, xx, yy) = col1 then
+				putpixel spr, xx, yy, col2
+			elseif readpixel(spr, xx, yy) = col2 then
+				putpixel spr, xx, yy, col1
+			end if
+		next
+	next
 end sub
 
 'Warning: this code is rotting; don't assume ->mask is used, etc. Anyway the whole thing should be replaced with a memmove call or two.

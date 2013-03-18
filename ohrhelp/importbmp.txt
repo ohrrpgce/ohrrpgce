@@ -8,9 +8,9 @@ Pick "Replace current" to import a new BMP to replace the one you are currently 
 
 Pick "Append a new" to import a new BMP and add it to the end of the list.
 
-When you import a 24-bit BMP file, it gets fit to the current 256 color master palette.
+When you import a 24-bit or 32-bit BMP file, each pixel gets 'remapped' to the nearest color in the current 256 color master palette. The alpha channel of 32-bit BMPs will be dropped.
 
-When you import an 8-bit BMP file with a palette different from the master palette you can choose whether to perform nearest-match color remapping, to leave the color indices alone, or to import a new master palette: see the help screen for `General Game Data->Master Palettes'
+When you import an 1-, 4-, or 8-bit BMP file with a palette different from the master palette you can choose whether to perform nearest-match color remapping, to leave the color indices alone, or to import a new master palette: see the help screen for `General Game Data->Master Palettes'
 
 Sometimes certain colors match poorly. You can use "Disable palette colors for import" to disable the colors that look bad, then you can re-import and the importer will be forced to choose different colors.  See the help file in that menu for more info.
 

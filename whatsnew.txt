@@ -40,6 +40,11 @@ WHAT IS NEW?
     * Map layers can now be named [Ralph]
     * You can set the maximum size of a stack of items in the inventory
       with per-item and default settings [Ralph]
+    * Goodbye 4-bit BMPs! You can now import sprites, backdrops and
+      tilesets from BMP files saved at (almost) any bitdepth (but
+      sprites are still limited to 16 colors), and most common versions
+      of the BMP file format are now supported. Greatly improved the
+      sprite importer's handling of palettes and previewing. [Ralph]
 
   * Bugfixes
     * Fix the arrow key problem in Custom on Mac OS X for the third
