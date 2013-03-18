@@ -60,7 +60,7 @@ DECLARE SUB clear_hero_preview_pics(byref st as HeroEditState)
 DECLARE SUB draw_hero_preview(st as HeroEditState, her as HeroDef)
 
 DECLARE SUB hero_editor
-DECLARE SUB hero_editor_add_new (st as HeroEditState, her as HeroDef, byref hero_id as integer)
+DECLARE FUNCTION hero_editor_add_new (st as HeroEditState, her as HeroDef, byref hero_id as integer) as bool
 DECLARE SUB hero_editor_load_hero (st as HeroEditState, her as HeroDef, byval hero_id as integer)
 DECLARE SUB hero_editor_stats_menu (her as HeroDef)
 DECLARE SUB hero_editor_spell_lists_toplevel (her as HeroDef)
@@ -1819,8 +1819,9 @@ SUB hero_editor
     hero_id += 1
     IF needaddset(hero_id, gen(genMaxHero), "hero") THEN
      gen(genMaxHero) -= 1  'Incremented by both needaddset and hero_editor_add_new
-     hero_editor_add_new st, her, hero_id
-     saveherodata her, hero_id
+     IF hero_editor_add_new(st, her, hero_id) THEN
+      saveherodata her, hero_id
+     END IF
     END IF
     hero_editor_load_hero st, her, hero_id
    END IF
@@ -1845,7 +1846,8 @@ SUB hero_editor
  clear_hero_preview_pics st
 END SUB
 
-SUB hero_editor_add_new (st as HeroEditState, her as HeroDef, byref recindex as integer)
+FUNCTION hero_editor_add_new (st as HeroEditState, her as HeroDef, byref recindex as integer) as bool
+ 'Returns YES if a new hero was added, or NO if the add was cancelled
   DIM menu(2) as string
   DIM herotocopy as integer = 0
   DIM state as MenuState
@@ -1880,13 +1882,15 @@ SUB hero_editor_add_new (st as HeroEditState, her as HeroDef, byref recindex as 
       SELECT CASE state.pt
         CASE 0 ' cancel
           recindex -= 1
+          RETURN NO
         CASE 1 ' blank
           gen(genMaxHero) += 1
           ClearHeroData her
+          RETURN YES
         CASE 2 ' copy
           gen(genMaxHero) += 1
+          RETURN YES
       END SELECT
-      EXIT DO
     END IF
 
     clearpage dpage
@@ -1897,7 +1901,7 @@ SUB hero_editor_add_new (st as HeroEditState, her as HeroDef, byref recindex as 
     setvispage dpage
     dowait
   LOOP
-END SUB
+END FUNCTION
 
 SUB hero_editor_stat_visibility (hero as HeroDef)
  DIM tmpbits(0) as integer
