@@ -263,7 +263,7 @@ IF bmpd.biBitCount = 8 THEN
   NEXT
  END IF
 ELSE
- img = frame_import_bmp24(srcbmp, pmask())
+ img = frame_import_bmp24_or_32(srcbmp, pmask())
 END IF
 storemxs game & f, pt, img
 frame_unload @img

@@ -43,10 +43,12 @@ end type
 declare sub drawohr(byval src as Frame ptr, byval dest as Frame ptr, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval trans as bool = YES)
 'declare sub grabrect(byval page as integer, byval x as integer, byval y as integer, byval w as integer, byval h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
 declare function write_bmp_header(f as string, byval w as integer, byval h as integer, byval bitdepth as integer) as integer
+declare sub loadbmp32(byval bf as integer, byval fr as Frame ptr, pal() as RGBcolor)
 declare sub loadbmp24(byval bf as integer, byval fr as Frame ptr, pal() as RGBcolor)
 declare sub loadbmp8(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmp4(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmp1(byval bf as integer, byval fr as Frame ptr)
+declare sub loadbmprle8(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmprle4(byval bf as integer, byval fr as Frame ptr)
 declare sub surface_export_bmp24 (f as string, byval surf as Surface Ptr)
 
@@ -4053,7 +4055,7 @@ private function write_bmp_header(f as string, byval w as integer, byval h as in
 
 	imagesize = ((w * bitdepth + 31) \ 32) * 4 * h
 	imageoff = 54
-	if bitdepth < 24 then
+	if bitdepth <= 8 then
 		imageoff += (1 shl bitdepth) * 4
 	end if
 
@@ -4068,17 +4070,19 @@ private function write_bmp_header(f as string, byval w as integer, byval h as in
 	info.biHeight = h
 	info.biPlanes = 1
 	info.biBitCount = bitdepth
-	info.biCompression = 0
+	info.biCompression = BI_RGB
 	info.biSizeImage = imagesize
 	info.biXPelsPerMeter = &hB12
 	info.biYPelsPerMeter = &hB12
-	info.biClrUsed = 0
-	info.biClrImportant = 0
+	info.biClrUsed = 1 shl bitdepth
+	info.biClrImportant = 1 shl bitdepth
 
-	if NOT fileiswriteable(f) then return -1
 	safekill f
 	of = freefile
-	open f for binary access write as #of
+	if open(f for binary access write as #of) then
+		debug "write_bmp_header: couldn't open " & f
+		return -1
+	end if
 
 	put #of, , header
 	put #of, , info
@@ -4087,12 +4091,13 @@ private function write_bmp_header(f as string, byval w as integer, byval h as in
 end function
 
 'Open a BMP file, read its headers, and return a file handle.
-'Only 1, 4, 8, and 24 bit BMPs are accepted
+'Only 1, 4, 8, 24, and 32 bit BMPs are accepted
+'Afterwards, the file is positioned at the start of the palette, if there is one
 'Returns -1 is invalid, -2 if unsupported
 function open_bmp_and_read_header(bmp as string, byref header as BITMAPFILEHEADER, byref info as BITMAPINFOHEADER) as integer
 	dim bf as integer = freefile
 	if open(bmp for binary access read as #bf) then
-		debuginfo "Couldn't open " & bmp
+		debuginfo "open_bmp_and_read_header: couldn't open " & bmp
 		return -1
 	end if
 
@@ -4103,36 +4108,78 @@ function open_bmp_and_read_header(bmp as string, byref header as BITMAPFILEHEADE
 		return -1
 	end if
 
-	get #bf, , info
+	dim bisize as integer
+	get #bf, , bisize
+	seek #bf, seek(bf) - 4
 
-	if info.biSize < 40 then
-		'Probably a BITMAPCOREHEADER.
-		'We don't actually support any of the extensions to BITMAPINFOHEADER
+	if biSize = 12 then
+		'debuginfo "Ancient BMP2 file"
+		dim info_old as BITMAPCOREHEADER
+		get #bf, , info_old
+		info.biSize = biSize
+		info.biCompression = BI_RGB
+		info.biBitCount = info_old.bcBitCount
+		info.biWidth = info_old.bcWidth
+		info.biHeight = info_old.bcHeight
+	elseif biSize < 40 then
 		close #bf
-		debuginfo "Unsupported DIB header size " & info.biSize & " in " & bmp
+		debuginfo "Unsupported DIB header size " & biSize & " in " & bmp
 		return -2
+	else
+		'A BITMAPINFOHEADER or one of its extensions
+		'We don't support any of those extension features, but hopefully this should work
+		get #bf, , info
 	end if
 
+	if info.biClrUsed <= 0 and info.biBitCount <= 8 then
+		info.biClrUsed = 1 shl info.biBitCount
+	end if
+
+	'debuginfo bmp & " header size: " & bisize & " size: " & info.biWidth & "*" & info.biHeight & " bitdepth: " & info.biBitCount & " compression: " & info.biCompression & " colors: " & info.biClrUsed
+
 	select case info.biBitCount
-		case 1, 4, 8, 24
+		case 1, 4, 8, 24, 32
 		case else
 			close #bf
 			debuginfo "Unsupported bitdepth " & info.biBitCount & " in " & bmp
-			return -2
+			if info.biBitCount = 2 or info.biBitcount = 16 then
+				return -2
+			else
+				'Invalid
+				return -1
+			end if
 	end select
 
-	'We could add RLE8 support, if anyone uses it
-	if info.biCompression <> BI_RGB and info.biCompression <> BI_RLE4 then
+	if (info.biCompression = BI_RLE4 and info.biBitCount <> 4) or (info.biCompression = BI_RLE8 and info.biBitCount <> 8) then
+		close #bf
+		debuginfo "Invalid compression scheme " & info.biCompression & " in " & info.biBitCount & "bpp BMP " & bmp
+		return -1
+	end if
+
+	if info.biCompression <> BI_RGB and info.biCompression <> BI_RLE4 and info.biCompression <> BI_RLE8 then
 		close #bf
 		debuginfo "Unsupported compression scheme " & info.biCompression & " in " & bmp
 		return -2
 	end if
 
+	if info.biHeight < 0 then
+		'A negative height indicates that the image is not stored upside-down. Unimplemented
+		close #bf
+		debuginfo "Unsupported non-flipped image in " & bmp
+		return -2
+	end if	
+
+	'Seek to palette
+	'(some extra data might sit between the header and the palette only if the compression is BI_BITFIELDS
+	seek #bf, 1 + sizeof(BITMAPFILEHEADER) + biSize
+
 	return bf
 end function
 
-function frame_import_bmp24(bmp as string, pal() as RGBcolor) as Frame ptr
-'loads the 24-bit bitmap bmp, mapped to palette pal()
+
+function frame_import_bmp24_or_32(bmp as string, pal() as RGBcolor) as Frame ptr
+'loads and palettises the 24-bit or 32-bit bitmap bmp, mapped to palette pal()
+'The alpha channel if any is ignored
 	dim header as BITMAPFILEHEADER
 	dim info as BITMAPINFOHEADER
 	dim bf as integer
@@ -4140,37 +4187,40 @@ function frame_import_bmp24(bmp as string, pal() as RGBcolor) as Frame ptr
 	bf = open_bmp_and_read_header(bmp, header, info)
 	if bf <= -1 then return 0
 
-	if info.biBitCount <> 24 then
-		close #bf
-		debug "frame_import_bmp24 should not have been called!"
-		return 0
-	end if
-
 	'navigate to the beginning of the bitmap data
 	seek #bf, header.bfOffBits + 1
 
 	dim ret as Frame ptr
 	ret = frame_new(info.biWidth, info.biHeight)
 
-	loadbmp24(bf, ret, pal())
+	if info.biBitCount = 24 then
+		loadbmp24(bf, ret, pal())
+	elseif info.biBitCount = 32 then
+		loadbmp32(bf, ret, pal())
+	else
+		debug "frame_import_bmp24_or_32 should not have been called!"
+		frame_unload @ret
+		ret = 0
+	end if
 
 	close #bf
 	return ret
 end function
 
 sub bitmap2pal (bmp as string, pal() as RGBcolor)
-'loads the 24-bit 16x16 palette bitmap bmp into palette pal()
+'loads the 24/32-bit 16x16 palette bitmap bmp into palette pal()
 'so, pixel (0,0) holds colour 0, (0,1) has colour 16, and (15,15) has colour 255
 	dim header as BITMAPFILEHEADER
 	dim info as BITMAPINFOHEADER
 	dim col as RGBTRIPLE
 	dim bf as integer
+	dim dummy as ubyte
 	dim as integer w, h
 
 	bf = open_bmp_and_read_header(bmp, header, info)
 	if bf <= -1 then exit sub
 
-	if info.biBitCount <> 24 OR info.biWidth <> 16 OR info.biHeight <> 16 then
+	if info.biBitCount < 24 OR info.biWidth <> 16 OR info.biHeight <> 16 then
 		close #bf
 		debug "bitmap2pal should not have been called!"
 		exit sub
@@ -4187,6 +4237,9 @@ sub bitmap2pal (bmp as string, pal() as RGBcolor)
 			pal(h * 16 + w).g = col.rgbtGreen
 			pal(h * 16 + w).b = col.rgbtBlue
 		next
+		if info.biBitCount = 32 then
+			get #bf, , dummy
+		end if
 	next
 
 	close #bf
@@ -4220,19 +4273,45 @@ function frame_import_bmp_raw(bmp as string) as Frame ptr
 		if info.biCompression = BI_RGB then
 			loadbmp4(bf, ret)
 		elseif info.biCompression = BI_RLE4 then
+			frame_clear(ret)
 			loadbmprle4(bf, ret)
+		else
+			debug "frame_import_bmp_raw should not have been called, bad 4-bit compression"
 		end if
 	else
-		'RLE8 not supported
-		loadbmp8(bf, ret)
+		if info.biCompression = BI_RGB then
+			loadbmp8(bf, ret)
+		elseif info.biCompression = BI_RLE8 then
+			frame_clear(ret)
+			loadbmprle8(bf, ret)
+		else
+			debug "frame_import_bmp_raw should not have been called, bad 8-bit compression"
+		end if
 	end if
 
 	close #bf
 	return ret
 end function
 
+private sub loadbmp32(byval bf as integer, byval fr as Frame ptr, pal() as RGBcolor)
+'takes an open file handle, an already sized Frame, and a 256 colour palette to map to
+	dim pix as RGBQUAD
+	dim ub as ubyte
+	dim as integer w, h
+	dim sptr as ubyte ptr
+
+	for h = fr->h - 1 to 0 step -1
+		sptr = fr->image + h * fr->pitch
+		for w = 0 to fr->w - 1
+			get #bf, , pix
+			*sptr = nearcolor(pal(), pix.rgbRed, pix.rgbGreen, pix.rgbBlue)
+			sptr += 1
+		next
+	next
+END SUB
+
 private sub loadbmp24(byval bf as integer, byval fr as Frame ptr, pal() as RGBcolor)
-'takes an open file handle, an already size Frame pointer, and a 256 colour palette to map to
+'takes an open file handle, an already sized Frame pointer, and a 256 colour palette to map to
 	dim pix as RGBTRIPLE
 	dim ub as ubyte
 	dim as integer w, h
@@ -4353,7 +4432,7 @@ private sub loadbmprle4(byval bf as integer, byval fr as Frame ptr)
 							else
 								bval = pix and &h0f
 							end if
-							fr->image[h * fr->pitch + w] = bval
+							putpixel(fr, w, h, bval)
 							w += 1
 						next
 						if (ub mod 4 = 1) or (ub mod 4 = 2) then
@@ -4371,7 +4450,58 @@ private sub loadbmprle4(byval bf as integer, byval fr as Frame ptr)
 					else
 						bval = v2
 					end if
-					fr->image[h * fr->pitch + w] = bval
+					putpixel(fr, w, h, bval)
+					w += 1
+				next
+		end select
+	wend
+
+end sub
+
+PRIVATE SUB loadbmprle8(byval bf as integer, byval fr as Frame ptr)
+'takes an open file handle and an already size Frame pointer, should only be called within loadbmp
+	dim pix as ubyte
+	dim ub as ubyte
+	dim as integer w, h
+	dim i as integer
+	dim as ubyte bval
+
+	w = 0
+	h = fr->h - 1
+
+	'read bytes until we're done
+	while not eof(bf)
+		'get command byte
+		get #bf, , ub
+		select case ub
+			case 0	'special, check next byte
+				get #bf, , ub
+				select case ub
+					case 0		'end of line
+						w = 0
+						h -= 1
+					case 1		'end of bitmap
+						exit while
+					case 2 		'delta (how can this ever be used?)
+						get #bf, , ub
+						w = w + ub
+						get #bf, , ub
+						h = h + ub
+					case else	'absolute mode
+						for i = 1 to ub
+							get #bf, , pix
+							putpixel(fr, w, h, pix)
+							w += 1
+						next
+						if ub mod 2 then
+							get #bf, , ub 'pad to word boundary
+						end if
+				end select
+			case else	'run-length
+				get #bf, , pix
+
+				for i = 1 to ub
+					putpixel(fr, w, h, pix)
 					w += 1
 				next
 		end select
@@ -4413,19 +4543,28 @@ function loadbmppal (f as string, pal() as RGBcolor) as integer
 'returns the number of bits
 	dim header as BITMAPFILEHEADER
 	dim info as BITMAPINFOHEADER
-	dim col as RGBQUAD
+	dim col3 as RGBTRIPLE
+	dim col4 as RGBQUAD
 	dim bf as integer
 	dim i as integer
 
 	bf = open_bmp_and_read_header(f, header, info)
 	if bf <= -1 then return 0
 
+	'debug "loadbmppal(" & f & "): table at " & (seek(bf) - 1) & " = " & hex(seek(bf) - 1)
 	if info.biBitCount <= 8 then
 		for i = 0 to (1 shl info.biBitCount) - 1
-			get #bf, , col
-			pal(i).r = col.rgbRed
-			pal(i).g = col.rgbGreen
-			pal(i).b = col.rgbBlue
+			if info.biSize = 12 then  'BITMAPCOREHEADER
+				get #bf, , col3
+				pal(i).r = col3.rgbtRed
+				pal(i).g = col3.rgbtGreen
+				pal(i).b = col3.rgbtBlue
+			else
+				get #bf, , col4
+				pal(i).r = col4.rgbRed
+				pal(i).g = col4.rgbGreen
+				pal(i).b = col4.rgbBlue
+			end if
 		next
 	else
 		debug "loadbmppal shouldn't have been called!"
@@ -4459,6 +4598,7 @@ sub convertbmppal (f as string, mpal() as RGBcolor, pal() as integer, byval o as
 			else
 				col8 = 0
 			end if
+			'debug "convertbmppal col " & i & " rgb " & cols(i).r & " " & cols(i).g & " " & cols(i).b & " -> " & col8
 			if toggle = 0 then
 				pal(p) = col8
 				toggle = 1

@@ -127,7 +127,7 @@ DECLARE SUB screenshot (f as string)
 DECLARE SUB bmp_screenshot(f as string)
 DECLARE SUB frame_export_bmp4 (f as string, byval fr as Frame Ptr, maspal() as RGBcolor, byval pal as Palette16 ptr)
 DECLARE SUB frame_export_bmp8 (f as string, byval fr as Frame Ptr, maspal() as RGBcolor)
-DECLARE FUNCTION frame_import_bmp24(bmp as string, pal() as RGBcolor) as Frame ptr
+DECLARE FUNCTION frame_import_bmp24_or_32(bmp as string, pal() as RGBcolor) as Frame ptr
 DECLARE FUNCTION frame_import_bmp_raw(bmp as string) as Frame ptr
 DECLARE SUB bitmap2pal (bmp as string, pal() as RGBcolor)
 DECLARE FUNCTION loadbmppal (f as string, pal() as RGBcolor) as integer

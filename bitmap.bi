@@ -1,3 +1,4 @@
+'Compression enum
 #define BI_RGB 0
 #define BI_RLE8 1
 #define BI_RLE4 2
