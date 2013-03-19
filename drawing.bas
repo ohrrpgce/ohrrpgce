@@ -2271,20 +2271,26 @@ SUB frame_to_4bit_buffer(byval spr as Frame ptr, buf() as integer, byval wid as 
 END SUB
 
 'Load a BMP of any bitdepth into a Frame which has just 16 colours: those in pal16
-SUB spriteedit_import16_loadbmp(byref ss as SpriteEditState, srcbmp as string, byref impsprite as Frame ptr, byref pal16 as Palette16 ptr)
+SUB spriteedit_import16_loadbmp(byref ss as SpriteEditState, workpal() as integer, byval palno as integer, srcbmp as string, byref impsprite as Frame ptr, byref pal16 as Palette16 ptr)
  pal16 = palette16_new()
 
  DIM bmpd as BitmapInfoHeader
  bmpinfo(srcbmp, bmpd)
  'debuginfo "import16_load: bitdepth " & bmpd.biBitCount
+
+ 'Map from impsprite colors to master pal indices
+ DIM bmppal(255) as integer
+ 'Put color index hints in bmppal(), which are used if they are an exact match.
+ FOR i as integer = 0 TO 15
+  bmppal(i) = peek8bit(workpal(), i + palno * 16)
+ NEXT
+
  IF bmpd.biBitCount <= 4 THEN
   'If 4 bit or below, we preserve the colour indices from the BMP
 
   impsprite = frame_import_bmp_raw(srcbmp)
 
-  'Map from impsprite colors to master pal indices
-  DIM bmppal(15) as integer
-  convertbmppal(srcbmp, master(), bmppal()) 'pal16->col())
+  convertbmppal(srcbmp, master(), bmppal())
   FOR i as integer = 0 TO 15
    pal16->col(i) = bmppal(i)
   NEXT 
@@ -2308,41 +2314,57 @@ SUB spriteedit_import16_loadbmp(byref ss as SpriteEditState, srcbmp as string, b
   END IF
 
   IF impsprite <> NULL THEN
-   'Find the set of colours used in impsprite, and remap impsprite
-   'to those colour indices
-   DIM vpal16 as integer vector
-   v_new vpal16
-   'v_append vpal16, 0
+   'First special case (intended for 8 bit bmps): don't do any remapping if the indices are already 0-15
 
-   FOR x as integer = 0 TO impsprite->w - 1   'small(impsprite->w, ss.wide) - 1
-    FOR y as integer = 0 TO impsprite->h - 1  'small(impsprite->h, ss.high) - 1
-     DIM col as integer = bmppal(readpixel(impsprite, x, y))
-     DIM at as integer = v_find(vpal16, col)
-     IF at = -1 THEN
-      v_append vpal16, col
-      col = v_len(vpal16) - 1
-     ELSE
-      col = at
-     END IF
-     putpixel(impsprite, x, y, col)
+   DIM require_remap as bool = NO
+   FOR x as integer = 0 TO impsprite->w - 1
+    FOR y as integer = 0 TO impsprite->h - 1
+     IF readpixel(impsprite, x, y) >= 16 THEN require_remap = YES
     NEXT
    NEXT
-   debuginfo srcbmp & " contains " & v_len(vpal16) & " colors"
 
-   IF v_len(vpal16) > 16 THEN
-    notification "This image contains " & v_len(vpal16) & " colors (after finding nearest-matches to the master palette). At most 16 are allowed." _
-                 " Reduce the number of colors and try importing again."
-    palette16_unload @pal16
-    frame_unload @impsprite
-    v_free vpal16
-    EXIT SUB
-   ELSE
-    FOR i as integer = 0 TO v_len(vpal16) - 1
-     pal16->col(i) = vpal16[i]
+   IF require_remap = NO THEN
+    FOR i as integer = 0 TO 15
+     pal16->col(i) = bmppal(i)
     NEXT i
-   END IF
+   ELSE
 
-   v_free vpal16
+    'Find the set of colours used in impsprite, and remap impsprite
+    'to those colour indices
+    DIM vpal16 as integer vector
+    v_new vpal16
+    'v_append vpal16, 0
+
+    FOR x as integer = 0 TO impsprite->w - 1   'small(impsprite->w, ss.wide) - 1
+     FOR y as integer = 0 TO impsprite->h - 1  'small(impsprite->h, ss.high) - 1
+      DIM col as integer = bmppal(readpixel(impsprite, x, y))
+      DIM at as integer = v_find(vpal16, col)
+      IF at = -1 THEN
+       v_append vpal16, col
+       col = v_len(vpal16) - 1
+      ELSE
+       col = at
+      END IF
+      putpixel(impsprite, x, y, col)
+     NEXT
+    NEXT
+    debuginfo srcbmp & " contains " & v_len(vpal16) & " colors"
+
+    IF v_len(vpal16) > 16 THEN
+     notification "This image contains " & v_len(vpal16) & " colors (after finding nearest-matches to the master palette). At most 16 are allowed." _
+                  " Reduce the number of colors and try importing again."
+     palette16_unload @pal16
+     frame_unload @impsprite
+     v_free vpal16
+     EXIT SUB
+    ELSE
+     FOR i as integer = 0 TO v_len(vpal16) - 1
+      pal16->col(i) = vpal16[i]
+     NEXT i
+    END IF
+
+    v_free vpal16
+   END IF
   END IF
  END IF
 
@@ -2416,10 +2438,12 @@ SUB spriteedit_import16_compare_palettes(workpal() as integer, byval palno as in
  can_remap = YES
  is_identical = YES
  FOR i as integer = 1 TO 15
-  IF pal16->col(i) <> existingpal(i) THEN is_identical = NO
+  'IF pal16->col(i) <> existingpal(i) THEN is_identical = NO
+  IF color_distance(master(), pal16->col(i), existingpal(i)) > 0 THEN is_identical = NO
   DIM found as bool = NO
   FOR j as integer = 1 TO 15
-   IF pal16->col(i) = existingpal(j) THEN
+   'IF pal16->col(i) = existingpal(j) THEN
+   IF color_distance(master(), pal16->col(i), existingpal(j)) = 0 THEN
     palmapping(i) = j
     found = YES
     EXIT FOR
@@ -2533,7 +2557,7 @@ SUB spriteedit_import16(byref ss as SpriteEditState, byref ss_save as SpriteEdit
 
  DIM as Frame ptr impsprite, impsprite2
  DIM pal16 as Palette16 ptr
- spriteedit_import16_loadbmp ss, srcbmp, impsprite, pal16
+ spriteedit_import16_loadbmp ss, workpal(), state.pt - state.top, srcbmp, impsprite, pal16
  IF impsprite = NULL THEN EXIT SUB
  'frame_export_bmp4 "debug0.bmp", impsprite, master(), pal16
 

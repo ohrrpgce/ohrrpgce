@@ -4580,8 +4580,9 @@ function loadbmppal (f as string, pal() as RGBcolor) as integer
 end function
 
 sub convertbmppal (f as string, mpal() as RGBcolor, pal() as integer)
-'find the nearest match palette mapping from a 1/4/8 bit bmp f to
-'the master palette mpal(), and store it in pal(), an array of mpal() indices
+'Find the nearest match palette mapping from a 1/4/8 bit bmp f to
+'the master palette mpal(), and store it in pal(), an array of mpal() indices.
+'pal() may contain initial values, used as hints.
 	dim bitdepth as integer
 	dim cols(255) as RGBcolor
 
@@ -4589,7 +4590,7 @@ sub convertbmppal (f as string, mpal() as RGBcolor, pal() as integer)
 	if bitdepth = 0 then exit sub
 
 	for i as integer = 0 to small(UBOUND(pal), (1 SHL bitdepth) - 1)
-		pal(i) = nearcolor(mpal(), cols(i).r, cols(i).g, cols(i).b)
+		pal(i) = nearcolor(mpal(), cols(i).r, cols(i).g, cols(i).b, , pal(i))
 	next
 end sub
 
@@ -4605,9 +4606,27 @@ function bmpinfo (f as string, byref info as BITMAPINFOHEADER) as integer
 	return 2
 end function
 
-function nearcolor(pal() as RGBcolor, byval red as ubyte, byval green as ubyte, byval blue as ubyte, byval firstindex as integer = 0) as ubyte
-'figure out nearest palette colour
+'Returns a non-negative integer which is 0 if both colors in a color table are the same
+function color_distance(pal() as RGBcolor, byval index1 as integer, byval index2 as integer) as integer
+	with pal(index1)
+		dim as integer rdif, bdif, gdif
+		rdif = .r - pal(index2).r
+		gdif = .g - pal(index2).g
+		bdif = .b - pal(index2).b
+		return rdif*rdif + gdif*gdif + bdif*bdif
+	end with
+end function
+
+function nearcolor(pal() as RGBcolor, byval red as ubyte, byval green as ubyte, byval blue as ubyte, byval firstindex as integer = 0, byval indexhint as integer = -1) as ubyte
+'Figure out nearest palette colour in a very very crude way
+'A perfect match against pal(indexhint) is tried first
 	dim as integer i, diff, best, save, rdif, bdif, gdif
+
+	if indexhint > -1 and indexhint <= UBOUND(pal) then
+		with pal(indexhint)
+			if red = .r and green = .g and blue = .b then return indexhint
+		end with
+	end if
 
 	best = 1000000
 	save = 0
@@ -4616,7 +4635,7 @@ function nearcolor(pal() as RGBcolor, byval red as ubyte, byval green as ubyte, 
 		gdif = green - pal(i).g
 		bdif = blue - pal(i).b
 		'diff = abs(rdif) + abs(gdif) + abs(bdif)
-		diff = rdif^2 + gdif^2 + bdif^2
+		diff = rdif*rdif + gdif*gdif + bdif*bdif
 		if diff = 0 then
 			'early out on direct hit
 			save = i
