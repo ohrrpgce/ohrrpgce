@@ -21,6 +21,8 @@ DECLARE SUB savepasdefaults (byref defaults as integer vector, tilesetnum as int
 DECLARE FUNCTION importmasterpal (f as string, byval palnum as integer) as integer
 
 'Local SUBs and FUNCTIONS
+DECLARE FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp as string, pmask() as RGBcolor) as bool
+
 DECLARE SUB picktiletoedit (byref tmode as integer, byref pagenum as integer, mapfile as string)
 DECLARE SUB editmaptile (ts as TileEditState, mover() as integer, mouse as MouseInfo, area() as MouseArea)
 DECLARE SUB tilecut (ts as TileEditState, mouse as MouseInfo, area() as MouseArea)
@@ -110,13 +112,8 @@ END SUB
 
 SUB importbmp (f as string, cap as string, byref count as integer)
 STATIC default as string
-DIM palmapping(255) as integer
-DIM bmpd as BitmapInfoHeader
-DIM img as Frame ptr
 DIM pmask(255) as RGBcolor
-DIM temppal(255) as RGBcolor
 DIM menu(6) as string
-DIM submenu(2) as string
 DIM mstate as MenuState
 mstate.size = 24
 mstate.last = UBOUND(menu)
@@ -134,7 +131,6 @@ DIM csr2 as integer
 DIM tog as integer
 DIM cx as integer
 DIM cy as integer
-DIM paloption as integer
 DIM pt as integer = 0 'backdrop number
 
 IF count = 0 THEN count = 1
@@ -160,19 +156,21 @@ DO
  IF enter_or_space() THEN
   IF mstate.pt = 0 THEN EXIT DO
   IF mstate.pt = 2 THEN
+   'Replace current
    srcbmp = browse(3, default, "*.bmp", "",,"browse_import_" & cap)
    IF srcbmp <> "" THEN
-    GOSUB bimport
+    importbmp_import(game & f, pt, srcbmp, pmask())
    END IF
    loadmxs game + f, pt, vpages(2)
   END IF
   IF mstate.pt = 3 AND count < 32767 THEN
+   'Append new
    srcbmp = browse(3, default, "*.bmp", "",,"browse_import_" & cap)
    IF srcbmp <> "" THEN
-    DIM oldpt as integer = pt
-    pt = count
-    GOSUB bimport
-    IF pt = count THEN pt = oldpt 'cancelled
+    IF importbmp_import(game & f, count, srcbmp, pmask()) THEN
+     pt = count
+     count = pt + 1
+    END IF
    END IF
    menu(1) = CHR(27) + "Browse " & pt & CHR(26)
    loadmxs game + f, pt, vpages(2)
@@ -234,47 +232,54 @@ DO
  setvispage vpage
  dowait
 LOOP
-
-bimport:
-bmpinfo(srcbmp, bmpd)
-IF bmpd.biBitCount <= 8 THEN
- paloption = 2  'no remapping
- loadbmppal srcbmp, temppal()
- IF memcmp(@temppal(0), @master(0), 256 * sizeof(RGBcolor)) <> 0 THEN
-  'the palette is inequal to the master palette 
-  clearpage vpage
-  submenu(0) = "Remap to current Master Palette"
-  submenu(1) = "Import with new Master Palette"
-  submenu(2) = "Do not remap colours"
-  paloption = multichoice("This BMP's palette is not identical to your master palette", _
-                          submenu(), , , "importbmp_palette")
-  IF paloption = -1 THEN RETRACE
-  IF paloption = 1 THEN
-   importmasterpal srcbmp, gen(genMaxMasterPal) + 1
-   activepalette = gen(genMaxMasterPal)
-   setpal master()
-   LoadUIColors uilook(), activepalette
-  END IF
- END IF
- img = frame_import_bmp_raw(srcbmp)
- IF paloption = 0 THEN
-  convertbmppal srcbmp, pmask(), palmapping()
-  FOR y as integer = 0 TO img->h - 1
-   FOR x as integer = 0 TO img->w - 1
-    putpixel img, x, y, palmapping(readpixel(img, x, y))
-   NEXT
-  NEXT
- END IF
-ELSE
- img = frame_import_bmp24_or_32(srcbmp, pmask())
-END IF
-storemxs game & f, pt, img
-frame_unload @img
-IF pt >= count THEN count = pt + 1
-loadpalette pmask(), activepalette
-RETRACE
-
 END SUB
+
+'Returns true if imported, false if cancelled
+FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp as string, pmask() as RGBcolor) as bool
+ DIM bmpd as BitmapInfoHeader
+ DIM menu(2) as string
+ DIM paloption as integer
+ DIM img as Frame ptr
+ DIM temppal(255) as RGBcolor
+ DIM palmapping(255) as integer
+
+ bmpinfo(srcbmp, bmpd)
+ IF bmpd.biBitCount <= 8 THEN
+  paloption = 2  'no remapping
+  loadbmppal srcbmp, temppal()
+  IF memcmp(@temppal(0), @master(0), 256 * sizeof(RGBcolor)) <> 0 THEN
+   'the palette is inequal to the master palette 
+   clearpage vpage
+   menu(0) = "Remap to current Master Palette"
+   menu(1) = "Import with new Master Palette"
+   menu(2) = "Do not remap colours"
+   paloption = multichoice("This BMP's palette is not identical to your master palette", _
+                           menu(), , , "importbmp_palette")
+   IF paloption = -1 THEN RETURN NO
+   IF paloption = 1 THEN
+    importmasterpal srcbmp, gen(genMaxMasterPal) + 1
+    activepalette = gen(genMaxMasterPal)
+    setpal master()
+    LoadUIColors uilook(), activepalette
+   END IF
+  END IF
+  img = frame_import_bmp_raw(srcbmp)
+  IF paloption = 0 THEN
+   convertbmppal srcbmp, pmask(), palmapping()
+   FOR y as integer = 0 TO img->h - 1
+    FOR x as integer = 0 TO img->w - 1
+     putpixel img, x, y, palmapping(readpixel(img, x, y))
+    NEXT
+   NEXT
+  END IF
+ ELSE
+  img = frame_import_bmp24_or_32(srcbmp, pmask())
+ END IF
+ storemxs mxslump, imagenum, img
+ frame_unload @img
+ loadpalette pmask(), activepalette
+ RETURN YES
+END FUNCTION
 
 SUB maptile ()
 DIM menu(10) as string
