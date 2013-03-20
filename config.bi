@@ -94,7 +94,8 @@ EXTERN as string gfxbackendinfo, musicbackendinfo, systeminfo
 #endmacro
 
 'GOSUB hack
-#ifndef __FB_GCC__
+
+#if __FB_GCC__ = 0
 'use nearly-as-fast assembly version (one extra jump)
 
 #undef gosub
@@ -106,12 +107,16 @@ EXTERN as string gfxbackendinfo, musicbackendinfo, systeminfo
 
 #else  'choose GOSUB workaround
 
+#ifdef __FB_DARWIN__
+ #error "setjmp GOSUB hack not supported on Mac"
+#endif
+
 'alternative to above blocks, use this code on non x86 platforms
 'use a setjmp/longjmp kludge
 
 '#include "crt/setjmp.bi"
-' setjmp.bi is incorrect
-type crt_jmp_buf:dummy(63) as byte:end type
+' setjmp.bi is incorrect. Actual size is 148 bytes on 64 bit OSX, so be conservative
+type crt_jmp_buf:dummy(255) as byte:end type
 #ifdef __FB_WIN32__
 declare function setjmp cdecl alias "_setjmp" (byval as any ptr) as integer
 #else

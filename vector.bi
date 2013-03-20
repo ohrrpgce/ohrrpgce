@@ -74,7 +74,7 @@ end extern
 'by requiring parentheses around arguments.
 'Functions which take a literal as argument need special treatment; they have wrapper functions
 'in DECLARE_VECTOR_OF_TYPE.
-#IFDEF __FB_GCC__
+#IF __FB_GCC__
   extern "C"
   declare sub array_free (byref this as any vector)
   declare sub array_assign (byref dest as any vector, byref src as any vector)
@@ -140,7 +140,7 @@ end extern
     array_new(this, length, @type_table(TID))
   end sub
 
-#IFNDEF __FB_GCC__
+#IF __FB_GCC__ = 0
   extern "c"
 
   'Deletes vector (if non-NULL), sets variable to NULL
@@ -212,7 +212,7 @@ end extern
 
   end extern
 
-#ELSE  'IFDEF __GEN_GCC__
+#ELSE  'IF __FB_GCC__
 
   'Can't use the "byref as T" trick when using #defines instead of aliases.
   'So use wrapper functions instead (luckily GCC can optimise these away)

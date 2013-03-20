@@ -678,7 +678,8 @@ startTest(PolymorphismTest)
 	'So we can use polymorphism in this way; the type table for a vector contains sufficient data
 	'for all other operations.
 
-	dim as any vector poly_arr, poly_arr2
+	'First member of VecMap is a string, so string is like a base class of VecMap
+	dim as string vector poly_arr, poly_arr2
 
 	'Create a vector normally
 	dim as VecMap vector realarray
@@ -695,9 +696,13 @@ startTest(PolymorphismTest)
 
 	'Then store it in something else (normally a downcast to a type inherited from)
 	'and test
-	poly_arr = realarray
+	poly_arr = cast(string vector, realarray)
 	'Remember that realarray pointer is invalid once we start doing length-changing operations on poly_arr
 	realarray = NULL
+
+	if *v_at(poly_arr, 0) <> "" then fail
+	if *v_at(poly_arr, 1) <> "N" then fail
+	if *v_at(poly_arr, 2) <> "E" then fail
 
 	v_extend(poly_arr, poly_arr)
 	assertVector(poly_arr, "[:[], N:[0, -1], E:[1, 0], :[], N:[0, -1], E:[1, 0]]")
