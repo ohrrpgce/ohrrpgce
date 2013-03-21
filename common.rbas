@@ -641,14 +641,6 @@ FUNCTION readbadgenericname (byval index as integer, filename as string, byval r
  RETURN ""  'failure
 END FUNCTION
 
-FUNCTION isbit (bb() as integer, byval w as integer, byval b as integer) as integer
- IF readbit (bb(), w, b) THEN
-  RETURN -1
- ELSE
-  RETURN 0
- END IF
-END FUNCTION
-
 FUNCTION decodetrigger (byval trigger as integer) as integer
  'debug "decoding " + STR(trigger)
  IF trigger >= 16384 AND trigger - 16384 <= UBOUND(lookup1_bin_cache) THEN
@@ -4379,7 +4371,7 @@ SUB unloadmaptilesets (tilesets() as TilesetData ptr)
  NEXT
 END SUB
 
-FUNCTION xreadbit (bitarray() as integer, byval bitoffset as integer, byval intoffset as integer=0) as integer
+FUNCTION xreadbit (bitarray() as integer, byval bitoffset as integer, byval intoffset as integer=0) as bool
  'This is a wrapper for readbit that returns YES/NO and accepts a default arg of zero for the integer offset
  RETURN readbit(bitarray(), intoffset, bitoffset) <> 0 
 END FUNCTION

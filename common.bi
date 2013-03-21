@@ -60,7 +60,6 @@ DECLARE SUB edgeboxstyle OVERLOAD (byval x as integer, byval y as integer, byval
 DECLARE SUB center_edgeboxstyle (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval boxstyle as integer, byval p as integer, byval fuzzy as integer=NO, byval supress_borders as integer=NO)
 DECLARE SUB edgebox OVERLOAD (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval col as integer, byval bordercol as integer, byval p as integer, byval trans as RectTransTypes=transOpaque, byval border as integer=-1, byval fuzzfactor as integer=50)
 DECLARE SUB edgebox OVERLOAD (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval col as integer, byval bordercol as integer, byval fr as Frame Ptr, byval trans as RectTransTypes=transOpaque, byval border as integer=-1, byval fuzzfactor as integer=50)
-DECLARE FUNCTION isbit (bb() as integer, byval w as integer, byval b as integer) as integer
 
 DECLARE FUNCTION decodetrigger (byval trigger as integer) as integer
 DECLARE FUNCTION scriptname (byval num as integer) as string
@@ -198,7 +197,7 @@ DECLARE FUNCTION paste_keychord () as integer
 DECLARE SUB write_npc_int (npcdata as NPCType, byval intoffset as integer, byval n as integer)
 DECLARE FUNCTION read_npc_int (npcdata as NPCType, byval intoffset as integer) as integer
 
-DECLARE FUNCTION xreadbit (bitarray() as integer, byval bitoffset as integer, byval intoffset as integer=0) as integer
+DECLARE FUNCTION xreadbit (bitarray() as integer, byval bitoffset as integer, byval intoffset as integer=0) as bool
 
 DECLARE FUNCTION get_text_box_height(byref box as TextBox) as integer
 DECLARE FUNCTION last_inv_slot() as integer

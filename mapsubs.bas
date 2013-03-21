@@ -26,7 +26,7 @@ DECLARE FUNCTION addmaphow () as integer
 DECLARE FUNCTION hilite (what as string) as string
 
 DECLARE FUNCTION animadjust(byval tilenum as integer, tastuf() as integer) as integer
-DECLARE SUB loadpasdefaults (byref defaults as integer VECTOR, tilesetnum as integer)
+DECLARE SUB loadpasdefaults (byref defaults as integer vector, tilesetnum as integer)
 
 DECLARE SUB fill_map_area(st as MapEditState, byval x as integer, byval y as integer, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap, reader as FnReader)
 DECLARE SUB fill_with_other_area(st as MapEditState, byval x as integer, byval y as integer, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap, reader as FnReader)
@@ -71,19 +71,19 @@ TYPE LayerMenuItem  'EXTENDS BasicMenuItem
 
   'new members
   role as LayerMenuItemType
-  layernum as integer '-1 if not a layer
-  gmapindex as integer '-1 if enabled/visibility choice rather than tileset choice
+  layernum as integer    '-1 if not a layer
+  gmapindex as integer   '-1 if enabled/visibility choice rather than tileset choice
 END TYPE
 
 DECLARE_VECTOR_OF_TYPE(LayerMenuItem, LayerMenuItem)
 DEFINE_VECTOR_OF_CLASS(LayerMenuItem, LayerMenuItem)
 
-DECLARE Function LayerIsVisible(vis() as integer, byval l as integer) as integer
-DECLARE Function LayerIsEnabled(gmap() as integer, byval l as integer) as integer
-DECLARE Sub SetLayerVisible(vis() as integer, byval l as integer, byval v as integer)
-DECLARE Sub SetLayerEnabled(gmap() as integer, byval l as integer, byval v as integer)
-DECLARE Sub ToggleLayerVisible(vis() as integer, byval l as integer)
-DECLARE Sub ToggleLayerEnabled(vis() as integer, byval l as integer)
+DECLARE FUNCTION LayerIsVisible(vis() as integer, byval l as integer) as bool
+DECLARE FUNCTION LayerIsEnabled(gmap() as integer, byval l as integer) as bool
+DECLARE SUB SetLayerVisible(vis() as integer, byval l as integer, byval v as bool)
+DECLARE SUB SetLayerEnabled(gmap() as integer, byval l as integer, byval v as bool)
+DECLARE SUB ToggleLayerVisible(vis() as integer, byval l as integer)
+DECLARE SUB ToggleLayerEnabled(vis() as integer, byval l as integer)
 
 DECLARE SUB DrawDoorPair(st as MapEditState, byval linknum as integer, map() as TileMap, pass as TileMap, doors() as door, link() as doorlink, gmap() as integer)
 
@@ -283,7 +283,7 @@ END SUB
 'Note dummy arguments: all brush functions should have the same signature
 SUB zonebrush (st as MapEditState, byval x as integer, byval y as integer, byval value as integer = -1, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
  IF value = -1 THEN value = st.tool_value
- DIM new_stroke as integer = st.new_stroke
+ DIM new_stroke as bool = st.new_stroke
  add_undo_step st, x, y, CheckZoneAtTile(zmap, st.cur_zone, x, y), mapIDZone + st.cur_zone
  IF value = 0 THEN
   UnsetZoneTile zmap, st.cur_zone, x, y
@@ -356,7 +356,7 @@ DIM mode_tools_map(zone_mode, 10) as integer = { _
    {draw_tool, box_tool, fill_tool, replace_tool, paint_tool, -1}, _                  'foe_mode
    {draw_tool, box_tool, fill_tool, paint_tool, -1} _                                 'zone_mode
 }
-DIM mode_tools as integer VECTOR
+DIM mode_tools as integer vector
 v_new mode_tools
 DIM toolsbar_available as integer  'Whether you can select the current tool
 DIM drawing_allowed as integer     'Whether you can actually draw
@@ -2782,7 +2782,7 @@ SUB fix_tilemaps(map() as TileMap)
 END SUB
 
 SUB mapedit_swap_layers(st as MapEditState, map() as TileMap, vis() as integer, gmap() as integer, byval l1 as integer, byval l2 as integer)
- DIM as integer temp1, temp2
+ DIM as bool temp1, temp2
  SWAP map(l1), map(l2)
  fix_tilemaps map()
  SWAP st.usetile(l1), st.usetile(l2)
@@ -3152,41 +3152,40 @@ SUB link_one_door(st as MapEditState, linknum as integer, link() as DoorLink, do
 END SUB
 
 FUNCTION find_last_used_doorlink(link() as DoorLink) as integer
- DIM i as integer
  FOR i as integer = UBOUND(link) TO 0 STEP -1
   IF link(i).source >= 0 THEN RETURN i
  NEXT i
  RETURN -1
 END FUNCTION
 
-Function LayerIsVisible(vis() as integer, byval l as integer) as integer
-	'debug "layer #" & l & " is: " & readbit(vis(), 0, l)
-	return readbit(vis(), 0, l)
-end function
+FUNCTION LayerIsVisible(vis() as integer, byval l as integer) as bool
+ 'debug "layer #" & l & " is: " & readbit(vis(), 0, l)
+ RETURN xreadbit(vis(), 0, l)
+END FUNCTION
 
-Function LayerIsEnabled(gmap() as integer, byval l as integer) as integer
-	if l <= 0 then return 1
-	'debug "layer #" & l & " is: " & readbit(gmap(), 19, l-1)
-	return readbit(gmap(), 19, l-1)
-end function
+FUNCTION LayerIsEnabled(gmap() as integer, byval l as integer) as bool
+ IF l <= 0 THEN RETURN 1
+ 'debug "layer #" & l & " is: " & readbit(gmap(), 19, l-1)
+ RETURN xreadbit(gmap(), 19, l - 1)
+END FUNCTION
 
-Sub SetLayerVisible(vis() as integer, byval l as integer, byval v as integer)
-	setbit(vis(), 0, l, v)
-end sub
+SUB SetLayerVisible(vis() as integer, byval l as integer, byval v as bool)
+ setbit(vis(), 0, l, v)
+END SUB
 
-Sub SetLayerEnabled(gmap() as integer, byval l as integer, byval v as integer)
-	if l <= 0 then exit sub
-	setbit(gmap(), 19, l-1, v)
-end sub
+SUB SetLayerEnabled(gmap() as integer, byval l as integer, byval v as bool)
+ IF l <= 0 THEN EXIT SUB
+ setbit(gmap(), 19, l - 1, v)
+END SUB
 
-Sub ToggleLayerVisible(vis() as integer, byval l as integer)
-	setbit(vis(), 0, l, readbit(vis(), 0, l) xor 1)
-end sub
+SUB ToggleLayerVisible(vis() as integer, byval l as integer)
+ setbit(vis(), 0, l, readbit(vis(), 0, l) xor 1)
+END SUB
 
-Sub ToggleLayerEnabled(gmap() as integer, byval l as integer)
-	if l <= 0 then exit sub
-	setbit(gmap(), 19, l - 1, readbit(gmap(), 19, l-1) xor 1)
-end sub
+SUB ToggleLayerEnabled(gmap() as integer, byval l as integer)
+ IF l <= 0 THEN EXIT SUB
+ setbit(gmap(), 19, l - 1, readbit(gmap(), 19, l - 1) xor 1)
+END SUB
 
 SUB DrawDoorPair(st as MapEditState, byval linknum as integer, map() as TileMap, pass as TileMap, doors() as door, link() as doorlink, gmap() as integer)
  DIM as integer dmx, dmy, i
@@ -3545,7 +3544,7 @@ SUB fill_with_other_area(st as MapEditState, byval x as integer, byval y as inte
  UnloadTileMap st.temptilemap
 END SUB
 
-SUB loadpasdefaults (byref defaults as integer VECTOR, tilesetnum as integer)
+SUB loadpasdefaults (byref defaults as integer vector, tilesetnum as integer)
  DIM buf(160) as integer
  v_new defaults, 160
  '--load defaults from tile set defaults file
@@ -3561,7 +3560,7 @@ SUB loadpasdefaults (byref defaults as integer VECTOR, tilesetnum as integer)
  END IF
 END SUB
 
-SUB savepasdefaults (byref defaults as integer VECTOR, tilesetnum as integer)
+SUB savepasdefaults (byref defaults as integer vector, tilesetnum as integer)
  DIM buf(160) as integer
  FOR i as integer = 0 TO 159
   buf(i) = defaults[i]
@@ -3609,7 +3608,8 @@ SUB mapedit_pickblock(st as MapEditState)
  update_tilepicker st
 END SUB
 
-'Move this global eventually
+'Move this global eventually?
+'(but tog is file-scope; hacky)
 FUNCTION hilite(what as string) as string
  RETURN "${K" & uilook(uiSelectedItem + tog) & "}" & what & "${K-1}"
 END FUNCTION

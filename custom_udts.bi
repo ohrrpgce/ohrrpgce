@@ -7,7 +7,7 @@
 #include "slices.bi"
 
 ENUM ToolIDs
-  'These are the tools available in the sprite and tile editors
+  'These are the tools available in the sprite, tile and map editors
   draw_tool
   box_tool
   line_tool
@@ -117,7 +117,7 @@ TYPE TileEditState
   readjust as integer
   adjustpos as XYPair
   didscroll as integer  'have scrolled since selecting the scroll tool
-  defaultwalls as integer VECTOR  'always length 160
+  defaultwalls as integer vector  'always length 160
 END TYPE
 
 TYPE HeroEditState
@@ -157,7 +157,7 @@ END ENUM
 'FIXME:a bit of a mess, clean up later
 ENUM MapID
   mapIDMetaBEGIN = -11
-  mapIDMetaCursor = -11
+  mapIDMetaCursor = -11    'Stores cursor position at beginning of stroke
   mapIDMetaEditmode = -10  'to -1. .value is mode specific.
   mapIDMetaEditmodeEND = -1
   mapIDZone = 0   'to 9999
@@ -167,10 +167,10 @@ ENUM MapID
 END ENUM
 
 TYPE MapEditUndoTile
-  x as USHORT
-  y as USHORT
-  value as SHORT
-  mapid as SHORT
+  x as ushort
+  y as ushort
+  value as short
+  mapid as short  'as MapID
 END TYPE
 
 DECLARE_VECTOR_OF_TYPE(MapEditUndoTile, MapEditUndoTile)
@@ -207,7 +207,7 @@ TYPE MapEditState
   tilesetview as TileMap
   cursor as GraphicPair
   tilesets(maplayerMax) as TilesetData ptr  'Tilesets is fixed size at the moment. It must always be at least as large as the number of layers on a map
-  defaultwalls as integer VECTOR VECTOR  'indexed by layer (variable length) and then by tile (always 0-159)
+  defaultwalls as integer vector vector  'indexed by layer (variable length) and then by tile (always 0-159)
   menustate as MenuState     'The top-level menu state
   temptilemap as TileMap     'A temporary TileMap. Normally remains uninitialised
   moved as integer          'used when detecting cursor movement
@@ -233,12 +233,12 @@ TYPE MapEditState
   brush as FnBrush           'What to draw with
   reader as FnReader         'What to read with
   tool_value as integer      'Value (eg. tile) with which to draw. Should never be -1.
-  reset_tool as integer      'When true, tool_value should be set to some default
-  tool_hold as integer       'True if one coordinate has been selected
+  reset_tool as bool         'When true, tool_value should be set to some default
+  tool_hold as bool          'True if one coordinate has been selected
   tool_hold_pos as XYPair    'Held coordinate
   last_pos as XYPair         'Position of the cursor last tick
-  new_stroke as integer      'True before beginning a new editing operation (group of brush() calls)
-  history as MapEditUndoTile VECTOR VECTOR   'Vector of groups of tile edits
+  new_stroke as bool         'True before beginning a new editing operation (group of brush() calls)
+  history as MapEditUndoTile vector vector   'Vector of groups of tile edits
   history_size as integer    'Size of history, in number of MapEditUndoTiles (each is 8 bytes)
   history_step as integer    'In history, [0, history_step) are undos, and the rest are redos
 
