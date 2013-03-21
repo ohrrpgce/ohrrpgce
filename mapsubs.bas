@@ -258,37 +258,39 @@ END SUB
 '---------------------------------- Brushes -----------------------------------
 
 
-'Note dummy arguments: all brush functions should have the same signature
-SUB tilebrush (st as MapEditState, byval x as integer, byval y as integer, byval tile as integer = -1, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
+'Note dummy arguments: all brush functions should have the same signature.
+SUB tilebrush (st as MapEditState, byval x as integer, byval y as integer, byval tile as integer = -1, byval layer as integer = -1, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
  IF tile = -1 THEN tile = st.tool_value
- add_undo_step st, x, y, readblock(map(st.layer), x, y), mapIDLayer + st.layer
- writeblock map(st.layer), x, y, tile
+ IF layer = -1 THEN layer = st.layer
+ add_undo_step st, x, y, readblock(map(layer), x, y), mapIDLayer + layer
+ writeblock map(layer), x, y, tile
  IF st.defpass THEN calculatepassblock st, x, y, map(), pass
 END SUB
 
 'Note dummy arguments: all brush functions should have the same signature
-SUB wallbrush (st as MapEditState, byval x as integer, byval y as integer, byval tile as integer = -1, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
+SUB wallbrush (st as MapEditState, byval x as integer, byval y as integer, byval tile as integer = -1, byval extraarg as integer = -1, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
  IF tile = -1 THEN tile = st.tool_value
  add_undo_step st, x, y, readblock(pass, x, y), mapIDPass
  writeblock pass, x, y, tile
 END SUB
 
 'Note dummy arguments: all brush functions should have the same signature
-SUB foebrush (st as MapEditState, byval x as integer, byval y as integer, byval foe as integer = -1, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
+SUB foebrush (st as MapEditState, byval x as integer, byval y as integer, byval foe as integer = -1, byval extraarg as integer = -1, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
  IF foe = -1 THEN foe = st.tool_value
  add_undo_step st, x, y, readblock(emap, x, y), mapIDFoe
  writeblock emap, x, y, foe
 END SUB
 
 'Note dummy arguments: all brush functions should have the same signature
-SUB zonebrush (st as MapEditState, byval x as integer, byval y as integer, byval value as integer = -1, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
+SUB zonebrush (st as MapEditState, byval x as integer, byval y as integer, byval value as integer = -1, byval zone as integer = -1, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
  IF value = -1 THEN value = st.tool_value
+ IF zone = -1 THEN zone = st.cur_zone
  DIM new_stroke as bool = st.new_stroke
- add_undo_step st, x, y, CheckZoneAtTile(zmap, st.cur_zone, x, y), mapIDZone + st.cur_zone
+ add_undo_step st, x, y, CheckZoneAtTile(zmap, zone, x, y), mapIDZone + zone
  IF value = 0 THEN
-  UnsetZoneTile zmap, st.cur_zone, x, y
+  UnsetZoneTile zmap, zone, x, y
  ELSE
-  IF SetZoneTile(zmap, st.cur_zone, x, y) = NO THEN
+  IF SetZoneTile(zmap, zone, x, y) = NO THEN
    IF new_stroke THEN
     pop_warning "You have already placed this tile in 15 other zones, and that is the maximum supported. Sorry!"
    END IF
@@ -299,7 +301,7 @@ END SUB
 
 'Note dummy arguments: all brush functions should have the same signature
 'Values allowed: 0 to 255
-SUB tempbrush (st as MapEditState, byval x as integer, byval y as integer, byval tile as integer = 0, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
+SUB tempbrush (st as MapEditState, byval x as integer, byval y as integer, byval tile as integer = -1, byval extraarg as integer = -1, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
  writeblock st.temptilemap, x, y, tile
 END SUB
 
@@ -308,22 +310,24 @@ END SUB
 
 
 'Note dummy arguments: all reader functions should have the same signature
-FUNCTION tilereader (st as MapEditState, byval x as integer, byval y as integer, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap) as integer
- RETURN readblock(map(st.layer), x, y)
+FUNCTION tilereader (st as MapEditState, byval x as integer, byval y as integer, byval layer as integer = -1, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap) as integer
+ IF layer = -1 THEN layer = st.layer
+ RETURN readblock(map(layer), x, y)
 END FUNCTION
 
 'Note dummy arguments: all reader functions should have the same signature
-FUNCTION foereader (st as MapEditState, byval x as integer, byval y as integer, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap) as integer
+FUNCTION foereader (st as MapEditState, byval x as integer, byval y as integer, byval extraarg as integer = -1, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap) as integer
  RETURN readblock(emap, x, y)
 END FUNCTION
 
 'Note dummy arguments: all reader functions should have the same signature
-FUNCTION zonereader (st as MapEditState, byval x as integer, byval y as integer, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap) as integer
- RETURN CheckZoneAtTile(zmap, st.cur_zone, x, y)
+FUNCTION zonereader (st as MapEditState, byval x as integer, byval y as integer, byval zone as integer = -1, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap) as integer
+ IF zone = -1 THEN zone = st.cur_zone
+ RETURN CheckZoneAtTile(zmap, zone, x, y)
 END FUNCTION
 
 'Note dummy arguments: all reader functions should have the same signature
-FUNCTION tempreader (st as MapEditState, byval x as integer, byval y as integer, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap) as integer
+FUNCTION tempreader (st as MapEditState, byval x as integer, byval y as integer, byval extraarg as integer = -1, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap) as integer
  RETURN readblock(st.temptilemap, x, y)
 END FUNCTION
 
@@ -718,16 +722,13 @@ DO
  IF keyval(scTab) > 1 THEN st.tiny = st.tiny XOR 1
  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 THEN
    'delete tile
-   DIM remem_layer as integer = st.layer  'hacky
    FOR i as integer = 0 TO UBOUND(map)
-    st.layer = i
-    tilebrush st, st.x, st.y, 0, map(), pass, emap, zmap
+    tilebrush st, st.x, st.y, 0, i, map(), pass, emap, zmap
    NEXT i
-   st.layer = remem_layer
    'delete passability
-   wallbrush st, st.x, st.y, 0, map(), pass, emap, zmap
+   wallbrush st, st.x, st.y, 0, , map(), pass, emap, zmap
    'delete foemap
-   foebrush st, st.x, st.y, 0, map(), pass, emap, zmap
+   foebrush st, st.x, st.y, 0, , map(), pass, emap, zmap
    'delete NPC
    FOR i as integer = 0 TO 299
     WITH st.npc_inst(i)
@@ -786,11 +787,11 @@ DO
      END IF
      IF st.anim_newtile >= 0 THEN
       IF keyval(scCtrl) = 0 THEN
-       tilebrush st, st.x, st.y, st.anim_newtile, map(), pass, emap, zmap
+       tilebrush st, st.x, st.y, st.anim_newtile, , map(), pass, emap, zmap
       ELSE
        FOR tx as integer = 0 TO st.wide - 1
         FOR ty as integer = 0 TO st.high - 1
-         IF readblock(map(st.layer), tx, ty) = st.anim_old THEN tilebrush st, tx, ty, st.anim_newtile, map(), pass, emap, zmap
+         IF readblock(map(st.layer), tx, ty) = st.anim_old THEN tilebrush st, tx, ty, st.anim_newtile, , map(), pass, emap, zmap
         NEXT ty
        NEXT tx
       END IF
@@ -884,7 +885,7 @@ DO
     IF keyval(scH) > 1 THEN drawwall = (st.pass_overtile XOR 64) 'harm tile
     IF keyval(scO) > 1 THEN drawwall = (st.pass_overtile XOR 128)'overhead
    END IF
-   IF drawwall <> -1 THEN wallbrush st, st.x, st.y, drawwall, map(), pass, emap, zmap
+   IF drawwall <> -1 THEN wallbrush st, st.x, st.y, drawwall, , map(), pass, emap, zmap
    '---DOORMODE-----
   CASE door_mode
    IF keyval(scF1) > 1 THEN show_help "mapedit_door_placement"
@@ -1099,13 +1100,13 @@ DO
   'These two are basically tools
 
   IF keyval(scDelete) > 0 THEN
-   st.brush(st, st.x, st.y, 0, map(), pass, emap, zmap)
+   st.brush(st, st.x, st.y, 0, , map(), pass, emap, zmap)
   END IF
 
   IF keyval(scW) > 1 AND keyval(scCtrl) > 0 THEN  'Ctrl+W  Paint the window/screen
    FOR tx as integer = 0 TO 15
     FOR ty as integer = 0 TO 8
-     st.brush(st, st.mapx \ 20 + tx, st.mapy \ 20 + ty, st.tool_value, map(), pass, emap, zmap)
+     st.brush(st, st.mapx \ 20 + tx, st.mapy \ 20 + ty, st.tool_value, , map(), pass, emap, zmap)
     NEXT ty
    NEXT tx
   END IF
@@ -1114,7 +1115,7 @@ DO
    CASE draw_tool
     IF keyval(scSpace) > 0 THEN
      IF st.new_stroke OR st.moved THEN  'st.last_pos.x <> st.x OR st.last_pos.y <> st.y THEN
-      st.brush(st, st.x, st.y, st.tool_value, map(), pass, emap, zmap)
+      st.brush(st, st.x, st.y, st.tool_value, , map(), pass, emap, zmap)
      END IF
     END IF
 
@@ -1125,7 +1126,7 @@ DO
       st.tool_hold = NO
       FOR tx as integer = small(st.tool_hold_pos.x, st.x) TO large(st.tool_hold_pos.x, st.x)
        FOR ty as integer = small(st.tool_hold_pos.y, st.y) TO large(st.tool_hold_pos.y, st.y)
-        st.brush(st, tx, ty, st.tool_value, map(), pass, emap, zmap)
+        st.brush(st, tx, ty, st.tool_value, , map(), pass, emap, zmap)
        NEXT
       NEXT
      ELSE
@@ -1146,11 +1147,11 @@ DO
 
     CASE replace_tool
      IF keyval(scSpace) AND 4 THEN
-      st.replace_old = st.reader(st, st.x, st.y, map(), pass, emap, zmap)
+      st.replace_old = st.reader(st, st.x, st.y, , map(), pass, emap, zmap)
       FOR ty as integer = 0 to st.high - 1
        FOR tx as integer = 0 to st.wide - 1
-        IF st.reader(st, tx, ty, map(), pass, emap, zmap) = st.replace_old THEN
-         st.brush(st, tx, ty, st.tool_value, map(), pass, emap, zmap)
+        IF st.reader(st, tx, ty, , map(), pass, emap, zmap) = st.replace_old THEN
+         st.brush(st, tx, ty, st.tool_value, , map(), pass, emap, zmap)
         END IF
        NEXT tx
       NEXT ty
@@ -1938,7 +1939,7 @@ SUB mapedit_zonespam(st as MapEditState, map() as TileMap, pass as TileMap, emap
   y = randint(zmap.high)
   temp = randint(zmap.wide)
   FOR x = temp TO small(temp + 12, zmap.wide - 1)
-   zonebrush st, x, y, 1, map(), pass, emap, zmap
+   zonebrush st, x, y, 1, , map(), pass, emap, zmap
   NEXT
  NEXT
 
@@ -3464,8 +3465,8 @@ END SUB
 
 SUB fill_map_add_node(st as MapEditState, byval followTile as integer, byval oldTile as integer, byval x as integer, byval y as integer, byref head as integer, queue() as XYPair, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap, reader as FnReader)
  IF (y < emap.high) AND (y >= 0) AND (x < emap.wide) AND (x >= 0) THEN  'emap is not special
-  IF reader(st, x, y, map(), pass, emap, zmap) = followTile THEN
-   IF st.reader(st, x, y, map(), pass, emap, zmap) = oldTile THEN   'Would be interesting to see whether this redundant check speeds or slows things
+  IF reader(st, x, y, , map(), pass, emap, zmap) = followTile THEN
+   IF st.reader(st, x, y, , map(), pass, emap, zmap) = oldTile THEN   'Would be interesting to see whether this redundant check speeds or slows things
     queue(head).x = x
     queue(head).y = y
     head = (head + 1) MOD UBOUND(queue)
@@ -3480,8 +3481,8 @@ END SUB
 'reader is a FnReader for a map on which the continuous regions is sought
 SUB fill_map_area(st as MapEditState, byval x as integer, byval y as integer, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap, reader as FnReader)
  DIM as integer oldtile, newTile, followTile
- oldTile = st.reader(st, x, y, map(), pass, emap, zmap)
- followTile = reader(st, x, y, map(), pass, emap, zmap)
+ oldTile = st.reader(st, x, y, , map(), pass, emap, zmap)
+ followTile = reader(st, x, y, , map(), pass, emap, zmap)
  newTile = st.tool_value
  IF oldTile = newTile THEN EXIT SUB
  REDIM queue(250) as XYPair 'a circular buffer. We don't use the last element
@@ -3501,8 +3502,8 @@ SUB fill_map_area(st as MapEditState, byval x as integer, byval y as integer, ma
   END IF
 
   WITH queue(tail)
-   IF st.reader(st, .x, .y, map(), pass, emap, zmap) = oldTile THEN
-    st.brush(st, .x, .y, newTile, map(), pass, emap, zmap)
+   IF st.reader(st, .x, .y, , map(), pass, emap, zmap) = oldTile THEN
+    st.brush(st, .x, .y, newTile, , map(), pass, emap, zmap)
 
     fill_map_add_node st, followTile, oldTile, .x + 1, .y, head, queue(), map(), pass, emap, zmap, reader
     fill_map_add_node st, followTile, oldTile, .x - 1, .y, head, queue(), map(), pass, emap, zmap, reader
@@ -3535,9 +3536,9 @@ SUB fill_with_other_area(st as MapEditState, byval x as integer, byval y as inte
 
  FOR ty as integer = 0 TO st.high - 1
   FOR tx as integer = 0 TO st.wide - 1
-   'IF tempreader(st, tx, ty, map(), pass, emap, zmap) THEN
+   'IF tempreader(st, tx, ty, , map(), pass, emap, zmap) THEN
    IF readblock(st.temptilemap, tx, ty) THEN
-    st.brush(st, tx, ty, st.tool_value, map(), pass, emap, zmap)
+    st.brush(st, tx, ty, st.tool_value, , map(), pass, emap, zmap)
    END IF
   NEXT
  NEXT
