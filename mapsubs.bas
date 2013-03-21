@@ -740,7 +740,7 @@ DO
    'delete door
    doorid = find_door_at_spot(st.x, st.y, doors())
    IF doorid >= 0 THEN
-    setbit doors(doorid).bits(), 0, 0, 1
+    setbit doors(doorid).bits(), 0, 0, 0
    END IF
    'zones not deleted
  END IF
