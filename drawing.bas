@@ -929,7 +929,6 @@ frame_draw vpages(3), NULL, -state.tilex * 20, -state.tiley * 20, , NO, state.dr
 END SUB
 
 SUB writeundoblock (mover() as integer, state as TileEditState)
-rectangle 270, 16 + (state.undo * 21), 8, 8, 0, 2
 state.undo = loopvar(state.undo, 0, 5, 1)
 copymapblock mover(), state.tilex * 20, state.tiley * 20, 3, 280, 10 + (state.undo * 21), 2
 textcolor uilook(uiMenuItem), 0
@@ -2013,7 +2012,11 @@ SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic, state
  frame_unload @overlay
  palette16_unload @pal16
 
- rectangle 4 + (ss.x * ss.zoom), 1 + (ss.y * ss.zoom), ss.zoom, ss.zoom, IIF(state.tog, uilook(uiBackground), uilook(uiText)), dpage
+ IF ss.tool <> clone_tool THEN
+  'Pixel at cursor position
+  rectangle 4 + (ss.x * ss.zoom), 1 + (ss.y * ss.zoom), ss.zoom, ss.zoom, IIF(state.tog, uilook(uiBackground), uilook(uiText)), dpage
+  putpixel ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, state.tog * 15, dpage
+ END IF
  IF ss.hold = YES AND ss.tool = mark_tool AND state.tog = 0 THEN
   ss.curcolor = randint(255) ' Random color when marking a clone region
   drawbox 4 + select_rect.x * ss.zoom, 1 + select_rect.y * ss.zoom, select_rect.wide * ss.zoom, select_rect.high * ss.zoom, ss.curcolor, ss.zoom, dpage
@@ -2030,7 +2033,6 @@ SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic, state
   drawspritex ss_save.clonebuf(), 0, workpal(), (state.pt - state.top) * 16, 4 + temppos.x * ss.zoom, 1 + temppos.y * ss.zoom, dpage, ss.zoom
   drawsprite ss_save.clonebuf(), 0, workpal(), (state.pt - state.top) * 16, ss.previewpos.x + temppos.x, ss.previewpos.y + temppos.y, dpage
  END IF
- putpixel ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, state.tog * 15, dpage
  textcolor uilook(uiMenuItem), 0
  printstr "x=" & ss.x & " y=" & ss.y, 0, 190, dpage
  printstr "Tool:" & toolinfo(ss.tool).name, 0, 182, dpage
