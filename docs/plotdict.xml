@@ -1966,7 +1966,7 @@ end</example>
 		<command id="getmenuoffsetx">
 			<canon>get menu offset x(menu handle)</canon>
 			<shortname>get menu offset x</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), return the x offset position of the menu in pixels relative to the center of the screen.</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), return the x offset position of the menu's anchor point in pixels relative to the center of the screen.</description>
 			<seealso>
 				<ref>getmenuoffsety</ref>
 				<ref>setmenuoffsetx</ref>
@@ -1976,7 +1976,7 @@ end</example>
 		<command id="getmenuoffsety">
 			<canon>get menu offset y(menu handle)</canon>
 			<shortname>get menu offset y</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), return the y offset position of the menu in pixels relative to the center of the screen.</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), return the y offset position of the menu's anchor point in pixels relative to the center of the screen.</description>
 			<seealso>
 				<ref>getmenuoffsetx</ref>
 				<ref>setmenuoffsetx</ref>
@@ -1986,7 +1986,7 @@ end</example>
 		<command id="setmenuoffsetx">
 			<canon>set menu offset x(menu handle, new x)</canon>
 			<shortname>set menu offset x</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), change the x offset position of the menu in pixels relative to the center of the screen.</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), change the x offset position of the menu's anchor point in pixels relative to the center of the screen.</description>
 			<seealso>
 				<ref>getmenuoffsetx</ref>
 				<ref>getmenuoffsety</ref>
@@ -1996,7 +1996,7 @@ end</example>
 		<command id="setmenuoffsety">
 			<canon>set menu offset y(menu handle, new y)</canon>
 			<shortname>set menu offset y</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), change the y offset position of the menu in pixels relative to the center of the screen.</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), change the y offset position of the menu's anchor point in pixels relative to the center of the screen.</description>
 			<seealso>
 				<ref>getmenuoffsetx</ref>
 				<ref>getmenuoffsety</ref>
@@ -2036,7 +2036,7 @@ end</example>
 		<command id="setmenuanchory">
 			<canon>set menu anchor y(menu handle, new anchor)</canon>
 			<shortname>set menu anchor y</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), change the vertical y anchor position of the menu. Change the horizontal x anchor position of the menu. The <p>new anchor</p> can be <p>align:center</p>, <p>align:top</p> or <p>align:bottom</p>.</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), change the vertical y anchor position of the menu. The <p>new anchor</p> can be <p>align:center</p>, <p>align:top</p> or <p>align:bottom</p>.</description>
 			<seealso>
 				<ref>getmenuanchorx</ref>
 				<ref>getmenuanchory</ref>
