@@ -102,6 +102,14 @@ FUNCTION small (byval n1 as double, byval n2 as double) as double
  IF n2 < n1 THEN RETURN n2 ELSE RETURN n1
 END FUNCTION
 
+'Find dimensions of a rect, given opposite corners 
+SUB corners_to_rect (p1 as XYPair, p2 as XYPair, result as RectType)
+ IF p1.x < p2.x THEN result.x = p1.x ELSE result.x = p2.x
+ result.wide = ABS(p1.x - p2.x)
+ IF p1.y < p2.y THEN result.y = p1.y ELSE result.y = p2.y
+ result.high = ABS(p1.y - p2.y)
+END SUB
+
 FUNCTION rando () as double
  'STATIC count as integer = 0
  'This is a simple wrapper for RND to facilitate debugging

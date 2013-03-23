@@ -1259,9 +1259,11 @@ DO
   END IF
  END IF
  IF ts.hold = YES THEN
+  DIM select_rect as RectType
+  corners_to_rect Type(ts.x, ts.y), ts.holdpos, select_rect
   SELECT CASE ts.tool
    CASE box_tool
-    rectangle overlay, small(ts.x, ts.holdpos.x), small(ts.y, ts.holdpos.y), ABS(ts.x - ts.holdpos.x) + 1, ABS(ts.y - ts.holdpos.y) + 1, 1
+    rectangle overlay, select_rect.x, select_rect.y, select_rect.wide + 1, select_rect.high + 1, 1
    CASE line_tool
     drawline overlay, ts.x, ts.y, ts.holdpos.x, ts.holdpos.y, 1
    CASE oval_tool
@@ -1272,7 +1274,7 @@ DO
     END IF
     ellipse overlay, ts.holdpos.x, ts.holdpos.y, ts.radius, 1
    CASE mark_tool
-    IF tog = 0 THEN drawbox overlay, small(ts.x, ts.holdpos.x), small(ts.y, ts.holdpos.y), ABS(ts.x - ts.holdpos.x) + 1, ABS(ts.y - ts.holdpos.y) + 1, 15, 1
+    IF tog = 0 THEN drawbox overlay, select_rect.x, select_rect.y, select_rect.wide + 1, select_rect.high + 1, 15, 1
     overlaypal->col(15) = randint(10)
   END SELECT
  END IF
@@ -1356,7 +1358,9 @@ SELECT CASE ts.tool
   IF newkeypress THEN
    IF ts.hold = YES THEN
     writeundoblock mover(), ts
-    rectangle small(ts.tilex * 20 + ts.x, ts.tilex * 20 + ts.holdpos.x), small(ts.tiley * 20 + ts.y, ts.tiley * 20 + ts.holdpos.y), ABS(ts.x - ts.holdpos.x) + 1, ABS(ts.y - ts.holdpos.y) + 1, ts.curcolor, 3
+    DIM select_rect as RectType
+    corners_to_rect Type(ts.x, ts.y), ts.holdpos, select_rect
+    rectangle ts.tilex * 20 + select_rect.x, ts.tiley * 20 + select_rect.y, select_rect.wide + 1, select_rect.high + 1, ts.curcolor, 3
     refreshtileedit mover(), ts
     ts.hold = NO
    ELSE
@@ -1446,11 +1450,13 @@ SELECT CASE ts.tool
  CASE mark_tool
   IF newkeypress THEN
    IF ts.hold = YES THEN
-    clone.size.x = ABS(ts.x - ts.holdpos.x) + 1
-    clone.size.y = ABS(ts.y - ts.holdpos.y) + 1
+    DIM select_rect as RectType
+    corners_to_rect Type(ts.x, ts.y), ts.holdpos, select_rect
+    clone.size.x = select_rect.wide + 1
+    clone.size.y = select_rect.high + 1
     FOR i as integer = 0 TO clone.size.y - 1
      FOR j as integer = 0 TO clone.size.x - 1
-      clone.buf(j, i) = readpixel(small(ts.tilex * 20 + ts.x, ts.tilex * 20 + ts.holdpos.x) + j, small(ts.tiley * 20 + ts.y, ts.tiley * 20 + ts.holdpos.y) + i, 3)
+      clone.buf(j, i) = readpixel(ts.tilex * 20 + select_rect.x + j, ts.tiley * 20 + select_rect.y + i, 3)
      NEXT j
     NEXT i
     clone.offset.x = clone.size.x \ 2
@@ -1967,8 +1973,14 @@ SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic, state
  NEXT
  drawspritex placer(), 0, workpal(), (state.pt - state.top) * 16, 4, 1, dpage, ss.zoom, NO
  ss.curcolor = peek8bit(workpal(), ss.palindex + (state.pt - state.top) * 16)
+
+ DIM select_rect as RectType
+ corners_to_rect Type(ss.x, ss.y), ss.holdpos, select_rect
+ select_rect.wide += 1  'Both corners inclusive
+ select_rect.high += 1
+
  IF ss.hold = YES AND ss.tool = box_tool THEN
-  rectangle 4 + small(ss.x, ss.holdpos.x) * ss.zoom, 1 + small(ss.y, ss.holdpos.y) * ss.zoom, (ABS(ss.x - ss.holdpos.x) + 1) * ss.zoom, (ABS(ss.y - ss.holdpos.y) + 1) * ss.zoom, ss.curcolor, dpage
+  rectangle 4 + select_rect.x * ss.zoom, 1 + select_rect.y * ss.zoom, select_rect.wide * ss.zoom, select_rect.high * ss.zoom, ss.curcolor, dpage
   rectangle 4 + ss.holdpos.x * ss.zoom, 1 + ss.holdpos.y * ss.zoom, ss.zoom, ss.zoom, IIF(state.tog, uilook(uiBackground), uilook(uiText)), dpage
  END IF
  drawsprite placer(), 0, workpal(), (state.pt - state.top) * 16, ss.previewpos.x, ss.previewpos.y, dpage, 0
@@ -1981,7 +1993,7 @@ SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic, state
  pal16->col(1) = ss.curcolor
 
  IF ss.hold = YES AND ss.tool = box_tool THEN
-  rectangle ss.previewpos.x + small(ss.x, ss.holdpos.x), ss.previewpos.y + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.curcolor, dpage
+  rectangle ss.previewpos.x + select_rect.x, ss.previewpos.y + select_rect.y, select_rect.wide, select_rect.high, ss.curcolor, dpage
   putpixel ss.previewpos.x + ss.holdpos.x, ss.previewpos.y + ss.holdpos.y, state.tog * 15, dpage
  END IF
  IF ss.hold = YES AND ss.tool = line_tool THEN
@@ -2004,8 +2016,8 @@ SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic, state
  rectangle 4 + (ss.x * ss.zoom), 1 + (ss.y * ss.zoom), ss.zoom, ss.zoom, IIF(state.tog, uilook(uiBackground), uilook(uiText)), dpage
  IF ss.hold = YES AND ss.tool = mark_tool AND state.tog = 0 THEN
   ss.curcolor = randint(255) ' Random color when marking a clone region
-  drawbox 4 + small(ss.x, ss.holdpos.x) * ss.zoom, 1 + small(ss.y, ss.holdpos.y) * ss.zoom, (ABS(ss.x - ss.holdpos.x) + 1) * ss.zoom, (ABS(ss.y - ss.holdpos.y) + 1) * ss.zoom, ss.curcolor, ss.zoom, dpage
-  drawbox ss.previewpos.x + small(ss.x, ss.holdpos.x), ss.previewpos.y + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.curcolor, 1, dpage
+  drawbox 4 + select_rect.x * ss.zoom, 1 + select_rect.y * ss.zoom, select_rect.wide * ss.zoom, select_rect.high * ss.zoom, ss.curcolor, ss.zoom, dpage
+  drawbox ss.previewpos.x + select_rect.x, ss.previewpos.y + select_rect.y, select_rect.wide, select_rect.high, ss.curcolor, 1, dpage
  END IF
  DIM temppos as XYPair
  IF ss.tool = clone_tool AND ss_save.clonemarked = YES AND state.tog = 0 THEN
