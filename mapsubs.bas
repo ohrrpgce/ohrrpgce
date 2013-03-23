@@ -36,7 +36,7 @@ DECLARE FUNCTION mapedit_on_screen(st as MapEditState, byval x as integer, byval
 DECLARE SUB mapedit_focus_camera(st as MapEditState, byval x as integer, byval y as integer)
 
 DECLARE SUB add_undo_step(st as MapEditState, byval x as integer, byval y as integer, byval oldvalue as integer, byval mapid as integer)
-DECLARE FUNCTION undo_stroke(st as MapEditState, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap, byval redo as integer = NO) as MapEditUndoTile vector
+DECLARE FUNCTION undo_stroke(st as MapEditState, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap, byval redo as bool = NO) as MapEditUndoTile vector
 DECLARE FUNCTION redo_stroke(st as MapEditState, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap) as MapEditUndoTile vector
 DECLARE SUB mapedit_throw_away_history(st as MapEditState)
 DECLARE SUB mapedit_show_undo_change(st as MapEditState, byval undostroke as MapEditUndoTile vector)
@@ -109,12 +109,12 @@ DECLARE SUB mapedit_delete(st as MapEditState, map() as TileMap, pass as TileMap
 DECLARE SUB link_one_door(st as MapEditState, linknum as integer, link() as DoorLink, doors() as Door, map() as TileMap, pass as TileMap, gmap() as integer)
 DECLARE SUB mapedit_linkdoors (st as MapEditState, map() as TileMap, pass as TileMap, gmap() as integer, doors() as Door, link() as DoorLink)
 DECLARE SUB mapedit_layers (st as MapEditState, gmap() as integer, visible() as integer, map() as TileMap)
-DECLARE SUB mapedit_makelayermenu(st as MapEditState, byref menu as LayerMenuItem vector, state as MenuState, gmap() as integer, visible() as integer, map() as TileMap, byval resetpt as integer, byval selectedlayer as integer = 0)
+DECLARE SUB mapedit_makelayermenu(st as MapEditState, byref menu as LayerMenuItem vector, state as MenuState, gmap() as integer, visible() as integer, map() as TileMap, byval resetpt as bool, byval selectedlayer as integer = 0)
 DECLARE SUB mapedit_insert_layer(st as MapEditState, map() as TileMap, vis() as integer, gmap() as integer, byval where as integer)
 DECLARE SUB mapedit_delete_layer(st as MapEditState, map() as TileMap, vis() as integer, gmap() as integer, byval which as integer)
 DECLARE SUB mapedit_swap_layers(st as MapEditState, map() as TileMap, vis() as integer, gmap() as integer, byval l1 as integer, byval l2 as integer)
 DECLARE SUB mapedit_gmapdata(st as MapEditState, gmap() as integer, zmap as ZoneMap)
-DECLARE SUB mapedit_draw_icon(st as MapEditState, icon as string, byval x as integer, byval y as integer, byval highlight as integer = NO)
+DECLARE SUB mapedit_draw_icon(st as MapEditState, icon as string, byval x as integer, byval y as integer, byval highlight as bool = NO)
 DECLARE SUB mapedit_list_npcs_by_tile (st as MapEditState)
 
 DECLARE FUNCTION find_last_used_doorlink(link() as DoorLink) as integer
@@ -1135,27 +1135,27 @@ DO
      END IF
     END IF
 
-    CASE fill_tool
-     IF keyval(scSpace) AND 4 THEN  'new keypress
-      fill_map_area st, st.x, st.y, map(), pass, emap, zmap, st.reader
-     END IF
+   CASE fill_tool
+    IF keyval(scSpace) AND 4 THEN  'new keypress
+     fill_map_area st, st.x, st.y, map(), pass, emap, zmap, st.reader
+    END IF
 
-    CASE paint_tool
-     IF keyval(scSpace) AND 4 THEN  'new keypress
-      fill_with_other_area st, st.x, st.y, map(), pass, emap, zmap, @tilereader
-     END IF
+   CASE paint_tool
+    IF keyval(scSpace) AND 4 THEN  'new keypress
+     fill_with_other_area st, st.x, st.y, map(), pass, emap, zmap, @tilereader
+    END IF
 
-    CASE replace_tool
-     IF keyval(scSpace) AND 4 THEN
-      st.replace_old = st.reader(st, st.x, st.y, , map(), pass, emap, zmap)
-      FOR ty as integer = 0 to st.high - 1
-       FOR tx as integer = 0 to st.wide - 1
-        IF st.reader(st, tx, ty, , map(), pass, emap, zmap) = st.replace_old THEN
-         st.brush(st, tx, ty, st.tool_value, , map(), pass, emap, zmap)
-        END IF
-       NEXT tx
-      NEXT ty
-     END IF
+   CASE replace_tool
+    IF keyval(scSpace) AND 4 THEN
+     st.replace_old = st.reader(st, st.x, st.y, , map(), pass, emap, zmap)
+     FOR ty as integer = 0 to st.high - 1
+      FOR tx as integer = 0 to st.wide - 1
+       IF st.reader(st, tx, ty, , map(), pass, emap, zmap) = st.replace_old THEN
+        st.brush(st, tx, ty, st.tool_value, , map(), pass, emap, zmap)
+       END IF
+      NEXT tx
+     NEXT ty
+    END IF
 
   END SELECT
  END IF
@@ -1606,7 +1606,7 @@ FUNCTION mapedit_npc_at_spot(st as MapEditState) as integer
 END FUNCTION
 
 'This is a variant on spriteedit_draw_icon
-SUB mapedit_draw_icon(st as MapEditState, icon as string, byval x as integer, byval y as integer, byval highlight as integer = NO)
+SUB mapedit_draw_icon(st as MapEditState, icon as string, byval x as integer, byval y as integer, byval highlight as bool = NO)
  DIM bgcol as integer
  DIM fgcol as integer
  fgcol = uilook(uiMenuItem)
@@ -1705,7 +1705,7 @@ SUB mapedit_update_visible_zones (st as MapEditState, byref zonemenu as SimpleMe
 
  'Find the previous selection, so can move the cursor to something appropriate
  DIM oldpt_zone as integer = -1
- DIM oldpt_waslocked as integer = NO
+ DIM oldpt_waslocked as bool = NO
  IF zonemenustate.pt <> -1 THEN
   oldpt_zone = zonemenu[zonemenustate.pt].dat
   'Search for "Zones here:", yeah, real ugly
@@ -2271,7 +2271,7 @@ SUB mapedit_layers (st as MapEditState, gmap() as integer, visible() as integer,
  
  DIM layerno as integer
  DIM fakelayerno as integer  'the selected layer, treating NPCs/Heroes as a layer
- DIM resetpt as integer
+ DIM resetpt as bool
  DIM col as integer
  DIM tileset as integer
 
@@ -2478,7 +2478,7 @@ SUB mapedit_makelayermenu_layer(st as MapEditState, byref menu as LayerMenuItem 
  slot += 1
 END SUB
 
-SUB mapedit_makelayermenu(st as MapEditState, byref menu as LayerMenuItem vector, state as MenuState, gmap() as integer, visible() as integer, map() as TileMap, byval resetpt as integer, byval selectedlayer as integer = 0)
+SUB mapedit_makelayermenu(st as MapEditState, byref menu as LayerMenuItem vector, state as MenuState, gmap() as integer, visible() as integer, map() as TileMap, byval resetpt as bool, byval selectedlayer as integer = 0)
  DIM remember_selection_type as LayerMenuItemType
  IF menu THEN
   remember_selection_type = menu[state.pt].role
@@ -3715,7 +3715,7 @@ END FUNCTION
 
 'A stroke is a group of brush applications/steps
 'Returns the stroke which was undone
-FUNCTION undo_stroke(st as MapEditState, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap, byval redo as integer = NO) as MapEditUndoTile vector
+FUNCTION undo_stroke(st as MapEditState, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap, byval redo as bool = NO) as MapEditUndoTile vector
 
  st.message_ticks = 20
  IF redo = NO THEN
