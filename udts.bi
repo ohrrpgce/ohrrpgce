@@ -8,38 +8,6 @@
 'Forward declarations
 TYPE SliceFwd as Slice
 
-UNION XYPair
-  TYPE
-   x as integer
-   y as integer
-  END TYPE
-  TYPE
-   w as integer
-   h as integer
-  END TYPE
-  n(1) as integer
-END UNION
-
-'TYPE RectType
-'  x as integer
-'  y as integer
-'  wide as integer
-'  high as integer
-'END TYPE
-
-UNION RectType
-  TYPE
-    x as integer
-    y as integer
-    wide as integer
-    high as integer
-  END TYPE
-  TYPE
-    p1 as XYPair
-    p2 as XYPair
-  END TYPE
-END UNION
-
 TYPE MouseInfo
   x as integer
   y as integer

@@ -326,6 +326,38 @@ declare function fgetiob alias "fb_FileGetIOB" ( byval fnum as integer, byval po
 #define FLT_MAX 3.40282347e+38F
 
 
+UNION XYPair
+  TYPE
+   x as integer
+   y as integer
+  END TYPE
+  TYPE
+   w as integer
+   h as integer
+  END TYPE
+  n(1) as integer
+END UNION
+
+UNION RectType
+  TYPE
+    x as integer
+    y as integer
+    wide as integer
+    high as integer
+  END TYPE
+  TYPE
+    topleft as XYPair
+    size as XYPair
+  END TYPE
+END UNION
+
+'Specify opposite points instead of width and height
+TYPE RectPoints
+  p1 as XYPair
+  p2 as XYPair
+END TYPE
+
+
 declare function bitcount (byval v as unsigned integer) as integer
 declare function ceiling (byval n as integer) as integer
 declare function bound overload (byval n as integer, byval lowest as integer, byval highest as integer) as integer

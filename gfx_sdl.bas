@@ -74,7 +74,7 @@ DIM SHARED dest_rect AS SDL_Rect
 DIM SHARED mouseclipped AS INTEGER = NO   'Whether we are ACTUALLY clipped
 DIM SHARED forced_mouse_clipping AS INTEGER = NO
 'These were the args to the last call to io_mouserect
-DIM SHARED remember_mouserect AS RectType = (-1, -1, -1, -1)
+DIM SHARED remember_mouserect AS RectPoints = ((-1, -1), (-1, -1))
 'These are the actual zoomed clip bounds
 DIM SHARED AS INTEGER mxmin = -1, mxmax = -1, mymin = -1, mymax = -1
 DIM SHARED AS INTEGER privatemx, privatemy, lastmx, lastmy
