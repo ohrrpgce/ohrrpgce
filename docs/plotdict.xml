@@ -1674,27 +1674,27 @@ get hero name (1, find hero (leader))
 		<command id="createmenu">
 			<canon>create menu</canon>
 			<shortname>create menu</shortname>
-			<description>Create a new empty menu. You can add menu items to it with the <ref>addmenuitem</ref> command. The return value is a menu handle that you should save in a variable for use with other menu related commands. Menus created with this command have the "Allow gameplay" bitset turned on by default.</description>
+			<description>Create a new empty menu. You can add menu items to it with the <ref>addmenuitem</ref> command. The return value is a menu handle that you should save in a variable for use with other menu related commands. Menus created with this command have the "Allow gameplay and scripts" bitset turned on by default.</description>
 		</command>
 		<command id="closemenu">
 			<canon>close menu(menu handle)</canon>
 			<shortname>close menu</shortname>
-			<description>Close a menu. The argument is a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref> or <ref>top menu</ref>)</description>
+			<description>Close a menu. The argument is a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref> or <ref>topmenu</ref>).</description>
 		</command>
 		<command id="topmenu">
 			<canon>top menu</canon>
 			<shortname>top menu</shortname>
-			<description>Return a menu handle for the topmost menu. Returns <ref>false</ref> if no menus are open</description>
+			<description>Return a menu handle for the topmost menu. Returns <ref>false</ref> if no menus are open.</description>
 		</command>
 		<command id="bottommenu">
 			<canon>bottom menu</canon>
 			<shortname>bottom menu</shortname>
-			<description>Return a menu handle for the bottom menu (the menu underneath all other open menus). Returns <ref>false</ref> if no menus are open</description>
+			<description>Return a menu handle for the bottom menu (the menu underneath all other open menus). Returns <ref>false</ref> if no menus are open.</description>
 		</command>
 		<command id="previousmenu">
 			<canon>previous menu(menu handle)</canon>
 			<shortname>previous menu</shortname>
-			<description>Return a menu handle for the menu beneath the one specified by <p>menu handle</p>, or false if there is no menu underneath</description>
+			<description>Return a menu handle for the menu beneath the one specified by <p>menu handle</p>, or false if there is no menu underneath.</description>
 			<example>variable(menu)
 menu := topmenu
 while(menu) do, begin
@@ -1716,83 +1716,47 @@ end</example>
 		<command id="bringmenuforward">
 			<canon>bring menu forward(menu handle)</canon>
 			<shortname>bring menu forward</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one return by <ref>bottommenu</ref>), move the menu to the top of all other open menus</description>
+			<description>Given a <p>menu handle</p> (for example, the one return by <ref>bottommenu</ref>), move the menu to the top of all other open menus.</description>
 		</command>
 		<command id="findmenuid">
 			<canon>find menu ID(menu ID)</canon>
 			<shortname>find menu ID</shortname>
-			<description>Given a <p>menu ID</p> number or a constant in the form of <p>menu:name</p>, Check to see if it is already open, and return a menu handle to it.</description>
+			<description>Given a <p>menu ID</p> number or a constant in the form of <p>menu:name</p>, check to see if it is already open, and if so return a menu handle to it. Otherwise returns <ref>false</ref>.</description>
 		</command>
 		<command id="menuisopen">
 			<canon>menu is open(menu handle)</canon>
 			<shortname>menu is open</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <p>open menu</p>), Check to see if it is already open, and return <ref>true</ref> if it is, or <ref>false</ref> if it is not</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <p>open menu</p>), checks to see whether it is still open, and returns <ref>true</ref> if it is, or <ref>false</ref> if it has been closed.</description>
 		</command>
 		<command id="addmenuitem">
 			<canon>add menu item(menu handle)</canon>
 			<shortname>add menu item</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>createmenu</ref>), Add a new menu item to the end of the menu. Returns a menu item handle, which you can store in a variable for use with commands like <ref>setmenuitemcaption</ref> or <ref>setmenuitemtype</ref>.</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>createmenu</ref>), adds a new blank menu item to the end of the menu. Returns a menu item handle, which you can store in a variable for use with commands like <ref>setmenuitemcaption</ref> or <ref>setmenuitemtype</ref>.</description>
 		</command>
 		<command id="deletemenuitem">
 			<canon>delete menu item(menu item handle)</canon>
 			<shortname>delete menu item</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>addmenuitem</ref> or <ref>selectedmenuitem</ref>), delete the menu item from the menu.</description>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>addmenuitem</ref> or <ref>selectedmenuitem</ref>), delete the menu item from the menu. (The change does not affect other copies/instances of the same menu if this menu was created in the menu editor.)</description>
 		</command>
 		<command id="selectmenuitem">
 			<canon>select menu item(menu item handle)</canon>
 			<shortname>select menu item</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>addmenuitem</ref>), Move the menu selection cursor to point to that menu item</description>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>addmenuitem</ref>), move the menu selection cursor to point to that menu item.</description>
 		</command>
 		<command id="selectedmenuitem">
 			<canon>selected menu item(menu handle)</canon>
 			<shortname>selected menu item</shortname>
-			<description>Returns the handle for the selected menu item in the topmost menu, false if no menus are open, or, when given an optional <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>) returns the selected item in that menu.</description>
+			<description>Returns the handle for the selected menu item in the topmost menu, <ref>false</ref> if no menus are open, or, when given an optional <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>) returns the selected item in that menu.</description>
 		</command>
 		<command id="usemenuitem">
 			<canon>use menu item(menu item handle)</canon>
 			<shortname>use menu item</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), activate the menu item. This will cause whatever actions (text box, menu, script, tag changes) that have been configured for this menu item to be triggered.</description>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), activate the menu item. This will cause whatever actions (text box, menu, script, tag changes, etc.) that have been configured for this menu item to be triggered.</description>
 		</command>
 		<command id="firstmenuitem">
 			<canon>first menu item(menu handle)</canon>
 			<shortname>first menu item</shortname>
 			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), return a menu item handle for the menu item at the top of the menu.</description>
-		</command>
-
-		<command id="menuitembytrueslot">
-			<canon>menu item by true slot(menu handle, slot)</canon>
-			<shortname>menu item by true slot</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), return a menu item handle for the menu item at the position specified by <p>slot</p>. The first slot in the menu is 0. This command uses the ordering of menu items as they appear in the Menu Editor in Custom.  The "true order" doesn't change as menu items are hidden or unhidden.</description>
-			<seealso>
-				<ref>menuitembyslot</ref>
-			</seealso>
-		</command>
-		<command id="menuitemtrueslot">
-			<canon>menu item true slot(menu item handle)</canon>
-			<shortname>menu item true slot</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>addmenuitem</ref>), return the slot number of the menu item, as it appears in Custom. The first slot in the menu is 0. The "true order" doesn't change as menu items are hidden or unhidden.</description>
-			<seealso>
-				<ref>menuitemslot</ref>
-				<ref>menuitembytrueslot</ref>
-			</seealso>
-		</command>
-		<command id="menuitembyslot">
-			<canon>menu item by slot(menu handle, slot, visible only)</canon>
-			<shortname>menu item by slot</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), return a menu item handle for the menu item at the position specified by <p>slot</p>. The first slot in the menu is 0. You can optionally include invisible items by using the optional argument <p>visible only</p>, which defaults to <ref>true</ref>. Note that invisible menu items are always at the end of the menu, after the last visible menu item -- menu items are NOT in the same order as they appear in the Menu Editor in Custom! This means menu item slot numbers change as menu items are hidden or unhidden. Use <ref>menuitembytrueslot</ref> if you want to use the order in Custom.</description>
-			<seealso>
-				<ref>menuitemslot</ref>
-				<ref>menuitembytrueslot</ref>
-			</seealso>
-		</command>
-		<command id="menuitemslot">
-			<canon>menu item slot(menu item handle)</canon>
-			<shortname>menu item slot</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>addmenuitem</ref>), return a the slot number of the menu item. The first slot in the menu is 0. Menu item slot numbers change as menu items are hidden or unhidden. Use <ref>menuitemtrueslot</ref> if you want to know the slot number as it appears in Custom.</description>
-			<seealso>
-				<ref>menuitembyslot</ref>
-				<ref>menuitemtrueslot</ref>
-			</seealso>
 		</command>
 		<command id="nextmenuitem">
 			<canon>next menu item(menu item handle, visible only)</canon>
@@ -1813,6 +1777,41 @@ end
 			<example>variable(m)
 m := previous menu item(selected menu item)</example>
 		</command>
+		<command id="menuitembytrueslot">
+			<canon>menu item by true slot(menu handle, slot)</canon>
+			<shortname>menu item by true slot</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), return a menu item handle for the menu item at the position specified by <p>slot</p>. The first slot in the menu is 0. This command uses the ordering of menu items as they appear in the Menu Editor in Custom.  The "true order" doesn't change as menu items are hidden or unhidden, unlike the slot returned by <ref>menuitemslot</ref>.</description>
+			<seealso>
+				<ref>menuitembyslot</ref>
+			</seealso>
+		</command>
+		<command id="menuitemtrueslot">
+			<canon>menu item true slot(menu item handle)</canon>
+			<shortname>menu item true slot</shortname>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>addmenuitem</ref>), return the slot number of the menu item, as it appears in the Menu Editor. The first slot in the menu is 0. The "true order" doesn't change as menu items are hidden or unhidden, unlike the slot returned by <ref>menuitemslot</ref>.</description>
+			<seealso>
+				<ref>menuitemslot</ref>
+				<ref>menuitembytrueslot</ref>
+			</seealso>
+		</command>
+		<command id="menuitembyslot">
+			<canon>menu item by slot(menu handle, slot, visible only)</canon>
+			<shortname>menu item by slot</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), return a menu item handle for the menu item at the position specified by <p>slot</p>. The first slot in the menu is 0. You can optionally include invisible items by using the optional argument <p>visible only</p>, which defaults to <ref>true</ref>. Note that invisible menu items are always at the end of the menu, after the last visible menu item -- menu items are NOT in the same order as they appear in the Menu Editor! This means menu item slot numbers change as menu items are hidden or unhidden. Use <ref>menuitembytrueslot</ref> if you want to use the order shown in the Menu Editor.</description>
+			<seealso>
+				<ref>menuitemslot</ref>
+				<ref>menuitembytrueslot</ref>
+			</seealso>
+		</command>
+		<command id="menuitemslot">
+			<canon>menu item slot(menu item handle)</canon>
+			<shortname>menu item slot</shortname>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>addmenuitem</ref>), return a the slot number of the menu item. The first slot in the menu is 0. Menu item slot numbers change as menu items are hidden or unhidden. Use <ref>menuitemtrueslot</ref> if you want to know the slot number as it appears in the Menu Editor.</description>
+			<seealso>
+				<ref>menuitembyslot</ref>
+				<ref>menuitemtrueslot</ref>
+			</seealso>
+		</command>
 		<command id="findmenuitemcaption">
 			<canon>find menu item caption(menu handle, string ID, search after handle, visible only)</canon>
 			<shortname>find menu item caption</shortname>
@@ -1829,27 +1828,27 @@ end</example>
 		<command id="getmenuitemcaption">
 			<canon>get menu item caption(menu item handle, string ID)</canon>
 			<shortname>get menu item caption</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), take the caption and copy it into the string identified by <p>string ID</p></description>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), take the caption and copy it into the string identified by <p>string ID</p>.</description>
 		</command>
 		<command id="setmenuitemcaption">
 			<canon>set menu item caption(menu item handle, string ID)</canon>
 			<shortname>set menu item caption</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Replace the caption with the string identified by <p>string ID</p></description>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), replace the caption with the string identified by <p>string ID</p>.</description>
 		</command>
 		<command id="getmenuitemtype">
 			<canon>get menu item type(menu item handle)</canon>
 			<shortname>get menu item type</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Return the type of the menu item</description>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), return the type of the menu item.</description>
 		</command>
 		<command id="setmenuitemtype">
 			<canon>set menu item type(menu item handle, new type)</canon>
 			<shortname>set menu item type</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Change the type of the menu item to <p>new type</p>. Available constants are: <p>menutype:label</p>,<p>menutype:special</p>, <p>menutype:menu</p>, <p>menutype:textbox</p>, and <p>menutype:script</p></description>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), change the type of the menu item to <p>new type</p>. Available constants are: <p>menutype:label</p>,<p>menutype:special</p>, <p>menutype:menu</p>, <p>menutype:textbox</p>, and <p>menutype:script</p></description>
 		</command>
 		<command id="getmenuitemsubtype">
 			<canon>get menu item subtype(menu item handle)</canon>
 			<shortname>get menu item subtype</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Return the subtype of the menu item. The meaning of the subtype varies depending on the type.</description>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), return the subtype of the menu item. The meaning of the subtype varies depending on the type.</description>
 			<seealso>
 				<ref>setmenuitemsubtype</ref>
 			</seealso>
@@ -1857,47 +1856,47 @@ end</example>
 		<command id="setmenuitemsubtype">
 			<canon>set menu item subtype(menu item handle, new subtype)</canon>
 			<shortname>set menu item subtype</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Change the subtype of the menu item to <p>new subtype</p>. The meaning of the subtype varies depending on the type of the menu item. For menutype:special you can use constants like: <p>menuspecial:items</p>, <p>menuspecial:spells</p>, <p>menuspecial:status</p>, <p>menuspecial:equip</p>, <p>menuspecial:order</p>, <p>menuspecial:team</p>, <p>menuspecial:orderteam</p>, <p>menuspecial:map</p>, <p>menuspecial:save</p>, <p>menuspecial:load</p>, <p>menuspecial:quit</p>,  and <p>menuspecial:volume</p>. For menutype:textbox you can use the textbox's ID number. For menutype:menu you can use the menu's ID number or a menu:name constant from your HSI file. For menutype:script you can use script references in the form @scriptname</description>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), change the subtype of the menu item to <p>new subtype</p>. The meaning of the subtype varies depending on the type of the menu item. For menutype:special you can use constants like: <p>menuspecial:items</p>, <p>menuspecial:spells</p>, <p>menuspecial:status</p>, <p>menuspecial:equip</p>, <p>menuspecial:order</p>, <p>menuspecial:team</p>, <p>menuspecial:orderteam</p>, <p>menuspecial:map</p>, <p>menuspecial:save</p>, <p>menuspecial:load</p>, <p>menuspecial:quit</p>,  and <p>menuspecial:volume</p>. For menutype:textbox you can use the textbox's ID number. For menutype:menu you can use the menu's ID number or a menu:name constant from your HSI file. For menutype:script you can use script references in the form @scriptname</description>
 		</command>
 		<command id="getmenuitemtag">
 			<canon>get menu item tag(menu item handle, whichtag)</canon>
 			<shortname>get menu item tag</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), and a tag number <p>whichtag</p> which can be 1 or 2, Return the a tag required for the menu item to be available. The tag number will be positive if the tag needs to be ON, or negative if the tag needs to be OFF</description>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), and a tag number <p>whichtag</p> which can be 1 or 2, Return the a tag required for the menu item to be available. The tag number will be positive if the tag needs to be ON, or negative if the tag needs to be OFF.</description>
 		</command>
 		<command id="setmenuitemtag">
 			<canon>set menu item tag(menu item handle, new tag, whichtag)</canon>
 			<shortname>set menu item tag</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), and a tag number <p>whichtag</p> which can be 1 or 2, Set the tag required for the menu item to <p>new tag</p>. Use a positive number if the tag needs to be turned ON, and a negative number if the tag needs to be turned OFF</description>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), and a tag number <p>whichtag</p> which can be 1 or 2, Set the tag required for the menu item to <p>new tag</p>. Use a positive number if the tag needs to be turned ON, and a negative number if the tag needs to be turned OFF.</description>
 		</command>
 		<command id="getmenuitemsettag">
 			<canon>get menu item settag(menu item handle)</canon>
 			<shortname>get menu item settag</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Return the number of the tag that will be set when the menu item is selected. The tag number will be positive if the tag will be set ON, or negative if the tag will be set OFF</description>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Return the number of the tag that will be set when the menu item is selected. The tag number will be positive if the tag will be set ON, or negative if the tag will be set OFF.</description>
 		</command>
 		<command id="setmenuitemsettag">
 			<canon>set menu item settag(menu item handle, new settag)</canon>
 			<shortname>set menu item settag</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Change the tag that will be set when the menu item is selected. Use a positive number if the tag should be turned ON, and a negative number if the tag should be turned OFF</description>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Change the tag that will be set when the menu item is selected. Use a positive number if the tag should be turned ON, and a negative number if the tag should be turned OFF.</description>
 		</command>
 		<command id="getmenuitemtogtag">
 			<canon>get menu item togtag(menu item handle)</canon>
 			<shortname>get menu item togtag</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Return the number of the tag that will be toggled when the menu item is selected. (The tag number will always be a positive number)</description>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Return the number of the tag that will be toggled when the menu item is selected. (The tag number will always be a positive number).</description>
 		</command>
 		<command id="setmenuitemtogtag">
 			<canon>set menu item togtag(menu item handle, new settag)</canon>
 			<shortname>set menu item togtag</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Change the tag that will be toggled when the menu item is selected. (the tag number will always be positive)</description>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Change the tag that will be toggled when the menu item is selected. (the tag number will always be positive).</description>
 		</command>
 		<command id="getmenuitembit">
 			<canon>get menu item bit(menu item handle, bit)</canon>
 			<shortname>get menu item bit</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), and bit number <p>bit</p>, Return <ref>true</ref> if the bitset is ON, and <ref>false</ref> if the bitset is OFF. You can use constants for the <p>bit</p> bit number in the form of <p>menu item bit:Hide when disabled</p> and <p>menu item bit:Close menu if selected</p></description>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), and bit number <p>bit</p>, Return <ref>true</ref> if the bitset is ON, and <ref>false</ref> if the bitset is OFF. You can use constants for the <p>bit</p> bit number in the form of <p>menu item bit:Hide when disabled</p> and <p>menu item bit:Close menu if selected</p>.</description>
 		</command>
 		<command id="setmenuitembit">
 			<canon>set menu item bit(menu item handle, bit, value)</canon>
 			<shortname>set menu item bit</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), and bit number <p>bit</p>, Set the bitset is ON or OFF depending on <p>value</p>. You can use constants for the <p>bit</p> bit number in the form of <p>menu item bit:Hide when disabled</p> and <p>menu item bit:close menu when selected</p></description>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), and bit number <p>bit</p>, Set the bitset is ON or OFF depending on <p>value</p>. You can use constants for the <p>bit</p> bit number in the form of <p>menu item bit:Hide when disabled</p> and <p>menu item bit:close menu when selected</p>.</description>
 		</command>
 		<command id="getmenuitemextra">
 			<canon>get menu item extra(menu item handle, extra)</canon>
@@ -1922,52 +1921,52 @@ end</example>
 		<command id="parentmenu">
 			<canon>parent menu(menu item handle)</canon>
 			<shortname>parent menu</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Return a menu handle for the menu that the menu item belongs to.</description>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), return a menu handle for the menu that the menu item belongs to.</description>
 		</command>
 		<command id="getmenuid">
 			<canon>get menu ID(menu handle)</canon>
 			<shortname>get menu ID</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>parentmenu</ref>), Return a the ID number of the menu, or -1 if the men was created with the <ref>createmenu</ref> command.</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>parentmenu</ref>), return a the ID number of the menu, or -1 if the men was created with the <ref>createmenu</ref> command.</description>
 		</command>
 		<command id="swapmenuitems">
 			<canon>swap menu items(handle1, handle2)</canon>
 			<shortname>swap menu items</shortname>
-			<description>Given two menu item handles (for example, the ones returned by <ref>selectedmenuitem</ref> and <ref>nextmenuitem</ref>) switch the positions of the two menu items. Note that this works both to rearrange menu items within one menu, or to move menu items between different menus</description>
+			<description>Given two menu item handles (for example, the ones returned by <ref>selectedmenuitem</ref> and <ref>nextmenuitem</ref>) switch the positions of the two menu items. Note that this works both to rearrange menu items within one menu, or to move menu items between different menus.</description>
 		</command>
 		<command id="getmenuboxstyle">
 			<canon>get menu boxstyle(menu handle)</canon>
 			<shortname>get menu boxstyle</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return a the boxstyle of the menu. This will be a number from 0 to 15</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), return a the boxstyle of the menu. This will be a number from 0 to 15.</description>
 		</command>
 		<command id="setmenuboxstyle">
 			<canon>set menu boxstyle(menu handle, new box style)</canon>
 			<shortname>set menu boxstyle</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Change the boxstyle of the menu. <p>new box style</p> will be a number from 0 to 15</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), change the boxstyle of the menu. <p>new box style</p> will be a number from 0 to 15.</description>
 		</command>
 		<command id="getmenutextcolor">
 			<canon>get menu textcolor(menu handle)</canon>
 			<shortname>get menu textcolor</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return a the text color of the menu. This will be a number from 0 to 255</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), return a the text color of the menu. This will be a number from 0 to 255.</description>
 		</command>
 		<command id="setmenutextcolor">
 			<canon>set menu textcolor(menu handle, new textcolor)</canon>
 			<shortname>set menu textcolor</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Change the text color of the menu. <p>new textcolor</p> will be a number from 0 to 255. 0 is the default color.</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), change the text color of the menu. <p>new textcolor</p> will be a number from 0 to 255. 0 is the default color.</description>
 		</command>
 		<command id="getmenumaxrows">
 			<canon>get menu max rows(menu handle)</canon>
 			<shortname>get menu max rows</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return a max rows to display of the menu, or 0 if the menu is auto-sizing. If the actual number of menu items is larger than the max rows, the menu will be scrollable.</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), return a max rows to display of the menu, or 0 if the menu is auto-sizing. If the actual number of menu items is larger than the max rows, the menu will be scrollable.</description>
 		</command>
 		<command id="setmenumaxrows">
 			<canon>set menu max rows(menu handle, new max rows)</canon>
 			<shortname>set menu max rows</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Change the max rows to display of the menu to <p>new max rows</p>. Use 0 if you want the menu to be auto-sizing. If the actual number of menu items is larger than the max rows, the menu will be scrollable.</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), change the max rows to display of the menu to <p>new max rows</p>. Use 0 if you want the menu to be auto-sizing. If the actual number of menu items is larger than the max rows, the menu will be scrollable.</description>
 		</command>
 		<command id="getmenuoffsetx">
 			<canon>get menu offset x(menu handle)</canon>
 			<shortname>get menu offset x</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return the x offset position of the menu in pixels relative to the center of the screen.</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), return the x offset position of the menu in pixels relative to the center of the screen.</description>
 			<seealso>
 				<ref>getmenuoffsety</ref>
 				<ref>setmenuoffsetx</ref>
@@ -1977,7 +1976,7 @@ end</example>
 		<command id="getmenuoffsety">
 			<canon>get menu offset y(menu handle)</canon>
 			<shortname>get menu offset y</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return the y offset position of the menu in pixels relative to the center of the screen.</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), return the y offset position of the menu in pixels relative to the center of the screen.</description>
 			<seealso>
 				<ref>getmenuoffsetx</ref>
 				<ref>setmenuoffsetx</ref>
@@ -1987,7 +1986,7 @@ end</example>
 		<command id="setmenuoffsetx">
 			<canon>set menu offset x(menu handle, new x)</canon>
 			<shortname>set menu offset x</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Change the x offset position of the menu in pixels relative to the center of the screen.</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), change the x offset position of the menu in pixels relative to the center of the screen.</description>
 			<seealso>
 				<ref>getmenuoffsetx</ref>
 				<ref>getmenuoffsety</ref>
@@ -1997,7 +1996,7 @@ end</example>
 		<command id="setmenuoffsety">
 			<canon>set menu offset y(menu handle, new y)</canon>
 			<shortname>set menu offset y</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Change the y offset position of the menu in pixels relative to the center of the screen.</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), change the y offset position of the menu in pixels relative to the center of the screen.</description>
 			<seealso>
 				<ref>getmenuoffsetx</ref>
 				<ref>getmenuoffsety</ref>
@@ -2007,7 +2006,7 @@ end</example>
 		<command id="getmenuanchorx">
 			<canon>get menu anchor x(menu handle)</canon>
 			<shortname>get menu anchor x</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return the x anchor position of the menu. The return value will be <p>align:center</p>, <p>align:left</p> or <p>align:right</p></description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), return the x anchor position of the menu. The return value will be <p>align:center</p>, <p>align:left</p> or <p>align:right</p>.</description>
 			<seealso>
 				<ref>getmenuanchory</ref>
 				<ref>setmenuanchorx</ref>
@@ -2017,7 +2016,7 @@ end</example>
 		<command id="getmenuanchory">
 			<canon>get menu anchor y(menu handle)</canon>
 			<shortname>get menu anchor y</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return the y anchor position of the menu. The return value will be <p>align:center</p>, <p>align:top</p> or <p>align:bottom</p></description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), return the y anchor position of the menu. The return value will be <p>align:center</p>, <p>align:top</p> or <p>align:bottom</p>.</description>
 			<seealso>
 				<ref>getmenuanchorx</ref>
 				<ref>setmenuanchorx</ref>
@@ -2027,7 +2026,7 @@ end</example>
 		<command id="setmenuanchorx">
 			<canon>set menu anchor x(menu handle, new anchor)</canon>
 			<shortname>set menu anchor x</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Change the horizontal x anchor position of the menu. The <p>new anchor</p> can be <p>align:center</p>, <p>align:left</p> or <p>align:right</p></description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), change the horizontal x anchor position of the menu. The <p>new anchor</p> can be <p>align:center</p>, <p>align:left</p> or <p>align:right</p>.</description>
 			<seealso>
 				<ref>getmenuanchorx</ref>
 				<ref>getmenuanchory</ref>
@@ -2037,7 +2036,7 @@ end</example>
 		<command id="setmenuanchory">
 			<canon>set menu anchor y(menu handle, new anchor)</canon>
 			<shortname>set menu anchor y</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Change the vertical y anchor position of the menu. Change the horizontal x anchor position of the menu. The <p>new anchor</p> can be <p>align:center</p>, <p>align:top</p> or <p>align:bottom</p></description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), change the vertical y anchor position of the menu. Change the horizontal x anchor position of the menu. The <p>new anchor</p> can be <p>align:center</p>, <p>align:top</p> or <p>align:bottom</p>.</description>
 			<seealso>
 				<ref>getmenuanchorx</ref>
 				<ref>getmenuanchory</ref>
@@ -2047,7 +2046,7 @@ end</example>
 		<command id="getmenutextalign">
 			<canon>get menu text align(menu handle)</canon>
 			<shortname>get menu text align</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return the text alignment of the menu. The return value will be <p>align:center</p>, <p>align:left</p> or <p>align:right</p></description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), return the text alignment of the menu. The return value will be <p>align:center</p>, <p>align:left</p> or <p>align:right</p>.</description>
 			<seealso>
 				<ref>setmenutextalign</ref>
 			</seealso>
@@ -2055,7 +2054,7 @@ end</example>
 		<command id="setmenutextalign">
 			<canon>set menu text align(menu handle, new align)</canon>
 			<shortname>set menu text align</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Change the text alignment of the menu. The <p>new align</p> can be <p>align:center</p>, <p>align:left</p> or <p>align:right</p></description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), change the text alignment of the menu. The <p>new align</p> can be <p>align:center</p>, <p>align:left</p> or <p>align:right</p>.</description>
 			<seealso>
 				<ref>getmenutextalign</ref>
 			</seealso>
@@ -2063,7 +2062,7 @@ end</example>
 		<command id="getmenuminchars">
 			<canon>get menu min chars(menu handle)</canon>
 			<shortname>get menu min chars</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return the minimum width of the menu in chars, or 0 for menus that have their width autodetected.</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), return the minimum width of the menu in chars, or 0 for menus that have their width autodetected.</description>
 			<seealso>
 				<ref>setmenuminchars</ref>
 			</seealso>
@@ -2071,7 +2070,7 @@ end</example>
 		<command id="setmenuminchars">
 			<canon>set menu min chars(menu handle, new min)</canon>
 			<shortname>set menu min chars</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Change the minimum width of the menu in chars, or use 0 to make the menu width autodetected.</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), change the minimum width of the menu in chars, or use 0 to make the menu width autodetected.</description>
 			<seealso>
 				<ref>getmenuminchars</ref>
 			</seealso>
@@ -2079,7 +2078,7 @@ end</example>
 		<command id="getmenumaxchars">
 			<canon>get menu max chars(menu handle)</canon>
 			<shortname>get menu max chars</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return the maximum width of the menu in chars, or 0 for menus that do not have a maximum.</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), return the maximum width of the menu in chars, or 0 for menus that do not have a maximum.</description>
 			<seealso>
 				<ref>setmenumaxchars</ref>
 			</seealso>
@@ -2087,7 +2086,7 @@ end</example>
 		<command id="setmenumaxchars">
 			<canon>set menu max chars(menu handle, new max)</canon>
 			<shortname>set menu max chars</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Change the maximum width of the menu in chars, or use 0 for no maximum</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), change the maximum width of the menu in chars, or use 0 for no maximum.</description>
 			<seealso>
 				<ref>getmenumaxchars</ref>
 			</seealso>
@@ -2095,7 +2094,7 @@ end</example>
 		<command id="getmenuborder">
 			<canon>get menu border(menu handle)</canon>
 			<shortname>get menu border</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return the border thickness of the menu in pixels. Positive numbers indicate a thicker border. Negative numbers indicate a thinner border.</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), return the border thickness of the menu in pixels. Positive numbers indicate a thicker border. Negative numbers indicate a thinner border.</description>
 			<seealso>
 				<ref>setmenuborder</ref>
 			</seealso>
@@ -2103,7 +2102,7 @@ end</example>
 		<command id="setmenuborder">
 			<canon>set menu border(menu handle, new border)</canon>
 			<shortname>set menu border</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Change the border thickness of the menu in pixels. Positive numbers will result in a thicker border. Negative numbers will result in a thinner border.</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), change the border thickness of the menu in pixels. Positive numbers will result in a thicker border. Negative numbers will result in a thinner border.</description>
 			<seealso>
 				<ref>getmenuborder</ref>
 			</seealso>
@@ -2111,7 +2110,7 @@ end</example>
 		<command id="getmenuonclosescript">
 			<canon>get menu on close script(menu handle)</canon>
 			<shortname>get menu on close script</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return a script id for the script that will be run when the menu is closed, or <p>false</p> if there is none. This command is only useful with scripts that have the <p>allow gameplay and scripts</p> bitset turned on.</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), return a script id for the script that will be run when the menu is closed, or <p>false</p> if there is none. This command is only useful with scripts that have the <p>allow gameplay and scripts</p> bitset turned on.</description>
 			<example>variable(m, s)
 m := open menu(5)
 s := get menu on close script(m)
@@ -2125,7 +2124,7 @@ run script by id(s)
 		<command id="setmenuonclosescript">
 			<canon>set menu on close script(menu handle, script id)</canon>
 			<shortname>set menu on close script</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Assign script id that will be run when the menu is closed, or <p>false</p> to disable any on-close script that has already been set. The script trigger only takes effect the next time you close the menu. If you re-open the menu again, you will need to re-set the on-close script again. This command is only useful with scripts that have the <p>allow gameplay and scripts</p> bitset turned on.</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), assign script id that will be run when the menu is closed, or <p>false</p> to disable any on-close script that has already been set. The script trigger only takes effect the next time you close the menu. If you re-open the menu again, you will need to re-set the on-close script again. This command is only useful with scripts that have the <p>allow gameplay and scripts</p> bitset turned on.</description>
 			<example>variable(m, s)
 m := open menu(5)
 set menu on close script(m, @my menu exit handler)

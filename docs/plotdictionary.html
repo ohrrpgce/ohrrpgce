@@ -413,6 +413,9 @@
 		<a href="#about-do">do</a><br>
 		
 	
+		<a href="#about-dooratspot">door at spot (x, y)</a><br>
+		
+	
 		<a href="#about-doorexists">door exists (number)</a><br>
 		
 	
@@ -1496,6 +1499,9 @@
 		<a href="#about-resumecaterpillar">resume caterpillar</a><br>
 		
 	
+		<a href="#about-resumedoors">resume doors</a><br>
+		
+	
 		<a href="#about-resumeherowalls">resume hero walls</a><br>
 		
 	
@@ -2186,6 +2192,9 @@
 		<a href="#about-suspendcaterpillar">suspend caterpillar</a><br>
 		
 	
+		<a href="#about-suspenddoors">suspend doors</a><br>
+		
+	
 		<a href="#about-suspendherowalls">suspend hero walls</a><br>
 		
 	
@@ -2786,6 +2795,22 @@ resume caterpillar # normal game again.</pre>
 				<b><font color="yellow">resume catapillar</font></b><br>
 				See <a href="#about-resumecaterpillar">resume caterpillar</a>
 			</tt></p>
+		<a name="about-suspenddoors"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">suspend doors</font></b><br>
+			Stops doors from triggering when stepped on by the lead hero. One use is to allow you to script your own transitions between maps, using <a href="#about-dooratspot" class="ref">door at spot</a>, etc. While doors are suspended <a href="#about-usedoor" class="ref">use door</a> still works.<br>
+			
+			
+		</tt></p>
+		<a name="about-resumedoors"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">resume doors</font></b><br>
+			Restores normal door triggering after a <a href="#about-suspenddoors" class="ref">suspend doors</a> command. If the lead hero is already standing on a door, it will not be triggered.<br>
+			
+			
+		</tt></p>
 		<a name="about-suspendrandomenemies"></a>
 		<p>
 		<tt>
@@ -3026,7 +3051,7 @@ resume player # OK, done</pre>
 		<b><font color="yellow">get door x (number)</font></b><br>
 			Returns the x coordinate (in tiles) of the numbered door.<br>
 			
-			
+			<br>See also: <ul class="seealso"><li><a href="#about-dooratspot" class="ref">door at spot</a></li></ul>
 		</tt></p>
 		<a name="about-getdoory"></a>
 		<p>
@@ -3034,7 +3059,7 @@ resume player # OK, done</pre>
 		<b><font color="yellow">get door y (number)</font></b><br>
 			Returns the y coordinate (in tiles) of the numbered door.<br>
 			
-			
+			<br>See also: <ul class="seealso"><li><a href="#about-dooratspot" class="ref">door at spot</a></li></ul>
 		</tt></p>
 		<a name="about-getdoordestinationid"></a>
 		<p>
@@ -3063,6 +3088,18 @@ resume player # OK, done</pre>
 <br>
 			
 			
+		</tt></p>
+		<a name="about-dooratspot"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">door at spot (x, y)</font></b><br>
+			Checks whether there is a door on the position given by <a href="#x" class="undef">x</a>, <a href="#y" class="undef">y</a> in tiles and if so returns its ID; otherwise returns -1. Note that the door might not have any active doorlink, or no door links at all. You can use <a href="#about-getdoordestinationid" class="ref">get door destination id</a> to check if a door is active. If you want to script your own map transitions, you will find <a href="#about-suspenddoors" class="ref">suspend doors</a> helpful.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-getdoorx" class="ref">get door x</a>, </li>
+<li><a href="#about-getdoory" class="ref">get door y</a></li>
+</ul>
 		</tt></p>
 		<a name="about-teleporttomap"></a>
 		<p>
@@ -4749,7 +4786,7 @@ get hero name (1, find hero (leader))
 		<p>
 		<tt>
 		<b><font color="yellow">create menu</font></b><br>
-			Create a new empty menu. You can add menu items to it with the <a href="#about-addmenuitem" class="ref">add menu item</a> command. The return value is a menu handle that you should save in a variable for use with other menu related commands. Menus created with this command have the "Allow gameplay" bitset turned on by default.<br>
+			Create a new empty menu. You can add menu items to it with the <a href="#about-addmenuitem" class="ref">add menu item</a> command. The return value is a menu handle that you should save in a variable for use with other menu related commands. Menus created with this command have the "Allow gameplay and scripts" bitset turned on by default.<br>
 			
 			
 		</tt></p>
@@ -4757,7 +4794,7 @@ get hero name (1, find hero (leader))
 		<p>
 		<tt>
 		<b><font color="yellow">close menu(menu handle)</font></b><br>
-			Close a menu. The argument is a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a> or <a href="#top%20menu" class="undef">top menu</a>)<br>
+			Close a menu. The argument is a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a> or <a href="#about-topmenu" class="ref">top menu</a>).<br>
 			
 			
 		</tt></p>
@@ -4765,7 +4802,7 @@ get hero name (1, find hero (leader))
 		<p>
 		<tt>
 		<b><font color="yellow">top menu</font></b><br>
-			Return a menu handle for the topmost menu. Returns <a href="#about-booleanconstants" class="ref">false</a> if no menus are open<br>
+			Return a menu handle for the topmost menu. Returns <a href="#about-booleanconstants" class="ref">false</a> if no menus are open.<br>
 			
 			
 		</tt></p>
@@ -4773,7 +4810,7 @@ get hero name (1, find hero (leader))
 		<p>
 		<tt>
 		<b><font color="yellow">bottom menu</font></b><br>
-			Return a menu handle for the bottom menu (the menu underneath all other open menus). Returns <a href="#about-booleanconstants" class="ref">false</a> if no menus are open<br>
+			Return a menu handle for the bottom menu (the menu underneath all other open menus). Returns <a href="#about-booleanconstants" class="ref">false</a> if no menus are open.<br>
 			
 			
 		</tt></p>
@@ -4781,7 +4818,7 @@ get hero name (1, find hero (leader))
 		<p>
 		<tt>
 		<b><font color="yellow">previous menu(menu handle)</font></b><br>
-			Return a menu handle for the menu beneath the one specified by <span class="param">menu handle</span>, or false if there is no menu underneath<br>
+			Return a menu handle for the menu beneath the one specified by <span class="param">menu handle</span>, or false if there is no menu underneath.<br>
 			<pre>variable(menu)
 menu := topmenu
 while(menu) do, begin
@@ -4807,7 +4844,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">bring menu forward(menu handle)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one return by <a href="#about-bottommenu" class="ref">bottom menu</a>), move the menu to the top of all other open menus<br>
+			Given a <span class="param">menu handle</span> (for example, the one return by <a href="#about-bottommenu" class="ref">bottom menu</a>), move the menu to the top of all other open menus.<br>
 			
 			
 		</tt></p>
@@ -4815,7 +4852,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">find menu ID(menu ID)</font></b><br>
-			Given a <span class="param">menu ID</span> number or a constant in the form of <span class="param">menu:name</span>, Check to see if it is already open, and return a menu handle to it.<br>
+			Given a <span class="param">menu ID</span> number or a constant in the form of <span class="param">menu:name</span>, check to see if it is already open, and if so return a menu handle to it. Otherwise returns <a href="#about-booleanconstants" class="ref">false</a>.<br>
 			
 			
 		</tt></p>
@@ -4823,7 +4860,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">menu is open(menu handle)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <span class="param">open menu</span>), Check to see if it is already open, and return <a href="#about-booleanconstants" class="ref">true</a> if it is, or <a href="#about-booleanconstants" class="ref">false</a> if it is not<br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <span class="param">open menu</span>), checks to see whether it is still open, and returns <a href="#about-booleanconstants" class="ref">true</a> if it is, or <a href="#about-booleanconstants" class="ref">false</a> if it has been closed.<br>
 			
 			
 		</tt></p>
@@ -4831,7 +4868,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">add menu item(menu handle)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-createmenu" class="ref">create menu</a>), Add a new menu item to the end of the menu. Returns a menu item handle, which you can store in a variable for use with commands like <a href="#about-setmenuitemcaption" class="ref">set menu item caption</a> or <a href="#about-setmenuitemtype" class="ref">set menu item type</a>.<br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-createmenu" class="ref">create menu</a>), adds a new blank menu item to the end of the menu. Returns a menu item handle, which you can store in a variable for use with commands like <a href="#about-setmenuitemcaption" class="ref">set menu item caption</a> or <a href="#about-setmenuitemtype" class="ref">set menu item type</a>.<br>
 			
 			
 		</tt></p>
@@ -4839,7 +4876,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">delete menu item(menu item handle)</font></b><br>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-addmenuitem" class="ref">add menu item</a> or <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), delete the menu item from the menu.<br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-addmenuitem" class="ref">add menu item</a> or <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), delete the menu item from the menu. (The change does not affect other copies/instances of the same menu if this menu was created in the menu editor.)<br>
 			
 			
 		</tt></p>
@@ -4847,7 +4884,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">select menu item(menu item handle)</font></b><br>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-addmenuitem" class="ref">add menu item</a>), Move the menu selection cursor to point to that menu item<br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-addmenuitem" class="ref">add menu item</a>), move the menu selection cursor to point to that menu item.<br>
 			
 			
 		</tt></p>
@@ -4855,7 +4892,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">selected menu item(menu handle)</font></b><br>
-			Returns the handle for the selected menu item in the topmost menu, false if no menus are open, or, when given an optional <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>) returns the selected item in that menu.<br>
+			Returns the handle for the selected menu item in the topmost menu, <a href="#about-booleanconstants" class="ref">false</a> if no menus are open, or, when given an optional <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>) returns the selected item in that menu.<br>
 			
 			
 		</tt></p>
@@ -4863,7 +4900,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">use menu item(menu item handle)</font></b><br>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), activate the menu item. This will cause whatever actions (text box, menu, script, tag changes) that have been configured for this menu item to be triggered.<br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), activate the menu item. This will cause whatever actions (text box, menu, script, tag changes, etc.) that have been configured for this menu item to be triggered.<br>
 			
 			
 		</tt></p>
@@ -4874,50 +4911,6 @@ end</pre>
 			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return a menu item handle for the menu item at the top of the menu.<br>
 			
 			
-		</tt></p>
-		<a name="about-menuitembytrueslot"></a>
-		<p>
-		<tt>
-		<b><font color="yellow">menu item by true slot(menu handle, slot)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return a menu item handle for the menu item at the position specified by <span class="param">slot</span>. The first slot in the menu is 0. This command uses the ordering of menu items as they appear in the Menu Editor in Custom.  The "true order" doesn't change as menu items are hidden or unhidden.<br>
-			
-			<br>See also: <ul class="seealso"><li><a href="#about-menuitembyslot" class="ref">menu item by slot</a></li></ul>
-		</tt></p>
-		<a name="about-menuitemtrueslot"></a>
-		<p>
-		<tt>
-		<b><font color="yellow">menu item true slot(menu item handle)</font></b><br>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-addmenuitem" class="ref">add menu item</a>), return the slot number of the menu item, as it appears in Custom. The first slot in the menu is 0. The "true order" doesn't change as menu items are hidden or unhidden.<br>
-			
-			<br>See also: <ul class="seealso">
-<li>
-<a href="#about-menuitemslot" class="ref">menu item slot</a>, </li>
-<li><a href="#about-menuitembytrueslot" class="ref">menu item by true slot</a></li>
-</ul>
-		</tt></p>
-		<a name="about-menuitembyslot"></a>
-		<p>
-		<tt>
-		<b><font color="yellow">menu item by slot(menu handle, slot, visible only)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return a menu item handle for the menu item at the position specified by <span class="param">slot</span>. The first slot in the menu is 0. You can optionally include invisible items by using the optional argument <span class="param">visible only</span>, which defaults to <a href="#about-booleanconstants" class="ref">true</a>. Note that invisible menu items are always at the end of the menu, after the last visible menu item -- menu items are NOT in the same order as they appear in the Menu Editor in Custom! This means menu item slot numbers change as menu items are hidden or unhidden. Use <a href="#about-menuitembytrueslot" class="ref">menu item by true slot</a> if you want to use the order in Custom.<br>
-			
-			<br>See also: <ul class="seealso">
-<li>
-<a href="#about-menuitemslot" class="ref">menu item slot</a>, </li>
-<li><a href="#about-menuitembytrueslot" class="ref">menu item by true slot</a></li>
-</ul>
-		</tt></p>
-		<a name="about-menuitemslot"></a>
-		<p>
-		<tt>
-		<b><font color="yellow">menu item slot(menu item handle)</font></b><br>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-addmenuitem" class="ref">add menu item</a>), return a the slot number of the menu item. The first slot in the menu is 0. Menu item slot numbers change as menu items are hidden or unhidden. Use <a href="#about-menuitemtrueslot" class="ref">menu item true slot</a> if you want to know the slot number as it appears in Custom.<br>
-			
-			<br>See also: <ul class="seealso">
-<li>
-<a href="#about-menuitembyslot" class="ref">menu item by slot</a>, </li>
-<li><a href="#about-menuitemtrueslot" class="ref">menu item true slot</a></li>
-</ul>
 		</tt></p>
 		<a name="about-nextmenuitem"></a>
 		<p>
@@ -4942,6 +4935,50 @@ end
 m := previous menu item(selected menu item)</pre>
 			
 		</tt></p>
+		<a name="about-menuitembytrueslot"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">menu item by true slot(menu handle, slot)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return a menu item handle for the menu item at the position specified by <span class="param">slot</span>. The first slot in the menu is 0. This command uses the ordering of menu items as they appear in the Menu Editor in Custom.  The "true order" doesn't change as menu items are hidden or unhidden, unlike the slot returned by <a href="#about-menuitemslot" class="ref">menu item slot</a>.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-menuitembyslot" class="ref">menu item by slot</a></li></ul>
+		</tt></p>
+		<a name="about-menuitemtrueslot"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">menu item true slot(menu item handle)</font></b><br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-addmenuitem" class="ref">add menu item</a>), return the slot number of the menu item, as it appears in the Menu Editor. The first slot in the menu is 0. The "true order" doesn't change as menu items are hidden or unhidden, unlike the slot returned by <a href="#about-menuitemslot" class="ref">menu item slot</a>.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-menuitemslot" class="ref">menu item slot</a>, </li>
+<li><a href="#about-menuitembytrueslot" class="ref">menu item by true slot</a></li>
+</ul>
+		</tt></p>
+		<a name="about-menuitembyslot"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">menu item by slot(menu handle, slot, visible only)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return a menu item handle for the menu item at the position specified by <span class="param">slot</span>. The first slot in the menu is 0. You can optionally include invisible items by using the optional argument <span class="param">visible only</span>, which defaults to <a href="#about-booleanconstants" class="ref">true</a>. Note that invisible menu items are always at the end of the menu, after the last visible menu item -- menu items are NOT in the same order as they appear in the Menu Editor! This means menu item slot numbers change as menu items are hidden or unhidden. Use <a href="#about-menuitembytrueslot" class="ref">menu item by true slot</a> if you want to use the order shown in the Menu Editor.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-menuitemslot" class="ref">menu item slot</a>, </li>
+<li><a href="#about-menuitembytrueslot" class="ref">menu item by true slot</a></li>
+</ul>
+		</tt></p>
+		<a name="about-menuitemslot"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">menu item slot(menu item handle)</font></b><br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-addmenuitem" class="ref">add menu item</a>), return a the slot number of the menu item. The first slot in the menu is 0. Menu item slot numbers change as menu items are hidden or unhidden. Use <a href="#about-menuitemtrueslot" class="ref">menu item true slot</a> if you want to know the slot number as it appears in the Menu Editor.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-menuitembyslot" class="ref">menu item by slot</a>, </li>
+<li><a href="#about-menuitemtrueslot" class="ref">menu item true slot</a></li>
+</ul>
+		</tt></p>
 		<a name="about-findmenuitemcaption"></a>
 		<p>
 		<tt>
@@ -4961,7 +4998,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get menu item caption(menu item handle, string ID)</font></b><br>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), take the caption and copy it into the string identified by <span class="param">string ID</span><br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), take the caption and copy it into the string identified by <span class="param">string ID</span>.<br>
 			
 			
 		</tt></p>
@@ -4969,7 +5006,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set menu item caption(menu item handle, string ID)</font></b><br>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), Replace the caption with the string identified by <span class="param">string ID</span><br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), replace the caption with the string identified by <span class="param">string ID</span>.<br>
 			
 			
 		</tt></p>
@@ -4977,7 +5014,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get menu item type(menu item handle)</font></b><br>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), Return the type of the menu item<br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), return the type of the menu item.<br>
 			
 			
 		</tt></p>
@@ -4985,7 +5022,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set menu item type(menu item handle, new type)</font></b><br>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), Change the type of the menu item to <span class="param">new type</span>. Available constants are: <span class="param">menutype:label</span>,<span class="param">menutype:special</span>, <span class="param">menutype:menu</span>, <span class="param">menutype:textbox</span>, and <span class="param">menutype:script</span><br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), change the type of the menu item to <span class="param">new type</span>. Available constants are: <span class="param">menutype:label</span>,<span class="param">menutype:special</span>, <span class="param">menutype:menu</span>, <span class="param">menutype:textbox</span>, and <span class="param">menutype:script</span><br>
 			
 			
 		</tt></p>
@@ -4993,7 +5030,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get menu item subtype(menu item handle)</font></b><br>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), Return the subtype of the menu item. The meaning of the subtype varies depending on the type.<br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), return the subtype of the menu item. The meaning of the subtype varies depending on the type.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-setmenuitemsubtype" class="ref">set menu item subtype</a></li></ul>
 		</tt></p>
@@ -5001,7 +5038,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set menu item subtype(menu item handle, new subtype)</font></b><br>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), Change the subtype of the menu item to <span class="param">new subtype</span>. The meaning of the subtype varies depending on the type of the menu item. For menutype:special you can use constants like: <span class="param">menuspecial:items</span>, <span class="param">menuspecial:spells</span>, <span class="param">menuspecial:status</span>, <span class="param">menuspecial:equip</span>, <span class="param">menuspecial:order</span>, <span class="param">menuspecial:team</span>, <span class="param">menuspecial:orderteam</span>, <span class="param">menuspecial:map</span>, <span class="param">menuspecial:save</span>, <span class="param">menuspecial:load</span>, <span class="param">menuspecial:quit</span>,  and <span class="param">menuspecial:volume</span>. For menutype:textbox you can use the textbox's ID number. For menutype:menu you can use the menu's ID number or a menu:name constant from your HSI file. For menutype:script you can use script references in the form @scriptname<br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), change the subtype of the menu item to <span class="param">new subtype</span>. The meaning of the subtype varies depending on the type of the menu item. For menutype:special you can use constants like: <span class="param">menuspecial:items</span>, <span class="param">menuspecial:spells</span>, <span class="param">menuspecial:status</span>, <span class="param">menuspecial:equip</span>, <span class="param">menuspecial:order</span>, <span class="param">menuspecial:team</span>, <span class="param">menuspecial:orderteam</span>, <span class="param">menuspecial:map</span>, <span class="param">menuspecial:save</span>, <span class="param">menuspecial:load</span>, <span class="param">menuspecial:quit</span>,  and <span class="param">menuspecial:volume</span>. For menutype:textbox you can use the textbox's ID number. For menutype:menu you can use the menu's ID number or a menu:name constant from your HSI file. For menutype:script you can use script references in the form @scriptname<br>
 			
 			
 		</tt></p>
@@ -5009,7 +5046,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get menu item tag(menu item handle, whichtag)</font></b><br>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), and a tag number <span class="param">whichtag</span> which can be 1 or 2, Return the a tag required for the menu item to be available. The tag number will be positive if the tag needs to be ON, or negative if the tag needs to be OFF<br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), and a tag number <span class="param">whichtag</span> which can be 1 or 2, Return the a tag required for the menu item to be available. The tag number will be positive if the tag needs to be ON, or negative if the tag needs to be OFF.<br>
 			
 			
 		</tt></p>
@@ -5017,7 +5054,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set menu item tag(menu item handle, new tag, whichtag)</font></b><br>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), and a tag number <span class="param">whichtag</span> which can be 1 or 2, Set the tag required for the menu item to <span class="param">new tag</span>. Use a positive number if the tag needs to be turned ON, and a negative number if the tag needs to be turned OFF<br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), and a tag number <span class="param">whichtag</span> which can be 1 or 2, Set the tag required for the menu item to <span class="param">new tag</span>. Use a positive number if the tag needs to be turned ON, and a negative number if the tag needs to be turned OFF.<br>
 			
 			
 		</tt></p>
@@ -5025,7 +5062,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get menu item settag(menu item handle)</font></b><br>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), Return the number of the tag that will be set when the menu item is selected. The tag number will be positive if the tag will be set ON, or negative if the tag will be set OFF<br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), Return the number of the tag that will be set when the menu item is selected. The tag number will be positive if the tag will be set ON, or negative if the tag will be set OFF.<br>
 			
 			
 		</tt></p>
@@ -5033,7 +5070,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set menu item settag(menu item handle, new settag)</font></b><br>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), Change the tag that will be set when the menu item is selected. Use a positive number if the tag should be turned ON, and a negative number if the tag should be turned OFF<br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), Change the tag that will be set when the menu item is selected. Use a positive number if the tag should be turned ON, and a negative number if the tag should be turned OFF.<br>
 			
 			
 		</tt></p>
@@ -5041,7 +5078,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get menu item togtag(menu item handle)</font></b><br>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), Return the number of the tag that will be toggled when the menu item is selected. (The tag number will always be a positive number)<br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), Return the number of the tag that will be toggled when the menu item is selected. (The tag number will always be a positive number).<br>
 			
 			
 		</tt></p>
@@ -5049,7 +5086,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set menu item togtag(menu item handle, new settag)</font></b><br>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), Change the tag that will be toggled when the menu item is selected. (the tag number will always be positive)<br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), Change the tag that will be toggled when the menu item is selected. (the tag number will always be positive).<br>
 			
 			
 		</tt></p>
@@ -5057,7 +5094,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get menu item bit(menu item handle, bit)</font></b><br>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), and bit number <span class="param">bit</span>, Return <a href="#about-booleanconstants" class="ref">true</a> if the bitset is ON, and <a href="#about-booleanconstants" class="ref">false</a> if the bitset is OFF. You can use constants for the <span class="param">bit</span> bit number in the form of <span class="param">menu item bit:Hide when disabled</span> and <span class="param">menu item bit:Close menu if selected</span><br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), and bit number <span class="param">bit</span>, Return <a href="#about-booleanconstants" class="ref">true</a> if the bitset is ON, and <a href="#about-booleanconstants" class="ref">false</a> if the bitset is OFF. You can use constants for the <span class="param">bit</span> bit number in the form of <span class="param">menu item bit:Hide when disabled</span> and <span class="param">menu item bit:Close menu if selected</span>.<br>
 			
 			
 		</tt></p>
@@ -5065,7 +5102,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set menu item bit(menu item handle, bit, value)</font></b><br>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), and bit number <span class="param">bit</span>, Set the bitset is ON or OFF depending on <span class="param">value</span>. You can use constants for the <span class="param">bit</span> bit number in the form of <span class="param">menu item bit:Hide when disabled</span> and <span class="param">menu item bit:close menu when selected</span><br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), and bit number <span class="param">bit</span>, Set the bitset is ON or OFF depending on <span class="param">value</span>. You can use constants for the <span class="param">bit</span> bit number in the form of <span class="param">menu item bit:Hide when disabled</span> and <span class="param">menu item bit:close menu when selected</span>.<br>
 			
 			
 		</tt></p>
@@ -5111,7 +5148,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">parent menu(menu item handle)</font></b><br>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), Return a menu handle for the menu that the menu item belongs to.<br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), return a menu handle for the menu that the menu item belongs to.<br>
 			
 			
 		</tt></p>
@@ -5119,7 +5156,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get menu ID(menu handle)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-parentmenu" class="ref">parent menu</a>), Return a the ID number of the menu, or -1 if the men was created with the <a href="#about-createmenu" class="ref">create menu</a> command.<br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-parentmenu" class="ref">parent menu</a>), return a the ID number of the menu, or -1 if the men was created with the <a href="#about-createmenu" class="ref">create menu</a> command.<br>
 			
 			
 		</tt></p>
@@ -5127,7 +5164,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">swap menu items(handle1, handle2)</font></b><br>
-			Given two menu item handles (for example, the ones returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a> and <a href="#about-nextmenuitem" class="ref">next menu item</a>) switch the positions of the two menu items. Note that this works both to rearrange menu items within one menu, or to move menu items between different menus<br>
+			Given two menu item handles (for example, the ones returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a> and <a href="#about-nextmenuitem" class="ref">next menu item</a>) switch the positions of the two menu items. Note that this works both to rearrange menu items within one menu, or to move menu items between different menus.<br>
 			
 			
 		</tt></p>
@@ -5135,7 +5172,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get menu boxstyle(menu handle)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Return a the boxstyle of the menu. This will be a number from 0 to 15<br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return a the boxstyle of the menu. This will be a number from 0 to 15.<br>
 			
 			
 		</tt></p>
@@ -5143,7 +5180,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set menu boxstyle(menu handle, new box style)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Change the boxstyle of the menu. <span class="param">new box style</span> will be a number from 0 to 15<br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the boxstyle of the menu. <span class="param">new box style</span> will be a number from 0 to 15.<br>
 			
 			
 		</tt></p>
@@ -5151,7 +5188,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get menu textcolor(menu handle)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Return a the text color of the menu. This will be a number from 0 to 255<br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return a the text color of the menu. This will be a number from 0 to 255.<br>
 			
 			
 		</tt></p>
@@ -5159,7 +5196,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set menu textcolor(menu handle, new textcolor)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Change the text color of the menu. <span class="param">new textcolor</span> will be a number from 0 to 255. 0 is the default color.<br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the text color of the menu. <span class="param">new textcolor</span> will be a number from 0 to 255. 0 is the default color.<br>
 			
 			
 		</tt></p>
@@ -5167,7 +5204,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get menu max rows(menu handle)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Return a max rows to display of the menu, or 0 if the menu is auto-sizing. If the actual number of menu items is larger than the max rows, the menu will be scrollable.<br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return a max rows to display of the menu, or 0 if the menu is auto-sizing. If the actual number of menu items is larger than the max rows, the menu will be scrollable.<br>
 			
 			
 		</tt></p>
@@ -5175,7 +5212,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set menu max rows(menu handle, new max rows)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Change the max rows to display of the menu to <span class="param">new max rows</span>. Use 0 if you want the menu to be auto-sizing. If the actual number of menu items is larger than the max rows, the menu will be scrollable.<br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the max rows to display of the menu to <span class="param">new max rows</span>. Use 0 if you want the menu to be auto-sizing. If the actual number of menu items is larger than the max rows, the menu will be scrollable.<br>
 			
 			
 		</tt></p>
@@ -5183,7 +5220,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get menu offset x(menu handle)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Return the x offset position of the menu in pixels relative to the center of the screen.<br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the x offset position of the menu in pixels relative to the center of the screen.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -5197,7 +5234,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get menu offset y(menu handle)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Return the y offset position of the menu in pixels relative to the center of the screen.<br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the y offset position of the menu in pixels relative to the center of the screen.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -5211,7 +5248,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set menu offset x(menu handle, new x)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Change the x offset position of the menu in pixels relative to the center of the screen.<br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the x offset position of the menu in pixels relative to the center of the screen.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -5225,7 +5262,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set menu offset y(menu handle, new y)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Change the y offset position of the menu in pixels relative to the center of the screen.<br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the y offset position of the menu in pixels relative to the center of the screen.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -5239,7 +5276,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get menu anchor x(menu handle)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Return the x anchor position of the menu. The return value will be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the x anchor position of the menu. The return value will be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span>.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -5253,7 +5290,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get menu anchor y(menu handle)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Return the y anchor position of the menu. The return value will be <span class="param">align:center</span>, <span class="param">align:top</span> or <span class="param">align:bottom</span><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the y anchor position of the menu. The return value will be <span class="param">align:center</span>, <span class="param">align:top</span> or <span class="param">align:bottom</span>.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -5267,7 +5304,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set menu anchor x(menu handle, new anchor)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Change the horizontal x anchor position of the menu. The <span class="param">new anchor</span> can be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the horizontal x anchor position of the menu. The <span class="param">new anchor</span> can be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span>.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -5281,7 +5318,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set menu anchor y(menu handle, new anchor)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Change the vertical y anchor position of the menu. Change the horizontal x anchor position of the menu. The <span class="param">new anchor</span> can be <span class="param">align:center</span>, <span class="param">align:top</span> or <span class="param">align:bottom</span><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the vertical y anchor position of the menu. Change the horizontal x anchor position of the menu. The <span class="param">new anchor</span> can be <span class="param">align:center</span>, <span class="param">align:top</span> or <span class="param">align:bottom</span>.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -5295,7 +5332,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get menu text align(menu handle)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Return the text alignment of the menu. The return value will be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the text alignment of the menu. The return value will be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span>.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-setmenutextalign" class="ref">set menu text align</a></li></ul>
 		</tt></p>
@@ -5303,7 +5340,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set menu text align(menu handle, new align)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Change the text alignment of the menu. The <span class="param">new align</span> can be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the text alignment of the menu. The <span class="param">new align</span> can be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span>.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-getmenutextalign" class="ref">get menu text align</a></li></ul>
 		</tt></p>
@@ -5311,7 +5348,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get menu min chars(menu handle)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Return the minimum width of the menu in chars, or 0 for menus that have their width autodetected.<br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the minimum width of the menu in chars, or 0 for menus that have their width autodetected.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-setmenuminchars" class="ref">set menu min chars</a></li></ul>
 		</tt></p>
@@ -5319,7 +5356,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set menu min chars(menu handle, new min)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Change the minimum width of the menu in chars, or use 0 to make the menu width autodetected.<br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the minimum width of the menu in chars, or use 0 to make the menu width autodetected.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-getmenuminchars" class="ref">get menu min chars</a></li></ul>
 		</tt></p>
@@ -5327,7 +5364,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get menu max chars(menu handle)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Return the maximum width of the menu in chars, or 0 for menus that do not have a maximum.<br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the maximum width of the menu in chars, or 0 for menus that do not have a maximum.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-setmenumaxchars" class="ref">set menu max chars</a></li></ul>
 		</tt></p>
@@ -5335,7 +5372,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set menu max chars(menu handle, new max)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Change the maximum width of the menu in chars, or use 0 for no maximum<br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the maximum width of the menu in chars, or use 0 for no maximum.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-getmenumaxchars" class="ref">get menu max chars</a></li></ul>
 		</tt></p>
@@ -5343,7 +5380,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get menu border(menu handle)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Return the border thickness of the menu in pixels. Positive numbers indicate a thicker border. Negative numbers indicate a thinner border.<br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the border thickness of the menu in pixels. Positive numbers indicate a thicker border. Negative numbers indicate a thinner border.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-setmenuborder" class="ref">set menu border</a></li></ul>
 		</tt></p>
@@ -5351,7 +5388,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set menu border(menu handle, new border)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Change the border thickness of the menu in pixels. Positive numbers will result in a thicker border. Negative numbers will result in a thinner border.<br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the border thickness of the menu in pixels. Positive numbers will result in a thicker border. Negative numbers will result in a thinner border.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-getmenuborder" class="ref">get menu border</a></li></ul>
 		</tt></p>
@@ -5359,7 +5396,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get menu on close script(menu handle)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Return a script id for the script that will be run when the menu is closed, or <span class="param">false</span> if there is none. This command is only useful with scripts that have the <span class="param">allow gameplay and scripts</span> bitset turned on.<br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return a script id for the script that will be run when the menu is closed, or <span class="param">false</span> if there is none. This command is only useful with scripts that have the <span class="param">allow gameplay and scripts</span> bitset turned on.<br>
 			<pre>variable(m, s)
 m := open menu(5)
 s := get menu on close script(m)
@@ -5375,7 +5412,7 @@ run script by id(s)
 		<p>
 		<tt>
 		<b><font color="yellow">set menu on close script(menu handle, script id)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Assign script id that will be run when the menu is closed, or <span class="param">false</span> to disable any on-close script that has already been set. The script trigger only takes effect the next time you close the menu. If you re-open the menu again, you will need to re-set the on-close script again. This command is only useful with scripts that have the <span class="param">allow gameplay and scripts</span> bitset turned on.<br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), assign script id that will be run when the menu is closed, or <span class="param">false</span> to disable any on-close script that has already been set. The script trigger only takes effect the next time you close the menu. If you re-open the menu again, you will need to re-set the on-close script again. This command is only useful with scripts that have the <span class="param">allow gameplay and scripts</span> bitset turned on.<br>
 			<pre>variable(m, s)
 m := open menu(5)
 set menu on close script(m, @my menu exit handler)
@@ -11270,7 +11307,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 771 commands in this file, of which 57 are only references to other commands.</p>
+	<p>Stats: There are 774 commands in this file, of which 57 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
