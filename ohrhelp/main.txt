@@ -6,4 +6,4 @@ Use the up and down arrow keys to scroll through long help screens.
 
 This is the help for the main menu. Use the Up and Down arrow keys (or PgUp, PgDn, Home and End) to navigate through the menu. Press ENTER or SPACE to choose a menu option. Remember that you can press ESC to exit any submenu and get back to the previous menu. Pressing ESC on the main menu allows you to save (or not) and quit.
 
-On this menu and most others you can also select a menu option by typing part of the menu option or pressing a letter repeatedly. For example typing "it" jumps to Edit Items.
+On this menu and some others you can also select a menu option by typing part of the menu option or pressing a letter repeatedly. For example typing "it" jumps to Edit Items.

@@ -1,6 +1,6 @@
 The general map data menu holds a variety of different data about your map.
 
-Use the Up and Down arrow keys to navigate the menu, and the left and right arrow keys to change the settings. You can also navigate with the PgUp, PgDn, Home, and End keys.
+Use the Up and Down arrow keys to navigate the menu, and the left and right arrow keys to change the settings. You can also navigate with the PgUp, PgDn, Home, and End keys, or type part of menu item (e.g. "harm") to jump to it.
 
 Ambient Music: This is the background music for the map. You can type in a music ID number. You can also choose -silence- or -same as previous map-
 
