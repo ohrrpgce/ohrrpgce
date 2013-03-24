@@ -74,6 +74,8 @@ WHAT IS NEW?
     * Fix a couple places where stat caps were not applied [Ralph]
     * Bug 743: Unequipping items when stats have reached stat limits
       is broken [Ralph]
+    * If your whole party died outside of battle (via harm tiles, spells,
+      items or "map cure") a game over wasn't triggered [Ralph]
 
   * New Plotscripting Stuff
     * If a script runs for a long time without "wait"ing you can now

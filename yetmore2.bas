@@ -323,7 +323,7 @@ SUB cleanuptemp
  NEXT
 END SUB
 
-FUNCTION checkfordeath () as integer
+FUNCTION checkfordeath () as bool
  RETURN liveherocount = 0
 END FUNCTION
 

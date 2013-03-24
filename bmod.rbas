@@ -226,7 +226,7 @@ FUNCTION battle (byval form as integer) as bool
   
   IF bat.vic.state = vicEXIT THEN EXIT DO 'normal victory exit
   IF bat.death_mode = deathHEROES THEN
-   fatal = 1
+   fatal = YES
    EXIT DO
   END IF
   
@@ -237,7 +237,7 @@ FUNCTION battle (byval form as integer) as bool
   END IF
  
   if dotimerbattle then
-   fatal = 0
+   fatal = NO
    exit do
   end if
  

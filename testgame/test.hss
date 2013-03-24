@@ -561,6 +561,10 @@ plotscript, remote vehicle, begin
   use NPC(2)
 end
 
+plotscript, kill leader with map cure, begin
+  map cure(atk:KillAlly, leader)
+end
+
 plotscript, add hero test, begin
   variable(slot)
   slot := add hero(0)

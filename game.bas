@@ -206,7 +206,7 @@ REDIM menus(0) as MenuDef 'This is an array because it holds a stack of heirarch
 REDIM mstates(0) as MenuState
 DIM topmenu as integer = -1
 
-DIM fatal as integer
+DIM fatal as bool
 DIM lastformation as integer
 
 DIM vstate as VehicleState
@@ -524,7 +524,7 @@ LoadUIColors uilook(), gam.current_master_palette
 init_default_text_colors
 
 initgamedefaults
-fatal = 0
+fatal = NO
 abortg = 0
 lastformation = -1
 scrwatch = 0
@@ -736,14 +736,13 @@ DO
   queue_fade_in
   doloadgame load_slot
  END IF
- 'DEBUG debug "check for death (fatal = " & fatal & ")"
- IF fatal = 1 THEN
+ IF fatal THEN
   '--this is what happens when you die in battle
   txt.showing = NO
   txt.fully_shown = NO
   IF gen(genGameoverScript) > 0 THEN
    trigger_script gen(genGameoverScript), NO, "death", "", scrqBackcompat()
-   fatal = 0
+   fatal = NO
    queue_fade_in 1
   ELSE
    fadeout 255, 0, 0
@@ -755,7 +754,7 @@ DO
  'Draw screen
 
  displayall()
- IF fatal = 1 OR abortg > 0 OR resetg THEN
+ IF fatal OR abortg > 0 OR resetg THEN
   resetgame scriptout
   'Stop sounds but not music; the title screen might not have any music set, or be set to the same music
   resetsfx
@@ -1090,7 +1089,7 @@ SUB update_heroes(byval force_step_check as integer=NO)
       IF gmap(13) <= 0 THEN 'if no random battle script is defined
        IF battle_formation >= 0 THEN 'and if the randomly selected battle is valid
         'trigger a normal random battle
-        fatal = 0
+        fatal = NO
         gam.wonbattle = battle(battle_formation)
         prepare_map YES
         queue_fade_in 1
@@ -1619,7 +1618,7 @@ IF wantdoor > 0 THEN
  wantdoor = 0
 END IF
 IF wantbattle > 0 THEN
- fatal = 0
+ fatal = NO
  gam.wonbattle = battle(wantbattle - 1)
  wantbattle = 0
  prepare_map YES
@@ -2399,7 +2398,7 @@ SUB dotimer(byval l as integer)
             .speed -= 1
             'do something
             if .trigger = -2 then 'game over
-              fatal = 1
+              fatal = YES
               abortg = 1
 
               exit sub
@@ -3174,7 +3173,7 @@ SUB advance_text_box ()
  END IF
  '---SPAWN BATTLE--------
  IF istag(txt.box.battle_tag, 0) THEN
-  fatal = 0
+  fatal = NO
   gam.wonbattle = battle(txt.box.battle)
   prepare_map YES
   gam.random_battle_countdown = range(100, 60)
@@ -3959,7 +3958,7 @@ SUB battle_formation_testing_menu()
    form_num = menu.items[state.pt]->extra(0)
    IF form_num >= 0 THEN
     defaultval = state.pt
-    fatal = 0
+    fatal = NO
     gam.wonbattle = battle(form_num)
     prepare_map YES
     queue_fade_in 1

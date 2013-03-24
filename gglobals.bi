@@ -22,7 +22,7 @@ EXTERN lastsaveslot as integer
 EXTERN abortg as integer
 EXTERN resetg as integer
 EXTERN usepreunlump as integer
-EXTERN fatal as integer
+EXTERN fatal as bool
 EXTERN err_suppress_lvl as scriptErrEnum
 EXTERN backcompat_sound_slot_mode as integer
 EXTERN backcompat_sound_slots() as integer
