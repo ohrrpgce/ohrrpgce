@@ -861,7 +861,8 @@ wait for text box # wait until the player continues</example>
 		<command id="itemsmenu">
 			<canon>items menu</canon>
 			<shortname>items menu</shortname>
-			<description>Takes you directly to the items menu. Note that if the player uses an item that calls up a text box, the items menu command will behave like a <ref>showtextbox</ref> command for that text box.</description>
+			<description>Takes you directly to the items menu. Note that if the player uses an item that calls up a text box, the items menu command will behave like a <ref>showtextbox</ref> command for that text box.
+			<note>If the player uses a item which kills all the heroes in the party (outside of battles a hero isn't counted as dead if their maximum HP is zero or negative), a normal game over occurs: the game over script is run if there is one, otherwise the game ends. However the game over won't happen until the next wait command (such as <ref>wait</ref>).</note></description>
 		</command>
 		<command id="statusscreen">
 			<canon>status screen (who)</canon>
@@ -871,7 +872,8 @@ wait for text box # wait until the player continues</example>
 		<command id="spellsmenu">
 			<canon>spells menu (who)</canon>
 			<shortname>spells menu</shortname>
-			<description>Takes you directly to a hero&apos;s spells menu. Specify the hero using its position in the party 0-3. Use <ref>findhero</ref> if you want to specify the hero by name. The <ref>pickhero</ref> command can also be useful.</description>
+			<description>Takes you directly to a hero&apos;s spells menu. Specify the hero using its position in the party 0-3. Use <ref>findhero</ref> if you want to specify the hero by name. The <ref>pickhero</ref> command can also be useful.
+			<note>If the player uses a spell which kills all the heroes in the party (outside of battles a hero isn't counted as dead if their maximum HP is zero or negative), a normal game over occurs: the game over script is run if there is one, otherwise the game ends. However the game over won't happen until the next wait command (such as <ref>wait</ref>).</note></description>
 		</command>
 		<command id="equipmenu">
 			<canon>equip menu (who)</canon>
@@ -998,7 +1000,8 @@ end</example>
 		<command id="useitem">
 			<canon>use item (item)</canon>
 			<shortname>use item</shortname>
-			<description>Attempts to use an item as if you had selected it in the items menu. The argument is the item's ID number, or one of the <p>item:name</p> constants in your .hsi file. This command will only work if the item can be used outside of battle, either as a cure attack, or to teach a hero a spell, or to trigger a text box. This command does not care if you actually have any of the item in your inventory, and if it is a consumable item, you will not lose any. The return value is true if you successfully used the item, or false if the item was unusable or the user cancelled.</description>
+			<description>Attempts to use an item as if you had selected it in the items menu. The argument is the item's ID number, or one of the <p>item:name</p> constants in your .hsi file. This command will only work if the item can be used outside of battle, either as a cure attack, or to teach a hero a spell, or to trigger a text box. This command does not care if you actually have any of the item in your inventory, and if it is a consumable item, you will not lose any. The return value is true if you successfully used the item, or false if the item was unusable or the user cancelled.
+			<note>If the item causes an attack to happen which kills all the heroes in the party (outside of battles a hero isn't counted as dead if their maximum HP is zero or negative), a normal game over occurs: the game over script is run if there is one, otherwise the game ends. However the game over won't happen until the next wait command (such as <ref>wait</ref>).</note></description>
 			<seealso>
 				<ref>useiteminslot</ref>
 			</seealso>
@@ -1103,7 +1106,8 @@ end</example>
 		<command id="useiteminslot">
 			<canon>use item in slot(slot)</canon>
 			<shortname>use item in slot</shortname>
-			<description>Attempts to use whatever item is in a given inventory slot as if you had selected it in the items menu. The argument is the inventory slot number. This command will only work if there is actually an item in the slot, and the item can be used outside of battle, either as a cure attack, or to teach a hero a spell, or to trigger a text box. The return value is true if you successfully used the item, or false if the item was unusable or the user cancelled.</description>
+			<description>Attempts to use whatever item is in a given inventory slot as if you had selected it in the items menu. The argument is the inventory slot number. This command will only work if there is actually an item in the slot, and the item can be used outside of battle, either as a cure attack, or to teach a hero a spell, or to trigger a text box. The return value is true if you successfully used the item, or false if the item was unusable or the user cancelled.
+			<note>If the item causes an attack to happen which kills all the heroes in the party (outside of battles a hero isn't counted as dead if their maximum HP is zero or negative), a normal game over occurs: the game over script is run if there is one, otherwise the game ends. However the game over won't happen until the next wait command (such as <ref>wait</ref>).</note></description>
 			<seealso>
 				<ref>useitem</ref>
 			</seealso>
@@ -1381,15 +1385,21 @@ end</example>
 			<description>Update a hero to make sure they know the spells they are supposed to have learned for their current level. The <p>who</p> is the hero's position in the battle party. You can optionally pass <ref>false</ref> as the <p>allowforget</p> argument if you want to make sure the hero will not forget any spells that they are not supposed to know yet. This command is most useful for situations where you are manipulating the hero's level, and for some reason do not want to use <ref>setherolevel</ref> which automatically handles spell learning. This command can also be handy when playtesting a game in progress, since it can be used to make sure that heroes loaded from a saved-game will learn spells that did not exist yet at the time when they got their last level-ups.</description>
 		</command>
 		<command id="outsidebattlecure">
-			<alias>outsidebattlecure</alias>
+			<alias>mapcure</alias>
 			<shortname>outside battle cure</shortname>
 		</command>
 		<command id="mapcure">
 			<canon>map cure (attack, target, attacker)</canon>
 			<shortname>map cure</shortname>
 			<description>Uses an attack on a hero outside of battle as if you had used it from an item or cast it as a spell. In spite of the name, it works for both cure spells and damage spells. The first argument, <p>attack</p> is name of the attack from your HSI file in the form atk:name. (You may also use the attack&apos;s ID number. This is the number you see in the attack editor + 1.) The second argument, <p>target</p> is the position in the party of the hero to cure (or harm). The third optional argument, <p>attacker</p> is the position in the party of the hero who is using the attack. If this argument is omitted or set to -1, then the average stats of the active party will be used, just like when the attack is used from an item. The return value is <ref>true</ref> if the cure/attack succeeded, and <ref>false</ref> if it did nothing.
-			<note>The <p>map cure</p> command replaces the old command <p>outside battle cure</p> which had a bug which required you to use <p>atk:name -- 1</p></note>
+			<note>The <p>map cure</p> command replaces the old command <p>outside battle cure</p> which had a bug which required you to use <p>atk:name -- 1</p> instead of <p>atk:name</p> for the <p>attack</p> argument.</note>
+			<note>If the attack results in all the heroes in the party being dead (outside of battles a hero isn't counted as dead if their maximum HP is zero or negative), a normal game over occurs: the game over script is run if there is one, otherwise the game ends. However the game over won't happen until the next wait command (such as <ref>wait</ref>).</note>
 			</description>
+			<seealso>
+				<ref>useitem</ref>
+				<ref>setherostat</ref>
+				<ref>setdeathscript</ref>
+			</seealso>
 		</command>
 	</section>
 	<section title="Mouse Functions">
@@ -5033,13 +5043,13 @@ end</example>
 			<canon>if(condition) then(commands) else(commands)</canon>
 			<shortname>if</shortname>
 			<description>The <p>if</p> statement checks the value of its condition, and if the value is <ref>true</ref> (or actually any value other than <ref>false</ref>, which is zero), it runs the commands in the <p>then</p> block. If the value is <ref>false</ref>, it runs the commands in its <p>else</p> block. The conditional is usually a comparison operator such as <ref>equal</ref> or <ref>notequal</ref>, or a command which returns either true or false, such as <ref>checktag</ref>. The <p>else</p> is optional as long as you have a <p>then</p>, and the <p>then</p> is optional as long as you have an <p>else</p>. There are several examples of <p>if</p> statements in the HamsterSpeak Specification, and throughout this document. You can also place one or more <ref>elseif</ref>s after the <p>then</p> (or immediately after the <p>if</p> if you skip the <p>then</p>) instead of nesting multiple <p>if</p> statements.</description>
-                        <seealso><ref>elseif</ref></seealso>
+			<seealso><ref>elseif</ref></seealso>
 		</command>
 		<command id="elseif">
 			<canon>... else if(condition) then(commands) ...</canon>
 			<shortname>else if</shortname>
 			<description>This can appear after an <ref>if</ref> or <ref>then</ref> block. It is a shortcut for <ref>else</ref> followed by <ref>if</ref> which lets you omit a pairs of brackets/<ref>begin</ref> and <ref>end</ref>, as this example shows:
-                        <example>if (inventory (item:apple)) then (
+			<example>if (inventory (item:apple)) then (
   show text box (10)  # "Apples! My favourite!"
 ) else if (inventory (item:orange)) then (
   show text box (11)  # "My, what a tasty looking orange..."
