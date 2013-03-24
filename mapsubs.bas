@@ -3161,13 +3161,13 @@ END FUNCTION
 
 FUNCTION LayerIsVisible(vis() as integer, byval l as integer) as bool
  'debug "layer #" & l & " is: " & readbit(vis(), 0, l)
- RETURN xreadbit(vis(), 0, l)
+ RETURN xreadbit(vis(), l)
 END FUNCTION
 
 FUNCTION LayerIsEnabled(gmap() as integer, byval l as integer) as bool
- IF l <= 0 THEN RETURN 1
+ IF l <= 0 THEN RETURN YES
  'debug "layer #" & l & " is: " & readbit(gmap(), 19, l-1)
- RETURN xreadbit(gmap(), 19, l - 1)
+ RETURN xreadbit(gmap(), l - 1, 19)
 END FUNCTION
 
 SUB SetLayerVisible(vis() as integer, byval l as integer, byval v as bool)
