@@ -1089,6 +1089,12 @@ FUNCTION xstring (s as string, byval x as integer) as integer
  return small(large(x - LEN(s) * 4, 0), 319 - LEN(s) * 8)
 END FUNCTION
 
+'Text tag aware. Not 100% sure about using this everywhere yet
+FUNCTION xstring2 (s as string, byval x as integer) as integer
+ DIM wid as integer = textwidth(s)
+ return large(small(x - wid \ 2, vpages(vpage)->w - wid), 0)
+END FUNCTION
+
 FUNCTION defaultint (byval n as integer, default_caption as string="default", byval default_value as integer=-1) as string
  IF n = default_value THEN RETURN default_caption
  RETURN STR(n)
@@ -1328,6 +1334,19 @@ FUNCTION getsfxname (byval num as integer) as string
  setpicstuf sfxd(), curbinsize(binSFXDATA), -1
  loadset workingdir & SLASH & "sfxdata.bin", num, 0
  RETURN readbinstring (sfxd(), 0, 30)
+END FUNCTION
+
+'keygrabber is like intgrabber (or usemenu) except it only watches the two keys passed as arguments, not
+'number keys, page up/down, copy/paste, minus, etc.
+FUNCTION keygrabber (byref n as integer, byval min as integer, byval max as integer, byval less as integer=scLeft, byval more as integer=scRight) as bool
+ IF keyval(more) > 1 THEN
+  n = loopvar(n, min, max, 1)
+  RETURN YES
+ ELSEIF keyval(less) > 1 THEN
+  n = loopvar(n, min, max, -1)
+  RETURN YES
+ END IF
+ RETURN NO
 END FUNCTION
 
 'Modify an integer according to key input (less and more are scancodes for decrementing and incrementing)

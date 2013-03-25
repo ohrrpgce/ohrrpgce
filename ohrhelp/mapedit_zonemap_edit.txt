@@ -15,7 +15,7 @@ Use the arrow keys to move around the map.
 
 Use SHIFT+arrow keys to move around the map faster.
 
-Press < and > to change the current zone number, or type in an ID number. There's no need to use sequential ID numbers.
+Press < and > or PageDown and PageUp to change the current zone number, or type in an ID number. There's no need to use sequential ID numbers.
 
 Press E to go to the zone info editor, where you can edit the triggers attached to this zone.
 
@@ -41,14 +41,17 @@ CTRL+F - Fill (Paint bucket) tool:
   under the cursor of tiles either in
   the zone or not.
 
-CTRL+P - Paint on Tilemap tool:
-  Finds the continuous area on the 
-  current tilemap layer (you can't 
-  select or see which layer is 
-  selected without switching to 
-  Tilemap Editing mode) under the 
+CTRL+P - Paint on Layer # tool:
+  Finds the continuous area on the
+  current tilemap layer under the
   cursor, and adds/removes all those
-  tiles to the zone.
+  tiles from the zone; like a flood fill
+  of a map layer except that the map
+  layer isn't modified. You can use
+  PageDown and PageUp to change the
+  selected layer. For example, you could
+  use this to 'paint' a road with a
+  zone.
 
 Also,
 

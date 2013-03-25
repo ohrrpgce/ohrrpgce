@@ -42,14 +42,17 @@ CTRL+R - Replace tool:
   of the tile under the cursor) with 
   the current one.
 
-CTRL+P - Paint on Tilemap tool:
-  Finds the continuous area on the 
-  current tilemap layer (you can't 
-  select or see which layer is 
-  selected without switching to 
-  Tilemap Editing mode) under the 
-  cursor, and sets the current
-  formation set on all those tiles. 
+CTRL+P - Paint on Layer # tool:
+  Finds the continuous area on the
+  current tilemap layer under the
+  cursor, and sets the formation set
+  for all those tiles; like a flood
+  fill of a map layer except that the
+  map layer isn't modified. You can use
+  PageDown and PageUp to change the
+  selected layer. For example, you can
+  use this to 'paint' a forest path
+  with an encounter formation.
 
 Also,
 

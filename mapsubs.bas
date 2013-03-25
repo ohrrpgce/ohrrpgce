@@ -718,8 +718,36 @@ DO
   mapedit_savemap st, map(), pass, emap, zmap, gmap(), doors(), link(), mapname
  END IF
 
+ IF st.editmode = tile_mode OR st.tool = paint_tool THEN
+  'Paint tool is affected by the current map layer, so that's important
+  IF keyval(scPageup) > 1 ORELSE (keyval(scCTRL) > 0 ANDALSO keyval(scPeriod) > 1) THEN
+   IF UBOUND(map) = 0 THEN
+    st.message = "No more layers; press Ctrl+L to add one"
+    st.message_ticks = 15
+   END IF
+   FOR i as integer = st.layer + 1 TO UBOUND(map)
+    IF layerisenabled(gmap(), i) THEN
+     st.layer = i
+     setlayervisible(visible(), st.layer, 1)
+     update_tilepicker st
+     EXIT FOR
+    END IF
+   NEXT i
+  END IF
+  IF keyval(scPageDown) > 1 ORELSE (keyval(scCTRL) > 0 ANDALSO keyval(scComma) > 1) THEN
+   FOR i as integer = st.layer - 1 TO 0 STEP -1
+    IF layerisenabled(gmap(), i) THEN
+     st.layer = i
+     setlayervisible(visible(), st.layer, 1)
+     update_tilepicker st
+     EXIT FOR
+    END IF
+   NEXT
+  END IF
+ END IF
+
  IF keyval(scCtrl) > 0 AND keyval(scL) > 1 THEN mapedit_layers st, gmap(), visible(), map()  'ctrl-L
- IF keyval(scTab) > 1 THEN st.tiny = st.tiny XOR 1
+ IF keyval(scTab) > 1 THEN st.tiny XOR= YES
  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 THEN
    'delete tile
    FOR i as integer = 0 TO UBOUND(map)
@@ -798,32 +826,6 @@ DO
      END IF
     END IF
    NEXT i
-
-   IF keyval(scPageup) > 1 ORELSE (keyval(scCTRL) > 0 ANDALSO keyval(scPeriod) > 1) THEN
-    IF UBOUND(map) = 0 THEN
-     st.message = "No more layers; press Ctrl+L to add one"
-     st.message_ticks = 15
-    END IF
-    FOR i as integer = st.layer + 1 TO UBOUND(map)
-     IF layerisenabled(gmap(), i) THEN
-      st.layer = i
-      setlayervisible(visible(), st.layer, 1)
-      update_tilepicker st
-      EXIT FOR
-     END IF
-    NEXT i
-   END IF
-   IF keyval(scPageDown) > 1 ORELSE (keyval(scCTRL) > 0 ANDALSO keyval(scComma) > 1) THEN
-    FOR i as integer = st.layer - 1 TO 0 STEP -1
-     IF layerisenabled(gmap(), i) THEN
-      st.layer = i
-      setlayervisible(visible(), st.layer, 1)
-      update_tilepicker st
-      EXIT FOR
-     END IF
-    NEXT
-   END IF
-
 
    '#IFNDEF __UNIX__
     'common WM keys
@@ -1010,6 +1012,10 @@ DO
    IF st.zonesubmode = 0 THEN
     '--Tiling/editing mode
     st.zones_needupdate OR= intgrabber(st.cur_zone, 1, 9999, scLeftCaret, scRightCaret)
+    IF st.tool <> paint_tool THEN
+     'Using the paint tool enables pageup/pagedown for changing selected map layer
+     st.zones_needupdate OR= keygrabber(st.cur_zone, 1, 9999, scPageDown, scPageUp)
+    END IF
     st.cur_zinfo = GetZoneInfo(zmap, st.cur_zone)
     IF keyval(scQ) > 1 AND keyval(scCtrl) > 0 THEN
      DebugZoneMap zmap, st.x, st.y
@@ -1205,7 +1211,7 @@ DO
 
  '--Draw Screen
  clearpage dpage
-  
+
  '--draw map
  animatetilesets st.tilesets()
  FOR i as integer = 0 TO UBOUND(map)
@@ -1217,7 +1223,7 @@ DO
     IF (i mod 8) >= 1 AND (i mod 8) <= 3 THEN st.jig.x = 1
     IF (i mod 8) >= 5 THEN st.jig.x = -1
     st.jig.y = 0
-    IF (i mod 8) <= 1 OR (I mod 8) = 7 THEN st.jig.y = -1
+    IF (i mod 8) <= 1 OR (i mod 8) = 7 THEN st.jig.y = -1
     IF (i mod 8) >= 3 AND (i mod 8) <= 5 THEN st.jig.y = 1
     st.jig.x *= i \ 8 + 1
     st.jig.y *= i \ 8 + 1
@@ -1409,7 +1415,7 @@ DO
  END IF
 
  '--position finder--
- IF st.tiny = 1 THEN
+ IF st.tiny THEN
   fuzzyrect 0, 35, st.wide, st.high, uilook(uiHighlight), dpage
   rectangle st.mapx \ 20, (st.mapy \ 20) + 35, 16, 9, uilook(uiDescription), dpage
   IF st.editmode = zone_mode THEN
@@ -1420,10 +1426,10 @@ DO
  '--normal cursor--
  IF st.editmode <> npc_mode THEN
   frame_draw st.cursor.sprite + tog, st.cursor.pal, (st.x * 20) - st.mapx, (st.y * 20) - st.mapy + 20, , , dpage
-  '--menubar cursor
-  IF st.editmode = tile_mode THEN
-   frame_draw st.cursor.sprite + tog, st.cursor.pal, ((st.usetile(st.layer) - st.menubarstart(st.layer)) * 20), 0, , , dpage
-  END IF
+ END IF
+ '--menubar cursor
+ IF st.editmode = tile_mode THEN
+  frame_draw st.cursor.sprite + tog, st.cursor.pal, ((st.usetile(st.layer) - st.menubarstart(st.layer)) * 20), 0, , , dpage
  END IF
  
  '--npc placement cursor--
@@ -1450,9 +1456,15 @@ DO
   FOR i as integer = 0 TO v_len(mode_tools) - 1
    mapedit_draw_icon st, toolinfo(mode_tools[i]).icon, toolbarpos.x + i * 10, toolbarpos.y, (st.tool = mode_tools[i])
   NEXT
-  DIM tmpstr as string = "Tool: " & toolinfo(st.tool).name
+  DIM tmpstr as string
+  IF st.tool = paint_tool THEN
+   'Show the current layer if using the paint tool, since that depends on selected tilemap layer
+   tmpstr = "Tool:Paint on " & hilite("Layer " & st.layer)
+  ELSE
+   tmpstr = "Tool: " & toolinfo(st.tool).name
+  END IF
   textcolor uilook(uiText), 0 
-  printstr tmpstr, xstring(tmpstr, toolbarpos.x), toolbarpos.y + 10, dpage
+  printstr tmpstr, xstring2(tmpstr, toolbarpos.x), toolbarpos.y + 10, dpage, YES
  ELSEIF st.editmode = zone_mode AND st.zonesubmode = 1 AND drawing_allowed THEN
   'Nasty
   textcolor uilook(uiText), 0 
@@ -1512,7 +1524,7 @@ DO
 
    'Draw zonemenu
    DIM xpos as integer = 320 - 13*8  'Where to put the menu
-   IF (st.x * 20) - st.mapx > xpos AND st.tiny = 0 THEN xpos = 8
+   IF (st.x * 20) - st.mapx > xpos AND st.tiny = NO THEN xpos = 8
    DIM zmenuopts as MenuOptions
    zmenuopts.edged = YES
    zmenuopts.wide = 13 * 8

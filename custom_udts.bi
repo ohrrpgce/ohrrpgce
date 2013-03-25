@@ -198,7 +198,7 @@ TYPE MapEditState
   high as integer
   tilepick as XYPair         'Coordinates (in tiles) of the selected tile on the tile picker screen
   layer as integer
-  defpass as integer         'Default passability ON/OFF
+  defpass as bool            'Default passability ON/OFF
   cur_foe as integer         'Formation set selected for placement
   cur_npc as integer         'NPC ID selected for placement
   usetile(0 to maplayerMax) as integer  'Tile selected for each layer
@@ -214,7 +214,7 @@ TYPE MapEditState
   walk as integer           'used for animating NPC walking
   
   'Most of these could become locals after mapping gosub is broken into real subs
-  tiny as integer           'whether or not to show the tiny screen relative to map area
+  tiny as bool               'whether or not to show the tiny screen relative to map area
   anim_newtile as integer   'used when setting animated tiles
   anim_old as integer       'used when setting animated tiles
   pass_overtile as integer  'used when setting pasability

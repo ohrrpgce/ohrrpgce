@@ -85,6 +85,7 @@ DECLARE FUNCTION maplumpname (byval map as integer, oldext as string) as string
 DECLARE FUNCTION shorten_to_left (text as string, byval wide as integer) as string
 DECLARE FUNCTION shorten_to_right (text as string, byval wide as integer) as string
 DECLARE FUNCTION xstring (s as string, byval x as integer) as integer
+DECLARE FUNCTION xstring2 (s as string, byval x as integer) as integer
 DECLARE FUNCTION defaultint (byval n as integer, default_caption as string="default", byval default_value as integer=-1) as string
 DECLARE FUNCTION caption_or_int (byval n as integer, captions() as string) as string
 DECLARE SUB poke8bit (array16() as integer, byval index as integer, byval val8 as integer)
@@ -153,6 +154,7 @@ DECLARE FUNCTION mp3_to_ogg (in_file as string, out_file as string, byval qualit
 DECLARE FUNCTION mp3_to_wav (in_file as string, out_file as string) as string
 DECLARE FUNCTION wav_to_ogg (in_file as string, out_file as string, byval quality as integer = 4) as string
 
+DECLARE FUNCTION keygrabber (byref n as integer, byval min as integer, byval max as integer, byval less as integer=scLeft, byval more as integer=scRight) as bool
 DECLARE FUNCTION intgrabber OVERLOAD (byref n as integer, byval min as integer, byval max as integer, byval less as integer=scLeft, byval more as integer=scRight, byval returninput as integer=NO, byval use_clipboard as integer=YES, byval autoclamp as integer=YES) as integer
 DECLARE FUNCTION intgrabber OVERLOAD (byref n as LONGINT, byval min as LONGINT, byval max as LONGINT, byval less as integer=scLeft, byval more as integer=scRight, byval returninput as integer=NO, byval use_clipboard as integer=YES, byval autoclamp as integer=YES) as integer
 DECLARE FUNCTION zintgrabber (byref n as integer, byval min as integer, byval max as integer, byval less as integer=75, byval more as integer=77) as integer
