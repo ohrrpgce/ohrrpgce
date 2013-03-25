@@ -110,6 +110,13 @@ SUB corners_to_rect (p1 as XYPair, p2 as XYPair, result as RectType)
  result.high = ABS(p1.y - p2.y)
 END SUB
 
+'As above, but include the corner positions inside the rect (for use when coordinates measure on a discrete grid)
+SUB corners_to_rect_inclusive (p1 as XYPair, p2 as XYPair, result as RectType)
+ corners_to_rect p1, p2, result
+ result.wide += 1
+ result.high += 1
+END SUB
+
 FUNCTION rando () as double
  'STATIC count as integer = 0
  'This is a simple wrapper for RND to facilitate debugging

@@ -1259,10 +1259,10 @@ DO
  END IF
  IF ts.hold = YES THEN
   DIM select_rect as RectType
-  corners_to_rect Type(ts.x, ts.y), ts.holdpos, select_rect
+  corners_to_rect_inclusive Type(ts.x, ts.y), ts.holdpos, select_rect
   SELECT CASE ts.tool
    CASE box_tool
-    rectangle overlay, select_rect.x, select_rect.y, select_rect.wide + 1, select_rect.high + 1, 1
+    rectangle overlay, select_rect.x, select_rect.y, select_rect.wide, select_rect.high, 1
    CASE line_tool
     drawline overlay, ts.x, ts.y, ts.holdpos.x, ts.holdpos.y, 1
    CASE oval_tool
@@ -1273,7 +1273,7 @@ DO
     END IF
     ellipse overlay, ts.holdpos.x, ts.holdpos.y, ts.radius, 1
    CASE mark_tool
-    IF tog = 0 THEN drawbox overlay, select_rect.x, select_rect.y, select_rect.wide + 1, select_rect.high + 1, 15, 1
+    IF tog = 0 THEN drawbox overlay, select_rect.x, select_rect.y, select_rect.wide, select_rect.high, 15, 1
     overlaypal->col(15) = randint(10)
   END SELECT
  END IF
@@ -1358,8 +1358,8 @@ SELECT CASE ts.tool
    IF ts.hold = YES THEN
     writeundoblock mover(), ts
     DIM select_rect as RectType
-    corners_to_rect Type(ts.x, ts.y), ts.holdpos, select_rect
-    rectangle ts.tilex * 20 + select_rect.x, ts.tiley * 20 + select_rect.y, select_rect.wide + 1, select_rect.high + 1, ts.curcolor, 3
+    corners_to_rect_inclusive Type(ts.x, ts.y), ts.holdpos, select_rect
+    rectangle ts.tilex * 20 + select_rect.x, ts.tiley * 20 + select_rect.y, select_rect.wide, select_rect.high, ts.curcolor, 3
     refreshtileedit mover(), ts
     ts.hold = NO
    ELSE
@@ -1450,9 +1450,9 @@ SELECT CASE ts.tool
   IF newkeypress THEN
    IF ts.hold = YES THEN
     DIM select_rect as RectType
-    corners_to_rect Type(ts.x, ts.y), ts.holdpos, select_rect
-    clone.size.x = select_rect.wide + 1
-    clone.size.y = select_rect.high + 1
+    corners_to_rect_inclusive Type(ts.x, ts.y), ts.holdpos, select_rect
+    clone.size.x = select_rect.wide
+    clone.size.y = select_rect.high
     FOR i as integer = 0 TO clone.size.y - 1
      FOR j as integer = 0 TO clone.size.x - 1
       clone.buf(j, i) = readpixel(ts.tilex * 20 + select_rect.x + j, ts.tiley * 20 + select_rect.y + i, 3)
@@ -1974,9 +1974,7 @@ SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic, state
  ss.curcolor = peek8bit(workpal(), ss.palindex + (state.pt - state.top) * 16)
 
  DIM select_rect as RectType
- corners_to_rect Type(ss.x, ss.y), ss.holdpos, select_rect
- select_rect.wide += 1  'Both corners inclusive
- select_rect.high += 1
+ corners_to_rect_inclusive Type(ss.x, ss.y), ss.holdpos, select_rect
 
  IF ss.hold = YES AND ss.tool = box_tool THEN
   rectangle 4 + select_rect.x * ss.zoom, 1 + select_rect.y * ss.zoom, select_rect.wide * ss.zoom, select_rect.high * ss.zoom, ss.curcolor, dpage

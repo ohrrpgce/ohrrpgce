@@ -373,6 +373,7 @@ declare function small overload (byval n1 as integer, byval n2 as integer) as in
 declare function small overload (byval n1 as longint, byval n2 as longint) as longint
 declare function small overload (byval n1 as double, byval n2 as double) as double
 declare sub corners_to_rect (p1 as XYPair, p2 as XYPair, result as RectType)
+declare sub corners_to_rect_inclusive (p1 as XYPair, p2 as XYPair, result as RectType)
 declare function rando () as double
 declare function randint (byval limit as integer) as integer
 declare function range (number as integer, percent as integer) as integer
