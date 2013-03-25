@@ -45,6 +45,9 @@ WHAT IS NEW?
       sprites are still limited to 16 colors), and most common versions
       of the BMP file format are now supported. Greatly improved the
       sprite importer's handling of palettes and previewing. [Ralph]
+    * Mark and Clone (copy/paste) tools in the Map Editor. They
+      simultaneously copy all visible map layers, walls, foemap and
+      zones. [Ralph]
 
   * Bugfixes
     * Fix the arrow key problem in Custom on Mac OS X for the third

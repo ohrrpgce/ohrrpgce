@@ -45,13 +45,40 @@ CTRL+P - Paint on Layer # tool:
   Finds the continuous area on the
   current tilemap layer under the
   cursor, and adds/removes all those
-  tiles from the zone; like a flood fill
-  of a map layer except that the map
-  layer isn't modified. You can use
-  PageDown and PageUp to change the
-  selected layer. For example, you could
-  use this to 'paint' a road with a
-  zone.
+  tiles from the zone; like a flood
+  fill of a map layer except that the
+  map layer isn't modified. You can
+  use PageDown and PageUp to change
+  the selected layer. For example,
+  you could use this to 'paint' a
+  road with a zone.
+
+CTRL+M - Mark tool:
+  Use to select a rectangular of the
+  map to copy. Press SPACE once to
+  place one corner of the rectangle,
+  and SPACE a second time at the
+  opposite corner. The tool will then
+  be changed to the Clone tool. Mark
+  copies the visible tilemap layers,
+  wallmap, foemap, and zones in the
+  rectangle.
+
+CTRL+C - Clone tool:
+  Press SPACE to paste a selection
+  copied with the Mark tool.  You can
+  switch to different editing modes
+  to preview the changes to walls,
+  foemap, and zones.  If default
+  passability is on (press D to
+  toggle), the wallmap will updated
+  using default walls instead of the
+  copied walls.  Only visible map
+  layers are modified (press ALT+~ to
+  toggle visibility of the current
+  map layer), so a map layer has to
+  be visible both when Marking and
+  when Cloning.
 
 Also,
 

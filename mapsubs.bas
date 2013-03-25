@@ -35,12 +35,20 @@ DECLARE FUNCTION mapedit_npc_at_spot(st as MapEditState) as integer
 DECLARE FUNCTION mapedit_on_screen(st as MapEditState, byval x as integer, byval y as integer) as integer
 DECLARE SUB mapedit_focus_camera(st as MapEditState, byval x as integer, byval y as integer)
 
+'Undo
 DECLARE SUB add_undo_step(st as MapEditState, byval x as integer, byval y as integer, byval oldvalue as integer, byval mapid as integer)
 DECLARE FUNCTION undo_stroke(st as MapEditState, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap, byval redo as bool = NO) as MapEditUndoTile vector
 DECLARE FUNCTION redo_stroke(st as MapEditState, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap) as MapEditUndoTile vector
+DECLARE SUB undo_stroke_internal(st as MapEditState, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap, byref changelist as MapEditUndoTile vector, byval redo as bool = NO)
+DECLARE SUB undo_preview(st as MapEditState, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
 DECLARE SUB mapedit_throw_away_history(st as MapEditState)
 DECLARE SUB mapedit_show_undo_change(st as MapEditState, byval undostroke as MapEditUndoTile vector)
 
+'Mark+Clone
+DECLARE FUNCTION create_changelist(st as MapEditState, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap, visible() as integer, gmap() as integer, rect as RectType) as MapEditUndoTile vector
+DECLARE SUB apply_changelist(st as MapEditState, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap, visible() as integer, gmap() as integer, byref changelist as MapEditUndoTile vector, offset as XYPair)
+
+'Zones
 DECLARE SUB draw_zone_tileset(byval zonetileset as Frame ptr)
 DECLARE SUB draw_zone_tileset2(byval zonetileset as Frame ptr)
 DECLARE SUB draw_zone_tileset3(byval zonetileset as Frame ptr)
@@ -353,12 +361,12 @@ st.mapnum = mapnum
 st.editmode = 0
 st.seteditmode = -1
 DIM mode_tools_map(zone_mode, 10) as integer = { _
-   {draw_tool, box_tool, fill_tool, replace_tool, -1}, _                              'tile_mode
-   {draw_tool, box_tool, paint_tool, -1}, _                                           'pass_mode
+   {draw_tool, box_tool, fill_tool, replace_tool, mark_tool, clone_tool, -1}, _       'tile_mode
+   {draw_tool, box_tool, paint_tool, mark_tool, clone_tool, -1}, _                    'pass_mode
    {-1}, _                                                                            'door_mode
    {-1}, _                                                                            'npc_mode
-   {draw_tool, box_tool, fill_tool, replace_tool, paint_tool, -1}, _                  'foe_mode
-   {draw_tool, box_tool, fill_tool, paint_tool, -1} _                                 'zone_mode
+   {draw_tool, box_tool, fill_tool, replace_tool, paint_tool, mark_tool, clone_tool, -1}, _ 'foe_mode
+   {draw_tool, box_tool, fill_tool, paint_tool, mark_tool, clone_tool, -1} _          'zone_mode
 }
 DIM mode_tools as integer vector
 v_new mode_tools
@@ -385,6 +393,7 @@ DIM pass as TileMap
 DIM emap as TileMap
 DIM zmap as ZoneMap
 
+st.secondary_undo_buffer = NULL
 v_new st.history
 st.history_step = 0
 st.new_stroke = YES
@@ -468,6 +477,16 @@ WITH toolinfo(paint_tool)
  .name = "Paint Tilemap"
  .icon = "P"
  .shortcut = scP
+END WITH
+WITH toolinfo(mark_tool)
+ .name = "Mark (Copy)"
+ .icon = "M"
+ .shortcut = scM
+END WITH
+WITH toolinfo(clone_tool)
+ .name = "Clone (Paste)"
+ .icon = "C"
+ .shortcut = scC
 END WITH
 
 '--load hero graphics--
@@ -615,6 +634,8 @@ unloadtilemap pass
 unloadtilemap emap
 deletezonemap zmap
 v_free st.history
+IF st.secondary_undo_buffer THEN debugc errPromptBug, "mapedit cleanup: secondary_undo_buffer exists!"
+v_free st.cloned
 unloadtilemap st.zoneviewmap
 unloadtilemap st.zoneoverlaymap
 v_free st.defaultwalls
@@ -777,6 +798,9 @@ DO
   gen(genStartX) = st.x
   gen(genStartY) = st.y
  END IF
+ IF keyval(scCtrl) = 0 AND keyval(scD) > 1 THEN st.defpass = st.defpass XOR YES
+
+
  SELECT CASE st.editmode
   '---TILEMODE------
   CASE tile_mode
@@ -803,7 +827,6 @@ DO
     setbit jiggle(), 0, st.layer, (readbit(jiggle(), 0, st.layer) XOR 1)
    END IF
    IF keyval(scTilde) > 1 AND keyval(scAlt) = 0 THEN show_minimap st, map()
-   IF keyval(scCtrl) = 0 AND keyval(scD) > 1 THEN st.defpass = st.defpass XOR YES
    FOR i as integer = 0 TO 1
     IF keyval(sc1 + i) > 1 THEN 'animate tile
      st.anim_newtile = -1
@@ -991,16 +1014,18 @@ DO
    IF keyval(scF1) > 1 THEN
     IF st.zonesubmode THEN show_help "mapedit_zonemap_view" ELSE show_help "mapedit_zonemap_edit"
    END IF
-   IF keyval(scM) > 1 THEN
-    st.zonesubmode = st.zonesubmode XOR 1
-    toolsbar_available = (st.zonesubmode = 0)
-    drawing_allowed = (st.zonesubmode = 0)
-    IF st.zonesubmode = 1 THEN st.tool = draw_tool
-    st.zones_needupdate = YES
-   END IF
-   IF keyval(scE) > 1 THEN
-    mapedit_edit_zoneinfo st, zmap
-    st.zones_needupdate = YES  'st.cur_zone might change, amongst other things
+   IF keyval(scCtrl) = 0 THEN
+    IF keyval(scM) > 1 THEN
+     st.zonesubmode = st.zonesubmode XOR 1
+     toolsbar_available = (st.zonesubmode = 0)
+     drawing_allowed = (st.zonesubmode = 0)
+     IF st.zonesubmode = 1 THEN st.tool = draw_tool
+     st.zones_needupdate = YES
+    END IF
+    IF keyval(scE) > 1 THEN
+     mapedit_edit_zoneinfo st, zmap
+     st.zones_needupdate = YES  'st.cur_zone might change, amongst other things
+    END IF
    END IF
    IF st.reset_tool THEN st.tool_value = YES
    IF st.tool = draw_tool ANDALSO (keyval(scSpace) AND 4) THEN 'drawing, new keypress: pick value intelligently
@@ -1163,6 +1188,36 @@ DO
      NEXT ty
     END IF
 
+   CASE mark_tool
+    IF keyval(scSpace) AND 4 THEN  'new keypress
+     IF st.tool_hold THEN
+      'We have two corners
+      st.tool_hold = NO
+      DIM select_rect as RectType
+      corners_to_rect_inclusive TYPE(st.x, st.y), st.tool_hold_pos, select_rect
+
+      v_free st.cloned
+      st.cloned = create_changelist(st, map(), pass, emap, zmap, visible(), gmap(), select_rect)
+      st.clone_offset.x = select_rect.wide \ 2
+      st.clone_offset.y = select_rect.high \ 2
+      st.clone_size.w = select_rect.wide
+      st.clone_size.h = select_rect.high
+      st.tool = clone_tool
+     ELSE
+      st.tool_hold = YES
+      st.tool_hold_pos = TYPE(st.x, st.y)
+     END IF
+    END IF
+
+   CASE clone_tool
+    IF st.cloned = NULL THEN
+     st.tool = mark_tool
+    ELSE
+     IF slowkey(scSpace, 110) THEN
+      apply_changelist st, map(), pass, emap, zmap, visible(), gmap(), st.cloned, TYPE(st.x - st.clone_offset.x, st.y - st.clone_offset.y)
+     END IF
+    END IF
+
   END SELECT
  END IF
 
@@ -1177,6 +1232,20 @@ DO
  END IF
  IF stroke THEN mapedit_show_undo_change st, stroke
  'END IF
+
+ '--Apply temporary previews to the map
+ '(Creating the secondary undo buffer causes edits to be undoable with undo_preview)
+ IF st.secondary_undo_buffer THEN debugc errPromptBug, "mapedit preview: secondary_undo_buffer already exists!"
+ IF st.tool = clone_tool AND st.cloned <> NULL THEN
+  v_new st.secondary_undo_buffer
+  apply_changelist st, map(), pass, emap, zmap, visible(), gmap(), st.cloned, TYPE(st.x - st.clone_offset.x, st.y - st.clone_offset.y)
+ END IF
+ IF st.editmode = tile_mode AND st.tool = draw_tool THEN
+  IF keyval(scSpace) = 0 THEN
+   v_new st.secondary_undo_buffer
+   st.brush(st, st.x, st.y, st.tool_value, , map(), pass, emap, zmap)
+  END IF
+ END IF
 
  'NOTE: There should be no use of brushes below this point!!
 
@@ -1379,21 +1448,25 @@ DO
  
  '--tools overlays
  SELECT CASE st.tool
-  CASE box_tool
+  CASE box_tool, mark_tool
    IF st.tool_hold THEN
     'Just draw a cheap rectangle on the screen, because I'm lazy. Drawing something different
     'for different brushes is non-trivial, and besides, how should layers work?
-    DIM as XYPair topleft, rectsize
-    topleft.x = small(st.tool_hold_pos.x, st.x)
-    topleft.y = small(st.tool_hold_pos.y, st.y)
-    rectsize.x = large(st.tool_hold_pos.x, st.x) - topleft.x + 1
-    rectsize.y = large(st.tool_hold_pos.y, st.y) - topleft.y + 1
-    drawbox topleft.x * 20 - st.mapx, topleft.y * 20 - st.mapy + 20, _
-            rectsize.x * 20, rectsize.y * 20, _
+    DIM as RectType select_rect
+    corners_to_rect_inclusive TYPE(st.x, st.y), st.tool_hold_pos, select_rect
+    drawbox select_rect.x * 20 - st.mapx, select_rect.y * 20 - st.mapy + 20, _
+            select_rect.wide * 20, select_rect.high * 20, _
             uilook(uiHighlight + tog), 4, dpage
    END IF
 
+  CASE clone_tool
+   DIM as RectType clone_box
+   clone_box = TYPE(st.x - st.clone_offset.x, st.y - st.clone_offset.y, st.clone_size.w, st.clone_size.h)
+   drawbox clone_box.x * 20 - st.mapx, clone_box.y * 20 - st.mapy + 20, _
+           clone_box.wide * 20, clone_box.high * 20, _
+           uilook(uiHighlight + tog), 1, dpage
  END SELECT
+
 
  '--draw menubar
  IF st.editmode = tile_mode THEN
@@ -1424,7 +1497,7 @@ DO
  END IF
  
  '--normal cursor--
- IF st.editmode <> npc_mode THEN
+ IF st.editmode <> npc_mode AND st.tool <> clone_tool THEN
   frame_draw st.cursor.sprite + tog, st.cursor.pal, (st.x * 20) - st.mapx, (st.y * 20) - st.mapy + 20, , , dpage
  END IF
  '--menubar cursor
@@ -1477,8 +1550,20 @@ DO
   layername = "Layer " & st.layer & " " & read_map_layer_name(gmap(), st.layer)
   layername = RIGHT(layername, 40)
   printstr layername, 0, 180, dpage
+ END IF
+
+ IF st.editmode = tile_mode OR st.tool = clone_tool THEN
+  'Also show the default walls option when using clone tool as it is affected by them
   textcolor uilook(uiText), 0
-  printstr iif_string(st.defpass, "", "No ") + hilite("D") + "efault Walls", 116, 192, dpage, YES
+  DIM defpass_msg as string
+  IF st.defpass = NO THEN defpass_msg = "No "
+  defpass_msg &= hilite("D") + "efault Walls"
+  IF st.editmode = zone_mode THEN
+   'Don't overdraw "Edit zone info"
+   printstr defpass_msg, vpages(vpage)->w - textwidth(defpass_msg), 180, dpage, YES
+  ELSE
+   printstr defpass_msg, 116, 192, dpage, YES
+  END IF
  END IF
 
  IF st.editmode = foe_mode THEN
@@ -1537,6 +1622,9 @@ DO
 
   END IF
  END IF
+
+ '--Undo preview edits
+ undo_preview st, map(), pass, emap, zmap
 
  '--Message
  IF st.message_ticks > 0 THEN
@@ -2821,6 +2909,7 @@ SUB mapedit_swap_layers(st as MapEditState, map() as TileMap, vis() as integer, 
   st.layer = l1
  END IF
  mapedit_throw_away_history st
+ v_free st.cloned
 END SUB
 
 SUB mapedit_insert_layer(st as MapEditState, map() as TileMap, vis() as integer, gmap() as integer, byval where as integer)
@@ -2839,6 +2928,7 @@ SUB mapedit_insert_layer(st as MapEditState, map() as TileMap, vis() as integer,
   mapedit_swap_layers st, map(), vis(), gmap(), i, i + 1
  NEXT
  fix_tilemaps map()
+ 'So if the new layer is added to the end, then undo history and the clone buffer are preserved
 END SUB
 
 SUB mapedit_delete_layer(st as MapEditState, map() as TileMap, vis() as integer, gmap() as integer, byval which as integer)
@@ -2853,6 +2943,7 @@ SUB mapedit_delete_layer(st as MapEditState, map() as TileMap, vis() as integer,
  REDIM PRESERVE map(UBOUND(map) - 1)
  fix_tilemaps map()
  mapedit_throw_away_history st
+ v_free st.cloned
 END SUB
 
 SUB mapedit_resize(st as MapEditState, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap, gmap() as integer, doors() as Door, link() as DoorLink, mapname as string)
@@ -3627,6 +3718,12 @@ FUNCTION hilite(what as string) as string
  RETURN "${K" & uilook(uiSelectedItem + tog) & "}" & what & "${K-1}"
 END FUNCTION
 
+
+'==========================================================================================
+'                                      Undo History
+'==========================================================================================
+
+
 SUB mapedit_throw_away_history(st as MapEditState)
  v_resize st.history, 0
  st.history_step = 0
@@ -3665,7 +3762,23 @@ SUB mapedit_show_undo_change(st as MapEditState, byval undostroke as MapEditUndo
  END IF
 END SUB
 
+'Note that changelist is byref
+SUB add_change_step(byref changelist as MapEditUndoTile vector, byval x as integer, byval y as integer, byval value as integer, byval mapid as integer)
+ WITH *v_expand(changelist)
+  .x = x
+  .y = y
+  .value = value
+  .mapid = mapid
+ END WITH
+END SUB
+
 SUB add_undo_step(st as MapEditState, byval x as integer, byval y as integer, byval oldvalue as integer, byval mapid as integer)
+ IF st.secondary_undo_buffer THEN
+  'Used while previewing a change (pasting a stamp). Note that we don't write metadata
+  add_change_step st.secondary_undo_buffer, x, y, oldvalue, mapid
+  EXIT SUB
+ END IF
+
  IF st.new_stroke THEN
   st.new_stroke = NO
 
@@ -3698,17 +3811,11 @@ SUB add_undo_step(st as MapEditState, byval x as integer, byval y as integer, by
   v_expand st.history
 
   'Write meta data
-  add_undo_step st, -1, -1, st.cur_zone, mapIDMetaEditmode + st.editmode
-  add_undo_step st, st.x, st.y, 0, mapIDMetaCursor
+  add_change_step st.history[st.history_step - 1], -1, -1, st.cur_zone, mapIDMetaEditmode + st.editmode
+  add_change_step st.history[st.history_step - 1], st.x, st.y, 0, mapIDMetaCursor
  END IF
- 
- 'NOTE: tricky usage of v_expand should trigger alarm bells, but an indexed array is still an lvalue, so this is ok
- WITH *v_expand(st.history[st.history_step - 1])
-  .x = x
-  .y = y
-  .value = oldvalue
-  .mapid = mapid
- END WITH
+
+ add_change_step st.history[st.history_step - 1], x, y, oldvalue, mapid
 
  st.history_size += 1
 END SUB
@@ -3728,7 +3835,6 @@ END FUNCTION
 'A stroke is a group of brush applications/steps
 'Returns the stroke which was undone
 FUNCTION undo_stroke(st as MapEditState, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap, byval redo as bool = NO) as MapEditUndoTile vector
-
  st.message_ticks = 20
  IF redo = NO THEN
   IF st.history_step = 0 THEN
@@ -3740,19 +3846,38 @@ FUNCTION undo_stroke(st as MapEditState, map() as TileMap, pass as TileMap, emap
 
  'debug "undo_stroke(" & redo & ")  history_step=" & st.history_step & " out of " & v_len(st.history)
 
- DIM overwrite_value as integer
-
- 'When undo, start from the end, when redoing, start from the beginning
  DIM undostroke as MapEditUndoTile vector = st.history[st.history_step]
  IF v_len(undostroke) = 0 THEN showerror "Strange... empty undo step. Probably harmless"
- DIM undotile as MapEditUndoTile ptr
- IF redo THEN
-  undotile = @undostroke[0]
- ELSE
-  undotile = @undostroke[v_len(undostroke) - 1]
+ undo_stroke_internal st, map(), pass, emap, zmap, undostroke, redo
+
+ IF redo THEN st.history_step += 1
+ st.message = CHR(27) + " " & st.history_step & " Undo steps | " & (v_len(st.history) - st.history_step) & " Redo steps " + CHR(26)
+
+ RETURN undostroke
+END FUNCTION
+
+'Undoes the changes in st.secondary_undo_buffer
+SUB undo_preview(st as MapEditState, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
+ IF st.secondary_undo_buffer THEN
+  undo_stroke_internal st, map(), pass, emap, zmap, st.secondary_undo_buffer, NO
+  v_free st.secondary_undo_buffer
  END IF
- FOR i as integer = 0 TO v_len(undostroke) - 1
+END SUB
+
+'Either redo or undo an undo history changelist
+SUB undo_stroke_internal(st as MapEditState, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap, byref changelist as MapEditUndoTile vector, byval redo as bool = NO)
+ DIM undotile as MapEditUndoTile ptr
+ 'When undoing, start from the end, when redoing, start from the beginning.
+ 'Order is only important so that the number of zones per tile does not go over 15 at any point;
+ 'this stuff isn't affected by default passability.
+ IF redo THEN
+  undotile = @changelist[0]
+ ELSE
+  undotile = @changelist[v_len(changelist) - 1]
+ END IF
+ FOR i as integer = 0 TO v_len(changelist) - 1
   WITH *undotile
+   DIM overwrite_value as integer
    IF .mapid >= mapIDLayer THEN
     overwrite_value = readblock(map(.mapid - mapIDLayer), .x, .y)
     writeblock map(.mapid - mapIDLayer), .x, .y, .value
@@ -3786,12 +3911,91 @@ FUNCTION undo_stroke(st as MapEditState, map() as TileMap, pass as TileMap, emap
   END WITH
   IF redo THEN undotile += 1 ELSE undotile -= 1
  NEXT
+END SUB
 
- IF redo THEN st.history_step += 1
- st.message = CHR(27) + " " & st.history_step & " Undo steps | " & (v_len(st.history) - st.history_step) & " Redo steps " + CHR(26)
 
- RETURN undostroke
+'==========================================================================================
+'                                     Mark + clone tool
+'==========================================================================================
+
+
+FUNCTION create_changelist(st as MapEditState, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap, visible() as integer, gmap() as integer, rect as RectType) as MapEditUndoTile vector
+ DIM changelist as MapEditUndoTile vector
+ v_new changelist
+ DIM zones() as integer
+
+ FOR xoff as integer = 0 TO rect.wide - 1
+  DIM x as integer = xoff + rect.x
+  IF NOT in_bound(x, 0, st.wide - 1) THEN CONTINUE FOR
+  FOR yoff as integer = 0 TO rect.high - 1
+   DIM y as integer = yoff + rect.y
+   IF NOT in_bound(y, 0, st.high - 1) THEN CONTINUE FOR
+
+   FOR layer as integer = 0 TO UBOUND(map)
+    IF LayerIsEnabled(gmap(), layer) AND LayerIsVisible(visible(), layer) THEN
+     IF readblock(map(layer), x, y) THEN
+      add_change_step changelist, xoff, yoff, readblock(map(layer), x, y), mapIDLayer + layer
+     END IF
+    END IF
+   NEXT
+   IF readblock(pass, x, y) THEN
+    add_change_step changelist, xoff, yoff, readblock(pass, x, y), mapIDPass
+   END IF
+   IF readblock(emap, x, y) THEN
+    add_change_step changelist, xoff, yoff, readblock(emap, x, y), mapIDFoe
+   END IF
+
+   GetZonesAtTile zmap, zones(), x, y
+   FOR ctr as integer = 0 TO UBOUND(zones)
+    add_change_step changelist, xoff, yoff, 1, mapIDZone + zones(ctr)
+   NEXT
+  NEXT
+ NEXT
+
+ RETURN changelist
 END FUNCTION
+
+SUB apply_changelist(st as MapEditState, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap, visible() as integer, gmap() as integer, byref changelist as MapEditUndoTile vector, offset as XYPair)
+ 'IF v_len(changelist) = 0 THEN showerror "Strange... empty undo step. Probably harmless"
+
+ 'debug "apply_changelist len " & v_len(changelist)
+
+ FOR i as integer = 0 TO v_len(changelist) - 1
+  WITH changelist[i]
+   DIM as integer x = .x + offset.x, y = .y + offset.y
+   IF NOT in_bound(x, 0, st.wide - 1) THEN CONTINUE FOR
+   IF NOT in_bound(y, 0, st.high - 1) THEN CONTINUE FOR
+
+   IF .mapid >= mapIDLayer THEN
+    DIM layer as integer = .mapid - mapIDLayer
+    IF LayerIsEnabled(gmap(), layer) AND LayerIsVisible(visible(), layer) THEN
+     tilebrush st, x, y, .value, layer, map(), pass, emap, zmap
+    END IF
+   ELSEIF .mapid = mapIDPass THEN
+    IF st.defpass = NO THEN
+     'Merge walls with existing ones
+     DIM wallmask as integer = readblock(pass, x, y) OR .value
+     wallbrush st, x, y, wallmask, , map(), pass, emap, zmap
+    END IF
+   ELSEIF .mapid = mapIDFoe THEN
+    foebrush st, x, y, .value, , map(), pass, emap, zmap
+   ELSEIF .mapid >= mapIDZone THEN
+    'Effectively merges zones with existing ones
+    zonebrush st, x, y, .value, (.mapid - mapIDZone), map(), pass, emap, zmap
+   ELSEIF .mapid >= mapIDMetaBEGIN THEN
+    'Ignore meta data
+   ELSE
+    showerror "Mark+clone stamp is corrupt: unknown map id " & .mapid
+   END IF
+
+   'debug "   pos=" & x & "," & y & " mapid=" & .mapid & "  value=" & .value
+  END WITH
+ NEXT
+END SUB
+
+
+'==========================================================================================
+
 
 'Can a tile be seen?
 FUNCTION mapedit_on_screen(st as MapEditState, byval x as integer, byval y as integer) as integer

@@ -241,6 +241,14 @@ TYPE MapEditState
   history as MapEditUndoTile vector vector   'Vector of groups of tile edits
   history_size as integer    'Size of history, in number of MapEditUndoTiles (each is 8 bytes)
   history_step as integer    'In history, [0, history_step) are undos, and the rest are redos
+  secondary_undo_buffer as MapEditUndoTile vector
+                             'Usually NULL. If not, undo steps are added to this vector instead
+                             'of the history. Used for previewing undoable changes.
+
+  'Mark+clone
+  cloned as MapEditUndoTile vector  'Cloned brush. NULL if none. Offsets are 0,0 at topleft of brush
+  clone_offset as XYPair     'Handle point on the clone brush
+  clone_size as XYPair       'Size of the cloned brush in tiles
 
   'Zone stuff (zone_mode)
   zonesubmode as integer

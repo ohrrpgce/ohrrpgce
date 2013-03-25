@@ -48,11 +48,39 @@ CTRL+P - Paint on Layer # tool:
   cursor, and sets the formation set
   for all those tiles; like a flood
   fill of a map layer except that the
-  map layer isn't modified. You can use
-  PageDown and PageUp to change the
-  selected layer. For example, you can
-  use this to 'paint' a forest path
-  with an encounter formation.
+  map layer isn't modified. You can
+  use PageDown and PageUp to change
+  the selected layer. For example,
+  you can use this to 'paint' a
+  forest path with an encounter
+  formation.
+
+CTRL+M - Mark tool:
+  Use to select a rectangular of the
+  map to copy. Press SPACE once to
+  place one corner of the rectangle,
+  and SPACE a second time at the
+  opposite corner. The tool will then
+  be changed to the Clone tool. Mark
+  copies the visible tilemap layers,
+  wallmap, foemap, and zones in the
+  rectangle.
+
+CTRL+C - Clone tool:
+  Press SPACE to paste a selection
+  copied with the Mark tool.  You can
+  switch to different editing modes
+  to preview the changes to walls,
+  foemap, and zones.  If default
+  passability is on (press D to
+  toggle), the wallmap will updated
+  using default walls instead of the
+  copied walls.  Only visible map
+  layers are modified (press ALT+~ to
+  toggle visibility of the current
+  map layer), so a map layer has to
+  be visible both when Marking and
+  when Cloning.
 
 Also,
 
