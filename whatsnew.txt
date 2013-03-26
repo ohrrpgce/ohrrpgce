@@ -50,6 +50,8 @@ WHAT IS NEW?
         visible map layers, walls, foemap and zones.
       * Changes to key bindings so that you no longer need to press
         Ctrl to switch the tool. A and B vehicle bits are now Ctrl+A/B.
+      * In wallmap mode you can now use the Box and Paint tools to
+        set any wall directions/bits
       [Ralph]
 
   * Bugfixes

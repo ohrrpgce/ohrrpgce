@@ -15,34 +15,36 @@ Use ALT+arrow keys to move the view of the map.
 
 While you are in passability mode, you will see thick flashing lines that indicate where walls are located.
 
-At the top right corner the current drawing tool is shown. Press SPACE to draw on the wallmap. The tools are:
+At the top right corner the current drawing tool is shown. The tools are:
 
 D - Draw tool:
-  Press SPACE to make the tile under 
-  the cursor fully impassable in all 
-  four directions. Press SPACE again 
-  to remove the walls and make the 
-  tile passable.
+  Press one of the keys to modify
+  walls that are described below (see
+  "Drawing Keys"), or press and hold
+  down SPACE while moving the cursor
+  to draw walls in a line.
 
 B - Box tool:
-  Press SPACE once to place one 
-  corner of the box, and SPACE a 
-  second time at the opposite corner 
-  to make a rectangle of walls 
-  passable or completely impassable.
+  Press SPACE once to place one
+  corner of a rectangle, move the
+  cursor to the opposite corner, and
+  then press one of the Drawing Keys
+  to modify the walls for all tiles
+  in the box.
 
 P - Paint on Layer # tool:
   Finds the continuous area on the
   current tilemap layer under the
-  cursor, and adds/removes walls to
-  all those tiles; like a flood fill
-  of a map layer except that the map
-  layer isn't modified. You can use
-  PageDown and PageUp to change the
-  selected layer. For example, you
-  can use this to make a pond
-  impassable (but default wallmaps
-  are generally much easier!)
+  cursor, and changes the walls for
+  all those tiles according to the
+  Drawing Key pressed; like a flood
+  fill of a map layer except that the
+  map layer isn't modified. You can
+  use PageDown and PageUp to change
+  the selected layer. For example,
+  you can use this to cover a puddle
+  of acid with harmtiles by pressing
+  H.
 
 M - Mark tool:
   Use to select a rectangular of the
@@ -71,7 +73,9 @@ C - Clone tool:
   be visible both when Marking and
   when Cloning.
 
-If the current tool isn't the Draw tool, press + or - to toggle whether you are adding or removing walls.
+Drawing Keys:
+
+Press SPACE to make the tile under the cursor fully impassable in all four directions. Press SPACE again to remove the walls and make the tile passable.
 
 CTRL+Up makes the selected tile impassable on the top.
 
@@ -79,8 +83,7 @@ CTRL+Down makes the selected tile impassable on the bottom.
 
 CTRL+Left makes the selected tile impassable on the left side.
 
-CTRL+Right makes the selected tile
-impassable on the right side.
+CTRL+Right makes the selected tile impassable on the right side.
 
 H marks the tile as a harm tile that can damage heroes when the player steps on it.
 
@@ -88,13 +91,18 @@ CTRL+A marks the tile as special for Airships (or other vehicle or scripting pur
 
 CTRL+B marks the tile as special for Boats (or other vehicle or scripting purposes).
 
-O marks the tile as overhead. This is obsolete. You should create a layer above heroes and NPCs instead if you want make tiles overhead.
+O marks the tile as overhead. This is obsolete. You should create a tilemap layer and place it above heroes and NPCs (in the Layers and Tilesets menu) instead if you want make tiles overhead.
+
+
+Other Controls:
 
 CTRL+Z undoes a change to the tilemap, wallmap, foemap or zonemap. Changes to NPCs and doors are not undoable. The undo history buffer is near-infinite, but certain things cause it to be cleared: resizing the map, deleting or swapping map layers, erasing map data, and leaving the map editor.
 
 CTRL+Y redoes an undone change.
 
 CTRL+S immediately saves, useful when live-previewing a game.
+
+CTRL+W paints the tiles visible in the window/screen using the last Drawing Key used.
 
 TAB toggles a blue rectangle that shows roughly what area of the map you are currently looking at.
 

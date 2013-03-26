@@ -283,7 +283,7 @@ CONST passWestWall = 8
 CONST passVehA = 16
 CONST passVehB = 32
 CONST passHarm = 64
-CONST passObsoleteOverhead = 128
+CONST passOverhead = 128
 
 '--- Constants for carray() 
 CONST ccUp = 0

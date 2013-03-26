@@ -282,6 +282,16 @@ SUB wallbrush (st as MapEditState, byval x as integer, byval y as integer, byval
  writeblock pass, x, y, tile
 END SUB
 
+'Like wallbrush, but only sets the bits specified in st.wallmap_mask
+'Note dummy arguments: all brush functions should have the same signature
+SUB wallbitbrush (st as MapEditState, byval x as integer, byval y as integer, byval walls as integer = -1, byval extraarg as integer = -1, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
+ IF walls = -1 THEN walls = st.tool_value
+ DIM oldwalls as integer = readblock(pass, x, y)
+ add_undo_step st, x, y, oldwalls, mapIDPass
+ walls = (oldwalls AND NOT st.wallmap_mask) OR walls
+ writeblock pass, x, y, walls
+END SUB
+
 'Note dummy arguments: all brush functions should have the same signature
 SUB foebrush (st as MapEditState, byval x as integer, byval y as integer, byval foe as integer = -1, byval extraarg as integer = -1, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
  IF foe = -1 THEN foe = st.tool_value
@@ -293,7 +303,7 @@ END SUB
 SUB zonebrush (st as MapEditState, byval x as integer, byval y as integer, byval value as integer = -1, byval zone as integer = -1, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
  IF value = -1 THEN value = st.tool_value
  IF zone = -1 THEN zone = st.cur_zone
- DIM new_stroke as bool = st.new_stroke
+ DIM new_stroke as bool = st.new_stroke  'Modified by add_undo_step
  add_undo_step st, x, y, CheckZoneAtTile(zmap, zone, x, y), mapIDZone + zone
  IF value = 0 THEN
   UnsetZoneTile zmap, zone, x, y
@@ -680,6 +690,10 @@ DO
   NEXT
  END IF
 
+ ' This can be modified to override/augment the normal key for activating the current tool
+ ' if it is a 'drawing' tool (Currently used just for wallmap bit keys)
+ DIM use_draw_tool as bool = (keyval(scSpace) AND 4) > 0
+
  IF st.new_stroke = NO AND keyval(scSpace) = 0 THEN
   'Yes, a bit of a hack, not sure what a more rigourous test would be
   st.new_stroke = YES
@@ -706,7 +720,7 @@ DO
     st.brush = @tilebrush
     st.reader = @tilereader
    CASE pass_mode
-    st.brush = @wallbrush
+    st.brush = @wallbitbrush
    CASE door_mode
    CASE npc_mode
     npczone_needupdate = YES
@@ -801,7 +815,6 @@ DO
  END IF
  IF keyval(scCtrl) > 0 AND keyval(scD) > 1 THEN st.defpass = st.defpass XOR YES
 
-
  SELECT CASE st.editmode
   '---TILEMODE------
   CASE tile_mode
@@ -889,29 +902,47 @@ DO
    '---PASSMODE-------
   CASE pass_mode
    IF keyval(scF1) > 1 THEN show_help "mapedit_wallmap"
-   st.pass_overtile = readblock(pass, st.x, st.y)
+
+   'st.tool_value is passmap mode is a little bit different; it's
+   'determined on the fly by which key (space, H, etc) you press and
+   'what's under the cursor. The only tool which doesn't have
+   'st.tool_value determined on the fly is Ctrl+W, as well as holding
+   'space down and drawing a line. That just remembers whatever the
+   'last tool_value was, which is OK. +/- for changing this remembered
+   'value is still supported though undocumented.
    IF st.reset_tool THEN st.tool_value = 15  'default
-   IF st.tool <> draw_tool ANDALSO (keyval(scPlus) > 1 OR keyval(scMinus) > 1) THEN
+   IF keyval(scPlus) > 1 OR keyval(scMinus) > 1 THEN
     st.tool_value = IIF(st.tool_value, 0, 15)
    END IF
-   IF st.tool = draw_tool AND keyval(scSpace) AND 4 THEN  'drawing, new keypress: pick value intelligently
-    IF (st.pass_overtile AND 15) = 0 THEN st.tool_value = 15
-    IF (st.pass_overtile AND 15) = 15 THEN st.tool_value = 0
-    IF (st.pass_overtile AND 15) > 0 AND (st.pass_overtile AND 15) < 15 THEN st.tool_value = 0
+
+   DIM pass_overtile as integer = readblock(pass, st.x, st.y)
+   IF keyval(scSpace) AND 4 THEN
+    st.wallmap_mask = 255  'Remove all other bits
+    IF (pass_overtile AND 15) = 0 THEN st.tool_value = 15
+    IF (pass_overtile AND 15) = 15 THEN st.tool_value = 0
+    IF (pass_overtile AND 15) > 0 AND (pass_overtile AND 15) < 15 THEN st.tool_value = 0
    END IF
-   DIM drawwall as integer = -1
+
+   DIM wallbit as integer = 0
    IF keyval(scCtrl) > 0 THEN
-    IF keyval(scUp) > 1 THEN drawwall = (st.pass_overtile XOR 1)
-    IF keyval(scRight) > 1 THEN drawwall = (st.pass_overtile XOR 2)
-    IF keyval(scDown) > 1 THEN drawwall = (st.pass_overtile XOR 4)
-    IF keyval(scLeft) > 1 THEN drawwall = (st.pass_overtile XOR 8)
-    IF keyval(scA) > 1 THEN drawwall = (st.pass_overtile XOR 16) 'vehicle A
-    IF keyval(scB) > 1 THEN drawwall = (st.pass_overtile XOR 32) 'vehicle B
+    IF keyval(scUp) > 1    THEN wallbit = passNorthWall
+    IF keyval(scRight) > 1 THEN wallbit = passEastWall
+    IF keyval(scDown) > 1  THEN wallbit = passSouthWall
+    IF keyval(scLeft) > 1  THEN wallbit = passWestWall
+    IF keyval(scA) > 1 THEN wallbit = passVehA
+    IF keyval(scB) > 1 THEN wallbit = passVehB
    ELSE
-    IF keyval(scH) > 1 THEN drawwall = (st.pass_overtile XOR 64) 'harm tile
-    IF keyval(scO) > 1 THEN drawwall = (st.pass_overtile XOR 128)'overhead
+    IF keyval(scH) > 1 THEN wallbit = passHarm
+    IF keyval(scO) > 1 THEN wallbit = passOverhead
    END IF
-   IF drawwall <> -1 THEN wallbrush st, st.x, st.y, drawwall, , map(), pass, emap, zmap
+   IF wallbit THEN
+    ' Examine the tile under the cursor, toggle the bit on that tile, and perform the
+    ' same action on all other selected tiles
+    st.wallmap_mask = wallbit
+    st.tool_value = (pass_overtile AND wallbit) XOR wallbit
+    use_draw_tool = YES
+   END IF
+
    '---DOORMODE-----
   CASE door_mode
    IF keyval(scF1) > 1 THEN show_help "mapedit_door_placement"
@@ -953,6 +984,7 @@ DO
      setbit doors(doorid).bits(), 0, 0, 0
     END IF
    END IF
+
    '---NPCMODE------
   CASE npc_mode
    IF keyval(scF1) > 1 THEN show_help "mapedit_npc_placement"
@@ -1004,12 +1036,14 @@ DO
     END IF
    END IF
    intgrabber(st.cur_npc, 0, st.num_npc_defs - 1, scLeftCaret, scRightCaret)
+
    '---FOEMODE--------
   CASE foe_mode
    IF keyval(scF1) > 1 THEN show_help "mapedit_foemap"
    intgrabber(st.cur_foe, 0, 255, scLeftCaret, scRightCaret)
    IF keyval(scG) > 1 THEN st.cur_foe = readblock(emap, st.x, st.y)
    st.tool_value = st.cur_foe
+
    '---ZONEMODE--------
   CASE zone_mode
    IF keyval(scF1) > 1 THEN
@@ -1036,6 +1070,7 @@ DO
     st.tool_value XOR= YES
    END IF
    IF st.zonesubmode = zone_edit_mode THEN
+
     '--Tiling/editing mode
     st.zones_needupdate OR= intgrabber(st.cur_zone, 1, 9999, scLeftCaret, scRightCaret)
     IF st.tool <> paint_tool THEN
@@ -1049,6 +1084,7 @@ DO
      'mapedit_zonespam st, map(), pass, emap, zmap
      'st.zones_needupdate = YES
     END IF
+
    ELSE
     '--Multizone view
     usemenu zonemenustate, cast(BasicMenuItem vector, zonemenu), scLeftCaret, scRightCaret
@@ -1132,6 +1168,7 @@ DO
   'These two are basically tools
 
   IF keyval(scDelete) > 0 THEN
+   st.wallmap_mask = 255   'Special case needed for wallmap mode
    st.brush(st, st.x, st.y, 0, , map(), pass, emap, zmap)
   END IF
 
@@ -1145,15 +1182,15 @@ DO
 
   SELECT CASE st.tool
    CASE draw_tool
-    IF keyval(scSpace) > 0 THEN
-     IF st.new_stroke OR st.moved THEN  'st.last_pos.x <> st.x OR st.last_pos.y <> st.y THEN
-      st.brush(st, st.x, st.y, st.tool_value, , map(), pass, emap, zmap)
-     END IF
+    'IF keyval(scSpace) > 0 AND (st.new_stroke OR st.moved) THEN
+    IF use_draw_tool OR (keyval(scSpace) > 0 AND st.moved) THEN
+     '(No need to reapply brush until the cursor moves)
+     st.brush(st, st.x, st.y, st.tool_value, , map(), pass, emap, zmap)
     END IF
 
    CASE box_tool
-    IF keyval(scSpace) AND 4 THEN  'new keypress
-     IF st.tool_hold THEN
+    IF st.tool_hold THEN
+     IF use_draw_tool THEN
       'We have two corners
       st.tool_hold = NO
       FOR tx as integer = small(st.tool_hold_pos.x, st.x) TO large(st.tool_hold_pos.x, st.x)
@@ -1161,24 +1198,26 @@ DO
         st.brush(st, tx, ty, st.tool_value, , map(), pass, emap, zmap)
        NEXT
       NEXT
-     ELSE
+     END IF
+    ELSE
+     IF keyval(scSpace) AND 4 THEN  'new keypress
       st.tool_hold = YES
       st.tool_hold_pos = TYPE(st.x, st.y)
      END IF
     END IF
 
    CASE fill_tool
-    IF keyval(scSpace) AND 4 THEN  'new keypress
+    IF use_draw_tool THEN
      fill_map_area st, st.x, st.y, map(), pass, emap, zmap, st.reader
     END IF
 
    CASE paint_tool
-    IF keyval(scSpace) AND 4 THEN  'new keypress
+    IF use_draw_tool THEN
      fill_with_other_area st, st.x, st.y, map(), pass, emap, zmap, @tilereader
     END IF
 
    CASE replace_tool
-    IF keyval(scSpace) AND 4 THEN
+    IF use_draw_tool THEN
      st.replace_old = st.reader(st, st.x, st.y, , map(), pass, emap, zmap)
      FOR ty as integer = 0 to st.high - 1
       FOR tx as integer = 0 to st.wide - 1
@@ -1214,7 +1253,7 @@ DO
     IF st.cloned = NULL THEN
      st.tool = mark_tool
     ELSE
-     IF slowkey(scSpace, 110) THEN
+     IF use_draw_tool OR (keyval(scSpace) > 0 AND st.moved) THEN
       apply_changelist st, map(), pass, emap, zmap, visible(), gmap(), st.cloned, TYPE(st.x - st.clone_offset.x, st.y - st.clone_offset.y)
      END IF
     END IF
@@ -1244,7 +1283,7 @@ DO
  IF st.editmode = tile_mode AND st.tool = draw_tool THEN
   IF keyval(scSpace) = 0 THEN
    v_new st.secondary_undo_buffer
-   st.brush(st, st.x, st.y, st.tool_value, , map(), pass, emap, zmap)
+   tilebrush(st, st.x, st.y, st.tool_value, , map(), pass, emap, zmap)
   END IF
  END IF
 
@@ -1323,8 +1362,8 @@ DO
   textcolor uilook(uiSelectedItem + tog), 0
   FOR o as integer = 0 TO 8
    FOR i as integer = 0 TO 15
-    st.pass_overtile = readblock(pass, (st.mapx \ 20) + i, (st.mapy \ 20) + o)
-    IF (st.pass_overtile AND 128) THEN printstr "O", i * 20 + 10, o * 20 + 30, dpage
+    DIM pass_overtile as integer = readblock(pass, (st.mapx \ 20) + i, (st.mapy \ 20) + o)
+    IF (pass_overtile AND passOverhead) THEN printstr "O", i * 20 + 10, o * 20 + 30, dpage
    NEXT i
   NEXT o
  END IF
@@ -1333,16 +1372,16 @@ DO
  IF st.editmode = pass_mode THEN
   FOR o as integer = 0 TO 8
    FOR i as integer = 0 TO 15
-    st.pass_overtile = readblock(pass, (st.mapx \ 20) + i, (st.mapy \ 20) + o)
-    IF (st.pass_overtile AND 1) THEN rectangle i * 20, o * 20 + 20, 20, 3, uilook(uiMenuItem + tog), dpage
-    IF (st.pass_overtile AND 2) THEN rectangle i * 20 + 17, o * 20 + 20, 3, 20, uilook(uiMenuItem + tog), dpage
-    IF (st.pass_overtile AND 4) THEN rectangle i * 20, o * 20 + 37, 20, 3, uilook(uiMenuItem + tog), dpage
-    IF (st.pass_overtile AND 8) THEN rectangle i * 20, o * 20 + 20, 3, 20, uilook(uiMenuItem + tog), dpage
+    DIM pass_overtile as integer = readblock(pass, (st.mapx \ 20) + i, (st.mapy \ 20) + o)
+    IF (pass_overtile AND passNorthWall) THEN rectangle i * 20     , o * 20 + 20, 20, 3, uilook(uiMenuItem + tog), dpage
+    IF (pass_overtile AND passEastWall)  THEN rectangle i * 20 + 17, o * 20 + 20, 3, 20, uilook(uiMenuItem + tog), dpage
+    IF (pass_overtile AND passSouthWall) THEN rectangle i * 20     , o * 20 + 37, 20, 3, uilook(uiMenuItem + tog), dpage
+    IF (pass_overtile AND passWestWall)  THEN rectangle i * 20     , o * 20 + 20, 3, 20, uilook(uiMenuItem + tog), dpage
     textcolor uilook(uiSelectedItem + tog), 0
-    IF (st.pass_overtile AND 16) THEN printstr "A", i * 20, o * 20 + 20, dpage
-    IF (st.pass_overtile AND 32) THEN printstr "B", i * 20 + 10, o * 20 + 20, dpage
-    IF (st.pass_overtile AND 64) THEN printstr "H", i * 20, o * 20 + 30, dpage
-    IF (st.pass_overtile AND 128) THEN printstr "O", i * 20 + 10, o * 20 + 30, dpage
+    IF (pass_overtile AND passVehA) THEN printstr "A", i * 20, o * 20 + 20, dpage
+    IF (pass_overtile AND passVehB) THEN printstr "B", i * 20 + 10, o * 20 + 20, dpage
+    IF (pass_overtile AND passHarm) THEN printstr "H", i * 20, o * 20 + 30, dpage
+    IF (pass_overtile AND passOverhead) THEN printstr "O", i * 20 + 10, o * 20 + 30, dpage
    NEXT i
   NEXT o
  END IF
@@ -1480,14 +1519,6 @@ DO
  END IF
  rectangle 0, 19, 320, 1, uilook(uiText), dpage
 
- '--pass mode menu bar
- IF st.editmode = pass_mode THEN
-  IF st.tool <> draw_tool THEN
-   textcolor uilook(uiText), 0
-   printstr hilite("+") + "/" + hilite("-") + iif_string(st.tool_value, ": Adding walls", ": Removing walls"), 10, 6, dpage, YES
-  END IF
- END IF
-
  '--position finder--
  IF st.tiny THEN
   fuzzyrect 0, 35, st.wide, st.high, uilook(uiHighlight), dpage
@@ -1546,7 +1577,12 @@ DO
  END IF
 
  IF st.editmode = tile_mode THEN
-  textcolor uilook(uiSelectedItem + tog), 0 
+  IF st.tool = mark_tool OR st.tool = clone_tool THEN
+   'Hint that the current layer doesn't matter
+   textcolor uilook(uiMenuItem), 0
+  ELSE
+   textcolor uilook(uiSelectedItem + tog), 0
+  END IF
   DIM layername as string
   layername = "Layer " & st.layer & " " & read_map_layer_name(gmap(), st.layer)
   layername = RIGHT(layername, 40)

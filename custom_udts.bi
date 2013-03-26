@@ -222,13 +222,13 @@ TYPE MapEditState
   tiny as bool               'whether or not to show the tiny screen relative to map area
   anim_newtile as integer   'used when setting animated tiles
   anim_old as integer       'used when setting animated tiles
-  pass_overtile as integer  'used when setting pasability
   npc_d as integer          'used when placing npcs
   oldpos as XYPair           'used when detecting cursor movement
   oldrel as XYPair           'used when detecting cursor movement
   rate as XYPair             'used for fast cursor movement when holding shift
   replace_old as integer    'used for replacing tiles
   jig as XYPair              'used for display jiggling
+  wallmap_mask as integer    'used by wallbitsbrush
 
   message as string          'Message shown at the top of the screen
   message_ticks as integer   'Remaining ticks to display message

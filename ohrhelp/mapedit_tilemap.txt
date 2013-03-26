@@ -69,8 +69,6 @@ C - Clone tool:
 
 Also,
 
-CTRL+W paints the tiles visible in the window/screen with the current tile.
-
 CTRL+Z undoes a change to the tilemap, wallmap, foemap or zonemap. Changes to NPCs and doors are not undoable. The undo history buffer is near-infinite, but certain things cause it to be cleared: resizing the map, deleting or swapping map layers, erasing map data, and leaving the map editor.
 
 CTRL+Y redoes an undone change.
@@ -102,5 +100,7 @@ CTRL+F# toggles visibility of a layer: F1 is layer 0, and so on.
 CTRL+BACKSPACE deletes everything placed at a tile: tiles in all layers, walls, doors, and NPCs. But not zones.
 
 CTRL+S immediately saves, useful when live-previewing a game.
+
+CTRL+W paints the tiles visible in the window/screen with the current tile.
 
 Any tiles that have the obsolete overhead bit set will be marked with O's if you are using multiple layers. This is normally a mistake: Use layers instead of `overhead' tiles!

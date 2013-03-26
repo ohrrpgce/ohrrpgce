@@ -1647,7 +1647,7 @@ private function calcblock (tmap as TileMap, byval x as integer, byval y as inte
 			block = -1
 		elseif x >= pmapptr->wide or y >= pmapptr->high then
 			if overheadmode = 2 then block = -1
-		elseif ((readblock(*pmapptr, x, y) and passObsoleteOverhead) <> 0) xor (overheadmode = 2) then
+		elseif ((readblock(*pmapptr, x, y) and passOverhead) <> 0) xor (overheadmode = 2) then
 			block = -1
 		end if
 	end if
