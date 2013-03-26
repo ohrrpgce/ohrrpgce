@@ -1,3 +1,3 @@
-This screen allows you to erase all the passability data for the map and re-load it from the default passability for your chosen tilesets.
+This screen allows you to erase the map's wallmap and recreate it from default passability settings (edited in the Tilemap editor).
 
-Use this with caution, because it cannot be undone. Save a backup copy of your RPG file if you are not certain.
+You can undo this change by pressing CTRL+Z in the wallmap editor. (But be warned, leaving the map editor throws away the undo history!)

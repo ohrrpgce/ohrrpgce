@@ -1,6 +1,6 @@
-The map editor is in Zone mapping mode, single zone editing submode.
+The map editor is in Zone Mapping mode, single zone editing submode.
 
-You can place each tile in multiple zones (up to 15) and you can create 9999 zones per map; in this submode you sets the tiles in a single zone at a time.
+A zone simply marks out part of the map; think of it like a map layer with two states per tile: included in the zone, or not. This submode is for editing a single zone at a time. You can place each tile in multiple zones (up to 15) and you can create 9999 zones per map. Zones may be used for restricting NPC movement, and for scripted effects. 
 
 F2 switch to picture mode
 F3 switch to passability mode
@@ -9,7 +9,7 @@ F5 switch to NPC placement mode
 F6 switch to foemap mode
 F7 switch to zonemap mode
 
-M switch to zone editor submode.
+Z to switch to zone viewing submode.
 
 Use the arrow keys to move around the map.
 
@@ -23,25 +23,25 @@ If the current tool isn't the Draw tool, press + or - to toggle whether you are 
 
 At the top right corner the current drawing tool is shown. Press SPACE to draw the zone. The tools are:
 
-CTRL+D - Draw tool:
+D - Draw tool:
   Press SPACE to add or remove the 
   selected tile to the current zone. 
   You can hold down space and move 
   the cursor.
 
-CTRL+B - Box tool:
+B - Box tool:
   Press SPACE once to place one 
   corner of the box, and SPACE a 
   second time at the opposite corner 
   to add or remove a rectangle of 
   tiles to the zone.
 
-CTRL+F - Fill (Paint bucket) tool:
+F - Fill (Paint bucket) tool:
   Flood fills the continuous region
   under the cursor of tiles either in
   the zone or not.
 
-CTRL+P - Paint on Layer # tool:
+P - Paint on Layer # tool:
   Finds the continuous area on the
   current tilemap layer under the
   cursor, and adds/removes all those
@@ -53,7 +53,7 @@ CTRL+P - Paint on Layer # tool:
   you could use this to 'paint' a
   road with a zone.
 
-CTRL+M - Mark tool:
+M - Mark tool:
   Use to select a rectangular of the
   map to copy. Press SPACE once to
   place one corner of the rectangle,
@@ -64,13 +64,13 @@ CTRL+M - Mark tool:
   wallmap, foemap, and zones in the
   rectangle.
 
-CTRL+C - Clone tool:
+C - Clone tool:
   Press SPACE to paste a selection
   copied with the Mark tool.  You can
   switch to different editing modes
   to preview the changes to walls,
   foemap, and zones.  If default
-  passability is on (press D to
+  passability is on (press CTRL+D to
   toggle), the wallmap will updated
   using default walls instead of the
   copied walls.  Only visible map
@@ -93,3 +93,5 @@ CTRL+S immediately saves, useful when live-previewing a game.
 Pressing DELETE removes the selected tile from the zone.
 
 Pressing TAB toggles a minimap that shows the selected zone, and what part of the map you are currently looking at.
+
+~ shows a preview of the entire map.

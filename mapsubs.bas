@@ -716,7 +716,7 @@ DO
    CASE zone_mode
     st.brush = @zonebrush
     st.reader = @zonereader
-    IF st.zonesubmode = 1 THEN
+    IF st.zonesubmode = zone_view_mode THEN
      toolsbar_available = NO  'No normal tool switching in view mode
      st.tool = draw_tool
      drawing_allowed = NO
@@ -769,6 +769,7 @@ DO
 
  IF keyval(scCtrl) > 0 AND keyval(scL) > 1 THEN mapedit_layers st, gmap(), visible(), map()  'ctrl-L
  IF keyval(scTab) > 1 THEN st.tiny XOR= YES
+ IF keyval(scTilde) > 1 AND keyval(scAlt) = 0 THEN show_minimap st, map()
  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 THEN
    'delete tile
    FOR i as integer = 0 TO UBOUND(map)
@@ -798,7 +799,7 @@ DO
   gen(genStartX) = st.x
   gen(genStartY) = st.y
  END IF
- IF keyval(scCtrl) = 0 AND keyval(scD) > 1 THEN st.defpass = st.defpass XOR YES
+ IF keyval(scCtrl) > 0 AND keyval(scD) > 1 THEN st.defpass = st.defpass XOR YES
 
 
  SELECT CASE st.editmode
@@ -826,7 +827,6 @@ DO
    IF keyval(scCtrl) > 0 AND keyval(scJ) > 1 THEN
     setbit jiggle(), 0, st.layer, (readbit(jiggle(), 0, st.layer) XOR 1)
    END IF
-   IF keyval(scTilde) > 1 AND keyval(scAlt) = 0 THEN show_minimap st, map()
    FOR i as integer = 0 TO 1
     IF keyval(sc1 + i) > 1 THEN 'animate tile
      st.anim_newtile = -1
@@ -840,6 +840,7 @@ DO
       IF keyval(scCtrl) = 0 THEN
        tilebrush st, st.x, st.y, st.anim_newtile, , map(), pass, emap, zmap
       ELSE
+       'Like Replace tool, except that can't place animated tiles
        FOR tx as integer = 0 TO st.wide - 1
         FOR ty as integer = 0 TO st.high - 1
          IF readblock(map(st.layer), tx, ty) = st.anim_old THEN tilebrush st, tx, ty, st.anim_newtile, , map(), pass, emap, zmap
@@ -904,9 +905,9 @@ DO
     IF keyval(scRight) > 1 THEN drawwall = (st.pass_overtile XOR 2)
     IF keyval(scDown) > 1 THEN drawwall = (st.pass_overtile XOR 4)
     IF keyval(scLeft) > 1 THEN drawwall = (st.pass_overtile XOR 8)
-   ELSE
     IF keyval(scA) > 1 THEN drawwall = (st.pass_overtile XOR 16) 'vehicle A
     IF keyval(scB) > 1 THEN drawwall = (st.pass_overtile XOR 32) 'vehicle B
+   ELSE
     IF keyval(scH) > 1 THEN drawwall = (st.pass_overtile XOR 64) 'harm tile
     IF keyval(scO) > 1 THEN drawwall = (st.pass_overtile XOR 128)'overhead
    END IF
@@ -1015,11 +1016,11 @@ DO
     IF st.zonesubmode THEN show_help "mapedit_zonemap_view" ELSE show_help "mapedit_zonemap_edit"
    END IF
    IF keyval(scCtrl) = 0 THEN
-    IF keyval(scM) > 1 THEN
+    IF keyval(scZ) > 1 THEN
      st.zonesubmode = st.zonesubmode XOR 1
-     toolsbar_available = (st.zonesubmode = 0)
-     drawing_allowed = (st.zonesubmode = 0)
-     IF st.zonesubmode = 1 THEN st.tool = draw_tool
+     toolsbar_available = (st.zonesubmode = zone_edit_mode)
+     drawing_allowed = (st.zonesubmode = zone_edit_mode)
+     IF st.zonesubmode = zone_view_mode THEN st.tool = draw_tool
      st.zones_needupdate = YES
     END IF
     IF keyval(scE) > 1 THEN
@@ -1034,7 +1035,7 @@ DO
    IF st.tool <> draw_tool ANDALSO (keyval(scPlus) > 1 OR keyval(scMinus) > 1) THEN
     st.tool_value XOR= YES
    END IF
-   IF st.zonesubmode = 0 THEN
+   IF st.zonesubmode = zone_edit_mode THEN
     '--Tiling/editing mode
     st.zones_needupdate OR= intgrabber(st.cur_zone, 1, 9999, scLeftCaret, scRightCaret)
     IF st.tool <> paint_tool THEN
@@ -1120,7 +1121,7 @@ DO
   '--Select tool
   IF toolsbar_available THEN
    FOR i as integer = 0 TO v_len(mode_tools) - 1
-    IF keyval(scCtrl) > 0 AND keyval(toolinfo(mode_tools[i]).shortcut) > 1 THEN
+    IF keyval(scCtrl) = 0 AND keyval(toolinfo(mode_tools[i]).shortcut) > 1 THEN
      st.tool = mode_tools[i]
      st.reset_tool = YES
      st.tool_hold = NO
@@ -1251,7 +1252,7 @@ DO
 
  '--Zones update logic, here because it needs access to 'moved'
  IF st.editmode = zone_mode THEN
-  IF st.zonesubmode = 0 THEN
+  IF st.zonesubmode = zone_edit_mode THEN
    IF st.zones_needupdate THEN
     CleanTilemap st.zoneoverlaymap, st.wide, st.high
     ZoneToTilemap zmap, st.zoneoverlaymap, st.cur_zone, 0
@@ -1264,7 +1265,7 @@ DO
   END IF
 
   'Generate minimap
-  IF st.zonesubmode = 0 THEN
+  IF st.zonesubmode = zone_edit_mode THEN
    draw_zone_minimap st, st.zoneoverlaymap, 0, uilook(uiGold)
   ELSE
    DIM bitnum as integer = int_array_find(st.zonecolours(), st.cur_zone)
@@ -1432,7 +1433,7 @@ DO
 
  '--show zones
  IF st.editmode = zone_mode THEN
-  IF st.zonesubmode = 0 THEN
+  IF st.zonesubmode = zone_edit_mode THEN
    'Draw a single zone
    drawmap st.zoneoverlaymap, st.mapx, st.mapy, overlaytileset, dpage, YES, , , 20
   ELSE
@@ -1538,7 +1539,7 @@ DO
   END IF
   textcolor uilook(uiText), 0 
   printstr tmpstr, xstring2(tmpstr, toolbarpos.x), toolbarpos.y + 10, dpage, YES
- ELSEIF st.editmode = zone_mode AND st.zonesubmode = 1 AND drawing_allowed THEN
+ ELSEIF st.editmode = zone_mode AND st.zonesubmode = zone_view_mode AND drawing_allowed THEN
   'Nasty
   textcolor uilook(uiText), 0 
   printstr "Tool: Draw", 320 - 81, 22, dpage
@@ -1555,15 +1556,10 @@ DO
  IF st.editmode = tile_mode OR st.tool = clone_tool THEN
   'Also show the default walls option when using clone tool as it is affected by them
   textcolor uilook(uiText), 0
-  DIM defpass_msg as string
-  IF st.defpass = NO THEN defpass_msg = "No "
-  defpass_msg &= hilite("D") + "efault Walls"
-  IF st.editmode = zone_mode THEN
-   'Don't overdraw "Edit zone info"
-   printstr defpass_msg, vpages(vpage)->w - textwidth(defpass_msg), 180, dpage, YES
-  ELSE
-   printstr defpass_msg, 116, 192, dpage, YES
-  END IF
+  DIM defpass_msg as string = hilite("Ctrl+D: ")
+  IF st.defpass = NO THEN defpass_msg &= "No "
+  defpass_msg &= "Default Walls"
+  printstr defpass_msg, 116, 192, dpage, YES
  END IF
 
  IF st.editmode = foe_mode THEN
@@ -1574,14 +1570,16 @@ DO
  IF st.editmode = zone_mode THEN
   DIM zoneselected as integer = YES
   textcolor uilook(uiText), 0
-  IF st.zonesubmode = 0 THEN
-   IF st.tool <> draw_tool THEN
-    printstr hilite("+") + "/" + hilite("-") + iif_string(st.tool_value, ": Adding tiles", ": Removing tiles"), 10, 6, dpage, YES
-   END IF
+  IF st.zonesubmode = zone_edit_mode THEN
+   SELECT CASE st.tool
+    CASE draw_tool, mark_tool, clone_tool
+    CASE ELSE
+     printstr hilite("+") + "/" + hilite("-") + iif_string(st.tool_value, ": Adding tiles", ": Removing tiles"), 10, 6, dpage, YES
+   END SELECT
 
-   printstr "(" + hilite("M") + ": Editing)", 140, 24, dpage, YES
+   printstr "(" + hilite("Z") + ": Editing)", 140, 24, dpage, YES
   ELSE
-   printstr "(" + hilite("M") + ": Viewing)", 140, 24, dpage, YES
+   printstr "(" + hilite("Z") + ": Viewing)", 140, 24, dpage, YES
    IF zonemenustate.pt = -1 THEN zoneselected = NO
   END IF
 
@@ -1589,10 +1587,13 @@ DO
    printstr hilite("Zone " & st.cur_zone) & " (" & st.cur_zinfo->numtiles & " tiles) " & st.cur_zinfo->name, 0, 180, dpage, YES
   END IF
 
-  IF st.zonesubmode = 0 THEN
+  IF st.zonesubmode = zone_edit_mode THEN
    '-- Edit mode
 
-   printstr hilite("E") + "dit zone info", 116, 192, dpage, YES
+   IF st.tool <> clone_tool THEN
+    'Don't overdraw "Default Walls"
+    printstr hilite("E") + "dit zone info", 116, 192, dpage, YES
+   END IF
 
   ELSE
    '-- View mode
@@ -3743,7 +3744,7 @@ SUB mapedit_show_undo_change(st as MapEditState, byval undostroke as MapEditUndo
      'Tiles are always visible, no need to change to tile mode
     CASE mapIDMetaEditmode + zone_mode
      st.seteditmode = zone_mode
-     IF st.zonesubmode = 0 THEN st.cur_zone = .value
+     IF st.zonesubmode = zone_edit_mode THEN st.cur_zone = .value
     CASE mapIDMetaEditmode TO mapIDMetaEditmodeEND
      st.seteditmode = .mapid - mapIDMetaEditmode
     CASE ELSE

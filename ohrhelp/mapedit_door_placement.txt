@@ -24,3 +24,5 @@ Remember that for a door to be usable in both directions, it needs to be linked 
 CTRL+S immediately saves, useful when live-previewing a game.
 
 TAB toggles a blue rectangle that shows roughly what area of the map you are currently looking at.
+
+~ shows a preview of the entire map.

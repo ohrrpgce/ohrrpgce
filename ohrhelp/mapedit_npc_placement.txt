@@ -36,4 +36,6 @@ CTRL+S immediately saves, useful when live-previewing a game.
 
 TAB toggles a blue rectangle that shows roughly what area of the map you are currently looking at.
 
+~ shows a preview of the entire map.
+
 Press ENTER to see a list of NPCs on the currently selected tile.

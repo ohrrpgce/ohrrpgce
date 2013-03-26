@@ -2,4 +2,4 @@ This is the main map editor menu. Use the arrow keys (or PgUp, PgDn, Home, and E
 
 At the bottom of the menu you can type in a name for the map.
 
-Use "Erase Map Data" and "Re-load Default Passability" only with caution. It cannot be undone, so make a backup copy of your RPG file first if you are not certain.
+Use "Erase Map Data" only with caution. Erasing map data cannot be undone, so make a backup copy of your RPG file first if you are not certain.

@@ -9,7 +9,7 @@ F5 switch to NPC placement mode
 F6 switch to foemap mode
 F7 switch to zonemap mode
 
-M to switch to zone editing submode.
+Z to switch to zone editing submode.
 
 Use the arrow keys to move around the map.
 

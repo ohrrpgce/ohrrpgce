@@ -153,6 +153,11 @@ ENUM MapEditMode
   zone_mode
 END ENUM
 
+ENUM ZoneEditSubmode
+  zone_edit_mode
+  zone_view_mode
+END ENUM
+
 'MapIDs used for undo steps
 'FIXME:a bit of a mess, clean up later
 ENUM MapID
@@ -250,8 +255,8 @@ TYPE MapEditState
   clone_offset as XYPair     'Handle point on the clone brush
   clone_size as XYPair       'Size of the cloned brush in tiles
 
-  'Zone stuff (zone_mode)
-  zonesubmode as integer
+  'Zone stuff (st.editmode = zone_mode)
+  zonesubmode as ZoneEditSubmode
   cur_zone as integer        'Zone ID selected for placement
   cur_zinfo as ZoneInfo ptr  '== GetZoneInfo(zonemaps, cur_zone)
   zones_needupdate as integer
