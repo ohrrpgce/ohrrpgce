@@ -674,10 +674,11 @@ st.showzonehints = YES
 zonemenustate.pt = -1  'Properly initialised in mapedit_update_visible_zones
 st.zones_needupdate = YES
 npczone_needupdate = YES
+DIM slowtog as integer
 
 setkeys
 DO
- setwait 55
+ setwait 55, 300
  setkeys
  tog = tog XOR 1
  gauze_ticker = (gauze_ticker + 1) MOD 50  '10 frames, 5 ticks a frame
@@ -1281,7 +1282,7 @@ DO
   apply_changelist st, map(), pass, emap, zmap, visible(), gmap(), st.cloned, TYPE(st.x - st.clone_offset.x, st.y - st.clone_offset.y)
  END IF
  IF st.editmode = tile_mode AND st.tool = draw_tool THEN
-  IF keyval(scSpace) = 0 THEN
+  IF slowtog AND keyval(scSpace) = 0 THEN
    v_new st.secondary_undo_buffer
    tilebrush(st, st.x, st.y, st.tool_value, , map(), pass, emap, zmap)
   END IF
@@ -1671,7 +1672,7 @@ DO
 
  SWAP vpage, dpage
  setvispage vpage
- dowait
+ IF dowait THEN slowtog XOR= 1
 LOOP
 st.message_ticks = 0
 RETRACE '--end of mapping GOSUB block
