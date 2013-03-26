@@ -2515,6 +2515,7 @@ if(portrait) then(
 )
 
 # This is a list of special slice lookup codes
+lookup slice(sl:root)
 lookup slice(sl:textbox text)
 lookup slice(sl:textbox portrait)
 lookup slice(sl:textbox choice0)

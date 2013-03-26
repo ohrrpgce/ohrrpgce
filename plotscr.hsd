@@ -1665,6 +1665,7 @@ end
 
 #<SLICE LOOKUP CODES>
 define constant, begin
+-100000, sl:root
 -100001, sl:textbox text
 -100002, sl:textbox portrait
 -100003, sl:textbox choice0

@@ -36,6 +36,8 @@ class Lookup_Updater(object):
         self.longest = 0
 
     def add(self, name, code):
+        if code in [l.code for l in self.lookups]:
+            raise Exception("slice code %d is used more than once" % code)
         l = Lookup(name, code)
         self.lookups.append(l)
         if len(name) > self.longest:

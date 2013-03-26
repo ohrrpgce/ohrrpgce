@@ -137,7 +137,7 @@ Sub DefaultChildDraw(Byval s as Slice Ptr, byval page as integer)
 End sub
 
 Sub SetupGameSlices
- SliceTable.Root = NewSliceOfType(slRoot)
+ SliceTable.Root = NewSliceOfType(slRoot, NULL, SL_ROOT)
  
  SliceTable.MapRoot = NewSliceOfType(slContainer, SliceTable.Root, SL_MAPROOT)
  SliceTable.MapRoot->Protect = YES
@@ -256,6 +256,7 @@ FUNCTION SliceLookupCodename (byval code as integer) as string
   CASE 0: RETURN ""
 '--the following is updated from slices.bi using the misc/sl_lookup.py script
 '<SLICE LOOKUP NAMES>
+  CASE SL_ROOT: RETURN "root"
   CASE SL_TEXTBOX_TEXT: RETURN "textbox_text"
   CASE SL_TEXTBOX_PORTRAIT: RETURN "textbox_portrait"
   CASE SL_TEXTBOX_CHOICE0: RETURN "textbox_choice0"
