@@ -21,6 +21,8 @@ global variable(104, menu close global)
 global variable(105, embedding global)
 global variable(106, export global 1)
 global variable(107, export global 2)
+global variable(108, expecting death)
+global variable(109, died)
 global variable(5000, global 5000)
 
 #string 0 = error messages
@@ -42,6 +44,7 @@ plotscript, run all tests, begin
   slice tests
   inventory tests
   hero tests
+  death tests
   trigger tests
   door tests
   npc tests
@@ -1338,6 +1341,90 @@ end
 
 ########################################################################
 
+script, death tests, begin
+  $0="death tests"
+  # See also "test harm tile death" below
+
+  assert (get death script == 0)
+  set death script(@on death script)
+  assert (get death script == @on death script)
+
+  assert(died == 0)
+  expecting death := false
+
+  # Setting hero stats to 0 should NOT trigger death
+  variable (i)
+  for (i, 0, 3) do (
+    set hero stat(i, stat:hp, 0)
+  )
+  wait
+  assert(died == 0)
+
+  # Death by oob attack
+  set hero stat(0, stat:hp, 10)
+  # Only hero 0 alive
+  expecting death := true
+  map cure(atk:suicide, 0)
+  assert(get hero stat(0, stat:hp) == 0)
+  # Death script should not be triggered until next tick
+  assert(died == 0)
+  wait(1)
+  assert(died == 1)
+
+  # Re-trigger even if already dead
+  map cure(atk:suicide, 0)
+  assert(died == 1)
+  wait(1)
+  assert(died == 2)
+
+  # Death shouldn't be triggered if one hero has 0 max hp
+  variable(old maxhp)
+  oldmaxhp := get hero stat(1, stat:hp, maximum stat)
+  set hero stat(1, stat:hp, 0, maximum stat)
+  map cure(atk:suicide, 0)
+  wait(1)
+  assert(died == 2)
+  set hero stat(1, stat:hp, old maxhp, maximum stat)
+
+  # Death shouldn't be triggered if heroes are healed before the next tick
+  map cure(atk:suicide, 0)
+  set hero stat(0, stat:hp, 1)
+  wait(1)
+  assert(died == 2)
+
+  #FIXME: test death by battle
+
+  expecting death := false
+  died := 0
+  restore hp and mp
+end
+
+script, on death script, begin
+  $9="on death script"
+  trace(9)
+  if (expecting death) then (
+    died += 1
+    exit script
+  )
+  crash
+end
+
+script, test harm tile death, start hp, begin
+  # Called from "harm tile tests"
+
+  expecting death := true
+  set harm tile damage(100)
+  walk hero(me, right, 1)
+  wait for hero(me)
+  # The step finishes, causing death, then it will be processed the same tick, spawning the script
+  assert(died == 1)
+  assert hurt pattern(7, start hp, start hp, start hp, start hp, start hp)
+  expecting death := false
+  died := 0
+end
+
+########################################################################
+
 script, trigger tests, begin
   harm tile tests
 end
@@ -1401,14 +1488,22 @@ script, harm tile tests, begin
   assert hurt pattern(4, start hp, true, true, true, true)
   # Check this makes no difference
   resume caterpillar
-  walk hero(me, right, 1)
+  walk hero(me, right, 2)
   wait for hero(me)
   assert hurt pattern(5, start hp, true, true, true, true)
+
+  set harm tile damage(2)
+  walk hero(me, left, 2)
+  wait for hero(me)
+  assert hurt pattern(6, start hp, 2, 2, 2, 2)
+
+  test harm tile death(start hp)
   
   write map block(6, 6, 0, 1)
   write pass block(6, 6, 0)
 
   set caterpillar mode(on)
+  set harm tile damage(1)  # restore
   # Caterpiller on and resumed, all heroes have 'start hp' hp
 end
 
@@ -2471,7 +2566,6 @@ end
 #get bottom padding (handle)
 #get color(index)
 #get damage cap
-#get death script
 #get each step script
 #get ellipse border col (handle)
 #get ellipse fill col (handle)
@@ -2656,7 +2750,6 @@ end
 #set color(index, value)
 #set damage cap (cap)
 #set days of play (days)
-#set death script (id)
 #set debug keys disable (state)
 #set each step script (id)
 #set ellipse border col (handle, color)

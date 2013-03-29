@@ -65,6 +65,7 @@ define constant, begin
 6,atk:BecomeMush
 7,atk:AtkTagUse
 8,atk:AtTagNoReq
+9,atk:Suicide
 2,menu:Menu from menu
 0,enemy:Mushboom
 1,enemy:Run Forcer
