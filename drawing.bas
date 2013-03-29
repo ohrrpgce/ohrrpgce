@@ -23,7 +23,7 @@ DECLARE FUNCTION importmasterpal (f as string, byval palnum as integer) as integ
 'Local SUBs and FUNCTIONS
 DECLARE FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp as string, pmask() as RGBcolor) as bool
 
-DECLARE SUB picktiletoedit (byref tmode as integer, byref pagenum as integer, mapfile as string)
+DECLARE SUB picktiletoedit (byref tmode as integer, byval pagenum as integer, mapfile as string)
 DECLARE SUB editmaptile (ts as TileEditState, mover() as integer, mouse as MouseInfo, area() as MouseArea)
 DECLARE SUB tilecut (ts as TileEditState, mouse as MouseInfo, area() as MouseArea)
 DECLARE SUB refreshtileedit (mover() as integer, state as TileEditState)
@@ -282,57 +282,74 @@ FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp as stri
 END FUNCTION
 
 SUB maptile ()
-DIM menu(10) as string
+DIM menu() as string
 DIM tastuf(40) as integer
 DIM mapfile as string = game & ".til"
 DIM tmode as integer = 0
-DIM pagenum as integer = -1
+DIM pagenum as integer
 DIM top as integer = -1
 DIM taptr as integer = 0
 DIM taset as integer
 DIM tog as integer
 DIM animpos as XYPair
 
+DIM state as MenuState
+state.top = -1
+state.pt = -1
+state.first = -1
+state.last = gen(genMaxTile)
+state.size = 20
+state.need_update = YES
+
 clearpage 3
 setkeys
 DO
  setwait 55
  setkeys
- tog = tog XOR 1
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "maptile_pickset"
- IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 AND pagenum > -1 THEN
-  cropafter pagenum, gen(genMaxTile), 3, game + ".til", 64000
+ IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 AND state.pt > -1 THEN
+  cropafter state.pt, gen(genMaxTile), 3, game + ".til", 64000
+  state.last = gen(genMaxTile)
+  state.need_update = YES
  END IF
- IF keyval(scDown) > 1 AND pagenum = gen(genMaxTile) AND gen(genMaxTile) < 32767 THEN
-  pagenum = pagenum + 1
-  IF needaddset(pagenum, gen(genMaxTile), "tile set") THEN
-   WHILE pagenum > top + 20: top = top + 1: WEND
-   clearpage 3
-   storemxs mapfile, pagenum, vpages(3)  'lazy
-  END IF
- END IF
- IF usemenu(pagenum, top, -1, gen(genMaxTile), 20) THEN
-  IF pagenum = -1 THEN clearpage 3 ELSE loadmxs mapfile, pagenum, vpages(3)
- END IF
- DIM tempnum as integer = large(pagenum, 0)
+ DIM tempnum as integer = large(state.pt, 0)
  IF intgrabber(tempnum, 0, gen(genMaxTile), , , YES) THEN
-  pagenum = tempnum
-  top = bound(top, pagenum - 20, pagenum)
+  state.pt = tempnum
+  state.need_update = YES
  END IF
- IF enter_or_space() AND pagenum = -1 THEN EXIT DO
- IF enter_or_space() AND pagenum > -1 THEN GOSUB tilemode
+ IF keyval(scDown) > 1 AND state.pt = gen(genMaxTile) AND gen(genMaxTile) < 32767 THEN
+  state.pt += 1
+  IF needaddset(state.pt, gen(genMaxTile), "tile set") THEN
+   clearpage 3
+   storemxs mapfile, state.pt, vpages(3)  'lazy
+   state.last = gen(genMaxTile)
+   state.need_update = YES
+  END IF
+ ELSEIF usemenu(state) THEN
+  state.need_update = YES
+ END IF
+ IF enter_or_space() AND state.pt = -1 THEN EXIT DO
+ IF enter_or_space() AND state.pt > -1 THEN
+  pagenum = state.pt
+  GOSUB tilemode
+  state.need_update = YES
+ END IF
+
+ IF state.need_update THEN
+  state.need_update = NO
+  REDIM menu(-1 TO gen(genMaxTile))
+  menu(-1) = "Return to Main Menu"
+  FOR i as integer = 0 TO gen(genMaxTile)
+   menu(i) = "Tile Set " & i
+  NEXT
+  IF state.pt = -1 THEN clearpage 3 ELSE loadmxs mapfile, state.pt, vpages(3)
+ END IF
 
  copypage 3, dpage
- FOR i as integer = top TO small(top + 20, gen(genMaxTile))
-  DIM c as integer = uilook(uiMenuItem)
-  IF pagenum = i THEN c = uilook(uiSelectedItem + tog)
-  IF i < 0 THEN
-   edgeprint "Return to Main Menu", 10, 8 + (i - top) * 8, c, dpage
-  ELSE
-   edgeprint "Tile Set " & i, 10, 8 + (i - top) * 8, c, dpage
-  END IF
- NEXT i
+ DIM menuopts as MenuOptions
+ menuopts.edged = YES
+ standardmenu menu(), state, 10, 8, dpage, menuopts
  SWAP vpage, dpage
  setvispage vpage
  dowait
@@ -347,6 +364,7 @@ sprite_update_cache_tilesets
 EXIT SUB
 
 tilemode:
+REDIM menu(-1 TO 10)
 GOSUB tilemodemenu
 setkeys
 DO
@@ -701,7 +719,7 @@ RETRACE
 
 END SUB
 
-SUB picktiletoedit (byref tmode as integer, byref pagenum as integer, mapfile as string)
+SUB picktiletoedit (byref tmode as integer, byval pagenum as integer, mapfile as string)
 STATIC cutnpaste(19, 19) as integer
 STATIC oldpaste as integer
 DIM ts as TileEditState
