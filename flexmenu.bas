@@ -2000,10 +2000,14 @@ DIM changed as integer = 0
 DIM s as string
 
 SELECT CASE menutype(nowindex)
- CASE 0, 8, 12 TO 17, 19, 20, 22, 1000 TO 3999' integers
+ CASE 0, 8, 12 TO 17, 19, 20, 1000 TO 3999' integers
   changed = intgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)), maxtable(menulimits(nowindex)))
  CASE 7, 9 TO 11 'offset integers
   changed = zintgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)) - 1, maxtable(menulimits(nowindex)) - 1)
+ CASE 22 '(int+100)%
+  DIM temp as integer = datablock(menuoff(nowindex)) + 100
+  changed = intgrabber(temp, mintable(menulimits(nowindex)) + 100, maxtable(menulimits(nowindex)) + 100)
+  datablock(menuoff(nowindex)) = temp - 100
  CASE 2' tag condition
   changed = tag_grabber(datablock(menuoff(nowindex)), -max_tag(), max_tag(), YES)
  CASE 21' set tag (non-special)
