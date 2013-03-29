@@ -739,6 +739,10 @@ DO
   doloadgame load_slot
  END IF
 
+ AdvanceSlice SliceTable.root
+ END IF' end menus_allow_gameplay
+
+ 'Death handling
  IF checkfatal THEN
   'Note that we only check for death if requested because setting hero HP to zero with a script
   'doesn't end the game, for back-compat.
@@ -759,12 +763,11 @@ DO
    fadeout 255, 0, 0
   END IF
  END IF
- AdvanceSlice SliceTable.root
- END IF' end menus_allow_gameplay
 
  'Draw screen
-
  displayall()
+
+ 'Main loop exit test (does this need to be here?)
  IF fatal OR abortg > 0 OR resetg THEN
   resetgame scriptout
   'Stop sounds but not music; the title screen might not have any music set, or be set to the same music
@@ -777,6 +780,7 @@ DO
    EXIT DO ' To title screen (quit the gameplay loop and allow the RPG file loop to cycle)
   END IF
  END IF
+
  'DEBUG debug "swap video pages"
  SWAP vpage, dpage
  setvispage vpage
