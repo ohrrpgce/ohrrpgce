@@ -1479,7 +1479,7 @@ FUNCTION outside_battle_cure (byval atk as integer, byref target as integer, byv
   're-check validify of target
   getOOBtarg 1, target, atk, YES
  END IF
- fatal = checkfordeath
+ checkfatal = YES
  evalherotags
  evalitemtags
  tag_updates
@@ -1919,7 +1919,7 @@ FUNCTION items_menu () as integer
  freepage istate.page
  freepage holdscreen
 
- fatal = checkfordeath
+ checkfatal = YES
  evalherotags
  evalitemtags
  tag_updates
@@ -2669,7 +2669,7 @@ SUB spells_menu (byval who as integer)
  freepage sp.page
  freepage holdscreen
 
- fatal = checkfordeath
+ checkfatal = YES
  evalherotags
  evalitemtags
  tag_updates

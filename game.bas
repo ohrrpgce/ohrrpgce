@@ -207,6 +207,7 @@ REDIM mstates(0) as MenuState
 DIM topmenu as integer = -1
 
 DIM fatal as bool
+DIM checkfatal as bool
 DIM lastformation as integer
 
 DIM vstate as VehicleState
@@ -525,6 +526,7 @@ init_default_text_colors
 
 initgamedefaults
 fatal = NO
+checkfatal = NO
 abortg = 0
 lastformation = -1
 scrwatch = 0
@@ -736,8 +738,17 @@ DO
   queue_fade_in
   doloadgame load_slot
  END IF
+
+ IF checkfatal THEN
+  'Note that we only check for death if requested because setting hero HP to zero with a script
+  'doesn't end the game, for back-compat.
+  'Also, battles set the 'fatal' global directly, because they use a different death condition
+  '(a hero with zero max HP counts as dead, while OOB they count as alive)
+  fatal OR= checkfordeath
+  checkfatal = NO
+ END IF
  IF fatal THEN
-  '--this is what happens when you die in battle
+  '--this is what happens when you die
   txt.showing = NO
   txt.fully_shown = NO
   IF gen(genGameoverScript) > 0 THEN
@@ -1037,7 +1048,7 @@ SUB update_heroes(byval force_step_check as integer=NO)
     IF gmap(10) THEN
      harmtileflash = YES
     END IF
-    fatal = checkfordeath
+    checkfatal = YES
    END IF
 
   END IF  'End of harm tile checking
@@ -2089,6 +2100,8 @@ WITH scrat(nowscript)
      menuslot = find_menu_id(retvals(0))
      IF menuslot >= 0 THEN
       scriptret = menus(menuslot).handle
+     ELSE
+      scriptret = 0
      END IF
     END IF
    CASE 302'--menu is open
