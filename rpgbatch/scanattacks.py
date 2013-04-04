@@ -17,6 +17,7 @@ if len(sys.argv) < 2:
 rpgsources = sys.argv[1:]
 
 def lumpbasename(name, rpg):
+    "Returns the archinym-independent part of a lump name, eg. ohrrpgce.gen -> gen"
     name = os.path.basename(name)
     if name.startswith(rpg.archinym.prefix):
         name = name[len(rpg.archinym.prefix)+1:]
