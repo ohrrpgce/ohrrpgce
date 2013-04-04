@@ -52,6 +52,7 @@ WHAT IS NEW?
         Ctrl to switch the tool. A and B vehicle bits are now Ctrl+A/B.
       * In wallmap mode you can now use the Box and Paint tools to
         set any wall directions/bits
+      * You can select a block of tiles on the tileset to draw with
       [Ralph]
 
   * Bugfixes

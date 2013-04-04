@@ -201,7 +201,6 @@ TYPE MapEditState
   mapy as integer
   wide as integer            'Map size
   high as integer
-  tilepick as XYPair         'Coordinates (in tiles) of the selected tile on the tile picker screen
   layer as integer
   defpass as bool            'Default passability ON/OFF
   cur_foe as integer         'Formation set selected for placement
@@ -254,6 +253,8 @@ TYPE MapEditState
   cloned as MapEditUndoTile vector  'Cloned brush. NULL if none. Offsets are 0,0 at topleft of brush
   clone_offset as XYPair     'Handle point on the clone brush
   clone_size as XYPair       'Size of the cloned brush in tiles
+  multitile_draw_brush as bool 'When true and clone tool is in use the clone brush is meant to act like
+                               'the draw tool: changing map layer or .tool_value resets the tool to Draw
 
   'Zone stuff (st.editmode = zone_mode)
   zonesubmode as ZoneEditSubmode

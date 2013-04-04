@@ -36,6 +36,7 @@ DECLARE FUNCTION mapedit_on_screen(st as MapEditState, byval x as integer, byval
 DECLARE SUB mapedit_focus_camera(st as MapEditState, byval x as integer, byval y as integer)
 
 'Undo
+DECLARE SUB add_change_step(byref changelist as MapEditUndoTile vector, byval x as integer, byval y as integer, byval value as integer, byval mapid as integer)
 DECLARE SUB add_undo_step(st as MapEditState, byval x as integer, byval y as integer, byval oldvalue as integer, byval mapid as integer)
 DECLARE FUNCTION undo_stroke(st as MapEditState, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap, byval redo as bool = NO) as MapEditUndoTile vector
 DECLARE FUNCTION redo_stroke(st as MapEditState, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap) as MapEditUndoTile vector
@@ -782,7 +783,10 @@ DO
   END IF
  END IF
 
- IF keyval(scCtrl) > 0 AND keyval(scL) > 1 THEN mapedit_layers st, gmap(), visible(), map()  'ctrl-L
+ IF keyval(scCtrl) > 0 AND keyval(scL) > 1 THEN
+  mapedit_layers st, gmap(), visible(), map()  'ctrl-L
+  update_tilepicker st
+ END IF
  IF keyval(scTab) > 1 THEN st.tiny XOR= YES
  IF keyval(scTilde) > 1 AND keyval(scAlt) = 0 THEN show_minimap st, map()
  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 THEN
@@ -890,6 +894,7 @@ DO
       IF st.layer = i THEN
        DO UNTIL layerisenabled(gmap(), st.layer)
         st.layer -= 1
+        update_tilepicker st
        LOOP
       END IF
      END IF
@@ -1244,6 +1249,7 @@ DO
       st.clone_size.w = select_rect.wide
       st.clone_size.h = select_rect.high
       st.tool = clone_tool
+      st.multitile_draw_brush = NO  'Normal clone tool behaviour
      ELSE
       st.tool_hold = YES
       st.tool_hold_pos = TYPE(st.x, st.y)
@@ -1578,14 +1584,16 @@ DO
  END IF
 
  IF st.editmode = tile_mode THEN
-  IF st.tool = mark_tool OR st.tool = clone_tool THEN
+  IF st.tool = mark_tool OR (st.tool = clone_tool AND st.multitile_draw_brush = NO) THEN
    'Hint that the current layer doesn't matter
-   textcolor uilook(uiMenuItem), 0
+   textcolor uilook(uiText), 0
   ELSE
    textcolor uilook(uiSelectedItem + tog), 0
   END IF
   DIM layername as string
-  layername = "Layer " & st.layer & " " & read_map_layer_name(gmap(), st.layer)
+  layername = "Layer " & st.layer
+  IF layerisvisible(visible(), st.layer) = NO THEN layername &= " (invisible)"
+  layername &= " " & read_map_layer_name(gmap(), st.layer)
   layername = RIGHT(layername, 40)
   printstr layername, 0, 180, dpage
  END IF
@@ -3114,8 +3122,11 @@ END SUB
 
 SUB update_tilepicker(st as MapEditState)
  st.menubarstart(st.layer) = bound(st.menubarstart(st.layer), large(st.usetile(st.layer) - 13, 0), small(st.usetile(st.layer), 146))
- st.tilepick.y = st.usetile(st.layer) \ 16
- st.tilepick.x = st.usetile(st.layer) - (st.tilepick.y * 16)
+ IF st.tool = clone_tool AND st.multitile_draw_brush THEN
+  'Clone tool behaves like Draw: upon changing the drawing tile (including when changing layer), reset
+  st.tool = draw_tool
+  v_free st.cloned
+ END IF
 END SUB
 
 SUB mapedit_linkdoors (st as MapEditState, map() as TileMap, pass as TileMap, gmap() as integer, doors() as Door, link() as DoorLink)
@@ -3714,40 +3725,93 @@ SUB savepasdefaults (byref defaults as integer vector, tilesetnum as integer)
  storeset workingdir & SLASH & "defpass.bin", tilesetnum, 0
 END SUB
 
+'Create a clone brush from a section of the tileset
+SUB mapedit_pick_tileset_rect(st as MapEditState, corner1 as XYPair, corner2 as XYPair)
+ DIM select_rect as RectType
+ corners_to_rect_inclusive corner1, corner2, select_rect
+ IF select_rect.wide = 1 AND select_rect.high = 1 THEN
+  'No need to create a clone brush
+  IF st.tool = clone_tool THEN st.tool = draw_tool
+  EXIT SUB
+ END IF
+
+ st.tool = clone_tool
+ st.multitile_draw_brush = YES  'Cause the clone tool to act like the draw tool (maybe best to have a separate tool)
+ st.clone_offset.x = select_rect.wide \ 2
+ st.clone_offset.y = select_rect.high \ 2
+ st.clone_size.w = select_rect.wide
+ st.clone_size.h = select_rect.high
+
+ v_new st.cloned
+ FOR xoff as integer = 0 TO select_rect.wide - 1
+  DIM x as integer = xoff + select_rect.x
+  FOR yoff as integer = 0 TO select_rect.high - 1
+   DIM y as integer = yoff + select_rect.y
+   DIM tile as integer = int_from_xy(TYPE(x, y), 16, 16)
+   add_change_step st.cloned, xoff, yoff, tile, mapIDLayer + st.layer
+  NEXT
+ NEXT
+END SUB
+
 'FIXME: if this were cleaned up to return a tile instead of modifying st.usetile, it could be called
-'from the general map settings menu. st.tilepick shouldn't exist.
+'from the general map settings menu.
 SUB mapedit_pickblock(st as MapEditState)
+ DIM tilepick as XYPair  'Coordinates (in tiles) of the selected tile
+ DIM dragging as bool = NO
  DIM tog as integer = 0
+ DIM holdpos as XYPair
+ tilepick = xy_from_int(st.usetile(st.layer), 16, 16)
  st.tilesetview.layernum = st.layer
+
  setkeys
  DO
   setwait 55
   setkeys
-  IF keyval(scEnter) > 1 OR keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scESC) > 1 THEN
+   update_tilepicker st
+   EXIT DO
+  END IF
+
+  IF (keyval(scEnter) > 1 OR keyval(scSpace) > 1) AND dragging = NO THEN
+   'start drag-selecting a box
+   dragging = YES
+   holdpos = tilepick
+  END IF
+  IF keyval(scEnter) = 0 AND keyval(scSpace) = 0 AND dragging = YES THEN
+   update_tilepicker st
+   mapedit_pick_tileset_rect st, tilepick, holdpos
+   EXIT DO
+  END IF
+
   IF keyval(scF1) > 1 THEN show_help "mapedit_tilemap_picktile"
-  IF (keyval(scUp) AND 5) AND st.tilepick.y > 0 THEN st.tilepick.y -= 1: st.usetile(st.layer) = st.usetile(st.layer) - 16
-  IF (keyval(scDown) AND 5) AND st.tilepick.y < 9 THEN st.tilepick.y += 1: st.usetile(st.layer) = st.usetile(st.layer) + 16
-  IF (keyval(scLeft) AND 5) AND st.tilepick.x > 0 THEN st.tilepick.x -= 1: st.usetile(st.layer) = st.usetile(st.layer) - 1
-  IF (keyval(scRight) AND 5) AND st.tilepick.x < 15 THEN st.tilepick.x += 1: st.usetile(st.layer) = st.usetile(st.layer) + 1
-  IF (keyval(scComma) AND 5) AND st.usetile(st.layer) > 0 THEN
-   st.usetile(st.layer) -= 1
-   st.tilepick.x -= 1
-   IF st.tilepick.x < 0 THEN st.tilepick.x = 15: st.tilepick.y -= 1
-  END IF
-  IF (keyval(scPeriod) AND 5) AND st.usetile(st.layer) < 159 THEN
-   st.usetile(st.layer) += 1
-   st.tilepick.x += 1
-   IF st.tilepick.x > 15 THEN st.tilepick.x = 0: st.tilepick.y += 1
-  END IF
+  IF keyval(scUp) AND tilepick.y > 0 THEN tilepick.y -= 1
+  IF keyval(scDown) AND tilepick.y < 9 THEN tilepick.y += 1
+  IF keyval(scLeft) AND tilepick.x > 0 THEN tilepick.x -= 1
+  IF keyval(scRight) AND tilepick.x < 15 THEN tilepick.x += 1
+  st.usetile(st.layer) = int_from_xy(tilepick, 16, 16)
+  IF keyval(scComma) AND st.usetile(st.layer) > 0 THEN st.usetile(st.layer) -= 1
+  IF keyval(scPeriod) AND st.usetile(st.layer) < 159 THEN st.usetile(st.layer) += 1
+  tilepick = xy_from_int(st.usetile(st.layer), 16, 16)
+
   tog = tog XOR 1
   clearpage vpage
   drawmap st.tilesetview, 0, 0, st.tilesets(st.layer), vpage
-  edgeprint "Tile " & st.usetile(st.layer), 0, IIF(st.usetile(st.layer) < 112, 190, 0), uilook(uiText), vpage
-  frame_draw st.cursor.sprite + tog, st.cursor.pal, st.tilepick.x * 20, st.tilepick.y * 20, , , vpage
+  DIM infoline_y as integer = IIF(st.usetile(st.layer) < 112, 190, 0)
+  edgeprint "Tile " & st.usetile(st.layer), 0, infoline_y, uilook(uiText), vpage
+  DIM infotext as string = "Drag to select a rectangle"
+  edgeprint infotext, 320 - textwidth(infotext), infoline_y, uilook(uiText), vpage
+  IF dragging THEN
+   DIM select_rect as RectType
+   corners_to_rect_inclusive tilepick, holdpos, select_rect
+   drawbox select_rect.x * 20, select_rect.y * 20, _
+           select_rect.wide * 20, select_rect.high * 20, _
+           uilook(uiHighlight + tog), 2, vpage
+  ELSE
+   frame_draw st.cursor.sprite + tog, st.cursor.pal, tilepick.x * 20, tilepick.y * 20, , , vpage
+  END IF
   setvispage vpage
   dowait
  LOOP
- update_tilepicker st
 END SUB
 
 'Move this global eventually?
