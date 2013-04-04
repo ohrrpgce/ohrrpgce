@@ -44,20 +44,26 @@ for rpg, gameinfo, zipinfo in rpgs:
         if fixAttackItems:
             games.newest += 1
             # Check the highest currently unused 56 or 104 bits in the second bank of attack bitsets
-            attack_bin8 = rpg.data('attack.bin', dtype = (np.uint8, rpg.binsize.attack))
-            if fixNumElements:
-                # Last 48 bits used for extra elements
-                endbyte = 60
+
+            try:
+                attack_bin8 = rpg.data('attack.bin', dtype = (np.uint8, rpg.binsize.attack))
+            except Exception as e:
+                print gameinfo.id, "threw exception when memmapping attack.bin:", e
+                games.bad += 1
             else:
-                endbyte = 66
-            attackgarbage = attack_bin8[:, 53:endbyte].any(axis=1)
-            if attackgarbage.any():
-                games.bitgarbage += 1
-                print gameinfo.id, "contains garbage in unused bits for attacks", attackgarbage.nonzero()[0]
-                sumbits = np.zeros(endbyte - 53, dtype = np.uint8)
-                for atk in attack_bin8:
-                    sumbits |= atk[53:endbyte]
-                print "with bitmask", sumbits
+                if fixNumElements:
+                    # Last 48 bits used for extra elements
+                    endbyte = 60
+                else:
+                    endbyte = 66
+                attackgarbage = attack_bin8[:, 53:endbyte].any(axis=1)
+                if attackgarbage.any():
+                    games.bitgarbage += 1
+                    print gameinfo.id, "contains garbage in unused bits for attacks", attackgarbage.nonzero()[0]
+                    sumbits = np.zeros(endbyte - 53, dtype = np.uint8)
+                    for atk in attack_bin8:
+                        sumbits |= atk[53:endbyte]
+                    print "with bitmask", sumbits
 
         elif rpg.binsize.attack != 120 or rpg.binsize.stf < 64:
             games.bad += 1
@@ -81,15 +87,15 @@ for rpg, gameinfo, zipinfo in rpgs:
             except Exception as e:
                 print gameinfo.id, "threw exception when memmapping attack.bin:", e
                 games.bad += 1
-
-            scanrange = attack_bin16[:, begin:60]
-            attackgarbage = scanrange.any(axis=1)
-            if attackgarbage.any():
-                games.garbage += 1
-                print gameinfo.id, "contains garbage in attacks", attackgarbage.nonzero()[0], "at offsets"
-                print scanrange.any(axis=0).nonzero()[0] + begin
-                #for atk in attackgarbage.nonzero()[0]:
-                #    print "  attack", atk, scanrange[atk]
+            else:
+                scanrange = attack_bin16[:, begin:60]
+                attackgarbage = scanrange.any(axis=1)
+                if attackgarbage.any():
+                    games.garbage += 1
+                    print gameinfo.id, "contains garbage in attacks", attackgarbage.nonzero()[0], "at offsets"
+                    print scanrange.any(axis=0).nonzero()[0] + begin
+                    #for atk in attackgarbage.nonzero()[0]:
+                    #    print "  attack", atk, scanrange[atk]
 
 print
 rpgs.print_summary()
