@@ -1432,13 +1432,7 @@ FUNCTION get_mac_gameplayer() as string
  '--Decide which url to download
  DIM url as string
  DIM dlfile as string
-
-#IFDEF __FB_WIN32__
- 'Windows tar cannot preserve symlinks so we need to use the bloated linkless tarball
- dlfile = "ohrrpgce-mac-minimal-linkless.tar.gz"
-#ELSE
  dlfile = "ohrrpgce-mac-minimal.tar.gz"
-#ENDIF
 
  IF version_branch = "wip" THEN
   'If using any wip release, get the latest wip release

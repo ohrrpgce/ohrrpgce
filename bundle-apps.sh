@@ -18,6 +18,17 @@ mkdir -p OHRRPGCE-Game.app/Contents/Resources/ohrhelp &&
 cp -R ohrhelp/game_*.txt ohrhelp/share_*.txt OHRRPGCE-Game.app/Contents/Resources/ohrhelp &&
 cp ohrrpgce-game OHRRPGCE-Game.app/Contents/MacOS/ &&
 tar xf mac/Frameworks.tar.gz -C OHRRPGCE-Game.app/Contents || exit 1
+# Mac tar doesn't have an option to expand symlinks
+
+CWD=`pwd`
+echo Un-symlinking OHRRPGCE-Game.app
+cd OHRRPGCE-Game.app/Contents/Frameworks/SDL.framework &&
+rm -rf Versions/Current SDL Headers Resources &&
+cd ../SDL_mixer.framework &&
+rm -rf Versions/Current SDL_mixer Headers Frameworks Resources &&
+cd Versions/A/Frameworks/mikmod.framework &&
+rm -rf Versions/Current mikmod Headers Resources &&
+cd $CWD || exit 1
 
 echo Bundling OHRRPGCE-Custom.app
 cp -R mac/OHRRPGCE-Custom.app.template OHRRPGCE-Custom.app &&
