@@ -1,5 +1,5 @@
 ------------------------------------------------------------
- O.H.R.RPG.C.E                   (WIP version)
+ O.H.R.RPG.C.E              (2013-04-09 beelzebufo version)
 ------------------------------------------------------------
 Official Hamster Republic RPG Construction Engine
 for Mac OS X
