@@ -808,6 +808,7 @@ SUB shop_add_new (shopst as ShopEditState)
           flusharray shopbuf()
           '--Create a new shop stuff record
           flusharray stufbuf()
+          'FIXME: load the name and price for first shop item
           stufbuf(19) = -1  'Default in-stock to infinite
         CASE 2 ' copy
           gen(genMaxShop) += 1
@@ -885,9 +886,9 @@ SUB shop_stuff_edit (byval shop_id as integer, byref thing_total as integer)
      IF stuf.thing > thing_total THEN
       thing_total = stuf.thing
       flusharray stufbuf(), dimbinsize(binSTF), 0
-      setpicstuf stufbuf(), getbinsize(binSTF), -1
       stufbuf(19) = -1 ' When adding new stuff, default in-stock to infinite
-      storeset game & ".stf", shop_id * 50 + stuf.thing, 0
+      update_shop_stuff_type stuf, stufbuf(), YES  ' load the name and price
+      shop_save_stf shop_id, stuf, stufbuf()
      END IF
      shop_load_stf shop_id, stuf, stufbuf()
      update_shop_stuff_type stuf, stufbuf()
@@ -895,7 +896,7 @@ SUB shop_stuff_edit (byval shop_id as integer, byref thing_total as integer)
     END IF
    CASE 2 'name
     IF strgrabber(stuf.thingname, 16) THEN stuf.st.need_update = YES
-   CASE 3 TO 4 'type
+   CASE 3 TO 4 'type and ID
     IF intgrabber(stufbuf(17 + stuf.st.pt - 3), stuf.min(stuf.st.pt), stuf.max(stuf.st.pt)) THEN
      stuf.st.need_update = YES
      update_shop_stuff_type stuf, stufbuf(), YES

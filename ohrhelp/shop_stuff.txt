@@ -4,7 +4,7 @@ Use the arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu. Select t
 
 Press the Right arrow key on the last Shop Thing to define a new one.
 
-You can type a name for the item or hero. This is optional, and will be automatically pre-filled when you choose an item or hero.
+You can type a name for the item or hero. This is optional, and will be automatically pre-filled when you choose an item or hero (but if you change the name in the item/hero editor, it won't automatically be updated in shops). If you change the name of an item it will ONLY affect the item's name in the shop, not in your inventory.
 
 Type can be either Item or Hero. Items are only available if the shop's "Buy" menu is enabled. Heroes are only available if the shop's "Hire" menu is enabled.
 
