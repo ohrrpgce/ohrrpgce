@@ -1,1 +1,6 @@
+# The first non-commented line in this file is the name of the branch (release). 'wip' means
+# not a stable release (which does change engine behaviour in a few places).
 wip
+# The second line should be either 0 for a wip build, or the SVN revision number at which this
+# release was branched from wip, or other appropriate 'nearest match' wip revision
+0

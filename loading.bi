@@ -173,6 +173,8 @@ DECLARE FUNCTION load_gamename (filename as string="") as string
 DECLARE FUNCTION load_aboutline (filename as string="") as string
 DECLARE SUB save_gamename (s as string, filename as string="")
 DECLARE SUB save_aboutline (s as string, filename as string="")
+DECLARE SUB write_engine_version_node (byval parent as NodePtr, nodename as string)
+DECLARE SUB update_general_data ()
 
 DECLARE SUB load_distrib_state OVERLOAD (byref distinfo as DistribState)
 DECLARE SUB load_distrib_state OVERLOAD (byref distinfo as DistribState, filename as string)

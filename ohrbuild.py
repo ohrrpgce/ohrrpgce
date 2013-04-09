@@ -38,8 +38,15 @@ def verprint (used_gfx, used_music, svn, git, fbc):
     results = []
     supported_gfx = []
     f = open ('codename.txt','rb')
-    codename = f.readline().rstrip()
+    lines = []
+    for line in f:
+        if not line.startswith ('#'):
+            lines.append (line.rstrip())
     f.close()
+    if len(lines) != 2:
+        exit('Expected two noncommented lines in codename.txt')
+    codename = lines[0]
+    branch_rev = int(lines[1])
     # now automagically determine branch and svn
     def missing (name, message):
         tmp ="%r executable not found. It may not be in the PATH, or simply not installed." % name
@@ -88,6 +95,10 @@ def verprint (used_gfx, used_music, svn, git, fbc):
     date, rev = query_svn (svn,'info')
     if rev == 0:
         date, rev = query_svn (git,'svn','info')
+    if rev == 0:
+        print "Could not determine SVN revision; this build will produce RPG files without full version info"
+    if branch_rev <= 0:
+        branch_rev = rev
     fbver = query_fb ()
     for g in used_gfx:
         if g in ('sdl','fb','alleg','directx','sdlpp','console'):
@@ -109,14 +120,16 @@ def verprint (used_gfx, used_music, svn, git, fbc):
     gfx_code = 'gfx_' + "+".join (supported_gfx)
     music_code = 'music_' + "+".join (used_music)
     data = {'name' : name, 'codename': codename, 'date': date,
-            'rev' : rev, 'fbver': fbver, 'music': music_code,
+            'rev' : rev, 'branch_rev' : branch_rev, 'fbver': fbver, 'music': music_code,
             'gfx' : gfx_code}
 
     results.extend ([
         'CONST version as string = "%(name)s %(codename)s %(date)s"' % data,
         'CONST version_code as string = "%(name)s Editor version %(codename)s"' % data,
         'CONST version_revision as integer = %(rev)d' % data,
+        'CONST version_date as integer = %(date)s' % data,
         'CONST version_branch as string = "%(codename)s"' % data,
+        'CONST version_branch_revision as integer = %(branch_rev)s' % data,
         'CONST version_build as string = "%(date)s %(gfx)s %(music)s"' % data,
         ('CONST long_version as string = "%(name)s '
         '%(codename)s %(date)s.%(rev)s %(gfx)s/%(music)s FreeBASIC %(fbver)s"') %  data])

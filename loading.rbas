@@ -11,6 +11,7 @@
 #endif
 
 #include "config.bi"
+#include "ver.txt"
 #include "udts.bi"
 #include "const.bi"
 #include "common.bi"
@@ -3238,6 +3239,12 @@ FUNCTION load_map_pos_save_offset(byval mapnum as integer) as XYPair
  RETURN offset
 END FUNCTION
 
+
+'==========================================================================================
+'                                        General data
+'==========================================================================================
+
+
 FUNCTION load_gamename (filename as string="") as string
  DIM f as string
  IF filename = "" THEN
@@ -3299,6 +3306,63 @@ SUB save_aboutline (s as string, filename as string="")
  writebinstring s, tempbuf(), 20, 38
  storerecord tempbuf(), f, 40
 END SUB
+
+'Create the editor_version (general.reld) or game_client (RSAV) node
+SUB write_engine_version_node(byval parent as NodePtr, nodename as string)
+ DIM ch as NodePtr
+ ch = SetChildNode(parent, nodename, "OHRRPGCE")
+ SetChildNode(ch, "long_version", long_version & " " & build_info)
+ SetChildNode(ch, "branch_name", version_branch)
+ SetChildNode(ch, "build_date", version_date)
+ 'version_revision is 0 if verprint could not determine it
+ IF version_revision <> 0 THEN SetChildNode(ch, "revision", version_revision)
+ IF version_branch_revision <> 0 THEN SetChildNode(ch, "branch_revision", version_branch_revision)
+END SUB
+
+'Write new data.
+'NOTE: Assumes general.reld document not currently open!
+'In future we probably will want to have it open and loaded all the time,
+'but for now it merely stores version info which is updated when upgrading
+SUB update_general_data ()
+ DIM filename as string = workingdir & SLASH & "general.reld"
+ DIM doc as DocPtr
+ IF isfile(filename) THEN doc = LoadDocument(filename, optNoDelay)
+ IF doc = 0 THEN
+  debuginfo "general.reld not present, creating"
+  doc = CreateDocument()
+ END IF
+ 
+ DIM root_node as NodePtr
+ root_node = DocumentRoot(doc)
+ IF root_node = 0 THEN
+  root_node = CreateNode(doc, "general_data")
+  SetRootNode(doc, root_node)
+ END IF
+
+ DIM vernode as NodePtr
+ vernode = root_node."editor_version".ptr
+ IF vernode THEN
+  IF vernode."revision" <> version_revision OR vernode."branch_name".string <> version_branch THEN
+   'Archive previously used editor version (appending to end)
+   DIM prevvernode as NodePtr
+   prevvernode = ChildNode(root_node, "prev_editor_versions")
+   AddChild(prevvernode, vernode)
+   vernode = NULL
+  END IF
+ END IF
+
+ IF vernode = NULL THEN
+  write_engine_version_node(root_node, "editor_version")
+ END IF
+
+ SerializeBin filename, doc
+ FreeDocument doc
+END SUB
+
+'==========================================================================================
+'                                        Distrib data
+'==========================================================================================
+
 
 SUB load_distrib_state(byref distinfo as DistribState)
  DIM filename as string = workingdir & SLASH & "distrib.reld"

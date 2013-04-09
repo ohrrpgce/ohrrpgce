@@ -3231,6 +3231,9 @@ IF NOT isfile(workingdir + SLASH + "archinym.lmp") THEN
  CLOSE #fh
 END IF
 
+'Update editor_version.
+update_general_data
+
 'This is corruption recovery, not upgrade, but Custom has always done this
 IF NOT isfile(game + ".fnt") THEN
  debug game + ".fnt missing (which should never happen)"
