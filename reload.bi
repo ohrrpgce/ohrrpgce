@@ -170,6 +170,7 @@ Declare Function CloneNodeTree(byval nod as NodePtr, byval doc as DocPtr=0, byva
 Declare Function NodeHasAncestor(byval nod as NodePtr, byval possible_parent as NodePtr) as integer
 
 'Helper functions:
+Declare Function ChildNode Overload (byval parent as NodePtr, n as string) as NodePtr
 Declare Function SetChildNode Overload (byval parent as NodePtr, n as string) as NodePtr
 Declare Function SetChildNode(byval parent as NodePtr, n as string, byval val as longint) as NodePtr
 Declare Function SetChildNode(byval parent as NodePtr, n as string, byval val as double) as NodePtr
