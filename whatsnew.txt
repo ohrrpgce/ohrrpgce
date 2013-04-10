@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-April 9 2013 [Beelzebufo]
+April 10 2013 [Beelzebufo]
 
   * New Features
     * General preference bitset "Don't reset max stats after OOB attack"
