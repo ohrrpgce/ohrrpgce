@@ -6,7 +6,7 @@ from ohr_debian import *
 
 package_name = "vikings-of-midgard"
 maintainer = '"Fenrir Lunaris & OHR Developers" <ohrrpgce@lists.motherhamster.org>'
-depends = "ohrrpgce (>=2011.04)"
+depends = "ohrrpgce (>=2013.04)"
 
 prefix = "../vikings/"
 relump(prefix + "vikings.rpgdir", "vikings.rpg")
