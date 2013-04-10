@@ -95,5 +95,3 @@ updatelink "${REL}" "${VER}" "ohrrpgce-linux-x86"     "tar.bz2" "" ""
 updatelink "${REL}" "${VER}" "ohrrpgce-player-linux-bin-minimal" "zip" "" ""
 updatelink "${REL}" "${VER}" "OHRRPGCE"               "dmg" "" ""
 updatelink "${REL}" "${VER}" "ohrrpgce-mac-minimal"   "tar.gz" "" ""
-
-~/script/ohr-mac-linkless.sh
