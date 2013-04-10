@@ -84,7 +84,7 @@ tar -jcf distrib/ohrrpgce-linux-x86.tar.bz2 ./ohrrpgce --exclude .svn
 mv ohrrpgce tmp
 
 TODAY=`date "+%Y-%m-%d"`
-CODE=`cat codename.txt | tr -d "\r"`
+CODE=`cat codename.txt | grep -v "^#" | head -1 | tr -d "\r"`
 mv distrib/ohrrpgce-linux-x86.tar.bz2 distrib/ohrrpgce-linux-x86-$TODAY-$CODE.tar.bz2
 
 echo "Erasing contents of temporary directory"

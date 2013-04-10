@@ -78,7 +78,7 @@ svn info > svninfo.txt
 
 ./distrib-wine.sh nightly
 OHRVERDATE=`svn info | grep "^Last Changed Date:" | cut -d ":" -f 2 | cut -d " " -f 2`
-OHRVERCODE=`cat codename.txt`
+OHRVERCODE=`cat codename.txt | grep -v "^#" | head -1 | tr -d "\r"`
 SUFFIX="${OHRVERDATE}-${OHRVERCODE}"
 
 mustexist distrib/ohrrpgce-win-installer-"${SUFFIX}".exe
