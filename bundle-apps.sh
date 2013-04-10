@@ -1,7 +1,7 @@
 #!/bin/sh
 
 TODAY=`date "+%Y%m%d"`
-CODE=`cat codename.txt | tr -d "\r"`
+CODE=`cat codename.txt | grep -v "^#" | head -1 | tr -d "\r"`
 
 echo Deleting old apps
 rm -rf OHRRPGCE-Game.app

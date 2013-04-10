@@ -3,7 +3,7 @@
 EXTRA_SCONS_OPTIONS=$*
 
 TODAY=`date "+%Y-%m-%d"`
-CODE=`cat codename.txt | tr -d "\r"`
+CODE=`cat codename.txt | grep -v "^#" | head -1 | tr -d "\r"`
 
 if [ ! -f distrib-mac.sh ] ; then
   echo You should only run this script from the ohrrpgce directory.

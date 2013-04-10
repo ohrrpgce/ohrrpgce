@@ -153,7 +153,7 @@ mustexist "distrib/ohrrpgce-win-installer.exe"
 
 echo "Packaging source snapshot zip ..."
 OHRVERDATE=`svn info | grep "^Last Changed Date:" | cut -d ":" -f 2 | cut -d " " -f 2`
-OHRVERCODE=`cat codename.txt`
+OHRVERCODE=`cat codename.txt | grep -v "^#" | head -1 | tr -d "\r"`
 REPOSITORY=`svn info | grep "^URL:" | cut -d " " -f 2-`
 rm -Rf tmpdist
 mkdir tmpdist
