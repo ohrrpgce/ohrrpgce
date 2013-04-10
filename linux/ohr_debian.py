@@ -45,9 +45,14 @@ def read_version():
 
 def read_codename():
   f = open('../codename.txt', 'r')
-  line = f.read()
+  lines = []
+  for line in f:
+    if not line.startswith('#'):
+      lines.append(line.rstrip())
   f.close()
-  return line.strip()
+  if len(lines) != 2:
+    exit('Expected two noncommented lines in codename.txt')
+  return lines[0]
 
 def write_control_file(filename, template, values):
   f = open(filename, 'w')
