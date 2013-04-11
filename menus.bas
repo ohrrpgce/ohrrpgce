@@ -190,6 +190,14 @@ FUNCTION usemenu (state as MenuState, byval menudata as BasicMenuItem vector, by
   d = 0
   moved_d = 0
 
+  DIM mpt as integer = mouse_on_menustate(state)
+  IF mpt >= .first ANDALSO not v_at(menudata, mpt)->unselectable THEN
+   IF mpt <> .pt THEN
+    .pt = mpt
+    RETURN YES
+   END IF
+  END IF
+
   IF keyval(deckey) > 1 THEN d = -1
   IF keyval(inckey) > 1 THEN d = 1
   IF keyval(scPageup) > 1 THEN
