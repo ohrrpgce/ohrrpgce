@@ -13,7 +13,8 @@ TYPE MouseInfo
   y as integer
   moved as bool      'Whether mouse has moved since last readmouse call.
   movedtick as bool  'Whether mouse has moved since the last setkeys call
-  clicks as integer  'Button down event since last tick; MouseButton bitvector (see scancodes.bi)
+  clicks as integer  'Button down event since last readmouse call; MouseButton bitvector (see scancodes.bi)
+  clickstick as integer 'Button down since the last setkeys call
   buttons as integer 'Buttons currently down OR clicked; MouseButton bitvector
   wheel as integer   'Wheel movement since last tick; NOT SUPPORTED ON ALL BACKENDS
   dragging as integer 'MouseButton bitvector, but only one button at once can be dragged.

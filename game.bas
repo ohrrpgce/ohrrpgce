@@ -3979,7 +3979,7 @@ SUB battle_formation_testing_menu()
    EXIT DO
   END IF
 
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    form_num = menu.items[state.pt]->extra(0)
    IF form_num >= 0 THEN
     defaultval = state.pt

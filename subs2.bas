@@ -492,7 +492,7 @@ DO
  IF select_by_typing(selectst) THEN
   select_on_word_boundary menu(), selectst, state
  END IF
- IF enter_or_space() THEN
+ IF enter_space_click(state) THEN
   SELECT CASE state.pt
    CASE 0
     EXIT DO
@@ -680,7 +680,7 @@ SUB text_box_editor () 'textage
      textbox_edit_load box, st, menu()
     END IF
   END SELECT
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    IF state.pt = 0 THEN EXIT DO
    IF state.pt = 2 THEN textbox_line_editor box, st
    IF state.pt = 3 THEN
@@ -838,7 +838,7 @@ SUB textbox_conditionals(byref box as TextBox)
   state.tog = state.tog XOR 1
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "textbox_conditions"
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    SELECT CASE state.pt
     CASE -1 '--Previous menu
      EXIT DO
@@ -1192,7 +1192,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "textbox_appearance"
   usemenu state
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    SELECT CASE state.pt
     CASE 0: EXIT DO ' Exit the appearance menu
     CASE 3: box.textcolor = color_browser_256(box.textcolor)
@@ -1482,7 +1482,7 @@ SUB textbox_choice_editor (byref box as TextBox, byref st as TextboxEditState)
   IF keyval(scEsc) > 1 THEN EXIT SUB
   IF keyval(scF1) > 1 THEN show_help "textbox_choice_editor"
   usemenu state
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    IF state.pt = 0 THEN EXIT SUB
    IF state.pt = 1 THEN box.choice_enabled = (NOT box.choice_enabled)
   END IF
@@ -1600,7 +1600,7 @@ SUB textbox_connections(byref box as TextBox, byref st as TextboxEditState, menu
   SELECT CASE column
    CASE 0 'Previous
     usemenu state
-    IF enter_or_space() THEN
+    IF enter_space_click(state) THEN
      IF prev(state.pt).id >= 0 THEN
       st.id = prev(state.pt).id
       textbox_edit_load box, st, menu()
@@ -1608,10 +1608,10 @@ SUB textbox_connections(byref box as TextBox, byref st as TextboxEditState, menu
      END IF
     END IF
    CASE 1 'Current
-    IF enter_or_space() THEN EXIT SUB
+    IF enter_space_click(state) THEN EXIT SUB
    CASE 2 'Next
     usemenu nxt_state
-    IF enter_or_space() THEN
+    IF enter_space_click(nxt_state) THEN
      IF nxt(nxt_state.pt).add THEN
       'Add a box
       nxt_add_type = twochoice("Add a new box?", "After this box", "Instead of this box", 0, -1)

@@ -192,6 +192,7 @@ DECLARE FUNCTION onoroff (byval n as integer) as string
 DECLARE FUNCTION yesorno (byval n as integer, yes_cap as string="YES", no_cap as string="NO") as string
 DECLARE FUNCTION format_percent (byval float as DOUBLE, byval sigfigs as integer = 5) as string
 
+DECLARE FUNCTION enter_space_click (state as MenuState) as integer
 DECLARE FUNCTION enter_or_space () as integer
 DECLARE FUNCTION copy_keychord () as integer
 DECLARE FUNCTION paste_keychord () as integer

@@ -119,7 +119,7 @@ SUB distribute_game ()
 
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "distribute_game"
-  IF enter_or_space() THEN
+  IF enter_space_click(st) THEN
    SELECT CASE menu[st.pt].dat
     CASE distmenuEXIT: EXIT DO
     CASE distmenuZIP:
@@ -211,7 +211,7 @@ SUB edit_distrib_info ()
      show_help "edit_distrib_info"
    END SELECT
   END IF
-  IF enter_or_space() THEN
+  IF enter_space_click(st) THEN
    SELECT CASE st.pt
     CASE 0: EXIT DO
    END SELECT

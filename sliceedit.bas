@@ -243,7 +243,7 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
   #ENDIF
   IF keyval(scF4) > 1 THEN ses.hide_menu = NOT ses.hide_menu
 
-  IF state.need_update = NO AND enter_or_space() THEN
+  IF state.need_update = NO AND enter_space_click(state) THEN
    IF state.pt = 0 THEN
     EXIT DO
    ELSE
@@ -531,7 +531,7 @@ SUB slice_edit_detail (sl as Slice Ptr, byref ses as SliceEditState, rootsl as S
   END IF
 
   usemenu state
-  IF state.pt = 0 AND enter_or_space() THEN EXIT DO
+  IF state.pt = 0 AND enter_space_click(state) THEN EXIT DO
   slice_edit_detail_keys state, sl, rootsl, rules(), slicelookup()
   
   clearpage dpage
@@ -563,7 +563,7 @@ SUB slice_edit_detail_keys (byref state as MenuState, sl as Slice Ptr, rootsl as
    IF intgrabber(*n, -1, 0) THEN
     state.need_update = YES
    END IF
-   IF enter_or_space() THEN *n = NOT *n : state.need_update = YES
+   IF enter_space_click(state) THEN *n = NOT *n : state.need_update = YES
   CASE erStrgrabber
    DIM s as string PTR = rule.dataptr
    IF keyval(scENTER) > 1 THEN
@@ -588,7 +588,7 @@ SUB slice_edit_detail_keys (byref state as MenuState, sl as Slice Ptr, rootsl as
    state.need_update = YES
    switchtype = YES
   END IF
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    IF slice_edit_detail_browse_slicetype(slice_type) THEN
     state.need_update = YES
     switchtype = YES
@@ -600,26 +600,26 @@ SUB slice_edit_detail_keys (byref state as MenuState, sl as Slice Ptr, rootsl as
   END IF
  END IF
  IF rule.group AND slgrPICKXY THEN
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    slice_editor_xy sl->X, sl->Y, sl, rootsl
    state.need_update = YES
   END IF
  END IF
  IF rule.group AND slgrPICKWH THEN
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    slice_editor_xy sl->Width, sl->Height, sl, rootsl
    state.need_update = YES
   END IF
  END IF
  IF rule.group AND slgrPICKCOL THEN
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    DIM n as integer PTR = rule.dataptr
    *n = color_browser_256(*n)
    state.need_update = YES
   END IF
  END IF
  IF rule.group AND slgrPICKLOOKUP THEN
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    DIM n as integer PTR = rule.dataptr
    *n = edit_slice_lookup_codes(slicelookup(), *n)
    state.need_update = YES
@@ -873,7 +873,7 @@ FUNCTION slice_edit_detail_browse_slicetype(byref slice_type as SliceTypes) as S
 
   usemenu state
   
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    slice_type = editable_slice_types(state.pt)
    RETURN YES
   END IF

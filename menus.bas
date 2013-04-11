@@ -116,7 +116,7 @@ FUNCTION mouse_on_menustate (state as MenuState) as integer
   IF .has_been_drawn THEN
    DIM mouse as MouseInfo
    mouse = readmouse()
-   IF mouse.movedtick THEN
+   IF mouse.movedtick ORELSE (mouse.clickstick AND mouseleft) THEN
     DIM mpt as integer = rect_collide_point_vertical_chunk(.rect, mouse.x, mouse.y, .spacing)
     mpt += .top
     IF mpt >= .first ANDALSO mpt <= .last THEN

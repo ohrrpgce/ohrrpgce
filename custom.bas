@@ -328,7 +328,7 @@ SUB main_editor_menu()
    END IF
   END IF
 
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    IF state.pt = 0 THEN gfx_editor_menu
    IF state.pt = 1 THEN map_picker
    IF state.pt = 2 THEN edit_global_text_strings
@@ -423,7 +423,7 @@ SUB gfx_editor_menu()
    select_on_word_boundary menu(), selectst, state
   END IF
 
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    IF state.pt = 0 THEN
     EXIT DO
    END IF
@@ -487,7 +487,7 @@ SUB choose_rpg_to_open ()
   setkeys
   IF keyval(scEsc) > 1 THEN cleanup_and_terminate
   usemenu state
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    SELECT CASE state.pt
     CASE 0
      game = inputfilename("Filename of New Game?", ".rpg", CURDIR, "input_file_new_game", , NO)
@@ -703,7 +703,7 @@ SUB shopdata ()
    strgrabber shopst.name, 15
    shopst.st.need_update = YES
   END IF
-  IF enter_or_space() THEN
+  IF enter_space_click(shopst.st) THEN
    IF shopst.st.pt = 0 THEN EXIT DO
    IF shopst.st.pt = 3 AND shopst.havestuf THEN
     shop_stuff_edit shopst.id, shopbuf(16)
@@ -796,7 +796,7 @@ SUB shop_add_new (shopst as ShopEditState)
       menu(1) = "New Blank Shop"
       menu(2) = "Copy of Shop " & shoptocopy & " " & readshopname(shoptocopy) 'readbadbinstring(shopbuf(), 0, 15, 0)
     END IF
-    IF enter_or_space() THEN
+    IF enter_space_click(state) THEN
       DIM shopbuf(19) as integer
       DIM stufbuf(curbinsize(binSTF) \ 2 - 1) as integer
       SELECT CASE state.pt
@@ -876,7 +876,7 @@ SUB shop_stuff_edit (byval shop_id as integer, byref thing_total as integer)
 
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "shop_stuff"
-  IF stuf.st.pt = 0 ANDALSO enter_or_space() THEN EXIT DO
+  IF stuf.st.pt = 0 ANDALSO enter_space_click(stuf.st) THEN EXIT DO
 
   SELECT CASE stuf.st.pt
    CASE 1 'browse shop stuff
@@ -1167,7 +1167,7 @@ FUNCTION handle_dirty_workingdir () as integer
   setwait 55
   setkeys
   usemenu state
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    IF state.pt = 1 THEN
     IF isfile(workingdir + SLASH + "__danger.tmp") THEN
      textcolor uilook(uiSelectedItem), uilook(uiHighlight) 'FIXME: new uilook for warning text colors?
@@ -1219,7 +1219,7 @@ SUB secret_menu ()
   setwait 55
   setkeys
   IF keyval(scEsc) > 1 THEN EXIT DO
-  IF enter_or_space() THEN
+  IF enter_space_click(st) THEN
    IF st.pt = 0 THEN reload_editor
    IF st.pt = 1 THEN editor_editor
    IF st.pt = 2 THEN condition_test_menu
@@ -1293,7 +1293,7 @@ SUB arbitrary_sprite_editor ()
    CASE 3: IF intgrabber(zoom, 0, 4) THEN st.need_update = YES
    CASE 4: IF intgrabber(tempsets, 0, 32000) THEN st.need_update = YES
   END SELECT
-  IF enter_or_space() THEN
+  IF enter_space_click(st) THEN
    IF st.pt = 5 THEN
     crappy_screenpage_lines = ceiling(size.x * size.y * framecount / 2 / 320)
     sprite size.x, size.y, tempsets, framecount, crappy_screenpage_lines, tempcaptions(), zoom, -1
@@ -1340,7 +1340,7 @@ SUB condition_test_menu ()
   IF keyval(scF1) > 1 THEN show_help "condition_test"
   tmp = 0
   IF st.pt = 0 THEN
-   IF enter_or_space() THEN EXIT DO
+   IF enter_space_click(st) THEN EXIT DO
   ELSEIF st.pt = 2 THEN
    tmp = cond_grabber(cond1, YES , NO)
   ELSEIF st.pt = 3 THEN

@@ -2210,7 +2210,7 @@ FUNCTION multichoice(capt as string, choices() as string, byval defaultval as in
    show_help helpkey
   END IF
 
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    result = state.pt
    state.active = NO
   END IF
@@ -4210,6 +4210,22 @@ SUB load_default_master_palette (master_palette() as RGBColor)
   master_palette(i).col = colorcodes(i)
  NEXT i
 END SUB
+
+FUNCTION enter_space_click (state as MenuState) as integer
+ DIM mouse as MouseInfo
+ mouse = readmouse()
+ IF state.has_been_drawn THEN
+  IF (mouse.clickstick AND mouseleft) THEN
+   IF rect_collide_point(state.rect, mouse.x, mouse.y) THEN
+    '--We only care that the mouse is somewhere on the state.
+    '--We don't worry about specific menu item it is on,
+    '--because usemenu should have already handled that
+    RETURN YES
+   END IF
+  END IF
+ END IF
+ RETURN keyval(scEnter) > 1 OR keyval(scSpace) > 1
+END FUNCTION
 
 FUNCTION enter_or_space () as integer
  RETURN keyval(scEnter) > 1 OR keyval(scSpace) > 1

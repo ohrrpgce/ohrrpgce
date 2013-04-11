@@ -1266,7 +1266,7 @@ DO
   state.need_update = YES
  END IF
 
- IF enter_or_space() THEN
+ IF enter_space_click(state) THEN
   SELECT CASE workmenu(state.pt)
    CASE AtkBackAct
     IF menudepth = 1 THEN
@@ -1507,7 +1507,7 @@ FUNCTION atk_edit_add_new (recbuf() as integer, byref recindex as integer, previ
       menu(1) = "New Blank Attack"
       menu(2) = "Copy of Attack " & attacktocopy
     END IF
-    IF enter_or_space() THEN
+    IF enter_space_click(state) THEN
       SELECT CASE state.pt
         CASE 0 ' cancel
           recindex -= 1
@@ -2380,7 +2380,7 @@ SUB menu_editor_keys (state as MenuState, mstate as MenuState, menudata as MenuD
  
  SELECT CASE state.pt
   CASE 0
-   IF enter_or_space() THEN
+   IF enter_space_click(state) THEN
     state.active = NO
    END IF
   CASE 1
@@ -2395,7 +2395,7 @@ SUB menu_editor_keys (state as MenuState, mstate as MenuState, menudata as MenuD
   CASE 2
    IF strgrabber(menudata.name, 20) THEN state.need_update = YES
   CASE 3
-   IF enter_or_space() THEN
+   IF enter_space_click(state) THEN
     mstate.active = YES
     mstate.need_update = YES
     menudata.edit_mode = YES
@@ -2405,23 +2405,23 @@ SUB menu_editor_keys (state as MenuState, mstate as MenuState, menudata as MenuD
    IF intgrabber(menudata.boxstyle, 0, 14) THEN state.need_update = YES
   CASE 5
    IF intgrabber(menudata.textcolor, 0, 255) THEN state.need_update = YES
-   IF enter_or_space() THEN
+   IF enter_space_click(state) THEN
     menudata.textcolor = color_browser_256(menudata.textcolor)
     state.need_update = YES
    END IF
   CASE 6
    IF intgrabber(menudata.maxrows, 0, 20) THEN state.need_update = YES
   CASE 7
-   IF enter_or_space() THEN
+   IF enter_space_click(state) THEN
     edit_menu_bits menudata
     state.need_update = YES
    END IF
   CASE 8
-   IF enter_or_space() THEN
+   IF enter_space_click(state) THEN
     reposition_menu menudata, mstate
    END IF
   CASE 9
-   IF enter_or_space() THEN
+   IF enter_space_click(state) THEN
     reposition_anchor menudata, mstate
    END IF
   CASE 10 ' text align
@@ -2435,7 +2435,7 @@ SUB menu_editor_keys (state as MenuState, mstate as MenuState, menudata as MenuD
   CASE 14 ' item spacing
    IF intgrabber(menudata.itemspacing, -10, 100) THEN state.need_update = YES
   CASE 15: ' on-close script
-   IF enter_or_space() THEN
+   IF enter_space_click(state) THEN
     scriptbrowse menudata.on_close, plottrigger, "menu on-close plotscript"
     state.need_update = YES
    END IF
@@ -2490,7 +2490,7 @@ SUB menu_editor_menu_keys (mstate as MenuState, dstate as MenuState, menudata as
   ELSE
    IF menudata.edit_mode = YES THEN
     'Selecting the item that appends new items
-    IF enter_or_space() THEN
+    IF enter_space_click(mstate) THEN
      menudata.last->caption = ""
      append_menu_item menudata, "[NEW MENU ITEM]"
      mstate.active = NO
@@ -2530,7 +2530,7 @@ SUB menu_editor_detail_keys(dstate as MenuState, mstate as MenuState, detail as 
 
  SELECT CASE dstate.pt
   CASE 0
-   IF enter_or_space() THEN
+   IF enter_space_click(dstate) THEN
     dstate.active = NO
     mstate.active = YES
     EXIT SUB
@@ -2557,7 +2557,7 @@ SUB menu_editor_detail_keys(dstate as MenuState, mstate as MenuState, detail as 
    END SELECT
    IF mi.t = 4 THEN '--script
     IF scrintgrabber(mi.sub_t, 0, 0, scLeft, scRight, 1, plottrigger) THEN dstate.need_update = YES
-    IF enter_or_space() THEN
+    IF enter_space_click(dstate) THEN
      scriptbrowse mi.sub_t, plottrigger, "Menu Item Script"
      dstate.need_update = YES
     END IF
@@ -2573,7 +2573,7 @@ SUB menu_editor_detail_keys(dstate as MenuState, mstate as MenuState, detail as 
   CASE 7: 'toggle tag
    IF tag_grabber(mi.togtag, 0, , NO) THEN dstate.need_update = YES
   CASE 8: ' bitsets
-   IF enter_or_space() THEN
+   IF enter_space_click(dstate) THEN
     edit_menu_item_bits mi
    END IF
   CASE 9 TO 11:
@@ -2771,7 +2771,7 @@ FUNCTION browse_base_attack_stat(byval base_num as integer) as integer
 
   IF keyval(scF1) > 1 THEN show_help "attack_browse_base_stat"
 
-  IF enter_or_space() THEN
+  IF enter_space_click(hstate) THEN
    result = menu(hstate.pt).items[state(hstate.pt).pt]->extra(0)
    EXIT DO
   END IF

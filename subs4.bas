@@ -111,7 +111,7 @@ DO
  usemenu state
  SELECT CASE state.pt
   CASE 0
-   IF enter_or_space() THEN
+   IF enter_space_click(state) THEN
     EXIT DO
    END IF
   CASE 1
@@ -140,11 +140,11 @@ DO
     GOSUB vehmenu
    END IF
   CASE 4
-   IF enter_or_space() THEN
+   IF enter_space_click(state) THEN
     editbitset veh(), 9, 8, vehbit(), "vehicle_bitsets"
    END IF
   CASE 10, 11
-   IF enter_or_space() THEN
+   IF enter_space_click(state) THEN
     veh(offset(state.pt)) = large(0, veh(offset(state.pt)))
     scriptbrowse veh(offset(state.pt)), plottrigger, "vehicle plotscript"
     GOSUB vehmenu
@@ -152,7 +152,7 @@ DO
     GOSUB vehmenu
    END IF
   CASE 13, 14
-   IF enter_or_space() THEN
+   IF enter_space_click(state) THEN
     DIM temptrig as integer = large(0, -veh(offset(state.pt)))
     scriptbrowse temptrig, plottrigger, "vehicle plotscript"
     veh(offset(state.pt)) = -temptrig
@@ -267,9 +267,9 @@ SUB generalscriptsmenu ()
   IF keyval(scF1) > 1 THEN show_help "global_scripts"
   usemenu state
   IF state.pt = 0 THEN
-   IF enter_or_space() THEN EXIT DO
+   IF enter_space_click(state) THEN EXIT DO
   ELSE
-   IF enter_or_space() THEN
+   IF enter_space_click(state) THEN
     scriptbrowse(gen(scriptgenoff(state.pt)), plottrigger, scripttype(state.pt))
    ELSE
     scrintgrabber(gen(scriptgenoff(state.pt)), 0, 0, scLeft, scRight, 1, plottrigger)
@@ -336,7 +336,7 @@ SUB generalmusicsfxmenu ()
     IF keyval(scF1) > 1 THEN show_help "general_music_sfx"
     usemenu state
 
-    IF enter_or_space() THEN
+    IF enter_space_click(state) THEN
       SELECT CASE state.pt
       CASE 0
         EXIT DO
@@ -461,7 +461,7 @@ DO
    importsong_get_song_info sname, songfile, snum, file_ext, menu(), selectable()
   END IF
  END IF
- IF enter_or_space() THEN
+ IF enter_space_click(state) THEN
   IF state.pt = 0 THEN EXIT DO
   IF state.pt = 3 THEN
    importsong_import_song_file sname, songfile, snum
@@ -715,7 +715,7 @@ DO
    importsfx_get_sfx_info sname, sfxfile, snum, file_ext, menu()
   END IF
  END IF
- IF enter_or_space() THEN
+ IF enter_space_click(state) THEN
   SELECT CASE state.pt
   CASE 0
     EXIT DO
@@ -921,7 +921,7 @@ DO
   state.need_update = YES
  END IF
 
- IF enter_or_space() THEN
+ IF enter_space_click(state) THEN
   SELECT CASE state.pt
   CASE 0
     EXIT DO
@@ -1305,7 +1305,7 @@ SUB battleoptionsmenu ()
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "battle_system_options"
   usemenu state, enabled()
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    IF state.pt = 0 THEN EXIT DO
    IF state.pt = 1 THEN statcapsmenu
    IF state.pt = 2 THEN equipmergemenu
@@ -1377,7 +1377,7 @@ SUB statcapsmenu
   setwait 55
   setkeys YES
 
-  IF keyval(scESC) > 1 OR (state.pt = 0 AND enter_or_space()) THEN EXIT DO
+  IF keyval(scESC) > 1 OR (state.pt = 0 AND enter_space_click(state)) THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "stat_caps_menu"
   usemenu state
   IF state.pt > 0 THEN
@@ -1501,7 +1501,7 @@ SUB equipmergemenu
   tog XOR= 1
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "equip_elemental_formula"
-  IF enter_or_space() THEN
+  IF enter_space_click(st) THEN
    IF st.pt = 0 THEN
     EXIT DO
    ELSE
@@ -1555,7 +1555,7 @@ SUB startingdatamenu
   setwait 55
   setkeys YES
 
-  IF keyval(scESC) > 1 OR (state.pt = 0 AND enter_or_space()) THEN EXIT DO
+  IF keyval(scESC) > 1 OR (state.pt = 0 AND enter_space_click(state)) THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "new_game_data"
   usemenu state
   IF state.pt > 0 THEN
@@ -1684,7 +1684,7 @@ SUB gendata ()
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "general_game_data"
   usemenu state, enabled()
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    IF state.pt = 0 THEN EXIT DO
    IF state.pt = 3 THEN
     DIM bittemp(2) as integer

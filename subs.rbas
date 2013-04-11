@@ -699,7 +699,7 @@ DO
   END IF
  END IF
 
- IF enter_or_space() THEN
+ IF enter_space_click(state) THEN
   SELECT CASE workmenu(state.pt)
    CASE EnMenuBackAct
     IF menudepth THEN
@@ -906,7 +906,7 @@ FUNCTION enemy_edit_add_new (recbuf() as integer, byref recindex as integer, pre
       menu(1) = "New Blank Enemy"
       menu(2) = "Copy of Enemy " & enemytocopy & " " & enemy.name
     END IF
-    IF enter_or_space() THEN
+    IF enter_space_click(state) THEN
       SELECT CASE state.pt
         CASE 0 ' cancel
           recindex -= 1
@@ -950,7 +950,7 @@ SUB formation_editor
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "formation_main"
   usemenu state
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    IF state.pt = 0 THEN EXIT DO
    IF state.pt = 1 THEN individual_formation_editor
    IF state.pt = 2 THEN formation_set_editor
@@ -990,7 +990,7 @@ SUB formation_set_editor
   END IF
   IF keyval(scF1) > 1 THEN show_help "formation_sets"
   IF usemenu(state) THEN GOSUB lpreviewform
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    IF state.pt = 0 THEN
     SaveFormationSet formset, set_id
     EXIT DO
@@ -1106,7 +1106,7 @@ SUB individual_formation_editor ()
    usemenu state
    slot = state.pt - 6
 
-   IF enter_or_space() THEN
+   IF enter_space_click(state) THEN
     IF state.pt = 0 THEN
      EXIT DO
     END IF
@@ -1298,7 +1298,7 @@ SUB item_editor
    state.need_update = YES
   END IF
   usemenu state
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    IF state.pt = -1 THEN EXIT DO
    IF state.pt = gen(genMaxItem) + 1 THEN
     IF gen(genMaxItem) < maxMaxItems THEN
@@ -1427,7 +1427,7 @@ SUB individual_item_editor(item_id as integer)
   IF LEN(selectst.query) = 0 AND (state.pt = 1 OR state.pt = 2) THEN
    enable_strgrabber = YES
   END IF
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    IF state.pt = 0 THEN EXIT DO
    IF itembuf(49) = 1 THEN
     IF state.pt = 17 THEN
@@ -1650,7 +1650,7 @@ DO
  IF keyval(scF1) > 1 THEN show_help "pick_npc_to_edit"
  intgrabber state.pt, 0, state.last
  usemenu state
- IF enter_or_space() THEN
+ IF enter_space_click(state) THEN
   IF state.pt = st.num_npc_defs THEN
    '--Add new NPC option
    st.num_npc_defs += 1
@@ -1789,7 +1789,7 @@ SUB hero_editor
    load_special_tag_caches
   END IF
   usemenu mstate
-  IF enter_or_space() THEN
+  IF enter_space_click(mstate) THEN
    SELECT CASE mstate.pt
     CASE 0: EXIT DO
     CASE 3: hero_editor_appearance st, her
@@ -1878,7 +1878,7 @@ FUNCTION hero_editor_add_new (st as HeroEditState, her as HeroDef, byref recinde
       menu(1) = "New Blank Hero"
       menu(2) = "Copy of Hero " & herotocopy & " " & her.name
     END IF
-    IF enter_or_space() THEN
+    IF enter_space_click(state) THEN
       SELECT CASE state.pt
         CASE 0 ' cancel
           recindex -= 1
@@ -2009,7 +2009,7 @@ SUB hero_editor_stats_menu (her as HeroDef)
    END IF
   END IF
 
-  IF enter_or_space() THEN
+  IF enter_space_click(mstate) THEN
    IF mstate.pt = 0 THEN EXIT DO
    IF mstate.pt = 1 THEN
     hero_editor_stat_visibility her
@@ -2214,7 +2214,7 @@ SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer)
    IF usemenu(mstate) THEN mstate.need_update = YES
   END IF
 
-  IF enter_or_space() THEN
+  IF enter_space_click(mstate) THEN
    IF mstate.pt = -3 THEN
     EXIT DO
    END IF
@@ -2336,7 +2336,7 @@ SUB hero_editor_edit_spell_list_slot (slot as SpellList)
 
   SELECT CASE st.pt
    CASE 0:
-    IF enter_or_space() THEN
+    IF enter_space_click(st) THEN
      EXIT DO
     END IF
    CASE 1:
@@ -2344,7 +2344,7 @@ SUB hero_editor_edit_spell_list_slot (slot as SpellList)
    CASE 2:
     IF zintgrabber(slot.learned, -1, 99) THEN st.need_update = YES
    CASE 3:
-    IF enter_or_space() ORELSE keyval(scLeft) > 1 ORELSE keyval(scRight) > 1 THEN
+    IF enter_space_click(st) ORELSE keyval(scLeft) > 1 ORELSE keyval(scRight) > 1 THEN
      IF slot.learned > 0 THEN
       slot.learned = 0
      ELSE
@@ -2468,7 +2468,7 @@ SUB hero_editor_battle_menu (her as HeroDef)
   menu_of_reorderable_nodes st, menu
   usemenu st
   
-  IF enter_or_space() THEN
+  IF enter_space_click(st) THEN
    IF st.pt = 0 THEN EXIT DO
    edit_node = menu.items[st.pt]->dataptr
    edit_battle_menu_item her, edit_node
@@ -2580,7 +2580,7 @@ SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
   usemenu st
   
   WITH *menu.items[st.pt]
-   IF enter_or_space() THEN
+   IF enter_space_click(st) THEN
     SELECT CASE .t
      CASE edbatmenu_EXIT: EXIT DO
      CASE edbatmenu_KIND:
@@ -2641,7 +2641,7 @@ SUB browse_battle_menu_kinds (byval menu_node as NodePtr)
 
   usemenu st
   
-  IF enter_or_space() THEN
+  IF enter_space_click(st) THEN
    WITH *menu.items[st.pt]
     SELECT CASE .t
      CASE 1: change_battle_menu_kind menu_node, "weapon"
@@ -2715,7 +2715,7 @@ SUB hero_editor_tags (byval hero_id as integer, byref hero as HeroDef)
   WITH hero
    SELECT CASE st.pt
     CASE 0
-     IF enter_or_space() THEN EXIT DO
+     IF enter_space_click(st) THEN EXIT DO
     CASE 1
      tag_grabber .have_tag, 0
     CASE 2
@@ -2875,7 +2875,7 @@ SUB hero_editor_appearance(byref st as HeroEditState, byref her as HeroDef)
   st.previewframe = -1
   IF state.pt = 8 THEN st.previewframe = 0
   IF state.pt = 9 THEN st.previewframe = 1
-  IF enter_or_space() AND state.pt = 0 THEN EXIT DO
+  IF enter_space_click(state) AND state.pt = 0 THEN EXIT DO
   IF state.pt > 0 THEN
    SELECT CASE state.pt
     CASE 1
@@ -2915,7 +2915,7 @@ SUB hero_editor_appearance(byref st as HeroEditState, byref her as HeroDef)
       st.changed = YES
      END IF
    END SELECT
-   IF enter_or_space() THEN
+   IF enter_space_click(state) THEN
     SELECT CASE state.pt
      CASE 2
       her.sprite_pal = pal16browse(her.sprite_pal, 0, her.sprite)
@@ -2964,7 +2964,7 @@ SUB hero_editor_equipment_list (byval hero_id as integer, byref her as HeroDef)
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "hero_equipment"
   usemenu state
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    IF state.pt = 0 THEN
     EXIT DO
    ELSE
@@ -3027,7 +3027,7 @@ SUB common_elementals_editor(elementals() as single, helpfile as string, byval s
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help helpfile
   IF st.pt = 0 THEN
-   IF enter_or_space() THEN EXIT DO
+   IF enter_space_click(st) THEN EXIT DO
   ELSE
    IF percent_grabber(elementals(st.pt - 1), float_reprs(st.pt - 1), -1000, 1000) THEN st.need_update = YES
   END IF
@@ -3127,7 +3127,7 @@ SUB item_editor_stat_bonuses(itembuf() as integer)
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "equipment_stat_bonuses"
   usemenu state
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    IF state.pt = -1 THEN EXIT DO
   END IF
   IF state.pt >= 0 THEN

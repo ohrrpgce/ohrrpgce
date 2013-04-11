@@ -139,7 +139,7 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
     thisname = safe_tag_name(state.pt + 1)
    END IF
   END IF
-  IF state.pt = 0 AND enter_or_space() THEN EXIT DO
+  IF state.pt = 0 AND enter_space_click(state) THEN EXIT DO
   IF state.pt > 0 AND state.pt + 1 <= gen(genMaxTagName) + 1 THEN
    IF keyval(scTab) > 1 ANDALSO tag_is_autoset(state.pt + 1) THEN
     tag_autoset_warning state.pt + 1
@@ -230,7 +230,6 @@ FUNCTION cond_grabber (cond as Condition, byval default as integer = NO, byval a
    END IF
   ELSE
    'I tend to hit space while typing an expression...
-   'IF enter_or_space() THEN 
    IF keyval(scEnter) > 1 THEN cond_editor(cond, default): RETURN YES
   END IF
 
@@ -429,7 +428,7 @@ SUB cond_editor (cond as Condition, byval default as integer = NO)
   setkeys
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "cond_editor"
-  IF enter_or_space() THEN
+  IF enter_space_click(st) THEN
    SELECT CASE st.pt
     CASE 0:
      EXIT DO
@@ -763,7 +762,7 @@ SUB percent_cond_editor (cond as AttackElementCondition, byval min as double, by
  DO
   setwait 55
   setkeys YES
-  IF keyval(scEsc) > 1 OR enter_or_space() THEN EXIT DO
+  IF keyval(scEsc) > 1 OR enter_space_click(st) THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "percent_cond_editor"
   SELECT CASE st.pt
    CASE 1: IF intgrabber(type_num, 0, 2) THEN cond.type = cond_types(type_num)
@@ -836,7 +835,7 @@ SUB ui_color_editor(palnum as integer)
 
   index = state.pt - 1
 
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    IF state.pt = 0 THEN
     EXIT DO
    ELSEIF index < uiTextBoxFrame THEN
@@ -1163,7 +1162,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
      palette16_unload @npcdata.pal
      npcdata.pal = palette16_load(npcdata.palette, 4, npcdata.picture)
     END IF
-    IF enter_or_space() THEN
+    IF enter_space_click(state) THEN
      npcdata.palette = pal16browse(npcdata.palette, 4, npcdata.picture)
      palette16_unload @npcdata.pal
      npcdata.pal = palette16_load(npcdata.palette, 4, npcdata.picture)
@@ -1194,11 +1193,11 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
    CASE 10'--tag conditionals
     tag_grabber npcdata.tag2
    CASE 11'--one-time-use tag
-    IF keyval(scLeft) > 1 OR keyval(scRight) > 1 OR enter_or_space() THEN
+    IF keyval(scLeft) > 1 OR keyval(scRight) > 1 OR enter_space_click(state) THEN
      onetimetog npcdata.usetag
     END IF
    CASE 12'--script
-    IF enter_or_space() THEN
+    IF enter_space_click(state) THEN
      scrname = scriptbrowse_string(npcdata.script, plottrigger, "NPC use plotscript")
     ELSEIF scrintgrabber(npcdata.script, 0, 0, scLeft, scRight, 1, plottrigger) THEN
      scrname = scriptname(npcdata.script)
@@ -1214,7 +1213,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
    CASE 16
     intgrabber(npcdata.defaultwallzone, lnpc(state.pt), unpc(state.pt))
    CASE -1' previous menu
-    IF enter_or_space() THEN EXIT DO
+    IF enter_space_click(state) THEN EXIT DO
   END SELECT
 
   IF select_by_typing(selectst, NO) THEN
@@ -1389,7 +1388,7 @@ FUNCTION pal16browse (byval curpal as integer, byval picset as integer, byval pi
    state.top = bound(state.top, state.pt - state.size, state.pt)
    state.need_update = YES
   END IF
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    IF state.pt >= 0 THEN curpal = state.pt
    EXIT DO
   END IF
@@ -1542,7 +1541,7 @@ FUNCTION askwhatmetadata (metadata() as integer, metadatalabels() as string) as 
   IF keyval(scESC) > 1 THEN RETURN NO
   IF keyval(scF1) > 1 THEN show_help "textbox_export_askwhatmetadata"
   
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    IF state.pt = -1 THEN RETURN YES
    IF metadata(state.pt) = NO THEN metadata(state.pt) = YES ELSE metadata(state.pt) = NO
   END IF
@@ -2238,12 +2237,12 @@ FUNCTION editbitset (array() as integer, byval wof as integer, byval last as int
     setbit array(), wof, bits(state.pt), 1
     IF immediate_quit THEN ret = YES: EXIT DO
    END IF
-   IF enter_or_space() THEN
+   IF enter_space_click(state) THEN
     setbit array(), wof, bits(state.pt), readbit(array(), wof, bits(state.pt)) XOR 1
     IF immediate_quit THEN ret = YES: EXIT DO
    END IF
   ELSE
-   IF enter_or_space() THEN EXIT DO
+   IF enter_space_click(state) THEN EXIT DO
   END IF
   clearpage dpage
   draw_fullscreen_scrollbar state, , dpage
@@ -2408,7 +2407,7 @@ FUNCTION scriptbrowse_string (byref trigger as integer, byval triggertype as int
   setkeys YES
   IF keyval(scESC) > 1 THEN RETURN missing_script_name
   IF keyval(scF1) > 1 THEN show_help "scriptbrowse"
-  IF enter_or_space() THEN EXIT DO
+  IF enter_space_click(state) THEN EXIT DO
   usemenu state
 
   IF select_by_typing(selectst) THEN
@@ -2780,7 +2779,7 @@ SUB script_usage_list ()
   setkeys YES
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "script_usage_list"
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    IF state.pt = 0 THEN EXIT DO
   END IF
   usemenu state
@@ -2862,7 +2861,7 @@ SUB script_broken_trigger_list()
   setkeys
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "script_broken_trigger_list"
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    IF state.pt = 0 THEN EXIT DO
   END IF
   usemenu state
@@ -2956,7 +2955,7 @@ FUNCTION sublist (s() as string, helpkey as string="", byval x as integer=0, byv
    EXIT DO
   END IF
   IF keyval(scF1) > 1 AND helpkey <> "" THEN show_help helpkey
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    sublist = state.pt
    EXIT DO
   END IF
@@ -3211,7 +3210,7 @@ SUB edit_global_text_strings()
   END IF
   usemenu state
   IF state.pt = -1 THEN
-   IF enter_or_space() THEN EXIT DO
+   IF enter_space_click(state) THEN EXIT DO
   ELSEIF menu.index(state.pt) <> -1 THEN
    strgrabber menu.text(state.pt), menu.maxlen(state.pt)
   END IF
@@ -3606,7 +3605,7 @@ SUB fontedit (font() as integer)
    CASE -1
     IF keyval(scEsc) > 1 THEN EXIT DO
     usemenu state
-    IF enter_or_space() THEN
+    IF enter_space_click(state) THEN
      IF state.pt = 0 THEN EXIT DO
      IF state.pt = 1 THEN mode = 0
      IF state.pt = 2 THEN
@@ -3622,7 +3621,7 @@ SUB fontedit (font() as integer)
     IF keyval(scDown) > 1 THEN pt = small(pt + linesize, last)
     IF keyval(scLeft) > 1 THEN pt = large(pt - 1, 0)
     IF keyval(scRight) > 1 THEN pt = small(pt + 1, last)
-    IF enter_or_space() THEN
+    IF enter_space_click(state) THEN
      IF pt < 0 THEN
       mode = -1
      ELSE
@@ -3887,7 +3886,7 @@ SUB experience_chart ()
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "experience_chart"
   usemenu state
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    IF state.pt = 0 THEN EXIT DO
   END IF
   IF state.pt = 1 THEN
@@ -3994,7 +3993,7 @@ SUB stat_growth_chart ()
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "stat_growth"
   usemenu state
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    IF state.pt = 0 THEN EXIT DO
   END IF
   IF state.pt = 1 THEN

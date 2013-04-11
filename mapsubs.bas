@@ -178,7 +178,7 @@ DO
  IF state.pt = 2 THEN
   IF intgrabber(maptocopy, 0, gen(genMaxMap)) THEN state.need_update = YES
  END IF
- IF enter_or_space() THEN
+ IF enter_space_click(state) THEN
   SELECT CASE state.pt
    CASE 0 ' cancel
     RETURN -2
@@ -242,7 +242,7 @@ SUB map_picker ()
    select_on_word_boundary_excluding topmenu(), selectst, state, "map"
   END IF
 
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    IF state.pt = 0 THEN EXIT DO
    IF state.pt > 0 AND state.pt <= gen(genMaxMap) + 1 THEN
     mapeditor state.pt - 1
@@ -574,7 +574,7 @@ DO
   select_on_word_boundary mapeditmenu(), selectst, st.menustate
  END IF
 
- IF enter_or_space() THEN
+ IF enter_space_click(st.menustate) THEN
   SELECT CASE st.menustate.pt
    CASE 0
     mapedit_savemap st, map(), pass, emap, zmap, gmap(), doors(), link(), mapname
@@ -1720,7 +1720,7 @@ SUB mapedit_list_npcs_by_tile (st as MapEditState)
 
   IF keyval(scF1) > 1 THEN show_help "mapedit_npcs_by_tile"
   IF keyval(scESC) > 1 THEN EXIT DO
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    clearkey(scSpace)
    IF state.pt = 0 THEN EXIT DO
   END IF
@@ -2121,7 +2121,7 @@ SUB mapedit_edit_zoneinfo(st as MapEditState, zmap as ZoneMap)
 
   SELECT CASE state.pt
    CASE 0
-    IF enter_or_space() THEN EXIT DO
+    IF enter_space_click(state) THEN EXIT DO
    CASE 1
     IF intgrabber(st.cur_zone, 1, 9999) THEN
      state.need_update = YES
@@ -2339,7 +2339,7 @@ SUB mapedit_gmapdata(st as MapEditState, gmap() as integer, zmap as ZoneMap)
  DO
   setwait 55
   setkeys YES
-  IF keyval(scESC) > 1 OR (state.pt = 0 AND enter_or_space()) THEN EXIT DO
+  IF keyval(scESC) > 1 OR (state.pt = 0 AND enter_space_click(state)) THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "general_map_data"
   usemenu state, cast(BasicMenuItem vector, menu)
   DIM idx as integer = gdidx(state.pt)
@@ -2350,11 +2350,11 @@ SUB mapedit_gmapdata(st as MapEditState, gmap() as integer, zmap as ZoneMap)
      music_stop
      state.need_update = YES
     END IF
-    IF enter_or_space() THEN
+    IF enter_space_click(state) THEN
      IF gmap(idx) > 0 THEN playsongnum gmap(idx) - 1
     END IF
    CASE 7, 12 TO 15 'scripts
-    IF enter_or_space() THEN
+    IF enter_space_click(state) THEN
      scriptbrowse(gmap(idx), plottrigger, "plotscript")
      state.need_update = YES
     ELSEIF scrintgrabber(gmap(idx), 0, 0, scLeft, scRight, 1, plottrigger) THEN
@@ -2362,7 +2362,7 @@ SUB mapedit_gmapdata(st as MapEditState, gmap() as integer, zmap as ZoneMap)
     END IF
    CASE 10 'Harm tile color
     state.need_update OR= intgrabber(gmap(idx), gdmin(idx), gdmax(idx))
-    IF enter_or_space() THEN
+    IF enter_space_click(state) THEN
      gmap(idx) = color_browser_256(gmap(idx))
     END IF
    CASE ELSE 'all other gmap data are simple integers
@@ -2507,7 +2507,7 @@ SUB mapedit_layers (st as MapEditState, gmap() as integer, visible() as integer,
   IF resetpt = NO THEN
    SELECT CASE menu[state.pt].role
     CASE ltPreviousMenu
-     IF enter_or_space() THEN
+     IF enter_space_click(state) THEN
       EXIT DO
      END IF
     CASE ltDefaultTileset
@@ -2533,7 +2533,7 @@ SUB mapedit_layers (st as MapEditState, gmap() as integer, visible() as integer,
       state.need_update = YES
      END IF
     CASE ltLayerEnabled
-     IF enter_or_space() THEN
+     IF enter_space_click(state) THEN
       ToggleLayerEnabled(gmap(), layerno)
       state.need_update = YES
      END IF
@@ -3151,7 +3151,7 @@ SUB mapedit_linkdoors (st as MapEditState, map() as TileMap, pass as TileMap, gm
   END IF
   IF keyval(scF1) > 1 THEN show_help "mapedit_linkdoors"
   IF usemenu(state) THEN state.need_update = YES
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    IF state.pt = state.last AND link(state.pt).source = -1 THEN link(state.pt).source = 0
    link_one_door st, state.pt, link(), doors(), map(), pass, gmap()
    state.need_update = YES
@@ -3266,7 +3266,7 @@ SUB link_one_door(st as MapEditState, linknum as integer, link() as DoorLink, do
      '...
    END SELECT
   ELSE
-   IF enter_or_space() THEN EXIT DO
+   IF enter_space_click(state) THEN EXIT DO
   END IF
   '--Draw screen
   copypage 2, dpage

@@ -153,7 +153,7 @@ DO
   menu(1) = CHR(27) + "Browse " & pt & CHR(26)
   loadmxs game + f, pt, vpages(2)
  END IF
- IF enter_or_space() THEN
+ IF enter_space_click(mstate) THEN
   IF mstate.pt = 0 THEN EXIT DO
   IF mstate.pt = 2 THEN
    'Replace current
@@ -329,8 +329,8 @@ DO
  ELSEIF usemenu(state) THEN
   state.need_update = YES
  END IF
- IF enter_or_space() AND state.pt = -1 THEN EXIT DO
- IF enter_or_space() AND state.pt > -1 THEN
+ IF enter_space_click(state) AND state.pt = -1 THEN EXIT DO
+ IF enter_space_click(state) AND state.pt > -1 THEN
   pagenum = state.pt
   GOSUB tilemode
   state.need_update = YES
@@ -2518,7 +2518,7 @@ FUNCTION spriteedit_import16_remap_menu(byref ss as SpriteEditState, byref ss_sa
    palstate.need_update = YES
   END IF
   IF usemenu(palstate) THEN palstate.need_update = YES
-  IF enter_or_space() THEN ret = retval(palstate.pt) : EXIT DO
+  IF enter_space_click(palstate) THEN ret = retval(palstate.pt) : EXIT DO
 
   IF palstate.need_update THEN
    palstate.need_update = NO
