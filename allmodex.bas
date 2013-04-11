@@ -150,6 +150,7 @@ dim shared mouselastflags as integer
 dim shared mouse_lastpos as XYPair       'Position at last readmouse call
 dim shared mouse_clickstart as XYPair
 dim shared mouse_dragmask as integer
+dim shared mouse_moved_since_setkeys as integer
 
 dim shared textfg as integer
 dim shared textbg as integer
@@ -1199,6 +1200,8 @@ sub setkeys (byval enable_inputtext as bool = NO)
 			mouse_grab_overridden = YES
 		end if
 	end if
+	
+	mouse_moved_since_setkeys = NO
 
 end sub
 
@@ -1279,6 +1282,11 @@ function readmouse () as MouseInfo
 	mouse_lastpos = Type(info.x, info.y)
 	info.dragging = mouse_dragmask
 	info.clickstart = mouse_clickstart
+	
+	if mouse_moved_since_setkeys ORELSE info.moved then
+		mouse_moved_since_setkeys = YES
+		info.movedtick = YES
+	end if
 
 	if info.clicks <> 0 then
 		if mouse_grab_requested andalso mouse_grab_overridden then

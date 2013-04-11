@@ -1969,6 +1969,13 @@ SUB hero_editor_stats_menu (her as HeroDef)
   .last = v_len(leftmenu) - 1
   .size = 22
   .need_update = YES
+  .active = YES
+ END WITH
+ DIM inactive_state as MenuState
+ WITH inactive_state
+  .last = mstate.last
+  .size = mstate.size
+  .active = NO
  END WITH
 
  DIM min(11) as integer, max(11) as integer
@@ -1980,6 +1987,8 @@ SUB hero_editor_stats_menu (her as HeroDef)
  max(statMP) = 9999
  max(statFocus) = 100
  max(statHitX) = 10
+ 
+ DIM mouse as MouseInfo
 
  setkeys
  DO
@@ -1990,6 +1999,15 @@ SUB hero_editor_stats_menu (her as HeroDef)
 
   usemenu mstate, leftmenu
   DIM statnum as integer = mstate.pt - 4
+  
+  mouse = readmouse
+  IF mouse.movedtick THEN
+   IF mouse.x > 160 THEN
+    activemenu = 1
+   ELSE
+    activemenu = 0
+   END IF
+  END IF
 
   IF enter_or_space() THEN
    IF mstate.pt = 0 THEN EXIT DO
@@ -2028,10 +2046,13 @@ SUB hero_editor_stats_menu (her as HeroDef)
   '--Draw screen
   clearpage dpage
   'Note that exactly one of the following two standardmenus should be active, since they share 'state'
-  mstate.active = (activemenu = 0)
-  standardmenu leftmenu, mstate, 8, 0, dpage
-  mstate.active = (activemenu = 1)
-  standardmenu rightmenu, mstate, 160, 0, dpage
+  IF activemenu = 0 THEN
+   standardmenu leftmenu, mstate, 8, 0, dpage
+   standardmenu rightmenu, inactive_state, 160, 0, dpage
+  ELSE activemenu = 1
+   standardmenu leftmenu, inactive_state, 8, 0, dpage
+   standardmenu rightmenu, mstate, 160, 0, dpage
+  END IF
 
   IF statnum >= 0 THEN  '--Draw graph
    textcolor uilook(uiMenuItem), 0
