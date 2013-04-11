@@ -110,29 +110,46 @@ END SUB
 
 FUNCTION usemenu (byref state as MenuState, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
  WITH state
-  RETURN usemenu(.pt, .top, .first, .last, .size, deckey, inckey)
+  DIM oldptr as integer = .pt
+  DIM oldtop as integer = .top
+ 
+  IF keyval(deckey) > 1 THEN .pt = loopvar(.pt, .first, .last, -1)
+  IF keyval(inckey) > 1 THEN .pt = loopvar(.pt, .first, .last, 1)
+  IF keyval(scPageup) > 1 THEN .pt = .pt - .size
+  IF keyval(scPagedown) > 1 THEN .pt = .pt + .size
+  IF keyval(scHome) > 1 THEN .pt = .first
+  IF keyval(scEnd) > 1 THEN .pt = .last
+  .pt = small(large(.pt, .first), .last)  '=last when last<first, ie. menu empty
+  .top = bound(.top, .pt - .size, .pt)
+ 
+  IF oldptr = .pt AND oldtop = .top THEN
+   RETURN NO
+  ELSE
+   negative_zero = NO 'Reset for intgrabber
+   RETURN YES
+  END IF
+
  END WITH
 END FUNCTION
 
 FUNCTION usemenu (byref pt as integer, byref top as integer, byval first as integer, byval last as integer, byval size as integer, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
- DIM oldptr as integer = pt
- DIM oldtop as integer = top
-
- IF keyval(deckey) > 1 THEN pt = loopvar(pt, first, last, -1)
- IF keyval(inckey) > 1 THEN pt = loopvar(pt, first, last, 1)
- IF keyval(scPageup) > 1 THEN pt = pt - size
- IF keyval(scPagedown) > 1 THEN pt = pt + size
- IF keyval(scHome) > 1 THEN pt = first
- IF keyval(scEnd) > 1 THEN pt = last
- pt = small(large(pt, first), last)  '=last when last<first, ie. menu empty
- top = bound(top, pt - size, pt)
-
- IF oldptr = pt AND oldtop = top THEN
-  RETURN NO
- ELSE
-  negative_zero = NO 'Reset for intgrabber
-  RETURN YES
- END IF
+ 'FIXME: eventually phase this out by making sure that all callers to usemenu have their own MenuState
+ DIM state as MenuState
+ WITH state
+  .pt = pt
+  .top = top
+  .first = first
+  .last = last
+  .size = size
+ END WITH
+ RETURN usemenu(state, deckey, inckey)
+ WITH state
+  pt = .pt
+  top = .top
+  first = .first
+  last = .last
+  size = .size
+ END WITH
 END FUNCTION
 
 'a version for menus with unselectable items, skip items for which menudata[i].unselectable = YES
@@ -327,6 +344,15 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval 
   showerror "Programmer error: standardmenu: state.first <> 0 not supported for BasicMenuItem menus!"
   EXIT SUB
  END IF
+
+ WITH state
+  .has_been_drawn = YES
+  .rect.x = x
+  .rect.y = y
+  .rect.wide = get_resolution_x()
+  .rect.high = get_resolution_y()
+  .spacing = 8
+ END WITH
 
  IF state.active THEN
   state.tog XOR= 1
