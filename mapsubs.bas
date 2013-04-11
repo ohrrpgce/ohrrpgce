@@ -765,7 +765,6 @@ DO
    FOR i as integer = st.layer + 1 TO UBOUND(map)
     IF layerisenabled(gmap(), i) THEN
      st.layer = i
-     setlayervisible(visible(), st.layer, 1)
      update_tilepicker st
      EXIT FOR
     END IF
@@ -775,7 +774,6 @@ DO
    FOR i as integer = st.layer - 1 TO 0 STEP -1
     IF layerisenabled(gmap(), i) THEN
      st.layer = i
-     setlayervisible(visible(), st.layer, 1)
      update_tilepicker st
      EXIT FOR
     END IF
