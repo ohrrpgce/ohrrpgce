@@ -377,6 +377,7 @@ end sub
 
 'TEMPORARY
 sub setresolution (byval w as integer, byval h as integer)
+	forcevispageresize = YES
 	windowsize.w = large(w, minwinsize.w)
 	windowsize.h = large(h, minwinsize.h)
 end sub

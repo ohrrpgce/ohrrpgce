@@ -56,6 +56,7 @@ DECLARE SUB quad_transforms_menu ()
 DECLARE SUB arbitrary_sprite_editor ()
 DECLARE SUB text_test_menu ()
 DECLARE SUB font_test_menu ()
+DECLARE SUB resolution_menu ()
 
 DECLARE SUB shopdata ()
 DECLARE SUB shop_stuff_edit (byval shop_id as integer, byref thing_total as integer)
@@ -1209,7 +1210,7 @@ FUNCTION handle_dirty_workingdir () as integer
 END FUNCTION
 
 SUB secret_menu ()
- DIM menu(...) as string = {"Reload Editor", "Editor Editor", "Conditions and More Tests", "Transformed Quads", "Sprite editor with arbitrary sizes", "Text tests", "Font tests", "Stat Growth Chart"}
+ DIM menu(...) as string = {"Reload Editor", "Editor Editor", "Conditions and More Tests", "Transformed Quads", "Sprite editor with arbitrary sizes", "Text tests", "Font tests", "Stat Growth Chart", "Resolution Menu"}
  DIM st as MenuState
  st.size = 24
  st.last = UBOUND(menu)
@@ -1227,6 +1228,7 @@ SUB secret_menu ()
    IF st.pt = 5 THEN text_test_menu
    IF st.pt = 6 THEN font_test_menu
    IF st.pt = 7 THEN stat_growth_chart
+   IF st.pt = 8 THEN resolution_menu
   END IF
   usemenu st
   clearpage vpage
@@ -1235,6 +1237,30 @@ SUB secret_menu ()
   dowait
  LOOP
  setkeys
+END SUB
+
+SUB resolution_menu ()
+ DIM menu(...) as string = {"Width=", "Height="}
+ DIM st as MenuState
+ st.size = 24
+ st.last = UBOUND(menu)
+
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  SELECT CASE st.pt
+   CASE 0: intgrabber(gen(genResolutionX), 0, 320)
+   CASE 1: intgrabber(gen(genResolutionY), 0, 200)
+  END SELECT
+  usemenu st
+  menu(0) = "Width: " & gen(genResolutionX)
+  menu(1) = "Height:" & gen(genResolutionY)
+  clearpage vpage
+  standardmenu menu(), st, 0, 0, vpage
+  setvispage vpage
+  dowait
+ LOOP
 END SUB
 
 SUB arbitrary_sprite_editor ()

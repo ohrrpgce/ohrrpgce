@@ -496,6 +496,14 @@ IF isfile(game + ".hsp") THEN unlump game + ".hsp", tmpdir
 fadeout 0, 0, 0
 queue_fade_in
 
+IF gen(genResolutionX) ANDALSO gen(genResolutionY) THEN
+ IF gfxbackend <> "sdl" THEN
+  notification "This game requires use of the gfx_sdl backend; other graphics backends do not support customisable resolution"
+ ELSE
+  setresolution(gen(genResolutionX), gen(genResolutionY))
+ END IF
+END IF
+
 setfont current_font()
 loadglobalstrings
 getstatnames statnames()
