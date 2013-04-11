@@ -117,6 +117,32 @@ SUB corners_to_rect_inclusive (p1 as XYPair, p2 as XYPair, result as RectType)
  result.high += 1
 END SUB
 
+FUNCTION rect_collide_point (r as RectType, p as XYPair) as bool
+ RETURN p.x >= r.x ANDALSO p.y >= r.y ANDALSO p.x < r.x + r.wide ANDALSO p.y < r.y + r.high
+END FUNCTION
+
+FUNCTION rect_collide_point (r as RectType, byval x as integer, byval y as integer) as bool
+ RETURN x >= r.x ANDALSO y >= r.y ANDALSO x < r.x + r.wide ANDALSO y < r.y + r.high
+END FUNCTION
+
+FUNCTION rect_collide_point_vertical_chunk (r as RectType, p as XYPair, chunk_spacing as integer) as integer
+ 'Divide a rect into vertical chunks (like a menu) and return the
+ 'index of the one the point collides with. Returns -1 if none collide
+ IF rect_collide_point(r, p) THEN
+  RETURN int((p.y - r.y) / chunk_spacing)
+ END IF
+ RETURN -1
+END FUNCTION
+
+FUNCTION rect_collide_point_vertical_chunk (r as RectType, byval x as integer, byval y as integer, chunk_spacing as integer) as integer
+ 'Divide a rect into vertical chunks (like a menu) and return the
+ 'index of the one the point collides with. Returns -1 if none collide
+ DIM p as XYPair
+ p.x = x
+ p.y = y
+ RETURN rect_collide_point_vertical_chunk(r, p, chunk_spacing)
+END FUNCTION
+
 FUNCTION rando () as double
  'STATIC count as integer = 0
  'This is a simple wrapper for RND to facilitate debugging

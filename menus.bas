@@ -112,6 +112,19 @@ FUNCTION usemenu (byref state as MenuState, byval deckey as integer = scUp, byva
  WITH state
   DIM oldptr as integer = .pt
   DIM oldtop as integer = .top
+  
+  IF .has_been_drawn THEN
+   DIM mouse as MouseInfo
+   mouse = readmouse()
+   IF mouse.moved THEN
+    DIM mpt as integer = rect_collide_point_vertical_chunk(.rect, mouse.x, mouse.y, .spacing)
+    mpt += .first
+    mpt += .top
+    IF mpt >= .first ANDALSO mpt <= .last THEN
+     .pt = mpt
+    END IF
+   END IF
+  END IF
  
   IF keyval(deckey) > 1 THEN .pt = loopvar(.pt, .first, .last, -1)
   IF keyval(inckey) > 1 THEN .pt = loopvar(.pt, .first, .last, 1)
