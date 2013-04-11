@@ -27,6 +27,7 @@ DECLARE SUB LoadMenuItems(menu_set as MenuSet, dat as MenuDef, byval record as i
 DECLARE SUB LoadMenuItem(byval f as integer, items() as MenuDefItem ptr, byval record as integer)
 DECLARE SUB SaveMenuItems(menu_set as MenuSet, dat as MenuDef, byval record as integer)
 DECLARE SUB SaveMenuItem(byval f as integer, mi as MenuDefItem, byval record as integer, byval menunum as integer, byval itemnum as integer)
+DECLARE FUNCTION mouse_on_menustate (state as MenuState) as integer
 
 'TypeTables
 DEFINE_VECTOR_OF_CLASS(BasicMenuItem, BasicMenuItem)
@@ -108,11 +109,10 @@ SUB append_simplemenu_item (byref menu as SimpleMenuItem vector, caption as stri
  END WITH
 END SUB
 
-FUNCTION usemenu (byref state as MenuState, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
+FUNCTION mouse_on_menustate (state as MenuState) as integer
+ 'If the mouse overlaps a MenuState, return the index of the menu item it is touching.
+ 'Return a value < state.first if the mouse is not on any menu item.
  WITH state
-  DIM oldptr as integer = .pt
-  DIM oldtop as integer = .top
-  
   IF .has_been_drawn THEN
    DIM mouse as MouseInfo
    mouse = readmouse()
@@ -120,10 +120,21 @@ FUNCTION usemenu (byref state as MenuState, byval deckey as integer = scUp, byva
     DIM mpt as integer = rect_collide_point_vertical_chunk(.rect, mouse.x, mouse.y, .spacing)
     mpt += .top
     IF mpt >= .first ANDALSO mpt <= .last THEN
-     .pt = mpt
+     RETURN mpt
     END IF
    END IF
   END IF
+  RETURN .first - 1 'Mouse is not over a menu item!
+ END WITH
+END FUNCTION
+
+FUNCTION usemenu (byref state as MenuState, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
+ WITH state
+  DIM oldptr as integer = .pt
+  DIM oldtop as integer = .top
+  
+  DIM mpt as integer = mouse_on_menustate(state)
+  IF mpt >= .first THEN .pt = mpt
  
   IF keyval(deckey) > 1 THEN .pt = loopvar(.pt, .first, .last, -1)
   IF keyval(inckey) > 1 THEN .pt = loopvar(.pt, .first, .last, 1)
@@ -235,6 +246,14 @@ FUNCTION usemenu (state as MenuState, selectable() as bool, byval deckey as inte
   oldtop = .top
   d = 0
   moved_d = 0
+
+  DIM mpt as integer = mouse_on_menustate(state)
+  IF mpt >= .first ANDALSO selectable(mpt) THEN
+   IF mpt <> .pt THEN
+    .pt = mpt
+    RETURN YES
+   END IF
+  END IF
 
   IF keyval(deckey) > 1 THEN d = -1
   IF keyval(inckey) > 1 THEN d = 1
