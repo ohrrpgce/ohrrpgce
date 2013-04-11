@@ -259,6 +259,9 @@ DECLARE FUNCTION should_hide_hero_stat(hero as HeroDef, byval statnum as integer
 DECLARE FUNCTION find_on_word_boundary_excluding(haystack as string, needle as string, excludeword as string) as integer
 DECLARE FUNCTION find_on_word_boundary(haystack as string, needle as string) as integer
 
+DECLARE FUNCTION get_resolution_x() as integer
+DECLARE FUNCTION get_resolution_y() as integer
+
 'Global variables
 EXTERN sourcerpg as string
 EXTERN as string game, tmpdir, exename, workingdir, homedir, app_dir

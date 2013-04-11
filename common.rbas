@@ -5192,3 +5192,17 @@ END FUNCTION
 FUNCTION find_on_word_boundary(haystack as string, needle as string) as integer
  RETURN find_on_word_boundary_excluding(haystack, needle, "")
 END FUNCTION
+
+FUNCTION get_resolution_x() as integer
+ IF gen(genResolutionX) ANDALSO gfxbackend = "sdl" THEN
+  RETURN gen(genResolutionX)
+ END IF
+ RETURN 320
+END FUNCTION
+
+FUNCTION get_resolution_y() as integer
+ IF gen(genResolutionY) ANDALSO gfxbackend = "sdl" THEN
+  RETURN gen(genResolutionY)
+ END IF
+ RETURN 200
+END FUNCTION
