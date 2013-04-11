@@ -155,7 +155,7 @@ FUNCTION usemenu (byref pt as integer, byref top as integer, byval first as inte
   .last = last
   .size = size
  END WITH
- RETURN usemenu(state, deckey, inckey)
+ DIM result as bool = usemenu(state, deckey, inckey)
  WITH state
   pt = .pt
   top = .top
@@ -163,6 +163,7 @@ FUNCTION usemenu (byref pt as integer, byref top as integer, byval first as inte
   last = .last
   size = .size
  END WITH
+ RETURN result
 END FUNCTION
 
 'a version for menus with unselectable items, skip items for which menudata[i].unselectable = YES
