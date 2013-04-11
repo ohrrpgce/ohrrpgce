@@ -13,6 +13,8 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Qa 2013-04-11 Warn when plotscr.hsd not included
+----- 2013-02-28 Allow non-constant expressions in case blocks again
 --3Pe 2013-01-03 Faster compile times
 --3Pd 2012-10-24 Fix \x escape code
 --3Pc 2012-10-09 Change srcpos encoding to remove source size limits
@@ -141,8 +143,8 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Pe"
-constant COPYRIGHT_DATE="2002"
+constant COMPILER_SUB_VERSION="Qa"
+constant COPYRIGHT_DATE="2013"
 
 --This is the oldest version of plotscr.hsd which is supported (feel free to
 --increment this whenever using an older plotscr.hsd means you're missing out
@@ -1963,7 +1965,11 @@ procedure primary_parse_pass()
     end if
   end while
   if equal(plotscr_version,"") then
-    simple_error("You have included a copy of "&COLYEL&"plotscr.hsd"&COLRED&" from an old release of the OHRRPGCE. Please use the latest version.")
+    if find("plotscr.hsd",column(file_list,FILE_NAME)) then
+      simple_error("You have included a copy of "&COLYEL&"plotscr.hsd"&COLRED&" from an old release of the OHRRPGCE. Please use the latest version.")
+    else
+      simple_error("You forgot to put the line "&COLYEL&"include, plotscr.hsd"&COLRED&" in your script file.")
+    end if
   end if
   if find_in_column("script",trigger_list,PAIR_NUM)=0 then
     trigger_list=append(trigger_list,{0,"script"})

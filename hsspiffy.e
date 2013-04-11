@@ -550,7 +550,7 @@ end function
 global function before_wrap_point(sequence string)
   sequence line,word,result
   integer size
-  size=80
+  size=79
   result=string
   line=explode(string,"\n")
   if length(line) then
@@ -584,8 +584,6 @@ end function
 --this is used to do the word-wrapping of long-lines
 global function after_wrap_point(sequence string)
   sequence result
-  integer size
-  size=80
   result=string[large(length(before_wrap_point(string)),1)+1..length(string)]
   if length(result) then
     if result[1]='\n' then
