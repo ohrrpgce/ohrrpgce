@@ -118,7 +118,6 @@ FUNCTION usemenu (byref state as MenuState, byval deckey as integer = scUp, byva
    mouse = readmouse()
    IF mouse.moved THEN
     DIM mpt as integer = rect_collide_point_vertical_chunk(.rect, mouse.x, mouse.y, .spacing)
-    mpt += .first
     mpt += .top
     IF mpt >= .first ANDALSO mpt <= .last THEN
      .pt = mpt
