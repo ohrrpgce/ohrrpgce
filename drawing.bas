@@ -44,6 +44,7 @@ DECLARE FUNCTION mouseover (byval mousex as integer, byval mousey as integer, by
 DECLARE SUB maptile ()
 DECLARE SUB tileedit_set_tool (ts as TileEditState, toolinfo() as ToolInfoType, byval toolnum as integer)
 DECLARE SUB tile_anim_draw_range(tastuf() as integer, byval taset as integer)
+DECLARE SUB tile_anim_set_range(tastuf() as integer, byval taset as integer, byval pagenum as integer)
 
 DECLARE SUB spriteedit_load_what_you_see(byval j as integer, byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, placer() as integer, workpal() as integer, poffset() as integer)
 DECLARE SUB spriteedit_save_what_you_see(byval j as integer, byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, placer() as integer, workpal() as integer, poffset() as integer)
@@ -430,7 +431,7 @@ DO
  END IF
  IF enter_or_space() THEN
   IF taptr = 0 THEN EXIT DO
-  IF taptr = 2 THEN GOSUB setanimrange
+  IF taptr = 2 THEN tile_anim_set_range tastuf(), taset, pagenum
   IF taptr = 3 THEN setanimpattern tastuf(), taset, pagenum
   IF taptr = 5 THEN testanimpattern tastuf(), taset
  END IF
@@ -452,27 +453,42 @@ menu(1) = CHR(27) + "Animation set " & taset & CHR(26)
 menu(4) = tag_condition_caption(tastuf(1 + 20 * taset), "Disable if Tag", "No tag check")
 RETRACE
 
-setanimrange:
-setkeys
-DO
- setwait 55
- setkeys
- tog = tog XOR 1
- IF keyval(scESC) > 1 OR enter_or_space() THEN EXIT DO
- IF keyval(scF1) > 1 THEN show_help "maptile_setanimrange"
- IF keyval(scUp) > 1 THEN tastuf(0 + 20 * taset) = large(tastuf(0 + 20 * taset) - 16, 0)
- IF keyval(scDown) > 1 THEN tastuf(0 + 20 * taset) = small(tastuf(0 + 20 * taset) + 16, 112)
- IF keyval(scLeft) > 1 THEN tastuf(0 + 20 * taset) = large(tastuf(0 + 20 * taset) - 1, 0)
- IF keyval(scRight) > 1 THEN tastuf(0 + 20 * taset) = small(tastuf(0 + 20 * taset) + 1, 112)
- copypage 3, dpage
- tile_anim_draw_range tastuf(), taset
- SWAP vpage, dpage
- setvispage vpage
- dowait
-LOOP
-savetanim pagenum, tastuf()
-RETRACE
 
+END SUB
+
+SUB tile_anim_set_range(tastuf() as integer, byval taset as integer, byval pagenum as integer)
+ DIM tog as integer
+ DIM mouse as MouseInfo
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  tog = tog XOR 1
+  IF keyval(scESC) > 1 OR enter_or_space() THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "maptile_setanimrange"
+  IF keyval(scUp) > 1 THEN tastuf(0 + 20 * taset) = large(tastuf(0 + 20 * taset) - 16, 0)
+  IF keyval(scDown) > 1 THEN tastuf(0 + 20 * taset) = small(tastuf(0 + 20 * taset) + 16, 112)
+  IF keyval(scLeft) > 1 THEN tastuf(0 + 20 * taset) = large(tastuf(0 + 20 * taset) - 1, 0)
+  IF keyval(scRight) > 1 THEN tastuf(0 + 20 * taset) = small(tastuf(0 + 20 * taset) + 1, 112)
+  mouse = readmouse()
+  WITH mouse
+   IF .clickstick AND mouseleft THEN
+    IF rect_collide_point(str_rect("ESC when done", 0, 0), .x, .y) THEN
+     EXIT DO
+    ELSE
+     tastuf(0 + 20 * taset) = small(cint(int(.x / 20) + int(.y / 20) * 16), 112)
+    END IF
+   END IF
+  END WITH
+  copypage 3, dpage
+  tile_anim_draw_range tastuf(), taset
+  edgeprint "ESC when done", 0, 0, uilook(uiText), dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+ savetanim pagenum, tastuf()
 END SUB
 
 SUB tile_anim_draw_range(tastuf() as integer, byval taset as integer)

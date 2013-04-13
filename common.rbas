@@ -5222,3 +5222,13 @@ FUNCTION get_resolution_y() as integer
  END IF
  RETURN 200
 END FUNCTION
+
+FUNCTION str_rect(s as string, byval x as integer, byval y as integer) as RectType
+ DIM r as RectType
+ r.x = x
+ r.y = y
+ 'FIXME: different font size support!
+ r.wide = LEN(s) * 8
+ r.high = 8
+ RETURN r
+END FUNCTION
