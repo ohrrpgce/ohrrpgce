@@ -3216,12 +3216,12 @@ SUB edit_global_text_strings()
   END IF
  
   clearpage dpage
-  standardmenu menu.description(), state, menu.shaded(), 0, 0, dpage
+  menuopts.highlight = YES
+  standardmenu menu.text(), state, 232, 0, dpage, menuopts
   'Since both halves of the menu share the same state and both are active,
   'they both toggle state.tog. So work around that
   state.tog XOR= 1
-  menuopts.highlight = YES
-  standardmenu menu.text(), state, 232, 0, dpage, menuopts
+  standardmenu menu.description(), state, menu.shaded(), 0, 0, dpage
   draw_scrollbar state, rect, , dpage
   edgeprint "CTRL+S Search", 0, 191, uilook(uiDisabledItem), dpage
   IF state.pt >= 0 ANDALSO LEN(menu.help(state.pt)) THEN
