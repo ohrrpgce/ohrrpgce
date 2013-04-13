@@ -43,6 +43,7 @@ DECLARE SUB setanimpattern (tastuf() as integer, taset as integer, tilesetnum as
 DECLARE FUNCTION mouseover (byval mousex as integer, byval mousey as integer, byref zox as integer, byref zoy as integer, byref zcsr as integer, area() as MouseArea) as integer
 DECLARE SUB maptile ()
 DECLARE SUB tileedit_set_tool (ts as TileEditState, toolinfo() as ToolInfoType, byval toolnum as integer)
+DECLARE SUB tile_anim_draw_range(tastuf() as integer, byval taset as integer)
 
 DECLARE SUB spriteedit_load_what_you_see(byval j as integer, byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, placer() as integer, workpal() as integer, poffset() as integer)
 DECLARE SUB spriteedit_save_what_you_see(byval j as integer, byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, placer() as integer, workpal() as integer, poffset() as integer)
@@ -291,7 +292,6 @@ DIM top as integer = -1
 DIM taptr as integer = 0
 DIM taset as integer
 DIM tog as integer
-DIM animpos as XYPair
 
 DIM state as MenuState
 state.top = -1
@@ -465,7 +465,7 @@ DO
  IF keyval(scLeft) > 1 THEN tastuf(0 + 20 * taset) = large(tastuf(0 + 20 * taset) - 1, 0)
  IF keyval(scRight) > 1 THEN tastuf(0 + 20 * taset) = small(tastuf(0 + 20 * taset) + 1, 112)
  copypage 3, dpage
- GOSUB drawanimrange
+ tile_anim_draw_range tastuf(), taset
  SWAP vpage, dpage
  setvispage vpage
  dowait
@@ -473,21 +473,22 @@ LOOP
 savetanim pagenum, tastuf()
 RETRACE
 
-drawanimrange:
-animpos.x = 0
-animpos.y = 0
-FOR i as integer = 0 TO 159
- IF i < tastuf(0 + 20 * taset) OR i > tastuf(0 + 20 * taset) + 47 THEN
-  fuzzyrect animpos.x * 20, animpos.y * 20, 20, 20, uilook(uiText), dpage
- END IF
- animpos.x += 1
- IF animpos.x > 15 THEN
-  animpos.x = 0
-  animpos.y += 1
- END IF
-NEXT i
-RETRACE
+END SUB
 
+SUB tile_anim_draw_range(tastuf() as integer, byval taset as integer)
+ DIM animpos as XYPair
+ animpos.x = 0
+ animpos.y = 0
+ FOR i as integer = 0 TO 159
+  IF i < tastuf(0 + 20 * taset) OR i > tastuf(0 + 20 * taset) + 47 THEN
+   fuzzyrect animpos.x * 20, animpos.y * 20, 20, 20, uilook(uiText), dpage
+  END IF
+  animpos.x += 1
+  IF animpos.x > 15 THEN
+   animpos.x = 0
+   animpos.y += 1
+  END IF
+ NEXT i
 END SUB
 
 FUNCTION mouseover (byval mousex as integer, byval mousey as integer, byref zox as integer, byref zoy as integer, byref zcsr as integer, area() as MouseArea) as integer
