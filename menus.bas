@@ -387,11 +387,11 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval 
 
  WITH state
   .has_been_drawn = YES
+  .spacing = 8
   .rect.x = x
   .rect.y = y
   .rect.wide = get_resolution_x()
-  .rect.high = get_resolution_y()
-  .spacing = 8
+  .rect.high = small(get_resolution_y(), (.size + 1) * .spacing)
  END WITH
 
  IF state.active THEN
