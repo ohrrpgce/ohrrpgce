@@ -2192,16 +2192,12 @@ FUNCTION editbitset (array() as integer, byval wof as integer, byval last as int
 
  '---DIM AND INIT---
  DIM state as MenuState
- WITH state
-  .pt = -1
-  .top = -1
-  .first = -1
-  .last = last
-  .size = 24
- END WITH
 
  DIM menu(-1 to last) as string
  DIM bits(-1 to last) as integer
+ 
+ init_menu_state state, menu()
+ state.top = -1
 
  menu(-1) = "Previous Menu"
 
@@ -2259,6 +2255,14 @@ FUNCTION editbitset (array() as integer, byval wof as integer, byval last as int
    IF state.pt = i THEN drawstr = RIGHT(drawstr, 40)
    printstr drawstr, 0, (i - state.top) * 8, dpage
   NEXT i
+  WITH state
+   .has_been_drawn = YES
+   .spacing = 8
+   .rect.x = 0
+   .rect.y = 0
+   .rect.wide = get_resolution_x()
+   .rect.high = small(get_resolution_y(), (.size + 1) * .spacing)
+  END WITH
   SWAP vpage, dpage
   setvispage vpage
   dowait
