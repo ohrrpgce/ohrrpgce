@@ -36,14 +36,10 @@ Type BrowseMenuEntry
 	about as string
 End type
 
-'FIXME: use MenuState instead of having treeptr, etc, members
 Type BrowseMenuState
 	nowdir as string
 	tmp as string
-	treeptr as integer
-	treetop as integer
-	treesize as integer   'last entry
-	viewsize as integer
+	mstate as MenuState
 	special as integer
 	ranalready as bool
 	meter as integer
@@ -139,11 +135,11 @@ ELSE
  startfile = trimpath(startfile)
 END IF
 
-IF br.special = 7 THEN br.viewsize = 16 ELSE br.viewsize = 17
+IF br.special = 7 THEN br.mstate.size = 16 ELSE br.mstate.size = 17
 
-br.treeptr = 0
-br.treetop = 0
-br.treesize = 0
+br.mstate.pt = 0
+br.mstate.top = 0
+br.mstate.last = 0
 br.drivesshown = 0
 br.getdrivenames = NO
 
@@ -151,8 +147,8 @@ br.ranalready = NO
 build_listing tree(), br
 
 IF LEN(startfile) THEN
- FOR i as integer = 0 TO br.treesize
-  IF tree(i).filename = startfile THEN br.treeptr = i
+ FOR i as integer = 0 TO br.mstate.last
+  IF tree(i).filename = startfile THEN br.mstate.pt = i
  NEXT
 END IF
 
@@ -165,23 +161,23 @@ DO
  setkeys YES
  IF keyval(scEsc) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help helpkey
- IF usemenu(br.treeptr, br.treetop, 0, br.treesize, br.viewsize) OR br.changed THEN
+ IF usemenu(br.mstate) OR br.changed THEN
   br.alert = ""
   br.changed = NO
   browse_hover tree(), br
  END IF
- IF enter_or_space() THEN
+ IF enter_space_click(br.mstate) THEN
   br.alert = ""
   br.changed = YES
   IF br.special = 1 OR br.special = 5 THEN music_stop
-  SELECT CASE tree(br.treeptr).kind
+  SELECT CASE tree(br.mstate.pt).kind
    CASE bkDrive
     'this could take a while...
-    rectangle 5, 32 + br.viewsize * 9, 310, 12, uilook(uiTextbox + 0), vpage
-    edgeprint "Reading...", 8, 34 + br.viewsize * 9, uilook(uiText), vpage
+    rectangle 5, 32 + br.mstate.size * 9, 310, 12, uilook(uiTextbox + 0), vpage
+    edgeprint "Reading...", 8, 34 + br.mstate.size * 9, uilook(uiText), vpage
     setvispage vpage
-    IF hasmedia(tree(br.treeptr).filename) THEN
-     br.nowdir = tree(br.treeptr).filename
+    IF hasmedia(tree(br.mstate.pt).filename) THEN
+     br.nowdir = tree(br.mstate.pt).filename
      build_listing tree(), br
     ELSE
      br.alert = "No media"
@@ -189,15 +185,15 @@ DO
     END IF
    CASE bkParentDir, bkRoot
     br.nowdir = ""
-    FOR i as integer = br.drivesshown TO br.treeptr
+    FOR i as integer = br.drivesshown TO br.mstate.pt
      br.nowdir = br.nowdir + tree(i).filename
     NEXT i
     build_listing tree(), br
    CASE bkSubDir
-    br.nowdir = br.nowdir + tree(br.treeptr).filename + SLASH
+    br.nowdir = br.nowdir + tree(br.mstate.pt).filename + SLASH
     build_listing tree(), br
    CASE bkSelectable
-    ret = br.nowdir + tree(br.treeptr).filename
+    ret = br.nowdir + tree(br.mstate.pt).filename
     EXIT DO
   END SELECT
  END IF
@@ -209,9 +205,9 @@ DO
   END IF
  ELSE
   IF select_by_typing(selectst) THEN
-   DIM index as integer = br.treeptr
-   IF LEN(selectst.query) = 1 THEN index = loopvar(index, 0, br.treesize)
-   FOR ctr as integer = 0 TO br.treesize
+   DIM index as integer = br.mstate.pt
+   IF LEN(selectst.query) = 1 THEN index = loopvar(index, 0, br.mstate.last)
+   FOR ctr as integer = 0 TO br.mstate.last
     'IF (tree(index).kind = bkParentDir OR tree(index).kind = bkSubDir OR tree(index).kind = bkSelectable) THEN
      'Search both display name (preferentially) and filename
      selectst.query_at = find_on_word_boundary(LCASE(tree(index).caption), selectst.query)
@@ -219,12 +215,12 @@ DO
       IF INSTR(LCASE(tree(index).filename), selectst.query) = 1 THEN selectst.query_at = -1  'invisible match
      END IF
      IF selectst.query_at THEN
-      br.treeptr = index
+      br.mstate.pt = index
       selectst.remember_pt = index
       EXIT FOR
      END IF
     'END IF
-    index = loopvar(index, 0, br.treesize)
+    index = loopvar(index, 0, br.mstate.last)
    NEXT
   END IF
  END IF
@@ -245,31 +241,39 @@ DO
  '--Draw screen
  clearpage dpage
  edgeboxstyle 4, 3, 312, 14, 0, dpage, NO, YES
- IF br.special = 7 AND tree(br.treeptr).kind = bkSelectable THEN
+ IF br.special = 7 AND tree(br.mstate.pt).kind = bkSelectable THEN
   'Selected item is an RPG
-  edgeprint shorten_to_left(br.nowdir + tree(br.treeptr).filename, 304), 8, 6, uilook(uiText), dpage
+  edgeprint shorten_to_left(br.nowdir + tree(br.mstate.pt).filename, 304), 8, 6, uilook(uiText), dpage
  ELSE
   edgeprint br.nowdir, 8, 6, uilook(uiText), dpage
  END IF
- edgeboxstyle 4, 31 + br.viewsize * 9, 312, 14, 0, dpage, NO, YES
- edgeprint br.alert, 8, 34 + br.viewsize * 9, uilook(uiText), dpage
+ edgeboxstyle 4, 31 + br.mstate.size * 9, 312, 14, 0, dpage, NO, YES
+ edgeprint br.alert, 8, 34 + br.mstate.size * 9, uilook(uiText), dpage
  IF br.special = 7 THEN
   rectangle 0, 190, 320, 10, uilook(uiDisabledItem), dpage
   edgeprint version & " " & gfxbackend & "/" & musicbackend, 8, 190, uilook(uiMenuItem), dpage
   textcolor uilook(uiText), 0
  END IF
  textcolor uilook(uiText), 0
- printstr ">", 0, 20 + (br.treeptr - br.treetop) * 9, dpage
+ printstr ">", 0, 20 + (br.mstate.pt - br.mstate.top) * 9, dpage
  'This mess here because this menu doesn't use a standard MenuState
- IF selectst.remember_pt <> br.treeptr THEN select_clear selectst
- selectst.remember_pt = br.treeptr
+ IF selectst.remember_pt <> br.mstate.pt THEN select_clear selectst
+ selectst.remember_pt = br.mstate.pt
 
- FOR i as integer = br.treetop TO small(br.treetop + br.viewsize, br.treesize)
+ WITH br.mstate
+  .has_been_drawn = YES
+  .rect.x = 10
+  .rect.y = 20
+  .rect.wide = get_resolution_x()
+  .rect.high = get_resolution_y()
+  .spacing = 9
+ END WITH
+ FOR i as integer = br.mstate.top TO small(br.mstate.top + br.mstate.size, br.mstate.last)
   textcolor catfg(tree(i).kind), catbg(tree(i).kind)
   DIM caption as string = tree(i).caption
   IF LEN(caption) < 38 AND catbg(tree(i).kind) > 0 THEN caption += STRING(38 - LEN(caption), " ")
-  IF i = br.treeptr THEN caption = highlight_menu_typing_selection_string(caption, selectst)
-  printstr caption, 10, 20 + (i - br.treetop) * 9, dpage, YES
+  IF i = br.mstate.pt THEN caption = highlight_menu_typing_selection_string(caption, selectst)
+  printstr caption, 10, 20 + (i - br.mstate.top) * 9, dpage, YES
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
@@ -292,7 +296,7 @@ RETURN ret
 END FUNCTION
 
 SUB browse_hover(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
- SELECT CASE tree(br.treeptr).kind
+ SELECT CASE tree(br.mstate.pt).kind
   CASE bkDrive
    br.alert = "Drive"
   CASE bkParentDir
@@ -310,60 +314,60 @@ SUB browse_hover_file(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
  SELECT CASE br.special
   CASE 1 'music bam only (is this still used?)
    music_stop
-   IF tree(br.treeptr).kind = bkSelectable OR tree(br.treeptr).kind = bkUnselectable THEN
-    IF validmusicfile(br.nowdir + tree(br.treeptr).filename, FORMAT_BAM) THEN
-     loadsong br.nowdir + tree(br.treeptr).filename
+   IF tree(br.mstate.pt).kind = bkSelectable OR tree(br.mstate.pt).kind = bkUnselectable THEN
+    IF validmusicfile(br.nowdir + tree(br.mstate.pt).filename, FORMAT_BAM) THEN
+     loadsong br.nowdir + tree(br.mstate.pt).filename
     ELSE
-     br.alert = tree(br.treeptr).filename + " is not a valid BAM file"
+     br.alert = tree(br.mstate.pt).filename + " is not a valid BAM file"
     END IF
    END IF
   CASE 5 'music
    music_stop
-   br.alert = tree(br.treeptr).about
-   IF validmusicfile(br.nowdir + tree(br.treeptr).filename, PREVIEWABLE_MUSIC_FORMAT) THEN
-    loadsong br.nowdir + tree(br.treeptr).filename
-   ELSEIF getmusictype(br.nowdir + tree(br.treeptr).filename) = FORMAT_MP3 THEN
+   br.alert = tree(br.mstate.pt).about
+   IF validmusicfile(br.nowdir + tree(br.mstate.pt).filename, PREVIEWABLE_MUSIC_FORMAT) THEN
+    loadsong br.nowdir + tree(br.mstate.pt).filename
+   ELSEIF getmusictype(br.nowdir + tree(br.mstate.pt).filename) = FORMAT_MP3 THEN
     br.alert = "Cannot preview MP3, try importing"
    END IF
   CASE 6 'sfx
-   br.alert = tree(br.treeptr).about
+   br.alert = tree(br.mstate.pt).about
    IF br.snd > -1 THEN
     sound_stop(br.snd,-1)
     UnloadSound(br.snd)
     br.snd = -1
    END IF
-   IF tree(br.treeptr).kind <> bkUnselectable THEN
+   IF tree(br.mstate.pt).kind <> bkUnselectable THEN
     'not disabled because of size
-    IF validmusicfile(br.nowdir + tree(br.treeptr).filename, PREVIEWABLE_FX_FORMAT) THEN
-     br.snd = LoadSound(br.nowdir + tree(br.treeptr).filename)
+    IF validmusicfile(br.nowdir + tree(br.mstate.pt).filename, PREVIEWABLE_FX_FORMAT) THEN
+     br.snd = LoadSound(br.nowdir + tree(br.mstate.pt).filename)
      sound_play(br.snd, 0, -1)
-    ELSEIF getmusictype(br.nowdir + tree(br.treeptr).filename) = FORMAT_MP3 THEN
+    ELSEIF getmusictype(br.nowdir + tree(br.mstate.pt).filename) = FORMAT_MP3 THEN
      br.alert = "Cannot preview MP3, try importing"
     END IF
    END IF
   CASE 9 'scripts
-   IF LCASE(justextension(tree(br.treeptr).filename)) = "hs" THEN
+   IF LCASE(justextension(tree(br.mstate.pt).filename)) = "hs" THEN
     br.alert = "Compiled HamsterSpeak scripts"
    ELSE
     br.alert = "HamsterSpeak scripts"
    END IF
   CASE ELSE
-   br.alert = tree(br.treeptr).about
+   br.alert = tree(br.mstate.pt).about
  END SELECT
 END SUB
 
 'Returns true if the BMP looks good
 FUNCTION browse_check_bmp(byref br as BrowseMenuState, tree() as BrowseMenuEntry, byref bmpd as BitmapInfoHeader) as integer
- DIM support as integer = bmpinfo(br.nowdir + tree(br.treesize).filename, bmpd)
+ DIM support as integer = bmpinfo(br.nowdir + tree(br.mstate.last).filename, bmpd)
  IF support = 2 THEN
-  tree(br.treesize).about = bmpd.biWidth & "*" & bmpd.biHeight & " pixels, " & bmpd.biBitCount & "-bit color"
+  tree(br.mstate.last).about = bmpd.biWidth & "*" & bmpd.biHeight & " pixels, " & bmpd.biBitCount & "-bit color"
   RETURN YES
  ELSEIF support = 1 THEN
-  tree(br.treesize).about = "Unsupported BMP file"
+  tree(br.mstate.last).about = "Unsupported BMP file"
  ELSE
-  tree(br.treesize).about = "Invalid BMP file"
+  tree(br.mstate.last).about = "Invalid BMP file"
  END IF
- tree(br.treesize).kind = bkUnselectable
+ tree(br.mstate.last).kind = bkUnselectable
  RETURN NO
 END FUNCTION
 
@@ -376,43 +380,43 @@ DIM filelist() as string
 findfiles br.nowdir, wildcard, filetype, br.showhidden, filelist()
 
 FOR i as integer = 0 TO UBOUND(filelist)
- br.treesize = br.treesize + 1
- IF br.treesize = UBOUND(tree) THEN REDIM PRESERVE tree(UBOUND(tree) + 256)
- tree(br.treesize).kind = bkSelectable
- tree(br.treesize).filename = filelist(i)
- filename = br.nowdir & tree(br.treesize).filename
+ br.mstate.last = br.mstate.last + 1
+ IF br.mstate.last = UBOUND(tree) THEN REDIM PRESERVE tree(UBOUND(tree) + 256)
+ tree(br.mstate.last).kind = bkSelectable
+ tree(br.mstate.last).filename = filelist(i)
+ filename = br.nowdir & tree(br.mstate.last).filename
  '---music files
  IF br.special = 1 OR br.special = 5 THEN
   IF validmusicfile(filename, VALID_MUSIC_FORMAT) = 0 THEN
-   tree(br.treesize).kind = bkUnselectable
-   tree(br.treesize).about = "Not a valid music file"
+   tree(br.mstate.last).kind = bkUnselectable
+   tree(br.mstate.last).about = "Not a valid music file"
   END IF
  END IF
  IF br.special = 6 THEN
   IF validmusicfile(filename, VALID_FX_FORMAT) = 0 THEN
-   tree(br.treesize).kind = bkUnselectable
-   tree(br.treesize).about = "Not a valid sound effect file"
+   tree(br.mstate.last).kind = bkUnselectable
+   tree(br.mstate.last).about = "Not a valid sound effect file"
   ELSEIF FILELEN(filename) > 500 * 1024 AND LCASE(justextension(filename)) <> "wav" THEN
-   tree(br.treesize).kind = bkUnselectable
-   tree(br.treesize).about = "File is too large (limit 500kB)"
+   tree(br.mstate.last).kind = bkUnselectable
+   tree(br.mstate.last).about = "File is too large (limit 500kB)"
   END IF
  END IF
  '---Any BMP
  IF br.special = 2 THEN
   IF browse_check_bmp(br, tree(), bmpd) = NO THEN
-   tree(br.treesize).kind = bkUnselectable
+   tree(br.mstate.last).kind = bkUnselectable
   END IF
  END IF
  '---320x200 BMP files (any supported bitdepth)
  IF br.special = 3 THEN
   IF browse_check_bmp(br, tree(), bmpd) = NO OR bmpd.biWidth <> 320 OR bmpd.biHeight <> 200 THEN
-   tree(br.treesize).kind = bkUnselectable
+   tree(br.mstate.last).kind = bkUnselectable
   END IF
  END IF
  '---1/4/8 bit BMP files (fonts)
  IF br.special = 10 THEN
   IF browse_check_bmp(br, tree(), bmpd) = NO OR bmpd.biBitCount > 8 THEN
-   tree(br.treesize).kind = bkUnselectable
+   tree(br.mstate.last).kind = bkUnselectable
   END IF
  END IF
  '--master palettes
@@ -425,24 +429,24 @@ FOR i as integer = 0 TO UBOUND(filelist)
    CLOSE #masfh
    SELECT CASE a
     CASE br.mashead
-     tree(br.treesize).about = "MAS format"
+     tree(br.mstate.last).about = "MAS format"
     CASE br.paledithead
-     tree(br.treesize).about = "MAS format (PalEdit)"
+     tree(br.mstate.last).about = "MAS format (PalEdit)"
     CASE ELSE
-     tree(br.treesize).about = "Not a valid MAS file"
-     tree(br.treesize).kind = bkUnselectable
+     tree(br.mstate.last).about = "Not a valid MAS file"
+     tree(br.mstate.last).kind = bkUnselectable
    END SELECT
   ELSE  'BMP as a master palette
    IF browse_check_bmp(br, tree(), bmpd) = NO THEN
-    tree(br.treesize).kind = bkUnselectable
+    tree(br.mstate.last).kind = bkUnselectable
    ELSE
     IF bmpd.biBitCount <= 8 THEN
      'Don't care about the dimensions
-     tree(br.treesize).about = bmpd.biBitCount & "-bit color BMP"
+     tree(br.mstate.last).about = bmpd.biBitCount & "-bit color BMP"
     ELSEIF bmpd.biBitCount >= 24 AND (bmpd.biWidth = 16 AND bmpd.biHeight = 16) THEN
      'ok
     ELSE
-     tree(br.treesize).kind = bkUnselectable
+     tree(br.mstate.last).kind = bkUnselectable
     END IF
    END IF
   END IF
@@ -450,15 +454,15 @@ FOR i as integer = 0 TO UBOUND(filelist)
  '--RPG files
  IF br.special = 7 THEN
   copylump filename, "browse.txt", br.tmp, YES
-  tree(br.treesize).caption = load_gamename(br.tmp & "browse.txt")
-  tree(br.treesize).about = load_aboutline(br.tmp & "browse.txt")
+  tree(br.mstate.last).caption = load_gamename(br.tmp & "browse.txt")
+  tree(br.mstate.last).about = load_aboutline(br.tmp & "browse.txt")
   safekill br.tmp & "browse.txt"
-  IF tree(br.treesize).caption = "" THEN tree(br.treesize).caption = tree(br.treesize).filename
+  IF tree(br.mstate.last).caption = "" THEN tree(br.mstate.last).caption = tree(br.mstate.last).filename
  END IF
  '--RELOAD files
  IF br.special = 8 THEN
-  IF browse_sanity_check_reload(filename, tree(br.treesize).about) = NO THEN
-   tree(br.treesize).kind = bkUnselectable 'grey out bad ones
+  IF browse_sanity_check_reload(filename, tree(br.mstate.last).about) = NO THEN
+   tree(br.mstate.last).kind = bkUnselectable 'grey out bad ones
   END IF
  END IF
  '--script files
@@ -466,7 +470,7 @@ FOR i as integer = 0 TO UBOUND(filelist)
   IF wildcard = "*.txt" THEN
    IF NOT check_for_plotscr_inclusion(filename) THEN
     'Don't display .txt files unless they include plotscr.hsd
-    br.treesize = br.treesize - 1
+    br.mstate.last = br.mstate.last - 1
    END IF
   END IF
  END IF
@@ -510,11 +514,11 @@ FUNCTION browse_sanity_check_reload(filename as string, info as string) as integ
 END FUNCTION
 
 SUB draw_browse_meter(br as BrowseMenuState)
-IF br.treesize AND 15 THEN EXIT SUB
+IF br.mstate.last AND 15 THEN EXIT SUB
 WITH br
  IF .ranalready THEN
   .meter = small(.meter + 1, 308)
-  rectangle 5 + .meter, 33 + .viewsize * 9, 2, 5, uilook(uiTextbox + 1), vpage
+  rectangle 5 + .meter, 33 + .mstate.size * 9, 2, 5, uilook(uiTextbox + 1), vpage
   setvispage vpage 'refresh
  END IF
 END WITH
@@ -553,12 +557,12 @@ END FUNCTION
 
 SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
  'for progress meter
- IF br.ranalready THEN rectangle 5, 32 + br.viewsize * 9, 310, 12, uilook(uiTextbox + 0), vpage
+ IF br.ranalready THEN rectangle 5, 32 + br.mstate.size * 9, 310, 12, uilook(uiTextbox + 0), vpage
  br.meter = 0
 
  'erase old list
- IF br.getdrivenames THEN br.treesize = -1 ELSE br.treesize = br.drivesshown - 1
- FOR i as integer = br.treesize + 1 TO UBOUND(tree)
+ IF br.getdrivenames THEN br.mstate.last = -1 ELSE br.mstate.last = br.drivesshown - 1
+ FOR i as integer = br.mstate.last + 1 TO UBOUND(tree)
   tree(i).filename = ""
   tree(i).caption = ""
   tree(i).about = ""
@@ -569,20 +573,20 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
  '--Drive list
  IF br.drivesshown = 0 THEN
   '--Refresh drives option
-  'br.treesize += 1
-  'tree(br.treesize).filename = ""
-  'tree(br.treesize).caption = "Refresh drives list"
-  'tree(br.treesize).kind = bkSpecial
+  'br.mstate.last += 1
+  'tree(br.mstate.last).filename = ""
+  'tree(br.mstate.last).caption = "Refresh drives list"
+  'tree(br.mstate.last).kind = bkSpecial
 
   DIM drive(26) as string
   DIM drivetotal as integer = drivelist(drive())
   FOR i as integer = 0 TO drivetotal - 1
-   br.treesize += 1
-   tree(br.treesize).filename = drive(i)
-   tree(br.treesize).caption = drive(i)
-   tree(br.treesize).kind = bkDrive
+   br.mstate.last += 1
+   tree(br.mstate.last).filename = drive(i)
+   tree(br.mstate.last).caption = drive(i)
+   tree(br.mstate.last).kind = bkDrive
    IF br.getdrivenames THEN
-    tree(br.treesize).caption += " " + drivelabel(drive(i))
+    tree(br.mstate.last).caption += " " + drivelabel(drive(i))
    END IF
    draw_browse_meter br
 
@@ -590,7 +594,7 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
   'could add My Documents to drives list here
  END IF
 #ENDIF
- br.drivesshown = br.treesize + 1
+ br.drivesshown = br.mstate.last + 1
  br.getdrivenames = NO
 
  IF br.nowdir = "" THEN
@@ -599,18 +603,18 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
   DIM b as string
 
   '--Current drive
-  br.treesize += 1
+  br.mstate.last += 1
   b = MID(a, 1, INSTR(a, SLASH))
-  tree(br.treesize).filename = b
-  tree(br.treesize).kind = bkRoot
+  tree(br.mstate.last).filename = b
+  tree(br.mstate.last).kind = bkRoot
 #IFDEF __FB_WIN32__
   IF hasmedia(b) = 0 THEN
    'Somebody pulled out the disk
    br.changed = NO
    br.alert = "Disk not readable"
-   br.treesize -= 1
-   br.treeptr = 0
-   br.treetop = 0
+   br.mstate.last -= 1
+   br.mstate.pt = 0
+   br.mstate.top = 0
    br.nowdir = ""
    EXIT SUB
   END IF
@@ -618,7 +622,7 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
    IF tree(i).filename = b THEN
     DIM tmpname as string = drivelabel(b)
     IF LEN(tmpname) THEN tree(i).caption = b + " " + tmpname
-    tree(br.treesize).caption = tree(i).caption
+    tree(br.mstate.last).caption = tree(i).caption
     EXIT FOR
    END IF
   NEXT
@@ -633,17 +637,17 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
 #IFDEF __FB_WIN32__
     'Special handling of My Documents in Windows
     IF b = "My Documents\" OR b = "MYDOCU~1\" THEN
-     FOR i as integer = br.treesize TO br.drivesshown STEP -1
+     FOR i as integer = br.mstate.last TO br.drivesshown STEP -1
       b = tree(i).filename + b
      NEXT i
-     br.treesize = br.drivesshown - 1
-     tree(br.treesize + 1).caption = "My Documents\"
+     br.mstate.last = br.drivesshown - 1
+     tree(br.mstate.last + 1).caption = "My Documents\"
     END IF
 #ENDIF
-    br.treesize = br.treesize + 1
-    IF br.treesize = UBOUND(tree) THEN REDIM PRESERVE tree(UBOUND(tree) + 256)
-    tree(br.treesize).filename = b
-    tree(br.treesize).kind = bkParentDir
+    br.mstate.last = br.mstate.last + 1
+    IF br.mstate.last = UBOUND(tree) THEN REDIM PRESERVE tree(UBOUND(tree) + 256)
+    tree(br.mstate.last).filename = b
+    tree(br.mstate.last).kind = bkParentDir
     b = ""
    END IF
   LOOP
@@ -651,21 +655,21 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
   DIM filelist() as string
   findfiles br.nowdir, ALLFILES, fileTypeDirectory, br.showhidden, filelist()
   FOR i as integer = 0 TO UBOUND(filelist)
-   br.treesize = br.treesize + 1
-   IF br.treesize = UBOUND(tree) THEN REDIM PRESERVE tree(UBOUND(tree) + 256)
-   tree(br.treesize).kind = bkSubDir
-   tree(br.treesize).filename = filelist(i)
+   br.mstate.last = br.mstate.last + 1
+   IF br.mstate.last = UBOUND(tree) THEN REDIM PRESERVE tree(UBOUND(tree) + 256)
+   tree(br.mstate.last).kind = bkSubDir
+   tree(br.mstate.last).filename = filelist(i)
    DIM extension as string = justextension(filelist(i))
-   IF tree(br.treesize).filename = "." OR tree(br.treesize).filename = ".." OR RIGHT(tree(br.treesize).filename, 4) = ".tmp" THEN br.treesize = br.treesize - 1
+   IF tree(br.mstate.last).filename = "." OR tree(br.mstate.last).filename = ".." OR RIGHT(tree(br.mstate.last).filename, 4) = ".tmp" THEN br.mstate.last = br.mstate.last - 1
    IF br.special = 7 THEN ' Special handling in RPG mode
-    IF LCASE(extension) = "rpgdir" THEN br.treesize = br.treesize - 1
+    IF LCASE(extension) = "rpgdir" THEN br.mstate.last = br.mstate.last - 1
    END IF
    IF br.special <> 8 THEN
     '--hide any .saves folders when browsing (except in RELOAD special mode)
-    IF LCASE(extension) = "saves" THEN br.treesize = br.treesize - 1
+    IF LCASE(extension) = "saves" THEN br.mstate.last = br.mstate.last - 1
    END IF
 #IFDEF __FB_DARWIN__
-   IF extension = "app" THEN br.treesize = br.treesize - 1
+   IF extension = "app" THEN br.mstate.last = br.mstate.last - 1
 #ENDIF
    draw_browse_meter br
   NEXT
@@ -709,22 +713,22 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
  END IF
 
  '--set display
- FOR i as integer = 0 TO br.treesize
+ FOR i as integer = 0 TO br.mstate.last
   IF LEN(tree(i).caption) = 0 THEN
    tree(i).caption = tree(i).filename
   END IF
  NEXT
 
- DIM sortstart as integer = br.treesize
- FOR k as integer = 0 TO br.treesize
+ DIM sortstart as integer = br.mstate.last
+ FOR k as integer = 0 TO br.mstate.last
   WITH tree(k)
    IF .kind = bkSubDir OR .kind = bkSelectable OR .kind = bkUnselectable THEN sortstart = k: EXIT FOR
   END WITH
  NEXT
 
  '--alphabetize
- FOR i as integer = sortstart TO br.treesize - 1
-  FOR j as integer = br.treesize TO i + 1 STEP -1
+ FOR i as integer = sortstart TO br.mstate.last - 1
+  FOR j as integer = br.mstate.last TO i + 1 STEP -1
    DIM k as integer = 0
    DIM chara as integer
    DIM charb as integer
@@ -743,7 +747,7 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
  NEXT
 
  '--sort by type
- FOR o as integer = br.treesize TO sortstart + 1 STEP -1
+ FOR o as integer = br.mstate.last TO sortstart + 1 STEP -1
   FOR i as integer = sortstart + 1 TO o
    IF tree(i).kind < tree(i - 1).kind THEN
     SWAP tree(i), tree(i - 1)
@@ -752,18 +756,18 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
  NEXT
 
  '--set cursor
- br.treeptr = 0
- br.treetop = 0
- FOR i as integer = br.drivesshown TO br.treesize
+ br.mstate.pt = 0
+ br.mstate.top = 0
+ FOR i as integer = br.drivesshown TO br.mstate.last
   'look for first selectable item
-  IF tree(i).kind = bkSelectable THEN br.treeptr = i: EXIT FOR
+  IF tree(i).kind = bkSelectable THEN br.mstate.pt = i: EXIT FOR
   'second preference is first subdirectory
-  IF tree(i).kind = bkSubDir AND tree(br.treeptr).kind <> bkSubDir THEN br.treeptr = i
+  IF tree(i).kind = bkSubDir AND tree(br.mstate.pt).kind <> bkSubDir THEN br.mstate.pt = i
   'final preference is current (bottommost) directory
-  IF tree(i).kind = bkParentDir OR tree(i).kind = bkRoot THEN br.treeptr = i
+  IF tree(i).kind = bkParentDir OR tree(i).kind = bkRoot THEN br.mstate.pt = i
  NEXT i
- br.treetop = small(br.treeptr - 2, br.treesize - br.viewsize)
- br.treetop = large(br.treetop, 0)
+ br.mstate.top = small(br.mstate.pt - 2, br.mstate.last - br.mstate.size)
+ br.mstate.top = large(br.mstate.top, 0)
 
  '--don't display progress bar overtop of previous menu
  br.ranalready = YES
