@@ -11,6 +11,7 @@
 '' Generic MenuState Stuff
 DECLARE SUB init_menu_state OVERLOAD (byref state as MenuState, menu() as SimpleMenuItem)
 DECLARE SUB init_menu_state OVERLOAD (byref state as MenuState, byval menu as BasicMenuItem vector)
+DECLARE SUB init_menu_state OVERLOAD (byref state as MenuState, menu() as string)
 DECLARE SUB clamp_menu_state (byref state as MenuState)
 DECLARE SUB append_simplemenu_item (byref menu as SimpleMenuItem vector, caption as string, byval unselectable as bool = NO, byval col as integer = 0, byval dat as integer = 0, byval where as integer = -1)
 DECLARE FUNCTION usemenu OVERLOAD (state as MenuState, byval deckey as integer = scUp, byval inckey as integer = scDown) as integer

@@ -781,6 +781,18 @@ FUNCTION getmenuname(byval record as integer) as string
 END FUNCTION
 
 '(Re-)initialise menu state, preserving .pt if valid
+SUB init_menu_state (byref state as MenuState, menu() as string)
+ WITH state
+  .first = LBOUND(menu)
+  .last = UBOUND(menu)
+  .size = small(.last - .first, cint(int(get_resolution_y() / 8)))
+  .pt = small(large(.pt, .first), .last)  'explicitly -1 when empty
+  IF .pt <> -1 THEN .top = bound(.top, .pt - .size, .pt)
+  .top = bound(.top, 0, large(.last - .size, 0))
+ END WITH
+END SUB
+
+'(Re-)initialise menu state, preserving .pt if valid
 SUB init_menu_state (byref state as MenuState, menu as MenuDef)
  WITH state
   .first = 0

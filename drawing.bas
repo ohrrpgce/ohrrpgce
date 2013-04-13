@@ -46,6 +46,7 @@ DECLARE SUB tileedit_set_tool (ts as TileEditState, toolinfo() as ToolInfoType, 
 DECLARE SUB tile_anim_draw_range(tastuf() as integer, byval taset as integer)
 DECLARE SUB tile_anim_set_range(tastuf() as integer, byval taset as integer, byval pagenum as integer)
 DECLARE SUB tile_animation(byval pagenum as integer)
+DECLARE SUB tile_edit_mode_picker(byval pagenum as integer, mapfile as string)
 
 DECLARE SUB spriteedit_load_what_you_see(byval j as integer, byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, placer() as integer, workpal() as integer, poffset() as integer)
 DECLARE SUB spriteedit_save_what_you_see(byval j as integer, byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, placer() as integer, workpal() as integer, poffset() as integer)
@@ -287,7 +288,6 @@ END FUNCTION
 SUB maptile ()
 DIM menu() as string
 DIM mapfile as string = game & ".til"
-DIM tmode as integer = 0
 DIM pagenum as integer
 DIM top as integer = -1
 DIM tog as integer
@@ -331,7 +331,7 @@ DO
  IF enter_space_click(state) AND state.pt = -1 THEN EXIT DO
  IF enter_space_click(state) AND state.pt > -1 THEN
   pagenum = state.pt
-  GOSUB tilemode
+  tile_edit_mode_picker pagenum, mapfile
   state.need_update = YES
  END IF
 
@@ -362,50 +362,48 @@ clearpage 0
 sprite_update_cache_tilesets
 EXIT SUB
 
-tilemode:
-REDIM menu(-1 TO 10)
-GOSUB tilemodemenu
-setkeys
-DO
- setwait 55
+
+END SUB
+ 
+SUB tile_edit_mode_picker(byval pagenum as integer, mapfile as string)
+ DIM menu(5) as string
+ menu(0) = "Draw Tiles"
+ menu(1) = "Cut Tiles from Tilesets"
+ menu(2) = "Cut Tiles from Backdrops"
+ menu(3) = "Set Default Passability"
+ menu(4) = "Define Tile Animation"
+ menu(5) = "Cancel"
+ 
+ DIM state as MenuState
+ init_menu_state state, menu()
+ state.need_update = YES
+ 
+ DIM menuopt as menuOptions
+ menuopt.edged = YES
+ 
  setkeys
- tog = tog XOR 1
- IF keyval(scESC) > 1 THEN tmode = 0: RETRACE
- IF keyval(scF1) > 1 THEN show_help "maptile_tilemode"
- usemenu tmode, 0, 0, 5, 24
- IF enter_or_space() THEN
-  SELECT CASE tmode
-   CASE 0, 1, 2, 3
-    picktiletoedit tmode, pagenum, mapfile
-   CASE 4
-    tile_animation pagenum
-    setkeys
-    GOSUB tilemodemenu
-   CASE 5
-    tmode = 0
-    RETRACE
-  END SELECT
- END IF
- copypage 3, dpage
- FOR i as integer = 0 TO 5
-  DIM c as integer = uilook(uiMenuItem)
-  IF tmode = i THEN c = uilook(uiSelectedItem + tog)
-  edgeprint menu(i), 10, 8 * (i + 1), c, dpage
- NEXT i
- SWAP vpage, dpage
- setvispage vpage
- dowait
-LOOP
-
-tilemodemenu:
-menu(0) = "Draw Tiles"
-menu(1) = "Cut Tiles from Tilesets"
-menu(2) = "Cut Tiles from Backdrops"
-menu(3) = "Set Default Passability"
-menu(4) = "Define Tile Animation"
-menu(5) = "Cancel"
-RETRACE
-
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "maptile_tilemode"
+  usemenu state
+  IF enter_space_click(state) THEN
+   SELECT CASE state.pt
+    CASE 0, 1, 2, 3
+     picktiletoedit state.pt, pagenum, mapfile
+    CASE 4
+     tile_animation pagenum
+    CASE 5
+     EXIT DO
+   END SELECT
+  END IF
+  copypage 3, dpage
+  standardmenu menu(), state, 10, 8, dpage, menuopt
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
 
 END SUB
 
@@ -413,19 +411,16 @@ SUB tile_animation(byval pagenum as integer)
  DIM tastuf(40) as integer
  DIM taset as integer = 0
  loadtanim pagenum, tastuf()
- 
- DIM state as MenuState
- WITH state
-  .need_update = YES
-  .last = 5
-  .size = 5
- END WITH
 
  DIM menu(5) as string 
  menu(0) = "Previous Menu"
  menu(2) = "Set Animation Range"
  menu(3) = "Set Animation Pattern"
  menu(5) = "Test Animations"
+ 
+ DIM state as MenuState
+ init_menu_state state, menu()
+ state.need_update = YES
  
  setkeys
  DO
