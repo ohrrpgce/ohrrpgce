@@ -38,9 +38,11 @@ DECLARE SUB tiletranspaste (cutnpaste() as integer, ts as TileEditState)
 DECLARE SUB copymapblock (buf() as integer, byref sx as integer, byref sy as integer, byref sp as integer, byref dx as integer, byref dy as integer, byref dp as integer)
 DECLARE SUB changepal (byref palval as integer, byval palchange as integer, workpal() as integer, byval aindex as integer)
 DECLARE SUB airbrush (byval x as integer, byval y as integer, byval d as integer, byval m as integer, byval c as integer, byval p as integer)
+DECLARE FUNCTION mouseover (byval mousex as integer, byval mousey as integer, byref zox as integer, byref zoy as integer, byref zcsr as integer, area() as MouseArea) as integer
 DECLARE SUB testanimpattern (tastuf() as integer, byref taset as integer)
 DECLARE SUB setanimpattern (tastuf() as integer, taset as integer, tilesetnum as integer)
-DECLARE FUNCTION mouseover (byval mousex as integer, byval mousey as integer, byref zox as integer, byref zoy as integer, byref zcsr as integer, area() as MouseArea) as integer
+DECLARE SUB setanimpattern_refreshmenu(byval pt as integer, menu() as string, tastuf() as integer, byval taset as integer, llim() as integer, ulim() as integer)
+DECLARE SUB setanimpattern_forcebounds(tastuf() as integer, byval taset as integer, llim() as integer, ulim() as integer)
 DECLARE SUB maptile ()
 DECLARE SUB tileedit_set_tool (ts as TileEditState, toolinfo() as ToolInfoType, byval toolnum as integer)
 DECLARE SUB tile_anim_draw_range(tastuf() as integer, byval taset as integer)
@@ -360,8 +362,6 @@ clearpage 0
 'tileset_empty_cache
 'Robust againts tileset leaks
 sprite_update_cache_tilesets
-EXIT SUB
-
 
 END SUB
  
@@ -527,18 +527,9 @@ END FUNCTION
 
 SUB setanimpattern (tastuf() as integer, taset as integer, tilesetnum as integer)
 DIM menu(12) as string
-DIM stuff(7) as string
 DIM llim(7) as integer
 DIM ulim(7) as integer
 menu(0) = "Previous Menu"
-stuff(0) = "end of animation"
-stuff(1) = "up"
-stuff(2) = "down"
-stuff(3) = "right"
-stuff(4) = "left"
-stuff(5) = "wait"
-stuff(6) = "if tag do rest"
-stuff(7) = "unknown command"
 FOR i as integer = 1 TO 2
  llim(i) = 0
  ulim(i) = 9
@@ -551,18 +542,13 @@ llim(5) = 0
 ulim(5) = 32767
 llim(6) = -max_tag()
 ulim(6) = max_tag()
-DIM ta_temp as integer
 DIM pt as integer = 0
 DIM ptr2 as integer = 0
 DIM context as integer = 0
 DIM index as integer = 0
 DIM tog as integer
-DIM anim_a as integer
-DIM anim_b as integer
-DIM anim_i as integer
-DIM forcebounds_tmp as integer
 
-GOSUB refreshmenu
+setanimpattern_refreshmenu pt, menu(), tastuf(), taset, llim(), ulim()
 setkeys
 DO
  setwait 55
@@ -572,7 +558,7 @@ DO
  SELECT CASE context
   CASE 0 '---PICK A STATEMENT---
    IF keyval(scESC) > 1 THEN EXIT DO
-   IF usemenu(pt, 0, 0, 9, 9) THEN GOSUB refreshmenu
+   IF usemenu(pt, 0, 0, 9, 9) THEN setanimpattern_refreshmenu pt, menu(), tastuf(), taset, llim(), ulim()
    IF enter_or_space() THEN
     IF pt = 0 THEN
      EXIT DO
@@ -588,14 +574,14 @@ DO
    usemenu ptr2, 0, 0, 1, 1
    index = bound(pt - 1, 0, 8) + 20 * taset
    IF ptr2 = 0 THEN
-    IF intgrabber(tastuf(2 + index), 0, 6) THEN GOSUB refreshmenu
+    IF intgrabber(tastuf(2 + index), 0, 6) THEN setanimpattern_refreshmenu pt, menu(), tastuf(), taset, llim(), ulim()
     IF enter_or_space() THEN context = 0
    END IF
    IF ptr2 = 1 THEN
     IF tastuf(2 + index) = 6 THEN
-     IF tag_grabber(tastuf(11 + index)) THEN GOSUB refreshmenu
+     IF tag_grabber(tastuf(11 + index)) THEN setanimpattern_refreshmenu pt, menu(), tastuf(), taset, llim(), ulim()
     ELSE
-     IF intgrabber(tastuf(11 + index), llim(tastuf(2 + index)), ulim(tastuf(2 + index))) THEN GOSUB refreshmenu
+     IF intgrabber(tastuf(11 + index), llim(tastuf(2 + index)), ulim(tastuf(2 + index))) THEN setanimpattern_refreshmenu pt, menu(), tastuf(), taset, llim(), ulim()
      IF enter_or_space() THEN context = 0
     END IF
    END IF
@@ -624,47 +610,62 @@ DO
  setvispage vpage
  dowait
 LOOP
-GOSUB forcebounds
+setanimpattern_forcebounds tastuf(), taset, llim(), ulim()
 EXIT SUB
 
-refreshmenu:
-GOSUB forcebounds
-FOR i as integer = 1 TO 9
- menu(i) = "-"
-NEXT i
-menu(10) = ""
-FOR anim_i = 0 TO 8
- anim_a = bound(tastuf((2 + anim_i) + 20 * taset), 0, 7)
- anim_b = tastuf((11 + anim_i) + 20 * taset)
- menu(anim_i + 1) = stuff(anim_a)
- IF anim_a = 0 THEN EXIT FOR
- IF anim_a > 0 AND anim_a < 6 THEN menu(anim_i + 1) = menu(anim_i + 1) & " " & anim_b
- IF anim_a = 6 THEN menu(anim_i + 1) = menu(anim_i + 1) & " (" & load_tag_name(anim_b) & ")"
-NEXT anim_i
-IF anim_i = 8 THEN menu(10) = "end of animation"
-menu(10) = "Action=" + stuff(bound(tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset), 0, 7))
-menu(11) = "Value="
-ta_temp = tastuf(11 + bound(pt - 1, 0, 8) + 20 * taset)
-SELECT CASE tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset)
- CASE 1 TO 4
-  menu(11) = menu(11) + STR(ta_temp) + " Tiles"
- CASE 5
-  menu(11) = menu(11) + STR(ta_temp) + " Ticks"
- CASE 6
-  menu(11) = menu(11) + tag_condition_caption(ta_temp, , "Never")
- CASE ELSE
-  menu(11) = menu(11) + "N/A"
-END SELECT
-RETRACE
+END SUB
 
-forcebounds:
-FOR i as integer = 0 TO 8
- forcebounds_tmp = bound(i, 0, 8) + 20 * taset
- tastuf(2 + forcebounds_tmp) = bound(tastuf(2 + forcebounds_tmp), 0, 7)
- tastuf(11 + forcebounds_tmp) = bound(tastuf(11 + forcebounds_tmp), llim(tastuf(2 + forcebounds_tmp)), ulim(tastuf(2 + forcebounds_tmp)))
-NEXT i
-RETRACE
+SUB setanimpattern_refreshmenu(byval pt as integer, menu() as string, tastuf() as integer, byval taset as integer, llim() as integer, ulim() as integer)
+ DIM animop(7) as string
+ animop(0) = "end of animation"
+ animop(1) = "up"
+ animop(2) = "down"
+ animop(3) = "right"
+ animop(4) = "left"
+ animop(5) = "wait"
+ animop(6) = "if tag do rest"
+ animop(7) = "unknown command"
 
+ setanimpattern_forcebounds tastuf(), taset, llim(), ulim()
+ FOR i as integer = 1 TO 9
+  menu(i) = "-"
+ NEXT i
+ menu(10) = ""
+ DIM anim_a as integer
+ DIM anim_b as integer
+ DIM anim_i as integer
+ FOR anim_i = 0 TO 8
+  anim_a = bound(tastuf((2 + anim_i) + 20 * taset), 0, 7)
+  anim_b = tastuf((11 + anim_i) + 20 * taset)
+  menu(anim_i + 1) = animop(anim_a)
+  IF anim_a = 0 THEN EXIT FOR
+  IF anim_a > 0 AND anim_a < 6 THEN menu(anim_i + 1) = menu(anim_i + 1) & " " & anim_b
+  IF anim_a = 6 THEN menu(anim_i + 1) = menu(anim_i + 1) & " (" & load_tag_name(anim_b) & ")"
+ NEXT anim_i
+ IF anim_i = 8 THEN menu(10) = "end of animation"
+ menu(10) = "Action=" + animop(bound(tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset), 0, 7))
+ menu(11) = "Value="
+ DIM ta_temp as integer
+ ta_temp = tastuf(11 + bound(pt - 1, 0, 8) + 20 * taset)
+ SELECT CASE tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset)
+  CASE 1 TO 4
+   menu(11) = menu(11) & ta_temp & " Tiles"
+  CASE 5
+   menu(11) = menu(11) & ta_temp & " Ticks"
+  CASE 6
+   menu(11) = menu(11) & tag_condition_caption(ta_temp, , "Never")
+  CASE ELSE
+   menu(11) = menu(11) & "N/A"
+ END SELECT
+END SUB
+
+SUB setanimpattern_forcebounds(tastuf() as integer, byval taset as integer, llim() as integer, ulim() as integer)
+ DIM tmp as integer
+ FOR i as integer = 0 TO 8
+  tmp = bound(i, 0, 8) + 20 * taset
+  tastuf(2 + tmp) = bound(tastuf(2 + tmp), 0, 7)
+  tastuf(11 + tmp) = bound(tastuf(11 + tmp), llim(tastuf(2 + tmp)), ulim(tastuf(2 + tmp)))
+ NEXT i
 END SUB
 
 SUB testanimpattern (tastuf() as integer, byref taset as integer)
