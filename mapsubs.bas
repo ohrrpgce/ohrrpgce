@@ -2439,7 +2439,7 @@ SUB mapedit_layers (st as MapEditState, gmap() as integer, visible() as integer,
    IF layerno = -1 THEN
     add_more_layers st, map(), visible(), gmap(), UBOUND(map) + 1
     layerno = UBOUND(map)
-    resetpt = YES
+    resetpt = NO
    ELSE
     'when gmap(31) is greater than actual number of layers we are "filling up" to old default of 2 under
     IF layerno < gmap(31) AND UBOUND(map) + 1 >= gmap(31) THEN gmap(31) += 1
@@ -2698,7 +2698,7 @@ SUB mapedit_makelayermenu(st as MapEditState, byref menu as LayerMenuItem vector
     state.pt = i
    END IF
   NEXT
-  IF state.pt = 0 THEN debugc errPromptBug, "Layer menu resetpt broken"
+  IF state.pt = 0 THEN debugc errBug, "Layer menu resetpt broken"
  END IF
 
  'Load the background for the menu on vpage 2
@@ -2803,6 +2803,7 @@ SUB new_blank_map (st as MapEditState, map() as TileMap, pass as TileMap, emap a
  CleanZoneMap zmap, 64, 64
  flusharray gmap(), -1, 0
  gmap(16) = 2 'Walkabout Layering: Together
+ gmap(31) = 1 'Walkabout layer above map layer 0
  CleanNPCL st.npc_inst()
  CleanNPCD st.npc_def()
  st.num_npc_defs = 1
@@ -3080,6 +3081,7 @@ SUB mapedit_delete(st as MapEditState, map() as TileMap, pass as TileMap, emap a
    CleanZoneMap zmap, st.wide, st.high
    CleanNPCL st.npc_inst()
    CleanDoors doors()
+   gmap(31) = 1 'Walkabout layer above map layer 0
    mapedit_throw_away_history st
   ELSEIF choice = 3 THEN
    CleanNPCL st.npc_inst()
