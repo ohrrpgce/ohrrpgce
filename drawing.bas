@@ -45,6 +45,7 @@ DECLARE SUB maptile ()
 DECLARE SUB tileedit_set_tool (ts as TileEditState, toolinfo() as ToolInfoType, byval toolnum as integer)
 DECLARE SUB tile_anim_draw_range(tastuf() as integer, byval taset as integer)
 DECLARE SUB tile_anim_set_range(tastuf() as integer, byval taset as integer, byval pagenum as integer)
+DECLARE SUB tile_animation(byval pagenum as integer)
 
 DECLARE SUB spriteedit_load_what_you_see(byval j as integer, byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, placer() as integer, workpal() as integer, poffset() as integer)
 DECLARE SUB spriteedit_save_what_you_see(byval j as integer, byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, placer() as integer, workpal() as integer, poffset() as integer)
@@ -285,13 +286,10 @@ END FUNCTION
 
 SUB maptile ()
 DIM menu() as string
-DIM tastuf(40) as integer
 DIM mapfile as string = game & ".til"
 DIM tmode as integer = 0
 DIM pagenum as integer
 DIM top as integer = -1
-DIM taptr as integer = 0
-DIM taset as integer
 DIM tog as integer
 
 DIM state as MenuState
@@ -380,7 +378,7 @@ DO
    CASE 0, 1, 2, 3
     picktiletoedit tmode, pagenum, mapfile
    CASE 4
-    GOSUB tileanim
+    tile_animation pagenum
     setkeys
     GOSUB tilemodemenu
    CASE 5
@@ -408,52 +406,59 @@ menu(4) = "Define Tile Animation"
 menu(5) = "Cancel"
 RETRACE
 
-tileanim:
-taset = 0
-loadtanim pagenum, tastuf()
-GOSUB update_ta_menu
-menu(0) = "Previous Menu"
-menu(2) = "Set Animation Range"
-menu(3) = "Set Animation Pattern"
-menu(5) = "Test Animations"
-setkeys
-DO
- setwait 55
+
+END SUB
+
+SUB tile_animation(byval pagenum as integer)
+ DIM tastuf(40) as integer
+ DIM taset as integer = 0
+ loadtanim pagenum, tastuf()
+ 
+ DIM state as MenuState
+ WITH state
+  .need_update = YES
+  .last = 5
+  .size = 5
+ END WITH
+
+ DIM menu(5) as string 
+ menu(0) = "Previous Menu"
+ menu(2) = "Set Animation Range"
+ menu(3) = "Set Animation Pattern"
+ menu(5) = "Test Animations"
+ 
  setkeys
- tog = tog XOR 1
- IF keyval(scESC) > 1 THEN EXIT DO
- IF keyval(scF1) > 1 THEN show_help "maptile_tileanim"
- IF usemenu(taptr, 0, 0, 5, 5) THEN GOSUB update_ta_menu
- IF taptr = 4 THEN
-  IF tag_grabber(tastuf(1 + 20 * taset)) THEN GOSUB update_ta_menu
- ELSE
-  IF intgrabber(taset, 0, 1) THEN GOSUB update_ta_menu
- END IF
- IF enter_or_space() THEN
-  IF taptr = 0 THEN EXIT DO
-  IF taptr = 2 THEN tile_anim_set_range tastuf(), taset, pagenum
-  IF taptr = 3 THEN setanimpattern tastuf(), taset, pagenum
-  IF taptr = 5 THEN testanimpattern tastuf(), taset
- END IF
- clearpage dpage
- FOR i as integer = 0 TO 5
-  textcolor uilook(uiMenuItem), uilook(uiOutline)
-  IF taptr = i THEN textcolor uilook(uiSelectedItem + tog), uilook(uiOutline)
-  printstr menu(i), 10, 8 * (i + 1), dpage
- NEXT i
- SWAP vpage, dpage
- setvispage vpage
- dowait
-LOOP
-savetanim pagenum, tastuf()
-RETRACE
-
-update_ta_menu:
-menu(1) = CHR(27) + "Animation set " & taset & CHR(26)
-menu(4) = tag_condition_caption(tastuf(1 + 20 * taset), "Disable if Tag", "No tag check")
-RETRACE
-
-
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "maptile_tileanim"
+  IF usemenu(state) THEN state.need_update = YES
+  IF state.pt = 4 THEN
+   IF tag_grabber(tastuf(1 + 20 * taset)) THEN state.need_update = YES
+  ELSE
+   IF intgrabber(taset, 0, 1) THEN state.need_update = YES
+  END IF
+  IF enter_space_click(state) THEN
+   SELECT CASE state.pt
+    CASE 0: EXIT DO
+    CASE 2: tile_anim_set_range tastuf(), taset, pagenum
+    CASE 3: setanimpattern tastuf(), taset, pagenum
+    CASE 5: testanimpattern tastuf(), taset
+   END SELECT
+  END IF
+  IF state.need_update THEN
+   menu(1) = CHR(27) & "Animation set " & taset & CHR(26)
+   menu(4) = tag_condition_caption(tastuf(1 + 20 * taset), "Disable if Tag", "No tag check")
+   state.need_update = YES
+  END IF
+  clearpage dpage
+  standardmenu menu(), state, 0, 0, dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+ savetanim pagenum, tastuf()
 END SUB
 
 SUB tile_anim_set_range(tastuf() as integer, byval taset as integer, byval pagenum as integer)
