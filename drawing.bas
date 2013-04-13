@@ -41,7 +41,7 @@ DECLARE SUB airbrush (byval x as integer, byval y as integer, byval d as integer
 DECLARE FUNCTION mouseover (byval mousex as integer, byval mousey as integer, byref zox as integer, byref zoy as integer, byref zcsr as integer, area() as MouseArea) as integer
 DECLARE SUB testanimpattern (tastuf() as integer, byref taset as integer)
 DECLARE SUB setanimpattern (tastuf() as integer, taset as integer, tilesetnum as integer)
-DECLARE SUB setanimpattern_refreshmenu(byval pt as integer, menu() as string, tastuf() as integer, byval taset as integer, llim() as integer, ulim() as integer)
+DECLARE SUB setanimpattern_refreshmenu(byval pt as integer, menu() as string, menu2() as string, tastuf() as integer, byval taset as integer, llim() as integer, ulim() as integer)
 DECLARE SUB setanimpattern_forcebounds(tastuf() as integer, byval taset as integer, llim() as integer, ulim() as integer)
 DECLARE SUB maptile ()
 DECLARE SUB tileedit_set_tool (ts as TileEditState, toolinfo() as ToolInfoType, byval toolnum as integer)
@@ -526,7 +526,8 @@ NEXT i
 END FUNCTION
 
 SUB setanimpattern (tastuf() as integer, taset as integer, tilesetnum as integer)
-DIM menu(12) as string
+DIM menu(10) as string
+DIM menu2(1) as string
 DIM llim(7) as integer
 DIM ulim(7) as integer
 menu(0) = "Previous Menu"
@@ -542,25 +543,29 @@ llim(5) = 0
 ulim(5) = 32767
 llim(6) = -max_tag()
 ulim(6) = max_tag()
-DIM pt as integer = 0
-DIM ptr2 as integer = 0
+
 DIM context as integer = 0
 DIM index as integer = 0
 DIM tog as integer
 
-setanimpattern_refreshmenu pt, menu(), tastuf(), taset, llim(), ulim()
+DIM state as MenuState
+init_menu_state state, menu()
+state.need_update = YES
+
+DIM state2 as MenuState
+init_menu_state state2, menu2()
+
 setkeys
 DO
  setwait 55
  setkeys
- tog = tog XOR 1
  IF keyval(scF1) > 1 THEN show_help "maptile_setanimpattern"
  SELECT CASE context
   CASE 0 '---PICK A STATEMENT---
    IF keyval(scESC) > 1 THEN EXIT DO
-   IF usemenu(pt, 0, 0, 9, 9) THEN setanimpattern_refreshmenu pt, menu(), tastuf(), taset, llim(), ulim()
-   IF enter_or_space() THEN
-    IF pt = 0 THEN
+   IF usemenu(state) THEN state.need_update = YES
+   IF enter_space_click(state) THEN
+    IF state.pt = 0 THEN
      EXIT DO
     ELSE
      context = 1
@@ -571,41 +576,32 @@ DO
     savetanim tilesetnum, tastuf()
     context = 0
    END IF
-   usemenu ptr2, 0, 0, 1, 1
-   index = bound(pt - 1, 0, 8) + 20 * taset
-   IF ptr2 = 0 THEN
-    IF intgrabber(tastuf(2 + index), 0, 6) THEN setanimpattern_refreshmenu pt, menu(), tastuf(), taset, llim(), ulim()
-    IF enter_or_space() THEN context = 0
+   usemenu state2
+   index = bound(state.pt - 1, 0, 8) + 20 * taset
+   IF state2.pt = 0 THEN
+    IF intgrabber(tastuf(2 + index), 0, 6) THEN state.need_update = YES
    END IF
-   IF ptr2 = 1 THEN
+   IF state2.pt = 1 THEN
     IF tastuf(2 + index) = 6 THEN
-     IF tag_grabber(tastuf(11 + index)) THEN setanimpattern_refreshmenu pt, menu(), tastuf(), taset, llim(), ulim()
+     IF tag_grabber(tastuf(11 + index)) THEN state.need_update = YES
     ELSE
-     IF intgrabber(tastuf(11 + index), llim(tastuf(2 + index)), ulim(tastuf(2 + index))) THEN setanimpattern_refreshmenu pt, menu(), tastuf(), taset, llim(), ulim()
-     IF enter_or_space() THEN context = 0
+     IF intgrabber(tastuf(11 + index), llim(tastuf(2 + index)), ulim(tastuf(2 + index))) THEN state.need_update = YES
     END IF
    END IF
+   IF enter_space_click(state2) THEN context = 0
  END SELECT
+ IF state.need_update THEN
+  setanimpattern_refreshmenu state.pt, menu(), menu2(), tastuf(), taset, llim(), ulim()
+  state.need_update = NO
+ END IF
  '--Draw screen
  clearpage dpage
- FOR i as integer = 0 TO 9
-  textcolor uilook(uiMenuItem), 0
-  IF i = pt THEN
-   textcolor uilook(uiSelectedItem + tog), 0
-  END IF
-  IF context = 1 THEN textcolor uilook(uiDisabledItem), 0
-  printstr menu(i), 0, i * 8, dpage
- NEXT i
- IF pt > 0 THEN
-  FOR i as integer = 0 TO 1
-   textcolor uilook(uiMenuItem), 0
-   IF context = 1 AND i = ptr2 THEN
-    textcolor uilook(uiSelectedItem + tog), 0
-   END IF
-   IF context = 0 THEN textcolor uilook(uiDisabledItem), 0
-   printstr menu(10 + i), 0, 100 + i * 8, dpage
-  NEXT i
- END IF 'pt > 1
+ state.active = (context = 0)
+ standardmenu menu(), state, 0, 0, dpage
+ IF state.pt > 0 THEN
+  state2.active = (context = 1)
+  standardmenu menu2(), state2, 0, 100, dpage
+ END IF
  SWAP vpage, dpage
  setvispage vpage
  dowait
@@ -615,7 +611,7 @@ EXIT SUB
 
 END SUB
 
-SUB setanimpattern_refreshmenu(byval pt as integer, menu() as string, tastuf() as integer, byval taset as integer, llim() as integer, ulim() as integer)
+SUB setanimpattern_refreshmenu(byval pt as integer, menu() as string, menu2() as string, tastuf() as integer, byval taset as integer, llim() as integer, ulim() as integer)
  DIM animop(7) as string
  animop(0) = "end of animation"
  animop(1) = "up"
@@ -643,19 +639,20 @@ SUB setanimpattern_refreshmenu(byval pt as integer, menu() as string, tastuf() a
   IF anim_a = 6 THEN menu(anim_i + 1) = menu(anim_i + 1) & " (" & load_tag_name(anim_b) & ")"
  NEXT anim_i
  IF anim_i = 8 THEN menu(10) = "end of animation"
- menu(10) = "Action=" + animop(bound(tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset), 0, 7))
- menu(11) = "Value="
+
+ menu2(0) = "Action=" + animop(bound(tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset), 0, 7))
+ menu2(1) = "Value="
  DIM ta_temp as integer
  ta_temp = tastuf(11 + bound(pt - 1, 0, 8) + 20 * taset)
  SELECT CASE tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset)
   CASE 1 TO 4
-   menu(11) = menu(11) & ta_temp & " Tiles"
+   menu2(1) &= ta_temp & " Tiles"
   CASE 5
-   menu(11) = menu(11) & ta_temp & " Ticks"
+   menu2(1) &= ta_temp & " Ticks"
   CASE 6
-   menu(11) = menu(11) & tag_condition_caption(ta_temp, , "Never")
+   menu2(1) &= tag_condition_caption(ta_temp, , "Never")
   CASE ELSE
-   menu(11) = menu(11) & "N/A"
+   menu2(1) &= "N/A"
  END SELECT
 END SUB
 
