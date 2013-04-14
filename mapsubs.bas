@@ -3765,7 +3765,7 @@ SUB mapedit_pickblock(st as MapEditState)
 
  setkeys
  DO
-  setwait 55
+  setwait 27, 70
   setkeys
   IF keyval(scESC) > 1 THEN
    update_tilepicker st
@@ -3784,16 +3784,15 @@ SUB mapedit_pickblock(st as MapEditState)
   END IF
 
   IF keyval(scF1) > 1 THEN show_help "mapedit_tilemap_picktile"
-  IF keyval(scUp) AND tilepick.y > 0 THEN tilepick.y -= 1
-  IF keyval(scDown) AND tilepick.y < 9 THEN tilepick.y += 1
-  IF keyval(scLeft) AND tilepick.x > 0 THEN tilepick.x -= 1
-  IF keyval(scRight) AND tilepick.x < 15 THEN tilepick.x += 1
+  IF slowkey(scUp, 80) AND tilepick.y > 0 THEN tilepick.y -= 1
+  IF slowkey(scDown, 80) AND tilepick.y < 9 THEN tilepick.y += 1
+  IF slowkey(scLeft, 80) AND tilepick.x > 0 THEN tilepick.x -= 1
+  IF slowkey(scRight, 80) AND tilepick.x < 15 THEN tilepick.x += 1
   st.usetile(st.layer) = int_from_xy(tilepick, 16, 16)
-  IF keyval(scComma) AND st.usetile(st.layer) > 0 THEN st.usetile(st.layer) -= 1
-  IF keyval(scPeriod) AND st.usetile(st.layer) < 159 THEN st.usetile(st.layer) += 1
+  IF slowkey(scComma, 80) AND st.usetile(st.layer) > 0 THEN st.usetile(st.layer) -= 1
+  IF slowkey(scPeriod, 80) AND st.usetile(st.layer) < 159 THEN st.usetile(st.layer) += 1
   tilepick = xy_from_int(st.usetile(st.layer), 16, 16)
 
-  tog = tog XOR 1
   clearpage vpage
   drawmap st.tilesetview, 0, 0, st.tilesets(st.layer), vpage
   DIM infoline_y as integer = IIF(st.usetile(st.layer) < 112, 190, 0)
@@ -3810,7 +3809,7 @@ SUB mapedit_pickblock(st as MapEditState)
    frame_draw st.cursor.sprite + tog, st.cursor.pal, tilepick.x * 20, tilepick.y * 20, , , vpage
   END IF
   setvispage vpage
-  dowait
+  IF dowait THEN tog = tog XOR 1
  LOOP
 END SUB
 
