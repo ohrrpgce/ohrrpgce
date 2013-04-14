@@ -1267,6 +1267,16 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
   END IF
  NEXT i
  
+ WITH state
+  .has_been_drawn = YES
+  DIM bord as integer = 8 + menu.bordersize
+  .rect.x = menu.rect.x + bord
+  .rect.y = menu.rect.y + bord
+  .rect.wide = menu.rect.wide - bord * 2
+  .rect.high = menu.rect.high - bord * 2
+  .spacing = 10 + menu.itemspacing
+ END WITH
+ 
 END SUB
 
 SUB position_menu_item (menu as MenuDef, cap as string, byval i as integer, byref where as XYPair)
