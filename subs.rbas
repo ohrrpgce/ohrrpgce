@@ -2475,7 +2475,7 @@ SUB hero_editor_battle_menu (her as HeroDef)
    st.need_update = YES
   END IF
 
-  IF keyval(scInsert) > 1 THEN
+  IF keyval(scPlus) > 1  ORELSE keyval(scNumPadPlus) > 1 ORELSE keyval(scInsert) > 1 THEN
    DIM ins_node as NodePtr
    ins_node = AppendChildNode(hero_node."battle_menus".ptr, "menu")
    DIM other_node as NodePtr
