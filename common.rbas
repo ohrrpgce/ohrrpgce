@@ -4216,10 +4216,12 @@ FUNCTION enter_space_click (state as MenuState) as integer
  mouse = readmouse()
  IF state.has_been_drawn THEN
   IF (mouse.clickstick AND mouseleft) THEN
-   IF rect_collide_point(state.rect, mouse.x, mouse.y) THEN
-    '--We only care that the mouse is somewhere on the state.
-    '--We don't worry about specific menu item it is on,
-    '--because usemenu should have already handled that
+   DIM r as RectType
+   r.x = state.rect.x
+   r.y = state.rect.y + (state.pt - state.top) * state.spacing
+   r.wide = state.rect.wide
+   r.high = state.spacing
+   IF rect_collide_point(r, mouse.x, mouse.y) THEN
     RETURN YES
    END IF
   END IF
