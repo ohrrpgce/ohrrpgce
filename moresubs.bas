@@ -1556,7 +1556,7 @@ END IF
 
 DIM index as integer = nowscript + 1
 
-IF index > 127 THEN
+IF index >= maxScriptRunning THEN
  runscript = 0 '--error
  scripterr "failed to load " + *scripttype + " script " & n & " " & scriptname(n) & ", interpreter overloaded", 6
  EXIT FUNCTION
@@ -1609,7 +1609,7 @@ WITH scrat(index)
  
  scrat(index + 1).heap = .heap + .scr->vars
 
- IF scrat(index + 1).heap > 2048 THEN
+ IF scrat(index + 1).heap > maxScriptHeap THEN
   runscript = 0'--error
   scripterr "failed to load " + *scripttype + " script " & n & " " & scriptname(n) & ", script heap overflow", 6
   EXIT FUNCTION
@@ -1663,7 +1663,7 @@ FUNCTION loadscript (byval n as unsigned integer) as ScriptData ptr
    '--because TMC once suggested that preunlumping the .hsp lump would be a good way to reduce (SoJ) loading time
    scriptfile = workingdir & SLASH & n & ".hsx"
    IF NOT isfile(scriptfile) THEN
-    scripterr "script id " & n & " does not exist", 6
+    scripterr "script " & n & " " & scriptname(n) & " does not exist", 6
     RETURN NULL
    END IF
   END IF
@@ -1674,7 +1674,7 @@ FUNCTION loadscript (byval n as unsigned integer) as ScriptData ptr
 
  'minimum length of a valid 16-bit .hsx
  IF LOF(f) < 10 THEN
-  scripterr "script " & n & " corrupt (" & LOF(f) & " bytes)", 6
+  scripterr "script " & n & " corrupt (too short: " & LOF(f) & " bytes)", 6
   CLOSE #f
   RETURN NULL
  END IF
@@ -1733,7 +1733,7 @@ FUNCTION loadscript (byval n as unsigned integer) as ScriptData ptr
   'set an arbitrary max script buffer size (scriptmemMax in const.bi), individual scripts must also obey
   .size = (LOF(f) - skip) \ wordsize
   IF .size > scriptmemMax THEN
-   scripterr "Script " & n & " exceeds maximum size by " & .size * 100 \ scriptmemMax - 99 & "%", 6
+   scripterr "Script " & n & " " & scriptname(n) & " exceeds maximum size by " & .size * 100 \ scriptmemMax - 99 & "%", 6
    CLOSE #f
    deallocate(thisscr)
    RETURN NULL

@@ -229,10 +229,10 @@ DIM totalscrmem as integer
 DIM scrwatch as integer
 DIM next_interpreter_check_time as double
 DIM interruption_grace_period as integer
-REDIM heap(2048) as integer
+REDIM heap(maxScriptHeap) as integer
 REDIM global(maxScriptGlobals) as integer
 REDIM retvals(32) as integer
-REDIM scrat(128) as ScriptInst
+REDIM scrat(maxScriptRunning) as ScriptInst
 REDIM script(scriptTableSize - 1) as ScriptData Ptr
 REDIM plotstr(maxScriptStrings) as Plotstring
 REDIM lookup1_bin_cache(-1 TO -1) as TriggerData
