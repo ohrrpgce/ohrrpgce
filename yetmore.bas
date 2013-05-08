@@ -997,7 +997,7 @@ SELECT CASE as CONST id
  CASE 22'--pay money
   IF gold - retvals(0) >= 0 THEN
    gold = gold - retvals(0)
-   scriptret = -1
+   scriptret = 1
   ELSE
    scriptret = 0
   END IF
