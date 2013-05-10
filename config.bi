@@ -48,17 +48,26 @@
 #ENDIF
 CONST build_info as string = "" _GSTR _ESTR _GENSTR _SSTR _PSTR
 
-'__FB_UNIX__ only defined in FB 0.21 on (I think)
-'Note: it's always defined, either to 0 or -1. HATE
-#IF __FB_UNIX__
-'STRANGE: For some reason I have to add a comment here or FreeBasic 0.24-pre doesn't compile it
- #IFNDEF __UNIX__
-  #DEFINE __UNIX__
+'__FB_UNIX__ is only in FB 0.21 onwards (I think)
+'In FB 0.90+ it's either defined or not (can't be used in #IF), while in earlier FBs
+'it's always defined, either to 0 or -1 (can't be used in #IFDEF). HATEHATEHATE
+#IFNDEF __UNIX__
+ #IFDEF __FB_VER_MINOR__ * 100 + __FB_VER_MINOR__ < 90
+  #IF __FB_UNIX__
+   'STRANGE: For some reason I have to add a comment here or FreeBasic 0.24-pre doesn't compile it
+   #DEFINE __UNIX__
+  #ENDIF
+ #ELSE
+  #IFDEF __FB_UNIX__
+   #DEFINE __UNIX__
+  #ENDIF
  #ENDIF
 #ENDIF
 
+
 #IFDEF __UNIX__
  'FB's headers check for __FB_LINUX__
+ '(because they are actually headers from some GNU/Linux distrib, other platforms not officially supported)
  #DEFINE __FB_LINUX__
 #ENDIF
 
