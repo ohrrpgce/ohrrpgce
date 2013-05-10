@@ -4,6 +4,7 @@ import platform
 import re
 import fnmatch
 import sys
+import itertools
 
 def get_run_command(cmd):
     """Runs a shell commands and returns stdout as a string"""
@@ -150,3 +151,23 @@ def verprint (used_gfx, used_music, svn, git, fbc):
     # I am curious why there is not a distver.sh generated in the original
     # verprint. An oversight?
 
+def android_source_files (gamesrc):
+    # Get a list of C and C++ files to use as sources
+    source_files = []
+    for node in itertools.chain(*gamesrc):
+        assert len(node.sources) == 1
+        # If it ends with .bas then we can't use the name of the source file,
+        # since it doesn't have the game- or edit- prefix if any
+        if node.sources[0].name.endswith('.bas'):
+            source_files.append (node.name[:-2] + '.c')
+        else:
+            source_files.append (node.sources[0].name)
+    # hacky. Copy the right source files to a temp directory because the Android.mk used
+    # by the SDL port selects too much
+    os.system ('rm -fr android/tmp/*')
+    os.system ('mkdir -p android/tmp/fb')
+    # This actually creates the symlinks before the C/C++ files are generated, but that's OK
+    os.system ('ln -s -r *.h ' + ' '.join(source_files) + ' android/tmp')
+    os.system ('ln -s -r fb/*.h android/tmp/fb/')
+    os.system ('ln -s -r android/sdlmain.c android/tmp/')
+    

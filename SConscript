@@ -6,7 +6,7 @@ cf. SConstruct, ohrbuild.py
 import os
 import platform
 import shutil
-from ohrbuild import basfile_scan, verprint, get_run_command
+from ohrbuild import basfile_scan, verprint, android_source_files, get_run_command
 
 FBFLAGS = os.environ.get ('FBFLAGS', []) + ['-mt']
 #CC and CXX are probably not needed anymore
@@ -29,6 +29,7 @@ FRAMEWORKS_PATH = "~/Library/Frameworks"  # Frameworks search path in addition t
 win32 = False
 unix = False
 mac = False
+android = False
 exe_suffix = ''
 if platform.system () == 'Windows':
     win32 = True
@@ -40,6 +41,12 @@ elif platform.system () == 'Darwin':
     mac = True
 else:
     unix = True
+
+if 'android' in ARGUMENTS:
+    # Like asm=1 and gengcc=1. Will produce "g++: error: *.o: no such file" errors
+    FBFLAGS += ["-r"]
+    FBFLAGS += ["-gen", "gcc"]
+    android = True
 
 # gcc -m32 on x86_64 defaults to enabling SSE and SSE2, so disable that,
 # except on Intel Macs, where it is both always present, and required by system headers
@@ -86,6 +93,8 @@ if C_opt:
 
 # Backend selection.
 if mac:
+    gfx = 'sdl'
+elif android:
     gfx = 'sdl'
 elif unix:
     gfx = 'sdl+fb'
@@ -478,6 +487,10 @@ RELOADUTIL = env_exe ('reloadutil', source = ['reloadutil.bas'] + reload_objects
 RBTEST = env_exe ('rbtest', source = [env.RB('rbtest.rbas'), env.RB('rbtest2.rbas')] + reload_objects)
 env_exe ('vectortest', source = ['vectortest.bas'] + base_objects)
 
+if android:
+    # This is hacky
+    android_source_files (gamesrc)
+
 # Building gfx_directx.dll
 if win32:
     directx_sources = ['d3d.cpp', 'didf.cpp', 'gfx_directx.cpp', 'joystick.cpp', 'keyboard.cpp',
@@ -566,6 +579,7 @@ Experimental options:
   gengcc=1            Compile using GCC emitter.
   deprecated=1        Compiles certain source files using the "deprecated" dialect
   linkgcc=0           Link using fbc instead of g++.
+  android=1           Used as part of the Android build process.
 
 Targets:
   """ + gamename + """ (or game)
