@@ -167,7 +167,9 @@ def android_source_files (gamesrc):
     os.system ('rm -fr android/tmp/*')
     os.system ('mkdir -p android/tmp/fb')
     # This actually creates the symlinks before the C/C++ files are generated, but that's OK
-    os.system ('ln -s -r *.h ' + ' '.join(source_files) + ' android/tmp')
-    os.system ('ln -s -r fb/*.h android/tmp/fb/')
-    os.system ('ln -s -r android/sdlmain.c android/tmp/')
+    os.system ('ln -s ' + ' '.join('../../'+a for a in source_files) + ' android/tmp')
+    os.system ('cp *.h android/tmp/')
+    os.system ('cp fb/*.h android/tmp/fb/')
+    os.system ('cp android/sdlmain.c android/tmp')
+    
     
