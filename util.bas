@@ -1523,7 +1523,10 @@ END FUNCTION
 
 FUNCTION isdir (sDir as string) as integer
   dim ret as bool
-#IFDEF __UNIX__
+#IFDEF __FB_ANDROID__
+  '[ does not work in Android 2.2. I don't know how reliable this is
+  ret = SHELL("ls " + escape_filename(sDir) + "/") = 0
+#ELSEIF DEFINED(__UNIX__)
   'Special hack for broken Linux dir() behavior
   '(FIXME: is DIR still broken? Should investigate)
   ret = SHELL("[ -d " + escape_filename(sDir) + " ]") = 0
