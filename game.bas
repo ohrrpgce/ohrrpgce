@@ -61,6 +61,12 @@ DECLARE SUB misc_debug_menu()
 DECLARE SUB battle_formation_testing_menu()
 
 
+'Note: On Android exename is "sdl" and exepath is "" (currently unimplemented in FB and meaningless for an app anyway)
+
+#IFDEF __FB_ANDROID__
+ log_dir = CURDIR & SLASH
+#ENDIF
+
 'FIXME: too many directory variables! Clean this nonsense up
 DIM app_dir as string  'global
 app_dir = exepath
@@ -101,7 +107,9 @@ processcommandline
 '---get temp dir---
 set_homedir
 tmpdir = acquiretempdir
-IF NOT isdir(tmpdir) THEN makedir tmpdir
+IF NOT isdir(tmpdir) THEN
+ IF makedir(tmpdir) <> 0 THEN fatalerror "Unable to create temp directory " & tmpdir
+END IF
 
 'DEBUG debug "set mode-X"
 setmodex
@@ -182,7 +190,6 @@ DIM resetg as integer
 DIM presentsong as integer
 
 DIM err_suppress_lvl as scriptErrEnum
-DIM tmpdir as string
 DIM exename as string
 DIM game as string
 DIM sourcerpg as string
@@ -395,7 +402,7 @@ IF gam.autorungame = NO THEN
 END IF
 
 '-- set up prefs dir
-IF NOT isdir(settings_dir) THEN debug "Ooops! Why doesn't """ & settings_dir & """ exist yet?"
+IF NOT isdir(settings_dir) THEN makedir settings_dir
 prefsdir = settings_dir & SLASH & trimextension(trimpath(sourcerpg))
 IF NOT isdir(prefsdir) THEN makedir prefsdir
 debuginfo "prefsdir=" & prefsdir

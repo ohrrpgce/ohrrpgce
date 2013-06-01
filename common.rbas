@@ -79,16 +79,17 @@ DIM data_dir as string
 
 DIM settings_dir as string
 'This is for application-wide settings, and prefsdir for games will be a subdirectory of it.
-#IFDEF __UNIX__
-settings_dir = ENVIRON("HOME") & SLASH & ".ohrrpgce"
+#IFDEF __FB_ANDROID__
+ 'FIXME: Most natural is to use CURDIR, but this runs in a constructor before CURDIR has been set!
+#ELSEIF DEFINED(__UNIX__)
+ settings_dir = ENVIRON("HOME") & SLASH & ".ohrrpgce"
 #ELSE
-settings_dir = ENVIRON("APPDATA") & SLASH & "OHRRPGCE"
-'--APPDATA enviroment variable doesn't exist in Windows 98 so we need a fallback
-IF ENVIRON("APPDATA") = "" THEN
- settings_dir = exepath & SLASH & "OHRRPGCE-settings"
-END IF
+ settings_dir = ENVIRON("APPDATA") & SLASH & "OHRRPGCE"
+ '--APPDATA enviroment variable doesn't exist in Windows 98 so we need a fallback
+ IF ENVIRON("APPDATA") = "" THEN
+  settings_dir = exepath & SLASH & "OHRRPGCE-settings"
+ END IF
 #ENDIF
-IF NOT isdir(settings_dir) THEN makedir settings_dir
 
 'Used by intgrabber, reset by usemenu
 DIM negative_zero as integer = NO
@@ -483,16 +484,19 @@ FUNCTION acquiretempdir () as string
   IF NOT diriswriteable(tmp) THEN tmp = exepath
   IF NOT diriswriteable(tmp) THEN tmp = ""
   IF NOT diriswriteable(tmp) THEN fatalerror "Unable to find any writable temp dir"
-  IF RIGHT(tmp, 1) <> SLASH THEN tmp = tmp & SLASH
-  tmp = tmp & "ohrrpgce"
+ #ELSEIF DEFINED(__FB_ANDROID__)
+  'SDL sets initial directory to .../com.hamsterrepublic.ohrrpgce.game/files
+  tmp = orig_dir
  #ELSE
   'Unix only behavior
   tmp = environ("HOME") + SLASH + ".ohrrpgce"
-  IF NOT isdir(tmp) THEN makedir(tmp)
-  tmp = tmp & SLASH
  #ENDIF
+ IF NOT isdir(tmp) THEN
+  IF makedir(tmp) <> 0 THEN fatalerror "Temp directory " & tmp & " missing and unable to create it"
+ END IF
+ IF RIGHT(tmp, 1) <> SLASH THEN tmp = tmp & SLASH
  DIM as string d = DATE, t = TIME
- tmp += MID(d,7,4) & MID(d,1,2) & MID(d,4,2) & MID(t,1,2) & MID(t,4,2) & MID(t,7,2) & "." & randint(1000) & ".tmp" & SLASH
+ tmp += "ohrrpgce" & MID(d,7,4) & MID(d,1,2) & MID(d,4,2) & MID(t,1,2) & MID(t,4,2) & MID(t,7,2) & "." & randint(1000) & ".tmp" & SLASH
  RETURN tmp
 END FUNCTION
 

@@ -32,11 +32,6 @@ LMPVTAB(LT_LUMPED, LumpedLump_,  QLMP(destruct),       NULL,       NULL,        
 LMPVTAB(LT_FILE,   FileLump_,    QLMP(destruct),       QLMP(open), QLMP(close), QLMP(writetofile), NULL, QLMP(read))
 
 
-'grumble...
-#if defined(IS_GAME) = 0 AND defined(IS_CUSTOM) = 0
- dim shared tmpdir as string
-#endif
-
 #ifdef IS_GAME
  EXTERN running_as_slave as integer
 #endif

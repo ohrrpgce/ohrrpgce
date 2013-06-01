@@ -27,6 +27,9 @@ CONST STACK_SIZE_INC = 512 ' in integers
 'It is very important for this to be populated _before_ any calls to CHDIR
 DIM orig_dir as string
 
+'tmpdir should be set before calling findfiles
+DIM tmpdir as string
+
 'This is needed for mbstowcs. Placing it here seems like the simplest way to ensure it's run in all utilities
 init_runtime
 

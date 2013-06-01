@@ -448,6 +448,7 @@ DECLARE SUB str2array (s as string, arr() as integer, byval o as integer)
 '              Globals (think twice before adding more)
 
 
+EXTERN tmpdir as string
 'Ideally would not be in this module
 EXTERN orig_dir as string
 

@@ -267,7 +267,7 @@ DECLARE FUNCTION str_rect(s as string, byval x as integer, byval y as integer) a
 
 'Global variables
 EXTERN sourcerpg as string
-EXTERN as string game, tmpdir, exename, workingdir, homedir, app_dir
+EXTERN as string game, exename, workingdir, homedir, app_dir
 EXTERN game_unique_id as string
 EXTERN uilook() as integer
 EXTERN as integer vpage, dpage

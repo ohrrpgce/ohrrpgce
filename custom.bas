@@ -97,7 +97,6 @@ DIM fadestate as integer
 DIM game as string
 DIM sourcerpg as string
 DIM exename as string
-DIM tmpdir as string
 DIM homedir as string
 DIM workingdir as string
 DIM app_dir as string
@@ -114,6 +113,12 @@ DIM archinym as string
 DIM SHARED nocleanup as integer = NO
 
 '--Startup
+
+'Note: On Android exename is "sdl" and exepath is "" (currently unimplemented in FB and meaningless for an app anyway)
+
+#IFDEF __FB_ANDROID__
+ log_dir = CURDIR & SLASH
+#ENDIF
 
 exename = trimextension(trimpath(COMMAND(0)))
 
@@ -152,8 +157,11 @@ debuginfo DATE & " " & TIME
 'seed the random number generator
 mersenne_twister TIMER
 
+'IF NOT isdir(settings_dir) THEN makedir settings_dir
 tmpdir = settings_dir & SLASH
-IF NOT isdir(tmpdir) THEN makedir tmpdir
+IF NOT isdir(tmpdir) THEN
+ IF makedir(tmpdir) <> 0 THEN fatalerror "Unable to create temp directory " & tmpdir
+END IF
 
 processcommandline
 
