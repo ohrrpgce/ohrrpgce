@@ -58,14 +58,14 @@ END IF
 
 PRINT "From " + src + " to " + dest
 
-IF isfile(dest) THEN
+IF isdir(dest) THEN
+ fatalerror "destination file " + dest + " already exists as a folder."
+ELSEIF isfile(dest) THEN
  PRINT "destination file " + dest + " already exists. Replace it? (y/n)"
  DIM w as string
  w = readkey
  IF w <> "Y" AND w <> "y" THEN SYSTEM
 END IF
-
-IF isdir(dest) THEN fatalerror "destination file " + dest + " already exists as a folder."
 
 '--build the list of files to lump
 REDIM filelist() as string

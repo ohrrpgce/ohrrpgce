@@ -75,13 +75,13 @@ PRINT "From " + lumped + " to " + dest
 dim game as string
 game = trimextension(trimpath(lumped))
 
-IF isfile(dest) THEN fatalerror "destination directory `" + dest + "' already exists as a file"
-
 IF isdir(dest) THEN
  PRINT "Destination directory `" + dest + "' already exists. Delete it? (y/n)"
  DIM w as string = readkey
  IF w <> "Y" AND w <> "y" THEN SYSTEM
  killdir dest
+ELSEIF isfile(dest) THEN
+ fatalerror "destination directory `" + dest + "' already exists as a file"
 END IF
 makedir dest
 createddir = -1
