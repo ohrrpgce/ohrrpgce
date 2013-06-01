@@ -37,8 +37,10 @@ DECLARE SUB equip_menu_setup (byref st as EquipMenuState, menu() as string)
 DECLARE SUB equip_menu_do_equip(byval item as integer, byref st as EquipMenuState, menu() as string)
 DECLARE SUB equip_menu_back_to_menu(byref st as EquipMenuState, menu() as string)
 DECLARE SUB equip_menu_stat_bonus(byref st as EquipMenuState)
-DECLARE FUNCTION equip_menu_update_equipped_item_info(st as EquipMenuState, eqstuf() as integer) as string
-DECLARE FUNCTION equip_menu_update_available_item_info(st as EquipMenuState) as string
+DECLARE FUNCTION equip_menu_available_item_id(st as EquipMenuState) as integer
+DECLARE FUNCTION equip_menu_available_item_caption(st as EquipMenuState, byval menuslot as integer) as string
+DECLARE FUNCTION equip_menu_equipped_item_info(st as EquipMenuState, eqstuf() as integer) as string
+DECLARE FUNCTION equip_menu_available_item_info(st as EquipMenuState) as string
 DECLARE SUB items_menu_paint (istate as ItemsMenuState, iuse() as integer, permask() as integer)
 DECLARE SUB items_menu_infostr(state as ItemsMenuState, permask() as integer)
 DECLARE SUB items_menu_autosort(iuse() as integer, permask() as integer)
@@ -1518,7 +1520,7 @@ WITH st
 END WITH
 equip_menu_setup st, menu()
 
-item_info = equip_menu_update_equipped_item_info(st, eqstuf())
+item_info = equip_menu_equipped_item_info(st, eqstuf())
 
 '--prepare the backdrop
 'preserve the background behind the equip menu
@@ -1544,17 +1546,17 @@ DO
    DO: st.who = loopvar(st.who, 0, 3, -1): LOOP UNTIL hero(st.who) > 0
    equip_menu_setup st, menu()
    MenuSound gen(genCursorSFX)
-   item_info = equip_menu_update_equipped_item_info(st, eqstuf())
+   item_info = equip_menu_equipped_item_info(st, eqstuf())
   END IF
   IF carray(ccRight) > 1 THEN 'Right: next hero
    DO: st.who = loopvar(st.who, 0, 3, 1): LOOP UNTIL hero(st.who) > 0
    equip_menu_setup st, menu()
    MenuSound gen(genCursorSFX)
-   item_info = equip_menu_update_equipped_item_info(st, eqstuf())
+   item_info = equip_menu_equipped_item_info(st, eqstuf())
   END IF
   usemenusounds
   IF usemenu(st.slot, 0, 0, 6, 6) THEN
-   item_info = equip_menu_update_equipped_item_info(st, eqstuf())
+   item_info = equip_menu_equipped_item_info(st, eqstuf())
   END IF
 
   IF carray(ccUse) > 1 THEN
@@ -1569,7 +1571,7 @@ DO
      st.eq_cursor.last = (st.eq(st.slot).count + 1) - 1
      equip_menu_stat_bonus st
      MenuSound gen(genAcceptSFX)
-     item_info = equip_menu_update_available_item_info(st)
+     item_info = equip_menu_available_item_info(st)
     END IF
     'UPDATE ITEM POSSESSION BITSETS
     evalitemtags
@@ -1592,12 +1594,12 @@ DO
    st.mode = 0
    flusharray st.stat_bonus()
    MenuSound gen(genCancelSFX)
-   item_info = equip_menu_update_equipped_item_info(st, eqstuf())
+   item_info = equip_menu_equipped_item_info(st, eqstuf())
   END IF
   usemenusounds
   IF usemenu(st.eq_cursor) THEN
    equip_menu_stat_bonus st
-   item_info = equip_menu_update_available_item_info(st)
+   item_info = equip_menu_available_item_info(st)
   END IF
   IF carray(ccUse) > 1 THEN
    IF st.eq_cursor.pt = st.eq(st.slot).count THEN
@@ -1674,19 +1676,11 @@ DO
   FOR i = st.eq_cursor.top TO st.eq_cursor.top + st.eq_cursor.size
    textcolor uilook(uiMenuItem), 0
    IF i = st.eq_cursor.pt THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight2)
-   IF i < st.eq(st.slot).count THEN
-    printstr inventory(st.eq(st.slot).offset(i)).text, 192, 28 + (i - st.eq_cursor.top) * 8, page
-   ELSEIF i = st.eq(st.slot).count THEN
-    '--unequip option
-    IF st.slot = 0 THEN
-     printstr st.default_weapon_name, 192, 28 + (i - st.eq_cursor.top) * 8, page
-    ELSE
-     printstr st.unequip_caption, 192, 28 + (i - st.eq_cursor.top) * 8, page
-    END IF
-   ELSE
+   IF i > st.eq(st.slot).count THEN
     '--all done!
     EXIT FOR
    END IF
+   printstr equip_menu_available_item_caption(st, i), 192, 28 + (i - st.eq_cursor.top) * 8, page
   NEXT i
  END IF
  centerbox 160, 192, 312, 16, 4, page
@@ -1700,17 +1694,49 @@ MenuSound gen(genCancelSFX)
 'tags handled in unequip, doequip
 END SUB
 
-FUNCTION equip_menu_update_equipped_item_info(st as EquipMenuState, eqstuf() as integer) as string
+'Returns the item ID corresponding to the selected menu item of the equippable item menu,
+'or -1 if Unequip is selected and it's not the default weapon
+FUNCTION equip_menu_available_item_id(st as EquipMenuState) as integer
+ IF st.eq_cursor.pt = st.eq(st.slot).count THEN
+  '--last option: unequip
+  IF st.slot = 0 THEN
+   '--special handling for weapon
+   RETURN st.default_weapon - 1
+  ELSE
+   RETURN -1
+  END IF
+ ELSE
+  '--equippable item
+  RETURN inventory(st.eq(st.slot).offset(st.eq_cursor.pt)).id
+ END IF
+END FUNCTION
+
+'Returns the caption for a menu item in the equippable item menu
+FUNCTION equip_menu_available_item_caption(st as EquipMenuState, byval menuslot as integer) as string
+ IF menuslot = st.eq(st.slot).count THEN
+  '--last option: unequip
+  IF st.slot = 0 THEN
+   RETURN st.default_weapon_name
+  ELSE
+   RETURN st.unequip_caption
+  END IF
+ ELSE
+  '--equippable item
+  RETURN inventory(st.eq(st.slot).offset(menuslot)).text
+ END IF
+END FUNCTION
+
+FUNCTION equip_menu_equipped_item_info(st as EquipMenuState, eqstuf() as integer) as string
  IF st.slot < 5 ANDALSO eqstuf(st.who, st.slot) > 0 THEN
   RETURN readitemdescription(eqstuf(st.who, st.slot) - 1)
  END IF
  RETURN ""
 END FUNCTION
 
-FUNCTION equip_menu_update_available_item_info(st as EquipMenuState) as string
- DIM slot_id as integer = st.eq(st.slot).offset(st.eq_cursor.pt)
- IF slot_id >= 0 THEN
-  RETURN readitemdescription(inventory(slot_id).id)
+FUNCTION equip_menu_available_item_info(st as EquipMenuState) as string
+ DIM item as integer = equip_menu_available_item_id(st)
+ IF item >= 0 THEN
+  RETURN readitemdescription(item)
  END IF
  RETURN ""
 END FUNCTION
@@ -1773,37 +1799,24 @@ SUB equip_menu_back_to_menu(byref st as EquipMenuState, menu() as string)
 END SUB
 
 SUB equip_menu_stat_bonus(byref st as EquipMenuState)
- '--load change in stat bonuses of currently hovered item for display
+ 'Load change in stat bonuses of currently hovered item for display
  '(that is, bonuses of hovered item minus bonuses of equipped item)
 
- DIM item as integer = 0 ' Will be set to item ID + 1
+ DIM item as integer = equip_menu_available_item_id(st)
 
- IF st.eq_cursor.pt = st.eq(st.slot).count THEN
-  '--last option: unequip
-  IF st.slot = 0 THEN
-   '--special handling for weapon
-   '--load the default weapon info and continue as normal
-   item = st.default_weapon
-  ELSE
-   'non-weapon unequip sets item to 0 to warn to skip that step
-   item = 0
-  END IF
- ELSE
-  '--equip
-  item = inventory(st.eq(st.slot).offset(st.eq_cursor.pt)).id + 1
- END IF
-
+ 'Add new item bonuses
  DIM itembuf(dimbinsize(binITM)) as integer
- IF item = 0 THEN
+ IF item = -1 THEN
   '--nothing to load!
   flusharray st.stat_bonus()
  ELSE
-  loaditemdata itembuf(), item - 1
+  loaditemdata itembuf(), item
   FOR i as integer = 0 TO statLast
    st.stat_bonus(i) = itembuf(54 + i)
   NEXT i
  END IF
 
+ 'Subtract old item bonuses
  IF eqstuf(st.who, st.slot) > 0 THEN
   loaditemdata itembuf(), eqstuf(st.who, st.slot) - 1
   FOR i as integer = 0 TO statLast
