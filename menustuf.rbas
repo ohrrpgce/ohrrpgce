@@ -1646,7 +1646,7 @@ DO
    statcol2 = uilook(uiSelectedDisabled + tog)
   END IF
   stat_caption2 = STR(resultant_stat)
-  edgeprint statnames(i) & stat_caption, 20, 42 + stat_v_offset * 10, uilook(uiMenuItem), page
+  edgeprint statnames(i) & stat_caption, 20, 42 + stat_v_offset * 10, uilook(uiMenuItem), page, YES
   edgeprint stat_caption2, 148 - LEN(stat_caption2) * 8, 42 + stat_v_offset * 10, statcol2, page
   stat_v_offset += 1
  NEXT i
