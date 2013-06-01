@@ -424,6 +424,9 @@ startTest(serializeXML)
 endTest
 
 
+#ifndef __FB_ANDROID__
+' No xml2reload, skip tests
+
 sub toXMLAndBack(byval debugging as integer)
 	dim fh as integer
 	fh = freefile
@@ -439,7 +442,6 @@ sub toXMLAndBack(byval debugging as integer)
 	print
 end sub
 
-
 startTest(loadFromXML)
 	toXMLAndBack(NO)
 
@@ -451,6 +453,8 @@ startTest(compareWithXML)
 	'non-pedantic
 	if CompareNodes(DocumentRoot(doc), DocumentRoot(doc2), NO) then fail
 endTest
+
+#endif  'skip xml2reload tests
 
 /'
 'This normally fails because floating point nodes are loaded as strings.
