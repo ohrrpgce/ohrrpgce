@@ -271,6 +271,19 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
   RETURN gfx_sdl_set_screen_mode()
 END FUNCTION
 
+'Only use this on Android at the moment, but would like to use on all platforms
+SUB select_zoom_automatically(byval w as integer, byval h as integer)
+  ' DIM info as SDL_VideoInfo ptr
+  ' info = SDL_GetVideoInfo()
+  ' IF info = NULL THEN
+  '   debug "SDL_GetVideoInfo failed: " & *SDL_GetError()
+  '   EXIT SUB
+  ' END IF
+  zoom = small(w \ framesize.w, h \ framesize.h)
+  zoom = large(zoom, 1)
+  debuginfo "gfx_sdl: selected zoom = " & zoom
+END SUB
+
 FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
   DIM flags AS Uint32 = 0
   IF resizable THEN flags = flags OR SDL_RESIZABLE
@@ -287,6 +300,25 @@ FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
   'Force clipping in fullscreen, and undo when leaving
   set_forced_mouse_clipping (windowedmode = NO)
 #ENDIF
+#IFDEF __FB_ANDROID__
+  'On Android allocate a virtual screen the same size as the real one, because
+  'using a screen with smaller width doesn't seem to work properly...
+  screensurface = SDL_SetVideoMode(0, 0, bitdepth, flags)
+  IF screensurface = NULL THEN
+    debug "Failed to open display (bitdepth = " & bitdepth & ", flags = " & flags & "): " & *SDL_GetError()
+    RETURN 0
+  END IF
+  debuginfo "gfx_sdl: screen size is " & screensurface->w & "*" & screensurface->h
+  select_zoom_automatically screensurface->w, screensurface->h
+  WITH dest_rect
+    .x = 0
+    .y = 0
+    .w = framesize.w * zoom
+    .h = framesize.h * zoom
+  END WITH
+#ELSE
+  'Start with initial zoom and repeatedly decrease it if it is too large
+  '(This is necessary to run in fullscreen in OSX IIRC)
   DO
     WITH dest_rect
       .x = 0
@@ -310,6 +342,7 @@ FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
     END IF
     EXIT DO
   LOOP
+#ENDIF
   SDL_WM_SetCaption(remember_windowtitle, remember_windowtitle)
   IF windowedmode = NO THEN
     SDL_ShowCursor(0)
@@ -622,7 +655,7 @@ SUB gfx_sdl_process_events()
         'lowest bit is now set in io_keybits, from SDL_GetKeyState
         'IF key THEN keybdstate(key) = 3
         IF key THEN keybdstate(key) = 2
-        'debug "key down: " & evnt.key.keysym.sym & " -> " & key & " U " & evnt.key.keysym.unicode_
+        'debuginfo "key down: " & evnt.key.keysym.sym & " -> " & key & " U " & evnt.key.keysym.unicode_
       CASE SDL_KEYUP
         DIM AS INTEGER key = scantrans(evnt.key.keysym.sym)
         IF key THEN keybdstate(key) AND= NOT 1
