@@ -1242,14 +1242,14 @@ SUB findfiles (directory as STRING, namemask as STRING = "", byval filetype as i
   DIM as STRING nmask = anycase(namemask)
   IF LEN(nmask) = 0 THEN nmask = ALLFILES
   REDIM filelist(-1 TO -1)
+  IF tmpdir = "" THEN fatalerror "findfiles: tmpdir not set"
 
 #ifdef __UNIX__
   'this is super hacky, but works around the apparent uselessness of DIR
-  'FIXME: rewrite this in C, in os_unix.c. This doesn't work with symbolic links
+  'FIXME: rewrite this in C, in os_unix.c. This doesn't work with symbolic links, nor properly on Android
   DIM as STRING grep, shellout
-  shellout = "/tmp/ohrrpgce-findfiles-" & randint(10000) & ".tmp"
-  grep = "-v '/$'"
-  IF filetype = fileTypeDirectory THEN grep = "'/$'"
+
+  shellout = tmpdir & "findfiles-" & randint(10000) & ".tmp"
   searchdir = escape_filename(searchdir)
   IF findhidden THEN
     searchdir = searchdir + nmask + " " + searchdir + "." + nmask
@@ -1257,7 +1257,19 @@ SUB findfiles (directory as STRING, namemask as STRING = "", byval filetype as i
     searchdir = searchdir + nmask
   END IF
 
+#ifdef __FB_ANDROID__
+  'ls on Android doesn't do anything fancy. It's time to stop using this awful hack!
+  IF filetype = fileTypeDirectory THEN
+    debug "fileTypeDirectory unsupported"
+    RETURN
+  END IF
+  SHELL "ls -d " + searchdir + " 2>/dev/null >" + shellout
+#else
+  grep = "-v '/$'"
+  IF filetype = fileTypeDirectory THEN grep = "'/$'"
   SHELL "ls -d1p " + searchdir + " 2>/dev/null |grep "+ grep + ">" + shellout + " 2>&1"
+#endif
+
   DIM as integer f1
   f1 = FreeFile
   OPEN shellout FOR INPUT as #f1
