@@ -1592,7 +1592,6 @@ DO
   '--change equip menu
   IF carray(ccMenu) > 1 THEN
    st.mode = 0
-   flusharray st.stat_bonus()
    MenuSound gen(genCancelSFX)
    item_info = equip_menu_equipped_item_info(st, eqstuf())
   END IF
@@ -1629,21 +1628,31 @@ DO
   IF should_hide_hero_stat(st.hero, i) THEN CONTINUE FOR
   DIM as string stat_caption, stat_caption2
   DIM statcol2 as integer
-  IF st.stat_bonus(i) < 0 THEN
-   stat_caption = STR(st.stat_bonus(i))
-   statcol2 = uilook(uiDisabledItem)
-  ELSEIF st.stat_bonus(i) > 0 THEN
-   stat_caption = "+" & st.stat_bonus(i)
-   statcol2 = uilook(uiSelectedItem + tog)
+  DIM resultant_stat as integer
+  statcol2 = uilook(uiMenuItem)
+  IF st.mode = 0 THEN
+   '--Selecting an equip slot
+   resultant_stat = gam.hero(st.who).stat.max.sta(i)
   ELSE
-   statcol2 = uilook(uiMenuItem)
-  END IF
-  DIM resultant_stat as integer = gam.hero(st.who).stat.max.sta(i) + st.stat_bonus(i)
-  DIM cap as integer = gen(genStatCap + i)
-  IF cap > 0 AND resultant_stat > cap THEN
-   resultant_stat = cap
-   stat_caption = fgcol_text(stat_caption, uilook(uiSelectedDisabled))
-   statcol2 = uilook(uiSelectedDisabled + tog)
+   '--Selecting an item
+   IF st.stat_bonus(i) < 0 THEN
+    stat_caption = STR(st.stat_bonus(i))
+    statcol2 = uilook(uiDisabledItem)
+   ELSEIF st.stat_bonus(i) > 0 THEN
+    stat_caption = "+" & st.stat_bonus(i)
+    statcol2 = uilook(uiSelectedItem + tog)
+   END IF
+   'Calculate new max stat
+   resultant_stat = gam.hero(st.who).stat.base.sta(i) + st.stat_total_bonus(i)
+   DIM cap as integer = gen(genStatCap + i)
+   IF cap > 0 AND resultant_stat > cap THEN
+    resultant_stat = cap
+    'Don't flash anything unless the change in equipment actually modifies the stat
+    IF st.stat_bonus(i) <> 0 THEN
+     stat_caption = fgcol_text(stat_caption, uilook(uiSelectedDisabled))
+     statcol2 = uilook(uiSelectedDisabled + tog)
+    END IF
+   END IF
   END IF
   stat_caption2 = STR(resultant_stat)
   edgeprint statnames(i) & stat_caption, 20, 42 + stat_v_offset * 10, uilook(uiMenuItem), page, YES
@@ -1794,13 +1803,13 @@ END SUB
 
 SUB equip_menu_back_to_menu(byref st as EquipMenuState, menu() as string)
  st.mode = 0
- flusharray st.stat_bonus()
  equip_menu_setup st, menu()
 END SUB
 
 SUB equip_menu_stat_bonus(byref st as EquipMenuState)
  'Load change in stat bonuses of currently hovered item for display
  '(that is, bonuses of hovered item minus bonuses of equipped item)
+ 'as well as the resultant total stat bonuses
 
  DIM item as integer = equip_menu_available_item_id(st)
 
@@ -1823,6 +1832,13 @@ SUB equip_menu_stat_bonus(byref st as EquipMenuState)
    st.stat_bonus(i) -= itembuf(54 + i)
   NEXT i
  END IF
+
+ 'Calculate new total bonuses
+ DIM bonuses(statLast) as integer
+ hero_total_equipment_bonuses st.who, st.stat_total_bonus()
+ FOR i as integer = 0 TO statLast
+  st.stat_total_bonus(i) += st.stat_bonus(i)
+ NEXT i
 END SUB
 
 'Returns 0, or ID of textbox to open (box 0 can't be opened)

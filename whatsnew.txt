@@ -1,5 +1,18 @@
 WHAT IS NEW?
 
+??? ?? 2013 [Callipygous]
+
+  * New Features
+
+  * Bugfixes
+    * Fixed a few cosmetic bugs in the equip menu including possibly
+      wrong resultant stat value being shown [Ralph]
+
+  * New Plotscripting Stuff
+
+  * Stuff Only Developers Will Notice
+
+
 April 9 2013 [Beelzebufo]
 
   * New Features

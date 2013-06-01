@@ -115,6 +115,7 @@ TYPE EquipMenuState
   unequip_caption     as string
   eq(4)               as EquippableList
   stat_bonus(11)      as integer 'Cache stat bonuses for currently selected equippable
+  stat_total_bonus(11) as integer 'Total stat bonuses for all hero equip after equipping selected equippable
   hero                as HeroDef
 END TYPE
 
