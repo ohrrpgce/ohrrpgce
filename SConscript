@@ -6,22 +6,20 @@ cf. SConstruct, ohrbuild.py
 import os
 import platform
 import shutil
+import re
 from ohrbuild import basfile_scan, verprint, android_source_files, get_run_command
 
 FBFLAGS = os.environ.get ('FBFLAGS', []) + ['-mt']
 #CC and CXX are probably not needed anymore
-CC = ''
-CXX = ''
-CFLAGS = '-m32 -g -Wall --std=c99'.split ()
-CXXFLAGS = '-m32 -g -Wall -Wno-non-virtual-dtor'.split ()
-# Recent versions of GCC default to assuming the stack is kept 16-byte aligned
-# (which a change in the Linux x86 ABI) but fbc is not yet updateed for that
-CFLAGS.append ('-mpreferred-stack-boundary=2')
-CXXFLAGS.append ('-mpreferred-stack-boundary=2')
+CC = os.environ.get ('CC')
+CXX = os.environ.get ('CXX')
+AS = os.environ.get ('AS')
+CFLAGS = '-g -Wall --std=c99'.split ()
+CXXFLAGS = '-g -Wall -Wno-non-virtual-dtor'.split ()
 C_opt = True    # compile with optimisations?
 FB_exx = True   # compile with -exx?
 FB_g = True   # compile with -g?
-linkgcc = False  # link using g++?
+linkgcc = int (ARGUMENTS.get ('linkgcc', True))   # link using g++ instead of fbc?
 GCC_strip = False  # (linkgcc only) strip (link with -s)?
 envextra = {}
 FRAMEWORKS_PATH = "~/Library/Frameworks"  # Frameworks search path in addition to the default /Library/Frameworks
@@ -30,6 +28,7 @@ win32 = False
 unix = False
 mac = False
 android = False
+android_source = False
 exe_suffix = ''
 if platform.system () == 'Windows':
     win32 = True
@@ -42,15 +41,32 @@ elif platform.system () == 'Darwin':
 else:
     unix = True
 
-if 'android' in ARGUMENTS:
-    # Like asm=1 and gengcc=1. Will produce "g++: error: *.o: no such file" errors
+if 'android-source' in ARGUMENTS:
+    # Produce .c files, and also an executable, which is an unwanted side product
+    # (We could do with build targets for compiling to .asm/.c but not assembling+linking)
     FBFLAGS += ["-r"]
-    FBFLAGS += ["-gen", "gcc"]
     android = True
+    android_source = True
+    linkgcc = False
+elif 'android' in ARGUMENTS:
+    android = True
+
+if android:
+    FBFLAGS += ["-gen", "gcc", "-arch", "arm", "-d", "__FB_ANDROID__=1", "-R"]
+    #CFLAGS += -L$(SYSROOT)/usr/lib
+    # CC, CXX, AS must be set in environment to point to cross compiler
+else:
+    CFLAGS.append ('-m32')
+    CXXFLAGS.append ('-m32')
+    # Recent versions of GCC default to assuming the stack is kept 16-byte aligned
+    # (which a change in the Linux x86 ABI) but fbc is not yet updateed for that
+    CFLAGS.append ('-mpreferred-stack-boundary=2')
+    CXXFLAGS.append ('-mpreferred-stack-boundary=2')
+
 
 # gcc -m32 on x86_64 defaults to enabling SSE and SSE2, so disable that,
 # except on Intel Macs, where it is both always present, and required by system headers
-if not mac:
+if not mac and not android:
     CFLAGS.append ('-mno-sse')
     CXXFLAGS.append ('-mno-sse')
 
@@ -64,9 +80,6 @@ if 'gengcc' in ARGUMENTS:
 if 'deprecated' in ARGUMENTS:
     FBFLAGS += ["-d", "LANG_DEPRECATED"]
 
-linkgcc = int (ARGUMENTS.get ('linkgcc', True))
-
-environ = os.environ
 fbc = ARGUMENTS.get ('fbc','fbc')
 if 'debug' in ARGUMENTS:
     GCC_strip = C_opt = not int (ARGUMENTS['debug'])
@@ -90,6 +103,8 @@ if FB_g:
 if C_opt:
     CFLAGS.append ('-O3')
     CXXFLAGS.append ('-O3')
+    #if android or 'gengcc' in ARGUMENTS:
+    #    FBFLAGS += ["-O", "2"]
 
 # Backend selection.
 if mac:
@@ -100,10 +115,10 @@ elif unix:
     gfx = 'sdl+fb'
 elif win32:
     gfx = 'directx+sdl+fb'
-gfx = ARGUMENTS.get ('gfx', environ.get ('OHRGFX', gfx))
+gfx = ARGUMENTS.get ('gfx', os.environ.get ('OHRGFX', gfx))
 gfx = gfx.split ("+")
 gfx = [g.lower () for g in gfx]
-music = ARGUMENTS.get ('music', environ.get ('OHRMUSIC','sdl'))
+music = ARGUMENTS.get ('music', os.environ.get ('OHRMUSIC','sdl'))
 music = [music.lower ()]
 
 env = Environment (FBFLAGS = FBFLAGS,
@@ -144,6 +159,10 @@ if mac:
         env['CFLAGS'] += ['-mmacosx-version-min=' + macsdk]
         env['CXXFLAGS'] += ['-mmacosx-version-min=' + macsdk]
 
+if android:
+    # liblog for __android_log_print/write
+    env['FBLIBS'] += ['-l', 'log']
+    env['CXXLINKFLAGS'] += ['-llog']
 
 def prefix_targets(target, source, env):
     target = [File(env['VAR_PREFIX'] + str(a)) for a in target]
@@ -192,8 +211,12 @@ env.Append (BUILDERS = {'BASEXE':basexe, 'BASO':baso, 'BASMAINO':basmaino, 'VARI
                         'RB':rbasic_builder, 'RC':rc_builder, 'ASM':basasm},
             SCANNERS = bas_scanner)
 
+if AS:
+    env['ENV']['AS'] = AS
+
 if CC:
     env['ENV']['CC'] = CC
+    env['ENV']['GCC'] = CC  # fbc only checks GCC variable, not CC
     env.Replace (CC = CC)
 
 if CXX:
@@ -208,8 +231,14 @@ if linkgcc:
     #print "fbc = " + fbc_path
     if win32:
         target = 'win32'
+    elif android:
+        if not CC or not CXX or not AS:
+            raise Exception("You need to set CC, CXX, AS environmental variables correctly to crosscompile to Android")
+        target = get_run_command(CC + " -dumpmachine")
+        if target != 'arm-linux-androideabi':
+            raise Exception("This GCC doesn't target arm-linux-androideabi. You need to set CC, CXX, AS environmental variables correctly to crosscompile to Android")
+        target += '-freebasic'
     else:
-        import re
         fbcinfo = get_run_command(fbc_binary + " -version")
         target = re.findall("target:([a-z]*)", fbcinfo)
         if len(target) == 0:
@@ -217,7 +246,7 @@ if linkgcc:
             if len(target) == 0:
                 raise Exception("Couldn't determine fbc target")
         target = target[0]
-    
+
     fblibpaths = [[fbc_path, 'lib'],
                   [fbc_path, '..', 'lib'],
                   [fbc_path, '..', 'lib', 'freebasic'],
@@ -249,7 +278,15 @@ if linkgcc:
         # win32\ld_opt_hack.txt contains --stack option which can't be passed using -Wl
         env['CXXLINKFLAGS'] += ['-static-libgcc', '-static-libstdc++', '-Wl,@win32\ld_opt_hack.txt']
     else:
-        env['CXXLINKFLAGS'] += ['-lncurses', '-lpthread', 'linux/fb_icon.c']
+        if 'fb' in gfx:
+            # Program icon required by fbgfx, but we only provide it on Windows,
+            # because on X11 need to provide it as an XPM instead
+            env['CXXLINKFLAGS'] += ['linux/fb_icon.c']
+        # Android doesn't have ncurses, and libpthread is part of libc
+        if not android:
+            # The following are required by libfb
+            env['CXXLINKFLAGS'] += ['-lncurses', '-lpthread']
+
     if mac:
         # -no_pie (no position-independent execution) fixes a warning
         env['CXXLINKFLAGS'] += [os.path.join(libpath, 'operatornew.o'), '-Wl,-no_pie']
@@ -338,9 +375,13 @@ elif mac:
             commonenv['CFLAGS'] += [get_run_command("sdl-config --cflags").split()]
         else:
             commonenv['CFLAGS'] += ["-I", "/Library/Frameworks/SDL.framework/Headers", "-I", FRAMEWORKS_PATH + "/SDL.framework/Headers"]
+elif android:
+    base_modules += ['os_unix.c']
 elif unix:
     base_modules += ['os_unix.c']
-    libraries += 'X11 Xext Xpm Xrandr Xrender pthread'.split (' ')
+    if gfx != ['console']:
+        # All graphical gfx backends need the X11 libs
+        libraries += 'X11 Xext Xpm Xrandr Xrender'.split (' ')
     commonenv['FBFLAGS'] += ['-d', 'DATAFILES=\'"/usr/share/games/ohrrpgce"\'']
 
 #CXXLINKFLAGS are used when linking with g++
@@ -481,13 +522,17 @@ env_exe ('relump', source = ['relump.bas', 'lumpfile.o'] + base_objects)
 env_exe ('dumpohrkey', source = ['dumpohrkey.bas'] + base_objects)
 env.Command ('hspeak', source = ['hspeak.exw', 'hsspiffy.e'], action = 'euc -gcc hspeak.exw -verbose')
 RELOADTEST = env_exe ('reloadtest', source = ['reloadtest.bas'] + reload_objects)
-XML2RELOAD = env_exe ('xml2reload', source = ['xml2reload.bas'] + reload_objects, FBLIBS = env['FBLIBS'] + ['-p','.', '-l','xml2'], CXXLINKFLAGS = env['CXXLINKFLAGS'] + ['-lxml2'])
+if android:
+    # No libxml2 on android
+    XML2RELOAD = None
+else:
+    XML2RELOAD = env_exe ('xml2reload', source = ['xml2reload.bas'] + reload_objects, FBLIBS = env['FBLIBS'] + ['-p','.', '-l','xml2'], CXXLINKFLAGS = env['CXXLINKFLAGS'] + ['-lxml2'])
 RELOAD2XML = env_exe ('reload2xml', source = ['reload2xml.bas'] + reload_objects)
 RELOADUTIL = env_exe ('reloadutil', source = ['reloadutil.bas'] + reload_objects)
 RBTEST = env_exe ('rbtest', source = [env.RB('rbtest.rbas'), env.RB('rbtest2.rbas')] + reload_objects)
 env_exe ('vectortest', source = ['vectortest.bas'] + base_objects)
 
-if android:
+if android_source:
     # This is hacky
     android_source_files (gamesrc)
 
@@ -562,13 +607,14 @@ Options:
   debug=0|1           Debugging builds:
                       Default: with or without -exx (FB error checking) depending
                                on platform, with C/C++ optimisation
-                      debug=0: without -exx, strip executable.
+                      debug=0: without -exx, with C/C++ optimisation, strip executable.
                       debug=1: with -exx and without C/C++ optimisation
                       In all cases, compile with -g
   valgrind=1          valgrinding build.
   profile=1           Profiling build for gprof.
   scriptprofile=1     Script profiling build.
-  asm=1               Produce .asm or .c files instead of compiling.
+  asm=1               Produce .asm or .c files instead of compiling
+                      (Still tries to assemble and link, ignore)
   fbc=PATH            Override fbc.
   macsdk=version      Target a previous version of Mac OS X, eg. 10.4
                       You will need the relevant SDK installed, and need to use a
@@ -578,8 +624,9 @@ Experimental options:
   raster=1            Include new graphics API and rasterizer.
   gengcc=1            Compile using GCC emitter.
   deprecated=1        Compiles certain source files using the "deprecated" dialect
-  linkgcc=0           Link using fbc instead of g++.
-  android=1           Used as part of the Android build process.
+  linkgcc=0           Link using fbc instead of g++ (doesn't work anymore).
+  android=1           Compile for android. Commandline programs only.
+  android-source=1    Used as part of the Android build process for Game/Custom.
 
 Targets:
   """ + gamename + """ (or game)
