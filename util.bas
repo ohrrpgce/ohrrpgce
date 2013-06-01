@@ -23,6 +23,9 @@ CONST STACK_SIZE_INC = 512 ' in integers
 #include "os.bi"
 #include "common_base.bi"
 
+#ifdef __FB_ANDROID__
+#define DEBUG_FILE_IO
+#endif
 
 'It is very important for this to be populated _before_ any calls to CHDIR
 DIM orig_dir as string
@@ -1243,6 +1246,10 @@ SUB findfiles (directory as STRING, namemask as STRING = "", byval filetype as i
   IF LEN(nmask) = 0 THEN nmask = ALLFILES
   REDIM filelist(-1 TO -1)
   IF tmpdir = "" THEN fatalerror "findfiles: tmpdir not set"
+#ifdef DEBUG_FILE_IO
+  debuginfo "findfiles(directory = " & directory & ", namemask = " & namemask & ", " _
+            & IIF_string(filetype = fileTypeFile, "fileTypeFile", "fileTypeDirectory") & ", findhidden = " & findhidden & ")"
+#endif
 
 #ifdef __UNIX__
   'this is super hacky, but works around the apparent uselessness of DIR
@@ -1379,6 +1386,9 @@ SUB killdir(directory as string, recurse as integer=0)
   FOR i as integer = 0 TO UBOUND(filelist)
     safekill directory + SLASH + filelist(i)
   NEXT
+#ifdef DEBUG_FILE_IO
+  debuginfo "killdir(" & directory & ", recurse = " & recurse & ")"
+#endif
   IF recurse THEN
    DIM dirlist() as string
    findfiles directory, ALLFILES, fileTypeDirectory, -1, dirlist()
@@ -1404,6 +1414,9 @@ FUNCTION makedir (directory as string) as integer
     debuginfo "makedir: " & directory & " already exists"
     RETURN 0
   END IF
+#ifdef DEBUG_FILE_IO
+  debuginfo "makedir(" & directory & ")"
+#endif
   IF MKDIR(directory) THEN
     'errno would get overwritten while building the error message
     DIM err_string as STRING = *get_sys_err_string()
@@ -1423,7 +1436,11 @@ FUNCTION makedir (directory as string) as integer
 END FUNCTION
 
 SUB safekill (filename as string)
-  IF isfile(filename) THEN
+  DIM exists as bool = isfile(filename)
+#ifdef DEBUG_FILE_IO
+  debuginfo "safekill(" & filename & ") exists = " & exists
+#endif
+  IF exists THEN
    'KILL is a thin wrapper around C's remove(), however by calling it directly we can get a textual error message
    IF remove(strptr(filename)) THEN
     DIM err_string as STRING = *get_sys_err_string()
@@ -1450,29 +1467,36 @@ FUNCTION local_file_move(frompath as string, topath as string) as integer
 END FUNCTION
 
 FUNCTION fileisreadable(filename as string) as integer
+  dim ret as bool = NO
   dim fh as integer, err_code as integer
   fh = freefile
   err_code = open(filename for binary access read as #fh)
   if err_code = 2 then
-    ''debug f & " unreadable (ignored)"
-    return 0
+    'Doesn't exist
   elseif err_code <> 0 then
-    'debug "Error " & err_code & " reading " & filename
-    return 0
+    debuginfo "fileisreadable: Error " & err_code & " reading " & filename
+  else
+    close #fh
+    ret = YES
   end if
-  close #fh
-  return -1
+#ifdef DEBUG_FILE_IO
+  debuginfo "fileisreadable(" & filename & ") = " & ret
+#endif
+  return ret
 END FUNCTION
 
 FUNCTION fileiswriteable(filename as string) as integer
+  dim ret as bool = NO
   dim fh as integer
   fh = freefile
-  if open (filename for binary access read write as #fh) then
-    ''debug filename & " unreadable (ignored)"
-    return 0 
+  if open (filename for binary access read write as #fh) = 0 then
+    close #fh
+    ret = YES
   end if
-  close #fh
-  return -1
+#ifdef DEBUG_FILE_IO
+  debuginfo "fileiswriteable(" & filename & ") = " & ret
+#endif
+  return ret
 END FUNCTION
 
 FUNCTION diriswriteable(d as string) as integer
@@ -1491,22 +1515,28 @@ END FUNCTION
 
 FUNCTION isfile (filename as string) as integer
   ' directories don't count as files
+  ' FIXME: Returns true if passed a directory on Linux.
   ' this is a simple wrapper for fileisreadable
   if filename = "" then return 0
   return fileisreadable(filename)
 END FUNCTION
 
 FUNCTION isdir (sDir as string) as integer
+  dim ret as bool
 #IFDEF __UNIX__
   'Special hack for broken Linux dir() behavior
-  isdir = SHELL("[ -d " + escape_filename(sDir) + " ]") = 0
+  '(FIXME: is DIR still broken? Should investigate)
+  ret = SHELL("[ -d " + escape_filename(sDir) + " ]") = 0
 #ELSE
   'Windows just uses dir (ugh)
   'Have to remove trailing slash, otherwise dir always returns nothing
   dim temp as string = rtrim(sdir, any "\/")
-  dim ret as integer = dir(temp, 55) <> "" AND dir(temp, 39) = ""
-  return ret
+  ret = dir(temp, 55) <> "" AND dir(temp, 39) = ""
 #ENDIF
+#IFDEF DEBUG_FILE_IO
+  debuginfo "isdir(" & sDir & ") = " & ret
+#ENDIF
+  return ret
 END FUNCTION
 
 
