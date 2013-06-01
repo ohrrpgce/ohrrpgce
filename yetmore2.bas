@@ -295,9 +295,11 @@ END SUB
 
 SUB cleanuptemp
  REDIM filelist() as string
+ debuginfo "cleaningup " & workingdir & " and " & tmpdir
 
  'Delete contents of/clean up workingdir
- IF running_as_slave = NO THEN
+ '(Length requirement is just a crappy sanity check)
+ IF running_as_slave = NO ANDALSO LEN(workingdir) > 5 THEN
   findfiles workingdir, ALLFILES, fileTypeFile, NO, filelist()
   FOR i as integer = 0 TO UBOUND(filelist)
    IF usepreunlump = 0 THEN
@@ -315,12 +317,14 @@ SUB cleanuptemp
  END IF
 
  'Delete contents of/clean up tmpdir
- findfiles tmpdir, ALLFILES, fileTypeFile, NO, filelist()
- FOR i as integer = 0 TO UBOUND(filelist)
-  IF NOT isdir(tmpdir & filelist(i)) THEN
-   safekill tmpdir & filelist(i)
-  END IF
- NEXT
+ IF LEN(tmpdir) > 5 THEN
+  findfiles tmpdir, ALLFILES, fileTypeFile, NO, filelist()
+  FOR i as integer = 0 TO UBOUND(filelist)
+   IF NOT isdir(tmpdir & filelist(i)) THEN
+    safekill tmpdir & filelist(i)
+   END IF
+  NEXT
+ END IF
 END SUB
 
 FUNCTION checkfordeath () as bool
