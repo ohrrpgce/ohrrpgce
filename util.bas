@@ -1189,6 +1189,11 @@ PRIVATE FUNCTION decode_filename(filename as string) as string
   unicode = utf8_decode(strptr(filename), @length)
   IF unicode = NULL THEN RETURN filename  'Shouldn't happen
 '/
+#ifdef __FB_ANDROID__
+  'Android NDK doesn't support mbstowcs or non-C locales (only exposed to Java apps)
+  'FIXME: Not sure what to do...
+  RETURN filename
+#else
   length = mbstowcs(NULL, STRPTR(filename), 0)
   IF length = -1 THEN
     debuginfo "decode_filename(" & filename & ") failed"
@@ -1203,6 +1208,7 @@ PRIVATE FUNCTION decode_filename(filename as string) as string
   'debug "decode_filename(" & filename & ") = " & ret
   deallocate unicode
   RETURN ret
+#endif
 
 END FUNCTION
 

@@ -21,11 +21,16 @@
 
 
 void init_runtime() {
+	// setlocale always fails on Android
+#ifndef __ANDROID__
 	// Needed for mbstowcs
 	if (!setlocale(LC_ALL, "")) {
-		// This will actually end up in ?_debug_archive.txt ...
+		// This will actually end up in ?_debug_archive.txt, also
+		// this runs before log_dir, tmpdir etc are set. Should call
+		// init_runtime in a better way.
 		debug(errError, "setlocale failed");
 	}
+#endif
 }
 
 static long long milliseconds() {
@@ -546,6 +551,10 @@ int channel_input_line(PipeState **channelp, FBSTRING *output) {
 //Partial implementation. Doesn't return a useful process handle
 //program is an unescaped path. Any paths in the arguments should be escaped
 ProcessHandle open_process (FBSTRING *program, FBSTRING *args) {
+#ifdef __ANDROID__
+	// Early versions of the NDK don't have popen
+	return 0;
+#else
 	ProcessHandle ret = -1;  //default success: nonzero
 
 	char *program_escaped = escape_filenamec(program->data);
@@ -565,6 +574,7 @@ ProcessHandle open_process (FBSTRING *program, FBSTRING *args) {
 	fb_hStrDelTemp(program);
 	fb_hStrDelTemp(args);
 	return ret;
+#endif
 }
 
 //Run a (hidden) commandline program and open a pipe which writes to its stdin & reads from stdout
