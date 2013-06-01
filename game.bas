@@ -106,7 +106,7 @@ processcommandline
 
 '---get temp dir---
 set_homedir
-tmpdir = acquiretempdir
+set_tmpdir
 IF NOT isdir(tmpdir) THEN
  IF makedir(tmpdir) <> 0 THEN fatalerror "Unable to create temp directory " & tmpdir
 END IF
@@ -402,7 +402,7 @@ IF gam.autorungame = NO THEN
 END IF
 
 '-- set up prefs dir
-IF NOT isdir(settings_dir) THEN makedir settings_dir
+set_settings_dir
 prefsdir = settings_dir & SLASH & trimextension(trimpath(sourcerpg))
 IF NOT isdir(prefsdir) THEN makedir prefsdir
 debuginfo "prefsdir=" & prefsdir

@@ -158,6 +158,7 @@ debuginfo DATE & " " & TIME
 mersenne_twister TIMER
 
 'IF NOT isdir(settings_dir) THEN makedir settings_dir
+set_settings_dir
 tmpdir = settings_dir & SLASH
 IF NOT isdir(tmpdir) THEN
  IF makedir(tmpdir) <> 0 THEN fatalerror "Unable to create temp directory " & tmpdir

@@ -77,19 +77,8 @@ DIM log_dir as string
 'Used on Mac to point to the app bundle Resources directory
 DIM data_dir as string
 
-DIM settings_dir as string
 'This is for application-wide settings, and prefsdir for games will be a subdirectory of it.
-#IFDEF __FB_ANDROID__
- 'FIXME: Most natural is to use CURDIR, but this runs in a constructor before CURDIR has been set!
-#ELSEIF DEFINED(__UNIX__)
- settings_dir = ENVIRON("HOME") & SLASH & ".ohrrpgce"
-#ELSE
- settings_dir = ENVIRON("APPDATA") & SLASH & "OHRRPGCE"
- '--APPDATA enviroment variable doesn't exist in Windows 98 so we need a fallback
- IF ENVIRON("APPDATA") = "" THEN
-  settings_dir = exepath & SLASH & "OHRRPGCE-settings"
- END IF
-#ENDIF
+DIM settings_dir as string
 
 'Used by intgrabber, reset by usemenu
 DIM negative_zero as integer = NO
@@ -473,32 +462,6 @@ SUB setfixbit(byval bitnum as integer, byval bitval as integer)
  PUT #fh, (bitnum \ 8) + 1, ub
  CLOSE #fh
 END SUB
-
-'Note: Custom doesn't use this function
-FUNCTION acquiretempdir () as string
- DIM tmp as string
- #IFDEF __FB_WIN32__
-  'Windows only behavior
-  tmp = environ("TEMP")
-  IF NOT diriswriteable(tmp) THEN tmp = environ("TMP")
-  IF NOT diriswriteable(tmp) THEN tmp = exepath
-  IF NOT diriswriteable(tmp) THEN tmp = ""
-  IF NOT diriswriteable(tmp) THEN fatalerror "Unable to find any writable temp dir"
- #ELSEIF DEFINED(__FB_ANDROID__)
-  'SDL sets initial directory to .../com.hamsterrepublic.ohrrpgce.game/files
-  tmp = orig_dir
- #ELSE
-  'Unix only behavior
-  tmp = environ("HOME") + SLASH + ".ohrrpgce"
- #ENDIF
- IF NOT isdir(tmp) THEN
-  IF makedir(tmp) <> 0 THEN fatalerror "Temp directory " & tmp & " missing and unable to create it"
- END IF
- IF RIGHT(tmp, 1) <> SLASH THEN tmp = tmp & SLASH
- DIM as string d = DATE, t = TIME
- tmp += "ohrrpgce" & MID(d,7,4) & MID(d,1,2) & MID(d,4,2) & MID(t,1,2) & MID(t,4,2) & MID(t,7,2) & "." & randint(1000) & ".tmp" & SLASH
- RETURN tmp
-END FUNCTION
 
 'Backwards compatibility wrapper
 SUB centerbox (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval c as integer, byval p as integer)
@@ -4862,7 +4825,50 @@ FUNCTION readbadbinstring (array() as integer, byval offset as integer, byval ma
  RETURN result
 END FUNCTION
 
+SUB set_settings_dir ()
+'This is for application-wide settings, and prefsdir for games will be a subdirectory of it.
+ #IFDEF __FB_ANDROID__
+  settings_dir = CURDIR & SLASH & "settings"
+ #ELSEIF DEFINED(__UNIX__)
+  settings_dir = ENVIRON("HOME") & SLASH & ".ohrrpgce"
+ #ELSE
+  settings_dir = ENVIRON("APPDATA") & SLASH & "OHRRPGCE"
+  '--APPDATA enviroment variable doesn't exist in Windows 98 so we need a fallback
+  IF ENVIRON("APPDATA") = "" THEN
+   settings_dir = exepath & SLASH & "OHRRPGCE-settings"
+  END IF
+ #ENDIF
+ IF NOT isdir(settings_dir) THEN makedir(settings_dir)
+END SUB
+
+'Note: Custom doesn't use this function
+SUB set_tmpdir ()
+ DIM tmp as string
+ #IFDEF __FB_WIN32__
+  'Windows only behavior
+  tmp = environ("TEMP")
+  IF NOT diriswriteable(tmp) THEN tmp = environ("TMP")
+  IF NOT diriswriteable(tmp) THEN tmp = exepath
+  IF NOT diriswriteable(tmp) THEN tmp = CURDIR
+  IF NOT diriswriteable(tmp) THEN fatalerror "Unable to find any writable temp dir"
+ #ELSEIF DEFINED(__FB_ANDROID__)
+  'SDL sets initial directory to .../com.hamsterrepublic.ohrrpgce.game/files
+  tmp = orig_dir
+ #ELSE
+  'Unix only behavior
+  tmp = environ("HOME") + SLASH + ".ohrrpgce"
+ #ENDIF
+ IF NOT isdir(tmp) THEN
+  IF makedir(tmp) <> 0 THEN fatalerror "Temp directory " & tmp & " missing and unable to create it"
+ END IF
+ IF RIGHT(tmp, 1) <> SLASH THEN tmp = tmp & SLASH
+ DIM as string d = DATE, t = TIME
+ tmp += "ohrrpgce" & MID(d,7,4) & MID(d,1,2) & MID(d,4,2) & MID(t,1,2) & MID(t,4,2) & MID(t,7,2) & "." & randint(1000) & ".tmp" & SLASH
+ tmpdir = tmp
+END SUB
+
 SUB set_homedir()
+'FIXME: $HOME is (usually) empty on Android; there is no home directory
 #IFDEF __UNIX__
  homedir = ENVIRON("HOME")
 #ELSE

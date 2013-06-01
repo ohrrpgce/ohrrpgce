@@ -34,8 +34,6 @@ DECLARE SUB debuginfo (s as string)
 DECLARE FUNCTION soundfile (byval sfxnum as integer) as string
 DECLARE FUNCTION filesize (file as string) as string
 
-DECLARE FUNCTION acquiretempdir () as string
-
 DECLARE SUB writebinstring OVERLOAD (savestr as string, array() as integer, byval offset as integer, byval maxlen as integer)
 DECLARE SUB writebinstring OVERLOAD (savestr as string, array() as short, byval offset as integer, byval maxlen as integer)
 DECLARE SUB writebadbinstring (savestr as string, array() as integer, byval offset as integer, byval maxlen as integer, byval skipword as integer=0)
@@ -213,6 +211,8 @@ DECLARE FUNCTION sanitize_script_identifier (ident as string, byval allow_whites
 DECLARE FUNCTION inputfilename (query as string, ext as string, directory as string, helpkey as string, default as string="", byval allow_overwrite as integer=YES) as string
 DECLARE FUNCTION prompt_for_string (byref s as string, caption as string, byval limit as integer=NO) as integer
 
+DECLARE SUB set_settings_dir ()
+DECLARE SUB set_tmpdir ()
 DECLARE SUB set_homedir()
 DECLARE FUNCTION get_help_dir(helpfile as string="") as string
 DECLARE FUNCTION load_help_file(helpkey as string) as string
