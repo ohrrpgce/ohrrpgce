@@ -19,6 +19,8 @@ extern "C"
 
 declare sub init_runtime ()
 
+declare sub external_log (msg as string)
+
 'Actually in filelayer.cpp
 declare function copyfile(source as string, destination as string) as integer
 

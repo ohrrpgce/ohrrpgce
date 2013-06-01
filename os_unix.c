@@ -7,6 +7,11 @@
 #endif
 //fb_stub.h MUST be included first, to ensure fb_off_t is 64 bit
 #include "fb/fb_stub.h"
+
+#ifdef __ANDROID__
+#include <android/log.h>
+#endif
+
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -31,6 +36,13 @@ void init_runtime() {
 		debug(errError, "setlocale failed");
 	}
 #endif
+}
+
+void external_log(FBSTRING *str) {
+#ifdef __ANDROID__
+	__android_log_write(ANDROID_LOG_INFO, "OHRRPGCE", str->data);
+#endif
+	fb_hStrDelTemp(str);
 }
 
 static long long milliseconds() {

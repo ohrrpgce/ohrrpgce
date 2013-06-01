@@ -326,19 +326,26 @@ SUB debugc CDECL (byval errorlevel as errorLevelEnum, byval s as zstring ptr)
 END SUB
 
 SUB debuginfo (s as string)
- 'use for throwaway messages like upgrading
+ 'Use for throwaway messages like upgrading
+ '(Also this is internally the implementation of debug())
 
+ 'For now, on Android log everything to the kernel log for convenience
+ external_log s
  IF debug_to_console THEN PRINT s
 
  STATIC sizeerror as integer = 0
  DIM filename as string
  #IFDEF IS_GAME
-   filename = "g_debug.txt"
+   filename = log_dir & "g_debug.txt"
  #ELSE
-   filename = "c_debug.txt"
+   filename = log_dir & "c_debug.txt"
  #ENDIF
  DIM fh as integer = FREEFILE
- OPEN log_dir & filename FOR APPEND as #fh
+ IF OPEN(filename FOR APPEND as #fh) THEN
+  external_log "Couldn't open debug log " & filename
+  PRINT "Couldn't open debug log " & filename
+  EXIT SUB
+ END IF
  IF LOF(fh) > 2 * 1024 * 1024 THEN
   IF sizeerror = 0 THEN PRINT #fh, "too much debug() output, not printing any more messages"
   sizeerror = -1
