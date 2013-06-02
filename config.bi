@@ -5,12 +5,12 @@
 #DEFINE CONFIG_BI
 
 #IF __FB_DEBUG__
- #DEFINE _GSTR & " -g"
+ #DEFINE _GSTR " -g"
 #ELSE
  #DEFINE _GSTR
 #ENDIF
 #IF __FB_ERR__
- #DEFINE _ESTR & " -exx"
+ #DEFINE _ESTR " -exx"
 #ELSE
  #DEFINE _ESTR
 #ENDIF
@@ -19,30 +19,33 @@
 #ELSE
  #DEFINE _GENSTR
 #ENDIF
-#IF     defined( __FB_LINUX__)
- #DEFINE _PSTR & " Linux"
+#IF     defined( __FB_ANDROID__)
+ #DEFINE _PSTR " Android"
+ #DEFINE __UNIX__
+#ELSEIF defined( __FB_LINUX__)
+ #DEFINE _PSTR " Linux"
  #DEFINE __UNIX__
 #ELSEIF defined(__FB_FREEBSD__)
- #DEFINE _PSTR & " FreeBSD"
+ #DEFINE _PSTR " FreeBSD"
  #DEFINE __UNIX__
 #ELSEIF defined(__FB_NETBSD__)
- #DEFINE _PSTR & " NetBSD"
+ #DEFINE _PSTR " NetBSD"
  #DEFINE __UNIX__
 #ELSEIF defined(__FB_OPENBSD__)
- #DEFINE _PSTR & " OpenBSD"
+ #DEFINE _PSTR " OpenBSD"
  #DEFINE __UNIX__
 #ELSEIF defined(__FB_DARWIN__)
- #DEFINE _PSTR & " Mac OS X/Darwin"
+ #DEFINE _PSTR " Mac OS X/Darwin"
  #DEFINE __UNIX__
 #ELSEIF defined(__FB_WIN32__)
- #DEFINE _PSTR & " Win32"
+ #DEFINE _PSTR " Win32"
 #ELSEIF defined(__FB_DOS__)
- #DEFINE _PSTR & " DOS"
+ #DEFINE _PSTR " DOS"
 #ELSE
- #DEFINE _PSTR & " Unknown Platform"
+ #DEFINE _PSTR " Unknown Platform"
 #ENDIF
 #IFDEF SCRIPTPROFILE
- #DEFINE _SSTR & " script_profiling"
+ #DEFINE _SSTR " script_profiling"
 #ELSE
  #DEFINE _SSTR
 #ENDIF
@@ -52,7 +55,7 @@ CONST build_info as string = "" _GSTR _ESTR _GENSTR _SSTR _PSTR
 'In FB 0.90+ it's either defined or not (can't be used in #IF), while in earlier FBs
 'it's always defined, either to 0 or -1 (can't be used in #IFDEF). HATEHATEHATE
 #IFNDEF __UNIX__
- #IFDEF __FB_VER_MINOR__ * 100 + __FB_VER_MINOR__ < 90
+ #IF __FB_VERSION__ < "0.90"
   #IF __FB_UNIX__
    'STRANGE: For some reason I have to add a comment here or FreeBasic 0.24-pre doesn't compile it
    #DEFINE __UNIX__
