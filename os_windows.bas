@@ -84,11 +84,12 @@ function get_windows_version () as string
 	return ret
 end function
 
+
+extern "C"
+
 'Currently Android only
 sub external_log (msg as string)
 end sub
-
-extern "C"
 
 '==========================================================================================
 '                                       Filesystem
