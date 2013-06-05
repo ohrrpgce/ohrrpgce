@@ -582,7 +582,8 @@ SideEffect ('g_debug.txt', [AUTOTEST, INTERTEST])
 testprogs = ['reloadtest', 'rbtest', 'vectortest']
 tests = [File(prog).abspath for prog in testprogs]
 # There has to be some better way to do this...
-env.Command ('test', source = testprogs + [XML2RELOAD, AUTOTEST, INTERTEST], action = tests)
+TESTS = env.Command ('test', source = testprogs + [XML2RELOAD, AUTOTEST, INTERTEST], action = tests)
+Alias ('tests', TESTS)
 
 Default (GAME)
 Default (CUSTOM)
@@ -648,7 +649,7 @@ Targets:
   reload              Compile all RELOAD utilities.
   autotest_rpg        Runs autotest.rpg. See autotest.py for improved harness.
   interactivetest     Runs interactivetest.rpg with recorded input.
-  test                Compile and run all automated tests, including autotest.rpg.
+  test (or tests)     Compile and run all automated tests, including autotest.rpg.
   .                   Compile everything (and run tests).
 
 With no targets specified, compiles game and custom.
