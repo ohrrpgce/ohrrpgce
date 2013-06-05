@@ -533,8 +533,13 @@ RBTEST = env_exe ('rbtest', source = [env.RB('rbtest.rbas'), env.RB('rbtest2.rba
 env_exe ('vectortest', source = ['vectortest.bas'] + base_objects)
 
 if android_source:
-    # This is hacky
-    android_source_files (gamesrc)
+    # This is hacky and will be totally rewritten
+    if 'game' in COMMAND_LINE_TARGETS:
+        android_source_files (gamesrc)
+    elif 'custom' in COMMAND_LINE_TARGETS:
+        android_source_files (editsrc)
+    else:
+        raise Exception("Specify either 'game' or 'custom' as a target with android-source=1")
 
 # Building gfx_directx.dll
 if win32:
@@ -606,11 +611,10 @@ Options:
                         """ + " ".join (music_map.keys ()) + """
                       Current (default) value: """ + "+".join (music) + """
   debug=0|1           Debugging builds:
-                      Default: with or without -exx (FB error checking) depending
-                               on platform, with C/C++ optimisation
+                      Default: with -exx (FB error checking), debug symbols, and
+                               C/C++ optimisation
                       debug=0: without -exx, with C/C++ optimisation, strip executable.
                       debug=1: with -exx and without C/C++ optimisation
-                      In all cases, compile with -g
   valgrind=1          valgrinding build.
   profile=1           Profiling build for gprof.
   scriptprofile=1     Script profiling build.
