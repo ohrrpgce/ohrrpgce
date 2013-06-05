@@ -2012,3 +2012,20 @@ SUB string_to_file (string_to_write as string, filename as string)
  PUT #fh, , s
  CLOSE #fh
 END SUB
+
+'Read each line of a file into a string array
+SUB lines_from_file(strarray() as string, filename as string)
+ REDIM strarray(-1 TO -1)
+ DIM as integer fh
+ fh = FREEFILE
+ IF OPEN(filename FOR INPUT as #fh) THEN
+  debug "Could not open " & filename
+  EXIT SUB
+ END IF
+ DO UNTIL EOF(fh)
+  DIM text as string
+  LINE INPUT #fh, text
+  str_array_append strarray(), text
+ LOOP
+ CLOSE #fh
+END SUB

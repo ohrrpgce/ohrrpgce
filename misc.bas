@@ -81,6 +81,8 @@ function usage_setoption(opt as string, arg as string) as integer
 		display_help_string help
 		return 1
 	elseif opt = "?" or opt = "help" or opt = "h" then
+		help = help & "If a file named ohrrpgce_arguments.txt exists in the current directory then" & LINE_END
+		help = help & "additional command line arguments will be read from it, one per line." & LINE_END
 		help = help & "-? -h -help         Display this help screen" & LINE_END
 		help = help & "-v -version         Show version and build info" & LINE_END
 		help = help & "-log foldername     Log debug messages to a specific folder" & LINE_END
@@ -97,7 +99,7 @@ function usage_setoption(opt as string, arg as string) as integer
 		help = help & "-no-native-kbd      Use US keyboard layout instead of OS-based text input" & LINE_END
 		help = help & "-f -fullscreen      Start in full-screen mode if possible" & LINE_END
 		help = help & "-w -windowed        Start in windowed mode (default)" & LINE_END
-		help = help & " Backend-specific options for gfx_" & gfxbackend & ": (use -gfx to see others)" & LINE_END
+		help = help & " Backend-specific options for gfx_" & gfxbackend & ": (use -gfx XYX -help to see others)" & LINE_END
 		help = help & *gfx_describe_options() & LINE_END
 		display_help_string help
 		return 1
@@ -120,20 +122,44 @@ function usage_setoption(opt as string, arg as string) as integer
 	return 0
 end function
 
-sub processcommandline()
-'populates cmdline_args, passes arguments around
+'Read commandline arguments from two sources
+private sub get_commandline_args(cmdargs() as string)
+	dim filename as string
+	filename = orig_dir & SLASH & "ohrrpgce_arguments.txt"
+	if isfile(filename) then
+		debuginfo "Reading additional commandline arguments from " & filename 
+		lines_from_file cmdargs(), filename
+	end if
+
 	dim i as integer = 1
+	while command(i) <> ""
+		str_array_append(cmdargs(), command(i))
+		i += 1
+	wend
+end sub
+
+sub processcommandline()
+'passes commandline arguments around, puts any that aren't recognised in cmdline_args
+	dim cnt as integer = 0
 	dim argsused as integer
 	dim opt as string
 	dim arg as string
+	redim cmdargs(-1 to -1) as string
 
-	while command(i) <> ""
+	get_commandline_args cmdargs()
+
+	while cnt <= ubound(cmdargs)
 		argsused = 0
 
-		opt = command(i)
+		opt = cmdargs(cnt)
 		if commandline_flag(opt) then
-			arg = command(i + 1)
-			if commandline_flag(arg) then arg = ""
+
+			if cnt + 1 <= ubound(cmdargs) then
+				arg = cmdargs(cnt + 1)
+				if commandline_flag(arg) then arg = ""
+			else
+				arg = ""
+			end if
 
 			argsused = backends_setoption(opt, arg)  'this must be first, it loads the backend if needed
 			if argsused = 0 then argsused = gfx_setoption(cstring(opt), cstring(arg))
@@ -143,18 +169,18 @@ sub processcommandline()
 				if argsused = 0 then argsused = game_setoption(opt, arg)
 			#endif
 
-			'debug "commandline opt = " & opt & " arg = " & arg & " used = " & argsused
+			'debuginfo "commandline option = '" & opt & "' arg = '" & arg & "' used = " & argsused
 		end if
 
 		if argsused = 0 then
 			'everything else falls through and is stored for Game/Custom to catch
 			'(we could prehaps move their handling into functions as well)
 			'note index 0 not used (FB arrays... so inconvenient)
-			str_array_append(cmdline_args(), command(i))
+			str_array_append(cmdline_args(), cmdargs(cnt))
 			argsused = 1
-			'debug ubound(cmdline_args) & ": stored " & command(i)
+			'debuginfo "commandline arg " & ubound(cmdline_args) & ": stored " & cmdargs(cnt)
 		end if
-		i += argsused
+		cnt += argsused
 	wend
 end sub
 
