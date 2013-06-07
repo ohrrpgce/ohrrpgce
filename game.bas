@@ -633,7 +633,7 @@ DO
  'DEBUG debug "enter script interpreter"
  interpret
  'DEBUG debug "increment script timers"
- dotimer(0)
+ dotimer(TIMER_NORMAL)
 
  'DEBUG debug "keyboard handling"
  IF carray(ccMenu) > 1 AND txt.showing = NO AND gam.need_fade_in = NO AND readbit(gen(), genSuspendBits, suspendplayer) = 0 AND vstate.active = NO AND herow(0).xgo = 0 AND herow(0).ygo = 0 THEN
@@ -755,6 +755,8 @@ DO
  END IF
 
  AdvanceSlice SliceTable.root
+ ELSE
+  dotimer(TIMER_BLOCKINGMENUS)
  END IF' end menus_allow_gameplay
 
  'Death handling
@@ -2390,13 +2392,13 @@ SUB usemenusounds (byval deckey as integer = scUp, byval inckey as integer = scD
 END SUB
 
 FUNCTION should_skip_this_timer(byval l as integer, t as PlotTimer) as integer
- IF l = 1 THEN
+ IF l = TIMER_BATTLE THEN
   'This is happening in battle!
   IF (t.flags AND 2) = 0 THEN
    'timerflag:battle bit is OFF
    RETURN YES
   END IF
- ELSEIF l = 2 THEN
+ ELSEIF l = TIMER_BLOCKINGMENUS THEN
   'This is happening in a menu!
   IF (t.flags AND 4) = 0 THEN
    'timerflag:battle bit is OFF
@@ -2451,7 +2453,7 @@ SUB dotimer(byval l as integer)
 end sub
 
 function dotimerbattle() as integer
-  dotimer 1  'no sense duplicating code
+  dotimer TIMER_BATTLE  'no sense duplicating code
 
   dim i as integer
   for i = 0 to ubound(timers)
