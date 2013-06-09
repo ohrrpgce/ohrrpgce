@@ -1690,6 +1690,7 @@ SELECT CASE as CONST id
  CASE 257'--resume map music
   setbit gen(), genSuspendBits, suspendambientmusic, 0
  CASE 260'--set timer(id, count, speed, trigger, string, flags)
+  'All args except id default to -1 (default)
   IF bound_arg(retvals(0), 0, UBOUND(timers), "timer ID") THEN
     WITH timers(retvals(0))
       IF retvals(1) > -1 THEN .count = retvals(1): .ticks = 0

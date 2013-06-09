@@ -2391,31 +2391,29 @@ SUB usemenusounds (byval deckey as integer = scUp, byval inckey as integer = scD
   END IF
 END SUB
 
-FUNCTION should_skip_this_timer(byval l as integer, t as PlotTimer) as integer
- IF l = TIMER_BATTLE THEN
+FUNCTION should_skip_this_timer(byval timercontext as integer, tmr as PlotTimer) as integer
+ IF timercontext = TIMER_BATTLE THEN
   'This is happening in battle!
-  IF (t.flags AND 2) = 0 THEN
-   'timerflag:battle bit is OFF
+  IF (tmr.flags AND TIMERFLAG_BATTLE) = 0 THEN
    RETURN YES
   END IF
- ELSEIF l = TIMER_BLOCKINGMENUS THEN
+ ELSEIF timercontext = TIMER_BLOCKINGMENUS THEN
   'This is happening in a menu!
-  IF (t.flags AND 4) = 0 THEN
-   'timerflag:battle bit is OFF
+  IF (tmr.flags AND TIMERFLAG_MENU) = 0 THEN
    RETURN YES
   END IF
  END IF
  RETURN NO
 END FUNCTION
 
-SUB dotimer(byval l as integer)
+SUB dotimer(byval timercontext as integer)
   dim i as integer
   for i = 0 to ubound(timers)
     with timers(i)
       if .pause then continue for
       if .speed > 0 then
-        if should_skip_this_timer(l, timers(i)) then continue for 'not supposed to run here
-        'debug "i=" & i & " l=" & l & " .speed=" & .speed & " .ticks=" & .ticks & " .count=" & .count & " .flags=" & .flags & " .trigger=" & .trigger
+        if should_skip_this_timer(timercontext, timers(i)) then continue for  'not supposed to run here
+        'debug "i=" & i & " timercontext=" & timercontext & " .speed=" & .speed & " .ticks=" & .ticks & " .count=" & .count & " .flags=" & .flags & " .trigger=" & .trigger
 
         if .st > 0 then
           if plotstr(.st - 1).s = "" then plotstr(.st - 1).s = seconds2str(.count)
@@ -2431,17 +2429,19 @@ SUB dotimer(byval l as integer)
             .speed *= -1
             .speed -= 1
             'do something
-            if .trigger = -2 then 'game over
+            if .trigger = TIMERTRIGGER_GAMEOVER then
+              'FIXME: possible minor bug: does whether or not a fadeout occurs depend on whether there is a gameover script?
               fatal = YES
               abortg = 1
 
               exit sub
             end if
 
-            if .trigger = -1 then 'undefined, shouldn't happen
+            if .trigger = TIMERTRIGGER_DEFAULT then
+              'undefined, shouldn't happen
             end if
 
-            if .trigger > -1 then 'plotscript
+            if .trigger >= 0 then  'a plotscript
               trigger_script .trigger, NO, "timer", "", scrqBackcompat()
               trigger_script_arg 0, i, "id"
             end if
@@ -2452,6 +2452,7 @@ SUB dotimer(byval l as integer)
   next
 end sub
 
+'Returns true if the battle should be exited immediately
 function dotimerbattle() as integer
   dotimer TIMER_BATTLE  'no sense duplicating code
 
@@ -2459,7 +2460,7 @@ function dotimerbattle() as integer
   for i = 0 to ubound(timers)
     with timers(i)
       if .speed < 0 then 'normally, not valid. but, if a timer expired in battle, this will be -ve, -1
-        if .flags AND 1 then return -1
+        if .flags AND TIMERFLAG_CRITICAL then return -1
       end if
     end with
   next
