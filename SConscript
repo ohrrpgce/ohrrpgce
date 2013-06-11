@@ -29,6 +29,7 @@ unix = False
 mac = False
 android = False
 android_source = False
+arch = 'x86'
 exe_suffix = ''
 if platform.system () == 'Windows':
     win32 = True
@@ -52,23 +53,27 @@ elif 'android' in ARGUMENTS:
     android = True
 
 if android:
-    FBFLAGS += ["-gen", "gcc", "-arch", "arm", "-d", "__FB_ANDROID__=1", "-R"]
+    FBFLAGS += ["-d", "__FB_ANDROID__=1"]
+    arch = 'armeabi'
+
+if arch == 'armeabi':
+    FBFLAGS += ["-gen", "gcc", "-arch", "arm", "-R"]
     #CFLAGS += -L$(SYSROOT)/usr/lib
     # CC, CXX, AS must be set in environment to point to cross compiler
-else:
+elif arch == 'x86':
     CFLAGS.append ('-m32')
     CXXFLAGS.append ('-m32')
     # Recent versions of GCC default to assuming the stack is kept 16-byte aligned
     # (which a change in the Linux x86 ABI) but fbc is not yet updateed for that
     CFLAGS.append ('-mpreferred-stack-boundary=2')
     CXXFLAGS.append ('-mpreferred-stack-boundary=2')
-
-
-# gcc -m32 on x86_64 defaults to enabling SSE and SSE2, so disable that,
-# except on Intel Macs, where it is both always present, and required by system headers
-if not mac and not android:
-    CFLAGS.append ('-mno-sse')
-    CXXFLAGS.append ('-mno-sse')
+    # gcc -m32 on x86_64 defaults to enabling SSE and SSE2, so disable that,
+    # except on Intel Macs, where it is both always present, and required by system headers
+    if not mac:
+        CFLAGS.append ('-mno-sse')
+        CXXFLAGS.append ('-mno-sse')
+else:
+    raise Exception('Unknown architecture %s' % arch)
 
 if 'asm' in ARGUMENTS:
     FBFLAGS += ["-r", "-g"]
