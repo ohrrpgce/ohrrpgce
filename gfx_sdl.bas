@@ -301,15 +301,15 @@ FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
   set_forced_mouse_clipping (windowedmode = NO)
 #ENDIF
 #IFDEF __FB_ANDROID__
-  'On Android allocate a virtual screen the same size as the real one, because
-  'using a screen with smaller width doesn't seem to work properly...
-  screensurface = SDL_SetVideoMode(0, 0, bitdepth, flags)
+  'If fullscreen mode is requested on android, use the minimum size
+  'and it should be stretched
+  screensurface = SDL_SetVideoMode(320, 200, bitdepth, flags)
   IF screensurface = NULL THEN
     debug "Failed to open display (bitdepth = " & bitdepth & ", flags = " & flags & "): " & *SDL_GetError()
     RETURN 0
   END IF
   debuginfo "gfx_sdl: screen size is " & screensurface->w & "*" & screensurface->h
-  select_zoom_automatically screensurface->w, screensurface->h
+  zoom = 1
   WITH dest_rect
     .x = 0
     .y = 0
