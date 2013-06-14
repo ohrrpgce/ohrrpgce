@@ -282,6 +282,14 @@ sub io_console_textinput (byval buf as wstring ptr, byval bufsize as integer)
 	inputtext = MID(inputtext, buflen)
 end sub
 
+SUB io_console_show_virtual_keyboard()
+ 'Does nothing on platforms that have real keyboards
+END SUB
+
+SUB io_console_hide_virtual_keyboard()
+ 'Does nothing on platforms that have real keyboards
+END SUB
+
 sub io_console_setmousevisibility(byval visible as integer)
 end sub
 
@@ -327,6 +335,8 @@ function gfx_console_setprocptrs() as integer
 	io_keybits = @io_console_keybits
 	io_updatekeys = @io_console_updatekeys
 	io_textinput = @io_console_textinput
+	io_show_virtual_keyboard = @io_console_show_virtual_keyboard
+	io_hide_virtual_keyboard = @io_console_hide_virtual_keyboard
 	io_mousebits = @io_amx_mousebits
 	io_setmousevisibility = @io_console_setmousevisibility
 	io_getmouse = @io_console_getmouse

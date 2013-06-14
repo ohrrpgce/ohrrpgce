@@ -73,6 +73,12 @@ extern Io_enable_textinput as sub (byval enable as integer)
 '(optional, ptr might be NULL) Get the inputted text since the last call, in UCS2 encoded unicode
 extern Io_textinput as sub (byval buf as wstring ptr, byval bufsize as integer)
 
+'Display the virtual keyboard, but only for platforms like Android that need it
+extern Io_show_virtual_keyboard as sub ()
+
+'Hide the virtual keyboard, but only for platforms like Android that need it
+extern Io_hide_virtual_keyboard as sub ()
+
 '(optional) Primary mouse state function
 'mbuttons is bitmask of currently down keys OR new clicks, mclicks is bitmask ofnew clicks since last call.
 'left, right, middle buttons are bits 0, 1, 2

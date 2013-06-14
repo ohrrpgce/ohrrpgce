@@ -66,6 +66,8 @@ dim io_keybits as sub (byval keybdarray as integer ptr)
 dim io_updatekeys as sub (byval keybd as integer ptr)
 dim io_enable_textinput as sub (byval enable as integer)
 dim io_textinput as sub (byval buf as wstring ptr, byval bufsize as integer)
+dim io_show_virtual_keyboard as sub ()
+dim io_hide_virtual_keyboard as sub ()
 dim io_mousebits as sub (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer)
 dim io_setmousevisibility as sub (byval visible as integer)
 dim io_getmouse as sub (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer)
@@ -223,6 +225,9 @@ function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filename as 
 
 	io_textinput = dylibsymbol(hFile, "io_textinput")
 	'io_textinput is allowed to be NULL
+
+	io_show_virtual_keyboard = dylibsymbol(hFile, "io_show_virtual_keyboard")
+	io_hide_virtual_keyboard = dylibsymbol(hFile, "io_hide_virtual_keyboard")
 
 	io_mousebits = dylibsymbol(hFile, "io_mousebits")
 	if io_mousebits = NULL then

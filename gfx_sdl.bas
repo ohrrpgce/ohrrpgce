@@ -31,6 +31,11 @@ EXTERN running_as_slave AS INTEGER
 
 EXTERN "C"
 
+#IFDEF __FB_ANDROID__
+declare sub SDL_ANDROID_CallJavaShowScreenKeyboard (byval oldText as zstring ptr, byval outBuf as zstring ptr, byval outBufLen as integer)
+declare sub SDL_ANDROID_CallJavaHideScreenKeyboard ()
+#ENDIF
+
 'why is this missing from crt.bi?
 DECLARE FUNCTION putenv (byval as zstring ptr) as integer
 
@@ -271,7 +276,7 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
   RETURN gfx_sdl_set_screen_mode()
 END FUNCTION
 
-'Only use this on Android at the moment, but would like to use on all platforms
+'Not used on any platforms at the moment, but could be useful on several
 SUB select_zoom_automatically(byval w as integer, byval h as integer)
   ' DIM info as SDL_VideoInfo ptr
   ' info = SDL_GetVideoInfo()
@@ -760,6 +765,21 @@ SUB io_sdl_textinput (byval buf as wstring ptr, byval bufsize as integer)
   input_buffer = MID(input_buffer, buflen)
 END SUB
 
+SUB io_sdl_show_virtual_keyboard()
+ 'Does nothing on platforms that have real keyboards
+#IFDEF __FB_ANDROID__
+ SDL_ANDROID_CallJavaShowScreenKeyboard(NULL,NULL,0)
+#ENDIF
+END SUB
+
+SUB io_sdl_hide_virtual_keyboard()
+ 'Does nothing on platforms that have real keyboards
+#IFDEF __FB_ANDROID__
+ 'This does not work for some reason
+ SDL_ANDROID_CallJavaHideScreenKeyboard()
+#ENDIF
+END SUB
+
 SUB io_sdl_setmousevisibility(byval visible as integer)
   rememmvis = iif(visible, 1, 0)
   SDL_ShowCursor(iif(windowedmode, rememmvis, 0))
@@ -938,6 +958,8 @@ FUNCTION gfx_sdl_setprocptrs() as integer
   io_updatekeys = @io_sdl_updatekeys
   io_enable_textinput = @io_sdl_enable_textinput
   io_textinput = @io_sdl_textinput
+  io_show_virtual_keyboard = @io_sdl_show_virtual_keyboard
+  io_hide_virtual_keyboard = @io_sdl_hide_virtual_keyboard
   io_mousebits = @io_sdl_mousebits
   io_setmousevisibility = @io_sdl_setmousevisibility
   io_getmouse = @io_sdl_getmouse

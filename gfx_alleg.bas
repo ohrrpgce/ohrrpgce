@@ -208,6 +208,14 @@ sub io_alleg_updatekeys(byval keybd as integer ptr)
 	end if
 end sub
 
+SUB io_alleg_show_virtual_keyboard()
+	'Does nothing on platforms that have real keyboards
+END SUB
+
+SUB io_alleg_hide_virtual_keyboard()
+	'Does nothing on platforms that have real keyboards
+END SUB
+
 sub io_alleg_setmousevisibility(byval visible as integer)
 'who know why this check is here
  	if visible <> 0 and mouse_hidden = 1 then
@@ -259,6 +267,8 @@ function gfx_alleg_setprocptrs() as integer
 	io_waitprocessing = @io_alleg_waitprocessing
 	io_keybits = @io_amx_keybits
 	io_updatekeys = @io_alleg_updatekeys
+	io_show_virtual_keyboard = @io_alleg_show_virtual_keyboard
+	io_hide_virtual_keyboard = @io_alleg_hide_virtual_keyboard
 	io_mousebits = @io_amx_mousebits
 	io_setmousevisibility = @io_alleg_setmousevisibility
 	io_getmouse = @io_alleg_getmouse

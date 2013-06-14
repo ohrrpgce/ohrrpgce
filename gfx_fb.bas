@@ -422,6 +422,14 @@ sub io_fb_textinput (byval buf as wstring ptr, byval bufsize as integer)
 	inputtext = MID(inputtext, buflen)
 end sub
 
+SUB io_fb_show_virtual_keyboard()
+	'Does nothing on platforms that have real keyboards
+END SUB
+
+SUB io_fb_hide_virtual_keyboard()
+	'Does nothing on platforms that have real keyboards
+END SUB
+
 sub io_fb_setmousevisibility(byval visible as integer)
 	'Note that 'windowed' is an approximation - see process_events()
 	rememmvis = iif(visible, 1, 0)
@@ -508,6 +516,8 @@ function gfx_fb_setprocptrs() as integer
 	io_keybits = @io_amx_keybits
 	io_updatekeys = @io_fb_updatekeys
 	io_textinput = @io_fb_textinput
+	io_show_virtual_keyboard = @io_fb_show_virtual_keyboard
+	io_hide_virtual_keyboard = @io_fb_hide_virtual_keyboard
 	io_mousebits = @io_amx_mousebits
 	io_setmousevisibility = @io_fb_setmousevisibility
 	io_getmouse = @io_fb_getmouse

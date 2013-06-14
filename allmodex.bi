@@ -213,6 +213,8 @@ declare sub palette16_unload(byval p as palette16 ptr ptr)
 declare sub palette16_empty_cache()
 declare sub palette16_update_cache(fil as string, byval num as integer)
 
+declare sub show_virtual_keyboard()
+declare sub hide_virtual_keyboard()
 
 'globals
 extern modex_initialised as bool

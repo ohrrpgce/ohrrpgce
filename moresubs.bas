@@ -1118,6 +1118,8 @@ IF fadestate = 0 THEN
  need_fade_out = YES
 END IF
 
+show_virtual_keyboard
+
 setkeys YES
 DO
  setwait speedcontrol
@@ -1140,6 +1142,8 @@ DO
  dowait
 LOOP
 menusound gen(genAcceptSFX)
+
+hide_virtual_keyboard
 
 IF need_fade_out THEN
  fadeout 0, 0, 0

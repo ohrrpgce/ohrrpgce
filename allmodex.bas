@@ -6431,3 +6431,15 @@ sub sprite_draw(spr as SpriteState ptr, byval x as integer, byval y as integer, 
 	realy = y + spr->curframe->offset.y + spr->offset.y
 	frame_draw(spr->curframe, spr->pal, realx, realy, scale, trans, page)
 end sub
+
+sub show_virtual_keyboard()
+	'Does nothing on platforms that have real keyboards
+	debuginfo "show_virtual_keyboard"
+	io_show_virtual_keyboard()
+end sub
+
+sub hide_virtual_keyboard()
+	'Does nothing on platforms that have real keyboards
+	debuginfo "hide_virtual_keyboard"
+	io_hide_virtual_keyboard()
+end sub
