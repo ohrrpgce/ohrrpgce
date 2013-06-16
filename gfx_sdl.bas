@@ -32,8 +32,7 @@ EXTERN running_as_slave AS INTEGER
 EXTERN "C"
 
 #IFDEF __FB_ANDROID__
-declare sub SDL_ANDROID_CallJavaShowScreenKeyboard (byval oldText as zstring ptr, byval outBuf as zstring ptr, byval outBufLen as integer)
-declare sub SDL_ANDROID_CallJavaHideScreenKeyboard ()
+declare sub SDL_ANDROID_SetScreenKeyboardShown (byval shown as integer)
 #ENDIF
 
 'why is this missing from crt.bi?
@@ -768,7 +767,7 @@ END SUB
 SUB io_sdl_show_virtual_keyboard()
  'Does nothing on platforms that have real keyboards
 #IFDEF __FB_ANDROID__
- SDL_ANDROID_CallJavaShowScreenKeyboard(NULL,NULL,0)
+ SDL_ANDROID_SetScreenKeyboardShown(YES)
 #ENDIF
 END SUB
 
@@ -776,7 +775,7 @@ SUB io_sdl_hide_virtual_keyboard()
  'Does nothing on platforms that have real keyboards
 #IFDEF __FB_ANDROID__
  'This does not work for some reason
- SDL_ANDROID_CallJavaHideScreenKeyboard()
+ SDL_ANDROID_SetScreenKeyboardShown(NO)
 #ENDIF
 END SUB
 
