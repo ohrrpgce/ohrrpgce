@@ -166,6 +166,8 @@ sub io_dummy_updatekeys(byval keybd as integer ptr) : end sub
 sub io_dummy_mousebits(byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer) : end sub
 sub io_dummy_getmouse(byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer) : end sub
 sub io_dummy_enable_textinput(byval enable as integer) : end sub
+sub io_dummy_show_virtual_keyboard() : end sub
+sub io_dummy_hide_virtual_keyboard() : end sub
 
 function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filename as string) as integer
 	dim hFile as any ptr = backendinfo->dylib
@@ -227,7 +229,9 @@ function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filename as 
 	'io_textinput is allowed to be NULL
 
 	io_show_virtual_keyboard = dylibsymbol(hFile, "io_show_virtual_keyboard")
+	if io_show_virtual_keyboard = NULL then io_show_virtual_keyboard = @io_dummy_show_virtual_keyboard
 	io_hide_virtual_keyboard = dylibsymbol(hFile, "io_hide_virtual_keyboard")
+	if io_hide_virtual_keyboard = NULL then io_hide_virtual_keyboard = @io_dummy_hide_virtual_keyboard
 
 	io_mousebits = dylibsymbol(hFile, "io_mousebits")
 	if io_mousebits = NULL then

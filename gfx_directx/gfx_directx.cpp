@@ -200,16 +200,6 @@ DFI_IMPLEMENT_CDECL(void, io_textinput, wchar_t *buffer, int bufferLen)
 	gfx_GetText(buffer, bufferLen);
 }
 
-DFI_IMPLEMENT_CDECL(void, io_show_virtual_keyboard)
-{
-	//Do nothing. Not used by this platform
-}
-
-DFI_IMPLEMENT_CDECL(void, io_hide_virtual_keyboard)
-{
-	//Do nothing. Not used by this platform
-}
-
 DFI_IMPLEMENT_CDECL(int, io_setmousevisibility, int visible)
 {
 	if(visible == 0)

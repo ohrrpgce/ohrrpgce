@@ -83,8 +83,6 @@ DFI_CLASS_BEGIN( DllBackend );
 #pragma comment(linker, "/export:io_init=_io_init@0")
 #pragma comment(linker, "/export:io_pollkeyevents=_io_pollkeyevents@0")
 #pragma comment(linker, "/export:io_keybits=_io_keybits@4")
-#pragma comment(linker, "/export:io_show_virtual_keyboard=_io_show_virtual_keyboard@0")
-#pragma comment(linker, "/export:io_hide_virtual_keyboard=_io_hide_virtual_keyboard@0")
 #pragma comment(linker, "/export:io_setmousevisibility=_io_setmousevisibility@4")
 #pragma comment(linker, "/export:io_getmouse=_io_getmouse@16")
 #pragma comment(linker, "/export:io_setmouse=_io_setmouse@8")
@@ -122,8 +120,6 @@ DFI_DECLARE_CDECL( void, io_pollkeyevents );
 //DFI_DECLARE_CDECL( void, io_keybits, int* keybdarray );
 DFI_DECLARE_CDECL( void, io_keybits, int *keybd );
 DFI_DECLARE_CDECL( void, io_textinput, wchar_t* buffer, int bufferLen );
-DFI_DECLARE_CDECL( void, io_show_virtual_keyboard );
-DFI_DECLARE_CDECL( void, io_hide_virtual_keyboard );
 //DFI_DECLARE_CDECL( void, io_mousebits, int& mx, int& my, int& mwheel, int& mbuttons, int& mclicks );
 DFI_DECLARE_CDECL( int, io_setmousevisibility, int visible );
 DFI_DECLARE_CDECL( void, io_getmouse, int& mx, int& my, int& mwheel, int& mbuttons );
