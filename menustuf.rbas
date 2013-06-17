@@ -54,6 +54,7 @@ DECLARE SUB spells_menu_paint (byref sp as SpellsMenuState)
 DECLARE SUB picksave_draw(menu() as string, byval loading as integer, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval page as integer)
 DECLARE FUNCTION picksave_confirm(menu() as string, byval loading as integer, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval holdscreen as integer, byval page as integer) as integer
 DECLARE SUB sellstuff_refresh(byval last_stuff as integer, byval recordsize as integer, permask() as integer, price() as integer, stuffdata() as integer)
+DECLARE SUB sellstuff_infostr(byval ic as integer, info as string, b() as integer, permask() as integer, price() as integer, byval stuff_count as integer, byval recordsize as integer)
 DECLARE SUB status_buildmenu(her as HeroDef, byval pt as integer, mtype() as integer, elementaldmg() as single, elementnames() as string, elementalmenu() as string, elementalmenu_st as MenuState, portrait as GraphicPair)
 
 SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as integer)
@@ -934,10 +935,6 @@ page = compatpage
 holdscreen = allocatepage
 copypage page, holdscreen
 
-DIM cannotsell as string = readglobalstring(75, "CANNOT SELL", 20)
-DIM worth as string = readglobalstring(77, "Worth", 20)
-DIM tradefor as string = readglobalstring(79, "Trade for", 20)
-DIM worthnothing as string = readglobalstring(82, "Worth Nothing", 20)
 DIM sold as string = readglobalstring(84, "Sold", 10)
 
 loadshopstuf b(), id
@@ -959,7 +956,7 @@ DIM quit as bool = NO
 menusound gen(genAcceptSFX)
 sellstuff_refresh storebuf(16), recordsize, permask(), price(), b()
 
-GOSUB sellinfostr
+sellstuff_infostr ic, info, b(), permask(), price(), storebuf(16), recordsize
 setkeys
 DO
  setwait speedcontrol
@@ -967,7 +964,75 @@ DO
  tog = tog XOR 1
  playtimer
  control
- GOSUB keysell
+
+ IF carray(ccMenu) > 1 THEN quit = YES
+ IF carray(ccUse) > 1  AND inventory(ic).used THEN
+  IF readbit(permask(), 0, ic) = 0 THEN
+   menusound gen(genSellSFX)
+   alert = 10
+   alert_str = sold & " " & readitemname(inventory(ic).id)
+   'INCREMENT GOLD-----------
+   gold = gold + price(ic)
+   IF gold > 2000000000 THEN gold = 2000000000
+   IF gold < 0 THEN gold = 0
+   'CHECK FOR SPECIAL CASES---------
+   FOR i as integer = 0 TO storebuf(16)
+    IF b(i * recordsize + 17) = 0 AND b(i * recordsize + 18) = inventory(ic).id THEN
+     'SET SELL BIT---
+     settag b(i * recordsize + 23)
+     'ADD TRADED ITEM-----------
+     IF b(i * recordsize + 28) > 0 THEN getitem b(i * recordsize + 28) - 1, b(i * recordsize + 29) + 1
+     'INCREMENT STOCK-------
+     IF b(i * recordsize + 26) > 0 THEN
+      IF b(i * recordsize + 26) = 1 THEN gam.stock(id, i) = -1
+      IF b(i * recordsize + 26) = 2 AND gam.stock(id, i) > 0 THEN gam.stock(id, i) = gam.stock(id, i) + 1
+     END IF
+    END IF
+   NEXT i
+   'DECREMENT ITEM-----------
+   consumeitem ic
+   'UPDATE ITEM POSESSION TAGS--------
+   evalitemtags
+   'REFRESH DISPLAY--------
+   sellstuff_refresh storebuf(16), recordsize, permask(), price(), b()
+   sellstuff_infostr ic, info, b(), permask(), price(), storebuf(16), recordsize
+  ELSE
+   menusound gen(genCantSellSFX)
+  END IF
+ END IF
+ IF carray(ccUp) > 1 AND ic >= 3 THEN
+  menusound gen(genCursorSFX)
+  ic = ic - 3
+  sellstuff_infostr ic, info, b(), permask(), price(), storebuf(16), recordsize
+  IF ic < top THEN top = top - 3
+ END IF
+ IF carray(ccDown) > 1 AND ic <= last_inv_slot() - 3 THEN
+  menusound gen(genCursorSFX)
+  ic = ic + 3
+  sellstuff_infostr ic, info, b(), permask(), price(), storebuf(16), recordsize
+  IF ic > top + 62 THEN top = top + 3
+ END IF
+ IF carray(ccLeft) > 1 THEN
+  menusound gen(genCursorSFX)
+  IF ic MOD 3 > 0 THEN
+   ic = ic - 1
+   sellstuff_infostr ic, info, b(), permask(), price(), storebuf(16), recordsize
+  ELSE
+   ic = ic + 2
+   sellstuff_infostr ic, info, b(), permask(), price(), storebuf(16), recordsize
+  END IF
+ END IF
+ IF carray(ccRight) > 1 THEN
+  menusound gen(genCursorSFX)
+  IF ic MOD 3 < 2 THEN
+   ic = ic + 1
+   sellstuff_infostr ic, info, b(), permask(), price(), storebuf(16), recordsize
+  ELSE
+   ic = ic - 2
+   sellstuff_infostr ic, info, b(), permask(), price(), storebuf(16), recordsize
+  END IF
+ END IF
+
  IF quit THEN EXIT DO
  
  '--Draw the sell screen
@@ -1003,101 +1068,37 @@ evalitemtags
 tag_updates
 EXIT SUB
 
-sellinfostr:
-info = ""
-IF inventory(ic).used = 0 THEN RETRACE
-IF readbit(permask(), 0, ic) = 1 THEN info = cannotsell: RETRACE
-IF price(ic) > 0 THEN info = worth & " " & price(ic) & " " & readglobalstring(32, "Money")
-FOR i as integer = 0 TO storebuf(16)
- IF b(i * recordsize + 17) = 0 AND b(i * recordsize + 18) = inventory(ic).id THEN
-  IF b(i * recordsize + 28) > 0 THEN
-   IF info = "" THEN
-    info = tradefor & " "
-   ELSE
-    IF b(i * recordsize + 29) > 0 THEN
-     info = info & " " & readglobalstring(153, "and", 10) & " "
+END SUB
+
+SUB sellstuff_infostr(byval ic as integer, info as string, b() as integer, permask() as integer, price() as integer, byval stuff_count as integer, byval recordsize as integer)
+
+ DIM cannotsell as string = readglobalstring(75, "CANNOT SELL", 20)
+ DIM worth as string = readglobalstring(77, "Worth", 20)
+ DIM tradefor as string = readglobalstring(79, "Trade for", 20)
+ DIM worthnothing as string = readglobalstring(82, "Worth Nothing", 20)
+ 
+ info = ""
+ IF inventory(ic).used = 0 THEN RETURN
+ IF readbit(permask(), 0, ic) = 1 THEN info = cannotsell: RETURN
+ IF price(ic) > 0 THEN info = worth & " " & price(ic) & " " & readglobalstring(32, "Money")
+ FOR i as integer = 0 TO stuff_count
+  IF b(i * recordsize + 17) = 0 AND b(i * recordsize + 18) = inventory(ic).id THEN
+   IF b(i * recordsize + 28) > 0 THEN
+    IF info = "" THEN
+     info = tradefor & " "
     ELSE
-     info = info & " " & readglobalstring(81, "and a", 10) & " "
+     IF b(i * recordsize + 29) > 0 THEN
+      info = info & " " & readglobalstring(153, "and", 10) & " "
+     ELSE
+      info = info & " " & readglobalstring(81, "and a", 10) & " "
+     END IF
     END IF
+    IF b(i * recordsize + 29) > 0 THEN info = info & STR(b(i * recordsize + 29) + 1) & " "
+    info = info & readitemname(b(i * recordsize + 28) - 1)
    END IF
-   IF b(i * recordsize + 29) > 0 THEN info = info & STR(b(i * recordsize + 29) + 1) & " "
-   info = info & readitemname(b(i * recordsize + 28) - 1)
   END IF
- END IF
-NEXT i
-IF info = "" THEN info = worthnothing
-RETRACE
-
-keysell:
-IF carray(ccMenu) > 1 THEN quit = YES
-IF carray(ccUse) > 1  AND inventory(ic).used THEN
- IF readbit(permask(), 0, ic) = 0 THEN
-  menusound gen(genSellSFX)
-  alert = 10
-  alert_str = sold & " " & readitemname(inventory(ic).id)
-  'INCREMENT GOLD-----------
-  gold = gold + price(ic)
-  IF gold > 2000000000 THEN gold = 2000000000
-  IF gold < 0 THEN gold = 0
-  'CHECK FOR SPECIAL CASES---------
-  FOR i as integer = 0 TO storebuf(16)
-   IF b(i * recordsize + 17) = 0 AND b(i * recordsize + 18) = inventory(ic).id THEN
-    'SET SELL BIT---
-    settag b(i * recordsize + 23)
-    'ADD TRADED ITEM-----------
-    IF b(i * recordsize + 28) > 0 THEN getitem b(i * recordsize + 28) - 1, b(i * recordsize + 29) + 1
-    'INCREMENT STOCK-------
-    IF b(i * recordsize + 26) > 0 THEN
-     IF b(i * recordsize + 26) = 1 THEN gam.stock(id, i) = -1
-     IF b(i * recordsize + 26) = 2 AND gam.stock(id, i) > 0 THEN gam.stock(id, i) = gam.stock(id, i) + 1
-    END IF
-   END IF
-  NEXT i
-  'DECREMENT ITEM-----------
-  consumeitem ic
-  'UPDATE ITEM POSESSION TAGS--------
-  evalitemtags
-  'REFRESH DISPLAY--------
-  sellstuff_refresh storebuf(16), recordsize, permask(), price(), b()
-  GOSUB sellinfostr
- ELSE
-  menusound gen(genCantSellSFX)
- END IF
-END IF
-IF carray(ccUp) > 1 AND ic >= 3 THEN
- menusound gen(genCursorSFX)
- ic = ic - 3
- GOSUB sellinfostr
- IF ic < top THEN top = top - 3
-END IF
-IF carray(ccDown) > 1 AND ic <= last_inv_slot() - 3 THEN
- menusound gen(genCursorSFX)
- ic = ic + 3
- GOSUB sellinfostr
- IF ic > top + 62 THEN top = top + 3
-END IF
-IF carray(ccLeft) > 1 THEN
- menusound gen(genCursorSFX)
- IF ic MOD 3 > 0 THEN
-  ic = ic - 1
-  GOSUB sellinfostr
- ELSE
-  ic = ic + 2
-  GOSUB sellinfostr
- END IF
-END IF
-IF carray(ccRight) > 1 THEN
- menusound gen(genCursorSFX)
- IF ic MOD 3 < 2 THEN
-  ic = ic + 1
-  GOSUB sellinfostr
- ELSE
-  ic = ic - 2
-  GOSUB sellinfostr
- END IF
-END IF
-RETRACE
-
+ NEXT i
+ IF info = "" THEN info = worthnothing
 END SUB
 
 SUB sellstuff_refresh(byval last_stuff as integer, byval recordsize as integer, permask() as integer, price() as integer, stuffdata() as integer)
