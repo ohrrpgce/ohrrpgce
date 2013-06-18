@@ -2029,3 +2029,29 @@ SUB lines_from_file(strarray() as string, filename as string)
  LOOP
  CLOSE #fh
 END SUB
+
+'Note: Custom doesn't use this function
+SUB set_tmpdir ()
+ DIM tmp as string
+ #IFDEF __FB_WIN32__
+  'Windows only behavior
+  tmp = environ("TEMP")
+  IF NOT diriswriteable(tmp) THEN tmp = environ("TMP")
+  IF NOT diriswriteable(tmp) THEN tmp = exepath
+  IF NOT diriswriteable(tmp) THEN tmp = CURDIR
+  IF NOT diriswriteable(tmp) THEN fatalerror "Unable to find any writable temp dir"
+ #ELSEIF DEFINED(__FB_ANDROID__)
+  'SDL sets initial directory to .../com.hamsterrepublic.ohrrpgce.game/files
+  tmp = orig_dir
+ #ELSE
+  'Unix only behavior
+  tmp = environ("HOME") + SLASH + ".ohrrpgce"
+ #ENDIF
+ IF NOT isdir(tmp) THEN
+  IF makedir(tmp) <> 0 THEN fatalerror "Temp directory " & tmp & " missing and unable to create it"
+ END IF
+ IF RIGHT(tmp, 1) <> SLASH THEN tmp = tmp & SLASH
+ DIM as string d = DATE, t = TIME
+ tmp += "ohrrpgce" & MID(d,7,4) & MID(d,1,2) & MID(d,4,2) & MID(t,1,2) & MID(t,4,2) & MID(t,7,2) & "." & randint(1000) & ".tmp" & SLASH
+ tmpdir = tmp
+END SUB

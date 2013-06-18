@@ -302,7 +302,7 @@ declare function string_from_first_line_of_file (filename as string) as string
 declare function string_from_file (filename as string) as string
 declare sub string_to_file (string_to_write as string, filename as string)
 declare sub lines_from_file (strarray() as string, filename as string)
-
+declare sub set_tmpdir ()
 
 'slight hackery to get more versatile read function
 '(fbc internally defines these functions differently from their actual prototypes,

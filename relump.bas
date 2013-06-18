@@ -38,6 +38,7 @@ IF COMMAND = "" THEN
  fatalerror ""
 END IF
 
+
 DIM src as string = COMMAND(1)
 DIM dest as string = COMMAND(2)
 
@@ -67,9 +68,16 @@ ELSEIF isfile(dest) THEN
  IF w <> "Y" AND w <> "y" THEN SYSTEM
 END IF
 
+set_tmpdir
+IF NOT isdir(tmpdir) THEN
+ IF makedir(tmpdir) <> 0 THEN fatalerror "Unable to create temp directory " & tmpdir
+END IF
+
 '--build the list of files to lump
 REDIM filelist() as string
 findfiles src, ALLFILES, fileTypefile, NO, filelist()
 fixlumporder filelist()
 '---relump data into lumpfile package---
 lumpfiles filelist(), dest, src + SLASH
+
+safekill tmpdir

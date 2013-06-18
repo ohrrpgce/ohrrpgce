@@ -212,7 +212,6 @@ DECLARE FUNCTION inputfilename (query as string, ext as string, directory as str
 DECLARE FUNCTION prompt_for_string (byref s as string, caption as string, byval limit as integer=NO) as integer
 
 DECLARE SUB set_settings_dir ()
-DECLARE SUB set_tmpdir ()
 DECLARE SUB set_homedir()
 DECLARE FUNCTION get_help_dir(helpfile as string="") as string
 DECLARE FUNCTION load_help_file(helpkey as string) as string
