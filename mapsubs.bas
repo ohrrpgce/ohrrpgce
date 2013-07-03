@@ -126,6 +126,8 @@ DECLARE SUB mapedit_gmapdata(st as MapEditState, gmap() as integer, zmap as Zone
 DECLARE SUB mapedit_draw_icon(st as MapEditState, icon as string, byval x as integer, byval y as integer, byval highlight as bool = NO)
 DECLARE SUB mapedit_list_npcs_by_tile (st as MapEditState)
 
+DECLARE FUNCTION door_exists (doors() as Door, id as integer) as bool
+DECLARE SUB set_door_exists (doors() as Door, id as integer, value as bool)
 DECLARE FUNCTION find_last_used_doorlink(link() as DoorLink) as integer
 DECLARE FUNCTION find_door_at_spot (x as integer, y as integer, doors() as Door) as integer
 DECLARE FUNCTION find_first_free_door (doors() as Door) as integer
@@ -807,7 +809,7 @@ DO
    'delete door
    doorid = find_door_at_spot(st.x, st.y, doors())
    IF doorid >= 0 THEN
-    setbit doors(doorid).bits(), 0, 0, 0
+    set_door_exists(doors(), doorid, NO)
    END IF
    'zones not deleted
  END IF
@@ -971,7 +973,7 @@ DO
     doorid = find_door_at_spot(st.x, st.y, doors())
     IF doorid >= 0 THEN
      'clear an existing door
-     setbit doors(doorid).bits(), 0, 0, 0
+     set_door_exists(doors(), doorid, NO)
     ELSE
      'place a new door
      doorid = find_first_free_door(doors())
@@ -985,7 +987,7 @@ DO
    IF keyval(scDelete) > 1 THEN
     doorid = find_door_at_spot(st.x, st.y, doors())
     IF doorid >= 0 THEN
-     setbit doors(doorid).bits(), 0, 0, 0
+     set_door_exists(doors(), doorid, NO)
     END IF
    END IF
 
@@ -1395,7 +1397,7 @@ DO
  IF st.editmode = door_mode THEN
   textcolor uilook(uiBackground), 0
   FOR i as integer = 0 TO 99
-   IF doors(i).x >= st.mapx \ 20 AND doors(i).x < st.mapx \ 20 + 16 AND doors(i).y > st.mapy \ 20 AND doors(i).y <= st.mapy \ 20 + 9 AND readbit(doors(i).bits(),0,0) = 1 THEN
+   IF doors(i).x >= st.mapx \ 20 AND doors(i).x < st.mapx \ 20 + 16 AND doors(i).y > st.mapy \ 20 AND doors(i).y <= st.mapy \ 20 + 9 AND door_exists(doors(), i) THEN
     rectangle doors(i).x * 20 - st.mapx, doors(i).y * 20 - st.mapy, 20, 20, uilook(uiSelectedItem + tog), dpage
     printstr STR(i), doors(i).x * 20 - st.mapx + 10 - (4 * LEN(STR(i))), doors(i).y * 20 - st.mapy + 6, dpage
    END IF
@@ -2732,10 +2734,17 @@ SUB mapedit_makelayermenu(st as MapEditState, byref menu as LayerMenuItem vector
  END IF
 END SUB
 
+FUNCTION door_exists (doors() as Door, id as integer) as bool
+ RETURN readbit(doors(id).bits(), 0, 0) <> 0
+END FUNCTION
+
+SUB set_door_exists (doors() as Door, id as integer, value as bool)
+ setbit(doors(id).bits(), 0, 0, value)
+END SUB
+
 FUNCTION find_door_at_spot (x as integer, y as integer, doors() as Door) as integer
- DIM i as integer
  FOR i as integer = 0 TO UBOUND(doors)
-  IF doors(i).x = x AND doors(i).y = y + 1 AND readbit(doors(i).bits(),0,0) = 1 THEN
+  IF doors(i).x = x AND doors(i).y = y + 1 AND door_exists(doors(), i) THEN
    RETURN i
   END IF
  NEXT i
@@ -2743,19 +2752,22 @@ FUNCTION find_door_at_spot (x as integer, y as integer, doors() as Door) as inte
 END FUNCTION
 
 FUNCTION find_first_free_door (doors() as Door) as integer
- DIM i as integer
  FOR i as integer = 0 TO UBOUND(doors)
-  IF readbit(doors(i).bits(), 0, 0) = 0 THEN
-   RETURN i
-  END IF
+  IF door_exists(doors(), i) = NO THEN RETURN i
  NEXT i
  RETURN -1
 END FUNCTION
 
 FUNCTION find_first_doorlink_by_door(doornum as integer, link() as DoorLink) as integer
- DIM i as integer
  FOR i as integer = 0 TO UBOUND(link)
   IF link(i).source = doornum THEN RETURN i
+ NEXT i
+ RETURN -1
+END FUNCTION
+
+FUNCTION find_last_used_doorlink(link() as DoorLink) as integer
+ FOR i as integer = UBOUND(link) TO 0 STEP -1
+  IF link(i).source >= 0 THEN RETURN i
  NEXT i
  RETURN -1
 END FUNCTION
@@ -3038,7 +3050,7 @@ SUB mapedit_resize(st as MapEditState, map() as TileMap, pass as TileMap, emap a
   doors(i).x -= rs.rect.x
   doors(i).y -= rs.rect.y
   IF doors(i).x < 0 OR doors(i).y < 0 OR doors(i).x >= st.wide OR doors(i).y >= st.high THEN
-   setbit(doors(i).bits(), 0, 0, 0)
+   set_door_exists(doors(), i, NO)
   END IF
  NEXT
  edgeprint "Aligning and truncating NPCs", 0, yout * 10, uilook(uiText), vpage: setvispage vpage: yout += 1
@@ -3304,13 +3316,6 @@ SUB link_one_door(st as MapEditState, linknum as integer, link() as DoorLink, do
  LOOP
 END SUB
 
-FUNCTION find_last_used_doorlink(link() as DoorLink) as integer
- FOR i as integer = UBOUND(link) TO 0 STEP -1
-  IF link(i).source >= 0 THEN RETURN i
- NEXT i
- RETURN -1
-END FUNCTION
-
 FUNCTION LayerIsVisible(vis() as integer, byval l as integer) as bool
  'debug "layer #" & l & " is: " & readbit(vis(), 0, l)
  RETURN xreadbit(vis(), l)
@@ -3353,7 +3358,7 @@ SUB DrawDoorPair(st as MapEditState, byval linknum as integer, map() as TileMap,
  clearpage 2
  IF link(linknum).source = -1 THEN EXIT SUB
 
- IF readbit(doors(link(linknum).source).bits(),0,0) = 1 THEN
+ IF door_exists(doors(), link(linknum).source) THEN
   dmx = doors(link(linknum).source).x * 20 - 150
   dmy = doors(link(linknum).source).y * 20 - 65
   dmx = small(large(dmx, 0), map(0).wide * 20 - 320)
@@ -3379,7 +3384,7 @@ SUB DrawDoorPair(st as MapEditState, byval linknum as integer, map() as TileMap,
  LoadTilemap pass2, maplumpname(destmap, "p")
  loadmaptilesets tilesets2(), gmap2()
 
- IF readbit(destdoor(link(linknum).dest).bits(),0,0) = 1 THEN
+ IF door_exists(destdoor(), link(linknum).dest) THEN
   dmx = destdoor(link(linknum).dest).x * 20 - 150
   dmy = destdoor(link(linknum).dest).y * 20 - 65
   dmx = small(large(dmx, 0), map2(0).wide * 20 - 320)
