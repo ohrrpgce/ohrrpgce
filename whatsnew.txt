@@ -3,6 +3,8 @@ WHAT IS NEW?
 ??? ?? 2013 [Callipygous]
 
   * New Features
+    * While placing doors in the map editor you can now specify door
+      number, and jump to existing door locations [Ralph]
 
   * Bugfixes
     * Fixed a few cosmetic bugs in the equip menu including possibly

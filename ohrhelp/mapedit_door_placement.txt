@@ -13,9 +13,11 @@ Use SHIFT+arrow keys to move around the map faster.
 
 Use ALT+arrow keys to move the view of the map.
 
-Press the SPACE bar to place a door.
+Press the SPACE bar to place a door. If the door with the selected number already exists, it will be moved.
 
 If you want to remove a door, position the cursor over it and press SPACE again.
+
+You can press < and > or type a number to set the current door number, and if that door already exists the cursor will jump to it. Normally an unused door number is automatically selected.
 
 To link a door to another door, position the cursor over the door and press ENTER. This will take you to the door linking tool.
 

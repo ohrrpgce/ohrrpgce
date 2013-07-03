@@ -534,6 +534,8 @@ st.layer = 0
 st.cur_zone = 1
 st.cur_zinfo = GetZoneInfo(zmap, st.cur_zone)
 
+st.cur_door = find_first_free_door(doors())
+
 DIM mapeditmenu(14) as string
 DIM mapeditmenu_display(14) as string
 
@@ -969,18 +971,26 @@ DO
      END IF
     END IF
    END IF
+   IF intgrabber(st.cur_door, 0, UBOUND(doors), scLeftCaret, scRightCaret) THEN
+    IF door_exists(doors(), st.cur_door) THEN
+     st.x = doors(st.cur_door).x
+     st.y = doors(st.cur_door).y - 1
+     mapedit_focus_camera st, st.x, st.y
+    END IF
+   END IF
    IF keyval(scSpace) > 1 THEN ' space to place a door
     doorid = find_door_at_spot(st.x, st.y, doors())
     IF doorid >= 0 THEN
      'clear an existing door
      set_door_exists(doors(), doorid, NO)
     ELSE
-     'place a new door
-     doorid = find_first_free_door(doors())
-     IF doorid >= 0 THEN
-      doors(doorid).x = st.x
-      doors(doorid).y = st.y + 1
-      setbit doors(doorid).bits(), 0, 0, 1
+     'Either move the current door if it exists, or create it
+     doors(st.cur_door).x = st.x
+     doors(st.cur_door).y = st.y + 1
+     IF door_exists(doors(), st.cur_door) = NO THEN
+      'If creating a new door, automatically get an unused door ID, ready for the next placement
+      set_door_exists(doors(), st.cur_door, YES)
+      st.cur_door = find_first_free_door(doors())
      END IF
     END IF
    END IF
@@ -1605,6 +1615,11 @@ DO
   IF st.defpass = NO THEN defpass_msg &= "No "
   defpass_msg &= "Default Walls"
   printstr defpass_msg, 116, 192, dpage, YES
+ END IF
+
+ IF st.editmode = door_mode THEN
+  textcolor uilook(uiText), uilook(uiHighlight)
+  printstr "Placing Door: " & st.cur_door, 0, 16, dpage
  END IF
 
  IF st.editmode = foe_mode THEN
@@ -2755,7 +2770,7 @@ FUNCTION find_first_free_door (doors() as Door) as integer
  FOR i as integer = 0 TO UBOUND(doors)
   IF door_exists(doors(), i) = NO THEN RETURN i
  NEXT i
- RETURN -1
+ RETURN UBOUND(doors)
 END FUNCTION
 
 FUNCTION find_first_doorlink_by_door(doornum as integer, link() as DoorLink) as integer

@@ -205,6 +205,7 @@ TYPE MapEditState
   defpass as bool            'Default passability ON/OFF
   cur_foe as integer         'Formation set selected for placement
   cur_npc as integer         'NPC ID selected for placement
+  cur_door as integer        'Door number selected
   usetile(0 to maplayerMax) as integer  'Tile selected for each layer
   menubarstart(0 to maplayerMax) as integer
   menubar as TileMap
