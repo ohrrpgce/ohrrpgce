@@ -2323,7 +2323,7 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
      END IF
      edgeprint caption, 119 + x_offset, 16 + i * 20, col, page
     ELSEIF learn_id >= 0 THEN
-     edgeprint names(cater_slot), 119 + x_offset, 16 + i * 20, col, page
+     edgeprint names(i), 119 + x_offset, 16 + i * 20, col, page
     END IF
     cater_slot += 1
    END IF
