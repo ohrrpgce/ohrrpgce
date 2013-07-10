@@ -200,6 +200,18 @@ TYPE ShopBuyState
 DIM heropal(3) as Palette16 PTR
 END TYPE
 
+TYPE OrderTeamState
+  party as MenuState
+  reserve as MenuState
+  info as string
+  swapme as integer
+  size as XYPair 'not in pixels
+  swindex(40) as integer
+  swname(40) as string
+  show_reserve as bool
+  page as integer
+END TYPE
+
 TYPE LumpReloadState
   mode      as integer  'one of the loadmode constants in const.bi
   dirty     as bool     'whether a script has modified this for the current map

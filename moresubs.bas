@@ -38,6 +38,8 @@
 '--Local subs and functions
 DECLARE SUB teleporttooltend (byref mini as Frame Ptr, maptilesX() as TileMap, tilesets2() as TilesetData ptr, byref zoom as integer, byval map as integer, byref mapsize as XYPair, byref minisize as XYPair, byref offset as XYPair)
 DECLARE SUB inventory_overflow_handler(byval item_id as integer, byval numitems as integer)
+DECLARE SUB hero_swap_menu_init(st as OrderTeamState)
+DECLARE SUB hero_swap_menu_display (st as OrderTeamState)
 
 '--Global variables
 
@@ -534,210 +536,204 @@ FUNCTION findhero (byval who as integer, byval first as integer, byval last as i
  RETURN -1 'not found
 END FUNCTION
 
-SUB hero_swap_menu (byval iAll as integer)
+SUB hero_swap_menu (byval reserve_too as bool)
 '--Preserve background for display beneath the hero swapper
-DIM page as integer
+
+DIM st as OrderTeamState
+st.show_reserve = reserve_too
+st.reserve.pt = -1
+st.reserve.last = -1
+st.swapme = -1
+st.party.need_update = YES
+
 DIM holdscreen as integer
-page = compatpage
+st.page = compatpage
 holdscreen = allocatepage
-copypage page, holdscreen
+copypage st.page, holdscreen
 
-DIM swindex(40) as integer
-DIM swname(40) as string
-
-DIM info as string
-DIM swapme as integer = -1
-DIM ecsr as integer = -1
-DIM acsr as integer = 0
-DIM top as integer = 0
-DIM la as integer = -1
-DIM numhero as integer = 0
-DIM high as integer = 0
-DIM wide as integer = 0
-DIM tog as integer
-DIM swap1 as integer
-DIM swap2 as integer
-DIM cater_slot as integer
-DIM menu_color as integer
-
-GOSUB resetswap
-
-IF hero(acsr) THEN info = names(acsr) ELSE info = ""
+hero_swap_menu_init st
 
 MenuSound gen(genAcceptSFX)
 setkeys
 DO
  setwait speedcontrol
  setkeys
- tog = tog XOR 1
+ st.party.tog XOR= 1
  playtimer
  control
  IF carray(ccMenu) > 1 THEN
-  IF swapme >= 0 THEN
+  IF st.swapme >= 0 THEN
    MenuSound gen(genCancelSFX)
-   swapme = -1
+   st.swapme = -1
   ELSE
    EXIT DO
   END IF
  END IF
- IF iAll THEN
+ IF st.show_reserve THEN
   IF carray(ccUp) > 1 THEN
    MenuSound gen(genCursorSFX)
-   IF ecsr < 0 THEN
-    ecsr = la
-    GOSUB refreshemenu
+   IF st.reserve.pt < 0 THEN
+    st.reserve.pt = st.reserve.last
+    st.reserve.need_update = YES
    ELSE
-    ecsr = loopvar(ecsr, -1, la, -1)
-    GOSUB refreshemenu
+    st.reserve.pt = loopvar(st.reserve.pt, -1, st.reserve.last, -1)
+    st.reserve.need_update = YES
    END IF
   END IF
   IF carray(ccDown) > 1 THEN
    MenuSound gen(genCursorSFX)
-   IF ecsr < 0 THEN
-    ecsr = 0
-    GOSUB refreshemenu
+   IF st.reserve.pt < 0 THEN
+    st.reserve.pt = 0
+    st.reserve.need_update = YES
    ELSE
-    ecsr = loopvar(ecsr, -1, la, 1)
-    GOSUB refreshemenu
+    st.reserve.pt = loopvar(st.reserve.pt, -1, st.reserve.last, 1)
+    st.reserve.need_update = YES
    END IF
   END IF
  END IF
- IF carray(ccLeft) > 1 AND ecsr < 0 THEN
-  MenuSound gen(genCursorSFX)
-  acsr = loopvar(acsr, 0, 3, -1)
-  IF hero(acsr) AND ecsr < 0 THEN info = names(acsr) ELSE info = ""
+
+ IF st.reserve.need_update THEN
+  st.reserve.need_update = NO
+  IF st.reserve.pt < st.reserve.top THEN st.reserve.top = large(st.reserve.pt, 0)
+  IF st.reserve.pt > st.reserve.top + 7 THEN st.reserve.top = st.reserve.pt - 7
+  st.party.need_update = YES
  END IF
- IF carray(ccRight) > 1 AND ecsr < 0 THEN
+ 
+ IF carray(ccLeft) > 1 AND st.reserve.pt < 0 THEN
   MenuSound gen(genCursorSFX)
-  acsr = loopvar(acsr, 0, 3, 1)
-  IF hero(acsr) AND ecsr < 0 THEN info = names(acsr) ELSE info = ""
+  st.party.pt = loopvar(st.party.pt, 0, 3, -1)
+  st.party.need_update = YES
+ END IF
+ IF carray(ccRight) > 1 AND st.reserve.pt < 0 THEN
+  MenuSound gen(genCursorSFX)
+  st.party.pt = loopvar(st.party.pt, 0, 3, 1)
+  st.party.need_update = YES
  END IF
  IF carray(ccUse) > 1 THEN
   DO
   IF readbit(gen(), genBits2, 4) THEN
    '--If this bit is set, we refuse to reorder locked heroes
-   IF readbit(hmask(), 0, acsr) ORELSE (swapme >= 0 ANDALSO readbit(hmask(), 0, swapme)) THEN
+   IF readbit(hmask(), 0, st.party.pt) ORELSE (st.swapme >= 0 ANDALSO readbit(hmask(), 0, st.swapme)) THEN
     MenuSound gen(genCancelSFX)
     EXIT DO
    END IF
   END IF
-  IF swapme = -1 THEN
+  IF st.swapme = -1 THEN
    MenuSound gen(genAcceptSFX)
-   IF ecsr < 0 THEN
-    swapme = acsr
+   IF st.reserve.pt < 0 THEN
+    st.swapme = st.party.pt
    ELSE
-    swapme = 4 + ecsr
+    st.swapme = 4 + st.reserve.pt
    END IF
   ELSE
    MenuSound gen(genAcceptSFX)
+   DIM swap1 as integer
+   DIM swap2 as integer
    DO
-    IF swapme < 4 THEN
-     IF (numhero < 2 AND ecsr = la) OR (readbit(hmask(), 0, swapme) AND ecsr > -1) THEN EXIT DO
+    IF st.swapme < 4 THEN
+     IF (herocount() <= 1 ANDALSO st.reserve.pt = st.reserve.last) OR (readbit(hmask(), 0, st.swapme) AND st.reserve.pt > -1) THEN EXIT DO
     ELSE
-     IF swapme - 4 = la AND ecsr = -1 AND numhero < 2 THEN EXIT DO
-     IF readbit(hmask(), 0, acsr) AND ecsr = -1 THEN EXIT DO
+     IF st.swapme - 4 = st.reserve.last AND st.reserve.pt = -1 AND herocount() <= 1 THEN EXIT DO
+     IF readbit(hmask(), 0, st.party.pt) AND st.reserve.pt = -1 THEN EXIT DO
     END IF
     '---IDENTIFY DESTINATION---
-    IF ecsr < 0 THEN
-     swap1 = acsr
+    IF st.reserve.pt < 0 THEN
+     swap1 = st.party.pt
     ELSE
-     swap1 = swindex(ecsr)
+     swap1 = st.swindex(st.reserve.pt)
     END IF
     '---IDENTIFY SOURCE---
-    IF swapme < 4 THEN
-     swap2 = swapme
+    IF st.swapme < 4 THEN
+     swap2 = st.swapme
     ELSE
-     swap2 = swindex(swapme - 4)
+     swap2 = st.swindex(st.swapme - 4)
     END IF
     doswap swap1, swap2
-    swapme = -1
-    GOSUB resetswap
+    st.swapme = -1
+    hero_swap_menu_init st
     EXIT DO
    LOOP '--this loop just exists for convenient breaking with EXIT DO
   END IF
   EXIT DO
   LOOP '--this loop just exists for convenient breaking with EXIT DO
  END IF
+ IF st.party.need_update THEN
+  st.party.need_update = NO
+  IF hero(st.party.pt) AND st.reserve.pt < 0 THEN st.info = names(st.party.pt) ELSE st.info = ""
+ END IF
 
- copypage holdscreen, page
- GOSUB showswapmenu
+ copypage holdscreen, st.page
+ hero_swap_menu_display st
  setvispage vpage
  dowait
 LOOP
 carray(4) = 0
 carray(5) = 0
 MenuSound gen(genCancelSFX)
-freepage page
+freepage st.page
 freepage holdscreen
 
 party_change_updates
-EXIT SUB
 
-refreshemenu:
-IF ecsr < top THEN top = large(ecsr, 0)
-IF ecsr > top + 7 THEN top = ecsr - 7
-IF hero(acsr) AND ecsr < 0 THEN info = names(acsr) ELSE info = ""
-RETRACE
+END SUB
 
-'---DRAWS SWAP MENU AND CURRENT SELECTION----
-showswapmenu:
-centerbox 160, 66, 130, 38, 1, page
-cater_slot = 0
-FOR i as integer = 0 TO 3
- IF i = swapme OR hero(i) > 0 THEN rectangle 105 + (30 * i), 60, 20, 20, uilook(uiTextBox), page
- IF hero(i) THEN
-  set_walkabout_frame herow(cater_slot).sl, dirDown, 0
-  DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, herow(cater_slot).sl), 105 + i * 30, 60 + (i = swapme) * 6, 20, 20, page, YES
-  cater_slot += 1
- END IF
-NEXT i
-IF ecsr < 0 THEN edgeprint CHR(24), 111 + 30 * acsr, 52, uilook(uiSelectedItem + tog), page
-IF iAll THEN
- centerbox 160, 100 + small(high, 8) * 5, wide * 8 + 16, small(high, 8) * 10 + 10, 1, page
- FOR i as integer = top TO small(top + 7, la)
-  'Some of the colours are a bit bizarre, here, especially the time bar stuff below
-  menu_color = uilook(uiMenuItem)
-  IF swapme = i + 4 THEN menu_color = uilook(uiSelectedDisabled) '6
-  IF ecsr = i THEN
-   menu_color = uilook(uiSelectedItem + tog)
-   IF swapme = i + 4 THEN menu_color = uilook(uiSelectedDisabled + tog) '6 + 8 * tog
+SUB hero_swap_menu_display (st as OrderTeamState)
+ '--DRAWS SWAP MENU AND CURRENT SELECTION
+ centerbox 160, 66, 130, 38, 1, st.page
+ DIM cater_slot as integer = 0
+ FOR i as integer = 0 TO 3
+  IF i = st.swapme OR hero(i) > 0 THEN rectangle 105 + (30 * i), 60, 20, 20, uilook(uiTextBox), st.page
+  IF hero(i) THEN
+   set_walkabout_frame herow(cater_slot).sl, dirDown, 0
+   DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, herow(cater_slot).sl), 105 + i * 30, 60 + (i = st.swapme) * 6, 20, 20, st.page, YES
+   cater_slot += 1
   END IF
-  IF swapme > -1 AND swapme < 4 THEN
-   IF (numhero < 2 AND i = la) OR readbit(hmask(), 0, acsr) THEN menu_color = uilook(uiTimeBar + ((ecsr = i) * tog)) '8 + ((ecsr = i) * tog)
-  END IF
-  edgeprint swname(i), xstring(swname(i), 160), 100 + (i - top) * 10, menu_color, page
  NEXT i
-END IF
-IF LEN(info) THEN
- centerbox 160, 44, (LEN(info) + 2) * 8, 14, 1, page
- edgeprint info, xstring(info, 160), 39, uilook(uiText), page
-END IF
-RETRACE
+ IF st.reserve.pt < 0 THEN edgeprint CHR(24), 111 + 30 * st.party.pt, 52, uilook(uiSelectedItem + st.party.tog), st.page
+ IF st.show_reserve THEN
+  centerbox 160, 100 + small(st.size.x, 8) * 5, st.size.y * 8 + 16, small(st.size.x, 8) * 10 + 10, 1, st.page
+  FOR i as integer = st.reserve.top TO small(st.reserve.top + 7, st.reserve.last)
+   'Some of the colours are a bit bizarre, here, especially the time bar stuff below
+   DIM menu_color as integer = uilook(uiMenuItem)
+   IF st.swapme = i + 4 THEN menu_color = uilook(uiSelectedDisabled) '6
+   IF st.reserve.pt = i THEN
+    menu_color = uilook(uiSelectedItem + st.party.tog)
+    IF st.swapme = i + 4 THEN menu_color = uilook(uiSelectedDisabled + st.party.tog) '6 + 8 * st.party.tog
+   END IF
+   IF st.swapme > -1 AND st.swapme < 4 THEN
+    IF (herocount() <= 1 AND i = st.reserve.last) OR readbit(hmask(), 0, st.party.pt) THEN menu_color = uilook(uiTimeBar + ((st.reserve.pt = i) * st.party.tog)) '8 + ((st.reserve.pt = i) * st.party.tog)
+   END IF
+   edgeprint st.swname(i), xstring(st.swname(i), 160), 100 + (i - st.reserve.top) * 10, menu_color, st.page
+  NEXT i
+ END IF
+ IF LEN(st.info) THEN
+  centerbox 160, 44, (LEN(st.info) + 2) * 8, 14, 1, st.page
+  edgeprint st.info, xstring(st.info, 160), 39, uilook(uiText), st.page
+ END IF
+END SUB
 
-'---MAPS OUT ONLY VALID SWAPABLE HEROS PLUS A BLANK-----
-resetswap:
-la = -1
-wide = 0
-FOR i as integer = 4 TO 40
- IF readbit(hmask(), 0, i) = 0 AND hero(i) THEN
-  la = la + 1
-  swindex(la) = i
-  swname(la) = names(i)
-  wide = large(wide, LEN(swname(la)))
- END IF
-NEXT i
-la = la + 1
-FOR i as integer = 40 TO 4 STEP -1
- IF hero(i) = 0 THEN
-  swindex(la) = i
-  swname(la) = readglobalstring(48, "-REMOVE-", 10)
-  wide = large(wide, 7)
- END IF
-NEXT i
-high = small(8, la + 1)
-numhero = herocount()
-IF hero(acsr) AND ecsr < 0 THEN info = names(acsr) ELSE info = ""
-RETRACE
+SUB hero_swap_menu_init(st as OrderTeamState)
+ '--MAPS OUT ONLY VALID SWAPABLE HEROS PLUS A BLANK
+ st.reserve.last = -1
+ st.size.y = 0
+ FOR i as integer = 4 TO 40
+  IF readbit(hmask(), 0, i) = 0 AND hero(i) THEN
+   st.reserve.last = st.reserve.last + 1
+   st.swindex(st.reserve.last) = i
+   st.swname(st.reserve.last) = names(i)
+   st.size.y = large(st.size.y, LEN(st.swname(st.reserve.last)))
+  END IF
+ NEXT i
+ st.reserve.last += 1
+ FOR i as integer = 40 TO 4 STEP -1
+  IF hero(i) = 0 THEN
+   st.swindex(st.reserve.last) = i
+   st.swname(st.reserve.last) = readglobalstring(48, "-REMOVE-", 10)
+   st.size.y = large(st.size.y, 7)
+  END IF
+ NEXT i
+ st.size.x = small(8, st.reserve.last + 1)
+ st.party.need_update = YES
 END SUB
 
 'Either pass a tag number and specify YES/NO, or pass just a tag number; +ve/-ve indicates value
