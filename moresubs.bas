@@ -2265,7 +2265,21 @@ menu(7) = readglobalstring(65, "Team", 10)
 st.size = 22
 st.pt = 0
 st.last = -1
-GOSUB initshop
+
+'--initshop
+setpicstuf storebuf(), 40, -1
+loadset game + ".sho", id, 0
+sn = readbadbinstring(storebuf(), 0, 15, 0)
+o = 0
+FOR i as integer = 0 TO 7
+ IF readbit(storebuf(), 17, i) THEN
+  SWAP menu(i), menu(o)
+  SWAP menuid(i), menuid(o)
+  st.last = o
+  o = o + 1
+ END IF
+NEXT i
+
 IF st.last = -1 THEN EXIT SUB
 IF st.last = 0 THEN autopick = 1
 st.last += 1
@@ -2355,22 +2369,7 @@ freepage holdscreen
 
 evalitemtags
 party_change_updates
-EXIT SUB
 
-initshop:
-setpicstuf storebuf(), 40, -1
-loadset game + ".sho", id, 0
-sn = readbadbinstring(storebuf(), 0, 15, 0)
-o = 0
-FOR i as integer = 0 TO 7
- IF readbit(storebuf(), 17, i) THEN
-  SWAP menu(i), menu(o)
-  SWAP menuid(i), menuid(o)
-  st.last = o
-  o = o + 1
- END IF
-NEXT i
-RETRACE
 END SUB
 
 'holdscreen is a copy of vpage (not a compatpage)
