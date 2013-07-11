@@ -1252,43 +1252,29 @@ SUB findfiles (directory as STRING, namemask as STRING = "", byval filetype as i
 #endif
 
 #ifdef __UNIX__
-  'this is super hacky, but works around the apparent uselessness of DIR
-  'FIXME: rewrite this in C, in os_unix.c. This doesn't work with symbolic links, nor properly on Android
-  DIM as STRING grep, shellout
+  DIM as string outfilename
 
-  shellout = tmpdir & "findfiles-" & randint(10000) & ".tmp"
-  searchdir = escape_filename(searchdir)
-  IF findhidden THEN
-    searchdir = searchdir + nmask + " " + searchdir + "." + nmask
-  ELSE
-    searchdir = searchdir + nmask
-  END IF
+  outfilename = tmpdir & "findfiles-" & randint(10000) & ".tmp"
 
-#ifdef __FB_ANDROID__
-  'ls on Android doesn't do anything fancy. It's time to stop using this awful hack!
   IF filetype = fileTypeDirectory THEN
-    debug "fileTypeDirectory unsupported"
-    RETURN
+   list_subdirs searchdir, nmask, findhidden, outfilename
+  ELSE
+   list_files searchdir, nmask, findhidden, outfilename
   END IF
-  SHELL "ls -d " + searchdir + " 2>/dev/null >" + shellout
-#else
-  grep = "-v '/$'"
-  IF filetype = fileTypeDirectory THEN grep = "'/$'"
-  SHELL "ls -d1p " + searchdir + " 2>/dev/null |grep "+ grep + ">" + shellout + " 2>&1"
-#endif
 
   DIM as integer f1
   f1 = FreeFile
-  OPEN shellout FOR INPUT as #f1
+  OPEN outfilename FOR INPUT as #f1
   DIM filename as STRING
   DO UNTIL EOF(f1)
     LINE INPUT #f1, filename
-    IF RIGHT(filename, 3) = "/./" ORELSE RIGHT(filename, 4) = "/../" _
-         ORELSE filename = "/dev/" ORELSE filename = "/proc/" ORELSE filename = "/sys/" THEN CONTINUE DO
+    'Filter out some Linux dirs that we should not be browsing around in.
+    IF filename = "dev/" ORELSE filename = "proc/" ORELSE filename = "sys/" THEN CONTINUE DO
+    'Maybe we should filter out some other dirs on Mac and on Android?
     str_array_append filelist(), decode_filename(trimpath(filename))
   LOOP
   CLOSE #f1
-  safekill shellout
+  safekill outfilename
 
 
 #else

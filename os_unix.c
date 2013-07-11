@@ -21,6 +21,10 @@
 #include <sys/time.h>
 #include <errno.h>
 #include <locale.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include <fnmatch.h>
 #include "common.h"
 #include "os.h"
 
@@ -58,6 +62,53 @@ static long long milliseconds() {
 
 // I think all the fb_hStrDelTemp paranoia in the following is actually unnecessary...
 // FB has a special calling convention for rtlib functions with different string passing? FBCALL?
+
+void _list_files_or_subdirs (FBSTRING *searchdir, FBSTRING *nmask, int showhidden, FBSTRING *outfilename, int whichtype) {
+	// whichtype is 0 for files and 1 for directories
+	DIR *dp;
+	dp = opendir(searchdir->data);
+
+	if (dp == NULL) {
+		debug(errError, "list_files: unable to open directory: %s", searchdir->data);
+	} else {
+		FILE *outfp;
+		outfp = fopen(outfilename->data, "w");
+		if (outfp == NULL) {
+			debug(errError, "list_files: unable open output file for writing: %s", outfilename->data);
+		} else {
+			int wcflags = FNM_FILE_NAME | FNM_CASEFOLD;
+			if (!showhidden) {
+				//special handling of leading . if we don't want to see hidden files
+				wcflags = wcflags | FNM_PERIOD;
+			}
+			struct dirent *ep;
+			while ((ep = readdir(dp)) != NULL) {
+				if (whichtype == 0 && ep->d_type == DT_DIR) continue;
+				if (whichtype == 1 && ep->d_type != DT_DIR) continue;
+				if (strcmp(ep->d_name, ".") == 0 || strcmp(ep->d_name, "..") == 0) continue;
+				if (fnmatch(nmask->data, ep->d_name, wcflags) == 0) {
+					//fnmatch returns 0 on a successful match because it hates me :(
+					fputs(ep->d_name, outfp);
+					if (whichtype == 1) {
+						//Indicate subdirectories with a trailing slash
+						fputs("/", outfp);
+					}
+					fputs("\n", outfp);
+				}
+			}
+			(void) fclose(outfp);
+		}
+		(void) closedir (dp);
+	}
+}
+
+void list_files (FBSTRING *searchdir, FBSTRING *nmask, int showhidden, FBSTRING *outfilename) {
+	_list_files_or_subdirs(searchdir, nmask, showhidden, outfilename, 0);
+}
+
+void list_subdirs (FBSTRING *searchdir, FBSTRING *nmask, int showhidden, FBSTRING *outfilename) {
+	_list_files_or_subdirs(searchdir, nmask, showhidden, outfilename, 1);
+}
 
 int drivelist (void *drives_array) {
 	// on Unix there is only one drive, the root /

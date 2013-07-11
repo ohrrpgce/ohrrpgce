@@ -95,6 +95,13 @@ end sub
 '                                       Filesystem
 '==========================================================================================
 
+sub list_files (searchdir as string, nmask as string, byval showhidden as bool, outfilename as string)
+	'This sub is only used on unix! see os_unix.c
+end sub
+
+sub list_subdirs (searchdir as string, nmask as string, byval showhidden as bool, outfilename as string)
+	'This sub is only used on unix! see os_unix.c
+end sub
 
 function drivelist (drives() as string) as integer
 	dim drivebuf as zstring * 1000
