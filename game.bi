@@ -98,4 +98,6 @@ DECLARE SUB update_npc_zones (byval npcref as integer)
 DECLARE SUB process_zone_eachstep_triggers (who as string, byval zones as integer vector)
 DECLARE SUB process_zone_entry_triggers (who as string, byval oldzones as integer vector, byval newzones as integer vector)
 
+DECLARE SUB refresh_keepalive_file ()
+
 #ENDIF

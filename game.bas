@@ -110,6 +110,8 @@ set_tmpdir
 IF NOT isdir(tmpdir) THEN
  IF makedir(tmpdir) <> 0 THEN fatalerror "Unable to create temp directory " & tmpdir
 END IF
+'As soon as we create the tmpdir, we want to put a keepalive file in it
+refresh_keepalive_file
 
 'DEBUG debug "set mode-X"
 setmodex
@@ -4013,3 +4015,16 @@ SUB battle_formation_testing_menu()
  ClearMenuData menu
 
 END SUB
+
+SUB refresh_keepalive_file ()
+ DIM timestamp as string
+ 'build a timestamp string in the format YYYY-MM-DD hh:mm:ss
+ timestamp = MID(DATE, 7, 4) & "-" & MID(DATE, 1, 2) & "-" & MID(DATE, 4, 2) & " " & TIME
+ DIM filename as string
+ filename = tmpdir & "keepalive.tmp"
+ DIM fh as integer = FREEFILE
+ OPEN filename FOR BINARY ACCESS WRITE as #fh
+ PUT #fh, 1, timestamp
+ CLOSE #fh
+END SUB
+

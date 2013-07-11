@@ -777,6 +777,7 @@ SUB playtimer
   WHILE gen(genMinutes) >= 60
    gen(genMinutes) = gen(genMinutes) - 60
    gen(genHours) = gen(genHours) + 1
+   refresh_keepalive_file
   WEND
   WHILE gen(genHours) >= 24
    gen(genHours) = gen(genHours) - 24
