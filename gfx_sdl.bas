@@ -32,8 +32,11 @@ EXTERN running_as_slave AS INTEGER
 EXTERN "C"
 
 #IFDEF __FB_ANDROID__
-'This function shows/hides the virtual gamepad
+'This function shows/hides the sdl virtual gamepad
 declare sub SDL_ANDROID_SetScreenKeyboardShown (byval shown as integer)
+'This function toggles the display of the android virtual keyboard
+declare function SDL_ANDROID_ToggleScreenKeyboardWithoutTextInput() as integer 'always returns 1
+declare function SDL_ANDROID_IsScreenKeyboardShown() as bool
 #ENDIF
 
 'why is this missing from crt.bi?
@@ -768,14 +771,18 @@ END SUB
 SUB io_sdl_show_virtual_keyboard()
  'Does nothing on platforms that have real keyboards
 #IFDEF __FB_ANDROID__
- 'This does not work yet
+ if not SDL_ANDROID_IsScreenKeyboardShown() then
+  SDL_ANDROID_ToggleScreenKeyboardWithoutTextInput()
+ end if
 #ENDIF
 END SUB
 
 SUB io_sdl_hide_virtual_keyboard()
  'Does nothing on platforms that have real keyboards
 #IFDEF __FB_ANDROID__
- 'This does not work yet
+ if SDL_ANDROID_IsScreenKeyboardShown() then
+  SDL_ANDROID_ToggleScreenKeyboardWithoutTextInput()
+ end if
 #ENDIF
 END SUB
 
