@@ -23,9 +23,9 @@ CONST STACK_SIZE_INC = 512 ' in integers
 #include "os.bi"
 #include "common_base.bi"
 
-#ifdef __FB_ANDROID__
-#define DEBUG_FILE_IO
-#endif
+'#ifdef __FB_ANDROID__
+'#define DEBUG_FILE_IO
+'#endif
 
 'It is very important for this to be populated _before_ any calls to CHDIR
 DIM orig_dir as string
