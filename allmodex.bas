@@ -6443,3 +6443,13 @@ sub hide_virtual_keyboard()
 	debuginfo "hide_virtual_keyboard"
 	io_hide_virtual_keyboard()
 end sub
+
+sub show_virtual_gamepad()
+	'Does nothing on platforms that have real keyboards
+	io_show_virtual_gamepad()
+end sub
+
+sub hide_virtual_gamepad()
+	'Does nothing on platforms that have real keyboards
+	io_hide_virtual_gamepad()
+end sub

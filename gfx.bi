@@ -75,9 +75,12 @@ extern Io_textinput as sub (byval buf as wstring ptr, byval bufsize as integer)
 
 'Display the virtual keyboard, but only for platforms like Android that need it
 extern Io_show_virtual_keyboard as sub ()
-
 'Hide the virtual keyboard, but only for platforms like Android that need it
 extern Io_hide_virtual_keyboard as sub ()
+'Display the virtual gamepad, but only for platforms like Android that need it
+extern Io_show_virtual_gamepad as sub ()
+'Hide the virtual gamepad, but only for platforms like Android that need it
+extern Io_hide_virtual_gamepad as sub ()
 
 '(optional) Primary mouse state function
 'mbuttons is bitmask of currently down keys OR new clicks, mclicks is bitmask ofnew clicks since last call.

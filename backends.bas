@@ -68,6 +68,8 @@ dim io_enable_textinput as sub (byval enable as integer)
 dim io_textinput as sub (byval buf as wstring ptr, byval bufsize as integer)
 dim io_show_virtual_keyboard as sub ()
 dim io_hide_virtual_keyboard as sub ()
+dim io_show_virtual_gamepad as sub ()
+dim io_hide_virtual_gamepad as sub ()
 dim io_mousebits as sub (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer)
 dim io_setmousevisibility as sub (byval visible as integer)
 dim io_getmouse as sub (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer)
@@ -168,6 +170,8 @@ sub io_dummy_getmouse(byref mx as integer, byref my as integer, byref mwheel as 
 sub io_dummy_enable_textinput(byval enable as integer) : end sub
 sub io_dummy_show_virtual_keyboard() : end sub
 sub io_dummy_hide_virtual_keyboard() : end sub
+sub io_dummy_show_virtual_gamepad() : end sub
+sub io_dummy_hide_virtual_gamepad() : end sub
 
 function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filename as string) as integer
 	dim hFile as any ptr = backendinfo->dylib
@@ -232,6 +236,11 @@ function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filename as 
 	if io_show_virtual_keyboard = NULL then io_show_virtual_keyboard = @io_dummy_show_virtual_keyboard
 	io_hide_virtual_keyboard = dylibsymbol(hFile, "io_hide_virtual_keyboard")
 	if io_hide_virtual_keyboard = NULL then io_hide_virtual_keyboard = @io_dummy_hide_virtual_keyboard
+
+	io_show_virtual_gamepad = dylibsymbol(hFile, "io_show_virtual_gamepad")
+	if io_show_virtual_gamepad = NULL then io_show_virtual_gamepad = @io_dummy_show_virtual_gamepad
+	io_hide_virtual_gamepad = dylibsymbol(hFile, "io_hide_virtual_gamepad")
+	if io_hide_virtual_gamepad = NULL then io_hide_virtual_gamepad = @io_dummy_hide_virtual_gamepad
 
 	io_mousebits = dylibsymbol(hFile, "io_mousebits")
 	if io_mousebits = NULL then

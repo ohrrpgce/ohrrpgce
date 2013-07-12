@@ -32,6 +32,7 @@ EXTERN running_as_slave AS INTEGER
 EXTERN "C"
 
 #IFDEF __FB_ANDROID__
+'This function shows/hides the virtual gamepad
 declare sub SDL_ANDROID_SetScreenKeyboardShown (byval shown as integer)
 #ENDIF
 
@@ -767,12 +768,26 @@ END SUB
 SUB io_sdl_show_virtual_keyboard()
  'Does nothing on platforms that have real keyboards
 #IFDEF __FB_ANDROID__
- SDL_ANDROID_SetScreenKeyboardShown(YES)
+ 'This does not work yet
 #ENDIF
 END SUB
 
 SUB io_sdl_hide_virtual_keyboard()
  'Does nothing on platforms that have real keyboards
+#IFDEF __FB_ANDROID__
+ 'This does not work yet
+#ENDIF
+END SUB
+
+SUB io_sdl_show_virtual_gamepad()
+ 'Does nothing on other platforms
+#IFDEF __FB_ANDROID__
+ SDL_ANDROID_SetScreenKeyboardShown(YES)
+#ENDIF
+END SUB
+
+SUB io_sdl_hide_virtual_gamepad()
+ 'Does nothing on other platforms
 #IFDEF __FB_ANDROID__
  'This does not work for some reason
  SDL_ANDROID_SetScreenKeyboardShown(NO)

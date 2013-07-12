@@ -215,6 +215,8 @@ declare sub palette16_update_cache(fil as string, byval num as integer)
 
 declare sub show_virtual_keyboard()
 declare sub hide_virtual_keyboard()
+declare sub show_virtual_gamepad()
+declare sub hide_virtual_gamepad()
 
 'globals
 extern modex_initialised as bool
