@@ -34,8 +34,9 @@ EXTERN "C"
 #IFDEF __FB_ANDROID__
 'This function shows/hides the sdl virtual gamepad
 declare sub SDL_ANDROID_SetScreenKeyboardShown (byval shown as integer)
-'This function toggles the display of the android virtual keyboard
-declare function SDL_ANDROID_ToggleScreenKeyboardWithoutTextInput() as integer 'always returns 1
+'This function toggles the display of the android virtual keyboard. always returns 1 no matter what
+declare function SDL_ANDROID_ToggleScreenKeyboardWithoutTextInput() as integer 
+'WARNING: SDL_ANDROID_IsScreenKeyboardShown seems unreliable. Don't use it! It is only declared here to document its existance. see the virtual_keyboard_shown variable instead
 declare function SDL_ANDROID_IsScreenKeyboardShown() as bool
 #ENDIF
 
@@ -89,6 +90,7 @@ DIM SHARED AS INTEGER privatemx, privatemy, lastmx, lastmy
 DIM SHARED keybdstate(127) AS INTEGER  '"real"time keyboard array
 DIM SHARED input_buffer AS WSTRING * 128
 DIM SHARED mouseclicks AS INTEGER
+DIM SHARED virtual_keyboard_shown as bool = NO
 
 END EXTERN 'weirdness
 'Translate SDL scancodes into a OHR scancodes
@@ -771,8 +773,9 @@ END SUB
 SUB io_sdl_show_virtual_keyboard()
  'Does nothing on platforms that have real keyboards
 #IFDEF __FB_ANDROID__
- if not SDL_ANDROID_IsScreenKeyboardShown() then
+ if not virtual_keyboard_shown then
   SDL_ANDROID_ToggleScreenKeyboardWithoutTextInput()
+  virtual_keyboard_shown = YES
  end if
 #ENDIF
 END SUB
@@ -780,8 +783,9 @@ END SUB
 SUB io_sdl_hide_virtual_keyboard()
  'Does nothing on platforms that have real keyboards
 #IFDEF __FB_ANDROID__
- if SDL_ANDROID_IsScreenKeyboardShown() then
+ if virtual_keyboard_shown then
   SDL_ANDROID_ToggleScreenKeyboardWithoutTextInput()
+  virtual_keyboard_shown = NO
  end if
 #ENDIF
 END SUB
