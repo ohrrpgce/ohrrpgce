@@ -78,6 +78,7 @@ redim fonts(3) as Font
 'Convert scancodes to text; Enter does not insert newline!
 'This array is a global instead of an internal detail because it's used by charpicker and the font editor
 'to work out key mapping for the extended characters. Would be nice if it weren't needed.
+'FIXME: discover why this array is filled with empty values on Android
 'key2text(0,*): no modifiers
 'key2text(1,*): shift
 'key2text(2,*): alt
@@ -88,7 +89,6 @@ dim key2text(3,53) as string*1 => { _
 	{"", "", !"\130",!"\131",!"\132",!"\133",!"\134",!"\135",!"\136",!"\137",!"\138",!"\139",!"\140",!"\141","","",!"\142",!"\143",!"\144",!"\145",!"\146",!"\147",!"\148",!"\149",!"\150",!"\151",!"\152",!"\153","","",!"\154",!"\155",!"\156",!"\157",!"\158",!"\159",!"\160",!"\161",!"\162",!"\163",!"\164",!"\165","",!"\166",!"\167",!"\168",!"\169",!"\170",!"\171",!"\172",!"\173",!"\174",!"\175",!"\176"}, _
 	{"", "", !"\177",!"\178",!"\179",!"\180",!"\181",!"\182",!"\183",!"\184",!"\185",!"\186",!"\187",!"\188","","",!"\189",!"\190",!"\191",!"\192",!"\193",!"\194",!"\195",!"\196",!"\197",!"\198",!"\199",!"\200","","",!"\201",!"\202",!"\203",!"\204",!"\205",!"\206",!"\207",!"\208",!"\209",!"\210",!"\211",!"\212","",!"\213",!"\214",!"\215",!"\216",!"\217",!"\218",!"\219",!"\220",!"\221",!"\222",!"\223"} _
 }
-
 
 '--------- Module shared variables ---------
 
@@ -756,7 +756,6 @@ end function
 '                                      Keyboard input
 '==========================================================================================
 
-
 function keyval (byval a as integer, byval repeat_wait as integer = 0, byval repeat_rate as integer = 0) as integer
 'except for special keys (like -1), each key reports 3 bits:
 '
@@ -868,6 +867,7 @@ private sub update_inputtext ()
 		'if len(w_in) then print #fh, "input :" & w_in
 		'convert to ascii
 		inputtext = ""
+		DIM force_shift as bool = NO
 		for i as integer = 0 to len(w_in) - 1
 			if w_in[i] > 255 then
 				select case w_in[i]
@@ -878,14 +878,51 @@ private sub update_inputtext ()
 						' blocks all the keys I could find on my keyboard.
 						' --James
 						continue for
+					case 304:
+						'Ignore COMBINING MACRON on most platforms, but
+						'use it to shift the next char on Android
+#IFDEF __FB_ANDROID__
+						force_shift = YES
+#ENDIF
+						continue for
 				end select
-				'print "unicode char " & w_in[i]
+				'debug "unicode char " & w_in[i]
 				inputtext += "?"
 			elseif (w_in[i] < 32) or (w_in[i] >= &h7F and w_in[i] <= &hA0) then
 				'Control character. What a waste of 8-bit code-space!
 				'Note that we ignore newlines... because we've always done it that way
 			else
-				inputtext += chr(w_in[i])
+				dim ch as string = chr(w_in[i])
+				if force_shift then
+					force_shift = NO
+					ch = UCASE(ch)
+					select case ch
+						'FIXME: it would be better to loop through the key2text array
+						'here, but it fails to initialize on Android
+						case "1": ch = "!"
+						case "2": ch = "@"
+						case "3": ch = "#"
+						case "4": ch = "$"
+						case "5": ch = "%"
+						case "6": ch = "^"
+						case "7": ch = "&"
+						case "8": ch = "*"
+						case "9": ch = "("
+						case "0": ch = ")"
+						case "-": ch = "_"
+						case "=": ch = "+"
+						case "[": ch = "{"
+						case "]": ch = "}"
+						case ";": ch = ":"
+						case "'": ch = """"
+						case "`": ch = "~"
+						case "\": ch = "|"
+						case ",": ch = "<"
+						case ".": ch = ">"
+						case "/": ch = "?"
+					end select
+				end if
+				inputtext += ch
 			end if
 		next
 	else
