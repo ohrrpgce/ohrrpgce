@@ -831,6 +831,7 @@ SUB reset_game_final_cleanup()
  cleanup_global_reload_doc
  stopsong
  resetsfx
+ cleanup_other_temp_files
  IF gam.autorungame THEN exitprogram (NOT abortg)
  cleanuptemp
  fadeout 0, 0, 0
@@ -4028,3 +4029,93 @@ SUB refresh_keepalive_file ()
  CLOSE #fh
 END SUB
 
+FUNCTION estimate_days_ago_from_datestr (datestr as string) as integer
+ 'Returns an estimate of the number of days based on a string in the format
+ 'YYYY-MM-DD
+ 'It will not be accurate because it pretends that all months are 30 days
+ 'and that leap-years don't exist, but for the purposes of the keepalive
+ 'file, this doesn't really matter
+ DIM y as integer = str2int(MID(datestr, 1, 4))
+ DIM m as integer = str2int(MID(datestr, 6, 2))
+ DIM d as integer = str2int(MID(datestr, 9, 2))
+ DIM now_y as integer = str2int(MID(DATE, 7, 4))
+ DIM now_m as integer = str2int(MID(DATE, 1, 2))
+ DIM now_d as integer = str2int(MID(DATE, 4, 2))
+ 
+ RETURN now_d - d + (now_m - m) * 30 + (now_y - y) * 365
+END FUNCTION
+
+FUNCTION read_keepalive_as_days (keepalive_file as string) as integer
+ DIM fh as integer = FREEFILE
+ OPEN keepalive_file FOR BINARY ACCESS READ as #fh
+ DIM datestr as string = "YYYY-MM-DD"
+ GET #fh, 1, datestr
+ CLOSE #fh
+ RETURN estimate_days_ago_from_datestr(datestr)
+END FUNCTION
+
+FUNCTION guess_age_by_tmpdir_name(dirname as string) as integer
+ 'The dirname argument is just the final component of the dirname, not the full path.
+ 'It will be in one of the following two formats:
+ 'Old: YYYYMMDDhhmmss.RANDOM.tmp
+ 'New: ohrrpgceYYYYMMDDhhmmss.RANDOM.tmp
+ DIM datestr as string
+ IF LEFT(dirname, 8) = "ohrrpgce" THEN
+  'New format
+  datestr = MID(dirname, 9, 4) & "-" & MID(dirname, 13, 2) & "-" & MID(dirname, 15, 2)
+ ELSE
+  'Old format
+  datestr = MID(dirname, 1, 4) & "-" & MID(dirname, 5, 2) & "-" & MID(dirname, 7, 2)
+ END IF
+ RETURN estimate_days_ago_from_datestr(datestr)
+END FUNCTION
+
+SUB cleanup_other_temp_files ()
+
+ DIM tmp_tmp as string = tmpdir
+ IF RIGHT(tmp_tmp, 1) = SLASH THEN tmp_tmp = LEFT(tmp_tmp, LEN(tmp_tmp) - 1)
+
+ DIM tmp_parent as string = trimfilename(tmp_tmp)
+ DIM tmp_cur as string = trimpath(tmp_tmp)
+ 
+ REDIM filelist() as string
+ 'Modern tmp dirs would match the pattern "ohrrpgce*.tmp" but this would miss old tmp dirs.
+ 'The pattern "*.tmp" is too broad because it could match a large number of non-ohrrpgce
+ 'tmp files on windows (even "*.*.tmp" is more broad than I would like for it to be)
+ findfiles tmp_parent, "*.*.tmp", fileTypeDirectory, NO, filelist()
+
+ DIM dirname as string
+ DIM dirname_full as string
+ DIM keepalive_file as string
+ DIM age as longint
+ DIM threshhold as integer
+
+ FOR i as integer = 0 TO UBOUND(filelist)
+  dirname = filelist(i)
+  dirname_full = tmp_parent & SLASH & dirname
+  keepalive_file = dirname_full & SLASH & "keepalive.tmp"
+  IF dirname = tmp_cur THEN
+   debuginfo "Ignore " & dirname & " because we are using it"
+   CONTINUE FOR
+  ELSEIF NOT isdir(dirname_full & SLASH & "playing.tmp") THEN
+   debuginfo "Ignore " & dirname & " because it does not have playing.tmp"
+  ELSE
+   IF NOT isfile(keepalive_file) THEN
+    'Yon tmpdir is olde beyond reckoning
+    age = guess_age_by_tmpdir_name(dirname)
+    threshhold = 14
+   ELSE
+    'This is a modern tmpdir with a valid keepalive file
+    age = read_keepalive_as_days(keepalive_file)
+    threshhold = 3
+   END IF
+   IF age > threshhold THEN
+    debuginfo "CLEAN: Wish to killdir " & dirname_full & " because it has been dead for about " & age & " days"
+    'killdir dirname_full, YES
+    ELSE
+     debuginfo "Ignore " & dirname & " because it has only been dead " & age & " days"
+   END IF
+  END IF
+ NEXT i
+ 
+END SUB
