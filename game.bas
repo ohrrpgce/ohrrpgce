@@ -4071,7 +4071,7 @@ SUB cleanup_other_temp_files ()
  DIM dirname as string
  DIM dirname_full as string
  DIM keepalive_file as string
- DIM age as longint
+ DIM age as integer
  DIM threshhold as integer
 
  FOR i as integer = 0 TO UBOUND(filelist)
@@ -4096,10 +4096,9 @@ SUB cleanup_other_temp_files ()
    IF age > threshhold THEN
     debuginfo "CLEAN: Wish to killdir " & dirname_full & " because it has been dead for about " & age & " days"
     'killdir dirname_full, YES
-    ELSE
-     debuginfo "Ignore " & dirname & " because it has only been dead " & age & " days"
+   ELSE
+    debuginfo "Ignore " & dirname & " because it has only been dead " & age & " days"
    END IF
   END IF
  NEXT i
- 
 END SUB
