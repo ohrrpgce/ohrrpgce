@@ -4029,29 +4029,13 @@ SUB refresh_keepalive_file ()
  CLOSE #fh
 END SUB
 
-FUNCTION estimate_days_ago_from_datestr (datestr as string) as integer
- 'Returns an estimate of the number of days based on a string in the format
- 'YYYY-MM-DD
- 'It will not be accurate because it pretends that all months are 30 days
- 'and that leap-years don't exist, but for the purposes of the keepalive
- 'file, this doesn't really matter
- DIM y as integer = str2int(MID(datestr, 1, 4))
- DIM m as integer = str2int(MID(datestr, 6, 2))
- DIM d as integer = str2int(MID(datestr, 9, 2))
- DIM now_y as integer = str2int(MID(DATE, 7, 4))
- DIM now_m as integer = str2int(MID(DATE, 1, 2))
- DIM now_d as integer = str2int(MID(DATE, 4, 2))
- 
- RETURN now_d - d + (now_m - m) * 30 + (now_y - y) * 365
-END FUNCTION
-
 FUNCTION read_keepalive_as_days (keepalive_file as string) as integer
  DIM fh as integer = FREEFILE
  OPEN keepalive_file FOR BINARY ACCESS READ as #fh
  DIM datestr as string = "YYYY-MM-DD"
  GET #fh, 1, datestr
  CLOSE #fh
- RETURN estimate_days_ago_from_datestr(datestr)
+ RETURN days_since_datestr(datestr)
 END FUNCTION
 
 FUNCTION guess_age_by_tmpdir_name(dirname as string) as integer
@@ -4067,7 +4051,7 @@ FUNCTION guess_age_by_tmpdir_name(dirname as string) as integer
   'Old format
   datestr = MID(dirname, 1, 4) & "-" & MID(dirname, 5, 2) & "-" & MID(dirname, 7, 2)
  END IF
- RETURN estimate_days_ago_from_datestr(datestr)
+ RETURN days_since_datestr(datestr)
 END FUNCTION
 
 SUB cleanup_other_temp_files ()

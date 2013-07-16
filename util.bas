@@ -17,6 +17,7 @@
 CONST STACK_SIZE_INC = 512 ' in integers
 
 #include "file.bi"   'FB header
+#include "datetime.bi" 'FB header
 #include "config.bi"
 #include "util.bi"
 #include "cutil.bi"
@@ -603,6 +604,18 @@ sub split(in as string, ret() as string, sep as string = chr(10))
   j+=1
  loop
 end sub
+
+FUNCTION days_since_datestr (datestr as string) as integer
+ 'Returns the number of days since a date given as a string in the format YYYY-MM-DD
+ IF LEN(datestr) <> 10 THEN
+  debug "days_since_datestr: bad datestr " & datestr
+  RETURN 0
+ END IF
+ DIM y as integer = str2int(MID(datestr, 1, 4))
+ DIM m as integer = str2int(MID(datestr, 6, 2))
+ DIM d as integer = str2int(MID(datestr, 9, 2))
+ RETURN NOW - DateSerial(y, m, d)
+END FUNCTION
 
 SUB flusharray (array() as integer, byval size as integer=-1, byval value as integer=0)
  'If size is -1, then flush the entire array

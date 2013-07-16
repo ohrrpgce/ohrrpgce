@@ -396,7 +396,7 @@ declare function simple_randint (byref prng_state as uinteger, byval upperbound 
 
 
 '----------------------------------------------------------------------
-'                              Other
+'                         String functions
 
 
 declare function cstring (s as string) as zstring ptr
@@ -419,6 +419,13 @@ declare function zero_default(n as integer, zerocaption as STRING="default", dis
 declare Function wordwrap(z as string, byval width as integer, sep as string = chr(10)) as string
 
 declare sub split(in as string, ret() as string, sep as string = chr(10))
+
+
+'----------------------------------------------------------------------
+'                              Other
+
+
+declare function days_since_datestr(datestr as string) as integer
 declare sub flusharray (array() as integer, byval size as integer=-1, byval value as integer=0)
 declare sub sort_integers_indices(indices() as integer, byval start as integer ptr, byval number as integer = 0, byval stride as integer = SIZEOF(integer))
 declare sub qsort_integers_indices(indices() as integer, byval start as integer ptr, byval number as integer, byval stride as integer)
