@@ -832,7 +832,7 @@ SUB reset_game_final_cleanup()
  stopsong
  resetsfx
  cleanup_other_temp_files
- IF gam.autorungame THEN exitprogram (NOT abortg)
+ IF gam.autorungame THEN exitprogram (NOT abortg) 'exitprogram also calls cleanuptemp
  cleanuptemp
  fadeout 0, 0, 0
  clearpage 0
