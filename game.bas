@@ -4094,8 +4094,8 @@ SUB cleanup_other_temp_files ()
     threshhold = 3
    END IF
    IF age > threshhold THEN
-    debuginfo "CLEAN: Wish to killdir " & dirname_full & " because it has been dead for about " & age & " days"
-    'killdir dirname_full, YES
+    debuginfo "CLEAN " & dirname_full & " because it has been dead for about " & age & " days"
+    killdir dirname_full, YES
    ELSE
     debuginfo "Ignore " & dirname & " because it has only been dead " & age & " days"
    END IF
