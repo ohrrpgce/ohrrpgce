@@ -9,6 +9,6 @@
 
 'Public functions
 DECLARE SUB reload_editor OVERLOAD ()
-DECLARE SUB reload_editor OVERLOAD (BYREF node AS Reload.Nodeptr)
+DECLARE SUB reload_editor OVERLOAD (byref node as Reload.Nodeptr)
 
 #ENDIF

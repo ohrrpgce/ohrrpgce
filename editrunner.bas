@@ -43,41 +43,41 @@ CONST eeslCheck = 5
 '-----------------------------------------------------------------------
 
 TYPE EditorState
- root AS NodePtr
- need_update AS INTEGER
- root_sl AS Slice Ptr
- scroller AS Slice Ptr
- widget_state_doc AS DocPtr
- widget_state AS NodePtr
+ root as NodePtr
+ need_update as integer
+ root_sl as Slice Ptr
+ scroller as Slice Ptr
+ widget_state_doc as DocPtr
+ widget_state as NodePtr
 END TYPE
 
 '-----------------------------------------------------------------------
 
-DECLARE SUB edrun_init_sl (BYREF es AS EditorState)
-DECLARE SUB edrun_update (BYREF es AS EditorState)
-DECLARE FUNCTION edrun_create_widget_slice(BYVAL widget AS NodePtr) AS Slice Ptr
-DECLARE SUB edrun_position_new_widget(BYREF es AS EditorState, BYVAL sl AS Slice Ptr)
-DECLARE SUB edrun_populate_new_widget(BYVAL widget AS NodePtr, BYVAL sl AS Slice Ptr)
+DECLARE SUB edrun_init_sl (byref es as EditorState)
+DECLARE SUB edrun_update (byref es as EditorState)
+DECLARE FUNCTION edrun_create_widget_slice(byval widget as NodePtr) as Slice Ptr
+DECLARE SUB edrun_position_new_widget(byref es as EditorState, byval sl as Slice Ptr)
+DECLARE SUB edrun_populate_new_widget(byval widget as NodePtr, byval sl as Slice Ptr)
 
 '-----------------------------------------------------------------------
 
-SUB editor_runner(editor_definition_file AS STRING)
+SUB editor_runner(editor_definition_file as string)
  IF NOT isfile(editor_definition_file) THEN
   pop_warning "file not found: " & editor_definition_file
   EXIT SUB
  END IF
  
- DIM doc AS DocPtr
+ DIM doc as DocPtr
  doc = LoadDocument(editor_definition_file, optNoDelay)
  
- DIM root AS NodePtr
+ DIM root as NodePtr
  
  root = DocumentRoot(doc)
  editor_runner root
  FreeDocument(doc)
 END SUB
 
-SUB editor_runner(BYVAL root AS NodePtr)
+SUB editor_runner(byval root as NodePtr)
  IF root = 0 THEN
   pop_warning "null root editor node"
   EXIT SUB
@@ -88,7 +88,7 @@ SUB editor_runner(BYVAL root AS NodePtr)
   EXIT SUB
  END IF
 
- DIM es AS EditorState
+ DIM es as EditorState
  es.root = root
  es.need_update = YES
  es.widget_state_doc = CreateDocument()
@@ -125,7 +125,7 @@ END SUB
 
 '-----------------------------------------------------------------------
 
-SUB edrun_init_sl (BYREF es AS EditorState)
+SUB edrun_init_sl (byref es as EditorState)
  DeleteSlice @es.root_sl
  es.scroller = 0
  FreeNode es.widget_state
@@ -136,19 +136,19 @@ SUB edrun_init_sl (BYREF es AS EditorState)
  es.scroller = NewSliceOfType(slContainer, es.root_sl)
 END SUB
 
-SUB edrun_update (BYREF es AS EditorState)
+SUB edrun_update (byref es as EditorState)
 
- DIM widget_container AS NodePtr
+ DIM widget_container as NodePtr
  widget_container = NodeByPath(es.root, "/widgets")
  IF widget_container = 0 THEN
   pop_warning("Editor definition has no widget container node")
   EXIT SUB
  END IF
 
- DIM widget AS Nodeptr
+ DIM widget as Nodeptr
  widget = FirstChild(widget_container, "widget")
  
- DIM sl AS Slice ptr
+ DIM sl as Slice ptr
  DO WHILE widget
   sl = edrun_create_widget_slice(widget)
   debug "WIDGET:" & GetString(widget) & " " & GetChildNodeStr(widget, "caption")
@@ -163,22 +163,22 @@ END SUB
 
 '-----------------------------------------------------------------------
 
-FUNCTION edrun_create_widget_slice(BYVAL widget AS NodePtr) AS Slice Ptr
+FUNCTION edrun_create_widget_slice(byval widget as NodePtr) as Slice Ptr
  IF widget = 0 THEN
   pop_warning("can't create slice for null widget!")
   RETURN 0
  END IF
- DIM sl AS Slice Ptr
+ DIM sl as Slice Ptr
  sl = NewSliceOfType(slSpecial)
- DIM kind AS STRING
+ DIM kind as string
  kind = GetString(widget)
- DIM dirname AS STRING
+ DIM dirname as string
  dirname = finddatadir("widgets")
  IF dirname = "" THEN
   pop_warning("Can't find widget data dir!")
   RETURN 0
  END IF
- DIM filename AS STRING
+ DIM filename as string
  filename =  dirname & SLASH & kind & ".widget.slice"
  IF isfile(filename) THEN
   SliceLoadFromFile sl, filename
@@ -194,14 +194,14 @@ END FUNCTION
 
 '-----------------------------------------------------------------------
 
-SUB edrun_position_new_widget(BYREF es AS EditorState, BYVAL sl AS Slice Ptr)
+SUB edrun_position_new_widget(byref es as EditorState, byval sl as Slice Ptr)
  IF sl = 0 THEN pop_warning "edrun_position_new_widget: null sl": EXIT SUB
 
  sl->Fill = NO
  sl->Width = 0
  sl->Height = 0
 
- DIM after AS Slice Ptr
+ DIM after as Slice Ptr
  after = LastChild(es.scroller)
  
  SetSliceParent sl, es.scroller
@@ -210,7 +210,7 @@ SUB edrun_position_new_widget(BYREF es AS EditorState, BYVAL sl AS Slice Ptr)
   EXIT SUB
  END IF
 
- DIM capsl AS Slice Ptr
+ DIM capsl as Slice Ptr
  capsl = LookupSlice(eeslCaption, after)
  
  IF capsl = 0 THEN
@@ -223,10 +223,10 @@ SUB edrun_position_new_widget(BYREF es AS EditorState, BYVAL sl AS Slice Ptr)
 
 END SUB
 
-SUB edrun_populate_new_widget(BYVAL widget AS NodePtr, BYVAL sl AS Slice Ptr)
- DIM capsl AS Slice Ptr
+SUB edrun_populate_new_widget(byval widget as NodePtr, byval sl as Slice Ptr)
+ DIM capsl as Slice Ptr
  capsl = LookupSlice(eeslCaption, sl)
- DIM s AS STRING
+ DIM s as string
  s = GetChildNodeStr(widget, "caption")
  debug "s=" & s
  ChangeTextSlice capsl, s
