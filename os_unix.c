@@ -46,7 +46,6 @@ void external_log(FBSTRING *str) {
 #ifdef __ANDROID__
 	__android_log_write(ANDROID_LOG_INFO, "OHRRPGCE", str->data);
 #endif
-	fb_hStrDelTemp(str);
 }
 
 static long long milliseconds() {
@@ -59,9 +58,6 @@ static long long milliseconds() {
 //==========================================================================================
 //                                       Filesystem
 //==========================================================================================
-
-// I think all the fb_hStrDelTemp paranoia in the following is actually unnecessary...
-// FB has a special calling convention for rtlib functions with different string passing? FBCALL?
 
 void _list_files_or_subdirs (FBSTRING *searchdir, FBSTRING *nmask, int showhidden, FBSTRING *outfilename, int whichtype) {
 	// whichtype is 0 for files and 1 for directories
@@ -116,23 +112,19 @@ int drivelist (void *drives_array) {
 }
 
 FBSTRING *drivelabel (FBSTRING *drive) {
-	fb_hStrDelTemp(drive);
 	return &__fb_ctx.null_desc;
 }
 
 int isremovable (FBSTRING *drive) {
-	fb_hStrDelTemp(drive);
 	return 0;
 }
 
 int hasmedia (FBSTRING *drive) {
-	fb_hStrDelTemp(drive);
 	return 0;
 }
 
 void setwriteable (FBSTRING *fname) {
 	//(FB's) filecopy on Unix does not copy file permissions, so this isn't needed
-	fb_hStrDelTemp(fname);
 }
 
 
@@ -634,8 +626,6 @@ ProcessHandle open_process (FBSTRING *program, FBSTRING *args) {
 
 	free(program_escaped);
 	free(buf);
-	fb_hStrDelTemp(program);
-	fb_hStrDelTemp(args);
 	return ret;
 #endif
 }
