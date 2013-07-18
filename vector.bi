@@ -132,7 +132,9 @@ end extern
 'Declare overloaded versions of each vector function
 #MACRO DECLARE_VECTOR_OF_TYPE(T, TID)
 
-  extern type_table(TID) as TypeTable
+  extern "C"
+    extern type_table(TID) as TypeTable
+  end extern
 
   'Deletes any existing vector in 'this', creates a new vector.
   'Special case: this is a FB wrapper function

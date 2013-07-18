@@ -12,41 +12,14 @@
 #include <alloca.h>
 #endif
 #include "common.h"
+#include "array.h"
 
-
-struct FBSTRING;
-
-typedef void (*FnCtor)(void *);
-typedef int (*FnCompare)(const void *, const void *);
-typedef void (*FnCopy)(void *, void *);  // second arg ought to be const, but in practice isn't (AnyVector)
-typedef struct FBSTRING *(*FnStr)(const void *);
-
-typedef struct _typetable {
-	unsigned int element_len;
-	// Explains the default passing type
-	// Note: strings are an exception
-	enum PassConvention { PASS_BYVAL, PASS_BYREF, PASS_ZSTRING } passtype;
-	FnCtor ctor;
-	FnCopy copyctor;
-	FnCtor dtor;
-	FnCompare comp;
-	FnCompare inequal;
-	FnStr tostr;
-	char *name;
-} typetable;
-
-// Define array_t as a pointer to some type, rather than as void* which
-// leads to almost zero type checking.
-typedef struct _dummy_ {int a;} *array_t;
 
 typedef struct _array_header {
 	typetable *typetbl;
 	unsigned int len:31;
 	unsigned int temp:1;
 } array_header;
-
-
-void array_free(array_t *array);
 
 
 void (*debug_hook)(enum ErrorLevel errorlevel, const char *msg) = debugc;
@@ -91,7 +64,7 @@ void _throw_error(enum ErrorLevel errorlevel, const char *srcfile, int linenum, 
 
 #define ARRAY_OVERHEAD sizeof(array_header)
 
-/*static*/ /*inline*/ array_header *get_header(array_t array) {
+static inline array_header *get_header(array_t array) {
 	if (!array)
 		return NULL;
 	return (array_header *)array - 1;
@@ -123,7 +96,7 @@ static void free_header(short id) {
 	header_table[id] = NULL;
 }
 
-/*static*/ /*inline*/ array_header *get_header(array_t array) {
+static inline array_header *get_header(array_t array) {
 	if (!array)
 		return NULL;
 	return header_table[((short *)array)[-1]];
@@ -133,28 +106,28 @@ static void free_header(short id) {
 #endif
 
 // Given pointer to allocated memory, produce array_t handle
-/*static*/ /*inline*/ array_t get_array_ptr(void *mem) {
+static inline array_t get_array_ptr(void *mem) {
 	return (array_t)((char *)mem + ARRAY_OVERHEAD);
 }
 
 // Get the pointer to the allocated block of memory an array sits in
-/*static*/ /*inline*/ void *get_mem_ptr(array_t array) {
+static inline void *get_mem_ptr(array_t array) {
 	return (char *)array - ARRAY_OVERHEAD;
 }
 
-/*static*/ /*inline*/ typetable *get_type(array_t array) {
+static inline typetable *get_type(array_t array) {
 	if (!array)
 		return NULL;
 	return get_header(array)->typetbl;
 }
 
-/*static*/ /*inline*/ unsigned int length(array_t array) {
+static inline unsigned int length(array_t array) {
 	if (!array)
 		return 0;
 	return get_header(array)->len;
 }
 
-/*static*/ /*inline*/ void *nth_elem(array_t array, int n) {
+static inline void *nth_elem(array_t array, int n) {
 	typetable *tytbl = get_type(array);
 	return (char *)array + tytbl->element_len * n;
 }
@@ -164,7 +137,7 @@ static void free_header(short id) {
 
 
 // Lowest-level alloc routine. Does not destruct/construct elements
-/*static*/ array_t mem_alloc(typetable *typetbl, unsigned int len) {
+static array_t mem_alloc(typetable *typetbl, unsigned int len) {
 	void *mem = malloc(ARRAY_OVERHEAD + len * typetbl->element_len);
 	if (!mem)
 		debug(errFatal, "out of memory");
@@ -180,7 +153,7 @@ static void free_header(short id) {
 }
 
 // Lowest-level free routine. Does not destruct/construct elements
-/*static*/ /*inline*/ void mem_free(array_t array) {
+static inline void mem_free(array_t array) {
 	if (!array)
 		return;
 #ifdef VALGRIND_ARRAYS
@@ -189,10 +162,10 @@ static void free_header(short id) {
 	free(get_mem_ptr(array));
 }
 
-/*static*/ array_t mem_resize(array_t array, unsigned int len) warn_unused_result;
+static array_t mem_resize(array_t array, unsigned int len) warn_unused_result;
 
 // Lowest-level resize routine. Does not destruct/construct elements
-/*static*/ array_t mem_resize(array_t array, unsigned int len) {
+static array_t mem_resize(array_t array, unsigned int len) {
 	void *mem = get_mem_ptr(array);
 	array_header *header = get_header(array);
 	unsigned int arraysize = ARRAY_OVERHEAD + len * header->typetbl->element_len;
@@ -257,7 +230,7 @@ void resize_and_init() {
 
 // Call destructor on elements [from, to)
 // Note: does not set array length or resize memory
-void delete_elements(array_t array, unsigned int from, unsigned int to) {
+static void delete_elements(array_t array, unsigned int from, unsigned int to) {
 	typetable *typetbl = get_header(array)->typetbl;
 
 	if (typetbl->dtor) {
@@ -271,7 +244,7 @@ void delete_elements(array_t array, unsigned int from, unsigned int to) {
 	}
 }
 
-void copy_elements(void *dest, void *src, unsigned int len, typetable *tytbl) {
+static void copy_elements(void *dest, void *src, unsigned int len, typetable *tytbl) {
 	if (tytbl->copyctor) {
 		for (int i = 0; i < len; ++i) {
 			tytbl->copyctor(dest, src);
@@ -283,7 +256,7 @@ void copy_elements(void *dest, void *src, unsigned int len, typetable *tytbl) {
 		memcpy(dest, src, tytbl->element_len * len);
 }
 
-void init_elements(void *dest, unsigned int len, typetable *tytbl) {
+static void init_elements(void *dest, unsigned int len, typetable *tytbl) {
 	if (tytbl->ctor) {
 		for (int i = 0; i < len; ++i) {
 			tytbl->ctor(dest);
@@ -295,6 +268,8 @@ void init_elements(void *dest, unsigned int len, typetable *tytbl) {
 }
 
 
+
+//////////////////////////////////////// Public Functions //////////////////////////////////////////
 
 // With a couple exceptions, NO NULL POINTERS ALLOWED
 // key: A - NULL allowed | W - warning | E - error
