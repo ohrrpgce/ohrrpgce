@@ -2707,7 +2707,7 @@ SUB saveitemdata (array() as integer, byval index as integer)
  storerecord array(), game & ".itm", getbinsize(binITM) \ 2, index
 END SUB
 
-FUNCTION LoadOldItemElemental (itembuf() as integer, byval element as integer) as SINGLE
+FUNCTION LoadOldItemElemental (itembuf() as integer, byval element as integer) as single
  IF element < 8 THEN
   RETURN backcompat_element_dmg(readbit(itembuf(), 70, element), readbit(itembuf(), 70, 8 + element), readbit(itembuf(), 70, 16 + element))
  ELSE
@@ -2715,7 +2715,7 @@ FUNCTION LoadOldItemElemental (itembuf() as integer, byval element as integer) a
  END IF
 END FUNCTION
 
-SUB LoadItemElementals (byval index as integer, itemresists() as SINGLE)
+SUB LoadItemElementals (byval index as integer, itemresists() as single)
  DIM itembuf(dimbinsize(binITM)) as integer
  loaditemdata itembuf(), index
  REDIM itemresists(gen(genNumElements) - 1)
@@ -2743,15 +2743,15 @@ END FUNCTION
 '                                         Enemies
 '==========================================================================================
 
-FUNCTION backcompat_element_dmg(byval weak as integer, byval strong as integer, byval absorb as integer) as DOUBLE
- DIM dmg as DOUBLE = 1.0
+FUNCTION backcompat_element_dmg(byval weak as integer, byval strong as integer, byval absorb as integer) as double
+ DIM dmg as double = 1.0
  IF weak THEN dmg *= 2
  IF strong THEN dmg *= 0.12
  IF absorb THEN dmg = -dmg
  RETURN dmg
 END FUNCTION
 
-FUNCTION loadoldenemyresist(array() as integer, byval element as integer) as SINGLE
+FUNCTION loadoldenemyresist(array() as integer, byval element as integer) as single
  IF element < 8 THEN
   DIM as integer weak, strong, absorb
   weak = xreadbit(array(), 0 + element, 74)

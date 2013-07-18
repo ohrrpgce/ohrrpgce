@@ -106,9 +106,9 @@ DIM SHARED upgrademessages as integer
 
 'upgrading timing stuff
 DIM SHARED time_rpg_upgrade as integer = NO  'Change to YES, or pass --time-upgrade
-DIM SHARED last_upgrade_time as DOUBLE
-DIM SHARED upgrade_overhead_time as DOUBLE
-DIM SHARED upgrade_start_time as DOUBLE
+DIM SHARED last_upgrade_time as double
+DIM SHARED upgrade_overhead_time as double
+DIM SHARED upgrade_start_time as double
 
 'Upgrade all game data (required for writing), or only enough to allow reading?
 #IFDEF IS_CUSTOM
@@ -226,7 +226,7 @@ SUB start_new_debug
  DIM archive as integer = FREEFILE
  OPEN oldfile FOR BINARY as archive
 
- DIM as UBYTE PTR buf = ALLOCATE(buflen)
+ DIM as ubyte ptr buf = ALLOCATE(buflen)
 
  DIM copyamount as integer = bound(buflen - LOF(dlog), 0, LOF(archive))
 
@@ -1207,7 +1207,7 @@ FUNCTION getmapname (byval m as integer) as string
  RETURN a
 END FUNCTION
 
-FUNCTION createminimap (map() as TileMap, tilesets() as TilesetData ptr, byref zoom as integer = -1) as Frame PTR
+FUNCTION createminimap (map() as TileMap, tilesets() as TilesetData ptr, byref zoom as integer = -1) as Frame ptr
  'zoom = 1 is unzoomed, zoom = 20 is 1 pixel per tile.
  'If zoom is -1, calculate and store it
 
@@ -1219,7 +1219,7 @@ FUNCTION createminimap (map() as TileMap, tilesets() as TilesetData ptr, byref z
  DIM mini as Frame Ptr
  mini = frame_new(zoom * map(0).wide, zoom * map(0).high)
 
- DIM as SINGLE fraction
+ DIM as single fraction
  fraction = 20 / zoom
 
  DIM tx as integer
@@ -1257,7 +1257,7 @@ FUNCTION createminimap (map() as TileMap, tilesets() as TilesetData ptr, byref z
  RETURN mini
 END FUNCTION
 
-FUNCTION createminimap (layer as TileMap, tileset as TilesetData ptr, byref zoom as integer = -1) as Frame PTR
+FUNCTION createminimap (layer as TileMap, tileset as TilesetData ptr, byref zoom as integer = -1) as Frame ptr
  DIM layers(0) as TileMap
  DIM tilesetsdata(0) as TilesetData ptr
  layers(0) = layer
@@ -2611,7 +2611,7 @@ SUB upgrade_message (s as string)
   reset_console 20, vpages(vpage)->h - 20
   show_message("Auto-Updating obsolete RPG file")
  END IF
- DIM temptime as DOUBLE
+ DIM temptime as double
  IF time_rpg_upgrade THEN
   temptime = TIMER
   upgrade_overhead_time -= temptime
@@ -3991,7 +3991,7 @@ SUB create_default_menu(menu as MenuDef)
  menu.min_chars = 14
 END SUB
 
-FUNCTION bound_arg(byval n as integer, byval min as integer, byval max as integer, argname as ZSTRING PTR, context as ZSTRING PTR=nulzstr, byval fromscript as integer=YES, byval errlvl as scriptErrEnum = serrBound) as integer
+FUNCTION bound_arg(byval n as integer, byval min as integer, byval max as integer, argname as zstring ptr, context as zstring ptr=nulzstr, byval fromscript as integer=YES, byval errlvl as scriptErrEnum = serrBound) as integer
  'This function takes zstring ptr arguments because passing strings is actually really expensive
  '(it performs an allocation, copy, delete), and would be easily noticeable by scripts.
  IF n < min OR n > max THEN
@@ -5050,10 +5050,10 @@ FUNCTION atlevel_quadratic (byval lev as double, byval a0 as double, byval aMax 
   'CHECKME: Is it actually alright to return a double?
   IF lev < 0 THEN RETURN 0
   IF gen(genMaxLevel) <= 0 THEN RETURN aMax
-  DIM as DOUBLE a, b  'quadratic coefficients (c=0 fixed)
+  DIM as double a, b  'quadratic coefficients (c=0 fixed)
   b = 4 * midpercent - 1
   a = 1 - b
-  DIM as DOUBLE x = lev / gen(genMaxLevel)
+  DIM as double x = lev / gen(genMaxLevel)
   RETURN (a * x^2 + b * x) * (aMax - a0) + a0 + .1
 END FUNCTION
 

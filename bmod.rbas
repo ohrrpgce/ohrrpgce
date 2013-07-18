@@ -332,7 +332,7 @@ SUB battle_cleanup(byref bat as BattleState, bslot() as BattleSprite)
 END SUB
 
 SUB battle_pause ()
- DIM pause as STRING = readglobalstring(54, "PAUSE", 10)
+ DIM pause as string = readglobalstring(54, "PAUSE", 10)
  fuzzyrect 0, 0, 320, 200, uilook(uiTextBox), vpage
  edgeprint pause, xstring(pause, 160), 95, uilook(uiText), vpage
  setvispage vpage
@@ -1128,7 +1128,7 @@ END SUB
 SUB show_enemy_meters(bat as BattleState, bslot() as BattleSprite, formdata as Formation)
  'This shows meters and extra debug info info when you press F10 the first time
  DIM c as integer
- DIM info as STRING
+ DIM info as string
  FOR i as integer = 0 TO 11
   WITH bslot(i)
    c = uilook(uiSelectedDisabled)
@@ -1477,7 +1477,7 @@ END SUB
 FUNCTION distribute_party_experience (byval exper as integer) as integer
  '--Calculate amount of experience given to each hero, and returns the "base" experience value,
  '--which is the amount given to live heroes in the active party
- DIM as DOUBLE sumheroes, xp_mult(UBOUND(hero))
+ DIM as double sumheroes, xp_mult(UBOUND(hero))
  DIM as integer i
 
  FOR i = 0 TO UBOUND(hero)
@@ -1514,7 +1514,7 @@ FUNCTION distribute_party_experience (byval exper as integer) as integer
 END FUNCTION
 
 SUB show_victory (byref bat as BattleState, bslot() as BattleSprite)
-DIM tempstr as STRING
+DIM tempstr as string
 DIM as integer i, o
 IF bat.vic.box THEN centerfuz 160, 30, 280, 50, 1, dpage
 SELECT CASE bat.vic.state
@@ -3278,7 +3278,7 @@ SUB queue_attack(byval attack as integer, byval who as integer, targs() as integ
 END SUB
 
 SUB queue_attack(byval attack as integer, byval who as integer, byval delay as integer, byval turn_delay as integer, targs() as integer, byval blocking as integer=YES, byval dont_retarget as integer = NO)
- 'DIM targstr as STRING = ""
+ 'DIM targstr as string = ""
  'FOR i as integer = 0 TO UBOUND(targs)
  ' IF targs(i) > -1 THEN targstr &= " " & i & "=" & targs(i)
  'NEXT i
@@ -3337,8 +3337,8 @@ SUB clear_attack_queue_slot(byval slot as integer)
 END SUB
 
 SUB display_attack_queue (bslot() as BattleSprite)
- DIM s as STRING
- DIM targstr as STRING
+ DIM s as string
+ DIM targstr as string
  FOR i as integer = 0 TO UBOUND(atkq)
   WITH atkq(i)
    IF .used THEN
@@ -3589,7 +3589,7 @@ SUB battle_reevaluate_dead_targets (byval deadguy as integer, byref bat as Battl
     DIM attack as AttackData
     loadattackdata attack, .attack
     
-    'DIM s as STRING
+    'DIM s as string
     's = attack.name & " of " & bslot(.attacker).name
     'dim showdebug as integer=NO
     'for j as integer = 0 to ubound(.t)

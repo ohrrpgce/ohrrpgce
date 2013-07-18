@@ -65,9 +65,9 @@ TYPE SpriteEditState
   mist as integer
   hold as integer
   holdpos as XYPair
-  radius as DOUBLE
-  ellip_minoraxis as DOUBLE '--For non-circular elipses. Not implemented yet
-  ellip_angle as DOUBLE
+  radius as double
+  ellip_minoraxis as double '--For non-circular elipses. Not implemented yet
+  ellip_angle as double
   undodepth as integer
   undoslot as integer
   undomax as integer
@@ -101,7 +101,7 @@ TYPE TileEditState
   tool as integer
   curcolor as integer
   hidemouse as integer
-  radius as DOUBLE
+  radius as double
   airsize as integer
   mist as integer
   undo as integer

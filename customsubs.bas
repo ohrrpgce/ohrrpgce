@@ -1347,8 +1347,8 @@ END SUB
 FUNCTION pal16browse (byval curpal as integer, byval picset as integer, byval picnum as integer) as integer
 
  DIM buf(7) as integer
- DIM sprite(9) as Frame PTR
- DIM pal16(9) as Palette16 PTR
+ DIM sprite(9) as Frame ptr
+ DIM pal16(9) as Palette16 ptr
 
  DIM as integer i, o, j, k
  DIM c as integer
@@ -3857,7 +3857,7 @@ END SUB
 SUB experience_chart ()
 
  'DIM exp_first_level as integer = 30
- 'DIM exp_multiplier as SINGLE = 1.2
+ 'DIM exp_multiplier as single = 1.2
  'DIM exp_adder as integer = 5
  'DIM exp_uppercap as integer = 1000000
 

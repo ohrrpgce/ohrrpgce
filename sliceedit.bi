@@ -9,6 +9,6 @@
 
 'Public functions
 DECLARE SUB slice_editor OVERLOAD ()
-DECLARE SUB slice_editor OVERLOAD (BYREF edslice AS Slice Ptr)
+DECLARE SUB slice_editor OVERLOAD (byref edslice as Slice Ptr)
 
 #ENDIF

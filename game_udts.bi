@@ -197,7 +197,7 @@ TYPE ShopBuyState
   walk           as integer
   hiresprite     as GraphicPair
   herosprite(3)  as GraphicPair
-DIM heropal(3) as Palette16 PTR
+DIM heropal(3) as Palette16 ptr
 END TYPE
 
 TYPE OrderTeamState

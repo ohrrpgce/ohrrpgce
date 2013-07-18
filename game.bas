@@ -95,9 +95,9 @@ DIM autotestmode as integer = NO
 DIM speedcontrol as integer = 55
 DIM autosnap as integer = 0
 DIM running_as_slave as integer = NO
-DIM custom_version as STRING  'when running as slave
+DIM custom_version as string  'when running as slave
 DIM master_channel as IPCChannel = NULL_CHANNEL  'when running as slave
-DIM modified_lumps as STRING VECTOR  'when running as slave
+DIM modified_lumps as string vector  'when running as slave
 v_new modified_lumps
 DIM force_prefsdir_save as integer = NO
 
@@ -483,7 +483,7 @@ REDIM gmap(dimbinsize(binMAP)) as integer 'this must be declared here, after the
 '--set game
 game = workingdir + SLASH + archinym
 game_unique_id = STR(randint(INT_MAX))
-DIM wintitle as STRING = getdisplayname(trimpath(sourcerpg))
+DIM wintitle as string = getdisplayname(trimpath(sourcerpg))
 IF running_as_slave THEN wintitle = "Testing " + wintitle
 setwindowtitle wintitle
 
@@ -3332,7 +3332,7 @@ SUB init_text_box_slices(txt as TextBoxState)
  col = uilook(uiText)
  IF txt.box.textcolor > 0 THEN col = txt.box.textcolor
 
- DIM s as STRING = ""
+ DIM s as string = ""
  FOR i as integer = 0 TO 7
   s &= txt.box.text(i) & CHR(10)
  NEXT i

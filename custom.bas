@@ -974,7 +974,7 @@ SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as integer, b
    stuf.min(19) = 0
    stuf.max(19) = 3 ' Item sell-type
   CASE 1
-   DIM her AS HeroDef
+   DIM her as HeroDef
    IF reset_name_and_price THEN
     loadherodata her, stufbuf(18)
     stuf.thingname = her.name
@@ -1278,7 +1278,7 @@ SUB arbitrary_sprite_editor ()
  FOR i as integer = 0 to UBOUND(tempcaptions)
   tempcaptions(i) = "frame" & i
  NEXT i
- DIM size AS XYPair
+ DIM size as XYPair
  size.x = 20
  size.y = 20
  DIM framecount as integer = 8
@@ -1496,7 +1496,7 @@ SUB quad_transforms_menu ()
   gfx_surfaceCopy( NULL, vpage8, masterPalette, NO, NULL, vpage32)
   pagecopytime = TIMER - pagecopytime
 
-  DIM starttime as DOUBLE = TIMER
+  DIM starttime as double = TIMER
 
   DIM matrix as Float3x3
   matrixLocalTransform @matrix, angle, scale, position

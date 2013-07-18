@@ -58,7 +58,7 @@ TYPE BattleSprite
   vis as integer
   '--stats
   stat as BattleStats
-  elementaldmg(maxElements - 1) as SINGLE
+  elementaldmg(maxElements - 1) as single
   '--level-mp
   consume_lmp as integer '0 for no LMP consumption, >= 1 to indicate which level of MP should be deducted
                          'FIXME: consume_lmp would probably be better as a member of the AttackState or AttackQueue later on.

@@ -283,7 +283,7 @@ declare function escape_filenamec cdecl alias "escape_filenamec" (byval filename
 declare sub safe_shell (cmd as string)
 declare sub touchfile (filename as string)
 declare sub extendfile (byval fh as integer, byval length as integer)
-declare sub findfiles (directory as STRING, namemask as STRING = "", byval filetype as integer = fileTypeFile, byval findhidden as integer = 0, filelist() as STRING)
+declare sub findfiles (directory as string, namemask as string = "", byval filetype as integer = fileTypeFile, byval findhidden as integer = 0, filelist() as string)
 declare sub writeablecopyfile (src as string, dest as string)
 declare sub copyfiles (src as string, dest as string, byval copyhidden as integer = 0)
 declare function copydirectory (src as string, dest as string, byval copyhidden as integer = -1) as string
@@ -415,7 +415,7 @@ declare function scancodename (byval k as integer) as string
 declare function special_char_sanitize(s as string) as string
 declare function sign_string(n as integer, neg_str as string, zero_str as string, pos_str as string) as string
 declare function iif_string(byval condition as integer, s1 as string, s2 as string) as string
-declare function zero_default(n as integer, zerocaption as STRING="default", displayoffset as integer = 0) as string
+declare function zero_default(n as integer, zerocaption as string="default", displayoffset as integer = 0) as string
 declare Function wordwrap(z as string, byval width as integer, sep as string = chr(10)) as string
 
 declare sub split(in as string, ret() as string, sep as string = chr(10))

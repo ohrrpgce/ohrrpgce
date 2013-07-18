@@ -35,7 +35,7 @@ SUB debugc cdecl alias "debugc" (byval errorlevel as errorLevelEnum, byval s as 
   print *s
 END SUB
 
-SUB showerror (msg AS STRING, BYVAL isfatal AS INTEGER = 0)
+SUB showerror (msg as string, byval isfatal as integer = 0)
  IF isfatal THEN
   fatalerror msg
  ELSE

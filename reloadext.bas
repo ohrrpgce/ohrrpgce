@@ -103,7 +103,7 @@ sub SaveBitsetArray(byval node as NodePtr, bs() as integer, byval size as intege
 	next
 end sub
 
-Function GetNodePath(byval node AS NodePtr) as string
+Function GetNodePath(byval node as NodePtr) as string
 	dim prefix as string
 	if NodeParent(node) then
 		prefix = GetNodePath(NodeParent(node))
@@ -111,11 +111,11 @@ Function GetNodePath(byval node AS NodePtr) as string
 	return prefix & "/" & NodeName(node)
 End Function
 
-Function NodeByPath(byval doc AS DocPtr, path as string) as NodePtr
+Function NodeByPath(byval doc as DocPtr, path as string) as NodePtr
 	Return NodeByPath(DocumentRoot(doc), path)
 End Function
 
-Function NodeByPath(byval node AS NodePtr, path as string) as NodePtr
+Function NodeByPath(byval node as NodePtr, path as string) as NodePtr
 	if node = null then return null
 	if path = "" then return null
 	if mid(path, 1, 1) <> "/" then

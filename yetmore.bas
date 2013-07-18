@@ -454,7 +454,7 @@ SELECT CASE as CONST id
  CASE 499'--hero total elemental resist as int (hero, element)
   IF really_valid_hero_party(retvals(0)) THEN
    IF bound_arg(retvals(1), 0, gen(genNumElements) - 1, "element number") THEN
-    REDIM elementals(gen(genNumElements) - 1) as SINGLE
+    REDIM elementals(gen(genNumElements) - 1) as single
     calc_hero_elementals elementals(), retvals(0)
     scriptret = 100 * elementals(retvals(1))  'rounds to nearest int
    END IF
@@ -737,7 +737,7 @@ SUB onkeyscript (byval scriptnum as integer)
 END SUB
 
 FUNCTION playtime (byval d as integer, byval h as integer, byval m as integer) as string
- DIM s as STRING = ""
+ DIM s as string = ""
 
  SELECT CASE d
   CASE 1
@@ -765,7 +765,7 @@ FUNCTION playtime (byval d as integer, byval h as integer, byval m as integer) a
 END FUNCTION
 
 SUB playtimer
- STATIC n as DOUBLE
+ STATIC n as double
  
  IF TIMER >= n + 1 OR n - TIMER > 3600 THEN
   n = INT(TIMER)
@@ -1480,8 +1480,8 @@ SELECT CASE as CONST id
  CASE 217'--delete char
   IF valid_plotstr(retvals(0)) THEN
    IF retvals(1) >= 1 AND retvals(1) <= LEN(plotstr(retvals(0)).s) THEN
-    DIM beforestr as STRING = LEFT(plotstr(retvals(0)).s, retvals(1) - 1)
-    DIM afterstr as STRING = MID(plotstr(retvals(0)).s, retvals(1) + 1)
+    DIM beforestr as string = LEFT(plotstr(retvals(0)).s, retvals(1) - 1)
+    DIM afterstr as string = MID(plotstr(retvals(0)).s, retvals(1) + 1)
     plotstr(retvals(0)).s = beforestr & afterstr
    END IF
   END IF
@@ -1667,7 +1667,7 @@ SELECT CASE as CONST id
  CASE 251'--set string from table
   IF bound_arg(retvals(0), 0, UBOUND(plotstr), "string ID", !"$# = \"...\"") THEN
    WITH *scrat(nowscript).scr
-    DIM stringp as integer PTR = .ptr + .strtable + retvals(1)
+    DIM stringp as integer ptr = .ptr + .strtable + retvals(1)
     IF .strtable + retvals(1) >= .size ORELSE .strtable + (stringp[0] + 3) \ 4 >= .size THEN
      scripterr "script corrupt: illegal string offset", serrError
     ELSE
@@ -1678,7 +1678,7 @@ SELECT CASE as CONST id
  CASE 252'--append string from table
   IF bound_arg(retvals(0), 0, UBOUND(plotstr), "string ID", !"$# + \"...\"") THEN
    WITH *scrat(nowscript).scr
-    DIM stringp as integer PTR = .ptr + .strtable + retvals(1)
+    DIM stringp as integer ptr = .ptr + .strtable + retvals(1)
     IF .strtable + retvals(1) >= .size ORELSE .strtable + (stringp[0] + 3) \ 4 >= .size THEN
      scripterr "script corrupt: illegal string offset", serrError
     ELSE
@@ -2652,7 +2652,7 @@ SELECT CASE as CONST id
    IF i MOD 2 = 0 THEN
     IF i <> 0 THEN result &= ", "
     WITH *scrat(nowscript).scr
-     DIM stringp as integer PTR = .ptr + .strtable + retvals(i)
+     DIM stringp as integer ptr = .ptr + .strtable + retvals(i)
      IF .strtable + retvals(i) >= .size ORELSE .strtable + (stringp[0] + 3) \ 4 >= .size THEN
       scripterr "script corrupt: illegal string offset", serrError
      ELSE
@@ -4068,7 +4068,7 @@ SUB write_checkpoint ()
  ' currently just writes a screenshot,
  ' but might also dump slice tree and other stuff too in the future.
  STATIC n as integer = 0
- DIM f as STRING = absolute_with_orig_path("checkpoint" & right("0000" & n, 5))
+ DIM f as string = absolute_with_orig_path("checkpoint" & right("0000" & n, 5))
  bmp_screenshot f
  n += 1
 END SUB

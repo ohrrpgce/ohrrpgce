@@ -40,13 +40,13 @@ EXTERN as integer carray(), csetup()
 EXTERN as integer gotj(), joy()
 
 'Game state globals
-EXTERN gam AS GameState
-EXTERN txt AS TextBoxState
+EXTERN gam as GameState
+EXTERN txt as TextBoxState
 EXTERN tag() as integer
 EXTERN onetime() as integer
 
 'Vehicle globals
-EXTERN vstate AS VehicleState
+EXTERN vstate as VehicleState
 
 'Hero globals
 EXTERN hero() as integer
@@ -124,7 +124,7 @@ EXTERN timers() as PlotTimer
 EXTERN menus() as MenuDef
 EXTERN mstates() as MenuState
 EXTERN menu_set as MenuSet
-EXTERN topmenu as INTEGER
+EXTERN topmenu as integer
 
 'Slice handles
 EXTERN plotslices() as Slice Ptr

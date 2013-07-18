@@ -38,7 +38,7 @@ END SUB
 
 SUB replay_input ()
  DIM replaytick as integer
- DIM info AS string
+ DIM info as string
  do
   if EOF(play_input_file) then
    stop_replaying_input "The end of the input playback file was reached."

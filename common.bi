@@ -93,8 +93,8 @@ DECLARE SUB loadpalette(pal() as RGBcolor, byval palnum as integer)
 DECLARE SUB savepalette(pal() as RGBcolor, byval palnum as integer)
 DECLARE SUB convertpalette(oldpal() as integer, newpal() as RGBcolor)
 
-DECLARE FUNCTION createminimap OVERLOAD (map() as TileMap, tilesets() as TilesetData ptr, byref zoom as integer = -1) as Frame PTR
-DECLARE FUNCTION createminimap OVERLOAD (layer as TileMap, tileset as TilesetData ptr, byref zoom as integer = -1) as Frame PTR
+DECLARE FUNCTION createminimap OVERLOAD (map() as TileMap, tilesets() as TilesetData ptr, byref zoom as integer = -1) as Frame ptr
+DECLARE FUNCTION createminimap OVERLOAD (layer as TileMap, tileset as TilesetData ptr, byref zoom as integer = -1) as Frame ptr
 DECLARE SUB animatetilesets (tilesets() as TilesetData ptr)
 DECLARE SUB cycletile (tanim_state() as TileAnimState, tastuf() as integer)
 DECLARE SUB loadtilesetdata (tilesets() as TilesetData ptr, byval layer as integer, byval tilesetnum as integer, byval lockstep as integer = YES)
@@ -177,7 +177,7 @@ DECLARE FUNCTION os_shell_move(src as string, dest as string) as integer
 
 DECLARE SUB create_default_menu(menu as MenuDef)
 
-DECLARE FUNCTION bound_arg(byval n as integer, byval min as integer, byval max as integer, argname as ZSTRING PTR, context as ZSTRING PTR=nulzstr, byval fromscript as integer=YES, byval errlvl as scriptErrEnum = serrBound) as integer
+DECLARE FUNCTION bound_arg(byval n as integer, byval min as integer, byval max as integer, argname as zstring ptr, context as zstring ptr=nulzstr, byval fromscript as integer=YES, byval errlvl as scriptErrEnum = serrBound) as integer
 DECLARE SUB reporterr(msg as string, byval errlvl as scriptErrEnum = serrBadOp)
 
 DECLARE FUNCTION load_tag_name (byval index as integer) as string
@@ -188,7 +188,7 @@ DECLARE FUNCTION tag_is_autoset(byval tag_id as integer) as integer
 DECLARE FUNCTION describe_tag_autoset_places(byval tag_id as integer) as string
 DECLARE FUNCTION onoroff (byval n as integer) as string
 DECLARE FUNCTION yesorno (byval n as integer, yes_cap as string="YES", no_cap as string="NO") as string
-DECLARE FUNCTION format_percent (byval float as DOUBLE, byval sigfigs as integer = 5) as string
+DECLARE FUNCTION format_percent (byval float as double, byval sigfigs as integer = 5) as string
 
 DECLARE FUNCTION enter_space_click (state as MenuState) as integer
 DECLARE FUNCTION enter_or_space () as integer

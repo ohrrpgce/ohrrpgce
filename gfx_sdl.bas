@@ -27,7 +27,7 @@ include_windows_bi()
 '/
 
 'Not extern C
-EXTERN running_as_slave AS INTEGER
+EXTERN running_as_slave as integer
 
 EXTERN "C"
 
@@ -63,38 +63,38 @@ DECLARE SUB sdlCocoaMinimise()
 
 #ENDIF
 
-DIM SHARED zoom AS INTEGER = 2
-DIM SHARED zoom_has_been_changed AS INTEGER = NO
-DIM SHARED remember_zoom AS INTEGER = -1   'We may change the zoom when fullscreening, so remember it
-DIM SHARED smooth AS INTEGER = 0
-DIM SHARED screensurface AS SDL_Surface PTR = NULL
-DIM SHARED screenbuffer AS SDL_Surface PTR = NULL
-DIM SHARED windowedmode AS BOOL = YES
-DIM SHARED resizable AS INTEGER = NO
-DIM SHARED resizerequested AS INTEGER = NO
-DIM SHARED resizerequest AS XYPair
-DIM SHARED remember_windowtitle AS STRING
-DIM SHARED rememmvis AS INTEGER = 1
-DIM SHARED keystate AS Uint8 PTR = NULL
-DIM SHARED joystickhandles(7) AS SDL_Joystick PTR
-DIM SHARED sdlpalette(0 TO 255) AS SDL_Color
-DIM SHARED framesize AS XYPair
-DIM SHARED dest_rect AS SDL_Rect
-DIM SHARED mouseclipped AS INTEGER = NO   'Whether we are ACTUALLY clipped
-DIM SHARED forced_mouse_clipping AS INTEGER = NO
+DIM SHARED zoom as integer = 2
+DIM SHARED zoom_has_been_changed as integer = NO
+DIM SHARED remember_zoom as integer = -1   'We may change the zoom when fullscreening, so remember it
+DIM SHARED smooth as integer = 0
+DIM SHARED screensurface as SDL_Surface ptr = NULL
+DIM SHARED screenbuffer as SDL_Surface ptr = NULL
+DIM SHARED windowedmode as bool = YES
+DIM SHARED resizable as integer = NO
+DIM SHARED resizerequested as integer = NO
+DIM SHARED resizerequest as XYPair
+DIM SHARED remember_windowtitle as STRING
+DIM SHARED rememmvis as integer = 1
+DIM SHARED keystate as Uint8 ptr = NULL
+DIM SHARED joystickhandles(7) as SDL_Joystick ptr
+DIM SHARED sdlpalette(0 TO 255) as SDL_Color
+DIM SHARED framesize as XYPair
+DIM SHARED dest_rect as SDL_Rect
+DIM SHARED mouseclipped as integer = NO   'Whether we are ACTUALLY clipped
+DIM SHARED forced_mouse_clipping as integer = NO
 'These were the args to the last call to io_mouserect
-DIM SHARED remember_mouserect AS RectPoints = ((-1, -1), (-1, -1))
+DIM SHARED remember_mouserect as RectPoints = ((-1, -1), (-1, -1))
 'These are the actual zoomed clip bounds
-DIM SHARED AS INTEGER mxmin = -1, mxmax = -1, mymin = -1, mymax = -1
-DIM SHARED AS INTEGER privatemx, privatemy, lastmx, lastmy
-DIM SHARED keybdstate(127) AS INTEGER  '"real"time keyboard array
-DIM SHARED input_buffer AS WSTRING * 128
-DIM SHARED mouseclicks AS INTEGER
+DIM SHARED as integer mxmin = -1, mxmax = -1, mymin = -1, mymax = -1
+DIM SHARED as integer privatemx, privatemy, lastmx, lastmy
+DIM SHARED keybdstate(127) as integer  '"real"time keyboard array
+DIM SHARED input_buffer as wstring * 128
+DIM SHARED mouseclicks as integer
 DIM SHARED virtual_keyboard_shown as bool = NO
 
 END EXTERN 'weirdness
 'Translate SDL scancodes into a OHR scancodes
-DIM SHARED scantrans(0 to 322) AS INTEGER
+DIM SHARED scantrans(0 to 322) as integer
 scantrans(SDLK_UNKNOWN) = 0
 scantrans(SDLK_BACKSPACE) = scBackspace
 scantrans(SDLK_TAB) = scTab
@@ -295,7 +295,7 @@ SUB select_zoom_automatically(byval w as integer, byval h as integer)
 END SUB
 
 FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
-  DIM flags AS Uint32 = 0
+  DIM flags as Uint32 = 0
   IF resizable THEN flags = flags OR SDL_RESIZABLE
   IF windowedmode = NO THEN
     flags = flags OR SDL_FULLSCREEN
@@ -475,7 +475,7 @@ SUB gfx_sdl_8bit_update_screen()
 END SUB
 
 SUB gfx_sdl_setpal(byval pal as RGBcolor ptr)
-  DIM i AS INTEGER
+  DIM i as integer
   FOR i = 0 TO 255
     sdlpalette(i).r = pal[i].r
     sdlpalette(i).g = pal[i].g
@@ -659,7 +659,7 @@ SUB gfx_sdl_process_events()
         post_terminate_signal
       CASE SDL_KEYDOWN
         keycombos_logic(evnt)
-        DIM AS INTEGER key = scantrans(evnt.key.keysym.sym)
+        DIM as integer key = scantrans(evnt.key.keysym.sym)
         IF LEN(input_buffer) >= 127 THEN input_buffer = RIGHT(input_buffer, 126)
         input_buffer += WCHR(evnt.key.keysym.unicode_)
         'lowest bit is now set in io_keybits, from SDL_GetKeyState
@@ -667,7 +667,7 @@ SUB gfx_sdl_process_events()
         IF key THEN keybdstate(key) = 2
         'debuginfo "key down: " & evnt.key.keysym.sym & " -> " & key & " U " & evnt.key.keysym.unicode_
       CASE SDL_KEYUP
-        DIM AS INTEGER key = scantrans(evnt.key.keysym.sym)
+        DIM as integer key = scantrans(evnt.key.keysym.sym)
         IF key THEN keybdstate(key) AND= NOT 1
       CASE SDL_MOUSEBUTTONDOWN
         'note SDL_GetMouseState is still used, while SDL_GetKeyState isn't
@@ -728,7 +728,7 @@ SUB io_sdl_waitprocessing()
   update_state()
 END SUB
 
-SUB io_sdl_keybits (BYVAL keybdarray as integer ptr)
+SUB io_sdl_keybits (byval keybdarray as integer ptr)
   FOR a as integer = 0 TO &h7f
     keybdarray[a] = keybdstate(a)
     keybdstate(a) = keybdstate(a) and 1
@@ -737,7 +737,7 @@ SUB io_sdl_keybits (BYVAL keybdarray as integer ptr)
   'calling SHELL on Windows when not compiled with -s console seems to cause SDL to not send
   'key up events for currently held keys, so we have to abandon the events-only scheme
   'FIXME: this workaround did not work, so now we can un-abandon events-only
-  DIM keystate AS UINT8 PTR = NULL
+  DIM keystate as uint8 ptr = NULL
   keystate = SDL_GetKeyState(NULL)
   FOR a as integer = 0 TO 322
     IF keystate[a] THEN
@@ -820,9 +820,9 @@ FUNCTION fix_buttons(byval buttons as integer) as integer
 END FUNCTION
 
 FUNCTION update_mouse() as integer
-  DIM x AS INTEGER
-  DIM y AS INTEGER
-  DIM buttons AS Uint8
+  DIM x as integer
+  DIM y as integer
+  DIM buttons as Uint8
 
   buttons = SDL_GetMouseState(@x, @y)
   IF SDL_GetAppState() AND SDL_APPINPUTFOCUS THEN

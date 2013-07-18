@@ -110,7 +110,7 @@ SUB distribute_game ()
 
  append_simplemenu_item menu, "Export README text file", , , distmenuREADME
 
- DIM st AS MenuState
+ DIM st as MenuState
  init_menu_state st, cast(BasicMenuItem vector, menu)
 
  DO
@@ -187,7 +187,7 @@ SUB edit_distrib_info ()
  append_simplemenu_item menu, "Copyright year: " & distinfo.copyright_year
  append_simplemenu_item menu, "License: " & distinfo.license
 
- DIM st AS MenuState
+ DIM st as MenuState
  init_menu_state st, cast(BasicMenuItem vector, menu)
  st.need_update = YES
 

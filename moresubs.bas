@@ -847,7 +847,7 @@ FUNCTION teleporttool () as integer
  camera.x = bound(dest.x * zoom - minisize.x \ 2, 0, mapsize.x * zoom - minisize.x)
  camera.y = bound(dest.y * zoom - minisize.y \ 2, 0, mapsize.y * zoom - minisize.y)
 
- DIM menu(1) as STRING
+ DIM menu(1) as string
  menu(0) = "Teleport to map... " & gam.map.id & " " & getmapname(gam.map.id)
  menu(1) = "Teleport to position... X = " & dest.x & " Y = " & dest.y
 

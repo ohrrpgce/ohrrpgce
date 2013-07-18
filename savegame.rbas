@@ -50,7 +50,7 @@ DECLARE SUB new_loadgame(byval slot as integer)
 DECLARE SUB gamestate_from_reload(byval node as Reload.NodePtr)
 DECLARE SUB gamestate_state_from_reload(byval node as Reload.NodePtr)
 DECLARE SUB gamestate_script_from_reload(byval node as Reload.NodePtr)
-DECLARE SUB script_trigger_to_reload(byval parent as Reload.NodePtr, node_name as STRING, byval script_id as integer)
+DECLARE SUB script_trigger_to_reload(byval parent as Reload.NodePtr, node_name as string, byval script_id as integer)
 DECLARE SUB gamestate_globals_from_reload(byval parent as Reload.NodePtr, byval first as integer, byval last as integer)
 DECLARE SUB gamestate_maps_from_reload(byval node as Reload.NodePtr)
 DECLARE SUB gamestate_npcs_from_reload(byval node as Reload.NodePtr, byval map as integer)
@@ -62,7 +62,7 @@ DECLARE SUB gamestate_inventory_from_reload(byval node as Reload.NodePtr)
 DECLARE SUB gamestate_shops_from_reload(byval node as Reload.NodePtr)
 DECLARE SUB gamestate_vehicle_from_reload(byval node as Reload.NodePtr)
 
-DECLARE SUB rsav_warn (s as STRING)
+DECLARE SUB rsav_warn (s as string)
 
 DECLARE SUB new_loadglobalvars (byval slot as integer, byval first as integer, byval last as integer)
 
@@ -79,8 +79,8 @@ DECLARE SUB rebuild_inventory_captions (invent() as InventSlot)
 DECLARE FUNCTION old_save_slot_used (byval slot as integer) as integer
 DECLARE FUNCTION old_count_used_save_slots() as integer
 
-DIM SHARED old_savefile as STRING
-DIM SHARED savedir as STRING
+DIM SHARED old_savefile as string
+DIM SHARED savedir as string
 
 DIM SHARED current_save_slot as integer '--used in rsav_warn
 
@@ -99,7 +99,7 @@ SUB init_save_system()
  
  '--set up new rsav folder
  
- DIM rpg_folder as STRING = trimfilename(sourcerpg)
+ DIM rpg_folder as string = trimfilename(sourcerpg)
  IF diriswriteable(rpg_folder) ANDALSO force_prefsdir_save = NO THEN
   '--default location is same as the RPG file (if possible)
   savedir = trimextension(sourcerpg) & ".saves"
@@ -115,7 +115,7 @@ SUB loadgame (byval slot as integer)
  '--Works under the assumption that resetgame has already been called.
  IF keyval(scLeftShift) = 0 AND keyval(scRightShift) = 0 THEN
   'bypass new loading if shift is held down when you load
-  DIM filename as STRING
+  DIM filename as string
   filename = savedir & SLASH & slot & ".rsav"
   IF isfile(filename) THEN
    'debuginfo "loading awesome new loadgame from " & filename
@@ -129,7 +129,7 @@ END SUB
 SUB loadglobalvars (byval slot as integer, byval first as integer, byval last as integer)
  IF keyval(scLeftShift) = 0 AND keyval(scRightShift) = 0 THEN
   'bypass new loading if shift is held down when you load
-  DIM filename as STRING
+  DIM filename as string
   filename = savedir & SLASH & slot & ".rsav"
   IF isfile(filename) THEN
    'debuginfo "loading awesome new loadglobalvars from " & filename
@@ -178,7 +178,7 @@ SUB savegame (byval slot as integer)
  SetRootNode(doc, node)
  gamestate_to_reload node
  
- DIM filename as STRING
+ DIM filename as string
  filename = savedir & SLASH & slot & ".rsav"
  SerializeBin filename, doc
  
@@ -189,7 +189,7 @@ END SUB
 SUB new_loadgame(byval slot as integer)
  current_save_slot = slot
  
- DIM filename as STRING
+ DIM filename as string
  filename = savedir & SLASH & slot & ".rsav"
 
  IF NOT isfile(filename) THEN
@@ -210,7 +210,7 @@ SUB new_loadgame(byval slot as integer)
  current_save_slot = -1
 END SUB
 
-SUB rsav_warn (s as STRING)
+SUB rsav_warn (s as string)
  debug "Save slot " & current_save_slot & ": " & s
 END SUB
 
@@ -822,7 +822,7 @@ SUB gamestate_script_to_reload(byval parent as Reload.NodePtr)
  SetChildNode(node, "backdrop", gen(genScrBackdrop))
 END SUB
 
-SUB script_trigger_to_reload(byval parent as Reload.NodePtr, node_name as STRING, byval script_id as integer)
+SUB script_trigger_to_reload(byval parent as Reload.NodePtr, node_name as string, byval script_id as integer)
  DIM node as NodePtr
  node = SetChildNode(parent, node_name)
  'IF script_id <= 16383 THEN
@@ -1099,7 +1099,7 @@ END SUB
 SUB saveglobalvars (byval slot as integer, byval first as integer, byval last as integer)
  current_save_slot = slot
  
- DIM filename as STRING
+ DIM filename as string
  filename = savedir & SLASH & slot & ".rsav"
 
  DIM doc as DocPtr
@@ -1152,7 +1152,7 @@ END SUB
 SUB new_loadglobalvars (byval slot as integer, byval first as integer, byval last as integer)
  current_save_slot = slot
  
- DIM filename as STRING
+ DIM filename as string
  filename = savedir & SLASH & slot & ".rsav"
 
  IF NOT isfile(filename) THEN
@@ -1182,7 +1182,7 @@ END SUB
 '-----------------------------------------------------------------------
 
 SUB erase_save_slot (byval slot as integer)
- DIM filename as STRING
+ DIM filename as string
  filename = savedir & SLASH & slot & ".rsav"
  safekill filename
 END SUB
@@ -1190,7 +1190,7 @@ END SUB
 FUNCTION new_save_slot_used (byval slot as integer) as integer
  DIM result as integer = NO
 
- DIM filename as STRING
+ DIM filename as string
  filename = savedir & SLASH & slot & ".rsav"
  
  IF isfile(filename) THEN
@@ -1224,7 +1224,7 @@ SUB new_get_save_slot_preview(byval slot as integer, pv as SaveSlotPreview)
 
  pv.valid = NO
 
- DIM filename as STRING
+ DIM filename as string
  filename = savedir & SLASH & slot & ".rsav"
 
  IF NOT isfile(filename) THEN
@@ -1306,7 +1306,7 @@ DIM as integer i, j, o, z
 '--return gen to defaults
 xbload game + ".gen", gen(), "General data is missing from " + sourcerpg
 
-DIM sg as STRING = old_savefile
+DIM sg as string = old_savefile
 setpicstuf buffer(), 30000, -1
 loadset sg, slot * 2, 0
 
@@ -1324,7 +1324,7 @@ gam.random_battle_countdown = buffer(5)
 mapx = buffer(7)
 mapy = buffer(8)
 
-DIM gold_str as STRING = ""
+DIM gold_str as string = ""
 FOR i = 0 TO 24
  IF buffer(i + 9) < 0 OR buffer(i + 9) > 255 THEN buffer(i + 9) = 0
  IF buffer(i + 9) > 0 THEN gold_str &= CHR(buffer(i + 9))
@@ -1410,7 +1410,7 @@ FOR i = 0 TO 40
  NEXT o
 NEXT i
 show_load_index z, "exlev"
-DIM exp_str as STRING
+DIM exp_str as string
 FOR i = 0 TO 40
  FOR o = 0 TO 1
   exp_str = ""

@@ -214,7 +214,7 @@ FUNCTION read_PW2_password () as string
  DIM stray(10) as integer
  DIM pass as string = STRING(20, "!")
 
- FOR i AS INTEGER = 0 TO gen(genPW2Length)
+ FOR i as integer = 0 TO gen(genPW2Length)
   setbit stray(), 0, i, readbit(gen(), 200 - 1, gen(200 + i))
  NEXT i
 
@@ -227,7 +227,7 @@ END FUNCTION
 FUNCTION read_PW3_password () as string
  '--read a 17-byte string from GEN at word offset 7
  '--(Note that array2str uses the byte offset not the word offset)
- DIM pass AS STRING
+ DIM pass as STRING
  pass = STRING(17, 0)
  array2str gen(), 14, pass
 
@@ -235,9 +235,9 @@ FUNCTION read_PW3_password () as string
  pass = rotascii(pass, gen(genPW3Rot) * -1)
 
  '-- discard ascii chars lower than 32
- DIM pass2 AS STRING = ""
- FOR i AS INTEGER = 1 TO 17
-  DIM c AS STRING = MID(pass, i, 1)
+ DIM pass2 as string = ""
+ FOR i as integer = 1 TO 17
+  DIM c as string = MID(pass, i, 1)
   IF ASC(c) >= 32 THEN pass2 += c
  NEXT i
 

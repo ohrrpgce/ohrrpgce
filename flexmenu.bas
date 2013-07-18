@@ -1986,7 +1986,7 @@ FUNCTION editflexmenu (nowindex as integer, menutype() as integer, menuoff() as 
 '                     the repr string needed by percent_cond_grabber.
 '                     Limits not yet supported.
 '                     (The condition is stored in 3 consecutive INTs.)
-'           5000-5999=percent_grabber (SINGLE floats), where caption(n-4000) holds
+'           5000-5999=percent_grabber (single floats), where caption(n-4000) holds
 '                     the repr string needed by percent_grabber.
 '                     Limits not yet supported.
 '                     (The single is stored in 2 consecutive INTs.)
@@ -2032,7 +2032,7 @@ SELECT CASE menutype(nowindex)
   changed = percent_cond_grabber(cond, caption(capnum + 1), caption(capnum), -1000.0, 1000.0)
   'debug "cond_grab: ch=" & changed & " type = " & cond.type & " val = " & cond.value &  " off = " & menuoff(nowindex) & " cap = " & caption(capnum + 1)
   SerAttackElementCond cond, datablock(), menuoff(nowindex)
- CASE 5000 TO 5999' SINGLE, as percent
+ CASE 5000 TO 5999' single, as percent
   DIM value as single
   DIM capnum as integer = menutype(nowindex) - 5000
   value = DeSerSingle(datablock(), menuoff(nowindex))
@@ -2128,7 +2128,7 @@ SUB updateflexmenu (mpointer as integer, nowmenu() as string, nowdat() as intege
 '                     the repr string needed by percent_cond_grabber.
 '                     Limits not yet supported.
 '                     (The condition is stored in 3 consecutive INTs.)
-'           5000-5999=percent_grabber (SINGLE floats), where caption(n-4000) holds
+'           5000-5999=percent_grabber (single floats), where caption(n-4000) holds
 '                     the repr string needed by percent_grabber.
 '                     Limits not yet supported.
 '                     (The single is stored in 2 consecutive INTs.)

@@ -342,7 +342,7 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
   'accuracy
   DIM acc as integer = attacker.stat.cur.acc
   DIM dog as integer = target.stat.cur.dog
-  DIM dogm as SINGLE = .25 'dodge modifier
+  DIM dogm as single = .25 'dodge modifier
   IF attack.aim_math = 1 THEN dogm = 0.5
   IF attack.aim_math = 2 THEN dogm = 1.0
   IF attack.aim_math = 4 THEN dogm = 1.25
@@ -421,8 +421,8 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
   IF attack.base_def_stat > 0 AND attack.base_def_stat <= UBOUND(target.stat.cur.sta) + 1 THEN dp = target.stat.cur.sta(attack.base_def_stat - 1)
  
   'calc defense
-  DIM am as SINGLE = 1.0
-  DIM dm as SINGLE = 0.5                    'atk-def*.5
+  DIM am as single = 1.0
+  DIM dm as single = 0.5                    'atk-def*.5
   IF attack.damage_math = 1 THEN am = 0.8  : dm = 0.1 'atk*.8-def*.5
   IF attack.damage_math = 2 THEN am = 1.3 : dm = 1.0  'atk-1.3-def
   IF attack.damage_math = 3 THEN am = 1.0 : dm = 0.0  'atk
@@ -430,7 +430,7 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
   'calc harm
   h = (ap * am) - (dp * dm)
   'Temporarily use floating point
-  DIM harmf as SINGLE = h
+  DIM harmf as single = h
   DIM cure as integer = NO
   DIM immune as integer = NO
  
@@ -658,9 +658,9 @@ FUNCTION liveherocount () as integer
 END FUNCTION
 
 FUNCTION safesubtract (byval number as integer, byval minus as integer) as integer
- DIM longnumber as DOUBLE = number
- DIM longminus as DOUBLE = minus
- DIM longresult as DOUBLE = longnumber - longminus
+ DIM longnumber as double = number
+ DIM longminus as double = minus
+ DIM longresult as double = longnumber - longminus
  IF longresult > 32767 THEN longresult = 32767
  IF longresult < -32768 THEN longresult = -32768
  DIM result as integer = longresult
@@ -736,8 +736,8 @@ SUB battle_target_arrows (byval d as integer, byval axis as integer, bslot() as 
   NEXT i
  END IF
  IF newptr = targ.pointer THEN
-  DIM bestangle as DOUBLE = 999.
-  DIM angle as DOUBLE
+  DIM bestangle as double = 999.
+  DIM angle as double
   FOR i as integer = 0 TO 11
    IF targ.mask(i) AND foredistance(i) > 0 THEN
     angle = ABS(ATAN2(sidedistance(i), foredistance(i)))

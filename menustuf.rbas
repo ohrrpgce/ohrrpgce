@@ -1134,7 +1134,7 @@ SUB sellstuff_refresh(byval last_stuff as integer, byval recordsize as integer, 
 END SUB
 
 'Format one of the strings on the second Status menu screen
-FUNCTION hero_elemental_resist_msg (element as string, damage as SINGLE) as string
+FUNCTION hero_elemental_resist_msg (element as string, damage as single) as string
  DIM raw as string
  IF ABS(damage) < 0.000005 THEN
   raw = readglobalstring(168, "Immune to $E", 30)
@@ -1178,7 +1178,7 @@ END WITH
 DIM elementnames() as string
 getelementnames elementnames()
 
-DIM elementaldmg(maxElements - 1) as SINGLE
+DIM elementaldmg(maxElements - 1) as single
 
 DIM mode as integer = 0
 DIM show_base_stats as bool = NO  'debugging

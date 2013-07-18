@@ -63,7 +63,7 @@ FUNCTION bound (byval n as longint, byval lowest as longint, byval highest as lo
  IF n > highest THEN bound = highest
 END FUNCTION
 
-FUNCTION bound (byval n as DOUBLE, byval lowest as DOUBLE, byval highest as DOUBLE) as DOUBLE
+FUNCTION bound (byval n as double, byval lowest as double, byval highest as double) as double
  bound = n
  IF n < lowest THEN bound = lowest
  IF n > highest THEN bound = highest
@@ -201,25 +201,25 @@ FUNCTION range (number as integer, percent as integer) as integer
  RETURN number + randint((a * 2)) - a
 END FUNCTION
 
-FUNCTION isnan (byval value as DOUBLE) as integer
+FUNCTION isnan (byval value as double) as integer
  RETURN value <> value
 END FUNCTION
 
-FUNCTION isnan (byval value as SINGLE) as integer
+FUNCTION isnan (byval value as single) as integer
  RETURN value <> value
 END FUNCTION
 
-FUNCTION isfinite (byval value as DOUBLE) as integer
+FUNCTION isfinite (byval value as double) as integer
  RETURN DBL_MAX >= value AND value >= -DBL_MAX
 END FUNCTION
 
-FUNCTION isfinite (byval value as SINGLE) as integer
+FUNCTION isfinite (byval value as single) as integer
  RETURN FLT_MAX >= value AND value >= -FLT_MAX
 END FUNCTION
 
 'A fuzzy equivalent to 'iif(value >= low+high/2, 1.0, 0.0)'
 'Swap low,high to reverse the comparison
-FUNCTION fuzzythreshold (byval value as DOUBLE, byval low as DOUBLE, byval high as DOUBLE) as DOUBLE
+FUNCTION fuzzythreshold (byval value as double, byval low as double, byval high as double) as double
  IF low > high THEN
   low = -low
   high = -high
@@ -245,7 +245,7 @@ FUNCTION cstring (s as string) as zstring ptr
  RETURN ret
 END FUNCTION
 
-FUNCTION rpad (s as STRING, pad_char as STRING, size as integer) as STRING
+FUNCTION rpad (s as string, pad_char as string, size as integer) as string
  DIM temp as string
  temp = LEFT(s, size)
  RETURN temp & STRING(size - LEN(temp), pad_char)
@@ -253,7 +253,7 @@ END FUNCTION
 
 'Like INSTR, but return the n-th match
 'Returns 0 if not found
-FUNCTION Instr_nth (byval start as integer, s as STRING, substring as STRING, byval nth as integer = 1) as integer
+FUNCTION Instr_nth (byval start as integer, s as string, substring as string, byval nth as integer = 1) as integer
  DIM temp as integer = start - 1
  IF nth < 1 THEN RETURN 0
  FOR n as integer = 1 TO nth
@@ -265,7 +265,7 @@ END FUNCTION
 
 'Like INSTR without start point, but return the n-th match
 'Returns 0 if not found
-FUNCTION Instr_nth (s as STRING, substring as STRING, byval nth as integer = 1) as integer
+FUNCTION Instr_nth (s as string, substring as string, byval nth as integer = 1) as integer
  RETURN Instr_nth(1, s, substring, nth)
 END FUNCTION
 
@@ -282,7 +282,7 @@ FUNCTION length_matching(s1 as string, s2 as string) as integer
  RETURN ret
 END FUNCTION
 
-FUNCTION is_int (s as STRING) as integer
+FUNCTION is_int (s as string) as integer
  'Even stricter than str2int (doesn't accept "00")
  DIM n as integer = VALINT(s)
  RETURN (n <> 0 ANDALSO n <> VALINT(s + "1")) ORELSE s = "0"
@@ -292,11 +292,11 @@ FUNCTION str2int (stri as string, default as integer=0) as integer
  'Use this in contrast to QuickBasic's VALINT.
  'it is stricter, and returns a default on failure
  DIM n as integer = 0
- DIM s as STRING = LTRIM(stri)
+ DIM s as string = LTRIM(stri)
  IF s = "" THEN RETURN default
  DIM sign as integer = 1
 
- DIM ch as STRING
+ DIM ch as string
  DIM c as integer
  FOR i as integer = 1 TO LEN(s)
   ch = MID(s, i, 1)
@@ -323,10 +323,10 @@ FUNCTION rotascii (s as string, o as integer) as string
  RETURN temp
 END FUNCTION
 
-FUNCTION escape_string(s as STRING, chars as STRING) as STRING
+FUNCTION escape_string(s as string, chars as string) as string
  DIM i as integer
- DIM c as STRING
- DIM result as STRING
+ DIM c as string
+ DIM result as string
  result = ""
  FOR i = 1 to LEN(s)
   c = MID(s, i, 1)
@@ -524,13 +524,13 @@ END FUNCTION
 
 '------------- End allmodex stack -------------
 
-FUNCTION sign_string(n as integer, neg_str as STRING, zero_str as STRING, pos_str as STRING) as STRING
+FUNCTION sign_string(n as integer, neg_str as string, zero_str as string, pos_str as string) as string
  IF n < 0 THEN RETURN neg_str
  IF n > 0 THEN RETURN pos_str
  RETURN zero_str
 END FUNCTION
 
-FUNCTION zero_default(n as integer, zerocaption as STRING="default", displayoffset as integer = 0) as STRING
+FUNCTION zero_default(n as integer, zerocaption as string="default", displayoffset as integer = 0) as string
  IF n = 0 THEN RETURN zerocaption
  RETURN "" & (n + displayoffset)
 END FUNCTION
@@ -624,13 +624,13 @@ SUB flusharray (array() as integer, byval size as integer=-1, byval value as int
  NEXT i
 END SUB
 
-SUB str_array_append (array() as STRING, s as STRING)
- REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) + 1) as STRING
+SUB str_array_append (array() as string, s as string)
+ REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) + 1) as string
  array(UBOUND(array)) = s
 END SUB
 
-FUNCTION str_array_findcasei (array() as STRING, value as STRING) as integer
- DIM valuei as STRING = LCASE(value)
+FUNCTION str_array_findcasei (array() as string, value as string) as integer
+ DIM valuei as string = LCASE(value)
  FOR i as integer = LBOUND(array) TO UBOUND(array)
   IF LCASE(array(i)) = value THEN RETURN i
  NEXT
@@ -642,7 +642,7 @@ SUB int_array_append (array() as integer, byval k as integer)
  array(UBOUND(array)) = k
 END SUB
 
-SUB intstr_array_append (array() as IntStrPair, byval k as integer, s as STRING)
+SUB intstr_array_append (array() as IntStrPair, byval k as integer, s as string)
  REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) + 1)
  array(UBOUND(array)).i = k
  array(UBOUND(array)).s = s
@@ -1251,10 +1251,10 @@ END FUNCTION
 'filelist() must be resizeable; it'll be resized so that LBOUND = -1, with files, if any, in filelist(0) up
 'By default, find all files in directory, otherwise namemask is a case-insensitive filename mask
 'filetype is one of fileTypeFile, fileTypeDirectory
-SUB findfiles (directory as STRING, namemask as STRING = "", byval filetype as integer = fileTypeFile, byval findhidden as integer = 0, filelist() as STRING)
-  DIM as STRING searchdir = directory
+SUB findfiles (directory as string, namemask as string = "", byval filetype as integer = fileTypeFile, byval findhidden as integer = 0, filelist() as string)
+  DIM as string searchdir = directory
   IF RIGHT(searchdir, 1) <> SLASH THEN searchdir += SLASH
-  DIM as STRING nmask = anycase(namemask)
+  DIM as string nmask = anycase(namemask)
   IF LEN(nmask) = 0 THEN nmask = ALLFILES
   REDIM filelist(-1 TO -1)
   IF tmpdir = "" THEN fatalerror "findfiles: tmpdir not set"
@@ -1277,7 +1277,7 @@ SUB findfiles (directory as STRING, namemask as STRING = "", byval filetype as i
   DIM as integer f1
   f1 = FreeFile
   OPEN outfilename FOR INPUT as #f1
-  DIM filename as STRING
+  DIM filename as string
   DO UNTIL EOF(f1)
     LINE INPUT #f1, filename
     'Filter out some Linux dirs that we should not be browsing around in.
@@ -1295,7 +1295,7 @@ SUB findfiles (directory as STRING, namemask as STRING = "", byval filetype as i
   'However, once we want to support more than just Latin-1 filenames, we will have to rewrite
   'this properly, using winapi calls, because FB's DIR has no support.
 
-  DIM foundfile as STRING
+  DIM foundfile as string
   DIM attrib as integer
   /'---DOS directory attributes
   CONST attribReadOnly = 1
@@ -1314,7 +1314,7 @@ SUB findfiles (directory as STRING, namemask as STRING = "", byval filetype as i
   IF findhidden THEN attrib += 2
   foundfile = DIR(searchdir + nmask, attrib)
   IF foundfile = "" THEN EXIT SUB
-  REDIM tempfilelist(-1 TO -1) as STRING
+  REDIM tempfilelist(-1 TO -1) as string
   DO UNTIL foundfile = ""
     str_array_append tempfilelist(), foundfile
     foundfile = DIR '("", attrib)
@@ -1398,7 +1398,7 @@ SUB killdir(directory as string, recurse as integer=0)
   END IF
   IF RMDIR(directory) THEN
     'errno would get overwritten while building the error message
-    DIM err_string as STRING = *get_sys_err_string()
+    DIM err_string as string = *get_sys_err_string()
     debug "Could not rmdir(" & directory & "): " & err_string
   END IF
 '  IF isdir(directory) THEN
@@ -1417,7 +1417,7 @@ FUNCTION makedir (directory as string) as integer
 #endif
   IF MKDIR(directory) THEN
     'errno would get overwritten while building the error message
-    DIM err_string as STRING = *get_sys_err_string()
+    DIM err_string as string = *get_sys_err_string()
     'The heck? On Windows at least, MKDIR throws this false error
 #ifdef __FB_WIN32__
     IF err_string = "File exists" THEN RETURN 0
@@ -1441,7 +1441,7 @@ SUB safekill (filename as string)
   IF exists THEN
    'KILL is a thin wrapper around C's remove(), however by calling it directly we can get a textual error message
    IF remove(strptr(filename)) THEN
-    DIM err_string as STRING = *get_sys_err_string()
+    DIM err_string as string = *get_sys_err_string()
     debug "Could not remove(" & filename & "): " & err_string
 
     'NOTE: on Windows, even if deletion fails because the file is open, the file will be marked

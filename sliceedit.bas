@@ -48,7 +48,7 @@ ENUM EditRuleMode
 END ENUM
 
 TYPE EditRule
-  dataptr as ANY PTR  'It scares the heck out of me that I think this is the best solution
+  dataptr as any ptr  'It scares the heck out of me that I think this is the best solution
   mode as EditRuleMode
   lower as integer
   upper as integer
@@ -114,8 +114,8 @@ DECLARE SUB slice_editor_paste(byref ses as SliceEditState, byval slice as Slice
 DECLARE FUNCTION slice_edit_detail_browse_slicetype(byref slice_type as SliceTypes) as SliceTypes
 
 'Slice EditRule convenience functions
-DECLARE SUB sliceed_rule(rules() as EditRule, helpkey as String, mode as EditRuleMode, byval dataptr as ANY PTR, byval lower as integer=0, byval upper as integer=0, byval group as integer = 0)
-DECLARE SUB sliceed_rule_tog(rules() as EditRule, helpkey as String, byval dataptr as integer PTR, byval group as integer=0)
+DECLARE SUB sliceed_rule(rules() as EditRule, helpkey as String, mode as EditRuleMode, byval dataptr as any ptr, byval lower as integer=0, byval upper as integer=0, byval group as integer = 0)
+DECLARE SUB sliceed_rule_tog(rules() as EditRule, helpkey as String, byval dataptr as integer ptr, byval group as integer=0)
 DECLARE SUB sliceed_rule_none(rules() as EditRule, helpkey as String, byval group as integer = 0)
 
 '==============================================================================
@@ -554,18 +554,18 @@ SUB slice_edit_detail_keys (byref state as MenuState, sl as Slice Ptr, rootsl as
  DIM rule as EditRule = rules(state.pt)
  SELECT CASE rule.mode
   CASE erIntgrabber
-   DIM n as integer PTR = rule.dataptr
+   DIM n as integer ptr = rule.dataptr
    IF intgrabber(*n, rule.lower, rule.upper, , , , , NO) THEN  'Don't autoclamp
     state.need_update = YES
    END IF
   CASE erToggle
-   DIM n as integer PTR = rule.dataptr
+   DIM n as integer ptr = rule.dataptr
    IF intgrabber(*n, -1, 0) THEN
     state.need_update = YES
    END IF
    IF enter_space_click(state) THEN *n = NOT *n : state.need_update = YES
   CASE erStrgrabber
-   DIM s as string PTR = rule.dataptr
+   DIM s as string ptr = rule.dataptr
    IF keyval(scENTER) > 1 THEN
     *s = multiline_string_editor(*s, "sliceedit_text_multiline")
     state.need_update = YES
@@ -613,14 +613,14 @@ SUB slice_edit_detail_keys (byref state as MenuState, sl as Slice Ptr, rootsl as
  END IF
  IF rule.group AND slgrPICKCOL THEN
   IF enter_space_click(state) THEN
-   DIM n as integer PTR = rule.dataptr
+   DIM n as integer ptr = rule.dataptr
    *n = color_browser_256(*n)
    state.need_update = YES
   END IF
  END IF
  IF rule.group AND slgrPICKLOOKUP THEN
   IF enter_space_click(state) THEN
-   DIM n as integer PTR = rule.dataptr
+   DIM n as integer ptr = rule.dataptr
    *n = edit_slice_lookup_codes(slicelookup(), *n)
    state.need_update = YES
   END IF
@@ -685,7 +685,7 @@ SUB slice_editor_xy (byref x as integer, byref y as integer, byval focussl as Sl
  LOOP
 END SUB
 
-SUB sliceed_rule(rules() as EditRule, helpkey as String, mode as EditRuleMode, byval dataptr as ANY PTR, byval lower as integer=0, byval upper as integer=0, byval group as integer = 0)
+SUB sliceed_rule(rules() as EditRule, helpkey as String, mode as EditRuleMode, byval dataptr as any ptr, byval lower as integer=0, byval upper as integer=0, byval group as integer = 0)
  DIM index as integer = UBOUND(rules) + 1
  REDIM PRESERVE rules(index) as EditRule
  WITH rules(index)
@@ -702,7 +702,7 @@ SUB sliceed_rule_none(rules() as EditRule, helpkey as String, byval group as int
  sliceed_rule rules(), helpkey, erNone, 0, 0, 0, group
 END SUB
 
-SUB sliceed_rule_tog(rules() as EditRule, helpkey as String, byval dataptr as integer PTR, byval group as integer=0)
+SUB sliceed_rule_tog(rules() as EditRule, helpkey as String, byval dataptr as integer ptr, byval group as integer=0)
  sliceed_rule rules(), helpkey, erToggle, dataptr, -1, 0, group
 END SUB
 

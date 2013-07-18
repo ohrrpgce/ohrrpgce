@@ -129,12 +129,12 @@ DECLARE SUB storepal16 (array() as integer, byval aoffset as integer, byval foff
 
 DECLARE SUB loaditemdata (array() as integer, byval index as integer)
 DECLARE SUB saveitemdata (array() as integer, byval index as integer)
-DECLARE FUNCTION LoadOldItemElemental (itembuf() as integer, byval element as integer) as SINGLE
+DECLARE FUNCTION LoadOldItemElemental (itembuf() as integer, byval element as integer) as single
 DECLARE SUB LoadItemElementals (byval index as integer, itemresists() as single)
 DECLARE FUNCTION get_item_stack_size (byval item_id as integer) as integer
 
 DECLARE FUNCTION backcompat_element_dmg (byval weak as integer, byval strong as integer, byval absorb as integer) as double
-DECLARE FUNCTION loadoldenemyresist (array() as integer, byval element as integer) as SINGLE
+DECLARE FUNCTION loadoldenemyresist (array() as integer, byval element as integer) as single
 DECLARE SUB clearenemydata OVERLOAD (enemy as EnemyDef)
 DECLARE SUB clearenemydata OVERLOAD (buf() as integer)
 DECLARE SUB loadenemydata OVERLOAD (array() as integer, byval index as integer, byval altfile as bool = NO)

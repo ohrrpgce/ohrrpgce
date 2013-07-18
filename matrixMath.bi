@@ -6,45 +6,45 @@
 #DEFINE MATRIX_MATH_BI
 
 TYPE Float2
-  x AS SINGLE
-  y AS SINGLE
+  x as single
+  y as single
 END TYPE
 
 TYPE Float3
-  x AS SINGLE
-  y AS SINGLE
-  w AS SINGLE
+  x as single
+  y as single
+  w as single
 END TYPE
 
 TYPE Float3x3
-  _11 AS SINGLE : _12 AS SINGLE : _13 AS SINGLE
-  _21 AS SINGLE : _22 AS SINGLE : _23 AS SINGLE
-  _31 AS SINGLE : _32 AS SINGLE : _33 AS SINGLE
+  _11 as single : _12 as single : _13 as single
+  _21 as single : _22 as single : _23 as single
+  _31 as single : _32 as single : _33 as single
 END TYPE
 
 TYPE Rect
-  left AS LONG
-  top AS LONG
-  right AS LONG
-  bottom AS LONG
+  left as LONG
+  top as LONG
+  right as LONG
+  bottom as LONG
 END TYPE
 
 EXTERN "C"
 
 'transforms from local coordinates to the specified scale, rotation (clockwise by "angle"), and translation; assembled in manner of Scale-Rotate-Transform (SRT)
-DECLARE SUB matrixLocalTransform( BYVAL pMatrixOut AS float3x3 ptr, BYVAL angle AS SINGLE, BYREF scale AS float2, BYREF position AS float2 )
+DECLARE SUB matrixLocalTransform( byval pMatrixOut as float3x3 ptr, byval angle as single, byref scale as float2, byref position as float2 )
 
 'performs the transform from the 320x200 resolution limitation to whatever the client size actually is; for back-compat
-DECLARE SUB matrixOldClientTransform( BYVAL pMatrixOut AS float3x3 ptr, BYVAL clientWidth AS SINGLE, BYVAL clientHeight AS SINGLE )
+DECLARE SUB matrixOldClientTransform( byval pMatrixOut as float3x3 ptr, byval clientWidth as single, byval clientHeight as single )
 
 'multiplies matrices together; pMatrixOut = A x B
-DECLARE SUB matrixMultiply( BYVAL pMatrixOut AS float3x3 ptr, BYREF A AS float3x3, BYREF B AS float3x3 )
+DECLARE SUB matrixMultiply( byval pMatrixOut as float3x3 ptr, byref A as float3x3, byref B as float3x3 )
 
 'transforms all the vectors in pVec3ArrayIn into pVec3ArrayOut by the "transformMatrix"
-DECLARE SUB vec3Transform( BYVAL pVec3ArrayOut AS float3 ptr, BYVAL destSize AS INTEGER, BYVAL pVec3ArrayIn AS float3 ptr, BYVAL srcSize AS INTEGER, BYREF transformMatrix AS float3x3 )
+DECLARE SUB vec3Transform( byval pVec3ArrayOut as float3 ptr, byval destSize as integer, byval pVec3ArrayIn as float3 ptr, byval srcSize as integer, byref transformMatrix as float3x3 )
 
 'generates the local coordinate corners of a quad based on the width and height of the passed in "surfaceRect"; to be used as input to vec3Transform
-DECLARE SUB vec3GenerateCorners( BYVAL pVecArrayOut AS float3 ptr, BYVAL destSize AS INTEGER, BYREF surfaceRect AS Rect )
+DECLARE SUB vec3GenerateCorners( byval pVecArrayOut as float3 ptr, byval destSize as integer, byref surfaceRect as Rect )
 
 END EXTERN
 

@@ -245,7 +245,7 @@ END SUB
 
 'Returns whether the string has changed
 FUNCTION strgrabber (s as string, byval maxl as integer) as integer
- DIM old as STRING = s
+ DIM old as string = s
 
  '--BACKSPACE support
  IF keyval(scBackspace) > 1 AND LEN(s) > 0 THEN s = LEFT(s, LEN(s) - 1)
@@ -308,7 +308,7 @@ SUB cleanuptemp
    ELSE
     'but for preunlumped games only delete specific files
     'FIXME: aside from upgrade(), are any files actually created in workingdir? We definitely SHOULD NOT do that!
-    DIM file_ext as STRING = justextension(filelist(i))
+    DIM file_ext as string = justextension(filelist(i))
     IF file_ext = "tmp" THEN
      safekill workingdir + SLASH + filelist(i)
     END IF

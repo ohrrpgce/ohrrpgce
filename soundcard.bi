@@ -810,7 +810,7 @@ end type
 '  * Midi voice messages
 '  */
 
-dim _seqbuf(2048) AS UByte
+dim _seqbuf(2048) as UByte
 dim _seqbufptr as integer
 
 #define _CHN_VOICE(dev, event, chn, note, parm) _
