@@ -3744,7 +3744,8 @@ END SUB
 SUB fontedit_import_font(font() as integer)
 
  STATIC default as string
- DIM newfont as string = browse(0, default, "*.ohf", "", , "browse_font")
+ DIM newfont as string
+ newfont = browse(0, default, "*.ohf", "", , "browse_font")
  
  IF newfont <> "" THEN
   writeablecopyfile newfont, game & ".fnt"

@@ -429,7 +429,7 @@ shared_modules += ['allmodex',
                    'slices']
 
 edit_modules = ['custom',
-                'customsubs',
+                'customsubs.rbas',
                 'drawing',
                 'subs.rbas',
                 'subs2',
