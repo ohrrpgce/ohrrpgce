@@ -28,6 +28,15 @@ CONST STACK_SIZE_INC = 512 ' in integers
 '#define DEBUG_FILE_IO
 '#endif
 
+
+Type FBSTRING as string
+'Resize a FB string
+Declare Function fb_hStrRealloc Alias "fb_hStrRealloc" (byval s as FBSTRING ptr, byval size as integer, byval preserve as integer) as FBSTRING ptr
+'Resize a FB string or allocate a new one, and mark it temporary (equals SPEED)
+Declare Function fb_hStrAllocTemp Alias "fb_hStrAllocTemp" (byval s as FBSTRING ptr, byval size as integer) as FBSTRING ptr
+
+
+
 'It is very important for this to be populated _before_ any calls to CHDIR
 DIM orig_dir as string
 
@@ -237,12 +246,25 @@ END FUNCTION
 
 '---------------- String operations --------------
 
-'FB will usually produces a NULL ptr when converting an empty string to a zstring ptr,
+'FB will usually produce a NULL ptr when converting an empty string to a zstring ptr,
 'which is not acceptable in C
 FUNCTION cstring (s as string) as zstring ptr
  DIM ret as zstring ptr = strptr(s)
  IF ret = NULL THEN RETURN strptr("")
  RETURN ret
+END FUNCTION
+
+'FB's string assignment will always do a strlen on zstring arguments, (even if you call fb_StrAssign
+'manually with the right length!) so if the source is a binary blob containing null bytes then
+'this function should be used instead.
+FUNCTION blob_to_string (byval str_ptr as zstring ptr, byval str_len as integer) as string
+ DIM ret as string
+ 'Consider this a testcase for "Can you trust TMC to implement a FreeBASIC compiler?"
+ 'OK, OK, you could just do ret = SPACE(str_len), but this is faster
+ fb_hStrAllocTemp(@ret, str_len)
+ memcpy(@ret[0], str_ptr, str_len)
+ ret[str_len] = 0
+ return ret
 END FUNCTION
 
 FUNCTION rpad (s as string, pad_char as string, size as integer) as string

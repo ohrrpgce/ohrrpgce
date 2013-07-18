@@ -24,12 +24,6 @@
 #include "lumpfile.bi"
 #include "common_base.bi"
 
-Type FBSTRING as string
-'Resize a FB string
-Declare Function fb_hStrRealloc Alias "fb_hStrRealloc" (byval s as FBSTRING ptr, byval size as integer, byval preserve as integer) as FBSTRING ptr
-'Resize a FB string or allocate a new one, and mark it temporary (equals SPEED)
-Declare Function fb_hStrAllocTemp Alias "fb_hStrAllocTemp" (byval s as FBSTRING ptr, byval size as integer) as FBSTRING ptr
-
 
 Namespace Reload
 
@@ -1333,17 +1327,9 @@ Function GetString(byval node as nodeptr) as string
 		case rltNull
 			return ""
 		case rltString
-			'return *node->str
-			'FB's string assignment will always do a strlen on zstring arguments, (even if you call fb_StrAssign
-			'manually with the right length!) so we need to manually copy the data into a string, in case it
-			'is a binary blob containing null bytes
-			dim ret as string
-			'Consider this a testcase for "Can you trust TMC to implement a FreeBASIC compiler?"
-			'OK, OK, you could just do ret = space(node->strSize), but this is faster
-			fb_hStrAllocTemp(@ret, node->strSize)
-			memcpy(@ret[0], node->str, node->strSize)
-			ret[node->strSize] = 0
-			return ret
+			'FB's string assignment will always do a strlen on zstring arguments, so we need to
+			'manually copy the data into a string, in case it is a binary blob containing null bytes
+			return blob_to_string(node->str, node->strSize)
 		case else
 			return "Unknown value: " & node->nodeType
 	end select
