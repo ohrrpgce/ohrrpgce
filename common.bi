@@ -275,6 +275,7 @@ EXTERN fadestate as integer
 EXTERN master() as RGBcolor
 EXTERN current_font() as integer
 EXTERN gen() as integer
+EXTERN gen_reld_doc as DocPtr
 EXTERN fmvol as integer
 EXTERN sprite_sizes() as SpriteSize
 EXTERN statnames() as string

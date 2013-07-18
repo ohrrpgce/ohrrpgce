@@ -3318,25 +3318,46 @@ SUB write_engine_version_node(byval parent as NodePtr, nodename as string)
  IF version_branch_revision <> 0 THEN SetChildNode(ch, "branch_revision", version_branch_revision)
 END SUB
 
-'Write new data.
-'NOTE: Assumes general.reld document not currently open!
-'In future we probably will want to have it open and loaded all the time,
-'but for now it merely stores version info which is updated when upgrading
-SUB update_general_data ()
- DIM filename as string = workingdir & SLASH & "general.reld"
- DIM doc as DocPtr
- IF isfile(filename) THEN doc = LoadDocument(filename, optNoDelay)
- IF doc = 0 THEN
-  debuginfo "general.reld not present, creating"
-  doc = CreateDocument()
+FUNCTION get_general_reld() as NodePtr
+'Returns the root node of the general.reld lump.
+'Opens it up if it is not already open.
+ IF gen_reld_doc = 0 THEN
+  'First run, we must open the doc
+  DIM filename as string = workingdir & SLASH & "general.reld"
+  IF isfile(filename) THEN gen_reld_doc = LoadDocument(filename, optNoDelay)
+  IF gen_reld_doc = 0 THEN
+   debuginfo "general.reld not present, creating"
+   gen_reld_doc = CreateDocument()
+  END IF
  END IF
  
  DIM root_node as NodePtr
- root_node = DocumentRoot(doc)
+ root_node = DocumentRoot(gen_reld_doc)
+
  IF root_node = 0 THEN
-  root_node = CreateNode(doc, "general_data")
-  SetRootNode(doc, root_node)
+  root_node = CreateNode(gen_reld_doc, "general_data")
+  SetRootNode(gen_reld_doc, root_node)
  END IF
+
+ write_general_reld()
+ return root_node
+END FUNCTION
+
+SUB write_general_reld()
+'Custom only, writes changes to the general.reld lump
+#ifdef IS_CUSTOM
+ IF gen_reld_doc THEN
+  DIM filename as string = workingdir & SLASH & "general.reld"
+  SerializeBin filename, gen_reld_doc
+ END IF
+#endif
+END SUB
+
+'Write new data.
+SUB update_general_data ()
+
+ DIM root_node as NodePtr
+ root_node = get_general_reld()
 
  DIM vernode as NodePtr
  vernode = root_node."editor_version".ptr
@@ -3354,8 +3375,7 @@ SUB update_general_data ()
   write_engine_version_node(root_node, "editor_version")
  END IF
 
- SerializeBin filename, doc
- FreeDocument doc
+ write_general_reld()
 END SUB
 
 '==========================================================================================
