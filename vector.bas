@@ -12,6 +12,7 @@
  OPTION EXPLICIT
 #endif
 
+#include "config.bi"
 #include "util.bi"
 #include "common_base.bi"
 
@@ -65,15 +66,16 @@ END FUNCTION
 
 
 ' Non-UDT types each require special treatment
-'DEFINE_CUSTOM_VECTOR_TYPE(T,        TID,       CTOR_FUNC, COPY_FUNC,        DELETE_FUNC,  COMPARE_FUNC,     INEQUAL_FUNC, STR_FUNC)
+'DEFINE_CUSTOM_VECTOR_TYPE(T,          TID,         CTOR_FUNC, COPY_FUNC,        DELETE_FUNC,  COMPARE_FUNC,     INEQUAL_FUNC,    STR_FUNC)
 
-DEFINE_CUSTOM_VECTOR_TYPE(integer,   integer,   NULL,      NULL,             NULL,         @integer_compare, NULL,     @integer_str)
-DEFINE_CUSTOM_VECTOR_TYPE(double,    double,    NULL,      NULL,             NULL,         @double_compare,  @double_inequal, @double_str)
-DEFINE_CUSTOM_VECTOR_TYPE(string,    string,    NULL,      @string_copyctor, @string_dtor, @string_compare,  NULL,     @string_str)
+DEFINE_CUSTOM_VECTOR_TYPE(integer,     integer,     NULL,      NULL,             NULL,         @integer_compare, NULL,            @integer_str)
+DEFINE_CUSTOM_VECTOR_TYPE(double,      double,      NULL,      NULL,             NULL,         @double_compare,  @double_inequal, @double_str)
+DEFINE_CUSTOM_VECTOR_TYPE(string,      string,      NULL,      @string_copyctor, @string_dtor, @string_compare,  NULL,            @string_str)
+DEFINE_CUSTOM_VECTOR_TYPE(zstring ptr, zstring_ptr, NULL,      NULL,             NULL,         @strcmp,          NULL,            NULL)
 
-DEFINE_CUSTOM_VECTOR_TYPE(any ptr,   any_ptr,   NULL,      NULL,             NULL,         @integer_compare, NULL,     @ptr_str)
+DEFINE_CUSTOM_VECTOR_TYPE(any ptr,     any_ptr,     NULL,      NULL,             NULL,         @integer_compare, NULL,            @ptr_str)
 'Note: v_copy might change (free) the src if it is temp. An 'any vector' should never contain temps
-'DEFINE_CUSTOM_VECTOR_TYPE(any vector, any_vector, NULL,      @v_copy,          @v_free,      NULL,             NULL,   NULL)
+'DEFINE_CUSTOM_VECTOR_TYPE(any vector, any_vector,  NULL,      @v_copy,          @v_free,      NULL,             NULL,            NULL)
 
 DEFINE_VECTOR_VECTOR_OF(integer, integer)  'integer vector vector
 

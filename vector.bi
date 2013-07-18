@@ -365,6 +365,7 @@ declare function cdecl array_create(byval tbl as typeTable, ...)
 DECLARE_VECTOR_OF_TYPE(integer, integer)
 DECLARE_VECTOR_OF_TYPE(double, double)
 DECLARE_VECTOR_OF_TYPE(string, string)
+DECLARE_VECTOR_OF_TYPE(zstring ptr, zstring_ptr)  'Warning, no deleting, copying or initialisation done (strings assumed to be static)
 DECLARE_VECTOR_OF_TYPE(any ptr, any_ptr)
 
 DECLARE_VECTOR_OF_TYPE(integer vector, integer_vector)

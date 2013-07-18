@@ -35,6 +35,7 @@ typedef struct _dummy_ {int a;} *array_t;
 extern typetable type_table(integer);                // int
 extern typetable type_table(double);                 // double
 extern typetable type_table(string);                 // FBSTRING*
+extern typetable type_table(zstring_ptr);            // char*  (assumed to be static strings!)
 extern typetable type_table(any_ptr);                // void*
 extern typetable type_table(any_vector);             // array_t (vector of void* vectors)
 extern typetable type_table(integer_vector);         // array_t (vector of int vectors)
