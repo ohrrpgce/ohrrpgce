@@ -38,6 +38,8 @@ declare sub SDL_ANDROID_SetScreenKeyboardShown (byval shown as integer)
 declare function SDL_ANDROID_ToggleScreenKeyboardWithoutTextInput() as integer 
 'WARNING: SDL_ANDROID_IsScreenKeyboardShown seems unreliable. Don't use it! It is only declared here to document its existance. see the virtual_keyboard_shown variable instead
 declare function SDL_ANDROID_IsScreenKeyboardShown() as bool
+declare function SDL_ANDROID_IsRunningOnOUYA () as bool
+declare sub SDL_ANDROID_set_java_gamepad_keymap(byval A as integer, byval B as integer, byval C as integer, byval X as integer, byval Y as integer, byval Z as integer, byval L1 as integer, byval R1 as integer, byval L2 as integer, byval R2 as integer)
 #ENDIF
 
 'why is this missing from crt.bi?
@@ -53,6 +55,7 @@ DECLARE SUB update_state()
 DECLARE FUNCTION update_mouse() as integer
 DECLARE SUB set_forced_mouse_clipping(byval newvalue as integer)
 DECLARE SUB internal_set_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
+DECLARE SUB internal_disable_virtual_gamepad()
 
 #IFDEF __FB_DARWIN__
 
@@ -91,6 +94,7 @@ DIM SHARED keybdstate(127) as integer  '"real"time keyboard array
 DIM SHARED input_buffer as wstring * 128
 DIM SHARED mouseclicks as integer
 DIM SHARED virtual_keyboard_shown as bool = NO
+DIM SHARED allow_virtual_gamepad as bool = YES
 
 END EXTERN 'weirdness
 'Translate SDL scancodes into a OHR scancodes
@@ -250,7 +254,7 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
   ''disable capslock/numlock/pause special keypress behaviour
   'putenv("SDL_DISABLE_LOCK_KEYS=1") 'SDL 1.2.14
   'putenv("SDL_NO_LOCK_KEYS=1")      'SDL SVN between 1.2.13 and 1.2.14
-
+  
   IF running_as_slave = NO THEN   'Don't display the window straight on top of Custom's
     putenv("SDL_VIDEO_CENTERED=1")
   ELSE
@@ -278,6 +282,19 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
 
   framesize.w = 320
   framesize.h = 200
+
+#IFDEF __FB_ANDROID__
+ debug "Setting Java gamepad default buttons"
+ SDL_ANDROID_set_java_gamepad_keymap SDLK_RETURN, SDLK_ESCAPE, 0, SDLK_ESCAPE, SDLK_ESCAPE, 0, SDLK_PAGEUP, SDLK_PAGEDOWN, SDLK_HOME, SDLK_END
+ IF SDL_ANDROID_IsRunningOnOUYA() THEN
+  debuginfo "Running on OUYA, disable the virtual gamepad"
+  internal_disable_virtual_gamepad
+ ELSE
+  debuginfo "Not running on OUYA, leave the virtual gamepad visible"
+ END IF
+#ENDIF
+
+
   RETURN gfx_sdl_set_screen_mode()
 END FUNCTION
 
@@ -793,15 +810,26 @@ END SUB
 SUB io_sdl_show_virtual_gamepad()
  'Does nothing on other platforms
 #IFDEF __FB_ANDROID__
- SDL_ANDROID_SetScreenKeyboardShown(YES)
+ if allow_virtual_gamepad then
+  SDL_ANDROID_SetScreenKeyboardShown(YES)
+ else
+  debuginfo "io_sdl_show_virtual_gamepad was supressed because of a previous call to internal_disable_virtual_gamepad"
+ end if
 #ENDIF
 END SUB
 
 SUB io_sdl_hide_virtual_gamepad()
  'Does nothing on other platforms
 #IFDEF __FB_ANDROID__
- 'This does not work for some reason
  SDL_ANDROID_SetScreenKeyboardShown(NO)
+#ENDIF
+END SUB
+
+SUB internal_disable_virtual_gamepad()
+ 'Does nothing on other platforms
+#IFDEF __FB_ANDROID__
+ io_sdl_hide_virtual_gamepad
+ allow_virtual_gamepad = NO
 #ENDIF
 END SUB
 
