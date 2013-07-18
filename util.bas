@@ -246,10 +246,9 @@ FUNCTION cstring (s as string) as zstring ptr
 END FUNCTION
 
 FUNCTION rpad (s as STRING, pad_char as STRING, size as integer) as STRING
- DIM result as STRING
- result = LEFT(s, size)
- WHILE LEN(result) < size: result = result & pad_char: WEND
- RETURN result
+ DIM temp as string
+ temp = LEFT(s, size)
+ RETURN temp & STRING(size - LEN(temp), pad_char)
 END FUNCTION
 
 'Like INSTR, but return the n-th match
