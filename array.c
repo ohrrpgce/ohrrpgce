@@ -312,7 +312,7 @@ array_t array_extend_d(array_t *dest, array_t *src) {
 	if (!*dest) {
 		throw_error("array_extend_d: dest array not initialised");
 		/*
-		debuginfo("array_extend_d: dest array not initialised");
+		debug(errBug, "array_extend_d: dest array not initialised");
 		*dest = *src;
 		*src = NULL;
 		return *dest;
@@ -369,7 +369,7 @@ void array_assign(array_t *dest, array_t *src) {
 	}
 
 	if (!*src) {
-		debuginfo("array_assign: NULL src");
+		debug(errBug, "array_assign: NULL src");
 		return;
 	}
 
@@ -398,7 +398,7 @@ void array_assign_d(array_t *dest, array_t *src) {
 	}
 
 	if (!*src) {
-		debuginfo("array_assign: NULL src");
+		debug(errBug, "array_assign: NULL src");
 		return;
 	}
 
