@@ -95,13 +95,19 @@ end sub
 '                                       Filesystem
 '==========================================================================================
 
-sub list_files (searchdir as string, nmask as string, byval showhidden as bool, outfilename as string)
-	'This sub is only used on unix! see os_unix.c
-end sub
+function list_files (searchdir as string, nmask as string, byval showhidden as bool, outfilename as string) as string vector
+	'This function is only used on unix! see os_unix.c
+	dim ret as string vector
+	v_new ret
+	return v_ret(ret)
+end function
 
-sub list_subdirs (searchdir as string, nmask as string, byval showhidden as bool, outfilename as string)
-	'This sub is only used on unix! see os_unix.c
-end sub
+function list_subdirs (searchdir as string, nmask as string, byval showhidden as bool, outfilename as string) as string vector
+	'This function is only used on unix! see os_unix.c
+	dim ret as string vector
+	v_new ret
+	return v_ret(ret)
+end function
 
 function drivelist (drives() as string) as integer
 	dim drivebuf as zstring * 1000

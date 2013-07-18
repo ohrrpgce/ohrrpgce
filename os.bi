@@ -24,8 +24,8 @@ declare sub external_log (msg as string)
 'Actually in filelayer.cpp
 declare function copyfile(source as string, destination as string) as integer
 
-declare sub list_files (searchdir as string, nmask as string, byval showhidden as bool, outfilename as string)
-declare sub list_subdirs (searchdir as string, nmask as string, byval showhidden as bool, outfilename as string)
+declare function list_files (searchdir as string, nmask as string, byval showhidden as bool) as string vector
+declare function list_subdirs (searchdir as string, nmask as string, byval showhidden as bool) as string vector
 
 declare function drivelist (d() as string) as integer
 declare function drivelabel (drive as string) as string

@@ -11,7 +11,7 @@
 void init_runtime() {
 	// Needed for mbstowcs
 	if (!setlocale(LC_ALL, "")) {
-		// This will actually end up in ?_debug_archive.txt ...
-		debug(2, "setlocale failed");
+		// This will actually end up in ?_debug_archive.txt; see init_runtime in os_unix.c
+		debug(errError, "setlocale failed");
 	}
 }

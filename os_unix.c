@@ -27,6 +27,7 @@
 #include <fnmatch.h>
 #include "common.h"
 #include "os.h"
+#include "array.h"
 
 
 void init_runtime() {
@@ -54,56 +55,64 @@ static long long milliseconds() {
 	return (long long)tv.tv_sec * 1000 + tv.tv_usec / 1000;
 }
 
+// Set an FB string to a C string
+// *fbstr is assumed to be garbage
+void init_fbstring(FBSTRING *fbstr, char *cstr) {
+	fb_StrInit(fbstr, -1, cstr, strlen(cstr), 0);
+}
+
+// Initialise an FB string to a C string
+// *fbstr is assumed to be already initialised
+void set_fbstring(FBSTRING *fbstr, char *cstr) {
+	fb_StrAssign(fbstr, -1, cstr, strlen(cstr), 0);
+}
+
 
 //==========================================================================================
 //                                       Filesystem
 //==========================================================================================
 
-void _list_files_or_subdirs (FBSTRING *searchdir, FBSTRING *nmask, int showhidden, FBSTRING *outfilename, int whichtype) {
+// Returns a string vector
+array_t _list_files_or_subdirs (FBSTRING *searchdir, FBSTRING *nmask, int showhidden, int whichtype) {
 	// whichtype is 0 for files and 1 for directories
 	DIR *dp;
 	dp = opendir(searchdir->data);
 
+	array_t ret = NULL;
+	array_new(&ret, 0, &type_table(string));
+
 	if (dp == NULL) {
 		debug(errError, "list_files: unable to open directory: %s", searchdir->data);
 	} else {
-		FILE *outfp;
-		outfp = fopen(outfilename->data, "w");
-		if (outfp == NULL) {
-			debug(errError, "list_files: unable open output file for writing: %s", outfilename->data);
-		} else {
-			int wcflags = FNM_FILE_NAME | FNM_CASEFOLD;
-			if (!showhidden) {
-				//special handling of leading . if we don't want to see hidden files
-				wcflags = wcflags | FNM_PERIOD;
+		int wcflags = FNM_FILE_NAME | FNM_CASEFOLD;
+		if (!showhidden) {
+			//special handling of leading . if we don't want to see hidden files
+			wcflags = wcflags | FNM_PERIOD;
+		}
+		struct dirent *ep;
+		while ((ep = readdir(dp)) != NULL) {
+			if (whichtype == 0 && ep->d_type == DT_DIR) continue;
+			if (whichtype == 1 && ep->d_type != DT_DIR) continue;
+			if (strcmp(ep->d_name, ".") == 0 || strcmp(ep->d_name, "..") == 0) continue;
+			if (fnmatch(nmask->data, ep->d_name, wcflags) == 0) {
+				//fnmatch returns 0 on a successful match because it hates me :(
+				FBSTRING *newelem = array_expand(&ret, 1);
+				init_fbstring(newelem, ep->d_name);
 			}
-			struct dirent *ep;
-			while ((ep = readdir(dp)) != NULL) {
-				if (whichtype == 0 && ep->d_type == DT_DIR) continue;
-				if (whichtype == 1 && ep->d_type != DT_DIR) continue;
-				if (strcmp(ep->d_name, ".") == 0 || strcmp(ep->d_name, "..") == 0) continue;
-				if (fnmatch(nmask->data, ep->d_name, wcflags) == 0) {
-					//fnmatch returns 0 on a successful match because it hates me :(
-					fputs(ep->d_name, outfp);
-					if (whichtype == 1) {
-						//Indicate subdirectories with a trailing slash
-						fputs("/", outfp);
-					}
-					fputs("\n", outfp);
-				}
-			}
-			(void) fclose(outfp);
 		}
 		(void) closedir (dp);
 	}
+	return array_temp(ret);
 }
 
-void list_files (FBSTRING *searchdir, FBSTRING *nmask, int showhidden, FBSTRING *outfilename) {
-	_list_files_or_subdirs(searchdir, nmask, showhidden, outfilename, 0);
+// Returns a string vector
+array_t list_files (FBSTRING *searchdir, FBSTRING *nmask, int showhidden) {
+	return _list_files_or_subdirs(searchdir, nmask, showhidden, 0);
 }
 
-void list_subdirs (FBSTRING *searchdir, FBSTRING *nmask, int showhidden, FBSTRING *outfilename) {
-	_list_files_or_subdirs(searchdir, nmask, showhidden, outfilename, 1);
+// Returns a string vector
+array_t list_subdirs (FBSTRING *searchdir, FBSTRING *nmask, int showhidden) {
+	return _list_files_or_subdirs(searchdir, nmask, showhidden, 1);
 }
 
 int drivelist (void *drives_array) {

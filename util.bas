@@ -40,7 +40,6 @@ Declare Function fb_hStrAllocTemp Alias "fb_hStrAllocTemp" (byval s as FBSTRING 
 'It is very important for this to be populated _before_ any calls to CHDIR
 DIM orig_dir as string
 
-'tmpdir should be set before calling findfiles
 DIM tmpdir as string
 
 'This is needed for mbstowcs. Placing it here seems like the simplest way to ensure it's run in all utilities
@@ -1279,37 +1278,30 @@ SUB findfiles (directory as string, namemask as string = "", byval filetype as i
   DIM as string nmask = anycase(namemask)
   IF LEN(nmask) = 0 THEN nmask = ALLFILES
   REDIM filelist(-1 TO -1)
-  IF tmpdir = "" THEN fatalerror "findfiles: tmpdir not set"
 #ifdef DEBUG_FILE_IO
   debuginfo "findfiles(directory = " & directory & ", namemask = " & namemask & ", " _
             & IIF_string(filetype = fileTypeFile, "fileTypeFile", "fileTypeDirectory") & ", findhidden = " & findhidden & ")"
 #endif
 
 #ifdef __UNIX__
-  DIM as string outfilename
-
-  outfilename = tmpdir & "findfiles-" & randint(10000) & ".tmp"
+  DIM filenames as string vector
 
   IF filetype = fileTypeDirectory THEN
-   list_subdirs searchdir, nmask, findhidden, outfilename
+    v_move filenames, list_subdirs(searchdir, nmask, findhidden)
   ELSE
-   list_files searchdir, nmask, findhidden, outfilename
+    v_move filenames, list_files(searchdir, nmask, findhidden)
   END IF
+        
+  FOR i as integer = 0 TO v_len(filenames) - 1
+    IF filetype = fileTypeDirectory THEN
+     'Filter out some Linux dirs that we should not be browsing around in.
+     IF filenames[i] = "dev" ORELSE filenames[i] = "proc" ORELSE filenames[i] = "sys" THEN CONTINUE FOR
+     'Maybe we should filter out some other dirs on Mac and on Android?
+    END IF
+    str_array_append filelist(), decode_filename(filenames[i])
+  NEXT
 
-  DIM as integer f1
-  f1 = FreeFile
-  OPEN outfilename FOR INPUT as #f1
-  DIM filename as string
-  DO UNTIL EOF(f1)
-    LINE INPUT #f1, filename
-    'Filter out some Linux dirs that we should not be browsing around in.
-    IF filename = "dev/" ORELSE filename = "proc/" ORELSE filename = "sys/" THEN CONTINUE DO
-    'Maybe we should filter out some other dirs on Mac and on Android?
-    str_array_append filelist(), decode_filename(trimpath(filename))
-  LOOP
-  CLOSE #f1
-  safekill outfilename
-
+  v_free filenames
 
 #else
   'On Windows, non-unicode-enabled programs automatically get their filenames downconverted to Windows-1252,
