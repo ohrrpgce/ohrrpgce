@@ -95,14 +95,14 @@ end sub
 '                                       Filesystem
 '==========================================================================================
 
-function list_files (searchdir as string, nmask as string, byval showhidden as bool, outfilename as string) as string vector
+function list_files (searchdir as string, nmask as string, byval showhidden as bool) as string vector
 	'This function is only used on unix! see os_unix.c
 	dim ret as string vector
 	v_new ret
 	return v_ret(ret)
 end function
 
-function list_subdirs (searchdir as string, nmask as string, byval showhidden as bool, outfilename as string) as string vector
+function list_subdirs (searchdir as string, nmask as string, byval showhidden as bool) as string vector
 	'This function is only used on unix! see os_unix.c
 	dim ret as string vector
 	v_new ret
