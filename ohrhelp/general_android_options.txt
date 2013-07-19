@@ -1,0 +1,15 @@
+The options on this screen only matter if your game is being played on an Android device such as a phone, a tablet, or an OUYA console.
+
+When games are played on a phone or a tablet, a virtual gamepad overlay will appear on the screen with a D-Pad in the bottom left for the arrow keys, and buttons in the bottom-right.
+
+"Disable Virtual Gamepad" allows you to disable this overlay for games that are purely mouse-based. (The virtual gamepad is disabled automatically on OUYA, so you do NOT need to set this option for OUYA compatability)
+
+Some Android devices, such as the OUYA Console or the XPeria Play have gamepads, and most newer android devices can use a USB or Bluetooth controller, such as an XBox or Playstation controller.
+
+Press ENTER to choose a new keyboard key to map to a controller button. 
+
+Press DELETE or BACKSPACE to revert the button back to the default.
+
+It is strongly reccomended to leave button A mapped to ENTER and button B mapped to ESC, this will allow you to navigate menus and text boxes.
+
+Buttons C and Z have no defaults because they don't exist on most controllers.

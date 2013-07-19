@@ -1,0 +1,3 @@
+On this screen you can pick a keyboard key. Press and hold the desired key until the flashing bar fills up. Then release the key.
+
+If you change your mind and want to cancel without choosing a key, just press ESC and then release it before the bar fills up.

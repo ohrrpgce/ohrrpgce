@@ -4284,6 +4284,7 @@ SUB edit_android_options ()
  
  DIM buttons(...) as string = {"A", "B", "C", "X", "Y", "Z", "L1", "R1", "L2", "R2"}
  DIM ouya_buttons(...) as string = {"O", "A", "Doesn't exist", "U", "Y", "Doesn't Exist", "L1", "R1", "L2", "R2"}
+ DIM xperia_buttons(...) as string = {"X?", "O?", "Doesn't exist", "Square", "Triangle", "Doesn't Exist", "L1", "R1", "Doesn't Exist", "Doesn't Exist"}
  DIM default_scancodes(...) as integer = {scEnter, scESC, 0, scESC, scESC, 0, scPageUp, scPageDown, scHome, scEnd}
 
  DIM t as integer
@@ -4376,11 +4377,17 @@ SUB edit_android_options ()
      ToggleChildNode android, "disable_virtual_gamepad"
      st.need_update = YES
     END IF
+    CASE androidoptBUTTON:
+     IF keyval(scDELETE) > 1 ORELSE keyval(scBACKSPACE) > 1 THEN
+      SetChildNode(gamepad, buttons(sub_t), 0)
+      st.need_update = YES
+     END IF
   END SELECT
    
   clearpage dpage
   IF t = androidoptBUTTON THEN
-   edgeprint "OUYA Controller: " & ouya_buttons(sub_t), 0, 190, uilook(uiSelectedDisabled), dpage
+   edgeprint "OUYA Controller: " & ouya_buttons(sub_t), 0, 180, uilook(uiSelectedDisabled), dpage
+   edgeprint "Xperia Controller: " & xperia_buttons(sub_t), 0, 190, uilook(uiSelectedDisabled), dpage
   END IF
   
   draw_menu menu, st, dpage
