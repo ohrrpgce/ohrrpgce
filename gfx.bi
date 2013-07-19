@@ -81,6 +81,8 @@ extern Io_hide_virtual_keyboard as sub ()
 extern Io_show_virtual_gamepad as sub ()
 'Hide the virtual gamepad, but only for platforms like Android that need it
 extern Io_hide_virtual_gamepad as sub ()
+'Runtime remapping of android controller buttons
+extern io_remap_android_gamepad as sub (byval A as integer, byval B as integer, byval X as integer, byval Y as integer, byval L1 as integer, byval R1 as integer, byval L2 as integer, byval R2 as integer)
 
 '(optional) Primary mouse state function
 'mbuttons is bitmask of currently down keys OR new clicks, mclicks is bitmask ofnew clicks since last call.

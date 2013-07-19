@@ -56,6 +56,7 @@ DECLARE FUNCTION update_mouse() as integer
 DECLARE SUB set_forced_mouse_clipping(byval newvalue as integer)
 DECLARE SUB internal_set_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
 DECLARE SUB internal_disable_virtual_gamepad()
+DECLARE FUNCTION scOHR2SDL(byval ohr_scancode as integer, byval default_sdl_scancode as integer=0) as integer
 
 #IFDEF __FB_DARWIN__
 
@@ -833,6 +834,24 @@ SUB internal_disable_virtual_gamepad()
 #ENDIF
 END SUB
 
+SUB io_sdl_remap_android_gamepad(byval A as integer, byval B as integer, byval X as integer, byval Y as integer, byval L1 as integer, byval R1 as integer, byval L2 as integer, byval R2 as integer)
+'Do nothing on non-android
+#IFDEF __FB_ANDROID__
+ SDL_ANDROID_set_java_gamepad_keymap ( _
+   scOHR2SDL(A, scEnter), _
+   scOHR2SDL(B, scESC), _
+   0, _
+   scOHR2SDL(X, scESC), _
+   scOHR2SDL(Y, scESC), _
+   0, _
+   scOHR2SDL(L1, scPageUp), _
+   scOHR2SDL(R1, scPageDown), _
+   scOHR2SDL(L2, scHome), _
+   scOHR2SDL(R2, scEnd), _
+   0, 0)
+#ENDIF
+END SUB
+
 SUB io_sdl_setmousevisibility(byval visible as integer)
   rememmvis = iif(visible, 1, 0)
   SDL_ShowCursor(iif(windowedmode, rememmvis, 0))
@@ -990,6 +1009,16 @@ FUNCTION io_sdl_readjoysane(byval joynum as integer, byref button as integer, by
   RETURN 1
 END FUNCTION
 
+FUNCTION scOHR2SDL(byval ohr_scancode as integer, byval default_sdl_scancode as integer=0) as integer
+ 'Convert an OHR scancode into an SDL scancode
+ '(the reverse can be accomplished just by using the scantrans array)
+ IF ohr_scancode = 0 THEN RETURN default_sdl_scancode
+ FOR i as integer = 0 TO UBOUND(scantrans)
+  IF scantrans(i) = ohr_scancode THEN RETURN i
+ NEXT i
+ RETURN 0
+END FUNCTION
+
 FUNCTION gfx_sdl_setprocptrs() as integer
   gfx_init = @gfx_sdl_init
   gfx_close = @gfx_sdl_close
@@ -1013,6 +1042,9 @@ FUNCTION gfx_sdl_setprocptrs() as integer
   io_textinput = @io_sdl_textinput
   io_show_virtual_keyboard = @io_sdl_show_virtual_keyboard
   io_hide_virtual_keyboard = @io_sdl_hide_virtual_keyboard
+  io_show_virtual_gamepad = @io_sdl_show_virtual_gamepad
+  io_hide_virtual_gamepad = @io_sdl_hide_virtual_gamepad
+  io_remap_android_gamepad = @io_sdl_remap_android_gamepad
   io_mousebits = @io_sdl_mousebits
   io_setmousevisibility = @io_sdl_setmousevisibility
   io_getmouse = @io_sdl_getmouse
