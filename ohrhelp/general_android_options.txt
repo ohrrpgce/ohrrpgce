@@ -11,5 +11,3 @@ Press ENTER to choose a new keyboard key to map to a controller button.
 Press DELETE or BACKSPACE to revert the button back to the default.
 
 It is strongly reccomended to leave button A mapped to ENTER and button B mapped to ESC, this will allow you to navigate menus and text boxes.
-
-Buttons C and Z have no defaults because they don't exist on most controllers.

@@ -4282,10 +4282,10 @@ SUB edit_android_options ()
   gamepad = SetChildNode(android, "real_gamepad")
  END IF
  
- DIM buttons(...) as string = {"A", "B", "C", "X", "Y", "Z", "L1", "R1", "L2", "R2"}
- DIM ouya_buttons(...) as string = {"O", "A", "Doesn't exist", "U", "Y", "Doesn't Exist", "L1", "R1", "L2", "R2"}
- DIM xperia_buttons(...) as string = {"X?", "O?", "Doesn't exist", "Square", "Triangle", "Doesn't Exist", "L1", "R1", "Doesn't Exist", "Doesn't Exist"}
- DIM default_scancodes(...) as integer = {scEnter, scESC, 0, scESC, scESC, 0, scPageUp, scPageDown, scHome, scEnd}
+ DIM buttons(...) as string = {"A", "B", "X", "Y", "L1", "R1", "L2", "R2"}
+ DIM ouya_buttons(...) as string = {"O", "A", "U", "Y", "L1", "R1", "L2", "R2"}
+ DIM xperia_buttons(...) as string = {"X?", "O?", "Square", "Triangle", "L1", "R1", "Doesn't Exist", "Doesn't Exist"}
+ DIM default_scancodes(...) as integer = {scEnter, scESC, scESC, scESC, scPageUp, scPageDown, scHome, scEnd}
 
  DIM t as integer
  DIM sub_t as integer
