@@ -1599,31 +1599,31 @@ SUB generate_gen_menu(m() as string, longname as string, aboutline as string)
  m(1) = "Long Name:" + longname
  m(2) = "About Line:" + aboutline
  IF gen(genMaxInventory) = 0 THEN
-  m(12) = "Inventory size: Default (" & (last_inv_slot() \ 3) + 1 & " rows)"
+  m(13) = "Inventory size: Default (" & (last_inv_slot() \ 3) + 1 & " rows)"
  ELSE
-  m(12) = "Inventory size: " & (Last_inv_slot() \ 3) + 1 & " rows, " & gen(genMaxInventory) + 1 & " slots"
+  m(13) = "Inventory size: " & (Last_inv_slot() \ 3) + 1 & " rows, " & gen(genMaxInventory) + 1 & " slots"
  END IF
- m(13) = "Inventory autosort: "
+ m(14) = "Inventory autosort: "
  SELECT CASE gen(genAutosortScheme)
-  CASE 0: m(13) += "by item type/uses"
-  CASE 1: m(13) += "by whether usable"
-  CASE 2: m(13) += "alphabetically"
-  CASE 3: m(13) += "by item ID number"
-  CASE 4: m(13) += "no reordering"
+  CASE 0: m(14) += "by item type/uses"
+  CASE 1: m(14) += "by whether usable"
+  CASE 2: m(14) += "alphabetically"
+  CASE 3: m(14) += "by item ID number"
+  CASE 4: m(14) += "no reordering"
  END SELECT
- m(14) = "Script errors: "
+ m(15) = "Script errors: "
  SELECT CASE gen(genErrorLevel)
-  CASE 2: m(14) += "Show all warnings"
-  CASE 3: m(14) += "Hide nit-picking warnings"
-  CASE 4: m(14) += "Hide all warnings"
-  CASE 5: m(14) += "Hide errors not reported in old versions"
-  CASE 6: m(14) += "Hide all ignoreable errors"
+  CASE 2: m(15) += "Show all warnings"
+  CASE 3: m(15) += "Hide nit-picking warnings"
+  CASE 4: m(15) += "Hide all warnings"
+  CASE 5: m(15) += "Hide errors not reported in old versions"
+  CASE 6: m(15) += "Hide all ignoreable errors"
  END SELECT
- m(15) = "Default maximum item stack size: " & gen(genItemStackSize)
+ m(16) = "Default maximum item stack size: " & gen(genItemStackSize)
 END SUB
 
 SUB gendata ()
- CONST maxMenu = 15
+ CONST maxMenu = 16
  DIM m(maxMenu) as string
  DIM menu_display(maxMenu) as string
  DIM min(maxMenu) as integer
@@ -1651,19 +1651,20 @@ SUB gendata ()
  m(8) = "Global Music and Sound Effects..."
  m(9) = "Master Palettes..."
  m(10) = "Password For Editing..."
+ m(11) = "Android-specific options..."
 
  flusharray enabled(), UBOUND(enabled), YES
- enabled(11) = NO
- index(12) = genMaxInventory
- max(12) = (inventoryMax + 1) \ 3
- index(13) = genAutosortScheme
- max(13) = 4
- index(14) = genErrorLevel
- max(14) = 6
- min(14) = 2
- index(15) = genItemStackSize
- max(15) = 99
- min(15) = 1
+ enabled(12) = NO
+ index(13) = genMaxInventory
+ max(13) = (inventoryMax + 1) \ 3
+ index(14) = genAutosortScheme
+ max(14) = 4
+ index(15) = genErrorLevel
+ max(15) = 6
+ min(15) = 2
+ index(16) = genItemStackSize
+ max(16) = 99
+ min(16) = 1
 
  DIM aboutline as string = load_aboutline()
  DIM longname as string = load_gamename()
@@ -1737,6 +1738,7 @@ SUB gendata ()
    IF state.pt = 8 THEN generalmusicsfxmenu
    IF state.pt = 9 THEN masterpalettemenu
    IF state.pt = 10 THEN inputpasw
+   IF state.pt = 11 THEN edit_android_options
   END IF
   IF state.pt = 1 THEN
    IF enable_strgrabber ANDALSO strgrabber(longname, 38) THEN state.need_update = YES

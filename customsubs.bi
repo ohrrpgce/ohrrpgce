@@ -97,4 +97,8 @@ DECLARE SUB check_used_onetime_npcs(bits() as integer)
 DECLARE SUB menu_of_reorderable_nodes(st as MenuState, menu as MenuDef)
 DECLARE FUNCTION reorderable_node(byval node as NodePtr) as integer
 
+DECLARE SUB edit_android_options ()
+DECLARE FUNCTION prompt_for_scancode () as integer
+DECLARE FUNCTION scancode_to_name(byval sc as integer) as string
+
 #endif

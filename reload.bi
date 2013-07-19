@@ -175,6 +175,7 @@ Declare Function SetChildNode Overload (byval parent as NodePtr, n as string) as
 Declare Function SetChildNode(byval parent as NodePtr, n as string, byval val as longint) as NodePtr
 Declare Function SetChildNode(byval parent as NodePtr, n as string, byval val as double) as NodePtr
 Declare Function SetChildNode(byval parent as NodePtr, n as string, val as string) as NodePtr
+Declare Sub ToggleChildNode(byval parent as NodePtr, n as string)
 Declare Function GetChildNodeInt(byval parent as NodePtr, n as string, byval d as longint = 0) as longint
 Declare Function GetChildNodeFloat(byval parent as NodePtr, n as string, byval d as double = 0.0) as Double
 Declare Function GetChildNodeStr(byval parent as NodePtr, n as string, d as string = "") as string

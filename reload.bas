@@ -1527,6 +1527,24 @@ Function SetChildNode(byval parent as NodePtr, n as string, val as string) as No
 	return ret
 end Function
 
+'If the child node exists, delete it. If it does not exist, create an empty node
+Sub ToggleChildNode(byval parent as NodePtr, n as string)
+	if parent = 0 then exit sub
+	
+	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
+	
+	'first, check to see if this node already exists
+	dim ch as NodePtr = GetChildByName(parent, n)
+	
+	if ch then
+		'it exists, so remove it
+		FreeNode ch
+	else
+		'it does not exist, so add it
+		SetChildNode(parent, n)
+	end if
+end Sub
+
 'looks for a child node of the name n, and retrieves its value. d is the default, if n doesn't exist
 Function GetChildNodeInt(byval parent as NodePtr, n as string, byval d as longint) as longint
 	if parent = 0 then return d

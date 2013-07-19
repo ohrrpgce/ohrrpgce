@@ -4253,3 +4253,402 @@ FUNCTION reorderable_node(byval node as NodePtr) as integer
  END IF
  RETURN NO
 END FUNCTION
+
+CONST androidoptEXIT as integer = 1
+CONST androidoptTOGGLEVGAMEPAD as integer = 2
+CONST androidoptBUTTON as integer = 3
+
+SUB edit_android_options ()
+
+ DIM menu as MenuDef
+
+ DIM st as MenuState
+ st.active = YES
+ st.need_update = YES
+ 
+ REDIM enabled(0) as bool
+
+ DIM gen_root as NodePtr = get_general_reld()
+ DIM android as NodePtr
+ IF gen_root."android_controls".exists THEN
+  android = gen_root."android_controls".ptr
+ ELSE
+  android = SetChildNode(gen_root, "android_controls")
+ END IF
+ DIM gamepad as NodePtr
+ IF android."real_gamepad".exists THEN
+  gamepad = android."real_gamepad".ptr
+ ELSE
+  gamepad = SetChildNode(android, "real_gamepad")
+ END IF
+ 
+ DIM buttons(...) as string = {"A", "B", "C", "X", "Y", "Z", "L1", "R1", "L2", "R2"}
+ DIM ouya_buttons(...) as string = {"O", "A", "Doesn't exist", "U", "Y", "Doesn't Exist", "L1", "R1", "L2", "R2"}
+ DIM default_scancodes(...) as integer = {scEnter, scESC, 0, scESC, scESC, 0, scPageUp, scPageDown, scHome, scEnd}
+
+ DIM t as integer
+ DIM sub_t as integer
+ DIM node as NodePtr
+ DIM sc as integer
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scF1) > 1 THEN show_help "general_android_options"
+  IF keyval(scEsc) > 1 THEN EXIT DO
+
+  IF st.need_update THEN
+   ClearMenuData menu
+   WITH menu
+    .no_box = YES
+    .align = -1
+    .anchor.x = -1
+    .anchor.y = -1
+    .offset.x = -160
+    .offset.y = -100
+    .bordersize = -8
+   END WITH
+   append_menu_item menu, "Previous menu..."
+   menu.last->t = androidoptEXIT
+
+   append_menu_item menu, "Disable Virtual Gamepad: " & yesorno(android."disable_virtual_gamepad".exists)
+   menu.last->t = androidoptTOGGLEVGAMEPAD
+
+   append_menu_item menu, ""
+   menu.last->unselectable = YES
+
+   append_menu_item menu, "Gamepad buttons"
+   menu.last->unselectable = YES
+   menu.last->disabled = YES
+
+   FOR i as integer = 0 TO UBOUND(buttons)
+    DIM bnode as NodePtr = ChildNode(gamepad, buttons(i))
+    DIM cap as string = "Button " & rpad(buttons(i), " ", 2) & ": "
+    sc = GetInteger(bnode)
+    IF sc THEN
+     cap &= rpad(scancode_to_name(sc), " ", 12) & "(" & sc & ")"
+    ELSE
+     cap &= rpad(scancode_to_name(default_scancodes(i)), " ", 12) & "(Default)"
+    END IF
+    append_menu_item menu, cap
+    menu.last->t = androidoptBUTTON
+    menu.last->sub_t = i
+    menu.last->dataptr = bnode
+   NEXT i
+
+   init_menu_state st, menu
+
+   REDIM enabled(menu.numitems - 1) as bool
+   FOR i as integer = 0 TO UBOUND(enabled)
+    WITH *menu.items[i]
+     enabled(i) = NOT .unselectable
+    END WITH
+   NEXT i
+   
+   st.need_update = NO
+  END IF
+
+  usemenu st, enabled()
+
+  t = menu.items[st.pt]->t
+  sub_t = menu.items[st.pt]->sub_t
+  node = menu.items[st.pt]->dataptr
+  
+  IF enter_space_click(st) THEN
+   SELECT CASE t
+    CASE androidoptEXIT: EXIT DO
+    CASE androidoptTOGGLEVGAMEPAD:
+     ToggleChildNode android, "disable_virtual_gamepad"
+     st.need_update = YES
+    CASE androidoptBUTTON:
+     sc = prompt_for_scancode()
+     IF sc >= 0 THEN
+      SetChildNode(gamepad, buttons(sub_t), sc)
+      st.need_update = YES
+     END IF
+   END SELECT
+  END IF
+  
+  SELECT CASE t
+   CASE androidoptTOGGLEVGAMEPAD:
+    IF keyval(scLeft) > 1 ORELSE keyval(scRight) > 1 THEN
+     ToggleChildNode android, "disable_virtual_gamepad"
+     st.need_update = YES
+    END IF
+  END SELECT
+   
+  clearpage dpage
+  IF t = androidoptBUTTON THEN
+   edgeprint "OUYA Controller: " & ouya_buttons(sub_t), 0, 190, uilook(uiSelectedDisabled), dpage
+  END IF
+  
+  draw_menu menu, st, dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  
+  dowait
+ LOOP
+ write_general_reld()
+END SUB
+
+FUNCTION prompt_for_scancode () as integer
+ 'Return a user-specified scancode, or -1 if cancelled.
+ 
+ DIM result as integer = -1
+ 
+ DIM instructions as string = "To choose a key, press and hold the desired key until the flashing bar fills. Tap ESC briefly to cancel."
+ DIM toomany as string = "That is too many keys, please just press one."
+ DIM nowrelease as string = "New key confirmed! Now release it."
+
+ DIM pressed as integer
+ DIM presstime as double ' the timestamp when the key was first pressed
+ DIM heldfor as double ' the number of seconds the key has been held
+ DIM threshold as double = 2.0
+ DIM keylist as string
+ DIM count as integer
+ DIM confirmed as integer = 0
+ DIM bartog as bool = NO
+ 
+ DIM root as Slice Ptr
+ root = NewSliceOfType(slRoot)
+ WITH *root
+  .Fill = YES
+ END WITH
+
+ DIM box as Slice Ptr
+ box = NewSliceOfType(slRectangle, root)
+ WITH *box
+  .width = 308
+  .height = 48
+  .AnchorHoriz = 1
+  .AnchorVert = 2
+  .AlignHoriz = 1
+  .AlignVert = 2
+  .paddingLeft = 8
+  .paddingRight = 8
+  .paddingTop = 8
+  .paddingBottom = 8
+ END WITH
+ ChangeRectangleSlice box, 1
+
+ DIM infosl as Slice Ptr
+ infosl = NewSliceofType(slText, box)
+ ChangeTextSlice infosl, instructions, , , YES
+ 
+ DIM bar as Slice Ptr
+ bar = NewSliceOfType(slRectangle, root)
+ WITH *bar
+  .width = 0
+  .height = 10
+  .AnchorHoriz = 1
+  .AnchorVert = 0
+  .AlignHoriz = 1
+  .AlignVert = 0
+ END WITH
+
+ DIM keybox as Slice Ptr
+ keybox = NewSliceofType(slContainer, root)
+ WITH *keybox
+  .AnchorHoriz = 1
+  .AnchorVert = 1
+  .AlignHoriz = 1
+  .AlignVert = 1
+ END WITH
+ 
+ DIM keysl as Slice Ptr
+ keysl = NewSliceofType(slText, keybox)
+  
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  
+  IF confirmed THEN
+   'A key has been confirmed, wait for it to be released
+   ChangeTextSlice infosl, nowrelease
+   bartog = NO
+   IF keyval(pressed) = 0 THEN
+    result = pressed
+    EXIT DO
+   END IF
+  ELSE
+   keylist = ""
+   count = 0
+   FOR i as integer = 1 to 127
+    IF keyval(i) > 0 THEN
+     count += 1
+     IF pressed <> i THEN
+      presstime = TIMER
+     END IF
+     pressed = i
+     keylist &= scancode_to_name(i) & !"\n"
+     IF count = 1 THEN
+      keybox->width = LEN(scancode_to_name(i)) * 8
+     END IF
+     keybox->height = count * 10
+    END IF
+   NEXT i
+   ChangeTextSlice keysl, keylist
+   ChangeTextSlice infosl, instructions
+   IF count = 0 THEN
+    'No buttons are being held down.
+    IF pressed = scESC THEN EXIT DO
+    IF pressed = scF1 THEN show_help "prompt_for_scancode"
+    pressed = 0
+    bartog = NO
+    bar->width = 0
+   ELSEIF count > 1 THEN
+    'Too manu buttons are being held down, so none of them count.
+    ChangeTextSlice infosl, toomany
+    pressed = 0
+    bartog = NO
+    bar->width = 0
+   ELSE
+    'Just one button is being held down, so it might be valid
+    heldfor = TIMER - presstime
+    bar->width = int(root->width / threshold * heldfor)
+    bartog = NOT bartog
+    IF heldfor > threshold THEN
+     confirmed = pressed
+    END IF
+   END IF
+  END IF
+
+  IF bartog THEN
+   ChangeRectangleSlice bar, , uiTimeBar, uiTimeBarFull
+  ELSE
+   ChangeRectangleSlice bar, , uiTimeBarFull, uiTimeBar
+  END IF
+
+  clearpage dpage
+  DrawSlice root, dpage
+  
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+
+ DeleteSlice @root
+ RETURN result
+END FUNCTION
+
+FUNCTION scancode_to_name(byval sc as integer) as string
+ 'Return a string name for a given scancode, or "" if it doesn't know what the scancode is.
+ 'Only includes scancodes that gfx_sdl knows how to translate into SDL scancodes
+ STATIC scNames(127) as string
+ STATIC already_init as bool = NO
+ IF NOT already_init THEN
+  scNames(scBackspace) = "BACKSPACE"
+  scNames(scTab) = "TAB"
+  scNames(scEnter) = "ENTER"
+  scNames(scPause) = "PAUSE"
+  scNames(scEsc) = "ESC"
+  scNames(scSpace) = "SPACE"
+  scNames(scComma) = ","
+  scNames(scMinus) = "-"
+  scNames(scPeriod) = "."
+  scNames(scSlash) = "/"
+  scNames(sc0) = "0"
+  scNames(sc1) = "1"
+  scNames(sc2) = "2"
+  scNames(sc3) = "3"
+  scNames(sc4) = "4"
+  scNames(sc5) = "5"
+  scNames(sc6) = "6"
+  scNames(sc7) = "7"
+  scNames(sc8) = "8"
+  scNames(sc9) = "9"
+  scNames(scSemicolon) = ";"
+  scNames(scEquals) = "="
+  scNames(scLeftBracket) = "["
+  scNames(scBackslash) = "\"
+  scNames(scRightBracket) = "]"
+  scNames(scBackquote) = "`"
+  scNames(scA) = "A"
+  scNames(scB) = "B"
+  scNames(scC) = "C"
+  scNames(scD) = "D"
+  scNames(scE) = "E"
+  scNames(scF) = "F"
+  scNames(scG) = "G"
+  scNames(scH) = "H"
+  scNames(scI) = "I"
+  scNames(scJ) = "J"
+  scNames(scK) = "K"
+  scNames(scL) = "L"
+  scNames(scM) = "M"
+  scNames(scN) = "N"
+  scNames(scO) = "O"
+  scNames(scP) = "P"
+  scNames(scQ) = "Q"
+  scNames(scR) = "R"
+  scNames(scS) = "S"
+  scNames(scT) = "T"
+  scNames(scU) = "U"
+  scNames(scV) = "V"
+  scNames(scW) = "W"
+  scNames(scX) = "X"
+  scNames(scY) = "Y"
+  scNames(scZ) = "Z"
+  scNames(scDelete) = "DEL"
+  scNames(scNumpad0) = "Numpad 0"
+  scNames(scNumpad1) = "Numpad 1"
+  scNames(scNumpad2) = "Numpad 2"
+  scNames(scNumpad3) = "Numpad 3"
+  scNames(scNumpad4) = "Numpad 4"
+  scNames(scNumpad5) = "Numpad 5"
+  scNames(scNumpad6) = "Numpad 6"
+  scNames(scNumpad7) = "Numpad 7"
+  scNames(scNumpad8) = "Numpad 8"
+  scNames(scNumpad9) = "Numpad 9"
+  scNames(scNumpadPeriod) = "Numpad ."
+  scNames(scNumpadSlash) = "Numpad /"
+  scNames(scNumpadAsterisk) = "Numpad *"
+  scNames(scNumpadMinus) = "Numpad -"
+  scNames(scNumpadPlus) = "Numpad +"
+  scNames(scNumpadEnter) = "Numpad ENTER"
+  scNames(scUp) = "UP"
+  scNames(scDown) = "DOWN"
+  scNames(scRight) = "RIGHT"
+  scNames(scLeft) = "LEFT"
+  scNames(scInsert) = "INSTER"
+  scNames(scHome) = "HOME"
+  scNames(scEnd) = "END"
+  scNames(scPageup) = "PAGEUP"
+  scNames(scPagedown) = "PAGEDOWN"
+  scNames(scF1) = "F1"
+  scNames(scF2) = "F2"
+  scNames(scF3) = "F3"
+  scNames(scF4) = "F4"
+  scNames(scF5) = "F5"
+  scNames(scF6) = "F6"
+  scNames(scF7) = "F7"
+  scNames(scF8) = "F8"
+  scNames(scF9) = "F9"
+  scNames(scF10) = "F10"
+  scNames(scF11) = "F11"
+  scNames(scF12) = "F12"
+  scNames(scF13) = "F13"
+  scNames(scF14) = "F14"
+  scNames(scF15) = "F15"
+  scNames(scNumlock) = "NUMLOCK"
+  scNames(scCapslock) = "CAPSLOCK"
+  scNames(scScrollLock) = "SCROLLLOCK"
+  scNames(scRightShift) = "Right SHIFT"
+  scNames(scLeftShift) = "Left SHIFT"
+  scNames(scRightCtrl) = "Right CTRL"
+  scNames(scLeftCtrl) = "Left CTRL"
+  scNames(scRightAlt) = "Right ALT"
+  scNames(scLeftAlt) = "Left ALT"
+  scNames(scRightCommand) = "Right COMMAND"
+  scNames(scLeftCommand) = "Left COMMAND"
+  scNames(scLeftWinLogo) = "Left SUPER"
+  scNames(scRightWinLogo) = "Right SUPER"
+  scNames(scPrintScreen) = "PRINTSCREEN"
+  scNames(scContext) = "CONTEXT"
+  already_init = YES
+ END IF
+ return scNames(sc)
+END FUNCTION
+
