@@ -4411,7 +4411,7 @@ FUNCTION prompt_for_scancode () as integer
  DIM pressed as integer
  DIM presstime as double ' the timestamp when the key was first pressed
  DIM heldfor as double ' the number of seconds the key has been held
- DIM threshold as double = 2.0
+ DIM threshold as double = 1.5
  DIM keylist as string
  DIM keyname as string
  DIM count as integer
