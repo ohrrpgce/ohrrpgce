@@ -1291,8 +1291,7 @@ SUB reset_game_state ()
  NEXT i
  
  DIM root as NodePtr = get_general_reld()
- DIM android as NodePtr = root."android_controls".ptr
- DIM gamepad as NodePtr = android."real_gamepad".ptr
+ DIM gamepad as NodePtr = root."gamepad".ptr
  remap_android_gamepad gamepad."A".integer, gamepad."B".integer, gamepad."X".integer, gamepad."Y".integer, gamepad."L1".integer, gamepad."R1".integer, gamepad."L2".integer, gamepad."R2".integer
 END SUB
 

@@ -4276,10 +4276,10 @@ SUB edit_android_options ()
   android = SetChildNode(gen_root, "android_controls")
  END IF
  DIM gamepad as NodePtr
- IF android."real_gamepad".exists THEN
-  gamepad = android."real_gamepad".ptr
+ IF gen_root."gamepad".exists THEN
+  gamepad = gen_root."gamepad".ptr
  ELSE
-  gamepad = SetChildNode(android, "real_gamepad")
+  gamepad = SetChildNode(gen_root, "gamepad")
  END IF
  
  DIM buttons(...) as string = {"A", "B", "X", "Y", "L1", "R1", "L2", "R2"}
