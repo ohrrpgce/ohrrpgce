@@ -217,6 +217,7 @@ declare sub show_virtual_keyboard()
 declare sub hide_virtual_keyboard()
 declare sub show_virtual_gamepad()
 declare sub hide_virtual_gamepad()
+declare sub remap_android_gamepad(byval A as integer, byval B as integer, byval X as integer, byval Y as integer, byval L1 as integer, byval R1 as integer, byval L2 as integer, byval R2 as integer)
 
 'globals
 extern modex_initialised as bool

@@ -191,5 +191,6 @@ DECLARE SUB ReadStatsNode (byval stats as NodePtr, statobj as Stats)
 
 DECLARE FUNCTION get_general_reld() as NodePtr
 DECLARE SUB write_general_reld()
+DECLARE SUB close_general_reld()
 
 #ENDIF

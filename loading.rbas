@@ -3353,6 +3353,14 @@ SUB write_general_reld()
 #endif
 END SUB
 
+SUB close_general_reld()
+ write_general_reld()
+ IF gen_reld_doc THEN
+  FreeDocument gen_reld_doc
+  gen_reld_doc = 0
+ END IF
+END SUB
+
 'Write new data.
 SUB update_general_data ()
 

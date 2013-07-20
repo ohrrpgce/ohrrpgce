@@ -84,7 +84,6 @@ DECLARE SUB change_npc_def_pal (byval npc_id as integer, byval palette_id as int
 DECLARE FUNCTION create_walkabout_slices(byval parent as Slice Ptr) as Slice Ptr
 DECLARE SUB create_walkabout_shadow (byval walkabout_cont as Slice Ptr)
 DECLARE SUB delete_walkabout_shadow (byval walkabout_cont as Slice Ptr)
-DECLARE SUB reset_game_state ()
 DECLARE SUB cleanup_game_slices ()
 DECLARE FUNCTION hero_layer() as Slice Ptr
 DECLARE FUNCTION npc_layer() as Slice Ptr

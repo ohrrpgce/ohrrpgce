@@ -36,7 +36,6 @@
 
 
 'local subs and functions
-DECLARE SUB reset_map_state (map as MapModeState)
 DECLARE SUB checkdoors ()
 DECLARE SUB usedoor (byval door_id as integer)
 DECLARE SUB advance_text_box ()
@@ -283,6 +282,7 @@ load_default_master_palette master()
 DefaultUIColors uilook()
 getdefaultfont current_font()
 setfont current_font()
+close_general_reld()
 
 '-- Init joysticks
 FOR i as integer = 0 TO 1
@@ -294,6 +294,8 @@ defaultc  'set up default controls
 
 'Read joyset.ini
 readjoysettings
+
+remap_android_gamepad scEnter, scESC, scESC, scESC, scPageUp, scPageDown, scHome, scEnd
 
 setwindowtitle "O.H.R.RPG.C.E"
 unhidemousecursor  'init mouse state
@@ -3048,20 +3050,6 @@ SUB prepare_map (byval afterbat as integer=NO, byval afterload as integer=NO)
  'DEBUG debug "end of preparemap"
 END SUB
 
-SUB reset_game_state ()
- reset_map_state(gam.map)
- gam.wonbattle = NO
- gam.remembermusic = -1
- gam.random_battle_countdown = range(100, 60)
- gam.mouse_enabled = NO
-
- 'If we are resetting, the old slices will have already been destroyed
- 'by cleanup_game_slices() so we just re-assign herow().sl
- FOR i as integer = 0 TO UBOUND(herow)
-  herow(i).sl = create_walkabout_slices(hero_layer())
- NEXT i
-END SUB
-
 FUNCTION hero_layer() as Slice Ptr
  DIM layer as Slice Ptr
  IF gmap(16) = 2 THEN ' heroes and NPCs together
@@ -3108,13 +3096,6 @@ FUNCTION create_walkabout_slices(byval parent as Slice Ptr) as Slice Ptr
  END WITH
  RETURN sl
 END FUNCTION
-
-SUB reset_map_state (map as MapModeState)
- map.id = gen(genStartMap)
- map.lastmap = -1
- map.same = NO
- map.name = ""
-END SUB
 
 'Return the ID of a door at a tile, or -1 for none
 '(There should only be one door on each tile, because the editor doesn't let you place more)

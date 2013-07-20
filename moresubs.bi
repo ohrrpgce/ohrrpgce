@@ -33,6 +33,8 @@ DECLARE SUB readjoysettings
 DECLARE SUB renamehero (byval who as integer, byval escapable as integer)
 DECLARE SUB resetgame (scriptout as string)
 DECLARE SUB resetlmp (byval slot as integer, byval lev as integer)
+DECLARE SUB reset_game_state ()
+DECLARE SUB reset_map_state (map as MapModeState)
 
 DECLARE SUB trigger_script (byval id as integer, byval double_trigger_check as bool, scripttype as string, trigger_loc as string, scrqueue() as QueuedScript, byval trigger as integer = plottrigger)
 DECLARE SUB trigger_script_arg (byval argno as integer, byval value as integer, byval argname as zstring ptr = NULL)

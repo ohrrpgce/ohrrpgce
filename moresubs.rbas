@@ -1277,6 +1277,32 @@ reset_game_state()
 
 END SUB
 
+SUB reset_game_state ()
+ reset_map_state(gam.map)
+ gam.wonbattle = NO
+ gam.remembermusic = -1
+ gam.random_battle_countdown = range(100, 60)
+ gam.mouse_enabled = NO
+
+ 'If we are resetting, the old slices will have already been destroyed
+ 'by cleanup_game_slices() so we just re-assign herow().sl
+ FOR i as integer = 0 TO UBOUND(herow)
+  herow(i).sl = create_walkabout_slices(hero_layer())
+ NEXT i
+ 
+ DIM root as NodePtr = get_general_reld()
+ DIM android as NodePtr = root."android_controls".ptr
+ DIM gamepad as NodePtr = android."real_gamepad".ptr
+ remap_android_gamepad gamepad."A".integer, gamepad."B".integer, gamepad."X".integer, gamepad."Y".integer, gamepad."L1".integer, gamepad."R1".integer, gamepad."L2".integer, gamepad."R2".integer
+END SUB
+
+SUB reset_map_state (map as MapModeState)
+ map.id = gen(genStartMap)
+ map.lastmap = -1
+ map.same = NO
+ map.name = ""
+END SUB
+
 SUB resetlmp (byval slot as integer, byval lev as integer)
  FOR i as integer = 0 TO 7
   lmp(slot, i) = 0
@@ -1643,7 +1669,7 @@ RETURN 1 '--success
 
 END FUNCTION
 
-FUNCTION loadscript (byval n as unsigned integer) as ScriptData ptr
+FUNCTION loadscript (byval n as uinteger) as ScriptData ptr
  '-- script() is a hashtable with doubly linked lists as buckets, storing the loaded scripts
 
  DIM as ScriptData Ptr scrnode = script(n MOD scriptTableSize)

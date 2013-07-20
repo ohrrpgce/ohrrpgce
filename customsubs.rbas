@@ -4413,6 +4413,7 @@ FUNCTION prompt_for_scancode () as integer
  DIM heldfor as double ' the number of seconds the key has been held
  DIM threshold as double = 2.0
  DIM keylist as string
+ DIM keyname as string
  DIM count as integer
  DIM confirmed as integer = 0
  DIM bartog as bool = NO
@@ -4484,16 +4485,19 @@ FUNCTION prompt_for_scancode () as integer
    count = 0
    FOR i as integer = 1 to 127
     IF keyval(i) > 0 THEN
-     count += 1
-     IF pressed <> i THEN
-      presstime = TIMER
+     keyname = scancode_to_name(i)
+     IF keyname <> "" THEN
+      count += 1
+      IF pressed <> i THEN
+       presstime = TIMER
+      END IF
+      pressed = i
+      keylist &= keyname & !"\n"
+      IF count = 1 THEN
+       keybox->width = LEN(keyname) * 8
+      END IF
+      keybox->height = count * 10
      END IF
-     pressed = i
-     keylist &= scancode_to_name(i) & !"\n"
-     IF count = 1 THEN
-      keybox->width = LEN(scancode_to_name(i)) * 8
-     END IF
-     keybox->height = count * 10
     END IF
    NEXT i
    ChangeTextSlice keysl, keylist

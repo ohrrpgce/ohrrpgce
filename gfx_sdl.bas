@@ -285,8 +285,6 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
   framesize.h = 200
 
 #IFDEF __FB_ANDROID__
- debug "Setting Java gamepad default buttons"
- SDL_ANDROID_set_java_gamepad_keymap SDLK_RETURN, SDLK_ESCAPE, 0, SDLK_ESCAPE, SDLK_ESCAPE, 0, SDLK_PAGEUP, SDLK_PAGEDOWN, SDLK_HOME, SDLK_END, 0, 0
  IF SDL_ANDROID_IsRunningOnOUYA() THEN
   debuginfo "Running on OUYA, disable the virtual gamepad"
   internal_disable_virtual_gamepad
@@ -838,16 +836,16 @@ SUB io_sdl_remap_android_gamepad(byval A as integer, byval B as integer, byval X
 'Do nothing on non-android
 #IFDEF __FB_ANDROID__
  SDL_ANDROID_set_java_gamepad_keymap ( _
-   scOHR2SDL(A, scEnter), _
-   scOHR2SDL(B, scESC), _
+   scOHR2SDL(A, SDLK_RETURN), _
+   scOHR2SDL(B, SDLK_ESCAPE), _
    0, _
-   scOHR2SDL(X, scESC), _
-   scOHR2SDL(Y, scESC), _
+   scOHR2SDL(X, SDLK_ESCAPE), _
+   scOHR2SDL(Y, SDLK_ESCAPE), _
    0, _
-   scOHR2SDL(L1, scPageUp), _
-   scOHR2SDL(R1, scPageDown), _
-   scOHR2SDL(L2, scHome), _
-   scOHR2SDL(R2, scEnd), _
+   scOHR2SDL(L1, SDLK_PAGEUP), _
+   scOHR2SDL(R1, SDLK_PAGEDOWN), _
+   scOHR2SDL(L2, SDLK_HOME), _
+   scOHR2SDL(R2, SDLK_END), _
    0, 0)
 #ENDIF
 END SUB
