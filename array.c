@@ -2,7 +2,6 @@
  * Copyright 2010. Please read LICENSE.txt for GNU GPL details and disclaimer of liability
  */
 
-#include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -20,38 +19,6 @@ typedef struct _array_header {
 	unsigned int len:31;
 	unsigned int temp:1;
 } array_header;
-
-
-void (*debug_hook)(enum ErrorLevel errorlevel, const char *msg) = debugc;
-
-// This is for the benefit of testing tools (vectortest)
-void set_debug_hook(void (*new_debug_hook)(enum ErrorLevel errorlevel, const char *msg)) {
-	if (new_debug_hook)
-		debug_hook = new_debug_hook;
-	else
-		debug_hook = debugc;
-}
-
-void _throw_error(enum ErrorLevel errorlevel, const char *srcfile, int linenum, const char *msg, ...) {
-	va_list vl;
-	va_start(vl, msg);
-	char buf[256];
-	buf[255] = '\0';
-	int emitted = 0;
-	if (srcfile)
-		emitted = snprintf(buf, 255, "On line %d in %s: ", linenum, srcfile);
-	vsnprintf(buf + emitted, 255 - emitted, msg, vl);
-	va_end(vl);
-	debug_hook(errorlevel, buf);
-	/*
-	if (errorlevel >= 5) {
-		// Ah, what the heck, shouldn't run, but I already wrote it (NULLs indicate no RESUME support)
-		void (*handler)() = fb_ErrorThrowAt(linenum, srcfile, NULL, NULL);
-		handler();
-	}
-	*/
-}
-
 
 /* ifdef VALGRIND_ARRAYS, then two bytes before the start of an array hold an id
    which points to an entry in header_table. Otherwise the array_header is placed

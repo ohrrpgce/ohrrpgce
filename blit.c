@@ -6,7 +6,6 @@
 
 
 #include <string.h>
-#include <errno.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -19,11 +18,6 @@ void smoothzoomblit_8_to_32bit(uint8_t *srcbuffer, uint32_t *destbuffer, int w, 
 void smoothzoomblit_32_to_32bit(uint32_t *srcbuffer, uint32_t *destbuffer, int w, int h, int pitch, int zoom, int smooth);
 
 
-//Doesn't belong here, but can't be bothered adding another .c file for it
-//Trying to read errno from FB is unlikely to even link, because it's normally a macro, so this has be in C
-char *get_sys_err_string() {
-	return strerror(errno);
-}
 
 void blitohr(struct Frame *spr, struct Frame *destspr, struct Palette16 *pal, int startoffset, int startx, int starty, int endx, int endy, int trans) {
 	int i, j;

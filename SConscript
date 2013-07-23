@@ -411,7 +411,7 @@ commonenv['FBLIBS'] += Flatten ([['-p', v] for v in libpaths])
 verprint (gfx, music, 'svn', 'git', fbc)
 
 
-base_modules += ['util.bas', 'blit.c', 'base64.c', 'unicode.c', 'array.c', 'vector.bas']
+base_modules += ['util.bas', 'blit.c', 'base64.c', 'unicode.c', 'array.c', 'miscc.c', 'vector.bas']
 
 shared_modules += ['allmodex',
                    'backends',

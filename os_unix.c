@@ -55,18 +55,6 @@ static long long milliseconds() {
 	return (long long)tv.tv_sec * 1000 + tv.tv_usec / 1000;
 }
 
-// Set an FB string to a C string
-// *fbstr is assumed to be garbage
-void init_fbstring(FBSTRING *fbstr, char *cstr) {
-	fb_StrInit(fbstr, -1, cstr, strlen(cstr), 0);
-}
-
-// Initialise an FB string to a C string
-// *fbstr is assumed to be already initialised
-void set_fbstring(FBSTRING *fbstr, char *cstr) {
-	fb_StrAssign(fbstr, -1, cstr, strlen(cstr), 0);
-}
-
 
 //==========================================================================================
 //                                       Filesystem

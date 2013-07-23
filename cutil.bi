@@ -10,7 +10,7 @@ type size_t as integer
 #endif
 
 
-'In blit.c
+'In miscc.c
 declare function get_sys_err_string() as zstring ptr
 
 

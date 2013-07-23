@@ -869,22 +869,9 @@ END SUB
 'original was case insensitive) which I wrote and tested myself
 FUNCTION strhash(byval strp as ubyte ptr, byval leng as integer) as unsigned integer
  DIM as unsigned integer hash = &hbaad1dea
+ DIM as integer extra_bytes
 
- IF (leng and 3) = 3 THEN
-  hash xor= *strp shl 16
-  strp += 1
- END IF
- IF (leng and 3) >= 2 THEN
-  hash xor= *strp shl 8
-  strp += 1
- END IF
- IF (leng and 3) >= 1 THEN
-  hash xor= *strp
-  strp += 1
-  hash = (hash shl 5) - hash
-  hash xor= ROT(hash, 19)
- END IF
-
+ extra_bytes = leng and 3
  leng \= 4
  WHILE leng
   hash += *cast(unsigned integer ptr, strp)
@@ -893,6 +880,19 @@ FUNCTION strhash(byval strp as ubyte ptr, byval leng as integer) as unsigned int
   hash xor= ROT(hash, 19)
   leng -= 1
  WEND
+
+ IF extra_bytes THEN
+  IF extra_bytes = 3 THEN
+   hash xor= *cast(unsigned integer ptr, strp) and &hffffff
+  ELSEIF extra_bytes = 2 THEN
+   hash xor= *cast(unsigned integer ptr, strp) and &hffff
+  ELSEIF extra_bytes = 1 THEN
+   hash xor= *strp
+  END IF
+  hash = (hash shl 5) - hash
+  hash xor= ROT(hash, 19)
+ END IF
+
  'No need to be too thorough, will get rehashed if needed anyway
  hash += ROT(hash, 2)
  hash xor= ROT(hash, 27)

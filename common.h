@@ -6,7 +6,10 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+//fb_stub.h MUST be included first, to ensure fb_off_t is 64 bit
+#include "fb/fb_stub.h"
 #include "errorlevel.h"
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,13 +43,15 @@ extern "C" {
 // Returns a malloc'd string buffer
 char *escape_filenamec (const char *filename);
 
+const char *trimpath(const char *filename);
+
 // in common.bas
 void debugc(enum ErrorLevel errorlevel, const char *msg);
 
 // libfb.a
 void (*fb_ErrorThrowAt(int line_num, const char *mod_name, void *res_label, void *resnext_label))(void) noreturn;
 
-// in array.c (meh)
+// in miscc.c
 void _throw_error(enum ErrorLevel errorlevel, const char *srcfile, int linenum, const char *msg, ...) format_chk(4);
 extern void (*debug_hook)(enum ErrorLevel errorlevel, const char *msg);
 void set_debug_hook(void (*new_debug_hook)(enum ErrorLevel errorlevel, const char *msg));
@@ -55,6 +60,9 @@ void set_debug_hook(void (*new_debug_hook)(enum ErrorLevel errorlevel, const cha
 #define debuginfo(...) _throw_error(errInfo, NULL, 0, __VA_ARGS__)
 #define throw_error(...) _throw_error(errFatalBug, __FILE__, __LINE__, __VA_ARGS__)
 #define fatal_error(...) _throw_error(errFatal, __FILE__, __LINE__, __VA_ARGS__)
+
+void init_fbstring(FBSTRING *fbstr, char *cstr);
+void set_fbstring(FBSTRING *fbstr, char *cstr);
 
 
 #ifdef __cplusplus
