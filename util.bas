@@ -863,45 +863,8 @@ SUB remove_string_cache (cache() as IntStrPair, byval key as integer)
  NEXT
 END SUB
 
-#define ROT(a,b) ((a shl b) or (a shr (32 - b)))
-
-'Fairly fast (in original C) string hash, ported from from fb2c++ (as strihash,
-'original was case insensitive) which I wrote and tested myself
-FUNCTION strhash(byval strp as ubyte ptr, byval leng as integer) as unsigned integer
- DIM as unsigned integer hash = &hbaad1dea
- DIM as integer extra_bytes
-
- extra_bytes = leng and 3
- leng \= 4
- WHILE leng
-  hash += *cast(unsigned integer ptr, strp)
-  strp += 4
-  hash = (hash shl 5) - hash  ' * 31
-  hash xor= ROT(hash, 19)
-  leng -= 1
- WEND
-
- IF extra_bytes THEN
-  IF extra_bytes = 3 THEN
-   hash xor= *cast(unsigned integer ptr, strp) and &hffffff
-  ELSEIF extra_bytes = 2 THEN
-   hash xor= *cast(unsigned integer ptr, strp) and &hffff
-  ELSEIF extra_bytes = 1 THEN
-   hash xor= *strp
-  END IF
-  hash = (hash shl 5) - hash
-  hash xor= ROT(hash, 19)
- END IF
-
- 'No need to be too thorough, will get rehashed if needed anyway
- hash += ROT(hash, 2)
- hash xor= ROT(hash, 27)
- hash += ROT(hash, 16)
- RETURN hash
-END FUNCTION
-
 FUNCTION strhash(hstr as string) as unsigned integer
- RETURN strhash(cptr(ubyte ptr, strptr(hstr)), len(hstr))
+ RETURN stringhash(cptr(ubyte ptr, strptr(hstr)), len(hstr))
 END FUNCTION
 
 
@@ -927,7 +890,7 @@ FUNCTION hash_file(filename as string) as unsigned integer
       debug "hash_file: fgetiob failed!"
       RETURN 0
     END IF
-    hash xor= strhash(@buf(0), readamnt)
+    hash xor= stringhash(@buf(0), readamnt)
     hash += ROT(hash, 5)
     size -= 4096
   WEND

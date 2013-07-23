@@ -58,3 +58,41 @@ void init_fbstring(FBSTRING *fbstr, char *cstr) {
 void set_fbstring(FBSTRING *fbstr, char *cstr) {
 	fb_StrAssign(fbstr, -1, cstr, strlen(cstr), 0);
 }
+
+#define ROT(a, b) ((a << b) | (a >> (32 - b)))
+
+// Quite fast hash, ported from fb2c++ (as strihash,
+// original was case insensitive) which I wrote and tested myself.
+// Actually it turns out this can distribute nonideally for non-text,
+// proving it really was a bad idea.
+// strp may be NULL iif length is 0
+uint32_t stringhash(unsigned char *strp, int length) {
+	uint32_t hash = 0xbaad1dea;
+	int extra_bytes = length & 3;
+
+	length /= 4;
+	while (length) {
+		hash += *(uint32_t *)strp;
+		strp += 4;
+		hash = (hash << 5) - hash;  // * 31
+		hash ^= ROT(hash, 19);
+		length -= 1;
+	}
+
+	if (extra_bytes) {
+		if (extra_bytes == 3)
+			hash += *(uint32_t *)strp & 0xffffff;
+		else if (extra_bytes == 2)
+			hash += *(uint32_t *)strp & 0xffff;
+		else if (extra_bytes == 1)
+			hash += *strp;
+		hash = (hash << 5) - hash;  // * 31
+		hash ^= ROT(hash, 19);
+	}
+
+	//No need to be too thorough, will get rehashed if needed anyway
+	hash += ROT(hash, 2);
+	hash ^= ROT(hash, 27);
+	hash += ROT(hash, 16);
+	return hash;
+}

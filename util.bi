@@ -394,6 +394,8 @@ declare function simple_randint (byref prng_state as uinteger, byval upperbound 
 'Euclidean modulo (always positive)
 #DEFINE POSMOD(dividend, divisor) ((((dividend) MOD (divisor)) + (divisor)) MOD (divisor))
 
+#DEFINE ROT(a,b) ((a shl b) or (a shr (32 - b)))
+
 
 '----------------------------------------------------------------------
 '                         String functions
@@ -436,8 +438,7 @@ declare function string_compare cdecl (byval a as string ptr, byval b as string 
 declare sub invert_permutation overload (indices() as integer, inverse() as integer)
 declare sub invert_permutation overload (indices() as integer)
 
-declare function strhash overload (byval strp as ubyte ptr, byval leng as integer) as unsigned integer
-declare function strhash overload (hstr as string) as unsigned integer
+declare function strhash (hstr as string) as unsigned integer
 declare function starts_with(s as string, prefix as string) as integer
 declare function ends_with(s as string, suffix as string) as integer
 
