@@ -152,6 +152,7 @@ extern "C"
 
 declare function gfx_load(byval onlyfirst as integer = NO) as integer
 declare sub unload_backend(which as GFxBackendStuff ptr)
+declare sub default_gfx_render_procs()
 
 dim shared currentgfxbackend as GfxBackendStuff ptr = NULL
 dim shared queue_error as string  'queue up errors until it's possible to actually display them (TODO: not implemented)
@@ -164,7 +165,6 @@ function gfx_dummy_getresize(byref ret as XYPair) as integer : return NO : end f
 sub gfx_dummy_setresizable(byval able as integer) : end sub
 sub io_dummy_waitprocessing() : end sub
 sub io_dummy_pollkeyevents() : end sub
-sub io_dummy_keybits(byval keybdarray as integer ptr) : end sub
 sub io_dummy_updatekeys(byval keybd as integer ptr) : end sub
 sub io_dummy_mousebits(byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer) : end sub
 sub io_dummy_getmouse(byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer) : end sub
@@ -174,6 +174,27 @@ sub io_dummy_hide_virtual_keyboard() : end sub
 sub io_dummy_show_virtual_gamepad() : end sub
 sub io_dummy_hide_virtual_gamepad() : end sub
 sub io_dummy_remap_android_gamepad(byval A as integer, byval B as integer, byval X as integer, byval Y as integer, byval L1 as integer, byval R1 as integer, byval L2 as integer, byval R2 as integer) : end sub
+
+'Some parts of the API (function pointers) are optional in all gfx backends.
+'Those are set to dummy defaults here.
+'In addition other functions are only allowed to be missing when loading old dynamic
+'libraries from before they existed; handled in gfx_load_library[_new]
+sub set_default_gfx_function_ptrs
+	default_gfx_render_procs()
+	gfx_setdebugfunc = NULL
+	gfx_getresize = @gfx_dummy_getresize
+	gfx_setresizable = @gfx_dummy_setresizable
+	gfx_printchar = NULL
+	io_textinput = NULL
+	io_enable_textinput = @io_dummy_enable_textinput
+	io_pollkeyevents = @io_dummy_pollkeyevents
+	io_waitprocessing = @io_dummy_waitprocessing
+	io_show_virtual_keyboard = @io_dummy_show_virtual_keyboard
+	io_hide_virtual_keyboard = @io_dummy_hide_virtual_keyboard
+	io_show_virtual_gamepad = @io_dummy_show_virtual_gamepad
+	io_hide_virtual_gamepad = @io_dummy_hide_virtual_gamepad
+	io_remap_android_gamepad = @io_dummy_remap_android_gamepad
+end sub
 
 function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filename as string) as integer
 	dim hFile as any ptr = backendinfo->dylib
@@ -427,14 +448,7 @@ function load_backend(which as GFxBackendStuff ptr) as integer
 		currentgfxbackend = NULL
 	end if
 
-	'Set up default function pointers
-	default_gfx_render_procs()
-	gfx_setdebugfunc = NULL
-	Gfx_getresize = @gfx_dummy_getresize
-	Gfx_setresizable = @gfx_dummy_setresizable
-	Io_textinput = NULL
-	Io_enable_textinput = @io_dummy_enable_textinput
-	Gfx_printchar = NULL
+	set_default_gfx_function_ptrs()
 
 	if which->load = NULL then
 		dim filename as string = which->libname
