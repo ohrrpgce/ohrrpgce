@@ -71,6 +71,7 @@ dim io_hide_virtual_keyboard as sub ()
 dim io_show_virtual_gamepad as sub ()
 dim io_hide_virtual_gamepad as sub ()
 dim io_remap_android_gamepad as sub (byval A as integer, byval B as integer, byval X as integer, byval Y as integer, byval L1 as integer, byval R1 as integer, byval L2 as integer, byval R2 as integer)
+dim io_running_on_console as function () as bool
 dim io_mousebits as sub (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer)
 dim io_setmousevisibility as sub (byval visible as integer)
 dim io_getmouse as sub (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer)
@@ -174,6 +175,7 @@ sub io_dummy_hide_virtual_keyboard() : end sub
 sub io_dummy_show_virtual_gamepad() : end sub
 sub io_dummy_hide_virtual_gamepad() : end sub
 sub io_dummy_remap_android_gamepad(byval A as integer, byval B as integer, byval X as integer, byval Y as integer, byval L1 as integer, byval R1 as integer, byval L2 as integer, byval R2 as integer) : end sub
+function io_dummy_running_on_console() as bool : return NO : end function
 
 'Some parts of the API (function pointers) are optional in all gfx backends.
 'Those are set to dummy defaults here.
@@ -194,6 +196,7 @@ sub set_default_gfx_function_ptrs
 	io_show_virtual_gamepad = @io_dummy_show_virtual_gamepad
 	io_hide_virtual_gamepad = @io_dummy_hide_virtual_gamepad
 	io_remap_android_gamepad = @io_dummy_remap_android_gamepad
+	io_running_on_console = @io_dummy_running_on_console
 end sub
 
 function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filename as string) as integer
@@ -267,6 +270,9 @@ function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filename as 
 
 	io_remap_android_gamepad = dylibsymbol(hFile, "io_remap_android_gamepad")
 	if io_remap_android_gamepad = NULL then io_remap_android_gamepad = @io_dummy_remap_android_gamepad
+
+	io_running_on_console = dylibsymbol(hFile, "io_running_on_console")
+	if io_running_on_console = NULL then io_running_on_console = @io_dummy_running_on_console
 
 	io_mousebits = dylibsymbol(hFile, "io_mousebits")
 	if io_mousebits = NULL then

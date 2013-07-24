@@ -3108,6 +3108,20 @@ SELECT CASE as CONST id
   setbit gen(), genSuspendBits, suspenddoors, 1
  CASE 552 '--resume doors
   setbit gen(), genSuspendBits, suspenddoors, 0
+ CASE 553 '--running on desktop
+#IFDEF __FB_ANDROID__
+ scriptret = 0
+#ELSE
+ scriptret = 1
+#ENDIF
+ CASE 554 '--running on mobile
+#IFDEF __FB_ANDROID__
+ scriptret = 1
+#ELSE
+ scriptret = 0
+#ENDIF
+ CASE 555 '--running on console
+  scriptret = IIF(running_on_console(), 1, 0)
 
 
 'old scriptnpc

@@ -6496,3 +6496,7 @@ sub remap_android_gamepad(byval A as integer, byval B as integer, byval X as int
 	debuginfo "remap_android_gamepad " & A & " " & B & " " & X & " " & Y & " " & L1 & " " & R1 & " " & L2 & " " & R2
 	io_remap_android_gamepad(A, B, X, Y, L1, R1, L2, R2)
 end sub
+
+function running_on_console() as bool
+	return io_running_on_console()
+end function

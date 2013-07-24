@@ -850,6 +850,13 @@ SUB io_sdl_remap_android_gamepad(byval A as integer, byval B as integer, byval X
 #ENDIF
 END SUB
 
+FUNCTION io_sdl_running_on_console() as bool
+#IFDEF __FB_ANDROID__
+ RETURN SDL_ANDROID_IsRunningOnOUYA()
+#ENDIF
+ RETURN NO
+END FUNCTION
+
 SUB io_sdl_setmousevisibility(byval visible as integer)
   rememmvis = iif(visible, 1, 0)
   SDL_ShowCursor(iif(windowedmode, rememmvis, 0))
@@ -1043,6 +1050,7 @@ FUNCTION gfx_sdl_setprocptrs() as integer
   io_show_virtual_gamepad = @io_sdl_show_virtual_gamepad
   io_hide_virtual_gamepad = @io_sdl_hide_virtual_gamepad
   io_remap_android_gamepad = @io_sdl_remap_android_gamepad
+  io_running_on_console = @io_sdl_running_on_console
   io_mousebits = @io_sdl_mousebits
   io_setmousevisibility = @io_sdl_setmousevisibility
   io_getmouse = @io_sdl_getmouse
