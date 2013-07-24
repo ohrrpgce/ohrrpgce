@@ -41,6 +41,7 @@ declare function SDL_ANDROID_IsScreenKeyboardShown() as bool
 declare function SDL_ANDROID_IsRunningOnOUYA () as bool
 declare sub SDL_ANDROID_set_java_gamepad_keymap(byval A as integer, byval B as integer, byval C as integer, byval X as integer, byval Y as integer, byval Z as integer, byval L1 as integer, byval R1 as integer, byval L2 as integer, byval R2 as integer, byval LT as integer, byval RT as integer)
 declare function SDL_ANDROID_SetScreenKeyboardButtonKey(byval buttonId as integer, byval key as integer) as integer
+declare function SDL_ANDROID_SetScreenKeyboardButtonDisable(byval buttonId as integer, byval disable as bool) as integer
 #ENDIF
 
 'why is this missing from crt.bi?
@@ -852,8 +853,10 @@ SUB io_sdl_remap_android_gamepad(byval A as integer, byval B as integer, byval X
 END SUB
 
 SUB io_sdl_remap_touchscreen_button(byval button_id as integer, byval ohr_scancode as integer)
+'Pass a scancode of 0 to disabled/hide the button
 'Does nothing on non-android
 #IFDEF __FB_ANDROID__
+ SDL_ANDROID_SetScreenKeyboardButtonDisable(button_id, (ohr_scancode = 0))
  SDL_ANDROID_SetScreenKeyboardButtonKey(button_id, scOHR2SDL(ohr_scancode, 0))
 #ENDIF
 END SUB
