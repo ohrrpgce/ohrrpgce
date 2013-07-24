@@ -6023,12 +6023,12 @@ end</example>
 		<command id="runningonmobile">
 			<canon>running on mobile</canon>
 			<shortname>running on mobile</shortname>
-			<description>This command returns true if the game is currently running on a mobile device such as an Android phone or tablet. You should avoid using this command unless you really need it. Most games can support mobile devices without ever using this command. See the "Android-Specific Options" menu under "Edit General Game Data".</description>
+			<description>This command returns true if the game is currently running on a mobile device such as an Android phone or tablet. You should avoid using this command unless you really need it. Most games can support mobile devices without ever using this command. See the "Platform-Specific Options" menu under "Edit General Game Data".</description>
 		</command>
 		<command id="runningonconsole">
 			<canon>running on console</canon>
 			<shortname>running on console</shortname>
-			<description>This command returns true if the game is currently running on an OUYA console. You should avoid using this command unless you really need it. Most games can support the OUYA console without ever using this command. See the "Android-Specific Options" menu under "Edit General Game Data".</description>
+			<description>This command returns true if the game is currently running on an OUYA console. You should avoid using this command unless you really need it. Most games can support the OUYA console without ever using this command. See the "Platform-Specific Options" menu under "Edit General Game Data".</description>
 		</command>
 	</section>
 	<section title="Predefined Constants">

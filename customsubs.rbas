@@ -4254,11 +4254,11 @@ FUNCTION reorderable_node(byval node as NodePtr) as integer
  RETURN NO
 END FUNCTION
 
-CONST androidoptEXIT as integer = 1
-CONST androidoptTOGGLEVGAMEPAD as integer = 2
-CONST androidoptBUTTON as integer = 3
+CONST platformoptEXIT as integer = 1
+CONST platformoptTOGGLEVGAMEPAD as integer = 2
+CONST platformoptBUTTON as integer = 3
 
-SUB edit_android_options ()
+SUB edit_platform_options ()
 
  DIM menu as MenuDef
 
@@ -4269,11 +4269,11 @@ SUB edit_android_options ()
  REDIM enabled(0) as bool
 
  DIM gen_root as NodePtr = get_general_reld()
- DIM android as NodePtr
- IF gen_root."android_controls".exists THEN
-  android = gen_root."android_controls".ptr
+ DIM mobile as NodePtr
+ IF gen_root."mobile_options".exists THEN
+  mobile = gen_root."mobile_options".ptr
  ELSE
-  android = SetChildNode(gen_root, "android_controls")
+  mobile = SetChildNode(gen_root, "mobile_options")
  END IF
  DIM gamepad as NodePtr
  IF gen_root."gamepad".exists THEN
@@ -4296,7 +4296,7 @@ SUB edit_android_options ()
  DO
   setwait 55
   setkeys
-  IF keyval(scF1) > 1 THEN show_help "general_android_options"
+  IF keyval(scF1) > 1 THEN show_help "general_platform_options"
   IF keyval(scEsc) > 1 THEN EXIT DO
 
   IF st.need_update THEN
@@ -4311,10 +4311,10 @@ SUB edit_android_options ()
     .bordersize = -8
    END WITH
    append_menu_item menu, "Previous menu..."
-   menu.last->t = androidoptEXIT
+   menu.last->t = platformoptEXIT
 
-   append_menu_item menu, "Disable Virtual Gamepad: " & yesorno(android."disable_virtual_gamepad".exists)
-   menu.last->t = androidoptTOGGLEVGAMEPAD
+   append_menu_item menu, "Disable Virtual Gamepad: " & yesorno(mobile."disable_virtual_gamepad".exists)
+   menu.last->t = platformoptTOGGLEVGAMEPAD
 
    append_menu_item menu, ""
    menu.last->unselectable = YES
@@ -4333,7 +4333,7 @@ SUB edit_android_options ()
      cap &= rpad(scancode_to_name(default_scancodes(i)), " ", 12) & "(Default)"
     END IF
     append_menu_item menu, cap
-    menu.last->t = androidoptBUTTON
+    menu.last->t = platformoptBUTTON
     menu.last->sub_t = i
     menu.last->dataptr = bnode
    NEXT i
@@ -4358,11 +4358,11 @@ SUB edit_android_options ()
   
   IF enter_space_click(st) THEN
    SELECT CASE t
-    CASE androidoptEXIT: EXIT DO
-    CASE androidoptTOGGLEVGAMEPAD:
-     ToggleChildNode android, "disable_virtual_gamepad"
+    CASE platformoptEXIT: EXIT DO
+    CASE platformoptTOGGLEVGAMEPAD:
+     ToggleChildNode mobile, "disable_virtual_gamepad"
      st.need_update = YES
-    CASE androidoptBUTTON:
+    CASE platformoptBUTTON:
      sc = prompt_for_scancode()
      IF sc >= 0 THEN
       SetChildNode(gamepad, buttons(sub_t), sc)
@@ -4372,12 +4372,12 @@ SUB edit_android_options ()
   END IF
   
   SELECT CASE t
-   CASE androidoptTOGGLEVGAMEPAD:
+   CASE platformoptTOGGLEVGAMEPAD:
     IF keyval(scLeft) > 1 ORELSE keyval(scRight) > 1 THEN
-     ToggleChildNode android, "disable_virtual_gamepad"
+     ToggleChildNode mobile, "disable_virtual_gamepad"
      st.need_update = YES
     END IF
-    CASE androidoptBUTTON:
+    CASE platformoptBUTTON:
      IF keyval(scDELETE) > 1 ORELSE keyval(scBACKSPACE) > 1 THEN
       SetChildNode(gamepad, buttons(sub_t), 0)
       st.need_update = YES
@@ -4385,7 +4385,7 @@ SUB edit_android_options ()
   END SELECT
    
   clearpage dpage
-  IF t = androidoptBUTTON THEN
+  IF t = platformoptBUTTON THEN
    edgeprint "OUYA Controller: " & ouya_buttons(sub_t), 0, 180, uilook(uiSelectedDisabled), dpage
    edgeprint "Xperia Controller: " & xperia_buttons(sub_t), 0, 190, uilook(uiSelectedDisabled), dpage
   END IF

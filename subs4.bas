@@ -1651,7 +1651,7 @@ SUB gendata ()
  m(8) = "Global Music and Sound Effects..."
  m(9) = "Master Palettes..."
  m(10) = "Password For Editing..."
- m(11) = "Android-specific options..."
+ m(11) = "Platform-specific options..."
 
  flusharray enabled(), UBOUND(enabled), YES
  enabled(12) = NO
@@ -1738,7 +1738,7 @@ SUB gendata ()
    IF state.pt = 8 THEN generalmusicsfxmenu
    IF state.pt = 9 THEN masterpalettemenu
    IF state.pt = 10 THEN inputpasw
-   IF state.pt = 11 THEN edit_android_options
+   IF state.pt = 11 THEN edit_platform_options
   END IF
   IF state.pt = 1 THEN
    IF enable_strgrabber ANDALSO strgrabber(longname, 38) THEN state.need_update = YES
