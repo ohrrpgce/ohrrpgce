@@ -1087,8 +1087,11 @@ script,die in battle,begin
 
   if(check tag(tag:DO NOT DIE)==OFF)
   then,begin
-   (show textbox (596),wait for key (anykey),fade screen out (0,0,0),game over,end)
-  else,begin
+    show textbox (596)
+    wait for key (anykey)
+    fade screen out (0,0,0)
+    game over
+  end,else,begin
     for(i,0,3) do,begin
       if (get hero stat(i,stat:HP,current stat) <= 0)
       then (set hero stat(i,stat:HP,1))
@@ -22781,7 +22784,8 @@ show value (score)
 
 if (timer<<2550) then (keytimer:=1+keytimer)
 
-if (timer<<2550>>1300) then (keytimer:=1+keytimer)
+# The following line is broken
+#if (timer<<2550>>1300) then (keytimer:=1+keytimer)
 
 rand:=random(6,9)
 if (keytimer>>20) then (create npc (rand,22,1,west),keytimer:=0)
@@ -22817,7 +22821,7 @@ end
 
 if (timer==0,or,timer==130,or,timer==390,or,timer==640,or,timer==785,or,timer==1725,or,timer==925,or,timer==1140,or,timer==2385,or,timer==1460,or,timer==2005,or,timer==2274) then , begin
 
-(put npc (3,180,100),put npc (1,220,100),put npc (2,260,100))
+put npc (3,180,100),put npc (1,220,100),put npc (2,260,100)
 set NPC direction (1, south),set NPC direction (2, south),set NPC direction (3, south)
 
 end
