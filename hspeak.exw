@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Qb 2013-07-24 Require begin after then, do, etc. (else excluded)
 --3Qa 2013-04-11 Warn when plotscr.hsd not included
 ----- 2013-02-28 Allow non-constant expressions in case blocks again
 --3Pe 2013-01-03 Faster compile times
@@ -143,7 +144,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Qa"
+constant COMPILER_SUB_VERSION="Qb"
 constant COPYRIGHT_DATE="2013"
 
 --This is the oldest version of plotscr.hsd which is supported (feel free to
@@ -303,6 +304,19 @@ sequence flow_list        flow_list={
                              ,{14,"exitreturning"}
                              ,{15,"switch"}
                              ,{16,"case"}  --never appears in compiled script
+                          }
+                          --elseif is not a flow type
+sequence flow_requiring_brackets  --else is excluded, because of case(else)
+                          flow_requiring_brackets={
+                             "do",
+                             "if",
+                             "then",
+                             "elseif",
+                             "for",
+                             "while",
+                             "exitreturning",
+                             "switch",
+                             "case"
                           }
 sequence math_list        math_list={
                               {0,"random",{0,1}}
@@ -2538,10 +2552,11 @@ end function
 
 function get_script_cmd(integer ptr,sequence data,sequence vars)
   sequence command
-  sequence this
-  sequence after
+  sequence ptr_and_block
+  sequence block
   integer kind
-  after={}
+  integer followed_by_begin
+  block={}
   command=data[ptr]
   ptr+=1
   if compare("end",command[CMD_TEXT])=0 then
@@ -2555,33 +2570,56 @@ function get_script_cmd(integer ptr,sequence data,sequence vars)
     if ptr<=length(data) then
       --there is room for args
       ptr+=1--only increment the pointer when we have args
-      after=get_cmd_depth(ptr,data,1)
-      ptr=after[1]   --this is a hack, because we cannot say {n,n}=func()
+      ptr_and_block=get_cmd_depth(ptr,data,1)
+      ptr=ptr_and_block[1]
     end if
     --non-command
     return({ptr,{}})
   end if
 
+  kind=what_kind(command,vars,true)
+  followed_by_begin=false
   if ptr<=length(data) then
     --there is room for args
-    kind=what_kind(command,vars,true)
+    followed_by_begin=equal("begin",data[ptr][CMD_TEXT])
 
     --distinguishing between functions with and without args means wait() would be ok but noop() would not
     if takes_args(kind) then
-      this=data[ptr]
-      if compare("begin",this[CMD_TEXT])=0 then
+      if followed_by_begin then
         --yes, it has args
         ptr+=1--only increment the pointer when we have args
-        after=get_cmd_depth(ptr,data,1)
-        ptr=after[1]   --this is a hack, because we cannot say {n,n}=func()
-        after=after[2]
-        if length(after)=0 and kind=KIND_PARENS then
+        ptr_and_block=get_cmd_depth(ptr,data,1)
+        ptr=ptr_and_block[1]
+        block=ptr_and_block[2]
+        if length(block)=0 and kind=KIND_PARENS then
           src_error("found empty parentheses not associated with a function call",command[CMD_POS])
         end if
       end if
     end if
   end if
-  return({ptr,{command,after}})
+
+  if kind=KIND_FLOW then
+    --Require certain flow control types to be followed by parentheses.
+    --We have to check this here or earlier, because after building the parse tree
+    --there will be no difference between "()" and omitted parentheses.
+    --(Note that several later checks in normalize_flow_control are redundant to this)
+    --FIXME: Ideally we wouldn't actually check anything here, but instead preserve presence
+    --of empty parentheses to check later (it will matter in future anyway according to typing plan)
+    --FIXME: excludes else, because of 'case(else)'
+    if find(command[CMD_TEXT],flow_requiring_brackets) then
+      if not followed_by_begin then
+        src_error(sprintf_utf(COLYEL&"%s"&COLRED&" must be followed by "&COLYEL&"begin"&COLRED&" or "&COLYEL&"("&COLRED,{command[CMD_TEXT]}),command[CMD_POS])
+      end if
+    end if
+
+    --else has a special check for 'else,if' mistake.
+    --'not followed_by_begin' excludes 'else(...)if'
+    if equal("else",command[CMD_TEXT]) and ptr<=length(data) and equal("if",data[ptr][CMD_TEXT]) and not followed_by_begin then
+      src_error(COLYEL&"else if"&COLRED&" may not be written with a separator in-between",command[CMD_POS])
+    end if
+  end if
+
+  return({ptr,{command,block}})
 end function
 
 ---------------------------------------------------------------------------
@@ -2930,6 +2968,7 @@ end function
 ---------------------------------------------------------------------------
 
 --parse the script tree and make if absorb then and else, for and while absorb do, switch absorb stuff, check correctness of flow statements
+--Note that several of these checks are now redundant to the check for 'begin' performed in get_script_cmd
 function normalize_flow_control(sequence tree,sequence vars,sequence parent)
   integer ptr
   sequence s
@@ -2986,17 +3025,17 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
 
     elsif compare("then",s)=0 then
       if compare("if",parent)!=0 or ptr!=2 then
-        src_error(COLYEL&"then"&COLRED&" should follow an "&COLYEL&"if"&COLRED&" or "&COLYEL&"else if"&COLRED,pos)
+        src_error(COLYEL&"then"&COLRED&" should follow an "&COLYEL&"if"&COLRED&" or "&COLYEL&"else if"&COLRED&" block",pos)
       end if
 
     elsif compare("else",s)=0 then
       if compare("if",parent)!=0 or ptr!=3 then
-        src_error(COLYEL&"else"&COLRED&" should follow an "&COLYEL&"if"&COLRED&" or "&COLYEL&"then"&COLRED&" or "&COLYEL&"else if"&COLRED,pos)
+        src_error(COLYEL&"else"&COLRED&" should follow an "&COLYEL&"if"&COLRED&" or "&COLYEL&"then"&COLRED&" or "&COLYEL&"else if"&COLRED&" block",pos)
       end if
 
     elsif compare("elseif",s)=0 then
       --Should be absorbed by now
-      src_error(COLYEL&"else if"&COLRED&" should follow an "&COLYEL&"if"&COLRED&" or "&COLYEL&"then"&COLRED,pos)
+      src_error(COLYEL&"else if"&COLRED&" should follow an "&COLYEL&"if"&COLRED&" or "&COLYEL&"then"&COLRED&" block",pos)
 
     elsif compare("while",s)=0 then
       if length(tree[ptr][TREE_BRANCHES])>1 then
@@ -3022,7 +3061,7 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
 
     elsif compare("for",s)=0 then
       if length(tree[ptr][TREE_BRANCHES])<3 then
-        src_error(sprintf_utf(COLYEL&"for"&COLRED&" statement needs three arguments",{}),pos)
+        src_error(sprintf_utf(COLYEL&"for"&COLRED&" statement needs three or four arguments",{}),pos)
       elsif length(tree[ptr][TREE_BRANCHES])>4 then
         src_error(sprintf_utf(COLYEL&"for"&COLRED&" statement has too many arguments (%d)",{length(tree[ptr][TREE_BRANCHES])}),tree[ptr][TREE_BRANCHES][5][TREE_TRUNK][CMD_POS])
       elsif length(tree[ptr][TREE_BRANCHES])=3 then
@@ -4280,7 +4319,7 @@ procedure write_output_file()
       end if
       close(fh)
     else
-      simple_error(sprintf_utf("attempt to open"&COLYEL&"%s"&COLRED&" failed",{dest_file}))
+      simple_error(sprintf_utf("attempt to open "&COLYEL&"%s"&COLRED&" failed",{dest_file}))
     end if
   else
     color_print("no scripts to output\n",{})
