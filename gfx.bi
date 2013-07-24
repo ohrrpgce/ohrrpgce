@@ -83,6 +83,8 @@ extern Io_show_virtual_gamepad as sub ()
 extern Io_hide_virtual_gamepad as sub ()
 '(optional) Runtime remapping of android controller buttons
 extern Io_remap_android_gamepad as sub (byval A as integer, byval B as integer, byval X as integer, byval Y as integer, byval L1 as integer, byval R1 as integer, byval L2 as integer, byval R2 as integer)
+'(optional) Runtime remapping of touchscreen virtual gamepad buttons
+extern Io_remap_touchscreen_button as sub (byval button_id as integer, byval ohr_scancode as integer)
 '(optional) Return true if the running device is a console (currently only supports OUYA)
 extern Io_running_on_console as function () as bool
 

@@ -1293,6 +1293,27 @@ SUB reset_game_state ()
  DIM root as NodePtr = get_general_reld()
  DIM gamepad as NodePtr = root."gamepad".ptr
  remap_android_gamepad gamepad."A".integer, gamepad."B".integer, gamepad."X".integer, gamepad."Y".integer, gamepad."L1".integer, gamepad."R1".integer, gamepad."L2".integer, gamepad."R2".integer
+ 
+ DIM mobile as NodePtr = root."mobile_options".ptr
+ IF mobile = 0 THEN mobile = SetChildNode(root, "mobile_options")
+ DIM vgp as NodePtr = mobile."virtual_gamepad".ptr
+ IF vgp = 0 THEN
+  'node does not exist, create defaults
+  vgp = SetChildNode(mobile, "virtual_gamepad")
+  AppendChildNode(vgp, "button", scEnter)
+  AppendChildNode(vgp, "button", scESC)
+ END IF
+ DIM button_id as integer = 0
+ READNODE vgp
+  WITHNODE vgp."button" as but
+   remap_touchscreen_button button_id, GetInteger(but)
+   button_id += 1
+  END WITHNODE
+ END READNODE
+ FOR i as integer = button_id TO 5
+  remap_touchscreen_button i, 0
+ NEXT i
+ 
 END SUB
 
 SUB reset_map_state (map as MapModeState)

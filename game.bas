@@ -296,6 +296,12 @@ defaultc  'set up default controls
 readjoysettings
 
 remap_android_gamepad scEnter, scESC, scESC, scESC, scPageUp, scPageDown, scHome, scEnd
+remap_touchscreen_button 0, scEnter
+remap_touchscreen_button 1, scESC
+remap_touchscreen_button 2, 0
+remap_touchscreen_button 3, 0
+remap_touchscreen_button 4, 0
+remap_touchscreen_button 5, 0
 
 setwindowtitle "O.H.R.RPG.C.E"
 unhidemousecursor  'init mouse state

@@ -40,6 +40,7 @@ declare function SDL_ANDROID_ToggleScreenKeyboardWithoutTextInput() as integer
 declare function SDL_ANDROID_IsScreenKeyboardShown() as bool
 declare function SDL_ANDROID_IsRunningOnOUYA () as bool
 declare sub SDL_ANDROID_set_java_gamepad_keymap(byval A as integer, byval B as integer, byval C as integer, byval X as integer, byval Y as integer, byval Z as integer, byval L1 as integer, byval R1 as integer, byval L2 as integer, byval R2 as integer, byval LT as integer, byval RT as integer)
+declare function SDL_ANDROID_SetScreenKeyboardButtonKey(byval buttonId as integer, byval key as integer) as integer
 #ENDIF
 
 'why is this missing from crt.bi?
@@ -833,7 +834,7 @@ SUB internal_disable_virtual_gamepad()
 END SUB
 
 SUB io_sdl_remap_android_gamepad(byval A as integer, byval B as integer, byval X as integer, byval Y as integer, byval L1 as integer, byval R1 as integer, byval L2 as integer, byval R2 as integer)
-'Do nothing on non-android
+'Does nothing on non-android
 #IFDEF __FB_ANDROID__
  SDL_ANDROID_set_java_gamepad_keymap ( _
    scOHR2SDL(A, SDLK_RETURN), _
@@ -847,6 +848,13 @@ SUB io_sdl_remap_android_gamepad(byval A as integer, byval B as integer, byval X
    scOHR2SDL(L2, SDLK_HOME), _
    scOHR2SDL(R2, SDLK_END), _
    0, 0)
+#ENDIF
+END SUB
+
+SUB io_sdl_remap_touchscreen_button(byval button_id as integer, byval ohr_scancode as integer)
+'Does nothing on non-android
+#IFDEF __FB_ANDROID__
+ SDL_ANDROID_SetScreenKeyboardButtonKey(button_id, scOHR2SDL(ohr_scancode, 0))
 #ENDIF
 END SUB
 
@@ -1050,6 +1058,7 @@ FUNCTION gfx_sdl_setprocptrs() as integer
   io_show_virtual_gamepad = @io_sdl_show_virtual_gamepad
   io_hide_virtual_gamepad = @io_sdl_hide_virtual_gamepad
   io_remap_android_gamepad = @io_sdl_remap_android_gamepad
+  io_remap_touchscreen_button = @io_sdl_remap_touchscreen_button
   io_running_on_console = @io_sdl_running_on_console
   io_mousebits = @io_sdl_mousebits
   io_setmousevisibility = @io_sdl_setmousevisibility

@@ -6492,9 +6492,15 @@ sub hide_virtual_gamepad()
 end sub
 
 sub remap_android_gamepad(byval A as integer, byval B as integer, byval X as integer, byval Y as integer, byval L1 as integer, byval R1 as integer, byval L2 as integer, byval R2 as integer)
-	'Does nothing on platforms that have real keyboards
+	'Does nothing on non-android non-ouya platforms
 	debuginfo "remap_android_gamepad " & A & " " & B & " " & X & " " & Y & " " & L1 & " " & R1 & " " & L2 & " " & R2
 	io_remap_android_gamepad(A, B, X, Y, L1, R1, L2, R2)
+end sub
+
+sub remap_touchscreen_button (byval button_id as integer, byval ohr_scancode as integer)
+	'Does nothing on platforms without touch screens
+	debuginfo "remap_android_gamepad " & button_id & " " & ohr_scancode
+	io_remap_touchscreen_button(button_id, ohr_scancode)
 end sub
 
 function running_on_console() as bool
