@@ -4257,11 +4257,13 @@ END FUNCTION
 CONST platformoptEXIT as integer = 1
 CONST platformoptTOGGLEVGAMEPAD as integer = 2
 CONST platformoptBUTTON as integer = 3
+CONST platformoptVBUTTON as integer = 4
+CONST platformoptADDVBUTTON as integer = 5
 
 SUB edit_platform_options ()
 
  DIM menu as MenuDef
-
+ 
  DIM st as MenuState
  st.active = YES
  st.need_update = YES
@@ -4273,8 +4275,20 @@ SUB edit_platform_options ()
  IF gen_root."mobile_options".exists THEN
   mobile = gen_root."mobile_options".ptr
  ELSE
+  'Node does not exist, create it and set defaults
   mobile = SetChildNode(gen_root, "mobile_options")
  END IF
+
+ DIM vgp as NodePtr
+ IF mobile."virtual_gamepad".exists THEN
+  vgp = mobile."virtual_gamepad".ptr
+ ELSE
+  'Node does not exist, create it and set defaults
+  vgp = SetChildNode(mobile, "virtual_gamepad")
+  AppendChildNode(vgp, "button", scEnter)
+  AppendChildNode(vgp, "button", scESC)
+ END IF
+
  DIM gamepad as NodePtr
  IF gen_root."gamepad".exists THEN
   gamepad = gen_root."gamepad".ptr
@@ -4287,6 +4301,11 @@ SUB edit_platform_options ()
  DIM xperia_buttons(...) as string = {"X?", "O?", "Square", "Triangle", "L1", "R1", "Doesn't Exist", "Doesn't Exist"}
  DIM default_scancodes(...) as integer = {scEnter, scESC, scESC, scESC, scPageUp, scPageDown, scHome, scEnd}
 
+ DIM vbutton_count as integer = 0
+ DIM vbutton_max as integer = 6
+
+ DIM cap as string 'used temporarily when constructing menu captions
+ 
  DIM t as integer
  DIM sub_t as integer
  DIM node as NodePtr
@@ -4316,6 +4335,31 @@ SUB edit_platform_options ()
    append_menu_item menu, "Disable Virtual Gamepad: " & yesorno(mobile."disable_virtual_gamepad".exists)
    menu.last->t = platformoptTOGGLEVGAMEPAD
 
+   IF NOT mobile."disable_virtual_gamepad".exists THEN
+    append_menu_item menu, "Phone/Tablet virtual gamepad"
+    menu.last->unselectable = YES
+    menu.last->disabled = YES
+    
+    vbutton_count = 0
+    READNODE vgp
+     WITHNODE vgp."button" as but
+      vbutton_count += 1
+      IF vbutton_count > 6 THEN
+       debug "WARNING: not allowed to have more than 6 mobile virtual gamepad buttons"
+      ELSE
+       append_menu_item menu, "Button " & vbutton_count - 1 & ": " & scancode_to_name(GetInteger(but))
+       menu.last->t = platformoptVBUTTON
+       menu.last->dataptr = but
+      END IF
+     END WITHNODE
+    END READNODE
+    IF vbutton_count < vbutton_max THEN
+     append_menu_item menu, "Add another button"
+     menu.last->t = platformoptADDVBUTTON
+    END IF
+   
+   END IF
+
    append_menu_item menu, ""
    menu.last->unselectable = YES
 
@@ -4325,7 +4369,7 @@ SUB edit_platform_options ()
 
    FOR i as integer = 0 TO UBOUND(buttons)
     DIM bnode as NodePtr = ChildNode(gamepad, buttons(i))
-    DIM cap as string = "Button " & rpad(buttons(i), " ", 2) & ": "
+    cap = "Button " & rpad(buttons(i), " ", 2) & ": "
     sc = GetInteger(bnode)
     IF sc THEN
      cap &= rpad(scancode_to_name(sc), " ", 12) & "(" & sc & ")"
@@ -4368,6 +4412,15 @@ SUB edit_platform_options ()
       SetChildNode(gamepad, buttons(sub_t), sc)
       st.need_update = YES
      END IF
+    CASE platformoptVBUTTON:
+     sc = prompt_for_scancode()
+     IF sc >= 0 THEN
+      SetContent(node, sc)
+      st.need_update = YES
+     END IF
+    CASE platformoptADDVBUTTON:
+     AppendChildNode(vgp, "button", 0)
+     st.need_update = YES
    END SELECT
   END IF
   
@@ -4380,6 +4433,11 @@ SUB edit_platform_options ()
     CASE platformoptBUTTON:
      IF keyval(scDELETE) > 1 ORELSE keyval(scBACKSPACE) > 1 THEN
       SetChildNode(gamepad, buttons(sub_t), 0)
+      st.need_update = YES
+     END IF
+    CASE platformoptVBUTTON:
+     IF keyval(scDELETE) > 1 ORELSE keyval(scBACKSPACE) > 1 THEN
+      FreeNode node
       st.need_update = YES
      END IF
   END SELECT
