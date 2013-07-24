@@ -3116,7 +3116,8 @@ SELECT CASE as CONST id
 #ENDIF
  CASE 554 '--running on mobile
 #IFDEF __FB_ANDROID__
- scriptret = 1
+ '--return true for all Android except OUYA
+ scriptret = IIF(running_on_console(), 0, 1)
 #ELSE
  scriptret = 0
 #ENDIF
