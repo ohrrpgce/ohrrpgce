@@ -5225,3 +5225,216 @@ FUNCTION str_rect(s as string, byval x as integer, byval y as integer) as RectTy
  r.high = 8
  RETURN r
 END FUNCTION
+
+FUNCTION cheezy_virtual_keyboard (default_str as string, max_length as integer=-1) as string
+ 'This is intended for OUYA where the Android virtual keyboard seems to
+ 'be partly broken. It might prove to be useful for other purposes too.
+ 
+ DIM alphabet as string = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz 1234567890',.;:?!@#$%^&*~_+-=()[]{}<>/"
+ 
+ DIM result as string = default_str
+
+ '--Preserve whatever screen was already showing as a background
+ DIM holdscreen as integer
+ holdscreen = allocatepage
+ copypage vpage, holdscreen
+ copypage vpage, dpage
+ 
+ DIM root as Slice Ptr
+ root = NewSliceOfType(slSpecial)
+ root->Fill = YES
+ 
+ DIM box as Slice Ptr
+ box = NewSliceOfType(slRectangle, root)
+ WITH *box
+  .x = 0
+  .y = 10
+  .width = 210
+  .height = 80
+  .AnchorHoriz = 1
+  .AlignHoriz = 1
+  .AnchorVert = 0
+  .AlignVert = 1
+ END WITH
+ ChangeRectangleSlice box, 0
+ 
+ DIM keybox as Slice Ptr
+ keybox = NewSliceOfType(slRectangle, box)
+ WITH *keybox
+  .x = 20
+  .y = 5
+  .width = 130
+  .height = 70
+ END WITH
+ ChangeRectangleSlice keybox, , uilook(uiBackground), , -2 
+ 
+ DIM curs as Slice Ptr
+ curs = NewSliceofType(slRectangle, keybox)
+ WITH *curs
+  .width = 10
+  .height = 10
+ END WITH
+ ChangeRectangleSlice curs, , uilook(uiHighlight), , -2
+ 
+ DIM ch as Slice Ptr
+ FOR i as integer = 0 TO LEN(alphabet) - 1
+  ch = NewSliceOfType(sltext, keybox)
+  ChangeTextSlice ch, MID(alphabet, i+1, 1), uilook(uiMenuItem), YES
+  ch->x = (i MOD 13) * 10
+  ch->y = INT(i / 13) * 10
+ NEXT i
+ 
+ DIM buttonbox as Slice Ptr
+ buttonbox = NewSliceOfType(slContainer, box)
+ WITH *buttonbox
+  .x = -10
+  .y = 15
+  .width = 48
+  .AnchorHoriz = 2
+  .AlignHoriz = 2
+ END WITH
+
+ DIM del as Slice Ptr
+ del = NewSliceOfType(slRectangle, buttonbox)
+ WITH *del
+  .width = 40
+  .height = 12
+  .AnchorHoriz = 1
+  .AlignHoriz = 1
+ END WITH
+ ChangeRectangleSlice del, , uilook(uiBackground), , -2
+ DIM deltxt as Slice Ptr
+ deltxt = NewSliceOfType(slText, del)
+ WITH *deltxt
+  .AnchorHoriz = 1
+  .AlignHoriz = 1
+  .AnchorVert = 1
+  .AlignVert = 1
+ END WITH
+ ChangeTextSlice deltxt, "DEL", uilook(uiMenuItem), YES
+
+ DIM confirm as Slice Ptr
+ confirm = NewSliceOfType(slRectangle, buttonbox)
+ WITH *confirm
+  .y = 20
+  .width = 40
+  .height = 12
+  .AnchorHoriz = 1
+  .AlignHoriz = 1
+ END WITH
+ ChangeRectangleSlice confirm, , uilook(uiBackground), , -2
+ DIM confirmtxt as Slice Ptr
+ confirmtxt = NewSliceOfType(slText, confirm)
+ WITH *confirmtxt
+  .AnchorHoriz = 1
+  .AlignHoriz = 1
+  .AnchorVert = 1
+  .AlignVert = 1
+ END WITH
+ ChangeTextSlice confirmtxt, "DONE", uilook(uiMenuItem), YES
+
+ DIM typingbox as Slice Ptr
+ typingbox = NewSliceOfType(slRectangle, root)
+ WITH *typingbox
+  IF max_length = -1 THEN
+   .width = 320
+  ELSE
+   .width = small(320, max_length * 8 + 20)
+  END IF
+  .height = 16
+  .AnchorHoriz = 1
+  .AlignHoriz = 1
+  .AnchorVert = 1
+  .AlignVert = 1
+ END WITH
+ ChangeRectangleSlice typingbox, 0
+ DIM typing as Slice Ptr
+ typing = NewSliceOfType(sltext, typingbox)
+ WITH *typing
+  .AnchorHoriz = 1
+  .AlignHoriz = 1
+  .AnchorVert = 1
+  .AlignVert = 1
+ END WITH
+ ChangeTextSlice typing, result, YES
+
+ DIM p as XYPair
+ DIM pt as integer
+ DIM need_update as bool = NO
+ DIM tog as integer
+
+ setkeys
+ DO
+  setwait 17
+  setkeys
+  tog XOR= 1
+  
+  IF keyval(scESC) > 1 THEN EXIT DO
+
+  IF p.x = -1 THEN
+   IF keyval(scUp) > 1 or keyval(scDown) > 1 THEn
+    pt XOR= 1
+    need_update = YES
+   END IF
+   IF keyval(scRight) > 1 THEN
+    p.x = 0
+    need_update = YES
+   END IF
+   IF keyval(scLeft) > 1 THEN
+    p.x = 12
+    need_update = YES
+   END IF
+  ELSE
+   IF keyval(scUp) > 1 THEN
+    p.y = loopvar(p.y, 0, 6, -1)
+    need_update = YES
+   END IF
+   IF keyval(scDown) > 1 THEN
+    p.y = loopvar(p.y, 0, 6, 1)
+    need_update = YES
+   END IF
+   IF keyval(scLeft) > 1 THEN
+    p.x = loopvar(p.x, -1, 12, -1)
+    need_update = YES
+   END IF
+   IF keyval(scRight) > 1 THEN
+    p.x = loopvar(p.x, -1, 12, 1)
+    need_update = YES
+   END IF
+  END IF
+  
+  IF need_update THEN
+   need_update = NO
+   IF p.x = -1 THEN
+    SliceSetVisibility curs, NO
+   ELSE
+    SliceSetVisibility curs, YES
+    curs->x = p.x * 10
+    curs->y = p.y * 10
+   END IF
+   ChangeRectangleSlice del, , uilook(uiBackground)
+   ChangeRectangleSlice confirm, , uilook(uiBackground)
+  END IF
+  ChangeRectangleSlice curs, , uilook(uiHighlight + tog)
+  IF p.x = -1 THEN
+   SELECT CASE pt
+    CASE 0:
+     ChangeRectangleSlice del, , uilook(uiHighlight + tog)
+    CASE 1:
+     ChangeRectangleSlice confirm, , uilook(uiHighlight + tog)
+   END SELECT
+  END IF
+
+  DrawSlice root, dpage
+
+  SWAP vpage, dpage
+  setvispage vpage
+  copypage holdscreen, dpage
+  dowait
+ LOOP
+  
+ freepage holdscreen
+ DeleteSlice @root
+ 
+ RETURN result
+END FUNCTION

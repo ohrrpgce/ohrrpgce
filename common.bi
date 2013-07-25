@@ -264,6 +264,8 @@ DECLARE FUNCTION get_resolution_y() as integer
 
 DECLARE FUNCTION str_rect(s as string, byval x as integer, byval y as integer) as RectType
 
+DECLARE FUNCTION cheezy_virtual_keyboard (default_str as string, max_length as integer=-1) as string
+
 'Global variables
 EXTERN sourcerpg as string
 EXTERN as string game, exename, workingdir, homedir, app_dir
