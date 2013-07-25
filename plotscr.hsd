@@ -568,6 +568,7 @@ define function, begin
 553,runningondesktop,0           #returns true if the device is Windows/Mac/Linux
 554,runningonmobile,0            #returns true if the device is Android
 555,runningonconsole,0           #returns true if the device is OUYA
+556,inputstringwithvirtualkeyboard,2,0,-1 # (string id, max length)
 end
 
 #--------------------------------------------------------------------------

@@ -476,6 +476,10 @@ SELECT CASE as CONST id
     NEXT
    END IF
   END IF
+ CASE 556 '--input string with virtual keyboard (string ID, maxlen)
+  IF valid_plotstr(retvals(0)) THEN
+   plotstr(retvals(0)).s = cheezy_virtual_keyboard(plotstr(retvals(0)).s, retvals(1))
+  END IF
 
 END SELECT
 END SUB

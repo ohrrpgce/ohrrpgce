@@ -5363,6 +5363,14 @@ FUNCTION cheezy_virtual_keyboard (default_str as string, max_length as integer=-
  DIM need_update as bool = YES
  DIM tog as integer
  DIM delflash as integer = 0
+ 
+ IF LEN(result) > 0 THEN
+  'Started with a default string, cursor begins on DONE
+  pt = 1
+  p.x = -1
+ ELSE
+  'Started with no string, cursor begins on A
+ END IF
 
  setkeys
  DO
