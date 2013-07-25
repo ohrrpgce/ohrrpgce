@@ -1092,8 +1092,8 @@ END IF
 
 END SUB
 
-'If escapable is true, then ESC exits, otherwise it resets the entered name
 SUB renamehero (byval who as integer, byval escapable as integer)
+'If escapable is true, then ESC exits, otherwise it resets the entered name
 
 DIM her as herodef
 loadherodata her, hero(who) - 1
@@ -1106,45 +1106,61 @@ DIM spacer as string = STRING(large(limit, LEN(names(who))), " ")
 DIM remember as string = names(who)
 
 DIM need_fade_out as integer
-DIM page as integer
-page = compatpage
 IF fadestate = 0 THEN
  setvispage vpage
  fadein
  need_fade_out = YES
 END IF
 
-show_virtual_keyboard
+DIM page as integer
+DIM holdscreen as integer
+page = compatpage
+holdscreen = allocatepage
+copypage page, holdscreen
 
-setkeys YES
-DO
- setwait speedcontrol
+IF running_on_console() THEN
+ 'native virtual keyboard does not work on OUYA right now, so do this instead.
+ names(who) = cheezy_virtual_keyboard(names(who), limit)
+
+ELSE
+ 'On platforms that need it (currently just Android) show the virtual keyboard.
+ 'This does nothing on platforms that don't need it.
+ show_virtual_keyboard
+
+ '--Wait while the player types a new name
  setkeys YES
- playtimer
- control
- centerbox 160, 100, 168, 32, 1, page
- IF carray(ccUse) > 1 AND keyval(scSpace) = 0 THEN EXIT DO
- IF carray(ccMenu) > 1 THEN
-  names(who) = remember
-  IF escapable THEN EXIT DO
- END IF
- strgrabber names(who), limit
- edgeprint prompt, xstring(prompt, 160), 90, uilook(uiText), page
- textcolor uilook(uiHighlight), uiLook(uiHighlight)
- printstr spacer, xstring(spacer, 161), 101, page
- edgeprint names(who), xstring(names(who), 160), 100, uilook(uiMenuItem), page
+ DO
+  setwait speedcontrol
+  setkeys YES
+  playtimer
+  control
+  centerbox 160, 100, 168, 32, 1, page
+  IF carray(ccUse) > 1 AND keyval(scSpace) = 0 THEN EXIT DO
+  IF carray(ccMenu) > 1 THEN
+   names(who) = remember
+   IF escapable THEN EXIT DO
+  END IF
+  strgrabber names(who), limit
+  
+  copypage holdscreen, page
+  edgeprint prompt, xstring(prompt, 160), 90, uilook(uiText), page
+  textcolor uilook(uiHighlight), uiLook(uiHighlight)
+  printstr spacer, xstring(spacer, 161), 101, page
+  edgeprint names(who), xstring(names(who), 160), 100, uilook(uiMenuItem), page
+ 
+  setvispage vpage
+  dowait
+ LOOP
+ menusound gen(genAcceptSFX)
 
- setvispage vpage
- dowait
-LOOP
-menusound gen(genAcceptSFX)
-
-hide_virtual_keyboard
+ hide_virtual_keyboard
+END IF
 
 IF need_fade_out THEN
  fadeout 0, 0, 0
 END IF
 freepage page
+freepage holdscreen
 
 END SUB
 
