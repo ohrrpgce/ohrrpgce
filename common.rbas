@@ -1691,7 +1691,7 @@ SUB pop_warning(s as string, byval autoquit as integer = NO)
    IF winstate andalso winstate->focused = NO THEN EXIT DO
   END IF
   
-  IF deadkeys = 0 THEN 
+  IF deadkeys = 0 THEN
    IF keyval(scESC) > 1 OR enter_or_space() THEN EXIT DO
    IF keyval(scUp) > 1 THEN dat->first_line -= 1
    IF keyval(scDown) > 1 THEN dat->first_line += 1
@@ -5336,12 +5336,13 @@ FUNCTION cheezy_virtual_keyboard (default_str as string, max_length as integer=-
  DIM typingbox as Slice Ptr
  typingbox = NewSliceOfType(slRectangle, root)
  WITH *typingbox
+  .y = -4
   IF max_length = -1 THEN
    .width = 320
   ELSE
    .width = small(320, max_length * 8 + 20)
   END IF
-  .height = 16
+  .height = 20
   .AnchorHoriz = 1
   .AlignHoriz = 1
   .AnchorVert = 1
@@ -5356,12 +5357,12 @@ FUNCTION cheezy_virtual_keyboard (default_str as string, max_length as integer=-
   .AnchorVert = 1
   .AlignVert = 1
  END WITH
- ChangeTextSlice typing, result, YES
 
  DIM p as XYPair
  DIM pt as integer
- DIM need_update as bool = NO
+ DIM need_update as bool = YES
  DIM tog as integer
+ DIM delflash as integer = 0
 
  setkeys
  DO
@@ -5369,10 +5370,36 @@ FUNCTION cheezy_virtual_keyboard (default_str as string, max_length as integer=-
   setkeys
   tog XOR= 1
   
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(-1) THEN EXIT DO ' want to close the program!
+
+  IF keyval(scESC) > 1 ORELSE keyval(scALT) > 1 THEN
+   delflash = 5
+   IF LEN(result) > 0 THEN
+    result = LEFT(result, LEN(result) - 1)
+    need_update = YES
+   END IF
+  END IF
+  
+  IF keyval(scEnter) > 1 ORELSE keyval(scSpace) > 1 ORELSE keyval(scCTRL) > 1 THEN
+   IF p.x = -1 THEN
+    SELECT CASE pt
+     CASE 0:
+      IF LEN(result) > 0 THEN
+       result = LEFT(result, LEN(result) - 1)
+       need_update = YES
+      END IF
+     CASE 1: EXIT DO
+    END SELECT
+   ELSE
+    IF LEN(result) < max_length ORELSE max_length = -1 THEN
+     result &= MID(alphabet, 1 + p.y * 13 + p.x, 1)
+     need_update = YES
+    END IF
+   END IF
+  END IF
 
   IF p.x = -1 THEN
-   IF keyval(scUp) > 1 or keyval(scDown) > 1 THEn
+   IF keyval(scUp) > 1 or keyval(scDown) > 1 THEN
     pt XOR= 1
     need_update = YES
    END IF
@@ -5414,6 +5441,7 @@ FUNCTION cheezy_virtual_keyboard (default_str as string, max_length as integer=-
    END IF
    ChangeRectangleSlice del, , uilook(uiBackground)
    ChangeRectangleSlice confirm, , uilook(uiBackground)
+   ChangeTextSlice typing, result, YES
   END IF
   ChangeRectangleSlice curs, , uilook(uiHighlight + tog)
   IF p.x = -1 THEN
@@ -5423,6 +5451,11 @@ FUNCTION cheezy_virtual_keyboard (default_str as string, max_length as integer=-
     CASE 1:
      ChangeRectangleSlice confirm, , uilook(uiHighlight + tog)
    END SELECT
+  END IF
+  IF delflash > 0 THEN
+   delflash -= 1
+   ChangeRectangleSlice del, , uilook(uiHighlight + tog)
+   need_update = YES
   END IF
 
   DrawSlice root, dpage
