@@ -965,4 +965,20 @@ TYPE DistribState
   copyright_year as string
 END TYPE
 
+'--Describes a set of OHR scancodes used for menu movement,
+'--including confirm and cancel. This is mainly intended for
+'--facilitating multiplayer gamepad support by allowing a
+'--menu-type interface to be navigated only by one player
+TYPE ArrowSet
+  U as integer
+  R as integer
+  D as integer
+  L as integer
+  confirm as integer  'ENTER
+  confirm2 as integer 'SPACE
+  confirm3 as integer 'CTRL
+  cancel as integer   'ESC
+  cancel2 as integer  'ALT
+END TYPE
+
 #ENDIF

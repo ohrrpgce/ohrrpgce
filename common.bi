@@ -264,7 +264,16 @@ DECLARE FUNCTION get_resolution_y() as integer
 
 DECLARE FUNCTION str_rect(s as string, byval x as integer, byval y as integer) as RectType
 
-DECLARE FUNCTION cheezy_virtual_keyboard (default_str as string, max_length as integer=-1) as string
+DECLARE FUNCTION cheezy_virtual_keyboard OVERLOAD (default_str as string, max_length as integer=-1) as string
+DECLARE FUNCTION cheezy_virtual_keyboard OVERLOAD (arr as ArrowSet, default_str as string, max_length as integer=-1) as string
+
+DECLARE FUNCTION default_arrowset() as ArrowSet
+DECLARE FUNCTION keyval_arrowset_up(arr as ArrowSet) as bool
+DECLARE FUNCTION keyval_arrowset_right(arr as ArrowSet) as bool
+DECLARE FUNCTION keyval_arrowset_down(arr as ArrowSet) as bool
+DECLARE FUNCTION keyval_arrowset_left(arr as ArrowSet) as bool
+DECLARE FUNCTION keyval_arrowset_confirm(arr as ArrowSet) as bool
+DECLARE FUNCTION keyval_arrowset_cancel(arr as ArrowSet) as bool
 
 'Global variables
 EXTERN sourcerpg as string

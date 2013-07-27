@@ -5226,7 +5226,64 @@ FUNCTION str_rect(s as string, byval x as integer, byval y as integer) as RectTy
  RETURN r
 END FUNCTION
 
+FUNCTION keyval_arrowset_up(arr as ArrowSet) as bool
+ IF arr.U THEN IF keyval(arr.U) > 1 THEN RETURN YES
+ RETURN NO
+END FUNCTION
+
+FUNCTION keyval_arrowset_right(arr as ArrowSet) as bool
+ IF arr.R THEN IF keyval(arr.R) > 1 THEN RETURN YES
+ RETURN NO
+END FUNCTION
+
+FUNCTION keyval_arrowset_down(arr as ArrowSet) as bool
+ IF arr.D THEN IF keyval(arr.D) > 1 THEN RETURN YES
+ RETURN NO
+END FUNCTION
+
+FUNCTION keyval_arrowset_left(arr as ArrowSet) as bool
+ IF arr.L THEN IF keyval(arr.L) > 1 THEN RETURN YES
+ RETURN NO
+END FUNCTION
+
+FUNCTION keyval_arrowset_confirm(arr as ArrowSet) as bool
+ WITH arr
+  IF .confirm THEN IF keyval(.confirm) > 1 THEN RETURN YES
+  IF .confirm2 THEN IF keyval(.confirm2) > 1 THEN RETURN YES
+  IF .confirm3 THEN IF keyval(.confirm3) > 1 THEN RETURN YES
+ END WITH
+ RETURN NO
+END FUNCTION
+
+FUNCTION keyval_arrowset_cancel(arr as ArrowSet) as bool
+ WITH arr
+  IF .cancel THEN IF keyval(.cancel) > 1 THEN RETURN YES
+  IF .cancel2 THEN IF keyval(.cancel2) > 1 THEN RETURN YES
+ END WITH
+ RETURN NO
+END FUNCTION
+
+FUNCTION default_arrowset() as ArrowSet
+ DIM arr as ArrowSet
+ WITH arr
+  .U = scUp
+  .R = scRight
+  .D = scDown
+  .L = scLeft
+  .confirm = scEnter
+  .confirm2 = scSpace
+  .confirm3 = scCTRL
+  .cancel = scESC
+  .cancel2 = scALT
+ END WITH
+ RETURN arr
+END FUNCTION
+
 FUNCTION cheezy_virtual_keyboard (default_str as string, max_length as integer=-1) as string
+ RETURN cheezy_virtual_keyboard(default_arrowset(), default_str, max_length)
+END FUNCTION
+
+FUNCTION cheezy_virtual_keyboard (arr as ArrowSet, default_str as string, max_length as integer=-1) as string
  'This is intended for OUYA where the Android virtual keyboard seems to
  'be partly broken. It might prove to be useful for other purposes too.
  
@@ -5372,7 +5429,7 @@ FUNCTION cheezy_virtual_keyboard (default_str as string, max_length as integer=-
   
   IF keyval(-1) THEN EXIT DO ' want to close the program!
 
-  IF keyval(scESC) > 1 ORELSE keyval(scALT) > 1 THEN
+  IF keyval_arrowset_cancel(arr) THEN
    delflash = 5
    IF LEN(result) > 0 THEN
     result = LEFT(result, LEN(result) - 1)
@@ -5380,7 +5437,7 @@ FUNCTION cheezy_virtual_keyboard (default_str as string, max_length as integer=-
    END IF
   END IF
   
-  IF keyval(scEnter) > 1 ORELSE keyval(scSpace) > 1 ORELSE keyval(scCTRL) > 1 THEN
+  IF keyval_arrowset_confirm(arr) THEN
    IF p.x = -1 THEN
     SELECT CASE pt
      CASE 0:
@@ -5399,32 +5456,32 @@ FUNCTION cheezy_virtual_keyboard (default_str as string, max_length as integer=-
   END IF
 
   IF p.x = -1 THEN
-   IF keyval(scUp) > 1 or keyval(scDown) > 1 THEN
+   IF keyval_arrowset_up(arr) ORELSE keyval_arrowset_down(arr) THEN
     pt XOR= 1
     need_update = YES
    END IF
-   IF keyval(scRight) > 1 THEN
+   IF keyval_arrowset_right(arr) THEN
     p.x = 0
     need_update = YES
    END IF
-   IF keyval(scLeft) > 1 THEN
+   IF keyval_arrowset_left(arr) THEN
     p.x = 12
     need_update = YES
    END IF
   ELSE
-   IF keyval(scUp) > 1 THEN
+   IF keyval_arrowset_up(arr) THEN
     p.y = loopvar(p.y, 0, 6, -1)
     need_update = YES
    END IF
-   IF keyval(scDown) > 1 THEN
+   IF keyval_arrowset_down(arr) THEN
     p.y = loopvar(p.y, 0, 6, 1)
     need_update = YES
    END IF
-   IF keyval(scLeft) > 1 THEN
+   IF keyval_arrowset_left(arr) THEN
     p.x = loopvar(p.x, -1, 12, -1)
     need_update = YES
    END IF
-   IF keyval(scRight) > 1 THEN
+   IF keyval_arrowset_right(arr) THEN
     p.x = loopvar(p.x, -1, 12, 1)
     need_update = YES
    END IF
