@@ -11,6 +11,7 @@
 #ENDIF
 #include "file.bi"   'FB header
 #include "lumpfile.bi"
+#include "gfx.bi"
 
 
 'Library routines
@@ -218,7 +219,7 @@ declare sub hide_virtual_keyboard()
 declare sub show_virtual_gamepad()
 declare sub hide_virtual_gamepad()
 
-declare sub remap_android_gamepad(byval A as integer, byval B as integer, byval X as integer, byval Y as integer, byval L1 as integer, byval R1 as integer, byval L2 as integer, byval R2 as integer)
+declare sub remap_android_gamepad(byval player as integer, gp as GamePadMap)
 declare sub remap_touchscreen_button (byval button_id as integer, byval ohr_scancode as integer)
 
 declare function running_on_console() as bool

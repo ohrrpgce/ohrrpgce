@@ -6491,10 +6491,10 @@ sub hide_virtual_gamepad()
 	io_hide_virtual_gamepad()
 end sub
 
-sub remap_android_gamepad(byval A as integer, byval B as integer, byval X as integer, byval Y as integer, byval L1 as integer, byval R1 as integer, byval L2 as integer, byval R2 as integer)
+sub remap_android_gamepad(byval player as integer, gp as GamePadMap)
 	'Does nothing on non-android non-ouya platforms
-	debuginfo "remap_android_gamepad " & A & " " & B & " " & X & " " & Y & " " & L1 & " " & R1 & " " & L2 & " " & R2
-	io_remap_android_gamepad(A, B, X, Y, L1, R1, L2, R2)
+	debuginfo "remap_android_gamepad " & gp.A & " " & gp.B & " " & gp.X & " " & gp.Y & " " & gp.L1 & " " & gp.R1 & " " & gp.L2 & " " & gp.R2
+	io_remap_android_gamepad(player, gp)
 end sub
 
 sub remap_touchscreen_button (byval button_id as integer, byval ohr_scancode as integer)

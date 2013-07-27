@@ -1,5 +1,8 @@
 '' External graphics and IO functions
 
+#IFNDEF GFX_BI
+#DEFINE GFX_BI
+
 #include "udts.bi"
 #include "const.bi"
 
@@ -11,6 +14,22 @@ type WindowState
 	minimised as integer
 end type
 #define WINDOWSTATE_SZ 3
+
+type GamePadMap
+	'For passing OHR scancodes to io_remap_android_gamepad
+	Ud as integer
+	Rd as integer
+	Dd as integer
+	Ld as integer
+	A as integer
+	B as integer
+	X as integer
+	Y as integer
+	L1 as integer
+	R1 as integer
+	L2 as integer
+	R2 as integer
+end type
 
 'terminate_signal_handler is a pointer to post_terminate_signal, for dynamically linked graphics backends.
 'windowicon is platform specific: name of the icon resource on Windows, no meaning yet elsewhere
@@ -82,7 +101,7 @@ extern Io_show_virtual_gamepad as sub ()
 '(optional) Hide the virtual gamepad, but only for platforms like Android that need it
 extern Io_hide_virtual_gamepad as sub ()
 '(optional) Runtime remapping of android controller buttons
-extern Io_remap_android_gamepad as sub (byval A as integer, byval B as integer, byval X as integer, byval Y as integer, byval L1 as integer, byval R1 as integer, byval L2 as integer, byval R2 as integer)
+extern Io_remap_android_gamepad as sub (byval player as integer, gp as GamePadMap)
 '(optional) Runtime remapping of touchscreen virtual gamepad buttons
 extern Io_remap_touchscreen_button as sub (byval button_id as integer, byval ohr_scancode as integer)
 '(optional) Return true if the running device is a console (currently only supports OUYA)
@@ -124,3 +143,5 @@ declare sub smoothzoomblit_8_to_32bit(byval srcbuffer as ubyte ptr, byval destbu
 declare sub smoothzoomblit_32_to_32bit(byval srcbuffer as uinteger ptr, byval destbuffer as uinteger ptr, byval w as integer, byval h as integer, byval pitch as integer, byval zoom as integer, byval smooth as integer)
 
 end extern
+
+#ENDIF

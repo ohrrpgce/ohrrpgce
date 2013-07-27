@@ -70,7 +70,7 @@ dim io_show_virtual_keyboard as sub ()
 dim io_hide_virtual_keyboard as sub ()
 dim io_show_virtual_gamepad as sub ()
 dim io_hide_virtual_gamepad as sub ()
-dim io_remap_android_gamepad as sub (byval A as integer, byval B as integer, byval X as integer, byval Y as integer, byval L1 as integer, byval R1 as integer, byval L2 as integer, byval R2 as integer)
+dim io_remap_android_gamepad as sub (byval player as integer, gp as GamePadMap)
 dim io_remap_touchscreen_button as sub (byval button_id as integer, byval ohr_scancode as integer)
 dim io_running_on_console as function () as bool
 dim io_mousebits as sub (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer)
@@ -175,7 +175,7 @@ sub io_dummy_show_virtual_keyboard() : end sub
 sub io_dummy_hide_virtual_keyboard() : end sub
 sub io_dummy_show_virtual_gamepad() : end sub
 sub io_dummy_hide_virtual_gamepad() : end sub
-sub io_dummy_remap_android_gamepad(byval A as integer, byval B as integer, byval X as integer, byval Y as integer, byval L1 as integer, byval R1 as integer, byval L2 as integer, byval R2 as integer) : end sub
+sub io_dummy_remap_android_gamepad(byval player as integer, gp as GamePadMap) : end sub
 sub io_dummy_remap_touchscreen_button(byval button_id as integer, byval ohr_scancode as integer) : end sub
 function io_dummy_running_on_console() as bool : return NO : end function
 

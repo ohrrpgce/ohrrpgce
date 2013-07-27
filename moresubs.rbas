@@ -23,6 +23,7 @@
 #include "slices.bi"
 #include "hsinterpreter.bi"
 #include "savegame.bi"
+#include "gfx.bi"
 
 #include "game.bi"
 #include "yetmore.bi"
@@ -1308,7 +1309,16 @@ SUB reset_game_state ()
  
  DIM root as NodePtr = get_general_reld()
  DIM gamepad as NodePtr = root."gamepad".ptr
- remap_android_gamepad gamepad."A".integer, gamepad."B".integer, gamepad."X".integer, gamepad."Y".integer, gamepad."L1".integer, gamepad."R1".integer, gamepad."L2".integer, gamepad."R2".integer
+ DIM gp as GamePadMap
+ gp.A = gamepad."A".integer
+ gp.B = gamepad."B".integer
+ gp.X = gamepad."X".integer
+ gp.Y = gamepad."Y".integer
+ gp.L1 = gamepad."L1".integer
+ gp.R1 = gamepad."R1".integer
+ gp.L2 = gamepad."L2".integer
+ gp.R2 = gamepad."R2".integer
+ remap_android_gamepad 0, gp
  
  DIM mobile as NodePtr = root."mobile_options".ptr
  IF mobile = 0 THEN mobile = SetChildNode(root, "mobile_options")

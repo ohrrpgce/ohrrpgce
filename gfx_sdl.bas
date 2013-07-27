@@ -40,6 +40,7 @@ declare function SDL_ANDROID_ToggleScreenKeyboardWithoutTextInput() as integer
 declare function SDL_ANDROID_IsScreenKeyboardShown() as bool
 declare function SDL_ANDROID_IsRunningOnOUYA () as bool
 declare sub SDL_ANDROID_set_java_gamepad_keymap(byval A as integer, byval B as integer, byval C as integer, byval X as integer, byval Y as integer, byval Z as integer, byval L1 as integer, byval R1 as integer, byval L2 as integer, byval R2 as integer, byval LT as integer, byval RT as integer)
+declare sub SDL_ANDROID_set_ouya_gamepad_keymap(byval player as integer, byval udpad as integer, byval rdpad as integer, byval ldpad as integer, byval ddpad as integer, byval O as integer, byval A as integer, byval U as integer, byval Y as integer, byval L1 as integer, byval R1 as integer, byval L2 as integer, byval R2 as integer, byval LT as integer, byval RT as integer)
 declare function SDL_ANDROID_SetScreenKeyboardButtonKey(byval buttonId as integer, byval key as integer) as integer
 declare function SDL_ANDROID_SetScreenKeyboardButtonDisable(byval buttonId as integer, byval disable as bool) as integer
 #ENDIF
@@ -834,20 +835,20 @@ SUB internal_disable_virtual_gamepad()
 #ENDIF
 END SUB
 
-SUB io_sdl_remap_android_gamepad(byval A as integer, byval B as integer, byval X as integer, byval Y as integer, byval L1 as integer, byval R1 as integer, byval L2 as integer, byval R2 as integer)
+SUB io_sdl_remap_android_gamepad(byval player as integer, gp as GamePadMap)
 'Does nothing on non-android
 #IFDEF __FB_ANDROID__
  SDL_ANDROID_set_java_gamepad_keymap ( _
-   scOHR2SDL(A, SDLK_RETURN), _
-   scOHR2SDL(B, SDLK_ESCAPE), _
+   scOHR2SDL(gp.A, SDLK_RETURN), _
+   scOHR2SDL(gp.B, SDLK_ESCAPE), _
    0, _
-   scOHR2SDL(X, SDLK_ESCAPE), _
-   scOHR2SDL(Y, SDLK_ESCAPE), _
+   scOHR2SDL(gp.X, SDLK_ESCAPE), _
+   scOHR2SDL(gp.Y, SDLK_ESCAPE), _
    0, _
-   scOHR2SDL(L1, SDLK_PAGEUP), _
-   scOHR2SDL(R1, SDLK_PAGEDOWN), _
-   scOHR2SDL(L2, SDLK_HOME), _
-   scOHR2SDL(R2, SDLK_END), _
+   scOHR2SDL(gp.L1, SDLK_PAGEUP), _
+   scOHR2SDL(gp.R1, SDLK_PAGEDOWN), _
+   scOHR2SDL(gp.L2, SDLK_HOME), _
+   scOHR2SDL(gp.R2, SDLK_END), _
    0, 0)
 #ENDIF
 END SUB

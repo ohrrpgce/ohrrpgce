@@ -33,6 +33,7 @@
 #include "hsinterpreter.bi"
 #include "sliceedit.bi"
 #include "game.bi"
+#include "gfx.bi"
 
 
 'local subs and functions
@@ -295,7 +296,16 @@ defaultc  'set up default controls
 'Read joyset.ini
 readjoysettings
 
-remap_android_gamepad scEnter, scESC, scESC, scESC, scPageUp, scPageDown, scHome, scEnd
+DIM gp as GamePadMap
+gp.A = scEnter
+gp.B = scESC
+gp.X = scESC
+gp.Y = scESC
+gp.L1 = scPageUp
+gp.R1 = scPageDown
+gp.L2 = scHome
+gp.R2 = scEnd
+remap_android_gamepad 0, gp
 remap_touchscreen_button 0, scEnter
 remap_touchscreen_button 1, scESC
 remap_touchscreen_button 2, 0
