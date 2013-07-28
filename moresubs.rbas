@@ -1313,7 +1313,6 @@ FUNCTION gamepadmap_from_reload(gamepad as NodePtr, byval use_dpad as bool=NO) a
  RETURN gp
 END FUNCTION
 
-
 SUB reset_game_state ()
  reset_map_state(gam.map)
  gam.wonbattle = NO

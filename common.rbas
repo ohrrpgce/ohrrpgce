@@ -5279,14 +5279,92 @@ FUNCTION default_arrowset() as ArrowSet
  RETURN arr
 END FUNCTION
 
-FUNCTION cheezy_virtual_keyboard (default_str as string, max_length as integer=-1) as string
- RETURN cheezy_virtual_keyboard(default_arrowset(), default_str, max_length)
+FUNCTION arrowset_for_multiplayer_gamepad(byval player as integer) as ArrowSet
+ DIM gamepad_node as NodePtr = 0
+ DIM gen_root as NodePtr
+ gen_root = get_general_reld()
+ SELECT CASE player
+  CASE 0:
+   IF gen_root."gamepad".exists THEN gamepad_node = gen_root."gamepad".ptr
+  CASE 1 TO 3
+   debug "player=" & player
+   debug "multiplayer_gamepads" & gen_root."multiplayer_gamepads".exists
+   IF gen_root."multiplayer_gamepads".exists THEN
+   debug "multiplayer_gamepads exists"
+    READNODE gen_root."multiplayer_gamepads" as multi
+     WITHNODE multi."player" as pnode
+      DIM pnum as integer = GetInteger(pnode)
+      debug "pnum " & pnum & " exists"
+      IF pnum = player THEN
+       gamepad_node = pnode
+      END IF
+     END WITHNODE
+    END READNODE
+   END IF
+ END SELECT
+ IF gamepad_node <> 0 THEN
+  RETURN arrowset_from_reload(gamepad_node)
+ ELSE
+  debug "arrowset_for_multiplayer_gamepad: failed to find node for player " & player  & ". using default arrowset instead"
+  RETURN default_arrowset()
+ END IF
+END FUNCTION
+
+FUNCTION arrowset_from_reload(gamepad as NodePtr) as ArrowSet
+
+ DIM defarr as ArrowSet = default_arrowset()
+ DIM arr as ArrowSet
+ arr.U = defarr.U
+ arr.R = defarr.R
+ arr.D = defarr.D
+ arr.L = defarr.L
+
+ IF gamepad."UP".exists    THEN arr.U = gamepad."UP".integer
+ IF gamepad."RIGHT".exists THEN arr.R = gamepad."RIGHT".integer
+ IF gamepad."DOWN".exists  THEN arr.D = gamepad."DOWN".integer
+ IF gamepad."LEFT".exists  THEN arr.L = gamepad."LEFT".integer
+
+ arr.confirm = gamepad."A".integer
+ IF arr.confirm = 0 THEN
+  debug "WARNING: gamepad node has no confirm, using default"
+  arr.confirm = defarr.confirm
+ END IF
+
+ arr.cancel = gamepad."B".integer
+ arr.cancel2 = gamepad."X".integer
+ IF arr.cancel = 0 ANDALSO arr.cancel2 = 0 THEN
+  debug "WARNING: gamepad node has no cancel, using default"
+  arr.cancel = defarr.cancel
+ END IF
+
+ RETURN arr
+END FUNCTION
+
+FUNCTION cheezy_virtual_keyboard (default_str as string, max_length as integer=-1, byval multi_player as integer=-1) as string
+ 'multi_player argument determines which set of keys is used.
+ '-1 means default keyboard keys
+ '0-3 means the keys defined for multiplayer gamepad support.
+ DIM arr as ArrowSet
+ SELECT CASE multi_player
+  CASE -1
+   arr = default_arrowset()
+  CASE 0 TO 3
+   arr = arrowset_for_multiplayer_gamepad(multi_player)
+  CASE ELSE
+   debug "WARNING: cheezy_virtual_keyboard: can't get arrowset for multi_player " & multi_player
+   arr = default_arrowset()
+ END SELECT
+debug "cheezy_virtual_keyboard player=" & multi_player
+ RETURN cheezy_virtual_keyboard(arr, default_str, max_length)
 END FUNCTION
 
 FUNCTION cheezy_virtual_keyboard (arr as ArrowSet, default_str as string, max_length as integer=-1) as string
  'This is intended for OUYA where the Android virtual keyboard seems to
  'be partly broken. It might prove to be useful for other purposes too.
- 
+
+ debug "ArrowSet " & arr.U & "," & arr.R & "," & arr.D & "," & arr.L & " confirm=" & arr.confirm & " cancel=" & arr.cancel
+
+
  DIM alphabet as string = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz 1234567890',.;:?!@#$%^&*~_+-=()[]{}<>/"
  
  DIM result as string = default_str
