@@ -1294,6 +1294,26 @@ reset_game_state()
 
 END SUB
 
+FUNCTION gamepadmap_from_reload(gamepad as NodePtr, byval use_dpad as bool=NO) as GamePadMap
+ DIM gp as GamePadMap
+ IF use_dpad THEN
+  gp.Ud = gamepad."UP".integer
+  gp.Rd = gamepad."RIGHT".integer
+  gp.Dd = gamepad."DOWN".integer
+  gp.Ld = gamepad."LEFT".integer
+ END IF
+ gp.A = gamepad."A".integer
+ gp.B = gamepad."B".integer
+ gp.X = gamepad."X".integer
+ gp.Y = gamepad."Y".integer
+ gp.L1 = gamepad."L1".integer
+ gp.R1 = gamepad."R1".integer
+ gp.L2 = gamepad."L2".integer
+ gp.R2 = gamepad."R2".integer
+ RETURN gp
+END FUNCTION
+
+
 SUB reset_game_state ()
  reset_map_state(gam.map)
  gam.wonbattle = NO
@@ -1308,17 +1328,25 @@ SUB reset_game_state ()
  NEXT i
  
  DIM root as NodePtr = get_general_reld()
+
  DIM gamepad as NodePtr = root."gamepad".ptr
- DIM gp as GamePadMap
- gp.A = gamepad."A".integer
- gp.B = gamepad."B".integer
- gp.X = gamepad."X".integer
- gp.Y = gamepad."Y".integer
- gp.L1 = gamepad."L1".integer
- gp.R1 = gamepad."R1".integer
- gp.L2 = gamepad."L2".integer
- gp.R2 = gamepad."R2".integer
- remap_android_gamepad 0, gp
+ remap_android_gamepad 0, gamepadmap_from_reload(gamepad, NO)
+
+ DIM player as integer
+ IF NOT root."multiplayer_gamepads".exists THEN
+  SetChildNode root, "multiplayer_gamepads"
+ END IF
+ READNODE root."multiplayer_gamepads" as multi
+  WITHNODE multi."player" as playernode
+   player = GetInteger(playernode)
+   SELECT CASE player
+    CASE 1 TO 3:
+     remap_android_gamepad player, gamepadmap_from_reload(playernode, YES)
+    CASE ELSE:
+     debug "Ignore invalid multiplayer_gamepads.player id of " & player
+   END SELECT
+  END WITHNODE
+ END READNODE
  
  DIM mobile as NodePtr = root."mobile_options".ptr
  IF mobile = 0 THEN mobile = SetChildNode(root, "mobile_options")

@@ -6493,7 +6493,7 @@ end sub
 
 sub remap_android_gamepad(byval player as integer, gp as GamePadMap)
 	'Does nothing on non-android non-ouya platforms
-	debuginfo "remap_android_gamepad " & gp.A & " " & gp.B & " " & gp.X & " " & gp.Y & " " & gp.L1 & " " & gp.R1 & " " & gp.L2 & " " & gp.R2
+	debuginfo "remap_android_gamepad " & gp.Ud & " " & gp.Rd & " " & gp.Dd & " " & gp.Ld & " " & gp.A & " " & gp.B & " " & gp.X & " " & gp.Y & " " & gp.L1 & " " & gp.R1 & " " & gp.L2 & " " & gp.R2
 	io_remap_android_gamepad(player, gp)
 end sub
 

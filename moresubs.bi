@@ -2,6 +2,7 @@
 #define MORESUBS_BI
 
 #include "scrconst.bi"
+#include "gfx.bi"
 
 DECLARE SUB addhero (byval who as integer, byval slot as integer, byval forcelevel as integer=-1)
 DECLARE FUNCTION averagelev () as integer
@@ -63,5 +64,7 @@ DECLARE SUB tagdisplay
 DECLARE SUB writejoysettings
 DECLARE FUNCTION herocount (byval last as integer = 3) as integer
 DECLARE FUNCTION caterpillar_size () as integer
+
+DECLARE FUNCTION gamepadmap_from_reload(gamepad as NodePtr, byval use_dpad as bool=NO) as GamePadMap
 
 #endif

@@ -306,6 +306,11 @@ gp.R1 = scPageDown
 gp.L2 = scHome
 gp.R2 = scEnd
 remap_android_gamepad 0, gp
+DIM blank_gp as GamePadMap
+FOR i as integer = 1 to 3
+ remap_android_gamepad i, blank_gp
+NEXT i
+
 remap_touchscreen_button 0, scEnter
 remap_touchscreen_button 1, scESC
 remap_touchscreen_button 2, 0
