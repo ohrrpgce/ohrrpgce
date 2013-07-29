@@ -4096,6 +4096,10 @@ SUB cleanup_other_temp_files ()
     age = read_keepalive_as_days(keepalive_file)
     threshhold = 3
    END IF
+#IFDEF __FB_ANDROID__
+'--Android only permits one running copy of a process, so it is always safe to clean up all tmpdirs
+threshhold = -1
+#ENDIF
    IF age > threshhold THEN
     debuginfo "CLEAN " & dirname_full & " because it has been dead for about " & age & " days"
     killdir dirname_full, YES
