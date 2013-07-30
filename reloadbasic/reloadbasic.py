@@ -698,11 +698,11 @@ class ReloadBasicFunction(object):
                 # set_derived_from should not allow this
                 assert nodeptr not in self.derived_relation
 
-        if nodeptr not in self.nameindex_tables:
+        if self.be_careful or (nodeptr not in self.nameindex_tables):
             buildtable = "BuildNameIndexTable(%s->doc, _nodenames(), %s, RB_FUNC_BITS_ARRAY_SZ, RB_SIGNATURE, RB_NUM_NAMES)\n" % (nodeptr, self.function_num)
             if not node_not_null:
                 buildtable = "IF %s THEN %s" % (nodeptr, buildtable)
-            self.nameindex_tables[nodeptr] = None
+            self.nameindex_tables.setdefault(nodeptr, None)
             return nodeptr, buildtable
         return nodeptr, ""
 
@@ -714,11 +714,16 @@ class ReloadBasicFunction(object):
         """
         nodeptr, buildtable = self.ensure_nameindex_table(nodeptr, True)
 
-        if self.nameindex_tables[nodeptr] != None:
+        if self.nameindex_tables[nodeptr] != None and not buildtable:
             return self.nameindex_tables[nodeptr], "", ""
         else:
+            # Could reuse previous variable here if it exists
+            # (which can only happen if self.be_careful is True)
             nametable = self.makename("_table")
             prologue1 = "DIM %s as short ptr\n" % nametable
+            # Place at beginning of function because this variable may be reused in a different scope
+            self.start_mark.write(prologue1)
+            prologue1 = ""
             prologue2 = buildtable + "%s = %s->doc->nameIndexTable" % (nametable, nodeptr)
             
             #nametable, assignment = self.assign_to_temp_var("_table", "short ptr", nodeptr + "->doc->nameIndexTable")
@@ -1085,6 +1090,10 @@ class ReloadBasicFunction(object):
             # returns NULL for a NULL NodePtr</s>.
             #translation, prologue = self.nodespec_translation(nodespec, True)
 
+            # FIXME: readnode.parent_nodeptr should be a temporary variable with limited scope,
+            # and should not be placed in self.nameindex_tables, because it might point to a
+            # different document next time! For example, the 'dummy' variable in testMixedDocuments
+            # in rbtest.rbas (this bug is only a threat without --careful)
             parent_nodeptr = get_ident(header[1])
             prologue_ = self.block_nodespec_translation(nodespec, parent_nodeptr)
             node_path = nodespec.path_string()

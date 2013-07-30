@@ -197,7 +197,7 @@ basasm = Builder (action = '$FBC -c $SOURCE -o $TARGET $FBFLAGS -r -g',
 def depend_on_reloadbasic_py(target, source, env):
     return (target, source + ['reloadbasic/reloadbasic.py'])
 
-rbasic_builder = Builder (action = [[File('reloadbasic/reloadbasic.py'), '$SOURCE', '-o', '$TARGET']],
+rbasic_builder = Builder (action = [[File('reloadbasic/reloadbasic.py'), '--careful', '$SOURCE', '-o', '$TARGET']],
                           suffix = '.rbas.bas', src_suffix = '.rbas', emitter = depend_on_reloadbasic_py)
 
 # windres is part of mingw, and this is only used with linkgcc anyway.
