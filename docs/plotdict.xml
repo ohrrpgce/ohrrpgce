@@ -2611,7 +2611,7 @@ The example above creates a container and then puts two hero sprites inside it, 
 		<command id="sliceisvalid">
 			<canon>slice is valid (id)</canon>
 			<shortname>slice is valid</shortname>
-			<description>Returns true if the given <p>id</p> is a valid sprite handle. The main use of this command is to check whether a slice has been deleted, avoiding a script error.</description>
+			<description>Returns true if the given <p>id</p> is a valid slice handle. The main use of this command is to check whether a slice has been deleted, avoiding a script error.</description>
 		</command>
 		<command id="sliceissprite">
 			<canon>slice is sprite (handle)</canon>
