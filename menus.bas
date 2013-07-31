@@ -134,7 +134,7 @@ FUNCTION usemenu (byref state as MenuState, byval deckey as integer = scUp, byva
   DIM oldtop as integer = .top
   
   DIM mpt as integer = mouse_on_menustate(state)
-  IF mpt >= .first THEN .pt = mpt
+  'IF mpt >= .first THEN .pt = mpt
  
   IF keyval(deckey) > 1 THEN .pt = loopvar(.pt, .first, .last, -1)
   IF keyval(inckey) > 1 THEN .pt = loopvar(.pt, .first, .last, 1)
@@ -193,8 +193,8 @@ FUNCTION usemenu (state as MenuState, byval menudata as BasicMenuItem vector, by
   DIM mpt as integer = mouse_on_menustate(state)
   IF mpt >= .first ANDALSO not v_at(menudata, mpt)->unselectable THEN
    IF mpt <> .pt THEN
-    .pt = mpt
-    RETURN YES
+    '.pt = mpt
+    'RETURN YES
    END IF
   END IF
 
@@ -258,8 +258,8 @@ FUNCTION usemenu (state as MenuState, selectable() as bool, byval deckey as inte
   DIM mpt as integer = mouse_on_menustate(state)
   IF mpt >= .first ANDALSO selectable(mpt) THEN
    IF mpt <> .pt THEN
-    .pt = mpt
-    RETURN YES
+    '.pt = mpt
+    'RETURN YES
    END IF
   END IF
 

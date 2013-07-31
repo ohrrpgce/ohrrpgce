@@ -4196,7 +4196,7 @@ FUNCTION enter_space_click (state as MenuState) as integer
    r.wide = state.rect.wide
    r.high = state.spacing
    IF rect_collide_point(r, mouse.x, mouse.y) THEN
-    RETURN YES
+    'RETURN YES
    END IF
   END IF
  END IF
