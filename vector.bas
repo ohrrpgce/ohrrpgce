@@ -31,6 +31,10 @@ SUB string_copyctor cdecl (byval p1 as string ptr, byval p2 as string ptr)
   fb_StrAssignEx(p1, -1, p2, -1, 0, 1)
 END SUB
 
+FUNCTION zstring_compare CDECL (byval a as zstring ptr ptr, byval b as zstring ptr ptr) as integer
+  RETURN strcmp(*a, *b)
+END FUNCTION
+
 FUNCTION double_compare CDECL (byval a as double ptr, byval b as double ptr) as integer
   IF *a < *b THEN RETURN -1
   IF *a > *b THEN RETURN 1
@@ -52,6 +56,10 @@ FUNCTION string_str CDECL (byval this as string ptr) as string
   RETURN """" + *this + """"
 END FUNCTION
 
+FUNCTION zstring_str CDECL (byval this as zstring ptr ptr) as string
+  RETURN """" + **this + """"
+END FUNCTION
+
 FUNCTION integer_str CDECL (byval this as integer ptr) as string
   RETURN STR(*this)
 END FUNCTION
@@ -71,7 +79,7 @@ END FUNCTION
 DEFINE_CUSTOM_VECTOR_TYPE(integer,     integer,     NULL,      NULL,             NULL,         @integer_compare, NULL,            @integer_str)
 DEFINE_CUSTOM_VECTOR_TYPE(double,      double,      NULL,      NULL,             NULL,         @double_compare,  @double_inequal, @double_str)
 DEFINE_CUSTOM_VECTOR_TYPE(string,      string,      NULL,      @string_copyctor, @string_dtor, @string_compare,  NULL,            @string_str)
-DEFINE_CUSTOM_VECTOR_TYPE(zstring ptr, zstring_ptr, NULL,      NULL,             NULL,         @strcmp,          NULL,            NULL)
+DEFINE_CUSTOM_VECTOR_TYPE(zstring ptr, zstring_ptr, NULL,      NULL,             NULL,         @zstring_compare, NULL,            @zstring_str)
 
 DEFINE_CUSTOM_VECTOR_TYPE(any ptr,     any_ptr,     NULL,      NULL,             NULL,         @integer_compare, NULL,            @ptr_str)
 'Note: v_copy might change (free) the src if it is temp. An 'any vector' should never contain temps

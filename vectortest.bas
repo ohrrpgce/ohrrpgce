@@ -462,6 +462,25 @@ startTest(stringSort)
 	v_free arr
 endTest
 
+startTest(zstringArray)
+	' zstring ptr vectors have no per-element constructors or destructors
+	dim as zstring ptr vector arr, arr2
+	v_new arr, 1
+	if arr[0] <> NULL then fail
+	v_resize arr, 0
+	v_append arr, "foobar"
+	v_append arr, "baz"
+	v_append arr, "zzz"
+	if v_len(arr) <> 3 then fail
+	if *arr[2] <> "zzz" then fail
+	v_copy arr2, arr
+	v_sort arr2
+	if *arr[0] <> "foobar" then fail
+	assertVector(arr2, "[""baz"", ""foobar"", ""zzz""]")
+	v_free arr
+	v_free arr2
+endTest
+
 startTest(intArrayCompatibility)
 	dim i as integer
 	redim array(10) as integer
