@@ -163,6 +163,8 @@ DO WHILE start < LEN(text)
      IF bound_arg(arg, 0, UBOUND(plotstr), "string ID", "${S#} text box insert", NO) THEN
       insert = plotstr(arg).s
      END IF
+    CASE "B": '--buttonname (platform-specific)
+     insert = get_buttonname_code(arg)
    END SELECT
    text = before & insert & after
    embedend = LEN(before) + LEN(insert) + 1

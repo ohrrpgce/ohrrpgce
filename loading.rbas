@@ -3404,6 +3404,29 @@ SUB update_general_data ()
  write_general_reld()
 END SUB
 
+FUNCTION get_buttonname_code(byval n as integer) as string
+ DIM root_node as NodePtr
+ root_node = get_general_reld()
+ DIM num as integer
+ 
+ READNODE root_node."buttonnames" as bn
+  WITHNODE bn."code" as bcode
+   num = GetInteger(bcode)
+   IF num = n THEN
+    'FIXME: if we ever support any other consoles, we will need more specific platform checks here
+    IF running_on_console() THEN
+     RETURN bcode."ouya".string
+    ELSE
+     RETURN bcode."keyboard".string
+    END IF
+   END IF
+  END WITHNODE
+ END READNODE
+ 
+ RETURN ""
+ 
+END FUNCTION
+
 '==========================================================================================
 '                                        Distrib data
 '==========================================================================================
