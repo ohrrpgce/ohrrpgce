@@ -23,6 +23,7 @@
 #include "battle_udts.bi"
 #include "moresubs.bi"
 #include "menustuf.bi"
+#include "yetmore.bi"
 #include "yetmore2.bi"
 
 DECLARE SUB confirm_auto_spread (byval who as integer, tmask() as integer, bslot() as BattleSprite, t() as integer)
@@ -679,6 +680,7 @@ END FUNCTION
 
 SUB setbatcap (bat as BattleState, cap as string, byval captime as integer, byval capdelay as integer)
  bat.caption = cap
+ embedtext(bat.caption)
  bat.caption_time = captime
  bat.caption_delay = capdelay
 END SUB
