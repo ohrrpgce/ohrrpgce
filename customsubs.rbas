@@ -30,6 +30,7 @@ DECLARE SUB import_textboxes_warn (byref warn as string, s as string)
 DECLARE SUB seekscript (byref temp as integer, byval seekdir as integer, byval triggertype as integer)
 DECLARE SUB cond_editor (cond as Condition, byval default as integer = 0)
 DECLARE SUB platform_options_append_gamepad_button_menu_items (byval gamepad as NodePtr, menu as MenuDef, byval use_dpad as bool, buttons() as string, default_scancodes() as integer)
+DECLARE SUB edit_button_name_strings()
 
 'Module-local variables
 DIM SHARED comp_strings() as string
@@ -4261,6 +4262,7 @@ CONST platformoptBUTTON as integer = 3
 CONST platformoptVBUTTON as integer = 4
 CONST platformoptADDVBUTTON as integer = 5
 CONST platformoptTOGGLEMULTI as integer = 6
+CONST platformoptBUTTONNAMES as integer = 7
 
 SUB edit_platform_options ()
 
@@ -4411,6 +4413,12 @@ SUB edit_platform_options ()
       END IF
      NEXT i
     END IF
+
+    append_menu_item menu, ""
+    menu.last->unselectable = YES
+ 
+    append_menu_item menu, "Button name strings for text boxes..."
+    menu.last->t = platformoptBUTTONNAMES
    
    LOOP WHILE st.need_update
 
@@ -4453,6 +4461,8 @@ SUB edit_platform_options ()
     CASE platformoptADDVBUTTON:
      AppendChildNode(vgp, "button", 0)
      st.need_update = YES
+    CASE platformoptBUTTONNAMES:
+     edit_button_name_strings
    END SELECT
   END IF
   
@@ -4780,3 +4790,166 @@ FUNCTION scancode_to_name(byval sc as integer) as string
  return scNames(sc)
 END FUNCTION
 
+
+CONST buttonnameEXIT as integer = 0
+CONST buttonnameADD as integer = 1
+CONST buttonnameDATA as integer = 2
+
+SUB edit_button_name_strings()
+
+ DIM plat_key(...) as string = {"ZZZ", "keyboard", "ouya"}
+
+ DIM menu(2) as MenuDef
+ 
+ DIM column as integer = 1
+ 
+ DIM st as MenuState
+ st.active = YES
+ st.need_update = YES
+ 
+ DIM disable_st as MenuState
+ disable_st.active = YES
+ 
+ REDIM enabled(0) as bool
+
+ DIM gen_root as NodePtr = get_general_reld()
+
+ '-- the buttonnames node will be created with defaults in
+ '-- get_general_reld() if it does not exist already.
+ DIM buttonnames as NodePtr = gen_root."buttonnames".ptr
+
+ DIM codenum as integer
+ DIM freenum as integer
+
+ DIM t as integer
+ DIM node as NodePtr
+ DIM strnode as NodePtr
+ DIM curstr as string
+
+ setkeys YES
+ DO
+  setwait 55
+  setkeys YES
+  IF keyval(scF1) > 1 THEN show_help "edit_button_name_strings"
+  IF keyval(scEsc) > 1 THEN EXIT DO
+
+  IF st.need_update THEN
+   st.need_update = NO
+  
+   FOR i as integer = 0 to 2
+    ClearMenuData menu(i)
+    WITH menu(i)
+     .no_box = YES
+     .align = -1
+     .anchor.x = -1
+     .anchor.y = -1
+     .offset.y = -100
+     .bordersize = -8
+    END WITH
+   NEXT i
+   menu(0).offset.x = -160
+   menu(1).offset.x = -104
+   menu(2).offset.x = 32
+   menu(0).min_chars = 8
+   menu(1).min_chars = 16
+   menu(2).min_chars = 16
+
+   append_menu_item menu(0), "Previous menu..."
+   menu(0).last->t = buttonnameEXIT
+   append_menu_item menu(1), ""
+   append_menu_item menu(2), ""
+
+   append_menu_item menu(0), "Code"
+   menu(0).last->unselectable = YES
+   menu(0).last->disabled = YES
+   append_menu_item menu(1), "Keyboard"
+   menu(1).last->unselectable = YES
+   menu(1).last->disabled = YES
+   append_menu_item menu(2), "OUYA"
+   menu(2).last->unselectable = YES
+   menu(2).last->disabled = YES
+
+   freenum = 0
+   READNODE buttonnames
+    WITHNODE buttonnames."code" as codenode
+     codenum = GetInteger(codenode)
+     IF freenum <= codenum THEN freenum = codenum + 1
+     append_menu_item menu(0), "${B" & codenum & "}"
+     menu(0).last->t = buttonnameDATA
+     menu(0).last->dataptr = codenode
+     menu(0).last->disabled = YES
+     curstr = codenode."keyboard".string
+     IF curstr = "" THEN curstr = "<empty>"
+     append_menu_item menu(1), curstr
+     curstr = codenode."ouya".string
+     IF curstr = "" THEN curstr = "<empty>"
+     append_menu_item menu(2), curstr
+    END WITHNODE
+   END READNODE
+   
+   append_menu_item menu(0), "Add a new button name"
+   menu(0).last->t = buttonnameADD
+   append_menu_item menu(1), ""
+   append_menu_item menu(2), ""
+
+   init_menu_state st, menu(0)
+   init_menu_state disable_st, menu(0)
+   disable_st.pt = -1
+   
+   REDIM enabled(menu(0).numitems - 1) as bool
+   FOR i as integer = 0 TO UBOUND(enabled)
+    WITH *menu(0).items[i]
+     enabled(i) = NOT .unselectable
+    END WITH
+   NEXT i
+  END IF '--done updating menu
+
+  usemenu st, enabled()
+
+  t = menu(0).items[st.pt]->t
+  node = menu(0).items[st.pt]->dataptr
+  
+  IF t = buttonnameDATA THEN
+   IF column = 0 THEN column = 1
+   IF keyval(scLeft) > 1 ORELSE keyval(scRight) > 1 THEN
+    column = IIF(column = 1, 2, 1)
+   END IF
+   strnode = FirstChild(node, plat_key(column))
+   IF strnode THEN
+    curstr = GetString(strnode)
+    IF strgrabber(curstr, 16) THEN
+     SetContent(strnode, curstr)
+     st.need_update = YES
+    END IF
+   END IF
+  ELSE
+   column = 0
+  END IF
+  
+  IF enter_space_click(st) THEN
+   SELECT CASE t
+    CASE buttonnameEXIT: EXIT DO
+    CASE buttonnameADD:
+     DIM newcodenode as NodePtr = AppendChildNode(buttonnames, "code", freenum)
+     AppendChildNode(newcodenode, "keyboard", "")
+     AppendChildNode(newcodenode, "ouya", "")
+     st.need_update = YES
+   END SELECT
+  END IF
+  
+  clearpage dpage
+  
+  FOR i as integer = 0 TO 2
+   IF i = column THEN
+    draw_menu menu(i), st, dpage
+   ELSE
+    draw_menu menu(i), disable_st, dpage
+   END IF
+  NEXT i
+  SWAP vpage, dpage
+  setvispage vpage
+  
+  dowait
+ LOOP
+
+END SUB

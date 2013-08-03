@@ -1,0 +1,20 @@
+This screen allows you to edit platform-specific button names which can be inserted into your text boxes with codes like ${B1}
+
+For example, you might have a NPC who tells you:
+
+  "If a battle is to difficult,
+   don't be afraid to run away by
+   pressing and holding ${B2}"
+
+When playing on a Windows/Mac/Linux computer, the box would say:
+
+  "If a battle is to difficult,
+   don't be afraid to run away by
+   pressing and holding ESC"
+
+But the same text box, if played on an OUYA console would say:
+
+  "If a battle is to difficult,
+   don't be afraid to run away by
+   pressing and holding (A)"
+

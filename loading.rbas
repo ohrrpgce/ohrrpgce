@@ -39,6 +39,7 @@ declare Sub load_hero_from_old_dt0(filename as string, hero as herodef, byval re
 declare Sub save_hero_as_old_dt0(filename as string, hero as herodef, byval record as integer)
 declare sub create_blank_hero_reld(hero as HeroDef)
 declare sub free_hero_reld(hero as HeroDef)
+declare sub general_reld_init_buttonnames(root_node as NodePtr)
 
 '==========================================================================================
 '                                      Helper Functions
@@ -3338,10 +3339,27 @@ FUNCTION get_general_reld() as NodePtr
   root_node = CreateNode(gen_reld_doc, "general_data")
   SetRootNode(gen_reld_doc, root_node)
  END IF
+ 
+ '--This is a good place to create defaults for nodes that do not exist yet.
+ IF NOT root_node."buttonnames".exists THEN
+  general_reld_init_buttonnames root_node
+ END IF
 
  write_general_reld()
  return root_node
 END FUNCTION
+
+SUB general_reld_init_buttonnames(root_node as NodePtr)
+ DIM bn as NodePtr = SetChildNode(root_node, "buttonnames")
+ DIM bcode as NodePtr
+ DIM bn_keyboard(...) as string = {"Arrow Keys", "ENTER", "ESC"}
+ DIM bn_ouya(...) as string = {"D-Pad", "(O)", "(A)"}
+ FOR i as integer = 0 to UBOUND(bn_keyboard)
+  bcode = AppendChildNode(bn, "code", i)
+  AppendChildNode(bcode, "keyboard", bn_keyboard(i))
+  AppendChildNode(bcode, "ouya", bn_ouya(i))
+ NEXT i
+END SUB
 
 SUB write_general_reld()
 'Custom only, writes changes to the general.reld lump
