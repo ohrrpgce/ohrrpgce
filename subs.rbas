@@ -1961,7 +1961,8 @@ SUB hero_editor_stats_menu (her as HeroDef)
  leftmenu[3].text = "LEVEL ZERO"
  leftmenu[3].unselectable = YES
  leftmenu[3].col = uilook(uiDescription)
- rightmenu[3].text = "LEVEL " & gen(genMaxLevel)
+ ' FIXME: the rightmost column is always the level 99 stats rather than gen(genMaxLevel)
+ rightmenu[3].text = "LEVEL 99"
  rightmenu[3].col = uilook(uiDescription)
 
  DIM mstate as MenuState
@@ -2048,22 +2049,33 @@ SUB hero_editor_stats_menu (her as HeroDef)
   'Note that exactly one of the following two standardmenus should be active, since they share 'state'
   IF activemenu = 0 THEN
    standardmenu leftmenu, mstate, 8, 0, dpage
-   standardmenu rightmenu, inactive_state, 160, 0, dpage
-  ELSE activemenu = 1
+   IF twomenus THEN standardmenu rightmenu, inactive_state, 160, 0, dpage
+  ELSE 'activemenu = 1
    standardmenu leftmenu, inactive_state, 8, 0, dpage
-   standardmenu rightmenu, mstate, 160, 0, dpage
+   IF twomenus THEN standardmenu rightmenu, mstate, 160, 0, dpage
   END IF
 
   IF statnum >= 0 THEN  '--Draw graph
    textcolor uilook(uiMenuItem), 0
-   printstr statnames(statnum), 310 - LEN(statnames(statnum)) * 8, 180, dpage
-   DIM as integer stepper, n0, nMax, ordinate
-   stepper = CEIL(gen(genMaxLevel) / 25)
-   FOR i as integer = 0 TO gen(genMaxLevel) STEP stepper
-    n0 = her.Lev0.sta(statnum)
-    nMax = her.LevMax.sta(statnum)
-    ordinate = atlevel(i, n0, nMax) * (100 / max(statnum))
-    rectangle 290 + (i / stepper), 176 - ordinate, 1, ordinate + 1, uilook(uiMenuItem), dpage
+   printstr statnames(statnum), 310 - LEN(statnames(statnum)) * 8, 160, dpage
+   DIM levelmsg as string
+   levelmsg = "Levels 0-" & gen(genMaxLevel)
+   printstr levelmsg, 310 - LEN(levelmsg) * 8, 170, dpage
+   DIM as integer n0, nMax, numbars, barwidth
+   IF gen(genMaxLevel) < 25 THEN
+    numbars = gen(genMaxLevel) + 1
+    barwidth = 25 \ numbars
+   ELSE
+    numbars = 25
+    barwidth = 1
+   END IF
+   n0 = her.Lev0.sta(statnum)
+   nMax = her.LevMax.sta(statnum)
+   FOR i as integer = 0 TO numbars - 1
+    DIM as integer level, ordinate
+    level = INT(i * gen(genMaxLevel) / large(1, numbars - 1))  'round result to avoid error
+    ordinate = atlevel(level, n0, nMax) * (100 / max(statnum))
+    rectangle 290 + i * barwidth, 156 - ordinate, barwidth, ordinate + 1, uilook(uiMenuItem), dpage
    NEXT i
 
    'Experimental stuff
