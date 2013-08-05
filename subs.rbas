@@ -1950,6 +1950,7 @@ END SUB
 SUB hero_editor_stats_menu (her as HeroDef)
  DIM i as integer
  DIM activemenu as integer = 0  '0 or 1 indicating left or rightmenu
+ DIM twomenus as bool = (gen(genMaxLevel) > 0)  'whether to draw the second menu
 
  '.unselectable attribute only used from leftmenu
  DIM as BasicMenuItem vector leftmenu, rightmenu
@@ -2003,7 +2004,7 @@ SUB hero_editor_stats_menu (her as HeroDef)
   
   mouse = readmouse
   IF mouse.movedtick THEN
-   IF mouse.x > 160 THEN
+   IF mouse.x > 160 AND twomenus THEN
     activemenu = 1
    ELSE
     activemenu = 0
@@ -2020,7 +2021,7 @@ SUB hero_editor_stats_menu (her as HeroDef)
   IF statnum < 0 THEN
    activemenu = 0
   ELSE
-   IF keyval(scLeft) > 1 OR keyval(scRight) > 1 THEN activemenu XOR= 1
+   IF twomenus AND (keyval(scLeft) > 1 OR keyval(scRight) > 1) THEN activemenu XOR= 1
    IF activemenu = 0 THEN
     IF intgrabber(her.Lev0.sta(statnum), min(statnum), max(statnum), scLeftCaret, scRightCaret) THEN mstate.need_update = YES
    ELSE
@@ -2058,9 +2059,11 @@ SUB hero_editor_stats_menu (her as HeroDef)
   IF statnum >= 0 THEN  '--Draw graph
    textcolor uilook(uiMenuItem), 0
    printstr statnames(statnum), 310 - LEN(statnames(statnum)) * 8, 160, dpage
-   DIM levelmsg as string
-   levelmsg = "Levels 0-" & gen(genMaxLevel)
-   printstr levelmsg, 310 - LEN(levelmsg) * 8, 170, dpage
+   IF twomenus THEN
+    DIM levelmsg as string
+    levelmsg = "Levels 0-" & gen(genMaxLevel)
+    printstr levelmsg, 310 - LEN(levelmsg) * 8, 170, dpage
+   END IF
    DIM as integer n0, nMax, numbars, barwidth
    IF gen(genMaxLevel) < 25 THEN
     numbars = gen(genMaxLevel) + 1
@@ -2089,7 +2092,9 @@ SUB hero_editor_stats_menu (her as HeroDef)
   IF statnum = statSpeed THEN
    textcolor uilook(uiDescription), 0
    printstr "Lev0:  1 turn every " & speed_estimate(her.Lev0.spd), 0, 182, dpage
-   printstr "Lev" & gen(genMaxLevel) & ": 1 turn every " & speed_estimate(her.LevMax.spd), 0, 190, dpage
+   IF twomenus THEN
+    printstr "Lev" & gen(genMaxLevel) & ": 1 turn every " & speed_estimate(her.LevMax.spd), 0, 190, dpage
+   END IF
   END IF
   SWAP vpage, dpage
   setvispage vpage
