@@ -77,6 +77,7 @@ END SUB
 'If picktag is true, then can be used to pick a tag. In that case, allowspecial indicates whether to allow
 'picking 'special' tags: those automatically set, eg. based on inventory conditions
 FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, byval allowspecial as integer=YES) as integer
+ STATIC searchstring as string
  DIM state as MenuState
  DIM thisname as string
  DIM ret as integer = starttag
@@ -117,6 +118,10 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
  DIM uninterrupted_alt_press as integer = NO
  'Usually equal to state.pt + 1, but can reach 0
  DIM alt_pt as integer 
+ 
+ DIM do_search as bool = NO
+ DIM search_cur_str as string
+ DIM search_found as bool = NO
 
  setkeys YES
  DO
@@ -124,6 +129,41 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
   setkeys YES
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "tagnames"
+  IF keyval(scCTRL) > 0 ANDALSO keyval(scF) > 1 THEN
+   IF prompt_for_string(searchstring, "Search") THEN
+    do_search = YES
+   END IF
+  END IF
+  IF keyval(scF3) > 1 THEN
+   do_search = YES
+  END IF
+  IF do_search THEN
+   do_search = NO
+   IF searchstring <> "" THEN
+    FOR i as integer = large(state.pt + 1, 1) TO gen(genMaxTagname)
+     search_cur_str = load_tag_name(i + 1)
+     IF INSTR(LCASE(search_cur_str), LCASE(searchstring)) THEN
+      state.pt = i
+      clamp_menu_state state
+      search_found = YES
+      EXIT FOR
+     END IF
+    NEXT i
+    IF NOT search_found THEN
+     '--wrap the search
+     FOR i as integer = 1 TO state.pt - 1
+      search_cur_str = load_tag_name(i + 1)
+      IF INSTR(LCASE(search_cur_str), LCASE(searchstring)) THEN
+       state.pt = i
+       clamp_menu_state state
+       search_found = YES
+       EXIT FOR
+      END IF
+     NEXT i
+    END IF
+    search_found = NO
+   END IF
+  END IF
   IF usemenu(state) THEN
    thisname = safe_tag_name(state.pt + 1)
    alt_pt = state.pt + 1
@@ -181,6 +221,15 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
    tmpstr = "Alt:Tag #"
   END IF
   printstr tmpstr, 320 - LEN(tmpstr) * 8, 0, dpage
+  
+  IF NOT int_browsing THEN
+   tmpstr = "CTRL+F Search"
+   printstr tmpstr, 320 - LEN(tmpstr) * 8, 10, dpage
+   IF LEN(searchstring) > 0 THEN
+    tmpstr = "F3 Again"
+    printstr tmpstr, 320 - LEN(tmpstr) * 8, 20, dpage
+   END IF
+  END IF
 
   IF tag_is_autoset(state.pt + 1) THEN
    textcolor uilook(uiDisabledItem), 0
@@ -4797,7 +4846,7 @@ CONST buttonnameDATA as integer = 2
 
 SUB edit_button_name_strings()
 
- DIM plat_key(...) as string = {"ZZZ", "keyboard", "ouya"}
+ DIM plat_key(...) as string = {"<not used>", "keyboard", "ouya"}
 
  DIM menu(2) as MenuDef
  

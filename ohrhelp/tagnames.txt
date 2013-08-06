@@ -7,3 +7,5 @@ Tags are switches that can be set OFF or ON during the game, and different thing
 To make the list of tags longer, just type a name for the last tag at the bottom of the list. That will automatically make the list grow longer.
 
 Note that Tag 1 is not available.  Tags 1 (and 0) are super-special tags that can never be altered by anyone EVER!
+
+Press CTRL+F if you want to search by tag name. You can press F3 to repeat the previous search. When the search reaches the bottom of the list without finding a match, it will wrap back to the top of the list.
