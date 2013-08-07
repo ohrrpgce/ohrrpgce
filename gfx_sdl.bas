@@ -330,9 +330,15 @@ FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
   set_forced_mouse_clipping (windowedmode = NO)
 #ENDIF
 #IFDEF __FB_ANDROID__
-  'If fullscreen mode is requested on android, use the minimum size
-  'and it should be stretched
-  screensurface = SDL_SetVideoMode(320, 200, bitdepth, flags)
+  'On Android, the requested screen size will be stretched.
+  'We also want the option of a margin around the edges for
+  'when the game is being played on a TV that needs safe zones
+  
+  DIM margin as single = 0.0
+  DIM android_screen_size as XYPair
+  android_screen_size.x = 320 + INT(320 * (margin * 2))
+  android_screen_size.y = 200 + INT(200 * (margin * 2))
+  screensurface = SDL_SetVideoMode(android_screen_size.x, android_screen_size.y, bitdepth, flags)
   IF screensurface = NULL THEN
     debug "Failed to open display (bitdepth = " & bitdepth & ", flags = " & flags & "): " & *SDL_GetError()
     RETURN 0
@@ -340,8 +346,8 @@ FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
   debuginfo "gfx_sdl: screen size is " & screensurface->w & "*" & screensurface->h
   zoom = 1
   WITH dest_rect
-    .x = 0
-    .y = 0
+    .x = INT(320 * margin)
+    .y = INT(200 * margin)
     .w = framesize.w * zoom
     .h = framesize.h * zoom
   END WITH
