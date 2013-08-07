@@ -6506,3 +6506,24 @@ end sub
 function running_on_console() as bool
 	return io_running_on_console()
 end function
+
+function get_safe_zone_margin () as integer
+	'--returns and integer from 0 to 10 representing the percentage
+	' of the screen edges reserved for TV safe zones. Only returns non-zero
+	' values on backends that support this feature.
+	dim margin as integer = int(gfx_get_safe_zone_margin() * 100)
+	return large(0, small(10, margin))
+end function
+
+sub set_safe_zone_margin (byval margin as integer)
+	'the margin argument is an integer from 0 to 10 representing
+	' the percentage of the screen edges reserved for TV safe zones.
+	' this has no effect on backends that don't support this feature.
+	margin = large(0, small(10, margin))
+	gfx_set_safe_zone_margin(margin / 100)
+end sub
+
+function supports_safe_zone_margin () as bool
+	'Returns YES if the current backend supports safe zone margins
+	return gfx_supports_safe_zone_margin()
+end function

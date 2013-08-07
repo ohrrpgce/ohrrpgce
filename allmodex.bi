@@ -224,6 +224,10 @@ declare sub remap_touchscreen_button (byval button_id as integer, byval ohr_scan
 
 declare function running_on_console() as bool
 
+declare function get_safe_zone_margin () as integer
+declare sub set_safe_zone_margin (byval margin as integer)
+declare function supports_safe_zone_margin () as bool
+
 'globals
 extern modex_initialised as bool
 extern vpages() as Frame ptr

@@ -66,6 +66,11 @@ extern Gfx_describe_options as function () as zstring ptr
 '(optional, ptr may be NULL, gfx_console only)
 extern Gfx_printchar as sub (byval ch as integer, byval x as integer, byval y as integer)
 
+'(optional)
+extern Gfx_get_safe_zone_margin as function () as single
+extern Gfx_set_safe_zone_margin as sub (byval margin as single)
+extern Gfx_supports_safe_zone_margin as function () as bool
+
 extern Io_init as sub ()
 
 '(optional) called in loops where gfx_showpage is not.

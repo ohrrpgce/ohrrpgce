@@ -99,6 +99,8 @@ DIM SHARED input_buffer as wstring * 128
 DIM SHARED mouseclicks as integer
 DIM SHARED virtual_keyboard_shown as bool = NO
 DIM SHARED allow_virtual_gamepad as bool = YES
+DIM SHARED safe_zone_margin as single = 0.0
+DIM SHARED last_used_bitdepth as integer = 0
 
 END EXTERN 'weirdness
 'Translate SDL scancodes into a OHR scancodes
@@ -314,6 +316,7 @@ SUB select_zoom_automatically(byval w as integer, byval h as integer)
 END SUB
 
 FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
+  last_used_bitdepth = bitdepth
   DIM flags as Uint32 = 0
   IF resizable THEN flags = flags OR SDL_RESIZABLE
   IF windowedmode = NO THEN
@@ -334,10 +337,9 @@ FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
   'We also want the option of a margin around the edges for
   'when the game is being played on a TV that needs safe zones
   
-  DIM margin as single = 0.0
   DIM android_screen_size as XYPair
-  android_screen_size.x = 320 + INT(320 * (margin * 2))
-  android_screen_size.y = 200 + INT(200 * (margin * 2))
+  android_screen_size.x = 320 + INT(320 * (safe_zone_margin * 2))
+  android_screen_size.y = 200 + INT(200 * (safe_zone_margin * 2))
   screensurface = SDL_SetVideoMode(android_screen_size.x, android_screen_size.y, bitdepth, flags)
   IF screensurface = NULL THEN
     debug "Failed to open display (bitdepth = " & bitdepth & ", flags = " & flags & "): " & *SDL_GetError()
@@ -346,8 +348,8 @@ FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
   debuginfo "gfx_sdl: screen size is " & screensurface->w & "*" & screensurface->h
   zoom = 1
   WITH dest_rect
-    .x = INT(320 * margin)
-    .y = INT(200 * margin)
+    .x = INT(320 * safe_zone_margin)
+    .y = INT(200 * safe_zone_margin)
     .w = framesize.w * zoom
     .h = framesize.h * zoom
   END WITH
@@ -621,6 +623,23 @@ END FUNCTION
 FUNCTION gfx_sdl_describe_options() as zstring ptr
   return @"-z -zoom [1...16]   Scale screen to 1,2, ... up to 16x normal size (2x default)" LINE_END _
           "-s -smooth          Enable smoothing filter for zoom modes (default off)"
+END FUNCTION
+
+FUNCTION gfx_sdl_get_safe_zone_margin() as single
+ RETURN safe_zone_margin
+END FUNCTION
+
+SUB gfx_sdl_set_safe_zone_margin(margin as single)
+ safe_zone_margin = margin
+ gfx_sdl_set_screen_mode(last_used_bitdepth)
+END SUB
+
+FUNCTION gfx_sdl_supports_safe_zone_margin() as bool
+#IFDEF __FB_ANDROID__
+ RETURN YES
+#ELSE
+ RETURN NO
+#ENDIF
 END FUNCTION
 
 SUB io_sdl_init
@@ -1077,6 +1096,9 @@ FUNCTION gfx_sdl_setprocptrs() as integer
   gfx_setresizable = @gfx_sdl_setresizable
   gfx_setoption = @gfx_sdl_setoption
   gfx_describe_options = @gfx_sdl_describe_options
+  gfx_get_safe_zone_margin = @gfx_sdl_get_safe_zone_margin
+  gfx_set_safe_zone_margin = @gfx_sdl_set_safe_zone_margin
+  gfx_supports_safe_zone_margin = @gfx_sdl_supports_safe_zone_margin
   io_init = @io_sdl_init
   io_pollkeyevents = @io_sdl_pollkeyevents
   io_waitprocessing = @io_sdl_waitprocessing

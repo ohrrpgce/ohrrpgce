@@ -59,6 +59,9 @@ dim gfx_setresizable as sub (byval able as integer)
 dim gfx_setoption as function (byval opt as zstring ptr, byval arg as zstring ptr) as integer
 dim gfx_describe_options as function () as zstring ptr
 dim gfx_printchar as sub (byval ch as integer, byval x as integer, byval y as integer)
+dim gfx_get_safe_zone_margin as function () as single
+dim gfx_set_safe_zone_margin as sub (byval margin as single)
+dim gfx_supports_safe_zone_margin as function () as bool
 dim io_init as sub ()
 dim io_pollkeyevents as sub ()
 dim io_waitprocessing as sub ()
@@ -165,6 +168,9 @@ dim as string systeminfo
 
 function gfx_dummy_getresize(byref ret as XYPair) as integer : return NO : end function
 sub gfx_dummy_setresizable(byval able as integer) : end sub
+function gfx_dummy_get_safe_zone_margin() as single : return 0.0 : end function
+sub gfx_dummy_set_safe_zone_margin(byval margin as single) : end sub
+function gfx_dummy_supports_safe_zone_margin() as bool : return NO : end function
 sub io_dummy_waitprocessing() : end sub
 sub io_dummy_pollkeyevents() : end sub
 sub io_dummy_updatekeys(byval keybd as integer ptr) : end sub
@@ -233,6 +239,13 @@ function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filename as 
 	gfx_setoption = dylibsymbol(hFile, "gfx_setoption")
 	gfx_describe_options = dylibsymbol(hFile, "gfx_describe_options")
 	gfx_printchar = dylibsymbol(hFile, "gfx_printchar") 'allowed to be NULL
+
+	gfx_get_safe_zone_margin = dylibsymbol(hFile, "gfx_get_safe_zone_margin")
+	if gfx_get_safe_zone_margin - NULL then gfx_get_safe_zone_margin = @gfx_dummy_get_safe_zone_margin
+	gfx_set_safe_zone_margin = dylibsymbol(hFile, "gfx_set_safe_zone_margin")
+	if gfx_set_safe_zone_margin - NULL then gfx_set_safe_zone_margin = @gfx_dummy_set_safe_zone_margin
+	gfx_supports_safe_zone_margin = dylibsymbol(hFile, "gfx_supports_safe_zone_margin")
+	if gfx_supports_safe_zone_margin - NULL then gfx_supports_safe_zone_margin = @gfx_dummy_supports_safe_zone_margin
 
 #ifdef USE_RASTERIZER
 	'New rendering API (FIXME: complete this)
