@@ -1220,6 +1220,7 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
  DIM elem as integer
  DIM col as integer
  DIM where as XYPair
+ DIM metermax as integer
 
  'Update the caption of each menu item
  FOR i = 0 TO menu.numitems - 1
@@ -1259,10 +1260,12 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
       rectangle menu.rect.x + 4, where.y, menu.rect.wide - 8, 8, uiLook(uiHighlight), page
      END IF
      IF .t = 1 AND .sub_t = 11 THEN ' volume meter
-      edgeboxstyle where.x, where.y, get_music_volume * 48, 10, menu.boxstyle, page, NO, YES
+      metermax = (8 * large(6, LEN(.text)))
+      edgeboxstyle where.x, where.y, get_music_volume * metermax, 10, menu.boxstyle, page, NO, YES
      END IF
      IF .t = 1 AND .sub_t = 14 THEN ' TV Safe Margin meter
-      edgeboxstyle where.x, where.y, INT(get_safe_zone_margin() * 48 / 10), 10, menu.boxstyle, page, NO, YES
+      metermax = (8 * large(6, LEN(.text)))
+      edgeboxstyle where.x, where.y, INT(get_safe_zone_margin() * metermax / 10), 10, menu.boxstyle, page, NO, YES
      END IF
      edgeprint .text, where.x, where.y, col, page
     END IF
