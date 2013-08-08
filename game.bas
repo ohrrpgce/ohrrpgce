@@ -300,10 +300,7 @@ defaultc  'set up default controls
 'Read joyset.ini
 readjoysettings
 
-IF running_on_console() THEN
- 'On OUYA, default to a safe margin
- set_safe_zone_margin 8
-END IF
+set_safe_zone_margin default_margin()
 
 DIM gp as GamePadMap
 gp.A = scEnter
@@ -443,6 +440,8 @@ IF NOT isdir(prefsdir) THEN makedir prefsdir
 debuginfo "prefsdir=" & prefsdir
 
 end_debug 'delete unimportant messages generated before this point, or from previous game
+
+set_safe_zone_margin read_ini_int(prefsdir & SLASH & "gameconfig.ini", "gfx.margin", default_margin())
 
 '-- change current directory, where g_debug will be put; mainly for drag-dropping onto Game in Windows which defaults to homedir
 DIM fol as string = trimfilename(sourcerpg)
@@ -2599,6 +2598,7 @@ SUB player_menu_keys ()
  DIM activated as integer
  DIM menu_handle as integer
  DIM esc_menu as integer
+ DIM save_margin as bool = NO
  IF topmenu >= 0 THEN
   IF menus(topmenu).no_controls = YES THEN EXIT SUB
   menu_handle = menus(topmenu).handle 'store handle for later use
@@ -2631,8 +2631,18 @@ SUB player_menu_keys ()
    IF carray(ccRight) > 1 THEN set_music_volume small(get_music_volume + 1/16, 1.0)
   END IF
   IF mi.t = 1 AND mi.sub_t = 14 THEN '--TV safe margin
-   IF carray(ccLeft) > 1 THEN set_safe_zone_margin large(get_safe_zone_margin() - 1, 0)
-   IF carray(ccRight) > 1 THEN set_safe_zone_margin small(get_safe_zone_margin() + 1, 10)
+   IF carray(ccLeft) > 1 THEN
+    set_safe_zone_margin large(get_safe_zone_margin() - 1, 0)
+    save_margin = YES
+   END IF
+   IF carray(ccRight) > 1 THEN
+    set_safe_zone_margin small(get_safe_zone_margin() + 1, 10)
+    save_margin = YES
+   END IF
+   IF save_margin THEN
+    save_margin = NO
+    write_ini_value prefsdir & SLASH & "gameconfig.ini", "gfx.margin", get_safe_zone_margin()
+   END IF
   END IF
   IF carray(ccUse) > 1 THEN
    activate_menu_item mi, topmenu
@@ -4123,3 +4133,11 @@ threshhold = -1
   END IF
  NEXT i
 END SUB
+
+FUNCTION default_margin() as integer
+ IF running_on_console() THEN
+  'On OUYA, default to a safe margin
+  RETURN 8
+ END IF
+ RETURN 0
+END FUNCTION

@@ -102,4 +102,6 @@ DECLARE SUB refresh_keepalive_file ()
 DECLARE FUNCTION read_keepalive_as_days (keepalive_file as string) as integer
 DECLARE FUNCTION guess_age_by_tmpdir_name(dirname as string) as integer
 
+DECLARE FUNCTION default_margin() as integer
+
 #ENDIF
