@@ -195,6 +195,9 @@ sub set_default_gfx_function_ptrs
 	gfx_getresize = @gfx_dummy_getresize
 	gfx_setresizable = @gfx_dummy_setresizable
 	gfx_printchar = NULL
+	gfx_set_safe_zone_margin = @gfx_dummy_set_safe_zone_margin
+	gfx_get_safe_zone_margin = @gfx_dummy_get_safe_zone_margin
+	gfx_supports_safe_zone_margin = @gfx_dummy_supports_safe_zone_margin
 	io_textinput = NULL
 	io_enable_textinput = @io_dummy_enable_textinput
 	io_pollkeyevents = @io_dummy_pollkeyevents
@@ -241,11 +244,11 @@ function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filename as 
 	gfx_printchar = dylibsymbol(hFile, "gfx_printchar") 'allowed to be NULL
 
 	gfx_get_safe_zone_margin = dylibsymbol(hFile, "gfx_get_safe_zone_margin")
-	if gfx_get_safe_zone_margin - NULL then gfx_get_safe_zone_margin = @gfx_dummy_get_safe_zone_margin
+	if gfx_get_safe_zone_margin = NULL then gfx_get_safe_zone_margin = @gfx_dummy_get_safe_zone_margin
 	gfx_set_safe_zone_margin = dylibsymbol(hFile, "gfx_set_safe_zone_margin")
-	if gfx_set_safe_zone_margin - NULL then gfx_set_safe_zone_margin = @gfx_dummy_set_safe_zone_margin
+	if gfx_set_safe_zone_margin = NULL then gfx_set_safe_zone_margin = @gfx_dummy_set_safe_zone_margin
 	gfx_supports_safe_zone_margin = dylibsymbol(hFile, "gfx_supports_safe_zone_margin")
-	if gfx_supports_safe_zone_margin - NULL then gfx_supports_safe_zone_margin = @gfx_dummy_supports_safe_zone_margin
+	if gfx_supports_safe_zone_margin = NULL then gfx_supports_safe_zone_margin = @gfx_dummy_supports_safe_zone_margin
 
 #ifdef USE_RASTERIZER
 	'New rendering API (FIXME: complete this)

@@ -6519,7 +6519,7 @@ sub set_safe_zone_margin (byval margin as integer)
 	'the margin argument is an integer from 0 to 10 representing
 	' the percentage of the screen edges reserved for TV safe zones.
 	' this has no effect on backends that don't support this feature.
-	margin = large(0, small(10, margin))
+	margin = bound(margin, 0, 10)
 	gfx_set_safe_zone_margin(margin / 100)
 end sub
 
