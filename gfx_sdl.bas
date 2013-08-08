@@ -338,8 +338,8 @@ FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
   'when the game is being played on a TV that needs safe zones
   
   DIM android_screen_size as XYPair
-  android_screen_size.x = 320 + INT(320 * (safe_zone_margin * 2))
-  android_screen_size.y = 200 + INT(200 * (safe_zone_margin * 2))
+  android_screen_size.x = 320 + INT(320.0 * (safe_zone_margin * 2.0))
+  android_screen_size.y = 200 + INT(200.0 * (safe_zone_margin * 2.0))
   screensurface = SDL_SetVideoMode(android_screen_size.x, android_screen_size.y, bitdepth, flags)
   IF screensurface = NULL THEN
     debug "Failed to open display (bitdepth = " & bitdepth & ", flags = " & flags & "): " & *SDL_GetError()
@@ -348,8 +348,8 @@ FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
   debuginfo "gfx_sdl: screen size is " & screensurface->w & "*" & screensurface->h
   zoom = 1
   WITH dest_rect
-    .x = INT(320 * safe_zone_margin)
-    .y = INT(200 * safe_zone_margin)
+    .x = INT(320.0 * safe_zone_margin)
+    .y = INT(200.0 * safe_zone_margin)
     .w = framesize.w * zoom
     .h = framesize.h * zoom
   END WITH

@@ -2549,7 +2549,7 @@ SUB menu_editor_detail_keys(dstate as MenuState, mstate as MenuState, detail as 
     CASE 0: '--caption
      max = 1
     CASE 1: '--special
-     max = 13
+     max = 14
     CASE 2: '--menu
      max = gen(genMaxMenu)
     CASE 3: '--text box

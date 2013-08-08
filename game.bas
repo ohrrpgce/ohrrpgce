@@ -2631,6 +2631,10 @@ SUB player_menu_keys ()
    IF carray(ccLeft) > 1 THEN set_music_volume large(get_music_volume - 1/16, 0.0)
    IF carray(ccRight) > 1 THEN set_music_volume small(get_music_volume + 1/16, 1.0)
   END IF
+  IF mi.t = 1 AND mi.sub_t = 14 THEN '--TV safe margin
+   IF carray(ccLeft) > 1 THEN set_safe_zone_margin large(get_safe_zone_margin() - 1, 0)
+   IF carray(ccRight) > 1 THEN set_safe_zone_margin small(get_safe_zone_margin() + 1, 10)
+  END IF
   IF carray(ccUse) > 1 THEN
    activate_menu_item mi, topmenu
   END IF
@@ -2778,6 +2782,7 @@ SUB check_menu_tags ()
      IF .t = 0 AND .sub_t = 1 THEN .disabled = YES
      IF .t = 1 AND .sub_t = 7 AND gmap(2) = 0 THEN .disabled = YES 'Minimap disabled on this map
      IF .t = 1 AND .sub_t = 8 AND gmap(3) = 0 THEN .disabled = YES 'Save anywhere disabled on this map
+     IF .t = 1 AND .sub_t = 14 AND NOT supports_safe_zone_margin() THEN .disabled = YES 'TV Safe Margin disabled on backends that don't support it
      IF old <> .disabled THEN changed = YES
     END WITH
    NEXT i

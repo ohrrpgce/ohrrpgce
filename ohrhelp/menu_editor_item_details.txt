@@ -31,6 +31,8 @@ This is the menu item detail editor. This is where you define what a menu item a
     *Volume
     *Map (even if not allowed)
     *Save (even if not allowed)
+    *Margins (if supported by the
+             current gfx backend)
 
   *Go To Menu - This menu item will      jump to another menu when a player
    selects it. Use the subtype to

@@ -3116,6 +3116,7 @@ SUB edit_global_text_strings()
  GTS_add_to_menu menu, "Quit",                       67, "Quit", 10
  GTS_add_to_menu menu, "Minimap",                    68, "Map", 10
  GTS_add_to_menu menu, "Volume",                     69, "Volume", 10
+ GTS_add_to_menu menu, "TV Safe Zone",               305, "TV Safe Zone", 20
 
  GTS_menu_header menu, "Item Menu:"
  GTS_add_to_menu menu, "Exit Item Menu",             35, "DONE", 10

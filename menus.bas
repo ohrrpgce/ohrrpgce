@@ -1261,6 +1261,9 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
      IF .t = 1 AND .sub_t = 11 THEN ' volume meter
       edgeboxstyle where.x, where.y, get_music_volume * 48, 10, menu.boxstyle, page, NO, YES
      END IF
+     IF .t = 1 AND .sub_t = 14 THEN ' TV Safe Margin meter
+      edgeboxstyle where.x, where.y, INT(get_safe_zone_margin() * 48 / 10), 10, menu.boxstyle, page, NO, YES
+     END IF
      edgeprint .text, where.x, where.y, col, page
     END IF
    END WITH
@@ -1405,6 +1408,9 @@ FUNCTION get_special_menu_caption(byval subtype as integer, byval edit_mode as b
   CASE 9: cap = "Load" ' FIXME: Needs a global text string
   CASE 10: cap = readglobalstring(67, "Quit", 10)
   CASE 11: cap = readglobalstring(69, "Volume", 10)
+  CASE 14:
+   cap = readglobalstring(305, "Margins", 10)
+   IF edit_mode = YES THEN cap = cap & " [if available]"
  END SELECT
  RETURN cap
 END FUNCTION
