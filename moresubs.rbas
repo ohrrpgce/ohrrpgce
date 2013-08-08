@@ -2611,3 +2611,25 @@ FUNCTION caterpillar_size () as integer
  IF readbit(gen(), genBits, 1) = 1 THEN RETURN herocount
  RETURN 1
 END FUNCTION
+
+FUNCTION default_margin() as integer
+ IF running_on_console() THEN
+  'On OUYA, default to a safe 8% margin
+  RETURN 8
+ END IF
+ ' on all other platforms, default to no margin
+ RETURN 0
+END FUNCTION
+
+FUNCTION default_margin_for_game() as integer
+ 'Only for use when a game is currently loaded
+ DIM root as NodePtr
+ root = get_general_reld()
+ IF root."console_options".exists THEN
+  DIM co as NodePtr = root."console_options".ptr
+  IF co."safe_margin".exists THEN
+   RETURN co."safe_margin".integer
+  END IF
+ END IF
+ RETURN default_margin()
+END FUNCTION

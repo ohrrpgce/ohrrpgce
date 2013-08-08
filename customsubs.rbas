@@ -4313,6 +4313,7 @@ CONST platformoptVBUTTON as integer = 4
 CONST platformoptADDVBUTTON as integer = 5
 CONST platformoptTOGGLEMULTI as integer = 6
 CONST platformoptBUTTONNAMES as integer = 7
+CONST platformoptMARGINS as integer = 8
 
 SUB edit_platform_options ()
 
@@ -4331,6 +4332,14 @@ SUB edit_platform_options ()
  ELSE
   'Node does not exist, create it and set defaults
   mobile = SetChildNode(gen_root, "mobile_options")
+ END IF
+ 
+ DIM console as NodePtr
+ IF gen_root."console_options".exists THEN
+  console = gen_root."console_options".ptr
+ ELSE
+  'Node does not exist, create it and set defaults
+  console = SetChildNode(gen_root, "console_options")
  END IF
 
  DIM vgp as NodePtr
@@ -4380,7 +4389,9 @@ SUB edit_platform_options ()
     '--normally a single-pass loop. Only repeats if something
     '-- happens during update that requires another update
     st.need_update = NO
-   
+    
+    DIM cap as string
+    
     ClearMenuData menu
     WITH menu
      .no_box = YES
@@ -4469,6 +4480,18 @@ SUB edit_platform_options ()
  
     append_menu_item menu, "Button name strings for text boxes..."
     menu.last->t = platformoptBUTTONNAMES
+    
+    append_menu_item menu, ""
+    menu.last->unselectable = YES
+
+    cap = "Console TV Safe Margin: "
+    IF console."safe_margin".exists THEN
+     cap &= console."safe_margin".integer
+    ELSE
+     cap &= "Default"
+    END IF
+    append_menu_item menu, cap
+    menu.last->t = platformoptMARGINS
    
    LOOP WHILE st.need_update
 
@@ -4536,6 +4559,22 @@ SUB edit_platform_options ()
     IF keyval(scDELETE) > 1 ORELSE keyval(scBACKSPACE) > 1 THEN
      FreeNode node
      st.need_update = YES
+    END IF
+   CASE platformoptMARGINS:
+    DIM margins as integer
+    IF console."safe_margin".exists THEN
+     margins = console."safe_margin".integer
+    ELSE
+     margins = 0
+    END IF
+    IF margins = 0 ANDALSO (keyval(scDelete) > 1 ORELSE keyval(scBackspace) > 1) THEN
+     FreeChildNode console, "safe_margin"
+     st.need_update = YES
+    ELSE
+     IF intgrabber(margins, 0, 10) THEN
+      SetChildNode console, "safe_margin", margins
+      st.need_update = YES
+     END IF
     END IF
   END SELECT
    

@@ -441,8 +441,6 @@ debuginfo "prefsdir=" & prefsdir
 
 end_debug 'delete unimportant messages generated before this point, or from previous game
 
-set_safe_zone_margin read_ini_int(prefsdir & SLASH & "gameconfig.ini", "gfx.margin", default_margin())
-
 '-- change current directory, where g_debug will be put; mainly for drag-dropping onto Game in Windows which defaults to homedir
 DIM fol as string = trimfilename(sourcerpg)
 IF fol <> "" ANDALSO diriswriteable(fol) THEN
@@ -525,6 +523,7 @@ rpg_sanity_checks
 
 xbload game + ".fnt", current_font(), "font missing from " + sourcerpg
 
+set_safe_zone_margin read_ini_int(prefsdir & SLASH & "gameconfig.ini", "gfx.margin", default_margin_for_game())
 
 '--upgrade obsolete RPG files (if possible)
 IF NOT running_as_slave THEN upgrade
@@ -4133,11 +4132,3 @@ threshhold = -1
   END IF
  NEXT i
 END SUB
-
-FUNCTION default_margin() as integer
- IF running_on_console() THEN
-  'On OUYA, default to a safe margin
-  RETURN 8
- END IF
- RETURN 0
-END FUNCTION
