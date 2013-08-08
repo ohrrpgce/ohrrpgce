@@ -300,11 +300,10 @@ defaultc  'set up default controls
 'Read joyset.ini
 readjoysettings
 
-'DISABLED FOR NOW
-'IF running_on_console() THEN
-' 'On OUYA, default to a safe margin
-' set_safe_zone_margin 8
-'END IF
+IF running_on_console() THEN
+ 'On OUYA, default to a safe margin
+ set_safe_zone_margin 8
+END IF
 
 DIM gp as GamePadMap
 gp.A = scEnter
