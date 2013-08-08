@@ -302,6 +302,7 @@ declare function string_from_first_line_of_file (filename as string) as string
 declare function string_from_file (filename as string) as string
 declare sub string_to_file (string_to_write as string, filename as string)
 declare sub lines_from_file (strarray() as string, filename as string)
+declare sub lines_to_file(strarray() as string, filename as string)
 declare sub set_tmpdir ()
 
 'slight hackery to get more versatile read function
@@ -423,6 +424,16 @@ declare Function wordwrap(z as string, byval width as integer, sep as string = c
 
 declare sub split(in as string, ret() as string, sep as string = chr(10))
 
+
+'----------------------------------------------------------------------
+'                          ini file read/write
+
+declare function read_ini_int overload (ini() as string, key as string, byval default as integer=0) as integer
+declare function read_ini_int overload (ini_filename as string, key as string, byval default as integer=0) as integer
+declare sub write_ini_value overload (ini() as string, key as string, value as integer)
+declare sub write_ini_value overload (ini_filename as string, key as string, value as integer)
+declare function ini_key_match(key as string, s as string) as bool
+declare function ini_value_int (s as string, byval default as integer=0) as integer
 
 '----------------------------------------------------------------------
 '                              Other

@@ -2005,6 +2005,21 @@ SUB lines_from_file(strarray() as string, filename as string)
  CLOSE #fh
 END SUB
 
+'Write an array of strings to a file, one-per-line.
+'unix line endings will automatically be added
+SUB lines_to_file(strarray() as string, filename as string)
+ DIM fh as integer
+ fh = FREEFILE
+ IF OPEN(filename FOR BINARY ACCESS WRITE as #fh) THEN
+  debug "Could not open " & filename & " for writing"
+  EXIT SUB
+ END IF
+ FOR i as integer = 0 TO UBOUND(strarray)
+  PUT #fh, , strarray(i) & !"\n"
+ NEXT i
+ CLOSE #fh
+END SUB
+
 'Note: Custom doesn't use this function
 SUB set_tmpdir ()
  DIM tmp as string
@@ -2030,3 +2045,71 @@ SUB set_tmpdir ()
  tmp += "ohrrpgce" & MID(d,7,4) & MID(d,1,2) & MID(d,4,2) & MID(t,1,2) & MID(t,4,2) & MID(t,7,2) & "." & randint(1000) & ".tmp" & SLASH
  tmpdir = tmp
 END SUB
+
+SUB write_ini_value (ini_filename as string, key as string, value as integer)
+ REDIM ini(0) as string
+ lines_from_file ini(), ini_filename
+ write_ini_value ini(), key, value
+ lines_to_file ini(), ini_filename
+END SUB
+
+SUB write_ini_value (ini() as string, key as string, value as integer)
+ 'Key is case insensitive but case preservative
+ 'If the key is matched more than once, all copies of it will be changed
+ IF LEN(key) = 0 THEN
+  debug "Can't write empty key to ini file"
+  EXIT SUB
+ END IF
+ DIM found as bool = NO
+ FOR i as integer = 0 TO UBOUND(ini)
+  IF ini_key_match(key, ini(i)) THEN
+   ini(i) = key & " = " & value
+   found = YES
+  END IF
+ NEXT i
+ IF NOT found THEN
+  REDIM ini(UBOUND(ini)+1) as string
+  ini(UBOUND(ini)) = key & " = " & value
+ END IF
+END SUB
+
+FUNCTION read_ini_int (ini_filename as string, key as string, byval default as integer=0) as integer
+ REDIM ini(0) as string
+ lines_from_file ini(), ini_filename
+ RETURN read_ini_int(ini(), key, default)
+END FUNCTION
+
+FUNCTION read_ini_int (ini() as string, key as string, byval default as integer=0) as integer
+ IF LEN(key) = 0 THEN
+  debug "Can't read empty key from ini file"
+  RETURN default
+ END IF
+ FOR i as integer = 0 TO UBOUND(ini)
+  IF ini_key_match(key, ini(i)) THEN
+   RETURN ini_value_int(ini(i), default)
+  END IF
+ NEXT i
+ RETURN default
+END FUNCTION
+
+FUNCTION ini_key_match(key as string, s as string) as bool
+ DIM comp as string
+ comp = LCASE(key & "=")
+ IF LCASE(LEFT(s, LEN(comp))) = comp THEN RETURN YES
+ comp = LCASE(key & " =")
+ IF LCASE(LEFT(s, LEN(comp))) = comp THEN RETURN YES
+ RETURN NO
+END FUNCTION
+
+FUNCTION ini_value_int (s as string, byval default as integer=0) as integer
+ 'Extracts and returns an integer from the value portion of an ini line.
+ 'Does NOT check the key. You should use ini_key_match() before calling this
+ 'default is returned if there is an error parsing the line
+ DIM eqpos as integer = INSTR(s, "=")
+ IF eqpos = 0 THEN
+  'no equal sign found
+  RETURN default
+ END IF
+ DIM tail as string = MID(s, eqpos + 1)
+ RETURN str2int(tail, -1)
+END FUNCTION
