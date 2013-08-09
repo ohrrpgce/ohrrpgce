@@ -1409,7 +1409,13 @@ SELECT CASE as CONST id
  CASE 202'--system second
   scriptret = str2int(MID(TIME, 7, 2))
  CASE 203'--current song
-  scriptret = presentsong
+  IF gam.music_change_delay > 0 THEN
+   'If a music change is queued pretend it has already happened, to avoid confusion and
+   'problems (including compatability) in map autorun scripts
+   scriptret = gam.delayed_music
+  ELSE
+   scriptret = presentsong
+  END IF
  CASE 204'--get hero name(str,her)
   IF valid_plotstr(retvals(0)) AND valid_hero_party(retvals(1)) THEN
    plotstr(retvals(0)).s = names(retvals(1))
@@ -3707,21 +3713,22 @@ SUB wrapxy (byref x as integer, byref y as integer, byval wide as integer, byval
 END SUB
 
 SUB wrappedsong (byval songnumber as integer)
-
  IF songnumber <> presentsong THEN
   playsongnum songnumber
   presentsong = songnumber
  ELSE
   'Has this ever worked? Maybe in old DOS versions
   'resumesong
-  
  END IF
-
+ 'Cancel any queued music change
+ gam.music_change_delay = 0
 END SUB
 
 SUB stopsong
  presentsong = -1
  music_stop
+ 'Cancel any queued music change
+ gam.music_change_delay = 0
 END SUB
 
 FUNCTION backcompat_sound_id (byval id as integer) as integer

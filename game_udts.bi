@@ -63,6 +63,8 @@ TYPE GameState
   map as MapModeState
   wonbattle as bool                  'Indicates the status of the last battle (won as opposed to dying or running or 'force exit')
   remembermusic as integer           'Remembers music from before battle starts
+  music_change_delay as integer      'Number of ticks to wait before changing music; <= 0 if no change pending
+  delayed_music as integer           'Song number to change to, -1 to stop music
   random_battle_countdown as integer
   stock(99, 49) as integer           'Keeps track of available inventory at each shop (shop, stuffnum)
                                      'Each entry is either -1 (infinite stock), 0 (not loaded; will be loaded

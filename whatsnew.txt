@@ -10,6 +10,8 @@ WHAT IS NEW?
     * Fixed a few cosmetic bugs in the equip menu including possibly
       wrong resultant stat value being shown [Ralph]
     * Hero stats menu would freeze if Maximum Level was zero [Ralph]
+    * You can now change the music with a script immediately after a
+      map change without the ambient music playing for a moment [Ralph]
 
   * New Plotscripting Stuff
 

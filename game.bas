@@ -59,6 +59,8 @@ DECLARE SUB orphan_npc_slices()
 DECLARE FUNCTION seek_rpg_or_rpgdir_and_play_it(where as string, gamename as string) as integer
 DECLARE SUB misc_debug_menu()
 DECLARE SUB battle_formation_testing_menu()
+DECLARE SUB queue_music_change (byval song as integer)
+DECLARE SUB check_for_queued_music_change ()
 
 
 'Note: On Android exename is "sdl" and exepath is "" (currently unimplemented in FB and meaningless for an app anyway)
@@ -614,7 +616,7 @@ ELSE
 END IF
 resetg = NO
 'DEBUG debug "picked save slot " & load_slot
-stopsong
+queue_music_change -1  'stop music
 fadeout 0, 0, 0
 IF load_slot = -2 THEN EXIT DO 'resetg
 IF load_slot >= 0 THEN
@@ -839,6 +841,7 @@ DO
  SWAP vpage, dpage
  setvispage vpage
  'DEBUG debug "fade in"
+ check_for_queued_music_change
  check_for_queued_fade_in
  'DEBUG debug "tail of main loop"
  dowait
@@ -2999,12 +3002,10 @@ SUB prepare_map (byval afterbat as integer=NO, byval afterload as integer=NO)
 
  'Play map music
  IF readbit(gen(), genSuspendBits, suspendambientmusic) = 0 THEN
-  IF gmap(1) > 0 THEN
-   wrappedsong gmap(1) - 1
-  ELSEIF gmap(1) = 0 THEN
-   stopsong
+  IF gmap(1) >= 0 THEN
+   queue_music_change gmap(1) - 1
   ELSEIF gmap(1) = -1 AND afterbat = YES THEN
-   IF gam.remembermusic > -1 THEN wrappedsong gam.remembermusic ELSE stopsong
+   queue_music_change gam.remembermusic
   END IF
  END IF
 
@@ -3905,6 +3906,25 @@ SUB cleanup_game_slices ()
   DeleteSlice @npc(i).sl
  NEXT i
  DestroyGameSlices
+END SUB
+
+SUB queue_music_change (byval song as integer)
+ 'Delay map ambient music to give scripts a chance to override it.
+ 'A delay of two is actually a single tick delay, because it will be decremented
+ 'the same tick that this is called, at the bottom of the main loop.
+ gam.music_change_delay = 2
+ gam.delayed_music = song
+END SUB
+
+SUB check_for_queued_music_change ()
+ IF gam.music_change_delay = 1 THEN
+  IF gam.delayed_music >= 0 THEN
+   wrappedsong gam.delayed_music
+  ELSE
+   stopsong
+  END IF
+ END IF
+ gam.music_change_delay = large(0, gam.music_change_delay - 1)
 END SUB
 
 SUB queue_fade_in (byval delay as integer = 0)
