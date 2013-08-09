@@ -3116,7 +3116,7 @@ SUB edit_global_text_strings()
  GTS_add_to_menu menu, "Quit",                       67, "Quit", 10
  GTS_add_to_menu menu, "Minimap",                    68, "Map", 10
  GTS_add_to_menu menu, "Volume",                     69, "Volume", 10
- GTS_add_to_menu menu, "TV Safe Zone",               305, "TV Safe Zone", 20
+ GTS_add_to_menu menu, "Margins",                   308, "Margins", 10
 
  GTS_menu_header menu, "Item Menu:"
  GTS_add_to_menu menu, "Exit Item Menu",             35, "DONE", 10
@@ -3230,7 +3230,7 @@ SUB edit_global_text_strings()
  GTS_add_to_menu menu, "Plotscript: pick hero",      135, "Which Hero?", 20
  GTS_add_to_menu menu, "Hero name prompt",           137, "Name the Hero", 20
 
- '**** next unused index is 308
+ '**** next unused index is 309
 
  'NOTE: if you add global strings here, be sure to update the limit-checking on
  'the implementation of the "get global string" plotscripting command

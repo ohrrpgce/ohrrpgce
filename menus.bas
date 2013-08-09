@@ -1412,7 +1412,7 @@ FUNCTION get_special_menu_caption(byval subtype as integer, byval edit_mode as b
   CASE 10: cap = readglobalstring(67, "Quit", 10)
   CASE 11: cap = readglobalstring(69, "Volume", 10)
   CASE 14:
-   cap = readglobalstring(305, "Margins", 10)
+   cap = readglobalstring(308, "Margins", 10)
    IF edit_mode = YES THEN cap = cap & " [if available]"
  END SELECT
  RETURN cap
