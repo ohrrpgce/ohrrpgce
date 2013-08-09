@@ -447,7 +447,8 @@ DFI_IMPLEMENT_CDECL(int, gfx_SendMessage, unsigned int msg, unsigned int dwParam
 
 DFI_IMPLEMENT_CDECL(int, gfx_GetVersion)
 {
-	return DX_VERSION_MAJOR;
+	// Bitfield of support API versions (counting from 1)
+	return 1U << (DX_VERSION_MAJOR - 1);
 }
 
 DFI_IMPLEMENT_CDECL(void, gfx_PresentOld, unsigned char *pSurface, int nWidth, int nHeight, unsigned int *pPalette)

@@ -51,7 +51,8 @@ extern Gfx_close as sub ()
 '(optional, ptr may be NULL)
 extern Gfx_setdebugfunc as sub (byval debugc as sub cdecl (byval errorlevel as ErrorLevelEnum, byval message as zstring ptr))
 
-'(optional, ptr may be NULL) API version. Must return 1
+'(optional, ptr may be NULL) Returns a bitfield, eg. bit 1 on if supports API version 1.
+'Not used by compiled-in backends. Dynamically linked backends must support version 1.
 extern Gfx_getversion as function () as integer
 
 extern Gfx_showpage as sub (byval raw as ubyte ptr, byval w as integer, byval h as integer)

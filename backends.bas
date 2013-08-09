@@ -245,8 +245,8 @@ function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filename as 
 	TRYLOAD(gfx_getversion)
 	dim as integer apiver = 0
 	if gfx_getversion <> NULL then apiver = gfx_getversion()
-	if (apiver or 1) = 0 then 'adjusted to bitwise OR-ing (FIXME)
-		queue_error = "gfx_version: does not support v1--reports v" & apiver
+	if (apiver and 1) = 0 then
+		queue_error = "gfx_version: does not support v1--reports bitfield " & apiver
 		debug(queue_error)
 		dylibfree(hFile)
 		hFile = NULL
@@ -320,8 +320,8 @@ function gfx_load_library_new(byval backendinfo as GfxBackendStuff ptr, filename
 
 	Dim apiVersion As Integer
 	apiVersion = gfx_GetVersion()
-	If (apiVersion Or 2) = 0 Then
-		queue_error = filename + " backend does not support v2--reports v" & apiVersion
+	If (apiVersion and 2) = 0 Then
+		queue_error = filename + " backend does not support v2--reports bitfield " & apiVersion
 		debug(queue_error)
 		dylibfree(hFile)
 		Return NO
