@@ -177,14 +177,6 @@ sub io_alleg_init
 ' 	end if
 end sub
 
-sub io_alleg_pollkeyevents()
-	'not needed by this backend
-end sub
-
-sub io_alleg_waitprocessing()
-	'not needed by this backend
-end sub
-
 sub io_alleg_updatekeys(byval keybd as integer ptr)
 	dim a as integer
 	for a = 0 to &h7f

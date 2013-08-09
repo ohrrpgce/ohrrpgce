@@ -3,6 +3,15 @@
 #IFNDEF GFX_BI
 #DEFINE GFX_BI
 
+' NOTE:
+'  If a function is marked as optional, that means it may do nothing (either unimplemented
+'  to irrelevant to the backend) and that a backend doesn't need to set the function pointer:
+'  instead the pointer must be valid and set to a default in set_default_gfx_function_ptrs.
+'  On the other hand "(optional, ptr may be NULL)", means the default is a NULL pointer.
+'  Possibly-NULL function pointers are very much discouraged. They're used as a simple way
+'  to indicate whether the function is implemented, or where calling an unimplemented function
+'  would be an unnecessary performance hit.
+
 #include "udts.bi"
 #include "const.bi"
 
@@ -42,7 +51,7 @@ extern Gfx_close as sub ()
 '(optional, ptr may be NULL)
 extern Gfx_setdebugfunc as sub (byval debugc as sub cdecl (byval errorlevel as ErrorLevelEnum, byval message as zstring ptr))
 
-'API version. Must return 1
+'(optional, ptr may be NULL) API version. Must return 1
 extern Gfx_getversion as function () as integer
 
 extern Gfx_showpage as sub (byval raw as ubyte ptr, byval w as integer, byval h as integer)
@@ -120,8 +129,8 @@ extern Io_mousebits as sub (byref mx as integer, byref my as integer, byref mwhe
 
 '(optional, must be thread safe) same as Io_mouse bits.
 extern Io_getmouse as sub (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer)
-extern Io_setmouse as sub (byval x as integer, byval y as integer)
 
+extern Io_setmouse as sub (byval x as integer, byval y as integer)
 extern Io_setmousevisibility as sub (byval visible as integer)
 
 'call io_mouserect(-1, -1, -1, -1) to disable clipping

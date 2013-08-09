@@ -155,7 +155,7 @@ dim shared gfx_choices() as GfxBackendStuff ptr
 GFX_CHOICES_INIT
 extern "C"
 
-declare function gfx_load(byval onlyfirst as integer = NO) as integer
+declare function gfx_load(byval onlyfirst as integer = NO) as bool
 declare sub unload_backend(which as GFxBackendStuff ptr)
 declare sub default_gfx_render_procs()
 
@@ -186,11 +186,12 @@ sub io_dummy_remap_touchscreen_button(byval button_id as integer, byval ohr_scan
 function io_dummy_running_on_console() as bool : return NO : end function
 
 'Some parts of the API (function pointers) are optional in all gfx backends.
-'Those are set to dummy defaults here.
+'Those are set to defaults, most of which do nothing.
 'In addition other functions are only allowed to be missing when loading old dynamic
 'libraries from before they existed; handled in gfx_load_library[_new]
 sub set_default_gfx_function_ptrs
 	default_gfx_render_procs()
+	gfx_getversion = NULL
 	gfx_setdebugfunc = NULL
 	gfx_getresize = @gfx_dummy_getresize
 	gfx_setresizable = @gfx_dummy_setresizable
@@ -198,10 +199,12 @@ sub set_default_gfx_function_ptrs
 	gfx_set_safe_zone_margin = @gfx_dummy_set_safe_zone_margin
 	gfx_get_safe_zone_margin = @gfx_dummy_get_safe_zone_margin
 	gfx_supports_safe_zone_margin = @gfx_dummy_supports_safe_zone_margin
-	io_textinput = NULL
-	io_enable_textinput = @io_dummy_enable_textinput
 	io_pollkeyevents = @io_dummy_pollkeyevents
 	io_waitprocessing = @io_dummy_waitprocessing
+	io_keybits = @io_amx_keybits   'Special handling when missing, see gfx_load_library
+	io_updatekeys = @io_dummy_updatekeys
+	io_enable_textinput = @io_dummy_enable_textinput
+	io_textinput = NULL
 	io_show_virtual_keyboard = @io_dummy_show_virtual_keyboard
 	io_hide_virtual_keyboard = @io_dummy_hide_virtual_keyboard
 	io_show_virtual_gamepad = @io_dummy_show_virtual_gamepad
@@ -209,17 +212,37 @@ sub set_default_gfx_function_ptrs
 	io_remap_android_gamepad = @io_dummy_remap_android_gamepad
 	io_remap_touchscreen_button = @io_dummy_remap_touchscreen_button
 	io_running_on_console = @io_dummy_running_on_console
+	io_mousebits = @io_amx_mousebits   'Special handling when missing, see gfx_load_library
+	io_getmouse = @io_dummy_getmouse
 end sub
 
-function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filename as string) as integer
+private function hTRYLOAD(byval hFile as any ptr, byval procedure as any ptr ptr, funcname as string) as bool
+	dim tempptr as any ptr = dylibsymbol(hfile, funcname)
+	if tempptr <> NULL then *procedure = tempptr
+	'Otherwise leave default value of procedure intact
+	return tempptr <> NULL
+end function
+#define TRYLOAD(procedure) hTRYLOAD(hFile, @procedure, #procedure)
+
+#macro MUSTLOAD(procedure)
+	procedure = dylibsymbol(hfile, #procedure)
+	if procedure = NULL then
+		debug filename & " - Could not load required procedure " & #procedure
+		dylibfree(hFile)
+		return 0
+	end if
+#endmacro
+
+'Load a dynamically linked gfx backend. Returns true on success
+function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filename as string) as bool
 	dim hFile as any ptr = backendinfo->dylib
 	dim needpolling as integer = NO
-	if hFile <> 0 then return 1
+	if hFile <> NULL then return YES
 
 	hFile = dylibload(filename)
-	if hFile = 0 then return 0
+	if hFile = NULL then return NO
 
-	gfx_getversion = dylibsymbol(hFile, "gfx_getversion")
+	TRYLOAD(gfx_getversion)
 	dim as integer apiver = 0
 	if gfx_getversion <> NULL then apiver = gfx_getversion()
 	if (apiver or 1) = 0 then 'adjusted to bitwise OR-ing (FIXME)
@@ -227,108 +250,72 @@ function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filename as 
 		debug(queue_error)
 		dylibfree(hFile)
 		hFile = NULL
-		return 0
+		return NO
 	end if
 
-	gfx_init = dylibsymbol(hFile, "gfx_init")
-	gfx_close = dylibsymbol(hFile, "gfx_close")
-	gfx_setdebugfunc = dylibsymbol(hFile, "gfx_setdebugfunc")
-	gfx_showpage = dylibsymbol(hFile, "gfx_showpage")
-	gfx_setpal = dylibsymbol(hFile, "gfx_setpal")
-	gfx_screenshot = dylibsymbol(hFile, "gfx_screenshot")
-	gfx_setwindowed = dylibsymbol(hFile, "gfx_setwindowed")
-	gfx_windowtitle = dylibsymbol(hFile, "gfx_windowtitle")
-	gfx_getwindowstate = dylibsymbol(hFile, "gfx_getwindowstate")
-	gfx_setoption = dylibsymbol(hFile, "gfx_setoption")
-	gfx_describe_options = dylibsymbol(hFile, "gfx_describe_options")
-	gfx_printchar = dylibsymbol(hFile, "gfx_printchar") 'allowed to be NULL
-
-	gfx_get_safe_zone_margin = dylibsymbol(hFile, "gfx_get_safe_zone_margin")
-	if gfx_get_safe_zone_margin = NULL then gfx_get_safe_zone_margin = @gfx_dummy_get_safe_zone_margin
-	gfx_set_safe_zone_margin = dylibsymbol(hFile, "gfx_set_safe_zone_margin")
-	if gfx_set_safe_zone_margin = NULL then gfx_set_safe_zone_margin = @gfx_dummy_set_safe_zone_margin
-	gfx_supports_safe_zone_margin = dylibsymbol(hFile, "gfx_supports_safe_zone_margin")
-	if gfx_supports_safe_zone_margin = NULL then gfx_supports_safe_zone_margin = @gfx_dummy_supports_safe_zone_margin
+	MUSTLOAD(gfx_init)
+	MUSTLOAD(gfx_close)
+	TRYLOAD (gfx_setdebugfunc)
+	MUSTLOAD(gfx_showpage)
+	MUSTLOAD(gfx_setpal)
+	MUSTLOAD(gfx_screenshot)
+	MUSTLOAD(gfx_setwindowed)
+	MUSTLOAD(gfx_windowtitle)
+	MUSTLOAD(gfx_getwindowstate)
+	MUSTLOAD(gfx_setoption)
+	MUSTLOAD(gfx_describe_options)
+	TRYLOAD (gfx_printchar)
+	TRYLOAD (gfx_get_safe_zone_margin)
+	TRYLOAD (gfx_set_safe_zone_margin)
+	TRYLOAD (gfx_supports_safe_zone_margin)
 
 #ifdef USE_RASTERIZER
 	'New rendering API (FIXME: complete this)
-	gfx_present = dylibsymbol(hFile, "gfx_present")
-	if gfx_present = NULL then gfx_present = @gfx_present_SW
+	TRYLOAD (gfx_present)
 #endif
 
-	io_init = dylibsymbol(hFile, "io_init")
-
-	io_pollkeyevents = dylibsymbol(hFile, "io_pollkeyevents")
-	if io_pollkeyevents = NULL then io_pollkeyevents = @io_dummy_pollkeyevents
-	io_waitprocessing = dylibsymbol(hFile, "io_waitprocessing")
-	if io_waitprocessing = NULL then io_waitprocessing = @io_dummy_waitprocessing
-
-	io_keybits = dylibsymbol(hFile, "io_keybits")
-	if io_keybits = NULL then
-		io_keybits = @io_amx_keybits
+	MUSTLOAD(io_init)
+	TRYLOAD (io_pollkeyevents)
+	TRYLOAD (io_waitprocessing)
+	if TRYLOAD(io_keybits) = NO then
 		needpolling = YES
 	end if
-	io_updatekeys = dylibsymbol(hFile, "io_updatekeys")
-	if io_updatekeys = NULL then io_updatekeys = @io_dummy_updatekeys
-
-	io_enable_textinput = dylibsymbol(hFile, "io_enable_textinput")
-	if io_enable_textinput = NULL then io_enable_textinput = @io_dummy_enable_textinput
-
-	io_textinput = dylibsymbol(hFile, "io_textinput")
-	'io_textinput is allowed to be NULL
-
-	io_show_virtual_keyboard = dylibsymbol(hFile, "io_show_virtual_keyboard")
-	if io_show_virtual_keyboard = NULL then io_show_virtual_keyboard = @io_dummy_show_virtual_keyboard
-	io_hide_virtual_keyboard = dylibsymbol(hFile, "io_hide_virtual_keyboard")
-	if io_hide_virtual_keyboard = NULL then io_hide_virtual_keyboard = @io_dummy_hide_virtual_keyboard
-
-	io_show_virtual_gamepad = dylibsymbol(hFile, "io_show_virtual_gamepad")
-	if io_show_virtual_gamepad = NULL then io_show_virtual_gamepad = @io_dummy_show_virtual_gamepad
-	io_hide_virtual_gamepad = dylibsymbol(hFile, "io_hide_virtual_gamepad")
-	if io_hide_virtual_gamepad = NULL then io_hide_virtual_gamepad = @io_dummy_hide_virtual_gamepad
-
-	io_remap_android_gamepad = dylibsymbol(hFile, "io_remap_android_gamepad")
-	if io_remap_android_gamepad = NULL then io_remap_android_gamepad = @io_dummy_remap_android_gamepad
-
-	io_remap_touchscreen_button = dylibsymbol(hFile, "io_remap_touchscreen_button")
-	if io_remap_touchscreen_button = NULL then io_remap_touchscreen_button = @io_dummy_remap_touchscreen_button
-
-	io_running_on_console = dylibsymbol(hFile, "io_running_on_console")
-	if io_running_on_console = NULL then io_running_on_console = @io_dummy_running_on_console
-
-	io_mousebits = dylibsymbol(hFile, "io_mousebits")
-	if io_mousebits = NULL then
-		io_mousebits = @io_amx_mousebits
+	TRYLOAD (io_updatekeys)
+	TRYLOAD (io_enable_textinput)
+	TRYLOAD (io_textinput)
+	TRYLOAD (io_show_virtual_keyboard)
+	TRYLOAD (io_hide_virtual_keyboard)
+	TRYLOAD (io_show_virtual_gamepad)
+	TRYLOAD (io_hide_virtual_gamepad)
+	TRYLOAD (io_remap_android_gamepad)
+	TRYLOAD (io_remap_touchscreen_button)
+	TRYLOAD (io_running_on_console)
+	if TRYLOAD(io_mousebits) = NO then
 		needpolling = YES
 	end if
-	io_getmouse = dylibsymbol(hFile, "io_getmouse")
-	if io_getmouse = NULL then io_getmouse = @io_dummy_getmouse
+	TRYLOAD (io_getmouse)
+	MUSTLOAD(io_setmousevisibility)
+	MUSTLOAD(io_setmouse)
+	MUSTLOAD(io_mouserect)
+	MUSTLOAD(io_readjoysane)
 
-	io_setmousevisibility = dylibsymbol(hFile, "io_setmousevisibility")
-	io_setmouse = dylibsymbol(hFile, "io_setmouse")
-	io_mouserect = dylibsymbol(hFile, "io_mouserect")
-	io_readjoysane = dylibsymbol(hFile, "io_readjoysane")
-	
 	backendinfo->dylib = hFile
 	backendinfo->wantpolling = needpolling
-	return 1
+	return YES
 end function
 
-'loads dynamic library graphics backends' procs into memory - new interface
+'Loads dynamic library graphics backends' procs into memory - new interface.
+'Returns true on success
 'filename is the name of the file, ie. "gfx_directx.dll" 
 'backendinfo is modified with relevant data
-function gfx_load_library_new(byval backendinfo as GfxBackendStuff ptr, filename as string) as integer
+function gfx_load_library_new(byval backendinfo as GfxBackendStuff ptr, filename as string) as bool
 	Dim hFile As any ptr
 	hFile = dylibload(filename)
-	If hFile = NULL Then Return 0
+	If hFile = NULL Then Return NO
 
-	gfx_GetVersion = dylibsymbol(hFile, "gfx_GetVersion")
-	If gfx_GetVersion = NULL Then
-		gfx_GetVersion = dylibsymbol(hFile, "gfx_getversion")
-		If gfx_GetVersion = NULL Then
-			dylibfree(hFile)
-			Return 0
-		End If
+	If TRYLOAD(gfx_GetVersion) = NO Then
+		'gfx_GetVersion and gfx_getversion are the same variable, but different functions in hFile
+		MUSTLOAD(gfx_getversion)
 	End If
 
 	Dim apiVersion As Integer
@@ -337,37 +324,37 @@ function gfx_load_library_new(byval backendinfo as GfxBackendStuff ptr, filename
 		queue_error = filename + " backend does not support v2--reports v" & apiVersion
 		debug(queue_error)
 		dylibfree(hFile)
-		Return 0
+		Return NO
 	End If
 
 	'backend checks out ok; start loading functions
-	gfx_Initialize = dylibsymbol(hFile, "gfx_Initialize")
-	gfx_Shutdown = dylibsymbol(hFile, "gfx_Shutdown")
-	gfx_SendMessage = dylibsymbol(hFile, "gfx_SendMessage")
-	gfx_PumpMessages = dylibsymbol(hFile, "gfx_PumpMessages")
-	'gfx_Present = dylibsymbol(hFile, "gfx_Present")
-	gfx_ScreenShot = dylibsymbol(hFile, "gfx_ScreenShot")
-	gfx_SetWindowTitle = dylibsymbol(hFile, "gfx_SetWindowTitle")
-	gfx_GetWindowTitle = dylibsymbol(hFile, "gfx_GetWindowTitle")
-	'gfx_GetWindowState = dylibsymbol(hFile, "gfx_GetWindowState")
-	gfx_AcquireKeyboard = dylibsymbol(hFile, "gfx_AcquireKeyboard")
-	gfx_AcquireMouse = dylibsymbol(hFile, "gfx_AcquireMouse")
-	gfx_AcquireJoystick = dylibsymbol(hFile, "gfx_AcquireJoystick")
-	gfx_AcquireTextInput = dylibsymbol(hFile, "gfx_AcquireTextInput")
-	gfx_GetKeyboard = dylibsymbol(hFile, "gfx_GetKeyboard")
-	gfx_GetText = dylibsymbol(hFile, "gfx_GetText")
-	gfx_GetMouseMovement = dylibsymbol(hFile, "gfx_GetMouseMovement")
-	gfx_GetMousePosition = dylibsymbol(hFile, "gfx_GetMousePosition")
-	gfx_SetMousePosition = dylibsymbol(hFile, "gfx_SetMousePosition")
-	gfx_GetJoystickMovement = dylibsymbol(hFile, "gfx_GetJoystickMovement")
-	gfx_GetJoystickPosition = dylibsymbol(hFile, "gfx_GetJoystickPosition")
-	gfx_SetJoystickPosition = dylibsymbol(hFile, "gfx_SetJoystickPosition")
+	MUSTLOAD(gfx_Initialize)
+	MUSTLOAD(gfx_Shutdown)
+	MUSTLOAD(gfx_SendMessage)
+	MUSTLOAD(gfx_PumpMessages)
+	'MUSTLOAD(gfx_Present)
+	MUSTLOAD(gfx_ScreenShot)
+	MUSTLOAD(gfx_SetWindowTitle)
+	MUSTLOAD(gfx_GetWindowTitle)
+	'MUSTLOAD(gfx_GetWindowState)
+	MUSTLOAD(gfx_AcquireKeyboard)
+	MUSTLOAD(gfx_AcquireMouse)
+	MUSTLOAD(gfx_AcquireJoystick)
+	MUSTLOAD(gfx_AcquireTextInput)
+	MUSTLOAD(gfx_GetKeyboard)
+	MUSTLOAD(gfx_GetText)
+	MUSTLOAD(gfx_GetMouseMovement)
+	MUSTLOAD(gfx_GetMousePosition)
+	MUSTLOAD(gfx_SetMousePosition)
+	MUSTLOAD(gfx_GetJoystickMovement)
+	MUSTLOAD(gfx_GetJoystickPosition)
+	MUSTLOAD(gfx_SetJoystickPosition)
 
 	'success
 	backendinfo->dylib = hFile
 	backendinfo->wantpolling = NO
 
-	Return 1
+	Return YES
 End Function
 
 Sub default_gfx_render_procs()
@@ -469,8 +456,9 @@ function backends_setoption(opt as string, arg as string) as integer
 	return 0
 end function
 
-function load_backend(which as GFxBackendStuff ptr) as integer
-	if currentgfxbackend = which then return 1
+'Returns true on success
+function load_backend(which as GFxBackendStuff ptr) as bool
+	if currentgfxbackend = which then return YES
 	if currentgfxbackend <> NULL then
 		unload_backend(currentgfxbackend)
 		currentgfxbackend = NULL
@@ -486,9 +474,9 @@ function load_backend(which as GFxBackendStuff ptr) as integer
 #else
 		filename += ".so"   'try other paths?
 #endif
-		if gfx_load_library(which, filename) = 0 then return 0
+		if gfx_load_library(which, filename) = NO then return NO
 	else
-		if which->load() = 0 then return 0
+		if which->load() = 0 then return NO
 	end if
 
 	if gfx_setdebugfunc then
@@ -499,7 +487,7 @@ function load_backend(which as GFxBackendStuff ptr) as integer
 	gfxbackendinfo = "gfx_" + which->name
 	gfxbackend = which->name
 	wantpollingthread = which->wantpolling
-	return 1
+	return YES
 end function
 
 sub unload_backend(which as GFxBackendStuff ptr)
@@ -509,15 +497,15 @@ sub unload_backend(which as GFxBackendStuff ptr)
 	end if
 end sub
 
-'onlyfirst: only try the most prefered. Returns 1 on success
-function gfx_load(byval onlyfirst as integer) as integer
-	if currentgfxbackend <> NULL then return 1 'hmm
+'onlyfirst: only try the most prefered. Returns true on success
+function gfx_load(byval onlyfirst as integer) as bool
+	if currentgfxbackend <> NULL then return YES 'hmm
 	for i as integer = 0 to ubound(gfx_choices)
-		if load_backend(gfx_choices(i)) then return 1
-		if onlyfirst then return 0
+		if load_backend(gfx_choices(i)) then return YES
+		if onlyfirst then return NO
 	next
 	display_help_string "Could not load any graphic backend! (Who forgot to compile without at least gfx_fb?)"
-	return 0
+	return NO
 end function
 
 sub gfx_backend_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)

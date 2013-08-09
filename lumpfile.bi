@@ -186,7 +186,7 @@ declare sub Buffered_putc(byval bfile as BufferedFile ptr, byval datum as ubyte)
 
 
 '----------------------------------------------------------------------
-'                       openfile.c stuff
+'                       filelayer.cpp stuff
 
 type FnStringPredicate as function (filename as string) as integer
 type FnOpenCallback as function (filename as string, byval writable as integer) as integer

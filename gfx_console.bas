@@ -240,12 +240,6 @@ end function
 sub io_console_init
 end sub
 
-sub io_console_pollkeyevents()
-end sub
-
-sub io_console_waitprocessing()
-end sub
-
 sub io_console_updatekeys(byval keybd as integer ptr)
 	'uses keybits instead
 end sub
@@ -330,8 +324,6 @@ function gfx_console_setprocptrs() as integer
 	gfx_describe_options = @gfx_console_describe_options
 	gfx_printchar = @gfx_console_printchar
 	io_init = @io_console_init
-	io_pollkeyevents = @io_console_pollkeyevents
-	io_waitprocessing = @io_console_waitprocessing
 	io_keybits = @io_console_keybits
 	io_updatekeys = @io_console_updatekeys
 	io_textinput = @io_console_textinput
