@@ -113,10 +113,6 @@ END IF
 'As soon as we create the tmpdir, we want to put a keepalive file in it
 refresh_keepalive_file
 
-#IFDEF __FB_ANDROID__
-cleanup_other_temp_files
-#ENDIF
-
 'DEBUG debug "set mode-X"
 setmodex
 
@@ -463,6 +459,10 @@ IF gam.autorungame = NO THEN
 ELSE
  setpal master()
 END IF
+
+#IFDEF __FB_ANDROID__
+cleanup_other_temp_files
+#ENDIF
 
 edgeprint "Loading...", xstring("Loading...", 160), 6, uilook(uiText), vpage
 setvispage vpage 'refresh
