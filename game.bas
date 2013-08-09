@@ -4099,8 +4099,10 @@ SUB cleanup_other_temp_files ()
  DIM keepalive_file as string
  DIM age as integer
  DIM threshhold as integer
+ DIM cap as string
 
  FOR i as integer = 0 TO UBOUND(filelist)
+  
   dirname = filelist(i)
   dirname_full = tmp_parent & SLASH & dirname
   keepalive_file = dirname_full & SLASH & "keepalive.tmp"
@@ -4124,6 +4126,10 @@ SUB cleanup_other_temp_files ()
 threshhold = -1
 #ENDIF
    IF age > threshhold THEN
+    center_edgeboxstyle 160, 65, 25 * 8, 16, 0, vpage, NO, YES
+    cap = "Cleaning up files: " & INT(100 / large(UBOUND(filelist), 1) * i) & "%"
+    edgeprint cap, xstring(cap, 160), 60, uilook(uiText), vpage
+    setvispage vpage
     debuginfo "CLEAN " & dirname_full & " because it has been dead for about " & age & " days"
     killdir dirname_full, YES
    ELSE
