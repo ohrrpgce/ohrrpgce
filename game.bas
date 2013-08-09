@@ -313,6 +313,10 @@ FOR i as integer = 1 to 3
  remap_android_gamepad i, blank_gp
 NEXT i
 
+'This only has effect on platforms that actually allow a virtual gamepad
+'(currently all Android except for OUYA)
+show_virtual_gamepad()
+
 remap_touchscreen_button 0, scEnter
 remap_touchscreen_button 1, scESC
 remap_touchscreen_button 2, 0

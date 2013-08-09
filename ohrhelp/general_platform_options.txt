@@ -11,3 +11,5 @@ Press ENTER to choose a new keyboard key to map to a controller button.
 Press DELETE or BACKSPACE to revert the button back to the default.
 
 It is strongly reccomended to leave button A mapped to ENTER and button B mapped to ESC, this will allow you to navigate menus and text boxes.
+
+"Console TV Safe Margin" only matters if your game is being played on a Console, like the OUYA. A margin will be added around the edge of the screen, because some televisions crop things at the edge of the screen. Most games should leave this unchanged, but if you want to handle TV safe zones yourself, you can change this value to something other than "Default"
