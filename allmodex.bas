@@ -4735,9 +4735,8 @@ private sub snapshot_check
 'moved, to prevent littering
 'NOTE: global variables like tmpdir can change between calls, have to be lenient
 	static as string*4 image_exts(3) => {".bmp", ".png", ".jpg", ".dds"}
-	'dynamic static array. Redim before use.
 	static as string backlog()
-	redim preserve backlog(ubound(backlog))
+	initialize_static_dynamic_array(backlog)
 	static as integer backlog_num
 
 	dim as integer n, i

@@ -115,6 +115,13 @@ CONST NO = 0
 '----------------------------------------------------------------------
 '                             Data types
 
+
+'Static variable-length arrays need to be redimmed before first use.
+'This does that, while leaving the array alone if already initialised,
+'in a way that should work in any FB version, assuming 1 dimension and LBOUND 0.
+'Since FB 0.90, UBOUND(array) returns -1 if the array is uninitialised
+#define initialize_static_dynamic_array(array) REDIM PRESERVE array(large(0, UBOUND(array)))
+
 TYPE IntStrPair
   i as integer
   s as string

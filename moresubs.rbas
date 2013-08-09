@@ -2060,9 +2060,8 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
  'mechanism to handle scriptwatch throwing errors
  STATIC as integer recursivecall
 
- 'this is the correct way to declare a dynamic static array. Also, you have to REDIM it before use!
  STATIC as integer ignorelist()
- REDIM PRESERVE ignorelist(UBOUND(ignorelist))
+ initialize_static_dynamic_array(ignorelist)
 
  DIM as string errtext()
  DIM as integer scriptcmdhash
