@@ -1181,9 +1181,6 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
   loadmxs game & ".mxs", box.backdrop - 1, vpages(holdscreen)
  END IF
 
- DIM i as integer
- DIM col as integer
-
  setkeys
  DO
   setwait 55
@@ -1224,10 +1221,10 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
    state.need_update = YES
   END IF
   SELECT CASE state.pt
-   CASE 1: state.need_update = intgrabber(box.vertical_offset, 0, 49)
-   CASE 2: state.need_update = intgrabber(box.shrink, -1, 21)
-   CASE 3: state.need_update = intgrabber(box.textcolor, 0, 255)
-   CASE 4: state.need_update = intgrabber(box.boxstyle, 0, 14)
+   CASE 1: state.need_update OR= intgrabber(box.vertical_offset, 0, 49)
+   CASE 2: state.need_update OR= intgrabber(box.shrink, -1, 21)
+   CASE 3: state.need_update OR= intgrabber(box.textcolor, 0, 255)
+   CASE 4: state.need_update OR= intgrabber(box.boxstyle, 0, 14)
    CASE 5:
     IF zintgrabber(box.backdrop, -1, gen(genNumBackdrops) - 1) THEN
      state.need_update = YES
@@ -1242,16 +1239,16 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
      music_stop
     END IF
    CASE 10:
-    state.need_update = intgrabber(box.portrait_type, 0, 3)
+    state.need_update OR= intgrabber(box.portrait_type, 0, 3)
    CASE 11:
     SELECT CASE box.portrait_type
-     CASE 1: state.need_update = intgrabber(box.portrait_id, 0, gen(genMaxPortrait))
-     CASE 2: state.need_update = intgrabber(box.portrait_id, 0, 3)
-     CASE 3: state.need_update = intgrabber(box.portrait_id, 0, 40)
+     CASE 1: state.need_update OR= intgrabber(box.portrait_id, 0, gen(genMaxPortrait))
+     CASE 2: state.need_update OR= intgrabber(box.portrait_id, 0, 3)
+     CASE 3: state.need_update OR= intgrabber(box.portrait_id, 0, 40)
     END SELECT
    CASE 12:
     IF box.portrait_type = 1 THEN
-     state.need_update = intgrabber(box.portrait_pal, -1, gen(genMaxPal))
+     state.need_update OR= intgrabber(box.portrait_pal, -1, gen(genMaxPal))
     END IF
    CASE 15:
     IF zintgrabber(box.sound_effect, -1, gen(genMaxSFX)) THEN
@@ -1267,7 +1264,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
   copypage holdscreen, dpage
   textbox_edit_preview box, st
   FOR i as integer = 0 TO UBOUND(menu)
-   col = uilook(uimenuItem)
+   DIM col as integer = uilook(uimenuItem)
    IF i = state.pt THEN col = uilook(uiSelectedItem + state.tog)
    edgeprint menu(i), 0, i * 10, col, dpage
   NEXT i
@@ -1300,7 +1297,6 @@ SUB update_textbox_appearance_editor_menu (menu() as string, byref box as TextBo
  menu(16) = "Stop sound after box:"
  menu(17) = "Transparent backdrop:"
  DIM menutemp as string
- DIM i as integer
  FOR i as integer = 0 TO UBOUND(menu)
   menutemp = ""
   SELECT CASE i

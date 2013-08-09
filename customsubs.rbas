@@ -4054,9 +4054,9 @@ SUB stat_growth_chart ()
    IF state.pt = 0 THEN EXIT DO
   END IF
   IF state.pt = 1 THEN
-   state.need_update = percent_grabber(midpoint, midpoint_repr, -0.1, 1.2, 4)
+   state.need_update OR= percent_grabber(midpoint, midpoint_repr, -0.1, 1.2, 4)
   ELSEIF state.pt = 2 THEN
-   state.need_update = intgrabber(preview_lev, 0, gen(genMaxLevel))
+   state.need_update OR= intgrabber(preview_lev, 0, gen(genMaxLevel))
   END IF
 
   IF state.need_update THEN

@@ -1569,19 +1569,19 @@ SUB live_preview_menu ()
      prepare_map NO, YES
     END IF
    CASE 10  '--gmap reload mode
-    st1.need_update = intgrabber(lump_reloading.gmap.mode, 0, 2)  '3 --merging not implemented
+    st1.need_update OR= intgrabber(lump_reloading.gmap.mode, 0, 2)  '3 --merging not implemented
    CASE 11  '--tile reload mode
-    st1.need_update = intgrabber(lump_reloading.maptiles.mode, -1, 2)
+    st1.need_update OR= intgrabber(lump_reloading.maptiles.mode, -1, 2)
    CASE 12  '--wallmap reload mode
-    st1.need_update = intgrabber(lump_reloading.passmap.mode, -1, 2)
+    st1.need_update OR= intgrabber(lump_reloading.passmap.mode, -1, 2)
    CASE 13  '--foemap reload mode
-    st1.need_update = intgrabber(lump_reloading.foemap.mode, 0, 1)  'Not even possible to modify, so don't confuse people
+    st1.need_update OR= intgrabber(lump_reloading.foemap.mode, 0, 1)  'Not even possible to modify, so don't confuse people
    CASE 14  '--zones reload mode
-    st1.need_update = intgrabber(lump_reloading.zonemap.mode, 0, 2)  'Can't merge zones
+    st1.need_update OR= intgrabber(lump_reloading.zonemap.mode, 0, 2)  'Can't merge zones
    CASE 15  '--npcl reload mode
-    st1.need_update = intgrabber(lump_reloading.npcl.mode, -1, 1)
+    st1.need_update OR= intgrabber(lump_reloading.npcl.mode, -1, 1)
    CASE 16  '--npcd reload mode
-    st1.need_update = intgrabber(lump_reloading.npcd.mode, 0, 2)
+    st1.need_update OR= intgrabber(lump_reloading.npcd.mode, 0, 2)
    CASE 100  '--force gmap reload
     IF carray(ccUse) > 1 THEN
      reloadmap_gmap_no_tilesets
