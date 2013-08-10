@@ -2608,6 +2608,7 @@ SUB visit_scripts(byval visitor as FnScriptVisitor)
  visitor(gen(genNewGameScript), "new game", "")
  visitor(gen(genLoadGameScript), "load game", "")
  visitor(gen(genGameoverScript), "game over", "")
+ visitor(gen(genEscMenuScript), "esc menu", "")
 
  '--Text box scripts
  DIM box as TextBox

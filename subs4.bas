@@ -246,13 +246,14 @@ RETRACE
 END SUB
 
 SUB generalscriptsmenu ()
- DIM menu(3) as string
- DIM menu_display(3) as string
- DIM scripttype(3) as string
+ DIM menu(4) as string
+ DIM menu_display(4) as string
+ DIM scripttype(4) as string
  scripttype(1) = "New-game plotscript"
  scripttype(2) = "Game-over plotscript"
  scripttype(3) = "Load-game plotscript"
- DIM scriptgenoff(3) as integer = {0, genNewGameScript, genGameoverScript, genLoadGameScript}
+ scripttype(4) = "Menu-action plotscript"
+ DIM scriptgenoff(4) as integer = {0, genNewGameScript, genGameoverScript, genLoadGameScript, genEscMenuScript}
 
  DIM selectst as SelectTypeState
  DIM state as MenuState
@@ -277,7 +278,7 @@ SUB generalscriptsmenu ()
   END IF
 
   menu(0) = "Previous Menu"
-  FOR i as integer = 1 TO 3
+  FOR i as integer = 1 TO 4
    menu(i) = scripttype(i) + ": " + scriptname(gen(scriptgenoff(i)))
   NEXT
 

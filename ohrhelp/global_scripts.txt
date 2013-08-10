@@ -1,0 +1,7 @@
+The new-game plotscript is run whenever the player starts playing your game from the beginning. This is intended for introduction sequences.
+
+The game-over plotscript is run whenever the player dies in battle. If this is not specified, the game will end and the player will return to the title screen.
+
+The load-game plotscript is run whenever the player loads from a save-slot.
+
+The menu-action plotscript is run whenever the player presses the ESC or ALT buttons to open the menu. The script will be run instead of the menu. This can be useful if you want to script your own customized menu, or if you want to disable the menu entirely. If this is not specified, then menu 0 will be opened.

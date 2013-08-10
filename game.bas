@@ -676,7 +676,9 @@ DO
 
  'DEBUG debug "keyboard handling"
  IF carray(ccMenu) > 1 AND txt.showing = NO AND gam.need_fade_in = NO AND readbit(gen(), genSuspendBits, suspendplayer) = 0 AND vstate.active = NO AND herow(0).xgo = 0 AND herow(0).ygo = 0 THEN
-  IF allowed_to_open_main_menu() THEN
+  IF gen(genEscMenuScript) > 0 THEN
+   trigger_script gen(genEscMenuScript), NO, "", "", scrqBackcompat()
+  ELSEIF allowed_to_open_main_menu() THEN
    add_menu 0
    menusound gen(genAcceptSFX)
   END IF
