@@ -6,10 +6,13 @@ cf. SConstruct, ohrbuild.py
 import os
 import platform
 import shutil
+import shlex
 import re
 from ohrbuild import basfile_scan, verprint, android_source_files, get_run_command
 
-FBFLAGS = os.environ.get ('FBFLAGS', []) + ['-mt']
+FBFLAGS = ['-mt']
+if 'FBFLAGS' in os.environ:
+    FBFLAGS += shlex.split (os.environ['FBFLAGS'])
 #CC and CXX are probably not needed anymore
 CC = os.environ.get ('CC')
 CXX = os.environ.get ('CXX')
