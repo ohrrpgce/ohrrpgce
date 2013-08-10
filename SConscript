@@ -192,7 +192,7 @@ baso = Builder (action = '$FBC -c $SOURCE -o $TARGET $FBFLAGS',
 basmaino = Builder (action = '$FBC -c $SOURCE -o $TARGET -m ${SOURCE.filebase} $FBFLAGS',
                     suffix = '.o', src_suffix = '.bas', single_source = True,
                     source_factory = translate_rb)
-basexe = Builder (action = '$FBC $FBFLAGS -x $TARGET $FBLIBS $SOURCES',
+basexe = Builder (action = '$FBC $FBFLAGS -x $TARGET $SOURCES $FBLIBS',
                   suffix = exe_suffix, src_suffix = '.bas')
 
 basasm = Builder (action = '$FBC -c $SOURCE -o $TARGET $FBFLAGS -r -g',
@@ -287,6 +287,8 @@ if linkgcc:
     if win32:
         # win32\ld_opt_hack.txt contains --stack option which can't be passed using -Wl
         env['CXXLINKFLAGS'] += ['-static-libgcc', '-static-libstdc++', '-Wl,@win32\ld_opt_hack.txt']
+        # winmm needed for MIDI, used by music backends but also by miditest, so I'll include it here rather than in commonenv
+        env['CXXLINKFLAGS'] += ['-lwinmm']
     else:
         if 'fb' in gfx:
             # Program icon required by fbgfx, but we only provide it on Windows,
@@ -317,7 +319,7 @@ if linkgcc:
             return obj
         return target, map(to_o, enumerate(source))
 
-    basexe_gcc = Builder (action = '$CXX $CXXFLAGS -o $TARGET $SOURCES $CXXLINKFLAGS',
+    basexe_gcc = Builder (action = '$CXX $CXXFLAGS -o $TARGET $SOURCES -Wl,-( $CXXLINKFLAGS -Wl,-)',
                   suffix = exe_suffix, src_suffix = '.bas', emitter = compile_main_module)
 
     env['BUILDERS']['BASEXE'] = basexe_gcc
@@ -464,14 +466,10 @@ if 'raster' in ARGUMENTS:
 
 if linkgcc:
     if win32:
-        commonenv['CXXLINKFLAGS'] += ['-lgdi32', '-lwinmm', '-Wl,--subsystem,windows']
+        commonenv['CXXLINKFLAGS'] += ['-lgdi32', '-Wl,--subsystem,windows']
 
-elif win32:
-    if not os.path.isfile('libgcc_s.a'):
-        shutil.copy(get_run_command("gcc -print-file-name=libgcc_s.a"), ".")
-    if not os.path.isfile('libstdc++.a'):
-        shutil.copy(get_run_command("gcc -print-file-name=libstdc++.a"), ".")
-    commonenv['FBLIBS'] += ['-l','gcc_s','-l','stdc++']
+else:
+    commonenv['FBLIBS'] += ['-l','stdc++'] #, '-l','gcc_s', '-l','gcc_eh']
 
 # Note that base_objects are not built in commonenv!
 base_objects = [env.Object(a) for a in base_modules]
@@ -639,7 +637,7 @@ Experimental options:
   raster=1            Include new graphics API and rasterizer.
   gengcc=1            Compile using GCC emitter.
   deprecated=1        Compiles certain source files using the "deprecated" dialect
-  linkgcc=0           Link using fbc instead of g++ (doesn't work anymore).
+  linkgcc=0           Link using fbc instead of g++.
   android=1           Compile for android. Commandline programs only.
   android-source=1    Used as part of the Android build process for Game/Custom.
 
