@@ -142,8 +142,10 @@ for var in 'PATH', 'DISPLAY', 'HOME', 'EUDIR':
         env['ENV'][var] = os.environ[var]
 
 if win32:
-    w32_env = Environment ()
+    env['FBLIBS'] += ['-p', 'win32']
+    env['CXXLINKFLAGS'] += ['-L', 'win32']
 
+    w32_env = Environment ()
     if 'DXSDK_DIR' in os.environ:
         w32_env.Append(CPPPATH = os.path.join(os.environ['DXSDK_DIR'], 'Include'))
         w32_env.Append(LIBPATH = os.path.join(os.environ['DXSDK_DIR'], 'Lib', 'x86'))
