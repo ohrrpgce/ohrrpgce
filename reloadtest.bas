@@ -423,9 +423,13 @@ startTest(serializeXML)
 	'if 0 = ask("Did this render correctly?") then fail
 endTest
 
-
-#ifndef __FB_ANDROID__
-' No xml2reload, skip tests
+dim shared skip_xml2reload as bool
+if isfile("xml2reload" & DOTEXE) = NO then
+	print
+	print "NOTE: xml2reload not found; skipping some tests (you have to compile it manually)"
+	print
+	skip_xml2reload = YES
+end if
 
 sub toXMLAndBack(byval debugging as integer)
 	dim fh as integer
@@ -443,6 +447,7 @@ sub toXMLAndBack(byval debugging as integer)
 end sub
 
 startTest(loadFromXML)
+	if skip_xml2reload then skip
 	toXMLAndBack(NO)
 
 	doc2 = LoadDocument("unittest.rld", optNoDelay)
@@ -450,17 +455,17 @@ startTest(loadFromXML)
 endTest
 
 startTest(compareWithXML)
+	if skip_xml2reload then skip
 	'non-pedantic
 	if CompareNodes(DocumentRoot(doc), DocumentRoot(doc2), NO) then fail
 endTest
-
-#endif  'skip xml2reload tests
 
 /'
 'This normally fails because floating point nodes are loaded as strings.
 'It's not important at all; type-accurate import/export would probably only be useful for chasing
 'bugs in RELOAD internals
 startTest(pedanticCompareWithXML)
+	if skip_xml2reload then skip
 	toXMLAndBack(YES)
 
 	doc2 = LoadDocument("unittest.rld", optNoDelay)

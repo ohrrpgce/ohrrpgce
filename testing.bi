@@ -38,11 +38,13 @@ sub doTest(t as string, byval theTest as testPtr)
 	
 	'diff *= 1000000
 	
-	if ret then
+	if ret > 0 then
 		print "FAIL (on line " & errorpos & " in " & errorfile & ")"
 		end num
-	else
+	elseif ret = 0 then
 		print "Pass"
+	else
+		print "SKIP"
 	end if
 	
 	if(diff < 1) then
@@ -63,6 +65,7 @@ end sub
 
 #define pass return 0
 #define fail errorfile = __FILE__ : errorpos = __LINE__ : return 1
+#define skip return -1
 
 #macro startTest(t)
 	Declare Function t##_TEST() as integer

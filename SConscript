@@ -532,11 +532,11 @@ env_exe ('relump', source = ['relump.bas', 'lumpfile.o'] + base_objects)
 env_exe ('dumpohrkey', source = ['dumpohrkey.bas'] + base_objects)
 env.Command ('hspeak', source = ['hspeak.exw', 'hsspiffy.e'], action = 'euc -gcc hspeak.exw -verbose')
 RELOADTEST = env_exe ('reloadtest', source = ['reloadtest.bas'] + reload_objects)
-if android:
-    # No libxml2 on android
-    XML2RELOAD = None
-else:
-    XML2RELOAD = env_exe ('xml2reload', source = ['xml2reload.bas'] + reload_objects, FBLIBS = env['FBLIBS'] + ['-p','.', '-l','xml2'], CXXLINKFLAGS = env['CXXLINKFLAGS'] + ['-lxml2'])
+x2rsrc = ['xml2reload.bas'] + reload_objects
+if win32:
+    # Hack around our provided libxml2.a lacking a function. (Was less work than recompiling)
+    x2rsrc.append (env.Object('win32/utf8toisolat1.c'))
+XML2RELOAD = env_exe ('xml2reload', source = x2rsrc, FBLIBS = env['FBLIBS'] + ['-l','xml2'], CXXLINKFLAGS = env['CXXLINKFLAGS'] + ['-lxml2'])
 RELOAD2XML = env_exe ('reload2xml', source = ['reload2xml.bas'] + reload_objects)
 RELOADUTIL = env_exe ('reloadutil', source = ['reloadutil.bas'] + reload_objects)
 RBTEST = env_exe ('rbtest', source = [env.RB('rbtest.rbas'), env.RB('rbtest2.rbas')] + reload_objects)
@@ -597,7 +597,7 @@ SideEffect ('g_debug.txt', [AUTOTEST, INTERTEST])
 testprogs = ['reloadtest', 'rbtest', 'vectortest']
 tests = [File(prog).abspath for prog in testprogs]
 # There has to be some better way to do this...
-TESTS = env.Command ('test', source = testprogs + [XML2RELOAD, AUTOTEST, INTERTEST], action = tests)
+TESTS = env.Command ('test', source = testprogs + [AUTOTEST, INTERTEST], action = tests)
 Alias ('tests', TESTS)
 
 Default (GAME)
