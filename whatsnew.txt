@@ -14,6 +14,8 @@ WHAT IS NEW?
       map change without the ambient music playing for a moment [Ralph]
 
   * New Plotscripting Stuff
+    * "Menu action plotscript" special script trigger to run a script
+      instead of opening the main menu [Lakan Inocencio]
 
   * Stuff Only Developers Will Notice
 
