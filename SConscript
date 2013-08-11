@@ -319,7 +319,7 @@ if linkgcc:
             return obj
         return target, map(to_o, enumerate(source))
 
-    basexe_gcc = Builder (action = '$CXX $CXXFLAGS -o $TARGET $SOURCES -Wl,-( $CXXLINKFLAGS -Wl,-)',
+    basexe_gcc = Builder (action = '$CXX $CXXFLAGS -o $TARGET $SOURCES "-Wl,-(" $CXXLINKFLAGS "-Wl,-)"',
                   suffix = exe_suffix, src_suffix = '.bas', emitter = compile_main_module)
 
     env['BUILDERS']['BASEXE'] = basexe_gcc
