@@ -3348,28 +3348,32 @@ SUB update_attack_editor_for_chain (byval mode as integer, byref caption1 as str
    max2 = max_tag()
    min2 = -max_tag()
    menutype2 = 2
-  CASE 2 TO 5
-   caption1 = "  if attacker"
+  CASE 2 TO 13
+   SELECT CASE mode
+    CASE 2 TO 5: caption1 = "  if attacker"
+    CASE 6 TO 9: caption1 = "  if any target"
+    CASE 10 TO 13: caption1 = "  if all target"
+   END SELECT
    max1 = 15
    min1 = 0
    menutype1 = 16 'stat
    SELECT CASE mode
-    CASE 2
+    CASE 2,6,10
      caption2 = "  is >"
      max2 = 32000
      min2 = -32000
      menutype2 = 0
-    CASE 3
+    CASE 3,7,11
      caption2 = "  is <"
      max2 = 32000
      min2 = -32000
      menutype2 = 0
-    CASE 4
+    CASE 4,8,12
      caption2 = "  is >"
      max2 = 100
      min2 = 0
      menutype2 = 17 'int%
-    CASE 5
+    CASE 5,9,13
      caption2 = "  is <"
      max2 = 100
      min2 = 0

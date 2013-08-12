@@ -3142,6 +3142,10 @@ FUNCTION check_attack_chain(byref ch as AttackDataChain, byref bat as BattleStat
   IF knows_attack(bat.acting, ch.atk_id - 1, bslot()) = NO THEN RETURN NO
  END IF
  
+ DIM targ as integer
+ DIM tcount as integer
+ DIM tgood as integer
+ 
  SELECT CASE ch.mode
   CASE 0 '--no special conditions
    RETURN YES
@@ -3152,24 +3156,129 @@ FUNCTION check_attack_chain(byref ch as AttackDataChain, byref bat as BattleStat
     debug "chain: invalid tag check " & ch.val1 & " " & ch.val2
    END IF
   CASE 2 '--attacker stat greater than value
-   IF valid_statnum(ch.val1, "check_attack_chain() [>n]") THEN
+   IF valid_statnum(ch.val1, "check_attack_chain() attacker [>n]") THEN
     RETURN bslot(bat.acting).stat.cur.sta(ch.val1) > ch.val2
    END IF
   CASE 3 '--attacker stat less than value
-   IF valid_statnum(ch.val1, "check_attack_chain() [<n]") THEN
+   IF valid_statnum(ch.val1, "check_attack_chain() attacker [<n]") THEN
     RETURN bslot(bat.acting).stat.cur.sta(ch.val1) < ch.val2
    END IF
   CASE 4 '--attacker stat greater than value % of max
-   IF valid_statnum(ch.val1, "check_attack_chain() [>n%]") THEN
+   IF valid_statnum(ch.val1, "check_attack_chain() attacker [>n%]") THEN
     WITH bslot(bat.acting).stat
      RETURN .cur.sta(ch.val1) > .max.sta(ch.val1) * (ch.val2 / 100)
     END WITH
    END IF
   CASE 5 '--attacker stat less than value % of max
-   IF valid_statnum(ch.val1, "check_attack_chain() [<n%]") THEN
+   IF valid_statnum(ch.val1, "check_attack_chain() attacker [<n%]") THEN
     WITH bslot(bat.acting).stat
      RETURN .cur.sta(ch.val1) < .max.sta(ch.val1) * (ch.val2 / 100)
     END WITH
+   END IF
+  CASE 6 '--any target stat greater than value
+   IF valid_statnum(ch.val1, "check_attack_chain() any target [>n]") THEN
+    FOR i as integer = 0 to 11
+     targ = bat.anim_t(i)
+     IF targ >= 0 THEN
+      debug "check stat " & ch.val1 & " any target " & targ & " > " & ch.val2
+      IF bslot(targ).stat.cur.sta(ch.val1) > ch.val2 THEN RETURN YES
+     END IF
+    NEXT i
+   END IF
+  CASE 7 '--any target stat less than value
+   IF valid_statnum(ch.val1, "check_attack_chain() any target [<n]") THEN
+    FOR i as integer = 0 to 11
+     targ = bat.anim_t(i)
+     IF targ >= 0 THEN
+      debug "check stat " & ch.val1 & " any target " & targ & " < " & ch.val2
+      IF bslot(targ).stat.cur.sta(ch.val1) < ch.val2 THEN RETURN YES
+     END IF
+    NEXT i
+   END IF
+  CASE 8 '--any target stat greater than % of max
+   IF valid_statnum(ch.val1, "check_attack_chain() any target [>n%]") THEN
+    FOR i as integer = 0 to 11
+     targ = bat.anim_t(i)
+     IF targ >= 0 THEN
+      debug "check stat " & ch.val1 & " any target " & targ & " > " & ch.val2 & "%"
+      WITH bslot(targ).stat
+       IF .cur.sta(ch.val1) > .max.sta(ch.val1) * (ch.val2 / 100) THEN RETURN YES
+      END WITH
+     END IF
+    NEXT i
+   END IF
+  CASE 9 '--any target stat less than % of max
+   IF valid_statnum(ch.val1, "check_attack_chain() any target [<n%]") THEN
+    FOR i as integer = 0 to 11
+     targ = bat.anim_t(i)
+     IF targ >= 0 THEN
+      debug "check stat " & ch.val1 & " any target " & targ & " < " & ch.val2 & "%"
+      WITH bslot(targ).stat
+       debug ch.val1 & " " & ch.val2 & " " & .cur.sta(ch.val1) & " " & .max.sta(ch.val1)
+       IF .cur.sta(ch.val1) < .max.sta(ch.val1) * (ch.val2 / 100) THEN RETURN YES
+      END WITH
+     END IF
+    NEXT i
+   END IF
+  CASE 10 '--all target stat greater than value
+   IF valid_statnum(ch.val1, "check_attack_chain() all target [>n]") THEN
+    tcount = 0
+    tgood = 0
+    FOR i as integer = 0 to 11
+     targ = bat.anim_t(i)
+     IF targ >= 0 THEN
+      tcount += 1
+      debug "check stat " & ch.val1 & " all target " & targ & " > " & ch.val2
+      IF bslot(targ).stat.cur.sta(ch.val1) > ch.val2 THEN tgood += 1
+     END IF
+    NEXT i
+    IF tcount > 0 ANDALSO tgood = tcount THEN RETURN YES
+   END IF
+  CASE 11 '--all target stat less than value
+   IF valid_statnum(ch.val1, "check_attack_chain() all target [<n]") THEN
+    tcount = 0
+    tgood = 0
+    FOR i as integer = 0 to 11
+     targ = bat.anim_t(i)
+     IF targ >= 0 THEN
+      tcount += 1
+      debug "check stat " & ch.val1 & " all target " & targ & " < " & ch.val2
+      IF bslot(targ).stat.cur.sta(ch.val1) < ch.val2 THEN tgood += 1
+     END IF
+    NEXT i
+    IF tcount > 0 ANDALSO tgood = tcount THEN RETURN YES
+   END IF
+  CASE 12 '--all target stat greater than % of max
+   IF valid_statnum(ch.val1, "check_attack_chain() all target [>n%]") THEN
+    tcount = 0
+    tgood = 0
+    FOR i as integer = 0 to 11
+     targ = bat.anim_t(i)
+     IF targ >= 0 THEN
+      tcount += 1
+      debug "check stat " & ch.val1 & " all target " & targ & " > " & ch.val2 & "%"
+      WITH bslot(targ).stat
+       IF .cur.sta(ch.val1) > .max.sta(ch.val1) * (ch.val2 / 100) THEN tgood += 1
+      END WITH
+     END IF
+    NEXT i
+    IF tcount > 0 ANDALSO tgood = tcount THEN RETURN YES
+   END IF
+  CASE 13 '--all target stat less than % of max
+   IF valid_statnum(ch.val1, "check_attack_chain() all target [<n%]") THEN
+    tcount = 0
+    tgood = 0
+    FOR i as integer = 0 to 11
+     targ = bat.anim_t(i)
+     IF targ >= 0 THEN
+      tcount += 1
+      debug "check stat " & ch.val1 & " all target " & targ & " < " & ch.val2 & "%"
+      WITH bslot(targ).stat
+       IF .cur.sta(ch.val1) < .max.sta(ch.val1) * (ch.val2 / 100) THEN tgood += 1
+      END WITH
+     END IF
+    NEXT i
+    IF tcount > 0 ANDALSO tgood = tcount THEN RETURN YES
    END IF
   CASE ELSE
    debug "attack chain mode " & ch.mode & " unsupported"
