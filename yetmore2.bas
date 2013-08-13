@@ -316,14 +316,14 @@ SUB cleanuptemp
   NEXT
  END IF
 
- 'Delete contents of/clean up tmpdir
+ 'Delete contents of/clean up tmpdir without actually deleting the tmpdir itself
+ 'FIXME: I am pretty sure there is no good reason not to call killdir with recursive=YES
+ 'FIXME: harmless warning?, killdir claims it cannot delete tmpdir because it is not empty
+ '       even though it clearly IS empty, and then seems to succeed in deleting it with no
+ '       problem
  IF LEN(tmpdir) > 5 THEN
-  findfiles tmpdir, ALLFILES, fileTypeFile, NO, filelist()
-  FOR i as integer = 0 TO UBOUND(filelist)
-   IF NOT isdir(tmpdir & filelist(i)) THEN
-    safekill tmpdir & filelist(i)
-   END IF
-  NEXT
+  killdir tmpdir
+  MKDIR tmpdir
  END IF
 END SUB
 
