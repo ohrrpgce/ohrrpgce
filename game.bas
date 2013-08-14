@@ -4135,8 +4135,8 @@ SUB cleanup_other_temp_files ()
   IF dirname = tmp_cur THEN
    debuginfo "Ignore " & dirname & " because we are using it"
    CONTINUE FOR
-  ELSEIF NOT isdir(dirname_full & SLASH & "playing.tmp") THEN
-   debuginfo "Ignore " & dirname & " because it does not have playing.tmp"
+  ELSEIF NOT isdir(dirname_full & SLASH & "playing.tmp") ANDALSO LEFT(dirname, 8) <> "ohrrpgce" THEN
+   debuginfo "Ignore " & dirname & " because it does not have playing.tmp and the name does not start with ""ohrrpgce"""
   ELSE
    IF NOT isfile(keepalive_file) THEN
     'Yon tmpdir is olde beyond reckoning
