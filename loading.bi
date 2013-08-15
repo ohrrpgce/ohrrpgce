@@ -194,4 +194,6 @@ DECLARE SUB write_general_reld()
 DECLARE SUB close_general_reld()
 DECLARE FUNCTION get_buttonname_code(byval n as integer) as string
 
+DECLARE SUB load_shop_stuff(byval shop_id as integer, byval stuff_list as NodePtr)
+
 #ENDIF

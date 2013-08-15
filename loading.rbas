@@ -40,6 +40,7 @@ declare Sub save_hero_as_old_dt0(filename as string, hero as herodef, byval reco
 declare sub create_blank_hero_reld(hero as HeroDef)
 declare sub free_hero_reld(hero as HeroDef)
 declare sub general_reld_init_buttonnames(root_node as NodePtr)
+declare sub append_trade_node (byval par as NodePtr, byval itnum as integer, byval itqty as integer)
 
 '==========================================================================================
 '                                      Helper Functions
@@ -3531,3 +3532,84 @@ SUB save_distrib_state(byref distinfo as DistribState, byval node as Reload.Node
  SetChildNode node, "copyright_year", distinfo.copyright_year
 END SUB
 
+SUB load_shop_stuff(byval shop_id as integer, byval stuff_list as NodePtr)
+ 'Load shop stuff from the binary .STF lump into a bunch of reload nodes.
+ 
+ IF NumChildren(stuff_list) > 0 THEN
+  debug "WARNING: load_shop_stuff, stuff_list node should start empty"
+ END IF
+
+ 'First find out how many stuff records this shop actually uses
+ DIM shop_buf(19) as integer
+ setpicstuf shop_buf(), 40, -1
+ loadset game & ".sho", shop_id, 0
+ DIM last_stuff as integer = shop_buf(16)
+
+ 'Create a buffer for loading STF records.
+ DIM stufbuf(dimbinsize(binSTF)) as integer
+ setpicstuf stufbuf(), getbinsize(binSTF), -1
+ FOR slot as integer = 0 TO last_stuff
+  'Load the data for this stuff slot
+  loadset game & ".stf", shop_id * 50 + slot, 0
+  
+  DIM slotnode as NodePtr
+  slotnode = AppendChildNode(stuff_list, "stuff_slot", slot)
+  
+  DIM n as NodePtr
+  DIM buy as NodePtr
+  DIM sell as NodePtr
+  IF stufbuf(17) = 1 THEN
+   n = SetChildNode(slotnode, "hero", stufbuf(18))
+   IF stufbuf(26) >= 0 THEN
+    SetChildNode(n, "level", stufbuf(26))
+   END IF
+   buy = SetChildNode(n, "hire")
+   sell = 0
+  ELSE
+   n = SetChildNode(slotnode, "item", stufbuf(18))
+   buy = SetChildNode(n, "buy")
+   sell = SetChildNode(n, "sell")
+  END IF
+  
+  DIM sname as string
+  sname = readbadbinstring(stufbuf(), 0, 16)
+  SetChildNode(n, "name", sname)
+  
+  IF stufbuf(19) = -1 THEN
+   SetChildNode(n, "infinite")
+  ELSEIF stufbuf(19) >= 0 THEN
+   SetChildNode(n, "stock", stufbuf(19))
+  END IF
+  
+  SetChildNode(buy, "require_tag", stufbuf(20))
+  SetChildNode(buy, "set_tag", stufbuf(22))
+  SetChildNode(buy, "price", stufbuf(24))
+  append_trade_node buy, stufbuf(24), stufbuf(30)
+  append_trade_node buy, stufbuf(31), stufbuf(32)
+  append_trade_node buy, stufbuf(33), stufbuf(34)
+  append_trade_node buy, stufbuf(35), stufbuf(36)
+  
+  IF sell THEN
+   SetChildNode(sell, "require_tag", stufbuf(21))
+   SetChildNode(sell, "set_tag", stufbuf(23))
+   append_trade_node sell, stufbuf(28), stufbuf(29)
+   SELECT CASE stufbuf(26)
+    CASE 0: SetChildNode(sell, "sell_type", "normal")
+    CASE 1: SetChildNode(sell, "sell_type", "acquire")
+    CASE 2: SetChildNode(sell, "sell_type", "increment")
+    CASE 3: SetChildNode(sell, "sell_type", "refuse")
+   END SELECT
+  END IF
+  
+ NEXT slot
+ 
+END SUB
+
+SUB append_trade_node (byval par as NodePtr, byval itnum as integer, byval itqty as integer)
+ 'itnum is offset +1 and 0 means none
+ 'itqty is offset -1 so 0 means 1
+ IF itnum < 1 THEN EXIT SUB
+ DIM n as NodePtr
+ n = AppendChildNode(par, "trade", itnum - 1)
+ SetChildNode(n, "count", itqty + 1)
+END SUB
