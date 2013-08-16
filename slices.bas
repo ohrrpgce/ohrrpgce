@@ -1176,6 +1176,15 @@ Sub ChangeTextSlice(byval sl as slice ptr,_
  UpdateTextSlice sl
 end sub
 
+Function GetTextSliceString(byval sl as slice ptr) as string
+ if sl = 0 then debug "GetTextSliceString null ptr" : return ""
+ if sl->SliceType <> slText then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as text" : return ""
+ dim dat as TextSliceData Ptr = sl->SliceData
+ with *dat
+  return .s
+ end with 
+End Function
+
 '--Sprite-----------------------------------------------------------------
 
 Sub DisposeSpriteSlice(byval sl as slice ptr)

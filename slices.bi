@@ -366,6 +366,7 @@ DECLARE Sub ChangeTextSlice(byval sl as slice ptr,_
                       byval wrap as integer=-2,_
                       byval bgcol as integer=-1,_
                       byval markup as integer=-2)
+DECLARE Function GetTextSliceString(byval sl as slice ptr) as string
 
 DECLARE Sub DisposeSpriteSlice(byval sl as slice ptr)
 DECLARE Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
