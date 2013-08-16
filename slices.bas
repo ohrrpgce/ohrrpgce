@@ -1041,10 +1041,10 @@ Sub DrawTextSlice(byval sl as slice ptr, byval p as integer)
    chars += len(lines(i)) + 1
   end if
   if dat->outline then
-   edgeprint lines(i), sl->screenx, sl->screeny + ypos, col, p
+   edgeprint lines(i), sl->screenx, sl->screeny + ypos, col, p, dat->markup
   else
    textcolor col, dat->bgcol
-   printstr lines(i), sl->screenx, sl->screeny + ypos, p
+   printstr lines(i), sl->screenx, sl->screeny + ypos, p, dat->markup
   end if
  next
 end sub
@@ -1089,6 +1089,7 @@ Sub CloneTextSlice(byval sl as slice ptr, byval cl as slice ptr)
   .outline = dat->outline
   .wrap    = dat->wrap
   .bgcol   = dat->bgcol
+  .markup = dat->markup
  end with
 end sub
 
@@ -1101,6 +1102,7 @@ Sub SaveTextSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
  SaveProp node, "outline", dat->outline
  SaveProp node, "wrap", dat->wrap
  SaveProp node, "bgcol", dat->bgcol
+ SaveProp node, "markup", dat->markup
 End Sub
 
 Sub LoadTextSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
@@ -1112,6 +1114,7 @@ Sub LoadTextSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
  dat->outline = LoadPropBool(node, "outline")
  dat->wrap    = LoadPropBool(node, "wrap")
  dat->bgcol   = LoadProp(node, "bgcol")
+ dat->markup = LoadProp(node, "markup")
 End Sub
 
 Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as slice ptr
@@ -1145,7 +1148,8 @@ Sub ChangeTextSlice(byval sl as slice ptr,_
                       byval col as integer=-1,_
                       byval outline as integer=-2,_
                       byval wrap as integer=-2,_
-                      byval bgcol as integer=-1)
+                      byval bgcol as integer=-1,_
+                      byval markup as integer=-2)
  if sl = 0 then debug "ChangeTextSlice null ptr" : exit sub
  if sl->SliceType <> slText then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as text" : exit sub
  dim dat as TextSliceData Ptr = sl->SliceData
@@ -1164,6 +1168,9 @@ Sub ChangeTextSlice(byval sl as slice ptr,_
   end if
   if wrap > -2 then
    .wrap = wrap <> 0
+  end if
+  if markup > -2 then
+   .markup = markup <> 0
   end if
  end with
  UpdateTextSlice sl
