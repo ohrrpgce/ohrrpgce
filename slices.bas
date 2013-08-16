@@ -995,9 +995,9 @@ Sub WrapTextSlice(byval sl as slice ptr, lines() as string)
  dim dat as TextSliceData ptr = cptr(TextSliceData ptr, sl->SliceData)
  dim d as string
  if dat->wrap AND sl->width > 7 then
-  d = wordwrap(dat->s, int(sl->width / 8))
+  d = wordwrap(dat->s, int(sl->width / 8), , dat->markup)
  elseif dat->wrap AND sl->width <= 7 then
-  d = wordwrap(dat->s, int((320 - sl->X) / 8))
+  d = wordwrap(dat->s, int((320 - sl->X) / 8), , dat->markup)
  else
   d = dat->s
  end if
