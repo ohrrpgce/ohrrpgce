@@ -2817,27 +2817,28 @@ END SUB
 
 SUB draw_hero_preview(st as HeroEditState, her as HeroDef)
  STATIC tog as integer
- tog = tog XOR 1
+ tog = loopvar(tog, 0, 3)
  
  DIM frame as integer
  IF st.previewframe <> -1 THEN
   frame = st.previewframe + 2
  ELSE
-  frame = tog
+  frame = tog \ 2
  END IF
  frame_draw st.battle.sprite + frame, st.battle.pal, 250, 25,,,dpage
- frame = st.preview_walk_direction * 2 + tog
- frame_draw st.walkabout.sprite + frame, st.walkabout.pal, 230 + st.preview_walk_pos.x, 5 + st.preview_walk_pos.y,,,dpage
+ frame = st.preview_walk_direction * 2 + tog \ 2
+ frame_draw st.walkabout.sprite + frame, st.walkabout.pal, 230 + st.preview_walk_pos.x, 5 + st.preview_walk_pos.y, , , dpage
  DIM hand as XYPair
+ DIM col as integer = uilook(uiSelectedItem + tog \ 2)
  IF st.previewframe <> -1 THEN
   hand.x = her.hand_pos(st.previewframe).x
   hand.y = her.hand_pos(st.previewframe).y
-  drawline 248 + hand.x,25 + hand.y,249 + hand.x, 25 + hand.y,14 + tog, dpage
-  drawline 250 + hand.x,23 + hand.y,250 + hand.x, 24 + hand.y,14 + tog, dpage
-  drawline 251 + hand.x,25 + hand.y,252 + hand.x, 25 + hand.y,14 + tog, dpage
-  drawline 250 + hand.x,26 + hand.y,250 + hand.x, 27 + hand.y,14 + tog, dpage
+  drawline 248 + hand.x,25 + hand.y,249 + hand.x, 25 + hand.y, col, dpage
+  drawline 250 + hand.x,23 + hand.y,250 + hand.x, 24 + hand.y, col, dpage
+  drawline 251 + hand.x,25 + hand.y,252 + hand.x, 25 + hand.y, col, dpage
+  drawline 250 + hand.x,26 + hand.y,250 + hand.x, 27 + hand.y, col, dpage
  END IF
- IF st.portrait.sprite THEN frame_draw st.portrait.sprite, st.portrait.pal, 240, 110,,,dpage
+ IF st.portrait.sprite THEN frame_draw st.portrait.sprite, st.portrait.pal, 240, 110, , , dpage
 END SUB
 
 SUB animate_hero_preview(byref st as HeroEditState)
