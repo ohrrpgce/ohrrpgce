@@ -246,7 +246,7 @@ CONST binDT0 = 10
 CONST binDT1 = 11
 CONST binITM = 12
 
-CONST sizebinsize = 12 ' *** Update this when adding binsize records ***
+CONST binLASTENTRY = 12 ' *** Update this when adding binsize records ***
 
 '--- Misc constants
 

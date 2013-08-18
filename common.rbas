@@ -127,6 +127,10 @@ DIM SHARED lastlogfile as string
 '.stt lump read into memory
 DIM SHARED global_strings_buffer as string
 
+'binsize.bin cache
+DIM SHARED binsize_cache(binLASTENTRY) as integer
+DIM SHARED binsize_cache_loaded as bool = NO
+
 
 FUNCTION common_setoption(opt as string, arg as string) as integer
  IF opt = "time-upgrade" THEN
@@ -860,23 +864,38 @@ FUNCTION curbinsize (byval id as integer) as integer
  RETURN 0
 END FUNCTION
 
-FUNCTION getbinsize (byval id as integer) as integer
-'returns the current size in BYTES of the records in the specific binary file you are working with
-IF isfile(workingdir + SLASH + "binsize.bin") THEN
- DIM as short recordsize
+PRIVATE SUB load_binsize_cache ()
+ FOR i as integer = 0 TO binLASTENTRY
+  binsize_cache(i) = defbinsize(i)
+ NEXT
  DIM fh as integer = FREEFILE
- OPEN workingdir + SLASH + "binsize.bin" FOR BINARY as #fh
- IF LOF(fh) < 2 * id + 2 THEN
-  getbinsize = defbinsize(id)
- ELSE
-  GET #fh, 1 + id * 2, recordsize
-  getbinsize = recordsize
+ ' No error if missing
+ IF OPEN(workingdir + SLASH + "binsize.bin" FOR BINARY as #fh) = 0 THEN
+  DIM as short recordsize
+  ' If binsize.bin is larger than expected that is reported in rpg_sanity_checks
+  DIM as integer recs = LOF(fh) \ 2
+  FOR id as integer = 0 TO small(binLASTENTRY, recs - 1)
+   GET #fh, 1 + id * 2, recordsize
+   binsize_cache(id) = recordsize
+  NEXT
+  CLOSE #fh
  END IF
- CLOSE #fh
-ELSE
- getbinsize = defbinsize(id)
-END IF
+ binsize_cache_loaded = YES
+END SUB
 
+SUB clear_binsize_cache ()
+ binsize_cache_loaded = NO
+END SUB
+
+FUNCTION getbinsize (byval id as integer) as integer
+ 'returns the current size in BYTES of the records in the specific binary file you are working with
+ IF id < 0 OR id > binLASTENTRY THEN
+  showerror "Request for unknown binsize entry " & id
+  RETURN 0
+ ELSE
+  IF binsize_cache_loaded = NO THEN load_binsize_cache
+  RETURN binsize_cache(id)
+ END IF
 END FUNCTION
 
 'INTS, not bytes!
@@ -887,10 +906,18 @@ FUNCTION dimbinsize (byval id as integer) as integer
 END FUNCTION
 
 SUB setbinsize (byval id as integer, byval size as integer)
+ IF id < 0 OR id > binLASTENTRY THEN
+  showerror "Tried to set unknown binsize entry " & id
+  RETURN
+ END IF
  DIM fh as integer = FREEFILE
- OPEN workingdir & SLASH & "binsize.bin" FOR BINARY as #fh
+ IF OPEN(workingdir & SLASH & "binsize.bin" FOR BINARY as #fh) THEN
+  showerror "Failed to write binsize.bin(" & id & "), will cause data corruption!"
+  RETURN
+ END IF
  PUT #fh, 1 + id * 2, CAST(short, size)
  CLOSE #fh
+ binsize_cache(id) = size
 END SUB
 
 'Normally gamedir will be workingdir, and sourcefile will be sourcerpg
@@ -3232,7 +3259,7 @@ END IF
 '--make sure binsize.bin is full. why are we doing this? Otherwise as lumps are upgraded
 '--and binsize.bin is extended, records in binsize which are meant to default
 '--because they don't exist would become undefined instead
-FOR i as integer = 0 TO sizebinsize
+FOR i as integer = 0 TO binLASTENTRY
  setbinsize i, getbinsize(i)
 NEXT
 
@@ -3897,11 +3924,11 @@ SUB rpg_sanity_checks
 
  'Check binsize.bin is not from future
  DIM flen as integer = filelen(workingdir + SLASH + "binsize.bin")
- IF flen > 2 * (sizebinsize + 1) THEN
+ IF flen > 2 * (binLASTENTRY + 1) THEN
   debug "binsize.bin length " & flen
   future_rpg_warning
  ELSE
-  FOR bindex as integer = 0 TO sizebinsize
+  FOR bindex as integer = 0 TO binLASTENTRY
    IF curbinsize(bindex) MOD 2 <> 0 THEN
     'curbinsize is INSANE, scream bloody murder to prevent data corruption!
     fatalerror "Oh noes! curbinsize(" & bindex & ")=" & curbinsize(bindex) & " Please complain to the devs, who may have just done something stupid!"

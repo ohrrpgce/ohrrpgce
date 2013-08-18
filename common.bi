@@ -72,6 +72,7 @@ DECLARE FUNCTION abs_pal_num(byval num as integer, byval sprtype as SpriteType, 
 
 DECLARE FUNCTION getfixbit(byval bitnum as integer) as integer
 DECLARE SUB setfixbit(byval bitnum as integer, byval bitval as integer)
+DECLARE SUB clear_binsize_cache ()
 DECLARE SUB setbinsize (byval id as integer, byval size as integer)
 DECLARE FUNCTION curbinsize (byval id as integer) as integer
 DECLARE FUNCTION defbinsize (byval id as integer) as integer

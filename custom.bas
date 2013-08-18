@@ -648,6 +648,7 @@ SUB cleanup_and_terminate ()
  sprite_empty_cache
  palette16_empty_cache
  cleanup_global_reload_doc
+ clear_binsize_cache
  IF keyval(-1) = 0 THEN
   clearpage vpage
   ' Don't let Spoonweaver's cat near your power cord!

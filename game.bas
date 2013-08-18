@@ -855,6 +855,8 @@ reset_game_final_cleanup
 LOOP ' This is the end of the DO that encloses the entire program.
 
 SUB reset_game_final_cleanup()
+ 'WARNING: It's a bug to call anything in here that causes something to be cached after
+ 'the cache has been emptied (such as anything that calls getbinsize after clear_binsize_cache)
  cleanup_text_box
  resetinterpreter 'unload scripts
  unloadmaptilesets tilesets()
@@ -864,11 +866,12 @@ SUB reset_game_final_cleanup()
  unloadtilemap foemap
  DeleteZonemap zmap
  'checks for leaks and deallocates them
- sprite_empty_cache()
- palette16_empty_cache()
- cleanup_game_slices()
+ sprite_empty_cache
+ palette16_empty_cache
+ cleanup_game_slices
  SliceDebugDump YES
  cleanup_global_reload_doc
+ clear_binsize_cache
  stopsong
  resetsfx
  cleanup_other_temp_files
