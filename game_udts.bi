@@ -173,33 +173,21 @@ END TYPE
 TYPE ShopBuyState
   shop_id        as integer
   shoptype       as integer
-  last_stuff     as integer
-  tradestf(3, 1) as integer
-  st             as MenuState
-  room_to_hire   as bool
-  recordsize     as integer
-  itemno         as integer
-  tradingitems   as bool
-  xtralines      as integer
-  showhero       as integer
-  is_equipable   as bool
-  price          as string
-  price2         as string
-  eqinfo         as string
-  info1          as string
-  info2          as string
-  buytype(5, 1)  as string
-  purchased      as string
-  joined         as string
-  instock        as string
-  alert_box_style as integer
-  alert_ticks    as integer
-  alert_str      as string
+  stuff_list     as NodePtr
+  selected       as NodePtr
+  curslot        as integer
+  root_sl        as Slice Ptr
+  money_sl       as Slice Ptr
+  info_sl        as Slice Ptr
+  hero_box       as Slice Ptr
+  party_box(3)    as Slice Ptr
+  party_sl(3)    as Slice Ptr
+  price_box      as Slice Ptr
+  price_sl       as Slice Ptr
+  alert_box      as Slice Ptr
+  alert_sl       as Slice Ptr
   tog            as integer
   walk           as integer
-  hiresprite     as GraphicPair
-  herosprite(3)  as GraphicPair
-DIM heropal(3) as Palette16 ptr
 END TYPE
 
 TYPE OrderTeamState

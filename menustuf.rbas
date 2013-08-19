@@ -29,10 +29,14 @@
 #include "bmod.bi"
 
 '--SUBs and FUNCTIONS only used locally
-DECLARE SUB buystuff_loadtrades (buyst as ShopBuyState, byval index as integer, stufbuf() as integer)
-DECLARE SUB buystuff_setshopstock (buyst as ShopBuyState, stufbuf() as integer)
-DECLARE SUB buystuff_buildmenu (buyst as ShopBuyState, stuff() as SimpleMenuItem, stufbuf() as integer)
-DECLARE SUB buystuff_curinfo (buyst as ShopBuyState, stufbuf() as integer, byval selected_stuff as integer, itembuf() as integer)
+DECLARE SUB buystuff_make_slices(buyst as ShopBuyState)
+DECLARE SUB buystuff_refresh_menu (buyst as ShopBuyState, menu as MenuDef, st as MenuState)
+DECLARE SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
+DECLARE SUB buystuff_do_purchase(buyst as ShopBuyState, byval thing as NodePtr, byval thing_slot as integer)
+DECLARE FUNCTION buystuff_can_show(byval slot as NodePtr, buyst as ShopBuyState) as bool
+DECLARE FUNCTION buystuff_can_buy(byval thing as NodePtr, buyst as ShopBuyState, byval sound_and_alert as bool=NO) as bool
+DECLARE SUB buystuff_set_alert(buyst as ShopBuyState, alert as string, byval ticks as integer = 18)
+
 DECLARE SUB equip_menu_setup (byref st as EquipMenuState, menu() as string)
 DECLARE SUB equip_menu_do_equip(byval item as integer, byref st as EquipMenuState, menu() as string)
 DECLARE SUB equip_menu_back_to_menu(byref st as EquipMenuState, menu() as string)
@@ -58,359 +62,583 @@ DECLARE SUB sellstuff_infostr(byval ic as integer, info as string, b() as intege
 DECLARE SUB status_buildmenu(her as HeroDef, byval pt as integer, mtype() as integer, elementaldmg() as single, elementnames() as string, elementalmenu() as string, elementalmenu_st as MenuState, portrait as GraphicPair)
 
 SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as integer)
+ 'shoptype is 0 for items and 1 for heroes
 
  DIM buyst as ShopBuyState
  WITH buyst
   .shop_id = shop_id
   .shoptype = shoptype
-  .last_stuff = storebuf(16)
-  .recordsize = curbinsize(binSTF) \ 2 ' get size in INTs
  END WITH
 
-DIM stufbuf((getbinsize(binSTF) \ 2) * 50 - 1) as integer
-DIM walks(15) as integer
-DIM itembuf(dimbinsize(binITM)) as integer
-DIM heroframe as integer
-DIM heropos as XYPair
-REDIM stuff(-1 TO -1) as SimpleMenuItem   ' .dat of each menu item is item index
+ DIM stuff_doc as DocPtr
+ stuff_doc = CreateDocument()
 
-'--Preserve background for display beneath the buy menu
-DIM page as integer
-DIM holdscreen as integer
-page = compatpage
-holdscreen = allocatepage
-copypage page, holdscreen
+ buyst.stuff_list = CreateNode(stuff_doc, "stuff_list")
+ SetRootNode(stuff_doc, buyst.stuff_list)
+ 
+ load_shop_stuff shop_id, buyst.stuff_list
 
-DIM left_panel as RectType = (5, 10, 150, 168)
-DIM right_panel as RectType = (165, 10, 150, 168)
+ '--Preserve the screen underneath
+ DIM page as integer
+ DIM holdscreen as integer
+ page = compatpage
+ holdscreen = allocatepage
+ copypage page, holdscreen
 
-buyst.buytype(0, 0) = readglobalstring(85, "Trade for", 20) + " "
-buyst.buytype(0, 1) = readglobalstring(87, "Joins for", 20) + " "
-buyst.buytype(1, 0) = readglobalstring(89, "Cannot Afford", 20) + " "
-buyst.buytype(1, 1) = readglobalstring(91, "Cannot Hire", 20) + " "
-buyst.purchased = readglobalstring(93, "Purchased", 20)
-buyst.joined = readglobalstring(95, "Joined!", 20)
-buyst.instock = readglobalstring(97, "in stock", 20)
-
-DIM slot as integer
-
-FOR i as integer = 0 TO 3
- buyst.herosprite(i).sprite = frame_load(0, gam.hero(i).battle_pic)
- IF buyst.herosprite(i).sprite = 0 THEN debug "Couldn't load hero sprite: " & game & ".pt0#" & gam.hero(i).battle_pic
- buyst.herosprite(i).pal = palette16_load(gam.hero(i).battle_pal, 0, gam.hero(i).battle_pic)
- IF buyst.herosprite(i).pal = 0 THEN debug "Failed to load palette for hero (#" & i & ")"
-NEXT i
-
-FOR i as integer = 0 TO 10 STEP 2
- walks(i) = 1
-NEXT i
-walks(11) = 2
-walks(12) = 2
-walks(13) = 3
-walks(14) = 3
-
-loadshopstuf stufbuf(), buyst.shop_id
-
-buystuff_setshopstock buyst, stufbuf()
-buyst.st.pt = 0
-buyst.st.size = 15
-buystuff_buildmenu buyst, stuff(), stufbuf()
-IF buyst.st.last = -1 THEN GOTO cleanupquit
-
-buystuff_curinfo buyst, stufbuf(), stuff(buyst.st.pt).dat, itembuf()
-
-menusound gen(genAcceptSFX)
-setkeys
-DO
- setwait speedcontrol
- setkeys
- buyst.tog = buyst.tog XOR 1
- IF buyst.tog THEN buyst.walk = loopvar(buyst.walk, 0, 15, 1)
- playtimer
- control
- usemenusounds
- IF usemenu(buyst.st) THEN buystuff_curinfo buyst, stufbuf(), stuff(buyst.st.pt).dat, itembuf()
- IF carray(ccMenu) > 1 THEN EXIT DO
- IF carray(ccUse) > 1 THEN
-  IF stuff(buyst.st.pt).disabled = NO THEN '--CHECK TO SEE IF YOU CAN BUY IT
-   IF gam.stock(buyst.shop_id, buyst.itemno) > 1 THEN gam.stock(buyst.shop_id, buyst.itemno) -= 1
-   settag stufbuf(buyst.itemno * buyst.recordsize + 22)
-   gold = gold - stufbuf(buyst.itemno * buyst.recordsize + 24)
-   IF buyst.tradingitems THEN '--TRADE IN ITEMS
-    FOR i as integer = 0 TO 3
-     IF buyst.tradestf(i, 0) > -1 THEN
-      delitem buyst.tradestf(i, 0), buyst.tradestf(i, 1)
-     END IF
-    NEXT
-   END IF '--END TRADE IN ITEM
-   IF buyst.shoptype = 0 THEN '--BUY ITEM
-    menusound gen(genBuySFX)
-    getitem stufbuf(buyst.itemno * buyst.recordsize + 18)
-    buyst.alert_box_style = 4
-    buyst.alert_ticks = 18
-    buyst.alert_str = buyst.purchased & " " & stuff(buyst.st.pt).text
-   END IF '--END IF ITEM
-   IF buyst.shoptype = 1 THEN '--HIRE HERO
-    menusound gen(genHireSFX)
-    slot = first_free_slot_in_active_party()
-    IF slot >= 0 THEN
-     addhero stufbuf(buyst.itemno * buyst.recordsize + 18) + 1, slot, stufbuf(buyst.itemno * buyst.recordsize + 26)
-     buyst.alert_box_style = 4
-     buyst.alert_ticks = 18
-     buyst.alert_str = stuff(buyst.st.pt).text & " " & buyst.joined
-    END IF
-   END IF '--END IF HERO
-   'the last thing to do is re-eval the item and hero tags in case
-   'something changed: we do this immediately because the tags affect purchaseability
-   evalherotags
-   evalitemtags
-  ELSE ' WHEN CANNOT BUY
-   menusound gen(genCantBuySFX)
-   buyst.alert_box_style = 3
-   buyst.alert_ticks = 18
-   IF buyst.shoptype = 0 ANDALSO NOT room_for_item(stuff(buyst.st.pt).dat) THEN
-    'No room in inventory
-    buyst.alert_str = readglobalstring(305, "No room in inventory", 30)
-   ELSE
-    'Cannot afford
-    buyst.alert_str = buyst.buytype(1, buyst.shoptype) & stuff(buyst.st.pt).text
-   END IF
-  END IF '--------END BUY THING------------
-  buystuff_buildmenu buyst, stuff(), stufbuf()
-  IF buyst.st.last = -1 THEN GOTO cleanupquit
-  buystuff_curinfo buyst, stufbuf(), stuff(buyst.st.pt).dat, itembuf()
- END IF '---------END TRY BUY THING--------
-
- 'Draw the screen
- copypage holdscreen, page
- edgeboxstyle left_panel, 0, page
- edgeboxstyle right_panel, 0, page
- '-----RIGHT PANEL------------------------------------------
- DIM gold_str as string = gold & " " & readglobalstring(32, "Money")
- centerbox 240, 19, LEN(gold_str) * 8 + 8, 14, 4, page
- edgeprint gold_str, xstring(gold_str, 240), 14, uilook(uiText), page
- DIM linenum as integer = 0
- edgeprint stuff(buyst.st.pt).text, xstring(stuff(buyst.st.pt).text, 240), 30 + linenum * 10, uilook(uiMenuItem), page: linenum += 1
- IF buyst.info1 <> "" THEN edgeprint buyst.info1, xstring(buyst.info1, 240), 30 + linenum * 10, uilook(uiDisabledItem), page: linenum += 1
- IF buyst.info2 <> "" THEN edgeprint buyst.info2, xstring(buyst.info2, 240), 30 + linenum * 10, uilook(uiDisabledItem), page: linenum += 1
- IF buyst.eqinfo <> "" THEN edgeprint buyst.eqinfo, xstring(buyst.eqinfo, 240), 30 + linenum * 10, uilook(uiMenuItem), page: linenum += 1
- IF gam.stock(buyst.shop_id, buyst.itemno) > 1 THEN
-  edgeprint (gam.stock(buyst.shop_id, buyst.itemno) - 1) & " " & buyst.instock & " ", xstring((gam.stock(buyst.shop_id, buyst.itemno) - 1) & " " & buyst.instock & " ", 240), 30 + linenum * 10, uilook(uiMenuItem), page: linenum += 1
- END IF
- IF buyst.showhero > -1 THEN
-  'This happens only if a hireable hero is selected
-  centerbox 240, 130, 36, 44, 4, page
-  frame_draw(buyst.hiresprite.sprite + walks(buyst.walk), buyst.hiresprite.pal, 224, 110, 1, -1, page)
- END IF
- IF buyst.is_equipable THEN
-  FOR i as integer = 0 TO 3
-   heropos.x = 170 + i * 36
-   heropos.y = 130
-   heroframe = 0
-   DIM col as integer = 0
-   IF hero(i) > 0 THEN
-    'If there is a hero in this slot
-    IF readbit(itembuf(), 66, hero(i) - 1) <> 0 THEN
-     '-- animation heroes when this item is equipable
-     heroframe = walks(buyst.walk)
-     col = 3
-    END IF
-   END IF
-   edgeboxstyle heropos.x - 1, heropos.y - 2, 34, 44, col, page, , YES
-   IF hero(i) > 0 THEN
-    'If there is a hero in this slot
-    frame_draw(buyst.herosprite(i).sprite + heroframe, buyst.herosprite(i).pal, heropos.x, heropos.y, 1, -1, page)
-   END IF
-  NEXT i
- END IF
- '-----LEFT PANEL-------------------------------------------
- FOR i as integer = buyst.st.top TO small(buyst.st.top + buyst.st.size, UBOUND(stuff))
-  DIM c as integer = uilook(uiMenuItem)
-  IF buyst.st.pt = i THEN c = uilook(uiSelectedItem + buyst.tog)
-  IF stuff(i).disabled THEN
-   c = uilook(uiDisabledItem):
-   IF buyst.st.pt = i THEN c = uilook(uiMenuItem + buyst.tog)
-  END IF
-  edgeprint stuff(i).text, 10, 15 + (i - buyst.st.top) * 10, c, page
+ '--walking frame numbers used for animating heroes
+ DIM walks(15) as integer
+ FOR i as integer = 0 TO 10 STEP 2
+  walks(i) = 1
  NEXT i
- draw_scrollbar buyst.st, left_panel, , page
- IF buyst.price <> "" THEN
-  centerbox 160, 187, LEN(buyst.price) * 8 + 8, 14 + buyst.xtralines * 10, 1, page
-  edgeprint buyst.price, xstring(buyst.price, 160), 182 - buyst.xtralines * 5, uilook(uiText), page
-  IF buyst.xtralines >= 1 THEN edgeprint buyst.price2, xstring(buyst.price2, 160), 187, uilook(uiText), page
- END IF
- IF buyst.alert_ticks > 0 THEN
-  buyst.alert_ticks -= 1
-  centerbox 160, 178, LEN(buyst.alert_str) * 8 + 8, 14, buyst.alert_box_style, page
-  edgeprint buyst.alert_str, xstring(buyst.alert_str, 160), 173, uilook(uiSelectedItem + buyst.tog), page
- END IF
- setvispage vpage
- dowait
-LOOP
+ walks(11) = 2
+ walks(12) = 2
+ walks(13) = 3
+ walks(14) = 3
 
-cleanupquit:
-'Unload the sprites used to display the heroes
-FOR i as integer = 0 TO 3
- frame_unload(@buyst.herosprite(i).sprite)
- palette16_unload(@buyst.herosprite(i).pal)
-NEXT i
-frame_unload(@buyst.hiresprite.sprite)
-palette16_unload(@buyst.hiresprite.pal)
-freepage page
-freepage holdscreen
-menusound gen(genCancelSFX)
-evalitemtags
-party_change_updates
-EXIT SUB
+ buystuff_make_slices buyst
 
-END SUB
-
-SUB buystuff_curinfo (buyst as ShopBuyState, stufbuf() as integer, byval selected_stuff as integer, itembuf() as integer)
- buyst.itemno = selected_stuff
- buyst.tradingitems = NO
- buyst.xtralines = 0
- buyst.showhero = -1
- buyst.is_equipable = NO
- buyst.price = ""
- buyst.price2 = ""
- buyst.eqinfo = ""
- buyst.info1 = ""
- buyst.info2 = ""
- IF stufbuf(buyst.itemno * buyst.recordsize + 24) > 0 THEN buyst.price = stufbuf(buyst.itemno * buyst.recordsize + 24) & " " & readglobalstring(32, "Money")
- '--load must trade in item types+amounts
- buystuff_loadtrades buyst, buyst.itemno, stufbuf()
- FOR i as integer = 0 TO 3
-  IF buyst.tradestf(i, 0) > -1 THEN
-   buyst.tradingitems = YES
-   IF buyst.price = "" THEN
-    buyst.price = buyst.buytype(0, buyst.shoptype)
-   ELSE
-    IF buyst.tradestf(i, 1) = 1 THEN
-     buyst.price = buyst.price & " " & readglobalstring(81, "and a", 10) & " "
-    ELSE
-     buyst.price = buyst.price & " " & readglobalstring(153, "and", 10) & " "
-    END IF
-   END IF
-   IF buyst.tradestf(i, 1) = 1 THEN
-    buyst.price = buyst.price & readitemname(buyst.tradestf(i, 0))
-   ELSE
-    buyst.price = buyst.price & STR(buyst.tradestf(i, 1)) & " " & readitemname(buyst.tradestf(i, 0))
-   END IF
-  END IF
- NEXT
- IF LEN(buyst.price) > 38 THEN
-  '--have to split in 2! ARGH
-  DIM i as integer = 38
-  WHILE i > 19 AND MID(buyst.price, i, 1) <> " ": i = i - 1: WEND
-  buyst.price2 = MID(buyst.price, i + 1)
-  buyst.price = LEFT(buyst.price, i - 1)
-  buyst.xtralines = 1
- END IF
- IF stufbuf(buyst.itemno * buyst.recordsize + 17) = 0 THEN
-  'This is an item
-  loaditemdata itembuf(), stufbuf(buyst.itemno * buyst.recordsize + 18)
-  'The itembuf remains and is used later to show equipability.
-  DIM eqprefix as string = readglobalstring(99, "Equip:", 10)
-  IF itembuf(49) = 1 THEN buyst.eqinfo = eqprefix & " " & readglobalstring(38, "Weapon", 10)
-  IF itembuf(49) > 1 THEN buyst.eqinfo = eqprefix & " " & readglobalstring(23 + itembuf(49), "Armor" & itembuf(49)-1)
-  buyst.info1 = readbadbinstring(itembuf(), 9, 36, 0)
-  IF LEN(buyst.info1) > 17 THEN
-   DIM o as integer
-   FOR o = 18 TO 1 STEP -1
-    IF MID(buyst.info1, o, 1) = " " OR MID(buyst.info1, o, 1) = "-" OR MID(buyst.info1, o, 1) = "," OR MID(buyst.info1, o, 1) = "." THEN EXIT FOR
-   NEXT o
-   IF o > 1 THEN
-    buyst.info2 = RIGHT(buyst.info1, LEN(buyst.info1) - o)
-    buyst.info1 = LEFT(buyst.info1, o)
-   END IF
-   IF RIGHT(buyst.info1, 1) = " " THEN buyst.info1 = LEFT(buyst.info1, LEN(buyst.info1) - 1)
-   buyst.info1 = LEFT(buyst.info1, 18)
-  END IF
-  IF itembuf(49) > 0 THEN
-   'This item is equippable
-   buyst.is_equipable = YES
-  END IF
- END IF
- IF stufbuf(buyst.itemno * buyst.recordsize + 17) = 1 THEN
-  'hire
-  dim her as herodef
-  loadherodata her, stufbuf(buyst.itemno * buyst.recordsize + 18)
-  DIM wbuf(dimbinsize(binITM)) as integer
-  loaditemdata wbuf(), her.def_weapon
-  DIM hire_level as integer = stufbuf(buyst.itemno * buyst.recordsize + 26)
-  IF hire_level < 0 THEN hire_level = her.def_level
-  IF hire_level < 0 THEN hire_level = averagelev()
-  buyst.eqinfo = (atlevel(hire_level, her.lev0.hp, her.levMax.hp) + wbuf(54 + 0)) & " " & statnames(statHP)
-  buyst.showhero = her.sprite
+ '--Create the menu
+ DIM menu as MenuDef
+ ClearMenuData menu
+ 
+ DIM st as MenuState
+ st.active = YES
+ st.need_update = YES
+ 
+ menusound gen(genAcceptSFX)
+ setkeys
+ DO
+  setwait speedcontrol
+  setkeys
+  buyst.tog = buyst.tog XOR 1
+  IF buyst.tog THEN buyst.walk = loopvar(buyst.walk, 0, 15, 1)
   
-  'Load the sprite for the hireable hero
-  frame_unload @buyst.hiresprite.sprite
-  buyst.hiresprite.sprite = frame_load(0, buyst.showhero)
-  IF buyst.hiresprite.sprite = 0 THEN debug "Couldn't load hero sprite: " & game & ".pt0#" & buyst.showhero
-  palette16_unload @buyst.hiresprite.pal
-  buyst.hiresprite.pal = palette16_load(her.sprite_pal, 0, buyst.showhero)
-  IF buyst.hiresprite.pal = 0 THEN debug "Failed to load palette for hireable hero (#" & her.sprite_pal & ")"
- 
-  IF buyst.room_to_hire = NO THEN buyst.info1 = readglobalstring(100, "No Room in Party", 20)
- END IF
-
-END SUB
-
-SUB buystuff_buildmenu (buyst as ShopBuyState, stuff() as SimpleMenuItem, stufbuf() as integer)
- '--this figures out if it is okay to buy (or hire) particular stuff.
- REDIM stuff(-1 TO -1)
- buyst.room_to_hire = herocount(3) < 4 ANDALSO free_slots_in_party() > 0
- FOR i as integer = 0 TO buyst.last_stuff
-  '--for each shop-thing
-  IF gam.stock(buyst.shop_id, i) = 1 THEN CONTINUE FOR
-  IF stufbuf(i * buyst.recordsize + 17) <> buyst.shoptype THEN CONTINUE FOR
-  IF NOT istag(stufbuf(i * buyst.recordsize + 20), -1) THEN CONTINUE FOR
- 
-  DIM itemname as string = readbadbinstring(stufbuf(), i * buyst.recordsize, 16)
-  REDIM PRESERVE stuff(-1 TO UBOUND(stuff) + 1)
-  WITH stuff(UBOUND(stuff))
-   .text = itemname
-   .dat = i
-   IF stufbuf(i * buyst.recordsize + 24) > gold THEN .disabled = YES
-   buystuff_loadtrades buyst, i, stufbuf()
-   FOR j as integer = 0 TO 3
-    IF buyst.tradestf(j, 0) > -1 THEN
-     IF countitem(buyst.tradestf(j, 0)) < buyst.tradestf(j, 1) THEN .disabled = YES
+  IF st.need_update THEN
+   buystuff_refresh_menu buyst, menu, st
+   st.need_update = NO
+  END IF
+  
+  playtimer
+  control
+  usemenusounds
+  IF usemenu(st) THEN
+   IF menu.numitems > 0 THEN
+    buystuff_refresh_selected buyst, menu.items[st.pt]->dataptr
+   END IF
+  END IF
+  
+  WITH *(buyst.alert_box)
+   IF .extra(0) > 0 THEN
+    .extra(0) -= 1
+    IF .extra(0) <= 0 THEN
+     .Visible = NO
     END IF
-   NEXT
-   '---PREVENT OVERFLOW
-   IF buyst.shoptype = 0 THEN
-    '--is an item
-    IF NOT room_for_item(stufbuf(i * buyst.recordsize + 18)) THEN .disabled = YES
-   ELSEIF buyst.shoptype = 1 THEN
-    '--is a hero
-    IF buyst.room_to_hire = NO THEN .disabled = YES
    END IF
   END WITH
- NEXT i
- init_menu_state buyst.st, stuff()
+  
+  IF menu.numitems > 0 THEN
+   buyst.selected = menu.items[st.pt]->dataptr
+   buyst.curslot = menu.items[st.pt]->sub_t
+  END IF
+  
+  IF carray(ccMenu) > 1 THEN EXIT DO
+
+  IF menu.numitems > 0 THEN
+   IF carray(ccUse) > 1 THEN
+    IF buystuff_can_buy(buyst.selected, buyst, YES) THEN
+     buystuff_do_purchase(buyst, buyst.selected, buyst.curslot)
+     st.need_update = YES
+    END IF
+   END IF
+  END IF
+  
+  'Animate hero walking to indicate equipability
+  DIM hero_sl as Slice Ptr
+  FOR i as integer = 0 TO 3
+   IF buyst.party_sl(i)->Extra(0) THEN
+    ChangeSpriteSlice buyst.party_sl(i), , , , walks(buyst.walk)
+   ELSE
+    ChangeSpriteSlice buyst.party_sl(i), , , , 0
+   END IF
+  NEXT i
+
+  'Draw the screen
+  copypage holdscreen, page
+  DrawSlice buyst.root_sl, page
+  draw_menu menu, st, page
+  setvispage vpage
+  dowait
+ LOOP
+
+ '--Restore the saved screen
+ freepage page
+ freepage holdscreen
+
+ DeleteSlice @(buyst.root_sl)
+ 
+ menusound gen(genCancelSFX)
+ evalitemtags
+ party_change_updates
 END SUB
 
-SUB buystuff_setshopstock (buyst as ShopBuyState, stufbuf() as integer)
- DIM i as integer
- FOR i = 0 TO buyst.last_stuff
-  '--for each shop-stuff
-  IF gam.stock(buyst.shop_id, i) = 0 THEN
-   '--if unloaded, reload stock
-   gam.stock(buyst.shop_id, i) = stufbuf(i * buyst.recordsize + 19)
-   '--zero means unloaded, 1 means no-stock, 2+n means 1+n in stock
-   IF gam.stock(buyst.shop_id, i) > -1 THEN gam.stock(buyst.shop_id, i) = gam.stock(buyst.shop_id, i) + 1
+SUB buystuff_do_purchase(buyst as ShopBuyState, byval thing as NodePtr, byval thing_slot as integer)
+
+ IF thing = 0 THEN debug "buystuff_do_purchase null thing ptr" : EXIT SUB
+
+ DIM thing_kind as string
+ thing_kind = NodeName(thing)
+ DIM buy as NodePtr
+ 
+ IF thing_kind = "hero" THEN
+  buy = thing."hire".ptr
+  menusound gen(genHireSFX)
+  DIM hero_id as integer = GetInteger(thing)
+  DIM party_slot as integer = first_free_slot_in_party()
+  DIM her as herodef
+  loadherodata her, hero_id
+  DIM hire_level as integer
+  IF thing."level".exists THEN
+   hire_level = thing."level".integer
+  ELSE
+   hire_level = her.def_level
+   IF hire_level < 0 THEN hire_level = averagelev()
+  END IF
+  addhero hero_id + 1, party_slot, hire_level
+  buystuff_set_alert buyst, names(party_slot) & " " & readglobalstring(95, "Joined!", 20)
+ ELSEIF thing_kind = "item" THEN
+  buy = thing."buy".ptr
+  menusound gen(genBuySFX)
+  DIM item_id as integer = GetInteger(thing)
+  getitem item_id, 1
+  buystuff_set_alert buyst, readglobalstring(93, "Purchased", 20) & " " & readitemname(item_id)
+ ELSE
+  debug "buystuff_do_purchase: invalid thing """ & thing_kind & """"
+  menusound gen(genCantBuySFX)
+  EXIT SUB
+ END IF
+
+ 'deduct stock from gam.stock() (-1 is infinite, 0 is unloaded, 1+ is actual stock -1)
+ IF gam.stock(buyst.shop_id, thing_slot) > 1 THEN
+  gam.stock(buyst.shop_id, thing_slot) -= 1
+ END IF
+ 
+ DIM set_tag as integer = buy."set_tag".default(0).integer
+ IF ABS(set_tag) >= 2 THEN
+  IF set_tag > 0 THEN settag set_tag, YES
+  IF set_tag < 0 THEN settag ABS(set_tag), NO
+ END IF
+ 
+ gold -= buy."price".default(0).integer
+ 
+ READNODE buy, ignoreall
+  WITHNODE buy."trade" as trade
+   delitem GetInteger(trade), trade."count".integer
+  END WITHNODE
+ END READNODE
+
+ 'the last thing to do is re-eval the item and hero tags in case
+ 'something changed: we do this immediately because the tags affect
+ 'purchaseability of other items
+ evalherotags
+ evalitemtags
+END SUB
+
+SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
+ ChangeTextSlice buyst.money_sl, readglobalstring(145, "You have", 20) & " " & gold & " " & readglobalstring(32, "Money", 10)
+ 
+ DIM thing_kind as string = NodeName(thing)
+ DIM thing_id as integer = GetInteger(thing)
+ DIM buy as NodePtr
+ DIM info as string
+ DIM itembuf(dimbinsize(binITM)) as integer
+ DIM trade_str as string
+ 
+ IF thing_kind = "hero" THEN
+  buy = thing."hire".ptr
+  trade_str = readglobalstring(87, "Joins for", 20)
+  DIM her as herodef
+  loadherodata her, thing_id
+  info = her.name & !"\n"
+  DIM hire_level as integer
+  IF thing."level".exists THEN
+   hire_level = thing."level".integer
+  ELSE
+   hire_level = her.def_level
+   IF hire_level < 0 THEN hire_level = averagelev()
+  END IF
+  loaditemdata itembuf(), her.def_weapon
+  info &= (atlevel(hire_level, her.lev0.hp, her.levMax.hp) + itembuf(54 + 0)) & " " & statnames(statHP)
+  buyst.hero_box->Visible = NO
+ ELSEIF thing_kind = "item" THEN
+  buy = thing."buy".ptr
+  trade_str = readglobalstring(85, "Trade for", 20)
+  info = readitemname(thing_id) & !"\n"
+  info &= "${K" & uilook(uiDisabledItem) & "}" & readitemdescription(thing_id) & "${K-1}" & !"\n"
+  loaditemdata itembuf(), thing_id
+  IF itembuf(49) > 0 THEN
+   'This item is equippable
+   buyst.hero_box->Visible = YES
+   DIM eqprefix as string = readglobalstring(99, "Equip:", 10)
+   IF itembuf(49) = 1 THEN info &= eqprefix & " " & readglobalstring(38, "Weapon", 10)
+   IF itembuf(49) > 1 THEN info &= eqprefix & " " & readglobalstring(23 + itembuf(49), "Armor" & itembuf(49)-1)
+   info  &= !"\n"
+   DIM bonus as integer
+   FOR i as integer = 0 to 11
+    bonus = itembuf(54 + i)
+    IF bonus <> 0 THEN
+     IF bonus > 0 THEN
+      info &= "${K" & uilook(uiSelectedItem) & "}+"
+     END IF
+     IF bonus < 0 THEN
+      info &= "${K" & uilook(uiSelectedDisabled) & "}"
+     END IF
+     info &= bonus & " " & statnames(i) & "${K-1}" & !"\n"
+    END IF
+   NEXT i
+   DIM hero_id as integer
+   FOR i as integer = 0 TO 3
+    buyst.party_sl(i)->Extra(0) = NO
+    ChangeRectangleSlice buyst.party_box(i), 0, , , , transOpaque
+    hero_id = hero(i) - 1
+    IF hero_id >= 0 THEN
+     IF xreadbit(itembuf(), hero_id, 66) THEN
+      buyst.party_sl(i)->Extra(0) = YES
+      ChangeRectangleSlice buyst.party_box(i), 3, , , , transOpaque
+     END IF
+    END IF
+    ChangeRectangleSlice buyst.party_box(i), , , , -1
+   NEXT i
+  ELSE
+   'Not equippable
+   buyst.hero_box->Visible = NO
+  END IF
+  '--show stock
+  DIM thing_parent as NodePtr = NodeParent(thing)
+  IF thing_parent THEN
+   DIM thing_slot as integer = GetInteger(thing_parent)
+   IF gam.stock(buyst.shop_id, thing_slot) > 1 THEN
+    info &= gam.stock(buyst.shop_id, thing_slot) - 1 & " " & readglobalstring(97, "in stock", 20) & !"\n"
+   END IF
+  END IF
+  
+ END IF
+ IF buy THEN
+  DIM price as integer = buy."price".default(0).integer
+  DIM price_str as string = ""
+  IF price THEN
+   price_str = price & " " & readglobalstring(32, "Money", 10)
+  END IF
+  READNODE buy, ignoreall
+   WITHNODE buy."trade" as trade
+    IF LEN(price_str) THEN
+     price_str &= ", "
+    ELSE
+     price_str &= trade_str & " "
+    END IF
+    price_str &= readitemname(GetInteger(trade))
+    DIM count as integer = trade."count".default(0).integer
+    IF count > 1 THEN price_str &= CHR(1) & count
+   END WITHNODE
+  END READNODE
+  ChangeTextSlice buyst.price_sl, price_str
+  buyst.price_box->Width = small(buyst.price_sl->Width + 16, 320)
+ END IF
+ ChangeTextSlice buyst.info_sl, info
+END SUB
+
+FUNCTION buystuff_can_show(byval slot as NodePtr, buyst as ShopBuyState) as bool
+ 'Return YES if this thing should appear in the menu
+
+ DIM thing as NodePtr
+ DIM buy as NodePtr
+ IF slot."hero".exists THEN
+  thing = slot."hero".ptr
+  buy = thing."hire".ptr
+ ELSEIF slot."item".exists THEN
+  thing = slot."item".ptr
+  buy = thing."buy".ptr
+  DIM slotnum as integer = GetInteger(slot)
+  'Load stock data if unloaded.
+  IF gam.stock(buyst.shop_id, slotnum) = 0 THEN
+   IF thing."stock".exists THEN
+    gam.stock(buyst.shop_id, slotnum) = thing."stock".integer + 1
+   END IF
+  END IF
+  IF gam.stock(buyst.shop_id, slotnum) = 1 THEN
+   'This item is out of stock
+   RETURN NO
+  END IF
+ ELSE
+  debug "buystuff_can_show: no hero or item node"
+  RETURN NO
+ END IF
+
+ IF buy."require_tag".exists THEN
+  IF NOT istag(tag(), buy."require_tag".integer, YES) THEN
+   RETURN NO
+  END IF
+ END IF
+
+ RETURN YES
+END FUNCTION
+
+FUNCTION buystuff_can_buy(byval thing as NodePtr, buyst as ShopBuyState, byval sound_and_alert as bool=NO) as bool
+ IF thing = 0 THEN debug "buystuff_can_buy: null thing ptr" : RETURN NO
+ 
+ DIM thing_kind as string = NodeName(thing)
+ DIM thing_id as integer = GetInteger(thing)
+ DIM buy as Nodeptr
+ DIM alert as string
+ 
+ IF thing_kind = "hero" THEN
+  buy = thing."hire".ptr
+  'debug "Hero=" & getheroname(thing_id)
+  IF herocount(3) >= 4 ORELSE free_slots_in_party() <= 0 THEN
+   IF sound_and_alert THEN
+    menusound gen(genCantBuySFX)
+    buystuff_set_alert buyst, readglobalstring(100, "No Room In Party", 20)
+   END IF
+   RETURN NO
+  END IF
+  alert = readglobalstring(91, "Cannot Hire", 20)
+  
+ ELSEIF thing_kind = "item" THEN
+  buy = thing."buy".ptr
+  'debug "item=" & readitemname(thing_id)
+  IF NOT room_for_item(thing_id) THEN
+   IF sound_and_alert THEN
+    menusound gen(genCantBuySFX)
+    buystuff_set_alert buyst, readglobalstring(305, "No room in inventory", 30)
+   END IF
+   RETURN NO
+  END IF
+  alert = readglobalstring(89, "Cannot Afford", 20)
+  
+ ELSE
+  debug "buystuff_can_buy: unknown stuff kind """ & thing_kind & """"
+  menusound gen(genCantBuySFX)
+  RETURN NO
+ END IF
+ 
+ 'debug "  price=" & buy."price".default(0).integer
+ IF buy."price".default(0).integer > gold THEN
+  IF sound_and_alert THEN
+   menusound gen(genCantBuySFX)
+   buystuff_set_alert buyst, alert
+  END IF
+  RETURN NO
+ END IF
+ 
+ READNODE buy, ignoreall
+  WITHNODE buy."trade" as trade
+   'debug "  trade=" & GetInteger(trade) & " " & readitemname(GetInteger(trade)) & " *" & trade."count".integer
+   IF countitem(GetInteger(trade)) < trade."count".integer THEN
+    IF sound_and_alert THEN
+     menusound gen(genCantBuySFX)
+     buystuff_set_alert buyst, alert
+    END IF
+    RETURN NO
+   END IF
+  END WITHNODE
+ END READNODE
+
+ RETURN YES
+END FUNCTION
+
+SUB buystuff_refresh_menu (buyst as ShopBuyState, menu as MenuDef, st as MenuState)
+ DIM thing as NodePtr
+ DIM id as integer
+ ClearMenuData menu
+ WITH menu
+  .align = -1
+  .anchor.x = -1
+  .anchor.y = -1
+  .offset.x = -155
+  .offset.y = -95
+  .bordersize = -2
+  .min_chars = 16
+  .max_chars = 16
+  .maxrows = 16
+  .highlight_selection = YES
+ END WITH
+ DIM stuff_list as NodePtr = buyst.stuff_list
+ READNODE stuff_list
+  WITHNODE stuff_list."stuff_slot" as stuff_slot
+   IF buystuff_can_show(stuff_slot, buyst) THEN
+    IF buyst.shoptype = 0 THEN
+     IF stuff_slot."item".exists THEN
+      thing = stuff_slot."item".ptr
+      id = stuff_slot."item".integer
+      append_menu_item menu, thing."name".default(readitemname(id)).string
+      menu.last->t = 0 'item
+      menu.last->sub_t = GetInteger(stuff_slot)
+      menu.last->dataptr = thing
+      menu.last->disabled = NOT buystuff_can_buy(thing, buyst)
+     END IF
+    ELSEIF buyst.shoptype = 1 THEN
+     IF stuff_slot."hero".exists THEN
+      thing = stuff_slot."hero".ptr
+      id = stuff_slot."hero".integer
+      append_menu_item menu, thing."name".default(getheroname(id)).string
+      menu.last->t = 1 'hero
+      menu.last->sub_t = GetInteger(stuff_slot)
+      menu.last->dataptr = thing
+      menu.last->disabled = NOT buystuff_can_buy(thing, buyst)
+     END IF
+    END IF
+   END IF
+  END WITHNODE
+ END READNODE
+   
+ FOR i as integer = 0 TO 3
+  IF hero(i) > 0 THEN
+   ChangeSpriteSlice buyst.party_sl(i), , gam.hero(i).battle_pic, gam.hero(i).battle_pal
+  ELSE
+   buyst.party_sl(i)->Visible = NO
   END IF
  NEXT i
+
+ buyst.price_box->Width = buyst.price_sl->Width + 16
+
+ init_menu_state st, menu
+
+ IF menu.numitems > 0 THEN
+  buystuff_refresh_selected buyst, menu.items[st.pt]->dataptr
+ END IF
+
 END SUB
 
-SUB buystuff_loadtrades(buyst as ShopBuyState, byval index as integer, stufbuf() as integer)
- buyst.tradestf(0, 0) = stufbuf(index * buyst.recordsize + 25) - 1
- buyst.tradestf(0, 1) = stufbuf(index * buyst.recordsize + 30) + 1
- FOR i as integer = 1 TO 3
-  buyst.tradestf(i, 0) = stufbuf(index * buyst.recordsize + i * 2 + 29) - 1
-  buyst.tradestf(i, 1) = stufbuf(index * buyst.recordsize + i * 2 + 30) + 1
+SUB buystuff_make_slices(buyst as ShopBuyState)
+ '--Create the slices
+ 
+ buyst.root_sl = NewSliceOfType(slRoot)
+ WITH *(buyst.root_sl)
+  .Fill = YES
+ END WITH
+ RefreshSliceScreenPos buyst.root_sl
+ 
+ 'The container for the right side of the shop
+ DIM right_panel as Slice Ptr
+ right_panel = NewSliceOfType(slContainer, buyst.root_sl)
+ WITH *right_panel
+  .AnchorHoriz = 2
+  .AlignHoriz = 2
+  .Width = 168
+  .Height = 176
+  .PaddingTop = 25
+ END WITH
+ 
+ DIM your_money_box as Slice Ptr
+ your_money_box = NewSliceOfType(slRectangle, right_panel)
+ WITH *your_money_box
+  .AnchorHoriz = 1
+  .AlignHoriz = 1
+  .Width = .parent->Width
+  .Height = INT(.parent->PaddingTop * 0.75)
+  .Y = -(.parent->PaddingTop) + 4
+ END WITH
+ ChangeRectangleSlice your_money_box, 3, , , , transOpaque
+ 
+ buyst.money_sl = NewSliceOfType(slText, your_money_box)
+ WITH *(buyst.money_sl)
+  .AnchorHoriz = 1
+  .AnchorVert = 1
+  .AlignHoriz = 1
+  .AlignVert = 1
+ END WITH
+ ChangeTextSlice buyst.money_sl, "You have ??? Gold" , uilook(uiGold), YES 
+  
+ DIM info_box as Slice Ptr
+ info_box = NewSliceOfType(slRectangle, right_panel)
+ WITH *info_box
+  .Fill = YES
+  .PaddingTop = 4
+  .PaddingBottom = 4
+  .PaddingLeft = 4
+  .PaddingRight = 4
+ END WITH
+ ChangeRectangleSlice info_box, 0, , , , transOpaque
+ RefreshSliceScreenPos info_box
+
+ buyst.hero_box = NewSliceOfType(slContainer, info_box)
+ WITH *(buyst.hero_box)
+  .AnchorVert = 2
+  .AlignVert = 2
+  .Width = .parent->Width - (.parent->PaddingLeft + .parent->PaddingRight)
+  .Height = 40
+ END WITH
+ 
+ DIM w_tmp as integer = buyst.hero_box->Width / 4
+ FOR i as integer = 0 TO 3
+  buyst.party_box(i) = NewSliceOfType(slRectangle, buyst.hero_box)
+  WITH *(buyst.party_box(i))
+   .Width = 32
+   .Height = 40
+   .X = w_tmp * i + (w_tmp - 32) / 2
+  END WITH
+  ChangeRectangleSlice buyst.party_box(i), 0, , , , transOpaque
+  ChangeRectangleSlice buyst.party_box(i), , , , -1
+  buyst.party_sl(i) = NewSliceOfType(slSprite, buyst.party_box(i))
+  ChangeSpriteSlice buyst.party_sl(i), sprTypeHero
  NEXT i
+ 
+ buyst.info_sl = NewSliceOfType(slText, info_box)
+ WITH *(buyst.info_sl)
+  .Width = .parent->Width - (.parent->PaddingLeft + .parent->PaddingRight)
+  .Height = .parent->Height - (.parent->PaddingTop + .parent->PaddingBottom) - buyst.hero_box->Height
+ END WITH
+ ChangeTextSlice buyst.info_sl, "This is a ${K" & uilook(uiDisabledItem) & "}test${K-1}! Three blind mice, see how they run, they all run after the farmer's wife. ${K9}H${K10}E${K11}L${K12}L${K13}O${K-1} World! Have a nice day ${K14};)${K15}", uilook(uiMenuItem), YES, YES, , YES
+
+ buyst.price_box = NewSliceOfType(slRectangle, buyst.root_sl)
+ WITH *(buyst.price_box)
+  .AnchorHoriz = 1
+  .AlignHoriz = 1
+  .AnchorVert = 2
+  .AlignVert = 2
+  .Y = -3
+  .Height = 16
+ END WITH
+ ChangeRectangleSlice buyst.price_box, 0
+ 
+ buyst.price_sl = NewSliceOfType(slText, buyst.price_box)
+ WITH *(buyst.price_sl)
+  .AnchorVert = 1
+  .AlignVert = 1
+  .AnchorHoriz = 1
+  .AlignHoriz = 1
+ END WITH
+ ChangeTextSlice buyst.price_sl, "Price goes here", uilook(uiText), YES
+
+ buyst.alert_box = NewSliceOfType(slRectangle, buyst.root_sl)
+ WITH *(buyst.alert_box)
+  .AnchorHoriz = 1
+  .AlignHoriz = 1
+  .AnchorVert = 2
+  .AlignVert = 2
+  .Y = -3
+  .Height = 16
+ END WITH
+ ChangeRectangleSlice buyst.alert_box, 2
+ 
+ buyst.alert_sl = NewSliceOfType(slText, buyst.alert_box)
+ WITH *(buyst.alert_sl)
+  .AnchorVert = 1
+  .AlignVert = 1
+  .AnchorHoriz = 1
+  .AlignHoriz = 1
+ END WITH
+ ChangeTextSlice buyst.alert_sl, "", uilook(uiText), YES
+ buystuff_set_alert buyst, "This is a test alert"
+
+END SUB
+
+SUB buystuff_set_alert(buyst as ShopBuyState, alert as string, byval ticks as integer = 18)
+ ChangeTextSlice buyst.alert_sl, alert
+ WITH *(buyst.alert_box)
+  .Visible = YES
+  .extra(0) = ticks
+  .Width = buyst.alert_sl->Width + 16
+ END WITH
 END SUB
 
 FUNCTION chkOOBtarg (byval target as integer, byval atk as integer) as integer
