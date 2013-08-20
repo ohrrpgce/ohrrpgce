@@ -161,6 +161,8 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
     ChangeSpriteSlice buyst.party_sl(i), , , , 0
    END IF
   NEXT i
+  ChangeSpriteSlice buyst.hire_sl, , , , walks(buyst.walk)
+
 
   'Draw the screen
   copypage holdscreen, page
@@ -269,11 +271,21 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
   loaditemdata itembuf(), her.def_weapon
   info &= (atlevel(hire_level, her.lev0.hp, her.levMax.hp) + itembuf(54 + 0)) & " " & statnames(statHP)
   buyst.hero_box->Visible = NO
+  buyst.hire_box->Visible = YES
+  ChangeSpriteSlice buyst.hire_sl, , her.sprite, her.sprite_pal
+  IF her.portrait >= 0 THEN
+   buyst.portrait_box->Visible = YES
+   ChangeSpriteSlice buyst.portrait_sl, , her.portrait, her.portrait_pal
+  ELSE
+   buyst.portrait_box->Visible = NO
+  END IF
  ELSEIF thing_kind = "item" THEN
   buy = thing."buy".ptr
   trade_str = readglobalstring(85, "Trade for", 20)
   info = readitemname(thing_id) & !"\n"
   info &= "${K" & uilook(uiDisabledItem) & "}" & readitemdescription(thing_id) & "${K-1}" & !"\n"
+  buyst.hire_box->Visible = NO
+  buyst.portrait_box->Visible = NO
   loaditemdata itembuf(), thing_id
   IF itembuf(49) > 0 THEN
    'This item is equippable
@@ -565,20 +577,26 @@ SUB buystuff_make_slices(buyst as ShopBuyState)
   .AnchorVert = 2
   .AlignVert = 2
   .Width = .parent->Width - (.parent->PaddingLeft + .parent->PaddingRight)
-  .Height = 40
+  .Height = 44
  END WITH
  
  DIM w_tmp as integer = buyst.hero_box->Width / 4
  FOR i as integer = 0 TO 3
   buyst.party_box(i) = NewSliceOfType(slRectangle, buyst.hero_box)
   WITH *(buyst.party_box(i))
-   .Width = 32
-   .Height = 40
+   .Width = 38
+   .Height = 44
    .X = w_tmp * i + (w_tmp - 32) / 2
   END WITH
   ChangeRectangleSlice buyst.party_box(i), 0, , , , transOpaque
   ChangeRectangleSlice buyst.party_box(i), , , , -1
   buyst.party_sl(i) = NewSliceOfType(slSprite, buyst.party_box(i))
+  WITH *(buyst.party_sl(i))
+   .AnchorVert = 1
+   .AlignVert = 1
+   .AnchorHoriz = 1
+   .AlignHoriz = 1
+  END WITH
   ChangeSpriteSlice buyst.party_sl(i), sprTypeHero
  NEXT i
  
@@ -588,6 +606,50 @@ SUB buystuff_make_slices(buyst as ShopBuyState)
   .Height = .parent->Height - (.parent->PaddingTop + .parent->PaddingBottom) - buyst.hero_box->Height
  END WITH
  ChangeTextSlice buyst.info_sl, "Info goes here", uilook(uiMenuItem), YES, YES, , YES
+
+ buyst.hire_box = NewSliceOfType(slRectangle, right_panel)
+ WITH *(buyst.hire_box)
+  .AnchorVert = 2
+  .AlignVert = 2
+  .X = 30
+  .Y = -20
+  .Width = 38
+  .Height = 44
+  .Visible = NO
+ END WITH
+ ChangeRectangleSlice buyst.hire_box, 3
+ 
+ buyst.hire_sl = NewSliceOfType(slSprite, buyst.hire_box)
+ WITH *(buyst.hire_sl)
+  .AnchorVert = 1
+  .AlignVert = 1
+  .AnchorHoriz = 1
+  .AlignHoriz = 1
+ END WITH
+ ChangeSpriteSlice buyst.hire_sl, sprTypeHero
+
+ buyst.portrait_box = NewSliceOfType(slRectangle, right_panel)
+ WITH *(buyst.portrait_box)
+  .AnchorVert = 2
+  .AlignVert = 2
+  .AnchorHoriz = 2
+  .AlignHoriz = 2
+  .X = -20
+  .Y = -20
+  .Width = 54
+  .Height = 54
+  .Visible = NO
+ END WITH
+ ChangeRectangleSlice buyst.portrait_box, 3
+ 
+ buyst.portrait_sl = NewSliceOfType(slSprite, buyst.portrait_box)
+ WITH *(buyst.portrait_sl)
+  .AnchorVert = 1
+  .AlignVert = 1
+  .AnchorHoriz = 1
+  .AlignHoriz = 1
+ END WITH
+ ChangeSpriteSlice buyst.portrait_sl, sprTypePortrait
 
  buyst.price_box = NewSliceOfType(slRectangle, buyst.root_sl)
  WITH *(buyst.price_box)
