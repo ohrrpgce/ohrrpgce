@@ -587,7 +587,7 @@ SUB buystuff_make_slices(buyst as ShopBuyState)
   .Width = .parent->Width - (.parent->PaddingLeft + .parent->PaddingRight)
   .Height = .parent->Height - (.parent->PaddingTop + .parent->PaddingBottom) - buyst.hero_box->Height
  END WITH
- ChangeTextSlice buyst.info_sl, "This is a ${K" & uilook(uiDisabledItem) & "}test${K-1}! Three blind mice, see how they run, they all run after the farmer's wife. ${K9}H${K10}E${K11}L${K12}L${K13}O${K-1} World! Have a nice day ${K14};)${K15}", uilook(uiMenuItem), YES, YES, , YES
+ ChangeTextSlice buyst.info_sl, "Info goes here", uilook(uiMenuItem), YES, YES, , YES
 
  buyst.price_box = NewSliceOfType(slRectangle, buyst.root_sl)
  WITH *(buyst.price_box)
@@ -617,6 +617,7 @@ SUB buystuff_make_slices(buyst as ShopBuyState)
   .AlignVert = 2
   .Y = -3
   .Height = 16
+  .Visible = NO
  END WITH
  ChangeRectangleSlice buyst.alert_box, 2
  
@@ -628,7 +629,6 @@ SUB buystuff_make_slices(buyst as ShopBuyState)
   .AlignHoriz = 1
  END WITH
  ChangeTextSlice buyst.alert_sl, "", uilook(uiText), YES
- buystuff_set_alert buyst, "This is a test alert"
 
 END SUB
 
