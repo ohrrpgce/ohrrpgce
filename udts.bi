@@ -178,8 +178,9 @@ MAKETYPE_DListItem(MenuDefItem)
 TYPE MenuDefItem  'EXTENDS BasicMenuItem
   'members copied from BasicMenuItem
   text as string  ' This is the caption actually displayed
-  col as integer
+  col as integer  ' Don't manually set this, it is calculated by draw_menu
   bgcol as integer  ' Not used
+  forcecol as integer ' used to manually override the color of the menu item (has no effect when the menu item is selected and flashing)
   unselectable as bool  ' Not used (yet)
   disabled as bool  ' set at run-time based on .tag1 and .tag2
 
