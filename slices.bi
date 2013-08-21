@@ -197,7 +197,6 @@ Type TextSliceData
  s as String
  'lines() as string
  wrap as integer
- markup as integer 'whether or not printstr color codes are interpreted. Defaults to NO
  'Declare constructor(st as string, byval col as integer = -1, byval ol as integer = YES)
  insert as integer 'char offset of insertion pointer
  show_insert as integer ' set to YES to display insertion point
@@ -364,8 +363,7 @@ DECLARE Sub ChangeTextSlice(byval sl as slice ptr,_
                       byval col as integer=-1,_
                       byval outline as integer=-2,_
                       byval wrap as integer=-2,_
-                      byval bgcol as integer=-1,_
-                      byval markup as integer=-2)
+                      byval bgcol as integer=-1)
 DECLARE Function GetTextSliceString(byval sl as slice ptr) as string
 
 DECLARE Sub DisposeSpriteSlice(byval sl as slice ptr)

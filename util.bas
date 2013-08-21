@@ -35,8 +35,7 @@ Declare Function fb_hStrRealloc Alias "fb_hStrRealloc" (byval s as FBSTRING ptr,
 'Resize a FB string or allocate a new one, and mark it temporary (equals SPEED)
 Declare Function fb_hStrAllocTemp Alias "fb_hStrAllocTemp" (byval s as FBSTRING ptr, byval size as integer) as FBSTRING ptr
 
-'--internal function used by wordwrap
-Declare Function _count_markup(z as string, byval chars as integer=0, byval markup as bool=YES) as integer
+
 
 'It is very important for this to be populated _before_ any calls to CHDIR
 DIM orig_dir as string
@@ -562,59 +561,15 @@ FUNCTION iif_string(byval condition as integer, s1 as string, s2 as string) as s
  IF condition THEN RETURN s1 ELSE RETURN s2
 END FUNCTION
 
-Function _count_markup(z as string, byval chars as integer=0, byval markup as bool=YES) as integer
- if not markup then return 0
-
- dim n as integer = 0
- dim norm as integer = 0
- dim i as integer = 1
- dim ch as string
- dim chunk as string
- dim mode as integer = 0
- 
- do while i <= len(z)
-  ch = mid(z, i, 1)
-  select case mode
-   case 0: 'normal text
-    if chars > 0 andalso norm >= chars then
-     exit do
-    end if
-    if ch = "$" then
-     chunk = mid(z, i, 3)
-     if chunk = "${F" orelse chunk = "${K" then
-      mode = 1
-      n += 1
-     end if
-    else
-     norm += 1
-    end if
-   case 1: 'inside a markup tag
-    n += 1
-    if ch = "}" then mode = 0
-  end select
-  i += 1
- loop
- 
- return n
-End function
-
 'returns a copy of the string with separators inserted; use together with split()
-Function wordwrap(z as string, byval wid as integer, sep as string = chr(10), byval markup as bool=NO) as string
-
- 'if markup = YES then ignore Font/Color codes when wrapping.
- 'see render_text() in allmodex.bas for more information
-
+Function wordwrap(z as string, byval wid as integer, sep as string = chr(10)) as string
  dim as string ret, in
  in = z
-
- dim as integer i, j, skip
+ if len(in) <= wid then return in
  
- skip = _count_markup(in, wid, markup)
- if len(in) <= wid + skip then return in
- 
+ dim as integer i, j
  do
-  skip = _count_markup(in, wid, markup)
-  for i = 1 to small(wid + 1, len(in)) + skip
+  for i = 1 to small(wid + 1, len(in))
    if mid(in, i, 1) = sep then
     ret &= left(in, i - 1) & sep
     in = mid(in, i + 1)
@@ -636,14 +591,12 @@ Function wordwrap(z as string, byval wid as integer, sep as string = chr(10), by
     continue do
    end if
   next
-  
-  skip = _count_markup(in, wid, markup)
   if j = 0 then 'words too long, we need to cut it off
-   ret &= left(in, wid + skip) & sep
+   ret &= left(in, wid) & sep
    in = mid(in, wid + 1)
   end if
  loop while in <> ""
-
+ 
  return ret
  
 end function
