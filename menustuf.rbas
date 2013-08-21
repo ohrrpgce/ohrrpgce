@@ -167,6 +167,7 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
   'Draw the screen
   copypage holdscreen, page
   DrawSlice buyst.root_sl, page
+  draw_menu buyst.info, buyst.info_st, page
   draw_menu menu, st, page
   setvispage vpage
   dowait
@@ -255,12 +256,30 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
  DIM itembuf(dimbinsize(binITM)) as integer
  DIM trade_str as string
  
+ ClearMenuData buyst.info
+  IF buyst.info_sl = 0 THEN
+   debug "buyst.info_sl null ptr"
+  ELSE
+  WITH buyst.info
+   .offset.x = buyst.info_sl->ScreenX - 160 + buyst.info_sl->Width / 2
+   .offset.y = buyst.info_sl->ScreenY - 102
+   .anchor.y = -1
+   .bordersize = -8
+   .maxrows = buyst.info_sl->Height / 8
+   .itemspacing = -2
+   .min_chars = buyst.info_sl->Width / 8
+   .max_chars = buyst.info_sl->Width / 8
+   .no_box = YES 'comment this out if you want to change/debug the box positioning
+   END WITH
+ END IF
+ 
  IF thing_kind = "hero" THEN
   buy = thing."hire".ptr
   trade_str = readglobalstring(87, "Joins for", 20)
   DIM her as herodef
   loadherodata her, thing_id
-  info = her.name & !"\n"
+  append_menu_item buyst.info, her.name
+  buyst.info.last->disabled = YES
   DIM hire_level as integer
   IF thing."level".exists THEN
    hire_level = thing."level".integer
@@ -269,7 +288,8 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
    IF hire_level < 0 THEN hire_level = averagelev()
   END IF
   loaditemdata itembuf(), her.def_weapon
-  info &= (atlevel(hire_level, her.lev0.hp, her.levMax.hp) + itembuf(54 + 0)) & " " & statnames(statHP)
+  append_menu_item buyst.info, (atlevel(hire_level, her.lev0.hp, her.levMax.hp) + itembuf(54 + 0)) & " " & statnames(statHP)
+  buyst.info.last->disabled = YES
   buyst.hero_box->Visible = NO
   buyst.hire_box->Visible = YES
   ChangeSpriteSlice buyst.hire_sl, , her.sprite, her.sprite_pal
@@ -281,9 +301,18 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
   END IF
  ELSEIF thing_kind = "item" THEN
   buy = thing."buy".ptr
+  
   trade_str = readglobalstring(85, "Trade for", 20)
-  info = readitemname(thing_id) & !"\n"
-  info &= "${K" & uilook(uiDisabledItem) & "}" & readitemdescription(thing_id) & "${K-1}" & !"\n"
+  append_menu_item buyst.info, readitemname(thing_id)
+
+  DIM desc_str as string = wordwrap(readitemdescription(thing_id), buyst.info_sl->Width / 8)
+  REDIM spl() as string
+  split desc_str, spl()
+  FOR i as integer = 0 TO UBOUND(spl)
+   append_menu_item buyst.info, spl(i)
+   buyst.info.last->forcecol = uilook(uiDisabledItem)
+  NEXT i
+  
   buyst.hire_box->Visible = NO
   buyst.portrait_box->Visible = NO
   loaditemdata itembuf(), thing_id
@@ -291,20 +320,20 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
    'This item is equippable
    buyst.hero_box->Visible = YES
    DIM eqprefix as string = readglobalstring(99, "Equip:", 10)
-   IF itembuf(49) = 1 THEN info &= eqprefix & " " & readglobalstring(38, "Weapon", 10)
-   IF itembuf(49) > 1 THEN info &= eqprefix & " " & readglobalstring(23 + itembuf(49), "Armor" & itembuf(49)-1)
-   info  &= !"\n"
+   IF itembuf(49) = 1 THEN append_menu_item buyst.info, eqprefix & " " & readglobalstring(38, "Weapon", 10)
+   IF itembuf(49) > 1 THEN append_menu_item buyst.info, eqprefix & " " & readglobalstring(23 + itembuf(49), "Armor" & itembuf(49)-1)
    DIM bonus as integer
    FOR i as integer = 0 to 11
     bonus = itembuf(54 + i)
     IF bonus <> 0 THEN
      IF bonus > 0 THEN
-      info &= "${K" & uilook(uiSelectedItem) & "}+"
+      append_menu_item buyst.info, "+" & bonus & " " & statnames(i)
+      buyst.info.last->forcecol = uilook(uiSelectedItem)
      END IF
      IF bonus < 0 THEN
-      info &= "${K" & uilook(uiSelectedDisabled) & "}"
+      append_menu_item buyst.info, bonus & " " & statnames(i)
+      buyst.info.last->forcecol = uilook(uiSelectedDisabled)
      END IF
-     info &= bonus & " " & statnames(i) & "${K-1}" & !"\n"
     END IF
    NEXT i
    DIM hero_id as integer
@@ -329,7 +358,7 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
   IF thing_parent THEN
    DIM thing_slot as integer = GetInteger(thing_parent)
    IF gam.stock(buyst.shop_id, thing_slot) > 1 THEN
-    info &= gam.stock(buyst.shop_id, thing_slot) - 1 & " " & readglobalstring(97, "in stock", 20) & !"\n"
+    append_menu_item buyst.info, gam.stock(buyst.shop_id, thing_slot) - 1 & " " & readglobalstring(97, "in stock", 20)
    END IF
   END IF
   
@@ -355,7 +384,10 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
   ChangeTextSlice buyst.price_sl, price_str
   buyst.price_box->Width = small(buyst.price_sl->Width + 16, 320)
  END IF
- ChangeTextSlice buyst.info_sl, info
+
+ init_menu_state buyst.info_st, buyst.info
+ buyst.info_st.active = NO
+ 
 END SUB
 
 FUNCTION buystuff_can_show(byval slot as NodePtr, buyst as ShopBuyState) as bool
@@ -600,12 +632,13 @@ SUB buystuff_make_slices(buyst as ShopBuyState)
   ChangeSpriteSlice buyst.party_sl(i), sprTypeHero
  NEXT i
  
- buyst.info_sl = NewSliceOfType(slText, info_box)
+ 'info_sl is just used later to set the position and size of the info menu
+ buyst.info_sl = NewSliceOfType(slContainer, info_box)
  WITH *(buyst.info_sl)
   .Width = .parent->Width - (.parent->PaddingLeft + .parent->PaddingRight)
   .Height = .parent->Height - (.parent->PaddingTop + .parent->PaddingBottom) - buyst.hero_box->Height
  END WITH
- ChangeTextSlice buyst.info_sl, "Info goes here", uilook(uiMenuItem), YES, YES, , YES
+ RefreshSliceScreenPos buyst.info_sl
 
  buyst.hire_box = NewSliceOfType(slRectangle, right_panel)
  WITH *(buyst.hire_box)

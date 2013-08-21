@@ -192,6 +192,8 @@ TYPE ShopBuyState
   portrait_sl    as Slice Ptr
   tog            as integer
   walk           as integer
+  info           as MenuDef
+  info_st        as MenuState
 END TYPE
 
 TYPE OrderTeamState
