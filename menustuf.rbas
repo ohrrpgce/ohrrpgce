@@ -382,7 +382,12 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
    END WITHNODE
   END READNODE
   ChangeTextSlice buyst.price_sl, price_str
-  buyst.price_box->Width = small(buyst.price_sl->Width + 16, 320)
+  IF LEN(price_str) THEN
+   buyst.price_box->Visible = YES
+   buyst.price_box->Width = small(buyst.price_sl->Width + 16, 320)
+  ELSE
+   buyst.price_box->Visible = NO
+  END IF
  END IF
 
  init_menu_state buyst.info_st, buyst.info
