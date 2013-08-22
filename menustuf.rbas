@@ -310,7 +310,7 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
   split desc_str, spl()
   FOR i as integer = 0 TO UBOUND(spl)
    append_menu_item buyst.info, spl(i)
-   buyst.info.last->forcecol = uilook(uiDisabledItem)
+   buyst.info.last->col = uilook(uiDisabledItem)
   NEXT i
   
   buyst.hire_box->Visible = NO
@@ -328,11 +328,11 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
     IF bonus <> 0 THEN
      IF bonus > 0 THEN
       append_menu_item buyst.info, "+" & bonus & " " & statnames(i)
-      buyst.info.last->forcecol = uilook(uiSelectedItem)
+      buyst.info.last->col = uilook(uiSelectedItem)
      END IF
      IF bonus < 0 THEN
       append_menu_item buyst.info, bonus & " " & statnames(i)
-      buyst.info.last->forcecol = uilook(uiSelectedDisabled)
+      buyst.info.last->col = uilook(uiSelectedDisabled)
      END IF
     END IF
    NEXT i
