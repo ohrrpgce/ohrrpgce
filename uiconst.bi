@@ -5,7 +5,6 @@
 '
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 '
-CONST uiColors = 62				'last color entry (used by save/load for uicolors.bin lump)
 CONST uiColorLast = 17
 CONST uiBoxLast = 14
 
@@ -27,8 +26,8 @@ CONST uiDescription = 15		'Spell description
 CONST uiGold = 16				'Total cash
 CONST uiShadow = 17				'Vehicle shadow
 
-'When you add more constants you MUST update how UI colours are automatically remapped, in nearestui in menus.bas
-'and also the indication of used master palette colour in masterpalettemenu
-'GuessDefaultUIColors
+'When you add more constants you should check how UI colours are
+'automatically remapped, in nearestui in menus.bas and also the indication
+'of used master palette colour in masterpalettemenu, GuessDefaultUIColors
 
 #ENDIF
