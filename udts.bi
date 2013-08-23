@@ -981,4 +981,10 @@ TYPE ArrowSet
   cancel2 as integer  'ALT
 END TYPE
 
+TYPE BoxStyle
+ edgecol as integer
+ bgcol as integer
+ border as integer '0 for none, >= 1 is border sprite id -1
+END TYPE
+
 #ENDIF

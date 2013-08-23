@@ -99,11 +99,11 @@ declare Sub SaveVehicle OVERLOAD (file as string, veh() as integer, vehname as s
 declare Sub SaveVehicle OVERLOAD (file as string, vehicle as VehicleData, byval record as integer)
 declare Sub ClearVehicle (vehicle as VehicleData)
 
-declare Sub SaveUIColors (colarray() as integer, byval palnum as integer)
-declare Sub LoadUIColors (colarray() as integer, byval palnum as integer=-1)
-declare Sub DefaultUIColors (colarray() as integer)
-declare Sub OldDefaultUIColors (colarray() as integer)
-declare Sub GuessDefaultUIColors (masterpal() as RGBcolor, colarray() as integer)
+declare Sub SaveUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as integer)
+declare Sub LoadUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as integer=-1)
+declare Sub DefaultUIColors (colarray() as integer, boxarray() as BoxStyle)
+declare Sub OldDefaultUIColors (colarray() as integer, boxarray() as BoxStyle)
+declare Sub GuessDefaultUIColors (masterpal() as RGBcolor, colarray() as integer, boxarray() as BoxStyle)
 
 declare Sub LoadTextBox (byref box as TextBox, byval record as integer)
 declare Sub SaveTextBox (byref box as TextBox, byval record as integer)

@@ -486,8 +486,8 @@ SUB edgeboxstyle (byval x as integer, byval y as integer, byval w as integer, by
   debug "edgeboxstyle: invalid boxstyle " & boxstyle
   EXIT SUB
  END IF
- DIM col as integer = uilook(uiTextBox + 2 * boxstyle)
- DIM bordercol as integer = uilook(uiTextBox + 2 * boxstyle + 1)
+ DIM col as integer = boxlook(boxstyle).bgcol
+ DIM bordercol as integer = boxlook(boxstyle).edgecol
  DIM borders as integer = boxstyle
  DIM trans as RectTransTypes = transOpaque
  IF supress_borders THEN borders = -1
@@ -514,7 +514,7 @@ ELSEIF border >= 0 AND border <= 14 THEN
  IF trans <> transHollow THEN drawbox fr, x, y, w, h, bordercol
  DIM as integer i, borderindex
  DIM border_gfx as GraphicPair
- borderindex = uilook(uiTextBoxFrame + border) - 1
+ borderindex = boxlook(border).border - 1
  IF borderindex >= 0 THEN
   load_sprite_and_pal border_gfx, 7, borderindex
  END IF
@@ -1020,7 +1020,7 @@ SUB showerror (msg as string, byval isfatal as integer = NO)
  REDIM default_palette(255) as RGBcolor
  load_default_master_palette default_palette()
  setpal default_palette()
- DefaultUIColors uilook()
+ DefaultUIColors uilook(), boxlook()
  clearpage 0
  basic_textbox msg + quitmsg, uilook(uiText), 0
  setvispage 0
@@ -1046,14 +1046,14 @@ SUB showerror (msg as string, byval isfatal as integer = NO)
 
   IF activepalette > -1 THEN
    loadpalette master(), activepalette
-   LoadUIColors uilook(), activepalette
+   LoadUIColors uilook(), boxlook(), activepalette
   END IF
  #ELSE
 
   'Restore game's master palette and ui colors
   IF gam.current_master_palette > -1 THEN
    loadpalette master(), gam.current_master_palette
-   LoadUIColors uilook(), gam.current_master_palette
+   LoadUIColors uilook(), boxlook(), gam.current_master_palette
   END IF
  #ENDIF
  setpal master()
@@ -2990,7 +2990,6 @@ DIM p as integer
 DIM y as integer
 DIM temp as integer
 DIM fh as integer
-DIM uilook_temp(uiColors) as integer
 DIM master_temp(255) as RGBcolor
 
 upgrademessages = 0
@@ -3381,6 +3380,9 @@ setbinsize binN, curbinsize(binN)
 updaterecordlength workingdir + SLASH + "uicolors.bin", binUICOLORS
 
 '--give each palette a default ui color set
+DIM uilook_temp(uiColorLast) as integer
+DIM boxlook_temp(uiBoxLast) as BoxStyle
+
 DIM uirecords as integer = FILELEN(workingdir + SLASH + "uicolors.bin") \ getbinsize(binUICOLORS)
 IF uirecords < gen(genMaxMasterPal) + 1 THEN
  upgrade_message "Adding default UI colors..."
@@ -3388,26 +3390,26 @@ IF uirecords < gen(genMaxMasterPal) + 1 THEN
  FOR i as integer = uirecords TO gen(genMaxMasterPal)
   'In old games (before uicolors.bin was added), use the old fixed color indices, for compatibility
   IF original_genVersion <= 7 THEN  'Before Ypsiliform WIPs
-   OldDefaultUIColors uilook_temp()
-   SaveUIColors uilook_temp(), i
+   OldDefaultUIColors uilook_temp(), boxlook_temp()
+   SaveUIColors uilook_temp(), boxlook_temp(), i
   ELSE
    'Otherwise, missing records is a bug. Do nearest match with default
    loadpalette master_temp(), i
-   GuessDefaultUIColors master_temp(), uilook_temp()
-   SaveUIColors uilook_temp(), i
+   GuessDefaultUIColors master_temp(), uilook_temp(), boxlook_temp()
+   SaveUIColors uilook_temp(), boxlook_temp(), i
   END IF
  NEXT
 END IF
 
 'Work around a bug: vehicle shadow colour shouldn't be 0
 FOR i as integer = 0 TO gen(genMaxMasterPal)
- LoadUIColors uilook_temp(), i
+ LoadUIColors uilook_temp(), boxlook_temp(), i
  IF uilook_temp(uiShadow) = 0 THEN
   loadpalette master_temp(), i
   'This is a hack. Unfortunately ellipse slice border and fill colors can't be 0 as that
   'counts as transparent. This is a design mistake in ellipse slices, but is too much trouble to fix
   uilook_temp(uiShadow) = nearcolor(master_temp(), 0, 1)
-  SaveUIColors uilook_temp(), i
+  SaveUIColors uilook_temp(), boxlook_temp(), i
  END IF
 NEXT
 

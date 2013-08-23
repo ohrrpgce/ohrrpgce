@@ -837,9 +837,9 @@ SUB percent_cond_editor (cond as AttackElementCondition, byval min as double, by
 END SUB
 
 SUB ui_color_editor(palnum as integer)
- DIM i as integer
  DIM index as integer
- DIM default_colors(uiColors) as integer
+ DIM default_colors(uiColorLast) as integer
+ DIM default_boxes(uiBoxLast) as BoxStyle
 
  DIM sample_menu as MenuDef
  ClearMenuData sample_menu
@@ -858,15 +858,18 @@ SUB ui_color_editor(palnum as integer)
  sample_state.active = YES
  init_menu_state sample_state, sample_menu
 
- GuessDefaultUIColors master(), default_colors()
+ GuessDefaultUIColors master(), default_colors(), default_boxes()
 
- LoadUIColors uilook(), palnum
+ LoadUIColors uilook(), boxlook(), palnum
 
- DIM color_menu(uiColors + 1) as string
+ DIM color_menu(-1 TO uiColorLast) as string
  make_ui_color_editor_menu color_menu(), uilook()
 
  DIM state as MenuState
  state.size = 22
+ state.first = -1
+ state.top = -1
+ state.pt = -1
  state.last = UBOUND(color_menu)
 
  setkeys
@@ -883,11 +886,11 @@ SUB ui_color_editor(palnum as integer)
     make_ui_color_editor_menu color_menu(), uilook() 
    END IF
   END IF
-
-  index = state.pt - 1
+  
+  index = state.pt
 
   IF enter_space_click(state) THEN
-   IF state.pt = 0 THEN
+   IF state.pt = -1 THEN
     EXIT DO
    ELSEIF index < uiTextBoxFrame THEN
     'Color browser
@@ -896,24 +899,16 @@ SUB ui_color_editor(palnum as integer)
    END IF
   END IF
 
-  SELECT CASE index
-   CASE 0 TO 47
-    IF intgrabber(uilook(index), 0, 255) THEN
-     make_ui_color_editor_menu color_menu(), uilook()
-     SaveUIColors uilook(), palnum
-    END IF
-   CASE 48 TO 62
-    IF zintgrabber(uilook(index), -1, gen(genMaxBoxBorder)) THEN
-     make_ui_color_editor_menu color_menu(), uilook()
-     SaveUIColors uilook(), palnum
-    END IF
-  END SELECT
-
   IF index >= 0 THEN
+   IF intgrabber(uilook(index), 0, 255) THEN
+    make_ui_color_editor_menu color_menu(), uilook()
+    SaveUIColors uilook(), boxlook(), palnum
+   END IF
+
    IF keyval(scCtrl) > 0 AND keyval(scD) > 1 THEN ' Ctrl+D
     uilook(index) = default_colors(index)
     make_ui_color_editor_menu color_menu(), uilook()
-    SaveUIColors uilook(), palnum
+    SaveUIColors uilook(), boxlook(), palnum
    END IF
   END IF
 
@@ -923,20 +918,14 @@ SUB ui_color_editor(palnum as integer)
   SELECT CASE index
    CASE 5,6 ' selected disabled
     sample_state.pt = 2
-   CASE 18 TO 47
-    sample_menu.boxstyle = (state.pt - 19) \ 2
-   CASE 48 TO 62
-    sample_menu.boxstyle = index - 48
   END SELECT
 
   '--draw screen
   clearpage dpage
   draw_menu sample_menu, sample_state, dpage
   standardmenu color_menu(), state, 10, 0, dpage
-  FOR i = state.top TO state.top + state.size
-   IF i > 0  AND i <= 48 THEN
-    rectangle 0, 8 * (i - state.top), 8, 8, uilook(i - 1), dpage
-   END IF
+  FOR i as integer = large(state.top, 0) TO small(state.top + state.size, state.last)
+   rectangle 0, 8 * (i - state.top), 8, 8, uilook(i), dpage
   NEXT i
   edgeprint "Ctrl+D to revert to default", 100, 190, uilook(uiText), dpage
 
@@ -944,7 +933,7 @@ SUB ui_color_editor(palnum as integer)
   setvispage vpage
   dowait
  LOOP
- SaveUIColors uilook(), palnum
+ SaveUIColors uilook(), boxlook(), palnum
  ClearMenuData sample_menu
 END SUB
 
@@ -954,15 +943,149 @@ SUB make_ui_color_editor_menu(m() as string, colors() as integer)
       "Selected disabled item (B)", "Hilight (A)", "Hilight (B)", "Time bar", _
       "Time bar (full)", "Health bar", "Health bar (flash)", "Default Text", _
       "Text outline", "Spell description", "Total money", "Vehicle shadow"}
- DIM i as integer
- m(0) = "Previous Menu"
- FOR i = 0 TO 17
-  m(1 + i) = cap(i) & ": " & colors(i)
+ m(-1) = "Previous Menu"
+ FOR i as integer = 0 TO UBOUND(cap)
+  m(i) = cap(i) & ": " & colors(i)
  NEXT i
- FOR i = 0 TO 14
-  m(19 + i*2) = "Box style " & i & " color:  " & colors(18 + i*2)
-  m(19 + i*2 + 1) = "Box style " & i & " border: " & colors(18 + i*2 + 1)
-  m(49 + i) = "Box style " & i & " border image: " & zero_default(colors(48 + i), "none", -1)
+END SUB
+
+SUB ui_boxstyle_editor(palnum as integer)
+ DIM index as integer
+ DIM kind as integer
+ DIM default_colors(uiColorLast) as integer
+ DIM default_boxes(uiBoxLast) as BoxStyle
+
+ DIM sample_menu as MenuDef
+ ClearMenuData sample_menu
+ WITH sample_menu
+  .anchor.x = 1
+  .anchor.y = -1
+  .offset.x = 156
+  .offset.y = -96
+ END WITH
+ append_menu_item sample_menu, "Sample"
+ append_menu_item sample_menu, "Example"
+ append_menu_item sample_menu, "Disabled"
+ sample_menu.last->disabled = YES
+ 
+ DIM sample_state as MenuState
+ sample_state.active = YES
+ init_menu_state sample_state, sample_menu
+
+ GuessDefaultUIColors master(), default_colors(), default_boxes()
+
+ LoadUIColors uilook(), boxlook(), palnum
+
+ DIM color_menu(-1 TO uiBoxLast * 3 + 2) as string
+ make_ui_boxstyle_editor_menu color_menu(), boxlook()
+
+ DIM state as MenuState
+ state.size = 22
+ state.top = -1
+ state.pt = -1
+ state.first = -1
+ state.last = UBOUND(color_menu)
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "ui_boxstyle_editor"
+  IF usemenu(state) THEN
+  END IF
+
+  index = INT(state.pt / 3)
+  kind = state.pt MOD 3 ' 0=bgcol, 1=edgecol, 2=border
+
+  IF enter_space_click(state) THEN
+   IF state.pt = -1 THEN
+    EXIT DO
+   ELSEIF kind = 0 THEN
+    'Color browser for bgcol
+    boxlook(index).bgcol = color_browser_256(boxlook(index).bgcol)
+    make_ui_boxstyle_editor_menu color_menu(), boxlook() 
+   ELSEIF kind = 1 THEN
+    'Color browser for edgecol
+    boxlook(index).edgecol = color_browser_256(boxlook(index).edgecol)
+    make_ui_boxstyle_editor_menu color_menu(), boxlook() 
+   END IF
+  END IF
+
+  IF index >= 0 THEN
+   SELECT CASE kind
+    CASE 0:
+     IF intgrabber(boxlook(index).bgcol, 0, 255) THEN
+      make_ui_boxstyle_editor_menu color_menu(), boxlook()
+      SaveUIColors uilook(), boxlook(), palnum
+     END IF
+    CASE 1:
+     IF intgrabber(boxlook(index).edgecol, 0, 255) THEN
+      make_ui_boxstyle_editor_menu color_menu(), boxlook()
+      SaveUIColors uilook(), boxlook(), palnum
+     END IF
+    CASE 2:
+     IF zintgrabber(boxlook(index).border, -1, gen(genMaxBoxBorder)) THEN
+      make_ui_boxstyle_editor_menu color_menu(), boxlook()
+      SaveUIColors uilook(), boxlook(), palnum
+     END IF
+   END SELECT
+  END IF
+
+  IF index >= 0 THEN
+   IF keyval(scCtrl) > 0 AND keyval(scD) > 1 THEN ' Ctrl+D
+    SELECT CASE kind
+     CASE 0:
+      boxlook(index).bgcol = default_boxes(index).bgcol
+      make_ui_boxstyle_editor_menu color_menu(), boxlook()
+      SaveUIColors uilook(), boxlook(), palnum
+     CASE 1:
+      boxlook(index).edgecol = default_boxes(index).edgecol
+      make_ui_boxstyle_editor_menu color_menu(), boxlook()
+      SaveUIColors uilook(), boxlook(), palnum
+     CASE 2:
+      boxlook(index).border = default_boxes(index).border
+      make_ui_boxstyle_editor_menu color_menu(), boxlook()
+      SaveUIColors uilook(), boxlook(), palnum
+    END SELECT
+   END IF
+  END IF
+
+  '--update sample according to what you have highlighted
+  sample_menu.boxstyle = 0
+  sample_state.pt = 0
+  IF index >= 0 THEN
+   sample_menu.boxstyle = index
+  END IF
+
+  '--draw screen
+  clearpage dpage
+  draw_menu sample_menu, sample_state, dpage
+  standardmenu color_menu(), state, 10, 0, dpage
+  FOR i as integer = large(state.top, 0) TO small(state.top + state.size, state.last)
+   IF i MOD 3 = 0 THEN
+    rectangle 0, 8 * (i - state.top), 8, 8, boxlook(INT(i / 3)).bgcol, dpage
+   END IF
+   IF i MOD 3 = 1 THEN
+    rectangle 0, 8 * (i - state.top), 8, 8, boxlook(INT(i / 3)).edgecol, dpage
+   END IF
+  NEXT i
+  edgeprint "Ctrl+D to revert to default", 100, 190, uilook(uiText), dpage
+
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+ SaveUIColors uilook(), boxlook(), palnum
+ ClearMenuData sample_menu
+END SUB
+
+SUB make_ui_boxstyle_editor_menu(m() as string, boxes() as BoxStyle)
+ m(-1) = "Previous Menu"
+ FOR i as integer = 0 TO uiBoxLast
+  m(i * 3) = "Box style " & i & " color:  " & boxes(i).bgcol
+  m(i * 3 + 1) = "Box style " & i & " edge: " & boxes(i).edgecol
+  m(i * 3 + 2) = "Box style " & i & " border image: " & zero_default(boxes(i).border, "none", -1)
  NEXT i
 END SUB
 

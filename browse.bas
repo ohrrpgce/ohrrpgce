@@ -96,13 +96,14 @@ DIM catfg(6) as integer, catbg(6) as integer
 
 br.showHidden = NO
 
-'FIXME: do we need another uilook() constant for these "blue" directories instead of uilook(uiTextbox + 1)?
+'FIXME: do we need another uilook() constant for these "blue" directories
+' instead of boxlook(0).edgecol ?
 catfg(0) = uilook(uiMenuItem)   : catbg(0) = uilook(uiHighlight)    'selectable drives (none on unix systems)
-catfg(1) = uilook(uiTextbox + 1): catbg(1) = uilook(uiDisabledItem) 'directories
-catfg(2) = uilook(uiTextbox + 1): catbg(2) = uilook(uiBackground)   'subdirectories
+catfg(1) = boxlook(0).edgecol   : catbg(1) = uilook(uiDisabledItem) 'directories
+catfg(2) = boxlook(0).edgecol   : catbg(2) = uilook(uiBackground)   'subdirectories
 catfg(3) = uilook(uiMenuItem)   : catbg(3) = uilook(uiBackground)   'files
-catfg(4) = uilook(uiTextbox + 1): catbg(4) = uilook(uiDisabledItem) 'root of current drive
-catfg(5) = uilook(uiTextBox + 3): catbg(5) = uilook(uiDisabledItem) 'special (never used???)
+catfg(4) = boxlook(0).edgecol   : catbg(4) = uilook(uiDisabledItem) 'root of current drive
+catfg(5) = boxlook(1).edgecol   : catbg(5) = uilook(uiDisabledItem) 'special (never used???)
 catfg(6) = uilook(uiDisabledItem): catbg(6) = uilook(uiBackground)  'disabled
 
 IF needf = 1 THEN
@@ -173,7 +174,7 @@ DO
   SELECT CASE tree(br.mstate.pt).kind
    CASE bkDrive
     'this could take a while...
-    rectangle 5, 32 + br.mstate.size * 9, 310, 12, uilook(uiTextbox + 0), vpage
+    rectangle 5, 32 + br.mstate.size * 9, 310, 12, boxlook(0).edgecol, vpage
     edgeprint "Reading...", 8, 34 + br.mstate.size * 9, uilook(uiText), vpage
     setvispage vpage
     IF hasmedia(tree(br.mstate.pt).filename) THEN
@@ -518,7 +519,7 @@ IF br.mstate.last AND 15 THEN EXIT SUB
 WITH br
  IF .ranalready THEN
   .meter = small(.meter + 1, 308)
-  rectangle 5 + .meter, 33 + .mstate.size * 9, 2, 5, uilook(uiTextbox + 1), vpage
+  rectangle 5 + .meter, 33 + .mstate.size * 9, 2, 5, boxlook(0).bgcol, vpage
   setvispage vpage 'refresh
  END IF
 END WITH
@@ -557,7 +558,7 @@ END FUNCTION
 
 SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
  'for progress meter
- IF br.ranalready THEN rectangle 5, 32 + br.mstate.size * 9, 310, 12, uilook(uiTextbox + 0), vpage
+ IF br.ranalready THEN rectangle 5, 32 + br.mstate.size * 9, 310, 12, boxlook(0).edgecol, vpage
  br.meter = 0
 
  'erase old list

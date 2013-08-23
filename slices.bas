@@ -842,8 +842,8 @@ end sub
 
 Sub UpdateRectangleSliceStyle(byval dat as RectangleSliceData ptr)
  IF dat->style >= -1 ANDALSO dat->style <= 14 THEN
-  dat->bgcol = uiLook(uiTextbox + dat->style * 2)
-  dat->fgcol = uiLook(uiTextbox + dat->style * 2 + 1)
+  dat->bgcol = boxlook(dat->style).bgcol
+  dat->fgcol = boxlook(dat->style).edgecol
   dat->border = dat->style
  ELSE
   debug "bad rect style " & dat->style
@@ -2647,30 +2647,5 @@ FUNCTION SliceDebugCheck(sl as Slice Ptr) as integer
  next i
  RETURN NO
 END FUNCTION
-
-'==Epic prophecy of the construcinator=========================================
-/'
-
-AND SO THE PROPHECY WAS SPOKEN:
-
-WHEN SO THE SOURCE IS COMPILED WITH -LANG FB, THEN THE LEGENDARY CONSTRUCTORS SHALL BE BORN
-Constructor RectangleSliceData (byval bg as integer = -1, byval tr as RectTransType = rectFuzzy, byval fg as integer = -1, byval bor as integer = -1)
- with this
-  .bgcol = bg
-  if fgcol = -1 then
-   .fgcol = uilook(uiTextBoxFrame)
-  else
-   .fgcol = fg
-  end if
-  if bgcol = -1 then
-   .bgcol = uilook(uiTextBox)
-  else
-   .bgcol = fg
-  end if
-  .border = bor
-  .translucent = tr
- end with
-End Constructor
-'/
 
 End Extern

@@ -5,7 +5,9 @@
 '
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 '
-CONST uiColors = 62				'last color entry
+CONST uiColors = 62				'last color entry (used by save/load for uicolors.bin lump)
+CONST uiColorLast = 17
+CONST uiBoxLast = 14
 
 CONST uiBackground = 0          'background colour (not for transparent! transparent is always 0)
 CONST uiMenuItem = 1			'normal menu item

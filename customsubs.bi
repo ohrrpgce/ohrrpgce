@@ -32,6 +32,9 @@ DECLARE SUB percent_cond_editor (cond as AttackElementCondition, byval min as do
 
 DECLARE SUB ui_color_editor(palnum as integer)
 DECLARE SUB make_ui_color_editor_menu(m() as string, colors() as integer)
+DECLARE SUB ui_boxstyle_editor(palnum as integer)
+DECLARE SUB make_ui_boxstyle_editor_menu(m() as string, boxes() as BoxStyle)
+
 DECLARE FUNCTION pick_ogg_quality(byref quality as integer) as integer
 DECLARE FUNCTION needaddset (byref pt as integer, byref check as integer, what as string) as integer
 DECLARE FUNCTION intgrabber_with_addset (byref pt as integer, byval min as integer, byval max as integer, byval maxmax as integer=32767, what as string, byval less as integer=scLeft, byval more as integer=scRight) as integer

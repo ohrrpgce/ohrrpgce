@@ -266,7 +266,7 @@ FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp as stri
     importmasterpal srcbmp, gen(genMaxMasterPal) + 1
     activepalette = gen(genMaxMasterPal)
     setpal master()
-    LoadUIColors uilook(), activepalette
+    LoadUIColors uilook(), boxlook(), activepalette
    END IF
   END IF
   img = frame_import_bmp_raw(srcbmp)

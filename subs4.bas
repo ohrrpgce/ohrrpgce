@@ -867,14 +867,14 @@ SUB export_master_palette ()
 END SUB
 
 SUB masterpalettemenu
-DIM menu(8) as string
-DIM menu_display(8) as string
-DIM shaded(8) as bool
+DIM menu(9) as string
+DIM menu_display(9) as string
+DIM shaded(9) as bool
 DIM oldpal as integer
 DIM palnum as integer = activepalette
 loadpalette master(), palnum
 setpal master()
-LoadUIColors uilook(), palnum
+LoadUIColors uilook(), boxlook(), palnum
 
 DIM selectst as SelectTypeState
 DIM state as MenuState
@@ -899,7 +899,7 @@ DO
   IF needaddset(palnum, gen(genMaxMasterPal), "Master Palette") THEN
    IF importmasterpal("", palnum) THEN
     setpal master()
-    LoadUIColors uilook(), palnum
+    LoadUIColors uilook(), boxlook(), palnum
     state.need_update = YES     
    ELSE
     palnum -= 1
@@ -918,7 +918,7 @@ DO
  IF palnum <> oldpal THEN
   loadpalette master(), palnum
   setpal master()
-  LoadUIColors uilook(), palnum
+  LoadUIColors uilook(), boxlook(), palnum
   state.need_update = YES
  END IF
 
@@ -929,7 +929,7 @@ DO
   CASE 2
     IF importmasterpal("", palnum) THEN
      setpal master()
-     LoadUIColors uilook(), palnum
+     LoadUIColors uilook(), boxlook(), palnum
      state.need_update = YES
     END IF
   CASE 3
@@ -938,10 +938,10 @@ DO
     ui_color_editor palnum
   CASE 5
     nearestui activepalette, master(), uilook()
-    SaveUIColors uilook(), palnum
+    SaveUIColors uilook(), boxlook(), palnum
   CASE 6
-    LoadUIColors uilook(), activepalette
-    SaveUIColors uilook(), palnum
+    LoadUIColors uilook(), boxlook(), activepalette
+    SaveUIColors uilook(), boxlook(), palnum
   CASE 7
     gen(genMasterPal) = palnum
     'Instant live-previewing
@@ -950,6 +950,8 @@ DO
   CASE 8
     activepalette = palnum
     state.need_update = YES
+  CASE 9
+    ui_boxstyle_editor palnum
   END SELECT
  END IF
 
@@ -971,7 +973,7 @@ DO
   rectangle 34 + (i MOD 16) * 16, 78 + (i \ 16) * 7, 12, 5, i, dpage
  NEXT
  IF state.pt = 4 OR state.pt = 5 OR state.pt = 6 THEN
-  FOR i as integer = 0 TO uiColors
+  FOR i as integer = 0 TO uiColorLast
    drawbox 33 + (uilook(i) MOD 16) * 16, 77 + (uilook(i) \ 16) * 7, 14, 7, uilook(uiHighlight + state.tog), 1, dpage
   NEXT
  END IF
@@ -984,7 +986,7 @@ LOOP
 IF activepalette <> palnum THEN
  loadpalette master(), activepalette
  setpal master()
- LoadUIColors uilook(), activepalette
+ LoadUIColors uilook(), boxlook(), activepalette
 END IF
 
 END SUB
@@ -1007,6 +1009,7 @@ SUB update_masterpalette_menu(menu() as string, shaded() as bool, palnum as inte
  ELSE
   menu(8) = "Set as active editing palette"
  END IF
+ menu(9) = "Edit Box Styles..."
 
  FOR i as integer = 0 TO UBOUND(shaded)
   shaded(i) = NO
@@ -1042,7 +1045,7 @@ IF f <> "" THEN
 
  IF palnum > gen(genMaxMasterPal) THEN gen(genMaxMasterPal) = palnum
  savepalette master(), palnum
- SaveUIColors uilook(), palnum
+ SaveUIColors uilook(), boxlook(), palnum
  RETURN -1
 END IF
 RETURN 0
@@ -1051,9 +1054,10 @@ END FUNCTION
 SUB nearestui (byval mimicpal as integer, newmaster() as RGBcolor, newui() as integer)
  'finds the nearest match newui() in newpal() to mimicpal's ui colours
  DIM referencepal(255) as RGBcolor
- DIM referenceui(uiColors) as integer
+ DIM referenceui(uiColorLast) as integer
+ DIM refboxstyle(uiBoxLast) as BoxStyle
  loadpalette referencepal(), mimicpal
- LoadUIColors referenceui(), mimicpal
+ LoadUIColors referenceui(), refboxstyle(), mimicpal
  remappalette referencepal(), referenceui(), newmaster(), newui()
 END SUB
 

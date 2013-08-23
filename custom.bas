@@ -83,7 +83,8 @@ REDIM gen(360)
 DIM gen_reld_doc as DocPtr
 REDIM buffer(16384)
 REDIM master(255) as RGBcolor
-REDIM uilook(uiColors)
+REDIM uilook(uiColorLast)
+REDIM boxlook(uiBoxLast) as BoxStyle
 DIM statnames() as string
 REDIM herotags(59) as HeroTagsCache
 REDIM itemtags(maxMaxItems) as ItemTagsCache
@@ -168,7 +169,7 @@ END IF
 processcommandline
 
 load_default_master_palette master()
-DefaultUIColors uilook()
+DefaultUIColors uilook(), boxlook()
 REDIM current_font(1023) as integer
 getdefaultfont current_font()
 
@@ -262,7 +263,7 @@ upgrade
 activepalette = gen(genMasterPal)
 loadpalette master(), activepalette
 setpal master()
-LoadUIColors uilook(), activepalette
+LoadUIColors uilook(), boxlook(), activepalette
 clearpage dpage
 clearpage vpage
 xbload game + ".fnt", current_font(), "Font not loaded"
@@ -386,7 +387,7 @@ END SUB
 
 SUB gfx_editor_menu()
 
- DIM menu(13) as string
+ DIM menu(14) as string
  DIM menu_display(UBOUND(menu)) as string
 
  menu(0) = "Back to the main menu"
@@ -403,6 +404,7 @@ SUB gfx_editor_menu()
  menu(11) = "Import/Export Screens"
  menu(12) = "Import/Export Full Maptile Sets"
  menu(13) = "Change User-Interface Colors"
+ menu(14) = "Change Box Styles"
 
  DIM selectst as SelectTypeState
  DIM state as MenuState
@@ -455,6 +457,7 @@ SUB gfx_editor_menu()
     tileset_empty_cache
    END IF
    IF state.pt = 13 THEN ui_color_editor(activepalette)
+   IF state.pt = 14 THEN ui_boxstyle_editor(activepalette)
    '--always resave the .GEN lump after any menu
    xbsave game + ".gen", gen(), 1000
   END IF

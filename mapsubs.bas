@@ -459,7 +459,7 @@ rectangle overlaytileset, 0, 6*20, 20, 20, uilook(uiDisabledItem)  '???
 'Leave tiles 10-12 blank
 FOR i as integer = 1 TO 3
  'fuzzyrect overlaytileset, 0, (12 + i)*20, 20, 20, uilook(uiDisabledItem), 5 * i
- fuzzyrect overlaytileset, 0, (12 + i)*20, 20, 20, uilook(uiTextBox + (15 - i) * 2 + 1), 5 * i
+ fuzzyrect overlaytileset, 0, (12 + i)*20, 20, 20, boxlook(15-i).edgecol, 5 * i
 NEXT
 
 'Plenty of tiles left for other purposes
@@ -1851,7 +1851,7 @@ SUB zonemenu_add_zone (byref zonemenu as SimpleMenuItem vector, zonecolours() as
  IF col = -1 THEN
   col = uilook(uiDisabledItem)
  ELSE
-  col = uilook(uiTextBox + 2 * col + 1)
+  col = boxlook(col).edgecol
  END IF
  IF info->name <> "" THEN extra += " " & info->name
  append_simplemenu_item zonemenu, "${K" & col & "}" & info->id & "${K" & uilook(uiText) & "}" & extra, , , info->id
@@ -1975,16 +1975,16 @@ SUB draw_zone_tileset(byval zonetileset as Frame ptr)
     IF zone AND 1 THEN
      'Horizontal
      IF onlyhalf THEN
-      drawline zonetileset, 10, tileno*20 + lineoffset, 19, tileno*20 + lineoffset, uilook(uiTextBox + 2 * zone + 1)
+      drawline zonetileset, 10, tileno*20 + lineoffset, 19, tileno*20 + lineoffset, boxlook(zone).edgecol
      ELSE
-      drawline zonetileset, 0, tileno*20 + lineoffset, 19, tileno*20 + lineoffset, uilook(uiTextBox + 2 * zone + 1)
+      drawline zonetileset, 0, tileno*20 + lineoffset, 19, tileno*20 + lineoffset, boxlook(zone).edgecol
      END IF
     ELSE
      'Vertical
      IF onlyhalf THEN
-      drawline zonetileset, lineoffset, tileno*20 + 10, lineoffset, tileno*20 + 19, uilook(uiTextBox + 2 * zone + 1)
+      drawline zonetileset, lineoffset, tileno*20 + 10, lineoffset, tileno*20 + 19, boxlook(zone).edgecol
      ELSE
-      drawline zonetileset, lineoffset, tileno*20, lineoffset, tileno*20 + 19, uilook(uiTextBox + 2 * zone + 1)
+      drawline zonetileset, lineoffset, tileno*20, lineoffset, tileno*20 + 19, boxlook(zone).edgecol
      END IF
     END IF
    NEXT
@@ -2019,7 +2019,7 @@ SUB draw_zone_tileset2(byval zonetileset as Frame ptr)
    temp = zone * 2
    IF (zone \ 2) MOD 2 = 1 THEN temp += 1  '0, 2, 5, 7, 8, 10, 13, 15
    temp = 5 * temp
-   draw_diamond zonetileset, (temp \ 20) * 5, tileno * 20 + temp MOD 20, uilook(uiTextBox + 2 * zone + 1)
+   draw_diamond zonetileset, (temp \ 20) * 5, tileno * 20 + temp MOD 20, boxlook(zone).edgecol
   NEXT
  NEXT
 END SUB
@@ -2039,7 +2039,7 @@ SUB draw_zone_tileset3(byval zonetileset as Frame ptr)
  WHILE 1
   safecol = 1 + randint(254)
   FOR zone = 0 TO 7
-   IF safecol = uilook(uiTextBox + 2 * zone + 1) THEN CONTINUE WHILE
+   IF safecol = boxlook(zone).edgecol THEN CONTINUE WHILE
   NEXT
   EXIT WHILE
  WEND
@@ -2057,12 +2057,12 @@ SUB draw_zone_tileset3(byval zonetileset as Frame ptr)
    y3 = tileno*20 + 9 + sectanty((zone + 1) MOD 8)  + centrey(zone)
 ' debug "tile " & tileno & " z " & zone & ":" & x1 & "," & y1 & " " & x3 & "," & y3
 
-   drawline zonetileset, x2, y2, x1, y1, safecol'/uilook(uiTextBox + 2 * zone + 1)
-   drawline zonetileset, x2, y2, x3, y3, safecol'/uilook(uiTextBox + 2 * zone + 1)
+   drawline zonetileset, x2, y2, x1, y1, safecol
+   drawline zonetileset, x2, y2, x3, y3, safecol
    ellipse zonetileset, 9.5, tileno*20 + 9.5, 9, (safecol AND 2) XOR 1  'Doesn't matter what colour, as long as not safecol or 0
 
    paintat zonetileset, (x1 + x2 + x3)/3, (y1 + y2 + y3)/3, safecol  'Merge with the lines
-   paintat zonetileset, (x1 + x2 + x3)/3, (y1 + y2 + y3)/3, uilook(uiTextBox + 2 * zone + 1)
+   paintat zonetileset, (x1 + x2 + x3)/3, (y1 + y2 + y3)/3, boxlook(zone).edgecol
   NEXT
  NEXT
  replacecolor zonetileset, (safecol AND 2) XOR 1, 0

@@ -683,7 +683,7 @@ SUB hero_swap_menu_display (st as OrderTeamState)
  centerbox 160, 66, 130, 38, 1, st.page
  DIM cater_slot as integer = 0
  FOR i as integer = 0 TO 3
-  IF i = st.swapme OR hero(i) > 0 THEN rectangle 105 + (30 * i), 60, 20, 20, uilook(uiTextBox), st.page
+  IF i = st.swapme OR hero(i) > 0 THEN rectangle 105 + (30 * i), 60, 20, 20, boxlook(0).bgcol, st.page
   IF hero(i) THEN
    set_walkabout_frame herow(cater_slot).sl, dirDown, 0
    DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, herow(cater_slot).sl), 105 + i * 30, 60 + (i = st.swapme) * 6, 20, 20, st.page, YES

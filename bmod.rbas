@@ -333,7 +333,7 @@ END SUB
 
 SUB battle_pause ()
  DIM pause as string = readglobalstring(54, "PAUSE", 10)
- fuzzyrect 0, 0, 320, 200, uilook(uiTextBox), vpage
+ fuzzyrect 0, 0, 320, 200, boxlook(0).bgcol, vpage
  edgeprint pause, xstring(pause, 160), 95, uilook(uiText), vpage
  setvispage vpage
  waitforanykey
@@ -908,9 +908,9 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
    IF bat.menu_mode = batMENUSPELL THEN '--draw spell menu
     centerbox 160, 53, 310, 95, 1, dpage
     IF bat.sptr < 24 THEN
-     IF bat.spell.slot(bat.sptr).desc <> "" THEN rectangle 5, 74, 311, 1, uilook(uiTextBox + 1), dpage
+     IF bat.spell.slot(bat.sptr).desc <> "" THEN rectangle 5, 74, 311, 1, boxlook(0).edgecol, dpage
     END IF
-    rectangle 5, 87, 310, 1, uilook(uiTextBox + 1), dpage
+    rectangle 5, 87, 310, 1, boxlook(0).edgecol, dpage
     FOR i = 0 TO 23
      textcolor uilook(uiDisabledItem + bat.spell.slot(i).enable), 0
      IF bat.sptr = i THEN

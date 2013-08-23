@@ -171,7 +171,8 @@ REDIM tilesets(maplayerMax) as TilesetData ptr  'tilesets is fixed size at the m
 DIM mapsizetiles as XYPair  'for convienence
 
 REDIM master(255) as RGBcolor
-REDIM uilook(uiColors) as integer
+REDIM uilook(uiColorLast) as integer
+REDIM boxlook(uiBoxLast) as BoxStyle
 REDIM current_font(1023) as integer
 
 REDIM pal16(448) as integer
@@ -282,7 +283,7 @@ presentsong = -1
 
 gam.current_master_palette = -1
 load_default_master_palette master()
-DefaultUIColors uilook()
+DefaultUIColors uilook(), boxlook()
 getdefaultfont current_font()
 setfont current_font()
 close_general_reld()
@@ -575,7 +576,7 @@ DO' This loop encloses the playable game for a specific RPG file
 
 gam.current_master_palette = gen(genMasterPal)
 loadpalette master(), gam.current_master_palette
-LoadUIColors uilook(), gam.current_master_palette
+LoadUIColors uilook(), boxlook(), gam.current_master_palette
 init_default_text_colors
 
 initgamedefaults

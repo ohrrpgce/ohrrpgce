@@ -1337,7 +1337,7 @@ SUB try_reload_lumps_anywhere ()
     gam.current_master_palette = newgen(genMasterPal)
     loadpalette master(), gam.current_master_palette
     setpal master()
-    LoadUIColors uilook(), gam.current_master_palette
+    LoadUIColors uilook(), boxlook(), gam.current_master_palette
     'Change color of script strings
     init_default_text_colors
    END IF
@@ -1365,7 +1365,7 @@ SUB try_reload_lumps_anywhere ()
    handled = YES
 
   ELSEIF modified_lumps[i] = "uicolors.bin" THEN                          'UICOLORS.BIN
-   LoadUIColors uilook(), gam.current_master_palette
+   LoadUIColors uilook(), boxlook(), gam.current_master_palette
    'Change color of script strings
    'init_default_text_colors
    handled = YES

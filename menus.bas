@@ -1451,7 +1451,7 @@ SUB draw_scrollbar(state as MenuState, rect as RectType, byval count as integer,
     slider.y = .high / count * (state.top - state.first)
     slider.high = .high / count * (state.size + 1)
     rectangle .x, .y, .wide, .high, uilook(uiBackground), page
-    rectangle .x, .y + slider.y, .wide, slider.high, uilook(uiTextBox + boxstyle * 2 + 1), page
+    rectangle .x, .y + slider.y, .wide, slider.high, boxlook(boxstyle).edgecol, page
    END WITH
   END IF
  END IF

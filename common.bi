@@ -283,6 +283,7 @@ EXTERN sourcerpg as string
 EXTERN as string game, exename, workingdir, homedir, app_dir
 EXTERN game_unique_id as string
 EXTERN uilook() as integer
+EXTERN boxlook() as BoxStyle
 EXTERN as integer vpage, dpage
 EXTERN buffer() as integer
 EXTERN fadestate as integer

@@ -41,6 +41,7 @@ declare sub create_blank_hero_reld(hero as HeroDef)
 declare sub free_hero_reld(hero as HeroDef)
 declare sub general_reld_init_buttonnames(root_node as NodePtr)
 declare sub append_trade_node (byval par as NodePtr, byval itnum as integer, byval itqty as integer)
+declare sub InternalDefaultUIColors (colarray() as integer, uidef() as integer, boxarray() as BoxStyle, boxdef() as integer)
 
 '==========================================================================================
 '                                      Helper Functions
@@ -2037,79 +2038,92 @@ END SUB
 '                                        UI Colors
 '==========================================================================================
 
-
-SUB OldDefaultUIColors (colarray() as integer)
- 'Default UI for Classic OHR master palette
- 'for upgrading old games that lak an uilook.bin file
- DIM uidef(uiColors) as integer = _
-        {0,7,8,14,15,6,7,1,2,18,21,35,37,15,240,10,14,240, _
-        18,28,34,44,50,60,66,76,82,92,98,108,114,124,130,140, _
-        146,156,162,172,178,188,194,204,210,220,226,236,242,252}
- DIM i as integer
- FOR i = 0 TO uiColors
+SUB InternalDefaultUIColors (colarray() as integer, uidef() as integer, boxarray() as BoxStyle, boxdef() as integer)
+ 'This sub just exists because I didn't want to copy-and-paste to implement
+ 'OldDefaultUIColors() and DefaultUIColors()
+ FOR i as integer = 0 TO uiColorLast
   colarray(i) = uidef(i)
- NEXT
-END SUB
-
-SUB DefaultUIColors (colarray() as integer)
- 'Default UI for NeoTA's new Master palette
- 'for the filepicker before loading a game.
- DIM uidef(uiColors) as integer = _
-                        {0,144,80,110,240,102,144,244,215,242,67,212, _
-                        215,240,0,220,110,0,242,40,211,221,83,90,182, _
-                        173,100,159,115,60,132,156,98,105,195,204,70, _
-                        66,217,210,87,82,108,232,54,116,48,160}
- DIM i as integer
- FOR i = 0 TO uiColors
-  colarray(i) = uidef(i)
- NEXT
- 'DIM hexstring as string
- 'FOR i = 0 TO uiColors
- ' hexstring += "&h" & hex(master(uidef(i)).col, 6) & ","
- 'NEXT
- 'debug "defaults: " & hexstring
-END SUB
-
-SUB GuessDefaultUIColors (masterpal() as RGBcolor, colarray() as integer)
- DIM as integer fixeddefaults(uiColors) = {&h000000,&hA19CB0,&h4F595A,&hFFFC62,&hFFFFFF,&h8E6B00,&hA19CB0,_
-       &h003B95,&h228B22,&h001D48,&h153289,&h154C15,&h228B22,&hFFFFFF,&h000000,&h6BEB61,&hFFFC62,&h000000,_
-       &h001D48,&h8084D0,&h123D12,&h98FA90,&h500000,&hFF7F7F,&h4F7A54,&hD3F88E,&h5E4600,&hF1EA89,&h471747,_
-       &hDF90FF,&h76352C,&hD3A560,&h2D2200,&hD7A100,&h4D3836,&hF6D2B6,&h2179D3,&h0E2059,&h3CB23A,&h0E300E,_
-       &hBF0000,&h340000,&hFFDD30,&hCD8316,&h8236AC,&h5F1F5F,&h2F342E,&hBAABC1}
- DIM i as integer
- DIM temp as RGBcolor
- FOR i = 0 TO 47
-  temp.col = fixeddefaults(i)
-  colarray(i) = nearcolor(masterpal(), temp.r, temp.g, temp.b)
- NEXT
- FOR i = 48 TO 62
-  'Box border pictures default to zero (none)
-  colarray(i) = 0
+ NEXT i
+ FOR i as integer = 0 TO uiBoxLast
+  boxarray(i).bgcol = boxdef(i * 2)
+  boxarray(i).edgecol = boxdef(i * 2 + 1)
  NEXT i
 END SUB
 
-SUB LoadUIColors (colarray() as integer, byval palnum as integer=-1)
+SUB OldDefaultUIColors (colarray() as integer, boxarray() as BoxStyle)
+ 'Default UI for Classic OHR master palette
+ 'for upgrading old games that lack an uilook.bin file
+ DIM uidef(uiColorLast) as integer = _
+        {0,7,8,14,15,6,7,1,2,18,21,35,37,15,240,10,14,240}
+ DIM boxdef(uiBoxLast * 2 + 1) as integer = _
+        {18,28,34,44,50,60,66,76,82,92,98,108,114,124,130,140, _
+        146,156,162,172,178,188,194,204,210,220,226,236,242,252}
+ InternalDefaultUIColors colarray(), uidef(), boxarray(), boxdef()
+END SUB
+
+SUB DefaultUIColors (colarray() as integer, boxarray() as BoxStyle)
+ 'Default UI for NeoTA's new Master palette
+ 'for the filepicker before loading a game.
+ DIM uidef(uiColorLast) as integer = _
+        {0,144,80,110,240,102,144,244,215,242,67,212,215,240,0,220,110,0}
+ DIM boxdef(uiBoxLast * 2 + 1) as integer = _
+        {242,40,211,221,83,90,182,173,100,159,115,60,132,156,98,105, _
+        195,204,70,66,217,210,87,82,108,232,54,116,48,160}
+ InternalDefaultUIColors colarray(), uidef(), boxarray(), boxdef()
+END SUB
+
+SUB GuessDefaultUIColors (masterpal() as RGBcolor, colarray() as integer, boxarray() as BoxStyle)
+ DIM c as RGBcolor
+ DIM as integer fixeddefaults(uiColorLast) = _
+    {&h000000,&hA19CB0,&h4F595A,&hFFFC62,&hFFFFFF,&h8E6B00,&hA19CB0,&h003B95,&h228B22, _
+     &h001D48,&h153289,&h154C15,&h228B22,&hFFFFFF,&h000000,&h6BEB61,&hFFFC62,&h000000}
+ FOR i as integer = 0 TO uiColorLast
+  c.col = fixeddefaults(i)
+  colarray(i) = nearcolor(masterpal(), c.r, c.g, c.b)
+ NEXT i
+ 
+ DIM boxdefaults(uiBoxLast * 2 + 1) as integer = _
+    {&h001D48,&h8084D0,&h123D12,&h98FA90,&h500000,&hFF7F7F,&h4F7A54,&hD3F88E,&h5E4600,&hF1EA89,&h471747,_
+     &hDF90FF,&h76352C,&hD3A560,&h2D2200,&hD7A100,&h4D3836,&hF6D2B6,&h2179D3,&h0E2059,&h3CB23A,&h0E300E,_
+     &hBF0000,&h340000,&hFFDD30,&hCD8316,&h8236AC,&h5F1F5F,&h2F342E,&hBAABC1}
+ FOR i as integer = 0 TO uiBoxLast
+  c.col = boxdefaults(i * 2)
+  boxarray(i).bgcol = nearcolor(masterpal(), c.r, c.g, c.b)
+  c.col = boxdefaults(i * 2 + 1)
+  boxarray(i).edgecol = nearcolor(masterpal(), c.r, c.g, c.b)
+  'Box border pictures default to zero (none)
+  boxarray(i).border = 0
+ NEXT
+END SUB
+
+SUB LoadUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as integer=-1)
  'load ui colors from data lump
  DIM filename as string
  filename = workingdir & SLASH & "uicolors.bin"
 
  IF palnum < 0 OR palnum > gen(genMaxMasterPal) OR NOT isfile(filename) THEN
-  DefaultUIColors colarray()
+  DefaultUIColors colarray(), boxarray()
   EXIT SUB
  END IF
 
- DIM i as integer
  DIM f as integer
  f = FREEFILE
  OPEN filename FOR BINARY ACCESS READ as #f
- SEEK #f, palnum * getbinsize(binUICOLORS) + 1
- FOR i = 0 TO uiColors
+ SEEK #f, palnum * getbinsize(binUIColors) + 1
+ FOR i as integer = 0 TO uiColorLast
   colarray(i) = ReadShort(f)
+ NEXT i
+ FOR i as integer = 0 TO uiBoxLast
+  boxarray(i).bgcol = ReadShort(f)
+  boxarray(i).edgecol = ReadShort(f)
+ NEXT i
+ FOR i as integer = 0 TO uiBoxLast
+  boxarray(i).border = ReadShort(f)
  NEXT i
  CLOSE f
 END SUB
 
-SUB SaveUIColors (colarray() as integer, byval palnum as integer)
+SUB SaveUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as integer)
  DIM filename as string
  filename = workingdir & SLASH & "uicolors.bin"
 
@@ -2118,13 +2132,19 @@ SUB SaveUIColors (colarray() as integer, byval palnum as integer)
   EXIT SUB
  END IF
 
- DIM i as integer
  DIM f as integer
  f = FREEFILE
  OPEN filename FOR BINARY as #f
  SEEK #f, palnum * getbinsize(binUICOLORS) + 1
- FOR i = 0 TO uiColors
+ FOR i as integer = 0 TO uiColorLast
   WriteShort f, -1, colarray(i)
+ NEXT i
+ FOR i as integer = 0 TO uiBoxLast
+  WriteShort f, -1, boxarray(i).bgcol
+  WriteShort f, -1, boxarray(i).edgecol
+ NEXT i
+ FOR i as integer = 0 TO uiBoxLast
+  WriteShort f, -1, boxarray(i).border
  NEXT i
  CLOSE f
 END SUB

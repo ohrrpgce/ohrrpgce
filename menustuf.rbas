@@ -1993,7 +1993,7 @@ DO
   FOR i = 0 TO 6
    textcolor uilook(uiMenuItem), uilook(uiHighlight)
    IF i < 5 THEN
-    IF eqstuf(st.who, i) = 0 AND st.eq(i).count = 0 THEN textcolor uilook(uiMenuItem), uilook(uiTextBox)
+    IF eqstuf(st.who, i) = 0 AND st.eq(i).count = 0 THEN textcolor uilook(uiMenuItem), boxlook(0).bgcol
    END IF
    IF st.slot = i THEN
     textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight + tog)
@@ -3038,7 +3038,7 @@ SUB spells_menu_paint (byref sp as SpellsMenuState)
  centerbox 206, 36, 200, 17, 2, sp.page   'name box
  centerbox 56, 50, 84, 60, 2, sp.page     'spell lists menu box
  centerbox 160, 134, 308, 96, 2, sp.page  'spell list
- rectangle 6, 168, 308, 1, uilook(uiTextBox + 3), sp.page 'divider 2
+ rectangle 6, 168, 308, 1, boxlook(1).edgecol, sp.page 'divider 2
  'top menu (spell lists)
  FOR i as integer = 0 TO sp.last
   textcolor uilook(uiMenuItem), 0
@@ -3069,7 +3069,7 @@ SUB spells_menu_paint (byref sp as SpellsMenuState)
   printstr sp.cancel_menu_caption, 16, 171, sp.page 'cancel
   IF sp.mset = 1 THEN
    IF sp.spell(sp.cursor).desc <> "" THEN
-    rectangle 6, 155, 308, 1, uilook(uiTextBox + 3), sp.page  'description divider
+    rectangle 6, 155, 308, 1, boxlook(2).edgecol, sp.page  'description divider
    END IF
    textcolor uilook(uiDescription), 0
    printstr sp.spell(sp.cursor).cost, 303 - LEN(sp.spell(sp.cursor).cost) * 8, 171, sp.page 'cost
