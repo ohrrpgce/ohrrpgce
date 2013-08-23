@@ -40,8 +40,8 @@ DECLARE SUB import_convert_mp3(byref mp3 as string, byref oggtemp as string)
 DECLARE SUB import_convert_wav(byref wav as string, byref oggtemp as string)
 DECLARE SUB inputpasw ()
 DECLARE FUNCTION dissolve_type_caption(n as integer) as string
-DECLARE SUB nearestui (byval mimicpal as integer, newpal() as RGBcolor, newui() as integer)
-DECLARE SUB remappalette (oldmaster() as RGBcolor, oldpal() as integer, newmaster() as RGBcolor, newpal() as integer)
+DECLARE SUB nearestui (byval mimicpal as integer, newpal() as RGBcolor, newui() as integer, newbox() as BoxStyle)
+DECLARE SUB remappalette (oldmaster() as RGBcolor, oldui() as integer, oldbox() as BoxStyle, newmaster() as RGBcolor, newui() as integer, newbox() as BoxStyle)
 DECLARE SUB importsong_save_song_data(sname as string, byval snum as integer)
 DECLARE SUB importsong_exportsong(songfile as string, bamfile as string, file_ext as string)
 DECLARE SUB importsong_get_song_info (sname as string, songfile as string, byval snum as integer, file_ext as string, menu() as string, selectable() as bool)
@@ -937,7 +937,7 @@ DO
   CASE 4
     ui_color_editor palnum
   CASE 5
-    nearestui activepalette, master(), uilook()
+    nearestui activepalette, master(), uilook(), boxlook()
     SaveUIColors uilook(), boxlook(), palnum
   CASE 6
     LoadUIColors uilook(), boxlook(), activepalette
@@ -1047,7 +1047,7 @@ IF f <> "" THEN
   END IF
  END IF
  'get a default set of ui colours - nearest match to the current
- nearestui activepalette, master(), uilook()
+ nearestui activepalette, master(), uilook(), boxlook()
 
  IF palnum > gen(genMaxMasterPal) THEN gen(genMaxMasterPal) = palnum
  savepalette master(), palnum
@@ -1057,23 +1057,41 @@ END IF
 RETURN 0
 END FUNCTION
 
-SUB nearestui (byval mimicpal as integer, newmaster() as RGBcolor, newui() as integer)
+SUB nearestui (byval mimicpal as integer, newmaster() as RGBcolor, newui() as integer, newbox() as BoxStyle)
  'finds the nearest match newui() in newpal() to mimicpal's ui colours
  DIM referencepal(255) as RGBcolor
  DIM referenceui(uiColorLast) as integer
  DIM refboxstyle(uiBoxLast) as BoxStyle
  loadpalette referencepal(), mimicpal
  LoadUIColors referenceui(), refboxstyle(), mimicpal
- remappalette referencepal(), referenceui(), newmaster(), newui()
+ remappalette referencepal(), referenceui(), refboxstyle(), newmaster(), newui(), newbox()
 END SUB
 
-SUB remappalette (oldmaster() as RGBcolor, oldpal() as integer, newmaster() as RGBcolor, newpal() as integer)
- FOR i as integer = 0 TO UBOUND(oldpal)
-  WITH oldmaster(oldpal(i))
-   IF .col = newmaster(oldpal(i)).col THEN
-    newpal(i) = oldpal(i)
+SUB remappalette (oldmaster() as RGBcolor, oldui() as integer, oldbox() as BoxStyle, newmaster() as RGBcolor, newui() as integer, newbox() as BoxStyle)
+ 'first the ui
+ FOR i as integer = 0 TO UBOUND(oldui)
+  WITH oldmaster(oldui(i))
+   IF .col = newmaster(oldui(i)).col THEN
+    newui(i) = oldui(i)
    ELSE
-    newpal(i) = nearcolor(newmaster(), .r, .g, .b)
+    newui(i) = nearcolor(newmaster(), .r, .g, .b)
+   END IF
+  END WITH
+ NEXT
+ 'Then the boxstyles
+ FOR i as integer = 0 TO UBOUND(oldbox)
+  WITH oldmaster(oldbox(i).bgcol)
+   IF .col = newmaster(oldbox(i).bgcol).col THEN
+    newbox(i).bgcol = oldbox(i).bgcol
+   ELSE
+    newbox(i).bgcol = nearcolor(newmaster(), .r, .g, .b)
+   END IF
+  END WITH
+  WITH oldmaster(oldbox(i).edgecol)
+   IF .col = newmaster(oldbox(i).edgecol).col THEN
+    newbox(i).edgecol = oldbox(i).edgecol
+   ELSE
+    newbox(i).edgecol = nearcolor(newmaster(), .r, .g, .b)
    END IF
   END WITH
  NEXT
