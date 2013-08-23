@@ -26,8 +26,6 @@ CONST uiOutline = 14			'Text outline colour
 CONST uiDescription = 15		'Spell description
 CONST uiGold = 16				'Total cash
 CONST uiShadow = 17				'Vehicle shadow
-CONST uiTextBox = 18			'Text box styles, 15 * (bg & border)
-CONST uiTextBoxFrame = 48			'Text box border picture set, 15 ints (not colours)
 
 'When you add more constants you MUST update how UI colours are automatically remapped, in nearestui in menus.bas
 'and also the indication of used master palette colour in masterpalettemenu
