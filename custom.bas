@@ -83,7 +83,7 @@ REDIM gen(360)
 DIM gen_reld_doc as DocPtr
 REDIM buffer(16384)
 REDIM master(255) as RGBcolor
-REDIM uilook(uiColorLast)
+REDIM uilook(uiColorLast) as integer
 REDIM boxlook(uiBoxLast) as BoxStyle
 DIM statnames() as string
 REDIM herotags(59) as HeroTagsCache
