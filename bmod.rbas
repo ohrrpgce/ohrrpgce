@@ -2288,6 +2288,14 @@ SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as For
 END SUB
 
 SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as herodef)
+
+ WITH bslot(bat.hero_turn)
+  IF .stat.cur.stun < .stat.max.stun THEN
+   'Normally a hero cannot get a turn when stunned, but this extra check is needed
+   'for the race condition that happens when a hero gets stunned while it is their tirn in turnACTIVE mode
+   EXIT SUB
+  END IF
+ END WITH
  
  IF carray(ccMenu) > 1 THEN
   '--skip turn
