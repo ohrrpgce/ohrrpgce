@@ -2293,6 +2293,8 @@ SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as herodef
   IF .stat.cur.stun < .stat.max.stun THEN
    'Normally a hero cannot get a turn when stunned, but this extra check is needed
    'for the race condition that happens when a hero gets stunned while it is their tirn in turnACTIVE mode
+   bat.next_hero = bat.hero_turn
+   bat.hero_turn = -1
    EXIT SUB
   END IF
  END WITH
