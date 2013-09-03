@@ -1129,14 +1129,16 @@ SUB show_enemy_meters(bat as BattleState, bslot() as BattleSprite, formdata as F
  'This shows meters and extra debug info info when you press F10 the first time
  DIM c as integer
  DIM info as string
+ info = bat.targ.mode & " " & bat.hero_turn & " " & bat.atk.id
+ edgeprint info, 10, 70, uilook(uiText), dpage
  FOR i as integer = 0 TO 11
   WITH bslot(i)
    c = uilook(uiSelectedDisabled)
    IF is_hero(i) THEN c = uilook(uiSelectedItem)
    rectangle 0, 80 + (i * 10), .ready_meter / 10, 4, c, dpage
-   info = "v=" & .vis & " tm=" & bat.targ.mask(i) & " hp=" & .stat.cur.hp & " dz=" & .dissolve & " a=" & .attack 
-   IF is_enemy(i) THEN info &= " fm=" & formdata.slots(i-4).id
-   edgeprint info, 20, 80 + i * 10, c, dpage
+   info = "hp" & .stat.cur.hp & " tm" & bat.targ.mask(i) & " sr" & (.stat.cur.stun < .stat.max.stun) & " dz" & .dissolve & " a" & .attack & " r" & .ready 
+   IF is_enemy(i) THEN info &= " fm" & formdata.slots(i-4).id
+   edgeprint info, 10, 80 + i * 10, c, dpage
   END WITH
  NEXT i
 END SUB
@@ -3686,6 +3688,8 @@ SUB battle_attack_cancel_target_attack(byval targ as integer, byref bat as Battl
    bat.targ.mode = targNONE
    bat.hero_turn = -1
    bslot(targ).attack = 0
+   bslot(targ).ready = NO
+   bat.menu_mode = batMENUHERO
   END IF
  END IF
 END SUB
