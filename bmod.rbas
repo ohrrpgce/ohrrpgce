@@ -3688,8 +3688,6 @@ SUB battle_attack_cancel_target_attack(byval targ as integer, byref bat as Battl
    bat.targ.mode = targNONE
    bat.hero_turn = -1
    bslot(targ).attack = 0
-   bslot(targ).ready = NO
-   bat.menu_mode = batMENUHERO
   END IF
  END IF
 END SUB
