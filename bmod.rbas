@@ -716,6 +716,18 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
   bat.targ.mode = targNONE
   EXIT SUB
  END IF
+ 
+ 'check to see if the hero is still allowed to do the attack.
+ 'This may have changed since we started targetting because the attacker
+ 'might have been muted, or hit with an MP-damaging attack
+ ' (NOTE: Does not attempt to re-check LMP)
+ IF NOT atkallowed(bat.targ.atk, bat.hero_turn, 0, 0, bslot()) THEN
+  bslot(bat.hero_turn).attack = 0
+  bslot(bat.hero_turn).consume_lmp = 0
+  bat.targ.mode = targNONE
+  flusharray carray(), 7, 0
+  EXIT SUB
+ END IF
 
  'no valid targs available
  IF targetmaskcount(bat.targ.mask()) = 0 THEN
@@ -3100,15 +3112,14 @@ SUB setup_targetting (byref bat as BattleState, bslot() as BattleSprite)
 
  bat.targ.hit_dead = NO
 
- DIM attack as AttackData
  'load attack
- loadattackdata attack, bslot(bat.hero_turn).attack - 1
+ loadattackdata bat.targ.atk, bslot(bat.hero_turn).attack - 1
 
- get_valid_targs bat.targ.mask(), bat.hero_turn, attack, bslot()
- bat.targ.hit_dead = attack_can_hit_dead(bat.hero_turn, attack, bslot(bat.hero_turn).stored_targs_can_be_dead)
+ get_valid_targs bat.targ.mask(), bat.hero_turn, bat.targ.atk, bslot()
+ bat.targ.hit_dead = attack_can_hit_dead(bat.hero_turn, bat.targ.atk, bslot(bat.hero_turn).stored_targs_can_be_dead)
 
  '--attacks that can target all should default to the first enemy
- IF attack.targ_class = 3 THEN
+ IF bat.targ.atk.targ_class = 3 THEN
   bat.targ.pointer = 4
  END IF
 
@@ -3119,18 +3130,18 @@ SUB setup_targetting (byref bat as BattleState, bslot() as BattleSprite)
  END IF
 
  'autoattack
- IF attack.automatic_targ THEN
+ IF bat.targ.atk.automatic_targ THEN
   bat.targ.mode = targAUTO
   EXIT SUB
  END IF
 
- IF attack.targ_set = 0 THEN bat.targ.interactive = YES
- IF attack.targ_set = 1 THEN FOR i = 0 TO 11: bat.targ.selected(i) = bat.targ.mask(i): NEXT i
- IF attack.targ_set = 2 THEN bat.targ.interactive = YES: bat.targ.opt_spread = 1
- IF attack.targ_set = 3 THEN bat.targ.roulette = YES
- IF attack.targ_set = 4 THEN bat.targ.force_first = YES
+ IF bat.targ.atk.targ_set = 0 THEN bat.targ.interactive = YES
+ IF bat.targ.atk.targ_set = 1 THEN FOR i = 0 TO 11: bat.targ.selected(i) = bat.targ.mask(i): NEXT i
+ IF bat.targ.atk.targ_set = 2 THEN bat.targ.interactive = YES: bat.targ.opt_spread = 1
+ IF bat.targ.atk.targ_set = 3 THEN bat.targ.roulette = YES
+ IF bat.targ.atk.targ_set = 4 THEN bat.targ.force_first = YES
 
- bat.targ.pointer = find_preferred_target(bat.targ.mask(), bat.hero_turn, attack, bslot())
+ bat.targ.pointer = find_preferred_target(bat.targ.mask(), bat.hero_turn, bat.targ.atk, bslot())
  'fail if no targets are found
  IF bat.targ.pointer = -1 THEN
   bat.targ.mode = targNONE

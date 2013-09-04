@@ -161,6 +161,8 @@ TYPE TargettingState
   interactive as integer  'YES or NO for current attack
   roulette as integer     'YES or NO for current attack
   force_first as integer  'YES or NO for current attack
+  atk as AttackData        'Loaded in setup_targeting()
+                           'and should only be trusted while mode=targMANUAL
 END TYPE
 '.mode > 0 means hero picking a target
 CONST targNONE   = 0 'means hero not currently picking a target
