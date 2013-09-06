@@ -32,6 +32,8 @@
 DECLARE SUB buystuff_make_slices(buyst as ShopBuyState)
 DECLARE SUB buystuff_refresh_menu (buyst as ShopBuyState, menu as MenuDef, st as MenuState)
 DECLARE SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
+DECLARE SUB buystuff_refresh_empty (buyst as ShopBuyState)
+DECLARE SUB buystuff_init_info_menu(buyst as ShopBuyState)
 DECLARE SUB buystuff_do_purchase(buyst as ShopBuyState, byval thing as NodePtr, byval thing_slot as integer)
 DECLARE FUNCTION buystuff_can_show(byval slot as NodePtr, buyst as ShopBuyState) as bool
 DECLARE FUNCTION buystuff_can_buy(byval thing as NodePtr, buyst as ShopBuyState, byval sound_and_alert as bool=NO) as bool
@@ -256,22 +258,7 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
  DIM itembuf(dimbinsize(binITM)) as integer
  DIM trade_str as string
  
- ClearMenuData buyst.info
-  IF buyst.info_sl = 0 THEN
-   debug "buyst.info_sl null ptr"
-  ELSE
-  WITH buyst.info
-   .offset.x = buyst.info_sl->ScreenX - 160 + buyst.info_sl->Width / 2
-   .offset.y = buyst.info_sl->ScreenY - 102
-   .anchor.y = -1
-   .bordersize = -8
-   .maxrows = buyst.info_sl->Height / 8
-   .itemspacing = -2
-   .min_chars = buyst.info_sl->Width / 8
-   .max_chars = buyst.info_sl->Width / 8
-   .no_box = YES 'comment this out if you want to change/debug the box positioning
-   END WITH
- END IF
+ buystuff_init_info_menu buyst
  
  IF thing_kind = "hero" THEN
   buy = thing."hire".ptr
@@ -393,6 +380,41 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
  init_menu_state buyst.info_st, buyst.info
  buyst.info_st.active = NO
  
+END SUB
+
+SUB buystuff_refresh_empty (buyst as ShopBuyState)
+ ChangeTextSlice buyst.money_sl, readglobalstring(145, "You have", 20) & " " & gold & " " & readglobalstring(32, "Money", 10)
+ 
+ buystuff_init_info_menu buyst
+ 
+ buyst.hero_box->Visible = NO
+ buyst.hire_box->Visible = NO
+
+ ChangeTextSlice buyst.price_sl, readglobalstring(309, "The shop is empty", 30)
+ buyst.price_box->Width = buyst.price_sl->Width + 16
+
+ init_menu_state buyst.info_st, buyst.info
+ buyst.info_st.active = NO
+ 
+END SUB
+
+SUB buystuff_init_info_menu(buyst as ShopBuyState)
+ ClearMenuData buyst.info
+ IF buyst.info_sl = 0 THEN
+  debug "buyst.info_sl null ptr"
+ ELSE
+  WITH buyst.info
+   .offset.x = buyst.info_sl->ScreenX - 160 + buyst.info_sl->Width / 2
+   .offset.y = buyst.info_sl->ScreenY - 102
+   .anchor.y = -1
+   .bordersize = -8
+   .maxrows = buyst.info_sl->Height / 8
+   .itemspacing = -2
+   .min_chars = buyst.info_sl->Width / 8
+   .max_chars = buyst.info_sl->Width / 8
+   .no_box = YES 'comment this out if you want to change/debug the box positioning
+  END WITH
+ END IF
 END SUB
 
 FUNCTION buystuff_can_show(byval slot as NodePtr, buyst as ShopBuyState) as bool
@@ -551,7 +573,9 @@ SUB buystuff_refresh_menu (buyst as ShopBuyState, menu as MenuDef, st as MenuSta
 
  init_menu_state st, menu
 
- IF menu.numitems > 0 THEN
+ IF menu.numitems = 0 THEN
+  buystuff_refresh_empty buyst
+ ELSE
   buystuff_refresh_selected buyst, menu.items[st.pt]->dataptr
  END IF
 
