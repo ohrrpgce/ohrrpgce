@@ -135,13 +135,15 @@ FUNCTION usemenu (byref state as MenuState, byval deckey as integer = scUp, byva
   
   DIM mpt as integer = mouse_on_menustate(state)
   'IF mpt >= .first THEN .pt = mpt
- 
-  IF keyval(deckey) > 1 THEN .pt = loopvar(.pt, .first, .last, -1)
-  IF keyval(inckey) > 1 THEN .pt = loopvar(.pt, .first, .last, 1)
-  IF keyval(scPageup) > 1 THEN .pt = .pt - .size
-  IF keyval(scPagedown) > 1 THEN .pt = .pt + .size
-  IF keyval(scHome) > 1 THEN .pt = .first
-  IF keyval(scEnd) > 1 THEN .pt = .last
+  
+  IF .first < .last THEN
+   IF keyval(deckey) > 1 THEN .pt = loopvar(.pt, .first, .last, -1)
+   IF keyval(inckey) > 1 THEN .pt = loopvar(.pt, .first, .last, 1)
+   IF keyval(scPageup) > 1 THEN .pt = .pt - .size
+   IF keyval(scPagedown) > 1 THEN .pt = .pt + .size
+   IF keyval(scHome) > 1 THEN .pt = .first
+   IF keyval(scEnd) > 1 THEN .pt = .last
+  END IF
   .pt = small(large(.pt, .first), .last)  '=last when last<first, ie. menu empty
   .top = bound(.top, .pt - .size, .pt)
  
