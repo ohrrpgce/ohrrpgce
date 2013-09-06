@@ -942,11 +942,9 @@ SUB limitcamera (byref x as integer, byref y as integer)
   y = bound(y, 0, mapsizetiles.y * 20 - 200)
   IF oldmapx <> x THEN
    IF gen(cameramode) = pancam THEN gen(cameramode) = stopcam
-   IF gen(cameramode) = focuscam THEN gen(cameraArg3) = 0
   END IF
   IF oldmapy <> y THEN
    IF gen(cameramode) = pancam THEN gen(cameramode) = stopcam
-   IF gen(cameramode) = focuscam THEN gen(cameraArg4) = 0
   END IF
  END IF
  IF gmap(5) = 1 THEN

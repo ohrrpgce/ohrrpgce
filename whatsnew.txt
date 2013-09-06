@@ -12,6 +12,8 @@ WHAT IS NEW?
     * Hero stats menu would freeze if Maximum Level was zero [Ralph]
     * You can now change the music with a script immediately after a
       map change without the ambient music playing for a moment [Ralph]
+    * Bug 857: Focus camera cannot focus on spots close to map edge
+      [James]
 
   * New Plotscripting Stuff
     * "Menu action plotscript" special script trigger to run a script
