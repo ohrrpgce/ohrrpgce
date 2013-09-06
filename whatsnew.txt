@@ -5,6 +5,11 @@ WHAT IS NEW?
   * New Features
     * While placing doors in the map editor you can now specify door
       number, and jump to existing door locations [Ralph]
+    * When buying equipment in a shop, show stat bonuses [James]
+    * When hiring heroes in a shop, show hero portraits [James]
+    * Split "Change Box Styles", "Change User-Interface Colors" into
+      two separate menus [James]
+    * Clean up orphaned temporary folders when you exit game [James]
 
   * Bugfixes
     * Fixed a few cosmetic bugs in the equip menu including possibly
@@ -14,12 +19,27 @@ WHAT IS NEW?
       map change without the ambient music playing for a moment [Ralph]
     * Bug 857: Focus camera cannot focus on spots close to map edge
       [James]
+    * Fix heroes getting stuck in active-time battle mode if they are
+      in the middle of targetting an attack and get hit with a stun
+      or mute attack. [James]
+    * Attack chains conditions can now be based on the stats of the
+      targets [James]
+    * Ambient map music is delayed 1 tick so that plotscripted music
+      can easily override it without playing the first note of the
+      ambient song [Ralph]
 
   * New Plotscripting Stuff
     * "Menu action plotscript" special script trigger to run a script
       instead of opening the main menu [Lakan Inocencio]
+  
+  * Performance Fixes
+    * Fixed delay when opening a menu that happened when a large number
+      of menus were defined [Ralph]
 
   * Stuff Only Developers Will Notice
+    * Experimental support for Android phones and tablets
+    * Experimental support for the OUYA Console
+    * Experimental support for the Raspberry Pi
 
 
 April 9 2013 [Beelzebufo]
