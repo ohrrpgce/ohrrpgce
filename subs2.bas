@@ -50,7 +50,7 @@ DECLARE FUNCTION box_conditional_type_by_menu_index(menuindex as integer) as int
 DECLARE SUB update_textbox_editor_main_menu (byref box as TextBox, menu() as string)
 DECLARE SUB textbox_edit_load (byref box as TextBox, byref st as TextboxEditState, menu() as string)
 DECLARE SUB textbox_edit_preview (byref box as TextBox, byref st as TextboxEditState, override_y as integer=-1, suppress_text as integer=NO)
-DECLARE SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditState)
+DECLARE SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditState, parent_menu() as string)
 DECLARE SUB update_textbox_appearance_editor_menu (menu() as string, byref box as TextBox, byref st as TextboxEditState)
 DECLARE SUB textbox_position_portrait (byref box as TextBox, byref st as TextboxEditState, holdscreen as integer)
 DECLARE SUB textbox_seek(byref box as TextBox, byref st as TextboxEditState)
@@ -688,7 +688,11 @@ SUB text_box_editor () 'textage
     update_textbox_editor_main_menu box, menu()
    END IF
    IF state.pt = 4 THEN textbox_choice_editor box, st
-   IF state.pt = 5 THEN textbox_appearance_editor box, st
+   IF state.pt = 5 THEN
+    textbox_appearance_editor box, st, menu()
+    '--re-update the menu after the appearance editor in case we switched records
+    update_textbox_editor_main_menu box, menu()
+   END IF
    IF state.pt = 6 THEN
     IF box.after > 0 THEN
      SaveTextBox box, st.id
@@ -1167,7 +1171,7 @@ SUB textbox_position_portrait (byref box as TextBox, byref st as TextboxEditStat
  LOOP
 END SUB
 
-SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditState)
+SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditState, parent_menu() as string)
  DIM menu(17) as string
  DIM state as MenuState
  state.size = 20
@@ -1209,53 +1213,63 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
    END SELECT
    state.need_update = YES
   END IF
-  IF keyval(scLeft) > 1 OR keyval(scRight) > 1 THEN
-   SELECT CASE state.pt
-    CASE 7: box.no_box = (NOT box.no_box)
-    CASE 8: box.opaque = (NOT box.opaque)
-    CASE 9: box.restore_music = (NOT box.restore_music)
-    CASE 13: box.portrait_box = (NOT box.portrait_box)
-    CASE 16: box.stop_sound_after = (NOT box.stop_sound_after)
-    CASE 17: box.backdrop_trans = (NOT box.backdrop_trans)
-   END SELECT
-   state.need_update = YES
-  END IF
-  SELECT CASE state.pt
-   CASE 1: state.need_update OR= intgrabber(box.vertical_offset, 0, 49)
-   CASE 2: state.need_update OR= intgrabber(box.shrink, -1, 21)
-   CASE 3: state.need_update OR= intgrabber(box.textcolor, 0, 255)
-   CASE 4: state.need_update OR= intgrabber(box.boxstyle, 0, 14)
-   CASE 5:
-    IF zintgrabber(box.backdrop, -1, gen(genNumBackdrops) - 1) THEN
-     state.need_update = YES
-     clearpage holdscreen
-     IF box.backdrop > 0 THEN
-      loadmxs game & ".mxs", box.backdrop - 1, vpages(holdscreen)
-     END IF
-    END IF
-   CASE 6:
-    IF zintgrabber(box.music, -1, gen(genMaxSong)) THEN
-     state.need_update = YES
-     music_stop
-    END IF
-   CASE 10:
-    state.need_update OR= intgrabber(box.portrait_type, 0, 3)
-   CASE 11:
-    SELECT CASE box.portrait_type
-     CASE 1: state.need_update OR= intgrabber(box.portrait_id, 0, gen(genMaxPortrait))
-     CASE 2: state.need_update OR= intgrabber(box.portrait_id, 0, 3)
-     CASE 3: state.need_update OR= intgrabber(box.portrait_id, 0, 40)
+  IF keyval(scAlt) = 0 THEN
+   'Not holding ALT
+   IF keyval(scLeft) > 1 OR keyval(scRight) > 1 THEN
+    SELECT CASE state.pt
+     CASE 7: box.no_box = (NOT box.no_box)
+     CASE 8: box.opaque = (NOT box.opaque)
+     CASE 9: box.restore_music = (NOT box.restore_music)
+     CASE 13: box.portrait_box = (NOT box.portrait_box)
+     CASE 16: box.stop_sound_after = (NOT box.stop_sound_after)
+     CASE 17: box.backdrop_trans = (NOT box.backdrop_trans)
     END SELECT
-   CASE 12:
-    IF box.portrait_type = 1 THEN
-     state.need_update OR= intgrabber(box.portrait_pal, -1, gen(genMaxPal))
-    END IF
-   CASE 15:
-    IF zintgrabber(box.sound_effect, -1, gen(genMaxSFX)) THEN
-     state.need_update = YES
-     resetsfx
-    END IF
-  END SELECT
+    state.need_update = YES
+   END IF
+   SELECT CASE state.pt
+    CASE 1: state.need_update OR= intgrabber(box.vertical_offset, 0, 49)
+    CASE 2: state.need_update OR= intgrabber(box.shrink, -1, 21)
+    CASE 3: state.need_update OR= intgrabber(box.textcolor, 0, 255)
+    CASE 4: state.need_update OR= intgrabber(box.boxstyle, 0, 14)
+    CASE 5:
+     IF zintgrabber(box.backdrop, -1, gen(genNumBackdrops) - 1) THEN
+      state.need_update = YES
+      clearpage holdscreen
+      IF box.backdrop > 0 THEN
+       loadmxs game & ".mxs", box.backdrop - 1, vpages(holdscreen)
+      END IF
+     END IF
+    CASE 6:
+     IF zintgrabber(box.music, -1, gen(genMaxSong)) THEN
+      state.need_update = YES
+      music_stop
+     END IF
+    CASE 10:
+     state.need_update OR= intgrabber(box.portrait_type, 0, 3)
+    CASE 11:
+     SELECT CASE box.portrait_type
+      CASE 1: state.need_update OR= intgrabber(box.portrait_id, 0, gen(genMaxPortrait))
+      CASE 2: state.need_update OR= intgrabber(box.portrait_id, 0, 3)
+      CASE 3: state.need_update OR= intgrabber(box.portrait_id, 0, 40)
+     END SELECT
+    CASE 12:
+     IF box.portrait_type = 1 THEN
+      state.need_update OR= intgrabber(box.portrait_pal, -1, gen(genMaxPal))
+     END IF
+    CASE 15:
+     IF zintgrabber(box.sound_effect, -1, gen(genMaxSFX)) THEN
+      state.need_update = YES
+      resetsfx
+     END IF
+   END SELECT
+  ELSE '-- holding ALT
+   DIM remptr as integer = st.id
+   IF intgrabber(st.id, 0, gen(genMaxTextBox)) THEN
+    SaveTextBox box, remptr
+    textbox_edit_load box, st, parent_menu()
+    state.need_update = YES
+   END IF
+  END IF
   IF state.need_update THEN
    state.need_update = NO
    update_textbox_appearance_editor_menu menu(), box, st
@@ -1268,6 +1282,10 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
    IF i = state.pt THEN col = uilook(uiSelectedItem + state.tog)
    edgeprint menu(i), 0, i * 10, col, dpage
   NEXT i
+  IF keyval(scAlt) > 0 THEN
+   textcolor uilook(uiText), uilook(uiHighlight)
+   printstr "Box " & st.id, 320 - LEN("Box " & st.id) * 8, 0, dpage
+  END IF
   SWAP vpage, dpage
   setvispage vpage
   dowait
