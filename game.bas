@@ -1376,7 +1376,7 @@ SUB update_npcs ()
      npc(o).frame = herow(0).wtog
     END IF
    ELSE
-    '--Not the active vehicle
+    '--For all NPCs except the active vehicle
     IF txt.sayer <> o AND readbit(gen(), genSuspendBits, suspendnpcs) = 0 AND npc(o).suspend_ai = 0 THEN
      IF npc(o).xgo = 0 AND npc(o).ygo = 0 THEN
       pick_npc_action npc(o), npcs(id)
