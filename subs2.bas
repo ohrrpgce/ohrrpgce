@@ -1267,6 +1267,10 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
    IF intgrabber(st.id, 0, gen(genMaxTextBox)) THEN
     SaveTextBox box, remptr
     textbox_edit_load box, st, parent_menu()
+    clearpage holdscreen
+    IF box.backdrop > 0 THEN
+     loadmxs game & ".mxs", box.backdrop - 1, vpages(holdscreen)
+    END IF
     state.need_update = YES
    END IF
   END IF
