@@ -24,9 +24,6 @@ WHAT IS NEW?
       or mute attack. [James]
     * Attack chains conditions can now be based on the stats of the
       targets [James]
-    * Ambient map music is delayed 1 tick so that plotscripted music
-      can easily override it without playing the first note of the
-      ambient song [Ralph]
 
   * New Plotscripting Stuff
     * "Menu action plotscript" special script trigger to run a script
