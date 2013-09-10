@@ -94,6 +94,7 @@ DECLARE SUB update_turn_delays_in_attack_queue (byval who as integer)
 DECLARE FUNCTION has_blocking_turn_delayed_attacks(byval who as integer) as integer
 DECLARE SUB populate_battle_menu_menudef (byval hero_id as integer, menu as MenuDef, hero as HeroDef)
 DECLARE SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDef)
+DECLARE FUNCTION enemy_is_weak(byval who as integer, bslot() as BattleSprite) as bool
 
 'these are the battle global variables
 DIM bstackstart as integer
@@ -2198,13 +2199,17 @@ SUB dead_enemy(byval deadguy as integer, byval killing_attack as integer, byref 
  formdata.slots(enemynum).id = -1
 END SUB
 
+FUNCTION enemy_is_weak(byval who as integer, bslot() as BattleSprite) as bool
+ DIM weakhp as integer = gen(genEnemyWeakHP)
+ IF bslot(who).stat.cur.hp < 0.01 * bslot(who).stat.max.hp * weakhp THEN RETURN YES
+ RETURN NO
+END FUNCTION
+
 SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
  DIM ai as integer = 0
- DIM weakhp as integer = 0
  
  'if HP is less than the threshold, go into desperation mode
- weakhp = gen(genEnemyWeakHP)
- IF bslot(bat.enemy_turn).stat.cur.hp < 0.01 * bslot(bat.enemy_turn).stat.max.hp * weakhp THEN ai = 1
+ IF enemy_is_weak(bat.enemy_turn, bslot()) THEN ai = 1
 
  'if targetable enemy count is 1, go into alone mode
  IF targenemycount(bslot(), YES) = 1 THEN ai = 2
@@ -2227,7 +2232,7 @@ SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as For
  'otherwise fall back on another
  IF countai(ai, bat.enemy_turn, bslot()) = 0 THEN
   ai = 0
-  IF bslot(bat.enemy_turn).stat.cur.hp < bslot(bat.enemy_turn).stat.max.hp / 5 THEN
+  IF enemy_is_weak(bat.enemy_turn, bslot()) THEN
    ai = 1
    IF countai(ai, bat.enemy_turn, bslot()) = 0 THEN ai = 0
   END IF
