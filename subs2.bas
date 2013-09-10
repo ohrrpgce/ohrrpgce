@@ -1448,7 +1448,13 @@ SUB textbox_line_editor (byref box as TextBox, byref st as TextboxEditState)
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "textbox_line_editor"
   IF keyval(scEnter) > 1 AND state.pt < state.last THEN state.pt += 1
-  IF usemenu(state) THEN insertpt = -1
+  IF keyval(scHome) > 1 THEN
+   insertpt = 0
+  ELSEIF keyval(scEnd) > 1 THEN
+   insertpt = LEN(box.text(state.pt))
+  ELSE
+   IF usemenu(state) THEN insertpt = -1
+  END IF
   IF state.pt <= state.last AND state.pt >= state.first THEN
    stredit box.text(state.pt), insertpt, 38
   END IF
