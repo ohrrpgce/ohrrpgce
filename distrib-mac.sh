@@ -14,6 +14,11 @@ echo Building binaries
 
 scons ${EXTRA_SCONS_OPTIONS} game custom hspeak unlump relump
 
+if [ ! -f ohrrpgce-game ] ; then
+  echo Aborting distrib script because scons failed
+  exit 1
+fi
+
 echo Bundling apps
 ./bundle-apps.sh
 
