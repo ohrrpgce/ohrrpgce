@@ -1035,15 +1035,24 @@ END SUB
 
 FUNCTION picksave (byval loading as integer) as integer
 
-DIM mapname(3) as string
-DIM lev(3) as string
+DIM max_slot as integer = 31
+DIM last_slot as integer
+last_slot = gen(genSaveSlotCount) - 1
+IF last_slot < 0 THEN last_slot = 3 'Use the default!
+IF last_slot > max_slot THEN
+ debug "Can't allow last save slot to be " & last_slot & ", " & max_slot & " is the max."
+ last_slot = max_slot
+END IF
+
+DIM mapname(max_slot) as string
+DIM lev(max_slot) as string
 DIM menu(1) as string
-DIM sprites(3, 3) as GraphicPair
+DIM sprites(max_slot, 3) as GraphicPair
 DIM st as MenuState
 
 st.first = -1  'Note that st.pt can actually go down to -2
-st.last = 3
-st.size = 4
+st.last = last_slot
+st.size = 3
 
 DIM allow as integer
 
@@ -1056,7 +1065,7 @@ IF loading = 2 THEN
 END IF
 
 '--menu array holds the names of the options
-'--at the top of the screeen (only one appears when saving)
+'--at the top of the screen (only one appears when saving)
 
 IF loading THEN
  st.pt = 0
@@ -1077,8 +1086,8 @@ IF loading < 2 THEN
 END IF
 'otherwise, holdscreen is black
 
-DIM pv(3) as SaveSlotPreview
-FOR i as integer = 0 TO 3
+DIM pv(last_slot) as SaveSlotPreview
+FOR i as integer = 0 TO last_slot
  get_save_slot_preview i, pv(i)
  IF pv(i).valid THEN
   mapname(i) = getmapname(pv(i).cur_map)
@@ -1097,7 +1106,7 @@ NEXT i
 IF loading THEN
  'check for no slots
  DIM nofull as integer = YES
- FOR i as integer = 0 TO 3
+ FOR i as integer = 0 TO last_slot
   IF pv(i).valid THEN nofull = NO
  NEXT i
  IF nofull = YES THEN
@@ -1170,7 +1179,7 @@ freesprites:
 freepage page
 freepage holdscreen
 FOR t as integer = 4 TO 5: carray(t) = 0: NEXT t
-FOR i as integer = 0 TO 3
+FOR i as integer = 0 TO last_slot
  FOR o as integer = 0 TO 3
   frame_unload(@sprites(i, o).sprite)
   palette16_unload(@sprites(i, o).pal)
@@ -1235,11 +1244,16 @@ SUB picksave_draw(menu() as string, byval loading as integer, sprites() as Graph
  STATIC walk as integer
  tog = tog XOR 1
  walk = walk XOR tog
+
+ DIM last_slot as integer = UBOUND(pv)
  
  centerbox 50, 11, 80, 14, 15, page
  IF loading THEN centerbox 270, 11, 80, 14, 15, page
- FOR i as integer = 0 TO 3
-  centerbox 160, 44 + i * 44, 310, 42, 15, page
+ DIM top as integer = large(st.top, 0)
+ DIM yoff as integer
+ FOR i as integer = top TO small(top + 3, last_slot)
+  yoff = (i - top) * 44
+  centerbox 160, 44 + yoff, 310, 42, 15, page
  NEXT i
  'load and save menus enjoy different colour schemes
  IF loading THEN activec = 2 ELSE activec = 1
@@ -1249,21 +1263,22 @@ SUB picksave_draw(menu() as string, byval loading as integer, sprites() as Graph
   CASE -1
    centerbox 50, 11, 82, 16, activec, page
   CASE ELSE
-   centerbox 160, 44 + st.pt * 44, 312, 44, activec, page
+   centerbox 160, 44 + (st.pt - top) * 44, 312, 44, activec, page
  END SELECT
- FOR i as integer = 0 TO 3
+ FOR i as integer = top TO small(top + 3, last_slot)
   IF pv(i).valid THEN
+   yoff = (i - top) * 44
    FOR o as integer = 0 TO 3
     IF sprites(i, o).sprite THEN
-     frame_draw sprites(i, o).sprite + iif(st.pt = i, walk, 0), sprites(i, o).pal, 140 + (o * 42), 24 + i * 44, 1, -1, page
+     frame_draw sprites(i, o).sprite + iif(st.pt = i, walk, 0), sprites(i, o).pal, 140 + (o * 42), 24 + yoff, 1, -1, page
     END IF
    NEXT o
    col = uilook(uiMenuItem)
    IF st.pt = i THEN col = uilook(uiSelectedItem + tog)
-   edgeprint pv(i).leader_name, 14, 25 + i * 44, col, page
-   edgeprint lev(i), 14, 34 + i * 44, col, page
-   edgeprint pv(i).playtime, 14, 43 + i * 44, col, page
-   edgeprint mapname(i), 14, 52 + i * 44, col, page
+   edgeprint pv(i).leader_name, 14, 25 + yoff, col, page
+   edgeprint lev(i), 14, 34 + yoff, col, page
+   edgeprint pv(i).playtime, 14, 43 + yoff, col, page
+   edgeprint mapname(i), 14, 52 + yoff, col, page
   END IF
  NEXT i
  col = uilook(uiMenuItem): IF st.pt = -1 THEN col = uilook(uiSelectedItem + tog)
@@ -1272,6 +1287,14 @@ SUB picksave_draw(menu() as string, byval loading as integer, sprites() as Graph
   col = uilook(uiMenuItem): IF st.pt = -2 THEN col = uilook(uiSelectedItem + tog)
   edgeprint menu(1), xstring(menu(1), 270), 6, col, page
  END IF
+ DIM scroll_st as MenuState
+ WITH scroll_st
+  .pt = large(0, st.pt)
+  .top = large(0, st.top)
+  .last = st.last
+  .size = st.size
+ END WITH
+ draw_fullscreen_scrollbar scroll_st, , page
 END SUB
 
 SUB sellstuff (byval id as integer, storebuf() as integer)

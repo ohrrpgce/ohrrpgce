@@ -1649,10 +1649,11 @@ SUB generate_gen_menu(m() as string, longname as string, aboutline as string)
   CASE 6: m(15) += "Hide all ignoreable errors"
  END SELECT
  m(16) = "Default maximum item stack size: " & gen(genItemStackSize)
+ m(17) = "Number of save/load slots: " & zero_default(gen(genSaveSlotCount), "Default (4)")
 END SUB
 
 SUB gendata ()
- CONST maxMenu = 16
+ CONST maxMenu = 17
  DIM m(maxMenu) as string
  DIM menu_display(maxMenu) as string
  DIM min(maxMenu) as integer
@@ -1694,6 +1695,9 @@ SUB gendata ()
  index(16) = genItemStackSize
  max(16) = 99
  min(16) = 1
+ index(17) = genSaveSlotCount
+ max(17) = 32
+ min(17) = 0
 
  DIM aboutline as string = load_aboutline()
  DIM longname as string = load_gamename()
