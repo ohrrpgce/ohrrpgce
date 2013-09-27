@@ -37,12 +37,13 @@ IF COMMAND = "" THEN
  PRINT "O.H.R.RPG.C.E. game unlumping utility"
  PRINT ""
  PRINT "syntax:"
- PRINT "unlump filename.rpg directory"
+ PRINT "unlump [--recover] filename.rpg directory"
  PRINT ""
  PRINT "A utility to extract the contents of an RPG file or other lumped"
  PRINT "file to a directory so that advanced users can hack the delicious"
  PRINT "morsels inside."
  PRINT "If a password is required, you will be prompted to enter it."
+ PRINT "Specify --recover for experimental extraction of damaged lumped files."
  PRINT ""
  PRINT "Windows users can drag-and-drop their RPG file onto this program"
  PRINT "to unlump it."
@@ -52,8 +53,16 @@ IF COMMAND = "" THEN
  fatalerror ""
 END IF
 
-DIM lumped as string = COMMAND(1)
-dest = COMMAND(2)
+DIM recover as bool = NO
+DIM nextarg as integer = 1
+
+IF LCASE(COMMAND(nextarg)) = "--recover" THEN
+ recover = YES
+ nextarg += 1
+END IF
+
+DIM lumped as string = COMMAND(nextarg)
+dest = COMMAND(nextarg + 1)
 
 'check whether it is an RPG file (assume all RPG files contain BROWSE.TXT)
 DIM isrpg as integer = islumpfile(lumped, "browse.txt")
@@ -87,6 +96,11 @@ makedir dest
 createddir = -1
 
 IF NOT isdir(dest) THEN fatalerror "unable to create destination directory `" + dest + "'"
+
+IF recover THEN
+ recover_lumped_file lumped, dest + SLASH
+ SYSTEM
+END IF
 
 IF NOT isrpg THEN
  unlump lumped, dest + SLASH

@@ -692,6 +692,157 @@ end extern
 '                           Lumped files
 
 
+function read_lump_size(byval fh as integer) as integer
+	'get lump size - PDP-endian byte order = 3,4,1,2
+	dim size as integer
+	dim dat as ubyte
+	get #fh, , dat
+	size = (dat shl 16)
+	get #fh, , dat
+	size = size or (dat shl 24)
+	get #fh, , dat
+	size = size or dat
+	get #fh, , dat
+	size = size or (dat shl 8)
+	return size
+end function
+
+'Returns true on success
+function extract_lump(lf as integer, srcfile as string, destfile as string, size as integer, showerrors as bool) as bool
+	'write yon file
+	dim of as integer
+	dim csize as integer
+	dim bufr as ubyte ptr = allocate(16384)
+
+	'debug "  -> " & destfile
+
+	of = freefile
+	if open(destfile for binary access write as #of) then
+		debug "unlumpfile(" + srcfile + "): " + destfile + " not writable, skipping"
+		if isfile(destfile) then
+			debug "(file already exists)"
+		end if
+		if showerrors then showerror "Could not unlump " & destfile & " (file not writeable) from " & srcfile & ". Some game data will be missing."
+		return NO
+	else
+		'copy the data
+		while size > 0
+			csize = small(16384, size)
+			'copy a chunk of file
+			fget lf, , bufr, csize
+			fput of, , bufr, csize
+			size = size - csize
+		wend
+
+		close #of
+		return YES
+	end if
+	deallocate(bufr)
+end function
+
+'Try to unlump a damaged lumped file
+'Bit of a mess, and not full featured (many types of corruption might require modifying this code)
+sub recover_lumped_file(lumpfile as string, destpath as string = "")
+	dim dat as ubyte
+	dim lname as string
+	dim namelen as integer  'not including nul
+	' Exclude space because it occurs in a lot of false positives
+	dim filename_chars as zstring ptr = @"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-~."
+	/'
+	dim lumplike(...) as string => {
+		"ohrrpgce.", "archinym.lmp", "attack.bin", "binsize.bin", "browse.txt", "defpal#.bin", "commands.bin", _
+		"defpass.bin", "fixbits.bin", "scripts.bin", "scripts.txt", "lookup1.bin", "sfxdata.bin", "songdata.bin", _
+		"palettes.bin", "plotscr.lst", "menuitem.bin", "menus.bin", "uicolors.bin", "slicetree_#_#.reld", _
+		"slicelookup.txt", "distrib.reld", "heroes.reld", archinym + "." _
+	}
+	'/
+
+	dim lf as integer
+	lf = freefile
+	if open(lumpfile for binary access read as #lf) <> 0 then
+		debug "recover_lumped_file: Could not open file " + lumpfile
+		exit sub
+	end if
+
+	lname = ""
+	dim maxsize as integer = lof(lf)
+	maxsize = large(2 * 1024 * 1024, maxsize)
+
+	'If this is false then look for possible lump headers
+	'in the middle of authentic-looking lumps instead of skipping over them.
+	'Leads to lots of garbage lumps though.
+	dim skipping as bool = YES
+	dim extracting as bool = YES
+
+	dim prev_lump_data as integer = 1 'offset
+	dim prev_lump_name as string
+	dim prev_lump_size as integer
+
+	get #lf, , dat	'read first byte
+	while not eof(lf)
+		'Search forward from the current file position
+		'for what looks like the start of the next lump.
+
+		if dat = 0 then
+			'May be NUL byte at end of lump name
+			if len(lname) <= 3 then
+				' Not likely to be a lump name, ignore
+				lname = ""
+			else
+				dim size as integer = read_lump_size(lf)
+				dim as integer fpos = seek(lf)
+				' Require . in lumpnames (excludes HS header in .HSP)
+				if size > maxsize - (fpos - 1) or size < 1 or instr(lname, ".") = 0 then
+					'Nope, go back
+					seek lf, fpos - 4
+				else
+					dim header_start as integer = fpos - (len(lname) + 5)
+					dim skipped as integer = header_start - (prev_lump_data + prev_lump_size)
+					if skipped then
+						debug "   ...skipping " & skipped & " unclaimed bytes"
+					end if
+					if extracting andalso len(prev_lump_name) then
+						dim extract_size as integer = header_start - prev_lump_data
+						seek lf, prev_lump_data
+						extract_lump(lf, lumpfile, destpath + lcase(prev_lump_name), extract_size, NO)
+						seek lf, fpos
+					end if
+					debug "possible lump '" & lname & "' length " & size & " @ " & fpos
+					prev_lump_name = lname
+					lname = ""
+
+					prev_lump_data = fpos
+					prev_lump_size = size
+					if skipping then
+						seek lf, fpos + size
+					end if
+
+					'if extract_lump(lf, lumpfile, path + lcase(lname), size, showerrors) then
+
+				end if
+			end if
+		else
+			if strchr(filename_chars, dat) = NULL then
+				lname = ""
+			else
+				if len(lname) > 25 then
+					lname = mid(lname, 2)
+				end if
+				lname &= chr(dat)
+			end if
+		end if
+		get #lf, , dat
+	wend
+
+	if extracting andalso len(prev_lump_name) then
+		dim as integer fpos = seek(lf)
+		' Extract until end
+		seek lf, prev_lump_data
+		extract_lump(lf, lumpfile, destpath + lcase(prev_lump_name), fpos - prev_lump_data, NO)
+		seek lf, fpos
+	end if
+end sub
+
 sub unlump (lumpfile as string, ulpath as string, byval showerrors as bool = YES)
 	unlumpfile(lumpfile, "", ulpath, showerrors)
 end sub
@@ -703,7 +854,6 @@ sub unlumpfile (lumpfile as string, fmask as string, path as string, byval showe
 	dim maxsize as integer
 	dim lname as string
 	dim namelen as integer  'not including nul
-	dim bufr as ubyte ptr
 	dim nowildcards as integer = 0
 
 	if NOT fileisreadable(lumpfile) then
@@ -716,12 +866,6 @@ sub unlumpfile (lumpfile as string, fmask as string, path as string, byval showe
 	maxsize = LOF(lf)
 
 	if len(path) > 0 and right(path, 1) <> SLASH then path = path & SLASH
-
-	bufr = callocate(16384)
-	if bufr = null then
-		close #lf
-		exit sub
-	end if
 
 	'should make browsing a bit faster
 	if len(fmask) > 0 then
@@ -740,13 +884,13 @@ sub unlumpfile (lumpfile as string, fmask as string, path as string, byval showe
 			get #lf, , dat
 			namelen += 1
 		wend
-		if namelen > 50 then
-			debug "unlumpfile: corrupt lump file " + lumpfile + " : lump name too long: '" & lname & "'"
+		if namelen = 0 or namelen > 50 then
+			debug "unlumpfile: corrupt lumped file " + lumpfile + ": lump length not in range 1--50: '" & lname & "' @ " & seek(lf)
 			if showerrors then showerror "File " + lumpfile + " seems to be corrupt"
 			exit while
 		end if
+		'debug "lump name '" + lname + "' at " & seek(lf)
 		lname = lcase(lname)
-		'debug "lump name " + lname
 
 		if lname <> exclusive(lname, "abcdefghijklmnopqrstuvwxyz0123456789_-~. ") then
 			debug "corrupt lump file " + lumpfile + " : unallowable lump name '" + lname + "'"
@@ -755,52 +899,21 @@ sub unlumpfile (lumpfile as string, fmask as string, path as string, byval showe
 		end if
 
 		if not eof(lf) then
-			'get lump size - PDP-endian byte order = 3,4,1,2
-			get #lf, , dat
-			size = (dat shl 16)
-			get #lf, , dat
-			size = size or (dat shl 24)
-			get #lf, , dat
-			size = size or dat
-			get #lf, , dat
-			size = size or (dat shl 8)
+			size = read_lump_size(lf)
 			if size > maxsize then
 				debug lumpfile + ": corrupt lump size " & size & " exceeds source size " & maxsize
 				if showerrors then showerror "File " + lumpfile + " seems to be corrupt (possibly cut short)"
 				exit while
 			end if
 
-			'debug "lump size " + str(size)
+			'debug "lump size " & size
 
 			dim skiplump as bool = YES
 
 			'do we want this file?
 			if matchmask(lname, lcase(fmask)) then
-				'write yon file
-				dim of as integer
-				dim csize as integer
-
-				of = freefile
-				if open(path + lname for binary access write as #of) then
-					debug "unlumpfile(" + lumpfile + ", " + fmask + "): " + path + lname + " not writable, skipping"
-					if isfile(path + lname) then
-						debug "(file already exists)"
-					end if
-					if showerrors then showerror "Could not unlump " & lname & " from " & lumpfile & ". Some game data will be missing."
-					'exit while
-				else
+				if extract_lump(lf, lumpfile, path + lname, size, showerrors) then
 					skiplump = NO
-
-					'copy the data
-					while size > 0
-						csize = small(16384, size)
-						'copy a chunk of file
-						fget lf, , bufr, csize
-						fput of, , bufr, csize
-						size = size - csize
-					wend
-
-					close #of
 				end if
 
 				'early out if we're only looking for one file
@@ -820,7 +933,6 @@ sub unlumpfile (lumpfile as string, fmask as string, path as string, byval showe
 		end if
 	wend
 
-	deallocate bufr
 	close #lf
 end sub
 
@@ -879,15 +991,7 @@ function islumpfile (lumpfile as string, fmask as string) as integer
 		end if
 
 		if not eof(lf) then
-			'get lump size - PDP-endian byte order = 3,4,1,2
-			get #lf, , dat
-			size = (dat shl 16)
-			get #lf, , dat
-			size = size or (dat shl 24)
-			get #lf, , dat
-			size = size or dat
-			get #lf, , dat
-			size = size or (dat shl 8)
+			size = read_lump_size(lf)
 			if size > maxsize then
 				debug lumpfile + ": corrupt lump size " & size & " exceeds source size " & maxsize
 				exit while
