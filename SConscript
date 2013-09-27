@@ -17,13 +17,10 @@ if 'FBFLAGS' in os.environ:
 CC = os.environ.get ('CC')
 CXX = os.environ.get ('CXX')
 AS = os.environ.get ('AS')
-CFLAGS = '-g -Wall --std=c99'.split ()
+fbc = ARGUMENTS.get ('fbc','fbc')
+CFLAGS = '-g -Wall --std=c99'.split ()  # These flags apply only to .c[pp] sources, NOT to CC invoked via gengcc=1
 CXXFLAGS = '-g -Wall -Wno-non-virtual-dtor'.split ()
-C_opt = True    # compile with optimisations?
-FB_exx = True   # compile with -exx?
-FB_g = True   # compile with -g?
 linkgcc = int (ARGUMENTS.get ('linkgcc', True))   # link using g++ instead of fbc?
-GCC_strip = False  # (linkgcc only) strip (link with -s)?
 envextra = {}
 FRAMEWORKS_PATH = "~/Library/Frameworks"  # Frameworks search path in addition to the default /Library/Frameworks
 
@@ -67,7 +64,7 @@ elif arch == 'x86':
     CFLAGS.append ('-m32')
     CXXFLAGS.append ('-m32')
     # Recent versions of GCC default to assuming the stack is kept 16-byte aligned
-    # (which a change in the Linux x86 ABI) but fbc is not yet updateed for that
+    # (which a change in the Linux x86 ABI) but fbc's GAS backend is not yet updated for that
     CFLAGS.append ('-mpreferred-stack-boundary=2')
     CXXFLAGS.append ('-mpreferred-stack-boundary=2')
     # gcc -m32 on x86_64 defaults to enabling SSE and SSE2, so disable that,
@@ -75,32 +72,35 @@ elif arch == 'x86':
     if not mac:
         CFLAGS.append ('-mno-sse')
         CXXFLAGS.append ('-mno-sse')
+    #FBFLAGS += ["-arch", "686"]
 else:
     raise Exception('Unknown architecture %s' % arch)
 
 if 'asm' in ARGUMENTS:
     FBFLAGS += ["-r", "-g"]
 
-if 'gengcc' in ARGUMENTS:
-    # Due to FB bug #661, need to pass -m32 to gcc manually
-    FBFLAGS += ["-gen", "gcc", "-Wc", "-m32"]
-
 if 'deprecated' in ARGUMENTS:
     FBFLAGS += ["-d", "LANG_DEPRECATED"]
 
-fbc = ARGUMENTS.get ('fbc','fbc')
+# There are three levels of debug here. Not specifying 'debug' is a happy medium
+debug = 0.5
 if 'debug' in ARGUMENTS:
-    GCC_strip = C_opt = not int (ARGUMENTS['debug'])
-    FB_g = FB_exx = int (ARGUMENTS['debug'])
-if 'profile' in ARGUMENTS:
+    debug = float (ARGUMENTS['debug'])
+optimisations = (debug <= 0.5)    # compile with compiler optimisations?
+FB_exx = (debug >= 0.5)   # compile with -exx?
+FB_g = (debug >= 0.5)   # compile with -g?
+GCC_strip = (debug == 0)  # (linkgcc only) strip (link with -s)?
+
+profile = int (ARGUMENTS.get ('profile', 0))
+if profile:
     FBFLAGS.append ('-profile')
     CFLAGS.append ('-pg')
     CXXFLAGS.append ('-pg')
     FB_g = True
     GCC_strip = False
-if 'scriptprofile' in ARGUMENTS:
+if int (ARGUMENTS.get ('scriptprofile', 0)):
     FBFLAGS += ['-d','SCRIPTPROFILE']
-if ARGUMENTS.get ('valgrind', 0):
+if int (ARGUMENTS.get ('valgrind', 0)):
     #-exx under valgrind is nearly redundant, and really slow
     FB_exx = False
     CFLAGS.append ('-DVALGRIND_ARRAYS')
@@ -108,11 +108,18 @@ if FB_exx:
     FBFLAGS.append ('-exx')
 if FB_g:
     FBFLAGS.append ('-g')
-if C_opt:
+if optimisations:
     CFLAGS.append ('-O3')
     CXXFLAGS.append ('-O3')
-    #if android or 'gengcc' in ARGUMENTS:
-    #    FBFLAGS += ["-O", "2"]
+    FBFLAGS += ["-O", "2"]
+if int (ARGUMENTS.get ('gengcc', 0)):
+    # Due to FB bug #661, need to pass -m32 to gcc manually (although recent versions of FB do pass it?)
+    if profile or debug >= 0.5:
+        # -O2 plus profiling crashes for me due to mandatory frame pointers being omitted.
+        # Also keep frame pointers unless explicit debug=0
+        FBFLAGS += ["-gen", "gcc", "-Wc", "-m32,-fno-omit-frame-pointer"]
+    else:
+        FBFLAGS += ["-gen", "gcc", "-Wc", "-m32"]
 
 # Backend selection.
 if mac:
@@ -563,7 +570,7 @@ if win32:
     # Enable exceptions, most warnings, unicode
     w32_env.Append (CPPFLAGS = ['/EHsc', '/W3'], CPPDEFINES = ['UNICODE', '_UNICODE'])
 
-    if int (ARGUMENTS.get ('debug', False)):
+    if optimisations == False:
         # debug info, runtime error checking, static link debugging VC9.0 runtime lib, no optimisation
         w32_env.Append (CPPFLAGS = ['/Zi', '/RTC1', '/MTd', '/Od'], LINKFLAGS = ['/DEBUG'])
     else:
@@ -619,11 +626,11 @@ Options:
   music=BACKEND       Music backend. Options:
                         """ + " ".join (music_map.keys ()) + """
                       Current (default) value: """ + "+".join (music) + """
-  debug=0|1           Debugging builds:
-                      Default: with -exx (FB error checking), debug symbols, and
-                               C/C++ optimisation
-                      debug=0: without -exx, with C/C++ optimisation, strip executable.
-                      debug=1: with -exx and without C/C++ optimisation
+  debug=0|0.5|1       Debugging builds:
+                      debug=0:   without -exx, with C/C++ optimisation, strip executable.
+                      debug=0.5: with -exx (FB error checking), debug symbols, and
+                       (default)   C/C++ optimisation
+                      debug=1:   with -exx and without C/C++ optimisation
   valgrind=1          valgrinding build.
   profile=1           Profiling build for gprof.
   scriptprofile=1     Script profiling build.
