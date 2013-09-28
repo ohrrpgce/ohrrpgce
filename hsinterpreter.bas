@@ -26,6 +26,7 @@
 #include "hsinterpreter.bi"
 
 'local subs and functions
+DECLARE SUB scriptinterpreter_loop ()
 DECLARE FUNCTION interpreter_occasional_checks () as integer
 DECLARE FUNCTION functiondone () as integer
 DECLARE SUB substart (byref si as ScriptInst)
@@ -54,6 +55,22 @@ DIM SHARED lastscriptnum as integer
 #ENDMACRO
 
 SUB scriptinterpreter ()
+ WITH scrat(nowscript)
+  SELECT CASE .state
+   CASE IS < stnone
+    scripterr "illegally suspended script", serrBug
+    .state = ABS(.state)
+   CASE stnone
+    scripterr "script " & nowscript & " became stateless", serrBug
+   CASE stwait
+    EXIT SUB
+   CASE ELSE
+    scriptinterpreter_loop
+  END SELECT
+ END WITH
+END SUB
+
+SUB scriptinterpreter_loop ()
 DIM i as integer
 DIM rsr as integer
 DIM temp as integer

@@ -1555,7 +1555,6 @@ SUB npchitwall(npci as NPCInst, npcdata as NPCType)
 END SUB
 
 SUB interpret()
-DIM as integer i, n, npcref, temp
 
 'It seems like it would be good to call this immediately before script_interpreter so that
 'the return values of fightformation and waitforkey are correct, however doing so might
@@ -1564,118 +1563,118 @@ run_queued_scripts
 
 reentersub:
 IF nowscript >= 0 THEN
-WITH scrat(nowscript)
- SELECT CASE .state
-  CASE IS < stnone
-   scripterr "illegally suspended script", serrBug
-   .state = ABS(.state)
-  CASE stnone
-   scripterr "script " & nowscript & " became stateless", serrBug
-  CASE stwait
-   '--evaluate wait conditions
+ WITH scrat(nowscript)
+  'IF .waiting = YES THEN
+  IF .state = stwait THEN
+   ' Evaluate wait conditions, even if the fibre is paused (unimplemented),
+   ' as waiting for unpause first will just lead to bugs eg. due to map changes
+   ' (Note however that is the way the old one-script-at-a-time mode works: wait
+   ' conditions not considered until its turn to run)
    SELECT CASE .curvalue
     CASE 15, 35, 61'--use door, use NPC, teleport to map
-     .state = streturn
+     script_stop_waiting()
     CASE 16'--fight formation
-     scriptret = IIF(gam.wonbattle, 1, 0)
-     .state = streturn
+     script_stop_waiting(IIF(gam.wonbattle, 1, 0))
     CASE 1'--wait number of ticks
      .waitarg -= 1
      IF .waitarg < 1 THEN
-      .state = streturn
+      script_stop_waiting()
      END IF
     CASE 2'--wait for all
-     n = 0
-     FOR i = 0 TO 3
-      IF herow(i).xgo <> 0 OR herow(i).ygo <> 0 THEN n = 1
+     DIM unpause as bool = YES
+     FOR i as integer = 0 TO 3
+      IF herow(i).xgo <> 0 OR herow(i).ygo <> 0 THEN unpause = NO
      NEXT i
      IF readbit(gen(), genSuspendBits, suspendnpcs) = 1 THEN
-      FOR i = 0 TO 299
-       IF npc(i).id > 0 ANDALSO (npc(i).xgo <> 0 OR npc(i).ygo <> 0) THEN n = 1: EXIT FOR
+      FOR i as integer = 0 TO UBOUND(npc)
+       IF npc(i).id > 0 ANDALSO (npc(i).xgo <> 0 OR npc(i).ygo <> 0) THEN unpause = NO: EXIT FOR
       NEXT i
      END IF
-     IF gen(cameramode) = pancam OR gen(cameramode) = focuscam THEN n = 1
-     IF n = 0 THEN
-      .state = streturn
+     IF gen(cameramode) = pancam OR gen(cameramode) = focuscam THEN unpause = NO
+     IF unpause THEN
+      script_stop_waiting()
      END IF
     CASE 3'--wait for hero
      IF .waitarg < 0 OR .waitarg > 3 THEN
       scripterr "waiting for nonexistant hero " & .waitarg, serrBug  'should be bound by waitforhero
-      .state = streturn
+      script_stop_waiting()
      ELSE
       IF herow(.waitarg).xgo = 0 AND herow(.waitarg).ygo = 0 THEN
-       .state = streturn
+       script_stop_waiting()
       END IF
      END IF
     CASE 4'--wait for NPC
-     npcref = getnpcref(.waitarg, 0)
+     DIM npcref as integer = getnpcref(.waitarg, 0)
      IF npcref >= 0 ANDALSO .waitarg2 = gam.map.id THEN
       IF npc(npcref).xgo = 0 AND npc(npcref).ygo = 0 THEN
-       .state = streturn
+       script_stop_waiting()
       END IF
      ELSE
       '--no reference found, why wait for a non-existant npc?
-      .state = streturn
+      script_stop_waiting()
      END IF
     CASE 9'--wait for key
      IF .waitarg >= 0 AND .waitarg <= 5 THEN
       IF carray(.waitarg) > 1 THEN
-       .state = streturn
+       script_stop_waiting()
       END IF
       'Because carray(ccMenu) doesn't include it, and we don't want to break scripts
       'doing waitforkey(menu key) followed by looking for key:alt (== scUnfilteredAlt)
-      IF .waitarg = ccMenu AND keyval(scUnfilteredAlt) > 1 THEN .state = streturn
+      IF .waitarg = ccMenu AND keyval(scUnfilteredAlt) > 1 THEN script_stop_waiting()
      ELSE
       '.waitarg == anykey
-      scriptret = anykeypressed()
+      DIM temp as integer = anykeypressed()
       'Because anykeypressed doesn't check it, and we don't want to break scripts
       'doing waitforkey(any key) followed by looking for key:alt (== scUnfilteredAlt)
-      IF keyval(scUnfilteredAlt) > 1 THEN scriptret = scUnfilteredAlt
-      IF scriptret THEN
-       .state = streturn
+      IF keyval(scUnfilteredAlt) > 1 THEN temp = scUnfilteredAlt
+      IF temp THEN
+       script_stop_waiting(temp)
       END IF
      END IF
     CASE 244'--wait for scancode
      IF keyval(.waitarg) > 1 THEN
-      .state = streturn
+      script_stop_waiting()
      END IF
     CASE 42'--wait for camera
-     IF gen(cameramode) <> pancam AND gen(cameramode) <> focuscam THEN .state = streturn
+     IF gen(cameramode) <> pancam AND gen(cameramode) <> focuscam THEN script_stop_waiting()
     CASE 59'--wait for text box
      IF txt.showing = NO OR readbit(gen(), genSuspendBits, suspendboxadvance) = 1 THEN
-      .state = streturn
+      script_stop_waiting()
      END IF
     CASE 73, 234, 438'--game over, quit from loadmenu, reset game
     CASE 508'--wait for slice
      IF valid_plotslice(.waitarg, 2) THEN
       IF plotslices(.waitarg)->Velocity.X = 0 ANDALSO plotslices(.waitarg)->Velocity.Y = 0 ANDALSO plotslices(.waitarg)->TargTicks = 0 THEN
-       .state = streturn
+       script_stop_waiting()
       END IF
      ELSE
       'If the slice ceases to exist, we should stop waiting for it (after throwing our minor warning)
-      .state = streturn
+      script_stop_waiting()
      END IF
     CASE ELSE
      scripterr "illegal wait substate " & .curvalue, serrBug
-     .state = streturn
+     script_stop_waiting()
    END SELECT
+   'IF .waiting = NO THEN
    IF .state = streturn THEN
     '--this allows us to resume the script without losing a game cycle
     wantimmediate = -1
    END IF
-  CASE ELSE
+  ELSE
    '--interpret script
    insideinterpreter = YES
    scriptinterpreter
    insideinterpreter = NO
- END SELECT
+  END IF
  IF wantimmediate = -2 THEN
 '  IF nowscript < 0 THEN
 '   debug "wantimmediate ended on nowscript = -1"
 '  ELSE
-'   debug "wantimmediate would have skipped wait on command " & scrat(nowscript).curvalue & " in " & scriptname(scrat(nowscript).id) & ", state = " & scrat(nowscript).state
+'   debug "wantimmediate would have skipped wait on command " & commandname(scrat(nowscript).curvalue) & " in " & scriptname(scrat(nowscript).id) & ", state = " & scrat(nowscript).state
 '  END IF
-  wantimmediate = 0 'change to -1 to reenable bug
+  'Change to -1 to reenable bug 430 (see also bug 550), where if two scripts were triggered at once then
+  'when the top script ednded it would cause the one below it to run for two ticks.
+  wantimmediate = 0
  END IF
  IF wantimmediate = -1 THEN
   '--wow! I hope this doesnt screw things up!
@@ -1718,12 +1717,11 @@ END SUB
 
 'Script commands ('top level', rest is in yetmore.bas)
 SUB sfunctions(byval cmdid as integer)
-DIM menuslot as integer = ANY
-DIM mislot as integer = ANY
-DIM npcref as integer = ANY
-DIM i as integer = ANY
-scriptret = 0
-WITH scrat(nowscript)
+  DIM menuslot as integer = ANY
+  DIM mislot as integer = ANY
+  DIM npcref as integer = ANY
+  DIM i as integer = ANY
+  scriptret = 0
   'the only commands that belong at the top level are the ones that need
   'access to main-module shared variables (rather few of the commands actually here)
   SELECT CASE as CONST cmdid
@@ -1731,13 +1729,11 @@ WITH scrat(nowscript)
     wantbox = retvals(0)
    CASE 15'--use door
     wantdoor = retvals(0) + 1
-    .waitarg = 0
-    .state = stwait
+    script_start_waiting(0)
    CASE 16'--fight formation
     IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxFormation) THEN
      wantbattle = retvals(0) + 1
-     .waitarg = 0
-     .state = stwait
+     script_start_waiting(0)
     ELSE
      scriptret = -1
     END IF
@@ -1764,8 +1760,7 @@ WITH scrat(nowscript)
     npcref = getnpcref(retvals(0), 0)
     IF npcref >= 0 THEN
      wantusenpc = npcref + 1
-     .waitarg = 0
-     .state = stwait
+     script_start_waiting(0)
     END IF
    CASE 37'--use shop
     IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxShop) THEN
@@ -1805,15 +1800,14 @@ WITH scrat(nowscript)
      catx(0) = retvals(1) * 20
      caty(0) = retvals(2) * 20
      wantteleport = 1
-     .waitarg = 0
-     .state = stwait
+     script_start_waiting(0)
     END IF
    CASE 63, 169'--resume random enemies
     setbit gen(), genSuspendBits, suspendrandomenemies, 0
     gam.random_battle_countdown = range(100, 60)
    CASE 73'--game over
     abortg = 1
-    .state = stwait
+    script_start_waiting()
    CASE 77'--show value
     scriptout = STR(retvals(0))
    CASE 78'--alter NPC
@@ -1916,7 +1910,7 @@ WITH scrat(nowscript)
     IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
      IF save_slot_used(retvals(0) - 1) THEN
       wantloadgame = retvals(0)
-      .state = stwait
+      script_start_waiting()
      END IF
     END IF
    CASE 210'--show string
@@ -1928,11 +1922,11 @@ WITH scrat(nowscript)
     IF retvals(0) THEN
      IF scriptret = -1 THEN
       abortg = 2  'don't go straight back to loadmenu!
-      .state = stwait
+      script_start_waiting()
       fadeout 0, 0, 0
      ELSEIF scriptret > 0 THEN
       wantloadgame = scriptret
-      .state = stwait
+      script_start_waiting()
      END IF
     END IF
    CASE 245'--save map state
@@ -2208,7 +2202,7 @@ WITH scrat(nowscript)
     END IF
    CASE 438 '--reset game
     resetg = YES
-    .state = stwait
+    script_start_waiting()
    CASE 490'--use item (id)
     scriptret = 0
     IF valid_item(retvals(0)) THEN
@@ -2246,7 +2240,6 @@ WITH scrat(nowscript)
     scriptstat cmdid
     '---------
   END SELECT
-END WITH
 END SUB
 
 FUNCTION valid_item_slot(byval item_slot as integer) as integer

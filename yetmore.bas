@@ -919,22 +919,17 @@ SELECT CASE as CONST id
   scripterr "encountered clean noop", serrInfo
  CASE 1'--Wait (cycles)
   IF retvals(0) > 0 THEN
-   scrat(nowscript).waitarg = retvals(0)
-   scrat(nowscript).state = stwait
+   script_start_waiting(retvals(0))
   END IF
  CASE 2'--wait for all
-  scrat(nowscript).waitarg = retvals(0)
-  scrat(nowscript).state = stwait
+  script_start_waiting(retvals(0))
  CASE 3'--wait for hero
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-   scrat(nowscript).waitarg = retvals(0)
-   scrat(nowscript).state = stwait
+   script_start_waiting(retvals(0))
   END IF
  CASE 4'--waitforNPC
   IF retvals(0) >= -300 AND retvals(0) <= UBOUND(npcs) THEN
-   scrat(nowscript).waitarg = retvals(0)
-   scrat(nowscript).waitarg2 = gam.map.id
-   scrat(nowscript).state = stwait
+   script_start_waiting(retvals(0), gam.map.id)
   END IF
  CASE 5'--suspend npcs
   setbit gen(), genSuspendBits, suspendnpcs, 1
@@ -945,8 +940,7 @@ SELECT CASE as CONST id
  CASE 8'--resume player
   setbit gen(), genSuspendBits, suspendplayer, 0
  CASE 9'--wait for key
-  scrat(nowscript).waitarg = retvals(0)
-  scrat(nowscript).state = stwait
+  script_start_waiting(retvals(0))
  CASE 10'--walk hero
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
    SELECT CASE retvals(1)
@@ -1046,8 +1040,7 @@ SELECT CASE as CONST id
   gen(cameraArg4) = ABS(retvals(2))
   limitcamera gen(cameraArg), gen(cameraArg2)
  CASE 42'--wait for camera
-  scrat(nowscript).waitarg = retvals(0)
-  scrat(nowscript).state = stwait
+  script_start_waiting(retvals(0))
  CASE 43'--hero x
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
    scriptret = catx(retvals(0) * 5) \ 20
@@ -1077,8 +1070,7 @@ SELECT CASE as CONST id
   interpolatecat
  CASE 59'--wait for text box
   IF readbit(gen(), genSuspendBits, suspendboxadvance) = 0 THEN
-   scrat(nowscript).waitarg = retvals(0)
-   scrat(nowscript).state = stwait
+   script_start_waiting(retvals(0))
   END IF
  CASE 60'--equip where
   scriptret = 0
@@ -1670,8 +1662,7 @@ SELECT CASE as CONST id
    scriptret = 0
   END IF
  CASE 244'--wait for scancode
-  scrat(nowscript).waitarg = retvals(0)
-  scrat(nowscript).state = stwait
+  script_start_waiting(retvals(0))
  CASE 249'--party money
   scriptret = gold
  CASE 250'--set money
@@ -2879,8 +2870,7 @@ SELECT CASE as CONST id
   END IF
  CASE 508'--wait for slice
   IF valid_plotslice(retvals(0)) THEN
-   scrat(nowscript).waitarg = retvals(0)
-   scrat(nowscript).state = stwait
+   script_start_waiting(retvals(0))
   END IF
  CASE 509'--slice is moving
   IF valid_plotslice(retvals(0)) THEN

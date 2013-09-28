@@ -1644,6 +1644,28 @@ SUB script_log_tick
  END WITH
 END SUB
 
+' The current script fibre starts waiting, halting execution
+SUB script_start_waiting(waitarg1 as integer = 0, waitarg2 as integer = 0)
+ IF insideinterpreter = NO THEN scripterr "script_start_waiting called outside interpreter", serrBug
+ WITH scrat(nowscript)
+  .waitarg = waitarg1
+  .waitarg2 = waitarg2
+  .state = stwait
+ END WITH
+END SUB
+
+' Current script allowed to continue
+SUB script_stop_waiting(returnval as integer = 0)
+ WITH scrat(nowscript)
+  IF .state <> stwait THEN
+   scripterr "script_stop_waiting: script isn't waiting", serrBug
+  ELSE
+   .state = streturn
+   scriptret = returnval
+  END IF
+ END WITH
+END SUB
+
 FUNCTION runscript (byval id as integer, byval newcall as integer, byval double_trigger_check as bool, byval scripttype as zstring ptr, byval trigger as integer) as integer
 'newcall: whether his script is triggered rather than called from a script
 'double_trigger_check: whether "no double-triggering" should take effect

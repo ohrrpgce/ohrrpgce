@@ -49,6 +49,9 @@ DECLARE SUB watched_script_triggered (script as QueuedScript)
 DECLARE SUB watched_script_resumed ()
 DECLARE SUB watched_script_finished ()
 
+DECLARE SUB script_start_waiting(waitarg1 as integer = 0, waitarg2 as integer = 0)
+DECLARE SUB script_stop_waiting(returnval as integer = 0)
+
 DECLARE FUNCTION runscript (byval id as integer, byval newcall as integer, byval double_trigger_check as bool, byval scripttype as zstring ptr, byval trigger as integer) as integer
 DECLARE FUNCTION loadscript (byval n as unsigned integer) as ScriptData ptr
 DECLARE SUB freescripts (byval mem as integer)
