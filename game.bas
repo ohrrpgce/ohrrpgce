@@ -1672,9 +1672,13 @@ IF nowscript >= 0 THEN
 '  ELSE
 '   debug "wantimmediate would have skipped wait on command " & commandname(scrat(nowscript).curvalue) & " in " & scriptname(scrat(nowscript).id) & ", state = " & scrat(nowscript).state
 '  END IF
-  'Change to -1 to reenable bug 430 (see also bug 550), where if two scripts were triggered at once then
-  'when the top script ednded it would cause the one below it to run for two ticks.
-  wantimmediate = 0
+  IF readbit(gen(), genBits2, 17) THEN
+   'Reenable bug 430 (see also bug 550), where if two scripts were triggered at once then
+   'when the top script ended it would cause the one below it to run for two ticks.
+   wantimmediate = -1
+  ELSE
+   wantimmediate = 0
+  END IF
  END IF
  IF wantimmediate = -1 THEN
   '--wow! I hope this doesnt screw things up!

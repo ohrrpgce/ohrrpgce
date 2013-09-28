@@ -1722,7 +1722,7 @@ SUB gendata ()
    IF state.pt = 0 THEN EXIT DO
    IF state.pt = 3 THEN
     DIM bittemp(2) as integer
-    DIM bitname(32) as string
+    DIM bitname(33) as string
     bitname(0) = "Pause on Battle Sub-menus"
     bitname(1) = "Enable Caterpillar Party"
     bitname(2) = "Don't Restore HP on Levelup"
@@ -1756,6 +1756,7 @@ SUB gendata ()
     bitname(30) = "Don't divide experience between heroes"
     bitname(31) = "Don't reset max stats after OOB attack"
     bitname(32) = "Don't limit maximum tags to 999"
+    bitname(33) = "Simulate Bug #430"
     bittemp(0) = gen(genBits)
     bittemp(1) = gen(genBits2)
     bittemp(2) = gen(genBits2+1)

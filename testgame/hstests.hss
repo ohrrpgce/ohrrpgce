@@ -159,6 +159,11 @@ script, scheduling tests, begin
 
   blocking tests
   assert(check bug 430 enabled == false)
+  variable (oldval)
+  oldval := read general(178)  # genBits2
+  write general(178, oldval, or, (2 ^ 1)) # Enable bug 430
+  assert(check bug 430 enabled == true)
+  write general(178, oldval)
 
   free slice(tick counter slice)
 end
@@ -229,7 +234,7 @@ script, blocking tests, begin
   # Check eachtick ran every tick
   trace value(ticknumber, start tick, ticker 0, ticker 1, ticker 2)
   assert(ticker 0 == ticknumber -- start tick)
-  stop timer(2)
+  stop timer(3)
 end
 
 ########################################################################
@@ -247,6 +252,7 @@ end
 # blocking tests is completely broken if bug 430 is enabled, so here is a separate test,
 # Returns whether bug 430 is enabled
 script, check bug 430 enabled, begin
+  $0="check bug 430 enabled"
   variable (start tick)
   start tick := ticknumber
   ticker 1 := 0  # globals
@@ -258,8 +264,8 @@ script, check bug 430 enabled, begin
   set timer(2, 0, 1, @blocker script 2)  # Runs first
   wait
   assert(ticker 2 == 2)
-  # wait in blocker script 2 plus the wait above
   if(ticknumber == start tick + 2 && ticker 1 == 1) then (
+    # wait in blocker script 2 plus the wait above
     return (true)
   ) else if(ticknumber == start tick + 3 && ticker 1 == 0) then (
     return (false)
