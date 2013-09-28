@@ -24,6 +24,13 @@ global variable(106, export global 1)
 global variable(107, export global 2)
 global variable(108, expecting death)
 global variable(109, died)
+# 200-300 used in hstests.hss
+global variable(200, ticker 0)
+global variable(201, ticker 1)
+global variable(202, ticker 2)
+global variable(203, expected ticker 0)
+global variable(204, expected ticker 1)
+global variable(205, tick counter slice)
 global variable(5000, global 5000)
 
 #string 0 = error messages

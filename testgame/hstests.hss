@@ -12,6 +12,7 @@ script, interpreter tests, begin
   hspeak tests
   string tests
   math tests
+  scheduling tests
 end
 
 ########################################################################
@@ -114,6 +115,7 @@ end
 
 # This really doesn't belong here, but I'm too lazy to find a better place
 script, hspeak tests, begin
+  $0="hspeak tests"
   variable (Über)
   Über := 12
   for (über, über, über + 4) do ()
@@ -143,3 +145,129 @@ script, math tests, begin
   if(abs(-10) <> n) then(crash)
   if(abs(15) <> n + 5) then(crash)
 end
+
+########################################################################
+
+# Test the interaction of different script fibres, including pausing,
+# waiting, and back-compat blocking.
+# This makes use of timers, but the real timer tests are in autotest.hss
+script, scheduling tests, begin
+  $0="scheduling tests"
+
+  tick counter slice := create container
+  set slice velocity x(tick counter slice, 1, 1000)
+
+  blocking tests
+  assert(check bug 430 enabled == false)
+
+  free slice(tick counter slice)
+end
+
+script, ticknumber, begin
+  return(slice x(tick counter slice))
+end
+
+########################################################################
+
+script, blocker script, begin
+#  assert(ticker 0 == expected ticker 0)
+  ticker 1 += 1
+  wait
+  ticker 1 += 1
+end
+
+script, blocker script 2, begin
+  assert(ticker 1 == expected ticker 1)
+  ticker 2 += 1
+  wait
+  ticker 2 += 1
+  assert(ticker 1 == expected ticker 1)
+end
+
+script, eachtick script, begin
+  ticker 0 += 1
+  set timer(3, 0, 1, @eachtick script)
+end
+
+script, blocking tests, begin
+  $0="blocking tests"
+
+  variable (start tick)
+  start tick := ticknumber
+  ticker 0 := 0
+  ticker 1 := 0  # globals
+  ticker 2 := 0
+
+  # Start an each-tick script on a timer that should not interfer with anything else
+  # (since it has a higher timer ID)
+  set timer(3, 0, 1, @eachtick script)
+
+  wait(2)
+  assert(ticknumber == start tick + 2)
+
+  # Trigger another script and check that this one is blocked
+  # (This is also a test for bug 430, because of eachtick script)
+  expected ticker 0 := 0
+  set timer(1, 0, 1, @blocker script)
+  assert(ticknumber == start tick + 2)
+  # This script will continue running until the next tick
+  assert(ticker 1 == 0)
+  wait(1)
+  assert(ticker 1 == 2)
+  assert(ticknumber == start tick + 4)
+
+  # Trigger two scripts to run at once; one blocks the other (test for bug 430)
+  expected ticker 1 := 2
+  set timer(1, 0, 1, @blocker script)
+  set timer(2, 0, 1, @blocker script 2)  # Runs first
+  assert(ticknumber == start tick + 4)
+  wait
+  assert(ticknumber == start tick + 7)  # one tick wait each plus the wait above
+  assert(ticker 1 == 4)
+  assert(ticker 2 == 2)
+
+  # Check eachtick ran every tick
+  trace value(ticknumber, start tick, ticker 0, ticker 1, ticker 2)
+  assert(ticker 0 == ticknumber -- start tick)
+  stop timer(2)
+end
+
+########################################################################
+
+script, bug 430 tester, begin
+  variable (start tick)
+  start tick := ticknumber
+  wait  # should be skipped
+  if (ticknumber == start tick) then (
+    # was skipped
+    ticker 1 += 1
+  )
+end
+
+# blocking tests is completely broken if bug 430 is enabled, so here is a separate test,
+# Returns whether bug 430 is enabled
+script, check bug 430 enabled, begin
+  variable (start tick)
+  start tick := ticknumber
+  ticker 1 := 0  # globals
+  ticker 2 := 0
+
+  # Trigger two scripts to run at once; one blocks the other (test for bug 430)
+  expected ticker 1 := 0
+  set timer(1, 0, 1, @bug 430 tester)
+  set timer(2, 0, 1, @blocker script 2)  # Runs first
+  wait
+  assert(ticker 2 == 2)
+  # wait in blocker script 2 plus the wait above
+  if(ticknumber == start tick + 2 && ticker 1 == 1) then (
+    return (true)
+  ) else if(ticknumber == start tick + 3 && ticker 1 == 0) then (
+    return (false)
+  ) else (
+    # Other combinations should be impossible
+    crash
+  )
+end
+
+
+########################################################################
