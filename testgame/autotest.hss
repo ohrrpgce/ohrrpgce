@@ -8,6 +8,7 @@
 
 include, plotscr.hsd
 include, autotest.hsi
+include, hstests.hss
 
 ########################################################################
 
@@ -37,9 +38,7 @@ define constant(11, assert expression string)
 plotscript, run all tests, begin
   suspend player
   seed random(4444)
-  hspeak tests
-  string tests
-  math tests
+  interpreter tests
   save load tests
   slice tests
   inventory tests
@@ -80,139 +79,6 @@ end
 script, assert failure, begin
   trace(assert expression string)
   crash
-end
-
-########################################################################
-
-script, elseif A, x, begin
-  if(x == 0) then( return(1) )
-  elseif(x == 1) then( return(2) )
-  else( return(3) )
-end
-
-script, elseif B, x, begin
-  if(x == 0)
-  elseif(x == 1) then( return(2) )
-end
-
-script, elseif C, x, begin
-  if(x == 0)
-  elseif(x == 1)
-  else( return(3) )
-end
-
-script, elseif tests, begin
-  $0="elseif tests"
-  assert(elseif A(0) == 1)
-  assert(elseif A(1) == 2)
-  assert(elseif A(2) == 3)
-  assert(elseif B(0) == 0)
-  assert(elseif B(1) == 2)
-  assert(elseif B(2) == 0)
-  assert(elseif C(0) == 0)
-  assert(elseif C(1) == 0)
-  assert(elseif C(2) == 3)
-end
-
-########################################################################
-
-script, switch A, x, begin
-  return(1)
-  switch (x) do(
-    case(5) do()
-    case(zero)
-    case(2) return(100)
-            return(101)
-    case(7) return(-1)
-            while(1) do(continue(2))
-            return(-1)
-    case(1) return(102)
-    case(3, 4, 2)
-            return(103)
-            break
-            return(104)
-    case(6, else)
-      return(99) 
-  )
-end
-
-script, switch B, x, begin
-  return(1)
-  switch(x) do(
-    case(5) do()
-    case(2) do(
-      return(100)
-      break
-      return(101)
-    )
-    case(1) return(102)
-    case((2+1), 2*2, zero)
-      if(x) then(return(103))
-      else(return(104))
-    else(return(99))
-  )
-end
-
-script, switch tests, begin
-  $0="switch tests"
-  assert(switch A(0) == 101)
-  assert(switch A(1) == 102)
-  assert(switch A(2) == 101)
-  assert(switch A(3) == 103)
-  assert(switch A(4) == 103)
-  assert(switch A(5) == 1)
-  assert(switch A(6) == 99)
-  assert(switch A(7) == 102)
-  assert(switch A(8) == 99)
-
-  assert(switch B(0) == 104)
-  assert(switch B(1) == 102)
-  assert(switch B(2) == 100)
-  assert(switch B(3) == 103)
-  assert(switch B(4) == 103)
-  assert(switch B(5) == 1)
-  assert(switch B(6) == 99)
-end
-
-########################################################################
-
-# include a file with UTF-16 encoding
-include, "utf16 encoding test.hss"
-
-plotscript, ¿ƒüñÑÿ sÇ®¡ÞΤ ηªɱE, begin
-	return (42)
-end 
-
-# This really doesn't belong here, but I'm too lazy to find a better place
-script, hspeak tests, begin
-  variable (Über)
-  Über := 12
-  for (über, über, über + 4) do ()
-  assert(Über == 17)
-
-  # Lowercase form in Latin-1, uppercase not
-  variable (Ÿve)
-  ÿve := 0
-
-  assert(¿ƒüñÑÿ sÇ®¡ÞΤ ηªɱE == 42)
-
-  assert(that script in the other file == 91)
-  
-  global 5000 := 99999
-  assert(global 5000 == 99999)
-
-  elseif tests
-  switch tests
-end
-
-########################################################################
-
-script, math tests, begin
-  variable(n)
-  n := 10
-  $0="math tests"
-  if(abs(-10) <> n) then(crash)
-  if(abs(15) <> n + 5) then(crash)
 end
 
 ########################################################################
