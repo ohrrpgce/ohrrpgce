@@ -588,7 +588,7 @@ SUB loadmapstate_tilemap (byval mapnum as integer, prefix as string, byval dontf
   ELSE
    DIM errmsg as string = "tried to load saved tilemap state which is size " & statesize.wide & "*" & statesize.high & ", while the map is size " & propersize.wide & "*" & propersize.high
    IF insideinterpreter THEN
-    scripterr commandname(curcmd->value) + errmsg, 4
+    scripterr current_command_name() + errmsg, 4
    ELSE
     debug "loadmapstate_tilemap(" + filebase + "_t.tmp): " + errmsg
    END IF
@@ -613,7 +613,7 @@ SUB loadmapstate_passmap (byval mapnum as integer, prefix as string, byval dontf
   ELSE
    DIM errmsg as string = "tried to load saved passmap state which is size " & statesize.wide & "*" & statesize.high & ", while the map is size " & propersize.wide & "*" & propersize.high
    IF insideinterpreter THEN
-    scripterr commandname(curcmd->value) + errmsg, 4
+    scripterr current_command_name() + errmsg, 4
    ELSE
     debug "loadmapstate_passmap(" + filebase + "_p.tmp): " + errmsg
    END IF
@@ -636,7 +636,7 @@ SUB loadmapstate_zonemap (byval mapnum as integer, prefix as string, byval dontf
   IF zmap.wide <> mapsizetiles.x OR zmap.high <> mapsizetiles.y THEN
    DIM errmsg as string = "tried to load saved zonemap state which is size " & zmap.wide & "*" & zmap.high & ", while the map is size " & mapsizetiles.x & "*" & mapsizetiles.y
    IF insideinterpreter THEN
-    scripterr commandname(curcmd->value) + errmsg, 4
+    scripterr current_command_name() + errmsg, 4
    ELSE
     debug "loadmapstate_zonemap(" + filebase + "_z.tmp): " + errmsg
    END IF

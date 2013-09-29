@@ -57,6 +57,8 @@ DECLARE FUNCTION loadscript (byval n as unsigned integer) as ScriptData ptr
 DECLARE SUB freescripts (byval mem as integer)
 
 DECLARE FUNCTION commandname (byval id as integer) as string
+DECLARE FUNCTION current_command_name() as string
+DECLARE FUNCTION interpreter_context_name() as string
 DECLARE FUNCTION script_call_chain (byval trim_front as integer = YES) as string
 DECLARE SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
 DECLARE FUNCTION script_interrupt () as integer

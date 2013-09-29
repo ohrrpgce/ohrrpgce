@@ -2062,6 +2062,26 @@ FUNCTION commandname (byval id as integer) as string
  RETURN ret
 END FUNCTION
 
+'For use inside a script command handler only
+FUNCTION current_command_name() as string
+ IF insideinterpreter = NO ORELSE curcmd->kind <> tyfunct THEN
+  'Best not to display a bug since we're probably about to report an error anyway
+  debugc errBug, "current_command_name called in bad context"
+  RETURN ""
+ END IF
+ RETURN commandname(curcmd->value)
+END FUNCTION
+
+'This is called for error messages occurring inside scripts, and gives a description of the current context
+FUNCTION interpreter_context_name() as string
+ IF insideinterpreter = NO THEN debugc errPromptBug, "script_context_name called outside interpreter"
+ IF curcmd->kind = tyfunct THEN
+  RETURN commandname(curcmd->value) + ": "
+ ELSEIF insideinterpreter THEN
+  RETURN ""
+ END IF
+END FUNCTION
+
 FUNCTION script_call_chain (byval trim_front as integer = YES) as string
  IF nowscript < 0 THEN
   RETURN "Funny... no scripts running!"

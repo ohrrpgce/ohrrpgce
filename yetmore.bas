@@ -537,7 +537,7 @@ FUNCTION get_valid_npc (byval seekid as integer, byval errlvl as scriptErrEnum =
  IF seekid < 0 THEN
   DIM npcidx as integer = (seekid + 1) * -1
   IF npcidx > 299 ORELSE npc(npcidx).id = 0 THEN
-   scripterr commandname(curcmd->value) & ": invalid npc reference " & seekid & " (maybe the NPC was deleted?)", errlvl
+   scripterr current_command_name() & ": invalid npc reference " & seekid & " (maybe the NPC was deleted?)", errlvl
    RETURN -1
   END IF
   RETURN npcidx
@@ -545,7 +545,7 @@ FUNCTION get_valid_npc (byval seekid as integer, byval errlvl as scriptErrEnum =
   FOR i as integer = 0 TO 299
    IF npc(i).id - 1 = seekid THEN RETURN i
   NEXT
-  scripterr commandname(curcmd->value) & ": invalid npc reference; no NPCs of ID " & seekid & " exist", errlvl
+  scripterr current_command_name() & ": invalid npc reference; no NPCs of ID " & seekid & " exist", errlvl
   RETURN -1
  END IF
 END FUNCTION
@@ -555,23 +555,23 @@ END FUNCTION
 FUNCTION get_valid_npc_id (byval seekid as integer, byval errlvl as scriptErrEnum = serrBadOp) as integer
  IF seekid >= 0 THEN
   IF seekid > UBOUND(npcs) THEN
-   scripterr commandname(curcmd->value) & ": invalid NPC ID " & seekid, errlvl
+   scripterr current_command_name() & ": invalid NPC ID " & seekid, errlvl
    RETURN -1
   END IF
   RETURN seekid
  ELSE
   DIM npcidx as integer = (seekid + 1) * -1
   IF npcidx > UBOUND(npc) THEN
-   scripterr commandname(curcmd->value) & ": invalid NPC reference " & seekid, errlvl
+   scripterr current_command_name() & ": invalid NPC reference " & seekid, errlvl
    RETURN -1
   ELSEIF npc(npcidx).id = 0 THEN
-   scripterr commandname(curcmd->value) & ": invalid NPC reference " & seekid & " (maybe the NPC was deleted?)", errlvl
+   scripterr current_command_name() & ": invalid NPC reference " & seekid & " (maybe the NPC was deleted?)", errlvl
    RETURN -1
   ELSE
    DIM id as integer = ABS(npc(npcidx).id) - 1
    IF id > UBOUND(npcs) THEN
     'Note that an NPC may be marked hidden because it has an invalid ID
-    scripterr commandname(curcmd->value) & ": NPC reference " & seekid & " is for a disabled NPC with invalid ID " & npc(npcidx).id & " (the map must be incompletely loaded)", errlvl
+    scripterr current_command_name() & ": NPC reference " & seekid & " is for a disabled NPC with invalid ID " & npc(npcidx).id & " (the map must be incompletely loaded)", errlvl
     RETURN -1
    END IF
    RETURN id
@@ -1308,10 +1308,11 @@ SELECT CASE as CONST id
   END IF
  CASE 176'--run script by id
   DIM rsr as integer
+  DIM argc as integer = curcmd->argc  'Must store before calling runscript
   rsr = runscript(retvals(0), NO, NO, "indirect", plottrigger) 'possible to get ahold of triggers
   IF rsr = 1 THEN
    '--fill heap with arguments
-   FOR i as integer = 1 TO scrat(nowscript - 1).curargc - 1  'flexible argument number! (note that argc has been saved here by runscript)
+   FOR i as integer = 1 TO argc - 1  'flexible argument number!
     setScriptArg i - 1, retvals(i)
    NEXT i
    'NOTE: scriptret is not set here when this command is successful. The return value of the called script will be returned.
@@ -2616,7 +2617,7 @@ SELECT CASE as CONST id
    SliceLoadFromFile sl, workingdir & SLASH & "slicetree_0_" & retvals(0) & ".reld"
    scriptret = create_plotslice_handle(sl)
   ELSE
-   scripterr commandname(curcmd->value) & ": invalid slice collection id " & retvals(0), serrBadOp
+   scripterr current_command_name() & ": invalid slice collection id " & retvals(0), serrBadOp
    scriptret = 0
   END IF
  CASE 462 '--set slice edge x
@@ -2642,9 +2643,9 @@ SELECT CASE as CONST id
  CASE 465 '--set slice lookup
   IF valid_plotslice(retvals(0)) THEN
    IF retvals(1) < 0 THEN
-    scripterr commandname(curcmd->value) & ": negative lookup codes are reserved, they can't be set.", serrBadOp
+    scripterr current_command_name() & ": negative lookup codes are reserved, they can't be set.", serrBadOp
    ELSEIF plotslices(retvals(0))->Lookup < 0 THEN
-    scripterr commandname(curcmd->value) & ": can't modify the lookup code of a special slice.", serrBadOp
+    scripterr current_command_name() & ": can't modify the lookup code of a special slice.", serrBadOp
    ELSE
     plotslices(retvals(0))->Lookup = retvals(1)
    END IF
@@ -2853,7 +2854,7 @@ SELECT CASE as CONST id
  CASE 506 '--move slice to (handle, x, y, ticks)
   IF valid_plotslice(retvals(0)) THEN
    IF retvals(3) < 1 THEN
-     scripterr commandname(curcmd->value) & ": ticks arg " & retvals(3) & " mustn't be < 1", serrBadOp
+     scripterr current_command_name() & ": ticks arg " & retvals(3) & " mustn't be < 1", serrBadOp
    ELSE
     SetSliceTarg plotslices(retvals(0)), retvals(1), retvals(2), retvals(3)
    END IF
@@ -2861,7 +2862,7 @@ SELECT CASE as CONST id
  CASE 507 '--move slice by (handle, rel x, rel y, ticks)
   IF valid_plotslice(retvals(0)) THEN
    IF retvals(3) < 1 THEN
-     scripterr commandname(curcmd->value) & ": ticks arg " & retvals(3) & " mustn't be < 1", serrBadOp
+     scripterr current_command_name() & ": ticks arg " & retvals(3) & " mustn't be < 1", serrBadOp
    ELSE
     WITH *plotslices(retvals(0))
      SetSliceTarg plotslices(retvals(0)), .X + retvals(1), .Y + retvals(2), retvals(3)
@@ -3914,16 +3915,16 @@ END FUNCTION
 
 FUNCTION valid_plotslice(byval handle as integer, byval errlev as scriptErrEnum = serrBadOp) as integer
  IF handle < LBOUND(plotslices) OR handle > UBOUND(plotslices) THEN
-  scripterr commandname(curcmd->value) & ": invalid slice handle " & handle, errlev
+  scripterr current_command_name() & ": invalid slice handle " & handle, errlev
   RETURN NO
  END IF
  IF plotslices(handle) = 0 THEN
-  scripterr commandname(curcmd->value) & ": slice handle " & handle & " has already been deleted", errlev
+  scripterr current_command_name() & ": slice handle " & handle & " has already been deleted", errlev
   RETURN NO
  END IF
  IF ENABLE_SLICE_DEBUG THEN
   IF SliceDebugCheck(plotslices(handle)) = NO THEN
-   scripterr commandname(curcmd->value) & ": slice " & handle & " " & plotslices(handle) & " is not in the slice debug table!", serrBug
+   scripterr current_command_name() & ": slice " & handle & " " & plotslices(handle) & " is not in the slice debug table!", serrBug
    RETURN NO
   END IF
  END IF
@@ -3937,7 +3938,7 @@ FUNCTION valid_plotsprite(byval handle as integer) as integer
     RETURN YES
    END IF
   ELSE
-   scripterr commandname(curcmd->value) & ": slice handle " & handle & " is not a sprite", serrBadOp
+   scripterr current_command_name() & ": slice handle " & handle & " is not a sprite", serrBadOp
   END IF
  END IF
  RETURN NO
@@ -3948,7 +3949,7 @@ FUNCTION valid_plotrect(byval handle as integer) as integer
   IF plotslices(handle)->SliceType = slRectangle THEN
    RETURN YES
   ELSE
-   scripterr commandname(curcmd->value) & ": slice handle " & handle & " is not a rect", serrBadOp
+   scripterr current_command_name() & ": slice handle " & handle & " is not a rect", serrBadOp
   END IF
  END IF
  RETURN NO
@@ -3958,12 +3959,12 @@ FUNCTION valid_plottextslice(byval handle as integer) as integer
  IF valid_plotslice(handle) THEN
   IF plotslices(handle)->SliceType = slText THEN
    IF plotslices(handle)->SliceData = 0 THEN
-    scripterr commandname(curcmd->value) & ": text slice handle " & handle & " has null data", serrBug
+    scripterr current_command_name() & ": text slice handle " & handle & " has null data", serrBug
     RETURN NO
    END IF
    RETURN YES
   ELSE
-   scripterr commandname(curcmd->value) & ": slice handle " & handle & " is not text", serrBadOp
+   scripterr current_command_name() & ": slice handle " & handle & " is not text", serrBadOp
   END IF
  END IF
  RETURN NO
@@ -3974,7 +3975,7 @@ FUNCTION valid_plotgridslice(byval handle as integer) as integer
   IF plotslices(handle)->SliceType = slGrid THEN
    RETURN YES
   ELSE
-   scripterr commandname(curcmd->value) & ": slice handle " & handle & " is not a grid", serrBadOp
+   scripterr current_command_name() & ": slice handle " & handle & " is not a grid", serrBadOp
   END IF
  END IF
  RETURN NO
@@ -3988,7 +3989,7 @@ FUNCTION valid_resizeable_slice(byval handle as integer, byval ignore_fill as in
    IF sl->Fill = NO OR ignore_fill THEN
     RETURN YES
    ELSE
-    scripterr commandname(curcmd->value) & ": slice handle " & handle & " cannot be resized while filling parent", serrBadOp
+    scripterr current_command_name() & ": slice handle " & handle & " cannot be resized while filling parent", serrBadOp
    END IF
   ELSE
    IF sl->SliceType = slText THEN
@@ -3998,10 +3999,10 @@ FUNCTION valid_resizeable_slice(byval handle as integer, byval ignore_fill as in
     IF dat->wrap = YES THEN
      RETURN YES
     ELSE
-     scripterr commandname(curcmd->value) & ": text slice handle " & handle & " cannot be resized unless wrap is enabled", serrBadOp
+     scripterr current_command_name() & ": text slice handle " & handle & " cannot be resized unless wrap is enabled", serrBadOp
     END IF
    ELSE
-    scripterr commandname(curcmd->value) & ": slice handle " & handle & " is not resizeable", serrBadOp
+    scripterr current_command_name() & ": slice handle " & handle & " is not resizeable", serrBadOp
    END IF
   END IF
  END IF
@@ -4076,7 +4077,7 @@ SUB change_rect_plotslice(byval handle as integer, byval style as integer=-2, by
   IF sl->SliceType = slRectangle THEN
    ChangeRectangleSlice sl, style, bgcol, fgcol, border, translucent
   ELSE
-   scripterr commandname(curcmd->value) & ": " & SliceTypeName(sl) & " is not a rect", serrBadOp
+   scripterr current_command_name() & ": " & SliceTypeName(sl) & " is not a rect", serrBadOp
   END IF
  END IF
 END SUB

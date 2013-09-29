@@ -2262,7 +2262,7 @@ FUNCTION really_valid_hero_party(byval who as integer, byval maxslot as integer=
  'Defaults to a non-suppressed error
  IF bound_arg(who, 0, maxslot, "hero party slot", , , errlvl) = NO THEN RETURN NO
  IF hero(who) = 0 THEN
-  scripterr commandname(curcmd->value) + ": Party hero slot " & who & " is empty", errlvl
+  scripterr current_command_name() + ": Party hero slot " & who & " is empty", errlvl
   RETURN NO
  END IF
  RETURN YES
@@ -2306,7 +2306,7 @@ FUNCTION valid_door(byval id as integer) as integer
  IF bound_arg(id, 0, UBOUND(gam.map.door), "door", , , serrBadOp) = NO THEN RETURN NO
  IF readbit(gam.map.door(id).bits(), 0, 0) = 0 THEN
   'Door doesn't exist
-  scripterr commandname(curcmd->value) & ": invalid door id " & id, serrBadOp
+  scripterr current_command_name() & ": invalid door id " & id, serrBadOp
   RETURN NO
  END IF
  RETURN YES
@@ -2314,7 +2314,7 @@ END FUNCTION
 
 FUNCTION valid_tile_pos(byval x as integer, byval y as integer) as integer
  IF x < 0 OR y < 0 OR x >= mapsizetiles.x OR y >= mapsizetiles.y THEN
-  scripterr commandname(curcmd->value) + ": invalid map position " & x & "," & y & " -- map is " & mapsizetiles.x & "*" & mapsizetiles.y & " tiles", serrBadOp
+  scripterr current_command_name() + ": invalid map position " & x & "," & y & " -- map is " & mapsizetiles.x & "*" & mapsizetiles.y & " tiles", serrBadOp
   RETURN NO
  END IF
  RETURN YES
