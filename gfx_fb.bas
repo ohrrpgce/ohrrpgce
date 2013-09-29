@@ -5,23 +5,14 @@
 '' part of OHRRPGCE - see elsewhere for license details
 ''
 
-#ifdef LANG_DEPRECATED
- #define __langtok #lang
- __langtok "deprecated"
- OPTION STATIC
- OPTION EXPLICIT
-#endif
-
 #include "config.bi"
 #include "fbgfx.bi"
 #include "gfx_newRenderPlan.bi"
 #include "gfx.bi"
 #include "common.bi"
 
-#ifndef LANG_DEPRECATED
 'Use the FB namespace for the types and constants from fbgfx
 USING FB
-#endif
 
 #include once "crt.bi"
 #undef abort

@@ -5,13 +5,6 @@
 'Type definitions for the basic builtin types. Place other DEFINE_VECTOR_OF_TYPE macros in another
 'module (somewhere where your type definitions are actually available, they aren't here)
 
-#ifdef LANG_DEPRECATED
- #define __langtok #lang
- __langtok "deprecated"
- OPTION STATIC
- OPTION EXPLICIT
-#endif
-
 #include "config.bi"
 #include "util.bi"
 #include "common_base.bi"

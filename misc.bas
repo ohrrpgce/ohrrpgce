@@ -5,13 +5,6 @@
 '
 'FIXME: move this crud elsewhere
 
-#ifdef LANG_DEPRECATED
- #define __langtok #lang
- __langtok "deprecated"
- OPTION STATIC
- OPTION EXPLICIT
-#endif
-
 #include "config.bi"
 #include "ver.txt"
 #include "misc.bi"

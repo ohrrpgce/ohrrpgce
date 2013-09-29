@@ -7,13 +7,6 @@
 'scripterr, runscript, loadscript, freescripts, load/saveglobalvars, commandname, decodetrigger.
 'Probably runscript, loadscript, freescripts will eventually be moved here
 
-#ifdef LANG_DEPRECATED
- #define __langtok #lang
- __langtok "deprecated"
- OPTION STATIC
- OPTION EXPLICIT
-#endif
-
 #include "config.bi"
 #include "util.bi"
 #include "misc.bi"

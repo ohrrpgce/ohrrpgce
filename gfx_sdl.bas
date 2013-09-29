@@ -4,13 +4,6 @@
 '' Part of the OHRRPGCE - See LICENSE.txt for GNU GPL License details and disclaimer of liability
 ''
 
-#ifdef LANG_DEPRECATED
- #define __langtok #lang
- __langtok "deprecated"
- OPTION STATIC
- OPTION EXPLICIT
-#endif
-
 #include "config.bi"
 #include "crt.bi"
 #include "gfx.bi"

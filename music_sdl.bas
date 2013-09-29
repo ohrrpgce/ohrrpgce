@@ -4,13 +4,6 @@
 '' part of OHRRPGCE - see elsewhere for license details
 ''
 
-#ifdef LANG_DEPRECATED
- #define __langtok #lang
- __langtok "deprecated"
- OPTION STATIC
- OPTION EXPLICIT
-#endif
-
 #include "music.bi"
 #include "util.bi"
 #include "common.bi"

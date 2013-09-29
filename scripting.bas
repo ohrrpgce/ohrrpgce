@@ -7,13 +7,6 @@
 ' Implementations of script commands are in game.bas and yetmore.bas, not here.
 
 
-#ifdef LANG_DEPRECATED
- #define __langtok #lang
- __langtok "deprecated"
- OPTION STATIC
- OPTION EXPLICIT
-#endif
-
 #include "config.bi"
 #include "udts.bi"
 #include "gglobals.bi"

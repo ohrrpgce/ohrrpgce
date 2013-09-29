@@ -13,13 +13,6 @@ include_windows_bi()
 #include "util.bi"
 #include "const.bi"
 
-#ifdef LANG_DEPRECATED
- #define __langtok #lang
- __langtok "deprecated"
- OPTION STATIC
- OPTION EXPLICIT
-#endif
-
 'FormatMessage is such an awfully complex function
 function get_windows_error (byval errcode as integer) as string
 	dim strbuf as string * 256

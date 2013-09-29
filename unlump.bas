@@ -5,13 +5,6 @@
 '
 ' Compile with makeutil.sh or makeutil.bat
 '
-#ifdef LANG_DEPRECATED
- #define __langtok #lang
- __langtok "deprecated"
- OPTION STATIC
- OPTION EXPLICIT
-#endif
-
 'basic subs and functions
 DECLARE FUNCTION editstr (stri as string, key as string, byref cur as integer, byref max as integer, byref number as integer) as string
 DECLARE SUB fatalcleanup ()

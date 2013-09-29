@@ -11,13 +11,6 @@
 ''        fbc -lang deprecated bam2mid.bas
 ''
 
-#ifdef LANG_DEPRECATED
- #define __langtok #lang
- __langtok "deprecated"
- OPTION STATIC
- OPTION EXPLICIT
-#endif
-
 #include "banks.bi"
 
 #define VELOCITY 		96

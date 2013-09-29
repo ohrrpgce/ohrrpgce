@@ -5,13 +5,6 @@
 'This module is for code to be linked into utilities, but not Game and Custom.
 'Currently mostly replacements for common.bas functions.
 
-#ifdef LANG_DEPRECATED
- #define __langtok #lang
- __langtok "deprecated"
- OPTION STATIC
- OPTION EXPLICIT
-#endif
-
 #include "common_base.bi"
 #include "file.bi"
 

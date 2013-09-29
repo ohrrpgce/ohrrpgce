@@ -5,13 +5,6 @@
 '
 ' Compile with makeutil.sh or makeutil.bat
 
-#ifdef LANG_DEPRECATED
- #define __langtok #lang
- __langtok "deprecated"
- OPTION STATIC
- OPTION EXPLICIT
-#endif
-
 #include "config.bi"
 #include "util.bi"
 #include "const.bi"

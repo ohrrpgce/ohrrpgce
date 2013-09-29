@@ -6,13 +6,6 @@
 ''
 
 
-#ifdef LANG_DEPRECATED
- #define __langtok #lang
- __langtok "deprecated"
- OPTION STATIC
- OPTION EXPLICIT
-#endif
-
 #include "config.bi"
 #include "gfx_newRenderPlan.bi"
 #include "gfx.bi"

@@ -4,13 +4,6 @@
 
 'Used by music_sdl, but could be used with other SDL libraries
 
-#ifdef LANG_DEPRECATED
- #define __langtok #lang
- __langtok "deprecated"
- OPTION STATIC
- OPTION EXPLICIT
-#endif
-
 #include "config.bi"
 #include "SDL/SDL.bi"
 #include "lumpfile.bi"

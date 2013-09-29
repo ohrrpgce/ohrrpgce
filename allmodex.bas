@@ -3,13 +3,6 @@
 '
 'This module is completely bool-clean (bool always used when appropriate)
 
-#ifdef LANG_DEPRECATED
- #define __langtok #lang
- __langtok "deprecated"
- OPTION STATIC
- OPTION EXPLICIT
-#endif
-
 #include "config.bi"
 #include "crt/limits.bi"
 #include "common.bi"

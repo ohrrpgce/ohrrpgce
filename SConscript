@@ -79,9 +79,6 @@ else:
 if 'asm' in ARGUMENTS:
     FBFLAGS += ["-r", "-g"]
 
-if 'deprecated' in ARGUMENTS:
-    FBFLAGS += ["-d", "LANG_DEPRECATED"]
-
 # There are three levels of debug here. Not specifying 'debug' is a happy medium
 debug = 0.5
 if 'debug' in ARGUMENTS:
@@ -139,7 +136,7 @@ music = [music.lower ()]
 env = Environment (FBFLAGS = FBFLAGS,
                    FBLIBS = [],
                    CFLAGS = CFLAGS,
-                   FBC = fbc + ' -lang fb',
+                   FBC = fbc,
                    CXXFLAGS = CXXFLAGS,
                    CXXLINKFLAGS = [],
                    VAR_PREFIX = '',
@@ -645,7 +642,6 @@ Options:
 Experimental options:
   raster=1            Include new graphics API and rasterizer.
   gengcc=1            Compile using GCC emitter.
-  deprecated=1        Compiles certain source files using the "deprecated" dialect
   linkgcc=0           Link using fbc instead of g++.
   android=1           Compile for android. Commandline programs only.
   android-source=1    Used as part of the Android build process for Game/Custom.
