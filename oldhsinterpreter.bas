@@ -22,8 +22,7 @@
 #include "gglobals.bi"
 #include "allmodex.bi"
 #include "game.bi"
-#include "moresubs.bi"
-#include "hsinterpreter.bi"
+#include "scripting.bi"
 
 'local subs and functions
 DECLARE SUB scriptinterpreter_loop ()

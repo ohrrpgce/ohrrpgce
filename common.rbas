@@ -42,8 +42,8 @@ DECLARE SUB fatal_error_shutdown ()
 #include "game_udts.bi"
 #include "gglobals.bi"
 #include "moresubs.bi"
+#include "scripting.bi"
 #include "yetmore2.bi"
-#include "hsinterpreter.bi"
 #ENDIF
 
 #IFDEF IS_CUSTOM

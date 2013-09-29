@@ -19,7 +19,7 @@
 #include "scrconst.bi"
 #include "uiconst.bi"
 #include "loading.bi"
-#include "hsinterpreter.bi"
+#include "scripting.bi"
 #include "savegame.bi"
 
 #include "game.bi"

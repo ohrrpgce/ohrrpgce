@@ -20,7 +20,7 @@
 #include "loading.bi"
 #include "reload.bi"
 #include "reloadext.bi"
-#include "hsinterpreter.bi"
+#include "scripting.bi"
 #include "ver.txt"
 
 #include "game.bi"

@@ -30,7 +30,7 @@
 #include "menustuf.bi"
 #include "bmodsubs.bi"
 #include "bmod.bi"
-#include "hsinterpreter.bi"
+#include "scripting.bi"
 #include "sliceedit.bi"
 #include "game.bi"
 #include "gfx.bi"
