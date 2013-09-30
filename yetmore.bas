@@ -3111,12 +3111,7 @@ SELECT CASE as CONST id
  scriptret = 1
 #ENDIF
  CASE 554 '--running on mobile
-#IFDEF __FB_ANDROID__
- '--return true for all Android except OUYA
- scriptret = IIF(running_on_console(), 0, 1)
-#ELSE
- scriptret = 0
-#ENDIF
+  scriptret = IIF(running_on_mobile(), 1, 0)
  CASE 555 '--running on console
   scriptret = IIF(running_on_console(), 1, 0)
 
@@ -3860,6 +3855,10 @@ txt.show_lines = 0
 
 '--Create a set of slices to display the text box
 init_text_box_slices txt
+
+IF use_touch_textboxes() THEN
+ hide_virtual_gamepad()
+END IF
 
 END SUB
 

@@ -4437,6 +4437,7 @@ CONST platformoptADDVBUTTON as integer = 5
 CONST platformoptTOGGLEMULTI as integer = 6
 CONST platformoptBUTTONNAMES as integer = 7
 CONST platformoptMARGINS as integer = 8
+CONST platformoptTOGGLETOUCHTEXTBOXES as integer = 9
 
 SUB edit_platform_options ()
 
@@ -4556,6 +4557,9 @@ SUB edit_platform_options ()
      END IF
     
     END IF
+
+    append_menu_item menu, "Touch Textboxes: " & yesorno(mobile."touch_textboxes".exists)
+    menu.last->t = platformoptTOGGLETOUCHTEXTBOXES
  
     append_menu_item menu, ""
     menu.last->unselectable = YES
@@ -4642,6 +4646,9 @@ SUB edit_platform_options ()
     CASE platformoptTOGGLEMULTI:
      ToggleChildNode gen_root, "multiplayer_gamepads"
      st.need_update = YES
+    CASE platformoptTOGGLETOUCHTEXTBOXES:
+     ToggleChildNode mobile, "touch_textboxes"
+     st.need_update = YES
     CASE platformoptBUTTON:
      sc = prompt_for_scancode()
      IF sc >= 0 THEN
@@ -4671,6 +4678,11 @@ SUB edit_platform_options ()
    CASE platformoptTOGGLEMULTI:
     IF keyval(scLeft) > 1 ORELSE keyval(scRight) > 1 THEN
      ToggleChildNode gen_root, "multiplayer_gamepads"
+     st.need_update = YES
+    END IF
+   CASE platformoptTOGGLETOUCHTEXTBOXES:
+    IF keyval(scLeft) > 1 ORELSE keyval(scRight) > 1 THEN
+     ToggleChildNode mobile, "touch_textboxes"
      st.need_update = YES
     END IF
    CASE platformoptBUTTON:

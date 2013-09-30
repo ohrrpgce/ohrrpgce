@@ -223,6 +223,7 @@ declare sub remap_android_gamepad(byval player as integer, gp as GamePadMap)
 declare sub remap_touchscreen_button (byval button_id as integer, byval ohr_scancode as integer)
 
 declare function running_on_console() as bool
+declare function running_on_mobile() as bool
 
 declare function get_safe_zone_margin () as integer
 declare sub set_safe_zone_margin (byval margin as integer)

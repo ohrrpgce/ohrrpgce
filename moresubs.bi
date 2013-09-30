@@ -45,6 +45,8 @@ DECLARE FUNCTION herocount (byval last as integer = 3) as integer
 DECLARE FUNCTION caterpillar_size () as integer
 
 DECLARE FUNCTION gamepadmap_from_reload(gamepad as NodePtr, byval use_dpad as bool=NO) as GamePadMap
+DECLARE FUNCTION use_touch_textboxes() as bool
+DECLARE FUNCTION should_disable_virtual_gamepad() as bool
 
 DECLARE FUNCTION default_margin() as integer
 DECLARE FUNCTION default_margin_for_game() as integer

@@ -1346,8 +1346,23 @@ SUB reset_game_state ()
  IF mobile."disable_virtual_gamepad".exists THEN
   hide_virtual_gamepad()
  END IF
- 
 END SUB
+
+FUNCTION should_disable_virtual_gamepad() as bool
+ IF NOT running_on_mobile() THEN RETURN NO
+ DIM root as NodePtr = get_general_reld()
+ DIM mobile as NodePtr = root."mobile_options".ptr
+ IF mobile = 0 THEN mobile = SetChildNode(root, "mobile_options")
+ RETURN mobile."disable_virtual_gamepad".exists
+END FUNCTION
+
+FUNCTION use_touch_textboxes() as bool
+ IF NOT running_on_mobile() THEN RETURN NO
+ DIM root as NodePtr = get_general_reld()
+ DIM mobile as NodePtr = root."mobile_options".ptr
+ IF mobile = 0 THEN mobile = SetChildNode(root, "mobile_options")
+ RETURN mobile."touch_textboxes".exists
+END FUNCTION
 
 SUB reset_map_state (map as MapModeState)
  map.id = gen(genStartMap)

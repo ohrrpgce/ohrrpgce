@@ -691,9 +691,17 @@ DO
    LOOP
   END IF
  END IF
- 'debug "before advance_text_box:"
- IF carray(ccUse) > 1 AND txt.fully_shown = YES AND readbit(gen(), genSuspendBits, suspendboxadvance) = 0 THEN
-  advance_text_box
+ IF txt.fully_shown = YES ANDALSO readbit(gen(), genSuspendBits, suspendboxadvance) = 0 THEN
+  IF use_touch_textboxes() THEN
+   DIM mouse as MouseInfo
+   mouse = readmouse()
+   debug mouse.clickstick & " " & mouseLeft
+   IF (mouse.clickstick AND mouseLeft) THEN
+    advance_text_box
+   END IF
+  ELSEIF carray(ccUse) > 1 THEN
+   advance_text_box
+  END IF
  END IF
  'debug "after advance_text_box:"
  IF vstate.active THEN
@@ -3203,6 +3211,9 @@ SUB usedoor (byval door_id as integer)
 END SUB
 
 SUB advance_text_box ()
+ IF use_touch_textboxes() ANDALSO NOT should_disable_virtual_gamepad() THEN
+  show_virtual_gamepad()
+ END IF
  IF txt.box.backdrop > 0 THEN
   '--backdrop needs resetting
   gen(genTextboxBackdrop) = 0

@@ -6499,6 +6499,15 @@ function running_on_console() as bool
 	return io_running_on_console()
 end function
 
+function running_on_mobile() as bool
+#IFDEF __FB_ANDROID__
+ '--return true for all Android except OUYA
+ return NOT running_on_console()
+#ELSE
+ RETURN NO
+#ENDIF
+end function
+
 function get_safe_zone_margin () as integer
 	'--returns and integer from 0 to 10 representing the percentage
 	' of the screen edges reserved for TV safe zones. Only returns non-zero
