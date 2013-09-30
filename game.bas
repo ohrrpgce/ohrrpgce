@@ -695,11 +695,11 @@ DO
   IF use_touch_textboxes() THEN
    DIM mouse as MouseInfo
    mouse = readmouse()
-   debug mouse.clickstick & " " & mouseLeft
    IF (mouse.clickstick AND mouseLeft) THEN
     advance_text_box
    END IF
-  ELSEIF carray(ccUse) > 1 THEN
+  END IF
+  IF carray(ccUse) > 1 THEN
    advance_text_box
   END IF
  END IF
