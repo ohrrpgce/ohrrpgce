@@ -3856,9 +3856,7 @@ txt.show_lines = 0
 '--Create a set of slices to display the text box
 init_text_box_slices txt
 
-IF NOT txt.box.choice_enabled ANDALSO use_touch_textboxes() THEN
- hide_virtual_gamepad()
-END IF
+update_virtual_gamepad_display()
 
 END SUB
 

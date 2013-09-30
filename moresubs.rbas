@@ -1343,9 +1343,7 @@ SUB reset_game_state ()
  FOR i as integer = button_id TO 5
   remap_touchscreen_button i, 0
  NEXT i
- IF mobile."disable_virtual_gamepad".exists THEN
-  hide_virtual_gamepad()
- END IF
+ update_virtual_gamepad_display()
 END SUB
 
 FUNCTION should_disable_virtual_gamepad() as bool

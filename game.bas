@@ -309,10 +309,9 @@ FOR i as integer = 1 to 3
  remap_android_gamepad i, blank_gp
 NEXT i
 
-'This only has effect on platforms that actually allow a virtual gamepad
-'(currently all Android except for OUYA)
-show_virtual_gamepad()
-
+'virtual gamepad stuff only has effect on platforms that actually allow
+' a virtual gamepad (currently all Android except for OUYA)
+hide_virtual_gamepad()
 remap_touchscreen_button 0, scEnter
 remap_touchscreen_button 1, scESC
 remap_touchscreen_button 2, 0
@@ -421,7 +420,9 @@ END IF
 
 IF gam.autorungame = NO THEN
  'DEBUG debug "browse for RPG"
+ show_virtual_gamepad()
  sourcerpg = browse(7, "", "*.rpg", tmpdir, 1, "game_browse_rpg")
+ hide_virtual_gamepad()
  IF sourcerpg = "" THEN exitprogram NO
  IF isdir(sourcerpg) THEN
   usepreunlump = YES
@@ -3211,9 +3212,7 @@ SUB usedoor (byval door_id as integer)
 END SUB
 
 SUB advance_text_box ()
- IF use_touch_textboxes() ANDALSO NOT should_disable_virtual_gamepad() THEN
-  show_virtual_gamepad()
- END IF
+ update_virtual_gamepad_display YES
  IF txt.box.backdrop > 0 THEN
   '--backdrop needs resetting
   gen(genTextboxBackdrop) = 0
@@ -4169,3 +4168,36 @@ threshhold = -1
   END IF
  NEXT i
 END SUB
+
+SUB update_virtual_gamepad_display(byval advancing_text_now as bool=NO)
+ 'Based on global state, of the current game, decide whether or not the virual gamepad should be displaying
+ IF calc_virtual_gamepad_state(advancing_text_now) THEN
+  show_virtual_gamepad()
+ ELSE
+  hide_virtual_gamepad()
+ END IF
+END SUB
+
+FUNCTION calc_virtual_gamepad_state(byval advancing_text_now as bool=NO) as bool
+ 'None of this matters unless we are running on a platform that actually uses a virtual gamepad
+ IF NOT running_on_mobile() THEN RETURN NO
+
+ 'The gamepad might be completely disabled for this game
+ IF should_disable_virtual_gamepad() THEN RETURN NO
+
+ 'Special handling is required when advancing a textbox. This ensures
+ ' that battles, shops, and inns sandwiched between textboxes have
+ ' the virtual gamepad enabled, even if the text boxes do not.
+ IF advancing_text_now THEN RETURN YES
+ 
+ 'Now check and see if the virtual gamepad should be disabled because of textboxes
+ IF use_touch_textboxes() THEN
+  IF txt.showing THEN
+   IF txt.box.choice_enabled THEN RETURN YES
+   RETURN NO
+  END IF
+ END IF
+ 
+ 'If no other conditions are met, enabled the virtual gamepad
+ RETURN YES
+END FUNCTION
