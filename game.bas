@@ -4193,7 +4193,16 @@ FUNCTION calc_virtual_gamepad_state(byval advancing_text_now as bool=NO) as bool
  'Now check and see if the virtual gamepad should be disabled because of textboxes
  IF use_touch_textboxes() THEN
   IF txt.showing THEN
+   'Make an exception when the current textbox has a choicebox
    IF txt.box.choice_enabled THEN RETURN YES
+   IF topmenu >= 0 THEN
+    'If any menus are open, we need to check the top one
+    IF menus(topmenu).no_controls = NO THEN
+     'The top menu menu allows controls
+     RETURN YES
+    END IF
+   END IF
+   'No exceptions were found, proceed to hide the virtual gamepad for this textbox
    RETURN NO
   END IF
  END IF
