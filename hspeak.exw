@@ -217,13 +217,29 @@ constant PAIR_START=1
 constant PAIR_END=2
 constant OPER_TRUENAME=3
 constant OPER_POS=4
-constant FUNC_ARGS=3
-constant FUNC_POS=4
-constant GLB_POS=3
+constant FUNC_ARGS=3    --Either list of default values (each an integer or NO_DEFAULT), or VAR_ARGS
+constant FUNC_POS=4     --srcpos of start of function/script
+constant GLB_POS=3      --srcpos of globalvariable definition
 constant CONST_VALUE=1
 constant CONST_POS=2
+
+constant SCRIPTDATA_TRIGGER_TOK=1 --Trigger token (type {CMD_TEXT, CMD_POS}), e.g. "script"
+constant SCRIPTDATA_NAME_TOK=2    --Name token (type {CMD_TEXT, CMD_POS})
+constant SCRIPTDATA_ARG_TOKS=3    --List of argument name tokens (type {CMD_TEXT, CMD_POS})
+                                  --Initially the tokens may include default values (like "a=4"), which are later removed
+constant SCRIPTDATA_BODY_TOKS=4   --List of tokens (type {CMD_TEXT, CMD_POS}) in the body, of the form do,begin,...,end
+
 constant NO_DEFAULT={}  --when appears in script_list[FUNC_ARGS], indicates arg with no default value
 constant VAR_ARGS=0     --when appears AS function_list[FUNC_ARGS], indicates unlimited num of args
+
+constant SCRIPT_ID=1
+constant SCRIPT_TRIGGER_ID=2 --index in trigger_list
+constant SCRIPT_NAME=3       --string
+constant SCRIPT_POS=4
+constant SCRIPT_AST=5
+constant SCRIPT_LOCALS_TOKS=6
+constant SCRIPT_BINARY=7
+
 constant KIND_NUMBER=1
 constant KIND_FLOW=2
 constant KIND_GLOBAL=3
@@ -258,7 +274,7 @@ constant TIMING_ACTIVE=4
 constant HSP_FORMAT_VERSION=1
 
 constant CODE_START_BYTE_OFFSET=12
-constant SCRIPT_FORMAT_VERSION=2
+constant HSZ_FORMAT_VERSION=2
 
 constant MAXGLOBAL=16383
 
@@ -271,16 +287,16 @@ sequence optlist          optlist={}
 sequence file_list        file_list={}
 integer max_srcpos        max_srcpos=0
 integer total_lines       total_lines=0
-sequence cmd              cmd={}
+sequence cmd              cmd={}                  --type {CMD_TEXT, CMD_POS}
 sequence reuse_ids        reuse_ids={}
 sequence constant_list    constant_list=alpha_tree_create()
-sequence trigger_list     trigger_list={}
-sequence operator_list    operator_list={}
-sequence function_list    function_list={}
-sequence global_list      global_list={{},{},{}}
-sequence string_list      string_list={}
-sequence script_list      script_list={}
-sequence script_cmd       script_cmd={}
+sequence trigger_list     trigger_list={}         --type {PAIR_NUM, PAIR_NAME}
+sequence operator_list    operator_list={}        --type {PAIR_NUM, PAIR_NAME, OPER_TRUENAME, OPER_POS}
+sequence function_list    function_list={}        --type {PAIR_NUM, PAIR_NAME, FUNC_ARGS, FUNC_POS}
+sequence global_list      global_list={{},{},{}}  --type {PAIR_NUM, PAIR_NAME, GLB_POS}
+sequence string_list      string_list={}          --list of strings
+sequence script_list      script_list={}          --type {PAIR_NUM, PAIR_NAME, FUNC_ARGS, FUNC_POS}
+sequence script_cmd       script_cmd={}           --type {SCRIPTDATA_TRIGGER_TOK, SCRIPTDATA_NAME_TOK, SCRIPTDATA_ARG_TOKS, SCRIPTDATA_BODY_TOKS}
 sequence reserved         reserved=alpha_tree_create()
 atom start_time           start_time=time()
 atom run_time             run_time=0
@@ -359,7 +375,7 @@ sequence hex_char_values  hex_char_values={0,1,2,3,4,5,6,7,8,9,#a,#b,#c,#e,#d,#f
 
 sequence compiled_data    compiled_data={}    --used inside binary_compile only; compiled data for the current script
 
-sequence all_scripts      all_scripts={}
+sequence all_scripts      all_scripts={}      --type {SCRIPT_ID, SCRIPT_TRIGGER_ID, SCRIPT_NAME, SCRIPT_POS, SCRIPT_AST, SCRIPT_LOCALS_TOKS, SCRIPT_BINARY}
 sequence current_script   current_script=""   --name of current script
 integer cur_script_num    cur_script_num=0    --index into script_cmd of current script
 integer colors_enabled    colors_enabled=true
@@ -1482,7 +1498,7 @@ function tree_original_text(sequence tree)
   sequence tokens
   sequence text
 
-  script_toks=script_cmd[cur_script_num][4]
+  script_toks=script_cmd[cur_script_num][SCRIPTDATA_BODY_TOKS]
 
   --find leftmost and rightmost tokens making up the expression, not including brackets
   leftmost=tree[TREE_TRUNK][CMD_POS]
@@ -1962,7 +1978,7 @@ end function
 
 ---------------------------------------------------------------------------
 
-procedure primary_parse_pass()
+procedure preliminary_parse_pass()
   sequence this
   enter_timing_zone("Preliminary pass")
   color_print("preliminary pass\n",{})
@@ -1985,6 +2001,7 @@ procedure primary_parse_pass()
       simple_error("You forgot to put the line "&COLYEL&"include, plotscr.hsd"&COLRED&" in your script file.")
     end if
   end if
+  --If definetrigger is missing (very old plotscr.hsd), add "script"
   if find_in_column("script",trigger_list,PAIR_NUM)=0 then
     trigger_list=append(trigger_list,{0,"script"})
   end if
@@ -1996,7 +2013,7 @@ end procedure
 procedure parse_script(sequence trigger)
   sequence name
   sequence arglist
-  sequence s
+  sequence body
   sequence this
   sequence err_string
   integer depth
@@ -2008,6 +2025,7 @@ procedure parse_script(sequence trigger)
     check_undefined_string(name,"user script name")
   end if
   current_script=name[CMD_TEXT]
+  --parse arguments
   arglist={}
   while true do
     if get_cmd_pointer>length(cmd) then
@@ -2022,10 +2040,10 @@ procedure parse_script(sequence trigger)
     arglist=append(arglist,this)
   end while
   --every script is nested inside a big fat do() block
-  s={{"do",this[CMD_POS]}}
+  body={{"do",this[CMD_POS]}}
   depth=0
   while true do
-    s=append(s,this)
+    body=append(body,this)
     if compare("end",this[CMD_TEXT])=0 then
       depth-=1
       if depth=0 then
@@ -2056,7 +2074,7 @@ procedure parse_script(sequence trigger)
     end if
     this=get_cmd()
   end while
-  script_cmd=append(script_cmd,{trigger,name,arglist,s})
+  script_cmd=append(script_cmd,{trigger,name,arglist,body})
   current_script=""
 end procedure
 
@@ -2295,6 +2313,8 @@ procedure dump_debug_report()
   integer fh
   sequence debug_file
   sequence src_position
+  sequence script
+  sequence locals
   --only do this if the -d debug option was on the command line
   if find('d',optlist) then
     if length(path_only(dest_file))>1 then
@@ -2341,32 +2361,34 @@ procedure dump_debug_report()
       -------------------------------------
       print_utf(fh,"[Script Dumps]\n",{})
       for i=1 to length(all_scripts) do
-        src_position=decode_srcpos(all_scripts[i][4])
+        script=all_scripts[i]
+        src_position=decode_srcpos(script[SCRIPT_POS])
         print_utf(fh,"%s %d\tID=%d\t%s\n",{
            src_position[POS_FILENAME]
           ,src_position[POS_LINE]
-          ,all_scripts[i][1]
-          ,all_scripts[i][3]
+          ,script[SCRIPT_ID]
+          ,script[SCRIPT_NAME]
         })
-        src_position=decode_srcpos(script_cmd[i][1][CMD_POS])
+        src_position=decode_srcpos(script_cmd[i][SCRIPTDATA_TRIGGER_TOK][CMD_POS])
         print_utf(fh,"%s %d\tTrigger=%d\t%s\n",{
            src_position[POS_FILENAME]
           ,src_position[POS_LINE]
-          ,all_scripts[i][2]
-          ,script_cmd[i][1][CMD_TEXT]
+          ,script[SCRIPT_TRIGGER_ID]
+          ,script_cmd[i][SCRIPTDATA_TRIGGER_TOK][CMD_TEXT]
         })
-        for j=1 to length(all_scripts[i][6]) do
-          src_position=decode_srcpos(all_scripts[i][6][j][CMD_POS])
+        locals=script[SCRIPT_LOCALS_TOKS]
+        for j=1 to length(locals) do
+          src_position=decode_srcpos(locals[j][CMD_POS])
           print_utf(fh,"%s %d\tvar=%s\n",{
              src_position[POS_FILENAME]
             ,src_position[POS_LINE]
-            ,all_scripts[i][6][j][CMD_TEXT]
+            ,locals[j][CMD_TEXT]
           })
         end for
-        print_utf(fh,"%d bytes compiled\n",{length(all_scripts[i][7])})
---        print_utf(fh,"%s\n\n",{dump_script_tree(all_scripts[i][5],0)})
-        print_utf(fh,"%s",{dump_script_binary(all_scripts[i][7][CODE_START_BYTE_OFFSET+1..$],0,0)})
-        print_utf(fh,"%s\n\n",{dump_script_strings(all_scripts[i][7])})
+        print_utf(fh,"%d bytes compiled\n",{length(script[SCRIPT_BINARY])})
+--        print_utf(fh,"%s\n\n",{dump_script_tree(script[SCRIPT_AST],0)})
+        print_utf(fh,"%s",{dump_script_binary(script[SCRIPT_BINARY][CODE_START_BYTE_OFFSET+1..$],0,0)})
+        print_utf(fh,"%s\n\n",{dump_script_strings(script[SCRIPT_BINARY])})
       end for
       print_utf(fh,"\n",{})
       -------------------------------------
@@ -2624,7 +2646,7 @@ end function
 
 ---------------------------------------------------------------------------
 
-function compile_commands(sequence script_data,sequence vars)
+function compile_commands(sequence script_body_toks,sequence vars)
   integer ptr
   sequence this
   sequence command
@@ -2632,7 +2654,7 @@ function compile_commands(sequence script_data,sequence vars)
   result={}
   ptr=1
   while true do
-    this=get_script_cmd(ptr,script_data,vars)
+    this=get_script_cmd(ptr,script_body_toks,vars)
     ptr=this[1]
     command=this[2]
     if length(command)>0 then
@@ -2642,7 +2664,7 @@ function compile_commands(sequence script_data,sequence vars)
       end if
       result=append(result,command)
     end if
-    if ptr>length(script_data) then
+    if ptr>length(script_body_toks) then
       exit --break out of while when there is no more data
     end if
   end while
@@ -3529,7 +3551,7 @@ function binary_compile(integer id,sequence tree,sequence vars)
   at=find_in_column(id,script_list,PAIR_NUM)
   result&=output_word(length(script_list[at][FUNC_ARGS]))
   --the fourth word is the format of the command data (presently used to indicate 32-bit encoding)
-  result&=output_word(SCRIPT_FORMAT_VERSION)
+  result&=output_word(HSZ_FORMAT_VERSION)
   --the fifth&sixth words are a 32bit pointer to the string literal table (in bytes), we don't know it yet
   result&=output_word(0)
   result&=output_word(0)
@@ -3881,20 +3903,21 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-procedure compile_a_script(integer id,sequence trigger_data,sequence name_data,sequence arg_data,sequence script_data)
+
+procedure compile_a_script(integer id,sequence script_data)
   sequence script_tree
   sequence local_vars
   sequence binary
   integer trigger
-  trigger=trigger_list[find(trigger_data[CMD_TEXT],column(trigger_list,PAIR_NAME))][PAIR_NUM]
-  current_script=name_data[CMD_TEXT]
-  local_vars=arg_data --start with argument names (so we can check for conflicts)
+  trigger=trigger_list[find(script_data[SCRIPTDATA_TRIGGER_TOK][CMD_TEXT],column(trigger_list,PAIR_NAME))][PAIR_NUM]
+  current_script=script_data[SCRIPTDATA_NAME_TOK][CMD_TEXT]
+  local_vars=script_data[SCRIPTDATA_ARG_TOKS] --start with argument names (so we can check for conflicts)
   reenter_timing_zone("gather_local_vars")
-  local_vars=gather_local_vars(local_vars,script_data)
+  local_vars=gather_local_vars(local_vars,script_data[SCRIPTDATA_BODY_TOKS])
   exit_timing_zone()
   used_locals={}
   reenter_timing_zone("compile_commands")
-  script_tree=compile_commands(script_data,local_vars)
+  script_tree=compile_commands(script_data[SCRIPTDATA_BODY_TOKS],local_vars)
   exit_timing_zone()
   reenter_timing_zone("convert_operators")
   script_tree=convert_operators(script_tree)
@@ -3926,8 +3949,8 @@ procedure compile_a_script(integer id,sequence trigger_data,sequence name_data,s
   all_scripts=append(all_scripts,{
      id                   --id
     ,trigger              --trigger type
-    ,name_data[CMD_TEXT]  --name
-    ,name_data[CMD_POS]   --source line
+    ,script_data[SCRIPTDATA_NAME_TOK][CMD_TEXT]  --name
+    ,script_data[SCRIPTDATA_NAME_TOK][CMD_POS]   --source line
     ,script_tree
     ,local_vars
     ,binary               --compiled data to go into the HSZ lumps
@@ -3938,7 +3961,9 @@ end procedure
 
 ---------------------------------------------------------------------------
 
---Parse argument declarations in a script argument list
+--Parse argument declarations (initially containing default values)
+--in a script argument list, returns {arg_names_list, default_vals_list} pair
+--where any default values have been removed from the argument names
 function process_arglist(sequence args)
   sequence arglist
   sequence defaults
@@ -3981,22 +4006,27 @@ end function
 
 --Check that every declared script has been defined, with the same number of arguments,
 --and each script appears exactly once. Basically, compare script_list and script_cmd
+--Also handle argument default values
 procedure check_script_declarations()
   integer at
   sequence args_and_defaults
   sequence scripts_found
   sequence src_position
+  sequence name_tok
+  srcpos script_pos
 
   scripts_found=repeat(false,length(script_list))
 
   for i=1 to length(script_cmd) do
-    at=find(script_cmd[i][2][CMD_TEXT],column(script_list,PAIR_NAME))
+    name_tok=script_cmd[i][SCRIPTDATA_NAME_TOK]
+    current_script=name_tok[CMD_TEXT]  --global
+    script_pos=name_tok[CMD_POS]
+    at=find(name_tok[CMD_TEXT],column(script_list,PAIR_NAME))
 
-    current_script=script_cmd[i][2][CMD_TEXT]
-    args_and_defaults=process_arglist(script_cmd[i][3])
+    args_and_defaults=process_arglist(script_cmd[i][SCRIPTDATA_ARG_TOKS])
     if not at then
       --define script optional, add to script list
-      script_list=create_function(script_list,-1,script_cmd[i][2][CMD_TEXT],args_and_defaults[2],RESERVE_SCRIPT,script_cmd[i][2][CMD_POS])
+      script_list=create_function(script_list,-1,current_script,args_and_defaults[2],RESERVE_SCRIPT,script_pos)
       scripts_found&={true}
     else
       if scripts_found[at]=true then
@@ -4004,23 +4034,23 @@ procedure check_script_declarations()
         src_error(
           sprintf_utf(
             "Script "&COLYEL&"%s"&COLRED&" appears more than once! It was previously defined on line %d of "&COLPNK&"%s"&COLRED
-            ,{script_cmd[i][2][CMD_TEXT],src_position[POS_LINE],src_position[POS_FILENAME]}
+            ,{current_script,src_position[POS_LINE],src_position[POS_FILENAME]}
           )
-          ,script_cmd[i][2][CMD_POS]
+          ,script_pos
         )
       end if
       scripts_found[at]=true
       --The srcpos stored for this script will be from definescript. Repoint it at the actual script
       --(doesn't really matter, all_scripts would have ended up with that srcpos anyway)
-      script_list[at][FUNC_POS]=script_cmd[i][2][CMD_POS]
+      script_list[at][FUNC_POS]=script_pos
 
-      if length(script_cmd[i][3]) != length(script_list[at][FUNC_ARGS]) then
+      if length(script_cmd[i][SCRIPTDATA_ARG_TOKS]) != length(script_list[at][FUNC_ARGS]) then
         src_error(
           sprintf_utf(
             "Script "&COLYEL&"%s"&COLRED&" has %d arguments named, but has %d arguments in its declaration"
-            ,{script_cmd[i][2][CMD_TEXT],length(script_cmd[i][3]),length(script_list[at][FUNC_ARGS])}
+            ,{current_script,length(script_cmd[i][SCRIPTDATA_ARG_TOKS]),length(script_list[at][FUNC_ARGS])}
           )
-          ,script_cmd[i][2][CMD_POS]
+          ,script_pos
         )
       end if
       for j=1 to length(script_list[at][FUNC_ARGS]) do
@@ -4028,14 +4058,14 @@ procedure check_script_declarations()
           src_warn(
             sprintf_utf(
               "Default value for argument "&COLYEL&"%s"&COLRED&" does not match default given in script definition, %d"
-              ,{script_cmd[i][3][j][CMD_TEXT],script_list[at][FUNC_ARGS][j]}
+              ,{script_cmd[i][SCRIPTDATA_ARG_TOKS][j][CMD_TEXT],script_list[at][FUNC_ARGS][j]}
             )
-            ,script_cmd[i][2][CMD_POS]
+            ,script_pos
           )
         end if
       end for
     end if
-    script_cmd[i][3]=args_and_defaults[1]
+    script_cmd[i][SCRIPTDATA_ARG_TOKS]=args_and_defaults[1]
   end for
   current_script=""
 
@@ -4054,6 +4084,7 @@ end procedure
 procedure compile_each_script()
   sequence count
   integer at
+  integer id
   enter_timing_zone("Compiling scripts")
   color_print("compiling scripts",{})
   count=repeat(0,length(file_list))
@@ -4065,20 +4096,15 @@ procedure compile_each_script()
   for i=1 to length(script_cmd) do
     at=find(script_cmd[i][2][CMD_TEXT],column(script_list,PAIR_NAME))
 
-   -- color_print("%s\n",{script_cmd[i][2][CMD_TEXT]})
+   -- color_print("%s\n",{script_cmd[i][SCRIPTDATA_NAME_TOK][CMD_TEXT]})
 
     reenter_timing_zone("compile_a_script")
     cur_script_num=i
-    compile_a_script(
-      script_list[at][PAIR_NUM] --ID
-      ,script_cmd[i][1]          --trigger
-      ,script_cmd[i][2]          --Name
-      ,script_cmd[i][3]          --argnames
-      ,script_cmd[i][4]          --data
-    )
+    id=script_list[at][PAIR_NUM]
+    compile_a_script(id,script_cmd[i])
     cur_script_num=0
     exit_timing_zone()
-    count[srcpos_file_number(script_cmd[i][2][CMD_POS])]+=1
+    count[srcpos_file_number(script_cmd[i][SCRIPTDATA_NAME_TOK][CMD_POS])]+=1
 
     color_print(".",{})
   end for
@@ -4134,9 +4160,9 @@ function generate_scripts_dot_bin()
   result&=output_word(42)
 
   for i=1 to length(all_scripts) do
-    result&=output_word(all_scripts[i][1])  --id
-    result&=output_word(all_scripts[i][2])  --trigger type
-    encoded_name=encode_ohr(all_scripts[i][3],36)
+    result&=output_word(all_scripts[i][SCRIPT_ID])
+    result&=output_word(all_scripts[i][SCRIPT_TRIGGER_ID])  --trigger type
+    encoded_name=encode_ohr(all_scripts[i][SCRIPT_NAME],36)
     result&=output_word(length(encoded_name))
     result&=encoded_name
     result&=repeat(0,36-length(encoded_name))
@@ -4278,7 +4304,7 @@ procedure write_output_file()
   integer fh
   object lh
   enter_timing_zone("Writing output file")
-  header=sprintf("HamsterSpeak\n%s\n%d\n%s\n%d\n%d\n",{COMPILER_VERSION & COMPILER_SUB_VERSION,HSP_FORMAT_VERSION,plotscr_version,SCRIPT_FORMAT_VERSION,max_used_function})
+  header=sprintf("HamsterSpeak\n%s\n%d\n%s\n%d\n%d\n",{COMPILER_VERSION & COMPILER_SUB_VERSION,HSP_FORMAT_VERSION,plotscr_version,HSZ_FORMAT_VERSION,max_used_function})
   if length(all_scripts) then
     fh=open(dest_file,"wb")
     if fh!=-1 then
@@ -4301,8 +4327,8 @@ procedure write_output_file()
       end if
       --write each script
       for i=1 to length(all_scripts) do
-        if write_lump(fh,sprintf("%d.hsz",{all_scripts[i][1]}),all_scripts[i][7])=false then
-          simple_error(sprintf_utf("unable to write script "&COLYEL&"%s"&COLRED,{all_scripts[i][3]}))
+        if write_lump(fh,sprintf("%d.hsz",{all_scripts[i][SCRIPT_ID]}),all_scripts[i][SCRIPT_BINARY])=false then
+          simple_error(sprintf_utf("internal problem: unable to write script "&COLYEL&"%s"&COLRED,{all_scripts[i][SCRIPT_NAME]}))
         end if
       end for
       if not find('n',optlist) then --no debug info
@@ -4332,7 +4358,7 @@ end procedure
 init()
 load_and_lex()
 show_source_info()
-primary_parse_pass()
+preliminary_parse_pass()
 parse_top_level()
 compile_each_script()
 dump_debug_report()
