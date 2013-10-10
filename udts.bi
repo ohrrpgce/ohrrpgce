@@ -431,12 +431,17 @@ TYPE ScriptData
                         'not your usual double linked list, because head of list is a script() element
 END TYPE
 
+'Used by the old interpreter
+TYPE OldScriptFrame
+  heap as integer       'position of start of the local vars in the heap() buffer for a script
+END TYPE
+
 'State of an executing script, used by the old interpreter
 TYPE OldScriptState
   scr as ScriptData ptr 'script in script() hashtable (duplicated from ScriptInst)
   scrdata as integer ptr 'convenience pointer to .scr->ptr
-  heap as integer       'position of start of the script's nonlocal+local vars in the buffer (equal to .heap of 'root' script)
-  heapend as integer    'one-past-end of offsets on the heap used by this script
+  frames(maxScriptNesting) as OldScriptFrame   'frame(0) points to local variables, others to variables of ancestor scripts
+  heapend as integer    'one-past-end of offsets on the heap used by this script (starts at frame(0).heap)
   stackbase as integer  'position where this script's stack data starts in scrst
   state as integer      'what the script is doing right now
   ptr as integer        'the execution pointer (in int32's from the start of the script data)

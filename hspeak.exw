@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Rc 2013-10-11 subscript implementation changes (add nonlocal kind)
 --3Rb 2013-10-10 Remove variable() later, for syntax checking
 --3Ra 2013-10-09 Fixed \r lineendings (AGAIN) and slow \r\n handling
 --3R  2013-10-05 Add subscript
@@ -148,7 +149,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Rb"
+constant COMPILER_SUB_VERSION="Rc"
 constant COPYRIGHT_DATE="2013"
 
 --This is the oldest version of plotscr.hsd which is supported (feel free to
@@ -228,6 +229,8 @@ constant FUNC_POS=4     --srcpos of start of function/script
 constant GLB_POS=3      --srcpos of globalvariable definition
 constant CONST_VALUE=1
 constant CONST_POS=2
+constant VAR_FRAME=3    --VarToken index, integer giving frame number of a variable (0 is current script, 1 is parent...)
+constant VAR_ID=4       --VarToken index, integer giving ID in frame
 
 constant NO_DEFAULT={}  --when appears in script_list[FUNC_ARGS], indicates arg with no default value
 constant VAR_ARGS=0     --when appears AS function_list[FUNC_ARGS], indicates unlimited num of args
@@ -239,11 +242,12 @@ constant KIND_LOCAL=4
 constant KIND_MATH=5
 constant KIND_FUNCTION=6
 constant KIND_SCRIPT=7
-constant KIND_REFERENCE=8 --converted to KIND_NUMBER in compiled script
-constant KIND_OPERATOR=9 --never appears in compiled script
-constant KIND_PARENS=10 --never appears in compiled script
-constant KIND_MACRO=11 --never appears in compiled script
-constant KIND_KEYWORD=12 --never appears in compiled script
+constant KIND_NONLOCAL=8
+constant KIND_REFERENCE=9   --converted to KIND_NUMBER in compiled script
+constant KIND_OPERATOR=10   --never appears in compiled script
+constant KIND_PARENS=11     --never appears in compiled script
+constant KIND_MACRO=12      --never appears in compiled script
+constant KIND_KEYWORD=13    --never appears in compiled script
 constant KIND_LONGNAMES={"number"
                         ,"flow control statement"
                         ,"global variable"
@@ -251,6 +255,7 @@ constant KIND_LONGNAMES={"number"
                         ,"built-in function"
                         ,"hard-coded function"
                         ,"script"
+                        ,"non-local variable"
                         ,"reference"
                         ,"untranslated operator"
                         ,"order-of-operations-enforcing parenthesis"
@@ -270,7 +275,7 @@ constant CODE_START_BYTE_OFFSET=18
 constant HSZ_FORMAT_VERSION=3
 
 constant MAXGLOBAL=16383  --largest ID
-constant MAX_LOCALS=50   --max number of locals per script (not including nonlocals)
+constant MAX_LOCALS=100   --max number of locals per script (not including nonlocals)
 
 constant MAX_NEST_DEPTH=4
 
@@ -304,9 +309,9 @@ constant SCRIPT_PARENT_IDX=7      --index in all_scripts, or 0 for none
 constant SCRIPT_NEST_DEPTH=8      --Nesting depth. A script is 0, subscript 1, sub-subscript 2...
 constant SCRIPT_ID=9              --Script ID. Value not appended until all IDs are assigned in check_script_declarations
 constant SCRIPT_TRIGGER_ID=10     --trigger ID. SCRIPT_TRIGGER_ID and later not appended until compile_a_script
-constant SCRIPT_AST=11
-constant SCRIPT_LOCALS_TOKS=12
-constant SCRIPT_NUM_NONLOCALS=13
+constant SCRIPT_NUM_NONLOCALS=11
+constant SCRIPT_AST=12
+constant SCRIPT_VARIABLES=13      --VarList of locals and nonlocals
 constant SCRIPT_BINARY=14
 
 sequence all_scripts      all_scripts={}       --list of Scripts == {SCRIPT_*} (variable length)
@@ -442,6 +447,14 @@ type Token(object tok)
   end if
 end type
 
+--A CMD_TEXT,CMD_POS,VAR_FRAME,VAR_ID tuple describing a local/nonlocal variable
+type VarToken(object var)
+  if length(var)=4 and string(var[1]) and srcpos(var[2]) and integer(var[3]) and integer(var[4]) then
+    return true
+  end if
+  return false
+end type
+
 --sequence of Tokens
 type TokenList(object list)
   if not sequence(list) then
@@ -449,6 +462,19 @@ type TokenList(object list)
   end if
   for i=1 to length(list) do
     if not Token(list[i]) then
+      return false
+    end if
+  end for
+  return true
+end type
+
+--sequence of VarTokens
+type VarList(object vars)
+  if not sequence(vars) then
+    return false
+  end if
+  for i=1 to length(vars) do
+    if not VarToken(vars[i]) then
       return false
     end if
   end for
@@ -2357,12 +2383,20 @@ end function
 ---------------------------------------------------------------------------
 
 --Used while dumping script binary
-function name_lookup(sequence pair, TokenList locals)
+function name_lookup(sequence pair, VarList locals)
   integer at
+  integer frame,id
   if pair[1]=KIND_NUMBER then
     return(sprintf("%d",{pair[2]}))
-  elsif pair[1]=KIND_LOCAL then
-    return(locals[1+pair[2]][CMD_TEXT])  --sprintf("local%d",{pair[2]})
+  elsif pair[1]=KIND_LOCAL or pair[1]=KIND_NONLOCAL then
+    frame=and_bits(pair[2],#FF00)/#100
+    id=and_bits(pair[2],#FF)
+    for i=1 to length(locals) do
+      if locals[i][VAR_FRAME]=frame and locals[i][VAR_ID]=id then
+        return locals[i][CMD_TEXT]
+      end if
+    end for
+    simple_error(sprintf_utf("HSpeak bug: decompiler found illegal variable ID "&COLYEL&"%d*256+%d"&COLRED,{frame,id}))
   elsif pair[1]=KIND_GLOBAL then
     at=find(pair[2],global_list[PAIR_NUM])
     if at then
@@ -2409,7 +2443,7 @@ end function
 
 ---------------------------------------------------------------------------
 
-function dump_script_binary(sequence bin, integer offset, integer depth, TokenList locals)
+function dump_script_binary(sequence bin, integer offset, integer depth, VarList locals)
   string result
   sequence kind_and_id
   integer kind
@@ -2496,8 +2530,7 @@ procedure dump_debug_report()
   sequence src_position
   Script script
   integer idx
-  TokenList locals
-  string is_nonlocal
+  VarList locals
   --only do this if the -d debug option was on the command line
   if find('d',optlist) then
     if length(path_only(dest_file))>1 then
@@ -2570,24 +2603,20 @@ procedure dump_debug_report()
           ,script[SCRIPT_TRIGGER_ID]
           ,script[SCRIPT_TRIGGER_TOK][CMD_TEXT]
         })
-        locals=script[SCRIPT_LOCALS_TOKS]
+        locals=script[SCRIPT_VARIABLES]
         for j=1 to length(locals) do
           src_position=decode_srcpos(locals[j][CMD_POS])
-          is_nonlocal=""
-          if j<=script[SCRIPT_NUM_NONLOCALS] then
-            is_nonlocal="\t (nonlocal)"
-          end if
-          print_utf(fh,"%s %d\tvar%d=%s%s\n",{
+          print_utf(fh,"%s %d\tvar(frame %d id %d)=%s\n",{
              src_position[POS_FILENAME]
             ,src_position[POS_LINE]
-            ,j-1
+            ,locals[j][VAR_FRAME]
+            ,locals[j][VAR_ID]
             ,locals[j][CMD_TEXT]
-            ,is_nonlocal
           })
         end for
         print_utf(fh,"%d bytes compiled\n",{length(script[SCRIPT_BINARY])})
 --        print_utf(fh,"%s\n\n",{dump_script_tree(script[SCRIPT_AST],0)})
-        print_utf(fh,"%s",{dump_script_binary(script[SCRIPT_BINARY][CODE_START_BYTE_OFFSET+1..$],0,0,script[SCRIPT_LOCALS_TOKS])})
+        print_utf(fh,"%s",{dump_script_binary(script[SCRIPT_BINARY][CODE_START_BYTE_OFFSET+1..$],0,0,script[SCRIPT_VARIABLES])})
         print_utf(fh,"%s\n\n",{dump_script_strings(script[SCRIPT_BINARY])})
       end for
       print_utf(fh,"\n",{})
@@ -2656,7 +2685,7 @@ end function
 ---------------------------------------------------------------------------
 
 --identify the kind and id of a text command. Does not support untranslated operators or floaty parethesis
-function what_kind_and_id(Token command, TokenList local_vars)
+function what_kind_and_id(Token command, VarList local_vars)
   integer kind
   integer at
   atom id
@@ -2675,8 +2704,13 @@ function what_kind_and_id(Token command, TokenList local_vars)
     id=0 -- ID always resolves to 0 for references here, since it is too early to know all
          -- script IDs (really?). The real work is done in binary_compile_recurse
   elsif find_in_column(s,local_vars,CMD_TEXT) then
-    kind=KIND_LOCAL
-    id=find_in_column(s,local_vars,CMD_TEXT)
+    at=find_in_column(s,local_vars,CMD_TEXT)
+    if local_vars[at][VAR_FRAME]=0 then
+      kind=KIND_LOCAL
+    else
+      kind=KIND_NONLOCAL
+    end if
+    id=local_vars[at][VAR_ID] + 256*local_vars[at][VAR_FRAME]
   elsif keyword=RESERVE_GLOBAL then
     kind=KIND_GLOBAL
     id=global_list[PAIR_NUM][find(s,global_list[PAIR_NAME])]
@@ -2721,7 +2755,7 @@ end function
 ---------------------------------------------------------------------------
 
 --identify the kind of a text command
-function what_kind(Token command, TokenList local_vars, integer look_for_operators)
+function what_kind(Token command, VarList local_vars, integer look_for_operators)
   integer at
   integer kind
   integer keyword
@@ -2735,7 +2769,12 @@ function what_kind(Token command, TokenList local_vars, integer look_for_operato
   elsif s[1] = '@' then
     kind=KIND_REFERENCE
   elsif find_in_column(s,local_vars,CMD_TEXT) then
-    kind=KIND_LOCAL
+    at=find_in_column(s,local_vars,CMD_TEXT)
+    if local_vars[at][VAR_FRAME]=0 then
+      kind=KIND_LOCAL
+    else
+      kind=KIND_NONLOCAL
+    end if
   elsif look_for_operators and find_in_column(s,operator_list,PAIR_NAME) then
     kind=KIND_OPERATOR --this MUST go before KIND_MATH, because some operators and math functions have the same name
   elsif keyword=RESERVE_GLOBAL then
@@ -2844,7 +2883,7 @@ end function
 
 --Get next AST node from a list of tokens by pairing up begin,end
 --Returns {new_ptr,{token,children}} where children is a TokenList not a NodeList
-function get_script_node(integer ptr, TokenList data, TokenList vars)
+function get_script_node(integer ptr, TokenList data, VarList vars)
   Token command
   sequence ptr_and_block
   TokenList block
@@ -2900,6 +2939,9 @@ function get_script_node(integer ptr, TokenList data, TokenList vars)
     --'not followed_by_begin' excludes 'else(...)if'
     if equal("else",command[CMD_TEXT]) and ptr<=length(data) and equal("if",data[ptr][CMD_TEXT]) and not followed_by_begin then
       src_error(COLYEL&"else if"&COLRED&" may not be written with a separator in-between",command[CMD_POS])
+      --temp=get_script_node(ptr, data, vars)  --hack to allow if necessary
+      --temp[2][1][CMD_TEXT]="elseif"
+      --return temp
     end if
   end if
 
@@ -2909,7 +2951,7 @@ end function
 ---------------------------------------------------------------------------
 
 --Returns a NodeList
-function build_ast(TokenList script_body_toks, TokenList vars)
+function build_ast(TokenList script_body_toks, VarList vars)
   integer ptr
   sequence ptr_and_seminode
   sequence seminode  --Not a Node, has a TokenList instead of NodeList
@@ -2937,9 +2979,19 @@ end function
 
 ---------------------------------------------------------------------------
 
---Returns new list of locals.
-function add_local_variable(TokenList vars, Token var)
-  integer at
+--When variables are inherited by a subscript all frame numbers need to be incremented
+function shift_variables_frame(VarList vars)
+  for i=1 to length(vars) do
+    vars[i][VAR_FRAME]+=1
+  end for
+  return vars
+end function
+
+---------------------------------------------------------------------------
+
+--Returns new VarList of locals.
+function add_local_variable(VarList vars, Token var)
+  integer at, id
   sequence src_position
   check_undefined_string(var,"local variable name")
   at=find_in_column(var[CMD_TEXT],vars,CMD_TEXT)
@@ -2953,13 +3005,15 @@ function add_local_variable(TokenList vars, Token var)
       ,var[CMD_POS]
     )
   end if
-  return append(vars,var)
+  --Always add to scope of current script (frame == 0)
+  id=length(vars)-all_scripts[cur_script_num][SCRIPT_NUM_NONLOCALS]
+  return append(vars, var&{0,id})
 end function
 
 ---------------------------------------------------------------------------
 
 --Find the variable declarations in a script
-function gather_local_vars(TokenList vars, TokenList data)
+function gather_local_vars(VarList vars, TokenList data)
   Token this
   integer ptr
   ptr=1
@@ -3098,7 +3152,7 @@ end function
 ---------------------------------------------------------------------------
 
 --Build switch AST Nodes, return new tree
-function build_switch_node(NodeList tree, TokenList vars, integer ptr)
+function build_switch_node(NodeList tree, VarList vars, integer ptr)
   srcpos pos
   srcpos argpos
   NodeList args
@@ -3263,17 +3317,18 @@ end function
 
 --Given a variable token for 'for' or 'setvariable', etc. (parent) and list of locals/non-locals 'vars',
 --return a an integer ID token, or throw an error if not a variable.
-function convert_variable_to_id(Token var, TokenList locals, string parent)
+function convert_variable_to_id(Token var, VarList locals, string parent)
+  sequence kind_and_id
   integer id
   integer argkind
   integer var_at
-  argkind=what_kind(var,locals,false)
-  if argkind=KIND_LOCAL then
-    var_at=find_in_column(var[CMD_TEXT],locals,CMD_TEXT)
-    id=-var_at
+  kind_and_id=what_kind_and_id(var,locals)
+  argkind=kind_and_id[1]
+  id=kind_and_id[2]
+  if argkind=KIND_LOCAL or argkind=KIND_NONLOCAL then
+    id=-1-id
   elsif argkind=KIND_GLOBAL then
-    var_at=find(var[CMD_TEXT],global_list[PAIR_NAME])
-    id=global_list[PAIR_NUM][var_at]
+    --id unmodified
   else
     --It's not a variable. bad!
     src_error(sprintf_utf(
@@ -3288,7 +3343,7 @@ end function
 
 --parse the script tree and make if absorb then and else, for and while absorb do, switch absorb stuff, check correctness of flow statements
 --Note that several of these checks are now redundant to the check for 'begin' performed in get_script_node
-function normalize_flow_control(NodeList tree, TokenList vars, string parent)
+function normalize_flow_control(NodeList tree, VarList vars, string parent)
   integer ptr
   string s
   string nextcmd
@@ -3570,7 +3625,7 @@ end function
 ---------------------------------------------------------------------------
 
 --Ensure correct number of arguments, add defaults, and translate variables to IDs in assignments
-function fix_arguments(Node tree, integer kind, integer id, sequence list, TokenList vars)
+function fix_arguments(Node tree, integer kind, integer id, sequence list, VarList vars)
   integer at
   integer argnum,maxargs
   NodeList args
@@ -3653,7 +3708,7 @@ end function
 ---------------------------------------------------------------------------
 
 --Calls fix_arguments on each non-flow node with arguments
-function normalize_arguments(NodeList tree, TokenList vars)
+function normalize_arguments(NodeList tree, VarList vars)
   sequence kind_and_id
   integer kind,id
   --Unlike the flow normalization and operator translation we do not insert/delete elements from
@@ -3735,12 +3790,12 @@ end function
 ---------------------------------------------------------------------------
 
 --returns the offset where this node was either added, or references an existing node
-function binary_compile_recurse(Node tree, TokenList vars)
+function binary_compile_recurse(Node tree, VarList vars)
   sequence result
   integer kind,id
   integer at
   string s
-  integer offset
+  sequence kind_and_id
   sequence value_temp
   string str_temp
   integer parent_idx
@@ -3752,13 +3807,14 @@ function binary_compile_recurse(Node tree, TokenList vars)
   can_reference=true
   initial_data_len=length(compiled_data)
 
-  kind=what_kind(tree[TREE_TRUNK],vars,false)
+  kind_and_id=what_kind_and_id(tree[TREE_TRUNK],vars)
+  kind=kind_and_id[1]
+  id=kind_and_id[2]
   s=tree[TREE_TRUNK][CMD_TEXT]
   cmdpos=tree[TREE_TRUNK][CMD_POS]
   if kind=KIND_NUMBER then
-    value_temp=value(s)
     result&=kind
-    result&=value_temp[2]
+    result&=id
   elsif kind=KIND_REFERENCE then
     str_temp = s[2..length(s)]
     --is it a global variable?
@@ -3790,33 +3846,17 @@ function binary_compile_recurse(Node tree, TokenList vars)
       end if
     end if
   elsif kind=KIND_GLOBAL then
-    at=find(s,global_list[PAIR_NAME])
     result&=kind
-    result&=global_list[PAIR_NUM][at]
-  elsif kind=KIND_LOCAL then
-    at=find_in_column(s,vars,CMD_TEXT)
+    result&=id
+  elsif kind=KIND_LOCAL or kind=KIND_NONLOCAL then
     result&=kind
-    result&=at-1
+    result&=id
   elsif kind=KIND_SCRIPT or kind=KIND_FUNCTION or kind=KIND_FLOW or kind=KIND_MATH then
-    if kind=KIND_SCRIPT then
-      at=lookup_scoped_script_name(s)
-      id=all_scripts[at][SCRIPT_ID]
-      parent_idx=all_scripts[at][SCRIPT_PARENT_IDX]
-      if parent_idx and parent_idx!=cur_script_num then
-        src_error("Subscripts can only be called from their parent (sub)script. Recursing, or calling sibling, parent, etc. subscripts, is currently unsupported. Consider using regular scripts and global variables instead.",cmdpos)
-      end if
-    elsif kind=KIND_FUNCTION then
-      at=find_in_column(s,function_list,PAIR_NAME)
-      id=function_list[at][PAIR_NUM]
+    --Use id from what_kind_and_id
+    if kind=KIND_FUNCTION then
       if max_used_function<id then
         max_used_function=id
       end if
-    elsif kind=KIND_FLOW then
-      at=find_in_column(s,flow_list,PAIR_NAME)
-      id=flow_list[at][PAIR_NUM]
-    elsif kind=KIND_MATH then
-      at=find_in_column(s,math_list,PAIR_NAME)
-      id=math_list[at][PAIR_NUM]
     end if
     result&=kind
     result&=id
@@ -3891,7 +3931,7 @@ function binary_compile(Script script)
   --0..1: the zero-rooted byte-offset of the first executable code byte
   result=output_word(CODE_START_BYTE_OFFSET)
   --2..3: the number of local variables (not including nonlocals)
-  result&=output_word(length(script[SCRIPT_LOCALS_TOKS]) - script[SCRIPT_NUM_NONLOCALS])
+  result&=output_word(length(script[SCRIPT_VARIABLES]) - script[SCRIPT_NUM_NONLOCALS])
   --4..5: the number of arguments the script takes (also in SCRIPTS.TXT)
   result&=output_word(length(script[SCRIPT_ARG_TOKS]))
   --6..7: the format of the command data (presently used to indicate 32-bit encoding)
@@ -3920,7 +3960,7 @@ function binary_compile(Script script)
     simple_error(sprintf_utf("compiler bug! script tree has %s root nodes",{length(tree)}))
   end if
   reenter_timing_zone("binary_compile_recurse")
-  recurse_ret=binary_compile_recurse(tree[1],script[SCRIPT_LOCALS_TOKS])
+  recurse_ret=binary_compile_recurse(tree[1],script[SCRIPT_VARIABLES])
   if recurse_ret!=0 then
     simple_error(sprintf_utf("compiler bug! Root binary_compile_recurse call returned %d",{recurse_ret}))
   end if
@@ -3965,7 +4005,7 @@ end function
 ---------------------------------------------------------------------------
 
 --parent is CMD_TEXT of parent node
-function sanity_check(NodeList tree, TokenList vars, string parent)
+function sanity_check(NodeList tree, VarList vars, string parent)
   string s
   sequence kind_and_id
   integer kind
@@ -3992,7 +4032,7 @@ function sanity_check(NodeList tree, TokenList vars, string parent)
       elsif kind=KIND_GLOBAL then
         src_warn(sprintf_utf("Expected script, function, or flow control, but found global variable "&COLYEL&"%s"&COLRED&". It will do nothing here."
                  ,{s}),tree[i][TREE_TRUNK][CMD_POS])
-      elsif kind=KIND_LOCAL then
+      elsif kind=KIND_LOCAL or kind=KIND_NONLOCAL then
         src_warn(sprintf_utf("Expected script, function, or flow control, but found local variable "&COLYEL&"%s"&COLRED&". It will do nothing here."
                  ,{vars[id][CMD_TEXT]}),tree[i][TREE_TRUNK][CMD_POS])
       elsif kind=KIND_MATH and (id<=15 or id>=19) then
@@ -4032,7 +4072,7 @@ end function
 
 ---------------------------------------------------------------------------
 
-function optimized_arg(Node tree, TokenList vars)
+function optimized_arg(Node tree, VarList vars)
   sequence kind_and_id
   integer kind
   atom id
@@ -4209,7 +4249,7 @@ end function
 ---------------------------------------------------------------------------
 
 --goes through a script simplifying expressions that always have the same value
-function optimize_script(NodeList tree, TokenList vars)
+function optimize_script(NodeList tree, VarList vars)
   object arg
   for i=1 to length(tree) do
     arg=optimized_arg(tree[i],vars)
@@ -4230,10 +4270,10 @@ end function
 ---------------------------------------------------------------------------
 
 --FIXME: if a local is used only in a subscript it is reported as unused
-procedure warn_unused_locals(TokenList vars, integer num_nonlocals)
+procedure warn_unused_locals(VarList vars)
   if find('u',optlist) then
-    for i=num_nonlocals+1 to length(vars) do
-      if not find(vars[i][CMD_TEXT],used_locals) then
+    for i=1 to length(vars) do
+      if vars[i][VAR_FRAME]=0 and not find(vars[i][CMD_TEXT],used_locals) then
         src_warn(sprintf_utf("local variable "&COLYEL&"%s"&COLRED&" is never used",{vars[i][CMD_TEXT]}),vars[i][CMD_POS])
       end if
     end for
@@ -4260,7 +4300,7 @@ end procedure
 procedure compile_a_script(integer script_idx)
   Script script
   NodeList script_tree
-  TokenList local_vars
+  VarList local_vars
   TokenList args
   integer num_nonlocals
   integer parent_idx
@@ -4273,21 +4313,33 @@ procedure compile_a_script(integer script_idx)
   trigger=trigger_list[trigger_idx][PAIR_NUM]
   current_script=script[SCRIPT_FULL_NAME]
   parent_idx=script[SCRIPT_PARENT_IDX]
+
+  reenter_timing_zone("gather_local_vars")
   if parent_idx then
-    local_vars=all_scripts[parent_idx][SCRIPT_LOCALS_TOKS]
+    local_vars=shift_variables_frame(all_scripts[parent_idx][SCRIPT_VARIABLES])
   else
     local_vars={}
   end if
   num_nonlocals=length(local_vars)
-  
-  reenter_timing_zone("gather_local_vars")
+  script&={
+     trigger          --trigger type
+    ,num_nonlocals
+  }
+  all_scripts[script_idx]=script
   args=script[SCRIPT_ARG_TOKS] --The arguments are the first several local variables
   for i=1 to length(args) do
     --Check for name conflicts
     local_vars=add_local_variable(local_vars,args[i])
   end for
   local_vars=gather_local_vars(local_vars,script[SCRIPT_BODY_TOKS])
+  if length(local_vars)-num_nonlocals > MAX_LOCALS then
+    simple_error(
+      sprintf_utf("Script "&COLYEL&"%s"&COLRED&" has %d arguments and variables but at most %d are supported",
+                  {script[SCRIPT_FULL_NAME],length(local_vars)-num_nonlocals,MAX_LOCALS})
+    )
+  end if
   exit_timing_zone()
+
   used_locals={}
   reenter_timing_zone("build_ast")
   script_tree=build_ast(script[SCRIPT_BODY_TOKS],local_vars)
@@ -4314,14 +4366,12 @@ procedure compile_a_script(integer script_idx)
     reenter_timing_zone("sanity_check")
     script_tree=sanity_check(script_tree,local_vars,"")
     exit_timing_zone()
-    warn_unused_locals(local_vars,num_nonlocals)
+    warn_unused_locals(local_vars)
   end if
 
   script&={
-     trigger          --trigger type
-    ,script_tree
+     script_tree
     ,local_vars
-    ,num_nonlocals
     ,{}               --compiled data to go into the HSZ lumps
   }
   all_scripts[script_idx]=script

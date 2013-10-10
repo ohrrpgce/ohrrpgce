@@ -219,6 +219,7 @@ CONST maxScriptGlobals = 16383 'Actually the index of the last global
 CONST maxScriptStrings = 99 'ID of last plotstring
 CONST maxScriptHeap = 8192 'Maximum number of local variables in use by all running scripts
 CONST maxScriptRunning = 128 'Number of scripts which can run at once
+CONST maxScriptNesting = 4 'Maximum subscript nesting depth
 #IFDEF SCRIPTPROFILE
 'Amount of script data to cache
 CONST scriptmemMax = 10000000 'in 4-byte ints

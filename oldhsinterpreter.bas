@@ -63,24 +63,45 @@ FUNCTION oldscriptstate_init (index as integer, script as ScriptData ptr) as zst
   curcmd = cast(ScriptCommand ptr, .scrdata + .ptr) 'just in case it's needed before subread is run
 
   IF index = 0 THEN
-   .heap = 0
+   .frames(0).heap = 0
   ELSE
-   IF .scr->parent THEN
-    'Share variables with all ancestor (sub)scripts
-    .heap = scrat(index - .scr->nestdepth).heap
-   ELSE
-    .heap = scrat(index - 1).heapend
-   END IF
+   .frames(0).heap = scrat(index - 1).heapend
   END IF
-  .heapend = .heap + .scr->nonlocals + .scr->vars
+  .heapend = .frames(0).heap + .scr->vars
   IF .heapend > maxScriptHeap THEN RETURN @"script heap overflow"
-
-  'debug "oldscriptstate_init: loading script " & .id & " " & scriptname(.id) & " scrat(" & index & ") nonlocals " & .scr->nonlocals _
-  '      & " vars " & .scr->vars & " parent " & .scr->parent & " heap " & .heap & ":" & .heapend
-
-  FOR i as integer = 0 TO .scr->vars - 1
-   heap(.heap + .scr->nonlocals + i) = 0
+  'Zero out locals
+  FOR i as integer = .frames(0).heap TO .heapend
+   heap(i) = 0
   NEXT i
+
+  DIM parent as integer = .scr->parent
+  'debug "oldscriptstate_init: loading script " & .id & " " & scriptname(.id) & " scrat(" & index & ") nonlocals " & .scr->nonlocals _
+  '      & " vars " & .scr->vars & " parent " & parent & " heap " & .frames(0).heap & ":" & .heapend
+
+  IF parent THEN
+    'Search up the callstack for ancestors with frames which are referenced by this script.
+    '(this will need to be changed once the frame might exist on a different stack)
+    'Actually only search for the parent, and copy its ancestors
+    DIM tryindex as integer = index - 1
+    DO
+     IF tryindex < 0 ORELSE scrat(tryindex).state < 0 THEN
+      'If it's a suspended script, it's in the wrong fibre
+      scripterr "Could not find parent call frame on scrat stack", serrBug
+      RETURN @"corrupt/unsupported script"
+     END IF
+     'debug "scrat(" & tryindex &") = " & scrat(tryindex).id
+     IF scrat(tryindex).id = parent THEN
+      FOR depth as integer = 1 TO .scr->nestdepth
+       .frames(depth) = scrat(tryindex).frames(depth - 1)
+      NEXT
+      EXIT DO
+     END IF
+     tryindex -= 1
+    LOOP
+
+    'debug "  parent frame is scrat(" & tryindex &"), heap = " & .frames(1).heap & ":" & scrat(tryindex).heapend
+  END IF
+
  END WITH
  RETURN NULL
 END FUNCTION
@@ -496,7 +517,7 @@ SUB setScriptArg (byval arg as integer, byval value as integer)
  'No warning on passing in more arguments than the script takes, as they are always optional
  WITH scrat(nowscript)
   IF .scr->args > arg THEN
-   heap(.heap + .scr->nonlocals + arg) = value
+   heap(.frames(0).heap + arg) = value
   END IF
  END WITH
 END SUB
@@ -580,7 +601,10 @@ SELECT CASE cmdptr->kind
   END IF
   pushstack(scrst, global(cmdptr->value))
  CASE tylocal
-  pushstack(scrst, heap(si.heap + cmdptr->value))
+  pushstack(scrst, heap(si.frames(0).heap + cmdptr->value))
+ CASE tynonlocal
+  DIM id as integer = cmdptr->value
+  pushstack(scrst, heap(si.frames(id SHR 8).heap + (id AND 255)))
  CASE IS >= tymath, tyflow
   si.depth += 1
   '2 for state + args + 5 just-in-case for extra state stuff pushed to stack (atm just switch, +1 ought to be sufficient)
@@ -698,10 +722,11 @@ END SUB
 
 FUNCTION readscriptvar (byval id as integer) as integer
  SELECT CASE id
-  CASE IS < 0 'local variable
-   readscriptvar = heap(scrat(nowscript).heap - id - 1)
+  CASE IS < 0 'local/nonlocal variable
+   id = -id - 1
+   RETURN heap(scrat(nowscript).frames(id SHR 8).heap + (id AND 255))
   CASE 0 TO maxScriptGlobals 'global variable
-   readscriptvar = global(id)
+   RETURN global(id)
   CASE ELSE
    scripterr "Cannot read global " & id & ". Out of range", serrBadOp
  END SELECT
@@ -709,8 +734,9 @@ END FUNCTION
 
 SUB writescriptvar (byval id as integer, byval newval as integer)
  SELECT CASE id
-  CASE IS < 0 'local variable
-   heap(scrat(nowscript).heap - id - 1) = newval
+  CASE IS < 0 'local/nonlocal variable
+   id = -id - 1
+   heap(scrat(nowscript).frames(id SHR 8).heap + (id AND 255)) = newval
   CASE 0 TO maxScriptGlobals 'global variable
    global(id) = newval
   CASE ELSE
@@ -1026,7 +1052,7 @@ END IF
 'Note: the colours here are fairly arbitrary
 rectangle 0, 0, 320, 4, uilook(uiBackground), page
 rectangle 0, 0, (320 / scriptmemMax) * totalscrmem, 2, uilook(uiSelectedItem), page
-rectangle 0, 2, (320 / maxScriptHeap) * scrat(nowscript + 1).heap, 2, uilook(uiSelectedItem + 1), page
+rectangle 0, 2, (320 / maxScriptHeap) * scrat(nowscript + 1).heapend, 2, uilook(uiSelectedItem + 1), page
 
 DIM ol as integer = 191
 
@@ -1054,23 +1080,22 @@ END IF
 DIM scriptargs as integer
 DIM localno as integer
 IF mode > 1 AND viewmode = 1 AND selectedscript >= 0 THEN
- 'local variables and return value. Show up to 9 variables at a time
+ 'local (but not nonlocal) variables and return value. Show up to 9 variables at a time
  reloadscript scriptinsts(selectedscript), scrat(selectedscript), NO
  WITH scrat(selectedscript)
-  DIM totalvars as integer = .scr->vars + .scr->nonlocals
-  IF totalvars = 0 THEN
+  IF .scr->vars = 0 THEN
    edgeprint "Has no variables", 0, ol, uilook(uiText), page
    ol -= 9
   ELSE
    scriptargs = .scr->args
    DIM temp as string
-   FOR i as integer = small((totalvars - localsscroll - 1) \ 3, 2) TO 0 STEP -1
+   FOR i as integer = small((.scr->vars - localsscroll - 1) \ 3, 2) TO 0 STEP -1
     FOR j as integer = 2 TO 0 STEP -1  'reverse order so the var name is what gets overwritten
      localno = localsscroll + i * 3 + j
-     IF localno < totalvars THEN
+     IF localno < .scr->vars THEN
       temp = localvariablename(localno, scriptargs) & "="
       edgeprint temp, j * 96, ol, uilook(uiText), page
-      edgeprint STR(heap(.heap + localno)), j * 96 + 8 * LEN(temp), ol, uilook(uiDescription), page
+      edgeprint STR(.frames(0).heap + localno), j * 96 + 8 * LEN(temp), ol, uilook(uiDescription), page
      END IF
     NEXT
     ol -= 9
@@ -1078,7 +1103,7 @@ IF mode > 1 AND viewmode = 1 AND selectedscript >= 0 THEN
    IF scriptargs = 999 THEN
     edgeprint .scr->vars & " local variables and arguments:", 0, ol, uilook(uiText), page
    ELSE
-    edgeprint scriptargs & " arguments, " & (.scr->vars - scriptargs) & " locals, " & .scr->nonlocals & " non-local variables:", 0, ol, uilook(uiText), page
+    edgeprint scriptargs & " arguments and " & (.scr->vars - scriptargs) & " local variables (" & .scr->nonlocals & " non-locals):", 0, ol, uilook(uiText), page
    END IF
    ol -= 9
   END IF
@@ -1247,8 +1272,7 @@ IF mode > 1 AND drawloop = 0 THEN
   IF viewmode = 4 THEN timersscroll = large(0, timersscroll - 4): GOTO redraw
  END IF
  IF w = scPlus OR w = scNumpadPlus THEN
-  DIM totalvars as integer = scrat(selectedscript).scr->vars + scrat(selectedscript).scr->nonlocals
-  IF viewmode = 1 THEN localsscroll = small(large(totalvars - 8, 0), localsscroll + 3): GOTO redraw
+  IF viewmode = 1 THEN localsscroll = small(large(scrat(selectedscript).scr->vars - 8, 0), localsscroll + 3): GOTO redraw
   IF viewmode = 2 THEN globalsscroll = small(maxScriptGlobals - 59, globalsscroll + 21): GOTO redraw
   IF viewmode = 3 THEN stringsscroll = small(stringsscroll + 1, (UBOUND(strings) - 1) - 19): GOTO redraw
   IF viewmode = 4 THEN timersscroll = small(timersscroll + 4, UBOUND(timers) - 18): GOTO redraw
@@ -1332,13 +1356,15 @@ SUB readstackcommand (node as ScriptCommand, state as OldScriptState, byref stk 
 END SUB
 
 FUNCTION localvariablename (byval value as integer, byval scriptargs as integer) as string
- 'get a variable name from a local variable number
+ 'get a variable name from a local/nonlocal variable number
  'locals (and args) numbered from 0
  IF scriptargs = 999 THEN
   'old HS file
   RETURN "local" & value
  ELSEIF value < scriptargs THEN
   RETURN "arg" & value
+ ELSEIF value >= 256 THEN
+  RETURN "nonloc" & (value SHR 8) & "_" & (value AND 255)
  ELSE
   RETURN "var" & (value - scriptargs)
  END IF
@@ -1516,7 +1542,7 @@ FUNCTION scriptstate (byval targetscript as integer, byval recurse as integer = 
     CASE tyglobal
      outstr = "global" & node.value
      hidearg = -1
-    CASE tylocal
+    CASE tylocal, tynonlocal
      'locals can only appear in the topmost script, which we made sure is loaded
      outstr = localvariablename(node.value, scrinst.scr->args)
      hidearg = -1

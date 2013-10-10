@@ -254,7 +254,7 @@ script, blocking tests, begin
   assert(ticker 2 == 2)
 
   # Check eachtick ran every tick
-  trace value(ticknumber, start tick, ticker 0, ticker 1, ticker 2)
+  #trace value(ticknumber, start tick, ticker 0, ticker 1, ticker 2)
   assert(ticker 0 == ticknumber -- start tick)
   stop timer(3)
 end
@@ -351,11 +351,10 @@ script, subscript tests, begin
           a global := -2
           assert(arg4 == 1234)
           variable(v4)
-            trace value(v4, arg4, v0)
+          #trace value(v4, arg4, v0)
           v4 += arg4 * 5 + v0
-          for (v0, 1, 5 #v0
-          ) do (v4 += arg4) # v4 += 5 * arg4
-          tracevalue(v0, v4, arg4 * 10 + 5)
+          for (v0, v0, 1, -1) do (v4 += arg4) # v4 += 5 * arg4
+          #tracevalue(v0, v4, arg4 * 10 + 5)
           assert(v4 == arg4 * 10 + 5)
           var1 := var2
           return(v4)
@@ -369,7 +368,7 @@ script, subscript tests, begin
     end
     assert(read global(@a global) == -1)
     return (ssscript(arg1 * 10 + 2))
-    assert(v0 == 6)  # 1 past end of for loop
+    assert(v0 == 0)  # 1 past end of for loop (so 1 - 1)
     assert(v1 == 1002)
   end
   assert(sscript4(1) == 12345)
@@ -390,6 +389,79 @@ script, subscript tests, begin
   assert(var2 == 111 + 7)
   assert(var3 == 0)
 
+  # Test call patterns other than being called by parent...
+
+  # Recursion
+  subscript, fib, x, begin
+    variable(ret)
+    if (x <= 2) then (ret += 1)
+    else (
+      x -= 1
+      ret += fib(x)
+      x -= 1
+      ret += fib(x)
+    )
+    return(ret)
+  end
+  assert(fib(10) == 55)
+  # All 4 directions of call between a script and its subscript
+  assert(inside-outside fib(10) == 55)
+
+  # Calling a sibling subscript or a sibling of a parent subscript (another fibonacci)
+  var1 := 0  # temporary
+  subscript, sibling 1, n, begin
+    variable(ret)
+    subscript, niece, k, begin
+      if (k <= 2) then (
+        ret += 1
+      ) elseif (k, mod, 2) then (
+        ret += sibling 1(k -- 1)
+        k -= 1
+        ret += sibling 2(k -- 1)
+      ) else (
+        ret += sibling 2(k -- 1)
+        k -= 1
+        ret += sibling 1(k -- 1)
+      )
+    end
+    niece(n)
+    return(ret)
+  end
+  subscript, sibling 2, n, begin
+    if (n <= 2) then (var1 += 1)
+    else (
+      variable(ret)
+      ret += sibling 1(n -- 2)
+      var1 += sibling 1(n -- 1)
+      var1 += ret
+    )
+    return(var1)
+    var1 := 0
+  end
+  assert(sibling1(10) == 55)
+end
+
+# A very weird way to compute fibonacci numbers
+script, inside-outside fib, n, begin
+  variable(x)
+
+  subscript, inside fib, begin
+    variable(y)
+    if (n <= 2) then (
+      x += 1
+    ) else (
+      n -= 1
+      y += inside fib() #n -- 1)
+      n += 1
+      x += inside-outside fib(n -- 2) + y
+    )
+  end
+  if (n <= 2) then (exit returning (1))
+  n -= 1
+  inside fib()
+  n -= 1
+  x += inside-outside fib(n)
+  return(x)
 end
 
 

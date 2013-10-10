@@ -445,13 +445,6 @@ WITH scriptinsts(index)
  .watched = NO
  .started = NO
 
- IF .scr->parent THEN
-  IF index = 0 ORELSE scriptinsts(index - 1).id <> .scr->parent THEN
-   'HSpeak should disallow this
-   scripterr "Script " & scriptname(.id) & " not called from its parent (which should be impossible)", serrBug
-  END IF
- END IF
-
  DIM errstr as zstring ptr = oldscriptstate_init(index, .scr)
  IF errstr <> NULL THEN
   scripterr "failed to load " + *scripttype + " script " & n & " " & scriptname(n) & ", " & *errstr, serrError
@@ -584,7 +577,7 @@ FUNCTION loadscript (byval n as uinteger) as ScriptData ptr
   IF skip >= 16 THEN
    GET #f, 15, shortvar
    .nestdepth = shortvar
-   IF .nestdepth > 4 THEN
+   IF .nestdepth > maxScriptNesting THEN
     scripterr "Corrupt or unsupported script data with nestdepth=" & .nestdepth & "; should be impossible", serrBug
    END IF
   ELSE

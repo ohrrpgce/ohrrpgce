@@ -19,14 +19,15 @@ CONST sttriggered = 7
 CONST sterror = 8
 CONST stexit = 9
 '--SCRIPT STATEMENT TYPES---
-CONST tystop = 0    '0 terminate script (not really legal)
-CONST tynumber = 1  '1 literal number
-CONST tyflow = 2    '2 flow control
-CONST tyglobal = 3  '3 global variable
-CONST tylocal = 4   '4 local variable
-CONST tymath = 5    '5 math function
-CONST tyfunct = 6   '6 function call
-CONST tyscript = 7  '7 script call
+CONST tystop = 0      'terminate script (not really legal)
+CONST tynumber = 1    'literal number
+CONST tyflow = 2      'flow control
+CONST tyglobal = 3    'global variable
+CONST tylocal = 4     'local variable
+CONST tymath = 5      'math function
+CONST tyfunct = 6     'function call
+CONST tyscript = 7    'script call
+CONST tynonlocal = 8  'nonlocal variable
 '--FLOW CONTROL TYPES---
 CONST flowdo = 0
 CONST flowreturn = 3
