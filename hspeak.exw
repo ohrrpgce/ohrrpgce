@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Ra 2013-10-09 Fixed \r lineendings (AGAIN) and slow \r\n handling
 --3R  2013-10-05 Add subscript
 --3Qc 2013-10-04 Disallow flow statements used as expressions
 --3Qb 2013-07-24 Require begin after then, do, etc. (else excluded)
@@ -146,7 +147,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="R "
+constant COMPILER_SUB_VERSION="Ra"
 constant COPYRIGHT_DATE="2013"
 
 --This is the oldest version of plotscr.hsd which is supported (feel free to
@@ -292,7 +293,7 @@ sequence compiler_dir     compiler_dir=""
 sequence source_file      source_file=""
 sequence dest_file        dest_file=""
 sequence optlist          optlist={}
-sequence file_list        file_list={}
+sequence file_list        file_list={}            --type {FILE_NAME,FILE_TEXT,FILE_LINE_EXTENTS}
 integer max_srcpos        max_srcpos=0
 integer total_lines       total_lines=0
 sequence cmd              cmd={}                  --type {CMD_TEXT, CMD_POS}
@@ -471,7 +472,7 @@ function sprintf_utf(sequence s,sequence printf_args)
       simple_error(sprintf("sprintf_utf: unrecognised format code %%%s\n",{s[seg_end+1]}))
     end if
     seg_start=seg_end+2
-    seg_end=find_from('%',s,seg_start)
+    seg_end=find('%',s,seg_start)
   end while
   if seg_start<=length(s) then
     ret&=s[seg_start..$]
@@ -1051,9 +1052,34 @@ end procedure
 
 ---------------------------------------------------------------------------
 
+--Find newlines in a file (possibly mixed type), returns line extents
+function split_lines(sequence file_text)
+  integer line_start=1
+  integer last_13=-1
+  sequence line_extents = {}  -- {start of line, end of line} pairs, both inclusive
+  for i=1 to length(file_text) do
+    if file_text[i]=13 then
+      line_extents=append(line_extents, {line_start,i-1})
+      last_13=i
+      line_start=i+1
+    elsif file_text[i]=10 then
+      if last_13!=i-1 then  -- handle {13,10} "\r\n"
+        line_extents=append(line_extents, {line_start,i-1})
+      end if
+      line_start=i+1
+    end if
+  end for
+
+  if line_start<=length(file_text) then
+    line_extents=append(line_extents, {line_start,length(file_text)})
+  end if
+  return line_extents
+end function
+
+---------------------------------------------------------------------------
+
 procedure load_source(sequence filename,sequence reading_how,srcpos pos)
   integer fh
-  integer line_start, line_end
   sequence file_text
   sequence line_extents  -- {start of line, end of line} pairs
 
@@ -1069,19 +1095,7 @@ procedure load_source(sequence filename,sequence reading_how,srcpos pos)
     exit_timing_zone()
     close(fh)
 
-    --read_file already converts lineendings, so this usually won't be needed
-    file_text=exclude(file_text,"\r")
-
-    line_start=1
-    line_end=find('\n',file_text)
-    while line_end do
-      line_extents=append(line_extents,{line_start,line_end-1})
-      line_start=line_end+1
-      line_end=find_from('\n',file_text,line_start)
-    end while
-    if line_start<=length(file_text) then
-      line_extents=append(line_extents,{line_start,length(file_text)})
-    end if
+    line_extents=split_lines(file_text)
     total_lines+=length(line_extents)
     file_list=append(file_list,{filename,file_text,line_extents})
     max_srcpos+=length(file_text)+1
@@ -1246,7 +1260,7 @@ end function
 ---------------------------------------------------------------------------
 
 --Clean the rest of a line for seek_include after 'include' occurs
-function lexer_read_include_line(sequence tokens, sequence s, integer i, srcpos pos)
+function lexer_read_include_line(sequence tokens, sequence s, integer i, integer stop, srcpos pos)
   integer at
   sequence temp
 
@@ -1255,11 +1269,7 @@ function lexer_read_include_line(sequence tokens, sequence s, integer i, srcpos 
   end if
 
   i+=1
-  s=s[i..$]
-  at=find('\n',s)
-  if at then
-    s=s[1..at-1]
-  end if
+  s=s[i..stop]
   at=find('#',s)
   if at then
     s=s[1..at-1]
@@ -1431,7 +1441,7 @@ function lex_line(sequence s,integer i,integer stop,srcpos pos)
           if length(ident) then
             simple_error("compiler bug!\n")
           end if
-          return lexer_read_include_line(tokens,s,i,pos)
+          return lexer_read_include_line(tokens,s,i,stop,pos)
         end if
       end if
     end if

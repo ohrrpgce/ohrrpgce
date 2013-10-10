@@ -31,6 +31,7 @@ WHAT IS NEW?
     * "showtextbox happens immediately" backcompat bitset (on for new
       games) helps to prevent bugs due to showing two boxes at once;
       "show textbox" now affects "current textbox" immediately [Ralph]
+    * HSpeak accepts files with Mac line-endings again [Ralph]
 
   * New Plotscripting Stuff
     * "Menu action plotscript" special script trigger to run a script
@@ -41,6 +42,8 @@ WHAT IS NEW?
   * Performance Fixes
     * Fixed delay when opening a menu that happened when a large number
       of menus were defined [Ralph]
+    * HSpeak was extremely slow (potentially hours) at reading files
+      with DOS/Windows line-endings on Linux/Mac [Ralph]
 
   * Stuff Only Developers Will Notice
     * Experimental support for Android phones and tablets

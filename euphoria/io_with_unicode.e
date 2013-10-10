@@ -345,7 +345,9 @@ public function read_file(object file, integer as_text = BINARY_MODE, integer en
 	end if
 
 	-- Convert Windows endings
-	ret = match_replace({13,10}, ret, {10})
+	-- (commented out because this is quadratic time and doesn't handle Mac lineendings anyway;
+	-- so instead do lineending handling in split_lines)
+	--ret = match_replace({13,10}, ret, {10})
 	if length(ret) > 0 then
 		if ret[$] != 10 then
 			ret &= 10
