@@ -226,7 +226,7 @@ DO
       END IF
       GOTO interpretloop 'new WITH pointer
      CASE ELSE
-      scripterr "illegal kind " & curcmd->kind & " " & curcmd->value & " in stnext", 6
+      scripterr "illegal kind " & curcmd->kind & " " & curcmd->value & " in stnext", serrError
       killallscripts
       EXIT DO
     END SELECT
@@ -534,7 +534,7 @@ si.stackbase = stackposition(scrst)
 checkoverflow(scrst, curcmd->argc + 5)
 
 IF curcmd->kind <> tyflow THEN
- scripterr "Root script command not flow, but " & curcmd->kind, 6
+ scripterr "Root script command not flow, but " & curcmd->kind, serrError
  si.state = sterror
 END IF
 END SUB
@@ -555,7 +555,7 @@ SELECT CASE cmdptr->kind
   pushstack(scrst, cmdptr->value)
  CASE tyglobal
   IF cmdptr->value < 0 OR cmdptr->value > maxScriptGlobals THEN
-   scripterr "Illegal global variable id " & cmdptr->value, 5
+   scripterr "Illegal global variable id " & cmdptr->value, serrBadOp
    si.state = sterror
    EXIT SUB
   END IF
@@ -585,7 +585,7 @@ SELECT CASE cmdptr->kind
   IF curcmd->argc = 0 THEN EXIT SUB
   GOTO quickrepeat
  CASE ELSE
-  scripterr "Illegal statement type " & cmdptr->kind, 6
+  scripterr "Illegal statement type " & cmdptr->kind, serrError
   si.state = sterror
   EXIT SUB
 END SELECT
@@ -684,7 +684,7 @@ FUNCTION readscriptvar (byval id as integer) as integer
   CASE 0 TO maxScriptGlobals 'global variable
    readscriptvar = global(id)
   CASE ELSE
-   scripterr "Cannot read global " & id & ". Out of range", 5
+   scripterr "Cannot read global " & id & ". Out of range", serrBadOp
  END SELECT
 END FUNCTION
 
@@ -695,7 +695,7 @@ SUB writescriptvar (byval id as integer, byval newval as integer)
   CASE 0 TO maxScriptGlobals 'global variable
    global(id) = newval
   CASE ELSE
-   scripterr "Cannot write global " & id &  ". Out of range", 5
+   scripterr "Cannot write global " & id &  ". Out of range", serrBadOp
  END SELECT
 END SUB
 
@@ -705,19 +705,19 @@ SUB scriptmath
    scriptret = INT(retvals(0) + RND * (1.0 + retvals(1) - retvals(0))) 'handles the case max-min = 2^32
   CASE 1' exponent
    IF retvals(0) = 0 and retvals(1) < 0 THEN
-    scripterr "Tried to take negative power of zero, 0^" & retvals(1), 5
+    scripterr "Tried to take negative power of zero, 0^" & retvals(1), serrBadOp
    ELSE
     scriptret = retvals(0) ^ retvals(1)
    END IF
   CASE 2' modulus
    IF retvals(1) = 0 THEN
-    scripterr "division by zero: " & retvals(0) & ",mod,0", 5
+    scripterr "division by zero: " & retvals(0) & ",mod,0", serrBadOp
    ELSE
     scriptret = retvals(0) MOD retvals(1)
    END IF
   CASE 3' divide
    IF retvals(1) = 0 THEN
-    scripterr "division by zero: " & retvals(0) & "/0", 5
+    scripterr "division by zero: " & retvals(0) & "/0", serrBadOp
    ELSE
     scriptret = retvals(0) \ retvals(1)
    END IF
@@ -771,12 +771,12 @@ SUB scriptmath
    scriptret = SGN(retvals(0))
   CASE 25'sqrt
    IF retvals(0) < 0 THEN
-    scripterr "Tried to take squareroot of " & retvals(0), 5
+    scripterr "Tried to take squareroot of " & retvals(0), serrBadOp
    ELSE
     scriptret = SQRT(retvals(0))
    END IF
   CASE ELSE
-   scripterr "unsupported math function id " & curcmd->value, 6
+   scripterr "unsupported math function id " & curcmd->value, serrError
  END SELECT
 END SUB
 
@@ -1603,9 +1603,9 @@ FUNCTION scriptstate (byval targetscript as integer, byval recurse as integer = 
    'debug "popped stkpos = " & stkpos &  " bottom = " & stkbottom
 
    'error level 1 because this routine is delicate and will probably break if called from an unusual place
-   IF stkpos < stkbottom THEN scripterr("script debugger failed to read script state: stack underflow " & (stkpos - stkbottom), 1): EXIT DO
+   IF stkpos < stkbottom THEN scripterr("script debugger failed to read script state: stack underflow " & (stkpos - stkbottom), serrInfo): EXIT DO
  LOOP
- IF stkpos > stkbottom AND wasscript < 0 THEN scripterr("script debugger failed to read script state: stack garbage " & (stkpos - stkbottom), 1)
+ IF stkpos > stkbottom AND wasscript < 0 THEN scripterr("script debugger failed to read script state: stack garbage " & (stkpos - stkbottom), serrInfo)
 
  scriptstate = TRIM(outstr)
  'debug outstr

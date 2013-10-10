@@ -405,7 +405,7 @@ DIM index as integer = nowscript + 1
 
 IF index >= maxScriptRunning THEN
  runscript = 0 '--error
- scripterr "failed to load " + *scripttype + " script " & n & " " & scriptname(n) & ", interpreter overloaded", 6
+ scripterr "failed to load " + *scripttype + " script " & n & " " & scriptname(n) & ", interpreter overloaded", serrError
  EXIT FUNCTION
 END IF
 
@@ -433,7 +433,7 @@ WITH scriptinsts(index)
  IF .scr = NULL THEN
   '--failed to load
   runscript = 0'--error
-  scripterr "Failed to load " + *scripttype + " script " & n & " " & scriptname(n), 6
+  scripterr "Failed to load " + *scripttype + " script " & n & " " & scriptname(n), serrError
   EXIT FUNCTION
  END IF
  .scr->totaluse += 1
@@ -447,7 +447,7 @@ WITH scriptinsts(index)
 
  DIM errstr as zstring ptr = oldscriptstate_init(index, .scr)
  IF errstr <> NULL THEN
-  scripterr "failed to load " + *scripttype + " script " & n & " " & scriptname(n) & ", " & *errstr, 6
+  scripterr "failed to load " + *scripttype + " script " & n & " " & scriptname(n) & ", " & *errstr, serrError
   RETURN 0 '--error
  END IF
 
@@ -497,7 +497,7 @@ FUNCTION loadscript (byval n as uinteger) as ScriptData ptr
    '--because TMC once suggested that preunlumping the .hsp lump would be a good way to reduce (SoJ) loading time
    scriptfile = workingdir & SLASH & n & ".hsx"
    IF NOT isfile(scriptfile) THEN
-    scripterr "script " & n & " " & scriptname(n) & " does not exist", 6
+    scripterr "script " & n & " " & scriptname(n) & " does not exist", serrError
     RETURN NULL
    END IF
   END IF
@@ -508,7 +508,7 @@ FUNCTION loadscript (byval n as uinteger) as ScriptData ptr
 
  'minimum length of a valid 16-bit .hsx
  IF LOF(f) < 10 THEN
-  scripterr "script " & n & " corrupt (too short: " & LOF(f) & " bytes)", 6
+  scripterr "script " & n & " corrupt (too short: " & LOF(f) & " bytes)", serrError
   CLOSE #f
   RETURN NULL
  END IF
@@ -520,7 +520,7 @@ FUNCTION loadscript (byval n as uinteger) as ScriptData ptr
   DIM skip as integer = shortvar
 
   IF skip < 4 THEN
-   scripterr "script " & n & " is corrupt (header length " & skip & ")", 6
+   scripterr "script " & n & " is corrupt (header length " & skip & ")", serrError
    CLOSE #f
    deallocate(thisscr)
    RETURN NULL
@@ -546,7 +546,7 @@ FUNCTION loadscript (byval n as uinteger) as ScriptData ptr
    scrformat = 0
   END IF
   IF scrformat > CURRENT_HSZ_VERSION THEN
-   scripterr "script " & n & " is in an unsupported format", 6
+   scripterr "script " & n & " is in an unsupported format", serrError
    CLOSE #f
    deallocate(thisscr)
    RETURN NULL
@@ -567,14 +567,14 @@ FUNCTION loadscript (byval n as uinteger) as ScriptData ptr
   'set an arbitrary max script buffer size (scriptmemMax in const.bi), individual scripts must also obey
   .size = (LOF(f) - skip) \ wordsize
   IF .size > scriptmemMax THEN
-   scripterr "Script " & n & " " & scriptname(n) & " exceeds maximum size by " & .size * 100 \ scriptmemMax - 99 & "%", 6
+   scripterr "Script " & n & " " & scriptname(n) & " exceeds maximum size by " & .size * 100 \ scriptmemMax - 99 & "%", serrError
    CLOSE #f
    deallocate(thisscr)
    RETURN NULL
   END IF
 
   IF .strtable < 0 OR .strtable > .size THEN
-   scripterr "Script " & n & " corrupt; bad string table offset", 6
+   scripterr "Script " & n & " corrupt; bad string table offset", serrError
    CLOSE #f
    deallocate(thisscr)
    RETURN NULL
@@ -587,7 +587,7 @@ FUNCTION loadscript (byval n as uinteger) as ScriptData ptr
 
   .ptr = allocate(.size * sizeof(integer))
   IF .ptr = 0 THEN
-   scripterr "Could not allocate memory to load script", 6
+   scripterr "Could not allocate memory to load script", serrError
    CLOSE #f
    deallocate(thisscr)
    RETURN NULL
