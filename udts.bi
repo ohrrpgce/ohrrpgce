@@ -408,17 +408,23 @@ END TYPE
 
 'WARNING: don't add strings to this
 TYPE ScriptData
+  'Script attributes
   id as integer         'id number of script  (set to 0 to mark as unused slot)
+  ptr as integer ptr    'pointer to script commands
+  size as integer       'size of script data, in 4 byte words
+  vars as integer       'local variable (including arguments) count, not including nonlocals
+  nonlocals as integer  'number of nonlocal variables
+  args as integer       'number of arguments
+  strtable as integer   'pointer to string table (offset from start of script data in long ints)
+  nestdepth as integer  'nesting depth, 0 for scripts
+  parent as integer     'ID of parent or 0 for none
+
+  'Book keeping
   refcount as integer   'number of ScriptInst pointing to this data
   totaluse as integer   'total number of times this script has been requested since loading
   lastuse as integer
   totaltime as double   'time spent in here, in seconds. Used only if SCRIPTPROFILE is defined
   entered as integer    'number of times entered. Used only if SCRIPTPROFILE is defined
-  ptr as integer ptr    'pointer to script commands
-  size as integer       'size of script data, in 4 byte words
-  vars as integer       'variable (including arguments) count
-  args as integer       'number of arguments
-  strtable as integer   'pointer to string table (offset from start of script data in long ints)
 
   next as ScriptData ptr 'next in linked list, for hashtable
   backptr as ScriptData ptr ptr 'pointer to pointer pointing to this, in script(), or a .next pointer
@@ -428,8 +434,9 @@ END TYPE
 'State of an executing script, used by the old interpreter
 TYPE OldScriptState
   scr as ScriptData ptr 'script in script() hashtable (duplicated from ScriptInst)
-  scrdata as integer ptr 'convenience pointer to (<parent>.)scr->ptr
-  heap as integer       'position of the script's local vars in the buffer
+  scrdata as integer ptr 'convenience pointer to .scr->ptr
+  heap as integer       'position of start of the script's nonlocal+local vars in the buffer (equal to .heap of 'root' script)
+  heapend as integer    'one-past-end of offsets on the heap used by this script
   stackbase as integer  'position where this script's stack data starts in scrst
   state as integer      'what the script is doing right now
   ptr as integer        'the execution pointer (in int32's from the start of the script data)

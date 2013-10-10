@@ -14,6 +14,7 @@ script, interpreter tests, begin
   math tests
   flow tests
   scheduling tests
+  subscript tests
 end
 
 ########################################################################
@@ -294,6 +295,101 @@ script, check bug 430 enabled, begin
     # Other combinations should be impossible
     crash
   )
+end
+
+########################################################################
+
+script, subscript tests, begin
+  $0="subscript tests"
+
+  variable(var1, var2)
+
+  assert(sscript 1 == 2)
+  assert(var1 == 1)
+
+  subscript, sscript 1, begin
+    var1 := 1
+    return (2)
+  end
+
+  subscript, sscript 2, arg=42, begin
+    variable(x)
+    var1 := arg
+    x := var1 + 1
+    var1 += x
+  end
+
+  sscript 2(2)
+  assert(var1 == 5)
+  sscript 2
+  assert(var1 == 85)
+
+  subscript, sscript 3, begin
+    subscript, ssscript 1, arg2, begin
+      x += arg2 + 10
+    end
+    variable(x)
+    x := 1
+    ssscript 1 (100)
+    var2 := x
+  end
+  sscript 3
+  assert(var2 == 111)
+
+  # test maximum nesting depth (4)
+  a global := -1
+  subscript, sscript 4, arg1, begin
+    variable(v0,v1)
+    v0 := 5
+    subscript, ssscript, arg2, begin
+      variable(v2)
+      subscript, sssscript, arg3, begin
+        variable(v3)
+        subscript, ssssscript, arg4, begin
+          # returns arg4 * 10 + 5
+          assert(a global == -1)
+          a global := -2
+          assert(arg4 == 1234)
+          variable(v4)
+            trace value(v4, arg4, v0)
+          v4 += arg4 * 5 + v0
+          for (v0, 1, 5 #v0
+          ) do (v4 += arg4) # v4 += 5 * arg4
+          tracevalue(v0, v4, arg4 * 10 + 5)
+          assert(v4 == arg4 * 10 + 5)
+          var1 := var2
+          return(v4)
+        end
+        assert(arg3 == 123)
+        v1 := 1002
+        return(ssssscript(arg3 * 10 + 4))
+      end
+      assert(arg2 == 12)
+      return(sssscript(arg2 * 10 + 3))
+    end
+    assert(read global(@a global) == -1)
+    return (ssscript(arg1 * 10 + 2))
+    assert(v0 == 6)  # 1 past end of for loop
+    assert(v1 == 1002)
+  end
+  assert(sscript4(1) == 12345)
+  assert(var1 == 111)
+  assert(a global == -2)
+
+  # break stops at a script boundary
+  variable(var3)
+  subscript, break subscript, begin
+    break(4)
+    var3 := 1
+  end 
+  for (var1, 0, 6) do (
+    break subscript
+    var2 += 1
+  )
+  assert(var1 == 7)
+  assert(var2 == 111 + 7)
+  assert(var3 == 0)
+
 end
 
 

@@ -62,12 +62,24 @@ FUNCTION oldscriptstate_init (index as integer, script as ScriptData ptr) as zst
   .curargn = 0
   curcmd = cast(ScriptCommand ptr, .scrdata + .ptr) 'just in case it's needed before subread is run
 
-  scrat(index + 1).heap = .heap + .scr->vars
+  IF index = 0 THEN
+   .heap = 0
+  ELSE
+   IF .scr->parent THEN
+    'Share variables with all ancestor (sub)scripts
+    .heap = scrat(index - .scr->nestdepth).heap
+   ELSE
+    .heap = scrat(index - 1).heapend
+   END IF
+  END IF
+  .heapend = .heap + .scr->nonlocals + .scr->vars
+  IF .heapend > maxScriptHeap THEN RETURN @"script heap overflow"
 
-  IF scrat(index + 1).heap > maxScriptHeap THEN RETURN @"script heap overflow"
+  'debug "oldscriptstate_init: loading script " & .id & " " & scriptname(.id) & " scrat(" & index & ") nonlocals " & .scr->nonlocals _
+  '      & " vars " & .scr->vars & " parent " & .scr->parent & " heap " & .heap & ":" & .heapend
 
   FOR i as integer = 0 TO .scr->vars - 1
-   heap(.heap + i) = 0
+   heap(.heap + .scr->nonlocals + i) = 0
   NEXT i
  END WITH
  RETURN NULL
@@ -481,9 +493,12 @@ SUB killtopscript
 END SUB
 
 SUB setScriptArg (byval arg as integer, byval value as integer)
- IF scrat(nowscript).scr->args > arg THEN
-  heap(scrat(nowscript).heap + arg) = value
- END IF
+ 'No warning on passing in more arguments than the script takes, as they are always optional
+ WITH scrat(nowscript)
+  IF .scr->args > arg THEN
+   heap(.heap + .scr->nonlocals + arg) = value
+  END IF
+ END WITH
 END SUB
 
 FUNCTION functiondone () as integer
@@ -1042,16 +1057,17 @@ IF mode > 1 AND viewmode = 1 AND selectedscript >= 0 THEN
  'local variables and return value. Show up to 9 variables at a time
  reloadscript scriptinsts(selectedscript), scrat(selectedscript), NO
  WITH scrat(selectedscript)
-  IF .scr->vars = 0 THEN
+  DIM totalvars as integer = .scr->vars + .scr->nonlocals
+  IF totalvars = 0 THEN
    edgeprint "Has no variables", 0, ol, uilook(uiText), page
    ol -= 9
   ELSE
    scriptargs = .scr->args
    DIM temp as string
-   FOR i as integer = small((.scr->vars - localsscroll - 1) \ 3, 2) TO 0 STEP -1
+   FOR i as integer = small((totalvars - localsscroll - 1) \ 3, 2) TO 0 STEP -1
     FOR j as integer = 2 TO 0 STEP -1  'reverse order so the var name is what gets overwritten
      localno = localsscroll + i * 3 + j
-     IF localno < .scr->vars THEN
+     IF localno < totalvars THEN
       temp = localvariablename(localno, scriptargs) & "="
       edgeprint temp, j * 96, ol, uilook(uiText), page
       edgeprint STR(heap(.heap + localno)), j * 96 + 8 * LEN(temp), ol, uilook(uiDescription), page
@@ -1062,7 +1078,7 @@ IF mode > 1 AND viewmode = 1 AND selectedscript >= 0 THEN
    IF scriptargs = 999 THEN
     edgeprint .scr->vars & " local variables and arguments:", 0, ol, uilook(uiText), page
    ELSE
-    edgeprint scriptargs & " arguments and " & (.scr->vars - scriptargs) & " local variables:", 0, ol, uilook(uiText), page
+    edgeprint scriptargs & " arguments, " & (.scr->vars - scriptargs) & " locals, " & .scr->nonlocals & " non-local variables:", 0, ol, uilook(uiText), page
    END IF
    ol -= 9
   END IF
@@ -1231,7 +1247,8 @@ IF mode > 1 AND drawloop = 0 THEN
   IF viewmode = 4 THEN timersscroll = large(0, timersscroll - 4): GOTO redraw
  END IF
  IF w = scPlus OR w = scNumpadPlus THEN
-  IF viewmode = 1 THEN localsscroll = small(large(scriptinsts(selectedscript).scr->vars - 8, 0), localsscroll + 3): GOTO redraw
+  DIM totalvars as integer = scrat(selectedscript).scr->vars + scrat(selectedscript).scr->nonlocals
+  IF viewmode = 1 THEN localsscroll = small(large(totalvars - 8, 0), localsscroll + 3): GOTO redraw
   IF viewmode = 2 THEN globalsscroll = small(maxScriptGlobals - 59, globalsscroll + 21): GOTO redraw
   IF viewmode = 3 THEN stringsscroll = small(stringsscroll + 1, (UBOUND(strings) - 1) - 19): GOTO redraw
   IF viewmode = 4 THEN timersscroll = small(timersscroll + 4, UBOUND(timers) - 18): GOTO redraw
@@ -1622,3 +1639,43 @@ FUNCTION scriptstate (byval targetscript as integer, byval recurse as integer = 
  'debug outstr
  reloadscript scriptinsts(nowscript), scrat(nowscript)
 END FUNCTION
+
+/'
+--subscripts--
+GOSUB model: all variables in all descendent scripts exist in the root script.
+(This prevents recursion, but allows calling subscripts from other than the parent, as long as a subscript
+is never called twice... which can't easily be ensured at compile time, so can't realistically support anyway)
+Entering a subscript should start by zeroing its locals.
+
+the GOSUB model is faster and simpler, but apparently not worth implementing.
+Also, it can mean not having to use separate frames (ie runscript() calls) to call a subscript, but
+that complicates return(), etc.
+
+What about current linear-callstack vs GOSUB?
+
+--closures--
+Run until they return, at which point local state is destroyed but enclosing state preserved until the handle
+is destroyed.
+Say you do closure:=@foo and then call closure() twice. Both should share the enclosing context, but have different local variables.
+That means they can't be implemented using GOSUB model! Need to use separate closure and local frame pointers.
+
+--spawned scripts--
+If a spawnscript block is run twice using a loop then each gets its own locals, again preventing GOSUB model
+and requiring separate closure and local frames.
+
+--generators--
+A generator is like a closure but state is stored in locals instead of enclosure.
+What happens if a generator is called in two different fibres at once (ie. it waits in the first one)?
+This probably needs to be an error, only sane thing to do. Don't need to disallow waits in generators though.
+Note that double executing closures in same way is fine.
+Can they be implemented with minimal effort?
+Translation to closures (can't be done directly without a big switch or other nasty):
+-add a dummy parent closure
+-all locals go in parent
+-whereas a closure is "script ID plus enclosure object", generator also has execution state (point in
+script and state)
+So better idea, translation to fibres! A generator is just a paused fibre which is jumped to and resumed.
+In fact generators can be implemented using only engine-side commands and fibre API!
+
+Maybe "yield" can be called "return", and "return" becomes "exitreturning"??
+'/

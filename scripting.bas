@@ -445,6 +445,13 @@ WITH scriptinsts(index)
  .watched = NO
  .started = NO
 
+ IF .scr->parent THEN
+  IF index = 0 ORELSE scriptinsts(index - 1).id <> .scr->parent THEN
+   'HSpeak should disallow this
+   scripterr "Script " & scriptname(.id) & " not called from its parent (which should be impossible)", serrBug
+  END IF
+ END IF
+
  DIM errstr as zstring ptr = oldscriptstate_init(index, .scr)
  IF errstr <> NULL THEN
   scripterr "failed to load " + *scripttype + " script " & n & " " & scriptname(n) & ", " & *errstr, serrError
@@ -460,7 +467,7 @@ WITH scriptinsts(index)
  .scr->refcount += 1
  nowscript += 1
 
- 'debug scriptname(.id) & " in script(" & (.id MOD scriptTableSize) & "): totaluse = " & .scr->totaluse & " refc = " & .scr->refcount & " lastuse = " & .scr->lastuse
+ 'debug "running " & .id & " " & scriptname(.id) & ", parent = " & .scr->parent & " totaluse = " & .scr->totaluse & " refc = " & .scr->refcount & " lastuse = " & .scr->lastuse
 END WITH
 
 #IFDEF SCRIPTPROFILE
@@ -526,6 +533,10 @@ FUNCTION loadscript (byval n as uinteger) as ScriptData ptr
    RETURN NULL
   END IF
 
+  'Note that there is no check for the header being longer than expected. Optional
+  'fields may be added to the end of the header; if they are mandatory the version number
+  'should be incremented.
+
   GET #f, 3, shortvar
   'some HSX files seem to have an illegal negative number of variables
   .vars = shortvar
@@ -563,6 +574,29 @@ FUNCTION loadscript (byval n as uinteger) as ScriptData ptr
   ELSE
    .strtable = 0
   END IF
+
+  IF skip >= 14 THEN
+   GET #f, 13, shortvar
+   .parent = shortvar
+  ELSE
+   .parent = 0
+  END IF
+  IF skip >= 16 THEN
+   GET #f, 15, shortvar
+   .nestdepth = shortvar
+   IF .nestdepth > 4 THEN
+    scripterr "Corrupt or unsupported script data with nestdepth=" & .nestdepth & "; should be impossible", serrBug
+   END IF
+  ELSE
+   .nestdepth = 0
+  END IF
+  IF skip >= 18 THEN
+   GET #f, 17, shortvar
+   .nonlocals = shortvar
+  ELSE
+   .nonlocals = 0
+  END IF
+
 
   'set an arbitrary max script buffer size (scriptmemMax in const.bi), individual scripts must also obey
   .size = (LOF(f) - skip) \ wordsize
@@ -602,6 +636,13 @@ FUNCTION loadscript (byval n as uinteger) as ScriptData ptr
    GET #f, skip + 1, *.ptr, .size
   END IF
   CLOSE #f
+
+  'Sanity check: root node is a do()
+  IF .size < 3 ORELSE (.ptr[0] <> 2 OR .ptr[1] <> 0 OR .ptr[2] < 0) THEN
+   scripterr "Script " & n & " corrupt; does no start with do()", serrError
+   deallocate(thisscr)
+   RETURN NULL
+  END IF
 
   .id = n
   .refcount = 0
@@ -1076,7 +1117,7 @@ FUNCTION script_interrupt () as integer
 
  append_menu_item menu, "Continue running"
  'append_menu_item menu, "Exit the top-most script"
- append_menu_item menu, "Stop the script thread"
+ append_menu_item menu, "Stop the script fibre"
  append_menu_item menu, "Stop all scripts"
  append_menu_item menu, "Exit game"
  append_menu_item menu, "Enter script debugger"

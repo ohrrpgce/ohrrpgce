@@ -31,6 +31,7 @@ global variable(202, ticker 2)
 global variable(203, expected ticker 0)
 global variable(204, expected ticker 1)
 global variable(205, tick counter slice)
+global variable(206, a global)
 global variable(5000, global 5000)
 
 #string 0 = error messages

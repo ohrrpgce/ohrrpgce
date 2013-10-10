@@ -35,7 +35,9 @@ WHAT IS NEW?
   * New Plotscripting Stuff
     * "Menu action plotscript" special script trigger to run a script
       instead of opening the main menu [Lakan Inocencio]
-        
+    * subscripts: scripts embeddable inside other scripts, with access
+      to their local variables [Ralph]
+
   * Performance Fixes
     * Fixed delay when opening a menu that happened when a large number
       of menus were defined [Ralph]

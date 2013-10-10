@@ -126,7 +126,8 @@ plotscript,my first script,begin
 	# commands go here
 end</example>
 			<example># example of a script with arguments
-plotscript,my fancy script,fe=0,fi=0,fo=0,begin
+# (It can called with between 1 and 3 arguments.)
+plotscript,my fancy script,fe,fi=0,fo=0,begin
 	# commands go here,
 	# and they can use the aruments fe, fi, and fo
 	# that where passed to the script
@@ -135,16 +136,48 @@ end</example>
 		<command id="script">
 			<canon>script, name, argumentnames (statements)</canon>
 			<shortname>script</shortname>
-			<description>The script command contains a list of commands. Script starts with the keyword script, a comma, and then the name of the script. If there are any arguments to the script, you list their names separated by commas after the name of the script with default values. Then comes the text of the script. It is enclosed in <ref>begin</ref> and <ref>end</ref> statements. Scripts that are defined as script cannot be called directly from events in your game. They can only be called by name within other scripts. To make a script that can be run directly from your game, use <ref>plotscript</ref>.</description>
+			<description>The script command contains a list of commands. Script starts with the keyword script, a comma, and then the name of the script. If there are any arguments to the script, you list their names separated by commas after the name of the script with optional default values. Then comes the text of the script. It is enclosed in <ref>begin</ref> and <ref>end</ref> statements. Scripts that are defined as script cannot be called directly from events in your game. They can only be called by name within other scripts. To make a script that can be run directly from your game, use <ref>plotscript</ref>.</description>
 			<example># example of a simple script
 script,my first script,begin
 	# commands go here
 end</example>
-			<example># example of a script with arguments
-script,my fancy script,fe=0,fi=0,fo=0,begin
-	# commands go here,
+			<example># Example of a script with arguments
+# (It can called with between 1 and 3 arguments.)
+script,my fancy script,fe,fi=0,fo=0,begin
+	# Commands go here,
 	# and they can use the aruments fe, fi, and fo
-	# that where passed to the script
+	# that where passed to the script.
+end</example>
+		</command>
+		<command id="subscript">
+			<canon>subscript, name, argumentnames (statements)</canon>
+			<shortname>subscript</shortname>
+			<description><p>subscript</p> is just like <ref>script</ref> except that it must placed inside another script (or even inside another subscript). See <ref>script</ref> for details of its syntax. The difference from a regular script is that a subscript can only be called from its parent script, and it can directly access its parent script's variables in addition to its own arguments and variables. Subscripts can be useful when you have some piece of repeated code that you want to "de-duplicate" by moving into another script which you can call repeatedly, but without having to turn local variables into global variables.</description>
+			<example># Some nearby NPCs move into a line to the north of the hero
+plotscript, line up NPCs, begin
+	show textbox(32)  # "Yes sir!"
+	wait for textbox
+	suspend player
+	set hero direction(me, up)
+	variable (x, y)
+	x := hero X(me) -- 2
+	y := hero Y(me) -- 4
+	subscript, line up NPC, npc, begin
+		# Increment X to get next position in the line
+		x += 1
+		walk NPC to X(npc, x)
+		wait for NPC(npc)
+		walk NPC to Y(npc, y)
+		wait for NPC(npc)
+		set NPC direction(npc, down)
+	end
+	# NPCs move one at a time
+	line up NPC(1)
+	line up NPC(3)
+	line up NPC(11)
+	line up NPC(10)
+	line up NPC(5)
+	resume player
 end</example>
 		</command>
 		<command id="globalvariable">
