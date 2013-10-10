@@ -229,26 +229,8 @@ constant GLB_POS=3      --srcpos of globalvariable definition
 constant CONST_VALUE=1
 constant CONST_POS=2
 
-constant SCRIPTDATA_TRIGGER_TOK=1 --Trigger token (type {CMD_TEXT, CMD_POS}), e.g. "script"
-constant SCRIPTDATA_NAME_TOK=2    --Name token (type {CMD_TEXT, CMD_POS})
-constant SCRIPTDATA_ARG_TOKS=3    --List of argument name tokens (type {CMD_TEXT, CMD_POS})
-                                  --Initially the tokens may include default values (like "a=4"), which are later removed
-constant SCRIPTDATA_BODY_TOKS=4   --List of tokens (type {CMD_TEXT, CMD_POS}) in the body, of the form do,begin,...,end
-constant SCRIPTDATA_FULL_NAME=5
-constant SCRIPTDATA_PARENT_IDX=6  --index in all_scripts/script_cmd, or 0 for none
-constant SCRIPTDATA_NEST_DEPTH=7  --Nesting depth. A script is 0, subscript 1, sub-subscript 2...
-constant SCRIPTDATA_ID=8          --Script ID. Value not appended until all IDs are assigned in check_script_declarations
-
 constant NO_DEFAULT={}  --when appears in script_list[FUNC_ARGS], indicates arg with no default value
 constant VAR_ARGS=0     --when appears AS function_list[FUNC_ARGS], indicates unlimited num of args
-
-constant SCRIPT_TRIGGER_ID=1 --index in trigger_list
-constant SCRIPT_NAME=2       --string, not fully-scoped
-constant SCRIPT_POS=3
-constant SCRIPT_AST=4
-constant SCRIPT_LOCALS_TOKS=5
-constant SCRIPT_NUM_NONLOCALS=6
-constant SCRIPT_BINARY=7
 
 constant KIND_NUMBER=1
 constant KIND_FLOW=2
@@ -309,9 +291,26 @@ sequence function_list    function_list={}        --type {PAIR_NUM, PAIR_NAME, F
 sequence global_list      global_list={{},{},{}}  --NOTE: three lists {PAIR_NUM, PAIR_NAME, GLB_POS}, not a list of globals
 sequence string_list      string_list={}          --list of strings
 sequence script_list      script_list={}          --type {PAIR_NUM, PAIR_NAME, FUNC_ARGS, FUNC_POS} (PAIR_NAME is the full name)
-sequence script_cmd       script_cmd={}           --type {SCRIPTDATA_TRIGGER_TOK, SCRIPTDATA_NAME_TOK, SCRIPTDATA_ARG_TOKS,
-                                                  --      SCRIPTDATA_BODY_TOKS, SCRIPTDATA_FULL_NAME, SCRIPTDATA_PARENT_IDX,
-                                                  --      SCRIPTDATA_ID}
+
+
+constant SCRIPT_TRIGGER_TOK=1     --Trigger token (type {CMD_TEXT, CMD_POS}), e.g. "script"
+constant SCRIPT_NAME=2            --String, not fully-scoped
+constant SCRIPT_POS=3             --(scrpos of script name)
+constant SCRIPT_FULL_NAME=4       --Full-scoped script name
+constant SCRIPT_ARG_TOKS=5        --List of argument name tokens (type {CMD_TEXT, CMD_POS})
+                                  --Initially the tokens may include default values (like "a=4"), which are later removed
+constant SCRIPT_BODY_TOKS=6       --List of tokens (type {CMD_TEXT, CMD_POS}) in the body, of the form do,begin,...,end
+constant SCRIPT_PARENT_IDX=7      --index in all_scripts, or 0 for none
+constant SCRIPT_NEST_DEPTH=8      --Nesting depth. A script is 0, subscript 1, sub-subscript 2...
+constant SCRIPT_ID=9              --Script ID. Value not appended until all IDs are assigned in check_script_declarations
+constant SCRIPT_TRIGGER_ID=10     --trigger ID. SCRIPT_TRIGGER_ID and later not appended until compile_a_script
+constant SCRIPT_AST=11
+constant SCRIPT_LOCALS_TOKS=12
+constant SCRIPT_NUM_NONLOCALS=13
+constant SCRIPT_BINARY=14
+
+sequence all_scripts      all_scripts={}       --type Script == {SCRIPT_*} (variable length)
+
 sequence reserved         reserved=alpha_tree_create()
 atom start_time           start_time=time()
 atom run_time             run_time=0
@@ -390,13 +389,9 @@ sequence hex_chars        hex_chars="0123456789abcedfABCDEF"
 sequence hex_char_values  hex_char_values={0,1,2,3,4,5,6,7,8,9,#a,#b,#c,#e,#d,#f,#A,#B,#C,#D,#E,#F}
 
 sequence compiled_data    compiled_data={}    --used inside binary_compile only; compiled data for the current script
-
-sequence all_scripts      all_scripts={}      --type {SCRIPT_TRIGGER_ID, SCRIPT_NAME, SCRIPT_POS, SCRIPT_AST,
-                                              --      SCRIPT_LOCALS_TOKS, SCRIPT_NUM_NONLOCALS, SCRIPT_BINARY}
-                                              --FIXME: all_scripts and script_cmd should be combined (script_list can stay separate)
 sequence current_script   current_script=""   --name of current script
 sequence current_scopes   current_scopes={""} --list of possible prefixes to add to (sub)script names, eg "master<-"
-integer cur_script_num    cur_script_num=0    --index into script_cmd of current script
+integer cur_script_num    cur_script_num=0    --index into all_scripts of current script
 integer colors_enabled    colors_enabled=true
 integer simple_colorcodes simple_colorcodes=false
 integer error_file        error_file=false
@@ -418,6 +413,15 @@ integer was_warnings      was_warnings=false
 type srcpos(atom pos)
   --need to allow 0 as a dummy value
   if pos=floor(pos) and pos>=0 and pos<=max_srcpos then
+    return true
+  else
+    return false
+  end if
+end type
+
+--An element of all_scripts
+type Script(sequence scr)
+  if length(scr)>=SCRIPT_NEST_DEPTH and length(scr)<=SCRIPT_BINARY then
     return true
   else
     return false
@@ -1528,7 +1532,7 @@ function tree_original_text(sequence tree)
   sequence tokens
   sequence text
 
-  script_toks=script_cmd[cur_script_num][SCRIPTDATA_BODY_TOKS]
+  script_toks=all_scripts[cur_script_num][SCRIPT_BODY_TOKS]
 
   --find leftmost and rightmost tokens making up the expression, not including brackets
   leftmost=tree[TREE_TRUNK][CMD_POS]
@@ -2068,7 +2072,7 @@ function parse_script(sequence trigger, sequence parent_name, integer parent_idx
     nest_depth=0
   else
     full_name=sprintf("%s<-%s",{parent_name,name[CMD_TEXT]})
-    nest_depth=script_cmd[parent_idx][SCRIPTDATA_NEST_DEPTH]+1
+    nest_depth=all_scripts[parent_idx][SCRIPT_NEST_DEPTH]+1
     if nest_depth>MAX_NEST_DEPTH then
       src_error(
         sprintf_utf("%s "&COLYEL&"%s"&COLRED&" is nested too deeply (%d layers deep), which is more than is supported. Reorganise your scripts to not use so much nesting."
@@ -2090,7 +2094,7 @@ function parse_script(sequence trigger, sequence parent_name, integer parent_idx
     else
       msg="Script "&COLYEL&"%s"&COLRED&" appears more than once! It was previously defined on line %d of "&COLPNK&"%s"&COLRED
     end if
-    src_position=decode_srcpos(script_cmd[temp][SCRIPTDATA_NAME_TOK][CMD_POS])
+    src_position=decode_srcpos(all_scripts[temp][SCRIPT_POS])
     src_error(
       sprintf_utf(msg,{name[CMD_TEXT],src_position[POS_LINE],src_position[POS_FILENAME]})
       ,name[CMD_POS]
@@ -2120,9 +2124,18 @@ function parse_script(sequence trigger, sequence parent_name, integer parent_idx
     arglist=append(arglist,this)
   end while
 
-  --Create script_cmd entry now for recursive calls; SCRIPTDATA_BODY_TOKS filled in later
-  script_cmd=append(script_cmd,{trigger,name,arglist,{},full_name,parent_idx,nest_depth})
-  idx=length(script_cmd)
+  --Create all_scripts entry now for recursive calls; SCRIPT_BODY_TOKS filled in later
+  all_scripts=append(all_scripts,{
+           trigger
+          ,name[CMD_TEXT]
+          ,name[CMD_POS]
+          ,full_name
+          ,arglist
+          ,{}
+          ,parent_idx
+          ,nest_depth
+  })
+  idx=length(all_scripts)
 
   --Every script is nested inside a big fat do() block
   body={{"do",this[CMD_POS]}}
@@ -2164,7 +2177,7 @@ function parse_script(sequence trigger, sequence parent_name, integer parent_idx
     end if
     this=get_cmd()
   end while
-  script_cmd[idx][SCRIPTDATA_BODY_TOKS]=body
+  all_scripts[idx][SCRIPT_BODY_TOKS]=body
   current_script=previous_script
   return name
 end function
@@ -2279,6 +2292,7 @@ end function
 
 ---------------------------------------------------------------------------
 
+--Used while dumping script binary
 function name_lookup(sequence pair,sequence locals)
   integer at
   if pair[1]=KIND_NUMBER then
@@ -2416,7 +2430,7 @@ procedure dump_debug_report()
   integer fh
   sequence debug_file
   sequence src_position
-  sequence script
+  Script script
   integer idx
   sequence locals
   sequence is_nonlocal
@@ -2471,26 +2485,26 @@ procedure dump_debug_report()
         print_utf(fh,"%s %d\tID=%d\t%s (%s)\n",{
            src_position[POS_FILENAME]
           ,src_position[POS_LINE]
-          ,script_cmd[i][SCRIPTDATA_ID]
+          ,script[SCRIPT_ID]
           ,script[SCRIPT_NAME]
-          ,script_cmd[i][SCRIPTDATA_FULL_NAME]
+          ,script[SCRIPT_FULL_NAME]
         })
-        idx=script_cmd[i][SCRIPTDATA_PARENT_IDX]
+        idx=script[SCRIPT_PARENT_IDX]
         if idx then
-          src_position=decode_srcpos(all_scripts[idx][SCRIPT_POS])
+          src_position=decode_srcpos(script[SCRIPT_POS])
           print_utf(fh,"%s %d\tparent=%s (access to %d nonlocals)\n",{
              src_position[POS_FILENAME]
             ,src_position[POS_LINE]
-            ,all_scripts[idx][SCRIPT_NAME]
+            ,script[SCRIPT_NAME]
             ,script[SCRIPT_NUM_NONLOCALS]
           })
         end if
-        src_position=decode_srcpos(script_cmd[i][SCRIPTDATA_TRIGGER_TOK][CMD_POS])
+        src_position=decode_srcpos(script[SCRIPT_TRIGGER_TOK][CMD_POS])
         print_utf(fh,"%s %d\tTrigger=%d\t%s\n",{
            src_position[POS_FILENAME]
           ,src_position[POS_LINE]
           ,script[SCRIPT_TRIGGER_ID]
-          ,script_cmd[i][SCRIPTDATA_TRIGGER_TOK][CMD_TEXT]
+          ,script[SCRIPT_TRIGGER_TOK][CMD_TEXT]
         })
         locals=script[SCRIPT_LOCALS_TOKS]
         for j=1 to length(locals) do
@@ -2550,7 +2564,7 @@ end function
 
 ---------------------------------------------------------------------------
 
---Look up the name of a script in all current scopes, returning script_cmd/all_scripts
+--Look up the name of a script in all current scopes, returning all_scripts
 --index if found, or 0 if not
 function lookup_scoped_script_name(sequence name)
   sequence s
@@ -2559,11 +2573,11 @@ function lookup_scoped_script_name(sequence name)
   idx=cur_script_num
   while true do
     if idx then
-      s=script_cmd[idx][SCRIPTDATA_FULL_NAME]&"<-"&name     
+      s=all_scripts[idx][SCRIPT_FULL_NAME]&"<-"&name     
     else
       s=name
     end if   
-    at=find_in_column(s,script_cmd,SCRIPTDATA_FULL_NAME)
+    at=find_in_column(s,all_scripts,SCRIPT_FULL_NAME)
     if at then
       return at
     end if
@@ -2571,7 +2585,7 @@ function lookup_scoped_script_name(sequence name)
     if idx=0 then
       return 0
     end if
-    idx=script_cmd[idx][SCRIPTDATA_PARENT_IDX]
+    idx=all_scripts[idx][SCRIPT_PARENT_IDX]
   end while
 end function
 
@@ -2632,7 +2646,7 @@ function what_kind_and_id(sequence command,sequence local_vars)
     at=lookup_scoped_script_name(s)
     if at then
       kind=KIND_SCRIPT
-      id=script_cmd[at][SCRIPTDATA_ID]
+      id=all_scripts[at][SCRIPT_ID]
     else
       src_error(sprintf_utf("Unrecognised name "&COLYEL&"%s"&COLRED&". It has not been defined as script, constant, variable, or anything else",{s}),command[CMD_POS])
     end if
@@ -3692,11 +3706,11 @@ function binary_compile_recurse(sequence tree,sequence vars)
       if at then
         --Yes, it is a script. Compile to a script ID unless it's a reference to a subscript, as
         --I want to eventually make subscript handles closures (without which subscript handles can't work)
-        if script_cmd[at][SCRIPTDATA_PARENT_IDX] then
+        if all_scripts[at][SCRIPT_PARENT_IDX] then
           src_error("References to subscripts haven't been implemented yet. Use a regular script instead if you need its ID.",cmdpos)
         end if
         result&=KIND_NUMBER
-        result&=script_cmd[at][SCRIPTDATA_ID]
+        result&=all_scripts[at][SCRIPT_ID]
       else
         --is it a string literal?
         if length(str_temp)>7 and equal("$string",str_temp[1..7]) then
@@ -3719,8 +3733,8 @@ function binary_compile_recurse(sequence tree,sequence vars)
   elsif kind=KIND_SCRIPT or kind=KIND_FUNCTION or kind=KIND_FLOW or kind=KIND_MATH then
     if kind=KIND_SCRIPT then
       at=lookup_scoped_script_name(s)
-      id=script_cmd[at][SCRIPTDATA_ID]
-      parent_idx=script_cmd[at][SCRIPTDATA_PARENT_IDX]
+      id=all_scripts[at][SCRIPT_ID]
+      parent_idx=all_scripts[at][SCRIPT_PARENT_IDX]
       if parent_idx and parent_idx!=cur_script_num then
         src_error("Subscripts can only be called from their parent (sub)script. Recursing, or calling sibling, parent, etc. subscripts, is currently unsupported. Consider using regular scripts and global variables instead.",cmdpos)
       end if
@@ -3786,19 +3800,18 @@ end function
 
 ---------------------------------------------------------------------------
 
---'script_data' is script_cmd element, 'script' is all_scripts element
-function binary_compile(sequence script_data,sequence script)
+function binary_compile(Script script)
   sequence tree
   sequence result
   integer recurse_ret
   integer parent_idx
   integer parent_id
 
-  parent_idx=script_data[SCRIPTDATA_PARENT_IDX]
+  parent_idx=script[SCRIPT_PARENT_IDX]
   if parent_idx=0 then
     parent_id=0
   else
-    parent_id=script_cmd[parent_idx][SCRIPTDATA_ID]
+    parent_id=all_scripts[parent_idx][SCRIPT_ID]
   end if
 
   string_table={}
@@ -3813,7 +3826,7 @@ function binary_compile(sequence script_data,sequence script)
   --2..3: the number of local variables (not including nonlocals)
   result&=output_word(length(script[SCRIPT_LOCALS_TOKS]) - script[SCRIPT_NUM_NONLOCALS])
   --4..5: the number of arguments the script takes (also in SCRIPTS.TXT)
-  result&=output_word(length(script_data[SCRIPTDATA_ARG_TOKS]))
+  result&=output_word(length(script[SCRIPT_ARG_TOKS]))
   --6..7: the format of the command data (presently used to indicate 32-bit encoding)
   result&=output_word(HSZ_FORMAT_VERSION)
   --8..11: a 32bit offset to the string literal table (in bytes), we don't know it yet
@@ -3822,7 +3835,7 @@ function binary_compile(sequence script_data,sequence script)
   --12..13: parent script ID or 0 if none
   result&=output_word(parent_id)
   --14..15: Nesting depth
-  result&=output_word(script_data[SCRIPTDATA_NEST_DEPTH]) 
+  result&=output_word(script[SCRIPT_NEST_DEPTH]) 
   --16..17: number of nonlocals
   result&=output_word(script[SCRIPT_NUM_NONLOCALS])
 
@@ -3884,6 +3897,7 @@ end function
 
 ---------------------------------------------------------------------------
 
+--parent is CMD_TEXT of parent node
 function sanity_check(sequence tree,sequence vars,sequence parent)
   sequence s
   sequence kind_and_id
@@ -4148,9 +4162,10 @@ end function
 
 ---------------------------------------------------------------------------
 
-procedure warn_unused_locals(sequence vars)
+--FIXME: if a local is used only in a subscript it is reported as unused
+procedure warn_unused_locals(sequence vars,integer num_nonlocals)
   if find('u',optlist) then
-    for i=1 to length(vars) do
+    for i=num_nonlocals+1 to length(vars) do
       if not find(vars[i][CMD_TEXT],used_locals) then
         src_warn(sprintf_utf("local variable "&COLYEL&"%s"&COLRED&" is never used",{vars[i][CMD_TEXT]}),vars[i][CMD_POS])
       end if
@@ -4174,35 +4189,41 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-procedure compile_a_script(sequence script_data)
-  integer at,id
+--script_idx is all_scripts index
+procedure compile_a_script(integer script_idx)
+  Script script
   sequence script_tree
   sequence local_vars
   sequence args
+  integer num_nonlocals
   integer parent_idx
   integer trigger_idx
   integer trigger
-  trigger_idx=find_in_column(script_data[SCRIPTDATA_TRIGGER_TOK][CMD_TEXT],trigger_list,PAIR_NAME)
+
+  cur_script_num=script_idx
+  script=all_scripts[script_idx]
+  trigger_idx=find_in_column(script[SCRIPT_TRIGGER_TOK][CMD_TEXT],trigger_list,PAIR_NAME)
   trigger=trigger_list[trigger_idx][PAIR_NUM]
-  current_script=script_data[SCRIPTDATA_FULL_NAME]
-  parent_idx=script_data[SCRIPTDATA_PARENT_IDX]
+  current_script=script[SCRIPT_FULL_NAME]
+  parent_idx=script[SCRIPT_PARENT_IDX]
   if parent_idx then
     local_vars=all_scripts[parent_idx][SCRIPT_LOCALS_TOKS]
   else
     local_vars={}
   end if
+  num_nonlocals=length(local_vars)
   
   reenter_timing_zone("gather_local_vars")
-  args=script_data[SCRIPTDATA_ARG_TOKS] --The arguments are the first several local variables
+  args=script[SCRIPT_ARG_TOKS] --The arguments are the first several local variables
   for i=1 to length(args) do
     --Check for name conflicts
     local_vars=add_local_variable(local_vars,args[i])
   end for
-  local_vars=gather_local_vars(local_vars,script_data[SCRIPTDATA_BODY_TOKS])
+  local_vars=gather_local_vars(local_vars,script[SCRIPT_BODY_TOKS])
   exit_timing_zone()
   used_locals={}
   reenter_timing_zone("build_ast")
-  script_tree=build_ast(script_data[SCRIPTDATA_BODY_TOKS],local_vars)
+  script_tree=build_ast(script[SCRIPT_BODY_TOKS],local_vars)
   exit_timing_zone()
   reenter_timing_zone("convert_operators")
   script_tree=convert_operators(script_tree)
@@ -4226,25 +4247,23 @@ procedure compile_a_script(sequence script_data)
     reenter_timing_zone("sanity_check")
     script_tree=sanity_check(script_tree,local_vars,"")
     exit_timing_zone()
-    warn_unused_locals(local_vars)
+    warn_unused_locals(local_vars,num_nonlocals)
   end if
 
-  at=find_in_column(script_data[SCRIPTDATA_FULL_NAME],script_list,PAIR_NAME)
-  id=script_list[at][PAIR_NUM]
-  all_scripts=append(all_scripts,{
-     trigger              --trigger type
-    ,script_data[SCRIPTDATA_NAME_TOK][CMD_TEXT]  --name (not scoped)
-    ,script_data[SCRIPTDATA_NAME_TOK][CMD_POS]   --source line
+  script&={
+     trigger          --trigger type
     ,script_tree
     ,local_vars
-    ,length(local_vars)
-    ,0               --compiled data to go into the HSZ lumps
-  })
+    ,num_nonlocals
+    ,{}               --compiled data to go into the HSZ lumps
+  }
+  all_scripts[script_idx]=script
   reenter_timing_zone("binary_compile")
-  all_scripts[$][SCRIPT_BINARY]=binary_compile(script_data,all_scripts[$])
+  all_scripts[script_idx][SCRIPT_BINARY]=binary_compile(script)
   exit_timing_zone()
 
   current_script=""
+  cur_script_num=0
 end procedure
 
 ---------------------------------------------------------------------------
@@ -4293,10 +4312,10 @@ end function
 ---------------------------------------------------------------------------
 
 --Check that every declared script has been defined, with the same number of arguments,
---and each script appears exactly once. Basically, compare script_list and script_cmd
+--and each script appears exactly once. Basically, compare script_list and all_scripts
 --Also handle argument default values.
 --Before this function, scripts only have IDs (stored in script_list) if they are declared in a definescript.
---Afterwards all scripts have IDs assigned (in script_cmd)
+--Afterwards all scripts have IDs assigned (in all_scripts)
 procedure check_script_declarations()
   integer at
   sequence args_and_defaults
@@ -4307,14 +4326,14 @@ procedure check_script_declarations()
 
   scripts_found=repeat(false,length(script_list))
 
-  for i=1 to length(script_cmd) do
-    fullname=script_cmd[i][SCRIPTDATA_FULL_NAME]
+  for i=1 to length(all_scripts) do
+    fullname=all_scripts[i][SCRIPT_FULL_NAME]
     current_script=fullname  --global
-    script_pos=script_cmd[i][SCRIPTDATA_NAME_TOK][CMD_POS]
+    script_pos=all_scripts[i][SCRIPT_POS]
     at=find(fullname,column(script_list,PAIR_NAME))
     at=find_in_column(fullname,script_list,PAIR_NAME)
 
-    args_and_defaults=process_arglist(script_cmd[i][SCRIPTDATA_ARG_TOKS])
+    args_and_defaults=process_arglist(all_scripts[i][SCRIPT_ARG_TOKS])
     if not at then
       --define script optional, add to script list
       script_list=create_function(script_list,-1,current_script,args_and_defaults[2],RESERVE_SCRIPT,script_pos)
@@ -4329,11 +4348,11 @@ procedure check_script_declarations()
       --(doesn't really matter, all_scripts would have ended up with that srcpos anyway)
       script_list[at][FUNC_POS]=script_pos
 
-      if length(script_cmd[i][SCRIPTDATA_ARG_TOKS]) != length(script_list[at][FUNC_ARGS]) then
+      if length(all_scripts[i][SCRIPT_ARG_TOKS]) != length(script_list[at][FUNC_ARGS]) then
         src_error(
           sprintf_utf(
             "Script "&COLYEL&"%s"&COLRED&" has %d arguments named, but has %d arguments in its declaration"
-            ,{current_script,length(script_cmd[i][SCRIPTDATA_ARG_TOKS]),length(script_list[at][FUNC_ARGS])}
+            ,{current_script,length(all_scripts[i][SCRIPT_ARG_TOKS]),length(script_list[at][FUNC_ARGS])}
           )
           ,script_pos
         )
@@ -4343,15 +4362,15 @@ procedure check_script_declarations()
           src_warn(
             sprintf_utf(
               "Default value for argument "&COLYEL&"%s"&COLRED&" does not match default given in script definition, %d"
-              ,{script_cmd[i][SCRIPTDATA_ARG_TOKS][j][CMD_TEXT],script_list[at][FUNC_ARGS][j]}
+              ,{all_scripts[i][SCRIPT_ARG_TOKS][j][CMD_TEXT],script_list[at][FUNC_ARGS][j]}
             )
             ,script_pos
           )
         end if
       end for
     end if
-    script_cmd[i][SCRIPTDATA_ARG_TOKS]=args_and_defaults[1]
-    script_cmd[i]&={script_list[at][PAIR_NUM]}  --append SCRIPTDATA_ID
+    all_scripts[i][SCRIPT_ARG_TOKS]=args_and_defaults[1]
+    all_scripts[i]&={script_list[at][PAIR_NUM]}  --append SCRIPT_ID
   end for
   current_script=""
 
@@ -4377,14 +4396,12 @@ procedure compile_each_script()
   check_script_declarations()
   exit_timing_zone()
 
-  for i=1 to length(script_cmd) do
-   -- color_print("%s\n",{script_cmd[i][SCRIPTDATA_NAME_TOK][CMD_TEXT]})
+  for i=1 to length(all_scripts) do
+   -- color_print("%s\n",{all_scripts[i][SCRIPT_NAME]})
     reenter_timing_zone("compile_a_script")
-    cur_script_num=i
-    compile_a_script(script_cmd[i])
-    cur_script_num=0
+    compile_a_script(i)
     exit_timing_zone()
-    count[srcpos_file_number(script_cmd[i][SCRIPTDATA_NAME_TOK][CMD_POS])]+=1
+    count[srcpos_file_number(all_scripts[i][SCRIPT_POS])]+=1
 
     color_print(".",{})
   end for
@@ -4440,7 +4457,7 @@ function generate_scripts_dot_bin()
   result&=output_word(42)
 
   for i=1 to length(all_scripts) do
-    result&=output_word(script_cmd[i][SCRIPTDATA_ID])
+    result&=output_word(all_scripts[i][SCRIPT_ID])
     result&=output_word(all_scripts[i][SCRIPT_TRIGGER_ID])  --trigger type
     encoded_name=encode_ohr(all_scripts[i][SCRIPT_NAME],36)
     result&=output_word(length(encoded_name))
@@ -4607,7 +4624,7 @@ procedure write_output_file()
       end if
       --write each script
       for i=1 to length(all_scripts) do
-        if write_lump(fh,sprintf("%d.hsz",{script_cmd[i][SCRIPTDATA_ID]}),all_scripts[i][SCRIPT_BINARY])=false then
+        if write_lump(fh,sprintf("%d.hsz",{all_scripts[i][SCRIPT_ID]}),all_scripts[i][SCRIPT_BINARY])=false then
           simple_error(sprintf_utf("internal problem: unable to write script "&COLYEL&"%s"&COLRED,{all_scripts[i][SCRIPT_NAME]}))
         end if
       end for
