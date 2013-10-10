@@ -322,10 +322,12 @@ if linkgcc:
                     return env.BASO (obj)
             return obj
         return target, map(to_o, enumerate(source))
-
-    #basexe_gcc = Builder (action = '$CXX $CXXFLAGS -o $TARGET $SOURCES "-Wl,-(" $CXXLINKFLAGS "-Wl,-)"',
-    basexe_gcc = Builder (action = '$CXX $CXXFLAGS -o $TARGET $SOURCES $CXXLINKFLAGS',
-                  suffix = exe_suffix, src_suffix = '.bas', emitter = compile_main_module)
+    
+    if mac:
+        basexe_gcc_action = '$CXX $CXXFLAGS -o $TARGET $SOURCES $CXXLINKFLAGS'
+    else:
+        basexe_gcc_action = '$CXX $CXXFLAGS -o $TARGET $SOURCES "-Wl,-(" $CXXLINKFLAGS "-Wl,-)"'
+    basexe_gcc = Builder (action = basexe_gcc_action, suffix = exe_suffix, src_suffix = '.bas', emitter = compile_main_module)
 
     env['BUILDERS']['BASEXE'] = basexe_gcc
 
