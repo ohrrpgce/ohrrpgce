@@ -2995,6 +2995,8 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
   integer ptr
   sequence s
   sequence nextcmd
+  sequence args
+  sequence ctr
   srcpos pos
   integer argkind
   integer var_at
@@ -3002,14 +3004,15 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
   while ptr<=length(tree) do
     s=tree[ptr][TREE_TRUNK][CMD_TEXT]
     pos=tree[ptr][TREE_TRUNK][CMD_POS]
+    args=tree[ptr][TREE_BRANCHES]
 
     if compare("if",s)=0 then
-      if length(tree[ptr][TREE_BRANCHES])>1 then
+      if length(args)>1 then
         src_error(sprintf_utf(
                       COLYEL&"if"&COLRED&" statement has %d conditions. It should have only one. Use "&COLYEL&"&&"&COLRED&" and "&COLYEL&"||"&COLRED&" for complex conditions"
-                      ,{length(tree[ptr][TREE_BRANCHES])}
-                    ),tree[ptr][TREE_BRANCHES][2][TREE_TRUNK][CMD_POS])
-      elsif length(tree[ptr][TREE_BRANCHES])=0 then
+                      ,{length(args)}
+                    ),args[2][TREE_TRUNK][CMD_POS])
+      elsif length(args)=0 then
         src_error(sprintf_utf(COLYEL&"if"&COLRED&" statement has no condition. It should have one.",{}),pos)
       end if
       if ptr<length(tree) then
@@ -3060,12 +3063,12 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
       src_error(COLYEL&"else if"&COLRED&" should follow an "&COLYEL&"if"&COLRED&" or "&COLYEL&"then"&COLRED&" block",pos)
 
     elsif compare("while",s)=0 then
-      if length(tree[ptr][TREE_BRANCHES])>1 then
+      if length(args)>1 then
         src_error(sprintf_utf(
                   COLYEL&"while"&COLRED&" statement has %d conditions. It should have only one. Use "&COLYEL&"&&"&COLRED&" and "&COLYEL&"||"&COLRED&" for complex conditions"
-                  ,{length(tree[ptr][TREE_BRANCHES])}
-                  ),tree[ptr][TREE_BRANCHES][2][TREE_TRUNK][CMD_POS])
-      elsif length(tree[ptr][TREE_BRANCHES])=0 then
+                  ,{length(args)}
+                  ),args[2][TREE_TRUNK][CMD_POS])
+      elsif length(args)=0 then
         src_error(sprintf_utf(COLYEL&"while"&COLRED&" statement has no condition. It should have one.",{}),pos)
       end if
       if ptr<length(tree) then
@@ -3082,43 +3085,44 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
       end if
 
     elsif compare("for",s)=0 then
-      if length(tree[ptr][TREE_BRANCHES])<3 then
+      if length(args)<3 then
         src_error(sprintf_utf(COLYEL&"for"&COLRED&" statement needs three or four arguments",{}),pos)
-      elsif length(tree[ptr][TREE_BRANCHES])>4 then
-        src_error(sprintf_utf(COLYEL&"for"&COLRED&" statement has too many arguments (%d)",{length(tree[ptr][TREE_BRANCHES])}),tree[ptr][TREE_BRANCHES][5][TREE_TRUNK][CMD_POS])
-      elsif length(tree[ptr][TREE_BRANCHES])=3 then
+      elsif length(args)>4 then
+        src_error(sprintf_utf(COLYEL&"for"&COLRED&" statement has too many arguments (%d)",{length(args)}),args[5][TREE_TRUNK][CMD_POS])
+      elsif length(args)=3 then
         --append default step value
-        tree[ptr][TREE_BRANCHES]&={ {{"1",tree[ptr][TREE_TRUNK][CMD_POS]},{}} }
+        args&={ {{"1",pos},{}} }
       end if
-      argkind=what_kind(tree[ptr][TREE_BRANCHES][1][TREE_TRUNK],vars,true)
+      ctr=args[1][TREE_TRUNK]
+      argkind=what_kind(ctr,vars,true)
       if argkind=KIND_LOCAL then
         --translate into a numeric reference to a variable
-        used_locals=append(used_locals,tree[ptr][TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT])
-        var_at=find_in_column(tree[ptr][TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT],vars,CMD_TEXT)
-        tree[ptr][TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT]=sprintf("-%d",{var_at})
+        used_locals=append(used_locals,ctr[CMD_TEXT])
+        var_at=find_in_column(ctr[CMD_TEXT],vars,CMD_TEXT)
+        ctr[CMD_TEXT]=sprintf("-%d",{var_at})
       elsif argkind=KIND_GLOBAL then
         --warn, then translate into a numeric reference to a variable
         src_warn(sprintf_utf(
           "Using global variable "&COLYEL&"%s"&COLRED&" as the counter in a "&COLYEL&"for"&COLRED&" loop"
-         ,{tree[ptr][TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT]}
-        ),tree[ptr][TREE_BRANCHES][1][TREE_TRUNK][CMD_POS])
-        var_at=find(tree[ptr][TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT],global_list[PAIR_NAME])
-        tree[ptr][TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT]=sprintf("%d",{global_list[PAIR_NUM][var_at]})
+         ,{ctr[CMD_TEXT]}
+        ),ctr[CMD_POS])
+        var_at=find(ctr[CMD_TEXT],global_list[PAIR_NAME])
+        args[1][TREE_TRUNK][CMD_TEXT]=sprintf("%d",{global_list[PAIR_NUM][var_at]})
       else
         --only variables allowed as the first argument of a "for"
         src_error(
            sprintf_utf("first argument of "&COLYEL&"for"&COLRED&" statement must be a variable, not %s "&COLYEL&"%s"&COLRED,{
               KIND_LONGNAMES[argkind]
-             ,tree[ptr][TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT]
+             ,ctr[CMD_TEXT]
            })
-          ,tree[ptr][TREE_BRANCHES][1][TREE_TRUNK][CMD_POS]
+          ,ctr[CMD_POS]
         )
       end if
       if ptr<length(tree) then
         --there is room
         if compare("do",tree[ptr+1][TREE_TRUNK][CMD_TEXT])=0 then
           --found do
-          tree[ptr][TREE_BRANCHES]&={tree[ptr+1]}
+          args&={tree[ptr+1]}
           tree=delete_element(tree,ptr+1)
         else
           src_error(sprintf_utf(COLYEL&"for"&COLRED&" should be followed by "&COLYEL&"do"&COLRED&", not by "&COLYEL&"%s"&COLRED&".",{tree[ptr+1][TREE_TRUNK][CMD_TEXT]}),tree[ptr+1][TREE_TRUNK][CMD_POS])
@@ -3126,34 +3130,35 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
       else
         src_error(sprintf_utf(COLYEL&"for"&COLRED&" should be followed by "&COLYEL&"do"&COLRED,{}),pos)
       end if
+      tree[ptr][TREE_BRANCHES]=args
 
     elsif compare("return",s)=0 or compare("exitreturning",s)=0 then
-      if length(tree[ptr][TREE_BRANCHES])>1 then
+      if length(args)>1 then
         src_error(sprintf_utf(
                       COLYEL&s&COLRED&" statement has %d arguments. It should have only one."
-                      ,{length(tree[ptr][TREE_BRANCHES])}
-                    ),tree[ptr][TREE_BRANCHES][2][TREE_TRUNK][CMD_POS])
-      elsif length(tree[ptr][TREE_BRANCHES])=0 then
+                      ,{length(args)}
+                    ),args[2][TREE_TRUNK][CMD_POS])
+      elsif length(args)=0 then
         src_error(sprintf_utf(COLYEL&s&COLRED&" statement has no argument. It should have one. Prehaps you meant to use "&COLYEL&"exit script"&COLRED,{}),pos)
       end if
 
     elsif compare("break",s)=0 or compare("continue",s)=0 then
-      if length(tree[ptr][TREE_BRANCHES])>1 then
+      if length(args)>1 then
         src_error(sprintf_utf(
                       COLYEL&s&COLRED&" statement has %d arguments. It should have no more than one."
-                      ,{length(tree[ptr][TREE_BRANCHES])}
-                    ),tree[ptr][TREE_BRANCHES][2][TREE_TRUNK][CMD_POS])
-      elsif length(tree[ptr][TREE_BRANCHES])=0 then
+                      ,{length(args)}
+                    ),args[2][TREE_TRUNK][CMD_POS])
+      elsif length(args)=0 then
         --append default value
-        tree[ptr][TREE_BRANCHES]={{{"1",tree[ptr][TREE_TRUNK][CMD_POS]},{}}}
+        tree[ptr][TREE_BRANCHES]={{{"1",pos},{}}}
       end if
 
     elsif compare("exitscript",s)=0 then
-      if length(tree[ptr][TREE_BRANCHES])>0 then
+      if length(args)>0 then
         src_error(sprintf_utf(
                       COLYEL&s&COLRED&" statement has %d arguments. It should have none. Prehaps you meant to use "&COLYEL&"exit returning"&COLRED
-                      ,{length(tree[ptr][TREE_BRANCHES])}
-                    ),tree[ptr][TREE_BRANCHES][1][TREE_TRUNK][CMD_POS])
+                      ,{length(args)}
+                    ),args[1][TREE_TRUNK][CMD_POS])
       end if
 
     elsif compare("switch",s)=0 then
