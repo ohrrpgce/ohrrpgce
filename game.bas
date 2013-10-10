@@ -1693,7 +1693,26 @@ END IF
 script_log_tick
 gam.script_log.tick += 1
 
-'--do spawned text boxes, battles, etc.
+'Do spawned text boxes, battles, etc.
+'The actual need for these want* variables is now gone, but they are kept around for backcompat.
+'They could be removed and the implementations moved straight into the command handlers,
+'(and the implicit waits made optional at the same time), but this makes things especially tricky
+'for concurrent fibres.
+'For example if a script changes the map (whether through a textbox, teleporttomap, or door use)
+'it currently prevents any other script from running for the rest of the tick, preventing the potentially
+'disasterous (for scripted games) situation where the map changes and other scripts run before the
+'map autorun script (which might contain important initialisation). 
+
+'Also note that now if two fibres run two commands like fightformation and usedoor the order in which
+'they occur is independent of the order in which they were called.
+
+'FIXME: 
+'Currently if a map changes (or even is a game is loaded) there is one tick on the new map
+'before the map autorun or any other scripts can make changes. This transition is hidden by screen fades
+'and now by the delayed music change. But if the map change happens without a fade (teleporttomap, or
+'if we make fades customisable) that one tick delay is undesired.
+'So consider delaying all calls to preparemap (and doloadgame) until the start of the next tick.
+
 IF wantbox > 0 THEN
  loadsay wantbox
  wantbox = 0
@@ -1720,6 +1739,7 @@ IF wantusenpc > 0 THEN
  usenpc 2, wantusenpc - 1
  wantusenpc = 0
 END IF
+'ALSO wantloadgame
 END SUB
 
 'Script commands ('top level', rest is in yetmore.bas)
