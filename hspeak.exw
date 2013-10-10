@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Qc 2013-10-04 Disallow flow statements used as expressions
 --3Qb 2013-07-24 Require begin after then, do, etc. (else excluded)
 --3Qa 2013-04-11 Warn when plotscr.hsd not included
 ----- 2013-02-28 Allow non-constant expressions in case blocks again
@@ -144,7 +145,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Qb"
+constant COMPILER_SUB_VERSION="Qc"
 constant COPYRIGHT_DATE="2013"
 
 --This is the oldest version of plotscr.hsd which is supported (feel free to
@@ -2530,6 +2531,25 @@ end function
 
 ---------------------------------------------------------------------------
 
+--Given name (CMD_TEXT) of a node, return whether it is a block: all its arguments are
+--statements as opposed to expressions (if, for, while, switch, which take a mix need special handling)
+function block_command(sequence name)
+  return compare("do",name)=0 or compare("then",name)=0 or compare("else",name)=0
+end function
+
+---------------------------------------------------------------------------
+
+procedure check_is_expression(sequence node, sequence parent)
+  if alpha_tree_data(reserved,node[TREE_TRUNK][CMD_TEXT],0)=RESERVE_FLOW then
+    src_error(
+      sprintf_utf(COLYEL&"%s"&COLRED&" may not be used as part of an expression (found as an argument to "&COLYEL&"%s"&COLRED&")"
+                  ,{node[TREE_TRUNK][CMD_TEXT],parent})
+      ,node[TREE_TRUNK][CMD_POS])
+  end if
+end procedure
+
+---------------------------------------------------------------------------
+
 --this function not used anywhere
 function how_many_args(sequence name,integer kind)
   integer result
@@ -2847,15 +2867,17 @@ function build_switch_node(sequence tree,sequence vars,integer ptr)
   else_error_msg=COLYEL&"else"&COLRED&" case should be placed last inside a "&COLYEL&"switch"&COLRED&" block"
 
   pos=tree[ptr][TREE_TRUNK][CMD_POS]
+  args=tree[ptr][TREE_BRANCHES]  --start with the condition, length 1
 
-  if length(tree[ptr][TREE_BRANCHES])>1 then
+  if length(args)>1 then
     src_error(sprintf_utf(
-                  COLYEL&"switch"&COLRED&" statement has %d expressions. It should have only one."
-                  ,{length(tree[ptr][TREE_BRANCHES])}
-                ),tree[ptr][TREE_BRANCHES][2][TREE_TRUNK][CMD_POS])
-  elsif length(tree[ptr][TREE_BRANCHES])=0 then
+                  COLYEL&"switch"&COLRED&" statement has %d expressions. It should have only one. (The body of the switch should go in its "&COLYEL&"do(...)"&COLRED&" block instead.)"
+                  ,{length(args)}
+                ),args[2][TREE_TRUNK][CMD_POS])
+  elsif length(args)=0 then
     src_error(COLYEL&"switch"&COLRED&" statement has no expression to match! Write "&COLYEL&"switch (expression) do (...)"&COLRED,pos)
   end if
+  check_is_expression(args[1],"switch")
   if ptr>=length(tree) then
     src_error(COLYEL&"switch"&COLRED&" should be followed by "&COLYEL&"do"&COLRED,pos)
   end if
@@ -2865,7 +2887,6 @@ function build_switch_node(sequence tree,sequence vars,integer ptr)
   end if
 
   --found do, processing starts here (build arguments to switch, after the expression)
-  args=tree[ptr][TREE_BRANCHES]  --start with the condition, length 1
   rawargs=tree[ptr+1][TREE_BRANCHES]  --contents of the 'do'
   lastnodename=""
   have_else=false
@@ -2971,7 +2992,7 @@ function build_switch_node(sequence tree,sequence vars,integer ptr)
   if length(collected) then
     args&={collected}
   end if
-  if length(args) and equal(args[$][TREE_TRUNK][CMD_TEXT],"do")=false then
+  if length(args)>1 and equal(args[$][TREE_TRUNK][CMD_TEXT],"do")=false then
     --Last case (possibly an else) is new-style syntax and wasn't followed by any statements,
     --so add the missing do. Don't need to do this, but I'd like to keep things tidy
     --(srcpos is of the last case)
@@ -3001,20 +3022,30 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
   integer argkind
   integer var_at
   ptr=1
+
   while ptr<=length(tree) do
     s=tree[ptr][TREE_TRUNK][CMD_TEXT]
     pos=tree[ptr][TREE_TRUNK][CMD_POS]
     args=tree[ptr][TREE_BRANCHES]
 
+    if alpha_tree_data(reserved,s,0)=RESERVE_FLOW then
+      if equal(s,"then") or equal(s,"else") or equal(s,"do") then
+        --these are checked for correct parents below.
+      elsif block_command(parent)=false then
+        src_error(COLYEL&s&COLRED&" may not be used as part of an expression (found as an argument to "&COLYEL&parent&COLRED&")",pos)
+      end if
+    end if
+
     if compare("if",s)=0 then
       if length(args)>1 then
         src_error(sprintf_utf(
-                      COLYEL&"if"&COLRED&" statement has %d conditions. It should have only one. Use "&COLYEL&"&&"&COLRED&" and "&COLYEL&"||"&COLRED&" for complex conditions"
+                      COLYEL&"if"&COLRED&" statement has %d conditions. It should have only one. Use "&COLYEL&"&&"&COLRED&" and "&COLYEL&"||"&COLRED&" to combine multiple conditions"
                       ,{length(args)}
                     ),args[2][TREE_TRUNK][CMD_POS])
       elsif length(args)=0 then
         src_error(sprintf_utf(COLYEL&"if"&COLRED&" statement has no condition. It should have one.",{}),pos)
       end if
+      check_is_expression(args[1],s)
       if ptr<length(tree) then
         --there is room
         nextcmd=tree[ptr+1][TREE_TRUNK][CMD_TEXT]
@@ -3062,15 +3093,24 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
       --Should be absorbed by now
       src_error(COLYEL&"else if"&COLRED&" should follow an "&COLYEL&"if"&COLRED&" or "&COLYEL&"then"&COLRED&" block",pos)
 
+    elsif compare("do",s)=0 then
+      if equal(parent,"")=false and block_command(parent)=false then
+        --These check their arguments are expressions, so a do which is a child of one of these is correct
+        if equal(parent,"for")=false and equal(parent,"while")=false and equal(parent,"switch")=false then
+          src_error(COLYEL&s&COLRED&" may not be used as part of an expression (found as an argument to "&COLYEL&parent&COLRED&")",pos)
+        end if
+      end if
+
     elsif compare("while",s)=0 then
       if length(args)>1 then
         src_error(sprintf_utf(
-                  COLYEL&"while"&COLRED&" statement has %d conditions. It should have only one. Use "&COLYEL&"&&"&COLRED&" and "&COLYEL&"||"&COLRED&" for complex conditions"
+                  COLYEL&"while"&COLRED&" statement has %d conditions. It should have only one. Use "&COLYEL&"&&"&COLRED&" and "&COLYEL&"||"&COLRED&" to combine multiple conditions"
                   ,{length(args)}
                   ),args[2][TREE_TRUNK][CMD_POS])
       elsif length(args)=0 then
         src_error(sprintf_utf(COLYEL&"while"&COLRED&" statement has no condition. It should have one.",{}),pos)
       end if
+      check_is_expression(args[1],s)
       if ptr<length(tree) then
         --there is room
         if compare("do",tree[ptr+1][TREE_TRUNK][CMD_TEXT])=0 then
@@ -3118,6 +3158,9 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
           ,ctr[CMD_POS]
         )
       end if
+      check_is_expression(args[2],s)
+      check_is_expression(args[3],s)
+      check_is_expression(args[4],s)
       if ptr<length(tree) then
         --there is room
         if compare("do",tree[ptr+1][TREE_TRUNK][CMD_TEXT])=0 then
@@ -3166,8 +3209,14 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
 
     elsif compare("case",s)=0 then
       src_error(COLYEL&"case"&COLRED&" is not allowed outside of "&COLYEL&"switch"&COLRED,pos)
+
     end if
-    tree[ptr][TREE_BRANCHES]=normalize_flow_control(tree[ptr][TREE_BRANCHES],vars,tree[ptr][TREE_TRUNK][CMD_TEXT])
+
+    if equal(s,"") then
+      --Floaty brackets (they haven't been removed yet). Look to parent instead.
+      s=parent
+    end if
+    tree[ptr][TREE_BRANCHES]=normalize_flow_control(tree[ptr][TREE_BRANCHES],vars,s)
     ptr+=1
   end while
   return(tree)
@@ -3638,7 +3687,7 @@ function sanity_check(sequence tree,sequence vars,sequence parent)
       elsif kind=KIND_FLOW then
         src_warn(sprintf_utf("Should not use flow control command "&COLYEL&"%s"&COLRED&" as condition for if",{s}),tree[i][TREE_TRUNK][CMD_POS])
       end if
-    elsif compare("do",parent)=0 or compare("then",parent)=0 or compare("else",parent)=0 then
+    elsif block_command(parent) then
       if kind=KIND_NUMBER then
         src_warn(sprintf_utf("Expected script, function, or flow control, but found an expression with value "&COLYEL&"%d"&COLRED&". It will do nothing here."
                  ,{id}),tree[i][TREE_TRUNK][CMD_POS])
