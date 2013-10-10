@@ -1621,32 +1621,43 @@ SUB generate_gen_menu(m() as string, longname as string, aboutline as string)
  m(1) = "Long Name:" + longname
  m(2) = "About Line:" + aboutline
  IF gen(genMaxInventory) = 0 THEN
-  m(13) = "Inventory size: Default (" & (last_inv_slot() \ 3) + 1 & " rows)"
+  m(14) = "Inventory size: Default (" & (last_inv_slot() \ 3) + 1 & " rows)"
  ELSE
-  m(13) = "Inventory size: " & (Last_inv_slot() \ 3) + 1 & " rows, " & gen(genMaxInventory) + 1 & " slots"
+  m(14) = "Inventory size: " & (Last_inv_slot() \ 3) + 1 & " rows, " & gen(genMaxInventory) + 1 & " slots"
  END IF
- m(14) = "Inventory autosort: "
+ m(15) = "Inventory autosort: "
  SELECT CASE gen(genAutosortScheme)
-  CASE 0: m(14) += "by item type/uses"
-  CASE 1: m(14) += "by whether usable"
-  CASE 2: m(14) += "alphabetically"
-  CASE 3: m(14) += "by item ID number"
-  CASE 4: m(14) += "no reordering"
+  CASE 0: m(15) += "by item type/uses"
+  CASE 1: m(15) += "by whether usable"
+  CASE 2: m(15) += "alphabetically"
+  CASE 3: m(15) += "by item ID number"
+  CASE 4: m(15) += "no reordering"
  END SELECT
- m(15) = "Script errors: "
+ m(16) = "Script errors: "
  SELECT CASE gen(genErrorLevel)
-  CASE 2: m(15) += "Show all warnings"
-  CASE 3: m(15) += "Hide nit-picking warnings"
-  CASE 4: m(15) += "Hide all warnings"
-  CASE 5: m(15) += "Hide errors not reported in old versions"
-  CASE 6: m(15) += "Hide all ignoreable errors"
+  CASE 2: m(16) += "Show all warnings"
+  CASE 3: m(16) += "Hide nit-picking warnings"
+  CASE 4: m(16) += "Hide all warnings"
+  CASE 5: m(16) += "Hide errors not reported in old versions"
+  CASE 6: m(16) += "Hide all ignoreable errors"
  END SELECT
- m(16) = "Default maximum item stack size: " & gen(genItemStackSize)
- m(17) = "Number of save/load slots: " & zero_default(gen(genSaveSlotCount), "Default (4)")
+ m(17) = "Default maximum item stack size: " & gen(genItemStackSize)
+ m(18) = "Number of save/load slots: " & gen(genSaveSlotCount)
+END SUB
+
+SUB edit_global_bitsets(bitname() as string, helpfile as string)
+ DIM bittemp(2) as integer
+ bittemp(0) = gen(genBits)
+ bittemp(1) = gen(genBits2)
+ bittemp(2) = gen(genBits2+1)
+ editbitset bittemp(), 0, UBOUND(bitname), bitname(), helpfile
+ gen(genBits) = bittemp(0)
+ gen(genBits2) = bittemp(1)
+ gen(genBits2+1) = bittemp(2)
 END SUB
 
 SUB gendata ()
- CONST maxMenu = 17
+ CONST maxMenu = 18
  DIM m(maxMenu) as string
  DIM menu_display(maxMenu) as string
  DIM min(maxMenu) as integer
@@ -1665,32 +1676,35 @@ SUB gendata ()
  'make sure genMaxInventory is a valid value (possible in older versions)
  IF gen(genMaxInventory) THEN gen(genMaxInventory) = last_inv_slot()
  
+ IF gen(genSaveSlotCount) <= 0 THEN gen(genSaveSlotCount) = 4  'default
+
  m(0) = "Return to Main Menu"
- m(3) = "Preference Bitsets..."
- m(4) = "Pick Title Screen..."
- m(5) = "New Game Settings..."
- m(6) = "Special Plotscripts..."
+ m(3) = "Pick Title Screen..."
+ m(4) = "New Game Settings..."
+ m(5) = "Preference Bitsets..."
+ m(6) = "Backwards-compatibility Bitsets..."
  m(7) = "Battle System Options..."
- m(8) = "Global Music and Sound Effects..."
- m(9) = "Master Palettes..."
- m(10) = "Password For Editing..."
- m(11) = "Platform-specific options..."
+ m(8) = "Special Plotscripts..."
+ m(9) = "Global Music and Sound Effects..."
+ m(10) = "Master Palettes..."
+ m(11) = "Password For Editing..."
+ m(12) = "Platform-specific options..."
 
  flusharray enabled(), UBOUND(enabled), YES
- enabled(12) = NO
- index(13) = genMaxInventory
- max(13) = (inventoryMax + 1) \ 3
- index(14) = genAutosortScheme
- max(14) = 4
- index(15) = genErrorLevel
- max(15) = 6
- min(15) = 2
- index(16) = genItemStackSize
- max(16) = 99
- min(16) = 1
- index(17) = genSaveSlotCount
- max(17) = 32
- min(17) = 0
+ enabled(13) = NO
+ index(14) = genMaxInventory
+ max(14) = (inventoryMax + 1) \ 3
+ index(15) = genAutosortScheme
+ max(15) = 4
+ index(16) = genErrorLevel
+ max(16) = 6
+ min(16) = 2
+ index(17) = genItemStackSize
+ max(17) = 99
+ min(17) = 1
+ index(18) = genSaveSlotCount
+ max(18) = 32
+ min(18) = 1
 
  DIM aboutline as string = load_aboutline()
  DIM longname as string = load_gamename()
@@ -1713,8 +1727,9 @@ SUB gendata ()
   usemenu state, enabled()
   IF enter_space_click(state) THEN
    IF state.pt = 0 THEN EXIT DO
-   IF state.pt = 3 THEN
-    DIM bittemp(2) as integer
+   IF state.pt = 3 THEN titlescreenbrowse
+   IF state.pt = 4 THEN startingdatamenu
+   IF state.pt = 5 THEN
     DIM bitname(34) as string
     bitname(0) = "Pause on Battle Sub-menus"
     bitname(1) = "Enable Caterpillar Party"
@@ -1725,14 +1740,12 @@ SUB gendata ()
     bitname(6) = "Hide Ready-meter in Battle"
     bitname(7) = "Hide Health-meter in Battle"
     bitname(8) = "Disable Debugging Keys"
-    bitname(9) = "Simulate Old Levelup Bug"
     bitname(10) = "Permit double-triggering of scripts"
     bitname(11) = "Skip title screen"
     bitname(12) = "Skip load screen"
     bitname(13) = "Pause on All Battle Menus"
     bitname(14) = "Disable Hero's Battle Cursor"
     bitname(15) = "Default passability disabled by default"
-    bitname(16) = "Simulate Pushable NPC obstruction bug"
     bitname(17) = "Disable ESC key running from battle"
     bitname(18) = "Don't save gameover/loadgame script IDs"
     bitname(19) = "Dead heroes gain share of experience"
@@ -1740,33 +1753,31 @@ SUB gendata ()
     bitname(21) = "Attack captions pause battle meters"
     bitname(22) = "Don't randomize battle ready meters"
     bitname(23) = "Battle menus wait for attack animations"
-    bitname(24) = "Enable better scancodes for scripts"
-    bitname(25) = "Simulate old fail vs element resist bit"
     bitname(26) = "0 damage when immune to attack elements"
-    bitname(27) = "Recreate map slices when changing maps"
-    bitname(28) = "Harm tiles harm non-caterpillar heroes"
     bitname(29) = "Attacks will ignore extra hits stat"
     bitname(30) = "Don't divide experience between heroes"
     bitname(31) = "Don't reset max stats after OOB attack"
+    edit_global_bitsets bitname(), "general_game_bitsets"
+   END IF
+   IF state.pt = 6 THEN
+    DIM bitname(34) as string
+    bitname(9) = "Simulate Old Levelup Bug"
+    bitname(16) = "Simulate Pushable NPC obstruction bug"
+    bitname(24) = "Enable better scancodes for scripts"
+    bitname(25) = "Simulate old fail vs element resist bit"
+    bitname(27) = "Recreate map slices when changing maps"
+    bitname(28) = "Harm tiles harm non-caterpillar heroes"
     bitname(32) = "Don't limit maximum tags to 999"
     bitname(33) = "Simulate Bug #430"
     bitname(34) = "showtextbox happens immediately"
-    bittemp(0) = gen(genBits)
-    bittemp(1) = gen(genBits2)
-    bittemp(2) = gen(genBits2+1)
-    editbitset bittemp(), 0, UBOUND(bitname), bitname(), "general_game_bitsets"
-    gen(genBits) = bittemp(0)
-    gen(genBits2) = bittemp(1)
-    gen(genBits2+1) = bittemp(2)
+    edit_global_bitsets bitname(), "general_game_backcompat_bitsets"
    END IF
-   IF state.pt = 4 THEN titlescreenbrowse
-   IF state.pt = 5 THEN startingdatamenu
-   IF state.pt = 6 THEN generalscriptsmenu
    IF state.pt = 7 THEN battleoptionsmenu
-   IF state.pt = 8 THEN generalmusicsfxmenu
-   IF state.pt = 9 THEN masterpalettemenu
-   IF state.pt = 10 THEN inputpasw
-   IF state.pt = 11 THEN edit_platform_options
+   IF state.pt = 8 THEN generalscriptsmenu
+   IF state.pt = 9 THEN generalmusicsfxmenu
+   IF state.pt = 10 THEN masterpalettemenu
+   IF state.pt = 11 THEN inputpasw
+   IF state.pt = 12 THEN edit_platform_options
   END IF
   IF state.pt = 1 THEN
    IF enable_strgrabber ANDALSO strgrabber(longname, 38) THEN state.need_update = YES

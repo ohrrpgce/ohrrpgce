@@ -16,31 +16,14 @@ Most options are self-explanatory, but here is documentation on some of them:
 
 The "debugging keys" are special keys that help with testing a game, but could be used to cheat (like allowing the player to walk through walls).  See the OHR wiki for documentation on the various debugging keys.
 
-The "Simulate __ bug" bitsets are for backwards compatibility with old games, and should most likely be left turned off.
-
 "Permit double-triggering of scripts" turns off a check that a prevents a script from being triggered if it is already the current active/"topmost" script. This check doesn't work if the triggered script calls another; it is often better to check manually. Be aware that if you allow double triggering of scripts, any scripts called by NPC activation will require manual checking to prevent double activation, otherwise it will be extremely easy to get stuck in endless loops.
 
 "Default passability disabled by default" changes the default Default Passability setting in the map tilemap editor; set to your preference, it doesn't affect the game.
 
 "Don't save gameover/loadgame script IDs" exists so that it's possible to change the gameover and loadgame scripts and have the change reflected in existing saved games. It makes the setloadscript command do nothing.
 
-"Enable better scancodes for scripts" enables keys which were previously indistinguishable to be told apart; see "key is pressed" in the dictionary.
-
 "0 damage when immune to attack elements" allows elemental attacks to do zero damage if the target takes 0% damage from that element. Normally you would have to to set the "Allow zero damage" bit on the attack to do less than 1 point of damage.
-
-"Harm tiles harm non-caterpillar heroes" causes all heroes in the active party to be harmed when the leader walks over a harm tile if the caterpillar party isn't enabled. This defaults to off in old games.
 
 "Don't divide experience between heroes" causes all heroes to get the full amount of experience after battles, rather than dividing the experience depending on the number of heroes in your active party.
 
 "Don't reset max stats after OOB attack" prevents maximum values for stats other than HP and MP from being reset to the current values after an attack occurs out of battle (either from the Spells menu, attached to an item, or using the "map cure" script command). Turning this on prevents items that permanently alter a stat (other than HP and MP) from working properly! You only need to enable this bitset if you are using scripts which cause your current and maximum stat values to differ and you don't want an OOB attack to clobber the values.
-
-"Don't limit maxmimum tags to 999" is a bit you probably want to turn ON. It raises the available tags from 999 to 15999. The only reason this bit exists is for backwards compatability with old games that use the "set tag" and "check tag" plotscripting commands to manipulate NPC onetime tags. If your game is not one of those, go ahead and turn this bit ON and enjoy access to the full range of tags
-
-"Simulate Bug #430" reenables a bug in Voxhumana and older releases which caused script 'wait' commands to sometimes be skipped. Some buggy games depended on it.
-
-"showtextbox happens immediately" causes "show textbox" (as well as textboxes indirectly shown by "items menu" and "use item") to take effect immediately, including conditionals such as setting tags. If this is off then textboxes aren't triggered until the next wait command, and if you attempt to show multiple textboxes during the same tick then only the last will actually trigger. But if this is possible you should use "current textbox" to prevent double-triggering texboxes:
- # While a textbox is already showing
- while (current textbox <> -1)
-   do (wait)
- show textbox (5)
-"advance textbox" always happens immediately.

@@ -9,6 +9,8 @@ WHAT IS NEW?
     * When hiring heroes in a shop, show hero portraits [James]
     * Split "Change Box Styles", "Change User-Interface Colors" into
       two separate menus [James]
+    * Split "General Preference Bitsets" and "Backwards-compatibility
+      Bitsets" into two menus [Ralph]
     * Clean up orphaned temporary folders when you exit game [James]
     * Games can now optionally increase (or decrease) the number of
       save/load slots that are available. [James]
@@ -26,8 +28,8 @@ WHAT IS NEW?
       or mute attack. [James]
     * Attack chains conditions can now be based on the stats of the
       targets [James]
-    * "showtextbox happens immediately" general preference bitset (on for
-      new games) helps to prevent bugs due to showing two boxes at once;
+    * "showtextbox happens immediately" backcompat bitset (on for new
+      games) helps to prevent bugs due to showing two boxes at once;
       "show textbox" now affects "current textbox" immediately [Ralph]
 
   * New Plotscripting Stuff

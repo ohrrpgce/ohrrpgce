@@ -1,0 +1,24 @@
+This is a list of bitsets - simple OFF or ON settings. Bitsets that are turned ON are highlighted.
+
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the list.
+
+Modifiy bitsets with Left, Right, SPACE and ENTER.
+
+These settings enable bugfixes and features which break backwards compatibility with previous versions of the OHRRPGCE.
+
+In newly created games you normally wouldn't change any of these bitsets. When switching to a newer engine version you may want to enable new features or bugfixes by toggling options in this menu, but doing so may break something in your game.
+
+"Enable better scancodes for scripts" makes keys like Up and Numpad 8 which were previously indistinguishable able to be told apart; see "key is pressed" in the dictionary for details.
+
+"Harm tiles harm non-caterpillar heroes" causes all heroes in the active party to be harmed when the leader walks over a harm tile if the caterpillar party isn't enabled. This defaults to off in old games.
+
+"Don't limit maxmimum tags to 999" is a bit you probably want to turn ON. It raises the available tags from 999 to 15999. The only reason this bit exists is for backwards compatibility with old games that use the "set tag" and "check tag" plotscripting commands to manipulate NPC onetime tags. If your game is not one of those, go ahead and turn this bit ON and enjoy access to the full range of tags.
+
+"Simulate Bug #430" reenables a bug in Voxhumana and older releases which caused script 'wait' commands to sometimes be skipped. Some games contained bugs in their scripts (usually involving screen fades and commands causing implicit waits like "teleport to map") which were hidden by this bug.
+
+"showtextbox happens immediately" causes "show textbox" (as well as textboxes indirectly shown by "items menu" and "use item") to take effect immediately, including conditionals such as setting tags. If this is off then textboxes aren't triggered until the next wait command, and if you attempt to show multiple textboxes during the same tick then only the last will actually trigger. But even with this bitset on you would only see the last textbox so if this is possible you should use "current textbox" to prevent double-triggering texboxes:
+ # While a textbox is already showing
+ while (current textbox <> -1)
+   do (wait)
+ show textbox (5)
+"advance textbox" always happens immediately.
