@@ -84,6 +84,8 @@ script, crash, begin
 end
 
 script, assert failure, begin
+  $1="ASSERT FAILURE:"
+  trace(1)
   trace(assert expression string)
   crash
 end

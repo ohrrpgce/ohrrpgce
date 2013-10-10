@@ -12,6 +12,7 @@ script, interpreter tests, begin
   hspeak tests
   string tests
   math tests
+  flow tests
   scheduling tests
 end
 
@@ -109,6 +110,29 @@ end
 
 ########################################################################
 
+script, bad break, begin
+  break(1)
+end
+
+script, bad continue, begin
+  continue(1)
+end
+
+script, flow tests, begin
+  variable(var1)
+  # for loop creates some state which can be corrupted
+  for (var1, 0, 6) do (
+    bad break
+    # Causes an error
+    #bad continue
+  )
+
+  elseif tests
+  switch tests
+end
+
+########################################################################
+
 plotscript, ¿ƒüñÑÿ sÇ®¡ÞΤ ηªɱE, begin
   return (42)
 end 
@@ -131,9 +155,6 @@ script, hspeak tests, begin
   
   global 5000 := 99999
   assert(global 5000 == 99999)
-
-  elseif tests
-  switch tests
 end
 
 ########################################################################

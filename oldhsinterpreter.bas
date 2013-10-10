@@ -20,6 +20,7 @@
 'local subs and functions
 DECLARE SUB scriptinterpreter_loop ()
 DECLARE FUNCTION interpreter_occasional_checks () as integer
+DECLARE SUB scriptdump (header as string)
 DECLARE FUNCTION functiondone () as integer
 DECLARE SUB killtopscript ()
 DECLARE SUB substart (byref si as OldScriptState)
@@ -181,6 +182,7 @@ DO
         IF curcmd->kind = tyflow AND (curcmd->value = flowfor OR curcmd->value = flowwhile) THEN
          dumpandreturn()
         END IF
+        'If the break goes all the way to the root of the script (which is a do()) it is exited (for back-compat)
        CASE flowcontinue
         '--continue could be used to cause an infinite loop (including in a floating do), so also needs these checks
         IF interpreter_occasional_checks THEN CONTINUE DO
@@ -191,6 +193,8 @@ DO
          scrst.pos -= 2
          pushstack(scrst, 2)
          pushstack(scrst, 0) '-- dummy value
+        ELSEIF .depth < 0 THEN
+         scripterr "continue used outside of a do(), script will be exited", serrBadOp
         ELSEIF NOT (curcmd->kind = tyflow AND (curcmd->value = flowfor OR curcmd->value = flowwhile)) THEN
          '--if this do isn't a for's or while's, then just repeat it, discarding the returned value
          scrst.pos -= 1
@@ -780,16 +784,18 @@ SUB scriptmath
  END SELECT
 END SUB
 
-SUB scriptdump (s as string)
- DIM statestr(7) as string
+SUB scriptdump (header as string)
+ DIM statestr(9) as string
  statestr(0) = "none"
  statestr(1) = "wait"
- statestr(2) = "read"
+ statestr(2) = "start"
  statestr(3) = "return"
  statestr(4) = "next"
  statestr(5) = "doarg"
  statestr(6) = "done"
- statestr(7) = "error"
+ statestr(7) = "triggered"
+ statestr(8) = "error"
+ statestr(9) = "exit"
 
  WITH scrat(nowscript)
    DIM indent as string
@@ -801,14 +807,17 @@ SUB scriptdump (s as string)
 
    DIM state as string
    SELECT CASE .state
-    CASE 0 TO 7
+    CASE 0 TO 9
       state = statestr(.state)
     CASE ELSE
       state = "illegal: " & .state
    END SELECT
 
-   debug indent & "[" & s & "]"
-   debug indent & "script = " & nowscript
+   debug indent & "[" & header & "]"
+   IF .depth < 0 THEN
+    debug indent & "depth = " & .depth
+   END IF
+   debug indent & "nowscript = " & nowscript
    debug indent & "id     = " & .id & " " & scriptname(.id)
    debug indent & "ptr    = " & .ptr
    debug indent & "state  = " & state
@@ -816,6 +825,8 @@ SUB scriptdump (s as string)
    debug indent & "value  = " & curcmd->value
    debug indent & "argn   = " & .curargn
    debug indent & "argc   = " & curcmd->argc
+   debug indent & "stkpos = " & (scrst.pos - scrst.bottom)
+   debug indent & "node   : kind " & .scrdata[.ptr] & " id " & .scrdata[.ptr + 1]
  END WITH
 END SUB
 
@@ -1000,7 +1011,7 @@ END IF
 'Note: the colours here are fairly arbitrary
 rectangle 0, 0, 320, 4, uilook(uiBackground), page
 rectangle 0, 0, (320 / scriptmemMax) * totalscrmem, 2, uilook(uiSelectedItem), page
-rectangle 0, 2, (320 / 2048) * scrat(nowscript + 1).heap, 2, uilook(uiSelectedItem + 1), page
+rectangle 0, 2, (320 / maxScriptHeap) * scrat(nowscript + 1).heap, 2, uilook(uiSelectedItem + 1), page
 
 DIM ol as integer = 191
 
