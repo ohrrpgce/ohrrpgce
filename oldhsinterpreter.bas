@@ -498,6 +498,10 @@ SUB resetinterpreter
 
  killallscripts
 
+#IFDEF SCRIPTPROFILE
+ print_script_profiling
+#ENDIF
+
  IF numloadedscr > 0 THEN freescripts(0)
 END SUB
 

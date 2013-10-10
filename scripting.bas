@@ -17,10 +17,8 @@
 #include "yetmore.bi"
 #include "yetmore2.bi"
 #include "scripting.bi"
-
-#IFDEF SCRIPTPROFILE
 #include "string.bi" 'for format
-#ENDIF
+
 
 '------------ Local functions -------------
 
@@ -36,6 +34,8 @@ REDIM scrqLast() as QueuedScript
 
 'Used by trigger_script
 DIM SHARED trigger_script_failure as integer
+
+DIM SHARED timeroverhead as double
 
 
 '==========================================================================================
@@ -445,6 +445,8 @@ FUNCTION loadscript (byval n as uinteger) as ScriptData ptr
   scrnode = scrnode->next
  WEND
 
+ 'debug "loadscript(" & n & " " & scriptname(n) & ")"
+
  DIM thisscr as ScriptData ptr
  DIM shortvar as short
 
@@ -585,104 +587,123 @@ FUNCTION loadscript (byval n as uinteger) as ScriptData ptr
  RETURN thisscr
 END FUNCTION
 
-SUB freescripts (byval mem as integer)
-'frees loaded scripts until at least totalscrmem <= mem (measured in 4-byte ints) (probably a lot lower)
-'also makes sure numloadedscr <= maxLoadedScripts - 24
-'call freescripts(0) to cleanup all scripts
-'and, as a total hack, print profiling information on scripts if SCRIPTPROFILE is defined, in which
-'case the buffers are so large that freescripts is only called when quitting
-
-#IFDEF SCRIPTPROFILE
-DIM timeroverhead as double
-FOR i as integer = 0 TO 999
- timeroverhead -= TIMER
- timeroverhead += TIMER
-NEXT
-timeroverhead /= 1000
-#ENDIF
-
-'give each script a score (the lower, the more likely to throw) and sort them
-'this is roughly a least recently used list
 TYPE ScriptListElmt
  p as ScriptData ptr
  score as integer
 END TYPE
-DIM LRUlist(maxLoadedScripts) as ScriptListElmt
-DIM listtail as integer = -1
-DIM score as integer
 
-DIM j as integer
-FOR i as integer = 0 TO UBOUND(script)
- DIM scrp as ScriptData Ptr = script(i)
- WHILE scrp
-  WITH *scrp
-#IFDEF SCRIPTPROFILE
-   'sort by total time
-   .totaltime -= .entered * timeroverhead
-   score = .totaltime * -10000
-#ELSE
-   'this formula has only been given some testing, and doesn't do all that well
-   score = .lastuse - scriptctr
-   score = iif(score > -400, score, -400) _
-         + iif(.totaluse < 100, .totaluse, iif(.totaluse < 1700, 94 + .totaluse\16, 200)) _
-         - .size \ (scriptmemMax \ 1024)
-#ENDIF
+'Iterate over all loaded scripts, sort them in descending order according to score
+'returned by the callback, and return number of scripts in numscripts
+'(LRUlist is fixed size and large enough)
+SUB sort_scripts(LRUlist() as ScriptListElmt, byref numscripts as integer, scorefunc as function(scr as ScriptData) as integer)
+ DIM j as integer
+ numscripts = 0
+ FOR i as integer = 0 TO UBOUND(script)
+  DIM scrp as ScriptData Ptr = script(i)
+  WHILE scrp
+   DIM score as integer = scorefunc(*scrp)
+   FOR j = numscripts - 1 TO 0 STEP -1
+    IF score >= LRUlist(j).score THEN EXIT FOR
+    LRUlist(j + 1).p = LRUlist(j).p
+    LRUlist(j + 1).score = LRUlist(j).score
+   NEXT
+   LRUlist(j + 1).p = scrp
+   LRUlist(j + 1).score = score
+   numscripts += 1
+   scrp = scrp->next
+  WEND
+ NEXT
+END SUB
+
+FUNCTION freescripts_script_scorer(byref script as ScriptData) as integer
+ 'this formula has only been given some testing, and doesn't do all that well
+ DIM score as integer
+ score = script.lastuse - scriptctr
+ score = iif(score > -400, score, -400) _
+       + iif(script.totaluse < 100, script.totaluse, iif(script.totaluse < 1700, 94 + script.totaluse\16, 200)) _
+       - script.size \ (scriptmemMax \ 1024)
+ RETURN score
+END FUNCTION
+
+'frees loaded scripts until at least totalscrmem <= mem (measured in 4-byte ints) (probably a lot lower)
+'also makes sure numloadedscr <= maxLoadedScripts - 24
+'call freescripts(0) to cleanup all scripts
+SUB freescripts (byval mem as integer)
+ DIM LRUlist(maxLoadedScripts) as ScriptListElmt
+ DIM numscripts as integer
+
+ 'give each script a score (the lower, the more likely to throw) and sort them
+ 'this is roughly a least recently used list
+ sort_scripts LRUlist(), numscripts, @freescripts_script_scorer
+
+ 'aim for at most 75% of memory limit
+ DIM targetmem as integer = mem
+ IF mem > scriptmemMax \ 2 THEN targetmem = mem * (1 - 0.5 * (mem - scriptmemMax \ 2) / scriptmemMax)
+
+ 'debug "requested max mem = " & mem & ", target = " & targetmem
+
+ FOR i as integer = 0 TO numscripts - 1
+  IF totalscrmem <= targetmem AND numloadedscr <= maxLoadedScripts - 24 THEN EXIT SUB
+  'debug "unloading script " & scriptname(LRUlist(i).p->id) & " refcount " & LRUlist(i).p->refcount
+  delete_scriptdata LRUlist(i).p
+ NEXT
+END SUB
+
+
+'==========================================================================================
+'                                    Script profiling
+'==========================================================================================
+
+
+FUNCTION profiling_script_scorer(byref script as ScriptData) as integer
+ 'sort by total time
+ script.totaltime -= script.entered * timeroverhead
+ RETURN script.totaltime * -10000
+END FUNCTION
+
+'Print profiling information on scripts to g_debug.txt
+SUB print_script_profiling
+ FOR i as integer = 0 TO 999
+  timeroverhead -= TIMER
+  timeroverhead += TIMER
+ NEXT
+ timeroverhead /= 1000
+
+ DIM LRUlist(maxLoadedScripts) as ScriptListElmt
+ DIM numscripts as integer
+
+ 'give each script a score (the lower, the more likely to throw) and sort them
+ 'this is roughly a least recently used list
+ sort_scripts LRUlist(), numscripts, @profiling_script_scorer
+
+ DIM entiretime as double
+ FOR i as integer = 0 TO numscripts - 1
+  entiretime += LRUlist(i).p->totaltime
+ NEXT
+
+ debug "script profiling information:"
+ debug "#switches is the number of times that the interpreter switched to that script"
+ debug "(switching time is relatively neglible and included to help determine"
+ debug "calls to other scripts, which are more expensive)"
+ debug "Total time recorded in interpreter: " & format(entiretime, "0.000") & "sec   (timer overhead = " & format(timeroverhead*1000000, "0.00") & "us)"
+ debug " %time        time    time/call      #calls   #switches  script name"
+ FOR i as integer = 0 TO numscripts - 1
+ ' debug i & ": " & LRUlist(i).p & " score = " & LRUlist(i).score
+  WITH *LRUlist(i).p
+   debug " " & format(100 * .totaltime / entiretime, "00.00") _
+       & RIGHT(SPACE(9) & format(.totaltime*1000, "0"), 10) & "ms" _
+       & RIGHT(SPACE(10) & format(.totaltime*1000000/.totaluse, "0"), 11) & "us" _
+       & RIGHT(SPACE(11) & .totaluse, 12) _
+       & RIGHT(SPACE(11) & .entered, 12) _
+       & "  " & scriptname(.id) '& "  " & format(1000*(.totaltime + .entered * timeroverhead), "0.00")
+
+ '  debug "id = " & .id & " " & scriptname(.id)
+ '  debug "refcount = " & .refcount
+ '  debug "totaluse = " & .totaluse
+ '  debug "lastuse = " & .lastuse
+ '  debug "size = " & .size
   END WITH
-  FOR j = listtail TO 0 STEP -1
-   IF score >= LRUlist(j).score THEN EXIT FOR
-   LRUlist(j + 1).p = LRUlist(j).p
-   LRUlist(j + 1).score = LRUlist(j).score
-  NEXT
-  LRUlist(j + 1).p = scrp
-  LRUlist(j + 1).score = score
-  listtail += 1
-  scrp = scrp->next
- WEND
-NEXT
-
-
-#IFDEF SCRIPTPROFILE
-DIM entiretime as double
-FOR i as integer = 0 TO listtail
- entiretime += LRUlist(i).p->totaltime
-NEXT
-
-debug "script profiling information:"
-debug "#switches is the number of times that the interpreter switched to that script"
-debug "(switching time is relatively neglible and included to help determine"
-debug "calls to other scripts, which are more expensive)"
-debug "Total time recorded in interpreter: " & format(entiretime, "0.000") & "sec   (timer overhead = " & format(timeroverhead*1000000, "0.00") & "us)"
-debug " %time        time    time/call      #calls   #switches  script name"
-FOR i as integer = 0 TO listtail
-' debug i & ": " & LRUlist(i).p & " score = " & LRUlist(i).score
- WITH *LRUlist(i).p
-  debug " " & format(100 * .totaltime / entiretime, "00.00") _
-      & RIGHT(SPACE(9) & format(.totaltime*1000, "0"), 10) & "ms" _
-      & RIGHT(SPACE(10) & format(.totaltime*1000000/.totaluse, "0"), 11) & "us" _
-      & RIGHT(SPACE(11) & .totaluse, 12) _
-      & RIGHT(SPACE(11) & .entered, 12) _
-      & "  " & scriptname(.id) '& "  " & format(1000*(.totaltime + .entered * timeroverhead), "0.00")
-
-'  debug "id = " & .id & " " & scriptname(.id)
-'  debug "refcount = " & .refcount
-'  debug "totaluse = " & .totaluse
-'  debug "lastuse = " & .lastuse
-'  debug "size = " & .size
- END WITH
-NEXT
-#ENDIF 'SCRIPTPROFILE
-
-'aim for at most 75% of memory limit
-DIM targetmem as integer = mem
-IF mem > scriptmemMax \ 2 THEN targetmem = mem * (1 - 0.5 * (mem - scriptmemMax \ 2) / scriptmemMax)
-
-'debug "requested max mem = " & mem & ", target = " & targetmem
-
-FOR i as integer = 0 TO listtail
- IF totalscrmem <= targetmem AND numloadedscr <= maxLoadedScripts - 24 THEN EXIT SUB
- delete_scriptdata LRUlist(i).p
-NEXT
-
+ NEXT
 END SUB
 
 
