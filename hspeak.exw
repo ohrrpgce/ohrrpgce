@@ -269,20 +269,21 @@ constant HSP_FORMAT_VERSION=1
 constant CODE_START_BYTE_OFFSET=18
 constant HSZ_FORMAT_VERSION=3
 
-constant MAXGLOBAL=16383
+constant MAXGLOBAL=16383  --largest ID
+constant MAX_LOCALS=50   --max number of locals per script (not including nonlocals)
 
 constant MAX_NEST_DEPTH=4
 
 ---------------------------------------------------------------------------
 --globals--               --initializations--
-sequence compiler_dir     compiler_dir=""
-sequence source_file      source_file=""
-sequence dest_file        dest_file=""
+string compiler_dir       compiler_dir=""
+string source_file        source_file=""
+string dest_file          dest_file=""
 sequence optlist          optlist={}
 sequence file_list        file_list={}            --type {FILE_NAME,FILE_TEXT,FILE_LINE_EXTENTS}
 integer max_srcpos        max_srcpos=0
 integer total_lines       total_lines=0
-sequence cmd              cmd={}                  --type {CMD_TEXT, CMD_POS}
+sequence cmd              cmd={}                  --TokenList (but type checking is very slow)
 sequence reuse_ids        reuse_ids={}
 sequence constant_list    constant_list=alpha_tree_create()
 sequence trigger_list     trigger_list={}         --type {PAIR_NUM, PAIR_NAME}
@@ -291,7 +292,6 @@ sequence function_list    function_list={}        --type {PAIR_NUM, PAIR_NAME, F
 sequence global_list      global_list={{},{},{}}  --NOTE: three lists {PAIR_NUM, PAIR_NAME, GLB_POS}, not a list of globals
 sequence string_list      string_list={}          --list of strings
 sequence script_list      script_list={}          --type {PAIR_NUM, PAIR_NAME, FUNC_ARGS, FUNC_POS} (PAIR_NAME is the full name)
-
 
 constant SCRIPT_TRIGGER_TOK=1     --Trigger token (type {CMD_TEXT, CMD_POS}), e.g. "script"
 constant SCRIPT_NAME=2            --String, not fully-scoped
@@ -309,7 +309,7 @@ constant SCRIPT_LOCALS_TOKS=12
 constant SCRIPT_NUM_NONLOCALS=13
 constant SCRIPT_BINARY=14
 
-sequence all_scripts      all_scripts={}       --type Script == {SCRIPT_*} (variable length)
+sequence all_scripts      all_scripts={}       --list of Scripts == {SCRIPT_*} (variable length)
 
 sequence reserved         reserved=alpha_tree_create()
 atom start_time           start_time=time()
@@ -385,20 +385,20 @@ sequence separator_list   separator_list={
                           }
 sequence lexer_table      lexer_table={}
 sequence lexer_table_key2 lexer_table_key2={}
-sequence hex_chars        hex_chars="0123456789abcedfABCDEF"
+string hex_chars          hex_chars="0123456789abcedfABCDEF"
 sequence hex_char_values  hex_char_values={0,1,2,3,4,5,6,7,8,9,#a,#b,#c,#e,#d,#f,#A,#B,#C,#D,#E,#F}
 
 sequence compiled_data    compiled_data={}    --used inside binary_compile only; compiled data for the current script
-sequence current_script   current_script=""   --name of current script
+string current_script     current_script=""   --name of current script
 sequence current_scopes   current_scopes={""} --list of possible prefixes to add to (sub)script names, eg "master<-"
 integer cur_script_num    cur_script_num=0    --index into all_scripts of current script
 integer colors_enabled    colors_enabled=true
 integer simple_colorcodes simple_colorcodes=false
 integer error_file        error_file=false
-sequence used_globals     used_globals={}
-sequence used_locals      used_locals={}
-sequence string_table     string_table={}
-sequence plotscr_version  plotscr_version=""
+sequence used_globals     used_globals={}     --list of strings
+sequence used_locals      used_locals={}      --list of strings
+sequence string_table     string_table={}     --binary data
+string plotscr_version    plotscr_version=""
 integer max_used_function max_used_function=0 --maximum id of a function used in a script
 integer fast_mode         fast_mode=false
 integer end_anchor_kludge end_anchor_kludge=false
@@ -410,18 +410,81 @@ integer was_warnings      was_warnings=false
 --A position in the script source. An integer, encoding an index in file_list
 --and a character number that file (where newlines are one character).
 --See encode_srcpos and decode_srcpos
-type srcpos(atom pos)
+type srcpos(object pos)
   --need to allow 0 as a dummy value
-  if pos=floor(pos) and pos>=0 and pos<=max_srcpos then
+  if atom(pos) and pos=floor(pos) and pos>=0 and pos<=max_srcpos then
     return true
   else
     return false
   end if
 end type
 
+--Not the same as Euphoria's string type, which is limited to extended ASCII
+type string(object str)
+  if not sequence(str) then
+    return false
+  end if
+  --Too slow
+  -- for i=1 to length(str) do
+  --   if not integer(str[i]) or str[i]<0 then
+  --     return false
+  --   end if
+  -- end for
+  return true
+end type
+
+--A CMD_TEXT,CMD_POS pair
+type Token(object tok)
+  if sequence(tok) and length(tok)=2 and string(tok[1]) and srcpos(tok[2]) then
+    return true
+  else
+    return false
+  end if
+end type
+
+--sequence of Tokens
+type TokenList(object list)
+  if not sequence(list) then
+    return false
+  end if
+  for i=1 to length(list) do
+    if not Token(list[i]) then
+      return false
+    end if
+  end for
+  return true
+end type
+
+--{Token,children}
+type Node(object node)
+  if sequence(node) and length(node)=2 and Token(node[1]) and sequence(node[2]) then
+    for i=1 to length(node[2]) do
+      if not Node(node[2][i]) then
+        return false
+      end if
+    end for
+    return true
+  else
+    return false
+  end if 
+end type
+
+--sequence of Nodes
+type NodeList(object list)
+  if not sequence(list) then
+    return false
+  end if
+  for i=1 to length(list) do
+    if not Node(list[i]) then
+      return false
+    end if
+  end for
+  return true
+end type
+
 --An element of all_scripts
-type Script(sequence scr)
-  if length(scr)>=SCRIPT_NEST_DEPTH and length(scr)<=SCRIPT_BINARY then
+type Script(object script)
+  if sequence(script) and length(script)>=SCRIPT_NEST_DEPTH and length(script)<=SCRIPT_BINARY then
     return true
   else
     return false
@@ -452,11 +515,11 @@ end function
 --so this is an Unicode-enabled replacement. Supports %d, %s, %g, %%
 --Beware! This will be way slower than sprintf, but luckily it's not
 --needed anywhere where speed matters.
-function sprintf_utf(sequence s,sequence printf_args)
+function sprintf_utf(string s, sequence printf_args)
   integer seg_start, seg_end
   integer arg_ctr
   integer code
-  sequence ret
+  string ret
   if length(printf_args)=0 then
     return s
   end if
@@ -495,7 +558,7 @@ end function
 ---------------------------------------------------------------------------
 
 --fprintf as UTF8
-procedure print_utf(object fh,sequence s,sequence printf_args)
+procedure print_utf(object fh, string s, sequence printf_args)
   if length(printf_args) then
     s=sprintf_utf(s,printf_args)
   end if
@@ -506,8 +569,8 @@ end procedure
 ---------------------------------------------------------------------------
 
 --prints a string with printf to stdout converting color codes
-procedure color_print(sequence s,sequence printf_args)
-  sequence buffer
+procedure color_print(string s, sequence printf_args)
+  string buffer
   s=sprintf_utf(s,printf_args)
   if simple_colorcodes then
     buffer=s
@@ -542,7 +605,7 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-procedure enter_timing_zone(sequence description)
+procedure enter_timing_zone(string description)
   if not find('t',optlist) then
     return
   end if
@@ -552,7 +615,7 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-procedure reenter_timing_zone(sequence description)
+procedure reenter_timing_zone(string description)
   if not find('t',optlist) then
     return
   end if
@@ -588,9 +651,9 @@ end procedure
 ---------------------------------------------------------------------------
 
 procedure print_timing_data()
-  sequence indent
+  string indent
   sequence data
-  sequence tmp1, tmp2
+  string tmp1, tmp2
   if run_time=0 then
     --so that all percentages show as 0%
     run_time=1e100
@@ -606,9 +669,9 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-function html_char_convert(sequence s)
-  sequence buffer
-  sequence result
+function html_char_convert(string s)
+  string buffer
+  string result
   result=""
   buffer=""
   for i=1 to length(s) do
@@ -634,9 +697,9 @@ end function
 
 ---------------------------------------------------------------------------
 
-function error_string_convert(sequence s)
-  sequence buffer
-  sequence result
+function error_string_convert(string s)
+  string buffer
+  string result
   result=""
   buffer=""
   for i=1 to length(s) do
@@ -667,8 +730,8 @@ end function
 ---------------------------------------------------------------------------
 
 --prints a long string wrapped at 80 columns
-procedure wrap_print(sequence s,sequence arguments)
-  sequence outstring
+procedure wrap_print(string s, sequence arguments)
+  string outstring
   s=sprintf_utf(s,arguments)
   while length(s) do
     outstring=before_wrap_point(s)
@@ -679,7 +742,7 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-procedure error_file_print(sequence s)
+procedure error_file_print(string s)
   integer fh
   if error_file then
     fh=open(compiler_dir&"hs_error.htm","a")
@@ -693,7 +756,7 @@ end procedure
 ---------------------------------------------------------------------------
 
 --prints out warning message in red with word wrap
-procedure simple_warn(sequence s)
+procedure simple_warn(string s)
   sequence pos
   if not find('w',optlist) then
     --do not warn if -w is set
@@ -710,7 +773,7 @@ end procedure
 ---------------------------------------------------------------------------
 
 --prints out an error message in red with word wrap, then aborts
-procedure simple_error(sequence s)
+procedure simple_error(string s)
   sequence pos
   pos=get_position()
   if pos[2]>1 then
@@ -983,7 +1046,7 @@ end function
 function decode_srcpos(srcpos pos)
   integer point, filenum
   integer lineno
-  sequence filetext
+  string filetext
   sequence lines
   sequence temp
 
@@ -1005,10 +1068,10 @@ end function
 
 ---------------------------------------------------------------------------
 
-function form_error_text(sequence s,srcpos pos)
-  sequence line
+function form_error_text(string s, srcpos pos)
+  string line
   sequence src_position
-  sequence column_display
+  string column_display
   integer tab_compensate
   src_position=decode_srcpos(pos)
   --?pos
@@ -1044,7 +1107,7 @@ end function
 
 ---------------------------------------------------------------------------
 
-procedure src_warn(sequence s,srcpos pos)
+procedure src_warn(string s, srcpos pos)
   if not find('w',optlist) then
     --do not warn if -w is set
     simple_warn(form_error_text(s,pos))
@@ -1054,7 +1117,7 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-procedure src_error(sequence s,srcpos pos)
+procedure src_error(string s, srcpos pos)
   end_anchor_kludge=true
   simple_error(form_error_text(s,pos))
 end procedure
@@ -1062,7 +1125,7 @@ end procedure
 ---------------------------------------------------------------------------
 
 --Find newlines in a file (possibly mixed type), returns line extents
-function split_lines(sequence file_text)
+function split_lines(string file_text)
   integer line_start=1
   integer last_13=-1
   sequence line_extents = {}  -- {start of line, end of line} pairs, both inclusive
@@ -1087,9 +1150,9 @@ end function
 
 ---------------------------------------------------------------------------
 
-procedure load_source(sequence filename,sequence reading_how,srcpos pos)
+procedure load_source(string filename, string reading_how, srcpos pos)
   integer fh
-  sequence file_text
+  string file_text
   sequence line_extents  -- {start of line, end of line} pairs
 
   fh=open(filename,"r")
@@ -1119,7 +1182,7 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-procedure load_include(sequence include_name,srcpos pos)
+procedure load_include(string include_name, srcpos pos)
   reenter_timing_zone("load_source/include")
   --try source directory
   if file_exists(path_only(source_file)&include_name) then
@@ -1161,8 +1224,8 @@ end procedure
 ---------------------------------------------------------------------------
 
 --reads and processes the escape codes in a string and returns it enclosed in quote marks
-function lexer_read_string(sequence s,integer i,integer stop,srcpos pos)
-  sequence string
+function lexer_read_string(string s, integer i, integer stop, srcpos pos)
+  string string
   integer escaping
   integer at1, at2
   escaping=false
@@ -1215,11 +1278,11 @@ end function
 
 ---------------------------------------------------------------------------
 
-function lexer_read_number(sequence s,integer i,integer stop,srcpos pos)
+function lexer_read_number(string s, integer i, integer stop, srcpos pos)
   integer state
   atom val
   integer sign
-  sequence text
+  string text
   integer starti
 
   starti=i
@@ -1269,7 +1332,7 @@ end function
 ---------------------------------------------------------------------------
 
 --Clean the rest of a line for seek_include after 'include' occurs
-function lexer_read_include_line(sequence tokens, sequence s, integer i, integer stop, srcpos pos)
+function lexer_read_include_line(TokenList tokens, string s, integer i, integer stop, srcpos pos)
   integer at
   sequence temp
 
@@ -1311,16 +1374,16 @@ end function
 
 -- s is the text for the whole file, the interval i to stop is a single line,
 -- and pos is the srcpos for the beginning of the file
-function lex_line(sequence s,integer i,integer stop,srcpos pos)
+function lex_line(sequence s, integer i, integer stop, srcpos pos)
   integer state
-  sequence tokens
-  sequence ident  --identifier text being built up
+  TokenList tokens
+  string ident  --identifier text being built up
   sequence temp
-  sequence masked
+  string masked
   integer oldi
   integer found
   integer textstart  --the column at which this identifier starts, otherwise 0
-  sequence remem_ident
+  string remem_ident
   integer remem_textstart
   integer nonnumeral  --whether we are definitely inside an identifier, ie. a digit doesn't indicate a number
   integer backtracked
@@ -1329,6 +1392,7 @@ function lex_line(sequence s,integer i,integer stop,srcpos pos)
   nonnumeral=false
   textstart=0
   tokens={}
+
   while i<=stop do
     if s[i]<256 then
       state=lexer_table[s[i]+1]
@@ -1466,12 +1530,12 @@ end function
 ---------------------------------------------------------------------------
 
 --this also checks for rogue strings and $'s
-function translate_plotstrings(sequence tokens)
+function translate_plotstrings(TokenList tokens)
   integer state
   integer start_token
   integer i
-  sequence string_func
-  sequence string_token
+  Token string_func
+  Token string_token
   srcpos pos
   state=0
   i=1
@@ -1521,16 +1585,16 @@ end function
 --"hero X (me)" instead of "herox(me)". It could be implemented much simpler if
 --macros were expanded in the lexer, but then build_ast and
 --convert_macros would have to be as well
-function tree_original_text(sequence tree)
-  sequence script_toks
-  sequence subtree
+function tree_original_text(Node tree)
+  TokenList script_toks
+  Node subtree
   srcpos leftmost, rightmost
   integer left_at, right_at
   integer filenum
   integer left_point, right_point
   integer depth
-  sequence tokens
-  sequence text
+  TokenList tokens
+  string text
 
   script_toks=all_scripts[cur_script_num][SCRIPT_BODY_TOKS]
 
@@ -1587,8 +1651,8 @@ end function
 
 ---------------------------------------------------------------------------
 
-function seek_include(sequence tokens)
-  sequence ret
+function seek_include(TokenList tokens)
+  string ret
   if length(tokens) and equal(tokens[1][CMD_TEXT],"include") then
     ret=tokens[2][CMD_TEXT]
     if ret[1]='"' then
@@ -1602,9 +1666,9 @@ end function
 
 ---------------------------------------------------------------------------
 
-procedure read_commands(integer file_num,sequence include_stack)
-  sequence broken
-  sequence include_name
+procedure read_commands(integer file_num, sequence include_stack)
+  TokenList broken
+  string include_name
   sequence lines
   integer include_num
   srcpos pos
@@ -1614,6 +1678,7 @@ procedure read_commands(integer file_num,sequence include_stack)
   lines=file_list[file_num][FILE_LINE_EXTENTS]
   for i=1 to length(lines) do
     broken=lex_line(file_list[file_num][FILE_TEXT],lines[i][PAIR_START],lines[i][PAIR_END],pos)
+
     include_name=seek_include(broken)
     if length(include_name) then
       if find(include_name,include_stack) then
@@ -1651,7 +1716,7 @@ end procedure
 ---------------------------------------------------------------------------
 
 --Warning: you normally want to use check_undefined_string instead of this
-procedure check_for_reserved(sequence s,srcpos pos,sequence expect)
+procedure check_for_reserved(string s, srcpos pos, string expect)
   if alpha_tree_seek(reserved,s) then
     if compare("top-level declaration",expect)=0 then
       src_error(
@@ -1671,7 +1736,7 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-procedure mustnt_be_a_number(sequence s)
+procedure mustnt_be_a_number(Token s)
   --note that identifiers are allowed to start with -
   if length(exclude(s[CMD_TEXT],"-0123456789"))=0 and count('-',s[CMD_TEXT])!=length(s[CMD_TEXT]) then
     src_error(sprintf_utf("Expected a name, but found a number "&COLYEL&"%s"&COLRED,{s[CMD_TEXT]}),s[CMD_POS])
@@ -1680,11 +1745,11 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-procedure check_undefined_constant(sequence s,atom value)
+procedure check_undefined_constant(Token s, atom value)
    sequence const_data
    sequence src_position
-   sequence err_string
-   sequence whats_happening
+   string err_string
+   string whats_happening
    if alpha_tree_seek(constant_list,s[CMD_TEXT]) then
      --constant is already defined
      const_data=alpha_tree_data(constant_list,s[CMD_TEXT],0)
@@ -1717,14 +1782,14 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-procedure check_undefined_string(sequence s,sequence seeking)
+procedure check_undefined_string(Token s, string seeking)
    check_for_reserved(s[CMD_TEXT],s[CMD_POS],seeking)
    mustnt_be_a_number(s)
 end procedure
 
 ---------------------------------------------------------------------------
 
-function force_16_bit(atom n,srcpos pos)
+function force_16_bit(atom n, srcpos pos)
   if n>32767 then
     src_warn(sprintf_utf("number "&COLYEL&"%d"&COLRED&" is out of range for a 16-bit signed integer, and will be truncated to "&COLYEL&"32767"&COLRED,{n}),pos)
     n=32767
@@ -1737,7 +1802,7 @@ end function
 
 ---------------------------------------------------------------------------
 
-function try_string_to_number(sequence s)
+function try_string_to_number(Token s)
   atom result
   result=floor(string_to_object(s[CMD_TEXT],0))
   if not string_is_int32(s[CMD_TEXT]) then
@@ -1748,7 +1813,7 @@ end function
 
 ---------------------------------------------------------------------------
 
-function enforce_constants(sequence s)
+function enforce_constants(string s)
   --enforces both constants
   object v
   v=alpha_tree_data(constant_list,s,{})
@@ -1764,7 +1829,7 @@ end function
 ---------------------------------------------------------------------------
 
 function get_cmd()
-  sequence result
+  Token result
   if get_cmd_pointer>length(cmd) then
     src_error("Unexpected end of file",cmd[length(cmd)][CMD_POS])
   end if
@@ -1777,7 +1842,7 @@ end function
 ---------------------------------------------------------------------------
 
 function get_cmd_no_constants()
-  sequence result
+  Token result
   if get_cmd_pointer>length(cmd) then
     src_error("Unexpected end of file",cmd[length(cmd)][CMD_POS])
   end if
@@ -1790,8 +1855,8 @@ end function
 ---------------------------------------------------------------------------
 
 function get_cmd_block(integer convert_constants)
-  sequence this
-  sequence result
+  Token this
+  TokenList result
   result={}
   this=get_cmd()
   if compare("begin",this[CMD_TEXT])!=0 then
@@ -1816,9 +1881,9 @@ end function
 
 ---------------------------------------------------------------------------
 
-procedure parse_constant_block(sequence block)
+procedure parse_constant_block(TokenList block)
   atom num
-  sequence name
+  string name
   for i=1 to length(block) by 2 do
     if i+1>length(block) then
       src_error("Expected name to follow but defineconstant block ended",block[i][CMD_POS])
@@ -1833,9 +1898,9 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-procedure parse_trigger_block(sequence block)
+procedure parse_trigger_block(TokenList block)
   integer num
-  sequence name
+  string name
   for i=1 to length(block) by 2 do
     if i+1>length(block) then
       src_error("Expected name but script trigger definition block ended",block[i][CMD_POS])
@@ -1850,8 +1915,8 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-procedure parse_version_block(sequence block)
-  sequence req_version
+procedure parse_version_block(TokenList block)
+  string req_version
   if length(block)<2 then
     --Don't have a srcpos
     simple_error(COLYEL&"plotscr.hsd"&COLRED&" is malformed (empty 'plotscr version' block)")
@@ -1875,7 +1940,7 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-procedure create_global(integer id,sequence name,srcpos pos)
+procedure create_global(integer id, string name, srcpos pos)
   integer at
   at=find(id,global_list[PAIR_NUM])
   if at then
@@ -1894,7 +1959,7 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-procedure parse_global_block(sequence block)
+procedure parse_global_block(TokenList block)
   integer num
   for i=1 to length(block) by 2 do
     if i+1>length(block) then
@@ -1908,9 +1973,9 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-procedure parse_operator_block(sequence block)
+procedure parse_operator_block(TokenList block)
   integer num
-  sequence name,true
+  string name,truename
   for i=1 to length(block) by 3 do
     if i+2>length(block) then
       src_error("expected name but defineoperator block ended",block[i][CMD_POS])
@@ -1919,8 +1984,8 @@ procedure parse_operator_block(sequence block)
     mustnt_be_a_number(block[i+1])
     mustnt_be_a_number(block[i+2])
     name=block[i+1][CMD_TEXT]
-    true=block[i+2][CMD_TEXT]
-    operator_list=append(operator_list,{num,name,true,block[i+2][CMD_POS]})
+    truename=block[i+2][CMD_TEXT]
+    operator_list=append(operator_list,{num,name,truename,block[i+2][CMD_POS]})
     reserved=alpha_tree_insert(reserved,name,RESERVE_OPERATOR)
   end for
 end procedure
@@ -1929,7 +1994,7 @@ end procedure
 
 --arglist is either a sequence of default values (which may equal to the NO_DEFAULT constant), or it's equal to
 --VAR_ARGS indicating a variable (unlimited) number of arguments.
-function create_function(sequence list,integer id,sequence name,object arglist,integer func_type,srcpos pos)
+function create_function(sequence list, integer id, string name, object arglist, integer func_type, srcpos pos)
   integer at
   sequence encoded
   if func_type=RESERVE_SCRIPT then
@@ -1968,11 +2033,11 @@ end function
 
 ---------------------------------------------------------------------------
 
-function parse_define_block(sequence block,sequence list,integer func_type)
+function parse_define_block(TokenList block, sequence list, integer func_type)
   integer num
-  sequence name
+  string name
   integer args
-  sequence arglist
+  sequence arglist  --sequence of strings
   srcpos name_pos
   integer i
   i=1
@@ -2014,7 +2079,7 @@ end function
 ---------------------------------------------------------------------------
 
 procedure preliminary_parse_pass()
-  sequence this
+  Token this
   enter_timing_zone("Preliminary pass")
   color_print("preliminary pass\n",{})
   get_cmd_pointer=1
@@ -2050,18 +2115,18 @@ end procedure
 --Parse a script or subscript
 --parent_name is a fully-scoped name of parent script, or ""
 --if this script isn't a subscript of another.
---Returns token with name of parsed script
-function parse_script(sequence trigger, sequence parent_name, integer parent_idx)
-  sequence name    --token
-  sequence full_name --string
-  sequence arglist
-  sequence body
-  sequence this
-  sequence err_string
-  sequence previous_script
-  sequence subname
+--Returns Token with name of parsed script
+function parse_script(Token trigger, string parent_name, integer parent_idx)
+  Token name
+  string full_name
+  TokenList arglist
+  TokenList body
+  Token this
+  string err_string
+  string previous_script
+  Token subname
   sequence src_position
-  sequence msg
+  string msg
   integer depth
   integer nest_depth
   integer temp
@@ -2185,8 +2250,7 @@ end function
 ---------------------------------------------------------------------------
 
 procedure parse_top_level()
-  sequence this
-  sequence ignore
+  Token this
   sequence triggers
   integer triggeridx
   enter_timing_zone("Top level pass")
@@ -2198,9 +2262,9 @@ procedure parse_top_level()
     this=get_cmd()
     triggeridx=find(this[CMD_TEXT],triggers)
     if compare("defineconstant",this[CMD_TEXT])=0 then
-      ignore=get_cmd_block(true)
+      get_cmd_block(true)
     elsif compare("definetrigger",this[CMD_TEXT])=0 then
-      ignore=get_cmd_block(true)
+      get_cmd_block(true)
     elsif compare("globalvariable",this[CMD_TEXT])=0 then
       parse_global_block(get_cmd_block(true))
     elsif compare("defineoperator",this[CMD_TEXT])=0 then
@@ -2241,9 +2305,9 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-procedure dump_script_and_function_info(integer fh,sequence list)
+procedure dump_script_and_function_info(integer fh, sequence list)
   sequence this
-  sequence id_string
+  string id_string
   sequence src_position
   for i=1 to length(list) do
     this=list[i]
@@ -2279,7 +2343,7 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-function seek_string_by_id(integer id,sequence list,sequence name)
+function seek_string_by_id(integer id, sequence list, string name)
   integer at
   at=find_in_column(id,list,PAIR_NUM)
   if at then
@@ -2293,7 +2357,7 @@ end function
 ---------------------------------------------------------------------------
 
 --Used while dumping script binary
-function name_lookup(sequence pair,sequence locals)
+function name_lookup(sequence pair, TokenList locals)
   integer at
   if pair[1]=KIND_NUMBER then
     return(sprintf("%d",{pair[2]}))
@@ -2345,8 +2409,8 @@ end function
 
 ---------------------------------------------------------------------------
 
-function dump_script_binary(sequence bin,integer offset,integer depth,sequence locals)
-  sequence result
+function dump_script_binary(sequence bin, integer offset, integer depth, TokenList locals)
+  string result
   sequence kind_and_id
   integer kind
   integer argcount
@@ -2379,8 +2443,8 @@ end function
 
 ---------------------------------------------------------------------------
 
-function dump_script_tree(sequence tree,integer depth)
-  sequence result
+function dump_script_tree(NodeList tree, integer depth)
+  string result
   result=""
     for i=1 to length(tree)  do
       result&=sprintf_utf("%s%s",{
@@ -2401,7 +2465,7 @@ end function
 ---------------------------------------------------------------------------
 
 function dump_script_strings(sequence bin)
-  sequence result
+  string result
   integer table_start
   integer offset
   integer len
@@ -2428,12 +2492,12 @@ end function
 
 procedure dump_debug_report()
   integer fh
-  sequence debug_file
+  string debug_file
   sequence src_position
   Script script
   integer idx
-  sequence locals
-  sequence is_nonlocal
+  TokenList locals
+  string is_nonlocal
   --only do this if the -d debug option was on the command line
   if find('d',optlist) then
     if length(path_only(dest_file))>1 then
@@ -2537,9 +2601,9 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-function get_cmd_depth(integer ptr,sequence data,integer depth)
-  sequence result
-  sequence this
+function get_cmd_depth(integer ptr, TokenList data, integer depth)
+  TokenList result
+  Token this
   result={}
   while true do
     --if get_key()=27 then abort(1/0) end if
@@ -2566,8 +2630,8 @@ end function
 
 --Look up the name of a script in all current scopes, returning all_scripts
 --index if found, or 0 if not
-function lookup_scoped_script_name(sequence name)
-  sequence s
+function lookup_scoped_script_name(string name)
+  string s
   integer at
   integer idx
   idx=cur_script_num
@@ -2592,12 +2656,12 @@ end function
 ---------------------------------------------------------------------------
 
 --identify the kind and id of a text command. Does not support untranslated operators or floaty parethesis
-function what_kind_and_id(sequence command,sequence local_vars)
+function what_kind_and_id(Token command, TokenList local_vars)
   integer kind
   integer at
   atom id
   integer keyword
-  sequence s
+  string s
   s=command[CMD_TEXT]
   keyword=alpha_tree_data(reserved,s,0)
   if string_is_int32(s) then
@@ -2657,11 +2721,11 @@ end function
 ---------------------------------------------------------------------------
 
 --identify the kind of a text command
-function what_kind(sequence command,sequence local_vars, integer look_for_operators)
+function what_kind(Token command, TokenList local_vars, integer look_for_operators)
   integer at
   integer kind
   integer keyword
-  sequence s
+  string s
   s=command[CMD_TEXT]
   keyword=alpha_tree_data(reserved,s,0)
   if string_is_int32(s) then
@@ -2716,15 +2780,15 @@ end function
 
 ---------------------------------------------------------------------------
 
---Given name (CMD_TEXT) of a node, return whether it is a block: all its arguments are
+--Given name (CMD_TEXT) of a Node, return whether it is a block: all its arguments are
 --statements as opposed to expressions (if, for, while, switch, which take a mix need special handling)
-function block_command(sequence name)
+function block_command(string name)
   return compare("do",name)=0 or compare("then",name)=0 or compare("else",name)=0
 end function
 
 ---------------------------------------------------------------------------
 
-procedure check_is_expression(sequence node, sequence parent)
+procedure check_is_expression(Node node, string parent)
   if alpha_tree_data(reserved,node[TREE_TRUNK][CMD_TEXT],0)=RESERVE_FLOW then
     src_error(
       sprintf_utf(COLYEL&"%s"&COLRED&" may not be used as part of an expression (found as an argument to "&COLYEL&"%s"&COLRED&")"
@@ -2736,7 +2800,7 @@ end procedure
 ---------------------------------------------------------------------------
 
 --this function not used anywhere
-function how_many_args(sequence name,integer kind)
+function how_many_args(string name, integer kind)
   integer result
   integer at
   if kind=KIND_PARENS then
@@ -2779,11 +2843,11 @@ end function
 ---------------------------------------------------------------------------
 
 --Get next AST node from a list of tokens by pairing up begin,end
---Returns {new_ptr,node}.
-function get_script_node(integer ptr,sequence data,sequence vars)
-  sequence command
+--Returns {new_ptr,{token,children}} where children is a TokenList not a NodeList
+function get_script_node(integer ptr, TokenList data, TokenList vars)
+  Token command
   sequence ptr_and_block
-  sequence block
+  TokenList block
   integer kind
   integer followed_by_begin
   block={}
@@ -2844,24 +2908,26 @@ end function
 
 ---------------------------------------------------------------------------
 
-function build_ast(sequence script_body_toks,sequence vars)
+--Returns a NodeList
+function build_ast(TokenList script_body_toks, TokenList vars)
   integer ptr
-  sequence this
-  sequence command
-  sequence result
+  sequence ptr_and_seminode
+  sequence seminode  --Not a Node, has a TokenList instead of NodeList
+  Node node
+  NodeList result
   result={}
   ptr=1
   while true do
-    this=get_script_node(ptr,script_body_toks,vars)
-    ptr=this[1]
-    command=this[2]
-    if length(command)>0 then
-      if length(command[2])>0 then
-        --this command has arguments that need parsing
-        command[2]=build_ast(command[2],vars)
-      end if
-      result=append(result,command)
+    ptr_and_seminode=get_script_node(ptr,script_body_toks,vars)
+    ptr=ptr_and_seminode[1]
+    seminode=ptr_and_seminode[2]
+    if length(seminode[TREE_BRANCHES])>0 then
+      --this seminode has arguments that need parsing
+      node={seminode[TREE_TRUNK],build_ast(seminode[TREE_BRANCHES],vars)}
+    else
+      node=seminode
     end if
+    result=append(result,node)
     if ptr>length(script_body_toks) then
       exit --break out of while when there is no more data
     end if
@@ -2871,8 +2937,8 @@ end function
 
 ---------------------------------------------------------------------------
 
---Returns new list of locals. 'var' is a node.
-function add_local_variable(sequence vars,sequence var)
+--Returns new list of locals.
+function add_local_variable(TokenList vars, Token var)
   integer at
   sequence src_position
   check_undefined_string(var,"local variable name")
@@ -2892,9 +2958,9 @@ end function
 
 ---------------------------------------------------------------------------
 
---Find the variable declarations in a script ('data' is a token list)
-function gather_local_vars(sequence vars,sequence data)
-  sequence this
+--Find the variable declarations in a script
+function gather_local_vars(TokenList vars, TokenList data)
+  Token this
   integer ptr
   ptr=1
   while true do
@@ -2931,12 +2997,12 @@ end function
 
 ---------------------------------------------------------------------------
 
---there are only two, hardcoded, macros right now: tracevalue, assert
-function expand_macros(sequence tree)
-  sequence newtree
-  sequence newargs
-  sequence new_string
-  sequence string_token
+--There are only two, hardcoded, macros right now: tracevalue, assert.
+function expand_macros(NodeList tree)
+  NodeList newtree
+  NodeList newargs
+  string new_string
+  Token string_token
   sequence src_position
   sequence temp
   srcpos pos
@@ -2989,11 +3055,11 @@ end function
 
 ---------------------------------------------------------------------------
 
---tree[ptr] is a partially constructed if node (lacking else child), followed either by an else or elseif node.
+--tree[ptr] is a partially constructed if Node (lacking else child), followed either by an else or elseif Node.
 --Handle else/elseif, parenting to tree[pt], and return the new tree.
-function build_else_node(sequence tree, integer ptr)
-  sequence elseargs
-  sequence nextcmd
+function build_else_node(NodeList tree, integer ptr)
+  NodeList elseargs
+  string nextcmd
   integer eptr
   srcpos pos
 
@@ -3031,24 +3097,24 @@ end function
 
 ---------------------------------------------------------------------------
 
---Build switch AST nodes, return new tree
-function build_switch_node(sequence tree,sequence vars,integer ptr)
+--Build switch AST Nodes, return new tree
+function build_switch_node(NodeList tree, TokenList vars, integer ptr)
   srcpos pos
   srcpos argpos
-  sequence args
-  sequence thiscmd
-  sequence rawargs
-  sequence caseargs
-  sequence casecmd
-  sequence lastnodename
-  sequence collected
+  NodeList args
+  Token thiscmd
+  NodeList rawargs
+  NodeList caseargs
+  Token casecmd
+  string lastnodename
+  sequence collected  --either a Node or {}
   sequence temp
   integer have_else
   srcpos elsepos
   integer expect_case
   integer kind
   integer id
-  sequence else_error_msg
+  string else_error_msg
   else_error_msg=COLYEL&"else"&COLRED&" case should be placed last inside a "&COLYEL&"switch"&COLRED&" block"
 
   pos=tree[ptr][TREE_TRUNK][CMD_POS]
@@ -3197,7 +3263,7 @@ end function
 
 --Given a variable token for 'for' or 'setvariable', etc. (parent) and list of locals/non-locals 'vars',
 --return a an integer ID token, or throw an error if not a variable.
-function convert_variable_to_id(sequence var,sequence locals,sequence parent)
+function convert_variable_to_id(Token var, TokenList locals, string parent)
   integer id
   integer argkind
   integer var_at
@@ -3215,19 +3281,19 @@ function convert_variable_to_id(sequence var,sequence locals,sequence parent)
       ,{parent,KIND_LONGNAMES[argkind],var[CMD_TEXT]}
     ),var[CMD_POS])
   end if
-  return {sprintf("%d",{id}),var[CMD_TEXT]}
+  return {sprintf("%d",{id}),var[CMD_POS]}
 end function
 
 ---------------------------------------------------------------------------
 
 --parse the script tree and make if absorb then and else, for and while absorb do, switch absorb stuff, check correctness of flow statements
 --Note that several of these checks are now redundant to the check for 'begin' performed in get_script_node
-function normalize_flow_control(sequence tree,sequence vars,sequence parent)
+function normalize_flow_control(NodeList tree, TokenList vars, string parent)
   integer ptr
-  sequence s
-  sequence nextcmd
-  sequence args
-  sequence ctr
+  string s
+  string nextcmd
+  NodeList args
+  Token ctr
   srcpos pos
   integer argkind
   integer var_at
@@ -3433,10 +3499,10 @@ end function
 
 --A modification of Dijkstra's shunting-yard algorithm
 --(This could probably subsume build_ast too)
-function convert_operators(sequence tree)
-  sequence new_tree
-  sequence stack
-  sequence opnode
+function convert_operators(NodeList tree)
+  NodeList new_tree
+  sequence stack   --{int,Node} pairs
+  Node opnode
   integer ptr
   integer at
   integer priority
@@ -3504,11 +3570,11 @@ end function
 ---------------------------------------------------------------------------
 
 --Ensure correct number of arguments, add defaults, and translate variables to IDs in assignments
-function fix_arguments(sequence tree,integer kind,integer id,sequence list,sequence vars)
+function fix_arguments(Node tree, integer kind, integer id, sequence list, TokenList vars)
   integer at
   integer argnum,maxargs
-  sequence args
-  sequence funcname
+  NodeList args
+  string funcname
   srcpos funcpos
   funcname=tree[TREE_TRUNK][CMD_TEXT]
   funcpos=tree[TREE_TRUNK][CMD_POS]
@@ -3587,7 +3653,7 @@ end function
 ---------------------------------------------------------------------------
 
 --Calls fix_arguments on each non-flow node with arguments
-function normalize_arguments(sequence tree,sequence vars)
+function normalize_arguments(NodeList tree, TokenList vars)
   sequence kind_and_id
   integer kind,id
   --Unlike the flow normalization and operator translation we do not insert/delete elements from
@@ -3636,7 +3702,7 @@ end function
 
 --Encode a unicode (UTF32/native Euphoria) string in the format the engine
 --requires, which is currently Latin-1
-function encode_ohr(sequence string, integer maxbytes=0)
+function encode_ohr(string string, integer maxbytes=0)
   for i=1 to length(string) do
     if string[i]>=256 then
       string[i]='?'
@@ -3669,13 +3735,14 @@ end function
 ---------------------------------------------------------------------------
 
 --returns the offset where this node was either added, or references an existing node
-function binary_compile_recurse(sequence tree,sequence vars)
+function binary_compile_recurse(Node tree, TokenList vars)
   sequence result
   integer kind,id
   integer at
-  sequence s
+  string s
   integer offset
-  sequence value_temp, str_temp
+  sequence value_temp
+  string str_temp
   integer parent_idx
   integer recurse_result
   integer can_reference  --whether can return a pointer to an earlier node
@@ -3801,7 +3868,7 @@ end function
 ---------------------------------------------------------------------------
 
 function binary_compile(Script script)
-  sequence tree
+  NodeList tree
   sequence result
   integer recurse_ret
   integer parent_idx
@@ -3871,9 +3938,9 @@ end function
 ---------------------------------------------------------------------------
 
 --floaty brackets are un-needed after the operators have been translated.
-function collapse_floaty_brackets(sequence tree)
+function collapse_floaty_brackets(NodeList tree)
   integer i
-  sequence graft
+  NodeList graft
   i=1
   while i<=length(tree) do
     if length(tree[i][TREE_TRUNK][CMD_TEXT])=0 then
@@ -3898,8 +3965,8 @@ end function
 ---------------------------------------------------------------------------
 
 --parent is CMD_TEXT of parent node
-function sanity_check(sequence tree,sequence vars,sequence parent)
-  sequence s
+function sanity_check(NodeList tree, TokenList vars, string parent)
+  string s
   sequence kind_and_id
   integer kind
   atom id
@@ -3965,7 +4032,7 @@ end function
 
 ---------------------------------------------------------------------------
 
-function optimized_arg(sequence tree,sequence vars)
+function optimized_arg(Node tree, TokenList vars)
   sequence kind_and_id
   integer kind
   atom id
@@ -4142,7 +4209,7 @@ end function
 ---------------------------------------------------------------------------
 
 --goes through a script simplifying expressions that always have the same value
-function optimize_script(sequence tree,sequence vars)
+function optimize_script(NodeList tree, TokenList vars)
   object arg
   for i=1 to length(tree) do
     arg=optimized_arg(tree[i],vars)
@@ -4163,7 +4230,7 @@ end function
 ---------------------------------------------------------------------------
 
 --FIXME: if a local is used only in a subscript it is reported as unused
-procedure warn_unused_locals(sequence vars,integer num_nonlocals)
+procedure warn_unused_locals(TokenList vars, integer num_nonlocals)
   if find('u',optlist) then
     for i=num_nonlocals+1 to length(vars) do
       if not find(vars[i][CMD_TEXT],used_locals) then
@@ -4192,9 +4259,9 @@ end procedure
 --script_idx is all_scripts index
 procedure compile_a_script(integer script_idx)
   Script script
-  sequence script_tree
-  sequence local_vars
-  sequence args
+  NodeList script_tree
+  TokenList local_vars
+  TokenList args
   integer num_nonlocals
   integer parent_idx
   integer trigger_idx
@@ -4271,8 +4338,8 @@ end procedure
 --Parse argument declarations (initially containing default values)
 --in a script argument list, returns {arg_names_list, default_vals_list} pair
 --where any default values have been removed from the argument names
-function process_arglist(sequence args)
-  sequence arglist
+function process_arglist(TokenList args)
+  TokenList arglist
   sequence defaults
   integer i
   integer using_defaults
@@ -4321,7 +4388,7 @@ procedure check_script_declarations()
   sequence args_and_defaults
   sequence scripts_found
   sequence src_position
-  sequence fullname
+  string fullname
   srcpos script_pos
 
   scripts_found=repeat(false,length(script_list))
@@ -4470,7 +4537,7 @@ end function
 ---------------------------------------------------------------------------
 
 --Returns a list of {id, encode_ohr(script_name)[1..36]} pairs
-function read_scripts_dot_bin(sequence filename)
+function read_scripts_dot_bin(string filename)
   object data
   integer header_size
   integer rec_size
@@ -4572,8 +4639,8 @@ end function
 ---------------------------------------------------------------------------
 
 procedure write_script_files(integer fh)
-  sequence fname
-  sequence temp
+  string fname
+  string temp
   --because script files with identical names in different directories can be
   --included, append a number to lump names which would be duplicate
   integer suffix
