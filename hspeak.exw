@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Rb 2013-10-10 Remove variable() later, for syntax checking
 --3Ra 2013-10-09 Fixed \r lineendings (AGAIN) and slow \r\n handling
 --3R  2013-10-05 Add subscript
 --3Qc 2013-10-04 Disallow flow statements used as expressions
@@ -147,7 +148,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Ra"
+constant COMPILER_SUB_VERSION="Rb"
 constant COPYRIGHT_DATE="2013"
 
 --This is the oldest version of plotscr.hsd which is supported (feel free to
@@ -189,11 +190,11 @@ constant POS_COLUMN=3
 constant POS_TEXT=4
 constant CMD_TEXT=1
 constant CMD_POS=2
-constant RESERVE_CORE=1
+constant RESERVE_TOPLEVEL=1      --Tokens that are only allowed at the toplevel, but not including script triggers
 constant RESERVE_UNIMPLEMENTED=2
-constant RESERVE_FLOW=3
-constant RESERVE_FUNCTION=4
-constant RESERVE_SCRIPT=5
+constant RESERVE_FLOW=3          --Flow control keywords
+constant RESERVE_FUNCTION=4      --Name of a defined function
+constant RESERVE_SCRIPT=5        --etc
 constant RESERVE_GLOBAL=6
 constant RESERVE_BEGIN=7
 constant RESERVE_END=8
@@ -201,6 +202,7 @@ constant RESERVE_OPERATOR=9
 constant RESERVE_BUILTIN=10
 constant RESERVE_CONSTANT=11
 constant RESERVE_MACRO=12
+constant RESERVE_KEYWORD=13      --Miscellaneous keywords which can only occur inside scripts
 constant RESERVE_NAMES={"declaration"
                        ,"unimplemented keyword/operator"
                        ,"flow control"
@@ -213,6 +215,7 @@ constant RESERVE_NAMES={"declaration"
                        ,"builtin command"
                        ,"constant"
                        ,"hardcoded function/macro"
+                       ,"keyword"
                        }
 constant PAIR_NUM=1
 constant PAIR_NAME=2
@@ -258,6 +261,7 @@ constant KIND_REFERENCE=8 --converted to KIND_NUMBER in compiled script
 constant KIND_OPERATOR=9 --never appears in compiled script
 constant KIND_PARENS=10 --never appears in compiled script
 constant KIND_MACRO=11 --never appears in compiled script
+constant KIND_KEYWORD=12 --never appears in compiled script
 constant KIND_LONGNAMES={"number"
                         ,"flow control statement"
                         ,"global variable"
@@ -873,14 +877,14 @@ procedure init()
   --thing would have been even better, but thats alot of trouble :)
   --FIXME: variable is missing! It doesn't fit in any of the categories
   reserved=alpha_tree_mass_insert(reserved,{
-           {"defineconstant",RESERVE_CORE}
-          ,{"definetrigger" ,RESERVE_CORE}
-          ,{"defineoperator",RESERVE_CORE}
-          ,{"globalvariable",RESERVE_CORE}
-          ,{"definefunction",RESERVE_CORE}
-          ,{"definescript"  ,RESERVE_CORE}
-          ,{"plotscrversion",RESERVE_CORE}
-          ,{"include"       ,RESERVE_CORE}  --should never appear, in theory
+           {"defineconstant",RESERVE_TOPLEVEL}
+          ,{"definetrigger" ,RESERVE_TOPLEVEL}
+          ,{"defineoperator",RESERVE_TOPLEVEL}
+          ,{"globalvariable",RESERVE_TOPLEVEL}
+          ,{"definefunction",RESERVE_TOPLEVEL}
+          ,{"definescript"  ,RESERVE_TOPLEVEL}
+          ,{"plotscrversion",RESERVE_TOPLEVEL}
+          ,{"include"       ,RESERVE_TOPLEVEL}  --should never appear, in theory
           ,{"do"            ,RESERVE_FLOW}
           ,{"begin"         ,RESERVE_BEGIN}
           ,{"end"           ,RESERVE_END}
@@ -899,7 +903,8 @@ procedure init()
           ,{"exitreturning" ,RESERVE_FLOW}
           ,{"switch"        ,RESERVE_FLOW}
           ,{"case"          ,RESERVE_FLOW}
-          ,{"subscript"     ,RESERVE_FLOW}
+          ,{"subscript"     ,RESERVE_KEYWORD}
+          ,{"variable"      ,RESERVE_KEYWORD}
           ,{"="             ,RESERVE_UNIMPLEMENTED}
           ,{"tracevalue"    ,RESERVE_MACRO}
           ,{"assert"        ,RESERVE_MACRO}
@@ -1835,7 +1840,7 @@ procedure parse_trigger_block(sequence block)
     check_undefined_string(block[i+1],"script trigger name")
     name=block[i+1][CMD_TEXT]
     trigger_list=append(trigger_list,{num,name})
-    reserved=alpha_tree_insert(reserved,name,RESERVE_CORE)
+    reserved=alpha_tree_insert(reserved,name,RESERVE_TOPLEVEL)
   end for
 end procedure
 
@@ -2142,7 +2147,7 @@ function parse_script(sequence trigger, sequence parent_name, integer parent_idx
         err_string=sprintf_utf(
           "%s "&COLYEL&"%s"&COLRED&" is not permitted inside a script.",{RESERVE_NAMES[alpha_tree_data(reserved,this[CMD_TEXT],0)],this[CMD_TEXT]}
         )
-        if temp=RESERVE_CORE then
+        if temp=RESERVE_TOPLEVEL then
           err_string&=sprintf_utf(" Perhaps "&COLYEL&"%s"&COLRED&" has an extra "&COLYEL&"begin"&COLRED&" or "&COLYEL&"("&COLRED,{name[CMD_TEXT]})
         end if
         src_error(err_string,this[CMD_POS])
@@ -2612,6 +2617,9 @@ function what_kind_and_id(sequence command,sequence local_vars)
   elsif keyword=RESERVE_MACRO then
     kind=KIND_MACRO
     id=0
+  elsif keyword=RESERVE_KEYWORD then
+    kind=KIND_KEYWORD
+    id=0
   elsif s[1] = '"' then
     src_error(
       sprintf_utf(
@@ -2664,6 +2672,8 @@ function what_kind(sequence command,sequence local_vars, integer look_for_operat
     kind=KIND_MATH
   elsif keyword=RESERVE_MACRO then
     kind=KIND_MACRO
+  elsif keyword=RESERVE_KEYWORD then
+    kind=KIND_KEYWORD
   elsif s[1] = '"' then
     src_error(
       sprintf_utf(
@@ -2743,8 +2753,9 @@ end function
 
 ---------------------------------------------------------------------------
 
+--Something that potentially takes args
 function takes_args(integer kind)
-  if kind=KIND_PARENS or kind=KIND_FLOW or kind=KIND_MATH or kind=KIND_FUNCTION or kind=KIND_SCRIPT or kind=KIND_MACRO then
+  if kind=KIND_PARENS or kind=KIND_FLOW or kind=KIND_MATH or kind=KIND_FUNCTION or kind=KIND_SCRIPT or kind=KIND_MACRO or kind=KIND_KEYWORD then
     return(true)
   else
     return(false)
@@ -2753,9 +2764,8 @@ end function
 
 ---------------------------------------------------------------------------
 
---Get next AST node from a list of tokens by pairing up begin,end, while ignoring 'variable' blocks
+--Get next AST node from a list of tokens by pairing up begin,end
 --Returns {new_ptr,node}.
---FIXME: should actually keep 'variable' to cheeck for misplaced blocks (bad syntax).
 function get_script_node(integer ptr,sequence data,sequence vars)
   sequence command
   sequence ptr_and_block
@@ -2771,16 +2781,6 @@ function get_script_node(integer ptr,sequence data,sequence vars)
     --floaty brackets for order-of-operations-enforcement
     ptr-=1
     command[CMD_TEXT]=""
-  elsif compare("variable",command[CMD_TEXT])=0 then
-    --must ignore variable declaration
-    if ptr<=length(data) then
-      --there is room for args
-      ptr+=1--only increment the pointer when we have args
-      ptr_and_block=get_cmd_depth(ptr,data,1)
-      ptr=ptr_and_block[1]
-    end if
-    --non-command
-    return({ptr,{}})
   end if
 
   kind=what_kind(command,vars,true)
@@ -3217,6 +3217,7 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
   srcpos pos
   integer argkind
   integer var_at
+  integer keyword
   ptr=1
 
   while ptr<=length(tree) do
@@ -3224,7 +3225,8 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
     pos=tree[ptr][TREE_TRUNK][CMD_POS]
     args=tree[ptr][TREE_BRANCHES]
 
-    if alpha_tree_data(reserved,s,0)=RESERVE_FLOW then
+    keyword=alpha_tree_data(reserved,s,0)
+    if keyword=RESERVE_FLOW then
       if equal(s,"then") or equal(s,"else") or equal(s,"do") then
         --these are checked for correct parents below.
       elsif block_command(parent)=false then
@@ -3396,8 +3398,8 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
     elsif compare("case",s)=0 then
       src_error(COLYEL&"case"&COLRED&" is not allowed outside of "&COLYEL&"switch"&COLRED,pos)
 
-    elsif compare("subscript",s)=0 then
-      --Does nothing; remove. (Kept until now to check it isn't placed in a silly place)
+    elsif compare("subscript",s)=0 or compare("variable",s)=0 then
+      --Does nothing; remove. (Kept until now to check they isn't placed in a silly place)
       tree=delete_element(tree,ptr)
       continue
 
