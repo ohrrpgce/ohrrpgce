@@ -17,12 +17,19 @@ DECLARE SUB watched_script_finished ()
 
 DECLARE SUB print_script_profiling
 
+DECLARE SUB killallscripts ()
+DECLARE SUB killscriptthread ()
+DECLARE SUB resetinterpreter ()
+
 DECLARE SUB script_start_waiting(waitarg1 as integer = 0, waitarg2 as integer = 0)
 DECLARE SUB script_stop_waiting(returnval as integer = 0)
 
 DECLARE FUNCTION runscript (byval id as integer, byval newcall as integer, byval double_trigger_check as bool, byval scripttype as zstring ptr, byval trigger as integer) as integer
 DECLARE FUNCTION loadscript (byval n as unsigned integer) as ScriptData ptr
 DECLARE SUB freescripts (byval mem as integer)
+DECLARE SUB delete_scriptdata (byval scriptd as ScriptData ptr)
+DECLARE SUB reloadscript (si as ScriptInst, oss as OldScriptState, byval updatestats as bool = YES)
+DECLARE SUB reload_scripts ()
 
 DECLARE FUNCTION commandname (byval id as integer) as string
 DECLARE FUNCTION current_command_name() as string
@@ -33,16 +40,11 @@ DECLARE FUNCTION script_interrupt () as integer
 
 ' The following are in oldhsinterpreter.bas
 
+DECLARE FUNCTION oldscriptstate_init (index as integer, script as ScriptData ptr) as zstring ptr
 DECLARE SUB scriptinterpreter ()
 DECLARE SUB scriptdump (s as string)
 DECLARE SUB breakpoint (byref mode as integer, byval callspot as integer)
 DECLARE SUB scriptwatcher (byref mode as integer, byval drawloop as integer)
 DECLARE SUB setScriptArg (byval arg as integer, byval value as integer)
-DECLARE SUB killallscripts ()
-DECLARE SUB killtopscript ()
-DECLARE SUB killscriptthread ()
-DECLARE SUB resetinterpreter ()
-DECLARE SUB delete_scriptdata (byval scriptd as ScriptData ptr)
-DECLARE SUB reload_scripts ()
 
 #endif

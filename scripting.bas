@@ -300,6 +300,67 @@ SUB script_log_tick
  END WITH
 END SUB
 
+
+'==========================================================================================
+'                                   Fibre/Script Control
+'==========================================================================================
+
+
+SUB killscriptthread
+ IF insideinterpreter = NO THEN fatalerror "Inappropriate killscriptthread"
+
+ 'Hack: in case this function is called from within the interpreter we set the new state of the
+ 'old script so that the main loop sees it using a stale WITH pointer.
+ 'Come to think of it, there's no good reason for the interpreter state to be stored in scrat instead
+ 'of being global.
+ scrat(nowscript).state = stdone
+
+ WHILE nowscript >= 0
+  WITH scrat(nowscript)
+   IF .state < 0 THEN EXIT WHILE
+   IF .scr <> NULL THEN .scr->refcount -= 1
+  END WITH
+  nowscript -= 1
+ WEND
+ gam.script_log.last_logged = -1
+
+ 'Go back a script, let functiondone handle the script exit
+ nowscript += 1
+ reloadscript scriptinsts(nowscript), scrat(nowscript)  'Avoid possible null ptr deref in functiondone
+ setstackposition(scrst, scrat(nowscript).stackbase)
+
+END SUB
+
+SUB killallscripts
+ 'this kills all running scripts.
+ 'for use in cases of massive errors, quiting to titlescreen or loading a game.
+
+ 'Hack, see explanation in killscriptthread
+ IF nowscript >= 0 THEN scrat(nowscript).state = stexit
+
+ FOR i as integer = nowscript TO 0 STEP -1
+  IF scrat(i).scr <> NULL THEN scrat(i).scr->refcount -= 1
+ NEXT
+ nowscript = -1
+ gam.script_log.last_logged = -1
+
+ setstackposition(scrst, 0)
+
+ dequeue_scripts
+END SUB
+
+SUB resetinterpreter
+'unload all scripts and wipe interpreter state. use when quitting the game.
+
+ killallscripts
+
+#IFDEF SCRIPTPROFILE
+ print_script_profiling
+#ENDIF
+
+ IF numloadedscr > 0 THEN freescripts(0)
+END SUB
+
 ' The current script fibre starts waiting, halting execution
 SUB script_start_waiting(waitarg1 as integer = 0, waitarg2 as integer = 0)
  IF insideinterpreter = NO THEN scripterr "script_start_waiting called outside interpreter", serrBug
@@ -324,7 +385,7 @@ END SUB
 
 
 '==========================================================================================
-'                                    Loading scripts
+'                            Loading/Reloading/Freeing scripts
 '==========================================================================================
 
 
@@ -383,40 +444,18 @@ WITH scriptinsts(index)
  .id = n
  .watched = NO
  .started = NO
-END WITH
 
-WITH scrat(index)
- 'erase state, pointer, return value and depth, set id
- .state = ststart
- .ptr = 0
- .ret = 0
- .depth = 0
- .id = n
- .stackbase = -1
- .scr = scriptinsts(index).scr
- .scrdata = .scr->ptr
- .curargn = 0
- curcmd = cast(ScriptCommand ptr, .scrdata + .ptr) 'just in case it's needed before subread is run
- 
- scrat(index + 1).heap = .heap + .scr->vars
-
- IF scrat(index + 1).heap > maxScriptHeap THEN
-  runscript = 0'--error
-  scripterr "failed to load " + *scripttype + " script " & n & " " & scriptname(n) & ", script heap overflow", 6
-  EXIT FUNCTION
+ DIM errstr as zstring ptr = oldscriptstate_init(index, .scr)
+ IF errstr <> NULL THEN
+  scripterr "failed to load " + *scripttype + " script " & n & " " & scriptname(n) & ", " & *errstr, 6
+  RETURN 0 '--error
  END IF
-
- FOR i as integer = 0 TO .scr->vars - 1
-  heap(.heap + i) = 0
- NEXT i
 
  '--suspend the previous script
  IF newcall AND index > 0 THEN
   scrat(index - 1).state *= -1
  END IF
-END WITH
 
-WITH scriptinsts(index)
  '--we are successful, so now its safe to increment this
  .scr->refcount += 1
  nowscript += 1
@@ -587,6 +626,31 @@ FUNCTION loadscript (byval n as uinteger) as ScriptData ptr
  RETURN thisscr
 END FUNCTION
 
+SUB delete_scriptdata (byval scriptd as ScriptData ptr)
+ WITH *scriptd
+  'debug "deallocating " & .id & " " & scriptname(.id) & " size " & .size
+  totalscrmem -= .size
+  numloadedscr -= 1
+  deallocate(.ptr)
+  IF .next THEN
+   .next->backptr = .backptr
+  END IF
+  *.backptr = .next
+
+  IF .refcount THEN
+   FOR j as integer = 0 TO nowscript
+    IF scriptinsts(j).scr = scriptd THEN
+     'debug "marking scriptinsts(" & j & ") (id = " & scriptinsts(j).id & ") unloaded"
+     scriptinsts(j).scr = NULL
+     scrat(j).scrdata = NULL
+    END IF
+   NEXT
+  END IF
+ END WITH
+
+ deallocate(scriptd)
+END SUB
+
 TYPE ScriptListElmt
  p as ScriptData ptr
  score as integer
@@ -647,6 +711,57 @@ SUB freescripts (byval mem as integer)
   'debug "unloading script " & scriptname(LRUlist(i).p->id) & " refcount " & LRUlist(i).p->refcount
   delete_scriptdata LRUlist(i).p
  NEXT
+END SUB
+
+SUB reloadscript (si as ScriptInst, oss as OldScriptState, byval updatestats as bool = YES)
+ WITH si
+  IF .scr = NULL THEN
+   .scr = loadscript(.id)
+   IF .scr = NULL THEN killallscripts: EXIT SUB
+   oss.scr = .scr
+   oss.scrdata = .scr->ptr
+   .scr->refcount += 1
+   IF updatestats THEN .scr->totaluse += 1
+  END IF
+  IF updatestats THEN
+   'a rather hackish and not very good attempt to give .lastuse a qualitative use
+   'instead of just for sorting; a priority queue is probably a much better solution
+   IF .scr->lastuse <= scriptctr - 10 THEN
+    scriptctr += 1
+    .scr->lastuse = scriptctr
+   END IF
+  END IF
+ END WITH
+END SUB
+
+SUB reload_scripts
+ IF isfile(game + ".hsp") THEN unlump game + ".hsp", tmpdir
+
+ DIM unfreeable as integer = 0
+
+ FOR i as integer = 0 TO UBOUND(script)
+  DIM as ScriptData Ptr scrp = script(i), nextp
+  WHILE scrp
+   nextp = scrp->next
+   WITH *scrp
+    IF .refcount = 0 THEN
+     delete_scriptdata scrp
+    ELSE
+     unfreeable += 1
+     debuginfo "not reloading script " & scriptname(.id) & " because it's in use: refcount=" & .refcount
+    END IF
+   END WITH
+
+   scrp = nextp
+  WEND
+ NEXT
+
+ IF unfreeable THEN
+  notification unfreeable & " scripts are in use and couldn't be freed (see g_debug.txt for details)"
+ END IF
+
+ 'Cause the cache in scriptname() (and also in commandname()) to be dropped
+ game_unique_id = STR(randint(INT_MAX))
 END SUB
 
 
