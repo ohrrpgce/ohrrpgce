@@ -425,9 +425,10 @@ TYPE ScriptData
                         'not your usual double linked list, because head of list is a script() element
 END TYPE
 
-TYPE ScriptInst
-  scr as ScriptData ptr 'script in script() hashtable
-  scrdata as integer ptr 'convenience pointer to scr->ptr
+'State of an executing script, used by the old interpreter
+TYPE OldScriptState
+  scr as ScriptData ptr 'script in script() hashtable (duplicated from ScriptInst)
+  scrdata as integer ptr 'convenience pointer to (<parent>.)scr->ptr
   heap as integer       'position of the script's local vars in the buffer
   stackbase as integer  'position where this script's stack data starts in scrst
   state as integer      'what the script is doing right now
@@ -435,18 +436,24 @@ TYPE ScriptInst
   ret as integer        'the scripts current return value
   curargn as integer    'current arg for current statement
   depth as integer      'stack depth of current script
-  id as integer         'id number of current script
+  id as integer         'id number of current script (duplicated from ScriptInst)
+END TYPE
+
+'Externally visible state of an executing script, used outside the interpreter
+TYPE ScriptInst
+  scr as ScriptData ptr 'script in script() hashtable
   waitarg as integer    'wait state argument 1
   waitarg2 as integer   'wait state argument 2
   watched as bool       'true for scripts which are being logged
   started as bool       'used only if watched is true: whether the script has started
+  id as integer         'id number of script
 
-  'these 3 items are only current/correct for inactive scripts. The active script's current
-  'command is pointed to by the curcmd (ScriptCommand ptr) global, and copied here
-  'when a script is stopped (either suspended, or interpretloop is left)
+  'these 3 items are only updated when the script interpreter is left. While inside
+  'the script interpreter (command handlers) use the curcmd (ScriptCommand ptr) global.
+  'These are also updated when a script is stopped (either suspended, or interpretloop is left).
   curkind as integer    'kind of current statement
-  curvalue as integer   'value of current statement
-  curargc as integer    'number of args for current statement
+  curvalue as integer   'value/id of current statement
+  curargc as integer    'number of args for current statement  (used only in old script debugger...)
 END TYPE
 
 TYPE QueuedScript
@@ -463,7 +470,7 @@ TYPE ScriptCommand
   kind as integer
   value as integer
   argc as integer
-  args(999999) as integer
+  args(0) as integer
 END TYPE
 
 UNION RGBcolor

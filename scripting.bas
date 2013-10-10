@@ -58,7 +58,7 @@ SUB trigger_script (byval id as integer, byval double_trigger_check as bool, scr
   IF gam.script_log.enabled = NO THEN EXIT SUB
 
   'Can't call watched_script_triggered until after the trigger_script_args calls
-  scrat(nowscript).watched = YES
+  scriptinsts(nowscript).watched = YES
   scrat(nowscript).state = sttriggered
   last_queued_script = @dummy_queued_script
  ELSE
@@ -198,7 +198,7 @@ FUNCTION script_log_indent (byval upto as integer = -1, byval spaces as integer 
  DIM indent as string = SPACE(spaces)
  IF upto = -1 THEN upto = nowscript - 1
  FOR i as integer = 0 TO upto
-  WITH scrat(i)
+  WITH scriptinsts(i)
    IF .watched THEN
     IF .started THEN
      indent &= "| "
@@ -213,8 +213,8 @@ END FUNCTION
 
 'Called after runscript when running a script which should be watched
 SUB watched_script_triggered(script as QueuedScript)
- scrat(nowscript).watched = YES
- IF gam.script_log.last_logged > -1 ANDALSO scrat(gam.script_log.last_logged).started = NO THEN
+ scriptinsts(nowscript).watched = YES
+ IF gam.script_log.last_logged > -1 ANDALSO scriptinsts(gam.script_log.last_logged).started = NO THEN
   script_log_out " (queued)"
  END IF
 
@@ -248,13 +248,13 @@ END SUB
 SUB watched_script_resumed
  IF gam.script_log.last_logged = nowscript THEN
   'nothing
- ELSEIF scrat(nowscript).started THEN
+ ELSEIF scriptinsts(nowscript).started THEN
   'also nothing
  ELSE
-  script_log_out !"\n" & script_log_indent() & "*" & scriptname(scrat(nowscript).id) & " started"
+  script_log_out !"\n" & script_log_indent() & "*" & scriptname(scriptinsts(nowscript).id) & " started"
   gam.script_log.last_logged = nowscript
  END IF
- scrat(nowscript).started = YES
+ scriptinsts(nowscript).started = YES
 END SUB
 
 'Called right before the current script terminates and has .watched = YES
@@ -263,7 +263,7 @@ SUB watched_script_finished
  IF gam.script_log.last_logged = nowscript THEN
   script_log_out " ... finished"
  ELSE
-  script_log_out !"\n" & script_log_indent() & "-" & scriptname(scrat(nowscript).id) & " finished"
+  script_log_out !"\n" & script_log_indent() & "-" & scriptname(scriptinsts(nowscript).id) & " finished"
  END IF
 
  gam.script_log.last_logged = -1
@@ -277,7 +277,7 @@ SUB script_log_tick
 
   DIM wait_msg as string = ""
   IF nowscript > -1 THEN
-   wait_msg = "waiting on " & commandname(scrat(nowscript).curvalue) & " in " & scriptname(scrat(nowscript).id)
+   wait_msg = "waiting on " & commandname(scriptinsts(nowscript).curvalue) & " in " & scriptname(scriptinsts(nowscript).id)
    IF .last_wait_msg <> wait_msg THEN
     .last_wait_msg = wait_msg
     .wait_msg_repeats = 0
@@ -303,11 +303,11 @@ END SUB
 ' The current script fibre starts waiting, halting execution
 SUB script_start_waiting(waitarg1 as integer = 0, waitarg2 as integer = 0)
  IF insideinterpreter = NO THEN scripterr "script_start_waiting called outside interpreter", serrBug
- WITH scrat(nowscript)
+ WITH scriptinsts(nowscript)
   .waitarg = waitarg1
   .waitarg2 = waitarg2
-  .state = stwait
  END WITH
+ scrat(nowscript).state = stwait
 END SUB
 
 ' Current script allowed to continue
@@ -349,7 +349,7 @@ IF index >= maxScriptRunning THEN
 END IF
 
 IF double_trigger_check AND index > 0 THEN
- IF n = scrat(index - 1).id AND readbit(gen(), genBits, 10) = 0 THEN
+ IF n = scriptinsts(index - 1).id AND readbit(gen(), genBits, 10) = 0 THEN
   'fail quietly
   '--scripterr "script " & n & " is already running"
   runscript = 2 '--quiet failure
@@ -357,16 +357,16 @@ IF double_trigger_check AND index > 0 THEN
  END IF
 END IF
 
-'--store current command data in scrat (used outside of the inner interpreter)
+'--store current command data in scriptinsts (used outside of the inner interpreter)
 IF nowscript >= 0 THEN
- WITH scrat(nowscript)
+ WITH scriptinsts(nowscript)
   .curkind = curcmd->kind
   .curvalue = curcmd->value
   .curargc = curcmd->argc
  END WITH
 END IF
 
-WITH scrat(index)
+WITH scriptinsts(index)
  '-- Load the script (or return the reference if already loaded)
  .scr = loadscript(n)
  IF .scr = NULL THEN
@@ -380,6 +380,12 @@ WITH scrat(index)
  .scr->lastuse = scriptctr
  'increment refcount once loading is successful
 
+ .id = n
+ .watched = NO
+ .started = NO
+END WITH
+
+WITH scrat(index)
  'erase state, pointer, return value and depth, set id
  .state = ststart
  .ptr = 0
@@ -387,9 +393,8 @@ WITH scrat(index)
  .depth = 0
  .id = n
  .stackbase = -1
+ .scr = scriptinsts(index).scr
  .scrdata = .scr->ptr
- .watched = NO
- .started = NO
  .curargn = 0
  curcmd = cast(ScriptCommand ptr, .scrdata + .ptr) 'just in case it's needed before subread is run
  
@@ -409,7 +414,9 @@ WITH scrat(index)
  IF newcall AND index > 0 THEN
   scrat(index - 1).state *= -1
  END IF
+END WITH
 
+WITH scriptinsts(index)
  '--we are successful, so now its safe to increment this
  .scr->refcount += 1
  nowscript += 1
@@ -419,9 +426,9 @@ END WITH
 
 #IFDEF SCRIPTPROFILE
 IF insideinterpreter THEN 'we have nowscript > 0
- TIMER_STOP(scrat(nowscript - 1).scr->totaltime)
- scrat(nowscript).scr->entered += 1
- TIMER_START(scrat(nowscript).scr->totaltime)
+ TIMER_STOP(scriptinsts(nowscript - 1).scr->totaltime)
+ scriptinsts(nowscript).scr->entered += 1
+ TIMER_START(scriptinsts(nowscript).scr->totaltime)
 END IF
 #ENDIF
 
@@ -756,10 +763,10 @@ FUNCTION script_call_chain (byval trim_front as integer = YES) as string
  END IF
 
  DIM scriptlocation as string
- scriptlocation = scriptname(scrat(nowscript).id)
+ scriptlocation = scriptname(scriptinsts(nowscript).id)
  FOR i as integer = nowscript - 1 TO 0 STEP -1
   IF scrat(i).state < 0 THEN EXIT FOR 'suspended: not part of the call chain
-  scriptlocation = scriptname(scrat(i).id) + " -> " + scriptlocation
+  scriptlocation = scriptname(scriptinsts(i).id) + " -> " + scriptlocation
  NEXT
  IF trim_front AND LEN(scriptlocation) > 150 THEN scriptlocation = " ..." + RIGHT(scriptlocation, 150)
  RETURN "  Call chain (current script last):" + CHR(10) + scriptlocation

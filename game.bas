@@ -238,7 +238,8 @@ DIM interruption_grace_period as integer
 REDIM heap(maxScriptHeap) as integer
 REDIM global(maxScriptGlobals) as integer
 REDIM retvals(32) as integer
-REDIM scrat(maxScriptRunning) as ScriptInst
+REDIM scrat(maxScriptRunning) as OldScriptState
+REDIM scriptinsts(maxScriptRunning) as ScriptInst
 REDIM script(scriptTableSize - 1) as ScriptData Ptr
 REDIM plotstr(maxScriptStrings) as Plotstring
 REDIM lookup1_bin_cache(-1 TO -1) as TriggerData
@@ -251,7 +252,7 @@ DIM last_queued_script as QueuedScript ptr
 'incredibly frustratingly fbc doesn't export global array debugging symbols
 DIM globalp as integer ptr
 DIM heapp as integer ptr
-DIM scratp as ScriptInst ptr
+DIM scratp as OldScriptState ptr
 DIM scriptp as ScriptData ptr ptr
 DIM retvalsp as integer ptr
 DIM plotslicesp as slice ptr ptr
@@ -1565,9 +1566,9 @@ run_queued_scripts
 
 reentersub:
 IF nowscript >= 0 THEN
- WITH scrat(nowscript)
+ WITH scriptinsts(nowscript)
   'IF .waiting = YES THEN
-  IF .state = stwait THEN
+  IF scrat(nowscript).state = stwait THEN
    ' Evaluate wait conditions, even if the fibre is paused (unimplemented),
    ' as waiting for unpause first will just lead to bugs eg. due to map changes
    ' (Note however that is the way the old one-script-at-a-time mode works: wait
@@ -1658,7 +1659,7 @@ IF nowscript >= 0 THEN
      script_stop_waiting()
    END SELECT
    'IF .waiting = NO THEN
-   IF .state = streturn THEN
+   IF scrat(nowscript).state = streturn THEN
     '--this allows us to resume the script without losing a game cycle
     wantimmediate = -1
    END IF

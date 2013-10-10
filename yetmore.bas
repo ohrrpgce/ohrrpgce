@@ -722,7 +722,7 @@ SUB onkeyscript (byval scriptnum as integer)
  END IF
  
  IF nowscript >= 0 THEN
-  IF scrat(nowscript).state = stwait AND scrat(nowscript).curvalue = 9 THEN
+  IF scrat(nowscript).state = stwait AND scriptinsts(nowscript).curvalue = 9 THEN
    '--never trigger a onkey script when the previous script
    '--has a "wait for key" command active
    doit = NO
@@ -1663,7 +1663,7 @@ SELECT CASE as CONST id
   IF retvals(0) >= 0 THEN gold = retvals(0)
  CASE 251'--set string from table
   IF bound_arg(retvals(0), 0, UBOUND(plotstr), "string ID", !"$# = \"...\"") THEN
-   WITH *scrat(nowscript).scr
+   WITH *scriptinsts(nowscript).scr
     DIM stringp as integer ptr = .ptr + .strtable + retvals(1)
     IF .strtable + retvals(1) >= .size ORELSE .strtable + (stringp[0] + 3) \ 4 >= .size THEN
      scripterr "script corrupt: illegal string offset", serrError
@@ -1674,7 +1674,7 @@ SELECT CASE as CONST id
   END IF
  CASE 252'--append string from table
   IF bound_arg(retvals(0), 0, UBOUND(plotstr), "string ID", !"$# + \"...\"") THEN
-   WITH *scrat(nowscript).scr
+   WITH *scriptinsts(nowscript).scr
     DIM stringp as integer ptr = .ptr + .strtable + retvals(1)
     IF .strtable + retvals(1) >= .size ORELSE .strtable + (stringp[0] + 3) \ 4 >= .size THEN
      scripterr "script corrupt: illegal string offset", serrError
@@ -2648,7 +2648,7 @@ SELECT CASE as CONST id
   FOR i as integer = 0 TO curcmd->argc - 1
    IF i MOD 2 = 0 THEN
     IF i <> 0 THEN result &= ", "
-    WITH *scrat(nowscript).scr
+    WITH *scriptinsts(nowscript).scr
      DIM stringp as integer ptr = .ptr + .strtable + retvals(i)
      IF .strtable + retvals(i) >= .size ORELSE .strtable + (stringp[0] + 3) \ 4 >= .size THEN
       scripterr "script corrupt: illegal string offset", serrError

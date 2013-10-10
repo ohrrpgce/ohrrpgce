@@ -83,7 +83,8 @@ EXTERN gold as integer
 EXTERN script() as ScriptData Ptr
 EXTERN global() as integer
 EXTERN heap() as integer
-EXTERN scrat() as ScriptInst
+EXTERN scrat() as OldScriptState
+EXTERN scriptinsts() as ScriptInst
 EXTERN retvals() as integer
 EXTERN wantimmediate as integer
 EXTERN insideinterpreter as integer
@@ -104,7 +105,7 @@ EXTERN scrqLast() as QueuedScript
 'debugger aids
 EXTERN globalp as integer ptr
 EXTERN heapp as integer ptr
-EXTERN scratp as ScriptInst ptr
+EXTERN scratp as OldScriptState ptr
 EXTERN scriptp as ScriptData ptr ptr
 EXTERN retvalsp as integer ptr
 EXTERN plotslicesp as slice ptr ptr
