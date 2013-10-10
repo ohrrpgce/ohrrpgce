@@ -12,7 +12,7 @@ Move Speed: This is the speed that the NPC will move. 1 is very slow. 4 is the h
 
 Display Text: Here you can choose a text box that will be displayed if the player activates the NPC. A preview of the first line of the text box will be displayed at the bottom of the screen.
 
-When Activated: This controls whether or not the NPC changes directons to face the player when the NPC is activated. "Change Direction" leaves the NPC in the new direction after it's done talking, while "Face Player" means that the NPC will turn back to its original direction after talking.
+When Activated: This controls whether or not the NPC changes directions to face the player when the NPC is activated. "Change Direction" leaves the NPC in the new direction after it's done talking, while "Face Player" means that the NPC will turn back to its original direction after talking.
 
 Give Item: Here you can choose an item which will be added to the player's inventory when they activate the NPC. This is most often useful for treasure chests. Note that there will be no visual display of the item being added. You might want to use a text box for that.
 

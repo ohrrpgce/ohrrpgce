@@ -16,7 +16,7 @@ When used as a Weapon: This is an attack that will be done if the item is equipp
 
 Equippable as: This determines which of a hero's equipment slots an item can be equipped to. If it is set to "NEVER EQUIPPED" then the item is not equippable. Many of the other settings in the item editor do not matter unless the item is marked as equippable.
 
-Teach Spell: This is an attck which the item can teach to a hero if it is used from the Items menu outside of battle. The hero must be able to learn the attack. Add the same attack to a hero's spell list, and mark it to be learned "From an Item".
+Teach Spell: This is an attack which the item can teach to a hero if it is used from the Items menu outside of battle. The hero must be able to learn the attack. Add the same attack to a hero's spell list, and mark it to be learned "From an Item".
 
 When used out of battle: This is an attack that will be used if the item is used from the Items menu outside of battle. This is most often used for cure potions.
 
