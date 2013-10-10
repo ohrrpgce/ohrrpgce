@@ -26,11 +26,14 @@ WHAT IS NEW?
       or mute attack. [James]
     * Attack chains conditions can now be based on the stats of the
       targets [James]
+    * "showtextbox happens immediately" general preference bitset (on for
+      new games) helps to prevent bugs due to showing two boxes at once;
+      "show textbox" now affects "current textbox" immediately [Ralph]
 
   * New Plotscripting Stuff
     * "Menu action plotscript" special script trigger to run a script
       instead of opening the main menu [Lakan Inocencio]
-  
+        
   * Performance Fixes
     * Fixed delay when opening a menu that happened when a large number
       of menus were defined [Ralph]

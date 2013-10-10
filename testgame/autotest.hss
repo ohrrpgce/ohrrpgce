@@ -1158,6 +1158,7 @@ script, npc movement tests, n, begin
   set npc position(n, 3, 5)
   
   show no value
+  $10=""
 end
 
 script, npc id tests, n, begin
@@ -1858,6 +1859,56 @@ script, textbox tests, begin
   w
   show text box(12), w, advance text box, w
   show text box(13), w, advance text box, w
+
+  variable (oldval)
+  oldval := read general(178)  # genBits2
+  assert((oldval, and, 2^2) == 2^2)  # "showtextbox happens immediately" is on
+
+  # check showtextbox isn't delayed
+  show text box(14)
+  assert(checktag(tag:textbox 14 happened) == true)
+  # no wait required before advance
+  advance textbox
+  wait
+  assert(current textbox == -1)
+  settag(tag:textbox 14 happened, false)
+
+  # check both showtextboxes work
+  show text box(14)
+  show text box(15)
+  assert(checktag(tag:textbox 14 happened) == true)
+  assert(checktag(tag:textbox 15 happened) == true)
+  advance textbox
+  settag(tag:textbox 14 happened, false)
+  settag(tag:textbox 15 happened, false)
+
+  write general(178, oldval -- 2^2) # "showtextbox happens immediately" OFF
+
+  # Check currenttextbox still updates immediately
+  show text box(2)
+  assert(current textbox == 2)
+  # wait required before advance
+  wait
+  advance text box
+  assert(current textbox == -1)
+
+  # check showtextbox is delayed
+  show text box(14)
+  assert(checktag(tag:textbox 14 happened) == false)
+  wait
+  assert(checktag(tag:textbox 14 happened) == true)
+  advance textbox
+  settag(tag:textbox 14 happened, false)
+
+  # check only last showtextbox works
+  show text box(14)
+  show text box(15)
+  wait
+  assert(checktag(tag:textbox 14 happened) == false)
+  assert(checktag(tag:textbox 15 happened) == true)
+  advance textbox
+
+  write general(178, oldval)
 end
 
 ########################################################################

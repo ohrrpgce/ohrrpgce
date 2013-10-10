@@ -2446,7 +2446,7 @@ END SUB
 SUB item_menu_use_item(byval slot as integer, istate as ItemsMenuState, iuse() as integer, permask() as integer)
  IF inventory(slot).used = NO THEN EXIT SUB
 
- DIM consumed as integer = NO
+ DIM consumed as bool = NO
 
  '--repaint the item menu so it can be the background for the menu_attack_targ_picker
  items_menu_paint istate, iuse(), permask()
@@ -2459,12 +2459,12 @@ SUB item_menu_use_item(byval slot as integer, istate as ItemsMenuState, iuse() a
  END IF
 END SUB
 
-FUNCTION use_item_in_slot(byval slot as integer, byref trigger_box as integer, byref consumed as integer) as integer
+FUNCTION use_item_in_slot(byval slot as integer, byref trigger_box as integer, byref consumed as bool = NO) as integer
  '--slot is the index in your inventory
  
  '--trigger_box is used to communicate when an item has triggered a text box (note, box 0 can't be triggered)
 
- '--consumed communicates whether the item was actually consumed
+ '--consumed optionally communicates whether the item was actually consumed
  
  '--return value is YES when an item is used, and NO when it is not used.
 

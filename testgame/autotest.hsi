@@ -7,6 +7,8 @@ define constant, begin
 5,tag:atk use test tag
 6,tag:atk use test no req
 7,tag:door req tag
+8,tag:textbox 14 happened
+9,tag:textbox 15 happened
 0,hero:Freki
 1,hero:Helga
 2,hero:Olaf

@@ -33,6 +33,7 @@
 DECLARE SUB checkdoors ()
 DECLARE SUB usedoor (byval door_id as integer)
 DECLARE SUB advance_text_box ()
+DECLARE FUNCTION immediate_showtextbox() as bool
 DECLARE FUNCTION want_to_check_for_walls(byval who as integer) as integer
 DECLARE SUB update_npcs ()
 DECLARE SUB pick_npc_action(npci as NPCInst, npcdata as NPCType)
@@ -122,7 +123,6 @@ DIM SHARED wantbox as integer
 DIM SHARED wantdoor as integer
 DIM SHARED wantbattle as integer
 DIM SHARED wantteleport as integer
-DIM SHARED wantusenpc as integer
 DIM SHARED wantloadgame as integer
 DIM SHARED scriptout as string
 
@@ -590,7 +590,6 @@ wantbox = 0
 wantdoor = 0
 wantbattle = 0
 wantteleport = 0
-wantusenpc = 0
 wantloadgame = 0
 
 txt.showing = NO
@@ -1713,10 +1712,10 @@ gam.script_log.tick += 1
 'if we make fades customisable) that one tick delay is undesired.
 'So consider delaying all calls to preparemap (and doloadgame) until the start of the next tick.
 
-IF wantbox > 0 THEN
+IF immediate_showtextbox = NO AND wantbox > 0 THEN
  loadsay wantbox
- wantbox = 0
 END IF
+wantbox = 0
 IF wantdoor > 0 THEN
  usedoor wantdoor - 1
  wantdoor = 0
@@ -1735,10 +1734,6 @@ IF wantteleport > 0 THEN
  prepare_map
  gam.random_battle_countdown = range(100, 60)
 END IF
-IF wantusenpc > 0 THEN
- usenpc 2, wantusenpc - 1
- wantusenpc = 0
-END IF
 'ALSO wantloadgame
 END SUB
 
@@ -1753,7 +1748,9 @@ SUB sfunctions(byval cmdid as integer)
   'access to main-module shared variables (rather few of the commands actually here)
   SELECT CASE as CONST cmdid
    CASE 11'--Show Text Box (box)
-    wantbox = retvals(0)
+    'showtextbox(0) does nothing
+    wantbox = large(0, retvals(0))
+    IF immediate_showtextbox ANDALSO wantbox > 0 THEN loadsay wantbox: wantbox = 0
    CASE 15'--use door
     wantdoor = retvals(0) + 1
     script_start_waiting(0)
@@ -1786,8 +1783,8 @@ SUB sfunctions(byval cmdid as integer)
    CASE 35'--use NPC
     npcref = getnpcref(retvals(0), 0)
     IF npcref >= 0 THEN
-     wantusenpc = npcref + 1
-     script_start_waiting(0)
+     usenpc 2, npcref
+     script_start_waiting()
     END IF
    CASE 37'--use shop
     IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxShop) THEN
@@ -1920,7 +1917,7 @@ SUB sfunctions(byval cmdid as integer)
     minimap catx(0), caty(0)
    CASE 153'--items menu
     wantbox = items_menu
-    'Note script not put into wait state if a textbox is shown
+    IF wantbox ANDALSO immediate_showtextbox THEN loadsay wantbox: wantbox = 0
    CASE 155, 170'--save menu
     'ID 155 is a backcompat hack
     scriptret = picksave(0) + 1
@@ -2222,6 +2219,7 @@ SUB sfunctions(byval cmdid as integer)
    CASE 320'--current text box
     scriptret = -1
     IF txt.showing = YES THEN scriptret = txt.id
+    IF immediate_showtextbox = NO ANDALSO wantbox > 0 THEN scriptret = wantbox
    CASE 432 '--use menu item
     mislot = find_menu_item_handle(retvals(0), menuslot)
     IF valid_menuslot_and_mislot(menuslot, mislot) THEN
@@ -2236,14 +2234,15 @@ SUB sfunctions(byval cmdid as integer)
      IF use_item_by_id(retvals(0), wantbox) THEN
       scriptret = 1
      END IF
+     IF immediate_showtextbox ANDALSO wantbox > 0 THEN loadsay wantbox: wantbox = 0
     END IF
    CASE 491'--use item in slot (slot)
     scriptret = 0
     IF valid_item_slot(retvals(0)) THEN
-     DIM consumed as integer '--throwaway, this is not used for anything in this context. use_item_in_slot() just needs it.
-     IF use_item_in_slot(retvals(0), wantbox, consumed) THEN
+     IF use_item_in_slot(retvals(0), wantbox) THEN
       scriptret = 1
      END IF
+     IF immediate_showtextbox ANDALSO wantbox > 0 THEN loadsay wantbox: wantbox = 0
     END IF
    CASE 517'--menu item by true slot
     menuslot = find_menu_handle(retvals(0))
@@ -3231,6 +3230,10 @@ SUB usedoor (byval door_id as integer)
   gam.random_battle_countdown = range(100, 60)
  END WITH
 END SUB
+
+FUNCTION immediate_showtextbox() as bool
+ RETURN xreadbit(gen(), 18, genBits2)
+END FUNCTION
 
 SUB advance_text_box ()
  update_virtual_gamepad_display YES
