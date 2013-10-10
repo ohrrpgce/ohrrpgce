@@ -3010,6 +3010,31 @@ end function
 
 ---------------------------------------------------------------------------
 
+--Given a variable token for 'for' or 'setvariable', etc. (parent) and list of locals/non-locals 'vars',
+--return a an integer ID token, or throw an error if not a variable.
+function convert_variable_to_id(sequence var,sequence locals,sequence parent)
+  integer id
+  integer argkind
+  integer var_at
+  argkind=what_kind(var,locals,false)
+  if argkind=KIND_LOCAL then
+    var_at=find_in_column(var[CMD_TEXT],locals,CMD_TEXT)
+    id=-var_at
+  elsif argkind=KIND_GLOBAL then
+    var_at=find(var[CMD_TEXT],global_list[PAIR_NAME])
+    id=global_list[PAIR_NUM][var_at]
+  else
+    --It's not a variable. bad!
+    src_error(sprintf_utf(
+      "first argument of "&COLYEL&"%s"&COLRED&" must be a variable, not %s "&COLYEL&"%s"&COLRED
+      ,{parent,KIND_LONGNAMES[argkind],var[CMD_TEXT]}
+    ),var[CMD_POS])
+  end if
+  return {sprintf("%d",{id}),var[CMD_TEXT]}
+end function
+
+---------------------------------------------------------------------------
+
 --parse the script tree and make if absorb then and else, for and while absorb do, switch absorb stuff, check correctness of flow statements
 --Note that several of these checks are now redundant to the check for 'begin' performed in get_script_cmd
 function normalize_flow_control(sequence tree,sequence vars,sequence parent)
@@ -3125,6 +3150,7 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
       end if
 
     elsif compare("for",s)=0 then
+      --Handle regular arguments
       if length(args)<3 then
         src_error(sprintf_utf(COLYEL&"for"&COLRED&" statement needs three or four arguments",{}),pos)
       elsif length(args)>4 then
@@ -3136,31 +3162,20 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
       ctr=args[1][TREE_TRUNK]
       argkind=what_kind(ctr,vars,true)
       if argkind=KIND_LOCAL then
-        --translate into a numeric reference to a variable
         used_locals=append(used_locals,ctr[CMD_TEXT])
-        var_at=find_in_column(ctr[CMD_TEXT],vars,CMD_TEXT)
-        ctr[CMD_TEXT]=sprintf("-%d",{var_at})
       elsif argkind=KIND_GLOBAL then
         --warn, then translate into a numeric reference to a variable
         src_warn(sprintf_utf(
           "Using global variable "&COLYEL&"%s"&COLRED&" as the counter in a "&COLYEL&"for"&COLRED&" loop"
          ,{ctr[CMD_TEXT]}
         ),ctr[CMD_POS])
-        var_at=find(ctr[CMD_TEXT],global_list[PAIR_NAME])
-        args[1][TREE_TRUNK][CMD_TEXT]=sprintf("%d",{global_list[PAIR_NUM][var_at]})
-      else
-        --only variables allowed as the first argument of a "for"
-        src_error(
-           sprintf_utf("first argument of "&COLYEL&"for"&COLRED&" statement must be a variable, not %s "&COLYEL&"%s"&COLRED,{
-              KIND_LONGNAMES[argkind]
-             ,ctr[CMD_TEXT]
-           })
-          ,ctr[CMD_POS]
-        )
       end if
+      args[1][TREE_TRUNK]=convert_variable_to_id(ctr,vars,"for")
       check_is_expression(args[2],s)
       check_is_expression(args[3],s)
       check_is_expression(args[4],s)
+
+      --Handle "do"
       if ptr<length(tree) then
         --there is room
         if compare("do",tree[ptr+1][TREE_TRUNK][CMD_TEXT])=0 then
@@ -3296,52 +3311,58 @@ end function
 
 ---------------------------------------------------------------------------
 
+--Ensure correct number of arguments, add defaults, and translate variables to IDs in assignments
 function fix_arguments(sequence tree,integer kind,sequence list,sequence vars)
-  integer at,var_at
-  integer argkind
+  integer at
   integer argnum,maxargs
-  argnum=length(tree[TREE_BRANCHES])
-  at=find_in_column(tree[TREE_TRUNK][CMD_TEXT],list,PAIR_NAME)
+  sequence args
+  sequence funcname
+  srcpos funcpos
+  funcname=tree[TREE_TRUNK][CMD_TEXT]
+  funcpos=tree[TREE_TRUNK][CMD_POS]
+  args=tree[TREE_BRANCHES]
+  argnum=length(args)
+  at=find_in_column(funcname,list,PAIR_NAME)
   if equal(list[at][FUNC_ARGS],VAR_ARGS) then
-    return(tree[TREE_BRANCHES])
+    return(args)
   else
     maxargs=length(list[at][FUNC_ARGS])
   end if
   if maxargs < argnum then
     src_error(sprintf_utf(
       "%s "&COLYEL&"%s"&COLRED&" takes at most %d arguments but is being passed %d arguments"
-      ,{KIND_LONGNAMES[kind],tree[TREE_TRUNK][CMD_TEXT],maxargs,argnum}
-    ),tree[TREE_BRANCHES][maxargs+1][TREE_TRUNK][CMD_POS])
+      ,{KIND_LONGNAMES[kind],funcname,maxargs,argnum}
+    ),args[maxargs+1][TREE_TRUNK][CMD_POS])
   elsif maxargs > argnum then
     --add defaults if not enough args are present
     if kind=KIND_MATH then
       --special processing for math
-      if list[at][PAIR_NUM]<16 or list[at][PAIR_NUM]>=19 then
+      if list[at][PAIR_NUM]<=15 or list[at][PAIR_NUM]>=19 then
         --math shouldnt have defaults
         src_error(sprintf_utf(
           "math function "&COLYEL&"%s"&COLRED&" is being passed %d arguments but it should always have %d"
-          ,{tree[TREE_TRUNK][CMD_TEXT],argnum,maxargs}
-        ),tree[TREE_TRUNK][CMD_POS])
+          ,{funcname,argnum,maxargs}
+        ),funcpos)
       else
         --variable assignment commands can have defaults
         if argnum = 0 then
           --no defaults for first argument of variable function
           src_error(sprintf_utf(
             "variable manipulation function "&COLYEL&"%s"&COLRED&" has %d arguments - it needs at least 1"
-            ,{tree[TREE_TRUNK][CMD_TEXT],argnum}
-          ),tree[TREE_TRUNK][CMD_POS])
+            ,{funcname,argnum}
+          ),funcpos)
         elsif argnum = 1 then
           --make defaults for second arg of variable function
           if list[at][PAIR_NUM]=16 then
             --setvariable
-            tree[TREE_BRANCHES]=append(tree[TREE_BRANCHES],{
-               {"0",tree[TREE_TRUNK][CMD_POS]}
+            args=append(args,{
+               {"0",funcpos}
               ,{}
             })
           else
             --increment and decrement
-            tree[TREE_BRANCHES]=append(tree[TREE_BRANCHES],{
-               {"1",tree[TREE_TRUNK][CMD_POS]}
+            args=append(args,{
+               {"1",funcpos}
               ,{}
             })
           end if
@@ -3353,43 +3374,30 @@ function fix_arguments(sequence tree,integer kind,sequence list,sequence vars)
         if equal(list[at][FUNC_ARGS][i],NO_DEFAULT) then
           src_error(sprintf_utf(
             "%s "&COLYEL&"%s"&COLRED&" has no default for missing argument %d"
-            ,{KIND_LONGNAMES[kind],tree[TREE_TRUNK][CMD_TEXT],i}
-          ),tree[TREE_TRUNK][CMD_POS])
+            ,{KIND_LONGNAMES[kind],funcname,i}
+          ),funcpos)
         end if
-        tree[TREE_BRANCHES]=append(tree[TREE_BRANCHES],{
-           {sprintf("%d",{list[at][FUNC_ARGS][i]}),tree[TREE_TRUNK][CMD_POS]}
+        args=append(args,{
+           {sprintf("%d",{list[at][FUNC_ARGS][i]}),funcpos}
           ,{}
         })
       end for
     end if
   end if
-  --this is as good a time as any to make sure that var manipulation functions point to real variables
-  if kind=KIND_MATH and list[at][PAIR_NUM]>=16 and list[at][PAIR_NUM]<19 then
-    argkind=what_kind(tree[TREE_BRANCHES][1][TREE_TRUNK],vars,false)
-    if argkind=KIND_LOCAL then
-      --its local. translate it to a numeric reference
-      var_at=find_in_column(tree[TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT],vars,CMD_TEXT)
-      tree[TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT]=sprintf("-%d",{var_at})
-    elsif argkind=KIND_GLOBAL then
-      --its global. translate it to a numeric reference
-      var_at=find(tree[TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT],global_list[PAIR_NAME])
-      tree[TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT]=sprintf("%d",{global_list[PAIR_NUM][var_at]})
-    else
-      --its not a variable. bad!
-      src_error(sprintf_utf(
-        "first argument of variable manipulation function "&COLYEL&"%s"&COLRED&" must be a variable, not %s "&COLYEL&"%s"&COLRED
-        ,{tree[TREE_TRUNK][CMD_TEXT],KIND_LONGNAMES[argkind],tree[TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT]}
-      ),tree[TREE_BRANCHES][1][TREE_TRUNK][CMD_POS])
-    end if
+  --Translate variables in the variable manipulation functions
+  if kind=KIND_MATH and list[at][PAIR_NUM]>=16 and list[at][PAIR_NUM]<=18 then
+    args[1][TREE_TRUNK]=convert_variable_to_id(args[1][TREE_TRUNK],vars,funcname)
   end if
-  return(tree[TREE_BRANCHES])
+  return(args)
 end function
 
 ---------------------------------------------------------------------------
 
+--Calls fix_arguments
 function normalize_arguments(sequence tree,sequence vars)
   integer kind
-  --unlike the flow normalization and operator translation we do not insert/delete elements from the current level, so we can use a "for" safely, and dont need a "while"
+  --Unlike the flow normalization and operator translation we do not insert/delete elements from
+  --the current level, so we can use a "for" safely, and dont need a "while"
   for i=1 to length(tree) do
     kind=what_kind(tree[i][TREE_TRUNK],vars,false)
     if kind=KIND_SCRIPT then
