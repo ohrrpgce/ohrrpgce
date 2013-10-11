@@ -989,20 +989,23 @@ FUNCTION justextension (filename as string) as string
   END IF
 END FUNCTION
 
-FUNCTION get_driveletter (pathname as string) as string
+'If a path is absolute return the root directory: / on Unix, X:/ or X:\ or / or \ on Windows
+'Otherwise return ""
+'FIXME: should handle network paths on Windows too
+FUNCTION get_path_root (pathname as string) as string
 #IFDEF __FB_WIN32__
   DIM first as string = LCASE(LEFT(pathname, 1))
-  IF first >= "a" ANDALSO first <= "z" ANDALSO MID(pathname, 2, 2) = ":\" THEN RETURN MID(pathname, 1, 3)
+  DIM temp as string = MID(pathname, 2, 2)
+  IF first >= "a" ANDALSO first <= "z" ANDALSO (temp = ":\" OR temp = ":/") THEN
+    RETURN MID(pathname, 1, 3)
+  END IF
 #ENDIF
+  IF LEN(pathname) ANDALSO ispathsep(pathname[0]) THEN RETURN MID(pathname, 1, 1)
   RETURN ""
 END FUNCTION
 
 FUNCTION is_absolute_path (sDir as string) as integer
-  IF left(sDir, 1) = SLASH THEN RETURN -1
-#IFDEF __FB_WIN32__
-  IF LEN(get_driveletter(sDir)) THEN RETURN -1
-#ENDIF
-  RETURN 0
+  RETURN LEN(get_path_root(sDir)) <> 0
 END FUNCTION
 
 'Make a path absolute. See also absolute_with_orig_path
@@ -1027,12 +1030,10 @@ FUNCTION simplify_path(sDir as string) as string
   DIM pathname as string = normalize_path(sDir)
   DIM isabsolute as integer = is_absolute_path(pathname)
   'remove drive letter
-  DIM driveletter as string = get_driveletter(pathname)
-  DIM ret as string = driveletter
-  IF LEN(driveletter) THEN
-   pathname = MID(pathname, 3)
-  ELSEIF isabsolute THEN
-   ret = SLASH
+  DIM ret as string = get_path_root(pathname)
+  'Trim everything except the final slash of the root
+  IF LEN(ret) THEN
+   pathname = MID(pathname, LEN(ret))
   END IF
 
   split pathname, piecesarray(), SLASH
