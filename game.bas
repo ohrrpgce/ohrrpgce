@@ -4204,21 +4204,24 @@ threshhold = -1
  NEXT i
 END SUB
 
-SUB update_virtual_gamepad_display(byval advancing_text_now as bool=NO)
+SUB update_virtual_gamepad_display(byval advancing_text_now as bool=NO, byval in_battle as bool=NO)
  'Based on global state, of the current game, decide whether or not the virual gamepad should be displaying
- IF calc_virtual_gamepad_state(advancing_text_now) THEN
+ IF calc_virtual_gamepad_state(advancing_text_now, in_battle) THEN
   show_virtual_gamepad()
  ELSE
   hide_virtual_gamepad()
  END IF
 END SUB
 
-FUNCTION calc_virtual_gamepad_state(byval advancing_text_now as bool=NO) as bool
+FUNCTION calc_virtual_gamepad_state(byval advancing_text_now as bool=NO, byval in_battle as bool=NO) as bool
  'None of this matters unless we are running on a platform that actually uses a virtual gamepad
  IF NOT running_on_mobile() THEN RETURN NO
 
  'The gamepad might be completely disabled for this game
  IF should_disable_virtual_gamepad() THEN RETURN NO
+ 
+ 'Inside battle mode, force the gamepad visible
+ IF in_battle THEN RETURN YES
 
  'Special handling is required when advancing a textbox. This ensures
  ' that battles, shops, and inns sandwiched between textboxes have

@@ -1323,13 +1323,19 @@ SUB reset_game_state ()
    END SELECT
   END WITHNODE
  END READNODE
- 
+
+ remap_virtual_gamepad("virtual_gamepad")
+
+END SUB
+
+SUB remap_virtual_gamepad(nodename as string)
+ DIM root as NodePtr = get_general_reld()
  DIM mobile as NodePtr = root."mobile_options".ptr
  IF mobile = 0 THEN mobile = SetChildNode(root, "mobile_options")
- DIM vgp as NodePtr = mobile."virtual_gamepad".ptr
+ DIM vgp as NodePtr = GetChildByName(mobile, nodename)
  IF vgp = 0 THEN
   'node does not exist, create defaults
-  vgp = SetChildNode(mobile, "virtual_gamepad")
+  vgp = SetChildNode(mobile, nodename)
   AppendChildNode(vgp, "button", scEnter)
   AppendChildNode(vgp, "button", scESC)
  END IF

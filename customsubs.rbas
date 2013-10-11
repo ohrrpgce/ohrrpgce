@@ -4476,6 +4476,16 @@ SUB edit_platform_options ()
   AppendChildNode(vgp, "button", scESC)
  END IF
 
+ DIM vgpb as NodePtr
+ IF mobile."virtual_gamepad_battle".exists THEN
+  vgpb = mobile."virtual_gamepad_battle".ptr
+ ELSE
+  'Node does not exist, create it and set defaults
+  vgpb = SetChildNode(mobile, "virtual_gamepad_battle")
+  AppendChildNode(vgpb, "button", scEnter)
+  AppendChildNode(vgpb, "button", scESC)
+ END IF
+
  DIM gamepad as NodePtr
  IF gen_root."gamepad".exists THEN
   gamepad = gen_root."gamepad".ptr
@@ -4534,7 +4544,7 @@ SUB edit_platform_options ()
     menu.last->t = platformoptTOGGLEVGAMEPAD
  
     IF NOT mobile."disable_virtual_gamepad".exists THEN
-     append_menu_item menu, "Phone/Tablet virtual gamepad"
+     append_menu_item menu, "Phone/Tablet virtual gamepad (Normal)"
      menu.last->unselectable = YES
      menu.last->disabled = YES
      
@@ -4554,9 +4564,36 @@ SUB edit_platform_options ()
      IF vbutton_count < vbutton_max THEN
       append_menu_item menu, "Add another button"
       menu.last->t = platformoptADDVBUTTON
+      menu.last->dataptr = vgp
+     END IF
+
+     append_menu_item menu, "Phone/Tablet virtual gamepad (Battle Mode)"
+     menu.last->unselectable = YES
+     menu.last->disabled = YES
+     
+     vbutton_count = 0
+     READNODE vgpb
+      WITHNODE vgpb."button" as but
+       vbutton_count += 1
+       IF vbutton_count > 6 THEN
+        debug "WARNING: not allowed to have more than 6 mobile virtual gamepad buttons"
+       ELSE
+        append_menu_item menu, "Button " & vbutton_count - 1 & ": " & scancode_to_name(GetInteger(but))
+        menu.last->t = platformoptVBUTTON
+        menu.last->dataptr = but
+       END IF
+      END WITHNODE
+     END READNODE
+     IF vbutton_count < vbutton_max THEN
+      append_menu_item menu, "Add another button"
+      menu.last->t = platformoptADDVBUTTON
+      menu.last->dataptr = vgpb
      END IF
     
     END IF
+
+    append_menu_item menu, ""
+    menu.last->unselectable = YES
 
     append_menu_item menu, "Touch Textboxes: " & yesorno(mobile."touch_textboxes".exists)
     menu.last->t = platformoptTOGGLETOUCHTEXTBOXES
@@ -4662,7 +4699,7 @@ SUB edit_platform_options ()
       st.need_update = YES
      END IF
     CASE platformoptADDVBUTTON:
-     AppendChildNode(vgp, "button", 0)
+     AppendChildNode(node, "button", 0)
      st.need_update = YES
     CASE platformoptBUTTONNAMES:
      edit_button_name_strings

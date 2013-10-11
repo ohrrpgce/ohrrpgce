@@ -102,7 +102,7 @@ DECLARE SUB refresh_keepalive_file ()
 DECLARE FUNCTION read_keepalive_as_days (keepalive_file as string) as integer
 DECLARE FUNCTION guess_age_by_tmpdir_name(dirname as string) as integer
 
-DECLARE SUB update_virtual_gamepad_display(byval advancing_text_now as bool=NO)
-DECLARE FUNCTION calc_virtual_gamepad_state(byval advancing_text_now as bool=NO) as bool
+DECLARE SUB update_virtual_gamepad_display(byval advancing_text_now as bool=NO, byval in_battle as bool=NO)
+DECLARE FUNCTION calc_virtual_gamepad_state(byval advancing_text_now as bool=NO, byval in_battle as bool=NO) as bool
 
 #ENDIF
