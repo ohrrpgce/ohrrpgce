@@ -67,7 +67,7 @@ DECLARE SUB cleanup_and_terminate ()
 DECLARE SUB import_scripts_and_terminate (scriptfile as string)
 DECLARE SUB prompt_for_password()
 DECLARE SUB prompt_for_save_and_quit()
-DECLARE SUB choose_rpg_to_open ()
+DECLARE SUB choose_rpg_to_open (rpg_browse_default as string)
 DECLARE SUB main_editor_menu()
 DECLARE SUB gfx_editor_menu()
 
@@ -106,6 +106,7 @@ DIM running_as_slave as integer = NO  'This is just for the benefit of gfx_sdl
 DIM scriptfile as string
 DIM archinym as string
 DIM SHARED nocleanup as integer = NO
+DIM rpg_browse_default as string = ""
 
 '--Startup
 
@@ -185,16 +186,23 @@ FOR i as integer = 1 TO UBOUND(cmdline_args)
  IF (extn = "hs" OR extn = "hss" OR extn = "txt") AND isfile(arg) THEN
   scriptfile = arg
   CONTINUE FOR
- ELSEIF (extn = "rpg" AND isfile(arg)) ORELSE isdir(arg) THEN
+ ELSEIF extn = "rpg" AND isfile(arg) THEN
   sourcerpg = arg
   game = trimextension(trimpath(sourcerpg))
+ ELSEIF isdir(arg) THEN
+  IF isfile(arg + SLASH + "archinym.lmp") THEN 'ok, accept it
+   sourcerpg = arg
+   game = trimextension(trimpath(sourcerpg))
+  ELSE
+   rpg_browse_default = arg
+  END IF
  ELSE
   visible_debug !"File not found/invalid option:\n" & cmdline_args(i)
  END IF
 NEXT
 IF game = "" THEN
  scriptfile = ""
- choose_rpg_to_open()
+ choose_rpg_to_open(rpg_browse_default)
 END IF
 
 IF NOT is_absolute_path(sourcerpg) THEN sourcerpg = absolute_path(sourcerpg)
@@ -472,7 +480,7 @@ SUB gfx_editor_menu()
 
 END SUB
 
-SUB choose_rpg_to_open ()
+SUB choose_rpg_to_open (rpg_browse_default as string)
  'This sub sets the globals: game and sourcerpg
 
  DIM state as MenuState
@@ -504,7 +512,7 @@ SUB choose_rpg_to_open ()
        EXIT DO
      END IF
     CASE 1
-     sourcerpg = browse(7, "", "*.rpg", tmpdir, 0, "custom_browse_rpg")
+     sourcerpg = browse(7, rpg_browse_default, "*.rpg", tmpdir, 0, "custom_browse_rpg")
      game = trimextension(trimpath(sourcerpg))
      IF game <> "" THEN EXIT DO
     CASE 2

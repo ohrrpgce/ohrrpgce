@@ -325,6 +325,7 @@ unhidemousecursor  'init mouse state
 
 gam.autorungame = NO
 usepreunlump = NO
+DIM rpg_browse_default as string = ""  'local variable
 
 '---get work dir and exe name---
 'DEBUG debug "setup directories"
@@ -371,6 +372,8 @@ ELSE  'NOT running_as_slave
     usepreunlump = YES
     sourcerpg = arg
     workingdir = arg
+   ELSE
+    rpg_browse_default = arg
    END IF
    EXIT FOR
   ELSE
@@ -422,7 +425,7 @@ END IF
 IF gam.autorungame = NO THEN
  'DEBUG debug "browse for RPG"
  show_virtual_gamepad()
- sourcerpg = browse(7, "", "*.rpg", tmpdir, 1, "game_browse_rpg")
+ sourcerpg = browse(7, rpg_browse_default, "*.rpg", tmpdir, 1, "game_browse_rpg")
  hide_virtual_gamepad()
  IF sourcerpg = "" THEN exitprogram NO
  IF isdir(sourcerpg) THEN
