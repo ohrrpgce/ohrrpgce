@@ -905,29 +905,36 @@ FUNCTION normalize_path(filename as string) as string
   RETURN ret
 END FUNCTION
 
+FUNCTION trim_trailing_slashes(filename as string) as string
+  DIM retend as integer = LEN(filename)
+  WHILE retend > 0
+    DIM ch as byte = filename[retend - 1]
+    IF ispathsep(ch) THEN
+      retend -= 1
+    ELSE
+      EXIT WHILE
+    END IF
+  WEND
+  RETURN MID(filename, 1, retend)
+END FUNCTION
+
 FUNCTION trimpath(filename as string) as string
   'Return the file/directory name without path, and without trailing slash
   'See testcases below
-  DIM i as integer
-  DIM retend as integer = LEN(filename)
-  DIM ch as byte
-  IF retend > 0 THEN
-    ch = filename[retend - 1]
-    IF ispathsep(ch) THEN retend -= 1
-  END IF
-  FOR i = retend TO 1 STEP -1
-    IF ispathsep(filename[i - 1]) THEN
-      RETURN MID(filename, i + 1, retend - (i + 1) + 1)
+  DIM temp as string = trim_trailing_slashes(filename)
+  FOR i as integer = LEN(temp) TO 1 STEP -1
+    IF ispathsep(temp[i - 1]) THEN
+      RETURN MID(temp, i + 1, LEN(temp) - (i + 1) + 1)
     END IF
   NEXT
-  RETURN MID(filename, 1, retend)
+  RETURN temp
 END FUNCTION
 
 #IFDEF __FB_MAIN__
 #DEFINE testtrimp(path, expected) testEqual(trimpath(path), normalize_path(expected))
 
 startTest(trimpath)
-  testtrimp("a/b/cat//", "cat")  'fails
+  testtrimp("a/b/cat//", "cat")
   testtrimp("a/b/cat/",  "cat")
   testtrimp("a/b/cat",   "cat")
   testtrimp("cat/",      "cat")
@@ -938,24 +945,31 @@ endTest
 #ENDIF
 
 FUNCTION trimfilename (filename as string) as string
-  'Return the path without the filename, and without trailing slash
-  'NOT the complement to trimpath:
-  'Eg. "a/b/c/" -> "a/b/c"
-  DIM i as integer
-  DIM ret as string = normalize_path(filename)
-  RETURN MID(ret, 1, large(0, INSTRREV(ret, SLASH) - 1))
+  'Trim the last component of a path (which may be a directory rather than file!)
+  'Return path without trailing slash. See testcases.
+  'This is the complement to trimpath
+  DIM ret as string = trim_trailing_slashes(normalize_path(filename))
+  ret = MID(ret, 1, large(0, INSTRREV(ret, SLASH) - 1))
+  IF is_absolute_path(filename) AND is_absolute_path(ret) = NO THEN
+    RETURN get_path_root(filename)
+  END IF
+  return ret
 END FUNCTION
 
 #IFDEF __FB_MAIN__
 #DEFINE testtrimf(path, expected) testEqual(trimfilename(path), normalize_path(expected))
 
 startTest(trimfilename)
-  testtrimf("a/b/cat//", "a/b/cat")  'fails
-  testtrimf("a/b/cat/",  "a/b/cat")
+  testtrimf("a/b/cat//", "a/b")
+  testtrimf("a/b/cat/",  "a/b")
   testtrimf("a/b/cat",   "a/b")
-  testtrimf("cat/",      "cat")
-  testtrimf("/cat/",     "/cat")
-  testtrimf("",          "")
+  testtrimf("cat/",      "")
+  testtrimf("/cat/",     "/")
+  #IFDEF __FB_WIN32__
+    testtrimf("c:/vak",          "c:\")
+    testtrimf("c:\vak/",         "c:\")
+    testtrimf("c:\",             "c:\")
+  #ENDIF
 endTest
 #ENDIF
 

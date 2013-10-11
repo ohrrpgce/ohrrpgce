@@ -4147,11 +4147,8 @@ END FUNCTION
 
 SUB cleanup_other_temp_files ()
 
- DIM tmp_tmp as string = tmpdir
- IF RIGHT(tmp_tmp, 1) = SLASH THEN tmp_tmp = LEFT(tmp_tmp, LEN(tmp_tmp) - 1)
-
- DIM tmp_parent as string = trimfilename(tmp_tmp)
- DIM tmp_cur as string = trimpath(tmp_tmp)
+ DIM tmp_parent as string = trimfilename(tmpdir)
+ DIM tmp_cur as string = trimpath(tmpdir)
  
  REDIM filelist() as string
  'Modern tmp dirs would match the pattern "ohrrpgce*.tmp" but this would miss old tmp dirs.

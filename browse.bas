@@ -121,12 +121,13 @@ IF remember = "" THEN remember = curdir & SLASH
 IF default = "" THEN
  default = remember
 END IF
-startfile = default
-br.nowdir = trimfilename(startfile) & SLASH
-IF RIGHT(startfile, 1) = SLASH THEN
+default = simplify_path(default)
+IF isdir(default) THEN
+ br.nowdir = default & SLASH
  startfile = ""
 ELSE
- startfile = trimpath(startfile)
+ br.nowdir = trimfilename(default) & SLASH
+ startfile = trimpath(default)
 END IF
 
 IF br.special = 7 THEN br.mstate.size = 16 ELSE br.mstate.size = 17
