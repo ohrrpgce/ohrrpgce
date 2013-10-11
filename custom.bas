@@ -191,7 +191,7 @@ FOR i as integer = 1 TO UBOUND(cmdline_args)
   game = trimextension(trimpath(sourcerpg))
  ELSEIF isdir(arg) THEN
   IF isfile(arg + SLASH + "archinym.lmp") THEN 'ok, accept it
-   sourcerpg = arg
+   sourcerpg = trim_trailing_slashes(arg)
    game = trimextension(trimpath(sourcerpg))
   ELSE
    rpg_browse_default = arg

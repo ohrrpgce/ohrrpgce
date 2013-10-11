@@ -370,7 +370,7 @@ ELSE  'NOT running_as_slave
    IF isfile(arg + SLASH + "archinym.lmp") THEN 'ok, accept it
     gam.autorungame = YES
     usepreunlump = YES
-    sourcerpg = arg
+    sourcerpg = trim_trailing_slashes(arg)
     workingdir = arg
    ELSE
     rpg_browse_default = arg
