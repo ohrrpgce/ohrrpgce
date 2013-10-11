@@ -1556,18 +1556,9 @@ SUB npchitwall(npci as NPCInst, npcdata as NPCType)
  END IF
 END SUB
 
-SUB interpret()
-
-'It seems like it would be good to call this immediately before script_interpreter so that
-'the return values of fightformation and waitforkey are correct, however doing so might
-'break something?
-run_queued_scripts
-
-reentersub:
-IF nowscript >= 0 THEN
+SUB process_wait_conditions()
  WITH scriptinsts(nowscript)
-  'IF .waiting = YES THEN
-  IF scrat(nowscript).state = stwait THEN
+
    ' Evaluate wait conditions, even if the fibre is paused (unimplemented),
    ' as waiting for unpause first will just lead to bugs eg. due to map changes
    ' (Note however that is the way the old one-script-at-a-time mode works: wait
@@ -1657,84 +1648,104 @@ IF nowscript >= 0 THEN
      scripterr "illegal wait substate " & .curvalue, serrBug
      script_stop_waiting()
    END SELECT
-   'IF .waiting = NO THEN
-   IF scrat(nowscript).state = streturn THEN
-    '--this allows us to resume the script without losing a game cycle
-    wantimmediate = -1
+
+ END WITH
+END SUB
+
+SUB execute_script_fibres
+ WHILE nowscript >= 0
+  WITH scriptinsts(nowscript)
+   'IF .waiting = YES THEN
+   IF scrat(nowscript).state = stwait THEN
+    process_wait_conditions
    END IF
-  ELSE
+   IF scrat(nowscript).state = stwait THEN
+    EXIT WHILE
+   END IF
+
    '--interpret script
    insideinterpreter = YES
+   wantimmediate = 0
+   'May set wantimmediate to -1 to indicate fibre finished, or -2 to indicate fibre
+   'finished in way that triggered bug 430
    scriptinterpreter
    insideinterpreter = NO
-  END IF
- IF wantimmediate = -2 THEN
-'  IF nowscript < 0 THEN
-'   debug "wantimmediate ended on nowscript = -1"
-'  ELSE
-'   debug "wantimmediate would have skipped wait on command " & commandname(scrat(nowscript).curvalue) & " in " & scriptname(scrat(nowscript).id) & ", state = " & scrat(nowscript).state
-'  END IF
-  IF readbit(gen(), genBits2, 17) THEN
-   'Reenable bug 430 (see also bug 550), where if two scripts were triggered at once then
-   'when the top script ended it would cause the one below it to run for two ticks.
-   wantimmediate = -1
-  ELSE
-   wantimmediate = 0
-  END IF
+
+   IF wantimmediate = -2 THEN
+    'IF nowscript < 0 THEN
+    ' debug "wantimmediate ended on nowscript = -1"
+    'ELSE
+    ' debug "wantimmediate would have skipped wait on command " & commandname(scrat(nowscript).curvalue) _
+    '       & " in " & scriptname(scrat(nowscript).id) & ", state = " & scrat(nowscript).state
+    'END IF
+    IF readbit(gen(), genBits2, 17) THEN
+     'Reenable bug 430 (see also bug 550), where if two scripts were triggered at once then
+     'when the top script ended it would cause the one below it to run for two ticks.
+     wantimmediate = -1
+    ELSE
+     wantimmediate = 0
+    END IF
+   END IF
+
+   IF wantimmediate = 0 THEN EXIT WHILE
+  END WITH
+ WEND
+END SUB
+
+SUB interpret()
+ 'It seems like it would be good to call this immediately before scriptinterpreter so that
+ 'the return values of fightformation and waitforkey are correct, however doing so might
+ 'break something?
+ run_queued_scripts
+
+ execute_script_fibres
+
+ script_log_tick
+ gam.script_log.tick += 1
+
+ 'Do spawned text boxes, battles, etc.
+ 'The actual need for these want* variables is now gone, but they are kept around for backcompat.
+ 'They could be removed and the implementations moved straight into the command handlers,
+ '(and the implicit waits made optional at the same time), but this makes things especially tricky
+ 'for concurrent fibres.
+ 'For example if a script changes the map (whether through a textbox, teleporttomap, or door use)
+ 'it currently prevents any other script from running for the rest of the tick, preventing the potentially
+ 'disasterous (for scripted games) situation where the map changes and other scripts run before the
+ 'map autorun script (which might contain important initialisation). 
+
+ 'Also note that now if two fibres run two commands like fightformation and usedoor the order in which
+ 'they occur is independent of the order in which they were called.
+
+ 'FIXME: 
+ 'Currently if a map changes (or even is a game is loaded) there is one tick on the new map
+ 'before the map autorun or any other scripts can make changes. This transition is hidden by screen fades
+ 'and now by the delayed music change. But if the map change happens without a fade (teleporttomap, or
+ 'if we make fades customisable) that one tick delay is undesired.
+ 'So consider delaying all calls to preparemap (and doloadgame) until the start of the next tick.
+
+ IF immediate_showtextbox = NO AND wantbox > 0 THEN
+  loadsay wantbox
  END IF
- IF wantimmediate = -1 THEN
-  '--wow! I hope this doesnt screw things up!
-  wantimmediate = 0
-  GOTO reentersub
+ wantbox = 0
+ IF wantdoor > 0 THEN
+  usedoor wantdoor - 1
+  wantdoor = 0
  END IF
-END WITH
-END IF
-script_log_tick
-gam.script_log.tick += 1
-
-'Do spawned text boxes, battles, etc.
-'The actual need for these want* variables is now gone, but they are kept around for backcompat.
-'They could be removed and the implementations moved straight into the command handlers,
-'(and the implicit waits made optional at the same time), but this makes things especially tricky
-'for concurrent fibres.
-'For example if a script changes the map (whether through a textbox, teleporttomap, or door use)
-'it currently prevents any other script from running for the rest of the tick, preventing the potentially
-'disasterous (for scripted games) situation where the map changes and other scripts run before the
-'map autorun script (which might contain important initialisation). 
-
-'Also note that now if two fibres run two commands like fightformation and usedoor the order in which
-'they occur is independent of the order in which they were called.
-
-'FIXME: 
-'Currently if a map changes (or even is a game is loaded) there is one tick on the new map
-'before the map autorun or any other scripts can make changes. This transition is hidden by screen fades
-'and now by the delayed music change. But if the map change happens without a fade (teleporttomap, or
-'if we make fades customisable) that one tick delay is undesired.
-'So consider delaying all calls to preparemap (and doloadgame) until the start of the next tick.
-
-IF immediate_showtextbox = NO AND wantbox > 0 THEN
- loadsay wantbox
-END IF
-wantbox = 0
-IF wantdoor > 0 THEN
- usedoor wantdoor - 1
- wantdoor = 0
-END IF
-IF wantbattle > 0 THEN
- fatal = NO
- gam.wonbattle = battle(wantbattle - 1)
- wantbattle = 0
- prepare_map YES
- gam.random_battle_countdown = range(100, 60)
- queue_fade_in 2 'FIXME: why 2 ticks?
- setkeys
-END IF
-IF wantteleport > 0 THEN
- wantteleport = 0
- prepare_map
- gam.random_battle_countdown = range(100, 60)
-END IF
-'ALSO wantloadgame
+ IF wantbattle > 0 THEN
+  fatal = NO
+  gam.wonbattle = battle(wantbattle - 1)
+  wantbattle = 0
+  prepare_map YES
+  gam.random_battle_countdown = range(100, 60)
+  queue_fade_in 2 'FIXME: why 2 ticks?
+  setkeys
+ END IF
+ IF wantteleport > 0 THEN
+  wantteleport = 0
+  prepare_map
+  gam.random_battle_countdown = range(100, 60)
+ END IF
+ 'ALSO wantloadgame
 END SUB
 
 'Script commands ('top level', rest is in yetmore.bas)
