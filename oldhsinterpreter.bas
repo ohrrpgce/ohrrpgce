@@ -532,14 +532,14 @@ IF scriptinsts(nowscript).watched THEN watched_script_finished
 scrat(nowscript).scr->refcount -= 1
 nowscript = nowscript - 1
 
-DIM state as OldScriptState ptr = @scrat(nowscript)
-
 IF nowscript < 0 THEN
  functiondone = 1'--no scripts are running anymore
 #IFDEF SCRIPTPROFILE
  TIMER_STOP(scrat(nowscript + 1).scr->totaltime)
 #ENDIF
 ELSE
+ DIM state as OldScriptState ptr = @scrat(nowscript)
+
  'check if script needs reloading
  reloadscript scriptinsts(nowscript), scrat(nowscript)
  curcmd = cast(ScriptCommand ptr, state->scrdata + state->ptr)
