@@ -2164,6 +2164,8 @@ end sub
 
 sub loadset (fil as string, byval i as integer, byval l as integer)
 ' i = index, l = line (only if reading to screen buffer)
+'Obsolete, use loadrecord instead
+'Note: This is extremely slow when reading past end of file because fread buffering internal stuff
 	dim f as integer
 	dim idx as integer
 	dim bi as integer

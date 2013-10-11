@@ -1299,9 +1299,7 @@ DIM as integer i, j, o, z
 '--return gen to defaults
 xbload game + ".gen", gen(), "General data is missing from " + sourcerpg
 
-DIM sg as string = old_savefile
-setpicstuf buffer(), 30000, -1
-loadset sg, slot * 2, 0
+loadrecord buffer(), old_savefile, 15000, slot * 2
 
 DIM savver as integer = buffer(0)
 IF savver < 2 OR savver > 3 THEN EXIT SUB
@@ -1452,8 +1450,7 @@ show_load_index z, "after inv 16bit"
 
 'RECORD 2
 
-setpicstuf buffer(), 30000, -1
-loadset sg, slot * 2 + 1, 0
+loadrecord buffer(), old_savefile, 15000, slot * 2 + 1
 
 z = 0
 
@@ -1654,8 +1651,7 @@ END SUB
 
 SUB old_get_save_slot_preview(byval slot as integer, pv as SaveSlotPreview)
 
- setpicstuf buffer(), 30000, -1
- loadset old_savefile, slot * 2, 0
+ loadrecord buffer(), old_savefile, 15000, slot * 2
  
  IF buffer(0) <> 3 THEN
   '--currently only understands v3 binary sav format
@@ -1702,7 +1698,7 @@ SUB old_get_save_slot_preview(byval slot as integer, pv as SaveSlotPreview)
  NEXT o
 
  '--load second record
- loadset old_savefile, slot * 2 + 1, 0
+ loadrecord buffer(), old_savefile, 15000, slot * 2 + 1
 
  z = 6060
  DIM use_saved_pics as integer = NO
@@ -1758,9 +1754,8 @@ FUNCTION old_count_used_save_slots() as integer
  DIM n as integer
  DIM savver as integer
  n = 0
- setpicstuf buffer(), 30000, -1
  FOR i = 0 TO 3
-  loadset old_savefile, i * 2, 0
+  loadrecord buffer(), old_savefile, 15000, i * 2
   savver = buffer(0)
   IF savver = 3 THEN n += 1
  NEXT i
