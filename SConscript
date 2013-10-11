@@ -480,11 +480,10 @@ else:
     commonenv['FBLIBS'] += ['-l','stdc++'] #, '-l','gcc_s', '-l','gcc_eh']
 
 # Note that base_objects are not built in commonenv!
-base_objects = [env.Object(a) for a in base_modules]
-common_objects += base_objects + [commonenv.Object(a) for a in common_modules]
+base_objects = sum ([env.Object(a) for a in base_modules], [])  # concatenate lists
+common_objects += base_objects + sum ([commonenv.Object(a) for a in common_modules], [])
 # Plus unique module included by utilities but not Game or Custom
-base_objects.append (env.Object ('common_base.bas'))
-
+base_objects.extend (env.Object ('common_base.bas'))
 
 gameenv = commonenv.Clone (VAR_PREFIX = 'game-', FBFLAGS = commonenv['FBFLAGS'] + \
                       ['-d','IS_GAME', '-m','game'])
@@ -506,7 +505,9 @@ for item in shared_modules:
     editsrc.append (editenv.VARIANT_BASO (item))
 
 # For reload utilities
-reload_objects = base_objects + [env.BASO (item) for item in ['reload', 'reloadext', 'lumpfile']]
+reload_objects = base_objects + sum ([env.BASO (item) for item in ['reload', 'reloadext', 'lumpfile']], [])
+
+base_objects_without_util = [a for a in base_objects if str(a) != 'util.o']
 
 gamename = 'ohrrpgce-game'
 editname = 'ohrrpgce-custom'
@@ -547,6 +548,8 @@ RELOAD2XML = env_exe ('reload2xml', source = ['reload2xml.bas'] + reload_objects
 RELOADUTIL = env_exe ('reloadutil', source = ['reloadutil.bas'] + reload_objects)
 RBTEST = env_exe ('rbtest', source = [env.RB('rbtest.rbas'), env.RB('rbtest2.rbas')] + reload_objects)
 env_exe ('vectortest', source = ['vectortest.bas'] + base_objects)
+# Compile util.bas as a main module to utiltest.o to prevent its linkage in other binaries
+env_exe ('utiltest', source = env.BASMAINO('utiltest.o', 'util.bas') + base_objects_without_util)
 
 if android_source:
     # This is hacky and will be totally rewritten
@@ -600,7 +603,7 @@ INTERTEST = env.Command ('interactivetest', source = GAME, action =
 # (doesn't matter where g_debug.txt is actually placed)
 SideEffect ('g_debug.txt', [AUTOTEST, INTERTEST])
 
-testprogs = ['reloadtest', 'rbtest', 'vectortest']
+testprogs = ['reloadtest', 'rbtest', 'vectortest', 'utiltest']
 tests = [File(prog).abspath for prog in testprogs]
 # There has to be some better way to do this...
 TESTS = env.Command ('test', source = testprogs + [AUTOTEST, INTERTEST], action = tests)
@@ -659,6 +662,7 @@ Targets:
   xml2reload
   reload2xml
   reloadutil
+  utiltest
   vectortest
   rbtest
   gfx_directx_test    (Non-automated) gfx_directx.dll test

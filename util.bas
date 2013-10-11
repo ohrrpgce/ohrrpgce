@@ -16,6 +16,9 @@ CONST STACK_SIZE_INC = 512 ' in integers
 #include "cutil.bi"
 #include "os.bi"
 #include "common_base.bi"
+#ifdef __FB_MAIN__
+#include "testing.bi"
+#endif
 
 '#ifdef __FB_ANDROID__
 '#define DEBUG_FILE_IO
@@ -904,7 +907,7 @@ END FUNCTION
 
 FUNCTION trimpath(filename as string) as string
   'Return the file/directory name without path, and without trailing slash
-  'Eg. "a/b/c/" -> "c"
+  'See testcases below
   DIM i as integer
   DIM retend as integer = LEN(filename)
   DIM ch as byte
@@ -920,6 +923,20 @@ FUNCTION trimpath(filename as string) as string
   RETURN MID(filename, 1, retend)
 END FUNCTION
 
+#IFDEF __FB_MAIN__
+#DEFINE testtrimp(path, expected) testEqual(trimpath(path), normalize_path(expected))
+
+startTest(trimpath)
+  testtrimp("a/b/cat//", "cat")  'fails
+  testtrimp("a/b/cat/",  "cat")
+  testtrimp("a/b/cat",   "cat")
+  testtrimp("cat/",      "cat")
+  testtrimp("/cat/",     "cat")
+  testtrimp("/",         ""   )
+  testtrimp("",          ""   )
+endTest
+#ENDIF
+
 FUNCTION trimfilename (filename as string) as string
   'Return the path without the filename, and without trailing slash
   'NOT the complement to trimpath:
@@ -928,6 +945,19 @@ FUNCTION trimfilename (filename as string) as string
   DIM ret as string = normalize_path(filename)
   RETURN MID(ret, 1, large(0, INSTRREV(ret, SLASH) - 1))
 END FUNCTION
+
+#IFDEF __FB_MAIN__
+#DEFINE testtrimf(path, expected) testEqual(trimfilename(path), normalize_path(expected))
+
+startTest(trimfilename)
+  testtrimf("a/b/cat//", "a/b/cat")  'fails
+  testtrimf("a/b/cat/",  "a/b/cat")
+  testtrimf("a/b/cat",   "a/b")
+  testtrimf("cat/",      "cat")
+  testtrimf("/cat/",     "/cat")
+  testtrimf("",          "")
+endTest
+#ENDIF
 
 FUNCTION trimextension (filename as string) as string
   'Return the filename (including path) without extension
@@ -989,7 +1019,8 @@ FUNCTION absolute_with_orig_path(file_or_dir as string, byval add_slash as integ
 END FUNCTION
 
 'Remove redundant ../, ./, // in a path. Handles both relative and absolute paths
-'Result has normalised slashes
+'Result has normalised slashes and no trailing slash (unless it's the root /).
+'See testcases below
 FUNCTION simplify_path(sDir as string) as string
   DIM piecesarray() as string
   DIM pieces as string vector
@@ -1035,6 +1066,25 @@ FUNCTION simplify_path(sDir as string) as string
   RETURN ret
 END FUNCTION
 
+#IFDEF __FB_MAIN__
+#DEFINE testsimplify(path, expected) testEqual(simplify_path(path), normalize_path(expected))
+
+startTest(simplify_path)
+  testsimplify("testcases",         "testcases")
+  testsimplify(".././../foo/",      "../../foo")
+  testsimplify(".././a/../../foo/", "../../foo")
+  testsimplify("/..",   "/")
+  testsimplify("",      ".")
+  testsimplify(".",     ".")
+  testsimplify("/../.", "/")
+  testsimplify("./../../../../a",   "../../../../a")
+  testsimplify("//.//../a/../c/b/../d", "/c/d")
+  '? simplify_path(absolute_path(".."))
+  '? "curdir=" & curdir
+  '? "reallysimplify('" & path & "')=" + simplify_path_further(absolute_path("a/b/.svn"), curdir)
+endTest
+#ENDIF
+
 'Make a path relative if it's below 'fromwhere' (which is a path, not a file)
 'It would be possible to also possibly return something starting with some ../'s, but it's more trouble
 FUNCTION simplify_path_further(pathname as string, fromwhere as string) as string
@@ -1063,26 +1113,6 @@ FUNCTION simplify_path_further(pathname as string, fromwhere as string) as strin
   END IF
   RETURN path
 END FUNCTION
-
-
-'sub testsim(path as string)
-'  ? "simplify('" & path & "')=" + simplify_path(path)
-'end sub
-'
-'startTest
-'  sim("testcases")
-'  sim(absolute_path(".."))
-'  sim(".././../foo/")
-'  sim(".././a/../../foo/")
-'  sim("/..")
-'  sim("")
-'  sim(".")
-'  sim("/../.")
-'  sim("./../../../../a")
-'  sim("//.//../a/../c/b/../d")
-'  ? "curdir=" & curdir
-'  ? "reallysimplify('" & path & "')=" + simplify_path_further(absolute_path("a/b/.svn"), curdir)
-'endTest
 
 'Go up a number of directories. Simplifies and normalises.
 'pathname is interpreted as a directory even if missing the final slash!

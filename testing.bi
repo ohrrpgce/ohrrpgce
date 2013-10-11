@@ -10,7 +10,7 @@ dim pauseTime as double
 dim errorpos as integer
 dim errorfile as string
 
-Randomize
+Randomize 42
 
 sub doTest(t as string, byval theTest as testPtr)
 	static num as integer = 0
@@ -74,6 +74,20 @@ end sub
 #endmacro
 #define endTest pass : end Function
 
+#macro testEqual(exp1, exp2)
+	Scope
+		var temp1 = exp1, temp2 = exp2
+		if temp1 <> temp2 then
+			print
+			print "Expected " #exp1 " = " #exp2
+			print "Actually " #exp1 " = " & temp1
+			print "         " #exp2 " = " & temp2
+			errorfile = __FILE__
+			errorpos = __LINE__
+			return 1
+		end if
+	End Scope
+#endmacro
 
 function ask(q as string) as integer
 	dim ret as string, r as integer
