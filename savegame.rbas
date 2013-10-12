@@ -1651,7 +1651,7 @@ END SUB
 
 SUB old_get_save_slot_preview(byval slot as integer, pv as SaveSlotPreview)
 
- loadrecord buffer(), old_savefile, 15000, slot * 2
+ loadrecord buffer(), old_savefile, 15000, slot * 2, NO
  
  IF buffer(0) <> 3 THEN
   '--currently only understands v3 binary sav format
@@ -1755,7 +1755,7 @@ FUNCTION old_count_used_save_slots() as integer
  DIM savver as integer
  n = 0
  FOR i = 0 TO 3
-  loadrecord buffer(), old_savefile, 15000, i * 2
+  loadrecord buffer(), old_savefile, 15000, i * 2, NO
   savver = buffer(0)
   IF savver = 3 THEN n += 1
  NEXT i
