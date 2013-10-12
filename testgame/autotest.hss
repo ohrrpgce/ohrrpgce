@@ -24,6 +24,11 @@ global variable(106, export global 1)
 global variable(107, export global 2)
 global variable(108, expecting death)
 global variable(109, died)
+global variable(110, map autorun triggered)
+global variable(111, eachstep triggered)
+global variable(112, textbox script triggered)
+global variable(113, npc script triggered)
+global variable(114, testing script triggers)
 # 200-300 used in hstests.hss
 global variable(200, ticker 0)
 global variable(201, ticker 1)
@@ -43,9 +48,17 @@ define constant(11, assert expression string)
 
 ########################################################################
 
+# Set on starting map 0
+plotscript, mapautorun, begin
+  # Test that the map autorun script on the starting map happens before
+  # the newgame script
+  map autorun triggered += 1
+end
+
 plotscript, run all tests, begin
   suspend player
   seed random(4444)
+  assert(map autorun triggered == 1)
   interpreter tests
   save load tests
   slice tests
@@ -57,6 +70,7 @@ plotscript, run all tests, begin
   npc tests
   menu tests
   textbox tests
+  script trigger tests
   enemy tests
   battle tests
   timer tests
@@ -2257,7 +2271,7 @@ script, door tests, begin
   assert(get door destination id(1) == -1)
   assert(get door destination map(1) == -1)
   assert(door exists(1))
-  assert(door exists(2) == false)
+  assert(door exists(3) == false)
 
   # using doors
   walk hero to x(0, 8)
@@ -2298,6 +2312,134 @@ script, door tests, begin
   wait for hero
   walk hero to x(0, 6)
   wait for hero
+end
+
+########################################################################
+
+# Not defined as a plotscript on purpose
+script, each-step script, x, y, dir, begin
+  $0="each-step script", trace
+  assert(x == hero x)
+  assert(y == hero y)
+  assert(dir == hero direction)
+
+  # First to run
+  assert(npc script triggered == 0)
+  assert(map autorun triggered == 0)
+  eachstep triggered += 1
+end
+
+plotscript, npc triggered script, arg, npc, begin
+  $0="npc triggered script", trace
+  assert(arg == -1)
+  assert(npc == npc reference(6))
+
+  # Second to run
+  assert(eachstep triggered == 1)
+  assert(map autorun triggered == 0)
+  npc script triggered += 1
+
+  # Should happen immediately (also tested in textbox tests)
+  # and trigger two scripts
+  advance textbox
+
+  # Fifth to run
+  assert(current textbox == -1)
+  assert(textbox script triggered == 1)
+  assert(map autorun triggered == 1)
+  npc script triggered += 1
+end
+
+plotscript, textbox advance script, begin
+  $0="textbox advance script", trace
+  assert(current map == 4)
+  assert(hero direction == left)
+
+  # These should be the correct position on the new map
+  assert(hero x == 11)
+  assert(hero y == 4)
+
+  # Third to run
+  assert(current textbox == -1)
+  assert(npc script triggered == 1)
+  assert(eachstep triggered == 1)
+  assert(map autorun triggered == 0)
+  textbox script triggered += 1
+end
+
+# Set on map 4
+plotscript, map 4 autorun, arg, begin
+  if (testing script triggers == false) then (exit script)
+  $0="map 4 autorun", trace
+
+  assert(arg == 42)
+  assert(current map == 4)
+
+  # Fourth to run
+  assert(textbox script triggered == 1)
+  map autorun triggered += 1   # also set in "map autorun"
+end
+
+
+script, script trigger tests, begin
+  $0="script trigger tests"
+
+  # Right now only tests a few triggers
+  # Take a step, triggering each-step script and stepping on an NPC, which runs a script,
+  # and opens a textbox, which is advanced, running a script and activating a door which
+  # goes to a map with an autorun script
+
+  # Preconditions
+  assert(current map == 0 && hero x == 6 && hero y == 6)
+
+  map autorun triggered := 0
+  set eachstep script (@each-step script)
+  testing script triggers := true
+
+  tick counter slice := create container
+  set slice velocity x(tick counter slice, 1, 1000)
+  assert(ticknumber == 0)
+  assert(get hero speed(me) == 4)
+
+  create npc(6, hero x -- 1, hero y)
+  walk hero(me, left, 1)
+  wait for hero
+
+  #Events happen in this order, and scripts should run in reverse
+  #order of triggering:
+  #  (step completes)
+  #  (npc triggered, opens textbox)
+  #  npc script triggered
+  #  each step triggered
+  # (interpreter entered)
+  #  (npc script calls advancetextbox)
+  #  (textbox loaded)
+  #  (preparemap called)
+  #  autorun triggered
+  #  after textbox script triggered
+  # (this script resumes, waitfornpc finishing)
+
+  #So scripts run in order (all in the same tick):
+  # | each step
+  # | npc
+  # | | autorun
+  # | | textbox
+  # | npc finishes
+  # this script
+
+  # Sixth to run
+  assert(npc script triggered == 2)
+  assert(textbox script triggered == 1)
+  assert(map autorun triggered == 1)
+  assert(ticknumber == 5)
+
+  # reset
+  testing script triggers := false
+  free slice(tick counter slice)
+  teleport to map (0, 6, 6)
+  assert(current map == 0)
+  # Incremented by the other map autorun script
+  assert(map autorun triggered == 2)
 end
 
 ########################################################################
