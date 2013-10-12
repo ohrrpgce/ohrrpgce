@@ -5,6 +5,7 @@
 
 # include a file with UTF-16 encoding
 include, "utf16 encoding test.hss"
+include, mixed line endings.hss
 
 ########################################################################
 

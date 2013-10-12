@@ -1,0 +1,10 @@
+script, _dummy1, i, begin
+        subscript, foo, argy1, begin
+        end
+        _dummy1(230)
+end
+
+script, _dummy2, i, begin
+        wait
+        variable(x, asdasd)
+        subscript, foo2, begin        endend
