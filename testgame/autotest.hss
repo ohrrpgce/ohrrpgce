@@ -2381,10 +2381,12 @@ plotscript, map 4 autorun, arg, begin
 end
 
 
-script, script trigger tests, begin
-  $0="script trigger tests"
+script, concurrent script trigger tests, begin
+  $0="concurrent script trigger tests"
 
-  # Right now only tests a few triggers
+  # Test multiple triggers happening the same tick, and that they all happen in the right order.
+  # This tests both scripts triggered inside and outside the interpreter
+
   # Take a step, triggering each-step script and stepping on an NPC, which runs a script,
   # and opens a textbox, which is advanced, running a script and activating a door which
   # goes to a map with an autorun script
@@ -2440,6 +2442,72 @@ script, script trigger tests, begin
   assert(current map == 0)
   # Incremented by the other map autorun script
   assert(map autorun triggered == 2)
+end
+
+########################################################################
+
+script, another eachstep script, begin
+  eachstep triggered += 1
+  wait for hero
+end
+
+script, yet another eachstep script, begin
+  eachstep triggered += 1
+  subscript, waiting, begin
+    wait for hero
+  end
+  waiting
+end
+
+script, script double trigger tests, begin
+  $0="script trigger tests"
+
+  # precondition
+  assert(hero x == 6 && hero y == 6)
+
+  # Test double triggering of scripts
+  set eachstep script(@another eachstep script)
+
+  variable (oldval)
+  oldval := read general(101)  # genBits
+  assert((oldval, and, 2^10) == 0)  # "permit double triggering scripts" is off
+
+  eachstep triggered := 0
+  walk hero(me, left, 3)
+  wait for hero
+  # eachstep should only trigger once
+  assert(eachstep triggered == 1)
+
+  write general(101, oldval + 2^10)  # turn on "permit double triggering scripts"
+
+  eachstep triggered := 0
+  walk hero(me, right, 3)
+  wait for hero
+  assert(eachstep triggered == 3)
+
+  set eachstep script(@yet another eachstep script)
+
+  eachstep triggered := 0
+  walk hero(me, left, 3)
+  wait for hero
+  assert(eachstep triggered == 3)
+
+  write general(101, oldval)  # turn off "permit double triggering scripts"
+
+  eachstep triggered := 0
+  walk hero(me, right, 3)
+  wait for hero
+  # eachstep should should trigger three times because the "waiting"
+  # subscript foils the double trigger check
+  assert(eachstep triggered == 3)
+
+  set eachstep script(0)
+  assert(hero x == 6 && hero y == 6)
+end
+
+script, script trigger tests, begin
+  concurrent script trigger tests
+  script double trigger tests
 end
 
 ########################################################################
