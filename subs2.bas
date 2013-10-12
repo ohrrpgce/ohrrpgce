@@ -392,7 +392,7 @@ SUB importscripts (f as string)
    IF buffer(0) > gen(genMaxRegularScript) AND buffer(0) < 16384 THEN gen(genMaxRegularScript) = buffer(0)
 
    'process trigger
-   IF trigger <> 0 THEN
+   IF trigger > 0 THEN
     addtrigger names, id, triggers
     triggercount += 1
    END IF
