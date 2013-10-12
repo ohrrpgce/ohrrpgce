@@ -230,8 +230,9 @@ REDIM backcompat_sound_slots(7) as integer
 DIM nowscript as integer
 DIM scriptret as integer
 DIM scriptctr as integer
-DIM numloadedscr as integer
-DIM totalscrmem as integer
+DIM numloadedscr as integer    'Number of loaded scripts
+DIM totalscrmem as integer     'Total memory used by all loaded scripts, in WORDs
+DIM scriptcachemem as integer  'Memory used by script cache, WORDs
 DIM scrwatch as integer
 DIM next_interpreter_check_time as double
 DIM interruption_grace_period as integer

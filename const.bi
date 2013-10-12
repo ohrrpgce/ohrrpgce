@@ -224,11 +224,9 @@ CONST maxScriptNesting = 4 'Maximum subscript nesting depth
 'Amount of script data to cache
 CONST scriptmemMax = 10000000 'in 4-byte ints
 CONST scriptTableSize = 512  'hash table size, power of 2 please
-CONST maxLoadedScripts = 32768
 #ELSE
 CONST scriptmemMax = 65536 'in 4-byte ints (256kb)
 CONST scriptTableSize = 256  'hash table size, power of 2 please
-CONST maxLoadedScripts = 360
 #ENDIF
 CONST scriptCheckDelay = 1.1     'How long, in seconds, before the script interpreter becomes interruptable
 CONST scriptCheckInterval = 0.1  'How often, in seconds, that the script interpreter should perform checks

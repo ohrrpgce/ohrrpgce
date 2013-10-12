@@ -135,7 +135,6 @@ DIM tmpnow as integer
 DIM tmpvar as integer
 DIM tmpkind as integer
 
-reloadscript scriptinsts(nowscript), scrat(nowscript)
 #IFDEF SCRIPTPROFILE
  scrat(nowscript).scr->entered += 1
  TIMER_START(scrat(nowscript).scr->totaltime)
@@ -529,7 +528,7 @@ FUNCTION functiondone () as integer
 
 IF scriptinsts(nowscript).watched THEN watched_script_finished
 
-scrat(nowscript).scr->refcount -= 1
+deref_script(scrat(nowscript).scr)
 nowscript = nowscript - 1
 
 IF nowscript < 0 THEN
@@ -540,8 +539,6 @@ IF nowscript < 0 THEN
 ELSE
  DIM state as OldScriptState ptr = @scrat(nowscript)
 
- 'check if script needs reloading
- reloadscript scriptinsts(nowscript), scrat(nowscript)
  curcmd = cast(ScriptCommand ptr, state->scrdata + state->ptr)
  IF state->state < 0 THEN
   '--suspended script is resumed
@@ -557,6 +554,8 @@ ELSE
  TIMER_STOP(scrat(nowscript + 1).scr->totaltime)
  scrat(nowscript).scr->entered += 1
  TIMER_START(scrat(nowscript).scr->totaltime)
+ scriptctr += 1
+ scrat(nowscript + 1).scr->lastuse = scriptctr
 #ENDIF
 END IF
 
@@ -1081,7 +1080,6 @@ DIM scriptargs as integer
 DIM localno as integer
 IF mode > 1 AND viewmode = 1 AND selectedscript >= 0 THEN
  'local (but not nonlocal) variables and return value. Show up to 9 variables at a time
- reloadscript scriptinsts(selectedscript), scrat(selectedscript), NO
  WITH scrat(selectedscript)
   IF .scr->vars = 0 THEN
    edgeprint "Has no variables", 0, ol, uilook(uiText), page
@@ -1331,11 +1329,6 @@ END IF
 '(the mode = 2 thrown in to prevent an infinite loop, no idea how or why)
 IF drawloop = 0 AND mode = 2 THEN GOTO redraw
 
-'just incase was swapped out above
-IF nowscript >= 0 THEN
- reloadscript scriptinsts(nowscript), scrat(nowscript), NO
-END IF
-
 IF resetpal THEN setpal master()
 
 next_interpreter_check_time = TIMER + scriptCheckDelay
@@ -1446,9 +1439,6 @@ FUNCTION scriptstate (byval targetscript as integer, byval recurse as integer = 
  node.value = curcmd->value
  node.argc = curcmd->argc
  memcpy(@(lastnode),@(node),LEN(ScriptCommand))
-
- 'so we can grab extra data on the current script
- reloadscript scriptinsts(nowscript), scrat(nowscript), NO
 
  'debug "state = " & state.state
  'debug "depth = " & state.depth
@@ -1618,7 +1608,6 @@ FUNCTION scriptstate (byval targetscript as integer, byval recurse as integer = 
     'copyobj(state, scrat(wasscript))
     memcpy(@(state),@(scrat(wasscript)),LEN(scrat(wasscript)))
     memcpy(@(scrinst),@(scriptinsts(wasscript)),LEN(scriptinsts(wasscript)))
-    reloadscript scrinst, state, NO
 
     IF scrat(wasscript).state < 0 THEN
      IF recurse = 2 OR recurse = 3 THEN
@@ -1663,5 +1652,4 @@ FUNCTION scriptstate (byval targetscript as integer, byval recurse as integer = 
 
  scriptstate = TRIM(outstr)
  'debug outstr
- reloadscript scriptinsts(nowscript), scrat(nowscript)
 END FUNCTION

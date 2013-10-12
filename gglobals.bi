@@ -93,6 +93,7 @@ EXTERN nowscript as integer
 EXTERN scriptret as integer
 EXTERN numloadedscr as integer
 EXTERN totalscrmem as integer
+EXTERN scriptcachemem as integer
 EXTERN scriptctr as integer
 EXTERN next_interpreter_check_time as double
 EXTERN interruption_grace_period as integer

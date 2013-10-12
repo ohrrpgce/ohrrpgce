@@ -22,6 +22,7 @@
 
 '------------ Local functions -------------
 
+DECLARE SUB freescripts (byval mem as integer)
 
 '------------ Global variables ------------
 
@@ -318,7 +319,7 @@ SUB killscriptthread
  WHILE nowscript >= 0
   WITH scrat(nowscript)
    IF .state < 0 THEN EXIT WHILE
-   IF .scr <> NULL THEN .scr->refcount -= 1
+   IF .scr <> NULL THEN deref_script(.scr)
   END WITH
   nowscript -= 1
  WEND
@@ -326,7 +327,6 @@ SUB killscriptthread
 
  'Go back a script, let functiondone handle the script exit
  nowscript += 1
- reloadscript scriptinsts(nowscript), scrat(nowscript)  'Avoid possible null ptr deref in functiondone
  setstackposition(scrst, scrat(nowscript).stackbase)
 
 END SUB
@@ -339,7 +339,7 @@ SUB killallscripts
  IF nowscript >= 0 THEN scrat(nowscript).state = stexit
 
  FOR i as integer = nowscript TO 0 STEP -1
-  IF scrat(i).scr <> NULL THEN scrat(i).scr->refcount -= 1
+  IF scrat(i).scr <> NULL THEN deref_script(scrat(i).scr)
  NEXT
  nowscript = -1
  gam.script_log.last_logged = -1
@@ -459,6 +459,10 @@ WITH scriptinsts(index)
  '--we are successful, so now its safe to increment this
  .scr->refcount += 1
  nowscript += 1
+ IF .scr->refcount = 1 THEN
+  'Removed from unused scripts cache
+  scriptcachemem -= .scr->size
+ END IF
 
  'debug "running " & .id & " " & scriptname(.id) & ", parent = " & .scr->parent & " totaluse = " & .scr->totaluse & " refc = " & .scr->refcount & " lastuse = " & .scr->lastuse
 END WITH
@@ -607,11 +611,6 @@ FUNCTION loadscript (byval n as uinteger) as ScriptData ptr
    RETURN NULL
   END IF
 
-  IF .size + totalscrmem > scriptmemMax OR numloadedscr = maxLoadedScripts THEN
-   'debug "loadscript(" & n & " '" & scriptname(n) & "'): scriptbuf full; size = " & .size & " totalscrmem = " & totalscrmem & ", calling freescripts"
-   freescripts(scriptmemMax - .size)
-  END IF
-
   .ptr = allocate(.size * sizeof(integer))
   IF .ptr = 0 THEN
    scripterr "Could not allocate memory to load script", serrError
@@ -645,6 +644,7 @@ FUNCTION loadscript (byval n as uinteger) as ScriptData ptr
   .entered = 0
   numloadedscr += 1
   totalscrmem += .size
+  scriptcachemem += .size  'Has refcount 0, up to caller to remove from cache
  END WITH
 
  'append to front of doubly linked list
@@ -662,27 +662,36 @@ END FUNCTION
 
 SUB delete_scriptdata (byval scriptd as ScriptData ptr)
  WITH *scriptd
+  IF .refcount THEN
+   fatalerror "delete_scriptdata: nonzero refcount"
+   EXIT SUB
+  END IF
+
   'debug "deallocating " & .id & " " & scriptname(.id) & " size " & .size
   totalscrmem -= .size
+  scriptcachemem -= .size
   numloadedscr -= 1
   deallocate(.ptr)
   IF .next THEN
    .next->backptr = .backptr
   END IF
   *.backptr = .next
-
-  IF .refcount THEN
-   FOR j as integer = 0 TO nowscript
-    IF scriptinsts(j).scr = scriptd THEN
-     'debug "marking scriptinsts(" & j & ") (id = " & scriptinsts(j).id & ") unloaded"
-     scriptinsts(j).scr = NULL
-     scrat(j).scrdata = NULL
-    END IF
-   NEXT
-  END IF
  END WITH
 
  deallocate(scriptd)
+END SUB
+
+'Dereference script pointer
+SUB deref_script(script as ScriptData ptr)
+ script->refcount -= 1
+ IF script->refcount = 0 THEN
+  scriptcachemem += script->size
+  IF scriptcachemem > scriptmemMax THEN
+   'Evicting stuff from the script cache is probably pointless, but we've already got it,
+   'and it may be useful for the new script interpreter...
+   freescripts(scriptmemMax * 0.75)
+  END IF
+ END IF
 END SUB
 
 TYPE ScriptListElmt
@@ -692,14 +701,16 @@ END TYPE
 
 'Iterate over all loaded scripts, sort them in descending order according to score
 'returned by the callback, and return number of scripts in numscripts
-'(LRUlist is fixed size and large enough)
+'(LRUlist is dynamic)
 SUB sort_scripts(LRUlist() as ScriptListElmt, byref numscripts as integer, scorefunc as function(scr as ScriptData) as integer)
  DIM j as integer
  numscripts = 0
+ REDIM LRUlist(-1 TO -1)
  FOR i as integer = 0 TO UBOUND(script)
   DIM scrp as ScriptData Ptr = script(i)
   WHILE scrp
    DIM score as integer = scorefunc(*scrp)
+   REDIM PRESERVE LRUlist(-1 TO numscripts)
    FOR j = numscripts - 1 TO 0 STEP -1
     IF score >= LRUlist(j).score THEN EXIT FOR
     LRUlist(j + 1).p = LRUlist(j).p
@@ -716,6 +727,7 @@ END SUB
 FUNCTION freescripts_script_scorer(byref script as ScriptData) as integer
  'this formula has only been given some testing, and doesn't do all that well
  DIM score as integer
+ IF script.refcount THEN RETURN 1000000000
  score = script.lastuse - scriptctr
  score = iif(score > -400, score, -400) _
        + iif(script.totaluse < 100, script.totaluse, iif(script.totaluse < 1700, 94 + script.totaluse\16, 200)) _
@@ -723,27 +735,25 @@ FUNCTION freescripts_script_scorer(byref script as ScriptData) as integer
  RETURN score
 END FUNCTION
 
-'frees loaded scripts until at least totalscrmem <= mem (measured in 4-byte ints) (probably a lot lower)
-'also makes sure numloadedscr <= maxLoadedScripts - 24
-'call freescripts(0) to cleanup all scripts
+'Two uses: freescripts(0) frees all scripts, otherwise
+'frees unused loaded scripts until at least scriptcachemem <= mem (measured in 4-byte ints) (probably a lot lower)
 SUB freescripts (byval mem as integer)
- DIM LRUlist(maxLoadedScripts) as ScriptListElmt
+ REDIM LRUlist() as ScriptListElmt
  DIM numscripts as integer
 
  'give each script a score (the lower, the more likely to throw) and sort them
  'this is roughly a least recently used list
  sort_scripts LRUlist(), numscripts, @freescripts_script_scorer
 
- 'aim for at most 75% of memory limit
- DIM targetmem as integer = mem
- IF mem > scriptmemMax \ 2 THEN targetmem = mem * (1 - 0.5 * (mem - scriptmemMax \ 2) / scriptmemMax)
-
- 'debug "requested max mem = " & mem & ", target = " & targetmem
-
  FOR i as integer = 0 TO numscripts - 1
-  IF totalscrmem <= targetmem AND numloadedscr <= maxLoadedScripts - 24 THEN EXIT SUB
-  'debug "unloading script " & scriptname(LRUlist(i).p->id) & " refcount " & LRUlist(i).p->refcount
-  delete_scriptdata LRUlist(i).p
+  IF mem = 0 THEN
+   delete_scriptdata LRUlist(i).p
+  ELSE
+   IF LRUlist(i).p->refcount <> 0 THEN EXIT SUB
+   IF scriptcachemem <= mem THEN EXIT SUB
+   'debug "unloading script " & scriptname(LRUlist(i).p->id) & " refcount " & LRUlist(i).p->refcount
+   delete_scriptdata LRUlist(i).p
+  END IF
  NEXT
 END SUB
 
@@ -818,7 +828,7 @@ SUB print_script_profiling
  NEXT
  timeroverhead /= 1000
 
- DIM LRUlist(maxLoadedScripts) as ScriptListElmt
+ REDIM LRUlist() as ScriptListElmt
  DIM numscripts as integer
 
  'give each script a score (the lower, the more likely to throw) and sort them

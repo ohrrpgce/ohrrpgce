@@ -26,9 +26,8 @@ DECLARE SUB script_stop_waiting(returnval as integer = 0)
 
 DECLARE FUNCTION runscript (byval id as integer, byval newcall as integer, byval double_trigger_check as bool, byval scripttype as zstring ptr, byval trigger as integer) as integer
 DECLARE FUNCTION loadscript (byval n as unsigned integer) as ScriptData ptr
-DECLARE SUB freescripts (byval mem as integer)
 DECLARE SUB delete_scriptdata (byval scriptd as ScriptData ptr)
-DECLARE SUB reloadscript (si as ScriptInst, oss as OldScriptState, byval updatestats as bool = YES)
+DECLARE SUB deref_script (script as ScriptData ptr)
 DECLARE SUB reload_scripts ()
 
 DECLARE FUNCTION commandname (byval id as integer) as string
