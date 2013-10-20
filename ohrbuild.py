@@ -151,10 +151,10 @@ def verprint (used_gfx, used_music, svn, git, fbc):
     # I am curious why there is not a distver.sh generated in the original
     # verprint. An oversight?
 
-def android_source_files (gamesrc):
+def android_source_files (sourcelist):
     # Get a list of C and C++ files to use as sources
     source_files = []
-    for node in itertools.chain(*gamesrc):
+    for node in sourcelist:
         assert len(node.sources) == 1
         # If it ends with .bas then we can't use the name of the source file,
         # since it doesn't have the game- or edit- prefix if any

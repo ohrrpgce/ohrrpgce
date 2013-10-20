@@ -494,15 +494,15 @@ editenv = commonenv.Clone (VAR_PREFIX = 'edit-', FBFLAGS = commonenv['FBFLAGS'] 
 
 gamesrc = common_objects[:]
 for item in game_modules:
-    gamesrc.append (gameenv.BASO (item))
+    gamesrc.extend (gameenv.BASO (item))
 for item in shared_modules:
-    gamesrc.append (gameenv.VARIANT_BASO (item))
+    gamesrc.extend (gameenv.VARIANT_BASO (item))
 
 editsrc = common_objects[:]
 for item in edit_modules:
-    editsrc.append (editenv.BASO (item))
+    editsrc.extend (editenv.BASO (item))
 for item in shared_modules:
-    editsrc.append (editenv.VARIANT_BASO (item))
+    editsrc.extend (editenv.VARIANT_BASO (item))
 
 # For reload utilities
 reload_objects = base_objects + sum ([env.BASO (item) for item in ['reload', 'reloadext', 'lumpfile']], [])
@@ -519,8 +519,8 @@ if win32:
     editname = 'custom'
     if linkgcc:
         # FIXME: This is a stopgap, it only works if the .rc files have previously been compiled
-        gamesrc += [gameenv.RC('gicon.rc')]
-        editsrc += [editenv.RC('cicon.rc')]
+        gamesrc += gameenv.RC('gicon.rc')
+        editsrc += editenv.RC('cicon.rc')
     else:
         gamesrc += ['gicon.rc']
         editsrc += ['cicon.rc']
