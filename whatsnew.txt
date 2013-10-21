@@ -32,6 +32,8 @@ WHAT IS NEW?
       games) helps to prevent bugs due to showing two boxes at once;
       "show textbox" now affects "current textbox" immediately [Ralph]
     * HSpeak accepts files with Mac line-endings again [Ralph]
+    * Fix attacks that use the attacker's max stats as the base attack
+      stat [James]
 
   * New Plotscripting Stuff
     * "Menu action plotscript" special script trigger to run a script

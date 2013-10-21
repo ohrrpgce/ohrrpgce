@@ -404,7 +404,7 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
    CASE 23 TO 34
     ap = target.stat.cur.sta(attack.base_atk_stat - 23)
    CASE 35 TO 46
-    ap = attacker.stat.max.sta(attack.base_atk_stat - 36)
+    ap = attacker.stat.max.sta(attack.base_atk_stat - 35)
    CASE 47 TO 58
     ap = target.stat.max.sta(attack.base_atk_stat - 47)
    CASE IS >= 59
