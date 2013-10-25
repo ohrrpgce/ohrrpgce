@@ -2191,6 +2191,9 @@
 		<a href="#about-stringy">string Y (ID)</a><br>
 		
 	
+		<a href="#about-subscript">subscript, name, argumentnames (statements)</a><br>
+		
+	
 		<a href="#about-subtract">number -- number</a><br>
 		
 	
@@ -2507,7 +2510,8 @@ plotscript,my first script,begin
 	# commands go here
 end</pre>
 <pre># example of a script with arguments
-plotscript,my fancy script,fe=0,fi=0,fo=0,begin
+# (It can called with between 1 and 3 arguments.)
+plotscript,my fancy script,fe,fi=0,fo=0,begin
 	# commands go here,
 	# and they can use the aruments fe, fi, and fo
 	# that where passed to the script
@@ -2518,16 +2522,50 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">script, name, argumentnames (statements)</font></b><br>
-			The script command contains a list of commands. Script starts with the keyword script, a comma, and then the name of the script. If there are any arguments to the script, you list their names separated by commas after the name of the script with default values. Then comes the text of the script. It is enclosed in <a href="#about-begin" class="ref">begin</a> and <a href="#about-begin" class="ref">end</a> statements. Scripts that are defined as script cannot be called directly from events in your game. They can only be called by name within other scripts. To make a script that can be run directly from your game, use <a href="#about-plotscript" class="ref">plotscript</a>.<br>
+			The script command contains a list of commands. Script starts with the keyword script, a comma, and then the name of the script. If there are any arguments to the script, you list their names separated by commas after the name of the script with optional default values. Then comes the text of the script. It is enclosed in <a href="#about-begin" class="ref">begin</a> and <a href="#about-begin" class="ref">end</a> statements. Scripts that are defined as script cannot be called directly from events in your game. They can only be called by name within other scripts. To make a script that can be run directly from your game, use <a href="#about-plotscript" class="ref">plotscript</a>.<br>
 			<pre># example of a simple script
 script,my first script,begin
 	# commands go here
 end</pre>
-<pre># example of a script with arguments
-script,my fancy script,fe=0,fi=0,fo=0,begin
-	# commands go here,
+<pre># Example of a script with arguments
+# (It can called with between 1 and 3 arguments.)
+script,my fancy script,fe,fi=0,fo=0,begin
+	# Commands go here,
 	# and they can use the aruments fe, fi, and fo
-	# that where passed to the script
+	# that where passed to the script.
+end</pre>
+			
+		</tt></p>
+		<a name="about-subscript"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">subscript, name, argumentnames (statements)</font></b><br>
+			<span class="param">subscript</span> is just like <a href="#about-script" class="ref">script</a> except that it must placed inside another script (or even inside another subscript). See <a href="#about-script" class="ref">script</a> for details of its syntax. The difference from a regular script is that a subscript can only be called from its parent script, and it can directly access its parent script's variables in addition to its own arguments and variables. Subscripts can be useful when you have some piece of repeated code that you want to "de-duplicate" by moving into another script which you can call repeatedly, but without having to turn local variables into global variables.<br>
+			<pre># Some nearby NPCs move into a line to the north of the hero
+plotscript, line up NPCs, begin
+	show textbox(32)  # "Yes sir!"
+	wait for textbox
+	suspend player
+	set hero direction(me, up)
+	variable (x, y)
+	x := hero X(me) -- 2
+	y := hero Y(me) -- 4
+	subscript, line up NPC, npc, begin
+		# Increment X to get next position in the line
+		x += 1
+		walk NPC to X(npc, x)
+		wait for NPC(npc)
+		walk NPC to Y(npc, y)
+		wait for NPC(npc)
+		set NPC direction(npc, down)
+	end
+	# NPCs move one at a time
+	line up NPC(1)
+	line up NPC(3)
+	line up NPC(11)
+	line up NPC(10)
+	line up NPC(5)
+	resume player
 end</pre>
 			
 		</tt></p>
@@ -7710,7 +7748,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">set grid columns (handle, columns)</font></b><br>
-			Changes the number of columns in a grid slice. Child slices will be automatically repositioned.<br>
+			Changes the number of columns in a grid slice. Child slices will be automatically repositioned. 1 is the minimum number of columns. If you attempt to set columns to zero, nothing will happen.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -7738,7 +7776,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">set grid rows (handle, rows)</font></b><br>
-			Changes the number of rows in a grid slice. Child slices will be automatically repositioned.<br>
+			Changes the number of rows in a grid slice. Child slices will be automatically repositioned. 1 is the minimum number of rows. If you attempt to set the rows to 0, nothing will happen.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -11376,7 +11414,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 777 commands in this file, of which 57 are only references to other commands.</p>
+	<p>Stats: There are 778 commands in this file, of which 57 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

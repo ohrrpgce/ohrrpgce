@@ -3828,7 +3828,7 @@ end
 		<command id="setgridcolumns">
 			<canon>set grid columns (handle, columns)</canon>
 			<shortname>set grid columns</shortname>
-			<description>Changes the number of columns in a grid slice. Child slices will be automatically repositioned.</description>
+			<description>Changes the number of columns in a grid slice. Child slices will be automatically repositioned. 1 is the minimum number of columns. If you attempt to set columns to zero, nothing will happen.</description>
 			<seealso>
 				<ref>getgridcolumns</ref>
 				<ref>setgridrows</ref>
@@ -3848,7 +3848,7 @@ end
 		<command id="setgridrows">
 			<canon>set grid rows (handle, rows)</canon>
 			<shortname>set grid rows</shortname>
-			<description>Changes the number of rows in a grid slice. Child slices will be automatically repositioned.</description>
+			<description>Changes the number of rows in a grid slice. Child slices will be automatically repositioned. 1 is the minimum number of rows. If you attempt to set the rows to 0, nothing will happen.</description>
 			<seealso>
 				<ref>setgridcolumns</ref>
 				<ref>getgridcolumns</ref>
