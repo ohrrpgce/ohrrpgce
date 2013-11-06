@@ -1133,12 +1133,16 @@ SUB saveglobalvars (byval slot as integer, byval first as integer, byval last as
  LOOP
 
  '--add nodes for the globals in the range
- gamestate_globals_to_reload script_node, first, last
+ FOR i as integer = first TO last
+  n = AppendChildNode(globals_node, "global", i)
+  SetChildNode(n, "int", global(i))
+ NEXT i
 
  '--re-save with the changed globals
  SerializeBin filename, doc
- 
+
  FreeDocument doc
+
  current_save_slot = -1
 END SUB
 
