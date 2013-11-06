@@ -832,13 +832,28 @@ SUB gamestate_globals_to_reload(byval parent as Reload.NodePtr, byval first as i
 
  DIM node as NodePtr
  node = SetChildNode(parent, "globals")
- DIM n as NodePtr 'used for numbered containers
+
+ DIM n as NodePtr
+ DIM nextch as NodePtr
+ 
+ '--delete any old global nodes in the range
+ n = FirstChild(node, "global")
+ DO WHILE n
+  nextch = NextSibling(n, "global")
+  SELECT CASE GetInteger(n)
+   CASE first TO last
+    FreeNode(n)
+  END SELECT
+  n = nextch
+ LOOP
 
  FOR i as integer = first TO last
   IF global(i) <> 0 THEN
-   SetKeyValueNode(node, "global", i, global(i))
+   n = AppendChildNode(node, "global", i)
+   SetChildNode n, "int", global(i)
   END IF
  NEXT i
+
 END SUB
 
 SUB gamestate_maps_to_reload(byval parent as Reload.NodePtr)
@@ -1118,31 +1133,13 @@ SUB saveglobalvars (byval slot as integer, byval first as integer, byval last as
   globals_node = script_node."globals".ptr
  END IF
  
- DIM n as NodePtr
- DIM nextch as NodePtr
- 
- '--delete any old global nodes in the range
- n = FirstChild(globals_node, "global")
- DO WHILE n
-  nextch = NextSibling(n, "global")
-  SELECT CASE GetInteger(n)
-   CASE first TO last
-    FreeNode(n)
-  END SELECT
-  n = nextch
- LOOP
-
- '--add nodes for the globals in the range
- FOR i as integer = first TO last
-  n = AppendChildNode(globals_node, "global", i)
-  SetChildNode(n, "int", global(i))
- NEXT i
+ '--replace all global nodes withing the requested range
+ gamestate_globals_to_reload script_node, first, last
 
  '--re-save with the changed globals
  SerializeBin filename, doc
-
+ 
  FreeDocument doc
-
  current_save_slot = -1
 END SUB
 
