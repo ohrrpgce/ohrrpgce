@@ -1340,7 +1340,7 @@ SUB remap_virtual_gamepad(nodename as string)
   AppendChildNode(vgp, "button", scESC)
  END IF
  DIM button_id as integer = 0
- READNODE vgp
+ READNODE vgp, ignoreall
   WITHNODE vgp."button" as but
    remap_touchscreen_button button_id, GetInteger(but)
    button_id += 1
