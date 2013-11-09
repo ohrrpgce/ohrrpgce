@@ -3237,7 +3237,7 @@ SUB load_string_list(array() as string, filename as string)
     REDIM PRESERVE array(lines) as string
    END IF
    '--store the string in the array
-   array(lines) = decode_backslash_codes(s)
+   array(lines) = decode_backslash_codes(s, trimpath(filename))
    '--ready for the next line
    lines += 1
   LOOP

@@ -14,6 +14,11 @@ WHAT IS NEW?
     * Clean up orphaned temporary folders when you exit game [James]
     * Games can now optionally increase (or decrease) the number of
       save/load slots that are available. [James]
+    * In the font editor you can set roughly which characters are
+      icons. If you use a font with the extra Latin-1 characters
+      (eg. with accents), then those letters will now show correctly in
+      the .txt file when exporting textboxes.  And characters which are
+      icons won't be exported as garbage in .hsi files. [Ralph]
 
   * Bugfixes
     * Fixed a few cosmetic bugs in the equip menu including possibly

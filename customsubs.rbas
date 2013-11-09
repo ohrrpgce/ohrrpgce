@@ -1927,6 +1927,7 @@ FUNCTION import_textboxes (filename as string, byref warn as string) as integer
  DIM warn_length as integer = 0
  DIM warn_skip as integer = 0
  DIM warn_append as integer = 0
+ DIM show_encoding_warnings as bool = YES
  DIM box as TextBox
  DIM index as integer = 0
  DIM getindex as integer = 0 
@@ -1939,7 +1940,7 @@ FUNCTION import_textboxes (filename as string, byref warn as string) as integer
  DO WHILE NOT EOF(fh)
   line_number += 1
   LINE INPUT #1, s
-  s = decode_backslash_codes(s)
+  s = decode_backslash_codes(s, "Line " & line_number & ":", show_encoding_warnings)
   IF firstline THEN
    IF RTRIM(s) <> STRING(38, "=") THEN
     import_textboxes_warn warn, filename & " is not a valid text box file. Expected header row, found """ & s & """."

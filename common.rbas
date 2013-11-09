@@ -4537,22 +4537,47 @@ SUB unload_sprite_and_pal (byref img as GraphicPair)
  palette16_unload @img.pal
 END SUB
 
-FUNCTION decode_backslash_codes(s as string) as string
+'context describes the string string (eg line number)
+'If show_warnings is true, then warnings about the text encoding
+'related to icons in the font are displayed. You only want those
+'warnings displayed for imported text files, not for internal file
+'formats like slicelookup.txt though, because they may occur if the
+'user changes the font type.
+FUNCTION decode_backslash_codes(s as string, context as string = "", byref show_warnings as bool = NO) as string
  DIM result as string = ""
- DIM i as integer = 1
  DIM ch as string
  DIM mode as integer = 0
  DIM nstr as string
  DIM num as integer
- DO
+ DIM as integer icons_low, icons_high
+ DIM encoding_name as string
+ IF get_font_type(current_font()) = ftypeLatin1 THEN
+  icons_low = 127
+  icons_high = 160
+  encoding_name = "Latin-1"
+ ELSE
+  icons_low = 127
+  icons_high = 255
+  encoding_name = "7-bit ASCII"
+ END IF
+ DIM icon_warn as bool = NO
+
+ FOR i as integer = 1 TO LEN(s)
   ch = MID(s, i, 1)
   SELECT CASE mode
    CASE 0'--normal
     IF ch = "\" THEN
-      mode = 1
-      nstr = ""
+     mode = 1
+     nstr = ""
+    ELSEIF ch = !"\t" THEN
+     'Spaces to pad to column number that's a multiple of 4
+     result &= SPACE(4 - POSMOD(LEN(result), 4))
     ELSE
-      result &= ch
+     IF (ASC(ch) < 32 AND ASC(ch) <> 10) OR (ASC(ch) >= icons_low AND ASC(ch) <= icons_high) THEN
+      debuginfo "decode_backslash_codes: found nonprintable char " & ASC(ch)
+      icon_warn = YES
+     END IF
+     result &= ch
     END IF
    CASE 1'--parsing backslash
     SELECT CASE ch
@@ -4580,36 +4605,47 @@ FUNCTION decode_backslash_codes(s as string) as string
      CASE "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"
       nstr &= ch
      CASE ELSE 'busted backslash code, print warning
-      debug "Bogus backslash ascii code in string """ & s & """"
+      visible_debug context & " Bogus backslash ascii escape code in string """ & s & """"
       mode = 0
     END SELECT
     IF LEN(nstr) >= 3 THEN
      num = str2int(nstr)
      IF num > 255 THEN
-      debug "Bogus backslash ascii code in string """ & s & """"
+      visible_debug context & " Bogus backslash ascii escape code (larger than 255) in string """ & s & """"
      ELSE
       result &= CHR(num)
      END IF
      mode = 0
     END IF
   END SELECT
-  i += 1
- LOOP UNTIL i > LEN(s)
+ NEXT
  IF mode <> 0 THEN
-  debug "decode_backslash_codes: exited while parsing a backslash code (mode=" & mode & ")"
+  visible_debug context & " Bogus backslash code (mode=" & mode & ") at end of string """ & s & """"
+ END IF
+ IF icon_warn AND show_warnings THEN
+  visible_debug context & " This string contains characters which apparently aren't in your font. Maybe your text editor saved the file using the wrong encoding? Expected " & encoding_name & !". (Press ESC to skip warnings)\n\n" & s
+  IF keyval(scESC) THEN show_warnings = NO
  END IF
  RETURN result
 END FUNCTION
 
+'The name is not totally correct, actually escapes non-printable characters and icons in the font,
+'which those are depends on the font type
 FUNCTION escape_nonprintable_ascii(s as string) as string
  DIM result as string = ""
  DIM nstr as string
  DIM ch as string
+ DIM as integer icons_low, icons_high
+ IF get_font_type(current_font()) = ftypeLatin1 THEN
+  icons_low = 127
+  icons_high = 160
+ ELSE
+  icons_low = 127
+  icons_high = 255
+ END IF
  FOR i as integer = 1 TO LEN(s)
   ch = MID(s, i, 1)
   SELECT CASE ASC(ch)
-   CASE 32 TO 91, 93 TO 126
-    result &= ch
    CASE 92 '--Backslash
     result &= "\\"
    CASE 10
@@ -4618,15 +4654,41 @@ FUNCTION escape_nonprintable_ascii(s as string) as string
     result &= "\r"
    CASE 9
     result &= "\t"
-   CASE ELSE
+   CASE 0 TO 31, icons_low TO icons_high
     nstr = STR(ASC(ch))
     WHILE LEN(nstr) < 3
      nstr = "0" & nstr
     WEND
     result &= "\" & nstr
+   'CASE 32 TO 91, 93 TO 126, latin_low TO latin_high
+   CASE ELSE
+    result &= ch
   END SELECT
  NEXT i
  RETURN result
+END FUNCTION
+
+'This is like escape_nonprintable_ascii except that it removes non printable characters and icons
+FUNCTION remove_nonprintable_ascii(s as string) as string
+ DIM as integer icons_low, icons_high
+ IF get_font_type(current_font()) = ftypeLatin1 THEN
+  icons_low = 127
+  icons_high = 160
+ ELSE
+  icons_low = 127
+  icons_high = 255
+ END IF
+ DIM ret as string
+ FOR i as integer = 0 TO LEN(s) - 1
+  SELECT CASE s[i]
+   CASE IS < 32
+    'Tabs ignored because OHR strings shouldn't contain them
+   CASE icons_low TO icons_high
+   CASE ELSE
+    ret &= CHR(s[i])
+  END SELECT
+ NEXT
+ RETURN ret
 END FUNCTION
 
 FUNCTION fixfilename (s as string) as string
@@ -4646,20 +4708,11 @@ FUNCTION fixfilename (s as string) as string
 END FUNCTION
 
 FUNCTION sanitize_script_identifier (ident as string, byval allow_whitespace as integer = YES) as string
- DIM tmp as string = exclude(ident, !"`!@#$%^&*()-+=[]{}\\|<>,.;/\"")  ' :_'~? allowed
- DIM lower_ascii_limit as integer = 32
- IF allow_whitespace THEN lower_ascii_limit = 31
- DIM ret as string
- FOR i as integer = 0 TO LEN(tmp) - 1
-  SELECT CASE tmp[i]
-   CASE IS <= lower_ascii_limit
-   CASE &h7f TO &hA0
-    '(Note, &hA1 and above may not be Latin-1, but oh well)
-   CASE ELSE
-    ret &= CHR(tmp[i])
-  END SELECT
- NEXT
- RETURN ret
+ ' :_'~? are allowed
+ DIM to_exclude as string = !"`!@#$%^&*()-+=[]{}\\|<>,.;/\""
+ IF allow_whitespace = NO THEN to_exclude &= " "
+ DIM tmp as string = exclude(ident, to_exclude)
+ RETURN remove_nonprintable_ascii(tmp)
 END FUNCTION
 
 FUNCTION inputfilename (query as string, ext as string, directory as string, helpkey as string, default as string="", byval allow_overwrite as integer=YES) as string

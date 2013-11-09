@@ -204,8 +204,9 @@ DECLARE FUNCTION xreadbit (bitarray() as integer, byval bitoffset as integer, by
 DECLARE FUNCTION get_text_box_height(byref box as TextBox) as integer
 DECLARE FUNCTION last_inv_slot() as integer
 
-DECLARE FUNCTION decode_backslash_codes(s as string) as string
+DECLARE FUNCTION decode_backslash_codes(s as string, context as string = "", byref show_warnings as bool = NO) as string
 DECLARE FUNCTION escape_nonprintable_ascii(s as string) as string
+DECLARE FUNCTION remove_nonprintable_ascii(s as string) as string
 DECLARE FUNCTION fixfilename (s as string) as string
 DECLARE FUNCTION sanitize_script_identifier (ident as string, byval allow_whitespace as integer = YES) as string
 
