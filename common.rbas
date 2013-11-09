@@ -3957,14 +3957,12 @@ SUB rpg_sanity_checks
   WITH hs_header
    IF .valid = NO THEN
     pop_warning "The scripts in this game appear to be corrupt."
-   ELSEIF .hsp_format > CURRENT_HSP_VERSION OR .script_format > CURRENT_HSZ_VERSION THEN
+   ELSEIF .hsp_format > CURRENT_HSP_VERSION OR .script_format > CURRENT_HSZ_VERSION OR .max_function_id > maxScriptCmdID THEN
     debug "Future HS format: hspeak ver='" & .hspeak_version & "' plotscr ver='" & .plotscr_version _
-           & "' hsp ver=" & .hsp_format & " hsz ver=" & .script_format & " max func=" & .max_function_id
+           & "' hsp ver=" & .hsp_format & " (supported=" & CURRENT_HSP_VERSION & ") hsz ver=" & .script_format & " (supported=" _
+           & CURRENT_HSZ_VERSION & ") max func=" & .max_function_id & " (supported=" & maxScriptCmdID & ")"
     pop_warning "This game has scripts that are not supported in this version of the OHRRPGCE. Download the latest version at http://HamsterRepublic.com"
    END IF
-   'Could also check .max_function_id here (this is a good way to catch
-   'games made with a newer nightly, since all the other file format version
-   'numbers are rarely incremented).
   END WITH
  END IF
 
