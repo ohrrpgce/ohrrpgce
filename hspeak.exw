@@ -13,6 +13,8 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Rd 2013-11-09 Prevent misuse of betweenable-operators in
+--               declarations, and allow constants for global ids
 --3Rc 2013-10-11 subscript implementation changes (add nonlocal kind)
 --3Rb 2013-10-10 Remove variable() later, for syntax checking
 --3Ra 2013-10-09 Fixed \r lineendings (AGAIN) and slow \r\n handling
@@ -1001,9 +1003,18 @@ procedure init()
           ,{"="             ,RESERVE_UNIMPLEMENTED}
           ,{"tracevalue"    ,RESERVE_MACRO}
           ,{"assert"        ,RESERVE_MACRO}
+          -- Stray "$"'s are picked up by the lexer (not totally ideal maybe)
         })--end mass_insert
   for i=1 to length(math_list) do
     reserved=alpha_tree_insert(reserved,math_list[i][PAIR_NAME],RESERVE_BUILTIN)
+  end for
+  -- Adding the separators (operators) here prevents them from being used before
+  -- defineoperator is handled (either a block before include,plotscr.hsd, or in
+  -- e.g. defineconstant)
+  for i=1 to length(separator_list) do
+    if alpha_tree_data(reserved,separator_list[i],false)=false then
+      reserved=alpha_tree_insert(reserved,separator_list[i],RESERVE_OPERATOR)
+    end if
   end for
   init_lexer()
 end procedure
@@ -1991,7 +2002,7 @@ procedure parse_global_block(TokenList block)
     if i+1>length(block) then
       src_error("expected name but globalvariable block ended",block[i][CMD_POS])
     end if
-    num=try_string_to_number(block[i])
+    num=try_string_to_number({enforce_constants(block[i][CMD_TEXT]),block[i][CMD_POS]})
     check_undefined_string(block[i+1],"global variable name")
     create_global(num,block[i+1][CMD_TEXT],block[i][CMD_POS])
   end for
@@ -2001,7 +2012,9 @@ end procedure
 
 procedure parse_operator_block(TokenList block)
   integer num
+  integer keyword
   string name,truename
+  srcpos pos
   for i=1 to length(block) by 3 do
     if i+2>length(block) then
       src_error("expected name but defineoperator block ended",block[i][CMD_POS])
@@ -2011,8 +2024,16 @@ procedure parse_operator_block(TokenList block)
     mustnt_be_a_number(block[i+2])
     name=block[i+1][CMD_TEXT]
     truename=block[i+2][CMD_TEXT]
-    operator_list=append(operator_list,{num,name,truename,block[i+2][CMD_POS]})
-    reserved=alpha_tree_insert(reserved,name,RESERVE_OPERATOR)
+    pos=block[i+2][CMD_POS]
+    operator_list=append(operator_list,{num,name,truename,pos})
+    keyword=alpha_tree_data(reserved,name,false)
+    if keyword then
+      if keyword!=RESERVE_OPERATOR and keyword!=RESERVE_BUILTIN then
+        src_error(sprintf_utf("%s "&COLYEL&"%s"&COLRED&" may not be used as an operator",{RESERVE_NAMES[keyword],name}),pos)
+      end if
+    else
+      reserved=alpha_tree_insert(reserved,name,RESERVE_OPERATOR)
+    end if
   end for
 end procedure
 
@@ -2246,7 +2267,7 @@ function parse_script(Token trigger, string parent_name, integer parent_idx)
       subname=parse_script(this,full_name,idx)
       body&={{"begin",this[CMD_POS]},{"end",this[CMD_POS]}}
     else
-      temp=alpha_tree_data(reserved,this[CMD_TEXT],3)
+      temp=alpha_tree_data(reserved,this[CMD_TEXT],RESERVE_FLOW)
       if temp<=RESERVE_UNIMPLEMENTED then
         err_string=sprintf_utf(
           "%s "&COLYEL&"%s"&COLRED&" is not permitted inside a script.",{RESERVE_NAMES[alpha_tree_data(reserved,this[CMD_TEXT],0)],this[CMD_TEXT]}
