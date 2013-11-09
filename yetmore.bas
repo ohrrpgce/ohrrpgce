@@ -172,10 +172,11 @@ IF limit > 0 THEN
 END IF
 END SUB
 
-SUB scriptstat (byval id as integer)
+FUNCTION scriptstat (byval id as integer) as bool
 'contains an assortment of scripting commands that
 'used to depend on access to the hero stat array stat(), but that is irrelevant now,
 'because that is a global gam.hero().stat
+'Returns true if command was handled.
 
 SELECT CASE as CONST id
  CASE 64'--get hero stat (hero, stat, type)
@@ -476,8 +477,12 @@ SELECT CASE as CONST id
    plotstr(retvals(0)).s = cheezy_virtual_keyboard(plotstr(retvals(0)).s, retvals(1), retvals(2))
   END IF
 
+ CASE ELSE
+  RETURN NO
+
 END SELECT
-END SUB
+RETURN YES
+END FUNCTION
 
 SUB forceparty ()
 '---MAKE SURE YOU HAVE AN ACTIVE PARTY---
@@ -803,10 +808,11 @@ FUNCTION rankincaterpillar (byval heroid as integer) as integer
  RETURN result
 END FUNCTION
 
-SUB scriptmisc (byval id as integer)
+FUNCTION scriptmisc (byval id as integer) as bool
 
 'contains a whole mess of scripting commands that do not depend on
 'any main-module level local variables or GOSUBs
+'Returns true if command was handled.
 
 DIM npcref as integer = ANY
 
@@ -3357,9 +3363,12 @@ SELECT CASE as CONST id
    scriptret = iif(npc(npcref).suspend_ai, 0, 1)
   END IF
 
-END SELECT
+ CASE ELSE
+  RETURN NO
 
-END SUB
+END SELECT
+RETURN YES
+END FUNCTION
 
 SUB tweakpalette (byval r as integer, byval g as integer, byval b as integer, byval first as integer = 0, byval last as integer = 255)
  FOR i as integer = first TO last
