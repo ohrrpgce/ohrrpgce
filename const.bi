@@ -252,6 +252,12 @@ CONST binLASTENTRY = 12 ' *** Update this when adding binsize records ***
 
 '--- Misc constants
 
+'Constants for gen(genFontType)
+Enum fontTypeEnum
+  ftypeASCII  = 0 'Non-extended ASCII, characters 127 and above assumed to be icons
+  ftypeLatin1 = 1 'Characters between 127 and 160 inclusive are assumed to be icons
+End Enum
+
 'Constants for debugc
 Enum errorLevelEnum
   errInfo = 1   'Informational spam (doesn't cause g/c_debug.txt to be kept)

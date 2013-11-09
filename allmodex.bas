@@ -3977,6 +3977,28 @@ sub setfont (f() as integer)
 	font_create_edged(@fonts(1), @fonts(0))
 end sub
 
+'NOTE: the following two functions are for the old style fonts, they will
+'be removed when switching to the new system supporting unicode fonts
+
+'These old style fonts store the type of the font in first integer (part of character
+'0). The default "Latin-1.ohf" and "OHRRPGCE Default.ohf" fonts are marked as Latin 1, so
+'any font derived from them will be too (ability to change the type only added in Callipygous)
+
+function get_font_type (font() as integer) as fontTypeEnum
+	if font(0) <> ftypeASCII and font(0) <> ftypeLatin1 then
+                debugc errPromptBug, "Unknown font type ID " & font(0)
+                return ftypeASCII
+	end if
+        return font(0)
+end function
+
+sub set_font_type (font() as integer, ty as fontTypeEnum)
+	if ty <> ftypeASCII and ty <> ftypeLatin1 then
+		debugc errPromptBug, "set_font_type: bad type " & ty
+	end if
+	font(0) = ty
+end sub
+
 
 '==========================================================================================
 '                                       BMP routines

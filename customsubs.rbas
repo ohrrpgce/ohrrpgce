@@ -3736,14 +3736,19 @@ SUB attack_preview_slice_defocus(byval sl as Slice Ptr)
 END SUB
 
 SUB fontedit (font() as integer)
- DIM f(255) as integer
+ DIM f(255) as integer  'Contains the character indices which should be shown (always 32-255)
  DIM copybuf(4) as integer
- DIM menu(3) as string
+ DIM menu(6) as string
+ DIM selectable(6) as bool
+ flusharray selectable(), , YES
 
  menu(0) = "Previous Menu"
  menu(1) = "Edit Font..."
  menu(2) = "Import Font..."
  menu(3) = "Export Font..."
+ selectable(4) = NO
+ menu(5) = ""  'Set below
+ selectable(6) = NO
 
  DIM i as integer
 
@@ -3753,6 +3758,9 @@ SUB fontedit (font() as integer)
   f(last) = i
  NEXT i
 
+ 'mode = -1: the menu
+ 'mode = 0:  select a character to edit
+ 'mode = 1:  editing a character
  DIM mode as integer = -1
 
  'This state is used for the menu, not the charpicker
@@ -3763,6 +3771,8 @@ SUB fontedit (font() as integer)
   .last = UBOUND(menu)
   .size = 22
  END WITH
+
+ DIM fonttype as fontTypeEnum = get_font_type(font())
 
  DIM linesize as integer = 14
  DIM pt as integer = -1 * linesize
@@ -3783,16 +3793,23 @@ SUB fontedit (font() as integer)
   SELECT CASE mode
    CASE -1
     IF keyval(scEsc) > 1 THEN EXIT DO
-    usemenu state
+    usemenu state, selectable()
     IF enter_space_click(state) THEN
      IF state.pt = 0 THEN EXIT DO
      IF state.pt = 1 THEN mode = 0
      IF state.pt = 2 THEN
       fontedit_import_font font()
+      fonttype = get_font_type(font())
       state.pt = 1
       mode = 0
      END IF
      IF state.pt = 3 THEN fontedit_export_font font()
+    END IF
+    IF state.pt = 5 THEN
+     IF intgrabber(fonttype, ftypeASCII, ftypeLatin1) THEN
+      set_font_type font(), fonttype
+      xbsave game + ".fnt", font(), 2048
+     END IF
     END IF
    CASE 0
     IF keyval(scEsc) > 1 THEN mode = -1
@@ -3841,6 +3858,15 @@ SUB fontedit (font() as integer)
   clearpage dpage
 
   IF mode = -1 THEN
+   menu(5) = "Font type: "
+   IF fonttype = ftypeASCII THEN
+    menu(5) &= "ASCII"
+    menu(6) = " (Characters 127-255 are icons)"
+   ELSEIF fonttype = ftypeLatin1 THEN
+    menu(5) &= "Latin1"
+    menu(6) = " (Characters 127-160 are icons)"
+   END IF
+
    standardmenu menu(), state, 0, 0, dpage
   END IF
 
@@ -3900,8 +3926,6 @@ SUB fontedit (font() as integer)
   setvispage vpage
   dowait
  LOOP
-EXIT SUB
-
 END SUB
 
 SUB fontedit_export_font(font() as integer)

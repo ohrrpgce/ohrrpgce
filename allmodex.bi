@@ -107,6 +107,8 @@ DECLARE FUNCTION fgcol_text (text as string, byval colour as integer) as string
 DECLARE FUNCTION bgcol_text (text as string, byval colour as integer) as string
 
 DECLARE SUB setfont (f() as integer)
+DECLARE FUNCTION get_font_type (font() as integer) as fontTypeEnum
+DECLARE SUB set_font_type (font() as integer, ty as fontTypeEnum)
 DECLARE SUB font_create_edged (byval font as Font ptr, byval basefont as Font ptr)
 DECLARE SUB font_create_shadowed (byval font as Font ptr, byval basefont as Font ptr, byval xdrop as integer = 1, byval ydrop as integer = 1)
 DECLARE SUB font_loadbmps (byval font as Font ptr, directory as string, byval fallback as Font ptr = null)

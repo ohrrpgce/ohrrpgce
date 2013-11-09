@@ -1879,6 +1879,10 @@ SUB xbsave (filename as string, array() as integer, bsize as integer)
 	CLOSE #ff
 END SUB
 
+'bb(): bit array, 16 bits per integer (rest ignored)
+'w:    index in bb() to start at (index where bits 0-15 are)
+'b:    bit number (counting from bb(w))
+'v:    value, zero or nonzero
 SUB setbit (bb() as integer, byval w as integer, byval b as integer, byval v as integer)
 	dim mask as uinteger
 	dim woff as integer
@@ -1901,7 +1905,9 @@ SUB setbit (bb() as integer, byval w as integer, byval b as integer, byval v as 
 	end if
 end SUB
 
-FUNCTION readbit (bb() as integer, byval w as integer, byval b as integer)  as integer
+'Returns 0 or 1. Use xreadbit if you want NO or YES instead.
+'See setbit for full documentation
+FUNCTION readbit (bb() as integer, byval w as integer, byval b as integer) as integer
 	dim mask as uinteger
 	dim woff as integer
 	dim wb as integer
