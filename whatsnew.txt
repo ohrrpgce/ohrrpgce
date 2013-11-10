@@ -19,6 +19,8 @@ WHAT IS NEW?
       (eg. with accents), then those letters will now show correctly in
       the .txt file when exporting textboxes.  And characters which are
       icons won't be exported as garbage in .hsi files. [Ralph]
+    * Attack chains conditions can now be based on the stats of the
+      targets [James]
 
   * Bugfixes
     * Fixed a few cosmetic bugs in the equip menu including possibly
@@ -31,8 +33,6 @@ WHAT IS NEW?
     * Fix heroes getting stuck in active-time battle mode if they are
       in the middle of targetting an attack and get hit with a stun
       or mute attack. [James]
-    * Attack chains conditions can now be based on the stats of the
-      targets [James]
     * "showtextbox happens immediately" backcompat bitset (on for new
       games) helps to prevent bugs due to showing two boxes at once;
       "show textbox" now affects "current textbox" immediately [Ralph]
