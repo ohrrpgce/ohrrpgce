@@ -2599,6 +2599,7 @@ SUB convertattackdata(buf() as integer, byref atkdat as AttackData)
   .nonblocking                    = xreadbit(buf(), 20, 65)
   .force_victory                  = xreadbit(buf(), 21, 65)
   .force_battle_exit              = xreadbit(buf(), 22, 65)
+  .never_trigger_elemental_counterattacks = xreadbit(buf(), 23, 65)
  END WITH
 END SUB
 

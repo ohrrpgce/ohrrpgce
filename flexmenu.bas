@@ -258,6 +258,7 @@ atkbit(82) = "Do not cause target to flinch"
 atkbit(84) = "Delay doesn't block further actions"
 atkbit(85) = "Force victory"
 atkbit(86) = "Force battle exit (no run animation)"
+atkbit(87) = "Never trigger elemental counterattacks"
 '             ^---------------------------------------^
 '               the amount of room you have (39 chars)
 
