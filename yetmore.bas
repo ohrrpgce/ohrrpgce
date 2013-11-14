@@ -476,6 +476,14 @@ SELECT CASE as CONST id
   IF valid_plotstr(retvals(0)) THEN
    plotstr(retvals(0)).s = cheezy_virtual_keyboard(plotstr(retvals(0)).s, retvals(1), retvals(2))
   END IF
+ CASE 557'--get item description(str,itm)
+  scriptret = 0
+  IF valid_plotstr(retvals(0)) THEN
+   IF valid_item(retvals(1)) THEN
+    plotstr(retvals(0)).s = readitemdescription(retvals(1))
+    scriptret = 1
+   END IF
+  END IF
 
  CASE ELSE
   RETURN NO

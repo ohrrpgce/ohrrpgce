@@ -1591,6 +1591,11 @@ get hero name (1, find hero (leader))
 			<shortname>get item name</shortname>
 			<description>This command will take the name of item #<p>item</p> and stick it in string #<p>ID</p>, overwriting its contents. This can be useful for "You got &lt;item&gt;!" type messages.</description>
 		</command>
+		<command id="getitemdescription">
+			<canon>get item description (ID, item)</canon>
+			<shortname>get item description</shortname>
+			<description>This command will take the description of item #<p>item</p> and stick it in string #<p>ID</p>, overwriting its contents.</description>
+		</command>
 		<command id="getmapname">
 			<canon>get map name (ID, map)</canon>
 			<shortname>get map name</shortname>

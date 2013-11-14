@@ -46,6 +46,8 @@ WHAT IS NEW?
       instead of opening the main menu [Lakan Inocencio]
     * subscripts: scripts embeddable inside other scripts, with access
       to their local variables [Ralph]
+    * "read item description" counterpart to existing "read item name"
+      [James]
 
   * Performance Fixes
     * Fixed delay when opening a menu that happened when a large number
