@@ -1308,6 +1308,17 @@ Function GetChildByNameIndex(byval nod as NodePtr, byval nameindex as integer) a
 	return null
 End Function
 
+Function GetOrCreateChild(byval nod as NodePtr, nam as string) as NodePtr
+	'If the named child exists, return it, otherwise create an empty node of that name
+	if nod = null then return null
+	DIM result as NodePtr
+	result = GetChildByName(nod, nam)
+	if result = null then
+		result = SetChildNode(nod, nam)
+	end if
+	return result
+End Function
+
 'This returns a node's content in string form.
 Function GetString(byval node as nodeptr) as string
 	if node = null then return ""
