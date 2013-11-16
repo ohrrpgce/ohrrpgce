@@ -103,5 +103,6 @@ DECLARE FUNCTION reorderable_node(byval node as NodePtr) as integer
 DECLARE SUB edit_platform_options ()
 DECLARE FUNCTION prompt_for_scancode () as integer
 DECLARE FUNCTION scancode_to_name(byval sc as integer) as string
+DECLARE SUB edit_purchase_options ()
 
 #endif
