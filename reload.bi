@@ -154,7 +154,6 @@ Declare Function GetZStringSize(byval node as nodeptr) as integer
 
 Declare Function GetChildByName(byval nod as NodePtr, byval nam as zstring ptr) as NodePtr 'NOT recursive
 Declare Function FindChildByName(byval nod as NodePtr, nam as string) as NodePtr 'recursive depth first search
-Declare Function GetOrCreateChild(byval nod as NodePtr, nam as string) as NodePtr
 
 Declare Function DocumentRoot(byval doc as DocPtr) as NodePtr
 Declare Function NumChildren(byval nod as NodePtr) as Integer

@@ -5265,9 +5265,9 @@ SUB edit_purchase_options ()
  REDIM enabled(0) as bool
 
  DIM gen_root as NodePtr = get_general_reld()
- DIM purchase_root as NodePtr = GetOrCreateChild(gen_root, "purchase_root")
- DIM ouya_node as NodePtr = GetOrCreateChild(purchase_root, "ouya")
- DIM products as NodePtr = GetOrCreateChild(purchase_root, "products")
+ DIM purchase_root as NodePtr = ChildNode(gen_root, "purchase_root")
+ DIM ouya_node as NodePtr = ChildNode(purchase_root, "ouya")
+ DIM products as NodePtr = ChildNode(purchase_root, "products")
  
  DIM t as integer
  DIM sub_t as integer
@@ -5304,7 +5304,7 @@ SUB edit_purchase_options ()
    menu.last->unselectable = YES
    menu.last->disabled = YES
    
-   node = GetOrCreateChild(ouya_node, "developer_id")
+   node = ChildNode(ouya_node, "developer_id")
    append_menu_item menu, "> " & GetString(node)
    menu.last->t = editpurchSTRING
    menu.last->sub_t = 36
@@ -5317,12 +5317,12 @@ SUB edit_purchase_options ()
    READNODE products
     WITHNODE products."prod" as prod
      DIM n as NodePtr
-     n = GetOrCreateChild(prod, "codename")
+     n = ChildNode(prod, "codename")
      append_menu_item menu, "Codename: " & GetString(n)
      menu.last->t = editpurchSTRING
      menu.last->sub_t = 128
      menu.last->dataptr = n
-     n = GetOrCreateChild(prod, "tag")
+     n = ChildNode(prod, "tag")
      DIM cap as string
      cap = "  Turn ON Tag " & GetInteger(n) & " (" & load_tag_name(GetInteger(n)) & ")"
      append_menu_item menu, cap
