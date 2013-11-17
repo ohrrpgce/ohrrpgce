@@ -1159,8 +1159,15 @@ SUB update_heroes(byval force_step_check as integer=NO)
   IF gam.need_fade_in = NO AND readbit(gen(), genSuspendBits, suspendrandomenemies) = 0 THEN
    DIM battle_formation_set as integer
    battle_formation_set = readblock(foemap, catx(0) \ 20, caty(0) \ 20)
-   IF vstate.active = YES AND vstate.dat.random_battles > 0 THEN
-    battle_formation_set = vstate.dat.random_battles
+   IF vstate.active = YES THEN
+    '--Riding a vehicle
+    IF vstate.dat.random_battles > 0 THEN
+     '--This vehicle overrides the random battle formation set
+     battle_formation_set = vstate.dat.random_battles
+    ELSEIF vstate.dat.random_battles = -1 THEN
+     '--This vehicle disables random battles
+     battle_formation_set = 0
+    END IF
    END IF
    IF battle_formation_set > 0 THEN
     DIM formset as FormationSet

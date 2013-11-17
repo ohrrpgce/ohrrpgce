@@ -40,6 +40,7 @@ WHAT IS NEW?
     * HSpeak accepts files with Mac line-endings again [Ralph]
     * Fix attacks that use the attacker's max stats as the base attack
       stat [James]
+    * Fix vehicles that disabled random battles [James]
 
   * New Plotscripting Stuff
     * "Menu action plotscript" special script trigger to run a script
