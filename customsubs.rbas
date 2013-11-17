@@ -5253,6 +5253,8 @@ CONST editpurchEXIT as integer = 1
 CONST editpurchSTRING as integer = 2
 CONST editpurchTAGSET as integer = 3
 CONST editpurchADD as integer = 4
+CONST editpurchPROD as integer = 5
+CONST editpurchLONGSTRING as integer = 6
 
 SUB edit_purchase_options ()
 
@@ -5318,16 +5320,9 @@ SUB edit_purchase_options ()
     WITHNODE products."prod" as prod
      DIM n as NodePtr
      n = ChildNode(prod, "codename")
-     append_menu_item menu, "Codename: " & GetString(n)
-     menu.last->t = editpurchSTRING
-     menu.last->sub_t = 128
-     menu.last->dataptr = n
-     n = ChildNode(prod, "tag")
-     DIM cap as string
-     cap = "  Turn ON Tag " & GetInteger(n) & " (" & load_tag_name(GetInteger(n)) & ")"
-     append_menu_item menu, cap
-     menu.last->t = editpurchTAGSET
-     menu.last->dataptr = n
+     append_menu_item menu, "Product: " & GetString(n)
+     menu.last->t = editpurchPROD
+     menu.last->dataptr = prod
     END WITHNODE
    END READNODE
    
@@ -5361,6 +5356,132 @@ SUB edit_purchase_options ()
       st.need_update = YES
      END IF
     END IF
+  END SELECT
+  
+  IF enter_space_click(st) THEN
+   SELECT CASE t
+    CASE editpurchEXIT: EXIT DO
+    CASE editpurchTAGSET:
+     SetContent(node, tags_menu(GetInteger(node), YES, NO))
+     st.need_update = YES
+    CASE editpurchADD:
+     DIM newnode as NodePtr = AppendChildNode(products, "prod")
+     st.need_update = YES
+    CASE editpurchPROD:
+     edit_purchase_details node
+     st.need_update = YES
+   END SELECT
+  END IF
+  
+  IF keyval(scDelete) > 1 THEN
+   IF yesno("Delete the selected product?", NO, NO) THEN
+    FreeNode node
+    st.need_update = YES
+   END IF
+  END IF
+  
+  clearpage dpage
+  
+  draw_menu menu, st, dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  
+  dowait
+ LOOP
+
+END SUB
+
+SUB edit_purchase_details (byval prod as NodePtr)
+
+ DIM menu as MenuDef
+ 
+ DIM st as MenuState
+ st.active = YES
+ st.need_update = YES
+
+ REDIM enabled(0) as bool
+ 
+ DIM t as integer
+ DIM sub_t as integer
+ DIM node as NodePtr
+
+ setkeys YES
+ DO
+  setwait 55
+  setkeys YES
+  IF keyval(scF1) > 1 THEN show_help "edit_purchase_details"
+  IF keyval(scEsc) > 1 THEN EXIT DO
+
+  IF st.need_update THEN
+   st.need_update = NO
+   ClearMenuData menu
+   WITH menu
+    .no_box = YES
+    .align = -1
+    .anchor.x = -1
+    .anchor.y = -1
+    .offset.x = -160
+    .offset.y = -100
+    .bordersize = -8
+   END WITH
+
+   append_menu_item menu, "Previous menu..."
+   menu.last->t = editpurchEXIT
+   
+   DIM n as NodePtr
+
+   n = ChildNode(prod, "codename")
+   append_menu_item menu, "Code: " & GetString(n)
+   menu.last->t = editpurchSTRING
+   menu.last->sub_t = 128
+   menu.last->dataptr = n
+
+   n = ChildNode(prod, "displayname")
+   append_menu_item menu, "Name: " & GetString(n)
+   menu.last->t = editpurchSTRING
+   menu.last->sub_t = 128
+   menu.last->dataptr = n
+
+   n = ChildNode(prod, "description")
+   append_menu_item menu, "Description: " & GetString(n)
+   menu.last->t = editpurchLONGSTRING
+   menu.last->sub_t = 99999
+   menu.last->dataptr = n
+
+   n = ChildNode(prod, "tag")
+   DIM cap as string
+   cap = "Turn ON Tag " & GetInteger(n) & " (" & load_tag_name(GetInteger(n)) & ")"
+   append_menu_item menu, cap
+   menu.last->t = editpurchTAGSET
+   menu.last->dataptr = n
+
+   init_menu_state st, menu
+
+   REDIM enabled(menu.numitems - 1) as bool
+   FOR i as integer = 0 TO UBOUND(enabled)
+    WITH *menu.items[i]
+     enabled(i) = NOT .unselectable
+    END WITH
+   NEXT i
+   
+  END IF '--done updating menu
+
+  usemenu st, enabled()
+
+  t = menu.items[st.pt]->t
+  sub_t = menu.items[st.pt]->sub_t
+  node = menu.items[st.pt]->dataptr
+  
+  SELECT CASE t
+   CASE editpurchSTRING, editpurchLONGSTRING:
+    IF node THEN
+     DIM curstr as string
+     curstr = GetString(node)
+     IF strgrabber(curstr, sub_t) THEN
+      SetContent(node, curstr)
+      st.need_update = YES
+     END IF
+    END IF
    CASE editpurchTAGSET:
     IF node THEN
      DIM curint as integer
@@ -5378,10 +5499,8 @@ SUB edit_purchase_options ()
     CASE editpurchTAGSET:
      SetContent(node, tags_menu(GetInteger(node), YES, NO))
      st.need_update = YES
-    CASE editpurchADD:
-     DIM newnode as NodePtr = AppendChildNode(products, "prod")
-     AppendChildNode(newnode, "codename", "")
-     AppendChildNode(newnode, "tag", 0)
+    CASE editpurchLONGSTRING:
+     SetContent(node, multiline_string_editor(GetString(node)))
      st.need_update = YES
    END SELECT
   END IF
@@ -5394,5 +5513,5 @@ SUB edit_purchase_options ()
   
   dowait
  LOOP
-
 END SUB
+

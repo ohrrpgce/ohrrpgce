@@ -104,5 +104,6 @@ DECLARE SUB edit_platform_options ()
 DECLARE FUNCTION prompt_for_scancode () as integer
 DECLARE FUNCTION scancode_to_name(byval sc as integer) as string
 DECLARE SUB edit_purchase_options ()
+DECLARE SUB edit_purchase_details (byval prod as NodePtr)
 
 #endif
