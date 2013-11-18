@@ -3184,7 +3184,8 @@ SUB purchases_menu ()
   node = menu.items[st.pt]->dataptr
   
   IF carray(ccUse) > 1 THEN
-   debug GetString(ChildNode(node, "codename"))
+   debug "Select product"
+   'debug GetString(ChildNode(node, "codename"))
    st.need_update = YES
   END IF
 

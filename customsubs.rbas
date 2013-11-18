@@ -5256,6 +5256,7 @@ CONST editpurchTAGSET as integer = 3
 CONST editpurchADD as integer = 4
 CONST editpurchPROD as integer = 5
 CONST editpurchLONGSTRING as integer = 6
+CONST editpurchINT as integer = 7
 
 SUB edit_purchase_options ()
 
@@ -5320,7 +5321,7 @@ SUB edit_purchase_options ()
    READNODE products
     WITHNODE products."prod" as prod
      DIM n as NodePtr
-     n = ChildNode(prod, "codename")
+     n = ChildNode(prod, "displayname")
      append_menu_item menu, "Product: " & GetString(n)
      menu.last->t = editpurchPROD
      menu.last->dataptr = prod
@@ -5362,9 +5363,6 @@ SUB edit_purchase_options ()
   IF enter_space_click(st) THEN
    SELECT CASE t
     CASE editpurchEXIT: EXIT DO
-    CASE editpurchTAGSET:
-     SetContent(node, tags_menu(GetInteger(node), YES, NO))
-     st.need_update = YES
     CASE editpurchADD:
      DIM newnode as NodePtr = AppendChildNode(products, "prod")
      st.need_update = YES
@@ -5408,6 +5406,12 @@ SUB edit_purchase_details (byval prod as NodePtr)
  DIM sub_t as integer
  DIM node as NodePtr
 
+ DIM n as NodePtr
+ DIM store as NodePtr
+ DIM buy_action as NodePtr
+ DIM cap as string
+ DIM num as integer
+
  setkeys YES
  DO
   setwait 55
@@ -5431,14 +5435,6 @@ SUB edit_purchase_details (byval prod as NodePtr)
    append_menu_item menu, "Previous menu..."
    menu.last->t = editpurchEXIT
    
-   DIM n as NodePtr
-
-   n = ChildNode(prod, "codename")
-   append_menu_item menu, "Code: " & GetString(n)
-   menu.last->t = editpurchSTRING
-   menu.last->sub_t = 128
-   menu.last->dataptr = n
-
    n = ChildNode(prod, "displayname")
    append_menu_item menu, "Name: " & GetString(n)
    menu.last->t = editpurchSTRING
@@ -5450,12 +5446,55 @@ SUB edit_purchase_details (byval prod as NodePtr)
    menu.last->t = editpurchLONGSTRING
    menu.last->sub_t = 99999
    menu.last->dataptr = n
+   
+   append_menu_item menu, "OUYA Store Settings"
+   menu.last->unselectable = YES
+   menu.last->disabled = YES
 
-   n = ChildNode(prod, "tag")
-   DIM cap as string
-   cap = "Turn ON Tag " & GetInteger(n) & " (" & load_tag_name(GetInteger(n)) & ")"
+   store = ChildNode(prod, "ouya")
+   n = ChildNode(store, "identifier")
+   append_menu_item menu, "Identifier: " & GetString(n)
+   menu.last->t = editpurchSTRING
+   menu.last->sub_t = 128
+   menu.last->dataptr = n
+
+   append_menu_item menu, "Paypal Settings"
+   menu.last->unselectable = YES
+   menu.last->disabled = YES
+
+   store = ChildNode(prod, "paypal")
+   n = ChildNode(store, "button_id")
+   append_menu_item menu, "Button ID: " & GetString(n)
+   menu.last->t = editpurchSTRING
+   menu.last->sub_t = 128
+   menu.last->dataptr = n
+
+   append_menu_item menu, "Purchase Action"
+   menu.last->unselectable = YES
+   menu.last->disabled = YES
+
+   buy_action = ChildNode(prod, "buy_action")
+   
+   n = ChildNode(buy_action, "tag")
+   num = GetInteger(n)
+   cap = "Turn ON Tag "
+   IF num > 1 THEN
+    cap &= num & " (" & load_tag_name(num) & ")"
+   ELSEIF num = 1 THEN
+    cap &= num & " [Cannot be changed!]"
+   ELSE
+    cap &= "[None selected]"
+   END IF
    append_menu_item menu, cap
    menu.last->t = editpurchTAGSET
+   menu.last->dataptr = n
+   
+   n = ChildNode(buy_action, "global")
+   num = GetInteger(n)
+   cap = "+1 to Global Variable ID " & zero_default(num, "[None selected]")
+   append_menu_item menu, cap
+   menu.last->t = editpurchINT
+   menu.last->sub_t = maxScriptGlobals
    menu.last->dataptr = n
 
    init_menu_state st, menu
@@ -5494,6 +5533,15 @@ SUB edit_purchase_details (byval prod as NodePtr)
       st.need_update = YES
      END IF
     END IF
+   CASE editpurchINT:
+    IF node THEN
+     DIM curint as integer
+     curint = GetInteger(node)
+     IF intgrabber(curint, 0, sub_t) THEN
+      SetContent(node, curint)
+      st.need_update = YES
+     END IF
+    END IF
   END SELECT
   
   IF enter_space_click(st) THEN
@@ -5502,6 +5550,11 @@ SUB edit_purchase_details (byval prod as NodePtr)
     CASE editpurchTAGSET:
      SetContent(node, tags_menu(GetInteger(node), YES, NO))
      st.need_update = YES
+   END SELECT
+  END IF
+  
+  IF keyval(scEnter) > 1 THEN
+   SELECT CASE t
     CASE editpurchLONGSTRING:
      SetContent(node, multiline_string_editor(GetString(node)))
      st.need_update = YES
