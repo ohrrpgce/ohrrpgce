@@ -55,6 +55,7 @@ DECLARE SUB misc_debug_menu()
 DECLARE SUB battle_formation_testing_menu()
 DECLARE SUB queue_music_change (byval song as integer)
 DECLARE SUB check_for_queued_music_change ()
+DECLARE FUNCTION supports_in_app_purchases () as bool
 
 
 'Note: On Android exename is "sdl" and exepath is "" (currently unimplemented in FB and meaningless for an app anyway)
@@ -2768,6 +2769,8 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as int
        verify_quit
       CASE 11 ' volume
        activated = NO
+      CASE 15 ' purchases
+       purchases_menu()
      END SELECT
     CASE 2 ' Menu
      open_other_menu = .sub_t
@@ -2850,6 +2853,7 @@ SUB check_menu_tags ()
      IF .t = 1 AND .sub_t = 7 AND gmap(2) = 0 THEN .disabled = YES 'Minimap disabled on this map
      IF .t = 1 AND .sub_t = 8 AND gmap(3) = 0 THEN .disabled = YES 'Save anywhere disabled on this map
      IF .t = 1 AND .sub_t = 14 AND NOT supports_safe_zone_margin() THEN .disabled = YES 'TV Safe Margin disabled on backends that don't support it
+     IF .t = 1 AND .sub_t = 15 AND NOT supports_in_app_purchases() THEN .disabled = YES 'Purchases disabled on platforms that don't have a supported store
      IF old <> .disabled THEN changed = YES
     END WITH
    NEXT i
@@ -4261,3 +4265,9 @@ FUNCTION calc_virtual_gamepad_state(byval advancing_text_now as bool=NO, byval i
  'If no other conditions are met, enabled the virtual gamepad
  RETURN YES
 END FUNCTION
+
+FUNCTION supports_in_app_purchases () as bool
+ IF running_on_ouya() THEN RETURN YES
+ RETURN NO
+END FUNCTION
+

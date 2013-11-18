@@ -6520,7 +6520,17 @@ sub remap_touchscreen_button (byval button_id as integer, byval ohr_scancode as 
 end sub
 
 function running_on_console() as bool
+	'Currently the ouya is the only supported console, but there could be others someday
 	return io_running_on_console()
+end function
+
+function running_on_ouya() as bool
+'Only use this for things that strictly require OUYA, like the OUYA store
+#IFDEF __FB_ANDROID__
+	return io_running_on_console()
+#ELSE
+	RETURN NO
+#ENDIF
 end function
 
 function running_on_mobile() as bool

@@ -3236,6 +3236,7 @@ SUB edit_global_text_strings()
  GTS_add_to_menu menu, "Minimap",                    68, "Map", 10
  GTS_add_to_menu menu, "Volume",                     69, "Volume", 10
  GTS_add_to_menu menu, "Margins",                   308, "Margins", 10
+ GTS_add_to_menu menu, "Purchases",                 313, "Purchases", 10
 
  GTS_menu_header menu, "Item Menu:"
  GTS_add_to_menu menu, "Exit Item Menu",             35, "DONE", 10
@@ -3350,7 +3351,7 @@ SUB edit_global_text_strings()
  GTS_add_to_menu menu, "Plotscript: pick hero",      135, "Which Hero?", 20
  GTS_add_to_menu menu, "Hero name prompt",           137, "Name the Hero", 20
 
- '**** next unused index is 312
+ '**** next unused index is 313
 
  'NOTE: if you add global strings here, be sure to update the limit-checking on
  'the implementation of the "get global string" plotscripting command
@@ -5388,6 +5389,8 @@ SUB edit_purchase_options ()
   
   dowait
  LOOP
+ 
+ ClearMenuData menu
 
 END SUB
 
@@ -5513,5 +5516,6 @@ SUB edit_purchase_details (byval prod as NodePtr)
   
   dowait
  LOOP
+ ClearMenuData menu
 END SUB
 

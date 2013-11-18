@@ -3120,3 +3120,85 @@ SUB spells_menu_paint (byref sp as SpellsMenuState)
  IF sp.last = 0 THEN edgeprint names(sp.hero) & " " & sp.has_none_caption, xstring(names(sp.hero) & " " & sp.has_none_caption, 160), 120, uilook(uiText), sp.page
  edgeprint names(sp.hero), xstring(names(sp.hero), 206), 31, uilook(uiText), sp.page
 END SUB
+
+SUB purchases_menu ()
+
+ DIM st as MenuState
+ DIM menu as MenuDef
+ ClearMenuData menu
+ 
+ st.active = YES
+ st.need_update = YES
+
+ 'Keep whatever was on the screen already as a background (NOTE: this doesn't always work (not necessarily vpage))
+ DIM holdscreen as integer
+ holdscreen = allocatepage
+ copypage vpage, holdscreen
+
+ DIM gen_root as NodePtr = get_general_reld()
+ DIM purchase_root as NodePtr = ChildNode(gen_root, "purchase_root")
+ DIM ouya_node as NodePtr = ChildNode(purchase_root, "ouya")
+ DIM products as NodePtr = ChildNode(purchase_root, "products")
+ 
+ DIM t as integer
+ DIM node as NodePtr
+ DIM n as NodePtr
+
+ setkeys YES
+ DO
+  setwait 55
+  setkeys YES
+  
+  IF st.need_update THEN
+   st.need_update = NO
+   ClearMenuData menu
+   WITH menu
+    .align = -1
+    .maxrows = 16
+    .anchor.Y = -1
+    .offset.Y = -90
+   END WITH
+
+   READNODE products
+    WITHNODE products."prod" as prod
+     n = ChildNode(prod, "displayname")
+     append_menu_item menu, GetString(n)
+     menu.last->dataptr = prod
+    END WITHNODE
+   END READNODE
+
+   init_menu_state st, menu
+   
+  END IF '--done updating menu
+
+  control
+  IF carray(ccMenu) > 1 THEN
+   menusound gen(genCancelSFX)
+   EXIT DO
+  END IF
+
+  IF game_usemenu(st) THEN
+   menusound gen(genCursorSFX)
+  END IF
+
+  node = menu.items[st.pt]->dataptr
+  
+  IF carray(ccUse) > 1 THEN
+   debug GetString(ChildNode(node, "codename"))
+   st.need_update = YES
+  END IF
+
+  copypage holdscreen, vpage
+  draw_menu menu, st, vpage
+  setvispage vpage
+  dowait
+
+ LOOP
+ setkeys
+ control
+ carray(ccMenu) = 0
+ freepage holdscreen
+ ClearMenuData menu
+
+ tag_updates
+END SUB
