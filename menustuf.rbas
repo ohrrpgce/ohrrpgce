@@ -3156,7 +3156,6 @@ SUB purchases_menu ()
     .align = -1
     .maxrows = 16
     .anchor.Y = -1
-    .offset.Y = -90
    END WITH
 
    READNODE products
