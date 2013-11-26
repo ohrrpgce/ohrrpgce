@@ -96,8 +96,8 @@ REDIM learnmask(245) as integer '6 shorts of bits per hero
 FUNCTION battle (byval form as integer) as bool
  battle = YES 'default return value
  
- remap_virtual_gamepad "virtual_gamepad_battle"
- 
+ remap_virtual_gamepad "virtual_gamepad_battle", YES
+
  DIM formdata as Formation
  DIM attack as AttackData
  DIM st(3) as HeroDef

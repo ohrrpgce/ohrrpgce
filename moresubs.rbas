@@ -1328,7 +1328,7 @@ SUB reset_game_state ()
 
 END SUB
 
-SUB remap_virtual_gamepad(nodename as string)
+SUB remap_virtual_gamepad(nodename as string, byval in_battle as bool=NO)
  DIM root as NodePtr = get_general_reld()
  DIM mobile as NodePtr = root."mobile_options".ptr
  IF mobile = 0 THEN mobile = SetChildNode(root, "mobile_options")
@@ -1349,7 +1349,7 @@ SUB remap_virtual_gamepad(nodename as string)
  FOR i as integer = button_id TO 5
   remap_touchscreen_button i, 0
  NEXT i
- update_virtual_gamepad_display()
+ update_virtual_gamepad_display(NO, in_battle)
 END SUB
 
 FUNCTION should_disable_virtual_gamepad() as bool
