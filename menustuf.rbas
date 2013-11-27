@@ -3160,9 +3160,11 @@ SUB purchases_menu ()
 
    READNODE products
     WITHNODE products."prod" as prod
-     n = ChildNode(prod, "displayname")
-     append_menu_item menu, GetString(n)
-     menu.last->dataptr = prod
+     IF product_enabled_for_current_store(prod) THEN
+      n = ChildNode(prod, "displayname")
+      append_menu_item menu, GetString(n)
+      menu.last->dataptr = prod
+     END IF
     END WITHNODE
    END READNODE
 
@@ -3232,3 +3234,32 @@ FUNCTION sanity_check_store_name(storename as string) as string
  debug "Unknown store name: """ & storename & """"
  RETURN "disabled"
 END FUNCTION
+
+FUNCTION product_enabled_for_current_store(byval prod as NodePtr) as bool
+ 'Returns YES if there is enough information to *attempt* to buy this product
+ 'from the current store. Can't guarantee that the information is correct.
+ DIM storename as string = get_enabled_store_name()
+ IF storename = "disabled" THEN RETURN NO
+ SELECT CASE storename
+  CASE "paypal":
+   IF prod."paypal".exists THEN
+    DIM paypal as NodePtr = prod."paypal".ptr
+    IF paypal."button_id".exists THEN
+     IF LEN(paypal."button_id".string) > 1 THEN
+      RETURN YES
+     END IF
+    END IF
+   END IF
+  CASE "ouya":
+   IF prod."ouya".exists THEN
+    DIM ouya as NodePtr = prod."ouya".ptr
+    IF ouya."identifier".exists THEN
+     IF LEN(ouya."identifier".string) > 1 THEN
+      RETURN YES
+     END IF
+    END IF
+   END IF
+ END SELECT
+ RETURN NO
+END FUNCTION
+

@@ -25,5 +25,6 @@ DECLARE FUNCTION outside_battle_cure (byval atk as integer, byref target as inte
 DECLARE SUB purchases_menu ()
 DECLARE FUNCTION get_enabled_store_name () as string
 DECLARE FUNCTION sanity_check_store_name(storename as string) as string
+DECLARE FUNCTION product_enabled_for_current_store(byval prod as NodePtr) as bool
 
 #endif
