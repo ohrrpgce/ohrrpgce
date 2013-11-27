@@ -3202,3 +3202,33 @@ SUB purchases_menu ()
 
  tag_updates
 END SUB
+
+FUNCTION get_enabled_store_name () as string
+ 'Return a string indicating the enabled In-App purchase store
+ 'for the currently running platform or "disabled"
+ DIM gen_root as NodePtr = get_general_reld()
+ DIM purchase_root as NodePtr = ChildNode(gen_root, "purchase_root")
+ DIM stores as NodePtr = ChildNode(purchase_root, "stores_by_platform")
+ IF running_on_ouya() THEN
+  IF stores."ouya".exists THEN
+   RETURN sanity_check_store_name(stores."ouya".string)
+  END IF
+ ELSE
+  IF stores."default".exists THEN
+   RETURN sanity_check_store_name(stores."default".string)
+  END IF
+ END IF
+ 
+ RETURN "disabled"
+END FUNCTION
+
+FUNCTION sanity_check_store_name(storename as string) as string
+ SELECT CASE storename
+  CASE "ouya":
+   IF running_on_ouya() THEN RETURN storename
+  CASE "paypal":
+   IF NOT running_on_ouya() THEN RETURN storename
+ END SELECT
+ debug "Unknown store name: """ & storename & """"
+ RETURN "disabled"
+END FUNCTION

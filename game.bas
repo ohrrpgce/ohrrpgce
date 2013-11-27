@@ -4267,8 +4267,7 @@ FUNCTION calc_virtual_gamepad_state(byval advancing_text_now as bool=NO, byval i
 END FUNCTION
 
 FUNCTION supports_in_app_purchases () as bool
- RETURN YES
- IF running_on_ouya() THEN RETURN YES
- RETURN NO
+ DIM storename as string = get_enabled_store_name()
+ RETURN storename <> "disabled"
 END FUNCTION
 
