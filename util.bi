@@ -429,6 +429,7 @@ declare function special_char_sanitize(s as string) as string
 declare function sign_string(n as integer, neg_str as string, zero_str as string, pos_str as string) as string
 declare function iif_string(byval condition as integer, s1 as string, s2 as string) as string
 declare function zero_default(n as integer, zerocaption as string="default", displayoffset as integer = 0) as string
+declare function blank_default(s as string, blankcaption as string="default") as string
 declare Function wordwrap(z as string, byval width as integer, sep as string = chr(10)) as string
 
 declare sub split(in as string, ret() as string, sep as string = chr(10))
@@ -462,6 +463,7 @@ declare function strhash (hstr as string) as unsigned integer
 declare function starts_with(s as string, prefix as string) as integer
 declare function ends_with(s as string, suffix as string) as integer
 
+declare function string_index_in_array(s as string, a() as string, notfound as integer=-1) as integer
 
 '----------------------------------------------------------------------
 '                        Old allmodex functions

@@ -552,6 +552,11 @@ FUNCTION zero_default(n as integer, zerocaption as string="default", displayoffs
  RETURN "" & (n + displayoffset)
 END FUNCTION
 
+FUNCTION blank_default(s as string, blankcaption as string="default") as string
+ IF s = "" THEN RETURN blankcaption
+ RETURN s
+END FUNCTION
+
 'FIXME: Can be replaced by IIF in most recent FB version, once we switch to it
 FUNCTION iif_string(byval condition as integer, s1 as string, s2 as string) as string
  IF condition THEN RETURN s1 ELSE RETURN s2
@@ -2156,4 +2161,11 @@ FUNCTION ini_value_int (s as string, byval default as integer=0) as integer
  END IF
  DIM tail as string = MID(s, eqpos + 1)
  RETURN str2int(tail, -1)
+END FUNCTION
+
+FUNCTION string_index_in_array(s as string, a() as string, notfound as integer=-1) as integer
+ FOR i as integer = 0 TO UBOUND(a)
+  IF a(i) = s THEN RETURN i
+ NEXT i
+ RETURN notfound
 END FUNCTION
