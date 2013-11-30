@@ -1,0 +1,21 @@
+This screen allows you to define In-App Purchases. This can be used allow players to pay money to unlock the full version of the game, or it can be used as a way of collecting donations for a free game.
+
+Currently two stores are available
+
+=Paypal=
+
+A browser window will be opened to paypal. The player can pay, but purchases are not authenticated in any way. This store works by the honor system. As such it is good for donations, but might not be effective for selling the full version of a demo.
+
+Be aware that although you can enable this store for most Android devices, it may not be allowed by the Google Play Store.
+
+=OUYA Discover Store=
+
+This store is only for when your game is published on the OUYA Console
+
+=Other Stores=
+Other stores may be supported in the future, such as the Google Play store.
+
+=Products=
+You can define multiple products, for example you might have one product that unlocks the full game, and another that unlocks bonus dungeons.
+
+Fore more information about products, see the F1 help screen while editing a product's details.

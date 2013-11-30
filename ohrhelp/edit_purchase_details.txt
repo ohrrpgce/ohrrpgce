@@ -1,0 +1,19 @@
+A product is an In-App purchase (or donation) that the player can buy with real money.
+
+Each purchase should have a purchase action. This is a tag that will be turned on, and/or a global variable ID number that will be incremented when the purchase completes.
+
+The purchase action is VERY IMPORTANT. Your players will be angry if they pay money and nothing happens (unless the product is intended to be a donation. You should make this clear in the product's description.)
+
+If you want this product to be available for your enabled stores, you must provide some identifying details about it.
+
+=Paypal=
+
+You must create a button ID from your paypal account. Log into Paypal.com, go to "Merchant Services" and pick "Create Payment Buttons for your website". After you have created the button, you will find the button id labelled hosed_button_id. It will be a string of uppercase letters and numbers about 13 characters long.
+
+If you leave the button ID blank, then this product will not show up in the menu when the Paypal store is being used.
+
+=OUYA=
+
+You can create OUYA product identifiers by logging into devs.ouya.tv and going to the "Products" tab.
+
+If you leave the OUYA product identifier blank, then this product will not show up in the menu when the OUYA store is being used.

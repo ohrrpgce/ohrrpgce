@@ -56,6 +56,9 @@ DECLARE SUB sellstuff_refresh(byval last_stuff as integer, byval recordsize as i
 DECLARE SUB sellstuff_infostr(byval ic as integer, info as string, b() as integer, permask() as integer, price() as integer, byval stuff_count as integer, byval recordsize as integer)
 DECLARE SUB status_buildmenu(her as HeroDef, byval pt as integer, mtype() as integer, elementaldmg() as single, elementnames() as string, elementalmenu() as string, elementalmenu_st as MenuState, portrait as GraphicPair)
 
+DECLARE SUB purchase_menu_create_product_slice(byval prod as NodePtr, byval parent as Slice Ptr)
+DECLARE SUB purchase_menu_update_cursor(st as MenuState, byval parent as Slice Ptr)
+
 SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as integer)
  'shoptype is 0 for items and 1 for heroes
 
@@ -3123,14 +3126,22 @@ END SUB
 
 SUB purchases_menu ()
 
+ DIM root as Slice Ptr
+ root = NewSliceOfType(slSpecial)
+ WITH *root
+  .Fill = YES
+ END WITH
+ DrawSlice root, vpage
+ 
+ DIM scroller as Slice Ptr
+ scroller = NewSliceOfType(slContainer, root)
+ scroller->Width = root->Width
+
  DIM st as MenuState
- DIM menu as MenuDef
- ClearMenuData menu
  
  st.active = YES
  st.need_update = YES
 
- 'Keep whatever was on the screen already as a background (NOTE: this doesn't always work (not necessarily vpage))
  DIM holdscreen as integer
  holdscreen = allocatepage
  copypage vpage, holdscreen
@@ -3139,10 +3150,6 @@ SUB purchases_menu ()
  DIM purchase_root as NodePtr = ChildNode(gen_root, "purchase_root")
  DIM ouya_node as NodePtr = ChildNode(purchase_root, "ouya")
  DIM products as NodePtr = ChildNode(purchase_root, "products")
- 
- DIM t as integer
- DIM node as NodePtr
- DIM n as NodePtr
 
  setkeys YES
  DO
@@ -3151,24 +3158,26 @@ SUB purchases_menu ()
   
   IF st.need_update THEN
    st.need_update = NO
-   ClearMenuData menu
-   WITH menu
-    .align = -1
-    .maxrows = 16
-    .anchor.Y = -1
-   END WITH
+   
+   DeleteSliceChildren scroller
 
    READNODE products
     WITHNODE products."prod" as prod
      IF product_enabled_for_current_store(prod) THEN
-      n = ChildNode(prod, "displayname")
-      append_menu_item menu, GetString(n)
-      menu.last->dataptr = prod
+      purchase_menu_create_product_slice prod, scroller
      END IF
     END WITHNODE
    END READNODE
+   
+   scroller->Y = large(0, CINT(root->Height / 2 - scroller->Height / 2))
 
-   init_menu_state st, menu
+   WITH st
+    .first = 0
+    .last = scroller->NumChildren - 1
+    .pt = bound(.pt, .first, .last)  '.first <= .last
+   END WITH
+   
+   purchase_menu_update_cursor st, scroller
    
   END IF '--done updating menu
 
@@ -3182,27 +3191,93 @@ SUB purchases_menu ()
    menusound gen(genCursorSFX)
   END IF
 
-  node = menu.items[st.pt]->dataptr
-  
   IF carray(ccUse) > 1 THEN
-   debug "Select product"
-   'debug GetString(ChildNode(node, "codename"))
+   'attempt_purchase node
    st.need_update = YES
   END IF
 
+  st.tog = st.tog XOR 1 'No draw_menu happens, so do this manually
+  purchase_menu_update_cursor st, scroller
   copypage holdscreen, vpage
-  draw_menu menu, st, vpage
+  DrawSlice root, vpage
   setvispage vpage
   dowait
 
  LOOP
- setkeys
  control
  carray(ccMenu) = 0
+ clearkey scEsc
+ clearkey scAlt
  freepage holdscreen
- ClearMenuData menu
+ DeleteSlice @root
 
  tag_updates
+END SUB
+
+SUB purchase_menu_create_product_slice(byval prod as NodePtr, byval parent as Slice Ptr)
+  DIM box as Slice Ptr
+  box = NewSliceOfType(slRectangle, parent)
+  WITH *box
+   .width = 300
+   .height = 16
+   .PaddingTop = 4
+   .PaddingLeft = 4
+   .PaddingBottom = 4
+   .PaddingRight = 4
+   .AnchorHoriz = 1
+   .AlignHoriz = 1
+  END WITH
+  ChangeRectangleSlice box, 14 ' For now, use the same box styles as the Load menu
+  
+  DIM prev as Slice Ptr
+  prev = box->PrevSibling
+  IF prev THEN
+   box->Y = prev->Y + prev->Height + 4
+  END IF
+    
+  DIM name_sl as Slice Ptr
+  name_sl = NewSliceOfType(slText, box)
+  ChangeTextSlice name_sl, prod."displayname".string, uilook(uiText), YES
+  
+  DIM desc_sl as Slice Ptr
+  desc_sl = NewSliceOfType(slText, box)
+  desc_sl->Y = 10
+  desc_sl->Width = box->Width - (box->PaddingLeft + box->PaddingRight)
+  ChangeTextSlice desc_sl, prod."description".string, uilook(uiMenuItem), YES, YES
+
+  box->Height = box->PaddingTop + desc_sl->Y + desc_sl->Height + box->PaddingBottom
+
+  parent->height = box->Y + box->Height
+
+END SUB
+
+SUB purchase_menu_update_cursor(st as MenuState, byval parent as Slice Ptr)
+ DIM i as integer = 0
+ DIM box as Slice Ptr
+ DIM name_sl as Slice Ptr
+ DIM desc_sl as Slice Ptr
+ box = parent->FirstChild
+ DO WHILE box
+  name_sl = box->FirstChild
+  desc_sl = name_sl->NextSibling
+  ChangeRectangleSlice box, IIF(st.pt = i, 1, 14)
+  ChangeTextSlice name_sl, , IIF(st.pt = i, uilook(uiSelectedItem + st.tog), uilook(uiText))
+  'ChangeTextSlice desc_sl, , IIF(st.pt = i, uilook(uiMenuItem), uilook(uiMenuItem))
+  IF st.pt = i THEN
+   DIM dif as integer
+   dif = (box->ScreenY + box->Height) - 200
+   IF dif > 0 THEN
+    parent->Y -= small(ABS(dif), large(10, dif \ 2))
+   END IF
+   dif = box->ScreenY - 0
+   IF dif < 0 THEN
+    parent->Y += small(ABS(dif), large(10, dif \ 2))
+   END IF
+  END IF
+  box = box->NextSibling
+  i += 1
+ LOOP
+ 
 END SUB
 
 FUNCTION get_enabled_store_name () as string
