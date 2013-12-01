@@ -2300,14 +2300,13 @@ FUNCTION open_url (url as string) as bool
  END IF
 #ENDIF
 
- result = spawn_and_wait ("xdg-open", "'" & url & "'")
- IF result = "" THEN
-  RETURN YES
- ELSE
-  pop_warning "command failed with: " & result
-  RETURN NO
- END IF
- RETURN NO
+ '--Try the unix way
+ DIM cmd as string
+ cmd = "xdg-open '" & url & "'"
+ SHELL cmd
+ '-Unfortunately we can't test if it worked, so just pretend that it did.
+ RETURN YES
+ 
 END FUNCTION
 
 FUNCTION spawn_and_wait (app as string, args as string) as string

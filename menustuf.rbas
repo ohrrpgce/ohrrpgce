@@ -3153,6 +3153,8 @@ SUB purchases_menu ()
  DIM ouya_node as NodePtr = ChildNode(purchase_root, "ouya")
  DIM products as NodePtr = ChildNode(purchase_root, "products")
  DIM cur_node as NodePtr
+ DIM prod_i as integer
+ REDIM prod_nodes(0) as NodePtr
 
  setkeys YES
  DO
@@ -3164,10 +3166,14 @@ SUB purchases_menu ()
    
    DeleteSliceChildren scroller
 
+   prod_i = 0
    READNODE products
     WITHNODE products."prod" as prod
      IF product_enabled_for_current_store(prod) THEN
       purchase_menu_create_product_slice prod, scroller
+      REDIM PRESERVE prod_nodes(prod_i) as NodePtr
+      prod_nodes(prod_i) = prod
+      prod_i += 1
      END IF
     END WITHNODE
    END READNODE
@@ -3195,7 +3201,7 @@ SUB purchases_menu ()
   END IF
 
   IF carray(ccUse) > 1 THEN
-   cur_node = ChildByIndex(products, st.pt)
+   cur_node = prod_nodes(st.pt)
    attempt_purchase cur_node
    st.need_update = YES
   END IF
@@ -3371,12 +3377,15 @@ SUB attempt_purchase_paypal(byval prod as NodePtr)
  END IF
  DIM paypal_node as NodePtr
  paypal_node = prod."paypal".ptr
+ IF NOT paypal_node."button_id".exists THEN
+  pop_warning "Paypal button_id node is missing"
+  EXIT SUB
+ END IF
  DIM url as string
  url = "https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id="
  url &= paypal_node."button_id".string
  IF open_url(url) THEN
   pop_warning "A browser window will now be opened. When you are finished with the purchase, return to this window and press any key"
-  waitforanykey
  END IF
 END SUB
 
