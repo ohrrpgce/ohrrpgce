@@ -3371,6 +3371,7 @@ SUB attempt_purchase (byval prod as NodePtr)
 END SUB
 
 SUB attempt_purchase_paypal(byval prod as NodePtr)
+
  IF NOT prod."paypal".exists THEN
   pop_warning "Paypal data node is missing"
   EXIT SUB
@@ -3381,11 +3382,26 @@ SUB attempt_purchase_paypal(byval prod as NodePtr)
   pop_warning "Paypal button_id node is missing"
   EXIT SUB
  END IF
+
  DIM url as string
  url = "https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id="
  url &= paypal_node."button_id".string
- IF open_url(url) THEN
-  pop_warning "A browser window will now be opened. When you are finished with the purchase, return to this window and press any key"
+ IF NOT open_url(url) THEN EXIT SUB ' browser open failed
+ 
+ DIM choices(1) as string = {"Yes, payment complete", "No, payment cancelled"}
+ DIM num as integer
+ DIM t as double = TIMER
+ DO
+  num = multichoice("A browser window was opened to Paypal. When you have completed the payment, return to this window to continue.", choices(), 0, -1)
+ LOOP WHILE num < 0
+ IF num = 1 THEN EXIT SUB ' purchase cancelled
+ IF TIMER - t < 10 THEN
+  IF NOT yesno("Really? That was awfully fast. This payment system works on the honor system, but logging into paypal and completing a payment in less than 10 seconds is a little hard to swallow. Did you really do it?", YES, YES) THEN
+   EXIT SUB
+  END IF
  END IF
+ 
+ 'do_purchase_action prod
+ 
 END SUB
 
