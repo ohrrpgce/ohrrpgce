@@ -58,6 +58,8 @@ DECLARE SUB status_buildmenu(her as HeroDef, byval pt as integer, mtype() as int
 
 DECLARE SUB purchase_menu_create_product_slice(byval prod as NodePtr, byval parent as Slice Ptr)
 DECLARE SUB purchase_menu_update_cursor(st as MenuState, byval parent as Slice Ptr)
+DECLARE SUB attempt_purchase (byval prod as NodePtr)
+DECLARE SUB attempt_purchase_paypal(byval prod as NodePtr)
 
 SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as integer)
  'shoptype is 0 for items and 1 for heroes
@@ -3150,6 +3152,7 @@ SUB purchases_menu ()
  DIM purchase_root as NodePtr = ChildNode(gen_root, "purchase_root")
  DIM ouya_node as NodePtr = ChildNode(purchase_root, "ouya")
  DIM products as NodePtr = ChildNode(purchase_root, "products")
+ DIM cur_node as NodePtr
 
  setkeys YES
  DO
@@ -3192,7 +3195,8 @@ SUB purchases_menu ()
   END IF
 
   IF carray(ccUse) > 1 THEN
-   'attempt_purchase node
+   cur_node = ChildByIndex(products, st.pt)
+   attempt_purchase cur_node
    st.need_update = YES
   END IF
 
@@ -3204,10 +3208,13 @@ SUB purchases_menu ()
   dowait
 
  LOOP
- control
+ 
+ '--How the heck am I supposed to make sure the ESC keypress does not close
+ '  the calling menu too? Why am I having so mych trouble with something I have done
+ '  so many times before? :(
  carray(ccMenu) = 0
- clearkey scEsc
- clearkey scAlt
+
+
  freepage holdscreen
  DeleteSlice @root
 
@@ -3337,4 +3344,39 @@ FUNCTION product_enabled_for_current_store(byval prod as NodePtr) as bool
  END SELECT
  RETURN NO
 END FUNCTION
+
+SUB attempt_purchase (byval prod as NodePtr)
+ IF prod = 0 THEN
+  debug "attempt_purchase: null prod node"
+  RETURN
+ END IF
+ 
+ DIM storename as string = get_enabled_store_name()
+ SELECT CASE storename
+  CASE "disabled":
+   debug "Attempted to purchase """ & prod."displayname".string & """ but no store is enabled for this platform"
+  CASE "paypal":
+   attempt_purchase_paypal prod
+  CASE "ouya":
+   debug "Ouya store not implemented yet"
+  CASE ELSE
+   debug "Store """ & storename & """ is unknown"
+ END SELECT
+END SUB
+
+SUB attempt_purchase_paypal(byval prod as NodePtr)
+ IF NOT prod."paypal".exists THEN
+  pop_warning "Paypal data node is missing"
+  EXIT SUB
+ END IF
+ DIM paypal_node as NodePtr
+ paypal_node = prod."paypal".ptr
+ DIM url as string
+ url = "https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id="
+ url &= paypal_node."button_id".string
+ IF open_url(url) THEN
+  pop_warning "A browser window will now be opened. When you are finished with the purchase, return to this window and press any key"
+  waitforanykey
+ END IF
+END SUB
 

@@ -186,6 +186,7 @@ Declare Function AppendChildNode Overload (byval parent as NodePtr, n as string)
 Declare Function AppendChildNode(byval parent as NodePtr, n as string, byval val as longint) as NodePtr
 Declare Function AppendChildNode(byval parent as NodePtr, n as string, byval val as double) as NodePtr
 Declare Function AppendChildNode(byval parent as NodePtr, n as string, val as string) as NodePtr
+Declare Function ChildByIndex(byval parent as NodePtr, byval index as integer) as NodePtr
 
 Declare function ReadVLI overload(byval f as integer) as longint
 declare Sub WriteVLI overload(byval f as integer, byval v as Longint)
