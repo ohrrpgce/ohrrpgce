@@ -132,6 +132,7 @@ DIM gam as GameState
 DIM txt as TextBoxState
 REDIM gen(360) as integer
 DIM gen_reld_doc as DocPtr
+DIM persist_reld_doc as DocPtr
 REDIM tag(1000) as integer '16000 bitsets
 REDIM onetime(1000) as integer '16000 bitsets
 

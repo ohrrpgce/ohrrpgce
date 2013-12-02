@@ -60,6 +60,9 @@ DECLARE SUB purchase_menu_create_product_slice(byval prod as NodePtr, byval pare
 DECLARE SUB purchase_menu_update_cursor(st as MenuState, byval parent as Slice Ptr)
 DECLARE SUB attempt_purchase (byval prod as NodePtr)
 DECLARE SUB attempt_purchase_paypal(byval prod as NodePtr)
+DECLARE SUB increment_purchase_count(byval prod as NodePtr)
+DECLARE FUNCTION get_purchase_count_node(byval prod as NodePtr) as NodePtr
+DECLARE FUNCTION get_purchase_count(byval prod as NodePtr) as integer
 
 SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as integer)
  'shoptype is 0 for items and 1 for heroes
@@ -3401,7 +3404,162 @@ SUB attempt_purchase_paypal(byval prod as NodePtr)
   END IF
  END IF
  
- 'do_purchase_action prod
+ increment_purchase_count prod
+ do_purchase_action prod
  
 END SUB
 
+SUB do_purchase_action (byval prod as NodePtr, byval new_purch as bool=YES)
+ DIM buy_action as NodePtr = prod."buy_action".ptr
+ IF buy_action = 0 THEN
+  pop_warning "No buy_action node"
+  EXIT SUB
+ END IF
+ 
+ IF new_purch THEN
+  DIM thanks as string
+  thanks = buy_action."thanks".string
+  IF thanks = "" THEN
+   thanks = "Thank you!"
+  END IF
+  pop_warning thanks
+ END IF
+  
+ DIM tagnum as integer
+ tagnum = buy_action."tag".integer
+ IF tagnum > 0 THEN
+  IF tagnum = 1 THEN pop_warning "Can't change tag number 1!"
+  settag tagnum, YES
+ END IF
+
+ DIM g as integer
+ g = buy_action."global".integer
+ IF g > 0 THEN
+  IF g > UBOUND(global) THEN
+   pop_warning "Global " & g & " is out of range."
+  ELSE
+   global(g) = get_purchase_count(prod)
+  END IF
+ END IF
+ 
+END SUB
+
+SUB increment_purchase_count(byval prod as NodePtr)
+ IF prod = 0 THEN
+  debug "increment_purchase_count: null prod ptr"
+  EXIT SUB
+ END IF
+ 
+ DIM count_node as NodePtr = get_purchase_count_node(prod)
+ 
+ IF count_node = 0 THEN
+  debug "increment_purchase_count: Something went wrong while trying to get count node"
+  EXIT SUB
+ END IF
+ 
+ SetContent(count_node, GetInteger(count_node) + 1)
+ write_persist_reld()
+END SUB
+
+FUNCTION get_purchase_count(byval prod as NodePtr) as integer
+ IF prod = 0 THEN
+  debug "get_purchase_count: null prod ptr"
+  RETURN 0
+ END IF
+
+ DIM count_node as NodePtr = get_purchase_count_node(prod)
+ IF count_node = 0 THEN
+  debug "get_purchase_count: Something went wrong while trying to get count node"
+  RETURN 0
+ END IF
+ 
+ RETURN GetInteger(count_node)
+ 
+END FUNCTION
+
+FUNCTION get_purchase_count_node(byval prod as NodePtr) as NodePtr
+ IF prod = 0 THEN
+  debug "get_purchase_count_node: null prod ptr"
+  RETURN 0
+ END IF
+ 
+ DIM id as string
+ DIM storename as string = get_enabled_store_name()
+ SELECT CASE storename
+  CASE "disabled":
+   debug "get_purchase_count_node: for """ & prod."displayname".string & """ but no store is enabled for this platform"
+   RETURN 0
+  CASE "paypal":
+   id = "button_id"
+  CASE "ouya":
+   id = "identifier"
+  CASE ELSE
+   debug "Store """ & storename & """ is unknown"
+   RETURN 0
+ END SELECT
+
+ IF NOT GetChildNodeExists(prod, storename) THEN
+  debug "get_purchase_count_node: """ & prod."displayname".string & """ has no store node for " & storename
+  RETURN 0
+ END IF
+ DIM prod_store_node as NodePtr = ChildNode(prod, storename)
+ IF NOT GetChildNodeExists(prod_store_node, id) THEN
+  debug "get_purchase_count_node: """ & prod."displayname".string & """ has no " & storename & " " & id & " node"
+  RETURN 0
+ END IF
+ DIM prod_id_node as NodePtr = ChildNode(prod_store_node, id)
+ IF GetString(prod_id_node) = "" THEN
+  debug "get_purchase_count_node: """ & prod."displayname".string & """ has blank " & storename & " " & id & " node"
+  RETURN 0
+ END IF
+
+ DIM persist as NodePtr = get_persist_reld()
+ DIM purchase_cache as NodePtr = ChildNode(persist, "purchase_cache")
+ DIM store_node as NodePtr = ChildNode(purchase_cache, storename)
+ DIM id_node as NodePtr = ChildNode(store_node, GetString(prod_id_node))
+ DIM count_node as NodePtr = ChildNode(id_node, "count")
+
+ RETURN count_node
+ 
+END FUNCTION
+
+FUNCTION get_persist_reld() as NodePtr
+'Returns the root node of the persist.reld lump.
+'Opens it up if it is not already open.
+ IF persist_reld_doc = 0 THEN
+  'First run, we must open the doc
+  DIM filename as string = prefsdir & SLASH & "persist.reld"
+  IF isfile(filename) THEN persist_reld_doc = LoadDocument(filename, optNoDelay)
+  IF persist_reld_doc = 0 THEN
+   debuginfo "persist.reld not present, creating"
+   persist_reld_doc = CreateDocument()
+  END IF
+ END IF
+ 
+ DIM root_node as NodePtr
+ root_node = DocumentRoot(persist_reld_doc)
+
+ IF root_node = 0 THEN
+  root_node = CreateNode(persist_reld_doc, "persist")
+  SetRootNode(persist_reld_doc, root_node)
+ END IF
+
+ write_persist_reld()
+ return root_node
+END FUNCTION
+
+SUB write_persist_reld()
+'Writes changes to the persist.reld file
+ IF persist_reld_doc THEN
+  DIM filename as string = prefsdir & SLASH & "persist.reld"
+  SerializeBin filename, persist_reld_doc
+ END IF
+END SUB
+
+SUB close_persist_reld()
+ write_general_reld()
+ IF persist_reld_doc THEN
+  FreeDocument persist_reld_doc
+  persist_reld_doc = 0
+ END IF
+END SUB
