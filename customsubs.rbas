@@ -5549,6 +5549,13 @@ SUB edit_purchase_details (byval prod as NodePtr)
    menu.last->sub_t = maxScriptGlobals
    menu.last->dataptr = n
 
+   n = ChildNode(buy_action, "thanks")
+   IF GetString(n) = "" THEN SetContent(n, "Thank you!")
+   append_menu_item menu, "Thanks Message: " & GetString(n)
+   menu.last->t = editpurchLONGSTRING
+   menu.last->sub_t = 99999
+   menu.last->dataptr = n
+
    init_menu_state st, menu
 
    REDIM enabled(menu.numitems - 1) as bool
