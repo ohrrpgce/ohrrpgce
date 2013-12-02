@@ -25,6 +25,7 @@
 #include "bmod.bi"
 #include "scripting.bi"
 #include "sliceedit.bi"
+#include "purchase.bi"
 #include "game.bi"
 #include "gfx.bi"
 
@@ -55,8 +56,6 @@ DECLARE SUB misc_debug_menu()
 DECLARE SUB battle_formation_testing_menu()
 DECLARE SUB queue_music_change (byval song as integer)
 DECLARE SUB check_for_queued_music_change ()
-DECLARE FUNCTION supports_in_app_purchases () as bool
-
 
 'Note: On Android exename is "sdl" and exepath is "" (currently unimplemented in FB and meaningless for an app anyway)
 
@@ -4265,10 +4264,5 @@ FUNCTION calc_virtual_gamepad_state(byval advancing_text_now as bool=NO, byval i
  
  'If no other conditions are met, enabled the virtual gamepad
  RETURN YES
-END FUNCTION
-
-FUNCTION supports_in_app_purchases () as bool
- DIM storename as string = get_enabled_store_name()
- RETURN storename <> "disabled"
 END FUNCTION
 

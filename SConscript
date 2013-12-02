@@ -464,7 +464,8 @@ game_modules = ['game',
                 'yetmore2',
                 'savegame.rbas',
                 'scripting',
-                'oldhsinterpreter']
+                'oldhsinterpreter',
+                'purchase.rbas']
 
 common_modules += ['filelayer.cpp']
 
