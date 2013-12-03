@@ -25,6 +25,7 @@ DECLARE SUB attempt_purchase_paypal(byval prod as NodePtr)
 DECLARE SUB increment_purchase_count(byval prod as NodePtr)
 DECLARE FUNCTION get_purchase_count_node(byval prod as NodePtr) as NodePtr
 DECLARE FUNCTION get_purchase_count(byval prod as NodePtr) as integer
+DECLARE SUB refresh_purchases_from_cache()
 
 SUB purchases_menu ()
 
@@ -493,3 +494,44 @@ FUNCTION supports_in_app_purchases () as bool
  DIM storename as string = get_enabled_store_name()
  RETURN storename <> "disabled"
 END FUNCTION
+
+SUB refresh_purchases()
+ 'This should be run whenever a save game is loaded or when a new game is started.
+ DIM storename as string = get_enabled_store_name()
+ 
+ SELECT CASE storename
+  CASE "disabled":
+   EXIT SUB
+  CASE "paypal":
+   refresh_purchases_from_cache()
+  CASE "ouya":
+   'special handling for OUYA recipt checking goes here
+   refresh_purchases_from_cache()
+  CASE ELSE
+   debug "refresh_purchases: unknown store name """ & storename & """"
+   EXIT SUB
+ END SELECT
+ 
+END SUB
+
+SUB refresh_purchases_from_cache()
+ debuginfo "refresh_purchases_from_cache()"
+ DIM gen_root as NodePtr = get_general_reld()
+ DIM purchase_root as NodePtr = ChildNode(gen_root, "purchase_root")
+ DIM products as NodePtr = ChildNode(purchase_root, "products")
+
+ DIM count as integer
+
+ READNODE products
+  WITHNODE products."prod" as prod
+   IF product_enabled_for_current_store(prod) THEN
+    count = get_purchase_count(prod)
+    debuginfo " Product: " & prod."displayname".string & " " & count
+    IF count >= 1 THEN
+     do_purchase_action(prod, NO)
+    END IF
+   END IF
+  END WITHNODE
+ END READNODE
+ 
+END SUB

@@ -10,5 +10,6 @@ DECLARE FUNCTION get_persist_reld() as NodePtr
 DECLARE SUB write_persist_reld()
 DECLARE SUB close_persist_reld()
 DECLARE FUNCTION supports_in_app_purchases () as bool
+DECLARE SUB refresh_purchases()
 
 #endif

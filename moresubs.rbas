@@ -22,6 +22,7 @@
 #include "moresubs.bi"
 #include "menustuf.bi"
 #include "bmodsubs.bi"
+#include "purchase.bi"
 #include "scripting.bi"
 
 '--Local subs and functions
@@ -1262,6 +1263,8 @@ FOR i as integer = 0 TO ubound(timers)
   .pause = NO
  END WITH
 NEXT i
+
+close_persist_reld()
 
 cleanup_game_slices()
 'plotslices() should now be all zeroed out. Rather than checking, check slicedebug() (if enabled)

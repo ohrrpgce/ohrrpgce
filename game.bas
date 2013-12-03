@@ -624,6 +624,7 @@ IF load_slot >= 0 THEN
 ELSE
  clearpage 0
  clearpage 1
+ refresh_purchases()
  addhero 1, 0
  IF gen(genNewGameScript) > 0 THEN
   trigger_script gen(genNewGameScript), YES, "newgame", "", scrqBackcompat()
@@ -925,7 +926,8 @@ SUB doloadgame(byval load_slot as integer)
  END IF
 
  party_change_updates
-
+ refresh_purchases()
+ 
 END SUB
 
 SUB displayall()
