@@ -18,7 +18,7 @@
 
 #include "purchase.bi"
 
-DECLARE SUB purchase_menu_create_product_slice(byval prod as NodePtr, byval parent as Slice Ptr)
+DECLARE FUNCTION purchase_menu_create_product_slice(byval prod as NodePtr, byval parent as Slice Ptr) as bool
 DECLARE SUB purchase_menu_update_cursor(st as MenuState, byval parent as Slice Ptr)
 DECLARE SUB attempt_purchase (byval prod as NodePtr)
 DECLARE SUB attempt_purchase_paypal(byval prod as NodePtr)
@@ -55,6 +55,7 @@ SUB purchases_menu ()
  DIM cur_node as NodePtr
  DIM prod_i as integer
  REDIM prod_nodes(0) as NodePtr
+ REDIM prod_allowed(0) as bool
 
  setkeys YES
  DO
@@ -70,8 +71,9 @@ SUB purchases_menu ()
    READNODE products
     WITHNODE products."prod" as prod
      IF product_enabled_for_current_store(prod) THEN
-      purchase_menu_create_product_slice prod, scroller
       REDIM PRESERVE prod_nodes(prod_i) as NodePtr
+      REDIM PRESERVE prod_allowed(prod_i) as bool
+      prod_allowed(prod_i) = purchase_menu_create_product_slice(prod, scroller)
       prod_nodes(prod_i) = prod
       prod_i += 1
      END IF
@@ -101,9 +103,14 @@ SUB purchases_menu ()
   END IF
 
   IF carray(ccUse) > 1 THEN
-   cur_node = prod_nodes(st.pt)
-   attempt_purchase cur_node
-   st.need_update = YES
+   IF prod_allowed(st.pt) THEN
+    cur_node = prod_nodes(st.pt)
+    attempt_purchase cur_node
+    st.need_update = YES
+    menusound gen(genAcceptSFX)
+   ELSE
+    menusound gen(genCancelSFX)
+   END IF
   END IF
 
   st.tog = st.tog XOR 1 'No draw_menu happens, so do this manually
@@ -127,7 +134,9 @@ SUB purchases_menu ()
  tag_updates
 END SUB
 
-SUB purchase_menu_create_product_slice(byval prod as NodePtr, byval parent as Slice Ptr)
+FUNCTION purchase_menu_create_product_slice(byval prod as NodePtr, byval parent as Slice Ptr) as bool
+ 'Return YES if the product is allowed to be purchased
+
   DIM box as Slice Ptr
   box = NewSliceOfType(slRectangle, parent)
   WITH *box
@@ -147,22 +156,41 @@ SUB purchase_menu_create_product_slice(byval prod as NodePtr, byval parent as Sl
   IF prev THEN
    box->Y = prev->Y + prev->Height + 4
   END IF
-    
+  
+  DIM count as integer = get_purchase_count(prod)
+  
+  DIM repeatable as bool = prod."repeatable".exists
+  
+  DIM allowed as bool = (repeatable ORELSE count = 0)
+  
   DIM name_sl as Slice Ptr
   name_sl = NewSliceOfType(slText, box)
   ChangeTextSlice name_sl, prod."displayname".string, uilook(uiText), YES
-  
+    
   DIM desc_sl as Slice Ptr
   desc_sl = NewSliceOfType(slText, box)
   desc_sl->Y = 10
   desc_sl->Width = box->Width - (box->PaddingLeft + box->PaddingRight)
-  ChangeTextSlice desc_sl, prod."description".string, uilook(uiMenuItem), YES, YES
+  ChangeTextSlice desc_sl, prod."description".string, uilook(IIF(allowed, uiMenuItem, uiDisabledItem)), YES, YES
+
+  IF count > 0 THEN
+   DIM already_sl as Slice Ptr
+   already_sl = NewSliceOfType(slText, box)
+   already_sl->Y = 10
+   already_sl->Width = box->Width - (box->PaddingLeft + box->PaddingRight)
+   DIM already_str as string = prod."already".string
+   replacestr already_str, "${COUNT}", STR(count)
+   ChangeTextSlice already_sl, already_str, uilook(uiSelectedDisabled), YES, YES
+   '--move description down to make room
+   desc_sl->Y += already_sl->Height
+  END IF
 
   box->Height = box->PaddingTop + desc_sl->Y + desc_sl->Height + box->PaddingBottom
 
   parent->height = box->Y + box->Height
 
-END SUB
+  RETURN allowed
+END FUNCTION
 
 SUB purchase_menu_update_cursor(st as MenuState, byval parent as Slice Ptr)
  DIM i as integer = 0

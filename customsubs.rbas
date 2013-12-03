@@ -5261,6 +5261,7 @@ CONST editpurchLONGSTRING as integer = 6
 CONST editpurchINT as integer = 7
 CONST editpurchSTOREDEFAULT as integer = 8
 CONST editpurchSTOREOUYA as integer = 9
+CONST editpurchTOGGLEREPEATABLE as integer = 10 'sucks that this is so specific
 
 SUB edit_purchase_options ()
 
@@ -5498,6 +5499,17 @@ SUB edit_purchase_details (byval prod as NodePtr)
    menu.last->t = editpurchLONGSTRING
    menu.last->sub_t = 99999
    menu.last->dataptr = n
+
+   append_menu_item menu, "Can be purchased: " & IIF(prod."repeatable".exists, "Repeatedly", "Only Once")
+   menu.last->t = editpurchTOGGLEREPEATABLE
+   menu.last->dataptr = prod
+
+   n = ChildNode(prod, "already")
+   IF GetString(n) = "" THEN SetContent(n, "Already purchased")
+   append_menu_item menu, "Already caption: " & GetString(n)
+   menu.last->t = editpurchLONGSTRING
+   menu.last->sub_t = 99999
+   menu.last->dataptr = n
    
    append_menu_item menu, "OUYA Store Settings"
    menu.last->unselectable = YES
@@ -5600,6 +5612,11 @@ SUB edit_purchase_details (byval prod as NodePtr)
       SetContent(node, curint)
       st.need_update = YES
      END IF
+    END IF
+   CASE editpurchTOGGLEREPEATABLE:
+    IF enter_space_click(st) ORELSE keyval(scLeft) > 1 ORELSE keyval(scRight) > 1 THEN
+     ToggleChildNode node, "repeatable"
+     st.need_update = YES
     END IF
   END SELECT
   
