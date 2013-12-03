@@ -26,6 +26,7 @@ DECLARE SUB platform_options_append_gamepad_button_menu_items (byval gamepad as 
 DECLARE SUB edit_button_name_strings()
 DECLARE FUNCTION edit_purchase_enumgrabber(byval node as NodePtr, enumstr() as string) as bool
 DECLARE FUNCTION edit_purchase_enumbrowse(caption as string, byval node as NodePtr, enumstr() as string, helpkey as string) as bool
+DECLARE SUB edit_purchase_options_rebuild_menu(menu as MenuDef, st as MenuState, byval purchase_root as NodePtr, enabled() as bool)
 
 'Module-local variables
 DIM SHARED comp_strings() as string
@@ -5275,8 +5276,6 @@ SUB edit_purchase_options ()
 
  DIM gen_root as NodePtr = get_general_reld()
  DIM purchase_root as NodePtr = ChildNode(gen_root, "purchase_root")
- DIM store_node as NodePtr = ChildNode(purchase_root, "stores_by_platform")
- DIM ouya_node as NodePtr = ChildNode(purchase_root, "ouya")
  DIM products as NodePtr = ChildNode(purchase_root, "products")
  
  DIM t as integer
@@ -5295,74 +5294,7 @@ SUB edit_purchase_options ()
 
   IF st.need_update THEN
    st.need_update = NO
-   ClearMenuData menu
-   WITH menu
-    .no_box = YES
-    .align = -1
-    .anchor.x = -1
-    .anchor.y = -1
-    .offset.x = -160
-    .offset.y = -100
-    .bordersize = -8
-   END WITH
-
-   append_menu_item menu, "Previous menu..."
-   menu.last->t = editpurchEXIT
-
-   append_menu_item menu, "(This menu is experimental!)"
-   menu.last->unselectable = YES
-   menu.last->disabled = YES
-
-   append_menu_item menu, "Enabled Stores:"
-   menu.last->unselectable = YES
-   menu.last->disabled = YES
-
-   node = ChildNode(store_node, "default")
-   append_menu_item menu, "Windows+Mac+Linux: " & blank_default(GetString(node), "disabled")
-   menu.last->t = editpurchSTOREDEFAULT
-   menu.last->dataptr = node
-
-   node = ChildNode(store_node, "ouya")
-   append_menu_item menu, "OUYA Console: " & blank_default(GetString(node), "disabled")
-   menu.last->t = editpurchSTOREOUYA
-   menu.last->dataptr = node
-
-   append_menu_item menu, "OUYA Developer ID:"
-   menu.last->unselectable = YES
-   menu.last->disabled = YES
-   
-   node = ChildNode(ouya_node, "developer_id")
-   append_menu_item menu, "> " & GetString(node)
-   menu.last->t = editpurchSTRING
-   menu.last->sub_t = 36
-   menu.last->dataptr = node
-
-   append_menu_item menu, "Purchaseable Products"
-   menu.last->unselectable = YES
-   menu.last->disabled = YES
-
-   READNODE products
-    WITHNODE products."prod" as prod
-     DIM n as NodePtr
-     n = ChildNode(prod, "displayname")
-     append_menu_item menu, "Product: " & GetString(n)
-     menu.last->t = editpurchPROD
-     menu.last->dataptr = prod
-    END WITHNODE
-   END READNODE
-   
-   append_menu_item menu, "Add a new product"
-   menu.last->t = editpurchADD
-
-   init_menu_state st, menu
-
-   REDIM enabled(menu.numitems - 1) as bool
-   FOR i as integer = 0 TO UBOUND(enabled)
-    WITH *menu.items[i]
-     enabled(i) = NOT .unselectable
-    END WITH
-   NEXT i
-   
+   edit_purchase_options_rebuild_menu menu, st, purchase_root, enabled()
   END IF '--done updating menu
 
   usemenu st, enabled()
@@ -5421,6 +5353,83 @@ SUB edit_purchase_options ()
  
  ClearMenuData menu
 
+END SUB
+
+SUB edit_purchase_options_rebuild_menu(menu as MenuDef, st as MenuState, byval purchase_root as NodePtr, enabled() as bool)
+
+ DIM store_node as NodePtr = ChildNode(purchase_root, "stores_by_platform")
+ DIM ouya_node as NodePtr = ChildNode(purchase_root, "ouya")
+ DIM products as NodePtr = ChildNode(purchase_root, "products")
+
+ DIM node as NodePtr
+
+ ClearMenuData menu
+ WITH menu
+  .no_box = YES
+  .align = -1
+  .anchor.x = -1
+  .anchor.y = -1
+  .offset.x = -160
+  .offset.y = -100
+  .bordersize = -8
+ END WITH
+
+ append_menu_item menu, "Previous menu..."
+ menu.last->t = editpurchEXIT
+
+ append_menu_item menu, "(This menu is experimental!)"
+ menu.last->unselectable = YES
+ menu.last->disabled = YES
+
+ append_menu_item menu, "Enabled Stores:"
+ menu.last->unselectable = YES
+ menu.last->disabled = YES
+
+ node = ChildNode(store_node, "default")
+ append_menu_item menu, "Windows+Mac+Linux: " & blank_default(GetString(node), "disabled")
+ menu.last->t = editpurchSTOREDEFAULT
+ menu.last->dataptr = node
+
+ node = ChildNode(store_node, "ouya")
+ append_menu_item menu, "OUYA Console: " & blank_default(GetString(node), "disabled")
+ menu.last->t = editpurchSTOREOUYA
+ menu.last->dataptr = node
+
+ append_menu_item menu, "OUYA Developer ID:"
+ menu.last->unselectable = YES
+ menu.last->disabled = YES
+   
+ node = ChildNode(ouya_node, "developer_id")
+ append_menu_item menu, "> " & GetString(node)
+ menu.last->t = editpurchSTRING
+ menu.last->sub_t = 36
+ menu.last->dataptr = node
+
+ append_menu_item menu, "Purchaseable Products"
+ menu.last->unselectable = YES
+ menu.last->disabled = YES
+
+ READNODE products
+  WITHNODE products."prod" as prod
+   DIM n as NodePtr
+   n = ChildNode(prod, "displayname")
+   append_menu_item menu, "Product: " & GetString(n)
+   menu.last->t = editpurchPROD
+   menu.last->dataptr = prod
+  END WITHNODE
+ END READNODE
+ 
+ append_menu_item menu, "Add a new product"
+ menu.last->t = editpurchADD
+
+ init_menu_state st, menu
+
+ REDIM enabled(menu.numitems - 1) as bool
+ FOR i as integer = 0 TO UBOUND(enabled)
+  WITH *menu.items[i]
+   enabled(i) = NOT .unselectable
+  END WITH
+ NEXT i
 END SUB
 
 FUNCTION edit_purchase_enumbrowse(caption as string, byval node as NodePtr, enumstr() as string, helpkey as string) as bool
