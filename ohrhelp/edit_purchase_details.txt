@@ -17,3 +17,11 @@ If you leave the button ID blank, then this product will not show up in the menu
 You can create OUYA product identifiers by logging into devs.ouya.tv and going to the "Products" tab.
 
 If you leave the OUYA product identifier blank, then this product will not show up in the menu when the OUYA store is being used.
+
+=Other Information=
+
+You can choose whether a product can be purchased repeatedly, or only purchased once.
+
+Remember that purchases apply to the entire game, not just the current save-game. If someone buys a product once, it is applied to all of their saved game slots, and to any new games they start later.
+
+You can set a caption that will be displayed when the product has already been purchased. For repeatable purchases, you can embed the number of times the purchase has been completed with the special code ${COUNT} for example "Already purchased ${COUNT} times"
