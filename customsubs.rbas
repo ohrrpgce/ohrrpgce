@@ -5509,7 +5509,7 @@ SUB edit_purchase_details (byval prod as NodePtr)
    menu.last->sub_t = 99999
    menu.last->dataptr = n
 
-   append_menu_item menu, "Can be purchased: " & IIF(prod."repeatable".exists, "Repeatedly", "Only Once")
+   append_menu_item menu, "Can be purchased: " & IIF_string(prod."repeatable".exists, "Repeatedly", "Only Once")
    menu.last->t = editpurchTOGGLEREPEATABLE
    menu.last->dataptr = prod
 
