@@ -5263,6 +5263,7 @@ CONST editpurchINT as integer = 7
 CONST editpurchSTOREDEFAULT as integer = 8
 CONST editpurchSTOREOUYA as integer = 9
 CONST editpurchTOGGLEREPEATABLE as integer = 10 'sucks that this is so specific
+CONST editpurchKEYDER as integer = 11
 
 SUB edit_purchase_options ()
 
@@ -5332,6 +5333,17 @@ SUB edit_purchase_options ()
      IF edit_purchase_enumbrowse("Store for In-App Purchases", node, default_stores(), "edit_purchase_options") THEN st.need_update = YES
     CASE editpurchSTOREOUYA:
      IF edit_purchase_enumbrowse("Store for In-App Purchases", node, ouya_stores(), "edit_purchase_options") THEN st.need_update = YES
+    CASE editpurchKEYDER:
+     DIM key_der_file as string
+     key_der_file = browse(0, "", "key.der", "", 0, "edit_purchase_browse_ouya_key_der")
+     IF key_der_file <> "" THEN
+      IF isfile(key_der_file) THEN
+       SetContent(node, string_from_file(key_der_file))
+       st.need_update = YES
+      ELSE
+       pop_warning "Unable to read the file """ & key_der_file & """"
+      END IF
+     END IF
    END SELECT
   END IF
   
@@ -5362,6 +5374,7 @@ SUB edit_purchase_options_rebuild_menu(menu as MenuDef, st as MenuState, byval p
  DIM products as NodePtr = ChildNode(purchase_root, "products")
 
  DIM node as NodePtr
+ DIM cap as string
 
  ClearMenuData menu
  WITH menu
@@ -5403,6 +5416,17 @@ SUB edit_purchase_options_rebuild_menu(menu as MenuDef, st as MenuState, byval p
  append_menu_item menu, "> " & GetString(node)
  menu.last->t = editpurchSTRING
  menu.last->sub_t = 36
+ menu.last->dataptr = node
+
+ node = ChildNode(ouya_node, "key.der")
+ DIM key_der_size as integer = LEN(GetString(node))
+ IF key_der_size THEN
+  cap = "Replace OUYA key.der file (" & key_der_size & " bytes)"
+ ELSE
+  cap = "Import OUYA key.der file"
+ END IF
+ append_menu_item menu, cap
+ menu.last->t = editpurchKEYDER
  menu.last->dataptr = node
 
  append_menu_item menu, "Purchaseable Products"
