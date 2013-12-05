@@ -228,6 +228,10 @@ declare function running_on_console() as bool
 declare function running_on_mobile() as bool
 declare function running_on_ouya() as bool 'Only use this for things that strictly require OUYA, like the OUYA store
 
+declare sub ouya_purchase_request (dev_id as string, identifier as string, key_der as string)
+declare function ouya_purchase_is_ready () as bool
+declare function ouya_purchase_succeeded () as bool
+
 declare function get_safe_zone_margin () as integer
 declare sub set_safe_zone_margin (byval margin as integer)
 declare function supports_safe_zone_margin () as bool

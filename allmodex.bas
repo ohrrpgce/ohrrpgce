@@ -6562,3 +6562,19 @@ function supports_safe_zone_margin () as bool
 	'Returns YES if the current backend supports safe zone margins
 	return gfx_supports_safe_zone_margin()
 end function
+
+sub ouya_purchase_request (dev_id as string, identifier as string, key_der as string)
+	'Only works on OUYA. Should do nothing on other platforms
+	debug "ouya_purchase_request for product " & identifier
+end sub
+
+function ouya_purchase_is_ready () as bool
+	'Wait until the OUYA store has replied. Always return YES on other platforms
+	return YES
+end function
+
+function ouya_purchase_succeeded () as bool
+	'Returns YES if the OUYA purchase was completed successfully.
+	'Always returns NO on other platforms
+	return NO
+end function

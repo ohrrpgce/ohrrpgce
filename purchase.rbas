@@ -18,14 +18,25 @@
 
 #include "purchase.bi"
 
+'===================================================================================================
+
 DECLARE FUNCTION purchase_menu_create_product_slice(byval prod as NodePtr, byval parent as Slice Ptr) as bool
 DECLARE SUB purchase_menu_update_cursor(st as MenuState, byval parent as Slice Ptr)
 DECLARE SUB attempt_purchase (byval prod as NodePtr)
 DECLARE SUB attempt_purchase_paypal(byval prod as NodePtr)
+DECLARE SUB attempt_purchase_ouya(byval prod as NodePtr)
 DECLARE SUB increment_purchase_count(byval prod as NodePtr)
 DECLARE FUNCTION get_purchase_count_node(byval prod as NodePtr) as NodePtr
 DECLARE FUNCTION get_purchase_count(byval prod as NodePtr) as integer
 DECLARE SUB refresh_purchases_from_cache()
+DECLARE FUNCTION get_ouya_developer_id() as string
+DECLARE FUNCTION get_ouya_key_der() as string
+
+'===================================================================================================
+
+CONST OUYA_STORE_TIMEOUT as double = 5.0 'seconds
+
+'===================================================================================================
 
 SUB purchases_menu ()
 
@@ -293,7 +304,7 @@ SUB attempt_purchase (byval prod as NodePtr)
   CASE "paypal":
    attempt_purchase_paypal prod
   CASE "ouya":
-   debug "Ouya store not implemented yet"
+   attempt_purchase_ouya prod
   CASE ELSE
    debug "Store """ & storename & """ is unknown"
  END SELECT
@@ -334,6 +345,81 @@ SUB attempt_purchase_paypal(byval prod as NodePtr)
  do_purchase_action prod
  
 END SUB
+
+SUB attempt_purchase_ouya(byval prod as NodePtr)
+ IF NOT running_on_ouya() THEN
+  pop_warning "Cannot use OUYA store when not running on OUYA platform"
+  EXIT SUB
+ END IF
+
+ IF NOT prod."ouya".exists THEN
+  pop_warning "OUYA Store data node is missing"
+  EXIT SUB
+ END IF
+
+ DIM ouya_node as NodePtr
+ ouya_node = prod."ouya".ptr
+ IF NOT ouya_node."identifier".exists THEN
+  pop_warning "OUYA product identifier node is missing"
+  EXIT SUB
+ END IF
+
+ DIM dev_id as string = get_ouya_developer_id() 
+ IF dev_id = "" THEN
+  pop_warning "OUYA developer ID is missing"
+  EXIT SUB
+ END IF
+
+ DIM identifier as string = ouya_node."identifier".string
+ IF identifier = "" THEN
+  pop_warning "OUYA product identifier is missing"
+  EXIT SUB
+ END IF
+
+ DIM key_der as string = get_ouya_key_der()
+ IF key_der = "" THEN
+  pop_warning "OUYA key.der is missing"
+  EXIT SUB
+ END IF
+
+ ouya_purchase_request dev_id, identifier, key_der
+ DIM t as double = TIMER
+ 
+ setkeys YES
+ DO WHILE NOT ouya_purchase_is_ready() ANDALSO TIMER - t < OUYA_STORE_TIMEOUT
+  setwait 55
+  setkeys YES
+  'FIXME: show some kind of waiting spinner here
+  dowait
+ LOOP
+ 
+ IF NOT ouya_purchase_is_ready() THEN
+  pop_warning "OUYA Purchase request for """ & identifier & """ timed out. Unable to communicate with the OUYA store."
+  EXIT SUB
+ END IF
+ 
+ IF ouya_purchase_succeeded() THEN
+  increment_purchase_count prod
+  do_purchase_action prod
+ ELSE
+  pop_warning "OUYA Purchase request for """ & identifier & """ failed."
+ END IF
+ 
+END SUB
+
+FUNCTION get_ouya_key_der() as string
+ DIM gen_root as NodePtr = get_general_reld()
+ DIM purchase_root as NodePtr = ChildNode(gen_root, "purchase_root")
+ DIM ouya_node as NodePtr = ChildNode(purchase_root, "ouya")
+ RETURN ouya_node."key.der".string
+END FUNCTION
+
+FUNCTION get_ouya_developer_id() as string
+ DIM gen_root as NodePtr = get_general_reld()
+ DIM purchase_root as NodePtr = ChildNode(gen_root, "purchase_root")
+ DIM ouya_node as NodePtr = ChildNode(purchase_root, "ouya")
+ RETURN ouya_node."developer_id".string
+END FUNCTION
 
 SUB do_purchase_action (byval prod as NodePtr, byval new_purch as bool=YES)
  DIM buy_action as NodePtr = prod."buy_action".ptr
