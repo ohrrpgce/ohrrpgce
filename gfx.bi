@@ -81,6 +81,10 @@ extern Gfx_get_safe_zone_margin as function () as single
 extern Gfx_set_safe_zone_margin as sub (byval margin as single)
 extern Gfx_supports_safe_zone_margin as function () as bool
 
+extern Gfx_ouya_purchase_request as sub(dev_id as string, identifier as string, key_der as string)
+extern Gfx_ouya_purchase_is_ready as function () as bool
+extern Gfx_ouya_purchase_succeeded as function () as bool
+
 extern Io_init as sub ()
 
 '(optional) called in loops where gfx_showpage is not.
