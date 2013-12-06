@@ -384,14 +384,84 @@ SUB attempt_purchase_ouya(byval prod as NodePtr)
 
  ouya_purchase_request dev_id, identifier, key_der
  DIM t as double = TIMER
+
+ '--Prepare slices for the progress spinner
+
+ DIM holdscreen as integer
+ holdscreen = allocatepage
+ copypage vpage, holdscreen
+ 
+ DIM root as Slice Ptr
+ root = NewSliceOfType(slSpecial)
+ WITH *root
+  .Fill = YES
+ END WITH
+ DrawSlice root, vpage
+ 
+ DIM rect_sl as Slice Ptr
+ rect_sl = NewSliceOfType(slRectangle, root)
+ WITH *rect_sl
+  .Width = 280
+  .Height = 50
+  .AnchorHoriz = 1
+  .AlignHoriz = 1
+  .AnchorVert = 1
+  .AlignVert = 1
+ END WITH
+ ChangeRectangleSlice rect_sl, 0
+ 
+ DIM text_sl as Slice Ptr
+ text_sl = NewSliceOfType(slText, rect_sl)
+ WITH *text_sl
+  .Y = 8
+  .AnchorHoriz = 1
+  .AlignHoriz = 1
+ END WITH
+ ChangeTextSlice text_sl, "Talking to OUYA Discover Store...", uiLook(uiText), YES
+ 
+ DIM bubbles(7) as Slice Ptr
+ FOR i as integer = 0 TO 7
+  bubbles(i) = NewSliceOfType(slEllipse, rect_sl)
+  WITH *bubbles(i)
+  .X = rect_sl->Width / 9 * (i+1)
+  .Y = 5
+  .Width = 10
+  .Height = 10
+  .AnchorHoriz = 1
+  .AlignVert = 1
+  .AnchorVert = 1
+  .AlignVert = 1
+  END WITH
+  ChangeEllipseSlice bubbles(i), uilook(uiHealthBar), uilook(uiHealthBarFlash)
+ NEXT i
+ 
+ DIM oscil as integer = 0
+ DIM bub_size as integer = 0
+
+ '--Display the spinner animation while waiting for the purchase to succeed (or time-out)
+ '  Spinner is displayed as a row of oscilating bubbles
  
  setkeys YES
  DO WHILE NOT ouya_purchase_is_ready() ANDALSO TIMER - t < OUYA_STORE_TIMEOUT
   setwait 55
   setkeys YES
-  'FIXME: show some kind of waiting spinner here
+  
+  oscil = loopvar(oscil, 0, 29, 1)
+  
+  FOR i as integer = 0 TO 7
+   bub_size = ABS((oscil + i) MOD 30 - 15) + 5
+   bubbles(i)->Width = bub_size
+   bubbles(i)->Height = bub_size
+  NEXT i
+  
+  copypage holdscreen, vpage
+  DrawSlice root, vpage
+  setvispage vpage
   dowait
  LOOP
+
+ freepage holdscreen
+ DeleteSlice @root
  
  IF NOT ouya_purchase_is_ready() THEN
   pop_warning "OUYA Purchase request for """ & identifier & """ timed out. Unable to communicate with the OUYA store."
