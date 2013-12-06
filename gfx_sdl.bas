@@ -635,6 +635,18 @@ FUNCTION gfx_sdl_supports_safe_zone_margin() as bool
 #ENDIF
 END FUNCTION
 
+SUB gfx_sdl_ouya_purchase_request(dev_id as string, identifier as string, key_der as string)
+ debug "gfx_sdl_ouya_purchase_request"
+END SUB
+
+FUNCTION gfx_sdl_ouya_purchase_is_ready() as bool
+ RETURN YES
+END FUNCTION
+
+FUNCTION gfx_sdl_ouya_purchase_succeeded() as bool
+ RETURN NO
+END FUNCTION
+
 SUB io_sdl_init
   'nothing needed at the moment...
 END SUB
@@ -1092,6 +1104,9 @@ FUNCTION gfx_sdl_setprocptrs() as integer
   gfx_get_safe_zone_margin = @gfx_sdl_get_safe_zone_margin
   gfx_set_safe_zone_margin = @gfx_sdl_set_safe_zone_margin
   gfx_supports_safe_zone_margin = @gfx_sdl_supports_safe_zone_margin
+  gfx_ouya_purchase_request = @gfx_sdl_ouya_purchase_request
+  gfx_ouya_purchase_is_ready = @gfx_sdl_ouya_purchase_is_ready
+  gfx_ouya_purchase_succeeded = @gfx_sdl_ouya_purchase_succeeded
   io_init = @io_sdl_init
   io_pollkeyevents = @io_sdl_pollkeyevents
   io_waitprocessing = @io_sdl_waitprocessing
