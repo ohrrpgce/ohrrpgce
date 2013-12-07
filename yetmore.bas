@@ -1899,6 +1899,10 @@ SELECT CASE as CONST id
   IF valid_plotslice(retvals(0)) THEN
    ChangeSpriteSlice plotslices(retvals(0)), , , , retvals(1)
   END IF
+ CASE 558'--set sprite set number
+  IF valid_plotslice(retvals(0)) THEN
+   ChangeSpriteSlice plotslices(retvals(0)), , retvals(1)
+  END IF
  CASE 329'--load walkabout sprite
   scriptret = load_sprite_plotslice(4, retvals(0), retvals(1))
  CASE 330 '--replace walkabout sprite
