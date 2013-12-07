@@ -2403,10 +2403,20 @@ set menu on close script(m, @my menu exit handler)
 				<ref>getspriteframe</ref>
 			</seealso>
 		</command>
+		<command id="setspritesetnumber">
+			<canon>set sprite set number (handle, record)</canon>
+			<shortname>set sprite set number</shortname>
+			<description>Changes the record number of the spriteset of a slice sprite <p>handle</p>.</description>
+			<seealso>
+				<ref>getspritesetnumber</ref>
+				<ref>setspritepalette</ref>
+				<ref>setspriteframe</ref>
+			</seealso>
+		</command>
 		<command id="getspritesetnumber">
 			<canon>get sprite set number (handle)</canon>
 			<shortname>get sprite set number</shortname>
-			<description>Gets the number of the spriteset of a slice sprite <p>handle</p>.</description>
+			<description>Gets the record number of the spriteset of a slice sprite <p>handle</p>.</description>
 			<seealso>
 				<ref>getspritetype</ref>
 				<ref>getspritepalette</ref>
