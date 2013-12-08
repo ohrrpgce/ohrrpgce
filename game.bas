@@ -1970,6 +1970,7 @@ SUB sfunctions(byval cmdid as integer)
     scriptret = picksave(1) + 1
     IF retvals(0) THEN
      IF scriptret = -1 THEN
+      'New Game
       abortg = 2  'don't go straight back to loadmenu!
       script_start_waiting()
       fadeout 0, 0, 0
@@ -2758,7 +2759,8 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as int
        slot = picksave(0)
        IF slot >= 0 THEN savegame slot
       CASE 9 ' load
-       slot = picksave(1)
+       slot = picksave(1, NO, YES)  'No New Game option, beep if the menu doesn't display
+       '(Maybe it would be better to display the load menu even if there are no saves)
        IF slot >= 0 THEN
         wantloadgame = slot + 1
         FOR i as integer = topmenu TO 0 STEP -1

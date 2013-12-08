@@ -42,6 +42,8 @@ WHAT IS NEW?
       stat [James]
     * Fix vehicles that are configured to disable random battles [James]
     * Bug 997: Crash/freeze when fullscreening in Mac OS 10.7 and later
+    * Bug 777: 'Load' menu called from a customisable menu showed a
+      'New Game' button which did nothing [Ralph]
 
   * New Plotscripting Stuff
     * "Menu action plotscript" special script trigger to run a script

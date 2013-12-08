@@ -13,7 +13,7 @@ DECLARE FUNCTION use_item_in_slot(byval slot as integer, byref trigger_box as in
 DECLARE SUB update_inventory_caption (byval i as integer)
 DECLARE SUB oobcure (byval attacker as integer, byval target as integer, byval atk as integer, byval target_count as integer)
 DECLARE SUB patcharray (array() as integer, n as string)
-DECLARE FUNCTION picksave (byval loading as integer) as integer
+DECLARE FUNCTION picksave (byval loading as integer, byval newgame_opt as bool = YES, byval beep_if_no_saves as bool = NO) as integer
 DECLARE SUB sellstuff (byval id as integer, storebuf() as integer)
 DECLARE SUB spells_menu (byval who as integer)
 DECLARE SUB status (byval pt as integer)
