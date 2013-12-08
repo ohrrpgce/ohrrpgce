@@ -3820,10 +3820,29 @@ xbsave game + ".gen", gen(), 1000
 'wow! this is quite a big and ugly routine!
 END SUB
 
+'Initialise, if needed, a lump that is missing or has length <= headersize by padding the file with zeros so that
+'it has a header if any and one record.
+SUB fix_recordless_lump(lumpname as string, byref record_byte_size as integer, byval header_bytes as integer=0)
+ DIM fh as integer = FREEFILE
+ IF OPEN(lumpname FOR BINARY as #fh) THEN
+  debugc errError, "Error while opening " & lumpname
+  EXIT SUB
+ END IF
+ DIM total_bytes as integer = LOF(fh) - header_bytes
+ IF total_bytes <= 0 THEN
+  debuginfo "fix_recordless_lump: " & lumpname & " didn't exist or was length " & LOF(fh)
+  extendfile fh, header_bytes + record_byte_size
+ END IF
+ CLOSE #fh
+END SUB
+
+'Correct a variable holding number of fixed-length-records (last_rec_index + 1 + count_offset)
+'to the real amount in a file, and check that the file doesn't have any partial records.
+'NOTE: This doesn't fix a lump which is missing or zero length; use fix_recordless_lump for that.
 SUB fix_record_count(byref last_rec_index as integer, byref record_byte_size as integer, lumpname as string, info as string, byval skip_header_bytes as integer=0, byval count_offset as integer=0)
  DIM rec_count as integer = last_rec_index + 1 + count_offset
  IF NOT isfile(lumpname) THEN
-  debuginfo "fix_record_count: " & info & " lump " & trimpath(lumpname) & " does not exist." 
+  debuginfo "fix_record_count: " & info & " lump " & trimpath(lumpname) & " does not exist."
   EXIT SUB
  END IF
  DIM total_bytes as integer = filelen(lumpname) - skip_header_bytes
@@ -3865,6 +3884,8 @@ SUB fix_sprite_record_count(byval pt_num as integer)
  WITH sprite_sizes(pt_num)
   DIM bytes as integer = .size.x * .size.y * .frames / 2 '--we divide by 2 because there are 2 pixels per byte
   DIM lump as string = game & ".pt" & pt_num
+  '.pt7 and .pt8 don't exist in old games
+  fix_recordless_lump lump, bytes
   fix_record_count gen(.genmax), bytes, lump, .name & " sprites"
  END WITH
 END SUB

@@ -117,6 +117,7 @@ DECLARE SUB upgrade ()
 DECLARE SUB future_rpg_warning ()
 DECLARE SUB rpg_sanity_checks ()
 DECLARE SUB fix_sprite_record_count(byval pt_num as integer)
+DECLARE SUB fix_recordless_lump(lumpname as string, byref record_byte_size as integer, byval header_bytes as integer=0)
 DECLARE SUB fix_record_count(byref last_rec_index as integer, byref record_byte_size as integer, lumpname as string, info as string, byval skip_header_bytes as integer=0, byval count_offset as integer=0)
 DECLARE SUB loadglobalstrings ()
 DECLARE FUNCTION readglobalstring (byval index as integer, default as string, byval maxlen as integer=10) as string

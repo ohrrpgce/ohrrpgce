@@ -1202,6 +1202,7 @@ Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
   spr = .img.sprite
   if spr = 0 then
    reporterr "null sprite ptr for slice " & sl, serrBug
+   sl->Visible = NO  'prevent error loop
    exit sub
   end if
   if .frame >= sprite_sizes(.spritetype).frames or .frame < 0 then
