@@ -608,10 +608,10 @@ end function
 sub BuildNameIndexTable(byval doc as DocPtr, nodenames() as RBNodeName, byval func_num as integer, byval func_bits_size as integer, byval signature as integer, byval total_num_names as integer)
 	'debug "BuildNameIndexTable, func_num = " & func_num & " doc->numStrings = " & doc->numStrings
 	dim allocated_table as bool = NO
+
 	if doc->RBSignature <> signature then
 		'We need to clear/recreate the nameIndexTable, and clear the RBFuncBits table,
-		'so that all functions will get their nodenames readded to the table
-
+                'so that all functions will get their nodenames re-added to the table
 		doc->RBSignature = signature
 		RDeallocate(doc->nameIndexTable, doc)
 		'We might add more strings; worst case
@@ -622,6 +622,8 @@ sub BuildNameIndexTable(byval doc as DocPtr, nodenames() as RBNodeName, byval fu
 		'doc->nameIndexTableBits = RCallocate(((doc->numStrings + 31) \ 32) * 4, doc)
 		RDeallocate(doc->RBFuncBits, doc)
 		doc->RBFuncBits = RCallocate(func_bits_size, doc)
+
+		'debug "BuildNameIndexTable(signature=" & signature & ", func_num=" & func_num & ", doc=" & doc & "): creating new table, size=" & doc->nameIndexTableLen
 	end if
 
 	'Optimisation: If this function's nodenames table has been built before, skip
@@ -632,6 +634,8 @@ sub BuildNameIndexTable(byval doc as DocPtr, nodenames() as RBNodeName, byval fu
 		'We might add more strings; worst case size
 		doc->nameIndexTableLen = doc->numStrings + total_num_names
 		doc->nameIndexTable = RReallocate(doc->nameIndexTable, doc, doc->nameIndexTableLen * sizeof(short))
+
+		'debug "BuildNameIndexTable(signature=" & signature & ", func_num=" & func_num & ", doc=" & doc & "): updating table, size=" & doc->nameIndexTableLen
 	end if
 
 	'memset(@table(0), &hff, sizeof(integer) * doc->numStrings)  'fills with -1
@@ -645,6 +649,7 @@ sub BuildNameIndexTable(byval doc as DocPtr, nodenames() as RBNodeName, byval fu
 			do while b
 				if *b->key = *.name then
 					doc->nameIndexTable[cast(integer, b->item)] = .nameindex
+					'debug "RB: mapping string " & *.name & ", namenum=" & cast(integer, b->item) & " nameidx=" & .nameindex
 					continue for
 				end if
 				b = b->nxt

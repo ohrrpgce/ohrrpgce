@@ -538,7 +538,7 @@ IF {node} THEN
 END IF
 WHILE {it}
   DIM {nameindex} as integer = ANY
-  IF {it}->namenum < {it}->doc->nameIndexTableLen THEN {nameindex} = {nametbl}[{it}->namenum] ELSE {nameindex} = 999999
+  IF {it}->namenum < {node}->doc->nameIndexTableLen THEN {nameindex} = {nametbl}[{it}->namenum] ELSE {nameindex} = 999999
   SELECT CASE AS CONST {nameindex}
 {cases}
   END SELECT
@@ -555,7 +555,7 @@ IF {node} THEN
 END IF
 DIM {nameindex} as integer = INVALID_INDEX
 IF {it} THEN
- IF {it}->namenum < {it}->doc->nameIndexTableLen THEN {nameindex} = {nametbl}[{it}->namenum] ELSE {nameindex} = 999999
+ IF {it}->namenum < {node}->doc->nameIndexTableLen THEN {nameindex} = {nametbl}[{it}->namenum] ELSE {nameindex} = 999999
 END IF
 DO
   SELECT CASE AS CONST {nameindex}
@@ -564,7 +564,7 @@ DO
   IF {it} THEN
     {it} = {it}->nextSib
     IF {it} THEN
-      IF {it}->namenum < {it}->doc->nameIndexTableLen THEN {nameindex} = {nametbl}[{it}->namenum] ELSE {nameindex} = 999999
+      IF {it}->namenum < {node}->doc->nameIndexTableLen THEN {nameindex} = {nametbl}[{it}->namenum] ELSE {nameindex} = 999999
       CONTINUE DO
     END IF
   END IF
@@ -607,7 +607,8 @@ class ReloadBasicFunction(object):
         self.nodenames = set()    # All node names used in this function
 
         self.nameindex_tables = {}  # Maps NodePtr variables which are known to belong to a RELOAD document
-                                    # with a complete nameindex table for this function to a nameindex table variable.
+                                    # with a complete nameindex table for this function to a nameindex table variable,
+                                    # or to None if no such variable is assigned yet
         self.derived_relation = {}  # Maps NodePtr variables to other NodePtr variables they're derived from
 
         self.function_num = function_num
@@ -690,7 +691,9 @@ class ReloadBasicFunction(object):
         """
         Ensure that a given NodePtr variable belongs to a RELOAD document with a namenum->nameindex
         table that has a superset of all the node names used in this function.
-        node_not_null is true if the nodeptr is known to not be null.
+        node_not_null: whether the nodeptr is known to not be null.
+
+        Returns (new_nodeptr, prologue)
         """
         if not self.be_careful:
             if nodeptr in self.derived_relation:
@@ -702,34 +705,41 @@ class ReloadBasicFunction(object):
             buildtable = "BuildNameIndexTable(%s->doc, _nodenames(), %s, RB_FUNC_BITS_ARRAY_SZ, RB_SIGNATURE, RB_NUM_NAMES)\n" % (nodeptr, self.function_num)
             if not node_not_null:
                 buildtable = "IF %s THEN %s" % (nodeptr, buildtable)
-            self.nameindex_tables.setdefault(nodeptr, None)
+            self.nameindex_tables.setdefault(nodeptr, None)  # Not stored in any variable
             return nodeptr, buildtable
         return nodeptr, ""
 
     def nameindex_table(self, nodeptr):
         """
         Return expressions for getting the nameindex table for a NodePtr. (See also ensure_nameindex_table)
-        Returns (nametable_var, prologue1, prologue2)
-        prologue1 is normal, prologue2 should be protected with a  nodeptr <> NULL guard.
+        Returns (nametable_expression, prologue1, prologue2)
+        prologue1 is normal, prologue2 should be protected with a nodeptr <> NULL guard.
         """
         nodeptr, buildtable = self.ensure_nameindex_table(nodeptr, True)
 
-        if self.nameindex_tables[nodeptr] != None and not buildtable:
-            return self.nameindex_tables[nodeptr], "", ""
-        else:
-            # Could reuse previous variable here if it exists
-            # (which can only happen if self.be_careful is True)
-            nametable = self.makename("_table")
-            prologue1 = "DIM %s as short ptr\n" % nametable
-            # Place at beginning of function because this variable may be reused in a different scope
-            self.start_mark.write(prologue1)
-            prologue1 = ""
-            prologue2 = buildtable + "%s = %s->doc->nameIndexTable" % (nametable, nodeptr)
+        nametable = "%s->doc->nameIndexTable" % nodeptr
+        return nametable, "", buildtable
+
+        # The following code creates a variable in which to cache the nametable
+        # ptr, but is broken because the pointer may change if another function is called
+        # and modifies (reallocs) the table.
+
+        # if self.nameindex_tables[nodeptr] != None and not buildtable:
+        #     return self.nameindex_tables[nodeptr], "", ""
+        # else:
+        #     # Could reuse previous variable here if it exists
+        #     # (which can only happen if self.be_careful is True)
+        #     nametable = self.makename("_table")
+        #     prologue1 = "DIM %s as short ptr\n" % nametable
+        #     # Place at beginning of function because this variable may be reused in a different scope
+        #     self.start_mark.write(prologue1)
+        #     prologue1 = ""
+        #     prologue2 = buildtable + "%s = %s->doc->nameIndexTable" % (nametable, nodeptr)
             
-            #nametable, assignment = self.assign_to_temp_var("_table", "short ptr", nodeptr + "->doc->nameIndexTable")
-            self.nameindex_tables[nodeptr] = nametable
-            #return nametable, buildtable + assignment
-            return nametable, prologue1, prologue2
+        #     #nametable, assignment = self.assign_to_temp_var("_table", "short ptr", nodeptr + "->doc->nameIndexTable")
+        #     self.nameindex_tables[nodeptr] = nametable
+        #     #return nametable, buildtable + assignment
+        #     return nametable, prologue1, prologue2
 
     def get_descendant(self, nodespec):
         """
