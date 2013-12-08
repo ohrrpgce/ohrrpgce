@@ -962,18 +962,20 @@ DO
  highlight_menu_typing_selection menu(), menu_display(), selectst, state
  standardmenu menu_display(), state, shaded(), 0, 0, dpage 
 
+ DIM as integer colgridx = 33, colgridy = 82
+
  FOR i as integer = 0 TO 255
-  rectangle 34 + (i MOD 16) * 16, 78 + (i \ 16) * 7, 12, 5, i, dpage
+  rectangle colgridx + 1 + (i MOD 16) * 16, colgridy + 1 + (i \ 16) * 7, 12, 5, i, dpage
  NEXT
  IF state.pt = 4 ORELSE state.pt = 5 ORELSE state.pt = 6 THEN
   FOR i as integer = 0 TO uiColorLast
-   drawbox 33 + (uilook(i) MOD 16) * 16, 77 + (uilook(i) \ 16) * 7, 14, 7, uilook(uiHighlight + state.tog), 1, dpage
+   drawbox colgridx + (uilook(i) MOD 16) * 16, colgridy + (uilook(i) \ 16) * 7, 14, 7, uilook(uiHighlight + state.tog), 1, dpage
   NEXT i
  END IF
  IF state.pt = 5 ORELSE state.pt = 6 ORELSE state.pt = 9 THEN
   FOR i as integer = 0 TO uiBoxLast
-   drawbox 33 + (boxlook(i).bgcol MOD 16) * 16, 77 + (boxlook(i).bgcol \ 16) * 7, 14, 7, uilook(uiHighlight + state.tog), 1, dpage
-   drawbox 33 + (boxlook(i).edgecol MOD 16) * 16, 77 + (boxlook(i).edgecol \ 16) * 7, 14, 7, uilook(uiHighlight + state.tog), 1, dpage
+   drawbox colgridx + (boxlook(i).bgcol MOD 16) * 16, colgridy + (boxlook(i).bgcol \ 16) * 7, 14, 7, uilook(uiHighlight + state.tog), 1, dpage
+   drawbox colgridx + (boxlook(i).edgecol MOD 16) * 16, colgridy + (boxlook(i).edgecol \ 16) * 7, 14, 7, uilook(uiHighlight + state.tog), 1, dpage
   NEXT i
  END IF
 
