@@ -41,6 +41,7 @@ WHAT IS NEW?
     * Fix attacks that use the attacker's max stats as the base attack
       stat [James]
     * Fix vehicles that are configured to disable random battles [James]
+    * Bug 997: Crash/freeze when fullscreening in Mac OS 10.7 and later
 
   * New Plotscripting Stuff
     * "Menu action plotscript" special script trigger to run a script
