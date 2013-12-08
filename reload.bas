@@ -158,6 +158,8 @@ Function CreateDocument() as DocPtr
 		ret->numAllocStrings = 1
 		ret->stringHash = CreateHashTable(ret, @HashZString)
 		ret->delayLoading = no
+		ret->nameIndexTable = NULL
+		ret->nameIndexTableLen = 0
 		
 		'add the blank string to the hash
 		AddItem(ret->stringHash, ret->strings[0].str, cast(any ptr, 0))
@@ -568,7 +570,7 @@ Function AddStringToTable(st as string, byval doc as DocPtr) as integer
 	end if
 	
 	if doc->numAllocStrings = 0 then 'This should never run.
-		debug "ERROR! Unallocated string table!"
+		debugc errBug, "ERROR! Unallocated string table!"
 		doc->strings = RAllocate(16 * sizeof(StringTableEntry), doc)
 		doc->numAllocStrings = 16
 		
@@ -579,7 +581,7 @@ Function AddStringToTable(st as string, byval doc as DocPtr) as integer
 	if doc->numStrings >= doc->numAllocStrings then 'I hope it's only ever equals...
 		dim s as StringTableEntry ptr = RReallocate(doc->strings, doc, sizeof(StringTableEntry) * (doc->numAllocStrings * 2))
 		if s = 0 then 'panic
-			debug "Error resizing string table"
+			debugc errPromptBug, "Error resizing string table"
 			return -1
 		end if
 		for i as integer = doc->numAllocStrings to doc->numAllocStrings * 2 - 1
@@ -604,21 +606,35 @@ end function
 
 'RELOADBASIC internal function
 sub BuildNameIndexTable(byval doc as DocPtr, nodenames() as RBNodeName, byval func_num as integer, byval func_bits_size as integer, byval signature as integer, byval total_num_names as integer)
+	'debug "BuildNameIndexTable, func_num = " & func_num & " doc->numStrings = " & doc->numStrings
+	dim allocated_table as bool = NO
 	if doc->RBSignature <> signature then
+		'We need to clear/recreate the nameIndexTable, and clear the RBFuncBits table,
+		'so that all functions will get their nodenames readded to the table
+
 		doc->RBSignature = signature
 		RDeallocate(doc->nameIndexTable, doc)
 		'We might add more strings; worst case
 		doc->nameIndexTableLen = doc->numStrings + total_num_names
+		'(RAllocate zeroes memory)
 		doc->nameIndexTable = RAllocate(doc->nameIndexTableLen * sizeof(short), doc)
+		allocated_table = YES
 		'RDeallocate(doc->nameIndexTableBits, doc)
 		'doc->nameIndexTableBits = RAllocate(((doc->numStrings + 31) \ 32) * 4, doc)
 		RDeallocate(doc->RBFuncBits, doc)
 		doc->RBFuncBits = RAllocate(func_bits_size, doc)
 	end if
 
-	'If this function's nodenames table has been built before, skip
+	'Optimisation: If this function's nodenames table has been built before, skip
 	if doc->RBFuncBits[func_num \ 32] and (1 shl (func_num mod 32)) then exit sub
 	doc->RBFuncBits[func_num \ 32] or= (1 shl (func_num mod 32))
+
+	if allocated_table = NO then
+		'We might add more strings; worst case size
+		doc->nameIndexTableLen = doc->numStrings + total_num_names
+		'(RAllocate zeroes memory)
+		doc->nameIndexTable = RReallocate(doc->nameIndexTable, doc, doc->nameIndexTableLen * sizeof(short))
+	end if
 
 	'memset(@table(0), &hff, sizeof(integer) * doc->numStrings)  'fills with -1
 
@@ -638,7 +654,9 @@ sub BuildNameIndexTable(byval doc as DocPtr, nodenames() as RBNodeName, byval fu
 
 			'The string isn't in the table. Add it so that nameIndexTable doesn't
 			'become invalid if it is added.
-			doc->nameIndexTable[AddStringToTable(*.name, doc)] = .nameindex
+			dim namenum as integer = AddStringToTable(*.name, doc)
+			'debug "RB: adding new string " & *.name & ", namenum=" & namenum & " nameidx=" & .nameindex
+			doc->nameIndexTable[namenum] = .nameindex
 		end with
 	next
 end sub
