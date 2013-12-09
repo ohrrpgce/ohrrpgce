@@ -36,6 +36,10 @@ declare sub SDL_ANDROID_set_java_gamepad_keymap(byval A as integer, byval B as i
 declare sub SDL_ANDROID_set_ouya_gamepad_keymap(byval player as integer, byval udpad as integer, byval rdpad as integer, byval ldpad as integer, byval ddpad as integer, byval O as integer, byval A as integer, byval U as integer, byval Y as integer, byval L1 as integer, byval R1 as integer, byval L2 as integer, byval R2 as integer, byval LT as integer, byval RT as integer)
 declare function SDL_ANDROID_SetScreenKeyboardButtonKey(byval buttonId as integer, byval key as integer) as integer
 declare function SDL_ANDROID_SetScreenKeyboardButtonDisable(byval buttonId as integer, byval disable as bool) as integer
+declare sub SDL_ANDROID_SetOUYADeveloperId (byval devId as zstring ptr)
+declare sub SDL_ANDROID_OUYAPurchaseRequest (byval identifier as zstring ptr, byval keyDer as zstring ptr, byval keyDerSize as integer)
+declare function SDL_ANDROID_OUYAPurchaseIsReady () as bool
+declare function SDL_ANDROID_OUYAPurchaseSucceeded () as bool
 #ENDIF
 
 'why is this missing from crt.bi?
@@ -636,14 +640,23 @@ FUNCTION gfx_sdl_supports_safe_zone_margin() as bool
 END FUNCTION
 
 SUB gfx_sdl_ouya_purchase_request(dev_id as string, identifier as string, key_der as string)
- debug "gfx_sdl_ouya_purchase_request"
+#IFDEF __FB_ANDROID__
+ SDL_ANDROID_SetOUYADeveloperId(dev_id)
+ SDL_ANDROID_OUYAPurchaseRequest(identifier, key_der, LEN(key_der))
+#ENDIF
 END SUB
 
 FUNCTION gfx_sdl_ouya_purchase_is_ready() as bool
+#IFDEF __FB_ANDROID__
+ RETURN SDL_ANDROID_OUYAPurchaseIsReady() <> 0
+#ENDIF
  RETURN YES
 END FUNCTION
 
 FUNCTION gfx_sdl_ouya_purchase_succeeded() as bool
+#IFDEF __FB_ANDROID__
+ RETURN SDL_ANDROID_OUYAPurchaseSucceeded() <> 0
+#ENDIF
  RETURN NO
 END FUNCTION
 
