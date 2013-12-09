@@ -472,7 +472,7 @@ SUB attempt_purchase_ouya(byval prod as NodePtr)
   increment_purchase_count prod
   do_purchase_action prod
  ELSE
-  pop_warning "OUYA Purchase request for """ & identifier & """ failed."
+  'purchase was canceled by the user (no need to alert)
  END IF
  
 END SUB
