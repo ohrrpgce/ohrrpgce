@@ -40,6 +40,9 @@ declare sub SDL_ANDROID_SetOUYADeveloperId (byval devId as zstring ptr)
 declare sub SDL_ANDROID_OUYAPurchaseRequest (byval identifier as zstring ptr, byval keyDer as zstring ptr, byval keyDerSize as integer)
 declare function SDL_ANDROID_OUYAPurchaseIsReady () as bool
 declare function SDL_ANDROID_OUYAPurchaseSucceeded () as bool
+declare sub SDL_ANDROID_OUYAReceiptsRequest (byval keyDer as zstring ptr, byval keyDerSize as integer)
+declare function SDL_ANDROID_OUYAReceiptsAreReady () as bool
+declare function SDL_ANDROID_OUYAReceiptsResult () as zstring ptr
 #ENDIF
 
 'why is this missing from crt.bi?
@@ -660,6 +663,31 @@ FUNCTION gfx_sdl_ouya_purchase_succeeded() as bool
  RETURN NO
 END FUNCTION
 
+SUB gfx_sdl_ouya_receipts_request(dev_id as string, key_der as string)
+debug "gfx_sdl_ouya_receipts_request"
+#IFDEF __FB_ANDROID__
+ SDL_ANDROID_SetOUYADeveloperId(dev_id)
+ SDL_ANDROID_OUYAReceiptsRequest(key_der, LEN(key_der))
+#ENDIF
+END SUB
+
+FUNCTION gfx_sdl_ouya_receipts_are_ready() as bool
+#IFDEF __FB_ANDROID__
+ RETURN SDL_ANDROID_OUYAReceiptsAreReady() <> 0
+#ENDIF
+ RETURN YES
+END FUNCTION
+
+FUNCTION gfx_sdl_ouya_receipts_result() as string
+#IFDEF __FB_ANDROID__
+ DIM zresult as zstring ptr
+ zresult = SDL_ANDROID_OUYAReceiptsResult()
+ DIM result as string = *zresult
+ RETURN result
+#ENDIF
+ RETURN ""
+END FUNCTION
+
 SUB io_sdl_init
   'nothing needed at the moment...
 END SUB
@@ -1120,6 +1148,9 @@ FUNCTION gfx_sdl_setprocptrs() as integer
   gfx_ouya_purchase_request = @gfx_sdl_ouya_purchase_request
   gfx_ouya_purchase_is_ready = @gfx_sdl_ouya_purchase_is_ready
   gfx_ouya_purchase_succeeded = @gfx_sdl_ouya_purchase_succeeded
+  gfx_ouya_receipts_request = @gfx_sdl_ouya_receipts_request
+  gfx_ouya_receipts_are_ready = @gfx_sdl_ouya_receipts_are_ready
+  gfx_ouya_receipts_result = @gfx_sdl_ouya_receipts_result
   io_init = @io_sdl_init
   io_pollkeyevents = @io_sdl_pollkeyevents
   io_waitprocessing = @io_sdl_waitprocessing

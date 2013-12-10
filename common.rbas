@@ -5727,3 +5727,95 @@ FUNCTION cheezy_virtual_keyboard (arr as ArrowSet, default_str as string, max_le
  
  RETURN result
 END FUNCTION
+
+SUB progress_spinner (byval exit_condition_func as FuncNoArgsBool ptr, caption as string, byval timeout_seconds as double)
+ 'In contrast to a progress meter, a progress spinner has no idea how long this will take
+ 'so it just needs to animate untill it succeeds or times out.
+ 
+ 'exit_condition_func should take no arguments and return YES when the progress is complete.
+
+ DIM t as double = TIMER
+
+ DIM holdscreen as integer
+ holdscreen = allocatepage
+ copypage vpage, holdscreen
+ 
+ DIM root as Slice Ptr
+ root = NewSliceOfType(slSpecial)
+ WITH *root
+  .Fill = YES
+ END WITH
+ DrawSlice root, vpage
+ 
+ DIM rect_sl as Slice Ptr
+ rect_sl = NewSliceOfType(slRectangle, root)
+ WITH *rect_sl
+  .Width = 280
+  .Height = 50 ' updated again after the text is wrapped
+  .AnchorHoriz = 1
+  .AlignHoriz = 1
+  .AnchorVert = 1
+  .AlignVert = 1
+ END WITH
+ ChangeRectangleSlice rect_sl, 0
+ 
+ DIM text_sl as Slice Ptr
+ text_sl = NewSliceOfType(slText, rect_sl)
+ WITH *text_sl
+  .Y = 8
+  .Width = rect_sl->Width - 16
+  .AnchorHoriz = 1
+  .AlignHoriz = 1
+ END WITH
+ ChangeTextSlice text_sl, caption, uiLook(uiText), YES, YES
+ 
+ DIM bubbles(7) as Slice Ptr
+ FOR i as integer = 0 TO 7
+  bubbles(i) = NewSliceOfType(slEllipse, rect_sl)
+  WITH *bubbles(i)
+  .X = rect_sl->Width / 9 * (i+1)
+  .Y = -23
+  .Width = 10
+  .Height = 10
+  .AnchorHoriz = 1
+  .AlignVert = 1
+  .AnchorVert = 1
+  .AlignVert = 2
+  END WITH
+  ChangeEllipseSlice bubbles(i), uilook(uiHealthBar), uilook(uiHealthBarFlash)
+ NEXT i
+ 
+ rect_sl->Height = 8 + text_sl->Height + 8 + 30 + 8
+ 
+ DIM oscil as integer = 0
+ DIM bub_size as integer = 0
+
+ '--Display the spinner animation while waiting for the action to succeed (or time-out)
+ '  Spinner is displayed as a row of oscilating bubbles
+ 
+ DIM func as FuncNoArgsBool
+ func = exit_condition_func
+ 
+ setkeys YES
+ DO WHILE NOT func() ANDALSO TIMER - t < timeout_seconds
+  setwait 55
+  setkeys YES
+  
+  oscil = loopvar(oscil, 0, 29, 1)
+  
+  FOR i as integer = 0 TO 7
+   bub_size = ABS((oscil + i) MOD 30 - 15) + 5
+   bubbles(i)->Width = bub_size
+   bubbles(i)->Height = bub_size
+  NEXT i
+  
+  copypage holdscreen, vpage
+  DrawSlice root, vpage
+  setvispage vpage
+  dowait
+ LOOP
+
+ freepage holdscreen
+ DeleteSlice @root
+
+END SUB

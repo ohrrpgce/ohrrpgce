@@ -6579,3 +6579,22 @@ function ouya_purchase_succeeded () as bool
 	'Always returns NO on other platforms
 	return gfx_ouya_purchase_succeeded()
 end function
+
+sub ouya_receipts_request (dev_id as string, key_der as string)
+	'Start a request for reciepts. They may take some time.
+	'Does nothing if the platform is not OUYA
+	gfx_ouya_receipts_request(dev_id, key_der)
+end sub
+
+function ouya_receipts_are_ready () as bool
+	'Wait until the OUYA store has replied. Always return YES on other platforms
+	return gfx_ouya_receipts_are_ready ()
+end function
+
+function ouya_receipts_result () as string
+	'Returns a newline delimited list of OUYA product identifiers that
+	'have already been purchased.
+	'Always returns "" on other platforms
+	return gfx_ouya_receipts_result()
+end function
+

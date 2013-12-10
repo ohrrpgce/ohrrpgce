@@ -617,14 +617,18 @@ END IF
 resetg = NO
 'DEBUG debug "picked save slot " & load_slot
 queue_music_change -1  'stop music
-fadeout 0, 0, 0
-IF load_slot = -2 THEN EXIT DO 'resetg
+IF load_slot = -2 THEN
+ fadeout 0, 0, 0
+ EXIT DO 'resetg
+END IF
 IF load_slot >= 0 THEN
+ fadeout 0, 0, 0
  doloadgame load_slot
 ELSE
+ refresh_purchases()
+ fadeout 0, 0, 0
  clearpage 0
  clearpage 1
- refresh_purchases()
  addhero 1, 0
  IF gen(genNewGameScript) > 0 THEN
   trigger_script gen(genNewGameScript), YES, "newgame", "", scrqBackcompat()
@@ -4269,4 +4273,3 @@ FUNCTION calc_virtual_gamepad_state(byval advancing_text_now as bool=NO, byval i
  'If no other conditions are met, enabled the virtual gamepad
  RETURN YES
 END FUNCTION
-

@@ -84,6 +84,9 @@ extern Gfx_supports_safe_zone_margin as function () as bool
 extern Gfx_ouya_purchase_request as sub(dev_id as string, identifier as string, key_der as string)
 extern Gfx_ouya_purchase_is_ready as function () as bool
 extern Gfx_ouya_purchase_succeeded as function () as bool
+extern Gfx_ouya_receipts_request as sub (dev_id as string, key_der as string)
+extern Gfx_ouya_receipts_are_ready as function () as bool
+extern Gfx_ouya_receipts_result as function () as string
 
 extern Io_init as sub ()
 
