@@ -281,8 +281,8 @@ DECLARE FUNCTION keyval_arrowset_left(arr as ArrowSet) as bool
 DECLARE FUNCTION keyval_arrowset_confirm(arr as ArrowSet) as bool
 DECLARE FUNCTION keyval_arrowset_cancel(arr as ArrowSet) as bool
 
-TYPE FuncNoArgsBool as FUNCTION () as bool
-DECLARE SUB progress_spinner (exit_condition_func as FuncNoArgsBool Ptr, caption as string, byval timeout_seconds as double)
+TYPE FnNoArgsBool as FUNCTION () as bool
+DECLARE SUB progress_spinner (exit_condition_func as FnNoArgsBool, caption as string, byval timeout_seconds as double)
 
 'Global variables
 EXTERN sourcerpg as string

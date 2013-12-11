@@ -5728,7 +5728,7 @@ FUNCTION cheezy_virtual_keyboard (arr as ArrowSet, default_str as string, max_le
  RETURN result
 END FUNCTION
 
-SUB progress_spinner (byval exit_condition_func as FuncNoArgsBool ptr, caption as string, byval timeout_seconds as double)
+SUB progress_spinner (byval exit_condition_func as FnNoArgsBool, caption as string, byval timeout_seconds as double)
  'In contrast to a progress meter, a progress spinner has no idea how long this will take
  'so it just needs to animate untill it succeeds or times out.
  
@@ -5793,11 +5793,8 @@ SUB progress_spinner (byval exit_condition_func as FuncNoArgsBool ptr, caption a
  '--Display the spinner animation while waiting for the action to succeed (or time-out)
  '  Spinner is displayed as a row of oscilating bubbles
  
- DIM func as FuncNoArgsBool
- func = exit_condition_func
- 
  setkeys YES
- DO WHILE NOT func() ANDALSO TIMER - t < timeout_seconds
+ DO WHILE NOT exit_condition_func() ANDALSO TIMER - t < timeout_seconds
   setwait 55
   setkeys YES
   
