@@ -1,5 +1,7 @@
 This screen allows you to define In-App Purchases. This can be used allow players to pay money to unlock the full version of the game, or it can be used as a way of collecting donations for a free game.
 
+WARNING: You should not be publishing a game that contains ripped graphics or music which you don't have permission to use! This is true even for free games, but is very important if you have enabled purchases. Accepting money for a game that contains other people's copyrighted material will put you at legal risk!
+
 Currently two stores are available
 
 =Paypal=

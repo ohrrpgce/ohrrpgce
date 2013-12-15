@@ -5357,6 +5357,9 @@ SUB edit_purchase_options ()
   clearpage dpage
   
   draw_menu menu, st, dpage
+  edgeprint "Don't enable purchases unless all the", 0, 183, uilook(uiSelectedDisabled), dpage
+  edgeprint "content if your game is original!", 0, 191, uilook(uiSelectedDisabled), dpage
+  
   SWAP vpage, dpage
   setvispage vpage
   
