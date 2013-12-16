@@ -307,9 +307,9 @@ gp.R1 = scPageDown
 gp.L2 = scHome
 gp.R2 = scEnd
 remap_android_gamepad 0, gp
-DIM blank_gp as GamePadMap
+'Make all four gamepads use the same keys by default
 FOR i as integer = 1 to 3
- remap_android_gamepad i, blank_gp
+ remap_android_gamepad i, gp
 NEXT i
 
 'virtual gamepad stuff only has effect on platforms that actually allow

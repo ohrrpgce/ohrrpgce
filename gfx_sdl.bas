@@ -926,18 +926,18 @@ SUB io_sdl_remap_android_gamepad(byval player as integer, gp as GamePadMap)
   CASE 1 TO 3
     SDL_ANDROID_set_ouya_gamepad_keymap ( _
     player, _
-    scOHR2SDL(gp.Ud, 0), _
-    scOHR2SDL(gp.Rd, 0), _
-    scOHR2SDL(gp.Dd, 0), _
-    scOHR2SDL(gp.Ld, 0), _
-    scOHR2SDL(gp.A, 0), _
-    scOHR2SDL(gp.B, 0), _
-    scOHR2SDL(gp.X, 0), _
-    scOHR2SDL(gp.Y, 0), _
-    scOHR2SDL(gp.L1, 0), _
-    scOHR2SDL(gp.R1, 0), _
-    scOHR2SDL(gp.L2, 0), _
-    scOHR2SDL(gp.R2, 0), _
+    scOHR2SDL(gp.Ud, SDLK_UP), _
+    scOHR2SDL(gp.Rd, SDLK_RIGHT), _
+    scOHR2SDL(gp.Dd, SDLK_DOWN), _
+    scOHR2SDL(gp.Ld, SDLK_LEFT), _
+    scOHR2SDL(gp.A, SDLK_RETURN), _
+    scOHR2SDL(gp.B, SDLK_ESCAPE), _
+    scOHR2SDL(gp.X, SDLK_ESCAPE), _
+    scOHR2SDL(gp.Y, SDLK_ESCAPE), _
+    scOHR2SDL(gp.L1, SDLK_PAGEUP), _
+    scOHR2SDL(gp.R1, SDLK_PAGEDOWN), _
+    scOHR2SDL(gp.L2, SDLK_HOME), _
+    scOHR2SDL(gp.R2, SDLK_END), _
     0, 0)
   CASE ELSE
    debug "WARNING: io_sdl_remap_android_gamepad: invalid player number " & player

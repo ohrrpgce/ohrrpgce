@@ -1310,6 +1310,11 @@ SUB reset_game_state ()
 
  DIM gamepad as NodePtr = root."gamepad".ptr
  remap_android_gamepad 0, gamepadmap_from_reload(gamepad, NO)
+ FOR i as integer = 1 TO 3
+  'Default the other gamepads to be the same as the first one
+  '(this might be overridden in a moment)
+  remap_android_gamepad i, gamepadmap_from_reload(gamepad, NO)
+ NEXT i
 
  DIM player as integer
  IF NOT root."multiplayer_gamepads".exists THEN

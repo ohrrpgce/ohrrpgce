@@ -4527,7 +4527,7 @@ SUB edit_platform_options ()
  DIM ouya_buttons(...) as string = {"O", "A", "U", "Y", "L1", "R1", "L2", "R2", "UP", "RIGHT", "DOWN", "LEFT"}
  DIM xperia_buttons(...) as string = {"X?", "O?", "Square", "Triangle", "L1", "R1", "Doesn't Exist", "Doesn't Exist", "UP", "RIGHT", "DOWN", "LEFT"}
  DIM default_scancodes(...) as integer = {scEnter, scESC, scESC, scESC, scPageUp, scPageDown, scHome, scEnd, scUp, scRight, scDown, scLeft}
- DIM default_scancodes_multiplayer(...) as integer = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+ DIM default_scancodes_multiplayer(...) as integer = {scEnter, scESC, scESC, scESC, scPageUp, scPageDown, scHome, scEnd, scUp, scRight, scDown, scLeft}
  DIM player_who(...) as string = {"First", "Second", "Third", "Fourth"}
 
  DIM vbutton_count as integer = 0
