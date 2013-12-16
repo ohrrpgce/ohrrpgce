@@ -2279,7 +2279,6 @@ FUNCTION open_url (url as string) as bool
  'Returns NO if there was an error or YES if everything seemed to work okay
  DIM result as string
 #IFDEF __FB_DARWIN__
- 'Not tested yet!
  SHELL "open '" & url & "'"
  'Don't have a way of detecting if that worked
  RETURN YES
