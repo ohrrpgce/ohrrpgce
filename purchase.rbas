@@ -92,6 +92,12 @@ SUB purchases_menu ()
      END IF
     END WITHNODE
    END READNODE
+
+   IF prod_i = 0 THEN
+    menusound gen(genCancelSFX)
+    pop_warning "No enabled products were found"
+    EXIT DO
+   END IF
    
    scroller->Y = large(0, CINT(root->Height / 2 - scroller->Height / 2))
 
@@ -595,7 +601,6 @@ SUB refresh_purchases()
 END SUB
 
 SUB refresh_purchases_from_cache()
- debuginfo "refresh_purchases_from_cache()"
  DIM gen_root as NodePtr = get_general_reld()
  DIM purchase_root as NodePtr = ChildNode(gen_root, "purchase_root")
  DIM products as NodePtr = ChildNode(purchase_root, "products")
@@ -617,7 +622,6 @@ SUB refresh_purchases_from_cache()
 END SUB
 
 SUB refresh_purchases_ouya()
- debuginfo "refresh_purchases_ouya()"
 
  IF NOT running_on_ouya() THEN
   pop_warning "Cannot use OUYA store when not running on OUYA platform"
