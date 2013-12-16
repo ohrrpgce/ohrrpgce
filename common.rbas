@@ -2280,13 +2280,9 @@ FUNCTION open_url (url as string) as bool
  DIM result as string
 #IFDEF __FB_DARWIN__
  'Not tested yet!
- result = spawn_and_wait ("open", "'" & url & "'")
- IF result = "" THEN
-  RETURN YES
- ELSE
-  pop_warning "command failed with: " & result
-  RETURN NO
- END IF
+ SHELL "open '" & url & "'"
+ 'Don't have a way of detecting if that worked
+ RETURN YES
 #ENDIF
 
 #IFDEF __FB_WIN32__
