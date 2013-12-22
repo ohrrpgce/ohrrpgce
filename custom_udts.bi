@@ -79,6 +79,7 @@ TYPE SpriteEditState
   previewpos as XYPair
   nulpal(8) as integer '--nulpal is used for getsprite and can go away once we convert to use Frame
   clippedpal as integer
+  showcolnum as integer
 END TYPE
 
 TYPE TileCloneBuffer

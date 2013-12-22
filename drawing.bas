@@ -1991,7 +1991,14 @@ SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic, state
  textcolor uilook(uiText), uilook(uiDisabledItem): IF ss.zonenum = 6 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
  printstr CHR(26), 304, 100, dpage
  textcolor uilook(uiText), 0
- printstr LEFT(" Pal", 4 - (LEN(STR(poffset(state.pt))) - 3)) & poffset(state.pt), 248, 100, dpage
+ IF ss.showcolnum > 0 THEN
+  printstr " Col" & ss.curcolor, 248, 100, dpage
+  IF keyval(scAlt) = 0 THEN
+   ss.showcolnum -= 1
+  END IF
+ ELSE
+  printstr LEFT(" Pal", 4 - (LEN(STR(poffset(state.pt))) - 3)) & poffset(state.pt), 248, 100, dpage
+ END IF
  rectangle 247 + (ss.palindex * 4), 110, 5, 7, uilook(uiText), dpage
  FOR i = 0 TO 15
   rectangle 248 + (i * 4), 111, 3, 5, peek8bit(workpal(), i + (state.pt - state.top) * 16), dpage
@@ -2844,10 +2851,19 @@ IF mouse.buttons = 0 AND keyval(scSpace) = 0 THEN
  ss.lastpos.y = -1
 END IF
 IF keyval(scTilde) > 1 THEN ss.hidemouse = ss.hidemouse XOR 1
-IF keyval(scComma) > 1 AND ss.palindex > 0 THEN ss.palindex -= 1
-IF keyval(scPeriod) > 1 AND ss.palindex < 15 THEN ss.palindex += 1
+IF keyval(scComma) > 1 AND ss.palindex > 0 THEN
+ ss.palindex -= 1
+ ss.showcolnum = 18
+END IF
+IF keyval(scPeriod) > 1 AND ss.palindex < 15 THEN
+ ss.palindex += 1
+ ss.showcolnum = 18
+END IF
 IF ss.zonenum = 2 THEN
- IF mouse.clicks > 0 THEN ss.palindex = small(ss.zone.x \ 4, 15)
+ IF mouse.clicks > 0 THEN
+  ss.palindex = small(ss.zone.x \ 4, 15)
+  ss.showcolnum = 18
+ END IF
 END IF
 IF keyval(scLeftBrace) > 1 OR (ss.zonenum = 5 AND mouse.clicks > 0) THEN
  changepal poffset(state.pt), -1, workpal(), state.pt - state.top
@@ -2906,15 +2922,16 @@ IF keyval(scAlt) > 0 AND keyval(scV) > 1 THEN
 END IF
 ss.curcolor = peek8bit(workpal(), (state.pt - state.top) * 16 + ss.palindex)
 IF keyval(scAlt) > 0 THEN
- IF keyval(scUp) > 1 AND ss.curcolor > 15 THEN ss.curcolor -= 16
- IF keyval(scDown) > 1 AND ss.curcolor < 240 THEN ss.curcolor += 16
- IF keyval(scLeft) > 1 AND ss.curcolor > 0 THEN ss.curcolor -= 1
- IF keyval(scRight) > 1 AND ss.curcolor < 255 THEN ss.curcolor += 1
+ IF keyval(scUp) > 1 AND ss.curcolor > 15 THEN ss.curcolor -= 16 : ss.showcolnum = 18
+ IF keyval(scDown) > 1 AND ss.curcolor < 240 THEN ss.curcolor += 16 : ss.showcolnum = 18
+ IF keyval(scLeft) > 1 AND ss.curcolor > 0 THEN ss.curcolor -= 1 : ss.showcolnum = 18
+ IF keyval(scRight) > 1 AND ss.curcolor < 255 THEN ss.curcolor += 1 : ss.showcolnum = 18
  'If the palette has changed, update genMaxPal
  gen(genMaxPal) = large(gen(genMaxPal), poffset(state.pt))
 END IF
 IF (mouse.clicks AND mouseLeft) ANDALSO ss.zonenum = 3 THEN
  ss.curcolor = ((ss.zone.y \ 6) * 16) + (ss.zone.x \ 4)
+ ss.showcolnum = 18
  'If the palette has changed, update genMaxPal
  gen(genMaxPal) = large(gen(genMaxPal), poffset(state.pt))
 END IF
@@ -3143,6 +3160,7 @@ ELSE
  IF keyval(scEnter) > 1 OR (ss.zonenum = 1 AND mouse.buttons = mouseRight) THEN
   drawsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
   ss.palindex = readpixel(ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, dpage)
+  ss.showcolnum = 18
  END IF
 END IF
 IF keyval(scBackspace) > 1 OR (ss.zonenum = 4 AND mouse.clicks > 0) THEN wardsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage: getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
