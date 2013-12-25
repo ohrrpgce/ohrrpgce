@@ -18,7 +18,7 @@ DECLARE FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp
 
 DECLARE SUB picktiletoedit (byref tmode as integer, byval pagenum as integer, mapfile as string, bgcolor as integer)
 DECLARE SUB editmaptile (ts as TileEditState, mover() as integer, mouse as MouseInfo, area() as MouseArea, bgcolor as integer)
-DECLARE SUB tilecut (ts as TileEditState, mouse as MouseInfo, area() as MouseArea)
+DECLARE SUB tilecut (ts as TileEditState, mouse as MouseInfo)
 DECLARE SUB refreshtileedit (mover() as integer, state as TileEditState)
 DECLARE SUB writeundoblock (mover() as integer, state as TileEditState)
 DECLARE SUB readundoblock (mover() as integer, state as TileEditState)
@@ -780,14 +780,7 @@ FOR i as integer = 0 TO 3
  area(12 + i).w = 8
  area(12 + i).h = 8
 NEXT i
-area(10).x = 8
-area(10).y = 190
-area(10).w = 32
-area(10).h = 10
-area(11).x = 280
-area(11).y = 190
-area(11).w = 32
-area(11).h = 10
+'Areas 11 and 12 used only in tile cutter
 'LESS AIRBRUSH AREA
 area(16).x = 12
 area(16).y = 60
@@ -905,12 +898,12 @@ DO
   IF tmode = 1 THEN
    ts.cuttileset = YES
    ts.cutfrom = small(ts.cutfrom, gen(genMaxTile))
-   tilecut ts, mouse, area()
+   tilecut ts, mouse
   END IF 
   IF tmode = 2 THEN
    ts.cuttileset = NO
    ts.cutfrom = small(ts.cutfrom, gen(genNumBackdrops) - 1)
-   tilecut ts, mouse, area()
+   tilecut ts, mouse
   END IF 
   IF tmode = 3 THEN
    DIM buf() as integer
@@ -1185,6 +1178,7 @@ DO
  IF keyval(scEnter) > 1 THEN ts.curcolor = readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3)
  SELECT CASE ts.zone
  CASE 1
+  'Drawing area
   ts.x = zox \ 8
   ts.y = zoy \ 8
   IF ts.tool = clone_tool THEN
@@ -1218,6 +1212,7 @@ DO
   END IF
   IF mouse.buttons AND mouseLeft THEN clicktile mover(), ts, (mouse.clicks AND mouseLeft), clone
  CASE 2
+  'Colour selector
   IF mouse.clicks AND mouseLeft THEN
    ts.curcolor = ((zoy \ 4) * 16) + ((zox MOD 160) \ 10) + (zox \ 160) * 128
   END IF
@@ -1599,7 +1594,19 @@ refreshtileedit mover(), ts
 rectangle 0, 0, 20, 20, uilook(uiBackground), dpage
 END SUB
 
-SUB tilecut (ts as TileEditState, mouse as MouseInfo, area() as MouseArea)
+SUB tilecut (ts as TileEditState, mouse as MouseInfo)
+DIM area(24) as MouseArea
+'"Prev" button
+area(10).x = 8
+area(10).y = 190
+area(10).w = 32
+area(10).h = 10
+'"Next" button
+area(11).x = 280
+area(11).y = 190
+area(11).w = 32
+area(11).h = 10
+
 IF ts.gotmouse THEN
  movemouse ts.x, ts.y
 END IF
@@ -1640,7 +1647,7 @@ DO
  IF keyval(scDown) AND 5 THEN ts.y = small(ts.y + inc, 180): IF ts.gotmouse THEN movemouse ts.x, ts.y
  IF keyval(scLeft) AND 5 THEN ts.x = large(ts.x - inc, 0): IF ts.gotmouse THEN movemouse ts.x, ts.y
  IF keyval(scRight) AND 5 THEN ts.x = small(ts.x + inc, 300): IF ts.gotmouse THEN movemouse ts.x, ts.y
- IF enter_or_space() OR (mouse.clicks > 0 AND ts.zone < 11) THEN
+ IF enter_or_space() OR (mouse.clicks > 0 AND ts.zone = 0) THEN
   IF ts.delay = 0 THEN
    FOR i as integer = 0 TO 19
     FOR j as integer = 0 TO 19
