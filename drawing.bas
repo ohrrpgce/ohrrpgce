@@ -17,8 +17,7 @@ DECLARE FUNCTION importmasterpal (f as string, byval palnum as integer) as integ
 DECLARE FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp as string, pmask() as RGBcolor) as bool
 
 DECLARE SUB picktiletoedit (byref tmode as integer, byval pagenum as integer, mapfile as string, bgcolor as integer)
-DECLARE SUB draw_frame_with_background (src as Frame ptr, dest as Frame ptr, bgcolor as integer, byref chequer_scroll as integer)
-DECLARE SUB editmaptile (ts as TileEditState, mover() as integer, mouse as MouseInfo, area() as MouseArea)
+DECLARE SUB editmaptile (ts as TileEditState, mover() as integer, mouse as MouseInfo, area() as MouseArea, bgcolor as integer)
 DECLARE SUB tilecut (ts as TileEditState, mouse as MouseInfo, area() as MouseArea)
 DECLARE SUB refreshtileedit (mover() as integer, state as TileEditState)
 DECLARE SUB writeundoblock (mover() as integer, state as TileEditState)
@@ -89,34 +88,6 @@ FOR count as integer = 1 TO randint(m)
  END IF
 NEXT
 
-END SUB
-
-'Draw a Frame (specially a tileset) onto another Frame with the transparent
-'colour replaced either with another colour, or with a chequer pattern.
-'Currently assumes src and dest Frames are the same size.
-'bgcolor is either between 0 and 255 (a colour), -1 (a scrolling chequered
-'background), or -2 (a non-scrolling chequered background)
-'chequer_scroll is a counter variable which the calling function should increment once per tick.
-SUB draw_frame_with_background (src as Frame ptr, dest as Frame ptr, bgcolor as integer, byref chequer_scroll as integer)
- CONST zoom = 3  'Chequer pattern zoom, fixed
- CONST rate = 4  'ticks per pixel scrolled, fixed
- 'STATIC chequer_scroll as integer
- chequer_scroll = POSMOD(chequer_scroll, (zoom * rate * 2))
-
- IF bgcolor >= 0 THEN
-  frame_clear dest, bgcolor
- ELSE
-  DIM bg_chequer as Frame Ptr
-  bg_chequer = frame_new(src->w / zoom + 2, src->h / zoom + 2)
-  frame_clear bg_chequer, uilook(uiBackground)
-  fuzzyrect bg_chequer, 0, 0, bg_chequer->w, bg_chequer->h, uilook(uiDisabledItem)
-  DIM offset as integer = 0
-  IF bgcolor = -1 THEN offset = chequer_scroll \ rate
-  frame_draw bg_chequer, NULL, -offset, -offset, zoom, NO, vpages(dpage)
-  frame_unload @bg_chequer
- END IF
- 'Draw transparently
- frame_draw src, NULL, 0, 0, , YES, dest
 END SUB
 
 SUB changepal (byref palval as integer, byval palchange as integer, workpal() as integer, byval aindex as integer)
@@ -371,7 +342,7 @@ DO
   IF state.pt = -1 THEN clearpage 3 ELSE loadmxs mapfile, state.pt, vpages(3)
  END IF
 
- draw_frame_with_background vpages(3), vpages(dpage), bgcolor, chequer_scroll
+ frame_draw_with_background vpages(3), , 0, 0, , bgcolor, chequer_scroll, vpages(dpage)
  DIM menuopts as MenuOptions
  menuopts.edged = YES
  standardmenu menu(), state, 10, 8, dpage, menuopts
@@ -427,7 +398,7 @@ SUB tile_edit_mode_picker(byval pagenum as integer, mapfile as string, byref bgc
    END SELECT
   END IF
   IF state.pt = 5 THEN intgrabber(bgcolor, -2, 255)
-  draw_frame_with_background vpages(3), vpages(dpage), bgcolor, chequer_scroll
+  frame_draw_with_background vpages(3), , 0, 0, , bgcolor, chequer_scroll, vpages(dpage)
   IF bgcolor = -2 THEN
    menu(5) = "Background: chequer"
   ELSEIF bgcolor = -1 THEN
@@ -929,7 +900,7 @@ DO
  IF enter_or_space() OR mouse.clicks > 0 THEN
   setkeys
   IF tmode = 0 THEN
-   editmaptile ts, mover(), mouse, area()
+   editmaptile ts, mover(), mouse, area(), bgcolor
   END IF
   IF tmode = 1 THEN
    ts.cuttileset = YES
@@ -950,7 +921,7 @@ DO
   IF slave_channel <> NULL_CHANNEL THEN storemxs mapfile, pagenum, vpages(3)
  END IF
 
- draw_frame_with_background vpages(3), vpages(dpage), bgcolor, chequer_scroll
+ frame_draw_with_background vpages(3), , 0, 0, , bgcolor, chequer_scroll, vpages(dpage)
  IF tmode = 1 OR tmode = 2 THEN
   'Show tile number
   edgeprint "Tile " & bnum, 0, IIF(bnum < 112, 190, 0), uilook(uiText), dpage
@@ -1019,7 +990,7 @@ printstr ">", 270, 16 + (state.undo * 21), 2
 refreshtileedit mover(), state
 END SUB
 
-SUB editmaptile (ts as TileEditState, mover() as integer, mouse as MouseInfo, area() as MouseArea)
+SUB editmaptile (ts as TileEditState, mover() as integer, mouse as MouseInfo, area() as MouseArea, bgcolor as integer)
 STATIC clone as TileCloneBuffer
 DIM spot as XYPair
 
@@ -1100,6 +1071,7 @@ overlay = frame_new(20, 20, , YES)
 DIM overlaypal as Palette16 ptr
 overlaypal = palette16_new()
 
+DIM chequer_scroll as integer = 0
 DIM tog as integer = 0
 DIM tick as integer = 0
 ts.lastcpos = TYPE(ts.x, ts.y)
@@ -1299,7 +1271,7 @@ DO
 
  '--Draw screen (Some of the editor is predrawn to page 2)
  copypage 2, dpage
- frame_draw ts.drawframe, NULL, 80, 0, 8, NO, dpage  'Draw the tile, at 8x zoom
+ frame_draw_with_background ts.drawframe, NULL, 80, 0, 8, bgcolor, chequer_scroll, vpages(dpage)  'Draw the tile, at 8x zoom with background
  frame_clear overlay
  overlay_use_palette = YES  'OK, this is a bit of a hack
  overlaypal->col(1) = ts.curcolor
@@ -1399,7 +1371,11 @@ DO
  SWAP dpage, vpage
  setvispage vpage
  tick = 0
- IF dowait THEN tick = 1: tog = tog XOR 1
+ IF dowait THEN
+  tick = 1
+  tog = tog XOR 1
+  chequer_scroll += 1
+ END IF
 LOOP
 IF ts.gotmouse THEN
  movemouse ts.tilex * 20 + 10, ts.tiley * 20 + 10
