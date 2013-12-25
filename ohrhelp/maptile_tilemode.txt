@@ -5,3 +5,5 @@ Choose "Cut Tiles" if you want to copy tiles from another tileset or extract til
 Choose "Set Default Passability" if you want to define default walls for each tile in this tileset.
 
 Choose "Define Tile Animation" to create patterns for animated tiles.
+
+"Background color" specifies how color 0 is drawn, and affects the tileset editor only. For tilesets used map layers other than layer 0, color 0 is transparent.

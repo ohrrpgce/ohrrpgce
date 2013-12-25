@@ -16,7 +16,8 @@ DECLARE FUNCTION importmasterpal (f as string, byval palnum as integer) as integ
 'Local SUBs and FUNCTIONS
 DECLARE FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp as string, pmask() as RGBcolor) as bool
 
-DECLARE SUB picktiletoedit (byref tmode as integer, byval pagenum as integer, mapfile as string)
+DECLARE SUB picktiletoedit (byref tmode as integer, byval pagenum as integer, mapfile as string, bgcolor as integer)
+DECLARE SUB draw_frame_with_background (src as Frame ptr, dest as Frame ptr, bgcolor as integer, byref chequer_scroll as integer)
 DECLARE SUB editmaptile (ts as TileEditState, mover() as integer, mouse as MouseInfo, area() as MouseArea)
 DECLARE SUB tilecut (ts as TileEditState, mouse as MouseInfo, area() as MouseArea)
 DECLARE SUB refreshtileedit (mover() as integer, state as TileEditState)
@@ -41,7 +42,7 @@ DECLARE SUB tileedit_set_tool (ts as TileEditState, toolinfo() as ToolInfoType, 
 DECLARE SUB tile_anim_draw_range(tastuf() as integer, byval taset as integer)
 DECLARE SUB tile_anim_set_range(tastuf() as integer, byval taset as integer, byval pagenum as integer)
 DECLARE SUB tile_animation(byval pagenum as integer)
-DECLARE SUB tile_edit_mode_picker(byval pagenum as integer, mapfile as string)
+DECLARE SUB tile_edit_mode_picker(byval pagenum as integer, mapfile as string, byref bgcolor as integer)
 
 DECLARE SUB spriteedit_load_what_you_see(byval j as integer, byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, placer() as integer, workpal() as integer, poffset() as integer)
 DECLARE SUB spriteedit_save_what_you_see(byval j as integer, byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, placer() as integer, workpal() as integer, poffset() as integer)
@@ -88,6 +89,34 @@ FOR count as integer = 1 TO randint(m)
  END IF
 NEXT
 
+END SUB
+
+'Draw a Frame (specially a tileset) onto another Frame with the transparent
+'colour replaced either with another colour, or with a chequer pattern.
+'Currently assumes src and dest Frames are the same size.
+'bgcolor is either between 0 and 255 (a colour), -1 (a scrolling chequered
+'background), or -2 (a non-scrolling chequered background)
+'chequer_scroll is a counter variable which the calling function should increment once per tick.
+SUB draw_frame_with_background (src as Frame ptr, dest as Frame ptr, bgcolor as integer, byref chequer_scroll as integer)
+ CONST zoom = 3  'Chequer pattern zoom, fixed
+ CONST rate = 4  'ticks per pixel scrolled, fixed
+ 'STATIC chequer_scroll as integer
+ chequer_scroll = POSMOD(chequer_scroll, (zoom * rate * 2))
+
+ IF bgcolor >= 0 THEN
+  frame_clear dest, bgcolor
+ ELSE
+  DIM bg_chequer as Frame Ptr
+  bg_chequer = frame_new(src->w / zoom + 2, src->h / zoom + 2)
+  frame_clear bg_chequer, uilook(uiBackground)
+  fuzzyrect bg_chequer, 0, 0, bg_chequer->w, bg_chequer->h, uilook(uiDisabledItem)
+  DIM offset as integer = 0
+  IF bgcolor = -1 THEN offset = chequer_scroll \ rate
+  frame_draw bg_chequer, NULL, -offset, -offset, zoom, NO, vpages(dpage)
+  frame_unload @bg_chequer
+ END IF
+ 'Draw transparently
+ frame_draw src, NULL, 0, 0, , YES, dest
 END SUB
 
 SUB changepal (byref palval as integer, byval palchange as integer, workpal() as integer, byval aindex as integer)
@@ -281,11 +310,12 @@ FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp as stri
 END FUNCTION
 
 SUB maptile ()
+STATIC bgcolor as integer = 0
 DIM menu() as string
 DIM mapfile as string = game & ".til"
 DIM pagenum as integer
 DIM top as integer = -1
-DIM tog as integer
+DIM chequer_scroll as integer
 
 DIM state as MenuState
 state.top = -1
@@ -298,6 +328,7 @@ state.need_update = YES
 clearpage 3
 setkeys
 DO
+ chequer_scroll += 1
  setwait 55
  setkeys
  IF keyval(scESC) > 1 THEN EXIT DO
@@ -326,7 +357,7 @@ DO
  IF enter_space_click(state) AND state.pt = -1 THEN EXIT DO
  IF enter_space_click(state) AND state.pt > -1 THEN
   pagenum = state.pt
-  tile_edit_mode_picker pagenum, mapfile
+  tile_edit_mode_picker pagenum, mapfile, bgcolor
   state.need_update = YES
  END IF
 
@@ -340,7 +371,7 @@ DO
   IF state.pt = -1 THEN clearpage 3 ELSE loadmxs mapfile, state.pt, vpages(3)
  END IF
 
- copypage 3, dpage
+ draw_frame_with_background vpages(3), vpages(dpage), bgcolor, chequer_scroll
  DIM menuopts as MenuOptions
  menuopts.edged = YES
  standardmenu menu(), state, 10, 8, dpage, menuopts
@@ -358,15 +389,16 @@ sprite_update_cache_tilesets
 
 END SUB
  
-SUB tile_edit_mode_picker(byval pagenum as integer, mapfile as string)
- DIM menu(5) as string
+SUB tile_edit_mode_picker(byval pagenum as integer, mapfile as string, byref bgcolor as integer)
+ DIM chequer_scroll as integer
+ DIM menu(6) as string
  menu(0) = "Draw Tiles"
  menu(1) = "Cut Tiles from Tilesets"
  menu(2) = "Cut Tiles from Backdrops"
  menu(3) = "Set Default Passability"
  menu(4) = "Define Tile Animation"
- menu(5) = "Cancel"
- 
+ menu(6) = "Cancel"
+
  DIM state as MenuState
  init_menu_state state, menu()
  state.need_update = YES
@@ -376,6 +408,7 @@ SUB tile_edit_mode_picker(byval pagenum as integer, mapfile as string)
  
  setkeys
  DO
+  chequer_scroll += 1
   setwait 55
   setkeys
   IF keyval(scESC) > 1 THEN EXIT DO
@@ -384,14 +417,24 @@ SUB tile_edit_mode_picker(byval pagenum as integer, mapfile as string)
   IF enter_space_click(state) THEN
    SELECT CASE state.pt
     CASE 0, 1, 2, 3
-     picktiletoedit state.pt, pagenum, mapfile
+     picktiletoedit state.pt, pagenum, mapfile, bgcolor
     CASE 4
      tile_animation pagenum
     CASE 5
+     bgcolor = color_browser_256(large(bgcolor, 0))
+    CASE 6
      EXIT DO
    END SELECT
   END IF
-  copypage 3, dpage
+  IF state.pt = 5 THEN intgrabber(bgcolor, -2, 255)
+  draw_frame_with_background vpages(3), vpages(dpage), bgcolor, chequer_scroll
+  IF bgcolor = -2 THEN
+   menu(5) = "Background: chequer"
+  ELSEIF bgcolor = -1 THEN
+   menu(5) = "Background: scrolling chequer"
+  ELSE
+   menu(5) = "Background color: " & bgcolor
+  END IF
   standardmenu menu(), state, 10, 8, dpage, menuopt
   SWAP vpage, dpage
   setvispage vpage
@@ -727,7 +770,7 @@ RETRACE
 
 END SUB
 
-SUB picktiletoedit (byref tmode as integer, byval pagenum as integer, mapfile as string)
+SUB picktiletoedit (byref tmode as integer, byval pagenum as integer, mapfile as string, bgcolor as integer)
 STATIC cutnpaste(19, 19) as integer
 STATIC oldpaste as integer
 DIM ts as TileEditState
@@ -736,6 +779,7 @@ DIM area(24) as MouseArea
 DIM mouse as MouseInfo
 ts.tilesetnum = pagenum
 ts.drawframe = frame_new(20, 20, , YES)
+DIM chequer_scroll as integer
 DIM tog as integer
 ts.gotmouse = havemouse()
 hidemousecursor
@@ -906,7 +950,7 @@ DO
   IF slave_channel <> NULL_CHANNEL THEN storemxs mapfile, pagenum, vpages(3)
  END IF
 
- copypage 3, dpage
+ draw_frame_with_background vpages(3), vpages(dpage), bgcolor, chequer_scroll
  IF tmode = 1 OR tmode = 2 THEN
   'Show tile number
   edgeprint "Tile " & bnum, 0, IIF(bnum < 112, 190, 0), uilook(uiText), dpage
@@ -937,7 +981,10 @@ DO
  END IF
  SWAP dpage, vpage
  setvispage vpage
- IF dowait THEN tog = tog XOR 1
+ IF dowait THEN
+  tog = tog XOR 1
+  chequer_scroll += 1
+ END IF
 LOOP
 storemxs mapfile, pagenum, vpages(3)
 IF tmode = 3 THEN
