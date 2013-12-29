@@ -1,5 +1,5 @@
 This screen allows you to choose which 3 rows of tiles are allowed to animate with the current maptile set.
 
-Just use the up and down arrow keys and press ENTER or SPACE when you are done.
+Just use the up and down arrow keys and press ENTER or SPACE when you are done. You can also use the mouse to click on the tile at the beginning of the range.
 
 Setting tiles to animate is optional, and maybe animation will only make sense for one or two tiles in this range. That is okay.

@@ -673,12 +673,14 @@ zonemenustate.pt = -1  'Properly initialised in mapedit_update_visible_zones
 st.zones_needupdate = YES
 npczone_needupdate = YES
 DIM slowtog as integer
+DIM chequer_scroll as integer
 
 setkeys
 DO
  setwait 55, 300
  setkeys
  tog = tog XOR 1
+ chequer_scroll += 1
  gauze_ticker = (gauze_ticker + 1) MOD 50  '10 frames, 5 ticks a frame
  st.message_ticks = large(0, st.message_ticks - 1) 
 
@@ -1518,11 +1520,14 @@ DO
  END SELECT
 
 
- '--draw menubar
+ '--Draw menubar (includes tileset preview)
  IF st.editmode = tile_mode THEN
-  'To draw tile 0 black if required
+  'This is to draw tile 0 as fully transparent on layer > 0
   st.menubar.layernum = st.layer
-  drawmap st.menubar, st.menubarstart(st.layer) * 20, 0, st.tilesets(st.layer), dpage, , , , 0, 20
+  draw_background 0, 0, 280, 20, IIF(st.layer > 0, -1, 0), chequer_scroll, vpages(dpage)
+  drawmap st.menubar, st.menubarstart(st.layer) * 20, 0, st.tilesets(st.layer), dpage, YES, , , 0, 20
+  'Don't show (black out) the last two tiles on the menubar, because they
+  'are overlaid too much by the icons.
   rectangle 280, 0, 40, 20, uilook(uiBackground), dpage
  ELSE
   rectangle 0, 0, 320, 20, uilook(uiBackground), dpage
@@ -3772,7 +3777,10 @@ SUB mapedit_pickblock(st as MapEditState)
  DIM tilepick as XYPair  'Coordinates (in tiles) of the selected tile
  DIM dragging as bool = NO
  DIM tog as integer = 0
+ DIM chequer_scroll as integer
  DIM holdpos as XYPair
+ DIM bgcolor as integer = 0
+ IF st.layer > 0 THEN bgcolor = -1  'scrolling chequer pattern
  tilepick = xy_from_int(st.usetile(st.layer), 16, 16)
  st.tilesetview.layernum = st.layer
 
@@ -3806,8 +3814,8 @@ SUB mapedit_pickblock(st as MapEditState)
   IF slowkey(scPeriod, 80) AND st.usetile(st.layer) < 159 THEN st.usetile(st.layer) += 1
   tilepick = xy_from_int(st.usetile(st.layer), 16, 16)
 
-  clearpage vpage
-  drawmap st.tilesetview, 0, 0, st.tilesets(st.layer), vpage
+  draw_background 0, 0, vpages(vpage)->w, vpages(vpage)->h, bgcolor, chequer_scroll, vpages(vpage)
+  drawmap st.tilesetview, 0, 0, st.tilesets(st.layer), vpage, YES
   DIM infoline_y as integer = IIF(st.usetile(st.layer) < 112, 190, 0)
   edgeprint "Tile " & st.usetile(st.layer), 0, infoline_y, uilook(uiText), vpage
   DIM infotext as string = "Drag to select a rectangle"
@@ -3822,7 +3830,10 @@ SUB mapedit_pickblock(st as MapEditState)
    frame_draw st.cursor.sprite + tog, st.cursor.pal, tilepick.x * 20, tilepick.y * 20, , , vpage
   END IF
   setvispage vpage
-  IF dowait THEN tog = tog XOR 1
+  IF dowait THEN
+   tog = tog XOR 1
+   chequer_scroll += 1
+  END IF
  LOOP
 END SUB
 

@@ -56,6 +56,8 @@ DECLARE SUB rectangle OVERLOAD (byval x as integer, byval y as integer, byval w 
 DECLARE SUB rectangle OVERLOAD (byval fr as Frame Ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval c as integer)
 DECLARE SUB fuzzyrect OVERLOAD (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval c as integer, byval p as integer, byval fuzzfactor as integer = 50)
 DECLARE SUB fuzzyrect OVERLOAD (byval fr as Frame Ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval c as integer, byval fuzzfactor as integer = 50)
+DECLARE SUB draw_background (x as integer, y as integer, wide as integer, high as integer, bgcolor as integer, byref chequer_scroll as integer, dest as Frame ptr)
+
 
 'NOTE: clipping values are global.
 DECLARE SUB setclip OVERLOAD (byval l as integer = 0, byval t as integer = 0, byval r as integer = 999999, byval b as integer = 999999, byval fr as Frame ptr = 0)
@@ -191,7 +193,6 @@ declare function frame_reference(byval p as frame ptr) as frame ptr
 declare sub frame_unload(byval p as frame ptr ptr)
 declare sub frame_draw overload (byval src as frame ptr, byval pal as Palette16 ptr = NULL, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as bool = YES, byval page as integer)
 declare sub frame_draw(byval src as Frame ptr, byval pal as Palette16 ptr = NULL, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as bool = YES, byval dest as Frame ptr)
-declare sub frame_draw_with_background (byval src as Frame ptr, byval pal as Palette16 ptr = NULL, byval x as integer, byval y as integer, byval scale as integer = 1, byval bgcolor as integer, byref chequer_scroll as integer, byval dest as Frame ptr)
 declare function frame_dissolved(byval spr as frame ptr, byval tlength as integer, byval t as integer, byval style as integer) as frame ptr
 declare function default_dissolve_time(byval style as integer, byval w as integer, byval h as integer) as integer
 declare sub frame_flip_horiz(byval spr as frame ptr)

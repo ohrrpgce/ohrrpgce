@@ -2466,6 +2466,34 @@ sub fuzzyrect (byval fr as Frame Ptr, byval x as integer, byval y as integer, by
 	wend
 end sub
 
+'Draw either a rectangle or a scrolling chequer pattern.
+'bgcolor is either between 0 and 255 (a colour), -1 (a scrolling chequered
+'background), or -2 (a non-scrolling chequered background)
+'chequer_scroll is a counter variable which the calling function should increment once per tick.
+sub draw_background (x as integer, y as integer, wide as integer, high as integer, bgcolor as integer, byref chequer_scroll as integer, dest as Frame ptr)
+	const zoom = 3  'Chequer pattern zoom, fixed
+	const rate = 4  'ticks per pixel scrolled, fixed
+	'static chequer_scroll as integer
+	chequer_scroll = POSMOD(chequer_scroll, (zoom * rate * 2))
+
+	if bgcolor >= 0 then
+		rectangle dest, x, y, wide, high, bgcolor
+	else
+		dim bg_chequer as Frame Ptr
+		bg_chequer = frame_new(wide / zoom + 2, high / zoom + 2)
+		frame_clear bg_chequer, uilook(uiBackground)
+		fuzzyrect bg_chequer, 0, 0, bg_chequer->w, bg_chequer->h, uilook(uiDisabledItem)
+		dim offset as integer = 0
+		if bgcolor = -1 then offset = chequer_scroll \ rate
+		dim oldclip as ClipState
+		saveclip oldclip
+		shrinkclip x, y, x + wide - 1, y + high - 1, dest
+		frame_draw bg_chequer, NULL, x - offset, y - offset, zoom, NO, dest
+		loadclip oldclip
+		frame_unload @bg_chequer
+	end if
+end sub
+
 sub drawline (byval x1 as integer, byval y1 as integer, byval x2 as integer, byval y2 as integer, byval c as integer, byval p as integer)
 	drawline vpages(p), x1, y1, x2, y2, c
 end sub
@@ -5633,37 +5661,6 @@ sub frame_draw(byval src as Frame ptr, byval pal as Palette16 ptr = NULL, byval 
 	syto = small(clipb, y + (src->h * scale) - 1)
 
 	blitohrscaled (src, dest, pal, x, y, sxfrom, syfrom, sxto, syto, trans, scale)
-end sub
-
-'Draw a Frame (specially a tileset) onto another Frame with the transparent
-'colour replaced either with another colour, or with a chequer pattern.
-'bgcolor is either between 0 and 255 (a colour), -1 (a scrolling chequered
-'background), or -2 (a non-scrolling chequered background)
-'chequer_scroll is a counter variable which the calling function should increment once per tick.
-sub frame_draw_with_background (byval src as Frame ptr, byval pal as Palette16 ptr = NULL, byval x as integer, byval y as integer, byval scale as integer = 1, byval bgcolor as integer, byref chequer_scroll as integer, byval dest as Frame ptr)
-	const zoom = 3  'Chequer pattern zoom, fixed
-	const rate = 4  'ticks per pixel scrolled, fixed
-	'static chequer_scroll as integer
-	chequer_scroll = POSMOD(chequer_scroll, (zoom * rate * 2))
-
-	if bgcolor >= 0 then
-		rectangle dest, x, y, src->w * scale, src->h * scale, bgcolor
-	else
-		dim bg_chequer as Frame Ptr
-		bg_chequer = frame_new(scale * src->w / zoom + 2, scale * src->h / zoom + 2)
-		frame_clear bg_chequer, uilook(uiBackground)
-		fuzzyrect bg_chequer, 0, 0, bg_chequer->w, bg_chequer->h, uilook(uiDisabledItem)
-		dim offset as integer = 0
-		if bgcolor = -1 then offset = chequer_scroll \ rate
-		dim oldclip as ClipState
-		saveclip oldclip
-		shrinkclip x, y, x + src->w * scale - 1, y + src->h * scale - 1, dest
-		frame_draw bg_chequer, NULL, x - offset, y - offset, zoom, NO, dest
-		loadclip oldclip
-		frame_unload @bg_chequer
-	end if
-	'Draw transparently
-	frame_draw src, pal, x, y, scale, YES, dest
 end sub
 
 'Public:

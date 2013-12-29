@@ -280,6 +280,17 @@ FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp as stri
  RETURN YES
 END FUNCTION
 
+'Draw a Frame (specially a tileset) onto another Frame with the transparent
+'colour replaced either with another colour, or with a chequer pattern.
+'bgcolor is either between 0 and 255 (a colour), -1 (a scrolling chequered
+'background), or -2 (a non-scrolling chequered background)
+'chequer_scroll is a counter variable which the calling function should increment once per tick.
+SUB frame_draw_with_background (byval src as Frame ptr, byval pal as Palette16 ptr = NULL, byval x as integer, byval y as integer, byval scale as integer = 1, byval bgcolor as integer, byref chequer_scroll as integer, byval dest as Frame ptr)
+ draw_background x, y, src->w * scale, src->h * scale, bgcolor, chequer_scroll, dest
+ 'Draw transparently
+ frame_draw src, pal, x, y, scale, YES, dest
+END SUB
+
 SUB maptile ()
 STATIC bgcolor as integer = 0
 DIM menu() as string
