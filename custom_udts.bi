@@ -257,6 +257,7 @@ TYPE MapEditState
   clone_size as XYPair       'Size of the cloned brush in tiles
   multitile_draw_brush as bool 'When true and clone tool is in use the clone brush is meant to act like
                                'the draw tool: changing map layer or .tool_value resets the tool to Draw
+  clone_merge as bool        'Whether to preserve existing tiles rather than removing them
 
   'Zone stuff (st.editmode = zone_mode)
   zonesubmode as ZoneEditSubmode

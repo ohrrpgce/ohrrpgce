@@ -22,6 +22,8 @@ WHAT IS NEW?
     * Attack chains conditions can now be based on the stats of the
       targets [James]
     * Attack bitset "Never trigger elemental counterattack" [James]
+    * The map editor's Clone tool now has separate 'merge' and 'replace'
+      modes (Ctrl+M to toggle) [Ralph]
 
   * Bugfixes
     * Fixed a few cosmetic bugs in the equip menu including possibly

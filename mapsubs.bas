@@ -540,6 +540,7 @@ st.mapy = 0
 st.layer = 0
 st.cur_zone = 1
 st.cur_zinfo = GetZoneInfo(zmap, st.cur_zone)
+st.clone_merge = YES
 
 st.cur_door = find_first_free_door(doors())
 
@@ -1282,6 +1283,9 @@ DO
      IF use_draw_tool OR (keyval(scSpace) > 0 AND st.moved) THEN
       apply_changelist st, map(), pass, emap, zmap, visible(), gmap(), st.cloned, TYPE(st.x - st.clone_offset.x, st.y - st.clone_offset.y)
      END IF
+     IF keyval(scCtrl) > 0 AND keyval(scM) > 1 THEN
+      st.clone_merge XOR= YES
+     END IF
     END IF
 
   END SELECT
@@ -1626,7 +1630,12 @@ DO
   DIM defpass_msg as string = hilite("Ctrl+D: ")
   IF st.defpass = NO THEN defpass_msg &= "No "
   defpass_msg &= "Default Walls"
-  printstr defpass_msg, 116, 192, dpage, YES
+  printstr defpass_msg, 124, 192, dpage, YES
+ END IF
+
+ IF st.tool = clone_tool THEN
+  textcolor uilook(uiText), 0
+  printstr hilite("Ctrl+M: ") & iif_string(st.clone_merge, "Tile Merging On", "Tile Merging Off"), 124, 184, dpage, YES
  END IF
 
  IF st.editmode = door_mode THEN
@@ -4097,10 +4106,45 @@ FUNCTION create_changelist(st as MapEditState, map() as TileMap, pass as TileMap
  RETURN changelist
 END FUNCTION
 
+'Stamp a 'marked' brush onto the map, which is stored as a list of MapEditUndoTile edits
+'offset is the difference between the cursor position (st.x/y) now and when the brush
+'was saved (ie. the x/y coords stored in the changelist items).
 SUB apply_changelist(st as MapEditState, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap, visible() as integer, gmap() as integer, byref changelist as MapEditUndoTile vector, offset as XYPair)
  'IF v_len(changelist) = 0 THEN showerror "Strange... empty undo step. Probably harmless"
 
  'debug "apply_changelist len " & v_len(changelist)
+
+ IF st.clone_merge = NO THEN
+  'First remove all existing tile data
+
+  DIM as RectType clone_box
+  clone_box = TYPE(st.x - st.clone_offset.x, st.y - st.clone_offset.y, st.clone_size.w, st.clone_size.h)
+
+  FOR xoff as integer = 0 TO clone_box.wide - 1
+   DIM x as integer = xoff + clone_box.x
+   IF NOT in_bound(x, 0, st.wide - 1) THEN CONTINUE FOR
+   FOR yoff as integer = 0 TO clone_box.high - 1
+    DIM y as integer = yoff + clone_box.y
+    IF NOT in_bound(y, 0, st.high - 1) THEN CONTINUE FOR
+
+    'This is quite different to BACKSPACE tile clearing:
+    'Clear visible tiles, walls, foemap, zones,
+    'but not doors or NPCs
+    FOR layer as integer = 0 TO UBOUND(map)
+     IF LayerIsEnabled(gmap(), layer) AND LayerIsVisible(visible(), layer) THEN
+      tilebrush st, x, y, 0, layer, map(), pass, emap, zmap
+     END IF
+    NEXT
+    wallbrush st, x, y, 0, , map(), pass, emap, zmap
+    foebrush st, x, y, 0, , map(), pass, emap, zmap
+    DIM zones() as integer
+    GetZonesAtTile zmap, zones(), x, y
+    FOR ctr as integer = 0 TO UBOUND(zones)
+     zonebrush st, x, y, 0, zones(ctr), map(), pass, emap, zmap
+    NEXT
+   NEXT
+  NEXT
+ END IF
 
  FOR i as integer = 0 TO v_len(changelist) - 1
   WITH changelist[i]
