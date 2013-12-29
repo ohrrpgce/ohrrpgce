@@ -244,7 +244,7 @@ FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp as stri
 
  bmpinfo(srcbmp, bmpd)
  IF bmpd.biBitCount <= 8 THEN
-  paloption = 2  'no remapping
+  paloption = 0  'Perform remapping, otherwise disabling colors won't work
   loadbmppal srcbmp, temppal()
   IF memcmp(@temppal(0), @master(0), 256 * sizeof(RGBcolor)) <> 0 THEN
    'the palette is inequal to the master palette 
@@ -264,6 +264,10 @@ FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp as stri
   END IF
   img = frame_import_bmp_raw(srcbmp)
   IF paloption = 0 THEN
+   'Put hint values in palmapping(), which will used if an exact match
+   FOR idx as integer = 0 TO 255
+    palmapping(idx) = idx
+   NEXT
    convertbmppal srcbmp, pmask(), palmapping()
    FOR y as integer = 0 TO img->h - 1
     FOR x as integer = 0 TO img->w - 1

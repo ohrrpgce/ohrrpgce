@@ -4716,7 +4716,7 @@ function color_distance(pal() as RGBcolor, byval index1 as integer, byval index2
 end function
 
 function nearcolor(pal() as RGBcolor, byval red as ubyte, byval green as ubyte, byval blue as ubyte, byval firstindex as integer = 0, byval indexhint as integer = -1) as ubyte
-'Figure out nearest palette colour in a very very crude way
+'Figure out nearest palette colour in range [firstindex..255] using Euclidean distance
 'A perfect match against pal(indexhint) is tried first
 	dim as integer i, diff, best, save, rdif, bdif, gdif
 
