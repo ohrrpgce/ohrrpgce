@@ -45,7 +45,7 @@ WHAT IS NEW?
     * Bug 777: 'Load' menu called from a customisable menu showed a
       'New Game' button which did nothing [Ralph]
     * Disabling palette colours for backdrop/tileset import didn't work
-      for 8-bit BMPs. [Ralph]
+      for 8-bit BMPs. (Also added mouse support.) [Ralph]
 
   * New Plotscripting Stuff
     * "Menu action plotscript" special script trigger to run a script

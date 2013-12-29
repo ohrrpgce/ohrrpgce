@@ -109,6 +109,14 @@ NEXT i
 
 END SUB
 
+'Used inside the palette color disabler in importbmp
+PRIVATE SUB toggle_pmask (pmask() as RGBcolor, master() as RGBcolor, index as integer)
+ pmask(index).r xor= master(index).r
+ pmask(index).g xor= master(index).g
+ pmask(index).b xor= master(index).b
+ setpal pmask()
+END SUB
+
 SUB importbmp (f as string, cap as string, byref count as integer)
 STATIC default as string
 DIM pmask(255) as RGBcolor
@@ -131,6 +139,9 @@ DIM tog as integer
 DIM cx as integer
 DIM cy as integer
 DIM pt as integer = 0 'backdrop number
+DIM mouse as MouseInfo
+DIM rect as RectType
+DIM col as integer
 
 IF count = 0 THEN count = 1
 loadpalette pmask(), activepalette
@@ -174,7 +185,11 @@ DO
    menu(1) = CHR(27) + "Browse " & pt & CHR(26)
    loadmxs game + f, pt, vpages(2)
   END IF
-  IF mstate.pt = 4 THEN GOSUB disable
+  IF mstate.pt = 4 THEN
+   hidemousecursor
+   GOSUB disable
+   unhidemousecursor
+  END IF
   IF mstate.pt = 5 THEN
    DIM outfile as string
    outfile = inputfilename("Name of file to export to?", ".bmp", "", "input_file_export_screen", trimextension(trimpath(sourcerpg)) & " " & cap & pt)
@@ -200,6 +215,29 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
+ mouse = readmouse()
+ WITH mouse
+  IF .clickstick AND mouseleft THEN
+   IF rect_collide_point(str_rect("Previous Menu", 0, 0), .x, .y) THEN
+    RETRACE
+   ELSE
+    rect.wide = 10  '2 pixels wider than real squares, to avoid gaps
+    rect.high = 10
+    col = -1
+    'Click on a palette colour
+    FOR xidx as integer = 0 TO 15
+     FOR yidx as integer = 0 TO 15
+      rect.topleft = TYPE<XYPair>(xidx * 10, 8 + yidx * 10)
+      IF rect_collide_point(rect, .x, .y) THEN col = yidx * 16 + xidx
+     NEXT
+    NEXT
+    'Click on an image pixel
+    IF col = -1 THEN col = readpixel(.x, .y, 2)
+    toggle_pmask pmask(), master(), col
+   END IF
+  END IF
+ END WITH
+
  IF keyval(scESC) > 1 THEN setpal master(): RETRACE
  IF keyval(scF1) > 1 THEN show_help "importbmp_disable"
  IF csr2 = 0 THEN
@@ -212,10 +250,7 @@ DO
   IF keyval(scDown) > 1 THEN cy = small(cy + 1, 15)
   IF keyval(scUp) > 1 THEN cy = cy - 1: IF cy < 0 THEN cy = 0: csr2 = 0
   IF enter_or_space() THEN
-   pmask(cy * 16 + cx).r xor= master(cy * 16 + cx).r
-   pmask(cy * 16 + cx).g xor= master(cy * 16 + cx).g
-   pmask(cy * 16 + cx).b xor= master(cy * 16 + cx).b
-   setpal pmask()
+   toggle_pmask pmask(), master(), cy * 16 + cx
   END IF
  END IF
  copypage 2, dpage
@@ -227,6 +262,7 @@ DO
    rectangle 1 + o * 10, 9 + i * 10, 8, 8, i * 16 + o, dpage
   NEXT o
  NEXT i
+ printstr CHR(2), mouse.x - 2, mouse.y - 2, dpage
  SWAP vpage, dpage
  setvispage vpage
  dowait

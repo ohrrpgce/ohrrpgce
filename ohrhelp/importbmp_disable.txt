@@ -1,5 +1,5 @@
 When you import a 24-bit BMP, its colors get fit into the 8-bit master palette. Sometimes certain colors import poorly. If this happens to you, you can use this tool to disable the colors that look bad, and then you can import the same BMP again, and the importer will be forced to use different colors.
 
-Use the arrow keys to move the cursor around the palette. Press ENTER or SPACE to toggle colors. When you disable a color, that color will be displayed as black. Black out all the colors that imported badly, and then press ESC to return to the previous menu, and try importing the BMP file again.
+Use the arrow keys to move the cursor around the palette. Press ENTER or SPACE to toggle colors. Or click either on palette colors or pixels of the image to toggle that color. When you disable a color, that color will be displayed as black. Black out all the colors that imported badly, and then press ESC to return to the previous menu, and try importing the BMP file again.
 
 If you want to easily re-enable all colors, just exit all the way back to the main graphics menu, and then go back into the full-screen import tool again, and all palette colors will be re-enabled for import.
