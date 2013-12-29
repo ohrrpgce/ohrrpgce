@@ -266,16 +266,22 @@ END SUB
 SUB tilebrush (st as MapEditState, byval x as integer, byval y as integer, byval tile as integer = -1, byval layer as integer = -1, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
  IF tile = -1 THEN tile = st.tool_value
  IF layer = -1 THEN layer = st.layer
- add_undo_step st, x, y, readblock(map(layer), x, y), mapIDLayer + layer
- writeblock map(layer), x, y, tile
+ DIM oldval as integer = readblock(map(layer), x, y)
+ IF oldval <> tile THEN
+  add_undo_step st, x, y, oldval, mapIDLayer + layer
+  writeblock map(layer), x, y, tile
+ END IF
  IF st.defpass THEN calculatepassblock st, x, y, map(), pass
 END SUB
 
 'Note dummy arguments: all brush functions should have the same signature
 SUB wallbrush (st as MapEditState, byval x as integer, byval y as integer, byval tile as integer = -1, byval extraarg as integer = -1, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
  IF tile = -1 THEN tile = st.tool_value
- add_undo_step st, x, y, readblock(pass, x, y), mapIDPass
- writeblock pass, x, y, tile
+ DIM oldval as integer = readblock(pass, x, y)
+ IF oldval <> tile THEN
+  add_undo_step st, x, y, oldval, mapIDPass
+  writeblock pass, x, y, tile
+ END IF
 END SUB
 
 'Like wallbrush, but only sets the bits specified in st.wallmap_mask
@@ -283,16 +289,21 @@ END SUB
 SUB wallbitbrush (st as MapEditState, byval x as integer, byval y as integer, byval walls as integer = -1, byval extraarg as integer = -1, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
  IF walls = -1 THEN walls = st.tool_value
  DIM oldwalls as integer = readblock(pass, x, y)
- add_undo_step st, x, y, oldwalls, mapIDPass
  walls = (oldwalls AND NOT st.wallmap_mask) OR walls
- writeblock pass, x, y, walls
+ IF oldwalls <> walls THEN
+  add_undo_step st, x, y, oldwalls, mapIDPass
+  writeblock pass, x, y, walls
+ END IF
 END SUB
 
 'Note dummy arguments: all brush functions should have the same signature
 SUB foebrush (st as MapEditState, byval x as integer, byval y as integer, byval foe as integer = -1, byval extraarg as integer = -1, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
  IF foe = -1 THEN foe = st.tool_value
- add_undo_step st, x, y, readblock(emap, x, y), mapIDFoe
- writeblock emap, x, y, foe
+ DIM oldval as integer = readblock(emap, x, y)
+ IF oldval <> foe THEN
+  add_undo_step st, x, y, oldval, mapIDFoe
+  writeblock emap, x, y, foe
+ END IF
 END SUB
 
 'Note dummy arguments: all brush functions should have the same signature
@@ -300,17 +311,20 @@ SUB zonebrush (st as MapEditState, byval x as integer, byval y as integer, byval
  IF value = -1 THEN value = st.tool_value
  IF zone = -1 THEN zone = st.cur_zone
  DIM new_stroke as bool = st.new_stroke  'Modified by add_undo_step
- add_undo_step st, x, y, CheckZoneAtTile(zmap, zone, x, y), mapIDZone + zone
- IF value = 0 THEN
-  UnsetZoneTile zmap, zone, x, y
- ELSE
-  IF SetZoneTile(zmap, zone, x, y) = NO THEN
-   IF new_stroke THEN
-    pop_warning "You have already placed this tile in 15 other zones, and that is the maximum supported. Sorry!"
+ DIM oldval as integer = CheckZoneAtTile(zmap, zone, x, y)
+ IF (oldval <> 0) = (value <> 0) THEN
+  add_undo_step st, x, y, oldval, mapIDZone + zone
+  IF value = 0 THEN
+   UnsetZoneTile zmap, zone, x, y
+  ELSE
+   IF SetZoneTile(zmap, zone, x, y) = NO THEN
+    IF new_stroke THEN
+     pop_warning "You have already placed this tile in 15 other zones, and that is the maximum supported. Sorry!"
+    END IF
    END IF
   END IF
+  st.zones_needupdate = YES
  END IF
- st.zones_needupdate = YES
 END SUB
 
 'Note dummy arguments: all brush functions should have the same signature
@@ -3429,8 +3443,11 @@ SUB calculatepassblock(st as MapEditState, x as integer, y as integer, map() as 
    n = n OR st.defaultwalls[i][animadjust(tilenum, st.tilesets(i)->tastuf())]
   END IF
  NEXT i
- add_undo_step st, x, y, readblock(pass, x, y), mapIDPass 
- writeblock pass, x, y, n
+ DIM oldval as integer = readblock(pass, x, y)
+ IF oldval <> n THEN
+  add_undo_step st, x, y, oldval, mapIDPass
+  writeblock pass, x, y, n
+ END IF
 END SUB
 
 SUB resizetiledata (tmap as TileMap, rs as MapResizeState, byref yout as integer, page as integer)
