@@ -99,7 +99,6 @@ DECLARE SUB resizetiledata OVERLOAD (tmap as TileMap, x_off as integer, y_off as
 DECLARE SUB update_npc_graphics(st as MapEditState, npc_img() as GraphicPair)
 DECLARE SUB update_tilepicker(st as MapEditState)
 DECLARE SUB verify_map_size (st as MapEditState, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap, mapname as string)
-DECLARE SUB add_more_layers(st as MapEditState, map() as TileMap, vis() as integer, gmap() as integer, byval numlayers as integer)
 DECLARE SUB fix_tilemaps(map() as TileMap)
 DECLARE SUB mapedit_loadmap (st as MapEditState, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap, gmap() as integer, visible() as integer, doors() as Door, link() as DoorLink, mapname as string)
 DECLARE SUB mapedit_load_tilesets (st as MapEditState, map() as TileMap, gmap() as integer)
@@ -110,8 +109,11 @@ DECLARE SUB mapedit_resize(st as MapEditState, map() as TileMap, pass as TileMap
 DECLARE SUB mapedit_delete(st as MapEditState, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap, gmap() as integer, doors() as Door, link() as DoorLink, npc_img() as GraphicPair, mapname as string)
 DECLARE SUB link_one_door(st as MapEditState, linknum as integer, link() as DoorLink, doors() as Door, map() as TileMap, pass as TileMap, gmap() as integer)
 DECLARE SUB mapedit_linkdoors (st as MapEditState, map() as TileMap, pass as TileMap, gmap() as integer, doors() as Door, link() as DoorLink)
+DECLARE FUNCTION mapedit_pick_layer(st as MapEditState, gmap() as integer, map() as TileMap, message as string, other_option as string = "") as integer
 DECLARE SUB mapedit_layers (st as MapEditState, gmap() as integer, visible() as integer, map() as TileMap)
 DECLARE SUB mapedit_makelayermenu(st as MapEditState, byref menu as LayerMenuItem vector, state as MenuState, gmap() as integer, visible() as integer, map() as TileMap, byval resetpt as bool, byval selectedlayer as integer = 0)
+DECLARE SUB add_more_layers(st as MapEditState, map() as TileMap, vis() as integer, gmap() as integer, byval numlayers as integer)
+DECLARE SUB mapedit_copy_layer(st as MapEditState, map() as TileMap, gmap() as integer, byval src as integer, byval dest as integer)
 DECLARE SUB mapedit_insert_layer(st as MapEditState, map() as TileMap, vis() as integer, gmap() as integer, byval where as integer)
 DECLARE SUB mapedit_delete_layer(st as MapEditState, map() as TileMap, vis() as integer, gmap() as integer, byval which as integer)
 DECLARE SUB mapedit_swap_layers(st as MapEditState, map() as TileMap, vis() as integer, gmap() as integer, byval l1 as integer, byval l2 as integer)
@@ -898,7 +900,7 @@ DO
      IF layerisenabled(gmap(), i) THEN
       IF i > UBOUND(map) THEN
        temp = i - UBOUND(map)
-       IF yesno("Create " & iif_string(temp = 1, "a new map layer?", temp & " new map layers?")) THEN
+       IF yesno("Layer " & i & " doesn't exist yet. Create " & iif_string(temp = 1, "a new map layer?", temp & " new map layers?")) THEN
         add_more_layers st, map(), visible(), gmap(), i
        END IF
       END IF
@@ -2443,6 +2445,23 @@ SUB mapedit_gmapdata(st as MapEditState, gmap() as integer, zmap as ZoneMap)
  v_free menu_display
 END SUB
 
+FUNCTION mapedit_pick_layer(st as MapEditState, gmap() as integer, map() as TileMap, message as string, other_option as string = "") as integer
+ 'Gives the user a prompt to select a map layer, returns layer number, or -2
+ 'if cancelled.
+ 'If other_option isn't empty it appears as an alternative option at the top, returning -1 if selected.
+ DIM offset as integer = 0
+ IF LEN(other_option) > 0 THEN offset = 1
+ DIM options(UBOUND(map) + offset) as string
+ IF LEN(other_option) > 0 THEN options(0) = other_option
+ FOR layerno as integer = 0 TO UBOUND(map)
+  options(offset + layerno) = "Layer " & layerno & " " & read_map_layer_name(gmap(), layerno)
+ NEXT
+ DIM ret as integer
+ ret = multichoice(message, options(), 0, -2)
+ IF ret >= 0 THEN ret -= offset
+ RETURN ret
+END FUNCTION
+
 SUB mapedit_layers (st as MapEditState, gmap() as integer, visible() as integer, map() as TileMap)
  DIM state as MenuState
  DIM menuopts as MenuOptions
@@ -2474,18 +2493,27 @@ SUB mapedit_layers (st as MapEditState, gmap() as integer, visible() as integer,
   IF keyval(scESC) > 1 THEN clearkey(scESC): EXIT DO
   IF keyval(scF1) > 1 THEN show_help "mapedit_layers"
   IF (keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1) AND UBOUND(map) < maplayerMax THEN
-   IF layerno = -1 THEN
-    add_more_layers st, map(), visible(), gmap(), UBOUND(map) + 1
-    layerno = UBOUND(map)
-    resetpt = NO
-   ELSE
-    'when gmap(31) is greater than actual number of layers we are "filling up" to old default of 2 under
-    IF layerno < gmap(31) AND UBOUND(map) + 1 >= gmap(31) THEN gmap(31) += 1
-    mapedit_insert_layer st, map(), visible(), gmap(), layerno + 1
-    layerno += 1
-    resetpt = YES
+   DIM layer_to_copy as integer
+   layer_to_copy = mapedit_pick_layer(st, gmap(), map(), "Copy an existing layer?", "No; new blank layer")
+   IF layer_to_copy >= -1 THEN
+    'Didn't cancel
+    IF layerno = -1 THEN
+     'No layer selected; just add new one to end
+     add_more_layers st, map(), visible(), gmap(), UBOUND(map) + 1
+     layerno = UBOUND(map)
+     resetpt = NO
+    ELSE
+     'Insert after.
+     'When gmap(31) is greater than actual number of layers we are "filling up" to old default of 2 under
+     IF layerno < gmap(31) AND UBOUND(map) + 1 >= gmap(31) THEN gmap(31) += 1
+     IF layer_to_copy > layerno THEN layer_to_copy += 1
+     mapedit_insert_layer st, map(), visible(), gmap(), layerno + 1
+     layerno += 1
+     resetpt = YES
+    END IF
+    IF layer_to_copy >= 0 THEN mapedit_copy_layer(st, map(), gmap(), layer_to_copy, layerno)
+    state.need_update = YES
    END IF
-   state.need_update = YES
   END IF
   IF (keyval(scDelete) > 1 OR keyval(scMinus) > 1 OR keyval(scNumpadMinus) > 1) ANDALSO UBOUND(map) > 0 ANDALSO layerno >= 0 THEN
    DIM layername as string
@@ -2953,21 +2981,6 @@ SUB mapedit_load_tilesets(st as MapEditState, map() as TileMap, gmap() as intege
  NEXT
 END SUB
 
-SUB add_more_layers(st as MapEditState, map() as TileMap, vis() as integer, gmap() as integer, byval numlayers as integer)
- DIM old_numlayers as integer = UBOUND(map)
- numlayers = bound(numlayers, UBOUND(map), maplayerMax + 1)
- REDIM PRESERVE map(numlayers)
- FOR i as integer = old_numlayers + 1 to numlayers
-  CleanTilemap map(i), map(0).wide, map(0).high, i
-  SetLayerEnabled(gmap(), i, YES)
-  SetLayerVisible(vis(), i, YES)
-  gmap(layer_tileset_index(i)) = 0
-  write_map_layer_name(gmap(), i, "")
- NEXT
- fix_tilemaps map()
- mapedit_load_tilesets st, map(), gmap()
-END SUB
-
 SUB fix_tilemaps(map() as TileMap)
  'Each tilemap in map() needs to know its index number in map(). This SUB updates that.
  FOR i as integer = 0 TO UBOUND(map)
@@ -2981,7 +2994,7 @@ SUB mapedit_swap_layers(st as MapEditState, map() as TileMap, vis() as integer, 
  fix_tilemaps map()
  SWAP st.usetile(l1), st.usetile(l2)
  SWAP st.menubarstart(l1), st.menubarstart(l2)
- SWAP gmap(layer_tileset_index(l1)), gmap(layer_tileset_index(l2))
+ SWAP gmap(layer_tileset_index(l1)), gmap(layer_tileset_index(l2))  'Tileset
  DIM as string name1, name2
  name1 = read_map_layer_name(gmap(), l1)
  name2 = read_map_layer_name(gmap(), l2)
@@ -3005,6 +3018,31 @@ SUB mapedit_swap_layers(st as MapEditState, map() as TileMap, vis() as integer, 
  v_free st.cloned
 END SUB
 
+SUB mapedit_copy_layer(st as MapEditState, map() as TileMap, gmap() as integer, byval src as integer, byval dest as integer)
+ 'Copy src layer over dest layer
+ 'Note: we don't throw away history because it's unnecessary if copy to a new layer
+ 'at the end; if this is ever used for overwriting an actual existing layer, the caller should
+ 'call throw away history and the clone buffer.
+ gmap(layer_tileset_index(dest)) = gmap(layer_tileset_index(src))  'Tileset
+ write_map_layer_name(gmap(), dest, read_map_layer_name(gmap(), src) + " copy")
+ CopyTilemap map(dest), map(src)
+END SUB
+
+SUB add_more_layers(st as MapEditState, map() as TileMap, vis() as integer, gmap() as integer, byval numlayers as integer)
+ DIM old_numlayers as integer = UBOUND(map)
+ numlayers = bound(numlayers, UBOUND(map), maplayerMax + 1)
+ REDIM PRESERVE map(numlayers)
+ FOR i as integer = old_numlayers + 1 to numlayers
+  CleanTilemap map(i), map(0).wide, map(0).high, i
+  SetLayerEnabled(gmap(), i, YES)
+  SetLayerVisible(vis(), i, YES)
+  gmap(layer_tileset_index(i)) = 0  'Tileset = default
+  write_map_layer_name(gmap(), i, "")
+ NEXT
+ fix_tilemaps map()
+ mapedit_load_tilesets st, map(), gmap()
+END SUB
+
 SUB mapedit_insert_layer(st as MapEditState, map() as TileMap, vis() as integer, gmap() as integer, byval where as integer)
  'doesn't reload (all) tilesets or passability defaults, layers menu does that
  IF UBOUND(map) = maplayerMax THEN EXIT SUB
@@ -3015,7 +3053,7 @@ SUB mapedit_insert_layer(st as MapEditState, map() as TileMap, vis() as integer,
  CleanTilemap map(newlayer), map(0).wide, map(0).high
  setlayerenabled(gmap(), newlayer, YES)
  setlayervisible(vis(), newlayer, YES)
- gmap(layer_tileset_index(newlayer)) = 0
+ gmap(layer_tileset_index(newlayer)) = 0  'Tileset = default
  write_map_layer_name(gmap(), newlayer, "")
  FOR i as integer = newlayer - 1 TO where STEP -1
   mapedit_swap_layers st, map(), vis(), gmap(), i, i + 1

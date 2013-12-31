@@ -690,6 +690,16 @@ SUB CleanTilemaps(layers() as TileMap, byval wide as integer, byval high as inte
   NEXT
 END SUB
 
+SUB CopyTilemap(dest as TileMap, src as TileMap)
+  'Copies the tiles from one TileMap to another, but not the layer number
+  WITH dest
+    .wide = src.wide
+    .high = src.high
+    .data = REALLOCATE(.data, .wide * .high)
+    memcpy(.data, src.data, sizeof(.data[0]) * .wide * .high)
+  END WITH
+END SUB
+
 PRIVATE SUB MergeTileMapData(mine as TileMap, theirs as TileMap, tmbase as TileMap)
   FOR i as integer = 0 TO mine.wide * mine.high - 1
     IF theirs.data[i] <> tmbase.data[i] THEN
@@ -699,6 +709,7 @@ PRIVATE SUB MergeTileMapData(mine as TileMap, theirs as TileMap, tmbase as TileM
 END SUB 
 
 SUB MergeTileMap(mine as TileMap, theirs_file as string, base_file as string)
+  'Do a three-way merge of changes to a TileMap
   DIM as TileMap tmbase, theirs
   LoadTileMap tmbase, base_file
   LoadTileMap theirs, theirs_file
@@ -716,6 +727,7 @@ SUB MergeTileMap(mine as TileMap, theirs_file as string, base_file as string)
 END SUB
 
 SUB MergeTileMaps(mine() as TileMap, theirs_file as string, base_file as string)
+  'Do a three-way merge of changes to an array of TileMap
   REDIM as TileMap tmbase(0), theirs(0)
   LoadTileMaps tmbase(), base_file
   LoadTileMaps theirs(), theirs_file

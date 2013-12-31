@@ -57,6 +57,7 @@ declare sub SaveTilemap(tmap as TileMap, filename as string)
 declare sub SaveTilemaps(tmaps() as TileMap, filename as string)
 declare sub CleanTilemap(map as TileMap, byval wide as integer, byval high as integer, byval layernum as integer = 0)
 declare sub CleanTilemaps(layers() as TileMap, byval wide as integer, byval high as integer, byval numlayers as integer)
+declare sub CopyTilemap(dest as TileMap, src as TileMap)
 declare function GetTilemapInfo(filename as string, info as TilemapInfo) as integer
 declare sub MergeTileMap(mine as TileMap, theirs_file as string, base_file as string)
 declare sub MergeTileMaps(mine() as TileMap, theirs_file as string, base_file as string)

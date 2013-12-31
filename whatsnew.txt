@@ -24,6 +24,7 @@ WHAT IS NEW?
     * Attack bitset "Never trigger elemental counterattack" [James]
     * The map editor's Clone tool now has separate 'merge' and 'replace'
       modes (Ctrl+M to toggle) [Ralph]
+    * When adding a new map layer you may copy an existing one [Ralph]
 
   * Bugfixes
     * Fixed a few cosmetic bugs in the equip menu including possibly
