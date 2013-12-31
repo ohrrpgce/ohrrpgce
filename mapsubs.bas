@@ -312,7 +312,7 @@ SUB zonebrush (st as MapEditState, byval x as integer, byval y as integer, byval
  IF zone = -1 THEN zone = st.cur_zone
  DIM new_stroke as bool = st.new_stroke  'Modified by add_undo_step
  DIM oldval as integer = CheckZoneAtTile(zmap, zone, x, y)
- IF (oldval <> 0) = (value <> 0) THEN
+ IF (oldval = 0) <> (value = 0) THEN
   add_undo_step st, x, y, oldval, mapIDZone + zone
   IF value = 0 THEN
    UnsetZoneTile zmap, zone, x, y
