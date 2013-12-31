@@ -837,7 +837,7 @@ DO
  SELECT CASE st.editmode
   '---TILEMODE------
   CASE tile_mode
-   IF keyval(scF1) > 1 THEN show_help "mapedit_tilemap"
+   IF keyval(scCtrl) = 0 AND keyval(scF1) > 1 THEN show_help "mapedit_tilemap"
 
    IF keyval(scEnter) > 1 THEN mapedit_pickblock st
    IF keyval(scG) > 1 THEN 'grab tile
@@ -921,7 +921,7 @@ DO
 
    '---PASSMODE-------
   CASE pass_mode
-   IF keyval(scF1) > 1 THEN show_help "mapedit_wallmap"
+   IF keyval(scCtrl) = 0 AND keyval(scF1) > 1 THEN show_help "mapedit_wallmap"
 
    'st.tool_value is passmap mode is a little bit different; it's
    'determined on the fly by which key (space, H, etc) you press and
@@ -965,7 +965,7 @@ DO
 
    '---DOORMODE-----
   CASE door_mode
-   IF keyval(scF1) > 1 THEN show_help "mapedit_door_placement"
+   IF keyval(scCtrl) = 0 AND keyval(scF1) > 1 THEN show_help "mapedit_door_placement"
    IF keyval(scEnter) > 1 THEN ' enter to link a door
     doorid = find_door_at_spot(st.x, st.y, doors())
     IF doorid >= 0 THEN
@@ -1015,7 +1015,7 @@ DO
 
    '---NPCMODE------
   CASE npc_mode
-   IF keyval(scF1) > 1 THEN show_help "mapedit_npc_placement"
+   IF keyval(scCtrl) = 0 AND keyval(scF1) > 1 THEN show_help "mapedit_npc_placement"
    IF keyval(scDelete) > 1 THEN
     FOR i as integer = 0 TO 299
      WITH st.npc_inst(i)
@@ -1067,14 +1067,14 @@ DO
 
    '---FOEMODE--------
   CASE foe_mode
-   IF keyval(scF1) > 1 THEN show_help "mapedit_foemap"
+   IF keyval(scCtrl) = 0 AND keyval(scF1) > 1 THEN show_help "mapedit_foemap"
    intgrabber(st.cur_foe, 0, 255, scLeftCaret, scRightCaret)
    IF keyval(scG) > 1 THEN st.cur_foe = readblock(emap, st.x, st.y)
    st.tool_value = st.cur_foe
 
    '---ZONEMODE--------
   CASE zone_mode
-   IF keyval(scF1) > 1 THEN
+   IF keyval(scCtrl) = 0 AND keyval(scF1) > 1 THEN
     IF st.zonesubmode THEN show_help "mapedit_zonemap_view" ELSE show_help "mapedit_zonemap_edit"
    END IF
    IF keyval(scCtrl) = 0 THEN
@@ -1741,8 +1741,7 @@ SUB mapedit_list_npcs_by_tile (st as MapEditState)
    IF .id > 0 THEN
     IF .x = st.x * 20 AND .y = st.y * 20 THEN
      s = "NPC ID=" & (.id - 1) & " facing " & dir_str(.dir)
-     REDIM PRESERVE menu(UBOUND(menu) + 1) as string
-     menu(UBOUND(menu)) = s
+     str_array_append menu(), s
      count += 1
     END IF
    END IF
@@ -1767,7 +1766,7 @@ SUB mapedit_list_npcs_by_tile (st as MapEditState)
   
   usemenu state
 
-  edgeprint count & " NPCs at tile X=" & st.x & " Y=" & st.y, 0, 0, uilook(uiDisabledItem), dpage
+  edgeprint count & " NPCs at tile X=" & st.x & " Y=" & st.y, 0, 0, uilook(uiSelectedDisabled), dpage
   standardmenu menu(), state, 0, 10, dpage
 
   SWAP vpage, dpage
