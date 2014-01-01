@@ -705,7 +705,6 @@ function extract_lump(lf as integer, srcfile as string, destfile as string, size
 	'write yon file
 	dim of as integer
 	dim csize as integer
-	dim bufr as ubyte ptr = allocate(16384)
 
 	'debug "  -> " & destfile
 
@@ -719,6 +718,7 @@ function extract_lump(lf as integer, srcfile as string, destfile as string, size
 		return NO
 	else
 		'copy the data
+		dim bufr as ubyte ptr = allocate(16384)
 		while size > 0
 			csize = small(16384, size)
 			'copy a chunk of file
@@ -727,10 +727,10 @@ function extract_lump(lf as integer, srcfile as string, destfile as string, size
 			size = size - csize
 		wend
 
+		deallocate(bufr)
 		close #of
 		return YES
 	end if
-	deallocate(bufr)
 end function
 
 'Try to unlump a damaged lumped file
