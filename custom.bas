@@ -1265,8 +1265,8 @@ SUB resolution_menu ()
   setkeys
   IF keyval(scEsc) > 1 THEN EXIT DO
   SELECT CASE st.pt
-   CASE 0: intgrabber(gen(genResolutionX), 0, 320)
-   CASE 1: intgrabber(gen(genResolutionY), 0, 200)
+   CASE 0: intgrabber(gen(genResolutionX), 0, 640)  'Arbitrary limits
+   CASE 1: intgrabber(gen(genResolutionY), 0, 480)
   END SELECT
   usemenu st
   menu(0) = "Width: " & gen(genResolutionX)
@@ -1276,6 +1276,7 @@ SUB resolution_menu ()
   setvispage vpage
   dowait
  LOOP
+ xbsave game + ".gen", gen(), 1000
 END SUB
 
 SUB arbitrary_sprite_editor ()

@@ -543,11 +543,13 @@ IF isfile(game + ".hsp") THEN unlump game + ".hsp", tmpdir
 fadeout 0, 0, 0
 queue_fade_in
 
-IF gen(genResolutionX) ANDALSO gen(genResolutionY) THEN
+IF gen(genResolutionX) > 0 OR gen(genResolutionY) > 0 THEN
  IF gfxbackend <> "sdl" THEN
   notification "This game requires use of the gfx_sdl backend; other graphics backends do not support customisable resolution"
  ELSE
-  setresolution(gen(genResolutionX), gen(genResolutionY))
+  IF gen(genResolutionX) <= 0 THEN gen(genResolutionX) = 320
+  IF gen(genResolutionY) <= 0 THEN gen(genResolutionY) = 200
+  set_resolution(gen(genResolutionX), gen(genResolutionY))
  END IF
 END IF
 
