@@ -2432,8 +2432,8 @@ FUNCTION editbitset (array() as integer, byval wof as integer, byval last as int
    .spacing = 8
    .rect.x = 0
    .rect.y = 0
-   .rect.wide = get_resolution_x()
-   .rect.high = small(get_resolution_y(), (.size + 1) * .spacing)
+   .rect.wide = get_resolution_w()
+   .rect.high = small(get_resolution_h(), (.size + 1) * .spacing)
   END WITH
   SWAP vpage, dpage
   setvispage vpage

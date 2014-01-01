@@ -567,12 +567,21 @@ FUNCTION gfx_sdl_getwindowstate() as WindowState ptr
   RETURN @state
 END FUNCTION
 
-SUB gfx_sdl_setresizable(byval able as integer)
-  resizable = able
-  gfx_sdl_set_screen_mode()
-END SUB
+FUNCTION gfx_sdl_supports_variable_resolution() as bool
+  'Safe even in fullscreen, I think
+  RETURN YES
+END FUNCTION
 
-FUNCTION gfx_sdl_getresize(byref ret as XYPair) as integer
+FUNCTION gfx_sdl_set_resizable(byval enable as bool) as bool
+  resizable = enable
+  gfx_sdl_set_screen_mode()
+  IF screensurface THEN
+    RETURN (screensurface->flags AND SDL_RESIZABLE) <> 0
+  END IF
+  RETURN NO
+END FUNCTION
+
+FUNCTION gfx_sdl_get_resize(byref ret as XYPair) as integer
   IF resizerequested THEN
     ret = resizerequest
     resizerequested = NO
@@ -794,6 +803,9 @@ SUB gfx_sdl_process_events()
           resizerequested = YES
           resizerequest.w = evnt.resize.w / zoom
           resizerequest.h = evnt.resize.h / zoom
+          'Nothing happens until the engine calls gfx_get_resize,
+          'changes its internal window size (windowsize) as a result,
+          'and starts pushing Frames with the new size to gfx_showpage.
         END IF
     END SELECT
   WEND
@@ -1138,8 +1150,9 @@ FUNCTION gfx_sdl_setprocptrs() as integer
   gfx_setwindowed = @gfx_sdl_setwindowed
   gfx_windowtitle = @gfx_sdl_windowtitle
   gfx_getwindowstate = @gfx_sdl_getwindowstate
-  gfx_getresize = @gfx_sdl_getresize
-  gfx_setresizable = @gfx_sdl_setresizable
+  gfx_supports_variable_resolution = @gfx_sdl_supports_variable_resolution
+  gfx_get_resize = @gfx_sdl_get_resize
+  gfx_set_resizable = @gfx_sdl_set_resizable
   gfx_setoption = @gfx_sdl_setoption
   gfx_describe_options = @gfx_sdl_describe_options
   gfx_get_safe_zone_margin = @gfx_sdl_get_safe_zone_margin

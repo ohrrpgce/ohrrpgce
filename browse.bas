@@ -259,8 +259,8 @@ DO
   .has_been_drawn = YES
   .rect.x = 10
   .rect.y = 20
-  .rect.wide = get_resolution_x()
-  .rect.high = get_resolution_y()
+  .rect.wide = get_resolution_w()
+  .rect.high = get_resolution_h()
   .spacing = 9
  END WITH
  FOR i as integer = br.mstate.top TO small(br.mstate.top + br.mstate.size, br.mstate.last)

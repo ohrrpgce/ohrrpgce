@@ -367,7 +367,7 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
 
   END IF '--end IF state.need_update = NO AND menu(state.pt).handle
 
-  IF UpdateScreenSlice(dpage) THEN state.need_update = YES
+  IF UpdateScreenSlice() THEN state.need_update = YES
 
   IF state.need_update THEN
    slice_editor_refresh(ses, state, menu(), edslice, cursor_seek, slicelookup())
@@ -516,7 +516,7 @@ SUB slice_edit_detail (sl as Slice Ptr, byref ses as SliceEditState, rootsl as S
   IF keyval(scF1) > 1 THEN show_help "sliceedit_" & rules(state.pt).helpkey
   IF keyval(scF4) > 1 THEN ses.hide_menu = NOT ses.hide_menu
 
-  IF UpdateScreenSlice(dpage) THEN state.need_update = YES
+  IF UpdateScreenSlice() THEN state.need_update = YES
 
   IF state.need_update THEN
    slice_edit_detail_refresh state, menu(), sl, rules(), slicelookup()

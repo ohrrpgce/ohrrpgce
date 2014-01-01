@@ -58,7 +58,6 @@ DECLARE SUB check_game_custom_versions_match ()
 DECLARE SUB receive_file_updates ()
 DECLARE SUB try_to_reload_files_onmap ()
 DECLARE SUB try_reload_lumps_anywhere ()
-DECLARE FUNCTION compatpage() as integer
 DECLARE SUB live_preview_menu ()
 
 

@@ -1456,16 +1456,6 @@ SUB try_to_reload_files_onmap ()
  WEND
 END SUB
 
-'return a video page which is a view on vpage that is 320x200 (or smaller) and centred
-FUNCTION compatpage() as integer
- DIM fakepage as integer
- DIM centreview as Frame ptr
- centreview = frame_new_view(vpages(vpage), (vpages(vpage)->w - 320) / 2, (vpages(vpage)->h - 200) / 2, 320, 200)
- fakepage = registerpage(centreview)
- frame_unload @centreview
- RETURN fakepage
-END FUNCTION
-
 FUNCTION lump_reload_mode_to_string (byval mode as integer) as string
  IF mode = loadmodeNever THEN RETURN "Never"
  IF mode = loadmodeAlways THEN RETURN "Always"

@@ -20,18 +20,24 @@ DECLARE SUB setmodex ()
 DECLARE SUB modex_quit ()
 DECLARE SUB restoremode ()
 DECLARE SUB mersenne_twister (byval seed as double)
-DECLARE SUB setwindowtitle (title as string)
-DECLARE FUNCTION allocatepage(byval w as integer = 320, byval h as integer = 200) as integer
+
+DECLARE FUNCTION allocatepage(byval w as integer = -1, byval h as integer = -1) as integer
 DECLARE FUNCTION duplicatepage (byval page as integer) as integer
 DECLARE SUB freepage (byval page as integer)
 DECLARE FUNCTION registerpage (byval spr as Frame ptr) as integer
-DECLARE SUB copypage (byval page1 as integer, byval page2 as integer)
+DECLARE SUB copypage (byval src as integer, byval dest as integer)
 DECLARE SUB clearpage (byval page as integer, byval colour as integer = -1)
-DECLARE FUNCTION updatepagesize (byval page as integer) as bool
-DECLARE SUB unlockresolution (byval min_w as integer = -1, byval min_h as integer = -1)
-DECLARE SUB setresolution (byval w as integer, byval h as integer)
-DECLARE SUB resetresolution ()
+DECLARE SUB resizepage (page as integer, w as integer, h as integer)
+DECLARE FUNCTION compatpage() as integer
+
+DECLARE SUB unlock_resolution (byval min_w as integer, byval min_h as integer)
+DECLARE SUB lock_resolution ()
+DECLARE SUB set_resolution (byval w as integer, byval h as integer)
+DECLARE FUNCTION get_resolution_w () as integer
+DECLARE FUNCTION get_resolution_h () as integer
+
 DECLARE SUB setvispage (byval page as integer)
+DECLARE SUB setwindowtitle (title as string)
 DECLARE SUB setpal (pal() as RGBcolor)
 DECLARE SUB fadeto (byval red as integer, byval green as integer, byval blue as integer)
 DECLARE SUB fadetopal (pal() as RGBcolor)

@@ -85,15 +85,19 @@ dim key2text(3,53) as string*1 => { _
 
 '--------- Module shared variables ---------
 
+'For each vpage() element, this records whether it shouldn't be resized when the window size changes (normally is)
+'(Not fully implemented, as it seems it would only benefit textbox_appearance_editor)
+'dim shared fixedsize_vpages() as bool
 dim shared wrkpage as integer  'used by some legacy modex functions. Usually points at clippedframe
 dim shared clippedframe as Frame ptr  'used to track which Frame the clips are set for.
 dim shared as integer clipl, clipt, clipr, clipb 'drawable area on clippedframe; right, bottom margins are excluded
 
-'temporary exploratory variable resolution stuff
+'The current internal size of the window (takes effect at next setvispage).
+'Should only be modified via set_resolution and unlock_resolution
 dim shared windowsize as XYPair = (320, 200)
-dim shared variablerez as bool = NO
+'Minimum window size; can't resize width or height below this. Default to (0,0): no bound
 dim shared minwinsize as XYPair
-dim shared forcevispageresize as bool = NO  'for mischief!
+dim shared resizing_enabled as bool = NO  'keeps track of backend state
 
 'storeset/loadset stuff
 dim shared bptr as integer ptr	' buffer
@@ -190,6 +194,7 @@ sub modex_init()
 	'initialise software gfx library
 
 	redim vpages(3)
+	'redim fixedsize_vpages(3)  'Initially all NO
 	vpagesp = @vpages(0)
 	for i as integer = 0 to 3
 		vpages(i) = frame_new(320, 200, , YES)
@@ -304,11 +309,14 @@ sub freepage (byval page as integer)
 	frame_unload(@vpages(page))
 end sub
 
+'Adds a Frame ptr to vpages(), returning its index.
 function registerpage (byval spr as Frame ptr) as integer
 	if spr->refcount <> NOREFC then	spr->refcount += 1
 	for i as integer = 0 to ubound(vpages)
 		if vpages(i) = NULL then
 			vpages(i) = spr
+			' Mark as fixed size, so it won't be resized when the window resizes.
+			'fixedsize_vpages(i) = YES
 			return i
 		end if
 	next
@@ -316,10 +324,14 @@ function registerpage (byval spr as Frame ptr) as integer
 	redim preserve vpages(ubound(vpages) + 1)
 	vpagesp = @vpages(0)
 	vpages(ubound(vpages)) = spr
+	'redim preserve fixedsize_vpages(ubound(vpages) + 1)
+	'fixedsize_vpages(ubound(vpages)) = YES
 	return ubound(vpages)
 end function
 
-function allocatepage(byval w as integer = 320, byval h as integer = 200) as integer
+function allocatepage(byval w as integer = -1, byval h as integer = -1) as integer
+	if w < 0 then w = windowsize.w
+	if h < 0 then h = windowsize.h
 	dim fr as Frame ptr = frame_new(w, h, , YES)
 
 	dim ret as integer = registerpage(fr)
@@ -336,13 +348,13 @@ function duplicatepage (byval page as integer) as integer
 	return ret
 end function
 
-'copy page1 to page2
+'Copy contents of one page onto another
 'should copying to a page of different size resize that page?
-sub copypage (byval page1 as integer, byval page2 as integer)
-	'if vpages(page1)->w <> vpages(page2)->w or vpages(page1)->h <> vpages(page2)->h then
+sub copypage (byval src as integer, byval dest as integer)
+	'if vpages(src)->w <> vpages(dest)->w or vpages(src)->h <> vpages(dest)->h then
 	'	debug "warning, copied to page of unequal size"
 	'end if
-	frame_draw vpages(page1), , 0, 0, , NO, vpages(page2)
+	frame_draw vpages(src), , 0, 0, , NO, vpages(dest)
 end sub
 
 sub clearpage (byval page as integer, byval colour as integer = -1)
@@ -350,41 +362,136 @@ sub clearpage (byval page as integer, byval colour as integer = -1)
 	frame_clear vpages(page), colour
 end sub
 
-'TEMPORARY
-'resizes a page to match the 'window size' (which is a fake, currently) - if so, the page is erased
-'returns whether the page size was changed
-function updatepagesize (byval page as integer) as bool
-	gfx_getresize(windowsize)
-	if vpages(page)->w = windowsize.w and vpages(page)->h = windowsize.h then return NO
+'The contents are either trimmed or extended with colour 0.
+sub resizepage (page as integer, w as integer, h as integer)
+	if vpages(page) = NULL then
+		showerror "resizepage called with null ptr"
+		exit sub
+	end if
+	dim newpage as Frame ptr
+	newpage = frame_new(w, h, , YES)
+	frame_draw vpages(page), NULL, 0, 0, 1, 0, newpage
 	frame_unload @vpages(page)
-	vpages(page) = frame_new(windowsize.w, windowsize.h, , YES)
-	return YES
+	vpages(page) = newpage
+end sub
+
+private function compatpage_internal(pageframe as Frame ptr) as Frame ptr
+	return frame_new_view(vpages(vpage), (vpages(vpage)->w - 320) / 2, (vpages(vpage)->h - 200) / 2, 320, 200)
 end function
 
-'TEMPORARY
-sub unlockresolution (byval min_w as integer = -1, byval min_h as integer = -1)
-	variablerez = YES
-	minwinsize.w = iif(min_w = -1, 320, min_w)
-	minwinsize.h = iif(min_h = -1, 200, min_h)
+'Return a video page which is a view on vpage hat is 320x200 (or smaller) and centred.
+'In order to use this, draw to the returned page, but call setvispage(vpage).
+'Do not swap dpage and vpage!
+'WARNING: if a menu using compatpage calls another one that does swap dpage and
+'vpage, things will break 50% of the time!
+function compatpage() as integer
+	dim fakepage as integer
+	dim centreview as Frame ptr
+	centreview = compatpage_internal(vpages(vpage))
+	fakepage = registerpage(centreview)
+	frame_unload @centreview
+	return fakepage
+end function
+
+
+'==========================================================================================
+'                                   Resolution changing
+'==========================================================================================
+
+
+'First check if the window was resized by the user,
+'then if windowsize has changed (possibly by a call to unlock_resolution/set_resolution)
+'resize all videopages (except compatpages) to the new window size.
+'The videopages are either trimmed or extended with colour 0.
+private sub screen_size_update ()
+	'Changes windowsize if user tried to resize, otherwise does nothing
+	gfx_get_resize(windowsize)
 	windowsize.w = large(windowsize.w, minwinsize.w)
 	windowsize.h = large(windowsize.h, minwinsize.h)
-end sub
 
-'TEMPORARY
-sub setresolution (byval w as integer, byval h as integer)
-	forcevispageresize = YES
-	windowsize.w = large(w, minwinsize.w)
-	windowsize.h = large(h, minwinsize.h)
-end sub
+	dim oldvpages(ubound(vpages)) as Frame ptr
+	for page as integer = 0 to ubound(vpages)
+		oldvpages(page) = vpages(page)
+	next
+	'oldvpages pointers will be invalidated
 
-'TEMPORARY
-sub resetresolution ()
-	variablerez = NO
-	windowsize = Type(320, 200)
-	for i as integer = 0 to ubound(vpages)
-		if vpages(i) then updatepagesize i
+	'Resize dpage and vpage (I think it's better to hardcode 0 & 1 rather
+	'than using dpage and vpage variables in case the later are temporarily changed)
+
+	'Update size of all real pages. I think it's better to do so to all pages rather
+	'than just page 0 and 1, as other pages are generally used as 'holdpages'.
+	'The alternative is to update all menus using holdpages to clear the screen
+	'before copying the holdpage over.
+	'All pages which are not meant to be the same size as the screen
+	'currently don't persist to the next frame.
+	for page as integer = 0 to ubound(vpages)
+		if vpages(page) andalso vpages(page)->isview = NO then
+			if vpages(page)->w <> windowsize.w or vpages(page)->h <> windowsize.h then
+				resizepage page, windowsize.w, windowsize.h
+			end if
+		end if
+	next
+
+	'Scan for compatpages (we're assuming all views are compatpages, which isn't true in
+	'general, but currently true when setvispage is called) and replace each with a new view
+	'onto the same page if it changed.
+	for page as integer = 0 to ubound(vpages)
+		if vpages(page) andalso vpages(page)->isview then
+			for page2 as integer = 0 to ubound(oldvpages)
+				if vpages(page)->base = oldvpages(page2) and vpages(page2) <> oldvpages(page2) then
+					frame_unload @vpages(page)
+					vpages(page) = compatpage_internal(vpages(page2))
+					exit for
+				end if
+			next
+			'If no match found, do nothing
+		end if
 	next
 end sub
+
+'Makes the window resizeable, and sets a minimum size.
+'Whenever the window is resized all videopages (except compatpages) are resized to match.
+sub unlock_resolution (byval min_w as integer, byval min_h as integer)
+	debuginfo "unlock_resolution " & min_w & "*" & min_h
+	minwinsize.w = min_w
+	minwinsize.h = min_h
+	if gfx_supports_variable_resolution() = NO then
+		debuginfo "Resolution changing not supported"
+		exit sub
+	end if
+	resizing_enabled = gfx_set_resizable(YES)
+	windowsize.w = large(windowsize.w, minwinsize.w)
+	windowsize.h = large(windowsize.h, minwinsize.h)
+	screen_size_update
+end sub
+
+'Disable window resizing.
+sub lock_resolution ()
+	resizing_enabled = gfx_set_resizable(NO)
+end sub
+
+'Set the window size, if possible, subject to min size bound. Doesn't modify resizability state.
+'This will resize all videopages (except compatpages) to the new window size.
+sub set_resolution (byval w as integer, byval h as integer)
+	debuginfo "set_resolution " & w & "*" & h
+	if gfx_supports_variable_resolution() = NO then
+		debuginfo "Resolution changing not supported"
+		exit sub
+	end if
+	windowsize.w = large(w, minwinsize.w)
+	windowsize.h = large(h, minwinsize.h)
+	screen_size_update
+end sub
+
+'The current internal window size in pixels (actual window updated at next setvispage)
+function get_resolution_w() as integer
+	return windowsize.w
+end function
+
+'The current internal window size in pixels (actual window updated at next setvispage)
+function get_resolution_h() as integer
+	return windowsize.h
+end function
 
 
 '==========================================================================================
@@ -392,7 +499,19 @@ end sub
 '==========================================================================================
 
 
+'Display a videopage. May modify the page!
+'Also resizes all videopages to match the window size
 sub setvispage (byval page as integer)
+	if gfx_supports_variable_resolution() = NO then
+		'Safety check. We must stick to 320x200, otherwise the backend could crash.
+		'In future backends should be updated to accept other sizes even if they only support 320x200
+		'(Actually gfx_directx appears to accept other sizes, but I can't test)
+		if vpages(page)->w <> 320 or vpages(page)->h <> 200 then
+			resizepage page, 320, 200
+			showerror "setvispage: page was not 320x200 even though gfx backend forbade it"
+		end if
+	end if
+
 	fpsframes += 1
 	if timer > fpstime + 1 then
 		fpsstring = "fps:" & INT(10 * fpsframes / (timer - fpstime)) / 10
@@ -400,7 +519,8 @@ sub setvispage (byval page as integer)
 		fpsframes = 0
 	end if
 	if showfps then
-		edgeprint fpsstring, 255, 190, uilook(uiText), page
+		'NOTE: this is bad if displaying a page other than vpage/dpage!
+		edgeprint fpsstring, vpages(page)->w - 65, vpages(page)->h - 10, uilook(uiText), page
 	end if
 
 	'the fb backend may freeze up if it collides with the polling thread
@@ -410,20 +530,13 @@ sub setvispage (byval page as integer)
 		updatepal = NO
 	end if
 	with *vpages(page)
-		if .w = windowsize.w and .h = windowsize.h then
-			gfx_showpage(.image, .w, .h)
-		else
-			dim tpage as integer
-			tpage = allocatepage(windowsize.w, windowsize.h)
-			frame_draw vpages(page), NULL, 0, 0, 1, 0, tpage
-			gfx_showpage(vpages(tpage)->image, windowsize.w, windowsize.h)
-			freepage tpage
-		end if
+		gfx_showpage(.image, .w, .h)
 	end with
 	mutexunlock keybdmutex
 
-	'for having fun
-	if forcevispageresize then updatepagesize page
+	'After presenting the page this is a good time to check for window size changes and
+	'resize the videopages as needed before the next frame is rendered.
+	screen_size_update
 end sub
 
 sub setpal(pal() as RGBcolor)
@@ -1192,29 +1305,16 @@ sub setkeys (byval enable_inputtext as bool = NO)
 		showfps xor= 1
 	end if
 
-	'some debug keys for working on resolution independence
+	'Some debug keys for working on resolution independence
 	if keyval(scShift) > 0 and keyval(sc1) > 0 then
-		if variablerez then
-			if keyval(scRightBrace) > 1 then
-				windowsize.w += 10
-				windowsize.h += 10
-			end if
-			if keyval(scLeftBrace) > 1 then
-				windowsize.w -= 10
-				windowsize.h -= 10
-				windowsize.w = large(windowsize.w, minwinsize.w)
-				windowsize.h = large(windowsize.h, minwinsize.h)
-			end if
+		if keyval(scRightBrace) > 1 then
+			set_resolution windowsize.w + 10, windowsize.h + 10
+		end if
+		if keyval(scLeftBrace) > 1 then
+			set_resolution windowsize.w - 10, windowsize.h - 10
 		end if
 		if keyval(scR) > 1 then
-			variablerez xor= YES
-			gfx_setresizable(variablerez)
-			if forcevispageresize = NO then
-				forcevispageresize = YES
-			else
-				forcevispageresize = NO
-				resetresolution
-			end if
+			resizing_enabled = gfx_set_resizable(resizing_enabled xor YES)
 		end if
 	end if
 
@@ -2086,9 +2186,9 @@ sub getsprite (pic() as integer, byval picoff as integer, byval x as integer, by
 	sbase = vpages(page)->image + (vpages(page)->pitch * y) + x
 
 	'pixels are stored in columns for the sprites (argh)
-	for sh = 0 to w - 1
+	for sh = 0 to small(w, vpages(page)->w)  - 1
 		sptr = sbase
-		for sw = 0 to h - 1
+		for sw = 0 to small(h, vpages(page)->h) - 1
 			select case nyb
 				case 0
 					pic(p) = (*sptr and &h0f) shl 12
@@ -2259,12 +2359,24 @@ sub storemxs (fil as string, byval record as integer, byval fr as Frame ptr)
 end sub
 
 function loadmxs (fil as string, byval record as integer, byval dest as Frame ptr = NULL) as Frame ptr
-'loads a 320x200 mode X format page from a file.
-'You may optionally pass in existing frame to load into.
+'Loads a 320x200 mode X format page from a file.
+'You may optionally pass in existing frame to load into (unnecessary functionality)
 	dim f as integer
 	dim as integer x, y
 	dim sptr as ubyte ptr
 	dim plane as integer
+
+	if dest then
+		dim temp as Frame ptr
+		temp = loadmxs(fil, record)
+		frame_clear dest
+		if temp then
+			frame_draw temp, , 0, 0, , NO, dest
+			frame_unload @temp
+		end if
+		return dest
+	end if
+	dest = frame_new(320, 200)
 
 	if NOT fileisreadable(fil) then return 0
 	if record < 0 then
@@ -2283,16 +2395,13 @@ function loadmxs (fil as string, byval record as integer, byval dest as Frame pt
 	'skip to index
 	seek #f, (record*64000) + 1
 
-	if dest = NULL then
-		dest = frame_new(320, 200)
-	end if
-
 	'modex format, 4 planes
 	for plane = 0 to 3
-		for y = 0 to 199
+		for y = 0 to 200 - 1
 			sptr = dest->image + dest->pitch * y + plane
 
-			for x = 0 to (80 - 1) '1/4 of a row
+			'1/4 of a row
+			for x = 0 to 80 - 1
 				get #f, , *sptr
 				sptr = sptr + 4
 			next
@@ -4014,10 +4123,10 @@ end sub
 
 function get_font_type (font() as integer) as fontTypeEnum
 	if font(0) <> ftypeASCII and font(0) <> ftypeLatin1 then
-                debugc errPromptBug, "Unknown font type ID " & font(0)
-                return ftypeASCII
+		debugc errPromptBug, "Unknown font type ID " & font(0)
+		return ftypeASCII
 	end if
-        return font(0)
+	return font(0)
 end function
 
 sub set_font_type (font() as integer, ty as fontTypeEnum)
@@ -6513,6 +6622,12 @@ sub sprite_draw(spr as SpriteState ptr, byval x as integer, byval y as integer, 
 	frame_draw(spr->curframe, spr->pal, realx, realy, scale, trans, page)
 end sub
 
+
+'==========================================================================================
+'                           Platform specific wrapper functions
+'==========================================================================================
+
+
 sub show_virtual_keyboard()
 	'Does nothing on platforms that have real keyboards
 	debuginfo "show_virtual_keyboard"
@@ -6557,16 +6672,16 @@ function running_on_ouya() as bool
 #IFDEF __FB_ANDROID__
 	return io_running_on_console()
 #ELSE
-	RETURN NO
+	return NO
 #ENDIF
 end function
 
 function running_on_mobile() as bool
 #IFDEF __FB_ANDROID__
- '--return true for all Android except OUYA
- return NOT running_on_console()
+	'--return true for all Android except OUYA
+	return not running_on_console()
 #ELSE
- RETURN NO
+	return NO
 #ENDIF
 end function
 

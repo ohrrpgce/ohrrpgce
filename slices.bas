@@ -2175,14 +2175,13 @@ Sub DrawSliceAt(byval s as slice ptr, byval x as integer, byval y as integer, by
  end if
 end sub
 
-Function UpdateScreenSlice(byval page as integer) as integer
- 'Returns true if the size changed
+Function UpdateScreenSlice() as integer
+ 'Match ScreenSlice size to window size; returns true if the size changed
  dim changed as integer = NO
- updatepagesize page
  with *ScreenSlice
-  changed = (.Width <> vpages(page)->w) or (.Height <> vpages(page)->h)
-  .Width = vpages(page)->w
-  .Height = vpages(page)->h
+  changed = (.Width <> get_resolution_w()) or (.Height <> get_resolution_h())
+  .Width = get_resolution_w()
+  .Height = get_resolution_h()
  end with
  return changed
 end function

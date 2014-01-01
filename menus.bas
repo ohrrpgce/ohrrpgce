@@ -385,8 +385,8 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval 
   .spacing = 8
   .rect.x = x
   .rect.y = y
-  .rect.wide = get_resolution_x()
-  .rect.high = small(get_resolution_y(), (.size + 1) * .spacing)
+  .rect.wide = get_resolution_w()
+  .rect.high = small(get_resolution_h(), (.size + 1) * .spacing)
  END WITH
 
  IF state.active THEN
@@ -780,7 +780,7 @@ SUB init_menu_state (byref state as MenuState, menu() as string)
  WITH state
   .first = LBOUND(menu)
   .last = UBOUND(menu)
-  .size = small(.last - .first, cint(int(get_resolution_y() / 8)))
+  .size = small(.last - .first, cint(int(get_resolution_h() / 8)))
   .pt = small(large(.pt, .first), .last)  'explicitly -1 when empty
   IF .pt <> -1 THEN .top = bound(.top, .pt - .size, .pt)
   .top = bound(.top, 0, large(.last - .size, 0))

@@ -78,8 +78,11 @@ END TYPE
 TYPE SpriteCacheEntryFwd as SpriteCacheEntry
 TYPE SpriteSetFwd as SpriteSet
 
-'sprites use this
-'don't forget to update definition in blit.c when changing this!!
+'An 8 bit, single frame of a sprite.
+'Don't forget to update definition in blit.c when changing this!!
+'As a rather ugly hack (TODO: remove), arrays of Frames are sometimes (for sprite sets) allocated contiguously,
+'with each having pointers to separate .image and .mask buffers. All will initially have .refcount = 1,
+'.arraylen set to the length of the array, and all but first will have .arrayelem ON.
 'WARNING: don't add strings to this
 type Frame
 	w as integer
@@ -89,7 +92,7 @@ type Frame
 	mask as ubyte ptr
 	refcount as integer  'see frame_unload in particular for documentation
 	arraylen as integer  'how many frames were contiguously allocated in this frame array
-	base as Frame ptr    'the Frame which actually owns this memory
+	base as Frame ptr    'if a view, the Frame which actually owns this memory
 	cacheentry as SpriteCacheEntryFwd ptr
 	cached:1 as integer  '(not set for views onto cached sprites)
 	arrayelem:1 as integer  'not the first frame in a frame array

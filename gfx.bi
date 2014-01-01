@@ -64,9 +64,15 @@ extern Gfx_setwindowed as sub (byval iswindow as integer)
 extern Gfx_windowtitle as sub (byval title as zstring ptr)
 extern Gfx_getwindowstate as function () as WindowState ptr
 
-'(optional, temporary/experimental)
-extern Gfx_getresize as function (byref ret as XYPair) as integer
-extern Gfx_setresizable as sub (byval able as integer)
+'(optional) Returns whether the resolution can be changed to something other than 320x200 (via gfx_showpage)
+'(This doesn't imply that gfx_set_resizable is supported)
+'Returns false if the backend hasn't been updated or there are other constraints.
+extern Gfx_supports_variable_resolution as function () as bool
+'(optional) If a window resize was requested, returns true and sets ret. Otherwise must not modify ret.
+extern Gfx_get_resize as function (byref ret as XYPair) as bool
+'(optional) Enable or disable window resizing by the user.
+'Returns new resizability state: false if the backend doesn't support it.
+extern Gfx_set_resizable as function (byval enable as bool) as bool
 
 'gfx_setoption recieves an option name and the following option which may or may not be a related argument
 'returns 0 if unrecognised, 1 if recognised but arg is ignored, 2 if arg is gobbled

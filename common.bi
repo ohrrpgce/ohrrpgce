@@ -263,9 +263,6 @@ DECLARE FUNCTION should_hide_hero_stat(hero as HeroDef, byval statnum as integer
 DECLARE FUNCTION find_on_word_boundary_excluding(haystack as string, needle as string, excludeword as string) as integer
 DECLARE FUNCTION find_on_word_boundary(haystack as string, needle as string) as integer
 
-DECLARE FUNCTION get_resolution_x() as integer
-DECLARE FUNCTION get_resolution_y() as integer
-
 DECLARE FUNCTION str_rect(s as string, byval x as integer, byval y as integer) as RectType
 
 DECLARE FUNCTION cheezy_virtual_keyboard OVERLOAD (default_str as string, max_length as integer=-1, byval multi_player as integer=-1) as string

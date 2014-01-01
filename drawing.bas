@@ -2037,7 +2037,7 @@ END SUB '----END of sprite()
 SUB spriteedit_clip (placer() as integer, ss as SpriteEditState)
  'clip possibly rotated sprite buffer to sprite's frame size
  DIM holdscreen as integer
- holdscreen = allocatepage
+ holdscreen = allocatepage(320, 200)  'I assume this is sufficient
  drawsprite placer(), 0, ss.nulpal(), 0, 0, 0, holdscreen
  getsprite placer(), 0, 0, 0, ss.wide, ss.high, holdscreen
  freepage holdscreen
@@ -2395,7 +2395,7 @@ END SUB
 SUB frame_to_4bit_buffer(byval spr as Frame ptr, buf() as integer, byval wid as integer, byval high as integer)
  'Allocate a 320x200 page instead of just registering spr as a page, because it might be smaller than wid*high
  DIM holdscreen as integer
- holdscreen = allocatepage
+ holdscreen = allocatepage(320, 200)
  frame_draw spr, NULL, 0, 0, 1, YES, holdscreen
  getsprite buf(), 0, 0, 0, wid, high, holdscreen
  freepage holdscreen
