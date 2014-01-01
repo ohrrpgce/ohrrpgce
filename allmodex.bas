@@ -406,8 +406,16 @@ end function
 private sub screen_size_update ()
 	'Changes windowsize if user tried to resize, otherwise does nothing
 	gfx_get_resize(windowsize)
-	windowsize.w = large(windowsize.w, minwinsize.w)
-	windowsize.h = large(windowsize.h, minwinsize.h)
+
+	'Clamping windowsize to the minwinsize here means trying to override user
+	'resizes (specific to the case where the backend doesn't support giving the WM
+	'a min size hint).
+	'However unfortunately gfx_sdl can't reliably override it, at least with X11+KDE,
+	'because the window size can't be changed while the user is still dragging the window
+	'frame.
+	'So just accept whatever the backend says the actual window size is.
+	'windowsize.w = large(windowsize.w, minwinsize.w)
+	'windowsize.h = large(windowsize.h, minwinsize.h)
 
 	dim oldvpages(ubound(vpages)) as Frame ptr
 	for page as integer = 0 to ubound(vpages)
@@ -427,6 +435,7 @@ private sub screen_size_update ()
 	for page as integer = 0 to ubound(vpages)
 		if vpages(page) andalso vpages(page)->isview = NO then
 			if vpages(page)->w <> windowsize.w or vpages(page)->h <> windowsize.h then
+				'debug "screen_size_update: resizing page " & page & " -> " & windowsize.w & "*" & windowsize.h
 				resizepage page, windowsize.w, windowsize.h
 			end if
 		end if
@@ -439,6 +448,7 @@ private sub screen_size_update ()
 		if vpages(page) andalso vpages(page)->isview then
 			for page2 as integer = 0 to ubound(oldvpages)
 				if vpages(page)->base = oldvpages(page2) and vpages(page2) <> oldvpages(page2) then
+					'debug "screen_size_update: updating view page " & page & " to new compatpage onto " & page2
 					frame_unload @vpages(page)
 					vpages(page) = compatpage_internal(vpages(page2))
 					exit for
@@ -459,7 +469,7 @@ sub unlock_resolution (byval min_w as integer, byval min_h as integer)
 		debuginfo "Resolution changing not supported"
 		exit sub
 	end if
-	resizing_enabled = gfx_set_resizable(YES)
+	resizing_enabled = gfx_set_resizable(YES, minwinsize.w, minwinsize.h)
 	windowsize.w = large(windowsize.w, minwinsize.w)
 	windowsize.h = large(windowsize.h, minwinsize.h)
 	screen_size_update
@@ -467,7 +477,7 @@ end sub
 
 'Disable window resizing.
 sub lock_resolution ()
-	resizing_enabled = gfx_set_resizable(NO)
+	resizing_enabled = gfx_set_resizable(NO, 0, 0)
 end sub
 
 'Set the window size, if possible, subject to min size bound. Doesn't modify resizability state.
@@ -512,27 +522,28 @@ sub setvispage (byval page as integer)
 		end if
 	end if
 
-	fpsframes += 1
-	if timer > fpstime + 1 then
-		fpsstring = "fps:" & INT(10 * fpsframes / (timer - fpstime)) / 10
-		fpstime = timer
-		fpsframes = 0
-	end if
-	if showfps then
-		'NOTE: this is bad if displaying a page other than vpage/dpage!
-		edgeprint fpsstring, vpages(page)->w - 65, vpages(page)->h - 10, uilook(uiText), page
-	end if
-
-	'the fb backend may freeze up if it collides with the polling thread
-	mutexlock keybdmutex
-	if updatepal then
-		gfx_setpal(@intpal(0))
-		updatepal = NO
-	end if
 	with *vpages(page)
+		fpsframes += 1
+		if timer > fpstime + 1 then
+			fpsstring = "fps:" & INT(10 * fpsframes / (timer - fpstime)) / 10
+			fpstime = timer
+			fpsframes = 0
+		end if
+		if showfps then
+			'NOTE: this is bad if displaying a page other than vpage/dpage!
+			edgeprint fpsstring, vpages(page)->w - 65, vpages(page)->h - 10, uilook(uiText), page
+		end if
+		'rectangle .w - 6, .h - 6, 6, 6, uilook(uiText), page
+
+		'the fb backend may freeze up if it collides with the polling thread
+		mutexlock keybdmutex
+		if updatepal then
+			gfx_setpal(@intpal(0))
+			updatepal = NO
+		end if
 		gfx_showpage(.image, .w, .h)
+		mutexunlock keybdmutex
 	end with
-	mutexunlock keybdmutex
 
 	'After presenting the page this is a good time to check for window size changes and
 	'resize the videopages as needed before the next frame is rendered.
@@ -1314,7 +1325,7 @@ sub setkeys (byval enable_inputtext as bool = NO)
 			set_resolution windowsize.w - 10, windowsize.h - 10
 		end if
 		if keyval(scR) > 1 then
-			resizing_enabled = gfx_set_resizable(resizing_enabled xor YES)
+			resizing_enabled = gfx_set_resizable(resizing_enabled xor YES, minwinsize.w, minwinsize.h)
 		end if
 	end if
 

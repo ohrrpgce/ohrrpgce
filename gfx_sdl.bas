@@ -45,8 +45,8 @@ declare function SDL_ANDROID_OUYAReceiptsAreReady () as bool
 declare function SDL_ANDROID_OUYAReceiptsResult () as zstring ptr
 #ENDIF
 
-'why is this missing from crt.bi?
 DECLARE FUNCTION putenv (byval as zstring ptr) as integer
+DECLARE FUNCTION unsetenv (byval as zstring ptr) as integer
 
 'DECLARE FUNCTION SDL_putenv cdecl alias "SDL_putenv" (byval variable as zstring ptr) as integer
 'DECLARE FUNCTION SDL_getenv cdecl alias "SDL_getenv" (byval name as zstring ptr) as zstring ptr
@@ -80,6 +80,7 @@ DIM SHARED windowedmode as bool = YES
 DIM SHARED resizable as integer = NO
 DIM SHARED resizerequested as integer = NO
 DIM SHARED resizerequest as XYPair
+DIM SHARED waiting_for_resize as bool = NO
 DIM SHARED remember_windowtitle as STRING
 DIM SHARED rememmvis as integer = 1
 DIM SHARED keystate as Uint8 ptr = NULL
@@ -264,7 +265,6 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
   IF running_as_slave = NO THEN   'Don't display the window straight on top of Custom's
     putenv("SDL_VIDEO_CENTERED=1")
   ELSE
-    putenv("SDL_VIDEO_CENTERED=0")
     putenv("SDL_VIDEO_WINDOW_POS=5,5")
   END IF
 
@@ -377,8 +377,13 @@ FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
       debug "Failed to open display (windowed = " & windowedmode & "): " & *SDL_GetError
       RETURN 0
     END IF
+    waiting_for_resize = NO
+    debug "gfx_sdl: created screensurface with size " & screensurface->w & "*" & screensurface->h & " depth " & screensurface->format->BitsPerPixel
     EXIT DO
   LOOP
+  'Don't recenter the window as the user resizes it
+  '  putenv("SDL_VIDEO_CENTERED=0") does not work because SDL only tests whether the variable is defined
+  unsetenv("SDL_VIDEO_CENTERED")
 #ENDIF
   SDL_WM_SetCaption(remember_windowtitle, remember_windowtitle)
   IF windowedmode = NO THEN
@@ -408,9 +413,10 @@ FUNCTION gfx_sdl_getversion() as integer
 END FUNCTION
 
 FUNCTION gfx_sdl_present_internal(byval raw as any ptr, byval w as integer, byval h as integer, byval bitdepth as integer) as integer
+  'debuginfo "gfx_sdl_present_internal(w=" & w & ", h=" & h & ", bitdepth=" & bitdepth & ")"
 
   'variable resolution handling
-  IF framesize.w <> w OR framesize.h <> h THEN
+  IF waiting_for_resize OR framesize.w <> w OR framesize.h <> h THEN
     framesize.w = w
     framesize.h = h
     'A bitdepth of 0 indicates 'same as previous, otherwise default (native)'. Not sure if it's best to use
@@ -572,7 +578,10 @@ FUNCTION gfx_sdl_supports_variable_resolution() as bool
   RETURN YES
 END FUNCTION
 
-FUNCTION gfx_sdl_set_resizable(byval enable as bool) as bool
+FUNCTION gfx_sdl_set_resizable(byval enable as bool, min_width as integer, min_height as integer) as bool
+  'Ignore minimum width and height.
+  'See SDL_VIDEORESIZE handling for discussing of enforcing min window size.
+
   resizable = enable
   gfx_sdl_set_screen_mode()
   IF screensurface THEN
@@ -589,6 +598,12 @@ FUNCTION gfx_sdl_get_resize(byref ret as XYPair) as integer
   END IF
   RETURN NO
 END FUNCTION
+
+SUB gfx_sdl_recenter_window_hint()
+  'Takes effect at the next SDL_SetVideoMode call, and it then removed
+  putenv("SDL_VIDEO_CENTERED=1")
+  '(Note this is overridden by SDL_VIDEO_WINDOW_POS)
+END SUB
 
 SUB gfx_sdl_set_zoom(byval value as integer)
   IF value >= 1 AND value <= 16 AND value <> zoom THEN
@@ -800,12 +815,22 @@ SUB gfx_sdl_process_events()
       CASE SDL_VIDEORESIZE
         'debug "SDL_VIDEORESIZE: w=" & evnt.resize.w & " h=" & evnt.resize.h
         IF resizable THEN
+          waiting_for_resize = YES  'This is more of a sanity check
           resizerequested = YES
           resizerequest.w = evnt.resize.w / zoom
           resizerequest.h = evnt.resize.h / zoom
           'Nothing happens until the engine calls gfx_get_resize,
           'changes its internal window size (windowsize) as a result,
           'and starts pushing Frames with the new size to gfx_showpage.
+
+          'Calling SDL_SetVideoMode changes the window size.  Unfortunately it's not possible
+          'to reliably override a user resize event with a different window size, at least with
+          'X11+KDE, because the window size isn't changed by SDL_SetVideoMode while the user is
+          'still dragging the window, and as far as I can tell there is no way to tell what the
+          'actual window size is, or whether the user still has the mouse button down while
+          'resizing (it isn't reported); usually they do hold it down until after they've
+          'finished moving their mouse.  One possibility would be to hook into X11, or to do
+          'some delayed SDL_SetVideoMode calls.
         END IF
     END SELECT
   WEND
@@ -1153,6 +1178,7 @@ FUNCTION gfx_sdl_setprocptrs() as integer
   gfx_supports_variable_resolution = @gfx_sdl_supports_variable_resolution
   gfx_get_resize = @gfx_sdl_get_resize
   gfx_set_resizable = @gfx_sdl_set_resizable
+  gfx_recenter_window_hint = @gfx_sdl_recenter_window_hint
   gfx_setoption = @gfx_sdl_setoption
   gfx_describe_options = @gfx_sdl_describe_options
   gfx_get_safe_zone_margin = @gfx_sdl_get_safe_zone_margin

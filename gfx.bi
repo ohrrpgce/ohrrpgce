@@ -70,9 +70,13 @@ extern Gfx_getwindowstate as function () as WindowState ptr
 extern Gfx_supports_variable_resolution as function () as bool
 '(optional) If a window resize was requested, returns true and sets ret. Otherwise must not modify ret.
 extern Gfx_get_resize as function (byref ret as XYPair) as bool
-'(optional) Enable or disable window resizing by the user.
+'(optional) Enable or disable window resizing by the user, and optionally specify minimum window width/height.
 'Returns new resizability state: false if the backend doesn't support it.
-extern Gfx_set_resizable as function (byval enable as bool) as bool
+'Minimum window width/height may not work!
+extern Gfx_set_resizable as function (enable as bool, min_width as integer, min_height as integer) as bool
+'(optional) At the next gfx_showpage call, recentering the window would be a good idea.
+'Called when starting a game.
+extern Gfx_recenter_window_hint as sub ()
 
 'gfx_setoption recieves an option name and the following option which may or may not be a related argument
 'returns 0 if unrecognised, 1 if recognised but arg is ignored, 2 if arg is gobbled

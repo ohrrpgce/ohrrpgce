@@ -550,6 +550,7 @@ IF gen(genResolutionX) > 0 OR gen(genResolutionY) > 0 THEN
   IF gen(genResolutionX) <= 0 THEN gen(genResolutionX) = 320
   IF gen(genResolutionY) <= 0 THEN gen(genResolutionY) = 200
   set_resolution(gen(genResolutionX), gen(genResolutionY))
+  gfx_recenter_window_hint()
  END IF
 END IF
 

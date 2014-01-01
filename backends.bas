@@ -49,7 +49,8 @@ dim gfx_windowtitle as sub (byval title as zstring ptr)
 dim gfx_getwindowstate as function () as WindowState ptr
 dim gfx_supports_variable_resolution as function () as bool
 dim gfx_get_resize as function (byref ret as XYPair) as integer
-dim gfx_set_resizable as function (byval enable as bool) as bool
+dim gfx_set_resizable as function (enable as bool, min_width as integer, min_height as integer) as bool
+dim gfx_recenter_window_hint as sub ()
 dim gfx_setoption as function (byval opt as zstring ptr, byval arg as zstring ptr) as integer
 dim gfx_describe_options as function () as zstring ptr
 dim gfx_printchar as sub (byval ch as integer, byval x as integer, byval y as integer)
@@ -168,7 +169,8 @@ dim as string systeminfo
 
 function gfx_dummy_supports_variable_resolution() as bool : return NO : end function
 function gfx_dummy_get_resize(byref ret as XYPair) as integer : return NO : end function
-function gfx_dummy_set_resizable(byval enable as bool) as bool : return NO : end function
+function gfx_dummy_set_resizable(enable as bool, min_width as integer, min_height as integer) as bool : return NO : end function
+sub gfx_dummy_recenter_window_hint() : end sub
 function gfx_dummy_get_safe_zone_margin() as single : return 0.0 : end function
 sub gfx_dummy_set_safe_zone_margin(byval margin as single) : end sub
 function gfx_dummy_supports_safe_zone_margin() as bool : return NO : end function
@@ -204,6 +206,7 @@ sub set_default_gfx_function_ptrs
 	gfx_supports_variable_resolution = @gfx_dummy_supports_variable_resolution
 	gfx_get_resize = @gfx_dummy_get_resize
 	gfx_set_resizable = @gfx_dummy_set_resizable
+	gfx_recenter_window_hint = @gfx_dummy_recenter_window_hint
 	gfx_printchar = NULL
 	gfx_set_safe_zone_margin = @gfx_dummy_set_safe_zone_margin
 	gfx_get_safe_zone_margin = @gfx_dummy_get_safe_zone_margin
