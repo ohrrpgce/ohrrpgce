@@ -170,6 +170,7 @@ getdefaultfont current_font()
 setmodex
 debuginfo musicbackendinfo  'Preliminary info before initialising backend
 setwindowtitle "O.H.R.RPG.C.E"
+unlock_resolution 320, 200   'Minimum window size
 setpal master()
 setfont current_font()
 textcolor uilook(uiText), 0
