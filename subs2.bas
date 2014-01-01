@@ -45,7 +45,7 @@ DECLARE SUB textbox_edit_load (byref box as TextBox, byref st as TextboxEditStat
 DECLARE SUB textbox_edit_preview (byref box as TextBox, byref st as TextboxEditState, override_y as integer=-1, suppress_text as integer=NO)
 DECLARE SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditState, parent_menu() as string)
 DECLARE SUB update_textbox_appearance_editor_menu (menu() as string, byref box as TextBox, byref st as TextboxEditState)
-DECLARE SUB textbox_position_portrait (byref box as TextBox, byref st as TextboxEditState, holdscreen as integer)
+DECLARE SUB textbox_position_portrait (byref box as TextBox, byref st as TextboxEditState, backdrop as Frame ptr)
 DECLARE SUB textbox_seek(byref box as TextBox, byref st as TextboxEditState)
 DECLARE SUB textbox_create_from_box (byval template_box_id as integer=0, byref box as TextBox, byref st as TextboxEditState)
 DECLARE SUB textbox_line_editor (byref box as TextBox, byref st as TextboxEditState)
@@ -1140,7 +1140,7 @@ FUNCTION box_conditional_type_by_menu_index(menuindex as integer) as integer
  END SELECT
 END FUNCTION
 
-SUB textbox_position_portrait (byref box as TextBox, byref st as TextboxEditState, holdscreen as integer)
+SUB textbox_position_portrait (byref box as TextBox, byref st as TextboxEditState, backdrop as Frame ptr)
  DIM speed as integer = 1
  DIM tog as integer = 0
  setkeys
@@ -1157,11 +1157,13 @@ SUB textbox_position_portrait (byref box as TextBox, byref st as TextboxEditStat
   IF keyval(scRight) > 0 THEN box.portrait_pos.x += speed
   IF keyval(scUp)    > 0 THEN box.portrait_pos.y -= speed
   IF keyval(scDown)  > 0 THEN box.portrait_pos.y += speed
+
+  clearpage dpage
+  frame_draw backdrop, , 0, 0, , , dpage
   textbox_edit_preview box, st
   edgeprint "Arrow keys to move, space to confirm", 0, 190, uilook(uiSelectedItem + tog), dpage
   SWAP vpage, dpage
   setvispage vpage
-  copypage holdscreen, dpage
   dowait
  LOOP
 END SUB
@@ -1174,10 +1176,9 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
  state.need_update = YES
  
  'Show backdrop
- DIM holdscreen as integer
- holdscreen = allocatepage
+ DIM backdrop as Frame ptr
  IF box.backdrop > 0 THEN
-  loadmxs game & ".mxs", box.backdrop - 1, vpages(holdscreen)
+  backdrop = loadmxs(game & ".mxs", box.backdrop - 1)
  END IF
 
  setkeys
@@ -1203,7 +1204,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
       box.portrait_pal = pal16browse(box.portrait_pal, 8, box.portrait_id)
      END IF
     CASE 13: box.portrait_box = (NOT box.portrait_box)
-    CASE 14: textbox_position_portrait box, st, holdscreen
+    CASE 14: textbox_position_portrait box, st, backdrop
     CASE 15: IF box.sound_effect > 0 THEN playsfx box.sound_effect - 1
    END SELECT
    state.need_update = YES
@@ -1229,9 +1230,9 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
     CASE 5:
      IF zintgrabber(box.backdrop, -1, gen(genNumBackdrops) - 1) THEN
       state.need_update = YES
-      clearpage holdscreen
+      frame_unload @backdrop
       IF box.backdrop > 0 THEN
-       loadmxs game & ".mxs", box.backdrop - 1, vpages(holdscreen)
+       backdrop = loadmxs(game & ".mxs", box.backdrop - 1)
       END IF
      END IF
     CASE 6:
@@ -1262,9 +1263,9 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
    IF intgrabber(st.id, 0, gen(genMaxTextBox)) THEN
     SaveTextBox box, remptr
     textbox_edit_load box, st, parent_menu()
-    clearpage holdscreen
+    frame_unload @backdrop
     IF box.backdrop > 0 THEN
-     loadmxs game & ".mxs", box.backdrop - 1, vpages(holdscreen)
+     backdrop = loadmxs(game & ".mxs", box.backdrop - 1)
     END IF
     state.need_update = YES
    END IF
@@ -1274,7 +1275,8 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
    update_textbox_appearance_editor_menu menu(), box, st
   END IF
 
-  copypage holdscreen, dpage
+  clearpage dpage
+  frame_draw backdrop, , 0, 0, , , dpage
   textbox_edit_preview box, st
   FOR i as integer = 0 TO UBOUND(menu)
    DIM col as integer = uilook(uimenuItem)
@@ -1289,7 +1291,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
   setvispage vpage
   dowait
  LOOP
- freepage holdscreen
+ frame_unload @backdrop
  resetsfx
  music_stop
 END SUB
