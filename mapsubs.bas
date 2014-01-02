@@ -1151,7 +1151,16 @@ DO
  END SELECT
  st.reset_tool = NO   'The above SELECT block is responsible for doing resetting
 
- 
+ 'Size of the map viewport
+ DIM mapviewsize as XYPair
+ mapviewsize.w = vpages(dpage)->w
+ mapviewsize.h = vpages(dpage)->h - 20  '20 pixels for menubar
+
+ 'Position of the map viewport
+ DIM maprect as RectPoints
+ maprect.p1 = Type(0, 20)
+ maprect.p2 = Type(vpages(dpage)->w, vpages(dpage)->h)
+
  '--general purpose controls----
  st.oldpos.x = st.x
  st.oldpos.y = st.y
@@ -1163,22 +1172,35 @@ DO
   st.rate.y = 1
  END IF
  IF keyval(scAlt) = 0 AND keyval(scCtrl) = 0 THEN
-  IF slowkey(scUp, 110) THEN st.y = large(st.y - st.rate.y, 0): IF st.y < st.mapy \ 20 THEN st.mapy = st.y * 20
-  IF slowkey(scDown, 110) THEN st.y = small(st.y + st.rate.y, st.high - 1): IF st.y > st.mapy \ 20 + 8 THEN st.mapy = st.y * 20 - 160
-  IF slowkey(scLeft, 110) THEN st.x = large(st.x - st.rate.x, 0): IF st.x < st.mapx \ 20 THEN st.mapx = st.x * 20
-  IF slowkey(scRight, 110) THEN st.x = small(st.x + st.rate.x, st.wide - 1): IF st.x > st.mapx \ 20 + 15 THEN st.mapx = st.x * 20 - 300
+  'Move cursor position
+  IF slowkey(scUp, 110) THEN st.y = large(st.y - st.rate.y, 0)
+  IF slowkey(scDown, 110) THEN st.y = small(st.y + st.rate.y, st.high - 1)
+  IF slowkey(scLeft, 110) THEN st.x = large(st.x - st.rate.x, 0)
+  IF slowkey(scRight, 110) THEN st.x = small(st.x + st.rate.x, st.wide - 1)
+  st.mapx = bound(st.mapx, (st.x + 1) * 20 - mapviewsize.w, st.x * 20)
+  st.mapy = bound(st.mapy, (st.y + 1) * 20 - mapviewsize.h, st.y * 20)
  END IF
  IF keyval(scAlt) > 0 AND keyval(scCtrl) = 0 THEN
+  'Move camera position
   st.oldrel.x = st.x - st.mapx / 20
   st.oldrel.y = st.y - st.mapy / 20
   IF slowkey(scUp, 110) THEN st.mapy = large(st.mapy - 20 * st.rate.y, 0)
-  IF slowkey(scDown, 110) THEN st.mapy = small(st.mapy + 20 * st.rate.y, st.high * 20 - 180)
+  IF slowkey(scDown, 110) THEN st.mapy = small(st.mapy + 20 * st.rate.y, st.high * 20 - mapviewsize.h)
   IF slowkey(scLeft, 110) THEN st.mapx = large(st.mapx - 20 * st.rate.x, 0)
-  IF slowkey(scRight, 110) THEN st.mapx = small(st.mapx + 20 * st.rate.x, st.wide * 20 - 320)
+  IF slowkey(scRight, 110) THEN st.mapx = small(st.mapx + 20 * st.rate.x, st.wide * 20 - mapviewsize.w)
+  st.mapx = large(0, st.mapx)
+  st.mapy = large(0, st.mapy)
   st.x = st.mapx / 20 + st.oldrel.x
   st.y = st.mapy / 20 + st.oldrel.y
  END IF
  st.moved = (st.oldpos.x <> st.x OR st.oldpos.y <> st.y)
+
+ ' 'Actual size of the map viewport showing the map
+ ' '(Since the window can be larger than the map, have to clamp it)
+ ' DIM maprect as RectType
+ ' maprect.topleft = Type(0, 20)
+ ' maprect.wide = small(st.wide * 20 - st.mapx, mapviewsize.w)  
+ ' maprect.high = small(st.high * 20 - st.mapy, mapviewsize.h)
 
  '--Tools
  IF drawing_allowed AND v_len(mode_tools) > 0 THEN
@@ -1582,7 +1604,7 @@ DO
  END IF
  
  textcolor uilook(uiSelectedItem + tog), 0 
- printstr "X " & st.x & "   Y " & st.y, 0, 192, dpage
+ printstr "X " & st.x & "   Y " & st.y, 0, maprect.p2.y - 8, dpage
  textcolor uilook(uiText), 0
  printstr modenames(st.editmode), 0, 24, dpage
 
@@ -1623,7 +1645,7 @@ DO
   IF layerisvisible(visible(), st.layer) = NO THEN layername &= " (invisible)"
   layername &= " " & read_map_layer_name(gmap(), st.layer)
   layername = RIGHT(layername, 40)
-  printstr layername, 0, 180, dpage
+  printstr layername, 0, maprect.p2.y - 20, dpage
  END IF
 
  IF st.editmode = tile_mode OR st.tool = clone_tool THEN
@@ -1632,12 +1654,12 @@ DO
   DIM defpass_msg as string = hilite("Ctrl+D: ")
   IF st.defpass = NO THEN defpass_msg &= "No "
   defpass_msg &= "Default Walls"
-  printstr defpass_msg, 124, 192, dpage, YES
+  printstr defpass_msg, maprect.p2.x - 196, maprect.p2.y - 8, dpage, YES
  END IF
 
  IF st.tool = clone_tool THEN
   textcolor uilook(uiText), 0
-  printstr hilite("Ctrl+M: ") & iif_string(st.clone_merge, "Tile Merging On", "Tile Merging Off"), 124, 184, dpage, YES
+  printstr hilite("Ctrl+M: ") & iif_string(st.clone_merge, "Tile Merging On", "Tile Merging Off"), maprect.p2.x - 196, maprect.p2.y - 16, dpage, YES
  END IF
 
  IF st.editmode = door_mode THEN
@@ -4220,12 +4242,23 @@ END SUB
 '==========================================================================================
 
 
-'Can a tile be seen?
+'Can a tile be seen? (Specifically, the centre of the tile)
 FUNCTION mapedit_on_screen(st as MapEditState, byval x as integer, byval y as integer) as integer
- RETURN x * 20 >= st.mapx AND x * 20 < st.mapx + 320 AND y * 20 >= st.mapy AND y * 20 < st.mapy + 180
+ 'Visible portion of the map
+ DIM mapview as RectType
+ mapview.x = st.mapx
+ mapview.y = st.mapy
+ mapview.wide = vpages(dpage)->w
+ mapview.high = vpages(dpage)->h - 20  '20 pixels for menubar
+ RETURN rect_collide_point(mapview, x * 20 + 10, y * 20 + 10)
 END FUNCTION
 
+'Center the camera on a tile
 SUB mapedit_focus_camera(st as MapEditState, byval x as integer, byval y as integer)
- st.mapx = bound(x * 20 - 160, 0, st.wide * 20 - 320)
- st.mapy = bound(y * 20 - 80, 0, st.high * 20 - 180)
+ 'Size of the map viewport
+ DIM mapviewsize as XYPair
+ mapviewsize.w = vpages(dpage)->w
+ mapviewsize.h = vpages(dpage)->h - 20  '20 pixels for menubar
+ st.mapx = bound(x * 20 - mapviewsize.w \ 2, 0, st.wide * 20 - mapviewsize.w)
+ st.mapy = bound(y * 20 - mapviewsize.h \ 2, 0, st.high * 20 - mapviewsize.h)
 END SUB
