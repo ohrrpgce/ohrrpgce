@@ -378,7 +378,8 @@ FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
       RETURN 0
     END IF
     waiting_for_resize = NO
-    debug "gfx_sdl: created screensurface with size " & screensurface->w & "*" & screensurface->h & " depth " & screensurface->format->BitsPerPixel
+    'debuginfo "gfx_sdl: created screensurface with size " & screensurface->w & "*" & screensurface->h & " depth " _
+    '          & screensurface->format->BitsPerPixel & " flags " & HEX(screensurface->flags)
     EXIT DO
   LOOP
   'Don't recenter the window as the user resizes it

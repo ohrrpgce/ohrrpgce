@@ -347,6 +347,13 @@ state.last = gen(genMaxTile)
 state.size = 20
 state.need_update = YES
 
+'The tileset editor only works at 320x200 or larger, since the tileset is stored on page 3
+DIM remember_resolution as XYPair = (get_resolution_w, get_resolution_h)
+set_resolution 320, 200
+lock_resolution
+'Force videopage sizes to update
+setvispage vpage
+
 clearpage 3
 setkeys
 DO
@@ -408,6 +415,9 @@ clearpage 0
 'tileset_empty_cache
 'Robust againts tileset leaks
 sprite_update_cache_tilesets
+
+unlock_resolution 320, 200
+set_resolution remember_resolution.w, remember_resolution.h
 
 END SUB
  
@@ -1820,6 +1830,13 @@ END SUB
 SUB sprite (byval xw as integer, byval yw as integer, byref sets as integer, byval perset as integer, byval soff as integer, info() as string, byval zoom as integer, byval fileset as integer, byval fullset as integer=NO, byval cursor_start as integer=0, byval cursor_top as integer=0)
 STATIC ss_save as SpriteEditStatic
 
+'The sprite editor doesn't work at anything other than 320x200; graphics are corrupted
+DIM remember_resolution as XYPair = (get_resolution_w, get_resolution_h)
+set_resolution 320, 200
+lock_resolution
+'Force videopage sizes to update
+setvispage vpage
+
 DIM ss as SpriteEditState
 WITH ss
  .fileset = fileset
@@ -2030,7 +2047,9 @@ clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
-EXIT SUB
+
+unlock_resolution 320, 200
+set_resolution remember_resolution.w, remember_resolution.h
 
 END SUB '----END of sprite()
 
