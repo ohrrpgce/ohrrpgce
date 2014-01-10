@@ -12,6 +12,7 @@
 ''
 
 #include "banks.bi"
+#include "crt/stddef.bi"
 
 #define VELOCITY 		96
 
@@ -19,7 +20,7 @@
 #define NOTE_ON		&b10010000
 #define PATCH_CHANGE 	&b11000000
 
-declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as uinteger = 0, byval src as any ptr, byval bytes as integer ) as integer
+declare function fput alias "fb_FilePut" ( byval fnum as long, byval pos as long = 0, byval src as any ptr, byval bytes as size_t ) as long
 
 declare sub setbigval(byval value as integer)
 declare sub setsmallval(byval value as integer)

@@ -5,10 +5,8 @@
 
 extern "C"
 
-#ifndef size_t
-type size_t as integer
-#endif
-
+' For size_t
+#include "crt/stddef.bi"
 
 'In miscc.c
 declare function get_sys_err_string() as zstring ptr

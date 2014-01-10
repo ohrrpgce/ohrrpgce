@@ -30,9 +30,15 @@
 #DEFINE vector ptr
 
 TYPE FnCtor as sub cdecl (byval as any ptr)
-TYPE FnCompare as function cdecl (byval as any ptr, byval as any ptr) as integer
 TYPE FnCopy as sub cdecl (byval as any ptr, byval as any ptr)
 TYPE FnStr as function cdecl (byval as any ptr) as string
+#IF __FB_VERSION__ < "0.91"
+ 'I don't know why, but using 'long' instead of 'integer' on 32 bit FB versions < 0.91
+ 'generates a warning even they're the same size
+ TYPE FnCompare as function cdecl (byval as any ptr, byval as any ptr) as integer
+#ELSE
+ TYPE FnCompare as function cdecl (byval as any ptr, byval as any ptr) as long
+#ENDIF
 
 'Not used
 ENUM PassConvention

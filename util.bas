@@ -288,7 +288,7 @@ END FUNCTION
 
 'Returns the number of characters at the start of two strings that are equal
 FUNCTION length_matching(s1 as string, s2 as string) as integer
- DIM as ubyte ptr p1 = @s1[0], p2 = @s2[0]
+ DIM as byte ptr p1 = @s1[0], p2 = @s2[0]
  DIM as integer ret = 0
  WHILE *p1 AND *p2
   IF *p1 <> *p2 THEN RETURN ret
@@ -865,7 +865,7 @@ SUB remove_string_cache (cache() as IntStrPair, byval key as integer)
 END SUB
 
 FUNCTION strhash(hstr as string) as unsigned integer
- RETURN stringhash(cptr(ubyte ptr, strptr(hstr)), len(hstr))
+ RETURN stringhash(cptr(zstring ptr, strptr(hstr)), len(hstr))
 END FUNCTION
 
 
@@ -885,13 +885,13 @@ FUNCTION hash_file(filename as string) as unsigned integer
   hash += hash SHL 8
   DIM buf(4095) as ubyte
   WHILE size > 0
-    DIM readamnt as integer
+    DIM readamnt as uinteger
     fgetiob fh, , @buf(0), 4096, @readamnt
     IF readamnt < size AND readamnt <> 4096 THEN
       debug "hash_file: fgetiob failed!"
       RETURN 0
     END IF
-    hash xor= stringhash(@buf(0), readamnt)
+    hash xor= stringhash(cptr(zstring ptr, @buf(0)), readamnt)
     hash += ROT(hash, 5)
     size -= 4096
   WEND
@@ -1181,7 +1181,7 @@ END FUNCTION
 
 FUNCTION escape_filenamec CDECL (byval filename as zstring ptr) as zstring ptr
   DIM ret as string = escape_filename(*filename)
-  DIM retz as zstring ptr = malloc(LEN(ret) + 1)
+  DIM retz as zstring ptr = ALLOCATE(LEN(ret) + 1)
   strcpy retz, cstring(ret)
   RETURN retz
 END FUNCTION
