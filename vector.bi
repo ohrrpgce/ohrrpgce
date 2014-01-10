@@ -48,7 +48,7 @@ ENUM PassConvention
 END ENUM
 
 TYPE TypeTable
-  element_len as uinteger
+  element_len as ulong
   passtype as PassConvention
   ctor as FnCtor
   copyctor as FnCopy

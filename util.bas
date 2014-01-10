@@ -728,24 +728,24 @@ SUB sort_integers_indices(indices() as integer, byval start as integer ptr, byva
  NEXT
 END SUB
 
-FUNCTION integer_compare CDECL (byval a as integer ptr, byval b as integer ptr) as integer
+FUNCTION integer_compare CDECL (byval a as integer ptr, byval b as integer ptr) as long
  IF *a < *b THEN RETURN -1
  IF *a > *b THEN RETURN 1
  'implicitly RETURN 0 (it's faster to omit the RETURN :-)
 END FUNCTION
 
-FUNCTION integerptr_compare CDECL (byval a as integer ptr ptr, byval b as integer ptr ptr) as integer
+FUNCTION integerptr_compare CDECL (byval a as integer ptr ptr, byval b as integer ptr ptr) as long
  IF **a < **b THEN RETURN -1
  IF **a > **b THEN RETURN 1
  'implicitly RETURN 0 (it's faster to omit the RETURN :-)
 END FUNCTION
 
 'a string ptr is a pointer to a FB string descriptor
-FUNCTION string_compare CDECL (byval a as string ptr, byval b as string ptr) as integer
+FUNCTION string_compare CDECL (byval a as string ptr, byval b as string ptr) as long
  'This is equivalent, but the code below can be adapted for case insensitive compare (and is faster (what, how?!))
  'RETURN fb_StrCompare( *a, -1, *b, -1)
 
- DIM as integer ret = 0, somenull = 0
+ DIM as long ret = 0, somenull = 0
  'Ah, brings back happy memories of C hacking, doesn'it?
  IF @((*a)[0]) = 0 THEN ret -= 1: somenull = 1
  IF @((*b)[0]) = 0 THEN ret += 1: somenull = 1
@@ -767,7 +767,7 @@ FUNCTION string_compare CDECL (byval a as string ptr, byval b as string ptr) as 
  RETURN 0
 END FUNCTION
 
-FUNCTION stringptr_compare CDECL (byval a as string ptr ptr, byval b as string ptr ptr) as integer
+FUNCTION stringptr_compare CDECL (byval a as string ptr ptr, byval b as string ptr ptr) as long
  RETURN string_compare(*a, *b)
 END FUNCTION
 

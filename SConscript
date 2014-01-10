@@ -7,6 +7,7 @@ import os
 import platform
 import shutil
 import shlex
+import itertools
 import re
 from ohrbuild import basfile_scan, verprint, android_source_files, get_run_command
 
@@ -65,7 +66,7 @@ elif arch == 'x86':
     CFLAGS.append ('-m32')
     CXXFLAGS.append ('-m32')
     # Recent versions of GCC default to assuming the stack is kept 16-byte aligned
-    # (which a change in the Linux x86 ABI) but fbc's GAS backend is not yet updated for that
+    # (which is a recent change in the Linux x86 ABI) but fbc's GAS backend is not yet updated for that
     CFLAGS.append ('-mpreferred-stack-boundary=2')
     CXXFLAGS.append ('-mpreferred-stack-boundary=2')
     # gcc -m32 on x86_64 defaults to enabling SSE and SSE2, so disable that,
@@ -74,6 +75,12 @@ elif arch == 'x86':
         CFLAGS.append ('-mno-sse')
         CXXFLAGS.append ('-mno-sse')
     #FBFLAGS += ["-arch", "686"]
+elif arch == 'x86_64':
+    CFLAGS.append ('-m64')
+    CXXFLAGS.append ('-m64')
+    # This also causes FB to default to -gen gcc, as -gen gas not supported
+    # (therefore we don't need to pass -mpreferred-stack-boundary=2)
+    FBFLAGS += ['-arch', 'x86_64']
 else:
     raise Exception('Unknown architecture %s' % arch)
 
@@ -269,11 +276,12 @@ if linkgcc:
                   [fbc_path, '..', 'lib', 'freebasic'],
                   ['/usr/share/freebasic/lib'],
                   ['/usr/local/lib/freebasic']]
-    # FB since 0.25 doesn't seem to use a platform subdirectory in lib/
-    fblibpaths = sum([[pathparts, pathparts + [target]] for pathparts in fblibpaths], [])
+    # For each of the above possible library paths, check three possible target subdirectories:
+    targetdirs = [ [], [arch + '-' + target], [target] ]
+    # FB since 0.25 doesn't seem to use a platform subdirectory in lib ?
 
-    for path in fblibpaths:
-        libpath = os.path.join(*path)
+    for path, targetdir in itertools.product(fblibpaths, targetdirs):
+        libpath = os.path.join(*(path + targetdir))
         #print "Looking for FB libs in", libpath
         if os.path.isfile(os.path.join(libpath, 'fbrt0.o')):
             break
