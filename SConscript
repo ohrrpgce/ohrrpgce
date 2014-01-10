@@ -135,7 +135,7 @@ music = ARGUMENTS.get ('music', os.environ.get ('OHRMUSIC','sdl'))
 music = [music.lower ()]
 
 env = Environment (FBFLAGS = FBFLAGS,
-                   FBLIBS = [],
+                   FBLINKFLAGS = [],
                    CFLAGS = CFLAGS,
                    FBC = fbc,
                    CXXFLAGS = CXXFLAGS,
@@ -150,7 +150,7 @@ for var in 'PATH', 'DISPLAY', 'HOME', 'EUDIR':
         env['ENV'][var] = os.environ[var]
 
 if win32:
-    env['FBLIBS'] += ['-p', 'win32']
+    env['FBLINKFLAGS'] += ['-p', 'win32']
     env['CXXLINKFLAGS'] += ['-L', 'win32']
 
     w32_env = Environment ()
@@ -161,7 +161,7 @@ if win32:
 if mac:
     macsdk = ARGUMENTS.get ('macsdk', '')
     macSDKpath = ''
-    env['FBLIBS'] += ['-Wl', '-F,' + FRAMEWORKS_PATH]
+    env['FBLINKFLAGS'] += ['-Wl', '-F,' + FRAMEWORKS_PATH]
     env['CXXLINKFLAGS'] += ['-F', FRAMEWORKS_PATH]
     if macsdk:
         macSDKpath = 'MacOSX' + macsdk + '.sdk'
@@ -170,13 +170,13 @@ if mac:
         macSDKpath = '/Developer/SDKs/' + macSDKpath
         if not os.path.isdir(macSDKpath):
             raise Exception('Mac SDK ' + macsdk + ' not installed: ' + macSDKpath + ' is missing')
-        env['FBLIBS'] += ['-Wl', '-mmacosx-version-min=' + macsdk]
+        env['FBLINKFLAGS'] += ['-Wl', '-mmacosx-version-min=' + macsdk]
         env['CFLAGS'] += ['-mmacosx-version-min=' + macsdk]
         env['CXXFLAGS'] += ['-mmacosx-version-min=' + macsdk]
 
 if android:
     # liblog for __android_log_print/write
-    env['FBLIBS'] += ['-l', 'log']
+    env['FBLINKFLAGS'] += ['-l', 'log']
     env['CXXLINKFLAGS'] += ['-llog']
 
 def prefix_targets(target, source, env):
@@ -197,7 +197,7 @@ baso = Builder (action = '$FBC -c $SOURCE -o $TARGET $FBFLAGS',
 basmaino = Builder (action = '$FBC -c $SOURCE -o $TARGET -m ${SOURCE.filebase} $FBFLAGS',
                     suffix = '.o', src_suffix = '.bas', single_source = True,
                     source_factory = translate_rb)
-basexe = Builder (action = '$FBC $FBFLAGS -x $TARGET $SOURCES $FBLIBS',
+basexe = Builder (action = '$FBC $FBFLAGS -x $TARGET $SOURCES $FBLINKFLAGS',
                   suffix = exe_suffix, src_suffix = '.bas')
 
 basasm = Builder (action = '$FBC -c $SOURCE -o $TARGET $FBFLAGS -r -g',
@@ -407,19 +407,19 @@ elif unix:
     commonenv['FBFLAGS'] += ['-d', 'DATAFILES=\'"/usr/share/games/ohrrpgce"\'']
 
 #CXXLINKFLAGS are used when linking with g++
-#FBLIBS are used when linking with fbc
+#FBLINKFLAGS are used when linking with fbc
 
 for lib in libraries:
     if mac and lib in ('SDL', 'SDL_mixer', 'Cocoa'):
         # Use frameworks rather than normal unix libraries
         commonenv['CXXLINKFLAGS'] += ['-framework', lib]
-        commonenv['FBLIBS'] += ['-Wl', '-framework,' + lib]
+        commonenv['FBLINKFLAGS'] += ['-Wl', '-framework,' + lib]
     else:
         commonenv['CXXLINKFLAGS'] += ['-l' + lib]
-        commonenv['FBLIBS'] += ['-l', lib]
+        commonenv['FBLINKFLAGS'] += ['-l', lib]
 
 commonenv['CXXLINKFLAGS'] += ['-L' + path for path in libpaths]
-commonenv['FBLIBS'] += Flatten ([['-p', v] for v in libpaths])
+commonenv['FBLINKFLAGS'] += Flatten ([['-p', v] for v in libpaths])
 
 
 # first, make sure the version is saved.
@@ -481,7 +481,7 @@ if linkgcc:
         commonenv['CXXLINKFLAGS'] += ['-lgdi32', '-Wl,--subsystem,windows']
 
 else:
-    commonenv['FBLIBS'] += ['-l','stdc++'] #, '-l','gcc_s', '-l','gcc_eh']
+    commonenv['FBLINKFLAGS'] += ['-l','stdc++'] #, '-l','gcc_s', '-l','gcc_eh']
 
 # Note that base_objects are not built in commonenv!
 base_objects = sum ([env.Object(a) for a in base_modules], [])  # concatenate lists
@@ -547,7 +547,7 @@ x2rsrc = ['xml2reload.bas'] + reload_objects
 if win32:
     # Hack around our provided libxml2.a lacking a function. (Was less work than recompiling)
     x2rsrc.append (env.Object('win32/utf8toisolat1.c'))
-XML2RELOAD = env_exe ('xml2reload', source = x2rsrc, FBLIBS = env['FBLIBS'] + ['-l','xml2'], CXXLINKFLAGS = env['CXXLINKFLAGS'] + ['-lxml2'])
+XML2RELOAD = env_exe ('xml2reload', source = x2rsrc, FBLINKFLAGS = env['FBLINKFLAGS'] + ['-l','xml2'], CXXLINKFLAGS = env['CXXLINKFLAGS'] + ['-lxml2'])
 RELOAD2XML = env_exe ('reload2xml', source = ['reload2xml.bas'] + reload_objects)
 RELOADUTIL = env_exe ('reloadutil', source = ['reloadutil.bas'] + reload_objects)
 RBTEST = env_exe ('rbtest', source = [env.RB('rbtest.rbas'), env.RB('rbtest2.rbas')] + reload_objects)
