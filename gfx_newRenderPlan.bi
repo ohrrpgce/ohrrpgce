@@ -21,22 +21,22 @@ End Enum
 
 Type Surface
 	handle as any ptr
-	width as integer
-	height as integer
+	width as int32
+	height as int32
 	format as SurfaceFormat
 	usage as SurfaceUsage
 	Union
 		pRawData as any ptr
-		pColorData as uinteger ptr
+		pColorData as uint32 ptr
 		pPaletteData as ubyte ptr
 	End Union
 End Type
 
 Type SurfaceRect
-	left as integer
-	top as integer
-	right as integer
-	bottom as integer
+	left as int32
+	top as int32
+	right as int32
+	bottom as int32
 End Type
 
 'palettes

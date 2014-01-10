@@ -97,7 +97,7 @@ DECLARE FUNCTION dowait () as bool
 DECLARE SUB enable_speed_control(byval setting as bool = YES)
 DECLARE FUNCTION get_tickcount() as integer
 
-DECLARE FUNCTION parse_tag(z as string, byval offset as integer, byval action as string ptr, byval arg as integer ptr) as integer
+DECLARE FUNCTION parse_tag(z as string, byval offset as integer, byval action as string ptr, byval arg as int32 ptr) as integer
 
 TYPE PrintStrStatePtr as PrintStrState Ptr
 

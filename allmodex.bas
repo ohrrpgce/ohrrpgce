@@ -2975,7 +2975,7 @@ end sub
 'Pass a string, a 0-based offset of the start of the tag (it is assumed the first two characters have already
 'been matched as ${ or \8{ as desired), and action and arg pointers, to fill with the parse results. (Action in UPPERCASE)
 'Returns 0 for an invalidly formed tag, otherwise the (0-based) offset of the closing }.
-function parse_tag(z as string, byval offset as integer, byval action as string ptr, byval arg as integer ptr) as integer
+function parse_tag(z as string, byval offset as integer, byval action as string ptr, byval arg as int32 ptr) as integer
 	dim closebrace as integer = INSTR((offset + 4) + 1, z, "}") - 1
 	if closebrace <> -1 then
 		*action = ""
@@ -3006,24 +3006,24 @@ end function
 type PrintStrState
 	'Public members (may set before passing to render_text)
 	as Font ptr thefont
-	as integer fgcolor          'Used when resetting localpal. May be -1 for none
-	as integer bgcolor          'Only used if not_transparent
-	as bool    not_transparent  'Force non-transparency of layer 1
+	as long fgcolor          'Used when resetting localpal. May be -1 for none
+	as long bgcolor          'Only used if not_transparent
+	as bool32 not_transparent  'Force non-transparency of layer 1
 
 	'Internal members
 	as Font ptr initial_font    'Used when resetting thefont
-	as integer leftmargin
-	as integer rightmargin
-	as integer x
-	as integer y
-	as integer startx
-	as integer charnum
+	as long leftmargin
+	as long rightmargin
+	as long x
+	as long y
+	as long startx
+	as long charnum
 
 	'Internal members used only if drawing, as opposed to laying out/measuring
 	as Palette16 localpal
-	as integer initial_fgcolor  'Used when resetting fgcolor
-	as integer initial_bgcolor  'Used when resetting bgcolor
-	as bool    initial_not_trans 'Used when resetting bgcolor
+	as long initial_fgcolor  'Used when resetting fgcolor
+	as long initial_bgcolor  'Used when resetting bgcolor
+	as bool32 initial_not_trans 'Used when resetting bgcolor
 end type
 
 'Special signalling characters
@@ -3031,7 +3031,7 @@ end type
 #define tcmdState      15
 #define tcmdPalette    16
 #define tcmdRepalette  17
-#define tcmdFont       18
+#define tcmdFont       18  '1 argument: the font number (possibly -1)
 #define tcmdLast       18
 
 'Invisible argument: state. (member should not be . prefixed, unfortunately)
@@ -3041,22 +3041,22 @@ end type
 'members greater than 4 bytes aren't supported
 #macro UPDATE_STATE(outbuf, member, value)
 	'Ugh! FB doesn't allow sizeof in #if conditions!
-	#if typeof(state.member) <> integer
+	#if typeof(state.member) <> long
 		#error "UPDATE_STATE: bad member type"
 	#endif
 	outbuf += CHR(tcmdState) & "      "
 	*Cast(short ptr, @outbuf[len(outbuf) - 6]) = Offsetof(PrintStrState, member)
-	*Cast(integer ptr, @outbuf[len(outbuf) - 4]) = Cast(integer, value)
+	*Cast(long ptr, @outbuf[len(outbuf) - 4]) = Cast(long, value)
 	state.member = value
 #endmacro
 
 'Interprets a control sequence (at 0-based offset ch in outbuf) written by UPDATE_STATE,
 'modifying state.
 #define MODIFY_STATE(state, outbuf, ch) _
-	/' dim offset as integer = *Cast(short ptr, @outbuf[ch + 1]) '/ _
-	/' dim newval as integer = *Cast(integer ptr, @outbuf[ch + 3]) '/ _
-	*Cast(integer ptr, Cast(byte ptr, @state) + *Cast(short ptr, @outbuf[ch + 1])) = _
-		*Cast(integer ptr, @outbuf[ch + 3]) : _
+	/' dim offset as long = *Cast(short ptr, @outbuf[ch + 1]) '/ _
+	/' dim newval as long = *Cast(long ptr, @outbuf[ch + 3]) '/ _
+	*Cast(long ptr, Cast(byte ptr, @state) + *Cast(short ptr, @outbuf[ch + 1])) = _
+		*Cast(long ptr, @outbuf[ch + 3]) : _
 	ch += 6
 
 #define APPEND_CMD0(outbuf, cmd_id) _
@@ -3064,10 +3064,10 @@ end type
 
 #define APPEND_CMD1(outbuf, cmd_id, value) _
 	outbuf += CHR(cmd_id) & "    " : _
-	*Cast(integer ptr, @outbuf[len(outbuf) - 4]) = Cast(integer, value)
+	*Cast(long ptr, @outbuf[len(outbuf) - 4]) = Cast(long, value)
 
 #define READ_CMD(outbuf, ch, variable) _
-	variable = *Cast(integer ptr, @outbuf[ch + 1]) : _
+	variable = *Cast(long ptr, @outbuf[ch + 1]) : _
 	ch += 4
 
 'Processes starting from z[state.charnum] until the end of the line, returning a string
@@ -3156,7 +3156,7 @@ private function layout_line_fragment(z as string, byval endchar as integer, byv
 			elseif z[ch] = asc("$") then
 				if withtags and z[ch + 1] = asc("{") then
 					dim action as string
-					dim intarg as integer
+					dim intarg as int32
 
 					dim closebrace as integer = parse_tag(z, ch, @action, @intarg)
 					if closebrace then
@@ -3181,7 +3181,7 @@ private function layout_line_fragment(z as string, byval endchar as integer, byv
 								else
 									goto badtexttag
 								end if
-								APPEND_CMD1(outbuf, tcmdFont, .thefont)
+								APPEND_CMD1(outbuf, tcmdFont, intarg) '.thefont)
 								line_height = large(line_height, .thefont->h)
 							else
 								goto badtexttag
@@ -3346,10 +3346,24 @@ sub draw_line_fragment(byval dest as Frame ptr, byref state as PrintStrState, by
 			if parsed_line[ch] = tcmdState then
 				'Control sequence. Make a change to state, and move ch past the sequence
 				MODIFY_STATE(state, parsed_line, ch)
+
 			elseif parsed_line[ch] = tcmdFont then
 				READ_CMD(parsed_line, ch, arg)
-				.thefont = cast(Font ptr, arg)
-				'.thefont = @fonts(arg)
+				if arg >= -1 andalso arg <= ubound(fonts) then
+					if arg = -1 then
+						'UPDATE_STATE(outbuf, thefont, .initial_font)
+						.thefont = .initial_font
+					elseif fonts(arg).initialised then
+						'UPDATE_STATE(outbuf, thefont, @fonts(arg))
+						.thefont = @fonts(arg)
+					else
+						'This should be impossible, because layout_line_fragment has already checked this
+						debugc errPromptBug, "draw_line_fragment: font not initialised!"
+					end if
+				else
+					'This should be impossible, because layout_line_fragment has already checked this
+					debugc errPromptBug, "draw_line_fragment: invalid font!"
+				end if
 				if reallydraw then
 					'In case .fgcolor == -1 and .thefont->pal == NULL. Palette changes are per-font,
 					'so reset the colour.
@@ -3357,6 +3371,7 @@ sub draw_line_fragment(byval dest as Frame ptr, byref state as PrintStrState, by
 					'We rebuild the local palette using either the font's palette or from scratch
 					build_text_palette state, .thefont->pal
 				end if
+
 			elseif parsed_line[ch] = tcmdPalette then
 				READ_CMD(parsed_line, ch, arg)
 				if reallydraw then
@@ -3370,12 +3385,14 @@ sub draw_line_fragment(byval dest as Frame ptr, byref state as PrintStrState, by
 					end if
 					'FIXME: in fact pal should be kept around, for tcmdRepalette
 				end if
+
 			elseif parsed_line[ch] = tcmdRepalette then
 				if reallydraw then
 					'FIXME: if we want to support switching to a non-font palette, then
 					'that palette should be stored in state and used here
 					build_text_palette state, .thefont->pal
 				end if
+
 			else
 				'Draw a character
 
@@ -3965,7 +3982,11 @@ sub font_loadold1bit (byval font as Font ptr, byval fontdata as ubyte ptr)
 				'maskp += 8
 			next
 			fi = fi + fstep
+#IFDEF __FB_64BIT__
+			fstep = iif(fstep = 1, 7, 1) 'uneven steps due to 2->8 byte thunk
+#ELSE
 			fstep = iif(fstep = 1, 3, 1) 'uneven steps due to 2->4 byte thunk
+#ENDIF
 			sptr += 1 - 8 * 8
 			'maskp += 1 - 8 * 8
 		next

@@ -37,7 +37,7 @@ TYPE FnStr as function cdecl (byval as any ptr) as string
  'generates a warning even they're the same size
  TYPE FnCompare as function cdecl (byval as any ptr, byval as any ptr) as integer
 #ELSE
- TYPE FnCompare as function cdecl (byval as any ptr, byval as any ptr) as long
+ TYPE FnCompare as function cdecl (byval as any ptr, byval as any ptr) as int32
 #ENDIF
 
 'Not used
@@ -49,7 +49,7 @@ END ENUM
 
 TYPE TypeTable
   element_len as ulong
-  passtype as PassConvention
+  passtype as ulong  'Is a PassConvention (but FB Enums are 64 bit on AMD64)
   ctor as FnCtor
   copyctor as FnCopy
   dtor as FnCtor
@@ -67,10 +67,10 @@ extern "C"
 
 'This one function in array.c is special: it needs to be passed a TypeTable which
 'depends on the overload. Therefore, we wrap it.
-declare sub array_new (byref this as any vector, byval length as integer, byval tbl as TypeTable ptr)
+declare sub array_new (byref this as any vector, byval length as int32, byval tbl as TypeTable ptr)
 
 'Undocumented, if you need this, you're probably doing something wrong
-declare function array_is_temp (byval this as any vector) as integer
+declare function array_is_temp (byval this as any vector) as int32
 
 end extern
 
@@ -86,10 +86,10 @@ end extern
   declare sub array_assign (byref dest as any vector, byref src as any vector)
   declare sub array_assign_d (byref dest as any vector, byref src as any vector)
   declare function array_temp (byval this as any vector) as any vector
-  declare function array_length (byval this as any vector) as uinteger
-  declare sub array_resize (byref this as any vector, byval len as uinteger)
-  declare function array_expand (byref this as any vector, byval amount as uinteger = 1) as any ptr
-  declare function array_index (byval this as any vector, byval index as integer) as any ptr
+  declare function array_length (byval this as any vector) as uint32
+  declare sub array_resize (byref this as any vector, byval len as uint32)
+  declare function array_expand (byref this as any vector, byval amount as uint32 = 1) as any ptr
+  declare function array_index (byval this as any vector, byval index as int32) as any ptr
   declare function array_end (byval this as any vector) as any ptr
   declare function array_type (byval this as any vector) as TypeTable ptr
   declare function array_append (byref this as any vector, byval value as any ptr) as any vector
@@ -97,12 +97,12 @@ end extern
   declare function array_extend_d (byref this as any vector, byref append as any vector) as any vector
   declare function array_sort (byval this as any vector, byval compfunc as FnCompare = 0) as any vector
   declare function array_reverse (byref this as any vector) as any vector
-  declare function array_equal (byval lhs as any vector, byval rhs as any vector) as integer
-  declare function array_inequal (byref lhs as any vector, byref rhs as any vector) as integer
-  declare function array_find (byval this as any vector, byval value as any ptr) as integer
-  declare function array_insert (byref this as any vector, byval pos as integer, byval value as any ptr) as any vector
-  declare function array_remove (byref this as any vector, byval value as any ptr) as integer
-  declare function array_delete_slice (byref this as any vector, byval from as integer, byval to as integer) as any vector
+  declare function array_equal (byval lhs as any vector, byval rhs as any vector) as int32
+  declare function array_inequal (byref lhs as any vector, byref rhs as any vector) as int32
+  declare function array_find (byval this as any vector, byval value as any ptr) as int32
+  declare function array_insert (byref this as any vector, byval pos as int32, byval value as any ptr) as any vector
+  declare function array_remove (byref this as any vector, byval value as any ptr) as int32
+  declare function array_delete_slice (byref this as any vector, byval from as int32, byval to as int32) as any vector
   end extern
 
   #DEFINE v_free array_free
@@ -144,7 +144,7 @@ end extern
 
   'Deletes any existing vector in 'this', creates a new vector.
   'Special case: this is a FB wrapper function
-  private sub v_new overload (byref this as T vector, byval length as integer = 0)
+  private sub v_new overload (byref this as T vector, byval length as int32 = 0)
     array_new(this, length, @type_table(TID))
   end sub
 
@@ -165,16 +165,16 @@ end extern
   'Convention: always mark anything you return from a function as temporary!
   declare function v_ret overload alias "array_temp" (byval this as T vector) as T vector
 
-  declare function v_len overload alias "array_length" (byval this as T vector) as uinteger
+  declare function v_len overload alias "array_length" (byval this as T vector) as uint32
 
   'Changes the length of a vector. Elements are deleted or constructed as needed
-  declare sub v_resize overload alias "array_resize" (byref this as T vector, byval len as uinteger)
+  declare sub v_resize overload alias "array_resize" (byref this as T vector, byval len as uint32)
 
   'Increases the number of elements of a vector. Returns a pointer to the first new element created
-  declare function v_expand overload alias "array_expand" (byref this as T vector, byval amount as uinteger = 1) as T ptr
+  declare function v_expand overload alias "array_expand" (byref this as T vector, byval amount as uint32 = 1) as T ptr
 
   'Return pointer to some element. Throws a fatal error if out of range. Useful for polymorphism.
-  declare function v_at overload alias "array_index" (byval this as T vector, byval index as integer) as T ptr
+  declare function v_at overload alias "array_index" (byval this as T vector, byval index as int32) as T ptr
 
   'Returns pointer 1 past end, useful for indexing from the end
   declare function v_end overload alias "array_end" (byval this as T vector) as T ptr
@@ -199,24 +199,24 @@ end extern
   declare function v_reverse overload alias "array_reverse" (byref this as T vector) as T vector
 
   'Are all elements equal? If the type has no comparison functions defined, does raw memcmp. Returns 0 or -1
-  declare function v_equal overload alias "array_equal" (byval lhs as T vector, byval rhs as T vector) as integer
+  declare function v_equal overload alias "array_equal" (byval lhs as T vector, byval rhs as T vector) as int32
 
   'Are any elements inequal? If the type has no comparison functions defined, does raw memcmp. Returns 0 or -1
   'Please ignore the byrefs: they are there only to match the FnCompare signature
-  declare function v_inequal overload alias "array_inequal" (byref lhs as T vector, byref rhs as T vector) as integer
+  declare function v_inequal overload alias "array_inequal" (byref lhs as T vector, byref rhs as T vector) as int32
 
   'Returns the index of the first element equal to 'item', or -1 if not found
-  declare function v_find overload alias "array_find" (byval this as T vector, byref value as T) as integer
+  declare function v_find overload alias "array_find" (byval this as T vector, byref value as T) as int32
 
   'Insert an element at some position. Returns 'this'
-  declare function v_insert overload alias "array_insert" (byref this as T vector, byval position as integer, byref value as T) as T vector
+  declare function v_insert overload alias "array_insert" (byref this as T vector, byval position as int32, byref value as T) as T vector
 
   'Remove the first instance of value. No error or warning if it isn't found.
   'Returns the index of the item if it was found, or -1 if not
-  declare function v_remove overload alias "array_remove" (byref this as T vector, byref value as T) as integer
+  declare function v_remove overload alias "array_remove" (byref this as T vector, byref value as T) as int32
 
   'Delete the range [from, to). Returns 'this'
-  declare function v_delete_slice overload alias "array_delete_slice" (byref this as T vector, byval from as integer, byval to as integer) as T vector
+  declare function v_delete_slice overload alias "array_delete_slice" (byref this as T vector, byval from as int32, byval to as int32) as T vector
 
   end extern
 
@@ -226,7 +226,7 @@ end extern
   'So use wrapper functions instead (luckily GCC can optimise these away)
 
   'Wrap just for the default argument
-  private function v_expand overload (byref this as T vector, byval amount as uinteger = 1) as T ptr
+  private function v_expand overload (byref this as T vector, byval amount as uint32 = 1) as T ptr
     return cast(T ptr, array_expand(this, amount))
   end function
 
@@ -234,15 +234,15 @@ end extern
     return cast(T vector, array_append(this, @value))
   end function
 
-  private function v_find overload (byval this as T vector, byref value as T) as integer
+  private function v_find overload (byval this as T vector, byref value as T) as int32
     return array_find(this, @value)
   end function
 
-  private function v_insert overload (byref this as T vector, byval position as integer, byref value as T) as T vector
+  private function v_insert overload (byref this as T vector, byval position as int32, byref value as T) as T vector
     return cast(T vector, array_insert(this, position, @value))
   end function
 
-  private function v_remove overload (byref this as T vector, byref value as T) as integer
+  private function v_remove overload (byref this as T vector, byref value as T) as int32
     return array_remove(this, @value)
   end function
 
@@ -314,7 +314,7 @@ declare function cdecl array_create(byval tbl as typeTable, ...)
 
 #MACRO DEFINE_VECTOR_OF_TYPE_COMMON(T, TID, COPY_FUNC, DELETE_FUNC)
   'Dumb default (FB doesn't provide default comparison methods for UDTs)
-  private function TID##_compare_func cdecl (byval p1 as T ptr, byval p2 as T ptr) as integer
+  private function TID##_compare_func cdecl (byval p1 as T ptr, byval p2 as T ptr) as int32
     return memcmp(p1, p2, sizeof(T))   
   end function
 

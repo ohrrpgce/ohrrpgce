@@ -13,15 +13,15 @@
 
 #define FWptr(context)  cast(FileWrapper ptr, context->hidden.unknown.data1)
 
-function lumprwops_seek cdecl (byval context as SDL_RWops ptr, byval offset as integer, byval whence as integer) as integer
+function lumprwops_seek cdecl (byval context as SDL_RWops ptr, byval offset as long, byval whence as long) as long
 	return FileWrapper_seek(*FWptr(context), offset, whence)
 end function
 
-function lumprwops_read cdecl (byval context as SDL_RWops ptr, byval bufr as any ptr, byval size as integer, byval maxnum as integer) as integer
+function lumprwops_read cdecl (byval context as SDL_RWops ptr, byval bufr as any ptr, byval size as long, byval maxnum as long) as long
 	return FileWrapper_read(*FWptr(context), bufr, size, maxnum)
 end function
 
-function lumprwops_close cdecl (byval context as SDL_RWops ptr) as integer
+function lumprwops_close cdecl (byval context as SDL_RWops ptr) as long
 	if context then
 		FileWrapper_close(*FWptr(context))
 		SDL_FreeRW(context)
@@ -55,11 +55,11 @@ v_new live_RWops_closefuncs
 
 'The intent of this function is remove the RWops from live_RWops when it is closed:
 'actually calling SDL_RWclose twice is definitely an error
-private function safe_RW_close_wrap cdecl (byval context as SDL_RWops ptr) as integer
+private function safe_RW_close_wrap cdecl (byval context as SDL_RWops ptr) as int32
 	dim num as integer = v_find(live_RWops, context)
 	if num > -1 then
 		'It is live, close it
-		dim ret as integer
+		dim ret as int32
 		ret = cast(FnRWopsClose, live_RWops_closefuncs[num])(context)
 		v_delete_slice live_RWops, num, num + 1
 		v_delete_slice live_RWops_closefuncs, num, num + 1

@@ -11,6 +11,15 @@
 #ENDIF
 
 TYPE bool as integer
+' Temporary, until we can declare bool as an int32
+TYPE bool32 as long
+
+#IFNDEF int32
+  TYPE int32 as long
+#ENDIF
+#IFNDEF uint32
+  TYPE uint32 as ulong
+#ENDIF
 
 '---For some crazy reason TRUE and FALSE don't work well as const even though they are not reserved
 CONST YES = -1

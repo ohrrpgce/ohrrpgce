@@ -94,7 +94,7 @@ DIM SHARED forced_mouse_clipping as integer = NO
 DIM SHARED remember_mouserect as RectPoints = ((-1, -1), (-1, -1))
 'These are the actual zoomed clip bounds
 DIM SHARED as integer mxmin = -1, mxmax = -1, mymin = -1, mymax = -1
-DIM SHARED as integer privatemx, privatemy, lastmx, lastmy
+DIM SHARED as int32 privatemx, privatemy, lastmx, lastmy
 DIM SHARED keybdstate(127) as integer  '"real"time keyboard array
 DIM SHARED input_buffer as wstring * 128
 DIM SHARED mouseclicks as integer
@@ -464,7 +464,7 @@ FUNCTION gfx_sdl_present_internal(byval raw as any ptr, byval w as integer, byva
     END IF
 
     'smoothzoomblit takes the pitch in pixels, not bytes!
-    smoothzoomblit_32_to_32bit(raw, cast(uinteger ptr, screensurface->pixels), w, h, screensurface->pitch \ 4, zoom, smooth)
+    smoothzoomblit_32_to_32bit(raw, cast(uint32 ptr, screensurface->pixels), w, h, screensurface->pitch \ 4, zoom, smooth)
     IF SDL_Flip(screensurface) THEN
       debug "gfx_sdl_present_internal: SDL_Flip failed: " & *SDL_GetError
     END IF
@@ -787,7 +787,11 @@ SUB gfx_sdl_process_events()
       CASE SDL_MOUSEBUTTONDOWN
         'note SDL_GetMouseState is still used, while SDL_GetKeyState isn't
         mouseclicks OR= SDL_BUTTON(evnt.button.button)
-      CASE 1 'SDL_ACTIVEEVENT  (FIXME: SDL_ACTIVEEVENT is shadowed in FB 0.91)
+#IF __FB_VERSION__ < "0.91"
+      CASE SDL_ACTIVEEVENT
+#ELSE
+      CASE SDL_ACTIVEEVENT_
+#ENDIF
         'debug "SDL_ACTIVEEVENT " & evnt.active.state
         IF evnt.active.state AND SDL_APPINPUTFOCUS THEN
           IF evnt.active.gain = 0 THEN
@@ -1014,8 +1018,8 @@ FUNCTION fix_buttons(byval buttons as integer) as integer
 END FUNCTION
 
 FUNCTION update_mouse() as integer
-  DIM x as integer
-  DIM y as integer
+  DIM x as int32
+  DIM y as int32
   DIM buttons as Uint8
 
   buttons = SDL_GetMouseState(@x, @y)

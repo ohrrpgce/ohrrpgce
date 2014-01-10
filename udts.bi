@@ -72,7 +72,7 @@ End Enum
 'WARNING: don't add strings to this
 TYPE Palette16
 	col(15) as ubyte 'indices into the master palette
-	refcount as integer 'private
+	refcount as int32 'private
 END TYPE
 
 TYPE SpriteCacheEntryFwd as SpriteCacheEntry
@@ -85,18 +85,18 @@ TYPE SpriteSetFwd as SpriteSet
 '.arraylen set to the length of the array, and all but first will have .arrayelem ON.
 'WARNING: don't add strings to this
 type Frame
-	w as integer
-	h as integer
-	pitch as integer     'pixel (x,y) is at .image[.x + .pitch * .y]; mask and image pitch are the same!
+	w as int32
+	h as int32
+	pitch as int32     'pixel (x,y) is at .image[.x + .pitch * .y]; mask and image pitch are the same!
 	image as ubyte ptr
 	mask as ubyte ptr
-	refcount as integer  'see frame_unload in particular for documentation
-	arraylen as integer  'how many frames were contiguously allocated in this frame array
+	refcount as int32  'see frame_unload in particular for documentation
+	arraylen as int32  'how many frames were contiguously allocated in this frame array
 	base as Frame ptr    'if a view, the Frame which actually owns this memory
 	cacheentry as SpriteCacheEntryFwd ptr
-	cached:1 as integer  '(not set for views onto cached sprites)
-	arrayelem:1 as integer  'not the first frame in a frame array
-	isview:1 as integer
+	cached:1 as int32  '(not set for views onto cached sprites)
+	arrayelem:1 as int32  'not the first frame in a frame array
+	isview:1 as int32
 
 	'used only by frames in a SpriteSet, for now
 	offset as XYPair

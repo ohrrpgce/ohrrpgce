@@ -167,12 +167,12 @@ declare sub Io_amx_mousebits (byref mx as integer, byref my as integer, byref mw
 
 ' functions in blit.c
 
-declare sub blitohr(byval spr as Frame ptr, byval destspr as Frame ptr, byval pal as Palette16 ptr, byval startoffset as integer, byval startx as integer, byval starty as integer, byval endx as integer, byval endy as integer, byval trans as integer)
-declare sub blitohrscaled(byval spr as Frame ptr, byval destspr as Frame ptr, byval pal as Palette16 ptr, byval x as integer, byval y as integer, byval startx as integer, byval starty as integer, byval endx as integer, byval endy as integer, byval trans as integer, byval scale as integer)
+declare sub blitohr(byval spr as Frame ptr, byval destspr as Frame ptr, byval pal as Palette16 ptr, byval startoffset as int32, byval startx as int32, byval starty as int32, byval endx as int32, byval endy as int32, byval trans as int32)
+declare sub blitohrscaled(byval spr as Frame ptr, byval destspr as Frame ptr, byval pal as Palette16 ptr, byval x as int32, byval y as int32, byval startx as int32, byval starty as int32, byval endx as int32, byval endy as int32, byval trans as int32, byval scale as int32)
 
-declare sub smoothzoomblit_8_to_8bit(byval srcbuffer as ubyte ptr, byval destbuffer as ubyte ptr, byval w as integer, byval h as integer, byval pitch as integer, byval zoom as integer, byval smooth as integer)
-declare sub smoothzoomblit_8_to_32bit(byval srcbuffer as ubyte ptr, byval destbuffer as uinteger ptr, byval w as integer, byval h as integer, byval pitch as integer, byval zoom as integer, byval smooth as integer, byval pal as integer ptr)
-declare sub smoothzoomblit_32_to_32bit(byval srcbuffer as uinteger ptr, byval destbuffer as uinteger ptr, byval w as integer, byval h as integer, byval pitch as integer, byval zoom as integer, byval smooth as integer)
+declare sub smoothzoomblit_8_to_8bit(byval srcbuffer as ubyte ptr, byval destbuffer as ubyte ptr, byval w as int32, byval h as int32, byval pitch as int32, byval zoom as int32, byval smooth as int32)
+declare sub smoothzoomblit_8_to_32bit(byval srcbuffer as ubyte ptr, byval destbuffer as uint32 ptr, byval w as int32, byval h as int32, byval pitch as int32, byval zoom as int32, byval smooth as int32, byval pal as int32 ptr)
+declare sub smoothzoomblit_32_to_32bit(byval srcbuffer as uint32 ptr, byval destbuffer as uint32 ptr, byval w as int32, byval h as int32, byval pitch as int32, byval zoom as int32, byval smooth as int32)
 
 end extern
 
