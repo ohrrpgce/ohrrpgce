@@ -1301,7 +1301,7 @@ SUB DeserDoorLinks(filename as string, array() as doorlink)
 	close #f
 End SUB
 
-Sub SerDoorLinks(filename as string, array() as doorlink, byval withhead as integer = -1)
+Sub SerDoorLinks(filename as string, array() as doorlink, byval withhead as bool = YES)
 	dim as integer f = freefile, i
 	
 	if not fileiswriteable(filename) then exit sub

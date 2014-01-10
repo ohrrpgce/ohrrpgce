@@ -667,7 +667,7 @@ FUNCTION scriptname (byval num as integer) as string
  RETURN ret
 END FUNCTION
 
-Function seconds2str(byval sec as integer, f as string = "%m:%S") as string
+Function seconds2str(byval sec as integer, f as string = " %m: %S") as string
   dim ret as string
   dim as integer s, m, h
   s = sec mod 60

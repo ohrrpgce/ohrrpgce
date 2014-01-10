@@ -77,7 +77,7 @@ declare sub SaveZoneMap(zmap as ZoneMap, filename as string, rsrect as RectType 
 declare sub LoadZoneMap(zmap as ZoneMap, filename as string)
 
 declare SUB DeserDoorLinks(filename as string, array() as doorlink)
-declare Sub SerDoorLinks(filename as string, array() as doorlink, byval withhead as integer = 1)
+declare Sub SerDoorLinks(filename as string, array() as doorlink, byval withhead as bool = YES)
 declare sub CleanDoorLinks(array() as doorlink)
 declare Sub DeSerDoors(filename as string, array() as door, byval record as integer)
 declare Sub SerDoors(filename as string, array() as door, byval record as integer)

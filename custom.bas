@@ -1605,10 +1605,10 @@ SUB font_test_menu
    font_loadbmps @fonts(st.pt), "fonttests/testfont", @fonts(st.pt)
   END IF
   IF keyval(sc2) > 1 THEN
-   DIM file as string
-   file = browse(10, "", "*.bmp", tmpdir, 0, "")
-   IF LEN(file) THEN
-    font_loadbmp_16x16 @fonts(st.pt), file
+   DIM filen as string
+   filen = browse(10, "", "*.bmp", tmpdir, 0, "")
+   IF LEN(filen) THEN
+    font_loadbmp_16x16 @fonts(st.pt), filen
    END IF
   END IF
   IF keyval(sc3) > 1 THEN

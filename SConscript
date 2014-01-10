@@ -18,6 +18,7 @@ CC = os.environ.get ('CC')
 CXX = os.environ.get ('CXX')
 AS = os.environ.get ('AS')
 fbc = ARGUMENTS.get ('fbc','fbc')
+fbc = os.path.expanduser (fbc)  # expand ~
 CFLAGS = '-g -Wall --std=c99'.split ()  # These flags apply only to .c[pp] sources, NOT to CC invoked via gengcc=1
 CXXFLAGS = '-g -Wall -Wno-non-virtual-dtor'.split ()
 linkgcc = int (ARGUMENTS.get ('linkgcc', True))   # link using g++ instead of fbc?
@@ -238,7 +239,9 @@ if CXX:
     env.Replace (CXX = CXX)
 
 if linkgcc:
-    fbc_binary = ARGUMENTS.get ('fbc', env.WhereIs (fbc))
+    fbc_binary = fbc
+    if not os.path.isfile (fbc_binary):
+        fbc_binary = env.WhereIs (fbc)
     if not fbc_binary:
         raise Exception("FreeBasic compiler is not installed!")
     fbc_path = os.path.dirname(fbc_binary)

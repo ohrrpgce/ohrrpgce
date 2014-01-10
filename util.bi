@@ -328,15 +328,16 @@ declare function fgetiob alias "fb_FileGetIOB" ( byval fnum as integer, byval po
 '                              Math
 
 
-'Why is crt/float.bi missing these?
+'crt/float.bi is missing these in FB 0.90.1 and earlier
 
-' Maximum double
-'FIXME: This is the true value, but produces an assembler error!
-'#define DBL_MAX 1.7976931348623157e+308
-#define DBL_MAX 1.7976931348623154e+308
-' Maximum single
-#define FLT_MAX 3.40282347e+38F
-
+#IF __FB_VERSION__ < "0.91"
+  ' Maximum double
+  'FIXME: This is the true value, but produces an assembler error!
+  '#define DBL_MAX 1.7976931348623157e+308
+  #define DBL_MAX 1.7976931348623154e+308
+  ' Maximum single
+  #define FLT_MAX 3.40282347e+38F
+#ENDIF
 
 UNION XYPair
   TYPE
