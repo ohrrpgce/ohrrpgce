@@ -9,6 +9,7 @@
 #include "common.bi"
 #include "file.bi"
 'warning: due to a FB bug, overloaded functions must be declared before SDL.bi is included
+#undef uint32
 #include "SDL\SDL.bi"
 #include "SDL\SDL_mixer.bi"
 

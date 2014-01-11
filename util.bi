@@ -14,11 +14,22 @@ TYPE bool as integer
 ' Temporary, until we can declare bool as an int32
 TYPE bool32 as long
 
-#IFNDEF int32
-  TYPE int32 as long
-#ENDIF
-#IFNDEF uint32
-  TYPE uint32 as ulong
+'Even though long and integer are the same size on 32 bit platforms,
+'fbc considers them different types and throws warnings!
+#IFDEF __FB_64BIT__
+  #IFNDEF int32
+    TYPE int32 as long
+  #ENDIF
+  #IFNDEF uint32
+    TYPE uint32 as ulong
+  #ENDIF
+#ELSE
+  #IFNDEF int32
+    TYPE int32 as integer
+  #ENDIF
+  #IFNDEF uint32
+    TYPE uint32 as uinteger
+  #ENDIF
 #ENDIF
 
 '---For some crazy reason TRUE and FALSE don't work well as const even though they are not reserved

@@ -44,12 +44,17 @@
 #ELSE
  #DEFINE _PSTR " Unknown Platform"
 #ENDIF
+#IFDEF __FB_64BIT__
+ #DEFINE _BSTR " 64-bit"
+#ELSE
+ #DEFINE _BSTR " 32-bit"
+#ENDIF
 #IFDEF SCRIPTPROFILE
  #DEFINE _SSTR " script_profiling"
 #ELSE
  #DEFINE _SSTR
 #ENDIF
-CONST build_info as string = "" _GSTR _ESTR _GENSTR _SSTR _PSTR
+CONST build_info as string = "" _GSTR _ESTR _GENSTR _SSTR _PSTR _BSTR
 
 '__FB_UNIX__ is only in FB 0.21 onwards (I think)
 'In FB 0.90+ it's either defined or not (can't be used in #IF), while in earlier FBs

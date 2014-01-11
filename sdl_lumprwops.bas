@@ -13,15 +13,15 @@
 
 #define FWptr(context)  cast(FileWrapper ptr, context->hidden.unknown.data1)
 
-function lumprwops_seek cdecl (byval context as SDL_RWops ptr, byval offset as long, byval whence as long) as long
+function lumprwops_seek cdecl (byval context as SDL_RWops ptr, byval offset as int32, byval whence as int32) as int32
 	return FileWrapper_seek(*FWptr(context), offset, whence)
 end function
 
-function lumprwops_read cdecl (byval context as SDL_RWops ptr, byval bufr as any ptr, byval size as long, byval maxnum as long) as long
+function lumprwops_read cdecl (byval context as SDL_RWops ptr, byval bufr as any ptr, byval size as int32, byval maxnum as int32) as int32
 	return FileWrapper_read(*FWptr(context), bufr, size, maxnum)
 end function
 
-function lumprwops_close cdecl (byval context as SDL_RWops ptr) as long
+function lumprwops_close cdecl (byval context as SDL_RWops ptr) as int32
 	if context then
 		FileWrapper_close(*FWptr(context))
 		SDL_FreeRW(context)

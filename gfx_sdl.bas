@@ -11,6 +11,7 @@
 #include "common.bi"
 #include "scancodes.bi"
 '#define NEED_SDL_GETENV
+#undef uint32
 #include "SDL\SDL.bi"
 /'
 #ifdef __FB_WIN32__
