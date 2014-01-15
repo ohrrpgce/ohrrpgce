@@ -12,9 +12,11 @@ fi
 
 echo Building binaries
 
+rm ohrrpgce-game ohrrpgce-custom
+
 scons ${EXTRA_SCONS_OPTIONS} game custom hspeak unlump relump
 
-if [ ! -f ohrrpgce-game ] ; then
+if [ ! -f ohrrpgce-game -o ! -f ohrrpgce-custom ] ; then
   echo Aborting distrib script because scons failed
   exit 1
 fi

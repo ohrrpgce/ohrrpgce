@@ -38,6 +38,11 @@ cd wip
 
 ./distrib-mac.sh ${MORE_ARGS}
 
+if [ ! -f ohrrpgce-game -o ! -f ohrrpgce-custom ] ; then
+  echo Aborting distrib-nightly script because distrib script failed
+  exit 1
+fi
+
 mv distrib/OHRRPGCE-*-wip.dmg distrib/OHRRPGCE-wip.dmg
 scp -p distrib/OHRRPGCE-wip.dmg $UPLOAD_DEST/ohrrpgce/nightly/
 rm distrib/OHRRPGCE-wip.dmg
