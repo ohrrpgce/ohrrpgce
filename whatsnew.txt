@@ -57,6 +57,7 @@ WHAT IS NEW?
       to their local variables [Ralph]
     * "read item description" counterpart to existing "read item name"
       [James]
+    * "get sprite default pal" [James]
 
   * Performance Fixes
     * Fixed delay when opening a menu that happened when a large number
@@ -68,7 +69,6 @@ WHAT IS NEW?
     * Experimental support for Android phones and tablets
     * Experimental support for the OUYA Console
     * Experimental support for the Raspberry Pi
-
 
 April 9 2013 [Beelzebufo]
 

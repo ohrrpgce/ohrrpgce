@@ -3374,6 +3374,17 @@ SELECT CASE as CONST id
   IF npcref >= 0 THEN
    scriptret = iif(npc(npcref).suspend_ai, 0, 1)
   END IF
+ CASE 559'--get sprite default pal
+  IF valid_plotsprite(retvals(0)) THEN
+   DIM dat as SpriteSliceData Ptr
+   dat = plotslices(retvals(0))->SliceData
+   IF dat->paletted = NO THEN
+    'Only paletted sprites have default palettes
+    scriptret = -1
+   ELSE
+    scriptret = getdefaultpal(dat->spritetype, dat->record)
+   END IF
+  END IF
 
  CASE ELSE
   RETURN NO

@@ -2441,6 +2441,15 @@ set menu on close script(m, @my menu exit handler)
 				<ref>getspriteframe</ref>
 			</seealso>
 		</command>
+		<command id="getspritedefaultpal">
+			<canon>get sprite default pal (handle)</canon>
+			<shortname>get sprite default pal</shortname>
+			<description>Returns default palette of sprite <p>handle</p>. You don't need to use this when you want to set a sprite to its default palette, because a palette number of -1 will have that effect. This command is for finding out the real palette number of the palette that would be used if the sprite is set to -1</description>
+			<seealso>
+				<ref>getspritepalette</ref>
+				<ref>setspritepalette</ref>
+			</seealso>
+		</command>
 		<command id="setspriteframe">
 			<canon>set sprite frame (handle, num)</canon>
 			<shortname>set sprite frame</shortname>

@@ -571,6 +571,7 @@ define function, begin
 556,inputstringwithvirtualkeyboard,3,0,-1,-1 # (string id, max length, only player)
 557,getitemdescription,2,0,0     #(string, item) - puts the description of item(item) in string(string)
 558,setspritesetnumber,2,0,0     #(sprite slice handle, set num)
+559,getspritedefaultpal,1,0      #(sprite slice handle) - returns default palette number
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 
