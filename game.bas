@@ -3385,6 +3385,7 @@ SUB advance_text_box ()
  ClearTextBox txt.box
  setkeys
  flusharray carray(), 7, 0
+ update_virtual_gamepad_display
 END SUB
 
 SUB init_default_text_colors()
