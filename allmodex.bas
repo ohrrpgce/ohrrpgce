@@ -6696,13 +6696,25 @@ end sub
 
 function running_on_console() as bool
 	'Currently the ouya is the only supported console, but there could be others someday
-	return io_running_on_console()
+	static cached as bool = NO
+	static cached_result as bool
+	if not cached then
+		cached_result = io_running_on_console()
+		cached = YES
+	end if
+	return cached_result
 end function
 
 function running_on_ouya() as bool
 'Only use this for things that strictly require OUYA, like the OUYA store
 #IFDEF __FB_ANDROID__
-	return io_running_on_console()
+	static cached as bool = NO
+	static cached_result as bool
+	if not cached then
+		cached_result = io_running_on_console()
+		cached = YES
+	end if
+	return cached_result
 #ELSE
 	return NO
 #ENDIF
@@ -6711,7 +6723,13 @@ end function
 function running_on_mobile() as bool
 #IFDEF __FB_ANDROID__
 	'--return true for all Android except OUYA
-	return not running_on_console()
+	static cached as bool = NO
+	static cached_result as bool
+	if not cached then
+		cached_result = NOT io_running_on_console()
+		cached = YES
+	end if
+	return cached_result
 #ELSE
 	return NO
 #ENDIF
