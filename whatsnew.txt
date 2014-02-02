@@ -58,6 +58,8 @@ WHAT IS NEW?
     * "read item description" counterpart to existing "read item name"
       [James]
     * "get sprite default pal" [James]
+    * "NPC is disabled" for detecting when an NPC reference is disabled
+      by tags or by one-time-use [James]
 
   * Performance Fixes
     * Fixed delay when opening a menu that happened when a large number

@@ -3385,6 +3385,14 @@ SELECT CASE as CONST id
     scriptret = getdefaultpal(dat->spritetype, dat->record)
    END IF
   END IF
+ CASE 560'--NPC is disabled
+  npcref = getnpcref(retvals(0), 0)
+  scriptret = 0
+  IF npcref >= 0 THEN
+   IF npc(npcref).id < 0 THEN
+    scriptret = 1
+   END IF
+  END IF
 
  CASE ELSE
   RETURN NO

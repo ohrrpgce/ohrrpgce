@@ -1282,6 +1282,9 @@
 		<a href="#about-npcframe">NPC frame (who)</a><br>
 		
 	
+		<a href="#about-npcisdisabled">NPC is disabled (reference)</a><br>
+		
+	
 		<a href="#about-npciswalking">NPC is walking (who)</a><br>
 		
 	
@@ -3430,6 +3433,14 @@ end</pre>
 		<tt>
 		<b><font color="yellow">put npc (who,x,y)</font></b><br>
 			Moves an NPC to a location on the map in pixels. The first argument is and <a href="#about-npcreference" class="ref">NPC reference</a> or an NPC ID number. The second and third arguments are the X,Y pixel position relative to the top left corner of the map. Be aware that using this command can mis-align your NPC with the tile-grid, preventing it from walking normally. To position the NPC by tile, use the <a href="#about-setnpcposition" class="ref">set NPC position</a> command.<br>
+			
+			
+		</tt></p>
+		<a name="about-npcisdisabled"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">NPC is disabled (reference)</font></b><br>
+			This command returns true if the <a href="#about-npcreference" class="ref">NPC reference</a> points to an NPC who has been disabled because of tags or one-time-use.<br>
 			
 			
 		</tt></p>
@@ -11457,7 +11468,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 781 commands in this file, of which 57 are only references to other commands.</p>
+	<p>Stats: There are 782 commands in this file, of which 57 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

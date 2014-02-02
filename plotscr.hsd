@@ -572,6 +572,7 @@ define function, begin
 557,getitemdescription,2,0,0     #(string, item) - puts the description of item(item) in string(string)
 558,setspritesetnumber,2,0,0     #(sprite slice handle, set num)
 559,getspritedefaultpal,1,0      #(sprite slice handle) - returns default palette number
+560,npcisdisabled,1,0            #(npc reference) returns true if the npc exists, but is disabled by tags or one-time use
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 
