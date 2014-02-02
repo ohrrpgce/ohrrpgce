@@ -779,7 +779,7 @@ end</example>
 		<command id="npcisdisabled">
 			<canon>NPC is disabled (reference)</canon>
 			<shortname>NPC is disabled</shortname>
-			<description>This command returns true if the <ref>npcreference</ref> points to an NPC who has been disabled because of tags or one-time-use.</description>
+			<description>This command returns true if the <ref>npcreference</ref> points to an NPC who does not exist, or has been disabled because of tags or one-time-use.</description>
 		</command>
 	</section>
 	<section title="Moving the Camera">

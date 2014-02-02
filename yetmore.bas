@@ -3392,6 +3392,8 @@ SELECT CASE as CONST id
    IF npc(npcref).id < 0 THEN
     scriptret = 1
    END IF
+  ELSE
+   scriptret = 1
   END IF
 
  CASE ELSE
