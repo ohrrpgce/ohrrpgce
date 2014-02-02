@@ -814,7 +814,7 @@ SUB shop_add_new (shopst as ShopEditState)
     END IF
     IF enter_space_click(state) THEN
       DIM shopbuf(19) as integer
-      DIM stufbuf(curbinsize(binSTF) \ 2 - 1) as integer
+      DIM stufbuf(50 * curbinsize(binSTF) \ 2 - 1) as integer
       SELECT CASE state.pt
         CASE 0 ' cancel
           shopst.id -= 1
@@ -826,7 +826,7 @@ SUB shop_add_new (shopst as ShopEditState)
           '--Create a new shop stuff record
           flusharray stufbuf()
           'FIXME: load the name and price for first shop item
-          stufbuf(19) = -1  'Default in-stock to infinite
+          stufbuf(19) = -1  'Default in-stock to infinite (first item only!)
         CASE 2 ' copy
           gen(genMaxShop) += 1
           loadrecord shopbuf(), game + ".sho", 20, shoptocopy

@@ -49,6 +49,7 @@ WHAT IS NEW?
       'New Game' button which did nothing [Ralph]
     * Disabling palette colours for backdrop/tileset import didn't work
       for 8-bit BMPs. (Also added mouse support.) [Ralph]
+    * Bug 1004: Copying a shop didn't copy all the shop items [Ralph]
 
   * New Plotscripting Stuff
     * "Menu action plotscript" special script trigger to run a script
