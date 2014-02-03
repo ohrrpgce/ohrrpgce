@@ -270,7 +270,7 @@ DO
 LOOP
 END SUB
 
-'Give the user the chance to remap a color to 0
+'Give the user the chance to remap a color to 0.
 SUB importbmp_change_background_color(img as Frame ptr)
  DIM pickpos as XYPair
  DIM ret as bool
@@ -317,7 +317,10 @@ FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp as stri
    FOR idx as integer = 0 TO 255
     palmapping(idx) = idx
    NEXT
-   convertbmppal srcbmp, pmask(), palmapping()
+   ' Disallow anything other than colour 0 from being mapped to colour 0 to prevent accidental transparency,
+   ' and force 0 to be mapped to 0.
+   convertbmppal srcbmp, pmask(), palmapping(), 1  'firstindex = 1
+   palmapping(0) = 0
    FOR y as integer = 0 TO img->h - 1
     FOR x as integer = 0 TO img->w - 1
      putpixel img, x, y, palmapping(readpixel(img, x, y))
@@ -325,10 +328,13 @@ FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp as stri
    NEXT
   END IF
  ELSE
-  img = frame_import_bmp24_or_32(srcbmp, pmask())
+  'Since the source image is not paletted, we don't know what the background colour
+  'is (if any: not all backdrops and tilesets are transparent). Import it, disallowing anything to
+  'be remapped to colour 0 (unfortunately colour 0 is the only pure black in the default palette),
+  'then let the user pick.
+  img = frame_import_bmp24_or_32(srcbmp, pmask(), 1)
+  importbmp_change_background_color img
  END IF
-
- importbmp_change_background_color img
 
  storemxs mxslump, imagenum, img
  frame_unload @img

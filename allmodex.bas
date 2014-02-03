@@ -36,8 +36,8 @@ end type
 declare sub drawohr(byval src as Frame ptr, byval dest as Frame ptr, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval trans as bool = YES)
 'declare sub grabrect(byval page as integer, byval x as integer, byval y as integer, byval w as integer, byval h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
 declare function write_bmp_header(f as string, byval w as integer, byval h as integer, byval bitdepth as integer) as integer
-declare sub loadbmp32(byval bf as integer, byval fr as Frame ptr, pal() as RGBcolor)
-declare sub loadbmp24(byval bf as integer, byval fr as Frame ptr, pal() as RGBcolor)
+declare sub loadbmp32(byval bf as integer, byval fr as Frame ptr, pal() as RGBcolor, firstindex as integer)
+declare sub loadbmp24(byval bf as integer, byval fr as Frame ptr, pal() as RGBcolor, firstindex as integer)
 declare sub loadbmp8(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmp4(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmp1(byval bf as integer, byval fr as Frame ptr)
@@ -4417,9 +4417,11 @@ function open_bmp_and_read_header(bmp as string, byref header as BITMAPFILEHEADE
 end function
 
 
-function frame_import_bmp24_or_32(bmp as string, pal() as RGBcolor) as Frame ptr
+function frame_import_bmp24_or_32(bmp as string, pal() as RGBcolor, firstindex as integer = 0) as Frame ptr
 'loads and palettises the 24-bit or 32-bit bitmap bmp, mapped to palette pal()
 'The alpha channel if any is ignored
+'Pass firstindex = 1 to prevent anything from getting mapped to colour 0.
+
 	dim header as BITMAPFILEHEADER
 	dim info as BITMAPINFOHEADER
 	dim bf as integer
@@ -4434,9 +4436,9 @@ function frame_import_bmp24_or_32(bmp as string, pal() as RGBcolor) as Frame ptr
 	ret = frame_new(info.biWidth, info.biHeight)
 
 	if info.biBitCount = 24 then
-		loadbmp24(bf, ret, pal())
+		loadbmp24(bf, ret, pal(), firstindex)
 	elseif info.biBitCount = 32 then
-		loadbmp32(bf, ret, pal())
+		loadbmp32(bf, ret, pal(), firstindex)
 	else
 		debug "frame_import_bmp24_or_32 should not have been called!"
 		frame_unload @ret
@@ -4533,7 +4535,7 @@ function frame_import_bmp_raw(bmp as string) as Frame ptr
 	return ret
 end function
 
-private sub loadbmp32(byval bf as integer, byval fr as Frame ptr, pal() as RGBcolor)
+private sub loadbmp32(byval bf as integer, byval fr as Frame ptr, pal() as RGBcolor, firstindex as integer)
 'takes an open file handle, an already sized Frame, and a 256 colour palette to map to
 	dim pix as RGBQUAD
 	dim ub as ubyte
@@ -4544,13 +4546,13 @@ private sub loadbmp32(byval bf as integer, byval fr as Frame ptr, pal() as RGBco
 		sptr = fr->image + h * fr->pitch
 		for w = 0 to fr->w - 1
 			get #bf, , pix
-			*sptr = nearcolor(pal(), pix.rgbRed, pix.rgbGreen, pix.rgbBlue)
+			*sptr = nearcolor(pal(), pix.rgbRed, pix.rgbGreen, pix.rgbBlue, firstindex)
 			sptr += 1
 		next
 	next
 END SUB
 
-private sub loadbmp24(byval bf as integer, byval fr as Frame ptr, pal() as RGBcolor)
+private sub loadbmp24(byval bf as integer, byval fr as Frame ptr, pal() as RGBcolor, firstindex as integer)
 'takes an open file handle, an already sized Frame pointer, and a 256 colour palette to map to
 	dim pix as RGBTRIPLE
 	dim ub as ubyte
@@ -4567,7 +4569,7 @@ private sub loadbmp24(byval bf as integer, byval fr as Frame ptr, pal() as RGBco
 		for w = 0 to fr->w - 1
 			'read the data
 			get #bf, , pix
-			*sptr = nearcolor(pal(), pix.rgbtRed, pix.rgbtGreen, pix.rgbtBlue)
+			*sptr = nearcolor(pal(), pix.rgbtRed, pix.rgbtGreen, pix.rgbtBlue, firstindex)
 			sptr += 1
 		next
 		'padding to dword boundary
@@ -4819,10 +4821,11 @@ function loadbmppal (f as string, pal() as RGBcolor) as integer
 	return info.biBitCount
 end function
 
-sub convertbmppal (f as string, mpal() as RGBcolor, pal() as integer)
+sub convertbmppal (f as string, mpal() as RGBcolor, pal() as integer, firstindex as integer = 0)
 'Find the nearest match palette mapping from a 1/4/8 bit bmp f to
 'the master palette mpal(), and store it in pal(), an array of mpal() indices.
-'pal() may contain initial values, used as hints.
+'pal() may contain initial values, used as hints which are used if an exact match.
+'Pass firstindex = 1 to prevent anything from getting mapped to colour 0.
 	dim bitdepth as integer
 	dim cols(255) as RGBcolor
 
@@ -4830,7 +4833,7 @@ sub convertbmppal (f as string, mpal() as RGBcolor, pal() as integer)
 	if bitdepth = 0 then exit sub
 
 	for i as integer = 0 to small(UBOUND(pal), (1 SHL bitdepth) - 1)
-		pal(i) = nearcolor(mpal(), cols(i).r, cols(i).g, cols(i).b, , pal(i))
+		pal(i) = nearcolor(mpal(), cols(i).r, cols(i).g, cols(i).b, firstindex, pal(i))
 	next
 end sub
 
