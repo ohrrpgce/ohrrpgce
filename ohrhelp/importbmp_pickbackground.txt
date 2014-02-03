@@ -2,6 +2,6 @@ Many tilesets and backdrops are intended to have transparent parts. In order to 
 
 Press ESC to not perform any color remapping (eg. for a non-transparent background).
 
-Use the arrow keys to move the flashing pixel around. Position it on a pixel of the background color and press ENTER or SPACE to confirm.
+Use the mouse or arrow keys to move the flashing pixel around. Position it on a pixel of the background color and CLICK or press ENTER or SPACE to confirm. The current color is shown at the top right.
 
 Whether color 0 actually acts as transparent depends on how the image is actually used. For example textboxes have an option to toggle transparency, and tilesets used on the bottommost map layer are not transparent.

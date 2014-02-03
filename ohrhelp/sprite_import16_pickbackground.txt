@@ -1,6 +1,6 @@
 You just imported an image file and are now being asked to choose the color which indicates transparency.
 
-Use the arrow keys to move the flashing pixel around. Position it on a pixel of the background color, which will be mapped to color 0 in the palette (transparent) and press ENTER or SPACE to select it.
+Use the mouse or arrow keys to move the flashing pixel around. Position it on a pixel of the background color, which will be mapped to color 0 in the palette (transparent) and CLICK or press ENTER or SPACE to select it.
 
 Press ESC to cancel the import.
 

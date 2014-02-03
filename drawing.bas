@@ -2547,6 +2547,7 @@ END SUB
 'Can restrict the selected pixel to the top left corner of the image by passing maxx, maxy args
 'Returns NO if user cancelled, otherwise YES and the pixel coordinate is returned in pickpos
 FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byref pickpos as XYPair, zoom as integer = 1, maxx as integer = 9999, maxy as integer = 9999, message as string, helpkey as string) as bool
+ DIM ret as bool = YES
  DIM tog as integer
  DIM picksize as XYPair
  pickpos.x = 0
@@ -2558,38 +2559,73 @@ FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byr
   imagepos.y = 1
  END IF
 
+ hidemousecursor
+ DIM mouse as MouseInfo
  setkeys
  DO
-  setwait 55
+  setwait 20
   setkeys
+  mouse = readmouse()
   tog XOR= 1
-  IF keyval(scESC) > 1 THEN RETURN NO
+  IF keyval(scESC) > 1 THEN ret = NO : EXIT DO
   IF keyval(scF1) > 1 THEN show_help helpkey
-  IF enter_or_space() THEN EXIT DO
 
-  DIM movespeed as integer
+  IF enter_or_space() OR (mouse.clickstick AND mouseleft) THEN
+   ret = YES
+   EXIT DO
+  END IF
+
   picksize.x = small(vpages(dpage)->w, small(image->w, maxx))
   picksize.y = small(vpages(dpage)->h, small(image->h, maxy))
-  IF keyval(scALT) THEN movespeed = 9 ELSE movespeed = 1
-  IF keyval(scUp) > 0 THEN pickpos.y = large(pickpos.y - movespeed, 0)
-  IF keyval(scDown) > 0 THEN pickpos.y = small(pickpos.y + movespeed, picksize.y - 1)
-  IF keyval(scleft) > 0 THEN pickpos.x = large(pickpos.x - movespeed, 0)
-  IF keyval(scRight) > 0 THEN pickpos.x = small(pickpos.x + movespeed, picksize.x - 1)
+
+  '--Moving mouse moves cursor and vice versa
+  IF mouse.moved THEN
+   pickpos.x = bound((mouse.x - imagepos.x) \ zoom, 0, picksize.x - 1)
+   pickpos.y = bound((mouse.y - imagepos.y) \ zoom, 0, picksize.y - 1)
+  ELSE
+   DIM movespeed as integer
+   IF keyval(scALT) THEN movespeed = 9 ELSE movespeed = 1
+   DIM moved as bool = NO
+   IF keyval(scUp) > 0 THEN pickpos.y = large(pickpos.y - movespeed, 0) : moved = YES
+   IF keyval(scDown) > 0 THEN pickpos.y = small(pickpos.y + movespeed, picksize.y - 1) : moved = YES
+   IF keyval(scleft) > 0 THEN pickpos.x = large(pickpos.x - movespeed, 0) : moved = YES
+   IF keyval(scRight) > 0 THEN pickpos.x = small(pickpos.x + movespeed, picksize.x - 1) : moved = YES
+   IF moved THEN
+    mouse.x = imagepos.x + (pickpos.x + 0.5) * zoom
+    mouse.y = imagepos.y + (pickpos.y + 0.5) * zoom
+    movemouse mouse.x, mouse.y
+   END IF
+  END IF
 
   clearpage dpage
   frame_draw image, pal16, imagepos.x, imagepos.y, zoom, NO, dpage
   'Draw box around the selectable proportion of the image
   drawbox imagepos.x - 1, imagepos.y - 1, picksize.x * zoom + 2, picksize.y * zoom + 2, uilook(uiText), 1, dpage
 
+  '--Draw info box at top right
+  DIM current_col as integer = readpixel(image, pickpos.x, pickpos.y)
+  DIM master_col as integer  ' Index in master()
+  IF pal16 THEN
+   master_col = pal16->col(current_col)
+  ELSE
+   master_col = current_col
+  END IF
+  rectangle vpages(dpage)->w - 50, 0, 50, 40, master_col, dpage
+  edgeprint !"Color:\n" & current_col, vpages(dpage)->w - 50, 10, uilook(uiMenuItem), dpage, YES, YES
+
   '--Draw the pixel cursor
   DIM col as integer
   IF tog THEN col = uilook(uiBackground) ELSE col = uilook(uiText)
   IF zoom = 1 THEN
-   'A single pixel is too small
+   'A single pixel is too small, so draw the crosshair mouse cursor.
+   'A little bit tricky: we only draw the mouse cursor, and not a separate cursor
    textcolor col, 0
    printstr CHR(5), imagepos.x + pickpos.x - 2, imagepos.y + pickpos.y - 2, dpage
   ELSE
+   'Draw both pixel cursor and mouse cursor
    rectangle imagepos.x + pickpos.x * zoom, imagepos.y + pickpos.y * zoom, zoom, zoom, col, dpage
+   textcolor uilook(uiSelectedItem + tog), 0
+   printstr CHR(2), mouse.x - 2, mouse.y - 2, dpage
   END IF
 
   edgeprint message, 0, 180, uilook(uiMenuItem), dpage, YES, YES
@@ -2598,7 +2634,8 @@ FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byr
   setvispage vpage
   dowait
  LOOP
- RETURN YES
+ unhidemousecursor
+ RETURN ret
 END FUNCTION
 
 'Lets the use pick one of the colour/pixels in impsprite, returns the colour index
