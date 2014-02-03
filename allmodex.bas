@@ -2932,7 +2932,8 @@ sub ellipse (byval fr as Frame ptr, byval x as double, byval y as double, byval 
 end sub
 
 'Replaces one colour with another within a rectangular region.
-'Specifying the region is optional
+'Specifying the region is optional (all four args x,y,w,h must be given if any of them are)
+'w and h may be negative to 'grow' a rectangle from the opposite edge
 sub replacecolor (byval fr as Frame ptr, byval c_old as integer, byval c_new as integer, byval x as integer = -1, byval y as integer = -1, byval w as integer = -1, byval h as integer = -1)
 	if clippedframe <> fr then
 		setclip , , , , fr
@@ -3730,7 +3731,7 @@ sub printstr (s as string, byval x as integer, byval y as integer, byval p as in
 end sub
 
 'this doesn't autowrap either
-sub edgeprint (s as string, byval x as integer, byval y as integer, byval c as integer, byval p as integer, byval withtags as bool = NO)
+sub edgeprint (s as string, byval x as integer, byval y as integer, byval c as integer, byval p as integer, byval withtags as bool = NO, byval withnewlines as bool = NO)
 	'preserve the old behaviour (edgeprint used to call textcolor)
 	textfg = c
 	textbg = 0
@@ -3739,7 +3740,7 @@ sub edgeprint (s as string, byval x as integer, byval y as integer, byval c as i
 	state.thefont = @fonts(1)
 	state.fgcolor = c
 
-	render_text (vpages(p), state, s, , x, y, , , withtags, NO)
+	render_text (vpages(p), state, s, , x, y, , , withtags, withnewlines)
 end sub
 
 sub textcolor (byval fg as integer, byval bg as integer)

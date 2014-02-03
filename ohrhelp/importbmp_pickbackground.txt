@@ -1,0 +1,7 @@
+Many tilesets and backdrops are intended to have transparent parts. In order to appear transparent they must be filled with color 0 in the palette. This screen allows remapping a color to 0 if it's not already.
+
+Press ESC to not perform any color remapping (eg. for a non-transparent background).
+
+Use the arrow keys to move the flashing pixel around. Position it on a pixel of the background color and press ENTER or SPACE to confirm.
+
+Whether color 0 actually acts as transparent depends on how the image is actually used. For example textboxes have an option to toggle transparency, and tilesets used on the bottommost map layer are not transparent.

@@ -1,5 +1,0 @@
-Use the arrow keys to move the flashing pixel around. Position it on a pixel of the background color, which will be mapped to color 0 in the palette (transparent).
-
-Press ESC to cancel the import.
-
-Note: If the image you are importing is larger than the size of sprite type you are importing it as, then the rest of the image will be drawn beyond the edges of the rectangle indicating the sprite size, and will be cut off.

@@ -14,6 +14,7 @@ DECLARE SUB savepasdefaults (byref defaults as integer vector, tilesetnum as int
 DECLARE FUNCTION importmasterpal (f as string, byval palnum as integer) as integer
 
 'Local SUBs and FUNCTIONS
+DECLARE FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byref pickpos as XYPair, zoom as integer = 1, maxx as integer = 9999, maxy as integer = 9999, message as string, helpkey as string) as bool
 DECLARE FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp as string, pmask() as RGBcolor) as bool
 
 DECLARE SUB picktiletoedit (byref tmode as integer, byval pagenum as integer, mapfile as string, bgcolor as integer)
@@ -269,6 +270,18 @@ DO
 LOOP
 END SUB
 
+'Give the user the chance to remap a color to 0
+SUB importbmp_change_background_color(img as Frame ptr)
+ DIM pickpos as XYPair
+ DIM ret as bool
+ DIM message as string = !"Pick the background (transparent) color\nor press ESC to skip remapping"
+ ret = pick_image_pixel(img, , pickpos, , , , message, "importbmp_pickbackground")
+ IF ret THEN
+  DIM bgcol as integer = readpixel(img, pickpos.x, pickpos.y)
+  replacecolor img, bgcol, 0
+ END IF
+END SUB
+
 'Returns true if imported, false if cancelled
 FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp as string, pmask() as RGBcolor) as bool
  DIM bmpd as BitmapInfoHeader
@@ -283,7 +296,7 @@ FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp as stri
   paloption = 0  'Perform remapping, otherwise disabling colors won't work
   loadbmppal srcbmp, temppal()
   IF memcmp(@temppal(0), @master(0), 256 * sizeof(RGBcolor)) <> 0 THEN
-   'the palette is inequal to the master palette 
+   'the palette is inequal to the master palette
    clearpage vpage
    menu(0) = "Remap to current Master Palette"
    menu(1) = "Import with new Master Palette"
@@ -314,6 +327,9 @@ FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp as stri
  ELSE
   img = frame_import_bmp24_or_32(srcbmp, pmask())
  END IF
+
+ importbmp_change_background_color img
+
  storemxs mxslump, imagenum, img
  frame_unload @img
  loadpalette pmask(), activepalette
@@ -2525,27 +2541,35 @@ SUB spriteedit_import16_loadbmp(byref ss as SpriteEditState, workpal() as intege
  END IF
 END SUB
 
-'Lets the use pick one of the colour/pixels in impsprite, returns the colour index
-'Returns -1 is cancelled
-FUNCTION spriteedit_import16_pick_bgcol(byref ss as SpriteEditState, byref impsprite as Frame ptr, byref pal16 as Palette16 ptr) as integer
+'Select a single pixel from a Frame, used for selecting the background colour.
+'pal16 may be NULL.
+'zoom is the zoom to draw at.
+'Can restrict the selected pixel to the top left corner of the image by passing maxx, maxy args
+'Returns NO if user cancelled, otherwise YES and the pixel coordinate is returned in pickpos
+FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byref pickpos as XYPair, zoom as integer = 1, maxx as integer = 9999, maxy as integer = 9999, message as string, helpkey as string) as bool
  DIM tog as integer
- DIM pickpos as XYPair
  DIM picksize as XYPair
  pickpos.x = 0
  pickpos.y = 0
- picksize.x = small(320, small(impsprite->w, ss.wide))
- picksize.y = small(200, small(impsprite->h, ss.high))
+ DIM imagepos as XYPair
+ ' If it's smaller than the screen, offset the image so it's not sitting in the corner
+ IF maxx * zoom + 4 < vpages(dpage)->w THEN
+  imagepos.x = 4
+  imagepos.y = 1
+ END IF
 
  setkeys
  DO
   setwait 55
   setkeys
   tog XOR= 1
-  IF keyval(scESC) > 1 THEN RETURN -1
-  IF keyval(scF1) > 1 THEN show_help "frame_import16_pickbackground"
+  IF keyval(scESC) > 1 THEN RETURN NO
+  IF keyval(scF1) > 1 THEN show_help helpkey
   IF enter_or_space() THEN EXIT DO
 
   DIM movespeed as integer
+  picksize.x = small(vpages(dpage)->w, small(image->w, maxx))
+  picksize.y = small(vpages(dpage)->h, small(image->h, maxy))
   IF keyval(scALT) THEN movespeed = 9 ELSE movespeed = 1
   IF keyval(scUp) > 0 THEN pickpos.y = large(pickpos.y - movespeed, 0)
   IF keyval(scDown) > 0 THEN pickpos.y = small(pickpos.y + movespeed, picksize.y - 1)
@@ -2553,26 +2577,37 @@ FUNCTION spriteedit_import16_pick_bgcol(byref ss as SpriteEditState, byref impsp
   IF keyval(scRight) > 0 THEN pickpos.x = small(pickpos.x + movespeed, picksize.x - 1)
 
   clearpage dpage
-  frame_draw impsprite, pal16, 4, 1, ss.zoom, NO, dpage
-  'Draw box around the proportion of the image that will be used
-  drawbox 3, 0, ss.wide * ss.zoom + 2, ss.high * ss.zoom + 2, uilook(uiText), 1, dpage
+  frame_draw image, pal16, imagepos.x, imagepos.y, zoom, NO, dpage
+  'Draw box around the selectable proportion of the image
+  drawbox imagepos.x - 1, imagepos.y - 1, picksize.x * zoom + 2, picksize.y * zoom + 2, uilook(uiText), 1, dpage
 
   '--Draw the pixel cursor
   DIM col as integer
   IF tog THEN col = uilook(uiBackground) ELSE col = uilook(uiText)
-  IF ss.zoom = 1 THEN
+  IF zoom = 1 THEN
    'A single pixel is too small
    textcolor col, 0
-   printstr CHR(5), 4 + pickpos.x - 2, 1 + pickpos.y - 2, dpage
+   printstr CHR(5), imagepos.x + pickpos.x - 2, imagepos.y + pickpos.y - 2, dpage
   ELSE
-   rectangle 4 + pickpos.x * ss.zoom, 1 + pickpos.y * ss.zoom, ss.zoom, ss.zoom, col, dpage
+   rectangle imagepos.x + pickpos.x * zoom, imagepos.y + pickpos.y * zoom, zoom, zoom, col, dpage
   END IF
 
-  edgeprint "Pick background (transparent) color", 0, 190, uilook(uiMenuItem), dpage
+  edgeprint message, 0, 180, uilook(uiMenuItem), dpage, YES, YES
+  'edgeprint "ALT: move faster", 320 - 16*8, 190, uilook(uiMenuItem), dpage, YES, YES
   SWAP vpage, dpage
   setvispage vpage
   dowait
  LOOP
+ RETURN YES
+END FUNCTION
+
+'Lets the use pick one of the colour/pixels in impsprite, returns the colour index
+'Returns -1 if cancelled.
+FUNCTION spriteedit_import16_pick_bgcol(byref ss as SpriteEditState, impsprite as Frame ptr, pal16 as Palette16 ptr) as integer
+ DIM pickpos as XYPair
+ DIM ret as bool
+ ret = pick_image_pixel(impsprite, pal16, pickpos, ss.zoom, ss.wide, ss.high, "Pick background (transparent) color", "sprite_import16_pickbackground")
+ IF ret = NO THEN RETURN -1
 
  RETURN readpixel(impsprite, pickpos.x, pickpos.y)
 END FUNCTION

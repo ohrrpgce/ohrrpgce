@@ -1,7 +1,7 @@
-You just imported 1 16 color BMP file, and now you see  it in the top left of the screen, and all the colors look wrong. What does this mean!?
+You just imported an image file and are now being asked to choose the color which indicates transparency.
 
-Don't worry. You are just being asked to choose the transparent color.
+Use the arrow keys to move the flashing pixel around. Position it on a pixel of the background color, which will be mapped to color 0 in the palette (transparent) and press ENTER or SPACE to select it.
 
-See that tiny blinking pixel in the top left corner? Move with the arrow keys until it is over the color tha you want to make transparent, and press ENTER or SPACE to confirm. (or ESC to cancel)
+Press ESC to cancel the import.
 
-Actually, for most sprites, color that needs to be transparent around the edges, and since the cursor starts in the top left corner, you can usually just press ENTER or SPACE, and it will do the right thing.
+Note: If the image you are importing is larger than the size of sprite type you are importing it as, then the rest of the image will be drawn beyond the edges of the rectangle indicating the sprite size, and will be cut off.

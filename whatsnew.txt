@@ -25,6 +25,8 @@ WHAT IS NEW?
     * The map editor's Clone tool now has separate 'merge' and 'replace'
       modes (Ctrl+M to toggle) [Ralph]
     * When adding a new map layer you may copy an existing one [Ralph]
+    * When importing a backdrop or tileset you now have the option
+      to remap the background color to 0 if needed [Ralph]
 
   * Bugfixes
     * Fixed a few cosmetic bugs in the equip menu including possibly
