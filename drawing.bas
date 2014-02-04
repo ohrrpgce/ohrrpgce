@@ -3292,7 +3292,10 @@ IF ss.hold = YES AND ss.tool = oval_tool THEN
  END IF
 END IF
 FOR i as integer = 0 TO UBOUND(toolinfo)
- IF (mouse.clicks > 0 AND ss.zonenum = toolinfo(i).areanum + 1) OR keyval(toolinfo(i).shortcut) > 1 THEN
+ 'Check tool selection
+ 'Alt is used for alt+c and alt+v
+ IF (mouse.clicks > 0 AND ss.zonenum = toolinfo(i).areanum + 1) OR _
+    (keyval(scAlt) = 0 AND keyval(toolinfo(i).shortcut) > 1) THEN
   IF ss.tool <> i THEN ss.didscroll = NO
   ss.tool = i
   GOSUB resettool
