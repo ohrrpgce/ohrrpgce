@@ -296,25 +296,28 @@ SELECT CASE as CONST id
   doswap bound(retvals(0), 0, 40), bound(retvals(1), 0, 40)
  CASE 110'--set hero picture
   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
-   DIM i as integer = bound(retvals(0), 0, 40)
-   retvals(2) = bound(retvals(2), 0, 1)
-   IF retvals(2) = 0 THEN gam.hero(i).battle_pic = bound(retvals(1), 0, gen(genMaxHeroPic))
-   IF retvals(2) = 1 THEN gam.hero(i).pic = bound(retvals(1), 0, gen(genMaxNPCPic))
-   IF i < 4 THEN
-    vishero
+   DIM heronum as integer = bound(retvals(0), 0, 40)
+   DIM whichsprite as integer = bound(retvals(2), 0, 1)
+   IF whichsprite = 0 THEN
+    gam.hero(heronum).battle_pic = bound(retvals(1), 0, gen(genMaxHeroPic))
+   ELSE
+    gam.hero(heronum).pic = bound(retvals(1), 0, gen(genMaxNPCPic))
+    IF heronum < 4 THEN
+     vishero
+    END IF
    END IF
   END IF
  CASE 111'--set hero palette
   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
-   DIM i as integer = bound(retvals(0), 0, 40)
-   DIM j as integer = bound(retvals(2), 0, 1)
-   IF j < 1 THEN
-    gam.hero(i).battle_pal = bound(retvals(1), -1, 32767)
+   DIM heronum as integer = bound(retvals(0), 0, 40)
+   DIM whichsprite as integer = bound(retvals(2), 0, 1)
+   IF whichsprite = 0 THEN
+    gam.hero(heronum).battle_pal = bound(retvals(1), -1, 32767)
    ELSE
-    gam.hero(i).pal = bound(retvals(1), -1, 32767)
-   END IF
-   IF i < 4 THEN
-    vishero
+    gam.hero(heronum).pal = bound(retvals(1), -1, 32767)
+    IF heronum < 4 THEN
+     vishero
+    END IF
    END IF
   END IF
  CASE 112'--get hero picture
@@ -412,27 +415,33 @@ SELECT CASE as CONST id
    learn_spells_for_current_level retvals(0), (retvals(1)<>0)
   END IF
  CASE 449'--reset hero picture
-  DIM i as integer = retvals(0)
-  DIM j as integer = retvals(1)
-  IF really_valid_hero_party(i, , serrBound) THEN
-   IF bound_arg(j, 0, 1, "in or out of battle") THEN
+  DIM heronum as integer = retvals(0)
+  DIM whichsprite as integer = retvals(1)
+  IF really_valid_hero_party(heronum, , serrBound) THEN
+   IF bound_arg(whichsprite, 0, 1, "in or out of battle") THEN
     DIM her as herodef
-    loadherodata her, hero(i) - 1
-    IF j = 0 THEN gam.hero(i).battle_pic = her.sprite
-    IF j = 1 THEN gam.hero(i).pic = her.walk_sprite
-    IF i < 4 THEN vishero
+    loadherodata her, hero(heronum) - 1
+    IF whichsprite = 0 THEN
+     gam.hero(heronum).battle_pic = her.sprite
+    ELSE
+     gam.hero(heronum).pic = her.walk_sprite
+     IF heronum < 4 THEN vishero
+    END IF
    END IF
   END IF
  CASE 450'--reset hero palette
-  DIM i as integer = retvals(0)
-  DIM j as integer = retvals(1)
-  IF really_valid_hero_party(i, , serrBound) THEN
-   IF bound_arg(j, 0, 1, "in or out of battle") THEN
+  DIM heronum as integer = retvals(0)
+  DIM whichsprite as integer = retvals(1)
+  IF really_valid_hero_party(heronum, , serrBound) THEN
+   IF bound_arg(whichsprite, 0, 1, "in or out of battle") THEN
     DIM her as herodef
-    loadherodata her, hero(i) - 1
-    IF j = 0 THEN gam.hero(i).battle_pal = her.sprite_pal
-    IF j = 1 THEN gam.hero(i).pal = her.walk_sprite_pal
-    IF i < 4 THEN vishero
+    loadherodata her, hero(heronum) - 1
+    IF whichsprite = 0 THEN
+     gam.hero(heronum).battle_pal = her.sprite_pal
+    ELSE
+     gam.hero(heronum).pal = her.walk_sprite_pal
+     IF heronum < 4 THEN vishero
+    END IF
    END IF
   END IF
  CASE 497'--set hero base elemental resist (hero, element, percent)
@@ -3613,7 +3622,7 @@ END SUB
 '-When reloadnpc gets called, which happens when loading map state (after
 ' a battle, changing maps, loadmapstate) or when live previewing (changes to NPC data)
 'ALL hero sprite slices get reloaded (vishero is called) when:
-'-calling reset/setheropicture/palette(outsidebattle)
+'-calling reset/setheropicture/palette(outsidebattle) on a walkabout party hero
 '-the hero party changes, such as when changing the order of heroes
 SUB set_walkabout_sprite (byval cont as Slice Ptr, byval pic as integer=-1, byval pal as integer=-2)
  DIM sprsl as Slice Ptr
