@@ -2762,7 +2762,8 @@ FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byr
    'A single pixel is too small, so draw the crosshair mouse cursor.
    'A little bit tricky: we only draw the mouse cursor, and not a separate cursor
    textcolor col, 0
-   printstr CHR(5), imagepos.x + pickpos.x - 2, imagepos.y + pickpos.y - 2, dpage
+   'printstr CHR(5), imagepos.x + pickpos.x - 2, imagepos.y + pickpos.y - 2, dpage
+   printstr CHR(5), mouse.x - 2, mouse.y - 2, dpage
   ELSE
    'Draw both pixel cursor and mouse cursor
    rectangle imagepos.x + pickpos.x * zoom, imagepos.y + pickpos.y * zoom, zoom, zoom, col, dpage
@@ -2785,7 +2786,7 @@ END FUNCTION
 FUNCTION spriteedit_import16_pick_bgcol(byref ss as SpriteEditState, impsprite as Frame ptr, pal16 as Palette16 ptr) as integer
  DIM pickpos as XYPair
  DIM ret as bool
- ret = pick_image_pixel(impsprite, pal16, pickpos, ss.zoom, ss.wide, ss.high, "Pick background (transparent) color", "sprite_import16_pickbackground")
+ ret = pick_image_pixel(impsprite, pal16, pickpos, ss.zoom, , , "Pick background (transparent) color", "sprite_import16_pickbackground")
  IF ret = NO THEN RETURN -1
 
  RETURN readpixel(impsprite, pickpos.x, pickpos.y)
