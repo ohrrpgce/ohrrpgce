@@ -972,8 +972,9 @@ TYPE SpriteSize
  name as string
  size as XYPair
  frames as integer
- genmax as integer 'Offset in gen() where max record index is stored
- genmax_offset as integer 'if gen() actually stores num instead of max, this is -1
+ directions as integer
+ genmax as integer         'Offset in gen() where max record index is stored
+ genmax_offset as integer  'if gen() actually stores num instead of max, this is -1
 END TYPE
 
 TYPE DistribState

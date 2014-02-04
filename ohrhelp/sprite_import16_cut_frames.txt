@@ -1,0 +1,5 @@
+This menu lets you cut the frames of a spriteset from a spritesheet laid out in some non-default manner.
+
+Press ENTER to confirm.
+
+Press ESC to cancel importing.

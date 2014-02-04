@@ -2547,6 +2547,142 @@ SUB spriteedit_import16_loadbmp(byref ss as SpriteEditState, workpal() as intege
  END IF
 END SUB
 
+'Returns a new Frame, after deleting the input one. Returns NULL if cancelled
+FUNCTION spriteedit_import16_cut_frames(byref ss as SpriteEditState, impsprite as Frame ptr, pal16 as Palette16 ptr, bgcol as integer) as Frame ptr
+ DIM image_pos as XYPair = (1, 1)  'Position at which to draw impsprite
+
+ 'This staticness is a bit hacky
+ STATIC last_fileset as integer = -1
+ STATIC frame_size as XYPair
+ STATIC first_offset as XYPair     'Position of first frame
+ STATIC direction_offset as XYPair 'Offset between direction groups
+ STATIC frame_offset as XYPair     'Offset between frames for the same direction
+
+ 'unlock_resolution 320, 200   'Minimum window size
+
+ WITH sprite_sizes(ss.fileset)
+  DIM frames_per_dir as integer = .frames \ .directions
+
+  IF last_fileset <> ss.fileset THEN
+   frame_size = .size
+   first_offset = TYPE(0, 0)
+   frame_offset = TYPE(.size.w, 0)
+   direction_offset = TYPE(.size.w * frames_per_dir, 0)
+  END IF
+  last_fileset = ss.fileset
+
+  DIM tog as integer
+  DIM menu(7) as string
+  DIM st as MenuState
+  DIM menuopts as MenuOptions
+  menuopts.edged = YES
+  st.active = YES
+  IF .directions > 1 THEN
+   st.last = 7
+  ELSE
+   st.last = 5
+  END IF
+  st.size = st.last + 1
+
+  setkeys
+  DO
+   setwait 55
+   setkeys
+   tog XOR= 1
+
+   'Every frame re-layout the menu
+   'The Y position of the text at bottom of the screen
+   DIM texty as integer = vpages(dpage)->h - (st.last + 2) * 8 - 4
+
+   DIM zoom as integer
+   ' Choose maximum zoom that will fit
+   zoom = small(large(1, vpages(dpage)->w \ impsprite->w), large(1, texty \ impsprite->h))
+
+   IF keyval(scESC) > 1 THEN
+    frame_unload @impsprite
+    RETURN NULL
+   END IF
+   IF keyval(scF1) > 1 THEN show_help "sprite_import16_cut_frames"
+   IF enter_or_space() THEN EXIT DO
+
+   usemenu st
+   DIM temp as integer = st.pt
+   IF .directions = 1 AND temp >= 2 THEN temp += 2
+   SELECT CASE temp
+    CASE 0: intgrabber first_offset.x, -impsprite->w, impsprite->w
+    CASE 1: intgrabber first_offset.y, -impsprite->h, impsprite->h
+    CASE 2: intgrabber direction_offset.x, -impsprite->w, impsprite->w
+    CASE 3: intgrabber direction_offset.y, -impsprite->h, impsprite->h
+    CASE 4: intgrabber frame_offset.x, -impsprite->w, impsprite->w
+    CASE 5: intgrabber frame_offset.y, -impsprite->h, impsprite->h
+    CASE 6: intgrabber frame_size.w, 0, .size.w
+    CASE 7: intgrabber frame_size.h, 0, .size.h
+   END SELECT
+
+   menu(0) = "First frame x: " & first_offset.x
+   menu(1) = "First frame y: " & first_offset.y
+   temp = 2
+   IF .directions > 1 THEN
+    menu(2) = "Direction group offset x: " & direction_offset.x
+    menu(3) = "Direction group offset y: " & direction_offset.y
+    temp = 4
+   END IF
+   menu(temp) = "Each-frame offset x: " & frame_offset.x
+   menu(temp + 1) = "Each-frame offset y: " & frame_offset.y
+   menu(temp + 2) = "Frame width: " & frame_size.w
+   menu(temp + 3) = "Frame height: " & frame_size.h
+
+   '--Draw screen
+   clearpage dpage
+   drawbox image_pos.x - 1, image_pos.y - 1, zoom * impsprite->w + 2, zoom * impsprite->h + 2, uilook(uiMenuItem), 1, dpage
+   frame_draw impsprite, pal16, image_pos.x, image_pos.y, zoom, NO, dpage
+
+   DIM framenum as integer = 0
+   FOR direction as integer = 0 TO .directions - 1
+    FOR dirframe as integer = 0 TO frames_per_dir - 1
+     DIM as integer x, y  'coords in terms of impsprite pixels
+     x = first_offset.x + direction * direction_offset.x + dirframe * frame_offset.x
+     y = first_offset.y + direction * direction_offset.y + dirframe * frame_offset.y
+     drawbox image_pos.x + zoom * x, image_pos.y + zoom * y, zoom * frame_size.w, zoom * frame_size.h, uilook(uiText), 1, dpage
+     framenum += 1
+    NEXT
+   NEXT
+
+   'edgeprint "Offsets between spriteset frames:", 0, texty, uilook(uiText), dpage, YES, YES
+   edgeprint "Select spriteset layout and press ENTER", 0, texty, uilook(uiText), dpage, YES, YES
+   standardmenu menu(), st, 0, texty + 10, dpage, menuopts
+   
+   SWAP vpage, dpage
+   setvispage vpage
+   dowait
+  LOOP
+
+  ' Cut out the frames and place in a new one DIM flattened_set as Frame ptr
+  DIM flattened_set as Frame ptr
+  flattened_set = frame_new(ss.wide, ss.high)
+  frame_clear flattened_set, bgcol
+
+  DIM framenum as integer = 0
+  FOR direction as integer = 0 TO .directions - 1
+   FOR dirframe as integer = 0 TO frames_per_dir - 1
+    DIM as integer x, y
+    x = first_offset.x + direction * direction_offset.x + dirframe * frame_offset.x
+    y = first_offset.y + direction * direction_offset.y + dirframe * frame_offset.y
+    DIM impview as Frame ptr = frame_new_view(impsprite, x, y, frame_size.w, frame_size.h)
+    frame_draw impview, , (.size.w - frame_size.w) \ 2 + framenum * .size.w, .size.h - frame_size.h, , NO, flattened_set
+    frame_unload @impview
+    framenum += 1
+   NEXT
+  NEXT
+
+  frame_unload @impsprite
+ END WITH
+
+ 'set_resolution 320, 200
+ 'lock_resolution
+ RETURN flattened_set
+END FUNCTION
+
 'Select a single pixel from a Frame, used for selecting the background colour.
 'pal16 may be NULL.
 'zoom is the zoom to draw at.
@@ -2796,6 +2932,14 @@ SUB spriteedit_import16(byref ss as SpriteEditState, byref ss_save as SpriteEdit
   frame_unload @impsprite
   palette16_unload @pal16
   EXIT SUB
+ END IF
+
+ IF ss.fullset THEN
+  impsprite = spriteedit_import16_cut_frames(ss, impsprite, pal16, bgcol)
+  IF impsprite = NULL THEN
+   palette16_unload @pal16
+   EXIT SUB
+  END IF
  END IF
 
  'Swap the transparent pixels to 0

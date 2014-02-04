@@ -29,6 +29,9 @@ WHAT IS NEW?
       another game) color 0 (transparency) is preserved; when importing
       a 24/32-bit one you now have the option to pick the background
       color [Ralph]
+    * Ability to specify the positions of the frames in the source
+      spritesheet when importing with the sprite editor in full-set
+      mode (regular offsets between frames only) [Ralph]
 
   * Bugfixes
     * Fixed a few cosmetic bugs in the equip menu including possibly

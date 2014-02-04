@@ -4493,6 +4493,7 @@ SUB setup_sprite_sizes ()
   .size.x = 32
   .size.y = 40
   .frames = 8
+  .directions = 4
   .genmax = genMaxHeroPic
  END WITH
  WITH sprite_sizes(1)
@@ -4500,6 +4501,7 @@ SUB setup_sprite_sizes ()
   .size.x = 34
   .size.y = 34
   .frames = 1
+  .directions = 1
   .genmax = genMaxEnemy1Pic
  END WITH
  WITH sprite_sizes(2)
@@ -4507,6 +4509,7 @@ SUB setup_sprite_sizes ()
   .size.x = 50
   .size.y = 50
   .frames = 1
+  .directions = 1
   .genmax = genMaxEnemy2Pic
  END WITH
  WITH sprite_sizes(3)
@@ -4514,6 +4517,7 @@ SUB setup_sprite_sizes ()
   .size.x = 80
   .size.y = 80
   .frames = 1
+  .directions = 1
   .genmax = genMaxEnemy3Pic
  END WITH
  WITH sprite_sizes(4)
@@ -4521,6 +4525,7 @@ SUB setup_sprite_sizes ()
   .size.x = 20
   .size.y = 20
   .frames = 8
+  .directions = 4
   .genmax = genMaxNPCPic
  END WITH
  WITH sprite_sizes(5)
@@ -4528,6 +4533,7 @@ SUB setup_sprite_sizes ()
   .size.x = 24
   .size.y = 24
   .frames = 2
+  .directions = 1
   .genmax = genMaxWeaponPic
  END WITH
  WITH sprite_sizes(6)
@@ -4535,6 +4541,7 @@ SUB setup_sprite_sizes ()
   .size.x = 50
   .size.y = 50
   .frames = 3
+  .directions = 1
   .genmax = genMaxAttackPic
  END WITH
  WITH sprite_sizes(7)
@@ -4542,6 +4549,7 @@ SUB setup_sprite_sizes ()
   .size.x = 16
   .size.y = 16
   .frames = 16
+  .directions = 1
   .genmax = genMaxBoxBorder
  END WITH
  WITH sprite_sizes(8)
@@ -4549,6 +4557,7 @@ SUB setup_sprite_sizes ()
   .size.x = 50
   .size.y = 50
   .frames = 1
+  .directions = 1
   .genmax = genMaxPortrait
  END WITH
  WITH sprite_sizes(sprTypeMXS)  '9
@@ -4556,17 +4565,20 @@ SUB setup_sprite_sizes ()
   .size.x = 320
   .size.y = 200
   .frames = 1
+  .directions = 1
   .genmax = genNumBackdrops
   .genmax_offset = -1
  END WITH
  WITH sprite_sizes(sprTypeFrame)   '10
   .name = "Pixel array"
   .frames = 1
+  .directions = 1
  END WITH
  
  WITH sprite_sizes(-1) '--Only use for temporary use in the secret desting/debugging menu
   .name = "Experimental"
   .frames = 1
+  .directions = 1
   .genmax = -1 'this should throw an error rather than corrupting gen(0)
  END WITH
 END SUB
