@@ -3613,17 +3613,24 @@ SUB vishero ()
  NEXT
 END SUB
 
-'Here is an exhaustive list of the conditions under which a walkabout sprite slice gets reloaded
-'(wiping out any modifications by scripts; but note that only walkabout sprites are reloaded,
-'not walkabout containers):
+'Change picture and/or palette of a walkabout slice.
+'
+'Here is an exhaustive list of the conditions under which a walkabout sprite slice gets updated,
+'(picture and/or palette is changed), wiping out any modifications by scripts.
+'Note everything else such as extra data and child slices of the walkabout sprite and container
+'slices always remain untouched, except for the container position, shadow slice, and walking animation.
+'
 '-When a specific NPC is enabled or disabled by tag changes
 ' (disabled NPCs have their container slices deleted, not just hidden)
 '-When alternpc, changenpcid, etc, is used, affecting a specific NPC/NPC ID
-'-When reloadnpc gets called, which happens when loading map state (after
+'-When reset_npc_graphics gets called, which happens when loading map state (sometimes after
 ' a battle, changing maps, loadmapstate) or when live previewing (changes to NPC data)
 'ALL hero sprite slices get reloaded (vishero is called) when:
 '-calling reset/setheropicture/palette(outsidebattle) on a walkabout party hero
 '-the hero party changes, such as when changing the order of heroes
+'Unlike NPCs, hero container slices are hidden rather than disabled when a hero slot is empty.
+'Hero container slices are never recreated when changing maps, etc.
+'
 SUB set_walkabout_sprite (byval cont as Slice Ptr, byval pic as integer=-1, byval pal as integer=-2)
  DIM sprsl as Slice Ptr
  IF cont = 0 THEN

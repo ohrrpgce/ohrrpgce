@@ -22,7 +22,7 @@ DECLARE SUB exitprogram (byval need_fade_out as bool = NO, byval errorout as int
 DECLARE SUB keyboardsetup
 DECLARE SUB verify_quit
 DECLARE FUNCTION titlescreen () as integer
-DECLARE SUB reloadnpc ()
+DECLARE SUB reset_npc_graphics ()
 DECLARE FUNCTION mapstatetemp(byval mapnum as integer, prefix as string) as string
 DECLARE SUB savemapstate_gmap(byval mapnum as integer, prefix as string)
 DECLARE SUB savemapstate_npcl OVERLOAD (byval mapnum as integer, prefix as string)

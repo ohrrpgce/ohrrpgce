@@ -2415,7 +2415,7 @@ SUB loadmap_npcd(byval mapnum as integer)
  'Evaluate whether NPCs should appear or disappear based on tags
  visnpc
  'load NPC graphics
- reloadnpc
+ reset_npc_graphics
 END SUB
 
 SUB loadmap_tilemap(byval mapnum as integer)
