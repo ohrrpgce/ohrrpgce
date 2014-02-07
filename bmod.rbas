@@ -1086,7 +1086,13 @@ SUB battle_animate(byref bat as BattleState, bslot() as BattleSprite)
  '--First, things that only heroes can do
  FOR i = 0 TO 3
   IF bslot(i).walk = 1 THEN bslot(i).frame = bslot(i).frame XOR bat.tog
-  enforce_weak_picture i, bslot(), bat
+  ' Change weak heroes to weak unless the hero is attacking.
+  ' Note that enforce_weak_picture doesn't change from weak to normal frame if
+  ' the hero is not weak; the whole method of deciding .frame is broken.
+  ' enforce_weak_picture is also called at the end of an attack animation script,
+  ' so I don't see under what conditions this check is even needed... a hero is
+  ' injured in the middle of an animation? Battlescripting?
+  IF (bat.atk.id >= 0 AND bat.acting = i) = NO THEN enforce_weak_picture i, bslot(), bat
   IF bat.vic.state > 0 AND bslot(i).stat.cur.hp > 0 AND bat.tog = 0 THEN
    if bslot(i).frame = 0 then bslot(i).frame = 2 else bslot(i).frame = 0
   END IF
