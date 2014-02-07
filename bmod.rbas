@@ -435,7 +435,7 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
     bat.wait_frames = popw
    CASE 14 'walktoggle(who)
     ww = popw
-    bslot(ww).frame = 0
+    bslot(ww).frame = frameSTAND
     IF is_hero(ww) THEN bslot(ww).walk XOR= 1
    CASE 15 'zmove(who,zm,zstep)
     ww = popw
@@ -1094,7 +1094,7 @@ SUB battle_animate(byref bat as BattleState, bslot() as BattleSprite)
   ' injured in the middle of an animation? Battlescripting?
   IF (bat.atk.id >= 0 AND bat.acting = i) = NO THEN enforce_weak_picture i, bslot(), bat
   IF bat.vic.state > 0 AND bslot(i).stat.cur.hp > 0 AND bat.tog = 0 THEN
-   if bslot(i).frame = 0 then bslot(i).frame = 2 else bslot(i).frame = 0
+   IF bslot(i).frame = frameVICTORYB THEN bslot(i).frame = frameVICTORYA ELSE bslot(i).frame = frameVICTORYB
   END IF
  NEXT i
  '--Then apply movement forces for all things, heroes, enemies, attacks, weapons
@@ -1135,7 +1135,7 @@ SUB battle_animate(byref bat as BattleState, bslot() as BattleSprite)
      bslot(i).vis = 0
     END IF
    END IF
-   IF is_hero(i) THEN bslot(i).frame = 7
+   IF is_hero(i) THEN bslot(i).frame = frameDEAD
   END IF
  NEXT i
 END SUB
@@ -1274,7 +1274,7 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
  LoadFormation formdata, form
 
  for i = 0 to 24
-  bslot(i).frame = 0
+  bslot(i).frame = frameSTAND
   bslot(i).sprites = 0
   bslot(i).pal = 0
   bslot(i).attack = 0
@@ -1302,7 +1302,7 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
     .sprite_num = 8
     .sprites = frame_load(0, gam.hero(i).battle_pic)
     .pal = palette16_load(gam.hero(i).battle_pal, 0, gam.hero(i).battle_pic)
-    .frame = 0
+    .frame = frameSTAND
     .death_sfx = -1 'No death sounds for heroes (for now)
     .cursorpos.x = .w / 2
     .cursorpos.y = 0
@@ -1365,7 +1365,7 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
   IF hero(i) > 0 AND bslot(i).stat.cur.hp = 0 THEN
    '--hero starts the battle dead
    bslot(i).dissolve = 1 'Keeps the dead hero from vanishing
-   bslot(i).frame = 7
+   bslot(i).frame = frameDEAD
   END IF
   bslot(i).lifemeter = (88 / large(bslot(i).stat.max.hp, 1)) * bslot(i).stat.cur.hp
  NEXT i
@@ -1971,10 +1971,10 @@ SUB anim_flinchstart(byval who as integer, bslot() as BattleSprite, byref attack
   IF is_hero(who) THEN
    IF attack.cure_instead_of_harm = NO THEN
     '--Show Harmed frame
-    anim_setframe who, 5
+    anim_setframe who, frameHURT
    ELSE
     '--Show attack1 frame when healed
-    anim_setframe who, 2
+    anim_setframe who, frameATTACKA
    END IF
   END IF
  END IF
@@ -1987,7 +1987,7 @@ SUB anim_flinchdone(byval who as integer, bslot() as BattleSprite, byref attack 
   flinch_x_dist = -3
   IF is_enemy(who) THEN flinch_x_dist = 3
   anim_setmove who, flinch_x_dist, 0, 2, 0
-  anim_setframe who, 0
+  anim_setframe who, frameSTAND
  END IF
 END SUB
 
@@ -2605,12 +2605,12 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
 
  '--setup attack sprite slots
  FOR i = 12 TO 23
-  bslot(i).frame = 0
+  bslot(i).frame = frameSTAND
   bslot(i).z = 0
   'load battle sprites
   with bslot(i)
    .sprite_num = 3
-   .frame = 0
+   .frame = frameSTAND
    frame_unload(@.sprites)
    palette16_unload(@.pal)
    .sprites = frame_load(6, attack.picture)
@@ -2757,7 +2757,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    IF attack.attack_anim = 3 THEN
     anim_wait 3
    END IF
-   anim_setframe bat.acting, 0
+   anim_setframe bat.acting, frameSTAND
    anim_disappear 24
    IF attack.attack_anim = 4 THEN
     FOR i = 0 TO tcount - 1
@@ -2788,7 +2788,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
   NEXT j
   anim_retreat bat.acting, attack, bslot()
   FOR i = 0 TO tcount - 1
-   anim_setframe t(i), 0
+   anim_setframe t(i), frameSTAND
   NEXT i
   anim_end
  END IF
@@ -2893,7 +2893,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    if attack.sound_effect > 0  then anim_sound(attack.sound_effect - 1)
    anim_wait 8
    anim_disappear 24
-   anim_setframe bat.acting, 0
+   anim_setframe bat.acting, frameSTAND
    FOR i = 0 TO tcount - 1
     anim_inflict t(i), tcount
     anim_flinchstart t(i), bslot(), attack
@@ -2907,7 +2907,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
   NEXT j
   anim_retreat bat.acting, attack, bslot()
   FOR i = 0 TO tcount - 1
-   anim_setframe t(i), 0
+   anim_setframe t(i), frameSTAND
   NEXT i
   anim_end
  END IF
@@ -2935,7 +2935,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    if attack.sound_effect > 0  then anim_sound(attack.sound_effect - 1)
    anim_wait 4
    anim_disappear 24
-   anim_setframe bat.acting, 0
+   anim_setframe bat.acting, frameSTAND
    anim_waitforall
    FOR i = 0 TO tcount - 1
     anim_inflict t(i), tcount
@@ -2957,7 +2957,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
   NEXT j
   anim_retreat bat.acting, attack, bslot()
   FOR i = 0 TO tcount - 1
-   anim_setframe t(i), 0
+   anim_setframe t(i), frameSTAND
   NEXT i
   anim_end
  END IF
@@ -2993,7 +2993,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    if attack.sound_effect > 0  then anim_sound(attack.sound_effect - 1)
    anim_wait 8
    anim_disappear 24
-   anim_setframe bat.acting, 0
+   anim_setframe bat.acting, frameSTAND
    FOR i = 0 TO tcount - 1
     anim_inflict t(i), tcount
     anim_flinchstart t(i), bslot(), attack
@@ -3009,7 +3009,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
   NEXT j
   anim_retreat bat.acting, attack, bslot()
   FOR i = 0 TO tcount - 1
-   anim_setframe t(i), 0
+   anim_setframe t(i), frameSTAND
   NEXT i
   anim_end
  END IF
@@ -3042,7 +3042,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    NEXT i
    anim_wait 15
    anim_disappear 24
-   anim_setframe bat.acting, 0
+   anim_setframe bat.acting, frameSTAND
    FOR i = 0 TO tcount - 1
     anim_inflict t(i), tcount
     anim_flinchstart t(i), bslot(), attack
@@ -3058,7 +3058,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
   NEXT j
   anim_retreat bat.acting, attack, bslot()
   FOR i = 0 TO tcount - 1
-   anim_setframe t(i), 0
+   anim_setframe t(i), frameSTAND
   NEXT i
   anim_end
  END IF
@@ -3099,7 +3099,7 @@ SUB enforce_weak_picture(byval who as integer, bslot() as BattleSprite, byref ba
   '--enforce weak picture
   DIM weakhp as integer = 0
   weakhp = gen(genHeroWeakHP)
-  IF bslot(who).stat.cur.hp < 0.01 * bslot(who).stat.max.hp * weakhp AND bat.vic.state = 0 THEN bslot(who).frame = 6
+  IF bslot(who).stat.cur.hp < 0.01 * bslot(who).stat.max.hp * weakhp AND bat.vic.state = 0 THEN bslot(who).frame = frameWEAK
  END IF
 END SUB
 
