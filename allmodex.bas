@@ -142,6 +142,7 @@ dim shared endpollthread as bool         'signal the polling thread to quit
 dim shared keybdstate(127) as integer    '"real"time keyboard array
 dim shared mouseflags as integer
 dim shared mouselastflags as integer
+dim shared cursorvisible as bool = YES
 
 'State saved from one readmouse call to the next
 dim shared mouse_lastpos as XYPair       'Position at last readmouse call
@@ -1377,12 +1378,18 @@ end function
 
 sub hidemousecursor ()
 	io_setmousevisibility(0)
+	cursorvisible = NO
 end sub
 
 sub unhidemousecursor ()
 	io_setmousevisibility(-1)
 	io_mouserect(-1, -1, -1, -1)
+	cursorvisible = YES
 end sub
+
+function mousecursorvisible () as bool
+	return cursorvisible
+end function
 
 function readmouse () as MouseInfo
 	dim info as MouseInfo

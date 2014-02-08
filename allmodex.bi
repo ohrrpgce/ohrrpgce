@@ -169,6 +169,7 @@ DECLARE SUB stop_replaying_input (msg as string="", byval errorlevel as ErrorLev
 DECLARE FUNCTION havemouse () as bool
 DECLARE SUB hidemousecursor ()
 DECLARE SUB unhidemousecursor ()
+DECLARE FUNCTION mousecursorvisible () as bool
 DECLARE FUNCTION readmouse () as MouseInfo
 DECLARE SUB movemouse (byval x as integer, byval y as integer)
 DECLARE SUB mouserect (byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)

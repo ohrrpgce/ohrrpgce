@@ -2701,6 +2701,7 @@ FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byr
   imagepos.y = 1
  END IF
 
+ DIM mouse_was_visible as bool = mousecursorvisible()
  hidemousecursor
  DIM mouse as MouseInfo
  setkeys
@@ -2777,7 +2778,7 @@ FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byr
   setvispage vpage
   dowait
  LOOP
- unhidemousecursor
+ IF mouse_was_visible THEN unhidemousecursor
  RETURN ret
 END FUNCTION
 
