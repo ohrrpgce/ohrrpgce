@@ -1221,11 +1221,17 @@ IF mode > 1 AND (viewmode = 0 OR viewmode = 1) THEN
     edgeprint "Suspended", 184, ol, col, page
    END IF
   ELSEIF scrat(i).state = stwait THEN
-   waitcause = commandname(scriptinsts(i).curvalue)
-   SELECT CASE scriptinsts(i).curvalue
-    CASE 1, 3, 4, 9, 244'--wait, wait for hero, wait for NPC, wait for key, wait for scancode
-     waitcause += "(" & scriptinsts(i).waitarg & ")"
-   END SELECT
+   IF scriptinsts(i).waiting = waitingOnCmd THEN
+    waitcause = commandname(scriptinsts(i).curvalue)
+    SELECT CASE scriptinsts(i).curvalue
+     CASE 1, 3, 4, 9, 244'--wait, wait for hero, wait for NPC, wait for key, wait for scancode
+      waitcause += "(" & scriptinsts(i).waitarg & ")"
+    END SELECT
+   ELSEIF scriptinsts(i).waiting = waitingOnTick THEN
+    waitcause = "forced-wait(" & scriptinsts(i).waitarg & ")"
+   ELSE
+    waitcause = "!WAIT ERROR"
+   END IF
    edgeprint waitcause, 184, ol, col, page
   ELSEIF scrat(i).state = stnext AND scriptinsts(i).curkind = tyscript AND lastarg THEN
    edgeprint "Called #" & i + 1, 184, ol, col, page

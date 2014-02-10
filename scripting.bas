@@ -278,7 +278,13 @@ SUB script_log_tick
 
   DIM wait_msg as string = ""
   IF nowscript > -1 THEN
-   wait_msg = "waiting on " & commandname(scriptinsts(nowscript).curvalue) & " in " & scriptname(scriptinsts(nowscript).id)
+   WITH scriptinsts(nowscript)
+    IF .waiting = waitingOnCmd THEN
+     wait_msg = "waiting on " & commandname(.curvalue) & " in " & scriptname(.id)
+    ELSEIF .waiting = waitingOnTick THEN
+     wait_msg = "waiting " & .waitarg & " ticks in " & scriptname(.id)
+    END IF
+   END WITH
    IF .last_wait_msg <> wait_msg THEN
     .last_wait_msg = wait_msg
     .wait_msg_repeats = 0
@@ -361,25 +367,61 @@ SUB resetinterpreter
  IF numloadedscr > 0 THEN freescripts(0)
 END SUB
 
-' The current script fibre starts waiting, halting execution
+' The current script fibre starts waiting due to the current command, halting execution.
+' When forcing a script to wait for an 'external' reason, use script_start_waiting_ticks instead
 SUB script_start_waiting(waitarg1 as integer = 0, waitarg2 as integer = 0)
  IF insideinterpreter = NO THEN scripterr "script_start_waiting called outside interpreter", serrBug
  WITH scriptinsts(nowscript)
+  'debug commandname(curcmd->value) & ": script_start_waiting(" & waitarg1 & ", " & waitarg2 & ") on scriptinsts(" & nowscript & ") which is " & scriptname(.id)
+  IF scrat(nowscript).state <> streturn THEN
+   scripterr "script_start_waiting called outside of command handler", serrBug
+  END IF
+  .waiting = waitingOnCmd
   .waitarg = waitarg1
   .waitarg2 = waitarg2
  END WITH
  scrat(nowscript).state = stwait
 END SUB
 
-' Current script allowed to continue
-SUB script_stop_waiting(returnval as integer = 0)
- WITH scrat(nowscript)
-  IF .state <> stwait THEN
-   scripterr "script_stop_waiting: script isn't waiting", serrBug
-  ELSE
-   .state = streturn
-   scriptret = returnval
+' Cause a script fibre to start waiting for some number of ticks.
+' Unlike script_start_waiting this can be called from outside sfunctions.
+' This is NOT the implementation of the wait(x) command, but it has the same effect
+' whichscript is scriptinsts() index.
+SUB script_start_waiting_ticks(whichscript as integer, ticks as integer)
+ WITH scriptinsts(whichscript)
+  IF .started THEN
+   scripterr "FIXME: script_start_waiting_ticks not tested on .started scripts", serrBug
   END IF
+  .waiting = waitingOnTick
+  .waitarg = ticks
+  .waitarg2 = 0
+ END WITH
+ ' Preserve value of scrat(whichscript).state
+END SUB
+
+' Current script allowed to continue.
+' Can set the return value of a command if waitingOnCmd
+SUB script_stop_waiting(returnval as integer = 0)
+ WITH scriptinsts(nowscript)
+  IF .waiting = waitingOnNothing THEN
+   scripterr "script_stop_waiting: script isn't waiting", serrBug
+  END IF
+
+  IF .waiting = waitingOnTick AND returnval <> 0 THEN
+   scripterr "script_stop_waiting: can't set a return value", serrBug
+  END IF
+  IF .waiting = waitingOnCmd THEN
+   WITH scrat(nowscript)
+    'debug "script_stop_waiting(" & returnval & ") on scriptinsts(" & nowscript & ") which is " & scriptname(.id)
+    IF .state <> stwait THEN
+     scripterr "script_stop_waiting: unexpected scrat().state = " & .state, serrBug
+    ELSE
+     .state = streturn
+     scriptret = returnval
+    END IF
+   END WITH
+  END IF
+  .waiting = waitingOnNothing
  END WITH
 END SUB
 
@@ -444,6 +486,11 @@ WITH scriptinsts(index)
  .id = n
  .watched = NO
  .started = NO
+
+ 'This is not needed, but clears garbage values to ease debugging
+ .curkind = -1
+ .curvalue = -1
+ .curargc = -1
 
  DIM errstr as zstring ptr = oldscriptstate_init(index, .scr)
  IF errstr <> NULL THEN

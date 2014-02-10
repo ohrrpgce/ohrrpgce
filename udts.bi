@@ -454,9 +454,16 @@ TYPE OldScriptState
   id as integer         'id number of current script (duplicated from ScriptInst)
 END TYPE
 
+ENUM WaitTypeEnum
+  waitingOnNothing = 0  'The script isn't waiting
+  waitingOnCmd          'A command in the script triggered a wait (ScriptInst.curvalue says which)
+  waitingOnTick         'The script was externally made to wait; ScriptInst.waitarg gives the number of ticks
+END ENUM
+
 'Externally visible state of an executing script, used outside the interpreter
 TYPE ScriptInst
   scr as ScriptData ptr 'script in script() hashtable
+  waiting as WaitTypeEnum  'Whether the script is waiting
   waitarg as integer    'wait state argument 1
   waitarg2 as integer   'wait state argument 2
   watched as bool       'true for scripts which are being logged

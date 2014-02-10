@@ -22,6 +22,7 @@ DECLARE SUB killscriptthread ()
 DECLARE SUB resetinterpreter ()
 
 DECLARE SUB script_start_waiting(waitarg1 as integer = 0, waitarg2 as integer = 0)
+DECLARE SUB script_start_waiting_ticks(whichscript as integer, ticks as integer)
 DECLARE SUB script_stop_waiting(returnval as integer = 0)
 
 DECLARE FUNCTION runscript (byval id as integer, byval newcall as integer, byval double_trigger_check as bool, byval scripttype as zstring ptr, byval trigger as integer) as integer

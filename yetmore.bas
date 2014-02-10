@@ -744,7 +744,7 @@ SUB onkeyscript (byval scriptnum as integer)
  END IF
  
  IF nowscript >= 0 THEN
-  IF scrat(nowscript).state = stwait AND scriptinsts(nowscript).curvalue = 9 THEN
+  IF scriptinsts(nowscript).waiting = waitingOnCmd AND scriptinsts(nowscript).curvalue = 9 THEN
    '--never trigger a onkey script when the previous script
    '--has a "wait for key" command active
    doit = NO

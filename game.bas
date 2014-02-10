@@ -1584,6 +1584,13 @@ SUB process_wait_conditions()
    ' as waiting for unpause first will just lead to bugs eg. due to map changes
    ' (Note however that is the way the old one-script-at-a-time mode works: wait
    ' conditions not considered until its turn to run)
+
+   IF .waiting = waitingOnTick THEN
+    .waitarg -= 1
+    IF .waitarg <= 0 THEN script_stop_waiting()
+    EXIT SUB
+   END IF
+
    SELECT CASE .curvalue
     CASE 15, 35, 61'--use door, use NPC, teleport to map
      script_stop_waiting()
@@ -1676,11 +1683,10 @@ END SUB
 SUB execute_script_fibres
  WHILE nowscript >= 0
   WITH scriptinsts(nowscript)
-   'IF .waiting = YES THEN
-   IF scrat(nowscript).state = stwait THEN
+   IF .waiting THEN
     process_wait_conditions
    END IF
-   IF scrat(nowscript).state = stwait THEN
+   IF .waiting THEN
     EXIT WHILE
    END IF
 
