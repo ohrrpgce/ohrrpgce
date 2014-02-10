@@ -1143,6 +1143,7 @@ script, npc tests, begin
   npc movement tests(NPC reference(1))
   npc id tests(NPC reference(1))
   npc tag and onetime tests
+  use npc script tests
 end
 
 script, npc movement tests, n, begin
@@ -1228,6 +1229,32 @@ script, npc tag and onetime tests, begin
   wait for hero(me), w
   walk hero to y(me, hy)
   wait for hero(me), w
+end
+
+plotscript, another npc script, begin
+  assert(ticknumber == 2)
+end
+
+script, use npc script tests, begin
+  $0="use npc script tests"
+  # Tests the implicit wait behaviour of usenpc
+
+  tick counter slice := create container
+  set slice velocity x(tick counter slice, 1, 1000)
+  assert(ticknumber == 0)
+
+  create npc(8)  # Does nothing
+  use npc(8)
+  assert(ticknumber == 1)
+  delete npc(8)
+
+  # Both this script and anothernpcscript should wait
+  create npc(7)  # Calls anothernpcscript
+  use npc(7)
+  assert(ticknumber == 2)
+  delete npc(7)
+
+  free slice(tick counter slice)
 end
 
 ########################################################################
@@ -3031,7 +3058,6 @@ end
 #update palette
 #use item (item)
 #use item in slot(slot)
-#use NPC (who)
 #vert flip sprite (handle, flip)
 #wait for all
 #wait for camera

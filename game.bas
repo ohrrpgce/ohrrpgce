@@ -123,6 +123,7 @@ DIM SHARED wantbox as integer
 DIM SHARED wantdoor as integer
 DIM SHARED wantbattle as integer
 DIM SHARED wantteleport as integer
+DIM SHARED wantusenpc as integer
 DIM SHARED wantloadgame as integer
 DIM SHARED scriptout as string
 
@@ -598,6 +599,7 @@ wantbox = 0
 wantdoor = 0
 wantbattle = 0
 wantteleport = 0
+wantusenpc = 0
 wantloadgame = 0
 
 txt.showing = NO
@@ -1772,6 +1774,10 @@ SUB interpret()
   prepare_map
   gam.random_battle_countdown = range(100, 60)
  END IF
+ IF wantusenpc > 0 THEN
+  usenpc 2, wantusenpc - 1
+  wantusenpc = 0
+ END IF
  'ALSO wantloadgame
 END SUB
 
@@ -1821,7 +1827,7 @@ SUB sfunctions(byval cmdid as integer)
    CASE 35'--use NPC
     npcref = getnpcref(retvals(0), 0)
     IF npcref >= 0 THEN
-     usenpc 2, npcref
+     wantusenpc = npcref + 1
      script_start_waiting()
     END IF
    CASE 37'--use shop
