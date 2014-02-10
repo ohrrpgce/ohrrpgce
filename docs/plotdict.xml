@@ -351,7 +351,7 @@ resume NPC walls # back to mortality...</example>
 		<command id="suspendcaterpillar">
 			<canon>suspend caterpillar</canon>
 			<shortname>suspend caterpillar</shortname>
-			<description>Stops your other heroes from following the leader. This is useful when you want to control them individually with <ref>walkhero</ref> commands. In earlier versions this was misspelled as suspend catapillar. The old spelling still works for backwards compatibility.</description>
+			<description>Stops your other heroes from following the leader. This is useful when you want to control them individually with <ref>walkhero</ref> commands. In earlier versions this was misspelled as suspend catapillar. The old spelling still works for backwards compatibility. <note>If you want to set whether the other heroes in the party are visible, use <ref>setcaterpillarmode</ref>.</note></description>
 			<example>suspend caterpillar # cutscene
 # move heroes, probably fight a battle or two...
 resume caterpillar # normal game again.</example>
@@ -5789,7 +5789,7 @@ end</example>
 		<command id="setcaterpillarmode">
 			<canon>set caterpillar mode (state)</canon>
 			<shortname>set caterpillar mode</shortname>
-			<description>Sets whether or not to display the whole party in "caterpillar" style. If the argument is <ref>off</ref> then only the leader will be displayed. If the argument is <ref>on</ref> then the whole party will be displayed. (do not confuse this with the <ref>suspendcaterpillar</ref> and <ref>resumecaterpillar</ref> commands, which only apply when caterpillar mode is ON)</description>
+			<description>Sets whether or not to display the whole party in "caterpillar" style. This sets the "Enable Caterpillar Party" general preference bitset. If the argument is <ref>off</ref> then only the leader will be displayed. If the argument is <ref>on</ref> then the whole active (battle) party will be displayed and will normally walk behind the leader. <note>Do not confuse this with the <ref>suspendcaterpillar</ref> and <ref>resumecaterpillar</ref> commands, which only apply when caterpillar mode is ON.</note></description>
 		</command>
 		<command id="setnohpleveluprestore">
 			<canon>set no HP level up restore (state)</canon>

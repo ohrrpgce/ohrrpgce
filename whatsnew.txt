@@ -58,6 +58,8 @@ WHAT IS NEW?
       for 8-bit BMPs. (Also added mouse support.) [Ralph]
     * Bug 1004: Copying a shop didn't copy all the shop items [Ralph]
     * Hero attack animations didn't occur if they were weak [Ralph]
+    * Bug 1005: "hero is walking" didn't work for heroes other than
+      leader when the caterpillar party was enabled [Ralph]
 
   * New Plotscripting Stuff
     * "Menu action plotscript" special script trigger to run a script

@@ -1214,6 +1214,14 @@ SELECT CASE as CONST id
    ELSE
     scriptret = 1
    END IF
+   IF readbit(gen(), genSuspendBits, suspendcaterpillar) = 0 THEN
+    ' Other heroes trail behind the leader automatically without using .xgo and .ygo.
+    ' walkhero partially works when the caterpillar party is enabled too
+    ' (well they move, but don't animate), so combine the two
+    IF herow(0).xgo <> 0 OR herow(0).ygo <> 0 THEN
+     scriptret = 1
+    END IF
+   END IF
   END IF
  CASE 127'--teach spell
   scriptret = trylearn(bound(retvals(0), 0, 40), retvals(1))
