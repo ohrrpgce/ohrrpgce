@@ -32,6 +32,7 @@ WHAT IS NEW?
     * Ability to specify the positions of the frames in the source
       spritesheet when importing with the sprite editor in full-set
       mode (regular offsets between frames only) [Ralph]
+    * Additional master palettes in import/ [Soda_piggy, Dragontao]
 
   * Bugfixes
     * Fixed a few cosmetic bugs in the equip menu including possibly
