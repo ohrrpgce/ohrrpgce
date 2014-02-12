@@ -64,6 +64,7 @@ Enum SliceTypes
  slMap
  slGrid
  slEllipse
+ slScrunch
 End Enum
 
 Enum AttachTypes
@@ -262,6 +263,9 @@ Type EllipseSliceData
  frame as Frame Ptr 'UNSAVED: No need to manually populate this, done in draw
 End Type
 
+Type ScrunchSliceData
+ subpixels as integer 'Number of subpixels per pixel.
+End Type
 
 Extern "C"
 
@@ -402,6 +406,10 @@ DECLARE Function NewEllipseSlice(byval parent as Slice ptr, byref dat as Ellipse
 DECLARE Sub ChangeEllipseSlice(byval sl as slice ptr,_
                       byval bordercol as integer=-1,_
                       byval fillcol as integer=-1)  ' All arguments default to no change
+
+DECLARE Function NewScrunchSlice(byval parent as Slice ptr, byref dat as ScrunchSliceData) as slice ptr
+DECLARE Sub ChangeScrunchSlice(byval sl as slice ptr,_
+                      byval subpixels as integer=1)
 
 '--Saving and loading slices
 DECLARE Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr)

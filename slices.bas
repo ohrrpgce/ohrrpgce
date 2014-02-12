@@ -210,6 +210,7 @@ FUNCTION SliceTypeByName (s as string) as SliceTypes
   CASE "Map":            RETURN slMap
   CASE "Grid":           RETURN slGrid
   CASE "Ellipse":        RETURN slEllipse
+  CASE "Scrunch":        RETURN slScrunch
  END SELECT
  debug "Unrecognized slice name """ & s & """"
 END FUNCTION
@@ -234,6 +235,7 @@ FUNCTION SliceTypeName (t as SliceTypes) as string
   CASE slMap:            RETURN "Map"
   CASE slGrid:           RETURN "Grid"
   CASE slEllipse:        RETURN "Ellipse"
+  CASE slScrunch:        RETURN "Scrunch"
  END SELECT
  RETURN "Unknown"
 END FUNCTION
@@ -335,6 +337,9 @@ FUNCTION NewSliceOfType (byval t as SliceTypes, byval parent as Slice Ptr=0, byv
   CASE slEllipse:
    DIM dat as EllipseSliceData
    newsl = NewEllipseSlice(parent, dat)
+  CASE slScrunch:
+   DIM dat as ScrunchSliceData
+   newsl = NewScrunchSlice(parent, dat)
   CASE ELSE
    debug "NewSliceByType: Warning! type " & t & " is invalid"
    newsl = NewSlice(parent)
@@ -1824,6 +1829,100 @@ Sub ChangeEllipseSlice(byval sl as slice ptr,_
    .fillcol = fillcol
   end if
  end with
+end sub
+
+'--Scrunch-------------------------------------------------------------------
+Sub DisposeScrunchSlice(byval sl as slice ptr)
+ if sl = 0 then exit sub
+ if sl->SliceData = 0 then exit sub
+ dim dat as ScrunchSliceData ptr = cptr(ScrunchSliceData ptr, sl->SliceData)
+ delete dat
+ sl->SliceData = 0
+end sub
+
+Sub CloneScrunchSlice(byval sl as slice ptr, byval cl as slice ptr)
+ if sl = 0 or cl = 0 then debug "CloneScrunchSlice null ptr": exit sub
+ dim dat as ScrunchSliceData Ptr
+ dat = sl->SliceData
+ dim clonedat as ScrunchSliceData Ptr
+ clonedat = cl->SliceData
+ with *clonedat
+  .subpixels = dat->subpixels
+ end with
+end sub
+
+Sub SaveScrunchSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
+ if sl = 0 or node = 0 then debug "SaveScrunchSlice null ptr": exit sub
+ DIM dat as ScrunchSliceData Ptr
+ dat = sl->SliceData
+ SaveProp node, "subpixels", dat->subpixels
+End Sub
+
+Sub LoadScrunchSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
+ if sl = 0 or node = 0 then debug "LoadScrunchSlice null ptr": exit sub
+ dim dat as ScrunchSliceData Ptr
+ dat = sl->SliceData
+ dat->subpixels = large(1, LoadProp(node, "subpixels", 1))
+End Sub
+
+Sub ScrunchChildRefresh(byval par as slice ptr, byval ch as slice ptr)
+ if ch = 0 then debug "ScrunchChildRefresh null ptr": exit sub
+ 
+ '--get scrunch data
+ dim dat as ScrunchSliceData ptr
+ dat = par->SliceData
+ 
+ with *ch
+  if .Fill then
+   .ScreenX = par->ScreenX + par->paddingLeft
+   .ScreenY = par->ScreenY + par->paddingTop
+   .Width = par->Width - par->paddingLeft - par->paddingRight
+   .height = par->Height - par->paddingTop - par->paddingBottom
+  else ' Not fill
+   .ScreenX = (.X + SliceXAlign(ch, par) - SliceXAnchor(ch)) / dat->subpixels
+   .ScreenY = (.Y + SliceYAlign(ch, par) - SliceYAnchor(ch)) / dat->subpixels
+  end if
+ end with
+End sub
+
+Function NewScrunchSlice(byval parent as Slice ptr, byref dat as ScrunchSliceData) as slice ptr
+ dim ret as Slice ptr
+ ret = NewSlice(parent)
+ if ret = 0 then 
+  debug "Out of memory?!"
+  return 0
+ end if
+ 
+ dim d as ScrunchSliceData ptr = new ScrunchSliceData
+ *d = dat
+ '--Set non-zero defaults here
+ d->subpixels = 1
+ 
+ ret->SliceType = slScrunch
+ ret->SliceData = d
+ ret->Dispose = @DisposeScrunchSlice
+ ret->Clone = @CloneScrunchSlice
+ ret->Save = @SaveScrunchSlice
+ ret->Load = @LoadScrunchSlice
+ ret->ChildRefresh = @ScrunchChildRefresh
+ 
+ return ret
+end function
+
+Function GetScrunchSliceData(byval sl as slice ptr) as ScrunchSliceData ptr
+ if sl = 0 then debug "GetScrunchSliceData null ptr": return 0
+ return sl->SliceData
+End Function
+
+'All arguments default to no-change
+Sub ChangeScrunchSlice(byval sl as slice ptr,_
+                      byval subpixels as integer=1)
+ if sl = 0 then debug "ChangeScrunchSlice null ptr" : exit sub
+ if sl->SliceType <> slScrunch then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a scrunch slice" : exit sub
+ dim dat as ScrunchSliceData Ptr = sl->SliceData
+ if subpixels > 0 then
+  dat->subpixels = subpixels
+ end if
 end sub
 
 '--Menu-------------------------------------------------------------------
