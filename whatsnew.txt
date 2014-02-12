@@ -72,6 +72,7 @@ WHAT IS NEW?
     * "get sprite default pal" [James]
     * "NPC is disabled" for detecting when an NPC reference is disabled
       by tags or by one-time-use [James]
+    * Scrunch Slice for simulating sub-pixel resolution [James]
 
   * Performance Fixes
     * Fixed delay when opening a menu that happened when a large number

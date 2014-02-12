@@ -343,6 +343,9 @@
 		<a href="#about-createrect">create rect (width, height, style)</a><br>
 		
 	
+		<a href="#about-createscrunch">create scrunch (width, height, subpixels)</a><br>
+		
+	
 		<a href="#about-createtext">create text</a><br>
 		
 	
@@ -851,6 +854,9 @@
 		
 	
 		<a href="#about-getrightpadding">get right padding (handle)</a><br>
+		
+	
+		<a href="#about-getscrunchsubpixels">get scrunch subpixels (handle)</a><br>
 		
 	
 		<a href="#about-getsliceclipping">get slice clipping (handle)</a><br>
@@ -1909,6 +1915,9 @@
 		<a href="#about-setrightpadding">set right padding (handle, pixels)</a><br>
 		
 	
+		<a href="#about-setscrunchsubpixels">set scrunch subpixels (handle, subpixels)</a><br>
+		
+	
 		<a href="#about-setsecondssofplay">set seconds of play (sec)</a><br>
 		
 	
@@ -2084,6 +2093,9 @@
 		
 	
 		<a href="#about-sliceisrect">slice is rect (handle)</a><br>
+		
+	
+		<a href="#about-sliceisscrunch">slice is scrunch (handle)</a><br>
 		
 	
 		<a href="#about-sliceissprite">slice is sprite (handle)</a><br>
@@ -2826,7 +2838,10 @@ resume NPC walls # back to mortality...</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">suspend caterpillar</font></b><br>
-			Stops your other heroes from following the leader. This is useful when you want to control them individually with <a href="#about-walkhero" class="ref">walk hero</a> commands. In earlier versions this was misspelled as suspend catapillar. The old spelling still works for backwards compatibility.<br>
+			Stops your other heroes from following the leader. This is useful when you want to control them individually with <a href="#about-walkhero" class="ref">walk hero</a> commands. In earlier versions this was misspelled as suspend catapillar. The old spelling still works for backwards compatibility. <div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">If you want to set whether the other heroes in the party are visible, use <a href="#about-setcaterpillarmode" class="ref">set caterpillar mode</a>.<br clear="all">
+</div>
+<br>
 			<pre>suspend caterpillar # cutscene
 # move heroes, probably fight a battle or two...
 resume caterpillar # normal game again.</pre>
@@ -6221,6 +6236,14 @@ set horiz align(sl, edge:right)
 			
 			
 		</tt></p>
+		<a name="about-createscrunch"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">create scrunch (width, height, subpixels)</font></b><br>
+			Create a new scrunch slice and return a handle to it. You can provide an optional <span class="param">width</span> and <span class="param">height</span>, and an optional <span class="param">subpixels</span> divisor. A Scrunch slice is a specialized container slice that modifies the positions of its children. The x and y position of the children of a scrunch will be divided by subpixels when they are translated into screen coordinates. For example, if you have a scrunch slice with subpixels set to 10, a child slice with an X position of 50 would be displayed at an X pixel position of 5<br>
+			
+			
+		</tt></p>
 		<a name="about-sliceisvalid"></a>
 		<p>
 		<tt>
@@ -6266,6 +6289,14 @@ set horiz align(sl, edge:right)
 		<tt>
 		<b><font color="yellow">slice is text (handle)</font></b><br>
 			Returns true if the given slice <span class="param">handle</span> is a text slice.<br>
+			
+			
+		</tt></p>
+		<a name="about-sliceisscrunch"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">slice is scrunch (handle)</font></b><br>
+			Returns true if the given slice <span class="param">handle</span> is a scrunch slice.<br>
 			
 			
 		</tt></p>
@@ -7677,6 +7708,22 @@ end
 <a href="#about-setellipsefillcol" class="ref">set ellipse fill col</a>, </li>
 <li><a href="#about-getellipsefillcol" class="ref">get ellipse fill col</a></li>
 </ul>
+		</tt></p>
+		<a name="about-getscrunchsubpixels"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get scrunch subpixels (handle)</font></b><br>
+			Given a scrunch slice <span class="param">handle</span>, return the subpixels divisor.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-setscrunchsubpixels" class="ref">set scrunch subpixels</a></li></ul>
+		</tt></p>
+		<a name="about-setscrunchsubpixels"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set scrunch subpixels (handle, subpixels)</font></b><br>
+			Given a scrunch slice <span class="param">handle</span>, change the subpixels divisor. A value of 1 will cause the scrunch to position its children exactly the same as an ordinary container slice. A value of 2 will divide the X and Y positions of child slices by 2 when converting to ScreenX and ScreenY. Values 0 and smaller are not allowed<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-getscrunchsubpixels" class="ref">get scrunch subpixels</a></li></ul>
 		</tt></p>
 		<a name="about-createtext"></a>
 		<p>
@@ -10494,7 +10541,10 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set caterpillar mode (state)</font></b><br>
-			Sets whether or not to display the whole party in "caterpillar" style. If the argument is <a href="#about-booleanconstants" class="ref">off</a> then only the leader will be displayed. If the argument is <a href="#about-booleanconstants" class="ref">on</a> then the whole party will be displayed. (do not confuse this with the <a href="#about-suspendcaterpillar" class="ref">suspend caterpillar</a> and <a href="#about-resumecaterpillar" class="ref">resume caterpillar</a> commands, which only apply when caterpillar mode is ON)<br>
+			Sets whether or not to display the whole party in "caterpillar" style. This sets the "Enable Caterpillar Party" general preference bitset. If the argument is <a href="#about-booleanconstants" class="ref">off</a> then only the leader will be displayed. If the argument is <a href="#about-booleanconstants" class="ref">on</a> then the whole active (battle) party will be displayed and will normally walk behind the leader. <div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Do not confuse this with the <a href="#about-suspendcaterpillar" class="ref">suspend caterpillar</a> and <a href="#about-resumecaterpillar" class="ref">resume caterpillar</a> commands, which only apply when caterpillar mode is ON.<br clear="all">
+</div>
+<br>
 			
 			
 		</tt></p>
@@ -11468,7 +11518,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 782 commands in this file, of which 57 are only references to other commands.</p>
+	<p>Stats: There are 786 commands in this file, of which 57 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
