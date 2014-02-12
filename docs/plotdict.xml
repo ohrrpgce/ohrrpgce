@@ -2670,11 +2670,6 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<shortname>create ellipse</shortname>
 			<description>Create a new ellipse slice and return a handle to it. You can provide an optional <p>width</p> and <p>height</p>, an optional <p>border color</p> and an optional <p>fill color</p>. The ellipse will be hollow if you do not specify a fill color. Like all slice types, an ellipse slice can be used as a container for other slices with <ref>setparent</ref></description>
 		</command>
-		<command id="createscrunch">
-			<canon>create scrunch (width, height, subpixels)</canon>
-			<shortname>create scrunch</shortname>
-			<description>Create a new scrunch slice and return a handle to it. You can provide an optional <p>width</p> and <p>height</p>, and an optional <p>subpixels</p> divisor. A Scrunch slice is a specialized container slice that modifies the positions of its children. The x and y position of the children of a scrunch will be divided by subpixels when they are translated into screen coordinates. For example, if you have a scrunch slice with subpixels set to 10, a child slice with an X position of 50 would be displayed at an X pixel position of 5</description>
-		</command>
 		<command id="sliceisvalid">
 			<canon>slice is valid (id)</canon>
 			<shortname>slice is valid</shortname>
@@ -2704,11 +2699,6 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<canon>slice is text (handle)</canon>
 			<shortname>slice is text</shortname>
 			<description>Returns true if the given slice <p>handle</p> is a text slice.</description>
-		</command>
-		<command id="sliceisscrunch">
-			<canon>slice is scrunch (handle)</canon>
-			<shortname>slice is scrunch</shortname>
-			<description>Returns true if the given slice <p>handle</p> is a scrunch slice.</description>
 		</command>
 		<command id="slicex">
 			<canon>slice x (handle)</canon>
@@ -3760,22 +3750,6 @@ end
 				<ref>getellipsebordercol</ref>
 				<ref>setellipsefillcol</ref>
 				<ref>getellipsefillcol</ref>
-			</seealso>
-		</command>
-		<command id="getscrunchsubpixels">
-			<canon>get scrunch subpixels (handle)</canon>
-			<shortname>get scrunch subpixels</shortname>
-			<description>Given a scrunch slice <p>handle</p>, return the subpixels divisor.</description>
-			<seealso>
-				<ref>setscrunchsubpixels</ref>
-			</seealso>
-		</command>
-		<command id="setscrunchsubpixels">
-			<canon>set scrunch subpixels (handle, subpixels)</canon>
-			<shortname>set scrunch subpixels</shortname>
-			<description>Given a scrunch slice <p>handle</p>, change the subpixels divisor. A value of 1 will cause the scrunch to position its children exactly the same as an ordinary container slice. A value of 2 will divide the X and Y positions of child slices by 2 when converting to ScreenX and ScreenY. Values 0 and smaller are not allowed</description>
-			<seealso>
-				<ref>getscrunchsubpixels</ref>
 			</seealso>
 		</command>
 		<command id="createtext">
