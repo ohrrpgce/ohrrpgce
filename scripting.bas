@@ -486,6 +486,9 @@ WITH scriptinsts(index)
  .id = n
  .watched = NO
  .started = NO
+ .waiting = waitingOnNothing
+ .waitarg = 0
+ .waitarg2 = 0
 
  'This is not needed, but clears garbage values to ease debugging
  .curkind = -1
