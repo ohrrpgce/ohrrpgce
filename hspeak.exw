@@ -13,7 +13,8 @@
 ---------------------------------------------------------------------------
 
 --Changelog
---3Rd 2013-11-09 Prevent misuse of betweenable-operators in
+--3Re 2014-02-17 Trivial change to math builtin warnings
+----- 2013-11-09 Prevent misuse of betweenable-operators in
 --               declarations, and allow constants for global ids
 --3Rc 2013-10-11 subscript implementation changes (add nonlocal kind)
 --3Rb 2013-10-10 Remove variable() later, for syntax checking
@@ -151,7 +152,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Rc"
+constant COMPILER_SUB_VERSION="Re"
 constant COPYRIGHT_DATE="2013"
 
 --This is the oldest version of plotscr.hsd which is supported (feel free to
@@ -4056,7 +4057,8 @@ function sanity_check(NodeList tree, VarList vars, string parent)
       elsif kind=KIND_LOCAL or kind=KIND_NONLOCAL then
         src_warn(sprintf_utf("Expected script, function, or flow control, but found local variable "&COLYEL&"%s"&COLRED&". It will do nothing here."
                  ,{vars[id][CMD_TEXT]}),tree[i][TREE_TRUNK][CMD_POS])
-      elsif kind=KIND_MATH and (id<=15 or id>=19) then
+      elsif kind=KIND_MATH and (id<=15 or id=19 or id>=22) then
+        -- setvariable, increment, decrement, logand, logor have side effects
         src_warn(sprintf_utf("Expected a statement but found built-in function "&COLYEL&"%s"&COLRED&", returning a value that is being discarded"
                  ,{s}),tree[i][TREE_TRUNK][CMD_POS])
       end if

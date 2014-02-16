@@ -37,6 +37,7 @@ global variable(203, expected ticker 0)
 global variable(204, expected ticker 1)
 global variable(205, tick counter slice)
 global variable(206, a global)
+global variable(207, another global)
 global variable(5000, global 5000)
 
 #string 0 = error messages
@@ -2775,7 +2776,6 @@ end
 #random formation (formation set)
 #read attack name (ID, attack)
 #read color (index, element)
-#read global (id)
 #read map block (x,y,layer)
 #read NPC (who,NPCstat)
 #read pass block (x,y)
@@ -2970,7 +2970,6 @@ end
 #walk NPC to X (who, X)
 #walk NPC to Y (who, Y)
 #write color (index, element, value)
-#write global (id,value)
 #write map block (x,y,value,layer)
 #write pass block (x,y,value)
 #write zone (zone id, x, y, value)

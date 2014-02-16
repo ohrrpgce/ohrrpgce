@@ -589,6 +589,7 @@ DIM as integer ptr dataptr = si.scrdata
 quickrepeat:
 DIM as ScriptCommand ptr cmdptr = cast(ScriptCommand ptr, dataptr + *(@curcmd->args(0) + si.curargn))
 
+' Process an arg here if possible, otherwise stop
 SELECT CASE cmdptr->kind
  CASE tynumber
   pushstack(scrst, cmdptr->value)
@@ -622,7 +623,8 @@ SELECT CASE cmdptr->kind
   'scriptdump "subdoarg"
 
 
-  'even for flow, first arg always needs evaluation, so don't leave yet!
+  'Even for flow, first arg always needs evaluation, so don't leave yet!
+  'If there are no args, then time to stop and evaluate it (this is not a math command)
   'EXIT SUB
   IF curcmd->argc = 0 THEN EXIT SUB
   GOTO quickrepeat
@@ -633,6 +635,7 @@ SELECT CASE cmdptr->kind
 END SELECT
 
 finishedarg:
+' Move on the the next arg and decide whether to fast track its execution
 
 si.curargn += 1
 IF si.curargn >= curcmd->argc THEN
@@ -661,7 +664,8 @@ IF si.curargn >= curcmd->argc THEN
  EXIT SUB
 END IF
 IF curcmd->kind = tyflow THEN IF curcmd->value = flowif OR curcmd->value >= flowfor THEN EXIT SUB
-IF curcmd->kind = tymath THEN IF curcmd->value >= 20 THEN EXIT SUB
+'logand, logor, lognot need special handing
+IF curcmd->kind = tymath THEN IF curcmd->value >= 20 AND curcmd->value <= 22 THEN EXIT SUB
 GOTO quickrepeat
 END SUB
 

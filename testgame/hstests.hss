@@ -301,6 +301,13 @@ script, math tests, begin
   $0="math tests"
   if(abs(-10) <> n) then(crash)
   if(abs(15) <> n + 5) then(crash)
+
+  assert(another global == 0)
+  another global := 10
+  assert(another global == 10)
+  assert(read global(@another global) == 10)
+  write global(@another global, 4)
+  assert(another global == 4)
 end
 
 ########################################################################
