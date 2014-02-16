@@ -248,6 +248,9 @@ script, string tests, begin
   $2=",-1234. ,<embedded> "
   assert(string compare(1, 2))
 
+  assert($1="foo" == 1)
+  assert($1+"bar" == 1)
+
   # higher IDs
   $95="a "
   $96=""
@@ -256,8 +259,7 @@ script, string tests, begin
   assert(string compare(95, 96))
 
   # string sprintf
-  $2=" test "
-  string sprintf(1, 2)
+  string sprintf(1, $2=" test ")
   assert(string compare(1, 2))
 
   $2="%%"

@@ -1765,6 +1765,7 @@ SELECT CASE as CONST id
      scripterr "script corrupt: illegal string offset", serrError
     ELSE
      plotstr(retvals(0)).s = read32bitstring(stringp)
+     scriptret = retvals(0)
     END IF
    END WITH
   END IF
@@ -1776,6 +1777,7 @@ SELECT CASE as CONST id
      scripterr "script corrupt: illegal string offset", serrError
     ELSE
      plotstr(retvals(0)).s += read32bitstring(stringp)
+     scriptret = retvals(0)
     END IF
    END WITH
   END IF
