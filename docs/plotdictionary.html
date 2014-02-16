@@ -925,7 +925,7 @@
 		<a href="#about-globalvariable">global variable (id,name)</a><br>
 		
 	
-		<a href="#about-greaterthan">number &gt;&gt; number</a><br>
+		<a href="#about-greaterthan">number &gt; number</a><br>
 		
 	
 		<a href="#about-greaterthanorequalto">number &gt;= number</a><br>
@@ -1075,7 +1075,7 @@
 		
 		<a href="#about-keyconstants">left key</a><br>
 	
-		<a href="#about-lessthan">number &lt;&lt; number</a><br>
+		<a href="#about-lessthan">number &lt; number</a><br>
 		
 	
 		<a href="#about-lessthanorequalto">number &lt;= number</a><br>
@@ -4534,7 +4534,12 @@ end</pre>
 		<a name="String%20Functions"></a>
 
 		<font color="#f06060" size="4">String Functions</font>
-		<p>When referring to a position in a string, <span class="param">position</span> is a 1-based index into the string, not a 0-based index. For example, given a string "ABCDEFG", position=3 is "C", not "D". This is because the string commands are based on BASIC string commands, which are 1-based. This also means that position 0 is invalid. Beware!<br>There is no limit on string length (previously, they were limited to 40 characters, the width of the screen)<br></p>
+		<p>In HamsterSpeak, strings are special variables which hold pieces of text, and are referred to by their ID numbers. There are 100 string variables, with IDs 0 to 99. Strings can be displayed onscreen directly and embedded in textboxes. For more information, see the <a href="rpg.hamsterrepublic.com/ohrrpgce/Strings">wiki article on strings</a>.<br>
+To set the value of string, write <span class="param">$id = "Some text!"</span>, where <span class="param">id</span> can be a constant like 0 or 1, a variable, or even an expression like a call to a script. You can also write <span class="param">$id + " ... and something more"</span> to append some text to an existing string.<br>
+There is no limit on string length.<br>
+<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">When referring to a position in a string, <span class="param">position</span> is a 1-based index into the string, not a 0-based index. For example, given a string "ABCDEFG", position=3 is "C", not "D". This is because the string commands are based on BASIC string commands, which are 1-based. This also means that position 0 is invalid. Beware!<br clear="all">
+</div><br></p>
 		
 		<a name="about-showstring"></a>
 		<p>
@@ -9049,7 +9054,7 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
   # Let's check whether there is at least one plip in this formation
   variable (number, plip slot)
   number := find enemy in formation (formation, enemy:plip, get count)
-  if (number &gt;&gt; 0) then (
+  if (number &gt; 0) then (
     # We'll put a string onscreen where the plip appears in battle
     $31 = "Plip!"
     plip slot := find enemy in formation (formation, enemy:plip)
@@ -9341,7 +9346,7 @@ write pass block(15,3,pass)
 		<p>
 		<tt>
 		<b><font color="yellow">number + number</font></b><br>
-			Adds two values together and returns the result. This can also be written as add(number,number)<br>
+			Adds two values together and returns the result. This can also be written as <span class="param">add(number,number)</span><br>
 			
 			
 		</tt></p>
@@ -9349,7 +9354,7 @@ write pass block(15,3,pass)
 		<p>
 		<tt>
 		<b><font color="yellow">number -- number</font></b><br>
-			Subtracts the second number from the first number and returns the result. It is necessary to use the double minus so that HSPEAK.EXE can tell the difference between subtraction, and a minus sign that indicates a negative number. You can also write subtract(number,number)<br>
+			Subtracts the second number from the first number and returns the result. It is necessary to use the double minus so that HSPEAK.EXE can tell the difference between subtraction, and a minus sign that indicates a negative number. You can also write <span class="param">subtract(number,number)</span><br>
 			
 			
 		</tt></p>
@@ -9357,7 +9362,7 @@ write pass block(15,3,pass)
 		<p>
 		<tt>
 		<b><font color="yellow">number * number</font></b><br>
-			Multiplies two values together and returns the result. This can also be written as multiply(number,number)<br>
+			Multiplies two values together and returns the result. This can also be written as <span class="param">multiply(number,number)</span><br>
 			
 			
 		</tt></p>
@@ -9365,7 +9370,7 @@ write pass block(15,3,pass)
 		<p>
 		<tt>
 		<b><font color="yellow">number / number</font></b><br>
-			Divides the second number into the first number and returns the result. The result is rounded down to an integer. This can also be written as divide(number,number)<br>
+			Divides the second number into the first number and returns the result. The result is rounded down to an integer. This can also be written as <span class="param">divide(number,number)</span><br>
 			
 			
 		</tt></p>
@@ -9373,7 +9378,7 @@ write pass block(15,3,pass)
 		<p>
 		<tt>
 		<b><font color="yellow">number,mod,number</font></b><br>
-			Divides the second number into the first number and returns the remainder. This can also be written as modulus(number,number)<br>
+			Divides the second number into the first number and returns the remainder. This can also be written as <span class="param">modulus(number,number)</span><br>
 			
 			
 		</tt></p>
@@ -9381,7 +9386,7 @@ write pass block(15,3,pass)
 		<p>
 		<tt>
 		<b><font color="yellow">number ^ power</font></b><br>
-			Raises a number to a power and returns the result. (If the result is too large and overflows no error occurs: the value is simply wrapped around a 32 bit signed integer.) This can also be written as exponent(number,power)<br>
+			Raises a number to a power and returns the result. (If the result is too large and overflows no error occurs: the value is simply wrapped around a 32 bit signed integer.) This can also be written as <span class="param">exponent(number,power)</span><br>
 			
 			
 		</tt></p>
@@ -9413,7 +9418,7 @@ write pass block(15,3,pass)
 		<p>
 		<tt>
 		<b><font color="yellow">number == number</font></b><br>
-			Checks to see if the two numbers are equal. If they are equal it returns true, otherwise it returns false. This can also be written as equal(number,number)<br>
+			Checks to see if the two numbers are equal. If they are equal it returns true, otherwise it returns false. This can also be written as <span class="param">equal(number,number)</span><br>
 			
 			
 		</tt></p>
@@ -9421,23 +9426,23 @@ write pass block(15,3,pass)
 		<p>
 		<tt>
 		<b><font color="yellow">number &lt;&gt; number</font></b><br>
-			Checks to see if the two numbers are not equal. If they are not equal it returns true. If they are equal it returns false. This can also be written as not equal(number,number)<br>
+			Checks to see if the two numbers are not equal. If they are not equal it returns true. If they are equal it returns false. This can also be written as <span class="param">not equal(number,number)</span><br>
 			
 			
 		</tt></p>
 		<a name="about-lessthan"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">number &lt;&lt; number</font></b><br>
-			Checks to see if the first number is less than the second number. If it is, it returns true, otherwise it returns false. This can also be written as less than(number,number)<br>
+		<b><font color="yellow">number &lt; number</font></b><br>
+			Checks to see if the first number is less than the second number. If it is, it returns true, otherwise it returns false. This can also be written as <span class="param">less than(number,number)</span> and as <span class="param">number &lt;&lt; number</span><br>
 			
 			
 		</tt></p>
 		<a name="about-greaterthan"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">number &gt;&gt; number</font></b><br>
-			Checks to see if the first number is greater than the second number. If it is, it returns true, otherwise it returns false. This can also be written as greater than(number,number)<br>
+		<b><font color="yellow">number &gt; number</font></b><br>
+			Checks to see if the first number is greater than the second number. If it is, it returns true, otherwise it returns false. This can also be written as <span class="param">greater than(number,number)</span> and as <span class="param">number &gt;&gt; number</span><br>
 			
 			
 		</tt></p>
@@ -9445,7 +9450,7 @@ write pass block(15,3,pass)
 		<p>
 		<tt>
 		<b><font color="yellow">number &lt;= number</font></b><br>
-			Checks to see if the first number is less than or equal to the second number. If it is, it returns true, otherwise it returns false. This can also be written as less than or equal to(number,number)<br>
+			Checks to see if the first number is less than or equal to the second number. If it is, it returns true, otherwise it returns false. This can also be written as <span class="param">less than or equal to(number,number)</span><br>
 			
 			
 		</tt></p>
@@ -9453,7 +9458,7 @@ write pass block(15,3,pass)
 		<p>
 		<tt>
 		<b><font color="yellow">number &gt;= number</font></b><br>
-			Checks to see if the first number is greater than or equal to the second number. If it is, it returns true, otherwise it returns false. This can also be written as greater than or equal to(number,number)<br>
+			Checks to see if the first number is greater than or equal to the second number. If it is, it returns true, otherwise it returns false. This can also be written as <span class="param">greater than or equal to(number,number)</span><br>
 			
 			
 		</tt></p>

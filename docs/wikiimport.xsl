@@ -79,6 +79,8 @@
 <xsl:template match="ref" mode="sa">* [[Plot:<xsl:value-of select='hr:wiki-title(id(.)/shortname)' />|<xsl:value-of select='id(.)/shortname' />]]
 </xsl:template>
 
+<xsl:template match="a">[[<xsl:value-of select="@href" /> <xsl:value-of select="." />]]</xsl:template>
+
 <xsl:template match="note" xml:space="preserve">
 &lt;div style="background-color:#EFF;border:thin black solid;padding:5px;">[[Image:Plotnote.png|left]]<xsl:apply-templates />&lt;br clear="all" />&lt;/div></xsl:template>
 

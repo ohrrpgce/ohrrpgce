@@ -184,6 +184,7 @@
 		</xsl:if>
 	</xsl:template>
 
+	<xsl:template match="a"><a href="{@href}"><xsl:value-of select="." /></a></xsl:template>
 	<xsl:template match="p"><span class="key"><xsl:value-of select="." /></span></xsl:template>
 	<xsl:template match="ref">
 		<xsl:if test='count(id(.))=0'>

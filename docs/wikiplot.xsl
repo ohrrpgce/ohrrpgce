@@ -40,6 +40,7 @@ See [[#<xsl:value-of select="id(alias)/shortname" />|<xsl:value-of select="id(al
 <xsl:template match="example"><pre><xsl:value-of select="." /></pre></xsl:template>
 
 <xsl:template match="ref"><xsl:if test='count(id(.))=0'>'''[[#<xsl:value-of select='.' />|<xsl:value-of select='.' />]]'''</xsl:if><xsl:if test='count(id(.))>0'>[[#<xsl:value-of select='id(.)/shortname' />|<xsl:value-of select='id(.)/shortname' />]]</xsl:if></xsl:template>
+<xsl:template match="a">[[<xsl:value-of select="@href" /> <xsl:value-of select="." />]]</xsl:template>
 
 <xsl:template match="lb"><br/></xsl:template>
 <xsl:template match="ul"><xsl:apply-templates /></xsl:template>

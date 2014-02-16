@@ -951,8 +951,8 @@ wait for text box # wait until the player continues</example>
 			<canon>party money</canon>
 			<shortname>party money</shortname>
 			<description>Returns how much money your party has.</description>
-	</command>
-	<command id="getmoney">
+		</command>
+		<command id="getmoney">
 			<canon>get money (amount)</canon>
 			<shortname>get money</shortname>
 			<description>Adds the specified amount to your party&apos;s money</description>
@@ -961,7 +961,7 @@ wait for text box # wait until the player continues</example>
 			<canon>lose money (amount)</canon>
 			<shortname>lose money</shortname>
 			<description>Subtracts the specified amount from your party&apos;s money.</description>
-	</command>
+		</command>
 		<command id="setmoney">
 			<canon>set money (amount)</canon>
 			<shortname>set money</shortname>
@@ -1495,7 +1495,10 @@ end</example>
 		</command>
 	</section>
 	<section title="String Functions">
-		<description>When referring to a position in a string, <p>position</p> is a 1-based index into the string, not a 0-based index. For example, given a string "ABCDEFG", position=3 is "C", not "D". This is because the string commands are based on BASIC string commands, which are 1-based. This also means that position 0 is invalid. Beware!<lb/>There is no limit on string length (previously, they were limited to 40 characters, the width of the screen)</description>
+		<description>In HamsterSpeak, strings are special variables which hold pieces of text, and are referred to by their ID numbers. There are 100 string variables, with IDs 0 to 99. Strings can be displayed onscreen directly and embedded in textboxes. For more information, see the <a href="rpg.hamsterrepublic.com/ohrrpgce/Strings">wiki article on strings</a>.<lb/>
+To set the value of string, write <p>$id = "Some text!"</p>, where <p>id</p> can be a constant like 0 or 1, a variable, or even an expression like a call to a script. You can also write <p>$id + " ... and something more"</p> to append some text to an existing string.<lb/>
+There is no limit on string length.<lb/>
+<note>When referring to a position in a string, <p>position</p> is a 1-based index into the string, not a 0-based index. For example, given a string "ABCDEFG", position=3 is "C", not "D". This is because the string commands are based on BASIC string commands, which are 1-based. This also means that position 0 is invalid. Beware!</note></description>
 		<command id="showstring">
 			<canon>show string (ID)</canon>
 			<shortname>show string</shortname>
