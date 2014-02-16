@@ -160,6 +160,12 @@
 <hr>
 <h2>Alphabetical Index</h2>
 <p>
+		<a href="#about-%24string+%22...%22">$id+"some text"</a><br>
+		
+	
+		<a href="#about-%24string=%22...%22">$id="some text"</a><br>
+		
+	
 		<a href="#about-abs">abs (number)</a><br>
 		
 	
@@ -4540,13 +4546,39 @@ end</pre>
 		<a name="String%20Functions"></a>
 
 		<font color="#f06060" size="4">String Functions</font>
-		<p>In HamsterSpeak, strings are special variables which hold pieces of text, and are referred to by their ID numbers. There are 100 string variables, with IDs 0 to 99. Strings can be displayed onscreen directly and embedded in textboxes. For more information, see the <a href="rpg.hamsterrepublic.com/ohrrpgce/Strings">wiki article on strings</a>.<br>
-To set the value of string, write <span class="param">$id = "Some text!"</span>, where <span class="param">id</span> can be a constant like 0 or 1, a variable, or even an expression like a call to a script. You can also write <span class="param">$id + " ... and something more"</span> to append some text to an existing string.<br>
+		<p>In HamsterSpeak, strings are special variables which hold pieces of text, and are referred to by their ID numbers. There are 100 string variables, with IDs 0 to 99. Strings variables can be displayed onscreen directly, or alternatively embedded in textboxes or dsiplayed with text slices. For more information, see the <a href="rpg.hamsterrepublic.com/ohrrpgce/Strings">wiki article on strings</a>.<br>
+You can set the value of a string directly with <a href="#about-%24string=%22...%22" class="ref">$id="..."</a> and append to an existing string with <a href="#about-%24string+%22...%22" class="ref">$id+"..."</a>.
 There is no limit on string length.<br>
 <div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">When referring to a position in a string, <span class="param">position</span> is a 1-based index into the string, not a 0-based index. For example, given a string "ABCDEFG", position=3 is "C", not "D". This is because the string commands are based on BASIC string commands, which are 1-based. This also means that position 0 is invalid. Beware!<br clear="all">
 </div><br></p>
 		
+		<a name="about-%24string=%22...%22"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">$id="some text"</font></b><br>
+			Sets the contents of a string variable given by <span class="param">id</span>, which can be a constant like 0 or 1, a variable, or even an expression like a call to a script, to a piece of text. The previous contents are erased. The whole statement must be on a single line; you can't split the text onto multiple lines (use multiple <a href="#about-%24string+%22...%22" class="ref">$id+"..."</a> statements instead). The value of the whole statement is equal to <span class="param">id</span> for convenience (see the example). The text (which is called a string literal) can contain certain escape codes:<br>
+\\ turns into a single \<br>
+\" turns into a single " without signalling the end of the literal<br>
+\n is a new line character, which is useful in a textslice but doesn't cause a new line in textboxes or on-screen strings.<br>
+\t is a tab character (which isn't useful at all as it doesn't actually cause a tab)<br>
+\x## where ## is a two digit hexidecimal number adds an ASCII character to the string. For example \x4b is the letter K.<br>
+			<pre># This displays Some text! in the corner of the screen
+$1 = "Some text!"
+showstring(1)
+
+# This displays "A quote" in the corner of the screen
+showstring($1="\"A quote\"")</pre>
+			
+		</tt></p>
+		<a name="about-%24string+%22...%22"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">$id+"some text"</font></b><br>
+			Appends a string literal to a string variable. This is the same as <a href="#about-%24string=%22...%22" class="ref">$id="..."</a>, except that the existing contents of the string are preserved and appended to.<br>
+			
+			
+		</tt></p>
 		<a name="about-showstring"></a>
 		<p>
 		<tt>
@@ -4621,8 +4653,7 @@ wait for key(anykey)
 hide string(12)
 </pre>
 <pre># This displays "1abcdef ffffffff A%"
-$1 = "%x %x %c%%"
-string sprintf(0, 1, 28036591, -1, 65)
+string sprintf(0, $1="%x %x %c%%", 28036591, -1, 65)
 show string(0)</pre>
 			<br>See also: <ul class="seealso">
 <li>
@@ -11546,7 +11577,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 784 commands in this file, of which 57 are only references to other commands.</p>
+	<p>Stats: There are 786 commands in this file, of which 57 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

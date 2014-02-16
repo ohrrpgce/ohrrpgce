@@ -1495,10 +1495,31 @@ end</example>
 		</command>
 	</section>
 	<section title="String Functions">
-		<description>In HamsterSpeak, strings are special variables which hold pieces of text, and are referred to by their ID numbers. There are 100 string variables, with IDs 0 to 99. Strings can be displayed onscreen directly and embedded in textboxes. For more information, see the <a href="rpg.hamsterrepublic.com/ohrrpgce/Strings">wiki article on strings</a>.<lb/>
-To set the value of string, write <p>$id = "Some text!"</p>, where <p>id</p> can be a constant like 0 or 1, a variable, or even an expression like a call to a script. You can also write <p>$id + " ... and something more"</p> to append some text to an existing string.<lb/>
+		<description>In HamsterSpeak, strings are special variables which hold pieces of text, and are referred to by their ID numbers. There are 100 string variables, with IDs 0 to 99. Strings variables can be displayed onscreen directly, or alternatively embedded in textboxes or dsiplayed with text slices. For more information, see the <a href="rpg.hamsterrepublic.com/ohrrpgce/Strings">wiki article on strings</a>.<lb/>
+You can set the value of a string directly with <ref>$string="..."</ref> and append to an existing string with <ref>$string+"..."</ref>.
 There is no limit on string length.<lb/>
 <note>When referring to a position in a string, <p>position</p> is a 1-based index into the string, not a 0-based index. For example, given a string "ABCDEFG", position=3 is "C", not "D". This is because the string commands are based on BASIC string commands, which are 1-based. This also means that position 0 is invalid. Beware!</note></description>
+		<command id="$string=&quot;...&quot;">
+			<canon>$id="some text"</canon>
+			<shortname>$id="..."</shortname>
+			<description>Sets the contents of a string variable given by <p>id</p>, which can be a constant like 0 or 1, a variable, or even an expression like a call to a script, to a piece of text. The previous contents are erased. The whole statement must be on a single line; you can't split the text onto multiple lines (use multiple <ref>$string+"..."</ref> statements instead). The value of the whole statement is equal to <p>id</p> for convenience (see the example). The text (which is called a string literal) can contain certain escape codes:<lb/>
+\\ turns into a single \<lb/>
+\" turns into a single " without signalling the end of the literal<lb/>
+\n is a new line character, which is useful in a textslice but doesn't cause a new line in textboxes or on-screen strings.<lb/>
+\t is a tab character (which isn't useful at all as it doesn't actually cause a tab)<lb/>
+\x## where ## is a two digit hexidecimal number adds an ASCII character to the string. For example \x4b is the letter K.</description>
+			<example># This displays Some text! in the corner of the screen
+$1 = "Some text!"
+showstring(1)
+
+# This displays "A quote" in the corner of the screen
+showstring($1="\"A quote\"")</example>
+		</command>
+		<command id="$string+&quot;...&quot;">
+			<canon>$id+"some text"</canon>
+			<shortname>$id+"..."</shortname>
+			<description>Appends a string literal to a string variable. This is the same as <ref>$string="..."</ref>, except that the existing contents of the string are preserved and appended to.</description>
+		</command>
 		<command id="showstring">
 			<canon>show string (ID)</canon>
 			<shortname>show string</shortname>
@@ -1558,8 +1579,7 @@ wait for key(anykey)
 hide string(12)
 </example>
 			<example># This displays "1abcdef ffffffff A%"
-$1 = "%x %x %c%%"
-string sprintf(0, 1, 28036591, -1, 65)
+string sprintf(0, $1="%x %x %c%%", 28036591, -1, 65)
 show string(0)</example>
 			<seealso>
 				<ref>appendascii</ref>
