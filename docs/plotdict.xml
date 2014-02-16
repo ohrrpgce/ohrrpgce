@@ -1518,14 +1518,53 @@ There is no limit on string length.<lb/>
 		<command id="appendascii">
 			<canon>append ascii (ID, char)</canon>
 			<shortname>append ascii</shortname>
-			<description>Appends the character with ascii code 'ascii' to the string with ID #ID. Remember: Numbers are 48 - 57, uppercase letters are 65 - 90, lowercase letters are 97 - 122.</description>
-			<seealso><ref>appendnumber</ref></seealso>
+			<description>Appends the character with ASCII code 'ascii' to the string with ID #ID. The font editor lists ASCII codes. For example numbers are 48 - 57, uppercase letters are 65 - 90, lowercase letters are 97 - 122.</description>
+			<seealso>
+				<ref>stringsprintf</ref>
+				<ref>appendnumber</ref>
+			</seealso>
 		</command>
 		<command id="appendnumber">
 			<canon>append number (ID, number)</canon>
 			<shortname>append number</shortname>
 			<description>Appends the textual representation of <p>number</p> to the string with ID #<p>ID</p>. For example, append number(1,65) will append "65", not "A".</description>
-			<seealso><ref>appendascii</ref></seealso>
+			<seealso>
+				<ref>appendascii</ref>
+				<ref>stringsprintf</ref>
+			</seealso>
+		</command>
+		<command id="stringsprintf">
+			<canon>string sprintf (dest string ID, format string ID, arguments...)</canon>
+			<shortname>string sprintf</shortname>
+			<description>Builds a string from a template (given by <p>format string ID</p>) and zero or more additional arguments, and puts the result in the string <p>dest string ID</p>. This is a restricted version of the sprintf function in other programming languages. This function takes at least 2 arguments. The format string is a mix of regular text and codes like %d. For each code, one argument is read and used to substitute for the code. The codes are:<lb/>
+<p>%d</p>: substituted with a number, printed as a decimal.<lb/>
+<p>%x</p>: substituted with a number, printed as a unsigned 32 bit hexidecimal, in lower case and without a leading 0x.<lb/>
+<p>%s</p>: substituted with a string. The argument should be a valid string ID.<lb/>
+<p>%c</p>: substituted with a single character. The argument should be an number between 0 and 255.<lb/>
+<p>%%</p>: substituted with a single %. In this case an argument is NOT used up.<lb/>
+More sophisticated codes like %-04d that are possible in other programming languages are not supported yet.
+</description>
+			<example># This displays some text like "HP: 30  MP: 12  $: 104" at the bottom of the screen
+$1 = "HP: %d  MP: %d  $: %d"
+string sprintf(0, 1, getherostat(me, stat:HP), getherostat(me, stat:MP), partymoney)
+show string(0)</example>
+			<example># This displays some text like "Ah Bob! You've brought me 5 apples."
+# in the centre of the screen, and waits for the player to press a key.
+$10 = "Ah %s! You've brought me %d apples."
+getheroname(11, findhero(leader))
+string sprintf(12, 10, 11, inventory(item:apple))
+center string at(12, 160, 100)
+wait for key(anykey)
+hide string(12)
+</example>
+			<example># This displays "1abcdef ffffffff A%"
+$1 = "%x %x %c%%"
+string sprintf(0, 1, 28036591, -1, 65)
+show string(0)</example>
+			<seealso>
+				<ref>appendascii</ref>
+				<ref>appendnumber</ref>
+			</seealso>
 		</command>
 		<command id="numberfromstring">
 			<canon>number from string (ID, default)</canon>
@@ -5978,10 +6017,23 @@ trace value (hero X (me), hero Y (me))</example>
 				<ref>assert</ref>
 			</seealso>
 		</command>
+		<command id="scripterror">
+			<canon>script error (string id)</canon>
+			<shortname>script error</shortname>
+			<description>Shows an error message, like any other script error. This allows you to open the script debugger. The optional <p>string id</p> argument gives the error message to display.</description>
+			<example>if (x &lt; 0 || x &gt;= map width || y &lt; 0 || y &gt;= map height) then (
+  $0="Coordinates went off the edge of the map"
+  script error(0)
+)</example>
+			<seealso>
+				<ref>assert</ref>
+				<ref>tracevalue</ref>
+			</seealso>
+		</command>
 		<command id="assert">
 			<canon>assert (expression)</canon>
 			<shortname>assert</shortname>
-			<description>If <p>expression</p> is false, then writes the filename, line number and <p>expression</p> into the string given by the constant or global variable named <p>assert expression string</p>, and then calls the script named <p>assert failure</p>.</description>
+			<description>If <p>expression</p> is false, then writes the script filename, line number and <p>expression</p> into the string given by the constant or global variable named <p>assert expression string</p>, and then calls the script named <p>assert failure</p>. You can use this to detect bugs in your scripts, by checking that your assumptions about the state of the game are correct.</description>
 			<example># The following...
 assert (check tag (tag:initialised) == OFF)
 # ...is equivalent to something like
@@ -5992,14 +6044,14 @@ if (not (check tag (tag:initialised) == OFF)) then (
 			<example># Suggested usage:
 define constant(31, assert expression string)
 script, assert failure, begin
-  trace(31)
-  show text box(123)  # Error! ${S31}
+  script error(assert expression string)
 end
 
 # later...
-assert (something I really hope is true)
+assert (check tag (tag:initialised) == OFF)  # something ought to be true at this moment
 </example>
 			<seealso>
+				<ref>scripterror</ref>
 				<ref>tracevalue</ref>
 			</seealso>
 		</command>

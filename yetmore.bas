@@ -172,6 +172,71 @@ IF limit > 0 THEN
 END IF
 END SUB
 
+' Implementation of "string sprintf". Reads from retval(1...).
+' retval(1) is the format string id; retval(2...) are the arguments
+' Returns the formatted string
+FUNCTION script_sprintf() as string
+ DIM ret as string
+ DIM formatstring as string = plotstr(retvals(1)).s
+ DIM nextarg as integer = 2  'retval() index
+ DIM copystart as integer = 1  'Position to copy literally from. 1-based indexing
+
+ WHILE copystart <= LEN(formatstring)
+  DIM percentptr as zstring ptr
+  percentptr = strchr(STRPTR(formatstring) + copystart - 1, ASC("%"))
+  'Position of the start of this format code. 1-based indexing
+  DIM percentpos as integer
+  percentpos = (percentptr - STRPTR(formatstring)) + 1
+
+  IF percentptr = NULL THEN EXIT WHILE
+  ret &= MID(formatstring, copystart, percentpos - copystart)
+
+  ' Check what the next letter is
+  IF percentptr[1] = 0 THEN  ' End of string
+   scripterr interpreter_context_name() & !"Found lone % at end of format string:\n" & formatstring, serrBadOp
+   EXIT WHILE
+  ELSEIF percentptr[1] = ASC("%") THEN
+   ret &= "%"
+   copystart = percentpos + 2
+  ELSE
+   IF nextarg >= curcmd->argc THEN
+    scripterr interpreter_context_name() & "There are only " & curcmd->argc & !" formatting arguments, but format string has more codes than that:\n" & formatstring, serrBadOp
+    EXIT WHILE
+   ELSE
+    IF percentptr[1] = ASC("s") THEN
+     ' String
+     IF valid_plotstr(retvals(nextarg), serrBadOp) THEN
+      ret &= plotstr(retvals(nextarg)).s
+     END IF
+    ELSEIF percentptr[1] = ASC("d") THEN
+     ' Decimal
+     ret &= retvals(nextarg)
+    ELSEIF percentptr[1] = ASC("x") THEN
+     ' Hexidecimal
+     ret &= LCASE(HEX(retvals(nextarg)))
+    ELSEIF percentptr[1] = ASC("c") THEN
+     ' Character
+     IF bound_arg(retvals(nextarg), 0, 255, "%c character code", , , serrBadOp) THEN
+      ret &= CHR(retvals(nextarg))
+     END IF
+    END IF
+    copystart = percentpos + 2
+    nextarg += 1
+   END IF
+
+  END IF
+
+ WEND
+ ret &= MID(formatstring, copystart)
+
+ IF nextarg <> curcmd->argc THEN
+  scripterr interpreter_context_name() & "There were more arguments (" & curcmd->argc & ") than were needed (only " & nextarg & !"):\n" & formatstring, serrBadOp
+ END IF
+
+ RETURN ret
+END FUNCTION
+
+
 FUNCTION scriptstat (byval id as integer) as bool
 'contains an assortment of scripting commands that
 'used to depend on access to the hero stat array stat(), but that is irrelevant now,
@@ -3149,7 +3214,17 @@ SELECT CASE as CONST id
   scriptret = IIF(running_on_mobile(), 1, 0)
  CASE 555 '--running on console
   scriptret = IIF(running_on_console(), 1, 0)
-
+ CASE 565 '--string sprintf (dest string id, format string id, args...)
+  IF valid_plotstr(retvals(0), serrBadOp) AND valid_plotstr(retvals(1), serrBadOp) THEN
+   plotstr(retvals(0)).s = script_sprintf()
+   scriptret = retvals(0)
+  END IF
+ CASE 566 '--script error
+  IF retvals(0) = -1 THEN
+   scripterr "(Triggered with ""scripterror"", no message)", serrBadOp
+  ELSEIF valid_plotstr(retvals(0), serrBadOp) THEN
+   scripterr !"(Triggered with ""scripterror""):\n" & plotstr(retvals(0)).s, serrBadOp
+  END IF
 
 'old scriptnpc
 

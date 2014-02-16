@@ -577,6 +577,8 @@ define function, begin
 562,sliceisscrunch,1,0           #(slice handle) returns true if this slice is a scrunch
 563,setscrunchsubpixels,2,0,1    #(slice handle, subpixels)
 564,getscrunchsubpixels,1,0      #(slice handle)
+565,stringsprintf,-1             #(dest string id, format string id, args...) Format a string, like sprintf
+566,scripterror,1,-1             #(string id) Show a script error
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 
