@@ -4761,7 +4761,7 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
   # Let's check whether there is at least one plip in this formation
   variable (number, plip slot)
   number := find enemy in formation (formation, enemy:plip, get count)
-  if (number >> 0) then (
+  if (number > 0) then (
     # We'll put a string onscreen where the plip appears in battle
     $31 = "Plip!"
     plip slot := find enemy in formation (formation, enemy:plip)
@@ -4975,32 +4975,32 @@ write pass block(15,3,pass)
 		<command id="add">
 			<canon>number + number</canon>
 			<shortname>add</shortname>
-			<description>Adds two values together and returns the result. This can also be written as add(number,number)</description>
+			<description>Adds two values together and returns the result. This can also be written as <p>add(number,number)</p></description>
 		</command>
 		<command id="subtract">
 			<canon>number -- number</canon>
 			<shortname>subtract</shortname>
-			<description>Subtracts the second number from the first number and returns the result. It is necessary to use the double minus so that HSPEAK.EXE can tell the difference between subtraction, and a minus sign that indicates a negative number. You can also write subtract(number,number)</description>
+			<description>Subtracts the second number from the first number and returns the result. It is necessary to use the double minus so that HSPEAK.EXE can tell the difference between subtraction, and a minus sign that indicates a negative number. You can also write <p>subtract(number,number)</p></description>
 		</command>
 		<command id="multiply">
 			<canon>number * number</canon>
 			<shortname>multiply</shortname>
-			<description>Multiplies two values together and returns the result. This can also be written as multiply(number,number)</description>
+			<description>Multiplies two values together and returns the result. This can also be written as <p>multiply(number,number)</p></description>
 		</command>
 		<command id="divide">
 			<canon>number / number</canon>
 			<shortname>divide</shortname>
-			<description>Divides the second number into the first number and returns the result. The result is rounded down to an integer. This can also be written as divide(number,number)</description>
+			<description>Divides the second number into the first number and returns the result. The result is rounded down to an integer. This can also be written as <p>divide(number,number)</p></description>
 		</command>
 		<command id="modulus">
 			<canon>number,mod,number</canon>
 			<shortname>mod</shortname>
-			<description>Divides the second number into the first number and returns the remainder. This can also be written as modulus(number,number)</description>
+			<description>Divides the second number into the first number and returns the remainder. This can also be written as <p>modulus(number,number)</p></description>
 		</command>
 		<command id="exponent">
 			<canon>number ^ power</canon>
 			<shortname>^</shortname>
-			<description>Raises a number to a power and returns the result. (If the result is too large and overflows no error occurs: the value is simply wrapped around a 32 bit signed integer.) This can also be written as exponent(number,power)</description>
+			<description>Raises a number to a power and returns the result. (If the result is too large and overflows no error occurs: the value is simply wrapped around a 32 bit signed integer.) This can also be written as <p>exponent(number,power)</p></description>
 		</command>
 		<command id="abs">
 			<canon>abs (number)</canon>
@@ -5020,32 +5020,32 @@ write pass block(15,3,pass)
 		<command id="equal">
 			<canon>number == number</canon>
 			<shortname>==</shortname>
-			<description>Checks to see if the two numbers are equal. If they are equal it returns true, otherwise it returns false. This can also be written as equal(number,number)</description>
+			<description>Checks to see if the two numbers are equal. If they are equal it returns true, otherwise it returns false. This can also be written as <p>equal(number,number)</p></description>
 		</command>
 		<command id="notequal">
 			<canon>number &lt;> number</canon>
 			<shortname>&lt;></shortname>
-			<description>Checks to see if the two numbers are not equal. If they are not equal it returns true. If they are equal it returns false. This can also be written as not equal(number,number)</description>
+			<description>Checks to see if the two numbers are not equal. If they are not equal it returns true. If they are equal it returns false. This can also be written as <p>not equal(number,number)</p></description>
 		</command>
 		<command id="lessthan">
-			<canon>number &lt;&lt; number</canon>
-			<shortname>&lt;&lt;</shortname>
-			<description>Checks to see if the first number is less than the second number. If it is, it returns true, otherwise it returns false. This can also be written as less than(number,number)</description>
+			<canon>number &lt; number</canon>
+			<shortname>&lt;</shortname>
+			<description>Checks to see if the first number is less than the second number. If it is, it returns true, otherwise it returns false. This can also be written as <p>less than(number,number)</p> and as <p>number &lt;&lt; number</p></description>
 		</command>
 		<command id="greaterthan">
-			<canon>number &gt;&gt; number</canon>
-			<shortname>&gt;&gt;</shortname>
-			<description>Checks to see if the first number is greater than the second number. If it is, it returns true, otherwise it returns false. This can also be written as greater than(number,number)</description>
+			<canon>number &gt; number</canon>
+			<shortname>&gt;</shortname>
+			<description>Checks to see if the first number is greater than the second number. If it is, it returns true, otherwise it returns false. This can also be written as <p>greater than(number,number)</p> and as <p>number &gt;&gt; number</p></description>
 		</command>
 		<command id="lessthanorequalto">
 			<canon>number &lt;= number</canon>
 			<shortname>&lt;=</shortname>
-			<description>Checks to see if the first number is less than or equal to the second number. If it is, it returns true, otherwise it returns false. This can also be written as less than or equal to(number,number)</description>
+			<description>Checks to see if the first number is less than or equal to the second number. If it is, it returns true, otherwise it returns false. This can also be written as <p>less than or equal to(number,number)</p></description>
 		</command>
 		<command id="greaterthanorequalto">
 			<canon>number >= number</canon>
 			<shortname>&gt;=</shortname>
-			<description>Checks to see if the first number is greater than or equal to the second number. If it is, it returns true, otherwise it returns false. This can also be written as greater than or equal to(number,number)</description>
+			<description>Checks to see if the first number is greater than or equal to the second number. If it is, it returns true, otherwise it returns false. This can also be written as <p>greater than or equal to(number,number)</p></description>
 		</command>
 		<command id="and">
 			<canon>value,and,value</canon>
