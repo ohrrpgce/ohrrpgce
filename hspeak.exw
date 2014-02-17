@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Rf 2013-02-17 Fix several 31-bit int overflows
 --3Re 2014-02-17 Trivial change to math builtin warnings
 ----- 2013-11-09 Prevent misuse of betweenable-operators in
 --               declarations, and allow constants for global ids
@@ -152,7 +153,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Re"
+constant COMPILER_SUB_VERSION="Rf"
 constant COPYRIGHT_DATE="2013"
 
 --This is the oldest version of plotscr.hsd which is supported (feel free to
@@ -1978,7 +1979,7 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-procedure create_global(integer id, string name, srcpos pos)
+procedure create_global(atom id, string name, srcpos pos)
   integer at
   at=find(id,global_list[PAIR_NUM])
   if at then
@@ -1998,7 +1999,7 @@ end procedure
 ---------------------------------------------------------------------------
 
 procedure parse_global_block(TokenList block)
-  integer num
+  atom num
   for i=1 to length(block) by 2 do
     if i+1>length(block) then
       src_error("expected name but globalvariable block ended",block[i][CMD_POS])
@@ -2012,7 +2013,7 @@ end procedure
 ---------------------------------------------------------------------------
 
 procedure parse_operator_block(TokenList block)
-  integer num
+  atom num
   integer keyword
   string name,truename
   srcpos pos
@@ -2082,9 +2083,9 @@ end function
 ---------------------------------------------------------------------------
 
 function parse_define_block(TokenList block, sequence list, integer func_type)
-  integer num
+  atom num
   string name
-  integer args
+  atom args
   sequence arglist  --sequence of strings
   srcpos name_pos
   integer i
@@ -3189,7 +3190,7 @@ function build_switch_node(NodeList tree, VarList vars, integer ptr)
   srcpos elsepos
   integer expect_case
   integer kind
-  integer id
+  atom id
   string else_error_msg
   else_error_msg=COLYEL&"else"&COLRED&" case should be placed last inside a "&COLYEL&"switch"&COLRED&" block"
 
@@ -3341,7 +3342,7 @@ end function
 --return a an integer ID token, or throw an error if not a variable.
 function convert_variable_to_id(Token var, VarList locals, string parent)
   sequence kind_and_id
-  integer id
+  atom id
   integer argkind
   integer var_at
   kind_and_id=what_kind_and_id(var,locals)
@@ -3732,7 +3733,8 @@ end function
 --Calls fix_arguments on each non-flow node with arguments
 function normalize_arguments(NodeList tree, VarList vars)
   sequence kind_and_id
-  integer kind,id
+  integer kind
+  atom id
   --Unlike the flow normalization and operator translation we do not insert/delete elements from
   --the current level, so we can use a "for" safely, and dont need a "while"
   for i=1 to length(tree) do
@@ -3814,7 +3816,8 @@ end function
 --returns the offset where this node was either added, or references an existing node
 function binary_compile_recurse(Node tree, VarList vars)
   sequence result
-  integer kind,id
+  integer kind
+  atom id
   integer at
   string s
   sequence kind_and_id
