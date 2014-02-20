@@ -45,5 +45,7 @@ DECLARE SUB scriptinterpreter ()
 DECLARE SUB breakpoint (byref mode as integer, byval callspot as integer)
 DECLARE SUB scriptwatcher (byref mode as integer, byval drawloop as integer)
 DECLARE SUB setScriptArg (byval arg as integer, byval value as integer)
+DECLARE FUNCTION ancestor_script_id(scriptslot as integer, depth as integer) as integer
+
 
 #endif

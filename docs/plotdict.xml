@@ -6075,6 +6075,19 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 				<ref>tracevalue</ref>
 			</seealso>
 		</command>
+		<command id="getscriptname">
+			<canon>get script name (string id, script id)</canon>
+			<shortname>get script name</shortname>
+			<description>Fetches the name of a script given its ID number and places it in a string. It's an error to pass an invalid script ID.. You can get the ID number of a script by writing @scriptname.</description>
+		</command>
+		<command id="getcallingscriptid">
+			<canon>get calling script id (depth)</canon>
+			<shortname>get calling script id</shortname>
+			<description>Returns the ID number of the script which called this one. The optional <p>depth</p> argument, which defaults to 1, allows returning the ID of a deeper ancestor script instead: 1 is the parent, 2 is the grandparent, etc. If there is no calling script (the script was triggered instead), then the return value is 0. You can get the ID number of a script by writing @scriptname.</description>
+			<seealso>
+				<ref>getscriptname</ref>
+			</seealso>
+		</command>
 		<command id="savemapstate">
 			<canon>save map state (whichdata, customid)</canon>
 			<shortname>save map state</shortname>

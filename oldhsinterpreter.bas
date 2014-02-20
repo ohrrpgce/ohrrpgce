@@ -521,6 +521,22 @@ SUB setScriptArg (byval arg as integer, byval value as integer)
  END WITH
 END SUB
 
+FUNCTION ancestor_script_id(scriptslot as integer, depth as integer) as integer
+ 'Returns the script ID of a parent or ancestor of a script. Depth is 1 for parent,
+ '2 for grandparent, etc.
+ 'scriptslot is a scrat slot number (eg nowscript).
+ 'Returns 0 for none.
+
+ FOR slot as integer = scriptslot - 1 TO scriptslot - depth STEP -1
+  'Script stack doesn't go that far down
+  IF slot < 0 THEN RETURN 0
+  'Suspended script
+  IF scrat(slot).state < 0 THEN RETURN 0
+ NEXT
+
+ RETURN scrat(scriptslot - depth).id
+END FUNCTION
+
 FUNCTION functiondone () as integer
 'returns 0 when returning a value to a caller
 'returns 1 when all scripts are finished

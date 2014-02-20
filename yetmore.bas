@@ -3221,11 +3221,29 @@ SELECT CASE as CONST id
    plotstr(retvals(0)).s = script_sprintf()
    scriptret = retvals(0)
   END IF
- CASE 566 '--script error
+ CASE 566 '--script error (string id)
   IF retvals(0) = -1 THEN
    scripterr "(Triggered with ""scripterror"", no message)", serrBadOp
   ELSEIF valid_plotstr(retvals(0), serrBadOp) THEN
    scripterr !"(Triggered with ""scripterror""):\n" & plotstr(retvals(0)).s, serrBadOp
+  END IF
+ CASE 567 '--get script name (string id, script id)
+  IF valid_plotstr(retvals(0), serrBadOp) THEN
+   ' Should be safe to call with any invalid ID number
+   DIM scrname as string = scriptname(retvals(1))
+   ' Real script names can't start with [, this indicates an invalid ID
+   IF scrname[0] = ASC("[") THEN
+    scripterr "getscriptname: invalid script ID " & retvals(1), serrBadOp
+   ELSE
+    plotstr(retvals(0)).s = scrname
+   END IF
+  END IF
+ CASE 568 '--get calling script id (depth)
+  IF retvals(0) < 1 THEN
+   scripterr "get calling script id: expected a depth of at least 1", serrBadOp
+  ELSE
+   ' Returns 0 if non-existent
+   scriptret = ancestor_script_id(nowscript, retvals(0))
   END IF
 
 'old scriptnpc

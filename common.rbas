@@ -625,6 +625,7 @@ FUNCTION decodetrigger (byval trigger as integer) as integer
  END IF
 END FUNCTION
 
+'If called with an invalid script id, the result will be "[id]"
 FUNCTION scriptname (byval num as integer) as string
  DIM ret as string
 
