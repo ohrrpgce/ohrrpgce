@@ -12,4 +12,4 @@ You can export your font as an OHF file, or import a new font from OHF files tha
 
 The OHF font format is only used by the OHRRPGCE. There is no way to import other font formats like TrueType TTF.
 
-You can set the type of your font as either based on either (7-bit) ASCII or Latin-1. This setting affects the export of textboxes and item, attack, etc. names in .HSI files. It indicates which characters are icons you've drawn rather than standard letters. Icons will be exported either as escaped codes that look like \250 for textboxes, or removed entirely in .HSI files.
+You can set the type of your font as based on either (7-bit) ASCII or Latin-1. This setting affects the export of textboxes and item, attack, etc. names in .HSI files. It indicates which characters are icons you've drawn rather than standard letters. Icons will be exported either as escaped codes that look like \250 for textboxes, or removed entirely in .HSI files.

@@ -1,6 +1,6 @@
 This is the Slice Lookup code name editor.
 
-Here you can define names that can be assigned to your slices.
+Here you can define names that can be assigned to your slices. Each line on the screen aside from "Previous Menu" is a lookup code name. Initially they are all blank.
 
 A slice only needs a lookup code name if you want to be able to use the "lookup slice" plotscripting command to get a handle to the slice.
 
