@@ -38,6 +38,7 @@ DECLARE SUB hero_editor ()
 DECLARE SUB text_box_editor ()
 DECLARE SUB maptile ()
 DECLARE SUB compile_andor_import_scripts (f as string)
+DECLARE SUB reimport_previous_scripts ()
 
 'Local function declarations
 DECLARE FUNCTION newRPGfile (templatefile as string, newrpg as string) as integer
@@ -330,6 +331,10 @@ SUB main_editor_menu()
   END IF
   IF keyval(scF1) > 1 THEN
    show_help "main"
+  END IF
+
+  IF keyval(scF5) > 1 THEN
+   reimport_previous_scripts
   END IF
 
   IF select_by_typing(selectst) THEN

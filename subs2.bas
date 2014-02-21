@@ -57,6 +57,9 @@ DECLARE SUB textbox_choice_editor (byref box as TextBox, byref st as TextboxEdit
 DECLARE SUB textbox_conditionals(byref box as TextBox)
 DECLARE SUB textbox_update_conditional_menu(byref box as TextBox, menu() as string)
 
+
+DIM SHARED script_import_defaultdir as string
+
 'These are used in the TextBox conditional editor
 CONST condEXIT   = -1
 CONST condTAG    = 0
@@ -459,8 +462,22 @@ FUNCTION isunique (s as string, set() as string) as integer
  RETURN YES
 END FUNCTION
 
+SUB reimport_previous_scripts ()
+ DIM fname as string
+ 'isfile currently broken, returns true for directories
+ IF script_import_defaultdir = "" ORELSE isfile(script_import_defaultdir) = NO ORELSE isdir(script_import_defaultdir) THEN
+  fname = browse(9, script_import_defaultdir, "", "", , "browse_hs")
+ ELSE
+  fname = script_import_defaultdir
+ END IF
+ IF fname <> "" THEN
+  compile_andor_import_scripts fname
+ END IF
+ clearkey scEnter
+ clearkey scSpace
+END SUB
+
 SUB scriptman ()
-STATIC defaultdir as string
 DIM menu(4) as string
 DIM menu_display(4) as string
 
@@ -483,6 +500,9 @@ DO
  setkeys YES
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "script_management"
+ IF keyval(scF5) > 1 THEN
+  reimport_previous_scripts
+ END IF
  usemenu state
  IF select_by_typing(selectst) THEN
   select_on_word_boundary menu(), selectst, state
@@ -493,7 +513,7 @@ DO
     EXIT DO
    CASE 1
     DIM fname as string
-    fname = browse(9, defaultdir, "", "", , "browse_hs")
+    fname = browse(9, script_import_defaultdir, "", "", , "browse_hs")
     IF fname <> "" THEN
      'clearkey scEnter
      'clearkey scSpace
