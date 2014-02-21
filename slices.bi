@@ -286,7 +286,8 @@ DECLARE Sub SwapSiblingSlices(byval sl1 as slice ptr, byval sl2 as slice ptr)
 DECLARE Function LookupSlice (byval lookup_code as integer, byval start_sl as slice ptr = NULL) as slice ptr
 DECLARE Function LastChild(byval parent as slice ptr) as slice ptr
 DECLARE Function VerifySliceLineage(byval sl as slice ptr, parent as slice ptr) as integer
-DECLARE Function UpdateScreenSlice() as integer
+DECLARE Function UpdateRootSliceSize(sl as slice ptr) as bool
+DECLARE Function UpdateScreenSlice() as bool
 DECLARE Sub RefreshSliceScreenPos(byval sl as slice ptr)
 DECLARE Function SliceXAnchor(byval sl as Slice Ptr) as integer
 DECLARE Function SliceYAnchor(byval sl as Slice Ptr) as integer

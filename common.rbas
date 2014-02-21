@@ -1844,7 +1844,7 @@ SUB show_help(helpkey as string)
  DIM help_root as Slice Ptr
  help_root = NewSliceOfType(slRoot)
  WITH *help_root
-  .Y = 200
+  .Y = vpages(vpage)->h
   .Fill = NO
  END WITH
  DIM help_outer_box as Slice Ptr
@@ -1899,7 +1899,11 @@ SUB show_help(helpkey as string)
  DO
   setwait 17
   setkeys YES
-  
+
+  UpdateRootSliceSize(help_root)
+  dat->line_limit = (vpages(vpage)->h - 32) \ 10 + 1
+  scrollbar_state.size = dat->line_limit - 1
+
   IF editing THEN  
    cursor_line = stredit(dat->s, dat->insert, 32767, dat->line_limit, help_text->Width \ 8)
    'The limit of 32767 chars is totally arbitrary and maybe not a good limit
@@ -1988,7 +1992,7 @@ SUB show_help(helpkey as string)
   setkeys
   setwait 17
   animate->Y = animate->Y + 20
-  IF animate->Y > 200 THEN EXIT DO
+  IF animate->Y > vpages(vpage)->h THEN EXIT DO
   copypage holdscreen, vpage
   DrawSlice help_root, vpage
   setvispage vpage
