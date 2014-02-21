@@ -1457,7 +1457,7 @@ END SUB
 
 SUB draw_fullscreen_scrollbar(state as MenuState, byval boxstyle as integer=0, byval page as integer)
  DIM rect as RectType
- rect.wide = 320
- rect.high = 200
+ rect.wide = vpages(page)->w
+ rect.high = vpages(page)->h
  draw_scrollbar state, rect, boxstyle, page
 END SUB

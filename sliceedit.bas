@@ -199,7 +199,7 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
 
  DIM state as MenuState
  WITH state
-  .size = 21
+  .spacing = 8
   .need_update = YES
  END WITH
  DIM menuopts as MenuOptions
@@ -368,9 +368,11 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
 
   END IF '--end IF state.need_update = NO AND menu(state.pt).handle
 
+  ' Window size change
   IF UpdateScreenSlice() THEN state.need_update = YES
 
   IF state.need_update THEN
+   state.size = vpages(dpage)->h / state.spacing - 4
    slice_editor_refresh(ses, state, menu(), edslice, cursor_seek, slicelookup())
    REDIM plainmenu(state.last) as string
    FOR i as integer = 0 TO UBOUND(plainmenu)
@@ -391,7 +393,7 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
     draw_fullscreen_scrollbar state, , dpage
    END IF
    standardmenu plainmenu(), state, 0, 0, dpage, menuopts
-   edgeprint "+ to add a slice. SHIFT+arrows to sort", 0, 190, uilook(uiText), dpage
+   edgeprint "+ to add a slice. SHIFT+arrows to sort", 0, vpages(dpage)->h - 10, uilook(uiText), dpage
   END IF
 
   SWAP vpage, dpage
@@ -500,6 +502,7 @@ SUB slice_edit_detail (sl as Slice Ptr, byref ses as SliceEditState, rootsl as S
  DIM state as MenuState
  WITH state
   .pt = remember_pt
+  .spacing = 8
   .size = 22
   .need_update = YES
  END WITH
@@ -522,6 +525,7 @@ SUB slice_edit_detail (sl as Slice Ptr, byref ses as SliceEditState, rootsl as S
   IF state.need_update THEN
    slice_edit_detail_refresh state, menu(), sl, rules(), slicelookup()
    state.need_update = NO
+   state.size = vpages(dpage)->h \ state.spacing - 1
   END IF
 
   usemenu state
@@ -561,7 +565,7 @@ SUB slice_edit_detail_keys (byref state as MenuState, sl as Slice Ptr, rootsl as
   CASE erStrgrabber
    DIM s as string ptr = rule.dataptr
    IF keyval(scENTER) > 1 THEN
-    *s = multiline_string_editor(*s, "sliceedit_text_multiline")
+    *s = multiline_string_editor(*s, "sliceedit_text_multiline", NO)
     state.need_update = YES
    ELSE
     IF strgrabber(*s, 32767) THEN 'FIXME: this limit is totally arbitrary.

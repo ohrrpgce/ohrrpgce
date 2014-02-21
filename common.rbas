@@ -1999,7 +1999,7 @@ SUB show_help(helpkey as string)
  DeleteSlice @help_root
 END SUB
 
-FUNCTION multiline_string_editor(s as string, helpkey as string="") as string
+FUNCTION multiline_string_editor(s as string, helpkey as string="", prompt_to_save as bool = YES) as string
  'probably contains more code duplication than is apropriate when comared to the help_editor
  
  '--Construct the UI (loading a slice collection might be better here? but not from the RPG file!)
@@ -2067,10 +2067,12 @@ FUNCTION multiline_string_editor(s as string, helpkey as string="") as string
    '--If there are any changes to the help screen, offer to save them
    IF s = dat->s THEN
     EXIT DO
-   ELSE
+   ELSEIF prompt_to_save THEN
     DIM choice as integer = twochoice("Keep changes to this text?", "Yes", "No", 0, -1)
     IF choice = 1 THEN dat->s = s '--don't use changes!
     IF choice >= 0 THEN EXIT DO
+   ELSE
+    EXIT DO
    END IF
   END IF
   IF deadkeys = 0 THEN 
