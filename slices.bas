@@ -2437,7 +2437,7 @@ Function CloneSliceTree(byval sl as slice ptr) as slice ptr
  clone = NewSliceOfType(sl->SliceType)
  '--Clone all standard properties
  with *clone
-  ' Don't copy lookup code
+  .lookup = sl->lookup
   .x = sl->x
   .y = sl->y
   .Width = sl->Width
