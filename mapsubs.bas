@@ -1404,7 +1404,7 @@ DO
 
  '--hero start location display--
  IF gen(genStartMap) = st.mapnum THEN
-  IF gen(genStartX) >= st.mapx \ 20 AND gen(genStartX) < st.mapx \ 20 + 16 AND gen(genStartY) >= st.mapy \ 20 AND gen(genStartY) < st.mapy \ 20 + 9 THEN
+  IF gen(genStartX) >= st.mapx \ 20 AND gen(genStartX) <= (st.mapx + mapviewsize.w) \ 20 AND gen(genStartY) >= st.mapy \ 20 AND gen(genStartY) <= (st.mapy + mapviewsize.h) \ 20 THEN
    frame_draw hero_gfx.sprite + 4, hero_gfx.pal, gen(genStartX) * 20 - st.mapx, gen(genStartY) * 20 + 20 - st.mapy, , , dpage
    textcolor uilook(uiText), 0
    printstr "Hero", gen(genStartX) * 20 - st.mapx, gen(genStartY) * 20 + 30 - st.mapy, dpage
@@ -1414,28 +1414,32 @@ DO
  '--point out overhead tiles so that you can see what's wrong if you accidentally use them
  IF st.editmode = tile_mode AND UBOUND(map) > 0 THEN
   textcolor uilook(uiSelectedItem + tog), 0
-  FOR o as integer = 0 TO 8
-   FOR i as integer = 0 TO 15
+  FOR o as integer = 0 TO mapviewsize.h \ 20 + 1
+   FOR i as integer = 0 TO mapviewsize.w \ 20 + 1
     DIM pass_overtile as integer = readblock(pass, (st.mapx \ 20) + i, (st.mapy \ 20) + o)
-    IF (pass_overtile AND passOverhead) THEN printstr "O", i * 20 + 10, o * 20 + 30, dpage
+    DIM pixelx as integer = (st.mapx \ 20 + i) * 20 - st.mapx
+    DIM pixely as integer = (st.mapy \ 20 + o) * 20 - st.mapy
+    IF (pass_overtile AND passOverhead) THEN printstr "O", pixelx + 10, pixely + 30, dpage
    NEXT i
   NEXT o
  END IF
 
  '--show passmode
  IF st.editmode = pass_mode THEN
-  FOR o as integer = 0 TO 8
-   FOR i as integer = 0 TO 15
+  FOR o as integer = 0 TO mapviewsize.h \ 20 + 1
+   FOR i as integer = 0 TO mapviewsize.w \ 20 + 1
     DIM pass_overtile as integer = readblock(pass, (st.mapx \ 20) + i, (st.mapy \ 20) + o)
-    IF (pass_overtile AND passNorthWall) THEN rectangle i * 20     , o * 20 + 20, 20, 3, uilook(uiMenuItem + tog), dpage
-    IF (pass_overtile AND passEastWall)  THEN rectangle i * 20 + 17, o * 20 + 20, 3, 20, uilook(uiMenuItem + tog), dpage
-    IF (pass_overtile AND passSouthWall) THEN rectangle i * 20     , o * 20 + 37, 20, 3, uilook(uiMenuItem + tog), dpage
-    IF (pass_overtile AND passWestWall)  THEN rectangle i * 20     , o * 20 + 20, 3, 20, uilook(uiMenuItem + tog), dpage
+    DIM pixelx as integer = (st.mapx \ 20 + i) * 20 - st.mapx
+    DIM pixely as integer = (st.mapy \ 20 + o) * 20 - st.mapy
+    IF (pass_overtile AND passNorthWall) THEN rectangle pixelx     , pixely + 20, 20, 3, uilook(uiMenuItem + tog), dpage
+    IF (pass_overtile AND passEastWall)  THEN rectangle pixelx + 17, pixely + 20, 3, 20, uilook(uiMenuItem + tog), dpage
+    IF (pass_overtile AND passSouthWall) THEN rectangle pixelx     , pixely + 37, 20, 3, uilook(uiMenuItem + tog), dpage
+    IF (pass_overtile AND passWestWall)  THEN rectangle pixelx     , pixely + 20, 3, 20, uilook(uiMenuItem + tog), dpage
     textcolor uilook(uiSelectedItem + tog), 0
-    IF (pass_overtile AND passVehA) THEN printstr "A", i * 20, o * 20 + 20, dpage
-    IF (pass_overtile AND passVehB) THEN printstr "B", i * 20 + 10, o * 20 + 20, dpage
-    IF (pass_overtile AND passHarm) THEN printstr "H", i * 20, o * 20 + 30, dpage
-    IF (pass_overtile AND passOverhead) THEN printstr "O", i * 20 + 10, o * 20 + 30, dpage
+    IF (pass_overtile AND passVehA) THEN printstr "A", pixelx, pixely + 20, dpage
+    IF (pass_overtile AND passVehB) THEN printstr "B", pixelx + 10, pixely + 20, dpage
+    IF (pass_overtile AND passHarm) THEN printstr "H", pixelx, pixely + 30, dpage
+    IF (pass_overtile AND passOverhead) THEN printstr "O", pixelx + 10, pixely + 30, dpage
    NEXT i
   NEXT o
  END IF
@@ -1444,7 +1448,7 @@ DO
  IF st.editmode = door_mode THEN
   textcolor uilook(uiBackground), 0
   FOR i as integer = 0 TO 99
-   IF doors(i).x >= st.mapx \ 20 AND doors(i).x < st.mapx \ 20 + 16 AND doors(i).y > st.mapy \ 20 AND doors(i).y <= st.mapy \ 20 + 9 AND door_exists(doors(), i) THEN
+   IF doors(i).x >= st.mapx \ 20 AND doors(i).x <= (st.mapx + mapviewsize.w) \ 20 AND doors(i).y > st.mapy \ 20 AND doors(i).y <= (st.mapy + mapviewsize.h) \ 20 + 1 AND door_exists(doors(), i) THEN
     rectangle doors(i).x * 20 - st.mapx, doors(i).y * 20 - st.mapy, 20, 20, uilook(uiSelectedItem + tog), dpage
     printstr STR(i), doors(i).x * 20 - st.mapx + 10 - (4 * LEN(STR(i))), doors(i).y * 20 - st.mapy + 6, dpage
    END IF
@@ -1500,7 +1504,8 @@ DO
   FOR i as integer = 0 TO 299
    WITH st.npc_inst(i)
     IF .id > 0 THEN
-     IF .x >= st.mapx AND .x < st.mapx + 320 AND .y >= st.mapy - 20 AND .y < st.mapy + 220 THEN
+     ' +/-20 Y must be for the footoffset
+     IF .x >= st.mapx AND .x < st.mapx + mapviewsize.w AND .y >= st.mapy - 20 AND .y < st.mapy + mapviewsize.h + 20 THEN
       DIM image as GraphicPair = npc_img(.id - 1)
       frame_draw image.sprite + (2 * .dir) + st.walk \ 2, image.pal, .x - st.mapx, .y + 20 - st.mapy + gmap(11), 1, -1, dpage
       textcolor uilook(uiSelectedItem + tog), 0
@@ -1516,10 +1521,12 @@ DO
  '--show foemap--
  IF st.editmode = foe_mode THEN
   textcolor uilook(uiSelectedItem + tog), 0
-  FOR i as integer = 0 TO 15
-   FOR o as integer = 0 TO 8
+  FOR i as integer = 0 TO mapviewsize.w \ 20 + 1
+   FOR o as integer = 0 TO mapviewsize.h \ 20 + 1
     temp = readblock(emap, st.mapx / 20 + i, st.mapy / 20 + o)
-    IF temp > 0 THEN printstr STR(temp), i * 20 - ((temp < 10) * 5), o * 20 + 26, dpage
+    DIM pixelx as integer = (st.mapx \ 20 + i) * 20 - st.mapx
+    DIM pixely as integer = (st.mapy \ 20 + o) * 20 - st.mapy
+    IF temp > 0 THEN printstr STR(temp), pixelx - ((temp < 10) * 5), pixely + 26, dpage
    NEXT o
   NEXT i
  END IF
@@ -1689,7 +1696,7 @@ DO
   END IF
 
   IF zoneselected THEN
-   printstr hilite("Zone " & st.cur_zone) & " (" & st.cur_zinfo->numtiles & " tiles) " & st.cur_zinfo->name, 0, 180, dpage, YES
+   printstr hilite("Zone " & st.cur_zone) & " (" & st.cur_zinfo->numtiles & " tiles) " & st.cur_zinfo->name, 0, vpages(dpage)->h - 20, dpage, YES
   END IF
 
   IF st.zonesubmode = zone_edit_mode THEN
@@ -1697,7 +1704,7 @@ DO
 
    IF st.tool <> clone_tool THEN
     'Don't overdraw "Default Walls"
-    printstr hilite("E") + "dit zone info", 116, 192, dpage, YES
+    printstr hilite("E") + "dit zone info", 116, vpages(dpage)->h - 8, dpage, YES
    END IF
 
   ELSE
@@ -1710,7 +1717,7 @@ DO
     DIM is_locked as integer = (int_array_find(lockedzonelist(), st.cur_zone) > -1)
     printstr hilite("E") + "dit/" _
              & iif_string(st.cur_zinfo->hidden,"un","") + hilite("H") + "ide/" _
-             & iif_string(is_locked,"un","") + hilite("L") + "ock zone", 320 - 25*8, 192, dpage, YES
+             & iif_string(is_locked,"un","") + hilite("L") + "ock zone", 320 - 25*8, vpages(dpage)->h - 8, dpage, YES
    END IF
 
    'Draw zonemenu
