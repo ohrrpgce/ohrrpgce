@@ -50,6 +50,7 @@ DECLARE FUNCTION valid_plotgridslice(byval handle as integer) as integer
 DECLARE FUNCTION valid_resizeable_slice(byval handle as integer, byval ignore_fill as integer=NO) as integer
 DECLARE FUNCTION create_plotslice_handle(byval sl as Slice Ptr) as integer
 DECLARE FUNCTION find_plotslice_handle(byval sl as Slice Ptr) as integer
+DECLARE SUB set_plotslice_handle(byval sl as Slice Ptr, handle as integer)
 DECLARE FUNCTION load_sprite_plotslice(byval spritetype as SpriteType, byval record as integer, byval pal as integer=-2) as integer
 DECLARE SUB replace_sprite_plotslice(byval handle as integer, byval spritetype as SpriteType, byval record as integer, byval pal as integer=-2)
 DECLARE SUB change_rect_plotslice(byval handle as integer, byval style as integer=-2, byval bgcol as integer=-1, byval fgcol as integer=-1, byval border as integer=-3, byval translucent as RectTransTypes=transUndef)

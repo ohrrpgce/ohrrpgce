@@ -33,6 +33,9 @@ WHAT IS NEW?
       spritesheet when importing with the sprite editor in full-set
       mode (regular offsets between frames only) [Ralph]
     * Additional master palettes in import/ [Soda_piggy, Dragontao]
+    * Added an option to save and restore the spritelayer slice (default
+      parent for new slices) in saved games. Slice handles to these
+      slices remain valid after loading. [Ralph]
 
   * Bugfixes
     * Fixed a few cosmetic bugs in the equip menu including possibly

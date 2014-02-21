@@ -12,6 +12,7 @@
 '#define RELOAD_NOPRIVATEHEAP
 
 #include "reload.bi"
+#include "reloadext.bi"
 #include "util.bi"
 #include "cutil.bi"
 #include "lumpfile.bi"
@@ -1551,8 +1552,14 @@ Sub ToggleChildNode(byval parent as NodePtr, n as string)
 	dim ch as NodePtr = GetChildByName(parent, n)
 	
 	if ch then
-		'it exists, so remove it
-		FreeNode ch
+		'it exists, so remove it... to be safe, also check for duplicates
+		do
+			FreeNode ch
+			ch = GetChildByName(parent, n)
+			if ch then
+				debugc errBug, "ToggleChildNode: unexpected duplicate node: " & Reload.Ext.GetNodePath(parent) & "/" & n
+			end if
+		loop while ch
 	else
 		'it does not exist, so add it
 		SetChildNode(parent, n)

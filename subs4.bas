@@ -1619,32 +1619,35 @@ SUB startingdatamenu
  LOOP
 END SUB
 
-SUB generate_gen_menu(m() as string, longname as string, aboutline as string)
+SUB generate_gen_menu(m() as string, longname as string, aboutline as string, save_options_node as Node ptr)
  m(1) = "Long Name:" + longname
  m(2) = "About Line:" + aboutline
+ CONST options_start = 14
  IF gen(genMaxInventory) = 0 THEN
-  m(14) = "Inventory size: Default (" & (last_inv_slot() \ 3) + 1 & " rows)"
+  m(options_start + 0) = "Inventory size: Default (" & (last_inv_slot() \ 3) + 1 & " rows)"
  ELSE
-  m(14) = "Inventory size: " & (Last_inv_slot() \ 3) + 1 & " rows, " & gen(genMaxInventory) + 1 & " slots"
+  m(options_start + 0) = "Inventory size: " & (Last_inv_slot() \ 3) + 1 & " rows, " & gen(genMaxInventory) + 1 & " slots"
  END IF
- m(15) = "Inventory autosort: "
+ m(options_start + 1) = "Inventory autosort: "
  SELECT CASE gen(genAutosortScheme)
-  CASE 0: m(15) += "by item type/uses"
-  CASE 1: m(15) += "by whether usable"
-  CASE 2: m(15) += "alphabetically"
-  CASE 3: m(15) += "by item ID number"
-  CASE 4: m(15) += "no reordering"
+  CASE 0: m(options_start + 1) += "by item type/uses"
+  CASE 1: m(options_start + 1) += "by whether usable"
+  CASE 2: m(options_start + 1) += "alphabetically"
+  CASE 3: m(options_start + 1) += "by item ID number"
+  CASE 4: m(options_start + 1) += "no reordering"
  END SELECT
- m(16) = "Script errors: "
+ m(options_start + 2) = "Script errors: "
  SELECT CASE gen(genErrorLevel)
-  CASE 2: m(16) += "Show all warnings"
-  CASE 3: m(16) += "Hide nit-picking warnings"
-  CASE 4: m(16) += "Hide all warnings"
-  CASE 5: m(16) += "Hide errors not reported in old versions"
-  CASE 6: m(16) += "Hide all ignoreable errors"
+  CASE 2: m(options_start + 2) += "Show all warnings"
+  CASE 3: m(options_start + 2) += "Hide nit-picking warnings"
+  CASE 4: m(options_start + 2) += "Hide all warnings"
+  CASE 5: m(options_start + 2) += "Hide errors not reported in old versions"
+  CASE 6: m(options_start + 2) += "Hide all ignoreable errors"
  END SELECT
- m(17) = "Default maximum item stack size: " & gen(genItemStackSize)
- m(18) = "Number of save/load slots: " & gen(genSaveSlotCount)
+ m(options_start + 3) = "Default maximum item stack size: " & gen(genItemStackSize)
+ m(options_start + 4) = "Number of save/load slots: " & gen(genSaveSlotCount)
+ m(options_start + 5) = "Save script/sprite layer slices: " & yesorno(GetChildNodeExists(save_options_node, "sprite_layer"))
+
 END SUB
 
 SUB edit_global_bitsets(bitname() as string, helpfile as string)
@@ -1659,7 +1662,7 @@ SUB edit_global_bitsets(bitname() as string, helpfile as string)
 END SUB
 
 SUB gendata ()
- CONST maxMenu = 18
+ CONST maxMenu = 19
  DIM m(maxMenu) as string
  DIM menu_display(maxMenu) as string
  DIM min(maxMenu) as integer
@@ -1680,6 +1683,10 @@ SUB gendata ()
  
  IF gen(genSaveSlotCount) <= 0 THEN gen(genSaveSlotCount) = 4  'default
 
+ DIM gen_root as NodePtr = get_general_reld()
+ DIM save_options_node as NodePtr
+ save_options_node = ChildNode(gen_root, "saved_games")
+
  m(0) = "Return to Main Menu"
  m(3) = "Pick Title Screen..."
  m(4) = "New Game Settings..."
@@ -1694,19 +1701,21 @@ SUB gendata ()
 
  flusharray enabled(), UBOUND(enabled), YES
  enabled(13) = NO
- index(14) = genMaxInventory
- max(14) = (inventoryMax + 1) \ 3
- index(15) = genAutosortScheme
- max(15) = 4
- index(16) = genErrorLevel
- max(16) = 6
- min(16) = 2
- index(17) = genItemStackSize
- max(17) = 99
- min(17) = 1
- index(18) = genSaveSlotCount
- max(18) = 32
- min(18) = 1
+ CONST options_start = 14
+
+ index(options_start) = genMaxInventory
+ max(options_start) = (inventoryMax + 1) \ 3
+ index(options_start + 1) = genAutosortScheme
+ max(options_start + 1) = 4
+ index(options_start + 2) = genErrorLevel
+ max(options_start + 2) = 6
+ min(options_start + 2) = 2
+ index(options_start + 3) = genItemStackSize
+ max(options_start + 3) = 99
+ min(options_start + 3) = 1
+ index(options_start + 4) = genSaveSlotCount
+ max(options_start + 4) = 32
+ min(options_start + 4) = 1
 
  DIM aboutline as string = load_aboutline()
  DIM longname as string = load_gamename()
@@ -1717,7 +1726,7 @@ SUB gendata ()
   setkeys YES
 
   IF state.need_update THEN
-   generate_gen_menu m(), longname, aboutline
+   generate_gen_menu m(), longname, aboutline, save_options_node
    state.need_update = NO
   END IF
 
@@ -1794,6 +1803,11 @@ SUB gendata ()
    END IF
   ELSEIF index(state.pt) THEN
    IF intgrabber(gen(index(state.pt)), min(state.pt), max(state.pt)) THEN state.need_update = YES
+  ELSEIF state.pt = options_start + 5 THEN
+   IF keyval(scLeft) > 1 ORELSE keyval(scRight) > 1 THEN
+    ToggleChildNode save_options_node, "sprite_layer"
+    state.need_update = YES
+   END IF
   END IF
 
   IF enable_strgrabber = NO ANDALSO select_by_typing(selectst, NO) THEN

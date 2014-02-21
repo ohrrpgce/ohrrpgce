@@ -263,6 +263,7 @@ Enum errorLevelEnum
   errInfo = 1   'Informational spam (doesn't cause g/c_debug.txt to be kept)
   errDebug      'Log a message and preserve g/c_debug.txt
   errError      'Something is wrong, but it's not necessarily due to a bug
+  errPromptError 'Something is wrong, but it's not necessarily due to a bug. Visible message
   errBug        'Engine bug detected; log but don't interrupt the program. Usually would use errPromptBug instead.
   errPrompt     'Prompt the user whether they want to continue, otherwise quits without returning
   errPromptBug 

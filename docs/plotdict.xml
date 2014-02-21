@@ -2446,7 +2446,7 @@ set menu on close script(m, @my menu exit handler)
 		<command id="clonesprite">
 			<canon>clone sprite (handle)</canon>
 			<shortname>clone sprite</shortname>
-			<description>Duplicates a sprite slice, returning a handle to it. The new sprite inherits only the sprite-related data; in all other ways it is like a freshly created new slice. For example, the parent is <ref>spritelayer</ref> and the new slice starts visible, with default anchoring, is at position 0,0, has no children, etc.. If you clone a sprite, remember that you will need to call <ref>freesprite</ref> on both the original and the clone.</description>
+			<description>Duplicates a sprite slice, returning a handle to it. The new sprite inherits only the sprite-related data; in all other ways it is like a freshly created new slice. For example, the parent of the new slice is <ref>spritelayer</ref> and it starts out visible, with default anchoring, is at position 0,0, has no children, etc.. If you clone a sprite, remember that you will need to call <ref>freesprite</ref> on both the original and the clone.</description>
 			<seealso>
 				<ref>freesprite</ref>
 			</seealso>
@@ -2543,7 +2543,7 @@ set menu on close script(m, @my menu exit handler)
 		<command id="spritelayer">
 			<canon>sprite layer</canon>
 			<shortname>sprite layer</shortname>
-			<description>Returns a slice handle for the layer which contains slices created with commands such as <ref>loadherosprite</ref>, <ref>createrect</ref> and others. You can use this together with <ref>firstchild</ref> if you want to loop through all your slices without knowing their handles. This is the default parent of all new slices.</description>
+			<description>Returns a slice handle for the slice (also called the 'script layer') which is the default parent of all new script-created slices, such as created by <ref>loadherosprite</ref> and <ref>createrect</ref>. You can move slices elsewhere in the slice tree with <ref>setparent</ref>. You can use spritelayer together with <ref>firstchild</ref> if you want to loop through all your slices without knowing their handles. Another way to get this slice is to use <ref>lookupslice</ref>: <p>lookup slice(sl:script layer)</p>.</description>
 			<example>variable(sl)
 sl := first child(sprite layer)
 while (sl) do, begin

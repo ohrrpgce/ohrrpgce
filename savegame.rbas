@@ -38,6 +38,7 @@ DECLARE SUB gamestate_spelllist_to_reload(byval hero_slot as integer, byval spel
 DECLARE SUB gamestate_inventory_to_reload(byval parent as Reload.NodePtr)
 DECLARE SUB gamestate_shops_to_reload(byval parent as Reload.NodePtr)
 DECLARE SUB gamestate_vehicle_to_reload(byval parent as Reload.NodePtr)
+DECLARE SUB gamestate_slices_to_reload(byval parent as Reload.NodePtr)
 
 DECLARE SUB new_loadgame(byval slot as integer)
 DECLARE SUB gamestate_from_reload(byval node as Reload.NodePtr)
@@ -54,6 +55,7 @@ DECLARE SUB gamestate_spelllist_from_reload(byval hero_slot as integer, byval sp
 DECLARE SUB gamestate_inventory_from_reload(byval node as Reload.NodePtr)
 DECLARE SUB gamestate_shops_from_reload(byval node as Reload.NodePtr)
 DECLARE SUB gamestate_vehicle_from_reload(byval node as Reload.NodePtr)
+DECLARE SUB gamestate_slices_from_reload(byval node as Reload.NodePtr)
 
 DECLARE SUB rsav_warn (s as string)
 
@@ -234,6 +236,8 @@ SUB gamestate_from_reload(byval node as Reload.NodePtr)
   gamestate_inventory_from_reload node."inventory".warn.ptr
   gamestate_shops_from_reload     node."shops".warn.ptr
   gamestate_vehicle_from_reload   node."vehicle".warn.ptr
+  'Added later
+  gamestate_slices_from_reload    node."slices".ptr
  END READNODE
 END SUB
 
@@ -335,6 +339,34 @@ SUB gamestate_script_from_reload(byval node as Reload.NodePtr)
 
   gen(genScrBackdrop) = node."backdrop"
  END READNODE
+END SUB
+
+SUB gamestate_slices_from_reload(byval node as Reload.NodePtr)
+ DIM gen_root as NodePtr = get_general_reld()
+
+ DIM layernode as Reload.NodePtr
+ layernode = node."sprite_layer".ptr
+ IF layernode <> NULL THEN
+  IF gen_root."saved_games"."sprite_layer".exists = NO THEN
+   debuginfo "RSAV: Ignoring saved spritelayer"
+  ELSE
+   WITH SliceTable
+    IF .ScriptSprite->NumChildren <> 0 THEN
+     debugc errPromptBug, "RSAV: old sprite_layer meant to be empty"
+    END IF
+    DeleteSlice @.ScriptSprite
+    .ScriptSprite = NewSliceOfType(slSpecial, .Root)
+    .ScriptSprite->Fill = YES
+    RefreshSliceScreenPos(.ScriptSprite)
+
+    SliceLoadFromNode .ScriptSprite, layernode
+    IF .ScriptSprite->Lookup <> SL_SCRIPT_LAYER THEN
+     debugc errError, "RSAV: sprite_layer has unexpected lookup code " & .ScriptSprite->Lookup
+     .ScriptSprite->Lookup = SL_SCRIPT_LAYER
+    END IF
+   END WITH
+  END IF
+ END IF
 END SUB
 
 FUNCTION script_trigger_from_reload(byval node as NodePtr) as integer
@@ -720,6 +752,7 @@ SUB gamestate_to_reload(byval node as Reload.NodePtr)
  
  gamestate_state_to_reload node
  gamestate_script_to_reload node
+ gamestate_slices_to_reload node
  gamestate_maps_to_reload node
  gamestate_tags_to_reload node
  gamestate_onetime_to_reload node
@@ -854,6 +887,18 @@ SUB gamestate_globals_to_reload(byval parent as Reload.NodePtr, byval first as i
   END IF
  NEXT i
 
+END SUB
+
+SUB gamestate_slices_to_reload(byval parent as Reload.NodePtr)
+ DIM gen_root as NodePtr = get_general_reld()
+ DIM node as Reload.NodePtr
+ node = SetChildNode(parent, "slices")
+
+ IF gen_root."saved_games"."sprite_layer".exists THEN
+  DIM spritelayernode as Reload.NodePtr
+  spritelayernode = SetChildNode(node, "sprite_layer")
+  SliceSaveToNode SliceTable.ScriptSprite, spritelayernode, YES  'Save slice handles
+ END IF
 END SUB
 
 SUB gamestate_maps_to_reload(byval parent as Reload.NodePtr)

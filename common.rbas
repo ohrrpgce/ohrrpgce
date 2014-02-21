@@ -290,6 +290,9 @@ SUB debugc CDECL (byval errorlevel as errorLevelEnum, byval s as zstring ptr)
    debug *s
   CASE errError
    debug "Error: " & *s
+  CASE errPromptError
+   debug "Error: " & *s
+   notification "Error: " & *s & !"\nPress any key..."
   CASE errBug
    debug "(BUG) " & *s
   CASE errPrompt

@@ -4230,6 +4230,29 @@ FUNCTION find_plotslice_handle(byval sl as Slice Ptr) as integer
  RETURN create_plotslice_handle(sl)
 END FUNCTION
 
+SUB set_plotslice_handle(byval sl as Slice Ptr, handle as integer)
+ 'This function is used to restore handles when loading a slice collection from a saved game.
+ 'This should ONLY be called when starting a game, before any scripts have run!
+ IF sl = 0 THEN debugc errPromptBug, "set_plotslice_handle null ptr"
+ IF sl->TableSlot <> 0 THEN
+  debugc errPromptBug, "set_plotslice_handle shouldn't be called on a slice with existing TableSlot"
+ END IF
+
+ IF handle > UBOUND(plotslices) THEN
+  REDIM PRESERVE plotslices(LBOUND(plotslices) TO UBOUND(plotslices) * 1.5 + 32)
+  plotslicesp = @plotslices(1)
+ END IF
+
+ IF plotslices(handle) <> 0 THEN
+  debugc errPromptBug, "set_plotslice_handle: non-empty plotslices(" & handle & ")"
+ END IF
+ 
+ 'Store the slice pointer in the handle slot
+ plotslices(handle) = sl
+ 'Store the handle slot in the slice
+ sl->TableSlot = handle
+END SUB
+
 'By default, no palette set
 FUNCTION load_sprite_plotslice(byval spritetype as SpriteType, byval record as integer, byval pal as integer=-2) as integer
  WITH sprite_sizes(spritetype)
