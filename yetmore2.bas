@@ -1402,14 +1402,19 @@ SUB try_reload_lumps_anywhere ()
   ELSEIF extn = "hsp" THEN                                                '.HSP
    'Could add an option for automatic reloading, with suitable warnings...
    lump_reloading.hsp.changed = YES
+   IF lump_reloading.hsp.mode = loadmodeAlways THEN reload_scripts
    handled = YES
 
   ELSEIF modified_lumps[i] = "plotscr.lst" THEN                           'PLOTSCR.LST
    handled = YES  'ignore
+   'Note: in theory the scriptname cache should be cleared. However
+   'scripts are recompiled with matching ID numbers, and definescript
+   'is dead, so not a realistic problem.
 
   ELSEIF modified_lumps[i] = "lookup1.bin" THEN                           'LOOKUP1.BIN
    load_lookup1_bin lookup1_bin_cache()
    handled = YES
+   'Note: in theory the scriptname cache should be cleared; see plotscr.lst
 
   END IF
 
@@ -1467,9 +1472,10 @@ FUNCTION lump_reload_mode_to_string (byval mode as integer) as string
  IF mode = loadmodeMerge THEN RETURN "Merge in-game changes"
 END FUNCTION
 
-SUB LPM_append_reload_mode_item (menu as MenuDef, what as string, info as LumpReloadState, byval extradata as integer = 0)
+SUB LPM_append_reload_mode_item (menu as MenuDef, tooltips() as string, what as string, info as LumpReloadState, byval extradata as integer = 0)
  append_menu_item menu, "Reload " + what + ": " + lump_reload_mode_to_string(info.mode)
  menu.last->extra(0) = extradata
+ REDIM PRESERVE tooltips(menu.numitems - 1)
 END SUB
 
 SUB LPM_append_force_reload_item (menu as MenuDef, tooltips() as string, what as string, info as LumpReloadState, byval extradata as integer = 0, byval ignore_dirtiness as integer = NO)
@@ -1501,13 +1507,15 @@ SUB LPM_update (menu1 as MenuDef, st1 as MenuState, tooltips() as string)
   append_menu_item menu1, "Exit"        : menu1.last->extra(0) = 1
   append_menu_item menu1, "Reload map"  : menu1.last->extra(0) = 2
   IF running_as_slave THEN
-   LPM_append_reload_mode_item menu1, "gen. map data", .gmap, 10
-   LPM_append_reload_mode_item menu1, "tilemap", .maptiles, 11
-   LPM_append_reload_mode_item menu1, "wallmap", .passmap, 12
-   LPM_append_reload_mode_item menu1, "foemap", .foemap, 13
-   LPM_append_reload_mode_item menu1, "zonemap", .zonemap, 14
-   LPM_append_reload_mode_item menu1, "npc locations", .npcl, 15
-   LPM_append_reload_mode_item menu1, "npc defs.", .npcd, 16
+   LPM_append_reload_mode_item menu1, tooltips(), "gen. map data", .gmap, 10
+   LPM_append_reload_mode_item menu1, tooltips(), "tilemap", .maptiles, 11
+   LPM_append_reload_mode_item menu1, tooltips(), "wallmap", .passmap, 12
+   LPM_append_reload_mode_item menu1, tooltips(), "foemap", .foemap, 13
+   LPM_append_reload_mode_item menu1, tooltips(), "zonemap", .zonemap, 14
+   LPM_append_reload_mode_item menu1, tooltips(), "npc locations", .npcl, 15
+   LPM_append_reload_mode_item menu1, tooltips(), "npc defs.", .npcd, 16
+   LPM_append_reload_mode_item menu1, tooltips(), "scripts", .hsp, 17
+   tooltips(UBOUND(tooltips)) += " (Read Help file!)"
   END IF
   LPM_append_force_reload_item menu1, tooltips(), "general map data", .gmap, 100
   LPM_append_force_reload_item menu1, tooltips(), "tiles", .maptiles, 101
@@ -1574,6 +1582,8 @@ SUB live_preview_menu ()
     st1.need_update OR= intgrabber(lump_reloading.npcl.mode, -1, 1)
    CASE 16  '--npcd reload mode
     st1.need_update OR= intgrabber(lump_reloading.npcd.mode, 0, 2)
+   CASE 17  '--script reload mode
+    st1.need_update OR= intgrabber(lump_reloading.hsp.mode, 0, 1)
    CASE 100  '--force gmap reload
     IF carray(ccUse) > 1 THEN
      reloadmap_gmap_no_tilesets
@@ -1611,8 +1621,8 @@ SUB live_preview_menu ()
   'Draw screen
   displayall
   draw_menu menu1, st1, dpage
-  rectangle 0, 188, 320, 12, uilook(uiBackground), dpage
-  edgeprint tooltips(st1.pt), 0, 190, uilook(uiText), dpage
+  rectangle 0, vpages(dpage)->h - 12, vpages(dpage)->w, 12, uilook(uiBackground), dpage
+  edgeprint tooltips(st1.pt), 0, vpages(dpage)->h - 10, uilook(uiText), dpage
   setvispage dpage
   dowait
  LOOP

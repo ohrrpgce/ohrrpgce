@@ -74,7 +74,11 @@ WHAT IS NEW?
       by tags or by one-time-use [James]
     * "string sprintf" for easier piecing together of strings [Ralph]
     * "script error", "get calling script id", "get script name" [Ralph]
-    * Make $id="foo" return id so that you can write showstring($0="foo")
+    * Make $id="foo" return id so that you can write showstring($1="foo")
+    * Press F5 in Custom's main menu or Script Management menu to
+      reimport the last imported scripts. And while testing a game
+      you can now set the scripts to be reloaded automatically (from the
+      F5 in-game debug menu) [Ralph]
 
   * Performance Fixes
     * Fixed delay when opening a menu that happened when a large number

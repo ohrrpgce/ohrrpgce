@@ -224,7 +224,7 @@ TYPE LumpReloadOptions
   npcl     as LumpReloadState  '.dirty ignored: nearly always dirty
   npcd     as LumpReloadState
 
-  hsp      as LumpReloadState  '.hash, .mode, .dirty ignored
+  hsp      as LumpReloadState  '.hash, .dirty ignored
 END TYPE
 
 #ENDIF

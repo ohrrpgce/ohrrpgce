@@ -717,7 +717,7 @@ SUB delete_scriptdata (byval scriptd as ScriptData ptr)
    EXIT SUB
   END IF
 
-  'debug "deallocating " & .id & " " & scriptname(.id) & " size " & .size
+  'debug "deallocating " & .id & " " & scriptname(ABS(.id)) & " size " & .size
   totalscrmem -= .size
   scriptcachemem -= .size
   numloadedscr -= 1
@@ -782,6 +782,10 @@ FUNCTION freescripts_script_scorer(byref script as ScriptData) as integer
  score = iif(score > -400, score, -400) _
        + iif(script.totaluse < 100, script.totaluse, iif(script.totaluse < 1700, 94 + script.totaluse\16, 200)) _
        - script.size \ (scriptmemMax \ 1024)
+ IF script.id < 0 THEN
+  'Stale script
+  score = -1000000000
+ END IF
  RETURN score
 END FUNCTION
 
@@ -801,7 +805,7 @@ SUB freescripts (byval mem as integer)
   ELSE
    IF LRUlist(i).p->refcount <> 0 THEN EXIT SUB
    IF scriptcachemem <= mem THEN EXIT SUB
-   'debug "unloading script " & scriptname(LRUlist(i).p->id) & " refcount " & LRUlist(i).p->refcount
+   'debug "unloading script " & scriptname(ABS(LRUlist(i).p->id)) & " refcount " & LRUlist(i).p->refcount
    delete_scriptdata LRUlist(i).p
   END IF
  NEXT
@@ -842,7 +846,10 @@ SUB reload_scripts
      delete_scriptdata scrp
     ELSE
      unfreeable += 1
-     debuginfo "not reloading script " & scriptname(.id) & " because it's in use: refcount=" & .refcount
+     debuginfo "not reloading script " & scriptname(ABS(.id)) & " because it's in use: refcount=" & .refcount
+     ' Negate the ID number. This will prevent this script data from being used when starting a new script.
+     ' It won't be automatically evicted from the cache, but that's ok.
+     .id = ABS(.id) * -1
     END IF
    END WITH
 
@@ -853,6 +860,9 @@ SUB reload_scripts
  IF unfreeable THEN
   notification unfreeable & " scripts are in use and couldn't be freed (see g_debug.txt for details)"
  END IF
+ ' Set changed to NO because there's nothing the user can do by hitting "Force reload scripts";
+ ' new instances of the script use the new data already
+ lump_reloading.hsp.changed = NO
 
  'Cause the cache in scriptname() (and also in commandname()) to be dropped
  game_unique_id = STR(randint(INT_MAX))
@@ -904,9 +914,9 @@ SUB print_script_profiling
        & RIGHT(SPACE(10) & format(.totaltime*1000000/.totaluse, "0"), 11) & "us" _
        & RIGHT(SPACE(11) & .totaluse, 12) _
        & RIGHT(SPACE(11) & .entered, 12) _
-       & "  " & scriptname(.id) '& "  " & format(1000*(.totaltime + .entered * timeroverhead), "0.00")
+       & "  " & scriptname(ABS(.id)) '& "  " & format(1000*(.totaltime + .entered * timeroverhead), "0.00")
 
- '  debug "id = " & .id & " " & scriptname(.id)
+ '  debug "id = " & .id & " " & scriptname(ABS(.id))
  '  debug "refcount = " & .refcount
  '  debug "totaluse = " & .totaluse
  '  debug "lastuse = " & .lastuse

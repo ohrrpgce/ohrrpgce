@@ -207,6 +207,7 @@ lump_reloading.foemap.mode = loadmodeAlways
 lump_reloading.zonemap.mode = loadmodeAlways
 lump_reloading.npcl.mode = loadmodeMerge
 lump_reloading.npcd.mode = loadmodeAlways
+lump_reloading.hsp.mode = loadmodeNever
 
 'Menu Data
 DIM menu_set as MenuSet

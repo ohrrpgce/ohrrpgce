@@ -28,5 +28,5 @@ Reload: Merge in-game changes:
 
 
 Scripts:
-Script reloading isn't automatic.
-Scripts which are currently running (either waiting or suspended by another called or triggered script) can not be updated to the latest version. Reloading scripts will cause all other scripts to be reloaded from the game though, possibly resulting in a mix of old and new! This might cause strange script errors. Scripts set to trigger by timers can be reloaded.
+Script reloading isn't automatic by default.
+Scripts which are currently running (either waiting or suspended by another called or triggered script) can not be updated to the latest version. Reloading scripts will cause all other scripts to be reloaded from the game though, possibly resulting in a mix of old and new! New calls to the in-use scripts will run the new version. This might cause very unexpected behaviour. Scripts set to trigger by timers can be reloaded because they aren't running yet.

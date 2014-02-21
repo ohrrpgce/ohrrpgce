@@ -55,7 +55,9 @@ FUNCTION oldscriptstate_init (index as integer, script as ScriptData ptr) as zst
   .ptr = 0
   .ret = 0
   .depth = 0
-  .id = script->id
+  'id negative if stale data
+  IF script->id < 0 THEN debugc errPromptBug, "Starting a stale script"
+  .id = ABS(script->id)
   .stackbase = -1
   .scr = script
   .scrdata = .scr->ptr
@@ -76,7 +78,7 @@ FUNCTION oldscriptstate_init (index as integer, script as ScriptData ptr) as zst
 
   DIM parent as integer = .scr->parent
   'debug "oldscriptstate_init: loading script " & .id & " " & scriptname(.id) & " scrat(" & index & ") nonlocals " & .scr->nonlocals _
-  '      & " vars " & .scr->vars & " parent " & parent & " heap " & .frames(0).heap & ":" & .heapend
+  '      & " vars " & .scr->vars & " parent " & parent & " " & scriptname(parent) & " heap " & .frames(0).heap & ":" & .heapend
 
   IF parent THEN
     'Search up the callstack for ancestors with frames which are referenced by this script.

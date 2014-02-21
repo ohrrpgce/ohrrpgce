@@ -413,6 +413,8 @@ END TYPE
 TYPE ScriptData
   'Script attributes
   id as integer         'id number of script  (set to 0 to mark as unused slot)
+                        'The id number is negated if this is a stale unreloaded script and
+                        'shouldn't be used for new scripts.
   ptr as integer ptr    'pointer to script commands
   size as integer       'size of script data, in 4 byte words
   vars as integer       'local variable (including arguments) count, not including nonlocals
