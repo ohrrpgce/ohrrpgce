@@ -57,7 +57,7 @@ def nodeSpec():             return (identifier, PLUS, (".", string, QUES, nodeIn
 # Strings are still parsed, to make sure they don't confuse the parser.
 def tokenList():            return STAR, [nodeSpec, string, IGNORE(r'[a-zA-Z0-9._]+|[^\s"]')]
 
-def expressionList():       return QUES, (expression, STAR, (",", expression))
+def expressionList():       return QUES, (expression, STAR, (PLUS, ",", CHECKPNT, expression))
 
 # expressions are more carefully parsed, in order to match parentheses and find commas
 def expression():           return PLUS, [("(", CHECKPNT, expressionList, ")"),
