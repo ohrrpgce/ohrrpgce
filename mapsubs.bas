@@ -1416,10 +1416,12 @@ DO
   textcolor uilook(uiSelectedItem + tog), 0
   FOR o as integer = 0 TO mapviewsize.h \ 20 + 1
    FOR i as integer = 0 TO mapviewsize.w \ 20 + 1
-    DIM pass_overtile as integer = readblock(pass, (st.mapx \ 20) + i, (st.mapy \ 20) + o)
-    DIM pixelx as integer = (st.mapx \ 20 + i) * 20 - st.mapx
-    DIM pixely as integer = (st.mapy \ 20 + o) * 20 - st.mapy
-    IF (pass_overtile AND passOverhead) THEN printstr "O", pixelx + 10, pixely + 30, dpage
+    IF (st.mapx \ 20) + i < st.wide ANDALSO (st.mapy \ 20) + o < st.high THEN
+     DIM pass_overtile as integer = readblock(pass, (st.mapx \ 20) + i, (st.mapy \ 20) + o)
+     DIM pixelx as integer = (st.mapx \ 20 + i) * 20 - st.mapx
+     DIM pixely as integer = (st.mapy \ 20 + o) * 20 - st.mapy
+     IF (pass_overtile AND passOverhead) THEN printstr "O", pixelx + 10, pixely + 30, dpage
+    END IF
    NEXT i
   NEXT o
  END IF
@@ -1428,18 +1430,20 @@ DO
  IF st.editmode = pass_mode THEN
   FOR o as integer = 0 TO mapviewsize.h \ 20 + 1
    FOR i as integer = 0 TO mapviewsize.w \ 20 + 1
-    DIM pass_overtile as integer = readblock(pass, (st.mapx \ 20) + i, (st.mapy \ 20) + o)
-    DIM pixelx as integer = (st.mapx \ 20 + i) * 20 - st.mapx
-    DIM pixely as integer = (st.mapy \ 20 + o) * 20 - st.mapy
-    IF (pass_overtile AND passNorthWall) THEN rectangle pixelx     , pixely + 20, 20, 3, uilook(uiMenuItem + tog), dpage
-    IF (pass_overtile AND passEastWall)  THEN rectangle pixelx + 17, pixely + 20, 3, 20, uilook(uiMenuItem + tog), dpage
-    IF (pass_overtile AND passSouthWall) THEN rectangle pixelx     , pixely + 37, 20, 3, uilook(uiMenuItem + tog), dpage
-    IF (pass_overtile AND passWestWall)  THEN rectangle pixelx     , pixely + 20, 3, 20, uilook(uiMenuItem + tog), dpage
-    textcolor uilook(uiSelectedItem + tog), 0
-    IF (pass_overtile AND passVehA) THEN printstr "A", pixelx, pixely + 20, dpage
-    IF (pass_overtile AND passVehB) THEN printstr "B", pixelx + 10, pixely + 20, dpage
-    IF (pass_overtile AND passHarm) THEN printstr "H", pixelx, pixely + 30, dpage
-    IF (pass_overtile AND passOverhead) THEN printstr "O", pixelx + 10, pixely + 30, dpage
+    IF (st.mapx \ 20) + i < st.wide ANDALSO (st.mapy \ 20) + o < st.high THEN
+     DIM pass_overtile as integer = readblock(pass, (st.mapx \ 20) + i, (st.mapy \ 20) + o)
+     DIM pixelx as integer = (st.mapx \ 20 + i) * 20 - st.mapx
+     DIM pixely as integer = (st.mapy \ 20 + o) * 20 - st.mapy
+     IF (pass_overtile AND passNorthWall) THEN rectangle pixelx     , pixely + 20, 20, 3, uilook(uiMenuItem + tog), dpage
+     IF (pass_overtile AND passEastWall)  THEN rectangle pixelx + 17, pixely + 20, 3, 20, uilook(uiMenuItem + tog), dpage
+     IF (pass_overtile AND passSouthWall) THEN rectangle pixelx     , pixely + 37, 20, 3, uilook(uiMenuItem + tog), dpage
+     IF (pass_overtile AND passWestWall)  THEN rectangle pixelx     , pixely + 20, 3, 20, uilook(uiMenuItem + tog), dpage
+     textcolor uilook(uiSelectedItem + tog), 0
+     IF (pass_overtile AND passVehA) THEN printstr "A", pixelx, pixely + 20, dpage
+     IF (pass_overtile AND passVehB) THEN printstr "B", pixelx + 10, pixely + 20, dpage
+     IF (pass_overtile AND passHarm) THEN printstr "H", pixelx, pixely + 30, dpage
+     IF (pass_overtile AND passOverhead) THEN printstr "O", pixelx + 10, pixely + 30, dpage
+    END IF
    NEXT i
   NEXT o
  END IF
@@ -1523,10 +1527,12 @@ DO
   textcolor uilook(uiSelectedItem + tog), 0
   FOR i as integer = 0 TO mapviewsize.w \ 20 + 1
    FOR o as integer = 0 TO mapviewsize.h \ 20 + 1
-    temp = readblock(emap, st.mapx / 20 + i, st.mapy / 20 + o)
-    DIM pixelx as integer = (st.mapx \ 20 + i) * 20 - st.mapx
-    DIM pixely as integer = (st.mapy \ 20 + o) * 20 - st.mapy
-    IF temp > 0 THEN printstr STR(temp), pixelx - ((temp < 10) * 5), pixely + 26, dpage
+    IF (st.mapx \ 20) + i < st.wide ANDALSO (st.mapy \ 20) + o < st.high THEN
+     temp = readblock(emap, st.mapx / 20 + i, st.mapy / 20 + o)
+     DIM pixelx as integer = (st.mapx \ 20 + i) * 20 - st.mapx
+     DIM pixely as integer = (st.mapy \ 20 + o) * 20 - st.mapy
+     IF temp > 0 THEN printstr STR(temp), pixelx - ((temp < 10) * 5), pixely + 26, dpage
+    END IF
    NEXT o
   NEXT i
  END IF
