@@ -793,6 +793,11 @@ end</example>
 			<shortname>camera follows NPC</shortname>
 			<description>With this command, you can make the camera follow an NPC instead of the hero. If more than one copy of the specified NPC exists, the camera will follow the first one. To revert the camera to normal, use <ref>camerafollowshero</ref>.</description>
 		</command>
+		<command id="camerafollowsslice">
+			<canon>camera follows slice (slice)</canon>
+			<shortname>camera follows slice</shortname>
+			<description>With this command, you can make the camera follow a slice instead of the hero. The slice will be centered on the screen. To revert the camera to normal, use <ref>camerafollowshero</ref>.</description>
+		</command>
 		<command id="pancamera">
 			<canon>pan camera (direction,distance,pixelstep)</canon>
 			<shortname>pan camera</shortname>

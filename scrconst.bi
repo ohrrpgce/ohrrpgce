@@ -54,7 +54,7 @@ CONST suspendoverlay = 8
 CONST suspendambientmusic = 9
 CONST suspenddoors = 10
 '--CAMERA CONSTANTS--
-CONST cameramode = 45
+CONST cameramode = 45   'gen() offsets
 CONST cameraArg = 46
 CONST cameraArg2 = 47
 CONST cameraArg3 = 48
@@ -63,6 +63,7 @@ CONST herocam = 0
 CONST npccam = 1
 CONST pancam = 2
 CONST focuscam = 3
+CONST slicecam = 4
 CONST stopcam = -1
 '--SCRIPT TRIGGER TYPES--
 CONST plottrigger = 1

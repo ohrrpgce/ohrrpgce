@@ -231,7 +231,7 @@ CONST scriptTableSize = 256  'hash table size, power of 2 please
 CONST scriptCheckDelay = 1.1     'How long, in seconds, before the script interpreter becomes interruptable
 CONST scriptCheckInterval = 0.1  'How often, in seconds, that the script interpreter should perform checks
 
-CONST maxScriptCmdID = 568  'Max ID number of any supported script command (checked when loading game)
+CONST maxScriptCmdID = 569  'Max ID number of any supported script command (checked when loading game)
 
 '--- Binary files in BINSIZE.BIN for getbinsize()
 CONST binATTACK = 0
@@ -274,6 +274,7 @@ End Enum
 
 'Constants for scripterr and friends
 Enum scriptErrEnum
+  serrIgnore = 0     'to suppress an error
   serrInfo = 1       'informative messages
   serrWarn = 2       'possibly suspicious operation, eg. re-freeing a slice
   serrSuspicious = 3 'suspicious operation on weak type or suspicious argument type (unimplemented)

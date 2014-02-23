@@ -165,15 +165,21 @@ SUB innRestore ()
  party_change_updates
 END SUB
 
+SUB center_camera_on_slice(byval sl as Slice ptr)
+ IF sl = NULL THEN debug "NULL slice in center_camera_on_slice" : EXIT SUB
+
+ RefreshSliceScreenPos sl
+
+ mapx = sl->ScreenX + sl->Width/2 - SliceTable.MapRoot->ScreenX - vpages(dpage)->w \ 2
+ mapy = sl->ScreenY + sl->Height/2 - SliceTable.MapRoot->ScreenY - vpages(dpage)->h \ 2
+END SUB
+
 SUB center_camera_on_walkabout(byval walkabout_cont as Slice ptr)
  IF walkabout_cont = NULL THEN debug "NULL walkabout slice in center_camera_on_walkabout" : EXIT SUB
 
  DIM sprsl as Slice ptr
  sprsl = LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, walkabout_cont)
- RefreshSliceScreenPos sprsl
-
- mapx = sprsl->ScreenX + sprsl->Width/2 - SliceTable.MapRoot->ScreenX - vpages(dpage)->w \ 2
- mapy = sprsl->ScreenY + sprsl->Height/2 - SliceTable.MapRoot->ScreenY - vpages(dpage)->h \ 2
+ center_camera_on_slice sprsl
 
  ' For compatibility (maybe some old games use setheroz for falling from the sky?)
  ' ignore the Z component of the sprite slice.
@@ -189,6 +195,12 @@ SELECT CASE gen(cameramode)
   center_camera_on_walkabout herow(gen(cameraArg)).sl
  CASE npccam
   center_camera_on_walkabout npc(gen(cameraArg)).sl
+ CASE slicecam
+  IF valid_plotslice(gen(cameraArg), serrIgnore) THEN
+   center_camera_on_slice plotslices(gen(cameraArg))
+  ELSE
+   gen(cameramode) = stopcam
+  END IF
  CASE pancam ' 1=dir, 2=ticks, 3=step
   IF gen(cameraArg2) > 0 THEN
    aheadxy mapx, mapy, gen(cameraArg), gen(cameraArg3)

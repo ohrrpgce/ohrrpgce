@@ -581,6 +581,7 @@ define function, begin
 566,scripterror,1,-1             #(string id) Show a script error
 567,getscriptname,2,0,0          #(string id, script id) Get name of a script
 568,getcallingscriptid,1,1       #(depth) Get ID number of a parent or ancestor script
+569,camerafollowsslice,1,0       #(slice) Center camera on slice
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

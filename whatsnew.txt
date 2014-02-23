@@ -82,6 +82,7 @@ WHAT IS NEW?
       reimport the last imported scripts. And while testing a game
       you can now set the scripts to be reloaded automatically (from the
       F5 in-game debug menu) [Ralph]
+    * "camera follows slice" [Ralph]
 
   * Performance Fixes
     * Fixed delay when opening a menu that happened when a large number

@@ -3529,6 +3529,11 @@ SELECT CASE as CONST id
    dat = plotslices(retvals(0))->SliceData
    scriptret = dat->subpixels
   END IF
+ CASE 569'--camera follows slice
+  IF valid_plotslice(retvals(0)) THEN
+   gen(cameramode) = slicecam
+   gen(cameraArg) = retvals(0)
+  END IF
 
  CASE ELSE
   RETURN NO

@@ -1667,7 +1667,7 @@ SUB process_wait_conditions()
      END IF
     CASE 73, 234, 438'--game over, quit from loadmenu, reset game
     CASE 508'--wait for slice
-     IF valid_plotslice(.waitarg, 2) THEN
+     IF valid_plotslice(.waitarg, serrWarn) THEN
       IF plotslices(.waitarg)->Velocity.X = 0 ANDALSO plotslices(.waitarg)->Velocity.Y = 0 ANDALSO plotslices(.waitarg)->TargTicks = 0 THEN
        script_stop_waiting()
       END IF
