@@ -47,7 +47,10 @@ declare function SDL_ANDROID_OUYAReceiptsResult () as zstring ptr
 #ENDIF
 
 DECLARE FUNCTION putenv (byval as zstring ptr) as integer
+#IFNDEF __FB_WIN32__
+'Doens't work on Windows. There we do putenv with a null string
 DECLARE FUNCTION unsetenv (byval as zstring ptr) as integer
+#ENDIF
 
 'DECLARE FUNCTION SDL_putenv cdecl alias "SDL_putenv" (byval variable as zstring ptr) as integer
 'DECLARE FUNCTION SDL_getenv cdecl alias "SDL_getenv" (byval name as zstring ptr) as zstring ptr
@@ -385,7 +388,12 @@ FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
   LOOP
   'Don't recenter the window as the user resizes it
   '  putenv("SDL_VIDEO_CENTERED=0") does not work because SDL only tests whether the variable is defined
+#IFDEF __FB_WIN32__
+  putenv("SDL_VIDEO_CENTERED=")
+#ELSE
   unsetenv("SDL_VIDEO_CENTERED")
+#ENDIF
+
 #ENDIF
   SDL_WM_SetCaption(remember_windowtitle, remember_windowtitle)
   IF windowedmode = NO THEN
