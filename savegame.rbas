@@ -359,7 +359,7 @@ SUB gamestate_slices_from_reload(byval node as Reload.NodePtr)
     .ScriptSprite->Fill = YES
     RefreshSliceScreenPos(.ScriptSprite)
 
-    SliceLoadFromNode .ScriptSprite, layernode
+    SliceLoadFromNode .ScriptSprite, layernode, YES   'Load slice handles
     IF .ScriptSprite->Lookup <> SL_SCRIPT_LAYER THEN
      debugc errError, "RSAV: sprite_layer has unexpected lookup code " & .ScriptSprite->Lookup
      .ScriptSprite->Lookup = SL_SCRIPT_LAYER
