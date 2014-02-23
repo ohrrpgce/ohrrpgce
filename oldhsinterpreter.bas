@@ -1463,6 +1463,7 @@ FUNCTION scriptstate (byval targetscript as integer, byval recurse as integer = 
  'macro disabled for fb 0.15 compat
  'copyobj(state, scrat(wasscript))
  memcpy(@(state),@(scrat(wasscript)),LEN(scrat(wasscript)))
+ memcpy(@(scrinst),@(scriptinsts(wasscript)),LEN(scriptinsts(wasscript)))
  node.kind = curcmd->kind
  node.value = curcmd->value
  node.argc = curcmd->argc
