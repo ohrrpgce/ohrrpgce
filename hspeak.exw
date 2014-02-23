@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Rg 2013-02-23 Fix a subscript related crash
 --3Rf 2013-02-17 Fix several 31-bit int overflows
 --3Re 2014-02-17 Trivial change to math builtin warnings
 ----- 2013-11-09 Prevent misuse of betweenable-operators in
@@ -153,7 +154,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Rf"
+constant COMPILER_SUB_VERSION="Rg"
 constant COPYRIGHT_DATE="2013"
 
 --This is the oldest version of plotscr.hsd which is supported (feel free to
@@ -4059,7 +4060,7 @@ function sanity_check(NodeList tree, VarList vars, string parent)
                  ,{s}),tree[i][TREE_TRUNK][CMD_POS])
       elsif kind=KIND_LOCAL or kind=KIND_NONLOCAL then
         src_warn(sprintf_utf("Expected script, function, or flow control, but found local variable "&COLYEL&"%s"&COLRED&". It will do nothing here."
-                 ,{vars[id][CMD_TEXT]}),tree[i][TREE_TRUNK][CMD_POS])
+                 ,{s}),tree[i][TREE_TRUNK][CMD_POS])
       elsif kind=KIND_MATH and (id<=15 or id=19 or id>=22) then
         -- setvariable, increment, decrement, logand, logor have side effects
         src_warn(sprintf_utf("Expected a statement but found built-in function "&COLYEL&"%s"&COLRED&", returning a value that is being discarded"
