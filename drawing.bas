@@ -1258,7 +1258,7 @@ DO
   ts.didscroll = NO  'save a new undo block upon scrolling
  END IF
  IF keyval(scSpace) > 0 THEN clicktile mover(), ts, keyval(scSpace) AND 4, clone
- IF keyval(scEnter) > 1 THEN ts.curcolor = readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3)
+ IF keyval(scEnter) > 1 ORELSE keyval(scG) > 1 THEN ts.curcolor = readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3)
  SELECT CASE ts.zone
  CASE 1
   'Drawing area
@@ -3484,7 +3484,7 @@ IF ss.tool = clone_tool THEN
  END IF
 ELSE
  ' For all other tools, pick a color
- IF keyval(scEnter) > 1 OR (ss.zonenum = 1 AND mouse.buttons = mouseRight) THEN
+ IF keyval(scEnter) > 1 ORELSE keyval(scG) > 1 ORELSE (ss.zonenum = 1 AND mouse.buttons = mouseRight) THEN
   drawsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
   ss.palindex = readpixel(ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, dpage)
   ss.showcolnum = 18
