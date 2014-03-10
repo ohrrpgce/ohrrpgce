@@ -87,7 +87,7 @@ DECLARE SUB delete_walkabout_shadow (byval walkabout_cont as Slice Ptr)
 DECLARE SUB cleanup_game_slices ()
 DECLARE FUNCTION hero_layer() as Slice Ptr
 DECLARE FUNCTION npc_layer() as Slice Ptr
-DECLARE SUB queue_fade_in (byval delay as integer = 0)
+DECLARE SUB queue_fade_in (delay as integer = 0, script_overridable as bool = NO)
 DECLARE SUB check_for_queued_fade_in ()
 DECLARE FUNCTION find_door (byval tilex as integer, byval tiley as integer) as integer
 DECLARE FUNCTION find_doorlink (byval door_id as integer) as integer

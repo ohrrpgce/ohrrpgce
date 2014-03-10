@@ -543,6 +543,8 @@ IF running_as_slave THEN check_game_custom_versions_match
 IF isfile(game + ".hsp") THEN unlump game + ".hsp", tmpdir
 
 fadeout 0, 0, 0
+'This queue_fade_in apparently does nothing, since the titlescreen, load menu,
+'and main loop all override it
 queue_fade_in
 
 IF gen(genResolutionX) > 0 OR gen(genResolutionY) > 0 THEN
@@ -810,7 +812,7 @@ DO
   stopsong
   resetsfx
   fadeout 0, 0, 0
-  queue_fade_in
+  queue_fade_in 1, YES
   doloadgame load_slot
  END IF
 
@@ -3331,7 +3333,7 @@ SUB advance_text_box ()
   gam.wonbattle = battle(txt.box.battle)
   prepare_map YES
   gam.random_battle_countdown = range(100, 60)
-  queue_fade_in
+  queue_fade_in 1, YES
  END IF
  '---GAIN/LOSE ITEM--------
  IF istag(txt.box.item_tag, 0) THEN
@@ -3348,7 +3350,7 @@ SUB advance_text_box ()
    IF useinn(-txt.box.shop, holdscreen) THEN
     innRestore
     fadeout 0, 0, 80
-    queue_fade_in
+    queue_fade_in 1, YES
    END IF
    freepage holdscreen
   ELSEIF txt.box.shop = 0 THEN
@@ -4013,9 +4015,14 @@ SUB check_for_queued_music_change ()
  gam.music_change_delay = large(0, gam.music_change_delay - 1)
 END SUB
 
-SUB queue_fade_in (byval delay as integer = 0)
+'Cause a screen fade in some number of ticks from now.
+'script_overridable allows the fade in to be cancelled by a fadescreenout command,
+'and is for backcompatibility. See fadescreenout. If you need to increase
+'any fade in delays, normally you should set script_overridable = YES
+SUB queue_fade_in (delay as integer = 0, script_overridable as bool = NO)
  gam.need_fade_in = YES
  gam.fade_in_delay = delay
+ gam.fade_in_script_overridable = script_overridable
 END SUB
 
 SUB check_for_queued_fade_in ()

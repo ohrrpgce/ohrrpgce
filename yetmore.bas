@@ -1186,8 +1186,19 @@ SELECT CASE as CONST id
    retvals(i) = bound(iif(retvals(i), retvals(i) * 4 + 3, 0), 0, 255)
   NEXT
   fadeout retvals(0), retvals(1), retvals(2)
+  IF gam.need_fade_in ANDALSO gam.fade_in_script_overridable THEN
+   'For backwards compatibility, if a fade delay has been increased so that a
+   'fadescreenout that used to occur after a queued fade now happens before,
+   'that queued fade needs to be cancelled so that the screen stays faded until
+   'the corresponding fadescreenin.
+   gam.need_fade_in = NO
+  END IF
  CASE 76'--fade screen in
   fadein
+  IF gam.need_fade_in AND gam.fade_in_delay <= 0 THEN
+   'Avoid unnecessary pause
+   gam.need_fade_in = NO
+  END IF
  CASE 81'--set hero speed
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
    herow(retvals(0)).speed = bound(retvals(1), 0, 20)
@@ -2132,7 +2143,7 @@ SELECT CASE as CONST id
    DIM sl as Slice Ptr
    sl = plotslices(retvals(0))
    IF sl->Protect THEN
-    scripterr "free slice: cannot reparent protected " & SliceTypeName(sl) & " slice " & retvals(0), serrBadOp
+    scripterr "set parent: cannot reparent protected " & SliceTypeName(sl) & " slice " & retvals(0), serrBadOp
    ELSE
     SetSliceParent sl, plotslices(retvals(1))
    END IF

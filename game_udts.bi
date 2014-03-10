@@ -80,6 +80,7 @@ TYPE GameState
   autorungame as bool                'Game was autorun, not selected from RPG browser
   need_fade_in as bool
   fade_in_delay as integer
+  fade_in_script_overridable as bool 'If true, the fade in can be cancelled by a fadescreenout command
   current_master_palette as integer  'Modified by "load palette" command
   showtext as string                 'Used for map names and other alerts
   showtext_ticks as integer          'Remaining number of ticks
