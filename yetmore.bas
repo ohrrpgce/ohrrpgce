@@ -4255,7 +4255,7 @@ SUB set_plotslice_handle(byval sl as Slice Ptr, handle as integer)
  END IF
 
  IF handle > UBOUND(plotslices) THEN
-  REDIM PRESERVE plotslices(LBOUND(plotslices) TO UBOUND(plotslices) * 1.5 + 32)
+  REDIM PRESERVE plotslices(LBOUND(plotslices) TO handle * 1.5 + 32)
   plotslicesp = @plotslices(1)
  END IF
 
