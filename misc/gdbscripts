@@ -35,10 +35,11 @@ define pel
 		end
 
 		if $argc >= 3
-			print *($arg2*)((void*)$arg0 + $elem * $data[3])
+			set $_retval = ($arg2*)((void*)$arg0 + $elem * $data[3])
 		else
-			print ((int*)$arg0)[$elem * $data[3] / 4]
+			set $_retval = &((int*)$arg0)[$elem * $data[3] / 4]
 		end
+                print *$_retval
 		loop_break
 	end
 end
@@ -180,4 +181,14 @@ define runcatch
 	if $_exitcode == (void)0
 		echo crashed
 	end
+end
+
+define enable_debug_keys
+	pel GEN {101} int
+	# Now $_retval is &gen(genBits) 
+	set *$_retval = (*$_retval & ~256)
+end
+
+document enable_debug_keys
+	Turns off the 'Disable debug keys' general bitset
 end
