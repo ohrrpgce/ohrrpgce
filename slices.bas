@@ -377,6 +377,33 @@ Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
  return ret
 End Function
 
+#ifdef IS_GAME
+
+ 'This shows an error and returns false if a slice has a bad TableSlot
+ Function CheckTableSlotOK(sl as Slice ptr) as bool
+  if sl = 0 then return NO
+  if sl->TableSlot > 0 then
+   if sl->TableSlot <= ubound(plotslices) then
+    if plotslices(sl->TableSlot) = sl then
+     return YES
+    else
+     reporterr "DeleteSlice: TableSlot mismatch! Slice " & sl & " slot is " & sl->TableSlot & " which has " & plotslices(sl->TableSlot), serrBug
+    end if
+   else
+    reporterr "DeleteSlice: TableSlot for " & sl & " is invalid: " & sl->TableSlot, serrBug
+   end if
+  end if
+  return NO
+ End Function
+
+#else
+
+ Function CheckTableSlotOK(sl as Slice ptr) as bool
+  return sl <> 0
+ End Function
+
+#endif
+
 'Deletes a slice, and any children (and their children (and their...))
 Sub DeleteSlice(Byval s as Slice ptr ptr, Byval debugme as integer=0)
  '-- if debugme is true, dump some debug info about the slice being freed and all its children
@@ -394,17 +421,9 @@ Sub DeleteSlice(Byval s as Slice ptr ptr, Byval debugme as integer=0)
  
 #ifdef IS_GAME
  'unlink this slice from the table of handles
- if sl->TableSlot > 0 then
-  if sl->TableSlot <= ubound(plotslices) then
-   if plotslices(sl->TableSlot) = sl then
-    '--zero out the reference to this slice from the table
-    plotslices(sl->TableSlot) = 0
-   else
-    reporterr "DeleteSlice: TableSlot mismatch! Slice " & sl & " slot is " & sl->TableSlot & " which has " & plotslices(sl->TableSlot), serrBug
-   end if
-  else
-   reporterr "DeleteSlice: TableSlot for " & sl & " is invalid: " & sl->TableSlot, serrBug
-  end if
+ if CheckTableSlotOK(sl) then
+  '--zero out the reference to this slice from the table
+  plotslices(sl->TableSlot) = 0
  end if
 #endif
  
@@ -2749,11 +2768,13 @@ END SUB
 
 SUB SliceDebugDumpTree(sl as Slice Ptr, byval indent as integer = 0)
  if sl = 0 then exit sub
+ CheckTableSlotOK(sl)
  dim s as string
  s = string(indent, " ") & SliceTypeName(sl)
  if sl->Protect then
   s = s & " (P)"
  end if
+
  s = s & " lookup:" & SliceLookupCodename(sl) & " handle:" & sl->TableSlot & " pos:" & sl->X & "," & sl->Y & " size:" & sl->Width & "x" & sl->Height
  debug s
  SliceDebugDumpTree sl->FirstChild, indent + 1
