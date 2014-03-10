@@ -978,12 +978,10 @@ FUNCTION commandname (byval id as integer) as string
  RETURN ret
 END FUNCTION
 
-'For use inside a script command handler only
+'Returns script command name if inside a script command handler
 FUNCTION current_command_name() as string
  IF insideinterpreter = NO ORELSE curcmd->kind <> tyfunct THEN
-  'Best not to display a bug since we're probably about to report an error anyway
-  debugc errBug, "current_command_name called in bad context"
-  RETURN ""
+  RETURN "(no command)"
  END IF
  RETURN commandname(curcmd->value)
 END FUNCTION
@@ -1030,9 +1028,11 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
  DIM as string errtext()
  DIM as integer scriptcmdhash
 
+ 'err_suppress_lvl is always at least serrIgnore
+ IF errorlevel <= err_suppress_lvl THEN EXIT SUB
+
  debug "Scripterr(" & errorlevel & "): " + e
 
- IF errorlevel <= err_suppress_lvl THEN EXIT SUB
  IF nowscript >= 0 THEN
   scriptcmdhash = scrat(nowscript).id * 100000 + scrat(nowscript).ptr * 10 + scrat(nowscript).depth
   IF int_array_find(ignorelist(), scriptcmdhash) <> -1 THEN EXIT SUB
