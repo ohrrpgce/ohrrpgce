@@ -1098,7 +1098,7 @@ IF mode > 1 AND viewmode = 0 THEN
  END IF
 END IF
 
-DIM scriptargs as integer
+DIM scriptargs as integer, numlocals as integer
 DIM localno as integer
 IF mode > 1 AND viewmode = 1 AND selectedscript >= 0 THEN
  'local (but not nonlocal) variables and return value. Show up to 9 variables at a time
@@ -1108,22 +1108,23 @@ IF mode > 1 AND viewmode = 1 AND selectedscript >= 0 THEN
    ol -= 9
   ELSE
    scriptargs = .scr->args
+   numlocals = .scr->vars - .scr->nonlocals
    DIM temp as string
-   FOR i as integer = small((.scr->vars - localsscroll - 1) \ 3, 2) TO 0 STEP -1
+   FOR i as integer = small((numlocals - localsscroll - 1) \ 3, 2) TO 0 STEP -1
     FOR j as integer = 2 TO 0 STEP -1  'reverse order so the var name is what gets overwritten
      localno = localsscroll + i * 3 + j
-     IF localno < .scr->vars THEN
+     IF localno < numlocals THEN
       temp = localvariablename(localno, scriptargs) & "="
       edgeprint temp, j * 96, ol, uilook(uiText), page
-      edgeprint STR(.frames(0).heap + localno), j * 96 + 8 * LEN(temp), ol, uilook(uiDescription), page
+      edgeprint STR(heap(.frames(0).heap + localno)), j * 96 + 8 * LEN(temp), ol, uilook(uiDescription), page
      END IF
     NEXT
     ol -= 9
    NEXT
    IF scriptargs = 999 THEN
-    edgeprint .scr->vars & " local variables and arguments:", 0, ol, uilook(uiText), page
+    edgeprint .scr->vars & " local variables and args:", 0, ol, uilook(uiText), page
    ELSE
-    edgeprint scriptargs & " arguments and " & (.scr->vars - scriptargs) & " local variables (" & .scr->nonlocals & " non-locals):", 0, ol, uilook(uiText), page
+    edgeprint scriptargs & " args and " & (numlocals - scriptargs) & " locals (excluding " & .scr->nonlocals & " non-locals):", 0, ol, uilook(uiText), page
    END IF
    ol -= 9
   END IF
@@ -1298,7 +1299,9 @@ IF mode > 1 AND drawloop = 0 THEN
   IF viewmode = 4 THEN timersscroll = large(0, timersscroll - 4): GOTO redraw
  END IF
  IF w = scPlus OR w = scNumpadPlus THEN
-  IF viewmode = 1 THEN localsscroll = small(large(scrat(selectedscript).scr->vars - 8, 0), localsscroll + 3): GOTO redraw
+  numlocals = scrat(selectedscript).scr->vars - scrat(selectedscript).scr->nonlocals
+
+  IF viewmode = 1 THEN localsscroll = small(large(numlocals - 8, 0), localsscroll + 3): GOTO redraw
   IF viewmode = 2 THEN globalsscroll = small(maxScriptGlobals - 59, globalsscroll + 21): GOTO redraw
   IF viewmode = 3 THEN stringsscroll = small(stringsscroll + 1, (UBOUND(strings) - 1) - 19): GOTO redraw
   IF viewmode = 4 THEN timersscroll = small(timersscroll + 4, UBOUND(timers) - 18): GOTO redraw
