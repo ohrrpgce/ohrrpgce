@@ -354,9 +354,12 @@ IF need_fade_out THEN fadeout 0, 0, 0
 
 'DEBUG debug "Cleanup Routine"
 
-'--script stack
-'DEBUG debug "Release script stack"
 releasestack
+
+'--scripts
+'DEBUG debug "Release scripts"
+'Also prints script profiling info
+resetinterpreter
 destroystack(scrst)
 
 '--reset audio
