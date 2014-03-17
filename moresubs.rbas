@@ -844,6 +844,7 @@ FUNCTION teleporttool () as integer
  DIM destmap as integer = gam.map.id
  DIM xrate as integer
  DIM yrate as integer
+ DIM toggle as integer
 
 
  teleporttool = 0
@@ -856,6 +857,7 @@ FUNCTION teleporttool () as integer
  DO
   setwait speedcontrol
   setkeys
+  toggle XOR= 1
 
   IF preview_delay > 0 THEN
    preview_delay -= 1
@@ -916,9 +918,10 @@ FUNCTION teleporttool () as integer
   END IF
 
   copypage vpage, dpage
-  rectangle offset.x + dest.x * zoom - camera.x, offset.y + dest.y * zoom - camera.y, zoom, zoom, uilook(uiSelectedItem) * state.tog, dpage
+  rectangle offset.x + dest.x * zoom - camera.x, offset.y + dest.y * zoom - camera.y, zoom, zoom, uilook(uiSelectedItem) * toggle, dpage
+  'Don't highlight any menu items
   state.active = (pickpoint = NO)
-  standardmenu menu(), state, 0, 182, dpage, menuopts
+  standardmenu menu(), state, 0, vpages(dpage)->h - 18, dpage, menuopts
   setvispage dpage
   dowait
  LOOP
@@ -950,15 +953,17 @@ SUB teleporttooltend (byref mini as Frame Ptr, maptilesX() as TileMap, tilesets2
   loadmaptilesets tilesets2(), gmap()
  END IF
  'minimum zoom level to make tiles easy to pick
- zoom = bound(small(320 \ maptilesX(0).wide, 200 \ maptilesX(0).high), 5, 20)
+ DIM screenw as integer = vpages(dpage)->w
+ DIM screenh as integer = vpages(dpage)->h
+ zoom = bound(small(screenw \ maptilesX(0).wide, screenh \ maptilesX(0).high), 5, 20)
  frame_unload @mini
  mini = createminimap(maptilesX(), tilesets2(), zoom)
  mapsize.x = maptilesX(0).wide
  mapsize.y = maptilesX(0).high
- offset.x = large(cint(160 - mini->w / 2), 0)
- offset.y = large(cint(100 - mini->h / 2), 0)
- minisize.x = 320 - offset.x * 2
- minisize.y = 200 - offset.y * 2
+ offset.x = large(screenw \ 2 - mini->w \ 2, 0)
+ offset.y = large(screenh \ 2 - mini->h \ 2, 0)
+ minisize.x = screenw - offset.x * 2
+ minisize.y = screenh - offset.y * 2
 END SUB
 
 
