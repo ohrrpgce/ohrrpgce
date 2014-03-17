@@ -189,6 +189,7 @@ SUB center_camera_on_walkabout(byval walkabout_cont as Slice ptr)
  END IF
 END SUB
 
+'Set the camera position.
 SUB setmapxy
 SELECT CASE gen(cameramode)
  CASE herocam
@@ -946,12 +947,21 @@ SUB npc_debug_display ()
 END SUB
 
 SUB limitcamera (byref x as integer, byref y as integer)
+ ' The slice the map is drawn "onto"
+ DIM mapview as Slice ptr
+ mapview = SliceTable.Root
  IF gmap(5) = 0 THEN
-  'when cropping the camera to the map, stop camera movements that attempt to go over the edge
+  ' When cropping the camera to the map, stop camera movements that attempt to go over the edge
   DIM oldmapx as integer = x
   DIM oldmapy as integer = y
-  x = bound(x, 0, mapsizetiles.x * 20 - 320)
-  y = bound(y, 0, mapsizetiles.y * 20 - 200)
+  ' IF the map is smaller than the screen, centre it.
+  DIM as integer padleft, padtop
+  padleft = -large(0, mapview->Width - mapsizetiles.x * 20) \ 2
+  padtop = -large(0, mapview->Height - mapsizetiles.y * 20) \ 2
+  ' Need to call large, small in this order rather than using bound
+  ' to handle maps which are larger than the screen correctly.
+  x = padleft + large(small(x, mapsizetiles.x * 20 - mapview->Width), 0)
+  y = padtop + large(small(y, mapsizetiles.y * 20 - mapview->Height), 0)
   IF oldmapx <> x THEN
    IF gen(cameramode) = pancam THEN gen(cameramode) = stopcam
   END IF
@@ -960,12 +970,12 @@ SUB limitcamera (byref x as integer, byref y as integer)
   END IF
  END IF
  IF gmap(5) = 1 THEN
-  'Wrap the camera according to the center, not the top-left
-  x += 160
-  y += 100
+  ' Wrapping map. Wrap the camera according to the center, not the top-left
+  x += mapview->Width \ 2
+  y += mapview->Height \ 2
   wrapxy x, y, mapsizetiles.x * 20, mapsizetiles.y * 20
-  x -= 160
-  y -= 100
+  x -= mapview->Width \ 2
+  y -= mapview->Height \ 2
  END IF
 END SUB
 

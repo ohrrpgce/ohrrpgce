@@ -2229,7 +2229,19 @@ SUB mapedit_edit_zoneinfo(st as MapEditState, zmap as ZoneMap)
  
 END SUB
 
-SUB mapedit_gmapdata_buildmenu(byref menu as SimpleMenuItem vector, gdidx() as integer, midx() as integer, gmap() as integer, zmap as ZoneMap)
+'Whether the user should have the option to pick an edge tile.
+'Also true if the map is smaller than the screen and the camera is set to crop.
+FUNCTION mapedit_need_default_edge_tile(st as MapEditState, gmap() as integer) as bool
+ IF gmap(5) = 2 THEN RETURN YES  'Use default edge tile
+ IF gmap(5) = 0 THEN  'Crop camera
+  DIM as integer screenw = IIF(gen(genResolutionX), gen(genResolutionX), 320)
+  DIM as integer screenh = IIF(gen(genResolutionY), gen(genResolutionY), 200)
+  IF screenw > st.wide * 20 ORELSE screenh > st.high * 20 THEN RETURN YES
+ END IF
+ RETURN NO
+END FUNCTION
+
+SUB mapedit_gmapdata_buildmenu(st as MapEditState, byref menu as SimpleMenuItem vector, gdidx() as integer, midx() as integer, gmap() as integer, zmap as ZoneMap)
 
  v_new menu
  REDIM gdidx(23)
@@ -2293,7 +2305,7 @@ SUB mapedit_gmapdata_buildmenu(byref menu as SimpleMenuItem vector, gdidx() as i
    menu[midx(5)].text &= "use default edge tile"
  END SELECT
  ' Default edge tile
- IF gmap(5) = 2 THEN
+ IF mapedit_need_default_edge_tile(st, gmap()) THEN
   menu[midx(6)].text &= gmap(6)
  ELSE
   menu[midx(6)].text &= "N/A"
@@ -2361,7 +2373,7 @@ SUB mapedit_gmapdata(st as MapEditState, gmap() as integer, zmap as ZoneMap)
  'Maps gmap() index to menu() index
  DIM midx(dimbinsize(binMAP)) as integer
 
- mapedit_gmapdata_buildmenu menu, gdidx(), midx(), gmap(), zmap
+ mapedit_gmapdata_buildmenu st, menu, gdidx(), midx(), gmap(), zmap
 
  'These are indexed by *gmap index*, not by menu item index!
  DIM gdmax(dimbinsize(binMAP)) as integer
@@ -2444,7 +2456,7 @@ SUB mapedit_gmapdata(st as MapEditState, gmap() as integer, zmap as ZoneMap)
   END SELECT
 
   IF state.need_update THEN
-   mapedit_gmapdata_buildmenu menu, gdidx(), midx(), gmap(), zmap
+   mapedit_gmapdata_buildmenu st, menu, gdidx(), midx(), gmap(), zmap
    state.need_update = NO
   END IF
 
@@ -2460,7 +2472,7 @@ SUB mapedit_gmapdata(st as MapEditState, gmap() as integer, zmap as ZoneMap)
    'Harm tile flash color preview
    rectangle 4 + 8 * LEN(menu[midx(10)].text), 8 * midx(10), 8, 8, gmap(10), dpage
   END IF
-  IF gmap(5) = 2 THEN
+  IF mapedit_need_default_edge_tile(st, gmap()) THEN
    'Show default edge tile
    writeblock sampmap, 0, 0, gmap(6)
    DIM tilepos as XYPair = (8 + 8 * LEN(menu[midx(6)].text), 8 * midx(6))

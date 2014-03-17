@@ -967,6 +967,15 @@ SUB displayall()
  ' second update_walkabout_slices call.
  update_walkabout_slices()
 
+ 'Map layers edge handling
+ SELECT CASE gmap(5)
+  CASE 1 'Wrap
+   setoutside -1
+  CASE 0, 2 'Crop, use default edge tile
+   'We set an edge tile on crop maps in case the map is smaller than the screen
+   setoutside gmap(6)
+ END SELECT
+
  IF readbit(gen(), genSuspendBits, suspendoverlay) THEN
   ChangeMapSlice SliceTable.MapLayer(0), , , , 0   'draw all
   SliceTable.ObsoleteOverhead->Visible = NO
@@ -2420,13 +2429,6 @@ SUB loadmap_gmap(byval mapnum as integer)
 
  loadmaptilesets tilesets(), gmap()
  refresh_map_slice_tilesets
-
- SELECT CASE gmap(5) '--outer edge wrapping
-  CASE 0, 1'--crop edges or wrap
-   setoutside -1
-  CASE 2
-   setoutside gmap(6)
- END SELECT
 END SUB
 
 SUB loadmap_npcl(byval mapnum as integer)
