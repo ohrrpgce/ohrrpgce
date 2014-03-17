@@ -1299,7 +1299,11 @@ IF mode > 1 AND drawloop = 0 THEN
   IF viewmode = 4 THEN timersscroll = large(0, timersscroll - 4): GOTO redraw
  END IF
  IF w = scPlus OR w = scNumpadPlus THEN
-  numlocals = scrat(selectedscript).scr->vars - scrat(selectedscript).scr->nonlocals
+  IF selectedscript >= 0 AND selectedscript <= nowscript THEN
+   numlocals = scrat(selectedscript).scr->vars - scrat(selectedscript).scr->nonlocals
+  ELSE
+   numlocals = 0
+  END IF
 
   IF viewmode = 1 THEN localsscroll = small(large(numlocals - 8, 0), localsscroll + 3): GOTO redraw
   IF viewmode = 2 THEN globalsscroll = small(maxScriptGlobals - 59, globalsscroll + 21): GOTO redraw
