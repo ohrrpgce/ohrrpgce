@@ -1243,7 +1243,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
     state.need_update = YES
    END IF
    SELECT CASE state.pt
-    CASE 1: state.need_update OR= intgrabber(box.vertical_offset, 0, 49)
+    CASE 1: state.need_update OR= intgrabber(box.vertical_offset, 0, gen(genResolutionX) \ 4 - 1)
     CASE 2: state.need_update OR= intgrabber(box.shrink, -1, 21)
     CASE 3: state.need_update OR= intgrabber(box.textcolor, 0, 255)
     CASE 4: state.need_update OR= intgrabber(box.boxstyle, 0, 14)
