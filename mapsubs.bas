@@ -2234,9 +2234,7 @@ END SUB
 FUNCTION mapedit_need_default_edge_tile(st as MapEditState, gmap() as integer) as bool
  IF gmap(5) = 2 THEN RETURN YES  'Use default edge tile
  IF gmap(5) = 0 THEN  'Crop camera
-  DIM as integer screenw = IIF(gen(genResolutionX), gen(genResolutionX), 320)
-  DIM as integer screenh = IIF(gen(genResolutionY), gen(genResolutionY), 200)
-  IF screenw > st.wide * 20 ORELSE screenh > st.high * 20 THEN RETURN YES
+  IF gen(genResolutionX) > st.wide * 20 ORELSE gen(genResolutionY) > st.high * 20 THEN RETURN YES
  END IF
  RETURN NO
 END FUNCTION

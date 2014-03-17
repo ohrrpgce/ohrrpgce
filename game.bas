@@ -547,12 +547,10 @@ fadeout 0, 0, 0
 'and main loop all override it
 queue_fade_in
 
-IF gen(genResolutionX) > 0 OR gen(genResolutionY) > 0 THEN
+IF gen(genResolutionX) <> 320 OR gen(genResolutionY) <> 200 THEN
  IF gfxbackend <> "sdl" THEN
   notification "This game requires use of the gfx_sdl backend; other graphics backends do not support customisable resolution"
  ELSE
-  IF gen(genResolutionX) <= 0 THEN gen(genResolutionX) = 320
-  IF gen(genResolutionY) <= 0 THEN gen(genResolutionY) = 200
   set_resolution(gen(genResolutionX), gen(genResolutionY))
   gfx_recenter_window_hint()
  END IF

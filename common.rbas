@@ -3723,6 +3723,9 @@ IF getfixbit(fixDefaultMaxLevel) = 0 THEN
  gen(genMaxLevel) = 99
 END IF
 
+IF gen(genResolutionX) <= 0 THEN gen(genResolutionX) = 320
+IF gen(genResolutionY) <= 0 THEN gen(genResolutionY) = 200
+
 IF getfixbit(fixUNUSED23) = 1 THEN
  'James says: this bit was originally planned to initialise gen(192)
  'with the maximum tag number 999, but then it was decided that it would

@@ -538,7 +538,17 @@ END SUB
 
 SUB prompt_for_save_and_quit()
 
+ 'FIXME: delete this on Callipygous release, this is only here
+ 'so that editing in a nightly doesn't cause a nasty error when
+ 'reverting to earlier version
+ IF gen(genResolutionX) = 320 THEN gen(genResolutionX) = 0
+ IF gen(genResolutionY) = 200 THEN gen(genResolutionY) = 0
+
  xbsave game & ".gen", gen(), 1000
+
+ 'FIXME: delete too
+ IF gen(genResolutionX) <= 0 THEN gen(genResolutionX) = 320
+ IF gen(genResolutionY) <= 0 THEN gen(genResolutionY) = 200
 
  DIM quit_menu(3) as string
  quit_menu(0) = "Continue editing"
@@ -1269,12 +1279,15 @@ SUB resolution_menu ()
  DO
   setwait 55
   setkeys
+  IF usemenu(st) ORELSE keyval(scEsc) > 1 THEN
+   gen(genResolutionX) = large(10, gen(genResolutionX))
+   gen(genResolutionY) = large(10, gen(genResolutionY))
+  END IF
   IF keyval(scEsc) > 1 THEN EXIT DO
   SELECT CASE st.pt
    CASE 0: intgrabber(gen(genResolutionX), 0, 640)  'Arbitrary limits
    CASE 1: intgrabber(gen(genResolutionY), 0, 480)
   END SELECT
-  usemenu st
   menu(0) = "Width: " & gen(genResolutionX)
   menu(1) = "Height:" & gen(genResolutionY)
   clearpage vpage
