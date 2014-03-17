@@ -990,7 +990,7 @@ SUB displayall()
  'The order in which we update and draw things is a little strange; I'm just preserving what it was
  animatetilesets tilesets()
  IF harmtileflash = YES THEN
-  rectangle 0, 0, 320, 200, gmap(10), dpage
+  rectangle 0, 0, vpages(dpage)->w, vpages(dpage)->h, gmap(10), dpage
   harmtileflash = NO
  END IF
  IF txt.showing = YES THEN update_textbox
@@ -1000,11 +1000,11 @@ SUB displayall()
  FOR i as integer = 0 TO topmenu
   draw_menu menus(i), mstates(i), dpage
  NEXT i
- edgeprint scriptout, 0, 190, uilook(uiText), dpage
+ edgeprint scriptout, 0, vpages(dpage)->h - 10, uilook(uiText), dpage
  showplotstrings
  IF gam.showtext_ticks > 0 THEN
   gam.showtext_ticks -= 1
-  edgeprint gam.showtext, xstring(gam.showtext, 160), 180, uilook(uiText), dpage
+  edgeprint gam.showtext, xstring(gam.showtext, vpages(dpage)->w \ 2), vpages(dpage)->h - 20, uilook(uiText), dpage
  END IF
  IF gam.debug_npc_info THEN npc_debug_display
  IF gam.debug_showtags THEN tagdisplay
