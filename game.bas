@@ -3415,11 +3415,15 @@ SUB init_text_box_slices(txt as TextBoxState)
   '--free any already-loaded textbox
   DeleteSlice @(txt.sl)
  END IF
+
+ 'The textbox root slice is parent to the box and choicebox
  txt.sl = NewSliceOfType(slContainer, SliceTable.TextBox, SL_TEXTBOX_ROOT)
  WITH *txt.sl
-  '.Fill = YES
-  .Width = 320
-  .Height = 200
+  'Should not be set to fill, as scripts may expect to be able to move it around.
+  'Set the width and height according to SliceTable.TextBox's size and padding.
+  .Fill = YES
+  .Parent->ChildRefresh(.Parent, txt.sl)
+  .Fill = NO
  END WITH
 
  '--Create a new slice for the text box
@@ -3436,7 +3440,7 @@ SUB init_text_box_slices(txt as TextBoxState)
 
  '--position and size the text box
  WITH *text_box
-  .X = 4
+  .X = 0
   .Y = 4 + txt.box.vertical_offset * 4
   .Width = 312
   .Height = get_text_box_height(txt.box)
@@ -3444,6 +3448,11 @@ SUB init_text_box_slices(txt as TextBoxState)
   .PaddingRight = 4
   .PaddingTop = 3
   .PaddingBottom = 3
+  'Horizontal centering
+  .AlignHoriz = 1
+  .AnchorHoriz = 1
+  .AnchorVert = 0
+  .AlignVert = 0
  END WITH
 
  '--Set up the actual text
@@ -3529,7 +3538,7 @@ SUB init_text_box_slices(txt as TextBoxState)
    '--FIXME: This hackyness just reproduces the old method of positioning the choicebox.
    '--FIXME: eventually the game author should have control over this.
    .Y = text_box->Y + text_box->Height + 12
-   IF .Y > vpages(dpage)->h - (.Height + 4) THEN .Y = 32
+   IF .Y > txt.sl->Height - (.Height + 4) THEN .Y = 32
   END WITH
   ChangeRectangleSlice choice_box, txt.box.boxstyle
   REDIM choice_sl(1) as Slice Ptr
