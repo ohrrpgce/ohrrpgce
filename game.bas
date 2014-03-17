@@ -943,6 +943,28 @@ SUB doloadgame(byval load_slot as integer)
 END SUB
 
 SUB displayall()
+ ' We need to update walkabout slice positions before calling
+ ' setmapxy, in the case where the camera is following a hero
+ ' or NPC, but this is pretty wasteful. One alternative
+ ' is to only update a single slice as required from setmapxy,
+ ' or to stop using walkabout slices there.
+ update_walkabout_slices()
+
+ ' Update camera position
+ setmapxy
+ WITH *(SliceTable.MapRoot)
+  .X = mapx * -1
+  .Y = mapy * -1
+ END WITH
+
+ ' Walkabout slice positions (other than the hero/NPC being
+ ' followed) also depend on the camera position, so need to be
+ ' repositioned after the camera is updated.
+ ' TODO: I think that ideally slices could be set to wrap their children,
+ ' that way slices manually parented to a map layer will always
+ ' draw in the correct position, whereas currently this breaks on wrapping
+ ' maps. This would also remove the need for this
+ ' second update_walkabout_slices call.
  update_walkabout_slices()
 
  IF readbit(gen(), genSuspendBits, suspendoverlay) THEN
@@ -952,11 +974,6 @@ SUB displayall()
   ChangeMapSlice SliceTable.MapLayer(0), , , , 1   'draw non-overhead only
   SliceTable.ObsoleteOverhead->Visible = YES
  END IF
- setmapxy  'Update camera position
- WITH *(SliceTable.MapRoot)
-  .X = mapx * -1
-  .Y = mapy * -1
- END WITH
  update_backdrop_slice
 
  DrawSlice(SliceTable.Root, dpage)
