@@ -207,7 +207,6 @@ CLOSE #fh
 
 printstr "done", 0, pl * 8, 0: pl = pl + 1
 setvispage 0
-waitforanykey
 
 END SUB
 
@@ -471,6 +470,7 @@ SUB reimport_previous_scripts ()
   fname = script_import_defaultdir
  END IF
  IF fname <> "" THEN
+  exportnames
   compile_andor_import_scripts fname
  END IF
  clearkey scEnter
@@ -521,6 +521,7 @@ DO
     END IF
    CASE 2
     exportnames
+    waitforanykey
    CASE 3
     script_usage_list()
    CASE 4
