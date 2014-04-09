@@ -1438,8 +1438,15 @@ FUNCTION get_mac_gameplayer() as string
  '--Ask the user for permission the first time we download (subsequent updates don't ask)
  DIM destgz as string = dldir & SLASH & dlfile
  DIM desttar as string = trimextension(destgz)
- IF NOT isfile(destgz) ANDALSO NOT isfile(desttar) THEN
+
+ '--Always remove the old files. We can't tell how old the might be, or
+ '  whether they match the current version (since multiple versions could be installed)
+ safekill destgz
+ safekill desttar
+
+ IF NOT isfile(dldir & SLASH & "mac.download.agree") THEN
   IF yesno("Is it okay to download the Mac OS X version of OHRRPGCE from HamsterRepublic.com now?") = NO THEN RETURN ""
+  touchfile dldir & SLASH & "mac.download.agree"
  END IF
 
  '--Actually download the dang file
