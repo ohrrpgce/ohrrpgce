@@ -459,7 +459,7 @@ SUB distribute_game_as_zip ()
  DIM shortzip as string = trimpath(destzip)
  IF isfile(destzip) THEN
   IF yesno(shortzip & " already exists. Overwrite it?") = NO THEN RETURN
-  safekill destzip
+  'Okay to overwrite, but do the overwrite later
  END IF
 
  DIM ziptmp as string = trimfilename(sourcerpg) & SLASH & "zip.tmp"
@@ -496,7 +496,11 @@ SUB distribute_game_as_zip ()
   'Write readme with DOS/Window line endings
   write_readme_text_file ziptmp & SLASH & "README-" & basename & ".txt", CHR(13) & CHR(10)
   maybe_write_license_text_file ziptmp & SLASH & "LICENSE.txt"
+
+  'Remove the old zip
+  safekill destzip
  
+  'Create the new zip
   DIM args as string = "-r -j " & escape_filename(destzip) & " " & escape_filename(ziptmp)
   spawn_ret = spawn_and_wait(zip, args)
   IF LEN(spawn_ret) ORELSE NOT isfile(destzip) THEN
@@ -643,15 +647,22 @@ FUNCTION get_windows_gameplayer() as string
   url = "http://hamsterrepublic.com/dl/ohrrpgce-minimal.zip"
   dlfile = "ohrrpgce-minimal.zip"
  END IF
-
+ 
  '--Ask the user for permission the first time we download (subsequent updates don't ask)
- DIM destzip as string = dldir & SLASH & dlfile
- IF NOT isfile(destzip) THEN
+ IF NOT isfile(dldir & SLASH & "win.download.agree") THEN
   IF yesno("Is it okay to download the Windows version of OHRRPGCE game.exe from HamsterRepublic.com now?") = NO THEN RETURN ""
+  touchfile dldir & SLASH & "win.download.agree"
  END IF
 
+ DIM destzip as string = dldir & SLASH & dlfile
+ '--Remove the old copy
+ safekill destzip
  '--Actually download the dang file
  download_file url, dldir
+ 
+ IF NOT isfile(destzip) THEN
+  visible_debug "ERROR: Failed to download game.exe" : RETURN ""
+ END IF
  
  '--Find the unzip tool
  DIM unzip as string = find_helper_app("unzip", YES)
@@ -713,13 +724,19 @@ FUNCTION get_linux_gameplayer() as string
  dlfile = "ohrrpgce-player-linux-bin-minimal.zip"
 
  '--Ask the user for permission the first time we download (subsequent updates don't ask)
- DIM destzip as string = dldir & SLASH & dlfile
- IF NOT isfile(destzip) THEN
+ IF NOT isfile(dldir & SLASH & "linux.download.agree") THEN
   IF yesno("Is it okay to download the Linux version of OHRRPGCE ohrrpgce-game from HamsterRepublic.com now?") = NO THEN RETURN ""
+  touchfile dldir & SLASH & "linux.download.agree"
  END IF
 
+ DIM destzip as string = dldir & SLASH & dlfile
+ '--Remove the old file
+ safekill destzip
  '--Actually download the dang file
  download_file url, dldir
+ IF NOT isfile(destzip) THEN
+  visible_debug "ERROR: Failed to download Linux ohrrpgce-game" : RETURN ""
+ END IF
  
  '--Find the unzip tool
  DIM unzip as string = find_helper_app("unzip", YES)
@@ -747,7 +764,7 @@ SUB distribute_game_as_windows_installer ()
 
  IF isfile(installer) THEN
   IF yesno(trimpath(installer) & " already exists. Overwrite it?") = NO THEN RETURN
-  safekill installer
+  'Okay to overwrite (but actually do the overwrite later)
  END IF
 
  DIM iscc as string = find_or_download_innosetup()
@@ -785,6 +802,9 @@ SUB distribute_game_as_windows_installer ()
   DIM spawn_ret as string
   spawn_ret = win_or_wine_spawn_and_wait(iscc, args)
   IF LEN(spawn_ret) THEN visible_debug "ERROR: iscc.exe failed: " & spawn_ret : EXIT DO
+  'Remove the old copy of the installer
+  safekill installer
+  'Move the new installer to the correct location
   IF confirmed_copy(isstmp & SLASH & "Output" & SLASH & "setup-" & basename & ".exe", installer) = NO THEN
    visible_debug "ERROR: iscc.exe completed but installer was not created"
    EXIT DO
@@ -939,7 +959,7 @@ SUB distribute_game_as_debian_package ()
 
  IF isfile(debname) THEN
   IF yesno(trimpath(debname) & " already exists. Overwrite it?") = NO THEN RETURN
-  safekill debname
+  'Okay to overwrite, but do it later
  END IF
 
  DIM debtmp as string = trimfilename(sourcerpg) & SLASH & "debpkg.tmp"
@@ -1019,6 +1039,10 @@ SUB distribute_game_as_debian_package ()
   
   IF create_tarball(debtmp, debtmp & SLASH & "data.tar.gz", "usr") = NO THEN EXIT DO
 
+  'Remove old deb
+  safekill debname
+  
+  'Create new deb
   IF create_ar_archive(debtmp, debname, "debian-binary control.tar.gz data.tar.gz") = NO THEN EXIT DO
   
   visible_debug trimpath(debname) & " was successfully created!"
@@ -1352,7 +1376,7 @@ SUB distribute_game_as_mac_app ()
 
  IF isfile(destname) THEN
   IF yesno(trimpath(destname) & " already exists. Overwrite it?") = NO THEN RETURN
-  safekill destname
+  'Okay to overwrite! (but actually do the overwriting later on)
  END IF
 
  DIM apptmp as string = trimfilename(sourcerpg) & SLASH & "macapp.tmp"
@@ -1395,6 +1419,8 @@ SUB distribute_game_as_mac_app ()
 
   maybe_write_license_text_file apptmp & SLASH & "LICENSE.txt"
 
+  'Remove the old copy that we are replacing
+  safekill destname
   DIM olddir as string = CURDIR
   CHDIR apptmp
   IF create_tarball(apptmp, destname, "*.app *.txt") = NO THEN
@@ -1439,7 +1465,7 @@ FUNCTION get_mac_gameplayer() as string
  DIM destgz as string = dldir & SLASH & dlfile
  DIM desttar as string = trimextension(destgz)
 
- '--Always remove the old files. We can't tell how old the might be, or
+ '--Always remove the old files. We can't tell how old they might be, or
  '  whether they match the current version (since multiple versions could be installed)
  safekill destgz
  safekill desttar
@@ -1451,6 +1477,9 @@ FUNCTION get_mac_gameplayer() as string
 
  '--Actually download the dang file
  download_file url, dldir
+ IF NOT isfile(destgz) THEN
+  visible_debug "ERROR: Failed to download Mac OHRRPGCE" : RETURN ""
+ END IF
 
  '--remove the old uncompressed files
  safekill dldir & SLASH & "LICENSE-binary.txt"
