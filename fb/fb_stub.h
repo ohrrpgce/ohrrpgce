@@ -1,4 +1,6 @@
 /*
+ *  This is a stripped down version of FB's src/rtlib/fb.h
+ *
  *  libfb - FreeBASIC's runtime library
  *	Copyright (C) 2004-2010 The FreeBASIC development team.
  *
@@ -32,13 +34,12 @@
 #ifndef __FB_H__
 #define __FB_H__
 
-#if HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/* Must be included before any system headers due to certain #defines */
+#include "fb_config.h"
 
 
     /* =================================================================
@@ -198,32 +199,50 @@ extern "C" {
 #endif
 
 
-////// The following has been added to replace dependance on fb_unix.h, etc (bad idea?)
+/* The following has been added to replace dependance on fb_unix.h, fb_win32.h etc (bad idea?) */
 
-//#ifdef TARGET_WINDOWS
-#if defined(_WIN32) || defined(WIN32)
+#if defined HOST_WIN32
 
-  //fb_win32.h
-# include <io.h>
-# include <stdio.h>
-# ifdef TARGET_CYGWIN
-   typedef _off64_t fb_off_t;
-# else
-   typedef off64_t fb_off_t;
-# endif
+	#include <io.h>
+	#include <stdio.h>
 
-# define FBCALL __stdcall
+	// Copied from rtlib/win32/fb_win32.h
 
-#else 
+	#ifdef HOST_X86
+	#define FBCALL __stdcall
+	#else
+	#define FBCALL
+	#endif
 
- //fb_unix.h (actually, _FILE_OFFSET_BITS is apparently a linux-specific mess?)
-# define _FILE_OFFSET_BITS 64
-# include <sys/types.h>
-  typedef off_t fb_off_t;
+	#ifdef HOST_CYGWIN
+	typedef off_t fb_off_t;
+	#else
+	/* MinGW-w64 recognizes -D_FILE_OFFSET_BITS=64, but MinGW does not, so we
+	can't be sure that ftello() really maps to the 64bit version...
+	so we have to do it manually. */
+	typedef long long fb_off_t;
+	#define fseeko(stream, offset, whence) fseeko64(stream, offset, whence)
+	#define ftello(stream)                 ftello64(stream)
+	#endif
 
-# define FBCALL
+#elif defined HOST_UNIX
 
+	#include <sys/types.h>
+
+	// Copied from rtlib/unix/fb_unix.h
+
+	#define FBCALL
+
+	/* Relying on -D_FILE_OFFSET_BITS=64 to transparently remap to off64_t */
+	#if !defined _FILE_OFFSET_BITS || _FILE_OFFSET_BITS != 64
+	#error Expected _FILE_OFFSET_BITS=64
+	#endif
+	typedef off_t fb_off_t;
+
+#else
+	#error "XBOX and DOS not supported by the OHRRPGCE"
 #endif
+
 
 #define FB_WCHAR char
 
