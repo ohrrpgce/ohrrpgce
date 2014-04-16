@@ -20,7 +20,10 @@ CXX = os.environ.get ('CXX')
 AS = os.environ.get ('AS')
 fbc = ARGUMENTS.get ('fbc','fbc')
 fbc = os.path.expanduser (fbc)  # expand ~
-CFLAGS = '-g -Wall --std=c99'.split ()  # These flags apply only to .c[pp] sources, NOT to CC invoked via gengcc=1
+# Use gnu99 dialect instead of c99. c99 causes GCC to define __STRICT_ANSI__
+# which causes types like off_t and off64_t to be renamed to _off_t and _off64_t
+# under MinGW. (See bug 951)
+CFLAGS = '-g -Wall --std=gnu99'.split ()  # These flags apply only to .c[pp] sources, NOT to CC invoked via gengcc=1
 CXXFLAGS = '-g -Wall -Wno-non-virtual-dtor'.split ()
 linkgcc = int (ARGUMENTS.get ('linkgcc', True))   # link using g++ instead of fbc?
 envextra = {}
