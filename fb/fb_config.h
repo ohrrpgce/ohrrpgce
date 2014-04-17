@@ -1,6 +1,8 @@
 #ifndef __FB_CONFIG_H__
 #define __FB_CONFIG_H__
 
+// Edited to comment out NO_OLDNAMES declarations
+
 #if defined HOST_XBOX
 #elif defined __DJGPP__
 	#define HOST_DOS
@@ -9,8 +11,8 @@
 	#define HOST_MINGW
 	#define HOST_WIN32
 	/* We prefer using non-oldnames functions, see also win32/fb_win32.h */
-	#define NO_OLDNAMES
-	#define _NO_OLDNAMES
+	//#define NO_OLDNAMES
+	//#define _NO_OLDNAMES
 	/* Tell windows.h to omit many headers we don't need */
 	#define WIN32_LEAN_AND_MEAN
 #elif defined __CYGWIN__
