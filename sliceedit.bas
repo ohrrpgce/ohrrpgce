@@ -51,14 +51,13 @@ END TYPE
 
 '==============================================================================
 
-REDIM SHARED editable_slice_types(6) as SliceTypes
+REDIM SHARED editable_slice_types(5) as SliceTypes
 editable_slice_types(0) = SlContainer
 editable_slice_types(1) = SlRectangle
 editable_slice_types(2) = SlSprite
 editable_slice_types(3) = SlText
 editable_slice_types(4) = SlGrid
 editable_slice_types(5) = SlEllipse
-editable_slice_types(6) = slScrunch
 
 '==============================================================================
 
@@ -810,12 +809,6 @@ SUB slice_edit_detail_refresh (byref state as MenuState, menu() as string, sl as
     sliceed_rule rules(), "bordercol", erIntgrabber, @(dat->bordercol), 0, 255, slgrPICKCOL
     str_array_append menu(), "Fill Color: " & zero_default(dat->fillcol, "transparent")
     sliceed_rule rules(), "fillcol", erIntgrabber, @(dat->fillcol), 0, 255, slgrPICKCOL
-   CASE slScrunch
-    DIM dat as ScrunchSliceData Ptr
-    dat = .SliceData
-    str_array_append menu(), "Subpixels: " & dat->subpixels
-    sliceed_rule rules(), "subpixels", erIntgrabber, @(dat->subpixels), 1, 100 'FIXME: upper limit of 100 is totally arbitrary
-    
   END SELECT
   str_array_append menu(), "Visible: " & yesorno(.Visible)
   sliceed_rule_tog rules(), "vis", @.Visible

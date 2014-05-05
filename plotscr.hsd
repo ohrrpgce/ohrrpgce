@@ -573,10 +573,10 @@ define function, begin
 558,setspritesetnumber,2,0,0     #(sprite slice handle, set num)
 559,getspritedefaultpal,1,0      #(sprite slice handle) - returns default palette number
 560,npcisdisabled,1,0            #(npc reference) returns true if the npc exists, but is disabled by tags or one-time use
-561,createscrunch,3,0,0,1        #(width, height, subpixels) a specialized container that simulates subpixel resolution
-562,sliceisscrunch,1,0           #(slice handle) returns true if this slice is a scrunch
-563,setscrunchsubpixels,2,0,1    #(slice handle, subpixels)
-564,getscrunchsubpixels,1,0      #(slice handle)
+#561,unused
+#562,unused
+#563,unused
+#564,unused
 565,stringsprintf,-1             #(dest string id, format string id, args...) Format a string, like sprintf
 566,scripterror,1,-1             #(string id) Show a script error
 567,getscriptname,2,0,0          #(string id, script id) Get name of a script

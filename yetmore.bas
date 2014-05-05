@@ -3518,28 +3518,6 @@ SELECT CASE as CONST id
   ELSE
    scriptret = 1
   END IF
- CASE 561'--create scrunch
-  DIM sl as Slice Ptr
-  sl = NewSliceOfType(slScrunch, SliceTable.scriptsprite)
-  sl->Width = retvals(0)
-  sl->Height = retvals(1)
-  ChangeScrunchSlice sl, retvals(2)
-  scriptret = create_plotslice_handle(sl)
- CASE 562 '--slice is scrunch
-  IF valid_plotslice(retvals(0)) THEN
-   scriptret = 0
-   IF plotslices(retvals(0))->SliceType = slScrunch THEN scriptret = 1
-  END IF
- CASE 563 '--set scrunch subpixels
-  IF valid_plotslice(retvals(0)) THEN
-   ChangeScrunchSlice plotslices(retvals(0)), retvals(1)
-  END IF
- CASE 564 '--get scrunch subpixels
-  IF valid_plotslice(retvals(0)) THEN
-   DIM dat as ScrunchSliceData ptr
-   dat = plotslices(retvals(0))->SliceData
-   scriptret = dat->subpixels
-  END IF
  CASE 569'--camera follows slice
   IF valid_plotslice(retvals(0)) THEN
    gen(cameramode) = slicecam
@@ -4185,7 +4163,7 @@ FUNCTION valid_resizeable_slice(byval handle as integer, byval ignore_fill as in
  IF valid_plotslice(handle) THEN
   DIM sl as Slice Ptr
   sl = plotslices(handle)
-  IF sl->SliceType = slRectangle OR sl->SliceType = slContainer OR sl->SliceType = slGrid OR sl->SliceType = slEllipse OR sl->SliceType = slScrunch THEN
+  IF sl->SliceType = slRectangle OR sl->SliceType = slContainer OR sl->SliceType = slGrid OR sl->SliceType = slEllipse THEN
    IF sl->Fill = NO OR ignore_fill THEN
     RETURN YES
    ELSE
