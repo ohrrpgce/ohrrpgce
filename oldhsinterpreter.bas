@@ -1022,7 +1022,9 @@ FOR i as integer = 0 TO UBOUND(plotstr)
   END IF
  NEXT
  REDIM PRESERVE strings(UBOUND(strings) + 1)
- strings(UBOUND(strings) - 1) = marginstr + MID(plots, LEN(plots) + 1 - linelen, linelen)
+ IF UBOUND(strings) > 0 THEN
+  strings(UBOUND(strings) - 1) = marginstr + MID(plots, LEN(plots) + 1 - linelen, linelen)
+ END IF
 NEXT
 stringsscroll = small(stringsscroll, (UBOUND(strings) - 1) - 19) 'recall one string wasted
 
