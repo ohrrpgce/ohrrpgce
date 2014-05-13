@@ -64,7 +64,7 @@ IF atk.mutable AND bslot(attacker).stat.cur.mute < bslot(attacker).stat.max.mute
 END IF
 
 '--check for sufficient mp
-IF bslot(attacker).stat.cur.mp - focuscost(atk.mp_cost, bslot(attacker).stat.cur.foc) < 0 THEN
+IF large(bslot(attacker).stat.cur.mp, 0) - focuscost(atk.mp_cost, bslot(attacker).stat.cur.foc) < 0 THEN
  RETURN NO
 END IF
 
