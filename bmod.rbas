@@ -689,6 +689,7 @@ SUB battle_spawn_on_hit(byval targ as integer, byref bat as BattleState, bslot()
 END SUB
 
 SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
+ 'Just for heroes
 
  DIM i as integer
 
@@ -2145,13 +2146,15 @@ SUB check_death(byval deadguy as integer, byval killing_attack as integer, byref
  
  IF is_enemy(deadguy) ANDALSO bslot(deadguy).enemy.bequest_attack > 0 ANDALSO NOT already_bequested THEN
   'Trigger an on-death bequest attack, and defer dying until later.
-  autotarget deadguy, bslot(deadguy).enemy.bequest_attack - 1, bslot()
-  WITH bslot(deadguy)
-   .bequesting = YES
-   .vis = 1
-   .dissolve = 0
-   .flee = 0
-  END WITH
+  IF autotarget(deadguy, bslot(deadguy).enemy.bequest_attack - 1, bslot()) THEN
+   '--Bequest attack only happens if it has a valid target
+   WITH bslot(deadguy)
+    .bequesting = YES
+    .vis = 1
+    .dissolve = 0
+    .flee = 0
+   END WITH
+  END IF
   EXIT SUB
  END IF
  
@@ -2208,6 +2211,7 @@ FUNCTION enemy_is_weak(byval who as integer, bslot() as BattleSprite) as bool
 END FUNCTION
 
 SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+
  DIM ai as integer = 0
  
  'if HP is less than the threshold, go into desperation mode

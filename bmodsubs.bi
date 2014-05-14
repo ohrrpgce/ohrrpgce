@@ -55,10 +55,10 @@ declare sub writestats (bslot() as BattleSprite)
 declare sub get_valid_targs (tmask() as integer, byval who as integer, byref atk as AttackData, bslot() as BattleSprite)
 declare function attack_can_hit_dead OVERLOAD (byval who as integer, byval atk_id as integer, byval stored_targs_can_be_dead as integer=NO) as integer
 declare function attack_can_hit_dead OVERLOAD (byval who as integer, attack as AttackData, byval stored_targs_can_be_dead as integer=NO) as integer
-declare sub autotarget OVERLOAD (byval who as integer, byval atk_id as integer, bslot() as BattleSprite, t() as integer, byval queue as integer=YES, byval override_blocking as integer=-2, byval dont_retarget as integer=NO)
-declare sub autotarget OVERLOAD (byval who as integer, byref atk as AttackData, bslot() as BattleSprite, t() as integer, byval queue as integer=YES, byval override_blocking as integer=-2, byval dont_retarget as integer=NO)
-declare sub autotarget OVERLOAD (byval who as integer, byval atk_id as integer, bslot() as BattleSprite, byval queue as integer=YES, byval override_blocking as integer=-2, byval dont_retarget as integer=NO)
-declare sub autotarget OVERLOAD (byval who as integer, byref atk as AttackData, bslot() as BattleSprite, byval queue as integer=YES, byval override_blocking as integer=-2, byval dont_retarget as integer=NO)
+declare function autotarget OVERLOAD (byval who as integer, byval atk_id as integer, bslot() as BattleSprite, t() as integer, byval queue as integer=YES, byval override_blocking as integer=-2, byval dont_retarget as integer=NO) as bool
+declare function autotarget OVERLOAD (byval who as integer, byref atk as AttackData, bslot() as BattleSprite, t() as integer, byval queue as integer=YES, byval override_blocking as integer=-2, byval dont_retarget as integer=NO) as bool
+declare function autotarget OVERLOAD (byval who as integer, byval atk_id as integer, bslot() as BattleSprite, byval queue as integer=YES, byval override_blocking as integer=-2, byval dont_retarget as integer=NO) as bool
+declare function autotarget OVERLOAD (byval who as integer, byref atk as AttackData, bslot() as BattleSprite, byval queue as integer=YES, byval override_blocking as integer=-2, byval dont_retarget as integer=NO) as bool
 
 declare function find_preferred_target (tmask() as integer, byval who as integer, atk as AttackData, bslot() as BattleSprite) as integer
 
