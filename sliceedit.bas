@@ -71,6 +71,8 @@ CONST slgrUPDATERECTSTYLE = 64
 CONST slgrPICKLOOKUP = 128
 '--This system won't be able to expand forever ... :(
 
+CONST slLOWCOLORCODE = -18
+
 '==============================================================================
 
 'This overload of slice_editor is only allowed locally.
@@ -102,6 +104,7 @@ DECLARE FUNCTION edit_slice_lookup_codes(slicelookup() as string, byval start_at
 DECLARE FUNCTION slice_caption (sl as Slice Ptr, slicelookup() as string) as string
 DECLARE SUB slice_editor_copy(byref ses as SliceEditState, byval slice as Slice Ptr, byval edslice as Slice Ptr)
 DECLARE SUB slice_editor_paste(byref ses as SliceEditState, byval slice as Slice Ptr, byval edslice as Slice Ptr)
+DECLARE FUNCTION slice_color_caption(byval n as integer, ifzero as string="0") as string
 
 'Functions that need to be aware of magic numbers for SliceType
 DECLARE FUNCTION slice_edit_detail_browse_slicetype(byref slice_type as SliceTypes) as SliceTypes
@@ -747,10 +750,10 @@ SUB slice_edit_detail_refresh (byref state as MenuState, menu() as string, sl as
     dat = .SliceData
     str_array_append menu(), "Style: " & defaultint(dat->style, "None")
     sliceed_rule rules(), "rect_style", erIntgrabber, @(dat->style), -1, 14, slgrUPDATERECTSTYLE
-    str_array_append menu(), "Background color: " & defaultint(dat->bgcol)
-    sliceed_rule rules(), "rect_bg", erIntgrabber, @(dat->bgcol), 0, 255, (slgrUPDATERECTCOL OR slgrPICKCOL)
-    str_array_append menu(), "Foreground color: " & defaultint(dat->fgcol)
-    sliceed_rule rules(), "rect_fg", erIntgrabber, @(dat->fgcol), 0, 255, (slgrUPDATERECTCOL OR slgrPICKCOL)
+    str_array_append menu(), "Background color: " & slice_color_caption(dat->bgcol)
+    sliceed_rule rules(), "rect_bg", erIntgrabber, @(dat->bgcol), slLOWCOLORCODE, 255, (slgrUPDATERECTCOL OR slgrPICKCOL)
+    str_array_append menu(), "Foreground color: " & slice_color_caption(dat->fgcol)
+    sliceed_rule rules(), "rect_fg", erIntgrabber, @(dat->fgcol), slLOWCOLORCODE, 255, (slgrUPDATERECTCOL OR slgrPICKCOL)
     str_array_append menu(), "Border: " & caption_or_int(dat->border, BorderCaptions())
     sliceed_rule rules(), "rect_border", erIntgrabber, @(dat->border), -2, 14, slgrUPDATERECTCOL 
     str_array_append menu(), "Translucency: " & TransCaptions(dat->translucent)
@@ -764,14 +767,14 @@ SUB slice_edit_detail_refresh (byref state as MenuState, menu() as string, sl as
     dat = .SliceData
     str_array_append menu(), "Text: " & dat->s
     sliceed_rule rules(), "text_text", erStrgrabber, @(dat->s), 0, 0
-    str_array_append menu(), "Color: " & zero_default(dat->col)
-    sliceed_rule rules(), "text_color", erIntgrabber, @(dat->col), 0, 255, slgrPICKCOL
+    str_array_append menu(), "Color: " & slice_color_caption(dat->col, "Default")
+    sliceed_rule rules(), "text_color", erIntgrabber, @(dat->col), slLOWCOLORCODE, 255, slgrPICKCOL
     str_array_append menu(), "Outline: " & yesorno(dat->outline)
     sliceed_rule_tog rules(), "text_outline", @(dat->outline)
     str_array_append menu(), "Wrap: " & yesorno(dat->wrap)
     sliceed_rule_tog rules(), "text_wrap", @(dat->wrap)
-    str_array_append menu(), "Background Color: " & zero_default(dat->bgcol)
-    sliceed_rule rules(), "text_bg", erIntgrabber, @(dat->bgcol), 0, 255, slgrPICKCOL
+    str_array_append menu(), "Background Color: " & slice_color_caption(dat->bgcol, "Default")
+    sliceed_rule rules(), "text_bg", erIntgrabber, @(dat->bgcol), slLOWCOLORCODE, 255, slgrPICKCOL
    CASE slSprite
     DIM dat as SpriteSliceData Ptr
     dat = .SliceData
@@ -805,10 +808,10 @@ SUB slice_edit_detail_refresh (byref state as MenuState, menu() as string, sl as
    CASE slEllipse
     DIM dat as EllipseSliceData Ptr
     dat = .SliceData
-    str_array_append menu(), "Border Color: " & zero_default(dat->bordercol, "transparent")
-    sliceed_rule rules(), "bordercol", erIntgrabber, @(dat->bordercol), 0, 255, slgrPICKCOL
-    str_array_append menu(), "Fill Color: " & zero_default(dat->fillcol, "transparent")
-    sliceed_rule rules(), "fillcol", erIntgrabber, @(dat->fillcol), 0, 255, slgrPICKCOL
+    str_array_append menu(), "Border Color: " & slice_color_caption(dat->bordercol, "transparent")
+    sliceed_rule rules(), "bordercol", erIntgrabber, @(dat->bordercol), slLOWCOLORCODE, 255, slgrPICKCOL
+    str_array_append menu(), "Fill Color: " & slice_color_caption(dat->fillcol, "transparent")
+    sliceed_rule rules(), "fillcol", erIntgrabber, @(dat->fillcol), slLOWCOLORCODE, 255, slgrPICKCOL
   END SELECT
   str_array_append menu(), "Visible: " & yesorno(.Visible)
   sliceed_rule_tog rules(), "vis", @.Visible
@@ -1167,3 +1170,35 @@ FUNCTION edit_slice_lookup_codes(slicelookup() as string, byval start_at_code as
 
  RETURN result
 END FUNCTION
+
+FUNCTION slice_color_caption(byval n as integer, ifzero as string="0") as string
+ IF n = 0 THEN RETURN ifzero
+ 'Normal colors
+ IF n > 0 ANDALSO n <= 255 THEN RETURN STR(n)
+ 'uilook colors
+ IF n <= -1 ANDALSO n >= slLOWCOLORCODE THEN
+  SELECT CASE (n * -1) - 1
+   CASE uiBackground: RETURN "Background"
+   CASE uiMenuItem: RETURN "Menu item"
+   CASE uiDisabledItem: RETURN "Disabled menu item"
+   CASE uiSelectedItem: RETURN "Selected item A"
+   CASE uiSelectedItem2: RETURN "Selected item B"
+   CASE uiSelectedDisabled: RETURN "Selected disabled A"
+   CASE uiSelectedDisabled+1: RETURN "Selected disabled B"
+   CASE uiHighlight: RETURN "Highlight A"
+   CASE uiHighlight2: RETURN "Highlight B"
+   CASE uiTimeBar: RETURN "Time bar"
+   CASE uiTimeBarFull: RETURN "Time bar full"
+   CASE uiHealthBar: RETURN "Health bar"
+   CASE uiHealthBarFlash: RETURN "Health bar full"
+   CASE uiText: RETURN "Text"
+   CASE uiOutline: RETURN "Text outline"
+   CASE uiDescription: RETURN "Spell description"
+   CASE uiGold: RETURN "Money"
+   CASE uiShadow: RETURN "Vehicle shadow"
+  END SELECT
+ END IF
+ 'Invalid values still print, but !?
+ RETURN n & "(!?)"
+END FUNCTION
+

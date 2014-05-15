@@ -36,6 +36,7 @@ DECLARE Function SliceXAlign(byval sl as Slice Ptr, byval alignTo as Slice Ptr) 
 DECLARE Function SliceYAlign(byval sl as Slice Ptr, byval alignTo as Slice Ptr) as integer
 DECLARE Sub ApplySliceVelocity(byval s as slice ptr)
 DECLARE Sub SeekSliceTarg(byval s as slice ptr)
+DECLARE Function SliceColor(byval n as integer) as integer
 
 END EXTERN
 
@@ -876,7 +877,7 @@ Sub DrawRectangleSlice(byval sl as slice ptr, byval p as integer)
   UpdateRectangleSliceStyle dat
  end if
 
- edgebox sl->screenx, sl->screeny, sl->width, sl->height, dat->bgcol, dat->fgcol, p, dat->translucent, dat->border, dat->fuzzfactor
+ edgebox sl->screenx, sl->screeny, sl->width, sl->height, SliceColor(dat->bgcol), SliceColor(dat->fgcol), p, dat->translucent, dat->border, dat->fuzzfactor
 end sub
 
 Sub CloneRectangleSlice(byval sl as slice ptr, byval cl as slice ptr)
@@ -1033,7 +1034,8 @@ Sub DrawTextSlice(byval sl as slice ptr, byval p as integer)
  WrapTextSlice sl, lines()
 
  dim col as integer = dat->col
- if col = 0 then col = uilook(uiText)
+ if col = 0 then col = uilook(uiText) '--This is backcompat for before it was possible to choose uiText directly using SliceColor
+ col = SliceColor(col)
  dim chars as integer = 0
  dat->insert_tog = dat->insert_tog xor 1
  dim insert_size as integer = 8
@@ -1058,7 +1060,7 @@ Sub DrawTextSlice(byval sl as slice ptr, byval p as integer)
   if dat->outline then
    edgeprint lines(i), sl->screenx, sl->screeny + ypos, col, p
   else
-   textcolor col, dat->bgcol
+   textcolor col, SliceColor(dat->bgcol)
    printstr lines(i), sl->screenx, sl->screeny + ypos, p
   end if
  next
@@ -1757,7 +1759,7 @@ Sub DrawEllipseSlice(byval sl as slice ptr, byval p as integer)
    'fuzzyrect .frame, 0, 0, w, h, dat->fillcol, 37
    dim fillcol as integer = dat->fillcol
    if fillcol = 0 then fillcol = -1
-   ellipse .frame, w / 2 - 0.5, h / 2 - 0.5 , w / 2 - 0.5, dat->bordercol, fillcol, h / 2 - 0.5
+   ellipse .frame, w / 2 - 0.5, h / 2 - 0.5 , w / 2 - 0.5, SliceColor(dat->bordercol), SliceColor(fillcol), h / 2 - 0.5
    .last_draw_size.X = w
    .last_draw_size.Y = h
    .last_draw_bordercol = .bordercol
@@ -2345,6 +2347,19 @@ Sub SliceClamp(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr)
   if diff > 0 then sl2->Y -= abs(diff)
  end if
 end sub
+
+Function SliceColor(byval n as integer) as integer
+ if n >= 0 andalso n <= 255 then return n
+ if n <= -1 andalso n >= -18 then
+  dim uiC as integer = (n * -1) - 1
+  if uiC = uiSelectedItem + 1 orelse uiC = uiSelectedDisabled + 1 then
+   'uiSelectedItem and uiDisabledItem can be selected in animating or non-animating modes
+   if get_tickcount() mod 2 = 0 then uiC = uiC - 1
+  end if
+  return uilook(uiC)
+ end if
+ debugc errError, "Invalid slice color " & n
+End function
 
 '==Slice cloning===============================================================
 
