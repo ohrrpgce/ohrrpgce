@@ -213,6 +213,7 @@ FUNCTION SliceTypeByName (s as string) as SliceTypes
   CASE "Map":            RETURN slMap
   CASE "Grid":           RETURN slGrid
   CASE "Ellipse":        RETURN slEllipse
+  CASE "Scroll":         RETURN slScroll
  END SELECT
  debugc errError, "Unrecognized slice name """ & s & """"
  RETURN slInvalid
@@ -238,6 +239,7 @@ FUNCTION SliceTypeName (t as SliceTypes) as string
   CASE slMap:            RETURN "Map"
   CASE slGrid:           RETURN "Grid"
   CASE slEllipse:        RETURN "Ellipse"
+  CASE slScroll:         RETURN "Scroll"
  END SELECT
  RETURN "Unknown"
 END FUNCTION
@@ -339,6 +341,9 @@ FUNCTION NewSliceOfType (byval t as SliceTypes, byval parent as Slice Ptr=0, byv
   CASE slEllipse:
    DIM dat as EllipseSliceData
    newsl = NewEllipseSlice(parent, dat)
+  CASE slScroll:
+   DIM dat as ScrollSliceData
+   newsl = NewScrollSlice(parent, dat)
   CASE ELSE
    debug "NewSliceByType: Warning! type " & t & " is invalid"
    newsl = NewSlice(parent)
@@ -1846,6 +1851,152 @@ Sub ChangeEllipseSlice(byval sl as slice ptr,_
   end if
   if fillcol >= 0 then
    .fillcol = fillcol
+  end if
+ end with
+end sub
+
+'--Scroll--------------------------------------------------------------
+Sub DisposeScrollSlice(byval sl as slice ptr)
+ if sl = 0 then exit sub
+ if sl->SliceData = 0 then exit sub
+ dim dat as ScrollSliceData ptr = cptr(ScrollSliceData ptr, sl->SliceData)
+ delete dat
+ sl->SliceData = 0
+end sub
+
+Function CalcScrollMinY(byval sl as slice ptr, byval check_depth as integer, byval cur_depth as integer=1) as integer
+ dim n as integer = sl->ScreenY
+ dim ch as slice ptr = sl->FirstChild
+ do while ch <> 0
+  if ch->Visible then
+   n = small(n, ch->ScreenY)
+   if check_depth = 0 orelse cur_depth < check_depth then
+    n = small(n, CalcScrollMinY(ch, check_depth, cur_depth + 1))
+   end if
+  end if
+  ch = ch->NextSibling
+ Loop
+ return n
+End Function
+
+Function CalcScrollMaxY(byval sl as slice ptr, byval check_depth as integer, byval cur_depth as integer=1) as integer
+ dim n as integer = sl->ScreenY + sl->Height
+ dim ch as slice ptr = sl->FirstChild
+ do while ch <> 0
+  if ch->Visible then
+   n = large(n, ch->ScreenY + ch->Height)
+   if check_depth = 0 orelse cur_depth < check_depth then
+    n = large(n, CalcScrollMaxY(ch, check_depth, cur_depth + 1))
+   end if
+  end if
+  ch = ch->NextSibling
+ Loop
+ return n
+End Function
+
+Sub DrawScrollSlice(byval sl as slice ptr, byval p as integer)
+ if sl = 0 then exit sub
+ if sl->SliceData = 0 then exit sub
+ 
+ dim dat as ScrollSliceData ptr = cptr(ScrollSliceData ptr, sl->SliceData)
+
+ dim miny as integer = CalcScrollMinY(sl, dat->check_depth)
+ dim maxy as integer = CalcScrollMaxY(sl, dat->check_depth)
+ dim voff as integer = sl->ScreenY - miny
+ dim h as integer = maxy - miny
+
+ if h > sl->Height then
+  dim sbar as RectType
+  dim slider as RectType
+  sbar.x = sl->X + sl->Width - 6
+  sbar.y = sl->Y + 2
+  sbar.wide = 4
+  sbar.high = sl->Height - 4
+  with sbar
+   ' slider.y = .high / count * (state.top - state.first)
+   ' slider.high = .high / count * (state.size + 1)
+   slider.y = .high / h * voff
+   slider.high = .high / h * (sl->Height + 1)
+   rectangle .x, .y, .wide, .high, boxlook(dat->style).bgcol, p
+   rectangle .x, .y + slider.y, .wide, slider.high, boxlook(dat->style).edgecol, p
+  end with
+ end if
+
+end sub
+
+Sub CloneScrollSlice(byval sl as slice ptr, byval cl as slice ptr)
+ if sl = 0 or cl = 0 then debug "CloneScrollSlice null ptr": exit sub
+ dim dat as ScrollSliceData Ptr
+ dat = sl->SliceData
+ dim clonedat as ScrollSliceData Ptr
+ clonedat = cl->SliceData
+ with *clonedat
+  .style       = dat->style
+  .check_depth = dat->check_depth
+ end with
+end sub
+
+Sub SaveScrollSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
+ if sl = 0 or node = 0 then debug "SaveScrollSlice null ptr": exit sub
+ DIM dat as ScrollSliceData Ptr
+ dat = sl->SliceData
+ SaveProp node, "style", dat->style
+ SaveProp node, "check_depth", dat->check_depth
+End Sub
+
+Sub LoadScrollSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
+ if sl = 0 or node = 0 then debug "LoadScrollSlice null ptr": exit sub
+ dim dat as ScrollSliceData Ptr
+ dat = sl->SliceData
+ dat->style = LoadProp(node, "style", 0)
+ dat->check_depth = LoadProp(node, "check_depth")
+End Sub
+
+Function NewScrollSlice(byval parent as Slice ptr, byref dat as ScrollSliceData) as slice ptr
+ dim ret as Slice ptr
+ ret = NewSlice(parent)
+ if ret = 0 then 
+  debug "Out of memory?!"
+  return 0
+ end if
+ 
+ '--override the default value of Clip
+ ret->Clip = YES
+ 
+ dim d as ScrollSliceData ptr = new ScrollSliceData
+ *d = dat
+ '--Set non-zero defaults here
+ 'if there were any
+ 
+ ret->SliceType = slScroll
+ ret->SliceData = d
+ ret->Draw = @DrawScrollSlice
+ ret->Dispose = @DisposeScrollSlice
+ ret->Clone = @CloneScrollSlice
+ ret->Save = @SaveScrollSlice
+ ret->Load = @LoadScrollSlice
+ 
+ return ret
+end function
+
+Function GetScrollSliceData(byval sl as slice ptr) as ScrollSliceData ptr
+ if sl = 0 then debug "GetScrollSliceData null ptr": return 0
+ return sl->SliceData
+End Function
+
+'All arguments default to no-change
+Sub ChangeScrollSlice(byval sl as slice ptr,_
+                      byval style as integer=-1,_
+                      byval check_depth as integer=-1)
+ if sl = 0 then debug "ChangeScrollSlice null ptr" : exit sub
+ if sl->SliceType <> slScroll then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a scroll" : exit sub
+ dim dat as ScrollSliceData Ptr = sl->SliceData
+ with *dat
+  if style >= 0 then
+   .style = style
+  end if
+  if check_depth >= 0 then
+   .check_depth = check_depth
   end if
  end with
 end sub

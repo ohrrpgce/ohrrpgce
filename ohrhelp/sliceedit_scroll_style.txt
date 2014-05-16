@@ -1,0 +1,3 @@
+Press the left and right arrows to change the scrollbar style. Scrollbar styles use the same colors as text bos styles. There are 15 styles (defined in the Edit Graphics menu) numbered from 0 to 14
+
+The background color will be used to draw the scrollbar background, and the border color will be used to draw the scroll position indicator

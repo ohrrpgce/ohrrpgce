@@ -1,0 +1,10 @@
+A scroll slice looks at its children to determine the size of the area that it should scroll over.
+
+When this is set to "No Limit" then all child slices will be used.
+
+You can also limit the scroll to only consider a limited number of generations of children.
+
+1 = only consider children
+2 = consider children + grandchildren
+3 = consider children + grandchildren
+    + great grandchildren

@@ -65,6 +65,7 @@ Enum SliceTypes
  slMap
  slGrid
  slEllipse
+ slScroll
 End Enum
 
 Enum AttachTypes
@@ -263,6 +264,13 @@ Type EllipseSliceData
  frame as Frame Ptr 'UNSAVED: No need to manually populate this, done in draw
 End Type
 
+Type ScrollSliceData
+ style as integer
+ check_depth as integer '0 = check all descendants.
+                         '1 = children only.
+                         '2 = children+grandchildren only.
+                         '3 = children+grandchildren+greatgrandchildren only...
+End Type
 
 Extern "C"
 
@@ -404,6 +412,11 @@ DECLARE Function NewEllipseSlice(byval parent as Slice ptr, byref dat as Ellipse
 DECLARE Sub ChangeEllipseSlice(byval sl as slice ptr,_
                       byval bordercol as integer=-1,_
                       byval fillcol as integer=-1)  ' All arguments default to no change
+
+DECLARE Function NewScrollSlice(byval sl as slice ptr, byref dat as ScrollSliceData) as Slice ptr
+DECLARE Sub ChangeScrollSlice(byval sl as slice ptr,_
+                      byval style as integer=-1,_
+                      byval check_depth as integer=-1)
 
 '--Saving and loading slices
 DECLARE Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr, save_handles as bool=NO)

@@ -51,13 +51,14 @@ END TYPE
 
 '==============================================================================
 
-REDIM SHARED editable_slice_types(5) as SliceTypes
+REDIM SHARED editable_slice_types(6) as SliceTypes
 editable_slice_types(0) = SlContainer
 editable_slice_types(1) = SlRectangle
 editable_slice_types(2) = SlSprite
 editable_slice_types(3) = SlText
 editable_slice_types(4) = SlGrid
 editable_slice_types(5) = SlEllipse
+editable_slice_types(6) = SlScroll
 
 '==============================================================================
 
@@ -812,6 +813,14 @@ SUB slice_edit_detail_refresh (byref state as MenuState, menu() as string, sl as
     sliceed_rule rules(), "bordercol", erIntgrabber, @(dat->bordercol), slLOWCOLORCODE, 255, slgrPICKCOL
     str_array_append menu(), "Fill Color: " & slice_color_caption(dat->fillcol, "transparent")
     sliceed_rule rules(), "fillcol", erIntgrabber, @(dat->fillcol), slLOWCOLORCODE, 255, slgrPICKCOL
+   CASE slScroll
+    DIM dat as ScrollSliceData Ptr
+    dat = .SliceData
+    str_array_append menu(), "Style: " & dat->style
+    sliceed_rule rules(), "scroll_style", erIntgrabber, @(dat->style), 0, 14
+    str_array_append menu(), "Check Depth: " & zero_default(dat->check_depth, "No limit")
+    sliceed_rule rules(), "scroll_check_depth", erIntgrabber, @(dat->check_depth), 0, 99 'FIXME: upper limit of 99 is totally arbitrary
+
   END SELECT
   str_array_append menu(), "Visible: " & yesorno(.Visible)
   sliceed_rule_tog rules(), "vis", @.Visible
@@ -1181,10 +1190,10 @@ FUNCTION slice_color_caption(byval n as integer, ifzero as string="0") as string
    CASE uiBackground: RETURN "Background"
    CASE uiMenuItem: RETURN "Menu item"
    CASE uiDisabledItem: RETURN "Disabled menu item"
-   CASE uiSelectedItem: RETURN "Selected item A"
-   CASE uiSelectedItem2: RETURN "Selected item B"
-   CASE uiSelectedDisabled: RETURN "Selected disabled A"
-   CASE uiSelectedDisabled+1: RETURN "Selected disabled B"
+   CASE uiSelectedItem: RETURN "Selected"
+   CASE uiSelectedItem2: RETURN "Selected (Flashing)"
+   CASE uiSelectedDisabled: RETURN "Selected disabled"
+   CASE uiSelectedDisabled+1: RETURN "Selected disabled (Flashing)"
    CASE uiHighlight: RETURN "Highlight A"
    CASE uiHighlight2: RETURN "Highlight B"
    CASE uiTimeBar: RETURN "Time bar"
