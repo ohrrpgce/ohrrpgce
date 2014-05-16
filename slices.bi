@@ -66,6 +66,7 @@ Enum SliceTypes
  slGrid
  slEllipse
  slScroll
+ slSelect
 End Enum
 
 Enum AttachTypes
@@ -272,6 +273,11 @@ Type ScrollSliceData
                          '3 = children+grandchildren+greatgrandchildren only...
 End Type
 
+Type SelectSliceData
+ index as integer ' The numeric index of the child that is currently visible.
+                   ' If out of range, then no child will be visible. Default to 0
+End Type
+
 Extern "C"
 
 DECLARE Sub SetupGameSlices
@@ -417,6 +423,10 @@ DECLARE Function NewScrollSlice(byval sl as slice ptr, byref dat as ScrollSliceD
 DECLARE Sub ChangeScrollSlice(byval sl as slice ptr,_
                       byval style as integer=-1,_
                       byval check_depth as integer=-1)
+
+DECLARE Function NewSelectSlice(byval sl as slice ptr, byref dat as SelectSliceData) as Slice ptr
+DECLARE Sub ChangeSelectSlice(byval sl as slice ptr,_
+                      byval index as integer=-2) ' All arguments default to no change
 
 '--Saving and loading slices
 DECLARE Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr, save_handles as bool=NO)

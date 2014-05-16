@@ -9,3 +9,9 @@ Sprite - A sprite. Draw sprites in the graphics menu (go back to the main menu t
 Text - A string of text. Can optionally wrap as multiple lines.
 
 Grid - A special container with rows and columns. Children of the grid are automatically positioned relative to the grid cells.
+
+Ellipse - An ellipse which can have a fill-color and a border-color
+
+Scroll - A special container that draws scrollbars if its child slices are too big to fit inside it
+
+Select - A special container that manages the visibility of its children. Only one selected child will be visible, and all other children will be hidden

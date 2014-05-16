@@ -214,6 +214,7 @@ FUNCTION SliceTypeByName (s as string) as SliceTypes
   CASE "Grid":           RETURN slGrid
   CASE "Ellipse":        RETURN slEllipse
   CASE "Scroll":         RETURN slScroll
+  CASE "Select":         RETURN slSelect
  END SELECT
  debugc errError, "Unrecognized slice name """ & s & """"
  RETURN slInvalid
@@ -240,6 +241,7 @@ FUNCTION SliceTypeName (t as SliceTypes) as string
   CASE slGrid:           RETURN "Grid"
   CASE slEllipse:        RETURN "Ellipse"
   CASE slScroll:         RETURN "Scroll"
+  CASE slSelect:         RETURN "Select"
  END SELECT
  RETURN "Unknown"
 END FUNCTION
@@ -344,6 +346,9 @@ FUNCTION NewSliceOfType (byval t as SliceTypes, byval parent as Slice Ptr=0, byv
   CASE slScroll:
    DIM dat as ScrollSliceData
    newsl = NewScrollSlice(parent, dat)
+  CASE slSelect:
+   DIM dat as SelectSliceData
+   newsl = NewSelectSlice(parent, dat)
   CASE ELSE
    debug "NewSliceByType: Warning! type " & t & " is invalid"
    newsl = NewSlice(parent)
@@ -2050,6 +2055,104 @@ Sub ChangeScrollSlice(byval sl as slice ptr,_
   end if
   if check_depth >= 0 then
    .check_depth = check_depth
+  end if
+ end with
+end sub
+
+'--Select--------------------------------------------------------------
+Sub DisposeSelectSlice(byval sl as slice ptr)
+ if sl = 0 then exit sub
+ if sl->SliceData = 0 then exit sub
+ dim dat as SelectSliceData ptr = cptr(SelectSliceData ptr, sl->SliceData)
+ delete dat
+ sl->SliceData = 0
+end sub
+
+Sub DrawSelectSlice(byval sl as slice ptr, byval p as integer)
+ if sl = 0 then exit sub
+ if sl->SliceData = 0 then exit sub
+ 
+ 'Does not actually draws anything, just manages the Visible property of its children.
+ 
+ dim dat as SelectSliceData ptr = cptr(SelectSliceData ptr, sl->SliceData)
+
+ dim i as integer 
+ dim ch as Slice ptr = sl->FirstChild
+ do while ch <> 0
+  if i = dat->index then
+   ch->Visible = YES
+  else
+   ch->Visible = NO
+  end if
+  i += 1
+  ch = ch->NextSibling
+ loop
+ 
+end sub
+
+Sub CloneSelectSlice(byval sl as slice ptr, byval cl as slice ptr)
+ if sl = 0 or cl = 0 then debug "SelectScrollSlice null ptr": exit sub
+ dim dat as SelectSliceData Ptr
+ dat = sl->SliceData
+ dim clonedat as SelectSliceData Ptr
+ clonedat = cl->SliceData
+ with *clonedat
+  .index       = dat->index
+ end with
+end sub
+
+Sub SaveSelectSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
+ if sl = 0 or node = 0 then debug "SaveSelectSlice null ptr": exit sub
+ DIM dat as SelectSliceData Ptr
+ dat = sl->SliceData
+ SaveProp node, "index", dat->index
+End Sub
+
+Sub LoadSelectSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
+ if sl = 0 or node = 0 then debug "LoadSelectSlice null ptr": exit sub
+ dim dat as SelectSliceData Ptr
+ dat = sl->SliceData
+ dat->index = LoadProp(node, "index", 0)
+End Sub
+
+Function NewSelectSlice(byval parent as Slice ptr, byref dat as SelectSliceData) as slice ptr
+ dim ret as Slice ptr
+ ret = NewSlice(parent)
+ if ret = 0 then 
+  debug "Out of memory?!"
+  return 0
+ end if
+ 
+ dim d as SelectSliceData ptr = new SelectSliceData
+ *d = dat
+ '--Set non-zero defaults here
+ 'if there were any
+ 
+ ret->SliceType = slSelect
+ ret->SliceData = d
+ ret->Draw = @DrawSelectSlice
+ ret->Dispose = @DisposeSelectSlice
+ ret->Clone = @CloneSelectSlice
+ ret->Save = @SaveSelectSlice
+ ret->Load = @LoadSelectSlice
+ 
+ return ret
+end function
+
+Function GetSelectSliceData(byval sl as slice ptr) as SelectSliceData ptr
+ if sl = 0 then debug "GetSelectSliceData null ptr": return 0
+ return sl->SliceData
+End Function
+
+'All arguments default to no-change
+Sub ChangeSelectSlice(byval sl as slice ptr,_
+                      byval index as integer=-2)
+ if sl = 0 then debug "ChangeSelectSlice null ptr" : exit sub
+ if sl->SliceType <> slSelect then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a select" : exit sub
+ dim dat as SelectSliceData Ptr = sl->SliceData
+ with *dat
+  if index >= -1 then
+   .index = index
   end if
  end with
 end sub

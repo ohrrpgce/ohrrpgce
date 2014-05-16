@@ -51,7 +51,7 @@ END TYPE
 
 '==============================================================================
 
-REDIM SHARED editable_slice_types(6) as SliceTypes
+REDIM SHARED editable_slice_types(7) as SliceTypes
 editable_slice_types(0) = SlContainer
 editable_slice_types(1) = SlRectangle
 editable_slice_types(2) = SlSprite
@@ -59,6 +59,7 @@ editable_slice_types(3) = SlText
 editable_slice_types(4) = SlGrid
 editable_slice_types(5) = SlEllipse
 editable_slice_types(6) = SlScroll
+editable_slice_types(7) = SlSelect
 
 '==============================================================================
 
@@ -820,6 +821,11 @@ SUB slice_edit_detail_refresh (byref state as MenuState, menu() as string, sl as
     sliceed_rule rules(), "scroll_style", erIntgrabber, @(dat->style), 0, 14
     str_array_append menu(), "Check Depth: " & zero_default(dat->check_depth, "No limit")
     sliceed_rule rules(), "scroll_check_depth", erIntgrabber, @(dat->check_depth), 0, 99 'FIXME: upper limit of 99 is totally arbitrary
+   CASE slSelect
+    DIM dat as SelectSliceData Ptr
+    dat = .SliceData
+    str_array_append menu(), "Selected Child: " & dat->index
+    sliceed_rule rules(), "select_index", erIntgrabber, @(dat->index), 0, 9999999 'FIXME: this is an arbitrary upper limit
 
   END SELECT
   str_array_append menu(), "Visible: " & yesorno(.Visible)

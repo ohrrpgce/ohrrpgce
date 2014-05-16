@@ -1,0 +1,1 @@
+A SelectSlice manages the visibility of its children. By changing which child number is selected, you will make that child visible, and all other children invisible.
