@@ -1894,10 +1894,16 @@ Function CalcScrollMaxY(byval sl as slice ptr, byval check_depth as integer, byv
  return n
 End Function
 
-Sub DrawScrollSlice(byval sl as slice ptr, byval p as integer)
- if sl = 0 then exit sub
- if sl->SliceData = 0 then exit sub
- 
+Sub ScrollChildDraw(byval sl as slice ptr, byval p as integer)
+ 'NOTE: draws the scrollbars *after* all children have drawn, which is in
+ '      stark contrast to how most other slices are drawn.
+ 'NOTE: we don't bother to null check s here because this sub is only
+ '      ever called from DrawSlice which does null check it.
+
+ 'First draw the children normally
+ DefaultChildDraw sl, p
+
+ 'Then proceed with the scrollbars 
  dim dat as ScrollSliceData ptr = cptr(ScrollSliceData ptr, sl->SliceData)
 
  dim miny as integer = CalcScrollMinY(sl, dat->check_depth)
@@ -1970,7 +1976,7 @@ Function NewScrollSlice(byval parent as Slice ptr, byref dat as ScrollSliceData)
  
  ret->SliceType = slScroll
  ret->SliceData = d
- ret->Draw = @DrawScrollSlice
+ ret->ChildDraw = @ScrollChildDraw
  ret->Dispose = @DisposeScrollSlice
  ret->Clone = @CloneScrollSlice
  ret->Save = @SaveScrollSlice
