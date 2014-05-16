@@ -1945,10 +1945,10 @@ Sub ScrollChildDraw(byval sl as slice ptr, byval p as integer)
  dim w as integer = maxx - minx
 
  if w > sl->Width then
-  sbar.y = sl->Y + sl->Height - 6
-  sbar.x = sl->X + 2
+  sbar.y = sl->Y + sl->Height
+  sbar.x = sl->X
   sbar.high = 4
-  sbar.wide = sl->Width - 4
+  sbar.wide = sl->Width
   with sbar
    slider.x = .wide / w * xoff
    slider.wide = .wide / w * (sl->Width + 1)
@@ -1963,10 +1963,10 @@ Sub ScrollChildDraw(byval sl as slice ptr, byval p as integer)
  dim h as integer = maxy - miny
 
  if h > sl->Height then
-  sbar.x = sl->X + sl->Width - 6
-  sbar.y = sl->Y + 2
+  sbar.x = sl->X + sl->Width
+  sbar.y = sl->Y
   sbar.wide = 4
-  sbar.high = sl->Height - 4
+  sbar.high = sl->Height
   with sbar
    slider.y = .high / h * yoff
    slider.high = .high / h * (sl->Height + 1)
