@@ -158,11 +158,6 @@ SUB slice_editor ()
 
  IF isfile(slice_editor_filename(ses)) THEN
   SliceLoadFromFile edslice, slice_editor_filename(ses)
- ELSEIF isfile(workingdir & SLASH & "slicetree_0.reld") THEN
-  '--FIXME: this backcompat is of very low importance (probably only matters to James)
-  '--and can be removed completely before Zenzizenzic
-  SliceLoadFromFile edslice, workingdir & SLASH & "slicetree_0.reld"
-  safekill workingdir & SLASH & "slicetree_0.reld"
  END IF
 
  slice_editor ses, edslice, YES
