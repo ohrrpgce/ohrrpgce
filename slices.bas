@@ -1864,6 +1864,36 @@ Sub DisposeScrollSlice(byval sl as slice ptr)
  sl->SliceData = 0
 end sub
 
+Function CalcScrollMinX(byval sl as slice ptr, byval check_depth as integer, byval cur_depth as integer=1) as integer
+ dim n as integer = sl->ScreenX
+ dim ch as slice ptr = sl->FirstChild
+ do while ch <> 0
+  if ch->Visible then
+   n = small(n, ch->ScreenX)
+   if check_depth = 0 orelse cur_depth < check_depth then
+    n = small(n, CalcScrollMinX(ch, check_depth, cur_depth + 1))
+   end if
+  end if
+  ch = ch->NextSibling
+ Loop
+ return n
+End Function
+
+Function CalcScrollMaxX(byval sl as slice ptr, byval check_depth as integer, byval cur_depth as integer=1) as integer
+ dim n as integer = sl->ScreenX + sl->Width
+ dim ch as slice ptr = sl->FirstChild
+ do while ch <> 0
+  if ch->Visible then
+   n = large(n, ch->ScreenX + ch->Width)
+   if check_depth = 0 orelse cur_depth < check_depth then
+    n = large(n, CalcScrollMaxX(ch, check_depth, cur_depth + 1))
+   end if
+  end if
+  ch = ch->NextSibling
+ Loop
+ return n
+End Function
+
 Function CalcScrollMinY(byval sl as slice ptr, byval check_depth as integer, byval cur_depth as integer=1) as integer
  dim n as integer = sl->ScreenY
  dim ch as slice ptr = sl->FirstChild
@@ -1906,22 +1936,39 @@ Sub ScrollChildDraw(byval sl as slice ptr, byval p as integer)
  'Then proceed with the scrollbars 
  dim dat as ScrollSliceData ptr = cptr(ScrollSliceData ptr, sl->SliceData)
 
+ dim sbar as RectType
+ dim slider as RectType
+
+ dim minx as integer = CalcScrollMinX(sl, dat->check_depth)
+ dim maxx as integer = CalcScrollMaxX(sl, dat->check_depth)
+ dim xoff as integer = sl->ScreenX - minx
+ dim w as integer = maxx - minx
+
+ if w > sl->Width then
+  sbar.y = sl->Y + sl->Height - 6
+  sbar.x = sl->X + 2
+  sbar.high = 4
+  sbar.wide = sl->Width - 4
+  with sbar
+   slider.x = .wide / w * xoff
+   slider.wide = .wide / w * (sl->Width + 1)
+   rectangle .x, .y, .wide, .high, boxlook(dat->style).bgcol, p
+   rectangle .x + slider.x, .y, slider.wide, .high, boxlook(dat->style).edgecol, p
+  end with
+ end if
+
  dim miny as integer = CalcScrollMinY(sl, dat->check_depth)
  dim maxy as integer = CalcScrollMaxY(sl, dat->check_depth)
- dim voff as integer = sl->ScreenY - miny
+ dim yoff as integer = sl->ScreenY - miny
  dim h as integer = maxy - miny
 
  if h > sl->Height then
-  dim sbar as RectType
-  dim slider as RectType
   sbar.x = sl->X + sl->Width - 6
   sbar.y = sl->Y + 2
   sbar.wide = 4
   sbar.high = sl->Height - 4
   with sbar
-   ' slider.y = .high / count * (state.top - state.first)
-   ' slider.high = .high / count * (state.size + 1)
-   slider.y = .high / h * voff
+   slider.y = .high / h * yoff
    slider.high = .high / h * (sl->Height + 1)
    rectangle .x, .y, .wide, .high, boxlook(dat->style).bgcol, p
    rectangle .x, .y + slider.y, .wide, slider.high, boxlook(dat->style).edgecol, p
