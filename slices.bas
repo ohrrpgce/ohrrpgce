@@ -2075,11 +2075,13 @@ Sub DrawSelectSlice(byval sl as slice ptr, byval p as integer)
  'Does not actually draws anything, just manages the Visible property of its children.
  
  dim dat as SelectSliceData ptr = cptr(SelectSliceData ptr, sl->SliceData)
+ dim index as integer = dat->index
+ if dat->override >= 0 then index = dat->override
 
  dim i as integer 
  dim ch as Slice ptr = sl->FirstChild
  do while ch <> 0
-  if i = dat->index then
+  if i = index then
    ch->Visible = YES
   else
    ch->Visible = NO
@@ -2106,6 +2108,7 @@ Sub SaveSelectSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
  DIM dat as SelectSliceData Ptr
  dat = sl->SliceData
  SaveProp node, "index", dat->index
+ 'override property is never saved. Only used by the Slice Collection Editor
 End Sub
 
 Sub LoadSelectSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
@@ -2113,6 +2116,8 @@ Sub LoadSelectSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
  dim dat as SelectSliceData Ptr
  dat = sl->SliceData
  dat->index = LoadProp(node, "index", 0)
+ dat->override = -1
+ 'override property is never loaded. Only used by the Slice Collection Editor
 End Sub
 
 Function NewSelectSlice(byval parent as Slice ptr, byref dat as SelectSliceData) as slice ptr
@@ -2126,7 +2131,7 @@ Function NewSelectSlice(byval parent as Slice ptr, byref dat as SelectSliceData)
  dim d as SelectSliceData ptr = new SelectSliceData
  *d = dat
  '--Set non-zero defaults here
- 'if there were any
+ d->override = -1
  
  ret->SliceType = slSelect
  ret->SliceData = d
@@ -2146,13 +2151,17 @@ End Function
 
 'All arguments default to no-change
 Sub ChangeSelectSlice(byval sl as slice ptr,_
-                      byval index as integer=-2)
+                      byval index as integer=-2,_
+                      byval override as integer=-2)
  if sl = 0 then debug "ChangeSelectSlice null ptr" : exit sub
  if sl->SliceType <> slSelect then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a select" : exit sub
  dim dat as SelectSliceData Ptr = sl->SliceData
  with *dat
   if index >= -1 then
    .index = index
+  end if
+  if override >= -1 then
+   .override = override
   end if
  end with
 end sub
@@ -2666,6 +2675,22 @@ Function SliceColor(byval n as integer) as integer
   return uilook(uiC)
  end if
  debugc errError, "Invalid slice color " & n
+End function
+
+Function GetSliceSiblingIndex(byval s as slice ptr) as integer
+ 'Returns the index of a slice withing its list of siblings, or -1 if orphaned
+ if s = 0 then debug "GetSliceSiblingIndex null ptr": return 0
+ dim parent as slice ptr = s->parent
+ if parent = 0 then return -1
+ dim i as integer = 0
+ dim ch as slice ptr = parent->FirstChild
+ do while ch
+  if ch = s then return i
+  i += 1
+  ch = ch->NextSibling
+ loop
+ debug "GetSliceSiblingIndex: slice was not found in its parent's list of children. Slice tree corruption?"
+ return -1
 End function
 
 '==Slice cloning===============================================================

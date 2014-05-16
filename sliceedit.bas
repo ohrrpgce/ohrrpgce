@@ -71,6 +71,7 @@ CONST slgrUPDATESPRITE = 16
 CONST slgrUPDATERECTCOL = 32
 CONST slgrUPDATERECTSTYLE = 64
 CONST slgrPICKLOOKUP = 128
+CONST slgrEDITSWITCHINDEX = 256
 '--This system won't be able to expand forever ... :(
 
 CONST slLOWCOLORCODE = -18
@@ -371,6 +372,16 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
    END IF
 
   END IF '--end IF state.need_update = NO AND menu(state.pt).handle
+  
+  'Special handling for the currently selected slice
+  DIM cur_sl as slice ptr = menu(state.pt).handle
+  IF cur_sl THEN
+   DIM cur_par as Slice ptr = cur_sl->parent
+   'Special handling when a child of a SelectSlice is selected as edslice
+   IF cur_par ANDALSO cur_par->SliceType = slSelect THEN
+    ChangeSelectSlice cur_par, , GetSliceSiblingIndex(cur_sl)
+   END IF
+  END IF
 
   ' Window size change
   IF UpdateScreenSlice() THEN state.need_update = YES
@@ -655,6 +666,13 @@ SUB slice_edit_detail_keys (byref state as MenuState, sl as Slice Ptr, rootsl as
    dat->style_loaded = NO
   END IF
  END IF
+ IF rule.group AND slgrEDITSWITCHINDEX THEN
+  IF state.need_update THEN
+   DIM dat as SelectSliceData Ptr
+   dat = sl->SliceData
+   dat->override = -1 'Cancel override when we manually change index
+  END IF
+ END IF
  IF state.need_update AND sl->SliceType = slText THEN
   UpdateTextSlice sl
  END IF
@@ -825,7 +843,7 @@ SUB slice_edit_detail_refresh (byref state as MenuState, menu() as string, sl as
     DIM dat as SelectSliceData Ptr
     dat = .SliceData
     str_array_append menu(), "Selected Child: " & dat->index
-    sliceed_rule rules(), "select_index", erIntgrabber, @(dat->index), 0, 9999999 'FIXME: this is an arbitrary upper limit
+    sliceed_rule rules(), "select_index", erIntgrabber, @(dat->index), 0, 9999999, slgrEDITSWITCHINDEX 'FIXME: this is an arbitrary upper limit
 
   END SELECT
   str_array_append menu(), "Visible: " & yesorno(.Visible)

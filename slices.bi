@@ -276,6 +276,8 @@ End Type
 Type SelectSliceData
  index as integer ' The numeric index of the child that is currently visible.
                    ' If out of range, then no child will be visible. Default to 0
+ override as integer ' Overrides the index, used only in the Slice Collection Editor
+                     ' and never saved/loaded
 End Type
 
 Extern "C"
@@ -316,6 +318,7 @@ DECLARE Sub CustomSortChildSlices(byval parent as slice ptr, byval wipevals as i
 DECLARE Sub AutoSortChildren(byval s as Slice Ptr)
 DECLARE Function CloneSliceTree(byval sl as slice ptr) as slice ptr
 DECLARE Sub SetSliceTarg(byval s as slice ptr, byval x as integer, byval y as integer, byval ticks as integer)
+DECLARE Function GetSliceSiblingIndex(byval s as slice ptr) as integer
 
 End Extern
 
@@ -426,7 +429,8 @@ DECLARE Sub ChangeScrollSlice(byval sl as slice ptr,_
 
 DECLARE Function NewSelectSlice(byval sl as slice ptr, byref dat as SelectSliceData) as Slice ptr
 DECLARE Sub ChangeSelectSlice(byval sl as slice ptr,_
-                      byval index as integer=-2) ' All arguments default to no change
+                      byval index as integer=-2,_
+                      byval override as integer=-2) ' All arguments default to no change
 
 '--Saving and loading slices
 DECLARE Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr, save_handles as bool=NO)
