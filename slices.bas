@@ -208,8 +208,6 @@ FUNCTION SliceTypeByName (s as string) as SliceTypes
   CASE "Rectangle":      RETURN slRectangle
   CASE "Sprite":         RETURN slSprite
   CASE "Text":           RETURN slText
-  CASE "Menu":           RETURN slMenu
-  CASE "MenuItem":       RETURN slMenuItem
   CASE "Map":            RETURN slMap
   CASE "Grid":           RETURN slGrid
   CASE "Ellipse":        RETURN slEllipse
@@ -235,8 +233,6 @@ FUNCTION SliceTypeName (t as SliceTypes) as string
   CASE slRectangle:      RETURN "Rectangle"
   CASE slSprite:         RETURN "Sprite"
   CASE slText:           RETURN "Text"
-  CASE slMenu:           RETURN "Menu"
-  CASE slMenuItem:       RETURN "MenuItem"
   CASE slMap:            RETURN "Map"
   CASE slGrid:           RETURN "Grid"
   CASE slEllipse:        RETURN "Ellipse"
@@ -331,12 +327,6 @@ FUNCTION NewSliceOfType (byval t as SliceTypes, byval parent as Slice Ptr=0, byv
   CASE slText
    DIM dat as TextSliceData
    newsl = NewTextSlice(parent, dat)
-  CASE slMenu:
-   DIM dat as MenuSliceData
-   newsl = NewMenuSlice(parent, dat)
-  CASE slMenuItem:
-   DIM dat as MenuItemSliceData
-   newsl = NewMenuItemSlice(parent, dat)
   CASE slMap:
    DIM dat as MapSliceData
    newsl = NewMapSlice(parent, dat)
@@ -2169,148 +2159,6 @@ Sub ChangeSelectSlice(byval sl as slice ptr,_
   end if
  end with
 end sub
-
-'--Menu-------------------------------------------------------------------
-Sub DisposeMenuSlice(byval sl as slice ptr)
- if sl = 0 then exit sub
- if sl->SliceData = 0 then exit sub
- dim dat as MenuSliceData ptr = cptr(MenuSliceData ptr, sl->SliceData)
- delete dat
- sl->SliceData = 0
-end sub
-
-Sub DrawMenuSlice(byval sl as slice ptr, byval p as integer)
- if sl = 0 then exit sub
- if sl->SliceData = 0 then exit sub
- 
- dim dat as MenuSliceData ptr = cptr(MenuSliceData ptr, sl->SliceData)
-
- dat->tog = dat->tog xor 1
-end sub
-
-Function GetMenuSliceData(byval sl as slice ptr) as MenuSliceData ptr
- if sl = 0 then debug "GetMenuSliceData null ptr": return 0
- return sl->SliceData
-End Function
-
-Sub SaveMenuSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
- if sl = 0 or node = 0 then debug "SaveMenuSlice null ptr": exit sub
- DIM dat as MenuSliceData Ptr
- dat = sl->SliceData
- 'FIXME: Implement me!
- debug "SaveMenuSlice not implemented"
-end sub
-
-Sub LoadMenuSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
- if sl = 0 or node = 0 then debug "LoadMenuSlice null ptr": exit sub
- dim dat as MenuSliceData Ptr
- dat = sl->SliceData
- 'FIXME: Implement me!
- debug "LoadMenuSlice not implemented"
-End Sub
-
-Function NewMenuSlice(byval parent as Slice ptr, byref dat as MenuSliceData) as slice ptr
- dim ret as Slice ptr
- ret = NewSlice(parent)
- if ret = 0 then 
-  debug "Out of memory?!"
-  return 0
- end if
- 
- dim d as MenuSliceData ptr = new MenuSliceData
- *d = dat
- 
- ret->SliceType = slMenu
- ret->SliceData = d
- ret->Draw = @DrawMenuSlice
- ret->Dispose = @DisposeMenuSlice
- ret->Save = @SaveMenuSlice
- ret->Load = @LoadMenuSlice
- 
- return ret
-end function
-
-'--MenuItem---------------------------------------------------------------
-Sub DisposeMenuItemSlice(byval sl as slice ptr)
- if sl = 0 then exit sub
- if sl->SliceData = 0 then exit sub
- dim dat as MenuItemSliceData ptr = cptr(MenuItemSliceData ptr, sl->SliceData)
- delete dat
- sl->SliceData = 0
-end sub
-
-Sub DrawMenuItemSlice(byval sl as slice ptr, byval p as integer)
- if sl = 0 then exit sub
- if sl->SliceData = 0 then exit sub
- 
- dim dat as MenuItemSliceData ptr = cptr(MenuItemSliceData ptr, sl->SliceData)
-
- with *(GetMenuSliceData(sl->parent))
-  dim c as integer
-  if dat->disabled = NO then
-   c = uiText
-  else
-   c = uiDisabledItem
-  end if
-  
-  if .selected = dat->ordinal then
-   edgeprint dat->caption, sl->screenx, sl->screeny, uilook(.tog + uiSelectedItem), p
-  else
-   edgeprint dat->caption, sl->screenx, sl->screeny, uilook(c), p
-  end if
- end with
-end sub
-
-Sub UpdateMenuItemSlice(byval sl as slice ptr)
- if sl = 0 then debug "UpdateMenuItemSlice null ptr": exit sub
- dim dat as MenuItemSliceData ptr = cptr(MenuItemSliceData ptr, sl->SliceData)
- 
- sl->Width = textWidth(dat->caption)
-end sub
-
-Function GetMenuItemSliceData(byval sl as slice ptr) as MenuItemSliceData ptr
- if sl = 0 then debug "GetMenuItemSliceData null ptr": return 0
- return sl->SliceData
-End Function
-
-Sub SaveMenuItemSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
- if sl = 0 or node = 0 then debug "GetMenuItemSliceData null ptr": exit sub
- DIM dat as MenuItemSliceData Ptr
- dat = sl->SliceData
- 'FIXME: Implement me!
- debug "SaveMenuItemSlice not implemented"
-end sub
-
-Sub LoadMenuItemSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
- if sl = 0 or node = 0 then debug "LoadMenuItemSlice null ptr": exit sub
- dim dat as MenuItemSliceData Ptr
- dat = sl->SliceData
- 'FIXME: Implement me!
- debug "LoadMenuItemSlice not implemented"
-End Sub
-
-Function NewMenuItemSlice(byval parent as Slice ptr, byref dat as MenuItemSliceData) as slice ptr
- dim ret as Slice ptr
- ret = NewSlice(parent)
- if ret = 0 then 
-  debug "Out of memory?!"
-  return 0
- end if
- 
- dim d as MenuItemSliceData ptr = new MenuItemSliceData
- *d = dat
- 
-  d->ordinal = ret->parent->NumChildren - 1
- 
- ret->SliceType = slMenuItem
- ret->SliceData = d
- ret->Draw = @DrawMenuItemSlice
- ret->Dispose = @DisposeMenuItemSlice
- ret->Save = @SaveMenuItemSlice
- ret->Load = @LoadMenuItemSlice
- 
- return ret
-end function
 
 '==General slice display=======================================================
 

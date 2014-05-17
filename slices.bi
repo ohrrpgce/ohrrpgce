@@ -64,8 +64,6 @@ Enum SliceTypes
  slRectangle
  slSprite
  slText
- slMenu
- slMenuItem
  slMap
  slGrid
  slEllipse
@@ -241,19 +239,6 @@ Type MapSliceData
  pass as TileMap ptr 'NOTE: ptr to pass in game.bas (Not owned!) May be NULL for non-overhead layers
 End Type
 
-'Not used
-Type MenuSliceData
- selected as integer
- tog as integer
-End Type
-
-'Not used
-Type MenuItemSliceData
- ordinal as integer
- caption as string
- disabled as integer
-End Type
-
 Type GridSliceData
  show as integer
  rows as integer
@@ -378,8 +363,6 @@ DECLARE Sub ChangeRectangleSlice(byval sl as slice ptr,_
                       byval fuzzfactor as integer=0)
 
 DECLARE Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as slice ptr
-DECLARE Function NewMenuSlice(byval parent as Slice ptr, byref dat as MenuSliceData) as slice ptr
-DECLARE Function NewMenuItemSlice(byval parent as Slice ptr, byref dat as MenuItemSliceData) as slice ptr
 DECLARE Sub UpdateTextSlice(byval sl as slice ptr)
 DECLARE Sub ChangeTextSlice(byval sl as slice ptr,_
                       s as string=CHR(1) & CHR(255),_
