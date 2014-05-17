@@ -285,6 +285,10 @@ FUNCTION SliceLookupCodename (byval code as integer) as string
   CASE SL_MAP_LAYER5: RETURN "map_layer5"
   CASE SL_MAP_LAYER6: RETURN "map_layer6"
   CASE SL_MAP_LAYER7: RETURN "map_layer7"
+  CASE SL_STATUS_PORTRAIT: RETURN "status_portrait"
+  CASE SL_STATUS_WALKABOUT: RETURN "status_walkabout"
+  CASE SL_STATUS_BATTLESPRITE: RETURN "status_battlesprite"
+  CASE SL_STATUS_PAGE_SELECT: RETURN "status_page_select"
 '</SLICE LOOKUP NAMES>
   CASE ELSE
    RETURN STR(code)

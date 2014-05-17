@@ -18,7 +18,7 @@ TYPE SliceEditState
  collection_number as integer
  collection_group_number as integer
  collection_file as string
- use_index as integer
+ use_index as bool
  last_non_slice as integer
  saved_pos as XYPair
  saved_size as XYPair
@@ -30,6 +30,17 @@ TYPE SliceEditMenuItem
  s as string
  handle as Slice Ptr
 END TYPE
+
+TYPE SpecialLookupCode
+ code as integer
+ caption as string
+ kindlimit as integer
+END TYPE
+
+CONST kindlimitANYTHING = 0
+CONST kindlimitGRID = 1
+CONST kindlimitSELECT = 2
+CONST kindlimitSPRITE = 3
 
 '------------------------------------------------------------------------------
 
@@ -80,7 +91,7 @@ CONST slLOWCOLORCODE = -18
 
 'This overload of slice_editor is only allowed locally.
 'The other public overloads are in sliceedit.bi
-DECLARE SUB slice_editor OVERLOAD (byref ses as SliceEditState, byref edslice as Slice Ptr, byval use_index as integer=0)
+DECLARE SUB slice_editor OVERLOAD (byref ses as SliceEditState, byref edslice as Slice Ptr, byval use_index as bool=NO, specialcodes() as SpecialLookupCode)
 
 'Functions that might go better in slices.bas ... we shall see
 DECLARE SUB DrawSliceAnts (byval sl as Slice Ptr, byval dpage as integer)
@@ -95,21 +106,22 @@ DECLARE SUB slice_editor_refresh (byref ses as SliceEditState, byref state as Me
 DECLARE SUB slice_editor_refresh_delete (byref index as integer, menu() as SliceEditMenuItem)
 DECLARE SUB slice_editor_refresh_append (byref index as integer, menu() as SliceEditMenuItem, caption as string, sl as Slice Ptr=0)
 DECLARE SUB slice_editor_refresh_recurse (byref index as integer, menu() as SliceEditMenuItem, byref indent as integer, sl as Slice Ptr, rootslice as Slice Ptr, slicelookup() as string)
-DECLARE SUB slice_edit_detail (sl as Slice Ptr, byref ses as SliceEditState, rootsl as Slice Ptr, slicelookup() as string)
+DECLARE SUB slice_edit_detail (sl as Slice Ptr, byref ses as SliceEditState, rootsl as Slice Ptr, slicelookup() as string, specialcodes() as SpecialLookupCode)
 DECLARE SUB slice_edit_detail_refresh (byref state as MenuState, menu() as string, sl as Slice Ptr, rules() as EditRule, slicelookup() as string)
-DECLARE SUB slice_edit_detail_keys (byref state as MenuState, sl as Slice Ptr, rootsl as Slice Ptr, rules() as EditRule, slicelookup() as string)
+DECLARE SUB slice_edit_detail_keys (byref state as MenuState, sl as Slice Ptr, rootsl as Slice Ptr, rules() as EditRule, slicelookup() as string, specialcodes() as SpecialLookupCode)
 DECLARE SUB slice_editor_xy (byref x as integer, byref y as integer, byval focussl as Slice Ptr, byval rootsl as Slice Ptr)
 DECLARE FUNCTION slice_editor_filename(byref ses as SliceEditState) as string
 DECLARE SUB slice_editor_load(byref edslice as Slice Ptr, filename as string)
 DECLARE SUB slice_editor_save(byval edslice as Slice Ptr, filename as string)
 DECLARE FUNCTION slice_lookup_code_caption(byval code as integer, slicelookup() as string) as string
-DECLARE FUNCTION edit_slice_lookup_codes(slicelookup() as string, byval start_at_code as integer) as integer
+DECLARE FUNCTION edit_slice_lookup_codes(slicelookup() as string, byval start_at_code as integer, specialcodes() as SpecialLookupCode, byval slicekind as SliceTypes) as integer
 DECLARE FUNCTION slice_caption (sl as Slice Ptr, slicelookup() as string) as string
 DECLARE SUB slice_editor_copy(byref ses as SliceEditState, byval slice as Slice Ptr, byval edslice as Slice Ptr)
 DECLARE SUB slice_editor_paste(byref ses as SliceEditState, byval slice as Slice Ptr, byval edslice as Slice Ptr)
 DECLARE FUNCTION slice_color_caption(byval n as integer, ifzero as string="0") as string
-
-'Functions that need to be aware of magic numbers for SliceType
+DECLARE SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval group as integer, specialcodes() as SpecialLookupCode)
+DECLARE SUB append_specialcode (specialcodes() as SpecialLookupCode, byval code as integer, byval kindlimit as integer=kindlimitANYTHING)
+DECLARE FUNCTION special_code_kindlimit_check(byval kindlimit as integer, byval slicekind as SliceTypes) as bool
 DECLARE FUNCTION slice_edit_detail_browse_slicetype(byref slice_type as SliceTypes) as SliceTypes
 
 'Slice EditRule convenience functions
@@ -144,9 +156,41 @@ AutoSortCaptions(5) = "by bottom edge"
 
 '==============================================================================
 
-SUB slice_editor ()
+SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval group as integer, specialcodes() as SpecialLookupCode)
+ ses.collection_group_number = group
+ SELECT CASE group
+  CASE SL_COLLECT_STATUSSCREEN:
+   append_specialcode specialcodes(), SL_STATUS_PORTRAIT, kindlimitSPRITE
+   append_specialcode specialcodes(), SL_STATUS_WALKABOUT, kindlimitSPRITE
+   append_specialcode specialcodes(), SL_STATUS_BATTLESPRITE, kindlimitSPRITE
+   append_specialcode specialcodes(), SL_STATUS_PAGE_SELECT, kindlimitSELECT
+ END SELECT
+END SUB
+
+SUB append_specialcode (specialcodes() as SpecialLookupCode, byval code as integer, byval kindlimit as integer=kindlimitANYTHING)
+ DIM index as integer = -1
+ FOR i as integer = 0 TO UBOUND(specialcodes)
+  IF specialcodes(i).code = 0 THEN
+   index = i
+   EXIT FOR
+  END IF
+ NEXT i
+ IF index = -1 THEN
+  REDIM PRESERVE specialcodes(UBOUND(specialcodes) + 1) as SpecialLookupCode
+  index = UBOUND(specialcodes)
+ END IF
+ WITH specialcodes(index)
+  .code = code
+  .caption = SliceLookupCodeName(code)
+  .kindlimit = kindlimit
+ END WITH
+END SUB
+
+SUB slice_editor (byval group as integer = SL_COLLECT_USERDEFINED)
 
  DIM ses as SliceEditState
+ REDIM specialcodes(0) as SpecialLookupCode
+ init_slice_editor_for_collection_group(ses, group, specialcodes())
 
  DIM edslice as Slice Ptr
  edslice = NewSlice
@@ -160,7 +204,7 @@ SUB slice_editor ()
   SliceLoadFromFile edslice, slice_editor_filename(ses)
  END IF
 
- slice_editor ses, edslice, YES
+ slice_editor ses, edslice, YES, specialcodes()
 
  slice_editor_save edslice, slice_editor_filename(ses)
  
@@ -168,12 +212,14 @@ SUB slice_editor ()
 
 END SUB
 
-SUB slice_editor (byref edslice as Slice Ptr)
+SUB slice_editor (byref edslice as Slice Ptr, byval group as integer = SL_COLLECT_USERDEFINED)
  DIM ses as SliceEditState
- slice_editor ses, edslice, NO
+ REDIM specialcodes(0) as SpecialLookupCode
+ init_slice_editor_for_collection_group(ses, group, specialcodes())
+ slice_editor ses, edslice, NO, specialcodes()
 END SUB
 
-SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval use_index as integer=0)
+SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval use_index as bool=NO, specialcodes() as SpecialLookupCode)
  '--use_index controls the display of the collection number index
 
  '--use_index controls whether or not this is the indexed collection editor
@@ -242,7 +288,7 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
     EXIT DO
    ELSE
     cursor_seek = menu(state.pt).handle
-    slice_edit_detail menu(state.pt).handle, ses, edslice, slicelookup()
+    slice_edit_detail menu(state.pt).handle, ses, edslice, slicelookup(), specialcodes()
     state.need_update = YES
    END IF 
   END IF
@@ -500,7 +546,7 @@ SUB slice_editor_paste(byref ses as SliceEditState, byval slice as Slice Ptr, by
  END IF
 END SUB
 
-SUB slice_edit_detail (sl as Slice Ptr, byref ses as SliceEditState, rootsl as Slice Ptr, slicelookup() as string)
+SUB slice_edit_detail (sl as Slice Ptr, byref ses as SliceEditState, rootsl as Slice Ptr, slicelookup() as string, specialcodes() as SpecialLookupCode)
 
  STATIC remember_pt as integer
 
@@ -540,7 +586,7 @@ SUB slice_edit_detail (sl as Slice Ptr, byref ses as SliceEditState, rootsl as S
 
   usemenu state
   IF state.pt = 0 AND enter_space_click(state) THEN EXIT DO
-  slice_edit_detail_keys state, sl, rootsl, rules(), slicelookup()
+  slice_edit_detail_keys state, sl, rootsl, rules(), slicelookup(), specialcodes()
   
   clearpage dpage
   DrawSlice rootsl, dpage
@@ -558,7 +604,7 @@ SUB slice_edit_detail (sl as Slice Ptr, byref ses as SliceEditState, rootsl as S
  
 END SUB
 
-SUB slice_edit_detail_keys (byref state as MenuState, sl as Slice Ptr, rootsl as Slice Ptr, rules() as EditRule, slicelookup() as string)
+SUB slice_edit_detail_keys (byref state as MenuState, sl as Slice Ptr, rootsl as Slice Ptr, rules() as EditRule, slicelookup() as string, specialcodes() as SpecialLookupCode)
  DIM rule as EditRule = rules(state.pt)
  SELECT CASE rule.mode
   CASE erIntgrabber
@@ -629,7 +675,7 @@ SUB slice_edit_detail_keys (byref state as MenuState, sl as Slice Ptr, rootsl as
  IF rule.group AND slgrPICKLOOKUP THEN
   IF enter_space_click(state) THEN
    DIM n as integer ptr = rule.dataptr
-   *n = edit_slice_lookup_codes(slicelookup(), *n)
+   *n = edit_slice_lookup_codes(slicelookup(), *n, specialcodes(), sl->SliceType)
    state.need_update = YES
   END IF
  END IF
@@ -1105,7 +1151,7 @@ FUNCTION slice_lookup_code_caption(byval code as integer, slicelookup() as strin
  IF code = 0 THEN RETURN "None"
  IF code < 0 THEN
   '--negative codes are hard-coded slice code
-  s = SliceLookupCodeName(code)
+  s = "[" & SliceLookupCodeName(code) & "]"
  ELSE
   s = STR(code)
   IF code <= UBOUND(slicelookup) THEN
@@ -1115,36 +1161,66 @@ FUNCTION slice_lookup_code_caption(byval code as integer, slicelookup() as strin
  RETURN s
 END FUNCTION
 
-FUNCTION edit_slice_lookup_codes(slicelookup() as string, byval start_at_code as integer) as integer
+FUNCTION special_code_kindlimit_check(byval kindlimit as integer, byval slicekind as SliceTypes) as bool
+ IF kindlimit = kindlimitANYTHING THEN RETURN YES
+ SELECT CASE kindlimit
+  CASE kindlimitANYTHING:
+   RETURN YES
+  CASE kindlimitGRID:
+   IF slicekind = slGrid THEN RETURN YES
+  CASE kindlimitSELECT:
+   IF slicekind = slSelect THEN RETURN YES
+  CASE kindlimitSPRITE:
+   IF slicekind = slSprite THEN RETURN YES
+  CASE ELSE
+   debug "Unknown slice lookup code kindlimit constant " & kindlimit
+ END SELECT
+ RETURN NO
+END FUNCTION
+
+FUNCTION edit_slice_lookup_codes(slicelookup() as string, byval start_at_code as integer, specialcodes() as SpecialLookupCode, byval slicekind as SliceTypes) as integer
 
  DIM result as integer
  result = start_at_code
- 
- '--temporarily put a menu label in string 0
- slicelookup(0) = "Previous Menu..."
 
- '--make the list longer so there will be at least one blank space at the end
- REDIM PRESERVE slicelookup(UBOUND(slicelookup) + 1) as string
+ DIM menu as SimpleMenuItem vector
+ v_new menu, 0
+ append_simplemenu_item menu, "Previous Menu...", , , 0
 
- DIM state as MenuState
- WITH state
-  .size = 24
-  .last = UBOUND(slicelookup)
-  IF start_at_code > 0 THEN
-   '--start at the specified starting point
-   .pt = start_at_code
-  ELSE
-   '--but if start_at_code is zero, then look for the first blank line
-   FOR i as integer = 1 TO UBOUND(slicelookup)
-    IF TRIM(slicelookup(i)) = "" THEN
-     .pt = i
-     EXIT FOR
+ DIM special_header as bool = NO 
+ FOR i as integer = 0 TO UBOUND(specialcodes)
+  WITH specialcodes(i)
+   IF .code <> 0 THEN
+    IF special_code_kindlimit_check(.kindlimit, slicekind) THEN
+     IF NOT special_header THEN
+      append_simplemenu_item menu, "Special Lookup Codes", YES, uiLook(uiText) 
+      special_header = YES
+     END IF
+     append_simplemenu_item menu, .caption, , , .code
     END IF
-   NEXT i
-  END IF
- END WITH
+   END IF
+  END WITH
+ NEXT i
+ 
+ append_simplemenu_item menu, "User Defined Lookup Codes", YES, uiLook(uiText) 
+ DIM userdef_start as integer = v_len(menu) - 1
+ 
+ FOR i as integer = 1 TO UBOUND(slicelookup)
+  append_simplemenu_item menu, slicelookup(i), , , i
+ NEXT i
+
+ DIM st as MenuState
+ init_menu_state st, cast(BasicMenuItem vector, menu)
+
+ FOR i as integer = 0 to v_len(menu) - 1
+  'Move the cursor to pre-select the current code
+  IF v_at(menu, i)->dat = start_at_code THEN st.pt = i
+ NEXT i
+
  DIM menuopts as MenuOptions
  menuopts.highlight = YES
+ 
+ DIM curcode as integer = 0
 
  setkeys YES
  DO
@@ -1153,26 +1229,34 @@ FUNCTION edit_slice_lookup_codes(slicelookup() as string, byval start_at_code as
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "slice_lookup_codes"
   IF keyval(scEnter) > 1 THEN
-   result = state.pt
+   result = v_at(menu, st.pt)->dat
    EXIT DO
   END IF
 
-  usemenu state
-  IF state.pt > 0 THEN
-   IF strgrabber(slicelookup(state.pt), 40) THEN
-    slicelookup(state.pt) = sanitize_script_identifier(slicelookup(state.pt))
-   END IF
-  END IF
+  usemenu st, cast(BasicMenuItem vector, menu)
+  curcode = v_at(menu, st.pt)->dat
   
-  '--make the list longer if we have selected the last item in the list and it is not blank
-  IF state.pt = UBOUND(slicelookup) ANDALSO TRIM(slicelookup(state.pt)) <> "" THEN
-   REDIM PRESERVE slicelookup(UBOUND(slicelookup) + 1) as string
-   state.last = UBOUND(slicelookup)
+  'Special handling that only happens for the user-defined lookup codes
+  IF st.pt > userdef_start THEN
+   
+   'Edit lookup codes
+   IF strgrabber(slicelookup(curcode), 40) THEN
+    slicelookup(curcode) = sanitize_script_identifier(slicelookup(curcode))
+    v_at(menu, st.pt)->text = slicelookup(curcode)
+   END IF
+  
+   '--make the list longer if we have selected the last item in the list and it is not blank
+   IF st.pt = st.last ANDALSO TRIM(slicelookup(curcode)) <> "" THEN
+    REDIM PRESERVE slicelookup(UBOUND(slicelookup) + 1) as string
+    append_simplemenu_item menu, "", , , UBOUND(slicelookup)
+    st.last += 1
+   END IF
+   
   END IF
 
   clearpage dpage
-  draw_fullscreen_scrollbar state, , dpage
-  standardmenu slicelookup(), state, 0, 0, dpage, menuopts
+  draw_fullscreen_scrollbar st, , dpage
+  standardmenu cast(BasicMenuItem vector, menu), st, 0, 0, dpage, menuopts
 
   SWAP vpage, dpage
   setvispage vpage
@@ -1191,7 +1275,7 @@ FUNCTION edit_slice_lookup_codes(slicelookup() as string, byval start_at_code as
   REDIM PRESERVE slicelookup(last) as string 
  END IF
 
- '--re-blank the 0 string
+ '--Make sure the 0 string is blank
  slicelookup(0) = ""
  
  save_string_list slicelookup(), workingdir & SLASH & "slicelookup.txt"

@@ -2672,6 +2672,10 @@ lookup slice(sl:map layer4)
 lookup slice(sl:map layer5)
 lookup slice(sl:map layer6)
 lookup slice(sl:map layer7)
+lookup slice(sl:status portrait)
+lookup slice(sl:status walkabout)
+lookup slice(sl:status battlesprite)
+lookup slice(sl:status page select)
 </example>
 			<seealso>
 				<ref>setslicelookup</ref>

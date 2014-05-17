@@ -5,9 +5,10 @@
 
       python misc/sl_lookup.py
 
-   The constants from slices.bi will be converted over to plotscr.hsd and
-   plotdict.xml. Note that you don't *need* this script. You can just
-   update plotscr.hsd and plotdict.xml by hand if you wish.
+   The constants from slices.bi will be converted over to slices.bas,
+   plotscr.hsd and plotdict.xml. Note that you don't *need* this script.
+   You can just update slices.bas, plotscr.hsd and plotdict.xml by hand
+   if you wish.
 """
 
 

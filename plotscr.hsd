@@ -1711,5 +1711,9 @@ define constant, begin
 -101005, sl:map layer5
 -101006, sl:map layer6
 -101007, sl:map layer7
+-102000, sl:status portrait
+-102001, sl:status walkabout
+-102002, sl:status battlesprite
+-102003, sl:status page select
 end
 #</SLICE LOOKUP CODES>
