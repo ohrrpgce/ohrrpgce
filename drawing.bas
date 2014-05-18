@@ -17,7 +17,7 @@ DECLARE FUNCTION importmasterpal (f as string, byval palnum as integer) as integ
 DECLARE FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byref pickpos as XYPair, zoom as integer = 1, maxx as integer = 9999, maxy as integer = 9999, message as string, helpkey as string) as bool
 DECLARE FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp as string, pmask() as RGBcolor) as bool
 
-DECLARE SUB picktiletoedit (byref tmode as integer, byval pagenum as integer, mapfile as string, bgcolor as integer)
+DECLARE SUB picktiletoedit (byref tmode as integer, byval tilesetnum as integer, mapfile as string, bgcolor as integer)
 DECLARE SUB editmaptile (ts as TileEditState, mover() as integer, mouse as MouseInfo, area() as MouseArea, bgcolor as integer)
 DECLARE SUB tilecut (ts as TileEditState, mouse as MouseInfo)
 DECLARE SUB refreshtileedit (mover() as integer, state as TileEditState)
@@ -39,10 +39,10 @@ DECLARE SUB setanimpattern_refreshmenu(byval pt as integer, menu() as string, me
 DECLARE SUB setanimpattern_forcebounds(tastuf() as integer, byval taset as integer, llim() as integer, ulim() as integer)
 DECLARE SUB maptile ()
 DECLARE SUB tileedit_set_tool (ts as TileEditState, toolinfo() as ToolInfoType, byval toolnum as integer)
-DECLARE SUB tile_anim_draw_range(tastuf() as integer, byval taset as integer)
-DECLARE SUB tile_anim_set_range(tastuf() as integer, byval taset as integer, byval pagenum as integer)
-DECLARE SUB tile_animation(byval pagenum as integer)
-DECLARE SUB tile_edit_mode_picker(byval pagenum as integer, mapfile as string, byref bgcolor as integer)
+DECLARE SUB tile_anim_draw_range(tastuf() as integer, byval taset as integer, byval page as integer)
+DECLARE SUB tile_anim_set_range(tastuf() as integer, byval taset as integer, byval tilesetnum as integer)
+DECLARE SUB tile_animation(byval tilesetnum as integer)
+DECLARE SUB tile_edit_mode_picker(byval tilesetnum as integer, mapfile as string, byref bgcolor as integer)
 
 DECLARE SUB spriteedit_load_what_you_see(byval j as integer, byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, placer() as integer, workpal() as integer, poffset() as integer)
 DECLARE SUB spriteedit_save_what_you_see(byval j as integer, byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, placer() as integer, workpal() as integer, poffset() as integer)
@@ -357,7 +357,7 @@ SUB maptile ()
 STATIC bgcolor as integer = 0
 DIM menu() as string
 DIM mapfile as string = game & ".til"
-DIM pagenum as integer
+DIM tilesetnum as integer
 DIM top as integer = -1
 DIM chequer_scroll as integer
 
@@ -407,8 +407,8 @@ DO
  END IF
  IF enter_space_click(state) AND state.pt = -1 THEN EXIT DO
  IF enter_space_click(state) AND state.pt > -1 THEN
-  pagenum = state.pt
-  tile_edit_mode_picker pagenum, mapfile, bgcolor
+  tilesetnum = state.pt
+  tile_edit_mode_picker tilesetnum, mapfile, bgcolor
   state.need_update = YES
  END IF
 
@@ -443,7 +443,7 @@ set_resolution remember_resolution.w, remember_resolution.h
 
 END SUB
  
-SUB tile_edit_mode_picker(byval pagenum as integer, mapfile as string, byref bgcolor as integer)
+SUB tile_edit_mode_picker(byval tilesetnum as integer, mapfile as string, byref bgcolor as integer)
  DIM chequer_scroll as integer
  DIM menu(6) as string
  menu(0) = "Draw Tiles"
@@ -471,9 +471,9 @@ SUB tile_edit_mode_picker(byval pagenum as integer, mapfile as string, byref bgc
   IF enter_space_click(state) THEN
    SELECT CASE state.pt
     CASE 0, 1, 2, 3
-     picktiletoedit state.pt, pagenum, mapfile, bgcolor
+     picktiletoedit state.pt, tilesetnum, mapfile, bgcolor
     CASE 4
-     tile_animation pagenum
+     tile_animation tilesetnum
     CASE 5
      bgcolor = color_browser_256(large(bgcolor, 0))
     CASE 6
@@ -497,10 +497,10 @@ SUB tile_edit_mode_picker(byval pagenum as integer, mapfile as string, byref bgc
 
 END SUB
 
-SUB tile_animation(byval pagenum as integer)
+SUB tile_animation(byval tilesetnum as integer)
  DIM tastuf(40) as integer
  DIM taset as integer = 0
- loadtanim pagenum, tastuf()
+ load_tile_anims tilesetnum, tastuf()
 
  DIM menu(5) as string 
  menu(0) = "Previous Menu"
@@ -527,8 +527,8 @@ SUB tile_animation(byval pagenum as integer)
   IF enter_space_click(state) THEN
    SELECT CASE state.pt
     CASE 0: EXIT DO
-    CASE 2: tile_anim_set_range tastuf(), taset, pagenum
-    CASE 3: setanimpattern tastuf(), taset, pagenum
+    CASE 2: tile_anim_set_range tastuf(), taset, tilesetnum
+    CASE 3: setanimpattern tastuf(), taset, tilesetnum
     CASE 5: testanimpattern tastuf(), taset
    END SELECT
   END IF
@@ -543,10 +543,10 @@ SUB tile_animation(byval pagenum as integer)
   setvispage vpage
   dowait
  LOOP
- savetanim pagenum, tastuf()
+ save_tile_anims tilesetnum, tastuf()
 END SUB
 
-SUB tile_anim_set_range(tastuf() as integer, byval taset as integer, byval pagenum as integer)
+SUB tile_anim_set_range(tastuf() as integer, byval taset as integer, byval tilesetnum as integer)
  DIM tog as integer
  DIM mouse as MouseInfo
 
@@ -572,22 +572,22 @@ SUB tile_anim_set_range(tastuf() as integer, byval taset as integer, byval pagen
    END IF
   END WITH
   copypage 3, dpage
-  tile_anim_draw_range tastuf(), taset
+  tile_anim_draw_range tastuf(), taset, dpage
   edgeprint "ESC when done", 0, 0, uilook(uiText), dpage
   SWAP vpage, dpage
   setvispage vpage
   dowait
  LOOP
- savetanim pagenum, tastuf()
+ save_tile_anims tilesetnum, tastuf()
 END SUB
 
-SUB tile_anim_draw_range(tastuf() as integer, byval taset as integer)
+SUB tile_anim_draw_range(tastuf() as integer, byval taset as integer, byval page as integer)
  DIM animpos as XYPair
  animpos.x = 0
  animpos.y = 0
  FOR i as integer = 0 TO 159
   IF i < tastuf(0 + 20 * taset) OR i > tastuf(0 + 20 * taset) + 47 THEN
-   fuzzyrect animpos.x * 20, animpos.y * 20, 20, 20, uilook(uiText), dpage
+   fuzzyrect animpos.x * 20, animpos.y * 20, 20, 20, uilook(uiText), page
   END IF
   animpos.x += 1
   IF animpos.x > 15 THEN
@@ -663,7 +663,7 @@ DO
    END IF
   CASE 1 '---EDIT THAT STATEMENT---
    IF keyval(scESC) > 1 THEN
-    savetanim tilesetnum, tastuf()
+    save_tile_anims tilesetnum, tastuf()
     context = 0
    END IF
    usemenu state2
@@ -824,14 +824,14 @@ RETRACE
 
 END SUB
 
-SUB picktiletoedit (byref tmode as integer, byval pagenum as integer, mapfile as string, bgcolor as integer)
+SUB picktiletoedit (byref tmode as integer, byval tilesetnum as integer, mapfile as string, bgcolor as integer)
 STATIC cutnpaste(19, 19) as integer
 STATIC oldpaste as integer
 DIM ts as TileEditState
 DIM mover(12) as integer
 DIM area(24) as MouseArea
 DIM mouse as MouseInfo
-ts.tilesetnum = pagenum
+ts.tilesetnum = tilesetnum
 ts.drawframe = frame_new(20, 20, , YES)
 DIM chequer_scroll as integer
 DIM tog as integer
@@ -914,7 +914,7 @@ IF tmode = 3 THEN
  pastogkey(5) = scB
  pastogkey(6) = scH
  pastogkey(7) = scO
- loadpasdefaults ts.defaultwalls, pagenum
+ loadpasdefaults ts.defaultwalls, tilesetnum
  bitmenu(0) = "Impassable to the North"
  bitmenu(1) = "Impassable to the East"
  bitmenu(2) = "Impassable to the South"
@@ -925,7 +925,7 @@ IF tmode = 3 THEN
  bitmenu(7) = "Overhead Tile (OBSOLETE!)"
 END IF    
 
-loadmxs mapfile, pagenum, vpages(3)
+loadmxs mapfile, tilesetnum, vpages(3)
 'pick block to draw/import/default
 DIM bnum as integer = 0
 setkeys
@@ -994,7 +994,7 @@ DO
    editbitset buf(), bnum, 7, bitmenu()
    array_to_vector ts.defaultwalls, buf()
   END IF
-  IF slave_channel <> NULL_CHANNEL THEN storemxs mapfile, pagenum, vpages(3)
+  IF slave_channel <> NULL_CHANNEL THEN storemxs mapfile, tilesetnum, vpages(3)
  END IF
 
  frame_draw_with_background vpages(3), , 0, 0, , bgcolor, chequer_scroll, vpages(dpage)
@@ -1033,9 +1033,9 @@ DO
   chequer_scroll += 1
  END IF
 LOOP
-storemxs mapfile, pagenum, vpages(3)
+storemxs mapfile, tilesetnum, vpages(3)
 IF tmode = 3 THEN
- savepasdefaults ts.defaultwalls, pagenum
+ savepasdefaults ts.defaultwalls, tilesetnum
 END IF
 v_free ts.defaultwalls
 oldpaste = ts.canpaste
