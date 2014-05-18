@@ -405,7 +405,7 @@ elif mac:
         common_modules += ['mac/SDLmain.m']
         commonenv['FBFLAGS'] += ['-entry', 'SDL_main']
         if env.WhereIs('sdl-config'):
-            commonenv['CFLAGS'] += [get_run_command("sdl-config --cflags").split()]
+            commonenv.ParseConfig('sdl-config --cflags')
         else:
             commonenv['CFLAGS'] += ["-I", "/Library/Frameworks/SDL.framework/Headers", "-I", FRAMEWORKS_PATH + "/SDL.framework/Headers"]
 elif android:
