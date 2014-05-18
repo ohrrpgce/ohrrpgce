@@ -567,9 +567,15 @@ SUB find_required_dlls(gameplayer as string, byref files as string vector)
 
 #IFDEF __FB_WIN32__
  IF gameplayer = exepath & SLASH & "game.exe" THEN
-  '--if we are using a copy of the currently windows version,
+  '--If we are using a copy of the current Windows version,
   '--the backend might be non-default
-  SELECT CASE gfxbackend
+  DIM gfxbackend_to_use as string = gfxbackend
+  IF gen(genResolutionX) <> 320 OR gen(genResolutionY) <> 200 THEN
+   'Only one that will work
+   gfxbackend_to_use = "sdl"
+  END IF
+
+  SELECT CASE gfxbackend_to_use
    CASE "directx":
     IF v_find(files, "gfx_directx.dll") = -1 THEN v_append(files, "gfx_directx.dll")
    CASE "sdl":
@@ -594,7 +600,9 @@ SUB find_required_dlls(gameplayer as string, byref files as string vector)
  
  '--for all other cases and all other platforms, we use
  '--the dll files for the default backend(s) on windows
- v_append files, "gfx_directx.dll"
+ IF gen(genResolutionX) = 320 AND gen(genResolutionY) = 200 THEN
+  v_append files, "gfx_directx.dll"
+ END IF
  v_append files, "SDL.dll"
  v_append files, "SDL_mixer.dll"
 END SUB

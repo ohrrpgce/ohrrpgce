@@ -1277,6 +1277,9 @@ SUB resolution_menu ()
  st.size = 24
  st.last = UBOUND(menu)
 
+ 'FIXME: selecting a resolution other than 320x200 causes the distrib menu
+ 'to not package gfx_directx.dll; remove that when gfx_directx is updated
+
  DO
   setwait 55
   setkeys
