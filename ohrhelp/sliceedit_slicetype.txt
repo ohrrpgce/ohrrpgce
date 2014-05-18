@@ -15,3 +15,5 @@ Ellipse - An ellipse which can have a fill-color and a border-color
 Scroll - A special container that draws scrollbars if its child slices are too big to fit inside it
 
 Select - A special container that manages the visibility of its children. Only one selected child will be visible, and all other children will be hidden
+
+Panel - A special container that only allows 2 children. The panel space will be divided between the two children according to a percentage or a fixed number of pixels.

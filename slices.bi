@@ -69,6 +69,7 @@ Enum SliceTypes
  slEllipse
  slScroll
  slSelect
+ slPanel
 End Enum
 
 Enum AttachTypes
@@ -269,6 +270,15 @@ Type SelectSliceData
                      ' and never saved/loaded
 End Type
 
+Type PanelSliceData
+ vertical as bool 'Defaults to horizontal. Becomes vertical if this is YES
+ primary as integer '0 or 1, determines if the first or second child is primary
+ pixels as integer 'Fixed-pixel size of the primary. Pixels and percent are combined.
+ percent as double 'Percent size of the primary. Pixels and percent are combined
+                    'stored as a float. 1.0=100% 0.5=50% 0.01=1%
+ padding as integer ' pixels of padding between the sub-panels
+End Type
+
 Extern "C"
 
 DECLARE Sub SetupGameSlices
@@ -418,6 +428,14 @@ DECLARE Function NewSelectSlice(byval sl as slice ptr, byref dat as SelectSliceD
 DECLARE Sub ChangeSelectSlice(byval sl as slice ptr,_
                       byval index as integer=-2,_
                       byval override as integer=-2) ' All arguments default to no change
+
+DECLARE Function NewPanelSlice(byval parent as Slice ptr, byref dat as PanelSliceData) as slice ptr
+DECLARE Sub ChangePanelSlice(byval sl as slice ptr,_
+                      byval vertical as integer=-2,_ 'verical is actually bool, use -2 to signal no change
+                      byval primary as integer=-1,_
+                      byval pixels as integer=-1,_
+                      byval percent as double=-1.0,_
+                      byval padding as integer=-1)
 
 '--Saving and loading slices
 DECLARE Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr, save_handles as bool=NO)

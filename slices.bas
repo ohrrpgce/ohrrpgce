@@ -23,6 +23,7 @@
 
 'Reload helper functions used by saving/loading
 DECLARE Sub SaveProp OVERLOAD (node as Reload.Nodeptr, propname as string, byval value as integer)
+DECLARE Sub SaveProp OVERLOAD (node as Reload.Nodeptr, propname as string, byval value as double)
 DECLARE Sub SaveProp OVERLOAD (node as Reload.Nodeptr, propname as string, s as string)
 
 EXTERN "C"
@@ -30,6 +31,7 @@ EXTERN "C"
 DECLARE Function LoadPropStr(node as Reload.Nodeptr, propname as string, defaultval as string="") as string
 DECLARE Function LoadProp(node as Reload.Nodeptr, propname as string, byval defaultval as integer=0) as integer
 DECLARE Function LoadPropBool(node as Reload.Nodeptr, propname as string, byval defaultval as integer=NO) as integer
+DECLARE Function LoadPropFloat(node as Reload.Nodeptr, propname as string, byval defaultval as double=0.0) as double
 
 'Other local subs and functions
 DECLARE Function SliceXAlign(byval sl as Slice Ptr, byval alignTo as Slice Ptr) as integer
@@ -213,6 +215,7 @@ FUNCTION SliceTypeByName (s as string) as SliceTypes
   CASE "Ellipse":        RETURN slEllipse
   CASE "Scroll":         RETURN slScroll
   CASE "Select":         RETURN slSelect
+  CASE "Panel":          RETURN slPanel
  END SELECT
  debugc errError, "Unrecognized slice name """ & s & """"
  RETURN slInvalid
@@ -238,6 +241,7 @@ FUNCTION SliceTypeName (t as SliceTypes) as string
   CASE slEllipse:        RETURN "Ellipse"
   CASE slScroll:         RETURN "Scroll"
   CASE slSelect:         RETURN "Select"
+  CASE slPanel:          RETURN "Panel"
  END SELECT
  RETURN "Unknown"
 END FUNCTION
@@ -343,6 +347,9 @@ FUNCTION NewSliceOfType (byval t as SliceTypes, byval parent as Slice Ptr=0, byv
   CASE slSelect:
    DIM dat as SelectSliceData
    newsl = NewSelectSlice(parent, dat)
+  CASE slPanel:
+   DIM dat as PanelSliceData
+   newsl = NewPanelSlice(parent, dat)
   CASE ELSE
    debug "NewSliceByType: Warning! type " & t & " is invalid"
    newsl = NewSlice(parent)
@@ -2160,6 +2167,207 @@ Sub ChangeSelectSlice(byval sl as slice ptr,_
  end with
 end sub
 
+'--Panel-------------------------------------------------------------------
+Sub DisposePanelSlice(byval sl as slice ptr)
+ if sl = 0 then exit sub
+ if sl->SliceData = 0 then exit sub
+ dim dat as PanelSliceData ptr = cptr(PanelSliceData ptr, sl->SliceData)
+ delete dat
+ sl->SliceData = 0
+end sub
+
+Sub ClonePanelSlice(byval sl as slice ptr, byval cl as slice ptr)
+ if sl = 0 or cl = 0 then debug "ClonePanelSlice null ptr": exit sub
+ dim dat as PanelSliceData Ptr
+ dat = sl->SliceData
+ dim clonedat as PanelSliceData Ptr
+ clonedat = cl->SliceData
+ with *clonedat
+  .vertical = dat->vertical
+  .primary = dat->primary
+  .pixels = dat->pixels
+  .percent = dat->percent
+  .padding = dat->padding
+ end with
+end sub
+
+Sub SavePanelSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
+ if sl = 0 or node = 0 then debug "SavePanelSlice null ptr": exit sub
+ DIM dat as PanelSliceData Ptr
+ dat = sl->SliceData
+ SaveProp node, "vertical", dat->vertical
+ SaveProp node, "primary", dat->primary
+ SaveProp node, "pixels", dat->pixels
+ SaveProp node, "percent", dat->percent
+ SaveProp node, "padding", dat->padding
+End Sub
+
+Sub LoadPanelSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
+ if sl = 0 or node = 0 then debug "LoadPanelSlice null ptr": exit sub
+ dim dat as PanelSliceData Ptr
+ dat = sl->SliceData
+ dat->vertical = LoadPropBool(node, "vertical")
+ dat->primary = bound(LoadProp(node, "primary"), 0, 1)
+ dat->pixels = LoadProp(node, "pixels")
+ dat->percent = LoadPropFloat(node, "percent")
+ dat->padding = LoadProp(node, "padding")
+End Sub
+
+Sub PanelChildRefresh(byval par as slice ptr, byval ch as slice ptr)
+ if ch = 0 then debug "PanelChildRefresh null ptr": exit sub
+ 
+ '--get panel data
+ dim dat as PanelSliceData ptr
+ dat = par->SliceData
+ 
+ dim slot as integer = IndexAmongSiblings(ch)
+ if slot > 1 then
+  'Panel only expects 2 children
+  exit sub
+ end if
+
+ dim axis as integer = 0
+ if dat->vertical then axis = 1
+ dim other as integer = axis XOR 1
+
+ dim innersize as XYPair
+ innersize.x = par->Width
+ innersize.y = par->Height
+ dim size as XYpair
+ dim prsize as integer
+ dim spos as XYpair
+ dim prepad as XYPair
+ dim postpad as XYPair
+ prepad.x = par->paddingLeft
+ postpad.x = par->paddingRight
+ prepad.y = par->paddingTop
+ postpad.y = par->paddingBottom
+
+ innersize.n(axis) -= prepad.n(axis) + postpad.n(axis) + dat->padding
+ innersize.n(other) -= prepad.n(other) + postpad.n(other)
+ size.n(other) = innersize.n(other)
+ spos.n(other) = prepad.n(other)
+ prsize = int(innersize.n(axis) * dat->percent) + dat->pixels
+ if slot = dat->primary then
+  size.n(axis) = prsize
+ else
+  size.n(axis) = innersize.n(axis) - prsize
+ end if
+ if slot = 0 then
+  spos.n(axis) = prepad.n(axis)
+ else
+  if slot = dat->primary then
+   spos.n(axis) = prepad.n(axis) + (innersize.n(axis) - prsize) + dat->padding
+  else
+   spos.n(axis) = prepad.n(axis) + prsize + dat->padding
+  end if
+ end if
+ 
+ with *ch
+  if .Fill then
+   .ScreenX = par->ScreenX + spos.x
+   .ScreenY = par->ScreenY + spos.y
+   .Width = size.w
+   .Height = size.h
+  else ' Not fill
+   select case ch->AlignHoriz
+    case 0: .ScreenX = par->ScreenX + spos.x - SliceXAnchor(ch) + ch->X
+    case 1: .ScreenX = par->ScreenX + spos.x + size.w / 2 - SliceXAnchor(ch) + ch->X
+    case 2: .ScreenX = par->ScreenX + spos.x + size.w - SliceXAnchor(ch) + ch->X
+   end select
+   select case ch->AlignVert
+    case 0: .ScreenY = par->ScreenY + spos.y - SliceYAnchor(ch) + ch->Y
+    case 1: .ScreenY = par->ScreenY + spos.y + size.h / 2 - SliceYAnchor(ch) + ch->Y
+    case 2: .ScreenY = par->ScreenY + spos.y + size.h - SliceYAnchor(ch) + ch->Y
+   end select
+  end if
+ end with
+End sub
+
+Sub PanelChildDraw(Byval s as Slice Ptr, byval page as integer)
+ 'NOTE: this Sub only handles the clipping of the children of a Panel slice which
+ '      is set to clip. It might seem the logical place to position the children
+ '      too, but that's in PanelChildRefresh. Which is probably correct: drawing
+ '      and calculating position are independent.
+ 'NOTE: we don't bother to null check s here because this sub is only
+ '      ever called from DrawSlice which does null check it.
+
+ 'No clipping support yet :(
+ 
+ with *s
+
+  'draw the slice's children
+  dim index as integer = 0
+  dim ch as slice ptr = .FirstChild
+  do while ch <> 0
+
+   DrawSlice(ch, page)
+
+   index += 1
+   if index > 1 then exit do ' Only ever draw the first 2 children!
+   ch = ch->NextSibling
+  Loop
+
+ end with
+End Sub
+
+Function NewPanelSlice(byval parent as Slice ptr, byref dat as PanelSliceData) as slice ptr
+ dim ret as Slice ptr
+ ret = NewSlice(parent)
+ if ret = 0 then 
+  debug "Out of memory?!"
+  return 0
+ end if
+ 
+ dim d as PanelSliceData ptr = new PanelSliceData
+ *d = dat
+ '--Set non-zero defaults here
+ d->percent = 0.5
+ 
+ ret->SliceType = slPanel
+ ret->SliceData = d
+ ret->Dispose = @DisposePanelSlice
+ ret->Clone = @ClonePanelSlice
+ ret->Save = @SavePanelSlice
+ ret->Load = @LoadPanelSlice
+ ret->ChildRefresh = @PanelChildRefresh
+ ret->ChildDraw = @PanelChildDraw
+ 
+ return ret
+end function
+
+Function GetPanelSliceData(byval sl as slice ptr) as PanelSliceData ptr
+ if sl = 0 then debug "GetPanelSliceData null ptr": return 0
+ return sl->SliceData
+End Function
+
+'All arguments default to no-change
+Sub ChangePanelSlice(byval sl as slice ptr,_
+                      byval vertical as integer=-2,_ 'verical is actually bool, use -2 to signal no change
+                      byval primary as integer=-1,_
+                      byval pixels as integer=-1,_
+                      byval percent as double=-1.0,_
+                      byval padding as integer=-1)
+ if sl = 0 then debug "ChangePanelSlice null ptr" : exit sub
+ if sl->SliceType <> slPanel then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a panel" : exit sub
+ dim dat as PanelSliceData Ptr = sl->SliceData
+ if vertical <> -2 then
+  dat->vertical = vertical <> 0
+ end if
+ if primary >= 0 then
+  dat->primary = small(primary, 1)
+ end if
+ if pixels >= 0 then
+  dat->pixels = pixels
+ end if
+ if percent <> -1.0 then
+  dat->percent = percent
+ end if
+ if padding >= 0 then
+  dat->padding = padding
+ end if
+end sub
+
 '==General slice display=======================================================
 
 Function GetSliceDrawAttachParent(byval sl as Slice Ptr) as Slice Ptr
@@ -2608,6 +2816,11 @@ Sub SaveProp(node as Reload.Nodeptr, propname as string, byval value as integer)
  Reload.SetChildNode(node, propname, CLNGINT(value))
 End Sub
 
+Sub SaveProp(node as Reload.Nodeptr, propname as string, byval value as double)
+ if node = 0 then debug "SaveProp null node ptr": Exit Sub
+ Reload.SetChildNode(node, propname, value)
+End Sub
+
 Sub SaveProp(node as Reload.Nodeptr, propname as string, s as string)
  if node = 0 then debug "SaveProp null node ptr": Exit Sub
  Reload.SetChildNode(node, propname, s)
@@ -2725,6 +2938,11 @@ End function
 Function LoadPropBool(node as Reload.Nodeptr, propname as string, byval defaultval as integer=NO) as integer
  if node = 0 then debug "LoadPropBool null node ptr": return defaultval
  return Reload.GetChildNodeBool(node, propname, defaultval)
+End function
+
+Function LoadPropFloat(node as Reload.Nodeptr, propname as string, byval defaultval as double=0.0) as double
+ if node = 0 then debug "LoadPropFloat null node ptr": return defaultval
+ return Reload.GetChildNodeFloat(node, propname, defaultval)
 End function
 
 Sub SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr, load_handles as bool=NO)

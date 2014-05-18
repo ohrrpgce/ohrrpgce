@@ -192,6 +192,8 @@ DECLARE FUNCTION describe_tag_autoset_places(byval tag_id as integer) as string
 DECLARE FUNCTION onoroff (byval n as integer) as string
 DECLARE FUNCTION yesorno (byval n as integer, yes_cap as string="YES", no_cap as string="NO") as string
 DECLARE FUNCTION format_percent (byval float as double, byval sigfigs as integer = 5) as string
+DECLARE FUNCTION percent_grabber OVERLOAD (byref float as double, repr as string, byval min as double, byval max as double, byval decimalplaces as integer = 4) as integer
+DECLARE FUNCTION percent_grabber OVERLOAD (byref float as single, repr as string, byval min as double, byval max as double, byval decimalplaces as integer = 4) as integer
 
 DECLARE FUNCTION enter_space_click (state as MenuState) as integer
 DECLARE FUNCTION enter_or_space () as integer

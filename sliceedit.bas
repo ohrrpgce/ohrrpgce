@@ -49,6 +49,7 @@ ENUM EditRuleMode
   erIntgrabber
   erStrgrabber
   erToggle
+  erPercentgrabber
 END ENUM
 
 TYPE EditRule
@@ -62,7 +63,7 @@ END TYPE
 
 '==============================================================================
 
-REDIM SHARED editable_slice_types(7) as SliceTypes
+REDIM SHARED editable_slice_types(8) as SliceTypes
 editable_slice_types(0) = SlContainer
 editable_slice_types(1) = SlRectangle
 editable_slice_types(2) = SlSprite
@@ -71,6 +72,7 @@ editable_slice_types(4) = SlGrid
 editable_slice_types(5) = SlEllipse
 editable_slice_types(6) = SlScroll
 editable_slice_types(7) = SlSelect
+editable_slice_types(8) = SlPanel
 
 '==============================================================================
 
@@ -628,6 +630,11 @@ SUB slice_edit_detail_keys (byref state as MenuState, sl as Slice Ptr, rootsl as
      state.need_update = YES
     END IF
    END IF
+  CASE erPercentgrabber
+   DIM n as double ptr = rule.dataptr
+   IF percent_grabber(*n, format_percent(*n), 0.0, 1.0) THEN
+    state.need_update = YES
+   END IF
  END SELECT
  IF rule.group AND slgrPICKTYPE THEN
   DIM switchtype as integer = NO
@@ -885,6 +892,19 @@ SUB slice_edit_detail_refresh (byref state as MenuState, menu() as string, sl as
     dat = .SliceData
     str_array_append menu(), "Selected Child: " & dat->index
     sliceed_rule rules(), "select_index", erIntgrabber, @(dat->index), 0, 9999999, slgrEDITSWITCHINDEX 'FIXME: this is an arbitrary upper limit
+   CASE slPanel
+    DIM dat as PanelSliceData Ptr
+    dat = .SliceData
+    str_array_append menu(), "Orientation: " & yesorno(dat->vertical, "Vertical", "Horizontal")
+    sliceed_rule_tog rules(), "panel_vertical", @(dat->vertical)
+    str_array_append menu(), "Primary Child: " & dat->primary
+    sliceed_rule rules(), "panel_primary", erIntgrabber, @(dat->primary), 0, 1
+    str_array_append menu(), "Primary Child Pixels: " & dat->pixels
+    sliceed_rule rules(), "panel_pixels", erIntgrabber, @(dat->pixels), 0, 9999 'FIXME: upper limit of 9999 is totally arbitrary
+    str_array_append menu(), "Primary Child Percent: " & format_percent(dat->percent)
+    sliceed_rule rules(), "panel_percent", erPercentgrabber, @(dat->percent)
+    str_array_append menu(), "Padding Between Children: " & dat->padding
+    sliceed_rule rules(), "panel_padding", erIntgrabber, @(dat->padding), 0, 9999 'FIXME: upper limit of 9999 is totally arbitrary
 
   END SELECT
   str_array_append menu(), "Visible: " & yesorno(.Visible)

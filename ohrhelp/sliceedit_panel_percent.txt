@@ -1,0 +1,3 @@
+Choose a percentage of the Panel's size that will be given to the primary child.
+
+This is added together with the pixel size.

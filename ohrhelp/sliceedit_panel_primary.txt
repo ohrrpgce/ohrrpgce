@@ -1,0 +1,5 @@
+Here you choose which of the Panel's two children will be the primary one.
+
+The primary child is the one for which you choose a size in percentage or pixels.
+
+The other non-primary child will get whatever space is left over.
