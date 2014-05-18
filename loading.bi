@@ -122,8 +122,11 @@ DECLARE SUB DeSerAttackElementCond (byref cond as AttackElementCondition, buf() 
 DECLARE SUB convertattackdata(buf() as integer, byref atkdat as AttackData)
 DECLARE SUB saveattackdata (array() as integer, byval index as integer)
 
-DECLARE SUB loadtanim (byval n as integer, tastuf() as integer)
-DECLARE SUB savetanim (byval n as integer, tastuf() as integer)
+DECLARE SUB load_tile_anims (byval tileset_num as integer, tastuf() as integer)
+DECLARE SUB save_tile_anims (byval tileset_num as integer, tastuf() as integer)
+DECLARE FUNCTION tile_anim_deanimate_tile (tileid as integer, tastuf() as integer) as integer
+DECLARE FUNCTION tile_anim_animate_tile (tileid as integer, pattern_num as integer, tastuf() as integer) as integer
+DECLARE FUNCTION tile_anim_is_empty(pattern_num as integer, tastuf() as integer) as bool
 
 DECLARE SUB getpal16 (array() as integer, byval aoffset as integer, byval foffset as integer, byval autotype as integer=-1, byval sprite as integer=0)
 DECLARE SUB storepal16 (array() as integer, byval aoffset as integer, byval foffset as integer)

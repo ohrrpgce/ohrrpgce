@@ -2753,26 +2753,26 @@ SUB cycletile (tanim_state() as TileAnimState, tastuf() as integer)
     notstuck = 10
     DO
      SELECT CASE tastuf(2 + 20 * i + .pt)
-      CASE 0
+      CASE 0  'End of animation
        IF .pt <> 0 THEN .cycle = 0  'this is done for the tile animation plotscript commands
        .pt = 0
-      CASE 1
+      CASE 1  'Left
        .cycle = .cycle - tastuf(11 + 20 * i + .pt) * 16
        .pt = loopvar(.pt, 0, 8, 1)
-      CASE 2
+      CASE 2  'Right
        .cycle = .cycle + tastuf(11 + 20 * i + .pt) * 16
        .pt = loopvar(.pt, 0, 8, 1)
-      CASE 3
+      CASE 3  'Down
        .cycle = .cycle + tastuf(11 + 20 * i + .pt)
        .pt = loopvar(.pt, 0, 8, 1)
-      CASE 4
+      CASE 4  'Up
        .cycle = .cycle - tastuf(11 + 20 * i + .pt)
        .pt = loopvar(.pt, 0, 8, 1)
-      CASE 5
+      CASE 5  'Wait
        .skip = tastuf(11 + 20 * i + .pt)
        .pt = loopvar(.pt, 0, 8, 1)
 #IFDEF IS_GAME
-      CASE 6
+      CASE 6  'If tag then stop
        IF istag(tastuf(11 + 20 * i + .pt), 0) THEN
         .pt = loopvar(.pt, 0, 8, 1)
        ELSE
@@ -2780,7 +2780,7 @@ SUB cycletile (tanim_state() as TileAnimState, tastuf() as integer)
         .cycle = 0
        END IF
 #ENDIF
-      CASE ELSE
+      CASE ELSE  'Invalid
        .pt = loopvar(.pt, 0, 8, 1)
      END SELECT
      notstuck = large(notstuck - 1, 0)
@@ -3122,7 +3122,7 @@ IF gen(genVersion) = 1 THEN
   buffer(11 + o + 3) = 1
  NEXT i
  FOR i as integer = 0 TO 14
-  savetanim i, buffer()
+  save_tile_anims i, buffer()
  NEXT i
  DIM tx as integer, ty as integer
  DIM tmap as TileMap
@@ -4392,7 +4392,7 @@ SUB loadtilesetdata (tilesets() as TilesetData ptr, byval layer as integer, byva
    'debug "loading tileset " & tilesetnum
 
    .spr = tileset_load(tilesetnum)
-   loadtanim tilesetnum, .tastuf()
+   load_tile_anims tilesetnum, .tastuf()
   END WITH
  END IF
  FOR i as integer = 0 TO 1
@@ -4447,7 +4447,7 @@ SUB reloadtileanimations (tilesets() as TilesetData ptr, gmap() as integer)
    tileset = gmap(0)
   END IF
 
-  loadtanim tileset, tilesets(i)->tastuf()
+  load_tile_anims tileset, tilesets(i)->tastuf()
   FOR j as integer = 0 TO 1
    WITH tilesets(i)->anim(j)
     .cycle = 0

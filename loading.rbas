@@ -2629,18 +2629,49 @@ END SUB
 '==========================================================================================
 '                                  Tile animation patterns
 '==========================================================================================
+' Other functions for working with tile animations are in common.rbas
 
-
-SUB loadtanim (byval n as integer, tastuf() as integer)
+SUB load_tile_anims (byval tileset_num as integer, tastuf() as integer)
  setpicstuf tastuf(), 80, -1
- loadset game & ".tap", n, 0
+ loadset game & ".tap", tileset_num, 0
 END SUB
 
-SUB savetanim (byval n as integer, tastuf() as integer)
+SUB save_tile_anims (byval tileset_num as integer, tastuf() as integer)
  setpicstuf tastuf(), 80, -1
- storeset game & ".tap", n, 0
+ storeset game & ".tap", tileset_num, 0
 END SUB
 
+'Given a tile ID which may or may not be animated, return the tile number for the
+'non-animated version of the tile (which is the initial tile in the animation)
+FUNCTION tile_anim_deanimate_tile (tileid as integer, tastuf() as integer) as integer
+ IF tileid >= 208 THEN tileid = (tileid - 208) + tastuf(20)
+ IF tileid >= 160 THEN tileid = (tileid - 160) + tastuf(0)
+ RETURN tileid
+END FUNCTION
+
+'Given a tile ID which may or may not be animated, return the tile number for the
+'animated version in one of the animation patterns 0 or 1, or -1 for no animation.
+'Returns -1 if the tile can't be animated.
+FUNCTION tile_anim_animate_tile (tileid as integer, pattern_num as integer, tastuf() as integer) as integer
+ IF tileid >= 160 THEN
+  tileid = tile_anim_deanimate_tile(tileid, tastuf())
+ END IF
+ IF pattern_num = -1 THEN
+  RETURN tileid
+ END IF
+ DIM idoffset as integer
+ idoffset = tileid - tastuf(pattern_num * 20)  'subtract start of range
+ IF idoffset < 0 OR idoffset >= 48 THEN
+  RETURN -1
+ END IF
+ RETURN 160 + 48 * pattern_num + idoffset
+END FUNCTION
+
+'Returns whether one of the tile animation patterns is unused (0 length)
+FUNCTION tile_anim_is_empty(pattern_num as integer, tastuf() as integer) as bool
+ 'IF first command is 'End of animation'
+ RETURN tastuf(20 * pattern_num + 2) = 0
+END FUNCTION
 
 '==========================================================================================
 '                                     16-color palettes

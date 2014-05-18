@@ -1836,7 +1836,10 @@ sub drawmap (tmap as TileMap, byval x as integer, byval y as integer, byval tile
 end sub
 
 sub drawmap (tmap as TileMap, byval x as integer, byval y as integer, byval tilesetsprite as Frame ptr, byval dest as Frame ptr, byval trans as bool = NO, byval overheadmode as integer = 0, byval pmapptr as TileMap ptr = NULL, byval largetileset as bool = NO)
-'This version of drawmap paints over the entire dest Frame given to it
+'This version of drawmap paints over the entire dest Frame given to it.
+'x and y are the camera position at the top left corner of the Frame, not
+'the position at which the top left of the map is drawn: this is the OPPOSITE
+'to all other drawing commands!
 'overheadmode = 0 : draw all tiles normally
 'overheadmode = 1 : draw non overhead tiles only (to avoid double draw)
 'overheadmode = 2 : draw overhead tiles only

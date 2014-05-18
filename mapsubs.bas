@@ -18,7 +18,6 @@ DECLARE FUNCTION addmaphow () as integer
 
 DECLARE FUNCTION hilite (what as string) as string
 
-DECLARE FUNCTION animadjust(byval tilenum as integer, tastuf() as integer) as integer
 DECLARE SUB loadpasdefaults (byref defaults as integer vector, tilesetnum as integer)
 
 DECLARE SUB fill_map_area(st as MapEditState, byval x as integer, byval y as integer, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap, reader as FnReader)
@@ -197,15 +196,6 @@ DO
  setvispage vpage
  dowait
 LOOP
-END FUNCTION
-
-FUNCTION animadjust (byval tilenum as integer , tastuf() as integer) as integer
- 'given a tile number and the tile-animation data,
- 'adjusts to make sure the tile is non-animated
- DIM pic as integer = tilenum
- IF pic >= 208 THEN pic = (pic - 208) + tastuf(20)
- IF pic >= 160 THEN pic = (pic - 160) + tastuf(0)
- RETURN pic
 END FUNCTION
 
 SUB make_map_picker_menu(topmenu() as string, state as MenuState)
@@ -841,7 +831,7 @@ DO
 
    IF keyval(scEnter) > 1 THEN mapedit_pickblock st
    IF keyval(scG) > 1 THEN 'grab tile
-    st.usetile(st.layer) = animadjust(readblock(map(st.layer), st.x, st.y), st.tilesets(st.layer)->tastuf())
+    st.usetile(st.layer) = tile_anim_deanimate_tile(readblock(map(st.layer), st.x, st.y), st.tilesets(st.layer)->tastuf())
     update_tilepicker st
    END IF
    IF keyval(scCtrl) = 0 THEN
@@ -3531,7 +3521,7 @@ SUB calculatepassblock(st as MapEditState, x as integer, y as integer, map() as 
  FOR i as integer = 0 TO UBOUND(map)
   tilenum = readblock(map(i), x, y)
   IF i = 0 OR tilenum > 0 THEN
-   n = n OR st.defaultwalls[i][animadjust(tilenum, st.tilesets(i)->tastuf())]
+   n = n OR st.defaultwalls[i][tile_anim_deanimate_tile(tilenum, st.tilesets(i)->tastuf())]
   END IF
  NEXT i
  DIM oldval as integer = readblock(pass, x, y)
