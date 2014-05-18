@@ -993,7 +993,8 @@ STATIC lastscript as integer
 
 DIM plots as string
 DIM marginstr as string
-DIM strings() as string
+' Displayed lines in the plotstring view mode. The last element of the array is ignored
+REDIM stringlines(0 TO 0) as string
 DIM linelen as integer
 DIM page as integer
 
@@ -1008,25 +1009,28 @@ IF mode >= 2 THEN
 END IF
 
 FOR i as integer = 0 TO UBOUND(plotstr)
+ ' Split each plotstring up onto multiple lines, each line is an element of stringlines
  plots = plotstr(i).s
  marginstr = LEFT(i & ": ", 3)
+ ' Wrap the string
  linelen = 0
  FOR j as integer = 0 TO LEN(plots) - 1
   linelen += 1
   IF (linelen = 37 OR plots[j] = ASC(!"\n")) AND j <> LEN(plots) - 1 THEN 
    'notice intentional waste of last string
-   REDIM PRESERVE strings(UBOUND(strings) + 1)
-   strings(UBOUND(strings) - 1) = marginstr + MID(plots, (j + 2) - linelen, linelen)
+   REDIM PRESERVE stringlines(UBOUND(stringlines) + 1)
+   stringlines(UBOUND(stringlines) - 1) = marginstr + MID(plots, (j + 2) - linelen, linelen)
    marginstr = "   "
    linelen = 0
   END IF
  NEXT
- REDIM PRESERVE strings(UBOUND(strings) + 1)
- IF UBOUND(strings) > 0 THEN
-  strings(UBOUND(strings) - 1) = marginstr + MID(plots, LEN(plots) + 1 - linelen, linelen)
+ ' Add the final piece
+ REDIM PRESERVE stringlines(UBOUND(stringlines) + 1)
+ IF UBOUND(stringlines) > 0 THEN
+  stringlines(UBOUND(stringlines) - 1) = marginstr + MID(plots, LEN(plots) + 1 - linelen, linelen)
  END IF
 NEXT
-stringsscroll = small(stringsscroll, (UBOUND(strings) - 1) - 19) 'recall one string wasted
+stringsscroll = small(stringsscroll, (UBOUND(stringlines) - 1) - 19) 'recall that one string wasted
 
 IF nowscript >= 0 THEN
  WITH scriptinsts(nowscript)
@@ -1063,7 +1067,7 @@ IF selectedscript = lastscript THEN selectedscript = nowscript
 lastscript = nowscript
 
 DIM hasargs as integer
-IF nowscript >= 0 THEN 
+IF nowscript >= 0 THEN
  SELECT CASE scriptinsts(nowscript).curkind
   CASE tynumber, tyglobal, tylocal
    hasargs = 0
@@ -1082,7 +1086,7 @@ DIM ol as integer = 191
 IF mode > 1 AND viewmode = 0 THEN
  IF nowscript = -1 THEN
   edgeprint "Extended script debug mode: no scripts", 0, ol, uilook(uiDescription), page
-  ol -= 9 
+  ol -= 9
  ELSE
   DIM decmpl as string = scriptstate(selectedscript)
   IF LEN(decmpl) > 200 THEN decmpl = "..." & RIGHT(decmpl, 197)
@@ -1152,14 +1156,14 @@ IF mode > 1 AND viewmode = 2 THEN
 END IF
 
 IF mode > 1 AND viewmode = 3 THEN
- 'display strings, 20 lines at a time
+ 'display stringlines, 20 lines at a time
  FOR i as integer = 19 TO 0 STEP -1
-  IF MID(strings(i + stringsscroll), 1, 1) <> " " THEN
+  IF MID(stringlines(i + stringsscroll), 1, 1) <> " " THEN
    'string number text
-   edgeprint MID(strings(i + stringsscroll), 1, 3), 0, ol, uilook(uiText), page   
+   edgeprint MID(stringlines(i + stringsscroll), 1, 3), 0, ol, uilook(uiText), page
   END IF
   textcolor uilook(uiText), uilook(uiDescription)
-  printstr MID(strings(i + stringsscroll), 4), 3*8, ol, page
+  printstr MID(stringlines(i + stringsscroll), 4), 3*8, ol, page
   ol -= 9
  NEXT
  edgeprint "Plotstrings:", 0, ol, uilook(uiText), page
@@ -1309,7 +1313,7 @@ IF mode > 1 AND drawloop = 0 THEN
 
   IF viewmode = 1 THEN localsscroll = small(large(numlocals - 8, 0), localsscroll + 3): GOTO redraw
   IF viewmode = 2 THEN globalsscroll = small(maxScriptGlobals - 59, globalsscroll + 21): GOTO redraw
-  IF viewmode = 3 THEN stringsscroll = small(stringsscroll + 1, (UBOUND(strings) - 1) - 19): GOTO redraw
+  IF viewmode = 3 THEN stringsscroll = small(stringsscroll + 1, (UBOUND(stringlines) - 1) - 19): GOTO redraw
   IF viewmode = 4 THEN timersscroll = small(timersscroll + 4, UBOUND(timers) - 18): GOTO redraw
  END IF
 
