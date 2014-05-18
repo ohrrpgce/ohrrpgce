@@ -1960,7 +1960,7 @@ SUB sfunctions(byval cmdid as integer)
         IF gmap(layer_tileset_index(i)) = 0 THEN loadtilesetdata tilesets(), i, retvals(0)
        NEXT
       END IF
-     ELSEIF retvals(1) >= 0 AND retvals(1) <= UBOUND(maptiles) AND retvals(0) >= 0 THEN
+     ELSEIF valid_map_layer(retvals(1), serrWarn) AND retvals(0) >= 0 THEN
       'load tileset for an individual layer.
       loadtilesetdata tilesets(), retvals(1), retvals(0)
      END IF
@@ -1977,7 +1977,7 @@ SUB sfunctions(byval cmdid as integer)
        'change default
        gmap(0) = retvals(0)
       END IF
-     ELSEIF retvals(1) >= 0 AND retvals(1) <= UBOUND(maptiles) THEN
+     ELSEIF valid_map_layer(retvals(1), serrWarn) THEN
       'load tileset for an individual layer
       gmap(layer_tileset_index(retvals(1))) = large(0, retvals(0) + 1)
      END IF
@@ -2041,22 +2041,20 @@ SUB sfunctions(byval cmdid as integer)
     loadmaplumps gam.map.id, retvals(0)
    CASE 248'--delete map state
     deletemapstate gam.map.id, retvals(0), "map"
-   CASE 253'--settileanimationoffset
+   CASE 253'--set tile animation offset
     IF curcmd->argc < 3 THEN retvals(2) = 0
-    IF (retvals(0) = 0 OR retvals(0) = 1) AND retvals(2) >= 0 AND retvals(2) <= UBOUND(maptiles) THEN
+    IF (retvals(0) = 0 OR retvals(0) = 1) AND valid_map_layer(retvals(2), serrBound) THEN
      tilesets(retvals(2))->anim(retvals(0)).cycle = retvals(1) MOD 160
     END IF
-   CASE 254'--gettileanimationoffset
+   CASE 254'--get tile animation offset
     IF curcmd->argc < 2 THEN retvals(1) = 0
-    IF (retvals(0) = 0 OR retvals(0) = 1) AND retvals(1) >= 0 AND retvals(1) <= UBOUND(maptiles) THEN
+    IF (retvals(0) = 0 OR retvals(0) = 1) AND valid_map_layer(retvals(1), serrBound) THEN
      scriptret = tilesets(retvals(1))->anim(retvals(0)).cycle
     END IF
-   CASE 255'--animationstarttile
-    IF curcmd->argc < 2 THEN retvals(1) = 0
-    IF retvals(0) < 160 THEN
-     scriptret = retvals(0)
-    ELSEIF retvals(0) < 256 AND retvals(1) >= 0 AND retvals(1) <= UBOUND(maptiles) THEN
-     scriptret = tilesets(retvals(1))->tastuf(((retvals(0) - 160) \ 48) * 20) + (retvals(0) - 160) MOD 48
+   CASE 255'--animation start tile
+    IF curcmd->argc < 2 THEN retvals(1) = 0  'Older versions
+    IF (retvals(0) >= 0 AND retvals(0) < 256) AND valid_map_layer(retvals(1), serrBound) THEN
+     scriptret = tile_anim_deanimate_tile(retvals(0), tilesets(retvals(1))->tastuf())
     END IF
    CASE 258'--check hero wall
     IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
@@ -2285,7 +2283,7 @@ SUB sfunctions(byval cmdid as integer)
      END IF
     END IF
    CASE 306'--layer tileset
-    IF retvals(0) >= 0 AND retvals(0) <= UBOUND(maptiles) THEN
+    IF valid_map_layer(retvals(0), serrBound) THEN
      scriptret = tilesets(retvals(0))->num
     END IF
    CASE 320'--current text box
@@ -2414,6 +2412,14 @@ END FUNCTION
 FUNCTION valid_tile_pos(byval x as integer, byval y as integer) as integer
  IF x < 0 OR y < 0 OR x >= mapsizetiles.x OR y >= mapsizetiles.y THEN
   scripterr current_command_name() + ": invalid map position " & x & "," & y & " -- map is " & mapsizetiles.x & "*" & mapsizetiles.y & " tiles", serrBadOp
+  RETURN NO
+ END IF
+ RETURN YES
+END FUNCTION
+
+FUNCTION valid_map_layer(layer as integer, errorlevel as scriptErrEnum = serrBadOp) as bool
+ IF retvals(0) < 0 OR retvals(0) > UBOUND(maptiles) THEN
+  scripterr current_command_name() + ": invalid map layer " & layer & " -- last map layer is " & UBOUND(maptiles), errorlevel
   RETURN NO
  END IF
  RETURN YES

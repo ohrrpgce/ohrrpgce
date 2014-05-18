@@ -23,6 +23,7 @@ declare function valid_formation(byval form as integer) as integer
 declare function valid_formation_slot(byval form as integer, byval slot as integer) as integer
 declare function valid_zone(byval id as integer) as integer
 declare function valid_door(byval id as integer) as integer
+declare function valid_map_layer(layer as integer, byval errlvl as scriptErrEnum = serrBadOp) as bool
 declare function valid_tile_pos(byval x as integer, byval y as integer) as integer
 declare sub loadmap_gmap(byval mapnum as integer)
 declare sub loadmap_npcl(byval mapnum as integer)
