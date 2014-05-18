@@ -210,7 +210,6 @@ TYPE MapEditState
   usetile(0 to maplayerMax) as integer  'Tile selected for each layer
   menubarstart(0 to maplayerMax) as integer
   menubar as TileMap
-  tilesetview as TileMap
   cursor as GraphicPair
   tilesets(maplayerMax) as TilesetData ptr  'Tilesets is fixed size at the moment. It must always be at least as large as the number of layers on a map
   defaultwalls as integer vector vector  'indexed by layer (variable length) and then by tile (always 0-159)
@@ -221,13 +220,10 @@ TYPE MapEditState
   
   'Most of these could become locals after mapping gosub is broken into real subs
   tiny as bool               'whether or not to show the tiny screen relative to map area
-  anim_newtile as integer   'used when setting animated tiles
-  anim_old as integer       'used when setting animated tiles
   npc_d as integer          'used when placing npcs
   oldpos as XYPair           'used when detecting cursor movement
   oldrel as XYPair           'used when detecting cursor movement
   rate as XYPair             'used for fast cursor movement when holding shift
-  replace_old as integer    'used for replacing tiles
   jig as XYPair              'used for display jiggling
   wallmap_mask as integer    'used by wallbitsbrush
 

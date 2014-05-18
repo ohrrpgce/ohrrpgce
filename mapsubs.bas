@@ -10,6 +10,7 @@
 
 'external subs and functions
 DECLARE SUB npcdef (st as MapEditState, npc_img() as GraphicPair, gmap() as integer, zmap as ZoneMap)
+DECLARE SUB tile_anim_draw_range(tastuf() as integer, byval taset as integer, byval page as integer)
 
 'local subs and functions
 DECLARE SUB make_map_picker_menu (topmenu() as string, state as MenuState)
@@ -513,11 +514,12 @@ modenames(3) = "NPC Placement Mode"
 modenames(4) = "Foe Mapping Mode"
 modenames(5) = "Zone Mapping Mode"
 
-cleantilemap st.menubar, 160, 1
-cleantilemap st.tilesetview, 16, 10
-FOR i as integer = 0 TO 159
+'Due to laziness, the menubar shows all 256 tiles (including animated tiles),
+'while the tileset tile picker hides unused animated tile patterns.
+'See mapedit_pickblock_setup_tileset.
+cleantilemap st.menubar, 255, 1
+FOR i as integer = 0 TO 255
  writeblock st.menubar, i, 0, i
- writeblock st.tilesetview, i MOD 16, i \ 16, i
 NEXT
 st.zoneminimap = NULL
 
@@ -643,7 +645,6 @@ NEXT i
 
 unloadmaptilesets st.tilesets()
 unloadtilemap st.menubar
-unloadtilemap st.tilesetview
 unloadtilemaps map()
 unloadtilemap pass
 unloadtilemap emap
@@ -831,7 +832,7 @@ DO
 
    IF keyval(scEnter) > 1 THEN mapedit_pickblock st
    IF keyval(scG) > 1 THEN 'grab tile
-    st.usetile(st.layer) = tile_anim_deanimate_tile(readblock(map(st.layer), st.x, st.y), st.tilesets(st.layer)->tastuf())
+    st.usetile(st.layer) = readblock(map(st.layer), st.x, st.y)
     update_tilepicker st
    END IF
    IF keyval(scCtrl) = 0 THEN
@@ -839,7 +840,7 @@ DO
      st.usetile(st.layer) = st.usetile(st.layer) - 1
      update_tilepicker st
     END IF
-    IF keyval(scPeriod) > 1 AND st.usetile(st.layer) < 159 THEN
+    IF keyval(scPeriod) > 1 AND st.usetile(st.layer) < st.menubar.wide - 1 THEN
      st.usetile(st.layer) = st.usetile(st.layer) + 1
      update_tilepicker st
     END IF
@@ -850,22 +851,25 @@ DO
     setbit jiggle(), 0, st.layer, (readbit(jiggle(), 0, st.layer) XOR 1)
    END IF
    FOR i as integer = 0 TO 1
+    'Try to animate a tile
     IF keyval(sc1 + i) > 1 THEN 'animate tile
-     st.anim_newtile = -1
-     st.anim_old = readblock(map(st.layer), st.x, st.y)
-     IF st.anim_old >= 160 + i * 48 AND st.anim_old < 160 + i * 48 + 48 THEN
-      st.anim_newtile = (st.anim_old - (160 + (i * 48))) + st.tilesets(st.layer)->tastuf(i * 20)
-     ELSEIF st.anim_old >= st.tilesets(st.layer)->tastuf(i * 20) AND st.anim_old < st.tilesets(st.layer)->tastuf(i * 20) + 48 THEN
-      st.anim_newtile = 160 + (i * 48) + (st.anim_old - st.tilesets(st.layer)->tastuf(i * 20))
+     DIM as integer oldtile, newtile
+     newtile = -1
+     oldtile = readblock(map(st.layer), st.x, st.y)
+     'Returns -1 if can't be done
+     newtile = tile_anim_animate_tile(oldtile, i, st.tilesets(st.layer)->tastuf())
+     IF newtile = oldtile THEN
+      'It was already animated with this pattern, so instead toggle to a non-animated tile
+      newtile = tile_anim_deanimate_tile(oldtile, st.tilesets(st.layer)->tastuf())
      END IF
-     IF st.anim_newtile >= 0 THEN
+     IF newtile >= 0 THEN
       IF keyval(scCtrl) = 0 THEN
-       tilebrush st, st.x, st.y, st.anim_newtile, , map(), pass, emap, zmap
+       tilebrush st, st.x, st.y, newtile, , map(), pass, emap, zmap
       ELSE
        'Like Replace tool, except that can't place animated tiles
        FOR tx as integer = 0 TO st.wide - 1
         FOR ty as integer = 0 TO st.high - 1
-         IF readblock(map(st.layer), tx, ty) = st.anim_old THEN tilebrush st, tx, ty, st.anim_newtile, , map(), pass, emap, zmap
+         IF readblock(map(st.layer), tx, ty) = oldtile THEN tilebrush st, tx, ty, newtile, , map(), pass, emap, zmap
         NEXT ty
        NEXT tx
       END IF
@@ -1258,10 +1262,11 @@ DO
 
    CASE replace_tool
     IF use_draw_tool THEN
-     st.replace_old = st.reader(st, st.x, st.y, , map(), pass, emap, zmap)
+     DIM replace_old as integer
+     replace_old = st.reader(st, st.x, st.y, , map(), pass, emap, zmap)
      FOR ty as integer = 0 to st.high - 1
       FOR tx as integer = 0 to st.wide - 1
-       IF st.reader(st, tx, ty, , map(), pass, emap, zmap) = st.replace_old THEN
+       IF st.reader(st, tx, ty, , map(), pass, emap, zmap) = replace_old THEN
         st.brush(st, tx, ty, st.tool_value, , map(), pass, emap, zmap)
        END IF
       NEXT tx
@@ -1569,15 +1574,15 @@ DO
  IF st.editmode = tile_mode THEN
   'This is to draw tile 0 as fully transparent on layer > 0
   st.menubar.layernum = st.layer
-  draw_background 0, 0, 280, 20, IIF(st.layer > 0, -1, 0), chequer_scroll, vpages(dpage)
+  draw_background 0, 0, vpages(dpage)->w - 40, 20, IIF(st.layer > 0, -1, 0), chequer_scroll, vpages(dpage)
   drawmap st.menubar, st.menubarstart(st.layer) * 20, 0, st.tilesets(st.layer), dpage, YES, , , 0, 20
   'Don't show (black out) the last two tiles on the menubar, because they
   'are overlaid too much by the icons.
-  rectangle 280, 0, 40, 20, uilook(uiBackground), dpage
+  rectangle vpages(dpage)->w - 40, 0, 40, 20, uilook(uiBackground), dpage
  ELSE
-  rectangle 0, 0, 320, 20, uilook(uiBackground), dpage
+  rectangle 0, 0, vpages(dpage)->w, 20, uilook(uiBackground), dpage
  END IF
- rectangle 0, 19, 320, 1, uilook(uiText), dpage
+ rectangle 0, 19, vpages(dpage)->w, 1, uilook(uiText), dpage
 
  '--position finder--
  IF st.tiny THEN
@@ -3241,7 +3246,7 @@ SUB mapedit_delete(st as MapEditState, map() as TileMap, pass as TileMap, emap a
 END SUB
 
 SUB update_tilepicker(st as MapEditState)
- st.menubarstart(st.layer) = bound(st.menubarstart(st.layer), large(st.usetile(st.layer) - 13, 0), small(st.usetile(st.layer), 146))
+ st.menubarstart(st.layer) = bound(st.menubarstart(st.layer), large(st.usetile(st.layer) - 13, 0), small(st.usetile(st.layer), st.menubar.wide - 14))
  IF st.tool = clone_tool AND st.multitile_draw_brush THEN
   'Clone tool behaves like Draw: upon changing the drawing tile (including when changing layer), reset
   st.tool = draw_tool
@@ -3842,7 +3847,7 @@ SUB savepasdefaults (byref defaults as integer vector, tilesetnum as integer)
 END SUB
 
 'Create a clone brush from a section of the tileset
-SUB mapedit_pick_tileset_rect(st as MapEditState, corner1 as XYPair, corner2 as XYPair)
+SUB mapedit_pick_tileset_rect(st as MapEditState, tilesetview as TileMap, corner1 as XYPair, corner2 as XYPair)
  DIM select_rect as RectType
  corners_to_rect_inclusive corner1, corner2, select_rect
  IF select_rect.wide = 1 AND select_rect.high = 1 THEN
@@ -3863,33 +3868,70 @@ SUB mapedit_pick_tileset_rect(st as MapEditState, corner1 as XYPair, corner2 as 
   DIM x as integer = xoff + select_rect.x
   FOR yoff as integer = 0 TO select_rect.high - 1
    DIM y as integer = yoff + select_rect.y
-   DIM tile as integer = int_from_xy(TYPE(x, y), 16, 16)
+   DIM tile as integer = readblock(tilesetview, x, y)
    add_change_step st.cloned, xoff, yoff, tile, mapIDLayer + st.layer
   NEXT
  NEXT
 END SUB
 
+SUB mapedit_pickblock_setup_tileset(st as MapEditState, tilesetview as TileMap, tilesetdata as TilesetData ptr, tilepick as XYPair)
+ tilesetview.layernum = 1
+ cleantilemap tilesetview, 16, 16
+ ' If the selected tile isn't found (because we hide animated tiles if the animation
+ ' pattern is empty), default
+ tilepick = TYPE(0, 0)
+
+ 'First 10 rows are regular tiles
+ FOR i as integer = 0 TO 159
+  writeblock tilesetview, i MOD 16, i \ 16, i
+  IF i = st.usetile(st.layer) THEN tilepick = TYPE(i MOD 16, i \ 16)
+ NEXT
+
+ 'Then draw the two animation pattern ranges if they're used,
+ '3 rows each.
+ DIM tiley as integer = 10
+ FOR pattern as integer = 0 TO 1
+  IF tile_anim_is_empty(pattern, tilesetdata->tastuf()) = NO THEN
+   FOR i as integer = 0 TO 47
+    DIM tileid as integer = 160 + 48 * pattern + i
+    DIM tilepos as XYPair = (i MOD 16, tiley + i \ 16)
+    writeblock tilesetview, tilepos.x, tilepos.y, tileid
+    IF tileid = st.usetile(st.layer) THEN tilepick = tilepos
+   NEXT
+   tiley += 3
+  END IF
+ NEXT
+ tilesetview.high = tiley 
+END SUB
+
 'FIXME: if this were cleaned up to return a tile instead of modifying st.usetile, it could be called
 'from the general map settings menu.
 SUB mapedit_pickblock(st as MapEditState)
- DIM tilepick as XYPair  'Coordinates (in tiles) of the selected tile
+ DIM tilepick as XYPair  'Coordinates (in tiles) of the selected tile in tilesetview
  DIM dragging as bool = NO
- DIM tog as integer = 0
  DIM chequer_scroll as integer
  DIM holdpos as XYPair
+ DIM scrolly as integer = 0 'Y position in pixels of the camera/top of the screen
  DIM bgcolor as integer = 0
  IF st.layer > 0 THEN bgcolor = -1  'scrolling chequer pattern
- tilepick = xy_from_int(st.usetile(st.layer), 16, 16)
- st.tilesetview.layernum = st.layer
+
+ DIM tilesetdata as TilesetData ptr = st.tilesets(st.layer)
+
+ 'Show a view of selectable tiles. The order of the tiles and the size doesn't
+ 'have to be the same as the tileset. This is to allow more flexible tile animations
+ 'systems in future, and larger tilesets.
+ DIM tilesetview as TileMap
+ mapedit_pickblock_setup_tileset st, tilesetview, tilesetdata, tilepick
 
  setkeys
  DO
-  setwait 27, 70
+  setwait 27, 55
   setkeys
   IF keyval(scESC) > 1 THEN
    update_tilepicker st
    EXIT DO
   END IF
+  IF keyval(scF1) > 1 THEN show_help "mapedit_tilemap_picktile"
 
   IF (keyval(scEnter) > 1 OR keyval(scSpace) > 1) AND dragging = NO THEN
    'start drag-selecting a box
@@ -3898,41 +3940,61 @@ SUB mapedit_pickblock(st as MapEditState)
   END IF
   IF keyval(scEnter) = 0 AND keyval(scSpace) = 0 AND dragging = YES THEN
    update_tilepicker st
-   mapedit_pick_tileset_rect st, tilepick, holdpos
+   mapedit_pick_tileset_rect st, tilesetview, tilepick, holdpos
    EXIT DO
   END IF
 
-  IF keyval(scF1) > 1 THEN show_help "mapedit_tilemap_picktile"
-  IF slowkey(scUp, 80) AND tilepick.y > 0 THEN tilepick.y -= 1
-  IF slowkey(scDown, 80) AND tilepick.y < 9 THEN tilepick.y += 1
-  IF slowkey(scLeft, 80) AND tilepick.x > 0 THEN tilepick.x -= 1
-  IF slowkey(scRight, 80) AND tilepick.x < 15 THEN tilepick.x += 1
-  st.usetile(st.layer) = int_from_xy(tilepick, 16, 16)
-  IF slowkey(scComma, 80) AND st.usetile(st.layer) > 0 THEN st.usetile(st.layer) -= 1
-  IF slowkey(scPeriod, 80) AND st.usetile(st.layer) < 159 THEN st.usetile(st.layer) += 1
-  tilepick = xy_from_int(st.usetile(st.layer), 16, 16)
+  DIM repeatms as integer = 80
+  IF keyval(scShift) > 0 THEN repeatms = 40
+  IF slowkey(scUp, repeatms) AND tilepick.y > 0 THEN tilepick.y -= 1
+  IF slowkey(scDown, repeatms) AND tilepick.y < tilesetview.high - 1 THEN tilepick.y += 1
+  IF slowkey(scLeft, repeatms) AND tilepick.x > 0 THEN tilepick.x -= 1
+  IF slowkey(scRight, repeatms) AND tilepick.x < tilesetview.wide - 1 THEN tilepick.x += 1
+  ' This is NOT tile ID, it's linearised index in tilesetview
+  DIM tileoffset as integer = int_from_xy(tilepick, tilesetview.wide, tilesetview.high)
+  IF slowkey(scComma, repeatms) AND tileoffset > 0 THEN tileoffset -= 1
+  IF slowkey(scPeriod, repeatms) AND tileoffset < tilesetview.wide * tilesetview.high - 1 THEN tileoffset += 1
+  tilepick = xy_from_int(tileoffset, tilesetview.wide, tilesetview.high)
+  st.usetile(st.layer) = readblock(tilesetview, tilepick.x, tilepick.y)
 
+  ' Keep the selected tile in view
+  scrolly = bound(scrolly, tilepick.y * 20 + 30 - vpages(vpage)->h, tilepick.y * 20 - 10)
+  ' Don't pver-scroll
+  scrolly = large(small(scrolly, tilesetview.high * 20 - vpages(vpage)->h), 0)
+
+  'Draw screen
   draw_background 0, 0, vpages(vpage)->w, vpages(vpage)->h, bgcolor, chequer_scroll, vpages(vpage)
-  drawmap st.tilesetview, 0, 0, st.tilesets(st.layer), vpage, YES
-  DIM infoline_y as integer = IIF(st.usetile(st.layer) < 112, 190, 0)
+  drawmap tilesetview, 0, scrolly, tilesetdata, vpage, YES
+  DIM as integer infoline_y = 0, infoline2_y = 10
+  IF tilepick.y * 20 - scrolly < vpages(vpage)->h - 80 THEN
+   infoline_y = vpages(vpage)->h - 10
+   infoline2_y = vpages(vpage)->h - 20
+  END IF
   edgeprint "Tile " & st.usetile(st.layer), 0, infoline_y, uilook(uiText), vpage
-  DIM infotext as string = "Drag to select a rectangle"
-  edgeprint infotext, 320 - textwidth(infotext), infoline_y, uilook(uiText), vpage
+  IF st.usetile(st.layer) >= 160 THEN
+   edgeprint "(Animation set " & ((st.usetile(st.layer) - 160) \ 48) & ")", 0, infoline2_y, uilook(uiText), vpage
+  END IF
+  DIM infotext as string = "Hold to select a rectangle"
+  edgeprint infotext, vpages(vpage)->w - textwidth(infotext), infoline_y, uilook(uiText), vpage
+
   IF dragging THEN
    DIM select_rect as RectType
    corners_to_rect_inclusive tilepick, holdpos, select_rect
-   drawbox select_rect.x * 20, select_rect.y * 20, _
+   drawbox select_rect.x * 20, select_rect.y * 20 - scrolly, _
            select_rect.wide * 20, select_rect.high * 20, _
            uilook(uiHighlight + tog), 2, vpage
   ELSE
-   frame_draw st.cursor.sprite + tog, st.cursor.pal, tilepick.x * 20, tilepick.y * 20, , , vpage
+   frame_draw st.cursor.sprite + tog, st.cursor.pal, tilepick.x * 20, tilepick.y * 20 - scrolly, , , vpage
   END IF
   setvispage vpage
   IF dowait THEN
    tog = tog XOR 1
    chequer_scroll += 1
+   'Update tile animations
+   cycletile tilesetdata->anim(), tilesetdata->tastuf()
   END IF
  LOOP
+ unloadtilemap tilesetview
 END SUB
 
 'Move this global eventually?
