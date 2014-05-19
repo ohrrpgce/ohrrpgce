@@ -2213,6 +2213,61 @@ Sub LoadPanelSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
  dat->padding = LoadProp(node, "padding")
 End Sub
 
+Sub CalcPanelArea (byref ppos as XYPair, byref psize as XYPair, byval par as Slice ptr, byval ch as Slice ptr, byval index as integer)
+
+ if ch = 0 then debug "CalcPanelArea null ch ptr": exit sub
+ if par = 0 then debug "CalcPanelArea null par ptr": exit sub
+
+ if index > 1 then
+  'Panel only expects 2 children
+  ppos.x = 0
+  ppos.y = 0
+  psize.x = 0
+  psize.y = 0
+  exit sub
+ end if
+ 
+ '--get panel data
+ dim dat as PanelSliceData ptr
+ dat = par->SliceData
+
+ dim axis as integer = 0
+ if dat->vertical then axis = 1
+ dim other as integer = axis XOR 1
+
+ dim innersize as XYPair
+ innersize.x = par->Width
+ innersize.y = par->Height
+ dim prsize as integer
+ dim prepad as XYPair
+ dim postpad as XYPair
+ prepad.x = par->paddingLeft
+ postpad.x = par->paddingRight
+ prepad.y = par->paddingTop
+ postpad.y = par->paddingBottom
+
+ innersize.n(axis) -= prepad.n(axis) + postpad.n(axis) + dat->padding
+ innersize.n(other) -= prepad.n(other) + postpad.n(other)
+ psize.n(other) = innersize.n(other)
+ ppos.n(other) = prepad.n(other)
+ prsize = int(innersize.n(axis) * dat->percent) + dat->pixels
+ if index = dat->primary then
+  psize.n(axis) = prsize
+ else
+  psize.n(axis) = innersize.n(axis) - prsize
+ end if
+ if index = 0 then
+  ppos.n(axis) = prepad.n(axis)
+ else
+  if index = dat->primary then
+   ppos.n(axis) = prepad.n(axis) + (innersize.n(axis) - prsize) + dat->padding
+  else
+   ppos.n(axis) = prepad.n(axis) + prsize + dat->padding
+  end if
+ end if
+
+End Sub
+
 Sub PanelChildRefresh(byval par as slice ptr, byval ch as slice ptr)
  if ch = 0 then debug "PanelChildRefresh null ptr": exit sub
  
@@ -2226,82 +2281,66 @@ Sub PanelChildRefresh(byval par as slice ptr, byval ch as slice ptr)
   exit sub
  end if
 
- dim axis as integer = 0
- if dat->vertical then axis = 1
- dim other as integer = axis XOR 1
-
- dim innersize as XYPair
- innersize.x = par->Width
- innersize.y = par->Height
- dim size as XYpair
- dim prsize as integer
- dim spos as XYpair
- dim prepad as XYPair
- dim postpad as XYPair
- prepad.x = par->paddingLeft
- postpad.x = par->paddingRight
- prepad.y = par->paddingTop
- postpad.y = par->paddingBottom
-
- innersize.n(axis) -= prepad.n(axis) + postpad.n(axis) + dat->padding
- innersize.n(other) -= prepad.n(other) + postpad.n(other)
- size.n(other) = innersize.n(other)
- spos.n(other) = prepad.n(other)
- prsize = int(innersize.n(axis) * dat->percent) + dat->pixels
- if slot = dat->primary then
-  size.n(axis) = prsize
- else
-  size.n(axis) = innersize.n(axis) - prsize
- end if
- if slot = 0 then
-  spos.n(axis) = prepad.n(axis)
- else
-  if slot = dat->primary then
-   spos.n(axis) = prepad.n(axis) + (innersize.n(axis) - prsize) + dat->padding
-  else
-   spos.n(axis) = prepad.n(axis) + prsize + dat->padding
-  end if
- end if
+ dim ppos as XYPair
+ dim psize as XYPair
+ CalcPanelArea ppos, psize, par, ch, slot
  
  with *ch
   if .Fill then
-   .ScreenX = par->ScreenX + spos.x
-   .ScreenY = par->ScreenY + spos.y
-   .Width = size.w
-   .Height = size.h
+   .ScreenX = par->ScreenX + ppos.x
+   .ScreenY = par->ScreenY + ppos.y
+   .Width = psize.w
+   .Height = psize.h
   else ' Not fill
    select case ch->AlignHoriz
-    case 0: .ScreenX = par->ScreenX + spos.x - SliceXAnchor(ch) + ch->X
-    case 1: .ScreenX = par->ScreenX + spos.x + size.w / 2 - SliceXAnchor(ch) + ch->X
-    case 2: .ScreenX = par->ScreenX + spos.x + size.w - SliceXAnchor(ch) + ch->X
+    case 0: .ScreenX = par->ScreenX + ppos.x - SliceXAnchor(ch) + ch->X
+    case 1: .ScreenX = par->ScreenX + ppos.x + psize.w / 2 - SliceXAnchor(ch) + ch->X
+    case 2: .ScreenX = par->ScreenX + ppos.x + psize.w - SliceXAnchor(ch) + ch->X
    end select
    select case ch->AlignVert
-    case 0: .ScreenY = par->ScreenY + spos.y - SliceYAnchor(ch) + ch->Y
-    case 1: .ScreenY = par->ScreenY + spos.y + size.h / 2 - SliceYAnchor(ch) + ch->Y
-    case 2: .ScreenY = par->ScreenY + spos.y + size.h - SliceYAnchor(ch) + ch->Y
+    case 0: .ScreenY = par->ScreenY + ppos.y - SliceYAnchor(ch) + ch->Y
+    case 1: .ScreenY = par->ScreenY + ppos.y + psize.h / 2 - SliceYAnchor(ch) + ch->Y
+    case 2: .ScreenY = par->ScreenY + ppos.y + psize.h - SliceYAnchor(ch) + ch->Y
    end select
   end if
  end with
 End sub
 
 Sub PanelChildDraw(Byval s as Slice Ptr, byval page as integer)
- 'NOTE: this Sub only handles the clipping of the children of a Panel slice which
- '      is set to clip. It might seem the logical place to position the children
- '      too, but that's in PanelChildRefresh. Which is probably correct: drawing
- '      and calculating position are independent.
  'NOTE: we don't bother to null check s here because this sub is only
  '      ever called from DrawSlice which does null check it.
 
- 'No clipping support yet :(
- 
  with *s
+
+  dim clippos as XYPair
+  dim clipsize as XYPair
+  dim savepage as integer = page
 
   'draw the slice's children
   dim index as integer = 0
   dim ch as slice ptr = .FirstChild
   do while ch <> 0
+   
+   'FIXME FIXME FIXME: This clipping suppoirt is currently WRONG
+   'argh! I am so close! Why doesn't clipping fit inside my brain? --James
+   if .Clip then
+    CalcPanelArea clippos, clipsize, s, ch, index
+    dim clipview as Frame ptr
+    clipview = frame_new_view(vpages(page), clippos.X, clippos.Y, clipsize.W, clipsize.H)
+    page = registerpage(clipview)
+    frame_unload @clipview
+    GlobalCoordOffset.X -= clippos.X
+    GlobalCoordOffset.Y -= clippos.Y
+   end if
 
    DrawSlice(ch, page)
+   
+   if .Clip then
+    freepage page
+    GlobalCoordOffset.X += clippos.x
+    GlobalCoordOffset.Y += clippos.y
+    page = savepage
+   end if
 
    index += 1
    if index > 1 then exit do ' Only ever draw the first 2 children!
