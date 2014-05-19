@@ -2325,12 +2325,14 @@ Sub PanelChildDraw(Byval s as Slice Ptr, byval page as integer)
    'argh! I am so close! Why doesn't clipping fit inside my brain? --James
    if .Clip then
     CalcPanelArea clippos, clipsize, s, ch, index
+    clippos.x += .ScreenX
+    clippos.y += .ScreenY
     dim clipview as Frame ptr
     clipview = frame_new_view(vpages(page), clippos.X, clippos.Y, clipsize.W, clipsize.H)
     page = registerpage(clipview)
     frame_unload @clipview
-    GlobalCoordOffset.X -= clippos.X
-    GlobalCoordOffset.Y -= clippos.Y
+    GlobalCoordOffset.X -= clippos.x
+    GlobalCoordOffset.Y -= clippos.y
    end if
 
    DrawSlice(ch, page)
