@@ -422,7 +422,7 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
    DIM cur_par as Slice ptr = cur_sl->parent
    'Special handling when a child of a SelectSlice is selected as edslice
    IF cur_par ANDALSO cur_par->SliceType = slSelect THEN
-    ChangeSelectSlice cur_par, , GetSliceSiblingIndex(cur_sl)
+    ChangeSelectSlice cur_par, , IndexAmongSiblings(cur_sl)
    END IF
   END IF
 

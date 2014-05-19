@@ -317,7 +317,7 @@ DECLARE Sub CustomSortChildSlices(byval parent as slice ptr, byval wipevals as i
 DECLARE Sub AutoSortChildren(byval s as Slice Ptr)
 DECLARE Function CloneSliceTree(byval sl as slice ptr) as slice ptr
 DECLARE Sub SetSliceTarg(byval s as slice ptr, byval x as integer, byval y as integer, byval ticks as integer)
-DECLARE Function GetSliceSiblingIndex(byval s as slice ptr) as integer
+DECLARE Function IndexAmongSiblings(byref sl as Slice Ptr) as integer
 
 End Extern
 

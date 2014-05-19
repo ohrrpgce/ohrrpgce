@@ -2737,22 +2737,6 @@ Function SliceColor(byval n as integer) as integer
  debugc errError, "Invalid slice color " & n
 End function
 
-Function GetSliceSiblingIndex(byval s as slice ptr) as integer
- 'Returns the index of a slice withing its list of siblings, or -1 if orphaned
- if s = 0 then debug "GetSliceSiblingIndex null ptr": return 0
- dim parent as slice ptr = s->parent
- if parent = 0 then return -1
- dim i as integer = 0
- dim ch as slice ptr = parent->FirstChild
- do while ch
-  if ch = s then return i
-  i += 1
-  ch = ch->NextSibling
- loop
- debug "GetSliceSiblingIndex: slice was not found in its parent's list of children. Slice tree corruption?"
- return -1
-End function
-
 '==Slice cloning===============================================================
 
 Function CloneSliceTree(byval sl as slice ptr) as slice ptr
