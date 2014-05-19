@@ -2321,8 +2321,6 @@ Sub PanelChildDraw(Byval s as Slice Ptr, byval page as integer)
   dim ch as slice ptr = .FirstChild
   do while ch <> 0
    
-   'FIXME FIXME FIXME: This clipping suppoirt is currently WRONG
-   'argh! I am so close! Why doesn't clipping fit inside my brain? --James
    if .Clip then
     CalcPanelArea clippos, clipsize, s, ch, index
     clippos.x += .ScreenX
