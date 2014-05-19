@@ -83,14 +83,17 @@ Sub LoadNullSlice(Byval s as slice ptr, byval node as Reload.Nodeptr) : end sub
 Sub DefaultChildRefresh(Byval par as Slice ptr, Byval ch as Slice ptr)
  if ch = 0 then debug "DefaultChildRefresh null ptr": exit sub
  with *ch
+  .ScreenX = .X + SliceXAlign(ch, par) - SliceXAnchor(ch)
+  .ScreenY = .Y + SliceYAlign(ch, par) - SliceYAnchor(ch)
   if .Fill then
-   .ScreenX = par->ScreenX + par->paddingLeft
-   .ScreenY = par->ScreenY + par->paddingTop
-   .Width = par->Width - par->paddingLeft - par->paddingRight
-   .height = par->Height - par->paddingTop - par->paddingBottom
-  else ' Not fill
-   .ScreenX = .X + SliceXAlign(ch, par) - SliceXAnchor(ch)
-   .ScreenY = .Y + SliceYAlign(ch, par) - SliceYAnchor(ch)
+   if .FillMode = sliceFillFull ORELSE .FillMode = sliceFillHoriz then
+    .ScreenX = par->ScreenX + par->paddingLeft
+    .Width = par->Width - par->paddingLeft - par->paddingRight
+   end if
+   if .FillMode = sliceFillFull ORELSE .FillMode = sliceFillVert then
+    .ScreenY = par->ScreenY + par->paddingTop
+    .height = par->Height - par->paddingTop - par->paddingBottom
+   end if
   end if
  end with
 End sub
@@ -1617,14 +1620,17 @@ Sub GridChildRefresh(byval par as slice ptr, byval ch as slice ptr)
  dim yslot as integer = slot \ large(1, dat->cols)
  
  with *ch
+  .ScreenX = .X + GridSliceXAlign(ch, par, w) - SliceXAnchor(ch) + xslot * w
+  .ScreenY = .Y + GridSliceYAlign(ch, par, h) - SliceYAnchor(ch) + yslot * h
   if .Fill then
-   .ScreenX = par->ScreenX + xslot * w + par->paddingLeft
-   .ScreenY = par->ScreenY + yslot * h + par->paddingTop
-   .Width = w - par->paddingLeft - par->paddingRight
-   .height = h - par->paddingTop - par->paddingBottom
-  else ' Not fill
-   .ScreenX = .X + GridSliceXAlign(ch, par, w) - SliceXAnchor(ch) + xslot * w
-   .ScreenY = .Y + GridSliceYAlign(ch, par, h) - SliceYAnchor(ch) + yslot * h
+   if .FillMode = sliceFillFull ORELSE .FillMode = sliceFillHoriz then
+    .ScreenX = par->ScreenX + xslot * w + par->paddingLeft
+    .Width = w - par->paddingLeft - par->paddingRight
+   end if
+   if .FillMode = sliceFillFull ORELSE .FillMode = sliceFillVert then
+    .ScreenY = par->ScreenY + yslot * h + par->paddingTop
+    .Height = h - par->paddingTop - par->paddingBottom
+   end if
   end if
  end with
 End sub
@@ -2286,22 +2292,25 @@ Sub PanelChildRefresh(byval par as slice ptr, byval ch as slice ptr)
  CalcPanelArea ppos, psize, par, ch, slot
  
  with *ch
+  select case ch->AlignHoriz
+   case 0: .ScreenX = par->ScreenX + ppos.x - SliceXAnchor(ch) + ch->X
+   case 1: .ScreenX = par->ScreenX + ppos.x + psize.w / 2 - SliceXAnchor(ch) + ch->X
+   case 2: .ScreenX = par->ScreenX + ppos.x + psize.w - SliceXAnchor(ch) + ch->X
+  end select
+  select case ch->AlignVert
+   case 0: .ScreenY = par->ScreenY + ppos.y - SliceYAnchor(ch) + ch->Y
+   case 1: .ScreenY = par->ScreenY + ppos.y + psize.h / 2 - SliceYAnchor(ch) + ch->Y
+   case 2: .ScreenY = par->ScreenY + ppos.y + psize.h - SliceYAnchor(ch) + ch->Y
+  end select
   if .Fill then
-   .ScreenX = par->ScreenX + ppos.x
-   .ScreenY = par->ScreenY + ppos.y
-   .Width = psize.w
-   .Height = psize.h
-  else ' Not fill
-   select case ch->AlignHoriz
-    case 0: .ScreenX = par->ScreenX + ppos.x - SliceXAnchor(ch) + ch->X
-    case 1: .ScreenX = par->ScreenX + ppos.x + psize.w / 2 - SliceXAnchor(ch) + ch->X
-    case 2: .ScreenX = par->ScreenX + ppos.x + psize.w - SliceXAnchor(ch) + ch->X
-   end select
-   select case ch->AlignVert
-    case 0: .ScreenY = par->ScreenY + ppos.y - SliceYAnchor(ch) + ch->Y
-    case 1: .ScreenY = par->ScreenY + ppos.y + psize.h / 2 - SliceYAnchor(ch) + ch->Y
-    case 2: .ScreenY = par->ScreenY + ppos.y + psize.h - SliceYAnchor(ch) + ch->Y
-   end select
+   if .FillMode = sliceFillFull ORELSE .FillMode = sliceFillHoriz then
+    .ScreenX = par->ScreenX + ppos.x
+    .Width = psize.w
+   end if
+   if .FillMode = sliceFillFull ORELSE .FillMode = sliceFillVert then
+    .ScreenY = par->ScreenY + ppos.y
+    .Height = psize.h
+   end if
   end if
  end with
 End sub
@@ -2813,6 +2822,7 @@ Function CloneSliceTree(byval sl as slice ptr) as slice ptr
   .PaddingRight = sl->PaddingRight
   .PaddingBottom = sl->PaddingBottom
   .Fill = sl->Fill
+  .FillMode = sl->FillMode
  end with
  '--clone special properties for this slice type
  sl->Clone(sl, clone)
@@ -2885,6 +2895,7 @@ Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr, save_handles 
  SaveProp node, "padr", sl->PaddingRight
  SaveProp node, "padb", sl->PaddingBottom
  SaveProp node, "fill", sl->Fill
+ SaveProp node, "fillmode", sl->FillMode
  if sl->Sorter <> 0 then
   SaveProp node, "sort", sl->Sorter
  end if
@@ -2997,6 +3008,7 @@ Sub SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr, load_handle
  sl->PaddingRight = LoadProp(node, "padr")
  sl->PaddingBottom = LoadProp(node, "padb")
  sl->Fill = LoadPropBool(node, "fill")
+ sl->FillMode = LoadProp(node, "fillmode")
  sl->Sorter = LoadProp(node, "sort")
  sl->AutoSort = LoadProp(node, "autosort")
  sl->Extra(0) = LoadProp(node, "extra0")

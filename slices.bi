@@ -132,14 +132,15 @@ TYPE Slice
   Sorter as integer 'Only used by CustomSortChildSlices
   Extra(2) as integer
   
-  AlignHoriz as integer 'Relative to parent. 0,1,2=Left,Mid,Right. Only used when .Fill = NO
-  AlignVert as integer  'Relative to parent. 0,1,2=Top,Mid,Bottom. Only used when .Fill = NO
-  AnchorHoriz as integer 'Relative to self. 0,1,2=Left,Mid,Right. Only used when .Fill = NO
-  AnchorVert as integer  'Relative to self. 0,1,2=Top,Mid,Bottom. Only used when .Fill = NO
+  AlignHoriz as integer 'Relative to parent. 0,1,2=Left,Mid,Right. Only used when not filling
+  AlignVert as integer  'Relative to parent. 0,1,2=Top,Mid,Bottom. Only used when not filling
+  AnchorHoriz as integer 'Relative to self. 0,1,2=Left,Mid,Right. Only used when not filling
+  AnchorVert as integer  'Relative to self. 0,1,2=Top,Mid,Bottom. Only used when not filling
   
   as integer PaddingTop, PaddingLeft, PaddingRight, PaddingBottom
   
   Fill as integer
+  FillMode as integer '0=Both, 1=Horizontal, 2=Vertical
   
   Attach as AttachTypes
   Union
@@ -165,6 +166,10 @@ TYPE Slice
   'it can still be deleted or moved indirectly.
   
 END TYPE
+
+CONST sliceFillFull = 0
+CONST sliceFillHoriz = 1
+CONST sliceFillVert = 2
 
 TYPE SliceTable_
   root as Slice Ptr

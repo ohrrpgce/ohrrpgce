@@ -155,6 +155,10 @@ AutoSortCaptions(2) = "by Y"
 AutoSortCaptions(3) = "by top edge"
 AutoSortCaptions(4) = "by center Y"
 AutoSortCaptions(5) = "by bottom edge"
+REDIM SHARED FillModeCaptions(2) as string
+FillModeCaptions(0) = "Full"
+FillModeCaptions(1) = "Horizontal"
+FillModeCaptions(2) = "Vertical"
 
 '==============================================================================
 
@@ -911,6 +915,10 @@ SUB slice_edit_detail_refresh (byref state as MenuState, menu() as string, sl as
   sliceed_rule_tog rules(), "vis", @.Visible
   str_array_append menu(), "Fill Parent: " & yesorno(.Fill)
   sliceed_rule_tog rules(), "fill", @.Fill
+  IF .Fill = YES THEN
+   str_array_append menu(), "Fill Type: " & FillModeCaptions(.FillMode)
+   sliceed_rule rules(), "FillMode", erIntGrabber, @.FillMode, 0, 2
+  END IF
   str_array_append menu(), "Clip Children: " & yesorno(.Clip)
   sliceed_rule_tog rules(), "clip", @.Clip
   IF .Fill = NO THEN
