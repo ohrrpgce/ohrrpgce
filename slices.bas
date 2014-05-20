@@ -1950,42 +1950,46 @@ Sub ScrollChildDraw(byval sl as slice ptr, byval p as integer)
 
  dim sbar as RectType
  dim slider as RectType
+ dim min as XYPair
+ dim max as XYPair
 
- dim minx as integer = CalcScrollMinX(sl, dat->check_depth)
- dim maxx as integer = CalcScrollMaxX(sl, dat->check_depth)
- dim xoff as integer = sl->ScreenX - minx
- dim w as integer = maxx - minx
+ min.x = CalcScrollMinX(sl, dat->check_depth)
+ min.y = CalcScrollMinY(sl, dat->check_depth)
+ max.x = CalcScrollMaxX(sl, dat->check_depth)
+ max.y = CalcScrollMaxY(sl, dat->check_depth)
+ 
+ dim screenpos as XYPair
+ screenpos.X = sl->ScreenX
+ screenpos.Y = sl->ScreenY
+ 
+ dim slsize as XYPair
+ slsize.W = sl->Width
+ slsize.H = sl->Height
+ 
+ dim axis as integer
+ dim other as integer
 
- if w > sl->Width then
-  sbar.y = sl->Y + sl->Height
-  sbar.x = sl->X
-  sbar.high = 4
-  sbar.wide = sl->Width
-  with sbar
-   slider.x = .wide / w * xoff
-   slider.wide = .wide / w * (sl->Width + 1)
-   rectangle .x, .y, .wide, .high, boxlook(dat->style).bgcol, p
-   rectangle .x + slider.x, .y, slider.wide, .high, boxlook(dat->style).edgecol, p
-  end with
- end if
+ for axis = 0 to 1 '0=Horiz 1=Vert
+  other = axis XOR 1
 
- dim miny as integer = CalcScrollMinY(sl, dat->check_depth)
- dim maxy as integer = CalcScrollMaxY(sl, dat->check_depth)
- dim yoff as integer = sl->ScreenY - miny
- dim h as integer = maxy - miny
+  dim off as integer = screenpos.n(axis) - min.n(axis)
+  dim total as integer = large(slsize.n(axis), max.n(axis) - min.n(axis))
 
- if h > sl->Height then
-  sbar.x = sl->X + sl->Width
-  sbar.y = sl->Y
-  sbar.wide = 4
-  sbar.high = sl->Height
-  with sbar
-   slider.y = .high / h * yoff
-   slider.high = .high / h * (sl->Height + 1)
-   rectangle .x, .y, .wide, .high, boxlook(dat->style).bgcol, p
-   rectangle .x, .y + slider.y, .wide, slider.high, boxlook(dat->style).edgecol, p
-  end with
- end if
+  if total > slsize.n(axis) then
+   sbar.topleft.n(axis) = screenpos.n(axis)
+   sbar.topleft.n(other) = screenpos.n(other) + slsize.n(other)
+   sbar.size.n(axis) = slsize.n(axis)
+   sbar.size.n(other) = 4
+   with sbar
+    slider.topleft.n(axis) = .size.n(axis) / total * off
+    slider.topleft.n(other) = 0
+    slider.size.n(axis) = .size.n(axis) / total * (slsize.n(axis) + 1)
+    slider.size.n(other) = 4
+    rectangle .x, .y, .wide, .high, boxlook(dat->style).bgcol, p
+    rectangle .x + slider.x, .y + slider.y, slider.wide, slider.high, boxlook(dat->style).edgecol, p
+   end with
+  end if
+ next axis
 
 end sub
 
