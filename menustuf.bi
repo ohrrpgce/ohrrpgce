@@ -16,7 +16,8 @@ DECLARE SUB patcharray (array() as integer, n as string)
 DECLARE FUNCTION picksave (byval loading as integer, byval newgame_opt as bool = YES, byval beep_if_no_saves as bool = NO) as integer
 DECLARE SUB sellstuff (byval id as integer, storebuf() as integer)
 DECLARE SUB spells_menu (byval who as integer)
-DECLARE SUB status (byval pt as integer)
+DECLARE SUB status_screen (byval slot as integer)
+DECLARE SUB old_status (byval pt as integer)
 DECLARE FUNCTION trylearn (byval who as integer, byval atk as integer) as bool
 DECLARE SUB unequip (byval who as integer, byval where as integer, byval defwep as integer, byval resetdw as integer)
 DECLARE SUB loadshopstuf (array() as integer, byval id as integer)

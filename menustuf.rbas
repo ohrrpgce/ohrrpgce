@@ -12,6 +12,7 @@
 #include "uiconst.bi"
 #include "game_udts.bi"
 #include "savegame.bi"
+#include "sliceedit.bi"
 
 #include "game.bi"
 #include "yetmore.bi"
@@ -1546,7 +1547,43 @@ FUNCTION hero_elemental_resist_msg (element as string, damage as single) as stri
  RETURN raw
 END FUNCTION
 
-SUB status (byval pt as integer)
+SUB status_screen (byval slot as integer)
+
+ DIM root_sl as slice ptr = NewSliceOfType(slRoot)
+ root_sl->Fill = YES
+ RefreshSliceScreenPos root_sl
+ DIM page as integer = compatpage
+ DIM holdscreen as integer = allocatepage
+ copypage page, holdscreen
+
+ SliceLoadFromFile root_sl, workingdir & SLASH & "slicetree_" & SL_COLLECT_STATUSSCREEN & "_0.reld"
+ 
+ menusound gen(genAcceptSFX)
+ setkeys
+ DO
+  setwait speedcontrol
+  setkeys
+  playtimer
+  control
+  IF carray(ccMenu) > 1 THEN EXIT DO
+  'IF carray(ccUse) > 1 THEN mode = loopvar(mode, 0, 2, 1): menusound gen(genCursorSFX)
+  'IF carray(ccLeft) > 1 THEN DO: pt = loopvar(pt, 0, 3, -1): LOOP UNTIL hero(pt) > 0: menusound gen(genCursorSFX): status_buildmenu her, pt, mtype(), elementaldmg(), elementnames(), elementalmenu(), elementalmenu_st, portrait
+  'IF carray(ccRight) > 1 THEN DO: pt = loopvar(pt, 0, 3, 1): LOOP UNTIL hero(pt) > 0: menusound gen(genCursorSFX): status_buildmenu her, pt, mtype(), elementaldmg(), elementnames(), elementalmenu(), elementalmenu_st, portrait
+ 
+  'Draw the screen
+  copypage holdscreen, page
+  DrawSlice root_sl, page
+  setvispage vpage
+  dowait
+ LOOP
+ menusound gen(genCancelSFX)
+
+ freepage page
+ freepage holdscreen
+ DeleteSlice @root_sl
+END SUB
+
+SUB old_status (byval pt as integer)
 DIM mtype(5) as integer
 DIM her as HeroDef
 DIM portrait as GraphicPair
