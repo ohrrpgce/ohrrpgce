@@ -166,10 +166,14 @@ SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval gr
  ses.collection_group_number = group
  SELECT CASE group
   CASE SL_COLLECT_STATUSSCREEN:
+   append_specialcode specialcodes(), SL_STATUS_STATLIST, kindlimitGRID
+   append_specialcode specialcodes(), SL_STATUS_PAGE_SELECT, kindlimitSELECT
    append_specialcode specialcodes(), SL_STATUS_PORTRAIT, kindlimitSPRITE
    append_specialcode specialcodes(), SL_STATUS_WALKABOUT, kindlimitSPRITE
    append_specialcode specialcodes(), SL_STATUS_BATTLESPRITE, kindlimitSPRITE
-   append_specialcode specialcodes(), SL_STATUS_PAGE_SELECT, kindlimitSELECT
+   append_specialcode specialcodes(), SL_STATUS_HIDE_IF_NO_MP, kindlimitANYTHING
+   append_specialcode specialcodes(), SL_STATUS_HIDE_IF_NO_LMP, kindlimitANYTHING
+   append_specialcode specialcodes(), SL_STATUS_HIDE_IF_MAX_LEV, kindlimitANYTHING
  END SELECT
 END SUB
 

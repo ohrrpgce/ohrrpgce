@@ -1715,5 +1715,9 @@ define constant, begin
 -102001, sl:status walkabout
 -102002, sl:status battlesprite
 -102003, sl:status page select
+-102004, sl:status statlist
+-102005, sl:status hide if no mp
+-102006, sl:status hide if no lmp
+-102007, sl:status hide if max lev
 end
 #</SLICE LOOKUP CODES>

@@ -292,6 +292,10 @@ FUNCTION SliceLookupCodename (byval code as integer) as string
   CASE SL_STATUS_WALKABOUT: RETURN "status_walkabout"
   CASE SL_STATUS_BATTLESPRITE: RETURN "status_battlesprite"
   CASE SL_STATUS_PAGE_SELECT: RETURN "status_page_select"
+  CASE SL_STATUS_STATLIST: RETURN "status_statlist"
+  CASE SL_STATUS_HIDE_IF_NO_MP: RETURN "status_hide_if_no_mp"
+  CASE SL_STATUS_HIDE_IF_NO_LMP: RETURN "status_hide_if_no_lmp"
+  CASE SL_STATUS_HIDE_IF_MAX_LEV: RETURN "status_hide_if_max_lev"
 '</SLICE LOOKUP NAMES>
   CASE ELSE
    RETURN STR(code)

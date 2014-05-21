@@ -2676,6 +2676,10 @@ lookup slice(sl:status portrait)
 lookup slice(sl:status walkabout)
 lookup slice(sl:status battlesprite)
 lookup slice(sl:status page select)
+lookup slice(sl:status statlist)
+lookup slice(sl:status hide if no mp)
+lookup slice(sl:status hide if no lmp)
+lookup slice(sl:status hide if max lev)
 </example>
 			<seealso>
 				<ref>setslicelookup</ref>

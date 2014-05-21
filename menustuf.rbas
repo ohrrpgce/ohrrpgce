@@ -1568,6 +1568,30 @@ SUB ExpandTextHeroSlot (code as string, result as string, byval hero_slot as int
    CASE "MPCUR": result = STR(.stat.cur.mp)
    CASE "MPMAX": result = STR(.stat.max.mp)
    CASE "LEVMPLABEL": result = readglobalstring(160, "Level MP", 20)
+   CASE "ELEMENTS":
+    '--get the list of elemental names
+    DIM elementnames() as string
+    getelementnames elementnames()
+    '--get this hero's elemental resists, with worn equipment
+    DIM elementaldmg(maxElements - 1) as single
+    calc_hero_elementals elementaldmg(), hero_slot
+    '--build elemental strings
+    DIM eleminfo as string
+    DIM msg as string
+    DIM found_elem as bool = NO
+    msg = readglobalstring(302, "Elemental Effects:", 30)
+    IF LEN(msg) THEN eleminfo &= msg & CHR(10)
+    FOR i as integer = 0 TO gen(genNumElements) - 1
+     msg = hero_elemental_resist_msg(elementnames(i), elementaldmg(i))
+     IF LEN(msg) THEN
+      eleminfo &= msg & CHR(10)
+      found_elem = YES
+     END IF
+    NEXT i
+    IF NOT found_elem THEN
+     eleminfo = readglobalstring(130, "No Elemental Effects", 30)
+    END IF
+    result = eleminfo
   END SELECT
 
  END WITH
