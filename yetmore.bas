@@ -97,80 +97,104 @@ END IF '---end if > 0
 party_change_updates
 END SUB
 
+SUB embedexperiment (code as string, result as string, byval hero_slot as integer, byval arg1 as integer=0, byval arg2 as integer)
+ SELECT CASE UCASE(code)
+  CASE "HPCUR":
+   result = STR(gam.hero(hero_slot).stat.cur.sta(0))
+  CASE "HPMAX":
+   result = STR(gam.hero(hero_slot).stat.max.sta(0))
+ END SELECT
+END SUB
+
 SUB embedtext (text as string, byval limit as integer=0)
-DIM start as integer = 1
-DO WHILE start < LEN(text)
- '--seek an embed spot
- DIM embedbegin as integer = INSTR(start, text, "${")
- IF embedbegin = 0 THEN EXIT DO '--failed to find an embed spot
- DIM embedend as integer = INSTR(embedbegin + 4, text, "}")
- IF embedend = 0 THEN EXIT DO '--embed spot has no end
- '--break apart the string
- DIM before as string = MID(text, 1, large(embedbegin - 1, 0))
- DIM after as string = MID(text, embedend + 1)
- '--extract the command and arg
- DIM act as string = MID(text, embedbegin + 2, 1)
- DIM arg_str as string = MID(text, embedbegin + 3, large(embedend - (embedbegin + 3), 0))
- '--convert the arg to a number
- DIM arg as integer = str2int(arg_str)
- '--discourage bad arg values (not perfect)
- IF NOT (arg = 0 AND arg_str <> STRING(LEN(arg_str), "0")) THEN
-  IF arg >= 0 THEN '--only permit postive args
-   '--by default the embed is unchanged
-   DIM insert as string = "${" & act & arg_str & "}"
-   '--evalued possible actions
-   SELECT CASE UCASE(act)
-    CASE "H": '--Hero name by ID
-     '--defaults blank if not found
-     insert = ""
-     '--first search for a copy of the hero in the party
-     DIM where as integer = findhero(arg + 1, 0, 40, 1)
-     IF where >= 0 THEN
-      insert = names(where)
-     ELSE
-      insert = getheroname(arg)
-     END IF
-    CASE "P": '--Hero name by Party position
-     IF arg < 40 THEN
+ text = embed_text_codes(text, @embedexperiment, 0)
+ '--enforce limit (if set)
+ IF limit > 0 THEN
+  text = LEFT(text, limit)
+ END IF
+END SUB
+
+FUNCTION embed_text_codes (text_in as string, byval callback as ANY Ptr=0, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0) as string
+ DIM text as string = text_in
+ DIM start as integer = 1
+ DIM insert as string
+ DO WHILE start < LEN(text)
+  '--seek an embed spot
+  DIM embedbegin as integer = INSTR(start, text, "${")
+  IF embedbegin = 0 THEN EXIT DO '--failed to find an embed spot
+  DIM embedend as integer = INSTR(embedbegin + 4, text, "}")
+  IF embedend = 0 THEN EXIT DO '--embed spot has no end
+  '--break apart the string
+  DIM before as string = MID(text, 1, large(embedbegin - 1, 0))
+  DIM after as string = MID(text, embedend + 1)
+  '--extract the code
+  DIM code as string = MID(text, embedbegin + 2, embedend - 1 - (embedbegin + 1))
+  '--set a reasonable default for the insert text if the code is not matched
+  insert = "${" & code & "}"
+  '--extract the command and arg
+  DIM act as string = LEFT(code, 1)
+  DIM arg_str as string = MID(code, 2)
+  '--convert the arg to a number
+  DIM arg as integer = str2int(arg_str)
+  '--discourage bad arg values (not perfect)
+  IF NOT (arg = 0 AND arg_str <> STRING(LEN(arg_str), "0")) THEN
+   IF arg >= 0 THEN '--only permit postive args
+    '--by default the embed is unchanged
+    insert = "${" & act & arg_str & "}"
+    '--evalued possible actions
+    SELECT CASE UCASE(act)
+     CASE "H": '--Hero name by ID
       '--defaults blank if not found
       insert = ""
-      IF hero(arg) > 0 THEN
-       insert = names(arg)
+      '--first search for a copy of the hero in the party
+      DIM where as integer = findhero(arg + 1, 0, 40, 1)
+      IF where >= 0 THEN
+       insert = names(where)
+      ELSE
+       insert = getheroname(arg)
       END IF
-     END IF
-    CASE "C": '--Hero name by caterpillar position
-     '--defaults blank if not found
-     insert = ""
-     DIM where as integer = rank_to_party_slot(arg)
-     IF where >= 0 AND where <= 3 THEN
-      insert = names(where)
-     END IF
-    CASE "V": '--global variable by ID
-     '--defaults blank if out-of-range
-     insert = ""
-     IF arg >= 0 AND arg <= maxScriptGlobals THEN
-      insert = STR(global(arg))
-     END IF
-    CASE "S": '--string variable by ID
-     insert = ""
-     IF bound_arg(arg, 0, UBOUND(plotstr), "string ID", "${S#} text box insert", NO) THEN
-      insert = plotstr(arg).s
-     END IF
-    CASE "B": '--buttonname (platform-specific)
-     insert = get_buttonname_code(arg)
-   END SELECT
-   text = before & insert & after
-   embedend = LEN(before) + LEN(insert) + 1
+     CASE "P": '--Hero name by Party position
+      IF arg < 40 THEN
+       '--defaults blank if not found
+       insert = ""
+       IF hero(arg) > 0 THEN
+        insert = names(arg)
+       END IF
+      END IF
+     CASE "C": '--Hero name by caterpillar position
+      '--defaults blank if not found
+      insert = ""
+      DIM where as integer = rank_to_party_slot(arg)
+      IF where >= 0 AND where <= 3 THEN
+       insert = names(where)
+      END IF
+     CASE "V": '--global variable by ID
+      '--defaults blank if out-of-range
+      insert = ""
+      IF arg >= 0 AND arg <= maxScriptGlobals THEN
+       insert = STR(global(arg))
+      END IF
+     CASE "S": '--string variable by ID
+      insert = ""
+      IF bound_arg(arg, 0, UBOUND(plotstr), "string ID", "${S#} text box insert", NO) THEN
+       insert = plotstr(arg).s
+      END IF
+     CASE "B": '--buttonname (platform-specific)
+      insert = get_buttonname_code(arg)
+    END SELECT
+   END IF
   END IF
- END IF
- '--skip past this embed
- start = embedend + 1
-LOOP
-'--enforce limit (if set)
-IF limit > 0 THEN
- text = LEFT(text, limit)
-END IF
-END SUB
+  IF callback <> 0 THEN
+   DIM runner as SUB(code as string, result as string, n0 as integer, n1 as integer, n2 as integer)
+   runner = callback
+   runner(code, insert, arg0, arg1, arg2)
+  END IF
+  '--skip past this embed
+  text = before & insert & after
+  start = LEN(before) + LEN(insert) + 1
+ LOOP
+ RETURN text
+END FUNCTION
 
 ' Implementation of "string sprintf". Reads from retval(1...).
 ' retval(1) is the format string id; retval(2...) are the arguments
