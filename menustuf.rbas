@@ -56,6 +56,7 @@ DECLARE FUNCTION picksave_confirm(menu() as string, byval loading as integer, by
 DECLARE SUB sellstuff_refresh(byval last_stuff as integer, byval recordsize as integer, permask() as integer, price() as integer, stuffdata() as integer)
 DECLARE SUB sellstuff_infostr(byval ic as integer, info as string, b() as integer, permask() as integer, price() as integer, byval stuff_count as integer, byval recordsize as integer)
 DECLARE SUB status_buildmenu(her as HeroDef, byval pt as integer, mtype() as integer, elementaldmg() as single, elementnames() as string, elementalmenu() as string, elementalmenu_st as MenuState, portrait as GraphicPair)
+DECLARE SUB expand_slice_text_insert_codes (byval sl as Slice ptr, byval callback as ANY ptr=0, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0)
 
 SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as integer)
  'shoptype is 0 for items and 1 for heroes
@@ -1547,6 +1548,31 @@ FUNCTION hero_elemental_resist_msg (element as string, damage as single) as stri
  RETURN raw
 END FUNCTION
 
+SUB ExpandTextHeroSlot (code as string, result as string, byval hero_slot as integer, byval arg1 as integer=0, byval arg2 as integer)
+ WITH gam.hero(hero_slot)
+
+  'Simple stuff
+  SELECT CASE UCASE(code)
+   CASE "HERONAME": result = names(hero_slot)
+   CASE "LEVLABEL": result = readglobalstring(43, "Level", 10)
+   CASE "LEV": result = STR(.lev)
+   CASE "EXPLABEL": result = readglobalstring(33, "Experience", 10)
+   CASE "EXPCUR": result = STR(.exp_cur)
+   CASE "EXPNEXT": result = STR(.exp_next)
+   CASE "EXPNEED": result = STR(.exp_next - .exp_cur)
+   CASE "FORNEXT": result = readglobalstring(47, "for next", 10)
+   CASE "HPLABEL": result = statnames(statHP)
+   CASE "HPCUR": result = STR(.stat.cur.hp)
+   CASE "HPMAX": result = STR(.stat.max.hp)
+   CASE "MPLABEL": result = statnames(statMP)
+   CASE "MPCUR": result = STR(.stat.cur.mp)
+   CASE "MPMAX": result = STR(.stat.max.mp)
+   CASE "LEVMPLABEL": result = readglobalstring(160, "Level MP", 20)
+  END SELECT
+
+ END WITH
+END SUB
+
 SUB status_screen (byval slot as integer)
 
  DIM root_sl as slice ptr = NewSliceOfType(slRoot)
@@ -1557,6 +1583,7 @@ SUB status_screen (byval slot as integer)
  copypage page, holdscreen
 
  SliceLoadFromFile root_sl, workingdir & SLASH & "slicetree_" & SL_COLLECT_STATUSSCREEN & "_0.reld"
+ expand_slice_text_insert_codes root_sl, @ExpandTextHeroSlot, slot
  
  menusound gen(genAcceptSFX)
  setkeys
@@ -1581,6 +1608,24 @@ SUB status_screen (byval slot as integer)
  freepage page
  freepage holdscreen
  DeleteSlice @root_sl
+END SUB
+
+SUB expand_slice_text_insert_codes (byval sl as Slice ptr, byval callback as ANY ptr=0, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0)
+ 'Starting with children of the given container slice, iterate through
+ ' all visible children and expand any ${} codes found in any TextSlice
+ IF sl = 0 THEN debug "expand_slice_text_insert_codes: null slice ptr": EXIT SUB
+ DIM ch as Slice Ptr = sl->FirstChild
+ DIM dat as TextSliceData Ptr
+ DO WHILE ch <> 0
+  IF ch->Visible THEN
+   IF ch->SliceType = slText THEN
+    dat = ch->SliceData
+    ChangeTextSlice ch, embed_text_codes(dat->s, callback, arg0, arg1, arg2)
+   END IF
+   expand_slice_text_insert_codes ch, callback, arg0, arg1, arg2
+  END IF
+  ch = ch->NextSibling
+ LOOP
 END SUB
 
 SUB old_status (byval pt as integer)

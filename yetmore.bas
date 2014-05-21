@@ -97,17 +97,8 @@ END IF '---end if > 0
 party_change_updates
 END SUB
 
-SUB embedexperiment (code as string, result as string, byval hero_slot as integer, byval arg1 as integer=0, byval arg2 as integer)
- SELECT CASE UCASE(code)
-  CASE "HPCUR":
-   result = STR(gam.hero(hero_slot).stat.cur.sta(0))
-  CASE "HPMAX":
-   result = STR(gam.hero(hero_slot).stat.max.sta(0))
- END SELECT
-END SUB
-
 SUB embedtext (text as string, byval limit as integer=0)
- text = embed_text_codes(text, @embedexperiment, 0)
+ text = embed_text_codes(text)
  '--enforce limit (if set)
  IF limit > 0 THEN
   text = LEFT(text, limit)
@@ -115,6 +106,9 @@ SUB embedtext (text as string, byval limit as integer=0)
 END SUB
 
 FUNCTION embed_text_codes (text_in as string, byval callback as ANY Ptr=0, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0) as string
+' The callback is a sub that accepts 2 strings and 3 integers. It should have the following signature
+' SUB MyCallback(code as string, result as string, n0 as integer, n1 as integer, n2 as integer)
+
  DIM text as string = text_in
  DIM start as integer = 1
  DIM insert as string
