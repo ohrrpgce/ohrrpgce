@@ -4331,3 +4331,30 @@ FUNCTION calc_virtual_gamepad_state(byval advancing_text_now as bool=NO, byval i
  'If no other conditions are met, enabled the virtual gamepad
  RETURN YES
 END FUNCTION
+
+FUNCTION last_active_party_slot() as integer
+ RETURN 3
+END FUNCTION
+
+FUNCTION is_active_party_slot(byval slot as integer) as integer
+ RETURN slot >=0 ANDALSO slot <= last_active_party_slot()
+END FUNCTION
+
+FUNCTION active_party_size() as integer
+ RETURN last_active_party_slot() + 1
+END FUNCTION
+
+FUNCTION loop_active_party_slot(byval slot as integer, byval direction as integer=1) as integer
+ 'Given a slot number in the active party, return the next empty slot
+ IF direction <> 1 ANDALSO direction <> -1 THEN
+  RETURN slot
+ END IF
+ IF herocount() = 0 THEN
+  'If the party is somehow empty, return the original slot
+  RETURN slot
+ END IF
+ DO
+  slot = loopvar(slot, 0, last_active_party_slot(), direction)
+  IF hero(slot) > 0 THEN RETURN slot
+ LOOP
+END FUNCTION

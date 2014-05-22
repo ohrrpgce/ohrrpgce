@@ -106,4 +106,9 @@ DECLARE FUNCTION guess_age_by_tmpdir_name(dirname as string) as integer
 DECLARE SUB update_virtual_gamepad_display(byval advancing_text_now as bool=NO, byval in_battle as bool=NO)
 DECLARE FUNCTION calc_virtual_gamepad_state(byval advancing_text_now as bool=NO, byval in_battle as bool=NO) as bool
 
+DECLARE FUNCTION last_active_party_slot() as integer 'FIXME: use this everywhere!
+DECLARE FUNCTION is_active_party_slot(byval slot as integer) as integer
+DECLARE FUNCTION active_party_size() as integer
+DECLARE FUNCTION loop_active_party_slot(byval slot as integer, byval direction as integer=1) as integer
+
 #ENDIF

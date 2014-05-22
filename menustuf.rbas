@@ -1639,8 +1639,18 @@ SUB status_screen (byval slot as integer)
     menusound gen(genCursorSFX)
    END IF
   END IF
-  'IF carray(ccLeft) > 1 THEN DO: pt = loopvar(pt, 0, 3, -1): LOOP UNTIL hero(pt) > 0: menusound gen(genCursorSFX): status_buildmenu her, pt, mtype(), elementaldmg(), elementnames(), elementalmenu(), elementalmenu_st, portrait
-  'IF carray(ccRight) > 1 THEN DO: pt = loopvar(pt, 0, 3, 1): LOOP UNTIL hero(pt) > 0: menusound gen(genCursorSFX): status_buildmenu her, pt, mtype(), elementaldmg(), elementnames(), elementalmenu(), elementalmenu_st, portrait
+  IF is_active_party_slot(slot) THEN
+   IF carray(ccLeft) > 1 THEN
+    st.slot = loop_active_party_slot(st.slot, -1)
+    st.need_update = YES
+    menusound gen(genCursorSFX)
+   END IF
+   IF carray(ccRight) > 1 THEN
+    st.slot = loop_active_party_slot(st.slot, 1)
+    st.need_update = YES
+    menusound gen(genCursorSFX)
+   END IF
+  END IF
  
   IF st.need_update THEN
    status_screen_refresh st
@@ -1667,14 +1677,12 @@ SUB expand_slice_text_insert_codes (byval sl as Slice ptr, byval callback as ANY
  DIM ch as Slice Ptr = sl->FirstChild
  DIM dat as TextSliceData Ptr
  DO WHILE ch <> 0
-  IF ch->Visible THEN
-   IF ch->SliceType = slText THEN
-    dat = ch->SliceData
-    IF dat->s_orig = "" THEN dat->s_orig = dat->s
-    ChangeTextSlice ch, embed_text_codes(dat->s_orig, callback, arg0, arg1, arg2)
-   END IF
-   expand_slice_text_insert_codes ch, callback, arg0, arg1, arg2
+  IF ch->SliceType = slText THEN
+   dat = ch->SliceData
+   IF dat->s_orig = "" THEN dat->s_orig = dat->s
+   ChangeTextSlice ch, embed_text_codes(dat->s_orig, callback, arg0, arg1, arg2)
   END IF
+  expand_slice_text_insert_codes ch, callback, arg0, arg1, arg2
   ch = ch->NextSibling
  LOOP
 END SUB
