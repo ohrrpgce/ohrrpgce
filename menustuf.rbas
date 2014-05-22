@@ -58,6 +58,7 @@ DECLARE SUB sellstuff_infostr(byval ic as integer, info as string, b() as intege
 DECLARE SUB status_buildmenu(her as HeroDef, byval pt as integer, mtype() as integer, elementaldmg() as single, elementnames() as string, elementalmenu() as string, elementalmenu_st as MenuState, portrait as GraphicPair)
 DECLARE SUB expand_slice_text_insert_codes (byval sl as Slice ptr, byval callback as ANY ptr=0, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0)
 DECLARE SUB hide_slices_by_lookup_code (byval sl as Slice ptr, byval lookup as integer, byval cond as bool)
+DECLARE SUB set_sprites_by_lookup_code (byval sl as Slice ptr, byval lookup as integer, byval sprtype as SpriteType, byval picnum as integer, byval palnum as integer=-1)
 
 SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as integer)
  'shoptype is 0 for items and 1 for heroes
@@ -1670,6 +1671,15 @@ SUB status_screen_refresh(byref st as StatusScreenState)
  hide_slices_by_lookup_code st.sl, SL_STATUS_HIDE_IF_NO_MP, NOT hero_has_mp(st.slot)
  hide_slices_by_lookup_code st.sl, SL_STATUS_HIDE_IF_NO_LMP, NOT hero_uses_lmp(st.slot)
  hide_slices_by_lookup_code st.sl, SL_STATUS_HIDE_IF_MAX_LEV, gam.hero(st.slot).lev >= current_max_level
+
+ DIM hero_id as integer = hero(st.slot) - 1
+ IF hero_id >= 0 THEN
+  DIM her as HeroDef
+  loadherodata her, hero_id
+  set_sprites_by_lookup_code st.sl, SL_STATUS_PORTRAIT, sprTypePortrait, her.portrait, her.portrait_pal
+  set_sprites_by_lookup_code st.sl, SL_STATUS_WALKABOUT, sprTypeWalkabout, gam.hero(st.slot).pic, gam.hero(st.slot).pal
+  set_sprites_by_lookup_code st.sl, SL_STATUS_BATTLESPRITE, sprTypeHero, gam.hero(st.slot).battle_pic, gam.hero(st.slot).battle_pal
+ END IF
 END SUB
 
 SUB status_screen (byval slot as integer)
@@ -1751,7 +1761,7 @@ END SUB
 
 SUB hide_slices_by_lookup_code (byval sl as Slice ptr, byval lookup as integer, byval cond as bool)
  'Starting with children of the given container slice, iterate through
- ' all visible children and toggle the visibility of any slices with a specific lookup code
+ ' all children and toggle the visibility of any slices with a specific lookup code
  IF sl = 0 THEN debug "hide_slices_by_lookup_code: null slice ptr": EXIT SUB
  DIM ch as Slice Ptr = sl->FirstChild
  DO WHILE ch <> 0
@@ -1759,6 +1769,22 @@ SUB hide_slices_by_lookup_code (byval sl as Slice ptr, byval lookup as integer, 
    ch->Visible = NOT cond
   END IF
   hide_slices_by_lookup_code ch, lookup, cond
+  ch = ch->NextSibling
+ LOOP
+END SUB
+
+SUB set_sprites_by_lookup_code (byval sl as Slice ptr, byval lookup as integer, byval sprtype as SpriteType, byval picnum as integer, byval palnum as integer=-1)
+ 'Starting with children of the given container slice, iterate through
+ ' all children and change any sprites matching the lookup code
+ IF sl = 0 THEN debug "set_sprites_by_lookup_code: null slice ptr": EXIT SUB
+ DIM ch as Slice Ptr = sl->FirstChild
+ DO WHILE ch <> 0
+  IF ch->Lookup = lookup THEN
+   IF ch->SliceType = slSprite THEN
+    ChangeSpriteSlice ch, sprtype, picnum, palnum
+   END IF
+  END IF
+  set_sprites_by_lookup_code ch, lookup, sprtype, picnum, palnum
   ch = ch->NextSibling
  LOOP
 END SUB
