@@ -1548,6 +1548,32 @@ FUNCTION hero_elemental_resist_msg (element as string, damage as single) as stri
  RETURN raw
 END FUNCTION
 
+FUNCTION get_elemental_info_text(byval hero_slot as integer) as string
+ '--get the list of elemental names
+ DIM elementnames() as string
+ getelementnames elementnames()
+ '--get this hero's elemental resists, with worn equipment
+ DIM elementaldmg(maxElements - 1) as single
+ calc_hero_elementals elementaldmg(), hero_slot
+ '--build elemental strings
+ DIM eleminfo as string
+ DIM msg as string
+ DIM found_elem as bool = NO
+ msg = readglobalstring(302, "Elemental Effects:", 30)
+ IF LEN(msg) THEN eleminfo &= msg & CHR(10)
+ FOR i as integer = 0 TO gen(genNumElements) - 1
+  msg = hero_elemental_resist_msg(elementnames(i), elementaldmg(i))
+  IF LEN(msg) THEN
+   eleminfo &= msg & CHR(10)
+   found_elem = YES
+  END IF
+ NEXT i
+ IF NOT found_elem THEN
+  eleminfo = readglobalstring(130, "No Elemental Effects", 30)
+ END IF
+ RETURN eleminfo
+END FUNCTION
+
 SUB ExpandTextHeroSlot (code as string, result as string, byval hero_slot as integer, byval arg1 as integer=0, byval arg2 as integer)
  WITH gam.hero(hero_slot)
 
@@ -1568,46 +1594,35 @@ SUB ExpandTextHeroSlot (code as string, result as string, byval hero_slot as int
    CASE "MPCUR": result = STR(.stat.cur.mp)
    CASE "MPMAX": result = STR(.stat.max.mp)
    CASE "LEVMPLABEL": result = readglobalstring(160, "Level MP", 20)
-   CASE "ELEMENTS":
-    '--get the list of elemental names
-    DIM elementnames() as string
-    getelementnames elementnames()
-    '--get this hero's elemental resists, with worn equipment
-    DIM elementaldmg(maxElements - 1) as single
-    calc_hero_elementals elementaldmg(), hero_slot
-    '--build elemental strings
-    DIM eleminfo as string
-    DIM msg as string
-    DIM found_elem as bool = NO
-    msg = readglobalstring(302, "Elemental Effects:", 30)
-    IF LEN(msg) THEN eleminfo &= msg & CHR(10)
-    FOR i as integer = 0 TO gen(genNumElements) - 1
-     msg = hero_elemental_resist_msg(elementnames(i), elementaldmg(i))
-     IF LEN(msg) THEN
-      eleminfo &= msg & CHR(10)
-      found_elem = YES
-     END IF
-    NEXT i
-    IF NOT found_elem THEN
-     eleminfo = readglobalstring(130, "No Elemental Effects", 30)
-    END IF
-    result = eleminfo
+   CASE "ELEMENTS": result = get_elemental_info_text(hero_slot)
   END SELECT
 
  END WITH
 END SUB
 
+TYPE StatusScreenState
+ sl as slice ptr
+ slot as integer
+ need_update as bool
+END TYPE
+
+SUB status_screen_refresh(byref st as StatusScreenState)
+ expand_slice_text_insert_codes st.sl, @ExpandTextHeroSlot, st.slot
+END SUB
+
 SUB status_screen (byval slot as integer)
 
- DIM root_sl as slice ptr = NewSliceOfType(slRoot)
- root_sl->Fill = YES
- RefreshSliceScreenPos root_sl
+ DIM st as StatusScreenState
+ st.slot = slot
+ st.sl = NewSliceOfType(slRoot)
+ st.sl->Fill = YES
+ RefreshSliceScreenPos st.sl
  DIM page as integer = compatpage
  DIM holdscreen as integer = allocatepage
  copypage page, holdscreen
 
- SliceLoadFromFile root_sl, workingdir & SLASH & "slicetree_" & SL_COLLECT_STATUSSCREEN & "_0.reld"
- expand_slice_text_insert_codes root_sl, @ExpandTextHeroSlot, slot
+ SliceLoadFromFile st.sl, workingdir & SLASH & "slicetree_" & SL_COLLECT_STATUSSCREEN & "_0.reld"
+ status_screen_refresh st
  
  menusound gen(genAcceptSFX)
  setkeys
@@ -1617,13 +1632,24 @@ SUB status_screen (byval slot as integer)
   playtimer
   control
   IF carray(ccMenu) > 1 THEN EXIT DO
-  'IF carray(ccUse) > 1 THEN mode = loopvar(mode, 0, 2, 1): menusound gen(genCursorSFX)
+  IF carray(ccUse) > 1 THEN
+   DIM sel as Slice Ptr = LookupSlice(SL_STATUS_PAGE_SELECT, st.sl)
+   IF sel THEN
+    SelectSliceNext sel
+    menusound gen(genCursorSFX)
+   END IF
+  END IF
   'IF carray(ccLeft) > 1 THEN DO: pt = loopvar(pt, 0, 3, -1): LOOP UNTIL hero(pt) > 0: menusound gen(genCursorSFX): status_buildmenu her, pt, mtype(), elementaldmg(), elementnames(), elementalmenu(), elementalmenu_st, portrait
   'IF carray(ccRight) > 1 THEN DO: pt = loopvar(pt, 0, 3, 1): LOOP UNTIL hero(pt) > 0: menusound gen(genCursorSFX): status_buildmenu her, pt, mtype(), elementaldmg(), elementnames(), elementalmenu(), elementalmenu_st, portrait
  
+  IF st.need_update THEN
+   status_screen_refresh st
+   st.need_update = NO
+  END IF
+ 
   'Draw the screen
   copypage holdscreen, page
-  DrawSlice root_sl, page
+  DrawSlice st.sl, page
   setvispage vpage
   dowait
  LOOP
@@ -1631,7 +1657,7 @@ SUB status_screen (byval slot as integer)
 
  freepage page
  freepage holdscreen
- DeleteSlice @root_sl
+ DeleteSlice @(st.sl)
 END SUB
 
 SUB expand_slice_text_insert_codes (byval sl as Slice ptr, byval callback as ANY ptr=0, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0)
@@ -1644,7 +1670,8 @@ SUB expand_slice_text_insert_codes (byval sl as Slice ptr, byval callback as ANY
   IF ch->Visible THEN
    IF ch->SliceType = slText THEN
     dat = ch->SliceData
-    ChangeTextSlice ch, embed_text_codes(dat->s, callback, arg0, arg1, arg2)
+    IF dat->s_orig = "" THEN dat->s_orig = dat->s
+    ChangeTextSlice ch, embed_text_codes(dat->s_orig, callback, arg0, arg1, arg2)
    END IF
    expand_slice_text_insert_codes ch, callback, arg0, arg1, arg2
   END IF

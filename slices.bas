@@ -2181,6 +2181,20 @@ Sub ChangeSelectSlice(byval sl as slice ptr,_
  end with
 end sub
 
+Sub SelectSliceNext(byval sl as Slice ptr, byval can_loop as bool=YES)
+ if sl = 0 then debug "SelectSliceNext null ptr" : exit sub
+ if sl->SliceType <> slSelect then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a select" : exit sub
+ dim dat as SelectSliceData Ptr = sl->SliceData
+ dat->index += 1
+ if dat->index >= sl->NumChildren then
+  if can_loop then
+   dat->index = 0
+  else
+   dat->index = sl->NumChildren - 1
+  end if
+ end if
+end sub
+
 '--Panel-------------------------------------------------------------------
 Sub DisposePanelSlice(byval sl as slice ptr)
  if sl = 0 then exit sub

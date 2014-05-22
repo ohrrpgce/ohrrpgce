@@ -209,7 +209,7 @@ Type TextSliceData
  bgcol as integer
  outline as integer
  s as String
- 'lines() as string
+ s_orig as string 'Used when expanding ${} codes, so the codes can be re-expanded again later
  wrap as integer
  'Declare constructor(st as string, byval col as integer = -1, byval ol as integer = YES)
  insert as integer 'char offset of insertion pointer
@@ -436,6 +436,7 @@ DECLARE Function NewSelectSlice(byval sl as slice ptr, byref dat as SelectSliceD
 DECLARE Sub ChangeSelectSlice(byval sl as slice ptr,_
                       byval index as integer=-2,_
                       byval override as integer=-2) ' All arguments default to no change
+DECLARE Sub SelectSliceNext(byval sl as Slice ptr, byval can_loop as bool=YES)
 
 DECLARE Function NewPanelSlice(byval parent as Slice ptr, byref dat as PanelSliceData) as slice ptr
 DECLARE Sub ChangePanelSlice(byval sl as slice ptr,_
