@@ -5401,6 +5401,13 @@ FUNCTION should_hide_hero_stat(hero as HeroDef, byval statnum as integer) as boo
  RETURN NO
 END FUNCTION
 
+FUNCTION should_hide_hero_stat(byval hero_id as integer, byval statnum as integer) as bool
+ DIM her as HeroDef 
+ loadherodata her, hero_id
+ RETURN should_hide_hero_stat(her, statnum)
+END FUNCTION
+
+
 'Like INSTR (opposite arg order!), but only returns the offset of the first match starting at a word
 'boundary where 'excludeword' doesn't also match, unless query actually starts with excludeword.
 'This is intended to be used with select_by_typing on menus where you don't necessarily

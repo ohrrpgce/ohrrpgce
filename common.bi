@@ -260,7 +260,8 @@ DECLARE SUB cleanup_global_reload_doc ()
 DECLARE FUNCTION get_reload_copy (byval n as NodePtr) as NodePtr
 DECLARE FUNCTION get_reload_empty (nodename as string = "") as NodePtr
 DECLARE FUNCTION add_hero_battle_menu_item(byval parent as NodePtr, kind as string, byval value as integer = 0) as NodePtr
-DECLARE FUNCTION should_hide_hero_stat(hero as HeroDef, byval statnum as integer) as bool
+DECLARE FUNCTION should_hide_hero_stat OVERLOAD (hero as HeroDef, byval statnum as integer) as bool
+DECLARE FUNCTION should_hide_hero_stat OVERLOAD (byval hero_id as integer, byval statnum as integer) as bool
 
 DECLARE FUNCTION find_on_word_boundary_excluding(haystack as string, needle as string, excludeword as string) as integer
 DECLARE FUNCTION find_on_word_boundary(haystack as string, needle as string) as integer

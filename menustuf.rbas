@@ -57,6 +57,7 @@ DECLARE SUB sellstuff_refresh(byval last_stuff as integer, byval recordsize as i
 DECLARE SUB sellstuff_infostr(byval ic as integer, info as string, b() as integer, permask() as integer, price() as integer, byval stuff_count as integer, byval recordsize as integer)
 DECLARE SUB status_buildmenu(her as HeroDef, byval pt as integer, mtype() as integer, elementaldmg() as single, elementnames() as string, elementalmenu() as string, elementalmenu_st as MenuState, portrait as GraphicPair)
 DECLARE SUB expand_slice_text_insert_codes (byval sl as Slice ptr, byval callback as ANY ptr=0, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0)
+DECLARE SUB hide_slices_by_lookup_code (byval sl as Slice ptr, byval lookup as integer, byval cond as bool)
 
 SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as integer)
  'shoptype is 0 for items and 1 for heroes
@@ -1574,7 +1575,48 @@ FUNCTION get_elemental_info_text(byval hero_slot as integer) as string
  RETURN eleminfo
 END FUNCTION
 
+FUNCTION hero_has_mp (byval hero_slot as integer) as bool
+ RETURN gam.hero(hero_slot).stat.max.mp > 0
+END FUNCTION
+
+FUNCTION hero_uses_lmp (byval hero_slot as integer) as bool
+ DIM hero_id as integer = hero(hero_slot) - 1
+ IF hero_id < 0 THEN
+  debug "hero_uses_lmp: empty hero slot " & hero_slot
+  RETURN NO
+ END IF
+ DIM her as HeroDef
+ loadherodata her, hero_id
+ DIM hero_node as NodePtr
+ hero_node = CAST(NodePtr, her.reld)
+ READNODE hero_node."battle_menus" as batmenu
+  WITHNODE batmenu."menu" as m
+   DIM k as NodePtr
+   k = m."kind".ptr
+   IF k."spells".exists THEN
+    DIM listnum as integer = k."spells".integer
+    IF LEN(her.list_name(listnum)) > 0 THEN
+     IF her.list_type(listnum) = 1 THEN
+      'This hero has a LMP spell list, and it is in their battle menu
+      'And it has a non-blank name
+      RETURN YES
+     END IF
+    END IF
+   END IF
+  END WITHNODE
+ END READNODE
+ RETURN NO
+END FUNCTION
+
 SUB ExpandTextHeroSlot (code as string, result as string, byval hero_slot as integer, byval arg1 as integer=0, byval arg2 as integer)
+ 
+ DIM hero_id as integer = hero(hero_slot) - 1
+
+ IF hero_id < 0 THEN
+  'Doesn't work on empty slots
+  EXIT SUB
+ END IF
+
  WITH gam.hero(hero_slot)
 
   'Simple stuff
@@ -1587,15 +1629,32 @@ SUB ExpandTextHeroSlot (code as string, result as string, byval hero_slot as int
    CASE "EXPNEXT": result = STR(.exp_next)
    CASE "EXPNEED": result = STR(.exp_next - .exp_cur)
    CASE "FORNEXT": result = readglobalstring(47, "for next", 10)
-   CASE "HPLABEL": result = statnames(statHP)
-   CASE "HPCUR": result = STR(.stat.cur.hp)
-   CASE "HPMAX": result = STR(.stat.max.hp)
-   CASE "MPLABEL": result = statnames(statMP)
-   CASE "MPCUR": result = STR(.stat.cur.mp)
-   CASE "MPMAX": result = STR(.stat.max.mp)
    CASE "LEVMPLABEL": result = readglobalstring(160, "Level MP", 20)
    CASE "ELEMENTS": result = get_elemental_info_text(hero_slot)
   END SELECT
+  
+  IF NOT should_hide_hero_stat(hero_id, statHP) THEN
+   SELECT CASE UCASE(code)
+    CASE "HPLABEL": result = statnames(statHP)
+    CASE "HPCUR": result = STR(.stat.cur.hp)
+    CASE "HPMAX": result = STR(.stat.max.hp)
+   END SELECT
+  END IF
+
+  IF NOT should_hide_hero_stat(hero_id, statMP) THEN
+   SELECT CASE UCASE(code)
+    CASE "MPLABEL": result = statnames(statMP)
+    CASE "MPCUR": result = STR(.stat.cur.mp)
+    CASE "MPMAX": result = STR(.stat.max.mp)
+   END SELECT
+  END IF
+  
+  IF LEFT(code, 3) = "LMP" THEN
+   DIM lmplev as integer = str2int(MID(code, 4)) - 1
+   IF lmplev >= 0 ANDALSO lmplev <= 8 THEN
+    result = STR(lmp(hero_slot, lmplev))
+   END IF
+  END IF
 
  END WITH
 END SUB
@@ -1608,6 +1667,9 @@ END TYPE
 
 SUB status_screen_refresh(byref st as StatusScreenState)
  expand_slice_text_insert_codes st.sl, @ExpandTextHeroSlot, st.slot
+ hide_slices_by_lookup_code st.sl, SL_STATUS_HIDE_IF_NO_MP, NOT hero_has_mp(st.slot)
+ hide_slices_by_lookup_code st.sl, SL_STATUS_HIDE_IF_NO_LMP, NOT hero_uses_lmp(st.slot)
+ hide_slices_by_lookup_code st.sl, SL_STATUS_HIDE_IF_MAX_LEV, gam.hero(st.slot).lev >= current_max_level
 END SUB
 
 SUB status_screen (byval slot as integer)
@@ -1672,7 +1734,7 @@ END SUB
 
 SUB expand_slice_text_insert_codes (byval sl as Slice ptr, byval callback as ANY ptr=0, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0)
  'Starting with children of the given container slice, iterate through
- ' all visible children and expand any ${} codes found in any TextSlice
+ ' all children and expand any ${} codes found in any TextSlice
  IF sl = 0 THEN debug "expand_slice_text_insert_codes: null slice ptr": EXIT SUB
  DIM ch as Slice Ptr = sl->FirstChild
  DIM dat as TextSliceData Ptr
@@ -1683,6 +1745,20 @@ SUB expand_slice_text_insert_codes (byval sl as Slice ptr, byval callback as ANY
    ChangeTextSlice ch, embed_text_codes(dat->s_orig, callback, arg0, arg1, arg2)
   END IF
   expand_slice_text_insert_codes ch, callback, arg0, arg1, arg2
+  ch = ch->NextSibling
+ LOOP
+END SUB
+
+SUB hide_slices_by_lookup_code (byval sl as Slice ptr, byval lookup as integer, byval cond as bool)
+ 'Starting with children of the given container slice, iterate through
+ ' all visible children and toggle the visibility of any slices with a specific lookup code
+ IF sl = 0 THEN debug "hide_slices_by_lookup_code: null slice ptr": EXIT SUB
+ DIM ch as Slice Ptr = sl->FirstChild
+ DO WHILE ch <> 0
+  IF ch->Lookup = lookup THEN
+   ch->Visible = NOT cond
+  END IF
+  hide_slices_by_lookup_code ch, lookup, cond
   ch = ch->NextSibling
  LOOP
 END SUB
