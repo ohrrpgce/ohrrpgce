@@ -24,4 +24,7 @@ DECLARE SUB loadshopstuf (array() as integer, byval id as integer)
 DECLARE FUNCTION count_available_spells(byval who as integer, byval list as integer) as integer
 DECLARE FUNCTION outside_battle_cure (byval atk as integer, byref target as integer, byval attacker as integer, byval spread as integer) as integer
 
+DECLARE SUB plank_menu_clear (byval sl as Slice Ptr, byval lookup as integer)
+DECLARE SUB plank_menu_append (byval sl as slice ptr, byval lookup as integer, byval collection_kind as integer, byval callback as ANY ptr=0, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0)
+
 #endif

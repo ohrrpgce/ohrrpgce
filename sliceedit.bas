@@ -175,6 +175,8 @@ SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval gr
    append_specialcode specialcodes(), SL_STATUS_HIDE_IF_NO_MP, kindlimitANYTHING
    append_specialcode specialcodes(), SL_STATUS_HIDE_IF_NO_LMP, kindlimitANYTHING
    append_specialcode specialcodes(), SL_STATUS_HIDE_IF_MAX_LEV, kindlimitANYTHING
+  CASE SL_COLLECT_STATUSSTATPLANK:
+   append_specialcode specialcodes(), SL_PLANK_HOLDER, kindlimitANYTHING
  END SELECT
 END SUB
 
@@ -360,6 +362,10 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
    END IF
   END IF
 
+  'Special handling for the currently selected slice
+  DIM cur_sl as slice ptr = menu(state.pt).handle
+  preview_SelectSlice_parents cur_sl
+
   IF state.need_update = NO AND menu(state.pt).handle <> NULL THEN
 
    IF keyval(scDelete) > 1 THEN
@@ -425,10 +431,6 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
 
   END IF '--end IF state.need_update = NO AND menu(state.pt).handle
   
-  'Special handling for the currently selected slice
-  DIM cur_sl as slice ptr = menu(state.pt).handle
-  preview_SelectSlice_parents cur_sl
-
   ' Window size change
   IF UpdateScreenSlice() THEN state.need_update = YES
 
@@ -1352,3 +1354,7 @@ FUNCTION slice_color_caption(byval n as integer, ifzero as string="0") as string
  RETURN n & "(!?)"
 END FUNCTION
 
+SUB load_slice_collection (byval sl as Slice Ptr, byval collection_kind as integer, byval collection_num as integer=0)
+ 'FIXME: this is where we have to handle what to do if a collection is missing
+ SliceLoadFromFile sl, workingdir & SLASH & "slicetree_" & collection_kind & "_" & collection_num & ".reld"
+END SUB

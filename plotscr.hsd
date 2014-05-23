@@ -1719,5 +1719,6 @@ define constant, begin
 -102005, sl:status hide if no mp
 -102006, sl:status hide if no lmp
 -102007, sl:status hide if max lev
+-102008, sl:plank holder
 end
 #</SLICE LOOKUP CODES>

@@ -1684,7 +1684,7 @@ SUB ExpandTextHeroSlot (code as string, result as string, byval hero_slot as int
    IF NOT should_hide_hero_stat(her, statnum) THEN
     codename = StatCodeName(statnum)
     SELECT CASE UCASE(code)
-     CASE codename & "LABEL": result = statnames(statHP)
+     CASE codename & "LABEL": result = statnames(statnum)
      CASE codename & "CUR": result = STR(.stat.cur.sta(statnum))
      CASE codename & "MAX": result = STR(.stat.max.sta(statnum))
      CASE codename & "BASE": result = STR(.stat.base.sta(statnum))
@@ -1702,6 +1702,26 @@ SUB ExpandTextHeroSlot (code as string, result as string, byval hero_slot as int
  END WITH
 END SUB
 
+SUB ExpandTextHeroSlotStat (code as string, result as string, byval hero_slot as integer, byval statnum as integer=0, byval arg2 as integer)
+ DIM hero_id as integer = hero(hero_slot) - 1
+
+ IF hero_id < 0 THEN
+  'Doesn't work on empty slots
+  EXIT SUB
+ END IF
+
+ WITH gam.hero(hero_slot)
+
+  SELECT CASE UCASE(code)
+   CASE "LABEL": result = statnames(statnum)
+   CASE "CUR": result = STR(.stat.cur.sta(statnum))
+   CASE "MAX": result = STR(.stat.max.sta(statnum))
+   CASE "BASE": result = STR(.stat.base.sta(statnum))
+  END SELECT
+
+ END WITH 
+END SUB
+
 TYPE StatusScreenState
  sl as slice ptr
  slot as integer
@@ -1709,6 +1729,8 @@ TYPE StatusScreenState
 END TYPE
 
 SUB status_screen_refresh(byref st as StatusScreenState)
+ plank_menu_clear st.sl, SL_STATUS_STATLIST
+
  expand_slice_text_insert_codes st.sl, @ExpandTextHeroSlot, st.slot
  hide_slices_by_lookup_code st.sl, SL_STATUS_HIDE_IF_NO_MP, NOT hero_has_mp(st.slot)
  hide_slices_by_lookup_code st.sl, SL_STATUS_HIDE_IF_NO_LMP, NOT hero_uses_lmp(st.slot)
@@ -1721,7 +1743,14 @@ SUB status_screen_refresh(byref st as StatusScreenState)
   set_sprites_by_lookup_code st.sl, SL_STATUS_PORTRAIT, sprTypePortrait, her.portrait, her.portrait_pal
   set_sprites_by_lookup_code st.sl, SL_STATUS_WALKABOUT, sprTypeWalkabout, gam.hero(st.slot).pic, gam.hero(st.slot).pal
   set_sprites_by_lookup_code st.sl, SL_STATUS_BATTLESPRITE, sprTypeHero, gam.hero(st.slot).battle_pic, gam.hero(st.slot).battle_pal
+
+  FOR statnum as integer = 3 TO statLast
+   IF NOT should_hide_hero_stat(her, statnum) THEN
+    plank_menu_append st.sl, SL_STATUS_STATLIST, SL_COLLECT_STATUSSTATPLANK, @ExpandTextHeroSlotStat, st.slot, statnum
+   END IF
+  NEXT statnum
  END IF
+ 
 END SUB
 
 SUB status_screen (byval slot as integer)
@@ -1735,7 +1764,7 @@ SUB status_screen (byval slot as integer)
  DIM holdscreen as integer = allocatepage
  copypage page, holdscreen
 
- SliceLoadFromFile st.sl, workingdir & SLASH & "slicetree_" & SL_COLLECT_STATUSSCREEN & "_0.reld"
+ load_slice_collection st.sl, SL_COLLECT_STATUSSCREEN
  status_screen_refresh st
  
  menusound gen(genAcceptSFX)
@@ -1782,6 +1811,41 @@ SUB status_screen (byval slot as integer)
  freepage page
  freepage holdscreen
  DeleteSlice @(st.sl)
+END SUB
+
+SUB plank_menu_append (byval sl as slice ptr, byval lookup as integer, byval collection_kind as integer, byval callback as ANY ptr=0, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0)
+ IF sl = 0 THEN debug "plank_menu_append: null slice ptr": EXIT SUB
+ DIM m as Slice ptr = LookupSlice(lookup, sl)
+ IF m = 0 THEN debug "plank_menu_append: menu not found " & lookup : EXIT SUB
+ DIM sc as Slice Ptr = NewSliceOfType(slRoot)
+ load_slice_collection sc, collection_kind
+ IF sc = 0 THEN debug "plank_menu_append: plank collection not found " & collection_kind : EXIT SUB
+ DIM holder as Slice Ptr
+ holder = LookupSlice(SL_PLANK_HOLDER, sc)
+ DIM cl as Slice Ptr
+ IF holder <> 0 THEN
+  'Found a holder, use only it
+  cl = CloneSliceTree(holder)
+ ELSE
+  'No holder, use the whole collection
+  cl = CloneSliceTree(sc)
+ END IF
+ DeleteSlice @sc
+ 
+ SetSliceParent cl, m
+ 
+ expand_slice_text_insert_codes cl, callback, arg0, arg1, arg2
+ 
+END SUB
+
+SUB plank_menu_clear (byval sl as Slice Ptr, byval lookup as integer)
+ IF sl = 0 THEN debug "plank_menu_clear: null slice ptr": EXIT SUB
+ DIM m as Slice ptr = LookupSlice(lookup, sl)
+ IF m = 0 THEN
+  debug "plank_menu_clear: menu not found " & lookup
+  EXIT SUB
+ END IF
+ DeleteSliceChildren m
 END SUB
 
 SUB expand_slice_text_insert_codes (byval sl as Slice ptr, byval callback as ANY ptr=0, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0)
@@ -3429,4 +3493,3 @@ SUB spells_menu_paint (byref sp as SpellsMenuState)
  IF sp.last = 0 THEN edgeprint names(sp.hero) & " " & sp.has_none_caption, xstring(names(sp.hero) & " " & sp.has_none_caption, 160), 120, uilook(uiText), sp.page
  edgeprint names(sp.hero), xstring(names(sp.hero), 206), 31, uilook(uiText), sp.page
 END SUB
-
