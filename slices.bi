@@ -385,7 +385,7 @@ DECLARE Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceD
 DECLARE Sub UpdateTextSlice(byval sl as slice ptr)
 DECLARE Sub ChangeTextSlice(byval sl as slice ptr,_
                       s as string=CHR(1) & CHR(255),_
-                      byval col as integer=-1,_
+                      byval col as integer=-99,_
                       byval outline as integer=-2,_
                       byval wrap as integer=-2,_
                       byval bgcol as integer=-1)
@@ -419,7 +419,8 @@ DECLARE Sub ChangeMapSlice (byval sl as slice ptr,_
 DECLARE Function NewGridSlice(byval parent as Slice ptr, byref dat as GridSliceData) as slice ptr
 DECLARE Sub ChangeGridSlice(byval sl as slice ptr,_
                       byval rows as integer=0,_
-                      byval cols as integer=0)
+                      byval cols as integer=0,_
+                      byval show as integer=-2)
 
 DECLARE Sub DisposeEllipseSlice(byval sl as slice ptr)
 DECLARE Sub DrawEllipseSlice(byval sl as slice ptr, byval p as integer)

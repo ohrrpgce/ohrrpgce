@@ -1178,7 +1178,7 @@ end function
 'All arguments default to no-change
 Sub ChangeTextSlice(byval sl as slice ptr,_
                       s as string=CHR(1) & CHR(255),_
-                      byval col as integer=-1,_
+                      byval col as integer=-99,_
                       byval outline as integer=-2,_
                       byval wrap as integer=-2,_
                       byval bgcol as integer=-1)
@@ -1189,7 +1189,7 @@ Sub ChangeTextSlice(byval sl as slice ptr,_
   if s <> CHR(1) & CHR(255) then
    .s = s
   end if
-  if col >= 0 then
+  if col > -99 then
    .col = col
   end if
   if bgcol >= 0 then
@@ -1736,7 +1736,8 @@ End Function
 'All arguments default to no-change
 Sub ChangeGridSlice(byval sl as slice ptr,_
                       byval rows as integer=0,_
-                      byval cols as integer=0)
+                      byval cols as integer=0,_
+                      byval show as integer=-2)
  if sl = 0 then debug "ChangeGridSlice null ptr" : exit sub
  if sl->SliceType <> slGrid then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a grid" : exit sub
  dim dat as GridSliceData Ptr = sl->SliceData
@@ -1745,6 +1746,9 @@ Sub ChangeGridSlice(byval sl as slice ptr,_
  end if
  if cols > 0 then
   dat->cols = cols
+ end if
+ if show > -2 then
+  dat->show = show
  end if
 end sub
 

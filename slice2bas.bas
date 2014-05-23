@@ -48,39 +48,60 @@ Sub WrInt (byval fh as integer, byval n as NodePtr, byval d as integer, prop as 
  print #fh, in & pointerv & "->" & prop & " = " & v
 End Sub
 
-Sub WrStr (byval fh as integer, byval n as NodePtr, byval d as integer, prop as string, alt_node_prop as string="", default as string="", pointerv as string="")
- if pointerv = "" then pointerv = "sl" & d
- dim nprop as string
- if alt_node_prop <> "" then nprop = alt_node_prop else nprop = prop
- dim v as string = GetChildNodeStr(n, nprop, default)
- if not verbose then if v = default then exit sub 'Don't bother writing default values
- dim in as string = String(d, " ")
- print #fh, in & pointerv & "->" & prop & " = !""" & escape_basic_str(v) & """"
-End Sub
+Function DatInt(byval node as NodePtr, nname as string, byval default as integer=0, byval skip_if as bool=NO) as string
+ if skip_if then return ""
+ dim n as integer = GetChildNodeInt(node, nname, default)
+ if n = default then return ""
+ return STR(n)
+End Function
 
-Sub WrFl (byval fh as integer, byval n as NodePtr, byval d as integer, prop as string, alt_node_prop as string="", byval default as double=0.0, pointerv as string="")
- if pointerv = "" then pointerv = "sl" & d
- dim nprop as string
- if alt_node_prop <> "" then nprop = alt_node_prop else nprop = prop
- dim v as double = GetChildNodeFloat(n, nprop, default)
- if not verbose then if v = default then exit sub 'Don't bother writing default values
- dim in as string = String(d, " ")
- print #fh, in & pointerv & "->" & prop & " = " & v
-End Sub
+Function DatStr(byval node as NodePtr, nname as string, default as string="", byval skip_if as bool=NO) as string
+ if skip_if then return ""
+ dim s as string = GetChildNodeStr(node, nname)
+ if s = default then return ""
+ return "!""" & escape_basic_str(s) & """"
+End Function
+
+Function DatFlo(byval node as NodePtr, nname as string, byval default as double=0.0, byval skip_if as bool=NO) as string
+ if skip_if then return ""
+ dim n as double = GetChildNodeFloat(node, nname, default)
+ if n = default then return ""
+ return STR(n)
+End Function
 
 Sub WriteSliceNodeAsBasic(byval fh as integer, byval n as NodePtr, byval d as integer=1, byval is_root as bool=YES)
 
  dim in as string = String(d, " ")
  dim typename as string = GetChildNodeStr(n, "type")
- if not is_dim_used("sl" & d) then
-  print #fh, in & "dim sl" & d & " as Slice Ptr = NewSliceOfType(sl" & typename & ")"
-  mark_dim_used("sl" & d)
+ if is_root then
+  print #fh, in & "ReplaceSliceType(sl1, NewSliceOfType(sl" & typename & "))"
+ else
+  if not is_dim_used("sl" & d) then
+   print #fh, in & "dim sl" & d & " as Slice Ptr = NewSliceOfType(sl" & typename & ")"
+   mark_dim_used("sl" & d)
+  else
+   print #fh, in & "sl" & d & " = NewSliceOfType(sl" & typename & ")"
+  end if
  end if
  WrInt fh, n, d, "lookup"
- WrInt fh, n, d, "x"
- WrInt fh, n, d, "y"
- WrInt fh, n, d, "width", "w"
- WrInt fh, n, d, "height", "h"
+ if GetChildNodeInt(n, "fill") then
+  if GetChildNodeInt(n, "fillmode") = 1 then
+   'fill horizontal
+   WrInt fh, n, d, "y"
+   WrInt fh, n, d, "height", "h"
+  end if
+  if GetChildNodeInt(n, "fillmode") = 2 then
+   'fill vertical
+   WrInt fh, n, d, "x"
+   WrInt fh, n, d, "width", "w"
+  end if
+ else
+  'Not filling
+  WrInt fh, n, d, "x"
+  WrInt fh, n, d, "y"
+  WrInt fh, n, d, "width", "w"
+  WrInt fh, n, d, "height", "h"
+ end if
  WrInt fh, n, d, "mobile", , YES
  WrInt fh, n, d, "clip"
  WrInt fh, n, d, "velocity.x", "vx"
@@ -106,58 +127,58 @@ Sub WriteSliceNodeAsBasic(byval fh as integer, byval n as NodePtr, byval d as in
  WrInt fh, n, d, "extra(1)", "extra1"
  WrInt fh, n, d, "extra(2)", "extra2"
 
- dim datv as string = lcase(typename) & "dat"
- if typename <> "Container" then
-  if not is_dim_used(datv) then
-   print #fh, in & "dim " & datv & " as " & typename & "SliceData Ptr = sl" & d & "->SliceData"
-   mark_dim_used(datv)
-  end if
- end if
- 
  select case typename
   'Needs to support the same types supported by sliceedit.bas
   case "Container"
    'Container has no extra data
   case "Rectangle"
-   WrInt fh, n, d, "style", , -1, datv
-   WrInt fh, n, d, "fgcol", "fg", , datv
-   WrInt fh, n, d, "bgcol", "bg", , datv
-   WrInt fh, n, d, "translucent", "trans", , datv
-   WrInt fh, n, d, "border", , -1, datv
-   WrInt fh, n, d, "fuzzfactor", , 50, datv
+   dim style as string = DatInt(n, "style", -1)
+   print #fh, in & "ChangeRectangleSlice sl" & d & ", " _
+     & style & ", " _
+     & DatInt(n, "fg", , style <> "") & ", " _
+     & DatInt(n, "bg", , style <> "") & ", " _
+     & DatInt(n, "border", -1, style <> "")  & ", " _
+     & DatInt(n, "trans") & ", " _
+     & DatInt(n, "fuzzfactor", 50)
   case "Sprite"
-   WrInt fh, n, d, "spritetype", "sprtype", , datv
-   WrInt fh, n, d, "record", "rec", , datv
-   WrInt fh, n, d, "pal", , -1, datv
-   WrInt fh, n, d, "frame", , , datv
-   WrInt fh, n, d, "fliphoriz", "fliph", , datv
-   WrInt fh, n, d, "flipvert", "flipv", , datv
-   WrInt fh, n, d, "trans", , 1, datv
-   print #fh, in & datv & "->paletted = (" & datv & "->spritetype <> sprTypeMXS)"
+   print #fh, in & "ChangeSpriteSlice sl" & d & ", " _
+     & DatInt(n, "sprtype") & ", " _
+     & DatInt(n, "rec") & ", " _
+     & DatInt(n, "pal", -1) & ", " _
+     & DatInt(n, "frame") & ", " _
+     & DatInt(n, "fliph") & ", " _
+     & DatInt(n, "flipv") & ", " _
+     & DatInt(n, "trans", -1)
   case "Text"
-   WrStr fh, n, d, "s", , , datv
-   WrInt fh, n, d, "col", , , datv
-   WrInt fh, n, d, "outline", , , datv
-   WrInt fh, n, d, "wrap", , , datv
-   WrInt fh, n, d, "bgcol", , , datv
+   print #fh, in & "ChangeTextSlice sl" & d & ", " _
+     & DatStr(n, "s") & ", " _
+     & DatInt(n, "col") & ", " _
+     & DatInt(n, "outline") & ", " _
+     & DatInt(n, "wrap") & ", " _
+     & DatInt(n, "bgcol")
   case "Grid"
-   WrInt fh, n, d, "cols", , 1, datv
-   WrInt fh, n, d, "rows", , 1, datv
-   WrInt fh, n, d, "show", , , datv
+   print #fh, in & "ChangeGridSlice sl" & d & ", " _
+     & DatInt(n, "cols", 1) & ", " _
+     & DatInt(n, "rows", 1) & ", " _
+     & DatInt(n, "show")
   case "Ellipse"
-   WrInt fh, n, d, "bordercol", , , datv
-   WrInt fh, n, d, "fillcol", , , datv
+   print #fh, in & "ChangeEllipseSlice sl" & d & ", " _
+     & DatInt(n, "bordercol") & ", " _
+     & DatInt(n, "fillcol")
   case "Scroll"
-   WrInt fh, n, d, "style", , , datv
-   WrInt fh, n, d, "check_depth", , , datv
+   print #fh, in & "ChangeScrollSlice sl" & d & ", " _
+     & DatInt(n, "style") & ", " _
+     & DatInt(n, "check_depth")
   case "Panel"
-   WrInt fh, n, d, "vertical", , , datv
-   WrInt fh, n, d, "primary", , , datv
-   WrInt fh, n, d, "pixels", , , datv
-   WrFl fh, n, d, "percent", , , datv
-   WrInt fh, n, d, "padding", , , datv
+   print #fh, in & "ChangePanelSlice sl" & d & ", " _
+     & DatInt(n, "vertical") & ", " _
+     & DatInt(n, "primary") & ", " _
+     & DatInt(n, "pixels") & ", " _
+     & DatFlo(n, "percent", 0.5) & ", " _
+     & DatInt(n, "padding")
   case "Select"
-   WrInt fh, n, d, "index", , , datv
+   print #fh, in & "ChangeSelectSlice sl" & d & ", " _
+     & DatInt(n, "index")
   case else
    print #fh, "WARNING: slice2bas doesn't support slices of type """ & typename & """"
  end select
@@ -199,13 +220,13 @@ Sub Main ()
   print "Convert a Slice collection saved as a Reload file into .bas source code"
   print "  which creates that same slice collection."
   print ""
-  print "  The first argument is the name of the function in the .bas file"
-  print "  which will return the collection."
+  print "  The first argument is the name of the sub in the .bas file"
+  print "  which will create the collection."
   print ""
   print "  Specify - as outfile to print to console."
   print ""
-  print "Usage: slice2bas functionname collectionfilename filename.bas"
-  print "   or: slice2bas functionname collectionfilename - > filename.bas"
+  print "Usage: slice2bas subname collectionfilename filename.bas"
+  print "   or: slice2bas subname collectionfilename - > filename.bas"
   exit sub
  end if
 
@@ -238,10 +259,9 @@ Sub Main ()
  print #fh, ""
  print #fh, "#include ""slices.bi"""
  print #fh, ""
- print #fh, "Function " & funcname & " () as Slice Ptr"
+ print #fh, "Sub " & funcname & " (byval sl1 as Slice Ptr)"
   WriteSliceNodeAsBasic fh, n, 1
- print #fh, " Return sl1"
- print #fh, "End Function"
+ print #fh, "End Sub"
 
  if outfile <> "-" then print "Wrote .bas source in " & int((timer - starttime) * 1000) & " ms"
  starttime = timer

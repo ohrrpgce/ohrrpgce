@@ -12,6 +12,9 @@
 
 #include "sliceedit.bi"
 
+'This include contains the default slice collections for special screens
+#include "sourceslices.bi"
+
 '==============================================================================
 
 TYPE SliceEditState
@@ -1355,6 +1358,18 @@ FUNCTION slice_color_caption(byval n as integer, ifzero as string="0") as string
 END FUNCTION
 
 SUB load_slice_collection (byval sl as Slice Ptr, byval collection_kind as integer, byval collection_num as integer=0)
- 'FIXME: this is where we have to handle what to do if a collection is missing
- SliceLoadFromFile sl, workingdir & SLASH & "slicetree_" & collection_kind & "_" & collection_num & ".reld"
+ DIM filename as string
+ filename = workingdir & SLASH & "slicetree_" & collection_kind & "_" & collection_num & ".reld"
+ IF isfile(filename) THEN
+  SliceLoadFromFile sl, filename
+ ELSE
+  SELECT CASE collection_kind
+   CASE SL_COLLECT_STATUSSCREEN:
+    default_status_screen sl
+   CASE SL_COLLECT_STATUSSTATPLANK:
+    default_status_stat_plank sl
+   CASE ELSE
+    debug "WARNING: no default slice collection for collection kind " & collection_kind
+  END SELECT
+ END IF
 END SUB
