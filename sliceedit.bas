@@ -125,6 +125,7 @@ DECLARE SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, 
 DECLARE SUB append_specialcode (specialcodes() as SpecialLookupCode, byval code as integer, byval kindlimit as integer=kindlimitANYTHING)
 DECLARE FUNCTION special_code_kindlimit_check(byval kindlimit as integer, byval slicekind as SliceTypes) as bool
 DECLARE FUNCTION slice_edit_detail_browse_slicetype(byref slice_type as SliceTypes) as SliceTypes
+DECLARE SUB preview_SelectSlice_parents (byval sl as Slice ptr)
 
 'Slice EditRule convenience functions
 DECLARE SUB sliceed_rule(rules() as EditRule, helpkey as String, mode as EditRuleMode, byval dataptr as any ptr, byval lower as integer=0, byval upper as integer=0, byval group as integer = 0)
@@ -426,13 +427,7 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
   
   'Special handling for the currently selected slice
   DIM cur_sl as slice ptr = menu(state.pt).handle
-  IF cur_sl THEN
-   DIM cur_par as Slice ptr = cur_sl->parent
-   'Special handling when a child of a SelectSlice is selected as edslice
-   IF cur_par ANDALSO cur_par->SliceType = slSelect THEN
-    ChangeSelectSlice cur_par, , IndexAmongSiblings(cur_sl)
-   END IF
-  END IF
+  preview_SelectSlice_parents cur_sl
 
   ' Window size change
   IF UpdateScreenSlice() THEN state.need_update = YES
@@ -475,6 +470,19 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
  '--free the clipboard if there is something in it
  IF ses.clipboard THEN DeleteSlice @ses.clipboard
 
+END SUB
+
+SUB preview_SelectSlice_parents (byval sl as Slice ptr)
+ IF sl = 0 THEN EXIT SUB
+ DIM par as Slice ptr = sl->parent
+ DIM ch as Slice ptr = sl
+ DO WHILE par
+  IF par->SliceType = slSelect THEN
+   ChangeSelectSlice par, , IndexAmongSiblings(ch)
+  END IF
+  ch = par
+  par = par->parent
+ LOOP
 END SUB
 
 '--Returns whether one of the descendents is forbidden
