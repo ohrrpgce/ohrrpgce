@@ -2681,6 +2681,7 @@ lookup slice(sl:status hide if no mp)
 lookup slice(sl:status hide if no lmp)
 lookup slice(sl:status hide if max lev)
 lookup slice(sl:plank holder)
+lookup slice(sl:status hide if no portrait)
 </example>
 			<seealso>
 				<ref>setslicelookup</ref>

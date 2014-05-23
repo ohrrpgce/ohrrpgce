@@ -57,23 +57,38 @@ Sub default_status_screen (byval sl1 as Slice Ptr)
         ChangeTextSlice sl8, !"${EXPNEED} ${EXPLABEL} ${FORNEXT} ${LEVLABEL}", , , , 
         SetSliceParent(sl8, sl7)
        SetSliceParent(sl7, sl6)
-       sl7 = NewSliceOfType(slRectangle)
-       sl7->x = 8
-       sl7->y = -8
-       sl7->width = 50
-       sl7->height = 50
-       sl7->alignhoriz = 2
-       sl7->anchorhoriz = 2
-       ChangeRectangleSlice sl7, 3, , , , , 
+       sl7 = NewSliceOfType(slContainer)
+       sl7->fill = -1
         sl8 = NewSliceOfType(slSprite)
-        sl8->lookup = -102000
-        sl8->width = 50
-        sl8->height = 50
+        sl8->lookup = -102002
+        sl8->x = 1
+        sl8->width = 32
+        sl8->height = 40
         sl8->alignhoriz = 1
         sl8->alignvert = 1
         sl8->anchorhoriz = 1
         sl8->anchorvert = 1
-        ChangeSpriteSlice sl8, 8, , , , , , 
+        ChangeSpriteSlice sl8, , , , , , , 
+        SetSliceParent(sl8, sl7)
+        sl8 = NewSliceOfType(slRectangle)
+        sl8->lookup = -102009
+        sl8->x = 8
+        sl8->y = -8
+        sl8->width = 50
+        sl8->height = 50
+        sl8->alignhoriz = 2
+        sl8->anchorhoriz = 2
+        ChangeRectangleSlice sl8, 3, , , , , 
+         dim sl9 as Slice Ptr = NewSliceOfType(slSprite)
+         sl9->lookup = -102000
+         sl9->width = 50
+         sl9->height = 50
+         sl9->alignhoriz = 1
+         sl9->alignvert = 1
+         sl9->anchorhoriz = 1
+         sl9->anchorvert = 1
+         ChangeSpriteSlice sl9, 8, , , , , , 
+         SetSliceParent(sl9, sl8)
         SetSliceParent(sl8, sl7)
        SetSliceParent(sl7, sl6)
       SetSliceParent(sl6, sl5)
@@ -95,7 +110,7 @@ Sub default_status_screen (byval sl1 as Slice Ptr)
         sl8->paddingbottom = 2
         sl8->fill = -1
         ChangeScrollSlice sl8, , 
-         dim sl9 as Slice Ptr = NewSliceOfType(slGrid)
+         sl9 = NewSliceOfType(slGrid)
          sl9->lookup = -102004
          sl9->height = 10
          sl9->fill = -1

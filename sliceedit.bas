@@ -178,6 +178,7 @@ SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval gr
    append_specialcode specialcodes(), SL_STATUS_HIDE_IF_NO_MP, kindlimitANYTHING
    append_specialcode specialcodes(), SL_STATUS_HIDE_IF_NO_LMP, kindlimitANYTHING
    append_specialcode specialcodes(), SL_STATUS_HIDE_IF_MAX_LEV, kindlimitANYTHING
+   append_specialcode specialcodes(), SL_STATUS_HIDE_IF_NO_PORTRAIT, kindlimitANYTHING
   CASE SL_COLLECT_STATUSSTATPLANK:
    append_specialcode specialcodes(), SL_PLANK_HOLDER, kindlimitANYTHING
  END SELECT
