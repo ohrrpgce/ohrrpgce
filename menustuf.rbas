@@ -1776,10 +1776,21 @@ SUB status_screen (byval slot as integer)
   control
   IF carray(ccMenu) > 1 THEN EXIT DO
   IF carray(ccUse) > 1 THEN
+   DIM try_rename as bool = NO
    DIM sel as Slice Ptr = LookupSlice(SL_STATUS_PAGE_SELECT, st.sl)
    IF sel THEN
     SelectSliceNext sel
     menusound gen(genCursorSFX)
+    DIM seldat as SelectSliceData ptr
+    seldat = sel->SliceData
+    if seldat->index = 0 then try_rename = YES
+   ELSE
+    try_rename = YES
+   END IF
+   IF try_rename ANDALSO gam.hero(st.slot).rename_on_status THEN
+    '--status-screen rename is allowed
+    renamehero st.slot, YES
+    IF carray(ccMenu) > 1 THEN EXIT DO
    END IF
   END IF
   IF is_active_party_slot(slot) THEN
