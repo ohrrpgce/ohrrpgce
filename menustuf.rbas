@@ -1744,7 +1744,7 @@ SUB status_screen_refresh(byref st as StatusScreenState)
   set_sprites_by_lookup_code st.sl, SL_STATUS_WALKABOUT, sprTypeWalkabout, gam.hero(st.slot).pic, gam.hero(st.slot).pal
   set_sprites_by_lookup_code st.sl, SL_STATUS_BATTLESPRITE, sprTypeHero, gam.hero(st.slot).battle_pic, gam.hero(st.slot).battle_pal
 
-  FOR statnum as integer = 3 TO statLast
+  FOR statnum as integer = 2 TO statLast
    IF NOT should_hide_hero_stat(her, statnum) THEN
     plank_menu_append st.sl, SL_STATUS_STATLIST, SL_COLLECT_STATUSSTATPLANK, @ExpandTextHeroSlotStat, st.slot, statnum
    END IF
@@ -1794,6 +1794,10 @@ SUB status_screen (byval slot as integer)
     menusound gen(genCursorSFX)
    END IF
   END IF
+  IF keyval(scF8) > 1 THEN
+   slice_editor st.sl
+   st.need_update = YES
+  END IF
  
   IF st.need_update THEN
    status_screen_refresh st
@@ -1826,6 +1830,7 @@ SUB plank_menu_append (byval sl as slice ptr, byval lookup as integer, byval col
  IF holder <> 0 THEN
   'Found a holder, use only it
   cl = CloneSliceTree(holder)
+  cl->Fill = YES
  ELSE
   'No holder, use the whole collection
   cl = CloneSliceTree(sc)
