@@ -1609,6 +1609,47 @@ FUNCTION hero_uses_lmp (byval hero_slot as integer) as bool
  RETURN NO
 END FUNCTION
 
+FUNCTION StatCodeName (byval statnum as integer) as string
+ 'Don't confuse this with statnames()
+ 'These are internal codes that never change, and statnames()
+ 'is user-defined names for display
+ SELECT CASE statnum
+  CASE statHP: RETURN "HP"
+  CASE statMP: RETURN "MP"
+  CASE statAtk: RETURN "ATK"
+  CASE statAim: RETURN "AIM"
+  CASE statDef: RETURN "DEF"
+  CASE statDodge: RETURN "DODGE"
+  CASE statMagic: RETURN "MAGIC"
+  CASE statWill: RETURN "WILL"
+  CASE statSpeed: RETURN "SPEED"
+  CASE statCtr: RETURN "CTR"
+  CASE statFocus: RETURN "FOCUS"
+  CASE statHitX: RETURN "HITX"
+ END SELECT
+ debug "StatCodeName: invalid stat number " & statnum
+ RETURN "???"
+END FUNCTION
+
+FUNCTION StatByCodeName (statcode as string) as integer
+ SELECT CASE statcode
+  CASE "HP": RETURN statHP
+  CASE "MP": RETURN statMP
+  CASE "ATK": RETURN statAtk
+  CASE "AIM": RETURN statAim
+  CASE "DEF": RETURN statDef
+  CASE "DODGE": RETURN statDodge
+  CASE "MAGIC": RETURN statMagic
+  CASE "WILL": RETURN statWill
+  CASE "SPEED": RETURN statSpeed
+  CASE "CTR": RETURN statCtr
+  CASE "FOCUS": RETURN statFocus
+  CASE "HITX": RETURN statHitX
+ END SELECT
+ debug "StatByCodeName: invalid code " & statcode
+ RETURN -1
+END FUNCTION
+
 SUB ExpandTextHeroSlot (code as string, result as string, byval hero_slot as integer, byval arg1 as integer=0, byval arg2 as integer)
  
  DIM hero_id as integer = hero(hero_slot) - 1
@@ -1634,21 +1675,20 @@ SUB ExpandTextHeroSlot (code as string, result as string, byval hero_slot as int
    CASE "ELEMENTS": result = get_elemental_info_text(hero_slot)
   END SELECT
   
-  IF NOT should_hide_hero_stat(hero_id, statHP) THEN
-   SELECT CASE UCASE(code)
-    CASE "HPLABEL": result = statnames(statHP)
-    CASE "HPCUR": result = STR(.stat.cur.hp)
-    CASE "HPMAX": result = STR(.stat.max.hp)
-   END SELECT
-  END IF
-
-  IF NOT should_hide_hero_stat(hero_id, statMP) THEN
-   SELECT CASE UCASE(code)
-    CASE "MPLABEL": result = statnames(statMP)
-    CASE "MPCUR": result = STR(.stat.cur.mp)
-    CASE "MPMAX": result = STR(.stat.max.mp)
-   END SELECT
-  END IF
+  DIM her as HeroDef
+  loadherodata her, hero_id
+  DIM codename as string
+  FOR statnum as integer = 0 TO statLast
+   IF NOT should_hide_hero_stat(her, statnum) THEN
+    codename = StatCodeName(statnum)
+    SELECT CASE UCASE(code)
+     CASE codename & "LABEL": result = statnames(statHP)
+     CASE codename & "CUR": result = STR(.stat.cur.sta(statnum))
+     CASE codename & "MAX": result = STR(.stat.max.sta(statnum))
+     CASE codename & "BASE": result = STR(.stat.base.sta(statnum))
+    END SELECT
+   END IF
+  NEXT statnum
   
   IF LEFT(code, 3) = "LMP" THEN
    DIM lmplev as integer = str2int(MID(code, 4)) - 1
