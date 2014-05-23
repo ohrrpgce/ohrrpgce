@@ -1760,9 +1760,8 @@ SUB status_screen (byval slot as integer)
  st.sl = NewSliceOfType(slRoot)
  st.sl->Fill = YES
  RefreshSliceScreenPos st.sl
- DIM page as integer = compatpage
- DIM holdscreen as integer = allocatepage
- copypage page, holdscreen
+
+ DIM holdscreen as integer = duplicatepage(vpage)
 
  load_slice_collection st.sl, SL_COLLECT_STATUSSCREEN
  status_screen_refresh st
@@ -1798,6 +1797,8 @@ SUB status_screen (byval slot as integer)
    slice_editor st.sl
    st.need_update = YES
   END IF
+
+  IF UpdateScreenSlice() THEN st.need_update = YES
  
   IF st.need_update THEN
    status_screen_refresh st
@@ -1805,14 +1806,13 @@ SUB status_screen (byval slot as integer)
   END IF
  
   'Draw the screen
-  copypage holdscreen, page
-  DrawSlice st.sl, page
+  copypage holdscreen, vpage
+  DrawSlice st.sl, vpage
   setvispage vpage
   dowait
  LOOP
  menusound gen(genCancelSFX)
 
- freepage page
  freepage holdscreen
  DeleteSlice @(st.sl)
 END SUB
