@@ -1673,6 +1673,8 @@ SUB ExpandTextHeroSlot (code as string, result as string, byval hero_slot as int
    CASE "FORNEXT": result = readglobalstring(47, "for next", 10)
    CASE "LEVMPLABEL": result = readglobalstring(160, "Level MP", 20)
    CASE "ELEMENTS": result = get_elemental_info_text(hero_slot)
+   CASE "MONEY": result = STR(gold)
+   CASE "MONEYLABEL": result = readglobalstring(32, "Money", 10)
   END SELECT
   
   DIM her as HeroDef
