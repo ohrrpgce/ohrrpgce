@@ -565,6 +565,7 @@ RBTEST = env_exe ('rbtest', source = [env.RB('rbtest.rbas'), env.RB('rbtest2.rba
 env_exe ('vectortest', source = ['vectortest.bas'] + base_objects)
 # Compile util.bas as a main module to utiltest.o to prevent its linkage in other binaries
 env_exe ('utiltest', source = env.BASMAINO('utiltest.o', 'util.bas') + base_objects_without_util)
+env_exe ('slice2bas', source = ['slice2bas.bas'] + reload_objects)
 
 if android_source:
     # This is hacky and will be totally rewritten
@@ -680,6 +681,7 @@ Targets:
   utiltest
   vectortest
   rbtest
+  slice2bas
   gfx_directx_test    (Non-automated) gfx_directx.dll test
   dumpohrkey
   bam2mid
