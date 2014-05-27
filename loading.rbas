@@ -35,6 +35,7 @@ declare sub free_hero_reld(hero as HeroDef)
 declare sub general_reld_init_buttonnames(root_node as NodePtr)
 declare sub append_trade_node (byval par as NodePtr, byval itnum as integer, byval itqty as integer)
 declare sub InternalDefaultUIColors (colarray() as integer, uidef() as integer, boxarray() as BoxStyle, boxdef() as integer)
+declare sub SaveUIColorsNode (byval node as NodePtr, colarray() as integer, boxarray() as BoxStyle)
 
 '==========================================================================================
 '                                      Helper Functions
@@ -2057,7 +2058,7 @@ END SUB
 
 SUB OldDefaultUIColors (colarray() as integer, boxarray() as BoxStyle)
  'Default UI for Classic OHR master palette
- 'for upgrading old games that lack an uilook.bin file
+ 'for upgrading old games that lack an uicolors.bin file
  DIM uidef(uiColorLast) as integer = _
         {0,7,8,14,15,6,7,1,2,18,21,35,37,15,240,10,14,240}
  DIM boxdef(uiBoxLast * 2 + 1) as integer = _
@@ -2129,13 +2130,41 @@ SUB LoadUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as
 END SUB
 
 SUB SaveUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as integer)
- DIM filename as string
- filename = workingdir & SLASH & "uicolors.bin"
 
  IF palnum < 0 OR palnum > gen(genMaxMasterPal) THEN
   debug "SaveUIColors: attempt to save colors out of range " & palnum
   EXIT SUB
  END IF
+
+ DIM gen_root as NodePtr = get_general_reld()
+ DIM uic as NodePtr
+ IF gen_root."uicolors".exists THEN
+  uic = gen_root."uicolors".ptr
+ ELSE
+  'Node does not exist, create it
+  uic = SetChildNode(gen_root, "uicolors")
+ END IF
+
+ DIM found as bool = NO
+ READNODE uic
+  WITHNODE uic."forpalette" as forpal
+   IF palnum = GetInteger(forpal) THEN
+    found = YES
+    SaveUIColorsNode forpal, colarray(), boxarray()
+   END IF
+  END WITHNODE
+ END READNODE
+ IF NOT found THEN
+  DIM newpal as NodePtr
+  newpal = AppendChildNode(uic, "forpalette", palnum)
+  SaveUIColorsNode newpal, colarray(), boxarray()
+ END IF
+
+ write_general_reld()
+
+ '---Also save the old uicolors.bin for downgrade compatibility
+ DIM filename as string
+ filename = workingdir & SLASH & "uicolors.bin"
 
  DIM f as integer
  f = FREEFILE
@@ -2154,6 +2183,20 @@ SUB SaveUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as
  CLOSE f
 END SUB
 
+SUB SaveUIColorsNode (byval node as NodePtr, colarray() as integer, boxarray() as BoxStyle)
+ FreeChildren node
+ DIM n as NodePtr
+ FOR i as integer = 0 to uiColorLast
+  n = AppendChildNode(node, "uilook", i)
+  AppendChildNode(n, "col", colarray(i))
+ NEXT i
+ FOR i as integer = 0 to uiBoxLast
+  n = AppendChildNode(node, "boxlook", i)
+  AppendChildNode(n, "bgcol", boxarray(i).bgcol)
+  AppendChildNode(n, "edgecol", boxarray(i).edgecol)
+  AppendChildNode(n, "border", boxarray(i).border)
+ NEXT i
+END SUB
 
 '==========================================================================================
 '                                        Textboxes
