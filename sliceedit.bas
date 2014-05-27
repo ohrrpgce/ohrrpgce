@@ -181,6 +181,13 @@ SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval gr
    append_specialcode specialcodes(), SL_STATUS_HIDE_IF_NO_PORTRAIT, kindlimitANYTHING
   CASE SL_COLLECT_STATUSSTATPLANK:
    append_specialcode specialcodes(), SL_PLANK_HOLDER, kindlimitANYTHING
+  CASE SL_COLLECT_ITEMSCREEN:
+   append_specialcode specialcodes(), SL_ITEM_ITEMLIST, kindlimitGRID
+   append_specialcode specialcodes(), SL_ITEM_EXITBUTTON, kindlimitANYTHING
+   append_specialcode specialcodes(), SL_ITEM_SORTBUTTON, kindlimitANYTHING
+   append_specialcode specialcodes(), SL_ITEM_TRASHBUTTON, kindlimitANYTHING
+  CASE SL_COLLECT_ITEMPLANK:
+   append_specialcode specialcodes(), SL_PLANK_HOLDER, kindlimitANYTHING
  END SELECT
 END SUB
 

@@ -298,6 +298,10 @@ FUNCTION SliceLookupCodename (byval code as integer) as string
   CASE SL_STATUS_HIDE_IF_MAX_LEV: RETURN "status_hide_if_max_lev"
   CASE SL_PLANK_HOLDER: RETURN "plank_holder"
   CASE SL_STATUS_HIDE_IF_NO_PORTRAIT: RETURN "status_hide_if_no_portrait"
+  CASE SL_ITEM_ITEMLIST: RETURN "item_itemlist"
+  CASE SL_ITEM_EXITBUTTON: RETURN "item_exitbutton"
+  CASE SL_ITEM_SORTBUTTON: RETURN "item_sortbutton"
+  CASE SL_ITEM_TRASHBUTTON: RETURN "item_trashbutton"
 '</SLICE LOOKUP NAMES>
   CASE ELSE
    RETURN STR(code)

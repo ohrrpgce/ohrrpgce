@@ -1721,5 +1721,9 @@ define constant, begin
 -102007, sl:status hide if max lev
 -102008, sl:plank holder
 -102009, sl:status hide if no portrait
+-102010, sl:item itemlist
+-102011, sl:item exitbutton
+-102012, sl:item sortbutton
+-102013, sl:item trashbutton
 end
 #</SLICE LOOKUP CODES>
