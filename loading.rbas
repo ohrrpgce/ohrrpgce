@@ -2114,8 +2114,8 @@ SUB LoadUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as
   READNODE uic
    WITHNODE uic."forpalette" as forpal
     IF palnum = GetInteger(forpal) THEN
-     'LoadUIColorsNode forpal, colarray(), boxarray()
-     'EXIT SUB
+     LoadUIColorsNode forpal, colarray(), boxarray()
+     EXIT SUB
     END IF
    END WITHNODE
   END READNODE
@@ -2152,11 +2152,9 @@ SUB LoadUIColorsNode (byval node as NodePtr, colarray() as integer, boxarray() a
  READNODE node
   WITHNODE node."uilook" as n
    DIM i as integer = GetInteger(n)
-   'FIXME: This works perfectly the first time, but returns mostly-zero garbage on the second call
-   debug "n.col " & i & " " & n."col".integer
    SELECT CASE i
     CASE 0 TO uiColorLast
-     uilook(i) = n."col".integer
+     colarray(i) = n."col".integer
     CASE ELSE
      debug "uilook out of range (" & i & ")"
    END SELECT
@@ -2165,9 +2163,9 @@ SUB LoadUIColorsNode (byval node as NodePtr, colarray() as integer, boxarray() a
    DIM i as integer = GetInteger(n)
    SELECT CASE i
     CASE 0 TO uiBoxLast
-     boxlook(i).bgcol = n."bgcol".integer
-     boxlook(i).edgecol = n."edgecol".integer
-     boxlook(i).border = n."border".integer
+     boxarray(i).bgcol = n."bgcol".integer
+     boxarray(i).edgecol = n."edgecol".integer
+     boxarray(i).border = n."border".integer
     CASE ELSE
      debug "boxlook out of range (" & i & ")"
    END SELECT
