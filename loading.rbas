@@ -36,6 +36,7 @@ declare sub general_reld_init_buttonnames(root_node as NodePtr)
 declare sub append_trade_node (byval par as NodePtr, byval itnum as integer, byval itqty as integer)
 declare sub InternalDefaultUIColors (colarray() as integer, uidef() as integer, boxarray() as BoxStyle, boxdef() as integer)
 declare sub SaveUIColorsNode (byval node as NodePtr, colarray() as integer, boxarray() as BoxStyle)
+declare sub LoadUIColorsNode (byval node as NodePtr, colarray() as integer, boxarray() as BoxStyle)
 
 '==========================================================================================
 '                                      Helper Functions
@@ -2103,7 +2104,25 @@ SUB GuessDefaultUIColors (masterpal() as RGBcolor, colarray() as integer, boxarr
 END SUB
 
 SUB LoadUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as integer=-1)
- 'load ui colors from data lump
+
+ '--Prefer to load ui colors from general.reld
+ 
+ DIM gen_root as NodePtr = get_general_reld()
+ DIM uic as NodePtr
+ IF gen_root."uicolors".exists THEN
+  uic = gen_root."uicolors".ptr
+  READNODE uic
+   WITHNODE uic."forpalette" as forpal
+    IF palnum = GetInteger(forpal) THEN
+     'LoadUIColorsNode forpal, colarray(), boxarray()
+     'EXIT SUB
+    END IF
+   END WITHNODE
+  END READNODE
+ END IF
+
+ '--Only if we failed to find the uicolors node should we
+ '  resort to load ui colors from the old uicolors.bin lump
  DIM filename as string
  filename = workingdir & SLASH & "uicolors.bin"
 
@@ -2127,6 +2146,33 @@ SUB LoadUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as
   boxarray(i).border = ReadShort(f)
  NEXT i
  CLOSE f
+END SUB
+
+SUB LoadUIColorsNode (byval node as NodePtr, colarray() as integer, boxarray() as BoxStyle)
+ READNODE node
+  WITHNODE node."uilook" as n
+   DIM i as integer = GetInteger(n)
+   'FIXME: This works perfectly the first time, but returns mostly-zero garbage on the second call
+   debug "n.col " & i & " " & n."col".integer
+   SELECT CASE i
+    CASE 0 TO uiColorLast
+     uilook(i) = n."col".integer
+    CASE ELSE
+     debug "uilook out of range (" & i & ")"
+   END SELECT
+  END WITHNODE
+  WITHNODE node."boxlook" as n
+   DIM i as integer = GetInteger(n)
+   SELECT CASE i
+    CASE 0 TO uiBoxLast
+     boxlook(i).bgcol = n."bgcol".integer
+     boxlook(i).edgecol = n."edgecol".integer
+     boxlook(i).border = n."border".integer
+    CASE ELSE
+     debug "boxlook out of range (" & i & ")"
+   END SELECT
+  END WITHNODE
+ END READNODE
 END SUB
 
 SUB SaveUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as integer)
