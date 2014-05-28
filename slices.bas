@@ -2806,10 +2806,10 @@ end sub
 
 Function SliceColor(byval n as integer) as integer
  if n >= 0 andalso n <= 255 then return n
- if n <= -1 andalso n >= -18 then
+ if n <= -1 andalso n >= (uiColorLast*-1 - 1) then
   dim uiC as integer = (n * -1) - 1
-  if uiC = uiSelectedItem + 1 orelse uiC = uiSelectedDisabled + 1 then
-   'uiSelectedItem and uiDisabledItem can be selected in animating or non-animating modes
+  if uiC = uiSelectedItem2 orelse uiC = uiSelectedDisabled2 orelse uiC = uiSelectedSpecial2 then
+   'Some colors auto-animate
    if get_tickcount() mod 2 = 0 then uiC = uiC - 1
   end if
   return uilook(uiC)

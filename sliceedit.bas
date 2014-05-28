@@ -90,8 +90,6 @@ CONST slgrPICKLOOKUP = 128
 CONST slgrEDITSWITCHINDEX = 256
 '--This system won't be able to expand forever ... :(
 
-CONST slLOWCOLORCODE = -18
-
 '==============================================================================
 
 'This overload of slice_editor is only allowed locally.
@@ -129,6 +127,7 @@ DECLARE SUB append_specialcode (specialcodes() as SpecialLookupCode, byval code 
 DECLARE FUNCTION special_code_kindlimit_check(byval kindlimit as integer, byval slicekind as SliceTypes) as bool
 DECLARE FUNCTION slice_edit_detail_browse_slicetype(byref slice_type as SliceTypes) as SliceTypes
 DECLARE SUB preview_SelectSlice_parents (byval sl as Slice ptr)
+DECLARE FUNCTION LowColorCode () as integer
 
 'Slice EditRule convenience functions
 DECLARE SUB sliceed_rule(rules() as EditRule, helpkey as String, mode as EditRuleMode, byval dataptr as any ptr, byval lower as integer=0, byval upper as integer=0, byval group as integer = 0)
@@ -848,9 +847,9 @@ SUB slice_edit_detail_refresh (byref state as MenuState, menu() as string, sl as
     str_array_append menu(), "Style: " & defaultint(dat->style, "None")
     sliceed_rule rules(), "rect_style", erIntgrabber, @(dat->style), -1, 14, slgrUPDATERECTSTYLE
     str_array_append menu(), "Background color: " & slice_color_caption(dat->bgcol)
-    sliceed_rule rules(), "rect_bg", erIntgrabber, @(dat->bgcol), slLOWCOLORCODE, 255, (slgrUPDATERECTCOL OR slgrPICKCOL)
+    sliceed_rule rules(), "rect_bg", erIntgrabber, @(dat->bgcol), LowColorCode(), 255, (slgrUPDATERECTCOL OR slgrPICKCOL)
     str_array_append menu(), "Foreground color: " & slice_color_caption(dat->fgcol)
-    sliceed_rule rules(), "rect_fg", erIntgrabber, @(dat->fgcol), slLOWCOLORCODE, 255, (slgrUPDATERECTCOL OR slgrPICKCOL)
+    sliceed_rule rules(), "rect_fg", erIntgrabber, @(dat->fgcol), LowColorCode(), 255, (slgrUPDATERECTCOL OR slgrPICKCOL)
     str_array_append menu(), "Border: " & caption_or_int(dat->border, BorderCaptions())
     sliceed_rule rules(), "rect_border", erIntgrabber, @(dat->border), -2, 14, slgrUPDATERECTCOL 
     str_array_append menu(), "Translucency: " & TransCaptions(dat->translucent)
@@ -865,13 +864,13 @@ SUB slice_edit_detail_refresh (byref state as MenuState, menu() as string, sl as
     str_array_append menu(), "Text: " & dat->s
     sliceed_rule rules(), "text_text", erStrgrabber, @(dat->s), 0, 0
     str_array_append menu(), "Color: " & slice_color_caption(dat->col, "Default")
-    sliceed_rule rules(), "text_color", erIntgrabber, @(dat->col), slLOWCOLORCODE, 255, slgrPICKCOL
+    sliceed_rule rules(), "text_color", erIntgrabber, @(dat->col), LowColorCode(), 255, slgrPICKCOL
     str_array_append menu(), "Outline: " & yesorno(dat->outline)
     sliceed_rule_tog rules(), "text_outline", @(dat->outline)
     str_array_append menu(), "Wrap: " & yesorno(dat->wrap)
     sliceed_rule_tog rules(), "text_wrap", @(dat->wrap)
     str_array_append menu(), "Background Color: " & slice_color_caption(dat->bgcol, "Default")
-    sliceed_rule rules(), "text_bg", erIntgrabber, @(dat->bgcol), slLOWCOLORCODE, 255, slgrPICKCOL
+    sliceed_rule rules(), "text_bg", erIntgrabber, @(dat->bgcol), LowColorCode(), 255, slgrPICKCOL
    CASE slSprite
     DIM dat as SpriteSliceData Ptr
     dat = .SliceData
@@ -906,9 +905,9 @@ SUB slice_edit_detail_refresh (byref state as MenuState, menu() as string, sl as
     DIM dat as EllipseSliceData Ptr
     dat = .SliceData
     str_array_append menu(), "Border Color: " & slice_color_caption(dat->bordercol, "transparent")
-    sliceed_rule rules(), "bordercol", erIntgrabber, @(dat->bordercol), slLOWCOLORCODE, 255, slgrPICKCOL
+    sliceed_rule rules(), "bordercol", erIntgrabber, @(dat->bordercol), LowColorCode(), 255, slgrPICKCOL
     str_array_append menu(), "Fill Color: " & slice_color_caption(dat->fillcol, "transparent")
-    sliceed_rule rules(), "fillcol", erIntgrabber, @(dat->fillcol), slLOWCOLORCODE, 255, slgrPICKCOL
+    sliceed_rule rules(), "fillcol", erIntgrabber, @(dat->fillcol), LowColorCode(), 255, slgrPICKCOL
    CASE slScroll
     DIM dat as ScrollSliceData Ptr
     dat = .SliceData
@@ -1339,27 +1338,8 @@ FUNCTION slice_color_caption(byval n as integer, ifzero as string="0") as string
  'Normal colors
  IF n > 0 ANDALSO n <= 255 THEN RETURN STR(n)
  'uilook colors
- IF n <= -1 ANDALSO n >= slLOWCOLORCODE THEN
-  SELECT CASE (n * -1) - 1
-   CASE uiBackground: RETURN "Background"
-   CASE uiMenuItem: RETURN "Menu item"
-   CASE uiDisabledItem: RETURN "Disabled menu item"
-   CASE uiSelectedItem: RETURN "Selected"
-   CASE uiSelectedItem2: RETURN "Selected (Flashing)"
-   CASE uiSelectedDisabled: RETURN "Selected disabled"
-   CASE uiSelectedDisabled+1: RETURN "Selected disabled (Flashing)"
-   CASE uiHighlight: RETURN "Highlight A"
-   CASE uiHighlight2: RETURN "Highlight B"
-   CASE uiTimeBar: RETURN "Time bar"
-   CASE uiTimeBarFull: RETURN "Time bar full"
-   CASE uiHealthBar: RETURN "Health bar"
-   CASE uiHealthBarFlash: RETURN "Health bar full"
-   CASE uiText: RETURN "Text"
-   CASE uiOutline: RETURN "Text outline"
-   CASE uiDescription: RETURN "Spell description"
-   CASE uiGold: RETURN "Money"
-   CASE uiShadow: RETURN "Vehicle shadow"
-  END SELECT
+ IF n <= -1 ANDALSO n >= LowColorCode() THEN
+  RETURN UiColorCaption(n * -1 - 1)
  END IF
  'Invalid values still print, but !?
  RETURN n & "(!?)"
@@ -1381,3 +1361,7 @@ SUB load_slice_collection (byval sl as Slice Ptr, byval collection_kind as integ
   END SELECT
  END IF
 END SUB
+
+FUNCTION LowColorCode () as integer
+ RETURN uiColorLast * -1 - 1
+END FUNCTION

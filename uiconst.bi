@@ -36,10 +36,10 @@ CONST uiItemScreenSelectedDisabled = 22	'Just for the items screen
 CONST uiItemScreenSelectedSpecial = 23	'Just for the items screen
 
 'When you add more constants you will need to update GuessDefaultUIColors
-'and FillMissingUIColor in loading.rbas
+'and FillMissingUIColor and UiColorCaption in loading.rbas
 
-'You should also update the list of editor captions for these colors in
-'make_ui_color_editor_menu in customsubs.rbas
+'If you add any new colors that need to auto-flash when used by slices,
+'add them to SliceColor in slices.bas
 
 'You might also want to check how UI colours are automatically remapped
 'in remappalette in subs4.bas and also the indication of used master

@@ -2162,6 +2162,37 @@ FUNCTION FillMissingUIColor(byval index as integer, colarray() as integer) as in
  END SELECT
 END FUNCTION
 
+FUNCTION UiColorCaption(byval n as integer) as string
+ SELECT CASE n
+  CASE uiBackground: RETURN "Background"
+  CASE uiMenuItem: RETURN "Menu item"
+  CASE uiDisabledItem: RETURN "Disabled menu item"
+  CASE uiSelectedItem: RETURN "Selected"
+  CASE uiSelectedItem2: RETURN "Selected (Flashing)"
+  CASE uiSelectedDisabled: RETURN "Selected disabled"
+  CASE uiSelectedDisabled2: RETURN "Selected disabled (Flashing)"
+  CASE uiHighlight: RETURN "Highlight A"
+  CASE uiHighlight2: RETURN "Highlight B"
+  CASE uiTimeBar: RETURN "Time bar"
+  CASE uiTimeBarFull: RETURN "Time bar full"
+  CASE uiHealthBar: RETURN "Health bar"
+  CASE uiHealthBarFlash: RETURN "Health bar full"
+  CASE uiText: RETURN "Text"
+  CASE uiOutline: RETURN "Text outline"
+  CASE uiDescription: RETURN "Spell description"
+  CASE uiGold: RETURN "Money"
+  CASE uiShadow: RETURN "Vehicle shadow"
+  CASE uiSpecialItem: RETURN "Special menu item"
+  CASE uiSelectedSpecial: RETURN "Selected special item"
+  CASE uiSelectedSpecial2: RETURN "Selected special item (Flashing)"
+  CASE uiItemScreenSelected: RETURN "Item Screen selected"
+  CASE uiItemScreenSelectedDisabled: RETURN "Item Screen selected disabled"
+  CASE uiItemScreenSelectedSpecial: RETURN "Item Screen selected special"
+ END SELECT
+ 'Invalid values still print, but !?
+ RETURN n & "(!?)"
+END FUNCTION
+
 SUB LoadUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as integer=-1)
 
  '--Prefer to load ui colors from general.reld

@@ -105,6 +105,7 @@ declare Sub LoadUIColors (colarray() as integer, boxarray() as BoxStyle, byval p
 declare Sub DefaultUIColors (colarray() as integer, boxarray() as BoxStyle)
 declare Sub OldDefaultUIColors (colarray() as integer, boxarray() as BoxStyle)
 declare Sub GuessDefaultUIColors (masterpal() as RGBcolor, colarray() as integer, boxarray() as BoxStyle)
+declare Function UiColorCaption(byval n as integer) as string
 
 declare Sub LoadTextBox (byref box as TextBox, byval record as integer)
 declare Sub SaveTextBox (byref box as TextBox, byval record as integer)
