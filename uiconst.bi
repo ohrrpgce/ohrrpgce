@@ -16,6 +16,7 @@ CONST uiDisabledItem = 2		'disabled menu item
 CONST uiSelectedItem = 3		'selection, alternates 3 & 4
 CONST uiSelectedItem2 = 4		'selection, for when thou wishest no alternation
 CONST uiSelectedDisabled = 5	'selected disabled item, 5 & 6
+CONST uiSelectedDisabled2 = 6	'selected disabled item, 5 & 6
 CONST uiHighlight = 7			'background to selected menu item
 CONST uiHighlight2 = 8			'background used in equip menu
 CONST uiTimeBar = 9				'hero's time bar

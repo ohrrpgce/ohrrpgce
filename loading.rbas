@@ -2081,9 +2081,25 @@ END SUB
 
 SUB GuessDefaultUIColors (masterpal() as RGBcolor, colarray() as integer, boxarray() as BoxStyle)
  DIM c as RGBcolor
- DIM as integer fixeddefaults(uiColorLast) = _
-    {&h000000,&hA19CB0,&h4F595A,&hFFFC62,&hFFFFFF,&h8E6B00,&hA19CB0,&h003B95,&h228B22, _
-     &h001D48,&h153289,&h154C15,&h228B22,&hFFFFFF,&h000000,&h6BEB61,&hFFFC62,&h000000}
+ DIM as integer fixeddefaults(uiColorLast)
+ fixeddefaults(uiBackground)        = &h000000
+ fixeddefaults(uiMenuItem)          = &hA19CB0
+ fixeddefaults(uiDisabledItem)      = &h4F595A
+ fixeddefaults(uiSelectedItem)      = &hFFFC62
+ fixeddefaults(uiSelectedItem2)     = &hFFFFFF
+ fixeddefaults(uiSelectedDisabled)  = &h8E6B00
+ fixeddefaults(uiSelectedDisabled2) = &hA19CB0
+ fixeddefaults(uiHighlight)         = &h003B95
+ fixeddefaults(uiHighlight2)        = &h228B22
+ fixeddefaults(uiTimeBar)           = &h001D48
+ fixeddefaults(uiTimeBarFull)       = &h153289
+ fixeddefaults(uiHealthBar)         = &h154C15
+ fixeddefaults(uiHealthBarFlash)    = &h228B22
+ fixeddefaults(uiText)              = &hFFFFFF
+ fixeddefaults(uiOutline)           = &h000000
+ fixeddefaults(uiDescription)       = &h6BEB61
+ fixeddefaults(uiGold)              = &hFFFC62
+ fixeddefaults(uiShadow)            = &h000000
  FOR i as integer = 0 TO uiColorLast
   c.col = fixeddefaults(i)
   colarray(i) = nearcolor(masterpal(), c.r, c.g, c.b)
