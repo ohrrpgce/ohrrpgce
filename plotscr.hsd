@@ -1725,5 +1725,6 @@ define constant, begin
 -102011, sl:item exitbutton
 -102012, sl:item sortbutton
 -102013, sl:item trashbutton
+-102014, sl:plank menu selectable
 end
 #</SLICE LOOKUP CODES>

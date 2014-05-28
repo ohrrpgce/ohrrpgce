@@ -302,6 +302,7 @@ FUNCTION SliceLookupCodename (byval code as integer) as string
   CASE SL_ITEM_EXITBUTTON: RETURN "item_exitbutton"
   CASE SL_ITEM_SORTBUTTON: RETURN "item_sortbutton"
   CASE SL_ITEM_TRASHBUTTON: RETURN "item_trashbutton"
+  CASE SL_PLANK_MENU_SELECTABLE: RETURN "plank_menu_selectable"
 '</SLICE LOOKUP NAMES>
   CASE ELSE
    RETURN STR(code)

@@ -2686,6 +2686,7 @@ lookup slice(sl:item itemlist)
 lookup slice(sl:item exitbutton)
 lookup slice(sl:item sortbutton)
 lookup slice(sl:item trashbutton)
+lookup slice(sl:plank menu selectable)
 </example>
 			<seealso>
 				<ref>setslicelookup</ref>

@@ -44,6 +44,7 @@ CONST kindlimitANYTHING = 0
 CONST kindlimitGRID = 1
 CONST kindlimitSELECT = 2
 CONST kindlimitSPRITE = 3
+CONST kindlimitPLANKSELECTABLE = 4
 
 '------------------------------------------------------------------------------
 
@@ -185,8 +186,10 @@ SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval gr
    append_specialcode specialcodes(), SL_ITEM_EXITBUTTON, kindlimitANYTHING
    append_specialcode specialcodes(), SL_ITEM_SORTBUTTON, kindlimitANYTHING
    append_specialcode specialcodes(), SL_ITEM_TRASHBUTTON, kindlimitANYTHING
+   append_specialcode specialcodes(), SL_PLANK_MENU_SELECTABLE, kindlimitPLANKSELECTABLE
   CASE SL_COLLECT_ITEMPLANK:
    append_specialcode specialcodes(), SL_PLANK_HOLDER, kindlimitANYTHING
+   append_specialcode specialcodes(), SL_PLANK_MENU_SELECTABLE, kindlimitPLANKSELECTABLE
  END SELECT
 END SUB
 
@@ -1222,6 +1225,8 @@ FUNCTION special_code_kindlimit_check(byval kindlimit as integer, byval slicekin
    IF slicekind = slSelect THEN RETURN YES
   CASE kindlimitSPRITE:
    IF slicekind = slSprite THEN RETURN YES
+  CASE kindlimitPLANKSELECTABLE:
+   IF slicekind = slText ORELSE slicekind = slRectangle ORELSE slicekind = slSelect THEN RETURN YES
   CASE ELSE
    debug "Unknown slice lookup code kindlimit constant " & kindlimit
  END SELECT
