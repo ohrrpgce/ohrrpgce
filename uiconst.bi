@@ -6,7 +6,9 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 '
 CONST uiColorLast = 17
+CONST uiColorOldLast = 17 ' the last uilook saved in uicolors.bin
 CONST uiBoxLast = 14
+CONST uiBoxOldLast = 14 ' the last boxlook saved in uicolors.bin
 
 CONST uiBackground = 0          'background colour (not for transparent! transparent is always 0)
 CONST uiMenuItem = 1			'normal menu item

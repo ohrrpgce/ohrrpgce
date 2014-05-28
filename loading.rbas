@@ -2135,17 +2135,18 @@ SUB LoadUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as
  f = FREEFILE
  OPEN filename FOR BINARY ACCESS READ as #f
  SEEK #f, palnum * getbinsize(binUIColors) + 1
- FOR i as integer = 0 TO uiColorLast
+ FOR i as integer = 0 TO uiColorOldLast
   colarray(i) = ReadShort(f)
  NEXT i
- FOR i as integer = 0 TO uiBoxLast
+ FOR i as integer = 0 TO uiBoxOldLast
   boxarray(i).bgcol = ReadShort(f)
   boxarray(i).edgecol = ReadShort(f)
  NEXT i
- FOR i as integer = 0 TO uiBoxLast
+ FOR i as integer = 0 TO uiBoxOldLast
   boxarray(i).border = ReadShort(f)
  NEXT i
  CLOSE f
+ 
 END SUB
 
 SUB LoadUIColorsNode (byval node as NodePtr, colarray() as integer, boxarray() as BoxStyle)
@@ -2214,14 +2215,14 @@ SUB SaveUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as
  f = FREEFILE
  OPEN filename FOR BINARY as #f
  SEEK #f, palnum * getbinsize(binUICOLORS) + 1
- FOR i as integer = 0 TO uiColorLast
+ FOR i as integer = 0 TO uiColorOldLast
   WriteShort f, -1, colarray(i)
  NEXT i
- FOR i as integer = 0 TO uiBoxLast
+ FOR i as integer = 0 TO uiBoxOldLast
   WriteShort f, -1, boxarray(i).bgcol
   WriteShort f, -1, boxarray(i).edgecol
  NEXT i
- FOR i as integer = 0 TO uiBoxLast
+ FOR i as integer = 0 TO uiBoxOldLast
   WriteShort f, -1, boxarray(i).border
  NEXT i
  CLOSE f

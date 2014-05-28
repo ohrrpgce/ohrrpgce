@@ -3412,6 +3412,8 @@ updaterecordlength workingdir + SLASH + "uicolors.bin", binUICOLORS
 DIM uilook_temp(uiColorLast) as integer
 DIM boxlook_temp(uiBoxLast) as BoxStyle
 
+'This step creates both the uicolors.bin file (obsolete, but kept for compat)
+'And the uicolors node in general.reld
 DIM uirecords as integer = FILELEN(workingdir + SLASH + "uicolors.bin") \ getbinsize(binUICOLORS)
 IF uirecords < gen(genMaxMasterPal) + 1 THEN
  upgrade_message "Adding default UI colors..."
