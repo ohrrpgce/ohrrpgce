@@ -850,11 +850,32 @@ SUB ui_color_editor(palnum as integer)
 END SUB
 
 SUB make_ui_color_editor_menu(m() as string, colors() as integer)
- DIM cap(17) as string = {"Background", "Menu item", "Disabled item", _
-     "Selected item (A)", "Selected item (B)", "Selected disabled item (A)", _
-      "Selected disabled item (B)", "Hilight (A)", "Hilight (B)", "Time bar", _
-      "Time bar (full)", "Health bar", "Health bar (flash)", "Default Text", _
-      "Text outline", "Spell description", "Total money", "Vehicle shadow"}
+ DIM cap(...) as string = { _
+   "Background", _
+   "Menu item", _
+   "Disabled item", _
+   "Selected item (A)", _
+   "Selected item (B)", _
+   "Selected disabled item (A)", _
+   "Selected disabled item (B)", _
+   "Hilight (A)", _
+   "Hilight (B)", _
+   "Time bar", _
+   "Time bar (full)", _
+   "Health bar", _
+   "Health bar (flash)", _
+   "Default Text", _
+   "Text outline", _
+   "Spell description", _
+   "Total money", _
+   "Vehicle shadow", _
+   "Special menu item", _
+   "Selected special item (A)", _
+   "Selected special item (B)", _
+   "Item Screen selected", _
+   "Item Screen selected disabled", _
+   "Item Screen selected special" _
+   }
  m(-1) = "Previous Menu"
  FOR i as integer = 0 TO UBOUND(cap)
   m(i) = cap(i) & ": " & colors(i)

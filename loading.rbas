@@ -37,6 +37,7 @@ declare sub append_trade_node (byval par as NodePtr, byval itnum as integer, byv
 declare sub InternalDefaultUIColors (colarray() as integer, uidef() as integer, boxarray() as BoxStyle, boxdef() as integer)
 declare sub SaveUIColorsNode (byval node as NodePtr, colarray() as integer, boxarray() as BoxStyle)
 declare sub LoadUIColorsNode (byval node as NodePtr, colarray() as integer, boxarray() as BoxStyle)
+declare function FillMissingUIColor(byval index as integer, colarray() as integer) as integer
 
 '==========================================================================================
 '                                      Helper Functions
@@ -2080,6 +2081,9 @@ SUB DefaultUIColors (colarray() as integer, boxarray() as BoxStyle)
 END SUB
 
 SUB GuessDefaultUIColors (masterpal() as RGBcolor, colarray() as integer, boxarray() as BoxStyle)
+ 'This is used for resetting default colors in the editor, and for when
+ 'the uicolor data is completely missing.
+ 'See also FillMissingUIColor which is used in different situations
  DIM c as RGBcolor
  DIM as integer fixeddefaults(uiColorLast)
  fixeddefaults(uiBackground)        = &h000000
@@ -2100,6 +2104,12 @@ SUB GuessDefaultUIColors (masterpal() as RGBcolor, colarray() as integer, boxarr
  fixeddefaults(uiDescription)       = &h6BEB61
  fixeddefaults(uiGold)              = &hFFFC62
  fixeddefaults(uiShadow)            = &h000000
+ fixeddefaults(uiSpecialItem)       = &h8E6B00
+ fixeddefaults(uiSelectedSpecial)   = &hFFFFFF
+ fixeddefaults(uiSelectedSpecial2)  = &hFFFC62
+ fixeddefaults(uiItemScreenSelected)         = &hFFFFFF
+ fixeddefaults(uiItemScreenSelectedDisabled) = &hA19CB0
+ fixeddefaults(uiItemScreenSelectedSpecial)  = &hFFFC62
  FOR i as integer = 0 TO uiColorLast
   c.col = fixeddefaults(i)
   colarray(i) = nearcolor(masterpal(), c.r, c.g, c.b)
@@ -2118,6 +2128,39 @@ SUB GuessDefaultUIColors (masterpal() as RGBcolor, colarray() as integer, boxarr
   boxarray(i).border = 0
  NEXT
 END SUB
+
+FUNCTION FillMissingUIColor(byval index as integer, colarray() as integer) as integer
+ 'This returns a missing uilook color. Some of these may be hard-coded, and others
+ 'may rely on the values already present in colarray(). This is used for filling gaps in
+ 'the uilook array for old games that have uicolor data, but lack new uilook slots
+ 'that have been added in more recent versions.
+ 'Don't confuse it with GuessDefaultUIColors, which is used for different situations
+ 
+ IF index <= uiColorOldLast THEN
+  'Normally this function should not be called for old colors that predate the
+  'uicolors node in general.reld, however if it is called for one of those colors,
+  'we just want to log a warning and then return a sane result
+  debug "FillMissingUIColor was called for old ui color " & index
+ END IF
+ 
+ SELECT CASE index
+  'Some colors are defaulted based on existing color entries.
+  'This is generally the case when a single color that was being used for
+  'two unrelated purposes is split apart into two color entries
+  CASE uiSpecialItem: RETURN colarray(uiSelectedDisabled)
+  CASE uiSelectedSpecial: RETURN colarray(uiSelectedItem)
+  CASE uiSelectedSpecial2: RETURN colarray(uiSelectedItem2)
+  CASE uiItemScreenSelected: RETURN colarray(uiText)
+  CASE uiItemScreenSelectedDisabled: RETURN colarray(uiMenuItem)
+  CASE uiItemScreenSelectedSpecial: RETURN colarray(uiGold)
+  CASE ELSE
+   'Return defaults for all other colors
+   DIM defaults(uiColorLast) as integer
+   DIM throwawaybox(uiBoxLast) as BoxStyle 'Not really used right now
+   GuessDefaultUIColors master(), defaults(), throwawaybox()
+   RETURN defaults(index)
+ END SELECT
+END FUNCTION
 
 SUB LoadUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as integer=-1)
 
@@ -2163,15 +2206,23 @@ SUB LoadUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as
  NEXT i
  CLOSE f
  
+ 'If we have fallen back to uicolors.bin then we need to fill the missing
+ 'values for colors that were added after uicolors.bin was obsoleted
+ FOR i as integer = uiColorOldLast + 1 TO uiColorLast
+  colarray(i) = FillMissingUIColor(i, colarray())
+ NEXT i
+ 
 END SUB
 
 SUB LoadUIColorsNode (byval node as NodePtr, colarray() as integer, boxarray() as BoxStyle)
+ DIM foundui(uiColorLast) as bool
  READNODE node
   WITHNODE node."uilook" as n
    DIM i as integer = GetInteger(n)
    SELECT CASE i
     CASE 0 TO uiColorLast
      colarray(i) = n."col".integer
+     foundui(i) = YES
     CASE ELSE
      debug "uilook out of range (" & i & ")"
    END SELECT
@@ -2188,6 +2239,13 @@ SUB LoadUIColorsNode (byval node as NodePtr, colarray() as integer, boxarray() a
    END SELECT
   END WITHNODE
  END READNODE
+ 
+ FOR i as integer = 0 TO uiColorLast
+  IF NOT foundui(i) THEN
+   colarray(i) = FillMissingUIColor(i, colarray())
+  END IF
+ NEXT i
+ 
 END SUB
 
 SUB SaveUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as integer)

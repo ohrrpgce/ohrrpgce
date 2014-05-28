@@ -2719,15 +2719,18 @@ SUB items_menu_paint (istate as ItemsMenuState, iuse() as integer, permask() as 
  FOR i as integer = istate.top TO small(istate.top + 62, last_inv_slot())
   textcolor uilook(uiDisabledItem), 0
   IF readbit(iuse(), 0, 3 + i) = 1 THEN textcolor uilook(uiMenuItem), 0
-  IF readbit(permask(), 0, 3 + i) THEN textcolor uilook(uiSelectedDisabled), 0
+  IF readbit(permask(), 0, 3 + i) THEN textcolor uilook(uiSpecialItem), 0
   IF istate.cursor = i THEN
-   textcolor uilook(uiMenuItem), uilook(uiHighlight2)
-   IF readbit(iuse(), 0, 3 + i) = 1 THEN textcolor uilook(uiText), uilook(uiHighlight2)
-   IF readbit(permask(), 0, 3 + i) THEN textcolor uilook(uiGold), uilook(uiHighlight2)
+   textcolor uilook(uiItemScreenSelectedDisabled), uilook(uiHighlight2)
+   IF readbit(iuse(), 0, 3 + i) = 1 THEN textcolor uilook(uiItemScreenSelected), uilook(uiHighlight2)
+   IF readbit(permask(), 0, 3 + i) THEN textcolor uilook(uiItemScreenSelectedSpecial), uilook(uiHighlight2)
   END IF
   IF istate.sel = i THEN
    textcolor uilook(uiMenuItem), uilook(uiHighlight + istate.tog)
-   IF istate.cursor = i THEN textcolor uilook(uiSelectedItem + istate.tog), uilook(uiHighlight + istate.tog)
+   IF istate.cursor = i THEN
+    textcolor uilook(uiSelectedItem + istate.tog), uilook(uiHighlight + istate.tog)
+    IF readbit(permask(), 0, 3 + i) THEN textcolor uilook(uiSelectedSpecial + istate.tog), uilook(uiHighlight + istate.tog)
+   END IF
   END IF
   IF i >= 0 THEN
    display = inventory(i).text
