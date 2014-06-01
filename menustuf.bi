@@ -7,7 +7,8 @@ DECLARE SUB doequip (byval toequip as integer, byval who as integer, byval where
 DECLARE SUB equip (byval who as integer)
 DECLARE FUNCTION getOOBtarg (byval search_direction as integer, byref target as integer, byval atk as integer, byval recheck as integer=NO) as integer
 DECLARE SUB itemmenuswap (invent() as InventSlot, iuse() as integer, permask() as integer, byval it1 as integer, byval it2 as integer)
-DECLARE FUNCTION items_menu () as integer
+DECLARE FUNCTION item_screen () as integer
+DECLARE FUNCTION old_items_menu () as integer
 DECLARE FUNCTION use_item_by_id(byval item_id as integer, byref trigger_box as integer, name_override as string="") as integer
 DECLARE FUNCTION use_item_in_slot(byval slot as integer, byref trigger_box as integer, byref consumed as bool=NO) as integer
 DECLARE SUB update_inventory_caption (byval i as integer)

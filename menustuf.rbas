@@ -1722,6 +1722,16 @@ SUB ExpandTextHeroSlotStat (code as string, result as string, byval hero_slot as
  END WITH 
 END SUB
 
+SUB ExpandItemScreenCodes (code as string, result as string, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0)
+ SELECT CASE UCASE(code)
+  CASE "EXIT": result = readglobalstring(35, "DONE", 10)
+  CASE "SORT": result = readglobalstring(36, "AUTOSORT", 10)
+  CASE "TRASH": result = readglobalstring(37, "TRASH", 10)
+ END SELECT
+END SUB
+
+'-----------------------------------------------------------------------
+
 TYPE StatusScreenState
  sl as slice ptr
  slot as integer
@@ -1828,6 +1838,89 @@ SUB status_screen (byval slot as integer)
  freepage holdscreen
  DeleteSlice @(st.sl)
 END SUB
+
+'-----------------------------------------------------------------------
+
+TYPE ItemScreenState
+ sl as slice ptr
+ need_update as bool
+ textbox as integer
+END TYPE
+
+SUB item_screen_refresh(byref st as ItemScreenState)
+ plank_menu_clear st.sl, SL_ITEM_ITEMLIST
+
+ expand_slice_text_insert_codes st.sl, @ExpandItemScreenCodes
+
+ FOR i as integer = 0 TO last_inv_slot()
+  'IF inventory(i).used THEN
+  ' loaditemdata itemtemp(), inventory(i).id
+  ' IF itemtemp(73) = 2 THEN setbit permask(), 0, 3 + i, 1
+  ' IF itemtemp(50) > 0 THEN '--teach spell
+  '  setbit iuse(), 0, 3 + i, 1
+  ' ELSEIF itemtemp(51) > 0 THEN
+  '  setbit iuse(), 0, 3 + i, 1
+  ' ELSEIF itemtemp(51) < 0 THEN
+  '  setbit iuse(), 0, 3 + i, 1
+  ' END IF
+  'END IF
+ NEXT i
+ 
+END SUB
+
+FUNCTION item_screen () as integer
+'Returns 0, or ID of textbox to open (box 0 can't be opened)
+
+ DIM st as ItemScreenState
+ st.sl = NewSliceOfType(slRoot)
+ st.sl->Fill = YES
+ RefreshSliceScreenPos st.sl
+
+ DIM holdscreen as integer = duplicatepage(vpage)
+
+ load_slice_collection st.sl, SL_COLLECT_ITEMSCREEN
+ item_screen_refresh st
+ 
+ menusound gen(genAcceptSFX)
+ setkeys
+ DO
+  setwait speedcontrol
+  setkeys
+  playtimer
+  control
+  IF carray(ccMenu) > 1 THEN EXIT DO
+  IF carray(ccUse) > 1 THEN
+  END IF
+  'IF carray(ccLeft) > 1 THEN
+  ' st.need_update = YES
+  ' menusound gen(genCursorSFX)
+  'END IF
+  IF keyval(scF8) > 1 THEN
+   slice_editor st.sl
+   st.need_update = YES
+  END IF
+
+  IF UpdateScreenSlice() THEN st.need_update = YES
+ 
+  IF st.need_update THEN
+   item_screen_refresh st
+   st.need_update = NO
+  END IF
+ 
+  'Draw the screen
+  copypage holdscreen, vpage
+  DrawSlice st.sl, vpage
+  setvispage vpage
+  dowait
+ LOOP
+ menusound gen(genCancelSFX)
+
+ freepage holdscreen
+ DeleteSlice @(st.sl)
+ RETURN st.textbox
+END FUNCTION
+
+'-----------------------------------------------------------------------
 
 SUB plank_menu_append (byval sl as slice ptr, byval lookup as integer, byval collection_kind as integer, byval callback as ANY ptr=0, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0)
  IF sl = 0 THEN debug "plank_menu_append: null slice ptr": EXIT SUB
@@ -2601,7 +2694,7 @@ SUB equip_menu_stat_bonus(byref st as EquipMenuState)
 END SUB
 
 'Returns 0, or ID of textbox to open (box 0 can't be opened)
-FUNCTION items_menu () as integer
+FUNCTION old_items_menu () as integer
  DIM istate as ItemsMenuState
  WITH istate
   .trigger_box = 0
@@ -2680,7 +2773,7 @@ FUNCTION items_menu () as integer
   items_menu_control istate, iuse(), permask()
   IF istate.trigger_box > 0 THEN
    '--return the box number to trigger
-   items_menu = istate.trigger_box
+   old_items_menu = istate.trigger_box
    EXIT DO
   END IF
   IF istate.quit THEN

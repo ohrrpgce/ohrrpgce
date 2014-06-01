@@ -1987,7 +1987,7 @@ SUB sfunctions(byval cmdid as integer)
    CASE 151'--show mini map
     minimap catx(0), caty(0)
    CASE 153'--items menu
-    wantbox = items_menu
+    wantbox = old_items_menu
     IF wantbox ANDALSO immediate_showtextbox THEN loadsay wantbox: wantbox = 0
    CASE 155, 170'--save menu
     'ID 155 is a backcompat hack
@@ -2776,7 +2776,7 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as int
     CASE 1 ' Special
      SELECT CASE .sub_t
       CASE 0 ' item
-       menu_text_box = items_menu
+       menu_text_box = old_items_menu
        IF menu_text_box > 0 THEN
         IF mi.close_if_selected = NO THEN
          remove_menu menuslot, (mi.skip_close_script = NO)
@@ -4094,12 +4094,13 @@ END FUNCTION
 
 SUB misc_debug_menu()
  STATIC default as integer = 0
- DIM menu(4) as string
+ DIM menu(5) as string
  menu(0) = "Test Battles"
  menu(1) = "View/Edit Slice Tree"
  menu(2) = "Manipulate gen() array"
  menu(3) = "Manipulate gmap() array"
  menu(4) = "Test Slicified Status Screen"
+ menu(5) = "Test Slicified Item Screen"
  DIM result as integer
  result = multichoice("Misc. Debug", menu(), default, , "game_misc_debug")
  IF result = -1 THEN EXIT SUB
@@ -4110,6 +4111,7 @@ SUB misc_debug_menu()
   CASE 2: patcharray gen(), "gen"
   CASE 3: patcharray gmap(), "gmap"
   CASE 4: status_screen onwho(readglobalstring(104, "Whose Status?", 20), 0)
+  CASE 5: item_screen
  END SELECT
 END SUB
 
