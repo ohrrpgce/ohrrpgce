@@ -1722,13 +1722,42 @@ SUB ExpandTextHeroSlotStat (code as string, result as string, byval hero_slot as
  END WITH 
 END SUB
 
-SUB ExpandItemScreenCodes (code as string, result as string, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0)
+SUB ExpandTextItemScreen (code as string, result as string, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0)
  SELECT CASE UCASE(code)
   CASE "EXIT": result = readglobalstring(35, "DONE", 10)
   CASE "SORT": result = readglobalstring(36, "AUTOSORT", 10)
   CASE "TRASH": result = readglobalstring(37, "TRASH", 10)
  END SELECT
 END SUB
+
+SUB ExpandTextItemSlot (code as string, result as string, byval slot as integer=0, byval arg1 as integer=0, byval arg2 as integer=0)
+ '.used .id .num .text
+ IF inventory(slot).used THEN
+  SELECT CASE UCASE(code)
+   CASE "ITEM": result = readitemname(inventory(slot).id)
+   CASE "NUM": result = CHR(1) & lpad(STR(inventory(slot).num), " ", 2)
+  END SELECT
+ ELSE
+  'An empty slot
+  SELECT CASE UCASE(code)
+   CASE "ITEM": result = ""
+   CASE "NUM": result = ""
+  END SELECT
+ END IF
+END SUB
+
+
+  'IF inventory(i).used THEN
+  ' loaditemdata itemtemp(), inventory(i).id
+  ' IF itemtemp(73) = 2 THEN setbit permask(), 0, 3 + i, 1
+  ' IF itemtemp(50) > 0 THEN '--teach spell
+  '  setbit iuse(), 0, 3 + i, 1
+  ' ELSEIF itemtemp(51) > 0 THEN
+  '  setbit iuse(), 0, 3 + i, 1
+  ' ELSEIF itemtemp(51) < 0 THEN
+  '  setbit iuse(), 0, 3 + i, 1
+  ' END IF
+  'END IF
 
 '-----------------------------------------------------------------------
 
@@ -1850,20 +1879,10 @@ END TYPE
 SUB item_screen_refresh(byref st as ItemScreenState)
  plank_menu_clear st.sl, SL_ITEM_ITEMLIST
 
- expand_slice_text_insert_codes st.sl, @ExpandItemScreenCodes
+ expand_slice_text_insert_codes st.sl, @ExpandTextItemScreen
 
  FOR i as integer = 0 TO last_inv_slot()
-  'IF inventory(i).used THEN
-  ' loaditemdata itemtemp(), inventory(i).id
-  ' IF itemtemp(73) = 2 THEN setbit permask(), 0, 3 + i, 1
-  ' IF itemtemp(50) > 0 THEN '--teach spell
-  '  setbit iuse(), 0, 3 + i, 1
-  ' ELSEIF itemtemp(51) > 0 THEN
-  '  setbit iuse(), 0, 3 + i, 1
-  ' ELSEIF itemtemp(51) < 0 THEN
-  '  setbit iuse(), 0, 3 + i, 1
-  ' END IF
-  'END IF
+  plank_menu_append st.sl, SL_ITEM_ITEMLIST, SL_COLLECT_ITEMPLANK, @ExpandTextItemSlot, i
  NEXT i
  
 END SUB

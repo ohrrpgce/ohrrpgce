@@ -268,6 +268,12 @@ FUNCTION rpad (s as string, pad_char as string, size as integer) as string
  RETURN temp & STRING(size - LEN(temp), pad_char)
 END FUNCTION
 
+FUNCTION lpad (s as string, pad_char as string, size as integer) as string
+ DIM temp as string
+ temp = RIGHT(s, size)
+ RETURN STRING(size - LEN(temp), pad_char) & temp
+END FUNCTION
+
 'Like INSTR, but return the n-th match
 'Returns 0 if not found
 FUNCTION Instr_nth (byval start as integer, s as string, substring as string, byval nth as integer = 1) as integer
