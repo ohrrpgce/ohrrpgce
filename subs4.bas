@@ -5,7 +5,6 @@
 '
 #include "config.bi"
 #include "allmodex.bi"
-#include "gfx_newRenderPlan.bi"  'for Surface
 #include "common.bi"
 #include "bcommon.bi"
 #include "customsubs.bi"
@@ -15,9 +14,6 @@
 #include "scrconst.bi"
 #include "uiconst.bi"
 #include "loading.bi"
-
-'FIXME: Not yet exposed in allmodex.bi
-declare sub surface_export_bmp24 (f as string, byval surf as Surface Ptr)
 
 'local subs and functions
 DECLARE SUB generalscriptsmenu ()
@@ -842,21 +838,14 @@ SUB export_master_palette ()
  IF filename = "" THEN EXIT SUB
  filename &= ".bmp"
 
- 'FIXME: use this once rasterizer is always linked and Staging surfaces added
- 'DIM outsurf as Surface ptr
- 'gfx_surfaceCreate(16, 16, SF_32bit, SU_Staging, @outsurf)
+ DIM outsurf as Surface ptr
+ gfx_surfaceCreate(16, 16, SF_32bit, SU_Staging, @outsurf)
 
- DIM outsurf as Surface
- outsurf.width = 16
- outsurf.height = 16
- outsurf.format = SF_32bit
- outsurf.pColorData = ALLOCATE(16 * 16 * 4)
  FOR i as integer = 0 TO 255
-  outsurf.pColorData[i] = master(i).col
+  outsurf->pColorData[i] = master(i).col
  NEXT
- surface_export_bmp24(filename, @outsurf)
- 'gfx_surfaceDestroy(outsurf)
- DEALLOCATE(outsurf.pColorData)
+ surface_export_bmp24(filename, outsurf)
+ gfx_surfaceDestroy(outsurf)
 END SUB
 
 SUB masterpalettemenu

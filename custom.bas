@@ -8,6 +8,7 @@
 #include "udts.bi"
 #include "const.bi"
 #include "allmodex.bi"
+#include "matrixMath.bi"
 #include "common.bi"
 #include "loading.bi"
 #include "customsubs.bi"
@@ -1416,13 +1417,6 @@ SUB condition_test_menu ()
  setkeys
 END SUB
 
-#IFDEF USE_RASTERIZER
-
-#include "matrixMath.bi"
-#include "gfx_newRenderPlan.bi"
-#include "gfx.bi"
-
-declare sub surface_export_bmp24 (f as string, byval surf as Surface Ptr)
 
 SUB quad_transforms_menu ()
  DIM menu(...) as string = {"Arrows: scale X and Y", "<, >: change angle", "[, ]: change sprite"}
@@ -1566,14 +1560,6 @@ SUB quad_transforms_menu ()
  gfx_surfaceDestroy(spriteSurface)
  gfx_paletteDestroy(masterPalette)
 END SUB
-
-#ELSE
-
-SUB quad_transforms_menu ()
- notification "Compile with 'scons raster=1' to enable."
-END SUB
-
-#ENDIF
 
 SUB text_test_menu
  DIM text as string = load_help_file("texttest")

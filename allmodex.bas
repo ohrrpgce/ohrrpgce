@@ -43,7 +43,6 @@ declare sub loadbmp4(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmp1(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmprle8(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmprle4(byval bf as integer, byval fr as Frame ptr)
-declare sub surface_export_bmp24 (f as string, byval surf as Surface Ptr)
 
 declare sub snapshot_check
 

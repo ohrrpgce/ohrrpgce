@@ -481,11 +481,7 @@ game_modules = ['game',
                 'oldhsinterpreter',
                 'purchase.rbas']
 
-common_modules += ['filelayer.cpp']
-
-if 'raster' in ARGUMENTS:
-    common_modules += ['rasterizer.cpp', 'matrixMath.cpp', 'gfx_newRenderPlan.cpp']
-    commonenv['FBFLAGS'] += ['-d', 'USE_RASTERIZER']
+common_modules += ['filelayer.cpp', 'rasterizer.cpp', 'matrixMath.cpp', 'gfx_newRenderPlan.cpp']
 
 if linkgcc:
     if win32:
@@ -661,7 +657,6 @@ Options:
                       copy of FB built against that SDK.
 
 Experimental options:
-  raster=1            Include new graphics API and rasterizer.
   gengcc=1            Compile using GCC emitter.
   linkgcc=0           Link using fbc instead of g++.
   android=1           Compile for android. Commandline programs only.

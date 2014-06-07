@@ -293,10 +293,9 @@ function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filename as 
 	TRYLOAD (gfx_ouya_receipts_are_ready)
 	TRYLOAD (gfx_ouya_receipts_result)
 
-#ifdef USE_RASTERIZER
 	'New rendering API (FIXME: complete this)
 	TRYLOAD (gfx_present)
-#endif
+	'End of new API
 
 	MUSTLOAD(io_init)
 	TRYLOAD (io_pollkeyevents)
@@ -382,7 +381,6 @@ function gfx_load_library_new(byval backendinfo as GfxBackendStuff ptr, filename
 End Function
 
 Sub default_gfx_render_procs()
-#IFDEF USE_RASTERIZER
 	gfx_surfaceCreate = @gfx_surfaceCreate_SW
 	gfx_surfaceDestroy = @gfx_surfaceDestroy_SW
 	gfx_surfaceUpdate = @gfx_surfaceUpdate_SW
@@ -400,7 +398,6 @@ Sub default_gfx_render_procs()
 	gfx_renderTriangleTexture = @gfx_renderTriangleTexture_SW
 	gfx_renderTriangleTextureColor = @gfx_renderTriangleTextureColor_SW
 	gfx_present = @gfx_present_SW
-#ENDIF
 end sub
 
 sub prefer_backend(b as GfxBackendStuff ptr)

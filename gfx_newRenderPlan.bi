@@ -15,8 +15,9 @@ Enum SurfaceFormat
 End Enum
 	
 Enum SurfaceUsage
-	SU_Source = 0
+	SU_Source = 0       ' Surfaces that can be drawn to render targets
 	SU_RenderTarget = 1
+	SU_Staging = 2      ' Surfaces that don't get sent to GPU
 End Enum
 
 Type Surface
