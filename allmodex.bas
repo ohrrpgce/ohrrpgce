@@ -37,7 +37,7 @@ declare sub drawohr(byval src as Frame ptr, byval dest as Frame ptr, byval pal a
 'declare sub grabrect(byval page as integer, byval x as integer, byval y as integer, byval w as integer, byval h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
 declare function write_bmp_header(f as string, byval w as integer, byval h as integer, byval bitdepth as integer) as integer
 declare function decode_bmp_bitmask(mask as uint32) as integer
-declare sub loadbmp32(byval bf as integer, byval surf as Surface ptr, infohd as BITMAPINFOHEADER)
+declare sub loadbmp32(byval bf as integer, byval surf as Surface ptr, infohd as BITMAPV3INFOHEADER)
 declare sub loadbmp24(byval bf as integer, byval surf as Surface ptr)
 declare sub loadbmp8(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmp4(byval bf as integer, byval fr as Frame ptr)
@@ -4345,7 +4345,7 @@ end function
 'Only 1, 4, 8, 24, and 32 bit BMPs are accepted
 'Afterwards, the file is positioned at the start of the palette, if there is one
 'Returns -1 is invalid, -2 if unsupported
-function open_bmp_and_read_header(bmp as string, byref header as BITMAPFILEHEADER, byref info as BITMAPINFOHEADER) as integer
+function open_bmp_and_read_header(bmp as string, byref header as BITMAPFILEHEADER, byref info as BITMAPV3INFOHEADER) as integer
 	dim bf as integer = freefile
 	if open(bmp for binary access read as #bf) then
 		debuginfo "open_bmp_and_read_header: couldn't open " & bmp
@@ -4378,8 +4378,20 @@ function open_bmp_and_read_header(bmp as string, byref header as BITMAPFILEHEADE
 		return -2
 	else
 		'A BITMAPINFOHEADER or one of its extensions
-		'We don't support any of those extension features, but hopefully this should work
 		get #bf, , info
+		if biSize >= 56 then
+			'BITMAPV3INFOHEADER or one of its extensions
+			'We don't support any of those extension features but none of them are important
+		elseif biSize = 52 then
+			'BITMAPV2INFOHEADER, alpha bitmask doesn't exist
+			info.biAlphaMask = 0
+		else
+			'Assumably BITMAPINFOHEADER
+			info.biRedMask = 0
+			info.biGreenMask = 0
+			info.biBlueMask = 0
+			info.biAlphaMask = 0
+		end if
 	end if
 
 	if info.biClrUsed <= 0 and info.biBitCount <= 8 then
@@ -4451,7 +4463,7 @@ function frame_import_bmp24_or_32(bmp as string, pal() as RGBcolor, firstindex a
 'Pass firstindex = 1 to prevent anything from getting mapped to colour 0.
 
 	dim header as BITMAPFILEHEADER
-	dim info as BITMAPINFOHEADER
+	dim info as BITMAPV3INFOHEADER
 	dim bf as integer
 
 	bf = open_bmp_and_read_header(bmp, header, info)
@@ -4486,7 +4498,7 @@ sub bitmap2pal (bmp as string, pal() as RGBcolor)
 'loads the 24/32-bit 16x16 palette bitmap bmp into palette pal()
 'so, pixel (0,0) holds colour 0, (0,1) has colour 16, and (15,15) has colour 255
 	dim header as BITMAPFILEHEADER
-	dim info as BITMAPINFOHEADER
+	dim info as BITMAPV3INFOHEADER
 	dim col as RGBTRIPLE
 	dim bf as integer
 	dim dummy as ubyte
@@ -4523,7 +4535,7 @@ end sub
 function frame_import_bmp_raw(bmp as string) as Frame ptr
 'load a 1-, 4- or 8-bit .BMP, ignoring the palette
 	dim header as BITMAPFILEHEADER
-	dim info as BITMAPINFOHEADER
+	dim info as BITMAPV3INFOHEADER
 	dim bf as integer
 	dim ret as frame ptr
 
@@ -4580,7 +4592,7 @@ private function decode_bmp_bitmask(mask as uint32) as integer
 end function
 
 'Takes an open file handle pointing at start of pixel data and an already sized Surface to load into
-private sub loadbmp32(byval bf as integer, byval surf as Surface ptr, infohd as BITMAPINFOHEADER)
+private sub loadbmp32(byval bf as integer, byval surf as Surface ptr, infohd as BITMAPV3INFOHEADER)
 	dim bitspix as uint32
 	dim quadpix as RGBQUAD
 	dim sptr as RGBcolor ptr
@@ -4852,7 +4864,7 @@ function loadbmppal (f as string, pal() as RGBcolor) as integer
 'loads the palette of a 1-bit, 4-bit or 8-bit bmp into pal
 'returns the number of bits
 	dim header as BITMAPFILEHEADER
-	dim info as BITMAPINFOHEADER
+	dim info as BITMAPV3INFOHEADER
 	dim col3 as RGBTRIPLE
 	dim col4 as RGBQUAD
 	dim bf as integer
@@ -4906,7 +4918,7 @@ sub convertbmppal (f as string, mpal() as RGBcolor, pal() as integer, firstindex
 end sub
 
 'Returns 0 if invalid, otherwise fills 'info' and returns 1 if valid but unsupported, 2 if supported
-function bmpinfo (f as string, byref info as BITMAPINFOHEADER) as integer
+function bmpinfo (f as string, byref info as BITMAPV3INFOHEADER) as integer
 	dim header as BITMAPFILEHEADER
 	dim bf as integer
 

@@ -148,7 +148,7 @@ DECLARE SUB convertbmppal (f as string, mpal() as RGBcolor, pal() as integer, fi
 DECLARE FUNCTION color_distance(pal() as RGBcolor, byval index1 as integer, byval index2 as integer) as integer
 DECLARE FUNCTION nearcolor OVERLOAD (pal() as RGBcolor, byval red as ubyte, byval green as ubyte, byval blue as ubyte, byval firstindex as integer = 0, byval indexhint as integer = -1) as ubyte
 DECLARE FUNCTION nearcolor OVERLOAD (pal() as RGBcolor, byval index as integer, byval firstindex as integer = 0) as ubyte
-DECLARE FUNCTION bmpinfo (f as string, byref dat as BitmapInfoHeader) as integer
+DECLARE FUNCTION bmpinfo (f as string, byref dat as BitmapV3InfoHeader) as integer
 
 DECLARE FUNCTION isawav(fi as string) as bool
 

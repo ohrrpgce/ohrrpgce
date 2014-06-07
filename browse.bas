@@ -352,7 +352,7 @@ SUB browse_hover_file(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
 END SUB
 
 'Returns true if the BMP looks good
-FUNCTION browse_check_bmp(byref br as BrowseMenuState, tree() as BrowseMenuEntry, byref bmpd as BitmapInfoHeader) as integer
+FUNCTION browse_check_bmp(byref br as BrowseMenuState, tree() as BrowseMenuEntry, byref bmpd as BitmapV3InfoHeader) as integer
  DIM support as integer = bmpinfo(br.nowdir + tree(br.mstate.last).filename, bmpd)
  IF support = 2 THEN
   tree(br.mstate.last).about = bmpd.biWidth & "*" & bmpd.biHeight & " pixels, " & bmpd.biBitCount & "-bit color"
@@ -367,7 +367,7 @@ FUNCTION browse_check_bmp(byref br as BrowseMenuState, tree() as BrowseMenuEntry
 END FUNCTION
 
 SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as BrowseMenuState, tree() as BrowseMenuEntry)
-DIM bmpd as BitmapInfoHeader
+DIM bmpd as BitmapV3InfoHeader
 DIM tempbuf(79) as integer
 DIM filename as string
 

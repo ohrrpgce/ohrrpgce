@@ -19,6 +19,7 @@ end type
 type PBITMAP as BITMAP ptr
 type LPBITMAP as BITMAP ptr
 
+'An ancient BMP header
 type BITMAPCOREHEADER
 	bcSize as integer
 	bcWidth as short
@@ -57,8 +58,10 @@ end type
 type LPBITMAPCOREINFO as BITMAPCOREINFO ptr
 type PBITMAPCOREINFO as BITMAPCOREINFO ptr
 
+'This is the header used when saving BMPs.
+'I suppose this is INFOHEADER V1, but isn't known as such.
+'Ancient BMP headers are smaller than this.
 type BITMAPINFOHEADER field = 1
-	' These first fields are BMP V3 members
 	biSize as integer
 	biWidth as LONG
 	biHeight as LONG
@@ -70,9 +73,23 @@ type BITMAPINFOHEADER field = 1
 	biYPelsPerMeter as LONG
 	biClrUsed as integer
 	biClrImportant as integer
+end type
 
-	' The following are the first of the additional BMPV V4 data fields
-	' I've omitted colour space and gamma stuff
+'A much more common version of the BMP header.
+'Later versions add colourspace and gamma information which
+'we can safely ignore
+type BITMAPV3INFOHEADER field = 1
+	biSize as integer
+	biWidth as LONG
+	biHeight as LONG
+	biPlanes as short
+	biBitCount as short
+	biCompression as integer
+	biSizeImage as integer
+	biXPelsPerMeter as LONG
+	biYPelsPerMeter as LONG
+	biClrUsed as integer
+	biClrImportant as integer
 	biRedMask as integer
 	biGreenMask as integer
 	biBlueMask as integer

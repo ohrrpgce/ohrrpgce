@@ -284,7 +284,7 @@ END SUB
 
 'Returns true if imported, false if cancelled
 FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp as string, pmask() as RGBcolor) as bool
- DIM bmpd as BitmapInfoHeader
+ DIM bmpd as BitmapV3InfoHeader
  DIM menu(2) as string
  DIM paloption as integer
  DIM img as Frame ptr
@@ -2446,7 +2446,7 @@ END SUB
 SUB spriteedit_import16_loadbmp(byref ss as SpriteEditState, workpal() as integer, byval palno as integer, srcbmp as string, byref impsprite as Frame ptr, byref pal16 as Palette16 ptr)
  pal16 = palette16_new()
 
- DIM bmpd as BitmapInfoHeader
+ DIM bmpd as BitmapV3InfoHeader
  bmpinfo(srcbmp, bmpd)
  'debuginfo "import16_load: bitdepth " & bmpd.biBitCount
 
