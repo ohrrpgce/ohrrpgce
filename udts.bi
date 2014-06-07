@@ -498,7 +498,7 @@ TYPE ScriptCommand
 END TYPE
 
 UNION RGBcolor
-  as uinteger col
+  as uint32 col
   TYPE
     as ubyte b, g, r, a
   END TYPE

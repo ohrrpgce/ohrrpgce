@@ -36,6 +36,7 @@ WHAT IS NEW?
     * Added an option to save and restore the spritelayer slice (default
       parent for new slices) in saved games. Slice handles to these
       slices remain valid after loading. [Ralph]
+    * Most 32 bit BMPs should be importable now [Ralph]
 
   * Bugfixes
     * Fixed a few cosmetic bugs in the equip menu including possibly

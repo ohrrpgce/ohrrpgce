@@ -58,6 +58,7 @@ type LPBITMAPCOREINFO as BITMAPCOREINFO ptr
 type PBITMAPCOREINFO as BITMAPCOREINFO ptr
 
 type BITMAPINFOHEADER field = 1
+	' These first fields are BMP V3 members
 	biSize as integer
 	biWidth as LONG
 	biHeight as LONG
@@ -69,6 +70,13 @@ type BITMAPINFOHEADER field = 1
 	biYPelsPerMeter as LONG
 	biClrUsed as integer
 	biClrImportant as integer
+
+	' The following are the first of the additional BMPV V4 data fields
+	' I've omitted colour space and gamma stuff
+	biRedMask as integer
+	biGreenMask as integer
+	biBlueMask as integer
+	biAlphaMask as integer
 end type
 
 type LPBITMAPINFOHEADER as BITMAPINFOHEADER ptr

@@ -36,7 +36,8 @@ end type
 declare sub drawohr(byval src as Frame ptr, byval dest as Frame ptr, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval trans as bool = YES)
 'declare sub grabrect(byval page as integer, byval x as integer, byval y as integer, byval w as integer, byval h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
 declare function write_bmp_header(f as string, byval w as integer, byval h as integer, byval bitdepth as integer) as integer
-declare sub loadbmp32(byval bf as integer, byval surf as Surface ptr)
+declare function decode_bmp_bitmask(mask as uint32) as integer
+declare sub loadbmp32(byval bf as integer, byval surf as Surface ptr, infohd as BITMAPINFOHEADER)
 declare sub loadbmp24(byval bf as integer, byval surf as Surface ptr)
 declare sub loadbmp8(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmp4(byval bf as integer, byval fr as Frame ptr)
@@ -4406,9 +4407,26 @@ function open_bmp_and_read_header(bmp as string, byref header as BITMAPFILEHEADE
 		return -1
 	end if
 
-	if info.biCompression <> BI_RGB and info.biCompression <> BI_RLE4 and info.biCompression <> BI_RLE8 then
+	if info.biCompression = BI_BITFIELDS and info.biBitCount = 32 then
+		'16 bit (but not 24 bit) BMPs can also use BI_BITFIELDS, but we don't support them.
+		'Check whether the bitmasks are simple 8 bit masks, aside from the alpha
+		'mask, which can be 0 (not present)
+		if decode_bmp_bitmask(info.biRedMask) = -1 or _
+		   decode_bmp_bitmask(info.biGreenMask) = -1 or _
+		   decode_bmp_bitmask(info.biBlueMask) = -1 or _
+		   (info.biAlphaMask <> 0 and decode_bmp_bitmask(info.biAlphaMask) = -1) then
+			close #bf
+			debuginfo "Unsupported BMP RGBA bitmasks " & _
+			     HEX(info.biRedMask) & " " & _
+			     HEX(info.biGreenMask) & " " & _
+			     HEX(info.biBlueMask) & " " & _
+			     HEX(info.biAlphaMask) & _
+			     " in 32-bit " & bmp
+			return -2
+		end if
+	elseif info.biCompression <> BI_RGB and info.biCompression <> BI_RLE4 and info.biCompression <> BI_RLE8 then
 		close #bf
-		debuginfo "Unsupported compression scheme " & info.biCompression & " in " & bmp
+		debuginfo "Unsupported BMP compression scheme " & info.biCompression & " in " & info.biBitCount & "-bit BMP " & bmp
 		return -2
 	end if
 
@@ -4454,7 +4472,7 @@ function frame_import_bmp24_or_32(bmp as string, pal() as RGBcolor, firstindex a
 	if info.biBitCount = 24 then
 		loadbmp24(bf, surf)
 	elseif info.biBitCount = 32 then
-		loadbmp32(bf, surf)
+		loadbmp32(bf, surf, info)
 	end if
 
 	dim ret as Frame ptr
@@ -4514,7 +4532,7 @@ function frame_import_bmp_raw(bmp as string) as Frame ptr
 
 	if info.biBitCount > 8 then
 		close #bf
-		debug "frame_import_bmp_raw should not have been called!"
+		debugc errPromptBug, "frame_import_bmp_raw should not have been called!"
 		return 0
 	end if
 
@@ -4550,17 +4568,52 @@ function frame_import_bmp_raw(bmp as string) as Frame ptr
 	return ret
 end function
 
+'Given a mask with 8 consecutive bits such as &hff00 returns the number of zero
+'bits to the right of the bits. Returns -1 if the mask isn't of this form.
+private function decode_bmp_bitmask(mask as uint32) as integer
+	for shift as integer = 0 to 24
+		if mask shr shift = &hFF then
+			return shift
+		end if
+	next
+	return -1
+end function
+
 'Takes an open file handle pointing at start of pixel data and an already sized Surface to load into
-private sub loadbmp32(byval bf as integer, byval surf as Surface ptr)
-	dim pix as RGBQUAD
+private sub loadbmp32(byval bf as integer, byval surf as Surface ptr, infohd as BITMAPINFOHEADER)
+	dim bitspix as uint32
+	dim quadpix as RGBQUAD
 	dim sptr as RGBcolor ptr
+	dim tempcol as RGBcolor
+	dim as integer rshift, gshift, bshift, ashift
+	tempcol.a = 0
+
+	if infohd.biCompression = BI_BITFIELDS then
+		' The bitmasks have already been verified to be supported, except
+		' alpha might be missing
+		rshift = decode_bmp_bitmask(infohd.biRedMask)
+		gshift = decode_bmp_bitmask(infohd.biGreenMask)
+		bshift = decode_bmp_bitmask(infohd.biBlueMask)
+		ashift = decode_bmp_bitmask(infohd.biAlphaMask)
+	end if
 
 	for y as integer = surf->height - 1 to 0 step -1
 		sptr = surf->pColorData + y * surf->width
 		for x as integer = 0 to surf->width - 1
-			'Layout of RGBQUAD and RGBcolor are the same
-			get #bf, , pix
-			*sptr = *cast(RGBcolor ptr, @pix)
+			if infohd.biCompression = BI_BITFIELDS then
+				get #bf, , bitspix
+				tempcol.r = bitspix shr rshift
+				tempcol.g = bitspix shr gshift
+				tempcol.b = bitspix shr bshift
+				if ashift <> -1 then
+					tempcol.a = bitspix shr ashift
+				end if
+				*sptr = tempcol
+			else
+				'Layout of RGBQUAD and RGBcolor are the same
+				get #bf, , quadpix
+				*sptr = *cast(RGBcolor ptr, @quadpix)
+			end if
 			sptr += 1
 		next
 	next
