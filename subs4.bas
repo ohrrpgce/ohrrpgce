@@ -842,7 +842,7 @@ SUB export_master_palette ()
  gfx_surfaceCreate(16, 16, SF_32bit, SU_Staging, @outsurf)
 
  FOR i as integer = 0 TO 255
-  outsurf->pColorData[i] = master(i).col
+  outsurf->pColorData[i] = master(i)
  NEXT
  surface_export_bmp24(filename, outsurf)
  gfx_surfaceDestroy(outsurf)

@@ -14,8 +14,8 @@
 #include "common.h"
 
 void smoothzoomblit_8_to_8bit(uint8_t *srcbuffer, uint8_t *destbuffer, int w, int h, int pitch, int zoom, int smooth);
-void smoothzoomblit_8_to_32bit(uint8_t *srcbuffer, uint32_t *destbuffer, int w, int h, int pitch, int zoom, int smooth, int pal[]);
-void smoothzoomblit_32_to_32bit(uint32_t *srcbuffer, uint32_t *destbuffer, int w, int h, int pitch, int zoom, int smooth);
+void smoothzoomblit_8_to_32bit(uint8_t *srcbuffer, RGBcolor *destbuffer, int w, int h, int pitch, int zoom, int smooth, int pal[]);
+void smoothzoomblit_32_to_32bit(RGBcolor *srcbuffer, RGBcolor *destbuffer, int w, int h, int pitch, int zoom, int smooth);
 
 
 
@@ -304,7 +304,7 @@ void smoothzoomblit_8_to_8bit(uint8_t *srcbuffer, uint8_t *destbuffer, int w, in
 	}
 }
 
-void smoothzoomblit_8_to_32bit(uint8_t *srcbuffer, uint32_t *destbuffer, int w, int h, int pitch, int zoom, int smooth, int pal[]) {
+void smoothzoomblit_8_to_32bit(uint8_t *srcbuffer, RGBcolor *destbuffer, int w, int h, int pitch, int zoom, int smooth, int pal[]) {
 //srcbuffer: source w x h buffer paletted 8 bit
 //destbuffer: destination scaled buffer pitch x h*zoom 32 bit (so pitch is in pixels, not bytes)
 //supports any positive zoom
@@ -372,7 +372,7 @@ void smoothzoomblit_8_to_32bit(uint8_t *srcbuffer, uint32_t *destbuffer, int w, 
 	}
 }
 
-void smoothzoomblit_32_to_32bit(uint32_t *srcbuffer, uint32_t *destbuffer, int w, int h, int pitch, int zoom, int smooth) {
+void smoothzoomblit_32_to_32bit(RGBcolor *srcbuffer, RGBcolor *destbuffer, int w, int h, int pitch, int zoom, int smooth) {
 //srcbuffer: source w*h buffer, 32 bit
 //destbuffer: destination scaled buffer (pitch*zoom)*(h*zoom), 32 bit (so pitch is in pixels, not bytes)
 //supports any positive zoom

@@ -36,13 +36,14 @@ end type
 declare sub drawohr(byval src as Frame ptr, byval dest as Frame ptr, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval trans as bool = YES)
 'declare sub grabrect(byval page as integer, byval x as integer, byval y as integer, byval w as integer, byval h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
 declare function write_bmp_header(f as string, byval w as integer, byval h as integer, byval bitdepth as integer) as integer
-declare sub loadbmp32(byval bf as integer, byval fr as Frame ptr, pal() as RGBcolor, firstindex as integer)
-declare sub loadbmp24(byval bf as integer, byval fr as Frame ptr, pal() as RGBcolor, firstindex as integer)
+declare sub loadbmp32(byval bf as integer, byval surf as Surface ptr)
+declare sub loadbmp24(byval bf as integer, byval surf as Surface ptr)
 declare sub loadbmp8(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmp4(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmp1(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmprle8(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmprle4(byval bf as integer, byval fr as Frame ptr)
+declare function quantise_surface(surf as Surface ptr, pal() as RGBcolor, firstindex as integer, options as integer = 0) as Frame ptr
 
 declare sub snapshot_check
 
@@ -4204,7 +4205,7 @@ end sub
 sub surface_export_bmp24 (f as string, byval surf as Surface Ptr)
 	dim argb as RGBQUAD
 	dim as integer of, y, i, skipbytes
-	dim as uinteger ptr sptr
+	dim as RGBcolor ptr sptr
 	dim as ubyte buf(3)
 
 	of = write_bmp_header(f, surf->width, surf->height, 24)
@@ -4426,7 +4427,7 @@ function open_bmp_and_read_header(bmp as string, byref header as BITMAPFILEHEADE
 end function
 
 
-function frame_import_bmp24_or_32(bmp as string, pal() as RGBcolor, firstindex as integer = 0) as Frame ptr
+function frame_import_bmp24_or_32(bmp as string, pal() as RGBcolor, firstindex as integer = 0, options as integer = 0) as Frame ptr
 'loads and palettises the 24-bit or 32-bit bitmap bmp, mapped to palette pal()
 'The alpha channel if any is ignored
 'Pass firstindex = 1 to prevent anything from getting mapped to colour 0.
@@ -4438,21 +4439,26 @@ function frame_import_bmp24_or_32(bmp as string, pal() as RGBcolor, firstindex a
 	bf = open_bmp_and_read_header(bmp, header, info)
 	if bf <= -1 then return 0
 
+	if info.biBitCount <> 24 and info.biBitCount <> 32 then
+		debugc errPromptBug, "frame_import_bmp24_or_32 should not have been called!"
+		close #bf
+		return NULL
+	end if
+
 	'navigate to the beginning of the bitmap data
 	seek #bf, header.bfOffBits + 1
 
-	dim ret as Frame ptr
-	ret = frame_new(info.biWidth, info.biHeight)
+	dim surf as Surface ptr
+	gfx_surfaceCreate(info.biWidth, info.biHeight, SF_32bit, SU_Staging, @surf)
 
 	if info.biBitCount = 24 then
-		loadbmp24(bf, ret, pal(), firstindex)
+		loadbmp24(bf, surf)
 	elseif info.biBitCount = 32 then
-		loadbmp32(bf, ret, pal(), firstindex)
-	else
-		debug "frame_import_bmp24_or_32 should not have been called!"
-		frame_unload @ret
-		ret = 0
+		loadbmp32(bf, surf)
 	end if
+
+	dim ret as Frame ptr
+	ret = quantise_surface(surf, pal(), firstindex, options)
 
 	close #bf
 	return ret
@@ -4544,45 +4550,45 @@ function frame_import_bmp_raw(bmp as string) as Frame ptr
 	return ret
 end function
 
-private sub loadbmp32(byval bf as integer, byval fr as Frame ptr, pal() as RGBcolor, firstindex as integer)
-'takes an open file handle, an already sized Frame, and a 256 colour palette to map to
+'Takes an open file handle pointing at start of pixel data and an already sized Surface to load into
+private sub loadbmp32(byval bf as integer, byval surf as Surface ptr)
 	dim pix as RGBQUAD
-	dim ub as ubyte
-	dim as integer w, h
-	dim sptr as ubyte ptr
+	dim sptr as RGBcolor ptr
 
-	for h = fr->h - 1 to 0 step -1
-		sptr = fr->image + h * fr->pitch
-		for w = 0 to fr->w - 1
+	for y as integer = surf->height - 1 to 0 step -1
+		sptr = surf->pColorData + y * surf->width
+		for x as integer = 0 to surf->width - 1
+			'Layout of RGBQUAD and RGBcolor are the same
 			get #bf, , pix
-			*sptr = nearcolor(pal(), pix.rgbRed, pix.rgbGreen, pix.rgbBlue, firstindex)
+			*sptr = *cast(RGBcolor ptr, @pix)
 			sptr += 1
 		next
 	next
 END SUB
 
-private sub loadbmp24(byval bf as integer, byval fr as Frame ptr, pal() as RGBcolor, firstindex as integer)
-'takes an open file handle, an already sized Frame pointer, and a 256 colour palette to map to
+'Takes an open file handle pointing at start of pixel data and an already sized Surface to load into
+private sub loadbmp24(byval bf as integer, byval surf as Surface ptr)
 	dim pix as RGBTRIPLE
 	dim ub as ubyte
-	dim as integer w, h
-	dim sptr as ubyte ptr
+	dim sptr as RGBcolor ptr
 	dim pad as integer
 
 	'data lines are padded to 32-bit boundaries
-	pad = 4 - ((fr->w * 3) mod 4)
+	pad = 4 - ((surf->width * 3) mod 4)
 	if pad = 4 then	pad = 0
 
-	for h = fr->h - 1 to 0 step -1
-		sptr = fr->image + h * fr->pitch
-		for w = 0 to fr->w - 1
-			'read the data
+	for y as integer = surf->height - 1 to 0 step -1
+		sptr = surf->pColorData + y * surf->width
+		for x as integer = 0 to surf->width - 1
 			get #bf, , pix
-			*sptr = nearcolor(pal(), pix.rgbtRed, pix.rgbtGreen, pix.rgbtBlue, firstindex)
+			'First 3 bytes of RGBTRIPLE are the same as RGBcolor
+			*sptr = *cast(RGBcolor ptr, @pix)
+			'We haven't yet defined whether opaque is 0 or 255
+			sptr->a = 0
 			sptr += 1
 		next
 		'padding to dword boundary
-		for w = 0 to pad-1
+		for w as integer = 0 to pad-1
 			get #bf, , ub
 		next
 	next
@@ -4906,6 +4912,28 @@ function nearcolor(pal() as RGBcolor, byval index as integer, byval firstindex a
 	with pal(index)
 		return nearcolor(pal(), .r, .g, .b, firstindex)
 	end with
+end function
+
+'Convert a 32 bit Surface to a paletted Frame.
+'Frees surf.
+'Only colours firstindex..255 in pal() are used
+private function quantise_surface(surf as Surface ptr, pal() as RGBcolor, firstindex as integer, options as integer = 0) as Frame ptr
+	dim ret as Frame ptr
+	ret = frame_new(surf->width, surf->height)
+
+	dim inptr as RGBcolor ptr
+	dim outptr as ubyte ptr
+	for y as integer = 0 to surf->height - 1
+		inptr = surf->pColorData + y * surf->width
+		outptr = ret->image + y * ret->pitch
+		for x as integer = 0 to surf->width - 1
+			*outptr = nearcolor(pal(), inptr->r, inptr->g, inptr->b, firstindex)
+			inptr += 1
+			outptr += 1
+		next
+	next
+	gfx_surfaceDestroy(surf)
+	return ret
 end function
 
 

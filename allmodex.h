@@ -3,6 +3,8 @@
 #ifndef ALLMODEX_H
 #define ALLMODEX_H
 
+#include <stdint.h>
+
 struct XYPair {
 	int w;
 	int h;
@@ -12,6 +14,8 @@ struct Palette16 {
 	unsigned char col[16];  //indicies into the master palette
 	int refcount; //private
 };
+
+typedef	uint32_t RGBcolor;
 
 struct SpriteCacheEntry;
 struct SpriteSet;

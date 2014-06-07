@@ -172,7 +172,7 @@ declare sub blitohrscaled(byval spr as Frame ptr, byval destspr as Frame ptr, by
 
 declare sub smoothzoomblit_8_to_8bit(byval srcbuffer as ubyte ptr, byval destbuffer as ubyte ptr, byval w as int32, byval h as int32, byval pitch as int32, byval zoom as int32, byval smooth as int32)
 declare sub smoothzoomblit_8_to_32bit(byval srcbuffer as ubyte ptr, byval destbuffer as uint32 ptr, byval w as int32, byval h as int32, byval pitch as int32, byval zoom as int32, byval smooth as int32, byval pal as int32 ptr)
-declare sub smoothzoomblit_32_to_32bit(byval srcbuffer as uint32 ptr, byval destbuffer as uint32 ptr, byval w as int32, byval h as int32, byval pitch as int32, byval zoom as int32, byval smooth as int32)
+declare sub smoothzoomblit_32_to_32bit(byval srcbuffer as RGBcolor ptr, byval destbuffer as uint32 ptr, byval w as int32, byval h as int32, byval pitch as int32, byval zoom as int32, byval smooth as int32)
 
 end extern
 

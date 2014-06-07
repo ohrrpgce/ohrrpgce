@@ -473,7 +473,7 @@ FUNCTION gfx_sdl_present_internal(byval raw as any ptr, byval w as integer, byva
     END IF
 
     'smoothzoomblit takes the pitch in pixels, not bytes!
-    smoothzoomblit_32_to_32bit(raw, cast(uint32 ptr, screensurface->pixels), w, h, screensurface->pitch \ 4, zoom, smooth)
+    smoothzoomblit_32_to_32bit(cast(RGBcolor ptr, raw), cast(uint32 ptr, screensurface->pixels), w, h, screensurface->pitch \ 4, zoom, smooth)
     IF SDL_Flip(screensurface) THEN
       debug "gfx_sdl_present_internal: SDL_Flip failed: " & *SDL_GetError
     END IF
