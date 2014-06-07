@@ -2692,8 +2692,10 @@ FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byr
  DIM ret as bool = YES
  DIM tog as integer
  DIM picksize as XYPair
+ 'pickpos will be set to mouse cursor position
  pickpos.x = 0
  pickpos.y = 0
+ DIM initialise_pickpos as bool = YES
  DIM imagepos as XYPair
  ' If it's smaller than the screen, offset the image so it's not sitting in the corner
  IF maxx * zoom + 4 < vpages(dpage)->w THEN
@@ -2722,9 +2724,10 @@ FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byr
   picksize.y = small(vpages(dpage)->h, small(image->h, maxy))
 
   '--Moving mouse moves cursor and vice versa
-  IF mouse.moved THEN
+  IF mouse.moved OR initialise_pickpos THEN
    pickpos.x = bound((mouse.x - imagepos.x) \ zoom, 0, picksize.x - 1)
    pickpos.y = bound((mouse.y - imagepos.y) \ zoom, 0, picksize.y - 1)
+   initialise_pickpos = NO
   ELSE
    DIM movespeed as integer
    IF keyval(scALT) THEN movespeed = 9 ELSE movespeed = 1
