@@ -1,3 +1,4 @@
+#include <string.h>
 #include "guiText.h"
 
 enum TextCodes

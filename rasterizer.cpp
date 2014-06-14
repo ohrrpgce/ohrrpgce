@@ -3,7 +3,7 @@
 
 
 
-Color Tex2DSampler::sample8bit(const Surface* pTexture, FPInt u, FPInt v) const
+uint8_t Tex2DSampler::sample8bit(const Surface* pTexture, FPInt u, FPInt v) const
 {
 	FPInt minuteScale;
 	minuteScale.fraction = 0xffff; //same as 65535/65536

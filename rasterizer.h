@@ -15,8 +15,8 @@
 class Tex2DSampler
 {
 public:
-	Color sample(const Surface* pTexture, FPInt u, FPInt v) const {return ( (pTexture->format == SF_8bit) ? sample8bit(pTexture, u, v) : sample32bit(pTexture, u, v) );}
-	Color sample8bit(const Surface* pTexture, FPInt u, FPInt v) const;
+	//Color sample(const Surface* pTexture, FPInt u, FPInt v) const {return ( (pTexture->format == SF_8bit) ? sample8bit(pTexture, u, v) : sample32bit(pTexture, u, v) );}
+	uint8_t sample8bit(const Surface* pTexture, FPInt u, FPInt v) const;
 	Color sample32bit(const Surface* pTexture, FPInt u, FPInt v) const;
 };
 

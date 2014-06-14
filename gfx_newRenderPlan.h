@@ -92,7 +92,11 @@ struct TexCoord
 	TexCoord& operator*=(float rhs) {u *= rhs; v *= rhs; return *this;}
 	TexCoord& operator/=(float rhs) {u /= rhs; v /= rhs; return *this;}
 };
-struct Color //argb dword; palette stored in lowest byte, that is 'b'
+
+//argb dword
+// Was also used for storing an 8 bit palette index in 'b', but
+// that seems to be a bad idea.
+struct Color
 {
 	union
 	{
@@ -108,11 +112,11 @@ struct Color //argb dword; palette stored in lowest byte, that is 'b'
 	Color& operator= (uint32_t rhs) {dw = rhs; return *this;}
 	Color& operator= (const Color& rhs) {dw = rhs.dw; return *this;}
 	operator uint32_t () const {return dw;}
-	operator uint8_t () const {return b;}
+	// operator uint8_t () const {return b;}
 	Color() : dw(0) {}
 	Color(uint32_t col) : dw(col) {}
 	Color(uint8_t A, uint8_t R, uint8_t G, uint8_t B) : dw(0) {a=A;r=R;g=G;b=B;}
-	Color(uint8_t palette) : dw(0) {b=palette;}
+	// Color(uint8_t palette) : dw(0) {b=palette;}
 	void scale(Color argbModifier)
 	{
 		a = a * argbModifier.a / 255;
