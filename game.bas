@@ -1664,6 +1664,15 @@ SUB process_wait_conditions()
       script_stop_waiting()
      END IF
     CASE 9'--wait for key
+     IF txt.showing ANDALSO use_touch_textboxes() THEN
+      'If a touch textbox is currently being displayed, we make a special
+      'exception and treat any touch as the key we are waiting for
+      DIM mouse as MouseInfo
+      mouse = readmouse()
+      IF (mouse.clickstick AND mouseLeft) THEN
+       script_stop_waiting()
+      END IF
+     END IF
      IF .waitarg >= 0 AND .waitarg <= 5 THEN
       IF carray(.waitarg) > 1 THEN
        script_stop_waiting()
