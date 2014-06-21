@@ -1874,15 +1874,48 @@ TYPE ItemScreenState
  sl as slice ptr
  need_update as bool
  textbox as integer
+ pt as integer
 END TYPE
+
+SUB update_item_plank (byval pl as Slice Ptr, byref st as ItemScreenState)
+ IF pl = 0 THEN debug "update_item_plank: null ptr" : EXIT SUB
+ DIM slot as integer = pl->Extra(0)
+
+ DIM sel as bool = (st.pt = slot)
+ DIM special as bool = NO
+ DIM usable as bool = NO
+
+ IF inventory(slot).used THEN
+  DIM itemtemp(dimbinsize(binITM)) as integer
+  loaditemdata itemtemp(), inventory(slot).id
+  IF itemtemp(73) = 2 THEN special = YES 'Cannot be sold/dropped
+  IF itemtemp(50) > 0 THEN usable = YES 'Teaches a spell
+  IF itemtemp(51) > 0 THEN usable = YES 'Triggers an attack (cure)
+  IF itemtemp(51) < 0 THEN usable = YES 'Triggers a text box
+ END IF
+
+ DIM state as integer = plankNORMAL
+
+ IF sel = NO  ANDALSO usable = YES ANDALSO special = NO  THEN state = plankNORMAL
+ IF sel = YES ANDALSO usable = YES ANDALSO special = NO  THEN state = plankSEL
+ IF sel = NO  ANDALSO usable = NO  ANDALSO special = NO  THEN state = plankDISABLE
+ IF sel = YES ANDALSO usable = NO  ANDALSO special = NO  THEN state = plankSELDISABLE
+ IF sel = NO  ANDALSO                      special = YES THEN state = plankSPECIAL
+ IF sel = YES ANDALSO                      special = YES THEN state = plankSPECIAL
+ 
+ set_plank_state pl, state
+END SUB
 
 SUB item_screen_refresh(byref st as ItemScreenState)
  plank_menu_clear st.sl, SL_ITEM_ITEMLIST
 
  expand_slice_text_insert_codes st.sl, @ExpandTextItemScreen
 
+ DIM pl as Slice Ptr
  FOR i as integer = 0 TO last_inv_slot()
-  plank_menu_append st.sl, SL_ITEM_ITEMLIST, SL_COLLECT_ITEMPLANK, @ExpandTextItemSlot, i
+  pl = plank_menu_append(st.sl, SL_ITEM_ITEMLIST, SL_COLLECT_ITEMPLANK, @ExpandTextItemSlot, i)
+  pl->Extra(0) = i
+  update_item_plank pl, st
  NEXT i
  
 END SUB
@@ -1941,13 +1974,42 @@ END FUNCTION
 
 '-----------------------------------------------------------------------
 
-SUB plank_menu_append (byval sl as slice ptr, byval lookup as integer, byval collection_kind as integer, byval callback as ANY ptr=0, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0)
- IF sl = 0 THEN debug "plank_menu_append: null slice ptr": EXIT SUB
+SUB set_plank_state (byval sl as Slice Ptr, byval state as integer=plankNORMAL)
+ IF sl = 0 THEN debug "set_plank_state: null slice ptr": EXIT SUB
+ 'First evaluate the current slice
+ IF sl->Lookup = SL_PLANK_MENU_SELECTABLE THEN
+  SELECT CASE sl->SliceType
+   CASE slText:
+    SELECT CASE state
+     CASE plankNORMAL:         ChangeTextSlice sl, , uiMenuItem * -1 - 1
+     CASE plankSEL:            ChangeTextSlice sl, , uiSelectedItem2 * -1 - 1
+     CASE plankDISABLE:        ChangeTextSlice sl, , uiDisabledItem * -1 - 1
+     CASE plankSELDISABLE:     ChangeTextSlice sl, , uiSelectedDisabled2 * -1 - 1
+     CASE plankSPECIAL:        ChangeTextSlice sl, , uiSpecialItem * -1 - 1
+     CASE plankSELSPECIAL:     ChangeTextSlice sl, , uiSelectedSpecial2 * -1 - 1
+     CASE plankITEMSEL:        ChangeTextSlice sl, , uiItemScreenSelected * -1 - 1
+     CASE plankITEMSELDISABLE: ChangeTextSlice sl, , uiItemScreenSelectedDisabled * -1 - 1
+     CASE plankITEMSELSPECIAL: ChangeTextSlice sl, , uiItemScreenSelectedSpecial * -1 - 1
+    END SELECT
+  END SELECT
+ END IF
+ 
+ 'Now repeat for each child
+ DIM ch as Slice Ptr = sl->FirstChild
+ DO WHILE ch
+  set_plank_state ch, state
+  ch = ch->NextSibling
+ LOOP
+ 
+END SUB
+
+FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byval collection_kind as integer, byval callback as ANY ptr=0, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0) as Slice Ptr
+ IF sl = 0 THEN debug "plank_menu_append: null slice ptr": RETURN 0
  DIM m as Slice ptr = LookupSlice(lookup, sl)
- IF m = 0 THEN debug "plank_menu_append: menu not found " & lookup : EXIT SUB
+ IF m = 0 THEN debug "plank_menu_append: menu not found " & lookup : RETURN 0
  DIM sc as Slice Ptr = NewSliceOfType(slRoot)
  load_slice_collection sc, collection_kind
- IF sc = 0 THEN debug "plank_menu_append: plank collection not found " & collection_kind : EXIT SUB
+ IF sc = 0 THEN debug "plank_menu_append: plank collection not found " & collection_kind : RETURN 0
  DIM holder as Slice Ptr
  holder = LookupSlice(SL_PLANK_HOLDER, sc)
  DIM cl as Slice Ptr
@@ -1965,7 +2027,9 @@ SUB plank_menu_append (byval sl as slice ptr, byval lookup as integer, byval col
  
  expand_slice_text_insert_codes cl, callback, arg0, arg1, arg2
  
-END SUB
+ RETURN cl
+ 
+END FUNCTION
 
 SUB plank_menu_clear (byval sl as Slice Ptr, byval lookup as integer)
  IF sl = 0 THEN debug "plank_menu_clear: null slice ptr": EXIT SUB
@@ -2739,7 +2803,6 @@ FUNCTION old_items_menu () as integer
  copypage istate.page, holdscreen
 
  DIM i as integer
- 
  FOR i = 0 TO 2
   setbit iuse(), 0, i, 1
  NEXT i
