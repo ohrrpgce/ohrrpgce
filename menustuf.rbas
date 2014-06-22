@@ -1911,12 +1911,18 @@ SUB item_screen_refresh(byref st as ItemScreenState)
 
  expand_slice_text_insert_codes st.sl, @ExpandTextItemScreen
 
+ DIM collection as Slice Ptr = NewSliceOfType(slRoot)
+ load_slice_collection collection, SL_COLLECT_ITEMPLANK
+ IF collection = 0 THEN debug "item_screen_refresh: plank collection not found": EXIT SUB
+
  DIM pl as Slice Ptr
  FOR i as integer = 0 TO last_inv_slot()
-  pl = plank_menu_append(st.sl, SL_ITEM_ITEMLIST, SL_COLLECT_ITEMPLANK, @ExpandTextItemSlot, i)
+  pl = plank_menu_append(st.sl, SL_ITEM_ITEMLIST, collection, @ExpandTextItemSlot, i)
   pl->Extra(0) = i
   update_item_plank pl, st
  NEXT i
+
+ DeleteSlice @collection
  
 END SUB
 
@@ -2004,14 +2010,22 @@ SUB set_plank_state (byval sl as Slice Ptr, byval state as integer=plankNORMAL)
 END SUB
 
 FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byval collection_kind as integer, byval callback as ANY ptr=0, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0) as Slice Ptr
+ DIM collection as Slice Ptr = NewSliceOfType(slRoot)
+ load_slice_collection collection, collection_kind
+ IF collection = 0 THEN debug "plank_menu_append: plank collection not found " & collection_kind : RETURN 0
+ DIM result as Slice Ptr
+ result = plank_menu_append(sl, lookup, collection, callback, arg0, arg1, arg2)
+ DeleteSlice @collection
+ RETURN result
+END FUNCTION
+
+FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byval collection as Slice Ptr, byval callback as ANY ptr=0, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0) as Slice Ptr
  IF sl = 0 THEN debug "plank_menu_append: null slice ptr": RETURN 0
  DIM m as Slice ptr = LookupSlice(lookup, sl)
  IF m = 0 THEN debug "plank_menu_append: menu not found " & lookup : RETURN 0
- DIM sc as Slice Ptr = NewSliceOfType(slRoot)
- load_slice_collection sc, collection_kind
- IF sc = 0 THEN debug "plank_menu_append: plank collection not found " & collection_kind : RETURN 0
+ IF collection = 0 THEN debug "plank_menu_append: plank collection null ptr" : RETURN 0
  DIM holder as Slice Ptr
- holder = LookupSlice(SL_PLANK_HOLDER, sc)
+ holder = LookupSlice(SL_PLANK_HOLDER, collection)
  DIM cl as Slice Ptr
  IF holder <> 0 THEN
   'Found a holder, use only it
@@ -2019,9 +2033,8 @@ FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byva
   cl->Fill = YES
  ELSE
   'No holder, use the whole collection
-  cl = CloneSliceTree(sc)
+  cl = CloneSliceTree(collection)
  END IF
- DeleteSlice @sc
  
  SetSliceParent cl, m
  
