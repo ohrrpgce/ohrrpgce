@@ -2856,19 +2856,19 @@ SUB items_menu_paint (istate as ItemsMenuState, iuse() as integer, permask() as 
  edgeboxstyle istate.rect.x, istate.rect.y, istate.rect.wide, istate.rect.high, 0, istate.page
  DIM display as string
  FOR i as integer = istate.top TO small(istate.top + 62, last_inv_slot())
-  textcolor uilook(uiDisabledItem), 0
-  IF readbit(iuse(), 0, 3 + i) = 1 THEN textcolor uilook(uiMenuItem), 0
-  IF readbit(permask(), 0, 3 + i) THEN textcolor uilook(uiSpecialItem), 0
+  textcolor uilook(uiItemScreenDisabled), 0
+  IF readbit(iuse(), 0, 3 + i) = 1 THEN textcolor uilook(uiItemScreenItem), 0
+  IF readbit(permask(), 0, 3 + i) THEN textcolor uilook(uiItemScreenSpecial), 0
   IF istate.cursor = i THEN
-   textcolor uilook(uiItemScreenSwapDisabled), uilook(uiHighlight2)
-   IF readbit(iuse(), 0, 3 + i) = 1 THEN textcolor uilook(uiItemScreenSwap), uilook(uiHighlight2)
-   IF readbit(permask(), 0, 3 + i) THEN textcolor uilook(uiItemScreenSwapSpecial), uilook(uiHighlight2)
+   textcolor uilook(uiItemScreenSelectedDisabled + istate.tog), uilook(uiItemScreenHighlight + istate.tog)
+   IF readbit(iuse(), 0, 3 + i) = 1 THEN textcolor uilook(uiItemScreenSelected + istate.tog), uilook(uiItemScreenHighlight + istate.tog)
+   IF readbit(permask(), 0, 3 + i) THEN textcolor uilook(uiItemScreenSelectedSpecial + istate.tog), uilook(uiItemScreenHighlight + istate.tog)
   END IF
   IF istate.sel = i THEN
-   textcolor uilook(uiMenuItem), uilook(uiHighlight + istate.tog)
+   textcolor uilook(uiItemScreenSwapDisabled), uilook(uiItemScreenSwapHighlight + istate.tog)
    IF istate.cursor = i THEN
-    textcolor uilook(uiSelectedItem + istate.tog), uilook(uiHighlight + istate.tog)
-    IF readbit(permask(), 0, 3 + i) THEN textcolor uilook(uiSelectedSpecial + istate.tog), uilook(uiHighlight + istate.tog)
+    textcolor uilook(uiItemScreenSwap), uilook(uiItemScreenSwapHighlight + istate.tog)
+    IF readbit(permask(), 0, 3 + i) THEN textcolor uilook(uiItemScreenSwapSpecial), uilook(uiItemScreenSwapHighlight + istate.tog)
    END IF
   END IF
   IF i >= 0 THEN
