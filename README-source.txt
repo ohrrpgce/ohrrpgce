@@ -8,8 +8,8 @@ up-to-date information, especially
 http://rpg.HamsterRepublic.com/ohrrpgce/Compiling
 -----------------------------------------------------------------------------
 WINDOWS/LINUX:
-  Recommends FreeBasic version 0.21.1b
-  Requires minimum FreeBasic version 0.20.0b
+  Recommends FreeBasic version 0.90.1
+  Requires minimum FreeBasic version 0.22.0
   Download FreeBasic from http://freebasic.net/
   Compiling requires Python and Scons
   Building HSpeak requires Euphoria v4.0+: http://www.OpenEuphoria.com/
@@ -17,6 +17,11 @@ WINDOWS/LINUX:
 MAC OS X:
   Compiling requires Python, Scons, and a custom FreeBasic build.
   Read "Compiling" on the wiki.
+-----------------------------------------------------------------------------
+ANDROID:
+  Requires fbc-arm
+  Requires sdl-android (ohrrpgce fork)
+  See http://rpg.hamsterrepublic.com/ohrrpgce/Compiling_for_Android for info
 -----------------------------------------------------------------------------
 INSTRUCTIONS
   Unpack the source code to a new folder
@@ -29,10 +34,10 @@ INSTRUCTIONS
 MAKING IMPROVEMENTS
   There are still lots of bugs that need to be fixed. For a list of known
   bugs, visit http://HamsterRepublic.com/ohrrpgce/buglist.php
-  I also welcome code-cleanup and new features as long as you don't break
+  We also welcome code-cleanup and new features as long as you don't break
   compatibility with existing games. If you want to submit a improvement
-  to me, I recommend you post your patch and/or a description of the changes
-  to http://HamsterRepublic.com/bugzilla/ instead of e-mailing it to me.
+  to us, I recommend you post your patch and/or a description of the changes
+  to http://HamsterRepublic.com/bugzilla/ instead of e-mailing it to us.
 -----------------------------------------------------------------------------
 WHAT IF YOU WANT TO BREAK COMPATIBILITY?
   I will not accept patches that break compatibility into the official
