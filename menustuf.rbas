@@ -1863,8 +1863,13 @@ TYPE ItemScreenState
  swapcur as Slice Ptr
 END TYPE
 
+CONST itembutton_EXIT = -3
+CONST itembutton_SORT = -2
+CONST itembutton_TRASH = -1
+
 SUB update_item_plank (byval pl as Slice Ptr, byref st as ItemScreenState)
  IF pl = 0 THEN debug "update_item_plank: null ptr" : EXIT SUB
+
  DIM slot as integer = pl->Extra(0)
 
  DIM sel as bool = (st.ps.cur = pl)
@@ -1922,15 +1927,41 @@ SUB item_screen_refresh(byref st as ItemScreenState)
  NEXT i
 
  pl = LookupSlice(SL_ITEM_EXITBUTTON, st.ps.m)
- IF pl THEN update_item_plank pl, st
+ IF pl THEN
+  pl->Extra(0) = itembutton_EXIT
+  update_item_plank pl, st
+ END IF
  pl = LookupSlice(SL_ITEM_SORTBUTTON, st.ps.m)
- IF pl THEN update_item_plank pl, st
+ IF pl THEN
+  pl->Extra(0) = itembutton_SORT
+  update_item_plank pl, st
+ END IF
  pl = LookupSlice(SL_ITEM_TRASHBUTTON, st.ps.m)
- IF pl THEN update_item_plank pl, st
+ IF pl THEN
+  pl->Extra(0) = itembutton_TRASH
+  update_item_plank pl, st
+ END IF
 
  DeleteSlice @collection
+
+ 'Early draw to force update of slice positions 
+ DrawSlice st.ps.m, vpage
+ 
+ st.ps.cur = top_left_plank(st.ps)
+ update_item_plank st.ps.cur, st
+
+ st.swapcur = 0
  
 END SUB
+
+FUNCTION is_item_plank(byval sl as Slice Ptr) as bool
+ IF sl = 0 THEN debug "is_item_plank: null slice ptr" : RETURN NO
+ IF sl->Lookup = SL_PLANK_HOLDER THEN RETURN YES
+ IF sl->Lookup = SL_ITEM_EXITBUTTON THEN RETURN YES
+ IF sl->Lookup = SL_ITEM_SORTBUTTON THEN RETURN YES
+ IF sl->Lookup = SL_ITEM_TRASHBUTTON THEN RETURN YES
+ RETURN NO 
+END FUNCTION
 
 FUNCTION item_screen () as integer
 'Returns 0, or ID of textbox to open (box 0 can't be opened)
@@ -1939,6 +1970,7 @@ FUNCTION item_screen () as integer
  st.ps.m = NewSliceOfType(slRoot)
  st.ps.m->Fill = YES
  RefreshSliceScreenPos st.ps.m
+ st.ps.is_plank_callback = @is_item_plank
 
  DIM holdscreen as integer = duplicatepage(vpage)
 
@@ -1982,15 +2014,6 @@ FUNCTION item_screen () as integer
  freepage holdscreen
  DeleteSlice @(st.ps.m)
  RETURN st.textbox
-END FUNCTION
-
-FUNCTION is_item_plank(byval sl as Slice Ptr) as bool
- IF sl = 0 THEN debug "is_item_plank: null slice ptr" : RETURN NO
- IF sl->Lookup = SL_PLANK_HOLDER THEN RETURN YES
- IF sl->Lookup = SL_ITEM_EXITBUTTON THEN RETURN YES
- IF sl->Lookup = SL_ITEM_SORTBUTTON THEN RETURN YES
- IF sl->Lookup = SL_ITEM_TRASHBUTTON THEN RETURN YES
- RETURN NO 
 END FUNCTION
 
 '-----------------------------------------------------------------------

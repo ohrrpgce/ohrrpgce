@@ -18,6 +18,16 @@
 #include "plankmenu.bi"
 
 FUNCTION plank_menu_move_cursor (byref ps as PlankState, byval axis as integer, byval d as integer) as bool
+
+ ps.planks_found = 0
+ REDIM planks(10) as Slice Ptr
+ find_all_planks ps, ps.m, planks()
+ 
+ DIM sl as Slice Ptr
+ FOR i as integer = 0 TO ps.planks_found - 1
+  sl = planks(i)
+ NEXT i
+ 
  RETURN NO
 END FUNCTION
 
@@ -30,6 +40,50 @@ FUNCTION plank_menu_arrows (byref ps as PlankState) as bool
  IF carray(ccDown) > 1  THEN IF plank_menu_move_cursor(ps, 1, 1)  THEN result = YES
  RETURN result
 END FUNCTION
+
+FUNCTION top_left_plank(byref ps as PlankState) as Slice Ptr
+
+ ps.planks_found = 0
+ REDIM planks(10) as Slice Ptr
+ find_all_planks ps, ps.m, planks()
+
+ IF ps.planks_found = 0 THEN RETURN 0
+
+ DIM best as Slice Ptr = planks(0)
+ DIM sl as Slice Ptr
+ FOR i as integer = 0 TO ps.planks_found - 1
+  sl = planks(i)
+  IF sl->ScreenX <= best->ScreenX ANDALSO sl->ScreenY <= best->ScreenY THEN
+   best = sl
+  END IF
+ NEXT i
+ 
+ RETURN best
+END FUNCTION
+
+SUB find_all_planks(byref ps as PlankState, byval m as Slice Ptr, planks() as Slice Ptr)
+ IF m = 0 THEN debug "plank_menu_move_cursor: null m ptr" : EXIT SUB
+
+ DIM plank_checker as FUNCTION (byval s as Slice Ptr) as bool
+ plank_checker = ps.is_plank_callback
+ IF plank_checker = 0 THEN plank_checker = @is_plank
+
+ DIM sl as Slice Ptr
+ sl = m->FirstChild
+ DO WHILE sl
+  IF plank_checker(sl) THEN
+   'This is a plank.
+   IF ps.planks_found > UBOUND(planks) THEN
+    REDIM PRESERVE planks(UBOUND(planks) + 10) as Slice Ptr
+   END IF
+   planks(ps.planks_found) = sl
+   ps.planks_found += 1
+  END IF
+  find_all_planks ps, sl, planks()
+  sl = sl->NextSibling
+ LOOP
+ 
+END SUB
 
 SUB set_plank_state (byval sl as Slice Ptr, byval state as integer=plankNORMAL)
  IF sl = 0 THEN debug "set_plank_state: null slice ptr": EXIT SUB

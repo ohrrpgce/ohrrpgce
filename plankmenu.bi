@@ -5,6 +5,7 @@ TYPE PlankState
  m as Slice Ptr 'Container for the whole plank menu
  cur as Slice Ptr 'currently selected plank
  is_plank_callback as ANY Ptr 'Function () as bool
+ planks_found as integer 'Used internally
 END TYPE
 
 CONST plankNORMAL = 0
@@ -25,5 +26,8 @@ DECLARE FUNCTION plank_menu_arrows (byref ps as PlankState) as bool
 DECLARE SUB expand_slice_text_insert_codes (byval sl as Slice ptr, byval callback as ANY ptr=0, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0)
 DECLARE SUB hide_slices_by_lookup_code (byval sl as Slice ptr, byval lookup as integer, byval cond as bool)
 DECLARE SUB set_sprites_by_lookup_code (byval sl as Slice ptr, byval lookup as integer, byval sprtype as SpriteType, byval picnum as integer, byval palnum as integer=-1)
+DECLARE FUNCTION is_plank(byval sl as Slice Ptr) as bool
+DECLARE SUB find_all_planks(byref ps as PlankState, byval m as Slice Ptr, planks() as Slice Ptr)
+DECLARE FUNCTION top_left_plank(byref ps as PlankState) as Slice Ptr
 
 #endif
