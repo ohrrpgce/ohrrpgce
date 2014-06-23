@@ -479,7 +479,8 @@ game_modules = ['game',
                 'savegame.rbas',
                 'scripting',
                 'oldhsinterpreter',
-                'purchase.rbas']
+                'purchase.rbas',
+                'plankmenu.bas']
 
 common_modules += ['filelayer.cpp', 'rasterizer.cpp', 'matrixMath.cpp', 'gfx_newRenderPlan.cpp']
 

@@ -25,19 +25,4 @@ DECLARE SUB loadshopstuf (array() as integer, byval id as integer)
 DECLARE FUNCTION count_available_spells(byval who as integer, byval list as integer) as integer
 DECLARE FUNCTION outside_battle_cure (byval atk as integer, byref target as integer, byval attacker as integer, byval spread as integer) as integer
 
-CONST plankNORMAL = 0
-CONST plankSEL = 1
-CONST plankDISABLE = 2
-CONST plankSELDISABLE = 3
-CONST plankSPECIAL = 4
-CONST plankSELSPECIAL = 5
-CONST plankITEMSEL = 6
-CONST plankITEMSELDISABLE = 7
-CONST plankITEMSELSPECIAL = 8
-
-DECLARE SUB plank_menu_clear (byval sl as Slice Ptr, byval lookup as integer)
-DECLARE FUNCTION plank_menu_append OVERLOAD (byval sl as slice ptr, byval lookup as integer, byval collection_kind as integer, byval callback as ANY ptr=0, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0) as Slice Ptr
-DECLARE FUNCTION plank_menu_append OVERLOAD (byval sl as slice ptr, byval lookup as integer, byval collection as Slice Ptr, byval callback as ANY ptr=0, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0) as Slice Ptr
-DECLARE SUB set_plank_state (byval sl as Slice Ptr, byval state as integer=plankNORMAL)
-
 #endif

@@ -21,6 +21,7 @@
 #include "menustuf.bi"
 #include "bmodsubs.bi"
 #include "bmod.bi"
+#include "plankmenu.bi"
 
 '--SUBs and FUNCTIONS only used locally
 DECLARE SUB buystuff_make_slices(buyst as ShopBuyState)
@@ -56,9 +57,6 @@ DECLARE FUNCTION picksave_confirm(menu() as string, byval loading as integer, by
 DECLARE SUB sellstuff_refresh(byval last_stuff as integer, byval recordsize as integer, permask() as integer, price() as integer, stuffdata() as integer)
 DECLARE SUB sellstuff_infostr(byval ic as integer, info as string, b() as integer, permask() as integer, price() as integer, byval stuff_count as integer, byval recordsize as integer)
 DECLARE SUB status_buildmenu(her as HeroDef, byval pt as integer, mtype() as integer, elementaldmg() as single, elementnames() as string, elementalmenu() as string, elementalmenu_st as MenuState, portrait as GraphicPair)
-DECLARE SUB expand_slice_text_insert_codes (byval sl as Slice ptr, byval callback as ANY ptr=0, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0)
-DECLARE SUB hide_slices_by_lookup_code (byval sl as Slice ptr, byval lookup as integer, byval cond as bool)
-DECLARE SUB set_sprites_by_lookup_code (byval sl as Slice ptr, byval lookup as integer, byval sprtype as SpriteType, byval picnum as integer, byval palnum as integer=-1)
 
 SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as integer)
  'shoptype is 0 for items and 1 for heroes
@@ -1874,24 +1872,36 @@ TYPE ItemScreenState
  sl as slice ptr
  need_update as bool
  textbox as integer
- pt as integer
+ cur as Slice Ptr
+ swapcur as Slice Ptr
 END TYPE
+
+CONST itembutton_DONE = -3
+CONST itembutton_SORT = -2
+CONST itembutton_TRASH = -1
 
 SUB update_item_plank (byval pl as Slice Ptr, byref st as ItemScreenState)
  IF pl = 0 THEN debug "update_item_plank: null ptr" : EXIT SUB
  DIM slot as integer = pl->Extra(0)
 
- DIM sel as bool = (st.pt = slot)
+ DIM sel as bool = (st.cur = pl)
  DIM special as bool = NO
  DIM usable as bool = NO
+ DIM swapsel as bool = (st.swapcur = pl)
 
- IF inventory(slot).used THEN
-  DIM itemtemp(dimbinsize(binITM)) as integer
-  loaditemdata itemtemp(), inventory(slot).id
-  IF itemtemp(73) = 2 THEN special = YES 'Cannot be sold/dropped
-  IF itemtemp(50) > 0 THEN usable = YES 'Teaches a spell
-  IF itemtemp(51) > 0 THEN usable = YES 'Triggers an attack (cure)
-  IF itemtemp(51) < 0 THEN usable = YES 'Triggers a text box
+ IF slot < 0 THEN
+  usable = YES
+ ELSEIF slot <= UBOUND(inventory) THEN
+  IF inventory(slot).used THEN
+   DIM itemtemp(dimbinsize(binITM)) as integer
+   loaditemdata itemtemp(), inventory(slot).id
+   IF itemtemp(73) = 2 THEN special = YES 'Cannot be sold/dropped
+   IF itemtemp(50) > 0 THEN usable = YES 'Teaches a spell
+   IF itemtemp(51) > 0 THEN usable = YES 'Triggers an attack (cure)
+   IF itemtemp(51) < 0 THEN usable = YES 'Triggers a text box
+  END IF
+ ELSE
+  debug "update_item_plank: out of bounds slot " & slot
  END IF
 
  DIM state as integer = plankNORMAL
@@ -1901,12 +1911,18 @@ SUB update_item_plank (byval pl as Slice Ptr, byref st as ItemScreenState)
  IF sel = NO  ANDALSO usable = NO  ANDALSO special = NO  THEN state = plankDISABLE
  IF sel = YES ANDALSO usable = NO  ANDALSO special = NO  THEN state = plankSELDISABLE
  IF sel = NO  ANDALSO                      special = YES THEN state = plankSPECIAL
- IF sel = YES ANDALSO                      special = YES THEN state = plankSPECIAL
+ IF sel = YES ANDALSO                      special = YES THEN state = plankSELSPECIAL
+ IF swapsel = YES THEN
+  state = plankITEMSEL
+  IF usable = NO THEN state = plankITEMSELDISABLE
+  IF special = YES THEN state = plankITEMSELSPECIAL
+ END IF
  
  set_plank_state pl, state
 END SUB
 
 SUB item_screen_refresh(byref st as ItemScreenState)
+
  plank_menu_clear st.sl, SL_ITEM_ITEMLIST
 
  expand_slice_text_insert_codes st.sl, @ExpandTextItemScreen
@@ -1921,6 +1937,14 @@ SUB item_screen_refresh(byref st as ItemScreenState)
   pl->Extra(0) = i
   update_item_plank pl, st
  NEXT i
+
+ pl = LookupSlice(SL_ITEM_EXITBUTTON, st.sl)
+ IF pl THEN pl->Extra(0) = itembutton_DONE : update_item_plank pl, st
+ pl = LookupSlice(SL_ITEM_SORTBUTTON, st.sl)
+ IF pl THEN pl->Extra(0) = itembutton_SORT : update_item_plank pl, st
+ pl = LookupSlice(SL_ITEM_TRASHBUTTON, st.sl)
+ IF pl THEN pl->Extra(0) = itembutton_TRASH : update_item_plank pl, st
+
 
  DeleteSlice @collection
  
@@ -1949,10 +1973,10 @@ FUNCTION item_screen () as integer
   IF carray(ccMenu) > 1 THEN EXIT DO
   IF carray(ccUse) > 1 THEN
   END IF
-  'IF carray(ccLeft) > 1 THEN
-  ' st.need_update = YES
-  ' menusound gen(genCursorSFX)
-  'END IF
+  IF plank_menu_arrows(st.cur, st.sl) THEN
+   st.need_update = YES
+   menusound gen(genCursorSFX)
+  END IF
   IF keyval(scF8) > 1 THEN
    slice_editor st.sl
    st.need_update = YES
@@ -1979,127 +2003,6 @@ FUNCTION item_screen () as integer
 END FUNCTION
 
 '-----------------------------------------------------------------------
-
-SUB set_plank_state (byval sl as Slice Ptr, byval state as integer=plankNORMAL)
- IF sl = 0 THEN debug "set_plank_state: null slice ptr": EXIT SUB
- 'First evaluate the current slice
- IF sl->Lookup = SL_PLANK_MENU_SELECTABLE THEN
-  SELECT CASE sl->SliceType
-   CASE slText:
-    SELECT CASE state
-     CASE plankNORMAL:         ChangeTextSlice sl, , uiMenuItem * -1 - 1
-     CASE plankSEL:            ChangeTextSlice sl, , uiSelectedItem2 * -1 - 1
-     CASE plankDISABLE:        ChangeTextSlice sl, , uiDisabledItem * -1 - 1
-     CASE plankSELDISABLE:     ChangeTextSlice sl, , uiSelectedDisabled2 * -1 - 1
-     CASE plankSPECIAL:        ChangeTextSlice sl, , uiSpecialItem * -1 - 1
-     CASE plankSELSPECIAL:     ChangeTextSlice sl, , uiSelectedSpecial2 * -1 - 1
-     CASE plankITEMSEL:        ChangeTextSlice sl, , uiItemScreenSelected * -1 - 1
-     CASE plankITEMSELDISABLE: ChangeTextSlice sl, , uiItemScreenSelectedDisabled * -1 - 1
-     CASE plankITEMSELSPECIAL: ChangeTextSlice sl, , uiItemScreenSelectedSpecial * -1 - 1
-    END SELECT
-  END SELECT
- END IF
- 
- 'Now repeat for each child
- DIM ch as Slice Ptr = sl->FirstChild
- DO WHILE ch
-  set_plank_state ch, state
-  ch = ch->NextSibling
- LOOP
- 
-END SUB
-
-FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byval collection_kind as integer, byval callback as ANY ptr=0, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0) as Slice Ptr
- DIM collection as Slice Ptr = NewSliceOfType(slRoot)
- load_slice_collection collection, collection_kind
- IF collection = 0 THEN debug "plank_menu_append: plank collection not found " & collection_kind : RETURN 0
- DIM result as Slice Ptr
- result = plank_menu_append(sl, lookup, collection, callback, arg0, arg1, arg2)
- DeleteSlice @collection
- RETURN result
-END FUNCTION
-
-FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byval collection as Slice Ptr, byval callback as ANY ptr=0, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0) as Slice Ptr
- IF sl = 0 THEN debug "plank_menu_append: null slice ptr": RETURN 0
- DIM m as Slice ptr = LookupSlice(lookup, sl)
- IF m = 0 THEN debug "plank_menu_append: menu not found " & lookup : RETURN 0
- IF collection = 0 THEN debug "plank_menu_append: plank collection null ptr" : RETURN 0
- DIM holder as Slice Ptr
- holder = LookupSlice(SL_PLANK_HOLDER, collection)
- DIM cl as Slice Ptr
- IF holder <> 0 THEN
-  'Found a holder, use only it
-  cl = CloneSliceTree(holder)
-  cl->Fill = YES
- ELSE
-  'No holder, use the whole collection
-  cl = CloneSliceTree(collection)
- END IF
- 
- SetSliceParent cl, m
- 
- expand_slice_text_insert_codes cl, callback, arg0, arg1, arg2
- 
- RETURN cl
- 
-END FUNCTION
-
-SUB plank_menu_clear (byval sl as Slice Ptr, byval lookup as integer)
- IF sl = 0 THEN debug "plank_menu_clear: null slice ptr": EXIT SUB
- DIM m as Slice ptr = LookupSlice(lookup, sl)
- IF m = 0 THEN
-  debug "plank_menu_clear: menu not found " & lookup
-  EXIT SUB
- END IF
- DeleteSliceChildren m
-END SUB
-
-SUB expand_slice_text_insert_codes (byval sl as Slice ptr, byval callback as ANY ptr=0, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0)
- 'Starting with children of the given container slice, iterate through
- ' all children and expand any ${} codes found in any TextSlice
- IF sl = 0 THEN debug "expand_slice_text_insert_codes: null slice ptr": EXIT SUB
- DIM ch as Slice Ptr = sl->FirstChild
- DIM dat as TextSliceData Ptr
- DO WHILE ch <> 0
-  IF ch->SliceType = slText THEN
-   dat = ch->SliceData
-   IF dat->s_orig = "" THEN dat->s_orig = dat->s
-   ChangeTextSlice ch, embed_text_codes(dat->s_orig, callback, arg0, arg1, arg2)
-  END IF
-  expand_slice_text_insert_codes ch, callback, arg0, arg1, arg2
-  ch = ch->NextSibling
- LOOP
-END SUB
-
-SUB hide_slices_by_lookup_code (byval sl as Slice ptr, byval lookup as integer, byval cond as bool)
- 'Starting with children of the given container slice, iterate through
- ' all children and toggle the visibility of any slices with a specific lookup code
- IF sl = 0 THEN debug "hide_slices_by_lookup_code: null slice ptr": EXIT SUB
- DIM ch as Slice Ptr = sl->FirstChild
- DO WHILE ch <> 0
-  IF ch->Lookup = lookup THEN
-   ch->Visible = NOT cond
-  END IF
-  hide_slices_by_lookup_code ch, lookup, cond
-  ch = ch->NextSibling
- LOOP
-END SUB
-
-SUB set_sprites_by_lookup_code (byval sl as Slice ptr, byval lookup as integer, byval sprtype as SpriteType, byval picnum as integer, byval palnum as integer=-1)
- 'Starting with children of the given container slice, iterate through
- ' all children and change any sprites matching the lookup code
- IF sl = 0 THEN debug "set_sprites_by_lookup_code: null slice ptr": EXIT SUB
- DIM ch as Slice Ptr = sl->FirstChild
- DO WHILE ch <> 0
-  IF ch->Lookup = lookup THEN
-   IF ch->SliceType = slSprite THEN
-    ChangeSpriteSlice ch, sprtype, picnum, palnum
-   END IF
-  END IF
-  set_sprites_by_lookup_code ch, lookup, sprtype, picnum, palnum
-  ch = ch->NextSibling
- LOOP
-END SUB
 
 SUB old_status (byval pt as integer)
 DIM mtype(5) as integer
