@@ -381,8 +381,8 @@ DECLARE FUNCTION SliceDebugCheck(sl as Slice Ptr) as integer
 DECLARE Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSliceData) as slice ptr
 DECLARE Sub ChangeRectangleSlice(byval sl as slice ptr,_
                       byval style as integer=-2,_
-                      byval bgcol as integer=-1,_
-                      byval fgcol as integer=-1,_
+                      byval bgcol as integer=-99,_
+                      byval fgcol as integer=-99,_
                       byval border as integer=-3,_
                       byval translucent as RectTransTypes=transUndef,_
                       byval fuzzfactor as integer=0)

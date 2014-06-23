@@ -14,9 +14,9 @@ CONST plankDISABLE = 2
 CONST plankSELDISABLE = 3
 CONST plankSPECIAL = 4
 CONST plankSELSPECIAL = 5
-CONST plankITEMSEL = 6
-CONST plankITEMSELDISABLE = 7
-CONST plankITEMSELSPECIAL = 8
+CONST plankITEMSWAP = 6
+CONST plankITEMSWAPDISABLE = 7
+CONST plankITEMSWAPSPECIAL = 8
 
 DECLARE SUB plank_menu_clear (byval sl as Slice Ptr, byval lookup as integer)
 DECLARE FUNCTION plank_menu_append OVERLOAD (byval sl as slice ptr, byval lookup as integer, byval collection_kind as integer, byval callback as ANY ptr=0, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0) as Slice Ptr

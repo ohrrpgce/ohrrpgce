@@ -118,15 +118,25 @@ SUB set_plank_state (byval sl as Slice Ptr, byval state as integer=plankNORMAL)
   SELECT CASE sl->SliceType
    CASE slText:
     SELECT CASE state
-     CASE plankNORMAL:         ChangeTextSlice sl, , uiMenuItem * -1 - 1
-     CASE plankSEL:            ChangeTextSlice sl, , uiSelectedItem2 * -1 - 1
-     CASE plankDISABLE:        ChangeTextSlice sl, , uiDisabledItem * -1 - 1
-     CASE plankSELDISABLE:     ChangeTextSlice sl, , uiSelectedDisabled2 * -1 - 1
-     CASE plankSPECIAL:        ChangeTextSlice sl, , uiSpecialItem * -1 - 1
-     CASE plankSELSPECIAL:     ChangeTextSlice sl, , uiSelectedSpecial2 * -1 - 1
-     CASE plankITEMSEL:        ChangeTextSlice sl, , uiItemScreenSelected * -1 - 1
-     CASE plankITEMSELDISABLE: ChangeTextSlice sl, , uiItemScreenSelectedDisabled * -1 - 1
-     CASE plankITEMSELSPECIAL: ChangeTextSlice sl, , uiItemScreenSelectedSpecial * -1 - 1
+     CASE plankNORMAL:          ChangeTextSlice sl, , uiMenuItem * -1 - 1
+     CASE plankSEL:             ChangeTextSlice sl, , uiSelectedItem2 * -1 - 1
+     CASE plankDISABLE:         ChangeTextSlice sl, , uiDisabledItem * -1 - 1
+     CASE plankSELDISABLE:      ChangeTextSlice sl, , uiSelectedDisabled2 * -1 - 1
+     CASE plankSPECIAL:         ChangeTextSlice sl, , uiSpecialItem * -1 - 1
+     CASE plankSELSPECIAL:      ChangeTextSlice sl, , uiSelectedSpecial2 * -1 - 1
+     CASE plankITEMSWAP:        ChangeTextSlice sl, , uiItemScreenSwap * -1 - 1
+     CASE plankITEMSWAPDISABLE: ChangeTextSlice sl, , uiItemScreenSwapDisabled * -1 - 1
+     CASE plankITEMSWAPSPECIAL: ChangeTextSlice sl, , uiItemScreenSwapSpecial * -1 - 1
+    END SELECT
+   CASE slRectangle:
+    sl->Visible = YES
+    SELECT CASE state
+     CASE plankNORMAL:          sl->Visible = NO
+     CASE plankSEL:             ChangeRectangleSlice sl, , uiHighlight2 * -1 - 1
+     CASE plankDISABLE:         sl->Visible = NO
+     CASE plankSELDISABLE:      ChangeRectangleSlice sl, , uiHighlight2 * -1 - 1
+     CASE plankSPECIAL:         sl->Visible = NO
+     CASE plankSELSPECIAL:      ChangeRectangleSlice sl, , uiHighlight2 * -1 - 1
     END SELECT
   END SELECT
  END IF

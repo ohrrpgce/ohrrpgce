@@ -1902,9 +1902,9 @@ SUB update_item_plank (byval pl as Slice Ptr, byref st as ItemScreenState)
  IF sel = NO  ANDALSO                      special = YES THEN state = plankSPECIAL
  IF sel = YES ANDALSO                      special = YES THEN state = plankSELSPECIAL
  IF swapsel = YES THEN
-  state = plankITEMSEL
-  IF usable = NO THEN state = plankITEMSELDISABLE
-  IF special = YES THEN state = plankITEMSELSPECIAL
+  state = plankITEMSWAP
+  IF usable = NO THEN state = plankITEMSWAPDISABLE
+  IF special = YES THEN state = plankITEMSWAPSPECIAL
  END IF
  
  set_plank_state pl, state
@@ -2829,9 +2829,9 @@ SUB items_menu_paint (istate as ItemsMenuState, iuse() as integer, permask() as 
   IF readbit(iuse(), 0, 3 + i) = 1 THEN textcolor uilook(uiMenuItem), 0
   IF readbit(permask(), 0, 3 + i) THEN textcolor uilook(uiSpecialItem), 0
   IF istate.cursor = i THEN
-   textcolor uilook(uiItemScreenSelectedDisabled), uilook(uiHighlight2)
-   IF readbit(iuse(), 0, 3 + i) = 1 THEN textcolor uilook(uiItemScreenSelected), uilook(uiHighlight2)
-   IF readbit(permask(), 0, 3 + i) THEN textcolor uilook(uiItemScreenSelectedSpecial), uilook(uiHighlight2)
+   textcolor uilook(uiItemScreenSwapDisabled), uilook(uiHighlight2)
+   IF readbit(iuse(), 0, 3 + i) = 1 THEN textcolor uilook(uiItemScreenSwap), uilook(uiHighlight2)
+   IF readbit(permask(), 0, 3 + i) THEN textcolor uilook(uiItemScreenSwapSpecial), uilook(uiHighlight2)
   END IF
   IF istate.sel = i THEN
    textcolor uilook(uiMenuItem), uilook(uiHighlight + istate.tog)

@@ -979,8 +979,8 @@ End Function
 'All arguments default to no-change
 Sub ChangeRectangleSlice(byval sl as slice ptr,_
                       byval style as integer=-2,_
-                      byval bgcol as integer=-1,_
-                      byval fgcol as integer=-1,_
+                      byval bgcol as integer=-99,_
+                      byval fgcol as integer=-99,_
                       byval border as integer=-3,_
                       byval translucent as RectTransTypes=transUndef,_
                       byval fuzzfactor as integer=0)
@@ -991,12 +991,12 @@ Sub ChangeRectangleSlice(byval sl as slice ptr,_
  end if
  dim dat as RectangleSliceData Ptr = sl->SliceData
  with *dat
-  if bgcol >= 0 then
+  if bgcol > -99 then
    .bgcol = bgcol
    .style = -1
    .style_loaded = NO
   end if
-  if fgcol >= 0 then
+  if fgcol > -99 then
    .fgcol = fgcol
    .style = -1
    .style_loaded = NO
@@ -2812,9 +2812,6 @@ Function SliceColor(byval n as integer) as integer
   if uiC = uiSelectedItem2 orelse uiC = uiSelectedDisabled2 orelse uiC = uiSelectedSpecial2 then
    'Some colors auto-animate
    if get_tickcount() mod 2 = 0 then uiC = uiC - 1
-  end if
-  if uiC = uiHighlightFlash then
-   if get_tickcount() mod 2 = 0 then uiC = uiHighlight
   end if
   return uilook(uiC)
  end if
