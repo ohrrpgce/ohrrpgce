@@ -1868,6 +1868,36 @@ CONST itembutton_EXIT = -3
 CONST itembutton_SORT = -2
 CONST itembutton_TRASH = -1
 
+SUB set_item_plank_state (byval sl as Slice Ptr, byval state as integer)
+ SELECT CASE sl->SliceType
+  CASE slText:
+   SELECT CASE state
+    CASE plankNORMAL:          ChangeTextSlice sl, , uiItemScreenItem * -1 - 1
+    CASE plankSEL:             ChangeTextSlice sl, , uiItemScreenSelected2 * -1 - 1
+    CASE plankDISABLE:         ChangeTextSlice sl, , uiItemScreenDisabled * -1 - 1
+    CASE plankSELDISABLE:      ChangeTextSlice sl, , uiItemScreenSelectedDisabled2 * -1 - 1
+    CASE plankSPECIAL:         ChangeTextSlice sl, , uiItemScreenSpecial * -1 - 1
+    CASE plankSELSPECIAL:      ChangeTextSlice sl, , uiItemScreenSelectedSpecial2 * -1 - 1
+    CASE plankITEMSWAP:        ChangeTextSlice sl, , uiItemScreenSwap * -1 -1
+    CASE plankITEMSWAPDISABLE: ChangeTextSlice sl, , uiItemScreenSwapDisabled * -1 -1
+    CASE plankITEMSWAPSPECIAL: ChangeTextSlice sl, , uiItemScreenSwapSpecial * -1 -1
+   END SELECT
+  CASE slRectangle:
+   sl->Visible = YES
+   SELECT CASE state
+    CASE plankNORMAL:          sl->Visible = NO
+    CASE plankSEL:             ChangeRectangleSlice sl, , uiItemScreenHighlight2 * -1 - 1
+    CASE plankDISABLE:         sl->Visible = NO
+    CASE plankSELDISABLE:      ChangeRectangleSlice sl, , uiItemScreenHighlight2 * -1 - 1
+    CASE plankSPECIAL:         sl->Visible = NO
+    CASE plankSELSPECIAL:      ChangeRectangleSlice sl, , uiItemScreenHighlight2 * -1 - 1
+    CASE plankITEMSWAP:        ChangeRectangleSlice sl, , uiItemScreenSwapHighlight2 * -1 -1
+    CASE plankITEMSWAPDISABLE: ChangeRectangleSlice sl, , uiItemScreenSwapHighlight2 * -1 -1
+    CASE plankITEMSWAPSPECIAL: ChangeRectangleSlice sl, , uiItemScreenSwapHighlight2 * -1 -1
+   END SELECT
+ END SELECT
+END SUB
+
 SUB update_item_plank (byval pl as Slice Ptr, byref st as ItemScreenState)
  IF pl = 0 THEN debug "update_item_plank: null ptr" : EXIT SUB
 
@@ -1972,6 +2002,7 @@ FUNCTION item_screen () as integer
  st.ps.m->Fill = YES
  RefreshSliceScreenPos st.ps.m
  st.ps.is_plank_callback = @is_item_plank
+ st.ps.state_callback = @set_item_plank_state
 
  DIM holdscreen as integer = duplicatepage(vpage)
 

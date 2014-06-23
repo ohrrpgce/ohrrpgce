@@ -2809,10 +2809,11 @@ Function SliceColor(byval n as integer) as integer
  if n >= 0 andalso n <= 255 then return n
  if n <= -1 andalso n >= (uiColorLast*-1 - 1) then
   dim uiC as integer = (n * -1) - 1
-  if uiC = uiSelectedItem2 orelse uiC = uiSelectedDisabled2 orelse uiC = uiSelectedSpecial2 then
+  select case uiC
+   case uiSelectedItem2, uiSelectedDisabled2, uiSelectedSpecial2, uiItemScreenSelected2, uiItemScreenSelectedDisabled2, uiItemScreenSelectedSpecial2, uiItemScreenHighlight2, uiItemScreenSwapHighlight2:
    'Some colors auto-animate
    if get_tickcount() mod 2 = 0 then uiC = uiC - 1
-  end if
+  end select
   return uilook(uiC)
  end if
  debugc errError, "Invalid slice color " & n

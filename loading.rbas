@@ -2110,6 +2110,19 @@ SUB GuessDefaultUIColors (masterpal() as RGBcolor, colarray() as integer, boxarr
  fixeddefaults(uiItemScreenSwap)         = &hFFFFFF
  fixeddefaults(uiItemScreenSwapDisabled) = &hA19CB0
  fixeddefaults(uiItemScreenSwapSpecial)  = &hFFFC62
+ fixeddefaults(uiItemScreenItem)         = &hA19CB0
+ fixeddefaults(uiItemScreenDisabled)     = &h4F595A
+ fixeddefaults(uiItemScreenSpecial)      = &h8E6B00
+ fixeddefaults(uiItemScreenSelected)     = &hFFFFFF
+ fixeddefaults(uiItemScreenSelected2)    = &hFFFFFF
+ fixeddefaults(uiItemScreenSelectedDisabled)  = &hA19CB0
+ fixeddefaults(uiItemScreenSelectedDisabled2) = &hA19CB0
+ fixeddefaults(uiItemScreenSelectedSpecial)   = &hFFFC62
+ fixeddefaults(uiItemScreenSelectedSpecial2)  = &hFFFC62
+ fixeddefaults(uiItemScreenHighlight)      = &h228B22
+ fixeddefaults(uiItemScreenHighlight2)     = &h228B22
+ fixeddefaults(uiItemScreenSwapHighlight)  = &h003B95
+ fixeddefaults(uiItemScreenSwapHighlight2) = &h228B22
  FOR i as integer = 0 TO uiColorLast
   c.col = fixeddefaults(i)
   colarray(i) = nearcolor(masterpal(), c.r, c.g, c.b)
@@ -2153,6 +2166,19 @@ FUNCTION FillMissingUIColor(byval index as integer, colarray() as integer) as in
   CASE uiItemScreenSwap: RETURN colarray(uiText)
   CASE uiItemScreenSwapDisabled: RETURN colarray(uiMenuItem)
   CASE uiItemScreenSwapSpecial: RETURN colarray(uiGold)
+  CASE uiItemScreenItem: RETURN colarray(uiMenuItem)
+  CASE uiItemScreenDisabled: RETURN colarray(uiDisabledItem)
+  CASE uiItemScreenSpecial: RETURN colarray(uiSpecialItem)
+  CASE uiItemScreenSelected: RETURN colarray(uiSelectedItem2)
+  CASE uiItemScreenSelected2: RETURN colarray(uiSelectedItem2)
+  CASE uiItemScreenSelectedDisabled: RETURN colarray(uiSelectedDisabled2)
+  CASE uiItemScreenSelectedDisabled2: RETURN colarray(uiSelectedDisabled2)
+  CASE uiItemScreenSelectedSpecial: RETURN colarray(uiSelectedSpecial)
+  CASE uiItemScreenSelectedSpecial2: RETURN colarray(uiSelectedSpecial)
+  CASE uiItemScreenHighlight: RETURN colarray(uiHighlight2)
+  CASE uiItemScreenHighlight2: RETURN colarray(uiHighlight2)
+  CASE uiItemScreenSwapHighlight: RETURN colarray(uiHighlight)
+  CASE uiItemScreenSwapHighlight2: RETURN colarray(uiHighlight2)
   CASE ELSE
    'Return defaults for all other colors
    DIM defaults(uiColorLast) as integer
@@ -2168,9 +2194,9 @@ FUNCTION UiColorCaption(byval n as integer) as string
   CASE uiMenuItem: RETURN "Menu item"
   CASE uiDisabledItem: RETURN "Disabled menu item"
   CASE uiSelectedItem: RETURN "Selected"
-  CASE uiSelectedItem2: RETURN "Selected (Flashing)"
+  CASE uiSelectedItem2: RETURN "Selected (Flash)"
   CASE uiSelectedDisabled: RETURN "Selected disabled"
-  CASE uiSelectedDisabled2: RETURN "Selected disabled (Flashing)"
+  CASE uiSelectedDisabled2: RETURN "Selected disabled (Flash)"
   CASE uiHighlight: RETURN "Highlight A"
   CASE uiHighlight2: RETURN "Highlight B"
   CASE uiTimeBar: RETURN "Time bar"
@@ -2184,10 +2210,23 @@ FUNCTION UiColorCaption(byval n as integer) as string
   CASE uiShadow: RETURN "Vehicle shadow"
   CASE uiSpecialItem: RETURN "Special menu item"
   CASE uiSelectedSpecial: RETURN "Selected special item"
-  CASE uiSelectedSpecial2: RETURN "Selected special item (Flashing)"
-  CASE uiItemScreenSwap: RETURN "Item Screen selected"
-  CASE uiItemScreenSwapDisabled: RETURN "Item Screen selected disabled"
-  CASE uiItemScreenSwapSpecial: RETURN "Item Screen selected special"
+  CASE uiSelectedSpecial2: RETURN "Selected special item (Flash)"
+  CASE uiItemScreenSwap: RETURN "Items: swapping usable"
+  CASE uiItemScreenSwapDisabled: RETURN "Items: swapping unusable"
+  CASE uiItemScreenSwapSpecial: RETURN "Items: swapping undroppable"
+  CASE uiItemScreenItem: RETURN "Items: usable item"
+  CASE uiItemScreenDisabled: RETURN "Items: unusable item"
+  CASE uiItemScreenSpecial: RETURN "Items: undroppable item"
+  CASE uiItemScreenSelected: RETURN "Items: selected item"
+  CASE uiItemScreenSelected2: RETURN "Items: selected item (Flash)"
+  CASE uiItemScreenSelectedDisabled: RETURN "Items: selected unusable"
+  CASE uiItemScreenSelectedDisabled2: RETURN "Items: selected unusable (Flash)"
+  CASE uiItemScreenSelectedSpecial: RETURN "Items: selected undroppable"
+  CASE uiItemScreenSelectedSpecial2: RETURN "Items: selected undroppable (Flash)"
+  CASE uiItemScreenHighlight: RETURN "Items: highlight selected"
+  CASE uiItemScreenHighlight2: RETURN "Items: highlight selected (Flash)"
+  CASE uiItemScreenSwapHighlight: RETURN "Items: highlight swapping"
+  CASE uiItemScreenSwapHighlight2: RETURN "Items: highlight swapping (Flash)"
  END SELECT
  'Invalid values still print, but !?
  RETURN n & "(!?)"
