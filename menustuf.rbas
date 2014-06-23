@@ -1861,6 +1861,7 @@ TYPE ItemScreenState
  need_update as bool
  textbox as integer
  swapcur as Slice Ptr
+ lastcur as Slice Ptr
 END TYPE
 
 CONST itembutton_EXIT = -3
@@ -1987,8 +1988,10 @@ FUNCTION item_screen () as integer
   IF carray(ccMenu) > 1 THEN EXIT DO
   IF carray(ccUse) > 1 THEN
   END IF
+  st.lastcur = st.ps.cur
   IF plank_menu_arrows(st.ps) THEN
-   st.need_update = YES
+   update_item_plank st.lastcur, st
+   update_item_plank st.ps.cur, st
    menusound gen(genCursorSFX)
   END IF
   IF keyval(scF8) > 1 THEN

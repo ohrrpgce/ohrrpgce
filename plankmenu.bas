@@ -19,16 +19,42 @@
 
 FUNCTION plank_menu_move_cursor (byref ps as PlankState, byval axis as integer, byval d as integer) as bool
 
+ IF ps.cur = 0 THEN
+  'No cursor yet, guess a default one
+  ps.cur = top_left_plank(ps)
+  RETURN YES
+ END IF
+
+ DIM result as integer = NO
+
  ps.planks_found = 0
  REDIM planks(10) as Slice Ptr
  find_all_planks ps, ps.m, planks()
  
+ DIM old as XYPair
+ old.x = ps.cur->ScreenX
+ old.y = ps.cur->ScreenY
+
+ DIM best as integer = 2000000000
+ DIM p as XYPair
+ DIM dist as integer
+ 
  DIM sl as Slice Ptr
  FOR i as integer = 0 TO ps.planks_found - 1
   sl = planks(i)
+  p.x = sl->ScreenX
+  p.y = sl->ScreenY
+  IF (d = 1 ANDALSO p.n(axis) > old.n(axis)) ORELSE (d = -1 ANDALSO p.n(axis) < old.n(axis)) THEN
+   dist = (old.x - p.x) ^ 2 + (old.y - p.y) ^ 2
+   IF dist < best THEN
+    best = dist
+    ps.cur = sl
+    result = YES
+   END IF
+  END IF
  NEXT i
  
- RETURN NO
+ RETURN result
 END FUNCTION
 
 FUNCTION plank_menu_arrows (byref ps as PlankState) as bool
