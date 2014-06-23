@@ -17,18 +17,17 @@
 
 #include "plankmenu.bi"
 
-
-FUNCTION plank_menu_move_cursor (byref cur as Slice Ptr, byval m as Slice Ptr, byval axis as integer, byval d as integer) as bool
+FUNCTION plank_menu_move_cursor (byref ps as PlankState, byval axis as integer, byval d as integer) as bool
  RETURN NO
 END FUNCTION
 
-FUNCTION plank_menu_arrows (byref cur as Slice Ptr, byval m as Slice Ptr) as bool
+FUNCTION plank_menu_arrows (byref ps as PlankState) as bool
  DIM result as bool = NO
  'IF keyval(scA) > 1 THEN slice_editor m
- IF carray(ccLeft) > 1  THEN IF plank_menu_move_cursor(cur, m, 0, -1) THEN result = YES
- IF carray(ccRight) > 1 THEN IF plank_menu_move_cursor(cur, m, 0, 1)  THEN result = YES
- IF carray(ccUp) > 1    THEN IF plank_menu_move_cursor(cur, m, 1, -1) THEN result = YES
- IF carray(ccDown) > 1  THEN IF plank_menu_move_cursor(cur, m, 1, 1)  THEN result = YES
+ IF carray(ccLeft) > 1  THEN IF plank_menu_move_cursor(ps, 0, -1) THEN result = YES
+ IF carray(ccRight) > 1 THEN IF plank_menu_move_cursor(ps, 0, 1)  THEN result = YES
+ IF carray(ccUp) > 1    THEN IF plank_menu_move_cursor(ps, 1, -1) THEN result = YES
+ IF carray(ccDown) > 1  THEN IF plank_menu_move_cursor(ps, 1, 1)  THEN result = YES
  RETURN result
 END FUNCTION
 
@@ -152,3 +151,9 @@ SUB set_sprites_by_lookup_code (byval sl as Slice ptr, byval lookup as integer, 
   ch = ch->NextSibling
  LOOP
 END SUB
+
+FUNCTION is_plank(byval sl as Slice Ptr) as bool
+ IF sl = 0 THEN debug "is_item_plank: null slice ptr" : RETURN NO
+ IF sl->Lookup = SL_PLANK_HOLDER THEN RETURN YES
+ RETURN NO 
+END FUNCTION

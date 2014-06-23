@@ -1745,18 +1745,6 @@ SUB ExpandTextItemSlot (code as string, result as string, byval slot as integer=
 END SUB
 
 
-  'IF inventory(i).used THEN
-  ' loaditemdata itemtemp(), inventory(i).id
-  ' IF itemtemp(73) = 2 THEN setbit permask(), 0, 3 + i, 1
-  ' IF itemtemp(50) > 0 THEN '--teach spell
-  '  setbit iuse(), 0, 3 + i, 1
-  ' ELSEIF itemtemp(51) > 0 THEN
-  '  setbit iuse(), 0, 3 + i, 1
-  ' ELSEIF itemtemp(51) < 0 THEN
-  '  setbit iuse(), 0, 3 + i, 1
-  ' END IF
-  'END IF
-
 '-----------------------------------------------------------------------
 
 TYPE StatusScreenState
@@ -1869,22 +1857,17 @@ END SUB
 '-----------------------------------------------------------------------
 
 TYPE ItemScreenState
- sl as slice ptr
+ ps as PlankState
  need_update as bool
  textbox as integer
- cur as Slice Ptr
  swapcur as Slice Ptr
 END TYPE
-
-CONST itembutton_DONE = -3
-CONST itembutton_SORT = -2
-CONST itembutton_TRASH = -1
 
 SUB update_item_plank (byval pl as Slice Ptr, byref st as ItemScreenState)
  IF pl = 0 THEN debug "update_item_plank: null ptr" : EXIT SUB
  DIM slot as integer = pl->Extra(0)
 
- DIM sel as bool = (st.cur = pl)
+ DIM sel as bool = (st.ps.cur = pl)
  DIM special as bool = NO
  DIM usable as bool = NO
  DIM swapsel as bool = (st.swapcur = pl)
@@ -1923,9 +1906,9 @@ END SUB
 
 SUB item_screen_refresh(byref st as ItemScreenState)
 
- plank_menu_clear st.sl, SL_ITEM_ITEMLIST
+ plank_menu_clear st.ps.m, SL_ITEM_ITEMLIST
 
- expand_slice_text_insert_codes st.sl, @ExpandTextItemScreen
+ expand_slice_text_insert_codes st.ps.m, @ExpandTextItemScreen
 
  DIM collection as Slice Ptr = NewSliceOfType(slRoot)
  load_slice_collection collection, SL_COLLECT_ITEMPLANK
@@ -1933,18 +1916,17 @@ SUB item_screen_refresh(byref st as ItemScreenState)
 
  DIM pl as Slice Ptr
  FOR i as integer = 0 TO last_inv_slot()
-  pl = plank_menu_append(st.sl, SL_ITEM_ITEMLIST, collection, @ExpandTextItemSlot, i)
+  pl = plank_menu_append(st.ps.m, SL_ITEM_ITEMLIST, collection, @ExpandTextItemSlot, i)
   pl->Extra(0) = i
   update_item_plank pl, st
  NEXT i
 
- pl = LookupSlice(SL_ITEM_EXITBUTTON, st.sl)
- IF pl THEN pl->Extra(0) = itembutton_DONE : update_item_plank pl, st
- pl = LookupSlice(SL_ITEM_SORTBUTTON, st.sl)
- IF pl THEN pl->Extra(0) = itembutton_SORT : update_item_plank pl, st
- pl = LookupSlice(SL_ITEM_TRASHBUTTON, st.sl)
- IF pl THEN pl->Extra(0) = itembutton_TRASH : update_item_plank pl, st
-
+ pl = LookupSlice(SL_ITEM_EXITBUTTON, st.ps.m)
+ IF pl THEN update_item_plank pl, st
+ pl = LookupSlice(SL_ITEM_SORTBUTTON, st.ps.m)
+ IF pl THEN update_item_plank pl, st
+ pl = LookupSlice(SL_ITEM_TRASHBUTTON, st.ps.m)
+ IF pl THEN update_item_plank pl, st
 
  DeleteSlice @collection
  
@@ -1954,13 +1936,13 @@ FUNCTION item_screen () as integer
 'Returns 0, or ID of textbox to open (box 0 can't be opened)
 
  DIM st as ItemScreenState
- st.sl = NewSliceOfType(slRoot)
- st.sl->Fill = YES
- RefreshSliceScreenPos st.sl
+ st.ps.m = NewSliceOfType(slRoot)
+ st.ps.m->Fill = YES
+ RefreshSliceScreenPos st.ps.m
 
  DIM holdscreen as integer = duplicatepage(vpage)
 
- load_slice_collection st.sl, SL_COLLECT_ITEMSCREEN
+ load_slice_collection st.ps.m, SL_COLLECT_ITEMSCREEN
  item_screen_refresh st
  
  menusound gen(genAcceptSFX)
@@ -1973,12 +1955,12 @@ FUNCTION item_screen () as integer
   IF carray(ccMenu) > 1 THEN EXIT DO
   IF carray(ccUse) > 1 THEN
   END IF
-  IF plank_menu_arrows(st.cur, st.sl) THEN
+  IF plank_menu_arrows(st.ps) THEN
    st.need_update = YES
    menusound gen(genCursorSFX)
   END IF
   IF keyval(scF8) > 1 THEN
-   slice_editor st.sl
+   slice_editor st.ps.m
    st.need_update = YES
   END IF
 
@@ -1991,15 +1973,24 @@ FUNCTION item_screen () as integer
  
   'Draw the screen
   copypage holdscreen, vpage
-  DrawSlice st.sl, vpage
+  DrawSlice st.ps.m, vpage
   setvispage vpage
   dowait
  LOOP
  menusound gen(genCancelSFX)
 
  freepage holdscreen
- DeleteSlice @(st.sl)
+ DeleteSlice @(st.ps.m)
  RETURN st.textbox
+END FUNCTION
+
+FUNCTION is_item_plank(byval sl as Slice Ptr) as bool
+ IF sl = 0 THEN debug "is_item_plank: null slice ptr" : RETURN NO
+ IF sl->Lookup = SL_PLANK_HOLDER THEN RETURN YES
+ IF sl->Lookup = SL_ITEM_EXITBUTTON THEN RETURN YES
+ IF sl->Lookup = SL_ITEM_SORTBUTTON THEN RETURN YES
+ IF sl->Lookup = SL_ITEM_TRASHBUTTON THEN RETURN YES
+ RETURN NO 
 END FUNCTION
 
 '-----------------------------------------------------------------------
