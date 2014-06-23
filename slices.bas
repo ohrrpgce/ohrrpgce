@@ -2813,6 +2813,9 @@ Function SliceColor(byval n as integer) as integer
    'Some colors auto-animate
    if get_tickcount() mod 2 = 0 then uiC = uiC - 1
   end if
+  if uiC = uiHighlightFlash then
+   if get_tickcount() mod 2 = 0 then uiC = uiHighlight
+  end if
   return uilook(uiC)
  end if
  debugc errError, "Invalid slice color " & n

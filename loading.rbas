@@ -2110,6 +2110,7 @@ SUB GuessDefaultUIColors (masterpal() as RGBcolor, colarray() as integer, boxarr
  fixeddefaults(uiItemScreenSelected)         = &hFFFFFF
  fixeddefaults(uiItemScreenSelectedDisabled) = &hA19CB0
  fixeddefaults(uiItemScreenSelectedSpecial)  = &hFFFC62
+ fixeddefaults(uiHighlightFlash)    = &h228B22
  FOR i as integer = 0 TO uiColorLast
   c.col = fixeddefaults(i)
   colarray(i) = nearcolor(masterpal(), c.r, c.g, c.b)
@@ -2153,6 +2154,7 @@ FUNCTION FillMissingUIColor(byval index as integer, colarray() as integer) as in
   CASE uiItemScreenSelected: RETURN colarray(uiText)
   CASE uiItemScreenSelectedDisabled: RETURN colarray(uiMenuItem)
   CASE uiItemScreenSelectedSpecial: RETURN colarray(uiGold)
+  CASE uiHighlightFlash: RETURN colarray(uiHighlight2)
   CASE ELSE
    'Return defaults for all other colors
    DIM defaults(uiColorLast) as integer
@@ -2188,6 +2190,7 @@ FUNCTION UiColorCaption(byval n as integer) as string
   CASE uiItemScreenSelected: RETURN "Item Screen selected"
   CASE uiItemScreenSelectedDisabled: RETURN "Item Screen selected disabled"
   CASE uiItemScreenSelectedSpecial: RETURN "Item Screen selected special"
+  CASE uiHighlightFlash: RETURN "Highlight Flash"
  END SELECT
  'Invalid values still print, but !?
  RETURN n & "(!?)"

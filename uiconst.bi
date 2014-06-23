@@ -5,7 +5,7 @@
 '
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 '
-CONST uiColorLast = 23
+CONST uiColorLast = 24
 CONST uiColorOldLast = 17 ' the last uilook saved in uicolors.bin
 CONST uiBoxLast = 14
 CONST uiBoxOldLast = 14 ' the last boxlook saved in uicolors.bin
@@ -34,6 +34,7 @@ CONST uiSelectedSpecial2 = 20	'Selected Special item flash color
 CONST uiItemScreenSelected = 21	'Just for the items screen
 CONST uiItemScreenSelectedDisabled = 22	'Just for the items screen
 CONST uiItemScreenSelectedSpecial = 23	'Just for the items screen
+CONST uiHighlightFlash = 24    ' Alternates with uiHighlight
 
 'When you add more constants you will need to update GuessDefaultUIColors
 'and FillMissingUIColor and UiColorCaption in loading.rbas
