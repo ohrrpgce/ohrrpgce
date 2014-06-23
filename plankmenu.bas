@@ -111,40 +111,44 @@ SUB find_all_planks(byref ps as PlankState, byval m as Slice Ptr, planks() as Sl
  
 END SUB
 
-SUB set_plank_state (byval sl as Slice Ptr, byval state as integer=plankNORMAL)
+SUB set_plank_state_default_callback (byval sl as Slice Ptr, byval state as integer)
+ SELECT CASE sl->SliceType
+  CASE slText:
+   SELECT CASE state
+    CASE plankNORMAL:          ChangeTextSlice sl, , uiMenuItem * -1 - 1
+    CASE plankSEL:             ChangeTextSlice sl, , uiSelectedItem2 * -1 - 1
+    CASE plankDISABLE:         ChangeTextSlice sl, , uiDisabledItem * -1 - 1
+    CASE plankSELDISABLE:      ChangeTextSlice sl, , uiSelectedDisabled2 * -1 - 1
+    CASE plankSPECIAL:         ChangeTextSlice sl, , uiSpecialItem * -1 - 1
+    CASE plankSELSPECIAL:      ChangeTextSlice sl, , uiSelectedSpecial2 * -1 - 1
+   END SELECT
+  CASE slRectangle:
+   sl->Visible = YES
+   SELECT CASE state
+    CASE plankNORMAL:          sl->Visible = NO
+    CASE plankSEL:             ChangeRectangleSlice sl, , uiHighlight * -1 - 1
+    CASE plankDISABLE:         sl->Visible = NO
+    CASE plankSELDISABLE:      ChangeRectangleSlice sl, , uiHighlight * -1 - 1
+    CASE plankSPECIAL:         sl->Visible = NO
+    CASE plankSELSPECIAL:      ChangeRectangleSlice sl, , uiHighlight * -1 - 1
+   END SELECT
+ END SELECT
+END SUB
+
+SUB set_plank_state (byref ps as PlankState, byval sl as Slice Ptr, byval state as integer=plankNORMAL)
  IF sl = 0 THEN debug "set_plank_state: null slice ptr": EXIT SUB
  'First evaluate the current slice
  IF sl->Lookup = SL_PLANK_MENU_SELECTABLE THEN
-  SELECT CASE sl->SliceType
-   CASE slText:
-    SELECT CASE state
-     CASE plankNORMAL:          ChangeTextSlice sl, , uiMenuItem * -1 - 1
-     CASE plankSEL:             ChangeTextSlice sl, , uiSelectedItem2 * -1 - 1
-     CASE plankDISABLE:         ChangeTextSlice sl, , uiDisabledItem * -1 - 1
-     CASE plankSELDISABLE:      ChangeTextSlice sl, , uiSelectedDisabled2 * -1 - 1
-     CASE plankSPECIAL:         ChangeTextSlice sl, , uiSpecialItem * -1 - 1
-     CASE plankSELSPECIAL:      ChangeTextSlice sl, , uiSelectedSpecial2 * -1 - 1
-     CASE plankITEMSWAP:        ChangeTextSlice sl, , uiItemScreenSwap * -1 - 1
-     CASE plankITEMSWAPDISABLE: ChangeTextSlice sl, , uiItemScreenSwapDisabled * -1 - 1
-     CASE plankITEMSWAPSPECIAL: ChangeTextSlice sl, , uiItemScreenSwapSpecial * -1 - 1
-    END SELECT
-   CASE slRectangle:
-    sl->Visible = YES
-    SELECT CASE state
-     CASE plankNORMAL:          sl->Visible = NO
-     CASE plankSEL:             ChangeRectangleSlice sl, , uiHighlight2 * -1 - 1
-     CASE plankDISABLE:         sl->Visible = NO
-     CASE plankSELDISABLE:      ChangeRectangleSlice sl, , uiHighlight2 * -1 - 1
-     CASE plankSPECIAL:         sl->Visible = NO
-     CASE plankSELSPECIAL:      ChangeRectangleSlice sl, , uiHighlight2 * -1 - 1
-    END SELECT
-  END SELECT
+  DIM runner as SUB (byval sl as Slice Ptr, byval state as integer)
+  runner = ps.state_callback
+  IF runner = 0 THEN runner = @set_plank_state_default_callback
+  runner(sl, state)
  END IF
  
  'Now repeat for each child
  DIM ch as Slice Ptr = sl->FirstChild
  DO WHILE ch
-  set_plank_state ch, state
+  set_plank_state ps, ch, state
   ch = ch->NextSibling
  LOOP
  

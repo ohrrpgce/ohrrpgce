@@ -1907,7 +1907,7 @@ SUB update_item_plank (byval pl as Slice Ptr, byref st as ItemScreenState)
   IF special = YES THEN state = plankITEMSWAPSPECIAL
  END IF
  
- set_plank_state pl, state
+ set_plank_state st.ps, pl, state
 END SUB
 
 SUB item_screen_refresh(byref st as ItemScreenState)
