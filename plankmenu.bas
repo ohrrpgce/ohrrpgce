@@ -57,6 +57,43 @@ FUNCTION plank_menu_move_cursor (byref ps as PlankState, byval axis as integer, 
  RETURN result
 END FUNCTION
 
+SUB plank_menu_scroll_page (byref ps as PlankState, byval scrolldir as integer)
+
+ IF ps.cur = 0 THEN
+  'No cursor yet, guess a default one
+  ps.cur = top_left_plank(ps)
+  IF ps.cur = 0 THEN debug "plank_menu_scroll_page: No cursor, and can't find one" : EXIT SUB
+ END IF
+
+ DIM scroll as slice ptr = find_plank_scroll(ps.m)
+
+ DIM targpos as XYPair
+ targpos.x = ps.cur->ScreenX + ps.cur->Width / 2
+ targpos.y = ps.cur->ScreenY + ps.cur->Height / 2 + scroll->Height * scrolldir
+
+ ps.planks_found = 0
+ REDIM planks(10) as Slice Ptr
+ find_all_planks ps, ps.m, planks()
+
+ IF ps.planks_found = 0 THEN EXIT SUB
+
+ DIM best_sl as Slice Ptr = ps.cur
+ DIM best as integer = (best_sl->ScreenX + best_sl->Width / 2 - targpos.x) ^ 2 + (best_sl->ScreenY + best_sl->Height / 2 - targpos.y) ^ 2
+ DIM dist as integer
+ DIM sl as Slice Ptr
+ FOR i as integer = 0 TO ps.planks_found - 1
+  sl = planks(i)
+  dist = (sl->ScreenX + sl->Width / 2 - targpos.x) ^ 2 + (sl->ScreenY + sl->Height / 2 - targpos.y) ^ 2
+  IF dist < best THEN
+   best = dist
+   best_sl = sl
+  END IF
+ NEXT i
+
+ ps.cur = best_sl
+ 
+END SUB
+
 FUNCTION plank_menu_arrows (byref ps as PlankState) as bool
  DIM result as bool = NO
  'IF keyval(scA) > 1 THEN slice_editor m
@@ -64,6 +101,8 @@ FUNCTION plank_menu_arrows (byref ps as PlankState) as bool
  IF carray(ccRight) > 1 THEN IF plank_menu_move_cursor(ps, 0, 1)  THEN result = YES
  IF carray(ccUp) > 1    THEN IF plank_menu_move_cursor(ps, 1, -1) THEN result = YES
  IF carray(ccDown) > 1  THEN IF plank_menu_move_cursor(ps, 1, 1)  THEN result = YES
+ IF keyval(scPageUp) > 1 THEN plank_menu_scroll_page ps, -1 : result = YES
+ IF keyval(scPageDown) > 1 THEN plank_menu_scroll_page ps, 1 : result = YES
  RETURN result
 END FUNCTION
 
