@@ -158,8 +158,8 @@ Sub WriteSliceNodeAsBasic(byval fh as integer, byval n as NodePtr, byval d as in
      & DatInt(n, "bgcol")
   case "Grid"
    print #fh, in & "ChangeGridSlice sl" & d & ", " _
-     & DatInt(n, "cols", 1) & ", " _
      & DatInt(n, "rows", 1) & ", " _
+     & DatInt(n, "cols", 1) & ", " _
      & DatInt(n, "show")
   case "Ellipse"
    print #fh, in & "ChangeEllipseSlice sl" & d & ", " _

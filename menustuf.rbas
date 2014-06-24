@@ -1953,8 +1953,12 @@ SUB item_screen_refresh(byref st as ItemScreenState)
  DIM pl as Slice Ptr
  FOR i as integer = 0 TO last_inv_slot()
   pl = plank_menu_append(st.ps.m, SL_ITEM_ITEMLIST, collection, @ExpandTextItemSlot, i)
-  pl->Extra(0) = i
-  update_item_plank pl, st
+  IF pl THEN
+   pl->Extra(0) = i
+   update_item_plank pl, st
+  ELSE
+   debug "Failed to load item plank for slot " & i
+  END IF
  NEXT i
 
  pl = LookupSlice(SL_ITEM_EXITBUTTON, st.ps.m)

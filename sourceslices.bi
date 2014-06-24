@@ -11,21 +11,30 @@ Sub default_item_plank (byval sl1 as Slice Ptr)
  sl1->fill = -1
   dim sl2 as Slice Ptr = NewSliceOfType(slContainer)
   sl2->lookup = -102008
-  sl2->x = 70
-  sl2->y = 50
-  sl2->width = 129
-  sl2->height = 10
-   dim sl3 as Slice Ptr = NewSliceOfType(slText)
-   sl3->width = 64
-   sl3->height = 10
-   ChangeTextSlice sl3, !"${LABEL}", , , , 
+  sl2->x = 140
+  sl2->y = 70
+  sl2->width = 117
+  sl2->height = 8
+  sl2->paddingleft = 4
+  sl2->paddingright = 4
+   dim sl3 as Slice Ptr = NewSliceOfType(slRectangle)
+   sl3->lookup = -102014
+   sl3->fill = -1
+   ChangeRectangleSlice sl3, , , 19, -2, , 
    SetSliceParent(sl3, sl2)
    sl3 = NewSliceOfType(slText)
+   sl3->lookup = -102014
+   sl3->width = 56
+   sl3->height = 10
+   ChangeTextSlice sl3, !"${ITEM}", , , , 
+   SetSliceParent(sl3, sl2)
+   sl3 = NewSliceOfType(slText)
+   sl3->lookup = -102014
    sl3->width = 48
    sl3->height = 10
    sl3->alignhoriz = 2
    sl3->anchorhoriz = 2
-   ChangeTextSlice sl3, !"${CUR}", , , , 
+   ChangeTextSlice sl3, !"${NUM}", , , , 
    SetSliceParent(sl3, sl2)
   SetSliceParent(sl2, sl1)
 End Sub
@@ -60,7 +69,7 @@ Sub default_item_screen (byval sl1 as Slice Ptr)
      sl5->height = 8
      sl5->fill = -1
      sl5->fillmode = 1
-     ChangeGridSlice sl5, 3, , 
+     ChangeGridSlice sl5, , 3, 
       dim sl6 as Slice Ptr = NewSliceOfType(slContainer)
       sl6->lookup = -102011
       sl6->paddingleft = 4
@@ -75,7 +84,7 @@ Sub default_item_screen (byval sl1 as Slice Ptr)
        sl7->lookup = -102014
        sl7->width = 56
        sl7->height = 10
-       ChangeTextSlice sl7, !"${EXIT}", -5, , , 
+       ChangeTextSlice sl7, !"${EXIT}", -2, , , 
        SetSliceParent(sl7, sl6)
       SetSliceParent(sl6, sl5)
       sl6 = NewSliceOfType(slContainer)
@@ -119,7 +128,7 @@ Sub default_item_screen (byval sl1 as Slice Ptr)
      sl5->height = 10
      sl5->fill = -1
      sl5->fillmode = 1
-     ChangeGridSlice sl5, 3, , 
+     ChangeGridSlice sl5, , 3, 
      SetSliceParent(sl5, sl4)
     SetSliceParent(sl4, sl3)
    SetSliceParent(sl3, sl2)
