@@ -251,3 +251,28 @@ FUNCTION is_plank(byval sl as Slice Ptr) as bool
  IF sl->Lookup = SL_PLANK_HOLDER THEN RETURN YES
  RETURN NO 
 END FUNCTION
+
+FUNCTION find_plank_scroll (byval sl as Slice Ptr) as slice ptr
+ IF sl = 0 THEN debug "find_plank_scroll: null slice ptr" : RETURN 0
+ IF sl->SliceType = slScroll THEN RETURN sl
+
+ DIM result as Slice Ptr
+ DIM ch as slice ptr = sl->FirstChild
+ DO WHILE ch
+  result = find_plank_scroll(ch)
+  IF result <> 0 THEN RETURN result
+  ch = ch->NextSibling
+ LOOP
+
+ RETURN 0
+END FUNCTION
+
+SUB update_plank_scrolling (byref ps as PlankState)
+ IF ps.m = 0 THEN debug "update_plank_scrolling: null m slice ptr" : EXIT SUB
+
+ DIM scroll as slice ptr = find_plank_scroll(ps.m)
+ IF scroll ANDALSO ps.cur THEN
+  ScrollToChild scroll, ps.cur
+ END IF
+ 
+END SUB

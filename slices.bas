@@ -2085,6 +2085,48 @@ Sub ChangeScrollSlice(byval sl as slice ptr,_
  end with
 end sub
 
+Sub ScrollAllChildren(byval sl as slice ptr, byval xmove as integer, byval ymove as integer)
+ 'This is intended for ScrollSlice, but can actually work on any container type.
+ if sl = 0 then debug "ScrollAllChildren: null scroll slice ptr": exit sub
+ dim ch as slice ptr = sl->FirstChild
+ do while ch
+  ch->X += xmove
+  ch->Y += ymove
+  ch = ch->NextSibling
+ loop
+End Sub
+
+Sub ScrollToChild(byval sl as slice ptr, byval ch as slice ptr)
+ 'This is intended for ScrollSlice, but can actually work on any container type.
+ if sl = 0 then debug "ScrollToChild: null scroll slice ptr": exit sub
+ if ch = 0 then debug "ScrollToChild: null child slice ptr": exit sub
+
+ dim parent_ok as bool = NO
+ dim parent as Slice ptr = ch->parent
+ do while parent
+  if parent = sl then parent_ok = YES
+  parent = parent->Parent
+ loop
+ if not parent_ok then debug "ScrollToChild: can't scroll to an unrelated slice": exit sub
+
+ dim xmove as integer = 0
+ dim ymove as integer = 0 
+ dim diff as integer
+ diff = (sl->ScreenY + sl->Height) - (ch->ScreenY +ch->Height)
+ if diff < 0 then ymove = diff
+ diff = sl->ScreenY - ch->ScreenY
+ if diff > 0 then ymove = diff
+ diff = (sl->ScreenX + sl->Width) - (ch->ScreenX +ch->Width)
+ if diff < 0 then xmove = diff
+ diff = sl->ScreenX - ch->ScreenX
+ if diff > 0 then xmove = diff
+
+ if xmove <> 0 orelse ymove <> 0 then
+  ScrollAllChildren(sl, xmove, ymove)
+ end if
+ 
+End Sub
+
 '--Select--------------------------------------------------------------
 Sub DisposeSelectSlice(byval sl as slice ptr)
  if sl = 0 then exit sub

@@ -320,6 +320,8 @@ DECLARE Function SliceXAnchor(byval sl as Slice Ptr) as integer
 DECLARE Function SliceYAnchor(byval sl as Slice Ptr) as integer
 DECLARE Function SliceEdgeX(byval sl as Slice Ptr, byval edge as integer) as integer
 DECLARE Function SliceEdgeY(byval sl as Slice Ptr, byval edge as integer) as integer
+DECLARE Function SliceEdgeScreenX(byval sl as Slice Ptr, byval edge as integer) as integer
+DECLARE Function SliceEdgeScreenY(byval sl as Slice Ptr, byval edge as integer) as integer
 DECLARE Function SliceCollide(byval sl1 as Slice Ptr, sl2 as Slice Ptr) as integer
 DECLARE Function SliceCollidePoint(byval sl as Slice Ptr, byval x as integer, byval y as integer) as integer
 DECLARE Function SliceContains(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr) as integer
@@ -333,6 +335,8 @@ DECLARE Sub AutoSortChildren(byval s as Slice Ptr)
 DECLARE Function CloneSliceTree(byval sl as slice ptr) as slice ptr
 DECLARE Sub SetSliceTarg(byval s as slice ptr, byval x as integer, byval y as integer, byval ticks as integer)
 DECLARE Function IndexAmongSiblings(byref sl as Slice Ptr) as integer
+DECLARE Sub ScrollToChild(byval sl as slice ptr, byval ch as slice ptr)
+DECLARE Sub ScrollAllChildren(byval sl as slice ptr, byval xmove as integer, byval ymove as integer)
 
 End Extern
 
@@ -353,8 +357,6 @@ DECLARE Function SliceGetPrevSibling( byval s as Slice ptr ) as Slice ptr
 DECLARE Function SliceGetNumChildren( byval s as Slice ptr ) as integer
 DECLARE Function SliceGetX( byval s as Slice ptr ) as integer
 DECLARE Function SliceGetY( byval s as Slice ptr ) as integer
-DECLARE Function SliceGetScreenX( byval s as Slice ptr ) as integer
-DECLARE Function SliceGetScreenY( byval s as Slice ptr ) as integer
 DECLARE Function SliceGetWidth( byval s as Slice ptr ) as integer
 DECLARE Function SliceGetHeight( byval s as Slice ptr ) as integer
 DECLARE Function SliceIsVisible( byval s as Slice ptr ) as integer

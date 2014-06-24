@@ -58,7 +58,7 @@ Sub default_item_screen (byval sl1 as Slice Ptr)
    sl3->paddingtop = 6
    sl3->paddingleft = 6
    sl3->paddingright = 6
-   sl3->paddingbottom = 6
+   sl3->paddingbottom = 5
    sl3->fill = -1
    ChangeRectangleSlice sl3, 0, , , , , 
     dim sl4 as Slice Ptr = NewSliceOfType(slScroll)

@@ -1986,6 +1986,8 @@ SUB item_screen_refresh(byref st as ItemScreenState)
  update_item_plank st.ps.cur, st
 
  st.swapcur = 0
+
+ update_plank_scrolling st.ps
  
 END SUB
 
@@ -2028,6 +2030,7 @@ FUNCTION item_screen () as integer
    update_item_plank st.lastcur, st
    update_item_plank st.ps.cur, st
    menusound gen(genCursorSFX)
+   update_plank_scrolling st.ps
   END IF
   IF keyval(scF8) > 1 THEN
    slice_editor st.ps.m
