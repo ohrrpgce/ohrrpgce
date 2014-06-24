@@ -125,7 +125,7 @@ Sub default_item_screen (byval sl1 as Slice Ptr)
      sl5 = NewSliceOfType(slGrid)
      sl5->lookup = -102010
      sl5->y = 8
-     sl5->height = 10
+     sl5->height = 8
      sl5->fill = -1
      sl5->fillmode = 1
      ChangeGridSlice sl5, , 3, 
