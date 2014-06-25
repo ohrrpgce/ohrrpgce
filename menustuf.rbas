@@ -1962,17 +1962,11 @@ SUB item_screen_refresh(byref st as ItemScreenState)
  NEXT i
 
  pl = LookupSlice(SL_ITEM_EXITBUTTON, st.ps.m)
- IF pl THEN
-  update_item_plank pl, st
- END IF
+ IF pl THEN update_item_plank pl, st
  pl = LookupSlice(SL_ITEM_SORTBUTTON, st.ps.m)
- IF pl THEN
-  update_item_plank pl, st
- END IF
+ IF pl THEN update_item_plank pl, st
  pl = LookupSlice(SL_ITEM_TRASHBUTTON, st.ps.m)
- IF pl THEN
-  update_item_plank pl, st
- END IF
+ IF pl THEN update_item_plank pl, st
 
  DeleteSlice @collection
 
@@ -1999,6 +1993,22 @@ FUNCTION is_item_plank(byval sl as Slice Ptr) as bool
  IF sl->Lookup = SL_ITEM_SORTBUTTON THEN RETURN YES
  IF sl->Lookup = SL_ITEM_TRASHBUTTON THEN RETURN YES
  RETURN NO 
+END FUNCTION
+
+FUNCTION item_can_be_discarded (byval item_id as integer) as bool
+ DIM itemtemp(dimbinsize(binITM)) as integer
+ loaditemdata itemtemp(), item_id
+ IF itemtemp(73) = 2 THEN RETURN NO 'Cannot be sold/dropped
+ RETURN YES
+END FUNCTION
+
+FUNCTION item_can_be_used (byval item_id as integer) as bool
+ DIM itemtemp(dimbinsize(binITM)) as integer
+ loaditemdata itemtemp(), item_id
+ IF itemtemp(50) > 0 THEN RETURN YES 'Teaches a spell
+ IF itemtemp(51) > 0 THEN RETURN YES 'Triggers an attack (cure)
+ IF itemtemp(51) < 0 THEN RETURN YES 'Triggers a text box
+ RETURN NO
 END FUNCTION
 
 SUB item_screen_cancel_action (byref st as ItemScreenState)
@@ -2038,19 +2048,25 @@ SUB item_screen_use_action (byref st as ItemScreenState)
    EXIT SUB
   CASE SL_ITEM_TRASHBUTTON:
    IF st.swapcur THEN
-    debug "Trash item slot " & swapslot
-    st.swapcur = 0
-    update_item_plank lastswap, st
+    IF inventory(swapslot).used ANDALSO item_can_be_discarded(inventory(swapslot).id) THEN
+     MenuSound gen(genAcceptSFX)
+     WITH inventory(swapslot)
+      .used = 0
+      .id = 0
+      .num = 0
+     END WITH
+     update_inventory_caption swapslot
+    END IF
+    st.need_update = YES
+    st.refocus = YES
    END IF
    EXIT SUB
  END SELECT
  
  IF st.swapcur THEN
-  
   IF st.swapcur = st.ps.cur THEN
    debug "Use item slot " & slot
   ELSE
-   debug "Swap slots " & slot & " and " & swapslot
    SWAP inventory(slot), inventory(swapslot)
    st.need_update = YES
    st.refocus = YES
@@ -2064,21 +2080,6 @@ SUB item_screen_use_action (byref st as ItemScreenState)
  
  
   /'''''''''''''''''''''''''''''
-  zzz
-  IF istate.cursor = -1 AND istate.sel >= 0 AND readbit(permask(), 0, 3 + istate.sel) = 0 THEN
-   '--try to thow item away
-   IF inventory(istate.sel).used THEN MenuSound gen(genAcceptSFX)
-   WITH inventory(istate.sel)
-    .used = 0
-    .id = 0
-    .num = 0
-   END WITH
-   update_inventory_caption istate.sel
-   setbit iuse(), 0, 3 + istate.sel, 0
-   istate.sel = -4
-   istate.refresh = YES
-   EXIT SUB
-  END IF
   IF istate.sel >= 0 THEN
    IF istate.cursor >= 0 AND istate.cursor <> istate.sel THEN
     '--swap the selected item and the item under the cursor
