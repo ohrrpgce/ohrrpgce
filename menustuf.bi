@@ -26,5 +26,6 @@ DECLARE FUNCTION count_available_spells(byval who as integer, byval list as inte
 DECLARE FUNCTION outside_battle_cure (byval atk as integer, byref target as integer, byval attacker as integer, byval spread as integer) as integer
 DECLARE FUNCTION item_can_be_discarded (byval item_id as integer) as bool
 DECLARE FUNCTION item_can_be_used (byval item_id as integer) as bool
+DECLARE SUB inventory_autosort()
 
 #endif

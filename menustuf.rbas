@@ -845,6 +845,7 @@ FUNCTION getOOBtarg (byval search_direction as integer, byref target as integer,
 END FUNCTION
 
 SUB itemmenuswap (invent() as InventSlot, iuse() as integer, permask() as integer, byval it1 as integer, byval it2 as integer)
+ 'FIXME: remove this when old_items_menu() is removed
  'this sub called from items()
  SWAP invent(it1), invent(it2)
  
@@ -859,6 +860,7 @@ SUB itemmenuswap (invent() as InventSlot, iuse() as integer, permask() as intege
 END SUB
 
 SUB update_inventory_caption (byval i as integer)
+ 'WARNING: this can't be removed until all three of the Items, Equip, and Battle items menus have been re-written
 IF inventory(i).used = 0 THEN
  inventory(i).text = SPACE(11)
 ELSE
@@ -2041,9 +2043,9 @@ SUB item_screen_use_action (byref st as ItemScreenState)
     st.swapcur = 0
     update_item_plank lastswap, st
    ELSE
-    'items_menu_autosort
-    'item_screen_autosort()
-    debug "autosort"
+    inventory_autosort()
+    st.need_update = YES
+    st.refocus = YES
    END IF
    EXIT SUB
   CASE SL_ITEM_TRASHBUTTON:
@@ -2055,8 +2057,8 @@ SUB item_screen_use_action (byref st as ItemScreenState)
       .id = 0
       .num = 0
      END WITH
-     update_inventory_caption swapslot
     END IF
+    update_inventory_caption swapslot
     st.need_update = YES
     st.refocus = YES
    END IF
@@ -2081,14 +2083,6 @@ SUB item_screen_use_action (byref st as ItemScreenState)
  
   /'''''''''''''''''''''''''''''
   IF istate.sel >= 0 THEN
-   IF istate.cursor >= 0 AND istate.cursor <> istate.sel THEN
-    '--swap the selected item and the item under the cursor
-    itemmenuswap inventory(), iuse(), permask(), istate.cursor, istate.sel
-    istate.sel = -4
-    istate.refresh = YES
-    MenuSound gen(genAcceptSFX)
-    EXIT SUB
-   END IF
    IF istate.cursor >= 0 AND istate.sel = istate.cursor THEN
     '--try to use the current item
     istate.sel = -4
@@ -2170,6 +2164,82 @@ FUNCTION item_screen () as integer
  DeleteSlice @(st.ps.m)
  RETURN st.textbox
 END FUNCTION
+
+SUB inventory_autosort()
+ DIM autosort_changed as integer = NO
+ 'First sort all items to the top
+ FOR i as integer = 0 TO last_inv_slot() - 1
+  IF inventory(i).used THEN CONTINUE FOR
+  FOR o as integer = i + 1 TO last_inv_slot()
+   IF inventory(o).used THEN
+    SWAP inventory(i), inventory(o)
+    autosort_changed = YES
+    EXIT FOR
+   END IF
+  NEXT o
+ NEXT i
+
+ IF gen(genAutosortScheme) = 0 THEN
+  'Sorting by type: cache the sort order of the items, or the cost of repeatedly loading
+  'item data might go out of control
+  DIM itemdata(dimbinsize(binITM)) as integer
+  FOR slot as integer = 0 TO last_inv_slot()
+   IF inventory(slot).used = NO THEN CONTINUE FOR
+   loaditemdata itemdata(), inventory(slot).id
+
+   IF itemdata(47) THEN  'Usable in-battle
+    inventory(slot).sortorder = 0
+   ELSEIF itemdata(51) > 0 THEN  'Usable out-of-battle (attack)
+    inventory(slot).sortorder = 10
+   ELSEIF itemdata(51) < 0 THEN  'Usable out-of-battle (textbox)
+    inventory(slot).sortorder = 20
+   ELSEIF itemdata(50) THEN  'Teach spell
+    inventory(slot).sortorder = 30
+   ELSEIF itemdata(49) THEN  'Equippable
+    inventory(slot).sortorder = 40 + itemdata(49)
+   ELSE
+    inventory(slot).sortorder = 50
+   END IF
+   IF itemdata(73) = 2 THEN
+    inventory(slot).sortorder += 0  'Can not be sold/dropped
+   ELSEIF itemdata(73) = 1 THEN
+    inventory(slot).sortorder += 1  'Unlimited use
+   ELSE
+    inventory(slot).sortorder += 2  'Consumed by use
+   END IF
+  NEXT
+ END IF
+
+ 'Then sort by the autosort criterion (insertion sort)
+ FOR i as integer = 0 TO last_inv_slot() - 1
+  IF inventory(i).used = NO THEN EXIT FOR
+  DIM best as integer = i
+  FOR o as integer = i TO last_inv_slot()
+   IF inventory(o).used = NO THEN EXIT FOR
+   SELECT CASE gen(genAutosortScheme)
+    CASE 0 'type
+     IF inventory(best).sortorder > inventory(o).sortorder THEN best = o
+    CASE 1 'use
+     'FIXME: This comparison could be slow
+     IF item_can_be_used(inventory(best).id) = NO ANDALSO item_can_be_used(inventory(o).id) = YES THEN best = o
+    CASE 2 'alphabetical
+     IF string_compare(@inventory(best).text, @inventory(o).text) > 0 THEN best = o
+    CASE 3 'id
+     IF inventory(best).id > inventory(o).id THEN best = o
+    CASE 4 'nothing
+   END SELECT
+  NEXT o
+  IF best <> i THEN
+   SWAP inventory(i), inventory(best)
+   autosort_changed = YES
+  END IF
+ NEXT i
+ IF autosort_changed THEN
+  menusound gen(genAcceptSFX)
+ ELSE
+  menusound gen(genCancelSFX)
+ END IF
+END SUB
 
 '-----------------------------------------------------------------------
 
@@ -3022,7 +3092,7 @@ SUB items_menu_infostr(istate as ItemsMenuState, permask() as integer)
 END SUB
 
 SUB items_menu_autosort(iuse() as integer, permask() as integer)
- 'WARNING: this will be removed soon in favor of item_screen_autosort()
+ 'WARNING: this will be removed soon in favor of inventory_autosort()
  DIM autosort_changed as integer = NO
  'First sort all items to the top
  FOR i as integer = 0 TO last_inv_slot() - 1
