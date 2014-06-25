@@ -1964,11 +1964,11 @@ SUB item_screen_refresh(byref st as ItemScreenState)
  NEXT i
 
  pl = LookupSlice(SL_ITEM_EXITBUTTON, st.ps.m)
- IF pl THEN update_item_plank pl, st
+ IF pl THEN pl->Extra(0) = -1 : update_item_plank pl, st
  pl = LookupSlice(SL_ITEM_SORTBUTTON, st.ps.m)
- IF pl THEN update_item_plank pl, st
+ IF pl THEN pl->Extra(0) = -1 : update_item_plank pl, st
  pl = LookupSlice(SL_ITEM_TRASHBUTTON, st.ps.m)
- IF pl THEN update_item_plank pl, st
+ IF pl THEN pl->Extra(0) = -1 :update_item_plank pl, st
 
  DeleteSlice @collection
 
