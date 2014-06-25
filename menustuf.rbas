@@ -1863,6 +1863,7 @@ TYPE ItemScreenState
  swapcur as Slice Ptr
  lastcur as Slice Ptr
  quit as bool
+ refocus as bool
 END TYPE
 
 SUB set_item_plank_state (byval sl as Slice Ptr, byval state as integer)
@@ -1939,6 +1940,8 @@ END SUB
 
 SUB item_screen_refresh(byref st as ItemScreenState)
 
+ IF st.refocus THEN save_plank_selection st.ps
+ 
  plank_menu_clear st.ps.m, SL_ITEM_ITEMLIST
 
  expand_slice_text_insert_codes st.ps.m, @ExpandTextItemScreen
@@ -1976,11 +1979,15 @@ SUB item_screen_refresh(byref st as ItemScreenState)
  'Early draw to force update of slice positions 
  DrawSlice st.ps.m, vpage
  
- st.ps.cur = top_left_plank(st.ps)
+ IF st.refocus THEN
+  restore_plank_selection st.ps
+  st.refocus = NO
+ ELSE
+  st.ps.cur = top_left_plank(st.ps)
+ END IF
  update_item_plank st.ps.cur, st
 
  st.swapcur = 0
-
  update_plank_scrolling st.ps
  
 END SUB
@@ -2008,9 +2015,12 @@ END SUB
 
 SUB item_screen_use_action (byref st as ItemScreenState)
  IF st.ps.cur = 0 THEN debug "item_screen_use_action: no cursor ptr" : EXIT SUB
+ DIM slot as integer = st.ps.cur->Extra(0)
+ DIM swapslot as integer = -1
+ IF st.swapcur THEN swapslot = st.swapcur->Extra(0)
  
- dim lastcur as slice ptr = st.ps.cur
- dim lastswap as slice ptr = st.swapcur
+ DIM lastcur as slice ptr = st.ps.cur
+ DIM lastswap as slice ptr = st.swapcur
  
  SELECT CASE st.ps.cur->Lookup
   CASE SL_ITEM_EXITBUTTON:
@@ -2028,7 +2038,7 @@ SUB item_screen_use_action (byref st as ItemScreenState)
    EXIT SUB
   CASE SL_ITEM_TRASHBUTTON:
    IF st.swapcur THEN
-    debug "Trash item slot " & st.swapcur->Extra(0)
+    debug "Trash item slot " & swapslot
     st.swapcur = 0
     update_item_plank lastswap, st
    END IF
@@ -2036,11 +2046,14 @@ SUB item_screen_use_action (byref st as ItemScreenState)
  END SELECT
  
  IF st.swapcur THEN
+  
   IF st.swapcur = st.ps.cur THEN
-   DIM slot as integer = st.ps.cur->Extra(0)
    debug "Use item slot " & slot
   ELSE
-   debug "Swap slots " & st.ps.cur->Extra(0) & " and " & st.swapcur->Extra(0)
+   debug "Swap slots " & slot & " and " & swapslot
+   SWAP inventory(slot), inventory(swapslot)
+   st.need_update = YES
+   st.refocus = YES
   END IF
   st.swapcur = 0
   update_item_plank lastswap, st

@@ -6,7 +6,10 @@ TYPE PlankState
  cur as Slice Ptr 'currently selected plank
  is_plank_callback as ANY Ptr 'Function (byval sl as Slice Ptr) as bool
  state_callback as ANY Ptr ' SUB(byval sl as Slice Ptr, byval state as integer)
- planks_found as integer 'Used internally
+ planks_found as integer 'Used by find_all_planks()
+ selection_saved as bool
+ _saved_pos as XYPair
+ _saved_scroll as XYPair
 END TYPE
 
 CONST plankNORMAL = 0
@@ -32,5 +35,7 @@ DECLARE SUB find_all_planks(byref ps as PlankState, byval m as Slice Ptr, planks
 DECLARE FUNCTION top_left_plank(byref ps as PlankState) as Slice Ptr
 DECLARE SUB update_plank_scrolling (byref ps as PlankState)
 DECLARE FUNCTION find_plank_scroll (byval sl as Slice Ptr) as slice ptr
+DECLARE SUB save_plank_selection (byref ps as PlankState)
+DECLARE SUB restore_plank_selection (byref ps as PlankState)
 
 #endif

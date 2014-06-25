@@ -106,6 +106,33 @@ FUNCTION plank_menu_arrows (byref ps as PlankState) as bool
  RETURN result
 END FUNCTION
 
+FUNCTION find_plank_nearest_screen_pos(byref ps as PlankState, byval targx as integer, byval targy as integer) as Slice Ptr
+
+ ps.planks_found = 0
+ REDIM planks(10) as Slice Ptr
+ find_all_planks ps, ps.m, planks()
+
+ DIM best_sl as Slice Ptr = 0
+ DIM best as integer = 2000000000
+ DIM p as XYPair
+ DIM dist as integer
+ 
+ DIM sl as Slice Ptr
+ FOR i as integer = 0 TO ps.planks_found - 1
+  sl = planks(i)
+  p.x = sl->ScreenX + sl->Width / 2
+  p.y = sl->ScreenY + sl->Height / 2
+  dist = (targx - p.x) ^ 2 + (targy - p.y) ^ 2
+  IF dist < best THEN
+   best = dist
+   best_sl = sl
+  END IF
+ NEXT i
+ 
+ RETURN best_sl
+
+END FUNCTION
+
 FUNCTION top_left_plank(byref ps as PlankState) as Slice Ptr
 
  ps.planks_found = 0
@@ -314,4 +341,21 @@ SUB update_plank_scrolling (byref ps as PlankState)
   ScrollToChild scroll, ps.cur
  END IF
  
+END SUB
+
+SUB save_plank_selection (byref ps as PlankState)
+ 'Attempt to save the current selection and scroll position without any slice references
+ ps.selection_saved = NO
+ IF ps.cur = 0 THEN EXIT SUB
+ ps._saved_pos.x = ps.cur->ScreenX + ps.cur->Width / 2
+ ps._saved_pos.y = ps.cur->ScreenY + ps.cur->Height / 2
+ ps.selection_saved = YES
+END SUB
+
+SUB restore_plank_selection (byref ps as PlankState)
+ 'Attempt to restore selection previously saved by save_plank_selection
+ ps.cur = 0
+ IF ps.selection_saved = NO THEN EXIT SUB
+ ps.cur = find_plank_nearest_screen_pos(ps, ps._saved_pos.x, ps._saved_pos.y)
+ ps.selection_saved = NO
 END SUB
