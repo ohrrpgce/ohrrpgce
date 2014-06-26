@@ -245,6 +245,7 @@ FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byva
  ELSE
   'No holder, use the whole collection
   cl = CloneSliceTree(collection)
+  cl->Lookup = SL_PLANK_HOLDER
  END IF
  
  SetSliceParent cl, m
@@ -268,16 +269,19 @@ END SUB
 SUB expand_slice_text_insert_codes (byval sl as Slice ptr, byval callback as ANY ptr=0, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0)
  'Starting with children of the given container slice, iterate through
  ' all children and expand any ${} codes found in any TextSlice
+ ' Do not descend into child slices marked with SL_PLANK_HOLDER because planks are responsible for their own text codes
  IF sl = 0 THEN debug "expand_slice_text_insert_codes: null slice ptr": EXIT SUB
  DIM ch as Slice Ptr = sl->FirstChild
  DIM dat as TextSliceData Ptr
  DO WHILE ch <> 0
-  IF ch->SliceType = slText THEN
-   dat = ch->SliceData
-   IF dat->s_orig = "" THEN dat->s_orig = dat->s
-   ChangeTextSlice ch, embed_text_codes(dat->s_orig, callback, arg0, arg1, arg2)
+  IF ch->Lookup <> SL_PLANK_HOLDER THEN
+   IF ch->SliceType = slText THEN
+    dat = ch->SliceData
+    IF dat->s_orig = "" THEN dat->s_orig = dat->s
+    ChangeTextSlice ch, embed_text_codes(dat->s_orig, callback, arg0, arg1, arg2)
+   END IF
+   expand_slice_text_insert_codes ch, callback, arg0, arg1, arg2
   END IF
-  expand_slice_text_insert_codes ch, callback, arg0, arg1, arg2
   ch = ch->NextSibling
  LOOP
 END SUB

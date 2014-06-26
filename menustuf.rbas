@@ -1722,11 +1722,23 @@ SUB ExpandTextHeroSlotStat (code as string, result as string, byval hero_slot as
  END WITH 
 END SUB
 
-SUB ExpandTextItemScreen (code as string, result as string, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0)
+SUB ExpandTextItemScreen (code as string, result as string, byval slot as integer=0, byval arg1 as integer=0, byval arg2 as integer=0)
  SELECT CASE UCASE(code)
   CASE "EXIT": result = readglobalstring(35, "DONE", 10)
   CASE "SORT": result = readglobalstring(36, "AUTOSORT", 10)
   CASE "TRASH": result = readglobalstring(37, "TRASH", 10)
+  CASE "ITEM":
+   IF slot >= 0 ANDALSO inventory(slot).used THEN
+    result = readitemname(inventory(slot).id)
+   ELSE
+    result = ""
+   END IF
+  CASE "DESC":
+   IF slot >= 0 ANDALSO inventory(slot).used THEN
+    result = readitemdescription(inventory(slot).id)
+   ELSE
+    result = ""
+   END IF
  END SELECT
 END SUB
 
@@ -1947,7 +1959,9 @@ SUB item_screen_refresh(byref st as ItemScreenState)
  
  plank_menu_clear st.ps.m, SL_ITEM_ITEMLIST
 
- expand_slice_text_insert_codes st.ps.m, @ExpandTextItemScreen
+ DIM slot as integer = -1
+ IF st.ps.cur THEN slot = st.ps.cur->Extra(0)
+ expand_slice_text_insert_codes st.ps.m, @ExpandTextItemScreen, slot
 
  DIM collection as Slice Ptr = NewSliceOfType(slRoot)
  load_slice_collection collection, SL_COLLECT_ITEMPLANK
@@ -2145,6 +2159,9 @@ FUNCTION item_screen () as integer
    update_item_plank st.ps.cur, st
    menusound gen(genCursorSFX)
    update_plank_scrolling st.ps
+   DIM slot as integer = -1
+   IF st.ps.cur THEN slot = st.ps.cur->Extra(0)
+   expand_slice_text_insert_codes st.ps.m, @ExpandTextItemScreen, slot
   END IF
   IF keyval(scF8) > 1 THEN
    slice_editor st.ps.m

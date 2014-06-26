@@ -146,6 +146,15 @@ Sub default_item_screen (byval sl1 as Slice Ptr)
    sl3 = NewSliceOfType(slRectangle)
    sl3->fill = -1
    ChangeRectangleSlice sl3, 1, , , , 1, 
+    sl4 = NewSliceOfType(slText)
+    sl4->width = 56
+    sl4->height = 10
+    sl4->alignhoriz = 1
+    sl4->alignvert = 1
+    sl4->anchorhoriz = 1
+    sl4->anchorvert = 1
+    ChangeTextSlice sl4, !"${DESC}", -14, , , 
+    SetSliceParent(sl4, sl3)
    SetSliceParent(sl3, sl2)
   SetSliceParent(sl2, sl1)
 End Sub
