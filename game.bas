@@ -4120,7 +4120,10 @@ SUB misc_debug_menu()
   CASE 2: patcharray gen(), "gen"
   CASE 3: patcharray gmap(), "gmap"
   CASE 4: status_screen onwho(readglobalstring(104, "Whose Status?", 20), 0)
-  CASE 5: item_screen
+  CASE 5: 
+   DIM item_textbox as integer
+   item_textbox = item_screen()
+   IF item_textbox > 0 THEN loadsay item_textbox
  END SELECT
 END SUB
 
