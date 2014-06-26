@@ -79,6 +79,7 @@ br.snd = -1
 'special=8   RELOAD files
 'special=9   script files (.hs, .hss)
 'special=10  2, 16 or 256 colour BMP, any size (used by font_test_menu only)
+'special=11  Browse for a folder
 
 br.mashead = CHR(253) & CHR(13) & CHR(158) & CHR(0) & CHR(0) & CHR(0) & CHR(6)
 br.paledithead = CHR(253) & CHR(217) & CHR(158) & CHR(0) & CHR(0) & CHR(7) & CHR(6)
@@ -702,6 +703,15 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
    browse_add_files "*.hs", filetype, br, tree()
    browse_add_files "*.hss", filetype, br, tree()
    browse_add_files "*.txt", filetype, br, tree()
+  ELSEIF br.special = 11 THEN
+   IF diriswriteable(br.nowdir) THEN
+    br.mstate.last = br.mstate.last + 1
+    IF br.mstate.last = UBOUND(tree) THEN REDIM PRESERVE tree(UBOUND(tree) + 256)
+    tree(br.mstate.last).kind = bkSelectable
+    tree(br.mstate.last).filename = ""
+    tree(br.mstate.last).caption = "Select this folder"
+    tree(br.mstate.last).about = br.nowdir
+   END IF
   ELSE
    browse_add_files br.fmask, filetype, br, tree()
   END IF

@@ -4880,6 +4880,7 @@ END FUNCTION
 FUNCTION inputfilename (query as string, ext as string, directory as string, helpkey as string, default as string="", byval allow_overwrite as integer=YES) as string
  DIM filename as string = default
  DIM tog as integer
+ DIM foldermode as bool = NO
  IF directory = "" THEN directory = CURDIR
  setkeys YES
  DO
@@ -4888,19 +4889,31 @@ FUNCTION inputfilename (query as string, ext as string, directory as string, hel
   tog = tog XOR 1
   IF keyval(scEsc) > 1 THEN RETURN ""
   IF keyval(scF1) > 1 THEN show_help helpkey
-  strgrabber filename, 40
-  filename = fixfilename(filename)
-  IF keyval(scEnter) > 1 THEN
-   filename = TRIM(filename)
-   IF filename <> "" THEN
-    IF isfile(directory + SLASH + filename + ext) THEN
-     If allow_overwrite THEN
-      IF yesno("File already exists, overwrite?") THEN RETURN directory + SLASH + filename
+  IF keyval(scUp) > 1 ORELSE keyval(scDown) > 1 THEN foldermode = NOT foldermode
+  IF foldermode THEN
+   IF enter_or_space() THEN
+    DIM newdir as string
+    newdir = browse(11, directory, "", "", 0, "browse_for_folder")
+    IF isdir(newdir) ANDALSO diriswriteable(newdir) THEN
+     directory = newdir
+     foldermode = NO
+    END IF
+   END IF
+  ELSE
+   strgrabber filename, 40
+   filename = fixfilename(filename)
+   IF keyval(scEnter) > 1 THEN
+    filename = TRIM(filename)
+    IF filename <> "" THEN
+     IF isfile(directory + SLASH + filename + ext) THEN
+      If allow_overwrite THEN
+       IF yesno("File already exists, overwrite?") THEN RETURN directory + SLASH + filename
+      ELSE
+       notification filename & ext & " already exists"
+      END IF
      ELSE
-      notification filename & ext & " already exists"
+      RETURN directory + SLASH + filename
      END IF
-    ELSE
-     RETURN directory + SLASH + filename
     END IF
    END IF
   END IF
@@ -4908,9 +4921,21 @@ FUNCTION inputfilename (query as string, ext as string, directory as string, hel
   textcolor uilook(uiText), 0
   printstr query, 160 - LEN(query) * 4, 20, dpage
   printstr "Output directory: ", 160 - 18 * 4, 35, dpage
+
+  IF foldermode THEN
+   textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
+  ELSE
+   textcolor uilook(uiMenuItem), uilook(uiHighlight)
+  END IF
   printstr directory, xstring(directory, 160), 45, dpage
-  textcolor uilook(uiSelectedItem + tog), 1
+  
+  IF foldermode THEN
+   textcolor uilook(uiMenuItem), uilook(uiHighlight)
+  ELSE
+   textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
+  END IF
   printstr filename, 160 - LEN(filename & ext) * 4 , 60, dpage
+
   textcolor uilook(uiText), uilook(uiHighlight)
   printstr ext, 160 + (LEN(filename) - LEN(ext)) * 4 , 60, dpage
   SWAP vpage, dpage
