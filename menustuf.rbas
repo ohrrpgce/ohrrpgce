@@ -1866,6 +1866,7 @@ TYPE ItemScreenState
  lastcur as Slice Ptr
  quit as bool
  refocus as bool
+ re_use as bool
 END TYPE
 
 SUB set_item_plank_state (byval sl as Slice Ptr, byval state as integer)
@@ -2025,6 +2026,24 @@ SUB item_screen_cancel_action (byref st as ItemScreenState)
  END IF
 END SUB
 
+SUB item_screen_usable_item_action (byref st as ItemScreenState)
+ IF st.ps.cur = 0 THEN debug "item_screen_usable_item_action: no cursor ptr" : EXIT SUB
+ DIM slot as integer = st.ps.cur->Extra(0)
+ 
+ IF inventory(slot).used ANDALSO inventory(slot).num > 0 THEN
+  DIM item_id as integer = inventory(slot).id
+  IF item_can_be_used(item_id) THEN
+   DIM consumed as bool = NO ' FIXME: can probably get rid of this later
+   IF use_item_in_slot(slot, st.textbox, consumed) THEN
+    st.re_use = YES
+    st.need_update = YES
+    st.refocus = YES
+    st.swapcur = 0
+   END IF
+  END IF
+ END IF
+END SUB
+
 SUB item_screen_use_action (byref st as ItemScreenState)
  IF st.ps.cur = 0 THEN debug "item_screen_use_action: no cursor ptr" : EXIT SUB
  DIM slot as integer = st.ps.cur->Extra(0)
@@ -2065,9 +2084,16 @@ SUB item_screen_use_action (byref st as ItemScreenState)
    EXIT SUB
  END SELECT
  
+ IF st.re_use THEN
+  st.re_use = NO
+  item_screen_usable_item_action st
+  EXIT SUB
+ END IF
+
  IF st.swapcur THEN
   IF st.swapcur = st.ps.cur THEN
-   debug "Use item slot " & slot
+   item_screen_usable_item_action st
+   EXIT SUB
   ELSE
    SWAP inventory(slot), inventory(swapslot)
    st.need_update = YES
@@ -2080,24 +2106,6 @@ SUB item_screen_use_action (byref st as ItemScreenState)
   update_item_plank st.swapcur, st
  END IF
  
- 
-  /'''''''''''''''''''''''''''''
-  IF istate.sel >= 0 THEN
-   IF istate.cursor >= 0 AND istate.sel = istate.cursor THEN
-    '--try to use the current item
-    istate.sel = -4
-    '--if the usability bit is off, or you dont have any of the item, exit
-    IF readbit(iuse(), 0, 3 + istate.cursor) = 0 OR inventory(istate.cursor).used = 0 THEN EXIT SUB
-    item_menu_use_item istate.cursor, istate, iuse(), permask()
-    EXIT SUB
-   END IF
-  END IF
-  IF istate.sel < -3 AND istate.cursor >= 0 THEN
-   istate.sel = istate.cursor
-   MenuSound gen(genAcceptSFX)
-   EXIT SUB
-  END IF
-  '''''''''''''''''''''''/
 END SUB
 
 FUNCTION item_screen () as integer
@@ -2127,7 +2135,7 @@ FUNCTION item_screen () as integer
    item_screen_cancel_action st
   END IF
 
-  IF carray(ccUse) > 1 THEN
+  IF carray(ccUse) > 1 ORELSE st.re_use THEN
    item_screen_use_action st
   END IF
 
@@ -2143,7 +2151,14 @@ FUNCTION item_screen () as integer
    st.need_update = YES
   END IF
   
-  IF st.quit THEN EXIT DO
+  IF st.quit THEN
+   menusound gen(genCancelSFX)
+   EXIT DO
+  END IF
+  
+  IF st.textbox > 0 THEN
+   EXIT DO
+  END IF
 
   IF UpdateScreenSlice() THEN st.need_update = YES
  
@@ -2158,7 +2173,6 @@ FUNCTION item_screen () as integer
   setvispage vpage
   dowait
  LOOP
- menusound gen(genCancelSFX)
 
  freepage holdscreen
  DeleteSlice @(st.ps.m)
