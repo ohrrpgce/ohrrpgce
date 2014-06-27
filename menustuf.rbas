@@ -2076,11 +2076,11 @@ SUB item_screen_usable_item_action (byref st as ItemScreenState)
    DIM consumed as bool = NO ' FIXME: can probably get rid of this later
    IF use_item_in_slot(slot, st.textbox, consumed) THEN
     st.re_use = YES
-    st.need_update = YES
-    st.refocus = YES
-    st.swapcur = 0
    END IF
   END IF
+  st.need_update = YES
+  st.refocus = YES
+  st.swapcur = 0
  END IF
 END SUB
 
