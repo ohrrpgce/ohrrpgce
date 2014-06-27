@@ -37,6 +37,8 @@ def verprint (used_gfx, used_music, svn, git, fbc, builddir, rootdir):
     builddir: the directory where object files (and ver.txt) should be placed
     """
     def openw (whichdir, filename):
+        if not os.path.isdir (whichdir):
+            os.mkdir (whichdir)
         return open (os.path.join (whichdir, filename), 'wb')
     import datetime
     results = []
