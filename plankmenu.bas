@@ -220,7 +220,7 @@ SUB set_plank_state (byref ps as PlankState, byval sl as Slice Ptr, byval state 
  
 END SUB
 
-FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byval collection_kind as integer, byval callback as ANY ptr=0, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0) as Slice Ptr
+FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byval collection_kind as integer, byval callback as ANY ptr=0, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0) as Slice Ptr
  DIM collection as Slice Ptr = NewSliceOfType(slRoot)
  load_slice_collection collection, collection_kind
  IF collection = 0 THEN debug "plank_menu_append: plank collection not found " & collection_kind : RETURN 0
@@ -230,7 +230,7 @@ FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byva
  RETURN result
 END FUNCTION
 
-FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byval collection as Slice Ptr, byval callback as ANY ptr=0, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0) as Slice Ptr
+FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byval collection as Slice Ptr, byval callback as ANY ptr=0, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0) as Slice Ptr
  IF sl = 0 THEN debug "plank_menu_append: null slice ptr": RETURN 0
  DIM m as Slice ptr = LookupSlice(lookup, sl)
  IF m = 0 THEN debug "plank_menu_append: menu not found " & lookup : RETURN 0
@@ -266,7 +266,7 @@ SUB plank_menu_clear (byval sl as Slice Ptr, byval lookup as integer)
  DeleteSliceChildren m
 END SUB
 
-SUB expand_slice_text_insert_codes (byval sl as Slice ptr, byval callback as ANY ptr=0, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0)
+SUB expand_slice_text_insert_codes (byval sl as Slice ptr, byval callback as ANY ptr=0, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
  'Starting with children of the given container slice, iterate through
  ' all children and expand any ${} codes found in any TextSlice
  ' Do not descend into child slices marked with SL_PLANK_HOLDER because planks are responsible for their own text codes

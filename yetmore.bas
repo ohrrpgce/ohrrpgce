@@ -105,9 +105,9 @@ SUB embedtext (text as string, byval limit as integer=0)
  END IF
 END SUB
 
-FUNCTION embed_text_codes (text_in as string, byval callback as ANY Ptr=0, byval arg0 as integer=0, byval arg1 as integer=0, byval arg2 as integer=0) as string
+FUNCTION embed_text_codes (text_in as string, byval callback as ANY Ptr=0, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0) as string
 ' The callback is a sub that accepts 2 strings and 3 integers. It should have the following signature
-' SUB MyCallback(code as string, result as string, n0 as integer, n1 as integer, n2 as integer)
+' SUB MyCallback(code as string, result as string, n0 as any ptr, n1 as any ptr, n2 as any ptr)
 
  DIM text as string = text_in
  DIM start as integer = 1
@@ -179,7 +179,7 @@ FUNCTION embed_text_codes (text_in as string, byval callback as ANY Ptr=0, byval
    END IF
   END IF
   IF callback <> 0 THEN
-   DIM runner as SUB(code as string, result as string, n0 as integer, n1 as integer, n2 as integer)
+   DIM runner as SUB(code as string, result as string, byval arg0 as any ptr, byval arg1 as any ptr, byval arg2 as any ptr)
    runner = callback
    runner(code, insert, arg0, arg1, arg2)
   END IF

@@ -1650,7 +1650,9 @@ FUNCTION StatByCodeName (statcode as string) as integer
  RETURN -1
 END FUNCTION
 
-SUB ExpandTextHeroSlot (code as string, result as string, byval hero_slot as integer, byval arg1 as integer=0, byval arg2 as integer)
+SUB ExpandTextHeroSlot (code as string, result as string, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
+ 
+ DIM hero_slot as integer = *CAST(integer ptr, arg0)
  
  DIM hero_id as integer = hero(hero_slot) - 1
 
@@ -1702,7 +1704,11 @@ SUB ExpandTextHeroSlot (code as string, result as string, byval hero_slot as int
  END WITH
 END SUB
 
-SUB ExpandTextHeroSlotStat (code as string, result as string, byval hero_slot as integer, byval statnum as integer=0, byval arg2 as integer)
+SUB ExpandTextHeroSlotStat (code as string, result as string, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
+
+ DIM hero_slot as integer = *CAST(integer ptr, arg0)
+ DIM statnum as integer = *CAST(integer ptr, arg1)
+
  DIM hero_id as integer = hero(hero_slot) - 1
 
  IF hero_id < 0 THEN
@@ -1722,7 +1728,10 @@ SUB ExpandTextHeroSlotStat (code as string, result as string, byval hero_slot as
  END WITH 
 END SUB
 
-SUB ExpandTextItemScreen (code as string, result as string, byval slot as integer=0, byval arg1 as integer=0, byval arg2 as integer=0)
+SUB ExpandTextItemScreen (code as string, result as string, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
+
+ DIM slot as integer = *CAST(integer ptr, arg0)
+
  SELECT CASE UCASE(code)
   CASE "EXIT": result = readglobalstring(35, "DONE", 10)
   CASE "SORT": result = readglobalstring(36, "AUTOSORT", 10)
@@ -1742,7 +1751,10 @@ SUB ExpandTextItemScreen (code as string, result as string, byval slot as intege
  END SELECT
 END SUB
 
-SUB ExpandTextItemSlot (code as string, result as string, byval slot as integer=0, byval arg1 as integer=0, byval arg2 as integer=0)
+SUB ExpandTextItemSlot (code as string, result as string, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
+
+ DIM slot as integer = *CAST(integer ptr, arg0)
+ 
  '.used .id .num .text
  IF inventory(slot).used THEN
   SELECT CASE UCASE(code)
@@ -1770,7 +1782,7 @@ END TYPE
 SUB status_screen_refresh(byref st as StatusScreenState)
  plank_menu_clear st.sl, SL_STATUS_STATLIST
 
- expand_slice_text_insert_codes st.sl, @ExpandTextHeroSlot, st.slot
+ expand_slice_text_insert_codes st.sl, @ExpandTextHeroSlot, @(st.slot)
  hide_slices_by_lookup_code st.sl, SL_STATUS_HIDE_IF_NO_MP, NOT hero_has_mp(st.slot)
  hide_slices_by_lookup_code st.sl, SL_STATUS_HIDE_IF_NO_LMP, NOT hero_uses_lmp(st.slot)
  hide_slices_by_lookup_code st.sl, SL_STATUS_HIDE_IF_MAX_LEV, gam.hero(st.slot).lev >= current_max_level
@@ -1786,7 +1798,7 @@ SUB status_screen_refresh(byref st as StatusScreenState)
 
   FOR statnum as integer = 2 TO statLast
    IF NOT should_hide_hero_stat(her, statnum) THEN
-    plank_menu_append st.sl, SL_STATUS_STATLIST, SL_COLLECT_STATUSSTATPLANK, @ExpandTextHeroSlotStat, st.slot, statnum
+    plank_menu_append st.sl, SL_STATUS_STATLIST, SL_COLLECT_STATUSSTATPLANK, @ExpandTextHeroSlotStat, @(st.slot), @statnum
    END IF
   NEXT statnum
  END IF
@@ -1961,7 +1973,7 @@ SUB item_screen_refresh(byref st as ItemScreenState)
 
  DIM slot as integer = -1
  IF st.ps.cur THEN slot = st.ps.cur->Extra(0)
- expand_slice_text_insert_codes st.ps.m, @ExpandTextItemScreen, slot
+ expand_slice_text_insert_codes st.ps.m, @ExpandTextItemScreen, @slot
 
  DIM collection as Slice Ptr = NewSliceOfType(slRoot)
  load_slice_collection collection, SL_COLLECT_ITEMPLANK
@@ -1969,7 +1981,7 @@ SUB item_screen_refresh(byref st as ItemScreenState)
 
  DIM pl as Slice Ptr
  FOR i as integer = 0 TO last_inv_slot()
-  pl = plank_menu_append(st.ps.m, SL_ITEM_ITEMLIST, collection, @ExpandTextItemSlot, i)
+  pl = plank_menu_append(st.ps.m, SL_ITEM_ITEMLIST, collection, @ExpandTextItemSlot, @i)
   IF pl THEN
    pl->Extra(0) = i
    update_item_plank pl, st
@@ -2161,7 +2173,7 @@ FUNCTION item_screen () as integer
    update_plank_scrolling st.ps
    DIM slot as integer = -1
    IF st.ps.cur THEN slot = st.ps.cur->Extra(0)
-   expand_slice_text_insert_codes st.ps.m, @ExpandTextItemScreen, slot
+   expand_slice_text_insert_codes st.ps.m, @ExpandTextItemScreen, @slot
   END IF
   IF keyval(scF8) > 1 THEN
    slice_editor st.ps.m
