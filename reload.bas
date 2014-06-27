@@ -1444,7 +1444,7 @@ Function ResizeZString(byval node as nodeptr, byval newsize as integer) as ZStri
 	
 end function
 
-'Return pointer to a child node if it exists, otherwise create it with (as a null node)
+'Return pointer to a child node if it exists, otherwise create it (as a null node)
 Function ChildNode(byval parent as NodePtr, n as string) as NodePtr
 	if parent = NULL then return NULL
 	
@@ -1462,7 +1462,7 @@ Function ChildNode(byval parent as NodePtr, n as string) as NodePtr
 	return ret
 end Function
 
-'Sets the child node of name n to a null value. If n doesn't exist, it adds it
+'Sets the child node of name n to a null value (doesn't affect children). If n doesn't exist, it adds it
 Function SetChildNode(byval parent as NodePtr, n as string) as NodePtr
 	if parent = 0 then return 0
 	

@@ -2326,13 +2326,8 @@ SUB SaveUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as
  END IF
 
  DIM gen_root as NodePtr = get_general_reld()
- DIM uic as NodePtr
- IF gen_root."uicolors".exists THEN
-  uic = gen_root."uicolors".ptr
- ELSE
-  'Node does not exist, create it
-  uic = SetChildNode(gen_root, "uicolors")
- END IF
+ 'Create if doesn't exist
+ DIM uic as NodePtr = ChildNode(gen_root, "uicolors")
 
  DIM found as bool = NO
  READNODE uic
