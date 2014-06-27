@@ -9,7 +9,7 @@ import shutil
 import shlex
 import itertools
 import re
-from ohrbuild import basfile_scan, verprint, android_source_files, get_run_command
+from ohrbuild import basfile_scan, verprint, android_source_actions, get_run_command
 
 FBFLAGS = ['-mt']
 if 'FBFLAGS' in os.environ:
@@ -436,7 +436,9 @@ commonenv['FBLINKFLAGS'] += Flatten ([['-p', v] for v in libpaths])
 # first, make sure the version is saved.
 
 # always do verprinting, before anything else.
-verprint (gfx, music, 'svn', 'git', fbc)
+builddir = Dir('.').abspath
+rootdir = Dir('#').abspath + os.path.sep
+verprint (gfx, music, 'svn', 'git', fbc, builddir, rootdir)
 
 
 base_modules += ['util.bas', 'blit.c', 'base64.c', 'unicode.c', 'array.c', 'miscc.c', 'vector.bas']
@@ -492,7 +494,7 @@ else:
     commonenv['FBLINKFLAGS'] += ['-l','stdc++'] #, '-l','gcc_s', '-l','gcc_eh']
 
 # Note that base_objects are not built in commonenv!
-base_objects = sum ([env.Object(a) for a in base_modules], [])  # concatenate lists
+base_objects = Flatten([env.Object(a) for a in base_modules])  # concatenate NodeLists
 common_objects += base_objects + sum ([commonenv.Object(a) for a in common_modules], [])
 # Plus unique module included by utilities but not Game or Custom
 base_objects.extend (env.Object ('common_base.bas'))
@@ -521,6 +523,10 @@ reload_objects = base_objects + sum ([env.BASO (item) for item in ['reload', 're
 
 base_objects_without_util = [a for a in base_objects if str(a) != 'util.o']
 
+
+################ Executable definitions
+# Executables are explicitly placed in rootdir, otherwise they go in build/
+
 gamename = 'ohrrpgce-game'
 editname = 'ohrrpgce-custom'
 gameflags = list (gameenv['FBFLAGS']) #+ ['-v']
@@ -537,19 +543,22 @@ if win32:
         gamesrc += ['gicon.rc']
         editsrc += ['cicon.rc']
 
+
 def env_exe(name, **kwargs):
-    ret = env.BASEXE (name, **kwargs)
+    ret = env.BASEXE (rootdir + name, **kwargs)
     Alias (name, ret)
     return ret
 
-GAME = gameenv.BASEXE   (gamename, source = gamesrc, FBFLAGS = gameflags)
-CUSTOM = editenv.BASEXE (editname, source = editsrc, FBFLAGS = editflags)
+GAME = gameenv.BASEXE   (rootdir + gamename, source = gamesrc, FBFLAGS = gameflags)
+CUSTOM = editenv.BASEXE (rootdir + editname, source = editsrc, FBFLAGS = editflags)
+GAME = GAME[0]  # first element of NodeList is the executable
+CUSTOM = CUSTOM[0]
 env_exe ('bam2mid')
 env_exe ('miditest')
 env_exe ('unlump', source = ['unlump.bas', 'lumpfile.o'] + base_objects)
 env_exe ('relump', source = ['relump.bas', 'lumpfile.o'] + base_objects)
 env_exe ('dumpohrkey', source = ['dumpohrkey.bas'] + base_objects)
-env.Command ('hspeak', source = ['hspeak.exw', 'hsspiffy.e'], action = 'euc -gcc hspeak.exw -verbose')
+env.Command (rootdir + 'hspeak', source = ['hspeak.exw', 'hsspiffy.e'], action = 'euc -gcc hspeak.exw -verbose')
 RELOADTEST = env_exe ('reloadtest', source = ['reloadtest.bas'] + reload_objects)
 x2rsrc = ['xml2reload.bas'] + reload_objects
 if win32:
@@ -559,21 +568,23 @@ XML2RELOAD = env_exe ('xml2reload', source = x2rsrc, FBLINKFLAGS = env['FBLINKFL
 RELOAD2XML = env_exe ('reload2xml', source = ['reload2xml.bas'] + reload_objects)
 RELOADUTIL = env_exe ('reloadutil', source = ['reloadutil.bas'] + reload_objects)
 RBTEST = env_exe ('rbtest', source = [env.RB('rbtest.rbas'), env.RB('rbtest2.rbas')] + reload_objects)
-env_exe ('vectortest', source = ['vectortest.bas'] + base_objects)
+VECTORTEST = env_exe ('vectortest', source = ['vectortest.bas'] + base_objects)
 # Compile util.bas as a main module to utiltest.o to prevent its linkage in other binaries
-env_exe ('utiltest', source = env.BASMAINO('utiltest.o', 'util.bas') + base_objects_without_util)
+UTILTEST = env_exe ('utiltest', source = env.BASMAINO('utiltest.o', 'util.bas') + base_objects_without_util)
 env_exe ('slice2bas', source = ['slice2bas.bas'] + reload_objects)
 
+Alias ('game', GAME)
+Alias ('custom', CUSTOM)
+Alias ('reload', [RELOADUTIL, RELOAD2XML, XML2RELOAD, RELOADTEST, RBTEST])
+
 if android_source:
-    # This is hacky and will be totally rewritten
-    if 'game' in COMMAND_LINE_TARGETS:
-        android_source_files (gamesrc)
-    elif 'custom' in COMMAND_LINE_TARGETS:
-        android_source_files (editsrc)
-    else:
+    # This is hacky and ought to be rewritten
+    Alias('game', action = android_source_actions (gamesrc, rootdir, rootdir + 'android/tmp'))
+    Alias('custom', action = android_source_actions (editsrc, rootdir, rootdir + 'android/tmp'))
+    if 'game' not in COMMAND_LINE_TARGETS and 'custom' not in COMMAND_LINE_TARGETS:
         raise Exception("Specify either 'game' or 'custom' as a target with android-source=1")
 
-# Building gfx_directx.dll
+# building gfx_directx.dll
 if win32:
     directx_sources = ['d3d.cpp', 'didf.cpp', 'gfx_directx.cpp', 'joystick.cpp', 'keyboard.cpp',
                        'midsurface.cpp', 'mouse.cpp', 'window.cpp']
@@ -593,9 +604,9 @@ if win32:
         # static link VC9.0 runtime lib, optimise, whole-program optimisation
         w32_env.Append (CPPFLAGS = ['/MT', '/O2', '/GL'], LINKFLAGS = ['/LTCG'])
     
-    w32_env.SharedLibrary ('gfx_directx.dll', source = directx_sources,
+    w32_env.SharedLibrary (rootdir + 'gfx_directx.dll', source = directx_sources,
                           LIBS = ['user32', 'ole32', 'gdi32'])
-    TEST = w32_env.Program ('gfx_directx_test1.exe', source = ['gfx_directx/gfx_directx_test1.cpp'],
+    TEST = w32_env.Program (rootdir + 'gfx_directx_test1.exe', source = ['gfx_directx/gfx_directx_test1.cpp'],
                             LIBS = ['user32'])
     Alias ('gfx_directx_test', TEST)
 
@@ -605,29 +616,32 @@ tmp = ''
 if 'fb' in gfx:
     # Use gfx_fb because it draws far less frames without speed control for some reason, runs waaaay faster
     tmp = ' --gfx fb'
-AUTOTEST = env.Command ('autotest_rpg', source = GAME, action =
-                        [File(gamename).abspath + tmp +  ' --log . --runfast testgame/autotest.rpg',
-                         'grep -q "TRACE: TESTS SUCCEEDED" g_debug.txt'])
-INTERTEST = env.Command ('interactivetest', source = GAME, action =
-                         [File(gamename).abspath + tmp + ' --log . --runfast testgame/interactivetest.rpg'
-                          ' --replayinput testgame/interactivetest.ohrkey',
-                          'grep -q "TRACE: TESTS SUCCEEDED" g_debug.txt'])
-# This prevents more than one copy of Game from being run at once
-# (doesn't matter where g_debug.txt is actually placed)
-SideEffect ('g_debug.txt', [AUTOTEST, INTERTEST])
 
-testprogs = ['reloadtest', 'rbtest', 'vectortest', 'utiltest']
-tests = [File(prog).abspath for prog in testprogs]
+
+def Phony(name, source, action):
+    node = env.Alias(name, source = source, action = action)
+    AlwaysBuild(node)  # Run even if there happens to be a file of the same name
+    return node
+
+AUTOTEST = Phony ('autotest_rpg', source = GAME, action =
+                  [GAME.abspath + tmp +  ' --log . --runfast testgame/autotest.rpg',
+                   'grep -q "TRACE: TESTS SUCCEEDED" g_debug.txt'])
+INTERTEST = Phony ('interactivetest', source = GAME, action =
+                   [GAME.abspath + tmp + ' --log . --runfast testgame/interactivetest.rpg'
+                    ' --replayinput testgame/interactivetest.ohrkey',
+                    'grep -q "TRACE: TESTS SUCCEEDED" g_debug.txt'])
+# This prevents more than one copy of Game from being run at once
+# (doesn't matter where g_debug.txt is actually placed).
+# The Alias prevents scons . from running the tests.
+SideEffect (Alias ('g_debug.txt'), [AUTOTEST, INTERTEST])
+
 # There has to be some better way to do this...
-TESTS = env.Command ('test', source = testprogs + [AUTOTEST, INTERTEST], action = tests)
+tests = [exe.abspath for exe in Flatten([RELOADTEST, RBTEST, VECTORTEST, UTILTEST])]
+TESTS = Phony ('test', source = tests + [AUTOTEST, INTERTEST], action = tests)
 Alias ('tests', TESTS)
 
 Default (GAME)
 Default (CUSTOM)
-
-Alias ('game', GAME)
-Alias ('custom', CUSTOM)
-Alias ('reload', [RELOADUTIL, RELOAD2XML, XML2RELOAD, RELOADTEST, RBTEST])
 
 #print [str(a) for a in FindSourceFiles(GAME)]
 
@@ -686,7 +700,7 @@ Targets:
   autotest_rpg        Runs autotest.rpg. See autotest.py for improved harness.
   interactivetest     Runs interactivetest.rpg with recorded input.
   test (or tests)     Compile and run all automated tests, including autotest.rpg.
-  .                   Compile everything (and run tests).
+  .                   Compile everything (but doesn't run tests)
 
 With no targets specified, compiles game and custom.
 

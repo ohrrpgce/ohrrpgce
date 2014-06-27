@@ -1,4 +1,4 @@
 """ FOR USAGE INFORMATION RUN
  scons --help
 """
-SConscript('SConscript')
+SConscript('SConscript', variant_dir = 'build/', duplicate = False)

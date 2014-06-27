@@ -29,16 +29,19 @@ def basfile_scan(node, env, path):
     #print str(node) + " includes", included
     return included
 
-def verprint (used_gfx, used_music, svn, git, fbc):
-    # generate ver.txt
-    # generate iver.txt (Install-info)
-    # generate distver.bat (?)
-    def openw (filename):
-        return open (filename, 'wb')
+def verprint (used_gfx, used_music, svn, git, fbc, builddir, rootdir):
+    """
+    Generate ver.txt, iver.txt (Innosetup), distver.bat.
+
+    rootdir:  the directory containing this script
+    builddir: the directory where object files (and ver.txt) should be placed
+    """
+    def openw (whichdir, filename):
+        return open (os.path.join (whichdir, filename), 'wb')
     import datetime
     results = []
     supported_gfx = []
-    f = open ('codename.txt','rb')
+    f = open (os.path.join (rootdir, 'codename.txt'),'rb')
     lines = []
     for line in f:
         if not line.startswith ('#'):
@@ -135,16 +138,16 @@ def verprint (used_gfx, used_music, svn, git, fbc):
         'CONST version_build as string = "%(date)s %(gfx)s %(music)s"' % data,
         ('CONST long_version as string = "%(name)s '
         '%(codename)s %(date)s.%(rev)s %(gfx)s/%(music)s FreeBASIC %(fbver)s"') %  data])
-    f = openw ('ver.txt')
+    f = openw (builddir, 'ver.txt')
     f.write ('\n'.join (results))
     f.write ('\n')
     f.close()
     tmpdate = '.'.join([data['date'][:4],data['date'][4:6],data['date'][6:8]])
-    f = openw ('iver.txt')
+    f = openw (rootdir, 'iver.txt')
     f.write ('AppVerName=%(name)s %(codename)s %(date)s\n' % data)
     f.write ('VersionInfoVersion=%s.%s\n' % (tmpdate, rev))
     f.close ()
-    f = openw ('distver.bat')
+    f = openw (rootdir, 'distver.bat')
     f.write('@ECHO OFF\n')
     f.write('SET OHRVERCODE=%s\nSET OHRVERDATE=%s' % (codename,
                                                       tmpdate.replace ('.','-')))
@@ -152,25 +155,34 @@ def verprint (used_gfx, used_music, svn, git, fbc):
     # I am curious why there is not a distver.sh generated in the original
     # verprint. An oversight?
 
-def android_source_files (sourcelist):
+def android_source_actions (sourcelist, rootdir, destdir):
     # Get a list of C and C++ files to use as sources
     source_files = []
     for node in sourcelist:
         assert len(node.sources) == 1
         # If it ends with .bas then we can't use the name of the source file,
-        # since it doesn't have the game- or edit- prefix if any
+        # since it doesn't have the game- or edit- prefix if any;
+        # use the name of the resulting target instead, which is an .o
         if node.sources[0].name.endswith('.bas'):
-            source_files.append (node.name[:-2] + '.c')
+            source_files.append (node.abspath[:-2] + '.c')
         else:
-            source_files.append (node.sources[0].name)
+            # For some reason node.sources incorrectly claims the sources are build/
+            #source_files.append (node.sources[0].abspath)
+            source_files.append (rootdir + node.sources[0].name)
     # hacky. Copy the right source files to a temp directory because the Android.mk used
-    # by the SDL port selects too much
-    os.system ('rm -fr android/tmp/*')
-    os.system ('mkdir -p android/tmp/fb')
-    # This actually creates the symlinks before the C/C++ files are generated, but that's OK
-    os.system ('ln -s ' + ' '.join('../../'+a for a in source_files) + ' android/tmp')
-    os.system ('cp *.h android/tmp/')
-    os.system ('cp fb/*.h android/tmp/fb/')
-    os.system ('cp android/sdlmain.c android/tmp')
+    # by the SDL port selects too much.
+    # The more correct way to do this would be to use VariantDir to get scons
+    # to automatically copy all sources to destdir, but that requires teaching it
+    # that -gen gcc generates .c files.
+    actions = [
+        'rm -fr %s/*' % destdir,
+        'mkdir -p %s/fb' % destdir,
+        # This actually creates the symlinks before the C/C++ files are generated, but that's OK
+        'ln -s ' + ' '.join(source_files) + ' ' + destdir,
+        'cp %s/*.h %s/' % (rootdir, destdir),
+        'cp %s/fb/*.h %s/fb/' % (rootdir, destdir),
+        'cp %s/android/sdlmain.c %s' % (rootdir, destdir),
+    ]
+    return actions
     
     
