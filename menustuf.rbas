@@ -3807,7 +3807,7 @@ SUB spells_menu_control(sp as SpellsMenuState)
  END IF
 END SUB
 
-SUB spells_menu (byval who as integer)
+SUB old_spells_menu (byval who as integer)
 
  DIM sp as SpellsMenuState
  sp.hero = who

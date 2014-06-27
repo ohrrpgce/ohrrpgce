@@ -1726,5 +1726,9 @@ define constant, begin
 -102012, sl:item sortbutton
 -102013, sl:item trashbutton
 -102014, sl:plank menu selectable
+-102015, sl:spell listlist
+-102016, sl:spell spelllist
+-102017, sl:spell hide if no list
+-102018, sl:spell cancelbutton
 end
 #</SLICE LOOKUP CODES>

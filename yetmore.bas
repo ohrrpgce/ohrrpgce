@@ -424,7 +424,7 @@ SELECT CASE as CONST id
  CASE 152'--spells menu
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
    IF hero(retvals(0)) > 0 THEN
-    spells_menu retvals(0)
+    old_spells_menu retvals(0)
    END IF
   END IF
  CASE 154'--equip menu

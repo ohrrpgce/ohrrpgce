@@ -190,6 +190,17 @@ SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval gr
   CASE SL_COLLECT_ITEMPLANK:
    append_specialcode specialcodes(), SL_PLANK_HOLDER, kindlimitANYTHING
    append_specialcode specialcodes(), SL_PLANK_MENU_SELECTABLE, kindlimitPLANKSELECTABLE
+  CASE SL_COLLECT_SPELLSCREEN:
+   append_specialcode specialcodes(), SL_SPELL_LISTLIST, kindlimitGRID
+   append_specialcode specialcodes(), SL_SPELL_SPELLLIST, kindlimitGRID
+   append_specialcode specialcodes(), SL_SPELL_HIDE_IF_NO_LIST, kindlimitANYTHING
+   append_specialcode specialcodes(), SL_SPELL_CANCELBUTTON, kindlimitANYTHING
+  CASE SL_COLLECT_SPELLLISTPLANK:
+   append_specialcode specialcodes(), SL_PLANK_HOLDER, kindlimitANYTHING
+   append_specialcode specialcodes(), SL_PLANK_MENU_SELECTABLE, kindlimitPLANKSELECTABLE
+  CASE SL_COLLECT_SPELLPLANK:
+   append_specialcode specialcodes(), SL_PLANK_HOLDER, kindlimitANYTHING
+   append_specialcode specialcodes(), SL_PLANK_MENU_SELECTABLE, kindlimitPLANKSELECTABLE
  END SELECT
 END SUB
 
