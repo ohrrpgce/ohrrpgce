@@ -56,8 +56,9 @@ def verprint (used_gfx, used_music, svn, git, fbc):
     def query_svn (*command):
         from subprocess import Popen, PIPE
         import re
-        date_rex = re.compile ('Last Changed Date: ([0-9]+)-([0-9]+)-([0-9]+)')
-        rev_rex = re.compile ('Last Changed Rev: ([0-9]+)')
+        # Always use current date instead
+        #date_rex = re.compile ('Last Changed Date: ([0-9]+)-([0-9]+)-([0-9]+)')
+        rev_rex = re.compile ('Revision: ([0-9]+)')
         date = datetime.date.today().strftime ('%Y%m%d')
         rev = 0
         output = None
@@ -70,8 +71,8 @@ def verprint (used_gfx, used_music, svn, git, fbc):
         except OSError:
             missing (command[0], 'version output may be wrong as a result.')
             output = ''
-        if date_rex.search (output):
-            date = date_rex.search (output).expand ('\\1\\2\\3')
+        #if date_rex.search (output):
+        #    date = date_rex.search (output).expand ('\\1\\2\\3')
         if rev_rex.search (output):
             rev = int (rev_rex.search (output).expand ('\\1'))
         return date, rev
