@@ -1608,10 +1608,9 @@ SUB startingdatamenu
  LOOP
 END SUB
 
-SUB generate_gen_menu(m() as string, longname as string, aboutline as string, save_options_node as Node ptr)
+SUB generate_gen_menu(m() as string, longname as string, aboutline as string, options_start as integer)
  m(1) = "Long Name:" + longname
  m(2) = "About Line:" + aboutline
- CONST options_start = 14
  IF gen(genMaxInventory) = 0 THEN
   m(options_start + 0) = "Inventory size: Default (" & (last_inv_slot() \ 3) + 1 & " rows)"
  ELSE
@@ -1634,8 +1633,6 @@ SUB generate_gen_menu(m() as string, longname as string, aboutline as string, sa
   CASE 6: m(options_start + 2) += "Hide all ignoreable errors"
  END SELECT
  m(options_start + 3) = "Default maximum item stack size: " & gen(genItemStackSize)
- m(options_start + 4) = "Number of save/load slots: " & gen(genSaveSlotCount)
- m(options_start + 5) = "Save script/sprite layer slices: " & yesorno(GetChildNodeExists(save_options_node, "sprite_layer"))
 
 END SUB
 
@@ -1651,7 +1648,7 @@ SUB edit_global_bitsets(bitname() as string, helpfile as string)
 END SUB
 
 SUB gendata ()
- CONST maxMenu = 19
+ CONST maxMenu = 18
  DIM m(maxMenu) as string
  DIM menu_display(maxMenu) as string
  DIM min(maxMenu) as integer
@@ -1669,28 +1666,23 @@ SUB gendata ()
 
  'make sure genMaxInventory is a valid value (possible in older versions)
  IF gen(genMaxInventory) THEN gen(genMaxInventory) = last_inv_slot()
- 
- IF gen(genSaveSlotCount) <= 0 THEN gen(genSaveSlotCount) = 4  'default
-
- DIM gen_root as NodePtr = get_general_reld()
- DIM save_options_node as NodePtr
- save_options_node = ChildNode(gen_root, "saved_games")
 
  m(0) = "Return to Main Menu"
  m(3) = "Pick Title Screen..."
  m(4) = "New Game Settings..."
- m(5) = "Preference Bitsets..."
- m(6) = "Backwards-compatibility Bitsets..."
- m(7) = "Battle System Options..."
- m(8) = "Special Plotscripts..."
- m(9) = "Global Music and Sound Effects..."
- m(10) = "Master Palettes..."
- m(11) = "Password For Editing..."
- m(12) = "Platform-specific options..."
+ m(5) = "Saved Games Settings..."
+ m(6) = "Preference Bitsets..."
+ m(7) = "Backwards-compatibility Bitsets..."
+ m(8) = "Battle System Options..."
+ m(9) = "Special Plotscripts..."
+ m(10) = "Global Music and Sound Effects..."
+ m(11) = "Master Palettes..."
+ m(12) = "Password For Editing..."
+ m(13) = "Platform-specific options..."
 
  flusharray enabled(), UBOUND(enabled), YES
- enabled(13) = NO
- CONST options_start = 14
+ enabled(14) = NO
+ CONST options_start = 15
 
  index(options_start) = genMaxInventory
  max(options_start) = (inventoryMax + 1) \ 3
@@ -1702,9 +1694,6 @@ SUB gendata ()
  index(options_start + 3) = genItemStackSize
  max(options_start + 3) = 99
  min(options_start + 3) = 1
- index(options_start + 4) = genSaveSlotCount
- max(options_start + 4) = 32
- min(options_start + 4) = 1
 
  DIM aboutline as string = load_aboutline()
  DIM longname as string = load_gamename()
@@ -1715,7 +1704,7 @@ SUB gendata ()
   setkeys YES
 
   IF state.need_update THEN
-   generate_gen_menu m(), longname, aboutline, save_options_node
+   generate_gen_menu m(), longname, aboutline, options_start
    state.need_update = NO
   END IF
 
@@ -1729,7 +1718,8 @@ SUB gendata ()
    IF state.pt = 0 THEN EXIT DO
    IF state.pt = 3 THEN titlescreenbrowse
    IF state.pt = 4 THEN startingdatamenu
-   IF state.pt = 5 THEN
+   IF state.pt = 5 THEN edit_savegame_options
+   IF state.pt = 6 THEN
     DIM bitname(34) as string
     bitname(0) = "Pause on Battle Sub-menus"
     bitname(1) = "Enable Caterpillar Party"
@@ -1759,7 +1749,7 @@ SUB gendata ()
     bitname(31) = "Don't reset max stats after OOB attack"
     edit_global_bitsets bitname(), "general_game_bitsets"
    END IF
-   IF state.pt = 6 THEN
+   IF state.pt = 7 THEN
     DIM bitname(34) as string
     bitname(9) = "Simulate Old Levelup Bug"
     bitname(16) = "Simulate Pushable NPC obstruction bug"
@@ -1772,12 +1762,12 @@ SUB gendata ()
     bitname(34) = "showtextbox happens immediately"
     edit_global_bitsets bitname(), "general_game_backcompat_bitsets"
    END IF
-   IF state.pt = 7 THEN battleoptionsmenu
-   IF state.pt = 8 THEN generalscriptsmenu
-   IF state.pt = 9 THEN generalmusicsfxmenu
-   IF state.pt = 10 THEN masterpalettemenu
-   IF state.pt = 11 THEN inputpasw
-   IF state.pt = 12 THEN edit_platform_options
+   IF state.pt = 8 THEN battleoptionsmenu
+   IF state.pt = 9 THEN generalscriptsmenu
+   IF state.pt = 10 THEN generalmusicsfxmenu
+   IF state.pt = 11 THEN masterpalettemenu
+   IF state.pt = 12 THEN inputpasw
+   IF state.pt = 13 THEN edit_platform_options
   END IF
   IF state.pt = 1 THEN
    IF enable_strgrabber ANDALSO strgrabber(longname, 38) THEN state.need_update = YES
@@ -1792,11 +1782,6 @@ SUB gendata ()
    END IF
   ELSEIF index(state.pt) THEN
    IF intgrabber(gen(index(state.pt)), min(state.pt), max(state.pt)) THEN state.need_update = YES
-  ELSEIF state.pt = options_start + 5 THEN
-   IF keyval(scLeft) > 1 ORELSE keyval(scRight) > 1 THEN
-    ToggleChildNode save_options_node, "sprite_layer"
-    state.need_update = YES
-   END IF
   END IF
 
   IF enable_strgrabber = NO ANDALSO select_by_typing(selectst, NO) THEN

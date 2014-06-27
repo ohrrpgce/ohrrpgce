@@ -1,0 +1,9 @@
+Some settings related to saving games are on this menu. See also the per-map setting to enable the Save menu, and elsewhere in General Game Data, the Load-game Special Plotscript and the "Don't save gameover/loadgame script IDs" preference bitset.
+
+Navigate with the Up and Down arrow keys (or PgUp, PgDn, Home, and End), or type part of menu item to jump to it.
+
+Press ENTER or the SPACE bar to toggle bitsets.
+
+Number of save/load slots: This is the number of slots into which the player can save games. It's actually possible to access more slots using script commands; this option doesn't affect those commands.
+
+Save script/sprite layer slices: If enabled, the "sprite layer" (aka script layer) slice and all slices attached to it will be saved and restored. This is the default parent of all newly created slices. Slices parented elsewhere in the slice tree, such as to map layers, will NOT be saved. Slice handles to slices in the sprite layer remain valid after loading, but all other slice handles of course become invalid.

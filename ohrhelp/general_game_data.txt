@@ -14,7 +14,9 @@ Pick Title Screen: Choose a fullscreen backdrop to appear when the game is opene
 
 New Game Settings: Set initialization data for the player when they start a new game (such as initial money).
 
-Special Plotscripts: Choose plotscripts to be run when the player begins a game, or loads a saved game, or dies.
+Saved Games Settings: Most options related to saving games.
+
+Special Plotscripts: Choose plotscripts to be run on certain special triggers like beginning a game or pressing the menu key.
 
 Master Palettes: Your game can have more than one master palette available. See the submenu help file for more info.
 
@@ -44,7 +46,3 @@ Note that future versions of the engine will raise many new types of warnings an
    ignored almost every mistake that
    you could make
  Hide All Ignoreable Errors
-
-Number of save/load slots: This is the number of slots into which the player can save games. It's actually possible to access more slots using script commands; this option doesn't affect those commands.
-
-Save script/sprite layer slices: If enabled, the "sprite layer" (aka script layer) slice and all slices attached to it will be saved and restored. This is the default parent of all newly created slices. Slices parented elsewhere in the slice tree, such as to map layers, will NOT be saved. Slice handles to slices in the sprite layer remain valid after loading, but all other slice handles of course become invalid.

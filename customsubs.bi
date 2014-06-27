@@ -104,4 +104,6 @@ DECLARE FUNCTION scancode_to_name(byval sc as integer) as string
 DECLARE SUB edit_purchase_options ()
 DECLARE SUB edit_purchase_details (byval prod as NodePtr)
 
+DECLARE SUB edit_savegame_options ()
+
 #endif
