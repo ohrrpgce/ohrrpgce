@@ -115,7 +115,7 @@ DECLARE SUB slice_edit_detail_refresh (byref state as MenuState, menu() as strin
 DECLARE SUB slice_edit_detail_keys (byref state as MenuState, sl as Slice Ptr, rootsl as Slice Ptr, rules() as EditRule, slicelookup() as string, specialcodes() as SpecialLookupCode)
 DECLARE SUB slice_editor_xy (byref x as integer, byref y as integer, byval focussl as Slice Ptr, byval rootsl as Slice Ptr)
 DECLARE FUNCTION slice_editor_filename(byref ses as SliceEditState) as string
-DECLARE SUB slice_editor_load(byref edslice as Slice Ptr, filename as string)
+DECLARE SUB slice_editor_load(byref edslice as Slice Ptr, filename as string, specialcodes() as SpecialLookupCode)
 DECLARE SUB slice_editor_save(byval edslice as Slice Ptr, filename as string)
 DECLARE FUNCTION slice_lookup_code_caption(byval code as integer, slicelookup() as string) as string
 DECLARE FUNCTION edit_slice_lookup_codes(slicelookup() as string, byval start_at_code as integer, specialcodes() as SpecialLookupCode, byval slicekind as SliceTypes) as integer
@@ -325,7 +325,7 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
     IF intgrabber(jump_to_collection, 0, 32767, , , , NO) THEN  'Disable copy/pasting
      slice_editor_save edslice, slice_editor_filename(ses)
      ses.collection_number = jump_to_collection
-     slice_editor_load edslice, slice_editor_filename(ses)
+     slice_editor_load edslice, slice_editor_filename(ses), specialcodes()
      state.need_update = YES
     END IF
    END IF
@@ -342,7 +342,7 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
    IF keyval(scF3) > 1 THEN
     filename = browse(0, "", "*.slice", "",, "browse_import_slices")
     IF filename <> "" THEN
-     slice_editor_load edslice, filename
+     slice_editor_load edslice, filename, specialcodes()
      cursor_seek = NULL
      state.need_update = YES
     END IF
@@ -501,15 +501,21 @@ SUB preview_SelectSlice_parents (byval sl as Slice ptr)
 END SUB
 
 '--Returns whether one of the descendents is forbidden
-FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr) as integer
+FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcodes() as SpecialLookupCode) as integer
  IF sl = 0 THEN RETURN NO
- IF sl->Lookup < 0 THEN RETURN YES
+ IF sl->Lookup < 0 THEN
+  DIM okay as bool = NO
+  FOR i as integer = 0 TO UBOUND(specialcodes)
+   IF sl->Lookup = specialcodes(i).code THEN okay = YES
+  NEXT i
+  IF NOT okay THEN RETURN YES
+ END IF
  IF int_array_find(editable_slice_types(), sl->SliceType) < 0 THEN RETURN YES
- IF slice_editor_forbidden_search(sl->FirstChild) THEN RETURN YES
- RETURN slice_editor_forbidden_search(sl->NextSibling)
+ IF slice_editor_forbidden_search(sl->FirstChild, specialcodes()) THEN RETURN YES
+ RETURN slice_editor_forbidden_search(sl->NextSibling, specialcodes())
 END FUNCTION
 
-SUB slice_editor_load(byref edslice as Slice Ptr, filename as string)
+SUB slice_editor_load(byref edslice as Slice Ptr, filename as string, specialcodes() as SpecialLookupCode)
  DIM newcollection as Slice Ptr
  newcollection = NewSlice
  WITH *newcollection
@@ -523,7 +529,7 @@ SUB slice_editor_load(byref edslice as Slice Ptr, filename as string)
  '--You can export slice collections from the in-game slice debugger. These
  '--collections are full of forbidden slices, so we must detect these and
  '--prevent importing. Attempting to do so instead will open a new editor.
- IF slice_editor_forbidden_search(newcollection) THEN
+ IF slice_editor_forbidden_search(newcollection, specialcodes()) THEN
   notification "The slice collection you are trying to load includes special " _
                "slices (either due to their type or lookup code), probably " _
                "because it has been exported from a game. You aren't allowed " _
