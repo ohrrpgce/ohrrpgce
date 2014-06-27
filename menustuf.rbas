@@ -1730,23 +1730,39 @@ END SUB
 
 SUB ExpandTextItemScreen (code as string, result as string, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
 
- DIM slot as integer = *CAST(integer ptr, arg0)
+ DIM cur as Slice Ptr = arg0
+ DIM swapcur as Slice Ptr = arg1
+
+ DIM slot as integer = -1
+ IF cur THEN slot = cur->Extra(0)
+ 
 
  SELECT CASE UCASE(code)
   CASE "EXIT": result = readglobalstring(35, "DONE", 10)
   CASE "SORT": result = readglobalstring(36, "AUTOSORT", 10)
   CASE "TRASH": result = readglobalstring(37, "TRASH", 10)
   CASE "ITEM":
+   result = ""
    IF slot >= 0 ANDALSO inventory(slot).used THEN
     result = readitemname(inventory(slot).id)
-   ELSE
-    result = ""
    END IF
   CASE "DESC":
+   result = ""
    IF slot >= 0 ANDALSO inventory(slot).used THEN
     result = readitemdescription(inventory(slot).id)
-   ELSE
-    result = ""
+   ELSEIF cur ANDALSO cur->Lookup = SL_ITEM_TRASHBUTTON THEN
+    IF swapcur THEN
+     DIM swapslot as integer = swapcur->Extra(0)
+     IF swapslot >= 0 ANDALSO inventory(swapslot).used THEN
+      DIM id as integer = inventory(swapslot).id
+      DIM info as string = readitemname(id) & CHR(1) & lpad(STR(inventory(swapslot).num), " ", 2)
+      IF item_can_be_discarded(id) THEN
+       result = readglobalstring(41, "Discard", 10) & " " & info
+      ELSE
+       result = readglobalstring(42, "Cannot", 10) & " " & readglobalstring(41, "Discard", 10) & " " & info & "!"
+      END IF
+     END IF
+    END IF
    END IF
  END SELECT
 END SUB
@@ -1971,9 +1987,7 @@ SUB item_screen_refresh(byref st as ItemScreenState)
  
  plank_menu_clear st.ps.m, SL_ITEM_ITEMLIST
 
- DIM slot as integer = -1
- IF st.ps.cur THEN slot = st.ps.cur->Extra(0)
- expand_slice_text_insert_codes st.ps.m, @ExpandTextItemScreen, @slot
+ expand_slice_text_insert_codes st.ps.m, @ExpandTextItemScreen, st.ps.cur, st.swapcur
 
  DIM collection as Slice Ptr = NewSliceOfType(slRoot)
  load_slice_collection collection, SL_COLLECT_ITEMPLANK
@@ -2173,7 +2187,7 @@ FUNCTION item_screen () as integer
    update_plank_scrolling st.ps
    DIM slot as integer = -1
    IF st.ps.cur THEN slot = st.ps.cur->Extra(0)
-   expand_slice_text_insert_codes st.ps.m, @ExpandTextItemScreen, @slot
+   expand_slice_text_insert_codes st.ps.m, @ExpandTextItemScreen, st.ps.cur, st.swapcur
   END IF
   IF keyval(scF8) > 1 THEN
    slice_editor st.ps.m
