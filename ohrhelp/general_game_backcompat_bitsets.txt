@@ -16,9 +16,7 @@ In newly created games you normally wouldn't change any of these bitsets. When s
 
 "Simulate Bug #430" reenables a bug in Voxhumana and older releases which caused script 'wait' commands to sometimes be skipped. Some games contained bugs in their scripts (usually involving screen fades and commands causing implicit waits like "teleport to map") which were hidden by this bug.
 
-"showtextbox happens immediately" causes "show textbox" (as well as textboxes indirectly shown by "items menu" and "use item") to take effect immediately, including conditionals such as setting tags. If this is off then textboxes aren't triggered until the next wait command, and if you attempt to show multiple textboxes during the same tick then only the last will actually trigger. But even with this bitset on you would only see the last textbox so if this is possible you should use "current textbox" to prevent double-triggering texboxes:
- # While a textbox is already showing
- while (current textbox <> -1)
-   do (wait)
- show textbox (5)
+"showtextbox happens immediately" causes "show textbox" (as well as textboxes indirectly shown by "items menu" and "use item") to take effect immediately, including conditionals such as setting tags. If this is off then textboxes aren't triggered until the next wait command, and if you attempt to show multiple textboxes during the same tick then only the last will actually trigger. But even with this bitset on you would only see the last triggered textbox so you want to prevent your script from accidently hiding a previous textbox you should use "wait for textbox":
+  wait for textbox
+  show textbox (5)
 "advance textbox" always happens immediately.
