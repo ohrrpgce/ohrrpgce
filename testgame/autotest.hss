@@ -29,6 +29,9 @@ global variable(111, eachstep triggered)
 global variable(112, textbox script triggered)
 global variable(113, npc script triggered)
 global variable(114, testing script triggers)
+global variable(115, savegame map)
+global variable(116, savegame slice)
+global variable(117, savegame npc)
 # 200-300 used in hstests.hss
 global variable(200, ticker 0)
 global variable(201, ticker 1)
@@ -61,7 +64,7 @@ plotscript, run all tests, begin
   seed random(4444)
   assert(map autorun triggered == 1)
   interpreter tests
-  save load tests
+  save slot tests
   slice tests
   inventory tests
   hero tests
@@ -75,9 +78,14 @@ plotscript, run all tests, begin
   enemy tests
   battle tests
   timer tests
+  savegame tests 1  # Saves and loads the game
+end
+
+plotscript, load game, begin
+  savegame tests 2
   $0="TESTS SUCCEEDED"
   trace(0)
-  game over
+  gameover
 end
 
 ########################################################################
@@ -2483,8 +2491,10 @@ end
 
 ########################################################################
 
-script, save load tests, begin
-  $0="Saving/loading tests"
+script, save slot tests, begin
+  $0="save slot tests"
+  # This includes tests for commands which operate on save slots,
+  # but doesn't test load saves itself; that's in "savegame tests"
 
   assert(save slot used(1) == false)
   delete save(1)
@@ -2546,6 +2556,52 @@ script, save load tests, begin
   #assert(export global 1 == -123456789)
   #assert(export global 2 == -100)
 
+end
+
+########################################################################
+
+
+script, savegame tests 1, begin
+  $0="saving/loading tests 1"
+
+  # Preconditions
+  assert(current map == 0)
+  assert(save slot used(1) == false)
+
+  savegame map := current map
+  savegame slice := create rect(555, 777)
+  savegame npc := createnpc(0, 5, 5)
+  $5 = "This isn't empty"
+
+  save in slot(1)
+  assert(save slot used(1) == true)
+
+  # Change state a bit
+  teleport to map(1)
+  savegame map := -1  # check globals loaded
+  free slice(savegame slice)
+
+  load from slot(1)
+
+  $0="Loadgame didn't happen!"
+  crash
+end
+
+# This is called from the loadgame plotscript
+script, savegame tests 2, begin
+  $0="saving/loading tests 2"
+
+  # Check globals, map number, slices loaded (game is set to save slices)
+  assert(savegame map == current map)
+  assert(slicewidth(savegame slice) == 555)
+  # Check NPCs and strings were NOT saved
+  assert(get npc id(savegame npc) == -1)  # doesn't exist
+  assert(string length(5) == 0)
+
+  # Clean up
+  free slice(savegame slice)
+  delete save(1)
+  assert(save slot used(1) == false)
 end
 
 ########################################################################
