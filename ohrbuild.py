@@ -68,7 +68,7 @@ def verprint (used_gfx, used_music, svn, git, fbc, builddir, rootdir):
         rev = 0
         output = None
         try:
-            f = Popen (command, stdout = PIPE, stderr = PIPE)
+            f = Popen (command, stdout = PIPE, stderr = PIPE, cwd = rootdir)
             output = f.stdout.read()
         except WindowsError:
             missing (command[0], 'version output may be wrong as a result.')
