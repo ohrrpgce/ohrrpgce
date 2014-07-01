@@ -390,7 +390,7 @@ TYPE Plotstring
   s as string
   X as integer
   Y as integer
-  col as integer
+  col as integer    '0-255, or -1 to default to uiText
   bgcol as integer
   bits as integer   '1=visible, 2=edgeless text
 END TYPE

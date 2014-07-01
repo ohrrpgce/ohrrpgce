@@ -1639,7 +1639,7 @@ SELECT CASE as CONST id
   END IF
  CASE 223'--string color
   IF valid_plotstr(retvals(0)) THEN
-   plotstr(retvals(0)).Col = bound(retvals(1), 0, 255)
+   plotstr(retvals(0)).Col = bound(retvals(1), -1, 255)  'Allow -1 for default
    plotstr(retvals(0)).BGCol = bound(retvals(2), 0, 255)
   END IF
  CASE 224'--string X

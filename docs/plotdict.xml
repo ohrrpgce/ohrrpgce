@@ -1723,12 +1723,12 @@ get hero name (1, find hero (leader))
 		<command id="stringstyle">
 			<canon>string style (ID, style)</canon>
 			<shortname>string style</shortname>
-			<description>Changes the appearance of a string previously displayed with <ref>showstringat</ref> or <ref>centerstringat</ref>. Choice of <p>style</p> is string:outline and string:flat. string:outline is the style of string you are familiar with in textboxes: they are outlined with colour 0 (black). string:flat have not outline but can have a solid background of any colour behind the string.</description>
+			<description>Changes the appearance of a string. Use this in conjunction with (before or after) <ref>showstringat</ref> or <ref>centerstringat</ref>. Choice of <p>style</p> is string:outline and string:flat. string:outline is the style of string you are familiar with in textboxes: they are outlined with colour 0 (black). string:flat have no outline but can have a solid rectangular background of any colour displayed behind the string.</description>
 		</command>
 		<command id="stringcolor">
 			<canon>string color (ID, foreground color, background color)</canon>
 			<shortname>string color</shortname>
-			<description>Changes the color of a string previously displayed with <ref>showstringat</ref> or <ref>centerstringat</ref>. Foreground color is the colour of the text itself. Background color has no meaning for style:outline strings (the outline is always black). For style:flat strings, it is the color of the solid background if 1 to 255, or causes no background if 0. If you omit <p>background color</p>, the background will be transparent.</description>
+			<description>Changes the color of a string. Use this in conjunction with (before or after) <ref>showstringat</ref> or <ref>centerstringat</ref>. Foreground color is the colour of the text itself. Background color has no meaning for style:outline strings (the outline is always black). For style:flat strings, it is the color of the solid background if 1 to 255, or causes no background if 0. If you omit <p>background color</p>, the background will be transparent. Omit <p>foreground color</p> as well to reset the color to default ('Text' User-interface color).</description>
 		</command>
 		<command id="positionstring">
 			<canon>positionstring (ID, x, y)</canon>

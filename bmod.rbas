@@ -3814,6 +3814,7 @@ END SUB
 
 SUB show_first_battle_timer ()
  '--show the timer
+ ' Why doesn't this use the string's position, colour, or font?!
  FOR i as integer = 0 to UBOUND(timers)
   IF timers(i).speed > 0 ANDALSO timers(i).st > 0 ANDALSO timers(i).flags AND TIMERFLAG_BATTLE THEN
    edgeprint plotstr(timers(i).st-1).s, 320 - LEN(plotstr(timers(i).st-1).s) * 10, 185, uilook(uiText), dpage

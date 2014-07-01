@@ -233,7 +233,7 @@ define function, begin
 220,positionstring,3,0,0,0    #move a string to a position on the screen(stringID,x,y)
 221,setstringbit,3,0,0,0      #set a string bit, such as: visibility, style(stringID,bit,value)
 222,getstringbit,2,0,0        #return a string bit, such as: visibility, style(stringID,bit)
-223,stringcolor,3,0,15,0      #set a string's color,also optional background color(stringID,fColor,bColor)
+223,stringcolor,3,0,-1,0      #set a string's foreground and background color(stringID,fColor,bColor)
 224,stringx,1,0               #return a string's X position(stringID)
 225,stringy,1,0               #return a string's Y position(stringID)
 226,systemday,0               #returns system day

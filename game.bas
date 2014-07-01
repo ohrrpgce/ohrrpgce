@@ -806,6 +806,7 @@ DO
   load_slot = wantloadgame - 1
   wantloadgame = 0
   resetgame scriptout
+  init_default_text_colors
   initgamedefaults
   stopsong
   resetsfx
@@ -906,7 +907,6 @@ END SUB
 
 SUB doloadgame(byval load_slot as integer)
  loadgame load_slot
- init_default_text_colors
  IF gen(genLoadGameScript) > 0 THEN
   trigger_script gen(genLoadGameScript), YES, "loadgame", "", scrqBackcompat()
   '--pass save slot as argument
@@ -3438,7 +3438,7 @@ END SUB
 SUB init_default_text_colors()
  textcolor uilook(uiText), 0
  FOR i as integer = 0 TO UBOUND(plotstr)
-  plotstr(i).Col = uilook(uiText)
+  plotstr(i).Col = -1
  NEXT i
 END SUB
 

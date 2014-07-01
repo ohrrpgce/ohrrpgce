@@ -1237,7 +1237,7 @@ txt.show_lines = 0
 FOR i as integer = 0 TO UBOUND(plotstr)
  WITH plotstr(i)
   .s = ""
-  .col = uilook(uiText)
+  .col = -1  'default to uilook(uiText)
   .BGCol = 0
   .X = 0
   .Y = 0

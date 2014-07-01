@@ -231,22 +231,23 @@ limitcamera mapx, mapy
 END SUB
 
 SUB showplotstrings
-
-FOR i as integer = 0 TO UBOUND(plotstr)
- '-- for each string
- IF plotstr(i).bits AND 1 THEN
-  '-- only display visible strings
-  IF plotstr(i).bits AND 2 THEN
-    '-- flat text
-    textcolor plotstr(i).Col, plotstr(i).BGCol
-    printstr plotstr(i).s, plotstr(i).X, plotstr(i).Y, dpage
-  ELSE
-    '-- with outline
-    edgeprint plotstr(i).s, plotstr(i).X, plotstr(i).Y, plotstr(i).Col, dpage
-  END IF
- END IF
-NEXT i
-
+ FOR i as integer = 0 TO UBOUND(plotstr)
+  WITH plotstr(i)
+   IF .bits AND 1 THEN
+    '-- only display visible strings
+    DIM col as integer = .col
+    IF col = -1 THEN col = uilook(uiText)
+    IF .bits AND 2 THEN
+     '-- flat text
+     textcolor col, .bgcol
+     printstr .s, .x, .y, dpage
+    ELSE
+     '-- with outline
+     edgeprint .s, .x, .y, col, dpage
+    END IF
+   END IF
+  END WITH
+ NEXT i
 END SUB
 
 'Returns whether the string has changed
@@ -1358,8 +1359,6 @@ SUB try_reload_lumps_anywhere ()
     loadpalette master(), gam.current_master_palette
     setpal master()
     LoadUIColors uilook(), boxlook(), gam.current_master_palette
-    'Change color of script strings
-    init_default_text_colors
    END IF
    FOR j as integer = 0 TO UBOUND(gen)
     SELECT CASE j
@@ -1387,7 +1386,6 @@ SUB try_reload_lumps_anywhere ()
   ELSEIF modified_lumps[i] = "uicolors.bin" THEN                          'UICOLORS.BIN
    LoadUIColors uilook(), boxlook(), gam.current_master_palette
    'Change color of script strings
-   'init_default_text_colors
    handled = YES
 
   ELSEIF modified_lumps[i] = "menus.bin" THEN                             'MENUS.BIN
