@@ -64,6 +64,7 @@ plotscript, run all tests, begin
   seed random(4444)
   assert(map autorun triggered == 1)
   interpreter tests
+  plotstr tests
   save slot tests
   slice tests
   inventory tests
@@ -2496,7 +2497,6 @@ script, save slot tests, begin
   # This includes tests for commands which operate on save slots,
   # but doesn't test load saves itself; that's in "savegame tests"
 
-  assert(save slot used(1) == false)
   delete save(1)
   assert(save slot used(1) == false)
 
@@ -2560,6 +2560,74 @@ end
 
 ########################################################################
 
+script, plotstr tests, begin
+  # This tests only the display of plotstrings.
+  # Pure string manipulation stuff is tested in "string tests"
+  $0="plotstr tests"
+
+  assert(string is visible(0) == false)
+  position string(0, 50, 50)
+  assert(string is visible(0) == false)
+
+  # There are no commands to return the current colour and style
+  # of a string (and I don't see any need to add them), so that can only be
+  # tested by screenshot.
+  $5 = "This isn't empty"
+  show string at(5, 110, 100)
+  assert(string is visible(5))
+  assert(string x(5) == 110)
+  assert(string y(5) == 100)
+  # Should default to 'string:outline' style and uiText colour
+  w
+  string color(5, 72, 15) # green, white
+  w
+  # Test return to default colour
+  string color(5)
+  w
+  position string(5, 10, 20)
+  assert(string x(5) == 10)
+  assert(string y(5) == 20)
+  w
+  center string at(5, 160, 0)
+  assert(string x(5) == 160 -- 4 * 16)
+  assert(string y(5) == 0)
+
+  $6 = "This is flat yellow-on-purple"
+  show string at(6, 100, 110)
+  assert(string is visible(6) == true)
+  string style(6, string:flat)
+  string color(6, 14, 194)  # yellow, purple
+  w
+  string color(6)
+  $6 = "Now it's tranparent flat white"
+  w
+
+  show string(6)
+  w
+  show no value
+
+  # Can't test colour, style
+
+  # Test clear
+  clear string(6)
+  assert(string length(6) == 0)
+  # Shouldn't affect visibility
+  assert(string is visible(6) == true)
+  $6 = "XYZ"
+
+  # Test hide
+  hide string(6)
+  assert(string is visible(6) == false)
+  w
+
+  # Clean up
+  hide string(5)
+  clear string(5)
+  clear string(6)
+  w
+end
+
+########################################################################
 
 script, savegame tests 1, begin
   $0="saving/loading tests 1"
@@ -2626,14 +2694,12 @@ end
 #camera pixel Y
 #cancel map name display
 #center slice (handle)
-#center string at (ID, x, y)
 #change tileset (tileset, layer)
 #check NPC wall (who, direction)
 #check parentage (handle, parent handle)
 #check tag (tag)
 #child count (handle)
 #clamp slice (handle1, handle2)
-#clear string(ID)
 #clone sprite (handle)
 #concatenate strings (dest, source)
 #continue
@@ -2748,7 +2814,6 @@ end
 #grid is shown (handle)
 #hide battle health meter (state)
 #hide battle ready meter (state)
-#hide string (ID)
 #horiz flip sprite (handle, flip)
 #hours of play
 #increment (variable,amount)
@@ -2821,7 +2886,6 @@ end
 #party money
 #pay money (amount)
 #place sprite
-#positionstring (ID, x, y)
 #previous sibling(handle)
 #put camera (x,y)
 #put npc (who,x,y)
@@ -2951,8 +3015,6 @@ end
 #show grid (handle, shown)
 #show map
 #show no value
-#show string (ID)
-#show string at (ID, x, y)
 #show value (number)
 #sign (number)
 #slice at pixel (parent, x, y, number, check descendants)
@@ -2986,13 +3048,7 @@ end
 #sqrt (number)
 #stop slice (handle)
 #stop timer (id)
-#string color (ID, foreground color, background color)
-#string is visible (ID)
-#string length (ID)
-#string style (ID, style)
 #string to globals (ID, starting global, length)
-#string X (ID)
-#string Y (ID)
 #number -- number
 #suspend catapillar
 #suspend map music
@@ -3010,7 +3066,6 @@ end
 #system second
 #system year
 #teleport to map (map, x, y)
-#trace (string)
 #trace value (expression, ...)
 #trim string (ID, start, length)
 #tweak palette (red, green, blue, first, last)

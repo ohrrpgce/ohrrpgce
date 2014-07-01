@@ -162,7 +162,9 @@ end
 ########################################################################
 
 script, string tests, begin
-  # There are tons more string commands we could test here!
+  # This tests only pure string manipulation stuff.
+  # Display of plotstrings is tested in "plotstr tests"
+  # Still many untested including: searchstring, numberfromstring, globalstostring
   $0="String tests", trace(0)
 
   $1=""
