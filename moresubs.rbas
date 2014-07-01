@@ -1149,6 +1149,12 @@ freepage holdscreen
 END SUB
 
 SUB resetgame (scriptout as string)
+'Warning: don't put necessary initialisation in here,
+'as this is only called after the first game.
+'initgamedefaults is probably a better place for that.
+'In order words, be suspicious of anything in here that resets
+'to a value other than zero/empty string/etc.
+
 gam.map.id = 0
 catx(0) = 0
 caty(0) = 0
@@ -1185,8 +1191,9 @@ FOR i as integer = 0 TO 40
  gam.hero(i).pal = 0
  gam.hero(i).def_wep = 0
  gam.hero(i).rename_on_status = 0
+ 'Hero elementals are actually initialised (to 1 = 100% damage) in addhero.
  FOR j as integer = 0 TO maxElements - 1
-  gam.hero(i).elementals(j) = 1.0f
+  gam.hero(i).elementals(j) = .0f
  NEXT
  FOR j as integer = 0 to 1
   gam.hero(i).hand_pos(j).x = 0

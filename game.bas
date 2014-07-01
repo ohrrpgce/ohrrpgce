@@ -582,7 +582,6 @@ DO' This loop encloses the playable game for a specific RPG file
 gam.current_master_palette = gen(genMasterPal)
 loadpalette master(), gam.current_master_palette
 LoadUIColors uilook(), boxlook(), gam.current_master_palette
-init_default_text_colors
 
 initgamedefaults
 fatal = NO
@@ -806,7 +805,6 @@ DO
   load_slot = wantloadgame - 1
   wantloadgame = 0
   resetgame scriptout
-  init_default_text_colors
   initgamedefaults
   stopsong
   resetsfx
@@ -3433,13 +3431,6 @@ SUB advance_text_box ()
  setkeys
  flusharray carray(), 7, 0
  update_virtual_gamepad_display
-END SUB
-
-SUB init_default_text_colors()
- textcolor uilook(uiText), 0
- FOR i as integer = 0 TO UBOUND(plotstr)
-  plotstr(i).Col = -1
- NEXT i
 END SUB
 
 SUB init_text_box_slices(txt as TextBoxState)

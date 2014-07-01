@@ -126,6 +126,8 @@ FUNCTION framewalkabout (byval x as integer, byval y as integer, byref framex as
 END FUNCTION
 
 SUB initgamedefaults
+'Exists to initialise game state which needs to start at a value
+'other than the default initialisation (zero/empty string/etc)
 
 lastsaveslot = 0
 
@@ -145,6 +147,11 @@ FOR i as integer = 0 TO 15
  catx(i) = gen(genStartX) * 20
  caty(i) = gen(genStartY) * 20
  catd(i) = 2
+NEXT i
+
+'plotstring colours
+FOR i as integer = 0 TO UBOUND(plotstr)
+ plotstr(i).col = -1  'default to uilook(uiText)
 NEXT i
 
 END SUB

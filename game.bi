@@ -57,7 +57,6 @@ declare function menu_item_handle_by_slot(byval menuslot as integer, byval mislo
 declare function find_menu_item_slot_by_string(byval menuslot as integer, s as string, byval mislot as integer=0, byval visible_only as integer=yes) as integer
 declare function allowed_to_open_main_menu () as integer
 declare function random_formation (byval set as integer) as integer
-declare sub init_default_text_colors()
 DECLARE FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as integer
 DECLARE SUB init_text_box_slices(txt as TextBoxState)
 DECLARE SUB cleanup_text_box ()
