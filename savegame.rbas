@@ -27,6 +27,7 @@ USING Reload.Ext
 DECLARE SUB gamestate_to_reload(byval node as Reload.NodePtr)
 DECLARE SUB gamestate_state_to_reload(byval parent as Reload.NodePtr)
 DECLARE SUB gamestate_script_to_reload(byval parent as Reload.NodePtr)
+DECLARE SUB gamestate_strings_to_reload(byval parent as Reload.NodePtr)
 DECLARE FUNCTION script_trigger_from_reload(byval node as Reload.NodePtr) as integer
 DECLARE SUB gamestate_globals_to_reload(byval parent as Reload.NodePtr, byval first as integer=0, byval last as integer=maxScriptGlobals)
 DECLARE SUB gamestate_maps_to_reload(byval parent as Reload.NodePtr)
@@ -44,6 +45,7 @@ DECLARE SUB new_loadgame(byval slot as integer)
 DECLARE SUB gamestate_from_reload(byval node as Reload.NodePtr)
 DECLARE SUB gamestate_state_from_reload(byval node as Reload.NodePtr)
 DECLARE SUB gamestate_script_from_reload(byval node as Reload.NodePtr)
+DECLARE SUB gamestate_strings_from_reload(byval stringsnode as Reload.NodePtr)
 DECLARE SUB script_trigger_to_reload(byval parent as Reload.NodePtr, node_name as string, byval script_id as integer)
 DECLARE SUB gamestate_globals_from_reload(byval parent as Reload.NodePtr, byval first as integer, byval last as integer)
 DECLARE SUB gamestate_maps_from_reload(byval node as Reload.NodePtr)
@@ -321,6 +323,9 @@ SUB gamestate_script_from_reload(byval node as Reload.NodePtr)
  READNODE node, default
   node."globals".ignore
 
+  'It's not actually necessary for this function to always be called (defaulted)
+  gamestate_strings_from_reload node."strings".ptr
+
   IF load_script_ids THEN gen(genGameoverScript) = script_trigger_from_reload(node."gameover_script".ptr)
   IF load_script_ids THEN gen(genLoadgameScript) = script_trigger_from_reload(node."loadgame_script".ptr)
 
@@ -338,6 +343,37 @@ SUB gamestate_script_from_reload(byval node as Reload.NodePtr)
   END READNODE
 
   gen(genScrBackdrop) = node."backdrop"
+ END READNODE
+END SUB
+
+SUB gamestate_strings_from_reload(byval stringsnode as Reload.NodePtr)
+ DIM gen_root as NodePtr = get_general_reld()
+ IF gen_root."saved_games"."strings".exists = NO THEN EXIT SUB
+
+ READNODE stringsnode
+  WITHNODE stringsnode."string" as n
+   DIM id as integer = GetInteger(n)
+   IF id < LBOUND(plotstr) OR id > UBOUND(plotstr) THEN
+    rsav_warn "invalid plotstring id " & id
+   ELSE
+    WITH plotstr(id)
+     DIM style as integer
+     READNODE n
+      .s = n."str".string
+      .x = n."x"
+      .y = n."y"
+      .col = n."col"
+      .bgcol = n."bgcol"
+      IF n."visible".bool THEN .bits += 1
+      style = n."style"
+     END READNODE
+     IF style < 0 OR style > 1 THEN
+      rsav_warn "invalid plotstr style " & style
+     END IF
+     IF style = 1 THEN .bits += 2
+    END WITH
+   END IF
+  END WITHNODE
  END READNODE
 END SUB
 
@@ -829,6 +865,7 @@ SUB gamestate_script_to_reload(byval parent as Reload.NodePtr)
  DIM n as NodePtr 'used for numbered containers
 
  gamestate_globals_to_reload node
+ gamestate_strings_to_reload node
 
  script_trigger_to_reload(node, "gameover_script", gen(genGameoverScript))
  script_trigger_to_reload(node, "loadgame_script", gen(genLoadgameScript))
@@ -887,6 +924,32 @@ SUB gamestate_globals_to_reload(byval parent as Reload.NodePtr, byval first as i
   END IF
  NEXT i
 
+END SUB
+
+SUB gamestate_strings_to_reload(byval parent as Reload.NodePtr)
+ DIM gen_root as NodePtr = get_general_reld()
+ IF gen_root."saved_games"."strings".exists = NO THEN EXIT SUB
+
+ DIM node as NodePtr
+ node = AppendChildNode(parent, "strings")
+
+ FOR i as integer = LBOUND(plotstr) to UBOUND(plotstr)
+  WITH plotstr(i)
+   DIM n as NodePtr
+   'Check whether equal to initial blank state
+   IF LEN(.s) = 0 ANDALSO .col = -1 AND (.x OR .y OR .bgcol OR .bits) = 0 THEN CONTINUE FOR
+   n = AppendChildNode(node, "string", i)
+   AppendChildNode n, "str", .s
+   AppendChildNode n, "x", .x
+   AppendChildNode n, "y", .y
+   AppendChildNode n, "col", .col
+   AppendChildNode n, "bgcol", .bgcol
+   AppendChildNode n, "visible", (.bits AND 1)
+   'style 0 is edged, 1 is flat
+   DIM style as integer = IIF(.bits AND 2, 1, 0)
+   AppendChildNode n, "style", style
+  END WITH
+ NEXT i
 END SUB
 
 SUB gamestate_slices_to_reload(byval parent as Reload.NodePtr)

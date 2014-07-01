@@ -1503,7 +1503,8 @@ end</example>
 		<description>In HamsterSpeak, strings are special variables which hold pieces of text, and are referred to by their ID numbers. There are 100 string variables, with IDs 0 to 99. Strings variables can be displayed onscreen directly, or alternatively embedded in textboxes or dsiplayed with text slices. For more information, see the <a href="rpg.hamsterrepublic.com/ohrrpgce/Strings">wiki article on strings</a>.<lb/>
 You can set the value of a string directly with <ref>$string="..."</ref> and append to an existing string with <ref>$string+"..."</ref>.
 There is no limit on string length.<lb/>
-<note>When referring to a position in a string, <p>position</p> is a 1-based index into the string, not a 0-based index. For example, given a string "ABCDEFG", position=3 is "C", not "D". This is because the string commands are based on BASIC string commands, which are 1-based. This also means that position 0 is invalid. Beware!</note></description>
+<note>Unlike almost all other indices in the OHRRPGCE, when referring to a position in a string, <p>position</p> is a 1-based index into the string, not a 0-based index. For example, given a string "ABCDEFG", position=3 is "C", not "D". This means that position 0 is invalid. Beware!</note>
+<note>Strings are not saved in saved games by default, but this can be enabled in the Saved Game Settings menu.</note></description>
 		<command id="$string=&quot;...&quot;">
 			<canon>$id="some text"</canon>
 			<shortname>$id="..."</shortname>

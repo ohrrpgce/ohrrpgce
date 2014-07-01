@@ -2631,23 +2631,50 @@ end
 
 script, savegame tests 1, begin
   $0="saving/loading tests 1"
+  # Partially split into savegame tests 2
 
   # Preconditions
   assert(current map == 0)
+  delete save(1)
   assert(save slot used(1) == false)
 
   savegame map := current map
-  savegame slice := create rect(555, 777)
+  savegame slice := create rect(15, 20)
+  put slice(savegame slice, 40, 40)
   savegame npc := createnpc(0, 5, 5)
-  $5 = "This isn't empty"
+
+  # Saving of string state
+  # There are no commands to return the current colour and style
+  # of a string (and I don't see any need to add them), so that can only be
+  # tested by screenshot.
+  $5 = "This is a green string"
+  show string at(5, 100, 100)
+  string color(5, 72)
+  # Should default to 'string:outline' style
+  $6 = "This is flat yellow-on-purple"
+  show string at(6, 100, 110)
+  string style(6, string:flat)
+  string color(6, 14, 194)  # yellow, purple
+  $7="This should be plain style"
+  show string at(7, 100, 120)
+  w
 
   save in slot(1)
   assert(save slot used(1) == true)
 
-  # Change state a bit
+  # Change state a bit to check it's actually reset and loaded
+  hide string(5)
+  $5 = ""
+  $6 = "Now it's plain"
+  string color(6)
+  $7 = "Now it's yellow-on-purple"
+  string style(7, string:flat)
+  string color(7, 14, 194)  # yellow, purple
+  show string at(8, 0, 0)
   teleport to map(1)
-  savegame map := -1  # check globals loaded
+  savegame map := -1
   free slice(savegame slice)
+  w
 
   load from slot(1)
 
@@ -2658,18 +2685,31 @@ end
 # This is called from the loadgame plotscript
 script, savegame tests 2, begin
   $0="saving/loading tests 2"
+  trace(0)
 
   # Check globals, map number, slices loaded (game is set to save slices)
   assert(savegame map == current map)
-  assert(slicewidth(savegame slice) == 555)
-  # Check NPCs and strings were NOT saved
+  assert(slicewidth(savegame slice) == 15)
+
+  # Check NPCs were NOT saved
   assert(get npc id(savegame npc) == -1)  # doesn't exist
-  assert(string length(5) == 0)
+
+  # Check strings were loaded
+  assert(string is visible(5))
+  assert(string is visible(6))
+  assert(string is visible(8) == false)
+  $8 = "This is a green string"
+  assert(string compare(5, 8))
+  assert(string x(6) == 100)
+  assert(string y(6) == 110)
+  # Can't test colour, style
+  w
 
   # Clean up
+  hide string(5)
+  hide string(6)
+  hide string(7)
   free slice(savegame slice)
-  delete save(1)
-  assert(save slot used(1) == false)
 end
 
 ########################################################################

@@ -33,6 +33,8 @@ CONST CURRENT_RSAV_VERSION = 3
 ' 1 - zenzizenzic wip removed nativehbits related nodes
 ' 2 - alectormancy wip increased global limit from 4095 to 16383
 ' 3 - stopped writing obsolete battle_menus node
+' unversioned - optional saving of slices
+' 4 - callipygous added optional saving of strings
 
 CONST CURRENT_TESTING_IPC_VERSION = 4
 ' Version of the IPC protocol used when live-previewing

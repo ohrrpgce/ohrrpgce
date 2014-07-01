@@ -5599,10 +5599,11 @@ SUB generate_savegame_options_menu(menu() as string, save_options_node as Node p
  menu(0) = "Previous Menu..."
  menu(1) = "Number of save/load slots: " & gen(genSaveSlotCount)
  menu(2) = "Save script/sprite layer slices: " & yesorno(save_options_node."sprite_layer".exists)
+ menu(3) = "Save strings: " & yesorno(save_options_node."strings".exists)
 END SUB
 
 SUB edit_savegame_options
- CONST maxMenu = 2
+ CONST maxMenu = 3
  DIM menu(maxMenu) as string
  DIM menu_display(maxMenu) as string
  DIM selectst as SelectTypeState
@@ -5632,11 +5633,15 @@ SUB edit_savegame_options
    IF enter_space_click(state) THEN EXIT DO
   ELSEIF state.pt = 1 THEN  'save slot count
    IF intgrabber(gen(genSaveSlotCount), 1, 32) THEN state.need_update = YES
-  ELSEIF state.pt = 2 THEN  'save slices
-   IF keyval(scLeft) > 1 OR keyval(scRight) > 1 OR enter_space_click(state) THEN
+  END IF
+
+  IF keyval(scLeft) > 1 OR keyval(scRight) > 1 OR enter_space_click(state) THEN
+   IF state.pt = 2 THEN  'save slices
     ToggleChildNode save_options_node, "sprite_layer"
-    state.need_update = YES
+   ELSEIF state.pt = 3 THEN  'save plotstrings
+    ToggleChildNode save_options_node, "strings"
    END IF
+   state.need_update = YES
   END IF
 
   IF state.need_update THEN

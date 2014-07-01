@@ -49,7 +49,6 @@ define constant, begin
 14,element:Type 7killer
 15,element:Type 8killer
 1,slot:Weapon
-1,slot:Weapon 2
 2,slot:Head
 3,slot:Body
 4,slot:Arms
