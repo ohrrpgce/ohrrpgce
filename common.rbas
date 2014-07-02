@@ -3813,15 +3813,9 @@ IF time_rpg_upgrade THEN
 END IF
 
 IF gen(genErrorLevel) = 0 THEN
- #IFDEF IS_CUSTOM
-  IF twochoice("Set script error reporting level to new default, showing all warnings and error messages?", "Yes (Best)", "No (Safest)", 1, 1, "script_error_new_default") = 0 THEN
-   gen(genErrorLevel) = 2
-  ELSE
-   gen(genErrorLevel) = 5
-  END IF
- #ELSE
-  gen(genErrorLevel) = 5
- #ENDIF
+ 'Removed the question about script error levels, too annoying.
+ 'Defaults to hiding serrBound and lower.
+ gen(genErrorLevel) = 5
 END IF
 
 'Save changes to GEN lump (important when exiting to the title screen and loading a SAV)
