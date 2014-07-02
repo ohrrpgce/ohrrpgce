@@ -538,18 +538,7 @@ SUB choose_rpg_to_open (rpg_browse_default as string)
 END SUB
 
 SUB prompt_for_save_and_quit()
-
- 'FIXME: delete this on Callipygous release, this is only here
- 'so that editing in a nightly doesn't cause a nasty error when
- 'reverting to earlier version
- IF gen(genResolutionX) = 320 THEN gen(genResolutionX) = 0
- IF gen(genResolutionY) = 200 THEN gen(genResolutionY) = 0
-
  xbsave game & ".gen", gen(), 1000
-
- 'FIXME: delete too
- IF gen(genResolutionX) <= 0 THEN gen(genResolutionX) = 320
- IF gen(genResolutionY) <= 0 THEN gen(genResolutionY) = 200
 
  DIM quit_menu(3) as string
  quit_menu(0) = "Continue editing"
