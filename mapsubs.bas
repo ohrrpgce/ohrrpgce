@@ -3904,6 +3904,7 @@ SUB mapedit_pickblock_setup_tileset(st as MapEditState, tilesetview as TileMap, 
  tilesetview.high = tiley 
 END SUB
 
+'Pick either a tile from the tileset or a rectangle.
 'FIXME: if this were cleaned up to return a tile instead of modifying st.usetile, it could be called
 'from the general map settings menu.
 SUB mapedit_pickblock(st as MapEditState)
@@ -3922,6 +3923,11 @@ SUB mapedit_pickblock(st as MapEditState)
  'systems in future, and larger tilesets.
  DIM tilesetview as TileMap
  mapedit_pickblock_setup_tileset st, tilesetview, tilesetdata, tilepick
+
+ 'The animated tiles are very annoying, so hide them by default unless already selected
+ DIM show_animated_tiles as bool = YES
+ IF st.usetile(st.layer) < 160 THEN show_animated_tiles = NO
+ DIM real_tilesetview_high as integer = tilesetview.high
 
  setkeys
  DO
@@ -3943,6 +3949,11 @@ SUB mapedit_pickblock(st as MapEditState)
    mapedit_pick_tileset_rect st, tilesetview, tilepick, holdpos
    EXIT DO
   END IF
+  IF dragging = NO AND keyval(scA) > 1 THEN
+   show_animated_tiles XOR= YES
+  END IF
+
+  tilesetview.high = IIF(show_animated_tiles, real_tilesetview_high, 10)
 
   DIM repeatms as integer = 80
   IF keyval(scShift) > 0 THEN repeatms = 40
@@ -3959,7 +3970,7 @@ SUB mapedit_pickblock(st as MapEditState)
 
   ' Keep the selected tile in view
   scrolly = bound(scrolly, tilepick.y * 20 + 30 - vpages(vpage)->h, tilepick.y * 20 - 10)
-  ' Don't pver-scroll
+  ' Don't over-scroll
   scrolly = large(small(scrolly, tilesetview.high * 20 - vpages(vpage)->h), 0)
 
   'Draw screen
