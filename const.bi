@@ -177,6 +177,12 @@ CONST statUser = 12              'Additional user defined stats, if any, start h
 
 CONST statLast = 11 'Index of last actually defined stat.
                      'FIXME: There are a ton of places that should use this, but don't yet
+'The following constants are for addressing register stats in BattleStatsSingle.sta()
+CONST statPoison = 12
+CONST statRegen = 13
+CONST statStun = 14
+CONST statMute = 15
+CONST statLastRegister = 15
 
 '---Format fix bits
 CONST fixAttackitems = 0         'zero out attack data for item cost (ammunition)

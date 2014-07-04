@@ -1616,7 +1616,7 @@ SUB attack_editor_build_damage_menu(recbuf() as integer, menu() as string, menut
   DIM target_is_register as integer = NO
   DIM percentage_attack as integer = NO
 
-  IF attack.targ_stat >= 12 AND attack.targ_stat <= 15 THEN target_is_register = YES
+  IF attack.targ_stat > statLast AND attack.targ_stat <= statLastRegister THEN target_is_register = YES
   IF attack.damage_math = 5 OR attack.damage_math = 6 THEN percentage_attack = YES
 
   FOR i = 0 TO gen(genNumElements) - 1
@@ -1660,7 +1660,7 @@ SUB attack_editor_build_damage_menu(recbuf() as integer, menu() as string, menut
   END IF
 
   IF target_is_register THEN
-    'Pointless, register stats are capped (in the battle main loop, not in inflict)
+    'Register stats are always capped to max
     maskeddmgbit(58) = ""  'Allow Cure to exceed maximum
   END IF
 

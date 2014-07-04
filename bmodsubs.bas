@@ -316,7 +316,7 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
   attacker.stored_targs_can_be_dead = NO
  END IF
  
- 'no damage
+ 'If not 'no damage'
  IF attack.damage_math <> 4 THEN
  
   'init
@@ -331,6 +331,8 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
    IF attack.obsolete_damage_mp THEN
     IF targstat = statHP THEN targstat = statMP
    END IF
+   DIM target_is_register as bool = NO
+   IF targstat > statLast AND targstat <= statLastRegister THEN target_is_register = YES
   END WITH
  
   'accuracy
@@ -578,7 +580,9 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
    'enforce stat bounds
    target.stat.cur.sta(targstat) = large(target.stat.cur.sta(targstat), 0)
    attacker.stat.cur.sta(targstat) = large(attacker.stat.cur.sta(targstat), 0)
-   IF attack.allow_cure_to_exceed_maximum = NO THEN
+   IF target_is_register OR attack.allow_cure_to_exceed_maximum = NO THEN
+    'Cap to max. But if the stat was already above max then instead don't allow
+    'it to go higher.
     target.stat.cur.sta(targstat) = small(target.stat.cur.sta(targstat), large(target.stat.max.sta(targstat), remtargstat))
     attacker.stat.cur.sta(targstat) = small(attacker.stat.cur.sta(targstat), large(attacker.stat.max.sta(targstat), rematkrstat))
    END IF
@@ -651,6 +655,10 @@ FUNCTION liveherocount () as integer
  RETURN liveheroes
 END FUNCTION
 
+'TODO: no need to limit to 16 bit arithmetic. Also
+'at the moment there's no need for this function at all.
+'But if we change to 32 bit stats then this must be changed
+'to use long longs instead of doubles.
 FUNCTION safesubtract (byval number as integer, byval minus as integer) as integer
  DIM longnumber as double = number
  DIM longminus as double = minus
@@ -661,6 +669,7 @@ FUNCTION safesubtract (byval number as integer, byval minus as integer) as integ
  RETURN result
 END FUNCTION
 
+'TODO: See safesubtract
 FUNCTION safemultiply (byval number as integer, byval by as single) as integer
  dim as integer longnumber = number
  dim as single longby = by
