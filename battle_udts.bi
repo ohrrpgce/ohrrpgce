@@ -17,7 +17,7 @@ UNION BattleStatsSingle
     wil as integer  '7
     spd as integer  '8
     ctr as integer  '9
-    foc as integer  '10
+    focus as integer'10
     hits as integer '11
     poison as integer
     regen as integer

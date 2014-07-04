@@ -567,7 +567,7 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
  battle_counterattacks bat, h, targstat, targ, attack, bslot()
  IF bat.atk.has_consumed_costs = NO THEN
   '--if the attack costs MP, we want to actually consume MP
-  IF attack.mp_cost > 0 THEN bslot(bat.acting).stat.cur.mp = large(bslot(bat.acting).stat.cur.mp - focuscost(attack.mp_cost, bslot(bat.acting).stat.cur.foc), 0)
+  IF attack.mp_cost > 0 THEN bslot(bat.acting).stat.cur.mp = large(bslot(bat.acting).stat.cur.mp - focuscost(attack.mp_cost, bslot(bat.acting).stat.cur.focus), 0)
  
   '--ditto for HP
   IF attack.hp_cost > 0 THEN
@@ -1796,12 +1796,13 @@ SUB checkTagCond (byref t as AttackDataTag, byval check as integer)
  END IF
 END SUB
 
-FUNCTION focuscost (byval cost as integer, byval focus as integer) as integer
-IF focus > 0 THEN
- focuscost = cost - INT(cost / (100 / focus))
-ELSE
- focuscost = cost
-END IF
+'Adjust the MP cost of an attack according to focus stat
+FUNCTION focuscost (cost as integer, focus as integer) as integer
+ IF focus > 0 THEN
+  RETURN cost - INT(cost / (100 / focus))
+ ELSE
+  RETURN cost
+ END IF
 END FUNCTION
 
 SUB calc_hero_elementals (elemental_resists() as single, byval who as integer)
@@ -2390,7 +2391,7 @@ SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDe
     bat.spell.slot(i).desc = atk.description
     IF st(bat.hero_turn).list_type(bat.listslot) = 0 THEN
      '--regular MP
-     bat.spell.slot(i).cost = " " & focuscost(atk.mp_cost, bslot(bat.hero_turn).stat.cur.foc) & " " & statnames(statMP) & " " & bslot(bat.hero_turn).stat.cur.mp & "/" & bslot(bat.hero_turn).stat.max.mp
+     bat.spell.slot(i).cost = " " & focuscost(atk.mp_cost, bslot(bat.hero_turn).stat.cur.focus) & " " & statnames(statMP) & " " & bslot(bat.hero_turn).stat.cur.mp & "/" & bslot(bat.hero_turn).stat.max.mp
     END IF
     IF st(bat.hero_turn).list_type(bat.listslot) = 1 THEN
      '--level MP

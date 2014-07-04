@@ -3619,7 +3619,7 @@ SUB spells_menu_refresh_list(sp as SpellsMenuState)
      .targt = atk.targ_set
      .tstat = atk.targ_stat
     END IF
-    cost = focuscost(atk.mp_cost, gam.hero(sp.hero).stat.cur.foc)
+    cost = focuscost(atk.mp_cost, gam.hero(sp.hero).stat.cur.focus)
     
     'FIXME: should use the same cost-checking sub that the battle spell menu uses
     IF sp.lists(sp.listnum).magic_type = 0 AND gam.hero(sp.hero).stat.cur.mp < cost THEN
@@ -3789,7 +3789,7 @@ SUB spells_menu_control(sp as SpellsMenuState)
      'FIXME: outside-battle and inside-battle attack cost consumption should be unified
      '--deduct MP
      DIM cost as integer
-     cost = focuscost(atk.mp_cost, gam.hero(sp.hero).stat.cur.foc)
+     cost = focuscost(atk.mp_cost, gam.hero(sp.hero).stat.cur.focus)
      gam.hero(sp.hero).stat.cur.mp = small(large(gam.hero(sp.hero).stat.cur.mp - cost, 0), gam.hero(sp.hero).stat.max.mp)
      IF sp.lists(sp.listnum).magic_type = 1 THEN
       '--deduct LMP

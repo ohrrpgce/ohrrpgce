@@ -632,7 +632,7 @@ Union Stats
                wil as integer
                spd as integer
                ctr as integer
-               foc as integer
+               focus as integer
                hits as integer
        End Type
        sta(11) as integer
