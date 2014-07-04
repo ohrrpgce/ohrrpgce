@@ -2839,6 +2839,7 @@ SUB convertattackdata(buf() as integer, byref atkdat as AttackData)
   .force_victory                  = xreadbit(buf(), 21, 65)
   .force_battle_exit              = xreadbit(buf(), 22, 65)
   .never_trigger_elemental_counterattacks = xreadbit(buf(), 23, 65)
+  .poison_is_negative_regen       = xreadbit(buf(), 24, 65)
  END WITH
 END SUB
 

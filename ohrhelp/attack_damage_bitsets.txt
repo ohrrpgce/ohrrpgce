@@ -38,3 +38,6 @@ This bitset only affects attacks with percentage damage math. The percentage wil
 
 * Don't allow damage to exceed target stat
 This bitset prevents the attack from doing any more damage than the target's target stat. For example, if an attack is capable of doing 100 damage, but the target only has 25 HP left, this bitset would limit the damage to 25. This also works for curing attacks. For example, if a cure spell can restore 100 HP, but the target is only 25 HP below max, this bitset will limit the cure to 25 HP. That means that when this bit is on, an attack can never increase a stat past its maximum. (This bitset also works for other target stats besides HP.)
+
+* Healing poison causes regen, and reverse
+Normally all status registers are capped to the maximum value (which means no effect). If this bit is set then attempting to heal the poison register above maximum will instead decrease the regen register by an equal amount, and vice versa. For example if 20 damage has been done to the poison register and it is healed by 50 then the poison is completely cured and the target gets 30 regen. This bit works for both attacker and target, and is particularly useful when either one absorbs damage.

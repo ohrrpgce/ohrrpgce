@@ -40,6 +40,8 @@ WHAT IS NEW?
       * strings (including display settings)
       [Ralph]
     * Most 32 bit BMPs should be importable now [Ralph]
+    * Attack damage bitset "Healing poison causes regen, and reverse";
+      useful when attacker or target absorbs damage [Ralph]
 
   * Bugfixes
     * Fixed a few cosmetic bugs in the equip menu including possibly

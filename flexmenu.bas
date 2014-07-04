@@ -277,6 +277,7 @@ dmgbit(61) = "Do not randomize"
 dmgbit(62) = "Damage can be Zero"
 dmgbit(69) = "% based attacks damage instead of set"
 dmgbit(83) = "Don't allow damage to exceed target stat"
+dmgbit(88) = "Healing poison causes regen, and reverse"
 '             ^---------------------------------------^
 '               the amount of room you have (39 chars)
 
@@ -1664,6 +1665,10 @@ SUB attack_editor_build_damage_menu(recbuf() as integer, menu() as string, menut
     maskeddmgbit(58) = ""  'Allow Cure to exceed maximum
   END IF
 
+  IF attack.targ_stat <> statRegen AND attack.targ_stat <> statPoison THEN
+    maskeddmgbit(88) = ""  'Healing poison causes regen and reverse
+  END IF
+
   'If Damage Math is No Damage
   '(Note that this also disables nearly all aiming and failure logic!)
   IF attack.damage_math = 4 THEN
@@ -1826,6 +1831,7 @@ SUB attack_editor_build_damage_menu(recbuf() as integer, menu() as string, menut
       maskeddmgbit(2)  = ""  'Absorb Damage
       maskeddmgbit(57) = ""  'Reset target stat to max before hit
       maskeddmgbit(58) = ""  'Allow Cure to exceed maximum
+      maskeddmgbit(88) = ""  'Healing poison causes regen and reverse
     END IF
 
     IF attack.show_damage_without_inflicting = NO AND setvalue = NO AND gen(genDamageCap) > 0 THEN
@@ -1890,6 +1896,14 @@ SUB attack_editor_build_damage_menu(recbuf() as integer, menu() as string, menut
         IF attack.absorb_damage THEN
           preview += !"\nAttacker " + targetstat + " += DMG"
         END IF
+      END IF
+
+      IF attack.poison_is_negative_regen AND (attack.targ_stat = statPoison OR attack.targ_stat = statRegen) THEN
+        'Healing poison causes regen and reverse
+        DIM negatedstat as integer = IIF(attack.targ_stat = statPoison, statRegen, statPoison)
+        DIM negatedstatname as string = caption(menucapoff(AtkTargStat) + negatedstat)
+        preview += !"\nIf Target/Attacker " + targetstat + " > Max"
+        preview += !"\nthen Target/Attacker " & negatedstatname & " -= amount above Max"
       END IF
 
       IF attack.allow_cure_to_exceed_maximum = NO AND target_is_register = NO THEN

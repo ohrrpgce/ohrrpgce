@@ -577,6 +577,23 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
     END WITH
    END IF
 
+   IF attack.poison_is_negative_regen AND (targstat = statPoison OR targstat = statRegen) THEN
+    'Healing poison causes regen and reverse
+    DIM negatedstat as integer = IIF(targstat = statPoison, statRegen, statPoison)
+    ' For both of target.stat and attacker.stat:
+    FOR itr as integer = 0 TO 1
+     WITH *IIF(itr, @target.stat, @attacker.stat)
+      DIM abovemax as integer
+      ' Healing poison register above max becomes regen and vice versa
+      abovemax = .cur.sta(targstat) - .max.sta(targstat)
+      IF abovemax > 0 THEN
+       .cur.sta(negatedstat) -= abovemax
+       .cur.sta(targstat) = .max.sta(targstat)
+      END IF
+     END WITH
+    NEXT
+   END IF
+
    'enforce stat bounds
    target.stat.cur.sta(targstat) = large(target.stat.cur.sta(targstat), 0)
    attacker.stat.cur.sta(targstat) = large(attacker.stat.cur.sta(targstat), 0)

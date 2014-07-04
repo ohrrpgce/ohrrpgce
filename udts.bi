@@ -758,6 +758,7 @@ Type AttackData
 	do_not_exceed_targ_stat as bool
 	nonblocking as bool
 	never_trigger_elemental_counterattacks as bool
+	poison_is_negative_regen as bool
 End Type
 
 'An item in a hero's spell list definition (actual spell lists in spell() array of integers)
