@@ -1666,7 +1666,7 @@ SELECT CASE as CONST id
   'prevent further damage
   'Note: elemental/enemytype bits no longer exist (should still be able to read them
   'from old games, though)
-  IF in_bound(retvals(0), 0, gen(genMaxEnemy)) AND in_bound(retvals(1), 0, 106) THEN
+  IF bound_arg(retvals(0), 0, gen(genMaxEnemy), "enemy ID") AND bound_arg(retvals(1), 0, 106, "data index", , , serrBadOp) THEN
    scriptret = ReadShort(tmpdir & "dt1.tmp", retvals(0) * getbinsize(binDT1) + retvals(1) * 2 + 1)
   END IF
  CASE 231'--write enemy data
@@ -1674,7 +1674,11 @@ SELECT CASE as CONST id
   '106 was the largest used offset until very recently, so we'll limit it there to
   'prevent further damage
   'Note: writing elemental/enemytype bits no longer works
-  IF in_bound(retvals(0), 0, gen(genMaxEnemy)) AND in_bound(retvals(1), 0, 106) THEN
+  IF bound_arg(retvals(0), 0, gen(genMaxEnemy), "enemy ID") AND bound_arg(retvals(1), 0, 106, "data index", , , serrBadOp) THEN
+   'Show an error if out of range, but be lenient and continue anyway, capping
+   'stats (and other data...) to 32767
+   bound_arg(retvals(2), -32768, 32767, "value")
+   retvals(2) = bound(retvals(2), -32768, 32767)
    WriteShort(tmpdir & "dt1.tmp", retvals(0) * getbinsize(binDT1) + retvals(1) * 2 + 1, retvals(2))
   END IF
  CASE 232'--trace
