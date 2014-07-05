@@ -492,6 +492,12 @@ declare function ends_with(s as string, suffix as string) as integer
 
 declare function string_index_in_array(s as string, a() as string, notfound as integer=-1) as integer
 
+#macro debug_if_slow(starttime, seconds, extrainfo)
+  IF TIMER > starttime + seconds THEN
+    debug __FUNCTION__ "(" & extrainfo & ") took " & CINT((TIMER - starttime) * 1000) & "ms"
+  END IF
+#endmacro
+
 '----------------------------------------------------------------------
 '                        Old allmodex functions
 

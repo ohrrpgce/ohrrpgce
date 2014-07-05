@@ -464,6 +464,7 @@ Sub LoadStringTable(byval f as FILE ptr, byval doc as docptr)
 end sub
 
 Function LoadDocument(fil as string, byval options as LoadOptions) as DocPtr
+	dim starttime as double = timer
 	dim ret as DocPtr
 	dim f as FILE ptr
 	
@@ -540,6 +541,7 @@ Function LoadDocument(fil as string, byval options as LoadOptions) as DocPtr
 	if options and optNoDelay then
 		fclose(f)
 	end if
+	debug_if_slow(starttime, 0.1, fil)
 	return ret
 End Function
 
@@ -669,6 +671,7 @@ Declare sub serializeBin(byval nod as NodePtr, byval f as BufferedFile ptr, byva
 
 'This serializes a document as a binary file. This is where the magic happens :)
 sub SerializeBin(file as string, byval doc as DocPtr)
+	dim starttime as double = timer
 	if doc = null then exit sub
 	
 	RemoveProvisionalNodes(doc->root)
@@ -738,6 +741,7 @@ sub SerializeBin(file as string, byval doc as DocPtr)
 	end if
 	send_lump_modified_msg(file)
 	safekill file & ".tmp"
+	debug_if_slow(starttime, 0.1, file)
 end sub
 
 sub serializeBin(byval nod as NodePtr, byval f as BufferedFile ptr, byval doc as DocPtr)

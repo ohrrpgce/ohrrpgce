@@ -518,6 +518,8 @@ end function
 'Display a videopage. May modify the page!
 'Also resizes all videopages to match the window size
 sub setvispage (byval page as integer)
+	dim starttime as double = timer
+	dim starttime2 as double
 	if gfx_supports_variable_resolution() = NO then
 		'Safety check. We must stick to 320x200, otherwise the backend could crash.
 		'In future backends should be updated to accept other sizes even if they only support 320x200
@@ -544,16 +546,21 @@ sub setvispage (byval page as integer)
 		'the fb backend may freeze up if it collides with the polling thread
 		mutexlock keybdmutex
 		if updatepal then
+			starttime2 = timer
 			gfx_setpal(@intpal(0))
+			debug_if_slow(starttime2, 0.05, "gfx_setpal")
 			updatepal = NO
 		end if
+		starttime2 = timer
 		gfx_showpage(.image, .w, .h)
+		debug_if_slow(starttime2, 0.1, "gfx_showpage")
 		mutexunlock keybdmutex
 	end with
 
 	'After presenting the page this is a good time to check for window size changes and
 	'resize the videopages as needed before the next frame is rendered.
 	screen_size_update
+	debug_if_slow(starttime, 0.2, "")
 end sub
 
 sub setpal(pal() as RGBcolor)
@@ -1269,6 +1276,8 @@ sub setkeys (byval enable_inputtext as bool = NO)
 '
 'Note that key repeat is NOT added to keybd (it's done by "post-processing" in keyval)
 
+	dim starttime as double = timer
+
 	if enable_inputtext then enable_inputtext = YES
 	if inputtext_enabled <> enable_inputtext then
 		inputtext_enabled = enable_inputtext
@@ -1322,6 +1331,9 @@ sub setkeys (byval enable_inputtext as bool = NO)
 	end if
 #endif
 
+	'Taking a screenshot with gfx_directx is very slow, so avoid timing that
+	debug_if_slow(starttime, 0.005, play_input)
+
 	'F12 for screenshots handled here
 	snapshot_check
 
@@ -1358,7 +1370,6 @@ sub setkeys (byval enable_inputtext as bool = NO)
 	
 	mouse_moved_since_setkeys = NO
 	mouse_clicks_since_setkeys = 0
-
 end sub
 
 sub clearkey(byval k as integer)
@@ -1404,6 +1415,7 @@ function mousecursorvisible () as bool
 end function
 
 function readmouse () as MouseInfo
+	dim starttime as double = timer
 	dim info as MouseInfo
 
 	mutexlock keybdmutex   'is this necessary?
@@ -1461,6 +1473,7 @@ function readmouse () as MouseInfo
 		end if
 	end if
 
+	debug_if_slow(starttime, 0.005, info.clicks)
 	return info
 end function
 
@@ -2250,6 +2263,7 @@ end sub
 
 sub storeset (fil as string, byval i as integer, byval l as integer)
 ' i = index, l = line (only if reading from screen buffer)
+	dim starttime as double = timer
 	dim f as integer
 	dim idx as integer
 	dim bi as integer
@@ -2293,12 +2307,14 @@ sub storeset (fil as string, byval i as integer, byval l as integer)
 	end if
 
 	close #f
+	debug_if_slow(starttime, 0.1, fil)
 end sub
 
 sub loadset (fil as string, byval i as integer, byval l as integer)
 ' i = index, l = line (only if reading to screen buffer)
 'Obsolete, use loadrecord instead
 'Note: This is extremely slow when reading past end of file because fread buffering internal stuff
+	dim starttime as double = timer
 	dim f as integer
 	dim idx as integer
 	dim bi as integer
@@ -2347,6 +2363,7 @@ sub loadset (fil as string, byval i as integer, byval l as integer)
 	end if
 
 	close #f
+	debug_if_slow(starttime, 0.1, fil)
 end sub
 
 'b is in BYTES
@@ -2394,6 +2411,7 @@ end sub
 function loadmxs (fil as string, byval record as integer, byval dest as Frame ptr = NULL) as Frame ptr
 'Loads a 320x200 mode X format page from a file.
 'You may optionally pass in existing frame to load into (unnecessary functionality)
+	dim starttime as double = timer
 	dim f as integer
 	dim as integer x, y
 	dim sptr as ubyte ptr
@@ -2442,6 +2460,7 @@ function loadmxs (fil as string, byval record as integer, byval dest as Frame pt
 	next
 
 	close #f
+	debug_if_slow(starttime, 0.1, fil)
 	return dest
 end function
 
@@ -5584,6 +5603,7 @@ end sub
 ' It will return a pointer to the first frame, and subsequent frames
 ' will be immediately after it in memory. (This is a hack, and will probably be removed)
 function frame_load(byval ptno as integer, byval rec as integer) as frame ptr
+	dim starttime as double = timer
 	dim ret as Frame ptr
 	dim key as integer = ptno * 1000000 + rec
 
@@ -5599,10 +5619,10 @@ function frame_load(byval ptno as integer, byval rec as integer) as frame ptr
 		'debug "loading " & ptno & "  " & rec
 		'cachemiss += 1
 		ret = frame_load(game + ".pt" & ptno, rec, .frames, .size.w, .size.h)
-		if ret = 0 then return 0
 	end with
 
-	sprite_add_cache(key, ret)
+	if ret then sprite_add_cache(key, ret)
+	debug_if_slow(starttime, 0.1, key)
 	return ret
 end function
 
@@ -6514,6 +6534,7 @@ function Palette16_load(byval num as integer, byval autotype as integer = 0, byv
 end function
 
 function Palette16_load(fil as string, byval num as integer, byval autotype as integer = 0, byval spr as integer = 0) as Palette16 ptr
+	dim starttime as double = timer
 	dim hashstring as string
 	dim cache as Palette16Cache ptr
 	if num > -1 then
@@ -6583,6 +6604,7 @@ function Palette16_load(fil as string, byval num as integer, byval autotype as i
 
 	'debug d
 
+	debug_if_slow(starttime, 0.1, fil)
 	return ret
 end function
 

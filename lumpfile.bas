@@ -244,16 +244,18 @@ end function
 'handled transparently by the Lump object rather than actually occurring
 
 
-function loadrecord (buf() as integer, byval fh as integer, byval recordsize as integer, byval record as integer = -1) as bool
+function loadrecord (buf() as integer, byval fh as integer, byval recordsize as integer, byval record as integer = -1, context as string = "") as bool
 'common sense alternative to loadset, setpicstuf
 'loads 16bit records in an array
 'buf() = buffer to load shorts into, starting at buf(0)
 'fh = open file handle
 'recordsize = record size in shorts (not bytes)
 'record = record number, defaults to read from current file position
+'context = filename if known. For debug only.
 'returns true if successful, false if failure (eg. file too short)
 'Even if the file is too short, reads as much as possible
 
+	dim starttime as double = timer
 	dim idx as integer
 	if recordsize <= 0 then return NO
 	if ubound(buf) < recordsize - 1 then
@@ -271,6 +273,7 @@ function loadrecord (buf() as integer, byval fh as integer, byval recordsize as 
 	for idx = 0 to small(recordsize - 1, ubound(buf))
 		buf(idx) = readbuf(idx)
 	next
+	debug_if_slow(starttime, 0.1, context)
 	return ret
 end function
 
@@ -292,7 +295,7 @@ function loadrecord (buf() as integer, filen as string, byval recordsize as inte
 	f = freefile
 	open filen for binary access read as #f
 
-	loadrecord = loadrecord (buf(), f, recordsize, record)
+	loadrecord = loadrecord (buf(), f, recordsize, record, filen)
 	close #f
 end function
 
