@@ -1297,7 +1297,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
   END IF
 
   clearpage dpage
-  frame_draw backdrop, , 0, 0, , , dpage
+  IF backdrop THEN frame_draw backdrop, , 0, 0, , , dpage
   textbox_edit_preview box, st
   FOR i as integer = 0 TO UBOUND(menu)
    DIM col as integer = uilook(uimenuItem)
