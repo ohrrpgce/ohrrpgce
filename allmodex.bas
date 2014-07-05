@@ -1095,15 +1095,14 @@ function waitforanykey () as integer
 
 	setkeys
 	do
-		setwait 50
+		setwait 80
 		dowait
 		io_pollkeyevents()
 		setkeys
 		key = anykeypressed(sleepjoy = 0)
 		if key then
-			'prevent crazy fast pseudo-keyrepeat
-			sleep 25
-
+			'Prevent "dowait called without setwait" warning
+			setwait 25
 			return key
 		end if
 		if sleepjoy > 0 then
