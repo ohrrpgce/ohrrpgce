@@ -3374,8 +3374,12 @@ END SUB
 SUB LoadFormationSet (formset as FormationSet, byval index as integer)
  DIM formsetdata(24) as integer
 
- IF index < 1 ORELSE loadrecord(formsetdata(), game & ".efs", 25, index - 1) = 0 THEN
+ IF index < 1 THEN
   debug "LoadFormationSet: invalid formation set " & index
+ ELSE
+  'Not an error to load a nonexistent formation set; happens when
+  'editing for first time and can be used before it is created
+  loadrecord(formsetdata(), game & ".efs", 25, index - 1)
  END IF
 
  formset.frequency = formsetdata(0)
