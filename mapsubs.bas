@@ -517,7 +517,7 @@ modenames(5) = "Zone Mapping Mode"
 'Due to laziness, the menubar shows all 256 tiles (including animated tiles),
 'while the tileset tile picker hides unused animated tile patterns.
 'See mapedit_pickblock_setup_tileset.
-cleantilemap st.menubar, 255, 1
+cleantilemap st.menubar, 256, 1
 FOR i as integer = 0 TO 255
  writeblock st.menubar, i, 0, i
 NEXT
