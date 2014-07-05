@@ -239,6 +239,10 @@ sub setmodex()
 	fpsframes = 0
 	fpsstring = ""
 
+	if gfx_supports_variable_resolution() = NO then
+		debuginfo "Resolution changing not supported"
+	end if
+
 	modex_initialised = YES
 end sub
 
@@ -407,7 +411,9 @@ end function
 'The videopages are either trimmed or extended with colour 0.
 private sub screen_size_update ()
 	'Changes windowsize if user tried to resize, otherwise does nothing
-	gfx_get_resize(windowsize)
+	if gfx_get_resize(windowsize) then
+		'debuginfo "User window resize to " & windowsize.w & "*" & windowsize.h
+	end if
 
 	'Clamping windowsize to the minwinsize here means trying to override user
 	'resizes (specific to the case where the backend doesn't support giving the WM
@@ -464,13 +470,12 @@ end sub
 'Makes the window resizeable, and sets a minimum size.
 'Whenever the window is resized all videopages (except compatpages) are resized to match.
 sub unlock_resolution (byval min_w as integer, byval min_h as integer)
-	debuginfo "unlock_resolution " & min_w & "*" & min_h
 	minwinsize.w = min_w
 	minwinsize.h = min_h
 	if gfx_supports_variable_resolution() = NO then
-		debuginfo "Resolution changing not supported"
 		exit sub
 	end if
+	debuginfo "unlock_resolution " & min_w & "*" & min_h
 	resizing_enabled = gfx_set_resizable(YES, minwinsize.w, minwinsize.h)
 	windowsize.w = large(windowsize.w, minwinsize.w)
 	windowsize.h = large(windowsize.h, minwinsize.h)
@@ -485,11 +490,10 @@ end sub
 'Set the window size, if possible, subject to min size bound. Doesn't modify resizability state.
 'This will resize all videopages (except compatpages) to the new window size.
 sub set_resolution (byval w as integer, byval h as integer)
-	debuginfo "set_resolution " & w & "*" & h
 	if gfx_supports_variable_resolution() = NO then
-		debuginfo "Resolution changing not supported"
 		exit sub
 	end if
+	debuginfo "set_resolution " & w & "*" & h
 	windowsize.w = large(w, minwinsize.w)
 	windowsize.h = large(h, minwinsize.h)
 	screen_size_update
@@ -1051,7 +1055,15 @@ end sub
 
 'If using gfx_sdl and gfx_directx this is Latin-1, while gfx_fb doesn't currently support even that
 function getinputtext () as string
-	if inputtext_enabled = NO then debuginfo "getinputtext: not enabled"
+	'Only show this message if getinputtext is called incorrectly twice in a row,
+	'to filter out instances when a menu with inputtext disabled exits back to
+	'one that expects it enabled, and getinputtext is called before the next call to setkeys.
+	static last_call_was_bad as bool = NO
+	if inputtext_enabled = NO and last_call_was_bad then
+		debuginfo "getinputtext: not enabled"
+	end if
+	last_call_was_bad = (inputtext_enabled = NO)
+
 	return inputtext
 end function
 

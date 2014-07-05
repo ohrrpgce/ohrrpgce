@@ -3996,7 +3996,7 @@ SUB experience_chart ()
  DIM menuopts as MenuOptions
  menuopts.wide = 312
 
- STATIC first_view as integer = YES
+ STATIC first_view as bool = YES
 
  setkeys
  DO
@@ -4076,7 +4076,7 @@ SUB experience_chart ()
 
   IF first_view THEN
    first_view = NO
-    visible_debug "This screen is informational only. You cannot customize the experience formula yet"
+   notification "This screen is informational only. You cannot customize the experience formula yet."
   END IF
  LOOP 
 END SUB
