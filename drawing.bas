@@ -2369,6 +2369,7 @@ SUB spriteedit_load_all_you_see(byval top as integer, byval sets as integer, ss 
 END SUB
 
 SUB spriteedit_load_what_you_see(byval j as integer, byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, placer() as integer, workpal() as integer, poffset() as integer)
+ DIM starttime as double = timer   'FIXME: temporary to investigate slowdown in the sprite editor; remove later
  DIM i as integer
  getpal16 workpal(), j - top, poffset(j)
  IF j <= sets THEN
@@ -2379,9 +2380,11 @@ SUB spriteedit_load_what_you_see(byval j as integer, byval top as integer, byval
    stosprite placer(), 0, ss.size * i, soff * (j - top), 3
   NEXT i
  END IF
+ debug_if_slow(starttime, 0.1, j)
 END SUB
 
 SUB spriteedit_save_what_you_see(byval j as integer, byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, placer() as integer, workpal() as integer, poffset() as integer)
+ DIM starttime as double = timer   'FIXME: temporary to investigate slowdown in the sprite editor; remove later
  DIM i as integer
  IF j <= sets THEN
   setpicstuf buffer(), ss.setsize, 2
@@ -2391,6 +2394,7 @@ SUB spriteedit_save_what_you_see(byval j as integer, byval top as integer, byval
   NEXT i
   storeset ss.spritefile, large(j, 0), 0
  END IF
+ debug_if_slow(starttime, 0.1, j)
 END SUB
 
 FUNCTION spriteedit_export_name (ss as SpriteEditState, state as MenuState) as string
