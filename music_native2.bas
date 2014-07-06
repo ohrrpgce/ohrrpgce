@@ -8,8 +8,6 @@
 
 'glup
 #include "config.bi"
-#include "util.bi"
-
 
 '#IFNDEF USE_ALLEGRO
 #IFDEF __FB_WIN32__
@@ -26,19 +24,24 @@
 	#error
 #ENDIF
 
+'Undefine some winapi definitions
 #undef rectangle
 #undef opaque
 #undef ellipse
-#include once "allmodex.bi"
+#undef BITMAP
+#undef BITMAPV3INFOHEADER
 
-#include once "common.bi"
-#include once "const.bi"
+#include "allmodex.bi"
+#include "common.bi"
+#include "const.bi"
+#include "util.bi"
 
 
+''''''''''''''''''''''''''''''''''''' Code include:
 #include "music_native_subs.bas"
 
 
-#include once "music.bi"
+#include "music.bi"
 
 
 

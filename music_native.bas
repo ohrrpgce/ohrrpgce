@@ -46,6 +46,7 @@
 #ENDIF
 
 '#ENDIF
+'Undefine some winapi definitions
 #undef rectangle
 #undef paintat
 #undef max
@@ -56,6 +57,8 @@
 #undef opaque
 #undef transparent
 #undef ellipse
+#undef BITMAP
+#undef BITMAPV3INFOHEADER
 #include once "allmodex.bi"
 
 #include once "common.bi"
