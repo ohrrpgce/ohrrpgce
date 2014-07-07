@@ -1598,7 +1598,7 @@ Function GetChildNodeInt(byval parent as NodePtr, n as string, byval d as longin
 	dim nod as NodePtr = GetChildByName(parent, n)
 	
 	if nod = 0 then return d
-	return GetInteger(nod) 'yes, I realize I don't check for null. GetInteger does, though.
+	return GetInteger(nod)
 end function
 
 'looks for a child node of the name n, and retrieves its value. d is the default, if n doesn't exist
@@ -1610,8 +1610,7 @@ Function GetChildNodeFloat(byval parent as NodePtr, n as string, byval d as doub
 	dim nod as NodePtr = GetChildByName(parent, n)
 	
 	if nod = 0 then return d
-	
-	return GetFloat(nod) 'yes, I realize I don't check for null. GetInteger does, though.
+	return GetFloat(nod)
 end function
 
 'looks for a child node of the name n, and retrieves its value. d is the default, if n doesn't exist
@@ -1623,8 +1622,7 @@ Function GetChildNodeStr(byval parent as NodePtr, n as string, d as string) as s
 	dim nod as NodePtr = GetChildByName(parent, n)
 	
 	if nod = 0 then return d
-	
-	return GetString(nod) 'yes, I realize I don't check for null. GetInteger does, though.
+	return GetString(nod)
 end function
 
 'looks for a child node of the name n, and retrieves its value. d is the default, if n doesn't exist
@@ -1635,8 +1633,7 @@ Function GetChildNodeBool(byval parent as NodePtr, n as string, byval d as integ
 	
 	dim nod as NodePtr = GetChildByName(parent, n)
 	
-	if nod = 0 then return d <> 0
-	
+	if nod = 0 then return d
 	return GetInteger(nod) <> 0
 end function
 
