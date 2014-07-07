@@ -1087,9 +1087,12 @@ sub SetRootNode(byval doc as DocPtr, byval nod as NodePtr)
 	if verifyNodeLineage(nod, doc->root) = YES and verifyNodeLineage(doc->root, nod) = YES then
 		FreeNode(doc->root)
 	end if
-	
+
+	if nod->doc <> doc then
+		debugc errPromptBug, "SetRootNode: node was created in the context of another RELOAD doc"
+	end if
+
 	doc->root = nod
-	
 end sub
 
 'This is from xml2reload: is a node representable as a longint?
