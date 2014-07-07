@@ -10,9 +10,12 @@
 #include "gfx.bi"
 #include "gfx_newRenderPlan.bi"
 #include "music.bi"
+#include "reload.bi"
 #include "util.bi"
 #include "const.bi"
 #include "uiconst.bi"
+
+using Reload
 
 #ifdef IS_GAME
 declare sub exitprogram (byval need_fade_out as bool, byval errorout as integer = 0)
@@ -24,10 +27,10 @@ declare sub exitprogram (byval need_fade_out as bool, byval errorout as integer 
 const NOREFC = -1234
 const FREEDREFC = -4321
 
-type node 	'only used for floodfill
+type XYPair_node 	'only used for floodfill
 	x as integer
 	y as integer
-	nextnode as node ptr
+	nextnode as XYPair_node ptr
 end type
 
 
@@ -2798,11 +2801,11 @@ end sub
 sub paintat (byval dest as Frame ptr, byval x as integer, byval y as integer, byval c as integer)
 'a floodfill.
 	dim tcol as integer
-	dim queue as node ptr = null
-	dim tail as node ptr = null
+	dim queue as XYPair_node ptr = null
+	dim tail as XYPair_node ptr = null
 	dim as integer w, e		'x coords west and east
 	dim i as integer
-	dim tnode as node ptr = null
+	dim tnode as XYPair_node ptr = null
 
 	if clippedframe <> dest then
 		setclip , , , , dest
@@ -2815,7 +2818,7 @@ sub paintat (byval dest as Frame ptr, byval x as integer, byval y as integer, by
 	'prevent infinite loop if you fill with the same colour
 	if tcol = c then exit sub
 
-	queue = callocate(sizeof(node))
+	queue = callocate(sizeof(XYPair_node))
 	queue->x = x
 	queue->y = y
 	queue->nextnode = null
@@ -2838,12 +2841,12 @@ sub paintat (byval dest as Frame ptr, byval x as integer, byval y as integer, by
 				e += 1
 				FRAMEPIXEL(e, queue->y, dest) = c
 			wend
-			'add bordering nodes
+			'add bordering XYPair_nodes
 			for i = w to e
 				if queue->y > clipt then
 					'north
 					if FRAMEPIXEL(i, queue->y-1, dest) = tcol then
-						tail->nextnode = callocate(sizeof(node))
+						tail->nextnode = callocate(sizeof(XYPair_node))
 						tail = tail->nextnode
 						tail->x = i
 						tail->y = queue->y-1
@@ -2853,7 +2856,7 @@ sub paintat (byval dest as Frame ptr, byval x as integer, byval y as integer, by
 				if queue->y < clipb then
 					'south
 					if FRAMEPIXEL(i, queue->y+1, dest) = tcol then
-						tail->nextnode = callocate(sizeof(node))
+						tail->nextnode = callocate(sizeof(XYPair_node))
 						tail = tail->nextnode
 						tail->x = i
 						tail->y = queue->y+1
