@@ -2449,15 +2449,17 @@ function loadmxs (fil as string, byval record as integer, byval dest as Frame pt
 	'skip to index
 	seek #f, (record*64000) + 1
 
+        dim quarter_row(79) as ubyte
+
 	'modex format, 4 planes
 	for plane = 0 to 3
 		for y = 0 to 200 - 1
 			sptr = dest->image + dest->pitch * y + plane
 
 			'1/4 of a row
+                        get #f, , quarter_row()
 			for x = 0 to 80 - 1
-				get #f, , *sptr
-				sptr = sptr + 4
+                                sptr[x * 4] = quarter_row(x)
 			next
 		next
 	next
