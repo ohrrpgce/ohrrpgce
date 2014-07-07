@@ -36,7 +36,7 @@ shift
 goto addextrafiles
 :extrafilesdone
 
-pscp distrib\%ZIPFILE% james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
+pscp -q distrib\%ZIPFILE% james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
 GOTO finished
 
 :sanityfailed
