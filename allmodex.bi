@@ -4,6 +4,7 @@
 #DEFINE ALLMODEX_BI
 
 #include "udts.bi"
+#include "reload.bi"
 #include "config.bi"
 #IFNDEF BITMAP
  'windows.bi may have been included
@@ -198,6 +199,8 @@ declare function frame_new_view(byval spr as Frame ptr, byval x as integer, byva
 declare function frame_new_from_buffer(pic() as integer, byval picoff as integer) as Frame ptr
 declare function frame_load overload (byval ptno as integer, byval rec as integer) as frame ptr
 declare function frame_load(as string, byval as integer, byval as integer , byval as integer, byval as integer) as frame ptr
+declare function frame_to_node(fr as Frame ptr, parent as Reload.NodePtr) as Reload.NodePtr
+declare function frame_from_node(node as Reload.NodePtr) as Frame ptr
 declare function frame_reference(byval p as frame ptr) as frame ptr
 declare sub frame_unload(byval p as frame ptr ptr)
 declare sub frame_draw overload (byval src as frame ptr, byval pal as Palette16 ptr = NULL, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as bool = YES, byval page as integer)

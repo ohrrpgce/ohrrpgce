@@ -1992,6 +1992,7 @@ function Palette16_new_from_buffer(pal() as integer, byval po as integer) as Pal
 	return ret
 end function
 
+'Convert a (deprecated) pixel array representation of a 4 bit sprite to a Frame
 function frame_new_from_buffer(pic() as integer, byval picoff as integer) as Frame ptr
 	dim sw as integer
 	dim sh as integer
@@ -5491,8 +5492,13 @@ end sub
 '==========================================================================================
 
 
+'Create a blank Frame.
+'By default not initialised; pass clr=YES to initialise to 0
 function frame_new(byval w as integer, byval h as integer, byval frames as integer = 1, byval clr as bool = NO, byval wantmask as bool = NO) as Frame ptr
-	if w < 1 or h < 1 or frames < 1 then debugc errPromptBug, "frame_new: bad args"
+	if w < 1 or h < 1 or frames < 1 then
+		debugc errPromptBug, "frame_new: bad size " & w & "*" & h & "*" & frames
+		return 0
+	end if
 
 	dim ret as frame ptr
 	'this hack was Mike's idea, not mine!
@@ -5713,6 +5719,55 @@ function frame_load(fi as string, byval rec as integer, byval num as integer, by
 	close #f
 
 	return ret
+end function
+
+'Appends a new "frame" child node
+'TODO: Assumes the frame is 8 bit, and doesn't save metadata about palette or master palette
+'TODO: Doesn't save mask, but we don't have any need to serialise masks at the moment
+function frame_to_node(fr as Frame ptr, parent as NodePtr) as NodePtr
+	dim as NodePtr frame_node, image_node
+	frame_node = AppendChildNode(parent, "frame")
+	AppendChildNode(frame_node, "w", fr->w)
+	AppendChildNode(frame_node, "h", fr->h)
+	'"bits" gives the format of the "image" node; whether this Frame
+	'is a 4 or 8 bit sprite is unknown (and would be stored separately)
+	AppendChildNode(frame_node, "bits", 8)
+
+	image_node = AppendChildNode(frame_node, "image")
+	'Allocate uninitialised memory
+	SetContent(image_node, NULL, fr->w * fr->h)
+	dim imdata as ubyte ptr = GetZString(image_node)
+	for y as integer = 0 TO fr->h - 1
+		memcpy(imdata + y * fr->w, fr->image + y * fr->pitch, fr->w)
+	next
+
+	return frame_node
+end function
+
+'Loads a Frame from a "frame" node (node name not enforced)
+function frame_from_node(node as NodePtr) as Frame ptr
+	dim as integer bitdepth = GetChildNodeInt(node, "bits", 8)
+	dim as integer w = GetChildNodeInt(node, "w"), h = GetChildNodeInt(node, "h")
+	if bitdepth <> 8 then
+		debugc errPromptError, "frame_from_node: Unsupported graphics bitdepth " & bitdepth
+		return NULL
+	end if
+	dim fr as Frame ptr
+	fr = frame_new(w, h)
+	if fr = NULL then
+		'If the width or height was bad then an error already shown
+		return NULL
+	end if
+
+	dim image_node as NodePtr = GetChildByName(node, "image")
+	dim imdata as ubyte ptr = GetZString(image_node)
+	dim imlen as integer = GetZStringSize(image_node)
+	if imdata = NULL OR imlen < w * h then
+		debugc errPromptError, "frame_from_node: Couldn't load image; data is short (" & imlen & " for " & w & "*" & h & ")"
+		return NULL
+	end if
+	memcpy(fr->image, imdata, w * h)
+	return fr
 end function
 
 'Public:
