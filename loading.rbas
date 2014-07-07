@@ -2905,6 +2905,10 @@ END FUNCTION
 '                                     16-color palettes
 '==========================================================================================
 
+'These are the OLD palette loading and saving routines, used only
+'in drawing.bas, which will be deleted ASAP. The modern loading/saving code
+'is in allmodex.bas
+
 
 SUB getpal16 (array() as integer, byval aoffset as integer, byval foffset as integer, byval autotype as integer=-1, byval sprite as integer=0)
 DIM buf(8) as integer
@@ -2985,6 +2989,92 @@ Palette16_update_cache f, foffset
  IF slave_channel <> NULL_CHANNEL THEN channel_write_line slave_channel, "PAL " & foffset
 #ENDIF
 END SUB
+
+
+'==========================================================================================
+'                                   New Graphics Formats
+'==========================================================================================
+
+'The following are only for playing around; actual file formats
+'still undecided.
+
+
+SUB convert_mxs_to_rgfx(filename as string, outfile as string)
+ DIM starttime as double = timer
+
+ DIM num_images as integer = filelen(filename) \ 64000
+ DIM doc as DocPtr
+ doc = CreateDocument()
+
+ DIM as NodePtr root_node, spritesets, spriteset, frames, frame_node
+ root_node = CreateNode(doc, "graphics")
+ SetRootNode(doc, root_node)
+ spritesets = AppendChildNode(root_node, "spritesets")
+
+ FOR imnum as integer = 0 TO num_images - 1
+  spriteset = AppendChildNode(spritesets, "spriteset", imnum)
+  frames = AppendChildNode(spriteset, "frames")
+
+  DIM fr as Frame ptr
+  fr = loadmxs(filename, imnum)
+  frame_node = frame_to_node(fr, frames)
+  SetContent(frame_node, 0)  'frame 0
+  frame_unload @fr
+ NEXT
+
+ DIM loading_time as double = timer - starttime
+ starttime = timer
+
+ SerializeBin outfile, doc
+
+ notification "Loaded .mxs and converted to RELOAD in " & CINT(loading_time * 1000) & "ms;" _
+     " wrote document to file in " & CINT((timer - starttime) * 1000) & "ms;" _
+     " .mxs size " & filelen(game + ".mxs") & "B, .rgfx size " & filelen(outfile) & "B"
+END SUB
+
+'Opens a rgfx document and checks it's in order
+FUNCTION rgfx_open(filename as string) as DocPtr
+ DIM doc as DocPtr
+ DIM root_node as NodePtr
+ doc = LoadDocument(filename)
+ IF doc = NULL THEN
+  'Silent failure
+  debuginfo __FUNCTION__ ": " & filename & " missing"
+  RETURN NULL
+ END IF
+ root_node = DocumentRoot(doc)
+ IF NodeName(root_node) <> "graphics" THEN
+  debugc errPromptError, __FUNCTION__ ": Unexpected root '" & NodeName(root_node) & "'"
+  FreeDocument doc
+  RETURN NULL
+ END IF
+ RETURN doc
+END FUNCTION
+
+'Given spriteset number and frame number load a single Frame
+FUNCTION rgfx_get_frame(filename as string, setnum as integer, framenum as integer) as Frame ptr
+ DIM doc as DocPtr
+ DIM as NodePtr root_node, spriteset_node, frame_node
+ DIM ret as Frame ptr
+ doc = rgfx_open(filename)
+ IF doc = NULL THEN RETURN NULL
+ root_node = DocumentRoot(doc)
+
+ spriteset_node = ChildByIndex(root_node."spritesets".ptr, setnum)
+ IF spriteset_node = NULL THEN
+  debuginfo "spriteset node " & setnum & " missing"
+ ELSE
+  frame_node = ChildByIndex(spriteset_node."frames".ptr, framenum)
+  IF spriteset_node = NULL THEN
+   debuginfo "frame node " & framenum & " missing"
+  ELSE
+   ret = frame_from_node(frame_node)
+  END IF
+ END IF
+
+ FreeDocument doc
+ RETURN ret
+END FUNCTION
 
 
 '==========================================================================================

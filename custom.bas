@@ -52,6 +52,7 @@ DECLARE SUB arbitrary_sprite_editor ()
 DECLARE SUB text_test_menu ()
 DECLARE SUB font_test_menu ()
 DECLARE SUB resolution_menu ()
+DECLARE SUB new_graphics_tests ()
 
 DECLARE SUB shopdata ()
 DECLARE SUB shop_stuff_edit (byval shop_id as integer, byref thing_total as integer)
@@ -284,6 +285,8 @@ setupmusic
 
 'From here on, preserve working.tmp if something goes wrong
 cleanup_on_error = NO
+
+'debuginfo "mem usage " & memory_usage_string()
 
 main_editor_menu
 'Execution ends inside main_editor_menu
@@ -1231,7 +1234,7 @@ FUNCTION handle_dirty_workingdir () as integer
 END FUNCTION
 
 SUB secret_menu ()
- DIM menu(...) as string = {"Reload Editor", "Editor Editor", "Conditions and More Tests", "Transformed Quads", "Sprite editor with arbitrary sizes", "Text tests", "Font tests", "Stat Growth Chart", "Resolution Menu", "Edit Status Screen", "Edit Status Screen Stat Plank", "Edit Item Screen", "Edit Item Screen Item Plank", "Edit Spell Screen", "Edit Spell Screen Spell List Plank", "Edit Spell Screen Spell Plank"}
+ DIM menu(...) as string = {"Reload Editor", "Editor Editor", "Conditions and More Tests", "Transformed Quads", "Sprite editor with arbitrary sizes", "Text tests", "Font tests", "Stat Growth Chart", "Resolution Menu", "Edit Status Screen", "Edit Status Screen Stat Plank", "Edit Item Screen", "Edit Item Screen Item Plank", "Edit Spell Screen", "Edit Spell Screen Spell List Plank", "Edit Spell Screen Spell Plank", "RGFX tests"}
  DIM st as MenuState
  st.size = 24
  st.last = UBOUND(menu)
@@ -1257,6 +1260,7 @@ SUB secret_menu ()
    IF st.pt = 13 THEN slice_editor SL_COLLECT_SPELLSCREEN
    IF st.pt = 14 THEN slice_editor SL_COLLECT_SPELLLISTPLANK
    IF st.pt = 15 THEN slice_editor SL_COLLECT_SPELLPLANK
+   IF st.pt = 16 THEN new_graphics_tests
   END IF
   usemenu st
   clearpage vpage
@@ -1648,4 +1652,36 @@ SUB font_test_menu
   setvispage vpage
   dowait
  LOOP
+END SUB
+
+SUB new_graphics_tests
+ DIM ofile as string = tmpdir + SLASH + "backdrops.rgfx"
+ 'Gives notification about time taken
+ convert_mxs_to_rgfx(game + ".mxs", ofile)
+
+ 'Lets see how long the document takes to load
+ DIM doc as DocPtr
+ DIM starttime as double = timer
+ doc = LoadDocument(ofile, optNoDelay)
+ notification "Backdrop .rgfx completely loaded in " & CINT((timer - starttime) * 1000) & "ms"
+ FreeDocument doc
+
+ DIM fr as Frame ptr
+ DIM rgfx_time as double
+ FOR i as integer = 0 TO gen(genNumBackdrops) - 1
+  starttime = timer
+  fr = rgfx_get_frame(ofile, i, 0)
+  rgfx_time += timer - starttime
+  frame_draw fr, , 0, 0, 1, NO, vpage
+  setvispage vpage
+  ' waitforanykey
+  frame_unload @fr
+ NEXT
+ starttime = timer
+ FOR i as integer = 0 TO gen(genNumBackdrops) - 1
+  fr = loadmxs(game + ".mxs", i)
+  frame_unload @fr
+ NEXT
+ notification gen(genNumBackdrops) & " backdrops loaded from .rgfx in " & CINT(rgfx_time * 1000) & "ms; " _
+     "loaded from mxs in " & CINT((timer - starttime) * 1000) & "ms"
 END SUB

@@ -132,6 +132,9 @@ DECLARE FUNCTION tile_anim_is_empty(pattern_num as integer, tastuf() as integer)
 DECLARE SUB getpal16 (array() as integer, byval aoffset as integer, byval foffset as integer, byval autotype as integer=-1, byval sprite as integer=0)
 DECLARE SUB storepal16 (array() as integer, byval aoffset as integer, byval foffset as integer)
 
+DECLARE SUB convert_mxs_to_rgfx(filename as string, outfile as string)
+DECLARE FUNCTION rgfx_get_frame(filename as string, setnum as integer, framenum as integer) as Frame ptr
+
 DECLARE SUB loaditemdata (array() as integer, byval index as integer)
 DECLARE SUB saveitemdata (array() as integer, byval index as integer)
 DECLARE FUNCTION LoadOldItemElemental (itembuf() as integer, byval element as integer) as single
