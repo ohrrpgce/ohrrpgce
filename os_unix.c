@@ -12,6 +12,10 @@
 #include <android/log.h>
 #endif
 
+#ifdef HAVE_GLIBC
+#include <malloc.h>
+#endif
+
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -25,7 +29,6 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <fnmatch.h>
-#include <malloc.h>
 #include "common.h"
 #include "os.h"
 #include "array.h"
