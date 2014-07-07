@@ -1706,6 +1706,7 @@ Function ChildByIndex(byval parent as NodePtr, byval index as integer) as NodePt
 	'Return the index'th child node, or 0 if no such child exists
 	'This could be slow for long child lists, so don't use it unless you really need it
 	if parent = 0 then return 0
+	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
 	dim i as integer
 	dim ch as Node Ptr
 	ch = parent->children
