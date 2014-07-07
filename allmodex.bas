@@ -1080,7 +1080,7 @@ end function
 function anykeypressed (byval checkjoystick as bool = YES) as integer
 	dim as integer joybutton, joyx, joyy
 
-	for i as integer = 1 to &h7f
+	for i as integer = 0 to &h7f
 		'check scAlt only, so Alt-filtering (see setkeys) works
 		if i = scLeftAlt or i = scRightAlt or i = scUnfilteredAlt then continue for
 		if keyval(i) > 1 then
@@ -1102,19 +1102,17 @@ function waitforanykey () as integer
 
 	setkeys
 	do
-		setwait 80
-		dowait
+		setwait 40
 		io_pollkeyevents()
 		setkeys
 		key = anykeypressed(sleepjoy = 0)
 		if key then
-			'Prevent "dowait called without setwait" warning
-			setwait 25
 			return key
 		end if
 		if sleepjoy > 0 then
 			sleepjoy -= 1
 		end if
+		dowait
 	loop
 end function
 
@@ -1167,10 +1165,11 @@ sub setkeys_update_keybd
 	io_keybits(@keybd(0))
 	mutexunlock keybdmutex
 
-	'Current state of keybd():
+	'State of keybd(0 to 127) at this point:
 	'bit 0: key currently down
 	'bit 1: key down since last io_keybits call
 	'bit 2: zero
+	'(keybd(-1) is special)
 
 	'debug "raw scEnter = " & keybd(scEnter) & " scAlt = " & keybd(scAlt)
 
