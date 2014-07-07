@@ -150,7 +150,13 @@ FUNCTION battle (byval form as integer) as bool
 
   IF readbit(gen(), genBits, 8) = 0 THEN
    '--debug keys
-   IF keyval(scF4) > 1 THEN bat.away = 11 ' Instant-cheater-running
+   IF keyval(scF4) > 1 THEN
+    IF keyval(scLeftShift) > 0 ANDALSO keyval(scRightShift) > 0 THEN
+     bat.away = 11 ' Instant-cheater-running
+    ELSE
+     gam.debug_showtags = NOT gam.debug_showtags
+    END IF
+   END IF
    IF keyval(scF5) > 1 THEN bat.rew.exper = 1000000  'Million experience!
    IF keyval(scF6) > 1 THEN bat.turn.mode XOR= 1 : debug "bat.turn.mode=" & bat.turn.mode
    IF keyval(scF11) > 1 THEN show_info_mode = loopvar(show_info_mode, 0, 2, 1)  'Draw debug info
@@ -971,6 +977,7 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
    END IF
   END IF
  END IF'--end if bat.vic.state = 0
+ IF gam.debug_showtags THEN tagdisplay
 END SUB
 
 SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
