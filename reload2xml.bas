@@ -1,11 +1,13 @@
 #include "reload.bi"
 
 dim as string filename, outfile
-dim as integer validargs = NO, debugging = NO, i = 1
+dim as integer validargs = NO, debugging = NO, shortform = NO, i = 1
 
 while command(i) <> ""
 	if command(i) = "--debug" then
 		debugging = YES
+	elseif command(i) = "--short" then
+		shortform = YES
 	elseif filename = "" then
 		filename = command(i)
 		validargs = YES
@@ -19,10 +21,11 @@ wend
 
 if isfile(filename) = 0 or validargs = NO then
 	print "Convert a RELOAD file into XML. Specify - as outfile to print to console."
-	print "Specify --debug to print strings unambiguously."
+	print "Add --debug to print strings unambiguously."
+	print "Add --short to leave out long strings and binary data."
 	print ""
-	print "Usage: reload2xml [--debug] reloadfilename filename.xml"
-	print "   or: reload2xml [--debug] reloadfilename - > filename.xml"
+	print "Usage: reload2xml [--debug] [--short] reloadfilename filename.xml"
+	print "   or: reload2xml [--debug] [--short] reloadfilename - > filename.xml"
 	end
 end if
 
@@ -47,7 +50,7 @@ doc = Reload.LoadDocument(filename, Reload.optNoDelay)
 if outfile <> "-" then print "Loaded RELOAD document in " & int((timer - starttime) * 1000) & " ms"
 starttime = timer
 
-Reload.SerializeXML(doc, outstream, debugging)
+Reload.SerializeXML(doc, outstream, debugging, shortform)
 
 if outfile <> "-" then print "Serialized XML document in " & int((timer - starttime) * 1000) & " ms"
 starttime = timer

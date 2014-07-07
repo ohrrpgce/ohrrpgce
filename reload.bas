@@ -1109,11 +1109,16 @@ end function
 ' 0 - No encoding needed
 ' 1 - Lead/trailing whitespace, and if debugging = YES whether type will be lost, eg "" -> null
 ' 2 - Binary
-private function NodeNeedsEncoding(byval node as nodeptr, byval debugging as integer) as integer
+' 3 - Long string or data, print hash
+private function NodeNeedsEncoding(byval node as nodeptr, byval debugging as bool, byval shortform as bool) as integer
 	if node = null then return 0
 
 	if node->nodeType <> rltString then
 		return 0
+	end if
+
+	if shortform and node->nodeType = rltString andalso node->strSize > 300 then
+		return 3
 	end if
 
 	dim dat as ubyte ptr = node->str
@@ -1172,17 +1177,19 @@ end function
 #define INDENTTAB !"\t"
 
 'Serializes a document as XML to a file
-sub SerializeXML (byval doc as DocPtr, byval fh as integer, byval debugging as integer = NO)
+sub SerializeXML (byval doc as DocPtr, byval fh as integer, byval debugging as bool = NO, byval shortform as bool = NO)
 	if doc = null then exit sub
 	
 	print #fh, "<?xml version=""1.0"" encoding=""iso-8859-1"" ?>"
-	SerializeXML(doc->root, fh, debugging)
+	SerializeXML(doc->root, fh, debugging, shortform)
 end sub
 
 'serializes a node as XML to a file.
 'It pretty-prints it by adding indentation.
-'If debugging is true, then strings are printed so that they will not be optimized when reloaded
-sub SerializeXML (byval nod as NodePtr, byval fh as integer, byval debugging as integer, byval ind as integer = 0)
+'debugging:  If true, then strings are printed so that they will not be optimized when reloaded.
+'shortform:  If true, print only hash of long zstrings.
+'ind:        Indentation amount.
+sub SerializeXML (byval nod as NodePtr, byval fh as integer, byval debugging as bool, byval shortform as bool, byval ind as integer = 0)
 	if nod = null then exit sub
 	
 	if nod->flags AND nfNotLoaded then
@@ -1191,7 +1198,7 @@ sub SerializeXML (byval nod as NodePtr, byval fh as integer, byval debugging as 
 	
 	dim closetag as integer = YES
 
-	dim needsencoding as integer = NodeNeedsEncoding(nod, debugging)
+	dim needsencoding as integer = NodeNeedsEncoding(nod, debugging, shortform)
 
 	'no-name nodes aren't valid xml
 	dim xmlname as string
@@ -1246,6 +1253,8 @@ sub SerializeXML (byval nod as NodePtr, byval fh as integer, byval debugging as 
 			outstr = "<r:ws>" & EscapeXMLString(GetString(nod)) & "</r:ws>"
 		elseif needsencoding = 2 then
 			outstr = GetBase64EncodedString(nod)
+		elseif needsencoding = 3 then
+			outstr = "(## ZSTRING length " & nod->strSize & " hash " & hex(stringhash(nod->str, nod->strSize)) & " ##)"
 		else
 			outstr = EscapeXMLString(GetString(nod))
 		end if
@@ -1265,7 +1274,7 @@ sub SerializeXML (byval nod as NodePtr, byval fh as integer, byval debugging as 
 	do while n <> null
 		'we've already printed attributes, above
 		if n->name[0] <> asc("@") then
-			SerializeXML(n, fh, debugging, ind + 1)
+			SerializeXML(n, fh, debugging, shortform, ind + 1)
 		end if
 		n = n->nextSib
 	loop
