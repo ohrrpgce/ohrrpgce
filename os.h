@@ -28,6 +28,9 @@ typedef int ProcessHandle;  //dummy type
 
 void init_runtime();
 
+int memory_usage();
+FBSTRING *memory_usage_string();
+
 int copy_file_replacing(const char *source, const char *destination);
 
 //Advisory locking (actually mandatory on Windows)

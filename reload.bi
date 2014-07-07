@@ -191,7 +191,7 @@ Declare Function ChildByIndex(byval parent as NodePtr, byval index as integer) a
 Declare function ReadVLI overload(byval f as integer) as longint
 declare Sub WriteVLI overload(byval f as integer, byval v as Longint)
 
-Declare Function MemoryUsage(byval doc as DocPtr) as LongInt
+Declare Function DocumentMemoryUsage(byval doc as DocPtr) as LongInt
 
 #if defined(RELOADINTERNAL) or __FB_DEBUG__
 	'ReloadBasic stuff

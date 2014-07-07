@@ -52,7 +52,7 @@ starttime = timer
 dim rldDoc as Docptr
 rldDoc = CreateDocument()
 
-print "Memory usage: " & MemoryUsage(rldDoc)
+print "Memory usage: " & DocumentMemoryUsage(rldDoc)
 
 dim xmlRoot as xmlNodeptr
 xmlRoot = xmlDocGetRootElement(xmlDoc)
@@ -64,7 +64,7 @@ rldRoot = chug(xmlRoot, rldDoc, encNone)
 
 print "Parsed XML document in " & int((timer - starttime) * 1000) & " ms"
 
-print "Memory usage: " & MemoryUsage(rldDoc)
+print "Memory usage: " & DocumentMemoryUsage(rldDoc)
 
 starttime = timer
 
@@ -78,7 +78,7 @@ optimize(rldRoot)
 
 print "Optimised document in " & int((timer - starttime) * 1000) & " ms"
 
-print "Memory usage: " & MemoryUsage(rldDoc)
+print "Memory usage: " & DocumentMemoryUsage(rldDoc)
 
 starttime = timer
 

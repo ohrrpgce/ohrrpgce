@@ -84,6 +84,15 @@ extern "C"
 sub external_log (msg as string)
 end sub
 
+function memory_usage() as integer
+	return 0
+end function
+
+function memory_usage_string() as string
+	return ""
+end function
+
+
 '==========================================================================================
 '                                       Filesystem
 '==========================================================================================

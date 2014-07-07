@@ -87,8 +87,12 @@ elif arch == 'x86_64':
 else:
     raise Exception('Unknown architecture %s' % arch)
 
-if 'asm' in ARGUMENTS:
+if int (ARGUMENTS.get ('asm', False)):
     FBFLAGS += ["-r", "-g"]
+
+if int (ARGUMENTS.get ('glibc', False)):
+    # No need to bother automatically checking for glibc
+    CFLAGS += ["-DHAVE_GLIBC"]
 
 # There are three levels of debug here. Not specifying 'debug' is a happy medium
 debug = 0.5
@@ -676,6 +680,7 @@ Experimental options:
   linkgcc=0           Link using fbc instead of g++.
   android=1           Compile for android. Commandline programs only.
   android-source=1    Used as part of the Android build process for Game/Custom.
+  glibc=1             Enable memory_usage function
 
 Targets:
   """ + gamename + """ (or game)

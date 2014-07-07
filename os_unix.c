@@ -25,9 +25,11 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <fnmatch.h>
+#include <malloc.h>
 #include "common.h"
 #include "os.h"
 #include "array.h"
+
 
 
 void init_runtime() {
@@ -55,6 +57,28 @@ static long long milliseconds() {
 	return (long long)tv.tv_sec * 1000 + tv.tv_usec / 1000;
 }
 
+int memory_usage() {
+#ifdef HAVE_GLIBC
+	struct mallinfo info = mallinfo();
+	// "This is the total size of memory occupied by chunks handed out by malloc."
+	return info.uordblks;
+#else
+	return 0;
+#endif
+}
+
+FBSTRING *memory_usage_string() {
+#ifdef HAVE_GLIBC
+	struct mallinfo info = mallinfo();
+	FBSTRING ret;
+	char buf[128];
+	snprintf(buf, 128, "used=%d, free=%d, mmap allocs=%d, other allocs=%d", info.uordblks, info.fordblks, info.hblkhd, info.arena);
+	init_fbstring(&ret, buf);
+	return return_fbstring(&ret);
+#else
+	return empty_fbstring();
+#endif
+}
 
 //==========================================================================================
 //                                       Filesystem

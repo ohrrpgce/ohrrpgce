@@ -2105,7 +2105,7 @@ Sub RemoveKey(byval h as HashPtr, byval key as zstring ptr, byval num as integer
 	loop
 end sub
 
-Function MemoryUsage(byval doc as DocPtr) as longint
+Function DocumentMemoryUsage(byval doc as DocPtr) as longint
 #if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)
 	dim ret as longint = 0
 	if 0 = HeapLock(doc->heap) then return 0
