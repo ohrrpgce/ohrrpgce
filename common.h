@@ -63,6 +63,8 @@ void set_debug_hook(void (*new_debug_hook)(enum ErrorLevel errorlevel, const cha
 
 void init_fbstring(FBSTRING *fbstr, char *cstr);
 void set_fbstring(FBSTRING *fbstr, char *cstr);
+FBSTRING *return_fbstring(FBSTRING *fbstr);
+FBSTRING *empty_fbstring();
 
 uint32_t stringhash(unsigned char *strp, int length);
 

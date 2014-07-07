@@ -109,7 +109,7 @@ int drivelist (void *drives_array) {
 }
 
 FBSTRING *drivelabel (FBSTRING *drive) {
-	return &__fb_ctx.null_desc;
+	return empty_fbstring();
 }
 
 int isremovable (FBSTRING *drive) {

@@ -47,16 +47,29 @@ void _throw_error(enum ErrorLevel errorlevel, const char *srcfile, int linenum, 
 	*/
 }
 
-// Set an FB string to a C string
+// Initialise an FBSTRING to a C string
 // *fbstr is assumed to be garbage
 void init_fbstring(FBSTRING *fbstr, char *cstr) {
 	fb_StrInit(fbstr, -1, cstr, strlen(cstr), 0);
 }
 
-// Initialise an FB string to a C string
-// *fbstr is assumed to be already initialised
+// Set an existing FBSTRING to a C string
+// *fbstr must already initialised!
 void set_fbstring(FBSTRING *fbstr, char *cstr) {
 	fb_StrAssign(fbstr, -1, cstr, strlen(cstr), 0);
+}
+
+// Use this function to return a FB string from C.
+// This allocates a temporary descriptor which can be returned.
+// (The original string should not be freed.)
+FBSTRING *return_fbstring(FBSTRING *fbstr) {
+	return fb_StrAllocTempResult(fbstr);
+}
+
+// A returnable empty string. The result doesn't
+// need to be passed through return_fbstring()
+FBSTRING *empty_fbstring() {
+	return &__fb_ctx.null_desc;
 }
 
 #define ROT(a, b) ((a << b) | (a >> (32 - b)))
