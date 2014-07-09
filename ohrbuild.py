@@ -34,7 +34,8 @@ def verprint (used_gfx, used_music, svn, git, fbc, builddir, rootdir):
     Generate ver.txt, iver.txt (Innosetup), distver.bat.
 
     rootdir:  the directory containing this script
-    builddir: the directory where object files (and ver.txt) should be placed
+    builddir: the directory where object files should be placed
+    However, all files created here are currently placed in rootdir
     """
     def openw (whichdir, filename):
         if not os.path.isdir (whichdir):
@@ -121,7 +122,7 @@ def verprint (used_gfx, used_music, svn, git, fbc, builddir, rootdir):
             exit("Unrecognised music backend " + m)
     results.append ('#DEFINE SUPPORTED_GFX "%s "' % ' '.join (supported_gfx))
     tmp = ['gfx_choices(%d) = @%s_stuff' % (i, v) for i, v in enumerate (supported_gfx)]
-    results.append ("#define GFX_CHOICES_INIT  " +\
+    results.append ("#DEFINE GFX_CHOICES_INIT  " +\
       " :  ".join (['redim gfx_choices(%d)' % (len(supported_gfx) - 1)] + tmp))
 
     gfx_code = 'gfx_' + "+".join (supported_gfx)
@@ -140,7 +141,7 @@ def verprint (used_gfx, used_music, svn, git, fbc, builddir, rootdir):
         'CONST version_build as string = "%(date)s %(gfx)s %(music)s"' % data,
         ('CONST long_version as string = "%(name)s '
         '%(codename)s %(date)s.%(rev)s %(gfx)s/%(music)s FreeBASIC %(fbver)s"') %  data])
-    f = openw (builddir, 'ver.txt')
+    f = openw (rootdir, 'ver.txt')
     f.write ('\n'.join (results))
     f.write ('\n')
     f.close()
@@ -154,8 +155,6 @@ def verprint (used_gfx, used_music, svn, git, fbc, builddir, rootdir):
     f.write('SET OHRVERCODE=%s\nSET OHRVERDATE=%s' % (codename,
                                                       tmpdate.replace ('.','-')))
     f.close()
-    # I am curious why there is not a distver.sh generated in the original
-    # verprint. An oversight?
 
 def android_source_actions (sourcelist, rootdir, destdir):
     # Get a list of C and C++ files to use as sources
