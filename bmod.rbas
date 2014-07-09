@@ -1477,11 +1477,14 @@ SUB fulldeathcheck (byval killing_attack as integer, bat as BattleState, bslot()
   END WITH
  NEXT
  IF dead_enemies >= 8 THEN bat.death_mode = deathENEMIES
+ '--Now check the heroes
  dead_heroes = 0
  FOR deadguy = 0 TO 3
   IF bslot(deadguy).stat.cur.hp = 0 THEN dead_heroes += 1
  NEXT deadguy
  IF dead_heroes = 4 THEN bat.death_mode = deathHEROES
+ export_battle_hero_stats bslot()
+ evalherotags
 END SUB
 
 SUB trigger_victory(byref bat as BattleState, bslot() as BattleSprite)
