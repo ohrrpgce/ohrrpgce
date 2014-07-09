@@ -28,8 +28,6 @@
 #undef rectangle
 #undef opaque
 #undef ellipse
-#undef BITMAP
-#undef BITMAPV3INFOHEADER
 
 #include "allmodex.bi"
 #include "common.bi"

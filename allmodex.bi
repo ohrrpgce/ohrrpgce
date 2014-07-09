@@ -6,10 +6,7 @@
 #include "udts.bi"
 #include "reload.bi"
 #include "config.bi"
-#IFNDEF BITMAP
- 'windows.bi may have been included
- #include "bitmap.bi"
-#ENDIF
+#include "bitmap.bi"
 #include "file.bi"   'FB header
 #include "lumpfile.bi"
 #include "gfx.bi"

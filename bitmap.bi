@@ -1,3 +1,7 @@
+#ifndef BITMAP
+'windows.bi might have been included.
+'It contains all of these definitions
+
 'Compression enum
 #define BI_RGB 0
 #define BI_RLE8 1
@@ -75,27 +79,6 @@ type BITMAPINFOHEADER field = 1
 	biClrImportant as integer
 end type
 
-'A much more common version of the BMP header.
-'Later versions add colourspace and gamma information which
-'we can safely ignore
-type BITMAPV3INFOHEADER field = 1
-	biSize as integer
-	biWidth as LONG
-	biHeight as LONG
-	biPlanes as short
-	biBitCount as short
-	biCompression as integer
-	biSizeImage as integer
-	biXPelsPerMeter as LONG
-	biYPelsPerMeter as LONG
-	biClrUsed as integer
-	biClrImportant as integer
-	biRedMask as integer
-	biGreenMask as integer
-	biBlueMask as integer
-	biAlphaMask as integer
-end type
-
 type LPBITMAPINFOHEADER as BITMAPINFOHEADER ptr
 type PBITMAPINFOHEADER as BITMAPINFOHEADER ptr
 
@@ -115,3 +98,32 @@ end type
 
 type LPBITMAPINFO as BITMAPINFO ptr
 type PBITMAPINFO as BITMAPINFO ptr
+
+#endif
+
+#ifndef BITMAPV3INFOHEADER
+'This structure is the only one in this file which
+'doesn't appear in winapi headers (BITMAPV4HEADER defined instead)
+
+'A much more common version of the BMP header.
+'Later versions add colourspace and gamma information which
+'we can safely ignore.
+type BITMAPV3INFOHEADER field = 1
+	biSize as integer
+	biWidth as LONG
+	biHeight as LONG
+	biPlanes as short
+	biBitCount as short
+	biCompression as integer
+	biSizeImage as integer
+	biXPelsPerMeter as LONG
+	biYPelsPerMeter as LONG
+	biClrUsed as integer
+	biClrImportant as integer
+	biRedMask as integer
+	biGreenMask as integer
+	biBlueMask as integer
+	biAlphaMask as integer
+end type
+
+#endif

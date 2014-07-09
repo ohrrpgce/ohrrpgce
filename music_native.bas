@@ -57,8 +57,6 @@
 #undef opaque
 #undef transparent
 #undef ellipse
-#undef BITMAP
-#undef BITMAPV3INFOHEADER
 #include once "allmodex.bi"
 
 #include once "common.bi"
