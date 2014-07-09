@@ -267,7 +267,6 @@ TYPE BattleState
  next_enemy as integer 'counter that controls which ready enemy will get their turn next
  menu_mode as integer  'batMENUHERO batMENUSPELL or batMENUITEM
  death_mode as integer 'deathNOBODY deathENEMIES deathHEROES
- have_written_stats as integer 'writestats has been called. Don't do it again!
  targ as TargettingState
  atk as AttackState
  listslot as integer   'currently active hero spell list slot

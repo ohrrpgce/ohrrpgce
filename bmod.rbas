@@ -302,8 +302,7 @@ SUB battle_init(byref bat as BattleState, bslot() as BattleSprite)
 END SUB
 
 SUB battle_cleanup(byref bat as BattleState, bslot() as BattleSprite)
- 'FIXME: writestats is called from different places depending on whether you win or not. Unify
- IF bat.have_written_stats = NO THEN writestats bslot()
+ export_battle_hero_stats bslot()
 
  '--overflow checking for the battle stack
  IF (stackpos - bstackstart) \ 2 > 0 THEN
@@ -1492,9 +1491,10 @@ SUB trigger_victory(byref bat as BattleState, bslot() as BattleSprite)
  gold = gold + bat.rew.plunder
  IF gold < 0 OR gold > 2000000000 THEN gold = 2000000000
  '--Give out experience
- writestats bslot()  'Call early to update gam.hero(*).stat.cur.hp
- bat.have_written_stats = YES
+ 
+ export_battle_hero_stats bslot() 'Needed because distribute_party_experience() might level-up some heroes
  bat.rew.exper = distribute_party_experience(bat.rew.exper)
+ import_battle_hero_stats bslot() 'Needed because we will likely be calling export_battle_hero_stats() again later
  '--Trigger the display of end-of-battle rewards
  bat.vic.state = vicGOLDEXP
 END SUB

@@ -1030,12 +1030,28 @@ FUNCTION visibleandalive (byval who as integer, bslot() as BattleSprite) as inte
  RETURN (bslot(who).vis = 1 AND bslot(who).stat.cur.hp > 0)
 END FUNCTION
 
-SUB writestats (bslot() as BattleSprite)
+SUB export_battle_hero_stats (bslot() as BattleSprite)
+ 'Export a few specific hero battle stats to the out-of-battle party
+ 'This may be used frequently in battle
  FOR i as integer = 0 TO 3
   IF hero(i) > 0 THEN
    '--set out-of-battle HP and MP equal to in-battle HP and MP
    gam.hero(i).stat.cur.hp = bslot(i).stat.cur.hp
    gam.hero(i).stat.cur.mp = bslot(i).stat.cur.mp
+  END IF
+ NEXT i
+END SUB
+
+SUB import_battle_hero_stats (bslot() as BattleSprite)
+ 'Import a few specific stats to the temporary hero battle stats
+ 'This would normally only be used at victory, in case out-of-battle
+ 'stats have changed due to a level-up, and would never be used without
+ 'following an accompanying call to export_battle_hero_stats
+ FOR i as integer = 0 TO 3
+  IF hero(i) > 0 THEN
+   '--set in-battle HP and MP equal to out-of-battle HP and MP
+   bslot(i).stat.cur.hp = gam.hero(i).stat.cur.hp
+   bslot(i).stat.cur.mp = gam.hero(i).stat.cur.mp
   END IF
  NEXT i
 END SUB

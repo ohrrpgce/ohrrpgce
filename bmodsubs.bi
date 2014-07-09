@@ -50,7 +50,8 @@ declare sub setheroexperience (byval who as integer, byval amount as integer, by
 declare function allowed_to_gain_levels(byval heroslot as integer) as integer
 
 declare function visibleandalive (byval who as integer, bslot() as battlesprite) as integer
-declare sub writestats (bslot() as BattleSprite)
+declare sub export_battle_hero_stats (bslot() as BattleSprite)
+declare sub import_battle_hero_stats (bslot() as BattleSprite)
 
 declare sub get_valid_targs (tmask() as integer, byval who as integer, byref atk as AttackData, bslot() as BattleSprite)
 declare function attack_can_hit_dead OVERLOAD (byval who as integer, byval atk_id as integer, byval stored_targs_can_be_dead as integer=NO) as integer
