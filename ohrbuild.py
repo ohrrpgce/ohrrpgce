@@ -141,6 +141,12 @@ def verprint (used_gfx, used_music, svn, git, fbc, builddir, rootdir):
         'CONST version_build as string = "%(date)s %(gfx)s %(music)s"' % data,
         ('CONST long_version as string = "%(name)s '
         '%(codename)s %(date)s.%(rev)s %(gfx)s/%(music)s FreeBASIC %(fbver)s"') %  data])
+
+    # If there is a build/ver.txt placed there by previous versions of this function
+    # then it must be deleted because scons thinks that one is preferred
+    try:
+        os.remove (builddir + 'ver.txt')
+    except OSError: pass
     f = openw (rootdir, 'ver.txt')
     f.write ('\n'.join (results))
     f.write ('\n')
