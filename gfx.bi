@@ -84,7 +84,7 @@ extern Gfx_setoption as function (byval opt as zstring ptr, byval arg as zstring
 extern Gfx_describe_options as function () as zstring ptr
 
 '(optional, ptr may be NULL, gfx_console only)
-extern Gfx_printchar as sub (byval ch as integer, byval x as integer, byval y as integer)
+extern Gfx_printchar as sub (byval ch as integer, byval x as integer, byval y as integer, byval col as integer)
 
 '(optional)
 extern Gfx_get_safe_zone_margin as function () as single

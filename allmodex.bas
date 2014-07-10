@@ -3445,7 +3445,7 @@ sub draw_line_fragment(byval dest as Frame ptr, byref state as PrintStrState, by
 
 				'Fun hack! Console support
 				if layer = 1 and gfx_printchar <> NULL then
-					gfx_printchar(parsed_line[ch], .x, .y)
+					gfx_printchar(parsed_line[ch], .x, .y, .fgcolor)
 				end if
 
 				'Print one character past the end of the line

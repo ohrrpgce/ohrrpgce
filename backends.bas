@@ -53,7 +53,7 @@ dim gfx_set_resizable as function (enable as bool, min_width as integer, min_hei
 dim gfx_recenter_window_hint as sub ()
 dim gfx_setoption as function (byval opt as zstring ptr, byval arg as zstring ptr) as integer
 dim gfx_describe_options as function () as zstring ptr
-dim gfx_printchar as sub (byval ch as integer, byval x as integer, byval y as integer)
+dim gfx_printchar as sub (byval ch as integer, byval x as integer, byval y as integer, byval col as integer)
 dim gfx_get_safe_zone_margin as function () as single
 dim gfx_set_safe_zone_margin as sub (byval margin as single)
 dim gfx_supports_safe_zone_margin as function () as bool

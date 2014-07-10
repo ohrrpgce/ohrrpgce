@@ -10,6 +10,7 @@
 #include "gfx_newRenderPlan.bi"
 #include "gfx.bi"
 #include "common.bi"
+#include "allmodex.bi"
 #include "curses.bi"
 #include once "crt.bi"
 
@@ -17,13 +18,17 @@
 #undef strlen
 #undef raw
 
-'Wrapper functions in curses_wrap.c (really, this backend should be written in C)
 extern "C"
+
+declare function putenv (byval as zstring ptr) as integer
+
+'Wrapper functions in curses_wrap.c (really, this backend should be written in C)
 declare function get_stdscr() as WINDOW ptr
 declare sub set_ESCDELAY(byval val as integer)
-end extern
 #undef stdscr
 #define stdscr get_stdscr()
+
+end extern
 
 'Bit of a blooper in curses.bi
 #ifdef __FB_WIN32__
@@ -101,7 +106,8 @@ dim shared keymap() as integer
 
 extern "C"
 
-dim shared curses_mode as integer = YES
+dim shared curses_mode as bool = YES
+dim shared force_256_color as bool = YES
 dim shared window_state as WindowState
 dim shared init_gfx as integer = 0
 dim shared as integer mousex = 0, mousey = 0
@@ -128,12 +134,24 @@ function gfx_console_init(byval terminate_signal_handler as sub cdecl (), byval 
 
 	if curses_mode then
 		retstr = *curses_version()
+
+		dim term as string = *getenv("TERM")
+		retstr += " TERM=" & term
+		if force_256_color and term = "xterm" then
+			'Enable 256 colour mode.
+			'Make this assumption, since 256-colour capable
+			'terminals seem to be misrepresented as 'xterm' very often
+			putenv("TERM=xterm-256color")
+			retstr += " (override to xterm-256color)"
+		end if
+
 		init_keymap()
 		if init_gfx = 0 then
 			if initscr() = NULL then
 				retstr &= " ... initscr failed"
 				ret = 0
 			else
+				start_color()  'might fail
 				cbreak()
 				noecho()
 				nonl()
@@ -143,6 +161,7 @@ function gfx_console_init(byval terminate_signal_handler as sub cdecl (), byval 
 				scrollok(stdscr, 0)
 				'notimeout(stdscr, 1)
 				intrflush(stdscr, 1)
+				retstr &= " has_colors()=" & has_colors() & " can_change_color()=" & can_change_color() & " COLORS=" & COLORS & " COLOR_PAIRS=" & COLOR_PAIRS
 			end if
 		end if
 	else
@@ -153,12 +172,71 @@ function gfx_console_init(byval terminate_signal_handler as sub cdecl (), byval 
 end function
 
 sub gfx_console_close
-	if curses_mode then endwin()
+	if curses_mode then
+		'This doesn't reset the colours, unfortunately
+		endwin()
+		'Reset console
+		'fwrite(@!"\&o033[0m", 1, 4, stdout)
+	end if
 end sub
 
 function gfx_console_getversion() as integer
 	return 1
 end function
+
+dim shared master_color_to_attr(255) as integer
+
+sub gfx_console_setup_colors(byval pal as RGBcolor ptr)
+	'Changes colours to the palette colours, if possible,
+	'then computes mapping from master palette colours to terminal
+	'colours.
+	dim mult as double = 1.
+	if can_change_color() then
+		for i as integer = 1 to small(COLORS - 1, 255)
+			with pal[i]
+				init_color(i, 1000 * .r / 255, 1000 * .g / 255, 1000 * .b / 255)
+			end with
+		next
+	elseif COLORS <= 8 then
+		' We assume that drawing bold text also brightens also the colours; compensate for that.
+		' (Otherwise there would likely be 16 colours).
+		mult = 1.5
+	end if
+
+	' The number of color pairs that we will use
+	dim num_pairs as integer = small(small(COLOR_PAIRS, COLORS), 256)
+
+	' Color pair 0 can't be changed
+	for i as integer = 1 to num_pairs - 1
+		init_pair(i, i, COLOR_BLACK)
+	next
+
+	dim console_pal(255) as RGBcolor
+
+	for i as integer = 0 to num_pairs - 1
+		dim as short r, g, b
+		color_content(i, @r, @g, @b)
+		'debug i & " " & " rgb " & r & " " & g & " " & b
+		console_pal(i).r = small(255, mult * cint(r) * 255 \ 1000)
+		console_pal(i).g = small(255, mult * cint(g) * 255 \ 1000)
+		console_pal(i).b = small(255, mult * cint(b) * 255 \ 1000)
+	next
+
+	' for i as integer = 0 to num_pairs - 1
+	' 	console_pal(COLORS + i).r = small(255, 128 + console_pal(i).r)
+	' 	console_pal(COLORS + i).g = small(255, 128 + console_pal(i).g)
+	' 	console_pal(COLORS + i).b = small(255, 128 + console_pal(i).b)
+	' next
+
+
+	master_color_to_attr(0) = 0  'Default text colour rather than black. Don't want it to be invisible
+	for i as integer = 1 to 255
+		'Bold text, to look more like the default font!
+		dim col as integer = nearcolor(console_pal(), pal[i].r, pal[i].g, pal[i].b, 1)
+		'debug i & " -> " & col
+		master_color_to_attr(i) = COLOR_PAIR(col) OR A_BOLD
+	next
+end sub
 
 sub gfx_console_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
 	if curses_mode = NO then exit sub
@@ -172,9 +250,10 @@ end sub
 
 sub gfx_console_setpal(byval pal as RGBcolor ptr)
 	'print "setpal"
+	if curses_mode then gfx_console_setup_colors(pal)
 end sub
 
-sub gfx_console_printchar (byval ch as integer, byval x as integer, byval y as integer)
+sub gfx_console_printchar (byval ch as integer, byval x as integer, byval y as integer, byval col as integer)
 	if curses_mode = NO then exit sub
 
 	'Workaround some stupid ncurses behaviour. See showpage
@@ -184,7 +263,16 @@ sub gfx_console_printchar (byval ch as integer, byval x as integer, byval y as i
 	end if
 
 	if ch >= 32 and ch < 127 or ch >= 161 then
+		' if col mod 8 = 0 then
+		' 	col = 7
+		' else
+		' 	col = col mod 8
+		' end if
+		'col = 1
+		attron(master_color_to_attr(col))
 		mvaddch(y\8, x\8, ch)
+		'attroff(COLOR_PAIR(col))
+		attrset(0)
 	end if
 	'debug x & "," & y & " " & chr(ch)
 end sub
@@ -217,6 +305,9 @@ function gfx_console_setoption(byval opt as zstring ptr, byval arg as zstring pt
 			curses_mode = NO
 			debug_to_console = YES
 			ret = 1
+		elseif *opt = "dontforce256" then
+			force_256_color = NO
+			ret = 1
 		end if
 	else
 		debug "gfx_console_setoption: backend already started"
@@ -226,7 +317,8 @@ function gfx_console_setoption(byval opt as zstring ptr, byval arg as zstring pt
 end function
 
 function gfx_console_describe_options() as zstring ptr
-	return @"-d -debuglog        Disable curses; print ?_debug log instead. No user input!"
+	return @!"-d -debuglog        Disable curses; print ?_debug log instead. No user input! \n" _
+                 "-dontforce256       Don't assume that TERM=xterm means TERM=xterm-256color"
 end function
 
 '------------- IO Functions --------------
@@ -243,6 +335,9 @@ sub io_console_keybits(byval keybd as integer ptr)
 	next
 
 	if curses_mode = NO then exit sub
+
+	'This only supports part of the keyboard, and some
+	'terminals, like linux vttys support even less (no page up/down)
 
 	dim key as integer
 	dim kmkey as integer
