@@ -370,7 +370,7 @@ SUB notification (msg as string)
 END SUB
 
 SUB visible_debug (msg as string)
- debuginfo msg
+ debug msg
  notification msg + !"\nPress any key..."
 ' pop_warning msg
 END SUB
