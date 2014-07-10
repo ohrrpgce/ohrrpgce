@@ -248,8 +248,6 @@ function gfx_alleg_setprocptrs() as integer
 	gfx_setoption = @gfx_alleg_setoption
 	gfx_describe_options = @gfx_alleg_describe_options
 	io_init = @io_alleg_init
-	io_pollkeyevents = @io_alleg_pollkeyevents
-	io_waitprocessing = @io_alleg_waitprocessing
 	io_keybits = @io_amx_keybits
 	io_updatekeys = @io_alleg_updatekeys
 	io_show_virtual_keyboard = @io_alleg_show_virtual_keyboard
