@@ -3,6 +3,9 @@
 ''
 '' part of OHRRPGCE - see elsewhere for license details
 ''
+#print
+#print WARNING: music_allegro compiles, but the sound effects interface is unimplemented.
+#print
 
 #include "music.bi"
 #include "util.bi"
@@ -232,6 +235,9 @@ sub sound_close
   sound_inited = 0
 end sub
 
+'UNIMPLEMENTED
+sub sound_reset() : end sub
+
 function sound_load(byval slot as integer, f as string) as integer
   'slot is the sfx_slots element to use, or -1 to automatically pick one
   'f is the file.
@@ -280,14 +286,14 @@ sub sound_free(byval slot as integer)
   end with
 end sub
 
-
-sub sound_play(byval slot as integer, byval l as integer)
+'num UNIMPLEMENTED
+sub sound_play(byval num as integer, byval loopcount as integer, byval slot as integer = 0)
   with sfx_slots(slot)
     if .used = 0 then exit sub
     if .playing and .paused = 0 then exit sub
     if .buf = 0 then exit sub
     
-    if l then
+    if loopcount then
       voice_set_playmode(.voice,PLAYMODE_LOOP)
     else
       voice_set_playmode(.voice,PLAYMODE_PLAY)
@@ -299,7 +305,8 @@ sub sound_play(byval slot as integer, byval l as integer)
   end with
 end sub
 
-sub sound_pause(byval slot as integer)
+'num UNIMPLEMENTED
+sub sound_pause(byval num as integer, byval slot as integer = 0)
   with sfx_slots(slot)
     if .used = 0 then exit sub
     if .playing = 0 then exit sub
@@ -310,7 +317,8 @@ sub sound_pause(byval slot as integer)
   end with
 end sub
 
-sub sound_stop(byval slot as integer)
+'num UNIMPLEMENTED
+sub sound_stop(byval num as integer, byval slot as integer = 0)
   with sfx_slots(slot)
     if .used = 0 then exit sub
     if .playing = 0 then exit sub
@@ -323,7 +331,8 @@ sub sound_stop(byval slot as integer)
   end with
 end sub
 
-function sound_playing(byval slot as integer) as bool
+'num UNIMPLEMENTED
+function sound_playing(byval num as integer, byval slot as integer = 0) as bool
   with sfx_slots(slot)
     if .used = 0 then return NO
     
@@ -335,3 +344,12 @@ end function
 function sound_slots as integer
   return ubound(sfx_slots)
 end function
+
+'UNIMPLEMENTED
+function LoadSound overload(filename as string,  byval num as integer = -1) as integer
+	return 0
+end function
+
+'UNIMPLEMENTED
+sub UnloadSound(byval num as integer) : end sub
+
