@@ -2297,8 +2297,15 @@ FUNCTION open_url (url as string) as bool
 #IFDEF __FB_WIN32__
  cmd = "START ""Spawning Web Browser"" """ & url & """"
  SHELL cmd
- 'Well, Dang, I don't know how to chech this for success either!
+ 'Well, Dang, I don't know how to check this for success either!
  RETURN YES
+
+ 'Alternative way to open an HTML using winapi call, which doesn't involve
+ 'running cmd.exe, and returns whether it succeeds, but is untested
+ ' result = open_document(url)
+ ' IF LEN(result) = 0 THEN RETURN YES
+ ' visible_debug "Couldn't open " & url & ": " & result
+ ' RETURN NO
 #ENDIF
 
  '--Try the unix way

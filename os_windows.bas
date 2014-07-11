@@ -26,7 +26,7 @@ private function get_file_handle (byval fh as CFILE_ptr) as HANDLE
 	return cast(HANDLE, _get_osfhandle(_fileno(fh)))
 end function
 
-private function file_handle_to_read_FILE (byval fhandle as HANDLE, funcname as string) as FILE ptr
+private function file_handle_to_readable_FILE (byval fhandle as HANDLE, funcname as string) as FILE ptr
 	dim fd as integer = _open_osfhandle(cast(integer, fhandle), 0)
 	if fd = -1 then
 		debug funcname + ": _open_osfhandle failed"
@@ -268,7 +268,7 @@ function channel_open_server (byref channel as NamedPipeInfo ptr, chan_name as s
 	end if
 
 	dim cfile as FILE ptr
-	cfile = file_handle_to_read_FILE(pipeh, "channel_open_server")
+	cfile = file_handle_to_readable_FILE(pipeh, "channel_open_server")
 	if cfile = NULL then
 		channel_delete(pipeinfo)
 		return NO
@@ -316,7 +316,7 @@ function channel_open_client (byref channel as NamedPipeInfo ptr, chan_name as s
 
 	'This is a hack; see channel_read_input_line
 	dim cfile as FILE ptr
-	cfile = file_handle_to_read_FILE(pipeh, "channel_open_client")
+	cfile = file_handle_to_readable_FILE(pipeh, "channel_open_client")
 	if cfile = NULL then
 		CloseHandle(pipeh)
 		return NO
@@ -592,5 +592,26 @@ sub cleanup_process (byval process as ProcessHandle ptr)
 	Deallocate(*process)
 	*process = NULL
 end sub
+
+
+'Opens a file (or URL) with default handler.
+'If successful returns "", otherwise returns an error message.
+function open_document (filename as string) as string
+	'Initialise COM; may be necessary. May be called multiple times
+	'as long as the args are the same.
+	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE)
+	dim info as SHELLEXECUTEINFO
+	info.cbSize = SIZEOF(SHELLEXECUTEINFO)
+	'Probably unneeded. Waits for the 'execute operation' to complete (does that
+	'mean better error catching?). Needed when called from background thread.
+	info.fmask = SEE_MASK_NOASYNC
+	info.lpVerb = @"open"
+	info.lpFile = filename
+	info.nShow = SW_SHOWNORMAL
+	if ShellExecuteEx(@info) = 0 then
+		return error_string
+	end if
+	return ""
+end function
 
 end extern
