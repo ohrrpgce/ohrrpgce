@@ -18,7 +18,9 @@
 'this should be in allegro.bi but isn't
 #define MIDI_AUTODETECT -1
 
-' Module-shared variables
+extern allegro_initialised as bool
+
+'''' Module-shared variables
 
 dim shared music_on as integer = 0
 dim shared music_vol as single
@@ -36,9 +38,12 @@ end type
 dim shared delhead as delitem ptr = null
 
 
-sub music_init()	
-	'assumes allegro is already active for gfx, will need an 
-	'allegro_init call otherwise
+sub music_init()
+	if allegro_initialised = NO then
+		allegro_init()
+		allegro_initialised = YES
+	end if
+
 	if music_on = 0 then
 		install_sound(DIGI_AUTODETECT, MIDI_AUTODETECT, 0)
 		
@@ -82,7 +87,7 @@ sub music_close()
 end sub
 
 function music_get_info() as string
-	return ""
+	return allegro_id
 end function
 
 sub music_play(songname as string, fmt as MusicFormatEnum)

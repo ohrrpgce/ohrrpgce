@@ -564,6 +564,10 @@ musicbackend = MUSIC_BACKEND
 'musicbackendinfo = "music_" + MUSIC_BACKEND
 musicbackendinfo = music_get_info()
 
+'This is shared between gfx_alleg and music_allegro
+extern allegro_initialised as bool
+dim allegro_initialised as bool = NO
+
 #ifdef __FB_DARWIN__
 type OSType as integer
 extern "C"

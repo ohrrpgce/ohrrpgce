@@ -11,6 +11,8 @@
 
 declare sub debug(s as string)
 
+extern allegro_initialised as bool
+
 dim shared init_gfx as integer = 0
 dim shared screenbuf as BITMAP ptr = null
 
@@ -43,7 +45,11 @@ extern "C"
 
 function gfx_alleg_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
 	if init_gfx = 0 then
-		allegro_init()
+		if allegro_initialised = NO then
+			allegro_init()
+			allegro_initialised = YES
+		end if
+		snprintf(info_buffer, info_buffer_size, "%s", allegro_id)
 
 		set_color_depth(8)
 		if windowed <> 0 then
@@ -184,6 +190,8 @@ sub io_alleg_updatekeys(byval keybd as integer ptr)
 
 	'Note: Pause reports NumLock for me, just like fbgfx
 
+	'FIXME: This crashes inside X11, because io_updatekeys is called from
+	'the polling thread rather than the main thread.
 	if key(KEY_ENTER) andalso (key_shifts and KB_ALT_FLAG) then
 		if windowed = 0 then
 			gfx_alleg_setwindowed(1)
