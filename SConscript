@@ -440,7 +440,7 @@ commonenv['FBLINKFLAGS'] += Flatten ([['-p', v] for v in libpaths])
 # first, make sure the version is saved.
 
 # always do verprinting, before anything else.
-builddir = Dir('.').abspath
+builddir = Dir('.').abspath + os.path.sep
 rootdir = Dir('#').abspath + os.path.sep
 verprint (gfx, music, 'svn', 'git', fbc, builddir, rootdir)
 
