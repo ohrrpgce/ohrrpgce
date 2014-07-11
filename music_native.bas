@@ -10,24 +10,6 @@
 #include "config.bi"
 #undef opaque
 
-'uncomment this to try allegro
-'#DEFINE USE_ALLEGRO
-
-#IFDEF USE_ALLEGRO
-	#include "allegro.bi"
-	#undef default_palette
-	#undef bitmap
-	#undef fixed
-	#undef arc
-	#undef ellipse
-	#undef floodfill
-	#undef getpixel
-	#undef setpixel
-	#undef polygon
-	#undef textout
-#ENDIF
-
-'#IFNDEF USE_ALLEGRO
 #IFDEF __FB_WIN32__
 	#undef getcommandline
 	#include once "windows.bi"
@@ -35,12 +17,7 @@
 	#undef createevent
 	#include "externs.bi"
 	#include once "win/msacm.bi"
-	#IFNDEF USE_ALLEGRO
-		#include once "win/mmsystem.bi"
-	#ELSE
-		DECLARE SUB win_set_window CDECL ALIAS "win_set_window" (byval wnd as HWND)
-		DECLARE FUNCTION win_get_window CDECL ALIAS "win_get_window"() as HWND
-	#ENDIF
+	#include once "win/mmsystem.bi"
 #ELSE
 	'???
 #ENDIF
@@ -74,12 +51,10 @@
 
 #include once "music.bi"
 
-#IFNDEF USE_ALLEGRO
 #IFDEF __FB_WIN32__
 dim shared midi_handle as HMIDIOUT
 #ELSE
 dim shared midi_handle as FILE ptr
-#ENDIF
 #ENDIF
 
 

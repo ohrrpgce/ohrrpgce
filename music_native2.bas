@@ -9,7 +9,6 @@
 'glup
 #include "config.bi"
 
-'#IFNDEF USE_ALLEGRO
 #IFDEF __FB_WIN32__
 	#undef getcommandline
 	#undef copyfile
