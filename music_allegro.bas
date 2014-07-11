@@ -78,7 +78,11 @@ sub music_close()
 	end if
 end sub
 
-sub music_play(songname as string, fmt as music_format)
+function music_get_info() as string
+	return ""
+end function
+
+sub music_play(songname as string, fmt as MusicFormatEnum)
 	if music_on = 1 then
 		songname = rtrim$(songname)	'lose any added nulls
 		

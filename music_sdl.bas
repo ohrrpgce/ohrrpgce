@@ -194,11 +194,11 @@ sub music_close()
 	end if
 end sub
 
-sub music_play(byval lump as Lump ptr, byval fmt as integer)
+sub music_play(byval lump as Lump ptr, byval fmt as MusicFormatEnum)
 
 end sub
 
-sub music_play(songname as string, byval fmt as integer)
+sub music_play(songname as string, byval fmt as MusicFormatEnum)
 	if music_on = 1 then
 		songname = rtrim$(songname)	'lose any added nulls
 

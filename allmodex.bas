@@ -754,7 +754,7 @@ sub loadsong (f as string)
 	'check for extension
 	dim ext as string
 	dim songname as string
-	dim songtype as integer
+	dim songtype as MusicFormatEnum
 
 	songname = f
 	songtype = getmusictype(f)
@@ -779,7 +779,7 @@ sub set_music_volume (byval vol as single)
 	music_setvolume(vol)
 end sub
 
-function getmusictype (file as string) as integer
+function getmusictype (file as string) as MusicFormatEnum
 	if file = "" then
 		'no further checking for blank names
 		return 0

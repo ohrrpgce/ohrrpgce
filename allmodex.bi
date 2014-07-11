@@ -11,6 +11,7 @@
 #include "lumpfile.bi"
 #include "gfx.bi"
 #include "gfx_newRenderPlan.bi"
+#include "music.bi"
 
 
 'Library routines
@@ -183,7 +184,7 @@ DECLARE SUB stopsfx (byval num as integer)
 DECLARE SUB pausesfx (byval num as integer)
 DECLARE SUB freesfx (byval num as integer) ' only used by custom's importing interface
 DECLARE FUNCTION sfxisplaying (byval num as integer) as bool
-DECLARE FUNCTION getmusictype (file as string) as integer
+DECLARE FUNCTION getmusictype (file as string) as MusicFormatEnum
 'DECLARE SUB getsfxvol (byval num as integer)
 'DECLARE SUB setsfxvol (byval num as integer, byval vol as integer)
 

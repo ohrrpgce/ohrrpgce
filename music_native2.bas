@@ -720,11 +720,11 @@ function music_get_info() as string
 	return ""
 end function
 
-sub music_play overload(byval lump as Lump ptr, byval fmt as integer=FORMAT_BAM)
+sub music_play overload(byval lump as Lump ptr, byval fmt as MusicFormatEnum)
 
 end sub
 
-sub music_play(songname as string, byval fmt as integer)
+sub music_play(songname as string, byval fmt as MusicFormatEnum)
 	dim erro as MMRESULT
 	if music_on then
 		songname = rtrim$(songname)	'lose any added nulls

@@ -6,7 +6,8 @@
 
 '' External music functions
 
-ENUM music_format
+ENUM MusicFormatEnum
+	FORMAT_UNSPECIFIED = 0
 	FORMAT_BAM = 1
 	FORMAT_MIDI = 2
 	FORMAT_MOD = 4
@@ -37,8 +38,9 @@ declare sub music_close()
 '(eg. just return dll version)
 declare function music_get_info() as string
 
-declare sub music_play overload(songname as string, byval fmt as integer=FORMAT_BAM)
-declare sub music_play overload(byval lump as Lump ptr, byval fmt as integer=FORMAT_BAM)
+'The fmt arg is not very useful, and mostly ignored.
+declare sub music_play overload(songname as string, byval fmt as MusicFormatEnum = FORMAT_UNSPECIFIED)
+declare sub music_play overload(byval lump as Lump ptr, byval fmt as MusicFormatEnum = FORMAT_UNSPECIFIED)
 declare sub music_pause()
 declare sub music_resume()
 declare sub music_stop()

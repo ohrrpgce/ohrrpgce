@@ -16,9 +16,9 @@ function music_get_info() as string
 	return ""
 end function
 
-sub music_play(byval lump as Lump ptr, byval fmt as integer) : end sub
+sub music_play(byval lump as Lump ptr, byval fmt as MusicFormatEnum) : end sub
 
-sub music_play(songname as string, byval fmt as integer=FORMAT_BAM) : end sub
+sub music_play(songname as string, byval fmt as MusicFormatEnum) : end sub
 
 sub music_pause() : end sub
 
