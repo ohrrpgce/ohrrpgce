@@ -2284,9 +2284,9 @@ SUB playsongnum (byval songnum as integer)
   loadsong songfile
 END SUB
 
-'WARNING: This currently DOES NOT work. At all. Not even a little.
 FUNCTION open_url (url as string) as bool
- 'Returns NO if there was an error or YES if everything seemed to work okay
+ 'Would return NO to indicate failure, except we can't detect failure, so always returns YES
+ DIM cmd as string
  DIM result as string
 #IFDEF __FB_DARWIN__
  SHELL "open '" & url & "'"
@@ -2295,18 +2295,13 @@ FUNCTION open_url (url as string) as bool
 #ENDIF
 
 #IFDEF __FB_WIN32__
- 'Not tested yet!
- result = spawn_and_wait ("START", """" & url & """")
- IF result = "" THEN
-  RETURN YES
- ELSE
-  pop_warning "command failed with: " & result
-  RETURN NO
- END IF
+ cmd = "START ""Spawning Web Browser"" """ & url & """"
+ SHELL cmd
+ 'Well, Dang, I don't know how to chech this for success either!
+ RETURN YES
 #ENDIF
 
  '--Try the unix way
- DIM cmd as string
  cmd = "xdg-open '" & url & "'"
  SHELL cmd
  '-Unfortunately we can't test if it worked, so just pretend that it did.
