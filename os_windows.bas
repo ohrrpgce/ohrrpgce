@@ -3,6 +3,8 @@
 
 #include "config.bi"
 include_windows_bi()
+#include "win/shellapi.bi"
+#include "win/objbase.bi"
 #include "os.bi"
 #include "crt/string.bi"
 #include "crt/limits.bi"
