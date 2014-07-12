@@ -3,8 +3,8 @@
 
 #include "config.bi"
 include_windows_bi()
-#include "win/shellapi.bi"
-#include "win/objbase.bi"
+'#include "win/shellapi.bi"
+'#include "win/objbase.bi"
 #include "os.bi"
 #include "crt/string.bi"
 #include "crt/limits.bi"
@@ -595,7 +595,7 @@ sub cleanup_process (byval process as ProcessHandle ptr)
 	*process = NULL
 end sub
 
-
+/'
 'Opens a file (or URL) with default handler.
 'If successful returns "", otherwise returns an error message.
 function open_document (filename as string) as string
@@ -615,5 +615,6 @@ function open_document (filename as string) as string
 	end if
 	return ""
 end function
+'/
 
 end extern
