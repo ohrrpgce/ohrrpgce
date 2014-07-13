@@ -715,9 +715,8 @@ FUNCTION getdefaultpal(byval fileset as SpriteType, byval index as integer) as i
   RETURN -1
  END IF
  DIM f as string = workingdir & SLASH & "defpal" & fileset & ".bin"
- IF isfile(f) THEN
-  DIM fh as integer = FREEFILE
-  OPEN f FOR BINARY as #fh
+ DIM fh as integer = FREEFILE
+ IF OPEN(f FOR BINARY as #fh) = 0 THEN
   DIM v as short
   GET #fh, 1 + index * 2, v
   CLOSE #fh
@@ -739,9 +738,8 @@ END FUNCTION
 SUB loaddefaultpals(byval fileset as SpriteType, poffset() as integer, byval sets as integer)
  DIM v as SHORT
  DIM f as string = workingdir & SLASH & "defpal" & fileset & ".bin"
- IF isfile(f) THEN
-  DIM fh as integer = FREEFILE
-  OPEN f FOR BINARY as #fh
+ DIM fh as integer = FREEFILE
+ IF OPEN(f FOR BINARY as #fh) = 0 THEN
   FOR i as integer = 0 to sets
    GET #fh, 1 + i * 2, v
    poffset(i) = v
