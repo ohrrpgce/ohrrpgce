@@ -139,11 +139,11 @@ wine cmd /C "${SCONS}" gfx=directx+sdl+fb music=silence debug=0
 zip_and_upload directx silence "~" SDL.dll gfx_directx.dll
 
 rm -f game*.exe custom*.exe
-wine cmd /C "${SCONS}" gfx=directx+sdl+fb music=sdl debug=1
+wine cmd /C "${SCONS}" gfx=directx+sdl+fb music=sdl debug=2
 zip_and_upload directx sdl -debug SDL.dll SDL_mixer.dll gfx_directx.dll misc/gdbcmds1.txt misc/gdbcmds2.txt gdbgame.bat gdbcustom.bat
 
 rm -f game*.exe custom*.exe
-wine cmd /C "${SCONS}" gfx=directx+sdl+fb music=sdl debug=1 valgrind=1
+wine cmd /C "${SCONS}" gfx=directx+sdl+fb music=sdl debug=2 valgrind=1
 zip_and_upload directx sdl -debug-valgrind SDL.dll SDL_mixer.dll gfx_directx.dll misc/gdbcmds1.txt misc/gdbcmds2.txt gdbgame.bat gdbcustom.bat
 
 rm -f game*.exe custom*.exe

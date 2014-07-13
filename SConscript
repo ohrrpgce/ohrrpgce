@@ -94,13 +94,13 @@ if int (ARGUMENTS.get ('glibc', False)):
     # No need to bother automatically checking for glibc
     CFLAGS += ["-DHAVE_GLIBC"]
 
-# There are three levels of debug here. Not specifying 'debug' is a happy medium
-debug = 0.5
+# There are three levels of debug here: 0, 1, 2
+debug = 1  # Default to happy medium
 if 'debug' in ARGUMENTS:
-    debug = float (ARGUMENTS['debug'])
-optimisations = (debug <= 0.5)    # compile with compiler optimisations?
-FB_exx = (debug >= 0.5)   # compile with -exx?
-FB_g = (debug >= 0.5)   # compile with -g?
+    debug = int (ARGUMENTS['debug'])
+optimisations = (debug <= 1)    # compile with compiler optimisations?
+FB_exx = (debug >= 1)   # compile with -exx?
+FB_g = (debug >= 1)   # compile with -g?
 GCC_strip = (debug == 0)  # (linkgcc only) strip (link with -s)?
 
 profile = int (ARGUMENTS.get ('profile', 0))
@@ -126,7 +126,7 @@ if optimisations:
     FBFLAGS += ["-O", "2"]
 if int (ARGUMENTS.get ('gengcc', 0)):
     # Due to FB bug #661, need to pass -m32 to gcc manually (although recent versions of FB do pass it?)
-    if profile or debug >= 0.5:
+    if profile or debug >= 1:
         # -O2 plus profiling crashes for me due to mandatory frame pointers being omitted.
         # Also keep frame pointers unless explicit debug=0
         FBFLAGS += ["-gen", "gcc", "-Wc", "-m32,-fno-omit-frame-pointer"]
@@ -660,11 +660,14 @@ Options:
   music=BACKEND       Music backend. Options:
                         """ + " ".join (music_map.keys ()) + """
                       Current (default) value: """ + "+".join (music) + """
-  debug=0|0.5|1       Debugging builds:
-                      debug=0:   without -exx, with C/C++ optimisation, strip executable.
-                      debug=0.5: with -exx (FB error checking), debug symbols, and
-                       (default)   C/C++ optimisation
-                      debug=1:   with -exx and without C/C++ optimisation
+  debug=0|1|2         Debugging builds:
+                       debug=0:  without -exx (FB error checking), with
+                                 C/C++ optimisation, strip executable.
+                       debug=1: (Default) with -exx, debug symbols, and
+                                 C/C++ optimisation
+                       debug=2:  with -exx and without C/C++ optimisation
+                      -exx builds run slower and abort immediately on certain
+                      errors.
   valgrind=1          valgrinding build.
   profile=1           Profiling build for gprof.
   scriptprofile=1     Script profiling build.
@@ -712,5 +715,5 @@ With no targets specified, compiles game and custom.
 Examples:
   scons
   scons gfx=sdl+fb music=native game custom
-  scons -j 2 debug=1 .
+  scons -j 2 debug=2 .
 """)
