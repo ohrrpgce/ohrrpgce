@@ -1,4 +1,6 @@
 #!/bin/sh
+#
+# Build and package builds for linux
 
 if [ ! -f distrib.sh ] ; then
   echo You should only run this script from the ohrrpgce directory.
@@ -6,7 +8,7 @@ if [ ! -f distrib.sh ] ; then
 fi
 
 echo Building binaries
-scons game custom hspeak unlump relump || exit 1
+scons debug=0 game custom hspeak unlump relump || exit 1
 
 echo "Lumping Vikings of Midgard"
 if [ -f vikings.rpg ] ; then
