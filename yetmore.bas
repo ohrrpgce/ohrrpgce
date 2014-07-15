@@ -380,41 +380,49 @@ SELECT CASE as CONST id
  CASE 110'--set hero picture
   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
    DIM heronum as integer = bound(retvals(0), 0, 40)
-   DIM whichsprite as integer = bound(retvals(2), 0, 1)
-   IF whichsprite = 0 THEN
-    gam.hero(heronum).battle_pic = bound(retvals(1), 0, gen(genMaxHeroPic))
-   ELSE
-    gam.hero(heronum).pic = bound(retvals(1), 0, gen(genMaxNPCPic))
-    IF heronum < 4 THEN
-     vishero
-    END IF
-   END IF
+   DIM whichsprite as integer = bound(retvals(2), 0, 2)
+   SELECT CASE whichsprite
+    CASE 0:
+     gam.hero(heronum).battle_pic = bound(retvals(1), 0, gen(genMaxHeroPic))
+    CASE 1:
+     gam.hero(heronum).pic = bound(retvals(1), 0, gen(genMaxNPCPic))
+     IF heronum < 4 THEN vishero
+    CASE 2:
+     gam.hero(heronum).portrait_pic = bound(retvals(1), -1, gen(genMaxPortrait))
+   END SELECT
   END IF
  CASE 111'--set hero palette
   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
    DIM heronum as integer = bound(retvals(0), 0, 40)
-   DIM whichsprite as integer = bound(retvals(2), 0, 1)
-   IF whichsprite = 0 THEN
-    gam.hero(heronum).battle_pal = bound(retvals(1), -1, 32767)
-   ELSE
-    gam.hero(heronum).pal = bound(retvals(1), -1, 32767)
-    IF heronum < 4 THEN
-     vishero
-    END IF
-   END IF
+   DIM whichsprite as integer = bound(retvals(2), 0, 2)
+   SELECT CASE whichsprite
+    CASE 0:
+     gam.hero(heronum).battle_pal = bound(retvals(1), -1, 32767)
+    CASE 1:
+     gam.hero(heronum).pal = bound(retvals(1), -1, 32767)
+     IF heronum < 4 THEN vishero
+    CASE 2:
+     gam.hero(heronum).portrait_pal = bound(retvals(1), -1, 32767)
+   END SELECT
   END IF
  CASE 112'--get hero picture
-  IF retvals(1) < 1 THEN
-   scriptret = gam.hero(bound(retvals(0), 0, 40)).battle_pic
-  ELSE
-   scriptret = gam.hero(bound(retvals(0), 0, 40)).pic
-  END IF
+  SELECT CASE retvals(1)
+   CASE 0:
+    scriptret = gam.hero(bound(retvals(0), 0, 40)).battle_pic
+   CASE 1:
+    scriptret = gam.hero(bound(retvals(0), 0, 40)).pic
+   CASE 2:
+    scriptret = gam.hero(bound(retvals(0), 0, 40)).portrait_pic
+  END SELECT
  CASE 113'--get hero palette
-  IF retvals(1) < 1 THEN
-   scriptret = gam.hero(bound(retvals(0), 0, 40)).battle_pal
-  ELSE
-   scriptret = gam.hero(bound(retvals(0), 0, 40)).pal
-  END IF
+  SELECT CASE retvals(1)
+   CASE 0:
+    scriptret = gam.hero(bound(retvals(0), 0, 40)).battle_pal
+   CASE 1:
+    scriptret = gam.hero(bound(retvals(0), 0, 40)).pal
+   CASE 2:
+    scriptret = gam.hero(bound(retvals(0), 0, 40)).portrait_pal
+  END SELECT
  CASE 150'--status screen
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
    IF hero(retvals(0)) > 0 THEN
@@ -501,30 +509,36 @@ SELECT CASE as CONST id
   DIM heronum as integer = retvals(0)
   DIM whichsprite as integer = retvals(1)
   IF really_valid_hero_party(heronum, , serrBound) THEN
-   IF bound_arg(whichsprite, 0, 1, "in or out of battle") THEN
+   IF bound_arg(whichsprite, 0, 2, "hero picture type") THEN
     DIM her as herodef
     loadherodata her, hero(heronum) - 1
-    IF whichsprite = 0 THEN
-     gam.hero(heronum).battle_pic = her.sprite
-    ELSE
-     gam.hero(heronum).pic = her.walk_sprite
-     IF heronum < 4 THEN vishero
-    END IF
+    SELECT CASE whichsprite
+     CASE 0:
+      gam.hero(heronum).battle_pic = her.sprite
+     CASE 1:
+      gam.hero(heronum).pic = her.walk_sprite
+      IF heronum < 4 THEN vishero
+     CASE 2:
+      gam.hero(heronum).portrait_pic = her.portrait
+    END SELECT
    END IF
   END IF
  CASE 450'--reset hero palette
   DIM heronum as integer = retvals(0)
   DIM whichsprite as integer = retvals(1)
   IF really_valid_hero_party(heronum, , serrBound) THEN
-   IF bound_arg(whichsprite, 0, 1, "in or out of battle") THEN
+   IF bound_arg(whichsprite, 0, 2, "hero picture type") THEN
     DIM her as herodef
     loadherodata her, hero(heronum) - 1
-    IF whichsprite = 0 THEN
-     gam.hero(heronum).battle_pal = her.sprite_pal
-    ELSE
-     gam.hero(heronum).pal = her.walk_sprite_pal
-     IF heronum < 4 THEN vishero
-    END IF
+    SELECT CASE whichsprite
+     CASE 0:
+      gam.hero(heronum).battle_pal = her.sprite_pal
+     CASE 1:
+      gam.hero(heronum).pal = her.walk_sprite_pal
+      IF heronum < 4 THEN vishero
+     CASE 2:
+      gam.hero(heronum).portrait_pal = her.portrait_pal
+    END SELECT
    END IF
   END IF
  CASE 497'--set hero base elemental resist (hero, element, percent)

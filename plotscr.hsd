@@ -1526,6 +1526,7 @@ define constant, begin
 128,overheadtile
 0,inside battle
 1,outside battle
+2,hero portrait
 0,NPCstat:picture
 1,NPCstat:palette
 2,NPCstat:movetype

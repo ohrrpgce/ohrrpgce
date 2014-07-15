@@ -5397,7 +5397,7 @@ Besides readability, there is one other important difference between using switc
 		<command id="setheropicture">
 			<canon>set hero picture (who,picture,type)</canon>
 			<shortname>set hero picture</shortname>
-			<description>Permanently changes a hero&apos;s picture. The first argument is the hero's position in the party. (Use <ref>findhero</ref> if you want refer to the hero by name.) The second argument is the index number of the picture to use, and the last argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref>, which determines if you are changing the hero's battle picture or their walkabout picture. If the last argument is left out, <ref>outsidebattle</ref> is assumed.</description>
+			<description>Permanently changes a hero&apos;s picture. The first argument is the hero's position in the party. (Use <ref>findhero</ref> if you want refer to the hero by name.) The second argument is the index number of the picture to use, and the last argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref> or <ref>heroportrait</ref>, which determines if you are changing the hero's battle picture or their walkabout picture or their portrait. If the last argument is left out, <ref>outsidebattle</ref> is assumed.</description>
 			<seealso>
 				<ref>resetheropicture</ref>
 			</seealso>
@@ -5405,7 +5405,7 @@ Besides readability, there is one other important difference between using switc
 		<command id="setheropalette">
 			<canon>set hero palette (who,palette,type)</canon>
 			<shortname>set hero palette</shortname>
-			<description>Permanently changes a hero&apos;s 16-color palette. The first argument is the hero's position in the party. (Use <ref>findhero</ref> if you want refer to the hero by name.) The second argument is the index number of the 16-color palette to use, and the last argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref>, which determines if you are changing the hero's battle palette or their walkabout palette. If the last argument is left out, <ref>outsidebattle</ref> is assumed.</description>
+			<description>Permanently changes a hero&apos;s 16-color palette. The first argument is the hero's position in the party. (Use <ref>findhero</ref> if you want refer to the hero by name.) The second argument is the index number of the 16-color palette to use, and the last argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref> or <ref>heroportrait</ref>, which determines if you are changing the hero's battle palette or their walkabout palette or their portrait palette. If the last argument is left out, <ref>outsidebattle</ref> is assumed.</description>
 			<seealso>
 				<ref>resetheropalette</ref>
 			</seealso>
@@ -5413,17 +5413,17 @@ Besides readability, there is one other important difference between using switc
 		<command id="getheropicture">
 			<canon>get hero picture (who,type)</canon>
 			<shortname>get hero picture</shortname>
-			<description>A function that returns the index number of a hero&apos;s picture. The first argument is the hero's position in the party as returned by <ref>findhero</ref>. The second argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref>, which determines if you are checking the hero's battle picture or their walkabout picture. If the second argument is left out, <ref>outsidebattle</ref> is assumed.</description>
+			<description>A function that returns the index number of a hero&apos;s picture. The first argument is the hero's position in the party as returned by <ref>findhero</ref>. The second argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref> or <ref>heroportrait</ref>, which determines if you are checking the hero's battle picture or their walkabout picture or their portrait. If the second argument is left out, <ref>outsidebattle</ref> is assumed.</description>
 		</command>
 		<command id="getheropalette">
 			<canon>get hero palette (who,type)</canon>
 			<shortname>get hero palette</shortname>
-			<description>A function that returns the index number of a hero&apos;s 16-color palette. The first argument is the hero's position in the party as returned by <ref>findhero</ref>. The second argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref>, which determines if you are checking the hero's battle palette or their walkabout palette. If the second argument is left out, <ref>outsidebattle</ref> is assumed.</description>
+			<description>A function that returns the index number of a hero&apos;s 16-color palette. The first argument is the hero's position in the party as returned by <ref>findhero</ref>. The second argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref> or <ref>heroportrait</ref>, which determines if you are checking the hero's battle palette or their walkabout palette or their portrait palette. If the second argument is left out, <ref>outsidebattle</ref> is assumed.</description>
 		</command>
 		<command id="resetheropicture">
 			<canon>reset hero picture (who,type)</canon>
 			<shortname>reset hero picture</shortname>
-			<description>Resets a hero&apos;s picture that was previously changed with <ref>setheropicture</ref> back to the default picture. The first argument is the hero's position in the party. (Use <ref>findhero</ref> if you want refer to the hero by name). The second argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref>, which determines if you are changing the hero's battle picture or their walkabout picture. If the last argument is left out, <ref>outsidebattle</ref> is assumed.</description>
+			<description>Resets a hero&apos;s picture that was previously changed with <ref>setheropicture</ref> back to the default picture. The first argument is the hero's position in the party. (Use <ref>findhero</ref> if you want refer to the hero by name). The second argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref> or <ref>heroportrait</ref>, which determines if you are resetting the hero's battle picture or their walkabout picture or their portrait. If the last argument is left out, <ref>outsidebattle</ref> is assumed.</description>
 			<seealso>
 				<ref>setheropicture</ref>
 			</seealso>
@@ -5431,7 +5431,7 @@ Besides readability, there is one other important difference between using switc
 		<command id="resetheropalette">
 			<canon>reset hero palette (who,type)</canon>
 			<shortname>reset hero palette</shortname>
-			<description>Resets a hero&apos;s palette that was previously changed with <ref>setheropalette</ref> back to the default palette. The first argument is the hero's position in the party. (Use <ref>findhero</ref> if you want refer to the hero by name.) The second argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref>, which determines if you are changing the hero's battle palette or their walkabout palette. If the last argument is left out, <ref>outsidebattle</ref> is assumed.</description>
+			<description>Resets a hero&apos;s palette that was previously changed with <ref>setheropalette</ref> back to the default palette. The first argument is the hero's position in the party. (Use <ref>findhero</ref> if you want refer to the hero by name.) The second argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref> or <ref>heroportrait</ref>, which determines if you are resetting the hero's battle palette or their walkabout palette or their portrait palette. If the last argument is left out, <ref>outsidebattle</ref> is assumed.</description>
 			<seealso>
 				<ref>setheropicture</ref>
 			</seealso>
@@ -6394,6 +6394,11 @@ end</example>
 			<canon>outside battle</canon>
 			<shortname>outside battle</shortname>
 			<description>A constant used in the <ref>getheropicture</ref>, <ref>setheropicture</ref>, <ref>getheropalette</ref>, <ref>setheropalette</ref>, <ref>resetheropicture</ref> and <ref>resetheropalette</ref> commands to represent the walkabout graphics.</description>
+		</command>
+		<command id="heroportrait">
+			<canon>hero portrait</canon>
+			<shortname>hero portrait</shortname>
+			<description>A constant used in the <ref>getheropicture</ref>, <ref>setheropicture</ref>, <ref>getheropalette</ref>, <ref>setheropalette</ref>, <ref>resetheropicture</ref> and <ref>resetheropalette</ref> commands to represent the hero's portrait graphics.</description>
 		</command>
 		<command id="colorconstants">
 			<canon>Color Constants</canon>

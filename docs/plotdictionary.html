@@ -247,6 +247,9 @@
 		<a href="#about-camerafollowsnpc">camera follows NPC (who)</a><br>
 		
 	
+		<a href="#about-camerafollowsslice">camera follows slice (slice)</a><br>
+		
+	
 		<a href="#about-camerapixelx">camera pixel X</a><br>
 		
 	
@@ -604,6 +607,9 @@
 		<a href="#about-getbottompadding">get bottom padding (handle)</a><br>
 		
 	
+		<a href="#about-getcallingscriptid">get calling script id (depth)</a><br>
+		
+	
 		<a href="#about-getcolor">get color(index)</a><br>
 		
 	
@@ -859,6 +865,9 @@
 		<a href="#about-getrightpadding">get right padding (handle)</a><br>
 		
 	
+		<a href="#about-getscriptname">get script name (string id, script id)</a><br>
+		
+	
 		<a href="#about-getsliceclipping">get slice clipping (handle)</a><br>
 		
 	
@@ -971,6 +980,9 @@
 		
 	
 		<a href="#about-heropixely">hero pixel Y (who)</a><br>
+		
+	
+		<a href="#about-heroportrait">hero portrait</a><br>
 		
 	
 		<a href="#about-herototalelementalresistasint">hero total elemental resist as int (who, element)</a><br>
@@ -3483,6 +3495,14 @@ end</pre>
 			
 			
 		</tt></p>
+		<a name="about-camerafollowsslice"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">camera follows slice (slice)</font></b><br>
+			With this command, you can make the camera follow a slice instead of the hero. The slice will be centered on the screen. To revert the camera to normal, use <a href="#about-camerafollowshero" class="ref">camera follows hero</a>.<br>
+			
+			
+		</tt></p>
 		<a name="about-pancamera"></a>
 		<p>
 		<tt>
@@ -4550,7 +4570,10 @@ end</pre>
 You can set the value of a string directly with <a href="#about-%24string=%22...%22" class="ref">$id="..."</a> and append to an existing string with <a href="#about-%24string+%22...%22" class="ref">$id+"..."</a>.
 There is no limit on string length.<br>
 <div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">When referring to a position in a string, <span class="param">position</span> is a 1-based index into the string, not a 0-based index. For example, given a string "ABCDEFG", position=3 is "C", not "D". This is because the string commands are based on BASIC string commands, which are 1-based. This also means that position 0 is invalid. Beware!<br clear="all">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Unlike almost all other indices in the OHRRPGCE, when referring to a position in a string, <span class="param">position</span> is a 1-based index into the string, not a 0-based index. For example, given a string "ABCDEFG", position=3 is "C", not "D". This means that position 0 is invalid. Beware!<br clear="all">
+</div>
+<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Strings are not saved in saved games by default, but this can be enabled in the Saved Game Settings menu.<br clear="all">
 </div><br></p>
 		
 		<a name="about-%24string=%22...%22"></a>
@@ -4868,7 +4891,7 @@ get hero name (1, find hero (leader))
 		<p>
 		<tt>
 		<b><font color="yellow">string style (ID, style)</font></b><br>
-			Changes the appearance of a string previously displayed with <a href="#about-showstringat" class="ref">show string at</a> or <a href="#about-centerstringat" class="ref">center string at</a>. Choice of <span class="param">style</span> is string:outline and string:flat. string:outline is the style of string you are familiar with in textboxes: they are outlined with colour 0 (black). string:flat have not outline but can have a solid background of any colour behind the string.<br>
+			Changes the appearance of a string. Use this in conjunction with (before or after) <a href="#about-showstringat" class="ref">show string at</a> or <a href="#about-centerstringat" class="ref">center string at</a>. Choice of <span class="param">style</span> is string:outline and string:flat. string:outline is the style of string you are familiar with in textboxes: they are outlined with colour 0 (black). string:flat have no outline but can have a solid rectangular background of any colour displayed behind the string.<br>
 			
 			
 		</tt></p>
@@ -4876,7 +4899,7 @@ get hero name (1, find hero (leader))
 		<p>
 		<tt>
 		<b><font color="yellow">string color (ID, foreground color, background color)</font></b><br>
-			Changes the color of a string previously displayed with <a href="#about-showstringat" class="ref">show string at</a> or <a href="#about-centerstringat" class="ref">center string at</a>. Foreground color is the colour of the text itself. Background color has no meaning for style:outline strings (the outline is always black). For style:flat strings, it is the color of the solid background if 1 to 255, or causes no background if 0. If you omit <span class="param">background color</span>, the background will be transparent.<br>
+			Changes the color of a string. Use this in conjunction with (before or after) <a href="#about-showstringat" class="ref">show string at</a> or <a href="#about-centerstringat" class="ref">center string at</a>. Foreground color is the colour of the text itself. Background color has no meaning for style:outline strings (the outline is always black). For style:flat strings, it is the color of the solid background if 1 to 255, or causes no background if 0. If you omit <span class="param">background color</span>, the background will be transparent. Omit <span class="param">foreground color</span> as well to reset the color to default ('Text' User-interface color).<br>
 			
 			
 		</tt></p>
@@ -5939,7 +5962,7 @@ set menu on close script(m, @my menu exit handler)
 		<p>
 		<tt>
 		<b><font color="yellow">clone sprite (handle)</font></b><br>
-			Duplicates a sprite slice, returning a handle to it. The new sprite inherits only the sprite-related data; in all other ways it is like a freshly created new slice. For example, the parent is <a href="#about-spritelayer" class="ref">sprite layer</a> and the new slice starts visible, with default anchoring, is at position 0,0, has no children, etc.. If you clone a sprite, remember that you will need to call <a href="#about-freesprite" class="ref">free sprite</a> on both the original and the clone.<br>
+			Duplicates a sprite slice, returning a handle to it. The new sprite inherits only the sprite-related data; in all other ways it is like a freshly created new slice. For example, the parent of the new slice is <a href="#about-spritelayer" class="ref">sprite layer</a> and it starts out visible, with default anchoring, is at position 0,0, has no children, etc.. If you clone a sprite, remember that you will need to call <a href="#about-freesprite" class="ref">free sprite</a> on both the original and the clone.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-freesprite" class="ref">free sprite</a></li></ul>
 		</tt></p>
@@ -6079,7 +6102,7 @@ set menu on close script(m, @my menu exit handler)
 		<p>
 		<tt>
 		<b><font color="yellow">sprite layer</font></b><br>
-			Returns a slice handle for the layer which contains slices created with commands such as <a href="#about-loadherosprite" class="ref">load hero sprite</a>, <a href="#about-createrect" class="ref">create rect</a> and others. You can use this together with <a href="#about-firstchild" class="ref">first child</a> if you want to loop through all your slices without knowing their handles. This is the default parent of all new slices.<br>
+			Returns a slice handle for the slice (also called the 'script layer') which is the default parent of all new script-created slices, such as created by <a href="#about-loadherosprite" class="ref">load hero sprite</a> and <a href="#about-createrect" class="ref">create rect</a>. You can move slices elsewhere in the slice tree with <a href="#about-setparent" class="ref">set parent</a>. You can use spritelayer together with <a href="#about-firstchild" class="ref">first child</a> if you want to loop through all your slices without knowing their handles. Another way to get this slice is to use <a href="#about-lookupslice" class="ref">lookup slice</a>: <span class="param">lookup slice(sl:script layer)</span>.<br>
 			<pre>variable(sl)
 sl := first child(sprite layer)
 while (sl) do, begin
@@ -6230,6 +6253,25 @@ lookup slice(sl:map layer4)
 lookup slice(sl:map layer5)
 lookup slice(sl:map layer6)
 lookup slice(sl:map layer7)
+lookup slice(sl:status portrait)
+lookup slice(sl:status walkabout)
+lookup slice(sl:status battlesprite)
+lookup slice(sl:status page select)
+lookup slice(sl:status statlist)
+lookup slice(sl:status hide if no mp)
+lookup slice(sl:status hide if no lmp)
+lookup slice(sl:status hide if max lev)
+lookup slice(sl:plank holder)
+lookup slice(sl:status hide if no portrait)
+lookup slice(sl:item itemlist)
+lookup slice(sl:item exitbutton)
+lookup slice(sl:item sortbutton)
+lookup slice(sl:item trashbutton)
+lookup slice(sl:plank menu selectable)
+lookup slice(sl:spell listlist)
+lookup slice(sl:spell spelllist)
+lookup slice(sl:spell hide if no list)
+lookup slice(sl:spell cancelbutton)
 </pre>
 			<br>See also: <ul class="seealso">
 <li>
@@ -9872,7 +9914,7 @@ Besides readability, there is one other important difference between using switc
 		<p>
 		<tt>
 		<b><font color="yellow">set hero picture (who,picture,type)</font></b><br>
-			Permanently changes a hero's picture. The first argument is the hero's position in the party. (Use <a href="#about-findhero" class="ref">find hero</a> if you want refer to the hero by name.) The second argument is the index number of the picture to use, and the last argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a>, which determines if you are changing the hero's battle picture or their walkabout picture. If the last argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.<br>
+			Permanently changes a hero's picture. The first argument is the hero's position in the party. (Use <a href="#about-findhero" class="ref">find hero</a> if you want refer to the hero by name.) The second argument is the index number of the picture to use, and the last argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a> or <a href="#about-heroportrait" class="ref">hero portrait</a>, which determines if you are changing the hero's battle picture or their walkabout picture or their portrait. If the last argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-resetheropicture" class="ref">reset hero picture</a></li></ul>
 		</tt></p>
@@ -9880,7 +9922,7 @@ Besides readability, there is one other important difference between using switc
 		<p>
 		<tt>
 		<b><font color="yellow">set hero palette (who,palette,type)</font></b><br>
-			Permanently changes a hero's 16-color palette. The first argument is the hero's position in the party. (Use <a href="#about-findhero" class="ref">find hero</a> if you want refer to the hero by name.) The second argument is the index number of the 16-color palette to use, and the last argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a>, which determines if you are changing the hero's battle palette or their walkabout palette. If the last argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.<br>
+			Permanently changes a hero's 16-color palette. The first argument is the hero's position in the party. (Use <a href="#about-findhero" class="ref">find hero</a> if you want refer to the hero by name.) The second argument is the index number of the 16-color palette to use, and the last argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a> or <a href="#about-heroportrait" class="ref">hero portrait</a>, which determines if you are changing the hero's battle palette or their walkabout palette or their portrait palette. If the last argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-resetheropalette" class="ref">reset hero palette</a></li></ul>
 		</tt></p>
@@ -9888,7 +9930,7 @@ Besides readability, there is one other important difference between using switc
 		<p>
 		<tt>
 		<b><font color="yellow">get hero picture (who,type)</font></b><br>
-			A function that returns the index number of a hero's picture. The first argument is the hero's position in the party as returned by <a href="#about-findhero" class="ref">find hero</a>. The second argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a>, which determines if you are checking the hero's battle picture or their walkabout picture. If the second argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.<br>
+			A function that returns the index number of a hero's picture. The first argument is the hero's position in the party as returned by <a href="#about-findhero" class="ref">find hero</a>. The second argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a> or <a href="#about-heroportrait" class="ref">hero portrait</a>, which determines if you are checking the hero's battle picture or their walkabout picture or their portrait. If the second argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.<br>
 			
 			
 		</tt></p>
@@ -9896,7 +9938,7 @@ Besides readability, there is one other important difference between using switc
 		<p>
 		<tt>
 		<b><font color="yellow">get hero palette (who,type)</font></b><br>
-			A function that returns the index number of a hero's 16-color palette. The first argument is the hero's position in the party as returned by <a href="#about-findhero" class="ref">find hero</a>. The second argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a>, which determines if you are checking the hero's battle palette or their walkabout palette. If the second argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.<br>
+			A function that returns the index number of a hero's 16-color palette. The first argument is the hero's position in the party as returned by <a href="#about-findhero" class="ref">find hero</a>. The second argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a> or <a href="#about-heroportrait" class="ref">hero portrait</a>, which determines if you are checking the hero's battle palette or their walkabout palette or their portrait palette. If the second argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.<br>
 			
 			
 		</tt></p>
@@ -9904,7 +9946,7 @@ Besides readability, there is one other important difference between using switc
 		<p>
 		<tt>
 		<b><font color="yellow">reset hero picture (who,type)</font></b><br>
-			Resets a hero's picture that was previously changed with <a href="#about-setheropicture" class="ref">set hero picture</a> back to the default picture. The first argument is the hero's position in the party. (Use <a href="#about-findhero" class="ref">find hero</a> if you want refer to the hero by name). The second argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a>, which determines if you are changing the hero's battle picture or their walkabout picture. If the last argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.<br>
+			Resets a hero's picture that was previously changed with <a href="#about-setheropicture" class="ref">set hero picture</a> back to the default picture. The first argument is the hero's position in the party. (Use <a href="#about-findhero" class="ref">find hero</a> if you want refer to the hero by name). The second argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a> or <a href="#about-heroportrait" class="ref">hero portrait</a>, which determines if you are resetting the hero's battle picture or their walkabout picture or their portrait. If the last argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-setheropicture" class="ref">set hero picture</a></li></ul>
 		</tt></p>
@@ -9912,7 +9954,7 @@ Besides readability, there is one other important difference between using switc
 		<p>
 		<tt>
 		<b><font color="yellow">reset hero palette (who,type)</font></b><br>
-			Resets a hero's palette that was previously changed with <a href="#about-setheropalette" class="ref">set hero palette</a> back to the default palette. The first argument is the hero's position in the party. (Use <a href="#about-findhero" class="ref">find hero</a> if you want refer to the hero by name.) The second argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a>, which determines if you are changing the hero's battle palette or their walkabout palette. If the last argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.<br>
+			Resets a hero's palette that was previously changed with <a href="#about-setheropalette" class="ref">set hero palette</a> back to the default palette. The first argument is the hero's position in the party. (Use <a href="#about-findhero" class="ref">find hero</a> if you want refer to the hero by name.) The second argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a> or <a href="#about-heroportrait" class="ref">hero portrait</a>, which determines if you are resetting the hero's battle palette or their walkabout palette or their portrait palette. If the last argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-setheropicture" class="ref">set hero picture</a></li></ul>
 		</tt></p>
@@ -10874,6 +10916,22 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 <li><a href="#about-tracevalue" class="ref">trace value</a></li>
 </ul>
 		</tt></p>
+		<a name="about-getscriptname"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get script name (string id, script id)</font></b><br>
+			Fetches the name of a script given its ID number and places it in a string. It's an error to pass an invalid script ID.. You can get the ID number of a script by writing @scriptname.<br>
+			
+			
+		</tt></p>
+		<a name="about-getcallingscriptid"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get calling script id (depth)</font></b><br>
+			Returns the ID number of the script which called this one. The optional <span class="param">depth</span> argument, which defaults to 1, allows returning the ID of a deeper ancestor script instead: 1 is the parent, 2 is the grandparent, etc. If there is no calling script (the script was triggered instead), then the return value is 0. You can get the ID number of a script by writing @scriptname.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-getscriptname" class="ref">get script name</a></li></ul>
+		</tt></p>
 		<a name="about-savemapstate"></a>
 		<p>
 		<tt>
@@ -11341,6 +11399,14 @@ end</pre>
 			
 			
 		</tt></p>
+		<a name="about-heroportrait"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">hero portrait</font></b><br>
+			A constant used in the <a href="#about-getheropicture" class="ref">get hero picture</a>, <a href="#about-setheropicture" class="ref">set hero picture</a>, <a href="#about-getheropalette" class="ref">get hero palette</a>, <a href="#about-setheropalette" class="ref">set hero palette</a>, <a href="#about-resetheropicture" class="ref">reset hero picture</a> and <a href="#about-resetheropalette" class="ref">reset hero palette</a> commands to represent the hero's portrait graphics.<br>
+			
+			
+		</tt></p>
 		<a name="about-colorconstants"></a>
 		<p>
 		<tt>
@@ -11577,7 +11643,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 786 commands in this file, of which 57 are only references to other commands.</p>
+	<p>Stats: There are 790 commands in this file, of which 57 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
