@@ -101,7 +101,6 @@ TYPE TextBoxState
   show_lines     as integer 'Number of lines currently on display
   sayer          as integer 'The NPC reference who triggered this textbox as a positive number, or -1 for none
   old_dir        as integer 'For NPCs that return to their previos direction after speaking
-  portrait       as GraphicPair
   sl             as Slice Ptr
 END TYPE
 

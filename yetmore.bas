@@ -4056,9 +4056,6 @@ IF istag(txt.box.menu_tag, 0) THEN
  add_menu txt.box.menu
 END IF
 
-'--Get the portrait
-load_text_box_portrait txt.box, txt.portrait
-
 txt.showing = YES
 txt.fully_shown = NO
 txt.show_lines = 0
@@ -4068,39 +4065,6 @@ init_text_box_slices txt
 
 update_virtual_gamepad_display()
 
-END SUB
-
-SUB load_text_box_portrait (byref box as TextBox, byref gfx as GraphicPair)
- 'WARNING: There is another version of this in customsubs.bas
- 'If you update this here, make sure to update that one too!
- DIM img_id as integer = -1
- DIM pal_id as integer = -1
- DIM hero_id as integer = -1
- DIM her as HeroDef
- WITH gfx
-  IF .sprite THEN frame_unload @.sprite
-  IF .pal    THEN palette16_unload @.pal
-  SELECT CASE box.portrait_type
-   CASE 1' Fixed ID number
-    img_id = box.portrait_id
-    pal_id = box.portrait_pal
-   CASE 2' Hero by caterpillar
-    hero_id = herobyrank(box.portrait_id)
-   CASE 3' Hero by party slot
-    IF box.portrait_id >= 0 AND box.portrait_id <= UBOUND(hero) THEN
-     hero_id = hero(box.portrait_id) - 1
-    END IF
-  END SELECT
-  IF hero_id >= 0 THEN
-   loadherodata her, hero_id
-   img_id = her.portrait
-   pal_id = her.portrait_pal
-  END IF
-  IF img_id >= 0 THEN
-   .sprite = frame_load(8, img_id)
-   .pal    = palette16_load(pal_id, 8, img_id)
-  END IF
- END WITH
 END SUB
 
 FUNCTION valid_spriteslice_dat(byval sl as Slice Ptr) as integer

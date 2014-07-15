@@ -1573,8 +1573,8 @@ FUNCTION seconds_estimate(ticks as integer) as string
 END FUNCTION
 
 SUB load_text_box_portrait (byref box as TextBox, byref gfx as GraphicPair)
- 'WARNING: There is another version of this in yetmore.bas
- 'If you update this here, make sure to update that one too!
+ 'NOTE: Compare this to the portrait loading code in game.bas:init_text_box_slices()
+ 'If you update this here, you might need to update that one too!
  DIM img_id as integer = -1
  DIM pal_id as integer = -1
  DIM her as HeroDef

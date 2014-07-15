@@ -3418,10 +3418,6 @@ SUB advance_text_box ()
  IF txt.box.backdrop > 0 THEN
   gen(genTextboxBackdrop) = 0
  END IF
- WITH txt.portrait
-  IF .sprite THEN frame_unload @.sprite
-  IF .pal    THEN palette16_unload @.pal
- END WITH
  txt.showing = NO
  txt.fully_shown = NO
  txt.sayer = -1
@@ -3501,6 +3497,8 @@ SUB init_text_box_slices(txt as TextBoxState)
  END IF
 
  '--figure out which portrait to load
+ 'NOTE: Compare this to customsubs.rbas:load_text_box_portrait()
+ 'If you update this code, you might need to update that too.
  DIM img_id as integer = -1
  DIM pal_id as integer = -1
  DIM hero_slot as integer = -1
@@ -3591,10 +3589,6 @@ SUB cleanup_text_box ()
   .show_lines = 0
   .sayer = -1
   .old_dir = 0
- END WITH
- WITH txt.portrait
-  IF .sprite THEN frame_unload @.sprite
-  IF .pal    THEN palette16_unload @.pal
  END WITH
  IF txt.sl THEN DeleteSlice @(txt.sl)
 END SUB
