@@ -418,7 +418,7 @@ SELECT CASE as CONST id
  CASE 150'--status screen
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
    IF hero(retvals(0)) > 0 THEN
-    old_status retvals(0)
+    status_screen retvals(0)
    END IF
   END IF
  CASE 152'--spells menu

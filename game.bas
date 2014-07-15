@@ -2795,7 +2795,7 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as int
        IF slot >= 0 THEN old_spells_menu slot
       CASE 2 ' status
        slot = onwho(readglobalstring(104, "Whose Status?", 20), 0)
-       IF slot >= 0 THEN old_status slot
+       IF slot >= 0 THEN status_screen slot
       CASE 3 ' equip
        slot = onwho(readglobalstring(108, "Equip Whom?", 20), 0)
        IF slot >= 0 THEN equip slot
@@ -4086,14 +4086,13 @@ END FUNCTION
 
 SUB misc_debug_menu()
  STATIC default as integer = 0
- DIM menu(6) as string
+ DIM menu(5) as string
  menu(0) = "Test Battles"
  menu(1) = "View/Edit Slice Tree"
  menu(2) = "Manipulate gen() array"
  menu(3) = "Manipulate gmap() array"
- menu(4) = "Test Slicified Status Screen"
- menu(5) = "Test Slicified Item Screen"
- menu(6) = "Test Slicified Spell Screen"
+ menu(4) = "Test Slicified Item Screen"
+ menu(5) = "Test Slicified Spell Screen"
  DIM result as integer
  result = multichoice("Misc. Debug", menu(), default, , "game_misc_debug")
  IF result = -1 THEN EXIT SUB
@@ -4103,12 +4102,11 @@ SUB misc_debug_menu()
   CASE 1: slice_editor SliceTable.Root
   CASE 2: patcharray gen(), "gen"
   CASE 3: patcharray gmap(), "gmap"
-  CASE 4: status_screen onwho(readglobalstring(104, "Whose Status?", 20), 0)
-  CASE 5: 
+  CASE 4: 
    DIM item_textbox as integer
    item_textbox = item_screen()
    IF item_textbox > 0 THEN loadsay item_textbox
-  CASE 6: 'spell_screen onwho(readglobalstring(106, "Whose Spells?", 20), 0)
+  CASE 5: 'spell_screen onwho(readglobalstring(106, "Whose Spells?", 20), 0)
  END SELECT
 END SUB
 

@@ -18,7 +18,6 @@ DECLARE FUNCTION picksave (byval loading as integer, byval newgame_opt as bool =
 DECLARE SUB sellstuff (byval id as integer, storebuf() as integer)
 DECLARE SUB old_spells_menu (byval who as integer)
 DECLARE SUB status_screen (byval slot as integer)
-DECLARE SUB old_status (byval pt as integer)
 DECLARE FUNCTION trylearn (byval who as integer, byval atk as integer) as bool
 DECLARE SUB unequip (byval who as integer, byval where as integer, byval defwep as integer, byval resetdw as integer)
 DECLARE SUB loadshopstuf (array() as integer, byval id as integer)
