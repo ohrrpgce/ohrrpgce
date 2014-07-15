@@ -3510,6 +3510,17 @@ SUB init_text_box_slices(txt as TextBoxState)
    hero_slot = rank_to_party_slot(txt.box.portrait_id)
   CASE 3' Hero by party slot
    hero_slot = txt.box.portrait_id
+  CASE 4' Hero by ID
+   'If the hero is in the party, use their current state.
+   'if there are multiple copies, use the first.
+   hero_slot = findhero(txt.box.portrait_id + 1, 0, 40, 1)
+   IF hero_slot = -1 THEN
+    'The hero is not in the party right now, use their default
+    DIM her as HeroDef
+    loadherodata her, txt.box.portrait_id
+    img_id = her.portrait
+    pal_id = her.portrait_pal
+   END IF
  END SELECT
  IF hero_slot >= 0 ANDALSO hero_slot <= UBOUND(gam.hero) THEN
   IF hero(hero_slot) > 0 THEN

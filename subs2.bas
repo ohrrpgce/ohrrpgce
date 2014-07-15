@@ -1262,12 +1262,13 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
       music_stop
      END IF
     CASE 10:
-     state.need_update OR= intgrabber(box.portrait_type, 0, 3)
+     state.need_update OR= intgrabber(box.portrait_type, 0, 4)
     CASE 11:
      SELECT CASE box.portrait_type
       CASE 1: state.need_update OR= intgrabber(box.portrait_id, 0, gen(genMaxPortrait))
       CASE 2: state.need_update OR= intgrabber(box.portrait_id, 0, 3)
       CASE 3: state.need_update OR= intgrabber(box.portrait_id, 0, 40)
+      CASE 4: state.need_update OR= intgrabber(box.portrait_id, 0, gen(genMaxHero))
      END SELECT
     CASE 12:
      IF box.portrait_type = 1 THEN
@@ -1360,6 +1361,7 @@ SUB update_textbox_appearance_editor_menu (menu() as string, byref box as TextBo
      CASE 1: menutemp = "Fixed"
      CASE 2: menutemp = "Hero (by caterpillar order)"
      CASE 3: menutemp = "Hero (by party order)"
+     CASE 4: menutemp = "Hero (by ID)"
     END SELECT
    CASE 11:
     menutemp = STR(box.portrait_id)
@@ -1367,6 +1369,7 @@ SUB update_textbox_appearance_editor_menu (menu() as string, byref box as TextBo
      CASE 0: menutemp = menutemp & " (N/A)"
      CASE 2: IF box.portrait_id = 0 THEN menutemp = menutemp & " (Leader)"
      CASE 3: IF box.portrait_id > 3 THEN menutemp = menutemp & " (Reserve)"
+     CASE 4: menutemp &= " (" & getheroname(box.portrait_id) & ")"
      CASE ELSE: menutemp = "" & box.portrait_id
     END SELECT
    CASE 12:

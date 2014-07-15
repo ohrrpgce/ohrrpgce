@@ -1595,6 +1595,10 @@ SUB load_text_box_portrait (byref box as TextBox, byref gfx as GraphicPair)
     loadherodata her, 0
     img_id = her.portrait
     pal_id = her.portrait_pal
+   CASE 4' Hero by ID
+    loadherodata her, box.portrait_id
+    img_id = her.portrait
+    pal_id = her.portrait_pal
   END SELECT
   IF img_id >= 0 THEN
    .sprite = frame_load(8, img_id)
