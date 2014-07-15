@@ -34,6 +34,8 @@ TYPE HeroState
  def_wep as integer  'default weapon
  pic as integer
  pal as integer
+ portrait_pic as integer
+ portrait_pal as integer
  rename_on_status as bool  'Renameable in status menu
  elementals(maxElements - 1) as single
  hand_pos(1) as XYPair

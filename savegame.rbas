@@ -533,6 +533,10 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
         .hand_pos(j).x = her.hand_pos(j).x
         .hand_pos(j).y = her.hand_pos(j).y
        NEXT j
+       
+       'Defaults for portrait
+       .portrait_pic = her.portrait
+       .portrait_pal = her.portrait_pal
 
       END IF
 
@@ -585,6 +589,11 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
        READNODE slot."walkabout".warn as ch, default
         .pic = ch."pic"
         .pal = ch."pal"
+       END READNODE
+
+       READNODE slot."portrait" as ch, default
+        .portrait_pic = ch."pic".integer.default(.portrait_pic)
+        .portrait_pal = ch."pal".integer.default(.portrait_pal)
        END READNODE
 
        READNODE slot."hand" as hand
@@ -1031,6 +1040,7 @@ SUB gamestate_party_to_reload(byval parent as Reload.NodePtr)
  DIM slot as NodePtr
  DIM ch as NodePtr 'used for sub-containers
  DIM n as NodePtr 'used for numbered containers
+ DIM her as HeroDef 'used for comparing current values to defaults (portrait)
  
  FOR i as integer = 0 TO 40
   slot = AppendChildNode(node, "slot", i)
@@ -1087,6 +1097,15 @@ SUB gamestate_party_to_reload(byval parent as Reload.NodePtr)
    ch = SetChildNode(slot, "walkabout")
    SetChildNode(ch, "pic", .pic)
    SetChildNode(ch, "pal", .pal)
+
+   IF hero(i) > 0 THEN
+    'Only save this node on non-empty slots
+    ch = SetChildNode(slot, "portrait")
+    loadherodata her, hero(i) - 1
+    'Only save these nodes when they differ from the default for this hero
+    IF .portrait_pic <> her.portrait    THEN SetChildNode(ch, "pic", .portrait_pic)
+    IF .portrait_pal <> her.portrait_pal THEN SetChildNode(ch, "pal", .portrait_pal)
+   END IF
    
    ch = SetChildNode(slot, "spell_lists")
    FOR j as integer = 0 TO 3
