@@ -117,6 +117,8 @@ WITH gam.hero(slot)
   .hand_pos(i).x = her.hand_pos(i).x
   .hand_pos(i).y = her.hand_pos(i).y
  NEXT i
+ .portrait_pic = her.portrait
+ .portrait_pal = her.portrait_pal
 END WITH
 
 '--read hero's name (doing this last for no real reason)
