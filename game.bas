@@ -3503,23 +3503,21 @@ SUB init_text_box_slices(txt as TextBoxState)
  '--figure out which portrait to load
  DIM img_id as integer = -1
  DIM pal_id as integer = -1
- DIM hero_id as integer = -1
- DIM her as HeroDef
+ DIM hero_slot as integer = -1
  SELECT CASE txt.box.portrait_type
   CASE 1' Fixed ID number
    img_id = txt.box.portrait_id
    pal_id = txt.box.portrait_pal
   CASE 2' Hero by caterpillar
-   hero_id = herobyrank(txt.box.portrait_id)
+   hero_slot = rank_to_party_slot(txt.box.portrait_id)
   CASE 3' Hero by party slot
-   IF txt.box.portrait_id >= 0 AND txt.box.portrait_id <= UBOUND(hero) THEN
-    hero_id = hero(txt.box.portrait_id) - 1
-   END IF
+   hero_slot = txt.box.portrait_id
  END SELECT
- IF hero_id >= 0 THEN
-  loadherodata her, hero_id
-  img_id = her.portrait
-  pal_id = her.portrait_pal
+ IF hero_slot >= 0 ANDALSO hero_slot <= UBOUND(gam.hero) THEN
+  IF hero(hero_slot) > 0 THEN
+   img_id = gam.hero(hero_slot).portrait_pic
+   pal_id = gam.hero(hero_slot).portrait_pal
+  END IF
  END IF
 
  IF img_id >= 0 THEN

@@ -688,7 +688,7 @@ END SUB
 FUNCTION rank_to_party_slot (byval rank as integer) as integer
  'Returns the party slot of the nth hero in the party (not just caterpillar party), or -1
  DIM heronum as integer = -1
- FOR party_slot as integer = 0 TO UBOUND(hero)
+ FOR party_slot as integer = 0 TO 3
   IF hero(party_slot) > 0 THEN heronum += 1
   IF heronum = rank THEN
    RETURN party_slot
@@ -707,9 +707,9 @@ FUNCTION party_slot_to_rank (byval slot as integer) as integer
  RETURN heronum
 END FUNCTION
 
-FUNCTION herobyrank (byval slot as integer) as integer
- 'Return the ID of the ith hero in the *caterpillar* party
- DIM party_slot as integer = rank_to_party_slot(slot)
+FUNCTION herobyrank (byval rank as integer) as integer
+ 'Return the ID of the nth hero in the *caterpillar* party
+ DIM party_slot as integer = rank_to_party_slot(rank)
  IF party_slot >= 0 AND party_slot <= 3 THEN RETURN hero(party_slot) - 1
  RETURN -1
 END FUNCTION
