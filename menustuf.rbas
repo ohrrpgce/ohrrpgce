@@ -1805,13 +1805,13 @@ SUB status_screen_refresh(byref st as StatusScreenState)
 
  DIM hero_id as integer = hero(st.slot) - 1
  IF hero_id >= 0 THEN
-  DIM her as HeroDef
-  loadherodata her, hero_id
-  hide_slices_by_lookup_code st.sl, SL_STATUS_HIDE_IF_NO_PORTRAIT, her.portrait < 0
-  set_sprites_by_lookup_code st.sl, SL_STATUS_PORTRAIT, sprTypePortrait, her.portrait, her.portrait_pal
+  hide_slices_by_lookup_code st.sl, SL_STATUS_HIDE_IF_NO_PORTRAIT, gam.hero(st.slot).portrait_pic < 0
+  set_sprites_by_lookup_code st.sl, SL_STATUS_PORTRAIT, sprTypePortrait, gam.hero(st.slot).portrait_pic, gam.hero(st.slot).portrait_pal
   set_sprites_by_lookup_code st.sl, SL_STATUS_WALKABOUT, sprTypeWalkabout, gam.hero(st.slot).pic, gam.hero(st.slot).pal
   set_sprites_by_lookup_code st.sl, SL_STATUS_BATTLESPRITE, sprTypeHero, gam.hero(st.slot).battle_pic, gam.hero(st.slot).battle_pal
 
+  DIM her as HeroDef
+  loadherodata her, hero_id
   FOR statnum as integer = 2 TO statLast
    IF NOT should_hide_hero_stat(her, statnum) THEN
     plank_menu_append st.sl, SL_STATUS_STATLIST, SL_COLLECT_STATUSSTATPLANK, @ExpandTextHeroSlotStat, @(st.slot), @statnum
