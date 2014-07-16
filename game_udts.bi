@@ -123,23 +123,6 @@ TYPE EquipMenuState
   hero                as HeroDef
 END TYPE
 
-TYPE ItemsMenuState
-  cursor as integer
-  sel    as integer
-  top    as integer
-  info   as string
-  re_use as bool
-  trigger_box as integer  '0, or ID of textbox to open
-  quit   as bool
-  scroll as MenuState
-  scrollrect as RectType
-  refresh as bool
-  page as integer
-  rect as RectType
-  tog as bool
-  special(-3 TO 0) as string 'upper bound should be -1, had to change due to FB bug #2898546
-END TYPE
-
 TYPE SpellsMenuSlot
   id      as integer    'attack id (or -1 for none)
   name    as string

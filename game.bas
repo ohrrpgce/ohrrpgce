@@ -1994,7 +1994,7 @@ SUB sfunctions(byval cmdid as integer)
    CASE 151'--show mini map
     minimap catx(0), caty(0)
    CASE 153'--items menu
-    wantbox = old_items_menu
+    wantbox = item_screen()
     IF wantbox ANDALSO immediate_showtextbox THEN loadsay wantbox: wantbox = 0
    CASE 155, 170'--save menu
     'ID 155 is a backcompat hack
@@ -2783,7 +2783,7 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as int
     CASE 1 ' Special
      SELECT CASE .sub_t
       CASE 0 ' item
-       menu_text_box = old_items_menu
+       menu_text_box = item_screen()
        IF menu_text_box > 0 THEN
         IF mi.close_if_selected = NO THEN
          remove_menu menuslot, (mi.skip_close_script = NO)
@@ -4097,13 +4097,12 @@ END FUNCTION
 
 SUB misc_debug_menu()
  STATIC default as integer = 0
- DIM menu(5) as string
+ DIM menu(4) as string
  menu(0) = "Test Battles"
  menu(1) = "View/Edit Slice Tree"
  menu(2) = "Manipulate gen() array"
  menu(3) = "Manipulate gmap() array"
- menu(4) = "Test Slicified Item Screen"
- menu(5) = "Test Slicified Spell Screen"
+ menu(4) = "Test Slicified Spell Screen"
  DIM result as integer
  result = multichoice("Misc. Debug", menu(), default, , "game_misc_debug")
  IF result = -1 THEN EXIT SUB
@@ -4113,11 +4112,7 @@ SUB misc_debug_menu()
   CASE 1: slice_editor SliceTable.Root
   CASE 2: patcharray gen(), "gen"
   CASE 3: patcharray gmap(), "gmap"
-  CASE 4: 
-   DIM item_textbox as integer
-   item_textbox = item_screen()
-   IF item_textbox > 0 THEN loadsay item_textbox
-  CASE 5: 'spell_screen onwho(readglobalstring(106, "Whose Spells?", 20), 0)
+  CASE 4: 'spell_screen onwho(readglobalstring(106, "Whose Spells?", 20), 0)
  END SELECT
 END SUB
 
