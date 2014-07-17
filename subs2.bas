@@ -104,7 +104,7 @@ PRINT #fh, "define constant, begin"
 
 printstr "tag names", 0, pl * 8, 0: pl = pl + 1
 REDIM u(0) as string
-FOR i as integer = 2 TO max_tag()
+FOR i as integer = 2 TO gen(genMaxTagname)
  writeconstant fh, i, load_tag_name(i), u(), "tag"
 NEXT i
 
@@ -113,7 +113,6 @@ REDIM u(0) as string
 FOR i as integer = 0 TO gen(genMaxSong)
  writeconstant fh, i, getsongname(i), u(), "song"
 NEXT i
-setvispage 0
 
 printstr "sound effect names", 0, pl * 8, 0: pl = pl + 1
 REDIM u(0) as string
