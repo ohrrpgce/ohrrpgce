@@ -244,6 +244,7 @@ END SUB
 
 SUB compile_andor_import_scripts (f as string)
  IF justextension(f) <> "hs" THEN
+  exportnames
   f = compilescripts(f)
   IF f <> "" THEN
    importscripts f
@@ -470,7 +471,6 @@ SUB reimport_previous_scripts ()
   fname = script_import_defaultdir
  END IF
  IF fname <> "" THEN
-  exportnames
   compile_andor_import_scripts fname
  END IF
  clearkey scEnter
