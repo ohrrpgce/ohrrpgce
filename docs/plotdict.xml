@@ -5726,9 +5726,13 @@ end</example>
 		<command id="getherostat">
 			<canon>get hero stat (who,stat,type)</canon>
 			<shortname>get hero stat</shortname>
-			<description>A function that returns one of a hero&apos;s stats. The first argument is the position of the hero you want to check in your party as as returned by <ref>findhero</ref>. The second argument is the name of the stat that you want to check. The names of the stats are defined in your HSI file in the form stat:name. The third argument is either <ref>currentstat</ref> or <ref>maximumstat</ref> or <ref>basestat</ref>. Follow those links for explanations. If you leave the last argument blank, <ref>currentstat</ref> will be assumed.</description>
+			<description>A function that returns one of a hero&apos;s stats. The first argument is the position of the hero you want to check in your party as as returned by <ref>findhero</ref>. The second argument is the name of the stat that you want to check. The names of the stats are defined in your HSI file in the form stat:name. The third argument is either <ref>currentstat</ref> or <ref>maximumstat</ref> or <ref>basestat</ref>. Follow those links for explanations. If you leave out the type, <ref>currentstat</ref> will be assumed.</description>
 			<seealso>
 				<ref>setherostat</ref>
+				<ref>getlevelmp</ref>
+				<ref>getherolevel</ref>
+				<ref>totalexperience</ref>
+				<ref>herototalelementalresistasint</ref>
 				<ref>setenemystat</ref>
 				<ref>getenemystat</ref>
 			</seealso>
@@ -5818,9 +5822,9 @@ end</example>
 			</seealso>
 		</command>
 		<command id="getlevelmp">
-			<canon>get level MP (who, mp level slot)</canon>
+			<canon>get level MP (who, mp level slot, type)</canon>
 			<shortname>get level MP</shortname>
-			<description>Returns a hero's level MP (FF1-style MP). The argument <p>who</p> is the hero's position in the party, as returned by <ref>findhero</ref>. The argument <p>mp level slot</p> is a number from 0 to 7 that represents a row of spells in the hero's spell list.</description>
+			<description>Returns a hero's level MP (FF1-style MP). The argument <p>who</p> is the hero's position in the party, as returned by <ref>findhero</ref>. The argument <p>mp level slot</p> is a number from 0 to 7 that represents a row of spells in the hero's spell list. The optional third argument is either <ref>currentstat</ref> or <ref>maximumstat</ref>. If you leave out the type <ref>currentstat</ref> will be assumed. Pass <ref>maximumstat</ref> instead to get the hero's maximum amount of level MP for that slot. The maximum depends only on the hero's experience level.</description>
 		</command>
 		<command id="setlevelmp">
 			<canon>set level MP (who, mp level slot, new value)</canon>
@@ -6370,13 +6374,13 @@ end</example>
 		<command id="currentstat">
 			<canon>current stat</canon>
 			<shortname>current stat</shortname>
-			<description>A constant for use with the <ref>getherostat</ref>, <ref>setherostat</ref> and <ref>setcappedherostat</ref> commands.
+			<description>A constant for use with the <ref>getherostat</ref>, <ref>setherostat</ref>, <ref>setcappedherostat</ref> and <ref>getlevelmp</ref> commands.
 <lb/>The current value of a stat is what is normally used. The current value of stats other than HP or MP is usually equal to the maximum value, except due to temporary buffs or debuffs in-battle (which wear off after the end of the battle) or if modified with <ref>setherostat</ref>. Both maximum and current values of a stat are normally limited to the stat cap.</description>
 		</command>
 		<command id="maximumstat">
 			<canon>maximum stat</canon>
 			<shortname>maximum stat</shortname>
-			<description>A constant for use with the <ref>getherostat</ref>, <ref>setherostat</ref> and <ref>setcappedherostat</ref> commands.
+			<description>A constant for use with the <ref>getherostat</ref>, <ref>setherostat</ref>, <ref>setcappedherostat</ref> and <ref>getlevelmp</ref> commands.
 <lb/>The maximum value of a stat is used for limiting it (such as for curing items) and for resetting it, such as on levelup or at an inn (if enabled by the game's general bitsets). See <ref>currentstat</ref> for more information. Both maximum and current values of a stat are normally limited to the stat cap.</description>
 		</command>
 		<command id="basestat">

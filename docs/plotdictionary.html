@@ -733,7 +733,7 @@
 		<a href="#about-getlevelcap">get level cap</a><br>
 		
 	
-		<a href="#about-getlevelmp">get level MP (who, mp level slot)</a><br>
+		<a href="#about-getlevelmp">get level MP (who, mp level slot, type)</a><br>
 		
 	
 		<a href="#about-getloadscript">get load script</a><br>
@@ -10416,11 +10416,19 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get hero stat (who,stat,type)</font></b><br>
-			A function that returns one of a hero's stats. The first argument is the position of the hero you want to check in your party as as returned by <a href="#about-findhero" class="ref">find hero</a>. The second argument is the name of the stat that you want to check. The names of the stats are defined in your HSI file in the form stat:name. The third argument is either <a href="#about-currentstat" class="ref">current stat</a> or <a href="#about-maximumstat" class="ref">maximum stat</a> or <a href="#about-basestat" class="ref">base stat</a>. Follow those links for explanations. If you leave the last argument blank, <a href="#about-currentstat" class="ref">current stat</a> will be assumed.<br>
+			A function that returns one of a hero's stats. The first argument is the position of the hero you want to check in your party as as returned by <a href="#about-findhero" class="ref">find hero</a>. The second argument is the name of the stat that you want to check. The names of the stats are defined in your HSI file in the form stat:name. The third argument is either <a href="#about-currentstat" class="ref">current stat</a> or <a href="#about-maximumstat" class="ref">maximum stat</a> or <a href="#about-basestat" class="ref">base stat</a>. Follow those links for explanations. If you leave out the type, <a href="#about-currentstat" class="ref">current stat</a> will be assumed.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
 <a href="#about-setherostat" class="ref">set hero stat</a>, </li>
+<li>
+<a href="#about-getlevelmp" class="ref">get level MP</a>, </li>
+<li>
+<a href="#about-getherolevel" class="ref">get hero level</a>, </li>
+<li>
+<a href="#about-totalexperience" class="ref">total experience</a>, </li>
+<li>
+<a href="#about-herototalelementalresistasint" class="ref">hero total elemental resist as int</a>, </li>
 <li>
 <a href="#about-setenemystat" class="ref">set enemy stat</a>, </li>
 <li><a href="#about-getenemystat" class="ref">get enemy stat</a></li>
@@ -10546,8 +10554,8 @@ end</pre>
 		<a name="about-getlevelmp"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">get level MP (who, mp level slot)</font></b><br>
-			Returns a hero's level MP (FF1-style MP). The argument <span class="param">who</span> is the hero's position in the party, as returned by <a href="#about-findhero" class="ref">find hero</a>. The argument <span class="param">mp level slot</span> is a number from 0 to 7 that represents a row of spells in the hero's spell list.<br>
+		<b><font color="yellow">get level MP (who, mp level slot, type)</font></b><br>
+			Returns a hero's level MP (FF1-style MP). The argument <span class="param">who</span> is the hero's position in the party, as returned by <a href="#about-findhero" class="ref">find hero</a>. The argument <span class="param">mp level slot</span> is a number from 0 to 7 that represents a row of spells in the hero's spell list. The optional third argument is either <a href="#about-currentstat" class="ref">current stat</a> or <a href="#about-maximumstat" class="ref">maximum stat</a>. If you leave out the type <a href="#about-currentstat" class="ref">current stat</a> will be assumed. Pass <a href="#about-maximumstat" class="ref">maximum stat</a> instead to get the hero's maximum amount of level MP for that slot. The maximum depends only on the hero's experience level.<br>
 			
 			
 		</tt></p>
@@ -11360,7 +11368,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">current stat</font></b><br>
-			A constant for use with the <a href="#about-getherostat" class="ref">get hero stat</a>, <a href="#about-setherostat" class="ref">set hero stat</a> and <a href="#about-setcappedherostat" class="ref">set capped hero stat</a> commands.
+			A constant for use with the <a href="#about-getherostat" class="ref">get hero stat</a>, <a href="#about-setherostat" class="ref">set hero stat</a>, <a href="#about-setcappedherostat" class="ref">set capped hero stat</a> and <a href="#about-getlevelmp" class="ref">get level MP</a> commands.
 <br>The current value of a stat is what is normally used. The current value of stats other than HP or MP is usually equal to the maximum value, except due to temporary buffs or debuffs in-battle (which wear off after the end of the battle) or if modified with <a href="#about-setherostat" class="ref">set hero stat</a>. Both maximum and current values of a stat are normally limited to the stat cap.<br>
 			
 			
@@ -11369,7 +11377,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">maximum stat</font></b><br>
-			A constant for use with the <a href="#about-getherostat" class="ref">get hero stat</a>, <a href="#about-setherostat" class="ref">set hero stat</a> and <a href="#about-setcappedherostat" class="ref">set capped hero stat</a> commands.
+			A constant for use with the <a href="#about-getherostat" class="ref">get hero stat</a>, <a href="#about-setherostat" class="ref">set hero stat</a>, <a href="#about-setcappedherostat" class="ref">set capped hero stat</a> and <a href="#about-getlevelmp" class="ref">get level MP</a> commands.
 <br>The maximum value of a stat is used for limiting it (such as for curing items) and for resetting it, such as on levelup or at an inn (if enabled by the game's general bitsets). See <a href="#about-currentstat" class="ref">current stat</a> for more information. Both maximum and current values of a stat are normally limited to the stat cap.<br>
 			
 			

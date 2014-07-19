@@ -32,7 +32,8 @@ DECLARE FUNCTION onwho (caption as string, byval alone as integer) as integer
 DECLARE SUB readjoysettings
 DECLARE SUB renamehero (byval who as integer, byval escapable as integer)
 DECLARE SUB resetgame (scriptout as string)
-DECLARE SUB resetlmp (byval slot as integer, byval lev as integer)
+DECLARE SUB get_max_levelmp (ret() as integer, byval hero_level as integer)
+DECLARE SUB resetlmp (byval slot as integer, byval hero_level as integer)
 DECLARE SUB reset_game_state ()
 DECLARE SUB reset_map_state (map as MapModeState)
 

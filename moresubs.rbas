@@ -1397,18 +1397,28 @@ SUB reset_map_state (map as MapModeState)
  map.name = ""
 END SUB
 
-SUB resetlmp (byval slot as integer, byval lev as integer)
- FOR i as integer = 0 TO 7
-  lmp(slot, i) = 0
- NEXT i
- DIM o as integer = 0
- DIM j as integer = 0
- FOR i as integer = 0 TO lev
-  lmp(slot, o) = lmp(slot, o) + 1
-  o = o + 1
-  IF o > j THEN o = 0: j = j + 1
-  IF j > 7 THEN j = 0
- NEXT i
+'Returns the maximum level
+SUB get_max_levelmp (ret() as integer, byval hero_level as integer)
+ FOR mplevel as integer = 0 TO 7
+  ret(mplevel) = 0
+ NEXT
+ DIM nextlevel as integer = 0
+ DIM turn_point as integer = 0
+ FOR mplevel as integer = 0 TO hero_level
+  ret(nextlevel) += 1
+  nextlevel += 1
+  IF nextlevel > turn_point THEN nextlevel = 0: turn_point += 1
+  IF turn_point > 7 THEN turn_point = 0
+ NEXT
+END SUB
+
+'Reset a hero's level mp to maximum amounts
+SUB resetlmp (byval slot as integer, byval hero_level as integer)
+ DIM ret(7) as integer
+ get_max_levelmp(ret(), hero_level)
+ FOR mplevel as integer = 0 TO 7
+  lmp(slot, mplevel) = ret(mplevel)
+ NEXT
 END SUB
 
 FUNCTION settingstring (searchee as string, setting as string, result as string) as integer

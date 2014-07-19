@@ -297,7 +297,7 @@ define function, begin
 284,deletemenuitem,1,0        #delete menu item(menuitemhandle)
 285,getmenuitemcaption,2,0,0  #get menu item caption(menuitemhandle, string ID)
 286,setmenuitemcaption,2,0,0  #set menu item caption(menuitemhandle, string ID)
-287,getlevelmp,2,0,0          #get level mp(hero party slot, mp level)
+287,getlevelmp,3,0,0,0        #get level mp(hero party slot, mp level, currentstat|maximumstat)
 288,setlevelmp,3,0,0,0        #set level mp(hero party slot, mp level, new value)
 289,bottommenu,0              #return a handle to the bottommost menu
 290,previousmenu,1,0          #given a menu handle, return a handle to the menu beneath it

@@ -230,7 +230,7 @@ end
 #set default weapon (hero,item)
 
 ## Stats
-#get level MP (who, mp level slot)
+#get level MP (who, mp level slot, type)
 #set level MP (who, mp level slot, new value)
 
 ## Appearance
@@ -746,6 +746,16 @@ script, hero stat growth test, begin
 #  assert(get hero stat(0, 0, maximum stat) == 42)
   set hero level(0 ,10)
   assert(get hero stat(0, 0, maximum stat) == 46)
+
+  assert(get level mp(0, 0) == 5)
+  assert(get level mp(0, 1) == 3)
+  assert(get level mp(0, 2) == 2)
+  assert(get level mp(0, 3) == 1)
+  assert(get level mp(0, 4) == 0)
+  assert(get level mp(0, 5) == 0)
+  assert(get level mp(0, 6) == 0)
+  assert(get level mp(0, 7) == 0)
+
 #  set hero level(0 ,11)
 #  assert(get hero stat(0, 0, maximum stat) == 50)
 #  set hero level(0 ,12)
@@ -940,7 +950,7 @@ end
 
 script, hero stat tests, begin
   $0="hero stat tests"
-  # test hero stat commands, stat capping, equip stat bonuses, current vs. max quirks, negative stats
+  # test hero stat commands, stat capping, equip stat bonuses, current vs. max quirks, negative stats, level mp
 
   # check initial condition
   assert(hero by slot(1) == hero:Helga)
@@ -1025,6 +1035,20 @@ script, hero stat tests, begin
   assert(get hero stat(1, stat:mp, current stat) == 12)
   # ...fix that up
   restore hp and mp
+
+  # Simple test of hero level mp
+  # The hero is level 0. Other levels are tested in "hero stat growth test"
+  assert(get level mp(1, 0, current stat) == 1)
+  assert(get level mp(1, 0, maximum stat) == 1)
+  variable(level)
+  for(level, 1, 7) do (
+    assert(get level mp(1, level, current stat) == 0)
+    assert(get level mp(1, level, maximum stat) == 0)
+  )
+  set level mp(1, 7, 99)
+  assert(get level mp(1, 7) == 99)
+  set level mp(1, 7, 0)
+
 end
 
 script, equipment tests, begin

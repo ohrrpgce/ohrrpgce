@@ -93,6 +93,8 @@ WHAT IS NEW?
     * "camera follows slice" [Ralph]
     * "get/set/reset hero picture/palette" family of commands can now
       also manipulate hero portrait pictures [James]
+    * "get level mp" now takes an additional argument, "current stat"
+      or "maximum stat" [Ralph]
 
   * Performance Fixes
     * Fixed delay when opening a menu that happened when a large number
