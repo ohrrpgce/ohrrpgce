@@ -42,7 +42,6 @@ Type BrowseMenuState
 	paledithead as string
 	showHidden as bool
 	getdrivenames as bool   'Poll drive names on Windows? (can be slow)
-	changed as bool
 	fmask as string
 	snd as integer          'Slot of currently playing sound, or -1
 End Type
@@ -148,8 +147,9 @@ IF LEN(startfile) THEN
  NEXT
 END IF
 
-br.changed = NO
-IF br.alert = "" THEN br.changed = YES  'Don't clobber alert
+'br.mstate.need_update used only to indicate hover text (.alert) needs update
+br.mstate.need_update = NO
+IF br.alert = "" THEN br.mstate.need_update = YES  'Don't clobber possible alert from build_listing
 
 setkeys YES
 DO
@@ -157,14 +157,12 @@ DO
  setkeys YES
  IF keyval(scEsc) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help helpkey
- IF usemenu(br.mstate) OR br.changed THEN
+ IF usemenu(br.mstate) THEN br.mstate.need_update = YES
+ IF keyval(scSpace) > 0 AND LEN(selectst.query) > 0 THEN
+  'While typing a string, space doesn't cause selection
+ ELSEIF enter_space_click(br.mstate) THEN
   br.alert = ""
-  br.changed = NO
-  browse_hover tree(), br
- END IF
- IF enter_space_click(br.mstate) THEN
-  br.alert = ""
-  br.changed = YES
+  br.mstate.need_update = YES
   IF br.special = 1 OR br.special = 5 THEN music_stop
   SELECT CASE tree(br.mstate.pt).kind
    CASE bkDrive
@@ -177,7 +175,7 @@ DO
      build_listing tree(), br
     ELSE
      br.alert = "No media"
-     br.changed = NO
+     br.mstate.need_update = NO
     END IF
    CASE bkParentDir, bkRoot
     br.nowdir = ""
@@ -213,6 +211,7 @@ DO
      IF selectst.query_at THEN
       br.mstate.pt = index
       selectst.remember_pt = index
+      br.mstate.need_update = YES
       EXIT FOR
      END IF
     'END IF
@@ -225,13 +224,18 @@ DO
   br.drivesshown = 0
   br.getdrivenames = 1
   build_listing tree(), br
-  br.changed = YES
+  br.mstate.need_update = YES
  END IF
  IF keyval(scBackspace) > 1 THEN
   'Go up a directory
   br.nowdir = parentdir(br.nowdir)
   build_listing tree(), br
-  br.changed = YES
+  br.mstate.need_update = YES
+ END IF
+ IF br.mstate.need_update THEN
+  br.alert = ""
+  br.mstate.need_update = NO
+  browse_hover tree(), br
  END IF
 
  '--Draw screen
@@ -606,7 +610,7 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
 #IFDEF __FB_WIN32__
   IF hasmedia(b) = 0 THEN
    'Somebody pulled out the disk
-   br.changed = NO
+   br.mstate.need_update = NO
    br.alert = "Disk not readable"
    br.mstate.last -= 1
    br.mstate.pt = 0
