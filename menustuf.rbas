@@ -2280,6 +2280,76 @@ END SUB
 
 '-----------------------------------------------------------------------
 
+TYPE SpellScreenState
+ sl as slice ptr
+ slot as integer
+ need_update as bool
+ in_list as bool
+END TYPE
+
+SUB spell_screen (byval slot as integer)
+
+ DIM st as SpellScreenState
+ st.slot = slot
+ st.sl = NewSliceOfType(slRoot)
+ st.sl->Fill = YES
+ RefreshSliceScreenPos st.sl
+
+ DIM holdscreen as integer = duplicatepage(vpage)
+
+ load_slice_collection st.sl, SL_COLLECT_SPELLSCREEN
+ 'spell_screen_refresh st
+ 
+ menusound gen(genAcceptSFX)
+ setkeys
+ DO
+  setwait speedcontrol
+  setkeys
+  playtimer
+  control
+  IF carray(ccMenu) > 1 THEN EXIT DO
+  IF carray(ccUse) > 1 THEN
+  END IF
+  IF is_active_party_slot(slot) THEN
+   IF NOT st.in_list THEN
+    IF carray(ccLeft) > 1 THEN
+     st.slot = loop_active_party_slot(st.slot, -1)
+     st.need_update = YES
+     menusound gen(genCursorSFX)
+    END IF
+    IF carray(ccRight) > 1 THEN
+     st.slot = loop_active_party_slot(st.slot, 1)
+     st.need_update = YES
+     menusound gen(genCursorSFX)
+    END IF
+   END IF
+  END IF
+  IF keyval(scF8) > 1 THEN
+   slice_editor st.sl
+   st.need_update = YES
+  END IF
+
+  IF UpdateScreenSlice() THEN st.need_update = YES
+ 
+  IF st.need_update THEN
+   'spell_screen_refresh st
+   st.need_update = NO
+  END IF
+ 
+  'Draw the screen
+  copypage holdscreen, vpage
+  DrawSlice st.sl, vpage
+  setvispage vpage
+  dowait
+ LOOP
+ menusound gen(genCancelSFX)
+
+ freepage holdscreen
+ DeleteSlice @(st.sl)
+END SUB
+
+'-----------------------------------------------------------------------
+
 FUNCTION trylearn (byval who as integer, byval atk as integer) as bool
 'Try to add a spell to a hero's spelllists whereever it is set to be learnable from an item.
 'who is hero position in the party, atk is attack ID + 1

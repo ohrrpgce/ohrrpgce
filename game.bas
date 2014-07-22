@@ -4123,7 +4123,7 @@ SUB misc_debug_menu()
   CASE 1: slice_editor SliceTable.Root
   CASE 2: patcharray gen(), "gen"
   CASE 3: patcharray gmap(), "gmap"
-  CASE 4: 'spell_screen onwho(readglobalstring(106, "Whose Spells?", 20), 0)
+  CASE 4: spell_screen onwho(readglobalstring(106, "Whose Spells?", 20), 0)
  END SELECT
 END SUB
 

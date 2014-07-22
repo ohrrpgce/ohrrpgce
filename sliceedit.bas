@@ -1390,6 +1390,12 @@ SUB load_slice_collection (byval sl as Slice Ptr, byval collection_kind as integ
     default_item_screen sl
    CASE SL_COLLECT_ITEMPLANK:
     default_item_plank sl
+   CASE SL_COLLECT_SPELLSCREEN:
+    default_spell_screen sl
+   CASE SL_COLLECT_SPELLLISTPLANK:
+    default_spell_list_plank sl
+   CASE SL_COLLECT_SPELLPLANK:
+    default_spell_spell_plank sl
    CASE ELSE
     debug "WARNING: no default slice collection for collection kind " & collection_kind
   END SELECT
