@@ -623,6 +623,10 @@ END SUB
 
 SUB refresh_purchases_ouya()
 
+ IF fadestate = 0 THEN
+  setpal master()
+ END IF
+
  IF NOT running_on_ouya() THEN
   pop_warning "Cannot use OUYA store when not running on OUYA platform"
   EXIT SUB
