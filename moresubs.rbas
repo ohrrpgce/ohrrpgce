@@ -1737,10 +1737,11 @@ FUNCTION default_margin_for_game() as integer
  'Only for use when a game is currently loaded
  DIM root as NodePtr
  root = get_general_reld()
- IF root."console_options".exists THEN
-  DIM co as NodePtr = root."console_options".ptr
-  IF co."safe_margin".exists THEN
-   RETURN co."safe_margin".integer
+ DIM console_options as NodePtr = ChildNode(root, "console_options")
+ IF console_options THEN
+  DIM safe_margin as NodePtr = ChildNode(console_options, "safe_margin")
+  IF safe_margin THEN
+   RETURN GetInteger(safe_margin)
   END IF
  END IF
  RETURN default_margin()
