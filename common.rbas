@@ -5815,7 +5815,7 @@ FUNCTION cheezy_virtual_keyboard (arr as ArrowSet, default_str as string, max_le
    END IF
    ChangeRectangleSlice del, , uilook(uiBackground)
    ChangeRectangleSlice confirm, , uilook(uiBackground)
-   ChangeTextSlice typing, result, YES
+   ChangeTextSlice typing, result, , YES
   END IF
   ChangeRectangleSlice curs, , uilook(uiHighlight + tog)
   IF p.x = -1 THEN
