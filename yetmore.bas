@@ -4271,7 +4271,7 @@ SUB replace_sprite_plotslice(byval handle as integer, byval spritetype as Sprite
  END WITH
 END SUB
 
-SUB change_rect_plotslice(byval handle as integer, byval style as integer=-2, byval bgcol as integer=-1, byval fgcol as integer=-1, byval border as integer=-3, byval translucent as RectTransTypes=transUndef)
+SUB change_rect_plotslice(byval handle as integer, byval style as integer=-2, byval bgcol as integer=-99, byval fgcol as integer=-99, byval border as integer=-3, byval translucent as RectTransTypes=transUndef)
  IF valid_plotslice(handle) THEN
   DIM sl as Slice Ptr
   sl = plotslices(handle)
