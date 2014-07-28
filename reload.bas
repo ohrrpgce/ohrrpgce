@@ -1461,7 +1461,7 @@ Function ResizeZString(byval node as nodeptr, byval newsize as integer) as ZStri
 end function
 
 'Return pointer to a child node if it exists, otherwise create it (as a null node)
-Function ChildNode(byval parent as NodePtr, n as string) as NodePtr
+Function GetOrCreateChild(byval parent as NodePtr, n as string) as NodePtr
 	if parent = NULL then return NULL
 	
 	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)

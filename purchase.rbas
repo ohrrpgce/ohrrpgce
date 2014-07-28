@@ -62,9 +62,9 @@ SUB purchases_menu ()
  copypage vpage, holdscreen
 
  DIM gen_root as NodePtr = get_general_reld()
- DIM purchase_root as NodePtr = ChildNode(gen_root, "purchase_root")
- DIM ouya_node as NodePtr = ChildNode(purchase_root, "ouya")
- DIM products as NodePtr = ChildNode(purchase_root, "products")
+ DIM purchase_root as NodePtr = GetOrCreateChild(gen_root, "purchase_root")
+ DIM ouya_node as NodePtr = GetOrCreateChild(purchase_root, "ouya")
+ DIM products as NodePtr = GetOrCreateChild(purchase_root, "products")
  DIM cur_node as NodePtr
  DIM prod_i as integer
  REDIM prod_nodes(0) as NodePtr
@@ -244,8 +244,8 @@ FUNCTION get_enabled_store_name () as string
  'Return a string indicating the enabled In-App purchase store
  'for the currently running platform or "disabled"
  DIM gen_root as NodePtr = get_general_reld()
- DIM purchase_root as NodePtr = ChildNode(gen_root, "purchase_root")
- DIM stores as NodePtr = ChildNode(purchase_root, "stores_by_platform")
+ DIM purchase_root as NodePtr = GetOrCreateChild(gen_root, "purchase_root")
+ DIM stores as NodePtr = GetOrCreateChild(purchase_root, "stores_by_platform")
  IF running_on_ouya() THEN
   IF stores."ouya".exists THEN
    RETURN sanity_check_store_name(stores."ouya".string)
@@ -409,15 +409,15 @@ END SUB
 
 FUNCTION get_ouya_key_der() as string
  DIM gen_root as NodePtr = get_general_reld()
- DIM purchase_root as NodePtr = ChildNode(gen_root, "purchase_root")
- DIM ouya_node as NodePtr = ChildNode(purchase_root, "ouya")
+ DIM purchase_root as NodePtr = GetOrCreateChild(gen_root, "purchase_root")
+ DIM ouya_node as NodePtr = GetOrCreateChild(purchase_root, "ouya")
  RETURN ouya_node."key.der".string
 END FUNCTION
 
 FUNCTION get_ouya_developer_id() as string
  DIM gen_root as NodePtr = get_general_reld()
- DIM purchase_root as NodePtr = ChildNode(gen_root, "purchase_root")
- DIM ouya_node as NodePtr = ChildNode(purchase_root, "ouya")
+ DIM purchase_root as NodePtr = GetOrCreateChild(gen_root, "purchase_root")
+ DIM ouya_node as NodePtr = GetOrCreateChild(purchase_root, "ouya")
  RETURN ouya_node."developer_id".string
 END FUNCTION
 
@@ -514,22 +514,22 @@ FUNCTION get_purchase_count_node(byval prod as NodePtr) as NodePtr
   debug "get_purchase_count_node: """ & prod."displayname".string & """ has no store node for " & storename
   RETURN 0
  END IF
- DIM prod_store_node as NodePtr = ChildNode(prod, storename)
+ DIM prod_store_node as NodePtr = GetOrCreateChild(prod, storename)
  IF NOT GetChildNodeExists(prod_store_node, id) THEN
   debug "get_purchase_count_node: """ & prod."displayname".string & """ has no " & storename & " " & id & " node"
   RETURN 0
  END IF
- DIM prod_id_node as NodePtr = ChildNode(prod_store_node, id)
+ DIM prod_id_node as NodePtr = GetOrCreateChild(prod_store_node, id)
  IF GetString(prod_id_node) = "" THEN
   debug "get_purchase_count_node: """ & prod."displayname".string & """ has blank " & storename & " " & id & " node"
   RETURN 0
  END IF
 
  DIM persist as NodePtr = get_persist_reld()
- DIM purchase_cache as NodePtr = ChildNode(persist, "purchase_cache")
- DIM store_node as NodePtr = ChildNode(purchase_cache, storename)
- DIM id_node as NodePtr = ChildNode(store_node, GetString(prod_id_node))
- DIM count_node as NodePtr = ChildNode(id_node, "count")
+ DIM purchase_cache as NodePtr = GetOrCreateChild(persist, "purchase_cache")
+ DIM store_node as NodePtr = GetOrCreateChild(purchase_cache, storename)
+ DIM id_node as NodePtr = GetOrCreateChild(store_node, GetString(prod_id_node))
+ DIM count_node as NodePtr = GetOrCreateChild(id_node, "count")
 
  RETURN count_node
  
@@ -602,8 +602,8 @@ END SUB
 
 SUB refresh_purchases_from_cache()
  DIM gen_root as NodePtr = get_general_reld()
- DIM purchase_root as NodePtr = ChildNode(gen_root, "purchase_root")
- DIM products as NodePtr = ChildNode(purchase_root, "products")
+ DIM purchase_root as NodePtr = GetOrCreateChild(gen_root, "purchase_root")
+ DIM products as NodePtr = GetOrCreateChild(purchase_root, "products")
 
  DIM count as integer
 
@@ -652,8 +652,8 @@ SUB refresh_purchases_ouya()
  split results, lines()
 
  DIM gen_root as NodePtr = get_general_reld()
- DIM purchase_root as NodePtr = ChildNode(gen_root, "purchase_root")
- DIM products as NodePtr = ChildNode(purchase_root, "products")
+ DIM purchase_root as NodePtr = GetOrCreateChild(gen_root, "purchase_root")
+ DIM products as NodePtr = GetOrCreateChild(purchase_root, "products")
 
  DIM count_node as NodePtr
 

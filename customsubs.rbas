@@ -4723,7 +4723,7 @@ SUB platform_options_append_gamepad_button_menu_items (byval gamepad as NodePtr,
  IF NOT use_dpad THEN ub = ub - 4
  FOR bnum as integer = 0 TO ub
   DIM b as string = buttons(bnum)
-  DIM bnode as NodePtr = ChildNode(gamepad, b)
+  DIM bnode as NodePtr = GetOrCreateChild(gamepad, b)
   DIM cap as string
   cap = "Button " & rpad(b, " ", large(LEN(b), 2)) & ": "
   DIM padnum as integer = 12 - large(0, LEN(b) - 2)
@@ -5191,8 +5191,8 @@ SUB edit_purchase_options ()
  REDIM enabled(0) as bool
 
  DIM gen_root as NodePtr = get_general_reld()
- DIM purchase_root as NodePtr = ChildNode(gen_root, "purchase_root")
- DIM products as NodePtr = ChildNode(purchase_root, "products")
+ DIM purchase_root as NodePtr = GetOrCreateChild(gen_root, "purchase_root")
+ DIM products as NodePtr = GetOrCreateChild(purchase_root, "products")
  
  DIM t as integer
  DIM sub_t as integer
@@ -5287,9 +5287,9 @@ END SUB
 
 SUB edit_purchase_options_rebuild_menu(menu as MenuDef, st as MenuState, byval purchase_root as NodePtr, enabled() as bool)
 
- DIM store_node as NodePtr = ChildNode(purchase_root, "stores_by_platform")
- DIM ouya_node as NodePtr = ChildNode(purchase_root, "ouya")
- DIM products as NodePtr = ChildNode(purchase_root, "products")
+ DIM store_node as NodePtr = GetOrCreateChild(purchase_root, "stores_by_platform")
+ DIM ouya_node as NodePtr = GetOrCreateChild(purchase_root, "ouya")
+ DIM products as NodePtr = GetOrCreateChild(purchase_root, "products")
 
  DIM node as NodePtr
  DIM cap as string
@@ -5316,12 +5316,12 @@ SUB edit_purchase_options_rebuild_menu(menu as MenuDef, st as MenuState, byval p
  menu.last->unselectable = YES
  menu.last->disabled = YES
 
- node = ChildNode(store_node, "default")
+ node = GetOrCreateChild(store_node, "default")
  append_menu_item menu, "Windows+Mac+Linux: " & blank_default(GetString(node), "disabled")
  menu.last->t = editpurchSTOREDEFAULT
  menu.last->dataptr = node
 
- node = ChildNode(store_node, "ouya")
+ node = GetOrCreateChild(store_node, "ouya")
  append_menu_item menu, "OUYA Console: " & blank_default(GetString(node), "disabled")
  menu.last->t = editpurchSTOREOUYA
  menu.last->dataptr = node
@@ -5330,13 +5330,13 @@ SUB edit_purchase_options_rebuild_menu(menu as MenuDef, st as MenuState, byval p
  menu.last->unselectable = YES
  menu.last->disabled = YES
    
- node = ChildNode(ouya_node, "developer_id")
+ node = GetOrCreateChild(ouya_node, "developer_id")
  append_menu_item menu, "> " & GetString(node)
  menu.last->t = editpurchSTRING
  menu.last->sub_t = 36
  menu.last->dataptr = node
 
- node = ChildNode(ouya_node, "key.der")
+ node = GetOrCreateChild(ouya_node, "key.der")
  DIM key_der_size as integer = LEN(GetString(node))
  IF key_der_size THEN
   cap = "Replace OUYA key.der file (" & key_der_size & " bytes)"
@@ -5354,7 +5354,7 @@ SUB edit_purchase_options_rebuild_menu(menu as MenuDef, st as MenuState, byval p
  READNODE products
   WITHNODE products."prod" as prod
    DIM n as NodePtr
-   n = ChildNode(prod, "displayname")
+   n = GetOrCreateChild(prod, "displayname")
    append_menu_item menu, "Product: " & GetString(n)
    menu.last->t = editpurchPROD
    menu.last->dataptr = prod
@@ -5439,13 +5439,13 @@ SUB edit_purchase_details (byval prod as NodePtr)
    append_menu_item menu, "Previous menu..."
    menu.last->t = editpurchEXIT
    
-   n = ChildNode(prod, "displayname")
+   n = GetOrCreateChild(prod, "displayname")
    append_menu_item menu, "Name: " & GetString(n)
    menu.last->t = editpurchSTRING
    menu.last->sub_t = 128
    menu.last->dataptr = n
 
-   n = ChildNode(prod, "description")
+   n = GetOrCreateChild(prod, "description")
    append_menu_item menu, "Description: " & GetString(n)
    menu.last->t = editpurchLONGSTRING
    menu.last->sub_t = 99999
@@ -5455,7 +5455,7 @@ SUB edit_purchase_details (byval prod as NodePtr)
    menu.last->t = editpurchTOGGLEREPEATABLE
    menu.last->dataptr = prod
 
-   n = ChildNode(prod, "already")
+   n = GetOrCreateChild(prod, "already")
    IF GetString(n) = "" THEN SetContent(n, "Already purchased")
    append_menu_item menu, "Already caption: " & GetString(n)
    menu.last->t = editpurchLONGSTRING
@@ -5466,8 +5466,8 @@ SUB edit_purchase_details (byval prod as NodePtr)
    menu.last->unselectable = YES
    menu.last->disabled = YES
 
-   store = ChildNode(prod, "ouya")
-   n = ChildNode(store, "identifier")
+   store = GetOrCreateChild(prod, "ouya")
+   n = GetOrCreateChild(store, "identifier")
    append_menu_item menu, "Identifier: " & GetString(n)
    menu.last->t = editpurchSTRING
    menu.last->sub_t = 128
@@ -5477,8 +5477,8 @@ SUB edit_purchase_details (byval prod as NodePtr)
    menu.last->unselectable = YES
    menu.last->disabled = YES
 
-   store = ChildNode(prod, "paypal")
-   n = ChildNode(store, "button_id")
+   store = GetOrCreateChild(prod, "paypal")
+   n = GetOrCreateChild(store, "button_id")
    append_menu_item menu, "Button ID: " & GetString(n)
    menu.last->t = editpurchSTRING
    menu.last->sub_t = 128
@@ -5488,9 +5488,9 @@ SUB edit_purchase_details (byval prod as NodePtr)
    menu.last->unselectable = YES
    menu.last->disabled = YES
 
-   buy_action = ChildNode(prod, "buy_action")
+   buy_action = GetOrCreateChild(prod, "buy_action")
    
-   n = ChildNode(buy_action, "tag")
+   n = GetOrCreateChild(buy_action, "tag")
    num = GetInteger(n)
    cap = "Turn ON Tag "
    IF num > 1 THEN
@@ -5504,7 +5504,7 @@ SUB edit_purchase_details (byval prod as NodePtr)
    menu.last->t = editpurchTAGSET
    menu.last->dataptr = n
    
-   n = ChildNode(buy_action, "global")
+   n = GetOrCreateChild(buy_action, "global")
    num = GetInteger(n)
    cap = "+1 to Global Variable ID " & zero_default(num, "[None selected]")
    append_menu_item menu, cap
@@ -5512,7 +5512,7 @@ SUB edit_purchase_details (byval prod as NodePtr)
    menu.last->sub_t = maxScriptGlobals
    menu.last->dataptr = n
 
-   n = ChildNode(buy_action, "thanks")
+   n = GetOrCreateChild(buy_action, "thanks")
    IF GetString(n) = "" THEN SetContent(n, "Thank you!")
    append_menu_item menu, "Thanks Message: " & GetString(n)
    menu.last->t = editpurchLONGSTRING
@@ -5620,7 +5620,7 @@ SUB edit_savegame_options
 
  DIM gen_root as NodePtr = get_general_reld()
  'Create if it doesn't exist
- DIM save_options_node as NodePtr = ChildNode(gen_root, "saved_games")
+ DIM save_options_node as NodePtr = GetOrCreateChild(gen_root, "saved_games")
 
  'Set default
  IF gen(genSaveSlotCount) <= 0 THEN gen(genSaveSlotCount) = 4

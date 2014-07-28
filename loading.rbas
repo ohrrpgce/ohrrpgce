@@ -2327,7 +2327,7 @@ SUB SaveUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as
 
  DIM gen_root as NodePtr = get_general_reld()
  'Create if doesn't exist
- DIM uic as NodePtr = ChildNode(gen_root, "uicolors")
+ DIM uic as NodePtr = GetOrCreateChild(gen_root, "uicolors")
 
  DIM found as bool = NO
  READNODE uic
@@ -3782,7 +3782,7 @@ SUB update_general_data ()
   IF vernode."revision" <> version_revision OR vernode."branch_name".string <> version_branch THEN
    'Archive previously used editor version (appending to end)
    DIM prevvernode as NodePtr
-   prevvernode = ChildNode(root_node, "prev_editor_versions")
+   prevvernode = GetOrCreateChild(root_node, "prev_editor_versions")
    AddChild(prevvernode, vernode)
    vernode = NULL
   END IF
