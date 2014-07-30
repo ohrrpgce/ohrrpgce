@@ -846,7 +846,7 @@ procedure check_arg_count(sequence args)
     --              --reuse-ids scripts.bin
     --                 Read the provided scripts.bin file from a previous compilation, and reuse script ID mapping
     wrap_print("\nFor more info about HamsterSpeak visit "&COLBWHI&"http://HamsterRepublic.com/ohrrpgce"&COLWHI&"\n",{})
-    wrap_print("\nThis is a command-line program. You should either run it from the command-line or you should drag and drop your script file onto it.\n",{})
+    wrap_print("\nThis is a command-line program. You should either run it from the command-line, or drag and drop your script file onto it. You don't ever need to run HSpeak yourself; Custom will do that for you.\n",{})
     opt_wait_for_key()
     abort(0)
   end if
@@ -970,10 +970,11 @@ procedure init()
       end while
     end if
   end if
+
+  --Init global data tables
   --why the alpha-tree? because the reserved-word list can get HUGE.
   --we want to be able to look up words in it quickly. A btree or some such
   --thing would have been even better, but thats alot of trouble :)
-  --FIXME: variable is missing! It doesn't fit in any of the categories
   reserved=alpha_tree_mass_insert(reserved,{
            {"defineconstant",RESERVE_TOPLEVEL}
           ,{"definetrigger" ,RESERVE_TOPLEVEL}
@@ -1001,7 +1002,7 @@ procedure init()
           ,{"exitreturning" ,RESERVE_FLOW}
           ,{"switch"        ,RESERVE_FLOW}
           ,{"case"          ,RESERVE_FLOW}
-          ,{"subscript"     ,RESERVE_KEYWORD}
+          ,{"subscript"     ,RESERVE_KEYWORD} --keywords have special case handling
           ,{"variable"      ,RESERVE_KEYWORD}
           ,{"="             ,RESERVE_UNIMPLEMENTED}
           ,{"tracevalue"    ,RESERVE_MACRO}
@@ -1019,6 +1020,9 @@ procedure init()
       reserved=alpha_tree_insert(reserved,separator_list[i],RESERVE_OPERATOR)
     end if
   end for
+  --Append subscript trigger id (this is needed for scripts.bin)
+  trigger_list=append(trigger_list,{-1,"subscript"})
+  --Lexer finite state transition tables
   init_lexer()
 end procedure
 
@@ -1190,6 +1194,8 @@ end function
 
 ---------------------------------------------------------------------------
 
+--Read a file, adding to file_list.
+--pos is used only for location of include statement, may be 0.
 procedure load_source(string filename, string reading_how, srcpos pos)
   integer fh
   string file_text
@@ -1222,27 +1228,51 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-procedure load_include(string include_name, srcpos pos)
-  reenter_timing_zone("load_source/include")
+--Load and lex, recursively finding includes
+procedure load_and_lex_source(string filename, string reading_how, srcpos pos, sequence include_stack)
+  integer include_num
+
+  if find(filename,include_stack) then
+    src_error(sprintf_utf("File "&COLPNK&"%s"&COLRED&" is being included recursively",{filename}),pos)
+  end if
+  include_stack&={filename}
+
+  include_num=find(filename,column(file_list,FILE_NAME))
+  if include_num then
+    src_warn(sprintf_utf("File "&COLPNK&"%s"&COLRED&" is being included multiple times",{include_name}),pos)
+    return
+  end if
+
+  --Reads one additional file
+  reenter_timing_zone("load_and_lex_source/reading")
+  load_source(filename,reading_how,pos)
+  exit_timing_zone()
+  --Lex that file, and load and lex all included files
+  lex_file(length(file_list), include_stack)
+end procedure
+
+---------------------------------------------------------------------------
+
+--Search for an include file
+function find_include_file(string include_name)
   --try source directory
   if file_exists(path_only(source_file)&include_name) then
-    load_source(normalize_filename(path_only(source_file)&include_name),"including",pos)
+    return normalize_filename(path_only(source_file)&include_name)
   else
     --try current directory
     if file_exists(include_name) then
-      load_source(include_name,"including",pos)
+      return include_name
     else
       --try compiler_directory
       if file_exists(compiler_dir&include_name) then
-        load_source(normalize_filename(compiler_dir&include_name),"including",pos)
+        return normalize_filename(compiler_dir&include_name)
       else
         --give up
-        load_source(include_name,"including",pos)
+        return include_name
       end if
     end if
   end if
-  exit_timing_zone()
-end procedure
+end function
 
 ---------------------------------------------------------------------------
 
@@ -1706,14 +1736,12 @@ end function
 
 ---------------------------------------------------------------------------
 
-procedure read_commands(integer file_num, sequence include_stack)
+procedure lex_file(integer file_num, sequence include_stack)
   TokenList broken
   string include_name
   sequence lines
-  integer include_num
   srcpos pos
   pos=encode_srcpos(file_num,0)
-  include_stack=append(include_stack,file_list[file_num][FILE_NAME])
 
   lines=file_list[file_num][FILE_LINE_EXTENTS]
   for i=1 to length(lines) do
@@ -1721,17 +1749,7 @@ procedure read_commands(integer file_num, sequence include_stack)
 
     include_name=seek_include(broken)
     if length(include_name) then
-      if find(include_name,include_stack) then
-        src_error(sprintf_utf("File "&COLPNK&"%s"&COLRED&" is being included recursively",{include_name}),broken[1][CMD_POS])
-      end if
-      include_num=find(include_name,column(file_list,FILE_NAME))
-      if include_num then
-        src_warn(sprintf_utf("File "&COLPNK&"%s"&COLRED&" is being included multiple times",{include_name}),broken[1][CMD_POS])
-      else
-        load_include(include_name,broken[2][CMD_POS])
-        include_num=length(file_list)
-      end if
-      read_commands(include_num,include_stack)
+      load_and_lex_source(find_include_file(include_name),"including",broken[2][CMD_POS],include_stack)
     else
       --this is probably not the best place to do this translation, but for now we simply emulate old string translation
       --this also checks for stray strings and $'s
@@ -1742,14 +1760,10 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-procedure load_and_lex()
+procedure load_and_lex_all()
   enter_timing_zone("Loading & lexing files")
-  --load the first file
-  reenter_timing_zone("load_source/include")
-  load_source(source_file,"reading",0)
-  exit_timing_zone()
-  --lex while loading all included files
-  read_commands(1,{})
+  --Load the main file
+  load_and_lex_source(source_file,"reading",0,{})
   exit_timing_zone()
 end procedure
 
@@ -2144,6 +2158,7 @@ procedure preliminary_parse_pass()
       parse_version_block(get_cmd_block(false))
     end if
   end while
+  --Check for very old plotscr.hsd
   if equal(plotscr_version,"") then
     if find("plotscr.hsd",column(file_list,FILE_NAME)) then
       simple_error("You have included a copy of "&COLYEL&"plotscr.hsd"&COLRED&" from an old release of the OHRRPGCE. Please use the latest version.")
@@ -2151,12 +2166,6 @@ procedure preliminary_parse_pass()
       simple_error("You forgot to put the line "&COLYEL&"include, plotscr.hsd"&COLRED&" in your script file.")
     end if
   end if
-  --If definetrigger is missing (very old plotscr.hsd), add "script"
-  if find_in_column("script",trigger_list,PAIR_NUM)=0 then
-    trigger_list=append(trigger_list,{0,"script"})
-  end if
-  --Append nested script trigger ids (these are needed for scripts.bin)
-  trigger_list=append(trigger_list,{-1,"subscript"})
   exit_timing_zone()
 end procedure
 
@@ -4797,7 +4806,7 @@ end procedure
 ---------------------------------------------------------------------------
 
 init()
-load_and_lex()
+load_and_lex_all()
 show_source_info()
 preliminary_parse_pass()
 parse_top_level()
