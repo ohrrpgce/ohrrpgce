@@ -1,4 +1,3 @@
-@ECHO OFF
 REM pass 'nightly' as first argument to build nightlies instead of releases
 
 REM default locations for required programs

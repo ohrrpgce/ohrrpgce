@@ -1,5 +1,3 @@
-@ECHO OFF
-
 ECHO   Downloading import.zip
 IF NOT EXIST import.zip GOTO SKIPDELIMPORT
 DEL import.zip
