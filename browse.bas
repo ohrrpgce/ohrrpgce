@@ -788,16 +788,24 @@ FUNCTION check_for_plotscr_inclusion(filename as string) as bool
  'feature without cluttering the browse interface with non-plotscript .txt files
  'Note that scanscripts.py uses a completely different autodetection method
  DIM result as bool = NO
- 
+
+ 'We check whether these form the beginning of any line near the top of the file
+ DIM indicators(...) as string = { _
+  "include,plotscr.hsd", "script,", "plotscript,", "globalvariable", "defineconstant" _
+ }
+
  DIM fh as integer = FREEFILE
- OPEN filename FOR INPUT AS #fh
+ IF OPEN(filename FOR INPUT AS #fh) THEN RETURN NO
  DIM s as string
  FOR i as integer = 0 TO 49 'Only bother to check the first 50 lines
   LINE INPUT #fh, s
-  IF INSTR(LTRIM(LCASE(s)), "include") = 1 ANDALSO INSTR(LCASE(s), "plotscr.hsd") > 0 THEN
-   result = YES
-   EXIT FOR
-  END IF
+  s = exclude(LCASE(s), !" \t")
+  FOR j as integer = 0 TO UBOUND(indicators)
+   IF MID(s, 1, LEN(indicators(j))) = indicators(j) THEN
+    result = YES
+    EXIT FOR, FOR
+   END IF
+  NEXT
  NEXT i
  CLOSE #fh
  
