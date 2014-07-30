@@ -19,6 +19,7 @@ del support\relump.exe
 
 IF NOT EXIST distrib\%ZIPFILE% GOTO failed
 
+support\rm -r sanity
 mkdir sanity
 cd sanity
 ..\support\unzip -qq ..\distrib\%ZIPFILE%
@@ -43,7 +44,7 @@ del sanity\*.exe
 del sanity\*.dll
 del sanity\*.txt
 del sanity\*.hsd
-rmdir sanity
+support\rm -r sanity
 
 :failed
 
