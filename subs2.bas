@@ -16,6 +16,7 @@
 #include "customsubs.bi"
 #include "loading.bi"
 #include "cglobals.bi"
+#include "ver.txt"
 
 #include "scrconst.bi"
 
@@ -28,11 +29,11 @@ TYPE TriggerSet
 END TYPE
 
 '--Local subs and functions
-DECLARE FUNCTION compilescripts (fname as string) as string
+DECLARE FUNCTION compilescripts (fname as string, hsifile as string) as string
 DECLARE SUB importscripts (f as string)
 DECLARE SUB writeconstant (byval filehandle as integer, byval num as integer, names as string, unique() as string, prefix as string)
 DECLARE FUNCTION isunique (s as string, set() as string) as integer
-DECLARE SUB exportnames ()
+DECLARE FUNCTION exportnames () as string
 DECLARE SUB addtrigger (scrname as string, byval id as integer, byref triggers as TRIGGERSET)
 
 DECLARE FUNCTION textbox_condition_caption(tag as integer, prefix as string = "") as string
@@ -73,7 +74,8 @@ CONST condBOX    = 7
 CONST condMENU   = 8
 CONST condSETTAG = 9
 
-SUB exportnames ()
+'Returns name of .hsi file
+FUNCTION exportnames () as string
 
 REDIM u(0) as string
 DIM her as HeroDef
@@ -207,7 +209,8 @@ CLOSE #fh
 printstr "done", 0, pl * 8, 0: pl = pl + 1
 setvispage 0
 
-END SUB
+RETURN outf
+END FUNCTION
 
 SUB addtrigger (scrname as string, byval id as integer, triggers as TRIGGERSET)
  WITH triggers
@@ -243,8 +246,8 @@ END SUB
 
 SUB compile_andor_import_scripts (f as string)
  IF justextension(f) <> "hs" THEN
-  exportnames
-  f = compilescripts(f)
+  DIM hsifile as string = exportnames
+  f = compilescripts(f, hsifile)
   IF f <> "" THEN
    importscripts f
    safekill f  'reduce clutter
@@ -519,7 +522,7 @@ DO
      compile_andor_import_scripts fname
     END IF
    CASE 2
-    exportnames
+    DIM dummy as string = exportnames()
     waitforanykey
    CASE 3
     script_usage_list()
@@ -553,16 +556,16 @@ FUNCTION get_hspeak_version(hspeak_path as string) as string
  CLOSE fh
  safekill tempf
  'debug "line1: " & line1
- DIM version as string = MID(line1, INSTR(line1, " v") + 2, 3)
- IF LEN(version) <> 3 ORELSE isdigit(version[0]) = NO THEN
+ DIM hsversion as string = MID(line1, INSTR(line1, " v") + 2, 3)
+ IF LEN(hsversion) <> 3 ORELSE isdigit(hsversion[0]) = NO THEN
   debug "Couldn't get HSpeak version from head line: " & line1
   RETURN ""
  END IF
- RETURN version
+ RETURN hsversion
 END FUNCTION
 
 'Returns filename of .hs file
-FUNCTION compilescripts(fname as string) as string
+FUNCTION compilescripts(fname as string, hsifile as string) as string
  DIM as string outfile, hspeak, errmsg, hspeak_ver, args
  hspeak = find_helper_app("hspeak")
  IF hspeak = "" THEN
@@ -571,34 +574,45 @@ FUNCTION compilescripts(fname as string) as string
  END IF
  args = "-y"
 
+ hspeak_ver = get_hspeak_version(hspeak)
+ debuginfo "hspeak version '" & hspeak_ver & "'"
+ IF hspeak_ver = "" THEN
+  'If get_hspeak_version failed (returning ""), then spawn_and_wait should as well
+  hspeak_ver = "0"
+ ELSEIF strcmp(STRPTR(hspeak_ver), @RECOMMENDED_HSPEAK_VERSION) < 0 THEN
+  IF version_branch = "wip" THEN
+   notification "Your copy of HSpeak is out of date. You should download a nightly build of HSpeak from http://rpg.hamsterrepublic.com/ohrrpgce/Downloads"
+  ELSE
+   notification "Your copy of HSpeak is out of date. You should use the version of HSpeak that was provided with the OHRRPGCE."
+  END IF
+ END IF
+
  IF slave_channel <> NULL_CHANNEL THEN
   IF isfile(game & ".hsp") THEN
    'Try to reuse script IDs from existing scripts if any, so that currently running scripts
    'don't start calling the wrong scripts due to ID remapping
-   hspeak_ver = get_hspeak_version(hspeak)
-   'debug "hspeak version '" & hspeak_ver & "'"
-   IF hspeak_ver = "" ORELSE strcmp(STRPTR(hspeak_ver), STRPTR("3Pa")) < 0 THEN
-    'If get_hspeak_version failed (returning ""), then spawn_and_wait should as well
-    IF LEN(hspeak_ver) THEN
-     notification "Your copy of HSpeak is out of date. You should use the latest version."
-    END IF
-   ELSE
+   IF strcmp(STRPTR(hspeak_ver), STRPTR("3Pa")) >= 0 THEN
     unlumpfile game & ".hsp", "scripts.bin", tmpdir
     'scripts.bin will be missing in scripts compiled with very old HSpeak versions
     args += " --reuse-ids " & escape_filename(tmpdir & "scripts.bin")
    END IF
   END IF
  END IF
+
+ IF LEN(hsifile) > 0 AND strcmp(STRPTR(hspeak_ver), STRPTR("3S ")) >= 0 THEN
+  args += " --include " & escape_filename(hsifile)
+ END IF
+
  outfile = trimextension(fname) + ".hs"
  safekill outfile
  'Wait for keys: we spawn a command prompt/xterm/Terminal.app, which will be closed when HSpeak exits
  errmsg = spawn_and_wait(hspeak, args & " " & escape_filename(simplify_path_further(fname, curdir)))
  IF LEN(errmsg) THEN
-  notification errmsg
+  notification errmsg + !"\n\nNo scripts were imported."
   RETURN ""
  END IF
  IF isfile(outfile) = NO THEN
-  notification "Compilation failed."
+  notification !"Compiling failed.\n\nNo scripts were imported."
   RETURN ""
  END IF
  RETURN outfile

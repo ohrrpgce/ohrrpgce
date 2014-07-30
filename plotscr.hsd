@@ -5,9 +5,16 @@
 
 # Use same capitalisation as HSpeak does, pad to length 3
 plotscr version, begin
-  "3P ",  # plotscr.hsd version number
-  "3P "   # minimum supported version of hspeak
+  "3P ",  # Version number used for feature checking
+          # and displaying future-version warnings in Game/Custom;
+          # only very rarely necessary to increment (don't when
+          # new commands are added; that's detected separately),
+          # otherwise leave alone to allow forwards compatibility.
+  "3S "   # Minimum supported version of hspeak;
+          # Custom/Game don't care about this.
 end
+
+include, scancode.hsi
 
 #--------------------------------------------------------------------------
 # hard coded functions

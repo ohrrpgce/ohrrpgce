@@ -13,6 +13,8 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3S  2014-07-22 Automatically include plotscr.hsd and ignore
+--               double inclusion; added --include and -b
 --3Rg 2013-02-23 Fix a subscript related crash
 --3Rf 2013-02-17 Fix several 31-bit int overflows
 --3Re 2014-02-17 Trivial change to math builtin warnings
@@ -154,8 +156,8 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Rg"
-constant COPYRIGHT_DATE="2013"
+constant COMPILER_SUB_VERSION="S "
+constant COPYRIGHT_DATE="2014"
 
 --This is the oldest version of plotscr.hsd which is supported (feel free to
 --increment this whenever using an older plotscr.hsd means you're missing out
@@ -291,6 +293,8 @@ string source_file        source_file=""
 string dest_file          dest_file=""
 sequence optlist          optlist={}
 sequence file_list        file_list={}            --type {FILE_NAME,FILE_TEXT,FILE_LINE_EXTENTS}
+sequence additional_includes
+                          additional_includes={}
 integer max_srcpos        max_srcpos=0
 integer total_lines       total_lines=0
 sequence cmd              cmd={}                  --TokenList (but type checking is very slow)
@@ -821,12 +825,12 @@ end procedure
 
 ---------------------------------------------------------------------------
 
---prints out the copyright info, usage info, and command-line options
+--prints out usage info if not enough arguments
 procedure check_arg_count(sequence args)
   if length(args)=2 then
     wrap_print("HamsterSpeak semicompiler v%s%s (C)%s James Paige&Hamster Republic Productions\n",{COMPILER_VERSION,COMPILER_SUB_VERSION,COPYRIGHT_DATE})
     wrap_print("Please read LICENSE.txt for GPL License details and disclaimer of liability",{})
-    wrap_print(COLYEL&"%s [-acdfknstwuyz] source.hss [dest.hs]"&COLWHI&"\n\n",{hs_upper(file_only(args[2]))})
+    wrap_print(COLYEL&"%s [-abcdfknstwuyz] source.hss [dest.hs]"&COLWHI&"\n\n",{hs_upper(file_only(args[2]))})
     color_print("   -f fast mode. Disables some optimization\n",{})
     color_print("   -k do not wait for a keypress when finished\n",{})
     color_print("   -n don't add debug info, or a copy of the source code, to .hs file\n",{})
@@ -834,12 +838,15 @@ procedure check_arg_count(sequence args)
     color_print("   -u show warnings for unused variables\n",{})
     color_print("   -y overwrite the destination file without asking\n",{})
     color_print("\nAdvanced options (not intended for normal use):\n",{})
+    color_print("   -b don't include plotscr.hsd automatically\n",{})
     color_print("   -c colors will be disabled\n",{})
     color_print("   -d dump debug report to hs_debug.txt\n",{})
     color_print("   -s print the name of each script as it is compiled\n",{})
     color_print("     -a same as -s, but including autonumbered scripts\n",{})
     color_print("   -t print detailed timing info (for HSpeak developers)\n",{})
     color_print("   -z write error messages to hs_error.htm\n",{})
+    color_print("   --include filename\n" &
+                "      include an additional file\n",{})
     --Undocumented arguments:
     --              --unicode-cols
     --                 used by Hamster Whisper for piped output
@@ -899,18 +906,24 @@ procedure init()
   integer index
   integer key
   integer fh
+
+  --Process arguments
   args=command_line()
   compiler_dir=path_only(args[2])
   check_arg_count(args)
   optlist={}
   index=3
   while index<=length(args) do
+    --These are undocumented
     if equal(args[index],"--unicode-cols") then
       simple_colorcodes=true
       args=delete_element(args,index)
-    elsif equal(args[index],"--reuse-ids") then
+    elsif equal(args[index],"--reuse-ids") and index+1<=length(args) then
       color_print("Reusing script ID numbers from previous compile\n",{})
       reuse_ids=read_scripts_dot_bin(args[index+1])
+      args=delete_slice(args,index,index+1)
+    elsif equal(args[index],"--include") and index+1<=length(args) then
+      additional_includes&={args[index+1]}
       args=delete_slice(args,index,index+1)
     elsif args[index][1]='-' then
       optlist=optlist&hs_lower(args[index][2..length(args[index])])
@@ -948,6 +961,8 @@ procedure init()
       end if
     end if
   end if
+
+  wrap_print("HamsterSpeak semicompiler v%s%s\n",{COMPILER_VERSION,COMPILER_SUB_VERSION})
   wrap_print("Semicompiling "&COLBWHI&"%s"&COLWHI&" to "&COLBWHI&"%s"&COLWHI&"\n",{source_file,dest_file})
   if file_exists(dest_file) then
     if find('y',optlist) then
@@ -1239,7 +1254,8 @@ procedure load_and_lex_source(string filename, string reading_how, srcpos pos, s
 
   include_num=find(filename,column(file_list,FILE_NAME))
   if include_num then
-    src_warn(sprintf_utf("File "&COLPNK&"%s"&COLRED&" is being included multiple times",{include_name}),pos)
+    --Silently ignore this include. Double includes are allowed because of automatic inclusion.
+    --src_warn(sprintf_utf("File "&COLPNK&"%s"&COLRED&" is being included multiple times",{include_name}),pos)
     return
   end if
 
@@ -1762,6 +1778,16 @@ end procedure
 
 procedure load_and_lex_all()
   enter_timing_zone("Loading & lexing files")
+  if find('b',optlist)=0 then
+    load_and_lex_source(find_include_file("plotscr.hsd"),"reading",0,{})
+  end if
+  --Load any additional includes first, because it is almost certainly
+  --an exported .hsi of constants. Due to the two-pass parsing
+  --the order of includes matters for almost nothing aside from defineconstant,
+  --eg including the .hsi first allows "defineconstant(song:foobar, victory song)"
+  for i=1 to length(additional_includes) do
+    load_and_lex_source(additional_includes[i],"reading",0,{})
+  end for
   --Load the main file
   load_and_lex_source(source_file,"reading",0,{})
   exit_timing_zone()
@@ -1984,11 +2010,11 @@ procedure parse_version_block(TokenList block)
   plotscr_version=plotscr_version[2..$-1]
   req_version=req_version[2..$-1]
   if compare(plotscr_version, MIN_PLOTSCR_VERSION) < 0 then
-    simple_error("You have included a copy of "&COLYEL&"plotscr.hsd"&COLRED&" from an old release of the OHRRPGCE. Please use the latest version.")
+    simple_error("You have included a copy of "&COLYEL&"plotscr.hsd"&COLRED&" (version "&trim_whitespace(plotscr_version)&") from an old release of the OHRRPGCE. Please use the copies of plotscr.hsd and HSpeak provided with the OHRRPGCE.")
   end if
   --printf(stdout,"'%s' '%s'\n", {req_version, COMPILER_VERSION&COMPILER_SUB_VERSION})
   if compare(req_version, COMPILER_VERSION&COMPILER_SUB_VERSION) > 0 then
-    simple_error("You have included a copy of "&COLYEL&"plotscr.hsd"&COLRED&" from a newer version of the OHRRPGCE than supported by this version of HSpeak. Please use the latest version of HSpeak.")
+    simple_error("You have included a copy of "&COLYEL&"plotscr.hsd"&COLRED&" (version "&trim_whitespace(plotscr_version)&") from a newer version of the OHRRPGCE than supported by this version of HSpeak. Please use the copies of plotscr.hsd and HSpeak provided with the OHRRPGCE.")
   end if
 end procedure
 
@@ -2161,10 +2187,9 @@ procedure preliminary_parse_pass()
   --Check for very old plotscr.hsd
   if equal(plotscr_version,"") then
     if find("plotscr.hsd",column(file_list,FILE_NAME)) then
-      simple_error("You have included a copy of "&COLYEL&"plotscr.hsd"&COLRED&" from an old release of the OHRRPGCE. Please use the latest version.")
-    else
-      simple_error("You forgot to put the line "&COLYEL&"include, plotscr.hsd"&COLRED&" in your script file.")
+      simple_error("You have included a copy of "&COLYEL&"plotscr.hsd"&COLRED&" from an old release of the OHRRPGCE. Please use the copies of plotscr.hsd and HSpeak provided with the OHRRPGCE..")
     end if
+    --If plotscr.hsd is not included then we're compiling with -b, so don't complain
   end if
   exit_timing_zone()
 end procedure

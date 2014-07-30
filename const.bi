@@ -47,6 +47,11 @@ CONST CURRENT_HSP_VERSION = 1
 ' 0 - HS Header doesn't contain a version number
 ' 1 - HSpeak 3P
 
+CONST RECOMMENDED_HSPEAK_VERSION = "3S "
+'When importing scripts, an out-of-date warning is shown if
+'HSpeak version is older than this. Older versions will still
+'work though.
+
 CONST max_onetime = 15999
 
 '---GENERAL GAME DATA (.GEN) constants---

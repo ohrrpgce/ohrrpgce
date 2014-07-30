@@ -95,6 +95,9 @@ WHAT IS NEW?
       also manipulate hero portrait pictures [James]
     * "get level mp" now takes an additional argument, "current stat"
       or "maximum stat" [Ralph]
+    * plotscr.hsd, scancodes.hsi and your game's .hsi file are now all
+      included automatically, so there's no need to put those "include"
+      lines at the top of your scripts file [Ralph]
 
   * Performance Fixes
     * Fixed delay when opening a menu that happened when a large number

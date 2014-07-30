@@ -246,7 +246,7 @@ wait for key(cancel key)</example>
 			<canon>wait for scancode (key)</canon>
 			<shortname>wait for scancode</shortname>
 			<added>ubersetzung</added>
-			<description>Waits for the player to press a specific key. You can use any of the constants from <ref>keyispressed</ref> to specify the key. <note>You must <ref>include</ref> scancode.hsi to use these constants.</note></description>
+			<description>Waits for the player to press a specific key. You can use any of the constants from <ref>keyispressed</ref> to specify the key.</description>
 			<example>show text box(624) # "press P!"
 wait for scancode(key:P)</example>
 		</command>
@@ -4415,7 +4415,7 @@ end
 		<command id="keyispressed">
 			<canon>key is pressed (scancode)</canon>
 			<shortname>key is pressed</shortname>
-			<description>Returns <ref>true</ref> if the keyboard key with the specified scancode is being pressed (either held down or pressed since last tick), or <ref>false</ref> if it is not. The argument is a scancode, NOT the <ref>upkey</ref>, <ref>downkey</ref>, etc used with <ref>waitforkey</ref>. An extra include file, <p>scancode.hsi</p>, is provided which you should <ref>include</ref> in order to use the following scancode constants.<lb/>
+			<description>Returns <ref>true</ref> if the keyboard key with the specified scancode is being pressed (either held down or pressed since last tick), or <ref>false</ref> if it is not. The argument is a scancode, NOT the <ref>upkey</ref>, <ref>downkey</ref>, etc used with <ref>waitforkey</ref>.<lb/>
 
 <note>Since Zenzizenzic, keyboard support has been improved: some keys (such as key:down and key:numpad 2) which were previously the same scancode are now distinct (read scancode.hsi for the complete list). However for backwards compatibility, the old behaviour is emulated (so you won't be able to tell the two keys apart even if recompile and use the new, distinct scancodes) unless you turn on the &quot;Enable better scancodes for scripts&quot; Preference Bitset in the General Game Settings menu.</note>
 <note>You can't rely on the behaviour of the caps-, scroll- and num-lock keys. They might report on/off state instead of pressed/not pressed, depending on the graphics backend, operating system, and engine version.</note>

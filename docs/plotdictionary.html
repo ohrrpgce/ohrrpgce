@@ -2697,10 +2697,7 @@ wait for key(cancel key)</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">wait for scancode (key)</font></b><br>
-			Waits for the player to press a specific key. You can use any of the constants from <a href="#about-keyispressed" class="ref">key is pressed</a> to specify the key. <div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You must <a href="#about-include" class="ref">include</a> scancode.hsi to use these constants.<br clear="all">
-</div>
-<br>
+			Waits for the player to press a specific key. You can use any of the constants from <a href="#about-keyispressed" class="ref">key is pressed</a> to specify the key.<br>
 			<pre>show text box(624) # "press P!"
 wait for scancode(key:P)</pre>
 			
@@ -8599,7 +8596,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">key is pressed (scancode)</font></b><br>
-			Returns <a href="#about-booleanconstants" class="ref">true</a> if the keyboard key with the specified scancode is being pressed (either held down or pressed since last tick), or <a href="#about-booleanconstants" class="ref">false</a> if it is not. The argument is a scancode, NOT the <a href="#about-keyconstants" class="ref">up key</a>, <a href="#about-keyconstants" class="ref">down key</a>, etc used with <a href="#about-waitforkey" class="ref">wait for key</a>. An extra include file, <span class="param">scancode.hsi</span>, is provided which you should <a href="#about-include" class="ref">include</a> in order to use the following scancode constants.<br>
+			Returns <a href="#about-booleanconstants" class="ref">true</a> if the keyboard key with the specified scancode is being pressed (either held down or pressed since last tick), or <a href="#about-booleanconstants" class="ref">false</a> if it is not. The argument is a scancode, NOT the <a href="#about-keyconstants" class="ref">up key</a>, <a href="#about-keyconstants" class="ref">down key</a>, etc used with <a href="#about-waitforkey" class="ref">wait for key</a>.<br>
 
 <div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Since Zenzizenzic, keyboard support has been improved: some keys (such as key:down and key:numpad 2) which were previously the same scancode are now distinct (read scancode.hsi for the complete list). However for backwards compatibility, the old behaviour is emulated (so you won't be able to tell the two keys apart even if recompile and use the new, distinct scancodes) unless you turn on the "Enable better scancodes for scripts" Preference Bitset in the General Game Settings menu.<br clear="all">

@@ -6,8 +6,6 @@
 # Any time you are preparing to fix an engine bug, consider adding a
 # test that demonstrates the bug FIRST before you fix the bug.
 
-include, plotscr.hsd
-include, autotest.hsi
 include, hstests.hss
 
 ########################################################################

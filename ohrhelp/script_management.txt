@@ -2,11 +2,16 @@ The script management menu allows you to access some tasks and tools related to 
 
 * "Compile and/or Import plotscripts
    (.hss/.hs)"
-  Imports scripts. Provided HSpeak
-  is where it's expected to be, it's
-  not necessary anymore to manually
-  compile your scripts using HSpeak.
-  This overwrites any existing
+  Imports scripts. The .hsi file for
+  your game is first exported, then
+  the selected scripts file (.hss
+  extension recommended, .txt can
+  also be used) is compiled with
+  the HSpeak compiler. It's also
+  possible to compile your scripts
+  with HSpeak yourself and import
+  the resulting .hs file.
+  Importing overwrites any existing
   scripts - you must put them all in
   the same file (or 'include' them
   all in the same file) and import
@@ -15,9 +20,11 @@ The script management menu allows you to access some tasks and tools related to 
 * "Export names for scripts (.hsi)"
   creates or updates a list of names
   (constants) that you can use while
-  writing your scripts. This is
-  typically necessary for writing
-  your plotscripts.
+  writing your scripts. Normally you
+  don't need to manually export the
+  .hsi file, as it's exported
+  automatically when importing
+  .hss/.txt files.
 
 * "Check where scripts are used"
   produces a list of all the places
