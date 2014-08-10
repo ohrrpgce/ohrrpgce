@@ -2688,7 +2688,7 @@ wait for hero (me) # wait until he stops</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">wait for key (key)</font></b><br>
-			Waits for the player to press a key. You can use the following constants: <a href="#about-keyconstants" class="ref">any key</a>, <a href="#about-keyconstants" class="ref">up key</a>, <a href="#about-keyconstants" class="ref">down key</a>, <a href="#about-keyconstants" class="ref">left key</a>, <a href="#about-keyconstants" class="ref">right key</a>, <a href="#about-keyconstants" class="ref">use key</a>, <a href="#about-keyconstants" class="ref">cancel key</a>, or <a href="#about-keyconstants" class="ref">menu key</a>. If you do not specify, then <a href="#about-keyconstants" class="ref">any key</a> will be used. These are not scancodes, and can not be mixed with scancodes! Use <a href="#about-waitforscancode" class="ref">wait for scancode</a> if you want to use scancodes or wait for other keys. <span class="param">usekey</span> will wait for Space, Ctrl or Enter; and <span class="param">cancelkey</span> and <span class="param">menukey</span> both wait for Alt or Esc. If and only if anykey is used, waitforkey will return the scancode of the key that was pressed.<br>
+			Waits for the player to press a key. You can use the following constants: <a href="#about-keyconstants" class="ref">any key</a>, <a href="#about-keyconstants" class="ref">up key</a>, <a href="#about-keyconstants" class="ref">down key</a>, <a href="#about-keyconstants" class="ref">left key</a>, <a href="#about-keyconstants" class="ref">right key</a>, <a href="#about-keyconstants" class="ref">use key</a>, <a href="#about-keyconstants" class="ref">cancel key</a>, or <a href="#about-keyconstants" class="ref">menu key</a>. If you do not specify, then <a href="#about-keyconstants" class="ref">any key</a> will be used. These are not scancodes, and can not be mixed with scancodes! Use <a href="#about-waitforscancode" class="ref">wait for scancode</a> if you want to use scancodes or wait for other keys. <span class="param">usekey</span> will wait for Space, Ctrl or Enter; and <span class="param">cancelkey</span> and <span class="param">menukey</span> both wait for Alt or Esc. If and only if anykey is used, then waitforkey will return the scancode of the key that was pressed, which might be a joystick scancode like <span class="param">joy:x up</span>.<br>
 			<pre>show text box(623) # "press cancel!"
 wait for key(cancel key)</pre>
 			
@@ -8596,7 +8596,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">key is pressed (scancode)</font></b><br>
-			Returns <a href="#about-booleanconstants" class="ref">true</a> if the keyboard key with the specified scancode is being pressed (either held down or pressed since last tick), or <a href="#about-booleanconstants" class="ref">false</a> if it is not. The argument is a scancode, NOT the <a href="#about-keyconstants" class="ref">up key</a>, <a href="#about-keyconstants" class="ref">down key</a>, etc used with <a href="#about-waitforkey" class="ref">wait for key</a>.<br>
+			Returns <a href="#about-booleanconstants" class="ref">true</a> if the keyboard or joystick key with the specified scancode is being pressed (either held down or pressed since last tick), or <a href="#about-booleanconstants" class="ref">false</a> if it is not. The argument is a scancode, NOT the <a href="#about-keyconstants" class="ref">up key</a>, <a href="#about-keyconstants" class="ref">down key</a>, etc used with <a href="#about-waitforkey" class="ref">wait for key</a>.<br>
 
 <div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Since Zenzizenzic, keyboard support has been improved: some keys (such as key:down and key:numpad 2) which were previously the same scancode are now distinct (read scancode.hsi for the complete list). However for backwards compatibility, the old behaviour is emulated (so you won't be able to tell the two keys apart even if recompile and use the new, distinct scancodes) unless you turn on the "Enable better scancodes for scripts" Preference Bitset in the General Game Settings menu.<br clear="all">
@@ -8733,7 +8733,7 @@ end
 <li>key:Numpad Minus</li>
 <li>key:Numpad Enter</li>
 </ul>
-          Joystick scan codes:
+          Joystick scan codes (for the first joystick only):
 <ul>
 <li>joy:button 1</li>
 <li>joy:button 2</li>
@@ -8758,7 +8758,7 @@ end
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">Just like <a href="#about-keyispressed" class="ref">key is pressed</a>, this command does not return real time data, but the situation at the beginning of the current game tick.<br clear="all">
 </div>
 			<div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">The joystick scancodes described in <a href="#about-keyispressed" class="ref">key is pressed</a> do not work in this command.<br clear="all">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">The joystick scancodes described in <a href="#about-keyispressed" class="ref">key is pressed</a> aren't fully supported for <span class="param">keyval</span>: the return value will be 3 if the key is down, or 0 if it isn't. In other words, no additional information over <a href="#about-keyispressed" class="ref">key is pressed</a>.<br clear="all">
 </div>
 <br>
 			

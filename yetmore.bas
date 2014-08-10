@@ -791,13 +791,35 @@ SUB visnpc()
  NEXT i
 END SUB
 
-FUNCTION script_keyval (byval key as integer) as integer
+FUNCTION script_keyval (byval key as integer, byval joynum as integer = 0) as integer
  'Wrapper around keyval for use by scripts: performs scancode mapping for back-compat
 
  DIM ret as integer = 0
 
  IF key >= 0 AND key <= 127 THEN
   ret = keyval(key)
+ ELSEIF key >= 128 AND key <= 147 THEN
+  'This is just partial joystick support! We don't support keyrepeat, instead both bits have
+  'same value.
+  'For real joystick support, it needs to be handled in allmodex.bas.
+  DIM b as integer, xaxis as integer, yaxis as integer '0 >= {xaxis, yaxis} >= 100
+  IF readjoy(joynum, b, xaxis, yaxis) THEN
+   IF key >= 128 AND key <= 143 THEN
+    ret = (b SHR (key - 128)) AND 1
+   ELSEIF key = 144 THEN 'x left
+    ret = abs(xaxis <= -50) 'true = -1...
+   ELSEIF key = 145 THEN 'x right
+    ret = abs(xaxis >= 50)
+   ELSEIF key = 146 THEN 'y up
+    ret = abs(yaxis <= -50)
+   ELSEIF key = 147 THEN 'y down
+    ret = abs(yaxis >= 50)
+   END IF
+  ELSE
+   ret = 0
+  END IF
+  'Set key-down and key-press bits
+  ret *= 3
  END IF
 
  IF readbit(gen(), genBits2, 8) = 0 THEN  'If improved scancodes not enabled
@@ -1129,7 +1151,7 @@ SELECT CASE as CONST id
  CASE 30'--keyval
   'This used to be keyispressed; which undocumentedly reported two bits
   'instead of true/false.
-  IF retvals(0) >= 0 AND retvals(0) < 127 THEN
+  IF retvals(0) >= 0 AND retvals(0) <= 147 THEN
    'keyval() reports a 3rd bit, but didn't at the time that this command was (re-)documented
    scriptret = script_keyval(retvals(0)) AND 3
   ELSE
@@ -1704,30 +1726,8 @@ SELECT CASE as CONST id
    plotstr(retvals(0)).s = getsongname(retvals(1))
   END IF
  CASE 235'--key is pressed
-  SELECT CASE retvals(0)
-  CASE 1 TO 127 'keyboard
-   IF script_keyval(retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
-  CASE 128 TO 147 'joystick
-   dim b as integer, xaxis as integer, yaxis as integer '0 >= x and y, >= 100
-   IF readjoy(bound(retvals(1), 0, 7), b, xaxis, yaxis) THEN
-    IF retvals(0) >= 128 AND retvals(0) <= 143 THEN
-     scriptret = (b SHR (retvals(0) - 128)) AND 1
-    ELSEIF retvals(0) = 144 THEN 'x left
-     'debug STR(xaxis)
-     scriptret = abs(xaxis <= -50) 'true = -1...
-    ELSEIF retvals(0) = 145 THEN 'x right
-     scriptret = abs(xaxis >= 50)
-    ELSEIF retvals(0) = 146 THEN 'y up
-     scriptret = abs(yaxis <= -50)
-    ELSEIF retvals(0) = 147 THEN 'y down
-     scriptret = abs(yaxis >= 50)
-    END IF
-   ELSE
-    scriptret = 0
-   END IF
-  CASE ELSE
-   scriptret = 0
-  END SELECT
+  'Undocumented second argument is joystick number
+  IF script_keyval(retvals(0), bound(retvals(1), 0, 7)) THEN scriptret = 1 ELSE scriptret = 0
  CASE 236'--sound is playing
   DIM sfxid as integer = backcompat_sound_id(retvals(0))
   IF sfxid >= 0 AND sfxid <= gen(genMaxSFX) THEN
