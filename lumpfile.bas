@@ -981,7 +981,7 @@ function islumpfile (lumpfile as string, fmask as string) as integer
 		lname = lcase(lname)
 		'debug "lump name " + lname
 
-		if lname <> exclusive(lname, "abcdefghijklmnopqrstuvwxyz0123456789_-.") then
+		if lname <> exclusive(lname, "abcdefghijklmnopqrstuvwxyz0123456789_-. ") then
 			debug "corrupt lump file " + lumpfile + " : unallowable lump name '" + lname + "'"
 			exit while
 		end if
