@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Sa 2014-08-23 Fix printing of a lexer error message
 --3S  2014-07-22 Automatically include plotscr.hsd and ignore
 --               double inclusion; added --include and -b
 --3Rg 2013-02-23 Fix a subscript related crash
@@ -156,7 +157,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="S "
+constant COMPILER_SUB_VERSION="Sa"
 constant COPYRIGHT_DATE="2014"
 
 --This is the oldest version of plotscr.hsd which is supported (feel free to
@@ -1585,8 +1586,8 @@ function lex_line(sequence s, integer i, integer stop, srcpos pos)
           else
             --a keyword character followed by garbage
             src_error(
-              sprintf_utf("Expected to see the rest of an operator (like "&COLYEL&":="&COLRED&") but found "&COLYEL&"%s"&COLRED&" instead",{{s[oldi]}}),
-              pos+oldi)
+              sprintf_utf("Expected a two-character operator (like "&COLYEL&":="&COLRED&") but the second character (e.g. "&COLYEL&"="&COLRED&") is missing",{}),
+              pos+i)
           end if
         else
           textstart=0
