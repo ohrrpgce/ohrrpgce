@@ -277,7 +277,8 @@ SUB makebackups
  writeablecopyfile game + ".dt1", tmpdir & "dt1.tmp"
  'formation data
  writeablecopyfile game + ".for", tmpdir & "for.tmp"
- 'if you add lump-modding commands, you better well add them here >:(
+ 'If you add lump-modding commands, you better well add them here >:(
+ 'Also, add CASEs to try_to_reload_lumps_* to handle updates to those lumps
 END SUB
 
 SUB make_map_backups
@@ -1457,7 +1458,7 @@ SUB try_reload_lumps_anywhere ()
  WEND
 END SUB
 
-SUB try_to_reload_files_onmap ()
+SUB try_to_reload_lumps_onmap ()
  'calls receive_file_updates
  try_reload_lumps_anywhere
 
@@ -1480,6 +1481,19 @@ SUB try_to_reload_files_onmap ()
 
   ELSEIF extn = "tap" THEN                                                '.TAP
    reloadtileanimations tilesets(), gmap()
+   handled = YES
+
+  ELSEIF extn = "dt1" THEN                                                '.DT1
+   ' This wipes all changes to all records due to scripts;
+   ' it would be possible to do a record-by-record merge instead,
+   ' but enemy (and formation) edits are probably normally done
+   ' immediately before a battle.
+   writeablecopyfile game + ".dt1", tmpdir & "dt1.tmp"
+   handled = YES
+
+  ELSEIF extn = "for" THEN                                                '.FOR
+   ' Ditto as for .dt1
+   writeablecopyfile game + ".for", tmpdir & "for.tmp"
    handled = YES
 
   ELSE
@@ -1581,7 +1595,7 @@ SUB live_preview_menu ()
   setwait 55
   setkeys
   control
-  IF running_as_slave THEN try_to_reload_files_onmap
+  IF running_as_slave THEN try_to_reload_lumps_onmap
 
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "game_live_preview_menu"

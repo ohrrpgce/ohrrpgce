@@ -1836,7 +1836,9 @@ SUB change_foe_stat(bspr as BattleSprite, byval stat_num as integer, byval new_m
  END WITH
 END SUB
 
-'There's no need to handle any lumps here which don't have effect on battles such as map data
+'There's no need to handle any lumps here which don't have effect on battles such as map data.
+'Any lumps that aren't handled here stay in the modified_lumps vector and are handled
+'after leaving battle.
 SUB try_to_reload_files_inbattle ()
  'calls receive_file_updates
  try_reload_lumps_anywhere

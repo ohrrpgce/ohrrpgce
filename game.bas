@@ -658,7 +658,7 @@ setkeys
 DO
  'DEBUG debug "top of master loop"
  setwait speedcontrol
- IF running_as_slave THEN try_to_reload_files_onmap
+ IF running_as_slave THEN try_to_reload_lumps_onmap
  tog = tog XOR 1
  'DEBUG debug "increment play timers"
  playtimer

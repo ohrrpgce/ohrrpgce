@@ -56,7 +56,7 @@ DECLARE SUB handshake_with_master ()
 DECLARE SUB show_wrong_spawned_version_error ()
 DECLARE SUB check_game_custom_versions_match ()
 DECLARE SUB receive_file_updates ()
-DECLARE SUB try_to_reload_files_onmap ()
+DECLARE SUB try_to_reload_lumps_onmap ()
 DECLARE SUB try_reload_lumps_anywhere ()
 DECLARE SUB live_preview_menu ()
 
