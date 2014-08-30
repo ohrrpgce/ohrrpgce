@@ -1082,17 +1082,22 @@ SUB individual_formation_editor ()
    '--enemy positioning mode
    IF keyval(scESC) > 1 OR enter_or_space() THEN setkeys: positioning_mode = NO
    IF keyval(scF1) > 1 THEN show_help "formation_editor_placement"
-   DIM as integer thiswidth = 0, movespeed = 1
+   DIM as integer thiswidth = 0, thisheight = 0, movespeed = 1
    IF keyval(scLeftShift) OR keyval(scRightShift) THEN movespeed = 8
    WITH form.slots(slot)
     DIM sprite as Slice ptr = LookupSlice(SL_FORMEDITOR_ENEMY + slot, rootslice)
     IF sprite THEN
      thiswidth = sprite->Width
+     thisheight = sprite->Height
     END IF
-    IF keyval(scUp) > 0 AND .pos.y > 0 THEN .pos.y = .pos.y - movpix
-    IF keyval(scDown) > 0 AND .pos.y < 199 - thiswidth THEN .pos.y = .pos.y + movpix
-    IF keyval(scLeft) > 0 AND .pos.x > 0 THEN .pos.x = .pos.x - movpix
-    IF keyval(scRight) > 0 AND .pos.x < 250 - thiswidth THEN .pos.x = .pos.x + movpix
+    ' Note that enemy positions are the top-left corner of the sprite
+    ' (which needs to be changed)
+    IF keyval(scUp) > 0 THEN .pos.y -= movespeed
+    IF keyval(scDown) > 0 THEN .pos.y += movespeed
+    IF keyval(scLeft) > 0 THEN .pos.x -= movespeed
+    IF keyval(scRight) > 0 THEN .pos.x += movespeed
+    .pos.x = bound(.pos.x, -thiswidth\2, gen(genResolutionX) - thiswidth\2)
+    .pos.y = bound(.pos.y, -thisheight\2, gen(genResolutionY) - thisheight\2)
    END WITH
   END IF
   IF positioning_mode = NO THEN

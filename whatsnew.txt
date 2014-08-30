@@ -42,6 +42,7 @@ WHAT IS NEW?
     * Most 32 bit BMPs should be importable now [Ralph]
     * Attack damage bitset "Healing poison causes regen, and reverse";
       useful when attacker or target absorbs damage [Ralph]
+    * Enemies can now be placed anywhere onscreen in formations [Ralph]
 
   * Bugfixes
     * Fixed a few cosmetic bugs in the equip menu including possibly

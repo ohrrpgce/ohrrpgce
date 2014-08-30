@@ -917,8 +917,11 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
     draw_menu .batmenu, .menust, dpage
    END WITH
    
-   IF bat.targ.mode = targNONE AND readbit(gen(), genBits, 14) = 0 THEN
-    edgeprint CHR$(24), bslot(bat.hero_turn).x + (bslot(bat.hero_turn).w / 2) - 4, bslot(bat.hero_turn).y - 5 + (bat.tog * 2), uilook(uiSelectedItem + bat.tog), dpage
+   IF bat.targ.mode = targNONE AND readbit(gen(), genBits, 14) = 0 THEN  ' "Disable Hero's Battle Cursor"
+    'Show cursor above hero
+    WITH bslot(bat.hero_turn)
+     edgeprint CHR(24), .x + (.w / 2) - 4, .y - 5 + (bat.tog * 2), uilook(uiSelectedItem + bat.tog), dpage
+    END WITH
    END IF
    IF bat.menu_mode = batMENUSPELL THEN '--draw spell menu
     centerbox 160, 53, 310, 95, 1, dpage
@@ -969,8 +972,13 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
    IF bat.targ.mode > targNONE THEN
     FOR i = 0 TO 11
      IF bat.targ.selected(i) = 1 OR bat.targ.pointer = i THEN
-      edgeprint CHR$(24), bslot(i).x + bslot(i).cursorpos.x - 4, bslot(i).y + bslot(i).cursorpos.y - 6, uilook(uiSelectedItem + bat.tog), dpage
-      edgeprint bslot(i).name, xstring(bslot(i).name, bslot(i).x + bslot(i).cursorpos.x), bslot(i).y + bslot(i).cursorpos.y - 16, uilook(uiSelectedItem + bat.tog), dpage
+      WITH bslot(i)
+       DIM as integer cursx, cursy
+       cursx = bound(.x + .cursorpos.x, 10, gen(genResolutionX) - 10)
+       cursy = bound(.y + .cursorpos.y - 6, 10, gen(genResolutionY) - 10)
+       edgeprint CHR(24), cursx - 4, cursy, uilook(uiSelectedItem + bat.tog), dpage
+       edgeprint .name, xstring(.name, cursx), cursy - 10, uilook(uiSelectedItem + bat.tog), dpage
+      END WITH
      END IF
     NEXT i
    END IF
