@@ -1052,7 +1052,8 @@ SUB individual_formation_editor ()
  DIM form as Formation
  DIM ename(7) as string
  DIM egraphics(7) as GraphicPair
- DIM as integer csr3, i
+ DIM as integer i
+ DIM positioning_mode as bool = NO
  DIM as integer bgwait, bgctr
 
  LoadFormation form, form_id
@@ -1075,9 +1076,9 @@ SUB individual_formation_editor ()
  DO
   setwait 55
   setkeys
-  IF csr3 = 1 THEN
+  IF positioning_mode = YES THEN
    '--enemy positioning mode
-   IF keyval(scESC) > 1 OR enter_or_space() THEN setkeys: csr3 = 0
+   IF keyval(scESC) > 1 OR enter_or_space() THEN setkeys: positioning_mode = NO
    IF keyval(scF1) > 1 THEN show_help "formation_editor_placement"
    DIM as integer thiswidth = 0, movpix
    movpix = 1 + (7 * SGN(keyval(scLeftShift) OR keyval(scRightShift)))
@@ -1089,7 +1090,7 @@ SUB individual_formation_editor ()
     IF keyval(scRight) > 0 AND .pos.x < 250 - thiswidth THEN .pos.x = .pos.x + movpix
    END WITH
   END IF
-  IF csr3 = 0 THEN
+  IF positioning_mode = NO THEN
    '--menu mode
    IF keyval(scESC) > 1 THEN
     EXIT DO
@@ -1107,7 +1108,7 @@ SUB individual_formation_editor ()
      IF form.music >= 0 THEN playsongnum form.music
     END IF
     IF state.pt >= 6 THEN 'an enemy
-     IF form.slots(slot).id >= 0 THEN csr3 = 1
+     IF form.slots(slot).id >= 0 THEN positioning_mode = YES
     END IF
    END IF
    IF state.pt = 2 THEN
@@ -1178,6 +1179,7 @@ SUB individual_formation_editor ()
    END IF
   END IF
 
+  ' Draw screen
   IF form.background_frames > 1 AND form.background_ticks > 0 THEN
    bgwait = (bgwait + 1) MOD form.background_ticks
    IF bgwait = 0 THEN
@@ -1189,9 +1191,10 @@ SUB individual_formation_editor ()
 
   drawformsprites form, egraphics(), slot
   FOR i as integer = 0 TO 3
-   edgeboxstyle 240 + i * 8, 75 + i * 22, 32, 40, 0, dpage, NO, YES
+   edgeboxstyle 240 + i * 8, 82 + i * 20, 32, 40, 0, dpage, NO, YES
   NEXT i
-  IF csr3 = 0 THEN
+
+  IF positioning_mode = NO THEN
    menu(0) = "Previous Menu"
    menu(1) = CHR(27) + "Formation " & form_id & CHR(26)
    menu(2) = "Backdrop: " & form.background
