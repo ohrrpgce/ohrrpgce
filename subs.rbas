@@ -32,8 +32,8 @@ DECLARE SUB enemy_edit_backmenu (state as MenuState, byval lastptr as integer, b
 
 DECLARE SUB individual_formation_editor ()
 DECLARE SUB formation_set_editor ()
-DECLARE sub drawformsprites(form as Formation, egraphics() as GraphicPair, byval slot as integer)
-DECLARE sub formpics(ename() as string, form as Formation, egraphics() as GraphicPair)
+DECLARE SUB draw_formation_slices(form as Formation, rootslice as Slice ptr, selected_slot as integer, page as integer)
+DECLARE SUB load_formation_slices(ename() as string, form as Formation, rootslice as Slice ptr ptr)
 
 DECLARE FUNCTION item_attack_name(n as integer) as string
 DECLARE SUB generate_item_edit_menu (menu() as string, shaded() as bool, itembuf() as integer, item_name as string, info_string as string, equip_types() as string, byref box_preview as string)
@@ -71,6 +71,13 @@ DECLARE SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
 DECLARE SUB browse_battle_menu_kinds (byval menu_node as NodePtr)
 DECLARE SUB change_battle_menu_kind (byval menu_node as NodePtr, new_kind as string, init_integer as bool=NO)
 DECLARE SUB hero_editor_stat_visibility (hero as HeroDef)
+
+' Formation editor slice lookup codes
+CONST SL_FORMEDITOR_BACKDROP = 100
+CONST SL_FORMEDITOR_ENEMY = 200  '+0 to +7 for 8 slots
+CONST SL_FORMEDITOR_LAST_ENEMY = 299  'End of range indicating an enemy slot
+CONST SL_FORMEDITOR_CURSOR = 300
+
 
 SUB clearallpages
 clearpage 0 'UPDATE as of fbc v0.20
@@ -963,7 +970,7 @@ SUB formation_set_editor
  DIM formset as FormationSet
  DIM set_id as integer = 1, form_id as integer
  DIM menu(23) as string
- DIM as GraphicPair egraphics(7)
+ DIM rootslice as Slice ptr
  DIM as string ename(7)
  DIM state as MenuState
  state.last = UBOUND(menu)
@@ -1004,8 +1011,7 @@ SUB formation_set_editor
    END IF
   END IF
   IF state.pt >= 4 AND form_id >= 0 THEN
-   copypage 2, dpage
-   drawformsprites form, egraphics(), -1
+   draw_formation_slices form, rootslice, -1, dpage
   ELSE
    clearpage dpage
   END IF
@@ -1027,9 +1033,7 @@ SUB formation_set_editor
   setvispage vpage
   dowait
  LOOP
- FOR i as integer = 0 TO 7
-  unload_sprite_and_pal egraphics(i)
- NEXT
+ DeleteSlice @rootslice
  EXIT SUB
 
 lpreviewform:
@@ -1039,8 +1043,7 @@ lpreviewform:
   IF form_id >= 0 THEN
    '--form not empty
    LoadFormation form, form_id
-   loadmxs game + ".mxs", form.background, vpages(2)
-   formpics(ename(), form, egraphics())
+   load_formation_slices ename(), form, @rootslice
   END IF
  END IF
  RETRACE
@@ -1051,14 +1054,13 @@ SUB individual_formation_editor ()
  DIM form_id as integer = 0
  DIM form as Formation
  DIM ename(7) as string
- DIM egraphics(7) as GraphicPair
+ DIM rootslice as Slice ptr
  DIM as integer i
  DIM positioning_mode as bool = NO
  DIM as integer bgwait, bgctr
 
  LoadFormation form, form_id
- loadmxs game + ".mxs", form.background, vpages(2)
- formpics(ename(), form, egraphics())
+ load_formation_slices ename(), form, @rootslice
 
  DIM menu(13) as string
  DIM state as MenuState
@@ -1080,10 +1082,13 @@ SUB individual_formation_editor ()
    '--enemy positioning mode
    IF keyval(scESC) > 1 OR enter_or_space() THEN setkeys: positioning_mode = NO
    IF keyval(scF1) > 1 THEN show_help "formation_editor_placement"
-   DIM as integer thiswidth = 0, movpix
-   movpix = 1 + (7 * SGN(keyval(scLeftShift) OR keyval(scRightShift)))
+   DIM as integer thiswidth = 0, movespeed = 1
+   IF keyval(scLeftShift) OR keyval(scRightShift) THEN movespeed = 8
    WITH form.slots(slot)
-    IF egraphics(slot).sprite THEN thiswidth = egraphics(slot).sprite->w
+    DIM sprite as Slice ptr = LookupSlice(SL_FORMEDITOR_ENEMY + slot, rootslice)
+    IF sprite THEN
+     thiswidth = sprite->Width
+    END IF
     IF keyval(scUp) > 0 AND .pos.y > 0 THEN .pos.y = .pos.y - movpix
     IF keyval(scDown) > 0 AND .pos.y < 199 - thiswidth THEN .pos.y = .pos.y + movpix
     IF keyval(scLeft) > 0 AND .pos.x > 0 THEN .pos.x = .pos.x - movpix
@@ -1113,9 +1118,9 @@ SUB individual_formation_editor ()
    END IF
    IF state.pt = 2 THEN
     IF intgrabber(form.background, 0, gen(genNumBackdrops) - 1) THEN
-     loadmxs game + ".mxs", form.background, vpages(2)
      bgwait = 0
      bgctr = 0
+     load_formation_slices ename(), form, @rootslice
     END IF
    END IF
    IF state.pt = 3 THEN
@@ -1126,7 +1131,7 @@ SUB individual_formation_editor ()
      form.background_frames = temp + 1
      IF bgctr >= form.background_frames THEN
       bgctr = 0
-      loadmxs game + ".mxs", form.background, vpages(2)
+      load_formation_slices ename(), form, @rootslice
      END IF
     END IF
    END IF
@@ -1151,8 +1156,7 @@ SUB individual_formation_editor ()
       SaveFormation form, form_id
      END IF
      LoadFormation form, form_id
-     loadmxs game + ".mxs", form.background, vpages(2)
-     formpics(ename(), form, egraphics())
+     load_formation_slices ename(), form, @rootslice
      bgwait = 0
      bgctr = 0
     END IF
@@ -1166,7 +1170,7 @@ SUB individual_formation_editor ()
       'See the Plan for battle formation improvements
       '.pos.x += w(slot) \ 2
       '.pos.y += h(slot)
-      formpics(ename(), form, egraphics())
+      load_formation_slices ename(), form, @rootslice
       'default to middle of field
       IF oldenemy = -1 AND .pos.x = 0 AND .pos.y = 0 THEN
        .pos.x = 70
@@ -1180,19 +1184,16 @@ SUB individual_formation_editor ()
   END IF
 
   ' Draw screen
+
   IF form.background_frames > 1 AND form.background_ticks > 0 THEN
    bgwait = (bgwait + 1) MOD form.background_ticks
    IF bgwait = 0 THEN
     bgctr = loopvar(bgctr, 0, form.background_frames - 1, 1)
-    loadmxs game + ".mxs", (form.background + bgctr) MOD gen(genNumBackdrops), vpages(2)
+    DIM sl as Slice ptr = LookupSlice(SL_FORMEDITOR_BACKDROP, rootslice)
+    ChangeSpriteSlice sl, , (form.background + bgctr) MOD gen(genNumBackdrops)
    END IF
   END IF
-  copypage 2, dpage
-
-  drawformsprites form, egraphics(), slot
-  FOR i as integer = 0 TO 3
-   edgeboxstyle 240 + i * 8, 82 + i * 20, 32, 40, 0, dpage, NO, YES
-  NEXT i
+  draw_formation_slices form, rootslice, slot, dpage
 
   IF positioning_mode = NO THEN
    menu(0) = "Previous Menu"
@@ -1225,48 +1226,90 @@ SUB individual_formation_editor ()
 
  SaveFormation form, form_id
  music_stop
- FOR i as integer = 0 TO 7
-  unload_sprite_and_pal egraphics(i)
- NEXT
+ DeleteSlice @rootslice
 END SUB
 
-SUB formpics(ename() as string, form as Formation, egraphics() as GraphicPair)
- DIM enemy as EnemyDef
+'Deletes previous rootslice if any, then creates a bunch of sprite slices for enemies
+'(but doesn't position them: that's done in draw_formation_slices), and rectangles for
+'hero positions.
+'Also loads enemy names.
+SUB load_formation_slices(ename() as string, form as Formation, rootslice as Slice ptr ptr)
+ DIM sl as Slice ptr
+ DeleteSlice rootslice
+
+ ' Root is backdrop
+ *rootslice = NewSliceOfType(slSprite)
+ sl = *rootslice
+ ChangeSpriteSlice sl, sprTypeMXS, form.background 
+ sl->Lookup = SL_FORMEDITOR_BACKDROP
+ 
+ ' Heroes
+ FOR i as integer = 0 TO 3
+  sl = NewSliceOfType(slRectangle, *rootslice)
+  ChangeRectangleSlice sl, , boxlook(0).bgcol, boxlook(0).edgecol
+  sl->X = 240 + i * 8
+  sl->Y = 82 + i * 20
+  sl->Width = 32
+  sl->Height = 40
+  'Break ties with heroes behind
+  sl->Sorter = i
+ NEXT
+
+ ' Enemies
  FOR i as integer = 0 TO 7
   ename(i) = "-EMPTY-"
-  unload_sprite_and_pal egraphics(i)
   IF form.slots(i).id >= 0 THEN
+   DIM enemy as EnemyDef
    loadenemydata enemy, form.slots(i).id
    WITH enemy
     ename(i) = form.slots(i).id & ":" & .name
-    load_sprite_and_pal egraphics(i), 1 + bound(.size, 0, 2), .pic, .pal
+    sl = NewSliceOfType(slSprite, *rootslice)
+    ChangeSpriteSlice sl, sprTypeSmallEnemy + bound(.size, 0, 2), .pic, .pal
+    sl->Lookup = SL_FORMEDITOR_ENEMY + i
+    sl->Sorter = 100 + i
    END WITH
   END IF
  NEXT i
+
+ ' Cursor (defaults to invisible)
+ sl = NewSliceOfType(slText, *rootslice)
+ sl->AlignHoriz = 1  'mid
+ sl->AnchorHoriz = 1  'mid
+ sl->Lookup = SL_FORMEDITOR_CURSOR
 END SUB
 
-SUB drawformsprites(form as Formation, egraphics() as GraphicPair, byval slot as integer)
- DIM z(7) as integer, basey(7) as integer
+SUB draw_formation_slices(form as Formation, rootslice as Slice ptr, selected_slot as integer, page as integer)
  STATIC flash as integer
  flash = (flash + 1) MOD 256
+ DIM cursorsl as Slice ptr = LookupSlice(SL_FORMEDITOR_CURSOR, rootslice)
+ cursorsl->Visible = NO
 
- FOR i as integer = 0 TO 7
-  IF egraphics(i).sprite THEN basey(i) = form.slots(i).pos.y + egraphics(i).sprite->h
- NEXT
- sort_integers_indices(z(), @basey(0))
-
- FOR i as integer = 0 TO 7
-  DIM fslot as FormationSlot ptr = @form.slots(z(i))
-  IF fslot->id >= 0 THEN
-   WITH egraphics(z(i))
-    frame_draw .sprite, .pal, fslot->pos.x, fslot->pos.y, , , dpage
-    IF slot = z(i) THEN
-     textcolor flash, 0
-     printstr CHR(25), fslot->pos.x + .sprite->w \ 2 - 4, fslot->pos.y, dpage
-    END IF
-   END WITH
+ ' Set enemy positions and parent of cursor slice
+ DIM sl as Slice ptr = rootslice->FirstChild
+ WHILE sl
+  IF sl->Lookup >= SL_FORMEDITOR_ENEMY AND sl->Lookup <= SL_FORMEDITOR_LAST_ENEMY THEN
+   'Is an enemy
+   DIM enemy_slot as integer = sl->Lookup - SL_FORMEDITOR_ENEMY
+   DIM fslot as FormationSlot ptr = @form.slots(enemy_slot)
+   IF fslot->id < 0 THEN debugc errPromptBug, "Formation enemy slice corresponds to an empty slot"
+   sl->X = fslot->pos.x
+   sl->Y = fslot->pos.y
+   IF enemy_slot = selected_slot AND cursorsl <> NULL THEN
+    cursorsl->Visible = YES
+    SetSliceParent cursorsl, sl
+    ChangeTextSlice cursorsl, CHR(25), flash
+   END IF
   END IF
- NEXT
+  sl = sl->NextSibling
+ WEND
+
+ ' We don't want path-dependence of the sort order, because
+ ' the real battle system display breaks ties in a certain way.
+ ' This ensures ties broken in the same way (I hope)
+ CustomSortChildSlices rootslice, NO  'wipevals=NO
+ EdgeYSortChildSlices rootslice, 2  'edge=2 is bottom edge
+ clearpage page
+ DrawSlice rootslice, page
 END SUB
 
 SUB item_editor
