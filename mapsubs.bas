@@ -1634,7 +1634,7 @@ DO
    tmpstr = "Tool: " & toolinfo(st.tool).name
   END IF
   textcolor uilook(uiText), 0 
-  printstr tmpstr, xstring2(tmpstr, toolbarpos.x), toolbarpos.y + 10, dpage, YES
+  printstr tmpstr, xstring(tmpstr, toolbarpos.x, YES), toolbarpos.y + 10, dpage, YES
  ELSEIF st.editmode = zone_mode AND st.zonesubmode = zone_view_mode AND drawing_allowed THEN
   'Nasty
   textcolor uilook(uiText), 0 
