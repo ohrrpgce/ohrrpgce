@@ -589,6 +589,8 @@ define function, begin
 567,getscriptname,2,0,0          #(string id, script id) Get name of a script
 568,getcallingscriptid,1,1       #(depth) Get ID number of a parent or ancestor script
 569,camerafollowsslice,1,0       #(slice) Center camera on slice
+570,getactivebattlepauseonallmenus,0 # returns true or false based on the global bitset
+571,setactivebattlepauseonallmenus,1,0, #(true/false) change the global bitset (not saved)
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

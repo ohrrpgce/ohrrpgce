@@ -4729,6 +4729,18 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 			<description>Returns the count of a given timer.</description>
 			<seealso><ref>settimer</ref></seealso>
 		</command>
+		<command id="getactivebattlepauseonallmenus">
+			<canon>get active battle pause on all menus</canon>
+			<shortname>get active battle pause on all menus</shortname>
+			<description>Returns true if active-time battles are configured to pause on all menus</description>
+			<seealso><ref>setactivebattlepauseonallmenus</ref></seealso>
+		</command>
+		<command id="setactivebattlepauseonallmenus">
+			<canon>set active battle pause on all menus (value)</canon>
+			<shortname>set active battle pause on all menus</shortname>
+			<description>Changes whether active-time battles will pause on all menus. The argument should be <p>true</p> to pause, or <p>false</p> to not pause. This option has no effect on turn-based battles. This option is not stored in save-games, so changing it only lasts until the game is quit and reloaded.</description>
+			<seealso><ref>getactivebattlepauseonallmenus</ref></seealso>
+		</command>
 	</section>
 	<section title="Enemy and Formation Functions">
 		<command id="getenemystat">

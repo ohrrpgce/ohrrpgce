@@ -3559,7 +3559,10 @@ SELECT CASE as CONST id
    gen(cameramode) = slicecam
    gen(cameraArg) = retvals(0)
   END IF
-
+ CASE 570'--get active battle pause on all menus
+  scriptret = IIF(readbit(gen(), genBits, 13) <> 0, 1, 0)
+ CASE 571'--set active battle pause on all menus
+  setbit gen(), genBits, 13, retvals(0)
  CASE ELSE
   RETURN NO
 
