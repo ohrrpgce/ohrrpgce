@@ -3,6 +3,7 @@ This is the RELOAD Editor. It is for editing raw data files in RELOAD format. If
 
 Press F3 to open a RELOAD file.
 Press F2 to save a RELOAD file.
+Press F4 to load one of the game's RELOAD lumps.
 
 Press TAB to switch editing mode.
 

@@ -40,6 +40,7 @@ DECLARE FUNCTION reload_editor_browse(byref st as ReloadEditorState) as integer
 DECLARE SUB reload_editor_export(byref st as ReloadEditorState)
 DECLARE FUNCTION reload_editor_load(filename as string, byref st as ReloadEditorState) as integer
 DECLARE SUB reload_editor_save(filename as string, byref st as ReloadEditorState)
+DECLARE FUNCTION reload_editor_special_file(byref st as ReloadEditorState) as bool
 DECLARE SUB reload_editor_edit_node(byref st as ReloadEditorState, mi as MenuDefItem Ptr)
 DECLARE FUNCTION reload_editor_edit_node_name(byval node as Reload.Nodeptr) as integer
 DECLARE FUNCTION reload_editor_edit_node_value(byref st as ReloadEditorState, byval node as Reload.Nodeptr) as integer
@@ -49,7 +50,7 @@ DECLARE SUB reload_editor_swap_node_left(byval node as Reload.Nodeptr)
 DECLARE SUB reload_editor_swap_node_right(byval node as Reload.Nodeptr)
 DECLARE SUB reload_editor_focus_node(byref st as ReloadEditorState, byval node as Reload.Nodeptr)
 DECLARE FUNCTION reload_editor_numeric_input_check() as integer
-DECLARE FUNCTION reload_editor_okay_to_unload(byref st as ReloadEditorState) as integer
+DECLARE FUNCTION reload_editor_okay_to_unload(byref st as ReloadEditorState) as bool
 
 '-----------------------------------------------------------------------
 
@@ -101,6 +102,9 @@ SUB reload_editor()
   END IF
   IF keyval(scF1) > 1 THEN show_help("reload_editor")
   IF keyval(scTAB) > 1 THEN st.mode = st.mode XOR 1
+  IF keyval(scF2) > 1 THEN
+   reload_editor_export st
+  END IF
   IF keyval(scF3) > 1 THEN
    IF reload_editor_okay_to_unload(st) THEN
     IF reload_editor_browse(st) THEN
@@ -109,8 +113,13 @@ SUB reload_editor()
     END IF
    END IF
   END IF
-  IF keyval(scF2) > 1 THEN
-   reload_editor_export st
+  IF keyval(scF4) > 1 THEN
+   IF reload_editor_okay_to_unload(st) THEN
+    IF reload_editor_special_file(st) THEN
+     setkeys YES
+     st.state.need_update = YES
+    END IF
+   END IF
   END IF
 
   
@@ -309,7 +318,7 @@ FUNCTION reload_editor_edit_node_value(byref st as ReloadEditorState, byval node
    END IF
   END IF
  ELSEIF nt <> Reload.rltNull THEN
-  debug "invalid reload node type " & nt
+  visible_debug "invalid reload node type " & nt
  END IF
  RETURN NO
 END FUNCTION
@@ -424,7 +433,7 @@ FUNCTION reload_editor_numeric_input_check() as integer
  RETURN NO
 END FUNCTION
 
-FUNCTION reload_editor_okay_to_unload(byref st as ReloadEditorState) as integer
+FUNCTION reload_editor_okay_to_unload(byref st as ReloadEditorState) as bool
  IF st.changed = NO THEN RETURN YES
  DIM choice as integer
  'Prevent attempt to quit the program, stop and wait for response first
@@ -448,4 +457,32 @@ FUNCTION reload_editor_okay_to_unload(byref st as ReloadEditorState) as integer
    RETURN YES
  END SELECT
  RETURN NO
+END FUNCTION
+
+FUNCTION reload_editor_special_file(byref st as ReloadEditorState) as bool
+ 'Could add slices and RSAV docs
+ DIM menu(2) as string
+ menu(0) = "general.reld"
+ menu(1) = "distrib.reld"
+ menu(2) = "heroes.reld"
+ DIM choice as integer = multichoice(!"Which RELOAD document to view?\n(Changes have no effect)", menu())
+ IF choice = -1 THEN RETURN NO
+
+ st.filename = ""
+ Reload.FreeDocument st.doc
+ st.changed = NO
+ SELECT CASE choice
+  CASE 0
+   st.doc = Reload.CreateDocument()
+   st.root = Reload.CloneNodeTree(get_general_reld(), st.doc)
+   Reload.SetRootNode(st.doc, st.root)
+  CASE 1
+   st.doc = Reload.LoadDocument(workingdir & SLASH & "distrib.reld", optNoDelay)
+  CASE 2
+   st.doc = Reload.LoadDocument(workingdir & SLASH & "heroes.reld", optNoDelay)
+
+ END SELECT
+ IF st.doc = 0 THEN RETURN NO
+ st.root = Reload.DocumentRoot(st.doc)
+ RETURN YES
 END FUNCTION
