@@ -1728,6 +1728,10 @@ Function DocumentRoot(byval doc as DocPtr) as NodePtr
 	return doc->root
 end Function
 
+Function GetDocument(byval nod as NodePtr) as DocPtr
+	return nod->doc
+end Function
+
 Function NumChildren(byval nod as NodePtr) as Integer
 	return nod->numChildren
 end Function
@@ -1841,14 +1845,9 @@ sub SwapNodeNext(byval node as Nodeptr)
 end sub
 
 'This clones a node and all its children and returns the cloned (parentless) node.
-'The doc is an optional doc ptr that new new node should belong to. If ommitted, the clone
+'The doc is an optional doc ptr that new new node should belong to. If omitted, the clone
 'will be in the same doc as the original node
-'nod_for_doc is an optional NodePtr to get the DocPtr from
-Function CloneNodeTree(byval nod as NodePtr, byval doc as DocPtr=0, byval nod_for_doc as NodePtr=0) as NodePtr
-	if doc <> 0 and nod_for_doc <> 0 then
-		debug "Can't set doc by both DocPtr and NodePtr"
-		return null
-	end if
+Function CloneNodeTree(byval nod as NodePtr, byval doc as DocPtr=0) as NodePtr
 	if nod = null then
 		debug "CloneNodeTree: null node pointer"
 		return null
@@ -1856,8 +1855,6 @@ Function CloneNodeTree(byval nod as NodePtr, byval doc as DocPtr=0, byval nod_fo
 	dim n as NodePtr
 	if doc then
 		n = CreateNode(doc, NodeName(nod))
-	elseif nod_for_doc then
-		n = CreateNode(nod_for_doc, NodeName(nod))
 	else
 		n = CreateNode(nod, NodeName(nod))
 	end if
@@ -1872,7 +1869,7 @@ Function CloneNodeTree(byval nod as NodePtr, byval doc as DocPtr=0, byval nod_fo
 	dim ch as NodePtr
 	ch = FirstChild(nod)
 	while ch
-		AddChild(n, CloneNodeTree(ch, doc, nod_for_doc))
+		AddChild(n, CloneNodeTree(ch, doc))
 		ch = NextSibling(ch)
 	wend
 	return n

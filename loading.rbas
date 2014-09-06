@@ -1785,7 +1785,7 @@ SUB save_hero_as_reload(hero as HeroDef, byval parent as NodePtr)
  WriteStatsNode(parent, "stats_at_max", hero.LevMax)
 
  DIM reld as NodePtr = hero.reld
- AddChild(parent, CloneNodeTree(reld."battle_menus".ptr, , parent))
+ AddChild(parent, CloneNodeTree(reld."battle_menus".ptr, GetDocument(parent)))
 
  DIM splists as NodePtr
  DIM splist as NodePtr
@@ -1839,7 +1839,7 @@ SUB save_hero_as_reload(hero as HeroDef, byval parent as NodePtr)
  IF hero.active_tag > 0 THEN SetChildNode tagnode, "is_active", hero.active_tag
 
  IF reld."stat_options".exists THEN
-  AddChild(parent, CloneNodeTree(reld."stat_options".ptr, , parent))
+  AddChild(parent, CloneNodeTree(reld."stat_options".ptr, GetDocument(parent)))
  ELSE
   '-empty node if not found
   SetChildNode(parent, "stat_options")
