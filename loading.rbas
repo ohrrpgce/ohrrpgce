@@ -664,7 +664,7 @@ SUB SaveTilemaps(tmaps() as TileMap, filename as string)
   writeshort fh, 8, tmaps(0).wide
   writeshort fh, 10, tmaps(0).high
   SEEK #fh, 12
-  FOR i as integer = 0 TO UBOUND(tmaps(0))
+  FOR i as integer = 0 TO UBOUND(tmaps)
     PUT #fh, , *tmaps(i).data, tmaps(i).wide * tmaps(i).high
   NEXT
   CLOSE #fh
