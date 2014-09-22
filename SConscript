@@ -260,6 +260,8 @@ if linkgcc:
         raise Exception("FreeBasic compiler is not installed!")
     fbc_path = os.path.dirname(fbc_binary)
     #print "fbc = " + fbc_path
+    # target should be the OS code, with the arch?
+    # Looks like the code below doesn't care, as long as it finds the right directory
     if win32:
         target = 'win32'
     elif android:
@@ -270,12 +272,18 @@ if linkgcc:
             raise Exception("This GCC doesn't target arm-linux-androideabi. You need to set CC, CXX, AS environmental variables correctly to crosscompile to Android")
         target += '-freebasic'
     else:
+        # Newer versions of fbc (1.0+) print e.g. "Version $VER ($DATECODE), built for linux-x86 (32bit)"
+        # older versions printed "Version $VER ($DATECODE) for linux"
+        # older still printed "Version $VER ($DATECODE) for linux (target:linux)"
+        # In all cases seems to be
         fbcinfo = get_run_command(fbc_binary + " -version")
         target = re.findall("target:([a-z]*)", fbcinfo)
         if len(target) == 0:
-            target = re.findall("\) for ([a-z0-9]+)\n", fbcinfo)
+            # Omit the arch
+            target = re.findall(" for ([a-z0-9]+)", fbcinfo)
             if len(target) == 0:
                 raise Exception("Couldn't determine fbc target")
+                # Or just default to the current platform
         target = target[0]
 
     fblibpaths = [[fbc_path, 'lib'],
@@ -283,8 +291,9 @@ if linkgcc:
                   [fbc_path, '..', 'lib', 'freebasic'],
                   ['/usr/share/freebasic/lib'],
                   ['/usr/local/lib/freebasic']]
-    # For each of the above possible library paths, check three possible target subdirectories:
-    targetdirs = [ [], [arch + '-' + target], [target] ]
+    # For each of the above possible library paths, check four possible target subdirectories:
+    # (FB changes where the libraries are stored every other month)
+    targetdirs = [ [], [target + '-' + arch], [arch + '-' + target], [target] ]
     # FB since 0.25 doesn't seem to use a platform subdirectory in lib ?
 
     for path, targetdir in itertools.product(fblibpaths, targetdirs):
