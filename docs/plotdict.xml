@@ -2639,7 +2639,7 @@ sl := lookup slice(sli:my special slice, collection)
 # this example gets a handle to the portrait of the currently displaying
 # text box (if any) and allows you to manipulate it.
 variable(portrait)
-portrait = lookup slice(sl:textbox portrait)
+portrait := lookup slice(sl:textbox portrait)
 if(portrait) then(
   replace portrait sprite(portrait, 5)
 )
