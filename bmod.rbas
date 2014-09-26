@@ -41,7 +41,8 @@ DECLARE SUB fulldeathcheck (byval killing_attack as integer, bat as BattleState,
 DECLARE SUB anim_flinchstart(byval who as integer, bslot() as BattleSprite, byref attack as AttackData)
 DECLARE SUB anim_flinchdone(byval who as integer, bslot() as BattleSprite, byref attack as AttackData)
 DECLARE SUB draw_battle_sprites(bslot() as BattleSprite)
-DECLARE FUNCTION battle_time_can_pass(bat as BattleState) as integer
+DECLARE FUNCTION battle_time_can_pass(byref bat as BattleState) as bool
+DECLARE FUNCTION battle_meters_can_advance(byref bat as BattleState, bslot() as BattleSprite) as bool
 DECLARE SUB battle_crappy_run_handler(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB show_enemy_meters(bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB battle_animate(byref bat as BattleState, bslot() as BattleSprite)
@@ -993,12 +994,6 @@ SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata a
  
  IF bat.away > 0 THEN EXIT SUB '--skip all this if the heroes have already run away
  
- '--if a menu is up, and pause-on-menus is ON then no time passes (as long as at least one visible targetable enemy is alive)
- DIM isdeepmenu as integer = (bat.menu_mode > 0 AND readbit(gen(), genBits, 0) <> 0)
- DIM isbattlemenu as integer = (bat.menu_mode >= 0 AND bat.hero_turn >= 0 AND readbit(gen(), genBits, 13) <> 0)
- DIM isenemytargs as integer = (targenemycount(bslot()) > 0)
- IF (isdeepmenu OR isbattlemenu) AND isenemytargs THEN EXIT SUB
-
  DIM i as integer
 
  FOR i = 0 TO 11
@@ -3534,12 +3529,40 @@ FUNCTION has_queued_attacks(byval who as integer) as integer
  RETURN NO
 END FUNCTION
 
-FUNCTION battle_time_can_pass(bat as BattleState) as integer
+FUNCTION battle_time_can_pass(bat as BattleState) as bool
+ ' Return YES if time is allowed to pass in active mode
  IF bat.atk.id <> -1 THEN RETURN NO 'an attack animation is going on right now
  IF bat.vic.state <> 0 THEN RETURN NO 'victory has already happened
  IF readbit(gen(), genBits2, 5) <> 0 AND bat.caption_time > 0 THEN RETURN NO 'pause on captions
  RETURN YES
 END FUNCTION
+
+FUNCTION battle_meters_can_advance(byref bat as BattleState, bslot() as BattleSprite) as bool
+ ' Returns YES if active time ready meters for heroes and enemies are allowed to grow.
+ ' The actual growth happens in battle_meters()
+ DIM pause_on_all as bool = readbit(gen(), genBits, 13)
+ DIM pause_on_spell_and_item as bool = readbit(gen(), genBits, 0)
+
+ DIM isenemytargs as bool = (targenemycount(bslot()) > 0)
+ 
+ IF isenemytargs THEN
+  IF pause_on_all THEN
+   IF bat.menu_mode >= 0 ANDALSO bat.hero_turn >= 0 THEN
+    'A menu is open, and a hero is taking a turn
+    RETURN NO
+   END IF
+  END IF
+  IF pause_on_spell_and_item THEN
+   IF bat.menu_mode > 0 THEN
+    'Spell or item menu is open right now
+    RETURN NO
+   END IF
+  END IF
+ END IF
+
+ RETURN YES
+END FUNCTION
+''''''''''''
 
 SUB battle_background_anim(byref bat as BattleState, formdata as Formation)
  IF formdata.background_frames > 1 THEN
@@ -3894,7 +3917,9 @@ END SUB
 
 SUB active_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
  IF battle_time_can_pass(bat) THEN
-  battle_meters bat, bslot(), formdata
+  IF battle_meters_can_advance(bat, bslot()) THEN
+   battle_meters bat, bslot(), formdata
+  END IF
   battle_check_delays bat, bslot()
  END IF
  battle_check_for_hero_turns bat, bslot()
