@@ -1,0 +1,17 @@
+This is a list of option bitsets - simple OFF or ON settings. Bitsets that are turned ON are highlighted.
+
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the list.
+
+Modifiy bitsets with Left, Right, SPACE and ENTER.
+
+These bitsets only apply to Active-time battle mode. They are ignored for Turn-based battles.
+
+"Pause on Item & Spells menus" pauses the battle ready meters while the player is browsing item and spell menus, but not while they are choosing an option from the main battle menu or selecting targets.
+
+"Pause on all battle menus & targeting" pauses the battle ready meters whenever it is the player's turn, no matter which menu they are in.
+
+"Attack captions pause battle meters" pauses the battle ready meters whenever an attack dispays a text caption. Captions can possibly last longer than the attack animation that triggered them.
+
+"Pause for attack animations" pauses the battle ready meters whenever an attack is animating.
+
+"Pause when targeting attacks" pauses the battle ready meters while the player is choosing a target.

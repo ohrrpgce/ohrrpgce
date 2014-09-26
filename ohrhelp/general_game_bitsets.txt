@@ -6,10 +6,6 @@ Modifiy bitsets with Left, Right, SPACE and ENTER.
 
 Most options are self-explanatory, but here is documentation on some of them:
 
-"Pause on Battle Submenus" pauses battles while the player is browsing item and spell menus, but not while he is choosing an option from the main battle menu (Attack, Spell-list, Spell-list, Item) or selecting targets.
-
-"Pause on all Battle Menus" pauses battles whenever it is the player's turn.
-
 "Enable Caterpillar Party" makes heroes in the active party appear behind the leader, following him while walking around.
 
 "Hero Swapping Always Available" lets the player move heroes between the active and reserve parties from the in-game menu, by default from a submenu named "Team"; otherwise the player can only rearrange the active party ("Order" submenu), and you can make "Team" available in shops or custom menus.
