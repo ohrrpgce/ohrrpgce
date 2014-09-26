@@ -319,6 +319,10 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
    IF keyval(scF1) > 1 THEN show_help "sliceedit_game"
   #ENDIF
   IF keyval(scF4) > 1 THEN ses.hide_menu = NOT ses.hide_menu
+  IF keyval(scF8) > 1 THEN
+   'Make a sprite melt, just for a fun test
+   DissolveSpriteSlice(menu(state.pt).handle, 5, 36)
+  END IF
 
   IF state.need_update = NO AND enter_space_click(state) THEN
    IF state.pt = 0 THEN

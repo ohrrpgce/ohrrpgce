@@ -1276,6 +1276,19 @@ Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
    have_copy = YES
    frame_flip_vert(spr)
   end if
+  if .dissolving then
+   dim dtick as integer
+   if .d_back then
+    dtick = .d_time - .d_tick
+   else
+    dtick = .d_tick
+   end if
+   spr = frame_dissolved(spr, .d_time, dtick, .d_type)
+   .d_tick += 1
+   if .d_tick >= .d_time then
+    .dissolving = NO
+   end if
+  end if
  
   frame_draw spr, .img.pal, sl->screenX, sl->screenY, , .trans, p
   
@@ -1435,6 +1448,28 @@ Sub ChangeSpriteSlice(byval sl as slice ptr,_
   if trans > -2 then .trans = (trans <> 0)
  end with
 end sub
+
+Sub DissolveSpriteSlice(byval sl as slice ptr, byval dissolve_type as integer, byval over_ticks as integer, byval backwards as bool=0)
+ if sl = 0 then debug "DissolveSpriteSlice null ptr" : exit sub
+ if sl->SliceType <> slSprite then reporterr "Attempt to dissolve " & SliceTypeName(sl) & " slice " & sl & " as a sprite" : exit sub
+ dim dat as SpriteSliceData Ptr = sl->SliceData
+ with *dat
+  .dissolving = YES
+  .d_type = dissolve_type
+  .d_time = over_ticks
+  .d_tick = 0
+  .d_back = backwards
+ end with
+end sub
+
+Function SpriteSliceIsDissolving(byval sl as slice ptr) as bool
+ if sl = 0 then debug "SpriteSliceIsDissolving null ptr" : return NO
+ if sl->SliceType <> slSprite then return NO
+ dim dat as SpriteSliceData Ptr = sl->SliceData
+ with *dat
+  return .dissolving
+ end with
+end function
 
 '--Map-----------------------------------------------------------------
 
