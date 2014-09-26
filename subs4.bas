@@ -39,6 +39,7 @@ DECLARE SUB importsfx_get_sfx_info(sname as string, sfxfile as string, byval snu
 DECLARE SUB importsfx_save_sfx_data(sname as string, byval snum as integer)
 DECLARE SUB importsfx_exportsfx(sfxfile as string, file_ext as string)
 DECLARE SUB importsfx_importsfxfile(sname as string, sfxfile as string, byval snum as integer, file_ext as string)
+DECLARE SUB edit_global_bitsets(bitname() as string, helpfile as string)
 
 SUB vehicles
 
@@ -1232,31 +1233,33 @@ SUB generate_battlesystem_menu(menu() as string)
  ELSE
   menu(4) &= "Turn-based"
  END IF
- menu(5) = "Number of Elements: " & gen(genNumElements)
- menu(6) = "Poison Indicator: " & gen(genPoison) & " " & CHR(gen(genPoison))
- menu(7) = "Stun Indicator: " & gen(genStun) & " " & CHR(gen(genStun))
- menu(8) = "Mute Indicator: " & gen(genMute) & " " & CHR(gen(genMute))
- menu(9) = "Default Enemy Dissolve: " & dissolve_type_caption(gen(genEnemyDissolve))
- menu(10) = "Damage Display Time: " & gen(genDamageDisplayTicks) & " ticks (" & seconds_estimate(gen(genDamageDisplayTicks)) & " sec)"
- menu(11) = "Damage Display Rises: " & gen(genDamageDisplayRise) & " pixels"
- menu(12) = "Experience given to heroes..."
- menu(13) = " ...swapped-out and unlocked: " & gen(genUnlockedReserveXP) & "%"
- menu(14) = " ...swapped-out and locked: " & gen(genLockedReserveXP) & "%"
- menu(15) = "Hero Weak state below: " & gen(genHeroWeakHP) & "% " & statnames(statHP)
- menu(16) = "Enemy Weak state below: " & gen(genEnemyWeakHP) & "% " & statnames(statHP)
- menu(18) = "View Experience Chart..."
+ menu(5) = "Active-time battle bitsets..."
+ menu(6) = "Number of Elements: " & gen(genNumElements)
+ menu(7) = "Poison Indicator: " & gen(genPoison) & " " & CHR(gen(genPoison))
+ menu(8) = "Stun Indicator: " & gen(genStun) & " " & CHR(gen(genStun))
+ menu(9) = "Mute Indicator: " & gen(genMute) & " " & CHR(gen(genMute))
+ menu(10) = "Default Enemy Dissolve: " & dissolve_type_caption(gen(genEnemyDissolve))
+ menu(11) = "Damage Display Time: " & gen(genDamageDisplayTicks) & " ticks (" & seconds_estimate(gen(genDamageDisplayTicks)) & " sec)"
+ menu(12) = "Damage Display Rises: " & gen(genDamageDisplayRise) & " pixels"
+ menu(13) = "Experience given to heroes..."
+ menu(14) = " ...swapped-out and unlocked: " & gen(genUnlockedReserveXP) & "%"
+ menu(15) = " ...swapped-out and locked: " & gen(genLockedReserveXP) & "%"
+ menu(16) = "Hero Weak state below: " & gen(genHeroWeakHP) & "% " & statnames(statHP)
+ menu(17) = "Enemy Weak state below: " & gen(genEnemyWeakHP) & "% " & statnames(statHP)
+ menu(19) = "View Experience Chart..."
  '--Disabled because it is not ready yet
- 'menu(19) = "Stat Growth Options..."
+ 'menu(20) = "Stat Growth Options..."
 END SUB
 
 SUB battleoptionsmenu ()
- CONST maxMenu = 18
+ CONST maxMenu = 19
  DIM menu(maxMenu) as string
  DIM menu_display(maxMenu) as string
  DIM min(maxMenu) as integer
  DIM max(maxMenu) as integer
  DIM index(maxMenu) as integer
  DIM enabled(maxMenu) as integer
+ DIM greyout(maxMenu) as integer
  DIM selectst as SelectTypeState
  DIM state as MenuState
  WITH state
@@ -1277,38 +1280,38 @@ SUB battleoptionsmenu ()
  
  flusharray enabled(), UBOUND(enabled), YES
  enabled(3) = NO
- enabled(12) = NO
- enabled(17) = NO
+ enabled(13) = NO
+ enabled(18) = NO
  index(4) = genBattleMode
  min(4) = 0
  max(4) = 1
- index(5) = genNumElements
- min(5) = 1
- max(5) = 64
- index(6) = genPoison
- index(7) = genStun
- index(8) = genMute
- FOR i as integer = 6 TO 8
+ index(6) = genNumElements
+ min(6) = 1
+ max(6) = 64
+ index(7) = genPoison
+ index(8) = genStun
+ index(9) = genMute
+ FOR i as integer = 7 TO 9
   min(i) = 32
   max(i) = 255
  NEXT
- index(9) = genEnemyDissolve
- max(9) = dissolveTypeMax
- index(10) = genDamageDisplayTicks
- max(10) = 1000
- index(11) = genDamageDisplayRise
+ index(10) = genEnemyDissolve
+ max(10) = dissolveTypeMax
+ index(11) = genDamageDisplayTicks
  max(11) = 1000
- min(11) = -1000
- index(13) = genUnlockedReserveXP
- max(13) = 1000
- index(14) = genLockedReserveXP
+ index(12) = genDamageDisplayRise
+ max(12) = 1000
+ min(12) = -1000
+ index(14) = genUnlockedReserveXP
  max(14) = 1000
- min(15) = 1
- max(15) = 100
- index(15) = genHeroWeakHP
+ index(15) = genLockedReserveXP
+ max(15) = 1000
  min(16) = 1
  max(16) = 100
- index(16) = genEnemyWeakHP
+ index(16) = genHeroWeakHP
+ min(17) = 1
+ max(17) = 100
+ index(17) = genEnemyWeakHP
 
  setkeys YES
  DO
@@ -1322,8 +1325,16 @@ SUB battleoptionsmenu ()
    IF state.pt = 0 THEN EXIT DO
    IF state.pt = 1 THEN statcapsmenu
    IF state.pt = 2 THEN equipmergemenu
-   IF state.pt = 18 THEN experience_chart
-   'IF state.pt = 19 THEN stat_growth_chart
+   IF state.pt = 19 THEN experience_chart
+   IF state.pt = 5 ANDALSO enabled(5) THEN
+    DIM bitname(35) as string
+    bitname(0) = "Pause on Spells & Items menus"
+    bitname(13) = "Pause on all battle menus & targeting"
+    bitname(21) = "Attack captions pause battle meters"
+    bitname(23) = "Pause for attack animations"
+    bitname(35) = "Pause when targeting attacks"
+    edit_global_bitsets bitname(), "general_game_active_battle_bitsets"
+   END IF
 
    IF min(state.pt) = 32 AND max(state.pt) = 255 THEN  'Character field
     DIM d as string = charpicker
@@ -1339,6 +1350,10 @@ SUB battleoptionsmenu ()
 
   IF state.need_update THEN
    generate_battlesystem_menu menu()
+   enabled(5) = (gen(genBattleMode) = 0) 'Active-time battle bitsets
+   FOR i as integer = 0 to maxMenu
+    greyout(i) = NOT enabled(i)
+   NEXT i
    state.need_update = NO
   END IF
 
@@ -1349,7 +1364,7 @@ SUB battleoptionsmenu ()
   clearpage vpage
   draw_fullscreen_scrollbar state, , vpage
   highlight_menu_typing_selection menu(), menu_display(), selectst, state
-  standardmenu menu_display(), state, 0, 0, vpage
+  standardmenu menu_display(), state, greyout(), 0, 0, vpage
   setvispage vpage
   dowait
  LOOP
@@ -1721,7 +1736,6 @@ SUB gendata ()
    IF state.pt = 5 THEN edit_savegame_options
    IF state.pt = 6 THEN
     DIM bitname(35) as string
-    bitname(0) = "Pause on Battle Sub-menus"
     bitname(1) = "Enable Caterpillar Party"
     bitname(2) = "Don't Restore HP on Levelup"
     bitname(3) = "Don't Restore MP on Levelup"
@@ -1733,21 +1747,17 @@ SUB gendata ()
     bitname(10) = "Permit double-triggering of scripts"
     bitname(11) = "Skip title screen"
     bitname(12) = "Skip load screen"
-    bitname(13) = "Pause on All Battle Menus"
     bitname(14) = "Disable Hero's Battle Cursor"
     bitname(15) = "Default passability disabled by default"
     bitname(17) = "Disable ESC key running from battle"
     bitname(18) = "Don't save gameover/loadgame script IDs"
     bitname(19) = "Dead heroes gain share of experience"
     bitname(20) = "Locked heroes can't be re-ordered"
-    bitname(21) = "Attack captions pause battle meters"
     bitname(22) = "Don't randomize battle ready meters"
-    bitname(23) = "Battle menus wait for attack animations"
     bitname(26) = "0 damage when immune to attack elements"
     bitname(29) = "Attacks will ignore extra hits stat"
     bitname(30) = "Don't divide experience between heroes"
     bitname(31) = "Don't reset max stats after OOB attack"
-    bitname(35) = "Pause while targeting attacks"
     edit_global_bitsets bitname(), "general_game_bitsets"
    END IF
    IF state.pt = 7 THEN

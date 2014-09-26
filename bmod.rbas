@@ -3575,7 +3575,6 @@ FUNCTION battle_meters_can_advance(byref bat as BattleState, bslot() as BattleSp
 
  RETURN YES
 END FUNCTION
-''''''''''''
 
 SUB battle_background_anim(byref bat as BattleState, formdata as Formation)
  IF formdata.background_frames > 1 THEN
