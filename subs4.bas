@@ -1720,7 +1720,7 @@ SUB gendata ()
    IF state.pt = 4 THEN startingdatamenu
    IF state.pt = 5 THEN edit_savegame_options
    IF state.pt = 6 THEN
-    DIM bitname(34) as string
+    DIM bitname(35) as string
     bitname(0) = "Pause on Battle Sub-menus"
     bitname(1) = "Enable Caterpillar Party"
     bitname(2) = "Don't Restore HP on Levelup"
@@ -1747,10 +1747,11 @@ SUB gendata ()
     bitname(29) = "Attacks will ignore extra hits stat"
     bitname(30) = "Don't divide experience between heroes"
     bitname(31) = "Don't reset max stats after OOB attack"
+    bitname(35) = "Pause while targeting attacks"
     edit_global_bitsets bitname(), "general_game_bitsets"
    END IF
    IF state.pt = 7 THEN
-    DIM bitname(34) as string
+    DIM bitname(35) as string
     bitname(9) = "Simulate Old Levelup Bug"
     bitname(16) = "Simulate Pushable NPC obstruction bug"
     bitname(24) = "Enable better scancodes for scripts"

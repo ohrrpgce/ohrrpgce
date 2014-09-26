@@ -3540,15 +3540,21 @@ END FUNCTION
 FUNCTION battle_meters_can_advance(byref bat as BattleState, bslot() as BattleSprite) as bool
  ' Returns YES if active time ready meters for heroes and enemies are allowed to grow.
  ' The actual growth happens in battle_meters()
+ 
+ DIM hero_has_a_turn as bool = bat.hero_turn >= 0
+ 
+ IF NOT hero_has_a_turn THEN RETURN YES
+ 
  DIM pause_on_all as bool = readbit(gen(), genBits, 13)
  DIM pause_on_spell_and_item as bool = readbit(gen(), genBits, 0)
+ DIM pause_on_targeting as bool = readbit(gen(), genbits2, 19)
 
  DIM isenemytargs as bool = (targenemycount(bslot()) > 0)
  
  IF isenemytargs THEN
   IF pause_on_all THEN
-   IF bat.menu_mode >= 0 ANDALSO bat.hero_turn >= 0 THEN
-    'A menu is open, and a hero is taking a turn
+   IF bat.menu_mode >= 0 ORELSE bat.targ.mode > targNONE THEN
+    'A menu is open or an attack is being targetted
     RETURN NO
    END IF
   END IF
@@ -3558,6 +3564,13 @@ FUNCTION battle_meters_can_advance(byref bat as BattleState, bslot() as BattleSp
     RETURN NO
    END IF
   END IF
+  IF pause_on_targeting THEN
+   IF bat.targ.mode > targNONE THEN
+    'Somebody is currently manually targetting an attack
+    RETURN NO
+   END IF
+  END IF
+  
  END IF
 
  RETURN YES
