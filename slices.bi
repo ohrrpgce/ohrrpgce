@@ -235,14 +235,14 @@ End Type
 'FIXME: Support for modifying sprites and flipping is pretty tacked on; generalise!
 Type SpriteSliceData
  spritetype as SpriteType
- record as integer     'meaningless if spritetype is sptTypeFrame
- paletted as integer   'UNSAVED: YES: 4-bit, NO: 8-bit  (could remove this when 256-colour palettes added, or change meaning)
+ record as integer  'Meaningless if spritetype is sptTypeFrame
+ frame as integer   'Currently displaying frame number. Must be 0 if spritetype is sptTypeFrame
+ paletted as bool   'UNSAVED: YES: 4-bit, NO: 8-bit  (could remove this when 256-colour palettes added, or change meaning)
  pal as integer     '(UNSAVED if unpaletted) Set pal to -1 for the default. Ignored for unpaletted
- trans as integer   'Draw transparently?
- frame as integer   'Currently displaying frame
- flipHoriz as integer  'NO normal, YES horizontally flipped
- flipVert as integer   'NO normal, YES horizontally flipped
- loaded as integer  'UNSAVED: Set to NO to force a re-load on the next draw
+ trans as bool      'Draw transparently?
+ flipHoriz as bool  'NO normal, YES horizontally flipped
+ flipVert as bool   'NO normal, YES vertically flipped
+ loaded as bool     'UNSAVED: Set to NO to force a re-load on the next draw
  img as GraphicPair 'UNSAVED: No need to manually populate this, done in draw (.pal = NULL for unpaletted)
  'UNSAVED dissolve state data
  dissolving as bool
