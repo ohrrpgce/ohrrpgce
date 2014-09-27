@@ -1284,6 +1284,7 @@ Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
     dtick = .d_tick
    end if
    spr = frame_dissolved(spr, .d_time, dtick, .d_type)
+   have_copy = YES
    .d_tick += 1
    if .d_tick >= .d_time then
     .dissolving = NO
