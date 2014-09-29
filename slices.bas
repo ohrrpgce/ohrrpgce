@@ -1277,6 +1277,8 @@ Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
    frame_flip_vert(spr)
   end if
   if .dissolving then
+   dim dtime as integer = .d_time
+   if dtime = -1 then dtime = (sl->Width + sl->Height) / 10
    dim dtick as integer
    if .d_back then
     dtick = .d_time - .d_tick
@@ -1285,9 +1287,12 @@ Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
    end if
    spr = frame_dissolved(spr, .d_time, dtick, .d_type)
    have_copy = YES
-   .d_tick += 1
-   if .d_tick >= .d_time then
-    .dissolving = NO
+   if .d_auto then
+    .d_tick += 1
+    if .d_tick >= .d_time then
+     .dissolving = NO
+     .d_auto = NO
+    end if
    end if
   end if
  
@@ -1362,6 +1367,12 @@ Sub SaveSpriteSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
  SaveProp node, "fliph", dat->flipHoriz
  SaveProp node, "flipv", dat->flipVert
  SaveProp node, "trans", dat->trans
+ SaveProp node, "dissolving", dat->dissolving
+ SaveProp node, "d_type", dat->d_type
+ SaveProp node, "d_time", dat->d_time
+ SaveProp node, "d_tick", dat->d_tick
+ SaveProp node, "d_back", dat->d_back
+ SaveProp node, "d_auto", dat->d_auto
 end sub
 
 Sub LoadSpriteSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
@@ -1376,6 +1387,12 @@ Sub LoadSpriteSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
  dat->flipVert   = LoadProp(node, "flipv")
  dat->trans      = LoadProp(node, "trans", 1)
  dat->paletted   = (dat->spritetype <> sprTypeMXS)
+ dat->dissolving = LoadPropBool(node, "dissolving")
+ dat->d_type     = bound(LoadProp(node, "d_type"), 0, dissolveTypeMax)
+ dat->d_time     = LoadProp(node, "d_time")
+ dat->d_tick     = bound(LoadProp(node, "d_tick"), 0, dat->d_time)
+ dat->d_back     = LoadPropBool(node, "d_back")
+ dat->d_auto     = LoadPropBool(node, "d_auto")
 End Sub
 
 Function NewSpriteSlice(byval parent as Slice ptr, byref dat as SpriteSliceData) as slice ptr
@@ -1450,16 +1467,17 @@ Sub ChangeSpriteSlice(byval sl as slice ptr,_
  end with
 end sub
 
-Sub DissolveSpriteSlice(byval sl as slice ptr, byval dissolve_type as integer, byval over_ticks as integer, byval backwards as bool=0)
+Sub DissolveSpriteSlice(byval sl as slice ptr, byval dissolve_type as integer, byval over_ticks as integer=-1, byval start_tick as integer=0, byval backwards as bool=NO, byval auto_animate as bool=YES)
  if sl = 0 then debug "DissolveSpriteSlice null ptr" : exit sub
  if sl->SliceType <> slSprite then reporterr "Attempt to dissolve " & SliceTypeName(sl) & " slice " & sl & " as a sprite" : exit sub
  dim dat as SpriteSliceData Ptr = sl->SliceData
  with *dat
   .dissolving = YES
-  .d_type = dissolve_type
+  .d_type = bound(dissolve_type, 0, dissolveTypeMax)
   .d_time = over_ticks
-  .d_tick = 0
-  .d_back = backwards
+  .d_tick = bound(start_tick, 0, over_ticks)
+  .d_back = backwards <> 0
+  .d_auto = auto_animate <> 0
  end with
 end sub
 
@@ -1468,7 +1486,7 @@ Function SpriteSliceIsDissolving(byval sl as slice ptr) as bool
  if sl->SliceType <> slSprite then return NO
  dim dat as SpriteSliceData Ptr = sl->SliceData
  with *dat
-  return .dissolving
+  return .dissolving <> 0
  end with
 end function
 

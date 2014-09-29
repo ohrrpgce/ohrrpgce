@@ -28,7 +28,6 @@ DECLARE SUB titlescreenbrowse ()
 DECLARE SUB import_convert_mp3(byref mp3 as string, byref oggtemp as string)
 DECLARE SUB import_convert_wav(byref wav as string, byref oggtemp as string)
 DECLARE SUB inputpasw ()
-DECLARE FUNCTION dissolve_type_caption(n as integer) as string
 DECLARE SUB nearestui (byval mimicpal as integer, newpal() as RGBcolor, newui() as integer, newbox() as BoxStyle)
 DECLARE SUB remappalette (oldmaster() as RGBcolor, oldui() as integer, oldbox() as BoxStyle, newmaster() as RGBcolor, newui() as integer, newbox() as BoxStyle)
 DECLARE SUB importsong_save_song_data(sname as string, byval snum as integer)
@@ -1204,23 +1203,6 @@ DO
  dowait
 LOOP
 END SUB
-
-FUNCTION dissolve_type_caption(n as integer) as string
- SELECT CASE n
-  CASE 0: RETURN "Random scatter"
-  CASE 1: RETURN "Crossfade"
-  CASE 2: RETURN "Diagonal Vanish"
-  CASE 3: RETURN "Sink into Ground"
-  CASE 4: RETURN "Squash"
-  CASE 5: RETURN "Melt"
-  CASE 6: RETURN "Vapourise"
-  CASE 7: RETURN "Phase out"
-  CASE 8: RETURN "Squeeze"
-  CASE 9: RETURN "Shrink"
-  CASE 10: RETURN "Flicker"
-  CASE ELSE: RETURN n & " Invalid!"
- END SELECT
-END FUNCTION
 
 SUB generate_battlesystem_menu(menu() as string)
  menu(0) = "Previous Menu"

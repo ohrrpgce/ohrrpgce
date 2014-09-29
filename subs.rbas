@@ -19,9 +19,6 @@
 
 #include "flexmenu.bi"
 
-'Menus.bas
-DECLARE FUNCTION dissolve_type_caption(n as integer) as string
-
 'Defined in this file:
 
 DECLARE FUNCTION enemy_edit_add_new (recbuf() as integer, byref recindex as integer, preview_box as Slice Ptr) as integer

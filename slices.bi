@@ -244,12 +244,13 @@ Type SpriteSliceData
  flipVert as bool   'NO normal, YES vertically flipped
  loaded as bool     'UNSAVED: Set to NO to force a re-load on the next draw
  img as GraphicPair 'UNSAVED: No need to manually populate this, done in draw (.pal = NULL for unpaletted)
- 'UNSAVED dissolve state data
+ 'dissolve state data
  dissolving as bool
  d_time as integer ' number of ticks that the dissolve should last
  d_tick as integer ' counts which tick the dissolve is in right now
  d_type as integer ' id number of the dissolve animation
  d_back as bool ' NO dissolve away, YES dissolve back in
+ d_auto as bool ' YES if the dissolve is animating automatically
 End Type
 
 'Shows the currently loaded map at the given slice pos
@@ -426,7 +427,7 @@ DECLARE Sub ChangeSpriteSlice(byval sl as slice ptr,_
                       byval fliph as integer = -2,_
                       byval flipv as integer = -2,_
                       byval trans as integer = -2)  ' All arguments default to no change
-DECLARE Sub DissolveSpriteSlice(byval sl as slice ptr, byval dissolve_type as integer, byval over_ticks as integer, byval backwards as bool=0)
+DECLARE Sub DissolveSpriteSlice(byval sl as slice ptr, byval dissolve_type as integer, byval over_ticks as integer=-1, byval start_tick as integer=0, byval backwards as bool=NO, byval auto_animate as bool=YES)
 Declare Function SpriteSliceIsDissolving(byval sl as slice ptr) as bool
 
 DECLARE Sub DisposeMapSlice(byval sl as slice ptr)

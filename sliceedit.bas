@@ -916,6 +916,18 @@ SUB slice_edit_detail_refresh (byref state as MenuState, menu() as string, sl as
     sliceed_rule_tog rules(), "sprite_flip", @(dat->flipVert), slgrUPDATESPRITE
     str_array_append menu(), "Transparent: " & yesorno(dat->trans)
     sliceed_rule_tog rules(), "sprite_trans", @(dat->trans)
+    str_array_append menu(), "Dissolving: " & yesorno(dat->dissolving)
+    sliceed_rule_tog rules(), "sprite_dissolve", @(dat->dissolving)
+    IF dat->dissolving THEN
+     str_array_append menu(), "Dissolve type: " & dissolve_type_caption(dat->d_type)
+     sliceed_rule rules(), "sprite_d_type", erIntGrabber, @(dat->d_type), 0, dissolveTypeMax
+     str_array_append menu(), "Dissolve over ticks: " & defaultint(dat->d_time, "Default (W+H)/10=" & (.Width * .Height / 10))
+     sliceed_rule rules(), "sprite_d_time", erIntGrabber, @(dat->d_time), -1, 999999
+     str_array_append menu(), "Current dissolve tick: " & dat->d_tick
+     sliceed_rule rules(), "sprite_d_tick", erIntGrabber, @(dat->d_tick), 0, 999999
+     str_array_append menu(), "Dissolve backwards: " & yesorno(dat->d_back)
+     sliceed_rule_tog rules(), "sprite_d_back", @(dat->d_back)
+    END IF
    CASE slGrid
     DIM dat as GridSliceData Ptr
     dat = .SliceData

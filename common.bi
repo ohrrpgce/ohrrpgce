@@ -280,6 +280,8 @@ DECLARE FUNCTION keyval_arrowset_left(arr as ArrowSet) as bool
 DECLARE FUNCTION keyval_arrowset_confirm(arr as ArrowSet) as bool
 DECLARE FUNCTION keyval_arrowset_cancel(arr as ArrowSet) as bool
 
+DECLARE FUNCTION dissolve_type_caption(n as integer) as string
+
 TYPE FnNoArgsBool as FUNCTION () as bool
 DECLARE SUB progress_spinner (exit_condition_func as FnNoArgsBool, caption as string, byval timeout_seconds as double)
 
