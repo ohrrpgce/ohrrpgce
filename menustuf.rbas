@@ -1715,6 +1715,7 @@ SUB ExpandTextItemScreen (code as string, result as string, byval arg0 as ANY pt
 
  DIM slot as integer = -1
  IF cur THEN slot = cur->Extra(0)
+ IF cur = 0 THEN debug "ExpandTextItemScreen: Null slice in cursor extra":EXIT SUB
  
 
  SELECT CASE UCASE(code)
