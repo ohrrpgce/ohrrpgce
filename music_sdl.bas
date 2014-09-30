@@ -333,7 +333,7 @@ TYPE sound_effect
 	buf as Mix_Chunk ptr
 END TYPE
 
-dim shared sfx_slots(7) as sound_effect
+dim shared sfx_slots(10) as sound_effect
 
 dim shared sound_inited as integer 'must be non-zero for anything but _init to work
 
@@ -344,6 +344,7 @@ sub sound_init
 	'anything that might be initialized here is done in music_init
 	'but, I must do it here too
 	music_init
+	Mix_AllocateChannels(ubound(sfx_slots))
 	if (callback_set_up = 0) then
 		Mix_channelFinished(@SDL_done_playing)
 		callback_set_up = 1
