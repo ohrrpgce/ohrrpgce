@@ -15,6 +15,7 @@ TYPE SoundEffect
   paused as integer
 END TYPE
 
+'music_audiere has no limit on number sound effects playing at once
 redim Shared SoundPool(10) as SoundEffect
 
 dim shared sound_inited as integer 'must be non-zero for anything but _init to work
