@@ -2282,24 +2282,71 @@ END SUB
 '-----------------------------------------------------------------------
 
 TYPE SpellScreenState
- sl as slice ptr
+ ps as PlankState
  slot as integer
  need_update as bool
  in_list as bool
 END TYPE
 
+SUB spell_screen_refresh(byref st as SpellScreenState)
+
+ plank_menu_clear st.ps.m, SL_SPELL_LISTLIST
+ plank_menu_clear st.ps.m, SL_SPELL_SPELLLIST
+
+ 'expand_slice_text_insert_codes st.ps.m, @ExpandTextSpellScreen, st.ps.cur
+
+ 'DIM collection as Slice Ptr = NewSliceOfType(slRoot)
+ 'load_slice_collection collection, SL_COLLECT_ITEMPLANK
+ 'IF collection = 0 THEN debug "item_screen_refresh: plank collection not found": EXIT SUB
+'
+' DIM pl as Slice Ptr
+' FOR i as integer = 0 TO last_inv_slot()
+'  pl = plank_menu_append(st.ps.m, SL_ITEM_ITEMLIST, collection, @ExpandTextItemSlot, @i)
+'  IF pl THEN
+'   pl->Extra(0) = i
+'   update_item_plank pl, st
+'  ELSE
+'   debug "Failed to load item plank for slot " & i
+'  END IF
+' NEXT i
+'
+' pl = LookupSlice(SL_ITEM_EXITBUTTON, st.ps.m)
+' IF pl THEN pl->Extra(0) = -1 : update_item_plank pl, st
+' pl = LookupSlice(SL_ITEM_SORTBUTTON, st.ps.m)
+' IF pl THEN pl->Extra(0) = -1 : update_item_plank pl, st
+' pl = LookupSlice(SL_ITEM_TRASHBUTTON, st.ps.m)
+' IF pl THEN pl->Extra(0) = -1 :update_item_plank pl, st
+'
+' DeleteSlice @collection
+'
+' 'Early draw to force update of slice positions 
+' DrawSlice st.ps.m, vpage
+' 
+' IF st.refocus THEN
+'  restore_plank_selection st.ps
+'  st.refocus = NO
+' ELSE
+'  st.ps.cur = top_left_plank(st.ps)
+' END IF
+' update_item_plank st.ps.cur, st
+'
+' st.swapcur = 0
+' update_plank_scrolling st.ps
+ 
+END SUB
+
+
 SUB spell_screen (byval slot as integer)
 
  DIM st as SpellScreenState
- st.slot = slot
- st.sl = NewSliceOfType(slRoot)
- st.sl->Fill = YES
- RefreshSliceScreenPos st.sl
+ st.ps.m = NewSliceOfType(slRoot)
+ st.ps.m->Fill = YES
+ RefreshSliceScreenPos st.ps.m
 
  DIM holdscreen as integer = duplicatepage(vpage)
 
- load_slice_collection st.sl, SL_COLLECT_SPELLSCREEN
- 'spell_screen_refresh st
+ load_slice_collection st.ps.m, SL_COLLECT_SPELLSCREEN
+ spell_screen_refresh st
  
  menusound gen(genAcceptSFX)
  setkeys
@@ -2326,27 +2373,27 @@ SUB spell_screen (byval slot as integer)
    END IF
   END IF
   IF keyval(scF8) > 1 THEN
-   slice_editor st.sl
+   slice_editor st.ps.m
    st.need_update = YES
   END IF
 
   IF UpdateScreenSlice() THEN st.need_update = YES
  
   IF st.need_update THEN
-   'spell_screen_refresh st
+   spell_screen_refresh st
    st.need_update = NO
   END IF
  
   'Draw the screen
   copypage holdscreen, vpage
-  DrawSlice st.sl, vpage
+  DrawSlice st.ps.m, vpage
   setvispage vpage
   dowait
  LOOP
  menusound gen(genCancelSFX)
 
  freepage holdscreen
- DeleteSlice @(st.sl)
+ DeleteSlice @(st.ps.m)
 END SUB
 
 '-----------------------------------------------------------------------
