@@ -2612,6 +2612,58 @@ end
 				<ref>getspritetrans</ref>
 			</seealso>
 		</command>
+		<command id="dissolvesprite">
+			<canon>dissolve sprite (handle, dissolve type, total ticks, start tick, backwards, automatic)</canon>
+			<shortname>dissolve sprite</shortname>
+			<description>Dissolve a sprite using pre-defined dissolve animations. The first argument is a sprite slice <p>handle</p>. The second argument is the <p>dissolve type</p>. There are dissolve:name constants with the same names as the enemy dissolve animations. Valiid dissolve type constands include:
+<p>dissolve:random scatter</p>, 
+<p>dissolve:crossfade</p>, 
+<p>dissolve:diagonal vanish</p>, 
+<p>dissolve:sink into ground</p>, 
+<p>dissolve:squash</p>, 
+<p>dissolve:melt</p>, 
+<p>dissolve:vapourise</p>, 
+<p>dissolve:phase out</p>, 
+<p>dissolve:squeeze</p>, 
+<p>dissolve:shrink</p>, 
+<p>dissolve:flicker</p>.
+The third argument is the total number of ticks that the animation should run. You can use dissolvetime:default or -1 for the default number of ticks, which is equal to the sprites (width + height) / 10. The fourth argument is the tick to start on, or 0 to start from the beginning. The fifth argument is false for a normal dissolve, or true for a backwards dissolve. The sixth argument is true for an automatic dissolve (the default), or false to prevent the dissolve animation from proceeding automatically, in case you want to manually control it.</description>
+			<seealso>
+				<ref>canceldissolve</ref>
+				<ref>spriteisdissolving</ref>
+				<ref>waitfordissolve</ref>
+			</seealso>
+		</command>
+		<command id="canceldissolve">
+			<canon>cancel dissolve (handle)</canon>
+			<shortname>cancel dissolve</shortname>
+			<description>If a sprite slice <p>handle</p> is currently dissolving, cancel the dissolve animation, restoring the sprite to normal.</description>
+			<seealso>
+				<ref>dissolvesprite</ref>
+				<ref>spriteisdissolving</ref>
+				<ref>waitfordissolve</ref>
+			</seealso>
+		</command>
+		<command id="spriteisdissolving">
+			<canon>sprite is dissolving (handle)</canon>
+			<shortname>sprite is dissolving</shortname>
+			<description>Returns true if a sprite slice <p>handle</p> is currently dissolving, or false if it is not. Checks for both automatically dissolving sprites, and sprites that have been manually set to a partially dissolved state.</description>
+			<seealso>
+				<ref>canceldissolve</ref>
+				<ref>spriteisdissolving</ref>
+				<ref>waitfordissolve</ref>
+			</seealso>
+		</command>
+		<command id="waitfordissolve">
+			<canon>wait for dissolve (handle)</canon>
+			<shortname>wait for dissolve</shortname>
+			<description>Pauses the current script until the sprite slice <p>handle</p> has finished dissolving. This command only waits if the dissolve is automatic. This command will not wait for sprites that have been manually set to a partially dissolved state.</description>
+			<seealso>
+				<ref>canceldissolve</ref>
+				<ref>spriteisdissolving</ref>
+				<ref>waitfordissolve</ref>
+			</seealso>
+		</command>
 	</section>
 	<section title="Slice Functions">
 		<command id="loadslicecollection">

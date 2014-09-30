@@ -1,0 +1,1 @@
+Sprites can use a selection of pre-set dissolve animations. You can disable or enable them. See also the plotscripting command "dissolve sprite" which lets you auto-animate these dissolve animations.

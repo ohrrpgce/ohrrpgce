@@ -1,0 +1,1 @@
+You can choose the number of ticks that the dissolve animation will last. You can also set this to "default" which will base the number of ticks on sprite (width+height)/10

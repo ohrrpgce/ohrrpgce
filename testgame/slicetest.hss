@@ -36,6 +36,32 @@ plotscript, test, begin
   )
   free slice(sl2)
 
+  $0="dissolve tests", show string(0)
+  w(5)
+  sl := load large enemy sprite(0)
+  dissolve sprite(sl, dissolve:random scatter)
+  w(1)
+  wait for dissolve(sl)
+  free slice(sl)
+  w(5)
+  sl := load medium enemy sprite(0)
+  dissolve sprite(sl, dissolve:melt, 10, 0, false)
+  w(5)
+  w(5)
+  dissolve sprite(sl, dissolve:squeeze, 10, 0, true)
+  w(5)
+  w(5)
+  dissolve sprite(sl, dissolve:shrink, 10, 5)
+  w(5)
+  dissolve sprite(sl, dissolve:shrink, 10, 0, true)
+  w(5)
+  cancel dissolve(sl)
+  w(5)
+  dissolve sprite(sl, dissolve:random scatter, 100, 50, false, false)
+  w(5)
+  free slice(sl)
+
+
   $0="ellipse tests", show string(0)
   
   sl := create ellipse(100, 100, 2, 10)
@@ -503,7 +529,7 @@ plotscript, test, begin
     sl := first child(sprite layer)
   end
   w(2)
-
+  
   ## These are disabled because they are annoying
   #$0="invalid operations tests", show string(0)
   #w(3)

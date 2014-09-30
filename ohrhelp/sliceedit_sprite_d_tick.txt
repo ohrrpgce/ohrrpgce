@@ -1,0 +1,4 @@
+You can choose where the sprite is in the animation. For example, if you wanted the sprite to be halfway dissolved you could set:
+
+Dissolve over ticks: 100
+Current dissolve tick: 50

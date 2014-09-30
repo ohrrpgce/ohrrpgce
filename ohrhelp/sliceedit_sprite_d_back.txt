@@ -1,0 +1,1 @@
+Turn this option on to reverse the direction of the dissolve animation

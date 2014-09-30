@@ -3563,6 +3563,33 @@ SELECT CASE as CONST id
   scriptret = IIF(readbit(gen(), genBits, 13) <> 0, 1, 0)
  CASE 571'--set active battle pause on all menus
   setbit gen(), genBits, 13, retvals(0)
+ CASE 572'--dissolve sprite
+  IF valid_plotsprite(retvals(0)) THEN
+   DissolveSpriteSlice plotslices(retvals(0)), retvals(1), retvals(2), retvals(3), retvals(4), retvals(5)
+  END IF
+ CASE 573'--cancel dissolve
+  IF valid_plotsprite(retvals(0)) THEN
+   DIM dat as SpriteSliceData Ptr
+   dat = plotslices(retvals(0))->SliceData
+   IF dat THEN
+    dat->dissolving = NO
+    dat->d_auto = NO
+   END IF
+  END IF
+ CASE 574'--sprite is dissolving
+  scriptret = 0
+  IF valid_plotsprite(retvals(0)) THEN
+   DIM dat as SpriteSliceData Ptr
+   dat = plotslices(retvals(0))->SliceData
+   IF dat THEN
+    IF dat->dissolving THEN scriptret = 1
+   END IF
+  END IF
+ CASE 575'--wait for dissolve
+  IF valid_plotsprite(retvals(0)) THEN
+   script_start_waiting(retvals(0))
+  END IF
+
  CASE ELSE
   RETURN NO
 

@@ -428,7 +428,7 @@ DECLARE Sub ChangeSpriteSlice(byval sl as slice ptr,_
                       byval flipv as integer = -2,_
                       byval trans as integer = -2)  ' All arguments default to no change
 DECLARE Sub DissolveSpriteSlice(byval sl as slice ptr, byval dissolve_type as integer, byval over_ticks as integer=-1, byval start_tick as integer=0, byval backwards as bool=NO, byval auto_animate as bool=YES)
-Declare Function SpriteSliceIsDissolving(byval sl as slice ptr) as bool
+DECLARE Function SpriteSliceIsDissolving(byval sl as slice ptr, byval only_auto as bool=YES) as bool
 
 DECLARE Sub DisposeMapSlice(byval sl as slice ptr)
 DECLARE Sub DrawMapSlice(byval sl as slice ptr, byval p as integer)

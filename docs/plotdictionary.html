@@ -256,6 +256,9 @@
 		<a href="#about-camerapixely">camera pixel Y</a><br>
 		
 	
+		<a href="#about-canceldissolve">cancel dissolve (handle)</a><br>
+		
+	
 		
 		<a href="#about-keyconstants">cancel key</a><br>
 	
@@ -416,6 +419,9 @@
 		
 	
 		<a href="#about-dismountvehicle">dismount vehicle</a><br>
+		
+	
+		<a href="#about-dissolvesprite">dissolve sprite (handle, dissolve type, total ticks, start tick, backwards, automatic)</a><br>
 		
 	
 		<a href="#about-divide">number / number</a><br>
@@ -593,6 +599,9 @@
 		
 	
 		<a href="#about-get%20zone%20name">get zone name (string id, zone id)</a><br>
+		
+	
+		<a href="#about-getactivebattlepauseonallmenus">get active battle pause on all menus</a><br>
 		
 	
 		<a href="#about-getambientmusic">get ambient music</a><br>
@@ -1627,6 +1636,9 @@
 		<a href="#about-set%20zone%20extra">set zone extra (zone id, extra num, value)</a><br>
 		
 	
+		<a href="#about-setactivebattlepauseonallmenus">set active battle pause on all menus (value)</a><br>
+		
+	
 		<a href="#about-setambientmusic">set ambient music (song)</a><br>
 		
 	
@@ -2170,6 +2182,9 @@
 		<a href="#about-spriteframecount">sprite frame count (handle)</a><br>
 		
 	
+		<a href="#about-spriteisdissolving">sprite is dissolving (handle)</a><br>
+		
+	
 		<a href="#about-spriteishorizflipped">sprite is horiz flipped (handle)</a><br>
 		
 	
@@ -2432,6 +2447,9 @@
 		
 	
 		<a href="#about-waitforcamera">wait for camera</a><br>
+		
+	
+		<a href="#about-waitfordissolve">wait for dissolve (handle)</a><br>
 		
 	
 		<a href="#about-waitforhero">wait for hero (who)</a><br>
@@ -6175,6 +6193,74 @@ end
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-getspritetrans" class="ref">get sprite trans</a></li></ul>
 		</tt></p>
+		<a name="about-dissolvesprite"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">dissolve sprite (handle, dissolve type, total ticks, start tick, backwards, automatic)</font></b><br>
+			Dissolve a sprite using pre-defined dissolve animations. The first argument is a sprite slice <span class="param">handle</span>. The second argument is the <span class="param">dissolve type</span>. There are dissolve:name constants with the same names as the enemy dissolve animations. Valiid dissolve type constands include:
+<span class="param">dissolve:random scatter</span>, 
+<span class="param">dissolve:crossfade</span>, 
+<span class="param">dissolve:diagonal vanish</span>, 
+<span class="param">dissolve:sink into ground</span>, 
+<span class="param">dissolve:squash</span>, 
+<span class="param">dissolve:melt</span>, 
+<span class="param">dissolve:vapourise</span>, 
+<span class="param">dissolve:phase out</span>, 
+<span class="param">dissolve:squeeze</span>, 
+<span class="param">dissolve:shrink</span>, 
+<span class="param">dissolve:flicker</span>.
+The third argument is the total number of ticks that the animation should run. You can use dissolvetime:default or -1 for the default number of ticks, which is equal to the sprites (width + height) / 10. The fourth argument is the tick to start on, or 0 to start from the beginning. The fifth argument is false for a normal dissolve, or true for a backwards dissolve. The sixth argument is true for an automatic dissolve (the default), or false to prevent the dissolve animation from proceeding automatically, in case you want to manually control it.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-canceldissolve" class="ref">cancel dissolve</a>, </li>
+<li>
+<a href="#about-spriteisdissolving" class="ref">sprite is dissolving</a>, </li>
+<li><a href="#about-waitfordissolve" class="ref">wait for dissolve</a></li>
+</ul>
+		</tt></p>
+		<a name="about-canceldissolve"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">cancel dissolve (handle)</font></b><br>
+			If a sprite slice <span class="param">handle</span> is currently dissolving, cancel the dissolve animation, restoring the sprite to normal.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-dissolvesprite" class="ref">dissolve sprite</a>, </li>
+<li>
+<a href="#about-spriteisdissolving" class="ref">sprite is dissolving</a>, </li>
+<li><a href="#about-waitfordissolve" class="ref">wait for dissolve</a></li>
+</ul>
+		</tt></p>
+		<a name="about-spriteisdissolving"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">sprite is dissolving (handle)</font></b><br>
+			Returns true if a sprite slice <span class="param">handle</span> is currently dissolving, or false if it is not. Checks for both automatically dissolving sprites, and sprites that have been manually set to a partially dissolved state.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-canceldissolve" class="ref">cancel dissolve</a>, </li>
+<li>
+<a href="#about-spriteisdissolving" class="ref">sprite is dissolving</a>, </li>
+<li><a href="#about-waitfordissolve" class="ref">wait for dissolve</a></li>
+</ul>
+		</tt></p>
+		<a name="about-waitfordissolve"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">wait for dissolve (handle)</font></b><br>
+			Pauses the current script until the sprite slice <span class="param">handle</span> has finished dissolving. This command only waits if the dissolve is automatic. This command will not wait for sprites that have been manually set to a partially dissolved state.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-canceldissolve" class="ref">cancel dissolve</a>, </li>
+<li>
+<a href="#about-spriteisdissolving" class="ref">sprite is dissolving</a>, </li>
+<li><a href="#about-waitfordissolve" class="ref">wait for dissolve</a></li>
+</ul>
+		</tt></p>
 
 		<hr>
 	
@@ -6216,7 +6302,7 @@ sl := lookup slice(sli:my special slice, collection)
 # this example gets a handle to the portrait of the currently displaying
 # text box (if any) and allows you to manipulate it.
 variable(portrait)
-portrait = lookup slice(sl:textbox portrait)
+portrait := lookup slice(sl:textbox portrait)
 if(portrait) then(
   replace portrait sprite(portrait, 5)
 )
@@ -8997,6 +9083,22 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-settimer" class="ref">set timer</a></li></ul>
 		</tt></p>
+		<a name="about-getactivebattlepauseonallmenus"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get active battle pause on all menus</font></b><br>
+			Returns true if active-time battles are configured to pause on all menus<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-setactivebattlepauseonallmenus" class="ref">set active battle pause on all menus</a></li></ul>
+		</tt></p>
+		<a name="about-setactivebattlepauseonallmenus"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set active battle pause on all menus (value)</font></b><br>
+			Changes whether active-time battles will pause on all menus. The argument should be <span class="param">true</span> to pause, or <span class="param">false</span> to not pause. This option has no effect on turn-based battles. This option is not stored in save-games, so changing it only lasts until the game is quit and reloaded.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-getactivebattlepauseonallmenus" class="ref">get active battle pause on all menus</a></li></ul>
+		</tt></p>
 
 		<hr>
 	
@@ -11648,7 +11750,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 790 commands in this file, of which 57 are only references to other commands.</p>
+	<p>Stats: There are 796 commands in this file, of which 57 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

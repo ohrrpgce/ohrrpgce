@@ -1285,11 +1285,11 @@ Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
    else
     dtick = .d_tick
    end if
-   spr = frame_dissolved(spr, .d_time, dtick, .d_type)
+   spr = frame_dissolved(spr, dtime, dtick, .d_type)
    have_copy = YES
    if .d_auto then
     .d_tick += 1
-    if .d_tick >= .d_time then
+    if .d_tick >= dtime then
      .dissolving = NO
      .d_auto = NO
     end if
@@ -1481,11 +1481,12 @@ Sub DissolveSpriteSlice(byval sl as slice ptr, byval dissolve_type as integer, b
  end with
 end sub
 
-Function SpriteSliceIsDissolving(byval sl as slice ptr) as bool
+Function SpriteSliceIsDissolving(byval sl as slice ptr, byval only_auto as bool=YES) as bool
  if sl = 0 then debug "SpriteSliceIsDissolving null ptr" : return NO
  if sl->SliceType <> slSprite then return NO
  dim dat as SpriteSliceData Ptr = sl->SliceData
  with *dat
+  if only_auto andalso not .d_auto then return NO
   return .dissolving <> 0
  end with
 end function

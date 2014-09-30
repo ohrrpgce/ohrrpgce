@@ -1708,6 +1708,15 @@ SUB process_wait_conditions()
       'If the slice ceases to exist, we should stop waiting for it (after throwing our minor warning)
       script_stop_waiting()
      END IF
+    CASE 575'--wait for dissolve
+     IF valid_plotslice(.waitarg, serrWarn) THEN
+      IF NOT SpriteSliceIsDissolving(plotslices(.waitarg), YES) THEN
+       script_stop_waiting()
+      END IF
+     ELSE
+      'If the slice ceases to exist, we should stop waiting for it (after throwing our minor warning)
+      script_stop_waiting()
+     END IF
     CASE ELSE
      scripterr "illegal wait substate " & .curvalue, serrBug
      script_stop_waiting()

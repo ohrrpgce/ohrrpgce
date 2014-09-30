@@ -1,0 +1,1 @@
+You can choose any of the same dissolve animations available for enemy death animations.
