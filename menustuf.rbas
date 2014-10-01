@@ -1963,10 +1963,9 @@ END SUB
 SUB item_screen_refresh(byref st as ItemScreenState)
 
  IF st.refocus THEN save_plank_selection st.ps
+ st.ps.cur = 0
  
  plank_menu_clear st.ps.m, SL_ITEM_ITEMLIST
-
- expand_slice_text_insert_codes st.ps.m, @ExpandTextItemScreen, st.ps.cur, st.swapcur
 
  DIM collection as Slice Ptr = NewSliceOfType(slRoot)
  load_slice_collection collection, SL_COLLECT_ITEMPLANK
@@ -2004,6 +2003,7 @@ SUB item_screen_refresh(byref st as ItemScreenState)
  update_item_plank st.ps.cur, st
 
  st.swapcur = 0
+ expand_slice_text_insert_codes st.ps.m, @ExpandTextItemScreen, st.ps.cur, st.swapcur
  update_plank_scrolling st.ps
  
 END SUB
