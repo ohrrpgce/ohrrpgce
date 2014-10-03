@@ -97,7 +97,7 @@ class HWhisper(object):
         self.indent_d = DialogHolder(builder.get_object("indent_dialog"))
         self.indent_d.use_tabs = builder.get_object("indent_use_tabs")
         self.indent_d.use_spaces = builder.get_object("indent_use_spaces")
-        self.indent_d.space_count = builder.get_object("indent_space_count")
+        self.indent_d.spaces_entry = builder.get_object("indent_spaces_entry")
         # line ending style dialog
         self.line_ending_d = DialogHolder(builder.get_object("line_ending_dialog"))
         self.line_ending_d.windows = builder.get_object("line_ending_windows")
@@ -1278,12 +1278,16 @@ class HWhisper(object):
             dialog.use_tabs.set_active(True)
         else:
             dialog.use_spaces.set_active(True)
-            dialog.space_count.set_value(len(self.indent_string))
+            dialog.spaces_entry.set_text(str(len(self.indent_string)))
         if dialog.run():
             if dialog.use_tabs.get_active():
                 self.indent_string = "\t"
             elif dialog.use_spaces.get_active():
-                count = dialog.space_count.get_value_as_int()
+                count_str = dialog.spaces_entry.get_text()
+                if count_str == "":
+                    count = 2
+                else:
+                    count = int(count_str)
                 if count < 1: count = 1
                 self.indent_string = " " * count
             self.set_indent_string(self.indent_string)
@@ -1349,6 +1353,11 @@ class HWhisper(object):
 
     def on_next_tab_menu_item_activate(self, menuitem, data=None):
         self.tabbar.next_page()
+
+    def on_uint_changed(self, edit):
+        str = edit.get_text()
+        str = fix_uint(str)
+        edit.set_text(str)
 
     #-------------------------------------------------------------------
     
@@ -1899,6 +1908,13 @@ def shorten_user_path(path):
                 short = short.lstrip("/\\")
                 return short
     return path
+
+def fix_uint(s):
+    result = ""
+    for c in s:
+        if c in "0123456789":
+            result += c
+    return result
 
 # -----------------------------------------------------------------------------
     
