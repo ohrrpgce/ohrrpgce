@@ -110,4 +110,6 @@ DECLARE FUNCTION is_active_party_slot(byval slot as integer) as integer
 DECLARE FUNCTION active_party_size() as integer
 DECLARE FUNCTION loop_active_party_slot(byval slot as integer, byval direction as integer=1) as integer
 
+DECLARE FUNCTION top_menu_allows_controls() as bool
+
 #ENDIF

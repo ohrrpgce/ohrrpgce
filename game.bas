@@ -4339,20 +4339,32 @@ FUNCTION calc_virtual_gamepad_state(byval advancing_text_now as bool=NO, byval i
   IF txt.showing THEN
    'Make an exception when the current textbox has a choicebox
    IF txt.box.choice_enabled THEN RETURN YES
-   IF topmenu >= 0 THEN
-    'If any menus are open, we need to check the top one
-    IF menus(topmenu).no_controls = NO THEN
-     'The top menu menu allows controls
-     RETURN YES
-    END IF
-   END IF
+   IF top_menu_allows_controls() THEN RETURN YES
    'No exceptions were found, proceed to hide the virtual gamepad for this textbox
    RETURN NO
   END IF
  END IF
  
+ IF readbit(gen(), genSuspendBits, suspendplayer) ANDALSO should_hide_virtual_gamepad_when_suspendplayer() THEN
+  'Suspendplayer is active, and this game has the "Hide virtual gamepad when suspendplayer" bitset
+  IF top_menu_allows_controls() THEN RETURN YES 'Menus still need the gamepad
+  IF txt.showing THEN RETURN YES 'Non-touch textboxes still need the gamepad
+  RETURN NO
+ END IF
+ 
  'If no other conditions are met, enabled the virtual gamepad
  RETURN YES
+END FUNCTION
+
+FUNCTION top_menu_allows_controls() as bool
+ IF topmenu >= 0 THEN
+  'If any menus are open, we need to check the top one
+  IF menus(topmenu).no_controls = NO THEN
+   'The top menu menu allows controls
+   RETURN YES
+  END IF
+ END IF
+ RETURN NO
 END FUNCTION
 
 FUNCTION last_active_party_slot() as integer

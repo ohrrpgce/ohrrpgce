@@ -4383,6 +4383,7 @@ CONST platformoptBUTTONNAMES as integer = 7
 CONST platformoptMARGINS as integer = 8
 CONST platformoptTOGGLETOUCHTEXTBOXES as integer = 9
 CONST platformoptPURCHASE as integer = 10
+CONST platformoptTOGGLEVGAMEPADSUSPENDPLAYER as integer = 11
 
 SUB edit_platform_options ()
 
@@ -4489,6 +4490,10 @@ SUB edit_platform_options ()
     menu.last->t = platformoptTOGGLEVGAMEPAD
  
     IF NOT mobile."disable_virtual_gamepad".exists THEN
+
+     append_menu_item menu, "Hide V.Gamepad when suspendplayer: " & yesorno(mobile."hide_virtual_gamepad_when_suspendplayer".integer.default(NO))
+     menu.last->t = platformoptTOGGLEVGAMEPADSUSPENDPLAYER
+
      append_menu_item menu, "Phone/Tablet virtual gamepad (Normal)"
      menu.last->unselectable = YES
      menu.last->disabled = YES
@@ -4631,6 +4636,9 @@ SUB edit_platform_options ()
     CASE platformoptTOGGLEVGAMEPAD:
      ToggleChildNode mobile, "disable_virtual_gamepad"
      st.need_update = YES
+    CASE platformoptTOGGLEVGAMEPADSUSPENDPLAYER:
+     ToggleBoolChildNode mobile, "hide_virtual_gamepad_when_suspendplayer"
+     st.need_update = YES
     CASE platformoptTOGGLEMULTI:
      ToggleChildNode gen_root, "multiplayer_gamepads"
      st.need_update = YES
@@ -4663,6 +4671,11 @@ SUB edit_platform_options ()
    CASE platformoptTOGGLEVGAMEPAD:
     IF keyval(scLeft) > 1 ORELSE keyval(scRight) > 1 THEN
      ToggleChildNode mobile, "disable_virtual_gamepad"
+     st.need_update = YES
+    END IF
+   CASE platformoptTOGGLEVGAMEPADSUSPENDPLAYER:
+    IF keyval(scLeft) > 1 ORELSE keyval(scRight) > 1 THEN
+     ToggleBoolChildNode mobile, "hide_virtual_gamepad_when_suspendplayer"
      st.need_update = YES
     END IF
    CASE platformoptTOGGLEMULTI:

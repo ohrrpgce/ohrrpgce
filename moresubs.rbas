@@ -1382,6 +1382,12 @@ FUNCTION should_disable_virtual_gamepad() as bool
  RETURN mobile."disable_virtual_gamepad".exists
 END FUNCTION
 
+FUNCTION should_hide_virtual_gamepad_when_suspendplayer() as bool
+ IF NOT running_on_mobile() THEN RETURN NO
+ DIM root as NodePtr = get_general_reld()
+ RETURN root."mobile_options"."hide_virtual_gamepad_when_suspendplayer".integer.default(NO) <> 0
+END FUNCTION
+
 FUNCTION use_touch_textboxes() as bool
  IF NOT running_on_mobile() THEN RETURN NO
  DIM root as NodePtr = get_general_reld()

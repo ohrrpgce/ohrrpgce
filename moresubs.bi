@@ -48,6 +48,7 @@ DECLARE FUNCTION caterpillar_size () as integer
 DECLARE FUNCTION gamepadmap_from_reload(gamepad as NodePtr, byval use_dpad as bool=NO) as GamePadMap
 DECLARE FUNCTION use_touch_textboxes() as bool
 DECLARE FUNCTION should_disable_virtual_gamepad() as bool
+DECLARE FUNCTION should_hide_virtual_gamepad_when_suspendplayer() as bool
 DECLARE SUB remap_virtual_gamepad(nodename as string, byval in_battle as bool=NO)
 
 DECLARE FUNCTION default_margin() as integer
