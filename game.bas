@@ -4323,7 +4323,10 @@ FUNCTION calc_virtual_gamepad_state(byval advancing_text_now as bool=NO, byval i
  'None of this matters unless we are running on a platform that actually uses a virtual gamepad
  IF NOT running_on_mobile() THEN RETURN NO
 
- 'The gamepad might be completely disabled for this game
+ IF gam.script_hide_virtual_gamepad THEN RETURN NO
+ IF gam.script_show_virtual_gamepad THEN RETURN YES
+
+ 'The gamepad might be disabled for this game
  IF should_disable_virtual_gamepad() THEN RETURN NO
  
  'Inside battle mode, force the gamepad visible

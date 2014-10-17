@@ -595,6 +595,9 @@ define function, begin
 573,canceldissolve,1,0        #(slice handle) stop/reset dissolve
 574,spriteisdissolving,1,0    #(slice handle) return true if sprite is in the middle of a dissolve state
 575,waitfordissolve,1,0       #(slice handle) wait for an "dissolve sprite" command to finish (only if auto animate)
+576,hidevirtualgamepad,0      # force-hide virtual gamepad on platforms that support it
+577,showvirtualgamepad,0      # force-show virtual gamepad on platforms that support it
+578,autovirtualgamepad,0      # automatic show/hide virtual gamepad on platforms that support it (default)
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

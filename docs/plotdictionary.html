@@ -223,6 +223,9 @@
 		<a href="#about-autosave">autosave</a><br>
 		
 	
+		<a href="#about-autovirtualgamepad">auto virtual gamepad</a><br>
+		
+	
 		<a href="#about-basestat">base stat</a><br>
 		
 	
@@ -1013,6 +1016,9 @@
 		
 	
 		<a href="#about-hidestring">hide string (ID)</a><br>
+		
+	
+		<a href="#about-hidevirtualgamepad">hide virtual gamepad</a><br>
 		
 	
 		<a href="#about-horizflipsprite">horiz flip sprite (handle, flip)</a><br>
@@ -2072,6 +2078,9 @@
 		
 	
 		<a href="#about-showvalue">show value (number)</a><br>
+		
+	
+		<a href="#about-showvirtualgamepad">show virtual gamepad</a><br>
 		
 	
 		<a href="#about-sign">sign (number)</a><br>
@@ -11182,6 +11191,30 @@ end</pre>
 			
 			
 		</tt></p>
+		<a name="about-hidevirtualgamepad"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">hide virtual gamepad</font></b><br>
+			If the game is running on a platform that supports a touchscreen virtual gamepad (such as Android) this command forces the virtual gamepad to become visible, even if it would normally be hidden. On other platforms, this command does nothing. The effects of this command can be cancelled by using the <a href="#about-autovirtualgamepad" class="ref">auto virtual gamepad</a> command.<br>
+			
+			
+		</tt></p>
+		<a name="about-showvirtualgamepad"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">show virtual gamepad</font></b><br>
+			If the game is running on a platform that supports a touchscreen virtual gamepad (such as Android) this command forces the virtual gamepad to be hidden, even if it would normally be visible. On other platforms, this command does nothing. The effects of this command can be cancelled by using the <a href="#about-autovirtualgamepad" class="ref">auto virtual gamepad</a> command.<br>
+			
+			
+		</tt></p>
+		<a name="about-autovirtualgamepad"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">auto virtual gamepad</font></b><br>
+			If the game is running on a platform that supports a touchscreen virtual gamepad (such as Android) this command cancels a previous <a href="#about-showvirtualgamepad" class="ref">show virtual gamepad</a> or <a href="#about-hidevirtualgamepad" class="ref">hide virtual gamepad</a> command. The virtual gamepad will once again automatically show or hide itself automatically based on various factors such as textboxes, menus, battles, or <a href="#about-suspendplayer" class="ref">suspend player</a>. On other platforms, this command does nothing.<br>
+			
+			
+		</tt></p>
 
 		<hr>
 	
@@ -11750,7 +11783,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 796 commands in this file, of which 57 are only references to other commands.</p>
+	<p>Stats: There are 799 commands in this file, of which 57 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

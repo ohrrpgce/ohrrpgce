@@ -6273,6 +6273,21 @@ end</example>
 			<shortname>running on console</shortname>
 			<description>This command returns true if the game is currently running on an OUYA console. You should avoid using this command unless you really need it. Most games can support the OUYA console without ever using this command. See the "Platform-Specific Options" menu under "Edit General Game Data".</description>
 		</command>
+		<command id="hidevirtualgamepad">
+			<canon>hide virtual gamepad</canon>
+			<shortname>hide virtual gamepad</shortname>
+			<description>If the game is running on a platform that supports a touchscreen virtual gamepad (such as Android) this command forces the virtual gamepad to become visible, even if it would normally be hidden. On other platforms, this command does nothing. The effects of this command can be cancelled by using the <ref>autovirtualgamepad</ref> command.</description>
+		</command>
+		<command id="showvirtualgamepad">
+			<canon>show virtual gamepad</canon>
+			<shortname>show virtual gamepad</shortname>
+			<description>If the game is running on a platform that supports a touchscreen virtual gamepad (such as Android) this command forces the virtual gamepad to be hidden, even if it would normally be visible. On other platforms, this command does nothing. The effects of this command can be cancelled by using the <ref>autovirtualgamepad</ref> command.</description>
+		</command>
+		<command id="autovirtualgamepad">
+			<canon>auto virtual gamepad</canon>
+			<shortname>auto virtual gamepad</shortname>
+			<description>If the game is running on a platform that supports a touchscreen virtual gamepad (such as Android) this command cancels a previous <ref>showvirtualgamepad</ref> or <ref>hidevirtualgamepad</ref> command. The virtual gamepad will once again automatically show or hide itself automatically based on various factors such as textboxes, menus, battles, or <ref>suspendplayer</ref>. On other platforms, this command does nothing.</description>
+		</command>
 	</section>
 	<section title="Predefined Constants">
 		<command id="numericconstants">

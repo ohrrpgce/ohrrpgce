@@ -102,6 +102,9 @@ WHAT IS NEW?
     * "get/set active battle pause on all menus" [James]
     * "dissolve sprite", "cancel dissolve", "sprite is dissolving",
       "wait for dissolve" [James]
+    * "running on desktop", "running on mobile", "running on console",
+      "show virtual gamepad", "hide virtual gamepad",
+      "auto virtual gamepad" [James]
 
   * Performance Fixes
     * Fixed delay when opening a menu that happened when a large number

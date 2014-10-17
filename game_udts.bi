@@ -88,6 +88,8 @@ TYPE GameState
   showtext_ticks as integer          'Remaining number of ticks
   getinputtext_enabled as bool
   script_log as ScriptLoggingState
+  script_hide_virtual_gamepad as bool
+  script_show_virtual_gamepad as bool
 END TYPE
 
 'Note that .showing, .fully_shown, .sayer need to be always correct even if no box is up
