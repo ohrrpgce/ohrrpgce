@@ -2095,6 +2095,8 @@ SUB triggerfade(byval who as integer, bslot() as BattleSprite)
    bslot(who).dissolve = 1
   END IF
   IF is_enemy(who) THEN
+   'Don't restart the dissolve animation when hitting an enemy multiple times
+   IF bslot(who).dissolve > 0 OR bslot(who).vis = 0 THEN EXIT SUB
    bslot(who).dissolve = bslot(who).deathtime
    '--flee as alternative to death
    IF bslot(who).flee_instead_of_die = YES THEN
