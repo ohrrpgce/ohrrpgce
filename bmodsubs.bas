@@ -1356,23 +1356,23 @@ SUB anim_retreat (byval who as integer, attack as AttackData, bslot() as BattleS
  END IF
 END SUB
 
-FUNCTION attack_can_hit_dead(byval who as integer, byval atk_id as integer, byval stored_targs_can_be_dead as integer=NO) as integer
+FUNCTION attack_can_hit_dead(byval attacker as integer, byval atk_id as integer, byval stored_targs_can_be_dead as integer=NO) as integer
  DIM attack as AttackData
  loadattackdata attack, atk_id
- RETURN attack_can_hit_dead(who, attack, stored_targs_can_be_dead)
+ RETURN attack_can_hit_dead(attacker, attack, stored_targs_can_be_dead)
 END FUNCTION
 
-FUNCTION attack_can_hit_dead(byval who as integer, attack as AttackData, byval stored_targs_can_be_dead as integer=NO) as integer
+FUNCTION attack_can_hit_dead(byval attacker as integer, attack as AttackData, byval stored_targs_can_be_dead as integer=NO) as integer
 
  SELECT CASE attack.targ_class
   CASE 4 'ally-including-dead (hero only)
-   IF is_hero(who) THEN RETURN YES
+   IF is_hero(attacker) THEN RETURN YES
   CASE 9 'stored target
-   IF is_hero(who) THEN
+   IF is_hero(attacker) THEN
     IF stored_targs_can_be_dead THEN RETURN YES
    END IF
   CASE 10 'dead-ally (hero only)
-   IF is_hero(who) THEN RETURN YES
+   IF is_hero(attacker) THEN RETURN YES
  END SELECT
 
  RETURN NO

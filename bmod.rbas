@@ -71,7 +71,7 @@ DECLARE SUB battle_sort_away_dead_t_target(byval deadguy as integer, t() as inte
 DECLARE SUB battle_counterattacks(bat as BattleState, byval h as integer, byval targstat as integer, byval who as integer, attack as AttackData, bslot() as BattleSprite)
 DECLARE SUB show_first_battle_timer ()
 DECLARE FUNCTION has_queued_attacks(byval who as integer) as integer
-DECLARE FUNCTION pending_attacks_for_this_turn(bat as BattleState, bslot() as BattleSprite) as integer
+DECLARE FUNCTION pending_attacks_for_this_turn(bat as BattleState, bslot() as BattleSprite) as bool
 DECLARE SUB decrement_attack_queue_delays(bslot() as BattleSprite)
 DECLARE SUB ready_all_valid_units(bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB active_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
@@ -3625,6 +3625,7 @@ SUB battle_animate_running_away (bslot() as BattleSprite)
 END SUB
 
 SUB battle_check_delays(byref bat as BattleState, bslot() as BattleSprite)
+ 'If an attack in the attack queue is ready, start it.
  IF bat.atk.id >= 0 THEN EXIT SUB 'this check is redundant in active mode, but needed in wait mode
  '--check the attack queue delays
  FOR i as integer = 0 TO UBOUND(atkq)
@@ -3879,8 +3880,8 @@ SUB show_first_battle_timer ()
  NEXT i
 END SUB
 
-FUNCTION pending_attacks_for_this_turn(bat as BattleState, bslot() as BattleSprite) as integer
- 'Used by turnTURN mode
+FUNCTION pending_attacks_for_this_turn(bat as BattleState, bslot() as BattleSprite) as bool
+ 'Returns whether this is a pending attack. Used by turnTURN mode
  
  'Check for a currently animating attack
  IF bat.atk.id >= 0 THEN RETURN YES
