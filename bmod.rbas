@@ -448,7 +448,9 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
     bslot(ww).zmov = popw
     bslot(ww).zspeed = popw
    CASE 16 'sound(which)
-    playsfx(popw)
+    DIM soundnum as integer = popw
+    stopsfx(soundnum)  'Restart the sound effect
+    playsfx(soundnum)
    CASE 17 'align(who, target, edge, offset)
     w1 = popw
     w2 = popw
