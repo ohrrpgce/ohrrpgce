@@ -73,6 +73,9 @@ WHAT IS NEW?
       leader when the caterpillar party was enabled [Ralph]
     * Bug 763: NPCs and heros flickered when you walked over the edge
       of a wrapping map [Ralph]
+    * Multi-hit attacks no longer causing dying enemies to dissolve/
+      fade multiple times, and additional hits are cancelled once all
+      targets have died [Ralph]
 
   * New Plotscripting Stuff
     * "Menu action plotscript" special script trigger to run a script

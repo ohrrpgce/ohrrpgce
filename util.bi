@@ -194,6 +194,8 @@ declare function popdw () as integer
 declare sub releasestack ()
 declare function stackpos () as integer
 declare function readstackdw (byval off as integer) as integer
+declare function readstackw (byval off as integer) as integer
+
 
 
 '------------ String Cache ------------

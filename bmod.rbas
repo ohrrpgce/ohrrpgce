@@ -66,6 +66,7 @@ DECLARE FUNCTION battle_check_a_hero_turn(byref bat as BattleState, bslot() as B
 DECLARE SUB battle_check_for_enemy_turns(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE FUNCTION battle_check_an_enemy_turn(byref bat as BattleState, bslot() as BattleSprite, byval index as integer) as integer
 DECLARE SUB battle_attack_cancel_target_attack(byval targ as integer, byref bat as BattleState, bslot() as BattleSprite, byref attack as AttackData)
+DECLARE FUNCTION check_has_remaining_targets(bat as BattleState, bslot() as BattleSprite, targs() as integer) as bool
 DECLARE SUB battle_reevaluate_dead_targets (byval deadguy as integer, byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB battle_sort_away_dead_t_target(byval deadguy as integer, t() as integer)
 DECLARE SUB battle_counterattacks(bat as BattleState, byval h as integer, byval targstat as integer, byval who as integer, attack as AttackData, bslot() as BattleSprite)
@@ -89,6 +90,9 @@ DECLARE FUNCTION has_blocking_turn_delayed_attacks(byval who as integer) as inte
 DECLARE SUB populate_battle_menu_menudef (byval hero_id as integer, menu as MenuDef, hero as HeroDef)
 DECLARE SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDef)
 DECLARE FUNCTION enemy_is_weak(byval who as integer, bslot() as BattleSprite) as bool
+
+'A value which is preserved after invertstack swaps the 16-bit words
+CONST ANIM_SKIP_SENTINEL = &hDEEFDEEF
 
 'these are the battle global variables
 DIM bstackstart as integer
@@ -502,6 +506,28 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
    ww = popw
    DIM newdir as integer = popw
    bslot(ww).d = newdir
+  CASE 22 'anim_skip_ahead_if_targetless
+   'For multihit attacks, skip rest of hits if no targets left.
+   'The flaw is that dead-and-dissolved targets are still hit until the
+   'whole attack is cancelled.
+   IF check_has_remaining_targets(bat, bslot(), bat.anim_t()) THEN CONTINUE DO
+   'Skip ahead, looking for command 23. We are looking for a 10 byte pattern
+   DO
+    IF stackpos < 4 THEN
+     debugc errBug, "anim_skip_ahead_if_targetless: couldn't find point to skip to"
+     EXIT DO
+    END IF
+    DIM word as integer = popw
+    IF word = 23 AND readstackdw(-1) = ANIM_SKIP_SENTINEL AND readstackdw(-2) = ANIM_SKIP_SENTINEL THEN
+     popdw
+     popdw
+     EXIT DO
+    END IF
+   LOOP
+  CASE 23 'anim_skip_to_here
+   'Pop the sentinel markers
+   popdw
+   popdw
   END SELECT
  LOOP UNTIL bat.wait_frames <> 0 OR bat.atk.id = -1
 
@@ -1978,6 +2004,15 @@ SUB anim_setdir(byval who as integer, byval d as integer)
  pushw 21: pushw who: pushw d
 END SUB
 
+SUB anim_skip_ahead_if_targetless()
+ pushw 22
+END SUB
+
+SUB anim_skip_to_here()
+ 'Place markers to look for later
+ pushw 23: pushdw ANIM_SKIP_SENTINEL: pushdw ANIM_SKIP_SENTINEL
+END SUB
+
 SUB anim_flinchstart(byval who as integer, bslot() as BattleSprite, byref attack as AttackData)
  '--If enemy can flinch and if attack allows flinching
  IF bslot(who).never_flinch = NO AND attack.targ_does_not_flinch = NO THEN
@@ -2740,7 +2775,9 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
     anim_inflict t(i), tcount
    NEXT i
    anim_disappear 24
+   anim_skip_ahead_if_targetless
   NEXT j
+  anim_skip_to_here
   anim_retreat bat.acting, attack, bslot()
   anim_end
  END IF
@@ -2807,7 +2844,9 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
     anim_flinchdone t(i), bslot(), attack
    NEXT i
    anim_wait 2
+   anim_skip_ahead_if_targetless
   NEXT j
+  anim_skip_to_here
   anim_retreat bat.acting, attack, bslot()
   FOR i = 0 TO tcount - 1
    anim_setframe t(i), frameSTAND
@@ -2862,7 +2901,9 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    anim_waitforall
    'hide projectile
    anim_disappear 12
+   anim_skip_ahead_if_targetless
   NEXT j
+  anim_skip_to_here
   'attacker steps back
   anim_retreat bat.acting, attack, bslot()
   anim_end
@@ -2926,7 +2967,9 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
     anim_flinchdone t(i), bslot(), attack
    NEXT i
    anim_wait 3
+   anim_skip_ahead_if_targetless
   NEXT j
+  anim_skip_to_here
   anim_retreat bat.acting, attack, bslot()
   FOR i = 0 TO tcount - 1
    anim_setframe t(i), frameSTAND
@@ -2976,7 +3019,9 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
     anim_flinchdone t(i), bslot(), attack
    NEXT i
    anim_wait 3
+   anim_skip_ahead_if_targetless
   NEXT j
+  anim_skip_to_here
   anim_retreat bat.acting, attack, bslot()
   FOR i = 0 TO tcount - 1
    anim_setframe t(i), frameSTAND
@@ -3028,7 +3073,9 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
     anim_flinchdone t(i), bslot(), attack
    NEXT i
    anim_wait 3
+   anim_skip_ahead_if_targetless
   NEXT j
+  anim_skip_to_here
   anim_retreat bat.acting, attack, bslot()
   FOR i = 0 TO tcount - 1
    anim_setframe t(i), frameSTAND
@@ -3077,7 +3124,9 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
     anim_flinchdone t(i), bslot(), attack
    NEXT i
    anim_wait 2
+   anim_skip_ahead_if_targetless
   NEXT j
+  anim_skip_to_here
   anim_retreat bat.acting, attack, bslot()
   FOR i = 0 TO tcount - 1
    anim_setframe t(i), frameSTAND
@@ -3782,6 +3831,18 @@ SUB battle_attack_cancel_target_attack(byval targ as integer, byref bat as Battl
   END IF
  END IF
 END SUB
+
+FUNCTION check_has_remaining_targets(bat as BattleState, bslot() as BattleSprite, targs() as integer) as bool
+ 'Returns whether a multihit attack should continue: either it can hit dead targets, or
+ 'any of the targets are alive, or dying but have not finished dying yet.
+ IF attack_can_hit_dead(bat.acting, bat.atk.id, YES) THEN RETURN YES
+ FOR i as integer = 0 TO UBOUND(targs)
+  IF targs(i) > -1 THEN
+   IF bslot(targs(i)).stat.cur.hp > 0 ORELSE bslot(targs(i)).vis THEN RETURN YES
+  END IF
+ NEXT i
+ RETURN NO
+END FUNCTION
 
 SUB battle_reevaluate_dead_targets (byval deadguy as integer, byref bat as BattleState, bslot() as BattleSprite)
  '--check for queued attacks that target the dead target
