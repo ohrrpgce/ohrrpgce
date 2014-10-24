@@ -258,7 +258,7 @@ if linkgcc:
         fbc_binary = env.WhereIs (fbc)
     if not fbc_binary:
         raise Exception("FreeBasic compiler is not installed!")
-    fbc_path = os.path.dirname(fbc_binary)
+    fbc_path = os.path.dirname(os.path.realpath(fbc_binary))
     #print "fbc = " + fbc_path
     # target should be the OS code, with the arch?
     # Looks like the code below doesn't care, as long as it finds the right directory
