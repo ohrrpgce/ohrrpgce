@@ -3230,7 +3230,7 @@ FUNCTION check_attack_chain(byref ch as AttackDataChain, byref bat as BattleStat
     FOR i as integer = 0 to 11
      targ = bat.anim_t(i)
      IF targ >= 0 THEN
-      debug "check stat " & ch.val1 & " any target " & targ & " > " & ch.val2
+      'debug "check stat " & ch.val1 & " any target " & targ & " > " & ch.val2
       IF bslot(targ).stat.cur.sta(ch.val1) > ch.val2 THEN RETURN YES
      END IF
     NEXT i
@@ -3240,7 +3240,7 @@ FUNCTION check_attack_chain(byref ch as AttackDataChain, byref bat as BattleStat
     FOR i as integer = 0 to 11
      targ = bat.anim_t(i)
      IF targ >= 0 THEN
-      debug "check stat " & ch.val1 & " any target " & targ & " < " & ch.val2
+      'debug "check stat " & ch.val1 & " any target " & targ & " < " & ch.val2
       IF bslot(targ).stat.cur.sta(ch.val1) < ch.val2 THEN RETURN YES
      END IF
     NEXT i
@@ -3250,7 +3250,7 @@ FUNCTION check_attack_chain(byref ch as AttackDataChain, byref bat as BattleStat
     FOR i as integer = 0 to 11
      targ = bat.anim_t(i)
      IF targ >= 0 THEN
-      debug "check stat " & ch.val1 & " any target " & targ & " > " & ch.val2 & "%"
+      'debug "check stat " & ch.val1 & " any target " & targ & " > " & ch.val2 & "%"
       WITH bslot(targ).stat
        IF .cur.sta(ch.val1) > .max.sta(ch.val1) * (ch.val2 / 100) THEN RETURN YES
       END WITH
@@ -3262,9 +3262,9 @@ FUNCTION check_attack_chain(byref ch as AttackDataChain, byref bat as BattleStat
     FOR i as integer = 0 to 11
      targ = bat.anim_t(i)
      IF targ >= 0 THEN
-      debug "check stat " & ch.val1 & " any target " & targ & " < " & ch.val2 & "%"
+      'debug "check stat " & ch.val1 & " any target " & targ & " < " & ch.val2 & "%"
       WITH bslot(targ).stat
-       debug ch.val1 & " " & ch.val2 & " " & .cur.sta(ch.val1) & " " & .max.sta(ch.val1)
+       'debug ch.val1 & " " & ch.val2 & " " & .cur.sta(ch.val1) & " " & .max.sta(ch.val1)
        IF .cur.sta(ch.val1) < .max.sta(ch.val1) * (ch.val2 / 100) THEN RETURN YES
       END WITH
      END IF
@@ -3278,7 +3278,7 @@ FUNCTION check_attack_chain(byref ch as AttackDataChain, byref bat as BattleStat
      targ = bat.anim_t(i)
      IF targ >= 0 THEN
       tcount += 1
-      debug "check stat " & ch.val1 & " all target " & targ & " > " & ch.val2
+      'debug "check stat " & ch.val1 & " all target " & targ & " > " & ch.val2
       IF bslot(targ).stat.cur.sta(ch.val1) > ch.val2 THEN tgood += 1
      END IF
     NEXT i
@@ -3292,7 +3292,7 @@ FUNCTION check_attack_chain(byref ch as AttackDataChain, byref bat as BattleStat
      targ = bat.anim_t(i)
      IF targ >= 0 THEN
       tcount += 1
-      debug "check stat " & ch.val1 & " all target " & targ & " < " & ch.val2
+      'debug "check stat " & ch.val1 & " all target " & targ & " < " & ch.val2
       IF bslot(targ).stat.cur.sta(ch.val1) < ch.val2 THEN tgood += 1
      END IF
     NEXT i
@@ -3306,7 +3306,7 @@ FUNCTION check_attack_chain(byref ch as AttackDataChain, byref bat as BattleStat
      targ = bat.anim_t(i)
      IF targ >= 0 THEN
       tcount += 1
-      debug "check stat " & ch.val1 & " all target " & targ & " > " & ch.val2 & "%"
+      'debug "check stat " & ch.val1 & " all target " & targ & " > " & ch.val2 & "%"
       WITH bslot(targ).stat
        IF .cur.sta(ch.val1) > .max.sta(ch.val1) * (ch.val2 / 100) THEN tgood += 1
       END WITH
@@ -3322,7 +3322,7 @@ FUNCTION check_attack_chain(byref ch as AttackDataChain, byref bat as BattleStat
      targ = bat.anim_t(i)
      IF targ >= 0 THEN
       tcount += 1
-      debug "check stat " & ch.val1 & " all target " & targ & " < " & ch.val2 & "%"
+      'debug "check stat " & ch.val1 & " all target " & targ & " < " & ch.val2 & "%"
       WITH bslot(targ).stat
        IF .cur.sta(ch.val1) < .max.sta(ch.val1) * (ch.val2 / 100) THEN tgood += 1
       END WITH
