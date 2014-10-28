@@ -99,7 +99,7 @@ DIM bstackstart as integer
 REDIM learnmask(245) as integer '6 shorts of bits per hero
 
 FUNCTION battle (byval form as integer) as bool
- battle = YES 'default return value
+ DIM result as bool  'Return value
  
  remap_virtual_gamepad "virtual_gamepad_battle", YES
 
@@ -176,7 +176,7 @@ FUNCTION battle (byval form as integer) as bool
   END IF
   IF keyval(scPause) > 1 THEN battle_pause
   IF battle_run_away(bat, bslot()) THEN
-   battle = NO
+   result = NO
    EXIT DO
   END IF
   
@@ -231,9 +231,13 @@ FUNCTION battle (byval form as integer) as bool
    IF count_dissolving_enemies(bslot()) = 0 THEN trigger_victory bat, bslot()
   END IF
   
-  IF bat.vic.state = vicEXIT THEN EXIT DO 'normal victory exit
+  IF bat.vic.state = vicEXIT THEN 'Victory
+   result = YES
+   EXIT DO
+  END IF
   IF bat.death_mode = deathHEROES THEN
    fatal = YES
+   result = NO
    EXIT DO
   END IF
   
@@ -244,8 +248,7 @@ FUNCTION battle (byval form as integer) as bool
   END IF
  
   IF dotimerbattle THEN
-   fatal = NO
-   battle = NO
+   result = NO
    EXIT DO
   END IF
  
@@ -258,12 +261,12 @@ FUNCTION battle (byval form as integer) as bool
   dowait
  LOOP
  
- IF fatal THEN battle = NO
  battle_cleanup bat, bslot()
  evalherotags
  evalitemtags
  tag_updates
  remap_virtual_gamepad "virtual_gamepad"
+ RETURN result
 END FUNCTION
 
 SUB battle_init(byref bat as BattleState, bslot() as BattleSprite)
