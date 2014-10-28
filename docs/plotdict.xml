@@ -838,7 +838,23 @@ wait for text box # wait until the player continues</example>
 		<command id="fightformation">
 			<canon>fight formation (number)</canon>
 			<shortname>fight formation</shortname>
-			<description>Starts a battle with the numbered enemy formation. This command returns <ref>false</ref> if you ran from battle (or if an attack with the "Force battle exit" bit ended the battle), or <ref>true</ref> if you won (including victory due to a "Force victory" attack). If you lose the battle, the game will still end as normal unless you set a death script. In that case, <ref>false</ref> is returned (after the death script has finished). <note>An automatic <ref>wait</ref>(1) occurs immediately after this command.</note></description>
+			<description>Starts a battle with the numbered enemy formation. This command returns <ref>true</ref> for victory and <ref>false</ref> for a loss. However if all heroes die the game will still end as normal unless you set a death script. In that case, <ref>false</ref> is returned after the death script has finished.
+				The situations which cause <ref>true</ref> to be returned are:<lb/>
+				<ul>
+					<li>Normal victory</li>
+					<li>A timer with <ref>timerflag:critical</ref> ends the battle</li>
+					<li>An attack with the "Force victory" bit ends the battle</li>
+				</ul>
+				The situations which cause <ref>false</ref> to be returned are:<lb/>
+				<ul>
+					<li>All heroes died</li>
+					<li>Player ran from battle</li>
+					<li>An attack with the "Cause heroes to run away" bit ends the battle</li>
+					<li>An attack with the "Force battle exit" bit ends the battle</li>
+					<li>The end-battle-instantly debug key is used</li>
+				</ul>
+				<note>An automatic <ref>wait</ref>(1) occurs immediately after this command.</note>
+			</description>
 			<seealso>
 				<ref>setdeathscript</ref>
 			</seealso>
