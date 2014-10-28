@@ -565,6 +565,20 @@ plotscript, kill leader with map cure, begin
   map cure(atk:KillAlly, leader)
 end
 
+plotscript, dummy death script, begin
+
+end
+
+plotscript, fight formation test, begin
+  set death script(@dummy death script)
+  variable (ret)
+  ret := fight formation(0)
+  $31 = "Fightformation = "
+  appendnumber(31, ret)
+  show string(31)
+  set death script()
+end
+
 plotscript, add hero test, begin
   variable(slot)
   slot := add hero(0)
