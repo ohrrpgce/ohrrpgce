@@ -156,7 +156,7 @@ FUNCTION battle (byval form as integer) as bool
   IF readbit(gen(), genBits, 8) = 0 THEN
    '--debug keys
    IF keyval(scF4) > 1 THEN
-    IF keyval(scLeftShift) > 0 ANDALSO keyval(scRightShift) > 0 THEN
+    IF keyval(scCtrl) > 0 THEN
      bat.away = 11 ' Instant-cheater-running
     ELSE
      gam.debug_showtags = NOT gam.debug_showtags
