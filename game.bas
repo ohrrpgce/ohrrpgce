@@ -766,7 +766,10 @@ DO
      scriptout = STR(speedcontrol)
     END IF
    END IF
-   IF keyval(scF4) > 1 THEN slice_editor SliceTable.Root
+   IF keyval(scF4) > 1 THEN
+    IF fadestate = 0 THEN setpal master()
+    slice_editor SliceTable.Root
+   END IF
    IF keyval(scF5) > 1 THEN 'Toggle level-up bug
     IF readbit(gen(), genBits, 9) = 0 THEN
      setbit gen(), genBits, 9, 1
