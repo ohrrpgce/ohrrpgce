@@ -3403,6 +3403,7 @@ SUB ClearFormation (form as Formation)
   .background_frames = 1
   .background_ticks = 0
   .victory_tag = 0
+  .death_action = 0
  END WITH
 END SUB
 
@@ -3433,6 +3434,7 @@ SUB LoadFormation (form as Formation, filename as string, byval index as integer
   .background_frames = bound(formdata(34) + 1, 1, gen(genNumBackdrops))
   .background_ticks = formdata(35)
   .victory_tag = formdata(36)
+  .death_action = formdata(37)
  END WITH
 END SUB
 
@@ -3458,6 +3460,7 @@ SUB SaveFormation (form as Formation, filename as string, byval index as integer
   formdata(34) = .background_frames - 1
   formdata(35) = .background_ticks
   formdata(36) = .victory_tag
+  formdata(37) = .death_action
  END WITH
 
  storerecord(formdata(), filename, 40, index)

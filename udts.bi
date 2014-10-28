@@ -884,6 +884,7 @@ TYPE Formation
   background_frames as integer  'always >= 1 (no animation if == 1)
   background_ticks as integer
   victory_tag as integer        '0: none, 1+: tag number
+  death_action as integer       '-1: continue game, 0: gameover
 END TYPE
 
 TYPE FormationSet

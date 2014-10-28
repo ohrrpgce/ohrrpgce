@@ -46,6 +46,9 @@ WHAT IS NEW?
     * Added F7 debug key to kill all targettable enemies. Also, the tag
       debugger is available in-battle with F4; instant-run moved to
       Ctrl+F4. [Ralph, James]
+    * New formation options: Victory tag to set a tag according to
+      whether the battle was won, and an option to prevent game over
+      on death. [MirceaKitsune, Ralph]
 
   * Bugfixes
     * Fixed a few cosmetic bugs in the equip menu including possibly

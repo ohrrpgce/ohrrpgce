@@ -16,6 +16,8 @@ Battle Music: Choose what song should play during this battle. You can also choo
 
 Victory Tag: Tag which logs the outcome of the battle. It becomes false when a battle is lost (whether by death or running away) and true when it's won.
 
+On Death: What happens if all heroes die. Normally the game will end, unless a Death script has been set (see General Game Settings->Special Plotscripts). "Continue game" prevents this (heroes will still have 0 HP!)
+
 Choose up to eight enemies defined in the Enemy Editor to be included in this battle formation, and press ENTER or SPACE on them to reposition them onscreen.
 
 NOTE: If you plan on having these enemies spawn new enemies in the middle of the battle (see Spawning in the Enemy Editor), you should also position some of the empty enemy slots to the places you would like the spawning enemies to appear.  To do this, temporarily put an enemy in the empty slot and move it to where the spawned enemy should appear, then make the slot empty again.

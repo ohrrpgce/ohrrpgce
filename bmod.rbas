@@ -249,7 +249,12 @@ FUNCTION battle (byval form as integer) as bool
    EXIT DO
   END IF
   IF bat.death_mode = deathHEROES THEN
-   fatal = YES
+   IF formdata.death_action = 0 THEN
+    'normal game over/trigger death script
+    fatal = YES
+   ELSEIF formdata.death_action = -1 THEN
+    'continue game
+   END IF
    result = NO
    EXIT DO
   END IF

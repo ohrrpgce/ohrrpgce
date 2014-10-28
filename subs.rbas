@@ -1059,7 +1059,7 @@ SUB individual_formation_editor ()
  LoadFormation form, form_id
  load_formation_slices ename(), form, @rootslice
 
- DIM menu(14) as string
+ DIM menu(15) as string
  DIM state as MenuState
  state.pt = 0
  state.top = 0
@@ -1069,7 +1069,7 @@ SUB individual_formation_editor ()
  DIM menuopts as MenuOptions
  menuopts.edged = YES
 
- CONST first_enemy_item = 7
+ CONST first_enemy_item = 8
  'slot -1 indicates no enemy selected
  DIM slot as integer = state.pt - first_enemy_item
  IF slot < 0 THEN slot = -1
@@ -1154,6 +1154,9 @@ SUB individual_formation_editor ()
    IF state.pt = 6 THEN
     tag_grabber(form.victory_tag, 0, , NO)
    END IF
+   IF state.pt = 7 THEN
+    intgrabber(form.death_action, -1, 0)
+   END IF
    IF state.pt = 1 THEN '---SELECT A DIFFERENT FORMATION
     DIM as integer remember_id = form_id
     IF intgrabber_with_addset(form_id, 0, gen(genMaxFormation), 32767, "formation") THEN
@@ -1224,6 +1227,13 @@ SUB individual_formation_editor ()
      menu(5) &= " " & form.music & " " & getsongname(form.music)
    END IF
    menu(6) = "Victory Tag: " & tag_choice_caption(form.victory_tag)
+   menu(7) = "On Death: "
+   IF form.death_action = 0 THEN
+    menu(7) &= "gameover/death script"
+   ELSEIF form.death_action = -1 THEN
+    menu(7) &= "continue game"
+   END IF
+
    FOR i as integer = 0 TO 7
     menu(first_enemy_item + i) = "Enemy:" + ename(i)
    NEXT i
