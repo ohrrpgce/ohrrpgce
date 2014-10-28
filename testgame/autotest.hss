@@ -1997,9 +1997,12 @@ script, battle tests, begin
   show value(random(1, 999999999)), w # this should remain deterministic after battle
   show no value, w
   # attack forces run
-  assert(fight formation(1) == false), w
+  set tag(tag:Victory, true)
+  assert(fight formation(1) == false), w  # sets victory tag
+  assert(check tag(tag:Victory) == false)
   # attack forces victory
   assert(fight formation(2) == true), w
+  assert(check tag(tag:Victory) == true)
   # attack forces exit
   assert(fight formation(3) == false), w
   # test tag check: battle should not trigger

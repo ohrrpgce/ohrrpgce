@@ -1059,7 +1059,7 @@ SUB individual_formation_editor ()
  LoadFormation form, form_id
  load_formation_slices ename(), form, @rootslice
 
- DIM menu(13) as string
+ DIM menu(14) as string
  DIM state as MenuState
  state.pt = 0
  state.top = 0
@@ -1069,7 +1069,10 @@ SUB individual_formation_editor ()
  DIM menuopts as MenuOptions
  menuopts.edged = YES
 
- DIM slot as integer = state.pt - 6
+ CONST first_enemy_item = 7
+ 'slot -1 indicates no enemy selected
+ DIM slot as integer = state.pt - first_enemy_item
+ IF slot < 0 THEN slot = -1
 
  setkeys
  DO
@@ -1105,7 +1108,8 @@ SUB individual_formation_editor ()
    IF keyval(scF1) > 1 THEN show_help "formation_editor"
    IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN cropafter form_id, gen(genMaxFormation), 0, game + ".for", 80
    usemenu state
-   slot = state.pt - 6
+   slot = state.pt - first_enemy_item
+   IF slot < 0 THEN slot = -1
 
    IF enter_space_click(state) THEN
     IF state.pt = 0 THEN
@@ -1114,7 +1118,7 @@ SUB individual_formation_editor ()
     IF state.pt = 5 THEN
      IF form.music >= 0 THEN playsongnum form.music
     END IF
-    IF state.pt >= 6 THEN 'an enemy
+    IF slot <> -1 THEN 'an enemy
      IF form.slots(slot).id >= 0 THEN positioning_mode = YES
     END IF
    END IF
@@ -1147,6 +1151,9 @@ SUB individual_formation_editor ()
      music_stop
     END IF
    END IF
+   IF state.pt = 6 THEN
+    tag_grabber(form.victory_tag, 0, , NO)
+   END IF
    IF state.pt = 1 THEN '---SELECT A DIFFERENT FORMATION
     DIM as integer remember_id = form_id
     IF intgrabber_with_addset(form_id, 0, gen(genMaxFormation), 32767, "formation") THEN
@@ -1163,7 +1170,7 @@ SUB individual_formation_editor ()
      bgctr = 0
     END IF
    END IF'--DONE SELECTING DIFFERENT FORMATION
-   IF state.pt >= 6 THEN
+   IF slot <> -1 THEN
     WITH form.slots(slot)
      DIM oldenemy as integer = .id
      IF intgrabber(.id, -1, gen(genMaxEnemy)) THEN
@@ -1216,8 +1223,9 @@ SUB individual_formation_editor ()
    ELSEIF form.music >= 0 THEN
      menu(5) &= " " & form.music & " " & getsongname(form.music)
    END IF
+   menu(6) = "Victory Tag: " & tag_choice_caption(form.victory_tag)
    FOR i as integer = 0 TO 7
-    menu(6 + i) = "Enemy:" + ename(i)
+    menu(first_enemy_item + i) = "Enemy:" + ename(i)
    NEXT i
    standardmenu menu(), state, 0, 0, dpage, menuopts
   END IF

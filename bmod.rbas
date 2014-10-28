@@ -99,7 +99,7 @@ DIM bstackstart as integer
 REDIM learnmask(245) as integer '6 shorts of bits per hero
 
 FUNCTION battle (byval form as integer) as bool
- DIM result as bool  'Return value
+ DIM result as bool  'Return value: whether victorious
  
  remap_virtual_gamepad "virtual_gamepad_battle", YES
 
@@ -277,6 +277,9 @@ FUNCTION battle (byval form as integer) as bool
  battle_cleanup bat, bslot()
  evalherotags
  evalitemtags
+ IF formdata.victory_tag THEN
+  settag formdata.victory_tag, result
+ END IF
  tag_updates
  remap_virtual_gamepad "virtual_gamepad"
  setkeys  'This only seems to matter in some contexts, such as triggered from a textbox

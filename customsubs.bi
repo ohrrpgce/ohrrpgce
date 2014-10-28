@@ -16,6 +16,7 @@ DECLARE FUNCTION tag_grabber (byref n as integer, byval min as integer=-99999, b
 DECLARE FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, byval allowspecial as integer=YES) as integer
 DECLARE FUNCTION tag_toggle_caption(byval n as integer, prefix as string="Toggle tag", byval allowspecial as integer=NO) as string
 DECLARE FUNCTION tag_set_caption(byval n as integer, prefix as string="Set Tag", byval allowspecial as integer=NO) as string
+DECLARE FUNCTION tag_choice_caption(byval n as integer, prefix as string="", byval allowspecial as integer=NO) as string
 DECLARE FUNCTION tag_condition_caption(byval n as integer, prefix as string="Tag", zerocap as string, onecap as string="Never", negonecap as string="Always") as string
 DECLARE FUNCTION explain_two_tag_condition(prefix as string, truetext as string, falsetext as string, byval zerovalue as integer, byval tag1 as integer, byval tag2 as integer) as string
 

@@ -2242,7 +2242,7 @@ SUB reposition_anchor (menu as MenuDef, mstate as MenuState)
  LOOP
 END SUB
 
-FUNCTION base_tag_caption(byval n as integer, prefix as string, suffix as string, zerocap as string, onecap as string, negonecap as string, byval allowspecial as integer) as string
+PRIVATE FUNCTION base_tag_caption(byval n as integer, prefix as string, suffix as string, zerocap as string, onecap as string, negonecap as string, byval allowspecial as integer) as string
  DIM s as string
  DIM cap as string
  s = prefix
@@ -2260,6 +2260,10 @@ END FUNCTION
 
 FUNCTION tag_toggle_caption(byval n as integer, prefix as string="Toggle tag", byval allowspecial as integer=NO) as string
  RETURN base_tag_caption(n, prefix, "", "N/A", "Unchangeable", "Unchangeable", allowspecial)
+END FUNCTION
+
+FUNCTION tag_choice_caption(byval n as integer, prefix as string="", byval allowspecial as integer=NO) as string
+ RETURN base_tag_caption(n, prefix, "", "None", "Unchangeable", "Unchangeable", allowspecial)
 END FUNCTION
 
 FUNCTION tag_set_caption(byval n as integer, prefix as string="Set Tag", byval allowspecial as integer=NO) as string

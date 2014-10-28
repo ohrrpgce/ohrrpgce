@@ -9,6 +9,7 @@ define constant, begin
 7,tag:door req tag
 8,tag:textbox 14 happened
 9,tag:textbox 15 happened
+10,tag:Victory
 0,hero:Freki
 1,hero:Helga
 2,hero:Olaf
