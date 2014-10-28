@@ -279,6 +279,7 @@ FUNCTION battle (byval form as integer) as bool
  evalitemtags
  tag_updates
  remap_virtual_gamepad "virtual_gamepad"
+ setkeys  'This only seems to matter in some contexts, such as triggered from a textbox
  RETURN result
 END FUNCTION
 
