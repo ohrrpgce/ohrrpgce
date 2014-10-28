@@ -243,10 +243,11 @@ FUNCTION battle (byval form as integer) as bool
    edgeprint bat.alert, 160 - LEN(bat.alert) * 4, 185, uilook(uiSelectedItem + bat.tog), dpage
   END IF
  
-  if dotimerbattle then
+  IF dotimerbattle THEN
    fatal = NO
-   exit do
-  end if
+   battle = NO
+   EXIT DO
+  END IF
  
   show_first_battle_timer()
 

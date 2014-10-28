@@ -3600,10 +3600,25 @@ resume box advance # go back to normal</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">fight formation (number)</font></b><br>
-			Starts a battle with the numbered enemy formation. This command returns <a href="#about-booleanconstants" class="ref">false</a> if you ran from battle (or if an attack with the "Force battle exit" bit ended the battle), or <a href="#about-booleanconstants" class="ref">true</a> if you won (including victory due to a "Force victory" attack). If you lose the battle, the game will still end as normal unless you set a death script. In that case, <a href="#about-booleanconstants" class="ref">false</a> is returned (after the death script has finished). <div style="background-color:#EFF;" class="note">
+			Starts a battle with the numbered enemy formation. This command returns <a href="#about-booleanconstants" class="ref">true</a> on victory and <a href="#about-booleanconstants" class="ref">false</a> if the battle ends for any other reason. However if all heroes die the game will still end as normal unless you set a death script. In that case, <a href="#about-booleanconstants" class="ref">false</a> is returned after the death script has finished.
+				The situations which cause <a href="#about-booleanconstants" class="ref">true</a> to be returned are:<br>
+				<ul>
+					<li>Normal victory</li>
+					<li>An attack with the "Force victory" bit ends the battle</li>
+				</ul>
+				The situations which cause <a href="#about-booleanconstants" class="ref">false</a> to be returned are:<br>
+				<ul>
+					<li>All heroes died</li>
+					<li>Player ran from battle</li>
+					<li>An attack with the "Cause heroes to run away" bit ends the battle</li>
+					<li>An attack with the "Force battle exit" bit ends the battle</li>
+					<li>A timer with <a href="#about-timerflag:critical" class="ref">timer flag: critical</a> runs out and ends the battle</li>
+					<li>The end-battle-instantly debug key is used</li>
+				</ul>
+				<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">An automatic <a href="#about-wait" class="ref">wait</a>(1) occurs immediately after this command.<br clear="all">
 </div>
-<br>
+			<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-setdeathscript" class="ref">set death script</a></li></ul>
 		</tt></p>
