@@ -43,6 +43,9 @@ WHAT IS NEW?
     * Attack damage bitset "Healing poison causes regen, and reverse";
       useful when attacker or target absorbs damage [Ralph]
     * Enemies can now be placed anywhere onscreen in formations [Ralph]
+    * Added F7 debug key to kill all targettable enemies. Also, the tag
+      debugger is available in-battle with F4; instant-run moved to
+      Ctrl+F4. [Ralph, James]
 
   * Bugfixes
     * Fixed a few cosmetic bugs in the equip menu including possibly

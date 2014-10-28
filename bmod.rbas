@@ -163,7 +163,19 @@ FUNCTION battle (byval form as integer) as bool
     END IF
    END IF
    IF keyval(scF5) > 1 THEN bat.rew.exper = 1000000  'Million experience!
-   IF keyval(scF6) > 1 THEN bat.turn.mode XOR= 1 : debug "bat.turn.mode=" & bat.turn.mode
+   IF keyval(scF6) > 1 THEN bat.turn.mode XOR= 1 : notification "bat.turn.mode=" & bat.turn.mode
+   IF keyval(scF7) > 1 THEN
+    'Kill all enemies
+    FOR slot as integer = 4 TO 11
+     WITH bslot(slot)
+      IF .hero_untargetable = NO AND .death_unneeded = NO THEN
+       .stat.cur.hp = 0
+       triggerfade slot, bslot()
+      END IF
+     END WITH
+    NEXT
+    fulldeathcheck -1, bat, bslot(), formdata
+   END IF
    IF keyval(scF11) > 1 THEN show_info_mode = loopvar(show_info_mode, 0, 2, 1)  'Draw debug info
    IF keyval(scF12) > 1 THEN
     bat.test_view_mode = loopvar(bat.test_view_mode, 0, 2, 1)
@@ -174,6 +186,7 @@ FUNCTION battle (byval form as integer) as bool
     END SELECT
    END IF
   END IF
+
   IF keyval(scPause) > 1 THEN battle_pause
   IF battle_run_away(bat, bslot()) THEN
    result = NO
