@@ -1351,6 +1351,12 @@ Sub CloneSpriteSlice(byval sl as slice ptr, byval cl as slice ptr)
   .flipHoriz  = dat->flipHoriz
   .flipVert   = dat->flipVert
   .trans      = dat->trans
+  .dissolving = dat->dissolving
+  .d_type     = dat->d_type
+  .d_time     = dat->d_time
+  .d_tick     = dat->d_tick
+  .d_back     = dat->d_back
+  .d_auto     = dat->d_auto
   '.img and .loaded remain NULLs, NO  (for no reason. FIXME: what about Frame sprites?)
  end with
 end sub
