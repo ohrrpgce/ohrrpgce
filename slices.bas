@@ -1279,19 +1279,21 @@ Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
   if .dissolving then
    dim dtime as integer = .d_time
    if dtime = -1 then dtime = (sl->Width + sl->Height) / 10
-   dim dtick as integer
-   if .d_back then
-    dtick = .d_time - .d_tick
-   else
-    dtick = .d_tick
-   end if
-   spr = frame_dissolved(spr, dtime, dtick, .d_type)
-   have_copy = YES
-   if .d_auto then
-    .d_tick += 1
-    if .d_tick >= dtime then
-     .dissolving = NO
-     .d_auto = NO
+   if dtime > 0 then
+    dim dtick as integer
+    if .d_back then
+     dtick = .d_time - .d_tick
+    else
+     dtick = .d_tick
+    end if
+    spr = frame_dissolved(spr, dtime, dtick, .d_type)
+    have_copy = YES
+    if .d_auto then
+     .d_tick += 1
+     if .d_tick >= dtime then
+      .dissolving = NO
+      .d_auto = NO
+     end if
     end if
    end if
   end if
