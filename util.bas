@@ -601,7 +601,7 @@ Function wordwrap(z as string, byval wid as integer, sep as string = chr(10)) as
   
   for j = i - 1 to 1 step -1
    if mid(in, j, 1) = " " then
-    'bingo!
+    'bingo! (separator overwrites the space)
     ret &= left(in, j - 1) & sep
     in = mid(in, j + 1)
     continue do
@@ -612,10 +612,31 @@ Function wordwrap(z as string, byval wid as integer, sep as string = chr(10)) as
    in = mid(in, wid + 1)
   end if
  loop while in <> ""
- 
+
  return ret
- 
 end function
+
+'After calling wordwrap() and split(), this calculates the start position of each line
+'in the lines array produced by split().
+'Offsets are 0-based
+sub split_line_positions(original_text as string, lines() as string, line_starts() as integer, sep as string = chr(10))
+ dim offset as integer = 0
+ redim line_starts(ubound(lines))
+ dim idx as integer
+ for idx = 0 TO ubound(lines)
+  line_starts(idx) = offset
+  offset += len(lines(idx))
+  if offset >= len(original_text) then exit for
+  if original_text[offset] = asc(" ") or original_text[offset] = asc(sep) then
+   'This character was transformed to/is a seperator, and excluded by split()
+   offset += 1
+  end if
+ next
+ 'Always exits early on last iteration
+ if idx <> ubound(lines) or offset <> len(original_text) then
+  debugc errPromptBug, "split_line_positions buggy or called with bad args"
+ end if
+end sub
 
 'Splits text at the separators; use together with wordwrap() to do wrapping
 'sep must be length 1. ret() must be resizeable. If in == "", then ret() is redimmed to length 1.

@@ -223,7 +223,7 @@ Type TextSliceData
  s_orig as string 'Used when expanding ${} codes, so the codes can be re-expanded again later
  wrap as integer
  'Declare constructor(st as string, byval col as integer = -1, byval ol as integer = YES)
- insert as integer 'char offset of insertion pointer
+ insert as integer 'char offset of insertion pointer. Zero-based!
  show_insert as integer ' set to YES to display insertion point
  insert_tog as integer 'flashing
  first_line as integer 'used in scrolling

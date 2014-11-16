@@ -1523,9 +1523,12 @@ FUNCTION xintgrabber (byref n as integer, byval pmin as integer, byval pmax as i
  RETURN (old <> n)
 END FUNCTION
 
-FUNCTION stredit (s as string, byref insert as integer, byval maxl as integer, byval numlines as integer=1, byval wrapchars as integer=1) as integer
+FUNCTION stredit (s as string, byref insert as integer, byval maxl as integer, byval numlines as integer = 1, byval line_length as integer = 1) as integer
  'Return value is the line that the cursor is on, or 0 if numlines=1
- 'insert is the position of the cursor (range 0..LEN(s)-1), and is modified byref. Set to -1 to move automatically to end of string
+ 'insert is the 0-based position of the cursor (range 0..LEN(s)-1), and is modified byref. Set to -1 to move automatically to end of string
+ 'maxl is maximum length in characters.
+ 'numlines is number of lines visible. If > 1 then wrapping and newlines are enabled.
+ 'line_length is number of characters on a line (for wrapping)
  stredit = 0
  
  STATIC clip as string
@@ -1533,6 +1536,9 @@ FUNCTION stredit (s as string, byref insert as integer, byval maxl as integer, b
  '--copy+paste support
  IF copy_keychord() THEN clip = s
  IF paste_keychord() THEN s = LEFT(clip, maxl)
+
+ IF insert < 0 THEN insert = LEN(s)
+ insert = bound(insert, 0, LEN(s))
 
  '--insert cursor movement
  IF keyval(scCtrl) = 0 THEN 'not CTRL
@@ -1555,40 +1561,38 @@ FUNCTION stredit (s as string, byref insert as integer, byval maxl as integer, b
  '--up and down arrow keys
  IF numlines > 1 THEN
   DIM wrapped as string
-  wrapped = wordwrap(s, large(1, wrapchars))
+  wrapped = wordwrap(s, large(1, line_length))
   DIM lines() as string
   split(wrapped, lines())
-  DIM count as integer = 0
-  DIM found_insert as integer = -1
-  DIM line_chars as integer
+  DIM line_starts() as integer
+  split_line_positions s, lines(), line_starts()
+
+  DIM insert_line as integer = -1
+  DIM offset_in_line as integer  '0-based
   DIM move_lines as integer = 0
-  FOR i as integer = 0 TO UBOUND(lines)
-   IF count + LEN(lines(i)) >= insert THEN
-    found_insert = i
-    line_chars = insert - count
+  FOR linenum as integer = 0 TO UBOUND(lines)
+   DIM next_line as integer = IIF(linenum = UBOUND(lines), len(s) + 1, line_starts(linenum + 1))
+   IF next_line > insert THEN
+    insert_line = linenum
+    offset_in_line = insert - line_starts(linenum)
     EXIT FOR
    END IF
-   count += LEN(lines(i)) + 1
-  NEXT i
-  IF found_insert >= 0 THEN
-   '--set return value
-   stredit = found_insert
-   IF keyval(scUp) > 1 THEN move_lines = -1
-   IF keyval(scDown) > 1 THEN move_lines = 1
-   IF keyval(scPageUp) > 1 THEN move_lines = -(numlines - 2)
-   IF keyval(scPageDown) > 1 THEN move_lines = numlines - 2
-   IF move_lines THEN
-    found_insert = bound(found_insert + move_lines, 0, UBOUND(lines))
-    insert = 0
-    FOR i as integer = 0 TO found_insert - 1
-     insert += LEN(lines(i)) + 1
-    NEXT i
-    insert += small(line_chars, LEN(lines(large(found_insert, 0))))
-    '--set return value
-    stredit = found_insert
-   END IF
-   '--end of special handling for up and down motion
+  NEXT linenum
+  IF insert_line = -1 THEN
+   debugc errPromptBug, "Ignorable engine bug: stredit couldn't find line"
   END IF
+  IF keyval(scUp) > 1 THEN move_lines = -1
+  IF keyval(scDown) > 1 THEN move_lines = 1
+  IF keyval(scPageUp) > 1 THEN move_lines = -(numlines - 2)
+  IF keyval(scPageDown) > 1 THEN move_lines = numlines - 2
+  IF move_lines THEN
+   insert_line = bound(insert_line + move_lines, 0, UBOUND(lines))
+   insert = line_starts(insert_line) + small(offset_in_line, LEN(lines(insert_line)))
+  END IF
+  '--set return value
+  stredit = insert_line
+  '--end of special handling for up and down motion
+
   '--Home and end keys: go to previous/next newline,
   '--unless Ctrl is pressed, which is handled above
   IF keyval(scCtrl) = 0 THEN
@@ -1604,9 +1608,6 @@ FUNCTION stredit (s as string, byref insert as integer, byval maxl as integer, b
   END IF
   '--end of special keys that only work in multiline mode
  END IF
-
- IF insert < 0 THEN insert = LEN(s)
- insert = bound(insert, 0, LEN(s))
 
  DIM pre as string = LEFT(s, insert)
  DIM post as string = RIGHT(s, LEN(s) - insert)

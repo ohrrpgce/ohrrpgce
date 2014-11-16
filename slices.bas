@@ -1061,36 +1061,35 @@ Sub DrawTextSlice(byval sl as slice ptr, byval p as integer)
  
  dim lines() as string
  WrapTextSlice sl, lines()
+ dim line_starts() as integer
+ split_line_positions dat->s, lines(), line_starts()
 
  dim col as integer = dat->col
  if col = 0 then col = uilook(uiText) '--This is backcompat for before it was possible to choose uiText directly using SliceColor
  col = SliceColor(col)
- dim chars as integer = 0
  dat->insert_tog = dat->insert_tog xor 1
  dim insert_size as integer = 8
  if dat->outline then insert_size = 9
  dim last_line as integer = ubound(lines)
  if dat->line_limit <> 0 then last_line = small(last_line, dat->first_line + dat->line_limit - 1)
  dim ypos as integer
- if dat->show_insert then
-  '--advance the insert cursor for off-screen lines
-  for i as integer = 0 to small(dat->first_line - 1, ubound(lines))
-   chars += len(lines(i)) + 1
-  next i
- end if
- for i as integer = dat->first_line to last_line
-  ypos = (i - dat->first_line) * 10
+
+ for linenum as integer = dat->first_line to last_line
+  ypos = (linenum - dat->first_line) * 10
   if dat->show_insert then
-   if dat->insert >= chars and dat->insert <= chars + len(lines(i)) then
-    rectangle sl->screenx + (dat->insert - chars) * 8, sl->screeny + ypos, insert_size, insert_size, uilook(uiHighlight + dat->insert_tog), p
+   dim offset_in_line as integer  '0-based offset
+   offset_in_line = dat->insert - line_starts(linenum)
+   dim next_line as integer = iif(linenum = last_line, len(dat->s) + 1, line_starts(linenum + 1))
+   'The insert cursor might point to a space or newline after the end of the line or end of text
+   if offset_in_line >= 0 and dat->insert < next_line then
+    rectangle sl->screenx + offset_in_line * 8, sl->screeny + ypos, insert_size, insert_size, uilook(uiHighlight + dat->insert_tog), p
    end if
-   chars += len(lines(i)) + 1
   end if
   if dat->outline then
-   edgeprint lines(i), sl->screenx, sl->screeny + ypos, col, p
+   edgeprint lines(linenum), sl->screenx, sl->screeny + ypos, col, p
   else
    textcolor col, SliceColor(dat->bgcol)
-   printstr lines(i), sl->screenx, sl->screeny + ypos, p
+   printstr lines(linenum), sl->screenx, sl->screeny + ypos, p
   end if
  next
 end sub

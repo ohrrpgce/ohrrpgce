@@ -462,6 +462,8 @@ declare function blank_default(s as string, blankcaption as string="default") as
 declare Function wordwrap(z as string, byval width as integer, sep as string = chr(10)) as string
 
 declare sub split(in as string, ret() as string, sep as string = chr(10))
+declare sub split_line_positions(original_text as string, lines() as string, line_starts() as integer, sep as string = chr(10))
+
 
 
 '----------------------------------------------------------------------
