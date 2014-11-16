@@ -1902,8 +1902,10 @@ SUB show_help(helpkey as string)
   scrollbar_state.size = dat->line_limit - 1
 
   IF editing THEN  
-   cursor_line = stredit(dat->s, dat->insert, 32767, dat->line_limit, help_text->Width \ 8)
+   DIM textstring as string = dat->s
+   cursor_line = stredit(textstring, dat->insert, 32767, dat->line_limit, help_text->Width \ 8)
    'The limit of 32767 chars is totally arbitrary and maybe not a good limit
+   ChangeTextSlice help_text, textstring
   END IF
 
   IF deadkeys = 0 THEN 
@@ -2060,9 +2062,11 @@ FUNCTION multiline_string_editor(s as string, helpkey as string="", prompt_to_sa
  DO
   setwait 30
   setkeys YES
-  
-  cursor_line = stredit(dat->s, dat->insert, 32767, dat->line_limit, text->Width \ 8)
+
+  DIM textstring as string = dat->s
+  cursor_line = stredit(textstring, dat->insert, 32767, dat->line_limit, text->Width \ 8)
   'The limit of 32767 chars is totally arbitrary and maybe not a good limit
+  ChangeTextSlice text, textstring
 
   IF keyval(scESC) > 1 THEN
    '--If there are any changes to the help screen, offer to save them
