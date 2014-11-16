@@ -274,12 +274,12 @@ clearpage vpage
 xbload game + ".fnt", current_font(), "Font not loaded"
 setfont current_font()
 
-IF scriptfile <> "" THEN import_scripts_and_terminate scriptfile
-
 loadglobalstrings
 getstatnames statnames()
 load_special_tag_caches
 load_lookup1_bin lookup1_bin_cache()
+
+IF scriptfile <> "" THEN import_scripts_and_terminate scriptfile
 
 setupmusic
 
