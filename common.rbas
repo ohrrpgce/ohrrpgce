@@ -1586,8 +1586,13 @@ FUNCTION stredit (s as string, byref insert as integer, byval maxl as integer, b
   IF keyval(scPageUp) > 1 THEN move_lines = -(numlines - 2)
   IF keyval(scPageDown) > 1 THEN move_lines = numlines - 2
   IF move_lines THEN
-   insert_line = bound(insert_line + move_lines, 0, UBOUND(lines))
-   insert = line_starts(insert_line) + small(offset_in_line, LEN(lines(insert_line)))
+   insert_line = bound(insert_line + move_lines, 0, UBOUND(lines) + 1)
+   IF insert_line = UBOUND(lines) + 1 THEN
+    'Trying to move past last line: move to its end instead
+    insert = LEN(s)
+   ELSE
+    insert = line_starts(insert_line) + small(offset_in_line, LEN(lines(insert_line)))
+   END IF
   END IF
   '--set return value
   stredit = insert_line
