@@ -1633,12 +1633,12 @@ FUNCTION stredit (s as string, byref insert as integer, byval maxl as integer, b
     pre = pre & CHR(10)
    END IF
   ELSE
-   pre = LEFT(pre & getinputtext, maxl)
+   pre = pre & getinputtext
   END IF
   insert += (LEN(pre) - oldlen)
  END IF
 
- s = pre & post
+ s = LEFT(pre & post, maxl)
  
 END FUNCTION
 
@@ -1901,7 +1901,7 @@ SUB show_help(helpkey as string)
   dat->line_limit = (vpages(vpage)->h - 32) \ 10 + 1
   scrollbar_state.size = dat->line_limit - 1
 
-  IF editing THEN  
+  IF editing THEN
    DIM textstring as string = dat->s
    cursor_line = stredit(textstring, dat->insert, 32767, dat->line_limit, help_text->Width \ 8)
    'The limit of 32767 chars is totally arbitrary and maybe not a good limit
