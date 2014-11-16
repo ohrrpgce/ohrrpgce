@@ -1467,48 +1467,93 @@ SUB textbox_copy_style_from_box (byval template_box_id as integer=0, byref box a
  SaveTextBox box, st.id
 END SUB
 
+'Concatenate textbox lines into a string
+FUNCTION textbox_lines_to_string(byref box as TextBox) as string
+ DIM lastline as integer
+ FOR lastline = UBOUND(box.text) TO 0 STEP -1
+  IF LEN(box.text(lastline)) THEN EXIT FOR
+ NEXT
+ DIM ret as string
+ FOR idx as integer = 0 TO lastline
+  IF idx > 0 THEN ret &= !"\n"
+  ret &= box.text(idx)
+ NEXT
+ RETURN ret
+END FUNCTION
+
+'Wrap and split up a string and stuff it into box.text, possibly editing 'text'
+'by trimming unneeded whitespace at the end.
+'Returns true if it did fit, and does nothing and returns false if it didn't.
+FUNCTION textbox_string_to_lines(byref box as TextBox, byref text as string) as bool
+ DIM lines() as string
+ DIM wrappedtext as string = wordwrap(text, 38)
+ split(wrappedtext, lines())
+
+ IF UBOUND(lines) > UBOUND(box.text) THEN
+  'Trim whitespace lines past the end so that stuffing doesn't fail unnecessarily
+  FOR idx as integer = UBOUND(box.text) + 1 TO UBOUND(lines)
+   IF LEN(TRIM(lines(idx))) > 0 THEN RETURN NO  'Can't trim! Failure
+  NEXT
+  DIM line_starts() as integer
+  split_line_positions text, lines(), line_starts()
+  text = LEFT(text, line_starts(UBOUND(box.text) + 1) - 1)
+ END IF
+ FOR idx as integer = 0 TO UBOUND(box.text)
+  IF UBOUND(lines) < idx THEN
+   box.text(idx) = ""
+  ELSE
+   box.text(idx) = lines(idx)
+  END IF
+ NEXT
+ RETURN YES
+END FUNCTION
+
 SUB textbox_line_editor (byref box as TextBox, byref st as TextboxEditState)
- DIM state as MenuState
- WITH state
-  state.size = 22
-  state.last = UBOUND(box.text)
+ DIM text as string = textbox_lines_to_string(box)
+
+ DIM textslice as Slice Ptr
+ textslice = NewSliceOfType(slText)
+ WITH *textslice
+  .x = 8
+  .y = 7
+  .width = 38 * 8
  END WITH
- DIM insertpt as integer = -1
+ DIM txtdata as TextSliceData Ptr = textslice->SliceData
+ WITH *txtdata
+  .line_limit = 8
+  .insert = -1  'End of text
+  .show_insert = YES
+  .outline = YES
+  .wrap = YES
+  IF box.textcolor > 0 THEN
+   .col = box.textcolor
+  ELSE
+   .col = uilook(uiText)
+  END IF
+ END WITH
+ 
  setkeys YES
  DO
   setwait 55
   setkeys YES
-  state.tog = state.tog XOR 1
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "textbox_line_editor"
-  IF keyval(scEnter) > 1 AND state.pt < state.last THEN state.pt += 1
-  IF keyval(scHome) > 1 THEN
-   insertpt = 0
-  ELSEIF keyval(scEnd) > 1 THEN
-   insertpt = LEN(box.text(state.pt))
-  ELSE
-   IF usemenu(state) THEN insertpt = -1
-  END IF
-  IF state.pt <= state.last AND state.pt >= state.first THEN
-   stredit box.text(state.pt), insertpt, 38
-  END IF
 
-  'Display the box
+  DIM newtext as string = text
+  DIM newinsert as integer = txtdata->insert
+  stredit(newtext, newinsert, 9999, 8, 38)
+  IF textbox_string_to_lines(box, newtext) THEN
+   'Accepted: the new text did fit in the box
+   text = newtext
+   txtdata->insert = newinsert  'May be past end, because newtext got trimmed
+   ChangeTextSlice textslice, text
+  END IF
+  
+  'Display the textbox minus the text
   clearpage dpage
   textbox_edit_preview box, st, 4, YES
   'Display the lines in the box
-  FOR i as integer = state.first TO state.last
-   textcolor uilook(uiText), 0
-   IF box.textcolor > 0 THEN textcolor box.textcolor, 0
-   IF state.pt = i THEN
-    textcolor uilook(uiText), uilook(uiHighlight + state.tog)
-    printstr " ", 8 + insertpt * 8, 8 + i * 10, dpage
-    textcolor uilook(uiSelectedItem + state.tog), 0
-   END IF
-   printstr box.text(i), 8, 8 + i * 10, dpage
-  NEXT i
-  textcolor uilook(uiSelectedItem + state.tog), 0
-  printstr "-", 0, 8 + state.pt * 10, dpage
+  DrawSlice textslice, dpage
   textcolor uilook(uiText), 0
   printstr "Text Box " & st.id, 0, 100, dpage
   printstr "${C0} = Leader's name", 0, 120, dpage

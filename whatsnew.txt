@@ -49,6 +49,7 @@ WHAT IS NEW?
     * New formation options: Victory tag to set a tag according to
       whether the battle was won, and an option to prevent game over
       on death. [MirceaKitsune, Ralph]
+    * The textbox editor now wraps text as you type [Ralph]
 
   * Bugfixes
     * Fixed a few cosmetic bugs in the equip menu including possibly
