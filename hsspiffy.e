@@ -361,13 +361,10 @@ end function
 
 --trim whitespace (tabs and spaces) from beginning and end--
 global function trim_whitespace(sequence s)
-  if length(s)=0 then
-    return s
-  end if
-  while s[1]=' ' or s[1]='\t' do
+  while length(s) and (s[1]=' ' or s[1]='\t') do
     s=s[2..length(s)]
   end while
-  while s[length(s)]=' ' or s[length(s)]='\t' do
+  while length(s) and (s[length(s)]=' ' or s[length(s)]='\t') do
     s=s[1..length(s)-1]
   end while
   return s

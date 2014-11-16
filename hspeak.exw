@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Sb 2014-11-11 Better 'include' line lexing & garbage detection
 --3Sa 2014-08-23 Fix printing of a lexer error message
 --3S  2014-07-22 Automatically include plotscr.hsd and ignore
 --               double inclusion; added --include and -b
@@ -157,7 +158,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Sa"
+constant COMPILER_SUB_VERSION="Sb"
 constant COPYRIGHT_DATE="2014"
 
 --This is the oldest version of plotscr.hsd which is supported (feel free to
@@ -1419,31 +1420,45 @@ end function
 ---------------------------------------------------------------------------
 
 --Clean the rest of a line for seek_include after 'include' occurs
+--s is the whole line, i is end of the 'include', pos is the srcpos at start of line
 function lexer_read_include_line(TokenList tokens, string s, integer i, integer stop, srcpos pos)
   integer at
   sequence temp
+  string filename_string
 
   if not equal(tokens[1][CMD_TEXT],"include") then
     src_error(COLYEL&"include"&COLRED&" must be the only statement on the line. Maybe you tried to use this reserved keyword illegally?",tokens[$][CMD_POS])
   end if
 
+  filename_string=""
   i+=1
   s=s[i..stop]
-  at=find('#',s)
-  if at then
-    s=s[1..at-1]
-  end if
   if length(s) then
+    --Need to increment i while stripping
     while s[1]=' ' or s[1]='\t' do
       s=s[2..length(s)]
       i+=1
     end while
-    s=trim_whitespace(s)
+    --A quote mark in the middle of a filename doesn't need any escaping
     if s[1]='"' then
       temp=lexer_read_string(s,2,length(s),pos+i-1)
-      s=temp[2]
-      --so we ignore everything after the string.... ugh
+      s=s[temp[1]+1..$]
+      i+=temp[1]  --1 past the closing "
+      filename_string=temp[2]  --enclosed in quotes
     end if
+    at=find('#',s)
+    if at then
+      s=s[1..at-1]
+    end if
+    --Trim either whitespace after "filename", or after non-quoted filename
+    s=trim_whitespace(s)
+    if length(filename_string) then
+      if length(s) then
+        src_error("Garbage after the end of the filename in this "&COLYEL&"include"&COLRED&" statement", pos+i)
+      end if
+      s=filename_string
+    end if
+
     tokens=append(tokens,{s,pos+i-1})
   end if
 

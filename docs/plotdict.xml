@@ -202,9 +202,9 @@ variable+=1 # add one to it</example>
 		<command id="include">
 			<canon>include, filename</canon>
 			<shortname>include</shortname>
-			<description>The include command inserts another text file into your script. It is followed by a single filename that tells what file will be included. Windows long filenames are not supported. Every plotscript file should start with include, plotscr.hsd The PLOTSCR.HSD file contains definitions and constants for most of the other plotscripting commands.</description>
-			<example>include, plotscr.hsd # Plotscripting definitions
-include, mygame.hsi # constants particular to my game</example>
+			<description>The include command effectively inserts another text file into your script. It is followed by a single filename that tells what file will be included. This can be used to organise your scripts and other definitions like <ref>defineconstant</ref> into multiple files. The filename can include a path, for example <p>include, ..\utility scripts\math.hss</p>. You can optionally include quote marks around the filename, e.g. <p>include, "misc.hss"</p>, which causes normal string parsing (for example, allowing a # character in a filename). Previously every plotscript file had to start with <p>include, plotscr.hsd</p> but this is now optional. <p>plotscr.hsd</p>, <p>scancode.hsi</p>, and the exported <p>your game name.hsi</p> file are all automatically included.</description>
+			<example>include, cutscenes.hss  # All scripts for cutscenes
+include, ..\utility scripts\math.hss  # A few useful scripts shared between multiple games</example>
 		</command>
 	</section>
 	<section title="Wait Commands">
@@ -1524,7 +1524,7 @@ end</example>
 		</command>
 	</section>
 	<section title="String Functions">
-		<description>In HamsterSpeak, strings are special variables which hold pieces of text, and are referred to by their ID numbers. There are 100 string variables, with IDs 0 to 99. Strings variables can be displayed onscreen directly, or alternatively embedded in textboxes or dsiplayed with text slices. For more information, see the <a href="rpg.hamsterrepublic.com/ohrrpgce/Strings">wiki article on strings</a>.<lb/>
+		<description>In HamsterSpeak, strings are special variables which hold pieces of text, and are referred to by their ID numbers. There are 100 string variables, with IDs 0 to 99. Strings variables can be displayed onscreen directly, or alternatively embedded in textboxes or displayed with text slices. For more information, see the <a href="rpg.hamsterrepublic.com/ohrrpgce/Strings">wiki article on strings</a>.<lb/>
 You can set the value of a string directly with <ref>$string="..."</ref> and append to an existing string with <ref>$string+"..."</ref>.
 There is no limit on string length.<lb/>
 <note>Unlike almost all other indices in the OHRRPGCE, when referring to a position in a string, <p>position</p> is a 1-based index into the string, not a 0-based index. For example, given a string "ABCDEFG", position=3 is "C", not "D". This means that position 0 is invalid. Beware!</note>
