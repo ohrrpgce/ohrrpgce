@@ -574,7 +574,8 @@ FUNCTION iif_string(byval condition as integer, s1 as string, s2 as string) as s
  IF condition THEN RETURN s1 ELSE RETURN s2
 END FUNCTION
 
-'returns a copy of the string with separators inserted; use together with split()
+'Returns a copy of the string with separators inserted, replacing spaces, so that there's at most 'wid'
+'characters between separators; use together with split()
 Function wordwrap(z as string, byval wid as integer, sep as string = chr(10)) as string
  dim as string ret, in
  in = z
@@ -582,6 +583,7 @@ Function wordwrap(z as string, byval wid as integer, sep as string = chr(10)) as
  
  dim as integer i, j
  do
+  'Need to add a separator? Look up to one character past end of line
   for i = 1 to small(wid + 1, len(in))
    if mid(in, i, 1) = sep then
     ret &= left(in, i - 1) & sep
@@ -590,7 +592,8 @@ Function wordwrap(z as string, byval wid as integer, sep as string = chr(10)) as
    end if
   next
   
-  if i > len(in) then
+  if len(in) <= wid then
+   'We reached the end of input, and it will fit on a line
    ret &= in
    in = ""
    exit do
