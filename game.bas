@@ -2046,15 +2046,15 @@ SUB sfunctions(byval cmdid as integer)
     END IF
    CASE 245'--save map state
     IF retvals(1) > -1 AND retvals(1) <= 31 THEN
-     savemapstate retvals(1), retvals(0), "state"
+     savemapstate_bitmask retvals(1), retvals(0), "state"
     ELSEIF retvals(1) = 255 THEN
-     savemapstate gam.map.id, retvals(0), "map"
+     savemapstate_bitmask gam.map.id, retvals(0), "map"
     END IF
    CASE 246'--load map state
     IF retvals(1) > -1 AND retvals(1) <= 31 THEN
-     loadmapstate retvals(1), retvals(0), "state", -1
+     loadmapstate_bitmask retvals(1), retvals(0), "state", -1
     ELSEIF retvals(1) = 255 THEN
-     loadmapstate gam.map.id, retvals(0), "map"
+     loadmapstate_bitmask gam.map.id, retvals(0), "map"
     END IF
    CASE 247'--reset map state
     loadmaplumps gam.map.id, retvals(0)

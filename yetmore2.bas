@@ -479,39 +479,40 @@ SUB reset_npc_graphics ()
  NEXT i
 END SUB
 
-FUNCTION mapstatetemp(byval mapnum as integer, prefix as string) as string
+FUNCTION mapstatetemp(mapnum as integer, prefix as string) as string
  RETURN tmpdir & prefix & mapnum
 END FUNCTION
 
-SUB savemapstate_gmap(byval mapnum as integer, prefix as string)
+SUB savemapstate_gmap(mapnum as integer, prefix as string)
  DIM fh as integer = FREEFILE
  OPEN mapstatetemp(mapnum, prefix) & "_map.tmp" FOR BINARY as #fh
  PUT #fh, , gmap()
  CLOSE #fh
 END SUB
 
-SUB savemapstate_npcl(byval mapnum as integer, prefix as string)
+SUB savemapstate_npcl(mapnum as integer, prefix as string)
  DIM filename as string = mapstatetemp(mapnum, prefix) & "_l.reld.tmp"
  save_npc_locations filename, npc()
 END SUB
 
-SUB savemapstate_npcd(byval mapnum as integer, prefix as string)
+SUB savemapstate_npcd(mapnum as integer, prefix as string)
  SaveNPCD mapstatetemp(mapnum, prefix) & "_n.tmp", npcs()
 END SUB
 
-SUB savemapstate_tilemap(byval mapnum as integer, prefix as string)
+SUB savemapstate_tilemap(mapnum as integer, prefix as string)
  savetilemaps maptiles(), mapstatetemp(mapnum, prefix) & "_t.tmp"
 END SUB
 
-SUB savemapstate_passmap(byval mapnum as integer, prefix as string)
+SUB savemapstate_passmap(mapnum as integer, prefix as string)
  savetilemap pass, mapstatetemp(mapnum, prefix) & "_p.tmp"
 END SUB
 
-SUB savemapstate_zonemap(byval mapnum as integer, prefix as string)
+SUB savemapstate_zonemap(mapnum as integer, prefix as string)
  SaveZoneMap zmap, mapstatetemp(mapnum, prefix) & "_z.tmp"
 END SUB
 
-SUB savemapstate (byval mapnum as integer, byval savemask as integer = 255, prefix as string)
+'Used only by the "save map state" command
+SUB savemapstate_bitmask (mapnum as integer, savemask as integer = 255, prefix as string)
 IF savemask AND 1 THEN
  savemapstate_gmap mapnum, prefix
 END IF
@@ -532,11 +533,11 @@ IF savemask AND 32 THEN
 END IF
 END SUB
 
-SUB loadmapstate_gmap (byval mapnum as integer, prefix as string, byval dontfallback as integer = 0)
+SUB loadmapstate_gmap (mapnum as integer, prefix as string, dontfallback as bool = NO)
  DIM fh as integer = FREEFILE
  DIM filebase as string = mapstatetemp(mapnum, prefix)
  IF NOT isfile(filebase & "_map.tmp") THEN
-  IF dontfallback = 0 THEN loadmap_gmap mapnum
+  IF dontfallback = NO THEN loadmap_gmap mapnum
   EXIT SUB
  END IF
  lump_reloading.gmap.dirty = NO  'Not correct, but too much trouble to do correctly
@@ -557,12 +558,12 @@ SUB loadmapstate_gmap (byval mapnum as integer, prefix as string, byval dontfall
  END SELECT
 END SUB
 
-SUB loadmapstate_npcl (byval mapnum as integer, prefix as string, byval dontfallback as integer = 0)
+SUB loadmapstate_npcl (mapnum as integer, prefix as string, dontfallback as bool = NO)
  '--new-style
  DIM filename as string
  filename = mapstatetemp(mapnum, prefix) & "_l.reld.tmp"
  IF NOT isfile(filename) THEN
-  IF dontfallback = 0 THEN loadmap_npcl mapnum
+  IF dontfallback = NO THEN loadmap_npcl mapnum
   EXIT SUB
  END IF
 
@@ -572,10 +573,10 @@ SUB loadmapstate_npcl (byval mapnum as integer, prefix as string, byval dontfall
  visnpc
 END SUB
 
-SUB loadmapstate_npcd (byval mapnum as integer, prefix as string, byval dontfallback as integer = 0)
+SUB loadmapstate_npcd (mapnum as integer, prefix as string, dontfallback as bool = NO)
  DIM filebase as string = mapstatetemp(mapnum, prefix)
  IF NOT isfile(filebase & "_n.tmp") THEN
-  IF dontfallback = 0 THEN loadmap_npcd mapnum
+  IF dontfallback = NO THEN loadmap_npcd mapnum
   EXIT SUB
  END IF
  LoadNPCD filebase & "_n.tmp", npcs()
@@ -586,10 +587,10 @@ SUB loadmapstate_npcd (byval mapnum as integer, prefix as string, byval dontfall
  reset_npc_graphics
 END SUB
 
-SUB loadmapstate_tilemap (byval mapnum as integer, prefix as string, byval dontfallback as integer = 0)
+SUB loadmapstate_tilemap (mapnum as integer, prefix as string, dontfallback as bool = NO)
  DIM filebase as string = mapstatetemp(mapnum, prefix)
  IF NOT isfile(filebase + "_t.tmp") THEN
-  IF dontfallback = 0 THEN loadmap_tilemap mapnum
+  IF dontfallback = NO THEN loadmap_tilemap mapnum
  ELSE
   DIM as TilemapInfo statesize, propersize
   GetTilemapInfo maplumpname(mapnum, "t"), propersize
@@ -608,21 +609,21 @@ SUB loadmapstate_tilemap (byval mapnum as integer, prefix as string, byval dontf
    cropposition catx(0), caty(0), 20
 
   ELSE
-   DIM errmsg as string = "tried to load saved tilemap state which is size " & statesize.wide & "*" & statesize.high & ", while the map is size " & propersize.wide & "*" & propersize.high
+   DIM errmsg as string = " Tried to load saved tilemap state which is size " & statesize.wide & "*" & statesize.high & ", while the map is size " & propersize.wide & "*" & propersize.high
    IF insideinterpreter THEN
     scripterr current_command_name() + errmsg, 4
    ELSE
     debug "loadmapstate_tilemap(" + filebase + "_t.tmp): " + errmsg
    END IF
-   IF dontfallback = 0 THEN loadmap_tilemap mapnum
+   IF dontfallback = NO THEN loadmap_tilemap mapnum
   END IF
  END IF
 END SUB
 
-SUB loadmapstate_passmap (byval mapnum as integer, prefix as string, byval dontfallback as integer = 0)
+SUB loadmapstate_passmap (mapnum as integer, prefix as string, dontfallback as bool = NO)
  DIM filebase as string = mapstatetemp(mapnum, prefix)
  IF NOT isfile(filebase + "_p.tmp") THEN
-  IF dontfallback = 0 THEN loadmap_passmap mapnum
+  IF dontfallback = NO THEN loadmap_passmap mapnum
  ELSE
   DIM as TilemapInfo statesize, propersize
   GetTilemapInfo maplumpname(mapnum, "p"), propersize
@@ -639,15 +640,15 @@ SUB loadmapstate_passmap (byval mapnum as integer, prefix as string, byval dontf
    ELSE
     debug "loadmapstate_passmap(" + filebase + "_p.tmp): " + errmsg
    END IF
-   IF dontfallback = 0 THEN loadmap_passmap mapnum
+   IF dontfallback = NO THEN loadmap_passmap mapnum
   END IF
  END IF
 END SUB
 
-SUB loadmapstate_zonemap (byval mapnum as integer, prefix as string, byval dontfallback as integer = 0)
+SUB loadmapstate_zonemap (mapnum as integer, prefix as string, dontfallback as bool = NO)
  DIM filebase as string = mapstatetemp(mapnum, prefix)
  IF NOT isfile(filebase + "_z.tmp") THEN
-  IF dontfallback = 0 THEN loadmap_zonemap mapnum
+  IF dontfallback = NO THEN loadmap_zonemap mapnum
  ELSE
   'Unlike tile- and passmap loading, this doesn't leave the zonemap intact if the
   'saved state is the wrong size; instead the zonemap is blanked
@@ -672,7 +673,8 @@ SUB loadmapstate_zonemap (byval mapnum as integer, prefix as string, byval dontf
  END IF
 END SUB
 
-SUB loadmapstate (byval mapnum as integer, byval loadmask as integer, prefix as string, byval dontfallback as integer = 0)
+'This function is used only by the "load map state" command
+SUB loadmapstate_bitmask (mapnum as integer, loadmask as integer, prefix as string, dontfallback as bool = NO)
 IF loadmask AND 1 THEN
  loadmapstate_gmap mapnum, prefix, dontfallback
 END IF
@@ -693,8 +695,8 @@ IF loadmask AND 32 THEN
 END IF
 END SUB
 
-SUB deletemapstate (byval mapnum as integer, byval killmask as integer, prefix as string)
- dim filebase as string = mapstatetemp(mapnum, prefix)
+SUB deletemapstate (mapnum as integer, killmask as integer, prefix as string)
+ DIM filebase as string = mapstatetemp(mapnum, prefix)
  IF killmask AND 1 THEN safekill filebase + "_map.tmp"
  IF killmask AND 2 THEN safekill filebase + "_l.reld.tmp"
  IF killmask AND 4 THEN safekill filebase + "_n.tmp"
@@ -758,7 +760,7 @@ SUB reloadmap_gmap_no_tilesets()
  END IF
 END SUB
 
-SUB reloadmap_npcl(byval merge as integer)
+SUB reloadmap_npcl(merge as bool)
  lump_reloading.npcl.changed = NO
  
  'Delete saved state to prevent regressions
@@ -808,7 +810,7 @@ SUB reloadmap_npcd()
  reset_npc_graphics
 END SUB
 
-SUB reloadmap_tilemap_and_tilesets(byval merge as integer)
+SUB reloadmap_tilemap_and_tilesets(merge as bool)
  debug_reloadmap(maptiles)
 
  'Delete saved state to prevent regressions
@@ -842,7 +844,7 @@ SUB reloadmap_tilemap_and_tilesets(byval merge as integer)
  END IF
 END SUB
 
-SUB reloadmap_passmap(byval merge as integer)
+SUB reloadmap_passmap(merge as bool)
  debug_reloadmap(passmap)
 
  'Delete saved state to prevent regressions
@@ -1225,7 +1227,7 @@ FUNCTION try_reload_map_lump(basename as string, extn as string) as integer
  DIM basenum as integer = str2int(basename, -1)
  '--Don't bother to actually check basename=archinym
  mapnum = IIF(basenum >= 100 AND extnnum = -1, basenum, extnnum)
- IF mapnum = -1 THEN RETURN NO
+ IF mapnum = -1 THEN RETURN NO  'Isn't a recognised/supported map lump
  typecode = LEFT(extn, 1)
 
  WITH lump_reloading
@@ -1234,7 +1236,7 @@ FUNCTION try_reload_map_lump(basename as string, extn as string) as integer
    'Affects map(s) other then the current one. However, we should still delete saved map state.
    'Not really sure what to do if the mode loadmodeIfUnchanged or loadmodeMerge... deleting seems safest bet.
 
-   dim statefile as string = mapstatetemp(mapnum, "map") + "_" + typecode
+   DIM statefile as string = mapstatetemp(mapnum, "map") + "_" + typecode
    IF typecode = "l" THEN statefile += ".reld.tmp" ELSE statefile += ".tmp"
 
    SELECT CASE typecode
