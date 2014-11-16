@@ -696,6 +696,14 @@ end</example>
 			<shortname>set NPC position</shortname>
 			<description>Instantly moves the specified NPC to an X,Y position on the map. The coordinates are in units of tiles. You can use either an <ref>npcreference</ref> or the NPC&apos;s ID number to specify which NPC will be moved.</description>
 		</command>
+                <command id="setnpcz">
+			<canon>set npc z (npc, z)</canon>
+			<shortname>set npc z</shortname>
+			<description>Sets the Z location of the specified NPC. The Z value is the number of pixels they are above the tile that they are 'standing' on. Useful for scripts where you want a NPC to jump or levitate. All NPCs normally have a Z value of 0 (even on maps with a foot offset) unless they are a vehicle which rises.</description>
+			<seealso>
+				<ref>npcz</ref>
+			</seealso>
+		</command>
 		<command id="walknpctox">
 			<canon>walk NPC to X (who, X)</canon>
 			<shortname>walk NPC to X</shortname>
@@ -4330,6 +4338,14 @@ end
 			<description>Returns the specified NPC&apos;s Y position in tiles. Note that an NPC's tile is the tile its top left corner is on.</description>
 			<seealso>
 				<ref>npcatspot</ref>
+			</seealso>
+		</command>
+                <command id="npcz">
+			<canon>npc Z (who)</canon>
+			<shortname>npc Z</shortname>
+			<description>Returns the specified NPC&apos;s Z position in pixels. The Z value is the number of pixels they are above the tile that they are 'standing' on, not including the map's foot offset. All NPCs normally have a Z value of 0 (even on maps with a foot offset) unless they are used as a vehicle which rises.</description>
+			<seealso>
+				<ref>setnpcz</ref>
 			</seealso>
 		</command>
 		<command id="herodirection">
