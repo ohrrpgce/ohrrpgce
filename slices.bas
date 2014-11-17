@@ -929,11 +929,14 @@ Sub SaveRectangleSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SaveRectangleSlice null ptr": exit sub
  DIM dat as RectangleSliceData Ptr
  dat = sl->SliceData
- SaveProp node, "style", dat->style
- SaveProp node, "fg", dat->fgcol
- SaveProp node, "bg", dat->bgcol
+ if dat->style >= 0 then
+  SaveProp node, "style", dat->style
+ else
+  SaveProp node, "fg", dat->fgcol
+  SaveProp node, "bg", dat->bgcol
+  SaveProp node, "border", dat->border
+ end if
  SaveProp node, "trans", dat->translucent
- SaveProp node, "border", dat->border
  SaveProp node, "fuzzfactor", dat->fuzzfactor
 End Sub
 
@@ -941,12 +944,17 @@ Sub LoadRectangleSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "LoadRectangleSlice null ptr": exit sub
  dim dat as RectangleSliceData Ptr
  dat = sl->SliceData
- dat->style = LoadProp(node, "style", -1)
- dat->fgcol = LoadProp(node, "fg")
- dat->bgcol = LoadProp(node, "bg")
  dat->translucent = LoadProp(node, "trans")
- dat->border = LoadProp(node, "border", -1)
  dat->fuzzfactor = LoadProp(node, "fuzzfactor", 50)
+ dat->style = LoadProp(node, "style", -1)
+ if dat->style >= 0 then
+  dat->style_loaded = NO
+  UpdateRectangleSliceStyle dat
+ else
+  dat->fgcol = LoadProp(node, "fg")
+  dat->bgcol = LoadProp(node, "bg")
+  dat->border = LoadProp(node, "border", -1)
+ end if
 End Sub
 
 Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSliceData) as slice ptr
