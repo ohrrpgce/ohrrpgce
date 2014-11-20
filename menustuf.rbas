@@ -317,7 +317,7 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
    FOR i as integer = 0 TO 3
     buyst.party_sl(i)->Extra(0) = NO
     ChangeRectangleSlice buyst.party_box(i), 0, , , , transOpaque
-    hero_id = hero(i) - 1
+    hero_id = gam.hero(i).id
     IF hero_id >= 0 THEN
      IF xreadbit(itembuf(), hero_id, 66) THEN
       buyst.party_sl(i)->Extra(0) = YES
@@ -552,7 +552,7 @@ SUB buystuff_refresh_menu (buyst as ShopBuyState, menu as MenuDef, st as MenuSta
  END READNODE
    
  FOR i as integer = 0 TO 3
-  IF hero(i) > 0 THEN
+  IF gam.hero(i).id >= 0 THEN
    ChangeSpriteSlice buyst.party_sl(i), , gam.hero(i).battle_pic, gam.hero(i).battle_pal
   ELSE
    buyst.party_sl(i)->Visible = NO
@@ -759,7 +759,7 @@ FUNCTION chkOOBtarg (byval target as integer, byval atk as integer) as integer
 'true if valid, false if not valid
 'atk id can be -1 for when no attack is relevant
  IF target < 0 OR target > 40 THEN RETURN NO
- IF hero(target) = 0 THEN RETURN NO
+ IF gam.hero(target).id = -1 THEN RETURN NO
  IF atk < -1 OR atk > gen(genMaxAttack) THEN RETURN NO
 
  DIM hp as integer
@@ -861,7 +861,7 @@ SUB oobcure (byval attacker as integer, byval target as integer, byval atk as in
    '--average stats for item-triggered spells
    DIM partysize as integer = 0
    FOR o as integer = 0 TO 3
-    IF hero(o) > 0 THEN
+    IF gam.hero(o).id >= 0 THEN
      partysize += 1
      FOR i as integer = 0 TO statLast
       attacker_obj.stat.cur.sta(i) += gam.hero(o).stat.cur.sta(i)
@@ -1561,7 +1561,7 @@ FUNCTION hero_has_mp (byval hero_slot as integer) as bool
 END FUNCTION
 
 FUNCTION hero_uses_lmp (byval hero_slot as integer) as bool
- DIM hero_id as integer = hero(hero_slot) - 1
+ DIM hero_id as integer = gam.hero(hero_slot).id
  IF hero_id < 0 THEN
   debug "hero_uses_lmp: empty hero slot " & hero_slot
   RETURN NO
@@ -1634,7 +1634,7 @@ SUB ExpandTextHeroSlot (code as string, result as string, byval arg0 as ANY ptr=
  
  DIM hero_slot as integer = *CAST(integer ptr, arg0)
  
- DIM hero_id as integer = hero(hero_slot) - 1
+ DIM hero_id as integer = gam.hero(hero_slot).id
 
  IF hero_id < 0 THEN
   'Doesn't work on empty slots
@@ -1689,7 +1689,7 @@ SUB ExpandTextHeroSlotStat (code as string, result as string, byval arg0 as ANY 
  DIM hero_slot as integer = *CAST(integer ptr, arg0)
  DIM statnum as integer = *CAST(integer ptr, arg1)
 
- DIM hero_id as integer = hero(hero_slot) - 1
+ DIM hero_id as integer = gam.hero(hero_slot).id
 
  IF hero_id < 0 THEN
   'Doesn't work on empty slots
@@ -1782,7 +1782,7 @@ SUB status_screen_refresh(byref st as StatusScreenState)
  hide_slices_by_lookup_code st.sl, SL_STATUS_HIDE_IF_NO_LMP, NOT hero_uses_lmp(st.slot)
  hide_slices_by_lookup_code st.sl, SL_STATUS_HIDE_IF_MAX_LEV, gam.hero(st.slot).lev >= current_max_level
 
- DIM hero_id as integer = hero(st.slot) - 1
+ DIM hero_id as integer = gam.hero(st.slot).id
  IF hero_id >= 0 THEN
   hide_slices_by_lookup_code st.sl, SL_STATUS_HIDE_IF_NO_PORTRAIT, gam.hero(st.slot).portrait_pic < 0
   set_sprites_by_lookup_code st.sl, SL_STATUS_PORTRAIT, sprTypePortrait, gam.hero(st.slot).portrait_pic, gam.hero(st.slot).portrait_pal
@@ -2402,7 +2402,7 @@ FUNCTION trylearn (byval who as integer, byval atk as integer) as bool
 
 '--returns whether the spell was learned at least once
 
-IF hero(who) = 0 THEN
+IF gam.hero(who).id = -1 THEN
  debug "trylearn fail on empty party slot " & who
  RETURN NO
 END IF
@@ -2411,7 +2411,7 @@ DIM result as bool = NO
 
 dim her as herodef
 '--load the hero's data.
-loadherodata her, hero(who) - 1
+loadherodata her, gam.hero(who).id
 
 '--for each spell list
 FOR j as integer = 0 TO 3
@@ -2567,13 +2567,13 @@ DO
    EXIT DO
   END IF
   IF carray(ccLeft) > 1 THEN 'Left: previous hero
-   DO: st.who = loopvar(st.who, 0, 3, -1): LOOP UNTIL hero(st.who) > 0
+   DO: st.who = loopvar(st.who, 0, 3, -1): LOOP UNTIL gam.hero(st.who).id >= 0
    equip_menu_setup st, menu()
    MenuSound gen(genCursorSFX)
    item_info = equip_menu_equipped_item_info(st, eqstuf())
   END IF
   IF carray(ccRight) > 1 THEN 'Right: next hero
-   DO: st.who = loopvar(st.who, 0, 3, 1): LOOP UNTIL hero(st.who) > 0
+   DO: st.who = loopvar(st.who, 0, 3, 1): LOOP UNTIL gam.hero(st.who).id >= 0
    equip_menu_setup st, menu()
    MenuSound gen(genCursorSFX)
    item_info = equip_menu_equipped_item_info(st, eqstuf())
@@ -2775,7 +2775,7 @@ FUNCTION equip_menu_available_item_info(st as EquipMenuState) as string
 END FUNCTION
 
 SUB equip_menu_setup (byref st as EquipMenuState, menu() as string)
- loadherodata st.hero, hero(st.who) - 1
+ loadherodata st.hero, gam.hero(st.who).id
  st.default_weapon = gam.hero(st.who).def_wep
  st.default_weapon_name = rpad(readitemname(st.default_weapon - 1), " ", 11)
  IF LEN(TRIM(st.default_weapon_name)) = 0 THEN
@@ -2806,7 +2806,7 @@ SUB equip_menu_setup (byref st as EquipMenuState, menu() as string)
    eq_slot = itembuf(49) - 1
    IF eq_slot >= 0 THEN
     '--if this item is equipable
-    IF readbit(itembuf(), 66, hero(st.who) - 1) THEN
+    IF readbit(itembuf(), 66, gam.hero(st.who).id) THEN
      '--if this item is equipable by this hero
      WITH st.eq(eq_slot)
       .offset(.count) = i
@@ -3082,7 +3082,7 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
   END IF
   DIM cater_slot as integer = 0
   FOR i as integer = 0 TO 3
-   IF hero(i) > 0 THEN
+   IF gam.hero(i).id >= 0 THEN
     DIM frame as integer = 0
     IF targ = i THEN frame = wtogl \ 2
     set_walkabout_frame herow(cater_slot).sl, dirDown, frame
@@ -3168,7 +3168,7 @@ END SUB
 
 SUB spells_menu_refresh_hero(sp as SpellsMenuState)
  DIM her as HeroDef
- loadherodata her, hero(sp.hero) - 1 'hero() is a global
+ loadherodata her, gam.hero(sp.hero).id
  
  '--first blank out lists
  FOR i as integer = 0 TO UBOUND(sp.lists)
@@ -3226,14 +3226,14 @@ SUB spells_menu_control(sp as SpellsMenuState)
   IF carray(ccLeft) > 1 THEN
    DO
     sp.hero = loopvar(sp.hero, 0, 3, -1)
-   LOOP UNTIL hero(sp.hero) > 0
+   LOOP UNTIL gam.hero(sp.hero).id >= 0
    menusound gen(genCursorSFX)
    spells_menu_refresh_hero sp
   END IF
   IF carray(ccRight) > 1 THEN
    DO
     sp.hero = loopvar(sp.hero, 0, 3, 1)
-   LOOP UNTIL hero(sp.hero) > 0
+   LOOP UNTIL gam.hero(sp.hero).id >= 0
    menusound gen(genCursorSFX)
    spells_menu_refresh_hero sp
   END IF

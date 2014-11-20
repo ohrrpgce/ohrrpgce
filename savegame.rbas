@@ -520,8 +520,8 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
      WITH gam.hero(i)
 
       IF slot."id".exists THEN
-       hero(i) = slot."id" + 1
-       loadherodata her, hero(i) - 1      
+       gam.hero(i).id = slot."id"
+       loadherodata her, gam.hero(i).id      
 
        'Load defaults (for older saves which don't contain elemental data)
        FOR j = 0 TO gen(genNumElements) - 1
@@ -1045,7 +1045,7 @@ SUB gamestate_party_to_reload(byval parent as Reload.NodePtr)
  FOR i as integer = 0 TO 40
   slot = AppendChildNode(node, "slot", i)
   
-  IF hero(i) > 0 THEN SetChildNode(slot, "id", hero(i) - 1)
+  IF gam.hero(i).id >= 0 THEN SetChildNode(slot, "id", gam.hero(i).id)
   SetChildNode(slot, "name", names(i))
   
   IF xreadbit(hmask(), i) THEN
@@ -1072,12 +1072,12 @@ SUB gamestate_party_to_reload(byval parent as Reload.NodePtr)
    SetChildNode(slot, "exp_next", .exp_next)
    SetChildNode(slot, "def_wep", .def_wep)
    
-   IF hero(i) > 0 THEN
+   IF gam.hero(i).id >= 0 THEN
     ch = SetChildNode(slot, "hand")
     DIM default_pos as XYPair
     FOR j as integer = 0 TO 1
-     default_pos.x = GetHeroHandPos(hero(i) - 1, j, NO)
-     default_pos.y = GetHeroHandPos(hero(i) - 1, j, YES)
+     default_pos.x = GetHeroHandPos(gam.hero(i).id, j, NO)
+     default_pos.y = GetHeroHandPos(gam.hero(i).id, j, YES)
      IF .hand_pos(j).x <> default_pos.x ORELSE .hand_pos(j).y <> default_pos.y THEN
       n = AppendChildNode(ch, "frame", j)
       SetChildNode(n, "x", .hand_pos(j).x)
@@ -1098,10 +1098,10 @@ SUB gamestate_party_to_reload(byval parent as Reload.NodePtr)
    SetChildNode(ch, "pic", .pic)
    SetChildNode(ch, "pal", .pal)
 
-   IF hero(i) > 0 THEN
+   IF gam.hero(i).id >= 0 THEN
     'Only save this node on non-empty slots
     ch = SetChildNode(slot, "portrait")
-    loadherodata her, hero(i) - 1
+    loadherodata her, gam.hero(i).id
     'Only save these nodes when they differ from the default for this hero
     IF .portrait_pic <> her.portrait    THEN SetChildNode(ch, "pic", .portrait_pic)
     IF .portrait_pal <> her.portrait_pal THEN SetChildNode(ch, "pal", .portrait_pal)
@@ -1127,7 +1127,7 @@ SUB gamestate_party_to_reload(byval parent as Reload.NodePtr)
     END IF
    NEXT j
  
-   IF hero(i) THEN
+   IF gam.hero(i).id >= 0 THEN
     'Unlike all the other hero commands, hero elemental commands aren't allowed
     'to read/write empty hero slots, so don't need to save those
  
@@ -1486,7 +1486,7 @@ FOR i = 0 TO 1031
 NEXT i
 show_load_index z, "heroes"
 FOR i = 0 TO 40
- hero(i) = buffer(z): z = z + 1
+ gam.hero(i).id = buffer(z) - 1 : z = z + 1
 NEXT i
 show_load_index z, "unused a"
 FOR i = 0 TO 500
@@ -1694,8 +1694,8 @@ IF savver = 2 THEN gen(genVersion) = 3
 DIM her as HeroDef
 
 FOR i = 0 TO 40
- IF hero(i) > 0 THEN
-  loadherodata her, hero(i) - 1
+ IF gam.hero(i).id >= 0 THEN
+  loadherodata her, gam.hero(i).id
 
   gam.hero(i).rename_on_status = readbit(her.bits(), 0, 25)
 

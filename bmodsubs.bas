@@ -656,7 +656,7 @@ FUNCTION liveherocount (bslot() as BattleSprite) as integer
  '--with bslot() counts heros in-battle HP state
  DIM i as integer = 0
  FOR o as integer = 0 TO 3
-  IF hero(o) > 0 AND bslot(o).stat.cur.hp > 0 THEN i = i + 1
+  IF gam.hero(o).id >= 0 AND bslot(o).stat.cur.hp > 0 THEN i = i + 1
  NEXT o
  RETURN i
 END FUNCTION
@@ -665,7 +665,7 @@ FUNCTION liveherocount () as integer
  '--with no argument, counts live heroes in outside-of-battle active party
  DIM liveheroes as integer = 0
  FOR o as integer = 0 TO 3
-  IF hero(o) > 0 THEN
+  IF gam.hero(o).id >= 0 THEN
    IF gam.hero(o).stat.cur.hp > 0 OR gam.hero(o).stat.max.hp <= 0 THEN liveheroes += 1
   END IF
  NEXT o
@@ -848,7 +848,7 @@ SUB updatestatslevelup (byval hero_slot as integer, byval allowforget as integer
   IF .lev_gain THEN
 
    DIM her as herodef
-   loadherodata her, hero(hero_slot) - 1
+   loadherodata her, gam.hero(hero_slot).id
 
    'stat increase/decrease
    FOR statnum as integer = 0 TO statLast
@@ -943,7 +943,7 @@ SUB learn_spells_for_current_level(byval who as integer, byval allowforget as in
  NEXT
 
  dim her as herodef
- loadherodata her, hero(who) - 1
+ loadherodata her, gam.hero(who).id
 
  'learn spells
  FOR j as integer = 0 TO 3
@@ -969,7 +969,7 @@ END SUB
 FUNCTION allowed_to_gain_levels(byval heroslot as integer) as integer
  IF heroslot < 0 THEN RETURN NO 'out of range
  IF heroslot > UBOUND(gam.hero) THEN RETURN NO ' out of range
- IF hero(heroslot) <= 0 THEN RETURN NO ' no hero in this slot
+ IF gam.hero(heroslot).id = -1 THEN RETURN NO ' no hero in this slot
  IF gam.hero(heroslot).lev >= current_max_level THEN RETURN NO
  RETURN YES
 END FUNCTION
@@ -1034,7 +1034,7 @@ SUB export_battle_hero_stats (bslot() as BattleSprite)
  'Export a few specific hero battle stats to the out-of-battle party
  'This may be used frequently in battle
  FOR i as integer = 0 TO 3
-  IF hero(i) > 0 THEN
+  IF gam.hero(i).id >= 0 THEN
    '--set out-of-battle HP and MP equal to in-battle HP and MP
    gam.hero(i).stat.cur.hp = bslot(i).stat.cur.hp
    gam.hero(i).stat.cur.mp = bslot(i).stat.cur.mp
@@ -1048,7 +1048,7 @@ SUB import_battle_hero_stats (bslot() as BattleSprite)
  'stats have changed due to a level-up, and would never be used without
  'following an accompanying call to export_battle_hero_stats
  FOR i as integer = 0 TO 3
-  IF hero(i) > 0 THEN
+  IF gam.hero(i).id >= 0 THEN
    '--set in-battle HP and MP equal to out-of-battle HP and MP
    bslot(i).stat.cur.hp = gam.hero(i).stat.cur.hp
    bslot(i).stat.cur.mp = gam.hero(i).stat.cur.mp
@@ -1089,7 +1089,7 @@ SUB get_valid_targs(tmask() as integer, byval who as integer, byref atk as Attac
  CASE 4 'ally-including-dead
   IF is_hero(who) THEN
    FOR i = 0 TO 3
-    IF hero(i) > 0 THEN tmask(i) = 1
+    IF gam.hero(i).id >= 0 THEN tmask(i) = 1
    NEXT i
   ELSEIF is_enemy(who) THEN
    'enemies don't actually support targetting of dead allies
@@ -1133,7 +1133,7 @@ SUB get_valid_targs(tmask() as integer, byval who as integer, byref atk as Attac
  CASE 10 'dead-ally (hero only)
   IF is_hero(who) THEN
    FOR i = 0 TO 3
-    IF hero(i) > 0 AND bslot(i).stat.cur.hp = 0 THEN tmask(i) = 1
+    IF gam.hero(i).id >= 0 AND bslot(i).stat.cur.hp = 0 THEN tmask(i) = 1
    NEXT i
   END IF
 

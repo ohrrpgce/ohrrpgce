@@ -53,7 +53,7 @@ END IF '---end if > 0
 IF box.hero_addrem < 0 THEN
  IF herocount(40) > 1 THEN
   i = findhero(-box.hero_addrem, 0, 40, 1)
-  IF i > -1 THEN hero(i) = 0
+  IF i > -1 THEN gam.hero(i).id = -1
   IF herocount(3) = 0 THEN forceparty
  END IF
 END IF '---end if < 0
@@ -62,7 +62,7 @@ IF box.hero_swap > 0 THEN
  i = findhero(box.hero_swap, 40, 0, -1)
  IF i > -1 THEN
   FOR o as integer = 0 TO 3
-   IF hero(o) = 0 THEN
+   IF gam.hero(o).id = -1 THEN
     doswap i, o
     EXIT FOR
    END IF
@@ -74,7 +74,7 @@ IF box.hero_swap < 0 THEN
  i = findhero(-box.hero_swap, 0, 40, 1)
  IF i > -1 THEN
   FOR o as integer = 40 TO 4 STEP -1
-   IF hero(o) = 0 THEN
+   IF gam.hero(o).id = -1 THEN
     doswap i, o
     IF herocount(3) = 0 THEN forceparty
     EXIT FOR
@@ -151,7 +151,7 @@ FUNCTION embed_text_codes (text_in as string, byval callback as ANY Ptr=0, byval
       IF arg < 40 THEN
        '--defaults blank if not found
        insert = ""
-       IF hero(arg) > 0 THEN
+       IF gam.hero(arg).id >= 0 THEN
         insert = names(arg)
        END IF
       END IF
@@ -309,7 +309,7 @@ SELECT CASE as CONST id
  CASE 67'--delete hero
   IF herocount(40) > 1 THEN
    DIM i as integer = findhero(bound(retvals(0), 0, 59) + 1, 0, 40, 1)
-   IF i > -1 THEN hero(i) = 0
+   IF i > -1 THEN gam.hero(i).id = -1
    IF herocount(3) = 0 THEN forceparty
    party_change_updates
   END IF
@@ -317,7 +317,7 @@ SELECT CASE as CONST id
   DIM i as integer = findhero(retvals(0) + 1, 0, 40, 1)
   IF i > -1 THEN
    FOR o as integer = 40 TO 4 STEP -1
-    IF hero(o) = 0 THEN
+    IF gam.hero(o).id = -1 THEN
      doswap i, o
      IF herocount(3) = 0 THEN forceparty
      EXIT FOR
@@ -328,7 +328,7 @@ SELECT CASE as CONST id
   DIM i as integer = findhero(retvals(0) + 1, 40, 0, -1)
   IF i > -1 THEN
    FOR o as integer = 0 TO 3
-    IF hero(o) = 0 THEN
+    IF gam.hero(o).id = -1 THEN
      doswap i, o
      EXIT FOR
     END IF
@@ -425,20 +425,20 @@ SELECT CASE as CONST id
   END SELECT
  CASE 150'--status screen
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-   IF hero(retvals(0)) > 0 THEN
+   IF gam.hero(retvals(0)).id >= 0 THEN
     status_screen retvals(0)
    END IF
   END IF
  CASE 152'--spells menu
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-   IF hero(retvals(0)) > 0 THEN
+   IF gam.hero(retvals(0)).id >= 0 THEN
     old_spells_menu retvals(0)
    END IF
   END IF
  CASE 154'--equip menu
   'Can explicitly choose a hero to equip
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-   IF hero(retvals(0)) > 0 THEN
+   IF gam.hero(retvals(0)).id >= 0 THEN
     equip retvals(0)
    END IF
   ELSEIF retvals(0) = -1 THEN
@@ -511,7 +511,7 @@ SELECT CASE as CONST id
   IF really_valid_hero_party(heronum, , serrBound) THEN
    IF bound_arg(whichsprite, 0, 2, "hero picture type") THEN
     DIM her as herodef
-    loadherodata her, hero(heronum) - 1
+    loadherodata her, gam.hero(heronum).id
     SELECT CASE whichsprite
      CASE 0:
       gam.hero(heronum).battle_pic = her.sprite
@@ -529,7 +529,7 @@ SELECT CASE as CONST id
   IF really_valid_hero_party(heronum, , serrBound) THEN
    IF bound_arg(whichsprite, 0, 2, "hero picture type") THEN
     DIM her as herodef
-    loadherodata her, hero(heronum) - 1
+    loadherodata her, gam.hero(heronum).id
     SELECT CASE whichsprite
      CASE 0:
       gam.hero(heronum).battle_pal = her.sprite_pal
@@ -603,7 +603,7 @@ SUB forceparty ()
 DIM fpi as integer = findhero(-1, 0, 40, 1)
 IF fpi > -1 THEN
  FOR fpo as integer = 0 TO 3
-  IF hero(fpo) = 0 THEN
+  IF gam.hero(fpo).id = -1 THEN
    doswap fpi, fpo
    EXIT FOR
   END IF
@@ -703,7 +703,7 @@ FUNCTION rank_to_party_slot (byval rank as integer) as integer
  'Returns the party slot of the nth hero in the party (not just caterpillar party), or -1
  DIM heronum as integer = -1
  FOR party_slot as integer = 0 TO 3
-  IF hero(party_slot) > 0 THEN heronum += 1
+  IF gam.hero(party_slot).id >= 0 THEN heronum += 1
   IF heronum = rank THEN
    RETURN party_slot
   END IF
@@ -713,10 +713,10 @@ END FUNCTION
 
 FUNCTION party_slot_to_rank (byval slot as integer) as integer
  'Returns the rank of the hero in a party slot (not just caterpillar party), or -1 if invalid
- IF slot < -1 OR slot > UBOUND(hero) THEN RETURN -1
+ IF slot < -1 OR slot > UBOUND(gam.hero) THEN RETURN -1
  DIM heronum as integer = 0
  FOR party_slot as integer = 0 TO slot - 1
-  IF hero(party_slot) > 0 THEN heronum += 1
+  IF gam.hero(party_slot).id >= 0 THEN heronum += 1
  NEXT
  RETURN heronum
 END FUNCTION
@@ -724,7 +724,7 @@ END FUNCTION
 FUNCTION herobyrank (byval rank as integer) as integer
  'Return the ID of the nth hero in the *caterpillar* party
  DIM party_slot as integer = rank_to_party_slot(rank)
- IF party_slot >= 0 AND party_slot <= 3 THEN RETURN hero(party_slot) - 1
+ IF party_slot >= 0 AND party_slot <= 3 THEN RETURN gam.hero(party_slot).id
  RETURN -1
 END FUNCTION
 
@@ -936,8 +936,8 @@ FUNCTION rankincaterpillar (byval heroid as integer) as integer
  DIM result as integer = -1
  DIM o as integer = 0
  FOR i as integer = 0 TO 3
-  IF hero(i) > 0 THEN
-   IF hero(i) - 1 = heroid THEN result = o
+  IF gam.hero(i).id >= 0 THEN
+   IF gam.hero(i).id = heroid THEN result = o
    o += 1
   END IF
  NEXT i
@@ -1214,7 +1214,7 @@ SELECT CASE as CONST id
   IF valid_item(retvals(1)) THEN
    IF valid_hero_party(retvals(0)) THEN
     loaditemdata buffer(), retvals(1)
-    DIM hero_id as integer = hero(retvals(0)) - 1
+    DIM hero_id as integer = gam.hero(retvals(0)).id
     IF hero_id >= 0 THEN
      IF readbit(buffer(), 66, hero_id) THEN
       scriptret = buffer(49)
@@ -1396,7 +1396,7 @@ SELECT CASE as CONST id
   DIM partyslot as integer
   DIM heroID as integer
   partyslot = bound(retvals(0), 0, 40)
-  heroID = hero(partyslot) - 1
+  heroID = gam.hero(partyslot).id
   IF heroID = -1 THEN
    scripterr "can learn spell: fail on empty party slot " & partyslot, serrBound
   ELSE
@@ -1417,7 +1417,7 @@ SELECT CASE as CONST id
   END IF
  CASE 133'--hero by slot
   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
-   scriptret = hero(retvals(0)) - 1
+   scriptret = gam.hero(retvals(0)).id
   ELSE
    scriptret = -1
   END IF
@@ -1427,7 +1427,7 @@ SELECT CASE as CONST id
   scriptret = onwho(readglobalstring(135, "Which Hero?", 20), 1)
  CASE 146'--rename hero by slot
   IF valid_hero_party(retvals(0)) THEN
-   IF hero(retvals(0)) > 0 THEN
+   IF gam.hero(retvals(0)).id >= 0 THEN
     renamehero retvals(0), YES
    END IF
   END IF
@@ -3203,13 +3203,13 @@ SELECT CASE as CONST id
  CASE 538 '--get default hero hand x
   IF valid_hero_party(retvals(0)) THEN
    IF bound_arg(retvals(0), 0, 1, "attack frame") THEN
-    scriptret = GetHeroHandPos(hero(retvals(0))-1, retvals(1), NO)
+    scriptret = GetHeroHandPos(gam.hero(retvals(0)).id, retvals(1), NO)
    END IF
   END IF
  CASE 539 '--get default hero hand y
   IF valid_hero_party(retvals(0)) THEN
    IF bound_arg(retvals(0), 0, 1, "attack frame") THEN
-    scriptret = GetHeroHandPos(hero(retvals(0))-1, retvals(1), YES)
+    scriptret = GetHeroHandPos(gam.hero(retvals(0)).id, retvals(1), YES)
    END IF
   END IF
  CASE 540'--check onetime
@@ -3805,7 +3805,7 @@ END FUNCTION
 SUB vishero ()
  DIM cater_slot as integer = 0
  FOR party_slot as integer = 0 TO 3
-  IF hero(party_slot) > 0 THEN
+  IF gam.hero(party_slot).id >= 0 THEN
    set_walkabout_sprite herow(cater_slot).sl, gam.hero(party_slot).pic, gam.hero(party_slot).pal
    cater_slot += 1
   END IF

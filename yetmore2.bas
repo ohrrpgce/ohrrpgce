@@ -158,7 +158,7 @@ END SUB
 
 SUB innRestore ()
  FOR i as integer = 0 TO 3
-  IF hero(i) > 0 THEN '--hero exists
+  IF gam.hero(i).id >= 0 THEN '--hero exists
    IF gam.hero(i).stat.cur.hp <= 0 AND readbit(gen(), genBits, 4) THEN
     '--hero is dead and inn-revive is disabled
    ELSE

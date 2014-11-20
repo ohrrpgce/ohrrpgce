@@ -129,6 +129,7 @@ DIM SHARED scriptout as string
 
 'global variables
 DIM gam as GameState
+init_GameState gam
 DIM txt as TextBoxState
 REDIM gen(360) as integer
 DIM gen_reld_doc as DocPtr
@@ -140,7 +141,6 @@ REDIM herotags(59) as HeroTagsCache
 REDIM itemtags(maxMaxItems) as ItemTagsCache
 
 'Party stuff
-REDIM hero(40) as integer
 REDIM spell(40, 3, 23) as integer
 REDIM lmp(40, 7) as integer
 REDIM names(40) as string
@@ -1149,7 +1149,7 @@ SUB update_heroes(byval force_step_check as integer=NO)
       howmany = 1
      END IF
      FOR party_slot as integer = 0 TO howmany - 1
-      IF hero(party_slot) > 0 THEN
+      IF gam.hero(party_slot).id >= 0 THEN
        gam.hero(party_slot).stat.cur.hp = large(gam.hero(party_slot).stat.cur.hp - gmap(9), 0)
       END IF
      NEXT
@@ -1329,7 +1329,7 @@ SUB update_walkabout_hero_slices()
 
   DIM cat_slot as integer = 0
   FOR party_slot as integer = 0 TO 3
-   IF hero(party_slot) > 0 THEN
+   IF gam.hero(party_slot).id >= 0 THEN
     set_walkabout_frame herow(cat_slot).sl, catd(cat_slot * 5), (herow(cat_slot).wtog \ 2)
     cat_slot += 1
    END IF
@@ -2388,7 +2388,7 @@ END FUNCTION
 FUNCTION really_valid_hero_party(byval who as integer, byval maxslot as integer=40, byval errlvl as scriptErrEnum = serrBadOp) as integer
  'Defaults to a non-suppressed error
  IF bound_arg(who, 0, maxslot, "hero party slot", , , errlvl) = NO THEN RETURN NO
- IF hero(who) = 0 THEN
+ IF gam.hero(who).id = -1 THEN
   scripterr current_command_name() + ": Party hero slot " & who & " is empty", errlvl
   RETURN NO
  END IF
@@ -3546,7 +3546,7 @@ SUB init_text_box_slices(txt as TextBoxState)
    END IF
  END SELECT
  IF hero_slot >= 0 ANDALSO hero_slot <= UBOUND(gam.hero) THEN
-  IF hero(hero_slot) > 0 THEN
+  IF gam.hero(hero_slot).id >= 0 THEN
    img_id = gam.hero(hero_slot).portrait_pic
    pal_id = gam.hero(hero_slot).portrait_pal
   END IF
@@ -3967,7 +3967,7 @@ END FUNCTION
 FUNCTION first_free_slot_in_active_party() as integer
  '--returns the first free slot, or -1 if all slots are full
  FOR i as integer = 0 TO 3
-  IF hero(i) = 0 THEN RETURN i
+  IF gam.hero(i).id = -1 THEN RETURN i
  NEXT i
  RETURN -1
 END FUNCTION
@@ -3976,7 +3976,7 @@ FUNCTION first_free_slot_in_reserve_party() as integer
  '--returns the first free slot, or -1 if all slots are full
  IF free_slots_in_party() > 0 THEN
   FOR i as integer = 4 TO 40
-   IF hero(i) = 0 THEN RETURN i
+   IF gam.hero(i).id = -1 THEN RETURN i
   NEXT i
  END IF
  RETURN -1
@@ -4396,6 +4396,6 @@ FUNCTION loop_active_party_slot(byval slot as integer, byval direction as intege
  END IF
  DO
   slot = loopvar(slot, 0, last_active_party_slot(), direction)
-  IF hero(slot) > 0 THEN RETURN slot
+  IF gam.hero(slot).id >= 0 THEN RETURN slot
  LOOP
 END FUNCTION

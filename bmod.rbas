@@ -888,7 +888,7 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
  DIM col as integer
  IF bat.vic.state = 0 THEN 'only display interface till you win
   FOR i = 0 TO 3 '--for each hero
-   IF hero(i) > 0 THEN '--FIXME: should use some battle state instead of global state to
+   IF gam.hero(i).id >= 0 THEN '--FIXME: should use some battle state instead of global state to
                        '--determine if the hero is present.
     IF readbit(gen(), genBits, 6) = 0 THEN
      '--show the ready meter
@@ -1350,8 +1350,8 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
  
  DIM attack as AttackData
  FOR i = 0 TO 3
-  IF hero(i) > 0 THEN
-   loadherodata st(i), hero(i) - 1
+  IF gam.hero(i).id >= 0 THEN
+   loadherodata st(i), gam.hero(i).id
 
    '--init bslot() for each hero
    WITH bslot(i)
@@ -1395,7 +1395,7 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
  NEXT i
 
  '--wipe spells learnt and levels gained for all heroes
- FOR i = 0 TO UBOUND(hero)
+ FOR i = 0 TO UBOUND(gam.hero)
   FOR o as integer = i * 6 TO i * 6 + 5
    learnmask(o) = 0
   NEXT
@@ -1426,7 +1426,7 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
  '-- who are already weak/dead at the beginning of battle
  FOR i = 0 TO 3
   enforce_weak_picture i, bslot(), bat
-  IF hero(i) > 0 AND bslot(i).stat.cur.hp = 0 THEN
+  IF gam.hero(i).id >= 0 AND bslot(i).stat.cur.hp = 0 THEN
    '--hero starts the battle dead
    bslot(i).dissolve = 1 'Keeps the dead hero from vanishing
    bslot(i).frame = frameDEAD
@@ -1562,11 +1562,11 @@ END SUB
 FUNCTION distribute_party_experience (byval exper as integer) as integer
  '--Calculate amount of experience given to each hero, and returns the "base" experience value,
  '--which is the amount given to live heroes in the active party
- DIM as double sumheroes, xp_mult(UBOUND(hero))
+ DIM as double sumheroes, xp_mult(UBOUND(gam.hero))
  DIM as integer i
 
- FOR i = 0 TO UBOUND(hero)
-  IF hero(i) > 0 THEN
+ FOR i = 0 TO UBOUND(gam.hero)
+  IF gam.hero(i).id >= 0 THEN
    IF gam.hero(i).stat.cur.hp > 0 OR readbit(gen(), genBits2, 3) THEN 'alive, or "dead heroes get experience" ON
     IF i <= 3 THEN
      'active party
@@ -1588,8 +1588,8 @@ FUNCTION distribute_party_experience (byval exper as integer) as integer
  ' then divide the experience between the heroes
  IF sumheroes > 0 ANDALSO readbit(gen(), genBits2, 14) = 0 THEN exper = exper / sumheroes
 
- FOR i = 0 TO UBOUND(hero)
-  IF hero(i) > 0 THEN
+ FOR i = 0 TO UBOUND(gam.hero)
+  IF gam.hero(i).id >= 0 THEN
    giveheroexperience i, xp_mult(i) * exper
    'debug "hero " & i & " got " & CINT(xp_mult(i) * exper)
    updatestatslevelup i, NO
@@ -1621,7 +1621,7 @@ SELECT CASE bat.vic.state
   '--print levelups
   o = 0
   DIM numlevelled as integer = 0
-  FOR i = 0 TO UBOUND(hero)
+  FOR i = 0 TO UBOUND(gam.hero)
    IF gam.hero(i).lev_gain <> 0 THEN numlevelled += 1
   NEXT
   IF numlevelled THEN
@@ -1629,7 +1629,7 @@ SELECT CASE bat.vic.state
    centerfuz 160, 10 + 5 * numlevelled, 280, 10 + 10 * numlevelled, 1, dpage
    bat.vic.box = YES
   END IF
-  FOR i = 0 TO UBOUND(hero)
+  FOR i = 0 TO UBOUND(gam.hero)
    SELECT CASE gam.hero(i).lev_gain
     CASE 1
      tempstr = bat.vic.level_up_caption & " " & names(i)
@@ -1655,7 +1655,7 @@ SELECT CASE bat.vic.state
     bat.vic.learnslot += 1
     IF bat.vic.learnslot > 23 THEN bat.vic.learnslot = 0: bat.vic.learnlist = bat.vic.learnlist + 1
     IF bat.vic.learnlist > 3 THEN bat.vic.learnlist = 0: bat.vic.learnwho = bat.vic.learnwho + 1
-    IF bat.vic.learnwho > UBOUND(hero) THEN ' We have iterated through all spell lists for all heroes, time to move on
+    IF bat.vic.learnwho > UBOUND(gam.hero) THEN ' We have iterated through all spell lists for all heroes, time to move on
      bat.vic.state = vicITEMS
      bat.vic.item_name = ""
      bat.vic.found_index = 0
@@ -1875,7 +1875,7 @@ END FUNCTION
 SUB calc_hero_elementals (elemental_resists() as single, byval who as integer)
  'Calculate a hero's elemental resists after taking equipment into account
  'elemental_resists() (the destination) should be sized up to at least gen(genNumElements) - 1;
- 'who is a hero() slot number.
+ 'who is a hero slot number.
  'This is used both here and in the status menu.
 
  REDIM itemelementals() as single
@@ -4006,7 +4006,7 @@ SUB ready_all_valid_units(bslot() as BattleSprite, formdata as Formation)
   bslot(i).no_attack_this_turn = NO
  NEXT i
  FOR i as integer = 0 TO 3
-  IF hero(i) > 0 ANDALSO bslot(i).stat.cur.hp > 0 THEN
+  IF gam.hero(i).id >= 0 ANDALSO bslot(i).stat.cur.hp > 0 THEN
    bslot(i).ready = YES
    bslot(i).ready_meter = 1000 'Filling the ready meter only matters for visual indication
   END IF
@@ -4172,7 +4172,7 @@ SUB calc_initiative_order (bslot() as BattleSprite, formdata as Formation)
  DIM speeds(11) as integer
  FOR i as integer = 0 to 11
   IF is_hero(i) THEN
-   IF NOT (hero(i) > 0 ANDALSO bslot(i).stat.cur.hp > 0) THEN
+   IF NOT (gam.hero(i).id >= 0 ANDALSO bslot(i).stat.cur.hp > 0) THEN
     speeds(i) = -1
     CONTINUE FOR
    END IF

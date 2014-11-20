@@ -47,7 +47,7 @@ IF forcelevel >= 0 THEN her.def_level = forcelevel
 IF her.def_level < 0 THEN her.def_level = averagelev
 
 '--formally add hero
-hero(slot) = who
+gam.hero(slot).id = who - 1
 
 '---MUST SET DEFAULT EQUIP---
 FOR i as integer = 0 TO 4
@@ -137,7 +137,7 @@ FUNCTION averagelev () as integer
  DIM average as integer = 0
  DIM count as integer = 0
  FOR i as integer = 0 TO 3
-  IF hero(i) > 0 THEN average += gam.hero(i).lev: count += 1
+  IF gam.hero(i).id >= 0 THEN average += gam.hero(i).lev: count += 1
  NEXT i
  IF count > 0 THEN average = average / count
  RETURN average
@@ -362,9 +362,6 @@ DIM a as integer = readbit(hmask(), 0, d)
 setbit hmask(), 0, d, readbit(hmask(), 0, s)
 setbit hmask(), 0, s, a
 
-'---Hero index
-SWAP hero(s), hero(d)
-
 '---Spell lists
 FOR i as integer = 0 TO 3
  FOR o as integer = 0 TO 23
@@ -396,7 +393,6 @@ NEXT i
 '--set tags, reload hero pictures and palettes, etc
 party_change_updates
 
-'hero(40), spell(40,3,23), lmp(40,7), names(40), eqstuf(40,4)
 END SUB
 
 SUB update_textbox ()
@@ -456,8 +452,8 @@ SUB evalherotags ()
   settag herotags(i).active_tag, NO
  NEXT i
  'scan party
- FOR i as integer = 0 TO UBOUND(hero)
-  id = hero(i) - 1
+ FOR i as integer = 0 TO UBOUND(gam.hero)
+  id = gam.hero(i).id
   IF id >= 0 THEN
    settag herotags(id).have_tag, YES
    IF gam.hero(i).stat.cur.hp > 0 THEN settag herotags(id).alive_tag, YES
@@ -510,7 +506,7 @@ END SUB
 
 FUNCTION findhero (byval who as integer, byval first as integer, byval last as integer, byval direction as integer) as integer
  FOR i as integer = first TO last STEP direction
-  IF hero(i) = who ORELSE (who = -1 ANDALSO hero(i)) THEN
+  IF gam.hero(i).id + 1 = who ORELSE (who = -1 ANDALSO gam.hero(i).id >= 0) THEN
    RETURN i
   END IF
  NEXT i
@@ -640,7 +636,7 @@ DO
  END IF
  IF st.party.need_update THEN
   st.party.need_update = NO
-  IF hero(st.party.pt) AND st.reserve.pt < 0 THEN st.info = names(st.party.pt) ELSE st.info = ""
+  IF gam.hero(st.party.pt).id >= 0 AND st.reserve.pt < 0 THEN st.info = names(st.party.pt) ELSE st.info = ""
  END IF
 
  copypage holdscreen, st.page
@@ -663,8 +659,8 @@ SUB hero_swap_menu_display (st as OrderTeamState)
  centerbox 160, 66, 130, 38, 1, st.page
  DIM cater_slot as integer = 0
  FOR i as integer = 0 TO 3
-  IF i = st.swapme OR hero(i) > 0 THEN rectangle 105 + (30 * i), 60, 20, 20, boxlook(0).bgcol, st.page
-  IF hero(i) THEN
+  IF i = st.swapme OR gam.hero(i).id >= 0 THEN rectangle 105 + (30 * i), 60, 20, 20, boxlook(0).bgcol, st.page
+  IF gam.hero(i).id >= 0 THEN
    set_walkabout_frame herow(cater_slot).sl, dirDown, 0
    DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, herow(cater_slot).sl), 105 + i * 30, 60 + (i = st.swapme) * 6, 20, 20, st.page, YES
    cater_slot += 1
@@ -698,7 +694,7 @@ SUB hero_swap_menu_init(st as OrderTeamState)
  st.reserve.last = -1
  st.size.y = 0
  FOR i as integer = 4 TO 40
-  IF readbit(hmask(), 0, i) = 0 AND hero(i) THEN
+  IF readbit(hmask(), 0, i) = 0 AND gam.hero(i).id >= 0 THEN
    st.reserve.last = st.reserve.last + 1
    st.swindex(st.reserve.last) = i
    st.swname(st.reserve.last) = names(i)
@@ -707,7 +703,7 @@ SUB hero_swap_menu_init(st as OrderTeamState)
  NEXT i
  st.reserve.last += 1
  FOR i as integer = 40 TO 4 STEP -1
-  IF hero(i) = 0 THEN
+  IF gam.hero(i).id = -1 THEN
    st.swindex(st.reserve.last) = i
    st.swname(st.reserve.last) = readglobalstring(48, "-REMOVE-", 10)
    st.size.y = large(st.size.y, 7)
@@ -1006,18 +1002,18 @@ DO
   EXIT DO
  END IF
  IF carray(ccLeft) > 1 THEN
-  DO: w = loopvar(w, 0, 3, -1): LOOP UNTIL hero(w) > 0
+  DO: w = loopvar(w, 0, 3, -1): LOOP UNTIL gam.hero(w).id >= 0
   menusound gen(genCursorSFX)
  END IF
  IF carray(ccRight) > 1 THEN
-  DO: w = loopvar(w, 0, 3, 1): LOOP UNTIL hero(w) > 0
+  DO: w = loopvar(w, 0, 3, 1): LOOP UNTIL gam.hero(w).id >= 0
   menusound gen(genCursorSFX)
  END IF
  IF carray(ccUse) > 1 THEN onwho = w: EXIT DO
  centerbox 160, 100, 140, 52, 1, page
  DIM cater_slot as integer = 0
  FOR party_slot as integer = 0 TO 3
-  IF hero(party_slot) > 0 THEN
+  IF gam.hero(party_slot).id >= 0 THEN
    IF w = party_slot THEN wt = wtg \ 2 ELSE wt = 0
    set_walkabout_frame herow(cater_slot).sl, dirDown, wt
    DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, herow(cater_slot).sl), 100 + party_slot * 30, 100, 20, 20, page, YES
@@ -1082,7 +1078,7 @@ SUB renamehero (byval who as integer, byval escapable as integer)
 'If escapable is true, then ESC exits, otherwise it resets the entered name
 
 DIM her as herodef
-loadherodata her, hero(who) - 1
+loadherodata her, gam.hero(who).id
 
 DIM limit as integer = her.max_name_len
 IF limit = 0 THEN limit = 16
@@ -1176,8 +1172,8 @@ xbload game + ".gen", gen(), "General data is missing from " + sourcerpg
 CleanNPCL npc()
 flusharray tag()
 flusharray onetime()
-flusharray hero(), 40, 0
 FOR i as integer = 0 TO 40
+ gam.hero(i).id = -1
  FOR j as integer = 0 TO statLast
   gam.hero(i).stat.cur.sta(j) = 0
   gam.hero(i).stat.max.sta(j) = 0
@@ -1286,6 +1282,13 @@ SliceDebugDump YES
 SetupGameSlices
 reset_game_state()
 
+END SUB
+
+SUB init_GameState (byref g as GameState)
+ 'Set up non-zero defaults for gamestate
+ FOR i as integer = 0 to UBOUND(g.hero)
+  g.hero(i).id = -1
+ NEXT i
 END SUB
 
 FUNCTION gamepadmap_from_reload(gamepad as NodePtr, byval use_dpad as bool=NO) as GamePadMap
@@ -1638,7 +1641,7 @@ DO
  edgeboxstyle 0, 3, 218, herocount() * 10 + 4, 0, page
  DIM y as integer = 0
  FOR i as integer = 0 TO 3
-  IF hero(i) > 0 THEN
+  IF gam.hero(i).id >= 0 THEN
    DIM col as integer = uilook(uiText)
    edgeprint names(i), 128 - LEN(names(i)) * 8, 5 + y * 10, col, page
    edgeprint STR(gam.hero(i).stat.cur.hp) + "/" + STR(gam.hero(i).stat.max.hp), 136, 5 + y * 10, col, page
@@ -1719,7 +1722,7 @@ FUNCTION herocount (byval last as integer = 3) as integer
  '--differs from liveherocount() in that it does not care if they are alive
  DIM count as integer = 0
  FOR i as integer = 0 TO last
-  IF hero(i) > 0 THEN count += 1
+  IF gam.hero(i).id >= 0 THEN count += 1
  NEXT i
  RETURN count
 END FUNCTION
