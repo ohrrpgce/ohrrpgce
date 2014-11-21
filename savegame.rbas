@@ -547,7 +547,7 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
       READNODE slot, default
        slot."id".ignore
 
-       names(i) = slot."name".string
+       gam.hero(i).name = slot."name".string
 
        setbit hmask(), 0, i, slot."locked".exists
 
@@ -1046,7 +1046,7 @@ SUB gamestate_party_to_reload(byval parent as Reload.NodePtr)
   slot = AppendChildNode(node, "slot", i)
   
   IF gam.hero(i).id >= 0 THEN SetChildNode(slot, "id", gam.hero(i).id)
-  SetChildNode(slot, "name", names(i))
+  SetChildNode(slot, "name", gam.hero(i).name)
   
   IF xreadbit(hmask(), i) THEN
    SetChildNode(slot, "locked")
@@ -1544,10 +1544,10 @@ FOR i = 0 TO 40
 NEXT i
 show_load_index z, "names"
 FOR i = 0 TO 40
- names(i) = ""
+ gam.hero(i).name = ""
  FOR j = 0 TO 16
   IF buffer(z) < 0 OR buffer(z) > 255 THEN buffer(z) = 0
-  IF buffer(z) > 0 THEN names(i) &= CHR(buffer(z))
+  IF buffer(z) > 0 THEN gam.hero(i).name &= CHR(buffer(z))
   z = z + 1
  NEXT j
 NEXT i

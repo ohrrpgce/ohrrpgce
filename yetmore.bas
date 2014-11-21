@@ -143,7 +143,7 @@ FUNCTION embed_text_codes (text_in as string, byval callback as ANY Ptr=0, byval
       '--first search for a copy of the hero in the party
       DIM where as integer = findhero(arg + 1, 0, 40, 1)
       IF where >= 0 THEN
-       insert = names(where)
+       insert = gam.hero(where).name
       ELSE
        insert = getheroname(arg)
       END IF
@@ -152,7 +152,7 @@ FUNCTION embed_text_codes (text_in as string, byval callback as ANY Ptr=0, byval
        '--defaults blank if not found
        insert = ""
        IF gam.hero(arg).id >= 0 THEN
-        insert = names(arg)
+        insert = gam.hero(arg).name
        END IF
       END IF
      CASE "C": '--Hero name by caterpillar position
@@ -160,7 +160,7 @@ FUNCTION embed_text_codes (text_in as string, byval callback as ANY Ptr=0, byval
       insert = ""
       DIM where as integer = rank_to_party_slot(arg)
       IF where >= 0 AND where <= 3 THEN
-       insert = names(where)
+       insert = gam.hero(where).name
       END IF
      CASE "V": '--global variable by ID
       '--defaults blank if out-of-range
@@ -1567,14 +1567,14 @@ SELECT CASE as CONST id
   END IF
  CASE 204'--get hero name(str,her)
   IF valid_plotstr(retvals(0)) AND valid_hero_party(retvals(1)) THEN
-   plotstr(retvals(0)).s = names(retvals(1))
+   plotstr(retvals(0)).s = gam.hero(retvals(1)).name
    scriptret = 1
   ELSE
    scriptret = 0
   END IF
  CASE 205'--set hero name
   IF valid_plotstr(retvals(0)) AND valid_hero_party(retvals(1)) THEN
-   names(retvals(1)) = plotstr(retvals(0)).s
+   gam.hero(retvals(1)).name = plotstr(retvals(0)).s
    scriptret = 1
   ELSE
    scriptret = 0

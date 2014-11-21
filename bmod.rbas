@@ -1386,7 +1386,7 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
 
    calc_hero_elementals bslot(i).elementaldmg(), i
 
-   bslot(i).name = names(i)
+   bslot(i).name = gam.hero(i).name
    
   ELSE
    '--blank empty hero slots
@@ -1632,9 +1632,9 @@ SELECT CASE bat.vic.state
   FOR i = 0 TO UBOUND(gam.hero)
    SELECT CASE gam.hero(i).lev_gain
     CASE 1
-     tempstr = bat.vic.level_up_caption & " " & names(i)
+     tempstr = bat.vic.level_up_caption & " " & gam.hero(i).name
     CASE IS > 1
-     tempstr = gam.hero(i).lev_gain & " " & bat.vic.levels_up_caption & " " & names(i)
+     tempstr = gam.hero(i).lev_gain & " " & bat.vic.levels_up_caption & " " & gam.hero(i).name
    END SELECT
    IF gam.hero(i).lev_gain > 0 THEN
     edgeprint tempstr, xstring(tempstr, 160), 12 + o * 10, uilook(uiText), dpage
@@ -1666,7 +1666,7 @@ SELECT CASE bat.vic.state
      'found a learned spell
      DIM learn_attack as AttackData
      loadattackdata learn_attack, spell(bat.vic.learnwho, bat.vic.learnlist, bat.vic.learnslot) - 1
-     bat.vic.item_name = names(bat.vic.learnwho) + bat.vic.learned_caption + learn_attack.name
+     bat.vic.item_name = gam.hero(bat.vic.learnwho).name + bat.vic.learned_caption + learn_attack.name
      bat.vic.showlearn = YES
      bat.vic.box = YES
      IF learn_attack.learn_sound_effect > 0 THEN playsfx learn_attack.learn_sound_effect - 1

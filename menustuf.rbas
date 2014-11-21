@@ -199,7 +199,7 @@ SUB buystuff_do_purchase(buyst as ShopBuyState, byval thing as NodePtr, byval th
    IF hire_level < 0 THEN hire_level = averagelev()
   END IF
   addhero hero_id + 1, party_slot, hire_level
-  buystuff_set_alert buyst, names(party_slot) & " " & readglobalstring(95, "Joined!", 20)
+  buystuff_set_alert buyst, gam.hero(party_slot).name & " " & readglobalstring(95, "Joined!", 20)
  ELSEIF thing_kind = "item" THEN
   buy = thing."buy".ptr
   menusound gen(genBuySFX)
@@ -1645,7 +1645,7 @@ SUB ExpandTextHeroSlot (code as string, result as string, byval arg0 as ANY ptr=
 
   'Simple stuff
   SELECT CASE UCASE(code)
-   CASE "HERONAME": result = names(hero_slot)
+   CASE "HERONAME": result = gam.hero(hero_slot).name
    CASE "LEVLABEL": result = readglobalstring(43, "Level", 10)
    CASE "LEV": result = STR(.lev)
    CASE "EXPLABEL": result = readglobalstring(33, "Experience", 10)
@@ -2645,7 +2645,7 @@ DO
  centerbox 84, 18, 140, 16, 4, page    'hero name
  centerbox 84, 102, 140, 130, 4, page  'stats
  centerbox 236, 75, 80, 78, 4, page    'equipment
- edgeprint names(st.who), 84 - LEN(names(st.who)) * 4, 13, uilook(uiText), page
+ edgeprint gam.hero(st.who).name, 84 - LEN(gam.hero(st.who).name) * 4, 13, uilook(uiText), page
  DIM stat_v_offset as integer = 0
  FOR i = 0 TO statLast
   'Draw stats and bonuses
@@ -3050,7 +3050,7 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
     IF trylearn(targ, learn_id + 1) THEN
      '--announce learn
      menusound gen(genItemLearnSFX)
-     caption = names(targ) & " " & readglobalstring(124, "learned", 10) & " " & learn_attack.name
+     caption = gam.hero(targ).name & " " & readglobalstring(124, "learned", 10) & " " & learn_attack.name
      centerbox 160, 100, small(LEN(caption) * 8 + 16, 320), 24, 1, page
      edgeprint caption, large(xstring(caption, 160), 0), 95, uilook(uiText), page
      IF learn_attack.learn_sound_effect > 0 THEN playsfx learn_attack.learn_sound_effect - 1
@@ -3097,7 +3097,7 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
      END IF
      edgeprint caption, 119 + x_offset, 16 + i * 20, col, page
     ELSEIF learn_id >= 0 THEN
-     edgeprint names(i), 119 + x_offset, 16 + i * 20, col, page
+     edgeprint gam.hero(i).name, 119 + x_offset, 16 + i * 20, col, page
     END IF
     cater_slot += 1
    END IF
@@ -3418,6 +3418,6 @@ SUB spells_menu_paint (byref sp as SpellsMenuState)
   END IF
  END IF
 
- IF sp.last = 0 THEN edgeprint names(sp.hero) & " " & sp.has_none_caption, xstring(names(sp.hero) & " " & sp.has_none_caption, 160), 120, uilook(uiText), sp.page
- edgeprint names(sp.hero), xstring(names(sp.hero), 206), 31, uilook(uiText), sp.page
+ IF sp.last = 0 THEN edgeprint gam.hero(sp.hero).name & " " & sp.has_none_caption, xstring(gam.hero(sp.hero).name & " " & sp.has_none_caption, 160), 120, uilook(uiText), sp.page
+ edgeprint gam.hero(sp.hero).name, xstring(gam.hero(sp.hero).name, 206), 31, uilook(uiText), sp.page
 END SUB

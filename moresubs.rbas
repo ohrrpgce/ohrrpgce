@@ -122,7 +122,7 @@ WITH gam.hero(slot)
 END WITH
 
 '--read hero's name (doing this last for no real reason)
-names(slot) = her.name
+gam.hero(slot).name = her.name
 '--if renaming is permitted, do it
 IF readbit(her.bits(), 0, 24) THEN
  '--add-hero rename is allowed
@@ -382,9 +382,6 @@ FOR i as integer = 0 TO 5
  SWAP learnmask(s * 6 + i), learnmask(d * 6 + i)
 NEXT
 
-'--name
-SWAP names(s), names(d)
-
 '---Equipment
 FOR i as integer = 0 TO 4
  SWAP eqstuf(s, i), eqstuf(d, i)
@@ -636,7 +633,7 @@ DO
  END IF
  IF st.party.need_update THEN
   st.party.need_update = NO
-  IF gam.hero(st.party.pt).id >= 0 AND st.reserve.pt < 0 THEN st.info = names(st.party.pt) ELSE st.info = ""
+  IF gam.hero(st.party.pt).id >= 0 AND st.reserve.pt < 0 THEN st.info = gam.hero(st.party.pt).name ELSE st.info = ""
  END IF
 
  copypage holdscreen, st.page
@@ -697,7 +694,7 @@ SUB hero_swap_menu_init(st as OrderTeamState)
   IF readbit(hmask(), 0, i) = 0 AND gam.hero(i).id >= 0 THEN
    st.reserve.last = st.reserve.last + 1
    st.swindex(st.reserve.last) = i
-   st.swname(st.reserve.last) = names(i)
+   st.swname(st.reserve.last) = gam.hero(i).name
    st.size.y = large(st.size.y, LEN(st.swname(st.reserve.last)))
   END IF
  NEXT i
@@ -1084,8 +1081,8 @@ DIM limit as integer = her.max_name_len
 IF limit = 0 THEN limit = 16
 
 DIM prompt as string = readglobalstring(137, "Name the Hero", 20)
-DIM spacer as string = STRING(large(limit, LEN(names(who))), " ")
-DIM remember as string = names(who)
+DIM spacer as string = STRING(large(limit, LEN(gam.hero(who).name)), " ")
+DIM remember as string = gam.hero(who).name
 
 DIM need_fade_out as integer
 IF fadestate = 0 THEN
@@ -1102,7 +1099,7 @@ copypage page, holdscreen
 
 IF running_on_console() THEN
  'native virtual keyboard does not work on OUYA right now, so do this instead.
- names(who) = cheezy_virtual_keyboard(names(who), limit)
+ gam.hero(who).name = cheezy_virtual_keyboard(gam.hero(who).name, limit)
 
 ELSE
  'On platforms that need it (currently just Android) show the virtual keyboard.
@@ -1119,16 +1116,16 @@ ELSE
   centerbox 160, 100, 168, 32, 1, page
   IF carray(ccUse) > 1 AND keyval(scSpace) = 0 THEN EXIT DO
   IF carray(ccMenu) > 1 THEN
-   names(who) = remember
+   gam.hero(who).name = remember
    IF escapable THEN EXIT DO
   END IF
-  strgrabber names(who), limit
+  strgrabber gam.hero(who).name, limit
   
   copypage holdscreen, page
   edgeprint prompt, xstring(prompt, 160), 90, uilook(uiText), page
   textcolor uilook(uiHighlight), uiLook(uiHighlight)
   printstr spacer, xstring(spacer, 161), 101, page
-  edgeprint names(who), xstring(names(who), 160), 100, uilook(uiMenuItem), page
+  edgeprint gam.hero(who).name, xstring(gam.hero(who).name, 160), 100, uilook(uiMenuItem), page
  
   setvispage vpage
   dowait
@@ -1215,7 +1212,7 @@ FOR i as integer = 0 TO 40
  gam.hero(i).exp_next = 0
 NEXT i
 FOR i as integer = 0 TO 40
- names(i) = ""
+ gam.hero(i).name = ""
 NEXT i
 CleanInventory(inventory())
 FOR i as integer = 0 TO 40
@@ -1643,7 +1640,7 @@ DO
  FOR i as integer = 0 TO 3
   IF gam.hero(i).id >= 0 THEN
    DIM col as integer = uilook(uiText)
-   edgeprint names(i), 128 - LEN(names(i)) * 8, 5 + y * 10, col, page
+   edgeprint gam.hero(i).name, 128 - LEN(gam.hero(i).name) * 8, 5 + y * 10, col, page
    edgeprint STR(gam.hero(i).stat.cur.hp) + "/" + STR(gam.hero(i).stat.max.hp), 136, 5 + y * 10, col, page
    y = y + 1
   END IF
