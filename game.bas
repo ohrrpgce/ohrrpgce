@@ -654,9 +654,11 @@ gam.walk_through_walls = NO
 'DEBUG debug "pre-call update_heroes"
 update_heroes(YES)
 setkeys
+DIM speedcontrol_this_tick as integer = speedcontrol
 DO
  'DEBUG debug "top of master loop"
- setwait speedcontrol
+ setwait speedcontrol_this_tick
+ speedcontrol_this_tick = speedcontrol
  IF running_as_slave THEN try_to_reload_lumps_onmap
  tog = tog XOR 1
  'DEBUG debug "increment play timers"
@@ -749,6 +751,9 @@ DO
    herow(0).xgo = 0
    herow(0).ygo = 0
   END IF
+  IF keyval(scShift) > 0 AND keyval(scTab) > 0 THEN  'speed up while held down
+   speedcontrol_this_tick = speedcontrol / 5
+  END IF
   IF keyval(scCtrl) > 0 THEN ' holding CTRL
    IF keyval(scF1) > 1 AND txt.showing = NO THEN
     IF teleporttool() THEN 'CTRL + F1
@@ -758,11 +763,11 @@ DO
    IF gam.debug_showtags = NO THEN
     IF keyval(scNumpadPlus) > 1 OR keyval(scPlus) > 1 THEN  'CTRL +
      speedcontrol = large(speedcontrol - 1, 10)
-     scriptout = STR(speedcontrol)
+     scriptout = speedcontrol & "ms/frame"
     END IF
     IF keyval(scNumpadMinus) > 1 OR keyval(scMinus) > 1 THEN  'CTRL -
      speedcontrol = small(speedcontrol + 1, 160)
-     scriptout = STR(speedcontrol)
+     scriptout = speedcontrol & "ms/frame"
     END IF
    END IF
    IF keyval(scF4) > 1 THEN

@@ -111,6 +111,7 @@ FUNCTION battle (byval form as integer) as bool
  clear_attack_queue()
  DIM bslot(24) as BattleSprite
  DIM show_info_mode as integer = 0
+ DIM speedcontrol_this_tick as integer = speedcontrol
 
  SELECT CASE gen(genBattleMode)
   CASE 0:
@@ -143,7 +144,8 @@ FUNCTION battle (byval form as integer) as bool
  '--main battle loop
  setkeys
  DO
-  setwait speedcontrol
+  setwait speedcontrol_this_tick
+  speedcontrol_this_tick = speedcontrol
   IF running_as_slave THEN try_to_reload_files_inbattle
   setkeys
   bat.tog XOR= 1
@@ -155,6 +157,9 @@ FUNCTION battle (byval form as integer) as bool
 
   IF readbit(gen(), genBits, 8) = 0 THEN
    '--debug keys
+   IF keyval(scShift) > 0 AND keyval(scTab) > 0 THEN  'speed up while held down
+    speedcontrol_this_tick = speedcontrol / 5
+   END IF
    IF keyval(scF4) > 1 THEN
     IF keyval(scCtrl) > 0 THEN
      bat.away = 11 ' Instant-cheater-running
