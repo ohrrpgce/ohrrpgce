@@ -508,6 +508,7 @@ min(AtkLimTag) = -max_tag()
 CONST AtkLimTagIf = 24
 max(AtkLimTagIf) = 4
 menucapoff(AtkTagIf) = capindex
+'Indices are AttackTagConditionEnum
 addcaption caption(), capindex, "Never" '0
 addcaption caption(), capindex, "On Use"   '1
 addcaption caption(), capindex, "On Hit"   '2

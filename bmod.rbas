@@ -573,8 +573,8 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
 
  DIM i as integer
  'set tag, if there is one
- checkTagCond attack.tagset(0), 1
- checkTagCond attack.tagset(1), 1
+ checkTagCond attack.tagset(0), atktagOnUse
+ checkTagCond attack.tagset(1), atktagOnUse
  
  '--attempt inflict the damage to the target
  DIM h as integer = 0 '--set inside inflict
@@ -606,11 +606,11 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
   ELSEIF attack.force_battle_exit = YES THEN
    bat.away = 11
   END IF
-  checkTagCond attack.tagset(0), 2
-  checkTagCond attack.tagset(1), 2
+  checkTagCond attack.tagset(0), atktagOnHit
+  checkTagCond attack.tagset(1), atktagOnHit
   IF bslot(targ).stat.cur.hp = 0 THEN
-   checkTagCond attack.tagset(0), 4
-   checkTagCond attack.tagset(1), 4
+   checkTagCond attack.tagset(0), atktagOnKill
+   checkTagCond attack.tagset(1), atktagOnKill
   END IF
 
   IF trytheft(bat, bat.acting, targ, attack, bslot()) THEN
@@ -619,8 +619,8 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
    END IF
   END IF
  ELSE
-  checkTagCond attack.tagset(0), 3
-  checkTagCond attack.tagset(1), 3
+  checkTagCond attack.tagset(0), atktagOnMiss
+  checkTagCond attack.tagset(1), atktagOnMiss
  END IF
  triggerfade targ, bslot()
  IF bslot(targ).stat.cur.hp > 0 THEN
@@ -1855,9 +1855,9 @@ FUNCTION checkNoRunBit (bslot() as BattleSprite) as integer
  RETURN 0
 END FUNCTION
 
-SUB checkTagCond (byref t as AttackDataTag, byval check as integer)
+SUB checkTagCond (byref t as AttackDataTag, byval check as AttackTagConditionEnum)
  't.condition - type
- 'check = curtype
+ 'check = condition type
  't.tag - the tag to be set
  't.tagcheck - the tag to check
  IF t.condition = check THEN

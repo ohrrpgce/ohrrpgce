@@ -32,4 +32,4 @@ On: This is the condition that triggers the tag setting.
 
 If Tag: This is a tag number that is checked before a tag is set. Press ENTER or SPACE to browse available tags, or press BACKSPACE to clear. Press - to toggle between requiring the tag to be ON or OFF. If this is left as "NONE" then the tag in the next line will be set without requiring any tag check first.
 
-Set Tag: This is the tag that will be turned ON or OFF when the attack is used. Press ENTER or SPACE to browse available tags, or press BACKSPACE to clear. Press - to toggle between turning the tag ON or OFF.
+Set Tag: This is the tag that will be turned ON or OFF when the attack is used (at the same instant that the damage is dealt). Press ENTER or SPACE to browse available tags, or press BACKSPACE to clear. Press - to toggle between turning the tag ON or OFF.

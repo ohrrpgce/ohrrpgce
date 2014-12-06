@@ -12,7 +12,7 @@
 
 declare function battle (byval form as integer) as bool
 declare function checknorunbit (bslot() as battlesprite) as integer
-DECLARE SUB checkTagCond (byref t as AttackDataTag, byval check as integer)
+DECLARE SUB checkTagCond (byref t as AttackDataTag, byval check as AttackTagConditionEnum)
 declare function focuscost (byval cost as integer, byval focus as integer) as integer
 DECLARE SUB calc_hero_elementals (elemental_resists() as single, byval who as integer)
 declare sub invertstack

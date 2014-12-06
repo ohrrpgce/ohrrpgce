@@ -638,9 +638,16 @@ Union Stats
        sta(11) as integer
 End Union
 
+Enum AttackTagConditionEnum
+	atktagOnUse = 1
+	atktagOnHit = 2
+	atktagOnMiss = 3
+	atktagOnKill = 4
+End Enum
+
 Type AttackDataTag
 	tag as integer
-	condition as integer
+	condition as AttackTagConditionEnum
 	tagcheck as integer
 End Type
 
