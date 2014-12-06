@@ -87,6 +87,7 @@ DIM SHARED resizerequest as XYPair
 DIM SHARED waiting_for_resize as bool = NO
 DIM SHARED remember_windowtitle as STRING
 DIM SHARED rememmvis as integer = 1
+DIM SHARED debugging_io as bool = NO
 DIM SHARED keystate as Uint8 ptr = NULL
 DIM SHARED joystickhandles(7) as SDL_Joystick ptr
 DIM SHARED sdlpalette(0 TO 255) as SDL_Color
@@ -648,6 +649,9 @@ FUNCTION gfx_sdl_setoption(byval opt as zstring ptr, byval arg as zstring ptr) a
       smooth = 0
     END IF
     ret = 1
+  ELSEIF *opt = "io-debug" THEN
+    debugging_io = YES
+    ret = 1
   END IF
   'globble numerical args even if invalid
   IF ret = 1 AND is_int(*arg) THEN ret = 2
@@ -656,7 +660,8 @@ END FUNCTION
 
 FUNCTION gfx_sdl_describe_options() as zstring ptr
   return @"-z -zoom [1...16]   Scale screen to 1,2, ... up to 16x normal size (2x default)" LINE_END _
-          "-s -smooth          Enable smoothing filter for zoom modes (default off)"
+          "-s -smooth          Enable smoothing filter for zoom modes (default off)" LINE_END _
+          "   -io-debug        Print extra debug info to c/g_debug.txt related to IO"
 END FUNCTION
 
 FUNCTION gfx_sdl_get_safe_zone_margin() as single
@@ -698,7 +703,7 @@ FUNCTION gfx_sdl_ouya_purchase_succeeded() as bool
 END FUNCTION
 
 SUB gfx_sdl_ouya_receipts_request(dev_id as string, key_der as string)
-debug "gfx_sdl_ouya_receipts_request"
+debuginfo "gfx_sdl_ouya_receipts_request"
 #IFDEF __FB_ANDROID__
  SDL_ANDROID_SetOUYADeveloperId(dev_id)
  SDL_ANDROID_OUYAReceiptsRequest(key_der, LEN(key_der))
@@ -789,10 +794,15 @@ SUB gfx_sdl_process_events()
         'lowest bit is now set in io_keybits, from SDL_GetKeyState
         'IF key THEN keybdstate(key) = 3
         IF key THEN keybdstate(key) = 2
-        'debuginfo "key down: " & evnt.key.keysym.sym & " -> " & key & " U " & evnt.key.keysym.unicode_
+        IF debugging_io THEN
+          debuginfo "SDL_KEYDOWN " & evnt.key.keysym.sym & " -> scan=" & key & " char=" & evnt.key.keysym.unicode_
+        END IF
       CASE SDL_KEYUP
         DIM as integer key = scantrans(evnt.key.keysym.sym)
         IF key THEN keybdstate(key) AND= NOT 1
+        IF debugging_io THEN
+          debuginfo "SDL_KEYUP " & evnt.key.keysym.sym & " -> scan=" & key & " char=" & evnt.key.keysym.unicode_
+        END IF
       CASE SDL_MOUSEBUTTONDOWN
         'note SDL_GetMouseState is still used, while SDL_GetKeyState isn't
         mouseclicks OR= SDL_BUTTON(evnt.button.button)
@@ -801,8 +811,10 @@ SUB gfx_sdl_process_events()
 #ELSE
       CASE SDL_ACTIVEEVENT_
 #ENDIF
-        'debug "SDL_ACTIVEEVENT " & evnt.active.state
         IF evnt.active.state AND SDL_APPINPUTFOCUS THEN
+          IF debugging_io THEN
+            debuginfo "SDL_ACTIVEEVENT state=" & evnt.active.state & " gain=" & evnt.active.gain
+          END IF
           IF evnt.active.gain = 0 THEN
             SDL_ShowCursor(1)
             IF mouseclipped = 1 THEN
@@ -827,7 +839,9 @@ SUB gfx_sdl_process_events()
           END IF
         END IF
       CASE SDL_VIDEORESIZE
-        'debug "SDL_VIDEORESIZE: w=" & evnt.resize.w & " h=" & evnt.resize.h
+        IF debugging_io THEN
+          debuginfo "SDL_VIDEORESIZE: w=" & evnt.resize.w & " h=" & evnt.resize.h
+        END IF
         IF resizable THEN
           waiting_for_resize = YES  'This is more of a sanity check
           resizerequested = YES
@@ -882,7 +896,9 @@ SUB io_sdl_keybits (byval keybdarray as integer ptr)
   keystate = SDL_GetKeyState(NULL)
   FOR a as integer = 0 TO 322
     IF keystate[a] THEN
-      'debug "OHRkey=" & scantrans(a) & " SDLkey=" & a & " " & *SDL_GetKeyName(a)
+      IF debugging_io THEN
+        debuginfo "io_sdl_keybits: OHRkey=" & scantrans(a) & " SDLkey=" & a & " " & *SDL_GetKeyName(a)
+      END IF
       IF scantrans(a) THEN
         keybdarray[scantrans(a)] OR= 1
       END IF
@@ -901,7 +917,11 @@ END SUB
 'Enabling unicode will cause combining keys to go dead on X11 (on non-US
 'layouts that have them). This usually means certain punctuation keys such as '
 SUB io_sdl_enable_textinput (byval enable as integer)
-  SDL_EnableUNICODE(IIF(enable, 1, 0))
+  DIM oldstate as integer
+  oldstate = SDL_EnableUNICODE(IIF(enable, 1, 0))
+  IF debugging_io THEN
+    debuginfo "SDL_EnableUNICODE(" & enable & ") = " & oldstate & " (prev state)"
+  END IF
 END SUB
 
 SUB io_sdl_textinput (byval buf as wstring ptr, byval bufsize as integer)
@@ -1036,7 +1056,7 @@ FUNCTION update_mouse() as integer
     IF mouseclipped THEN
       'Not moving the mouse back to the centre of the window rapidly is widely recommended, but I haven't seen (nor looked for) evidence that it's bad.
       'Implemented only due to attempting to fix eventually unrelated problem. Possibly beneficial to keep
-      'debug "mousestate " & x & " " & y & " (" & lastmx & " " & lastmy & ")"
+      'debuginfo "gfx_sdl: mousestate " & x & " " & y & " (" & lastmx & " " & lastmy & ")"  'Very spammy
       privatemx += x - lastmx
       privatemy += y - lastmy
       IF x < 3 * screensurface->w \ 8 OR x > 5 * screensurface->w \ 8 OR _
@@ -1046,7 +1066,9 @@ FUNCTION update_mouse() as integer
         SDL_PumpEvents
         lastmx = screensurface->w \ 2
         lastmy = screensurface->h \ 2
-        'debug "warped"
+        IF debugging_io THEN
+          debuginfo "gfx_sdl: clipped mouse warped"
+        END IF
       ELSE
         lastmx = x
         lastmy = y
@@ -1165,7 +1187,9 @@ FUNCTION io_sdl_readjoysane(byval joynum as integer, byref button as integer, by
   'SDL_JoystickGetAxis returns a value from -32768 to 32767
   x = SDL_JoystickGetAxis(joystickhandles(joynum), 0) / 32768.0 * 100
   y = SDL_JoystickGetAxis(joystickhandles(joynum), 1) / 32768.0 * 100
-  'debug "x=" & x & " y=" & y & " button=" & button
+  IF debugging_io THEN
+    debuginfo "gfx_sdl: joysane: x=" & x & " y=" & y & " button=" & button
+  END IF
   RETURN 1
 END FUNCTION
 
