@@ -1281,13 +1281,6 @@ reset_game_state()
 
 END SUB
 
-SUB init_GameState (byref g as GameState)
- 'Set up non-zero defaults for gamestate
- FOR i as integer = 0 to UBOUND(g.hero)
-  g.hero(i).id = -1
- NEXT i
-END SUB
-
 FUNCTION gamepadmap_from_reload(gamepad as NodePtr, byval use_dpad as bool=NO) as GamePadMap
  DIM gp as GamePadMap
  IF use_dpad THEN

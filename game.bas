@@ -129,7 +129,6 @@ DIM SHARED scriptout as string
 
 'global variables
 DIM gam as GameState
-init_GameState gam
 DIM txt as TextBoxState
 REDIM gen(360) as integer
 DIM gen_reld_doc as DocPtr

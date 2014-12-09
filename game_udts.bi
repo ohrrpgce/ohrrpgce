@@ -22,7 +22,7 @@ TYPE HeroStats
 END TYPE
 
 TYPE HeroState
- id as integer ' set to -1 for empty slots
+ id as integer = -1 ' set to -1 for empty slots
  name as string
  stat as HeroStats
  lev as integer
