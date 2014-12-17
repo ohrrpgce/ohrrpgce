@@ -6893,7 +6893,8 @@ sub remap_touchscreen_button (byval button_id as integer, byval ohr_scancode as 
 end sub
 
 function running_on_console() as bool
-	'Currently the ouya is the only supported console, but there could be others someday
+	'Currently supports OUYA, GameStick, Fire-TV
+#IFDEF __FB_ANDROID__
 	static cached as bool = NO
 	static cached_result as bool
 	if not cached then
@@ -6901,6 +6902,9 @@ function running_on_console() as bool
 		cached = YES
 	end if
 	return cached_result
+#ELSE
+	return NO
+#ENDIF
 end function
 
 function running_on_ouya() as bool
@@ -6909,7 +6913,7 @@ function running_on_ouya() as bool
 	static cached as bool = NO
 	static cached_result as bool
 	if not cached then
-		cached_result = io_running_on_console()
+		cached_result = io_running_on_ouya()
 		cached = YES
 	end if
 	return cached_result

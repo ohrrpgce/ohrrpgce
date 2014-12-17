@@ -136,8 +136,10 @@ extern Io_hide_virtual_gamepad as sub ()
 extern Io_remap_android_gamepad as sub (byval player as integer, gp as GamePadMap)
 '(optional) Runtime remapping of touchscreen virtual gamepad buttons
 extern Io_remap_touchscreen_button as sub (byval button_id as integer, byval ohr_scancode as integer)
-'(optional) Return true if the running device is a console (currently only supports OUYA)
+'(optional) Return true if the running device is a console (currently only supports OUYA, GameStick, Fire-TV)
 extern Io_running_on_console as function () as bool
+'(optional) Return true if the running device is an OUYA (determines if OUYA billing APIs can be attempted)
+extern Io_running_on_ouya as function () as bool
 
 '(optional) Primary mouse state function
 'mbuttons is bitmask of currently down keys OR new clicks, mclicks is bitmask ofnew clicks since last call.

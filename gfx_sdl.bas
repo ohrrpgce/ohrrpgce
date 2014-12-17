@@ -32,6 +32,7 @@ declare sub SDL_ANDROID_SetScreenKeyboardShown (byval shown as integer)
 declare function SDL_ANDROID_ToggleScreenKeyboardWithoutTextInput() as integer 
 'WARNING: SDL_ANDROID_IsScreenKeyboardShown seems unreliable. Don't use it! It is only declared here to document its existance. see the virtual_keyboard_shown variable instead
 declare function SDL_ANDROID_IsScreenKeyboardShown() as bool
+declare function SDL_ANDROID_IsRunningOnConsole () as bool
 declare function SDL_ANDROID_IsRunningOnOUYA () as bool
 declare sub SDL_ANDROID_set_java_gamepad_keymap(byval A as integer, byval B as integer, byval C as integer, byval X as integer, byval Y as integer, byval Z as integer, byval L1 as integer, byval R1 as integer, byval L2 as integer, byval R2 as integer, byval LT as integer, byval RT as integer)
 declare sub SDL_ANDROID_set_ouya_gamepad_keymap(byval player as integer, byval udpad as integer, byval rdpad as integer, byval ldpad as integer, byval ddpad as integer, byval O as integer, byval A as integer, byval U as integer, byval Y as integer, byval L1 as integer, byval R1 as integer, byval L2 as integer, byval R2 as integer, byval LT as integer, byval RT as integer)
@@ -295,11 +296,11 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
   framesize.h = 200
 
 #IFDEF __FB_ANDROID__
- IF SDL_ANDROID_IsRunningOnOUYA() THEN
-  debuginfo "Running on OUYA, disable the virtual gamepad"
+ IF SDL_ANDROID_IsRunningOnConsole() THEN
+  debuginfo "Running on a console, disable the virtual gamepad"
   internal_disable_virtual_gamepad
  ELSE
-  debuginfo "Not running on OUYA, leave the virtual gamepad visible"
+  debuginfo "Not running on a console, leave the virtual gamepad visible"
  END IF
 #ENDIF
 
@@ -1027,6 +1028,13 @@ END SUB
 
 FUNCTION io_sdl_running_on_console() as bool
 #IFDEF __FB_ANDROID__
+ RETURN SDL_ANDROID_IsRunningOnConsole()
+#ENDIF
+ RETURN NO
+END FUNCTION
+
+FUNCTION io_sdl_running_on_ouya() as bool
+#IFDEF __FB_ANDROID__
  RETURN SDL_ANDROID_IsRunningOnOUYA()
 #ENDIF
  RETURN NO
@@ -1242,6 +1250,7 @@ FUNCTION gfx_sdl_setprocptrs() as integer
   io_remap_android_gamepad = @io_sdl_remap_android_gamepad
   io_remap_touchscreen_button = @io_sdl_remap_touchscreen_button
   io_running_on_console = @io_sdl_running_on_console
+  io_running_on_ouya = @io_sdl_running_on_ouya
   io_mousebits = @io_sdl_mousebits
   io_setmousevisibility = @io_sdl_setmousevisibility
   io_getmouse = @io_sdl_getmouse

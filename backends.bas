@@ -77,6 +77,7 @@ dim io_hide_virtual_gamepad as sub ()
 dim io_remap_android_gamepad as sub (byval player as integer, gp as GamePadMap)
 dim io_remap_touchscreen_button as sub (byval button_id as integer, byval ohr_scancode as integer)
 dim io_running_on_console as function () as bool
+dim io_running_on_ouya as function () as bool
 dim io_mousebits as sub (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer)
 dim io_setmousevisibility as sub (byval visible as integer)
 dim io_getmouse as sub (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer)
@@ -194,6 +195,7 @@ sub io_dummy_hide_virtual_gamepad() : end sub
 sub io_dummy_remap_android_gamepad(byval player as integer, gp as GamePadMap) : end sub
 sub io_dummy_remap_touchscreen_button(byval button_id as integer, byval ohr_scancode as integer) : end sub
 function io_dummy_running_on_console() as bool : return NO : end function
+function io_dummy_running_on_ouya() as bool : return NO : end function
 
 'Some parts of the API (function pointers) are optional in all gfx backends.
 'Those are set to defaults, most of which do nothing.
@@ -230,6 +232,7 @@ sub set_default_gfx_function_ptrs
 	io_remap_android_gamepad = @io_dummy_remap_android_gamepad
 	io_remap_touchscreen_button = @io_dummy_remap_touchscreen_button
 	io_running_on_console = @io_dummy_running_on_console
+	io_running_on_ouya = @io_dummy_running_on_ouya
 	io_mousebits = @io_amx_mousebits   'Special handling when missing, see gfx_load_library
 	io_getmouse = @io_dummy_getmouse
 end sub
@@ -313,6 +316,7 @@ function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filename as 
 	TRYLOAD (io_remap_android_gamepad)
 	TRYLOAD (io_remap_touchscreen_button)
 	TRYLOAD (io_running_on_console)
+	TRYLOAD (io_running_on_ouya)
 	if TRYLOAD(io_mousebits) = NO then
 		needpolling = YES
 	end if
