@@ -2451,7 +2451,7 @@ FUNCTION valid_tile_pos(byval x as integer, byval y as integer) as integer
 END FUNCTION
 
 FUNCTION valid_map_layer(layer as integer, errorlevel as scriptErrEnum = serrBadOp) as bool
- IF retvals(0) < 0 OR retvals(0) > UBOUND(maptiles) THEN
+ IF layer < 0 OR layer > UBOUND(maptiles) THEN
   scripterr current_command_name() + ": invalid map layer " & layer & " -- last map layer is " & UBOUND(maptiles), errorlevel
   RETURN NO
  END IF
