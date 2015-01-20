@@ -266,7 +266,9 @@ FUNCTION sanity_check_store_name(storename as string) as string
   CASE "paypal":
    IF NOT running_on_ouya() THEN RETURN storename
  END SELECT
- debug "Unknown store name: """ & storename & """"
+ IF storename <> "" THEN
+  debuginfo "Unknown store name: """ & storename & """"
+ END IF
  RETURN "disabled"
 END FUNCTION
 
