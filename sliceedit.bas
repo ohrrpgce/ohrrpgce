@@ -276,6 +276,9 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
  '--user-defined slice lookup codes
  REDIM slicelookup(10) as string
  load_string_list slicelookup(), workingdir & SLASH & "slicelookup.txt"
+ IF UBOUND(slicelookup) < 1 THEN
+  REDIM slicelookup(1) as string
+ END IF
 
  REDIM menu(0) as SliceEditMenuItem
  REDIM plainmenu(0) as string 'FIXME: This is a hack because I didn't want to re-implement standardmenu right now
