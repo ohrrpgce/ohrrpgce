@@ -853,13 +853,13 @@ SUB onkeyscript (byval scriptnum as integer)
  NEXT i
 
  'Checks keyboard and joystick keys
- IF anykeypressed THEN doit = YES
+ IF anykeypressed(YES, 0) THEN doit = YES
 
  'Because anykeypressed doesn't check it, and we don't want to break scripts looking for key:alt (== scUnfilteredAlt)
- IF keyval(scUnfilteredAlt) > 1 THEN doit = YES
+ IF keyval(scUnfilteredAlt) > 0 THEN doit = YES
 
  IF gam.mouse_enabled THEN
-  IF gam.mouse.clicks THEN doit = YES
+  IF gam.mouse.buttons THEN doit = YES
  END IF
  
  IF nowscript >= 0 THEN

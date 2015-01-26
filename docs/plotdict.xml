@@ -1473,7 +1473,7 @@ end</example>
 		<command id="initmouse">
 			<canon>init mouse</canon>
 			<shortname>init mouse</shortname>
-			<description>Informs the engine that you intend to use the mouse. This command should be run before any mouse functions are be used. It causes the normal mouse cursor to be hidden when over the game's window, and causes mouse clicks to trigger on-keypress scripts. Therefore, it is a good idea to place this command in the newgame and loadgame scripts if you are going to use the mouse.<lb/><note>Running this command does not draw a cursor onscreen - your script must do this itself by placing a slice or npc at the appropriate location.</note> Here is an example:</description>
+			<description>Informs the engine that you intend to use the mouse. This command should be run before any mouse functions are be used. It causes the normal mouse cursor to be hidden when over the game's window, and causes mouse buttons to trigger on-keypress scripts. Therefore, it is a good idea to place this command in the newgame and loadgame scripts if you are going to use the mouse.<lb/><note>Running this command does not draw a cursor onscreen - your script must do this itself by placing a slice or npc at the appropriate location.</note> Here is an example:</description>
 			<example>include,plotscr.hsd
 
 #Mouse cursor example

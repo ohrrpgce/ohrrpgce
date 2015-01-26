@@ -1078,15 +1078,22 @@ function getinputtext () as string
 end function
 
 'Checks the keyboard and optionally joystick for keypress events.
+'trigger_level: 0 to trigger on a held key,
+'               1 to trigger only on new keypress or repeat.
 'Returns scancode if one is found, 0 otherwise.
 'Use this instead of looping over all keys, to make sure alt filtering and joysticks work
-function anykeypressed (byval checkjoystick as bool = YES) as integer
+function anykeypressed (byval checkjoystick as bool = YES, trigger_level as integer = 1) as integer
 	dim as integer joybutton, joyx, joyy
 
 	for i as integer = 0 to &h7f
 		'check scAlt only, so Alt-filtering (see setkeys) works
 		if i = scLeftAlt or i = scRightAlt or i = scUnfilteredAlt then continue for
-		if keyval(i) > 1 then
+		' Ignore capslock because it always appears pressed when on,
+		' and it doesn't really matter if it doesn't work for 'press a key' prompts.
+		' At least w/ gfx_sdl under Linux only bit 1 is ever set.
+		if i = scCapsLock then continue for
+
+		if keyval(i) > trigger_level then
 			return i
 		end if
 	next

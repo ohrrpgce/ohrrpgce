@@ -85,6 +85,8 @@ WHAT IS NEW?
     * Multi-hit attacks no longer causing dying enemies to dissolve/
       fade multiple times, and additional hits are cancelled once all
       targets have died [Ralph]
+    * On-keypress scripts are now always triggered when mouse buttons,
+      or keys other than move, use and cancel, are held down [Ralph]
 
   * New Plotscripting Stuff
     * "Menu action plotscript" special script trigger to run a script
