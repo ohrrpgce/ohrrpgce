@@ -3603,7 +3603,22 @@ SELECT CASE as CONST id
   gam.script_hide_virtual_gamepad = NO
   gam.script_show_virtual_gamepad = NO
   update_virtual_gamepad_display()
-
+ CASE 579'--get vert align
+  IF valid_plotsprite(retvals(0)) THEN
+   scriptret = plotslices(retvals(0))->AlignVert
+  END IF
+ CASE 580'--get horiz align
+  IF valid_plotsprite(retvals(0)) THEN
+   scriptret = plotslices(retvals(0))->AlignHoriz
+  END IF
+ CASE 581'--get vert anchor
+  IF valid_plotsprite(retvals(0)) THEN
+   scriptret = plotslices(retvals(0))->AnchorVert
+  END IF
+ CASE 582'--get horiz anchor
+  IF valid_plotsprite(retvals(0)) THEN
+   scriptret = plotslices(retvals(0))->AnchorHoriz
+  END IF
  CASE ELSE
   RETURN NO
 

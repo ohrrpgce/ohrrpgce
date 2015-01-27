@@ -598,6 +598,10 @@ define function, begin
 576,hidevirtualgamepad,0      # force-hide virtual gamepad on platforms that support it
 577,showvirtualgamepad,0      # force-show virtual gamepad on platforms that support it
 578,autovirtualgamepad,0      # automatic show/hide virtual gamepad on platforms that support it (default)
+579,getvertalign,1,0          # return a slice's alignment. Compare with edge: constants
+580,gethorizalign,1,0         # return a slice's alignment. Compare with edge: constants
+581,getvertanchor,1,0         # return a slice's anchor. Compare with edge: constants
+582,gethorizanchor,1,0        # return a slice's anchor. Compare with edge: constants
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

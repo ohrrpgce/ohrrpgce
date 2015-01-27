@@ -718,6 +718,12 @@
 		<a href="#about-getherostatcap">get hero stat cap (stat)</a><br>
 		
 	
+		<a href="#about-gethorizalign">get horiz align (handle)</a><br>
+		
+	
+		<a href="#about-gethorizanchor">get horiz anchor (handle)</a><br>
+		
+	
 		<a href="#about-getinputtext">get input text (string id)</a><br>
 		
 	
@@ -935,6 +941,12 @@
 		
 	
 		<a href="#about-gettoppadding">get top padding (handle)</a><br>
+		
+	
+		<a href="#about-getvertalign">get vert align (handle)</a><br>
+		
+	
+		<a href="#about-getvertanchor">get vert anchor (handle)</a><br>
 		
 	
 		<a href="#about-getvictorymusic">get victory music</a><br>
@@ -1334,6 +1346,9 @@
 		
 	
 		<a href="#about-npcy">NPC Y (who)</a><br>
+		
+	
+		<a href="#about-npcz">npc Z (who)</a><br>
 		
 	
 		<a href="#about-numberfromstring">number from string (ID, default)</a><br>
@@ -1910,6 +1925,9 @@
 		
 	
 		<a href="#about-setnpcusable">set NPC usable (who, value)</a><br>
+		
+	
+		<a href="#about-setnpcz">set npc z (npc, z)</a><br>
 		
 	
 		<a href="#about-setonetime">set onetime (onetime,value)</a><br>
@@ -2662,9 +2680,9 @@ variable+=1 # add one to it</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">include, filename</font></b><br>
-			The include command inserts another text file into your script. It is followed by a single filename that tells what file will be included. Windows long filenames are not supported. Every plotscript file should start with include, plotscr.hsd The PLOTSCR.HSD file contains definitions and constants for most of the other plotscripting commands.<br>
-			<pre>include, plotscr.hsd # Plotscripting definitions
-include, mygame.hsi # constants particular to my game</pre>
+			The include command effectively inserts another text file into your script. It is followed by a single filename that tells what file will be included. This can be used to organise your scripts and other definitions like <a href="#about-defineconstant" class="ref">define constant</a> into multiple files. The filename can include a path, for example <span class="param">include, ..\utility scripts\math.hss</span>. You can optionally include quote marks around the filename, e.g. <span class="param">include, "misc.hss"</span>, which causes normal string parsing (for example, allowing a # character in a filename). Previously every plotscript file had to start with <span class="param">include, plotscr.hsd</span> but this is now optional. <span class="param">plotscr.hsd</span>, <span class="param">scancode.hsi</span>, and the exported <span class="param">your game name.hsi</span> file are all automatically included.<br>
+			<pre>include, cutscenes.hss  # All scripts for cutscenes
+include, ..\utility scripts\math.hss  # A few useful scripts shared between multiple games</pre>
 			
 		</tt></p>
 
@@ -3362,6 +3380,14 @@ end</pre>
 			Instantly moves the specified NPC to an X,Y position on the map. The coordinates are in units of tiles. You can use either an <a href="#about-npcreference" class="ref">NPC reference</a> or the NPC's ID number to specify which NPC will be moved.<br>
 			
 			
+		</tt></p>
+		<a name="about-setnpcz"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set npc z (npc, z)</font></b><br>
+			Sets the Z location of the specified NPC. The Z value is the number of pixels they are above the tile that they are 'standing' on. Useful for scripts where you want a NPC to jump or levitate. All NPCs normally have a Z value of 0 (even on maps with a foot offset) unless they are a vehicle which rises.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-npcz" class="ref">npc Z</a></li></ul>
 		</tt></p>
 		<a name="about-walknpctox"></a>
 		<p>
@@ -4529,7 +4555,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">init mouse</font></b><br>
-			Informs the engine that you intend to use the mouse. This command should be run before any mouse functions are be used. It causes the normal mouse cursor to be hidden when over the game's window, and causes mouse clicks to trigger on-keypress scripts. Therefore, it is a good idea to place this command in the newgame and loadgame scripts if you are going to use the mouse.<br><div style="background-color:#EFF;" class="note">
+			Informs the engine that you intend to use the mouse. This command should be run before any mouse functions are be used. It causes the normal mouse cursor to be hidden when over the game's window, and causes mouse buttons to trigger on-keypress scripts. Therefore, it is a good idea to place this command in the newgame and loadgame scripts if you are going to use the mouse.<br><div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Running this command does not draw a cursor onscreen - your script must do this itself by placing a slice or npc at the appropriate location.<br clear="all">
 </div> Here is an example:<br>
 			<pre>include,plotscr.hsd
@@ -4605,7 +4631,7 @@ end</pre>
 		<a name="String%20Functions"></a>
 
 		<font color="#f06060" size="4">String Functions</font>
-		<p>In HamsterSpeak, strings are special variables which hold pieces of text, and are referred to by their ID numbers. There are 100 string variables, with IDs 0 to 99. Strings variables can be displayed onscreen directly, or alternatively embedded in textboxes or dsiplayed with text slices. For more information, see the <a href="rpg.hamsterrepublic.com/ohrrpgce/Strings">wiki article on strings</a>.<br>
+		<p>In HamsterSpeak, strings are special variables which hold pieces of text, and are referred to by their ID numbers. There are 100 string variables, with IDs 0 to 99. Strings variables can be displayed onscreen directly, or alternatively embedded in textboxes or displayed with text slices. For more information, see the <a href="rpg.hamsterrepublic.com/ohrrpgce/Strings">wiki article on strings</a>.<br>
 You can set the value of a string directly with <a href="#about-%24string=%22...%22" class="ref">$id="..."</a> and append to an existing string with <a href="#about-%24string+%22...%22" class="ref">$id+"..."</a>.
 There is no limit on string length.<br>
 <div style="background-color:#EFF;" class="note">
@@ -6757,7 +6783,9 @@ set horiz align(sl, edge:right)
 <a href="#about-setvertalign" class="ref">set vert align</a>, </li>
 <li>
 <a href="#about-sethorizanchor" class="ref">set horiz anchor</a>, </li>
-<li><a href="#about-setvertanchor" class="ref">set vert anchor</a></li>
+<li>
+<a href="#about-setvertanchor" class="ref">set vert anchor</a>, </li>
+<li><a href="#about-gethorizalign" class="ref">get horiz align</a></li>
 </ul>
 		</tt></p>
 		<a name="about-setvertalign"></a>
@@ -6771,7 +6799,9 @@ set horiz align(sl, edge:right)
 <a href="#about-sethorizalign" class="ref">set horiz align</a>, </li>
 <li>
 <a href="#about-sethorizanchor" class="ref">set horiz anchor</a>, </li>
-<li><a href="#about-setvertanchor" class="ref">set vert anchor</a></li>
+<li>
+<a href="#about-setvertanchor" class="ref">set vert anchor</a>, </li>
+<li><a href="#about-getvertalign" class="ref">get vert align</a></li>
 </ul>
 		</tt></p>
 		<a name="about-sethorizanchor"></a>
@@ -6785,7 +6815,9 @@ set horiz align(sl, edge:right)
 <a href="#about-setvertalign" class="ref">set vert align</a>, </li>
 <li>
 <a href="#about-sethorizalign" class="ref">set horiz align</a>, </li>
-<li><a href="#about-setvertanchor" class="ref">set vert anchor</a></li>
+<li>
+<a href="#about-setvertanchor" class="ref">set vert anchor</a>, </li>
+<li><a href="#about-gethorizanchor" class="ref">get horiz anchor</a></li>
 </ul>
 		</tt></p>
 		<a name="about-setvertanchor"></a>
@@ -6799,7 +6831,73 @@ set horiz align(sl, edge:right)
 <a href="#about-setvertalign" class="ref">set vert align</a>, </li>
 <li>
 <a href="#about-sethorizalign" class="ref">set horiz align</a>, </li>
+<li>
+<a href="#about-sethorizanchor" class="ref">set horiz anchor</a>, </li>
+<li><a href="#about-getvertanchor" class="ref">get vert anchor</a></li>
+</ul>
+		</tt></p>
+		<a name="about-gethorizalign"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get horiz align (handle)</font></b><br>
+			Returns the horizontal alignment of any slice relative to its parent. The return value will be one of <span class="param">edge:left</span>, <span class="param">edge:center</span>, <span class="param">edge:right</span>.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-getvertalign" class="ref">get vert align</a>, </li>
+<li>
+<a href="#about-gethorizanchor" class="ref">get horiz anchor</a>, </li>
+<li>
+<a href="#about-getvertanchor" class="ref">get vert anchor</a>, </li>
+<li><a href="#about-sethorizalign" class="ref">set horiz align</a></li>
+</ul>
+		</tt></p>
+		<a name="about-getvertalign"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get vert align (handle)</font></b><br>
+			Returns the vertical alignment of any slice relative to its parent. The return value will be one of <span class="param">edge:top</span>, <span class="param">edge:middle</span>, <span class="param">edge:bottom</span>.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-gethorizalign" class="ref">get horiz align</a>, </li>
+<li>
+<a href="#about-gethorizanchor" class="ref">get horiz anchor</a>, </li>
+<li>
+<a href="#about-getvertanchor" class="ref">get vert anchor</a>, </li>
+<li><a href="#about-setvertalign" class="ref">set vert align</a></li>
+</ul>
+		</tt></p>
+		<a name="about-gethorizanchor"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get horiz anchor (handle)</font></b><br>
+			Returns the horizontal anchor that a slice uses to position itself relative to its parent. The return value will be one of <span class="param">edge:left</span>, <span class="param">edge:center</span>, <span class="param">edge:right</span>.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-getvertanchor" class="ref">get vert anchor</a>, </li>
+<li>
+<a href="#about-gethorizalign" class="ref">get horiz align</a>, </li>
+<li>
+<a href="#about-getvertalign" class="ref">get vert align</a>, </li>
 <li><a href="#about-sethorizanchor" class="ref">set horiz anchor</a></li>
+</ul>
+		</tt></p>
+		<a name="about-getvertanchor"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get vert anchor (handle)</font></b><br>
+			Returns the vertical anchor that a slice uses to position itself relative to its parent. The return value will be one of <span class="param">edge:top</span>, <span class="param">edge:middle</span>, <span class="param">edge:bottom</span>.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-gethorizanchor" class="ref">get horiz anchor</a>, </li>
+<li>
+<a href="#about-gethorizalign" class="ref">get horiz align</a>, </li>
+<li>
+<a href="#about-getvertalign" class="ref">get vert align</a>, </li>
+<li><a href="#about-setvertanchor" class="ref">set vert anchor</a></li>
 </ul>
 		</tt></p>
 		<a name="about-realignslice"></a>
@@ -8478,6 +8576,14 @@ end
 			Returns the specified NPC's Y position in tiles. Note that an NPC's tile is the tile its top left corner is on.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-npcatspot" class="ref">NPC at spot</a></li></ul>
+		</tt></p>
+		<a name="about-npcz"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">npc Z (who)</font></b><br>
+			Returns the specified NPC's Z position in pixels. The Z value is the number of pixels they are above the tile that they are 'standing' on, not including the map's foot offset. All NPCs normally have a Z value of 0 (even on maps with a foot offset) unless they are used as a vehicle which rises.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-setnpcz" class="ref">set npc z</a></li></ul>
 		</tt></p>
 		<a name="about-herodirection"></a>
 		<p>
@@ -11798,7 +11904,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 799 commands in this file, of which 57 are only references to other commands.</p>
+	<p>Stats: There are 805 commands in this file, of which 57 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

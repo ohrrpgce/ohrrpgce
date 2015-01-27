@@ -3045,6 +3045,7 @@ The example above creates a container and then puts two hero sprites inside it, 
 				<ref>setvertalign</ref>
 				<ref>sethorizanchor</ref>
 				<ref>setvertanchor</ref>
+				<ref>gethorizalign</ref>
 			</seealso>
 		</command>
 		<command id="setvertalign">
@@ -3055,6 +3056,7 @@ The example above creates a container and then puts two hero sprites inside it, 
 				<ref>sethorizalign</ref>
 				<ref>sethorizanchor</ref>
 				<ref>setvertanchor</ref>
+				<ref>getvertalign</ref>
 			</seealso>
 		</command>
 		<command id="sethorizanchor">
@@ -3065,6 +3067,7 @@ The example above creates a container and then puts two hero sprites inside it, 
 				<ref>setvertalign</ref>
 				<ref>sethorizalign</ref>
 				<ref>setvertanchor</ref>
+				<ref>gethorizanchor</ref>
 			</seealso>
 		</command>
 		<command id="setvertanchor">
@@ -3075,6 +3078,51 @@ The example above creates a container and then puts two hero sprites inside it, 
 				<ref>setvertalign</ref>
 				<ref>sethorizalign</ref>
 				<ref>sethorizanchor</ref>
+				<ref>getvertanchor</ref>
+			</seealso>
+		</command>
+		<command id="gethorizalign">
+			<canon>get horiz align (handle)</canon>
+			<shortname>get horiz align</shortname>
+			<description>Returns the horizontal alignment of any slice relative to its parent. The return value will be one of <p>edge:left</p>, <p>edge:center</p>, <p>edge:right</p>.</description>
+			<seealso>
+				<ref>getvertalign</ref>
+				<ref>gethorizanchor</ref>
+				<ref>getvertanchor</ref>
+				<ref>sethorizalign</ref>
+			</seealso>
+		</command>
+		<command id="getvertalign">
+			<canon>get vert align (handle)</canon>
+			<shortname>get vert align</shortname>
+			<description>Returns the vertical alignment of any slice relative to its parent. The return value will be one of <p>edge:top</p>, <p>edge:middle</p>, <p>edge:bottom</p>.</description>
+			<seealso>
+				<ref>gethorizalign</ref>
+				<ref>gethorizanchor</ref>
+				<ref>getvertanchor</ref>
+				<ref>setvertalign</ref>
+			</seealso>
+		</command>
+		<command id="gethorizanchor">
+			<canon>get horiz anchor (handle)</canon>
+			<shortname>get horiz anchor</shortname>
+			<description>Returns the horizontal anchor that a slice uses to position itself relative to its parent. The return value will be one of <p>edge:left</p>, <p>edge:center</p>, <p>edge:right</p>.</description>
+			<seealso>
+				<ref>getvertanchor</ref>
+				<ref>gethorizalign</ref>
+				<ref>getvertalign</ref>
+				<ref>sethorizanchor</ref>
+			</seealso>
+		</command>
+		<command id="getvertanchor">
+			<canon>get vert anchor (handle)</canon>
+			<shortname>get vert anchor</shortname>
+			<description>Returns the vertical anchor that a slice uses to position itself relative to its parent. The return value will be one of <p>edge:top</p>, <p>edge:middle</p>, <p>edge:bottom</p>.</description>
+			<seealso>
+				<ref>gethorizanchor</ref>
+				<ref>gethorizalign</ref>
+				<ref>getvertalign</ref>
+				<ref>setvertanchor</ref>
 			</seealso>
 		</command>
 		<command id="realignslice">

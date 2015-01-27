@@ -119,6 +119,8 @@ WHAT IS NEW?
     * "running on desktop", "running on mobile", "running on console",
       "show virtual gamepad", "hide virtual gamepad",
       "auto virtual gamepad" [James]
+    * "get horiz align", "get vert align", "get horiz anchor",
+      "get vert anchor" [James]
 
   * Performance Fixes
     * Fixed delay when opening a menu that happened when a large number
@@ -128,7 +130,8 @@ WHAT IS NEW?
 
   * Stuff Only Developers Will Notice
     * Experimental support for Android phones and tablets
-    * Experimental support for the OUYA Console
+    * Experimental support for the OUYA Console, Gamestick Console,
+      Fire TV Console
     * Experimental support for the Raspberry Pi
 
 April 9 2013 [Beelzebufo]
