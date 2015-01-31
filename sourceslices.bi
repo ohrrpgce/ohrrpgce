@@ -153,7 +153,7 @@ Sub default_item_screen (byval sl1 as Slice Ptr)
     sl4->alignvert = 1
     sl4->anchorhoriz = 1
     sl4->anchorvert = 1
-    ChangeTextSlice sl4, !"${DESC}", -14, , , 
+    ChangeTextSlice sl4, !"${DESC}", -14, -1, , 
     SetSliceParent(sl4, sl3)
    SetSliceParent(sl3, sl2)
   SetSliceParent(sl2, sl1)
