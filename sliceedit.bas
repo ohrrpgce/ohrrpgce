@@ -298,7 +298,8 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
 
  DIM slice_type as SliceTypes
 
- DIM filename as string
+ 'File the collection was loaded from
+ DIM source_filename as string
  
  DIM jump_to_collection as integer
 
@@ -349,7 +350,14 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
    END IF
   END IF
   IF keyval(scF2) > 1 THEN
-   filename = inputfilename("Export slice collection", ".slice", "", "input_filename_export_slices")
+   DIM filename as string
+   IF keyval(scCtrl) > 0 AND LEN(source_filename) THEN
+    IF yesno("Save, overwriting " & simplify_path_further(source_filename, CURDIR) & "?", NO, NO) THEN
+     filename = trimextension(source_filename)
+    END IF
+   ELSE
+    filename = inputfilename("Export slice collection", ".slice", "", "input_filename_export_slices")
+   END IF
    IF filename <> "" THEN
     SliceSaveToFile edslice, filename & ".slice"
    END IF
@@ -358,8 +366,9 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
   IF ses.use_index THEN
    '--import is only allowed when regular index editing mode is enabled, and not in Game...
    IF keyval(scF3) > 1 THEN
-    filename = browse(0, "", "*.slice", "",, "browse_import_slices")
+    DIM filename as string = browse(0, "", "*.slice", "",, "browse_import_slices")
     IF filename <> "" THEN
+     source_filename = filename
      slice_editor_load edslice, filename, specialcodes()
      cursor_seek = NULL
      state.need_update = YES

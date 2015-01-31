@@ -26,7 +26,10 @@ Press Ctrl+C to copy a slice and its children. Press Ctrl+V to paste a copied sl
 
 Press F2 to export your slice collection to a file.
 
-Press F3 to import a slice collection (the collection you are currentlly working on will be replaced.)
+Press Ctrl+F2 to save (export) to the same file that you loaded from (using F3),
+if any.
+
+Press F3 to import a slice collection (the collection you are currently working on will be replaced.)
 
 Press CTRL+F to edit the children of the currently selected slice in full-screen.
 
