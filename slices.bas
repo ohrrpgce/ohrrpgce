@@ -1289,7 +1289,7 @@ Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
    if dtime > 0 then
     dim dtick as integer
     if .d_back then
-     dtick = .d_time - .d_tick
+     dtick = dtime - .d_tick
     else
      dtick = .d_tick
     end if
@@ -1405,7 +1405,7 @@ Sub LoadSpriteSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
  dat->dissolving = LoadPropBool(node, "dissolving")
  dat->d_type     = bound(LoadProp(node, "d_type"), 0, dissolveTypeMax)
  dat->d_time     = LoadProp(node, "d_time")
- dat->d_tick     = bound(LoadProp(node, "d_tick"), 0, dat->d_time)
+ dat->d_tick     = bound(LoadProp(node, "d_tick"), 0, large(dat->d_time, 0))
  dat->d_back     = LoadPropBool(node, "d_back")
  dat->d_auto     = LoadPropBool(node, "d_auto")
 End Sub
@@ -1490,7 +1490,7 @@ Sub DissolveSpriteSlice(byval sl as slice ptr, byval dissolve_type as integer, b
   .dissolving = YES
   .d_type = bound(dissolve_type, 0, dissolveTypeMax)
   .d_time = over_ticks
-  .d_tick = bound(start_tick, 0, over_ticks)
+  .d_tick = bound(start_tick, 0, large(over_ticks, 0))
   .d_back = backwards <> 0
   .d_auto = auto_animate <> 0
  end with
