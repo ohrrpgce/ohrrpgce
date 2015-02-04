@@ -3619,6 +3619,29 @@ SELECT CASE as CONST id
   IF valid_plotslice(retvals(0)) THEN
    scriptret = plotslices(retvals(0))->AnchorHoriz
   END IF
+ CASE 583'--set select slice index
+  IF valid_plotselectslice(retvals(0)) THEN
+   DIM dat as SelectSliceData Ptr
+   dat = GetSelectSliceData(plotslices(retvals(0)))
+   dat->index = retvals(1) 'An invalid index just means that no child slice is visible.
+  END IF
+ CASE 584'--get select slice index
+  IF valid_plotselectslice(retvals(0)) THEN
+   DIM dat as SelectSliceData Ptr
+   dat = GetSelectSliceData(plotslices(retvals(0)))
+   scriptret = dat->index
+  END IF
+ CASE 585 '--create select
+  DIM sl as Slice Ptr
+  sl = NewSliceOfType(slSelect, SliceTable.scriptsprite)
+  scriptret = create_plotslice_handle(sl)
+  sl->Width = retvals(0)
+  sl->Height = retvals(1)
+ CASE 586 '--slice is select
+  IF valid_plotslice(retvals(0)) THEN
+   scriptret = 0
+   IF plotslices(retvals(0))->SliceType = slSelect THEN scriptret = 1
+  END IF
  CASE ELSE
   RETURN NO
 
@@ -4213,6 +4236,17 @@ FUNCTION valid_plotgridslice(byval handle as integer) as integer
    RETURN YES
   ELSE
    scripterr current_command_name() & ": slice handle " & handle & " is not a grid", serrBadOp
+  END IF
+ END IF
+ RETURN NO
+END FUNCTION
+
+FUNCTION valid_plotselectslice(byval handle as integer) as integer
+ IF valid_plotslice(handle) THEN
+  IF plotslices(handle)->SliceType = slSelect THEN
+   RETURN YES
+  ELSE
+   scripterr current_command_name() & ": slice handle " & handle & " is not a select", serrBadOp
   END IF
  END IF
  RETURN NO

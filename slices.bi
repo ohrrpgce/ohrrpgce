@@ -472,6 +472,7 @@ DECLARE Sub ChangePanelSlice(byval sl as slice ptr,_
                       byval pixels as integer=-1,_
                       byval percent as double=-1.0,_
                       byval padding as integer=-1)
+DECLARE Function GetSelectSliceData(byval sl as slice ptr) as SelectSliceData ptr
 
 '--Saving and loading slices
 DECLARE Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr, save_handles as bool=NO)

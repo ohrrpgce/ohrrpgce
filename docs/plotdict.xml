@@ -4121,6 +4121,33 @@ end
 				<ref>gridisshown</ref>
 			</seealso>
 		</command>
+
+		<command id="createselect">
+			<canon>create select (width, height)</canon>
+			<shortname>create select</shortname>
+			<description>Creates a new select slice, and returns an handle to it. Select slices are special containers that automatically Manage the visibility of their children. Only one child of a select slice can ever be visible at the same time. The two arguments are the width and height of the select slice.</description>
+		</command>
+		<command id="sliceisselect">
+			<canon>slice is select (handle)</canon>
+			<shortname>slice is select</shortname>
+			<description>Return true if the <p>handle</p> is a select slice, or false if it is any other type of slice.</description>
+		</command>
+		<command id="setselectsliceindex">
+			<canon>set select slice index (handle, index)</canon>
+			<shortname>set select slice index</shortname>
+			<description>Changes the currently selected (visible) child of a select slice. The first argument is the handle of the select slice. The second argument is the index number of the child slice (not a handle or a lookup code!) this will be 0 for the first child, 1 for the second child, 2 for the third child, and so-on. An invalid index number means no child slices will be visible at all.</description>
+			<seealso>
+				<ref>getselectsliceindex</ref>
+			</seealso>
+		</command>
+		<command id="getselectsliceindex">
+			<canon>get select slice index (handle)</canon>
+			<shortname>get select slice index</shortname>
+			<description>Returns the index number of the currently selected (visible) child of a select slice. The first argument is the handle of the select slice. The return value the index number of the child slice (not a handle or a lookup code!) this will be 0 for the first child, 1 for the second child, 2 for the third child, and so-on.</description>
+			<seealso>
+				<ref>setselectsliceindex</ref>
+			</seealso>
+		</command>
 		<command id="slicecollidepoint">
 			<canon>slice collide point (handle, x, y)</canon>
 			<shortname>slice collide point</shortname>

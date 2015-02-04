@@ -602,6 +602,10 @@ define function, begin
 580,gethorizalign,1,0         # return a slice's alignment. Compare with edge: constants
 581,getvertanchor,1,0         # return a slice's anchor. Compare with edge: constants
 582,gethorizanchor,1,0        # return a slice's anchor. Compare with edge: constants
+583,setselectsliceindex,2,0,0 # change the currently selected child of a select slice by index
+584,getselectsliceindex,1,0   # return the index of the currently selected child of a select slice
+585,createselect,2,0,0        # create a select slice of a specified size
+586,sliceisselect,1,0         # true if the slice is a select
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

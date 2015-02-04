@@ -358,6 +358,9 @@
 		<a href="#about-createrect">create rect (width, height, style)</a><br>
 		
 	
+		<a href="#about-createselect">create select (width, height)</a><br>
+		
+	
 		<a href="#about-createtext">create text</a><br>
 		
 	
@@ -884,6 +887,9 @@
 		
 	
 		<a href="#about-getscriptname">get script name (string id, script id)</a><br>
+		
+	
+		<a href="#about-getselectsliceindex">get select slice index (handle)</a><br>
 		
 	
 		<a href="#about-getsliceclipping">get slice clipping (handle)</a><br>
@@ -1969,6 +1975,9 @@
 		<a href="#about-setsecondssofplay">set seconds of play (sec)</a><br>
 		
 	
+		<a href="#about-setselectsliceindex">set select slice index (handle, index)</a><br>
+		
+	
 		<a href="#about-setsliceclipping">set slice clipping (handle, clip)</a><br>
 		
 	
@@ -2144,6 +2153,9 @@
 		
 	
 		<a href="#about-sliceisrect">slice is rect (handle)</a><br>
+		
+	
+		<a href="#about-sliceisselect">slice is select (handle)</a><br>
 		
 	
 		<a href="#about-sliceissprite">slice is sprite (handle)</a><br>
@@ -8205,6 +8217,38 @@ end
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-gridisshown" class="ref">grid is shown</a></li></ul>
 		</tt></p>
+		<a name="about-createselect"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">create select (width, height)</font></b><br>
+			Creates a new select slice, and returns an handle to it. Select slices are special containers that automatically Manage the visibility of their children. Only one child of a select slice can ever be visible at the same time. The two arguments are the width and height of the select slice.<br>
+			
+			
+		</tt></p>
+		<a name="about-sliceisselect"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">slice is select (handle)</font></b><br>
+			Return true if the <span class="param">handle</span> is a select slice, or false if it is any other type of slice.<br>
+			
+			
+		</tt></p>
+		<a name="about-setselectsliceindex"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set select slice index (handle, index)</font></b><br>
+			Changes the currently selected (visible) child of a select slice. The first argument is the handle of the select slice. The second argument is the index number of the child slice (not a handle or a lookup code!) this will be 0 for the first child, 1 for the second child, 2 for the third child, and so-on. An invalid index number means no child slices will be visible at all.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-getselectsliceindex" class="ref">get select slice index</a></li></ul>
+		</tt></p>
+		<a name="about-getselectsliceindex"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get select slice index (handle)</font></b><br>
+			Returns the index number of the currently selected (visible) child of a select slice. The first argument is the handle of the select slice. The return value the index number of the child slice (not a handle or a lookup code!) this will be 0 for the first child, 1 for the second child, 2 for the third child, and so-on.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-setselectsliceindex" class="ref">set select slice index</a></li></ul>
+		</tt></p>
 		<a name="about-slicecollidepoint"></a>
 		<p>
 		<tt>
@@ -11904,7 +11948,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 805 commands in this file, of which 57 are only references to other commands.</p>
+	<p>Stats: There are 809 commands in this file, of which 57 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
