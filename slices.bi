@@ -352,6 +352,7 @@ DECLARE Function CalcScrollMinX(byval sl as slice ptr, byval check_depth as inte
 DECLARE Function CalcScrollMaxX(byval sl as slice ptr, byval check_depth as integer, byval cur_depth as integer=1) as integer
 DECLARE Function CalcScrollMinY(byval sl as slice ptr, byval check_depth as integer, byval cur_depth as integer=1) as integer
 DECLARE Function CalcScrollMaxY(byval sl as slice ptr, byval check_depth as integer, byval cur_depth as integer=1) as integer
+DECLARE Function SliceIndexAmongSiblings(byval sl as slice ptr) as integer
 
 End Extern
 

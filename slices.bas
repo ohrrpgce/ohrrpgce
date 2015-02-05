@@ -2935,6 +2935,21 @@ Function SliceColor(byval n as integer) as integer
  debugc errError, "Invalid slice color " & n
 End function
 
+Function SliceIndexAmongSiblings(byval sl as slice ptr) as integer
+ if sl = 0 then debug "SliceIndexAmongSiblings null ptr": return 0
+ dim par as Slice Ptr = sl->parent
+ if par then
+  dim ch as Slice Ptr = par->FirstChild
+  dim i as integer = 0
+  do while ch
+   if ch = sl then return i
+   ch = ch->NextSibling
+   i += 1
+  loop
+ end if
+ return 0 ' Treat the root slice as index 0, even though it has no siblings by definition
+End function
+
 '==Slice cloning===============================================================
 
 Function CloneSliceTree(byval sl as slice ptr) as slice ptr

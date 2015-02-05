@@ -3642,6 +3642,10 @@ SELECT CASE as CONST id
    scriptret = 0
    IF plotslices(retvals(0))->SliceType = slSelect THEN scriptret = 1
   END IF
+ CASE 587 '--slice index among siblings
+  IF valid_plotslice(retvals(0)) THEN
+   scriptret = SliceIndexAmongSiblings(plotslices(retvals(0)))
+  END IF
  CASE ELSE
   RETURN NO
 

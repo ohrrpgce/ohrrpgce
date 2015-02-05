@@ -606,6 +606,7 @@ define function, begin
 584,getselectsliceindex,1,0   # return the index of the currently selected child of a select slice
 585,createselect,2,0,0        # create a select slice of a specified size
 586,sliceisselect,1,0         # true if the slice is a select
+587,sliceindexamongsiblings,1,0 # Return the current integer index of this slice relative to its siblings
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

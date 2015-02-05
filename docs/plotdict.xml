@@ -3592,6 +3592,14 @@ end
 				<ref>firstchild</ref>
 			</seealso>
 		</command>
+		<command id="sliceindexamongsiblings">
+			<canon>slice index among siblings (handle)</canon>
+			<shortname>slice index among siblings</shortname>
+			<description>Returns an integer that that indicates which number this slice is among its sibling slices that share the same parent. The first slice will return index 0, the second slice 1, the third slice 2, etc...</description>
+			<seealso>
+				<ref>slicechild</ref>
+			</seealso>
+		</command>
 		<command id="slicetofront">
 			<canon>slice to front (handle)</canon>
 			<shortname>slice to front</shortname>
