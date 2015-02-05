@@ -3646,6 +3646,43 @@ SELECT CASE as CONST id
   IF valid_plotslice(retvals(0)) THEN
    scriptret = SliceIndexAmongSiblings(plotslices(retvals(0)))
   END IF
+ CASE 588 '--create scroll
+  DIM sl as Slice Ptr
+  sl = NewSliceOfType(slScroll, SliceTable.scriptsprite)
+  scriptret = create_plotslice_handle(sl)
+  sl->Width = retvals(0)
+  sl->Height = retvals(1)
+ CASE 589 '--slice is scroll
+  IF valid_plotslice(retvals(0)) THEN
+   scriptret = 0
+   IF plotslices(retvals(0))->SliceType = slScroll THEN scriptret = 1
+  END IF
+ CASE 590'--set scroll bar style
+  IF valid_plotscrollslice(retvals(0)) THEN
+   IF bound_arg(retvals(1), 0, 14, "box style") THEN
+    ChangeScrollSlice plotslices(retvals(0)), retvals(1)
+   END IF
+  END IF
+ CASE 591'--get scroll bar style
+  IF valid_plotscrollslice(retvals(0)) THEN
+   DIM dat as ScrollSliceData Ptr
+   dat = GetScrollSliceData(plotslices(retvals(0)))
+   scriptret = dat->style
+  END IF
+ CASE 592'--set scroll check depth
+  IF valid_plotscrollslice(retvals(0)) THEN
+   ChangeScrollSlice plotslices(retvals(0)), , retvals(1)
+  END IF
+ CASE 593'--get scroll check depth
+  IF valid_plotscrollslice(retvals(0)) THEN
+   DIM dat as ScrollSliceData Ptr
+   dat = GetScrollSliceData(plotslices(retvals(0)))
+   scriptret = dat->check_depth
+  END IF
+ CASE 594'--scroll to child
+  IF valid_plotslice(retvals(0)) ANDALSO valid_plotslice(retvals(1)) THEN
+   ScrollToChild plotslices(retvals(0)), plotslices(retvals(1))
+  END IF
  CASE ELSE
   RETURN NO
 
@@ -4256,11 +4293,22 @@ FUNCTION valid_plotselectslice(byval handle as integer) as integer
  RETURN NO
 END FUNCTION
 
+FUNCTION valid_plotscrollslice(byval handle as integer) as integer
+ IF valid_plotslice(handle) THEN
+  IF plotslices(handle)->SliceType = slScroll THEN
+   RETURN YES
+  ELSE
+   scripterr current_command_name() & ": slice handle " & handle & " is not a scroll", serrBadOp
+  END IF
+ END IF
+ RETURN NO
+END FUNCTION
+
 FUNCTION valid_resizeable_slice(byval handle as integer, byval ignore_fill as integer=NO) as integer
  IF valid_plotslice(handle) THEN
   DIM sl as Slice Ptr
   sl = plotslices(handle)
-  IF sl->SliceType = slRectangle OR sl->SliceType = slContainer OR sl->SliceType = slGrid OR sl->SliceType = slEllipse THEN
+  IF sl->SliceType = slRectangle OR sl->SliceType = slContainer OR sl->SliceType = slGrid OR sl->SliceType = slEllipse OR sl->SliceType = slSelect OR sl->SliceType = slScroll THEN
    IF sl->Fill = NO OR ignore_fill THEN
     RETURN YES
    ELSE

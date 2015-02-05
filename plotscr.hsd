@@ -607,6 +607,13 @@ define function, begin
 585,createselect,2,0,0        # create a select slice of a specified size
 586,sliceisselect,1,0         # true if the slice is a select
 587,sliceindexamongsiblings,1,0 # Return the current integer index of this slice relative to its siblings
+588,createscroll,2,0,0        # create a scroll slice of a specified size
+589,sliceisscroll,1,0         # true if the slice is a scroll
+590,setscrollbarstyle,2,0,0   # change scroll slice scrollbar style
+591,getscrollbarstyle,1,0     # return current scroll slice scrollbar style
+592,setscrollcheckdepth,2,0,0 # change a scroll's child-check-depth
+593,getscrollcheckdepth,1,0   # return a scroll's current child-check-depth
+594,scrolltochild,2,0,0       # cause all the children of a Scroll Slice to move until a specific child is in view
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

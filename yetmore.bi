@@ -50,6 +50,7 @@ DECLARE FUNCTION valid_plotrect(byval handle as integer) as integer
 DECLARE FUNCTION valid_plottextslice(byval handle as integer) as integer
 DECLARE FUNCTION valid_plotgridslice(byval handle as integer) as integer
 DECLARE FUNCTION valid_plotselectslice(byval handle as integer) as integer
+DECLARE FUNCTION valid_plotscrollslice(byval handle as integer) as integer
 DECLARE FUNCTION valid_resizeable_slice(byval handle as integer, byval ignore_fill as integer=NO) as integer
 DECLARE FUNCTION create_plotslice_handle(byval sl as Slice Ptr) as integer
 DECLARE FUNCTION find_plotslice_handle(byval sl as Slice Ptr) as integer

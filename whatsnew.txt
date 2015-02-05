@@ -123,6 +123,9 @@ WHAT IS NEW?
       "get vert anchor" [James]
     * "create select" "slice is select" "set slice select index"
       "get slice select index" "slice index among siblings" [James]
+    * "create scroll" "slice is scroll" "set scroll bar style"
+      "get scroll bar style" "set scroll check depth"
+      "get scroll check depth" "scroll to child" [James]
 
   * Performance Fixes
     * Fixed delay when opening a menu that happened when a large number

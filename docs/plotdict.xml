@@ -4129,7 +4129,6 @@ end
 				<ref>gridisshown</ref>
 			</seealso>
 		</command>
-
 		<command id="createselect">
 			<canon>create select (width, height)</canon>
 			<shortname>create select</shortname>
@@ -4155,6 +4154,53 @@ end
 			<seealso>
 				<ref>setselectsliceindex</ref>
 			</seealso>
+		</command>
+		<command id="createscroll">
+			<canon>create scroll (width, height)</canon>
+			<shortname>create scroll</shortname>
+			<description>Creates a new scroll slice, and returns an handle to it. Scroll slices are special containers that automatically draw a scrollbar on ther right and bottom edges if their children do not fit inside them. The two arguments are the width and height of the select slice.</description>
+		</command>
+		<command id="sliceisscroll">
+			<canon>slice is scroll (handle)</canon>
+			<shortname>slice is scroll</shortname>
+			<description>Return true if the <p>handle</p> is a scroll slice, or false if it is any other type of slice.</description>
+		</command>
+		<command id="setscrollbarstyle">
+			<canon>set scroll bar style (handle, style)</canon>
+			<shortname>set scroll bar style</shortname>
+			<description>Changes the style of a scroll slice's scrollbar. The first argument is the handle of the scroll slice. The second argument is the style number. Scroll bar styles use the same colors as text box styles. The background color is used for the entire scrollbar, and the foreground color is used for the position indicator in the scrollbar.</description>
+			<seealso>
+				<ref>getscrollbarstyle</ref>
+			</seealso>
+		</command>
+		<command id="getscrollbarstyle">
+			<canon>get scroll bar style (handle)</canon>
+			<shortname>get scroll bar style</shortname>
+			<description>Returns the current style number of a scroll slice's scrollbar. The first argument is the handle of the scroll slice. Scroll bar styles use the same numbering as text box styles.</description>
+			<seealso>
+				<ref>setscrollbarstyle</ref>
+			</seealso>
+		</command>
+		<command id="setscrollcheckdepth">
+			<canon>set scroll check depth (handle, depth)</canon>
+			<shortname>set scroll check depth</shortname>
+			<description>Changes the number of generations of children and grandchildren that a scroll slice cares about. The first argument is the handle of the scroll slice. The second argument is the desired depth, or 0 to check the entire family tree of all child slices. For example, a depth of 1 means the scroll only considers children. 2 means it considers children+grandchildren. 3 means it considers children+grandchildren+greatgrandchildren.</description>
+			<seealso>
+				<ref>getscrollcheckdepth</ref>
+			</seealso>
+		</command>
+		<command id="getscrollcheckdepth">
+			<canon>get scroll check depth (handle)</canon>
+			<shortname>get scroll check depth</shortname>
+			<description>Returns the number of generations of children and grandchildren that a scroll slice cares about, or 0 if it considers the entire family tree of every child. The first argument is the handle of the scroll slice. For example, a return value of 1 means the scroll only considers children. 2 means it considers children+grandchildren. 3 means it considers children+grandchildren+greatgrandchildren.</description>
+			<seealso>
+				<ref>setscrollcheckdepth</ref>
+			</seealso>
+		</command>
+		<command id="scrolltochild">
+			<canon>scroll to child (parent, child)</canon>
+			<shortname>scroll to child</shortname>
+			<description>Causes all the children of the parent slice to be scrolled until the screen position of the child slice fits inside the parent. This is mainly intended for scroll slices, such as those created with the <ref>createscroll</ref> command, but it can be used on any type of slice. (Children that are set to fill their parents, or children that are automatically positioned by a grid parent may be unaffected.)</description>
 		</command>
 		<command id="slicecollidepoint">
 			<canon>slice collide point (handle, x, y)</canon>
