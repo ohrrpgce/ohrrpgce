@@ -1160,7 +1160,6 @@ DO
    IF allow = 1 THEN
     MenuSound gen(genAcceptSFX)
     picksave = st.pt
-    lastsaveslot = st.pt + 1
     EXIT DO
    ELSE
     MenuSound gen(genCancelSFX)

@@ -109,6 +109,9 @@ SUB init_save_system()
 END SUB
 
 SUB loadgame (byval slot as integer)
+ IF slot >= 0 ANDALSO slot <= 31 THEN
+  lastsaveslot = slot + 1
+ END IF
  '--Works under the assumption that resetgame has already been called.
  IF keyval(scLeftShift) = 0 AND keyval(scRightShift) = 0 THEN
   'bypass new loading if shift is held down when you load
@@ -165,6 +168,10 @@ END FUNCTION
 '-----------------------------------------------------------------------
 
 SUB savegame (byval slot as integer)
+ IF slot >= 0 ANDALSO slot <= 31 THEN
+  lastsaveslot = slot + 1
+ END IF
+
  current_save_slot = slot
  
  DIM doc as DocPtr
