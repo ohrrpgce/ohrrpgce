@@ -2226,11 +2226,11 @@ SELECT CASE as CONST id
    IF plotslices(retvals(0))->SliceType = slRectangle THEN scriptret = 1
   END IF
  CASE 372 '--set slice width
-  IF valid_resizeable_slice(retvals(0)) THEN
+  IF valid_resizeable_slice(retvals(0), NO, YES) THEN
    plotslices(retvals(0))->Width = retvals(1)
   END IF
  CASE 373 '--set slice height
-  IF valid_resizeable_slice(retvals(0)) THEN
+  IF valid_resizeable_slice(retvals(0), YES, NO) THEN
    plotslices(retvals(0))->Height = retvals(1)
   END IF
  CASE 374 '--get rect style
@@ -2363,7 +2363,7 @@ SELECT CASE as CONST id
    scriptret = plotslices(retvals(0))->PaddingRight
   END IF
  CASE 400 '--fill parent
-  IF valid_resizeable_slice(retvals(0), YES) THEN
+  IF valid_resizeable_slice(retvals(0), YES, YES) THEN
    plotslices(retvals(0))->Fill = (retvals(1) <> 0)
   END IF
  CASE 401 '--is filling parent
@@ -4304,14 +4304,22 @@ FUNCTION valid_plotscrollslice(byval handle as integer) as integer
  RETURN NO
 END FUNCTION
 
-FUNCTION valid_resizeable_slice(byval handle as integer, byval ignore_fill as integer=NO) as integer
+FUNCTION valid_resizeable_slice(byval handle as integer, byval horiz_fill_ok as bool=NO, byval vert_fill_ok as bool=NO) as integer
  IF valid_plotslice(handle) THEN
   DIM sl as Slice Ptr
   sl = plotslices(handle)
   IF sl->SliceType = slRectangle OR sl->SliceType = slContainer OR sl->SliceType = slGrid OR sl->SliceType = slEllipse OR sl->SliceType = slSelect OR sl->SliceType = slScroll THEN
-   IF sl->Fill = NO OR ignore_fill THEN
+   IF sl->Fill = NO THEN
     RETURN YES
    ELSE
+    SELECT CASE sl->Fillmode
+     CASE 0 'Filling both
+      IF horiz_fill_ok ANDALSO vert_fill_ok THEN RETURN YES
+     CASE 1 'Filling horiz only
+      IF horiz_fill_ok THEN RETURN YES
+     CASE 2 'Filling vert only
+      IF vert_fill_ok THEN RETURN YES
+    END SELECT
     scripterr current_command_name() & ": slice handle " & handle & " cannot be resized while filling parent", serrBadOp
    END IF
   ELSE
