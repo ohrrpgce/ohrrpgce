@@ -24,7 +24,6 @@ games.garbage = games.early2006_garbage = games.bitgarbage = games.newest = game
 rpgs = RPGIterator(rpgsources)
 for rpg, gameinfo, zipinfo in rpgs:
     # rpg is always an RPGDir
-    gameinfo.loadname(rpg)
     gameinfo.archinym = rpg.archinym.prefix
     gameinfo.arch_version = rpg.archinym.version
 

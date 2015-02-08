@@ -16,13 +16,6 @@ if len(sys.argv) < 2:
     sys.exit("Specify .rpg files, .rpgdir directories, .zip files, or directories containing any of these as arguments.")
 rpgsources = sys.argv[1:]
 
-def lumpbasename(name, rpg):
-    "Returns the archinym-independent part of a lump name, eg. ohrrpgce.gen -> gen"
-    name = os.path.basename(name)
-    if name.startswith(rpg.archinym.prefix):
-        name = name[len(rpg.archinym.prefix)+1:]
-    return name
-
 totalattacks = 0
 num_reset_attacks = 0
 bitandfail = 0
@@ -32,8 +25,6 @@ badattacks = 0
 
 rpgs = RPGIterator(rpgsources)
 for rpg, gameinfo, zipinfo in rpgs:
-    gameinfo.loadname(rpg)
-    gameinfo.lumplist = [(lumpbasename(name, rpg), os.stat(name).st_size) for name in rpg.manifest]
     gameinfo.archinym = rpg.archinym.prefix
     gameinfo.arch_version = rpg.archinym.version
 

@@ -27,7 +27,7 @@ top_level = ["defineconstant", "definetrigger", "defineoperator",
              "globalvariable", "definefunction", "definescript", "include"]
 
 def is_script(f):
-    "Given a (text) file try to determine whether is it contains hamsterspeak scripts"
+    "Given a (text) file try to determine whether it contains hamsterspeak scripts"
 
     #with filename_or_handle(f, 'r') as f:
     # Read up to the first top level token, ignoring # comments
@@ -39,6 +39,13 @@ def is_script(f):
         if line:
             return line in top_level
     return False
+
+def lumpbasename(name, rpg):
+    "Returns the archinym-independent part of a lump name, eg. ohrrpgce.gen -> gen"
+    name = os.path.basename(name)
+    if name.startswith(rpg.archinym.prefix):
+        name = name[len(rpg.archinym.prefix)+1:]
+    return name
 
 def md5_add_file(md5, fname):
     with open(fname, 'rb') as f:
@@ -202,12 +209,14 @@ class RPGIterator(object):
                     gameinfo.size = os.stat(fname).st_size
                     self.bytes += gameinfo.size
                     try:
-                        yield self._get_rpg(fname), gameinfo, None
+                        rpg = self._get_rpg(fname)
                     except CorruptionError as e:
                         self._print("%s is corrupt, skipped: %s" % (fname, e))
                         self.num_badrpgs += 1
                         # Clear last exception: it holds onto local variables in stack frames
                         sys.exc_clear()
+                    gameinfo.loadname(rpg)
+                    yield rpg, gameinfo, None
                     self._cleanup()
 
             for f, src in self.zipfiles:

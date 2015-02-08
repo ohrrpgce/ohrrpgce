@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+#
+# Collects some interesting stats on scripts; data saved to scriptdata.bin.
+# See 'CUSTOMISATION' section to collect data on individual commands or scripts.
+
 import os
 import sys
 import time
@@ -138,7 +142,6 @@ for rpg, gameinfo, zipinfo in rpgs:
     gameinfo.scripts_backup = False
     if zipinfo:
         gameinfo.has_source = (len(zipinfo.scripts) > 0)
-    gameinfo.loadname(rpg)
     rpgidx = np.append(rpgidx, gameinfo)
 
     cmdusage = np.zeros((1, table_size), np.int32)

@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+#
+# Collects a random selection of data, saved to gamedata.bin
+
 import os
 import sys
 import time
@@ -7,7 +10,7 @@ import numpy as np
 from nohrio.ohrrpgce import *
 from nohrio.dtypes import dt
 from nohrio.wrappers import OhrData
-from rpgbatch import RPGIterator, RPGInfo
+from rpgbatch import RPGIterator, RPGInfo, lumpbasename
 
 if len(sys.argv) < 2:
     sys.exit("Specify .rpg files, .rpgdir directories, .zip files, or directories containing any of these as arguments.")
@@ -21,12 +24,6 @@ fnt = np.ndarray(shape = 0, dtype = dt['fnt'])
 data = []
 withscripts = 0
 
-def lumpbasename(name, rpg):
-    name = os.path.basename(name)
-    if name.startswith(rpg.archinym.prefix):
-        name = name[len(rpg.archinym.prefix)+1:]
-    return name
-
 rpgs = RPGIterator(things)
 for rpg, gameinfo, zipinfo in rpgs:
     # Let's fetch some useful data and store it
@@ -37,7 +34,6 @@ for rpg, gameinfo, zipinfo in rpgs:
         print "scripts:", zipinfo.scripts
     else:
         gameinfo.scripts = []
-    gameinfo.loadname(rpg)
     gameinfo.lumplist = [(lumpbasename(name, rpg), os.stat(name).st_size) for name in rpg.manifest]
     gameinfo.archinym = rpg.archinym.prefix
     gameinfo.arch_version = rpg.archinym.version
