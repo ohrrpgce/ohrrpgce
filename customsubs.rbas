@@ -4294,7 +4294,7 @@ END SUB
 SUB automatic_backup (rpgfile as string)
  DIM keep_how_many as integer = 10 'FIXME: this could be customized per-game
 
- DIM backupdir as string = trimfilename(rpgfile) & SLASH & "backups"
+ DIM backupdir as string = trimfilename(rpgfile) & SLASH & "autobackups"
  IF NOT isdir(backupdir) THEN makedir backupdir
  IF NOT diriswriteable(backupdir) THEN
   debuginfo "Can't do automatic backups """ & backupdir & """ is not writeable"
