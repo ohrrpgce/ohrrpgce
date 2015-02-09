@@ -52,6 +52,9 @@ WHAT IS NEW?
       whether the battle was won, and an option to prevent game over
       on death. [MirceaKitsune, Ralph]
     * The textbox editor now wraps text as you type [Ralph]
+    * Automatically keep a few backup copies of any rpg file you edit
+      This is no substitute for manual backups! Do not forget to
+      back up your own work! [James]
 
   * Bugfixes
     * Fixed a few cosmetic bugs in the equip menu including possibly

@@ -4288,6 +4288,56 @@ SUB save_current_game ()
  rpg_sanity_checks
  '--lump data to SAVE rpg file
  dolumpfiles sourcerpg
+ automatic_backup sourcerpg
+END SUB
+
+SUB automatic_backup (rpgfile as string)
+ DIM keep_how_many as integer = 10 'FIXME: this could be customized per-game
+
+ DIM backupdir as string = trimfilename(rpgfile) & SLASH & "backups"
+ IF NOT isdir(backupdir) THEN makedir backupdir
+ IF NOT diriswriteable(backupdir) THEN
+  debuginfo "Can't do automatic backups """ & backupdir & """ is not writeable"
+ END IF
+ DIM warnfile as string = backupdir & SLASH & "README-WARNING-automatic-backups.txt"
+ IF NOT isfile(warnfile) THEN
+  string_to_file !"WARNING! These automatic backups are no substitute for manual backups!\nThey are just here to save your slime that one time you forget!\n\nIf you don't have any other backup plan, at least remember to e-mail\na copy of your .rpg file to yourself once a week.", warnfile
+ END IF
+
+ 'Copy the backup
+ DIM datestr as string = MID(DATE, 7, 4) & "-" & MID(DATE, 1, 2) & "-" & MID(DATE, 4, 2)
+ DIM destfile as string = backupdir & SLASH & trimextension(trimpath(rpgfile)) & "-" & datestr & "." & justextension(rpgfile)
+ IF isdir(rpgfile) THEN
+  IF isdir(destfile) THEN killdir destfile
+  confirmed_copydirectory(rpgfile, destfile)
+ ELSE
+  copyfile rpgfile, destfile
+ END IF
+
+ 'Cull old backups to avoid bloatclutter.
+ REDIM oldfiles() as string
+ findfiles backupdir, trimextension(trimpath(rpgfile)) & "-*.rpg", fileTypeFile, , oldfiles()
+ REDIM olddirs() as string
+ findfiles backupdir, trimextension(trimpath(rpgfile)) & "-*.rpgdir", fileTypeDirectory, , olddirs()
+ DIM old as string vector
+ v_new old
+ FOR i as integer = 0 TO UBOUND(oldfiles)
+  IF LEN(oldfiles(i)) THEN v_append old, oldfiles(i)
+ NEXT i
+ FOR i as integer = 0 TO UBOUND(olddirs)
+  IF LEN(olddirs(i)) THEN v_append old, olddirs(i)
+ NEXT i
+ v_sort old
+ DIM oldrpg as string
+ FOR i as integer = v_len(old) - 1 - keep_how_many TO 0 STEP -1
+  oldrpg = backupdir & SLASH & old[i]
+  IF isdir(oldrpg) THEN
+   killdir oldrpg
+  ELSE
+   safekill oldrpg
+  END IF
+ NEXT i
+ v_free old 
 END SUB
 
 SUB dolumpfiles (filetolump as string)
