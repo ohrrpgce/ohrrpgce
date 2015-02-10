@@ -4,12 +4,13 @@ define constant, begin
   100, NUM RUNS
 
   # Number of loops to run micro-benchmarks
-  1000, MICRO LOOP COUNT
+  1000, MICRO LOOPCOUNT
 
   # Global variable IDs
   5000, TIMES ARRAY
   99, UNUSED GLOBAL
   100, fire array
+  
 
   1, BENCHMARK NAME STRING
 end
@@ -94,12 +95,14 @@ plotscript, main, begin
   $2 = ""
   trace (2)
 
-  # The general benchmarks are tweaked so that they all use roughly the same 
-  # amount of time (at time of writing), aside from "DOOM flames create and destroy"
-  # Give these more weight in the total benchmark score
+  # General benchmarks get more weight in the total benchmark score.
+  # The 'scores' (running times) of these benchmarks are weighted so that they
+  # all contribute roughly the same score at time of writing.
 
   $1 = "recursive fibonacci"
   score += run benchmark (@benchmark: recursive fibonacci, 1) * 2
+  $1 = "create and delete lotsa slices"
+  score2 += run benchmark (@benchmark: create and delete lotsa slices, 1) * 2 / 3
   $1 = "eat soap mania"
   score2 += run benchmark (@benchmark: eat soap mania, 1) * 2
   $1 = "xor map"
@@ -109,19 +112,20 @@ plotscript, main, begin
   $1 = "DOOM flames recalc"
   score += run benchmark (@benchmark: DOOM flames recalc, 1) * 2
   $1 = "DOOM flames create and destroy"
-  score2 += run benchmark (@benchmark: DOOM flames create and destroy, 1)
+  score2 += run benchmark (@benchmark: DOOM flames create and destroy, 1) * 2
   $1 = "DOOM flames update"
   DOOM initialise flames
   score += run benchmark (@benchmark: DOOM flames update, 1) * 2
   free slice (flames container)
 
-  $1 = "Pure HS benchmark score:"
+  # This score doesn't depend on the speed of implementation of any commands
+  $1 = "Benchmark score for interpreter (lower's better):"
   append number (1, score)
   trace (1)
   show string at (1, 0, 180)
 
   score += score2
-  $2 = "Total score (lower's better):"
+  $2 = "Total score:"
   append number (2, score)
   trace (2)
   show string (2)
@@ -721,6 +725,19 @@ end
 script, benchmark: recursive fibonacci, begin
   fibonacci (14)
 end
+
+script, benchmark: create and delete lotsa slices, begin
+  variable (i, parent, sl)
+  parent := create container
+  for (i, 0, 2000) do (
+    set parent(create container, parent)
+    if (i, mod, 5) else (
+      free slice(first child(parent))
+    )
+  )
+  free slice(parent)
+end
+
 
 #------------------- some scripts from Don't Eat Soap -----------------------------
 
