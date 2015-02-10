@@ -23,6 +23,7 @@ struct SpriteSet;
 struct Frame {
 	int w;
 	int h;
+	struct XYPair offset; //Draw offset from the position passed to frame_draw. Used by frame_dissolve
 	int pitch;     //pixel (x,y) is at .image[.x + .pitch * .y]; mask and image pitch are the same!
 	unsigned char *image;
 	unsigned char *mask;
@@ -34,8 +35,7 @@ struct Frame {
 	int arrayelem:1;  //not the first frame in a frame array
 	int isview:1;
 
-	//used only by frames in a SpriteSet, for now
-	struct XYPair offset;
+	//used only by frames in a SpriteSet, for now, which means it's NOT used
 	struct SpriteSet *sprset;  //if not NULL, this Frame array is part of a SpriteSet which
 	                           //will need to be freed at the same time
 };

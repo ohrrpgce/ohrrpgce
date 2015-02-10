@@ -79,7 +79,7 @@ TYPE SpriteCacheEntryFwd as SpriteCacheEntry
 TYPE SpriteSetFwd as SpriteSet
 
 'An 8 bit, single frame of a sprite.
-'Don't forget to update definition in blit.c when changing this!!
+'Don't forget to update definition in allmodex.h when changing this!!
 'As a rather ugly hack (TODO: remove), arrays of Frames are sometimes (for sprite sets) allocated contiguously,
 'with each having pointers to separate .image and .mask buffers. All will initially have .refcount = 1,
 '.arraylen set to the length of the array, and all but first will have .arrayelem ON.
@@ -87,6 +87,7 @@ TYPE SpriteSetFwd as SpriteSet
 type Frame
 	w as int32
 	h as int32
+	offset as XYPair   'Draw offset from the position passed to frame_draw. Used by frame_dissolve
 	pitch as int32     'pixel (x,y) is at .image[.x + .pitch * .y]; mask and image pitch are the same!
 	image as ubyte ptr
 	mask as ubyte ptr
@@ -98,8 +99,7 @@ type Frame
 	arrayelem:1 as int32  'not the first frame in a frame array
 	isview:1 as int32
 
-	'used only by frames in a SpriteSet, for now
-	offset as XYPair
+	'used only by frames in a SpriteSet, for now, which means it's NOT used
 	sprset as SpriteSetFwd ptr  'if not NULL, this Frame array is part of a SpriteSet which
                                     'will need to be freed at the same time
 end type

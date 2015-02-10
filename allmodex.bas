@@ -5863,7 +5863,8 @@ function frame_describe(byval p as frame ptr) as string
 		temp = "spriteset:<" & p->sprset->numframes & " frames: 0x" & hexptr(p->sprset->frames) _
 		       & "," & p->sprset->numanimations & " animations: 0x" & hexptr(p->sprset->animations) & ">"
 	end if
-	return "'(0x" & hexptr(p) & ") " & p->arraylen & "x" & p->w & "x" & p->h & " img=0x" & hexptr(p->image) _
+	return "'(0x" & hexptr(p) & ") " & p->arraylen & "x" & p->w & "x" & p->h _
+	       & " offset=" & p->offset.x & "," & p->offset.y  & " img=0x" & hexptr(p->image) _
 	       & " msk=0x" & hexptr(p->mask) & " pitch=" & p->pitch & " cached=" & p->cached & " aelem=" _
 	       & p->arrayelem & " view=" & p->isview & " base=0x" & hexptr(p->base) & " refc=" & p->refcount & "' " _
 	       & temp
@@ -5923,6 +5924,7 @@ function frame_duplicate(byval p as frame ptr, byval clr as bool = NO, byval add
 	ret->w = p->w
 	ret->h = p->h
 	ret->pitch = p->w
+	ret->offset = p->offset
 	ret->refcount = 1
 	ret->image = 0
 	ret->mask = 0
@@ -5990,6 +5992,9 @@ sub frame_draw(byval src as Frame ptr, byval pal as Palette16 ptr = NULL, byval 
 	if dest <> clippedframe then
 		setclip , , , , dest
 	end if
+
+	x += src->offset.x * scale
+	y += src->offset.y * scale
 
 	if scale = 1 then
 		drawohr src, dest, pal, x, y, trans
