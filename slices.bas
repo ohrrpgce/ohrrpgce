@@ -441,6 +441,7 @@ Sub DeleteSlice(Byval s as Slice ptr ptr, Byval debugme as integer=0)
  if debugme = -1 then debugme = 1
  if debugme > 0 then
   debug string(debugme - 1, " ") & SliceTypeName(sl) & " " & SliceLookupCodename(sl)
+  'SliceDebugLinks sl, NO, "deleting", debugme - 1
   debugme += 1
  end if
  
@@ -2127,7 +2128,7 @@ Sub ChangeScrollSlice(byval sl as slice ptr,_
 end sub
 
 Sub ScrollAllChildren(byval sl as slice ptr, byval xmove as integer, byval ymove as integer)
- 'This is intended for ScrollSlice, but can actually work on any container type.
+ 'This is intended for ScrollSlice, but can actually work on any type.
  if sl = 0 then debug "ScrollAllChildren: null scroll slice ptr": exit sub
  dim ch as slice ptr = sl->FirstChild
  do while ch
@@ -3232,6 +3233,7 @@ SUB SliceDebugForget(sl as Slice Ptr)
  debug "WARNING: tried to delete slice " & sl & " without any record of creating it!"
 END SUB
 
+'This is used for hunting down leaked slices
 SUB SliceDebugDump(byval noisy as integer = NO)
  if ENABLE_SLICE_DEBUG = NO then exit sub
  debug "===SLICE DEBUG DUMP==="
@@ -3251,6 +3253,8 @@ SUB SliceDebugDump(byval noisy as integer = NO)
  debug count & " slices found in the slice debug table"
 END SUB
 
+'This is the dump function accessible by an in-game debug key,
+'and is intended for seeing the slice tree, not debugging code
 SUB SliceDebugDumpTree(sl as Slice Ptr, byval indent as integer = 0)
  if sl = 0 then exit sub
  CheckTableSlotOK(sl)
@@ -3265,6 +3269,25 @@ SUB SliceDebugDumpTree(sl as Slice Ptr, byval indent as integer = 0)
  SliceDebugDumpTree sl->FirstChild, indent + 1
  SliceDebugDumpTree sl->NextSibling, indent
 END SUB
+
+'For debugging the pointers between slices. Not used anywhere
+/'
+Sub SliceDebugLinks(sl as Slice Ptr, recurse as bool = NO, prefix as string = "", indent as integer = 0)
+ if sl = 0 then exit sub
+ debug prefix & string(indent + 1, " ") & SliceTypeName(sl) & " " & SliceLookupCodename(sl) & " sl=" & sl & " par=" & sl->Parent & " prev=" & sl->PrevSibling & " next=" & sl->NextSibling
+ debug prefix & string(indent + 6, " ") & sl->NumChildren & " children, first=" & sl->FirstChild & " last=" & sl->LastChild
+ if sl->FirstChild then
+  if sl->FirstChild->Parent <> sl then fatalerror "bad FirstChild"
+ end if
+ if sl->LastChild then
+  if sl->LastChild->Parent <> sl then fatalerror "bad LastChild"
+ end if
+ if recurse then
+  SliceDebugLinks sl->FirstChild, recurse, prefix, indent + 1
+  SliceDebugLinks sl->NextSibling, recurse, prefix, indent
+ end if
+End Sub
+'/
 
 FUNCTION SliceDebugCheck(sl as Slice Ptr) as integer
  if ENABLE_SLICE_DEBUG = NO then debug "SliceDebugCheck not enabled" : RETURN NO
