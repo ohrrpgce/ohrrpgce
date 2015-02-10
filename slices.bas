@@ -15,7 +15,9 @@
 #include "slices.bi"
 
 #ifdef IS_GAME
- extern plotslices() as slice ptr
+ EXTERN plotslices() as slice ptr
+ EXTERN next_slice_handle as integer
+ EXTERN num_reusable_slice_handles as integer
  DECLARE SUB set_plotslice_handle(byval sl as Slice Ptr, handle as integer)
 #endif
 
@@ -162,7 +164,6 @@ Sub SetupGameSlices
 
  'Not used yet either, actually 
  SliceTable.ScriptString = NewSliceOfType(slSpecial, SliceTable.Root, SL_STRING_LAYER)
-
 End Sub
 
 Sub SetupMapSlices(byval to_max as integer)
@@ -203,6 +204,13 @@ Sub DestroyGameSlices (Byval dumpdebug as integer=0)
  SliceTable.TextBox = 0
  SliceTable.Menu = 0
  SliceTable.ScriptString = 0
+
+ #IFDEF IS_GAME
+  'Correct accounting of these globals is unnecessary! I guess
+  'it's good for determinism though
+  num_reusable_slice_handles = 0
+  next_slice_handle = lbound(plotslices)
+ #ENDIF
 End Sub
 
 FUNCTION SliceTypeByName (s as string) as SliceTypes
@@ -450,6 +458,9 @@ Sub DeleteSlice(Byval s as Slice ptr ptr, Byval debugme as integer=0)
  if CheckTableSlotOK(sl) then
   '--zero out the reference to this slice from the table
   plotslices(sl->TableSlot) = 0
+  if sl->TableSlot > 0 and sl->TableSlot < next_slice_handle then
+   num_reusable_slice_handles += 1
+  end if
  end if
 #endif
  

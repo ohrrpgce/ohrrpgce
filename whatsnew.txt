@@ -137,6 +137,7 @@ WHAT IS NEW?
       with DOS/Windows line-endings on Linux/Mac [Ralph]
     * The script intrepeter was running tight loops much (eg 2x) slower
       than it used to before Beelzebufo [Ralph]
+    * Creating or reparenting thousands of slices was slow [Ralph]
 
   * Stuff Only Developers Will Notice
     * Experimental support for Android phones and tablets

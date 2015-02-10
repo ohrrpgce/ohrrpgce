@@ -129,3 +129,6 @@ EXTERN topmenu as integer
 
 'Slice handles
 EXTERN plotslices() as Slice Ptr
+EXTERN next_slice_handle as integer
+EXTERN num_reusable_slice_handles as integer
+

@@ -37,6 +37,12 @@
 REDIM plotslices(1 TO 64) as Slice Ptr
 plotslicesp = @plotslices(1)
 
+'Next slice handle to try assigning (if unused); for linear scans
+DIM next_slice_handle as integer = 1   '== LBOUND(plotslices)
+'Tracks the number of unassigned handles less than next_slice_handle
+DIM num_reusable_slice_handles as integer
+
+
 REDIM timers(15) as PlotTimer
 
 SUB add_rem_swap_lock_hero (byref box as TextBox)
@@ -4347,15 +4353,23 @@ FUNCTION create_plotslice_handle(byval sl as Slice Ptr) as integer
   scripterr "Error: " & SliceTypeName(sl) & " " & sl & " references plotslices(" & sl->TableSlot & ") which has " & plotslices(sl->TableSlot), serrBug
   RETURN 0
  END IF
+ 'If a lot of slices have been deleted, then loop back to the beginning
+ 'to find reusable slices. We delay doing this so that handles are less likely
+ 'to get reused quickly (which we don't actually want).
+ 'In future, new script interpreter's garbage collection will obsolete this.
+ IF num_reusable_slice_handles > 5000 THEN
+  next_slice_handle = LBOUND(plotslices)
+  num_reusable_slice_handles = 0
+ END IF
+
  DIM i as integer
- 'First search for an empty slice handle slot (which sucks because it means they get re-used)
- FOR i = LBOUND(plotslices) to UBOUND(plotslices)
+ FOR i = next_slice_handle to UBOUND(plotslices)
   IF plotslices(i) = 0 THEN
    'Store the slice pointer in the handle slot
    plotslices(i) = sl
    'Store the handle slot in the slice
    sl->TableSlot = i
-   ' and return the handle number
+   next_slice_handle = i + 1
    RETURN i
   END IF
  NEXT
@@ -4366,7 +4380,7 @@ FUNCTION create_plotslice_handle(byval sl as Slice Ptr) as integer
  plotslices(i) = sl
  'Store the handle slot in the slice
  sl->TableSlot = i
- ' and return the handle number
+ next_slice_handle = i + 1
  RETURN i
 END FUNCTION
 
