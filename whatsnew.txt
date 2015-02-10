@@ -135,6 +135,8 @@ WHAT IS NEW?
       of menus were defined [Ralph]
     * HSpeak was extremely slow (potentially hours) at reading files
       with DOS/Windows line-endings on Linux/Mac [Ralph]
+    * The script intrepeter was running tight loops much (eg 2x) slower
+      than it used to before Beelzebufo [Ralph]
 
   * Stuff Only Developers Will Notice
     * Experimental support for Android phones and tablets

@@ -484,8 +484,17 @@ END WITH
 
 END SUB
 
-'Returns true if current interpreter block should be aborted
+'Returns true if current interpreter block should be aborted.
+'Gets called at the top of every kind of loop.
 FUNCTION interpreter_occasional_checks () as integer
+ STATIC calls_since_check as integer
+ calls_since_check += 1
+ 'Cost for calling TIMER is for me roughly 2us = 10 empty for loop iterations so needs to be avoided.
+ 'This may still lead to delays, as certain script commands might take a long time, and even
+ 'get called an unlimited number of times between calls to this function.
+ 'FIXME: use a thread to set a flag every scriptCheckInterval milliseconds instead.
+ IF calls_since_check < 250 THEN RETURN NO
+ calls_since_check = 0
  IF TIMER > next_interpreter_check_time THEN
   IF interrupting_keypress THEN
    IF interruption_grace_period THEN
