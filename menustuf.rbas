@@ -1238,7 +1238,9 @@ SUB picksave_draw(menu() as string, byval loading as integer, byval newgame_opt 
  'newgame_opt controls whether there are one (left only) or two buttons (left and right) at the top
  'st.pt = -1 and menu(0) is the left button, st.pt = -2 and menu(1) is the right button
  DIM col as integer
- DIM activec as integer
+ DIM boxstyle as integer
+ 'load and save menus enjoy different colour schemes
+ IF loading THEN boxstyle = 1 ELSE boxstyle = 0
 
  STATIC tog as integer
  STATIC walk as integer
@@ -1247,23 +1249,21 @@ SUB picksave_draw(menu() as string, byval loading as integer, byval newgame_opt 
 
  DIM last_slot as integer = UBOUND(pv)
  
- centerbox 50, 11, 80, 14, 15, page
- IF newgame_opt THEN centerbox 270, 11, 80, 14, 15, page
+ centerbox 50, 11, 80, 14, 1 + 14, page
+ IF newgame_opt THEN centerbox 270, 11, 80, 14, 1 + 14, page
  DIM top as integer = large(st.top, 0)
  DIM yoff as integer
  FOR i as integer = top TO small(top + 3, last_slot)
   yoff = (i - top) * 44
-  centerbox 160, 44 + yoff, 310, 42, 15, page
+  centerbox 160, 44 + yoff, 310, 42, 1 + 14, page
  NEXT i
- 'load and save menus enjoy different colour schemes
- IF loading THEN activec = 2 ELSE activec = 1
  SELECT CASE st.pt
   CASE -2
-   centerbox 270, 11, 82, 16, activec, page
+   centerbox 270, 11, 82, 16, 1 + boxstyle, page
   CASE -1
-   centerbox 50, 11, 82, 16, activec, page
+   centerbox 50, 11, 82, 16, 1 + boxstyle, page
   CASE ELSE
-   centerbox 160, 44 + (st.pt - top) * 44, 312, 44, activec, page
+   centerbox 160, 44 + (st.pt - top) * 44, 312, 44, 1 + boxstyle, page
  END SELECT
  FOR i as integer = top TO small(top + 3, last_slot)
   IF pv(i).valid THEN
