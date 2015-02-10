@@ -71,10 +71,6 @@ call scons gfx=directx+sdl+fb music=sdl debug=2
 call nightly-gfx-music directx sdl -debug SDL.dll SDL_mixer.dll gfx_directx.dll misc\gdbcmds1.txt misc\gdbcmds2.txt gdbgame.bat gdbcustom.bat
 
 del game*.exe custom*.exe
-call scons gfx=directx+sdl+fb music=sdl debug=2 valgrind=1
-call nightly-gfx-music directx sdl -debug-valgrind SDL.dll SDL_mixer.dll gfx_directx.dll misc\gdbcmds1.txt misc\gdbcmds2.txt gdbgame.bat gdbcustom.bat
-
-del game*.exe custom*.exe
 call scons gfx=directx+sdl+fb music=sdl debug=0 scriptprofile=1
 call nightly-gfx-music directx sdl -scriptprofile SDL.dll SDL_mixer.dll gfx_directx.dll
 
