@@ -412,10 +412,10 @@ End Function
     if plotslices(sl->TableSlot) = sl then
      return YES
     else
-     reporterr "DeleteSlice: TableSlot mismatch! Slice " & sl & " slot is " & sl->TableSlot & " which has " & plotslices(sl->TableSlot), serrBug
+     reporterr "TableSlot mismatch! Slice " & sl & " slot is " & sl->TableSlot & " which has " & plotslices(sl->TableSlot), serrBug
     end if
    else
-    reporterr "DeleteSlice: TableSlot for " & sl & " is invalid: " & sl->TableSlot, serrBug
+    reporterr "TableSlot for " & sl & " is invalid: " & sl->TableSlot, serrBug
    end if
   end if
   return NO
@@ -455,31 +455,8 @@ Sub DeleteSlice(Byval s as Slice ptr ptr, Byval debugme as integer=0)
  'Call the slice's type-specific Dispose function
  if sl->Dispose <> 0 then sl->Dispose(sl)
  
- dim as slice ptr nxt, prv, par, ch
- nxt = sl->NextSibling
- prv = sl->PrevSibling
- par = sl->Parent
- ch = sl->FirstChild
- 
- if nxt then
-  nxt->PrevSibling = prv
- end if
- if prv then
-  prv->NextSibling = nxt
- end if
- if par then
-  if par->FirstChild = sl then
-   par->FirstChild = nxt
-  end if
-  par->NumChildren -= 1
- end if
- 
- 'next, delete our children
- do while ch <> 0
-  nxt = ch->NextSibling
-  DeleteSlice(@ch, debugme)
-  ch = nxt
- loop
+ OrphanSlice sl
+ DeleteSliceChildren sl, debugme
 
  SliceDebugForget sl
  
@@ -488,12 +465,12 @@ Sub DeleteSlice(Byval s as Slice ptr ptr, Byval debugme as integer=0)
 End Sub
 
 'Deletes a slice's children but not itself
-Sub DeleteSliceChildren(Byval sl as Slice ptr)
+Sub DeleteSliceChildren(Byval sl as Slice ptr, byval debugme as integer = 0)
  if sl = 0 then debug "DeleteSliceChildren null ptr": exit sub
  dim ch as slice ptr
  ch = sl->FirstChild
  do while ch
-  DeleteSlice @ch
+  DeleteSlice @ch, debugme
   ch = sl->FirstChild
  loop
 End Sub
@@ -517,6 +494,9 @@ Sub OrphanSlice(byval sl as slice ptr)
  if par then
   if par->FirstChild = sl then
    par->FirstChild = nxt
+  end if
+  if par->LastChild = sl then
+   par->LastChild = prv
   end if
   par->NumChildren -= 1
  end if
@@ -542,20 +522,16 @@ Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
  if parent then
   if parent->FirstChild = 0 then
    parent->FirstChild = sl
-  else
-   dim s as slice ptr
-   s = parent->FirstChild
-   do while s->NextSibling <> 0
-    s = s->NextSibling
-   loop
-   s->NextSibling = sl
-   sl->PrevSibling = s
   end if
+  if parent->LastChild then
+   parent->LastChild->NextSibling = sl
+   sl->PrevSibling = parent->LastChild
+  end if
+  parent->LastChild = sl
    
   parent->NumChildren += 1
   sl->parent = parent
  end if
- 
 end sub
 
 Sub AutoSortChildren(byval s as Slice Ptr)
@@ -591,6 +567,7 @@ Sub RelinkChildren(byval parent as Slice Ptr, slice_list() as slice ptr)
  if parent = 0 then debug "RelinkChildren: null ptr"
  dim i as integer
  parent->FirstChild = slice_list(0)
+ parent->LastChild = slice_list(ubound(slice_list))
  'Convert back to a doubly linked list
  for i = 1 to ubound(slice_list)
   slice_list(i - 1)->NextSibling = slice_list(i)
@@ -702,7 +679,8 @@ Sub InsertSliceBefore(byval sl as slice ptr, byval newsl as slice ptr)
  'Tell the new sibling about its parent
  newsl->Parent = sl->Parent
 
- 'If this new sibling is an eldest child, tell the parent 
+ 'If this new sibling is an eldest child, tell the parent
+ '(not possible to be LastChild)
  if sl->Parent->FirstChild = sl then
   sl->Parent->FirstChild = newsl
  end if
@@ -768,20 +746,6 @@ Function LookupSlice(byval lookup_code as integer, byval start_sl as slice ptr =
   WEND
 End Function
 
-Function LastChild(byval parent as slice ptr) as slice ptr
- IF parent = 0 THEN RETURN 0
- DIM sl as Slice Ptr
- sl = parent->FirstChild
- IF sl = 0 THEN RETURN 0
- DIM nextsib as Slice ptr
- WHILE sl
-  nextsib = sl->NextSibling
-  IF nextsib = 0 THEN RETURN sl
-  sl = nextsib
- WEND
- RETURN 0
-End function
-
 'this function ensures that we can't set a slice to be a child of itself (or, a child of a child of itself, etc)
 Function verifySliceLineage(byval sl as slice ptr, parent as slice ptr) as integer
  dim s as slice ptr
@@ -814,6 +778,9 @@ Function SliceGetParent( byval s as Slice ptr ) as Slice ptr
 End Function
 Function SliceGetFirstChild( byval s as Slice ptr ) as Slice ptr
  return s->FirstChild
+End Function
+Function SliceGetLastChild( byval s as Slice ptr ) as Slice ptr
+ return s->LastChild
 End Function
 Function SliceGetNextSibling( byval s as Slice ptr ) as Slice ptr
  return s->NextSibling

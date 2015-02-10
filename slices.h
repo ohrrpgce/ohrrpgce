@@ -24,6 +24,7 @@ void RefreshSliceScreenPos( SlicePtr sl );
 
 SlicePtr SliceGetParent( SlicePtr s );
 SlicePtr SliceGetFirstChild( SlicePtr s );
+SlicePtr SliceGetLastChild( SlicePtr s );
 SlicePtr SliceGetNextSibling( SlicePtr s );
 SlicePtr SliceGetPrevSibling( SlicePtr s );
 int SliceGetNumChildren( SlicePtr s );

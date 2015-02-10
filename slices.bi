@@ -114,6 +114,7 @@ End Extern
 TYPE Slice
   Parent as Slice Ptr
   FirstChild as Slice Ptr
+  LastChild as Slice Ptr
   NextSibling as Slice Ptr
   PrevSibling as Slice Ptr
   NumChildren as Integer
@@ -312,7 +313,7 @@ DECLARE Sub SetupMapSlices(byval to_max as integer)
 DECLARE Sub DestroyGameSlices(Byval dumpdebug as integer=0)
 DECLARE Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
 DECLARE Sub DeleteSlice(Byval s as Slice ptr ptr, byval debugme as integer = 0)
-DECLARE Sub DeleteSliceChildren(Byval s as Slice ptr)
+DECLARE Sub DeleteSliceChildren(Byval s as Slice ptr, byval debugme as integer = 0)
 DECLARE Sub DrawSlice(byval s as slice ptr, byval page as integer)
 DECLARE Sub DrawSliceAt(byval s as slice ptr, byval x as integer, byval y as integer, byval w as integer = 100, byval h as integer = 100, byval page as integer, byval ignore_offset as integer = NO)
 DECLARE Sub AdvanceSlice(byval s as slice ptr)
@@ -322,7 +323,6 @@ DECLARE Sub ReplaceSliceType(byval sl as slice ptr, byref newsl as slice ptr)
 DECLARE Sub InsertSliceBefore(byval sl as slice ptr, byval newsl as slice ptr)
 DECLARE Sub SwapSiblingSlices(byval sl1 as slice ptr, byval sl2 as slice ptr)
 DECLARE Function LookupSlice (byval lookup_code as integer, byval start_sl as slice ptr = NULL) as slice ptr
-DECLARE Function LastChild(byval parent as slice ptr) as slice ptr
 DECLARE Function VerifySliceLineage(byval sl as slice ptr, parent as slice ptr) as integer
 DECLARE Function UpdateRootSliceSize(sl as slice ptr) as bool
 DECLARE Function UpdateScreenSlice() as bool
@@ -368,6 +368,7 @@ Extern "C"
 'slice accessors
 DECLARE Function SliceGetParent( byval s as Slice ptr ) as Slice ptr
 DECLARE Function SliceGetFirstChild( byval s as Slice ptr ) as Slice ptr
+DECLARE Function SliceGetLastChild( byval s as Slice ptr ) as Slice ptr
 DECLARE Function SliceGetNextSibling( byval s as Slice ptr ) as Slice ptr
 DECLARE Function SliceGetPrevSibling( byval s as Slice ptr ) as Slice ptr
 DECLARE Function SliceGetNumChildren( byval s as Slice ptr ) as integer

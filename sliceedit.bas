@@ -598,7 +598,7 @@ END SUB
 SUB slice_editor_paste(byref ses as SliceEditState, byval slice as Slice Ptr, byval edslice as Slice Ptr)
  IF ses.clipboard THEN
   DIM child as Slice Ptr
-  child = LastChild(ses.clipboard)
+  child = ses.clipboard->LastChild
   WHILE child
    DIM copied as Slice Ptr = CloneSliceTree(child)
    IF slice THEN

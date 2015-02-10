@@ -2388,7 +2388,7 @@ SELECT CASE as CONST id
   END IF
  CASE 404 '--last child
   IF valid_plotslice(retvals(0)) THEN
-   scriptret = find_plotslice_handle(LastChild(plotslices(retvals(0))))
+   scriptret = find_plotslice_handle(plotslices(retvals(0))->LastChild)
   END IF
  CASE 405 '--y sort children
   IF valid_plotslice(retvals(0)) THEN

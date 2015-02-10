@@ -195,7 +195,7 @@ SUB edrun_position_new_widget(byref es as EditorState, byval sl as Slice Ptr)
  sl->Height = 0
 
  DIM after as Slice Ptr
- after = LastChild(es.scroller)
+ after = es.scroller->LastChild
  
  SetSliceParent sl, es.scroller
  IF after = 0 THEN
