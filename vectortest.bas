@@ -481,6 +481,19 @@ startTest(zstringArray)
 	v_free arr2
 endTest
 
+startTest(sortStringArray)
+	'Initialisation only works for static arrays
+	dim array1(...) as string =  {"soul", "railroad", "professor", "allegory", "jeopardy"}
+	'Destinatination array must be dynamic
+	dim array2() as string
+	dim vec as string vector
+	array_to_vector vec, array1()
+	v_sort vec
+	vector_to_array array1(), vec
+	if array2(0) <> "allegory" then fail
+	if array2(4) <> "soul" then fail
+endTest
+
 startTest(intArrayCompatibility)
 	dim i as integer
 	redim array(10) as integer
