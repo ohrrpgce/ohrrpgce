@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Main scons build script for OHRRPGCE
+Run "scons -h" to print help.
 
 cf. SConstruct, ohrbuild.py
 """
@@ -94,27 +95,28 @@ if int (ARGUMENTS.get ('glibc', False)):
     # No need to bother automatically checking for glibc
     CFLAGS += ["-DHAVE_GLIBC"]
 
-# There are three levels of debug here: 0, 1, 2
-debug = 1  # Default to happy medium
+# There are four levels of debug here: 0, 1, 2, 3. See the help.
+debug = 2  # Default to happy medium
 if 'debug' in ARGUMENTS:
     debug = int (ARGUMENTS['debug'])
-optimisations = (debug <= 1)    # compile with compiler optimisations?
-FB_exx = (debug >= 1)   # compile with -exx?
-FB_g = (debug >= 1)   # compile with -g?
-GCC_strip = (debug == 0)  # (linkgcc only) strip (link with -s)?
+optimisations = (debug < 3)    # compile with C/C++/FB optimisations?
+FB_exx = (debug >= 2)     # compile with -exx?
+FB_g = (debug >= 1)       # compile with -g?
+# Note: fbc includes symbols (but not debug info) in .o files even without -g,
+# but strips everything if -g not passed during linking; with linkgcc we need to strip.
+GCC_strip = (debug == 0)  # (linkgcc only) strip debug info?
 
 profile = int (ARGUMENTS.get ('profile', 0))
 if profile:
     FBFLAGS.append ('-profile')
     CFLAGS.append ('-pg')
     CXXFLAGS.append ('-pg')
-    FB_g = True
-    GCC_strip = False
 if int (ARGUMENTS.get ('scriptprofile', 0)):
     FBFLAGS += ['-d','SCRIPTPROFILE']
 if int (ARGUMENTS.get ('valgrind', 0)):
     #-exx under valgrind is nearly redundant, and really slow
     FB_exx = False
+    # This changes memory layout of vectors to be friendlier to valgrind
     CFLAGS.append ('-DVALGRIND_ARRAYS')
 if FB_exx:
     FBFLAGS.append ('-exx')
@@ -123,6 +125,7 @@ if FB_g:
 if optimisations:
     CFLAGS.append ('-O3')
     CXXFLAGS.append ('-O3')
+    # FB optimisation flag currently does pretty much nothing unless using -gen gcc
     FBFLAGS += ["-O", "2"]
 if int (ARGUMENTS.get ('gengcc', 0)):
     # Due to FB bug #661, need to pass -m32 to gcc manually (although recent versions of FB do pass it?)
@@ -180,6 +183,7 @@ if mac:
     if macsdk:
         macSDKpath = 'MacOSX' + macsdk + '.sdk'
         if macsdk == '10.4':
+            # 10.4 has a different naming scheme
             macSDKpath = 'MacOSX10.4u.sdk'
         macSDKpath = '/Developer/SDKs/' + macSDKpath
         if not os.path.isdir(macSDKpath):
@@ -314,7 +318,8 @@ if linkgcc:
     # priority over the default library paths, which on Windows means using FB's old mingw libraries
     env['CXXLINKFLAGS'] += ['-Wl,-L' + libpath, os.path.join(libpath, 'fbrt0.o'), '-lfbmt']
     if GCC_strip:
-        env['CXXLINKFLAGS'] += ['-s']
+        # Strip debug info but leave in the function (and unwanted global) symbols.
+        env['CXXLINKFLAGS'] += ['-Wl,-S']
     if win32:
         # win32\ld_opt_hack.txt contains --stack option which can't be passed using -Wl
         env['CXXLINKFLAGS'] += ['-static-libgcc', '-static-libstdc++', '-Wl,@win32\ld_opt_hack.txt']
@@ -349,7 +354,7 @@ if linkgcc:
                     return env.BASO (obj)
             return obj
         return target, map(to_o, enumerate(source))
-    
+
     if mac:
         basexe_gcc_action = '$CXX $CXXFLAGS -o $TARGET $SOURCES $CXXLINKFLAGS'
     else:
@@ -363,7 +368,7 @@ if linkgcc:
 commonenv = env.Clone ()
 
 base_modules = []   # modules (any language) shared by all utilities (except bam2mid)
-shared_modules = []  # FB/RB modules shared by, but with separate builds, for Game and Custom 
+shared_modules = []  # FB/RB modules shared by, but with separate builds, for Game and Custom
 common_modules = []  # other modules (in any language) shared by Game and Custom
 common_objects = []  # other objects shared by Game and Custom
 
@@ -606,7 +611,7 @@ if win32:
     RESFILE = w32_env.RES ('gfx_directx/gfx_directx.res', source = 'gfx_directx/gfx_directx.rc')
     Depends (RESFILE, ['gfx_directx/help.txt', 'gfx_directx/Ohrrpgce.bmp'])
     directx_sources.append (RESFILE)
-    
+
     # Enable exceptions, most warnings, unicode
     w32_env.Append (CPPFLAGS = ['/EHsc', '/W3'], CPPDEFINES = ['UNICODE', '_UNICODE'])
 
@@ -616,7 +621,7 @@ if win32:
     else:
         # static link VC9.0 runtime lib, optimise, whole-program optimisation
         w32_env.Append (CPPFLAGS = ['/MT', '/O2', '/GL'], LINKFLAGS = ['/LTCG'])
-    
+
     w32_env.SharedLibrary (rootdir + 'gfx_directx.dll', source = directx_sources,
                           LIBS = ['user32', 'ole32', 'gdi32'])
     TEST = w32_env.Program (rootdir + 'gfx_directx_test1.exe', source = ['gfx_directx/gfx_directx_test1.cpp'],
@@ -669,27 +674,28 @@ Options:
   music=BACKEND       Music backend. Options:
                         """ + " ".join (music_map.keys ()) + """
                       Current (default) value: """ + "+".join (music) + """
-  debug=0|1|2         Debugging builds:
-                       debug=0:  without -exx (FB error checking), with
-                                 C/C++ optimisation, strip executable.
-                       debug=1: (Default) with -exx, debug symbols, and
-                                 C/C++ optimisation
-                       debug=2:  with -exx and without C/C++ optimisation
-                      -exx builds run slower and abort immediately on certain
-                      errors.
-  valgrind=1          valgrinding build.
+  debug=0|1|2|3       Debug level:
+                                  -exx |  debug info  | optimisation
+                                 ------+--------------+--------------
+                       debug=0:    no  | symbols only |    yes
+                       debug=1:    no  |     yes      |    yes
+                       debug=2:    yes |     yes      |    yes   <--Default
+                       debug=3:    yes |     yes      |    no
+                      -exx builds have array, pointer and file error checking
+                      (they abort immediately on errors!), and are slow.
+  valgrind=1          Recommended when using valgrind (also turns off -exx).
   profile=1           Profiling build for gprof.
-  scriptprofile=1     Script profiling build.
+  scriptprofile=1     Script profiling build: track time in interpreter.
   asm=1               Produce .asm or .c files instead of compiling
-                      (Still tries to assemble and link, ignore)
-  fbc=PATH            Override fbc.
+                      (Still tries to assemble and link, ignore those errors)
+  fbc=PATH            Point to a different version of fbc.
   macsdk=version      Target a previous version of Mac OS X, eg. 10.4
                       You will need the relevant SDK installed, and need to use a
                       copy of FB built against that SDK.
 
 Experimental options:
   gengcc=1            Compile using GCC emitter.
-  linkgcc=0           Link using fbc instead of g++.
+  linkgcc=0           Link using fbc instead of g++ (only works for a few targets)
   android=1           Compile for android. Commandline programs only.
   android-source=1    Used as part of the Android build process for Game/Custom.
   glibc=1             Enable memory_usage function
@@ -722,7 +728,10 @@ Targets:
 With no targets specified, compiles game and custom.
 
 Examples:
+ Do a debug build of Game and Custom:
   scons
-  scons gfx=sdl+fb music=native game custom
-  scons -j 2 debug=2 .
+ Specifying graphics and music backends for a debug build of Game:
+  scons gfx=sdl+fb music=native game
+ Do a 'release' build (same as binary distributions) of everything, using 4 CPU cores:
+  scons -j 4 debug=0 .
 """)
