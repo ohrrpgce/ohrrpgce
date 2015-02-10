@@ -551,9 +551,14 @@ Sub AutoSortChildren(byval s as Slice Ptr)
  end select
 End sub
 
+'Orphan all the children of a slice, and insert pointer to them in slice_list(),
+'which must have length equal to number of children!
 Sub UnlinkChildren(byval parent as Slice Ptr, slice_list() as slice ptr)
  if parent = 0 then debug "UnlinkChildren: null ptr"
  dim temp_sl as slice ptr = parent->FirstChild
+ parent->FirstChild = 0
+ parent->LastChild = 0
+ parent->NumChildren = 0
  dim i as integer
  'Convert the children into an unlinked list
  for i = 0 to ubound(slice_list)
@@ -561,23 +566,32 @@ Sub UnlinkChildren(byval parent as Slice Ptr, slice_list() as slice ptr)
   temp_sl = temp_sl->NextSibling
   slice_list(i)->PrevSibling = 0
   slice_list(i)->NextSibling = 0
+  slice_list(i)->Parent = 0
  next i
 end sub
 
+'Set the children of a slice with no children to be equal to
+'contents of array of orphaned child slice pointers.
+'NOTE: children need to be orphans, and that's not checked.
 Sub RelinkChildren(byval parent as Slice Ptr, slice_list() as slice ptr)
  if parent = 0 then debug "RelinkChildren: null ptr"
+ if parent->NumChildren <> 0 then fatalerror "RelinkChildren: already has children"
  dim i as integer
  parent->FirstChild = slice_list(0)
  parent->LastChild = slice_list(ubound(slice_list))
+ parent->NumChildren = ubound(slice_list) + 1
  'Convert back to a doubly linked list
+ slice_list(0)->Parent = parent
  for i = 1 to ubound(slice_list)
   slice_list(i - 1)->NextSibling = slice_list(i)
   slice_list(i)->PrevSibling = slice_list(i - 1)
- next i 
+  slice_list(i)->Parent = parent
+ next i
 end sub
 
 Sub SwapSiblingSlices(byval sl1 as slice ptr, byval sl2 as slice ptr)
- 'Only intended for use by siblings of the same parent
+ 'Only intended for use by siblings of the same parent.
+ 'This is slow, but isn't yet used anywhere where that might be a problem.
  if sl1 = 0 or sl2 = 0 then EXIT SUB ' Exit quietly when an arg is null. Valid use case for attempted swap at the beginning or end of a list
  if sl1 = sl2 then EXIT SUB ' Ignore attempts to swap a slice with itself
  if sl1->Parent <> sl2->Parent then reporterr "SwapSiblingSlices: slices are not siblings": EXIT SUB
