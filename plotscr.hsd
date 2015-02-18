@@ -674,9 +674,9 @@ end
 
 script,stringtoglobals,hsd:stringID,hsd:start,hsd:length,begin
   variable(hsd:temp,hsd:padding)
-  if (hsd:stringID>=0,and,hsd:stringID<=31) then(
+  if (hsd:stringID>=0,and,hsd:stringID<=maximum string id) then(
     if (hsd:length>=1) then(
-      if (hsd:length+hsd:start>>4097) then(hsd:length:=4097--hsd:start)
+      if (hsd:length+hsd:start>maximum global id) then(hsd:length:=maximum global id--hsd:start)
       hsd:padding:=hsd:length--stringlength(hsd:stringID)
       hsd:length:=stringlength(hsd:stringID)
       for (hsd:temp,1,hsd:length) do(
@@ -693,10 +693,10 @@ end
 script,globalstostring,hsd:stringID,hsd:start,hsd:length,begin
   variable(hsd:temp)
   variable(hsd:temp2)
-  if (hsd:stringID>=0,and,hsd:stringID<=31) then(
+  if (hsd:stringID>=0,and,hsd:stringID<=maximum string id) then(
     clearstring(hsd:stringID)
     if (hsd:length>=1) then(
-      if (hsd:length+hsd:start>>4097) then(hsd:length:=4097--hsd:start)
+      if (hsd:length+hsd:start>maximum global id) then(hsd:length:=maximum global id--hsd:start)
       for (hsd:temp,1,hsd:length) do(
         hsd:temp2:=readglobal(hsd:start+(hsd:temp--1))
         if (hsd:temp2>=0,and,hsd:temp2<=255) then(appendascii(hsd:stringID,hsd:temp2))
@@ -1724,6 +1724,8 @@ define constant, begin
 9,dissolve:shrink
 10,dissolve:flicker
 -1,dissolvetime:default
+16383,maximum global id
+99,maximum string id
 end
 
 #<SLICE LOOKUP CODES>

@@ -1660,7 +1660,7 @@ show string(0)</example>
 		<command id="stringtoglobals">
 			<canon>string to globals (ID, starting global, length)</canon>
 			<shortname>string to globals</shortname>
-			<description>This command will fill global variables (starting with #<p>starting global</p>), up to <p>length</p> globals, with the ascii values of the characters in string #<p>ID</p>. If the string is not long enough, the rest of the globals in this "field" are padded with the value 256.</description>
+			<description>This command will fill global variables (starting with #<p>starting global</p>), up to <p>length</p> globals, with the ascii values of the characters in string #<p>ID</p>. If the string is not long enough, the rest of the globals in this "field" are padded with the value 256. If the string is too long, then only part of it is saved.</description>
 			<seealso><ref>globalstostring</ref></seealso>
 		</command>
 		<command id="globalstostring">
