@@ -131,12 +131,21 @@ dim shared delayed_alt_keydown as bool = NO
 dim shared inputtext as string
 dim shared inputtext_enabled as bool = NO
 
+'Singleton type
+type ReplayState
+	active as bool             'Currently replaying input
+	file as integer = -1       'File handle
+	tick as integer = -1       'Counts number of ticks we've replayed
+	nexttick as integer = -1   'If we read the next tickcount from the file before it's needed
+	                           'it's stored here. Otherwise -1.
+	debug as bool = NO         'Set to YES by editing this line; maybe add a commandline option
+
+	declare sub reset_state ()
+end type
+
 dim shared rec_input as bool = NO
 dim shared rec_input_file as integer     'file handle
-dim shared play_input as bool = NO
-dim shared play_input_file as integer    'file handle
-dim shared replaytick as integer
-dim shared debug_replay as bool = NO     'set to YES by editing this line; maybe add a commandline option
+dim shared replay as ReplayState
 
 dim shared closerequest as integer = NO
 
@@ -283,7 +292,7 @@ sub restoremode()
 end sub
 
 sub mersenne_twister (byval seed as double)
-	IF play_input ORELSE rec_input THEN exit sub 'Seeding not allowed in play/record modes
+	IF replay.active ORELSE rec_input THEN exit sub 'Seeding not allowed in play/record modes
 	RANDOMIZE seed, 3
 	debuginfo "mersenne_twister seed=" & seed
 end sub
@@ -1293,7 +1302,7 @@ sub setkeys (byval enable_inputtext as bool = NO)
 		io_enable_textinput(inputtext_enabled)
 	end if
 
-	if play_input then
+	if replay.active then
 		'Updates keybd(), setkeys_elapsed_ms, inputtext
 		replay_input_tick ()
 
@@ -1341,7 +1350,7 @@ sub setkeys (byval enable_inputtext as bool = NO)
 #endif
 
 	'Taking a screenshot with gfx_directx is very slow, so avoid timing that
-	debug_if_slow(starttime, 0.005, play_input)
+	debug_if_slow(starttime, 0.005, replay.active)
 
 	'F12 for screenshots handled here
 	snapshot_check
@@ -1376,7 +1385,7 @@ sub setkeys (byval enable_inputtext as bool = NO)
 			mouse_grab_overridden = YES
 		end if
 	end if
-	
+
 	mouse_moved_since_setkeys = NO
 	mouse_clicks_since_setkeys = 0
 end sub
@@ -1603,7 +1612,7 @@ end sub
 
 
 sub start_recording_input (filename as string)
-	if play_input then
+	if replay.active then
 		debug "Can't record input because already replaying input!"
 		exit sub
 	end if
@@ -1635,31 +1644,37 @@ sub stop_recording_input ()
 	end if
 end sub
 
+sub ReplayState.reset_state ()
+	file = -1
+	tick = -1
+	nexttick = -1
+end sub
+
 sub start_replaying_input (filename as string)
 	if rec_input then
 		debug "Can't replay input because already recording input!"
 		exit sub
 	end if
-	play_input_file = FREEFILE
-	open filename for binary access read as #play_input_file
-	play_input = YES
+	replay.reset_state()
+	replay.file = FREEFILE
+	open filename for binary access read as #replay.file
+	replay.active = YES
 	dim header as string = STRING(12, 0)
-	GET #play_input_file,, header
+	GET #replay.file,, header
 	if header <> "OHRRPGCEkeys" then
 		stop_replaying_input "No OHRRPGCEkeys header in """ & filename & """"
 		exit sub
 	end if
 	dim ohrkey_ver as integer = -1
-	GET #play_input_file,, ohrkey_ver
+	GET #replay.file,, ohrkey_ver
 	if ohrkey_ver <> 4 then
 		stop_replaying_input "Unknown ohrkey version code " & ohrkey_ver & " in """ & filename & """. Only know how to understand version 4"
 		exit sub
 	end if
 	dim seed as double
-	GET #play_input_file,, seed
+	GET #replay.file,, seed
 	RANDOMIZE seed, 3
 	debuginfo "Replaying keyboard input from: """ & filename & """"
-	replaytick = -1
 	for i as integer = 0 to ubound(keybd)
 		keybd(i) = 0
 	next i
@@ -1669,9 +1684,10 @@ sub stop_replaying_input (msg as string="", byval errorlevel as ErrorLevelEnum =
 	if msg <> "" then
 		debugc errorlevel, msg
 	end if
-	if play_input then
-		close #play_input_file
-		play_input = NO
+	if replay.active then
+		close #replay.file
+		replay.file = -1
+		replay.active = NO
 		debugc errorlevel, "STOP replaying input"
 	end if
 end sub
@@ -1704,25 +1720,28 @@ sub record_input_tick ()
 end sub
 
 sub replay_input_tick ()
-	static tick as integer = -1
-	tick += 1
+	replay.tick += 1
 	do
-		if EOF(play_input_file) then
+		if EOF(replay.file) then
 			stop_replaying_input "The end of the input playback file was reached.", errInfo
 			exit sub
 		end if
-		dim fpos as integer = LOC(play_input_file)
-		if replaytick = -1 then
-			GET #play_input_file,, replaytick
+		dim fpos as integer = LOC(replay.file)
+
+		'Check whether it's time to play the next recorded tick in the replay file is
+		'(ticks on which nothing happened aren't saved)
+		if replay.nexttick = -1 then
+			GET #replay.file,, replay.nexttick
 		end if
-		if replaytick < tick and replaytick <> -1 then
-			debug "input replay late for tick " & replaytick & " (" & replaytick - tick & ")"
-		elseif replaytick > tick then
-			'debug "saving replay input tick " & replaytick & " until its time has come (+" & replaytick - tick & ")"
+		if replay.nexttick < replay.tick then
+			debug "input replay late for tick " & replay.nexttick & " (" & replay.nexttick - replay.tick & ")"
+		elseif replay.nexttick > replay.tick then
+			'debug "saving replay input tick " & replay.nexttick & " until its time has come (+" & replay.nexttick - replay.tick & ")"
 			for i as integer = 0 to 127
+				'Check for a corrupt file
 				if keybd(i) then
 					' There ought to be a tick in the input file so that we can set setkeys_elapsed_ms correctly
-					debug "bad recorded key input: key " & i & " is down, but expected tick " & tick & " is missing"
+					debug "bad recorded key input: key " & i & " is down, but expected tick " & replay.tick & " is missing"
 					exit for
 				end if
 			next
@@ -1733,49 +1752,49 @@ sub replay_input_tick ()
 		end if
 
 		dim tick_ms as ubyte
-		GET #play_input_file,, tick_ms
+		GET #replay.file,, tick_ms
 		setkeys_elapsed_ms = tick_ms
 		dim presses as ubyte
-		GET #play_input_file,, presses
+		GET #replay.file,, presses
 		if presses < 0 orelse presses > ubound(keybd) + 1 then
-			stop_replaying_input "input replay tick " & replaytick & " has invalid number of keypresses " & presses
+			stop_replaying_input "input replay tick " & replay.nexttick & " has invalid number of keypresses " & presses
 			exit sub
 		end if
 
 		dim as string info
-		if debug_replay then
-			info = "L:" & fpos & " T:" & replaytick & " ms:" & setkeys_elapsed_ms & " ("
+		if replay.debug then
+			info = "L:" & fpos & " T:" & replay.nexttick & " ms:" & setkeys_elapsed_ms & " ("
 		end if
 
 		dim key as ubyte
 		dim kb as ubyte
 		for i as integer = 1 to presses
-			GET #play_input_file,, key
-			GET #play_input_file,, kb
+			GET #replay.file,, key
+			GET #replay.file,, kb
 			keybd(key) = kb
-			if debug_replay then info &= " " & scancodename(key) & "=" & kb
+			if replay.debug then info &= " " & scancodename(key) & "=" & kb
 		next i
 		info &= " )"
 		dim input_len as ubyte
-		GET #play_input_file,, input_len
+		GET #replay.file,, input_len
 		if input_len then
 			'Currently inputtext is Latin-1, format will need changing in future
 			inputtext = space(input_len)
-			GET #play_input_file,, inputtext
-			if debug_replay then info &= " input: '" & inputtext & "'"
+			GET #replay.file,, inputtext
+			if replay.debug then info &= " input: '" & inputtext & "'"
 		else
 			inputtext = ""
 		end if
 
-		if debug_replay then debuginfo info
+		if replay.debug then debuginfo info
 
-		'In case the replay somehow became out of sync, keep looping
+		'In case the replay somehow became out of sync, keep looping until we catch up
 		'(Probably hopeless though)
-		if replaytick = tick then
-			replaytick = -1
+		if replay.nexttick = replay.tick then
+			replay.nexttick = -1
 			exit sub
 		end if
-		replaytick = -1
+		replay.nexttick = -1
 	loop
 end sub
 
