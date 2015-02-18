@@ -1660,13 +1660,13 @@ show string(0)</example>
 		<command id="stringtoglobals">
 			<canon>string to globals (ID, starting global, length)</canon>
 			<shortname>string to globals</shortname>
-			<description>This command will fill global variables (starting with #<p>starting global</p>), up to <p>length</p> globals, with the ascii values of the characters in string #<p>ID</p>. If the string is not long enough, the rest of the globals in this "field" are padded with the value 256. If the string is too long, then only part of it is saved.</description>
+			<description>This command will fill global variables (starting with #<p>starting global</p>), up to <p>length</p> globals, with the ascii values of the characters in string #<p>ID</p>. If the string is not long enough, the rest of the globals in this "field" are padded with the value 256. If the string is too long, then only part of it is saved.<note>This command is deprecated. There is no reason to use it in new games, since there are much easier ways to store strings in savegames</note></description>
 			<seealso><ref>globalstostring</ref></seealso>
 		</command>
 		<command id="globalstostring">
 			<canon>globals to string(ID, starting global, length)</canon>
 			<shortname>globals to string</shortname>
-			<description>This command is the opposite of <ref>stringtoglobals</ref>. It will build a new string in slot #<p>ID</p>, using the ascii values from the global variables #<p>starting global</p> and <p>length</p> globals thereafter. Pass the same value for <p>length</p> as you did to <ref>stringtoglobals</ref> if you don't know the length of the string. If a global has a value greater than 255, the value will be ignored.</description>
+			<description>This command is the opposite of <ref>stringtoglobals</ref>. It will build a new string in slot #<p>ID</p>, using the ascii values from the global variables #<p>starting global</p> and <p>length</p> globals thereafter. Pass the same value for <p>length</p> as you did to <ref>stringtoglobals</ref> if you don't know the length of the string. If a global has a value greater than 255, the value will be ignored.<note>This command is deprecated. There is no reason to use it in new games, since there are much easier ways to store strings in savegames</note></description>
 			<seealso><ref>stringtoglobals</ref></seealso>
 		</command>
 		<command id="getheroname">

@@ -4853,7 +4853,10 @@ show string(0)</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">string to globals (ID, starting global, length)</font></b><br>
-			This command will fill global variables (starting with #<span class="param">starting global</span>), up to <span class="param">length</span> globals, with the ascii values of the characters in string #<span class="param">ID</span>. If the string is not long enough, the rest of the globals in this "field" are padded with the value 256.<br>
+			This command will fill global variables (starting with #<span class="param">starting global</span>), up to <span class="param">length</span> globals, with the ascii values of the characters in string #<span class="param">ID</span>. If the string is not long enough, the rest of the globals in this "field" are padded with the value 256. If the string is too long, then only part of it is saved.<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">This command is deprecated. There is no reason to use it in new games, since there are much easier ways to store strings in savegames<br clear="all">
+</div>
+<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-globalstostring" class="ref">globals to string</a></li></ul>
 		</tt></p>
@@ -4861,7 +4864,10 @@ show string(0)</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">globals to string(ID, starting global, length)</font></b><br>
-			This command is the opposite of <a href="#about-stringtoglobals" class="ref">string to globals</a>. It will build a new string in slot #<span class="param">ID</span>, using the ascii values from the global variables #<span class="param">starting global</span> and <span class="param">length</span> globals thereafter. Pass the same value for <span class="param">length</span> as you did to <a href="#about-stringtoglobals" class="ref">string to globals</a> if you don't know the length of the string. If a global has a value greater than 255, the value will be ignored.<br>
+			This command is the opposite of <a href="#about-stringtoglobals" class="ref">string to globals</a>. It will build a new string in slot #<span class="param">ID</span>, using the ascii values from the global variables #<span class="param">starting global</span> and <span class="param">length</span> globals thereafter. Pass the same value for <span class="param">length</span> as you did to <a href="#about-stringtoglobals" class="ref">string to globals</a> if you don't know the length of the string. If a global has a value greater than 255, the value will be ignored.<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">This command is deprecated. There is no reason to use it in new games, since there are much easier ways to store strings in savegames<br clear="all">
+</div>
+<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-stringtoglobals" class="ref">string to globals</a></li></ul>
 		</tt></p>
