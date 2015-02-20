@@ -4213,6 +4213,7 @@ SUB battle_formation_testing_menu()
   IF keyval(scEsc) > 1 THEN
    EXIT DO
   END IF
+  IF keyval(scF1) > 1 THEN show_help "game_formation_testing"
 
   IF enter_space_click(state) THEN
    form_num = menu.items[state.pt]->extra(0)

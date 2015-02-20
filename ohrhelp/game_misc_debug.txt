@@ -1,0 +1,17 @@
+This menu lists various game debugging options. There are many more debugging options available through hotkeys; see:
+http://rpg.hamsterrepublic.com/ohrrpgce/What_are_the_Debugging_keys?
+
+
+* Test Battles: Display the battle formation set for the tile the hero is standing on, and start any of the battles in it.
+
+* View/Edit Slice Tree: Also available with Ctrl+F4
+
+
+The remaining options are ADVANCED, intended mainly for engine developers!
+
+
+* Manipulate gen() array: Raw-edit gen(). This gives you direct access to the data represented in the General Game Data menu, as well as an assortment of other data.
+
+* Manipulate gmap() array: Raw-edit gmap(). This gives you direct access to the data represented in the General Map Data submenu of the map editor.
+
+* Test Slicified Spell Screen: An in-progress feature. 

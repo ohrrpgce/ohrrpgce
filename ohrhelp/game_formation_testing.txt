@@ -1,0 +1,5 @@
+This debug menu displays the formation set, if any, for the tile that the hero is standing on. "freq" is the battle frequency.
+
+Each of the battle formations in the formation set is displayed as a menu item, listing the names of the enemies in the formation.
+
+Press ENTER on a formation to start a battle.
