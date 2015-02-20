@@ -204,9 +204,11 @@ SELECT CASE gen(cameramode)
  CASE npccam
   center_camera_on_walkabout npc(gen(cameraArg)).sl
  CASE slicecam
+  'We also check the slice didn't just get deleted after changing map
   IF valid_plotslice(gen(cameraArg), serrIgnore) THEN
    center_camera_on_slice plotslices(gen(cameraArg))
   ELSE
+   'stopping seems more appropriate than resetting to hero
    gen(cameramode) = stopcam
   END IF
  CASE pancam ' 1=dir, 2=ticks, 3=step

@@ -3135,6 +3135,8 @@ SUB prepare_map (byval afterbat as integer=NO, byval afterload as integer=NO)
 
  gam.map.lastmap = gam.map.id
 
+ '--- Load new map's data
+
  'load gmap
  loadmapstate_gmap gam.map.id, "map"
 
@@ -3178,6 +3180,9 @@ SUB prepare_map (byval afterbat as integer=NO, byval afterload as integer=NO)
 
  loaddoor gam.map.id
 
+ '--- Update/clean up various state
+
+ 'Hero/caterpillar party and vehicle
  IF afterbat = NO AND gam.map.same = NO THEN
   forcedismount catd()
  END IF
@@ -3203,7 +3208,18 @@ SUB prepare_map (byval afterbat as integer=NO, byval afterload as integer=NO)
   herow(0).speed = vstate.dat.speed
   IF herow(0).speed = 3 THEN herow(0).speed = 10
  END IF
+
  txt.sayer = -1
+
+ 'If following NPC or slice on old map, reset camera
+ IF afterbat = NO THEN
+  IF gen(cameramode) = slicecam ANDALSO valid_plotslice(gen(cameraArg), serrIgnore) = NO  _
+     OR gen(cameramode) = npccam THEN
+   '(Note that normally when following an invalid slice we stop the camera instead)
+   gen(cameramode) = herocam
+   gen(cameraArg) = 0
+  END IF
+ END IF
 
  IF afterbat = NO THEN
   IF gmap(7) > 0 THEN
