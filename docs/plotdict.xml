@@ -309,7 +309,10 @@ resume NPCs</example>
 		<command id="suspendobstruction">
 			<canon>suspend obstruction</canon>
 			<shortname>suspend obstruction</shortname>
-			<description>Allows heroes to walk through NPCs, allows NPCs to walk through heroes, and allows NPCs to walk through each other. Use <ref>resumeobstruction</ref> to restore normal obstruction behavior. Use <ref>setnpcobstructs</ref>(who, false) instead to allow a single NPC to move through heroes and NPCs, and vice-versa.</description>
+			<description>Allows heroes to walk through NPCs, allows NPCs to walk through heroes, and allows NPCs to walk through each other. Also, when obstruction is suspended, step-on activated NPCs won't be activated, and of course NPCs can't be pushed. Use <ref>resumeobstruction</ref> to restore normal obstruction behavior. Use <ref>setnpcobstructs</ref>(who, false) instead to allow a single NPC to move through heroes and NPCs, and vice-versa.</description>
+			<seealso>
+				<ref>setnpcobstructs</ref>
+			</seealso>
 			<example>suspend obstruction
 # walk through things
 resume obstruction</example>
@@ -323,7 +326,7 @@ resume obstruction</example>
 		<command id="suspendherowalls">
 			<canon>suspend hero walls</canon>
 			<shortname>suspend hero walls</shortname>
-			<description>Allows heroes to walk through walls. Use <ref>resumeherowalls</ref> to restore normal wall behavior.</description>
+			<description>Allows heroes to walk through walls, and to walk off the edge of the map. Use <ref>resumeherowalls</ref> to restore normal wall behavior.</description>
 			<example>suspend hero walls # hero is now a ghost
 # walk through things
 resume hero walls # back to mortality...</example>
@@ -337,7 +340,7 @@ resume hero walls # back to mortality...</example>
 		<command id="suspendnpcwalls">
 			<canon>suspend NPC walls</canon>
 			<shortname>suspend NPC walls</shortname>
-			<description>Allows NPCs to walk through walls. Use <ref>resumenpcwalls</ref> to restore normal wall behavior. Use <ref>setnpcignoreswalls</ref>(who, true) instead to allow a single NPC to walk through walls.</description>
+			<description>Allows NPCs to walk through walls, including to leave the zone they are restricted to, and to walk off the edge of the map. Use <ref>resumenpcwalls</ref> to restore normal wall behavior. Use <ref>setnpcignoreswalls</ref>(who, true) instead to allow a single NPC to walk through walls.</description>
 			<example>suspend NPC walls # npc is now a ghost
 # walk through things
 resume NPC walls # back to mortality...</example>
@@ -5770,7 +5773,7 @@ end</example>
 		<command id="setnpcignoreswalls">
 			<canon>set NPC ignores walls (who, value)</canon>
 			<shortname>set NPC ignores walls</shortname>
-			<description>Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), set whether that NPC can walk through walls. <p>value</p> should be true or false.</description>
+			<description>Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), set whether that NPC can walk through walls, including off the edge of a map, and violating its zone restrictions. <p>value</p> should be true or false.</description>
 			<seealso>
 				<ref>getnpcignoreswalls</ref>
 			</seealso>
@@ -5805,7 +5808,7 @@ end</example>
 		<command id="setnpcobstructs">
 			<canon>set NPC obstructs (who, value)</canon>
 			<shortname>set NPC obstructs</shortname>
-			<description>Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), set whether the NPC should be an obstruction to heroes and other NPCS. If set to false, the NPC can move through heroes and other NPCs and vice-versa. Heroes can always pass through Step-on NPCs. <p>value</p> should be true or false.</description>
+			<description>Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), set whether the NPC should be an obstruction to heroes and other NPCS. If set to false, the NPC can move through heroes and other NPCs and vice-versa. Heroes can always pass through Step-on NPCs. (Unlike <ref>suspendobstruction</ref>, this doesn't affect activation of step-on NPCs.) <p>value</p> should be true or false.</description>
 			<seealso>
 				<ref>getnpcobstructs</ref>
 				<ref>suspendobstruction</ref>
