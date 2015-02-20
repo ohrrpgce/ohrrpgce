@@ -35,7 +35,7 @@ DECLARE SUB checkdoors ()
 DECLARE SUB usedoor (byval door_id as integer)
 DECLARE SUB advance_text_box ()
 DECLARE FUNCTION immediate_showtextbox() as bool
-DECLARE FUNCTION want_to_check_for_walls(byval who as integer) as integer
+DECLARE FUNCTION want_to_check_for_walls(byval who as integer) as bool
 DECLARE SUB update_npcs ()
 DECLARE SUB pick_npc_action(npci as NPCInst, npcdata as NPCType)
 DECLARE FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as NPCType) as integer
@@ -1021,7 +1021,7 @@ SUB update_heroes(byval force_step_check as integer=NO)
    herow(whoi).xgo = 0
    herow(whoi).ygo = 0
   END IF
-  '--if is aligned in at least one direction and passibility is enabled ... and some vehicle stuff ...
+  '--if starting movement to a new tile and passibility is enabled ... and some vehicle stuff ...
   IF want_to_check_for_walls(whoi) THEN
    IF readbit(gen(), genSuspendBits, suspendherowalls) = 0 AND vehicle_is_animating() = NO THEN
     '--this only happens if herowalls is on
@@ -1550,6 +1550,7 @@ FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as N
   END IF
   IF readbit(gen(), genSuspendBits, suspendobstruction) = 0 AND npci.not_obstruction = 0 THEN
    '--this only happens if obstruction is on
+   '---Check for NPC-NPC collision
    FOR i as integer = 0 TO UBOUND(npc)
     IF npc(i).id > 0 AND npcnum <> i AND npc(i).not_obstruction = 0 THEN
      IF wrapcollision (npc(i).x, npc(i).y, npc(i).xgo, npc(i).ygo, npci.x, npci.y, npci.xgo, npci.ygo) THEN
@@ -1574,6 +1575,8 @@ FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as N
    END IF
   END IF
  END IF
+
+ 'If we didn't hit any obstacle, actually move
  IF npcdata.speed THEN
   '--change x,y and decrement wantgo by speed
   IF npci.xgo OR npci.ygo THEN
@@ -1591,7 +1594,8 @@ FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as N
  IF cropmovement(npci.x, npci.y, npci.xgo, npci.ygo) THEN npchitwall(npci, npcdata)
 
  nogo:
- '--Check touch activation. I have no idea why this is here!
+
+ '--Check touch activation (always happens). I have no idea why this is here!
  IF npcdata.activation = 1 AND txt.showing = NO THEN
   IF wraptouch(npci.x, npci.y, catx(0), caty(0), 20) THEN
    usenpc 1, npcnum
@@ -3960,8 +3964,10 @@ SUB usenpc(byval cause as integer, byval npcnum as integer)
  END IF
 END SUB
 
-FUNCTION want_to_check_for_walls(byval who as integer) as integer
- IF movdivis(herow(who).xgo) = 0 AND movdivis(herow(who).ygo) = 0 THEN RETURN NO
+FUNCTION want_to_check_for_walls(byval who as integer) as bool
+ 'Check hero is at beginning of a movement to a new tile (aligned in at least one direction)...
+ IF movdivis(herow(who).xgo) = NO AND movdivis(herow(who).ygo) = NO THEN RETURN NO
+ '...and certain conditions aren't met
  IF gam.walk_through_walls = YES THEN RETURN NO
  IF vstate.dat.pass_walls = YES THEN RETURN NO
  IF vstate.active THEN

@@ -962,11 +962,11 @@ SUB teleporttooltend (byref mini as Frame Ptr, maptilesX() as TileMap, tilesets2
 END SUB
 
 
-FUNCTION movdivis (byval xygo as integer) as integer
+FUNCTION movdivis (byval xygo as integer) as bool
 IF (xygo \ 20) * 20 = xygo AND xygo <> 0 THEN
- movdivis = -1
+ movdivis = YES
 ELSE
- movdivis = 0
+ movdivis = NO
 END IF
 END FUNCTION
 
