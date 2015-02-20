@@ -1,0 +1,135 @@
+
+script, dir X, dir, begin
+  switch (dir) do (
+    case (up, down) do (return (0))
+    case (right) do (return (1))
+    case (left) do (return (-1))
+  )
+end
+
+script, dir Y, dir, begin
+  switch (dir) do (
+    case (left, right) do (return (0))
+    case (down) do (return (1))
+    case (up) do (return (-1))
+  )
+end
+
+script, trying to move direction, begin
+  return (-1)
+  if (key is pressed(key:right)) then (return (right))
+  if (key is pressed(key:left)) then (return (left))
+  if (key is pressed(key:down)) then (return (down))
+  if (key is pressed(key:up)) then (return (up))
+end
+
+# Return true if "suspend player" is active
+script, player is suspended, begin
+  return ((read general(44), and, 2) <> 0)
+end
+
+# This will return true if hero 0 will start a new step
+# this tick because of player input. There are no commands
+# that can tell you that directly: you have to figure it out
+# by checking keypresses and for obstructions.
+# Note: this doesn't handle all edge cases, like multiple NPCs
+# on one tile, NPCs over the edge of the map, or the hero already in motion.
+script, hero will move, begin
+  variable (dir, npc)
+
+  # If a textbox is up or player is suspended, the hero can't move
+  if (current textbox > -1 || player is suspended) then (exit returning (false))
+
+  # Check for player input
+  dir := trying to move direction
+  if (dir == -1) then (exit returning (false)) 
+
+  # If there's a wall in the way, nothing will happen (unless walls are suspended...)
+  if (check hero wall(0, dir)) then (exit returning (false))
+
+  # Check for an NPC in the way which you can't step on
+  # (this isn't correct either if obstruction is suspended, or other edge cases)
+  npc := npc at spot (hero x(0) + dir x(dir), hero y(0) + dir y(dir))
+  if (npc && readNPC(npc, NPCstat:activation) <> NPCactivation:stepon) then (exit returning (false))
+
+  # OK, you will start walking in this direction
+  return (true)
+end
+
+# Guess the direction that the leader will move this tick, or -1 if they won't move.
+script, next leader move direction, begin
+  if (hero is walking(0)) then (
+    return (hero direction(0))
+  ) else if (hero will move) then (
+    return (trying to move direction)
+  ) else (
+    return (-1)
+  )
+end
+
+# This only returns the position of the leader
+script, next leader pixel x, begin
+  variable(ret, dir)
+  ret := hero pixel x
+  dir := next leader move direction
+  if (dir <> -1) then (
+    ret += get hero speed(0) * dirX(dir)
+  )
+  return (ret)
+end
+
+# This only returns the position of the leader
+script, next leader pixel y, begin
+  variable(ret, dir)
+  ret := hero pixel y
+  dir := next leader move direction
+  if (dir <> -1) then (
+    ret += get hero speed(0) * dirY(dir)
+  )
+  return (ret)
+end
+
+
+define constant(4, troll mountain parallax timer)
+
+global variable(1, camera slice)
+global variable(2, parallax camera follows hero)
+
+plotscript, troll mountain autorun, begin
+  # The normal camera is too hard to predict, so make the camera follow
+  # a slice which we move about manually.
+  camera slice := create container(20, 20)
+  set parent(camera slice, lookup slice(sl:walkabout layer))  # or any other map layer
+  camera follows slice (camera slice)
+  parallax camera follows hero := true
+  update troll mountain parallax
+end
+
+script, update troll mountain parallax, begin
+  variable(sl, mapw, maph, screenw, screenh, layerw, layerh)
+  if(current map <> map:troll mountain) then(
+    stop timer(troll mountain parallax timer)
+    sl := lookup slice(sl:map layer 0)
+    set slice x(sl, 0)
+    set slice y(sl, 0)
+    camera follows hero  # This line is unneeded in Callipygous onwards; it happens automatically
+    exit script
+  )
+  if (parallax camera follows hero) then (
+    variable(next x, next y)
+    next x := next leader pixel x
+    next y := next leader pixel y
+    put slice(camera slice, next x, next y)
+  )
+  mapw := map width * 20
+  maph := map height * 20
+  screenw := slice width(sprite layer)
+  screenh := slice height(sprite layer)
+  layerw := mapw / 3
+  layerh := maph / 3
+  sl := lookup slice(sl:map layer 0)
+  set slice x(sl, (slice x(camera slice) * (mapw -- layerw) / (mapw -- screenw)))
+  set slice y(sl, (slice y(camera slice) * (maph -- layerh) / (maph -- screenh)))
+  # Set the script to run again next tick
+  set timer(troll mountain parallax timer, 0, 1, @update troll mountain parallax)
+end
