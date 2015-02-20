@@ -202,7 +202,11 @@ SELECT CASE gen(cameramode)
  CASE herocam
   center_camera_on_walkabout herow(gen(cameraArg)).sl
  CASE npccam
-  center_camera_on_walkabout npc(gen(cameraArg)).sl
+  IF gen(cameraArg) > UBOUND(npc) ORELSE npc(gen(cameraArg)).id <= 0 THEN
+   gen(cameramode) = stopcam
+  ELSE
+   center_camera_on_walkabout npc(gen(cameraArg)).sl
+  END IF
  CASE slicecam
   'We also check the slice didn't just get deleted after changing map
   IF valid_plotslice(gen(cameraArg), serrIgnore) THEN
