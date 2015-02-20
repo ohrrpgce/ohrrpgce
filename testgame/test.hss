@@ -579,6 +579,18 @@ plotscript, fight formation test, begin
   set death script()
 end
 
+plotscript, suspend obstruction test, begin
+  suspend obstruction
+end
+
+plotscript, resume obstruction test, begin
+  resume obstruction
+end
+
+plotscript, make npc wander, arg, npc, begin
+  Alter NPC (npc,NPCstat:move type,NPCmovetype:wander)
+end
+
 plotscript, add hero test, begin
   variable(slot)
   slot := add hero(0)
