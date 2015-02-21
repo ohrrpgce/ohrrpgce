@@ -1648,7 +1648,7 @@ SUB process_wait_conditions()
        IF npc(i).id > 0 ANDALSO (npc(i).xgo <> 0 OR npc(i).ygo <> 0) THEN unpause = NO: EXIT FOR
       NEXT i
      END IF
-     IF gen(cameramode) = pancam OR gen(cameramode) = focuscam THEN unpause = NO
+     IF gen(genCameraMode) = pancam OR gen(genCameraMode) = focuscam THEN unpause = NO
      IF unpause THEN
       script_stop_waiting()
      END IF
@@ -1703,7 +1703,7 @@ SUB process_wait_conditions()
       script_stop_waiting()
      END IF
     CASE 42'--wait for camera
-     IF gen(cameramode) <> pancam AND gen(cameramode) <> focuscam THEN script_stop_waiting()
+     IF gen(genCameraMode) <> pancam AND gen(genCameraMode) <> focuscam THEN script_stop_waiting()
     CASE 59'--wait for text box
      IF txt.showing = NO OR readbit(gen(), genSuspendBits, suspendboxadvance) = 1 THEN
       script_stop_waiting()
@@ -3217,11 +3217,11 @@ SUB prepare_map (byval afterbat as integer=NO, byval afterload as integer=NO)
 
  'If following NPC or slice on old map, reset camera
  IF afterbat = NO THEN
-  IF gen(cameramode) = slicecam ANDALSO valid_plotslice(gen(cameraArg), serrIgnore) = NO  _
-     OR gen(cameramode) = npccam THEN
+  IF gen(genCameraMode) = slicecam ANDALSO valid_plotslice(gen(genCameraArg1), serrIgnore) = NO  _
+     OR gen(genCameraMode) = npccam THEN
    '(Note that normally when following an invalid slice we stop the camera instead)
-   gen(cameramode) = herocam
-   gen(cameraArg) = 0
+   gen(genCameraMode) = herocam
+   gen(genCameraArg1) = 0
   END IF
  END IF
 

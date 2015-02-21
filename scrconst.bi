@@ -41,30 +41,6 @@ CONST flowcontinue = 12
 CONST flowexit = 13
 CONST flowexitreturn = 14
 CONST flowswitch = 15
-'--SUSPEND--
-CONST suspendnpcs = 0
-CONST suspendplayer = 1
-CONST suspendobstruction = 2
-CONST suspendherowalls = 3
-CONST suspendnpcwalls = 4
-CONST suspendcaterpillar = 5
-CONST suspendrandomenemies = 6
-CONST suspendboxadvance = 7
-CONST suspendoverlay = 8
-CONST suspendambientmusic = 9
-CONST suspenddoors = 10
-'--CAMERA CONSTANTS--
-CONST cameramode = 45   'gen() offsets
-CONST cameraArg = 46
-CONST cameraArg2 = 47
-CONST cameraArg3 = 48
-CONST cameraArg4 = 49
-CONST herocam = 0
-CONST npccam = 1
-CONST pancam = 2
-CONST focuscam = 3
-CONST slicecam = 4
-CONST stopcam = -1
 '--SCRIPT TRIGGER TYPES--
 CONST plottrigger = 1
 '--SCRIPT DEBUGGER BITS--

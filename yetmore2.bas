@@ -198,47 +198,47 @@ END SUB
 
 'Set the camera position.
 SUB setmapxy
-SELECT CASE gen(cameramode)
+SELECT CASE gen(genCameraMode)
  CASE herocam
-  center_camera_on_walkabout herow(gen(cameraArg)).sl
+  center_camera_on_walkabout herow(gen(genCameraArg1)).sl
  CASE npccam
-  IF gen(cameraArg) > UBOUND(npc) ORELSE npc(gen(cameraArg)).id <= 0 THEN
-   gen(cameramode) = stopcam
+  IF gen(genCameraArg1) > UBOUND(npc) ORELSE npc(gen(genCameraArg1)).id <= 0 THEN
+   gen(genCameraMode) = stopcam
   ELSE
-   center_camera_on_walkabout npc(gen(cameraArg)).sl
+   center_camera_on_walkabout npc(gen(genCameraArg1)).sl
   END IF
  CASE slicecam
   'We also check the slice didn't just get deleted after changing map
-  IF valid_plotslice(gen(cameraArg), serrIgnore) THEN
-   center_camera_on_slice plotslices(gen(cameraArg))
+  IF valid_plotslice(gen(genCameraArg1), serrIgnore) THEN
+   center_camera_on_slice plotslices(gen(genCameraArg1))
   ELSE
    'stopping seems more appropriate than resetting to hero
-   gen(cameramode) = stopcam
+   gen(genCameraMode) = stopcam
   END IF
  CASE pancam ' 1=dir, 2=ticks, 3=step
-  IF gen(cameraArg2) > 0 THEN
-   aheadxy mapx, mapy, gen(cameraArg), gen(cameraArg3)
-   gen(cameraArg2) -= 1
+  IF gen(genCameraArg2) > 0 THEN
+   aheadxy mapx, mapy, gen(genCameraArg1), gen(genCameraArg3)
+   gen(genCameraArg2) -= 1
   END IF
-  IF gen(cameraArg2) <= 0 THEN gen(cameramode) = stopcam
+  IF gen(genCameraArg2) <= 0 THEN gen(genCameraMode) = stopcam
  CASE focuscam ' 1=x, 2=y, 3=x step, 4=y step
   DIM camdiff as integer
-  camdiff = gen(cameraArg) - mapx
-  IF ABS(camdiff) <= gen(cameraArg3) THEN
-   gen(cameraArg3) = 0
-   mapx = gen(cameraArg)
+  camdiff = gen(genCameraArg1) - mapx
+  IF ABS(camdiff) <= gen(genCameraArg3) THEN
+   gen(genCameraArg3) = 0
+   mapx = gen(genCameraArg1)
   ELSE
-   mapx += SGN(camdiff) * gen(cameraArg3)
+   mapx += SGN(camdiff) * gen(genCameraArg3)
   END IF
-  camdiff = gen(cameraArg2) - mapy
-  IF ABS(camdiff) <= gen(cameraArg4) THEN
-   gen(cameraArg4) = 0
-   mapy = gen(cameraArg2)
+  camdiff = gen(genCameraArg2) - mapy
+  IF ABS(camdiff) <= gen(genCameraArg4) THEN
+   gen(genCameraArg4) = 0
+   mapy = gen(genCameraArg2)
   ELSE
-   mapy += SGN(camdiff) * gen(cameraArg4)
+   mapy += SGN(camdiff) * gen(genCameraArg4)
   END IF
   limitcamera mapx, mapy
-  IF gen(cameraArg3) = 0 AND gen(cameraArg4) = 0 THEN gen(cameramode) = stopcam
+  IF gen(genCameraArg3) = 0 AND gen(genCameraArg4) = 0 THEN gen(genCameraMode) = stopcam
 END SELECT
 limitcamera mapx, mapy
 END SUB
@@ -980,10 +980,10 @@ SUB limitcamera (byref x as integer, byref y as integer)
   x = padleft + large(small(x, mapsizetiles.x * 20 - mapview->Width), 0)
   y = padtop + large(small(y, mapsizetiles.y * 20 - mapview->Height), 0)
   IF oldmapx <> x THEN
-   IF gen(cameramode) = pancam THEN gen(cameramode) = stopcam
+   IF gen(genCameraMode) = pancam THEN gen(genCameraMode) = stopcam
   END IF
   IF oldmapy <> y THEN
-   IF gen(cameramode) = pancam THEN gen(cameramode) = stopcam
+   IF gen(genCameraMode) = pancam THEN gen(genCameraMode) = stopcam
   END IF
  END IF
  IF gmap(5) = 1 THEN

@@ -279,11 +279,11 @@ SUB gamestate_state_from_reload(byval node as Reload.NodePtr)
   READNODE node."camera".warn as ch, default
    mapx = ch."x"
    mapy = ch."y"
-   gen(genCamera) = ch."mode"
-   gen(genCamArg1) = ch."arg1"
-   gen(genCamArg2) = ch."arg2"
-   gen(genCamArg3) = ch."arg3"
-   gen(genCamArg4) = ch."arg4"
+   gen(genCameraMode) = ch."mode"
+   gen(genCameraArg1) = ch."arg1"
+   gen(genCameraArg2) = ch."arg2"
+   gen(genCameraArg3) = ch."arg3"
+   gen(genCameraArg4) = ch."arg4"
   END READNODE
 
   gold = node."gold"
@@ -838,9 +838,9 @@ SUB gamestate_state_to_reload(byval parent as Reload.NodePtr)
  ch = SetChildNode(node, "camera")
  SetChildNode(ch, "x", mapx)
  SetChildNode(ch, "y", mapy)
- SetChildNode(ch, "mode", gen(genCamera))
+ SetChildNode(ch, "mode", gen(genCameraMode))
  FOR i as integer = 0 TO 3
-  SetChildNode(ch, "arg" & i+1, gen(genCamArg1 + i))
+  SetChildNode(ch, "arg" & i+1, gen(genCameraArg1 + i))
  NEXT i
  
  SetChildNode(node, "gold", gold)

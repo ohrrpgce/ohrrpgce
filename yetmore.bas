@@ -974,7 +974,7 @@ SELECT CASE as CONST id
    npc(npcref).y = retvals(2)
   END IF
  CASE 137'--putcamera
-  gen(cameramode) = stopcam
+  gen(genCameraMode) = stopcam
   mapx = retvals(0)
   mapy = retvals(1)
   limitcamera mapx, mapy
@@ -1168,20 +1168,20 @@ SELECT CASE as CONST id
  CASE 31'--rank in caterpillar
   scriptret = rankincaterpillar(retvals(0))
  CASE 38'--camera follows hero
-  gen(cameramode) = herocam
-  gen(cameraArg) = bound(retvals(0), 0, 3)
+  gen(genCameraMode) = herocam
+  gen(genCameraArg1) = bound(retvals(0), 0, 3)
  CASE 40'--pan camera
-  gen(cameramode) = pancam
-  gen(cameraArg) = small(large(retvals(0), 0), 3)
-  gen(cameraArg2) = large(retvals(1), 0) * (20 / large(retvals(2), 1))
-  gen(cameraArg3) = large(retvals(2), 1)
+  gen(genCameraMode) = pancam
+  gen(genCameraArg1) = small(large(retvals(0), 0), 3)
+  gen(genCameraArg2) = large(retvals(1), 0) * (20 / large(retvals(2), 1))
+  gen(genCameraArg3) = large(retvals(2), 1)
  CASE 41'--focus camera
-  gen(cameramode) = focuscam
-  gen(cameraArg) = (retvals(0) * 20) - 150
-  gen(cameraArg2) = (retvals(1) * 20) - 90
-  gen(cameraArg3) = ABS(retvals(2))
-  gen(cameraArg4) = ABS(retvals(2))
-  limitcamera gen(cameraArg), gen(cameraArg2)
+  gen(genCameraMode) = focuscam
+  gen(genCameraArg1) = (retvals(0) * 20) - 150
+  gen(genCameraArg2) = (retvals(1) * 20) - 90
+  gen(genCameraArg3) = ABS(retvals(2))
+  gen(genCameraArg4) = ABS(retvals(2))
+  limitcamera gen(genCameraArg1), gen(genCameraArg2)
  CASE 42'--wait for camera
   script_start_waiting(retvals(0))
  CASE 43'--hero x
@@ -3309,8 +3309,8 @@ SELECT CASE as CONST id
  CASE 39'--camera follows NPC
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
-   gen(cameramode) = npccam
-   gen(cameraArg) = npcref
+   gen(genCameraMode) = npccam
+   gen(genCameraArg1) = npcref
   END IF
  CASE 45'--NPC x
   npcref = getnpcref(retvals(0), 0)
@@ -3564,8 +3564,8 @@ SELECT CASE as CONST id
   END IF
  CASE 569'--camera follows slice
   IF valid_plotslice(retvals(0)) THEN
-   gen(cameramode) = slicecam
-   gen(cameraArg) = retvals(0)
+   gen(genCameraMode) = slicecam
+   gen(genCameraArg1) = retvals(0)
   END IF
  CASE 570'--get active battle pause on all menus
   scriptret = IIF(readbit(gen(), genBits, 13) <> 0, 1, 0)

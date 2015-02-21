@@ -81,12 +81,12 @@ CONST genNumPlotscripts = 40    'number of scripts of any kind (number of record
 CONST genNewGameScript = 41     'id of new-game plotscript
 CONST genGameoverScript = 42    'id of game-over plotscript
 CONST genMaxRegularScript = 43  'id of highest numbered non-autonumbered plotscript
-CONST genSuspendBits = 44       'suspend stuff bits (suspend* constants in scrconst.bi)
-CONST genCamera = 45            'camera mode
-CONST genCamArg1 = 46           'cameraarg1
-CONST genCamArg2 = 47           'cameraarg2
-CONST genCamArg3 = 48           'cameraarg3
-CONST genCamArg4 = 49           'cameraarg4
+CONST genSuspendBits = 44       'suspend stuff bits (suspend* constants)
+CONST genCameraMode = 45        'camera mode: see the (*cam constants, e.g. herocam)
+CONST genCameraArg1 = 46        '
+CONST genCameraArg2 = 47        '
+CONST genCameraArg3 = 48        '
+CONST genCameraArg4 = 49        '
 CONST genScrBackdrop = 50       'currently displaying script backdrop in .MXS + 1, 0 for none
 CONST genDays = 51              'days of play
 CONST genHours = 52             'hours of play
@@ -163,6 +163,28 @@ CONST genSaveSlotCount = 197    'The number of available save slots, 1 to 32. If
 '198 is unused
 '199 to 359 used to be the scattertable for PW2, now zeroed out
 '360 to 499 unused
+
+
+'--- Suspend bits (gen(genSuspendBits))
+CONST suspendnpcs = 0
+CONST suspendplayer = 1
+CONST suspendobstruction = 2
+CONST suspendherowalls = 3
+CONST suspendnpcwalls = 4
+CONST suspendcaterpillar = 5
+CONST suspendrandomenemies = 6
+CONST suspendboxadvance = 7
+CONST suspendoverlay = 8
+CONST suspendambientmusic = 9
+CONST suspenddoors = 10
+
+'--- Camera mode constants (gen(genCameraMode))
+CONST herocam = 0
+CONST npccam = 1
+CONST pancam = 2
+CONST focuscam = 3
+CONST slicecam = 4
+CONST stopcam = -1
 
 '---Built in stats
 CONST statHP = 0
