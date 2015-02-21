@@ -8,11 +8,14 @@
 #include "udts.bi"
 #include "custom_udts.bi"
 
-'external subs and functions
+'---------------------------- External subs and functions --------------------------------
+
 DECLARE SUB npcdef (st as MapEditState, npc_img() as GraphicPair, gmap() as integer, zmap as ZoneMap)
 DECLARE SUB tile_anim_draw_range(tastuf() as integer, byval taset as integer, byval page as integer)
 
-'local subs and functions
+
+'---------------------------- Local subs/functions & types -------------------------------
+
 DECLARE SUB make_map_picker_menu (topmenu() as string, state as MenuState)
 DECLARE SUB mapeditor (byval mapnum as integer)
 DECLARE FUNCTION addmaphow () as integer
@@ -149,6 +152,12 @@ DEFINE_VECTOR_VECTOR_OF(MapEditUndoTile, MapEditUndoTile)
 
 DIM SHARED tog as integer
 
+
+'==========================================================================================
+'                                    Map listing menu
+'==========================================================================================
+
+
 FUNCTION addmaphow () as integer
 '--Return values
 '  -2  =Cancel
@@ -252,7 +261,9 @@ SUB map_picker ()
 END SUB
 
 
-'---------------------------------- Brushes -----------------------------------
+'==========================================================================================
+'                                         Brushes
+'==========================================================================================
 
 
 'Note dummy arguments: all brush functions should have the same signature.
@@ -327,7 +338,9 @@ SUB tempbrush (st as MapEditState, byval x as integer, byval y as integer, byval
 END SUB
 
 
-'---------------------------------- Readers ------------------------------------
+'==========================================================================================
+'                                         Readers
+'==========================================================================================
 
 
 'Note dummy arguments: all reader functions should have the same signature
@@ -353,7 +366,9 @@ FUNCTION tempreader (st as MapEditState, byval x as integer, byval y as integer,
 END FUNCTION
 
 
-'---------------------------------- Main SUB -----------------------------------
+'==========================================================================================
+'                               Main SUB (toplevel menu)
+'==========================================================================================
 
 
 SUB mapeditor (byval mapnum as integer)
@@ -634,7 +649,8 @@ DO
  dowait
 LOOP
 
-''''''''''' MAP EDITOR CLEANUP CODE
+'---------------------------------- CLEANUP CODE -------------------------------------
+
 'Unload NPC graphics
 FOR i as integer = 0 TO UBOUND(npc_img)
  WITH npc_img(i)
@@ -667,6 +683,11 @@ v_free zonemenu
 
 remember_menu_pt = st.menustate.pt  'preserve for other maps
 EXIT SUB
+
+
+'==========================================================================================
+'                                   Map editor Proper
+'==========================================================================================
 
 
 mapping:
@@ -1756,6 +1777,12 @@ RETRACE '--end of mapping GOSUB block
 
 END SUB
 
+
+'==========================================================================================
+'                                Zonemap display helpers
+'==========================================================================================
+
+
 SUB mapedit_list_npcs_by_tile (st as MapEditState)
 
  DIM dir_str(...) as string = {"north", "east", "south", "west"}
@@ -1819,6 +1846,8 @@ FUNCTION mapedit_npc_at_spot(st as MapEditState) as integer
  RETURN -1
 END FUNCTION
 
+'==========================================================================================
+
 'This is a variant on spriteedit_draw_icon
 SUB mapedit_draw_icon(st as MapEditState, icon as string, byval x as integer, byval y as integer, byval highlight as bool = NO)
  DIM bgcol as integer
@@ -1848,6 +1877,12 @@ SUB update_npc_graphics(st as MapEditState, npc_img() as GraphicPair)
   END WITH
  NEXT i
 END SUB
+
+
+'==========================================================================================
+'                                Zonemap display helpers
+'==========================================================================================
+
 
 'Returns the colour chosen, from 0-7
 FUNCTION mapedit_try_assign_colour_to_zone(byval id as integer, zonecolours() as integer, viszonelist() as integer) as integer
@@ -2162,6 +2197,12 @@ SUB mapedit_zonespam(st as MapEditState, map() as TileMap, pass as TileMap, emap
  debug "zonespam: spammed " & count & " tiles, " & (1000 * t / count) & "ms/tile"
 END SUB
 
+
+'==========================================================================================
+'                                    Zone info editor
+'==========================================================================================
+
+
 SUB mapedit_edit_zoneinfo(st as MapEditState, zmap as ZoneMap)
  'We could first build sorted list of zones, and only show those that actually exist?
 
@@ -2224,6 +2265,12 @@ SUB mapedit_edit_zoneinfo(st as MapEditState, zmap as ZoneMap)
  LOOP
  
 END SUB
+
+
+'==========================================================================================
+'                                  General map data menu
+'==========================================================================================
+
 
 'Whether the user should have the option to pick an edge tile.
 'Also true if the map is smaller than the screen and the camera is set to crop.
@@ -2484,6 +2531,12 @@ SUB mapedit_gmapdata(st as MapEditState, gmap() as integer, zmap as ZoneMap)
  v_free menu
  v_free menu_display
 END SUB
+
+
+'==========================================================================================
+'                                      Layers menus
+'==========================================================================================
+
 
 FUNCTION mapedit_pick_layer(st as MapEditState, gmap() as integer, map() as TileMap, message as string, other_option as string = "") as integer
  'Gives the user a prompt to select a map layer, returns layer number, or -2
@@ -2838,6 +2891,12 @@ SUB mapedit_makelayermenu(st as MapEditState, byref menu as LayerMenuItem vector
  END IF
 END SUB
 
+
+'==========================================================================================
+'                                      Door functions
+'==========================================================================================
+
+
 FUNCTION door_exists (doors() as Door, id as integer) as bool
  RETURN readbit(doors(id).bits(), 0, 0) <> 0
 END FUNCTION
@@ -2875,6 +2934,12 @@ FUNCTION find_last_used_doorlink(link() as DoorLink) as integer
  NEXT i
  RETURN -1
 END FUNCTION
+
+
+'==========================================================================================
+'                            Creating, loading & saving maps
+'==========================================================================================
+
 
 'Adds a new map with ID gen(genMaxMap) + 1
 SUB mapedit_addmap()
@@ -3021,6 +3086,12 @@ SUB mapedit_load_tilesets(st as MapEditState, map() as TileMap, gmap() as intege
  NEXT
 END SUB
 
+
+'==========================================================================================
+'                             Layer manipulation/rearrangement
+'==========================================================================================
+
+
 SUB fix_tilemaps(map() as TileMap)
  'Each tilemap in map() needs to know its index number in map(). This SUB updates that.
  FOR i as integer = 0 TO UBOUND(map)
@@ -3112,6 +3183,12 @@ SUB mapedit_delete_layer(st as MapEditState, map() as TileMap, vis() as integer,
  mapedit_throw_away_history st
  v_free st.cloned
 END SUB
+
+
+'==========================================================================================
+'                                  Resizing & deleting
+'==========================================================================================
+
 
 SUB mapedit_resize(st as MapEditState, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap, gmap() as integer, doors() as Door, link() as DoorLink, mapname as string)
 'sizemap:
@@ -3242,6 +3319,8 @@ SUB mapedit_delete(st as MapEditState, map() as TileMap, pass as TileMap, emap a
  END IF
 END SUB
 
+'==========================================================================================
+
 SUB update_tilepicker(st as MapEditState)
  st.menubarstart(st.layer) = bound(st.menubarstart(st.layer), large(st.usetile(st.layer) - 13, 0), small(st.usetile(st.layer), st.menubar.wide - 14))
  IF st.tool = clone_tool AND st.multitile_draw_brush THEN
@@ -3250,6 +3329,12 @@ SUB update_tilepicker(st as MapEditState)
   v_free st.cloned
  END IF
 END SUB
+
+
+'==========================================================================================
+'                                         Doors
+'==========================================================================================
+
 
 SUB mapedit_linkdoors (st as MapEditState, map() as TileMap, pass as TileMap, gmap() as integer, doors() as Door, link() as DoorLink)
  'Warning: map data should be saved before this SUB is called, as some of it's reloaded from file
@@ -3426,6 +3511,9 @@ SUB link_one_door(st as MapEditState, linknum as integer, link() as DoorLink, do
  LOOP
 END SUB
 
+
+'==========================================================================================
+
 FUNCTION LayerIsVisible(vis() as integer, byval l as integer) as bool
  'debug "layer #" & l & " is: " & readbit(vis(), 0, l)
  RETURN xreadbit(vis(), l)
@@ -3454,6 +3542,9 @@ SUB ToggleLayerEnabled(gmap() as integer, byval l as integer)
  IF l <= 0 THEN EXIT SUB
  setbit(gmap(), 19, l - 1, readbit(gmap(), 19, l - 1) xor 1)
 END SUB
+
+
+'==========================================================================================
 
 SUB DrawDoorPair(st as MapEditState, byval linknum as integer, map() as TileMap, pass as TileMap, doors() as door, link() as doorlink, gmap() as integer)
  DIM as integer dmx, dmy, i
@@ -3532,6 +3623,13 @@ SUB calculatepassblock(st as MapEditState, x as integer, y as integer, map() as 
   writeblock pass, x, y, n
  END IF
 END SUB
+
+
+'==========================================================================================
+'                                      Map resizing
+'==========================================================================================
+
+' (Actual resize routine, mapedit_resize, is above)
 
 SUB resizetiledata (tmap as TileMap, rs as MapResizeState, byref yout as integer, page as integer)
  resizetiledata tmap, rs.rect.x, rs.rect.y, rs.rect.wide, rs.rect.high, yout, page
@@ -3733,6 +3831,12 @@ SUB show_minimap(st as MapEditState, map() as TileMap)
  waitforanykey
 END SUB
 
+
+'==========================================================================================
+'                                    Fill (paint) tool
+'==========================================================================================
+
+
 SUB fill_map_add_node(st as MapEditState, byval followTile as integer, byval oldTile as integer, byval x as integer, byval y as integer, byref head as integer, queue() as XYPair, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap, reader as FnReader)
  IF (y < emap.high) AND (y >= 0) AND (x < emap.wide) AND (x >= 0) THEN  'emap is not special
   IF reader(st, x, y, , map(), pass, emap, zmap) = followTile THEN
@@ -3815,6 +3919,10 @@ SUB fill_with_other_area(st as MapEditState, byval x as integer, byval y as inte
  UnloadTileMap st.temptilemap
 END SUB
 
+
+'==========================================================================================
+
+
 SUB loadpasdefaults (byref defaults as integer vector, tilesetnum as integer)
  DIM buf(160) as integer
  v_new defaults, 160
@@ -3842,6 +3950,12 @@ SUB savepasdefaults (byref defaults as integer vector, tilesetnum as integer)
  setpicstuf buf(), 322, -1
  storeset workingdir & SLASH & "defpass.bin", tilesetnum, 0
 END SUB
+
+
+'==========================================================================================
+'                              Tile picker (tileset screen)
+'==========================================================================================
+
 
 'Create a clone brush from a section of the tileset
 SUB mapedit_pick_tileset_rect(st as MapEditState, tilesetview as TileMap, corner1 as XYPair, corner2 as XYPair)
