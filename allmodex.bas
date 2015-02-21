@@ -702,12 +702,12 @@ sub setwait (byval t as integer, byval flagt as integer = 0)
 'accessed as the return value from dowait.
 	if use_speed_control = NO then exit sub
 	'Min wait: 60fps, max wait: 1.5x requested
-	waittime = bound(waittime + t / 1000, timer + 0.017, timer + t / 667)
+	waittime = bound(waittime + t / 1000, timer + 0.0165, timer + t / 667)
 	if flagt = 0 then
 		flagt = t
 	end if
 	if timer > flagtime then
-		flagtime = bound(flagtime + flagt / 1000, timer + 0.017, timer + flagt / 667)
+		flagtime = bound(flagtime + flagt / 1000, timer + 0.0165, timer + flagt / 667)
 	end if
 	setwait_called = YES
 end sub
@@ -723,7 +723,7 @@ function dowait () as bool
 'be exited by a keypress, so sleep for 5ms until timer > waittime.
 	if use_speed_control = NO then tickcount += 1 : return YES
 	dim i as integer
-	do while timer <= waittime
+	do while timer <= waittime - 0.0005
 		i = bound((waittime - timer) * 1000, 1, 5)
 		sleep i
 		io_waitprocessing()
