@@ -160,7 +160,7 @@ CONST genResolutionX = 194      'Screen resolution (unzoomed). 0 for default
 CONST genResolutionY = 195      ' "
 CONST genEscMenuScript = 196     'id of plotscript called instead of the default menu
 CONST genSaveSlotCount = 197    'The number of available save slots, 1 to 32. If 0, the default of 4 will be used
-'198 is unused
+CONST genMillisecPerFrame = 198
 '199 to 359 used to be the scattertable for PW2, now zeroed out
 '360 to 499 unused
 

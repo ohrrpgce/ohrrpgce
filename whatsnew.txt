@@ -59,6 +59,11 @@ WHAT IS NEW?
       .tilemap and .bmp files (the .bmps are minimaps). [Ralph]
       To export images of maps, use RMSephy's tool instead:
       https://github.com/Spencer-Zhang/ohr-cartographer
+    * Option to adjust the framerate. This isn't really a finished
+      feature, as increasing the framerate leads to crazy walking
+      animations.  You probably shouldn't change the framerate in an
+      existing game, as it will break all your wait() lengths and hero,
+      npc, camera, etc. movement speeds. [Ralph]
 
   * Bugfixes
     * Fixed a few cosmetic bugs in the equip menu including possibly

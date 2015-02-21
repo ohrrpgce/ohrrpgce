@@ -4,6 +4,7 @@
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
 #include "config.bi"
+#include "string.bi"
 #include "allmodex.bi"
 #include "common.bi"
 #include "bcommon.bi"
@@ -1630,7 +1631,8 @@ SUB generate_gen_menu(m() as string, longname as string, aboutline as string, op
   CASE 6: m(options_start + 2) += "Hide all ignoreable errors"
  END SELECT
  m(options_start + 3) = "Default maximum item stack size: " & gen(genItemStackSize)
-
+ m(options_start + 4) = "Framerate: " & FORMAT(small(60., 1000 / gen(genMillisecPerFrame)), ".#") & " frames/sec (" _
+                         & gen(genMillisecPerFrame) & "ms/frame)"
 END SUB
 
 SUB edit_global_bitsets(bitname() as string, helpfile as string)
@@ -1645,7 +1647,8 @@ SUB edit_global_bitsets(bitname() as string, helpfile as string)
 END SUB
 
 SUB gendata ()
- CONST maxMenu = 18
+ STATIC shown_framerate_warning as bool = NO
+ CONST maxMenu = 19
  DIM m(maxMenu) as string
  DIM menu_display(maxMenu) as string
  DIM min(maxMenu) as integer
@@ -1691,6 +1694,9 @@ SUB gendata ()
  index(options_start + 3) = genItemStackSize
  max(options_start + 3) = 99
  min(options_start + 3) = 1
+ index(options_start + 4) = genMillisecPerFrame
+ max(options_start + 4) = 200
+ min(options_start + 4) = 16
 
  DIM aboutline as string = load_aboutline()
  DIM longname as string = load_gamename()
@@ -1771,6 +1777,12 @@ SUB gendata ()
    IF intgrabber(temp, min(state.pt), max(state.pt)) THEN
     gen(genMaxInventory) = temp * 3 - 1
     IF temp = 0 THEN gen(genMaxInventory) = 0
+    state.need_update = YES
+   END IF
+  ELSEIF index(state.pt) = genMillisecPerFrame THEN
+   IF intgrabber(gen(index(state.pt)), min(state.pt), max(state.pt)) THEN
+    IF shown_framerate_warning = NO THEN show_help "framerate_warning"
+    shown_framerate_warning = YES
     state.need_update = YES
    END IF
   ELSEIF index(state.pt) THEN

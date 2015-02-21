@@ -46,3 +46,6 @@ Note that future versions of the engine will raise many new types of warnings an
    ignored almost every mistake that
    you could make
  Hide All Ignoreable Errors
+
+Framerate:
+By default, OHRRPGCE games run at 18.2 frames per second (FPS), which is 55 milliseconds (ms) per frame. Increasing the framerate is highly desirable if you want to use the mouse or create an action game. HOWEVER, increasing the framerate is not recommended for RPGs because the walk animation will become very fast (this is an unfinished feature). Battles are NOT affected by this setting (so you're safe there!)

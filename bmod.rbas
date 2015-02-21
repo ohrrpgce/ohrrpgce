@@ -111,7 +111,7 @@ FUNCTION battle (byval form as integer) as bool
  clear_attack_queue()
  DIM bslot(24) as BattleSprite
  DIM show_info_mode as integer = 0
- DIM speedcontrol_this_tick as integer = speedcontrol
+ DIM speedcontrol_this_tick as integer = 55  'Adjusting framerate is not implemented
 
  SELECT CASE gen(genBattleMode)
   CASE 0:
@@ -145,7 +145,7 @@ FUNCTION battle (byval form as integer) as bool
  setkeys
  DO
   setwait speedcontrol_this_tick
-  speedcontrol_this_tick = speedcontrol
+  speedcontrol_this_tick = 55
   IF running_as_slave THEN try_to_reload_files_inbattle
   setkeys
   bat.tog XOR= 1

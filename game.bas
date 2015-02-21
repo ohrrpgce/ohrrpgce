@@ -581,6 +581,8 @@ gam.current_master_palette = gen(genMasterPal)
 loadpalette master(), gam.current_master_palette
 LoadUIColors uilook(), boxlook(), gam.current_master_palette
 
+speedcontrol = bound(gen(genMillisecPerFrame), 16, 200)
+
 initgamedefaults
 fatal = NO
 checkfatal = NO

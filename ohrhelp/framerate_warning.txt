@@ -1,0 +1,4 @@
+        **** Warning ****
+Changing the framerate of an existing game will change the length of all the waits in your scripts, the speed of all hero, npc, camera, slice, etc. movements, and the speed of tile animations! You will have to fix all of these manually. Also, the walking animation rate for heroes and npcs will change, and there's currently no way to fix that! However, battles aren't affected.
+
+If you try to set a framerate between 30 and 60 fps then vsync (which is the default if using gfx_directx) will cause the framerate to be 30 fps!

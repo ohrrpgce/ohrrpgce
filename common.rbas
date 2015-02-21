@@ -3019,6 +3019,12 @@ FUNCTION getpassword () as string
  END IF 
 END FUNCTION
 
+
+'==========================================================================================
+'                                    Upgrade old games
+'==========================================================================================
+
+
 SUB upgrade ()
 DIM o as integer
 DIM p as integer
@@ -3767,6 +3773,10 @@ IF gen(genItemStackSize) <= 0 OR gen(genItemStackSize) > 99 THEN
  gen(genItemStackSize) = 99
 END IF
 
+IF gen(genMillisecPerFrame) = 0 THEN
+ gen(genMillisecPerFrame) = 55
+END IF
+
 IF full_upgrade ANDALSO getfixbit(fixItemElementals) = 0 THEN
  upgrade_message "Initialising equipment elemental resists..."
  setfixbit(fixItemElementals, 1)
@@ -3829,6 +3839,10 @@ xbsave game + ".gen", gen(), 1000
 
 'wow! this is quite a big and ugly routine!
 END SUB
+
+
+'==========================================================================================
+
 
 'Initialise, if needed, a lump that is missing or has length <= headersize by padding the file with zeros so that
 'it has a header if any and one record.
