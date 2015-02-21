@@ -79,6 +79,7 @@ br.snd = -1
 'special=9   script files (.hs, .hss)
 'special=10  2, 16 or 256 colour BMP, any size (used by font_test_menu only)
 'special=11  Browse for a folder
+'special=12  tilemaps (fmask is ignored)
 
 br.mashead = CHR(253) & CHR(13) & CHR(158) & CHR(0) & CHR(0) & CHR(0) & CHR(6)
 br.paledithead = CHR(253) & CHR(217) & CHR(158) & CHR(0) & CHR(0) & CHR(7) & CHR(6)
@@ -473,6 +474,14 @@ FOR i as integer = 0 TO UBOUND(filelist)
     br.mstate.last = br.mstate.last - 1
    END IF
   END IF
+ END IF
+ '--tilemaps
+ IF br.special = 12 THEN
+  DIM info as TilemapInfo
+  IF GetTilemapInfo(filename, info) = NO THEN
+   tree(br.mstate.last).kind = bkUnselectable
+  END IF
+  tree(br.mstate.last).about = "Size " & info.wide & "x" & info.high & " tilemap with " & info.layers & " layers"
  END IF
  draw_browse_meter br
 NEXT

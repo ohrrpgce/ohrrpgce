@@ -124,6 +124,8 @@ DECLARE SUB mapedit_gmapdata(st as MapEditState, gmap() as integer, zmap as Zone
 DECLARE SUB mapedit_draw_icon(st as MapEditState, icon as string, byval x as integer, byval y as integer, byval highlight as bool = NO)
 DECLARE SUB mapedit_list_npcs_by_tile (st as MapEditState)
 
+DECLARE SUB mapedit_import_export(st as MapEditState, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap, gmap() as integer, visible() as integer, doors() as Door, link() as DoorLink, mapname as string)
+
 DECLARE FUNCTION door_exists (doors() as Door, id as integer) as bool
 DECLARE SUB set_door_exists (doors() as Door, id as integer, value as bool)
 DECLARE FUNCTION find_last_used_doorlink(link() as DoorLink) as integer
@@ -553,8 +555,8 @@ st.clone_merge = YES
 
 st.cur_door = find_first_free_door(doors())
 
-DIM mapeditmenu(14) as string
-DIM mapeditmenu_display(14) as string
+DIM mapeditmenu(15) as string
+DIM mapeditmenu_display(15) as string
 
 mapeditmenu(0) = "Return to Map Menu"
 mapeditmenu(1) = "Edit General Map Data..."
@@ -569,8 +571,9 @@ mapeditmenu(9) = "Edit Foemap..."
 mapeditmenu(10) = "Edit Zones..."
 mapeditmenu(11) = "Link Doors..."
 mapeditmenu(12) = "Erase Map Data"
-mapeditmenu(13) = "Re-load Default Passability"
-mapeditmenu(14) = "Map name:"
+mapeditmenu(13) = "Import/Export Tilemap..."
+mapeditmenu(14) = "Re-load Default Passability"
+mapeditmenu(15) = "Map name:"
 
 DIM selectst as SelectTypeState
 st.menustate.size = 24
@@ -588,7 +591,7 @@ DO
  END IF
  IF keyval(scF1) > 1 THEN show_help "mapedit_menu"
  usemenu st.menustate
- IF st.menustate.pt = 14 AND selectst.query = "" THEN
+ IF st.menustate.pt = 15 AND selectst.query = "" THEN
   strgrabber mapname, 39
   st.menustate.need_update = YES
  ELSEIF select_by_typing(selectst) THEN
@@ -622,6 +625,8 @@ DO
      EXIT DO
     END IF
    CASE 13
+    mapedit_import_export st, map(), pass, emap, zmap, gmap(), visible(), doors(), link(), mapname
+   CASE 14
     '--reload default passability
     IF yesno("Set default passability for whole map, overwriting your wallmap? Don't worry, you can undo this by hitting Ctrl+Z in any editing mode", NO, NO) THEN
      FOR tx as integer = 0 TO st.wide - 1
@@ -637,11 +642,10 @@ DO
  END IF
 
  IF st.menustate.need_update THEN
-  mapeditmenu(14) = "Map name:" + mapname
-  IF LEN(mapeditmenu(14)) > 40 THEN mapeditmenu(14) = mapname
+  mapeditmenu(15) = "Map name:" + mapname
   st.menustate.need_update = NO
  END IF
- 
+
  clearpage vpage
  highlight_menu_typing_selection mapeditmenu(), mapeditmenu_display(), selectst, st.menustate
  standardmenu mapeditmenu_display(), st.menustate, 0, 0, vpage
@@ -3328,6 +3332,282 @@ SUB update_tilepicker(st as MapEditState)
   st.tool = draw_tool
   v_free st.cloned
  END IF
+END SUB
+
+
+'==========================================================================================
+'                                      Import/Export
+'==========================================================================================
+
+
+SUB mapedit_export_tilemaps(st as MapEditState)
+ DIM outfile as string
+ outfile = inputfilename("Export tilemap to which file?", ".tilemap", "", "input_file_export_tilemap")
+ IF LEN(outfile) THEN
+  filecopy maplumpname(st.mapnum, "t"), outfile + ".tilemap"
+ END IF
+END SUB
+
+'Copy each imported tilemap to a new tilemap, assuming they are not necessarily
+'the same size.
+'If appending is false, then deletes existing layers, but doesn't change map size.
+SUB mapedit_append_imported_tilemaps(st as MapEditState, map() as TileMap, newlayers() as TileMap, gmap() as integer, visible() as integer, appending as bool)
+ DIM dest_layer as integer
+ IF appending = NO THEN
+  'Preserve the map size here; the resize menu is needed to change that.
+  CleanTilemaps map(), st.wide, st.high, UBOUND(newlayers) + 1
+  dest_layer = 0
+ ELSE
+  mapedit_append_new_layers st, map(), visible(), gmap(), 1
+  dest_layer = UBOUND(map)
+ END IF 
+ DIM as integer src_layer, x, y
+ FOR src_layer = 0 TO UBOUND(newlayers)
+  FOR x = 0 TO small(map(0).wide, newlayers(src_layer).wide) - 1
+   FOR y = 0 TO small(map(0).high, newlayers(src_layer).high) - 1
+    writeblock(map(dest_layer), x, y, readblock(newlayers(src_layer), x, y))
+   NEXT
+  NEXT
+  dest_layer += 1
+ NEXT
+ mapedit_load_tilesets st, map(), gmap()
+END SUB
+
+'Asks the user to browse for a .tilemap file, then handles the import
+'appending: true if appending, false if replacing all existing
+SUB mapedit_import_tilemaps(st as MapEditState, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap, gmap() as integer, visible() as integer, doors() as Door, link() as DoorLink, mapname as string, appending as bool)
+ DIM infile as string
+ infile = browse(12, "", "*.tilemap", tmpdir, NO, "browse_tilemaps")
+ IF LEN(infile) = 0 THEN EXIT SUB
+
+ REDIM newlayers(0) as TileMap
+ IF LoadTilemaps(newlayers(), infile, YES) = NO THEN
+  pop_warning "Bad file; could not load " & infile
+  EXIT SUB
+ END IF
+
+ '--- First we check whether there are too many map layers
+
+ DIM menu_caption as string
+ DIM choice as integer
+ DIM num_old_layers as integer = UBOUND(map) + 1
+ DIM num_new_layers as integer = UBOUND(newlayers) + 1
+ IF appending = NO THEN num_old_layers = 0
+
+ IF num_old_layers + num_new_layers > maplayerMax + 1 THEN
+  menu_caption = "The new map would have " & (num_old_layers + num_new_layers) & " layers, but the maximum amount is " & (maplayerMax + 1) & "."
+  REDIM menu_choices(0) as string
+  menu_choices(0) = "Cancel"
+  FOR layer as integer = 0 TO num_new_layers - 1
+   str_array_append menu_choices(), "Append just layer " & layer & " from the imported tilemap"
+  NEXT
+  choice = multichoice(menu_caption, menu_choices(), 1, 0)
+
+  IF choice = 0 THEN
+   UnloadTilemaps newlayers()
+   EXIT SUB
+  ELSE
+   'keep a single layer
+   SWAP newlayers(choice), newlayers(0)
+   FOR i as integer = 1 TO UBOUND(newlayers)
+    UnloadTilemap newlayers(i)
+   NEXT
+   REDIM PRESERVE newlayers(0)
+  END IF
+ END IF
+
+ '--- Then we check the size and handle any problems
+
+ DIM as integer newwide = newlayers(0).wide, newhigh = newlayers(0).high
+ IF st.wide <> newwide OR st.high <> newhigh THEN
+  REDIM menu_choices(2) as string
+
+  menu_caption = "This tilemap is " & newwide & "*" & newhigh & " with " & (UBOUND(newlayers) + 1) & " layers, while the map is " & st.wide & "*" & st.high & " (with " & (UBOUND(newlayers) + 1) & " layers)."
+  menu_caption = !"\nDo you want to resize (or shift) the map first?"
+  menu_choices(0) = "Cancel"
+  menu_choices(1) = "Let me resize the map"
+  menu_choices(2) = "Crop/expand imported tilemaps as needed"
+
+  choice = multichoice(menu_caption, menu_choices(), 1, 0, "mapedit_importing_wrong_size_tilemap")
+  IF choice = 0 THEN
+   UnloadTilemaps newlayers()
+   EXIT SUB
+  ELSEIF choice = 1 THEN
+   'Goto resize menu
+   mapedit_resize st, map(), pass, emap, zmap, gmap(), doors(), link(), mapname
+   IF st.wide <> newwide OR st.high <> newhigh THEN  'Either cancelled or wrong size
+    notification "Map still the wrong size, cancelling import"
+    UnloadTilemaps newlayers()
+    EXIT SUB
+   END IF
+  ELSEIF choice = 2 THEN
+   'Crop/extend. This is handled automatically.
+  END IF
+ END IF
+
+ mapedit_append_imported_tilemaps st, map(), newlayers(), gmap(), visible(), appending
+ notification "Imported " & num_new_layers & " layers"
+
+ UnloadTilemaps newlayers()
+END SUB
+
+'Overwrite a map layer, reading a tile per pixel of a .bmp
+SUB bmp_to_layer(st as MapEditState, imgfile as string, map() as TileMap, layer as integer)
+ DIM fr as Frame ptr = frame_import_bmp_raw(imgfile)
+ IF fr = NULL THEN
+  notification "Couldn't import map layer: loading .bmp failed"
+  EXIT SUB
+ END IF
+ IF fr->h <> st.high OR fr->w <> st.wide THEN
+  notification "This image is " & fr->w & "*" & fr->h & " while the map is " & st.wide & "*" & st.high & !".\n" _
+               "Any extra portion will be clipped. Resize the map manually as desired."
+ END IF
+ FOR y as integer = 0 TO small(fr->h, st.high) - 1
+  FOR x as integer = 0 TO small(fr->w, st.wide) - 1
+   writeblock(map(layer), x, y, readpixel(fr, x, y))
+  NEXT
+ NEXT
+ frame_unload @fr
+END SUB
+
+'Import a map layer from a paletted .bmp, one tile per pixel
+SUB mapedit_import_bmp_tilemap(st as MapEditState, map() as TileMap, gmap() as integer, visible() as integer)
+ pop_warning "Please select an 8-bit paletted .bmp file to import. Each pixel of the image will be mapped to a tile. " _
+             !"The n-th colour in the palette becomes tile index n. The actual colours in the palette are ignored.\n" _
+             !"This is useful mainly for defining the rough outline of your map.\n" _
+             "You may find it easiest to draw the image without considering tile indices, then " _
+             "remap them to the correct tiles with the 'Replace' tool."
+ DIM imgfile as string
+ 'Want any bmp with bitdepth at most 8
+ imgfile = browse(10, "", "*.bmp", tmpdir, 0, "browse_bmp_tilemap")
+ DIM bmpd as BitmapV3InfoHeader
+ IF LEN(imgfile) = 0 OR bmpinfo(imgfile, bmpd) <> 2 THEN EXIT SUB
+
+ DIM blank_option as string = "New blank layer"
+ IF UBOUND(map) >= maplayerMax THEN blank_option = ""   'remove option
+ DIM layer as integer
+ layer = mapedit_pick_layer(st, gmap(), map(), "Import as new layer or OVERWRITE existing layer?", blank_option)
+ IF layer = -2 THEN EXIT SUB  'cancelled
+ IF layer = -1 THEN  'new layer
+  mapedit_append_new_layers st, map(), visible(), gmap(), 1
+  layer = UBOUND(map)
+ END IF
+
+ bmp_to_layer st, imgfile, map(), layer
+ notification "Imported layer " & layer
+END SUB
+
+'Pick a colour to represent each tile in a tileset: the average colour
+SUB color_for_each_tile (tileset as TilesetData ptr, colors() as RGBcolor)
+ FOR tile as integer = 0 TO 159
+  DIM as double r, g, b
+  FOR y as integer = 0 TO 19
+   FOR x as integer = 0 TO 19
+    DIM idx as integer
+    idx = readpixel(tileset->spr, x, tile * 20 + y)
+    r += master(idx).r ^ 1.7
+    g += master(idx).g ^ 1.7
+    b += master(idx).b ^ 1.7
+   NEXT
+  NEXT
+  colors(tile).b = small(255., (b / 400) ^ (1 / 1.7))
+  colors(tile).g = small(255., (g / 400) ^ (1 / 1.7))
+  colors(tile).r = small(255., (r / 400) ^ (1 / 1.7))
+  debug "tile " & tile & " g " & g & "->" & colors(tile).g
+ NEXT
+ 'Then handle animated tiles by making them the same colour as the first tile in the animation
+ FOR tile as integer = 160 TO 255
+  DIM basetile as integer
+  basetile = tile_anim_deanimate_tile(tile, tileset->tastuf())
+  colors(tile) = colors(basetile)
+ NEXT
+END SUB
+
+SUB layer_to_bmp(st as MapEditState, imgfile as string, map() as TileMap, layer as integer)
+ DIM colors(255) as RGBcolor
+ color_for_each_tile st.tilesets(layer), colors()
+ DIM fr as Frame ptr
+ fr = frame_new(st.wide, st.high, , YES)
+ FOR y as integer = 0 TO st.high - 1
+  FOR x as integer = 0 TO st.wide - 1
+   putpixel fr, x, y, readblock(map(layer), x, y)
+  NEXT
+ NEXT
+ frame_export_bmp8 imgfile, fr, colors()
+ frame_unload @fr
+END SUB
+
+SUB mapedit_export_bmp_tilemap(st as MapEditState, map() as TileMap, gmap() as integer)
+ DIM menu_caption as string
+ menu_caption = "Please select a layer to export to an 8-bit paletted .bmp file. " _
+                "Each pixel of the image will represent one tile: " _
+                !"color n in the palette means tileset index n.\n" _
+                !"This is useful mainly for modifying the large-scale structures of your map."
+ REDIM menu_choices(0) as string
+ menu_choices(0) = "Cancel"
+ FOR layer as integer = 0 TO UBOUND(map)
+  str_array_append menu_choices(), "Export map layer " & layer & " " & read_map_layer_name(gmap(), layer)
+ NEXT
+ DIM choice as integer
+ choice = multichoice(menu_caption, menu_choices(), 1, 0)
+ IF choice = 0 THEN EXIT SUB
+ DIM outfile as string
+ DIM defaultname as string
+ defaultname = trimextension(trimpath(sourcerpg)) & " map " & st.mapnum & " layer " & (choice - 1) & " " & read_map_layer_name(gmap(), choice - 1)
+ defaultname = TRIM(defaultname)  'If no layer name
+ outfile = inputfilename("Export tilemap to which file?", ".bmp", "", "input_file_export_bmp_tilemap", defaultname)
+ IF LEN(outfile) THEN layer_to_bmp st, outfile + ".bmp", map(), choice - 1
+END SUB
+
+SUB mapedit_import_export(st as MapEditState, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap, gmap() as integer, visible() as integer, doors() as Door, link() as DoorLink, mapname as string)
+ DIM menu(5) as string
+ menu(0) = "Previous menu"
+ menu(1) = "Export tilemap"
+ menu(2) = "Import tilemap, overwriting existing"
+ menu(3) = "Import tilemap, as new layers"
+ menu(4) = "Export map layer as pixel-a-tile BMP"
+ menu(5) = "Import pixel-a-tile BMP as map layer"
+
+ DIM state as menustate
+ state.top = 0
+ state.pt = 0
+ state.last = UBOUND(menu)
+ state.size = 11
+ state.need_update = YES
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "mapedit_importexport"
+  usemenu state
+  IF enter_or_space() THEN
+   IF state.pt = 0 THEN EXIT DO
+   IF state.pt = 1 THEN
+    mapedit_export_tilemaps st
+   END IF
+   IF state.pt = 2 THEN
+    IF yesno("Are you sure you want to DELETE your current map layers and import new ones?") THEN
+     mapedit_import_tilemaps st, map(), pass, emap, zmap, gmap(), visible(), doors(), link(), mapname, NO
+    END IF
+   END IF
+   IF state.pt = 3 THEN
+    mapedit_import_tilemaps st, map(), pass, emap, zmap, gmap(), visible(), doors(), link(), mapname, YES
+   END IF
+   IF state.pt = 4 THEN
+    mapedit_export_bmp_tilemap st, map(), gmap()
+   END IF
+   IF state.pt = 5 THEN
+    mapedit_import_bmp_tilemap st, map(), gmap(), visible()
+   END IF
+  END IF
+
+  clearpage vpage
+  standardmenu menu(), state, 0, 0, vpage
+  setvispage vpage
+  dowait
+ LOOP
 END SUB
 
 

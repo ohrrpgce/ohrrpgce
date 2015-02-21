@@ -55,6 +55,10 @@ WHAT IS NEW?
     * Automatically keep a few backup copies of any rpg file you edit
       This is no substitute for manual backups! Do not forget to
       back up your own work! [James]
+    * Menu for basic importing and exporting of tilemap data from/to
+      .tilemap and .bmp files (the .bmps are minimaps). [Ralph]
+      To export images of maps, use RMSephy's tool instead:
+      https://github.com/Spencer-Zhang/ohr-cartographer
 
   * Bugfixes
     * Fixed a few cosmetic bugs in the equip menu including possibly
