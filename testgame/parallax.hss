@@ -1,4 +1,7 @@
 
+################################################################
+# From http://rpg.hamsterrepublic.com/ohrrpgce/Scripts:Hero_will_move
+
 script, dir X, dir, begin
   switch (dir) do (
     case (up, down) do (return (0))
@@ -56,6 +59,11 @@ script, hero will move, begin
   return (true)
 end
 
+
+################################################################
+# From http://rpg.hamsterrepublic.com/ohrrpgce/Scripts:Hero_will_move#next_leader_pixel_x.2Fy
+
+
 # Guess the direction that the leader will move this tick, or -1 if they won't move.
 script, next leader move direction, begin
   if (hero is walking(0)) then (
@@ -90,18 +98,68 @@ script, next leader pixel y, begin
 end
 
 
+################################################################
+# From http://rpg.hamsterrepublic.com/ohrrpgce/Scripts:Hero_will_move#next_camera_pixel_x.2Fy
+
+
+global variable(1, next camera pixel x)
+global variable(2, next camera pixel y)
+
+# Updates the values of the "next camera pixel x/y" global variables.
+# Camera following NPCs or slices are not supported!
+script, calculate next camera pixel xy, begin
+  variable(destx, desty, diff, cam dir, cam speed)
+  variable(mapw, maph, screenw, screenh)
+  screenw := slice width(sprite layer)
+  screenh := slice height(sprite layer)
+  mapw := map width * 20
+  maph := map height * 20
+
+  next camera pixel x := camera pixel x
+  next camera pixel y := camera pixel y
+  # Check value of gen(genCameraMode)
+  if (read general(45) == 0) then (   # herocam (camera following hero)
+    # Offset from the top-left of the hero sprite to the topleft of the screen
+    next camera pixel x := next leader pixel x -- (screenw -- 20) / 2
+    next camera pixel y := next leader pixel y -- (screenh -- 20) / 2
+  ) else if (read general(45) == 2) then (  #pancam
+    cam dir := read general(46)
+    cam speed := read general(48)
+    next camera pixel x += dirX(cam dir) * cam speed
+    next camera pixel y += dirY(cam dir) * cam speed
+  ) else if (read general(45) == 3) then (  #focuscam
+    destx := read general(46)
+    desty := read general(47)
+    cam speed := read general(48)
+    diff := destx -- camera pixel x
+    if (abs(diff) <= cam speed) then (
+      next camera pixel x := dest x
+    ) else (
+      next camera pixel x += sign(diff) * cam speed
+    )
+    diff := desty -- camera pixel y
+    if (abs(diff) <= cam speed) then (
+      next camera pixel y := dest y
+    ) else (
+      next camera pixel y += sign(diff) * cam speed
+    )
+  )
+
+  # Crop to map edge
+  if (next camera pixel x < 0) then (next camera pixel x := 0)
+  if (next camera pixel x > mapw -- screenw) then (next camera pixel x := mapw -- screenw)
+  if (next camera pixel y < 0) then (next camera pixel y := 0)
+  if (next camera pixel y > maph -- screenh) then (next camera pixel y := maph -- screenh)
+end
+
+
+################################################################
+# From http://rpg.hamsterrepublic.com/ohrrpgce/Scripts:Fake_Parallax
+
+
 define constant(4, troll mountain parallax timer)
 
-global variable(1, camera slice)
-global variable(2, parallax camera follows hero)
-
 plotscript, troll mountain autorun, begin
-  # The normal camera is too hard to predict, so make the camera follow
-  # a slice which we move about manually.
-  camera slice := create container(20, 20)
-  set parent(camera slice, lookup slice(sl:walkabout layer))  # or any other map layer
-  camera follows slice (camera slice)
-  parallax camera follows hero := true
   update troll mountain parallax
 end
 
@@ -109,27 +167,40 @@ script, update troll mountain parallax, begin
   variable(sl, mapw, maph, screenw, screenh, layerw, layerh)
   if(current map <> map:troll mountain) then(
     stop timer(troll mountain parallax timer)
+    #(The following is only needed if 'recreate map slices when leaving map' is off)
     sl := lookup slice(sl:map layer 0)
     set slice x(sl, 0)
     set slice y(sl, 0)
-    camera follows hero  # This line is unneeded in Callipygous onwards; it happens automatically
     exit script
-  )
-  if (parallax camera follows hero) then (
-    variable(next x, next y)
-    next x := next leader pixel x
-    next y := next leader pixel y
-    put slice(camera slice, next x, next y)
   )
   mapw := map width * 20
   maph := map height * 20
   screenw := slice width(sprite layer)
   screenh := slice height(sprite layer)
-  layerw := mapw / 3
-  layerh := maph / 3
+  layerw := 50 * 20
+  layerh := 20 * 20
   sl := lookup slice(sl:map layer 0)
-  set slice x(sl, (slice x(camera slice) * (mapw -- layerw) / (mapw -- screenw)))
-  set slice y(sl, (slice y(camera slice) * (maph -- layerh) / (maph -- screenh)))
+  calculate next camera pixel xy
+  set slice x(sl, (next camera pixel x * (mapw -- layerw) / (mapw -- screenw)))
+  set slice y(sl, (next camera pixel y * (maph -- layerh) / (maph -- screenh)))
   # Set the script to run again next tick
   set timer(troll mountain parallax timer, 0, 1, @update troll mountain parallax)
+
+
+################################################################
+# Specific to this test
+
+  if (not(cam slice)) then (cam slice := create rect(20,20))
+  putslice(cam slice, nextcamerapixelx, nextcamerapixely)
+  set parent(cam slice, lookupslice(sl:maplayer2))
+end
+
+# This slice indicate the expected position of the camera (top left corner of screen)
+global variable(3, cam slice)
+
+plotscript, on keypress, begin
+  if (key is pressed(key:r)) then (pan camera(right, 10, 5), update troll mountain parallax)
+  if (key is pressed(key:f)) then (focus camera(80, 20, 6), update troll mountain parallax)
+  if (key is pressed(key:h)) then (camera follows hero, update troll mountain parallax)
+  if (key is pressed(key:p)) then (put camera(70 * 20, 20 * 20), update troll mountain parallax)
 end
