@@ -52,13 +52,13 @@ declare sub CleanNPCL(dat() as npcinst)
 declare sub UnloadTilemap(map as TileMap)
 declare sub UnloadTilemaps(layers() as TileMap)
 declare sub LoadTilemap(map as TileMap, filename as string)
-declare sub LoadTilemaps(layers() as TileMap, filename as string)
+declare function LoadTilemaps(layers() as TileMap, filename as string, allowfail as bool = NO) as bool
 declare sub SaveTilemap(tmap as TileMap, filename as string)
 declare sub SaveTilemaps(tmaps() as TileMap, filename as string)
 declare sub CleanTilemap(map as TileMap, byval wide as integer, byval high as integer, byval layernum as integer = 0)
 declare sub CleanTilemaps(layers() as TileMap, byval wide as integer, byval high as integer, byval numlayers as integer)
 declare sub CopyTilemap(dest as TileMap, src as TileMap)
-declare function GetTilemapInfo(filename as string, info as TilemapInfo) as integer
+declare function GetTilemapInfo(filename as string, info as TilemapInfo) as bool
 declare sub MergeTileMap(mine as TileMap, theirs_file as string, base_file as string)
 declare sub MergeTileMaps(mine() as TileMap, theirs_file as string, base_file as string)
 

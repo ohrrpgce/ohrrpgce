@@ -571,7 +571,7 @@ SUB UnloadTilemaps(layers() as TileMap)
 END SUB
 
 'Get size of a tilemap file; returns false if badly formed
-FUNCTION GetTilemapInfo(filename as string, info as TilemapInfo) as integer
+FUNCTION GetTilemapInfo(filename as string, info as TilemapInfo) as bool
   DIM as integer fh = FREEFILE
   IF OPEN(filename FOR BINARY ACCESS READ as #fh) <> 0 THEN RETURN NO
   WITH info
@@ -582,13 +582,14 @@ FUNCTION GetTilemapInfo(filename as string, info as TilemapInfo) as integer
     'Because of bug 829 (.T not truncated when map resized), and old 32000 byte tilemaps,
     'tilemaps with bad lengths are common; only do a simple length check
     IF .layers = 0 THEN
-      debug "tilemap " & filename & " (" & .wide & "x" & .high & ") bad length or size; " & LOF(fh) & " bytes"
+      debuginfo "tilemap " & filename & " (" & .wide & "x" & .high & ") bad length or size; " & LOF(fh) & " bytes"
       CLOSE #fh
       RETURN NO
     END IF
-    .layers = small(.layers, maplayerMax + 1)
+    '.layers = small(.layers, maplayerMax + 1)
+    CLOSE #fh
+    IF .layers > maplayerMax + 1 THEN RETURN NO
   END WITH
-  CLOSE #fh
   RETURN YES
 END FUNCTION
 
@@ -612,25 +613,32 @@ SUB LoadTilemap(map as TileMap, filename as string)
   CLOSE #fh
 END SUB
 
+'When allowfail is true, returns false if the data looks dubious instead of loading
 'FIXME: early versions always saved 32000 bytes of tile data (ie, 32011 total)!
 'This will cause extra spurious map layers to be loaded!
-SUB LoadTilemaps(layers() as TileMap, filename as string)
+FUNCTION LoadTilemaps(layers() as TileMap, filename as string, allowfail as bool = NO) as bool
   DIM as integer fh, numlayers, i, wide, high
   FOR i = 0 TO UBOUND(layers)
     IF layers(i).data THEN DEALLOCATE layers(i).data
+    layers(i).data = NULL
   NEXT
 
   fh = FREEFILE
   OPEN filename FOR BINARY ACCESS READ as #fh
-  wide = bound(readshort(fh, 8), 16, 32678)
-  high = bound(readshort(fh, 10), 10, 32678)
+  DIM as integer tempw = readshort(fh, 8)
+  DIM as integer temph = readshort(fh, 10)
+  wide = bound(tempw, 16, 32678)
+  high = bound(temph, 10, 32678)
+  IF allowfail ANDALSO (tempw <> wide OR temph <> high) THEN RETURN NO
   numlayers = (LOF(fh) - 11) \ (wide * high)
-  IF numlayers > maplayerMax + 1 OR numlayers * wide * high + 11 <> LOF(fh) THEN
+  IF numlayers > maplayerMax + 1 OR numlayers * wide * high + 11 <> LOF(fh) OR numlayers < 1 THEN
     'Because of bug 829 (.T not truncated when map resized), tilemaps with bad lengths are common; better not to spam this message
     'debug "tilemap " & filename & " (" & wide & "x" & high & ") bad length or size; " & LOF(fh) & " bytes"
+    IF allowfail THEN RETURN NO
     'show the user their garbled mess, always interesting
     numlayers = bound(numlayers, 1, maplayerMax + 1)
   END IF
+
   REDIM layers(numlayers - 1)
   SEEK fh, 12
   FOR i = 0 TO numlayers - 1
@@ -643,7 +651,8 @@ SUB LoadTilemaps(layers() as TileMap, filename as string)
     END WITH
   NEXT
   CLOSE #fh
-END SUB
+  RETURN YES
+END FUNCTION
 
 SUB SaveTilemap(tmap as TileMap, filename as string)
   DIM fh as integer
