@@ -784,17 +784,17 @@ Function verifySliceLineage(byval sl as slice ptr, parent as slice ptr) as integ
  return yes
 end function
 
-Function IndexAmongSiblings(byref sl as Slice Ptr) as integer
- '--Returns the 0-based index of this slice among is siblings.
- 'FIXME: slow for large families
+'Returns the 0-based index of this slice among is siblings.
+Function SliceIndexAmongSiblings(sl as Slice Ptr) as integer
  if sl = 0 then return 0
- if sl->parent = 0 then return 0
+ if sl->parent = 0 then return 0  'The root slice
  dim sib as Slice Ptr = sl->parent->FirstChild
  for i as integer = 0 TO sl->parent->NumChildren - 1
   if sib = 0 then exit for
   if sib = sl then return i
   sib = sib->NextSibling
  next i
+ debugc errPromptBug, "slice not a child of its parent"
  return 0
 End function
 
@@ -1693,7 +1693,7 @@ Sub GridChildRefresh(byval par as slice ptr, byval ch as slice ptr)
  dim w as integer = par->Width \ large(1, dat->cols)
  dim h as integer = par->Height \ large(1, dat->rows)
  '--Figure out which child this is
- dim slot as integer = IndexAmongSiblings(ch)
+ dim slot as integer = SliceIndexAmongSiblings(ch)
  dim xslot as integer = slot mod large(1, dat->cols)
  dim yslot as integer = slot \ large(1, dat->cols)
  
@@ -2423,7 +2423,7 @@ Sub PanelChildRefresh(byval par as slice ptr, byval ch as slice ptr)
  dim dat as PanelSliceData ptr
  dat = par->SliceData
  
- dim slot as integer = IndexAmongSiblings(ch)
+ dim slot as integer = SliceIndexAmongSiblings(ch)
  if slot > 1 then
   'Panel only expects 2 children
   exit sub
@@ -2926,21 +2926,6 @@ Function SliceColor(byval n as integer) as integer
   return uilook(uiC)
  end if
  debugc errError, "Invalid slice color " & n
-End function
-
-Function SliceIndexAmongSiblings(byval sl as slice ptr) as integer
- if sl = 0 then debug "SliceIndexAmongSiblings null ptr": return 0
- dim par as Slice Ptr = sl->parent
- if par then
-  dim ch as Slice Ptr = par->FirstChild
-  dim i as integer = 0
-  do while ch
-   if ch = sl then return i
-   ch = ch->NextSibling
-   i += 1
-  loop
- end if
- return 0 ' Treat the root slice as index 0, even though it has no siblings by definition
 End function
 
 '==Slice cloning===============================================================

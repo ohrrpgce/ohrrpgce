@@ -322,6 +322,7 @@ DECLARE Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
 DECLARE Sub ReplaceSliceType(byval sl as slice ptr, byref newsl as slice ptr)
 DECLARE Sub InsertSliceBefore(byval sl as slice ptr, byval newsl as slice ptr)
 DECLARE Sub SwapSiblingSlices(byval sl1 as slice ptr, byval sl2 as slice ptr)
+DECLARE Function SliceIndexAmongSiblings(byval sl as slice ptr) as integer
 DECLARE Function LookupSlice (byval lookup_code as integer, byval start_sl as slice ptr = NULL) as slice ptr
 DECLARE Function VerifySliceLineage(byval sl as slice ptr, parent as slice ptr) as integer
 DECLARE Function UpdateRootSliceSize(sl as slice ptr) as bool
@@ -345,14 +346,12 @@ DECLARE Sub CustomSortChildSlices(byval parent as slice ptr, byval wipevals as i
 DECLARE Sub AutoSortChildren(byval s as Slice Ptr)
 DECLARE Function CloneSliceTree(byval sl as slice ptr) as slice ptr
 DECLARE Sub SetSliceTarg(byval s as slice ptr, byval x as integer, byval y as integer, byval ticks as integer)
-DECLARE Function IndexAmongSiblings(byref sl as Slice Ptr) as integer
 DECLARE Sub ScrollToChild(byval sl as slice ptr, byval ch as slice ptr)
 DECLARE Sub ScrollAllChildren(byval sl as slice ptr, byval xmove as integer, byval ymove as integer)
 DECLARE Function CalcScrollMinX(byval sl as slice ptr, byval check_depth as integer, byval cur_depth as integer=1) as integer
 DECLARE Function CalcScrollMaxX(byval sl as slice ptr, byval check_depth as integer, byval cur_depth as integer=1) as integer
 DECLARE Function CalcScrollMinY(byval sl as slice ptr, byval check_depth as integer, byval cur_depth as integer=1) as integer
 DECLARE Function CalcScrollMaxY(byval sl as slice ptr, byval check_depth as integer, byval cur_depth as integer=1) as integer
-DECLARE Function SliceIndexAmongSiblings(byval sl as slice ptr) as integer
 
 End Extern
 
