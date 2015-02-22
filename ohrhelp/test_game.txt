@@ -10,7 +10,7 @@ You can press Ctrl+S in the map editor proper and maptile editor to force immedi
 
 Instant reloading of the following things currently works:
 -All map data, including NPCs, general map settings, and doors
--Sprites, tilesets, and tile animations
+-All graphics, and tile animations
 -16 color palettes, the master palette, and UI colors & box styles
 -The font
 -Music
@@ -22,13 +22,12 @@ The following things will reload, but normally only after leaving and re-enterin
 -Enemies (leave and re-enter the battle first)
 -Formations (ditto)
 -Global text strings
--Backdrops
 
 The following things do not currently reload at all:
 -Hero definitions for heroes which are already in the party (this is a problem with saved games too!)
 -Shop stocks (problem with saved games too)
 -Sound effects (not with music_sdl anyway)
--Scripts
+-Scripts (see below)
 -Default palettes (which palette is the default for a sprite)
 -Equipped items
 

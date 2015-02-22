@@ -444,8 +444,11 @@ SUB verify_quit
  freepage page
 END SUB
 
-FUNCTION titlescreen () as integer
- loadmxs game + ".mxs", gen(genTitle), vpages(3)
+FUNCTION titlescreen () as bool
+ DIM ret as bool = YES
+ DIM backdrop as Frame ptr
+ backdrop = frame_load(sprTypeBackdrop, gen(genTitle))
+
  queue_fade_in 1
  IF gen(genTitleMus) > 0 THEN wrappedsong gen(genTitleMus) - 1
  setkeys
@@ -454,15 +457,18 @@ FUNCTION titlescreen () as integer
   setkeys
   control
   IF carray(ccMenu) > 1 THEN
-   RETURN NO
+   ret = NO
+   EXIT DO
   END IF
-  IF anykeypressed() THEN RETURN YES
+  IF anykeypressed() THEN EXIT DO
 
-  copypage 3, vpage
+  frame_draw backdrop, , 0, 0, , NO, vpage
   setvispage vpage
   check_for_queued_fade_in
   dowait
  LOOP
+ frame_unload @backdrop
+ RETURN ret
 END FUNCTION
 
 'Reset npc sprite slices to match npc definitions.
@@ -1202,11 +1208,13 @@ SUB reload_MAP_lump()
  END WITH
 END SUB
 
-'Check whether a lump is a .PT# or .TIL lump. Reload them. MXS (backdrops) are quite different
-'because they don't go in the sprite cache: need different handling in and out of battles
+'Check whether a lump is a .PT#, .MXS or .TIL lump. Reload them.
 FUNCTION try_reload_gfx_lump(extn as string) as integer
  IF extn = "til" THEN
   sprite_update_cache sprTypeTileset
+  RETURN YES
+ ELSEIF extn = "mxs" THEN
+  sprite_update_cache sprTypeBackdrop
   RETURN YES
  ELSEIF LEFT(extn, 2) = "pt" THEN
   DIM ptno as integer = str2int(MID(extn, 3), -1)
@@ -1409,7 +1417,7 @@ SUB try_reload_lumps_anywhere ()
    'Cause cache in getmenuname to be dropped
    game_unique_id = STR(randint(INT_MAX))
 
-  ELSEIF try_reload_gfx_lump(extn) THEN                                   '.PT#, .TIL
+  ELSEIF try_reload_gfx_lump(extn) THEN                                   '.PT#, .TIL, .MXS
    handled = YES
 
   ELSEIF extn = "fnt" THEN                                                '.FNT

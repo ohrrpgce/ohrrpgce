@@ -284,6 +284,7 @@ TYPE BattleState
           ({2,2,1,1,0,0,-1}), _
           ({0,0,1,1,2,2,1,1,0,0,-1}), _
           ({-1,-1}) }
+ backdrop as Frame ptr 'Current background
  curbg as integer      'Current background
  bg_tick as integer    'Number of ticks since last background frame change
  wait_frames as integer 'used by the attack animation
@@ -302,6 +303,7 @@ TYPE BattleState
  inv_scroll as MenuState
  inv_scroll_rect as RectType
  iuse(inventoryMax / 16) as integer 'bitsets for whether items can be used by the current hero
+ 'The following don't do anything right now, but are handy to leave in
  test_view_mode as integer 'used for debugging new display stuff with F12
  test_future as integer    'used for debugging new display stuff with F12
 END TYPE

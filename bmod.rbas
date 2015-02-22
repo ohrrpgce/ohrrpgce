@@ -139,8 +139,6 @@ FUNCTION battle (byval form as integer) as bool
 
  battle_loadall form, bat, bslot(), st(), formdata
 
- copypage 2, dpage
-
  '--main battle loop
  setkeys
  DO
@@ -152,7 +150,7 @@ FUNCTION battle (byval form as integer) as bool
   playtimer
   control
 
-  '--background animation hack
+  '--background animation
   battle_background_anim bat, formdata
 
   IF readbit(gen(), genBits, 8) = 0 THEN
@@ -229,8 +227,11 @@ FUNCTION battle (byval form as integer) as bool
  
   IF bat.test_view_mode = 1 THEN bat.test_future = NOT bat.test_future
  
+
+  '-------------------- Draw the screen --------------------
+
   '--display the backdrop
-  copypage 2, dpage
+  frame_draw bat.backdrop, , 0, 0, , NO, dpage
   '--display the sprites
   draw_battle_sprites bslot()
   '--display menus and meters
@@ -362,6 +363,7 @@ SUB battle_cleanup(byref bat as BattleState, bslot() as BattleSprite)
  clearpage 2
  clearpage 3
 
+ frame_unload(@bat.backdrop)
  FOR i as integer = LBOUND(bslot) TO UBOUND(bslot)
   frame_unload(@bslot(i).sprites)
   palette16_unload(@bslot(i).pal)
@@ -1425,7 +1427,8 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
  NEXT i
  
  bat.curbg = formdata.background
- loadmxs game + ".mxs", bat.curbg, vpages(2)
+ frame_unload @bat.backdrop
+ bat.backdrop = frame_load(sprTypeBackdrop, bat.curbg)
  
  '--This checks weak/dead status for heroes
  '-- who are already weak/dead at the beginning of battle
@@ -3665,7 +3668,8 @@ SUB battle_background_anim(byref bat as BattleState, formdata as Formation)
   bat.bg_tick = loopvar(bat.bg_tick, 0, formdata.background_ticks, 1)
   IF bat.bg_tick = 0 THEN
    bat.curbg = loopvar(bat.curbg, formdata.background, formdata.background + formdata.background_frames - 1, 1)
-   loadmxs game + ".mxs", bat.curbg MOD gen(genNumBackdrops), vpages(2)
+   frame_unload @bat.backdrop
+   bat.backdrop = frame_load(sprTypeBackdrop, bat.curbg MOD gen(genNumBackdrops))
   END IF
  END IF
 END SUB
