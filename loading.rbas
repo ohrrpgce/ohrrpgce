@@ -3025,7 +3025,7 @@ SUB convert_mxs_to_rgfx(filename as string, outfile as string)
   frames = AppendChildNode(spriteset, "frames")
 
   DIM fr as Frame ptr
-  fr = loadmxs(filename, imnum)
+  fr = frame_load_mxs(filename, imnum)
   frame_node = frame_to_node(fr, frames)
   SetContent(frame_node, 0)  'frame 0
   frame_unload @fr
@@ -3036,9 +3036,9 @@ SUB convert_mxs_to_rgfx(filename as string, outfile as string)
 
  SerializeBin outfile, doc
 
- notification "Loaded .mxs and converted to RELOAD in " & CINT(loading_time * 1000) & "ms;" _
+ notification "Loaded " & trimpath(filename) & " and converted to RELOAD in " & CINT(loading_time * 1000) & "ms;" _
      " wrote document to file in " & CINT((timer - starttime) * 1000) & "ms;" _
-     " .mxs size " & filelen(game + ".mxs") & "B, .rgfx size " & filelen(outfile) & "B"
+     " .mxs size " & filelen(filename) & "B, .rgfx size " & filelen(outfile) & "B"
 END SUB
 
 'Opens a rgfx document and checks it's in order

@@ -36,9 +36,10 @@ end type
 
 '----------- Local functions ----------
 
+declare function frame_load_uncached(sprtype as SpriteType, record as integer) as Frame ptr
 declare sub drawohr(byval src as Frame ptr, byval dest as Frame ptr, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval trans as bool = YES)
 'declare sub grabrect(byval page as integer, byval x as integer, byval y as integer, byval w as integer, byval h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
-declare function write_bmp_header(f as string, byval w as integer, byval h as integer, byval bitdepth as integer) as integer
+declare function write_bmp_header(filen as string, w as integer, h as integer, bitdepth as integer) as integer
 declare function decode_bmp_bitmask(mask as uint32) as integer
 declare sub loadbmp32(byval bf as integer, byval surf as Surface ptr, infohd as BITMAPV3INFOHEADER)
 declare sub loadbmp24(byval bf as integer, byval surf as Surface ptr)
@@ -186,6 +187,8 @@ type SpriteCacheEntry
 	cost as integer
 	Bcached as bool
 end type
+
+CONST SPRITE_CACHE_MULT = 1000000
 
 dim shared sprcache as HashTable
 dim shared sprcacheB as DoubleList(SpriteCacheEntry)
@@ -2437,43 +2440,50 @@ sub storemxs (fil as string, byval record as integer, byval fr as Frame ptr)
 	close #f
 end sub
 
-function loadmxs (fil as string, byval record as integer, byval dest as Frame ptr = NULL) as Frame ptr
+'For compatibility: load into an existing Frame.
+'NOTE: Don't use this in new code. It bypasses the cache. Use frame_load
+sub loadmxs (filen as string, record as integer, dest as Frame ptr)
+	dim temp as Frame ptr
+	temp = frame_load_mxs(filen, record)
+	frame_clear dest
+	if temp then
+		frame_draw temp, , 0, 0, , NO, dest
+		frame_unload @temp
+	end if
+end sub
+
 'Loads a 320x200 mode X format page from a file.
-'You may optionally pass in existing frame to load into (unnecessary functionality)
+'This should probably only be called directly when loading from file outside an .rpg,
+'otherwise use frame_load.
+function frame_load_mxs (filen as string, record as integer) as Frame ptr
 	dim starttime as double = timer
-	dim f as integer
+	dim fh as integer
 	dim as integer x, y
 	dim sptr as ubyte ptr
 	dim plane as integer
+	dim dest as Frame ptr
 
-	if dest then
-		dim temp as Frame ptr
-		temp = loadmxs(fil, record)
-		frame_clear dest
-		if temp then
-			frame_draw temp, , 0, 0, , NO, dest
-			frame_unload @temp
-		end if
-		return dest
-	end if
-	dest = frame_new(320, 200)
+	'Return blank Frame on failure
+	dest = frame_new(320, 200, , YES)
 
-	if NOT fileisreadable(fil) then return 0
 	if record < 0 then
-		debug "loadmxs: attempted to read a negative record number " & record
+		debugc errBug, "frame_load_mxs: attempted to read a negative record number " & record
 		return dest
 	end if
-	f = freefile
-	open fil for binary access read as #f
+	fh = freefile
+	if open(filen for binary access read as #fh) then
+		debugc errError, "frame_load_mxs: Couldn't open " & filen
+		return dest
+	end if
 
-	if lof(f) < (record + 1) * 64000 then
-		debug "loadpage: wanted page " & record & "; " & fil & " is only " & lof(f) & " bytes"
-		close #f
+	if lof(fh) < (record + 1) * 64000 then
+		debugc errError, "frame_load_mxs: wanted page " & record & "; " & filen & " is only " & lof(fh) & " bytes"
+		close #fh
 		return dest
 	end if
 
 	'skip to index
-	seek #f, (record*64000) + 1
+	seek #fh, (record*64000) + 1
 
         dim quarter_row(79) as ubyte
 
@@ -2483,15 +2493,15 @@ function loadmxs (fil as string, byval record as integer, byval dest as Frame pt
 			sptr = dest->image + dest->pitch * y + plane
 
 			'1/4 of a row
-                        get #f, , quarter_row()
+                        get #fh, , quarter_row()
 			for x = 0 to 80 - 1
                                 sptr[x * 4] = quarter_row(x)
 			next
 		next
 	next
 
-	close #f
-	debug_if_slow(starttime, 0.1, fil)
+	close #fh
+	debug_if_slow(starttime, 0.1, filen)
 	return dest
 end function
 
@@ -4359,7 +4369,7 @@ end sub
 
 'Creates a new file and writes the bmp headers to it.
 'Returns a file handle, or -1 on error.
-private function write_bmp_header(f as string, byval w as integer, byval h as integer, byval bitdepth as integer) as integer
+private function write_bmp_header(filen as string, w as integer, h as integer, bitdepth as integer) as integer
 	dim header as BITMAPFILEHEADER
 	dim info as BITMAPINFOHEADER
 
@@ -4389,10 +4399,10 @@ private function write_bmp_header(f as string, byval w as integer, byval h as in
 	info.biClrUsed = 1 shl bitdepth
 	info.biClrImportant = 1 shl bitdepth
 
-	safekill f
+	safekill filen
 	of = freefile
-	if open(f for binary access write as #of) then
-		debug "write_bmp_header: couldn't open " & f
+	if open(filen for binary access write as #of) then
+		debugc errError, "write_bmp_header: couldn't open " & filen
 		return -1
 	end if
 
@@ -4508,7 +4518,7 @@ function open_bmp_and_read_header(bmp as string, byref header as BITMAPFILEHEADE
 		close #bf
 		debuginfo "Unsupported non-flipped image in " & bmp
 		return -2
-	end if	
+	end if
 
 	'Seek to palette
 	'(some extra data might sit between the header and the palette only if the compression is BI_BITFIELDS
@@ -5311,7 +5321,7 @@ private function sprite_cacheB_shrink(byval amount as integer) as bool
 	wend
 end function
 
-sub sprite_purge_cache(byval minkey as integer, byval maxkey as integer, leakmsg as string, byval freeleaks as bool = NO)
+sub sprite_empty_cache_range(minkey as integer, maxkey as integer, leakmsg as string, freeleaks as bool = NO)
 	dim iterstate as integer = 0
 	dim as SpriteCacheEntry ptr pt, nextpt
 
@@ -5330,9 +5340,9 @@ sub sprite_purge_cache(byval minkey as integer, byval maxkey as integer, leakmsg
 	wend
 end sub
 
-'Unlike sprite_purge_cache, this reloads (in-use) sprites from file, without changing the pointers
+'Unlike sprite_empty_cache, this reloads (in-use) sprites from file, without changing the pointers
 'to them. Any sprite that's not actually in use is removed from the cache as it's unnecessary to reload.
-sub sprite_update_cache(byval minkey as integer, byval maxkey as integer)
+private sub sprite_update_cache_range(minkey as integer, maxkey as integer)
 	dim iterstate as integer = 0
 	dim as SpriteCacheEntry ptr pt, nextpt
 
@@ -5348,24 +5358,10 @@ sub sprite_update_cache(byval minkey as integer, byval maxkey as integer)
 
 		'recall that the cache counts as a reference
 		if pt->p->refcount <> 1 then
-			dim newframe as Frame ptr = NULL
-
-			if pt->hashed.hash >= 100000000 then
-				'Tileset
-
-				dim mxs as Frame ptr
-				mxs = loadmxs(game + ".til", pt->hashed.hash - 100000000)
-				if mxs <> NULL then newframe = frame_to_tileset(mxs)
-				frame_unload @mxs
-			else
-				'.PT# file
-
-				dim ptno as integer = pt->hashed.hash \ 1000000
-				dim rec as integer = pt->hashed.hash MOD 1000000
-				with sprite_sizes(ptno)
-					newframe = frame_load(game + ".pt" & ptno, rec, .frames, .size.w, .size.h)
-				end with
-			end if
+			dim sprtype as integer = pt->hashed.hash \ SPRITE_CACHE_MULT
+			dim record as integer = pt->hashed.hash mod SPRITE_CACHE_MULT
+			dim newframe as Frame ptr
+			newframe = frame_load_uncached(sprtype, record)
 
 			if newframe <> NULL then
 				if newframe->arraylen <> pt->p->arraylen then
@@ -5399,27 +5395,22 @@ sub sprite_update_cache(byval minkey as integer, byval maxkey as integer)
 	wend
 end sub
 
-'Reload all graphics from one .PT# file
-sub sprite_update_cache_pt(byval ptno as integer)
-	sprite_update_cache(1000000 * ptno, 1000000 * (ptno + 1) - 1)
-end sub
-
-'Reload all tilesets
-sub sprite_update_cache_tilesets()
-	sprite_update_cache(100000000, 100000000 + 32767)
+'Reload all graphics of certain type
+sub sprite_update_cache(sprtype as SpriteType)
+	sprite_update_cache_range(SPRITE_CACHE_MULT * sprtype, SPRITE_CACHE_MULT * (sprtype + 1) - 1)
 end sub
 
 'Attempt to completely empty the sprite cache, detecting memory leaks
-sub sprite_empty_cache()
-	sprite_purge_cache(INT_MIN, INT_MAX, "leaked sprite ")
-	if sprcacheB_used <> 0 or sprcache.numitems <> 0 then
-		debug "sprite_empty_cache: corruption: sprcacheB_used=" & sprcacheB_used & " items=" & sprcache.numitems
+'By default, remove everything. With an argument: remove specific type
+sub sprite_empty_cache(sprtype as SpriteType = -1)
+	if sprtype = -1 then
+		sprite_empty_cache_range(INT_MIN, INT_MAX, "leaked sprite ")
+		if sprcacheB_used <> 0 or sprcache.numitems <> 0 then
+			debug "sprite_empty_cache: corruption: sprcacheB_used=" & sprcacheB_used & " items=" & sprcache.numitems
+		end if
+	else
+		sprite_empty_cache_range(SPRITE_CACHE_MULT * sprtype, SPRITE_CACHE_MULT * (sprtype + 1) - 1, "leaked sprite ")
 	end if
-end sub
-
-'removes all tilesets from the cache
-sub tileset_empty_cache()
-	sprite_purge_cache (100000000, 110000000, "could not purge tileset ")
 end sub
 
 sub sprite_debug_cache()
@@ -5635,50 +5626,46 @@ private sub frame_freemem(byval f as frame ptr)
 end sub
 
 'Public:
-' Loads a 4-bit sprite (stored in columns (2/byte)) from one of the .pt? files, with caching.
-' It will return a pointer to the first frame, and subsequent frames
+' Loads a 4-bit or 8-bit sprite/backdrop/tileset from the appropriate game lump, *with caching*.
+' For 4-bit sprites it will return a pointer to the first frame, and subsequent frames
 ' will be immediately after it in memory. (This is a hack, and will probably be removed)
-function frame_load(byval ptno as integer, byval rec as integer) as frame ptr
-	dim starttime as double = timer
-	dim ret as Frame ptr
-	dim key as integer = ptno * 1000000 + rec
-
-	if ptno < 0 or rec < 0 then
-		debug "frame_load: invalid ptno=" & ptno & " and rec=" & rec
-		return 0
-	end if
-
-	ret = sprite_fetch_from_cache(key)
+' For tilesets, the tileset will already be reordered as needed.
+function frame_load(sprtype as SpriteType, record as integer) as Frame ptr
+	dim key as integer = sprtype * SPRITE_CACHE_MULT + record
+	dim ret as Frame ptr = sprite_fetch_from_cache(key)
 	if ret then return ret
-
-	with sprite_sizes(ptno)
-		'debug "loading " & ptno & "  " & rec
-		'cachemiss += 1
-		ret = frame_load(game + ".pt" & ptno, rec, .frames, .size.w, .size.h)
-	end with
-
+	ret = frame_load_uncached(sprtype, record)
 	if ret then sprite_add_cache(key, ret)
-	debug_if_slow(starttime, 0.1, key)
 	return ret
 end function
 
-function tileset_load(byval num as integer) as Frame ptr
+' Loads a 4-bit or 8-bit sprite/backdrop/tileset from the appropriate game lump. See frame_load.
+private function frame_load_uncached(sprtype as SpriteType, record as integer) as Frame ptr
+	if sprtype < 0 or sprtype > sprTypeLastLoadable or record < 0 then
+		debugc errBug, "frame_load: invalid type=" & sprtype & " and rec=" & record
+		return 0
+	end if
+
 	dim ret as Frame ptr
-	dim key as integer = 100000000 + num
+	dim starttime as double = timer
 
-	ret = sprite_fetch_from_cache(key)
-	if ret then return ret
+	if sprtype = sprTypeMXS then
+		ret = frame_load_mxs(game + ".mxs", record)
+	elseif sprtype = sprTypeTileset then
+		dim mxs as Frame ptr
+		mxs = frame_load_mxs(game + ".til", record)
+		if mxs = NULL then return NULL
+		ret = mxs_frame_to_tileset(mxs)
+		frame_unload @mxs
+	else
+		with sprite_sizes(sprtype)
+			'debug "loading " & ptno & "  " & rec
+			'cachemiss += 1
+			ret = frame_load_4bit(game + ".pt" & sprtype, record, .frames, .size.w, .size.h)
+		end with
+	end if
 
-	'debug "loading tileset" & ptno & "  " & rec
-	'cachemiss += 1
-
-	dim mxs as Frame ptr
-	mxs = loadmxs(game + ".til", num)
-	if mxs = NULL then return NULL
-	ret = frame_to_tileset(mxs)
-	frame_unload @mxs
-
-	if ret then sprite_add_cache(key, ret)
+	debug_if_slow(starttime, 0.1, sprtype & "," & record)
 	return ret
 end function
 
@@ -5686,66 +5673,50 @@ end function
 ' No code does this. Does not use a cache.
 ' It will return a pointer to the first frame (of num frames), and subsequent frames
 ' will be immediately after it in memory. (This is a hack, and will probably be removed)
-function frame_load(fi as string, byval rec as integer, byval num as integer, byval wid as integer, byval hei as integer) as frame ptr
+function frame_load_4bit(filen as string, rec as integer, numframes as integer, wid as integer, hei as integer) as Frame ptr
 	dim ret as frame ptr
 
-	'first, we do a bit of math:
 	dim frsize as integer = wid * hei / 2
-	dim recsize as integer = frsize * num
+	dim recsize as integer = frsize * numframes
 
-	'make sure the file is real
-	if not isfile(fi) then
-		debug "frame_load: can't read " + fi
+	dim fh as integer = freefile
+	if open(filen for binary access read as #fh) then
+		debugc errError, "frame_load_4bit: could not open " & filen
 		return 0
 	end if
 
-	'now, we can load the sprite
-	dim f as integer = freefile
-
-	'open() returns 0 for success
-	if open(fi for binary access read as #f) then
-		debug "sprites: could not open " & fi
-		return 0
-	end if
-
-	'if we get here, we can assume that all's well, and allocate the memory
-	ret = frame_new(wid, hei, num)
-
+	ret = frame_new(wid, hei, numframes)
 	if ret = 0 then
-		close #f
+		close #fh
 		return 0
 	end if
 
 	'find the right sprite (remember, it's base-1)
-	seek #f, recsize * rec + 1
+	seek #fh, recsize * rec + 1
 
-	dim i as integer, x as integer, y as integer, z as ubyte
+	dim framenum as integer, x as integer, y as integer, z as ubyte
 
-	for i = 0 to num - 1
-		with ret[i]
-			'although it's a four-bit sprite, it IS an 8-bit bitmap.
-
+	'pixels stored in columns, 2 pixels/byte
+	for framenum = 0 to numframes - 1
+		with ret[framenum]
 			for x = 0 to wid - 1
 				for y = 0 to hei - 1
 					'pull up two pixels
-					get #f,,z
+					get #fh, , z
 
 					'the high nybble is the first pixel
 					.image[y * wid + x] = (z SHR 4)
 
-					y+=1
+					y += 1
 
 					'and the low nybble is the second one
 					.image[y * wid + x] = z AND 15
-
-					'it is worth mentioning that sprites are stored in columns, not rows
 				next
 			next
 		end with
 	next
 
-	close #f
-
+	close #fh
 	return ret
 end function
 
@@ -5844,7 +5815,9 @@ sub frame_unload(byval p as frame ptr ptr)
 	*p = 0
 end sub
 
-function frame_to_tileset(byval spr as Frame ptr) as Frame ptr
+'Takes a 320x200 Frame and produces a 3200x20 Frame in the format expected of tilesets:
+'linear series of 20x20 tiles.
+function mxs_frame_to_tileset(byval spr as Frame ptr) as Frame ptr
 	dim tileset as Frame ptr
 	tileset = frame_new(20, 20 * 160)
 
@@ -6747,6 +6720,7 @@ end sub
 '                            SpriteSet and SpriteState routines
 '==========================================================================================
 
+' None of the following code is used, sadly.
 
 function spriteset_load_from_pt(byval ptno as integer, byval rec as integer) as SpriteSet ptr
 	dim frameset as Frame ptr
@@ -6878,8 +6852,8 @@ end sub
 
 sub sprite_draw(spr as SpriteState ptr, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as bool = YES, byval page as integer)
 	dim as integer realx, realy
-	realx = x + spr->curframe->offset.x + spr->offset.x
-	realy = y + spr->curframe->offset.y + spr->offset.y
+	realx = x + spr->offset.x
+	realy = y + spr->offset.y
 	frame_draw(spr->curframe, spr->pal, realx, realy, scale, trans, page)
 end sub
 
@@ -7023,4 +6997,3 @@ function ouya_receipts_result () as string
 	'Always returns "" on other platforms
 	return gfx_ouya_receipts_result()
 end function
-

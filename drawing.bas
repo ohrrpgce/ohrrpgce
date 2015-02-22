@@ -118,7 +118,7 @@ PRIVATE SUB toggle_pmask (pmask() as RGBcolor, master() as RGBcolor, index as in
  setpal pmask()
 END SUB
 
-SUB importbmp (f as string, cap as string, byref count as integer)
+SUB importbmp (f as string, cap as string, byref count as integer, sprtype as SpriteType)
 STATIC default as string
 DIM pmask(255) as RGBcolor
 DIM menu(6) as string
@@ -206,6 +206,7 @@ DO
  dowait
 LOOP
 clearpage 2
+sprite_update_cache sprtype
 EXIT SUB
 
 disable:
@@ -434,9 +435,8 @@ clearpage 3
 clearpage 2
 clearpage 1
 clearpage 0
-'tileset_empty_cache
 'Robust againts tileset leaks
-sprite_update_cache_tilesets
+sprite_update_cache sprTypeTileset
 
 unlock_resolution 320, 200
 set_resolution remember_resolution.w, remember_resolution.h
@@ -766,7 +766,7 @@ DIM csr as integer
 DIM x as integer
 DIM y as integer
 
-tileset = frame_to_tileset(vpages(3))
+tileset = mxs_frame_to_tileset(vpages(3))
 
 cleantilemap tilesetview, 16, 3
 FOR y as integer = 0 TO 2
@@ -2061,9 +2061,9 @@ LOOP
 changepal poffset(state.pt), 0, workpal(), state.pt - state.top
 spriteedit_save_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
 savedefaultpals ss.fileset, poffset(), sets
-'sprite_empty_cache
+'sprite_empty_cache ss.fileset
 'Robust against sprite leaks
-IF ss.fileset > -1 THEN sprite_update_cache_pt ss.fileset
+IF ss.fileset > -1 THEN sprite_update_cache ss.fileset
 
 clearpage 0
 clearpage 1

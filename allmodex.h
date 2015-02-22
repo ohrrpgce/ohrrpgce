@@ -31,7 +31,7 @@ struct Frame {
 	int arraylen;  //how many frames were contiguously allocated in this frame array
 	struct Frame *base;   //the Frame which actually owns this memory
 	struct SpriteCacheEntry *cacheentry;
-	int cached:1;  //(not set for views onto cached sprites)
+	int cached:1;  //(not set for views onto cached sprites) integer, NOT bool!
 	int arrayelem:1;  //not the first frame in a frame array
 	int isview:1;
 

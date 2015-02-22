@@ -1206,12 +1206,12 @@ END SUB
 'because they don't go in the sprite cache: need different handling in and out of battles
 FUNCTION try_reload_gfx_lump(extn as string) as integer
  IF extn = "til" THEN
-  sprite_update_cache_tilesets
+  sprite_update_cache sprTypeTileset
   RETURN YES
  ELSEIF LEFT(extn, 2) = "pt" THEN
   DIM ptno as integer = str2int(MID(extn, 3), -1)
   IF ptno >= 0 THEN
-   sprite_update_cache_pt(ptno)
+   sprite_update_cache ptno
    RETURN YES
   END IF
  END IF

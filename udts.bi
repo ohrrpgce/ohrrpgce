@@ -64,9 +64,12 @@ Enum SpriteType
  sprTypeBoxBorder = 7
  sprTypePortrait = 8
  sprTypeLastPT = 8
- sprTypeMXS = 9    'Can't change this! Saved in .slice files
- sprTypeLast = 9   'Last sprite type selectable in slice editor
- sprTypeFrame = 10  'A sprite not loaded from file, but from a Frame. Free to change this later (never saved)
+ sprTypeMXS = 9           'Can't change this! Saved in .slice files
+ sprTypeLastPickable = 9  'Last sprite type selectable in slice editor
+ sprTypeTileset = 10      'Free to change this later (never saved)
+ sprTypeLastLoadable = 10 'Last type that frame_load knows about
+ sprTypeFrame = 11        'A sprite not loaded from file, but from a Frame. Free to change this later (never saved)
+ sprTypeLast = 11
 End Enum
 
 'WARNING: don't add strings to this
@@ -95,7 +98,7 @@ type Frame
 	arraylen as int32  'how many frames were contiguously allocated in this frame array
 	base as Frame ptr    'if a view, the Frame which actually owns this memory
 	cacheentry as SpriteCacheEntryFwd ptr
-	cached:1 as int32  '(not set for views onto cached sprites)
+	cached:1 as int32  '(not set for views onto cached sprites) integer, NOT bool!
 	arrayelem:1 as int32  'not the first frame in a frame array
 	isview:1 as int32
 

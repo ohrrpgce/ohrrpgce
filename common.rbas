@@ -54,7 +54,7 @@ DECLARE FUNCTION charpicker() as string
 DIM game_unique_id as string
 
 'Allocate sprite size table
-REDIM sprite_sizes(-1 TO 10) as SpriteSize
+REDIM sprite_sizes(-1 TO sprTypeLast) as SpriteSize
 setup_sprite_sizes
 
 'holds commandline args not recognised by the backends or anything else
@@ -4489,9 +4489,7 @@ SUB loadtilesetdata (tilesets() as TilesetData ptr, byval layer as integer, byva
 
   WITH *tilesets(layer)
    .num = tilesetnum
-   'debug "loading tileset " & tilesetnum
-
-   .spr = tileset_load(tilesetnum)
+   .spr = frame_load(sprTypeTileset, tilesetnum)
    load_tile_anims tilesetnum, .tastuf()
   END WITH
  END IF
@@ -4682,7 +4680,15 @@ SUB setup_sprite_sizes ()
   .genmax = genNumBackdrops
   .genmax_offset = -1
  END WITH
- WITH sprite_sizes(sprTypeFrame)   '10
+ WITH sprite_sizes(sprTypeTileset)  '10
+  .name = "Tileset"
+  .size.x = 20
+  .size.y = 160 * 20
+  .frames = 1
+  .directions = 1
+  .genmax = genMaxTile
+ END WITH
+ WITH sprite_sizes(sprTypeFrame)   '11
   .name = "Pixel array"
   .frames = 1
   .directions = 1
@@ -4699,8 +4705,8 @@ END SUB
 SUB load_sprite_and_pal (byref img as GraphicPair, byval spritetype as SpriteType, byval index as integer, byval palnum as integer=-1)
  unload_sprite_and_pal img
  IF spritetype = sprTypeMXS THEN
-  img.sprite = loadmxs(game + ".mxs", index)
- ELSEIF spritetype >= 0 AND spritetype <= 8 THEN
+  img.sprite = frame_load(spritetype, index)
+ ELSEIF spritetype >= 0 AND spritetype <= sprTypeLastPT THEN
   img.sprite = frame_load(spritetype, index)
   img.pal    = palette16_load(palnum, spritetype, index)
  ELSE

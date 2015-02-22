@@ -913,7 +913,7 @@ SUB slice_edit_detail_refresh (byref state as MenuState, menu() as string, sl as
     DIM size as SpriteSize Ptr
     size = @sprite_sizes(dat->spritetype)
     str_array_append menu(), "Sprite Type: " & size->name
-    sliceed_rule rules(), "sprite_type", erIntgrabber, @(dat->spritetype), 0, sprTypeLast, slgrUPDATESPRITE
+    sliceed_rule rules(), "sprite_type", erIntgrabber, @(dat->spritetype), 0, sprTypeLastPickable, slgrUPDATESPRITE
     str_array_append menu(), "Sprite Number: " & dat->record
     sliceed_rule rules(), "sprite_rec", erIntgrabber, @(dat->record), 0, gen(size->genmax) + size->genmax_offset, slgrUPDATESPRITE
     IF dat->paletted THEN

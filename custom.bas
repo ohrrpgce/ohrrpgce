@@ -24,7 +24,7 @@
 #include "distribmenu.bi"
 
 'FIXME: add header files for these declarations
-DECLARE SUB importbmp (f as string, cap as string, byref count as integer)
+DECLARE SUB importbmp (f as string, cap as string, byref count as integer, sprtype as SpriteType)
 DECLARE SUB vehicles ()
 DECLARE SUB scriptman ()
 DECLARE SUB map_picker ()
@@ -460,12 +460,11 @@ SUB gfx_editor_menu()
    IF state.pt = 8 THEN sprite 24, 24, gen(genMaxWeaponPic), 2, 2, weapon_frame_captions(), 4, 5
    IF state.pt = 9 THEN sprite 16, 16, gen(genMaxBoxBorder), 16, 7, box_border_captions(), 4, 7
    IF state.pt = 10 THEN sprite 50, 50, gen(genMaxPortrait), 1, 4, portrait_captions(), 2, 8
-   IF state.pt = 11 THEN importbmp ".mxs", "screen", gen(genNumBackdrops)
+   IF state.pt = 11 THEN importbmp ".mxs", "screen", gen(genNumBackdrops), sprTypeMXS
    IF state.pt = 12 THEN
     gen(genMaxTile) = gen(genMaxTile) + 1
-    importbmp ".til", "tileset", gen(genMaxTile)
+    importbmp ".til", "tileset", gen(genMaxTile), sprTypeTileset
     gen(genMaxTile) = gen(genMaxTile) - 1
-    tileset_empty_cache
    END IF
    IF state.pt = 13 THEN ui_color_editor(activepalette)
    IF state.pt = 14 THEN ui_boxstyle_editor(activepalette)
@@ -1678,8 +1677,9 @@ SUB new_graphics_tests
   frame_unload @fr
  NEXT
  starttime = timer
+ 'Load backdrops without caching
  FOR i as integer = 0 TO gen(genNumBackdrops) - 1
-  fr = loadmxs(game + ".mxs", i)
+  fr = frame_load_mxs(game + ".mxs", i)
   frame_unload @fr
  NEXT
  notification gen(genNumBackdrops) & " backdrops loaded from .rgfx in " & CINT(rgfx_time * 1000) & "ms; " _

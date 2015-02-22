@@ -1212,7 +1212,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
  'Show backdrop
  DIM backdrop as Frame ptr
  IF box.backdrop > 0 THEN
-  backdrop = loadmxs(game & ".mxs", box.backdrop - 1)
+  backdrop = frame_load(sprTypeMXS, box.backdrop - 1)
  END IF
 
  setkeys
@@ -1266,7 +1266,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
       state.need_update = YES
       frame_unload @backdrop
       IF box.backdrop > 0 THEN
-       backdrop = loadmxs(game & ".mxs", box.backdrop - 1)
+       backdrop = frame_load(sprTypeMXS, box.backdrop - 1)
       END IF
      END IF
     CASE 6:
@@ -1300,7 +1300,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
     textbox_edit_load box, st, parent_menu()
     frame_unload @backdrop
     IF box.backdrop > 0 THEN
-     backdrop = loadmxs(game & ".mxs", box.backdrop - 1)
+     backdrop = frame_load(sprTypeMXS, box.backdrop - 1)
     END IF
     state.need_update = YES
    END IF

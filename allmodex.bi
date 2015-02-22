@@ -42,9 +42,6 @@ DECLARE SUB setpal (pal() as RGBcolor)
 DECLARE SUB fadeto (byval red as integer, byval green as integer, byval blue as integer)
 DECLARE SUB fadetopal (pal() as RGBcolor)
 
-DECLARE FUNCTION frame_to_tileset(byval spr as frame ptr) as frame ptr
-DECLARE FUNCTION tileset_load(byval num as integer) as Frame ptr
-
 DECLARE FUNCTION readblock (map as TileMap, byval x as integer, byval y as integer) as integer
 DECLARE SUB writeblock (map as TileMap, byval x as integer, byval y as integer, byval v as integer)
 
@@ -90,7 +87,8 @@ DECLARE SUB ellipse (byval fr as Frame ptr, byval x as double, byval y as double
 DECLARE SUB replacecolor (byval fr as Frame ptr, byval c_old as integer, byval c_new as integer, byval x as integer = -1, byval y as integer = -1, byval w as integer = -1, byval h as integer = -1)
 
 DECLARE SUB storemxs (fil as string, byval record as integer, byval fr as Frame ptr)
-DECLARE FUNCTION loadmxs (fil as string, byval record as integer, byval dest as Frame ptr = 0) as Frame ptr
+DECLARE SUB loadmxs (filen as string, record as integer, dest as Frame ptr)
+DECLARE FUNCTION mxs_frame_to_tileset(spr as Frame ptr) as Frame ptr
 
 DECLARE SUB setwait (byval t as integer, byval flagt as integer = 0)
 DECLARE FUNCTION dowait () as bool
@@ -195,8 +193,9 @@ DECLARE FUNCTION getmusictype (file as string) as MusicFormatEnum
 declare function frame_new(byval w as integer, byval h as integer, byval frames as integer = 1, byval clr as bool = NO, byval wantmask as bool = NO) as Frame ptr
 declare function frame_new_view(byval spr as Frame ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer) as Frame ptr
 declare function frame_new_from_buffer(pic() as integer, byval picoff as integer) as Frame ptr
-declare function frame_load overload (byval ptno as integer, byval rec as integer) as frame ptr
-declare function frame_load(as string, byval as integer, byval as integer , byval as integer, byval as integer) as frame ptr
+declare function frame_load(sprtype as SpriteType, record as integer) as Frame ptr
+declare function frame_load_4bit(filen as string, record as integer, numframes as integer, wid as integer, hei as integer) as Frame ptr
+declare function frame_load_mxs(filen as string, record as integer) as Frame ptr
 declare function frame_to_node(fr as Frame ptr, parent as Reload.NodePtr) as Reload.NodePtr
 declare function frame_from_node(node as Reload.NodePtr) as Frame ptr
 declare function frame_reference(byval p as frame ptr) as frame ptr
@@ -212,9 +211,8 @@ declare function frame_rotated_270(byval spr as Frame ptr) as Frame ptr
 declare function frame_duplicate(byval p as frame ptr, byval clr as integer = 0, byval addmask as integer = 0) as frame ptr
 declare sub frame_clear(byval spr as frame ptr, byval colour as integer = 0)
 declare sub frame_swap_colors(byval spr as Frame ptr, byval col1 as integer, byval col2 as integer)
-declare sub sprite_empty_cache()
-declare sub sprite_update_cache_pt(byval ptno as integer)
-declare sub sprite_update_cache_tilesets()
+declare sub sprite_empty_cache(sprtype as SpriteType = -1)
+declare sub sprite_update_cache(sprtype as SpriteType)
 declare sub tileset_empty_cache()
 declare function frame_is_valid(byval p as frame ptr) as bool
 declare sub sprite_debug_cache()
