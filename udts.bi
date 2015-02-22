@@ -64,7 +64,7 @@ Enum SpriteType
  sprTypeBoxBorder = 7
  sprTypePortrait = 8
  sprTypeLastPT = 8
- sprTypeMXS = 9           'Can't change this! Saved in .slice files
+ sprTypeBackdrop = 9      'Can't change this! Saved in .slice files
  sprTypeLastPickable = 9  'Last sprite type selectable in slice editor
  sprTypeTileset = 10      'Free to change this later (never saved)
  sprTypeLastLoadable = 10 'Last type that frame_load knows about

@@ -460,7 +460,7 @@ SUB gfx_editor_menu()
    IF state.pt = 8 THEN sprite 24, 24, gen(genMaxWeaponPic), 2, 2, weapon_frame_captions(), 4, 5
    IF state.pt = 9 THEN sprite 16, 16, gen(genMaxBoxBorder), 16, 7, box_border_captions(), 4, 7
    IF state.pt = 10 THEN sprite 50, 50, gen(genMaxPortrait), 1, 4, portrait_captions(), 2, 8
-   IF state.pt = 11 THEN importbmp ".mxs", "screen", gen(genNumBackdrops), sprTypeMXS
+   IF state.pt = 11 THEN importbmp ".mxs", "screen", gen(genNumBackdrops), sprTypeBackdrop
    IF state.pt = 12 THEN
     gen(genMaxTile) = gen(genMaxTile) + 1
     importbmp ".til", "tileset", gen(genMaxTile), sprTypeTileset

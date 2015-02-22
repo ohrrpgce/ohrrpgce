@@ -756,7 +756,7 @@ SUB slice_edit_detail_keys (byref state as MenuState, sl as Slice Ptr, rootsl as
    DIM dat as SpriteSliceData Ptr
    dat = sl->SliceData
    dat->loaded = NO
-   dat->paletted = (dat->spritetype <> sprTypeMXS)
+   dat->paletted = (dat->spritetype <> sprTypeBackdrop)
    WITH sprite_sizes(dat->spritetype)
     dat->record = small(dat->record, gen(.genmax) + .genmax_offset)
     dat->frame = small(dat->frame, .frames - 1)

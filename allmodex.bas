@@ -5649,7 +5649,7 @@ private function frame_load_uncached(sprtype as SpriteType, record as integer) a
 	dim ret as Frame ptr
 	dim starttime as double = timer
 
-	if sprtype = sprTypeMXS then
+	if sprtype = sprTypeBackdrop then
 		ret = frame_load_mxs(game + ".mxs", record)
 	elseif sprtype = sprTypeTileset then
 		dim mxs as Frame ptr

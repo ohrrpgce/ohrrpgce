@@ -1260,7 +1260,7 @@ SUB load_formation_slices(ename() as string, form as Formation, rootslice as Sli
  ' Root is backdrop
  *rootslice = NewSliceOfType(slSprite)
  sl = *rootslice
- ChangeSpriteSlice sl, sprTypeMXS, form.background 
+ ChangeSpriteSlice sl, sprTypeBackdrop, form.background 
  sl->Lookup = SL_FORMEDITOR_BACKDROP
  
  ' Heroes

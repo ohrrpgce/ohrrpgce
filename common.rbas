@@ -4671,7 +4671,7 @@ SUB setup_sprite_sizes ()
   .directions = 1
   .genmax = genMaxPortrait
  END WITH
- WITH sprite_sizes(sprTypeMXS)  '9
+ WITH sprite_sizes(sprTypeBackdrop)  '9
   .name = "Backdrop"
   .size.x = 320
   .size.y = 200
@@ -4704,7 +4704,7 @@ END SUB
 
 SUB load_sprite_and_pal (byref img as GraphicPair, byval spritetype as SpriteType, byval index as integer, byval palnum as integer=-1)
  unload_sprite_and_pal img
- IF spritetype = sprTypeMXS THEN
+ IF spritetype = sprTypeBackdrop THEN
   img.sprite = frame_load(spritetype, index)
  ELSEIF spritetype >= 0 AND spritetype <= sprTypeLastPT THEN
   img.sprite = frame_load(spritetype, index)

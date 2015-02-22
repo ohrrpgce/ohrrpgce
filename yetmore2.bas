@@ -310,7 +310,7 @@ SUB update_backdrop_slice
   EXIT SUB
  END IF
  SliceTable.Backdrop->Visible = YES
- ChangeSpriteSlice SliceTable.Backdrop, sprTypeMXS, backdrop, , , , , transparent
+ ChangeSpriteSlice SliceTable.Backdrop, sprTypeBackdrop, backdrop, , , , , transparent
  
 END SUB
 

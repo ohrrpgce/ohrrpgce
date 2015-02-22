@@ -149,7 +149,7 @@ Sub SetupGameSlices
 
  SliceTable.Backdrop = NewSliceOfType(slSprite, SliceTable.Root, SL_BACKDROP)
  SliceTable.Backdrop->Protect = YES
- ChangeSpriteSlice SliceTable.Backdrop, sprTypeMXS
+ ChangeSpriteSlice SliceTable.Backdrop, sprTypeBackdrop
 
  SliceTable.ScriptSprite = NewSliceOfType(slSpecial, SliceTable.Root, SL_SCRIPT_LAYER)
  SliceTable.ScriptSprite->Fill = YES
@@ -1394,7 +1394,7 @@ Sub LoadSpriteSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
  dat->flipHoriz  = LoadProp(node, "fliph")
  dat->flipVert   = LoadProp(node, "flipv")
  dat->trans      = LoadProp(node, "trans", 1)
- dat->paletted   = (dat->spritetype <> sprTypeMXS)
+ dat->paletted   = (dat->spritetype <> sprTypeBackdrop)
  dat->dissolving = LoadPropBool(node, "dissolving")
  dat->d_type     = bound(LoadProp(node, "d_type"), 0, dissolveTypeMax)
  dat->d_time     = LoadProp(node, "d_time")
@@ -1445,7 +1445,7 @@ Sub ChangeSpriteSlice(byval sl as slice ptr,_
  with *dat
   if spritetype <> sprTypeInvalid then
    .spritetype = spritetype
-   .paletted = (spritetype <> sprTypeMXS)
+   .paletted = (spritetype <> sprTypeBackdrop)
    .loaded = NO
    sl->Width = sprite_sizes(.spritetype).size.x
    sl->Height = sprite_sizes(.spritetype).size.y

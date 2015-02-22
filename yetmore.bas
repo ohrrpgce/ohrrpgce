@@ -2941,9 +2941,9 @@ SELECT CASE as CONST id
    lump_reloading.zonemap.dirty = YES
   END IF
  CASE 493'--load backdrop sprite (record)
-  scriptret = load_sprite_plotslice(sprTypeMXS, retvals(0))
+  scriptret = load_sprite_plotslice(sprTypeBackdrop, retvals(0))
  CASE 494 '--replace backdrop sprite (handle, record)
-  replace_sprite_plotslice retvals(0), sprTypeMXS, retvals(1)
+  replace_sprite_plotslice retvals(0), sprTypeBackdrop, retvals(1)
  CASE 495 '--get sprite trans (handle)
   IF valid_plotsprite(retvals(0)) THEN
    DIM dat as SpriteSliceData Ptr = plotslices(retvals(0))->SliceData
