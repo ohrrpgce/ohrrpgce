@@ -204,6 +204,7 @@ end
 script, hero tests, begin
   hero party management tests
   # The party now contains heroes 0, 1, 2, 3 in that order
+  hero appearance tests
   hero caterpillar tests
   hero exp and levels tests
   hero stat growth test
@@ -230,14 +231,6 @@ end
 ## Stats
 #get level MP (who, mp level slot, type)
 #set level MP (who, mp level slot, new value)
-
-## Appearance
-#get hero palette (who,type)
-#get hero picture (who,type)
-#reset hero palette (who,type)
-#reset hero picture (who,type)
-#set hero palette (who,palette,type)
-#set hero picture (who,picture,type)
 
 ## Misc
 #hero base elemental resist as int (who, element)
@@ -342,6 +335,58 @@ script, hero party management tests, begin
   assert(hero by slot(2) == hero:Olaf)
   swap by position(3, find hero(hero:Frumpy))
   assert(hero by slot(3) == hero:Frumpy)
+end
+
+script, hero appearance tests, begin
+  # preconditions
+  assert(hero by slot(3) == hero:Frumpy)
+  # ensure we're using party slots, not hero ids or caterpillar position
+  swap by position(2, 3)
+  swap by position(1, 10)
+
+  # 2 = hero:Frumpy
+  assert(get hero picture(2, inside battle) == 8)
+  assert(get hero picture(2, outside battle) == 9)
+  assert(get hero picture(2, hero portrait) == 2)
+  assert(get hero palette(2, inside battle) == -1)
+  assert(get hero palette(2, outside battle) == -1)
+  assert(get hero palette(2, hero portrait) == 2)
+
+  set hero picture(2, 0, inside battle)
+  set hero picture(2, 4, outside battle)
+  set hero picture(2, 7, hero portrait)
+  set hero palette(2, 37, inside battle)
+  set hero palette(2, 1, outside battle)
+  set hero palette(2, -1, hero portrait)
+
+  show text box(17)  # test portrait by party slot
+  w(3)
+  advance text box
+
+  assert(get hero picture(2, inside battle) == 0)
+  assert(get hero picture(2, outside battle) == 4)
+  assert(get hero picture(2, hero portrait) == 7)
+  assert(get hero palette(2, inside battle) == 37)
+  assert(get hero palette(2, outside battle) == 1)
+  assert(get hero palette(2, hero portrait) == -1)
+
+  reset hero picture(2, inside battle)
+  reset hero picture(2, outside battle)
+  reset hero picture(2, hero portrait)
+  reset hero palette(2, inside battle)
+  reset hero palette(2, outside battle)
+  reset hero palette(2, hero portrait)
+
+  assert(get hero picture(2, inside battle) == 8)
+  assert(get hero picture(2, outside battle) == 9)
+  assert(get hero picture(2, hero portrait) == 2)
+  assert(get hero palette(2, inside battle) == -1)
+  assert(get hero palette(2, outside battle) == -1)
+  assert(get hero palette(2, hero portrait) == 2)
+
+  # Restore state
+  swap by position(2, 3)
+  swap by position(1, 10)
 end
 
 script, hero names embed tests, begin
