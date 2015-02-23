@@ -1309,8 +1309,9 @@ SUB position_menu (menu as MenuDef, byval page as integer)
 
  FOR i = 0 TO menu.numitems - 1
   WITH *menu.items[i]
+   'hidden items used to matter for auto-width but not auto-height; now they don't
+   IF .disabled AND .hide_if_disabled THEN CONTINUE FOR
    menu.rect.wide = large(menu.rect.wide, LEN(.text) * 8 + bord * 2)
-   IF .disabled AND .hide_if_disabled THEN CONTINUE FOR 'hidden matter for auto-width but not auto-height
    menu.rect.high += 10
    IF i <> 0 THEN menu.rect.high += menu.itemspacing
   END WITH

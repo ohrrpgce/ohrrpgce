@@ -65,6 +65,9 @@ WHAT IS NEW?
       existing game, as it will break all your wait() lengths and hero,
       npc, camera, etc. movement speeds. [Ralph]
 
+  * Changes
+    * Hidden menu items no longer affect the width of a menu [Ralph]
+
   * Bugfixes
     * Fixed a few cosmetic bugs in the equip menu including possibly
       wrong resultant stat value being shown [Ralph]
