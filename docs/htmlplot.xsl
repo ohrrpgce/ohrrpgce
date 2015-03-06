@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="iso-8859-1"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-<xsl:output method="html" encoding="iso-8859-1" indent="yes"/>
+<xsl:output method="html" encoding="utf-8" indent="yes"/>
 <xsl:preserve-space elements="text"/>
 
 <xsl:param name="show-alias" select="yes"/>
@@ -24,8 +24,12 @@
 						font-style: italic;
 					}
 
-					h3 {
+					.section h3 {
 						color: #f06060;
+						font-size: 130%;
+					}
+					.subsection h3 {
+						color: #e05050;
 					}
 
 					h4 {
@@ -81,6 +85,15 @@
 
 					}
 
+					.section {
+					}
+					.subsection {
+					}
+
+					.backlink {
+						color: #f09090;
+					}
+
 					div.note {
 					  border:thin black solid;
 					  padding:5px;
@@ -102,6 +115,21 @@
 						float:left;
 						padding-right: 5px;
 					}
+
+					div.indent {
+						padding-left: 20px;
+						/*display: inline-block;*/
+					}
+					.sectionlist ul {
+						margin:0;
+						/* Hide bullets for sectionlinks at top */
+						list-style-type: none;
+					}
+					.sectionlist li {
+						/* This is needed to hide bullets for old IE versions*/
+						list-style-type: none;
+					}
+
 ]]>
 				</style>
 			</head>
@@ -112,7 +140,9 @@
 				<hr/>
 				<h2>Commands by Category</h2>
 				<p>
+				<div class="sectionlist">
 				<xsl:apply-templates select="section" mode="sections"/>
+				</div>
 				</p>
 				<hr/>
 				<h2>Alphabetical Index</h2>
@@ -122,7 +152,10 @@
 				</xsl:apply-templates>
 				</p>
 				<hr/>
-				<xsl:apply-templates select="section" mode="full" />
+				<xsl:apply-templates select="section" mode="full">
+					<xsl:with-param name="section-class">section</xsl:with-param>
+				</xsl:apply-templates>
+
 				<p>Stats: There are <xsl:value-of select='count(//command)'/> commands in this file, of which <xsl:value-of select='count(//alias)'/> are only references to other commands.</p>
 				<p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 			</body>
@@ -130,8 +163,14 @@
 	</xsl:template>
 
 	<xsl:template match="section" mode="sections"><xsl:text>
-		</xsl:text><a href="#{@title}"><xsl:value-of select="@title" /></a><br/><xsl:text>
-	</xsl:text></xsl:template>
+		</xsl:text><!--<xsl:if test='@subsection_of'><div class="subsection-header-spacer" /></xsl:if>-->
+		<li><a href="#{@title}"><xsl:value-of select="@title" /></a>
+		<br/><xsl:text>
+		</xsl:text>
+		<!-- Recurse on subsections -->
+		<ul><xsl:apply-templates select="section" mode="sections" /></ul>
+		</li>
+	</xsl:template>
 
 	<xsl:template match="command" mode="alphalist"><xsl:text>
 		</xsl:text><xsl:if test='boolean(canon)'>
@@ -142,15 +181,33 @@
 		</xsl:if><xsl:text>
 	</xsl:text></xsl:template>
 
-	<xsl:template match="section" mode="full"><xsl:text>
-		</xsl:text><a name="{@title}" ></a><xsl:text>
+	<xsl:template match="section" mode="full">
+		<xsl:param name="backlinks" />
+		<xsl:param name="section-class" />
 
-		</xsl:text><font color="#f06060" size="4"><xsl:value-of select="@title" /></font><xsl:text>
-		</xsl:text><p><xsl:apply-templates select="description"/></p><xsl:text>
+		<xsl:text>
+		</xsl:text><div class="{$section-class}" id="{@title}"><a name="{@title}" ></a><xsl:text>
+		</xsl:text><h3><span class="backlink"><xsl:copy-of select="$backlinks" /></span><xsl:value-of select="@title" /></h3><xsl:text>
+		</xsl:text>
+		<!-- Alternative way to show backlink to parent-->
+		<!-- <xsl:if test="parent::section"> -->
+		<!-- 	<div class="backlink">(Back to <a href="#{../@title}"><xsl:value-of select="../@title" /></a>.)</div> -->
+		<!-- </xsl:if> -->
+		<!-- Show links to subsections-->
+		<ul><xsl:apply-templates select="section" mode="sections" /></ul>
+		<!-- Show contents-->
+		<p><xsl:apply-templates select="description"/></p><xsl:text>
 		</xsl:text><xsl:apply-templates select="command" mode="full" /><xsl:text>
-
 		</xsl:text><hr></hr><xsl:text>
-	</xsl:text></xsl:template>
+		</xsl:text></div>
+		<!-- Followed by subsections (outside section div) -->
+		<xsl:apply-templates select="section" mode="full">
+			<xsl:with-param name="backlinks">
+				<xsl:copy-of select="$backlinks" /> <a href="#{@title}"><xsl:value-of select="@title" /></a> →
+			</xsl:with-param>
+			<xsl:with-param name="section-class">subsection</xsl:with-param>
+		</xsl:apply-templates>
+	</xsl:template>
 
 	<xsl:template match="command" mode="full"><xsl:text>
 		</xsl:text><a name="about-{@id}" ></a><xsl:text>
