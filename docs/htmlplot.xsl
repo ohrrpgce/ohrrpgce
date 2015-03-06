@@ -36,6 +36,22 @@
 						color: yellow;
 					}
 
+					.command {
+						margin-top: 17px;
+						margin-bottom: 17px;
+						line-height: 18px;
+						/* equivalent to tt */
+						font-family: 'Lucida Console',monospace;
+						font-size: 0.75em;
+					}
+					/* Remove gap between command name and definition */
+					.command h4 {
+						margin-bottom: 3px;
+					}
+					.command p {
+						margin-top: 3px;
+					}
+
 					pre {
 						background-color:#FFFFFF;
 						color:#000000;
@@ -44,6 +60,7 @@
 						padding:10px;
 						padding-left:20px;
 						/*font-family:fixedsys,monospace;*/
+						font-size: 12px;
 					}
 
 					a {
@@ -75,14 +92,16 @@
 					}*/
 
 					.seealso {
+						margin-top: 10px;
+					}
+
+					.seealso ul {
 						display: inline;
 						margin:0;
 						padding:0;
 					}
-
 					.seealso li {
 						display: inline;
-
 					}
 
 					.section {
@@ -210,25 +229,22 @@
 	</xsl:template>
 
 	<xsl:template match="command" mode="full"><xsl:text>
-		</xsl:text><a name="about-{@id}" ></a><xsl:text>
-		</xsl:text><p><xsl:text>
-		</xsl:text><tt><xsl:text>
+		</xsl:text><div class="command"><a name="about-{@id}" ></a><xsl:text>
 		</xsl:text><xsl:if test='boolean(canon)'>
-			<b><font color="yellow"><xsl:value-of select="canon" /></font></b><br/><xsl:text>
+			<h4><xsl:value-of select="canon" /></h4><p><xsl:text>
 			</xsl:text><xsl:apply-templates select="description" /><xsl:text>
 			</xsl:text><xsl:apply-templates select="example" /><xsl:text>
 			</xsl:text><xsl:apply-templates select="seealso" /><xsl:text>
-		</xsl:text></xsl:if>
+		</xsl:text></p></xsl:if>
 		<xsl:if test='boolean(alias)'><xsl:text>
-				</xsl:text><b><font color="yellow"><xsl:value-of select="shortname" /></font></b><br/><xsl:text>
+				</xsl:text><h4><xsl:value-of select="shortname" /></h4><xsl:text>
 				</xsl:text>See <a href="#about-{alias}"><xsl:value-of select="id(alias)/shortname" /></a><xsl:text>
 			</xsl:text>
 		</xsl:if>
-		</tt>
-		</p>
+		</div>
 	</xsl:template>
 
-	<xsl:template match="description"><xsl:apply-templates /><br/></xsl:template>
+	<xsl:template match="description"><xsl:apply-templates /><!-- <br/> --></xsl:template>
 	<xsl:template match="ul"><ul><xsl:apply-templates /></ul></xsl:template>
 	<xsl:template match="li"><li><xsl:apply-templates /></li></xsl:template>
 
@@ -256,8 +272,12 @@
 			</xsl:if>
 		</xsl:if>
 	</xsl:template>
-	<xsl:template match="seealso"><br />See also: <ul class="seealso"><xsl:apply-templates select="ref" mode="seealso"/></ul></xsl:template>
-	<xsl:template match="ref" mode="seealso"><li><xsl:if test='count(id(.))=0'>
+	<xsl:template match="seealso">
+		<div class="seealso">See also: <ul><xsl:apply-templates select="ref" mode="seealso"/></ul></div>
+	</xsl:template>
+	<xsl:template match="ref" mode="seealso">
+		<li>
+		<xsl:if test='count(id(.))=0'>
 			<a href="#{.}" class="undef"><xsl:value-of select='.' /></a>
 		</xsl:if>
 		<xsl:if test='count(id(.))>0'>
@@ -267,20 +287,34 @@
 			<xsl:if test='id(.)/alias'>
 				<a href="#about-{id(.)/alias}" class="ref"><xsl:value-of select='id(.)/shortname' /></a>
 			</xsl:if>
-		</xsl:if><xsl:if test="not(position() = last())">, </xsl:if></li></xsl:template>
+		</xsl:if><xsl:if test="not(position() = last())">, </xsl:if>
+		</li>
+	</xsl:template>
 
 	<xsl:template match="lb"><br/></xsl:template>
 
 	<xsl:template match="p"><span class="param"><xsl:apply-templates /></span></xsl:template>
 
 	<xsl:template match="note">
-<div style="background-color:#EFF;" class="note"><img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon"/><xsl:apply-templates /><br clear="all" /></div></xsl:template>
+		<div style="background-color:#EFF;" class="note">
+			<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon"/>
+			<xsl:apply-templates /><br clear="all" />
+		</div>
+	</xsl:template>
 
-<xsl:template match="warn">
-<div style="background-color:#FFE;" class="note"><img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon"/><xsl:apply-templates /><br clear="all" /></div></xsl:template>
+	<xsl:template match="warn">
+		<div style="background-color:#FFE;" class="note">
+			<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon"/>
+			<xsl:apply-templates /><br clear="all" />
+		</div>
+	</xsl:template>
 
-<xsl:template match="danger">
-<div style="background-color:#FEE;" class="note"><img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon"/><xsl:apply-templates /><br clear="all" /></div></xsl:template>
+	<xsl:template match="danger">
+		<div style="background-color:#FEE;" class="note">
+			<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon"/>
+			<xsl:apply-templates /><br clear="all" />
+		</div>
+	</xsl:template>
 
 </xsl:stylesheet>
 
