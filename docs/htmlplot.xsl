@@ -214,9 +214,10 @@
 		<!-- </xsl:if> -->
 		<!-- Show links to subsections-->
 		<ul><xsl:apply-templates select="section" mode="sections" /></ul>
-		<!-- Show contents-->
+		<!-- Show section description-->
 		<p><xsl:apply-templates select="description"/></p><xsl:text>
-		</xsl:text><xsl:apply-templates select="command" mode="full" /><xsl:text>
+		<!-- Show commands-->
+		</xsl:text><xsl:apply-templates select="command|reference" mode="full" /><xsl:text>
 		</xsl:text><hr></hr><xsl:text>
 		</xsl:text></div>
 		<!-- Followed by subsections (outside section div) -->
@@ -226,6 +227,15 @@
 			</xsl:with-param>
 			<xsl:with-param name="section-class">subsection</xsl:with-param>
 		</xsl:apply-templates>
+	</xsl:template>
+
+	<xsl:template match="reference" mode="full"><xsl:text>
+		</xsl:text><div class="command"><xsl:text>
+		</xsl:text><h4>
+		<xsl:value-of select="//command[@id=current()/@id]/canon" />
+		</h4><xsl:text>
+		</xsl:text><p><a href="#about-{@id}">Defined in the <xsl:value-of select="//command[@id=current()/@id]/../@title" /> section.</a></p><xsl:text>
+		</xsl:text></div>
 	</xsl:template>
 
 	<xsl:template match="command" mode="full"><xsl:text>

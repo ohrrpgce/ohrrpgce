@@ -37,7 +37,9 @@ make a change.
 
 In <plotscript>, there is a series of <section> elements, each with a title
 attribute. These are to group the plotscripting commands into logical groups,
-such as <section title="Wait Commands"> or <section title="Math Operators">
+such as <section title="Wait Commands"> or <section title="Math Operators">.
+Sections can be nested inside each other. And commands that appear after
+a subsection will be reorderd in front of all subsections.
 
 The heart of the PDL are the <command> elements inside the <section>s. It has a
 single attribute, id. This is essentially the whitespace stripped version of the
@@ -45,13 +47,15 @@ command (the "wait for text box" command would have an id of "waitfortextbox").
 This is used to uniquely identify each command. It's used in many ways, from
 crosslinking command entries to generating a file for HssEd to use.
 
-Inside the <command> element are either two or four+ elements, in this order:
+Inside the <command> element are subelements, in this order:
 Case 1: Full command definition
   <canon> - This is the "canonical" form of the command: the fully spaced
   			 command with parameter prototypes. Example: move hero to x (who, x)
   <shortname> - This is the short version of the command, used for crosslinking,
   				indexes, etc. It is the <canon> element, minus the parameters.
   				Example: move hero to x
+  <added>       - Version this was added in. Not used!
+  <deprecated>  - Version this was deprecated in. Not used!
   <description> - This is a paragraph (or more) of text describing what the
   				  command does, and how to use it. Use <lb/> to put paragraphs
   				  in, and <p></p> when referring to a parameter (to avoid user
@@ -71,6 +75,10 @@ Case 2: Alias command definition
   			the ID of the real command in here. Example: begin
   <shortname> - Aliases also need a short name, since they are technically
   				different from their alias. Example: end
+
+Additionally, if you want a command to appear in multiple sections, 
+define it once and place references to it elsewhere.
+  <reference> - Has a single attribute, 'id', and no contents
 
 Basically, you should be able to examine the entries that already exist. It's
 fairly self evident what everything does.
@@ -103,6 +111,9 @@ everything out 10000000000 times. They are also indented properly for this file.
 			<shortname></shortname>
 		</command>
 
+#===== Reference
+
+		<reference id="" />
 
 #=====
 
@@ -110,6 +121,8 @@ Which reminds me: Indentation. For each "level" you go down in the hierarchy,
 you indent once. Many code specific editors will maintain this indentation level
 for until you explicitly change it, so it isn't difficult. Notepad users will
 have to do it manually, but you MUST do it. Remember: 1 indent = 1 tab.
+(However, subsections are not indented, in order to keep all commands at the same
+level.)
 
 "Mono means 'one'. Rail means 'rail'. And that concludes our training."
 	~ Monorail guy, Simpsons
