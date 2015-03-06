@@ -1298,13 +1298,14 @@ end</example>
 		<command id="resetpalette">
 			<canon>reset palette</canon>
 			<shortname>reset palette</shortname>
-			<description>Reloads the default master palette and its user interface colors, undoing any changes you have made with other palette-altering commands such as <ref>tweakpalette</ref> or <ref>greyscalepalette</ref> Changes to the palette do not take effect until you call <ref>updatepalette</ref> or <ref>fadescreenin</ref>, however the UI colors are changed immediately.</description>
+			<description>Reloads the default master palette and its user interface colors, undoing any changes you have made with other palette-altering commands such as <ref>tweakpalette</ref> or <ref>greyscalepalette</ref>. Changes to the palette do not take effect until you call <ref>updatepalette</ref> or <ref>fadescreenin</ref>. However the UI color indices (those in the 'Change User-Interface Colors' menu) are changed immediately (if you're not using multiple master palettes, then UI color indices never change).</description>
 		</command>
 		<command id="readcolor">
 			<canon>read color (index, element)</canon>
 			<shortname>read color</shortname>
 			<description>Returns a color value from the master palette. The first argument is the index in the palette to read from, 0 to 255. The second argument is the color value to read, red, green, or blue. You can use 0,1, and 2, or you can use the predefined constants <ref>colorred</ref>, <ref>colorgreen</ref>, and <ref>colorblue</ref>. The counterpart to this is <ref>writecolor</ref>.
-			<note>This command operates on values from 0-63. For operation on full color values (0-255), see <ref>getcolor</ref></note></description>
+			<note>This command operates on values from 0-63. For operation on full color values (0-255), used <ref>getcolor</ref>.</note>
+			</description>
 			<seealso>
 				<ref>getcolor</ref>
 			</seealso>
@@ -1312,13 +1313,14 @@ end</example>
 		<command id="writecolor">
 			<canon>write color (index, element, value)</canon>
 			<shortname>write color</shortname>
-			<description>Writes a color value into the master palette. The first argument is the index in the palette to write to, 0 to 255. The second argument is the color value to write, red, green, or blue. You can use 0, 1, and 2, or you can use the predefined constants <ref>colorred</ref>, <ref>colorgreen</ref>, and <ref>colorblue</ref>. The third argument is the color value to write. It can be in the range of 0 to 63. Changes do not take effect until you call <ref>updatepalette</ref> or <ref>fadescreenin</ref> The counterpart to this is <ref>readcolor</ref>. Changes to the master palette last as long as you are playing, but are not stored in saved-games. If you need to make master-palette changes persist in saved-games you will have to use the on-load plotscript trigger.</description>
+			<description>Writes a color value into the master palette. The first argument is the index in the palette to write to, 0 to 255. The second argument is the color value to write, red, green, or blue. You can use 0, 1, and 2, or you can use the predefined constants <ref>colorred</ref>, <ref>colorgreen</ref>, and <ref>colorblue</ref>. The third argument is the color value to write. It should be in the range of 0 to 63, NOT 0 to 255 as is used in nearly all computer programs. Use <ref>setcolor</ref> if you want to set color values in the 0-255 range. Changes do not take effect until you call <ref>updatepalette</ref> or <ref>fadescreenin</ref>. Changes to the master palette last as long as you are playing, but are not stored in saved-games. If you need to make master-palette changes persist in saved-games you will have to use the on-loadgame plotscript trigger.</description>
 			<seealso>
 				<ref>setcolor</ref>
+				<ref>readcolor</ref>
 			</seealso>
 		</command>
 		<command id="getcolor">
-			<canon>get color(index)</canon>
+			<canon>get color (index)</canon>
 			<shortname>get color</shortname>
 			<description>Returns a color value from the master palette. The argument is which index in the palette to return. The value is a 32-bit number representing the red, green and blue components of the palette entry. See <ref>rgb</ref> for more details on its format.</description>
 			<seealso>
@@ -1327,16 +1329,16 @@ end</example>
 			</seealso>
 		</command>
 		<command id="setcolor">
-			<canon>set color(index, value)</canon>
+			<canon>set color (index, value)</canon>
 			<shortname>set color</shortname>
-			<description>Updates the master palette with a new 32-bit color. The <p>value</p>, a 32-bit number representing the red, green and blue components of the color, can come from <ref>rgb</ref> or <ref>getcolor</ref>.</description>
+			<description>Updates the master palette with a new 32-bit color. The <p>value</p>, a 32-bit number representing the red, green and blue components of the color, can come from <ref>rgb</ref> or <ref>getcolor</ref>. Changes do not take effect until you call <ref>updatepalette</ref> or <ref>fadescreenin</ref>. Changes to the master palette last as long as you are playing, but are not stored in saved-games. If you need to make master-palette changes persist in saved-games you will have to use the on-loadgame plotscript trigger.</description>
 			<seealso>
 				<ref>getcolor</ref>
 				<ref>rgb</ref>
 			</seealso>
 		</command>
 		<command id="rgb">
-			<canon>RGB(red, green, blue)</canon>
+			<canon>RGB (red, green, blue)</canon>
 			<shortname>RGB</shortname>
 			<description>Combines the individual red, green and blue components of a color into a single 32-bit number. The formula used is "red * 256 * 256 + green * 256 + blue". The highest byte is unused, but reserved for future potential use for alpha transparency.</description>
 			<seealso>
@@ -1344,9 +1346,9 @@ end</example>
 			</seealso>
 		</command>
 		<command id="extractcolor">
-			<canon>extract color(color, component)</canon>
+			<canon>extract color (color, component)</canon>
 			<shortname>extract color</shortname>
-			<description>Takes a 32-bit color value, and extracts the red, green or blue component, based on the <p>component</p> parameter. You may use the <ref>colorred</ref>, <ref>colorgreen</ref> and <ref>colorblue</ref> parameters to choose which one.</description>
+			<description>Takes a 32-bit color value (as returned by <ref>getcolor</ref>), and extracts the red, green or blue component, based on the <p>component</p> parameter. You may use the <ref>colorred</ref>, <ref>colorgreen</ref> and <ref>colorblue</ref> parameters to choose which one.</description>
 			<seealso><ref>rgb</ref></seealso>
 		</command>
 		<command id="playsound">
