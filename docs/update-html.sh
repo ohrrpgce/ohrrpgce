@@ -7,4 +7,10 @@ if [ ! -f "plotdict.xml" ] ; then
     exit 1
   fi
 fi
-xsltproc plotdict.xml > plotdictionary.html
+# Validate checks for many things that may not be easily noticable but could
+# still cause breakage, like invalid cross links
+xmllint --valid --noout plotdict.xml
+echo " ----------------- End of xmllint warnings ----------------"
+echo
+xsltproc plotdict.xml > plotdictionary.html || exit
+echo "Successfully produced plotdictionary.html"

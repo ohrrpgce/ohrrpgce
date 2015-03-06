@@ -5,23 +5,34 @@
 	<!ELEMENT plotscript (section+)>
 	<!ATTLIST plotscript lastmodified CDATA "the dawn of time">
 	<!ATTLIST plotscript show-alias CDATA "yes">
-	<!ELEMENT section (description?,command*)>
+	<!ELEMENT section (description?,(command|reference|section)+)>
 	<!ATTLIST section title CDATA #REQUIRED>
-	<!ELEMENT command ((canon,shortname,description,example*,seealso?) |
-					   (alias,shortname))>
+	<!ELEMENT reference EMPTY>
+	<!ATTLIST reference id IDREF #REQUIRED>
+	<!ELEMENT command ((canon,shortname,added?,deprecated?,description,example*,seealso?) |
+					   (alias,shortname,added?,deprecated?))>
 	<!ATTLIST command id ID #REQUIRED
 			          created CDATA #IMPLIED>
 	<!ELEMENT canon      (#PCDATA)>
 	<!ELEMENT shortname   (#PCDATA)>
+	<!ELEMENT added     (#PCDATA)>
+	<!ELEMENT deprecated     (#PCDATA)>
 	<!ELEMENT description ANY>
 	<!ELEMENT example     (#PCDATA)>
 	<!ATTLIST example c IDREF #IMPLIED>
 	<!ELEMENT alias       (#PCDATA)>
 	<!ELEMENT seealso (ref+)>
 
-	<!ELEMENT ref         (#PCDATA)>
-	<!ELEMENT lb		  (#PCDATA)>
-	<!ELEMENT param		  (#PCDATA)>
+	<!ELEMENT note         ANY>
+	<!ELEMENT warn         ANY>
+	<!ELEMENT danger       ANY>
+	<!ELEMENT ref          (#PCDATA)>
+	<!ELEMENT ul           (li*)>
+	<!ELEMENT li           ANY>
+	<!ELEMENT a            ANY>
+	<!ATTLIST a            href CDATA #IMPLIED>
+	<!ELEMENT lb           (#PCDATA)>
+	<!ELEMENT p            (#PCDATA)>
 ]>
 <!--
 
