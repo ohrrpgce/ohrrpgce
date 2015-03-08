@@ -2094,6 +2094,8 @@ SUB item_screen_use_action (byref st as ItemScreenState)
       .id = 0
       .num = 0
      END WITH
+     evalitemtags
+     tag_updates
     END IF
     update_inventory_caption swapslot
     st.need_update = YES

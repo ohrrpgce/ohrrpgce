@@ -3919,6 +3919,7 @@ SUB usenpc(byval cause as integer, byval npcnum as integer)
  IF getit THEN
   getitem getit - 1
   evalitemtags
+  'Delay tag_updates
  END IF
  '---DIRECTION CHANGING-----------------------
  txt.old_dir = -1
@@ -3930,6 +3931,7 @@ SUB usenpc(byval cause as integer, byval npcnum as integer)
  IF npcs(id).usetag > 0 THEN
   '--One-time-use tag
   settag onetime(), npcs(id).usetag, YES
+  'Delay tag_updates
  END IF
  IF npcs(id).script > 0 THEN
   '--summon a script directly from an NPC
