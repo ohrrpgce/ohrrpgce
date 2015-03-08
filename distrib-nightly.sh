@@ -38,6 +38,7 @@ ls -l ohrrpgce-source-nightly.zip
 echo uploading new nightly snapshot
 scp -p ohrrpgce-source-nightly.zip $UPLOAD_DEST/ohrrpgce/nightly/
 
+# This is duplicated in distrib-nightly-win[-wine].sh
 echo uploading plotscripting docs
 cd wip/docs
 ./update-html.sh

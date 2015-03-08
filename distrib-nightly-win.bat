@@ -74,8 +74,10 @@ del game*.exe custom*.exe
 call scons gfx=directx+sdl+fb music=sdl debug=0 scriptprofile=1
 call nightly-gfx-music directx sdl -scriptprofile SDL.dll SDL_mixer.dll gfx_directx.dll
 
+REM Note that this is duplicated in distrib-nightly.sh
 Echo upload plotdict.xml
 pscp -q docs\plotdict.xml james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/docs/
+pscp -q docs\htmlplot.xsl james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/docs/
 
 del unlump.exe relump.exe
 call scons unlump.exe relump.exe
