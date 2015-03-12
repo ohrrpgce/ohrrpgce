@@ -161,8 +161,7 @@ CONST genResolutionY = 195      ' "
 CONST genEscMenuScript = 196     'id of plotscript called instead of the default menu
 CONST genSaveSlotCount = 197    'The number of available save slots, 1 to 32. If 0, the default of 4 will be used
 CONST genMillisecPerFrame = 198
-'199 to 359 used to be the scattertable for PW2, now zeroed out
-'360 to 499 unused
+'Everything else up to 499 unused
 
 
 '--- Suspend bits (gen(genSuspendBits))
@@ -236,8 +235,9 @@ CONST fixNumElements = 20        'Set genNumElements to 16
 CONST fixRemoveDamageMP = 21     'Removed the obsolete Damage MP attack bit
 CONST fixDefaultMaxLevel = 22    'Set max level to 99 (not to be confused with level cap)
 CONST fixUNUSED23 = 23           'Don't use this bit for anything. It was wasted in a plan that changed
+CONST fixWipeGEN = 24            'Zero out gen(199) to gen(499)
 
-CONST sizefixbits = 23 ' *** Update this when adding fix bits ***
+CONST sizefixbits = 24 ' *** Update this when adding fix bits ***
 
 '---Sizes (replaceable with variables when suitable)
 CONST max_npc_defs = 500 'max number of NPC IDs definable in Custom

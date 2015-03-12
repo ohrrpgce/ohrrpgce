@@ -75,7 +75,7 @@ DECLARE SUB main_editor_menu()
 DECLARE SUB gfx_editor_menu()
 
 'Global variables
-REDIM gen(360)
+REDIM gen(499)
 DIM gen_reld_doc as DocPtr
 REDIM buffer(16384)
 REDIM master(255) as RGBcolor

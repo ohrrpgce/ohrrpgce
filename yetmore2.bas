@@ -1375,7 +1375,7 @@ SUB try_reload_lumps_anywhere ()
    handled = YES
 
   ELSEIF extn = "gen" THEN                                                '.GEN
-   REDIM newgen(360) as integer
+   REDIM newgen(499) as integer
    xbload game + ".gen", newgen(), "reload lumps: .gen unreadable"
    IF gam.current_master_palette = gen(genMasterPal) _
        AND newgen(genMasterPal) <> gen(genMasterPal) THEN
@@ -1386,7 +1386,7 @@ SUB try_reload_lumps_anywhere ()
    END IF
    FOR j as integer = 0 TO UBOUND(gen)
     SELECT CASE j
-     CASE 44 TO 54, 58, 60
+     CASE 44 TO 54, genTextboxBackdrop, genJoy  '58, 60
      CASE ELSE
       gen(j) = newgen(j)
     END SELECT

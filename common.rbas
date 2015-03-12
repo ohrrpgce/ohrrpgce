@@ -3262,6 +3262,24 @@ IF gen(genVersion) < CURRENT_RPG_VERSION THEN
  gen(genVersion) = CURRENT_RPG_VERSION '--update me in const.bi
 END IF
 
+IF gen(genPassVersion) = 256 THEN
+ '--Update PW3 to PW4
+ upgrade_message "Updating PW3 password storage format"
+ writepassword read_PW3_password
+ELSEIF gen(genPassVersion) < 256 THEN
+ '--At this point we know the password format is PW2 (not PW1), scattertable
+ upgrade_message "Updating PW2 password storage format"
+ writepassword read_PW2_password
+END IF
+
+'Zero out the PW2 scattertable (almost all games) as well as some other explained garbage (a few games) in gen()
+IF getfixbit(fixWipeGEN) = NO THEN
+ setfixbit(fixWipeGEN, YES)
+ FOR i as integer = 199 TO 499
+  gen(i) = 0
+ NEXT
+END IF
+
 IF NOT isfile(workingdir + SLASH + "archinym.lmp") THEN
  upgrade_message "generate default archinym.lmp"
  '--create archinym information lump
@@ -3455,21 +3473,6 @@ FOR i as integer = 0 TO gen(genMaxMasterPal)
   SaveUIColors uilook_temp(), boxlook_temp(), i
  END IF
 NEXT
-
-IF gen(genPassVersion) = 256 THEN
- '--Update PW3 to PW4
- upgrade_message "Updating PW3 password storage format"
- writepassword read_PW3_password
-ELSEIF gen(genPassVersion) < 256 THEN
- '--At this point we know the password format is PW2 (not PW1), scattertable
- upgrade_message "Updating PW2 password storage format"
- writepassword read_PW2_password
-
- '--Zero out PW2 scatter table
- FOR i as integer = 199 TO 359
-  gen(i) = 0
- NEXT
-END IF
 
 'Zero out new attack item cost (ammunition) data
 IF getfixbit(fixAttackitems) = 0 THEN
