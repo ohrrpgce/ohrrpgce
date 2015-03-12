@@ -64,6 +64,8 @@ WHAT IS NEW?
       animations.  You probably shouldn't change the framerate in an
       existing game, as it will break all your wait() lengths and hero,
       npc, camera, etc. movement speeds. [Ralph]
+    * Global sound effect options for steal attack success, failure,
+      and no item to steal. [Ralph]
 
   * Changes
     * Hidden menu items no longer affect the width of a menu [Ralph]

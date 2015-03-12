@@ -6,6 +6,7 @@
 #include "config.bi"
 #include "bmod.bi"
 #include "bmodsubs.bi"
+#include "game.bi"
 #include "allmodex.bi"
 #include "common.bi"
 #include "loading.bi"
@@ -810,15 +811,18 @@ FUNCTION trytheft (bat as BattleState, byval who as integer, byval targ as integ
        '--only one theft permitted
        .thievability = -1
       END IF
-      setbatcap bat, readglobalstring$(117, "Stole", 40) + " " + readitemname$(stole - 1), 40, 0
+      setbatcap bat, readglobalstring(117, "Stole", 40) + " " + readitemname(stole - 1), 40, 0
+      menusound gen(genStealSuccessSFX)
       RETURN YES '--success
      ELSE
       '--steal failed
-      setbatcap bat, readglobalstring$(114, "Cannot Steal", 40), 40, 0
+      setbatcap bat, readglobalstring(114, "Cannot Steal", 40), 40, 0
+      menusound gen(genStealFailSFX)
      END IF
     ELSE
      '--has nothing to steal / steal disabled
-     setbatcap bat, readglobalstring$(111, "Has Nothing", 30), 40, 0
+     setbatcap bat, readglobalstring(111, "Has Nothing", 30), 40, 0
+     menusound gen(genStealNoItemSFX)
     END IF
    END WITH
   END IF

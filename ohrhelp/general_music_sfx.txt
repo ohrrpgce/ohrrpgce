@@ -5,3 +5,5 @@ Navigate the menu with the Up and Down arrow keys (or PgUp, PgDn, Home, and End)
 Choose songs and sound effects by number, either by using the Left and Right arrow keys or by typing the number in.
 
 The songs and sound effects must already be imported through their respective importers accessed from the Main Menu.
+
+Stealing sound effects are played in addition to the normal sound effect on an attack, but are played after the attack animation instead of before.

@@ -286,13 +286,14 @@ SUB generalscriptsmenu ()
 END SUB
 
 SUB generalmusicsfxmenu ()
-  CONST menusize as integer = 15
+  CONST menusize as integer = 18
   CONST lastmusicitem as integer = 3
   DIM as string menu(menusize), disp(menusize), menu_display(menusize)
   DIM as integer index(1 to menusize) = { _
           genTitleMus, genBatMus, genVictMus, genAcceptSFX, genCancelSFX, _
           genCursorSFX, genTextboxLine, genDefaultDeathSFX, genItemLearnSFX, genCantLearnSFX, _
-          genBuySFX, genHireSFX, genSellSFX, genCantBuySFX, genCantSellSFX _
+          genBuySFX, genHireSFX, genSellSFX, genCantBuySFX, genCantSellSFX, _
+          genStealSuccessSFX, genStealFailSFX, genStealNoItemSFX _
   }
 
   disp(0) = "Previous Menu" 'don't need menu(0)
@@ -311,6 +312,9 @@ SUB generalmusicsfxmenu ()
   menu(13) = "Sell Item Sound: "
   menu(14) = "Can't Buy Sound: "
   menu(15) = "Can't Sell Sound: "
+  menu(16) = "Steal Success Sound: "
+  menu(17) = "Steal Failure Sound: "
+  menu(18) = "Steal No-Item Sound: "
 
   DIM selectst as SelectTypeState
   DIM state as MenuState
