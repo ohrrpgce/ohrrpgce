@@ -178,14 +178,15 @@ end</example>
                   
 			<canon>subscript, name, argumentnames (statements)</canon>
 			<shortname>subscript</shortname>
-			<description><p>subscript</p> is just like <ref>script</ref> except that it must placed inside another script (or even inside another subscript). See <ref>script</ref> for details of its syntax. The difference from a regular script is that a subscript can only be called from its parent script, and it can directly access its parent script's variables in addition to its own arguments and variables. Subscripts can be useful when you have some piece of repeated code that you want to "de-duplicate" by moving into another script which you can call repeatedly, but without having to turn local variables into global variables.</description>
+			<description><p>subscript</p> is just like <ref>script</ref> except that it must placed inside another script (or even inside another subscript). See <ref>script</ref> for details of syntax of arguments. The difference from a regular script is that a subscript can only be called from its parent script (or some other subscript), and it can directly access its parent script's variables in addition to its own arguments and variables. Subscripts can be useful when you have some piece of repeated code that you want to "de-duplicate" by moving into another script which you can call repeatedly, but without having to turn local variables into global variables.</description>
 			<example># Some nearby NPCs move into a line to the north of the hero
-plotscript, line up NPCs, begin
+plotscript, line up soldiers, begin
 	show textbox(32)  # "Yes sir!"
 	wait for textbox
 	suspend player
 	set hero direction(me, up)
 	variable (x, y)
+	# The position of the start of the line
 	x := hero X(me) -- 2
 	y := hero Y(me) -- 4
 	subscript, line up NPC, npc, begin
@@ -452,7 +453,7 @@ end</example>
 		<command id="do">
 			<canon>do</canon>
 			<shortname>do</shortname>
-			<description>Used to group several statements together. Normally appears after a <ref>while</ref>, <ref>for</ref> or <ref>switch</ref>.</description>
+			<description>Used to group several statements together. Normally appears after a <ref>while</ref>, <ref>for</ref> or <ref>switch</ref>. However, <p>do</p> blocks can actually appear by themselves. This is useful if you want to <ref>break</ref> out of them to skip to the end. (<ref>continue</ref> inside an orphan <p>do</p> block acts just like <p>break</p>.)</description>
 			<seealso>
 				<ref>while</ref>
 				<ref>for</ref>
@@ -683,6 +684,9 @@ wait for camera # wait until he&apos;s on screen</example>
 			<example># do a bunch of things all at once
 wait for all # wait until everything is done</example>
 		</command>
+		<reference id="waitforslice"/>
+		<reference id="waitfordissolve"/>
+		<reference id="waitforsound"/>
 	</section>
 
 	<section title="Working with Tags">
@@ -919,6 +923,7 @@ play song (get ambient music)</example>
 walk hero(me,up,3) # move him up 3 tiles
 resume player # OK, done</example>
 		</command>
+		<reference id="waitforhero" />
 		<command id="setherodirection">
 			<canon>set hero direction (who, direction)</canon>
 			<shortname>set hero direction</shortname>
@@ -1166,6 +1171,7 @@ end</example>
 			<shortname>walk NPC</shortname>
 			<description>Makes the specified NPC move in the specified direction for the specified number of tiles. The first argument tells who to move. You can use an <ref>npcreference</ref> or the NPC&apos;s ID number. The second argument is the direction. Use the constants: <ref>north</ref>, <ref>south</ref>, <ref>east</ref>, <ref>west</ref>, <ref>up</ref>, <ref>down</ref>, <ref>left</ref>, or <ref>right</ref>. The third argument is the number of tiles to move. If you leave out the third argument, the NPC will move one tile. walk NPC is usually used with the <ref>waitfornpc</ref> command. You should normally use the <ref>suspendnpcs</ref> command before moving NPCs to prevent their automatic movements from interfering with your scripted movements.</description>
 		</command>
+		<reference id="waitfornpc" />
 		<command id="setnpcdirection">
 			<canon>set NPC direction (who, direction)</canon>
 			<shortname>set NPC direction</shortname>
@@ -1381,6 +1387,7 @@ end</example>
 			<shortname>put camera</shortname>
 			<description>This command causes the top left corner of the camera to instantly jump to the specified X,Y pixel coordinates of the map. These coordinates are in units of pixels, not tiles. To position the camera by tiles, just multiply the tile position by 20. To revert the camera to normal, use <ref>camerafollowshero</ref>.</description>
 		</command>
+		<reference id="waitforcamera"/>
 	</section>
 
 	<section title="Text Boxes">
@@ -1397,6 +1404,7 @@ wait for text box # wait until the player continues</example>
 			<description>Advances a text box just as if the player had pressed a key. For use while <ref>suspendboxadvance</ref> is active.</description>
 			<example c="suspendboxadvance" />
 		</command>
+		<reference id="waitfortextbox"/>
 		<command id="currenttextbox">
 			<canon>current text box</canon>
 			<shortname>current text box</shortname>
@@ -1405,7 +1413,8 @@ wait for text box # wait until the player continues</example>
 		<command id="stringfromtextbox">
 			<canon>string from textbox (ID, textbox, line, ignored)</canon>
 			<shortname>string from textbox</shortname>
-			<description>Loads one of the <p>line</p>s of a <p>textbox</p> into a string <p>ID</p>. Valid numbers for <p>line</p> are 0-7. This command is obsolete and exists only for compatibility with old games: It has been replaced with <ref>textboxline</ref>. The fourth argument does nothing. Trailing and leading whitespace is stripped from the line, and embedded codes like ${H1} in the string are automatically substituted.</description>
+			<description>Loads one of the <p>line</p>s of a <p>textbox</p> into a string <p>ID</p>. Valid numbers for <p>line</p> are 0-7. Trailing and leading whitespace is stripped from the line, and embedded codes like ${H1} in the string are automatically substituted.
+			<note>This command is obsolete and exists only for compatibility with old games: It has been replaced with <ref>textboxline</ref>. The fourth argument does nothing.</note></description>
 			<seealso>
 				<ref>expandstring</ref>
 				<ref>textboxline</ref>
@@ -1452,13 +1461,13 @@ wait for text box # wait until the player continues</example>
 			<shortname>use NPC</shortname>
 			<description>Remotely trigger an NPC. You can use either an <ref>npcreference</ref> or an NPC ID number. Whatever actions are associated with triggering that NPC will be taken, text box, script, vehicle, item, whatever. <note>An automatic <ref>wait</ref>(1) occurs immediately after this command.</note></description>
 		</command>
-		<reference id="usedoor" />
+		<reference id="usedoor"/>
 		<command id="useshop">
 			<canon>use shop (shop)</canon>
 			<shortname>use shop</shortname>
 			<description>Takes you directly to a shop. You can specify the shop&apos;s ID number or its name in the form shop:name</description>
 		</command>
-		<reference id="teleporttomap" />
+		<reference id="teleporttomap"/>
 		<command id="dismountvehicle">
 			<canon>dismount vehicle</canon>
 			<shortname>dismount vehicle</shortname>
@@ -2492,7 +2501,7 @@ end</example>
 			</seealso>
 		</command>
 		<command id="readnpc">
-			<canon>read NPC (who,NPCstat)</canon>
+			<canon>read NPC (who, NPCstat)</canon>
 			<shortname>read NPC</shortname>
 			<description>Returns data such as picture, palette, walking speed, text box, etc. for an NPC. Use the same constants as <ref>alternpc</ref>. <note>If you use this command to read the give item number, the result is offset + 1. A zero means no item.</note></description>
 			<seealso>
@@ -2943,6 +2952,7 @@ end
 <li>joy:y up</li>
 <li>joy:y down</li>
 </ul>
+<note>Previously it was necessary to <p>include, scancode.hsi</p> to use the <p>key:</p> constants, but no longer.</p>
 </description>
 			<seealso>
 				<ref>keyval</ref>
