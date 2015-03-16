@@ -2952,7 +2952,7 @@ end
 <li>joy:y up</li>
 <li>joy:y down</li>
 </ul>
-<note>Previously it was necessary to <p>include, scancode.hsi</p> to use the <p>key:</p> constants, but no longer.</p>
+<note>Previously it was necessary to <p>include, scancode.hsi</p> to use the <p>key:</p> constants, but no longer.</note>
 </description>
 			<seealso>
 				<ref>keyval</ref>
