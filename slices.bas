@@ -1481,6 +1481,7 @@ Sub DissolveSpriteSlice(byval sl as slice ptr, byval dissolve_type as integer, b
  dim dat as SpriteSliceData Ptr = sl->SliceData
  with *dat
   .dissolving = YES
+  '(Note that the bounds checking here and in LoadSpriteSlice is bypassed by the slice editor)
   .d_type = bound(dissolve_type, 0, dissolveTypeMax)
   .d_time = over_ticks
   .d_tick = bound(start_tick, 0, large(over_ticks, 0))

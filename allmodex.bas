@@ -6009,7 +6009,11 @@ end sub
 ' tlength is the desired length of the transition (in any time units you please),
 ' t is the number of elasped time units. style is the specific transition.
 function frame_dissolved(byval spr as frame ptr, byval tlength as integer, byval t as integer, byval style as integer) as frame ptr
+	'Return a blank sprite of same size
+	'(Note that Vapourise and Phase Out aren't blank on t==tlength, while others are, unless tlength=0
 	if t > tlength then return frame_duplicate(spr, YES)
+	'Return copy. (Actually Melt otherwise has very slight distortion on frame 0.)
+	if t <= 0 then return frame_duplicate(spr)
 
 	'by default, sprites use colourkey transparency instead of masks.
 	'We could easily not use a mask here, but by using one, this function can be called on 8-bit graphics
