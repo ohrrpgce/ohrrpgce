@@ -30,7 +30,7 @@ END TYPE
 
 '--Local subs and functions
 DECLARE FUNCTION compilescripts (fname as string, hsifile as string) as string
-DECLARE SUB importscripts (f as string)
+DECLARE SUB importscripts (f as string, quickimport as bool)
 DECLARE SUB writeconstant (byval filehandle as integer, byval num as integer, names as string, unique() as string, prefix as string)
 DECLARE FUNCTION isunique (s as string, set() as string) as integer
 DECLARE FUNCTION exportnames () as string
@@ -244,20 +244,20 @@ SUB addtrigger (scrname as string, byval id as integer, triggers as TRIGGERSET)
  END WITH
 END SUB
 
-SUB compile_andor_import_scripts (f as string)
+SUB compile_andor_import_scripts (f as string, quickimport as bool = NO)
  IF justextension(f) <> "hs" THEN
   DIM hsifile as string = exportnames
   f = compilescripts(f, hsifile)
   IF f <> "" THEN
-   importscripts f
+   importscripts f, quickimport
    safekill f  'reduce clutter
   END IF
  ELSE
-  importscripts f
+  importscripts f, quickimport
  END IF
 END SUB
 
-SUB importscripts (f as string)
+SUB importscripts (f as string, quickimport as bool)
  DIM triggers as TriggerSet
  DIM triggercount as integer
  DIM temp as short
@@ -407,7 +407,7 @@ SUB importscripts (f as string)
    'display progress
    IF id < 16384 OR trigger > 0 THEN
     viscount = viscount + 1
-    append_message names & ", "
+    IF quickimport = NO THEN append_message names & ", "
    END IF
   LOOP
   CLOSE plotscr_lsth
@@ -441,7 +441,7 @@ SUB importscripts (f as string)
   
   textcolor uilook(uiText), 0
   show_message "imported " & viscount & " scripts"
-  waitforanykey
+  IF quickimport = NO THEN waitforanykey
  ELSE
   pop_warning f + " is not really a compiled .hs file. Did you create it by compiling a" _
               " script file with hspeak.exe, or did you just give your script a name that" _
@@ -473,7 +473,7 @@ SUB reimport_previous_scripts ()
   fname = script_import_defaultdir
  END IF
  IF fname <> "" THEN
-  compile_andor_import_scripts fname
+  compile_andor_import_scripts fname, YES
  END IF
  clearkey scEnter
  clearkey scSpace

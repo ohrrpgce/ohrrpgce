@@ -38,7 +38,7 @@ DECLARE SUB enemydata ()
 DECLARE SUB hero_editor ()
 DECLARE SUB text_box_editor ()
 DECLARE SUB maptile ()
-DECLARE SUB compile_andor_import_scripts (f as string)
+DECLARE SUB compile_andor_import_scripts (f as string, quickimport as bool = NO)
 DECLARE SUB reimport_previous_scripts ()
 
 'Local function declarations
