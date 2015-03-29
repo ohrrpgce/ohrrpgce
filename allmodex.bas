@@ -5282,8 +5282,14 @@ declare sub frame_add_mask(byval fr as frame ptr, byval clr as bool = NO)
 'an unnecessary complication over LRU, but it's fun.
 
 CONST SPRCACHE_BASE_SZ = 4096  'bytes
-CONST SPRCACHEB_SZ = 256  'in SPRITE_BASE_SZ units
-'#DEFINE COMBINED_SPRCACHE_LIMIT 1
+#IFDEF LOWMEM
+ 'Up to 8MB, including in-use sprites
+ CONST SPRCACHEB_SZ = 2048  'in SPRITE_BASE_SZ units
+ #DEFINE COMBINED_SPRCACHE_LIMIT 1
+#ELSE
+ 'Max cache size of 16MB, but actual limit will be less due to items smaller than 4KB
+ CONST SPRCACHEB_SZ = 4096  'in SPRITE_BASE_SZ units
+#ENDIF
 
 
 ' removes a sprite from the cache, and frees it.

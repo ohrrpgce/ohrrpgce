@@ -56,6 +56,10 @@
 #ENDIF
 CONST build_info as string = "" _GSTR _ESTR _GENSTR _SSTR _PSTR _BSTR
 
+#IFDEF __FB_ANDROID__
+ #DEFINE LOWMEM
+#ENDIF
+
 '__FB_UNIX__ is only in FB 0.21 onwards (I think)
 'In FB 0.90+ it's either defined or not (can't be used in #IF), while in earlier FBs
 'it's always defined, either to 0 or -1 (can't be used in #IFDEF). HATEHATEHATE
