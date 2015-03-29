@@ -1290,7 +1290,7 @@ Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
     have_copy = YES
     if .d_auto then
      .d_tick += 1
-     if .d_tick >= dtime then
+     if .d_tick > dtime then
       .dissolving = NO
       .d_auto = NO
      end if
@@ -1398,7 +1398,7 @@ Sub LoadSpriteSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
  dat->dissolving = LoadPropBool(node, "dissolving")
  dat->d_type     = bound(LoadProp(node, "d_type"), 0, dissolveTypeMax)
  dat->d_time     = LoadProp(node, "d_time")
- dat->d_tick     = bound(LoadProp(node, "d_tick"), 0, large(dat->d_time, 0))
+ dat->d_tick     = bound(LoadProp(node, "d_tick"), -1, large(dat->d_time + 1, 0))
  dat->d_back     = LoadPropBool(node, "d_back")
  dat->d_auto     = LoadPropBool(node, "d_auto")
 End Sub
@@ -1484,7 +1484,8 @@ Sub DissolveSpriteSlice(byval sl as slice ptr, byval dissolve_type as integer, b
   '(Note that the bounds checking here and in LoadSpriteSlice is bypassed by the slice editor)
   .d_type = bound(dissolve_type, 0, dissolveTypeMax)
   .d_time = over_ticks
-  .d_tick = bound(start_tick, 0, large(over_ticks, 0))
+  'Allow -1 (when backwards) and length+1 so that can set Vapourise and Phase Out animations to a totally blank state.
+  .d_tick = bound(start_tick, -1, large(over_ticks + 1, 0))
   .d_back = backwards <> 0
   .d_auto = auto_animate <> 0
  end with
