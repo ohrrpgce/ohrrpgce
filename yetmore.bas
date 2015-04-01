@@ -3479,7 +3479,7 @@ SELECT CASE as CONST id
   IF retvals(2) = -1 THEN scriptret = found
  CASE 182'--read NPC
   IF bound_arg(retvals(1), 0, 16, "NPCstat: constant") THEN
-   DIM npcid as integer = get_valid_npc_id(retvals(0), 4)
+   DIM npcid as integer = get_valid_npc_id(retvals(0), serrBound)
    IF npcid <> -1 THEN
     scriptret = GetNPCD(npcs(npcid), retvals(1))
    END IF

@@ -1935,7 +1935,7 @@ SUB sfunctions(byval cmdid as integer)
     scriptout = STR(retvals(0))
    CASE 78'--alter NPC
     IF bound_arg(retvals(1), 0, 16, "NPCstat: constant") THEN
-     DIM npcid as integer = get_valid_npc_id(retvals(0), 4)
+     DIM npcid as integer = get_valid_npc_id(retvals(0), serrBound)
      IF npcid <> -1 THEN
       DIM as integer writesafe = 1
       IF retvals(1) = 0 THEN

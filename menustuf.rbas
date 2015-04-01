@@ -2859,7 +2859,6 @@ SUB equip_menu_stat_bonus(byref st as EquipMenuState)
  END IF
 
  'Calculate new total bonuses
- DIM bonuses(statLast) as integer
  hero_total_equipment_bonuses st.who, st.stat_total_bonus()
  FOR i as integer = 0 TO statLast
   st.stat_total_bonus(i) += st.stat_bonus(i)
