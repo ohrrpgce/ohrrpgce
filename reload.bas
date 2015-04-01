@@ -333,7 +333,7 @@ Function LoadNode(byval f as FILE ptr, byval doc as DocPtr, byval force_recursiv
 	
 	ret->namenum = cshort(ReadVLI(f))
 	
-	if ret->namenum < 0 or ret->namenum > doc->numStrings then
+	if ret->namenum < 0 or ret->namenum >= doc->numStrings then
 		debug "Node has invalid name: #" & ret->namenum
 		ret->namenum = 0
 	else
