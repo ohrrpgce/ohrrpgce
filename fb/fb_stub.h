@@ -267,6 +267,21 @@ typedef struct FB_RTLIB_CTX_ {
 
 extern FB_RTLIB_CTX __fb_ctx;
 
+
+// This is a single-dimensional array. Dynamic arrays may have up to 8 dimensions,
+// and simply have more dim*_* members on the end.
+typedef struct _FBARRAY {
+    int *data[1];
+    int *ptr[1];
+    int size;
+    int elen;
+    int dims;
+    int dim1_elemns;
+    int dim1_lbound;
+    int dim1_ubound;
+} FBARRAY;
+
+
 #ifdef __cplusplus
 }
 #endif

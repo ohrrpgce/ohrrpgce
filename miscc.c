@@ -12,6 +12,11 @@
 #include "common.h"
 
 
+// This is here so that FBARRAY gets included in debug info and seen by gdb (it's not used anywhere else)
+extern FBARRAY __dummy_fbarray;
+FBARRAY __dummy_fbarray;
+
+
 //Trying to read errno from FB is unlikely to even link, because it's normally a macro, so this has be in C
 char *get_sys_err_string() {
 	return strerror(errno);
