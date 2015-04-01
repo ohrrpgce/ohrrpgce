@@ -3300,6 +3300,21 @@ SELECT CASE as CONST id
    ' Returns 0 if non-existent
    scriptret = ancestor_script_id(nowscript, retvals(0))
   END IF
+ CASE 595'--running on windows
+  #IFDEF __FB_WIN32__
+   scriptret = 1
+  #ENDIF
+ CASE 596'--running on mac
+  #IFDEF __FB_DARWIN__
+   scriptret = 1
+  #ENDIF
+ CASE 597'--running on linux
+  #IFNDEF __FB_ANDROID__
+   #IFDEF __FB_LINUX__
+    scriptret = 1
+   #ENDIF
+  #ENDIF
+
 
 'old scriptnpc
 

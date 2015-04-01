@@ -134,7 +134,8 @@ WHAT IS NEW?
     * "dissolve sprite", "cancel dissolve", "sprite is dissolving",
       "wait for dissolve" [James]
     * "running on desktop", "running on mobile", "running on console",
-      "show virtual gamepad", "hide virtual gamepad",
+      "running on windows", "running on mac", "running on linux"
+    * "show virtual gamepad", "hide virtual gamepad",
       "auto virtual gamepad" [James]
     * "get horiz align", "get vert align", "get horiz anchor",
       "get vert anchor" [James]

@@ -614,6 +614,9 @@ define function, begin
 592,setscrollcheckdepth,2,0,0 # change a scroll's child-check-depth
 593,getscrollcheckdepth,1,0   # return a scroll's current child-check-depth
 594,scrolltochild,2,0,0       # cause all the children of a Scroll Slice to move until a specific child is in view
+595,runningonwindows,0        # returns true if the device is Windows
+596,runningonmac,0            # returns true if the device is Mac
+597,runningonlinux,0          # returns true if the device is Linux
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

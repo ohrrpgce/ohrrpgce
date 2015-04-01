@@ -6704,7 +6704,22 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 		<command id="runningondesktop">
 			<canon>running on desktop</canon>
 			<shortname>running on desktop</shortname>
-			<description>This command returns true if the game is currently running on any Windows/Mac/Linux computer. You should avoid using this command unless you really need it. Most games will never need this command.</description>
+			<description>This command returns true if the game is currently running on any Windows/Mac/Linux desktop computer. You should avoid using this command unless you really need it. Most games will never need this command.</description>
+		</command>
+		<command id="runningonwindows">
+			<canon>running on Windows</canon>
+			<shortname>running on Windows</shortname>
+			<description>This command returns true if the game is currently running on a Windows computer. You should avoid using this command unless you really need it. Most games will never need this command.</description>
+		</command>
+		<command id="runningonmac">
+			<canon>running on Mac</canon>
+			<shortname>running on Mac</shortname>
+			<description>This command returns true if the game is currently running on a Macintosh computer. You should avoid using this command unless you really need it. Most games will never need this command.</description>
+		</command>
+		<command id="runningonlinux">
+			<canon>running on Linux</canon>
+			<shortname>running on Linux</shortname>
+			<description>This command returns true if the game is currently running on a GNU/Linux desktop computer (not including Android or other non-PC Linux-based OS). You should avoid using this command unless you really need it. Most games will never need this command.</description>
 		</command>
 		<command id="runningonmobile">
 			<canon>running on mobile</canon>
