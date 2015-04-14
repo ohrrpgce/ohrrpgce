@@ -3593,7 +3593,7 @@ FUNCTION touch_virtual_keyboard (default_str as string, max_length as integer=-1
   st.cursor_sl->X = mouse.x
   st.cursor_sl->Y = mouse.y
   IF mouse.buttons AND mouseLeft THEN
-   IF NOT st.down_sl THEN
+   IF st.down_sl = 0 THEN
     st.down_sl = st.hover_sl
    END IF
    st.click = YES
