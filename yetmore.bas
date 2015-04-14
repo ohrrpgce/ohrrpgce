@@ -586,7 +586,16 @@ SELECT CASE as CONST id
   END IF
  CASE 556 '--input string with virtual keyboard (string ID, maxlen, onlyplayer=-1)
   IF valid_plotstr(retvals(0)) THEN
-   plotstr(retvals(0)).s = gamepad_virtual_keyboard(plotstr(retvals(0)).s, retvals(1), retvals(2))
+   'FIXME: probably want to let the game author override the default virtual keyboard method
+   IF running_on_mobile() THEN
+    'Mobile with touchscreen. Player argument ignored for now.
+    hide_virtual_gamepad()
+    plotstr(retvals(0)).s = touch_virtual_keyboard(plotstr(retvals(0)).s, retvals(1))
+    update_virtual_gamepad_display()
+   ELSE
+    'Desktop (arrow keys) and console (d-pad)
+    plotstr(retvals(0)).s = gamepad_virtual_keyboard(plotstr(retvals(0)).s, retvals(1), retvals(2))
+   END IF
   END IF
  CASE 557'--get item description(str,itm)
   scriptret = 0
@@ -2701,12 +2710,7 @@ SELECT CASE as CONST id
   END IF
  CASE 448 '--slice child
   IF valid_plotslice(retvals(0)) THEN
-   DIM sl as Slice Ptr = plotslices(retvals(0))->FirstChild
-   FOR i as integer = 0 TO retvals(1)
-    IF sl = NULL THEN EXIT FOR
-    IF i = retvals(1) THEN scriptret = find_plotslice_handle(sl)
-    sl = sl->NextSibling
-   NEXT
+   scriptret = find_plotslice_handle(SliceChildByIndex_NotForLooping(plotslices(retvals(0)), retvals(1)))
   END IF
  CASE 451 '--set slice clipping
   IF valid_plotslice(retvals(0)) THEN

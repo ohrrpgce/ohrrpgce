@@ -53,6 +53,8 @@ DECLARE SUB sellstuff_refresh(byval last_stuff as integer, byval recordsize as i
 DECLARE SUB sellstuff_infostr(byval ic as integer, info as string, b() as integer, permask() as integer, price() as integer, byval stuff_count as integer, byval recordsize as integer)
 DECLARE SUB status_buildmenu(her as HeroDef, byval pt as integer, mtype() as integer, elementaldmg() as single, elementnames() as string, elementalmenu() as string, elementalmenu_st as MenuState, portrait as GraphicPair)
 
+DECLARE SUB get_virtual_keyboard_buttons (byval sl as Slice Ptr, byref arr as any ptr vector)
+
 SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as integer)
  'shoptype is 0 for items and 1 for heroes
 
@@ -1764,6 +1766,15 @@ SUB ExpandTextItemSlot (code as string, result as string, byval arg0 as ANY ptr=
  END IF
 END SUB
 
+SUB ExpandTextVirtualKeyboard (code as string, result as string, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
+
+ DIM st as VirtualKeyboardScreenState Ptr = CAST(VirtualKeyboardScreenState ptr, arg0)
+
+ SELECT CASE UCASE(code)
+  CASE "PROMPT": result = st->prompt
+ END SELECT
+
+END SUB
 
 '-----------------------------------------------------------------------
 
@@ -1835,6 +1846,7 @@ SUB status_screen (byval slot as integer)
    IF try_rename ANDALSO gam.hero(st.slot).rename_on_status THEN
     '--status-screen rename is allowed
     renamehero st.slot, YES
+    st.need_update = YES
     IF carray(ccMenu) > 1 THEN EXIT DO
    END IF
   END IF
@@ -3421,3 +3433,206 @@ SUB spells_menu_paint (byref sp as SpellsMenuState)
  IF sp.last = 0 THEN edgeprint gam.hero(sp.hero).name & " " & sp.has_none_caption, xstring(gam.hero(sp.hero).name & " " & sp.has_none_caption, 160), 120, uilook(uiText), sp.page
  edgeprint gam.hero(sp.hero).name, xstring(gam.hero(sp.hero).name, 206), 31, uilook(uiText), sp.page
 END SUB
+
+SUB get_virtual_keyboard_buttons (byval sl as Slice Ptr, byref arr as any ptr vector)
+ IF sl = 0 THEN debug "get_virtual_keyboard_buttons null ptr": EXIT SUB
+ DIM ch as Slice Ptr = sl->FirstChild
+ DO WHILE ch
+  IF ch->Lookup = SL_VIRTUAL_KEYBOARD_BUTTON THEN
+   v_append arr, ch
+  ELSEIF ch->Lookup = SL_VIRTUAL_KEYBOARD_ENTER THEN
+   v_append arr, ch
+  ELSEIF ch->Lookup = SL_VIRTUAL_KEYBOARD_DEL THEN
+   v_append arr, ch
+  ELSEIF ch->Lookup = SL_VIRTUAL_KEYBOARD_SHIFT THEN
+   v_append arr, ch
+  ELSEIF ch->Lookup = SL_VIRTUAL_KEYBOARD_SYMBOLS THEN
+   v_append arr, ch
+  ELSEIF ch->Lookup = SL_VIRTUAL_KEYBOARD_SELECT THEN
+   'If this is the select, only explore the active child
+   DIM dat as SelectSliceData Ptr
+   dat = GetSelectSliceData(ch)
+   get_virtual_keyboard_buttons SliceChildByIndex_NotForLooping(ch, dat->index), arr
+  ELSE
+   IF ch->NumChildren > 0 THEN
+    get_virtual_keyboard_buttons ch, arr
+   END IF
+  END IF
+  ch = ch->NextSibling
+ LOOP
+END SUB
+
+SUB virtual_keyboard_button_defocus (byval button as Slice Ptr)
+ IF button THEN
+  IF button->Lookup = SL_VIRTUAL_KEYBOARD_ENTER THEN
+   ChangeRectangleSlice button, , uiLook(uiHighlight2)
+  ELSEIF button->Lookup = SL_VIRTUAL_KEYBOARD_DEL THEN
+   ChangeRectangleSlice button, , uiLook(uiSelectedDisabled)
+  ELSEIF button->Lookup = SL_VIRTUAL_KEYBOARD_SHIFT THEN
+   ChangeRectangleSlice button, , uiLook(uiSelectedDisabled)
+  ELSEIF button->Lookup = SL_VIRTUAL_KEYBOARD_SYMBOLS THEN
+   ChangeRectangleSlice button, , uiLook(uiSelectedDisabled)
+  ELSE
+   ChangeRectangleSlice button, , uiLook(uiMenuItem)
+  END IF
+ END IF
+END SUB
+
+SUB virtual_keyboard_button_focus (byval button as Slice Ptr)
+ IF button THEN
+  IF button->Lookup = SL_VIRTUAL_KEYBOARD_ENTER THEN
+   ChangeRectangleSlice button, , uiLook(uiHighlight)
+  ELSEIF button->Lookup = SL_VIRTUAL_KEYBOARD_DEL THEN
+   ChangeRectangleSlice button, , uiLook(uiDisabledItem)
+  ELSEIF button->Lookup = SL_VIRTUAL_KEYBOARD_SHIFT THEN
+   ChangeRectangleSlice button, , uiLook(uiDisabledItem)
+  ELSEIF button->Lookup = SL_VIRTUAL_KEYBOARD_SYMBOLS THEN
+   ChangeRectangleSlice button, , uiLook(uiDisabledItem)
+  ELSE
+   ChangeRectangleSlice button, , uiLook(uiDisabledItem)
+  END IF
+ END IF
+END SUB
+
+SUB virtual_keyboard_screen_refresh (byref st as VirtualKeyboardScreenState)
+
+ DIM as any ptr vector arr
+ v_new arr
+ get_virtual_keyboard_buttons st.sl, arr
+  
+ st.hover_sl = 0
+ DIM button as Slice Ptr
+ FOR i as integer = 0 TO v_len(arr) - 1
+  button = arr[i]
+  IF st.cursor_sl THEN
+    IF SliceCollide(button, st.cursor_sl) THEN
+     st.hover_sl = button
+     EXIT FOR
+    END IF
+  END IF
+ NEXT i
+
+ v_free arr
+ 
+END SUB
+
+SUB virtual_keyboard_push_button (byref st as VirtualKeyboardScreenState, byval button as Slice Ptr)
+ IF button = 0 THEN EXIT SUB
+ menusound gen(genCursorSFX)
+ SELECT CASE button->Lookup
+  CASE SL_VIRTUAL_KEYBOARD_BUTTON:
+   IF st.max_length = -1 ORELSE LEN(st.result) < st.max_length THEN
+    DIM txt as Slice Ptr
+    txt = LookupSlice(SL_VIRTUAL_KEYBOARD_BUTTONTEXT, button)
+    IF txt THEN
+     DIM dat as TextSliceData Ptr = txt->SliceData
+     st.result &= dat->s
+    END IF
+   END IF
+  CASE SL_VIRTUAL_KEYBOARD_DEL:
+   IF LEN(st.result) > 0 THEN st.result = LEFT(st.result, LEN(st.result) - 1)
+  CASE SL_VIRTUAL_KEYBOARD_ENTER:
+   st.done = YES
+  CASE SL_VIRTUAL_KEYBOARD_SHIFT:
+   IF st.select_sl THEN
+    st.shift = NOT st.shift
+    IF st.shift THEN st.symbols = NO
+    IF st.shift THEN
+     ChangeSelectSlice st.select_sl, 1
+    ELSE
+     ChangeSelectSlice st.select_sl, 0
+    END IF
+   END IF
+  CASE SL_VIRTUAL_KEYBOARD_SYMBOLS:
+   IF st.select_sl THEN
+    st.symbols = NOT st.symbols
+    IF st.symbols THEN st.shift = NO
+    IF st.symbols THEN
+     ChangeSelectSlice st.select_sl, 2
+    ELSE
+     ChangeSelectSlice st.select_sl, 0
+    END IF
+   END IF
+ END SELECT
+END SUB
+
+FUNCTION touch_virtual_keyboard (default_str as string, max_length as integer=-1, prompt as string="") as string
+
+ DIM st as VirtualKeyboardScreenState
+ st.sl = NewSliceOfType(slRoot)
+ st.sl->Fill = YES
+ RefreshSliceScreenPos st.sl
+ st.result = default_str
+ st.max_length = max_length
+ st.prompt = prompt
+
+ load_slice_collection st.sl, SL_COLLECT_VIRTUALKEYBOARDSCREEN
+
+ expand_slice_text_insert_codes st.sl, @ExpandTextVirtualKeyboard, @st
+
+ virtual_keyboard_screen_refresh st
+ st.entry_sl = LookupSlice(SL_VIRTUAL_KEYBOARD_ENTRYTEXT, st.sl)
+ IF st.entry_sl = 0 THEN
+  visible_debug "touch_virtual_keyboard: no text slice has SL_VIRTUAL_KEYBOARD_ENTRYTEXT lookup code"
+ END IF
+ st.select_sl = LookupSlice(SL_VIRTUAL_KEYBOARD_SELECT, st.sl)
+ 
+ st.cursor_sl = NewSliceOfType(slContainer)
+ SetSliceParent st.cursor_sl, st.sl
+ 
+ menusound gen(genAcceptSFX)
+ setkeys
+ DO
+  setwait speedcontrol
+  setkeys
+  control
+
+  virtual_keyboard_button_defocus st.down_sl
+  DIM mouse as MouseInfo
+  mouse = readmouse()
+  st.cursor_sl->X = mouse.x
+  st.cursor_sl->Y = mouse.y
+  IF mouse.buttons AND mouseLeft THEN
+   IF NOT st.down_sl THEN
+    st.down_sl = st.hover_sl
+   END IF
+   st.click = YES
+   st.release = NO
+  ELSE
+   st.release = NO
+   IF st.click THEN
+    st.release = YES
+    virtual_keyboard_push_button st, st.down_sl
+    IF st.done THEN EXIT DO
+   END IF
+   st.click = NO
+   st.down_sl = 0
+  END IF
+  IF st.down_sl <> st.hover_sl THEN
+   st.down_sl = 0
+  END IF
+
+  'IF carray(ccMenu) > 1 THEN EXIT DO
+  'IF carray(ccUse) > 1 THEN
+  'END IF
+  IF keyval(scF8) > 1 THEN
+   slice_editor st.sl
+  END IF
+
+  virtual_keyboard_screen_refresh st
+  virtual_keyboard_button_focus st.down_sl
+  IF st.entry_sl THEN ChangeTextSlice st.entry_sl, st.result
+ 
+  'Draw the screen
+  clearpage vpage
+  DrawSlice st.sl, vpage
+  setvispage vpage
+  dowait
+ LOOP
+ menusound gen(genAcceptSFX)
+
+ DeleteSlice @(st.sl)
+ 
+ RETURN st.result
+END FUNCTION
+

@@ -216,4 +216,21 @@ TYPE LumpReloadOptions
   hsp      as LumpReloadState  '.hash, .dirty ignored
 END TYPE
 
+TYPE VirtualKeyboardScreenState
+ sl as Slice Ptr
+ result as string
+ max_length as integer = -1
+ prompt as string
+ done as bool = NO
+ cursor_sl as Slice Ptr
+ click as bool
+ release as bool
+ hover_sl as Slice Ptr
+ down_sl as Slice Ptr
+ entry_sl as Slice Ptr
+ select_sl as Slice Ptr
+ shift as bool
+ symbols as bool
+END TYPE
+
 #ENDIF

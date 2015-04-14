@@ -1100,10 +1100,16 @@ copypage page, holdscreen
 IF running_on_console() THEN
  'native virtual keyboard does not work on OUYA right now, so do this instead.
  gam.hero(who).name = gamepad_virtual_keyboard(gam.hero(who).name, limit)
-
+ELSEIF running_on_mobile() THEN
+ hide_virtual_gamepad()
+ gam.hero(who).name = touch_virtual_keyboard(gam.hero(who).name, limit, prompt)
+ update_virtual_gamepad_display()
 ELSE
- 'On platforms that need it (currently just Android) show the virtual keyboard.
+ 'On platforms that need it (<s>currently</s> just Android) show the virtual keyboard.
  'This does nothing on platforms that don't need it.
+ '
+ 'FIXME: this is obsoleted by touch_virtual_keyboard() but we may want it again
+ '       in the future when the Android virtual keyboard is working again
  show_virtual_keyboard
 
  '--Wait while the player types a new name

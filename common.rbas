@@ -5608,9 +5608,6 @@ FUNCTION arrowset_from_reload(gamepad as NodePtr) as ArrowSet
  RETURN arr
 END FUNCTION
 
-FUNCTION touch_virtual_keyboard (default_str as string, max_length as integer=-1) as string
-END FUNCTION
-
 FUNCTION gamepad_virtual_keyboard (default_str as string, max_length as integer=-1, byval multi_player as integer=-1) as string
  'multi_player argument determines which set of keys is used.
  '-1 means default keyboard keys

@@ -2938,6 +2938,17 @@ Function SliceColor(byval n as integer) as integer
  debugc errError, "Invalid slice color " & n
 End function
 
+Function SliceChildByIndex_NotForLooping(byval sl as slice ptr, byval index as integer) as Slice Ptr
+ if sl = 0 then debug "SliceChildByIndex_NotForLooping null ptr": return 0
+ dim ch as slice ptr = sl->FirstChild
+ for i as integer = 0 to sl->NumChildren
+  if ch = NULL then exit for
+  if i = index THEN return ch
+  ch = ch->NextSibling
+ next i
+ return 0
+End Function
+
 '==Slice cloning===============================================================
 
 Function CloneSliceTree(byval sl as slice ptr) as slice ptr

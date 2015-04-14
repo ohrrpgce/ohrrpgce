@@ -27,5 +27,6 @@ DECLARE FUNCTION outside_battle_cure (byval atk as integer, byref target as inte
 DECLARE FUNCTION item_can_be_discarded (byval item_id as integer) as bool
 DECLARE FUNCTION item_can_be_used (byval item_id as integer) as bool
 DECLARE SUB inventory_autosort()
+DECLARE FUNCTION touch_virtual_keyboard (default_str as string, max_length as integer=-1, prompt as string="") as string
 
 #endif

@@ -6907,6 +6907,14 @@ sub remap_touchscreen_button (byval button_id as integer, byval ohr_scancode as 
 	io_remap_touchscreen_button(button_id, ohr_scancode)
 end sub
 
+function running_on_desktop() as bool
+#IFDEF __FB_ANDROID__
+	return NO
+#ELSE
+	return YES
+#ENDIF
+end function
+
 function running_on_console() as bool
 	'Currently supports OUYA, GameStick, Fire-TV
 #IFDEF __FB_ANDROID__
