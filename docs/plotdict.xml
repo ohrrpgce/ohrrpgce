@@ -3999,6 +3999,14 @@ lookup slice(sl:spell listlist)
 lookup slice(sl:spell spelllist)
 lookup slice(sl:spell hide if no list)
 lookup slice(sl:spell cancelbutton)
+lookup slice(sl:virtual keyboard button)
+lookup slice(sl:virtual keyboard buttontext)
+lookup slice(sl:virtual keyboard shift)
+lookup slice(sl:virtual keyboard symbols)
+lookup slice(sl:virtual keyboard select)
+lookup slice(sl:virtual keyboard entrytext)
+lookup slice(sl:virtual keyboard del)
+lookup slice(sl:virtual keyboard enter)
 </example>
 			<seealso>
 				<ref>setslicelookup</ref>

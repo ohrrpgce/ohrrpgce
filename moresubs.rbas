@@ -1099,7 +1099,7 @@ copypage page, holdscreen
 
 IF running_on_console() THEN
  'native virtual keyboard does not work on OUYA right now, so do this instead.
- gam.hero(who).name = cheezy_virtual_keyboard(gam.hero(who).name, limit)
+ gam.hero(who).name = gamepad_virtual_keyboard(gam.hero(who).name, limit)
 
 ELSE
  'On platforms that need it (currently just Android) show the virtual keyboard.

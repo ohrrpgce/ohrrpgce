@@ -1780,5 +1780,13 @@ define constant, begin
 -102016, sl:spell spelllist
 -102017, sl:spell hide if no list
 -102018, sl:spell cancelbutton
+-102019, sl:virtual keyboard button
+-102020, sl:virtual keyboard buttontext
+-102021, sl:virtual keyboard shift
+-102022, sl:virtual keyboard symbols
+-102023, sl:virtual keyboard select
+-102024, sl:virtual keyboard entrytext
+-102025, sl:virtual keyboard del
+-102026, sl:virtual keyboard enter
 end
 #</SLICE LOOKUP CODES>

@@ -586,7 +586,7 @@ SELECT CASE as CONST id
   END IF
  CASE 556 '--input string with virtual keyboard (string ID, maxlen, onlyplayer=-1)
   IF valid_plotstr(retvals(0)) THEN
-   plotstr(retvals(0)).s = cheezy_virtual_keyboard(plotstr(retvals(0)).s, retvals(1), retvals(2))
+   plotstr(retvals(0)).s = gamepad_virtual_keyboard(plotstr(retvals(0)).s, retvals(1), retvals(2))
   END IF
  CASE 557'--get item description(str,itm)
   scriptret = 0

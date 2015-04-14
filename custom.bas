@@ -1233,7 +1233,7 @@ FUNCTION handle_dirty_workingdir () as integer
 END FUNCTION
 
 SUB secret_menu ()
- DIM menu(...) as string = {"Reload Editor", "Editor Editor", "Conditions and More Tests", "Transformed Quads", "Sprite editor with arbitrary sizes", "Text tests", "Font tests", "Stat Growth Chart", "Resolution Menu", "Edit Status Screen", "Edit Status Screen Stat Plank", "Edit Item Screen", "Edit Item Screen Item Plank", "Edit Spell Screen", "Edit Spell Screen Spell List Plank", "Edit Spell Screen Spell Plank", "RGFX tests"}
+ DIM menu(...) as string = {"Reload Editor", "Editor Editor", "Conditions and More Tests", "Transformed Quads", "Sprite editor with arbitrary sizes", "Text tests", "Font tests", "Stat Growth Chart", "Resolution Menu", "Edit Status Screen", "Edit Status Screen Stat Plank", "Edit Item Screen", "Edit Item Screen Item Plank", "Edit Spell Screen", "Edit Spell Screen Spell List Plank", "Edit Spell Screen Spell Plank", "RGFX tests", "Edit Virtual Keyboard Screen"}
  DIM st as MenuState
  st.size = 24
  st.last = UBOUND(menu)
@@ -1260,6 +1260,7 @@ SUB secret_menu ()
    IF st.pt = 14 THEN slice_editor SL_COLLECT_SPELLLISTPLANK
    IF st.pt = 15 THEN slice_editor SL_COLLECT_SPELLPLANK
    IF st.pt = 16 THEN new_graphics_tests
+   IF st.pt = 17 THEN slice_editor SL_COLLECT_VIRTUALKEYBOARDSCREEN
   END IF
   usemenu st
   clearpage vpage

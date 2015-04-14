@@ -315,6 +315,14 @@ FUNCTION SliceLookupCodename (byval code as integer) as string
   CASE SL_SPELL_SPELLLIST: RETURN "spell_spelllist"
   CASE SL_SPELL_HIDE_IF_NO_LIST: RETURN "spell_hide_if_no_list"
   CASE SL_SPELL_CANCELBUTTON: RETURN "spell_cancelbutton"
+  CASE SL_VIRTUAL_KEYBOARD_BUTTON: RETURN "virtual_keyboard_button"
+  CASE SL_VIRTUAL_KEYBOARD_BUTTONTEXT: RETURN "virtual_keyboard_buttontext"
+  CASE SL_VIRTUAL_KEYBOARD_SHIFT: RETURN "virtual_keyboard_shift"
+  CASE SL_VIRTUAL_KEYBOARD_SYMBOLS: RETURN "virtual_keyboard_symbols"
+  CASE SL_VIRTUAL_KEYBOARD_SELECT: RETURN "virtual_keyboard_select"
+  CASE SL_VIRTUAL_KEYBOARD_ENTRYTEXT: RETURN "virtual_keyboard_entrytext"
+  CASE SL_VIRTUAL_KEYBOARD_DEL: RETURN "virtual_keyboard_del"
+  CASE SL_VIRTUAL_KEYBOARD_ENTER: RETURN "virtual_keyboard_enter"
 '</SLICE LOOKUP NAMES>
   CASE ELSE
    RETURN STR(code)

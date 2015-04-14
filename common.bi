@@ -267,8 +267,8 @@ DECLARE FUNCTION find_on_word_boundary(haystack as string, needle as string) as 
 
 DECLARE FUNCTION str_rect(s as string, byval x as integer, byval y as integer) as RectType
 
-DECLARE FUNCTION cheezy_virtual_keyboard OVERLOAD (default_str as string, max_length as integer=-1, byval multi_player as integer=-1) as string
-DECLARE FUNCTION cheezy_virtual_keyboard OVERLOAD (arr as ArrowSet, default_str as string, max_length as integer=-1) as string
+DECLARE FUNCTION gamepad_virtual_keyboard OVERLOAD (default_str as string, max_length as integer=-1, byval multi_player as integer=-1) as string
+DECLARE FUNCTION gamepad_virtual_keyboard OVERLOAD (arr as ArrowSet, default_str as string, max_length as integer=-1) as string
 
 DECLARE FUNCTION default_arrowset() as ArrowSet
 DECLARE FUNCTION arrowset_for_multiplayer_gamepad(byval player as integer) as ArrowSet

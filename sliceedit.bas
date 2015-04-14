@@ -45,6 +45,7 @@ CONST kindlimitGRID = 1
 CONST kindlimitSELECT = 2
 CONST kindlimitSPRITE = 3
 CONST kindlimitPLANKSELECTABLE = 4
+CONST kindlimitTEXT = 5
 
 '------------------------------------------------------------------------------
 
@@ -201,6 +202,15 @@ SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval gr
   CASE SL_COLLECT_SPELLPLANK:
    append_specialcode specialcodes(), SL_PLANK_HOLDER, kindlimitANYTHING
    append_specialcode specialcodes(), SL_PLANK_MENU_SELECTABLE, kindlimitPLANKSELECTABLE
+  CASE SL_COLLECT_VIRTUALKEYBOARDSCREEN:
+   append_specialcode specialcodes(), SL_VIRTUAL_KEYBOARD_BUTTON, kindlimitANYTHING
+   append_specialcode specialcodes(), SL_VIRTUAL_KEYBOARD_BUTTONTEXT, kindlimitTEXT
+   append_specialcode specialcodes(), SL_VIRTUAL_KEYBOARD_SELECT, kindlimitSELECT
+   append_specialcode specialcodes(), SL_VIRTUAL_KEYBOARD_ENTRYTEXT, kindlimitTEXT
+   append_specialcode specialcodes(), SL_VIRTUAL_KEYBOARD_SHIFT, kindlimitPLANKSELECTABLE
+   append_specialcode specialcodes(), SL_VIRTUAL_KEYBOARD_SYMBOLS, kindlimitPLANKSELECTABLE
+   append_specialcode specialcodes(), SL_VIRTUAL_KEYBOARD_DEL, kindlimitPLANKSELECTABLE
+   append_specialcode specialcodes(), SL_VIRTUAL_KEYBOARD_ENTER, kindlimitPLANKSELECTABLE
  END SELECT
 END SUB
 
@@ -1283,6 +1293,8 @@ FUNCTION special_code_kindlimit_check(byval kindlimit as integer, byval slicekin
    IF slicekind = slSprite THEN RETURN YES
   CASE kindlimitPLANKSELECTABLE:
    IF slicekind = slText ORELSE slicekind = slRectangle ORELSE slicekind = slSelect THEN RETURN YES
+  CASE kindlimitTEXT:
+   IF slicekind = slText THEN RETURN YES
   CASE ELSE
    debug "Unknown slice lookup code kindlimit constant " & kindlimit
  END SELECT
@@ -1427,6 +1439,8 @@ SUB load_slice_collection (byval sl as Slice Ptr, byval collection_kind as integ
     default_spell_list_plank sl
    CASE SL_COLLECT_SPELLPLANK:
     default_spell_spell_plank sl
+   CASE SL_COLLECT_VIRTUALKEYBOARDSCREEN:
+    default_virtual_keyboard_screen sl
    CASE ELSE
     debug "WARNING: no default slice collection for collection kind " & collection_kind
   END SELECT

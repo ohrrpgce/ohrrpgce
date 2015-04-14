@@ -31,6 +31,8 @@ Function escape_basic_str (byval s as string) as string
     result &= "\"""
    case !"\n" 'A line feed
     result &= "\n"
+   case "\" 'A backslash
+    result &= "\\"
    case else
     result &= ch
   end select

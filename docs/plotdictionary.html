@@ -1832,7 +1832,7 @@
 		<a href="#about-readmapblock">read map block (x,y,layer)</a><br>
 		
 	
-		<a href="#about-readnpc">read NPC (who,NPCstat)</a><br>
+		<a href="#about-readnpc">read NPC (who, NPCstat)</a><br>
 		
 	
 		<a href="#about-readpassblock">read pass block (x,y)</a><br>
@@ -1970,7 +1970,16 @@
 		<a href="#about-runningondesktop">running on desktop</a><br>
 		
 	
+		<a href="#about-runningonlinux">running on Linux</a><br>
+		
+	
+		<a href="#about-runningonmac">running on Mac</a><br>
+		
+	
 		<a href="#about-runningonmobile">running on mobile</a><br>
+		
+	
+		<a href="#about-runningonwindows">running on Windows</a><br>
 		
 	
 		<a href="#about-runscriptbyid">run script by ID (id, argument1, argument2, argument3...)</a><br>
@@ -3000,14 +3009,15 @@ end</pre>
 <a name="about-subscript"></a>
 		<h4>subscript, name, argumentnames (statements)</h4>
 <p>
-			<span class="param">subscript</span> is just like <a href="#about-script" class="ref">script</a> except that it must placed inside another script (or even inside another subscript). See <a href="#about-script" class="ref">script</a> for details of its syntax. The difference from a regular script is that a subscript can only be called from its parent script, and it can directly access its parent script's variables in addition to its own arguments and variables. Subscripts can be useful when you have some piece of repeated code that you want to "de-duplicate" by moving into another script which you can call repeatedly, but without having to turn local variables into global variables.
+			<span class="param">subscript</span> is just like <a href="#about-script" class="ref">script</a> except that it must placed inside another script (or even inside another subscript). See <a href="#about-script" class="ref">script</a> for details of syntax of arguments. The difference from a regular script is that a subscript can only be called from its parent script (or some other subscript), and it can directly access its parent script's variables in addition to its own arguments and variables. Subscripts can be useful when you have some piece of repeated code that you want to "de-duplicate" by moving into another script which you can call repeatedly, but without having to turn local variables into global variables.
 			<pre># Some nearby NPCs move into a line to the north of the hero
-plotscript, line up NPCs, begin
+plotscript, line up soldiers, begin
 	show textbox(32)  # "Yes sir!"
 	wait for textbox
 	suspend player
 	set hero direction(me, up)
 	variable (x, y)
+	# The position of the start of the line
 	x := hero X(me) -- 2
 	y := hero Y(me) -- 4
 	subscript, line up NPC, npc, begin
@@ -3445,7 +3455,7 @@ end</pre>
 <a name="about-do"></a>
 		<h4>do</h4>
 <p>
-			Used to group several statements together. Normally appears after a <a href="#about-while" class="ref">while</a>, <a href="#about-for" class="ref">for</a> or <a href="#about-switch" class="ref">switch</a>.
+			Used to group several statements together. Normally appears after a <a href="#about-while" class="ref">while</a>, <a href="#about-for" class="ref">for</a> or <a href="#about-switch" class="ref">switch</a>. However, <span class="param">do</span> blocks can actually appear by themselves. This is useful if you want to <a href="#about-break" class="ref">break</a> out of them to skip to the end. (<a href="#about-continue" class="ref">continue</a> inside an orphan <span class="param">do</span> block acts just like <span class="param">break</span>.)
 			
 			<div class="seealso">See also: <ul>
 <li>
@@ -3740,6 +3750,18 @@ wait for all # wait until everything is done</pre>
 			
 		</p>
 </div>
+		<div class="command">
+		<h4>wait for slice (handle)</h4>
+		<p><a href="#about-waitforslice">Defined in the Moving Slices section.</a></p>
+		</div>
+		<div class="command">
+		<h4>wait for dissolve (handle)</h4>
+		<p><a href="#about-waitfordissolve">Defined in the Sprite Slices section.</a></p>
+		</div>
+		<div class="command">
+		<h4>wait for sound (num)</h4>
+		<p><a href="#about-waitforsound">Defined in the Sound Effects section.</a></p>
+		</div>
 		<hr>
 		</div>
 		<div class="section" id="Working with Tags">
@@ -4123,6 +4145,10 @@ resume player # OK, done</pre>
 			
 		</p>
 </div>
+		<div class="command">
+		<h4>wait for hero (who)</h4>
+		<p><a href="#about-waitforhero">Defined in the Wait Commands section.</a></p>
+		</div>
 		<div class="command">
 <a name="about-setherodirection"></a>
 		<h4>set hero direction (who, direction)</h4>
@@ -4510,6 +4536,10 @@ end</pre>
 		</p>
 </div>
 		<div class="command">
+		<h4>wait for NPC (who)</h4>
+		<p><a href="#about-waitfornpc">Defined in the Wait Commands section.</a></p>
+		</div>
+		<div class="command">
 <a name="about-setnpcdirection"></a>
 		<h4>set NPC direction (who, direction)</h4>
 <p>
@@ -4857,6 +4887,10 @@ end</pre>
 			
 		</p>
 </div>
+		<div class="command">
+		<h4>wait for camera</h4>
+		<p><a href="#about-waitforcamera">Defined in the Wait Commands section.</a></p>
+		</div>
 		<hr>
 		</div>
 		<div class="section" id="Text Boxes">
@@ -4891,6 +4925,10 @@ resume box advance # go back to normal</pre>
 		</p>
 </div>
 		<div class="command">
+		<h4>wait for text box</h4>
+		<p><a href="#about-waitfortextbox">Defined in the Wait Commands section.</a></p>
+		</div>
+		<div class="command">
 <a name="about-currenttextbox"></a>
 		<h4>current text box</h4>
 <p>
@@ -4903,7 +4941,10 @@ resume box advance # go back to normal</pre>
 <a name="about-stringfromtextbox"></a>
 		<h4>string from textbox (ID, textbox, line, ignored)</h4>
 <p>
-			Loads one of the <span class="param">line</span>s of a <span class="param">textbox</span> into a string <span class="param">ID</span>. Valid numbers for <span class="param">line</span> are 0-7. This command is obsolete and exists only for compatibility with old games: It has been replaced with <a href="#about-textboxline" class="ref">textbox line</a>. The fourth argument does nothing. Trailing and leading whitespace is stripped from the line, and embedded codes like ${H1} in the string are automatically substituted.
+			Loads one of the <span class="param">line</span>s of a <span class="param">textbox</span> into a string <span class="param">ID</span>. Valid numbers for <span class="param">line</span> are 0-7. Trailing and leading whitespace is stripped from the line, and embedded codes like ${H1} in the string are automatically substituted.
+			<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">This command is obsolete and exists only for compatibility with old games: It has been replaced with <a href="#about-textboxline" class="ref">textbox line</a>. The fourth argument does nothing.<br clear="all">
+</div>
 			
 			<div class="seealso">See also: <ul>
 <li>
@@ -6873,7 +6914,7 @@ end</pre>
 </div>
 		<div class="command">
 <a name="about-readnpc"></a>
-		<h4>read NPC (who,NPCstat)</h4>
+		<h4>read NPC (who, NPCstat)</h4>
 <p>
 			Returns data such as picture, palette, walking speed, text box, etc. for an NPC. Use the same constants as <a href="#about-alternpc" class="ref">alter NPC</a>. <div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">If you use this command to read the give item number, the result is offset + 1. A zero means no item.<br clear="all">
@@ -7520,6 +7561,9 @@ end
 <li>joy:y up</li>
 <li>joy:y down</li>
 </ul>
+<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Previously it was necessary to <span class="param">include, scancode.hsi</span> to use the <span class="param">key:</span> constants, but no longer.<br clear="all">
+</div>
 
 			
 			<div class="seealso">See also: <ul><li><a href="#about-keyval" class="ref">keyval</a></li></ul>
@@ -9273,6 +9317,14 @@ lookup slice(sl:spell listlist)
 lookup slice(sl:spell spelllist)
 lookup slice(sl:spell hide if no list)
 lookup slice(sl:spell cancelbutton)
+lookup slice(sl:virtual keyboard button)
+lookup slice(sl:virtual keyboard buttontext)
+lookup slice(sl:virtual keyboard shift)
+lookup slice(sl:virtual keyboard symbols)
+lookup slice(sl:virtual keyboard select)
+lookup slice(sl:virtual keyboard entrytext)
+lookup slice(sl:virtual keyboard del)
+lookup slice(sl:virtual keyboard enter)
 </pre>
 			<div class="seealso">See also: <ul>
 <li>
@@ -13735,7 +13787,34 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 <a name="about-runningondesktop"></a>
 		<h4>running on desktop</h4>
 <p>
-			This command returns true if the game is currently running on any Windows/Mac/Linux computer. You should avoid using this command unless you really need it. Most games will never need this command.
+			This command returns true if the game is currently running on any Windows/Mac/Linux desktop computer. You should avoid using this command unless you really need it. Most games will never need this command.
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-runningonwindows"></a>
+		<h4>running on Windows</h4>
+<p>
+			This command returns true if the game is currently running on a Windows computer. You should avoid using this command unless you really need it. Most games will never need this command.
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-runningonmac"></a>
+		<h4>running on Mac</h4>
+<p>
+			This command returns true if the game is currently running on a Macintosh computer. You should avoid using this command unless you really need it. Most games will never need this command.
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-runningonlinux"></a>
+		<h4>running on Linux</h4>
+<p>
+			This command returns true if the game is currently running on a GNU/Linux desktop computer (not including Android or other non-PC Linux-based OS). You should avoid using this command unless you really need it. Most games will never need this command.
 			
 			
 		</p>
@@ -14340,7 +14419,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 817 commands in this file, of which 57 are only references to other commands.</p>
+<p>Stats: There are 820 commands in this file, of which 57 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
