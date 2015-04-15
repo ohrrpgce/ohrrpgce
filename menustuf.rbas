@@ -3434,6 +3434,8 @@ SUB spells_menu_paint (byref sp as SpellsMenuState)
  edgeprint gam.hero(sp.hero).name, xstring(gam.hero(sp.hero).name, 206), 31, uilook(uiText), sp.page
 END SUB
 
+'-----------------------------------------------------------------------
+
 SUB get_virtual_keyboard_buttons (byval sl as Slice Ptr, byref arr as any ptr vector)
  IF sl = 0 THEN debug "get_virtual_keyboard_buttons null ptr": EXIT SUB
  DIM ch as Slice Ptr = sl->FirstChild
@@ -3460,6 +3462,11 @@ SUB get_virtual_keyboard_buttons (byval sl as Slice Ptr, byref arr as any ptr ve
   END IF
   ch = ch->NextSibling
  LOOP
+END SUB
+
+SUB virtual_keyboard_refresh_array (byref st as VirtualKeyboardScreenState)
+ v_new st.arr
+ get_virtual_keyboard_buttons st.sl, st.arr
 END SUB
 
 SUB virtual_keyboard_button_defocus (byval button as Slice Ptr)
@@ -3494,27 +3501,18 @@ SUB virtual_keyboard_button_focus (byval button as Slice Ptr)
  END IF
 END SUB
 
-SUB virtual_keyboard_screen_refresh (byref st as VirtualKeyboardScreenState)
-
- DIM as any ptr vector arr
- v_new arr
- get_virtual_keyboard_buttons st.sl, arr
+FUNCTION virtual_keyboard_button_at_pos (byref st as VirtualKeyboardScreenState, byval x as integer, byval y as integer) as Slice Ptr
   
- st.hover_sl = 0
  DIM button as Slice Ptr
- FOR i as integer = 0 TO v_len(arr) - 1
-  button = arr[i]
-  IF st.cursor_sl THEN
-    IF SliceCollide(button, st.cursor_sl) THEN
-     st.hover_sl = button
-     EXIT FOR
-    END IF
+ FOR i as integer = 0 TO v_len(st.arr) - 1
+  button = st.arr[i]
+  IF SliceCollidePoint(button, x, y) THEN
+   RETURN button
   END IF
  NEXT i
+ RETURN 0
 
- v_free arr
- 
-END SUB
+END FUNCTION
 
 SUB virtual_keyboard_push_button (byref st as VirtualKeyboardScreenState, byval button as Slice Ptr)
  IF button = 0 THEN EXIT SUB
@@ -3542,6 +3540,7 @@ SUB virtual_keyboard_push_button (byref st as VirtualKeyboardScreenState, byval 
     ELSE
      ChangeSelectSlice st.select_sl, 0
     END IF
+    virtual_keyboard_refresh_array st
    END IF
   CASE SL_VIRTUAL_KEYBOARD_SYMBOLS:
    IF st.select_sl THEN
@@ -3552,8 +3551,24 @@ SUB virtual_keyboard_push_button (byref st as VirtualKeyboardScreenState, byval 
     ELSE
      ChangeSelectSlice st.select_sl, 0
     END IF
+    virtual_keyboard_refresh_array st
    END IF
  END SELECT
+END SUB
+
+SUB virtual_keyboard_display_refresh (byref st as VirtualKeyboardScreenState)
+ IF st.entry_sl THEN ChangeTextSlice st.entry_sl, st.result
+
+ DIM button as Slice Ptr
+ FOR i as integer = 0 TO v_len(st.arr) - 1
+  button = st.arr[i]
+  IF st.pushed_sl <> 0 ANDALSO st.pushed_sl = button THEN
+   virtual_keyboard_button_focus button
+  ELSE
+   virtual_keyboard_button_defocus button
+  END IF
+ NEXT i
+
 END SUB
 
 FUNCTION touch_virtual_keyboard (default_str as string, max_length as integer=-1, prompt as string="") as string
@@ -3567,19 +3582,15 @@ FUNCTION touch_virtual_keyboard (default_str as string, max_length as integer=-1
  st.prompt = prompt
 
  load_slice_collection st.sl, SL_COLLECT_VIRTUALKEYBOARDSCREEN
-
  expand_slice_text_insert_codes st.sl, @ExpandTextVirtualKeyboard, @st
+ virtual_keyboard_refresh_array st
 
- virtual_keyboard_screen_refresh st
  st.entry_sl = LookupSlice(SL_VIRTUAL_KEYBOARD_ENTRYTEXT, st.sl)
  IF st.entry_sl = 0 THEN
   visible_debug "touch_virtual_keyboard: no text slice has SL_VIRTUAL_KEYBOARD_ENTRYTEXT lookup code"
  END IF
  st.select_sl = LookupSlice(SL_VIRTUAL_KEYBOARD_SELECT, st.sl)
- 
- st.cursor_sl = NewSliceOfType(slContainer)
- SetSliceParent st.cursor_sl, st.sl
- 
+  
  menusound gen(genAcceptSFX)
  setkeys
  DO
@@ -3587,29 +3598,27 @@ FUNCTION touch_virtual_keyboard (default_str as string, max_length as integer=-1
   setkeys
   control
 
-  virtual_keyboard_button_defocus st.down_sl
   DIM mouse as MouseInfo
   mouse = readmouse()
-  st.cursor_sl->X = mouse.x
-  st.cursor_sl->Y = mouse.y
+  
   IF mouse.buttons AND mouseLeft THEN
-   IF st.down_sl = 0 THEN
-    st.down_sl = st.hover_sl
+   IF st.pushed_sl = 0 THEN
+    IF NOT st.drag_off THEN
+     st.pushed_sl = virtual_keyboard_button_at_pos(st, mouse.x, mouse.y)
+    END IF
+   ELSE
+    IF st.pushed_sl <> 0 ANDALSO st.pushed_sl <> virtual_keyboard_button_at_pos(st, mouse.x, mouse.y) THEN
+     st.drag_off = YES
+     st.pushed_sl = 0
+    END IF
    END IF
-   st.click = YES
-   st.release = NO
   ELSE
-   st.release = NO
-   IF st.click THEN
-    st.release = YES
-    virtual_keyboard_push_button st, st.down_sl
+   st.drag_off = NO
+   IF st.pushed_sl <> 0 THEN
+    virtual_keyboard_push_button st, st.pushed_sl
     IF st.done THEN EXIT DO
    END IF
-   st.click = NO
-   st.down_sl = 0
-  END IF
-  IF st.down_sl <> st.hover_sl THEN
-   st.down_sl = 0
+   st.pushed_sl = 0
   END IF
 
   'IF carray(ccMenu) > 1 THEN EXIT DO
@@ -3619,9 +3628,7 @@ FUNCTION touch_virtual_keyboard (default_str as string, max_length as integer=-1
    slice_editor st.sl
   END IF
 
-  virtual_keyboard_screen_refresh st
-  virtual_keyboard_button_focus st.down_sl
-  IF st.entry_sl THEN ChangeTextSlice st.entry_sl, st.result
+  virtual_keyboard_display_refresh st
  
   'Draw the screen
   clearpage vpage
@@ -3631,6 +3638,7 @@ FUNCTION touch_virtual_keyboard (default_str as string, max_length as integer=-1
  LOOP
  menusound gen(genAcceptSFX)
 
+ v_free st.arr
  DeleteSlice @(st.sl)
  
  RETURN st.result

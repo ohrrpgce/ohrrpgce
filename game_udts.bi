@@ -222,15 +222,13 @@ TYPE VirtualKeyboardScreenState
  max_length as integer = -1
  prompt as string
  done as bool = NO
- cursor_sl as Slice Ptr
- click as bool
- release as bool
- hover_sl as Slice Ptr
- down_sl as Slice Ptr
  entry_sl as Slice Ptr
  select_sl as Slice Ptr
  shift as bool
  symbols as bool
+ arr as any ptr vector
+ pushed_sl as Slice Ptr
+ drag_off as bool
 END TYPE
 
 #ENDIF
