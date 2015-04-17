@@ -50,7 +50,6 @@ EXTERN onetime() as integer
 EXTERN vstate as VehicleState
 
 'Hero globals
-EXTERN stat() as integer
 EXTERN eqstuf() as integer
 EXTERN lmp() as integer
 EXTERN spell() as integer
