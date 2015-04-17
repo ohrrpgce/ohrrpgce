@@ -582,7 +582,7 @@ DO
   DO
   IF readbit(gen(), genBits2, 4) THEN
    '--If this bit is set, we refuse to reorder locked heroes
-   IF gam.hero(st.party.pt).locked ORELSE (st.swapme >= 0 ANDALSO gam.hero(st.swapme).locked) THEN
+   IF (gam.hero(st.party.pt).locked ANDALSO gam.hero(st.party.pt).id >= 0) ORELSE (st.swapme >= 0 ANDALSO gam.hero(st.swapme).locked ANDALSO gam.hero(st.swapme).id >= 0) THEN
     MenuSound gen(genCancelSFX)
     EXIT DO
    END IF
@@ -600,10 +600,10 @@ DO
    DIM swap2 as integer
    DO
     IF st.swapme < 4 THEN
-     IF (herocount() <= 1 ANDALSO st.reserve.pt = st.reserve.last) ORELSE (gam.hero(st.swapme).locked ANDALSO st.reserve.pt > -1) THEN EXIT DO
+     IF (herocount() <= 1 ANDALSO st.reserve.pt = st.reserve.last) ORELSE (gam.hero(st.swapme).locked ANDALSO gam.hero(st.swapme).id >= 0 ANDALSO st.reserve.pt > -1) THEN EXIT DO
     ELSE
      IF st.swapme - 4 = st.reserve.last AND st.reserve.pt = -1 AND herocount() <= 1 THEN EXIT DO
-     IF gam.hero(st.party.pt).locked AND st.reserve.pt = -1 THEN EXIT DO
+     IF gam.hero(st.party.pt).locked ANDALSO gam.hero(st.party.pt).id >= 0 ANDALSO st.reserve.pt = -1 THEN EXIT DO
     END IF
     '---IDENTIFY DESTINATION---
     IF st.reserve.pt < 0 THEN
@@ -664,13 +664,15 @@ SUB hero_swap_menu_display (st as OrderTeamState)
   FOR i as integer = st.reserve.top TO small(st.reserve.top + 7, st.reserve.last)
    'Some of the colours are a bit bizarre, here, especially the time bar stuff below
    DIM menu_color as integer = uilook(uiMenuItem)
-   IF st.swapme = i + 4 THEN menu_color = uilook(uiSelectedDisabled) '6
+   IF st.swapme = i + 4 THEN menu_color = uilook(uiSelectedDisabled)
    IF st.reserve.pt = i THEN
     menu_color = uilook(uiSelectedItem + st.party.tog)
-    IF st.swapme = i + 4 THEN menu_color = uilook(uiSelectedDisabled + st.party.tog) '6 + 8 * st.party.tog
+    IF st.swapme = i + 4 THEN menu_color = uilook(uiSelectedDisabled + st.party.tog)
    END IF
    IF st.swapme > -1 AND st.swapme < 4 THEN
-    IF (herocount() <= 1 ANDALSO i = st.reserve.last) ORELSE gam.hero(st.party.pt).locked THEN menu_color = uilook(uiTimeBar + ((st.reserve.pt = i) * st.party.tog)) '8 + ((st.reserve.pt = i) * st.party.tog)
+    IF (herocount() <= 1 ANDALSO i = st.reserve.last) ORELSE (gam.hero(st.party.pt).locked ANDALSO gam.hero(st.party.pt).id >= 0) THEN
+     menu_color = uilook(uiTimeBar + ((st.reserve.pt = i) * st.party.tog))
+    END IF
    END IF
    edgeprint st.swname(i), xstring(st.swname(i), 160), 100 + (i - st.reserve.top) * 10, menu_color, st.page
   NEXT i
