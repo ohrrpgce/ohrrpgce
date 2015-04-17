@@ -1579,7 +1579,7 @@ FUNCTION distribute_party_experience (byval exper as integer) as integer
     IF i <= 3 THEN
      'active party
      xp_mult(i) = 1.0
-    ELSEIF readbit(hmask(), 0, i) THEN
+    ELSEIF gam.hero(i).locked THEN
      'hero is in reserve, locked
      xp_mult(i) = gen(genLockedReserveXP) / 100.0
     ELSE

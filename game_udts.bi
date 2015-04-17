@@ -24,6 +24,7 @@ END TYPE
 TYPE HeroState
  id as integer = -1 ' set to -1 for empty slots
  name as string
+ locked as bool
  stat as HeroStats
  lev as integer
  lev_gain as integer

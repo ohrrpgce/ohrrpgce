@@ -91,12 +91,12 @@ END IF '---end if < 0
 '---UNLOCK HERO---
 IF box.hero_lock > 0 THEN
  DIM heroat as integer = findhero(box.hero_lock, 0, 40, 1)
- IF heroat > -1 THEN setbit hmask(), 0, heroat, 0
+ IF heroat > -1 THEN gam.hero(heroat).locked = NO
 END IF '---end if > 0
 '---LOCK HERO---
 IF box.hero_lock < 0 THEN
  DIM heroat as integer = findhero(-box.hero_lock, 0, 40, 1)
- IF heroat > -1 THEN setbit hmask(), 0, heroat, 1
+ IF heroat > -1 THEN gam.hero(heroat).locked = YES
 END IF '---end if > 0
 
 '--indirect effects
@@ -1246,10 +1246,10 @@ SELECT CASE as CONST id
   scriptret = 4 - herocount(3)
  CASE 71'--lock hero
   DIM hero_slot as integer = findhero(retvals(0) + 1, 0, 40, 1)
-  IF hero_slot > -1 THEN setbit hmask(), 0, hero_slot, 1
+  IF hero_slot > -1 THEN gam.hero(hero_slot).locked = YES
  CASE 72'--unlock hero
   DIM hero_slot as integer = findhero(retvals(0) + 1, 0, 40, 1)
-  IF hero_slot > -1 THEN setbit hmask(), 0, hero_slot, 0
+  IF hero_slot > -1 THEN gam.hero(hero_slot).locked = NO
  CASE 74'--set death script
   gen(genGameoverScript) = large(retvals(0), 0)
  CASE 75'--fade screen out

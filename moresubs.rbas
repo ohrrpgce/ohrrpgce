@@ -103,7 +103,7 @@ FOR i as integer = slot * 6 TO slot * 6 + 5
 NEXT
 
 '--heros are added unlocked
-setbit hmask(), 0, who - 1, 0
+gam.hero(slot).locked = NO
 
 '--appearance settings
 ' udts are self documenting
@@ -357,11 +357,6 @@ END SUB
 
 SUB doswap (byval s as integer, byval d as integer)
 
-'---swap hmask (bitsets which tell which heros are locked)
-DIM a as integer = readbit(hmask(), 0, d)
-setbit hmask(), 0, d, readbit(hmask(), 0, s)
-setbit hmask(), 0, s, a
-
 '---Spell lists
 FOR i as integer = 0 TO 3
  FOR o as integer = 0 TO 23
@@ -587,7 +582,7 @@ DO
   DO
   IF readbit(gen(), genBits2, 4) THEN
    '--If this bit is set, we refuse to reorder locked heroes
-   IF readbit(hmask(), 0, st.party.pt) ORELSE (st.swapme >= 0 ANDALSO readbit(hmask(), 0, st.swapme)) THEN
+   IF gam.hero(st.party.pt).locked ORELSE (st.swapme >= 0 ANDALSO gam.hero(st.swapme).locked) THEN
     MenuSound gen(genCancelSFX)
     EXIT DO
    END IF
@@ -605,10 +600,10 @@ DO
    DIM swap2 as integer
    DO
     IF st.swapme < 4 THEN
-     IF (herocount() <= 1 ANDALSO st.reserve.pt = st.reserve.last) OR (readbit(hmask(), 0, st.swapme) AND st.reserve.pt > -1) THEN EXIT DO
+     IF (herocount() <= 1 ANDALSO st.reserve.pt = st.reserve.last) ORELSE (gam.hero(st.swapme).locked ANDALSO st.reserve.pt > -1) THEN EXIT DO
     ELSE
      IF st.swapme - 4 = st.reserve.last AND st.reserve.pt = -1 AND herocount() <= 1 THEN EXIT DO
-     IF readbit(hmask(), 0, st.party.pt) AND st.reserve.pt = -1 THEN EXIT DO
+     IF gam.hero(st.party.pt).locked AND st.reserve.pt = -1 THEN EXIT DO
     END IF
     '---IDENTIFY DESTINATION---
     IF st.reserve.pt < 0 THEN
@@ -675,7 +670,7 @@ SUB hero_swap_menu_display (st as OrderTeamState)
     IF st.swapme = i + 4 THEN menu_color = uilook(uiSelectedDisabled + st.party.tog) '6 + 8 * st.party.tog
    END IF
    IF st.swapme > -1 AND st.swapme < 4 THEN
-    IF (herocount() <= 1 AND i = st.reserve.last) OR readbit(hmask(), 0, st.party.pt) THEN menu_color = uilook(uiTimeBar + ((st.reserve.pt = i) * st.party.tog)) '8 + ((st.reserve.pt = i) * st.party.tog)
+    IF (herocount() <= 1 ANDALSO i = st.reserve.last) ORELSE gam.hero(st.party.pt).locked THEN menu_color = uilook(uiTimeBar + ((st.reserve.pt = i) * st.party.tog)) '8 + ((st.reserve.pt = i) * st.party.tog)
    END IF
    edgeprint st.swname(i), xstring(st.swname(i), 160), 100 + (i - st.reserve.top) * 10, menu_color, st.page
   NEXT i
@@ -691,7 +686,7 @@ SUB hero_swap_menu_init(st as OrderTeamState)
  st.reserve.last = -1
  st.size.y = 0
  FOR i as integer = 4 TO 40
-  IF readbit(hmask(), 0, i) = 0 AND gam.hero(i).id >= 0 THEN
+  IF gam.hero(i).locked = NO ANDALSO gam.hero(i).id >= 0 THEN
    st.reserve.last = st.reserve.last + 1
    st.swindex(st.reserve.last) = i
    st.swname(st.reserve.last) = gam.hero(i).name
@@ -1177,6 +1172,7 @@ flusharray tag()
 flusharray onetime()
 FOR i as integer = 0 TO 40
  gam.hero(i).id = -1
+ gam.hero(i).locked = NO
  FOR j as integer = 0 TO statLast
   gam.hero(i).stat.cur.sta(j) = 0
   gam.hero(i).stat.max.sta(j) = 0
@@ -1227,14 +1223,11 @@ FOR i as integer = 0 TO 40
  NEXT o
 NEXT i
 
-'RECORD 2 (applies only to saves)
-
 FOR i as integer = 0 TO 99
  FOR o as integer = 0 TO 49
   gam.stock(i, o) = 0 'default of 0 means "unloaded". The actual value will be populated when you first visit the shop
  NEXT o
 NEXT i
-flusharray hmask()
 flusharray global(), maxScriptGlobals, 0
 reset_vehicle vstate
 cleanup_text_box

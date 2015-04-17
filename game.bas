@@ -143,7 +143,6 @@ REDIM itemtags(maxMaxItems) as ItemTagsCache
 REDIM spell(40, 3, 23) as integer
 REDIM lmp(40, 7) as integer
 REDIM eqstuf(40, 4) as integer
-REDIM hmask(2) as integer  '41 bits
 
 'Hero walkabout (caterpillar) data
 'Noninterpolated

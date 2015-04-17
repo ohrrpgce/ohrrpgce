@@ -54,7 +54,6 @@ EXTERN stat() as integer
 EXTERN eqstuf() as integer
 EXTERN lmp() as integer
 EXTERN spell() as integer
-EXTERN hmask() as integer
 
 'Map state globals
 EXTERN gmap() as integer
