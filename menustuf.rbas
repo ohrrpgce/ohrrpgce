@@ -134,6 +134,11 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
    buyst.selected = menu.items[st.pt]->dataptr
    buyst.curslot = menu.items[st.pt]->sub_t
   END IF
+
+  IF keyval(scF8) > 1 THEN
+   slice_editor buyst.root_sl
+   st.need_update = YES
+  END IF
   
   IF carray(ccMenu) > 1 THEN EXIT DO
 
