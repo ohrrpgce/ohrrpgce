@@ -3956,7 +3956,7 @@ END SUB
 
 SUB check_map_count
  DIM maplumps(...) as string = {"t", "p", "e", "l", "n", "d"}
- DIM maplumptypes(...) as string = {"tilemap", "passmap", "foemap", "NPC locations", "NPC definitions", "door links"}
+ DIM maplumptypes(...) as string = {"tilemap", "passmap", "foemap", "NPC instances", "NPC definitions", "door links"}
  'Zonemaps are optional due to being added later
 
  DIM oldmapmax as integer = gen(genMaxMap)

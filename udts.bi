@@ -346,7 +346,7 @@ TYPE NPCType
   pal as palette16 ptr
 END TYPE
 
-'Don't forget to update CleanNPCL and load/save_npc_locations when adding to this
+'Don't forget to update CleanNPCL and load/save_npc_instances when adding to this
 TYPE NPCInst
   sl as SliceFwd Ptr
   '--stored values

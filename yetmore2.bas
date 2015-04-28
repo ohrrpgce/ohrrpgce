@@ -504,7 +504,7 @@ END SUB
 
 SUB savemapstate_npcl(mapnum as integer, prefix as string)
  DIM filename as string = mapstatetemp(mapnum, prefix) & "_l.reld.tmp"
- save_npc_locations filename, npc()
+ save_npc_instances filename, npc()
 END SUB
 
 SUB savemapstate_npcd(mapnum as integer, prefix as string)
@@ -579,7 +579,7 @@ SUB loadmapstate_npcl (mapnum as integer, prefix as string, dontfallback as bool
   EXIT SUB
  END IF
 
- load_npc_locations filename, npc()
+ load_npc_instances filename, npc()
 
  '--Evaluate whether NPCs should appear or disappear based on tags
  visnpc
@@ -1572,7 +1572,7 @@ SUB LPM_update (menu1 as MenuDef, st1 as MenuState, tooltips() as string)
    LPM_append_reload_mode_item menu1, tooltips(), "wallmap", .passmap, 12
    LPM_append_reload_mode_item menu1, tooltips(), "foemap", .foemap, 13
    LPM_append_reload_mode_item menu1, tooltips(), "zonemap", .zonemap, 14
-   LPM_append_reload_mode_item menu1, tooltips(), "npc locations", .npcl, 15
+   LPM_append_reload_mode_item menu1, tooltips(), "npc instances", .npcl, 15
    LPM_append_reload_mode_item menu1, tooltips(), "npc defs.", .npcd, 16
    LPM_append_reload_mode_item menu1, tooltips(), "scripts", .hsp, 17
    tooltips(UBOUND(tooltips)) += " (Read Help file!)"
@@ -1582,7 +1582,7 @@ SUB LPM_update (menu1 as MenuDef, st1 as MenuState, tooltips() as string)
   LPM_append_force_reload_item menu1, tooltips(), "wallmap", .passmap, 102
   LPM_append_force_reload_item menu1, tooltips(), "foemap", .foemap, 103
   LPM_append_force_reload_item menu1, tooltips(), "zones", .zonemap, 104
-  LPM_append_force_reload_item menu1, tooltips(), "npc locations", .npcl, 105, YES  'NPCL is virtually always dirty
+  LPM_append_force_reload_item menu1, tooltips(), "npc instances", .npcl, 105, YES  'NPCL is virtually always dirty
   LPM_append_force_reload_item menu1, tooltips(), "npc definitions", .npcd, 106
 
   LPM_append_force_reload_item menu1, tooltips(), "scripts", .hsp, 110

@@ -296,40 +296,40 @@ SUB CleanNPCL(dat() as NPCInst)
   NEXT
 END SUB
 
-SUB save_npc_locations(filename as string, npc() as NPCInst)
+SUB save_npc_instances(filename as string, npc() as NPCInst)
  DIM doc as DocPtr
  doc = CreateDocument()
  
  DIM node as NodePtr
  node = CreateNode(doc, "npcs")
  SetRootNode(doc, node)
- save_npc_locations node, npc()
+ save_npc_instances node, npc()
  
  SerializeBin filename, doc
  
  FreeDocument doc
 END SUB
 
-SUB save_npc_locations(byval npcs_node as NodePtr, npc() as NPCInst)
+SUB save_npc_instances(byval npcs_node as NodePtr, npc() as NPCInst)
  IF NumChildren(npcs_node) <> 0 THEN
-  debug "WARNING: saving NPC locations to a Reload node that already has " & NumChildren(npcs_node) & " children!"
+  debug "WARNING: saving NPC instances to a Reload node that already has " & NumChildren(npcs_node) & " children!"
  END IF
  FOR i as integer = 0 TO UBOUND(npc)
   WITH npc(i)
    IF .id <> 0 THEN 'FIXME: When the "save" node is fully supported it will be main the criteria that determines if a node is written
-    save_npc_loc npcs_node, i, npc(i)
+    save_npc_instance npcs_node, i, npc(i)
    END IF
   END WITH  
  NEXT i
 END SUB
 
-SUB save_npc_loc (byval parent as NodePtr, byval index as integer, npc as NPCInst)
+SUB save_npc_instance (byval parent as NodePtr, byval index as integer, npc as NPCInst)
  'Map offset does not need to be used when saving temporary npc states
  DIM map_offset as XYPair
- save_npc_loc parent, index, npc, map_offset
+ save_npc_instance parent, index, npc, map_offset
 END SUB
 
-SUB save_npc_loc (byval parent as NodePtr, byval index as integer, npc as NPCInst, map_offset as XYPair)
+SUB save_npc_instance (byval parent as NodePtr, byval index as integer, npc as NPCInst, map_offset as XYPair)
  DIM n as NodePtr
  n = AppendChildNode(parent, "npc", index)
  WITH npc
@@ -352,9 +352,9 @@ SUB save_npc_loc (byval parent as NodePtr, byval index as integer, npc as NPCIns
  END WITH
 END SUB
 
-SUB load_npc_locations (filename as string, npc() as NPCInst)
+SUB load_npc_instances (filename as string, npc() as NPCInst)
  IF NOT isfile(filename) THEN
-  debug "load_npc_locations: file doesn't exist: '" & filename & "'"
+  debug "load_npc_instances: file doesn't exist: '" & filename & "'"
   EXIT SUB
  END IF
 
@@ -364,14 +364,14 @@ SUB load_npc_locations (filename as string, npc() as NPCInst)
  DIM node as NodePtr
  node = DocumentRoot(doc)
  
- load_npc_locations node, npc()
+ load_npc_instances node, npc()
  
  FreeDocument doc
 END SUB
 
-SUB load_npc_locations (byval npcs_node as NodePtr, npc() as NPCInst)
+SUB load_npc_instances (byval npcs_node as NodePtr, npc() as NPCInst)
  IF NodeName(npcs_node) <> "npcs" THEN
-  debug "WARNING: load_npc_locations expected a node named 'npcs' but found '" & NodeName(npcs_node) & "' instead."
+  debug "WARNING: load_npc_instances expected a node named 'npcs' but found '" & NodeName(npcs_node) & "' instead."
  END IF
  FOR i as integer = 0 TO UBOUND(npc)
   '--disable/hide this NPC by default
@@ -380,20 +380,20 @@ SUB load_npc_locations (byval npcs_node as NodePtr, npc() as NPCInst)
   DIM n as NodePtr
   n = NodeByPath(npcs_node, "/npc[" & i & "]")
   IF n THEN
-   load_npc_loc n, npc(i)
+   load_npc_instance n, npc(i)
   END IF
  NEXT i
 END SUB
 
-SUB load_npc_loc (byval n as NodePtr, npc as NPCInst)
+SUB load_npc_instance (byval n as NodePtr, npc as NPCInst)
  'Map offset does not need to be used when loading temporary npc states
  DIM map_offset as XYPair
- load_npc_loc n, npc, map_offset
+ load_npc_instance n, npc, map_offset
 END SUB
 
-SUB load_npc_loc (byval n as NodePtr, npc as NPCInst, map_offset as XYPair)
+SUB load_npc_instance (byval n as NodePtr, npc as NPCInst, map_offset as XYPair)
  IF NodeName(n) <> "npc" THEN
-  debug "load_npc_loc: loading npc location data into a node named """ & NodeName(n) & """"
+  debug "load_npc_instance: loading npc data into a node misnamed """ & NodeName(n) & """"
  END IF
  IF GetChildNodeExists(n, "id") THEN
   'FIXME: this would be a good place to read the edit count property

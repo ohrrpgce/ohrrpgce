@@ -471,7 +471,7 @@ SUB gamestate_npcs_from_reload(byval node as Reload.NodePtr, byval map as intege
    i = GetInteger(n)
    SELECT CASE i
     CASE 0 TO UBOUND(npc)
-     load_npc_loc n, npc(i), map_offset
+     load_npc_instance n, npc(i), map_offset
     CASE ELSE
      rsav_warn "invalid npc instance " & i
    END SELECT
@@ -1002,7 +1002,7 @@ SUB gamestate_npcs_to_reload(byval parent as Reload.NodePtr, byval map as intege
  FOR i as integer = 0 TO 299
   IF npc(i).id <> 0 ANDALSO NO THEN 'currently disabled for all NPCs
    n = AppendChildNode(node, "npc", i)
-   save_npc_loc n, i, npc(i), map_offset
+   save_npc_instance n, i, npc(i), map_offset
   END IF
  NEXT i
 END SUB
