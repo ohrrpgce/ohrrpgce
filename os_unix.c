@@ -3,7 +3,9 @@
 
 #ifndef __APPLE__
 #define _POSIX_SOURCE  // for fdopen
-#define _BSD_SOURCE  // for usleep
+//#define _BSD_SOURCE  // for usleep
+//#define _DEFAULT_SOURCE  // replaces _BSD_SOURCE in recent glibc
+#define _GNU_SOURCE  // needed for FNM_CASEFOLD, also includes _BSD_SOURCE
 #endif
 //fb_stub.h MUST be included first, to ensure fb_off_t is 64 bit
 #include "fb/fb_stub.h"
@@ -99,7 +101,7 @@ array_t _list_files_or_subdirs (FBSTRING *searchdir, FBSTRING *nmask, int showhi
 	if (dp == NULL) {
 		debug(errError, "list_files: unable to open directory: %s", searchdir->data);
 	} else {
-		int wcflags = FNM_FILE_NAME | FNM_CASEFOLD;
+		int wcflags = FNM_PATHNAME | FNM_CASEFOLD;
 		if (!showhidden) {
 			//special handling of leading . if we don't want to see hidden files
 			wcflags = wcflags | FNM_PERIOD;
