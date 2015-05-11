@@ -3210,7 +3210,7 @@ SUB enforce_weak_picture(byval who as integer, bslot() as BattleSprite, byref ba
   '--enforce weak picture
   DIM weakhp as integer = 0
   weakhp = gen(genHeroWeakHP)
-  IF bslot(who).stat.cur.hp < 0.01 * bslot(who).stat.max.hp * weakhp AND bat.vic.state = 0 THEN bslot(who).frame = frameWEAK
+  IF bslot(who).stat.cur.hp < 0.01 * bslot(who).stat.max.hp * weakhp - 1e-8 AND bat.vic.state = 0 THEN bslot(who).frame = frameWEAK
  END IF
 END SUB
 
