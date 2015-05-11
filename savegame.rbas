@@ -299,9 +299,10 @@ SUB gamestate_state_from_reload(byval node as Reload.NodePtr)
   gen(genTextboxBackdrop) = node."textbox"."backdrop"
 
   READNODE node."status_char" as ch, default
-   gen(genPoison) = ch."poison"
-   gen(genStun) = ch."stun"
-   gen(genMute) = ch."mute"
+   gen(genPoisonChar) = ch."poison"
+   gen(genStunChar) = ch."stun"
+   gen(genMuteChar) = ch."mute"
+   gen(genRegenChar) = ch."regen".default(gen(genRegenChar))
   END READNODE
 
   gen(genDamageCap) = node."damage_cap"
@@ -856,9 +857,10 @@ SUB gamestate_state_to_reload(byval parent as Reload.NodePtr)
  SetChildNode(ch, "backdrop", gen(genTextboxBackdrop))
  
  ch = SetChildNode(node, "status_char")
- SetChildNode(ch, "poison", gen(genPoison))
- SetChildNode(ch, "stun", gen(genStun))
- SetChildNode(ch, "mute", gen(genMute))
+ SetChildNode(ch, "poison", gen(genPoisonChar))
+ SetChildNode(ch, "stun", gen(genStunChar))
+ SetChildNode(ch, "mute", gen(genMuteChar))
+ SetChildNode(ch, "regen", gen(genRegenChar))
 
  SetChildNode(node, "damage_cap", gen(genDamageCap))
  SetChildNode(node, "level_cap", gen(genLevelCap))

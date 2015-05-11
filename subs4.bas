@@ -1209,44 +1209,67 @@ DO
 LOOP
 END SUB
 
-SUB generate_battlesystem_menu(menu() as string)
- menu(0) = "Previous Menu"
- menu(1) = "Stat Caps..."
- menu(2) = "Hero Elemental Resistance Calculation..."
+SUB generate_battlesystem_menu(menu() as string, enabled() as bool, greyout() as bool)
+ flusharray enabled(), UBOUND(enabled), YES
+ flusharray greyout(), UBOUND(greyout), NO
 
- menu(4) = "Battle Mode: "
+ menu(0) = "Previous Menu"
+
+ menu(1) = "Mechanics"
+ enabled(1) = NO
+ greyout(1) = YES
+
+ menu(2) = "Battle Mode: "
  IF gen(genBattleMode) = 0 THEN
-  menu(4) &= "Active-time"
+  menu(2) &= "Active-time"
  ELSE
-  menu(4) &= "Turn-based"
+  menu(2) &= "Turn-based"
  END IF
- menu(5) = "Active-time battle bitsets..."
- menu(6) = "Number of Elements: " & gen(genNumElements)
- menu(7) = "Poison Indicator: " & gen(genPoison) & " " & CHR(gen(genPoison))
- menu(8) = "Stun Indicator: " & gen(genStun) & " " & CHR(gen(genStun))
- menu(9) = "Mute Indicator: " & gen(genMute) & " " & CHR(gen(genMute))
- menu(10) = "Default Enemy Dissolve: " & dissolve_type_caption(gen(genEnemyDissolve))
- menu(11) = "Damage Display Time: " & gen(genDamageDisplayTicks) & " ticks (" & seconds_estimate(gen(genDamageDisplayTicks)) & " sec)"
- menu(12) = "Damage Display Rises: " & gen(genDamageDisplayRise) & " pixels"
- menu(13) = "Experience given to heroes..."
- menu(14) = " ...swapped-out and unlocked: " & gen(genUnlockedReserveXP) & "%"
- menu(15) = " ...swapped-out and locked: " & gen(genLockedReserveXP) & "%"
- menu(16) = "Hero Weak state below: " & gen(genHeroWeakHP) & "% " & statnames(statHP)
- menu(17) = "Enemy Weak state below: " & gen(genEnemyWeakHP) & "% " & statnames(statHP)
- menu(19) = "View Experience Chart..."
+ menu(3) = "Active-time battle bitsets..."
+ enabled(3) = (gen(genBattleMode) = 0) 'Active-time battle bitsets
+ greyout(3) = NOT enabled(5)
+ menu(4) = "Number of Elements: " & gen(genNumElements)
+ menu(5) = "Hero Elemental Resistance Calculation..."
+
+ enabled(6) = NO
+ menu(7) = "Stats and Experience"
+ enabled(7) = NO
+ greyout(7) = YES
+ menu(8) = "Stat Caps..."
+ menu(9) = "View Experience Chart..."
+ menu(10) = "Experience given to heroes..."
+ enabled(10) = NO
+ menu(11) = " ...swapped-out and unlocked: " & gen(genUnlockedReserveXP) & "%"
+ menu(12) = " ...swapped-out and locked: " & gen(genLockedReserveXP) & "%"
  '--Disabled because it is not ready yet
- 'menu(20) = "Stat Growth Options..."
+ 'menu() = "Stat Growth Options..."
+
+ menu(13) = "Hero Weak state below: " & gen(genHeroWeakHP) & "% " & statnames(statHP)
+ menu(14) = "Enemy Weak state below: " & gen(genEnemyWeakHP) & "% " & statnames(statHP)
+
+ enabled(15) = NO
+ menu(16) = "Display"
+ enabled(16) = NO
+ greyout(16) = YES
+
+ menu(17) = "Poison Indicator: " & gen(genPoisonChar) & " " & CHR(gen(genPoisonChar))
+ menu(18) = "Stun Indicator: " & gen(genStunChar) & " " & CHR(gen(genStunChar))
+ menu(19) = "Mute Indicator: " & gen(genMuteChar) & " " & CHR(gen(genMuteChar))
+ menu(20) = "Regen Indicator: " & gen(genRegenChar) & " " & CHR(gen(genRegenChar))
+ menu(21) = "Default Enemy Dissolve: " & dissolve_type_caption(gen(genEnemyDissolve))
+ menu(22) = "Damage Display Time: " & gen(genDamageDisplayTicks) & " ticks (" & seconds_estimate(gen(genDamageDisplayTicks)) & " sec)"
+ menu(23) = "Damage Display Rises: " & gen(genDamageDisplayRise) & " pixels"
 END SUB
 
 SUB battleoptionsmenu ()
- CONST maxMenu = 19
+ CONST maxMenu = 23
  DIM menu(maxMenu) as string
  DIM menu_display(maxMenu) as string
  DIM min(maxMenu) as integer
  DIM max(maxMenu) as integer
  DIM index(maxMenu) as integer
- DIM enabled(maxMenu) as integer
- DIM greyout(maxMenu) as integer
+ DIM enabled(maxMenu) as bool
+ DIM greyout(maxMenu) as bool
  DIM selectst as SelectTypeState
  DIM state as MenuState
  WITH state
@@ -1255,50 +1278,51 @@ SUB battleoptionsmenu ()
   .need_update = YES
  END WITH
 
- 'I think these things are here (and not upgrade) because we don't want to force them on games
- IF gen(genPoison) <= 0 THEN gen(genPoison) = 161
- IF gen(genStun) <= 0 THEN gen(genStun) = 159
- IF gen(genMute) <= 0 THEN gen(genMute) = 163
+ 'I think these things are here (and not upgrade) because we don't want to  force them on games
+ IF gen(genPoisonChar) <= 0 THEN gen(genPoisonChar) = 161
+ IF gen(genStunChar) <= 0 THEN gen(genStunChar) = 159
+ IF gen(genMuteChar) <= 0 THEN gen(genMuteChar) = 163
+ 'Regen icon is newer, so let's not default it unexpectedly
+ IF gen(genRegenChar) <= 0 THEN gen(genRegenChar) = 32
  
  IF gen(genBattleMode) < 0 ORELSE gen(genBattleMode) > 1 THEN
   debug "WARNING: invalid gen(genBattleMode) " & gen(genBattleMode) & " resorting to active mode"
   gen(genBattleMode) = 0
  END IF
  
- flusharray enabled(), UBOUND(enabled), YES
- enabled(3) = NO
- enabled(13) = NO
- enabled(18) = NO
- index(4) = genBattleMode
- min(4) = 0
- max(4) = 1
- index(6) = genNumElements
- min(6) = 1
- max(6) = 64
- index(7) = genPoison
- index(8) = genStun
- index(9) = genMute
- FOR i as integer = 7 TO 9
+ index(2) = genBattleMode
+ min(2) = 0
+ max(2) = 1
+ index(4) = genNumElements
+ min(4) = 1
+ max(4) = 64
+ index(11) = genUnlockedReserveXP
+ max(11) = 1000
+ index(12) = genLockedReserveXP
+ max(12) = 1000
+ min(13) = 1
+ max(13) = 100
+ index(13) = genHeroWeakHP
+ min(14) = 1
+ max(14) = 100
+ index(14) = genEnemyWeakHP
+ index(17) = genPoisonChar
+ index(18) = genStunChar
+ index(19) = genMuteChar
+ index(20) = genRegenChar
+ FOR i as integer = 17 TO 20
   min(i) = 32
   max(i) = 255
  NEXT
- index(10) = genEnemyDissolve
- max(10) = dissolveTypeMax
- index(11) = genDamageDisplayTicks
- max(11) = 1000
- index(12) = genDamageDisplayRise
- max(12) = 1000
- min(12) = -1000
- index(14) = genUnlockedReserveXP
- max(14) = 1000
- index(15) = genLockedReserveXP
- max(15) = 1000
- min(16) = 1
- max(16) = 100
- index(16) = genHeroWeakHP
- min(17) = 1
- max(17) = 100
- index(17) = genEnemyWeakHP
+ index(21) = genEnemyDissolve
+ max(21) = dissolveTypeMax
+ index(22) = genDamageDisplayTicks
+ max(22) = 1000
+ index(23) = genDamageDisplayRise
+ max(23) = 1000
+ min(23) = -1000
+
+ generate_battlesystem_menu menu(), enabled(), greyout()
 
  setkeys YES
  DO
@@ -1310,10 +1334,10 @@ SUB battleoptionsmenu ()
   usemenu state, enabled()
   IF enter_space_click(state) THEN
    IF state.pt = 0 THEN EXIT DO
-   IF state.pt = 1 THEN statcapsmenu
-   IF state.pt = 2 THEN equipmergemenu
-   IF state.pt = 19 THEN experience_chart
-   IF state.pt = 5 ANDALSO enabled(5) THEN
+   IF state.pt = 5 THEN equipmergemenu
+   IF state.pt = 8 THEN statcapsmenu
+   IF state.pt = 9 THEN experience_chart
+   IF state.pt = 3 ANDALSO enabled(3) THEN
     DIM bitname(35) as string
     bitname(0) = "Pause on Spells & Items menus"
     bitname(13) = "Pause on all battle menus & targeting"
@@ -1336,11 +1360,7 @@ SUB battleoptionsmenu ()
   END IF
 
   IF state.need_update THEN
-   generate_battlesystem_menu menu()
-   enabled(5) = (gen(genBattleMode) = 0) 'Active-time battle bitsets
-   FOR i as integer = 0 to maxMenu
-    greyout(i) = NOT enabled(i)
-   NEXT i
+   generate_battlesystem_menu menu(), enabled(), greyout()
    state.need_update = NO
   END IF
 

@@ -332,10 +332,11 @@ SUB battle_init(byref bat as BattleState, bslot() as BattleSprite)
   bslot(i).regen_repeat = randint(2000)
  NEXT i
 
- '--sanity-check afliction indicators and set defaults for old games that don't have them yet. 
- IF gen(genPoison) <= 0 THEN gen(genPoison) = 161
- IF gen(genStun) <= 0 THEN gen(genStun) = 159
- IF gen(genMute) <= 0 THEN gen(genMute) = 163
+ '--sanity-check affliction indicators and set defaults for old games that don't have them yet. 
+ IF gen(genPoisonChar) <= 0 THEN gen(genPoisonChar) = 161
+ IF gen(genStunChar) <= 0 THEN gen(genStunChar) = 159
+ IF gen(genMuteChar) <= 0 THEN gen(genMuteChar) = 163
+ IF gen(genRegenChar) <= 0 THEN gen(genRegenChar) = 32
 END SUB
 
 SUB battle_cleanup(byref bat as BattleState, bslot() as BattleSprite)
@@ -933,17 +934,22 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
      DIM indicatorpos as integer = 217
      'poison indicator
      IF .cur.poison < .max.poison THEN
-      edgeprint CHR(gen(genPoison)), indicatorpos, 5 + i * 10, col, dpage
+      edgeprint CHR(gen(genPoisonChar)), indicatorpos, 5 + i * 10, col, dpage
       indicatorpos -= 8
      END IF
      'stun indicator
      IF .cur.stun < .max.stun THEN
-      edgeprint CHR(gen(genStun)), indicatorpos, 5 + i * 10, col, dpage
+      edgeprint CHR(gen(genStunChar)), indicatorpos, 5 + i * 10, col, dpage
       indicatorpos -= 8
      END IF
      'mute indicator
      IF .cur.mute < .max.mute THEN
-      edgeprint CHR(gen(genMute)), indicatorpos, 5 + i * 10, col, dpage
+      edgeprint CHR(gen(genMuteChar)), indicatorpos, 5 + i * 10, col, dpage
+      indicatorpos -= 8
+     END IF
+     'regen indicator
+     IF .cur.regen < .max.regen THEN
+      edgeprint CHR(gen(genRegenChar)), indicatorpos, 5 + i * 10, col, dpage
      END IF
     END WITH
    END IF

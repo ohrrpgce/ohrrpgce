@@ -98,10 +98,10 @@ CONST genLoadGameScript = 57    'load-game script
 CONST genTextboxBackdrop = 58   'currently displaying text box backdrop in .MXS + 1, 0 for none
 CONST genEnemyDissolve = 59     'Default dissolve animation for dying enemies
 CONST genJoy = 60               'whether the joystick is enabled (not respected in many places, especially waitforanykey)
-CONST genPoison = 61            'poison status indicator char
-CONST genStun = 62              'Stun status indicator char
+CONST genPoisonChar = 61        'poison status indicator char
+CONST genStunChar = 62          'Stun status indicator char
 CONST genDamageCap = 63         'Damage cap
-CONST genMute = 64              'Mute status indicator char
+CONST genMuteChar = 64          'Mute status indicator char
 CONST genStatCap = 65           'Stat caps (genStatCap + stat) (65-76)
 CONST genMaxSFX = 77            'last song number
 CONST genMasterPal = 78         'master palette number
@@ -164,6 +164,7 @@ CONST genMillisecPerFrame = 198 'Milliseconds per frame; upgrade() ensures not 0
 CONST genStealSuccessSFX = 199  'Sound effect numbers for steal attacks in addition to normal sfx (+1)
 CONST genStealFailSFX = 200     ' "
 CONST genStealNoItemSFX = 201   ' "
+CONST genRegenChar = 202        ' Regen status icon character
 'Everything else up to 499 unused
 
 
