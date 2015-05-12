@@ -29,8 +29,10 @@ DECLARE SUB enemy_edit_backmenu (state as MenuState, byval lastptr as integer, b
 
 DECLARE SUB individual_formation_editor ()
 DECLARE SUB formation_set_editor ()
-DECLARE SUB draw_formation_slices(form as Formation, rootslice as Slice ptr, selected_slot as integer, page as integer)
+DECLARE SUB draw_formation_slices OVERLOAD (eform as Formation, rootslice as Slice ptr, selected_slot as integer, page as integer)
+DECLARE SUB draw_formation_slices OVERLOAD (eform as Formation, hform as HeroFormation, rootslice as Slice ptr, selected_slot as integer, page as integer, byval heromode as bool=NO)
 DECLARE SUB load_formation_slices(ename() as string, form as Formation, rootslice as Slice ptr ptr)
+DECLARE SUB hero_formation_editor ()
 
 DECLARE FUNCTION item_attack_name(n as integer) as string
 DECLARE SUB generate_item_edit_menu (menu() as string, shaded() as bool, itembuf() as integer, item_name as string, info_string as string, equip_types() as string, byref box_preview as string)
@@ -74,6 +76,8 @@ CONST SL_FORMEDITOR_BACKDROP = 100
 CONST SL_FORMEDITOR_ENEMY = 200  '+0 to +7 for 8 slots
 CONST SL_FORMEDITOR_LAST_ENEMY = 299  'End of range indicating an enemy slot
 CONST SL_FORMEDITOR_CURSOR = 300
+CONST SL_FORMEDITOR_HERO_AREA = 399  'container that holds heroes
+CONST SL_FORMEDITOR_HERO = 400  '+0 to +3 for 4 slots
 
 
 SUB clearallpages
@@ -931,10 +935,11 @@ END FUNCTION
 
 
 SUB formation_editor
- DIM menu(2) as string
+ DIM menu(3) as string
  menu(0) = "Return to Main Menu"
- menu(1) = "Edit Individual Formations..."
+ menu(1) = "Edit Individual Enemy Formations..."
  menu(2) = "Construct Formation Sets..."
+ menu(3) = "Edit Hero Formations..."
 
  DIM state as MenuState
  state.size = 24
@@ -951,6 +956,7 @@ SUB formation_editor
    IF state.pt = 0 THEN EXIT DO
    IF state.pt = 1 THEN individual_formation_editor
    IF state.pt = 2 THEN formation_set_editor
+   IF state.pt = 3 THEN hero_formation_editor
   END IF
 
   clearpage dpage
@@ -1045,6 +1051,138 @@ lpreviewform:
  END IF
  RETRACE
 
+END SUB
+
+SUB hero_formation_editor ()
+ DIM hero_form_id as integer = 0
+ DIM test_form_id as integer = 0
+ DIM ename(7) as string
+ DIM eform as Formation
+ DIM hform as HeroFormation
+ DIM default_hform as HeroFormation
+ DIM rootslice as Slice ptr
+ DIM as integer i
+ DIM positioning_mode as bool = NO
+ DIM as integer bgwait, bgctr
+
+ LoadFormation eform, test_form_id
+ load_formation_slices ename(), eform, @rootslice
+
+ DIM menu(6) as string
+ DIM state as MenuState
+ state.pt = 0
+ state.top = 0
+ state.first = 0
+ state.last = UBOUND(menu)
+ state.size = 20
+ DIM menuopts as MenuOptions
+ menuopts.edged = YES
+
+ CONST first_hero_item = 3
+ 'slot -1 indicates no enemy selected
+ DIM slot as integer = state.pt - first_hero_item
+ IF slot < 0 THEN slot = -1
+ 
+ default_hero_formation default_hform
+ load_hero_formation hform, hero_form_id
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  IF positioning_mode = YES THEN
+   '--hero positioning mode
+   IF keyval(scESC) > 1 OR enter_or_space() THEN setkeys: positioning_mode = NO
+   IF keyval(scF1) > 1 THEN show_help "hero_formation_editor_placement"
+   DIM as integer thiswidth = 0, thisheight = 0, movespeed = 1
+   IF keyval(scLeftShift) OR keyval(scRightShift) THEN movespeed = 8
+   WITH hform.slots(slot)
+    DIM hrect as Slice ptr = LookupSlice(SL_FORMEDITOR_HERO + slot, rootslice)
+    IF hrect THEN
+     thiswidth = hrect->Width
+     thisheight = hrect->Height
+    END IF
+    IF keyval(scUp) > 0 THEN .pos.y -= movespeed
+    IF keyval(scDown) > 0 THEN .pos.y += movespeed
+    IF keyval(scLeft) > 0 THEN .pos.x -= movespeed
+    IF keyval(scRight) > 0 THEN .pos.x += movespeed
+    'Hero positions are the bottom center of the sprite
+    .pos.x = bound(.pos.x, -500, gen(genResolutionX) + 500)
+    .pos.y = bound(.pos.y, -500, gen(genResolutionY) + 500)
+   END WITH
+  END IF
+  IF positioning_mode = NO THEN
+   '--menu mode
+   IF keyval(scESC) > 1 THEN
+    EXIT DO
+   END IF
+   IF keyval(scF1) > 1 THEN show_help "hero_formation_editor"
+   usemenu state
+   slot = state.pt - first_hero_item
+   IF slot < 0 THEN slot = -1
+
+   IF enter_space_click(state) THEN
+    IF state.pt = 0 THEN
+     EXIT DO
+    END IF
+    IF slot <> -1 THEN 'a hero slot
+     positioning_mode = YES
+    END IF
+   END IF
+   IF slot <> -1 THEN
+    IF keyval(scCtrl) > 0 ANDALSO keyval(scD) > 1 THEN
+     'Revert to default
+     hform.slots(slot).pos.x = default_hform.slots(slot).pos.x
+     hform.slots(slot).pos.y = default_hform.slots(slot).pos.y
+    END IF
+   END IF
+   IF state.pt = 2 THEN
+    IF intgrabber(test_form_id, 0, gen(genMaxFormation)) THEN
+     'Test with a different enemy formation
+     LoadFormation eform, test_form_id
+     load_formation_slices ename(), eform, @rootslice
+     bgwait = 0
+     bgctr = 0
+    END IF
+   END IF
+   IF state.pt = 1 THEN '---SELECT A DIFFERENT HERO FORMATION
+    DIM as integer remember_id = hero_form_id
+    IF intgrabber_with_addset(hero_form_id, 0, last_hero_formation_id(), 32767, "hero formation") THEN
+     save_hero_formation hform, remember_id
+     load_hero_formation hform, hero_form_id
+     save_hero_formation hform, hero_form_id
+    END IF
+   END IF'--DONE SELECTING DIFFERENT HERO FORMATION
+  END IF
+
+  ' Draw screen
+
+  IF eform.background_frames > 1 AND eform.background_ticks > 0 THEN
+   bgwait = (bgwait + 1) MOD eform.background_ticks
+   IF bgwait = 0 THEN
+    bgctr = loopvar(bgctr, 0, eform.background_frames - 1, 1)
+    DIM sl as Slice ptr = LookupSlice(SL_FORMEDITOR_BACKDROP, rootslice)
+    ChangeSpriteSlice sl, , (eform.background + bgctr) MOD gen(genNumBackdrops)
+   END IF
+  END IF
+  draw_formation_slices eform, hform, rootslice, slot, dpage, YES
+
+  IF positioning_mode = NO THEN
+   menu(0) = "Previous Menu"
+   menu(1) = CHR(27) + "Hero Formation " & hero_form_id & CHR(26)
+   menu(2) = "Preview Enemy Formation: " & test_form_id
+   FOR i as integer = 0 TO 3
+    menu(first_hero_item + i) = "Hero Slot " & i & "(x=" & hform.slots(i).pos.x & " y=" & hform.slots(i).pos.y & ")"
+   NEXT i
+   standardmenu menu(), state, 0, 0, dpage, menuopts
+  END IF
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+
+ save_hero_formation hform, hero_form_id
+ DeleteSlice @rootslice
 END SUB
 
 SUB individual_formation_editor ()
@@ -1263,12 +1401,25 @@ SUB load_formation_slices(ename() as string, form as Formation, rootslice as Sli
  ChangeSpriteSlice sl, sprTypeBackdrop, form.background 
  sl->Lookup = SL_FORMEDITOR_BACKDROP
  
+ 'Hero Area
+ DIM h_area as Slice Ptr
+ h_area = NewSliceOfType(slContainer, *rootslice)
+ WITH *(h_area)
+  .Lookup = SL_FORMEDITOR_HERO_AREA
+  .X = 240
+  .Y = 82
+  .Width = 56
+  .Height = 100
+ END WITH
  ' Heroes
  FOR i as integer = 0 TO 3
-  sl = NewSliceOfType(slRectangle, *rootslice)
+  sl = NewSliceOfType(slRectangle, h_area)
+  sl->Lookup = SL_FORMEDITOR_HERO + i
   ChangeRectangleSlice sl, , boxlook(0).bgcol, boxlook(0).edgecol
-  sl->X = 240 + i * 8
-  sl->Y = 82 + i * 20
+  sl->AnchorHoriz = 1
+  sl->AnchorVert = 2
+  sl->X = i * 8 + 16
+  sl->Y = i * 20 + 40
   sl->Width = 32
   sl->Height = 40
   'Break ties with heroes behind
@@ -1298,30 +1449,54 @@ SUB load_formation_slices(ename() as string, form as Formation, rootslice as Sli
  sl->Lookup = SL_FORMEDITOR_CURSOR
 END SUB
 
-SUB draw_formation_slices(form as Formation, rootslice as Slice ptr, selected_slot as integer, page as integer)
+SUB draw_formation_slices(eform as Formation, rootslice as Slice ptr, selected_slot as integer, page as integer)
+ DIM hform as HeroFormation
+ load_hero_formation hform, 0
+ draw_formation_slices eform, hform, rootslice, selected_slot, page, NO
+END SUB
+
+SUB draw_formation_slices(eform as Formation, hform as HeroFormation, rootslice as Slice ptr, selected_slot as integer, page as integer, byval heromode as bool=NO)
  STATIC flash as integer
  flash = (flash + 1) MOD 256
  DIM cursorsl as Slice ptr = LookupSlice(SL_FORMEDITOR_CURSOR, rootslice)
  cursorsl->Visible = NO
 
- ' Set enemy positions and parent of cursor slice
+ ' Set enemy positions (and maybe parent of cursor slice)
  DIM sl as Slice ptr = rootslice->FirstChild
  WHILE sl
   IF sl->Lookup >= SL_FORMEDITOR_ENEMY AND sl->Lookup <= SL_FORMEDITOR_LAST_ENEMY THEN
    'Is an enemy
    DIM enemy_slot as integer = sl->Lookup - SL_FORMEDITOR_ENEMY
-   DIM fslot as FormationSlot ptr = @form.slots(enemy_slot)
+   DIM fslot as FormationSlot ptr = @eform.slots(enemy_slot)
    IF fslot->id < 0 THEN debugc errPromptBug, "Formation enemy slice corresponds to an empty slot"
    sl->X = fslot->pos.x
    sl->Y = fslot->pos.y
-   IF enemy_slot = selected_slot AND cursorsl <> NULL THEN
-    cursorsl->Visible = YES
-    SetSliceParent cursorsl, sl
-    ChangeTextSlice cursorsl, CHR(25), flash
+   IF NOT heromode THEN
+    IF enemy_slot = selected_slot AND cursorsl <> NULL THEN
+     cursorsl->Visible = YES
+     SetSliceParent cursorsl, sl
+     ChangeTextSlice cursorsl, CHR(25), flash
+    END IF
    END IF
   END IF
   sl = sl->NextSibling
  WEND
+ 
+ ' Set hero positions (and maybe parent of cursor slice)
+ DIM h_area as Slice ptr = LookupSlice(SL_FORMEDITOR_HERO_AREA, rootslice)
+ DIM hrect as Slice Ptr
+ FOR i as integer = 0 TO 3
+  hrect = LookupSlice(SL_FORMEDITOR_HERO + i, h_area)
+  hrect->X = hform.slots(i).pos.x
+  hrect->Y = hform.slots(i).pos.y
+  IF heromode THEN
+   IF i = selected_slot AND cursorsl <> NULL THEN
+    cursorsl->Visible = YES
+    SetSliceParent cursorsl, hrect
+    ChangeTextSlice cursorsl, CHR(25), flash
+   END IF
+  END IF
+ NEXT i
 
  ' We don't want path-dependence of the sort order, because
  ' the real battle system display breaks ties in a certain way.

@@ -903,6 +903,10 @@ TYPE FormationSet
   formations(19) as integer     '-1: unused
 END TYPE
 
+TYPE HeroFormation
+  slots(3) as FormationSlot
+END TYPE
+
 TYPE TextBox
   text(7) as string
   instead_tag as integer

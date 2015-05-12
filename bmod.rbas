@@ -1361,6 +1361,9 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
  IF formdata.music >= 0 THEN wrappedsong formdata.music
  'Otherwise formdata.music = -2: same music as map
  
+ DIM hero_form as HeroFormation
+ load_hero_formation hero_form, 0
+ 
  DIM attack as AttackData
  FOR i = 0 TO 3
   IF gam.hero(i).id >= 0 THEN
@@ -1368,8 +1371,9 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
 
    '--init bslot() for each hero
    WITH bslot(i)
-    .basex = (240 + i * 8)
-    .basey = (82 + i * 20)
+    'hero_form specifies bottom center relative to the hero zone
+    .basex = (240 + hero_form.slots(i).pos.x - 16)
+    .basey = (82 + hero_form.slots(i).pos.y - 40)
     .x =  .basex
     .y =  .basey
     .w = 32

@@ -4007,3 +4007,160 @@ SUB append_trade_node (byval par as NodePtr, byval itnum as integer, byval itqty
  n = AppendChildNode(par, "trade", itnum - 1)
  SetChildNode(n, "count", itqty + 1)
 END SUB
+
+SUB write_hero_formation(byval par as NodePtr, byref hform as HeroFormation)
+ FreeChildren(par)
+ DIM slot_node as NodePtr
+ DIM stance as NodePtr
+ FOR i as integer = 0 TO 3
+  slot_node = AppendChildNode(par, "slot", i)
+  stance = AppendChildNode(slot_node, "stance", 0)
+  SetChildNode(stance, "x", hform.slots(i).pos.x)
+  SetChildNode(stance, "y", hform.slots(i).pos.y)
+ NEXT i
+END SUB
+
+SUB save_hero_formation(byref hform as HeroFormation, byval form_num as integer)
+ DIM filename as string = workingdir & SLASH & "heroform.reld"
+
+ DIM doc as DocPtr
+ doc = LoadDocument(filename, optNoDelay)
+ IF doc = 0 THEN
+  debuginfo "heroform doc not found, create it"
+  doc = CreateDocument()
+ END IF
+
+ DIM heroforms as NodePtr
+ heroforms = DocumentRoot(doc)
+ IF heroforms = 0 THEN
+  heroforms = CreateNode(doc, "heroforms")
+  SetRootNode(doc, heroforms)
+ END IF
+
+ DIM found as bool = NO
+ READNODE heroforms
+  WITHNODE heroforms."form" as form
+   DIM i as integer = GetInteger(form)
+   IF form_num = i THEN
+    write_hero_formation form, hform
+    found = YES
+   END IF
+  END WITHNODE
+ END READNODE
+ 
+ IF NOT found THEN
+  DIM form as Node Ptr
+  form = AppendChildNode(heroforms, "form", form_num)
+  write_hero_formation form, hform
+ END IF
+
+ SerializeBin filename, doc
+ FreeDocument doc
+END SUB
+
+SUB default_hero_formation(byref hform as HeroFormation)
+ FOR i as integer = 0 TO 3
+  WITH hform.slots(i)
+   .id = i
+   .pos.x = i * 8 + 16
+   .pos.y = i * 20 + 40
+  END WITH
+ NEXT i
+END SUB
+
+SUB load_hero_formation(byref hform as HeroFormation, byval form_num as integer)
+
+ default_hero_formation hform
+
+ DIM filename as string = workingdir & SLASH & "heroform.reld"
+
+ IF NOT isfile(filename) THEN
+  'Failure to find the lump should be silent, since most games will not have it
+  EXIT SUB
+ END IF
+
+ DIM doc as DocPtr
+ doc = LoadDocument(filename)
+ IF doc = 0 THEN
+  debuginfo "heroform.reld could not be openend, return defaults"
+  EXIT SUB
+ END IF
+ 
+ DIM heroforms as NodePtr
+ heroforms = DocumentRoot(doc)
+ IF heroforms = 0 THEN
+  heroforms = CreateNode(doc, "heroforms")
+  SetRootNode(doc, heroforms)
+ END IF
+
+ READNODE heroforms
+  WITHNODE heroforms."form" as form
+   DIM i as integer = GetInteger(form)
+   IF form_num = i THEN
+    READNODE form
+     WITHNODE form."slot" as slot
+      DIM j as integer = GetInteger(slot)
+      SELECT CASE j
+       CASE 0 TO 3
+        READNODE slot
+         WITHNODE slot."stance" as stance
+          IF GetInteger(stance) <> 0 THEN
+           debug "form " & i & " slot " & j & " nonzero stance is not allowed (" & GetInteger(stance) & ")"
+          ELSE
+           WITH hform.slots(j)
+            .id = -1
+            .pos.x = stance."x".default(.pos.x).integer
+            .pos.y = stance."y".default(.pos.y).integer
+           END WITH
+          END IF
+         END WITHNODE
+        END READNODE
+       CASE ELSE
+        debug "form " & i & " slot " & j & " is invalid"
+      END SELECT
+     END WITHNODE
+    END READNODE 
+   END IF
+  END WITHNODE
+ END READNODE
+
+ FreeDocument doc
+END SUB
+
+FUNCTION last_hero_formation_id() as integer
+
+ DIM filename as string = workingdir & SLASH & "heroform.reld"
+ 
+ IF NOT isfile(filename) THEN
+  'Failure to find the lump should be silent, since most games will not have it
+  RETURN 0
+ END IF
+
+ DIM doc as DocPtr
+ doc = LoadDocument(filename)
+ IF doc = 0 THEN
+  debuginfo "Unable to load heroform.reld document"
+  RETURN 0
+ END IF
+ 
+ DIM heroforms as NodePtr
+ heroforms = DocumentRoot(doc)
+ IF heroforms = 0 THEN
+  heroforms = CreateNode(doc, "heroforms")
+  SetRootNode(doc, heroforms)
+ END IF
+
+ DIM result as integer = 0
+
+ READNODE heroforms
+  WITHNODE heroforms."form" as form
+   DIM i as integer = GetInteger(form)
+   result = large(result, i)
+  END WITHNODE
+ END READNODE
+
+ FreeDocument doc
+ 
+ RETURN result
+ 
+END FUNCTION

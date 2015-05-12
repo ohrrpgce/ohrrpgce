@@ -159,6 +159,12 @@ DECLARE SUB SaveFormation OVERLOAD (form as Formation, filename as string, byval
 DECLARE SUB LoadFormationSet (formset as FormationSet, byval index as integer)
 DECLARE SUB SaveFormationSet (formset as FormationSet, byval index as integer)
 
+DECLARE SUB load_hero_formation(byref hform as HeroFormation, byval form_num as integer)
+DECLARE SUB default_hero_formation(byref hform as HeroFormation)
+DECLARE FUNCTION last_hero_formation_id() as integer
+DECLARE SUB save_hero_formation(byref hform as HeroFormation, byval form_num as integer)
+DECLARE SUB write_hero_formation(byval par as NodePtr, byref hform as HeroFormation)
+
 DECLARE SUB load_hsp_header(filename as string, header as HSHeader)
 DECLARE SUB load_lookup1_bin(table() as TriggerData)
 

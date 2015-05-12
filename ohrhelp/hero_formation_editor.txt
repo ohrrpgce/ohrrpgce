@@ -1,0 +1,7 @@
+This is the Hero Formation Editor. If you want to vary the positions where heroes stand in a battle formation, you can do it here. Then you must go to the Individual Enemy Formation Editor and choose which hero formation to use. 
+
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu.
+
+<Hero Formation #>: Choose which formation you are working on. This number will be used to assign this hero formation to be used by enemy formations.
+
+You can press CTRL+D to revert a hero slot to its default position.
