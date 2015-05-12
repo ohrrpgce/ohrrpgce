@@ -3444,6 +3444,7 @@ SUB LoadFormation (form as Formation, filename as string, byval index as integer
   .background_ticks = formdata(35)
   .victory_tag = formdata(36)
   .death_action = formdata(37)
+  .hero_form = formdata(38)
  END WITH
 END SUB
 
@@ -3470,6 +3471,7 @@ SUB SaveFormation (form as Formation, filename as string, byval index as integer
   formdata(35) = .background_ticks
   formdata(36) = .victory_tag
   formdata(37) = .death_action
+  formdata(38) = .hero_form
  END WITH
 
  storerecord(formdata(), filename, 40, index)

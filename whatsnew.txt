@@ -67,6 +67,7 @@ WHAT IS NEW?
     * Global sound effect options for steal attack success, failure,
       and no item to steal. [Ralph]
     * Added Regen icon to Battle System Options. [Ralph]
+    * Hero positions in battle can be customized. [James]
 
   * Changes
     * Hidden menu items no longer affect the width of a menu [Ralph]

@@ -1197,7 +1197,7 @@ SUB individual_formation_editor ()
  LoadFormation form, form_id
  load_formation_slices ename(), form, @rootslice
 
- DIM menu(15) as string
+ DIM menu(16) as string
  DIM state as MenuState
  state.pt = 0
  state.top = 0
@@ -1207,7 +1207,7 @@ SUB individual_formation_editor ()
  DIM menuopts as MenuOptions
  menuopts.edged = YES
 
- CONST first_enemy_item = 8
+ CONST first_enemy_item = 9
  'slot -1 indicates no enemy selected
  DIM slot as integer = state.pt - first_enemy_item
  IF slot < 0 THEN slot = -1
@@ -1295,6 +1295,9 @@ SUB individual_formation_editor ()
    IF state.pt = 7 THEN
     intgrabber(form.death_action, -1, 0)
    END IF
+   IF state.pt = 8 THEN
+    intgrabber(form.hero_form, 0, last_hero_formation_id())
+   END IF
    IF state.pt = 1 THEN '---SELECT A DIFFERENT FORMATION
     DIM as integer remember_id = form_id
     IF intgrabber_with_addset(form_id, 0, gen(genMaxFormation), 32767, "formation") THEN
@@ -1371,6 +1374,7 @@ SUB individual_formation_editor ()
    ELSEIF form.death_action = -1 THEN
     menu(7) &= "continue game"
    END IF
+   menu(8) = "Hero Formation: " & form.hero_form
 
    FOR i as integer = 0 TO 7
     menu(first_enemy_item + i) = "Enemy:" + ename(i)
@@ -1418,8 +1422,8 @@ SUB load_formation_slices(ename() as string, form as Formation, rootslice as Sli
   ChangeRectangleSlice sl, , boxlook(0).bgcol, boxlook(0).edgecol
   sl->AnchorHoriz = 1
   sl->AnchorVert = 2
-  sl->X = i * 8 + 16
-  sl->Y = i * 20 + 40
+  sl->X = i * 8 + 16 'overridden by hero formation
+  sl->Y = i * 20 + 40 'overridden by hero formation
   sl->Width = 32
   sl->Height = 40
   'Break ties with heroes behind
@@ -1451,7 +1455,7 @@ END SUB
 
 SUB draw_formation_slices(eform as Formation, rootslice as Slice ptr, selected_slot as integer, page as integer)
  DIM hform as HeroFormation
- load_hero_formation hform, 0
+ load_hero_formation hform, eform.hero_form
  draw_formation_slices eform, hform, rootslice, selected_slot, page, NO
 END SUB
 

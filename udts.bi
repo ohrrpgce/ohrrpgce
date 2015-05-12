@@ -895,6 +895,7 @@ TYPE Formation
   background_ticks as integer
   victory_tag as integer        '0: none, 1+: tag number
   death_action as integer       '-1: continue game, 0: gameover
+  hero_form as integer
 END TYPE
 
 TYPE FormationSet
