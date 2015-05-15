@@ -545,7 +545,9 @@ fadeout 0, 0, 0
 queue_fade_in
 
 IF gen(genResolutionX) <> 320 OR gen(genResolutionY) <> 200 THEN
- IF gfxbackend <> "sdl" THEN
+ IF gfxbackend <> "sdl" ANDALSO gfxbackend <> "sd" THEN
+  'FIXME: checking for "sd" is a quick and lazy workaround for the fact that
+  'the gfx_sdl backend gets the last letter of its name chopped off when running on Android
   notification "This game requires use of the gfx_sdl backend; other graphics backends do not support customisable resolution"
  ELSE
   set_resolution(gen(genResolutionX), gen(genResolutionY))
