@@ -250,6 +250,10 @@ FUNCTION get_enabled_store_name () as string
   IF stores."ouya".exists THEN
    RETURN sanity_check_store_name(stores."ouya".string)
   END IF
+ ELSEIF running_on_mobile() THEN
+  'We don't yet have any support for any Android payment backends except the OUYA one
+  'And launching a browser for Paypal on Android doesn't work yet
+  RETURN "disabled"
  ELSE
   IF stores."default".exists THEN
    RETURN sanity_check_store_name(stores."default".string)
