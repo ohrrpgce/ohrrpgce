@@ -4,6 +4,8 @@ Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the me
 
 Use the left and right arrow keys to change numbers. You can also type in numbers.
 
+Press Enter or Space on the name of an enemy to reposition them in the formation.
+
 <Formation #>: Choose which formation you are working on. This battle will be referred to by this number throughout both custom.exe and your plotscripts.
 
 Backdrop: Choose a background for this battle. Import full-screen backdrops in the Graphics Editor.
