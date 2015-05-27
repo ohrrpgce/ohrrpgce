@@ -1272,7 +1272,7 @@ SUB secret_menu ()
 END SUB
 
 SUB resolution_menu ()
- DIM menu(...) as string = {"Width=", "Height="}
+ DIM menu(...) as string = {"Width=", "Height=", "Default scale="}
  DIM st as MenuState
  st.size = 24
  st.last = UBOUND(menu)
@@ -1291,9 +1291,15 @@ SUB resolution_menu ()
   SELECT CASE st.pt
    CASE 0: intgrabber(gen(genResolutionX), 0, 640)  'Arbitrary limits
    CASE 1: intgrabber(gen(genResolutionY), 0, 480)
+   CASE 2: intgrabber(gen(genDefaultScale), 0, 4)
   END SELECT
   menu(0) = "Width: " & gen(genResolutionX)
   menu(1) = "Height:" & gen(genResolutionY)
+  IF gen(genDefaultScale) = 0 THEN
+   menu(2) = "Scale: default"
+  ELSE
+   menu(2) = "Scale: " & gen(genDefaultScale)
+  END IF
   clearpage vpage
   standardmenu menu(), st, 0, 0, vpage
   setvispage vpage

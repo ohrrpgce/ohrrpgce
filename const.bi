@@ -165,6 +165,7 @@ CONST genStealSuccessSFX = 199  'Sound effect numbers for steal attacks in addit
 CONST genStealFailSFX = 200     ' "
 CONST genStealNoItemSFX = 201   ' "
 CONST genRegenChar = 202        ' Regen status icon character
+CONST genDefaultScale = 203     ' Graphics zoom factor, 0 = default
 'Everything else up to 499 unused
 
 

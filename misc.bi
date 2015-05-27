@@ -4,6 +4,8 @@
 #IFNDEF MISC_BI
 #DEFINE MISC_BI
 
+#INCLUDE "util.bi"
+
 'Warning: you may not nest TIMER_STOP/START calls!
 
 'under windows, TIMER uses QueryPerformanceCounter, under unix it uses gettimeofday
@@ -55,7 +57,11 @@ DECLARE FUNCTION ReadByte(byval fh as integer, byval p as long=-1) as ubyte
 DECLARE SUB WriteByteStr(byval fh as integer, byval maxlen as integer, s as string)
 DECLARE FUNCTION ReadByteStr(byval fh as integer, byval maxlen as integer) as string
 
+''''Globals
+
 'not really a global: just an empty string, since you can't specify zstring ptr default arguments directly
 EXTERN nulzstr as zstring ptr
+
+EXTERN overrode_default_zoom as bool
 
 #ENDIF

@@ -23,6 +23,9 @@ end extern
 
 dim nulzstr as zstring ptr  '(see misc.bi)
 
+'An option was given on commandline to set zoom (overrides the games' scale setting)
+dim overrode_default_zoom as bool = NO
+
 'Gosub workaround global variables
 dim gosubbuf(31) as crt_jmp_buf
 dim gosubptr as integer = 0
@@ -62,6 +65,13 @@ function commandline_flag(opt as string) as integer
 	end if
 	return NO
 end function
+
+sub record_option(opt as zstring ptr, arg as zstring ptr)
+	dim value as integer = str2int(*arg, -1)
+	if *opt = "zoom" or *opt = "z" or *opt = "width" or *opt = "w" then
+		overrode_default_zoom = YES		
+	end if
+end sub
 
 function usage_setoption(opt as string, arg as string) as integer
 	dim help as string = ""
@@ -153,6 +163,8 @@ sub processcommandline()
 			else
 				arg = ""
 			end if
+
+                        record_option(opt, arg)
 
 			argsused = backends_setoption(opt, arg)  'this must be first, it loads the backend if needed
 			if argsused = 0 then argsused = gfx_setoption(cstring(opt), cstring(arg))

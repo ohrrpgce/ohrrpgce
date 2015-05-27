@@ -554,6 +554,16 @@ IF gen(genResolutionX) <> 320 OR gen(genResolutionY) <> 200 THEN
   gfx_recenter_window_hint()
  END IF
 END IF
+IF gen(genDefaultScale) > 0 AND overrode_default_zoom = NO THEN
+ debuginfo "Setting gfx scale to " & gen(genDefaultScale)
+ IF gfxbackend = "directx" THEN
+  'Doesn't support "zoom"
+  gfx_setoption("width", STR(gen(genDefaultScale) * gen(genResolutionX)))
+  gfx_setoption("height", STR(gen(genDefaultScale) * gen(genResolutionY)))
+ ELSE
+  gfx_setoption("zoom", STR(gen(genDefaultScale)))
+ END IF
+END IF
 
 setfont current_font()
 loadglobalstrings
