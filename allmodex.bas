@@ -150,7 +150,8 @@ dim shared replay as ReplayState
 
 dim shared closerequest as integer = NO
 
-dim shared keybdmutex as any ptr         'controls access to keybdstate(), mouseflags, mouselastflags, and various backend functions
+dim keybdmutex as any ptr                '(Global) Controls access to keybdstate(), mouseflags, mouselastflags, various backend functions,
+                                         'and generally used to halt the polling thread.
 dim shared keybdthread as any ptr        'id of the polling thread
 dim shared endpollthread as bool         'signal the polling thread to quit
 dim shared keybdstate(127) as integer    '"real"time keyboard array

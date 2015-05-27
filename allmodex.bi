@@ -252,6 +252,7 @@ declare sub set_safe_zone_margin (byval margin as integer)
 declare function supports_safe_zone_margin () as bool
 
 'globals
+extern keybdmutex as any ptr
 extern modex_initialised as bool
 extern vpages() as Frame ptr
 extern vpagesp as Frame ptr ptr

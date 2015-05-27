@@ -9,6 +9,7 @@
 #include "fbgfx.bi"
 #include "gfx_newRenderPlan.bi"
 #include "gfx.bi"
+#include "allmodex.bi"
 #include "common.bi"
 
 'Use the FB namespace for the types and constants from fbgfx
@@ -45,6 +46,7 @@ dim shared depth as integer = 8
 dim shared smooth as integer = 0
 dim shared mouseclipped as integer = 0
 dim shared rememmvis as integer = 1
+dim shared remember_windowtitle as string
 dim shared as integer mxmin = -1, mxmax = -1, mymin = -1, mymax = -1
 dim shared inputtext as string
 dim shared extrakeys(127) as integer
@@ -76,6 +78,23 @@ sub gfx_fb_screenres
 	else
 		screenres screenmodex, screenmodey, depth, 1, GFX_WINDOWED
 		setmouse , , rememmvis
+	end if
+end sub
+
+sub gfx_fb_update_screen_mode()
+	if init_gfx = 1 then
+		mutexlock keybdmutex
+		dim i as integer
+		calculate_screen_res
+		gfx_fb_screenres
+		windowtitle remember_windowtitle
+		'Palette must be re-set
+		if depth = 8 then
+			for i = 0 to 255
+				palette i, (truepal(i) and &hFF0000) shr 16, (truepal(i) and &hFF00) shr 8, truepal(i) and &hFF
+			next
+		end if
+		mutexunlock keybdmutex
 	end if
 end sub
 
@@ -162,25 +181,12 @@ sub gfx_fb_setwindowed(byval iswindow as integer)
 	if iswindow = windowed then exit sub
 
 	windowed = iswindow
-
-	if init_gfx = 1 then
-		dim i as integer
-		gfx_fb_screenres
-		'palette must be re-set
-		if depth = 8 then
-			for i = 0 to 255
-				palette i, (truepal(i) and &hFF0000) shr 16, (truepal(i) and &hFF00) shr 8, truepal(i) and &hFF
-			next
-		end if
-	end if
+	gfx_fb_update_screen_mode
 end sub
 
 sub gfx_fb_windowtitle(byval title as zstring ptr)
-	if len(title) = 0 then
-		windowtitle ""
-	else
-		windowtitle *title
-	end if
+	remember_windowtitle = *title
+	windowtitle *title
 end sub
 
 function gfx_fb_getwindowstate() as WindowState ptr
@@ -195,40 +201,46 @@ function gfx_fb_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as
 '	depth (8*, 32),
 '	border (0*, 1)
 '	smooth (0*, 1)
-'only before gfx has been initialised
+'Changing mode after window already created isn't well tested!
 	dim as integer value = str2int(*arg, -1)
 	dim as integer ret = 0
-	if init_gfx = 0 then
-		if *opt = "zoom" or *opt = "z" then
-			if value >= 1 and value <= 16 then
-				zoom = value
-			end if
-			ret = 1
-		elseif *opt = "depth" or *opt = "d" then
-			if value = 24 or value = 32 then
-				depth = value
-			else
-				depth = 8
-			end if
-			ret = 1
-		elseif *opt = "border" or *opt = "b" then
-			if value = 1 or value = -1 then  'arg optional
-				bordered = 1
-			else
-				bordered = 0
-			end if
-			ret = 1
-		elseif *opt = "smooth" or *opt = "s" then
-			if value = 1 or value = -1 then  'arg optional
-				smooth = 1
-			else
-				smooth = 0
-			end if
-			ret = 1
+	dim as bool screen_mode_changed = NO
+	if *opt = "zoom" or *opt = "z" then
+		if value >= 1 and value <= 16 then
+			zoom = value
 		end if
-		'all these take numeric arguments, so gobble the arg if it is
-		'a number, whether or not it was valid
-		if ret = 1 and is_int(*arg) then ret = 2
+		screen_mode_changed = YES
+		ret = 1
+	elseif *opt = "depth" or *opt = "d" then
+		if value = 24 or value = 32 then
+			depth = value
+		else
+			depth = 8
+		end if
+		screen_mode_changed = YES
+		ret = 1
+	elseif *opt = "border" or *opt = "b" then
+		if value = 1 or value = -1 then  'arg optional
+			bordered = 1
+		else
+			bordered = 0
+		end if
+		screen_mode_changed = YES
+		ret = 1
+	elseif *opt = "smooth" or *opt = "s" then
+		if value = 1 or value = -1 then  'arg optional
+			smooth = 1
+		else
+			smooth = 0
+		end if
+		ret = 1
+	end if
+	'all these take numeric arguments, so gobble the arg if it is
+	'a number, whether or not it was valid
+	if ret = 1 and is_int(*arg) then ret = 2
+
+	if screen_mode_changed then
+		gfx_fb_update_screen_mode
 	end if
 
 	return ret
