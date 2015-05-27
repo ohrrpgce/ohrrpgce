@@ -146,6 +146,7 @@ WHAT IS NEW?
     * "create scroll" "slice is scroll" "set scroll bar style"
       "get scroll bar style" "set scroll check depth"
       "get scroll check depth" "scroll to child" [James]
+    * "next npc reference" [Ralph]
 
   * Performance Fixes
     * Fixed delay when opening a menu that happened when a large number

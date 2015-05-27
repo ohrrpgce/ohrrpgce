@@ -3708,6 +3708,24 @@ SELECT CASE as CONST id
   IF valid_plotslice(retvals(0)) ANDALSO valid_plotslice(retvals(1)) THEN
    ScrollToChild plotslices(retvals(0)), plotslices(retvals(1))
   END IF
+ CASE 598'--next npc reference
+  'Argument should be 0 or an NPC reference (< 0)
+  IF retvals(0) > 0 THEN
+   scripterr current_command_name() & ": invalid npc reference " & retvals(0)
+   scriptret = 0
+  ELSE
+   'Default to 0 if no more NPCs
+   scriptret = 0
+   'OK if this is past end of the array
+   DIM first_npcref as integer = (-retvals(0) - 1) + 1
+   FOR i as integer = first_npcref TO UBOUND(npc)
+    IF npc(i).id > 0 THEN
+     scriptret = (i + 1) * -1
+     EXIT FOR
+    END IF
+   NEXT i
+  END IF
+
  CASE ELSE
   RETURN NO
 

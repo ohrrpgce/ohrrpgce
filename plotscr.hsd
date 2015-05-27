@@ -617,6 +617,7 @@ define function, begin
 595,runningonwindows,0        # returns true if the device is Windows
 596,runningonmac,0            # returns true if the device is Mac
 597,runningonlinux,0          # returns true if the device is Linux
+598,nextnpcreference,1,0      # Iterating over NPCs: reference to next NPC
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 
