@@ -997,7 +997,7 @@ SUB make_ui_boxstyle_editor_menu(m() as string, boxes() as BoxStyle)
 END SUB
 
 FUNCTION pick_ogg_quality(byref quality as integer) as integer
- STATIC q as integer = 4
+ STATIC q as integer = 2
  DIM i as integer
  DIM descrip as string
  setkeys
