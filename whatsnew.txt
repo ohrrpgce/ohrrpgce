@@ -147,6 +147,8 @@ WHAT IS NEW?
       "get scroll bar style" "set scroll check depth"
       "get scroll check depth" "scroll to child" [James]
     * "next npc reference" [Ralph]
+    * "input string with virtual keyboard",
+      "input string with mouse keyboard" [James]
 
   * Performance Fixes
     * Fixed delay when opening a menu that happened when a large number

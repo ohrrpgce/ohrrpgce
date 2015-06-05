@@ -3015,6 +3015,15 @@ end
 				<ref>getinputtext</ref>
 			</seealso>
 		</command>
+		<command id="inputstringwithvirtualkeyboard">
+			<canon>input string with virtual keyboard (ID, maxlength, onlyplayer)</canon>
+			<shortname>input string with virtual keyboard</shortname>
+			<description>Allows the player to input a string using a virtual keyboard The exact appearance and behavior of the virtual keyboard will vary on different platforms, for example, on Android a touch-screen keyboard will appear, but when playing on a console, the virtual keyboard will be controlled with the d-pad and buttons. You have no control over what portion of the screen is obscured by the virtual keyboard. The virtual keyboard will vanish when the command is finished. <p>ID</p> is the string you want to use. All other arguments are optional: <p>maxlen</p> is the length of input, if left blank the limit will be set to 40 (max visible onscreen length). The <p>onlyplayer</p> is optional. It only matters when the game is played on a console with multiple gamepads configured. It can be a number from 0 to 3, being that only that specific player has control over the virtual keyboard. By default onlyplayer is -1, which means that any player can control it.</description>
+			<seealso>
+				<ref>inputstring</ref>
+				<ref>inputstringwithmousekeyboard</ref>
+			</seealso>
+		</command>
 		</section>		<!-- Keyboard Input-->
 
 		<section title="Joystick Input">
@@ -3082,6 +3091,15 @@ end</example>
 			<canon>mouse region (x min, x max, y min, y max)</canon>
 			<shortname>mouse region</shortname>
 			<description>Constricts the mouse to a rectangular part of the window/screen, such as a choice selection box. It is recommend you do not use this command, as it is very annoying in windowed mode. The maximum values are inclusive. Call without arguments to free the mouse to leave the window. <ref>initmouse</ref> should be called before this command is used.</description>
+		</command>
+		<command id="inputstringwithmousekeyboard">
+			<canon>input string with mouse keyboard (ID, maxlength)</canon>
+			<shortname>input string with mouse keyboard</shortname>
+			<description>Allows the player to input a string using a virtual keyboard that respons to mouse clicks or touchscreen touches. You have no control over what portion of the screen is obscured by the virtual keyboard. The virtual keyboard will vanish when the command is finished. <p>ID</p> is the string you want to use. All other arguments are optional: <p>maxlen</p> is the length of input, if left blank the limit will be set to 40 (max visible onscreen length).</description>
+			<seealso>
+				<ref>inputstring</ref>
+				<ref>inputstringwithvirtualkeyboard</ref>
+			</seealso>
 		</command>
 		</section>		<!-- Mouse Input-->
 	</section>		<!-- Getting Player Input-->

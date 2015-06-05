@@ -1412,6 +1412,12 @@
 		<a href="#about-inputstring">input string (ID, maxlength, use current, center, position x, position y)</a><br>
 		
 	
+		<a href="#about-inputstringwithmousekeyboard">input string with mouse keyboard (ID, maxlength)</a><br>
+		
+	
+		<a href="#about-inputstringwithvirtualkeyboard">input string with virtual keyboard (ID, maxlength, onlyplayer)</a><br>
+		
+	
 		<a href="#about-insidebattle">inside battle</a><br>
 		
 	
@@ -1635,6 +1641,9 @@
 		
 	
 		<a href="#about-nextmenuitem">next menu item(menu item handle, visible only)</a><br>
+		
+	
+		<a href="#about-nextnpcreference">next NPC reference (npcref)</a><br>
 		
 	
 		<a href="#about-nextrectsibling">next rect sibling(handle)</a><br>
@@ -4499,7 +4508,31 @@ end</pre>
 <a href="#about-npcatpixel" class="ref">NPC at pixel</a>, </li>
 <li>
 <a href="#about-createnpc" class="ref">create NPC</a>, </li>
-<li><a href="#about-npccopycount" class="ref">NPC copy count</a></li>
+<li>
+<a href="#about-npccopycount" class="ref">NPC copy count</a>, </li>
+<li><a href="#about-nextnpcreference" class="ref">next NPC reference</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-nextnpcreference"></a>
+		<h4>next NPC reference (npcref)</h4>
+<p>
+			This command is for looping over all the npcs on the map, in the same way that <a href="#about-firstchild" class="ref">first child</a> and <a href="#about-nextsibling" class="ref">next sibling</a> can be used to iterate over all the children of a slice. When called with no argument or 0, it returns a reference to the first NPC on the map. When you give it an NPC reference it returns a reference to the next NPC. It returns 0 when there are no more NPCs, and skips over NPCs that are disabled by a tag condition. It's safe to delete NPCs while you're iterating over them (unlike <a href="#about-nextsibling" class="ref">next sibling</a>!), but creating NPCs at the same time might result in them getting skipped.
+			<pre># Iterate over all NPCs... and delete them all!
+variable(npcref)
+npcref := next NPC reference()  # The first NPC
+while (npcref) do (
+    delete NPC(npcref)
+    npcref := next NPC reference(npcref)
+)</pre>
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-npcreference" class="ref">NPC reference</a>, </li>
+<li>
+<a href="#about-npcatspot" class="ref">NPC at spot</a>, </li>
+<li><a href="#about-npcatpixel" class="ref">NPC at pixel</a></li>
 </ul>
 </div>
 		</p>
@@ -7625,6 +7658,20 @@ end
 </div>
 		</p>
 </div>
+		<div class="command">
+<a name="about-inputstringwithvirtualkeyboard"></a>
+		<h4>input string with virtual keyboard (ID, maxlength, onlyplayer)</h4>
+<p>
+			Allows the player to input a string using a virtual keyboard The exact appearance and behavior of the virtual keyboard will vary on different platforms, for example, on Android a touch-screen keyboard will appear, but when playing on a console, the virtual keyboard will be controlled with the d-pad and buttons. You have no control over what portion of the screen is obscured by the virtual keyboard. The virtual keyboard will vanish when the command is finished. <span class="param">ID</span> is the string you want to use. All other arguments are optional: <span class="param">maxlen</span> is the length of input, if left blank the limit will be set to 40 (max visible onscreen length). The <span class="param">onlyplayer</span> is optional. It only matters when the game is played on a console with multiple gamepads configured. It can be a number from 0 to 3, being that only that specific player has control over the virtual keyboard. By default onlyplayer is -1, which means that any player can control it.
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-inputstring" class="ref">input string</a>, </li>
+<li><a href="#about-inputstringwithmousekeyboard" class="ref">input string with mouse keyboard</a></li>
+</ul>
+</div>
+		</p>
+</div>
 		<hr>
 		</div>
 		<div class="subsection" id="Joystick Input">
@@ -7744,6 +7791,20 @@ end</pre>
 			Constricts the mouse to a rectangular part of the window/screen, such as a choice selection box. It is recommend you do not use this command, as it is very annoying in windowed mode. The maximum values are inclusive. Call without arguments to free the mouse to leave the window. <a href="#about-initmouse" class="ref">init mouse</a> should be called before this command is used.
 			
 			
+		</p>
+</div>
+		<div class="command">
+<a name="about-inputstringwithmousekeyboard"></a>
+		<h4>input string with mouse keyboard (ID, maxlength)</h4>
+<p>
+			Allows the player to input a string using a virtual keyboard that respons to mouse clicks or touchscreen touches. You have no control over what portion of the screen is obscured by the virtual keyboard. The virtual keyboard will vanish when the command is finished. <span class="param">ID</span> is the string you want to use. All other arguments are optional: <span class="param">maxlen</span> is the length of input, if left blank the limit will be set to 40 (max visible onscreen length).
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-inputstring" class="ref">input string</a>, </li>
+<li><a href="#about-inputstringwithvirtualkeyboard" class="ref">input string with virtual keyboard</a></li>
+</ul>
+</div>
 		</p>
 </div>
 		<hr>
@@ -14419,7 +14480,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 820 commands in this file, of which 57 are only references to other commands.</p>
+<p>Stats: There are 823 commands in this file, of which 57 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

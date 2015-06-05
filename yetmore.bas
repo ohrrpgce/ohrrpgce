@@ -585,8 +585,8 @@ SELECT CASE as CONST id
    END IF
   END IF
  CASE 556 '--input string with virtual keyboard (string ID, maxlen, onlyplayer=-1)
+  'This command tries to guess the best method for your current platform
   IF valid_plotstr(retvals(0)) THEN
-   'FIXME: probably want to let the game author override the default virtual keyboard method
    IF running_on_mobile() THEN
     'Mobile with touchscreen. Player argument ignored for now.
     hide_virtual_gamepad()
@@ -604,6 +604,12 @@ SELECT CASE as CONST id
     plotstr(retvals(0)).s = readitemdescription(retvals(1))
     scriptret = 1
    END IF
+  END IF
+ CASE 599 '--input string with mouse keyboard (string ID, maxlen)
+  IF valid_plotstr(retvals(0)) THEN
+   hide_virtual_gamepad()
+   plotstr(retvals(0)).s = touch_virtual_keyboard(plotstr(retvals(0)).s, retvals(1))
+   update_virtual_gamepad_display()
   END IF
 
  CASE ELSE
