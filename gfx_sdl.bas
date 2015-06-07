@@ -650,7 +650,7 @@ FUNCTION gfx_sdl_setoption(byval opt as zstring ptr, byval arg as zstring ptr) a
       smooth = 0
     END IF
     ret = 1
-  ELSEIF *opt = "io-debug" THEN
+  ELSEIF *opt = "input-debug" THEN
     debugging_io = YES
     ret = 1
   END IF
@@ -662,7 +662,7 @@ END FUNCTION
 FUNCTION gfx_sdl_describe_options() as zstring ptr
   return @"-z -zoom [1...16]   Scale screen to 1,2, ... up to 16x normal size (2x default)" LINE_END _
           "-s -smooth          Enable smoothing filter for zoom modes (default off)" LINE_END _
-          "   -io-debug        Print extra debug info to c/g_debug.txt related to IO"
+          "-input-debug        Print extra debug info to c/g_debug.txt related to keyboard, mouse, etc. input"
 END FUNCTION
 
 FUNCTION gfx_sdl_get_safe_zone_margin() as single

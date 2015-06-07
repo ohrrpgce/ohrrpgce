@@ -77,7 +77,7 @@ function usage_setoption(opt as string, arg as string) as integer
 	dim help as string = ""
 	if opt = "v" or opt = "version" then
 		help = help & long_version & build_info & LINE_END
-		help = help & "(C) Copyright 1997-2007 James Paige and Hamster Republic Productions" & LINE_END
+		help = help & "(C) Copyright 1997-2015 James Paige and Hamster Republic Productions" & LINE_END
 		help = help & "This game engine is free software under the terms of the GNU GPL v2+" & LINE_END
 		help = help & "For source-code see http://HamsterRepublic.com/ohrrpgce/source.php" & LINE_END
 		help = help & "Game data copyright and license will vary." & LINE_END
@@ -90,10 +90,14 @@ function usage_setoption(opt as string, arg as string) as integer
 		help = help & "-v -version         Show version and build info" & LINE_END
 		help = help & "-log foldername     Log debug messages to a specific folder" & LINE_END
 #IFDEF IS_GAME
-		help = help & "-full-upgrade       Upgrade game data completely, as Custom does" & LINE_END
+		help = help & "-full-upgrade       Upgrade game data completely, as Custom does (for bughunting only)" & LINE_END
 		help = help & "-autosnap N         Automatically save a screen snapshot every N ticks" & LINE_END
-		help = help & "-runfast            Run quickly (without speed control)" & LINE_END
+		help = help & "-runfast            Run as quickly as possible (no FPS throttling)" & LINE_END
 		help = help & "-autotest           Run quickly and write screenshots on _checkpoints" & LINE_END
+		help = help & "-errlvl level       Override script error suppression level (" & serrBound & " default, " & serrSuspicious & " hide warnings, " & serrBadOp & " hide all but corruption/bugs)" & LINE_END
+                'Undocumented:
+                'help = help & "-slave channel     Used when spawned from Custom" & LINE_END
+                'help = help & "-debugkeys         Turn on debug keys" & LINE_END
 #ENDIF
 		help = help & "-recordinput file   Record keyboard input to a file" & LINE_END
 		help = help & "-replayinput file   Replay keyboard input from a previously recorded file" & LINE_END
