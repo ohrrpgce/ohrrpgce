@@ -17,6 +17,8 @@ extern FBARRAY __dummy_fbarray;
 FBARRAY __dummy_fbarray;
 
 
+//////////////////////////////// Debug output /////////////////////////////////
+
 //Trying to read errno from FB is unlikely to even link, because it's normally a macro, so this has be in C
 char *get_sys_err_string() {
 	return strerror(errno);
@@ -52,6 +54,8 @@ void _throw_error(enum ErrorLevel errorlevel, const char *srcfile, int linenum, 
 	*/
 }
 
+///////////////////////////////// FBSTRINGs ///////////////////////////////////
+
 // Initialise an FBSTRING to a C string
 // *fbstr is assumed to be garbage
 void init_fbstring(FBSTRING *fbstr, char *cstr) {
@@ -76,6 +80,20 @@ FBSTRING *return_fbstring(FBSTRING *fbstr) {
 FBSTRING *empty_fbstring() {
 	return &__fb_ctx.null_desc;
 }
+
+// Delete and free a temp string descriptor, or delete a non-temp string
+void delete_fbstring(FBSTRING *str) {
+	if (FB_ISTEMP(str)) {
+		// You simply assign to NULL. This is equivalent to calling nonpublic function fb_hStrDelTemp.
+		// If it's a temp descriptor this frees the string and descriptor, otherwise it does nothing.
+		fb_StrAssign(NULL, 0, str, -1, 0);
+	} else {
+		fb_StrDelete(str);
+	}
+}
+
+///////////////////////////////// Hashing /////////////////////////////////////
+
 
 #define ROT(a, b) ((a << b) | (a >> (32 - b)))
 

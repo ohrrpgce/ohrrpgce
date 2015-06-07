@@ -30,7 +30,9 @@ Type FBSTRING as string
 Declare Function fb_hStrRealloc Alias "fb_hStrRealloc" (byval s as FBSTRING ptr, byval size as integer, byval preserve as integer) as FBSTRING ptr
 'Resize a FB string or allocate a new one, and mark it temporary (equals SPEED)
 Declare Function fb_hStrAllocTemp Alias "fb_hStrAllocTemp" (byval s as FBSTRING ptr, byval size as integer) as FBSTRING ptr
-
+'Although unused, documenting this here: free a temporary FBstring which is returned (Normally would destroy it with fb_StrAssign)
+'(returns error code)
+Declare Function fb_hStrDelTemp Alias "fb_hStrDelTemp" (s as FBSTRING ptr) as integer
 
 
 'It is very important for this to be populated _before_ any calls to CHDIR
