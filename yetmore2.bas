@@ -1029,6 +1029,11 @@ FUNCTION game_setoption(opt as string, arg as string) as integer
   debuginfo "Running without speed control"
   enable_speed_control NO
   RETURN 1 'arg not used
+ ELSEIF opt = "debugkeys" THEN
+  'Undocumented
+  debuginfo "--debugkeys used"
+  always_enable_debug_keys = YES
+  RETURN 1 'arg not used
  ELSEIF opt = "autosnap" then
   IF is_int(arg) THEN
    autosnap = str2int(arg)

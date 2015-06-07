@@ -87,15 +87,16 @@ debuginfo DATE & " " & TIME
 mersenne_twister TIMER
 
 'Global variables which are affected by processcommandline (specifically, game_setoption)
-DIM autotestmode as integer = NO
+DIM autotestmode as bool = NO
+DIM always_enable_debug_keys as bool = NO
 DIM speedcontrol as integer = 55
 DIM autosnap as integer = 0
-DIM running_as_slave as integer = NO
+DIM running_as_slave as bool = NO
 DIM custom_version as string  'when running as slave
 DIM master_channel as IPCChannel = NULL_CHANNEL  'when running as slave
 DIM modified_lumps as string vector  'when running as slave
 v_new modified_lumps
-DIM force_prefsdir_save as integer = NO
+DIM force_prefsdir_save as bool = NO
 
 orig_dir = CURDIR()
 processcommandline
@@ -747,7 +748,7 @@ DO
  update_npcs()
 
  '--Debug keys
- IF readbit(gen(), genBits, 8) = 0 THEN
+ IF always_enable_debug_keys OR readbit(gen(), genBits, 8) = 0 THEN
   'DEBUG debug "evaluate debugging keys"
   IF keyval(scF2) > 1 AND txt.showing = NO THEN
    savegame 32

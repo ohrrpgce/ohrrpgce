@@ -15,8 +15,8 @@ EXTERN prefsdir as string ' currently only used by Linux
 EXTERN timing() as integer
 EXTERN pal16() as integer
 EXTERN speedcontrol as integer
-EXTERN autotestmode as integer
-EXTERN deferpaint as integer
+EXTERN autotestmode as bool
+EXTERN always_enable_debug_keys as bool
 EXTERN presentsong as integer
 EXTERN lastsaveslot as integer
 EXTERN abortg as integer
@@ -28,12 +28,12 @@ EXTERN err_suppress_lvl as scriptErrEnum
 EXTERN backcompat_sound_slot_mode as integer
 EXTERN backcompat_sound_slots() as integer
 EXTERN autosnap as integer
-EXTERN running_as_slave as integer
+EXTERN running_as_slave as bool
 EXTERN custom_version as string
 EXTERN master_channel as IPCChannel
 EXTERN modified_lumps as string vector
 EXTERN lump_reloading as LumpReloadOptions
-EXTERN force_prefsdir_save as integer
+EXTERN force_prefsdir_save as bool
 EXTERN persist_reld_doc as DocPtr
 
 'Input handling globals
