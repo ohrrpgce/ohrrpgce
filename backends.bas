@@ -47,6 +47,8 @@ dim gfx_screenshot as function (byval fname as zstring ptr) as integer
 dim gfx_setwindowed as sub (byval iswindow as integer)
 dim gfx_windowtitle as sub (byval title as zstring ptr)
 dim gfx_getwindowstate as function () as WindowState ptr
+dim gfx_get_screen_size as sub (wide as integer ptr, high as integer ptr)
+
 dim gfx_supports_variable_resolution as function () as bool
 dim gfx_get_resize as function (byref ret as XYPair) as integer
 dim gfx_set_resizable as function (enable as bool, min_width as integer, min_height as integer) as bool
@@ -168,6 +170,7 @@ dim as string gfxbackend, musicbackend
 dim as string gfxbackendinfo, musicbackendinfo
 dim as string systeminfo
 
+sub gfx_dummy_get_screen_size(wide as integer ptr, high as integer ptr) : *wide = 0 : *high = 0 : end sub
 function gfx_dummy_supports_variable_resolution() as bool : return NO : end function
 function gfx_dummy_get_resize(byref ret as XYPair) as integer : return NO : end function
 function gfx_dummy_set_resizable(enable as bool, min_width as integer, min_height as integer) as bool : return NO : end function
@@ -205,6 +208,7 @@ sub set_default_gfx_function_ptrs
 	default_gfx_render_procs()
 	gfx_getversion = NULL
 	gfx_setdebugfunc = NULL
+	gfx_get_screen_size = @gfx_dummy_get_screen_size
 	gfx_supports_variable_resolution = @gfx_dummy_supports_variable_resolution
 	gfx_get_resize = @gfx_dummy_get_resize
 	gfx_set_resizable = @gfx_dummy_set_resizable
@@ -284,6 +288,7 @@ function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filename as 
 	MUSTLOAD(gfx_setwindowed)
 	MUSTLOAD(gfx_windowtitle)
 	MUSTLOAD(gfx_getwindowstate)
+	TRYLOAD (gfx_get_screen_size)
 	TRYLOAD (gfx_supports_variable_resolution)
 	TRYLOAD (gfx_get_resize)
 	TRYLOAD (gfx_set_resizable)
@@ -497,6 +502,7 @@ function load_backend(which as GFxBackendStuff ptr) as bool
 	set_default_gfx_function_ptrs()
 
 	if which->load = NULL then
+		'Dynamically linked
 		dim filename as string = which->libname
 		if filename = "" then filename = "gfx_" + which->name
 #ifdef __FB_WIN32__
@@ -506,6 +512,7 @@ function load_backend(which as GFxBackendStuff ptr) as bool
 #endif
 		if gfx_load_library(which, filename) = NO then return NO
 	else
+		'Statically linked
 		if which->load() = 0 then return NO
 	end if
 

@@ -59,10 +59,14 @@ extern Gfx_showpage as sub (byval raw as ubyte ptr, byval w as integer, byval h 
 
 'set colour palette. May reuse last raw pointer to showpage, so you may not change it!
 extern Gfx_setpal as sub (byval pal as RGBcolor ptr)
+
 extern Gfx_screenshot as function (byval fname as zstring ptr) as integer
 extern Gfx_setwindowed as sub (byval iswindow as integer)
 extern Gfx_windowtitle as sub (byval title as zstring ptr)
 extern Gfx_getwindowstate as function () as WindowState ptr
+'(optional) Size in pixels of the (primary) monitor. Sets values to 0 if can't retrieve it.
+'If possible, tries to exclude size of WM tool/taskbars.
+extern Gfx_get_screen_size as sub (wide as integer ptr, high as integer ptr)
 
 '(optional) Returns whether the resolution can be changed to something other than 320x200 (via gfx_showpage)
 '(This doesn't imply that gfx_set_resizable is supported)

@@ -20,6 +20,31 @@ include_windows_bi()
 #endif
 '/
 
+''' FB SDL headers are pretty out of date, even in FB 1.0
+#undef SDL_VideoInfo
+type SDL_VideoInfo
+	hw_available:1 as Uint32
+	wm_available:1 as Uint32
+	UnusedBits1:6 as Uint32
+	UnusedBits2:1 as Uint32
+	blit_hw:1 as Uint32
+	blit_hw_CC:1 as Uint32
+	blit_hw_A:1 as Uint32
+	blit_sw:1 as Uint32
+	blit_sw_CC:1 as Uint32
+	blit_sw_A:1 as Uint32
+	blit_fill:1 as Uint32
+	UnusedBits3:16 as Uint32
+	video_mem as Uint32
+	vfmt as SDL_PixelFormat ptr
+        'ADDED:
+	current_w as Sint32  ' Value: The current video mode width
+	current_h as Sint32  ' Value: The current video mode height
+end type
+
+
+
+
 'Not extern C
 EXTERN running_as_slave as integer
 
@@ -82,6 +107,8 @@ DIM SHARED smooth as integer = 0
 DIM SHARED screensurface as SDL_Surface ptr = NULL
 DIM SHARED screenbuffer as SDL_Surface ptr = NULL
 DIM SHARED windowedmode as bool = YES
+DIM SHARED screen_width as integer = 0
+DIM SHARED screen_height as integer = 0
 DIM SHARED resizable as integer = NO
 DIM SHARED resizerequested as integer = NO
 DIM SHARED resizerequest as XYPair
@@ -291,6 +318,17 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
       *info_buffer = MID("Can't start SDL video subsys: " & *SDL_GetError & LINE_END & *info_buffer, 1, info_buffer_size)
       RETURN 0
     END IF
+
+    'Get resolution of the screen, must be done before opening a window,
+    'as after that this gives the size of the window instead.
+    DIM videoinfo as SDL_VideoInfo ptr = SDL_GetVideoInfo()
+    IF videoinfo = NULL THEN
+      debug "SDL_GetVideoInfo failed: " & *SDL_GetError()
+    ELSE
+      screen_width = videoinfo->current_w
+      screen_height = videoinfo->current_h
+      debuginfo "SDL: screen size "  & screen_width & "x" & screen_height
+    END IF
   END IF
   SDL_EnableKeyRepeat(400, 50)
 
@@ -301,12 +339,12 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
   framesize.h = 200
 
 #IFDEF __FB_ANDROID__
- IF SDL_ANDROID_IsRunningOnConsole() THEN
-  debuginfo "Running on a console, disable the virtual gamepad"
-  internal_disable_virtual_gamepad
- ELSE
-  debuginfo "Not running on a console, leave the virtual gamepad visible"
- END IF
+  IF SDL_ANDROID_IsRunningOnConsole() THEN
+    debuginfo "Running on a console, disable the virtual gamepad"
+    internal_disable_virtual_gamepad
+  ELSE
+    debuginfo "Not running on a console, leave the virtual gamepad visible"
+  END IF
 #ENDIF
 
 
@@ -589,6 +627,12 @@ FUNCTION gfx_sdl_getwindowstate() as WindowState ptr
   state.minimised = (temp AND SDL_APPACTIVE) = 0
   RETURN @state
 END FUNCTION
+
+SUB gfx_sdl_get_screen_size(wide as integer ptr, high as integer ptr)
+  'SDL only lets you check screen resolution before you've created a window.
+  *wide = screen_width
+  *high = screen_height
+END SUB
 
 FUNCTION gfx_sdl_supports_variable_resolution() as bool
   'Safe even in fullscreen, I think
@@ -1226,6 +1270,7 @@ FUNCTION gfx_sdl_setprocptrs() as integer
   gfx_setwindowed = @gfx_sdl_setwindowed
   gfx_windowtitle = @gfx_sdl_windowtitle
   gfx_getwindowstate = @gfx_sdl_getwindowstate
+  gfx_get_screen_size = @gfx_sdl_get_screen_size
   gfx_supports_variable_resolution = @gfx_sdl_supports_variable_resolution
   gfx_get_resize = @gfx_sdl_get_resize
   gfx_set_resizable = @gfx_sdl_set_resizable

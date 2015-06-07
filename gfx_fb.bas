@@ -62,9 +62,10 @@ function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windo
 		screenset 1, 0
 		init_gfx = 1
 		dim bpp as integer 'bits, not bytes. see, bits is b, bytes is B
+		dim refreshrate as integer
 		dim driver as string
-		screeninfo , , bpp, , , , driver
-		*info_buffer = MID(bpp & "bpp, " & driver & " driver", 1, info_buffer_size)
+		screeninfo , , bpp, , , refreshrate, driver
+		*info_buffer = MID(bpp & "bpp, " & refreshrate & "Hz, " & driver & " driver", 1, info_buffer_size)
 	end if
 	window_state.focused = YES
 	window_state.minimised = NO
@@ -192,6 +193,11 @@ end sub
 function gfx_fb_getwindowstate() as WindowState ptr
 	return @window_state
 end function
+
+sub gfx_fb_get_screen_size(wide as integer ptr, high as integer ptr)
+	ScreenControl GET_DESKTOP_SIZE, *wide, *high
+end sub
+
 
 function gfx_fb_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as integer
 'handle command-line options in a generic way, so that they
@@ -513,6 +519,7 @@ function gfx_fb_setprocptrs() as integer
 	gfx_setwindowed = @gfx_fb_setwindowed
 	gfx_windowtitle = @gfx_fb_windowtitle
 	gfx_getwindowstate = @gfx_fb_getwindowstate
+	gfx_get_screen_size = @gfx_fb_get_screen_size
 	gfx_setoption = @gfx_fb_setoption
 	gfx_describe_options = @gfx_fb_describe_options
 	io_init = @io_fb_init
