@@ -35,6 +35,7 @@ DECLARE SUB lock_resolution ()
 DECLARE SUB set_resolution (byval w as integer, byval h as integer)
 DECLARE FUNCTION get_resolution_w () as integer
 DECLARE FUNCTION get_resolution_h () as integer
+DECLARE SUB set_scale_factor (scale as integer)
 
 DECLARE SUB setvispage (byval page as integer)
 DECLARE SUB setwindowtitle (title as string)

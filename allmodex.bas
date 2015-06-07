@@ -525,6 +525,19 @@ function get_resolution_h() as integer
 	return windowsize.h
 end function
 
+'Set the size that a pixel appears on the screen.
+'Supported by all backends except gfx_alleg.
+sub set_scale_factor (scale as integer)
+	debuginfo "Setting graphics scaling to x" & scale
+	if gfxbackend = "directx" then
+		'Doesn't support "zoom"
+		gfx_setoption("width", str(windowsize.w * scale))
+		gfx_setoption("height", str(windowsize.h * scale))
+	else
+		gfx_setoption("zoom", str(scale))
+	end if
+end sub
+
 
 '==========================================================================================
 '                                   setvispage and Fading

@@ -1068,22 +1068,21 @@ SUB apply_game_window_settings ()
   IF gfxbackend <> "sdl" ANDALSO gfxbackend <> "sd" THEN
    'FIXME: checking for "sd" is a quick and lazy workaround for the fact that
    'the gfx_sdl backend gets the last letter of its name chopped off when running on Android
-   notification "This game requires use of the gfx_sdl backend; other graphics backends do not support customisable resolution"
+   notification "This game requires use of the gfx_sdl backend; other graphics backends do not support customisable resolution. The game will probably be unplayable!"
   ELSE
    set_resolution(gen(genResolutionX), gen(genResolutionY))
    gfx_recenter_window_hint()
   END IF
  END IF
- IF gen(genDefaultScale) > 0 AND overrode_default_zoom = NO THEN
-  debuginfo "Setting gfx scale to " & gen(genDefaultScale)
-  IF gfxbackend = "directx" THEN
-   'Doesn't support "zoom"
-   gfx_setoption("width", STR(gen(genDefaultScale) * gen(genResolutionX)))
-   gfx_setoption("height", STR(gen(genDefaultScale) * gen(genResolutionY)))
+
+ IF overrode_default_zoom = NO THEN
+  IF gen(genDefaultScale) > 0  THEN
+   set_scale_factor gen(genDefaultScale)
   ELSE
-   gfx_setoption("zoom", STR(gen(genDefaultScale)))
+   'Default to 2
   END IF
  END IF
+
 END SUB
 
 SUB show_wrong_spawned_version_error
