@@ -57,6 +57,9 @@ DECLARE SUB battle_formation_testing_menu()
 DECLARE SUB queue_music_change (byval song as integer)
 DECLARE SUB check_for_queued_music_change ()
 
+
+'============================== Setup directories =============================
+
 'Note: On Android exename is "sdl" and exepath is "" (currently unimplemented in FB and meaningless for an app anyway)
 
 #IFDEF __FB_ANDROID__
@@ -110,11 +113,17 @@ END IF
 'As soon as we create the tmpdir, we want to put a keepalive file in it
 refresh_keepalive_file
 
+
+'============================== Initialise backends ===========================
+
 'DEBUG debug "set mode-X"
 setmodex
 
 'DEBUG debug "init sound"
 setupmusic
+
+
+'=================================== Globals ==================================
 
 'DEBUG debug "dim (almost) everything"
 
@@ -269,10 +278,15 @@ retvalsp = @retvals(0)
 'Module local variables
 DIM archinym as string
 
+
+
+'==============================================================================
+
 'DEBUG debug "Thestart"
 DO 'This is a big loop that encloses the entire program (more than it should). The loop is only reached when resetting the program
 
-'----(Re)initialise graphics/window/IO options
+
+'====================== (Re)initialise gfx/window/IO options ==================
 
 dpage = 1: vpage = 0
 presentsong = -1
@@ -324,6 +338,9 @@ remap_touchscreen_button 5, 0
 
 setwindowtitle "O.H.R.RPG.C.E"
 unhidemousecursor  'init mouse state
+
+
+'=============================== Find the game ================================
 
 gam.autorungame = NO
 usepreunlump = NO
@@ -436,6 +453,9 @@ IF gam.autorungame = NO THEN
  END IF
 END IF
 
+
+'======================== Setup game-specific directories =====================
+
 '-- set up prefs dir
 set_settings_dir
 prefsdir = settings_dir & SLASH & trimextension(trimpath(sourcerpg))
@@ -471,6 +491,9 @@ END IF
 cleanup_other_temp_files
 #ENDIF
 
+
+'==================================== Unlump ==================================
+
 edgeprint "Loading...", xstring("Loading...", 160), 6, uilook(uiText), vpage
 setvispage vpage 'refresh
 
@@ -495,7 +518,7 @@ END IF
 '---GAME SELECTED, PREPARING TO PLAY---
 IF usepreunlump = NO THEN
  unlump sourcerpg, workingdir
-ELSEIF NOT running_as_slave THEN  'Won't upgrade if running as slave
+ELSEIF NOT running_as_slave THEN  'Won't unlump or upgrade if running as slave
  IF NOT diriswriteable(workingdir) THEN
   'We have to copy the game, otherwise we won't be able to upgrade it
   '(it's too much trouble to properly check whether the game is already
@@ -520,6 +543,10 @@ REDIM gmap(dimbinsize(binMAP)) as integer 'this must be declared here, after the
 '--set game
 game = workingdir + SLASH + archinym
 game_unique_id = STR(randint(INT_MAX))
+
+
+'============================== Upgrade the game ==============================
+
 DIM wintitle as string = getdisplayname(trimpath(sourcerpg))
 IF running_as_slave THEN wintitle = "Testing " + wintitle
 setwindowtitle wintitle
@@ -530,46 +557,28 @@ rpg_sanity_checks
 
 xbload game + ".fnt", current_font(), "font missing from " + sourcerpg
 
-set_safe_zone_margin read_ini_int(prefsdir & SLASH & "gameconfig.ini", "gfx.margin", default_margin_for_game())
-
 '--upgrade obsolete RPG files (if possible)
 IF NOT running_as_slave THEN upgrade
 
 'If no version mismatch error has occurred yet, show a warning if the versions aren't identical
 IF running_as_slave THEN check_game_custom_versions_match
 
-IF isfile(game + ".hsp") THEN unlump game + ".hsp", tmpdir
+
+'======================== Stuff initialised once per .RPG =====================
 
 fadeout 0, 0, 0
 'This queue_fade_in apparently does nothing, since the titlescreen, load menu,
 'and main loop all override it
 queue_fade_in
 
-IF gen(genResolutionX) <> 320 OR gen(genResolutionY) <> 200 THEN
- IF gfxbackend <> "sdl" ANDALSO gfxbackend <> "sd" THEN
-  'FIXME: checking for "sd" is a quick and lazy workaround for the fact that
-  'the gfx_sdl backend gets the last letter of its name chopped off when running on Android
-  notification "This game requires use of the gfx_sdl backend; other graphics backends do not support customisable resolution"
- ELSE
-  set_resolution(gen(genResolutionX), gen(genResolutionY))
-  gfx_recenter_window_hint()
- END IF
-END IF
-IF gen(genDefaultScale) > 0 AND overrode_default_zoom = NO THEN
- debuginfo "Setting gfx scale to " & gen(genDefaultScale)
- IF gfxbackend = "directx" THEN
-  'Doesn't support "zoom"
-  gfx_setoption("width", STR(gen(genDefaultScale) * gen(genResolutionX)))
-  gfx_setoption("height", STR(gen(genDefaultScale) * gen(genResolutionY)))
- ELSE
-  gfx_setoption("zoom", STR(gen(genDefaultScale)))
- END IF
-END IF
+'Recreate/resize/reposition the window as needed
+apply_game_window_settings
 
 setfont current_font()
 loadglobalstrings
 getstatnames statnames()
 
+IF isfile(game + ".hsp") THEN unlump game + ".hsp", tmpdir
 'Might be changed by --errlvl commandline option
 IF err_suppress_lvl = 0 THEN err_suppress_lvl = bound(gen(genErrorLevel) - 1, 0, 5)
 nowscript = -1
@@ -587,7 +596,11 @@ resetg = NO
 'This is called BEFORE the loop, because when the game is quit or a save is loaded, this will be called again there
 reset_game_state
 
+
+'===================== Stuff reinitialised each new/load-game ==================
+
 DO' This loop encloses the playable game for a specific RPG file
+
 
 gam.current_master_palette = gen(genMasterPal)
 loadpalette master(), gam.current_master_palette
@@ -619,6 +632,8 @@ txt.fully_shown = NO
 txt.show_lines = 0
 txt.sayer = -1
 txt.id = -1
+
+'========================== Title and loadgame menu ============================
 
 DIM load_slot as integer = -1
 'resetg is YES when we are skipping straight to launching the game
@@ -655,8 +670,6 @@ END IF
 
 load_special_tag_caches
 evalherotags
-queue_fade_in
-DIM tog as integer
 
 '--Reset some stuff related to debug keys
 gam.showtext_ticks = 0
@@ -664,9 +677,15 @@ gam.debug_showtags = NO
 gam.debug_npc_info = NO
 gam.walk_through_walls = NO
 
+
+'================================= Main loop ==================================
+
+queue_fade_in
 'DEBUG debug "pre-call update_heroes"
 update_heroes(YES)
 setkeys
+
+DIM tog as integer
 DIM speedcontrol_this_tick as double = speedcontrol
 DO
  'DEBUG debug "top of master loop"

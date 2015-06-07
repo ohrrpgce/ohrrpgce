@@ -1061,6 +1061,31 @@ FUNCTION game_setoption(opt as string, arg as string) as integer
  RETURN 0
 END FUNCTION
 
+SUB apply_game_window_settings ()
+ set_safe_zone_margin read_ini_int(prefsdir & SLASH & "gameconfig.ini", "gfx.margin", default_margin_for_game())
+
+ IF gen(genResolutionX) <> 320 OR gen(genResolutionY) <> 200 THEN
+  IF gfxbackend <> "sdl" ANDALSO gfxbackend <> "sd" THEN
+   'FIXME: checking for "sd" is a quick and lazy workaround for the fact that
+   'the gfx_sdl backend gets the last letter of its name chopped off when running on Android
+   notification "This game requires use of the gfx_sdl backend; other graphics backends do not support customisable resolution"
+  ELSE
+   set_resolution(gen(genResolutionX), gen(genResolutionY))
+   gfx_recenter_window_hint()
+  END IF
+ END IF
+ IF gen(genDefaultScale) > 0 AND overrode_default_zoom = NO THEN
+  debuginfo "Setting gfx scale to " & gen(genDefaultScale)
+  IF gfxbackend = "directx" THEN
+   'Doesn't support "zoom"
+   gfx_setoption("width", STR(gen(genDefaultScale) * gen(genResolutionX)))
+   gfx_setoption("height", STR(gen(genDefaultScale) * gen(genResolutionY)))
+  ELSE
+   gfx_setoption("zoom", STR(gen(genDefaultScale)))
+  END IF
+ END IF
+END SUB
+
 SUB show_wrong_spawned_version_error
  fatalerror !"This version of Game differs from the version of Custom which spawned it and cannot be used for the ""Test Game"" option. Download and place matching versions in the same directory before trying again.\n" _
              "Game is version " + version + " r" & version_revision & !"\n" _
