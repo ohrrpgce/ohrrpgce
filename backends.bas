@@ -277,12 +277,17 @@ function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filename as 
 	MUSTLOAD(gfx_init)
 	MUSTLOAD(gfx_close)
 	TRYLOAD (gfx_setdebugfunc)
+	'gfx_getversion already loaded
 	MUSTLOAD(gfx_showpage)
 	MUSTLOAD(gfx_setpal)
 	MUSTLOAD(gfx_screenshot)
 	MUSTLOAD(gfx_setwindowed)
 	MUSTLOAD(gfx_windowtitle)
 	MUSTLOAD(gfx_getwindowstate)
+	TRYLOAD (gfx_supports_variable_resolution)
+	TRYLOAD (gfx_get_resize)
+	TRYLOAD (gfx_set_resizable)
+	TRYLOAD (gfx_recenter_window_hint)
 	MUSTLOAD(gfx_setoption)
 	MUSTLOAD(gfx_describe_options)
 	TRYLOAD (gfx_printchar)
@@ -320,8 +325,8 @@ function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filename as 
 	if TRYLOAD(io_mousebits) = NO then
 		needpolling = YES
 	end if
-	TRYLOAD (io_getmouse)
 	MUSTLOAD(io_setmousevisibility)
+	TRYLOAD (io_getmouse)
 	MUSTLOAD(io_setmouse)
 	MUSTLOAD(io_mouserect)
 	MUSTLOAD(io_readjoysane)
