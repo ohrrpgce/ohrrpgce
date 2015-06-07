@@ -309,8 +309,6 @@ defaultc  'set up default controls
 'Read joyset.ini
 readjoysettings
 
-set_safe_zone_margin default_margin()
-
 DIM gp as GamePadMap
 gp.A = scEnter
 gp.B = scESC
@@ -338,6 +336,10 @@ remap_touchscreen_button 5, 0
 
 setwindowtitle "O.H.R.RPG.C.E"
 unhidemousecursor  'init mouse state
+
+set_safe_zone_margin default_margin()
+set_resolution 320, 200
+set_scale_factor 2
 
 
 '=============================== Find the game ================================
