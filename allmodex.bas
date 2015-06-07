@@ -697,21 +697,20 @@ sub enable_speed_control(byval setting as bool = YES)
 	use_speed_control = setting
 end sub
 
-sub setwait (byval t as integer, byval flagt as integer = 0)
-'t is a value in milliseconds which, in the original, is used to set the event
-'frequency and is also used to set the wait time, but the resolution of the
-'dos timer means that the latter is always truncated to the last multiple of
-'55 milliseconds. We won't do this anymore. Try to make the target framerate.
-'flagt, if nonzero, is a count in milliseconds for the secondary timer, which is
-'accessed as the return value from dowait.
+'Set number of milliseconds from now when the next call to dowait returns.
+'This number is treated as a desired framewait, so actual target wait varies from 0.5-1.5x requested.
+'ms:     number of milliseconds
+'flagms: if nonzero, is a count in milliseconds for the secondary timer, whether this has
+'        accessed as the return value from dowait.
+sub setwait (byval ms as double, byval flagms as double = 0)
 	if use_speed_control = NO then exit sub
-	'Min wait: 60fps, max wait: 1.5x requested
-	waittime = bound(waittime + t / 1000, timer + 0.0165, timer + t / 667)
-	if flagt = 0 then
-		flagt = t
+	dim thetime as double = timer
+	waittime = bound(waittime + ms / 1000, thetime + 0.5 * ms / 1000, thetime + 1.5 * ms / 1000)
+	if flagms <= 0 then
+		flagms = ms
 	end if
-	if timer > flagtime then
-		flagtime = bound(flagtime + flagt / 1000, timer + 0.0165, timer + flagt / 667)
+	if thetime > flagtime then
+		flagtime = bound(flagtime + flagms / 1000, thetime + 0.0165, thetime + 1.5 * flagms / 1000)
 	end if
 	setwait_called = YES
 end sub

@@ -90,7 +90,7 @@ DECLARE SUB storemxs (fil as string, byval record as integer, byval fr as Frame 
 DECLARE SUB loadmxs (filen as string, record as integer, dest as Frame ptr)
 DECLARE FUNCTION mxs_frame_to_tileset(spr as Frame ptr) as Frame ptr
 
-DECLARE SUB setwait (byval t as integer, byval flagt as integer = 0)
+DECLARE SUB setwait (byval ms as double, byval flagms as double = 0)
 DECLARE FUNCTION dowait () as bool
 DECLARE SUB enable_speed_control(byval setting as bool = YES)
 DECLARE FUNCTION get_tickcount() as integer

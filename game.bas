@@ -667,7 +667,7 @@ gam.walk_through_walls = NO
 'DEBUG debug "pre-call update_heroes"
 update_heroes(YES)
 setkeys
-DIM speedcontrol_this_tick as integer = speedcontrol
+DIM speedcontrol_this_tick as double = speedcontrol
 DO
  'DEBUG debug "top of master loop"
  setwait speedcontrol_this_tick
