@@ -274,6 +274,11 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
     putenv("SDL_VIDEO_WINDOW_POS=5,5")
   END IF
 
+#ifdef IS_CUSTOM
+  'By default SDL prevents screensaver (new in SDL 1.2.10)
+  putenv("SDL_VIDEO_ALLOW_SCREENSAVER=1")
+#endif
+
   DIM ver as SDL_version ptr = SDL_Linked_Version()
   *info_buffer = MID("SDL " & ver->major & "." & ver->minor & "." & ver->patch, 1, info_buffer_size)
   IF SDL_WasInit(0) = 0 THEN
