@@ -1000,7 +1000,7 @@ DO
  frame_draw_with_background vpages(3), , 0, 0, , bgcolor, chequer_scroll, vpages(dpage)
  IF tmode = 1 OR tmode = 2 THEN
   'Show tile number
-  edgeprint "Tile " & bnum, 0, IIF(bnum < 112, 190, 0), uilook(uiText), dpage
+  edgeprint "Tile to overwrite: " & bnum, 0, IIF(bnum < 112, 190, 0), uilook(uiText), dpage
  END IF
  IF tmode = 3 THEN
   FOR o as integer = 0 TO 9
@@ -1681,14 +1681,16 @@ SUB tilecut (ts as TileEditState, mouse as MouseInfo)
 DIM area(24) as MouseArea
 '"Prev" button
 area(10).x = 8
-area(10).y = 190
-area(10).w = 32
+area(10).y = 200 - 10
+area(10).w = 8 * 6
 area(10).h = 10
 '"Next" button
-area(11).x = 280
-area(11).y = 190
-area(11).w = 32
+area(11).x = 320 - 10 - 8 * 6
+area(11).y = 200 - 10
+area(11).w = 8 * 6
 area(11).h = 10
+
+STATIC snap_to_grid as bool = NO
 
 IF ts.gotmouse THEN
  movemouse ts.x, ts.y
@@ -1702,34 +1704,46 @@ ELSE
 END IF
 DIM tog as integer
 DIM zcsr as integer
-DIM inc as integer
 setkeys
 DO
- setwait 110
+ setwait 55
  setkeys
  tog = tog XOR 1
+ 'Alt as alias for people who remember the old interface
+ IF keyval(scAlt) > 1 OR keyval(scG) > 1 THEN snap_to_grid XOR= YES
  ts.delay = large(ts.delay - 1, 0)
  IF ts.gotmouse THEN
   mouse = readmouse
   zcsr = 0
   ts.zone = mouseover(mouse.x, mouse.y, 0, 0, zcsr, area())
-  IF keyval(scAlt) > 0 THEN
-   ts.x = mouse.x - mouse.x MOD 20
-   ts.y = mouse.y - mouse.y MOD 20
-  ELSE
-   ts.x = small(mouse.x, 300)
-   ts.y = small(mouse.y, 180)
+  IF mouse.moved THEN
+   ts.x = small(mouse.x, 320 - 20)
+   ts.y = small(mouse.y, 200 - 20)
   END IF
  END IF
  IF keyval(scESC) > 1 THEN
   EXIT DO
  END IF
  IF keyval(scF1) > 1 THEN show_help "tilecut"
- inc = 1: IF keyval(scLeftShift) OR keyval(scRightShift) THEN inc = 20
- IF keyval(scUp) AND 5 THEN ts.y = large(ts.y - inc, 0): IF ts.gotmouse THEN movemouse ts.x, ts.y
- IF keyval(scDown) AND 5 THEN ts.y = small(ts.y + inc, 180): IF ts.gotmouse THEN movemouse ts.x, ts.y
- IF keyval(scLeft) AND 5 THEN ts.x = large(ts.x - inc, 0): IF ts.gotmouse THEN movemouse ts.x, ts.y
- IF keyval(scRight) AND 5 THEN ts.x = small(ts.x + inc, 300): IF ts.gotmouse THEN movemouse ts.x, ts.y
+
+ '' Move cursor by keyboard
+ DIM inc as integer
+ IF keyval(scLeftShift) OR keyval(scRightShift) OR snap_to_grid THEN inc = 20 ELSE inc = 1
+ DIM as integer movex = 0, movey = 0
+ IF keyval(scUp) AND 5 THEN movey = -inc
+ IF keyval(scDown) AND 5 THEN movey = inc
+ IF keyval(scLeft) AND 5 THEN movex = -inc
+ IF keyval(scRight) AND 5 THEN movex = inc
+ ts.x = bound(ts.x + movex, 0, 320 - 20)
+ ts.y = bound(ts.y + movey, 0, 200 - 20)
+ IF (movex <> 0 OR movey <> 0) AND ts.gotmouse THEN movemouse ts.x, ts.y
+
+ IF snap_to_grid THEN
+  ts.x -= ts.x MOD 20
+  ts.y -= ts.y MOD 20
+ END IF
+
+ '' Cut tile
  IF enter_or_space() OR (mouse.clicks > 0 AND ts.zone = 0) THEN
   IF ts.delay = 0 THEN
    FOR i as integer = 0 TO 19
@@ -1747,13 +1761,14 @@ DO
      IF ts.y > 180 THEN ts.y = 0
     END IF
     IF ts.gotmouse THEN movemouse ts.x, ts.y
-    previewticks = 6
+    previewticks = 12
    ELSE
     EXIT DO
    END IF
   END IF
  END IF
- '---PICK BACKGROUND PAGE------
+
+ '' Changing source tileset/backdrop
  DIM oldcut as integer = ts.cutfrom
  DIM maxset as integer
  IF ts.cuttileset THEN
@@ -1765,10 +1780,16 @@ DO
  IF ts.zone = 11 AND mouse.clicks > 0 THEN ts.cutfrom = loopvar(ts.cutfrom, 0, maxset, -1)
  IF ts.zone = 12 AND mouse.clicks > 0 THEN ts.cutfrom = loopvar(ts.cutfrom, 0, maxset, 1)
  IF oldcut <> ts.cutfrom THEN
-  IF ts.cuttileset THEN loadmxs game + ".til", ts.cutfrom, vpages(2) ELSE loadmxs game + ".mxs", ts.cutfrom, vpages(2)
+  IF ts.cuttileset THEN
+   loadmxs game + ".til", ts.cutfrom, vpages(2)
+  ELSE
+   loadmxs game + ".mxs", ts.cutfrom, vpages(2)
+  END IF
  END IF
- '----
+
+ '' Draw screen
  IF previewticks THEN
+  'Show preview of destination tileset at top or bottom of screen
   DIM preview as Frame ptr
   DIM previewy as integer = bound(ts.tiley * 20 - 20, 0, 140)
   preview = frame_new_view(vpages(3), 0, previewy, vpages(3)->w, 59)
@@ -1792,15 +1813,30 @@ DO
  END IF
 
  drawbox ts.x, ts.y, 20, 20, iif(tog, uilook(uiText), uilook(uiDescription)), 1, dpage
+
  textcolor uilook(uiMenuItem + tog), 1
  IF ts.zone = 11 THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
- printstr "Prev", 8, 190, dpage
+ printstr "< Prev", area(10).x, area(10).y, dpage
  textcolor uilook(uiMenuItem + tog), 1
  IF ts.zone = 12 THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
- printstr "Next", 280, 190, dpage
+ printstr "Next >", area(11).x, area(11).y, dpage
+
+ DIM ypos as integer
+ IF ts.y < 100 THEN ypos = 200 - 20 ELSE ypos = 0
  textcolor uilook(uiText), uilook(uiHighlight)
- DIM temp as string = ts.cutfrom & " "
- printstr temp, 160 - LEN(temp) * 4, 190, dpage
+ DIM temp as string
+ IF ts.cuttileset THEN
+  temp = "Tileset " & ts.cutfrom
+ ELSE
+  temp = "Backdop " & ts.cutfrom
+ END IF
+ printstr temp, 320\2 - LEN(temp) * 4, ypos, dpage
+ temp = "X=" & ts.x & " Y=" & ts.y
+ printstr temp, 320\2 - LEN(temp) * 4, ypos + 10, dpage
+
+ temp = hilite("G") & "ridsnap:" & yesorno(snap_to_grid, "On", "Off")
+ printstr temp, 4, ypos, dpage, YES
+
  IF ts.gotmouse THEN
   IF tog THEN
    textcolor uilook(uiText), 0

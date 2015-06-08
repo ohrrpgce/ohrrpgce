@@ -4,9 +4,9 @@ Press < and > to choose the tileset or backdrop that you want to cut from. You c
 
 Use the arrow keys or the mouse to move the cut box.
 
-Shift+Arrows will move the cursor in 20x20 steps.
+If Shift is pressed or grid-snap is on, arrows move in 20x20 steps.
 
-Holding ALT while moving the mouse makes the cut box snap to a 20x20 grid.
+Press G to toggle grid-snap, aligning the cut box to a 20x20 grid.
 
 Press SPACE or left-click to cut a tile and return to the tile selection screen.
 
