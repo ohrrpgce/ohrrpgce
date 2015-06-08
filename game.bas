@@ -339,7 +339,10 @@ unhidemousecursor  'init mouse state
 
 set_safe_zone_margin default_margin()
 set_resolution 320, 200
-set_scale_factor 2
+IF overrode_default_zoom = NO THEN
+ 'If it was set on the commandline, then it should still be set to that; game didn't change it
+ set_scale_factor 2
+END IF
 
 
 '=============================== Find the game ================================

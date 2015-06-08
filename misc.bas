@@ -69,7 +69,7 @@ end function
 sub record_option(opt as zstring ptr, arg as zstring ptr)
 	dim value as integer = str2int(*arg, -1)
 	if *opt = "zoom" or *opt = "z" or *opt = "width" or *opt = "w" then
-		overrode_default_zoom = YES		
+		overrode_default_zoom = YES
 	end if
 end sub
 
