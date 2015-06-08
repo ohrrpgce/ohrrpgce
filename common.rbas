@@ -343,6 +343,13 @@ SUB debuginfo (s as string)
  CLOSE #fh
 END SUB
 
+'Wrap a string in colour tags. Default to flashing.
+FUNCTION hilite(what as string, col as integer = -1) as string
+ IF col = -1 THEN col = uilook(uiSelectedItem + global_tog)
+ 'IF col = -1 THEN col = uilook(IIF(global_tog, uiSelectedItem, uiHighlight2))
+ RETURN "${K" & col & "}" & what & "${K-1}"
+END FUNCTION
+
 'Draw a wrapped string in the middle of the page, in a box
 SUB basic_textbox (msg as string, byval col as integer, byval page as integer)
  WITH *vpages(page)
@@ -3935,14 +3942,15 @@ SUB future_rpg_warning ()
 
  debug "Unsupported RPG file!"
 
- DIM hilite as string = "${K" & uilook(uiText) & "}"
- DIM msg as string = hilite + "Unsupported RPG File ${K-1}"
+ DIM hlcol as integer = uilook(uiText)
+ DIM msg as string
+ msg = hilite("Unsupported RPG File", hlcol)
  msg += !"\n\nThis game has features that are not supported in this version of the OHRRPGCE. Download the latest version at http://HamsterRepublic.com\n"
  msg += "Press any key to continue, but "
  #IFDEF IS_GAME
   msg += "be aware that some things might not work right..."
  #ELSE
-  msg += hilite + "DO NOT SAVE the game${K-1}, as this will lead to almost certain data corruption!!"
+  msg += hilite("DO NOT SAVE the game", hlcol) & ", as this will lead to almost certain data corruption!!"
  #ENDIF
  clearpage 0
  basic_textbox msg, uilook(uiMenuItem), 0
@@ -4189,6 +4197,7 @@ FUNCTION describe_tag_autoset_places(byval tag_id as integer) as string
  RETURN ret
 END FUNCTION
 
+'This is for *tag conditions*! It makes no sense for bools! Use yesorno or iif_string instead.
 FUNCTION onoroff (byval n as integer) as string
  IF n >= 0 THEN RETURN "ON"
  RETURN "OFF"

@@ -260,5 +260,6 @@ extern vpagesp as Frame ptr ptr
 extern key2text(3,53) as string*1
 extern disable_native_text_input as integer
 extern fonts() as Font
+extern global_tog as integer
 
 #ENDIF

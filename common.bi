@@ -164,6 +164,8 @@ DECLARE SUB reset_console (byval top as integer = 0, byval h as integer = 200, b
 DECLARE SUB show_message (s as string)
 DECLARE SUB append_message (s as string)
 
+DECLARE FUNCTION hilite (what as string, col as integer = -1) as string
+
 DECLARE SUB basic_textbox (msg as string, byval col as integer, byval page as integer)
 DECLARE SUB notification (msg as string)
 DECLARE SUB visible_debug (s as string)

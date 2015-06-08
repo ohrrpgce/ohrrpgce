@@ -73,6 +73,9 @@ dim vpagesp as Frame ptr ptr  'points to vpages(0) for debugging: fbc outputs ty
 dim disable_native_text_input as bool = NO
 redim fonts(3) as Font
 
+'Toggles 0-1 every time dowait is called
+dim global_tog as integer
+
 'Convert scancodes to text; Enter does not insert newline!
 'This array is a global instead of an internal detail because it's used by charpicker and the font editor
 'to work out key mapping for the extended characters. Would be nice if it weren't needed.
@@ -750,6 +753,7 @@ function dowait () as bool
 		debug "dowait called without setwait"
 	end if
 	tickcount += 1
+	global_tog XOR= 1
 	return timer >= flagtime
 end function
 

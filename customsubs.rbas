@@ -521,7 +521,7 @@ END SUB
 'wide: max string length to return (not implemented yet)
 FUNCTION condition_string (cond as Condition, byval selected as integer, default as string = "Always", byval wide as integer = 40) as string
  DIM ret as string = default
- DIM hilite as string = "${K" & uilook(uiHighlight2) & "}"
+ DIM hlcol as integer = uilook(uiHighlight2)
 
  IF selected = NO THEN cond.editstate = 0: cond.lastinput = 0
 
@@ -543,18 +543,18 @@ FUNCTION condition_string (cond as Condition, byval selected as integer, default
    CASE 0
     ret = "Global #" & cond.varnum & " " & comp_strings(cond.type) & " " & cond.value
    CASE 1
-    ret = "Global #" & hilite & cond.varnum
+    ret = "Global #" & hilite(str(cond.varnum), hlcol)
    CASE 2
-    ret = "Global #" & cond.varnum & " " & hilite & comp_strings(cond.type)
+    ret = "Global #" & cond.varnum & " " & hilite(comp_strings(cond.type), hlcol)
    CASE 3
-    ret = "Global #" & cond.varnum & " " & comp_strings(cond.type) & " " & hilite & cond.value
+    ret = "Global #" & cond.varnum & " " & comp_strings(cond.type) & hilite(" " & cond.value, hlcol)
    CASE 4
-    ret = "Global #" & cond.varnum & " " & hilite & comp_strings(cond.type) & "${K-1} " & cond.value
+    ret = "Global #" & cond.varnum & " " & hilite(comp_strings(cond.type), hlcol) & cond.value
    CASE 5
     'FIXME: a tag for text background colour hasn't been implemented yet
-    ret = "Global #" & cond.varnum & hilite & " ?${K-1} " & cond.value
+    ret = "Global #" & cond.varnum & hilite(" ? ", hlcol) & cond.value
    CASE 6
-    ret = "Global #" & hilite & cond.varnum & "${K-1} " & comp_strings(cond.type) & " " & cond.value
+    ret = "Global #" & hilite(cond.varnum & " ", hlcol) & comp_strings(cond.type) & " " & cond.value
   END SELECT
  ELSE
   ret = "[Corrupt condition data]"
@@ -631,7 +631,7 @@ FUNCTION charpicker() as string
   clearpage dpage
   FOR i = 0 TO last
    textcolor uilook(uiMenuItem), uilook(uiDisabledItem)
-                                            IF (i MOD linesize) = (pt MOD linesize) OR (i \ linesize) = (pt \ linesize) THEN textcolor uilook(uiMenuItem), uilook(uiHighlight)
+   IF (i MOD linesize) = (pt MOD linesize) OR (i \ linesize) = (pt \ linesize) THEN textcolor uilook(uiMenuItem), uilook(uiHighlight)
    IF pt = i THEN textcolor uilook(uiSelectedItem + tog), 0
    printstr CHR(f(i)), offset.x + (i MOD linesize) * 9, offset.y + (i \ linesize) * 9, dpage
   NEXT i

@@ -20,8 +20,6 @@ DECLARE SUB make_map_picker_menu (topmenu() as string, state as MenuState)
 DECLARE SUB mapeditor (byval mapnum as integer)
 DECLARE FUNCTION addmaphow () as integer
 
-DECLARE FUNCTION hilite (what as string) as string
-
 DECLARE SUB loadpasdefaults (byref defaults as integer vector, tilesetnum as integer)
 
 DECLARE SUB fill_map_area(st as MapEditState, byval x as integer, byval y as integer, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap, reader as FnReader)
@@ -151,8 +149,6 @@ DECLARE SUB resize_correct_height(st as MapEditState, byref rs as MapResizeState
 
 DEFINE_VECTOR_OF_TYPE(MapEditUndoTile, MapEditUndoTile)
 DEFINE_VECTOR_VECTOR_OF(MapEditUndoTile, MapEditUndoTile)
-
-DIM SHARED tog as integer
 
 
 '==========================================================================================
@@ -705,6 +701,7 @@ st.showzonehints = YES
 zonemenustate.pt = -1  'Properly initialised in mapedit_update_visible_zones
 st.zones_needupdate = YES
 npczone_needupdate = YES
+DIM tog as integer
 DIM slowtog as integer
 DIM chequer_scroll as integer
 
@@ -4302,6 +4299,7 @@ SUB mapedit_pickblock(st as MapEditState)
  DIM tilepick as XYPair  'Coordinates (in tiles) of the selected tile in tilesetview
  DIM dragging as bool = NO
  DIM chequer_scroll as integer
+ DIM tog as integer
  DIM holdpos as XYPair
  DIM scrolly as integer = 0 'Y position in pixels of the camera/top of the screen
  DIM bgcolor as integer = 0
@@ -4398,12 +4396,6 @@ SUB mapedit_pickblock(st as MapEditState)
  LOOP
  unloadtilemap tilesetview
 END SUB
-
-'Move this global eventually?
-'(but tog is file-scope; hacky)
-FUNCTION hilite(what as string) as string
- RETURN "${K" & uilook(uiSelectedItem + tog) & "}" & what & "${K-1}"
-END FUNCTION
 
 
 '==========================================================================================
