@@ -1,23 +1,32 @@
-There is a reason that the script debugger was not officially announced. It's a bit of a mess!
+There is a reason that the script debugger was not officially announced. It's an incredible mess! It's also a bit broken at the moment.
 
 You'll find a little more help on the "Script Debugger" wiki page.
 
+The script debugger is most useful for inspecting the values of global and local variables, strings, timers, and see which scripts are running. You can't use the debugging to affect running scripts or modify anything.
+
 Press F10 or ESC to leave the debugger.
 
-Press V to toggle view mode. The default, script state view, shows the currently running command. Other modes allow you to view the values of the global variables, strings or timers, or the local variables of a script (unfortunately without the original variable names).
+Press V to toggle view mode. The default, script state view, shows the currently running command. Other modes allow you to view the values of the global variables, strings or timers, or the local variables of a script (unfortunately without the original variable names). Local variables are numbered according to the order they appear in the script (regardless of whether they're inside 'for' loops or other flow-control).
 
-While displaying timers, timers which triggered this tick have a count of "Trigg" while those that triggered earlier show as "Done". Finished timers remember all their settings, so that they can be restarted easily.
+While displaying timers, timers which triggered this tick have a count of "Trigg" while those that triggered earlier show as "Done". (Note that finished timers remember all their settings, so that they can be restarted easily with the settimer command).
 
-Change selected script with PageUp & PageDown. Depending on view mode, press +/- to scroll globals, timers, locals or strings (no editing).
-
-Press N to continue running until the script changes; press W to wait until the selected script is returned to.
+Change selected script with PageUp & PageDown. Depending on view mode, press +/- to scroll globals, timers, locals or strings.
 
 The two coloured bars at the top of the screen show the amount of memory used in the script cache and local variable stack. You can usually ignore them. (Only the second will cause an error when it fills up.)
 
- Advanced (buggy) stepping commands:
+*************************************
+Advanced stepping commands:
 
-Press S to step through part of a command
+Press S to Step through part of a command. (Somewhat buggy!)
 
-Press U to wait for a command to finish (go Up a command)
+Press U to wait for the current command (of the topmost script) to finish (go Up a command).
 
-Pressing P lets you continue to play the game: in this mode non-script-debug keys cause the game to unpause for one tick, and are passed to the game.
+Press N to continue running until the script changes.
+
+Press F to wait for the topmost script to Finish.
+
+Press W to Wait until the selected script is resumed.
+
+Pressing P lets you continue to Play the game: in this mode any keys pressed other than those listed above cause the game to unpause for one tick, and are passed to the game.
+
+Alternatively, trying to wait for a script to finish when it contains a "while(1)... wait" loop or similar will cause the game to resume. 

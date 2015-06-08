@@ -421,11 +421,11 @@ TYPE ScriptData
   ptr as integer ptr    'pointer to script commands
   size as integer       'size of script data, in 4 byte words
   vars as integer       'local variable (including arguments) count, not including nonlocals
-  nonlocals as integer  'number of nonlocal variables
+  nonlocals as integer  'number of nonlocal variables (sum of locals in ancestor scripts)
   args as integer       'number of arguments
-  strtable as integer   'pointer to string table (offset from start of script data in long ints)
-  nestdepth as integer  'nesting depth, 0 for scripts
-  parent as integer     'ID of parent or 0 for none
+  strtable as integer   'pointer to string table (offset from start of script data in 4 byte ints)
+  nestdepth as integer  'Number of scripts/subscripts this is nested in, 0 for scripts
+  parent as integer     'ID of parent script or 0 if not a subscript
 
   'Book keeping
   refcount as integer   'number of ScriptInst pointing to this data

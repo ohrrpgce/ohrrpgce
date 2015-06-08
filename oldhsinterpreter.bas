@@ -922,21 +922,27 @@ END IF
 'STEPPING LOGIC
 'some generic logic for going up scripts/commands
 IF waitforscript <> 999 THEN
- IF nowscript > waitforscript THEN 
+ IF nowscript > waitforscript THEN
+  'We're waiting for some scripts to exit
   EXIT SUB
  ELSEIF nowscript < waitforscript THEN 
   waitforscript = 999
   waitfordepth = 999
  ELSE
   'if final objective is a script, not a depth, stop
-  IF waitfordepth = 999 THEN waitforscript = 999
- END IF
+  IF waitfordepth = 999 THEN
+   'Done
+   waitforscript = 999
+  ELSE
 
- IF scrat(nowscript).depth > waitfordepth THEN
-  EXIT SUB
- ELSE
-  waitforscript = 999
-  waitfordepth = 999
+   IF scrat(nowscript).depth > waitfordepth THEN
+    'We're waiting for some commands to exit.
+    EXIT SUB
+   ELSE
+    waitforscript = 999
+    waitfordepth = 999
+   END IF
+  END IF
  END IF
 END IF
 
@@ -1343,13 +1349,15 @@ IF mode > 1 AND drawloop = 0 THEN
   stepmode = stepscript
   lastscriptnum = nowscript
  END IF
- IF w = scU THEN
-  mode or= breakstnext
-  stepmode = stepup
-  waitfordepth = scrat(nowscript).depth - 1
-  waitforscript = nowscript
+ IF w = scU THEN  'Wait for current command to finish
+  IF nowscript >= 0 THEN
+   mode or= breakstnext
+   stepmode = stepup
+   waitfordepth = scrat(nowscript).depth - 1
+   waitforscript = nowscript
+  END IF
  END IF
- IF w = scW THEN
+ IF w = scW THEN  'Wait to return to the selected script
   mode or= breakstnext
   waitforscript = selectedscript
   stepmode = stependscript
@@ -1359,14 +1367,14 @@ IF mode > 1 AND drawloop = 0 THEN
   stepmode = stepnext
   waitforscript = 999
  END IF
- IF w = scF THEN
-  'mode or= breakststart
-  mode or= breakstnext OR breakloopbrch
-  stepmode = stepargsdone
-  waitforscript = nowscript
-  waitfordepth = scrat(selectedscript).depth
-  'it would be more useful to wait for the calling command to finish
-  IF hasargs = 0 THEN waitfordepth -= 1
+ IF w = scF THEN  'Wait for the current script to finish
+  IF nowscript >= 0 THEN
+   'mode or= breakststart
+   mode or= breakstnext OR breakloopbrch
+   stepmode = stepargsdone
+   waitforscript = nowscript
+   waitfordepth = -1
+  END IF
  END IF
 END IF
 
