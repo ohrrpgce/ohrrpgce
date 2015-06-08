@@ -5182,13 +5182,10 @@ SUB edit_button_name_strings()
     st.need_update = YES
    END IF
   ELSEIF t = buttonnameDATA THEN
-   strnode = FirstChild(node, plat_key(keynum))
-   IF strnode THEN
-    curstr = GetString(strnode)
-    IF strgrabber(curstr, 16) THEN
-     SetContent(strnode, curstr)
-     st.need_update = YES
-    END IF
+   curstr = GetChildNodeStr(node, plat_key(keynum), default_button_name_for_platform(plat_key(keynum), GetInteger(node)))
+   IF strgrabber(curstr, 16) THEN
+    SetChildNode(node, plat_key(keynum), curstr)
+    st.need_update = YES
    END IF
   END IF
   
