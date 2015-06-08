@@ -6784,12 +6784,12 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 		<command id="hidevirtualgamepad">
 			<canon>hide virtual gamepad</canon>
 			<shortname>hide virtual gamepad</shortname>
-			<description>If the game is running on a platform that supports a touchscreen virtual gamepad (such as Android) this command forces the virtual gamepad to become visible, even if it would normally be hidden. On other platforms, this command does nothing. The effects of this command can be cancelled by using the <ref>autovirtualgamepad</ref> command.</description>
+			<description>If the game is running on a platform that supports a touchscreen virtual gamepad (such as Android) this command forces the virtual gamepad to become hidden, even if it would normally be visible. On other platforms, this command does nothing. The effects of this command can be cancelled by using the <ref>autovirtualgamepad</ref> command.</description>
 		</command>
 		<command id="showvirtualgamepad">
 			<canon>show virtual gamepad</canon>
 			<shortname>show virtual gamepad</shortname>
-			<description>If the game is running on a platform that supports a touchscreen virtual gamepad (such as Android) this command forces the virtual gamepad to be hidden, even if it would normally be visible. On other platforms, this command does nothing. The effects of this command can be cancelled by using the <ref>autovirtualgamepad</ref> command.</description>
+			<description>If the game is running on a platform that supports a touchscreen virtual gamepad (such as Android) this command forces the virtual gamepad to become visible, even if it would normally be hidden. On other platforms, this command does nothing. The effects of this command can be cancelled by using the <ref>autovirtualgamepad</ref> command.</description>
 		</command>
 		<command id="autovirtualgamepad">
 			<canon>auto virtual gamepad</canon>
