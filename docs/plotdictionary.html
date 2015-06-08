@@ -1988,6 +1988,9 @@
 		<a href="#about-runningonmobile">running on mobile</a><br>
 		
 	
+		<a href="#about-runningonouya">running on ouya</a><br>
+		
+	
 		<a href="#about-runningonwindows">running on Windows</a><br>
 		
 	
@@ -7719,21 +7722,22 @@ end
 			Informs the engine that you intend to use the mouse. This command should be run before any mouse functions are be used. It causes the normal mouse cursor to be hidden when over the game's window, and causes mouse buttons to trigger on-keypress scripts. Therefore, it is a good idea to place this command in the newgame and loadgame scripts if you are going to use the mouse.<br><div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Running this command does not draw a cursor onscreen - your script must do this itself by placing a slice or npc at the appropriate location.<br clear="all">
 </div> Here is an example:
-			<pre>include,plotscr.hsd
-
-#Mouse cursor example
+			<pre>#Mouse cursor example
 
 plotscript, display mouse, begin
 
-  #start up the mouse
+  # Hide the normal mouse cursor
   init mouse
 
-  #loop while the game is running
-  while (true) do,begin
+  # Use a small enemy sprite (ID 1) slice as a mouse cursor
+  variable (cursor)
+  cursor := load small enemy sprite (1)
 
-    #NPC 0 is the mouse cursor
-    put npc (0, mouse pixel x + camera pixel x, mouse pixel y + camera pixel y)
-    wait
+  # Loop while the game is running
+  while (true) do, begin
+
+    put slice (cursor, mouse pixel x, mouse pixel y)
+    wait (1)
   end
 end</pre>
 			
@@ -9289,7 +9293,7 @@ end
 <span class="backlink"><a href="#Slices">Slices</a> →
 			</span>Getting Slices</h3>
 		<ul></ul>
-<p>This section describes commands to find existing slices or load them from a defined slice collection. Commands Commands to create slices are in other sections.</p>
+<p>This section describes commands to find existing slices or load them from a defined slice collection. Commands to create slices are in other sections.</p>
 		
 		
 		<div class="command">
@@ -13893,7 +13897,16 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 <a name="about-runningonconsole"></a>
 		<h4>running on console</h4>
 <p>
-			This command returns true if the game is currently running on an OUYA console. You should avoid using this command unless you really need it. Most games can support the OUYA console without ever using this command. See the "Platform-Specific Options" menu under "Edit General Game Data".
+			This command returns true if the game is currently running on an console. Currently supported consoles include OUYA, MOJO, GameStick, and FireTV. You should avoid using this command unless you really need it. Most games can support the consoles without ever using this command. See the "Platform-Specific Options" menu under "Edit General Game Data".
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-runningonouya"></a>
+		<h4>running on ouya</h4>
+<p>
+			This command returns true if the game is currently running on an OUYA console. You should avoid using this command unless you really need it. Most games can support the OUYA console without ever using this command, and even if you do need to do special scripting just for ouya, you should consider using <a href="#about-runningonconsole" class="ref">running on console</a> instead, since the only thing different about OUYA is its button names and in-app-purchase support. See the "Platform-Specific Options" menu under "Edit General Game Data".
 			
 			
 		</p>
@@ -14480,7 +14493,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 823 commands in this file, of which 57 are only references to other commands.</p>
+<p>Stats: There are 824 commands in this file, of which 57 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

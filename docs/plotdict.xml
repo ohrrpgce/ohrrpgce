@@ -6774,7 +6774,12 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 		<command id="runningonconsole">
 			<canon>running on console</canon>
 			<shortname>running on console</shortname>
-			<description>This command returns true if the game is currently running on an OUYA console. You should avoid using this command unless you really need it. Most games can support the OUYA console without ever using this command. See the "Platform-Specific Options" menu under "Edit General Game Data".</description>
+			<description>This command returns true if the game is currently running on an console. Currently supported consoles include OUYA, MOJO, GameStick, and FireTV. You should avoid using this command unless you really need it. Most games can support the consoles without ever using this command. See the "Platform-Specific Options" menu under "Edit General Game Data".</description>
+		</command>
+		<command id="runningonouya">
+			<canon>running on ouya</canon>
+			<shortname>running on ouya</shortname>
+			<description>This command returns true if the game is currently running on an OUYA console. You should avoid using this command unless you really need it. Most games can support the OUYA console without ever using this command, and even if you do need to do special scripting just for ouya, you should consider using <ref>runningonconsole</ref> instead, since the only thing different about OUYA is its button names and in-app-purchase support. See the "Platform-Specific Options" menu under "Edit General Game Data".</description>
 		</command>
 		<command id="hidevirtualgamepad">
 			<canon>hide virtual gamepad</canon>

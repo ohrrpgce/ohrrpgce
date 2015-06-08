@@ -611,6 +611,9 @@ SELECT CASE as CONST id
    plotstr(retvals(0)).s = touch_virtual_keyboard(plotstr(retvals(0)).s, retvals(1))
    update_virtual_gamepad_display()
   END IF
+ CASE 600 '--running on ouya
+  'See also "running on console"
+  scriptret = IIF(running_on_ouya(), 1, 0)
 
  CASE ELSE
   RETURN NO

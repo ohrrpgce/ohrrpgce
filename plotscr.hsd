@@ -574,7 +574,7 @@ define function, begin
 552,resumedoors,1,0              #undoes suspend doors
 553,runningondesktop,0           #returns true if the device is Windows/Mac/Linux
 554,runningonmobile,0            #returns true if the device is Android
-555,runningonconsole,0           #returns true if the device is OUYA
+555,runningonconsole,0           #returns true if the device is console (OUYA, Gamestick, FireTV, Mojo)
 556,inputstringwithvirtualkeyboard,3,0,-1,-1 # (string id, max length, only player)
 557,getitemdescription,2,0,0     #(string, item) - puts the description of item(item) in string(string)
 558,setspritesetnumber,2,0,0     #(sprite slice handle, set num)
@@ -619,6 +619,7 @@ define function, begin
 597,runningonlinux,0          # returns true if the device is Linux
 598,nextnpcreference,1,0      # Iterating over NPCs: reference to next NPC
 599,input string with mouse keyboard,2,0,-1 # pop up a virtual keyboard that responds to mouse clicks
+600,runningonouya,0           #returns true if the device is OUYA (see also "running on console")
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 
