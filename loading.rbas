@@ -3757,15 +3757,34 @@ FUNCTION get_general_reld() as NodePtr
  return root_node
 END FUNCTION
 
+CONST LAST_PREDEFINED_BUTTON_NAME_ID = 2
+
+FUNCTION default_button_name_for_platform(platform_key as string, byval button_name_id as integer) as string
+ IF button_name_id < 0 ORELSE button_name_id > LAST_PREDEFINED_BUTTON_NAME_ID THEN
+  'Unknown button name id
+  RETURN ""
+ END IF
+ DIM bn_keyboard(LAST_PREDEFINED_BUTTON_NAME_ID) as string    = {"Arrow Keys", "ENTER", "ESC"}
+ DIM bn_touchscreen(LAST_PREDEFINED_BUTTON_NAME_ID) as string = {"D-Pad", "(A)", "(B)"}
+ DIM bn_console(LAST_PREDEFINED_BUTTON_NAME_ID) as string     = {"D-Pad", "(A)", "(B)"}
+ DIM bn_ouya(LAST_PREDEFINED_BUTTON_NAME_ID) as string        = {"D-Pad", "(O)", "(A)"}
+ SELECT CASE platform_key
+  CASE "keyboard":    RETURN bn_keyboard(button_name_id)
+  CASE "touchscreen": RETURN bn_touchscreen(button_name_id)
+  CASE "ouya":        RETURN bn_ouya(button_name_id)
+  CASE "console":     RETURN bn_console(button_name_id)
+ END SELECT
+ 'Unknown platform key
+ debuginfo "default_button_name_for_platform: Unknown platform key " & platform_key & " " & button_name_id
+ RETURN ""
+END FUNCTION
+
 SUB general_reld_init_buttonnames(root_node as NodePtr)
  DIM bn as NodePtr = SetChildNode(root_node, "buttonnames")
  DIM bcode as NodePtr
- DIM bn_keyboard(...) as string = {"Arrow Keys", "ENTER", "ESC"}
- DIM bn_ouya(...) as string = {"D-Pad", "(O)", "(A)"}
- FOR i as integer = 0 to UBOUND(bn_keyboard)
+ FOR i as integer = 0 to LAST_PREDEFINED_BUTTON_NAME_ID
   bcode = AppendChildNode(bn, "code", i)
-  AppendChildNode(bcode, "keyboard", bn_keyboard(i))
-  AppendChildNode(bcode, "ouya", bn_ouya(i))
+  'Don't create any child nodes. They should take default values if they do not exist
  NEXT i
 END SUB
 
@@ -3816,21 +3835,32 @@ FUNCTION get_buttonname_code(byval n as integer) as string
  DIM root_node as NodePtr
  root_node = get_general_reld()
  DIM num as integer
+ DIM plat_key as string = ""
  
  READNODE root_node."buttonnames" as bn
   WITHNODE bn."code" as bcode
    num = GetInteger(bcode)
    IF num = n THEN
-    'FIXME: if we ever support any other consoles, we will need more specific platform checks here
+    'Other consoles might possibly need more specific platform checks here
     IF running_on_console() THEN
-     RETURN bcode."ouya".string
+     IF running_on_ouya() THEN
+      plat_key = "ouya"
+     ELSE
+      plat_key = "console"
+     END IF
+    ELSEIF running_on_mobile() THEN
+     plat_key = "touchscreen"
     ELSE
-     RETURN bcode."keyboard".string
+     plat_key = "keyboard"
     END IF
+    RETURN GetChildNodeStr(bcode, plat_key, default_button_name_for_platform(plat_key, num))
    END IF
   END WITHNODE
  END READNODE
- 
+
+ IF n <= LAST_PREDEFINED_BUTTON_NAME_ID THEN
+  debug "get_buttonname_code: no code node exists for ${B" & n & "}"
+ END IF
  RETURN ""
  
 END FUNCTION

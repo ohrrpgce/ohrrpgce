@@ -5075,21 +5075,24 @@ END FUNCTION
 CONST buttonnameEXIT as integer = 0
 CONST buttonnameADD as integer = 1
 CONST buttonnameDATA as integer = 2
+CONST buttonnameBROWSE as integer = 3
 
 SUB edit_button_name_strings()
 
- DIM plat_key(...) as string = {"<not used>", "keyboard", "ouya"}
+ DIM plat_key(...) as string = {"keyboard", "touchscreen", "ouya", "console"}
+ DIM plat_detail(...) as string = {_
+     "Windows, Mac and Linux",_
+     "Any touchscreen device (Android)",_
+     "OUYA Console",_
+     "Other Android Consoles"}
 
- DIM menu(2) as MenuDef
+ DIM menu as MenuDef
  
- DIM column as integer = 1
+ DIM keynum as integer = 0
  
  DIM st as MenuState
  st.active = YES
  st.need_update = YES
- 
- DIM disable_st as MenuState
- disable_st.active = YES
  
  REDIM enabled(0) as bool
 
@@ -5117,69 +5120,48 @@ SUB edit_button_name_strings()
   IF st.need_update THEN
    st.need_update = NO
   
-   FOR i as integer = 0 to 2
-    ClearMenuData menu(i)
-    WITH menu(i)
-     .no_box = YES
-     .align = -1
-     .anchor.x = -1
-     .anchor.y = -1
-     .offset.y = -100
-     .bordersize = -8
-    END WITH
-   NEXT i
-   menu(0).offset.x = -160
-   menu(1).offset.x = -104
-   menu(2).offset.x = 32
-   menu(0).min_chars = 8
-   menu(1).min_chars = 16
-   menu(2).min_chars = 16
+   ClearMenuData menu
+   WITH menu
+    .no_box = YES
+    .align = -1
+    .anchor.x = -1
+    .anchor.y = -1
+    .offset.x = -160
+    .offset.y = -100
+    .bordersize = -8
+    .min_chars = 8
+   END WITH
 
-   append_menu_item menu(0), "Previous menu..."
-   menu(0).last->t = buttonnameEXIT
-   append_menu_item menu(1), ""
-   append_menu_item menu(2), ""
+   append_menu_item menu, "Previous menu..."
+   menu.last->t = buttonnameEXIT
 
-   append_menu_item menu(0), "Code"
-   menu(0).last->unselectable = YES
-   menu(0).last->disabled = YES
-   append_menu_item menu(1), "Keyboard"
-   menu(1).last->unselectable = YES
-   menu(1).last->disabled = YES
-   append_menu_item menu(2), "OUYA"
-   menu(2).last->unselectable = YES
-   menu(2).last->disabled = YES
+   append_menu_item menu, CHR(27) & " Platform: " & plat_key(keynum) & " " & CHR(26)
+   menu.last->t = buttonnameBROWSE
+
+   append_menu_item menu, plat_detail(keynum)
+   menu.last->unselectable = YES
+   menu.last->disabled = YES
 
    freenum = 0
    READNODE buttonnames
     WITHNODE buttonnames."code" as codenode
      codenum = GetInteger(codenode)
      IF freenum <= codenum THEN freenum = codenum + 1
-     append_menu_item menu(0), "${B" & codenum & "}"
-     menu(0).last->t = buttonnameDATA
-     menu(0).last->dataptr = codenode
-     menu(0).last->disabled = YES
-     curstr = codenode."keyboard".string
-     IF curstr = "" THEN curstr = "<empty>"
-     append_menu_item menu(1), curstr
-     curstr = codenode."ouya".string
-     IF curstr = "" THEN curstr = "<empty>"
-     append_menu_item menu(2), curstr
+     curstr = GetChildNodeStr(codenode, plat_key(keynum), default_button_name_for_platform(plat_key(keynum), codenum))
+     append_menu_item menu, "${B" & codenum & "} = " & curstr
+     menu.last->t = buttonnameDATA
+     menu.last->dataptr = codenode
     END WITHNODE
    END READNODE
    
-   append_menu_item menu(0), "Add a new button name"
-   menu(0).last->t = buttonnameADD
-   append_menu_item menu(1), ""
-   append_menu_item menu(2), ""
+   append_menu_item menu, "Add a new button name"
+   menu.last->t = buttonnameADD
 
-   init_menu_state st, menu(0)
-   init_menu_state disable_st, menu(0)
-   disable_st.pt = -1
+   init_menu_state st, menu
    
-   REDIM enabled(menu(0).numitems - 1) as bool
+   REDIM enabled(menu.numitems - 1) as bool
    FOR i as integer = 0 TO UBOUND(enabled)
-    WITH *menu(0).items[i]
+    WITH *menu.items[i]
      enabled(i) = NOT .unselectable
     END WITH
    NEXT i
@@ -5187,15 +5169,20 @@ SUB edit_button_name_strings()
 
   usemenu st, enabled()
 
-  t = menu(0).items[st.pt]->t
-  node = menu(0).items[st.pt]->dataptr
+  t = menu.items[st.pt]->t
+  node = menu.items[st.pt]->dataptr
   
-  IF t = buttonnameDATA THEN
-   IF column = 0 THEN column = 1
-   IF keyval(scLeft) > 1 ORELSE keyval(scRight) > 1 THEN
-    column = IIF(column = 1, 2, 1)
+  IF t = buttonnameBROWSE THEN
+   IF keyval(scLeft) > 1 THEN
+    keynum = loopvar(keynum, 0, UBOUND(plat_key), -1)
+    st.need_update = YES
    END IF
-   strnode = FirstChild(node, plat_key(column))
+   IF keyval(scRight) > 1 THEN
+    keynum = loopvar(keynum, 0, UBOUND(plat_key), 1)
+    st.need_update = YES
+   END IF
+  ELSEIF t = buttonnameDATA THEN
+   strnode = FirstChild(node, plat_key(keynum))
    IF strnode THEN
     curstr = GetString(strnode)
     IF strgrabber(curstr, 16) THEN
@@ -5203,8 +5190,6 @@ SUB edit_button_name_strings()
      st.need_update = YES
     END IF
    END IF
-  ELSE
-   column = 0
   END IF
   
   IF enter_space_click(st) THEN
@@ -5212,21 +5197,16 @@ SUB edit_button_name_strings()
     CASE buttonnameEXIT: EXIT DO
     CASE buttonnameADD:
      DIM newcodenode as NodePtr = AppendChildNode(buttonnames, "code", freenum)
-     AppendChildNode(newcodenode, "keyboard", "")
-     AppendChildNode(newcodenode, "ouya", "")
+     FOR i as integer = 0 TO UBOUND(plat_key)
+      AppendChildNode(newcodenode, plat_key(i), "")
+     NEXT i
      st.need_update = YES
    END SELECT
   END IF
   
   clearpage dpage
   
-  FOR i as integer = 0 TO 2
-   IF i = column THEN
-    draw_menu menu(i), st, dpage
-   ELSE
-    draw_menu menu(i), disable_st, dpage
-   END IF
-  NEXT i
+  draw_menu menu, st, dpage
   SWAP vpage, dpage
   setvispage vpage
   
