@@ -668,6 +668,9 @@ SUB slice_edit_detail (sl as Slice Ptr, byref ses as SliceEditState, rootsl as S
   IF UpdateScreenSlice() THEN state.need_update = YES
 
   IF state.need_update THEN
+   'If the slice (or an ancestor) is invisible its position won't be updated by DrawSlice
+   RefreshSliceScreenPos sl
+
    slice_edit_detail_refresh state, menu(), sl, rules(), slicelookup()
    state.need_update = NO
    state.size = vpages(dpage)->h \ state.spacing - 1
@@ -831,6 +834,8 @@ SUB slice_editor_xy (byref x as integer, byref y as integer, byval focussl as Sl
   IF keyval(scDown)  > 0 THEN y += 1 + 9 * shift
   IF keyval(scLeft)  > 0 THEN x -= 1 + 9 * shift
   clearpage dpage
+  'If the slice (or an ancestor) is invisible its position won't be updated by DrawSlice
+  RefreshSliceScreenPos focussl
   DrawSlice rootsl, dpage
   DrawSliceAnts focussl, dpage
   edgeprint "Arrow keys to edit, SHIFT for speed", 0, 190, uilook(uiText), dpage
