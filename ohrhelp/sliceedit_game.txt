@@ -25,3 +25,5 @@ Press F2 to export this slice collection to a file.
 Press CTRL+F to edit the children of the currently selected slice in full-screen.
 
 Press F4 to hide the menu, so you can see the slice collection unobstructed. Press F4 again to display the menu.
+
+Press F5 to toggle whether the Root slice is shown.

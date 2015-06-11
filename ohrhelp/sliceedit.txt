@@ -34,3 +34,5 @@ Press F3 to import a slice collection (the collection you are currently working 
 Press CTRL+F to edit the children of the currently selected slice in full-screen.
 
 Press F4 to hide the menu, so you can see the slice collection unobstructed. Press F4 again to display the menu.
+
+Press F5 to toggle whether the root slice is shown. For a slice collection, the root slice is by default a container set to fill its parent (which results in it filling the whole screen in the editor). "load slice collection" returns a handle to this root slice. You can freely change any of the properties of the root slice or even turn it into something else if you don't want an extra container.

@@ -107,10 +107,10 @@ DECLARE SUB AdjustSlicePosToNewParent (byval sl as Slice Ptr, byval newparent as
 DECLARE SUB SliceAdoptNiece (byval sl as Slice Ptr)
 
 'Functions only used locally
-DECLARE SUB slice_editor_refresh (byref ses as SliceEditState, byref state as MenuState, menu() as SliceEditMenuItem, edslice as Slice Ptr, byref cursor_seek as Slice Ptr, slicelookup() as string)
+DECLARE SUB slice_editor_refresh (byref ses as SliceEditState, byref state as MenuState, menu() as SliceEditMenuItem, edslice as Slice Ptr, byref cursor_seek as Slice Ptr, slicelookup() as string, show_root as bool)
 DECLARE SUB slice_editor_refresh_delete (byref index as integer, menu() as SliceEditMenuItem)
 DECLARE SUB slice_editor_refresh_append (byref index as integer, menu() as SliceEditMenuItem, caption as string, sl as Slice Ptr=0)
-DECLARE SUB slice_editor_refresh_recurse (byref index as integer, menu() as SliceEditMenuItem, byref indent as integer, sl as Slice Ptr, rootslice as Slice Ptr, slicelookup() as string)
+DECLARE SUB slice_editor_refresh_recurse (byref index as integer, menu() as SliceEditMenuItem, byref indent as integer, sl as Slice Ptr, hidden_slice as Slice Ptr, slicelookup() as string)
 DECLARE SUB slice_edit_detail (sl as Slice Ptr, byref ses as SliceEditState, rootsl as Slice Ptr, slicelookup() as string, specialcodes() as SpecialLookupCode)
 DECLARE SUB slice_edit_detail_refresh (byref state as MenuState, menu() as string, sl as Slice Ptr, rules() as EditRule, slicelookup() as string)
 DECLARE SUB slice_edit_detail_keys (byref state as MenuState, sl as Slice Ptr, rootsl as Slice Ptr, rules() as EditRule, slicelookup() as string, specialcodes() as SpecialLookupCode)
@@ -304,6 +304,9 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
   .highlight = YES
  END WITH
 
+ 'Don't hide the root slice, edslice
+ DIM show_root as bool = NO
+
  DIM cursor_seek as Slice Ptr = 0
 
  DIM slice_type as SliceTypes
@@ -333,6 +336,11 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
    IF keyval(scF1) > 1 THEN show_help "sliceedit_game"
   #ENDIF
   IF keyval(scF4) > 1 THEN ses.hide_menu = NOT ses.hide_menu
+  IF keyval(scF5) > 1 THEN
+   show_root = NOT show_root
+   cursor_seek = menu(state.pt).handle
+   state.need_update = YES
+  END IF
   IF keyval(scF8) > 1 THEN
    'Make a sprite melt, just for a fun test
    DissolveSpriteSlice(menu(state.pt).handle, 5, 36)
@@ -388,7 +396,7 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
 #ENDIF
   IF state.need_update = NO AND (keyval(scPlus) > 1 OR keyval(scNumpadPlus)) THEN
    IF slice_edit_detail_browse_slicetype(slice_type) THEN
-    IF state.pt > ses.last_non_slice THEN
+    IF menu(state.pt).handle <> NULL AND menu(state.pt).handle->parent <> edslice THEN
      InsertSliceBefore menu(state.pt).handle, NewSliceOfType(slice_type)
     ELSE
      cursor_seek = NewSliceOfType(slice_type, edslice)
@@ -425,9 +433,14 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
       CONTINUE DO
      END IF
     #ENDIF
-    IF yesno("Delete this " & SliceTypeName(menu(state.pt).handle) & " slice?", NO) THEN
-     slice_editor_refresh_delete state.pt, menu()
-     state.need_update = YES
+    IF menu(state.pt).handle = edslice THEN
+     notification "Can't delete the root slice!"
+     CONTINUE DO
+    ELSE
+     IF yesno("Delete this " & SliceTypeName(menu(state.pt).handle) & " slice?", NO) THEN
+      slice_editor_refresh_delete state.pt, menu()
+      state.need_update = YES
+     END IF
     END IF
    ELSEIF keyval(scF) > 1 THEN
     slice_editor menu(state.pt).handle
@@ -486,7 +499,7 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
 
   IF state.need_update THEN
    state.size = vpages(dpage)->h / state.spacing - 4
-   slice_editor_refresh(ses, state, menu(), edslice, cursor_seek, slicelookup())
+   slice_editor_refresh(ses, state, menu(), edslice, cursor_seek, slicelookup(), show_root)
    REDIM plainmenu(state.last) as string
    FOR i as integer = 0 TO UBOUND(plainmenu)
     plainmenu(i) = menu(i).s
@@ -611,7 +624,7 @@ SUB slice_editor_paste(byref ses as SliceEditState, byval slice as Slice Ptr, by
   child = ses.clipboard->LastChild
   WHILE child
    DIM copied as Slice Ptr = CloneSliceTree(child)
-   IF slice THEN
+   IF slice <> 0 AND slice <> edslice THEN
     InsertSliceBefore slice, copied
    ELSE
     SetSliceParent copied, edslice
@@ -1083,6 +1096,9 @@ FUNCTION slice_caption (sl as Slice Ptr, slicelookup() as string) as string
  DIM s as string
  WITH *sl
   s = .ScreenX & "," & .ScreenY & "(" & .Width & "x" & .Height & ")"
+  IF .parent = 0 AND .Lookup <> SL_ROOT THEN
+   s &= " [root]"
+  END IF
   s &= "${K" & uilook(uiText) & "} "
   IF .Lookup > 0 AND .Lookup <= UBOUND(slicelookup) THEN
    s &= slicelookup(.Lookup)
@@ -1093,7 +1109,7 @@ FUNCTION slice_caption (sl as Slice Ptr, slicelookup() as string) as string
  RETURN s
 END FUNCTION
 
-SUB slice_editor_refresh (byref ses as SliceEditState, byref state as MenuState, menu() as SliceEditMenuItem, edslice as Slice Ptr, byref cursor_seek as Slice Ptr, slicelookup() as string)
+SUB slice_editor_refresh (byref ses as SliceEditState, byref state as MenuState, menu() as SliceEditMenuItem, edslice as Slice Ptr, byref cursor_seek as Slice Ptr, slicelookup() as string, show_root as bool)
  FOR i as integer = 0 TO UBOUND(menu)
   menu(i).s = ""
  NEXT i
@@ -1109,7 +1125,10 @@ SUB slice_editor_refresh (byref ses as SliceEditState, byref state as MenuState,
   slice_editor_refresh_append index, menu(), CHR(27) & " Slice Collection " & ses.collection_number & " " & CHR(26)
   ses.last_non_slice += 1
  END IF
- slice_editor_refresh_recurse index, menu(), indent, edslice, edslice, slicelookup()
+ 'Normally, hide the root
+ DIM hidden_slice as Slice Ptr = edslice
+ IF show_root THEN hidden_slice = NULL
+ slice_editor_refresh_recurse index, menu(), indent, edslice, hidden_slice, slicelookup()
 
  IF cursor_seek <> 0 THEN
   FOR i as integer = 0 TO index - 1
@@ -1144,23 +1163,23 @@ SUB slice_editor_refresh_append (byref index as integer, menu() as SliceEditMenu
  index += 1
 END SUB
 
-SUB slice_editor_refresh_recurse (byref index as integer, menu() as SliceEditMenuItem, byref indent as integer, sl as Slice Ptr, rootslice as Slice Ptr, slicelookup() as string)
+SUB slice_editor_refresh_recurse (byref index as integer, menu() as SliceEditMenuItem, byref indent as integer, sl as Slice Ptr, hidden_slice as Slice Ptr, slicelookup() as string)
  WITH *sl
   DIM caption as string
   caption = STRING(indent, " ")
   caption = caption & SliceTypeName(sl)
   caption = caption & " " & slice_caption(sl, slicelookup())
-  IF sl <> rootslice THEN
+  IF sl <> hidden_slice THEN
    slice_editor_refresh_append index, menu(), caption, sl
    indent += 1
   END IF
   'Now append the children
   DIM ch as slice ptr = .FirstChild
   DO WHILE ch <> 0
-   slice_editor_refresh_recurse index, menu(), indent, ch, rootslice, slicelookup()
+   slice_editor_refresh_recurse index, menu(), indent, ch, hidden_slice, slicelookup()
    ch = ch->NextSibling
   LOOP
-  IF sl <> rootslice THEN
+  IF sl <> hidden_slice THEN
    indent -= 1
   END IF
  END WITH
