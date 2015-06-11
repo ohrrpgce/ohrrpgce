@@ -396,7 +396,7 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
 #ENDIF
   IF state.need_update = NO AND (keyval(scPlus) > 1 OR keyval(scNumpadPlus)) THEN
    IF slice_edit_detail_browse_slicetype(slice_type) THEN
-    IF menu(state.pt).handle <> NULL AND menu(state.pt).handle->parent <> edslice THEN
+    IF menu(state.pt).handle <> NULL ANDALSO menu(state.pt).handle->parent <> NULL THEN
      InsertSliceBefore menu(state.pt).handle, NewSliceOfType(slice_type)
     ELSE
      cursor_seek = NewSliceOfType(slice_type, edslice)
