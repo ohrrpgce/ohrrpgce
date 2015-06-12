@@ -250,6 +250,11 @@ FUNCTION get_enabled_store_name () as string
   IF stores."ouya".exists THEN
    RETURN sanity_check_store_name(stores."ouya".string)
   END IF
+ ELSEIF running_on_console() THEN
+  'We don't yet have any support for any Non-OUYA console payment backends
+  'And launching a browser for Paypal on Android doesn't work yet
+  'This will change if we ever have payment backends for GameStick or FireTV
+  RETURN "disabled"
  ELSEIF running_on_mobile() THEN
   'We don't yet have any support for any Android payment backends except the OUYA one
   'And launching a browser for Paypal on Android doesn't work yet
