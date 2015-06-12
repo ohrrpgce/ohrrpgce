@@ -60,39 +60,48 @@ crosslinking command entries to generating a file for HssEd to use.
 
 Inside the <command> element are subelements, in this order:
 Case 1: Full command definition
-  <canon> - This is the "canonical" form of the command: the fully spaced
-  			 command with parameter prototypes. Example: move hero to x (who, x)
-  <shortname> - This is the short version of the command, used for crosslinking,
-  				indexes, etc. It is the <canon> element, minus the parameters.
-  				Example: move hero to x
+  <canon>       - This is the "canonical" form of the command: the fully spaced
+                  command with parameter prototypes. Example: move hero to x (who, x)
+  <shortname>   - This is the short version of the command, used for crosslinking,
+                  indexes, etc. It is the <canon> element, minus the parameters.
+                  Example: move hero to x
   <added>       - Version this was added in. Not used!
   <deprecated>  - Version this was deprecated in. Not used!
   <description> - This is a paragraph (or more) of text describing what the
-  				  command does, and how to use it. Use <lb/> to put paragraphs
-  				  in, and <p></p> when referring to a parameter (to avoid user
-  				  confusion) No HTML is allowed (at this time) Example: Well, it
-  				  would be pretty long...
-  <example>* - Finally, most commands should have some sort of example on how to
-  			   use the command. It will be displayed in a mono-space font, so
-  			   it's easy to Plotscript. But, be sure to format it properly:
-			   Example:
-			   <example># first example line has no line-break
+                  command does, and how to use it. Use <lb/> to put paragraphs
+                  in, and <p></p> when referring to a parameter (to avoid user
+                  confusion). No HTML is allowed (at this time).
+                  You can also embed <example> blocks inside <description> blocks
+                  instead of having them trail afterwards.
+Example: Well, it
+                  would be pretty long...
+  <example>*    - Finally, most commands should have some sort of example on how to
+                  use the command. You can put this inside <description> instead.
+                  It will be displayed in a mono-space font suitable for code.
+                  But, be sure to format it properly:
+                  Example:
+                  <example># first example line has no line-break
 # the second (and more) lines should have no indentation
 # and so forth</example>
 
 Case 2: Alias command definition
-  <alias> - If a command is an alias to another command (or is so closely
-  			related that they're in the same entry, use the <alias> element. Put
-  			the ID of the real command in here. Example: begin
-  <shortname> - Aliases also need a short name, since they are technically
-  				different from their alias. Example: end
+  <alias>       - If a command is an alias to another command (or is so closely
+                  related that they're in the same entry, use the <alias> element. Put
+                  the ID of the real command in here. Example: begin
+  <shortname>   - Aliases also need a short name, since they are technically
+                  different from their alias. Example: end
 
 Additionally, if you want a command to appear in multiple sections, 
 define it once and place references to it elsewhere.
-  <reference> - Has a single attribute, 'id', and no contents
+  <reference>   - Has a single attribute, 'id', and no contents.
 
 Basically, you should be able to examine the entries that already exist. It's
 fairly self evident what everything does.
+
+If you have xmllint installed you can run update-html.sh and it'll tell you
+about all kinds of critical errors that your web browser will probably silently
+ignore by throwing away what it doesn't understand.
+
 
 These are cut-and-paste copies of <command> elements, so you don't have to type
 everything out 10000000000 times. They are also indented properly for this file.
@@ -750,12 +759,12 @@ resume NPCs</example>
 			<canon>suspend obstruction</canon>
 			<shortname>suspend obstruction</shortname>
 			<description>Allows heroes to walk through NPCs, allows NPCs to walk through heroes, and allows NPCs to walk through each other. Also, when obstruction is suspended, step-on activated NPCs won't be activated, and of course NPCs can't be pushed. Use <ref>resumeobstruction</ref> to restore normal obstruction behavior. Use <ref>setnpcobstructs</ref>(who, false) instead to allow a single NPC to move through heroes and NPCs, and vice-versa.</description>
-			<seealso>
-				<ref>setnpcobstructs</ref>
-			</seealso>
 			<example>suspend obstruction
 # walk through things
 resume obstruction</example>
+			<seealso>
+				<ref>setnpcobstructs</ref>
+			</seealso>
 		</command>
 		<command id="resumeobstruction">
 			<canon>resume obstruction</canon>
@@ -3129,10 +3138,10 @@ There is no limit on string length.<lb/>
 		<reference id="inputstring" />
 
 		<section title="Basic String Commands">
-		<command id="$string=&quot;...&quot;">
+		<command id="__setstring__">
 			<canon>$id="some text"</canon>
 			<shortname>$id="..."</shortname>
-			<description>Sets the contents of a string variable given by <p>id</p>, which can be a constant like 0 or 1, a variable, or even an expression like a call to a script, to a piece of text. The previous contents are erased. The whole statement must be on a single line; you can't split the text onto multiple lines (use multiple <ref>$string+"..."</ref> statements instead). The value of the whole statement is equal to <p>id</p> for convenience (see the example). The text (which is called a string literal) can contain certain escape codes:<lb/>
+			<description>Sets the contents of a string variable given by <p>id</p>, which can be a constant like 0 or 1, a variable, or even an expression like a call to a script, to a piece of text. The previous contents are erased. The whole statement must be on a single line; you can't split the text onto multiple lines (use multiple <ref>__appendstring__</ref> statements instead). The value of the whole statement is equal to <p>id</p> for convenience (see the example). The text (which is called a string literal) can contain certain escape codes:<lb/>
 \\ turns into a single \<lb/>
 \" turns into a single " without signalling the end of the literal<lb/>
 \n is a new line character, which is useful in a textslice but doesn't cause a new line in textboxes or on-screen strings.<lb/>
@@ -3145,10 +3154,10 @@ showstring(1)
 # This displays "A quote" in the corner of the screen
 showstring($1="\"A quote\"")</example>
 		</command>
-		<command id="$string+&quot;...&quot;">
+		<command id="__appendstring__">
 			<canon>$id+"some text"</canon>
 			<shortname>$id+"..."</shortname>
-			<description>Appends a string literal to a string variable. This is the same as <ref>$string="..."</ref>, except that the existing contents of the string are preserved and appended to.</description>
+			<description>Appends a string literal to a string variable. This is the same as <ref>__setstring__</ref>, except that the existing contents of the string are preserved and appended to.</description>
 		</command>
 		<command id="clearstring">
 			<canon>clear string(ID)</canon>
@@ -5148,7 +5157,7 @@ end
 		<command id="createcontainer">
 			<canon>create container (width, height)</canon>
 			<shortname>create container</shortname>
-			<description>Create a new container slice and return a handle to it. Containers are invisible slices used only for grouping other slices. You can optionaly specify a <p>width</p> and <p>height</p> for the container.</description>
+			<description>Create a new container slice and return a handle to it. Containers are invisible slices used only for grouping other slices. You can optionaly specify a <p>width</p> and <p>height</p> for the container.
 <example>variable(holder, sl)
 holder := create container(200,100)
 sl := load hero sprite(0)
@@ -5158,7 +5167,7 @@ sl := load hero sprite(1)
 set parent(sl, holder)
 set horiz align(sl, edge:right)
 </example>
-The example above creates a container and then puts two hero sprites inside it, one aligned left and one aligned right. If you move or resize the container, the sprites inside it will also be moved.
+			The example above creates a container and then puts two hero sprites inside it, one aligned left and one aligned right. If you move or resize the container, the sprites inside it will also be moved.</description>
 		</command>
 		</section>		<!-- Container Slices-->
 
@@ -6230,17 +6239,17 @@ write pass block(15,3,pass)
 				<ref>readzone</ref>
 			</seealso>
 		</command>
-		<command id="get zone name">
+		<command id="getzonename">
 			<canon>get zone name (string id, zone id)</canon>
 			<shortname>get zone name</shortname>
 			<description>Places in the string with id number <p>string id</p> the name of zone <p>zone id</p> (from 1 to 9999).</description>
 		</command>
-		<command id="get zone extra">
+		<command id="getzoneextra">
 			<canon>get zone extra (zone id, extra num)</canon>
 			<shortname>get zone extra</shortname>
 			<description>Returns the value in a zone's "extra data" field numbered <p>extra num</p>, which is a number from 0 to 2. You may use the constants <p>extra 0</p>, <p>extra 1</p> and <p>extra 2</p> to refer to them. You can set a zone's extra data in the Zone Info editor.</description>
 		</command>
-		<command id="set zone extra">
+		<command id="setzoneextra">
 			<canon>set zone extra (zone id, extra num, value)</canon>
 			<shortname>set zone extra</shortname>
 			<description>Sets the value of a zone's "extra data" field numbered <p>extra num</p>, which is a number from 0 to 2. You may use the constants <p>extra 0</p>, <p>extra 1</p> and <p>extra 2</p> to refer to them.<note>Changes to zones are not stored in saved games, and are erased when you leave the map unless "Tile Data State" is saved when leaving in the General Map Data settings.</note></description>
@@ -6368,6 +6377,9 @@ end</example>
 <p>trigger</p> is what happens when the timer runs out. You can use the constant <ref>timer:gameover</ref> to indicate that the game should end (the gameover script is not called), or specify a plotscript (in the form "@my script") to have that run. A plotscript will get passed the id of the timer that triggered it as its first argument, if it has one. If the timer runs out during a battle then the effect happens after the battle ends.<lb/>
 You can bind a timer to a string using the <p>string</p> parameter to create a countdown that shows up on screen. Pass it the id of a string, and that string will be updated every time the timer counts down. You are responsible for displaying and positioning the string.<lb/>
 A timer also has a few other options in the form of <p>flags</p>. You can pass any combination of these flags (by <ref>or</ref>ing them together; see the example): <ul><li><ref>timerflag:battle</ref> to have it count down during battles (including in menus which pause the battle, except the Pause screen itself)</li><li><ref>timerflag:menu</ref> to have it count down even while the player is in a menu which pauses the game (e.g. the status menu)</li><li><ref>timerflag:critical</ref> to have the timer end a battle or exit a menu if it runs out during it</li></ul><lb/><note>Timers start counting down not from the current game 'tick', but from next one. So if you want to trigger something next tick (eg. run a script every frame) you need to pass <p>count</p> as 0 and <p>speed</p> as 1. A timer count set to 1 would counter-intuitively trigger in 2 ticks time.</note><note>Timer settings are not saved in game saves.</note></description>
+			<example># This starts a 300 second (5 minute) timer that counts down once every 18 ticks (approximately one second).
+# If it runs out during battle, the battle won't end but a game-over will happen afterwards.
+set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: menu))</example>
 			<seealso>
 				<ref>stoptimer</ref>
 				<ref>readtimer</ref>
@@ -6376,9 +6388,7 @@ A timer also has a few other options in the form of <p>flags</p>. You can pass a
 				<ref>milliseconds</ref>
 				<ref>runscriptbyid</ref>
 			</seealso>
-			<example># This starts a 300 second (5 minute) timer that counts down once every 18 ticks (approximately one second).
-# If it runs out during battle, the battle won't end but a game-over will happen afterwards.
-set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: menu))</example>
+
 		</command>
 		<command id="stoptimer">
 			<canon>stop timer (id)</canon>

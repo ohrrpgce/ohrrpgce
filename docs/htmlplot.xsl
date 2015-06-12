@@ -118,8 +118,8 @@
 					  padding:5px;
 					  color:black;
 					  margin:3px;
-					  min-height: 48 px;
-					  height: 48 px;
+					  min-height: 48px;
+					  height: 48px;
 					}
 
 					div.note a {
@@ -205,7 +205,7 @@
 		<xsl:param name="section-class" />
 
 		<xsl:text>
-		</xsl:text><div class="{$section-class}" id="{@title}"><a name="{@title}" ></a><xsl:text>
+		</xsl:text><div class="{$section-class}"><a name="{@title}"></a><xsl:text>
 		</xsl:text><h3><span class="backlink"><xsl:copy-of select="$backlinks" /></span><xsl:value-of select="@title" /></h3><xsl:text>
 		</xsl:text>
 		<!-- Alternative way to show backlink to parent-->
@@ -243,6 +243,7 @@
 		</xsl:text><xsl:if test='boolean(canon)'>
 			<h4><xsl:value-of select="canon" /></h4><p><xsl:text>
 			</xsl:text><xsl:apply-templates select="description" /><xsl:text>
+			<!-- <example> can also appear nested inside <description> rather than following it -->
 			</xsl:text><xsl:apply-templates select="example" /><xsl:text>
 			</xsl:text><xsl:apply-templates select="seealso" /><xsl:text>
 		</xsl:text></p></xsl:if>
