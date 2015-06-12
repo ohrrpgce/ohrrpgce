@@ -17,6 +17,12 @@
 
 '==============================================================================
 
+ENUM HideMode
+ hideNothing = 0
+ hideSlices = 1
+ hideMenu = 2
+END ENUM
+
 TYPE SliceEditState
  collection_number as integer
  collection_group_number as integer
@@ -26,7 +32,7 @@ TYPE SliceEditState
  saved_pos as XYPair
  saved_size as XYPair
  clipboard as Slice Ptr
- hide_menu as integer
+ hide_mode as HideMode
 END TYPE
 
 TYPE SliceEditMenuItem
@@ -324,8 +330,8 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
   setwait 55
   setkeys
   IF keyval(scEsc) > 1 THEN
-   IF ses.hide_menu THEN
-    ses.hide_menu = NO
+   IF ses.hide_mode <> hideNothing THEN
+    ses.hide_mode = hideNothing
    ELSE
     EXIT DO
    END IF
@@ -335,7 +341,7 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
   #ELSE
    IF keyval(scF1) > 1 THEN show_help "sliceedit_game"
   #ENDIF
-  IF keyval(scF4) > 1 THEN ses.hide_menu = NOT ses.hide_menu
+  IF keyval(scF4) > 1 THEN ses.hide_mode = (ses.hide_mode + 1) MOD 3
   IF keyval(scF5) > 1 THEN
    show_root = NOT show_root
    cursor_seek = menu(state.pt).handle
@@ -510,11 +516,13 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
   END IF
 
   clearpage dpage
-  DrawSlice edslice, dpage
+  IF ses.hide_mode <> hideSlices THEN
+   DrawSlice edslice, dpage
+  END IF
   IF state.pt > 0 THEN
    DrawSliceAnts menu(state.pt).handle, dpage
   END IF
-  IF ses.hide_menu = NO THEN
+  IF ses.hide_mode <> hideMenu THEN
    IF state.last > state.size THEN
     draw_fullscreen_scrollbar state, , dpage
    END IF
@@ -663,7 +671,7 @@ SUB slice_edit_detail (sl as Slice Ptr, byref ses as SliceEditState, rootsl as S
   setkeys YES
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "sliceedit_" & rules(state.pt).helpkey
-  IF keyval(scF4) > 1 THEN ses.hide_menu = NOT ses.hide_menu
+  IF keyval(scF4) > 1 THEN ses.hide_mode = (ses.hide_mode + 1) MOD 3
 
   IF UpdateScreenSlice() THEN state.need_update = YES
 
@@ -681,9 +689,11 @@ SUB slice_edit_detail (sl as Slice Ptr, byref ses as SliceEditState, rootsl as S
   slice_edit_detail_keys state, sl, rootsl, rules(), slicelookup(), specialcodes()
   
   clearpage dpage
-  DrawSlice rootsl, dpage
+  IF ses.hide_mode <> hideSlices THEN
+   DrawSlice rootsl, dpage
+  END If
   DrawSliceAnts sl, dpage
-  IF ses.hide_menu = NO THEN
+  IF ses.hide_mode <> hideMenu THEN
    standardmenu menu(), state, 0, 0, dpage, menuopts
   END IF
 
