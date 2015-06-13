@@ -153,7 +153,7 @@ FUNCTION battle (byval form as integer) as bool
   '--background animation
   battle_background_anim bat, formdata
 
-  IF readbit(gen(), genBits, 8) = 0 THEN
+  IF always_enable_debug_keys <> 0 OR readbit(gen(), genBits, 8) = 0 THEN
    '--debug keys
    IF keyval(scShift) > 0 AND keyval(scTab) > 0 THEN  'speed up while held down
     speedcontrol_this_tick = speedcontrol / 5
