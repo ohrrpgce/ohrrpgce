@@ -59,6 +59,7 @@
 						border-style:ridge;
 						padding:10px;
 						padding-left:20px;
+						white-space: pre-wrap;
 						/*font-family:fixedsys,monospace;*/
 						font-size: 12px;
 					}
@@ -119,7 +120,6 @@
 					  color:black;
 					  margin:3px;
 					  min-height: 48px;
-					  height: 48px;
 					}
 
 					div.note a {
@@ -154,8 +154,8 @@
 			</head>
 			<body>
 				<h1>Plotscripting Dictionary</h1>
-				<p>This is a listing of all the plotscripting commands implemented as of <xsl:value-of select="@lastmodified" />.</p>
-				<p>In addition to reading this document, I also recommend you check out Plotscripting Tutorial and the HamsterSpeak Specification</p>
+				<p>This is a listing of all the plotscripting commands implemented as of <xsl:value-of select="@lastmodified" />. If you're reading this on the  <a href="http://rpg.hamsterrepublic.com/ohrrpgce/">OHRRPGCE website</a> rather than an HTML file included in a download, then this documents the latest nightly version, not the last stable release!</p>
+				<p>In addition to reading this document, we also recommend you check out the <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Old_Plotscripting_Tutorial">Plotscripting Tutorial</a> and the <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">Plotscripting</a> article on the wiki.</p>
 				<hr/>
 				<h2>Commands by Category</h2>
 				<p>
@@ -175,7 +175,8 @@
 					<xsl:with-param name="section-class">section</xsl:with-param>
 				</xsl:apply-templates>
 
-				<p>Stats: There are <xsl:value-of select='count(//command)'/> commands in this file, of which <xsl:value-of select='count(//alias)'/> are only references to other commands.</p>
+				<xsl:variable name="numconstants" select='count(//section[@constants="yes"]/command)'/>
+				<p>Stats: There are <xsl:value-of select='count(//command) - $numconstants'/> commands and <xsl:value-of select='$numconstants'/> constants in this file, of which <xsl:value-of select='count(//alias)'/> are only references to other entries.</p>
 				<p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 			</body>
 		</html>
