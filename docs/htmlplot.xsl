@@ -232,9 +232,9 @@
 	<xsl:template match="reference" mode="full"><xsl:text>
 		</xsl:text><div class="command"><xsl:text>
 		</xsl:text><h4>
-		<xsl:value-of select="//command[@id=current()/@id]/canon" />
+		<xsl:value-of select="//command[@id=current()/@ref]/canon" />
 		</h4><xsl:text>
-		</xsl:text><p><a href="#about-{@id}">Defined in the <xsl:value-of select="//command[@id=current()/@id]/../@title" /> section.</a></p><xsl:text>
+		</xsl:text><p><a href="#about-{@ref}">Defined in the <xsl:value-of select="//command[@id=current()/@ref]/../@title" /> section.</a></p><xsl:text>
 		</xsl:text></div>
 	</xsl:template>
 

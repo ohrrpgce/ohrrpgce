@@ -6,9 +6,9 @@
 	<!ATTLIST plotscript lastmodified CDATA "the dawn of time">
 	<!ATTLIST plotscript show-alias CDATA "yes">
 	<!ELEMENT section (description?,(command|reference|section)+)>
-	<!ATTLIST section title CDATA #REQUIRED>
+	<!ATTLIST section title CDATA #REQUIRED constants (yes|no) #IMPLIED>
 	<!ELEMENT reference EMPTY>
-	<!ATTLIST reference id IDREF #REQUIRED>
+	<!ATTLIST reference ref IDREF #REQUIRED>
 	<!ELEMENT command ((canon,shortname,added?,deprecated?,description,example*,seealso?) |
 					   (alias,shortname,added?,deprecated?))>
 	<!ATTLIST command id ID #REQUIRED
@@ -93,7 +93,7 @@ Case 2: Alias command definition
 
 Additionally, if you want a command to appear in multiple sections, 
 define it once and place references to it elsewhere.
-  <reference>   - Has a single attribute, 'id', and no contents.
+  <reference>   - Has a single attribute, 'ref', and no contents.
 
 Basically, you should be able to examine the entries that already exist. It's
 fairly self evident what everything does.
@@ -133,7 +133,7 @@ everything out 10000000000 times. They are also indented properly for this file.
 
 #===== Reference
 
-		<reference id="" />
+		<reference ref="" />
 
 #=====
 
@@ -693,9 +693,9 @@ wait for camera # wait until he&apos;s on screen</example>
 			<example># do a bunch of things all at once
 wait for all # wait until everything is done</example>
 		</command>
-		<reference id="waitforslice"/>
-		<reference id="waitfordissolve"/>
-		<reference id="waitforsound"/>
+		<reference ref="waitforslice"/>
+		<reference ref="waitfordissolve"/>
+		<reference ref="waitforsound"/>
 	</section>
 
 	<section title="Working with Tags">
@@ -932,7 +932,7 @@ play song (get ambient music)</example>
 walk hero(me,up,3) # move him up 3 tiles
 resume player # OK, done</example>
 		</command>
-		<reference id="waitforhero" />
+		<reference ref="waitforhero" />
 		<command id="setherodirection">
 			<canon>set hero direction (who, direction)</canon>
 			<shortname>set hero direction</shortname>
@@ -1057,7 +1057,7 @@ resume player</example>
 			<shortname>teleport to map</shortname>
 			<description>An alternative to <ref>usedoor</ref>, teleport to map moves you to a given x,y position on the specified map without the need to create a door-link on the map. Teleport to map does not fade to black. <note>An automatic <ref>wait</ref>(1) occurs immediately after this command.</note></description>
 		</command>
-		<reference id="dismountvehicle" />
+		<reference ref="dismountvehicle" />
 		<command id="heroiswalking">
 			<canon>hero is walking (who)</canon>
 			<shortname>hero is walking</shortname>
@@ -1066,7 +1066,7 @@ resume player</example>
 	</section>
 
 	<section title="Doors">
-		<reference id="teleporttomap" />
+		<reference ref="teleporttomap" />
 		<command id="usedoor">
 			<canon>use door (number)</canon>
 			<shortname>use door</shortname>
@@ -1198,7 +1198,7 @@ while (npcref) do (
 			<shortname>walk NPC</shortname>
 			<description>Makes the specified NPC move in the specified direction for the specified number of tiles. The first argument tells who to move. You can use an <ref>npcreference</ref> or the NPC&apos;s ID number. The second argument is the direction. Use the constants: <ref>north</ref>, <ref>south</ref>, <ref>east</ref>, <ref>west</ref>, <ref>up</ref>, <ref>down</ref>, <ref>left</ref>, or <ref>right</ref>. The third argument is the number of tiles to move. If you leave out the third argument, the NPC will move one tile. walk NPC is usually used with the <ref>waitfornpc</ref> command. You should normally use the <ref>suspendnpcs</ref> command before moving NPCs to prevent their automatic movements from interfering with your scripted movements.</description>
 		</command>
-		<reference id="waitfornpc" />
+		<reference ref="waitfornpc" />
 		<command id="setnpcdirection">
 			<canon>set NPC direction (who, direction)</canon>
 			<shortname>set NPC direction</shortname>
@@ -1414,7 +1414,7 @@ end</example>
 			<shortname>put camera</shortname>
 			<description>This command causes the top left corner of the camera to instantly jump to the specified X,Y pixel coordinates of the map. These coordinates are in units of pixels, not tiles. To position the camera by tiles, just multiply the tile position by 20. To revert the camera to normal, use <ref>camerafollowshero</ref>.</description>
 		</command>
-		<reference id="waitforcamera"/>
+		<reference ref="waitforcamera"/>
 	</section>
 
 	<section title="Text Boxes">
@@ -1431,7 +1431,7 @@ wait for text box # wait until the player continues</example>
 			<description>Advances a text box just as if the player had pressed a key. For use while <ref>suspendboxadvance</ref> is active.</description>
 			<example c="suspendboxadvance" />
 		</command>
-		<reference id="waitfortextbox"/>
+		<reference ref="waitfortextbox"/>
 		<command id="currenttextbox">
 			<canon>current text box</canon>
 			<shortname>current text box</shortname>
@@ -1458,7 +1458,7 @@ wait for text box # wait until the player continues</example>
 	</section>
 
 	<section title="Triggering Stuff">
-		<reference id="showtextbox" />
+		<reference ref="showtextbox" />
 		<command id="fightformation">
 			<canon>fight formation (number)</canon>
 			<shortname>fight formation</shortname>
@@ -1488,13 +1488,13 @@ wait for text box # wait until the player continues</example>
 			<shortname>use NPC</shortname>
 			<description>Remotely trigger an NPC. You can use either an <ref>npcreference</ref> or an NPC ID number. Whatever actions are associated with triggering that NPC will be taken, text box, script, vehicle, item, whatever. <note>An automatic <ref>wait</ref>(1) occurs immediately after this command.</note></description>
 		</command>
-		<reference id="usedoor"/>
+		<reference ref="usedoor"/>
 		<command id="useshop">
 			<canon>use shop (shop)</canon>
 			<shortname>use shop</shortname>
 			<description>Takes you directly to a shop. You can specify the shop&apos;s ID number or its name in the form shop:name</description>
 		</command>
-		<reference id="teleporttomap"/>
+		<reference ref="teleporttomap"/>
 		<command id="dismountvehicle">
 			<canon>dismount vehicle</canon>
 			<shortname>dismount vehicle</shortname>
@@ -2839,8 +2839,8 @@ end
 			<shortname>pick hero</shortname>
 			<description>Pops up a hero-picker box that lets you choose one of the heroes in your active party. The return value is the position in the party of the hero you picked, or -1 if the player cancelled.</description>
 		</command>
-		<reference id="renamehero" />
-		<reference id="renameherobyslot" />
+		<reference ref="renamehero" />
+		<reference ref="renameherobyslot" />
 
 		<section title="Keyboard Input">
 		<command id="keyispressed">
@@ -3122,7 +3122,7 @@ There is no limit on string length.<lb/>
 <note>Unlike almost all other indices in the OHRRPGCE, when referring to a position in a string, <p>position</p> is a 1-based index into the string, not a 0-based index. For example, given a string "ABCDEFG", position=3 is "C", not "D". This means that position 0 is invalid. Beware!</note>
 <note>Strings are not saved in saved games by default, but this can be enabled in the Saved Game Settings menu.</note></description>
 
-		<reference id="showstring" />
+		<reference ref="showstring" />
 		<command id="stringtoglobals">
 			<canon>string to globals (ID, starting global, length)</canon>
 			<shortname>string to globals</shortname>
@@ -3135,7 +3135,7 @@ There is no limit on string length.<lb/>
 			<description>This command is the opposite of <ref>stringtoglobals</ref>. It will build a new string in slot #<p>ID</p>, using the ascii values from the global variables #<p>starting global</p> and <p>length</p> globals thereafter. Pass the same value for <p>length</p> as you did to <ref>stringtoglobals</ref> if you don't know the length of the string. If a global has a value greater than 255, the value will be ignored.<note>This command is deprecated. There is no reason to use it in new games, since there are much easier ways to store strings in savegames</note></description>
 			<seealso><ref>stringtoglobals</ref></seealso>
 		</command>
-		<reference id="inputstring" />
+		<reference ref="inputstring" />
 
 		<section title="Basic String Commands">
 		<command id="__setstring__">
@@ -3274,8 +3274,8 @@ get hero name (1, find hero (leader))
 			<shortname>set hero name</shortname>
 			<description>This command changes the name of the hero in party slot #<p>hero</p> (as returned by <ref>findhero</ref>) to the contents of string #<p>ID</p>. The length is not limited by the hero's Max Name Length setting.</description>
 		</command>
-		<reference id="getenemyname" />
-		<reference id="setenemyname" />
+		<reference ref="getenemyname" />
+		<reference ref="setenemyname" />
 		<command id="getmapname">
 			<canon>get map name (ID, map)</canon>
 			<shortname>get map name</shortname>
@@ -3305,8 +3305,8 @@ get hero name (1, find hero (leader))
 			<shortname>get song name</shortname>
 			<description>Gets the name of song #<p>song</p> and puts it in string #<p>ID</p>.</description>
 		</command>
-		<reference id="stringfromtextbox" />
-		<reference id="textboxline" />
+		<reference ref="stringfromtextbox" />
+		<reference ref="textboxline" />
 		</section>
 
                 <section title="Showing Plotstrings">
@@ -6092,8 +6092,8 @@ The third argument is the total number of ticks that the animation should run. Y
 			<shortname>system second</shortname>
 			<description>Returns the current real-world second, 0 to 59</description>
 		</command>
-		<reference id="milliseconds" />
-		<reference id="microseconds" />
+		<reference ref="milliseconds" />
+		<reference ref="microseconds" />
 	</section>
 
 	<section title="Tweaking Maps">
@@ -6808,7 +6808,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 		</command>
 	</section>
 
-	<section title="Predefined Constants">
+	<section title="Predefined Constants" constants="yes">
 		<command id="numericconstants">
 			<canon>Numeric Constants</canon>
 			<shortname>Numeric Constants</shortname>
