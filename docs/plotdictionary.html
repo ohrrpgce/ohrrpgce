@@ -48,6 +48,7 @@
 						border-style:ridge;
 						padding:10px;
 						padding-left:20px;
+						white-space: pre-wrap;
 						/*font-family:fixedsys,monospace;*/
 						font-size: 12px;
 					}
@@ -108,7 +109,6 @@
 					  color:black;
 					  margin:3px;
 					  min-height: 48px;
-					  height: 48px;
 					}
 
 					div.note a {
@@ -143,8 +143,8 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<p>This is a listing of all the plotscripting commands implemented as of right now.</p>
-<p>In addition to reading this document, I also recommend you check out Plotscripting Tutorial and the HamsterSpeak Specification</p>
+<p>This is a listing of all the plotscripting commands implemented as of right now. If you're reading this on the  <a href="http://rpg.hamsterrepublic.com/ohrrpgce/">OHRRPGCE website</a> rather than an HTML file included in a download, then this documents the latest nightly version, not the last stable release!</p>
+<p>In addition to reading this document, we also recommend you check out the <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Old_Plotscripting_Tutorial">Plotscripting Tutorial</a> and the <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">Plotscripting</a> article on the wiki.</p>
 <hr>
 <h2>Commands by Category</h2>
 <p><div class="sectionlist">
@@ -8169,7 +8169,7 @@ end</pre>
 </li>
 </ul>
 <p>In HamsterSpeak, strings are special variables which hold pieces of text, and are referred to by their ID numbers. There are 100 string variables, with IDs 0 to 99. Strings variables can be displayed onscreen directly, or alternatively embedded in textboxes or displayed with text slices. For more information, see the <a href="rpg.hamsterrepublic.com/ohrrpgce/Strings">wiki article on strings</a>.<br>
-You can set the value of a string directly with <a href="#%24string=%22...%22" class="undef">$string="..."</a> and append to an existing string with <a href="#%24string+%22...%22" class="undef">$string+"..."</a>.
+You can set the value of a string directly with <a href="#about-__setstring__" class="ref">$id="..."</a> and append to an existing string with <a href="#about-__appendstring__" class="ref">$id+"..."</a>.
 There is no limit on string length.<br>
 <div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Unlike almost all other indices in the OHRRPGCE, when referring to a position in a string, <span class="param">position</span> is a 1-based index into the string, not a 0-based index. For example, given a string "ABCDEFG", position=3 is "C", not "D". This means that position 0 is invalid. Beware!<br clear="all">
@@ -8332,9 +8332,9 @@ showstring($1="\"A quote\"")</pre>
 <span class="param">%d</span>: substituted with a number, printed as a decimal.<br>
 <span class="param">%x</span>: substituted with a number, printed as a unsigned 32 bit hexidecimal, in lower case and without a leading 0x.<br>
 <span class="param">%s</span>: substituted with a string. The argument should be a valid string ID.<br>
-<span class="param">%c</span>: substituted with a single character. The argument should be an number between 0 and 255.<br>
+<span class="param">%c</span>: substituted with a single character. The argument should be an ASCII code (that is, a number between 0 and 255).<br>
 <span class="param">%%</span>: substituted with a single %. In this case an argument is NOT used up.<br>
-More sophisticated codes like %-04d that are possible in other programming languages are not supported yet.
+More sophisticated formatting codes like %-04d that are possible in other programming languages are not supported yet.
 
 			
 			<pre># This displays some text like "HP: 30  MP: 12  $: 104" at the bottom of the screen
@@ -8349,6 +8349,7 @@ center string at(12, 160, 100)
 wait for key(anykey)
 hide string(12)
 </pre><pre># This displays "1abcdef ffffffff A%"
+# Notice that the expression '$1="%x %x %c%%"' returns the string ID 1 as a side effect.
 string sprintf(0, $1="%x %x %c%%", 28036591, -1, 65)
 show string(0)</pre>
 			<div class="seealso">See also: <ul>
@@ -13136,14 +13137,20 @@ The third argument is the total number of ticks that the animation should run. Y
 <span class="backlink"><a href="#Slices">Slices</a> →
 			</span>Slice Collision Testing</h3>
 		<ul></ul>
-<p></p>
+<p><div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">For the purposes of collision testing, all slices are treated as solid rectangles, even if they are text slices, sprites, ellipses, or invisible. A point right on the boundary of this rectangle counts as a collision.<br clear="all">
+</div></p>
 		
 		
 		<div class="command">
 <a name="about-slicecollidepoint"></a>
 		<h4>slice collide point (handle, x, y)</h4>
 <p>
-			Return true if a given <span class="param">x</span> and <span class="param">y</span> coordinate point collides with a slice <span class="param">handle</span>'s screen position. <span class="param">x</span> and <span class="param">y</span> are pixel coordinates relative to the screen, such as the ones returned by <a href="#about-mousepixelx" class="ref">mouse pixel X</a> and <a href="#about-mousepixely" class="ref">mouse pixel Y</a>
+			
+				Return true if a given <span class="param">x</span> and <span class="param">y</span> coordinate point lies inside the bounding rectangle for slice <span class="param">handle</span>'s screen position.
+				<span class="param">x</span> and <span class="param">y</span> are pixel coordinates relative to the screen,
+				such as the ones returned by <a href="#about-mousepixelx" class="ref">mouse pixel X</a> and <a href="#about-mousepixely" class="ref">mouse pixel Y</a> (but can also be off the screen).
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-slicecollide" class="ref">slice collide</a></li></ul>
@@ -13180,7 +13187,17 @@ The third argument is the total number of ticks that the animation should run. Y
 <a name="about-sliceatpixel"></a>
 		<h4>slice at pixel (parent, x, y, number, check descendants)</h4>
 <p>
-			Searches through all the descendants of <span class="param">parent</span> for slices containing the given <span class="param">x</span>, <span class="param">y</span> pixel screen position. To search all your slices, you can normally use <a href="#about-spritelayer" class="ref">sprite layer</a> as <span class="param">parent</span>. <span class="param">number</span> is an optional argument indicating which slice to return if there is more than one at that point; the bottom most one (returned by default) is number 0. slice at pixel returns 0 if <span class="param">number</span> is too large (larger than or equal to the number of overlapping slices). If you pass <a href="#about-getcount" class="ref">get count</a> as <span class="param">number</span> the number of slices at that pixel is returned instead. <span class="param">check descendants</span> is an optional argument defaulting to true. If false, then only <span class="param">parent</span>'s children will be checked, not all its descendants. This command never returns Special slices, such as the sprite layer slice.
+			
+				Searches through all the descendants of <span class="param">parent</span> for a slice containing the given <span class="param">x</span>, <span class="param">y</span> pixel screen position.
+				To search all your slices, you can often use <a href="#about-spritelayer" class="ref">sprite layer</a> as <span class="param">parent</span>.
+				<span class="param">number</span> is an optional argument indicating which slice to return if there is more than one at that point;
+				the bottom-most one (returned by default) is number 0, next up is 1, etc.
+				slice at pixel returns 0 if <span class="param">number</span> is too large (larger than or equal to the number of overlapping slices).
+				If you pass <a href="#about-getcount" class="ref">get count</a> as <span class="param">number</span> the number of slices at that pixel is returned instead of a slice handle.
+				<span class="param">check descendants</span> is an optional argument defaulting to true.
+				If false, then only <span class="param">parent</span>'s children will be checked, not all its descendants.
+				This command never returns Special slices, such as the <a href="#about-spritelayer" class="ref">sprite layer</a> slice.
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -13195,7 +13212,17 @@ The third argument is the total number of ticks that the animation should run. Y
 <a name="about-findcollidingslice"></a>
 		<h4>find colliding slice (parent, slice, number, check descendants)</h4>
 <p>
-			Searches through all the descendants of <span class="param">parent</span> for slices colliding (intersecting) with the given <span class="param">slice</span> (by screen position). To search all your slices, you can normally use <a href="#about-spritelayer" class="ref">sprite layer</a> as <span class="param">parent</span>. <span class="param">number</span> is an optional argument indicating which slice to return if there is more than one at that point; the bottom most one (returned by default) is number 0. 0 is returned if <span class="param">number</span> is too large (larger than or equal to the number of overlapping slices). If you pass <a href="#about-getcount" class="ref">get count</a> as <span class="param">number</span> the number of overlapping slices is returned instead. <span class="param">check descendants</span> is an optional argument defaulting to true. If false, then only <span class="param">parent</span>'s children will be checked, not all its descendants. This command never returns Special slices, such as the sprite layer slice, nor will it return <span class="param">slice</span> or any of its descendants.
+			
+				Searches through all the descendants of <span class="param">parent</span> for a slice colliding (intersecting) with the given <span class="param">slice</span> (by screen position).
+				To search all your slices, you can normally use <a href="#about-spritelayer" class="ref">sprite layer</a> as <span class="param">parent</span>.
+				<span class="param">number</span> is an optional argument indicating which slice to return if there is more than one at that point;
+  				the bottom most one (returned by default) is number 0, next up is 1, etc.
+				0 is returned if <span class="param">number</span> is too large (larger than or equal to the number of overlapping slices).
+				If you pass <a href="#about-getcount" class="ref">get count</a> as <span class="param">number</span> the number of overlapping slices is returned instead.
+				<span class="param">check descendants</span> is an optional argument defaulting to true.
+				If false, then only <span class="param">parent</span>'s children will be checked, not all its descendants.
+				This command never returns Special slices, such as the <a href="#about-spritelayer" class="ref">sprite layer</a> slice, nor will it return <span class="param">slice</span> or any of its descendants.
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -15262,7 +15289,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 824 commands in this file, of which 57 are only references to other commands.</p>
+<p>Stats: There are 749 commands and 75 constants in this file, of which 57 are only references to other entries.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

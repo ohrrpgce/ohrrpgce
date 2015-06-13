@@ -3117,7 +3117,7 @@ end</example>
 
 	<section title="String Functions">
 		<description>In HamsterSpeak, strings are special variables which hold pieces of text, and are referred to by their ID numbers. There are 100 string variables, with IDs 0 to 99. Strings variables can be displayed onscreen directly, or alternatively embedded in textboxes or displayed with text slices. For more information, see the <a href="rpg.hamsterrepublic.com/ohrrpgce/Strings">wiki article on strings</a>.<lb/>
-You can set the value of a string directly with <ref>$string="..."</ref> and append to an existing string with <ref>$string+"..."</ref>.
+You can set the value of a string directly with <ref>__setstring__</ref> and append to an existing string with <ref>__appendstring__</ref>.
 There is no limit on string length.<lb/>
 <note>Unlike almost all other indices in the OHRRPGCE, when referring to a position in a string, <p>position</p> is a 1-based index into the string, not a 0-based index. For example, given a string "ABCDEFG", position=3 is "C", not "D". This means that position 0 is invalid. Beware!</note>
 <note>Strings are not saved in saved games by default, but this can be enabled in the Saved Game Settings menu.</note></description>
@@ -3189,9 +3189,9 @@ showstring($1="\"A quote\"")</example>
 <p>%d</p>: substituted with a number, printed as a decimal.<lb/>
 <p>%x</p>: substituted with a number, printed as a unsigned 32 bit hexidecimal, in lower case and without a leading 0x.<lb/>
 <p>%s</p>: substituted with a string. The argument should be a valid string ID.<lb/>
-<p>%c</p>: substituted with a single character. The argument should be an number between 0 and 255.<lb/>
+<p>%c</p>: substituted with a single character. The argument should be an ASCII code (that is, a number between 0 and 255).<lb/>
 <p>%%</p>: substituted with a single %. In this case an argument is NOT used up.<lb/>
-More sophisticated codes like %-04d that are possible in other programming languages are not supported yet.
+More sophisticated formatting codes like %-04d that are possible in other programming languages are not supported yet.
 </description>
 			<example># This displays some text like "HP: 30  MP: 12  $: 104" at the bottom of the screen
 $1 = "HP: %d  MP: %d  $: %d"
@@ -3207,6 +3207,7 @@ wait for key(anykey)
 hide string(12)
 </example>
 			<example># This displays "1abcdef ffffffff A%"
+# Notice that the expression '$1="%x %x %c%%"' returns the string ID 1 as a side effect.
 string sprintf(0, $1="%x %x %c%%", 28036591, -1, 65)
 show string(0)</example>
 			<seealso>
@@ -5974,10 +5975,16 @@ The third argument is the total number of ticks that the animation should run. Y
 		</section>		<!-- Slice Types-->
 
 		<section title="Slice Collision Testing">
+		<description><note>For the purposes of collision testing, all slices are treated as solid rectangles, even if they are text slices, sprites, ellipses, or invisible. A point right on the boundary of this rectangle counts as a collision.</note></description>
+
 		<command id="slicecollidepoint">
 			<canon>slice collide point (handle, x, y)</canon>
 			<shortname>slice collide point</shortname>
-			<description>Return true if a given <p>x</p> and <p>y</p> coordinate point collides with a slice <p>handle</p>'s screen position. <p>x</p> and <p>y</p> are pixel coordinates relative to the screen, such as the ones returned by <ref>mousepixelx</ref> and <ref>mousepixely</ref></description>
+			<description>
+				Return true if a given <p>x</p> and <p>y</p> coordinate point lies inside the bounding rectangle for slice <p>handle</p>'s screen position.
+				<p>x</p> and <p>y</p> are pixel coordinates relative to the screen,
+				such as the ones returned by <ref>mousepixelx</ref> and <ref>mousepixely</ref> (but can also be off the screen).
+			</description>
 			<seealso>
 				<ref>slicecollide</ref>
 			</seealso>
@@ -6002,7 +6009,17 @@ The third argument is the total number of ticks that the animation should run. Y
 		<command id="sliceatpixel">
 			<canon>slice at pixel (parent, x, y, number, check descendants)</canon>
 			<shortname>slice at pixel</shortname>
-			<description>Searches through all the descendants of <p>parent</p> for slices containing the given <p>x</p>, <p>y</p> pixel screen position. To search all your slices, you can normally use <ref>spritelayer</ref> as <p>parent</p>. <p>number</p> is an optional argument indicating which slice to return if there is more than one at that point; the bottom most one (returned by default) is number 0. slice at pixel returns 0 if <p>number</p> is too large (larger than or equal to the number of overlapping slices). If you pass <ref>getcount</ref> as <p>number</p> the number of slices at that pixel is returned instead. <p>check descendants</p> is an optional argument defaulting to true. If false, then only <p>parent</p>'s children will be checked, not all its descendants. This command never returns Special slices, such as the sprite layer slice.</description>
+			<description>
+				Searches through all the descendants of <p>parent</p> for a slice containing the given <p>x</p>, <p>y</p> pixel screen position.
+				To search all your slices, you can often use <ref>spritelayer</ref> as <p>parent</p>.
+				<p>number</p> is an optional argument indicating which slice to return if there is more than one at that point;
+				the bottom-most one (returned by default) is number 0, next up is 1, etc.
+				slice at pixel returns 0 if <p>number</p> is too large (larger than or equal to the number of overlapping slices).
+				If you pass <ref>getcount</ref> as <p>number</p> the number of slices at that pixel is returned instead of a slice handle.
+				<p>check descendants</p> is an optional argument defaulting to true.
+				If false, then only <p>parent</p>'s children will be checked, not all its descendants.
+				This command never returns Special slices, such as the <ref>spritelayer</ref> slice.
+			</description>
 			<seealso>
 				<ref>slicecollidepoint</ref>
 				<ref>findcollidingslice</ref>
@@ -6011,7 +6028,17 @@ The third argument is the total number of ticks that the animation should run. Y
 		<command id="findcollidingslice">
 			<canon>find colliding slice (parent, slice, number, check descendants)</canon>
 			<shortname>find colliding slice</shortname>
-			<description>Searches through all the descendants of <p>parent</p> for slices colliding (intersecting) with the given <p>slice</p> (by screen position). To search all your slices, you can normally use <ref>spritelayer</ref> as <p>parent</p>. <p>number</p> is an optional argument indicating which slice to return if there is more than one at that point; the bottom most one (returned by default) is number 0. 0 is returned if <p>number</p> is too large (larger than or equal to the number of overlapping slices). If you pass <ref>getcount</ref> as <p>number</p> the number of overlapping slices is returned instead. <p>check descendants</p> is an optional argument defaulting to true. If false, then only <p>parent</p>'s children will be checked, not all its descendants. This command never returns Special slices, such as the sprite layer slice, nor will it return <p>slice</p> or any of its descendants.</description>
+			<description>
+				Searches through all the descendants of <p>parent</p> for a slice colliding (intersecting) with the given <p>slice</p> (by screen position).
+				To search all your slices, you can normally use <ref>spritelayer</ref> as <p>parent</p>.
+				<p>number</p> is an optional argument indicating which slice to return if there is more than one at that point;
+  				the bottom most one (returned by default) is number 0, next up is 1, etc.
+				0 is returned if <p>number</p> is too large (larger than or equal to the number of overlapping slices).
+				If you pass <ref>getcount</ref> as <p>number</p> the number of overlapping slices is returned instead.
+				<p>check descendants</p> is an optional argument defaulting to true.
+				If false, then only <p>parent</p>'s children will be checked, not all its descendants.
+				This command never returns Special slices, such as the <ref>spritelayer</ref> slice, nor will it return <p>slice</p> or any of its descendants.
+			</description>
 			<seealso>
 				<ref>sliceatpixel</ref>
 				<ref>slicecollide</ref>
