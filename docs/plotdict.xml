@@ -3870,6 +3870,8 @@ set menu on close script(m, @my menu exit handler)
 			<lb/>
 			Slices are referred to with <p>slice handles</p>. A slice handle is just a value that you can store in a <p>variable</p>,
 			just like an NPC reference or a textbox ID number.
+			A handle is <p>valid</p> if it currently refers to an existing slice.
+			<ref>false</ref> (zero) is never a valid slice handle, so slice commands return 0 to indicate "no slice found" or similar failures.
 			<note>Slice lookup codes like "sl:map layer 0" or "sli:quit button" are NOT slice handles; they can only be used by the <ref>lookupslice</ref> command.</note>
 		</description>
 		<command id="setparent">
@@ -5205,37 +5207,59 @@ end
 
 
 		<section title="Slice Types">
+			<description>
+				For a description of the different slice types, see the <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Slices#Slice_types">Slices</a> article on the wiki.
+				<note>
+					There are currently three types of slice for which there are no commands, not even to identify them:
+					the 'root' slice (of which there is only one), 'special' slices (like <ref>sprite layer</ref>),
+					and 'map' slices (which are map layers).
+					However you can use <ref>lookupslice</ref> to find each instance of these.
+					Root and special slices are nothing but container slices with special purposes.
+					None of these kinds of slices can be created or manipulated in the slice collection editor either.
+				</note>
+			</description>
 		<section title="Checking Slice Type">
 		<command id="sliceiscontainer">
 			<canon>slice is container (handle)</canon>
 			<shortname>slice is container</shortname>
-			<description>Returns true if the given slice <p>handle</p> is a container.</description>
+			<description>Returns true if the given slice <p>handle</p> is a container, or false for any other type. It's an error to provide an invalid <p>handle</p>.</description>
 		</command>
 		<command id="sliceissprite">
 			<canon>slice is sprite (handle)</canon>
 			<shortname>slice is sprite</shortname>
-			<description>Returns true if the given slice <p>handle</p> is a sprite.</description>
+			<description>Returns true if the given slice <p>handle</p> is a sprite, or false for any other type. It's an error to provide an invalid <p>handle</p>.</description>
 		</command>
 		<command id="sliceisrect">
 			<canon>slice is rect (handle)</canon>
 			<shortname>slice is rect</shortname>
-			<description>Returns true if the given slice <p>handle</p> is a rect.</description>
+			<description>Returns true if the given slice <p>handle</p> is a rect, or false for any other type. It's an error to provide an invalid <p>handle</p>.</description>
 		</command>
 		<command id="sliceisellipse">
 			<canon>slice is ellipse (handle)</canon>
 			<shortname>slice is ellipse</shortname>
-			<description>Returns true if the given slice <p>handle</p> is an ellipse slice.</description>
+			<description>Returns true if the given slice <p>handle</p> is a ellipse, or false for any other type. It's an error to provide an invalid <p>handle</p>.</description>
 		</command>
 		<command id="sliceistext">
 			<canon>slice is text (handle)</canon>
 			<shortname>slice is text</shortname>
-			<description>Returns true if the given slice <p>handle</p> is a text slice.</description>
+			<description>Returns true if the given slice <p>handle</p> is a text slice, or false for any other type. It's an error to provide an invalid <p>handle</p>.</description>
+		</command>
+		<command id="sliceisgrid">
+			<canon>slice is grid (handle)</canon>
+			<shortname>slice is grid</shortname>
+			<description>Returns true if the given slice <p>handle</p> is a grid, or false for any other type. It's an error to provide an invalid <p>handle</p>.</description>
+		</command>
+		<command id="sliceisselect">
+			<canon>slice is select (handle)</canon>
+			<shortname>slice is select</shortname>
+			<description>Returns true if the given slice <p>handle</p> is a select slice, or false for any other type. It's an error to provide an invalid <p>handle</p>.</description>
 		</command>
 		<command id="sliceisscroll">
 			<canon>slice is scroll (handle)</canon>
 			<shortname>slice is scroll</shortname>
-			<description>Return true if the <p>handle</p> is a scroll slice, or false if it is any other type of slice.</description>
+			<description>Returns true if the given slice <p>handle</p> is a scroll slcie, or false for any other type. It's an error to provide an invalid <p>handle</p>.</description>
 		</command>
+
 		</section>		<!-- Checking Slice Type-->
 
 		<section title="Container Slices">
@@ -5919,11 +5943,6 @@ The third argument is the total number of ticks that the animation should run. Y
 			<shortname>create grid</shortname>
 			<description>Creates a new grid slice, and returns an handle to it. Grid slices are special containers that automatically arrange their children into rows and columns. No manual child positioning is required. The first two arguments are the width and height of the whole grid. The next two arguments are the number of rows and columns that should appear in the grid. If rows or columns are left out, the grid with be a boring 1x1.</description>
 		</command>
-		<command id="sliceisgrid">
-			<canon>slice is grid (handle)</canon>
-			<shortname>slice is grid</shortname>
-			<description>Return true if the <p>handle</p> is a grid slice, or false if it is any other type of slice.</description>
-		</command>
 		<command id="setgridcolumns">
 			<canon>set grid columns (handle, columns)</canon>
 			<shortname>set grid columns</shortname>
@@ -5987,11 +6006,6 @@ The third argument is the total number of ticks that the animation should run. Y
 			<canon>create select (width, height)</canon>
 			<shortname>create select</shortname>
 			<description>Creates a new select slice, and returns an handle to it. Select slices are special containers that automatically Manage the visibility of their children. Only one child of a select slice can ever be visible at the same time. The two arguments are the width and height of the select slice.</description>
-		</command>
-		<command id="sliceisselect">
-			<canon>slice is select (handle)</canon>
-			<shortname>slice is select</shortname>
-			<description>Return true if the <p>handle</p> is a select slice, or false if it is any other type of slice.</description>
 		</command>
 		<command id="setselectsliceindex">
 			<canon>set select slice index (handle, index)</canon>
