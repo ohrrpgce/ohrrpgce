@@ -307,6 +307,8 @@
 
 	<xsl:template match="p"><span class="param"><xsl:apply-templates /></span></xsl:template>
 
+	<xsl:template match="b"><b><xsl:apply-templates /></b></xsl:template>
+
 	<xsl:template match="note">
 		<div style="background-color:#EFF;" class="note">
 			<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon"/>

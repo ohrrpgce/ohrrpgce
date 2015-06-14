@@ -33,6 +33,7 @@
 	<!ATTLIST a            href CDATA #IMPLIED>
 	<!ELEMENT lb           (#PCDATA)>
 	<!ELEMENT p            (#PCDATA)>
+	<!ELEMENT b            (#PCDATA)>
 ]>
 <!--
 
@@ -3861,6 +3862,16 @@ set menu on close script(m, @my menu exit handler)
 	</section>
 
 	<section title="Slices">
+		<description>
+			To learn what a slice is, read the <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Slices">Slices article</a> on the wiki,
+			or a tutorial linked to from it.
+			Although there are many commands here for manipulating slices, it's much easier to create slices
+			in the Slice Collection Editor and then use <ref>loadslicecollection</ref>.
+			<lb/>
+			Slices are referred to with <p>slice handles</p>. A slice handle is just a value that you can store in a <p>variable</p>,
+			just like an NPC reference or a textbox ID number.
+			<note>Slice lookup codes like "sl:map layer 0" or "sli:quit button" are NOT slice handles; they can only be used by the <ref>lookupslice</ref> command.</note>
+		</description>
 		<command id="setparent">
 			<canon>set parent (handle, parent handle)</canon>
 			<shortname>set parent</shortname>
@@ -3874,7 +3885,80 @@ set menu on close script(m, @my menu exit handler)
 		<command id="sliceisvalid">
 			<canon>slice is valid (id)</canon>
 			<shortname>slice is valid</shortname>
-			<description>Returns true if the given <p>id</p> is a valid slice handle. The main use of this command is to check whether a slice has been deleted, avoiding a script error.</description>
+			<description>
+				Returns true if the given <p>id</p> is a valid slice handle to some existing slice.
+				However this tells you nothing about whether the slice it points to is the original one.
+				<danger>
+					<b>You should almost never use this command.</b>
+					Just because a slice handle is valid doesn't mean it points to the slice that you expected.
+					After a slice is deleted, its handle can be reused for new slices!
+					If you delete a slice but still have a slice handle to it stored in a variable,
+					you must never access that handle again, because it will either be invalid,
+					causing an error when you use it, or even worse, it will point to some
+					random slice, which is a bug in your script!
+					For alternatives to sliceisvalid, please see the examples.
+				</danger>
+				When you want to check whether the result of a slice command is a valid slice,
+				you can just test whether the handle is <p>false</p>, as this example shows:
+				<example>
+variable(sl)
+# Let's find a slice.
+sl := lookup code(sl:textbox portrait box)
+# Does this special slice exist?
+# You could write if(slice is valid(sl)) then (....),
+# and it would be correct to do so, but it's pointless.
+# You should just write this instead:
+if (sl) then (....)
+# All commands that normally return a slice handle and might fail will return 'false',
+# so there is never a need to use sliceisvalid in that situation.
+				</example>
+				The following example shows how to be safe when deleting a slice:
+				<example>
+global variable (1, bullet slice)
+
+###### Suppose we have one script that creates a temporary slice:
+
+plotscript, fire bullet, begin
+	bullet slice := create rect (3, 3)
+	...
+end
+
+###### And somewhere else (say, inside our main loop) we want to use it:
+
+	# Test for collision with the player
+	if (slice collide (bullet slice, get hero slice(me))) then (
+		...
+
+		###### Also, the temp slice can be deleted:
+		# Bullet is destroyed
+		free slice (bullet slice)
+	)
+
+###### Wait! First we need to test if there is a bullet slice at all, or we have an error.
+###### You might be tempted to use sliceisvalid:
+
+	if (slice is valid (bullet slice)) then (     # &lt;--- Sometimes returns WRONG result!
+		# Test for collision with the player
+		if (slice collide (bullet slice, get hero slice(me))) then (
+			...
+		)
+	)
+
+###### That's a mistake. Instead, you should make sure to set the variable
+###### bulletslice to 0 in every single place you delete it.
+###### Some of other places aren't obvious! They include leaving the map, or loading a saved game!
+
+	if (bullet slice) then (     # &lt;--- Since we do the needed bookkeeping, this is correct
+		# Test for collision with the player
+		if (slice collide (bullet slice, get hero slice(me))) then (
+			...
+			# Bullet is destroyed
+			free slice (bullet slice)
+			bullet slice := 0     # &lt;--- Very important!
+		)
+	)
+				</example>
+			</description>
 		</command>
 		<command id="freeslice">
 			<canon>free slice (handle)</canon>
