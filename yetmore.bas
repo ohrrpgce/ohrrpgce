@@ -260,368 +260,6 @@ FUNCTION script_sprintf() as string
  RETURN ret
 END FUNCTION
 
-
-FUNCTION scriptstat (byval id as integer) as bool
-'contains an assortment of scripting commands that
-'used to depend on access to the hero stat array stat(), but that is irrelevant now,
-'because that is a global gam.hero().stat
-'Returns true if command was handled.
-
-SELECT CASE as CONST id
- CASE 64'--get hero stat (hero, stat, type)
-  'FIXME: unfortunately this can also access hero level and more
-  'which will suck when we want to add more stats
-  DIM slot as integer = bound(retvals(0), 0, 40)
-  WITH gam.hero(slot)
-   IF retvals(2) = 0 THEN  'current stat
-    DIM statnum as integer = bound(retvals(1), 0, 13)
-    IF statnum = 13 THEN
-     'This is just backcompat for a very undocumented bugfeature
-     scriptret = .wep_pic
-    ELSEIF statnum = 12 THEN
-     'This is backcompat for a somewhat documented feature
-     scriptret = .lev
-    ELSE
-     scriptret = .stat.cur.sta(statnum)
-    END IF
-   ELSEIF retvals(2) = 1 THEN  'maximum stat
-    DIM statnum as integer = bound(retvals(1), 0, 13)
-    IF statnum = 13 THEN
-     'This is just backcompat for a very undocumented bugfeature
-     scriptret = .wep_pal
-    ELSEIF statnum = 12 THEN
-     'This is backcompat for a barely documented feature
-     scriptret = .lev_gain
-    ELSE
-     scriptret = .stat.max.sta(statnum)
-    END IF
-   ELSEIF retvals(2) = 2 THEN  'base stat
-    IF valid_stat(retvals(1)) THEN
-     scriptret = .stat.base.sta(retvals(1))
-    END IF
-   ELSE
-    scripterr "get hero stat: stat type not 'current stat', 'maximum stat' or 'base stat'"
-   END IF
-  END WITH
- CASE 66'--add hero
-  IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxHero) THEN
-   DIM slot as integer = first_free_slot_in_party()
-   IF slot >= 0 THEN
-    'retvals(0) is the real hero id, addhero subtracts the 1 again
-    addhero retvals(0) + 1, slot
-   END IF
-   scriptret = slot
-  END IF
- CASE 67'--delete hero
-  IF herocount(40) > 1 THEN
-   DIM i as integer = findhero(bound(retvals(0), 0, 59) + 1, 0, 40, 1)
-   IF i > -1 THEN gam.hero(i).id = -1
-   IF herocount(3) = 0 THEN forceparty
-   party_change_updates
-  END IF
- CASE 68'--swap out hero
-  DIM i as integer = findhero(retvals(0) + 1, 0, 40, 1)
-  IF i > -1 THEN
-   FOR o as integer = 40 TO 4 STEP -1
-    IF gam.hero(o).id = -1 THEN
-     doswap i, o
-     IF herocount(3) = 0 THEN forceparty
-     EXIT FOR
-    END IF
-   NEXT o
-  END IF
- CASE 69'--swap in hero
-  DIM i as integer = findhero(retvals(0) + 1, 40, 0, -1)
-  IF i > -1 THEN
-   FOR o as integer = 0 TO 3
-    IF gam.hero(o).id = -1 THEN
-     doswap i, o
-     EXIT FOR
-    END IF
-   NEXT o
-  END IF
- CASE 83'--set hero stat (hero, stat, value, type)
-  'FIXME: this command can also set hero level (without updating stats)
-  ' which sucks for when we want to add more stats.
-  DIM slot as integer = bound(retvals(0), 0, 40)
-  WITH gam.hero(slot)
-   IF retvals(3) = 0 THEN  'current stat
-    DIM statnum as integer = bound(retvals(1), 0, 13)
-    IF statnum = 13 THEN
-     'This is just backcompat for a very undocumented bugfeature
-     .wep_pic = retvals(2)
-    ELSEIF statnum = 12 THEN
-     'This is backcompat for a mostly undocumented feature
-     .lev = retvals(2)
-    ELSE
-     .stat.cur.sta(statnum) = retvals(2)
-     IF statnum = statHP THEN
-      evalherotags
-      tag_updates
-     END IF
-    END IF
-   ELSEIF retvals(3) = 1 THEN  'maximum stat
-    DIM statnum as integer = bound(retvals(1), 0, 13)
-    IF statnum = 13 THEN
-     'This is backcompat for a very undocumented bugfeature
-     .wep_pal = retvals(2)
-    ELSEIF statnum = 12 THEN
-     'This is backcompat for an undocumented feature
-     .lev_gain = retvals(2)
-    ELSE
-     .stat.base.sta(statnum) += retvals(2) - .stat.max.sta(statnum)
-     .stat.max.sta(statnum) = retvals(2)
-    END IF
-   ELSEIF retvals(3) = 2 THEN  'base stat
-    IF valid_stat(retvals(1)) THEN
-     .stat.base.sta(retvals(1)) = retvals(2)
-     recompute_hero_max_stats slot
-    END IF
-   ELSE
-    scripterr "set hero stat: stat type not 'current stat', 'maximum stat' or 'base stat'"
-   END IF
-  END WITH
- CASE 89'--swap by position
-  doswap bound(retvals(0), 0, 40), bound(retvals(1), 0, 40)
- CASE 110'--set hero picture
-  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
-   DIM heronum as integer = bound(retvals(0), 0, 40)
-   DIM whichsprite as integer = bound(retvals(2), 0, 2)
-   SELECT CASE whichsprite
-    CASE 0:
-     gam.hero(heronum).battle_pic = bound(retvals(1), 0, gen(genMaxHeroPic))
-    CASE 1:
-     gam.hero(heronum).pic = bound(retvals(1), 0, gen(genMaxNPCPic))
-     IF heronum < 4 THEN vishero
-    CASE 2:
-     gam.hero(heronum).portrait_pic = bound(retvals(1), -1, gen(genMaxPortrait))
-   END SELECT
-  END IF
- CASE 111'--set hero palette
-  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
-   DIM heronum as integer = bound(retvals(0), 0, 40)
-   DIM whichsprite as integer = bound(retvals(2), 0, 2)
-   SELECT CASE whichsprite
-    CASE 0:
-     gam.hero(heronum).battle_pal = bound(retvals(1), -1, 32767)
-    CASE 1:
-     gam.hero(heronum).pal = bound(retvals(1), -1, 32767)
-     IF heronum < 4 THEN vishero
-    CASE 2:
-     gam.hero(heronum).portrait_pal = bound(retvals(1), -1, 32767)
-   END SELECT
-  END IF
- CASE 112'--get hero picture
-  SELECT CASE retvals(1)
-   CASE 0:
-    scriptret = gam.hero(bound(retvals(0), 0, 40)).battle_pic
-   CASE 1:
-    scriptret = gam.hero(bound(retvals(0), 0, 40)).pic
-   CASE 2:
-    scriptret = gam.hero(bound(retvals(0), 0, 40)).portrait_pic
-  END SELECT
- CASE 113'--get hero palette
-  SELECT CASE retvals(1)
-   CASE 0:
-    scriptret = gam.hero(bound(retvals(0), 0, 40)).battle_pal
-   CASE 1:
-    scriptret = gam.hero(bound(retvals(0), 0, 40)).pal
-   CASE 2:
-    scriptret = gam.hero(bound(retvals(0), 0, 40)).portrait_pal
-  END SELECT
- CASE 150'--status screen
-  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-   IF gam.hero(retvals(0)).id >= 0 THEN
-    status_screen retvals(0)
-   END IF
-  END IF
- CASE 152'--spells menu
-  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-   IF gam.hero(retvals(0)).id >= 0 THEN
-    old_spells_menu retvals(0)
-   END IF
-  END IF
- CASE 154'--equip menu
-  'Can explicitly choose a hero to equip
-  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-   IF gam.hero(retvals(0)).id >= 0 THEN
-    equip retvals(0)
-   END IF
-  ELSEIF retvals(0) = -1 THEN
-   'Or pass -1 to equip the first hero in the party
-   equip rank_to_party_slot(0)
-  END IF
- CASE 157'--order menu
-  hero_swap_menu 0
- CASE 158'--team menu
-  hero_swap_menu 1
- CASE 183'--set hero level (who, what, allow forgetting spells)
-  IF retvals(0) >= 0 AND retvals(0) <= 40 AND retvals(1) >= 0 THEN  'we should make the regular level limit customisable anyway
-   gam.hero(retvals(0)).lev_gain = retvals(1) - gam.hero(retvals(0)).lev
-   gam.hero(retvals(0)).lev = retvals(1)
-   gam.hero(retvals(0)).exp_next = exptolevel(retvals(1) + 1)
-   gam.hero(retvals(0)).exp_cur = 0  'XP attained towards the next level
-   updatestatslevelup retvals(0), retvals(2) 'updates stats and spells
-  END IF
- CASE 184'--give experience (who, how much)
-  'who = -1 targets battle party
-  IF retvals(0) <> -1 THEN
-   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
-    giveheroexperience retvals(0), retvals(1)
-    updatestatslevelup retvals(0), 0
-    evalherotags  'could revive a dead hero, I think
-    tag_updates
-   END IF
-  ELSE
-   'This sets the level gain and learnt spells and calls updatestatslevelup for every hero
-   distribute_party_experience retvals(1)
-  END IF
- CASE 185'--hero levelled (who)
-  scriptret = gam.hero(bound(retvals(0), 0, 40)).lev_gain
- CASE 186'--spells learnt
-  'NOTE: this is deprecated but will remain for backcompat. New games should use "spells learned" 
-  DIM found as integer = 0
-  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
-   FOR i as integer = retvals(0) * 96 TO retvals(0) * 96 + 95
-    IF readbit(learnmask(), 0, i) THEN
-     IF retvals(1) = found THEN
-      scriptret = spell(retvals(0), (i \ 24) MOD 4, i MOD 24) - 1
-      EXIT FOR
-     END IF
-     found = found + 1
-    END IF
-   NEXT
-   IF retvals(1) = -1 THEN scriptret = found  'getcount
-  END IF
- CASE 269'--totalexperience
-  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
-   scriptret = hero_total_exp(retvals(0))
-  END IF
- CASE 270'--experience to level
-  scriptret = total_exp_to_level(retvals(0))
- CASE 271'--experiencetonextlevel
-  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
-   scriptret = gam.hero(retvals(0)).exp_next - gam.hero(retvals(0)).exp_cur
-  END IF
- CASE 272'--setexperience  (who, what, allowforget)
-  IF retvals(0) >= 0 AND retvals(0) <= 40 AND retvals(1) >= 0 THEN
-   setheroexperience retvals(0), retvals(1), retvals(2)
-  END IF
- CASE 445'--update level up learning(who, allowforget)
-  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
-   learn_spells_for_current_level retvals(0), (retvals(1)<>0)
-  END IF
- CASE 449'--reset hero picture
-  DIM heronum as integer = retvals(0)
-  DIM whichsprite as integer = retvals(1)
-  IF really_valid_hero_party(heronum, , serrBound) THEN
-   IF bound_arg(whichsprite, 0, 2, "hero picture type") THEN
-    DIM her as herodef
-    loadherodata her, gam.hero(heronum).id
-    SELECT CASE whichsprite
-     CASE 0:
-      gam.hero(heronum).battle_pic = her.sprite
-     CASE 1:
-      gam.hero(heronum).pic = her.walk_sprite
-      IF heronum < 4 THEN vishero
-     CASE 2:
-      gam.hero(heronum).portrait_pic = her.portrait
-    END SELECT
-   END IF
-  END IF
- CASE 450'--reset hero palette
-  DIM heronum as integer = retvals(0)
-  DIM whichsprite as integer = retvals(1)
-  IF really_valid_hero_party(heronum, , serrBound) THEN
-   IF bound_arg(whichsprite, 0, 2, "hero picture type") THEN
-    DIM her as herodef
-    loadherodata her, gam.hero(heronum).id
-    SELECT CASE whichsprite
-     CASE 0:
-      gam.hero(heronum).battle_pal = her.sprite_pal
-     CASE 1:
-      gam.hero(heronum).pal = her.walk_sprite_pal
-      IF heronum < 4 THEN vishero
-     CASE 2:
-      gam.hero(heronum).portrait_pal = her.portrait_pal
-    END SELECT
-   END IF
-  END IF
- CASE 497'--set hero base elemental resist (hero, element, percent)
-  IF really_valid_hero_party(retvals(0)) THEN
-   IF bound_arg(retvals(1), 0, gen(genNumElements) - 1, "element number") THEN
-    gam.hero(retvals(0)).elementals(retvals(1)) = 0.01 * retvals(2)
-   END IF
-  END IF
- CASE 498'--hero base elemental resist as int (hero, element)
-  IF really_valid_hero_party(retvals(0)) THEN
-   IF bound_arg(retvals(1), 0, gen(genNumElements) - 1, "element number") THEN
-    scriptret = 100 * gam.hero(retvals(0)).elementals(retvals(1))  'rounds to nearest int
-   END IF
-  END IF
- CASE 499'--hero total elemental resist as int (hero, element)
-  IF really_valid_hero_party(retvals(0)) THEN
-   IF bound_arg(retvals(1), 0, gen(genNumElements) - 1, "element number") THEN
-    REDIM elementals(gen(genNumElements) - 1) as single
-    calc_hero_elementals elementals(), retvals(0)
-    scriptret = 100 * elementals(retvals(1))  'rounds to nearest int
-   END IF
-  END IF
- CASE 545 '--get hero stat cap (stat)
-  'Replaces a plotscr.hsd script
-  IF valid_stat(retvals(0)) THEN
-   scriptret = gen(genStatCap + retvals(0))
-  END IF
- CASE 546 '--set hero stat cap (stat, value)
-  IF valid_stat(retvals(0)) THEN
-   IF retvals(1) < 0 THEN
-    scripterr "set hero stat cap: invalid negative cap value " & retvals(1)
-   ELSE
-    gen(genStatCap + retvals(0)) = retvals(1)
-    FOR hero_slot as integer = 0 TO UBOUND(gam.hero)
-     'This is maybe a bit heavy handed, because it caps all stats to the caps.
-     update_hero_max_and_cur_stats hero_slot
-    NEXT
-   END IF
-  END IF
- CASE 556 '--input string with virtual keyboard (string ID, maxlen, onlyplayer=-1)
-  'This command tries to guess the best method for your current platform
-  IF valid_plotstr(retvals(0)) THEN
-   IF running_on_mobile() THEN
-    'Mobile with touchscreen. Player argument ignored for now.
-    hide_virtual_gamepad()
-    plotstr(retvals(0)).s = touch_virtual_keyboard(plotstr(retvals(0)).s, retvals(1))
-    update_virtual_gamepad_display()
-   ELSE
-    'Desktop (arrow keys) and console (d-pad)
-    plotstr(retvals(0)).s = gamepad_virtual_keyboard(plotstr(retvals(0)).s, retvals(1), retvals(2))
-   END IF
-  END IF
- CASE 557'--get item description(str,itm)
-  scriptret = 0
-  IF valid_plotstr(retvals(0)) THEN
-   IF valid_item(retvals(1)) THEN
-    plotstr(retvals(0)).s = readitemdescription(retvals(1))
-    scriptret = 1
-   END IF
-  END IF
- CASE 599 '--input string with mouse keyboard (string ID, maxlen)
-  IF valid_plotstr(retvals(0)) THEN
-   hide_virtual_gamepad()
-   plotstr(retvals(0)).s = touch_virtual_keyboard(plotstr(retvals(0)).s, retvals(1))
-   update_virtual_gamepad_display()
-  END IF
- CASE 600 '--running on ouya
-  'See also "running on console"
-  scriptret = IIF(running_on_ouya(), 1, 0)
-
- CASE ELSE
-  RETURN NO
-
-END SELECT
-RETURN YES
-END FUNCTION
-
 SUB forceparty ()
 '---MAKE SURE YOU HAVE AN ACTIVE PARTY---
 DIM fpi as integer = findhero(-1, 0, 40, 1)
@@ -3734,6 +3372,352 @@ SELECT CASE as CONST id
     END IF
    NEXT i
   END IF
+ CASE 64'--get hero stat (hero, stat, type)
+  'FIXME: unfortunately this can also access hero level and more
+  'which will suck when we want to add more stats
+  DIM slot as integer = bound(retvals(0), 0, 40)
+  WITH gam.hero(slot)
+   IF retvals(2) = 0 THEN  'current stat
+    DIM statnum as integer = bound(retvals(1), 0, 13)
+    IF statnum = 13 THEN
+     'This is just backcompat for a very undocumented bugfeature
+     scriptret = .wep_pic
+    ELSEIF statnum = 12 THEN
+     'This is backcompat for a somewhat documented feature
+     scriptret = .lev
+    ELSE
+     scriptret = .stat.cur.sta(statnum)
+    END IF
+   ELSEIF retvals(2) = 1 THEN  'maximum stat
+    DIM statnum as integer = bound(retvals(1), 0, 13)
+    IF statnum = 13 THEN
+     'This is just backcompat for a very undocumented bugfeature
+     scriptret = .wep_pal
+    ELSEIF statnum = 12 THEN
+     'This is backcompat for a barely documented feature
+     scriptret = .lev_gain
+    ELSE
+     scriptret = .stat.max.sta(statnum)
+    END IF
+   ELSEIF retvals(2) = 2 THEN  'base stat
+    IF valid_stat(retvals(1)) THEN
+     scriptret = .stat.base.sta(retvals(1))
+    END IF
+   ELSE
+    scripterr "get hero stat: stat type not 'current stat', 'maximum stat' or 'base stat'"
+   END IF
+  END WITH
+ CASE 66'--add hero
+  IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxHero) THEN
+   DIM slot as integer = first_free_slot_in_party()
+   IF slot >= 0 THEN
+    'retvals(0) is the real hero id, addhero subtracts the 1 again
+    addhero retvals(0) + 1, slot
+   END IF
+   scriptret = slot
+  END IF
+ CASE 67'--delete hero
+  IF herocount(40) > 1 THEN
+   DIM i as integer = findhero(bound(retvals(0), 0, 59) + 1, 0, 40, 1)
+   IF i > -1 THEN gam.hero(i).id = -1
+   IF herocount(3) = 0 THEN forceparty
+   party_change_updates
+  END IF
+ CASE 68'--swap out hero
+  DIM i as integer = findhero(retvals(0) + 1, 0, 40, 1)
+  IF i > -1 THEN
+   FOR o as integer = 40 TO 4 STEP -1
+    IF gam.hero(o).id = -1 THEN
+     doswap i, o
+     IF herocount(3) = 0 THEN forceparty
+     EXIT FOR
+    END IF
+   NEXT o
+  END IF
+ CASE 69'--swap in hero
+  DIM i as integer = findhero(retvals(0) + 1, 40, 0, -1)
+  IF i > -1 THEN
+   FOR o as integer = 0 TO 3
+    IF gam.hero(o).id = -1 THEN
+     doswap i, o
+     EXIT FOR
+    END IF
+   NEXT o
+  END IF
+ CASE 83'--set hero stat (hero, stat, value, type)
+  'FIXME: this command can also set hero level (without updating stats)
+  ' which sucks for when we want to add more stats.
+  DIM slot as integer = bound(retvals(0), 0, 40)
+  WITH gam.hero(slot)
+   IF retvals(3) = 0 THEN  'current stat
+    DIM statnum as integer = bound(retvals(1), 0, 13)
+    IF statnum = 13 THEN
+     'This is just backcompat for a very undocumented bugfeature
+     .wep_pic = retvals(2)
+    ELSEIF statnum = 12 THEN
+     'This is backcompat for a mostly undocumented feature
+     .lev = retvals(2)
+    ELSE
+     .stat.cur.sta(statnum) = retvals(2)
+     IF statnum = statHP THEN
+      evalherotags
+      tag_updates
+     END IF
+    END IF
+   ELSEIF retvals(3) = 1 THEN  'maximum stat
+    DIM statnum as integer = bound(retvals(1), 0, 13)
+    IF statnum = 13 THEN
+     'This is backcompat for a very undocumented bugfeature
+     .wep_pal = retvals(2)
+    ELSEIF statnum = 12 THEN
+     'This is backcompat for an undocumented feature
+     .lev_gain = retvals(2)
+    ELSE
+     .stat.base.sta(statnum) += retvals(2) - .stat.max.sta(statnum)
+     .stat.max.sta(statnum) = retvals(2)
+    END IF
+   ELSEIF retvals(3) = 2 THEN  'base stat
+    IF valid_stat(retvals(1)) THEN
+     .stat.base.sta(retvals(1)) = retvals(2)
+     recompute_hero_max_stats slot
+    END IF
+   ELSE
+    scripterr "set hero stat: stat type not 'current stat', 'maximum stat' or 'base stat'"
+   END IF
+  END WITH
+ CASE 89'--swap by position
+  doswap bound(retvals(0), 0, 40), bound(retvals(1), 0, 40)
+ CASE 110'--set hero picture
+  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+   DIM heronum as integer = bound(retvals(0), 0, 40)
+   DIM whichsprite as integer = bound(retvals(2), 0, 2)
+   SELECT CASE whichsprite
+    CASE 0:
+     gam.hero(heronum).battle_pic = bound(retvals(1), 0, gen(genMaxHeroPic))
+    CASE 1:
+     gam.hero(heronum).pic = bound(retvals(1), 0, gen(genMaxNPCPic))
+     IF heronum < 4 THEN vishero
+    CASE 2:
+     gam.hero(heronum).portrait_pic = bound(retvals(1), -1, gen(genMaxPortrait))
+   END SELECT
+  END IF
+ CASE 111'--set hero palette
+  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+   DIM heronum as integer = bound(retvals(0), 0, 40)
+   DIM whichsprite as integer = bound(retvals(2), 0, 2)
+   SELECT CASE whichsprite
+    CASE 0:
+     gam.hero(heronum).battle_pal = bound(retvals(1), -1, 32767)
+    CASE 1:
+     gam.hero(heronum).pal = bound(retvals(1), -1, 32767)
+     IF heronum < 4 THEN vishero
+    CASE 2:
+     gam.hero(heronum).portrait_pal = bound(retvals(1), -1, 32767)
+   END SELECT
+  END IF
+ CASE 112'--get hero picture
+  SELECT CASE retvals(1)
+   CASE 0:
+    scriptret = gam.hero(bound(retvals(0), 0, 40)).battle_pic
+   CASE 1:
+    scriptret = gam.hero(bound(retvals(0), 0, 40)).pic
+   CASE 2:
+    scriptret = gam.hero(bound(retvals(0), 0, 40)).portrait_pic
+  END SELECT
+ CASE 113'--get hero palette
+  SELECT CASE retvals(1)
+   CASE 0:
+    scriptret = gam.hero(bound(retvals(0), 0, 40)).battle_pal
+   CASE 1:
+    scriptret = gam.hero(bound(retvals(0), 0, 40)).pal
+   CASE 2:
+    scriptret = gam.hero(bound(retvals(0), 0, 40)).portrait_pal
+  END SELECT
+ CASE 150'--status screen
+  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+   IF gam.hero(retvals(0)).id >= 0 THEN
+    status_screen retvals(0)
+   END IF
+  END IF
+ CASE 152'--spells menu
+  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+   IF gam.hero(retvals(0)).id >= 0 THEN
+    old_spells_menu retvals(0)
+   END IF
+  END IF
+ CASE 154'--equip menu
+  'Can explicitly choose a hero to equip
+  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+   IF gam.hero(retvals(0)).id >= 0 THEN
+    equip retvals(0)
+   END IF
+  ELSEIF retvals(0) = -1 THEN
+   'Or pass -1 to equip the first hero in the party
+   equip rank_to_party_slot(0)
+  END IF
+ CASE 157'--order menu
+  hero_swap_menu 0
+ CASE 158'--team menu
+  hero_swap_menu 1
+ CASE 183'--set hero level (who, what, allow forgetting spells)
+  IF retvals(0) >= 0 AND retvals(0) <= 40 AND retvals(1) >= 0 THEN  'we should make the regular level limit customisable anyway
+   gam.hero(retvals(0)).lev_gain = retvals(1) - gam.hero(retvals(0)).lev
+   gam.hero(retvals(0)).lev = retvals(1)
+   gam.hero(retvals(0)).exp_next = exptolevel(retvals(1) + 1)
+   gam.hero(retvals(0)).exp_cur = 0  'XP attained towards the next level
+   updatestatslevelup retvals(0), retvals(2) 'updates stats and spells
+  END IF
+ CASE 184'--give experience (who, how much)
+  'who = -1 targets battle party
+  IF retvals(0) <> -1 THEN
+   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+    giveheroexperience retvals(0), retvals(1)
+    updatestatslevelup retvals(0), 0
+    evalherotags  'could revive a dead hero, I think
+    tag_updates
+   END IF
+  ELSE
+   'This sets the level gain and learnt spells and calls updatestatslevelup for every hero
+   distribute_party_experience retvals(1)
+  END IF
+ CASE 185'--hero levelled (who)
+  scriptret = gam.hero(bound(retvals(0), 0, 40)).lev_gain
+ CASE 186'--spells learnt
+  'NOTE: this is deprecated but will remain for backcompat. New games should use "spells learned" 
+  DIM found as integer = 0
+  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+   FOR i as integer = retvals(0) * 96 TO retvals(0) * 96 + 95
+    IF readbit(learnmask(), 0, i) THEN
+     IF retvals(1) = found THEN
+      scriptret = spell(retvals(0), (i \ 24) MOD 4, i MOD 24) - 1
+      EXIT FOR
+     END IF
+     found = found + 1
+    END IF
+   NEXT
+   IF retvals(1) = -1 THEN scriptret = found  'getcount
+  END IF
+ CASE 269'--totalexperience
+  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+   scriptret = hero_total_exp(retvals(0))
+  END IF
+ CASE 270'--experience to level
+  scriptret = total_exp_to_level(retvals(0))
+ CASE 271'--experiencetonextlevel
+  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+   scriptret = gam.hero(retvals(0)).exp_next - gam.hero(retvals(0)).exp_cur
+  END IF
+ CASE 272'--setexperience  (who, what, allowforget)
+  IF retvals(0) >= 0 AND retvals(0) <= 40 AND retvals(1) >= 0 THEN
+   setheroexperience retvals(0), retvals(1), retvals(2)
+  END IF
+ CASE 445'--update level up learning(who, allowforget)
+  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+   learn_spells_for_current_level retvals(0), (retvals(1)<>0)
+  END IF
+ CASE 449'--reset hero picture
+  DIM heronum as integer = retvals(0)
+  DIM whichsprite as integer = retvals(1)
+  IF really_valid_hero_party(heronum, , serrBound) THEN
+   IF bound_arg(whichsprite, 0, 2, "hero picture type") THEN
+    DIM her as herodef
+    loadherodata her, gam.hero(heronum).id
+    SELECT CASE whichsprite
+     CASE 0:
+      gam.hero(heronum).battle_pic = her.sprite
+     CASE 1:
+      gam.hero(heronum).pic = her.walk_sprite
+      IF heronum < 4 THEN vishero
+     CASE 2:
+      gam.hero(heronum).portrait_pic = her.portrait
+    END SELECT
+   END IF
+  END IF
+ CASE 450'--reset hero palette
+  DIM heronum as integer = retvals(0)
+  DIM whichsprite as integer = retvals(1)
+  IF really_valid_hero_party(heronum, , serrBound) THEN
+   IF bound_arg(whichsprite, 0, 2, "hero picture type") THEN
+    DIM her as herodef
+    loadherodata her, gam.hero(heronum).id
+    SELECT CASE whichsprite
+     CASE 0:
+      gam.hero(heronum).battle_pal = her.sprite_pal
+     CASE 1:
+      gam.hero(heronum).pal = her.walk_sprite_pal
+      IF heronum < 4 THEN vishero
+     CASE 2:
+      gam.hero(heronum).portrait_pal = her.portrait_pal
+    END SELECT
+   END IF
+  END IF
+ CASE 497'--set hero base elemental resist (hero, element, percent)
+  IF really_valid_hero_party(retvals(0)) THEN
+   IF bound_arg(retvals(1), 0, gen(genNumElements) - 1, "element number") THEN
+    gam.hero(retvals(0)).elementals(retvals(1)) = 0.01 * retvals(2)
+   END IF
+  END IF
+ CASE 498'--hero base elemental resist as int (hero, element)
+  IF really_valid_hero_party(retvals(0)) THEN
+   IF bound_arg(retvals(1), 0, gen(genNumElements) - 1, "element number") THEN
+    scriptret = 100 * gam.hero(retvals(0)).elementals(retvals(1))  'rounds to nearest int
+   END IF
+  END IF
+ CASE 499'--hero total elemental resist as int (hero, element)
+  IF really_valid_hero_party(retvals(0)) THEN
+   IF bound_arg(retvals(1), 0, gen(genNumElements) - 1, "element number") THEN
+    REDIM elementals(gen(genNumElements) - 1) as single
+    calc_hero_elementals elementals(), retvals(0)
+    scriptret = 100 * elementals(retvals(1))  'rounds to nearest int
+   END IF
+  END IF
+ CASE 545 '--get hero stat cap (stat)
+  'Replaces a plotscr.hsd script
+  IF valid_stat(retvals(0)) THEN
+   scriptret = gen(genStatCap + retvals(0))
+  END IF
+ CASE 546 '--set hero stat cap (stat, value)
+  IF valid_stat(retvals(0)) THEN
+   IF retvals(1) < 0 THEN
+    scripterr "set hero stat cap: invalid negative cap value " & retvals(1)
+   ELSE
+    gen(genStatCap + retvals(0)) = retvals(1)
+    FOR hero_slot as integer = 0 TO UBOUND(gam.hero)
+     'This is maybe a bit heavy handed, because it caps all stats to the caps.
+     update_hero_max_and_cur_stats hero_slot
+    NEXT
+   END IF
+  END IF
+ CASE 556 '--input string with virtual keyboard (string ID, maxlen, onlyplayer=-1)
+  'This command tries to guess the best method for your current platform
+  IF valid_plotstr(retvals(0)) THEN
+   IF running_on_mobile() THEN
+    'Mobile with touchscreen. Player argument ignored for now.
+    hide_virtual_gamepad()
+    plotstr(retvals(0)).s = touch_virtual_keyboard(plotstr(retvals(0)).s, retvals(1))
+    update_virtual_gamepad_display()
+   ELSE
+    'Desktop (arrow keys) and console (d-pad)
+    plotstr(retvals(0)).s = gamepad_virtual_keyboard(plotstr(retvals(0)).s, retvals(1), retvals(2))
+   END IF
+  END IF
+ CASE 557'--get item description(str,itm)
+  scriptret = 0
+  IF valid_plotstr(retvals(0)) THEN
+   IF valid_item(retvals(1)) THEN
+    plotstr(retvals(0)).s = readitemdescription(retvals(1))
+    scriptret = 1
+   END IF
+  END IF
+ CASE 599 '--input string with mouse keyboard (string ID, maxlen)
+  IF valid_plotstr(retvals(0)) THEN
+   hide_virtual_gamepad()
+   plotstr(retvals(0)).s = touch_virtual_keyboard(plotstr(retvals(0)).s, retvals(1))
+   update_virtual_gamepad_display()
+  END IF
+ CASE 600 '--running on ouya
+  'See also "running on console"
+  scriptret = IIF(running_on_ouya(), 1, 0)
 
  CASE ELSE
   RETURN NO

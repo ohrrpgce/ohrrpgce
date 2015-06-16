@@ -8,7 +8,6 @@ DECLARE SUB erasesaveslot (slot as integer)
 DECLARE SUB embedtext (text as string, byval limit as integer = 0)
 DECLARE FUNCTION embed_text_codes (text_in as string, byval callback as ANY Ptr=0, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0) as string
 
-DECLARE FUNCTION scriptstat (byval id as integer) as bool
 DECLARE SUB forceparty ()
 DECLARE FUNCTION gethighbyte (byval n as integer) as integer
 DECLARE FUNCTION getnpcref (byval seekid as integer, byval offset as integer) as integer

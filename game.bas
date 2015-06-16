@@ -2408,11 +2408,9 @@ SUB sfunctions(byval cmdid as integer)
 
    CASE ELSE '--try all the scripts implemented in subs (insanity!)
     IF scriptmisc(cmdid) = NO THEN
-     IF scriptstat(cmdid) = NO THEN
-      'We also check the HSP header at load time to check there aren't unsupported commands
-      scripterr "Unsupported script command " & cmdid & " " & commandname(cmdid) & ". " _
-                "Try downloading the latest version of the OHRRPGCE.", serrError
-     END IF
+     'We also check the HSP header at load time to check there aren't unsupported commands
+     scripterr "Unsupported script command " & cmdid & " " & commandname(cmdid) & ". " _
+               "Try downloading the latest version of the OHRRPGCE.", serrError
     END IF
     '---------
   END SELECT
