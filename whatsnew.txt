@@ -149,6 +149,7 @@ WHAT IS NEW?
     * "next npc reference" [Ralph]
     * "input string with virtual keyboard",
       "input string with mouse keyboard" [James]
+    * "unhide mouse cursor", "hide mouse cursor" [James]
 
   * Performance Fixes
     * Fixed delay when opening a menu that happened when a large number

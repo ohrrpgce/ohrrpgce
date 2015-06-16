@@ -1382,6 +1382,9 @@
 		<a href="#about-hidebattlereadymeter">hide battle ready meter (state)</a><br>
 		
 	
+		<a href="#about-hidemousecursor">hide mouse cursor</a><br>
+		
+	
 		<a href="#about-hidestring">hide string (ID)</a><br>
 		
 	
@@ -2814,6 +2817,9 @@
 		<a href="#about-numericconstants">two</a><br>
 	
 		<a href="#about-unequip">unequip (hero,slot)</a><br>
+		
+	
+		<a href="#about-unhidemousecursor">unhide mouse cursor</a><br>
 		
 	
 		<a href="#about-unlockhero">unlock hero (who)</a><br>
@@ -8049,14 +8055,23 @@ end
 		<h4>init mouse</h4>
 <p>
 			Informs the engine that you intend to use the mouse. This command should be run before any mouse functions are be used. It causes the normal mouse cursor to be hidden when over the game's window, and causes mouse buttons to trigger on-keypress scripts. Therefore, it is a good idea to place this command in the newgame and loadgame scripts if you are going to use the mouse.<br><div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Running this command does not draw a cursor onscreen - your script must do this itself by placing a slice or npc at the appropriate location.<br clear="all">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Running this command does not draw a cursor onscreen. Either you can enable the default mouse cursor with <a href="#about-unhidemousecursor" class="ref">unhidemousecursor</a>, or your script may display the cursor itself by placing a slice or npc at the appropriate location.<br clear="all">
 </div> Here is an example:
 			
-			<pre>#Mouse cursor example
+			<pre>#Simple Mouse cursor example
 
 plotscript, display mouse, begin
 
   # Hide the normal mouse cursor
+  init mouse
+  # Re-enables the normal mouse cursor
+  unhide mouse cursor
+
+end</pre><pre>#Custom Mouse cursor example
+
+plotscript, display mouse, begin
+
+  # Hides the normal mouse cursor
   init mouse
 
   # Use a small enemy sprite (ID 1) slice as a mouse cursor
@@ -8146,6 +8161,26 @@ end</pre>
 <li><a href="#about-inputstringwithvirtualkeyboard" class="ref">input string with virtual keyboard</a></li>
 </ul>
 </div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-unhidemousecursor"></a>
+		<h4>unhide mouse cursor</h4>
+<p>
+			Causes the normal OS mouse cursor to be displayed. You may want to run this command right after <a href="#about-initmouse" class="ref">init mouse</a> unless you plan to use a customized mouse cursor. Note that this command has no effect if the game is running on Android, because a mouse cursor is usually inappropriate on a touch screen.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-hidemousecursor"></a>
+		<h4>hide mouse cursor</h4>
+<p>
+			Causes the normal OS mouse cursor to be hidden. This command is seldom needed, because the cursor is hidden by default when you run <a href="#about-initmouse" class="ref">init mouse</a>.
+			
+			
+			
 		</p>
 </div>
 		<hr>
@@ -15389,7 +15424,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 749 commands and 75 constants in this file, of which 57 are only references to other entries.</p>
+<p>Stats: There are 751 commands and 75 constants in this file, of which 57 are only references to other entries.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

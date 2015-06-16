@@ -3718,6 +3718,10 @@ SELECT CASE as CONST id
  CASE 600 '--running on ouya
   'See also "running on console"
   scriptret = IIF(running_on_ouya(), 1, 0)
+ CASE 601 '--unhide mouse cursor
+  unhidemousecursor
+ CASE 602 '--hide mouse cursor
+  hidemousecursor
 
  CASE ELSE
   RETURN NO
