@@ -8055,7 +8055,7 @@ end
 		<h4>init mouse</h4>
 <p>
 			Informs the engine that you intend to use the mouse. This command should be run before any mouse functions are be used. It causes the normal mouse cursor to be hidden when over the game's window, and causes mouse buttons to trigger on-keypress scripts. Therefore, it is a good idea to place this command in the newgame and loadgame scripts if you are going to use the mouse.<br><div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Running this command does not draw a cursor onscreen. Either you can enable the default mouse cursor with <a href="#about-unhidemousecursor" class="ref">unhidemousecursor</a>, or your script may display the cursor itself by placing a slice or npc at the appropriate location.<br clear="all">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Running this command does not draw a cursor onscreen. Either you can enable the default mouse cursor with <a href="#about-unhidemousecursor" class="ref">unhidemousecursor</a>, or your script may display the cursor itself by placing a slice at the appropriate location. If you use a slice, your cursor will appear below menus and text and strings shown with <a href="#about-showvalue" class="ref">show value</a>, <a href="#about-showstringat" class="ref">show string at</a>, etc., which is currently unavoidable.<br clear="all">
 </div> Here is an example:
 			
 			<pre>#Simple Mouse cursor example
@@ -8077,10 +8077,12 @@ plotscript, display mouse, begin
   # Use a small enemy sprite (ID 1) slice as a mouse cursor
   variable (cursor)
   cursor := load small enemy sprite (1)
+  # The following is optional: causes the mouse to be displayed
+  # above textboxes and above all other slices (it still appears behind menus though)
+  move slice above (cursor, lookup slice (sl:textbox layer))
 
   # Loop while the game is running
   while (true) do, begin
-
     put slice (cursor, mouse pixel x, mouse pixel y)
     wait (1)
   end
