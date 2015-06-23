@@ -103,7 +103,11 @@ def verprint (used_gfx, used_music, svn, git, fbc, builddir, rootdir):
     name = 'OHRRPGCE'
     date, rev = query_svn (svn,'info')
     if rev == 0:
-        date, rev = query_svn (git,'svn','info')
+        # On Windows, "git svn info" seems to take longer than a human lifetime
+        if platform.system () == 'Windows':
+            print "Not attempting to get SVN revision from git"
+        else:
+            date, rev = query_svn (git,'svn','info')
     if rev == 0:
         print "Could not determine SVN revision; this build will produce RPG files without full version info"
     if branch_rev <= 0:
