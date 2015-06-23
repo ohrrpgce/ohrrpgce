@@ -171,6 +171,9 @@ if win32:
     env['CXXLINKFLAGS'] += ['-L', 'win32']
 
     w32_env = Environment ()
+    w32_env['ENV']['PATH'] = os.environ['PATH']
+    w32_env.Append(CPPPATH = os.environ['Include'])
+    w32_env.Append(LIBPATH = os.environ['Lib'])
     if 'DXSDK_DIR' in os.environ:
         w32_env.Append(CPPPATH = os.path.join(os.environ['DXSDK_DIR'], 'Include'))
         w32_env.Append(LIBPATH = os.path.join(os.environ['DXSDK_DIR'], 'Lib', 'x86'))
