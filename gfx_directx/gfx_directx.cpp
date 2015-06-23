@@ -593,12 +593,9 @@ DFI_IMPLEMENT_CDECL(int, gfx_GetMouse, int& x, int& y, int& wheel, int& buttons)
 	return TRUE;
 }
 
-LONG round(float v)
+LONG _round(double v)
 {
-	LONG ret = (LONG)v; //truncation
-	float decimal = v - (float)ret; //decimal value
-	ret += (decimal < .5f ? 0 : 1);
-	return ret;
+	return (LONG)floor(v + .5);
 }
 
 DFI_IMPLEMENT_CDECL(int, gfx_SetMouse, int x, int y)
@@ -607,7 +604,7 @@ DFI_IMPLEMENT_CDECL(int, gfx_SetMouse, int x, int y)
 	RECT rClient, rDesktop;
 	GetClientRect(g_Window.getWindowHandle(), &rClient);
 	D3DXVECTOR2 clientPosition( (float)(rClient.right * (x+1)) / 320.0f, (float)(rClient.bottom * (y+1)) / 200.0f );
-	POINT pos = { round(clientPosition.x), round(clientPosition.y) };
+	POINT pos = { _round(clientPosition.x), _round(clientPosition.y) };
 	
 	ClientToScreen(g_Window.getWindowHandle(), &pos);
 	GetWindowRect(GetDesktopWindow(), &rDesktop);
@@ -615,8 +612,8 @@ DFI_IMPLEMENT_CDECL(int, gfx_SetMouse, int x, int y)
 	//it was recommended not to use mouse_event; but if we need to, we could go back to it
 	//mouse_event(MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE, xPos, yPos, 0, NULL);
 
-	xPos = round( (float)pos.x / (float)rDesktop.right * 65535.0f );
-	yPos = round( (float)pos.y / (float)rDesktop.bottom * 65535.0f );
+	xPos = _round( (float)pos.x / (float)rDesktop.right * 65535.0f );
+	yPos = _round( (float)pos.y / (float)rDesktop.bottom * 65535.0f );
 
 	INPUT mouseEvent = { INPUT_MOUSE };
 	mouseEvent.mi.dx = xPos;
