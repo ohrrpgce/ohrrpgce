@@ -599,7 +599,7 @@ SUB prompt_for_password()
  DIM passcomment as string = ""
  DIM tog as integer
  'Uncomment to display the/a password
- passcomment = getpassword
+ 'passcomment = getpassword
  setkeys YES
  DO
   setwait 55
