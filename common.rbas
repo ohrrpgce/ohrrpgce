@@ -2490,6 +2490,16 @@ RETURN s
 #IFDEF __FB_WIN32__
 'For windows, look in the support subdirectory
 DIM support as string = find_support_dir()
+IF appname = "zip" THEN
+ 'A little special magic to make that if we are looking for zip.exe we find version 3.0 and not 2.3
+ IF NOT isfile(support & SLASH & appname & "-version-3.0.txt") THEN
+  safekill support & SLASH & "zip.exe"
+  DIM fh as integer = FREEFILE
+  OPEN support & SLASH & appname & "-version-3.0.txt" FOR OUTPUT AS #fh
+  PRINT #fh, "This file is just here to let the OHRRPGCE know that we have already upgraded zip.exe from version 2.3 to 3.0"
+  CLOSE #fh
+ END IF
+END IF
 IF isfile(support & SLASH & appname & ".exe") THEN RETURN support & SLASH & appname & ".exe"
 IF try_install THEN
  DIM choice as integer
