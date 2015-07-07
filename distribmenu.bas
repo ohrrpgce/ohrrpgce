@@ -20,6 +20,7 @@
 
 DECLARE SUB distribute_game_as_zip ()
 DECLARE SUB distribute_game_as_windows_installer ()
+DECLARE SUB distribute_game_as_linux_tarball ()
 DECLARE FUNCTION get_windows_gameplayer() as string
 DECLARE FUNCTION get_linux_gameplayer() as string
 DECLARE FUNCTION get_mac_gameplayer() as string
@@ -51,6 +52,7 @@ DECLARE FUNCTION create_ar_archive(start_in_dir as string, archive as string, fi
 DECLARE SUB fix_deb_group_permissions(start_at_dir as string)
 DECLARE SUB write_debian_postrm_script (filename as string)
 DECLARE SUB write_debian_postinst_script (filename as string)
+DECLARE FUNCTION can_make_tarballs () as integer
 DECLARE FUNCTION can_run_windows_exes () as integer
 DECLARE FUNCTION can_make_debian_packages () as integer
 DECLARE FUNCTION can_make_mac_packages () as integer
@@ -73,6 +75,7 @@ CONST distmenuMACSETUP as integer = 4
 CONST distmenuDEBSETUP as integer = 5
 CONST distmenuINFO as integer = 6
 CONST distmenuREADME as integer = 7
+CONST distmenuLINUXSETUP as integer = 8
 
 SUB distribute_game ()
  
@@ -94,6 +97,11 @@ SUB distribute_game ()
 
  append_simplemenu_item menu, "Export Mac OS X App Bundle", , , distmenuMACSETUP
  IF NOT can_make_mac_packages() THEN
+  append_simplemenu_item menu, " (requires tar+gzip)", YES, uilook(uiDisabledItem)
+ END IF
+
+ append_simplemenu_item menu, "Export Linux Tarball", , , distmenuLINUXSETUP
+ IF NOT can_make_tarballs() THEN
   append_simplemenu_item menu, " (requires tar+gzip)", YES, uilook(uiDisabledItem)
  END IF
 
@@ -128,6 +136,9 @@ SUB distribute_game ()
     CASE distmenuDEBSETUP:
      save_current_game
      distribute_game_as_debian_package
+    CASE distmenuLINUXSETUP:
+     save_current_game
+     distribute_game_as_linux_tarball
     CASE distmenuINFO:
      edit_distrib_info
     CASE distmenuREADME:
@@ -1393,6 +1404,13 @@ IF NOT isdir(environ("HOME") & "/.wine/dosdevices/c:") THEN RETURN NO
 RETURN YES
 END FUNCTION
 
+FUNCTION can_make_tarballs () as integer
+'--check to see if we can find the tools needed to create a .tar.gz tarball
+IF find_helper_app("tar") = "" THEN RETURN NO
+IF find_helper_app("gzip") = "" THEN RETURN NO
+RETURN YES
+END FUNCTION
+
 FUNCTION can_make_debian_packages () as integer
 '--check to see if we can find the tools needed to create a .deb package
 IF find_helper_app("ar") = "" THEN RETURN NO
@@ -1537,3 +1555,73 @@ FUNCTION get_mac_gameplayer() as string
  RETURN dldir & SLASH & "OHRRPGCE-Game.app"
 
 END FUNCTION
+
+SUB distribute_game_as_linux_tarball ()
+
+ DIM distinfo as DistribState
+ load_distrib_state distinfo
+
+ DIM destname as string = trimfilename(sourcerpg) & SLASH & distinfo.pkgname & "-linux.tar.gz"
+
+ IF isfile(destname) THEN
+  IF yesno(trimpath(destname) & " already exists. Overwrite it?") = NO THEN RETURN
+  'Okay to overwrite! (but actually do the overwriting later on)
+ END IF
+
+ DIM apptmp as string = trimfilename(sourcerpg) & SLASH & "linuxtarball.tmp"
+ IF isdir(apptmp) THEN
+  debuginfo "Clean up old " & apptmp
+  killdir apptmp, YES
+ END IF
+ 
+ makedir apptmp
+
+ DO '--single pass loop for breaking
+
+  DIM gameshortname as string
+  gameshortname = trimextension(trimpath(sourcerpg))
+
+  debuginfo "Rename linux game player" 
+  DIM gameplayer as string
+  gameplayer = get_linux_gameplayer()
+  IF gameplayer = "" THEN visible_debug "ERROR: ohrrpgce-game is not available" : EXIT DO
+  DIM tarballdir_base as string = distinfo.pkgname & "-linux"
+  DIM tarballdir as string = apptmp & SLASH & tarballdir_base
+  makedir tarballdir
+  DIM dest_gameplayer as string = tarballdir & SLASH & gameshortname
+  IF confirmed_copy(gameplayer, dest_gameplayer) = NO THEN visible_debug "Couldn't copy " & gameplayer & " to " & dest_gameplayer : EXIT DO
+#IFDEF __UNIX__
+  'Mac and Linux fix the permissions
+ DIM cmd as string
+ cmd = "chmod +x " & escape_filename(dest_gameplayer)
+ debuginfo cmd
+ SHELL cmd
+#ENDIF
+  IF confirmed_copy(trimfilename(gameplayer) & SLASH & "LICENSE-binary.txt", tarballdir & SLASH & "LICENSE-binary.txt") = NO THEN EXIT DO
+
+  debuginfo "Copy rpg file"
+  IF copy_or_relump(sourcerpg, tarballdir & SLASH & gameshortname & ".rpg") = NO THEN EXIT DO
+
+  write_readme_text_file tarballdir & SLASH & "README-" & distinfo.pkgname & ".txt", CHR(10)
+
+  maybe_write_license_text_file tarballdir & SLASH & "LICENSE.txt"
+
+  'Remove the old copy that we are replacing
+  safekill destname
+  DIM olddir as string = CURDIR
+  CHDIR apptmp
+  IF create_tarball(apptmp, destname, tarballdir_base) = NO THEN
+   CHDIR olddir
+   EXIT DO
+  END IF
+  CHDIR olddir
+  
+  visible_debug trimpath(destname) & " was successfully created!"
+  EXIT DO 'this loop is only ever one pass
+ LOOP
+
+ '--Cleanup temp files
+ killdir apptmp, YES
+
+END SUB
+
