@@ -94,7 +94,7 @@ SUB distribute_game ()
 
  append_simplemenu_item menu, "Export Mac OS X App Bundle", , , distmenuMACSETUP
  IF NOT can_make_mac_packages() THEN
-  append_simplemenu_item menu, " (requires zip)", YES, uilook(uiDisabledItem)
+  append_simplemenu_item menu, " (requires zip+tar+gzip)", YES, uilook(uiDisabledItem)
  END IF
 
  append_simplemenu_item menu, "Export Debian Linux Package", , , distmenuDEBSETUP
@@ -1404,6 +1404,8 @@ END FUNCTION
 FUNCTION can_make_mac_packages () as integer
 '--check to see if we can find the tools needed to compress a mac .app package
 IF find_helper_app("zip") = "" THEN RETURN NO
+IF find_helper_app("tar") = "" THEN RETURN NO
+IF find_helper_app("gzip") = "" THEN RETURN NO
 RETURN YES
 END FUNCTION
 
