@@ -44,6 +44,7 @@ DECLARE SUB write_debian_control_file(controlfile as string, basename as string,
 DECLARE SUB write_debian_copyright_file (filename as string)
 DECLARE FUNCTION gzip_file (filename as string) as integer
 DECLARE FUNCTION gunzip_file (filename as string) as integer
+DECLARE FUNCTION create_zipfile(start_in_dir as string, zipfile as string, files as string) as integer
 DECLARE FUNCTION create_tarball(start_in_dir as string, tarball as string, files as string) as integer
 DECLARE FUNCTION extract_tarball(into_dir as string, tarball as string, files as string) as integer
 DECLARE FUNCTION create_ar_archive(start_in_dir as string, archive as string, files as string) as integer
@@ -93,7 +94,7 @@ SUB distribute_game ()
 
  append_simplemenu_item menu, "Export Mac OS X App Bundle", , , distmenuMACSETUP
  IF NOT can_make_mac_packages() THEN
-  append_simplemenu_item menu, " (requires tar+gzip)", YES, uilook(uiDisabledItem)
+  append_simplemenu_item menu, " (requires zip)", YES, uilook(uiDisabledItem)
  END IF
 
  append_simplemenu_item menu, "Export Debian Linux Package", , , distmenuDEBSETUP
@@ -1164,6 +1165,34 @@ FUNCTION create_ar_archive(start_in_dir as string, archive as string, files as s
  
 END FUNCTION
 
+FUNCTION create_zipfile(start_in_dir as string, zipfile as string, files as string) as integer
+ '--Returns YES if successful, or NO if failed
+
+ ' start_in_dir only applies to the zip command. The zipfile filename should still be either absolute or relative to the default CURDIR
+
+ 'files is a list of space-separated filenames and directory names to include in the tarball
+ 'if they contain spaces they must be quoted
+ 
+ DIM zip as string = find_helper_app("zip", YES)
+ IF zip = "" THEN visible_debug "ERROR: zip is not available": RETURN NO
+
+ DIM spawn_ret as string
+ DIM args as string
+
+ args = " -r -9 " & escape_filename(zipfile) & " " & files
+ 'debug zip & " " & args
+ 
+ DIM olddir as string = CURDIR
+ CHDIR start_in_dir
+ spawn_ret = spawn_and_wait(zip, args)
+ CHDIR olddir
+ 
+ IF LEN(spawn_ret) THEN visible_debug spawn_ret : RETURN NO
+
+ IF NOT isfile(zipfile) THEN visible_debug "Could not create " & zipfile : RETURN NO
+ RETURN YES
+END FUNCTION
+
 FUNCTION create_tarball(start_in_dir as string, tarball as string, files as string) as integer
  '--Returns YES if successful, or NO if failed
 
@@ -1374,8 +1403,7 @@ END FUNCTION
 
 FUNCTION can_make_mac_packages () as integer
 '--check to see if we can find the tools needed to compress a mac .app package
-IF find_helper_app("tar") = "" THEN RETURN NO
-IF find_helper_app("gzip") = "" THEN RETURN NO
+IF find_helper_app("zip") = "" THEN RETURN NO
 RETURN YES
 END FUNCTION
 
@@ -1384,7 +1412,7 @@ SUB distribute_game_as_mac_app ()
  DIM distinfo as DistribState
  load_distrib_state distinfo
 
- DIM destname as string = trimfilename(sourcerpg) & SLASH & distinfo.pkgname & "-mac.tar.gz"
+ DIM destname as string = trimfilename(sourcerpg) & SLASH & distinfo.pkgname & "-mac.zip"
 
  IF isfile(destname) THEN
   IF yesno(trimpath(destname) & " already exists. Overwrite it?") = NO THEN RETURN
@@ -1435,7 +1463,7 @@ SUB distribute_game_as_mac_app ()
   safekill destname
   DIM olddir as string = CURDIR
   CHDIR apptmp
-  IF create_tarball(apptmp, destname, "*.app *.txt") = NO THEN
+  IF create_zipfile(apptmp, destname, "*.app *.txt") = NO THEN
    CHDIR olddir
    EXIT DO
   END IF
