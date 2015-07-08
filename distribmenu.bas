@@ -1431,7 +1431,7 @@ SUB distribute_game_as_mac_app ()
  DIM distinfo as DistribState
  load_distrib_state distinfo
 
- DIM destname as string = trimfilename(sourcerpg) & SLASH & distinfo.pkgname & "-mac.tar.gz"
+ DIM destname as string = trimfilename(sourcerpg) & SLASH & distinfo.pkgname & "-mac.zip"
 
  IF isfile(destname) THEN
   IF yesno(trimpath(destname) & " already exists. Overwrite it?") = NO THEN RETURN
@@ -1482,7 +1482,7 @@ SUB distribute_game_as_mac_app ()
   safekill destname
   DIM olddir as string = CURDIR
   CHDIR apptmp
-  IF create_tarball(apptmp, destname, "*.app *.txt") = NO THEN
+  IF create_zipfile(apptmp, destname, "*.app *.txt") = NO THEN
    CHDIR olddir
    EXIT DO
   END IF
