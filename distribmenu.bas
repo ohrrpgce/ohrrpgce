@@ -583,6 +583,7 @@ SUB insert_windows_exe_icon (exe_name as string, ico_name as string)
  IF NOT isfile(ico_name) THEN debuginfo ico_name & " does not exist" : EXIT SUB
  
  DIM rcedit as string = find_windows_helper_app("rcedit", YES)
+ IF rcedit = "" THEN EXIT SUB
 
  DIM args as string = escape_filename(exe_name) & " --set-icon " & escape_filename(ico_name)
  DIM spawn_ret as string
