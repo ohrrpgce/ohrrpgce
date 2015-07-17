@@ -33,6 +33,7 @@ DECLARE SUB add_innosetup_file (s as string, filename as string)
 DECLARE FUNCTION win_path (filename as string) as string
 DECLARE FUNCTION copy_or_relump (src_rpg_or_rpgdir as string, dest_rpg as string) as integer
 DECLARE FUNCTION copy_windows_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
+DECLARE SUB insert_windows_exe_icon (exe_name as string, ico_name as string)
 DECLARE SUB find_required_dlls(gameplayer as string, byref files as string vector)
 DECLARE FUNCTION copy_linux_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
 DECLARE SUB distribute_game_as_debian_package ()
@@ -503,6 +504,7 @@ SUB distribute_game_as_zip ()
 
   IF use_gameplayer THEN
    IF copy_windows_gameplayer(gameplayer, basename, ziptmp) = NO THEN EXIT DO
+   insert_windows_exe_icon ziptmp & SLASH & basename & ".exe", trimextension(sourcerpg) & ".ico"
   END IF
  
   'Write readme with DOS/Window line endings
@@ -554,9 +556,10 @@ END FUNCTION
 
 FUNCTION copy_windows_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
  'Returns true on success, false on failure
- IF confirmed_copy(gameplayer, destdir & SLASH & basename & ".exe") = NO THEN RETURN NO
+ DIM dest_exe as string = destdir & SLASH & basename & ".exe"
+ IF confirmed_copy(gameplayer, dest_exe) = NO THEN RETURN NO
+ 
  DIM gamedir as string = trimfilename(gameplayer)
-
  
  DIM otherf as string vector
  v_new otherf
@@ -574,6 +577,20 @@ FUNCTION copy_windows_gameplayer (gameplayer as string, basename as string, dest
  v_free otherf
  RETURN YES
 END FUNCTION
+
+SUB insert_windows_exe_icon (exe_name as string, ico_name as string)
+ IF NOT isfile(exe_name) THEN debuginfo exe_name & " not found, ignoring attempt to change its icon" : EXIT SUB
+ IF NOT isfile(ico_name) THEN debuginfo ico_name & " does not exist" : EXIT SUB
+ 
+ DIM rcedit as string = find_windows_helper_app("rcedit", YES)
+
+ DIM args as string = escape_filename(exe_name) & " --set-icon " & escape_filename(ico_name)
+ DIM spawn_ret as string
+ spawn_ret = win_or_wine_spawn_and_wait(rcedit, args)
+ IF LEN(spawn_ret) > 0 THEN visible_debug "ERROR: rcedit failed when trying to update the icon: " & spawn_ret : EXIT SUB
+
+
+END SUB
 
 SUB find_required_dlls(gameplayer as string, byref files as string vector)
 
@@ -804,6 +821,8 @@ SUB distribute_game_as_windows_installer ()
   gameplayer = get_windows_gameplayer()
   IF gameplayer = "" THEN visible_debug "ERROR: game.exe is not available" : EXIT DO
   IF copy_windows_gameplayer(gameplayer, basename, isstmp) = NO THEN EXIT DO
+  
+  insert_windows_exe_icon isstmp & SLASH & basename & ".exe", trimextension(sourcerpg) & ".ico"
 
   'Write readme with DOS/Window line endings
   write_readme_text_file isstmp & SLASH & "README-" & basename & ".txt", CHR(13) & CHR(10)

@@ -2488,6 +2488,15 @@ s = TRIM(s)
 RETURN s
 #ENDIF
 #IFDEF __FB_WIN32__
+RETURN find_windows_helper_app(appname, try_install)
+#ENDIF
+END FUNCTION
+
+FUNCTION find_windows_helper_app (appname as string, try_install as integer=NO) as string
+'Returns an empty string if the app is not found, or the full path if it is found
+
+'Gets the windows version of the helper app, even when run on Linux or Mac (for utils to be run via wine)
+
 'For windows, look in the support subdirectory
 DIM support as string = find_support_dir()
 IF appname = "zip" THEN
@@ -2532,7 +2541,6 @@ IF try_install THEN
  END IF
 END IF
 RETURN ""
-#ENDIF
 END FUNCTION
 
 FUNCTION download_file (url as string, destdir as string, forcefilename as string="") as integer
