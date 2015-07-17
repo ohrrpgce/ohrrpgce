@@ -7,7 +7,7 @@ This is the most popular format for game developers. It is a simple zip file wit
 This creates an easy-to-use setup installer that works on all major versions of Windows. This is good for sharing your game with casual players who don't know how to use zip files.
 
 [Mac OS X App Bundle]
-This creates an easy to install app bundle of your game for Macs. Users can drag and drop the game into their Applications folder. You do not need to zip up the .gz file. It is already compressed, and Mac users will be able to double-click it to extract the game.
+This creates an easy to install app bundle of your game for Macs. Users can drag and drop the game into their Applications folder. If a mac .icns formatted icon exists in the same folder as the rpg file, it will be used as the app's icon. If your game is gamename.rpg then the icon should be gamename.icns
 
 [Linux Tarball]
 This is similar to the .ZIP option, but instead of the Windows .exe file, it will include the Linux binary of the game player.

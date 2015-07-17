@@ -1473,6 +1473,11 @@ SUB distribute_game_as_mac_app ()
   OPEN resources & SLASH & "bundledgame" FOR OUTPUT AS #fh
   PRINT #fh, gameshortname
   CLOSE #fh
+  
+  DIM icns_file as string = trimextension(sourcerpg) & ".icns"
+  IF isfile(icns_file) THEN
+   confirmed_copy(icns_file, resources & SLASH & "game.icns")
+  END IF
 
   write_readme_text_file apptmp & SLASH & "README-" & distinfo.pkgname & ".txt", CHR(10)
 
