@@ -1,7 +1,7 @@
 You can export your game as a convenient package that is easy to share with other people.
 
-[.ZIP]
-This is the most popular format for game developers. It is a simple zip file with a copy of your game, a renamed copy of game.exe that will automatically launch your game, plus all the support .dll files that a player will need to play your game without needing to install the OHRRPGCE
+[Windows .ZIP]
+This is the most popular format for game developers. It is a simple zip file with a copy of your game, a renamed copy of game.exe that will automatically launch your game, plus all the support .dll files that a player will need to play your game on Windows without needing to install the OHRRPGCE.
 
 [Windows Installer]
 This creates an easy-to-use setup installer that works on all major versions of Windows. This is good for sharing your game with casual players who don't know how to use zip files.

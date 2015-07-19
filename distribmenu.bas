@@ -87,7 +87,7 @@ SUB distribute_game ()
 
  append_simplemenu_item menu, "Edit distribution info...", , , distmenuINFO
 
- append_simplemenu_item menu, "Export .ZIP", , , distmenuZIP
+ append_simplemenu_item menu, "Export Windows .ZIP", , , distmenuZIP
 
  IF can_run_windows_exes() THEN
   append_simplemenu_item menu, "Export Windows Installer", , , distmenuWINSETUP
