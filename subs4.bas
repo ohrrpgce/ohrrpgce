@@ -1227,7 +1227,7 @@ SUB generate_battlesystem_menu(menu() as string, enabled() as bool, greyout() as
  END IF
  menu(3) = "Active-time battle bitsets..."
  enabled(3) = (gen(genBattleMode) = 0) 'Active-time battle bitsets
- greyout(3) = NOT enabled(5)
+ greyout(3) = NOT enabled(3)
  menu(4) = "Number of Elements: " & gen(genNumElements)
  menu(5) = "Hero Elemental Resistance Calculation..."
 
