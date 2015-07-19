@@ -66,6 +66,7 @@ extern Gfx_windowtitle as sub (byval title as zstring ptr)
 extern Gfx_getwindowstate as function () as WindowState ptr
 '(optional) Size in pixels of the (primary) monitor. Sets values to 0 if can't retrieve it.
 'If possible, tries to exclude size of WM tool/taskbars.
+'NOTE: call get_screen_size instead of this.
 extern Gfx_get_screen_size as sub (wide as integer ptr, high as integer ptr)
 
 '(optional) Returns whether the resolution can be changed to something other than 320x200 (via gfx_showpage)

@@ -1,6 +1,10 @@
 //OHRRPGCE COMMON - Generic Unix versions of OS-specific routines
 //Please read LICENSE.txt for GNU GPL License details and disclaimer of liability
 
+#if !defined(__APPLE__) && !defined(__ANDROID__)
+#define X_WINDOWS 1
+#endif
+
 #ifndef __APPLE__
 #define _POSIX_SOURCE  // for fdopen
 //#define _BSD_SOURCE  // for usleep
@@ -31,6 +35,10 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <fnmatch.h>
+#ifdef X_WINDOWS
+#include <X11/Xlib.h>
+#endif
+
 #include "common.h"
 #include "os.h"
 #include "array.h"
@@ -687,3 +695,35 @@ void cleanup_process (ProcessHandle *processp) {
 	//Unimplemented and not yet used
 	*processp = 0;
 }
+
+
+//==========================================================================================
+//                                          X11
+//==========================================================================================
+
+
+#ifdef X_WINDOWS
+
+void os_get_screen_size(int *wide, int *high) {
+	Display *display;
+	display = XOpenDisplay(NULL);  // uses display indicated by $DISPLAY env var
+	if (!display) {
+		debug(errError, "get_screen_size: XOpenDisplay failed");
+		*wide = *high = 0;
+		return;
+	}
+
+	int screen = DefaultScreen(display);
+	*wide = DisplayWidth(display, screen);
+	*high = DisplayHeight(display, screen);
+	XCloseDisplay(display);
+}
+
+#else
+
+// Not implemented, will fallback to gfx_get_screen_size
+void os_get_screen_size(int *wide, int *high) {
+	*wide = *high = 0;
+}
+
+#endif

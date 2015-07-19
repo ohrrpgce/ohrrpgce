@@ -85,6 +85,11 @@ declare function process_running (byval process as ProcessHandle, byval exitcode
 declare sub kill_process (byval process as ProcessHandle)
 declare sub cleanup_process (byval process as ProcessHandle ptr)
 
+
+'Only implemented for X11 and Windows, sets to 0 otherwise or on error
+'NOTE: call get_screen_size instead of this.
+declare sub os_get_screen_size(wide as integer ptr, high as integer ptr)
+
 end extern
 
 #endif

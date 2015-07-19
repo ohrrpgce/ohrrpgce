@@ -528,6 +528,18 @@ function get_resolution_h() as integer
 	return windowsize.h
 end function
 
+'Get resolution of the (primary) monitor. On Windows, this excludes size of the taskbar.
+sub get_screen_size (byref screenwidth as integer, byref screenheight as integer)
+	'Prefer os_get_screen_size because on windows it excludes the taskbar,
+	'and gfx_sdl reports resolution at init time rather than the current values.
+	os_get_screen_size(@screenwidth, @screenheight)
+	if screenwidth <= 0 or screenheight <= 0 then
+		debuginfo "Falling back to gfx_get_screen_size"
+		gfx_get_screen_size(@screenwidth, @screenheight)
+	end if
+	debuginfo "Desktop resolution: " & screenwidth & "*" & screenheight
+end sub
+
 'Set the size that a pixel appears on the screen.
 'Supported by all backends except gfx_alleg.
 sub set_scale_factor (scale as integer)
