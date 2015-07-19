@@ -454,6 +454,7 @@ FUNCTION getfixbit(byval bitnum as integer) as integer
 END FUNCTION
 
 SUB setfixbit(byval bitnum as integer, byval bitval as integer)
+ IF bitnum > sizefixbits THEN fatalerror "setfixbit(" & bitnum & "): You forgot sizefixbits!"
  DIM f as string
  f = workingdir + SLASH + "fixbits.bin"
  DIM fh as integer = FREEFILE

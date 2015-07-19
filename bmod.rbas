@@ -1237,7 +1237,7 @@ END SUB
 
 SUB battle_crappy_run_handler(byref bat as BattleState, bslot() as BattleSprite)
  '--Current running system sucks about as bad as a running system conceivably CAN suck
- IF carray(ccMenu) > 1 AND readbit(gen(), genBits2, 1) = 0 THEN
+ IF carray(ccRun) > 1 AND readbit(gen(), genBits2, 1) = 0 THEN
   bat.flee = bat.flee + 1
  END IF
  DIM i as integer

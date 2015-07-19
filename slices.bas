@@ -340,7 +340,6 @@ FUNCTION NewSliceOfType (byval t as SliceTypes, byval parent as Slice Ptr=0, byv
    WITH *newsl
     .SliceType = slRoot
     .Attach = slScreen
-    .SliceType = slRoot
     .Protect = YES
     'We manually set these here so that Root will have the correct
     'size even if DrawSlice has not been called on it yet. This

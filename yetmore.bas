@@ -2147,7 +2147,7 @@ SELECT CASE as CONST id
   DIM sl as Slice Ptr
   sl = NewSliceOfType(slText, SliceTable.scriptsprite)
   scriptret = create_plotslice_handle(sl)
- CASE 422 '--set slice text
+ CASE 422 '--set slice text (slice, string)
   IF valid_plottextslice(retvals(0)) THEN
    IF valid_plotstr(retvals(1)) THEN
     ChangeTextSlice plotslices(retvals(0)), plotstr(retvals(1)).s
