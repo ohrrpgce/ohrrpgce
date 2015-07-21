@@ -15,12 +15,14 @@ include_windows_bi()
 #include "util.bi"
 #include "const.bi"
 
+extern "C"
 'FormatMessage is such an awfully complex function
 function get_windows_error (byval errcode as integer) as string
 	dim strbuf as string * 256
 	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, errcode, 0, strptr(strbuf), 255, NULL)
 	return strbuf
 end function
+end extern
 
 #define error_string get_windows_error(GetLastError())
 

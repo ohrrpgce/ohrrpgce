@@ -4,14 +4,14 @@
 //fb_stub.h MUST be included first, to ensure fb_off_t is 64 bit
 #include "fb/fb_stub.h"
 
-#include "windows.bi"
+#include "windows.h"
 
 #include <locale.h>
 #include "os.h"
 #include "common.h"
 
 // In os_windows.bas
-FBstring *get_windows_error (int errcode);
+FBSTRING *get_windows_error (int errcode);
 
 
 void init_runtime() {
@@ -33,8 +33,8 @@ void os_get_screen_size(int *wide, int *high) {
 	// This retrieves the size of the 'work area' on the primary monitor,
 	// which is the part of the screen not obscured by taskbar and similar toolbars
 	RECT rect;
-	if (!SystemParametersInfo(SPI_GETWORKAREA, &rect, NULL, 0)) {
-		FBstring *errstr = get_windows_error(GetLastError());
+	if (!SystemParametersInfo(SPI_GETWORKAREA, 0, &rect, 0)) {
+		FBSTRING *errstr = get_windows_error(GetLastError());
 		debug(errError, "get_screen_size failed: %s", errstr->data);
 		delete_fbstring(errstr);
 		return;
