@@ -1031,6 +1031,8 @@ FUNCTION picksave (byval loading as integer, byval newgame_opt as bool = YES, by
 '  -1   no saves available/New Game (loading only) or cancelled (saving only)
 '  -2   cancelled/Exit (loading only)
 
+show_virtual_gamepad()
+
 DIM max_slot as integer = 31
 DIM last_slot as integer
 last_slot = gen(genSaveSlotCount) - 1
@@ -1191,6 +1193,8 @@ FOR i as integer = 0 TO last_slot
  NEXT
 NEXT
 EXIT FUNCTION
+
+update_virtual_gamepad_display()
 
 END FUNCTION
 
