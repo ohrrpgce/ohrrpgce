@@ -70,6 +70,8 @@ SUB purchases_menu ()
  REDIM prod_nodes(0) as NodePtr
  REDIM prod_allowed(0) as bool
 
+ show_virtual_gamepad()
+
  setkeys YES
  DO
   setwait 55
@@ -151,6 +153,7 @@ SUB purchases_menu ()
  DeleteSlice @root
 
  tag_updates
+ update_virtual_gamepad_display()
 END SUB
 
 FUNCTION purchase_menu_create_product_slice(byval prod as NodePtr, byval parent as Slice Ptr) as bool

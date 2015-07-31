@@ -522,6 +522,8 @@ copypage st.page, holdscreen
 
 hero_swap_menu_init st
 
+show_virtual_gamepad()
+
 MenuSound gen(genAcceptSFX)
 setkeys
 DO
@@ -643,6 +645,8 @@ freepage st.page
 freepage holdscreen
 
 party_change_updates
+
+update_virtual_gamepad_display()
 
 END SUB
 
@@ -778,6 +782,9 @@ SUB minimap (byval x as integer, byval y as integer)
 
  DIM tog as integer
  DIM i as integer
+
+ show_virtual_gamepad()
+
  setkeys
  DO
   setwait speedcontrol
@@ -793,6 +800,7 @@ SUB minimap (byval x as integer, byval y as integer)
  setkeys
  flusharray carray(), 7, 0
  MenuSound gen(genCancelSFX)
+ update_virtual_gamepad_display()
 END SUB
 
 FUNCTION teleporttool () as integer
@@ -982,6 +990,9 @@ DIM page as integer = compatpage
 DIM tog as integer
 DIM wtg as integer
 DIM wt as integer
+
+show_virtual_gamepad()
+
 setkeys
 DO
  setwait speedcontrol
@@ -1022,7 +1033,7 @@ LOOP
 freepage page
 setkeys
 flusharray carray(), 7, 0
-
+update_virtual_gamepad_display()
 END FUNCTION
 
 SUB readjoysettings
@@ -1500,6 +1511,8 @@ holdscreen = duplicatepage(vpage)
 
 page = compatpage
 
+show_virtual_gamepad()
+
 setkeys
 DO
  setwait speedcontrol
@@ -1577,6 +1590,8 @@ freepage holdscreen
 evalitemtags
 party_change_updates
 
+update_virtual_gamepad_display()
+
 END SUB
 
 'holdscreen is a copy of vpage (not a compatpage)
@@ -1597,6 +1612,9 @@ menu(1) = readglobalstring(50, "Cancel", 10)
 DIM inncost as string = readglobalstring(143, "THE INN COSTS", 20)
 DIM youhave as string = readglobalstring(145, "You have", 20)
 menusound gen(genAcceptSFX)
+
+show_virtual_gamepad()
+
 setkeys
 DO
  setwait speedcontrol
@@ -1656,6 +1674,7 @@ DO
 LOOP
 freepage page
 party_change_updates
+update_virtual_gamepad_display()
 END FUNCTION
 
 SUB tagdisplay

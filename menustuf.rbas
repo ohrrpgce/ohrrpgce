@@ -98,6 +98,8 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
  DIM st as MenuState
  st.active = YES
  st.need_update = YES
+
+ show_virtual_gamepad()
  
  menusound gen(genAcceptSFX)
  setkeys
@@ -181,6 +183,9 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
  menusound gen(genCancelSFX)
  evalitemtags
  party_change_updates
+
+ update_virtual_gamepad_display()
+
 END SUB
 
 SUB buystuff_do_purchase(buyst as ShopBuyState, byval thing as NodePtr, byval thing_slot as integer)
@@ -1343,6 +1348,9 @@ menusound gen(genAcceptSFX)
 sellstuff_refresh storebuf(16), recordsize, permask(), price(), b()
 
 sellstuff_infostr ic, info, b(), permask(), price(), storebuf(16), recordsize
+
+show_virtual_gamepad()
+
 setkeys
 DO
  setwait speedcontrol
@@ -1452,6 +1460,9 @@ menusound gen(genCancelSFX)
 
 evalitemtags
 tag_updates
+
+update_virtual_gamepad_display()
+
 EXIT SUB
 
 END SUB
@@ -1832,6 +1843,8 @@ SUB status_screen (byval slot as integer)
  load_slice_collection st.sl, SL_COLLECT_STATUSSCREEN
  status_screen_refresh st
  
+ show_virtual_gamepad()
+ 
  menusound gen(genAcceptSFX)
  setkeys
  DO
@@ -1893,6 +1906,9 @@ SUB status_screen (byval slot as integer)
 
  freepage holdscreen
  DeleteSlice @(st.sl)
+ 
+ update_virtual_gamepad_display()
+
 END SUB
 
 '-----------------------------------------------------------------------
@@ -2163,6 +2179,8 @@ FUNCTION item_screen () as integer
 
  load_slice_collection st.ps.m, SL_COLLECT_ITEMSCREEN
  item_screen_refresh st
+
+ show_virtual_gamepad()
  
  menusound gen(genAcceptSFX)
  setkeys
@@ -2220,6 +2238,9 @@ FUNCTION item_screen () as integer
 
  freepage holdscreen
  DeleteSlice @(st.ps.m)
+
+ update_virtual_gamepad_display()
+
  RETURN st.textbox
 END FUNCTION
 
@@ -2368,6 +2389,8 @@ SUB spell_screen (byval slot as integer)
  load_slice_collection st.ps.m, SL_COLLECT_SPELLSCREEN
  spell_screen_refresh st
  
+ show_virtual_gamepad()
+ 
  menusound gen(genAcceptSFX)
  setkeys
  DO
@@ -2414,6 +2437,9 @@ SUB spell_screen (byval slot as integer)
 
  freepage holdscreen
  DeleteSlice @(st.ps.m)
+
+ update_virtual_gamepad_display()
+
 END SUB
 
 '-----------------------------------------------------------------------
@@ -2571,6 +2597,8 @@ item_info = equip_menu_equipped_item_info(st, eqstuf())
 '--prepare the backdrop
 'preserve the background behind the equip menu
 copypage page, holdscreen
+
+show_virtual_gamepad()
 
 '--main loop
 MenuSound gen(genAcceptSFX)
@@ -2746,6 +2774,9 @@ LOOP
 freepage page
 freepage holdscreen
 MenuSound gen(genCancelSFX)
+
+update_virtual_gamepad_display()
+
 'tags handled in unequip, doequip
 END SUB
 

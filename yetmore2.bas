@@ -410,6 +410,9 @@ SUB verify_quit
  DIM tog as integer
  DIM wtog as integer
  DIM col as integer
+ 
+ show_virtual_gamepad()
+ 
  setkeys
  DO
   setwait speedcontrol
@@ -442,6 +445,7 @@ SUB verify_quit
  setkeys
  flusharray carray(), 7, 0
  freepage page
+ update_virtual_gamepad_display()
 END SUB
 
 FUNCTION titlescreen () as bool
