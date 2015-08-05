@@ -375,7 +375,6 @@ commonenv = env.Clone ()
 base_modules = []   # modules (any language) shared by all utilities (except bam2mid)
 shared_modules = []  # FB/RB modules shared by, but with separate builds, for Game and Custom
 common_modules = []  # other modules (in any language) shared by Game and Custom
-common_objects = []  # other objects shared by Game and Custom
 
 libraries = []
 libpaths = []
@@ -423,6 +422,7 @@ if win32:
     commonenv['FBFLAGS'] += ['-s','gui']
 elif mac:
     base_modules += ['os_unix.c']
+    common_modules += ['os_unix_wm.c']
     libraries += ['Cocoa']  # For CoreServices
     if 'sdl' in gfx:
         common_modules += ['mac/SDLmain.m']
@@ -433,8 +433,10 @@ elif mac:
             commonenv['CFLAGS'] += ["-I", "/Library/Frameworks/SDL.framework/Headers", "-I", FRAMEWORKS_PATH + "/SDL.framework/Headers"]
 elif android:
     base_modules += ['os_unix.c']
+    common_modules += ['os_unix_wm.c']
 elif unix:
     base_modules += ['os_unix.c']
+    common_modules += ['os_unix_wm.c']
     if gfx != ['console']:
         # All graphical gfx backends need the X11 libs
         libraries += 'X11 Xext Xpm Xrandr Xrender'.split (' ')
@@ -518,7 +520,7 @@ else:
 
 # Note that base_objects are not built in commonenv!
 base_objects = Flatten([env.Object(a) for a in base_modules])  # concatenate NodeLists
-common_objects += base_objects + sum ([commonenv.Object(a) for a in common_modules], [])
+common_objects = base_objects + sum ([commonenv.Object(a) for a in common_modules], [])
 # Plus unique module included by utilities but not Game or Custom
 base_objects.extend (env.Object ('common_base.bas'))
 
