@@ -626,7 +626,7 @@ sub fadeto (byval red as integer, byval green as integer, byval blue as integer)
 	end if
 
 	for i = 1 to 32
-		setwait 17 ' aim to complete fade in 550ms
+		setwait 16.67 ' aim to complete fade in 550ms
 		for j = 0 to 255
 			'red
 			diff = intpal(j).r - red
@@ -675,7 +675,7 @@ sub fadetopal (pal() as RGBcolor)
 	end if
 
 	for i = 1 to 32
-		setwait 17 ' aim to complete fade in 550ms
+		setwait 16.67 ' aim to complete fade in 550ms
 		for j = 0 to 255
 			'red
 			diff = intpal(j).r - pal(j).r

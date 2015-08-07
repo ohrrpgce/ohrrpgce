@@ -14,7 +14,7 @@
 EXTERN prefsdir as string ' currently only used by Linux
 EXTERN timing() as integer
 EXTERN pal16() as integer
-EXTERN speedcontrol as integer
+EXTERN speedcontrol as double
 EXTERN autotestmode as bool
 EXTERN always_enable_debug_keys as bool
 EXTERN presentsong as integer

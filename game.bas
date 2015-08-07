@@ -92,7 +92,7 @@ mersenne_twister TIMER
 'Global variables which are affected by processcommandline (specifically, game_setoption)
 DIM autotestmode as bool = NO
 DIM always_enable_debug_keys as bool = NO
-DIM speedcontrol as integer = 55
+DIM speedcontrol as double = 55
 DIM autosnap as integer = 0
 DIM running_as_slave as bool = NO
 DIM custom_version as string  'when running as slave
@@ -612,6 +612,16 @@ loadpalette master(), gam.current_master_palette
 LoadUIColors uilook(), boxlook(), gam.current_master_palette
 
 speedcontrol = bound(gen(genMillisecPerFrame), 16, 200)
+' Try to run at 60 fps or 30 fps rather tahn 62.5 or 30.3 fps.
+' Commented out for two reasons: firstly it'll break actual vsync (gfx_directx),
+' which requires trying to run slightly faster than 30/60 so that vsync can
+' add a wait, secondly running at 59.9fps without vsync means the tear always
+' happens in the same place, which looks even worse!
+'IF speedcontrol = 16 THEN  '60 FPS
+' speedcontrol = 16.6667
+'ELSEIF speedcontrol = 33 THEN  '30 FPS
+' speedcontrol = 33.3333
+'END IF
 
 initgamedefaults
 fatal = NO
@@ -799,11 +809,11 @@ DO
    END IF
    IF gam.debug_showtags = NO THEN
     IF keyval(scNumpadPlus) > 1 OR keyval(scPlus) > 1 THEN  'CTRL +
-     speedcontrol = large(speedcontrol - 1, 10)
+     speedcontrol = large(speedcontrol - 1, 10.)
      scriptout = speedcontrol & "ms/frame"
     END IF
     IF keyval(scNumpadMinus) > 1 OR keyval(scMinus) > 1 THEN  'CTRL -
-     speedcontrol = small(speedcontrol + 1, 160)
+     speedcontrol = small(speedcontrol + 1, 160.)
      scriptout = speedcontrol & "ms/frame"
     END IF
    END IF
