@@ -1655,7 +1655,16 @@ SUB generate_gen_menu(m() as string, longname as string, aboutline as string, op
   CASE 6: m(options_start + 2) += "Hide all ignoreable errors"
  END SELECT
  m(options_start + 3) = "Default maximum item stack size: " & gen(genItemStackSize)
- m(options_start + 4) = "Framerate: " & FORMAT(small(60., 1000 / gen(genMillisecPerFrame)), ".#") & " frames/sec (" _
+ DIM fps as string
+ '16ms and 33ms are special-cased to be exactly 60/30fps
+ IF gen(genMillisecPerFrame) = 16 THEN
+  fps = "60"
+ ELSEIF gen(genMillisecPerFrame) = 33 THEN
+  fps = "30"
+ ELSE
+  fps = FORMAT(small(60., 1000 / gen(genMillisecPerFrame)), ".#")
+ END IF
+ m(options_start + 4) = "Framerate: " & fps & " frames/sec (" _
                          & gen(genMillisecPerFrame) & "ms/frame)"
 END SUB
 

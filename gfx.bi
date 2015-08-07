@@ -82,6 +82,8 @@ extern Gfx_set_resizable as function (enable as bool, min_width as integer, min_
 '(optional) At the next gfx_showpage call, recentering the window would be a good idea.
 'Called when starting a game.
 extern Gfx_recenter_window_hint as sub ()
+'(optional) Whether vsync is supported
+extern Gfx_vsync_supported as function () as bool
 
 'gfx_setoption recieves an option name and the following option which may or may not be a related argument
 'returns 0 if unrecognised, 1 if recognised but arg is ignored, 2 if arg is gobbled

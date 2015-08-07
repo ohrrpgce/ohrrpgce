@@ -8,6 +8,7 @@ DECLARE SUB defaultc
 DECLARE SUB forcedismount (catd() as integer)
 DECLARE FUNCTION framewalkabout (byval x as integer, byval y as integer, byref framex as integer, byref framey as integer, byval mapwide as integer, byval maphigh as integer, byval wrapmode as integer) as integer
 DECLARE SUB apply_game_window_settings ()
+DECLARE SUB set_speedcontrol ()
 DECLARE SUB initgamedefaults
 DECLARE SUB innRestore ()
 DECLARE SUB setmapxy

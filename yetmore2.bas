@@ -1089,6 +1089,20 @@ SUB apply_game_window_settings ()
 
 END SUB
 
+SUB set_speedcontrol ()
+ speedcontrol = bound(gen(genMillisecPerFrame), 16, 200)
+ IF gfx_vsync_supported() = NO THEN
+  ' 16ms and 33ms are special-cased to be exactly 60/30fps rather than 62.5/30.3
+  ' Disabled under gfx_directx, where have to try to run slightly faster than 60/30
+  ' so that vsync can add a wait.
+  IF speedcontrol = 16 THEN  '60 FPS
+   speedcontrol = 16.666
+  ELSEIF speedcontrol = 33 THEN  '30 FPS
+   speedcontrol = 33.333
+  END IF
+ END IF
+END SUB
+
 SUB show_wrong_spawned_version_error
  fatalerror !"This version of Game differs from the version of Custom which spawned it and cannot be used for the ""Test Game"" option. Download and place matching versions in the same directory before trying again.\n" _
              "Game is version " + version + " r" & version_revision & !"\n" _

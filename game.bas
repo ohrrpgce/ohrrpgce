@@ -610,18 +610,7 @@ DO' This loop encloses the playable game for a specific RPG file
 gam.current_master_palette = gen(genMasterPal)
 loadpalette master(), gam.current_master_palette
 LoadUIColors uilook(), boxlook(), gam.current_master_palette
-
-speedcontrol = bound(gen(genMillisecPerFrame), 16, 200)
-' Try to run at 60 fps or 30 fps rather tahn 62.5 or 30.3 fps.
-' Commented out for two reasons: firstly it'll break actual vsync (gfx_directx),
-' which requires trying to run slightly faster than 30/60 so that vsync can
-' add a wait, secondly running at 59.9fps without vsync means the tear always
-' happens in the same place, which looks even worse!
-'IF speedcontrol = 16 THEN  '60 FPS
-' speedcontrol = 16.6667
-'ELSEIF speedcontrol = 33 THEN  '30 FPS
-' speedcontrol = 33.3333
-'END IF
+set_speedcontrol
 
 initgamedefaults
 fatal = NO
