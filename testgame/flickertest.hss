@@ -1,0 +1,24 @@
+
+plotscript, main, begin
+  variable(bar, background)
+  background := create rect(320, 200, 1)
+  set rect trans(background, trans:fuzzy)
+  set rect border(background, border:none)
+  bar := create rect(40, 200, 4)
+  set rect border(bar, border:none)
+  while (true) do (
+    # Flip visibility of background every tick
+    set slice visible(background, get slice visible(background) ^^ true)
+
+    # Bounce bar betwen left and right end of the screen
+    if (not(slice is moving(bar))) then (
+      if (slice x(bar) == 0) then (
+        move slice by(bar, 320 -- 40, 0, 60)
+      ) else (
+        move slice by(bar, -320 + 40, 0, 60)
+      )
+    )
+
+    wait
+  )
+end
