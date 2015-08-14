@@ -113,6 +113,7 @@ SUB loadgame (byval slot as integer)
   lastsaveslot = slot + 1
  END IF
  '--Works under the assumption that resetgame has already been called.
+ '--Note that resetgame reloads all of gen()
  IF keyval(scLeftShift) = 0 AND keyval(scRightShift) = 0 THEN
   'bypass new loading if shift is held down when you load
   DIM filename as string
@@ -334,6 +335,7 @@ SUB gamestate_script_from_reload(byval node as Reload.NodePtr)
   'It's not actually necessary for this function to always be called (defaulted)
   gamestate_strings_from_reload node."strings".ptr
 
+  'If these aren't loaded then they take the value set in the .rpg file
   IF load_script_ids THEN gen(genGameoverScript) = script_trigger_from_reload(node."gameover_script".ptr)
   IF load_script_ids THEN gen(genLoadgameScript) = script_trigger_from_reload(node."loadgame_script".ptr)
 
@@ -1433,9 +1435,6 @@ DIM gmaptmp(dimbinsize(binMAP)) as integer
 
 DIM as integer i, j, o, z
 
-'--return gen to defaults
-xbload game + ".gen", gen(), "General data is missing from " + sourcerpg
-
 loadrecord buffer(), old_savefile, 15000, slot * 2
 
 DIM savver as integer = buffer(0)
@@ -1459,6 +1458,8 @@ FOR i = 0 TO 24
 NEXT i
 gold = str2int(gold_str)
 
+'--Load parts of gen().
+'--Note that gen() has already been reloaded from .gen by resetgame.
 z = 34
 show_load_index z, "gen"
 FOR i = 0 TO 500

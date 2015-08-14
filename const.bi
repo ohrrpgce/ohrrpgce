@@ -166,8 +166,10 @@ CONST genStealFailSFX = 200     ' "
 CONST genStealNoItemSFX = 201   ' "
 CONST genRegenChar = 202        ' Regen status icon character
 CONST genDefaultScale = 203     ' Graphics zoom factor, 0 = default
-'Everything else up to 499 unused
-
+'Everything else up to 499 unused.
+'When adding more data to gen() consider whether it should be saved in .rsav.
+'Also, gen() is reloaded by resetgame() when starting a new/loaded game,
+'if that's not OK the data should probably be stored elsewhere.
 
 '--- Suspend bits (gen(genSuspendBits))
 CONST suspendnpcs = 0
