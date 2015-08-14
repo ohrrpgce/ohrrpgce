@@ -6579,7 +6579,19 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 		<command id="setloadscript">
 			<canon>set load script (id)</canon>
 			<shortname>set load script</shortname>
-			<description>Changes the script that is run when you load a saved game. The argument is the script&apos;s ID number, NOT the script&apos;s name. Calling set load script with no argument disables the load script.</description>
+			<description>
+				Changes the script that will be run when you load <b>this</b> game after it is saved.
+				The argument is the script&apos;s ID number, NOT the script&apos;s name.
+				Calling set load script with no argument disables the load script.
+				<warn>
+					This command has no effect if the "Don't save gameover/loadgame script IDs" Preference Bitset is turned on!
+				</warn>
+				<note>
+					Setting the load script and then loading an existing saved game has no effect, because the load game script
+					already stored in that saved game is used instead.
+					Unless "Don't save gameover/loadgame script IDs" is on, in which case the default one is used.
+				</note>
+			</description>
 		</command>
 		<command id="getloadscript">
 			<canon>get load script</canon>
@@ -6734,12 +6746,22 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 		<command id="loadfromslot">
 			<canon>load from slot (slot)</canon>
 			<shortname>load from slot</shortname>
-			<description>Loads a saved game from a save slot (where <p>slot</p> is a slot number from 1 to 32, slots 5-32 are hidden) as if it had been loaded from the load game menu. This command will end the current game if it successfully loads. If the load fails because the slot has never been saved in, the script will continue.</description>
+			<description>
+				Loads a saved game from a save <p>slot</p> as if it had been loaded from the load game menu.
+				<p>slot</p> is a slot number from 1 to 32, regardless of how many are displayed on the Load and Save menus).
+				This command will end the current game (and fade out and in again) if it successfully loads.
+				If the load fails because the slot has never been saved in, the script will continue.
+				Anything that you want to happen after loading a saved game needs to be put in the 'load game' script instead (specified in Special Plotscripts).
+			</description>
 		</command>
 		<command id="deletesave">
 			<canon>delete save (slot)</canon>
 			<shortname>delete save</shortname>
-			<description>Deletes a saved game in the specified save slot (1 to 32, only 1 to 4 appear on the built-in menus). The save will no longer be visible on the load game menu or loadable with <ref>loadfromslot</ref>. However, <ref>importglobals</ref> can still be used to read globals out of the slot.</description>
+			<description>
+				Deletes a saved game in the specified save slot (1 to 32, regardless of how many are displayed on the Load and Save menus).
+				The save will no longer be visible on the load game menu or loadable with <ref>loadfromslot</ref>.
+				However, <ref>importglobals</ref> can still be used to read globals out of the slot.
+			</description>
 			<seealso>
 				<ref>saveinslot</ref>
 			</seealso>
@@ -6761,7 +6783,21 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 		<command id="importglobals">
 			<canon>import globals (slot, first, last)</canon>
 			<shortname>import globals</shortname>
-			<description>and<lb/><p>import globals (slot, id)</p><lb/>Loads a range of globals from a saved game, overwriting the current globals in that range. <p>slot</p> is the save slot number, from 1 to 32. Note that only slots 1-4 appear on the save/load menus. <p>first</p> and <p>last</p> are the id numbers of the globals at the beginning and end of the range. If you leave out both of <p>first</p> and <p>last</p> all global variables will be imported. <lb/>To read a single global from a save slot without modifying any of your globals, use the form 'var := import globals (slot, id)'<lb/>This is NOT the same thing as 'import globals (slot, id, id)', which does modify the global variable.<lb/>import globals and <ref>exportglobals</ref> can be used to save and retrieve info about a saved game without loading it, and also to store variables that any game the player starts can use, like in the following example:</description>
+			<description>
+				and<lb/><p>import globals (slot, id)</p>
+				<lb/>
+				Loads a range of globals from a saved game, overwriting the current globals in that range.
+				<p>slot</p> is the save slot number, from 1 to 32. Note that only slots 1-4 appear by default on the save/load menus.
+				<p>first</p> and <p>last</p> are the id numbers of the globals at the beginning and end of the range.
+				If you leave out both of <p>first</p> and <p>last</p> all global variables will be imported.
+				<lb/>
+				To read a single global from a save slot without modifying any of your globals, use the form 'var := import globals (slot, id)'
+				<lb/>
+				This is NOT the same thing as 'import globals (slot, id, id)', which does modify the global variable.
+				<lb/>
+				import globals and <ref>exportglobals</ref> can be used to save and retrieve info about a saved game without loading it,
+				and also to store variables that any game the player starts can use, like in the following example:
+			</description>
 			<example>global variable (100, game completed)
 global variable (101, hours to complete)
 global variable (102, minutes to complete)
