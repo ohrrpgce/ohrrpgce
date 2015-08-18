@@ -353,65 +353,6 @@ END SUB
 
 
 '==========================================================================================
-'                                      Playing time
-'==========================================================================================
-
-
-FUNCTION playtime (byval d as integer, byval h as integer, byval m as integer) as string
- DIM s as string = ""
-
- SELECT CASE d
-  CASE 1
-   s = s & d & " " & readglobalstring(154, "day", 10) & " "
-  CASE IS > 1
-   s = s & d & " " & readglobalstring(155, "days", 10) & " "
- END SELECT
-
- SELECT CASE h
-  CASE 1
-   s = s & h & " " & readglobalstring(156, "hour", 10) & " "
-  CASE IS > 1
-   s = s & h & " " & readglobalstring(157, "hours", 10) & " "
- END SELECT
-
- SELECT CASE m
-  CASE 1
-   s = s & m & " " & readglobalstring(158, "minute", 10) & " "
-  CASE IS > 1
-   s = s & m & " " & readglobalstring(159, "minutes", 10) & " "
- END SELECT
-
- RETURN s
-
-END FUNCTION
-
-SUB playtimer
- STATIC n as double
- 
- IF TIMER >= n + 1 OR n - TIMER > 3600 THEN
-  n = INT(TIMER)
-  gen(genSeconds) = gen(genSeconds) + 1
-  WHILE gen(genSeconds) >= 60
-   gen(genSeconds) = gen(genSeconds) - 60
-   gen(genMinutes) = gen(genMinutes) + 1
-  WEND
-  WHILE gen(genMinutes) >= 60
-   gen(genMinutes) = gen(genMinutes) - 60
-   gen(genHours) = gen(genHours) + 1
-   refresh_keepalive_file
-  WEND
-  WHILE gen(genHours) >= 24
-   gen(genHours) = gen(genHours) - 24
-   IF gen(genDays) < 32767 THEN gen(genDays) = gen(genDays) + 1
-  WEND
- END IF
- IF autosnap > 0 ANDALSO (get_tickcount MOD autosnap) = 0 THEN
-  write_checkpoint
- END IF
-END SUB
-
-
-'==========================================================================================
 '                                      Wait Commands
 '==========================================================================================
 
@@ -4742,6 +4683,7 @@ FUNCTION valid_map_layer(layer as integer, errorlevel as scriptErrEnum = serrBad
  END IF
  RETURN YES
 END FUNCTION
+
 
 '==========================================================================================
 '                             Misc command implementations

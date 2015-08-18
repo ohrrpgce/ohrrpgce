@@ -53,4 +53,7 @@ DECLARE SUB remap_virtual_gamepad(nodename as string, byval in_battle as bool=NO
 DECLARE FUNCTION default_margin() as integer
 DECLARE FUNCTION default_margin_for_game() as integer
 
+DECLARE FUNCTION playtime (byval d as integer, byval h as integer, byval m as integer) as string
+DECLARE SUB playtimer
+
 #endif

@@ -18,10 +18,6 @@ DECLARE SUB onkeyscript (byval scriptnum as integer)
 DECLARE SUB process_wait_conditions ()
 DECLARE SUB sfunctions (byval cmdid as integer)
 
-DECLARE FUNCTION playtime (byval d as integer, byval h as integer, byval m as integer) as string
-DECLARE SUB playtimer
-
-
 DECLARE SUB wrappedsong (byval songnumber as integer)
 DECLARE SUB stopsong
 DECLARE FUNCTION backcompat_sound_id (byval id as integer) as integer
