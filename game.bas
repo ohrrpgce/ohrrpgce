@@ -95,11 +95,6 @@ DIM master_channel as IPCChannel = NULL_CHANNEL  'when running as slave
 DIM modified_lumps as string vector  'when running as slave
 v_new modified_lumps
 DIM force_prefsdir_save as bool = NO
-#IFDEF __X11__
- 'As a workaround for bug 2005, we disable native text input by default
- 'on X11 (Linux/BSD). This can be removed when we figure out a better fix for that bug
- disable_native_text_input = YES
-#ENDIF
 
 orig_dir = CURDIR()
 processcommandline

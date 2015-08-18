@@ -70,7 +70,15 @@ declare function hexptr(p as any ptr) as string
 dim modex_initialised as bool = NO
 dim vpages() as Frame ptr
 dim vpagesp as Frame ptr ptr  'points to vpages(0) for debugging: fbc outputs typeless debugging symbol
-dim disable_native_text_input as bool = NO
+
+#IFDEF __X11__
+ 'As a workaround for bug 2005, we disable native text input by default
+ 'on X11 (Linux/BSD). This can be removed when we figure out a better fix for that bug
+ dim disable_native_text_input as bool = YES
+#ELSE
+ dim disable_native_text_input as bool = NO
+#ENDIF
+
 redim fonts(3) as Font
 
 'Toggles 0-1 every time dowait is called
