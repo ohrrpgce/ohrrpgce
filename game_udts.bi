@@ -64,6 +64,18 @@ TYPE ScriptLoggingState
   wait_msg_repeats as integer        'Number of ticks in a row with identical last_wait_msg
 END TYPE
 
+'Set by script commands to signal that they want something to be done after leaving the
+'script interpreter (used to be called wantdoor, etc).
+'These actions are delayed for historical/backcompat reasons; see interpret().
+TYPE ScriptWantSignals
+  box as integer      'Textbox +1
+  door as integer     'Door number +1
+  battle as integer   'Formation number +1
+  teleport as bool    'Map num has changed, call preparemap()
+  usenpc as integer   'NPC instance +1
+  loadgame as integer 'Save slot +1
+END TYPE
+
 TYPE GameState
   map as MapModeState
   wonbattle as bool                  'Indicates the status of the last battle (won as opposed to dying or running or 'force exit')
@@ -89,10 +101,12 @@ TYPE GameState
   current_master_palette as integer  'Modified by "load palette" command
   showtext as string                 'Used for map names and other alerts
   showtext_ticks as integer          'Remaining number of ticks
+  showstring as string               'The text shown by showvalue/showstring commands
   getinputtext_enabled as bool
   script_log as ScriptLoggingState
   script_hide_virtual_gamepad as bool
   script_show_virtual_gamepad as bool
+  want as ScriptWantSignals
 END TYPE
 
 'Note that .showing, .fully_shown, .sayer need to be always correct even if no box is up

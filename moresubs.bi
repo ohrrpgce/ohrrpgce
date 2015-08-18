@@ -31,7 +31,7 @@ DECLARE FUNCTION movdivis (byval xygo as integer) as bool
 DECLARE FUNCTION onwho (caption as string, byval alone as integer) as integer
 DECLARE SUB readjoysettings
 DECLARE SUB renamehero (byval who as integer, byval escapable as integer)
-DECLARE SUB resetgame (scriptout as string)
+DECLARE SUB resetgame ()
 DECLARE SUB get_max_levelmp (ret() as integer, byval hero_level as integer)
 DECLARE SUB resetlmp (byval slot as integer, byval hero_level as integer)
 DECLARE SUB reset_game_state ()

@@ -129,13 +129,6 @@ setupmusic
 
 'shared module variables
 DIM SHARED harmtileflash as integer = NO
-DIM SHARED wantbox as integer
-DIM SHARED wantdoor as integer
-DIM SHARED wantbattle as integer
-DIM SHARED wantteleport as integer
-DIM SHARED wantusenpc as integer
-DIM SHARED wantloadgame as integer
-DIM SHARED scriptout as string
 
 'global variables
 DIM gam as GameState
@@ -624,12 +617,12 @@ load_lookup1_bin lookup1_bin_cache()
 
 makebackups 'make a few backup lumps
 
-wantbox = 0
-wantdoor = 0
-wantbattle = 0
-wantteleport = 0
-wantusenpc = 0
-wantloadgame = 0
+gam.want.box = 0
+gam.want.door = 0
+gam.want.battle = 0
+gam.want.teleport = NO
+gam.want.usenpc = 0
+gam.want.loadgame = 0
 
 txt.showing = NO
 txt.fully_shown = NO
@@ -779,7 +772,7 @@ DO
    gam.showtext_ticks = 20
   END IF
   IF keyval(scF3) > 1 AND txt.showing = NO THEN
-   IF yesno("Load quick-saved game?") THEN wantloadgame = 33
+   IF yesno("Load quick-saved game?") THEN gam.want.loadgame = 33
   END IF
   IF keyval(scCtrl) > 0 AND keyval(scF7) > 1 THEN
    catx(0) = (catx(0) \ 20) * 20
@@ -799,11 +792,13 @@ DO
    IF gam.debug_showtags = NO THEN
     IF keyval(scNumpadPlus) > 1 OR keyval(scPlus) > 1 THEN  'CTRL +
      speedcontrol = large(speedcontrol - 1, 10.)
-     scriptout = speedcontrol & "ms/frame"
+     gam.showtext = speedcontrol & "ms/frame"
+     gam.showtext_ticks = 60
     END IF
     IF keyval(scNumpadMinus) > 1 OR keyval(scMinus) > 1 THEN  'CTRL -
      speedcontrol = small(speedcontrol + 1, 160.)
-     scriptout = speedcontrol & "ms/frame"
+     gam.showtext = speedcontrol & "ms/frame"
+     gam.showtext_ticks = 60
     END IF
    END IF
    IF keyval(scF4) > 1 THEN
@@ -843,11 +838,11 @@ DO
   END IF
  END IF
 
- IF wantloadgame > 0 THEN
-  'DEBUG debug "loading game slot " & (wantloadgame - 1)
-  load_slot = wantloadgame - 1
-  wantloadgame = 0
-  resetgame scriptout
+ IF gam.want.loadgame > 0 THEN
+  'DEBUG debug "loading game slot " & (gam.want.loadgame - 1)
+  load_slot = gam.want.loadgame - 1
+  gam.want.loadgame = 0
+  resetgame
   initgamedefaults
   stopsong
   resetsfx
@@ -888,7 +883,7 @@ DO
 
  'Main loop exit test (does this need to be here?)
  IF fatal OR abortg > 0 OR resetg THEN
-  resetgame scriptout
+  resetgame
   'Stop sounds but not music; the title screen might not have any music set, or be set to the same music
   resetsfx
   IF resetg THEN EXIT DO  'skip to new game
@@ -1039,7 +1034,7 @@ SUB displayall()
  FOR i as integer = 0 TO topmenu
   draw_menu menus(i), mstates(i), dpage
  NEXT i
- edgeprint scriptout, 0, vpages(dpage)->h - 10, uilook(uiText), dpage
+ edgeprint gam.showstring, 0, vpages(dpage)->h - 10, uilook(uiText), dpage
  showplotstrings
  IF gam.showtext_ticks > 0 THEN
   gam.showtext_ticks -= 1
@@ -1823,7 +1818,7 @@ SUB interpret()
  gam.script_log.tick += 1
 
  'Do spawned text boxes, battles, etc.
- 'The actual need for these want* variables is now gone, but they are kept around for backcompat.
+ 'The actual need for these gam.want.* variables is now gone, but they are kept around for backcompat.
  'They could be removed and the implementations moved straight into the command handlers,
  '(and the implicit waits made optional at the same time), but this makes things especially tricky
  'for concurrent fibres.
@@ -1842,33 +1837,33 @@ SUB interpret()
  'if we make fades customisable) that one tick delay is undesired.
  'So consider delaying all calls to preparemap (and doloadgame) until the start of the next tick.
 
- IF immediate_showtextbox = NO AND wantbox > 0 THEN
-  loadsay wantbox
+ IF immediate_showtextbox = NO AND gam.want.box > 0 THEN
+  loadsay gam.want.box
  END IF
- wantbox = 0
- IF wantdoor > 0 THEN
-  usedoor wantdoor - 1
-  wantdoor = 0
+ gam.want.box = 0
+ IF gam.want.door > 0 THEN
+  usedoor gam.want.door - 1
+  gam.want.door = 0
  END IF
- IF wantbattle > 0 THEN
+ IF gam.want.battle > 0 THEN
   fatal = NO
-  gam.wonbattle = battle(wantbattle - 1)
-  wantbattle = 0
+  gam.wonbattle = battle(gam.want.battle - 1)
+  gam.want.battle = 0
   prepare_map YES
   gam.random_battle_countdown = range(100, 60)
   queue_fade_in 2 'FIXME: why 2 ticks?
   setkeys
  END IF
- IF wantteleport > 0 THEN
-  wantteleport = 0
+ IF gam.want.teleport THEN
+  gam.want.teleport = NO
   prepare_map
   gam.random_battle_countdown = range(100, 60)
  END IF
- IF wantusenpc > 0 THEN
-  usenpc 2, wantusenpc - 1
-  wantusenpc = 0
+ IF gam.want.usenpc > 0 THEN
+  usenpc 2, gam.want.usenpc - 1
+  gam.want.usenpc = 0
  END IF
- 'ALSO wantloadgame
+ 'ALSO gam.want.loadgame
 END SUB
 
 'Script commands ('top level', rest is in yetmore.bas)
@@ -1881,16 +1876,16 @@ SUB sfunctions(byval cmdid as integer)
   'the only commands that belong at the top level are the ones that need
   'access to main-module shared variables (rather few of the commands actually here)
   SELECT CASE as CONST cmdid
-   CASE 11'--Show Text Box (box)
+   CASE 11'--show textbox (box)
     'showtextbox(0) does nothing
-    wantbox = large(0, retvals(0))
-    IF immediate_showtextbox ANDALSO wantbox > 0 THEN loadsay wantbox: wantbox = 0
+    gam.want.box = large(0, retvals(0))
+    IF immediate_showtextbox ANDALSO gam.want.box > 0 THEN loadsay gam.want.box: gam.want.box = 0
    CASE 15'--use door
-    wantdoor = retvals(0) + 1
+    gam.want.door = retvals(0) + 1
     script_start_waiting(0)
    CASE 16'--fight formation
     IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxFormation) THEN
-     wantbattle = retvals(0) + 1
+     gam.want.battle = retvals(0) + 1
      script_start_waiting(0)
     ELSE
      scriptret = -1
@@ -1917,7 +1912,7 @@ SUB sfunctions(byval cmdid as integer)
    CASE 35'--use NPC
     npcref = getnpcref(retvals(0), 0)
     IF npcref >= 0 THEN
-     wantusenpc = npcref + 1
+     gam.want.usenpc = npcref + 1
      script_start_waiting()
     END IF
    CASE 37'--use shop
@@ -1957,7 +1952,7 @@ SUB sfunctions(byval cmdid as integer)
      gam.map.id = retvals(0)
      catx(0) = retvals(1) * 20
      caty(0) = retvals(2) * 20
-     wantteleport = 1
+     gam.want.teleport = YES
      script_start_waiting(0)
     END IF
    CASE 63, 169'--resume random enemies
@@ -1967,7 +1962,7 @@ SUB sfunctions(byval cmdid as integer)
     abortg = 1
     script_start_waiting()
    CASE 77'--show value
-    scriptout = STR(retvals(0))
+    gam.showstring = STR(retvals(0))
    CASE 78'--alter NPC
     IF bound_arg(retvals(1), 0, 16, "NPCstat: constant") THEN
      DIM npcid as integer = get_valid_npc_id(retvals(0), serrBound)
@@ -1988,7 +1983,7 @@ SUB sfunctions(byval cmdid as integer)
      END IF
     END IF
    CASE 79'--show no value
-    scriptout = ""
+    gam.showstring = ""
    CASE 80'--current map
     scriptret = gam.map.id
    CASE 86'--advance text box
@@ -2050,8 +2045,8 @@ SUB sfunctions(byval cmdid as integer)
    CASE 151'--show mini map
     minimap catx(0), caty(0)
    CASE 153'--items menu
-    wantbox = item_screen()
-    IF wantbox ANDALSO immediate_showtextbox THEN loadsay wantbox: wantbox = 0
+    gam.want.box = item_screen()
+    IF gam.want.box ANDALSO immediate_showtextbox THEN loadsay gam.want.box: gam.want.box = 0
    CASE 155, 170'--save menu
     'ID 155 is a backcompat hack
     scriptret = picksave(0) + 1
@@ -2067,13 +2062,13 @@ SUB sfunctions(byval cmdid as integer)
    CASE 174'--load from slot
     IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
      IF save_slot_used(retvals(0) - 1) THEN
-      wantloadgame = retvals(0)
+      gam.want.loadgame = retvals(0)
       script_start_waiting()
      END IF
     END IF
    CASE 210'--show string
     IF valid_plotstr(retvals(0)) THEN
-     scriptout = plotstr(retvals(0)).s
+     gam.showstring = plotstr(retvals(0)).s
     END IF
    CASE 234'--load menu
     scriptret = picksave(1) + 1
@@ -2084,7 +2079,7 @@ SUB sfunctions(byval cmdid as integer)
       script_start_waiting()
       fadeout 0, 0, 0
      ELSEIF scriptret > 0 THEN
-      wantloadgame = scriptret
+      gam.want.loadgame = scriptret
       script_start_waiting()
      END IF
     END IF
@@ -2363,7 +2358,7 @@ SUB sfunctions(byval cmdid as integer)
    CASE 320'--current text box
     scriptret = -1
     IF txt.showing = YES THEN scriptret = txt.id
-    IF immediate_showtextbox = NO ANDALSO wantbox > 0 THEN scriptret = wantbox
+    IF immediate_showtextbox = NO ANDALSO gam.want.box > 0 THEN scriptret = gam.want.box
    CASE 432 '--use menu item
     mislot = find_menu_item_handle(retvals(0), menuslot)
     IF valid_menuslot_and_mislot(menuslot, mislot) THEN
@@ -2375,18 +2370,18 @@ SUB sfunctions(byval cmdid as integer)
    CASE 490'--use item (id)
     scriptret = 0
     IF valid_item(retvals(0)) THEN
-     IF use_item_by_id(retvals(0), wantbox) THEN
+     IF use_item_by_id(retvals(0), gam.want.box) THEN
       scriptret = 1
      END IF
-     IF immediate_showtextbox ANDALSO wantbox > 0 THEN loadsay wantbox: wantbox = 0
+     IF immediate_showtextbox ANDALSO gam.want.box > 0 THEN loadsay gam.want.box: gam.want.box = 0
     END IF
    CASE 491'--use item in slot (slot)
     scriptret = 0
     IF valid_item_slot(retvals(0)) THEN
-     IF use_item_in_slot(retvals(0), wantbox) THEN
+     IF use_item_in_slot(retvals(0), gam.want.box) THEN
       scriptret = 1
      END IF
-     IF immediate_showtextbox ANDALSO wantbox > 0 THEN loadsay wantbox: wantbox = 0
+     IF immediate_showtextbox ANDALSO gam.want.box > 0 THEN loadsay gam.want.box: gam.want.box = 0
     END IF
    CASE 517'--menu item by true slot
     menuslot = find_menu_handle(retvals(0))
@@ -2879,7 +2874,7 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as int
        slot = picksave(1, NO, YES)  'No New Game option, beep if the menu doesn't display
        '(Maybe it would be better to display the load menu even if there are no saves)
        IF slot >= 0 THEN
-        wantloadgame = slot + 1
+        gam.want.loadgame = slot + 1
         FOR i as integer = topmenu TO 0 STEP -1
          remove_menu i, NO
         NEXT i

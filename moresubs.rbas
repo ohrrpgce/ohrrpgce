@@ -1157,7 +1157,7 @@ freepage holdscreen
 
 END SUB
 
-SUB resetgame (scriptout as string)
+SUB resetgame ()
 'Warning: don't put necessary initialisation in here,
 'as this is only called after the first game.
 'initgamedefaults is probably a better place for that.
@@ -1176,7 +1176,7 @@ gam.script_log.wait_msg_repeats = 0
 mapx = 0
 mapy = 0
 gold = 0
-scriptout = ""
+gam.showstring = ""
 '--return gen to defaults
 xbload game + ".gen", gen(), "General data is missing from " + sourcerpg
 
