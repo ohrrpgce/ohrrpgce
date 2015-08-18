@@ -20,7 +20,7 @@
 #include "game.bi"
 #include "moresubs.bi"
 #include "allmodex.bi"
-#include "yetmore.bi"
+#include "scriptcommands.bi"
 #include "menustuf.bi"
 
 '--local subs and functions

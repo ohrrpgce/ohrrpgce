@@ -14,7 +14,7 @@
 #include "scrconst.bi"
 #include "allmodex.bi"
 #include "common.bi"
-#include "yetmore.bi"
+#include "scriptcommands.bi"
 #include "yetmore2.bi"
 #include "scripting.bi"
 #include "sliceedit.bi"

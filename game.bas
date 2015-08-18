@@ -17,7 +17,7 @@
 #include "uiconst.bi"
 #include "loading.bi"
 #include "savegame.bi"
-#include "yetmore.bi"
+#include "scriptcommands.bi"
 #include "yetmore2.bi"
 #include "moresubs.bi"
 #include "walkabouts.bi"

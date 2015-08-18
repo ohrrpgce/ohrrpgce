@@ -17,7 +17,7 @@
 #include "ver.txt"
 
 #include "game.bi"
-#include "yetmore.bi"
+#include "scriptcommands.bi"
 #include "yetmore2.bi"
 #include "walkabouts.bi"
 #include "moresubs.bi"

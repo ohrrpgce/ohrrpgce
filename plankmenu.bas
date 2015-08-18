@@ -13,7 +13,7 @@
 #include "slices.bi"
 #include "sliceedit.bi"
 
-#include "yetmore.bi"
+#include "scriptcommands.bi"
 
 #include "plankmenu.bi"
 

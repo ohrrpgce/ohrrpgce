@@ -17,7 +17,7 @@
 #include "battle_udts.bi"
 #include "moresubs.bi"
 #include "menustuf.bi"
-#include "yetmore.bi"
+#include "scriptcommands.bi"
 #include "yetmore2.bi"
 
 DECLARE SUB confirm_auto_spread (byval who as integer, tmask() as integer, bslot() as BattleSprite, t() as integer)

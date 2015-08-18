@@ -17,7 +17,7 @@
 #include "savegame.bi"
 #include "moresubs.bi"
 #include "menustuf.bi"
-#include "yetmore.bi"
+#include "scriptcommands.bi"
 
 USING Reload
 USING Reload.Ext
