@@ -11,20 +11,6 @@
 
 declare sub prepare_map (byval afterbat as integer=NO, byval afterload as integer=NO)
 declare sub displayall()
-declare function valid_item_slot(byval item_slot as integer) as integer
-declare function valid_item(byval itemid as integer) as integer
-declare function valid_hero_party(byval who as integer, byval minimum as integer=0) as integer
-declare function really_valid_hero_party(byval who as integer, byval maxslot as integer=40, byval errlvl as scriptErrEnum = serrBadOp) as integer
-declare function valid_stat(byval statid as integer) as integer
-declare function valid_menuslot(byval menuslot as integer) as integer
-declare function valid_menuslot_and_mislot(byval menuslot as integer, byval mislot as integer) as integer
-declare function valid_plotstr(byval n as integer, byval errlvl as scriptErrEnum = serrBound) as integer
-declare function valid_formation(byval form as integer) as integer
-declare function valid_formation_slot(byval form as integer, byval slot as integer) as integer
-declare function valid_zone(byval id as integer) as integer
-declare function valid_door(byval id as integer) as integer
-declare function valid_map_layer(layer as integer, byval errlvl as scriptErrEnum = serrBadOp) as bool
-declare function valid_tile_pos(byval x as integer, byval y as integer) as integer
 declare sub loadmap_gmap(byval mapnum as integer)
 declare sub loadmap_npcl(byval mapnum as integer)
 declare sub loadmap_npcd(byval mapnum as integer)
@@ -47,19 +33,16 @@ declare sub player_menu_keys ()
 declare sub check_menu_tags ()
 declare sub tag_updates (byval npc_visibility as integer=YES)
 declare function game_usemenu (state as menustate) as integer
-declare function find_menu_id (byval id as integer) as integer
-declare function find_menu_handle (byval handle as integer) as integer
-declare function find_menu_item_handle_in_menuslot (byval handle as integer, byval menuslot as integer) as integer
-declare function find_menu_item_handle (byval handle as integer, byref found_in_menuslot as integer) as integer
-declare function assign_menu_item_handle (byref mi as menudefitem) as integer
-declare function assign_menu_handles (byref menu as menudef) as integer
-declare function menu_item_handle_by_slot(byval menuslot as integer, byval mislot as integer, byval visible_only as integer=yes) as integer
-declare function find_menu_item_slot_by_string(byval menuslot as integer, s as string, byval mislot as integer=0, byval visible_only as integer=yes) as integer
 declare function allowed_to_open_main_menu () as integer
 declare function random_formation (byval set as integer) as integer
 DECLARE FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as integer
+
 DECLARE SUB init_text_box_slices(txt as TextBoxState)
 DECLARE SUB cleanup_text_box ()
+DECLARE SUB advance_text_box ()
+DECLARE SUB add_rem_swap_lock_hero (box as TextBox)
+DECLARE FUNCTION immediate_showtextbox() as bool
+
 DECLARE SUB recreate_map_slices()
 DECLARE SUB refresh_map_slice()
 DECLARE SUB refresh_map_slice_tilesets()
@@ -68,7 +51,6 @@ DECLARE FUNCTION vehicle_is_animating() as integer
 DECLARE SUB reset_vehicle(v as vehicleState)
 DECLARE SUB dump_vehicle_state()
 DECLARE SUB usenpc(byval cause as integer, byval npcnum as integer)
-DECLARE SUB sfunctions (byval cmdid as integer)
 DECLARE FUNCTION first_free_slot_in_party() as integer
 DECLARE FUNCTION first_free_slot_in_active_party() as integer
 DECLARE FUNCTION first_free_slot_in_reserve_party() as integer

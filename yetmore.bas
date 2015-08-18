@@ -45,63 +45,12 @@ DIM num_reusable_slice_handles as integer
 
 REDIM timers(15) as PlotTimer
 
-SUB add_rem_swap_lock_hero (byref box as TextBox)
-'---ADD/REMOVE/SWAP/LOCK
-'---ADD---
-DIM i as integer
-IF box.hero_addrem > 0 THEN
- i = first_free_slot_in_party()
- IF i > -1 THEN
-  addhero box.hero_addrem, i
- END IF
-END IF '---end if > 0
-'---REMOVE---
-IF box.hero_addrem < 0 THEN
- IF herocount(40) > 1 THEN
-  i = findhero(-box.hero_addrem, 0, 40, 1)
-  IF i > -1 THEN gam.hero(i).id = -1
-  IF herocount(3) = 0 THEN forceparty
- END IF
-END IF '---end if < 0
-'---SWAP-IN---
-IF box.hero_swap > 0 THEN
- i = findhero(box.hero_swap, 40, 0, -1)
- IF i > -1 THEN
-  FOR o as integer = 0 TO 3
-   IF gam.hero(o).id = -1 THEN
-    doswap i, o
-    EXIT FOR
-   END IF
-  NEXT o
- END IF
-END IF '---end if > 0
-'---SWAP-OUT---
-IF box.hero_swap < 0 THEN
- i = findhero(-box.hero_swap, 0, 40, 1)
- IF i > -1 THEN
-  FOR o as integer = 40 TO 4 STEP -1
-   IF gam.hero(o).id = -1 THEN
-    doswap i, o
-    IF herocount(3) = 0 THEN forceparty
-    EXIT FOR
-   END IF
-  NEXT o
- END IF
-END IF '---end if < 0
-'---UNLOCK HERO---
-IF box.hero_lock > 0 THEN
- DIM heroat as integer = findhero(box.hero_lock, 0, 40, 1)
- IF heroat > -1 THEN gam.hero(heroat).locked = NO
-END IF '---end if > 0
-'---LOCK HERO---
-IF box.hero_lock < 0 THEN
- DIM heroat as integer = findhero(-box.hero_lock, 0, 40, 1)
- IF heroat > -1 THEN gam.hero(heroat).locked = YES
-END IF '---end if > 0
 
-'--indirect effects
-party_change_updates
-END SUB
+
+'==========================================================================================
+'                                    Text embed codes
+'==========================================================================================
+
 
 SUB embedtext (text as string, byval limit as integer=0)
  text = embed_text_codes(text)
@@ -260,105 +209,23 @@ FUNCTION script_sprintf() as string
  RETURN ret
 END FUNCTION
 
+
+'==========================================================================================
+'                               Battle and caterpillar party
+'==========================================================================================
+
+
 SUB forceparty ()
-'---MAKE SURE YOU HAVE AN ACTIVE PARTY---
-DIM fpi as integer = findhero(-1, 0, 40, 1)
-IF fpi > -1 THEN
- FOR fpo as integer = 0 TO 3
-  IF gam.hero(fpo).id = -1 THEN
-   doswap fpi, fpo
-   EXIT FOR
-  END IF
- NEXT fpo
-END IF
-END SUB
-
-FUNCTION gethighbyte (byval n as integer) as integer
-RETURN n SHL 8
-END FUNCTION
-
-'Deprecated; Use get_valid_npc for all new NPC commands
-FUNCTION getnpcref (byval seekid as integer, byval offset as integer) as integer
-SELECT CASE seekid
-
- CASE -300 TO -1'--direct reference
-  getnpcref = (seekid + 1) * -1
-  EXIT FUNCTION
-
- CASE 0 TO UBOUND(npcs) 'ID
-  DIM found as integer = 0
-  FOR i as integer = 0 TO 299
-   IF npc(i).id - 1 = seekid THEN
-    IF found = offset THEN
-     getnpcref = i
-     EXIT FUNCTION
-    END IF
-    found = found + 1
+ '---MAKE SURE YOU HAVE AN ACTIVE PARTY---
+ DIM fpi as integer = findhero(-1, 0, 40, 1)
+ IF fpi > -1 THEN
+  FOR fpo as integer = 0 TO 3
+   IF gam.hero(fpo).id = -1 THEN
+    doswap fpi, fpo
+    EXIT FOR
    END IF
-  NEXT i
-
-END SELECT
-
-'--failure
-getnpcref = -1
-END FUNCTION
-
-'Replacement for getnpcref.
-'Given NPC ref or NPC ID, return npc() index, or throw a scripterr and return -1
-'Note this is stricter than getnpcref: invalid npc refs are not alright!
-'References to Hidden/Disabled NPCs are alright.
-FUNCTION get_valid_npc (byval seekid as integer, byval errlvl as scriptErrEnum = serrBadOp) as integer
- IF seekid < 0 THEN
-  DIM npcidx as integer = (seekid + 1) * -1
-  IF npcidx > 299 ORELSE npc(npcidx).id = 0 THEN
-   scripterr current_command_name() & ": invalid npc reference " & seekid & " (maybe the NPC was deleted?)", errlvl
-   RETURN -1
-  END IF
-  RETURN npcidx
- ELSE
-  FOR i as integer = 0 TO 299
-   IF npc(i).id - 1 = seekid THEN RETURN i
-  NEXT
-  scripterr current_command_name() & ": invalid npc reference; no NPCs of ID " & seekid & " exist", errlvl
-  RETURN -1
+  NEXT fpo
  END IF
-END FUNCTION
-
-'Given NPC ref or NPC ID, return an NPC ID, or throw a scripterr and return -1
-'References to Hidden/Disabled NPCs are alright.
-FUNCTION get_valid_npc_id (byval seekid as integer, byval errlvl as scriptErrEnum = serrBadOp) as integer
- IF seekid >= 0 THEN
-  IF seekid > UBOUND(npcs) THEN
-   scripterr current_command_name() & ": invalid NPC ID " & seekid, errlvl
-   RETURN -1
-  END IF
-  RETURN seekid
- ELSE
-  DIM npcidx as integer = (seekid + 1) * -1
-  IF npcidx > UBOUND(npc) THEN
-   scripterr current_command_name() & ": invalid NPC reference " & seekid, errlvl
-   RETURN -1
-  ELSEIF npc(npcidx).id = 0 THEN
-   scripterr current_command_name() & ": invalid NPC reference " & seekid & " (maybe the NPC was deleted?)", errlvl
-   RETURN -1
-  ELSE
-   DIM id as integer = ABS(npc(npcidx).id) - 1
-   IF id > UBOUND(npcs) THEN
-    'Note that an NPC may be marked hidden because it has an invalid ID
-    scripterr current_command_name() & ": NPC reference " & seekid & " is for a disabled NPC with invalid ID " & npc(npcidx).id & " (the map must be incompletely loaded)", errlvl
-    RETURN -1
-   END IF
-   RETURN id
-  END IF
- END IF
-END FUNCTION
-
-SUB greyscalepal
-FOR i as integer = bound(retvals(0), 0, 255) TO bound(retvals(1), 0, 255)
- master(i).r = bound((master(i).r + master(i).g + master(i).b) / 3, 0, 255)
- master(i).g = master(i).r
- master(i).b = master(i).r
-NEXT i
 END SUB
 
 FUNCTION rank_to_party_slot (byval rank as integer) as integer
@@ -390,68 +257,37 @@ FUNCTION herobyrank (byval rank as integer) as integer
  RETURN -1
 END FUNCTION
 
-SUB interpolatecat
-'given the current positions of the caterpillar party, interpolate their inbetween frames
-FOR o as integer = 0 TO 10 STEP 5
- FOR i as integer = o + 1 TO o + 4
-  catx(i) = catx(i - 1) + ((catx(o + 5) - catx(o)) / 5)
-  caty(i) = caty(i - 1) + ((caty(o + 5) - caty(o)) / 5)
-  catd(i) = catd(o)
- NEXT i
-NEXT o
-END SUB
-
-SUB visnpc()
- 'Hide/Unhide NPCs based on tag requirements. (No other function should do so)
- 'This SUB will be called when a map is incompletely loaded (NPC instances before definitions
- 'or vice versa), and that's hard to avoid, because a script could load them with two separate loadmapstate
- 'calls. So we must tolerate invalid NPC IDs and anything else. So here we mark all NPCs as hidden which
- 'would otherwise cause problems
-
- 'To scripts, hiding an NPC is like deleting it, and unhiding an NPC is like creating it.
- 'Therefore, zone exit triggers *do not* happen when hiding an NPC, and zone entry triggers *do*
- 'happen when unhiding an NPC (rather than remembering the old zones)
- 'However, we run the zone entry triggers elsewhere (update_npcs), otherwise tags toggled by the
- 'triggers would immediately affect NPCs not yet processed (it's better if the order doesn't
- 'matter), and worse, visnpc might be called several times per tick!
-
- FOR i as integer = 0 TO UBOUND(npc)
-  IF npc(i).id = 0 THEN CONTINUE FOR
-
-  DIM npc_id as integer = ABS(npc(i).id) - 1
-
-  IF npc_id > UBOUND(npcs) THEN
-   'Invalid ID number; hide. Probably a partially loaded map.
-   npc(i).id = -npc_id - 1
-   CONTINUE FOR
-  END IF
+FUNCTION rankincaterpillar (byval heroid as integer) as integer
+ 'Returns -1 if the hero is not found.
+ 'Returns the last hero's rank if there are more than one copy of the same hero
  
-  '--check tags
-  IF istag(npcs(npc_id).tag1, 1) ANDALSO istag(npcs(npc_id).tag2, 1) ANDALSO istag(onetime(), npcs(npc_id).usetag, 0) = 0 THEN
-   npc(i).id = npc_id + 1
-  ELSE
-   npc(i).id = -npc_id - 1
+ DIM result as integer = -1
+ DIM o as integer = 0
+ FOR i as integer = 0 TO 3
+  IF gam.hero(i).id >= 0 THEN
+   IF gam.hero(i).id = heroid THEN result = o
+   o += 1
   END IF
-  
-  IF npc(i).id > 0 THEN
-   '--NPC exists and is visible
-   IF npc(i).sl = 0 THEN
-    npc(i).sl = create_walkabout_slices(npc_layer())
-    'debug "npc(" & i & ").sl=" & npc(i).sl & " [visnpc]"
-    '--set sprite
-    set_walkabout_sprite npc(i).sl, npcs(npc_id).picture, npcs(npc_id).palette
-   END IF
-  ELSE
-   '--hidden
-   IF npc(i).sl <> 0 THEN
-    'debug "delete npc sl " & i & " [visnpc]"
-    DeleteSlice @npc(i).sl
-   END IF
-   v_free npc(i).curzones
-  END IF
-
  NEXT i
+ RETURN result
+END FUNCTION
+
+SUB interpolatecat
+ 'given the current positions of the caterpillar party, interpolate their inbetween frames
+ FOR o as integer = 0 TO 10 STEP 5
+  FOR i as integer = o + 1 TO o + 4
+   catx(i) = catx(i - 1) + ((catx(o + 5) - catx(o)) / 5)
+   caty(i) = caty(i - 1) + ((caty(o + 5) - caty(o)) / 5)
+   catd(i) = catd(o)
+  NEXT i
+ NEXT o
 END SUB
+
+
+'==========================================================================================
+'                             Keypresses and script triggering
+'==========================================================================================
+
 
 FUNCTION script_keyval (byval key as integer, byval joynum as integer = 0) as integer
  'Wrapper around keyval for use by scripts: performs scancode mapping for back-compat
@@ -538,6 +374,12 @@ SUB onkeyscript (byval scriptnum as integer)
 
 END SUB
 
+
+'==========================================================================================
+'                                      Playing time
+'==========================================================================================
+
+
 FUNCTION playtime (byval d as integer, byval h as integer, byval m as integer) as string
  DIM s as string = ""
 
@@ -591,30 +433,675 @@ SUB playtimer
  END IF
 END SUB
 
-FUNCTION rankincaterpillar (byval heroid as integer) as integer
- 'Returns -1 if the hero is not found.
- 'Returns the last hero's rank if there are more than one copy of the same hero
- 
- DIM result as integer = -1
- DIM o as integer = 0
- FOR i as integer = 0 TO 3
-  IF gam.hero(i).id >= 0 THEN
-   IF gam.hero(i).id = heroid THEN result = o
-   o += 1
+
+'==========================================================================================
+'                                      Wait Commands
+'==========================================================================================
+
+
+SUB process_wait_conditions()
+ WITH scriptinsts(nowscript)
+
+   ' Evaluate wait conditions, even if the fibre is paused (unimplemented),
+   ' as waiting for unpause first will just lead to bugs eg. due to map changes
+   ' (Note however that is the way the old one-script-at-a-time mode works: wait
+   ' conditions not considered until its turn to run)
+
+   IF .waiting = waitingOnTick THEN
+    .waitarg -= 1
+    IF .waitarg <= 0 THEN script_stop_waiting()
+    EXIT SUB
+   END IF
+
+   SELECT CASE .curvalue
+    CASE 15, 35, 61'--use door, use NPC, teleport to map
+     script_stop_waiting()
+    CASE 16'--fight formation
+     script_stop_waiting(IIF(gam.wonbattle, 1, 0))
+    CASE 1'--wait number of ticks
+     .waitarg -= 1
+     IF .waitarg < 1 THEN
+      script_stop_waiting()
+     END IF
+    CASE 2'--wait for all
+     DIM unpause as bool = YES
+     FOR i as integer = 0 TO 3
+      IF herow(i).xgo <> 0 OR herow(i).ygo <> 0 THEN unpause = NO
+     NEXT i
+     IF readbit(gen(), genSuspendBits, suspendnpcs) = 1 THEN
+      FOR i as integer = 0 TO UBOUND(npc)
+       IF npc(i).id > 0 ANDALSO (npc(i).xgo <> 0 OR npc(i).ygo <> 0) THEN unpause = NO: EXIT FOR
+      NEXT i
+     END IF
+     IF gen(genCameraMode) = pancam OR gen(genCameraMode) = focuscam THEN unpause = NO
+     IF unpause THEN
+      script_stop_waiting()
+     END IF
+    CASE 3'--wait for hero
+     IF .waitarg < 0 OR .waitarg > 3 THEN
+      scripterr "waiting for nonexistant hero " & .waitarg, serrBug  'should be bound by waitforhero
+      script_stop_waiting()
+     ELSE
+      IF herow(.waitarg).xgo = 0 AND herow(.waitarg).ygo = 0 THEN
+       script_stop_waiting()
+      END IF
+     END IF
+    CASE 4'--wait for NPC
+     DIM npcref as integer = getnpcref(.waitarg, 0)
+     IF npcref >= 0 ANDALSO .waitarg2 = gam.map.id THEN
+      IF npc(npcref).xgo = 0 AND npc(npcref).ygo = 0 THEN
+       script_stop_waiting()
+      END IF
+     ELSE
+      '--no reference found, why wait for a non-existant npc?
+      script_stop_waiting()
+     END IF
+    CASE 9'--wait for key
+     IF txt.showing ANDALSO use_touch_textboxes() THEN
+      'If a touch textbox is currently being displayed, we make a special
+      'exception and treat any touch as the key we are waiting for
+      DIM mouse as MouseInfo
+      mouse = readmouse()
+      IF (mouse.clickstick AND mouseLeft) THEN
+       script_stop_waiting()
+      END IF
+     END IF
+     IF .waitarg >= 0 AND .waitarg <= 5 THEN
+      IF carray(.waitarg) > 1 THEN
+       script_stop_waiting()
+      END IF
+      'Because carray(ccMenu) doesn't include it, and we don't want to break scripts
+      'doing waitforkey(menu key) followed by looking for key:alt (== scUnfilteredAlt)
+      IF .waitarg = ccMenu AND keyval(scUnfilteredAlt) > 1 THEN script_stop_waiting()
+     ELSE
+      '.waitarg == anykey
+      DIM temp as integer = anykeypressed()
+      'Because anykeypressed doesn't check it, and we don't want to break scripts
+      'doing waitforkey(any key) followed by looking for key:alt (== scUnfilteredAlt)
+      IF keyval(scUnfilteredAlt) > 1 THEN temp = scUnfilteredAlt
+      IF temp THEN
+       script_stop_waiting(temp)
+      END IF
+     END IF
+    CASE 244'--wait for scancode
+     IF keyval(.waitarg) > 1 THEN
+      script_stop_waiting()
+     END IF
+    CASE 42'--wait for camera
+     IF gen(genCameraMode) <> pancam AND gen(genCameraMode) <> focuscam THEN script_stop_waiting()
+    CASE 59'--wait for text box
+     IF txt.showing = NO OR readbit(gen(), genSuspendBits, suspendboxadvance) = 1 THEN
+      script_stop_waiting()
+     END IF
+    CASE 73, 234, 438'--game over, quit from loadmenu, reset game
+    CASE 508'--wait for slice
+     IF valid_plotslice(.waitarg, serrWarn) THEN
+      IF plotslices(.waitarg)->Velocity.X = 0 ANDALSO plotslices(.waitarg)->Velocity.Y = 0 ANDALSO plotslices(.waitarg)->TargTicks = 0 THEN
+       script_stop_waiting()
+      END IF
+     ELSE
+      'If the slice ceases to exist, we should stop waiting for it (after throwing our minor warning)
+      script_stop_waiting()
+     END IF
+    CASE 575'--wait for dissolve
+     IF valid_plotslice(.waitarg, serrWarn) THEN
+      IF NOT SpriteSliceIsDissolving(plotslices(.waitarg), YES) THEN
+       script_stop_waiting()
+      END IF
+     ELSE
+      'If the slice ceases to exist, we should stop waiting for it (after throwing our minor warning)
+      script_stop_waiting()
+     END IF
+    CASE ELSE
+     scripterr "illegal wait substate " & .curvalue, serrBug
+     script_stop_waiting()
+   END SELECT
+
+ END WITH
+END SUB
+
+
+'==========================================================================================
+'                                      Script Commands
+'==========================================================================================
+
+
+SUB sfunctions(byval cmdid as integer)
+ DIM menuslot as integer = ANY
+ DIM mislot as integer = ANY
+ DIM npcref as integer = ANY
+ DIM i as integer = ANY
+ scriptret = 0
+
+ SELECT CASE as CONST cmdid
+
+ 'old sfunctions
+
+ CASE 11'--show textbox (box)
+  'showtextbox(0) does nothing
+  gam.want.box = large(0, retvals(0))
+  IF immediate_showtextbox ANDALSO gam.want.box > 0 THEN loadsay gam.want.box: gam.want.box = 0
+ CASE 15'--use door
+  gam.want.door = retvals(0) + 1
+  script_start_waiting(0)
+ CASE 16'--fight formation
+  IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxFormation) THEN
+   gam.want.battle = retvals(0) + 1
+   script_start_waiting(0)
+  ELSE
+   scriptret = -1
   END IF
- NEXT i
- RETURN result
-END FUNCTION
+ CASE 23'--unequip
+  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+   i = retvals(0)
+   unequip i, bound(retvals(1) - 1, 0, 4), gam.hero(i).def_wep, 1
+  END IF
+ CASE 24'--force equip
+  IF valid_hero_party(retvals(0)) THEN
+   i = retvals(0)
+   IF valid_item(retvals(2)) THEN
+    unequip i, bound(retvals(1) - 1, 0, 4), gam.hero(i).def_wep, 0
+    doequip retvals(2) + 1, i, bound(retvals(1) - 1, 0, 4), gam.hero(i).def_wep
+   END IF
+  END IF
+ CASE 32'--show backdrop
+  gen(genScrBackdrop) = bound(retvals(0) + 1, 0, gen(genNumBackdrops))
+ CASE 33'--show map
+  gen(genScrBackdrop) = 0
+ CASE 34'--dismount vehicle
+  forcedismount catd()
+ CASE 35'--use NPC
+  npcref = getnpcref(retvals(0), 0)
+  IF npcref >= 0 THEN
+   gam.want.usenpc = npcref + 1
+   script_start_waiting()
+  END IF
+ CASE 37'--use shop
+  IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxShop) THEN
+   shop retvals(0)
+  END IF
+ CASE 55'--get default weapon
+  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+   scriptret = gam.hero(retvals(0)).def_wep - 1
+  ELSE
+   scriptret = 0
+  END IF
+ CASE 56'--set default weapon
+  IF valid_hero_party(retvals(0)) THEN
+   IF valid_item(retvals(1)) THEN
+    '--identify new default weapon
+    DIM as integer newdfw = retvals(1) + 1
+    '--remember old default weapon
+    DIM as integer olddfw = gam.hero(retvals(0)).def_wep
+    '--remeber currently equipped weapon
+    DIM as integer cureqw = eqstuf(retvals(0), 0)
+    '--change default
+    gam.hero(retvals(0)).def_wep = newdfw
+    '--blank weapon
+    unequip retvals(0), 0, olddfw, 0
+    IF cureqw <> olddfw THEN
+     '--if previously using a weapon, re-equip old weapon
+     doequip cureqw, retvals(0), 0, newdfw
+    ELSE
+     '--otherwize equip new default weapon
+     doequip newdfw, retvals(0), 0, newdfw
+    END IF
+   END IF
+  END IF
+ CASE 61'--teleport to map
+  IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxMap) THEN
+   gam.map.id = retvals(0)
+   catx(0) = retvals(1) * 20
+   caty(0) = retvals(2) * 20
+   gam.want.teleport = YES
+   script_start_waiting(0)
+  END IF
+ CASE 63, 169'--resume random enemies
+  setbit gen(), genSuspendBits, suspendrandomenemies, 0
+  gam.random_battle_countdown = range(100, 60)
+ CASE 73'--game over
+  abortg = 1
+  script_start_waiting()
+ CASE 77'--show value
+  gam.showstring = STR(retvals(0))
+ CASE 78'--alter NPC
+  IF bound_arg(retvals(1), 0, 16, "NPCstat: constant") THEN
+   DIM npcid as integer = get_valid_npc_id(retvals(0), serrBound)
+   IF npcid <> -1 THEN
+    DIM as integer writesafe = 1
+    IF retvals(1) = 0 THEN
+     IF retvals(2) < 0 OR retvals(2) > gen(genMaxNPCPic) THEN
+      writesafe = 0
+     ELSE
+      change_npc_def_sprite npcid, retvals(2)
+     END IF
+    END IF
+    IF retvals(1) = 1 THEN
+     change_npc_def_pal npcid, retvals(2)
+    END IF
+    IF writesafe THEN SetNPCD(npcs(npcid), retvals(1), retvals(2))
+    lump_reloading.npcd.dirty = YES
+   END IF
+  END IF
+ CASE 79'--show no value
+  gam.showstring = ""
+ CASE 80'--current map
+  scriptret = gam.map.id
+ CASE 86'--advance text box
+  advance_text_box
+ CASE 97'--read map block
+  IF curcmd->argc = 2 THEN retvals(2) = 0
+  IF retvals(2) >= 0 AND retvals(2) <= UBOUND(maptiles) THEN
+   scriptret = readblock(maptiles(retvals(2)), bound(retvals(0), 0, mapsizetiles.x-1), bound(retvals(1), 0, mapsizetiles.y-1))
+  END IF
+ CASE 98'--write map block
+  IF curcmd->argc = 3 THEN retvals(3) = 0
+  IF retvals(3) >= 0 AND retvals(3) <= UBOUND(maptiles) AND retvals(2) >= 0 AND retvals(2) <= 255 THEN
+   writeblock maptiles(retvals(3)), bound(retvals(0), 0, mapsizetiles.x-1), bound(retvals(1), 0, mapsizetiles.y-1), retvals(2)
+   lump_reloading.maptiles.dirty = YES
+  END IF
+ CASE 99'--read pass block
+  scriptret = readblock(pass, bound(retvals(0), 0, mapsizetiles.x-1), bound(retvals(1), 0, mapsizetiles.y-1))
+ CASE 100'--write pass block
+  writeblock pass, bound(retvals(0), 0, mapsizetiles.x-1), bound(retvals(1), 0, mapsizetiles.y-1), bound(retvals(2), 0, 255)
+  lump_reloading.passmap.dirty = YES
+ CASE 144'--load tileset
+  'version that doesn't modify gmap
+  IF retvals(0) <= gen(genMaxTile) THEN
+   IF retvals(1) < 0 OR curcmd->argc <= 1 THEN
+    '0 or 1 args given
+    IF retvals(0) < 0 THEN
+     'reload all defaults
+     loadmaptilesets tilesets(), gmap(), NO
+    ELSE
+     'change default
+     FOR i = 0 TO mapLayerMax
+      IF gmap(layer_tileset_index(i)) = 0 THEN loadtilesetdata tilesets(), i, retvals(0)
+     NEXT
+    END IF
+   ELSEIF valid_map_layer(retvals(1), serrWarn) AND retvals(0) >= 0 THEN
+    'load tileset for an individual layer.
+    loadtilesetdata tilesets(), retvals(1), retvals(0)
+   END IF
+   '--important to refresh map slices regardless of how the tileset was changed
+   refresh_map_slice_tilesets
+  END IF
+ CASE 305'--change tileset
+  'this version of load tileset modifies gmap() for persistent (given map state saving) effects
+  IF retvals(0) <= gen(genMaxTile) THEN
+   IF retvals(1) < 0 THEN
+    IF retvals(0) < 0 THEN
+     'reload all defaults
+    ELSE
+     'change default
+     gmap(0) = retvals(0)
+    END IF
+   ELSEIF valid_map_layer(retvals(1), serrWarn) THEN
+    'load tileset for an individual layer
+    gmap(layer_tileset_index(retvals(1))) = large(0, retvals(0) + 1)
+   END IF
+   loadmaptilesets tilesets(), gmap(), NO
+   refresh_map_slice_tilesets
+  END IF
+ CASE 151'--show mini map
+  minimap catx(0), caty(0)
+ CASE 153'--items menu
+  gam.want.box = item_screen()
+  IF gam.want.box ANDALSO immediate_showtextbox THEN loadsay gam.want.box: gam.want.box = 0
+ CASE 155, 170'--save menu
+  'ID 155 is a backcompat hack
+  scriptret = picksave(0) + 1
+  IF scriptret > 0 AND (retvals(0) OR cmdid = 155) THEN
+   savegame scriptret - 1
+  END IF
+ CASE 166'--save in slot
+  IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
+   savegame retvals(0) - 1
+  END IF
+ CASE 167'--last save slot
+  scriptret = lastsaveslot
+ CASE 174'--load from slot
+  IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
+   IF save_slot_used(retvals(0) - 1) THEN
+    gam.want.loadgame = retvals(0)
+    script_start_waiting()
+   END IF
+  END IF
+ CASE 210'--show string
+  IF valid_plotstr(retvals(0)) THEN
+   gam.showstring = plotstr(retvals(0)).s
+  END IF
+ CASE 234'--load menu
+  scriptret = picksave(1) + 1
+  IF retvals(0) THEN
+   IF scriptret = -1 THEN
+    'New Game
+    abortg = 2  'don't go straight back to loadmenu!
+    script_start_waiting()
+    fadeout 0, 0, 0
+   ELSEIF scriptret > 0 THEN
+    gam.want.loadgame = scriptret
+    script_start_waiting()
+   END IF
+  END IF
+ CASE 245'--save map state
+  IF retvals(1) > -1 AND retvals(1) <= 31 THEN
+   savemapstate_bitmask retvals(1), retvals(0), "state"
+  ELSEIF retvals(1) = 255 THEN
+   savemapstate_bitmask gam.map.id, retvals(0), "map"
+  END IF
+ CASE 246'--load map state
+  IF retvals(1) > -1 AND retvals(1) <= 31 THEN
+   loadmapstate_bitmask retvals(1), retvals(0), "state", -1
+  ELSEIF retvals(1) = 255 THEN
+   loadmapstate_bitmask gam.map.id, retvals(0), "map"
+  END IF
+ CASE 247'--reset map state
+  loadmaplumps gam.map.id, retvals(0)
+ CASE 248'--delete map state
+  deletemapstate gam.map.id, retvals(0), "map"
+ CASE 253'--set tile animation offset
+  IF curcmd->argc < 3 THEN retvals(2) = 0
+  IF (retvals(0) = 0 OR retvals(0) = 1) AND valid_map_layer(retvals(2), serrBound) THEN
+   tilesets(retvals(2))->anim(retvals(0)).cycle = retvals(1) MOD 160
+  END IF
+ CASE 254'--get tile animation offset
+  IF curcmd->argc < 2 THEN retvals(1) = 0
+  IF (retvals(0) = 0 OR retvals(0) = 1) AND valid_map_layer(retvals(1), serrBound) THEN
+   scriptret = tilesets(retvals(1))->anim(retvals(0)).cycle
+  END IF
+ CASE 255'--animation start tile
+  IF curcmd->argc < 2 THEN retvals(1) = 0  'Older versions
+  IF (retvals(0) >= 0 AND retvals(0) < 256) AND valid_map_layer(retvals(1), serrBound) THEN
+   scriptret = tile_anim_deanimate_tile(retvals(0), tilesets(retvals(1))->tastuf())
+  END IF
+ CASE 258'--check hero wall
+  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+   DIM as integer tempxgo = 0, tempygo = 0
+   IF retvals(1) = 0 THEN tempygo = 20
+   IF retvals(1) = 1 THEN tempxgo = -20
+   IF retvals(1) = 2 THEN tempygo = -20
+   IF retvals(1) = 3 THEN tempxgo = 20
+   scriptret = wrappass(catx(retvals(0) * 5) \ 20, caty(retvals(0) * 5) \ 20, tempxgo, tempygo, 0)
+  END IF
+ CASE 259'--check NPC wall
+  npcref = getnpcref(retvals(0), 0)
+  IF npcref >= 0 THEN
+   'Only check walls for NPC who actually exists
+   DIM as integer tempxgo = 0, tempygo = 0
+   IF retvals(1) = 0 THEN tempygo = 20
+   IF retvals(1) = 1 THEN tempxgo = -20
+   IF retvals(1) = 2 THEN tempygo = -20
+   IF retvals(1) = 3 THEN tempxgo = 20
+   scriptret = wrappass(npc(npcref).x \ 20, npc(npcref).y \ 20, tempxgo, tempygo, 0)
+  END IF
+ CASE 267'--main menu
+  add_menu 0
+ CASE 274'--open menu
+  IF bound_arg(retvals(0), 0, gen(genMaxMenu), "menu ID") THEN
+   scriptret = add_menu(retvals(0), (retvals(1) <> 0))
+  END IF
+ CASE 275'--read menu int
+  menuslot = find_menu_handle(retvals(0))
+  IF valid_menuslot(menuslot) THEN
+   scriptret = read_menu_int(menus(menuslot), retvals(1))
+  END IF
+ CASE 276'--write menu int
+  menuslot = find_menu_handle(retvals(0))
+  IF valid_menuslot(menuslot) THEN
+   write_menu_int(menus(menuslot), retvals(1), retvals(2))
+   mstates(menuslot).need_update = YES
+  END IF
+ CASE 277'--read menu item int
+  mislot = find_menu_item_handle(retvals(0), menuslot)
+  IF valid_menuslot_and_mislot(menuslot, mislot) THEN
+   WITH menus(menuslot)
+    scriptret = read_menu_item_int(*.items[mislot], retvals(1))
+   END WITH
+  END IF
+ CASE 278'--write menu item int
+  mislot = find_menu_item_handle(retvals(0), menuslot)
+  IF valid_menuslot_and_mislot(menuslot, mislot) THEN
+   WITH menus(menuslot)
+    write_menu_item_int(*.items[mislot], retvals(1), retvals(2))
+   END WITH
+   mstates(menuslot).need_update = YES
+  END IF
+ CASE 279'--create menu
+  scriptret = add_menu(-1)
+  menus(topmenu).allow_gameplay = YES
+ CASE 280'--close menu
+  menuslot = find_menu_handle(retvals(0))
+  IF valid_menuslot(menuslot) THEN
+   remove_menu menuslot, NO
+  END IF
+ CASE 281'--top menu
+  IF topmenu >= 0 THEN
+   scriptret = menus(topmenu).handle
+  END IF
+ CASE 282'--bring menu forward
+  menuslot = find_menu_handle(retvals(0))
+  IF valid_menuslot(menuslot) THEN
+   bring_menu_forward menuslot
+  END IF
+ CASE 283'--add menu item
+  menuslot = find_menu_handle(retvals(0))
+  IF valid_menuslot(menuslot) THEN
+   append_menu_item(menus(menuslot), "")
+   scriptret = assign_menu_item_handle(*menus(menuslot).last)
+   mstates(menuslot).need_update = YES
+  END IF
+ CASE 284'--delete menu item
+  mislot = find_menu_item_handle(retvals(0), menuslot)
+  IF valid_menuslot_and_mislot(menuslot, mislot) THEN
+   remove_menu_item menus(menuslot), mislot
+   mstates(menuslot).need_update = YES
+  END IF
+ CASE 285'--get menu item caption
+  mislot = find_menu_item_handle(retvals(0), menuslot)
+  IF valid_menuslot_and_mislot(menuslot, mislot) THEN
+   IF valid_plotstr(retvals(1)) THEN
+    plotstr(retvals(1)).s = get_menu_item_caption(*menus(menuslot).items[mislot], menus(menuslot))
+   END IF
+  END IF
+ CASE 286'--set menu item caption
+  mislot = find_menu_item_handle(retvals(0), menuslot)
+  IF valid_menuslot_and_mislot(menuslot, mislot) THEN
+   IF valid_plotstr(retvals(1)) THEN
+    menus(menuslot).items[mislot]->caption = plotstr(retvals(1)).s
+   END IF
+  END IF
+ CASE 287'--get level mp
+  IF valid_hero_party(retvals(0)) THEN
+   IF bound_arg(retvals(1), 0, 7, "mp level") THEN
+    IF curcmd->argc = 2 THEN retvals(2) = 0  'Third arg added later
+    IF retvals(2) = 0 THEN
+     'Current stat
+     scriptret = lmp(retvals(0), retvals(1))
+    ELSEIF retvals(2) = 1 THEN
+     'Maximum stat
+     DIM levelmp(7) as integer
+     get_max_levelmp(levelmp(), gam.hero(retvals(0)).lev)
+     scriptret = levelmp(retvals(1))
+    ELSE
+     scripterr "getlevelmp: stat type should be currentstat==0 or maximumstat==1, not " & retvals(2), serrBadOp
+    END IF
+   END IF
+  END IF
+ CASE 288'--set level mp
+  IF valid_hero_party(retvals(0)) THEN
+   IF bound_arg(retvals(1), 0, 7, "mp level") THEN
+    lmp(retvals(0), retvals(1)) = retvals(2)
+   END IF
+  END IF
+ CASE 289'--bottom menu
+  IF topmenu >= 0 THEN
+   scriptret = menus(0).handle
+  END IF
+ CASE 290'--previous menu
+  menuslot = find_menu_handle(retvals(0))
+  IF valid_menuslot(menuslot) THEN
+   menuslot = menuslot - 1
+   IF menuslot >= 0 THEN
+    scriptret = menus(menuslot).handle
+   END IF
+  END IF
+ CASE 291'--next menu
+  menuslot = find_menu_handle(retvals(0))
+  IF valid_menuslot(menuslot) THEN
+   menuslot = menuslot + 1
+   IF menuslot <= topmenu THEN
+    scriptret = menus(menuslot).handle
+   END IF
+  END IF
+ CASE 292'--menu item by slot
+  menuslot = find_menu_handle(retvals(0))
+  IF valid_menuslot(menuslot) THEN
+   scriptret = menu_item_handle_by_slot(menuslot, retvals(1), retvals(2)<>0)
+  END IF
+ CASE 293'--previous menu item
+  mislot = find_menu_item_handle(retvals(0), menuslot)
+  IF valid_menuslot_and_mislot(menuslot, mislot) THEN
+   scriptret = menu_item_handle_by_slot(menuslot, mislot - 1, retvals(1)<>0)
+  END IF
+ CASE 294'--next menu item
+  mislot = find_menu_item_handle(retvals(0), menuslot)
+  IF valid_menuslot_and_mislot(menuslot, mislot) THEN
+   scriptret = menu_item_handle_by_slot(menuslot, mislot + 1, retvals(1)<>0)
+  END IF
+ CASE 295'--selected menu item
+  IF retvals(0) = -1 THEN
+   IF topmenu >= 0 THEN
+    scriptret = menu_item_handle_by_slot(topmenu, mstates(topmenu).pt)
+   END IF
+  ELSE
+   menuslot = find_menu_handle(retvals(0))
+   IF valid_menuslot(menuslot) THEN
+    scriptret = menu_item_handle_by_slot(menuslot, mstates(menuslot).pt)
+   END IF
+  END IF
+ CASE 296'--select menu item
+  mislot = find_menu_item_handle(retvals(0), menuslot)
+  IF valid_menuslot_and_mislot(menuslot, mislot) THEN
+   mstates(menuslot).pt = mislot
+   mstates(menuslot).need_update = YES
+  END IF
+ CASE 297'--parent menu
+  mislot = find_menu_item_handle(retvals(0), menuslot)
+  IF valid_menuslot_and_mislot(menuslot, mislot) THEN
+   scriptret = menus(menuslot).handle
+  END IF
+ CASE 298'--get menu ID
+  menuslot = find_menu_handle(retvals(0))
+  IF valid_menuslot(menuslot) THEN
+   scriptret = menus(menuslot).record
+  END IF
+ CASE 299'--swap menu items
+  DIM as integer menuslot2, mislot2
+  mislot = find_menu_item_handle(retvals(0), menuslot)
+  mislot2 = find_menu_item_handle(retvals(1), menuslot2)
+  IF valid_menuslot_and_mislot(menuslot, mislot) THEN
+   IF valid_menuslot_and_mislot(menuslot2, mislot2) THEN
+    swap_menu_items menus(menuslot), mislot, menus(menuslot2), mislot2
+    mstates(menuslot).need_update = YES
+    mstates(menuslot2).need_update = YES
+   END IF
+  END IF
+ CASE 300'--find menu item caption
+  IF valid_plotstr(retvals(1)) THEN
+   menuslot = find_menu_handle(retvals(0))
+   DIM start_slot as integer
+   IF retvals(2) = 0 THEN
+    start_slot = 0
+   ELSE
+    start_slot = find_menu_item_handle_in_menuslot(retvals(2), menuslot) + 1
+   END IF
+   IF valid_menuslot_and_mislot(menuslot, start_slot) THEN
+    mislot = find_menu_item_slot_by_string(menuslot, plotstr(retvals(1)).s, start_slot, (retvals(3) <> 0))
+    IF mislot >= 0 THEN scriptret = menus(menuslot).items[mislot]->handle
+   END IF
+  END IF
+ CASE 301'--find menu ID
+  IF bound_arg(retvals(0), 0, gen(genMaxMenu), "menu ID") THEN
+   menuslot = find_menu_id(retvals(0))
+   IF menuslot >= 0 THEN
+    scriptret = menus(menuslot).handle
+   ELSE
+    scriptret = 0
+   END IF
+  END IF
+ CASE 302'--menu is open
+  menuslot = find_menu_handle(retvals(0))
+  IF menuslot = -1 THEN
+   scriptret = 0
+  ELSE
+   scriptret = 1
+  END IF
+ CASE 303'--menu item slot
+  mislot = find_menu_item_handle(retvals(0), menuslot)
+  IF valid_menuslot_and_mislot(menuslot, mislot) THEN
+   scriptret = mislot
+  END IF
+ CASE 304'--outside battle cure
+  'WARNING: This exists for backcompat, but "map cure" should be prefered.
+  'See bug 719
+  IF bound_arg(retvals(0), 0, gen(genMaxAttack), "attack ID") THEN
+   IF valid_hero_party(retvals(1)) THEN
+    IF valid_hero_party(retvals(2), -1) THEN
+     scriptret = ABS(outside_battle_cure(retvals(0), retvals(1), retvals(2), 0))
+    END IF
+   END IF
+  END IF
+ CASE 306'--layer tileset
+  IF valid_map_layer(retvals(0), serrBound) THEN
+   scriptret = tilesets(retvals(0))->num
+  END IF
+ CASE 320'--current text box
+  scriptret = -1
+  IF txt.showing = YES THEN scriptret = txt.id
+  IF immediate_showtextbox = NO ANDALSO gam.want.box > 0 THEN scriptret = gam.want.box
+ CASE 432 '--use menu item
+  mislot = find_menu_item_handle(retvals(0), menuslot)
+  IF valid_menuslot_and_mislot(menuslot, mislot) THEN
+   activate_menu_item(*menus(menuslot).items[mislot], menuslot)
+  END IF
+ CASE 438 '--reset game
+  resetg = YES
+  script_start_waiting()
+ CASE 490'--use item (id)
+  scriptret = 0
+  IF valid_item(retvals(0)) THEN
+   IF use_item_by_id(retvals(0), gam.want.box) THEN
+    scriptret = 1
+   END IF
+   IF immediate_showtextbox ANDALSO gam.want.box > 0 THEN loadsay gam.want.box: gam.want.box = 0
+  END IF
+ CASE 491'--use item in slot (slot)
+  scriptret = 0
+  IF valid_item_slot(retvals(0)) THEN
+   IF use_item_in_slot(retvals(0), gam.want.box) THEN
+    scriptret = 1
+   END IF
+   IF immediate_showtextbox ANDALSO gam.want.box > 0 THEN loadsay gam.want.box: gam.want.box = 0
+  END IF
+ CASE 517'--menu item by true slot
+  menuslot = find_menu_handle(retvals(0))
+  IF valid_menuslot(menuslot) THEN
+   DIM menuitem as MenuDefItem ptr = dlist_nth(menus(menuslot).itemlist, retvals(1))
+   IF menuitem THEN
+    scriptret = menuitem->handle
+   ELSE
+    scriptret = 0
+   END IF
+  END IF
+ CASE 518'--menu item true slot
+  mislot = find_menu_item_handle(retvals(0), menuslot)
+  IF valid_menuslot_and_mislot(menuslot, mislot) THEN
+   scriptret = dlist_find(menus(menuslot).itemlist, menus(menuslot).items[mislot])
+   IF scriptret < 0 THEN scripterr "menuitemtrueslot: dlist corruption", serrBug
+  END IF
 
-FUNCTION scriptmisc (byval id as integer) as bool
-
-'contains a whole mess of scripting commands that do not depend on
-'any main-module level local variables or GOSUBs
-'Returns true if command was handled.
-
-DIM npcref as integer = ANY
-
-SELECT CASE as CONST id
+ 'End of old game.bas-sfunctions
 
  CASE 135'--puthero
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
@@ -1169,7 +1656,7 @@ SELECT CASE as CONST id
    DIM form as Formation
    LoadFormation form, retvals(0)
    scriptret = form.music
-   IF id = 189 THEN scriptret += 1
+   IF cmdid = 189 THEN scriptret += 1
   END IF
  CASE 190'--set formation song
   'set formation song never worked, so don't bother with backwards compatibility
@@ -1612,7 +2099,7 @@ SELECT CASE as CONST id
    DIM form as Formation
    LoadFormation form, retvals(0)
    DIM enemy_id as integer = form.slots(retvals(1)).id
-   scriptret = form.slots(retvals(1)).pos.n(id - 312)
+   scriptret = form.slots(retvals(1)).pos.n(cmdid - 312)
    'now find the position of the bottom center of the enemy sprite
    IF enemy_id >= 0 THEN
     DIM pictype as integer = ReadShort(tmpdir & "dt1.tmp", enemy_id * getbinsize(binDT1) + 111) 'picture size
@@ -1620,7 +2107,7 @@ SELECT CASE as CONST id
     IF pictype = 0 THEN picsize = 34
     IF pictype = 1 THEN picsize = 50
     IF pictype = 2 THEN picsize = 80
-    IF id = 312 THEN scriptret += picsize \ 2 ELSE scriptret += picsize
+    IF cmdid = 312 THEN scriptret += picsize \ 2 ELSE scriptret += picsize
    END IF
   END IF
  CASE 314'--set formation background (formation, background, animation frames, animation ticks)
@@ -3023,7 +3510,7 @@ SELECT CASE as CONST id
    ELSE
     scriptret = 1
    END IF
-   IF id = 117 THEN scriptret = scriptret XOR 1 'Backcompat hack
+   IF cmdid = 117 THEN scriptret = scriptret XOR 1 'Backcompat hack
   END IF
  CASE 120'--NPC reference
   scriptret = 0
@@ -3724,162 +4211,160 @@ SELECT CASE as CONST id
   hidemousecursor
 
  CASE ELSE
-  RETURN NO
+  'We also check the HSP header at load time to check there aren't unsupported commands
+  scripterr "Unsupported script command " & cmdid & " " & commandname(cmdid) & ". " _
+            "Try downloading the latest version of the OHRRPGCE.", serrError
 
-END SELECT
-RETURN YES
-END FUNCTION
-
-SUB tweakpalette (byval r as integer, byval g as integer, byval b as integer, byval first as integer = 0, byval last as integer = 255)
- FOR i as integer = first TO last
-  master(i).r = bound(master(i).r + r * 4, 0, 255)
-  master(i).g = bound(master(i).g + g * 4, 0, 255)
-  master(i).b = bound(master(i).b + b * 4, 0, 255)
- NEXT i
+ END SELECT
 END SUB
 
-SUB update_vehicle_state ()
-STATIC aheadx as integer
-STATIC aheady as integer
 
-IF vstate.mounting THEN '--scramble-----------------------
- '--part of the vehicle automount where heros scramble--
- IF npc(vstate.npc).xgo = 0 AND npc(vstate.npc).ygo = 0 THEN
-  '--npc must stop before we mount
-  IF vehscramble(npc(vstate.npc).x, npc(vstate.npc).y) THEN
-   'Finished scramble
-   vstate.mounting = NO
-   IF vstate.dat.elevation > 0 THEN vstate.rising = YES
+'==========================================================================================
+'                                        Vehicles
+'==========================================================================================
+
+
+SUB update_vehicle_state ()
+ STATIC aheadx as integer
+ STATIC aheady as integer
+
+ IF vstate.mounting THEN '--scramble-----------------------
+  '--part of the vehicle automount where heros scramble--
+  IF npc(vstate.npc).xgo = 0 AND npc(vstate.npc).ygo = 0 THEN
+   '--npc must stop before we mount
+   IF vehscramble(npc(vstate.npc).x, npc(vstate.npc).y) THEN
+    'Finished scramble
+    vstate.mounting = NO
+    IF vstate.dat.elevation > 0 THEN vstate.rising = YES
+   END IF
   END IF
- END IF
-END IF'--scramble mount
-IF vstate.rising THEN '--rise----------------------
- DIM risen_count as integer = 0
- FOR i as integer = 0 TO 3
-  IF catz(i * 5) < vstate.dat.elevation THEN
-   catz(i * 5) = catz(i * 5) + large(1, small(4, (vstate.dat.elevation - catz(i * 5) + 1) \ 2))
-  ELSE
-   risen_count += 1
-  END IF
- NEXT i
- IF risen_count = 4 THEN
-  vstate.rising = NO
- END IF
-END IF
-IF vstate.falling THEN '--fall-------------------
- DIM fallen_count as integer = 0
- FOR i as integer = 0 TO 3
-  IF catz(i * 5) > 0 THEN
-   catz(i * 5) = catz(i * 5) - large(1, small(4, (vstate.dat.elevation - catz(i * 5) + 1) \ 2))
-  ELSE
-   fallen_count += 1
-  END IF
- NEXT i
- IF fallen_count = 4 THEN
+ END IF'--scramble mount
+ IF vstate.rising THEN '--rise----------------------
+  DIM risen_count as integer = 0
   FOR i as integer = 0 TO 3
-   catz(i * 5) = 0
+   IF catz(i * 5) < vstate.dat.elevation THEN
+    catz(i * 5) = catz(i * 5) + large(1, small(4, (vstate.dat.elevation - catz(i * 5) + 1) \ 2))
+   ELSE
+    risen_count += 1
+   END IF
   NEXT i
-  vstate.falling = NO
-  vstate.init_dismount = YES
+  IF risen_count = 4 THEN
+   vstate.rising = NO
+  END IF
  END IF
-END IF
-IF vstate.init_dismount THEN '--dismount---------------
- vstate.init_dismount = NO
- DIM disx as integer = catx(0) \ 20
- DIM disy as integer = caty(0) \ 20
- IF vstate.dat.dismount_ahead AND vstate.dat.pass_walls_while_dismounting THEN
-  '--dismount-ahead is true, dismount-passwalls is true
-  aheadxy disx, disy, catd(0), 1
-  cropposition disx, disy, 1
+ IF vstate.falling THEN '--fall-------------------
+  DIM fallen_count as integer = 0
+  FOR i as integer = 0 TO 3
+   IF catz(i * 5) > 0 THEN
+    catz(i * 5) = catz(i * 5) - large(1, small(4, (vstate.dat.elevation - catz(i * 5) + 1) \ 2))
+   ELSE
+    fallen_count += 1
+   END IF
+  NEXT i
+  IF fallen_count = 4 THEN
+   FOR i as integer = 0 TO 3
+    catz(i * 5) = 0
+   NEXT i
+   vstate.falling = NO
+   vstate.init_dismount = YES
+  END IF
  END IF
- IF vehpass(vstate.dat.dismount_to, readblock(pass, disx, disy), -1) THEN
-  '--dismount point is landable
-  FOR i as integer = 0 TO 15
+ IF vstate.init_dismount THEN '--dismount---------------
+  vstate.init_dismount = NO
+  DIM disx as integer = catx(0) \ 20
+  DIM disy as integer = caty(0) \ 20
+  IF vstate.dat.dismount_ahead AND vstate.dat.pass_walls_while_dismounting THEN
+   '--dismount-ahead is true, dismount-passwalls is true
+   aheadxy disx, disy, catd(0), 1
+   cropposition disx, disy, 1
+  END IF
+  IF vehpass(vstate.dat.dismount_to, readblock(pass, disx, disy), -1) THEN
+   '--dismount point is landable
+   FOR i as integer = 0 TO 15
+    catx(i) = catx(0)
+    caty(i) = caty(0)
+    catd(i) = catd(0)
+    catz(i) = 0
+   NEXT i
+   IF vstate.dat.dismount_ahead = YES THEN
+    vstate.ahead = YES
+    aheadx = disx * 20
+    aheady = disy * 20
+   ELSE
+    vstate.trigger_cleanup = YES
+   END IF
+  ELSE
+   '--dismount point is unlandable
+   IF vstate.dat.elevation > 0 THEN
+    vstate.rising = YES '--riseagain
+   END IF
+  END IF
+ END IF
+ IF vstate.trigger_cleanup THEN '--clear
+  IF vstate.dat.on_dismount < 0 THEN trigger_script ABS(vstate.dat.on_dismount), YES, "vehicle dismount", "", scrqBackcompat()
+  IF vstate.dat.on_dismount > 0 THEN loadsay vstate.dat.on_dismount
+  settag vstate.dat.riding_tag, NO
+  IF vstate.dat.dismount_ahead = YES AND vstate.dat.pass_walls_while_dismounting = NO THEN
+   'FIXME: Why is this here, when dismounting is apparently also handled by vehscramble?
+   'Does this have to do with Bug 764 - "Blocked by" vehicle setting does nothing ?
+   SELECT CASE catd(0)
+    CASE 0
+     herow(0).ygo = 20
+    CASE 1
+     herow(0).xgo = -20
+    CASE 2
+     herow(0).ygo = -20
+    CASE 3
+     herow(0).xgo = 20
+   END SELECT
+  END IF
+  herow(0).speed = vstate.old_speed
+  npc(vstate.npc).xgo = 0
+  npc(vstate.npc).ygo = 0
+  npc(vstate.npc).z = 0
+  delete_walkabout_shadow npc(vstate.npc).sl
+  '--clear vehicle (sets vstate.active=NO, etc)
+  reset_vehicle vstate
+  FOR i as integer = 0 TO 15   'Why is this duplicated from dismounting?
    catx(i) = catx(0)
    caty(i) = caty(0)
    catd(i) = catd(0)
    catz(i) = 0
   NEXT i
-  IF vstate.dat.dismount_ahead = YES THEN
-   vstate.ahead = YES
-   aheadx = disx * 20
-   aheady = disy * 20
-  ELSE
-   vstate.trigger_cleanup = YES
-  END IF
- ELSE
-  '--dismount point is unlandable
-  IF vstate.dat.elevation > 0 THEN
-   vstate.rising = YES '--riseagain
+  gam.random_battle_countdown = range(100, 60)
+ END IF
+ IF vstate.ahead THEN '--dismounting ahead
+  IF vehscramble(aheadx, aheady) THEN
+   vstate.ahead = NO
+   vstate.trigger_cleanup = YES '--clear (happens next tick, maybe not intentionally)
   END IF
  END IF
-END IF
-IF vstate.trigger_cleanup THEN '--clear
- IF vstate.dat.on_dismount < 0 THEN trigger_script ABS(vstate.dat.on_dismount), YES, "vehicle dismount", "", scrqBackcompat()
- IF vstate.dat.on_dismount > 0 THEN loadsay vstate.dat.on_dismount
- settag vstate.dat.riding_tag, NO
- IF vstate.dat.dismount_ahead = YES AND vstate.dat.pass_walls_while_dismounting = NO THEN
-  'FIXME: Why is this here, when dismounting is apparently also handled by vehscramble?
-  'Does this have to do with Bug 764 - "Blocked by" vehicle setting does nothing ?
-  SELECT CASE catd(0)
-   CASE 0
-    herow(0).ygo = 20
-   CASE 1
-    herow(0).xgo = -20
-   CASE 2
-    herow(0).ygo = -20
-   CASE 3
-    herow(0).xgo = 20
-  END SELECT
- END IF
- herow(0).speed = vstate.old_speed
- npc(vstate.npc).xgo = 0
- npc(vstate.npc).ygo = 0
- npc(vstate.npc).z = 0
- delete_walkabout_shadow npc(vstate.npc).sl
- '--clear vehicle (sets vstate.active=NO, etc)
- reset_vehicle vstate
- FOR i as integer = 0 TO 15   'Why is this duplicated from dismounting?
-  catx(i) = catx(0)
-  caty(i) = caty(0)
-  catd(i) = catd(0)
-  catz(i) = 0
- NEXT i
- gam.random_battle_countdown = range(100, 60)
-END IF
-IF vstate.ahead THEN '--dismounting ahead
- IF vehscramble(aheadx, aheady) THEN
-  vstate.ahead = NO
-  vstate.trigger_cleanup = YES '--clear (happens next tick, maybe not intentionally)
- END IF
-END IF
-IF vstate.active = YES AND vehicle_is_animating() = NO THEN
- IF txt.showing = NO AND readbit(gen(), genSuspendBits, suspendplayer) = 0 THEN
-  REDIM button(1) as integer
-  button(0) = vstate.dat.use_button
-  button(1) = vstate.dat.menu_button
-  FOR i as integer = 0 TO 1
-   IF carray(ccUse + i) > 1 AND herow(0).xgo = 0 AND herow(0).ygo = 0 THEN
-    SELECT CASE button(i)
-     CASE -2
-      '-disabled
-     CASE -1
-      add_menu 0
-      menusound gen(genAcceptSFX)
-     CASE 0
-      '--dismount
-      vehicle_graceful_dismount
-     CASE IS > 0
-      trigger_script button(i), YES, "vehicle button " & i, "", scrqBackcompat()
-    END SELECT
-   END IF
-  NEXT i
- END IF
-END IF'--not animating
+ IF vstate.active = YES AND vehicle_is_animating() = NO THEN
+  IF txt.showing = NO AND readbit(gen(), genSuspendBits, suspendplayer) = 0 THEN
+   REDIM button(1) as integer
+   button(0) = vstate.dat.use_button
+   button(1) = vstate.dat.menu_button
+   FOR i as integer = 0 TO 1
+    IF carray(ccUse + i) > 1 AND herow(0).xgo = 0 AND herow(0).ygo = 0 THEN
+     SELECT CASE button(i)
+      CASE -2
+       '-disabled
+      CASE -1
+       add_menu 0
+       menusound gen(genAcceptSFX)
+      CASE 0
+       '--dismount
+       vehicle_graceful_dismount
+      CASE IS > 0
+       trigger_script button(i), YES, "vehicle button " & i, "", scrqBackcompat()
+     END SELECT
+    END IF
+   NEXT i
+  END IF
+ END IF'--not animating
 
-IF vstate.active THEN npc(vstate.npc).z = catz(0)
-
-END SUB 'result
+ IF vstate.active THEN npc(vstate.npc).z = catz(0)
+END SUB
 
 SUB vehicle_graceful_dismount ()
  herow(0).xgo = 0
@@ -3917,8 +4402,64 @@ FUNCTION vehpass (byval n as integer, byval tile as integer, byval default as in
  END SELECT
  
  RETURN v <> 0
-
 END FUNCTION
+
+'Returns true if the scramble is finished
+FUNCTION vehscramble(byval targx as integer, byval targy as integer) as bool
+ DIM scrambled_heroes as integer = 0
+ DIM count as integer = herocount()
+ DIM scramx as integer
+ DIM scramy as integer
+ FOR i as integer = 0 TO 3
+  IF i < count THEN
+   scramx = catx(i * 5)
+   scramy = caty(i * 5)
+   IF ABS(scramx - targx) < large(herow(i).speed, 4) THEN
+    scramx = targx
+    herow(i).xgo = 0
+    herow(i).ygo = 0
+   END IF
+   IF ABS(scramy - targy) < large(herow(i).speed, 4) THEN
+    scramy = targy
+    herow(i).xgo = 0
+    herow(i).ygo = 0
+   END IF
+   IF ABS(targx - scramx) > 0 AND herow(i).xgo = 0 THEN
+    herow(i).xgo = 20 * SGN(scramx - targx)
+   END IF
+   IF ABS(targy - scramy) > 0 AND herow(i).ygo = 0 THEN
+    herow(i).ygo = 20 * SGN(scramy - targy)
+   END IF
+   IF gmap(5) = 1 THEN
+    '--this is a wrapping map
+    IF ABS(scramx - targx) > mapsizetiles.x * 20 / 2 THEN herow(i).xgo *= -1
+    IF ABS(scramy - targy) > mapsizetiles.y * 20 / 2 THEN herow(i).ygo *= -1
+   END IF
+   IF scramx - targx = 0 AND scramy - targy = 0 THEN scrambled_heroes += 1
+   catx(i * 5) = scramx
+   caty(i * 5) = scramy
+  END IF
+ NEXT i
+ IF scrambled_heroes = count THEN
+  IF vstate.dat.on_mount < 0 THEN trigger_script ABS(vstate.dat.on_mount), YES, "vehicle on-mount", "", scrqBackcompat()
+  IF vstate.dat.on_mount > 0 THEN loadsay vstate.dat.on_mount
+  herow(0).speed = vstate.dat.speed
+  IF herow(0).speed = 3 THEN herow(0).speed = 10
+  '--null out hero's movement
+  FOR i as integer = 0 TO 3
+   herow(i).xgo = 0
+   herow(i).ygo = 0
+  NEXT i
+  RETURN YES
+ END IF
+ RETURN NO
+END FUNCTION
+
+
+'==========================================================================================
+'                                   Walkabout slices
+'==========================================================================================
+
 
 'Reload party walkabout graphics
 SUB vishero ()
@@ -3930,6 +4471,59 @@ SUB vishero ()
   END IF
  NEXT
 END SUB
+
+SUB visnpc()
+ 'Hide/Unhide NPCs based on tag requirements. (No other function should do so)
+ 'This SUB will be called when a map is incompletely loaded (NPC instances before definitions
+ 'or vice versa), and that's hard to avoid, because a script could load them with two separate loadmapstate
+ 'calls. So we must tolerate invalid NPC IDs and anything else. So here we mark all NPCs as hidden which
+ 'would otherwise cause problems
+
+ 'To scripts, hiding an NPC is like deleting it, and unhiding an NPC is like creating it.
+ 'Therefore, zone exit triggers *do not* happen when hiding an NPC, and zone entry triggers *do*
+ 'happen when unhiding an NPC (rather than remembering the old zones)
+ 'However, we run the zone entry triggers elsewhere (update_npcs), otherwise tags toggled by the
+ 'triggers would immediately affect NPCs not yet processed (it's better if the order doesn't
+ 'matter), and worse, visnpc might be called several times per tick!
+
+ FOR i as integer = 0 TO UBOUND(npc)
+  IF npc(i).id = 0 THEN CONTINUE FOR
+
+  DIM npc_id as integer = ABS(npc(i).id) - 1
+
+  IF npc_id > UBOUND(npcs) THEN
+   'Invalid ID number; hide. Probably a partially loaded map.
+   npc(i).id = -npc_id - 1
+   CONTINUE FOR
+  END IF
+ 
+  '--check tags
+  IF istag(npcs(npc_id).tag1, 1) ANDALSO istag(npcs(npc_id).tag2, 1) ANDALSO istag(onetime(), npcs(npc_id).usetag, 0) = 0 THEN
+   npc(i).id = npc_id + 1
+  ELSE
+   npc(i).id = -npc_id - 1
+  END IF
+  
+  IF npc(i).id > 0 THEN
+   '--NPC exists and is visible
+   IF npc(i).sl = 0 THEN
+    npc(i).sl = create_walkabout_slices(npc_layer())
+    'debug "npc(" & i & ").sl=" & npc(i).sl & " [visnpc]"
+    '--set sprite
+    set_walkabout_sprite npc(i).sl, npcs(npc_id).picture, npcs(npc_id).palette
+   END IF
+  ELSE
+   '--hidden
+   IF npc(i).sl <> 0 THEN
+    'debug "delete npc sl " & i & " [visnpc]"
+    DeleteSlice @npc(i).sl
+   END IF
+   v_free npc(i).curzones
+  END IF
+
+ NEXT i
+END SUB
+
 
 'Change picture and/or palette of a walkabout slice.
 '
@@ -3985,6 +4579,12 @@ SUB set_walkabout_vis (byval cont as Slice Ptr, byval vis as integer)
  END IF
 END SUB
 
+
+'==========================================================================================
+'                           Walkabout collision & map-wrapping
+'==========================================================================================
+
+
 SUB wrapaheadxy (byref x as integer, byref y as integer, byval direction as integer, byval distance as integer, byval unitsize as integer)
  'alters X and Y ahead by distance in direction, wrapping if neccisary
  'unitsize is 20 for pixels, 1 for tiles
@@ -4008,9 +4608,9 @@ SUB cropposition (byref x as integer, byref y as integer, byval unitsize as inte
 
 END SUB
 
+' Returns true if blocked by terrain
 FUNCTION wrappass (byval x as integer, byval y as integer, byref xgo as integer, byref ygo as integer, byval isveh as integer) as integer
  wrappass = 0
- ' returns true if blocked by terrain
  REDIM pd(3) as integer
  
  DIM tilex as integer = x
@@ -4078,6 +4678,12 @@ SUB wrapxy (byref x as integer, byref y as integer, byval wide as integer, byval
  y = ((y MOD high) + high) MOD high
 END SUB
 
+
+'==========================================================================================
+'                                     Music commands
+'==========================================================================================
+
+
 SUB wrappedsong (byval songnumber as integer)
  IF songnumber <> presentsong THEN
   playsongnum songnumber
@@ -4109,140 +4715,179 @@ FUNCTION backcompat_sound_id (byval id as integer) as integer
  END IF
 END FUNCTION
 
-'Returns true if the scramble is finished
-FUNCTION vehscramble(byval targx as integer, byval targy as integer) as bool
- DIM scrambled_heroes as integer = 0
- DIM count as integer = herocount()
- DIM scramx as integer
- DIM scramy as integer
- FOR i as integer = 0 TO 3
-  IF i < count THEN
-   scramx = catx(i * 5)
-   scramy = caty(i * 5)
-   IF ABS(scramx - targx) < large(herow(i).speed, 4) THEN
-    scramx = targx
-    herow(i).xgo = 0
-    herow(i).ygo = 0
+
+'==========================================================================================
+'                                        loadsay
+'==========================================================================================
+
+
+'Load a textbox
+SUB loadsay (byval box_id as integer)
+ DO '--This loop is where we find which box will be displayed right now
+  '--load data from the textbox lump
+  LoadTextBox txt.box, box_id
+
+  '-- evaluate "instead" conditionals
+  IF istag(txt.box.instead_tag, 0) THEN
+   '--do something else instead
+   IF txt.box.instead < 0 THEN
+    trigger_script -txt.box.instead, YES, "textbox instead", "box " & box_id, scrqBackcompat()
+    txt.sayer = -1
+    EXIT SUB
+   ELSE
+    IF box_id <> txt.box.instead THEN
+     box_id = txt.box.instead
+     CONTINUE DO' Skip back to the top of the loop and get another box
+    END IF
    END IF
-   IF ABS(scramy - targy) < large(herow(i).speed, 4) THEN
-    scramy = targy
-    herow(i).xgo = 0
-    herow(i).ygo = 0
-   END IF
-   IF ABS(targx - scramx) > 0 AND herow(i).xgo = 0 THEN
-    herow(i).xgo = 20 * SGN(scramx - targx)
-   END IF
-   IF ABS(targy - scramy) > 0 AND herow(i).ygo = 0 THEN
-    herow(i).ygo = 20 * SGN(scramy - targy)
-   END IF
-   IF gmap(5) = 1 THEN
-    '--this is a wrapping map
-    IF ABS(scramx - targx) > mapsizetiles.x * 20 / 2 THEN herow(i).xgo *= -1
-    IF ABS(scramy - targy) > mapsizetiles.y * 20 / 2 THEN herow(i).ygo *= -1
-   END IF
-   IF scramx - targx = 0 AND scramy - targy = 0 THEN scrambled_heroes += 1
-   catx(i * 5) = scramx
-   caty(i * 5) = scramy
   END IF
- NEXT i
- IF scrambled_heroes = count THEN
-  IF vstate.dat.on_mount < 0 THEN trigger_script ABS(vstate.dat.on_mount), YES, "vehicle on-mount", "", scrqBackcompat()
-  IF vstate.dat.on_mount > 0 THEN loadsay vstate.dat.on_mount
-  herow(0).speed = vstate.dat.speed
-  IF herow(0).speed = 3 THEN herow(0).speed = 10
-  '--null out hero's movement
-  FOR i as integer = 0 TO 3
-   herow(i).xgo = 0
-   herow(i).ygo = 0
-  NEXT i
-  RETURN YES
+
+  EXIT DO'--We have the box we want to display, proceed
+ LOOP
+
+ '--Store box ID number for later reference
+ txt.id = box_id
+
+ gen(genTextboxBackdrop) = 0
+ WITH txt.choicestate
+  .pt = 0
+  .size = 2
+  .last = 1
+ END WITH
+
+ FOR j as integer = 0 TO 7
+  embedtext txt.box.text(j), 38
+ NEXT j
+
+ '-- set tags indicating the text box has been seen.
+ IF istag(txt.box.settag_tag, 0) THEN
+  settag txt.box.settag1
+  settag txt.box.settag2
+  'NOTE: We just changed tags, but we do not want tag_updates to update
+  '  NPC visibility until after the box adances. We do however update
+  '  menu tags right away.
+  tag_updates NO
  END IF
- RETURN NO
+
+ '--make a sound if the choicebox is enabled
+ IF txt.box.choice_enabled THEN MenuSound gen(genAcceptSFX)
+
+ '-- update backdrop if necessary
+ IF txt.box.backdrop > 0 THEN
+  gen(genTextboxBackdrop) = txt.box.backdrop
+ END IF
+
+ '-- change music if necessary
+ IF txt.box.music > 0 THEN
+  txt.remember_music = presentsong
+  wrappedsong txt.box.music - 1
+ END IF
+
+ '--play a sound effect
+ IF txt.box.sound_effect > 0 THEN
+  playsfx txt.box.sound_effect - 1
+ END IF
+
+ '-- evaluate menu conditionals
+ IF istag(txt.box.menu_tag, 0) THEN
+  add_menu txt.box.menu
+ END IF
+
+ txt.showing = YES
+ txt.fully_shown = NO
+ txt.show_lines = 0
+
+ '--Create a set of slices to display the text box
+ init_text_box_slices txt
+
+ update_virtual_gamepad_display()
+END SUB
+
+
+'==========================================================================================
+'                                      NPC references
+'==========================================================================================
+
+
+'Deprecated; Use get_valid_npc for all new NPC commands
+FUNCTION getnpcref (byval seekid as integer, byval offset as integer) as integer
+ SELECT CASE seekid
+ CASE -300 TO -1'--direct reference
+  getnpcref = (seekid + 1) * -1
+  EXIT FUNCTION
+
+ CASE 0 TO UBOUND(npcs) 'ID
+  DIM found as integer = 0
+  FOR i as integer = 0 TO 299
+   IF npc(i).id - 1 = seekid THEN
+    IF found = offset THEN
+     getnpcref = i
+     EXIT FUNCTION
+    END IF
+    found = found + 1
+   END IF
+  NEXT i
+ END SELECT
+
+ '--failure
+ getnpcref = -1
 END FUNCTION
 
-SUB loadsay (byval box_id as integer)
-DIM j as integer
+'Replacement for getnpcref.
+'Given NPC ref or NPC ID, return npc() index, or throw a scripterr and return -1
+'Note this is stricter than getnpcref: invalid npc refs are not alright!
+'References to Hidden/Disabled NPCs are alright.
+FUNCTION get_valid_npc (byval seekid as integer, byval errlvl as scriptErrEnum = serrBadOp) as integer
+ IF seekid < 0 THEN
+  DIM npcidx as integer = (seekid + 1) * -1
+  IF npcidx > 299 ORELSE npc(npcidx).id = 0 THEN
+   scripterr current_command_name() & ": invalid npc reference " & seekid & " (maybe the NPC was deleted?)", errlvl
+   RETURN -1
+  END IF
+  RETURN npcidx
+ ELSE
+  FOR i as integer = 0 TO 299
+   IF npc(i).id - 1 = seekid THEN RETURN i
+  NEXT
+  scripterr current_command_name() & ": invalid npc reference; no NPCs of ID " & seekid & " exist", errlvl
+  RETURN -1
+ END IF
+END FUNCTION
 
-DO '--This loop is where we find which box will be displayed right now
- '--load data from the textbox lump
- LoadTextBox txt.box, box_id
-
- '-- evaluate "instead" conditionals
- IF istag(txt.box.instead_tag, 0) THEN
-  '--do something else instead
-  IF txt.box.instead < 0 THEN
-   trigger_script -txt.box.instead, YES, "textbox instead", "box " & box_id, scrqBackcompat()
-   txt.sayer = -1
-   EXIT SUB
+'Given NPC ref or NPC ID, return an NPC ID, or throw a scripterr and return -1
+'References to Hidden/Disabled NPCs are alright.
+FUNCTION get_valid_npc_id (byval seekid as integer, byval errlvl as scriptErrEnum = serrBadOp) as integer
+ IF seekid >= 0 THEN
+  IF seekid > UBOUND(npcs) THEN
+   scripterr current_command_name() & ": invalid NPC ID " & seekid, errlvl
+   RETURN -1
+  END IF
+  RETURN seekid
+ ELSE
+  DIM npcidx as integer = (seekid + 1) * -1
+  IF npcidx > UBOUND(npc) THEN
+   scripterr current_command_name() & ": invalid NPC reference " & seekid, errlvl
+   RETURN -1
+  ELSEIF npc(npcidx).id = 0 THEN
+   scripterr current_command_name() & ": invalid NPC reference " & seekid & " (maybe the NPC was deleted?)", errlvl
+   RETURN -1
   ELSE
-   IF box_id <> txt.box.instead THEN
-    box_id = txt.box.instead
-    CONTINUE DO' Skip back to the top of the loop and get another box
+   DIM id as integer = ABS(npc(npcidx).id) - 1
+   IF id > UBOUND(npcs) THEN
+    'Note that an NPC may be marked hidden because it has an invalid ID
+    scripterr current_command_name() & ": NPC reference " & seekid & " is for a disabled NPC with invalid ID " & npc(npcidx).id & " (the map must be incompletely loaded)", errlvl
+    RETURN -1
    END IF
+   RETURN id
   END IF
  END IF
+END FUNCTION
 
- EXIT DO'--We have the box we want to display, proceed
-LOOP
 
-'--Store box ID number for later reference
-txt.id = box_id
+'==========================================================================================
+'                                      Slice handles
+'==========================================================================================
 
-gen(genTextboxBackdrop) = 0
-WITH txt.choicestate
- .pt = 0
- .size = 2
- .last = 1
-END WITH
-
-FOR j as integer = 0 TO 7
- embedtext txt.box.text(j), 38
-NEXT j
-
-'-- set tags indicating the text box has been seen.
-IF istag(txt.box.settag_tag, 0) THEN
- settag txt.box.settag1
- settag txt.box.settag2
- 'NOTE: We just changed tags, but we do not want tag_updates to update
- '  NPC visibility until after the box adances. We do however update
- '  menu tags right away.
- tag_updates NO
-END IF
-
-'--make a sound if the choicebox is enabled
-IF txt.box.choice_enabled THEN MenuSound gen(genAcceptSFX)
-
-'-- update backdrop if necessary
-IF txt.box.backdrop > 0 THEN
- gen(genTextboxBackdrop) = txt.box.backdrop
-END IF
-
-'-- change music if necessary
-IF txt.box.music > 0 THEN
- txt.remember_music = presentsong
- wrappedsong txt.box.music - 1
-END IF
-
-'--play a sound effect
-IF txt.box.sound_effect > 0 THEN
- playsfx txt.box.sound_effect - 1
-END IF
-
-'-- evaluate menu conditionals
-IF istag(txt.box.menu_tag, 0) THEN
- add_menu txt.box.menu
-END IF
-
-txt.showing = YES
-txt.fully_shown = NO
-txt.show_lines = 0
-
-'--Create a set of slices to display the text box
-init_text_box_slices txt
-
-update_virtual_gamepad_display()
-
-END SUB
 
 FUNCTION valid_spriteslice_dat(byval sl as Slice Ptr) as integer
  IF sl = 0 THEN scripterr "null slice ptr in valid_spriteslice_dat", serrBug : RETURN NO
@@ -4482,6 +5127,212 @@ SUB change_rect_plotslice(byval handle as integer, byval style as integer=-2, by
    scripterr current_command_name() & ": " & SliceTypeName(sl) & " is not a rect", serrBadOp
   END IF
  END IF
+END SUB
+
+
+'==========================================================================================
+'                                Menu and menuitem handles
+'==========================================================================================
+
+
+FUNCTION valid_menuslot(byval menuslot as integer) as integer
+ RETURN bound_arg(menuslot, 0, topmenu, "menu handle")
+END FUNCTION
+
+FUNCTION valid_menuslot_and_mislot(byval menuslot as integer, byval mislot as integer) as integer
+ IF valid_menuslot(menuslot) THEN
+  RETURN bound_arg(mislot, 0, menus(menuslot).numitems - 1, "menu item handle")
+ END IF
+ RETURN NO
+END FUNCTION
+
+FUNCTION find_menu_id (byval id as integer) as integer
+ DIM i as integer
+ FOR i = topmenu TO 0 STEP -1
+  IF menus(i).record = id THEN
+   RETURN i 'return slot
+  END IF
+ NEXT i
+ RETURN -1 ' Not found
+END FUNCTION
+
+FUNCTION find_menu_handle (byval handle as integer) as integer
+ DIM i as integer
+ FOR i = 0 TO topmenu
+  IF menus(i).handle = handle THEN RETURN i 'return slot
+ NEXT i
+ RETURN -1 ' Not found
+END FUNCTION
+
+FUNCTION find_menu_item_handle_in_menuslot (byval handle as integer, byval menuslot as integer) as integer
+ DIM mislot as integer
+ WITH menus(menuslot)
+  FOR mislot = 0 TO .numitems - 1
+   IF .items[mislot]->handle = handle THEN RETURN mislot
+  NEXT mislot
+ END WITH
+ RETURN -1 ' Not found
+END FUNCTION
+
+FUNCTION find_menu_item_handle (byval handle as integer, byref found_in_menuslot as integer) as integer
+ DIM menuslot as integer
+ DIM mislot as integer
+ DIM found as integer
+ FOR menuslot = 0 TO topmenu
+  found = find_menu_item_handle_in_menuslot(handle, menuslot)
+  IF found >= 0 THEN
+   found_in_menuslot = menuslot
+   RETURN found
+  END IF
+ NEXT menuslot
+ found_in_menuslot = -1
+ RETURN -1 ' Not found
+END FUNCTION
+
+FUNCTION assign_menu_item_handle (byref mi as MenuDefItem) as integer
+ STATIC new_handle as integer = 0
+ new_handle = new_handle + 1
+ mi.handle = new_handle
+ RETURN new_handle
+END FUNCTION
+
+FUNCTION assign_menu_handles (byref menu as MenuDef) as integer
+ STATIC new_handle as integer = 0
+ new_handle = new_handle + 1
+ menus(topmenu).handle = new_handle
+ FOR i as integer = 0 TO menu.numitems - 1
+  assign_menu_item_handle *menu.items[i]
+ NEXT i
+ RETURN new_handle
+END FUNCTION
+
+FUNCTION menu_item_handle_by_slot(byval menuslot as integer, byval mislot as integer, byval visible_only as integer=YES) as integer
+ IF menuslot >= 0 AND menuslot <= topmenu THEN
+  WITH menus(menuslot)
+   IF mislot >= 0 AND mislot < .numitems THEN
+    WITH *.items[mislot]
+     IF visible_only AND .disabled AND .hide_if_disabled THEN RETURN 0
+     RETURN .handle
+    END WITH
+   END IF
+  END WITH
+ END IF
+ RETURN 0
+END FUNCTION
+
+FUNCTION find_menu_item_slot_by_string(byval menuslot as integer, s as string, byval mislot as integer=0, byval visible_only as integer=YES) as integer
+ DIM i as integer
+ DIM cap as STRING
+ WITH menus(menuslot)
+  FOR i = mislot TO .numitems - 1
+   WITH *.items[i]
+    IF visible_only AND .disabled AND .hide_if_disabled THEN CONTINUE FOR
+    cap = get_menu_item_caption(*menus(menuslot).items[i], menus(menuslot))
+    IF cap = s THEN
+     RETURN i
+    END IF
+   END WITH
+  NEXT i
+ END WITH
+ RETURN -1 ' not found
+END FUNCTION
+
+
+'==========================================================================================
+'                        Other script command arg checking/decoding
+'==========================================================================================
+
+
+FUNCTION valid_item_slot(byval item_slot as integer) as integer
+ RETURN bound_arg(item_slot, 0, last_inv_slot(), "item slot")
+END FUNCTION
+
+FUNCTION valid_item(byval itemID as integer) as integer
+ RETURN bound_arg(itemID, 0, gen(genMaxItem), "item ID")
+END FUNCTION
+
+FUNCTION valid_hero_party(byval who as integer, byval minimum as integer=0) as integer
+ RETURN bound_arg(who, minimum, 40, "hero party slot")
+END FUNCTION
+
+FUNCTION really_valid_hero_party(byval who as integer, byval maxslot as integer=40, byval errlvl as scriptErrEnum = serrBadOp) as integer
+ 'Defaults to a non-suppressed error
+ IF bound_arg(who, 0, maxslot, "hero party slot", , , errlvl) = NO THEN RETURN NO
+ IF gam.hero(who).id = -1 THEN
+  scripterr current_command_name() + ": Party hero slot " & who & " is empty", errlvl
+  RETURN NO
+ END IF
+ RETURN YES
+END FUNCTION
+
+FUNCTION valid_stat(byval statid as integer) as integer
+ RETURN bound_arg(statid, 0, statLast, "stat ID", , , serrBadOp)
+END FUNCTION
+
+FUNCTION valid_plotstr(byval n as integer, byval errlvl as scriptErrEnum = serrBound) as integer
+ RETURN bound_arg(n, 0, UBOUND(plotstr), "string ID", , , errlvl)
+END FUNCTION
+
+FUNCTION valid_formation(byval form as integer) as integer
+ RETURN bound_arg(form, 0, gen(genMaxFormation), "formation ID")
+END FUNCTION
+
+FUNCTION valid_formation_slot(byval form as integer, byval slot as integer) as integer
+ IF bound_arg(form, 0, gen(genMaxFormation), "formation ID") THEN
+  RETURN bound_arg(slot, 0, 7, "formation slot")
+ END IF
+ RETURN NO
+END FUNCTION
+
+FUNCTION valid_zone(byval id as integer) as integer
+ RETURN bound_arg(id, 1, 9999, "zone ID", , , serrBadOp)
+END FUNCTION
+
+FUNCTION valid_door(byval id as integer) as integer
+ IF bound_arg(id, 0, UBOUND(gam.map.door), "door", , , serrBadOp) = NO THEN RETURN NO
+ IF readbit(gam.map.door(id).bits(), 0, 0) = 0 THEN
+  'Door doesn't exist
+  scripterr current_command_name() & ": invalid door id " & id, serrBadOp
+  RETURN NO
+ END IF
+ RETURN YES
+END FUNCTION
+
+FUNCTION valid_tile_pos(byval x as integer, byval y as integer) as integer
+ IF x < 0 OR y < 0 OR x >= mapsizetiles.x OR y >= mapsizetiles.y THEN
+  scripterr current_command_name() + ": invalid map position " & x & "," & y & " -- map is " & mapsizetiles.x & "*" & mapsizetiles.y & " tiles", serrBadOp
+  RETURN NO
+ END IF
+ RETURN YES
+END FUNCTION
+
+FUNCTION valid_map_layer(layer as integer, errorlevel as scriptErrEnum = serrBadOp) as bool
+ IF layer < 0 OR layer > UBOUND(maptiles) THEN
+  scripterr current_command_name() + ": invalid map layer " & layer & " -- last map layer is " & UBOUND(maptiles), errorlevel
+  RETURN NO
+ END IF
+ RETURN YES
+END FUNCTION
+
+'==========================================================================================
+'                             Misc command implementations
+'==========================================================================================
+
+
+SUB tweakpalette (byval r as integer, byval g as integer, byval b as integer, byval first as integer = 0, byval last as integer = 255)
+ FOR i as integer = first TO last
+  master(i).r = bound(master(i).r + r * 4, 0, 255)
+  master(i).g = bound(master(i).g + g * 4, 0, 255)
+  master(i).b = bound(master(i).b + b * 4, 0, 255)
+ NEXT i
+END SUB
+
+SUB greyscalepal
+ FOR i as integer = bound(retvals(0), 0, 255) TO bound(retvals(1), 0, 255)
+  master(i).r = bound((master(i).r + master(i).g + master(i).b) / 3, 0, 255)
+  master(i).g = master(i).r
+  master(i).b = master(i).r
+ NEXT i
 END SUB
 
 SUB write_checkpoint ()

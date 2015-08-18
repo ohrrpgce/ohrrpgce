@@ -14,7 +14,7 @@
 #include "scrconst.bi"
 #include "gglobals.bi"
 #include "allmodex.bi"
-#include "game.bi"
+#include "yetmore.bi"
 #include "scripting.bi"
 
 'local subs and functions
