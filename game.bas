@@ -20,6 +20,7 @@
 #include "yetmore.bi"
 #include "yetmore2.bi"
 #include "moresubs.bi"
+#include "walkabouts.bi"
 #include "menustuf.bi"
 #include "bmodsubs.bi"
 #include "bmod.bi"
@@ -45,10 +46,6 @@ DECLARE SUB doloadgame(byval load_slot as integer)
 DECLARE SUB reset_game_final_cleanup()
 DECLARE FUNCTION should_skip_this_timer(byval l as integer, t as PlotTimer) as integer
 DECLARE SUB update_menu_states ()
-DECLARE SUB reparent_hero_slices()
-DECLARE SUB orphan_hero_slices()
-DECLARE SUB reparent_npc_slices()
-DECLARE SUB orphan_npc_slices()
 DECLARE FUNCTION seek_rpg_or_rpgdir_and_play_it(where as string, gamename as string) as integer
 DECLARE SUB misc_debug_menu()
 DECLARE SUB battle_formation_testing_menu()
@@ -1043,6 +1040,17 @@ SUB displayall()
  IF scrwatch THEN scriptwatcher scrwatch, -1
 END SUB
 
+SUB interpolatecat
+ 'given the current positions of the caterpillar party, interpolate their inbetween frames
+ FOR o as integer = 0 TO 10 STEP 5
+  FOR i as integer = o + 1 TO o + 4
+   catx(i) = catx(i - 1) + ((catx(o + 5) - catx(o)) / 5)
+   caty(i) = caty(i - 1) + ((caty(o + 5) - caty(o)) / 5)
+   catd(i) = catd(o)
+  NEXT i
+ NEXT o
+END SUB
+
 SUB update_heroes(byval force_step_check as integer=NO)
  'note: xgo and ygo are offset of current position from destination, eg +ve xgo means go left
  FOR whoi as integer = 0 TO 3
@@ -1327,119 +1335,6 @@ SUB update_npc_zones(byval npcref as integer)
  v_move newzones, GetZonesAtTile(zmap, npc(npcref).x \ 20, npc(npcref).y \ 20)
  process_zone_entry_triggers "npc" & npcref, npc(npcref).curzones, newzones
  v_move npc(npcref).curzones, newzones
-END SUB
-
-SUB update_walkabout_slices()
- update_walkabout_hero_slices()
- update_walkabout_npc_slices()
-END SUB
-
-FUNCTION should_hide_hero_caterpillar() as integer
- RETURN vstate.active = YES _
-   ANDALSO vstate.mounting = NO _
-   ANDALSO vstate.trigger_cleanup = NO _
-   ANDALSO vstate.ahead = NO _
-   ANDALSO vstate.dat.do_not_hide_leader = NO _
-   ANDALSO vstate.dat.do_not_hide_party = NO
-END FUNCTION
-
-FUNCTION should_show_normal_caterpillar() as integer
- RETURN readbit(gen(), genBits, 1) = 1 _
-   ANDALSO (vstate.active = NO ORELSE vstate.dat.do_not_hide_leader = NO)
-END FUNCTION
-
-SUB update_walkabout_hero_slices()
-
- DIM should_hide as integer = should_hide_hero_caterpillar()
- FOR i as integer = 0 TO UBOUND(herow)
-  set_walkabout_vis herow(i).sl, NOT should_hide
- NEXT i
-
- IF should_show_normal_caterpillar() THEN
-  FOR i as integer = 0 TO UBOUND(herow)
-   update_walkabout_pos herow(i).sl, catx(i * 5), caty(i * 5), catz(i * 5)
-  NEXT i
-
-  DIM cat_slot as integer = 0
-  FOR party_slot as integer = 0 TO 3
-   IF gam.hero(party_slot).id >= 0 THEN
-    set_walkabout_frame herow(cat_slot).sl, catd(cat_slot * 5), (herow(cat_slot).wtog \ 2)
-    cat_slot += 1
-   END IF
-  NEXT party_slot
-  FOR i as integer = cat_slot TO UBOUND(herow)
-   set_walkabout_vis herow(i).sl, NO
-  NEXT i
-
- ELSE
-  '--non-caterpillar party, vehicle no-hide-leader (or backcompat pref)
-  update_walkabout_pos herow(0).sl, catx(0), caty(0), catz(0)
-  set_walkabout_frame herow(0).sl, catd(0), (herow(0).wtog \ 2)
-  FOR i as integer = 1 TO UBOUND(herow)
-   set_walkabout_vis herow(i).sl, NO
-  NEXT i
- END IF
-
-END SUB
-
-SUB update_walkabout_npc_slices()
- DIM shadow as Slice Ptr
-
- FOR i as integer = 0 TO UBOUND(npc)
-  IF npc(i).id > 0 THEN '-- if visible
-   IF vstate.active AND vstate.npc = i THEN
-    '--This NPC is a currently active vehicle, so lets do some extra voodoo.
-    IF npc(i).sl <> 0 THEN
-     shadow = LookupSlice(SL_WALKABOUT_SHADOW_COMPONENT, npc(i).sl)
-     IF shadow <> 0 THEN
-      shadow->Visible = (npc(i).z > 0 ANDALSO vstate.dat.disable_flying_shadow = NO)
-     END IF
-    END IF
-   END IF
-   update_walkabout_pos npc(i).sl, npc(i).x, npc(i).y, npc(i).z
-   IF npc(i).sl <> 0 THEN
-    '--default NPC sort is by instance id
-    npc(i).sl->Sorter = i
-   END IF
-  ELSEIF npc(i).id <= 0 THEN
-   '--remove unused and hidden NPC slices
-   IF npc(i).sl <> 0 THEN
-    debug "Sloppy housekeeping: delete npc sl " & i & " [update_walkabout_npc_slices]"
-    DeleteSlice @npc(i).sl
-   END IF
-  END IF
- NEXT i
-
- '--now apply sprite frame changes
- FOR i as integer = 0 TO UBOUND(npc)
-  IF npc(i).id > 0 THEN '-- if visible
-   set_walkabout_frame npc(i).sl, npc(i).dir, npc(i).frame \ 2
-  END IF
- NEXT i
-
-END SUB
-
-SUB update_walkabout_pos (byval walkabout_cont as slice ptr, byval x as integer, byval y as integer, byval z as integer)
- IF walkabout_cont = 0 THEN
-  'Exit silently on null slices. It is normal to call this on hero slices that don't exist when the party is non-full
-  EXIT SUB
- END IF
-
- DIM where as XYPair
- '+ gmap(11)
- framewalkabout x, y , where.x, where.y, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)
- WITH *walkabout_cont
-  .X = where.x + mapx
-  .Y = where.y + mapy
- END WITH
-
- DIM sprsl as Slice Ptr
- sprsl = LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, walkabout_cont)
- IF sprsl = 0 THEN
-  debug "update_walkabout_pos: null sprite slice for walkabout slice " & walkabout_cont
- ELSE
-  sprsl->Y = gmap(11) - z
- END IF
 END SUB
 
 'NPC movement
@@ -2447,53 +2342,6 @@ SUB prepare_map (byval afterbat as integer=NO, byval afterload as integer=NO)
  'DEBUG debug "end of preparemap"
 END SUB
 
-FUNCTION hero_layer() as Slice Ptr
- DIM layer as Slice Ptr
- IF gmap(16) = 2 THEN ' heroes and NPCs together
-  layer = SliceTable.Walkabout
- ELSE ' heroes and NPCs on separate layers
-  layer = SliceTable.HeroLayer
- END IF
- IF layer = 0 THEN
-  debug "Warning: null hero layer, gmap(16)=" & gmap(16)
- END IF
- RETURN layer
-END FUNCTION
-
-FUNCTION npc_layer() as Slice Ptr
- DIM layer as Slice Ptr
- IF gmap(16) = 2 THEN ' heroes and NPCs together
-  layer = SliceTable.Walkabout
- ELSE ' heroes and NPCs on separate layers
-  layer = SliceTable.NPCLayer
- END IF
- IF layer = 0 THEN
-  debug "Warning: null npc layer, gmap(16)=" & gmap(16)
- END IF
- RETURN layer
-END FUNCTION
-
-FUNCTION create_walkabout_slices(byval parent as Slice Ptr) as Slice Ptr
- DIM sl as Slice Ptr
- sl = NewSliceOfType(slContainer, parent)
- WITH *sl
-  .Width = 20
-  .Height = 20
-  .Protect = YES
- END WITH
- DIM sprsl as Slice Ptr
- sprsl = NewSliceOfType(slSprite, sl, SL_WALKABOUT_SPRITE_COMPONENT)
- WITH *sprsl
-  'Anchor and align NPC sprite in the bottom center of the NPC container
-  .AnchorHoriz = 1
-  .AnchorVert = 2
-  .AlignHoriz = 1
-  .AlignVert = 2
-  .Protect = YES
- END WITH
- RETURN sl
-END FUNCTION
-
 'Return the ID of a door at a tile, or -1 for none
 '(There should only be one door on each tile, because the editor doesn't let you place more)
 FUNCTION find_door (byval tilex as integer, byval tiley as integer) as integer
@@ -2554,9 +2402,98 @@ SUB usedoor (byval door_id as integer)
  END WITH
 END SUB
 
+
+'==========================================================================================
+'                                        Textboxes
+'==========================================================================================
+
+
 FUNCTION immediate_showtextbox() as bool
  RETURN xreadbit(gen(), 18, genBits2)
 END FUNCTION
+
+'Load a textbox and process conditionals that happen immediately, including
+'the "instead" conditionals to pick a different box.
+SUB loadsay (byval box_id as integer)
+ DO '--This loop is where we find which box will be displayed right now
+  '--load data from the textbox lump
+  LoadTextBox txt.box, box_id
+
+  '-- evaluate "instead" conditionals
+  IF istag(txt.box.instead_tag, 0) THEN
+   '--do something else instead
+   IF txt.box.instead < 0 THEN
+    trigger_script -txt.box.instead, YES, "textbox instead", "box " & box_id, scrqBackcompat()
+    txt.sayer = -1
+    EXIT SUB
+   ELSE
+    IF box_id <> txt.box.instead THEN
+     box_id = txt.box.instead
+     CONTINUE DO' Skip back to the top of the loop and get another box
+    END IF
+   END IF
+  END IF
+
+  EXIT DO'--We have the box we want to display, proceed
+ LOOP
+
+ '--Store box ID number for later reference
+ txt.id = box_id
+
+ gen(genTextboxBackdrop) = 0
+ WITH txt.choicestate
+  .pt = 0
+  .size = 2
+  .last = 1
+ END WITH
+
+ FOR j as integer = 0 TO 7
+  embedtext txt.box.text(j), 38
+ NEXT j
+
+ '-- set tags indicating the text box has been seen.
+ IF istag(txt.box.settag_tag, 0) THEN
+  settag txt.box.settag1
+  settag txt.box.settag2
+  'NOTE: We just changed tags, but we do not want tag_updates to update
+  '  NPC visibility until after the box adances. We do however update
+  '  menu tags right away.
+  tag_updates NO
+ END IF
+
+ '--make a sound if the choicebox is enabled
+ IF txt.box.choice_enabled THEN MenuSound gen(genAcceptSFX)
+
+ '-- update backdrop if necessary
+ IF txt.box.backdrop > 0 THEN
+  gen(genTextboxBackdrop) = txt.box.backdrop
+ END IF
+
+ '-- change music if necessary
+ IF txt.box.music > 0 THEN
+  txt.remember_music = presentsong
+  wrappedsong txt.box.music - 1
+ END IF
+
+ '--play a sound effect
+ IF txt.box.sound_effect > 0 THEN
+  playsfx txt.box.sound_effect - 1
+ END IF
+
+ '-- evaluate menu conditionals
+ IF istag(txt.box.menu_tag, 0) THEN
+  add_menu txt.box.menu
+ END IF
+
+ txt.showing = YES
+ txt.fully_shown = NO
+ txt.show_lines = 0
+
+ '--Create a set of slices to display the text box
+ init_text_box_slices txt
+
+ update_virtual_gamepad_display()
+END SUB
 
 SUB advance_text_box ()
  update_virtual_gamepad_display YES
@@ -2898,6 +2835,12 @@ SUB cleanup_text_box ()
  IF txt.sl THEN DeleteSlice @(txt.sl)
 END SUB
 
+
+'==========================================================================================
+'                                        Map slices
+'==========================================================================================
+
+
 SUB recreate_map_slices()
  'this destroys and re-creates the map slices. it should only happen when
  'moving from one map to another, but not when a battle ends. (same as when
@@ -2940,34 +2883,6 @@ SUB recreate_map_slices()
   visnpc
  END IF
  refresh_map_slice
-END SUB
-
-SUB reparent_hero_slices()
- FOR i as integer = 0 TO UBOUND(herow)
-  SetSliceParent herow(i).sl, hero_layer()
- NEXT i
-END SUB
-
-SUB orphan_hero_slices()
- FOR i as integer = 0 TO UBOUND(herow)
-  OrphanSlice herow(i).sl
- NEXT i
-END SUB
-
-SUB reparent_npc_slices()
- FOR i as integer = 0 TO UBOUND(npc)
-  IF npc(i).sl THEN
-   SetSliceParent npc(i).sl, npc_layer()
-  END IF
- NEXT i
-END SUB
-
-SUB orphan_npc_slices()
- FOR i as integer = 0 TO UBOUND(npc)
-  IF npc(i).sl THEN
-   OrphanSlice npc(i).sl
-  END IF
- NEXT i
 END SUB
 
 SUB refresh_map_slice()
@@ -3044,67 +2959,9 @@ SUB refresh_map_slice_tilesets()
  ChangeMapSliceTileset SliceTable.ObsoleteOverhead, tilesets(0)
 END SUB
 
-SUB refresh_walkabout_layer_sort()
- orphan_hero_slices
- orphan_npc_slices
- IF gmap(16) = 2 THEN ' Heroes and NPCs Together
-  DeleteSlice @SliceTable.HeroLayer
-  DeleteSlice @SliceTable.NPCLayer
-  SliceTable.Walkabout->AutoSort = slAutoSortY
- ELSE
-  'Hero and NPC in separate layers
-  SliceTable.Walkabout->AutoSort = slAutoSortNone
-  IF SliceTable.HeroLayer = 0 THEN
-   '--create the hero layer if it is needed
-   SliceTable.HeroLayer = NewSliceOfType(slContainer, SliceTable.Walkabout, SL_HERO_LAYER)
-   SliceTable.HeroLayer->Fill = YES
-   SliceTable.HeroLayer->Protect = YES
-   SliceTable.HeroLayer->AutoSort = slAutoSortY
-  END IF
-  IF SliceTable.NPCLayer = 0 THEN
-   SliceTable.NPCLayer = NewSliceOfType(slContainer, SliceTable.Walkabout, SL_NPC_LAYER)
-   SliceTable.NPCLayer->Fill = YES
-   SliceTable.NPCLayer->Protect = YES
-   SliceTable.NPCLayer->AutoSort = slAutoSortCustom
-  END IF
-  IF gmap(16) = 1 THEN
-   SliceTable.HeroLayer->Sorter = 0
-   SliceTable.NPCLayer->Sorter = 1
-  ELSE
-   SliceTable.NPCLayer->Sorter = 0
-   SliceTable.HeroLayer->Sorter = 1
-  END IF
-  CustomSortChildSlices SliceTable.Walkabout, YES
- END IF
- reparent_hero_slices
- reparent_npc_slices
-END SUB
 
-FUNCTION vehicle_is_animating() as integer
- WITH vstate
-  RETURN .mounting ORELSE .rising ORELSE .falling ORELSE .init_dismount ORELSE .ahead ORELSE .trigger_cleanup
- END WITH
-END FUNCTION
+'==========================================================================================
 
-SUB reset_vehicle(v as VehicleState)
- v.id = -1
- v.npc = 0
- v.old_speed = 0
- v.active   = NO
- v.mounting = NO
- v.rising   = NO
- v.falling  = NO
- v.init_dismount   = NO
- v.ahead           = NO
- v.trigger_cleanup = NO
- ClearVehicle v.dat
-END SUB
-
-SUB dump_vehicle_state()
- WITH vstate
-  debug "active=" & .active & " npc=" & .npc & " id=" & .id & " mounting=" & .mounting & " rising=" & .rising & " falling=" & .falling & " dismount=" & .init_dismount & " cleanup=" & .trigger_cleanup & " ahead=" & .ahead
- END WITH
-END SUB
 
 '--Look in front of the leader for an activatable NPC.
 '--WARNING: has side-effects: assumes result is passed to usenpc
@@ -3228,6 +3085,19 @@ FUNCTION want_to_check_for_walls(byval who as integer) as bool
  RETURN YES
 END FUNCTION
 
+SUB forceparty ()
+ '---MAKE SURE YOU HAVE AN ACTIVE PARTY---
+ DIM fpi as integer = findhero(-1, 0, 40, 1)
+ IF fpi > -1 THEN
+  FOR fpo as integer = 0 TO 3
+   IF gam.hero(fpo).id = -1 THEN
+    doswap fpi, fpo
+    EXIT FOR
+   END IF
+  NEXT fpo
+ END IF
+END SUB
+
 FUNCTION first_free_slot_in_party() as integer
  DIM slot as integer = -1
  IF free_slots_in_party() > 0 THEN
@@ -3271,53 +3141,6 @@ FUNCTION free_slots_in_party() as integer
  RETURN 41 - herocount(40)
 
 END FUNCTION
-
-SUB change_npc_def_sprite (byval npc_id as integer, byval walkabout_sprite_id as integer)
- FOR i as integer = 0 TO UBOUND(npc)
-  IF npc(i).id - 1 = npc_id THEN
-   'found a match!
-   set_walkabout_sprite npc(i).sl, walkabout_sprite_id
-  END IF
- NEXT i
-END SUB
-
-SUB change_npc_def_pal (byval npc_id as integer, byval palette_id as integer)
- FOR i as integer = 0 TO UBOUND(npc)
-  IF npc(i).id - 1 = npc_id THEN
-   'found a match!
-   set_walkabout_sprite npc(i).sl, , palette_id
-  END IF
- NEXT i
-END SUB
-
-SUB create_walkabout_shadow (byval walkabout_cont as Slice Ptr)
- IF walkabout_cont = 0 THEN debug "create_walkabout_shadow: null walkabout container": EXIT SUB
- DIM sprsl as Slice Ptr
- sprsl = LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, walkabout_cont)
- IF sprsl = 0 THEN debug "create_walkabout_shadow: null walkabout sprite": EXIT SUB
- DIM shadow as Slice Ptr
- shadow = NewSliceOfType(slEllipse, ,SL_WALKABOUT_SHADOW_COMPONENT)
- WITH *shadow
-  .Width = 12
-  .Height = 6
-  .AnchorHoriz = 1
-  .AlignHoriz = 1
-  .AnchorVert = 2
-  .AlignVert = 2
-  .Y = gmap(11) 'foot offset
-  .Visible = NO
- END WITH
- ChangeEllipseSlice shadow, uilook(uiShadow), uilook(uiShadow)
- InsertSliceBefore(sprsl, shadow)
-END SUB
-
-SUB delete_walkabout_shadow (byval walkabout_cont as Slice Ptr)
- IF walkabout_cont = 0 THEN debug "delete_walkabout_shadow: null walkabout container": EXIT SUB
- DIM shadow as Slice Ptr
- shadow = LookupSlice(SL_WALKABOUT_SHADOW_COMPONENT, walkabout_cont)
- IF shadow = 0 THEN debug "delete_walkabout_shadow: no shadow to delete" : EXIT SUB
- DeleteSlice @shadow
-END SUB
 
 SUB cleanup_game_slices ()
  FOR i as integer = 0 TO UBOUND(herow)

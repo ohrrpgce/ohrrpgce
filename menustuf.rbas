@@ -17,6 +17,7 @@
 #include "game.bi"
 #include "yetmore.bi"
 #include "yetmore2.bi"
+#include "walkabouts.bi"
 #include "moresubs.bi"
 #include "menustuf.bi"
 #include "bmodsubs.bi"

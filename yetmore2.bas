@@ -19,6 +19,7 @@
 #include "game.bi"
 #include "yetmore.bi"
 #include "yetmore2.bi"
+#include "walkabouts.bi"
 #include "moresubs.bi"
 #include "menustuf.bi"
 #include "savegame.bi"
@@ -26,25 +27,6 @@
 
 Using Reload
 Using Reload.Ext
-
-FUNCTION cropmovement (byref x as integer, byref y as integer, byref xgo as integer, byref ygo as integer) as integer
- 'crops movement at edge of map, or wraps
- 'returns true if ran into wall at edge
- cropmovement = 0
- IF gmap(5) = 1 THEN
-  '--wrap walking
-  IF x < 0 THEN x = x + mapsizetiles.x * 20
-  IF x >= mapsizetiles.x * 20 THEN x = x - mapsizetiles.x * 20
-  IF y < 0 THEN y = y + mapsizetiles.y * 20
-  IF y >= mapsizetiles.y * 20 THEN y = y - mapsizetiles.y * 20
- ELSE
-  '--crop walking
-  IF x < 0 THEN x = 0: xgo = 0: cropmovement = 1
-  IF x > (mapsizetiles.x - 1) * 20 THEN x = (mapsizetiles.x - 1) * 20: xgo = 0: cropmovement = 1
-  IF y < 0 THEN y = 0: ygo = 0: cropmovement = 1
-  IF y > (mapsizetiles.y - 1) * 20 THEN y = (mapsizetiles.y - 1) * 20: ygo = 0: cropmovement = 1
- END IF
-END FUNCTION
 
 SUB defaultc
  DIM cconst(12) as integer = {scUp,scDown,scLeft,scRight,scSpace,scEnter,scCtrl,scEsc,scAlt,scEsc,scTab,scJ,scComma}
@@ -58,72 +40,6 @@ SUB defaultc
  NEXT i
  EXIT SUB
 END SUB
-
-SUB forcedismount (catd() as integer)
-IF vstate.active THEN
- '--clear vehicle on loading new map--
- IF vstate.dat.dismount_ahead = YES AND vstate.dat.pass_walls_while_dismounting = NO THEN
-  '--dismount-ahead is true, dismount-passwalls is false
-  SELECT CASE catd(0)
-   CASE 0
-    herow(0).ygo = 20
-   CASE 1
-    herow(0).xgo = -20
-   CASE 2
-    herow(0).ygo = -20
-   CASE 3
-    herow(0).xgo = 20
-  END SELECT
- END IF
- IF vstate.dat.on_dismount > 0 THEN
-  loadsay vstate.dat.on_dismount
- END IF
- IF vstate.dat.on_dismount < 0 THEN
-  trigger_script ABS(vstate.dat.on_dismount), YES, "vehicle dismount", "", scrqBackcompat()
- END IF
- settag vstate.dat.riding_tag, NO
- herow(0).speed = vstate.old_speed
- reset_vehicle vstate
- FOR i as integer = 1 TO 15
-  catx(i) = catx(0)
-  caty(i) = caty(0)
- NEXT i
- gam.random_battle_countdown = range(100, 60)
-END IF
-END SUB
-
-'called on each coordinate of a screen position to wrap it around the map so that's it's as close as possible to being on the screen
-FUNCTION closestwrappedpos (byval coord as integer, byval screenlen as integer, byval maplen as integer) as integer
- 'consider two possibilities: one negative but as large as possible; and the one after that
- DIM as integer lowposs, highposs
- lowposs = (coord MOD maplen) + 10 'center of tile
- IF lowposs >= 0 THEN lowposs -= maplen
- highposs = lowposs + maplen
-
- 'now evaluate which of lowposs or highposs are in or closer to the interval [0, screenlen]
- IF highposs - screenlen < 0 - lowposs THEN RETURN highposs - 10
- RETURN lowposs - 10
-END FUNCTION
-
-FUNCTION framewalkabout (byval x as integer, byval y as integer, byref framex as integer, byref framey as integer, byval mapwide as integer, byval maphigh as integer, byval wrapmode as integer) as integer
-'Given an X and a Y returns true if a walkabout at that spot might be on-screen.
-'We always return true because with offset variable sized frames and slices
-'attached to NPCs, it's practically impossible to tell.
-'Also checks wraparound map, and sets framex and framey
-'to the position on screen most likely to be the best place to 
-'draw the walkabout (closest to the screen edge). (relative to the top-left
-'corner of the screen, not the top left corner of the map)
-'TODO: improve by taking into account frame offset once that's implemented.
-
- IF wrapmode = 1 THEN
-  framex = closestwrappedpos(x - mapx, vpages(dpage)->w, mapwide)
-  framey = closestwrappedpos(y - mapy, vpages(dpage)->h, maphigh)
- ELSE
-  framex = x - mapx
-  framey = y - mapy
- END IF
- RETURN YES
-END FUNCTION
 
 SUB initgamedefaults
 'Exists to initialise game state which needs to start at a value
@@ -311,7 +227,6 @@ SUB update_backdrop_slice
  END IF
  SliceTable.Backdrop->Visible = YES
  ChangeSpriteSlice SliceTable.Backdrop, sprTypeBackdrop, backdrop, , , , , transparent
- 
 END SUB
 
 SUB cleanuptemp
@@ -351,16 +266,6 @@ END SUB
 FUNCTION checkfordeath () as bool
  RETURN liveherocount = 0
 END FUNCTION
-
-SUB aheadxy (byref x as integer, byref y as integer, byval direction as integer, byval distance as integer)
-'--alters the input X and Y, moving them "ahead" by distance in direction
-
-IF direction = 0 THEN y = y - distance
-IF direction = 1 THEN x = x + distance
-IF direction = 2 THEN y = y + distance
-IF direction = 3 THEN x = x - distance
-
-END SUB
 
 SUB exitprogram (byval need_fade_out as bool = NO, byval errorout as integer = 0)
 
@@ -484,26 +389,6 @@ FUNCTION titlescreen () as bool
  frame_unload @backdrop
  RETURN ret
 END FUNCTION
-
-'Reset npc sprite slices to match npc definitions.
-'Used only when reloading all npcs. See set_walkabout_sprite documentation.
-'reset_npc_graphics is always called after visnpc (though it's not necessarily so),
-'which enables or disables npcs and also creates the slices for any npcs that were enabled.
-SUB reset_npc_graphics ()
- DIM npc_id as integer
- FOR i as integer = 0 TO UBOUND(npc)
-  npc_id = npc(i).id - 1
-  IF npc_id >= 0 THEN
-   IF npc_id > UBOUND(npcs) THEN
-    debug "reset_npc_graphics: ignore npc " & i & " because npc def " & npc_id & " is out of range (>" & UBOUND(npcs) & ")"
-   ELSE
-    'Update/load sprite
-    set_walkabout_sprite npc(i).sl, npcs(npc_id).picture, npcs(npc_id).palette
-    set_walkabout_vis npc(i).sl, YES
-   END IF
-  END IF
- NEXT i
-END SUB
 
 FUNCTION mapstatetemp(mapnum as integer, prefix as string) as string
  RETURN tmpdir & prefix & mapnum

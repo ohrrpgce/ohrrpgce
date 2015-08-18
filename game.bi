@@ -37,6 +37,7 @@ declare function allowed_to_open_main_menu () as integer
 declare function random_formation (byval set as integer) as integer
 DECLARE FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as integer
 
+DECLARE SUB loadsay (byval box_id as integer)
 DECLARE SUB init_text_box_slices(txt as TextBoxState)
 DECLARE SUB cleanup_text_box ()
 DECLARE SUB advance_text_box ()
@@ -47,28 +48,13 @@ DECLARE SUB recreate_map_slices()
 DECLARE SUB refresh_map_slice()
 DECLARE SUB refresh_map_slice_tilesets()
 DECLARE SUB refresh_walkabout_layer_sort()
-DECLARE FUNCTION vehicle_is_animating() as integer
-DECLARE SUB reset_vehicle(v as vehicleState)
-DECLARE SUB dump_vehicle_state()
 DECLARE SUB usenpc(byval cause as integer, byval npcnum as integer)
+DECLARE SUB forceparty ()
 DECLARE FUNCTION first_free_slot_in_party() as integer
 DECLARE FUNCTION first_free_slot_in_active_party() as integer
 DECLARE FUNCTION first_free_slot_in_reserve_party() as integer
 DECLARE FUNCTION free_slots_in_party() as integer
-DECLARE SUB update_walkabout_slices()
-DECLARE SUB update_walkabout_hero_slices()
-DECLARE SUB update_walkabout_npc_slices()
-DECLARE SUB update_walkabout_pos (byval walkabout_cont as slice ptr, byval x as integer, byval y as integer, byval z as integer)
-DECLARE FUNCTION should_hide_hero_caterpillar() as integer
-DECLARE FUNCTION should_show_normal_caterpillar() as integer
-DECLARE SUB change_npc_def_sprite (byval npc_id as integer, byval walkabout_sprite_id as integer)
-DECLARE SUB change_npc_def_pal (byval npc_id as integer, byval palette_id as integer)
-DECLARE FUNCTION create_walkabout_slices(byval parent as Slice Ptr) as Slice Ptr
-DECLARE SUB create_walkabout_shadow (byval walkabout_cont as Slice Ptr)
-DECLARE SUB delete_walkabout_shadow (byval walkabout_cont as Slice Ptr)
 DECLARE SUB cleanup_game_slices ()
-DECLARE FUNCTION hero_layer() as Slice Ptr
-DECLARE FUNCTION npc_layer() as Slice Ptr
 DECLARE SUB queue_fade_in (delay as integer = 0, script_overridable as bool = NO)
 DECLARE SUB check_for_queued_fade_in ()
 DECLARE FUNCTION find_door (byval tilex as integer, byval tiley as integer) as integer

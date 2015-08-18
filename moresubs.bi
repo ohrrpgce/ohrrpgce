@@ -27,7 +27,6 @@ DECLARE FUNCTION istag OVERLOAD (tagbits() as integer, byval num as integer, byv
 DECLARE SUB loaddoor (byval map as integer)
 DECLARE SUB minimap (byval x as integer, byval y as integer)
 DECLARE FUNCTION teleporttool () as integer
-DECLARE FUNCTION movdivis (byval xygo as integer) as bool
 DECLARE FUNCTION onwho (caption as string, byval alone as integer) as integer
 DECLARE SUB readjoysettings
 DECLARE SUB renamehero (byval who as integer, byval escapable as integer)

@@ -17,6 +17,7 @@
 #include "savegame.bi"
 
 #include "game.bi"
+#include "walkabouts.bi"
 #include "yetmore.bi"
 #include "yetmore2.bi"
 #include "moresubs.bi"
@@ -965,15 +966,6 @@ SUB teleporttooltend (byref mini as Frame Ptr, maptilesX() as TileMap, tilesets2
  minisize.x = screenw - offset.x * 2
  minisize.y = screenh - offset.y * 2
 END SUB
-
-
-FUNCTION movdivis (byval xygo as integer) as bool
-IF (xygo \ 20) * 20 = xygo AND xygo <> 0 THEN
- movdivis = YES
-ELSE
- movdivis = NO
-END IF
-END FUNCTION
 
 FUNCTION onwho (caption as string, byval alone as integer) as integer
 

@@ -3,10 +3,7 @@
 
 #include "reload.bi"
 
-DECLARE FUNCTION cropmovement (byref x as integer, byref y as integer, byref xgo as integer, byref ygo as integer) as integer
 DECLARE SUB defaultc
-DECLARE SUB forcedismount (catd() as integer)
-DECLARE FUNCTION framewalkabout (byval x as integer, byval y as integer, byref framex as integer, byref framey as integer, byval mapwide as integer, byval maphigh as integer, byval wrapmode as integer) as integer
 DECLARE SUB apply_game_window_settings ()
 DECLARE SUB set_speedcontrol ()
 DECLARE SUB initgamedefaults
@@ -19,12 +16,10 @@ DECLARE SUB make_map_backups
 DECLARE SUB update_backdrop_slice
 DECLARE SUB cleanuptemp
 DECLARE FUNCTION checkfordeath () as bool
-DECLARE SUB aheadxy (byref x as integer, byref y as integer, byval direction as integer, byval distance as integer)
 DECLARE SUB exitprogram (byval need_fade_out as bool = NO, byval errorout as integer = 0)
 DECLARE SUB keyboardsetup
 DECLARE SUB verify_quit
 DECLARE FUNCTION titlescreen () as integer
-DECLARE SUB reset_npc_graphics ()
 DECLARE FUNCTION mapstatetemp(mapnum as integer, prefix as string) as string
 DECLARE SUB savemapstate_gmap(mapnum as integer, prefix as string)
 DECLARE SUB savemapstate_npcl OVERLOAD (mapnum as integer, prefix as string)
