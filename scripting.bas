@@ -4,7 +4,7 @@
 '
 ' This module contains routines to do with HamsterSpeak which are (mostly)
 ' independent of the specific HS interpreter in use, or abstract between interpreters.
-' Implementations of script commands are in game.bas and yetmore.bas, not here.
+' Implementations of script commands are in scriptcommands.bas, not here.
 
 
 #include "config.bi"

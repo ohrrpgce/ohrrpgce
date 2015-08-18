@@ -1,8 +1,10 @@
-'OHRRPGCE GAME - More various unsorted routines
-'(C) Copyright 1997-2005 James Paige and Hamster Republic Productions
+'OHRRPGCE GAME
+'(C) Copyright 1997-2015 James Paige and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
+' All script commands are implemented here, arranged in rather random order,
+' including functions for the various handles and references that can be passed to script commands.
 
 #include "config.bi"
 #include "allmodex.bi"
@@ -357,6 +359,7 @@ END SUB
 '==========================================================================================
 
 
+' Implementations of 'wait' commands.
 SUB process_wait_conditions()
  WITH scriptinsts(nowscript)
 
@@ -484,6 +487,7 @@ END SUB
 '==========================================================================================
 
 
+' This entry point is called from the script interpreter.
 SUB sfunctions(byval cmdid as integer)
  DIM menuslot as integer = ANY
  DIM mislot as integer = ANY
