@@ -83,6 +83,14 @@ CONST build_info as string = "" _GSTR _ESTR _GENSTR _SSTR _PSTR _BSTR
  #DEFINE __FB_LINUX__
 #ENDIF
 
+#IFDEF __UNIX__
+ #IFNDEF __FB_DARWIN__
+  #IFNDEF __FB_ANDROID__
+   #DEFINE __X11__
+  #ENDIF
+ #ENDIF
+#ENDIF
+
 EXTERN wantpollingthread as integer
 EXTERN as string gfxbackend, musicbackend
 EXTERN as string gfxbackendinfo, musicbackendinfo, systeminfo
