@@ -18,7 +18,6 @@
 
 'local subs and functions
 DECLARE SUB generalscriptsmenu ()
-DECLARE SUB script_error_mode_menu ()
 DECLARE SUB generalmusicsfxmenu ()
 DECLARE SUB masterpalettemenu ()
 DECLARE SUB statcapsmenu ()
@@ -284,9 +283,6 @@ SUB generalscriptsmenu ()
   setvispage vpage
   dowait
  LOOP
-END SUB
-
-SUB script_error_mode_menu ()
 END SUB
 
 SUB generalmusicsfxmenu ()
@@ -1712,26 +1708,28 @@ SUB gendata ()
  m(7) = "Backwards-compatibility Bitsets..."
  m(8) = "Battle System Options..."
  m(9) = "Special Plotscripts..."
- m(10) = "Plotscript Error Display..."
- m(11) = "Global Music and Sound Effects..."
- m(12) = "Master Palettes..."
- m(13) = "Password For Editing..."
- m(14) = "Platform-specific options..."
+ m(10) = "Global Music and Sound Effects..."
+ m(11) = "Master Palettes..."
+ m(12) = "Password For Editing..."
+ m(13) = "Platform-specific options..."
 
  flusharray enabled(), UBOUND(enabled), YES
- enabled(15) = NO
- CONST options_start = 16
+ enabled(14) = NO
+ CONST options_start = 15
 
  index(options_start) = genMaxInventory
  max(options_start) = (inventoryMax + 1) \ 3
  index(options_start + 1) = genAutosortScheme
  max(options_start + 1) = 4
- index(options_start + 2) = genItemStackSize
- max(options_start + 2) = 99
- min(options_start + 2) = 1
- index(options_start + 3) = genMillisecPerFrame
- max(options_start + 3) = 200
- min(options_start + 3) = 16
+ index(options_start + 2) = genErrorLevel
+ max(options_start + 2) = 6
+ min(options_start + 2) = 2
+ index(options_start + 3) = genItemStackSize
+ max(options_start + 3) = 99
+ min(options_start + 3) = 1
+ index(options_start + 4) = genMillisecPerFrame
+ max(options_start + 4) = 200
+ min(options_start + 4) = 16
 
  DIM aboutline as string = load_aboutline()
  DIM longname as string = load_gamename()
@@ -1798,11 +1796,10 @@ SUB gendata ()
    END IF
    IF state.pt = 8 THEN battleoptionsmenu
    IF state.pt = 9 THEN generalscriptsmenu
-   IF state.pt = 10 THEN script_error_mode_menu
-   IF state.pt = 11 THEN generalmusicsfxmenu
-   IF state.pt = 12 THEN masterpalettemenu
-   IF state.pt = 13 THEN inputpasw
-   IF state.pt = 14 THEN edit_platform_options
+   IF state.pt = 10 THEN generalmusicsfxmenu
+   IF state.pt = 11 THEN masterpalettemenu
+   IF state.pt = 12 THEN inputpasw
+   IF state.pt = 13 THEN edit_platform_options
   END IF
   IF state.pt = 1 THEN
    IF enable_strgrabber ANDALSO strgrabber(longname, 38) THEN state.need_update = YES
