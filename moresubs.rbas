@@ -1561,6 +1561,8 @@ DO
    copypage holdscreen, vpage
   END IF
   IF autopick THEN EXIT DO
+  'Re-show the virtual gamepad, in case a special screen was triggered that hid it
+  show_virtual_gamepad()
  END IF
  copypage holdscreen, vpage
  h = (st.last + 2) * 10
