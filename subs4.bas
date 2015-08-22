@@ -15,9 +15,11 @@
 #include "scrconst.bi"
 #include "uiconst.bi"
 #include "loading.bi"
+#include "slices.bi"
 
 'local subs and functions
 DECLARE SUB generalscriptsmenu ()
+DECLARE SUB script_error_mode_menu ()
 DECLARE SUB generalmusicsfxmenu ()
 DECLARE SUB masterpalettemenu ()
 DECLARE SUB statcapsmenu ()
@@ -283,6 +285,98 @@ SUB generalscriptsmenu ()
   setvispage vpage
   dowait
  LOOP
+END SUB
+
+SUB script_error_mode_menu ()
+ DIM menu(1) as string
+ DIM menu_display(UBOUND(menu)) as string
+
+ DIM selectst as SelectTypeState
+ DIM state as MenuState
+ state.size = 24
+ state.last = UBOUND(menu)
+ state.need_update = YES
+
+ DIM root as Slice Ptr
+ root = NewSliceOfType(slRoot)
+ WITH *root
+  .Fill = YES
+ END WITH
+
+ DIM box as Slice Ptr
+ box = NewSliceOfType(slRectangle, root)
+ WITH *box
+  .Fill = YES
+  .FillMode = 1
+  .height = 48
+  .AnchorHoriz = 1
+  .AnchorVert = 2
+  .AlignHoriz = 1
+  .AlignVert = 2
+  .paddingLeft = 8
+  .paddingRight = 8
+  .paddingTop = 8
+  .paddingBottom = 8
+ END WITH
+ ChangeRectangleSlice box, 1
+
+ DIM infosl as Slice Ptr
+ infosl = NewSliceofType(slText, box)
+ ChangeTextSlice infosl, , , , YES
+
+ setkeys YES
+ DO
+  setwait 55
+  setkeys YES
+
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "general_script_error"
+   usemenu state
+
+   IF enter_space_click(state) THEN
+    SELECT CASE state.pt
+     CASE 0
+      EXIT DO
+     CASE 1
+      gen(genDebugMode) XOR= 1
+      state.need_update = YES
+    END SELECT
+   END IF
+
+   SELECT CASE state.pt
+    CASE 1
+     IF intgrabber(gen(genDebugMode), 0, 1) THEN
+      state.need_update = YES
+     END IF
+   END SELECT
+
+   IF state.need_update THEN
+    state.need_update = NO
+    menu(0) = "Previous Menu"
+    menu(1) = "Script Error Display Mode: " & yesorno(gen(genDebugMode), "debug", "release")
+    SELECT CASE gen(genDebugMode)
+     CASE 0
+      ChangeTextSlice infosl, "Release mode hides script errors. It is reccomended for older games that have not been tested with the newer, better script error detection."
+     CASE 1
+      ChangeTextSlice infosl, "Debug mode shows script errors. It is reccomended for new games. It will automatically be turned OFF when you export your game from the ""Distribute Game"" menu"
+    END SELECT
+   END IF    
+   box->Height = infosl->height + box->PaddingTop + box->PaddingBottom
+
+   IF select_by_typing(selectst, NO) THEN
+    select_on_word_boundary menu(), selectst, state
+   END IF
+
+   clearpage dpage
+   DrawSlice root, dpage
+   highlight_menu_typing_selection menu(), menu_display(), selectst, state
+   standardmenu menu_display(), state, 0, 0, dpage 
+
+   SWAP vpage, dpage
+   setvispage vpage
+   dowait
+ LOOP
+ DeleteSlice @root
 END SUB
 
 SUB generalmusicsfxmenu ()
@@ -1646,15 +1740,7 @@ SUB generate_gen_menu(m() as string, longname as string, aboutline as string, op
   CASE 3: m(options_start + 1) += "by item ID number"
   CASE 4: m(options_start + 1) += "no reordering"
  END SELECT
- m(options_start + 2) = "Script errors: "
- SELECT CASE gen(genErrorLevel)
-  CASE 2: m(options_start + 2) += "Show all warnings"
-  CASE 3: m(options_start + 2) += "Hide nit-picking warnings"
-  CASE 4: m(options_start + 2) += "Hide all warnings"
-  CASE 5: m(options_start + 2) += "Hide errors not reported in old versions"
-  CASE 6: m(options_start + 2) += "Hide all ignoreable errors"
- END SELECT
- m(options_start + 3) = "Default maximum item stack size: " & gen(genItemStackSize)
+ m(options_start + 2) = "Default maximum item stack size: " & gen(genItemStackSize)
  DIM fps as string
  '16ms and 33ms are special-cased to be exactly 60/30fps
  IF gen(genMillisecPerFrame) = 16 THEN
@@ -1664,7 +1750,7 @@ SUB generate_gen_menu(m() as string, longname as string, aboutline as string, op
  ELSE
   fps = FORMAT(small(60., 1000 / gen(genMillisecPerFrame)), ".#")
  END IF
- m(options_start + 4) = "Framerate: " & fps & " frames/sec (" _
+ m(options_start + 3) = "Framerate: " & fps & " frames/sec (" _
                          & gen(genMillisecPerFrame) & "ms/frame)"
 END SUB
 
@@ -1708,28 +1794,26 @@ SUB gendata ()
  m(7) = "Backwards-compatibility Bitsets..."
  m(8) = "Battle System Options..."
  m(9) = "Special Plotscripts..."
- m(10) = "Global Music and Sound Effects..."
- m(11) = "Master Palettes..."
- m(12) = "Password For Editing..."
- m(13) = "Platform-specific options..."
+ m(10) = "Plotscript Error Display..."
+ m(11) = "Global Music and Sound Effects..."
+ m(12) = "Master Palettes..."
+ m(13) = "Password For Editing..."
+ m(14) = "Platform-specific options..."
 
  flusharray enabled(), UBOUND(enabled), YES
- enabled(14) = NO
- CONST options_start = 15
+ enabled(15) = NO
+ CONST options_start = 16
 
  index(options_start) = genMaxInventory
  max(options_start) = (inventoryMax + 1) \ 3
  index(options_start + 1) = genAutosortScheme
  max(options_start + 1) = 4
- index(options_start + 2) = genErrorLevel
- max(options_start + 2) = 6
- min(options_start + 2) = 2
- index(options_start + 3) = genItemStackSize
- max(options_start + 3) = 99
- min(options_start + 3) = 1
- index(options_start + 4) = genMillisecPerFrame
- max(options_start + 4) = 200
- min(options_start + 4) = 16
+ index(options_start + 2) = genItemStackSize
+ max(options_start + 2) = 99
+ min(options_start + 2) = 1
+ index(options_start + 3) = genMillisecPerFrame
+ max(options_start + 3) = 200
+ min(options_start + 3) = 16
 
  DIM aboutline as string = load_aboutline()
  DIM longname as string = load_gamename()
@@ -1796,10 +1880,11 @@ SUB gendata ()
    END IF
    IF state.pt = 8 THEN battleoptionsmenu
    IF state.pt = 9 THEN generalscriptsmenu
-   IF state.pt = 10 THEN generalmusicsfxmenu
-   IF state.pt = 11 THEN masterpalettemenu
-   IF state.pt = 12 THEN inputpasw
-   IF state.pt = 13 THEN edit_platform_options
+   IF state.pt = 10 THEN script_error_mode_menu
+   IF state.pt = 11 THEN generalmusicsfxmenu
+   IF state.pt = 12 THEN masterpalettemenu
+   IF state.pt = 13 THEN inputpasw
+   IF state.pt = 14 THEN edit_platform_options
   END IF
   IF state.pt = 1 THEN
    IF enable_strgrabber ANDALSO strgrabber(longname, 38) THEN state.need_update = YES

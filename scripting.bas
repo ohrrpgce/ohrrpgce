@@ -1016,6 +1016,14 @@ END FUNCTION
 '                                   Menus and Dialogues
 '==========================================================================================
 
+FUNCTION should_display_error_to_user(byval errorlevel as scriptErrEnum) as bool
+ IF errorlevel = serrError THEN RETURN YES
+ IF errorlevel >= serrBug THEN RETURN YES
+ IF gen(genDebugMode) = 0 THEN 'Release mode, supress most error display
+  RETURN NO
+ END IF
+ RETURN YES
+END FUNCTION
 
 'For errorlevel scheme, see scriptErrEnum in const.bi
 SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
@@ -1032,6 +1040,8 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
  IF errorlevel <= err_suppress_lvl THEN EXIT SUB
 
  debug "Scripterr(" & errorlevel & "): " + e
+
+ IF NOT should_display_error_to_user(errorlevel) THEN EXIT SUB
 
  IF nowscript >= 0 THEN
   scriptcmdhash = scrat(nowscript).id * 100000 + scrat(nowscript).ptr * 10 + scrat(nowscript).depth

@@ -1,0 +1,9 @@
+Here you can change Script Error message display.
+
+Release mode hides error messages.
+
+Debug mode shows error messages.
+
+Debug mode is reccomended. It will automatically be turned off when you export your game from the "Distribute Games" menu. That way you will see error messages when you test your own game, but when you share your game with players, they will not be bothered with error messages that might confuse them.
+
+Even in "release" mode, error messages are always written to g_debug.txt and saved in g_debug_archive.txt
