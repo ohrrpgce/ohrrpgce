@@ -126,19 +126,19 @@ SUB distribute_game ()
    SELECT CASE menu[st.pt].dat
     CASE distmenuEXIT: EXIT DO
     CASE distmenuZIP:
-     save_current_game
+     save_current_game 0
      distribute_game_as_zip
     CASE distmenuWINSETUP:
-     save_current_game
+     save_current_game 0
      distribute_game_as_windows_installer
     CASE distmenuMACSETUP:
-     save_current_game
+     save_current_game 0
      distribute_game_as_mac_app
     CASE distmenuDEBSETUP:
-     save_current_game
+     save_current_game 0
      distribute_game_as_debian_package
     CASE distmenuLINUXSETUP:
-     save_current_game
+     save_current_game 0
      distribute_game_as_linux_tarball
     CASE distmenuINFO:
      edit_distrib_info
@@ -161,6 +161,8 @@ SUB distribute_game ()
  LOOP
  setkeys
  v_free menu
+ 'Revert genCurrentDebugMode to the author's choice in genDebugMode
+ gen(genCurrentDebugMode) = gen(genDebugMode)
 END SUB
 
 SUB edit_distrib_info ()
