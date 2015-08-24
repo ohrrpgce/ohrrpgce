@@ -4278,10 +4278,19 @@ SUB spawn_game_menu
  END IF
 END SUB
 
-SUB save_current_game ()
+SUB save_current_game (byval genDebugMode_override as integer=-1)
  clearpage 0
  setvispage 0
  textcolor uilook(uiText), 0
+ 
+ 'Apply the appropriate genCurrentDebugMode
+ IF genDebugMode_override >= 0 THEN
+  gen(genCurrentDebugMode) = genDebugMode_override
+ ELSE
+  gen(genCurrentDebugMode) = gen(genDebugMode)
+ END IF
+ xbsave game + ".gen", gen(), 1000
+ 
  printstr "LUMPING DATA: please wait.", 0, 0, 0
  setvispage 0 'refresh
  '--verify various stuff

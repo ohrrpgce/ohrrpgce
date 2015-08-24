@@ -1019,7 +1019,7 @@ END FUNCTION
 FUNCTION should_display_error_to_user(byval errorlevel as scriptErrEnum) as bool
  IF errorlevel = serrError THEN RETURN YES
  IF errorlevel >= serrBug THEN RETURN YES
- IF gen(genDebugMode) = 0 THEN 'Release mode, supress most error display
+ IF gen(genCurrentDebugMode) = 0 THEN 'Release mode, supress most error display
   RETURN NO
  END IF
  RETURN YES

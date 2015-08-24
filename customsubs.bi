@@ -92,7 +92,7 @@ DECLARE SUB spawn_game_menu ()
 
 DECLARE SUB dolumpfiles (filetolump as string)
 DECLARE SUB move_unwriteable_rpg (filetolump as string)
-DECLARE SUB save_current_game()
+DECLARE SUB save_current_game(byval genDebugMode_override as integer=-1)
 DECLARE SUB automatic_backup (rpgfile as string)
 
 DECLARE SUB check_used_onetime_npcs(bits() as integer)
