@@ -1114,14 +1114,16 @@ end sub
 
 'If using gfx_sdl and gfx_directx this is Latin-1, while gfx_fb doesn't currently support even that
 function getinputtext () as string
-	'Only show this message if getinputtext is called incorrectly twice in a row,
-	'to filter out instances when a menu with inputtext disabled exits back to
-	'one that expects it enabled, and getinputtext is called before the next call to setkeys.
-	static last_call_was_bad as bool = NO
-	if inputtext_enabled = NO and last_call_was_bad then
-		debuginfo "getinputtext: not enabled"
+	if disable_native_text_input = NO then
+		'Only show this message if getinputtext is called incorrectly twice in a row,
+		'to filter out instances when a menu with inputtext disabled exits back to
+		'one that expects it enabled, and getinputtext is called before the next call to setkeys.
+		static last_call_was_bad as bool = NO
+		if inputtext_enabled = NO and last_call_was_bad then
+			debuginfo "getinputtext: not enabled"
+		end if
+		last_call_was_bad = (inputtext_enabled = NO)
 	end if
-	last_call_was_bad = (inputtext_enabled = NO)
 
 	return inputtext
 end function
@@ -1336,10 +1338,12 @@ sub setkeys (byval enable_inputtext as bool = NO)
 
 	dim starttime as double = timer
 
-	if enable_inputtext then enable_inputtext = YES
-	if inputtext_enabled <> enable_inputtext then
-		inputtext_enabled = enable_inputtext
-		io_enable_textinput(inputtext_enabled)
+	if disable_native_text_input = NO then
+		if enable_inputtext then enable_inputtext = YES
+		if inputtext_enabled <> enable_inputtext then
+			inputtext_enabled = enable_inputtext
+			io_enable_textinput(inputtext_enabled)
+		end if
 	end if
 
 	if replay.active then
