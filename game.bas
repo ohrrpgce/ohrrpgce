@@ -655,6 +655,8 @@ ELSE
  clearpage 1
  'Add initial hero to party (slot 0)
  addhero 1 + gen(genStartHero), 0
+ 'Trigger textbox and/or script
+ gam.want.box = gen(genStartTextbox)  '0 for no textbox
  IF gen(genNewGameScript) > 0 THEN
   trigger_script gen(genNewGameScript), YES, "newgame", "", scrqBackcompat()
  END IF
@@ -1610,7 +1612,7 @@ SUB interpret()
  'if we make fades customisable) that one tick delay is undesired.
  'So consider delaying all calls to preparemap (and doloadgame) until the start of the next tick.
 
- IF immediate_showtextbox = NO AND gam.want.box > 0 THEN
+ IF gam.want.box > 0 THEN
   loadsay gam.want.box
  END IF
  gam.want.box = 0

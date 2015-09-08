@@ -68,7 +68,7 @@ END TYPE
 'script interpreter (used to be called wantdoor, etc).
 'These actions are delayed for historical/backcompat reasons; see interpret().
 TYPE ScriptWantSignals
-  box as integer      'Textbox +1
+  box as integer      'Textbox, or 0 for none (can't ask to show box 0)
   door as integer     'Door number +1
   battle as integer   'Formation number +1
   teleport as bool    'Map num has changed, call preparemap()

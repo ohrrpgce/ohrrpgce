@@ -3,3 +3,7 @@ This is the New Game Data Editor.
 Navigate with the Up and Down arrow keys (or PgUp, PgDn, Home, and End), or type part of a menu item to jump to it.
 
 Type in numbers for the various data that will be used when the player starts a new game.
+
+The initial X,Y and map number can also be set in the map editor (press Ctrl+H to set the starting location.)
+
+Starting Textbox causes a textbox to appear when you start a new game, in addition to running the new-game script.

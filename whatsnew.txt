@@ -68,7 +68,8 @@ WHAT IS NEW?
       and no item to steal. [Ralph]
     * Added Regen icon to Battle System Options. [Ralph]
     * Hero positions in battle can be customized. [James]
-    * Starting hero ID can be customized. [Ralph]
+    * Starting hero ID can be customized, and you can also set a
+      'starting' textbox to display on a new game. [Ralph]
 
   * Changes
     * Hidden menu items no longer affect the width of a menu [Ralph]
