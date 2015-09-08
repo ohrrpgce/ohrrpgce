@@ -1662,7 +1662,7 @@ SUB equipmergemenu
 END SUB
 
 SUB startingdatamenu
- CONST maxMenu = 4
+ CONST maxMenu = 5
  DIM m(maxMenu) as string
  DIM menu_display(maxMenu) as string
  DIM max(maxMenu) as integer
@@ -1678,8 +1678,10 @@ SUB startingdatamenu
  index(2) = genStartY
  index(3) = genStartMap
  max(3) = gen(genMaxMap)
- index(4) = genStartMoney
- max(4) = 32767
+ index(4) = genStartHero
+ max(4) = gen(genMaxHero)
+ index(5) = genStartMoney
+ max(5) = 32767
  DO
   setwait 55
   setkeys YES
@@ -1709,7 +1711,8 @@ SUB startingdatamenu
    m(1) = "Starting X: " & gen(genStartX)
    m(2) = "Starting Y: " & gen(genStartY)
    m(3) = "Starting Map: " & gen(genStartMap) & " " & getmapname(gen(genStartMap))
-   m(4) = "Starting Money: " & gen(genStartMoney)
+   m(4) = "Starting Hero: " & gen(genStartHero) & " " & getheroname(gen(genStartHero))
+   m(5) = "Starting Money: " & gen(genStartMoney)
   END IF
 
   IF select_by_typing(selectst, NO) THEN

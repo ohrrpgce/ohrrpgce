@@ -168,6 +168,7 @@ CONST genRegenChar = 202        ' Regen status icon character
 CONST genDefaultScale = 203     ' Graphics zoom factor, 0 = default
 CONST genDebugMode = 204        ' 0=Release mode, 1=Debug mode. Author choice for script error display. This is the one that should be edited by the game author
 CONST genCurrentDebugMode = 205 ' 0=Release mode, 1=Debug mode. Current choice for script error display. This is the one that should be checked in-game
+CONST genStartHero = 206        ' ID of initial hero
 'Everything else up to 499 unused.
 'When adding more data to gen() consider whether it should be saved in .rsav.
 'Also, gen() is reloaded by resetgame() when starting a new/loaded game,

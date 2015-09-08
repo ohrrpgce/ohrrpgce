@@ -3849,6 +3849,11 @@ IF dt6_records > gen(genMaxAttack) + 1 THEN
  gen(genMaxAttack) = dt6_records - 1
 END IF
 
+IF gen(genStartHero) < 0 OR gen(genStartHero) > gen(genMaxHero) THEN
+ upgrade_message "genStartHero invalid: " & gen(genStartHero)
+ gen(genStartHero) = 0
+END IF
+
 'Check the number of maps, updating gen(genMaxMap), and check all lumps are present
 check_map_count
 

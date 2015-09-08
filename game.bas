@@ -653,7 +653,8 @@ ELSE
  fadeout 0, 0, 0
  clearpage 0
  clearpage 1
- addhero 1, 0
+ 'Add initial hero to party (slot 0)
+ addhero 1 + gen(genStartHero), 0
  IF gen(genNewGameScript) > 0 THEN
   trigger_script gen(genNewGameScript), YES, "newgame", "", scrqBackcompat()
  END IF
