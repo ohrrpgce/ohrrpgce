@@ -30,6 +30,7 @@
 DECLARE SUB setup_sprite_sizes ()
 DECLARE SUB check_map_count ()
 DECLARE SUB fatal_error_shutdown ()
+DECLARE SUB zero_out_pre_july_8_1999_general_map_data_garbage ()
 
 #IFDEF IS_GAME
 #include "game_udts.bi"
@@ -3179,6 +3180,14 @@ END IF
 '---VERSION 3---
 IF gen(genVersion) = 2 THEN
  upgrade_message "July 8 1999 format (3)"
+
+ upgrade_message "Zero-out un-used data in .MAP records"
+ 'This fix might be needed for games in later formats, especially ones
+ ' that are already have gen(genVersion) = 3 but unfortunately this
+ ' is the last place we can apply the fix in a safe way that does not
+ ' risk data-loss (particularly map autorun script triggers)   
+ zero_out_pre_july_8_1999_general_map_data_garbage()
+
  gen(genVersion) = 3
  writepassword read_PW1_password
  'No need to remove the old password: we just overwrote it with
@@ -3199,6 +3208,7 @@ IF gen(genVersion) = 2 THEN
  gen(genMaxFormation) = 1000
  gen(genMaxPal)       = 99
  gen(genMaxTextbox)   = 999
+ 
 END IF
 '--VERSION 4--
 IF gen(genVersion) = 3 THEN
@@ -3878,6 +3888,42 @@ xbsave game + ".gen", gen(), 1000
 'wow! this is quite a big and ugly routine!
 END SUB
 
+SUB zero_out_pre_july_8_1999_general_map_data_garbage ()
+ 'Some lost-to-history version of custom.exe wrote garbage to the
+ 'then-unused areas of the .MAP records for General Map Data.
+ '
+ 'Unfortunately this garbage can only be safely zeroed out for games
+ 'older than July 8 1999, which is the last identifiable version before
+ 'more records were used in the .MAP lump starting with the unidentifiable
+ 'November 9 1999 version that added map wrapping and script-autorun triggers.
+ 
+ IF gen(genVersion) > 2 THEN
+  debug "Sanity test: zero_out_pre_july_8_1999_general_map_data_garbage() is unsafe on games newer than July 8 1999"
+  EXIT SUB
+ END IF
+ 
+ DIM gmaptmp(dimbinsize(binMAP)) as integer
+ DIM resave as bool = NO
+
+ FOR i as integer = 0 to gen(genMaxMap)
+
+  resave = NO
+  loadrecord gmaptmp(), game & ".map", getbinsize(binMAP) \ 2, i
+
+  FOR j as integer = 4 TO 19
+   IF gmaptmp(j) <> 0 THEN
+    resave = YES
+    gmaptmp(j) = 0
+   END IF
+  NEXT j
+  
+  IF resave THEN
+   debug "general map data garbage found and cleared for map " & i
+   storerecord gmaptmp(), game & ".map", getbinsize(binMAP) \ 2, i
+  END IF
+
+ NEXT i
+END SUB
 
 '==========================================================================================
 
