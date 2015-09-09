@@ -426,6 +426,8 @@ SUB process_wait_conditions()
       IF (mouse.clickstick AND mouseLeft) THEN
        script_stop_waiting()
       END IF
+     ELSE
+      a_script_wants_keys()
      END IF
      IF .waitarg >= 0 AND .waitarg <= 5 THEN
       IF carray(.waitarg) > 1 THEN
@@ -445,6 +447,7 @@ SUB process_wait_conditions()
       END IF
      END IF
     CASE 244'--wait for scancode
+     a_script_wants_keys()
      IF keyval(.waitarg) > 1 THEN
       script_stop_waiting()
      END IF
@@ -1222,6 +1225,7 @@ SUB sfunctions(byval cmdid as integer)
  CASE 30'--keyval
   'This used to be keyispressed; which undocumentedly reported two bits
   'instead of true/false.
+  a_script_wants_keys()
   IF retvals(0) >= 0 AND retvals(0) <= 147 THEN
    'keyval() reports a 3rd bit, but didn't at the time that this command was (re-)documented
    scriptret = script_keyval(retvals(0)) AND 3
@@ -1797,6 +1801,7 @@ SUB sfunctions(byval cmdid as integer)
    plotstr(retvals(0)).s = getsongname(retvals(1))
   END IF
  CASE 235'--key is pressed
+  a_script_wants_keys()
   'Undocumented second argument is joystick number
   IF script_keyval(retvals(0), bound(retvals(1), 0, 7)) THEN scriptret = 1 ELSE scriptret = 0
  CASE 236'--sound is playing

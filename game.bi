@@ -72,6 +72,7 @@ DECLARE FUNCTION guess_age_by_tmpdir_name(dirname as string) as integer
 
 DECLARE SUB update_virtual_gamepad_display()
 DECLARE FUNCTION calc_virtual_gamepad_state() as bool
+DECLARE SUB a_script_wants_keys()
 
 DECLARE FUNCTION last_active_party_slot() as integer 'FIXME: use this everywhere!
 DECLARE FUNCTION is_active_party_slot(byval slot as integer) as integer

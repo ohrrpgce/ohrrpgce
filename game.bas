@@ -3413,6 +3413,11 @@ threshhold = -1
  NEXT i
 END SUB
 
+SUB a_script_wants_keys()
+ 'After running a command that checks for keys, keep the virtual gamepad visible for about half a second
+ gam.pad.script_wants_keys = ideal_ticks_per_second() / 2
+END SUB
+
 SUB update_virtual_gamepad_display()
  'Based on global state, of the current game, decide whether or not the virual gamepad should be displaying
  IF calc_virtual_gamepad_state() THEN
@@ -3431,6 +3436,12 @@ FUNCTION calc_virtual_gamepad_state() as bool
 
  'The gamepad might be disabled for this game
  IF should_disable_virtual_gamepad() THEN RETURN NO
+ 
+ 'A script command has run recently that is checking for key input
+ IF gam.pad.script_wants_keys > 0 THEN
+  gam.pad.script_wants_keys -= 1
+  RETURN YES
+ END IF
  
  'Inside battle mode, force the gamepad visible
  IF gam.pad.in_battle THEN RETURN YES
