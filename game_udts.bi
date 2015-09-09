@@ -76,6 +76,12 @@ TYPE ScriptWantSignals
   loadgame as integer 'Save slot +1
 END TYPE
 
+'Used when automatically updating the visibility of the virtual gamepad
+'(Android only)
+TYPE VirtualGamePadState
+  in_battle as bool = NO
+END TYPE
+
 TYPE GameState
   map as MapModeState
   wonbattle as bool                  'Indicates the status of the last battle (won as opposed to dying or running or 'force exit')
@@ -107,6 +113,7 @@ TYPE GameState
   script_hide_virtual_gamepad as bool
   script_show_virtual_gamepad as bool
   want as ScriptWantSignals
+  pad as VirtualGamePadState
 END TYPE
 
 'Note that .showing, .fully_shown, .sayer need to be always correct even if no box is up

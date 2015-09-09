@@ -185,8 +185,6 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
  evalitemtags
  party_change_updates
 
- update_virtual_gamepad_display()
-
 END SUB
 
 SUB buystuff_do_purchase(buyst as ShopBuyState, byval thing as NodePtr, byval thing_slot as integer)
@@ -1200,8 +1198,6 @@ FOR i as integer = 0 TO last_slot
 NEXT
 EXIT FUNCTION
 
-update_virtual_gamepad_display()
-
 END FUNCTION
 
 'Returns whether confirmed
@@ -1461,8 +1457,6 @@ menusound gen(genCancelSFX)
 
 evalitemtags
 tag_updates
-
-update_virtual_gamepad_display()
 
 EXIT SUB
 
@@ -1908,8 +1902,6 @@ SUB status_screen (byval slot as integer)
  freepage holdscreen
  DeleteSlice @(st.sl)
  
- update_virtual_gamepad_display()
-
 END SUB
 
 '-----------------------------------------------------------------------
@@ -2240,8 +2232,6 @@ FUNCTION item_screen () as integer
  freepage holdscreen
  DeleteSlice @(st.ps.m)
 
- update_virtual_gamepad_display()
-
  RETURN st.textbox
 END FUNCTION
 
@@ -2438,8 +2428,6 @@ SUB spell_screen (byval slot as integer)
 
  freepage holdscreen
  DeleteSlice @(st.ps.m)
-
- update_virtual_gamepad_display()
 
 END SUB
 
@@ -2775,8 +2763,6 @@ LOOP
 freepage page
 freepage holdscreen
 MenuSound gen(genCancelSFX)
-
-update_virtual_gamepad_display()
 
 'tags handled in unequip, doequip
 END SUB

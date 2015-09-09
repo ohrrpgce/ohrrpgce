@@ -1141,12 +1141,10 @@ SUB sfunctions(byval cmdid as integer)
   setbit gen(), genSuspendBits, suspendnpcs, 1
  CASE 6'--suspend player
   setbit gen(), genSuspendBits, suspendplayer, 1
-  update_virtual_gamepad_display()
  CASE 7'--resume npcs
   setbit gen(), genSuspendBits, suspendnpcs, 0
  CASE 8'--resume player
   setbit gen(), genSuspendBits, suspendplayer, 0
-  update_virtual_gamepad_display()
  CASE 9'--wait for key
   script_start_waiting(retvals(0))
  CASE 10'--walk hero

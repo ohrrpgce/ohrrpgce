@@ -350,7 +350,6 @@ SUB verify_quit
  setkeys
  flusharray carray(), 7, 0
  freepage page
- update_virtual_gamepad_display()
 END SUB
 
 FUNCTION titlescreen () as bool

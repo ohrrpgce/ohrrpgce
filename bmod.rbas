@@ -101,7 +101,8 @@ REDIM learnmask(245) as integer '6 shorts of bits per hero
 FUNCTION battle (byval form as integer) as bool
  DIM result as bool  'Return value: whether victorious
  
- remap_virtual_gamepad "virtual_gamepad_battle", YES
+ gam.pad.in_battle = YES
+ remap_virtual_gamepad "virtual_gamepad_battle"
 
  DIM formdata as Formation
  DIM attack as AttackData
@@ -292,6 +293,7 @@ FUNCTION battle (byval form as integer) as bool
   settag formdata.victory_tag, result
  END IF
  tag_updates
+ gam.pad.in_battle = NO
  remap_virtual_gamepad "virtual_gamepad"
  setkeys  'This only seems to matter in some contexts, such as triggered from a textbox
  RETURN result

@@ -692,6 +692,7 @@ DO
  playtimer
 
  'DEBUG debug "read controls"
+ update_virtual_gamepad_display()
  setkeys gam.getinputtext_enabled
  gam.mouse = readmouse  'didn't bother to check havemouse()
  control
@@ -2495,11 +2496,9 @@ SUB loadsay (byval box_id as integer)
  '--Create a set of slices to display the text box
  init_text_box_slices txt
 
- update_virtual_gamepad_display()
 END SUB
 
 SUB advance_text_box ()
- update_virtual_gamepad_display YES
  IF txt.box.backdrop > 0 THEN
   '--backdrop needs resetting
   gen(genTextboxBackdrop) = 0
@@ -2602,7 +2601,6 @@ SUB advance_text_box ()
  ClearTextBox txt.box
  setkeys
  flusharray carray(), 7, 0
- update_virtual_gamepad_display
 END SUB
 
 SUB add_rem_swap_lock_hero (byref box as TextBox)
@@ -3415,16 +3413,16 @@ threshhold = -1
  NEXT i
 END SUB
 
-SUB update_virtual_gamepad_display(byval advancing_text_now as bool=NO, byval in_battle as bool=NO)
+SUB update_virtual_gamepad_display()
  'Based on global state, of the current game, decide whether or not the virual gamepad should be displaying
- IF calc_virtual_gamepad_state(advancing_text_now, in_battle) THEN
+ IF calc_virtual_gamepad_state() THEN
   show_virtual_gamepad()
  ELSE
   hide_virtual_gamepad()
  END IF
 END SUB
 
-FUNCTION calc_virtual_gamepad_state(byval advancing_text_now as bool=NO, byval in_battle as bool=NO) as bool
+FUNCTION calc_virtual_gamepad_state() as bool
  'None of this matters unless we are running on a platform that actually uses a virtual gamepad
  IF NOT running_on_mobile() THEN RETURN NO
 
@@ -3435,13 +3433,8 @@ FUNCTION calc_virtual_gamepad_state(byval advancing_text_now as bool=NO, byval i
  IF should_disable_virtual_gamepad() THEN RETURN NO
  
  'Inside battle mode, force the gamepad visible
- IF in_battle THEN RETURN YES
+ IF gam.pad.in_battle THEN RETURN YES
 
- 'Special handling is required when advancing a textbox. This ensures
- ' that battles, shops, and inns sandwiched between textboxes have
- ' the virtual gamepad enabled, even if the text boxes do not.
- IF advancing_text_now THEN RETURN YES
- 
  'Now check and see if the virtual gamepad should be disabled because of textboxes
  IF use_touch_textboxes() THEN
   IF txt.showing THEN

@@ -48,7 +48,7 @@ DECLARE FUNCTION gamepadmap_from_reload(gamepad as NodePtr, byval use_dpad as bo
 DECLARE FUNCTION use_touch_textboxes() as bool
 DECLARE FUNCTION should_disable_virtual_gamepad() as bool
 DECLARE FUNCTION should_hide_virtual_gamepad_when_suspendplayer() as bool
-DECLARE SUB remap_virtual_gamepad(nodename as string, byval in_battle as bool=NO)
+DECLARE SUB remap_virtual_gamepad(nodename as string)
 
 DECLARE FUNCTION default_margin() as integer
 DECLARE FUNCTION default_margin_for_game() as integer

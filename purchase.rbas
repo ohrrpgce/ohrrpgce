@@ -153,7 +153,6 @@ SUB purchases_menu ()
  DeleteSlice @root
 
  tag_updates
- update_virtual_gamepad_display()
 END SUB
 
 FUNCTION purchase_menu_create_product_slice(byval prod as NodePtr, byval parent as Slice Ptr) as bool

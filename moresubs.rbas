@@ -647,8 +647,6 @@ freepage holdscreen
 
 party_change_updates
 
-update_virtual_gamepad_display()
-
 END SUB
 
 SUB hero_swap_menu_display (st as OrderTeamState)
@@ -801,7 +799,6 @@ SUB minimap (byval x as integer, byval y as integer)
  setkeys
  flusharray carray(), 7, 0
  MenuSound gen(genCancelSFX)
- update_virtual_gamepad_display()
 END SUB
 
 FUNCTION teleporttool () as integer
@@ -1025,7 +1022,6 @@ LOOP
 freepage page
 setkeys
 flusharray carray(), 7, 0
-update_virtual_gamepad_display()
 END FUNCTION
 
 SUB readjoysettings
@@ -1103,7 +1099,6 @@ IF running_on_console() THEN
 ELSEIF running_on_mobile() THEN
  hide_virtual_gamepad()
  gam.hero(who).name = touch_virtual_keyboard(gam.hero(who).name, limit, prompt)
- update_virtual_gamepad_display()
 ELSE
  'On platforms that need it (<s>currently</s> just Android) show the virtual keyboard.
  'This does nothing on platforms that don't need it.
@@ -1347,7 +1342,7 @@ SUB reset_game_state ()
 
 END SUB
 
-SUB remap_virtual_gamepad(nodename as string, byval in_battle as bool=NO)
+SUB remap_virtual_gamepad(nodename as string)
  DIM root as NodePtr = get_general_reld()
  DIM mobile as NodePtr = root."mobile_options".ptr
  IF mobile = 0 THEN mobile = SetChildNode(root, "mobile_options")
@@ -1368,7 +1363,7 @@ SUB remap_virtual_gamepad(nodename as string, byval in_battle as bool=NO)
  FOR i as integer = button_id TO 5
   remap_touchscreen_button i, 0
  NEXT i
- update_virtual_gamepad_display(NO, in_battle)
+ update_virtual_gamepad_display()
 END SUB
 
 FUNCTION should_disable_virtual_gamepad() as bool
@@ -1584,8 +1579,6 @@ freepage holdscreen
 evalitemtags
 party_change_updates
 
-update_virtual_gamepad_display()
-
 END SUB
 
 'holdscreen is a copy of vpage (not a compatpage)
@@ -1668,7 +1661,6 @@ DO
 LOOP
 freepage page
 party_change_updates
-update_virtual_gamepad_display()
 END FUNCTION
 
 SUB tagdisplay
