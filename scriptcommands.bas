@@ -3671,16 +3671,16 @@ SUB sfunctions(byval cmdid as integer)
    script_start_waiting(retvals(0))
   END IF
  CASE 576'--hide virtual gamepad
-  gam.script_hide_virtual_gamepad = YES
-  gam.script_show_virtual_gamepad = NO
+  gam.pad.script_hide_virtual_gamepad = YES
+  gam.pad.script_show_virtual_gamepad = NO
   update_virtual_gamepad_display()
  CASE 577'--show virtual gamepad
-  gam.script_hide_virtual_gamepad = NO
-  gam.script_show_virtual_gamepad = YES
+  gam.pad.script_hide_virtual_gamepad = NO
+  gam.pad.script_show_virtual_gamepad = YES
   update_virtual_gamepad_display()
  CASE 578'--auto virtual gamepad
-  gam.script_hide_virtual_gamepad = NO
-  gam.script_show_virtual_gamepad = NO
+  gam.pad.script_hide_virtual_gamepad = NO
+  gam.pad.script_show_virtual_gamepad = NO
   update_virtual_gamepad_display()
  CASE 579'--get vert align
   IF valid_plotslice(retvals(0)) THEN

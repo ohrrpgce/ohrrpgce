@@ -80,6 +80,8 @@ END TYPE
 '(Android only)
 TYPE VirtualGamePadState
   in_battle as bool = NO
+  script_hide_virtual_gamepad as bool
+  script_show_virtual_gamepad as bool
 END TYPE
 
 TYPE GameState
@@ -110,8 +112,6 @@ TYPE GameState
   showstring as string               'The text shown by showvalue/showstring commands
   getinputtext_enabled as bool
   script_log as ScriptLoggingState
-  script_hide_virtual_gamepad as bool
-  script_show_virtual_gamepad as bool
   want as ScriptWantSignals
   pad as VirtualGamePadState
 END TYPE
