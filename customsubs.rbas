@@ -1561,7 +1561,7 @@ END FUNCTION
 FUNCTION seconds_estimate(ticks as integer) as string
  IF ticks = 0 THEN RETURN "0.0"
  DIM sec as double
- sec = ticks * (1 / 18.2)
+ sec = ticks * (1 / ideal_ticks_per_second())
  DIM s as string = STR(sec)
  DIM dot as integer = INSTR(s, ".")
  DIM prefix as string = LEFT(s, dot - 1)
