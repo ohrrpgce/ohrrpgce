@@ -385,20 +385,26 @@ FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
   'On Android, the requested screen size will be stretched.
   'We also want the option of a margin around the edges for
   'when the game is being played on a TV that needs safe zones
+
+  IF smooth THEN
+   'smoothing is enabled, use default zoom of 2 (or the zoom specified on the command line)
+  ELSE
+   'smoothing is disabled, force zoom to 1 on Android
+   zoom = 1
+  END IF
   
   DIM android_screen_size as XYPair
-  android_screen_size.x = framesize.w + INT(CDBL(framesize.w) * (safe_zone_margin * 2.0))
-  android_screen_size.y = framesize.h + INT(CDBL(framesize.h) * (safe_zone_margin * 2.0))
+  android_screen_size.x = (framesize.w + INT(CDBL(framesize.w) * (safe_zone_margin * 2.0))) * zoom
+  android_screen_size.y = (framesize.h + INT(CDBL(framesize.h) * (safe_zone_margin * 2.0))) * zoom
   screensurface = SDL_SetVideoMode(android_screen_size.x, android_screen_size.y, bitdepth, flags)
   IF screensurface = NULL THEN
     debug "Failed to open display (bitdepth = " & bitdepth & ", flags = " & flags & "): " & *SDL_GetError()
     RETURN 0
   END IF
   debuginfo "gfx_sdl: screen size is " & screensurface->w & "*" & screensurface->h
-  zoom = 1
   WITH dest_rect
-    .x = INT(CDBL(framesize.w) * safe_zone_margin)
-    .y = INT(CDBL(framesize.h) * safe_zone_margin)
+    .x = INT(CDBL(framesize.w) * safe_zone_margin) * zoom
+    .y = INT(CDBL(framesize.h) * safe_zone_margin) * zoom
     .w = framesize.w * zoom
     .h = framesize.h * zoom
   END WITH
