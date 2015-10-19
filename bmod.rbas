@@ -2811,7 +2811,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  DIM as integer xt, yt
 
  '----NULL ANIMATION
- IF attack.attack_anim = 10 THEN
+ IF attack.attack_anim = atkAnimNull THEN
   anim_advance bat.acting, attack, bslot(), t()
   if attack.sound_effect > 0  then anim_sound(attack.sound_effect - 1)
   FOR j as integer = 1 TO numhits
@@ -2829,15 +2829,15 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  END IF
 
  '----NORMAL, DROP, SPREAD-RING, and SCATTER
- IF attack.attack_anim = 0 OR attack.attack_anim = 3 OR attack.attack_anim = 6 OR (attack.attack_anim = 4 AND tcount > 1) THEN
+ IF attack.attack_anim = atkAnimNormal OR attack.attack_anim = atkAnimDrop OR attack.attack_anim = atkAnimScatter OR (attack.attack_anim = atkAnimRing AND tcount > 1) THEN
  FOR i = 0 TO tcount - 1
   yt = (bslot(t(i)).h - 50) + 2
-  xt = 0: IF t(i) = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> 7 THEN xt = -20
+  xt = 0: IF t(i) = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> atkrAnimStandingCast THEN xt = -20
   anim_setpos 12 + i, bslot(t(i)).x + xt, bslot(t(i)).y + yt, atkimgdirection
-  IF attack.attack_anim = 3 THEN
+  IF attack.attack_anim = atkAnimDrop THEN
    anim_setz 12 + i, 180
   END IF
-  IF attack.attack_anim = 4 THEN
+  IF attack.attack_anim = atkAnimRing THEN
    anim_setpos 12 + i, bslot(t(i)).x + xt, bslot(t(i)).y + yt - bslot(t(i)).w, atkimgdirection
   END IF
  NEXT i
@@ -2847,24 +2847,24 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
   IF is_enemy(bat.acting) THEN anim_enemy bat.acting, attack, bslot(), t()
    FOR i = 0 TO tcount - 1
     anim_appear 12 + i
-    IF attack.attack_anim = 4 THEN
+    IF attack.attack_anim = atkAnimRing THEN
      anim_absmove 12 + i, bslot(t(i)).x + xt - bslot(t(i)).w, bslot(t(i)).y + yt, 3, 3
     END IF
-    IF attack.attack_anim = 3 THEN
+    IF attack.attack_anim = atkAnimDrop THEN
      anim_zmove 12 + i, -10, 20
     END IF
-    IF attack.attack_anim = 6 THEN
+    IF attack.attack_anim = atkAnimScatter THEN
      anim_absmove 12 + i, randint(270), randint(150), 6, 6
     END IF
    NEXT i
    if attack.sound_effect > 0  then anim_sound(attack.sound_effect - 1)
    anim_wait 2
-   IF attack.attack_anim = 3 THEN
+   IF attack.attack_anim = atkAnimDrop THEN
     anim_wait 3
    END IF
    anim_setframe bat.acting, frameSTAND
    anim_disappear 24
-   IF attack.attack_anim = 4 THEN
+   IF attack.attack_anim = atkAnimRing THEN
     FOR i = 0 TO tcount - 1
      anim_absmove 12 + i, bslot(t(i)).x + xt, bslot(t(i)).y + yt + bslot(t(i)).w, 3, 3
     NEXT i
@@ -2882,7 +2882,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
     anim_inflict t(i), tcount
     anim_flinchstart t(i), bslot(), attack
    NEXT i
-   IF attack.attack_anim <> 4 THEN
+   IF attack.attack_anim <> atkAnimRing THEN
     anim_wait 3
    END IF
    FOR i = 0 TO tcount - 1
@@ -2901,7 +2901,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  END IF
 
  '----SEQUENTIAL PROJECTILE
- IF attack.attack_anim = 7 THEN
+ IF attack.attack_anim = atkAnimSequentialProjectile THEN
   DIM startoffset as integer
   'attacker steps forward
   anim_advance bat.acting, attack, bslot(), t()
@@ -2923,7 +2923,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
     'find the target's position
     yt = (bslot(t(i)).h - 50) + 2
     xt = 0
-    IF t(i) = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> 7 THEN xt = -20
+    IF t(i) = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> atkrAnimStandingCast THEN xt = -20
     'make the projectile move to the target
     anim_absmove 12, bslot(t(i)).x + xt, bslot(t(i)).y + yt, 5, 5
     anim_waitforall
@@ -2956,7 +2956,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  END IF
  
  '----PROJECTILE, REVERSE PROJECTILE and METEOR
- IF attack.attack_anim = 1 OR attack.attack_anim = 2 OR attack.attack_anim = 8 THEN
+ IF attack.attack_anim = atkAnimProjectile OR attack.attack_anim = atkAnimReverseProjectile OR attack.attack_anim = atkAnimMeteor THEN
   DIM projectile_start_x_offset as integer
   projectile_start_x_offset = 50
   IF is_hero(bat.acting) THEN projectile_start_x_offset = -50
@@ -2965,14 +2965,14 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    FOR i = 0 TO tcount - 1
     yt = (bslot(t(i)).h - 50) + 2
     xt = 0
-    IF t(i) = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> 7 THEN xt = -20
-    IF attack.attack_anim = 1 THEN
+    IF t(i) = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> atkrAnimStandingCast THEN xt = -20
+    IF attack.attack_anim = atkAnimProjectile THEN
      anim_setpos 12 + i, bslot(bat.acting).x + projectile_start_x_offset, bslot(bat.acting).y, atkimgdirection
     END IF
-    IF attack.attack_anim = 2 THEN
+    IF attack.attack_anim = atkAnimReverseProjectile THEN
      anim_setpos 12 + i, bslot(t(i)).x + xt, bslot(t(i)).y + yt, atkimgdirection
     END IF
-    IF attack.attack_anim = 8 THEN
+    IF attack.attack_anim = atkAnimMeteor THEN
      IF is_hero(bat.acting) THEN
       anim_setpos 12 + i, 320, 100, atkimgdirection
      END IF
@@ -2988,14 +2988,14 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
     anim_appear 12 + i
     yt = (bslot(t(i)).h - 50) + 2
     xt = 0
-    IF t(i) = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> 7 THEN xt = -20
-    IF attack.attack_anim = 1 OR attack.attack_anim = 8 THEN
+    IF t(i) = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> atkrAnimStandingCast THEN xt = -20
+    IF attack.attack_anim = atkAnimProjectile OR attack.attack_anim = atkAnimMeteor THEN
      anim_absmove 12 + i, bslot(t(i)).x + xt, bslot(t(i)).y + yt, 6, 6
     END IF
-    IF attack.attack_anim = 2 THEN
+    IF attack.attack_anim = atkAnimReverseProjectile THEN
      anim_absmove 12 + i, bslot(bat.acting).x + projectile_start_x_offset, bslot(bat.acting).y, 6, 6
     END IF
-    IF attack.attack_anim = 8 THEN
+    IF attack.attack_anim = atkAnimMeteor THEN
      anim_zmove 12 + i, -6, 30
     END IF
    NEXT i
@@ -3024,7 +3024,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  END IF
 
  '----DRIVEBY
- IF attack.attack_anim = 9 THEN
+ IF attack.attack_anim = atkAnimDriveby THEN
   anim_advance bat.acting, attack, bslot(), t()
   FOR j as integer = 1 TO numhits
    FOR i = 0 TO tcount - 1
@@ -3076,13 +3076,13 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  END IF
  
  '----FOCUSED RING
- IF attack.attack_anim = 4 AND tcount = 1 THEN
+ IF attack.attack_anim = atkAnimRing AND tcount = 1 THEN
   anim_advance bat.acting, attack, bslot(), t()
   FOR j as integer = 1 TO numhits
    i = 0
    yt = (bslot(t(i)).h - 50) + 2
    xt = 0
-   IF t(i) = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> 7 THEN xt = -20
+   IF t(i) = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> atkrAnimStandingCast THEN xt = -20
    DIM ringpos as XYPair
    ringpos.x = bslot(t(i)).x + xt
    ringpos.y = bslot(t(i)).y + yt
@@ -3098,7 +3098,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    IF is_enemy(bat.acting) THEN anim_enemy bat.acting, attack, bslot(), t()
    yt = (bslot(t(0)).h - 50) + 2
    xt = 0
-   IF t(i) = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> 7 THEN xt = -20
+   IF t(i) = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> atkrAnimStandingCast THEN xt = -20
    FOR i = 0 TO 7
     anim_appear 12 + i
     anim_absmove 12 + i, bslot(t(0)).x + xt, bslot(t(0)).y + yt, 4, 4
@@ -3130,7 +3130,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  END IF
  
  '----WAVE
- IF attack.attack_anim = 5 THEN
+ IF attack.attack_anim = atkAnimWave THEN
   DIM wave_start_x as integer
   wave_start_x = -50
   IF is_hero(bat.acting) THEN wave_start_x = 320

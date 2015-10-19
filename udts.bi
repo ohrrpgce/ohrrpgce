@@ -677,6 +677,32 @@ Type AttackElementCondition
 	value as single
 End Type
 
+Enum AttackAnimation
+	atkAnimNormal = 0
+	atkAnimProjectile = 1
+	atkAnimReverseProjectile = 2
+	atkAnimDrop = 3
+	atkAnimRing = 4
+	atkAnimWave = 5
+	atkAnimScatter = 6
+	atkAnimSequentialProjectile = 7
+	atkAnimMeteor = 8
+	atkAnimDriveby = 9
+	atkAnimNull  = 10
+End Enum
+
+Enum AttackerAnimation
+	atkrAnimStrike = 0     ' (shows weapon)
+	atkrAnimCast = 1
+	atkrAnimDashIn = 2     ' (shows weapon)
+	atkrAnimSpinStrike = 3 ' (shows weapon)
+	atkrAnimJump = 4
+	atkrAnimLand = 5
+	atkrAnimNull = 6
+	atkrAnimStandingCast = 7
+	atkrAnimTeleport = 8   ' (shows weapon)
+End Enum
+
 Type AttackData
 	id as integer 'should only be set when loaded!
 	name as string
@@ -698,8 +724,8 @@ Type AttackData
 	hp_cost as integer
 	money_cost as integer
 	extra_damage as integer
-	attacker_anim as integer
-	attack_anim as integer
+	attacker_anim as AttackerAnimation
+	attack_anim as AttackAnimation
 	attack_delay as integer 'in ticks
 	turn_delay as integer 'in turns
 	hits as integer

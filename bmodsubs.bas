@@ -1188,31 +1188,32 @@ SUB get_valid_targs(tmask() as integer, byval who as integer, byref atk as Attac
 END SUB
 
 SUB anim_advance (byval who as integer, attack as AttackData, bslot() as BattleSprite, t() as integer)
-
  DIM d as integer
  d = 1 ' Hero faces left
  IF is_enemy(who) THEN d = -1 ' Enemy faces right
 
- IF is_hero(who) THEN
-  IF attack.attacker_anim < 2 OR (attack.attacker_anim > 2 AND attack.attacker_anim < 5) THEN ' strike, cast, spin, jump
+ SELECT CASE attack.attacker_anim
+ CASE atkrAnimStrike, atkrAnimCast, atkrAnimSpinStrike, atkrAnimJump
+  IF is_hero(who) THEN
    anim_walktoggle who
    anim_setmove who, -5, 0, 4, 0
    anim_waitforall
   END IF
- END IF
- 
- IF attack.attacker_anim = 2 THEN ' Dash in
+
+ CASE atkrAnimDashIn 
   DIM yt as integer
   yt = (bslot(t(0)).h - bslot(who).h) + 2
   anim_walktoggle who
   anim_absmove who, bslot(t(0)).x + bslot(t(0)).w * d, bslot(t(0)).y + yt, 6, 6
   anim_waitforall
- END IF
  
- IF attack.attacker_anim = 8 THEN ' Teleport
+ CASE atkrAnimTeleport
   anim_setpos who, bslot(t(0)).x + bslot(t(0)).w * d, bslot(t(0)).y + (bslot(t(0)).h - (bslot(who).h)), 0
- END IF
 
+ CASE atkrAnimLand, atkrAnimNull, atkrAnimStandingCast
+  ' do nothing
+
+ END SELECT
 END SUB
 
 SUB anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSprite, t() as integer)
@@ -1223,11 +1224,11 @@ SUB anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSpri
  DIM dx as integer = 0
  DIM dy as integer = 0
  
- IF attack.attacker_anim < 3 OR (attack.attacker_anim > 6 AND attack.attacker_anim < 9) THEN ' strike, cast, dash, standing cast, teleport
+ IF attack.attacker_anim < atkrAnimSpinStrike OR (attack.attacker_anim > atkrAnimNull AND attack.attacker_anim < 9) THEN ' strike, cast, dash, standing cast, teleport
   anim_setframe who, frameSTAND
   anim_wait 3 'wait 3 ticks
   
-  IF attack.attacker_anim <> 1 AND attack.attacker_anim <> 7 THEN 'if it's not cast or standing cast
+  IF attack.attacker_anim <> atkrAnimCast AND attack.attacker_anim <> atkrAnimStandingCast THEN 'if it's not cast or standing cast
    anim_setframe who, frameATTACKA
   
    hx = gam.hero(who).hand_pos(0).x
@@ -1244,13 +1245,13 @@ SUB anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSpri
    anim_appear 24
   END IF
  
-  IF attack.attacker_anim = 1 OR attack.attacker_anim = 7 THEN 'if it's cast or standing cast
+  IF attack.attacker_anim = atkrAnimCast OR attack.attacker_anim = atkrAnimStandingCast THEN
    anim_setframe who, frameCAST
   END IF
  
   anim_wait 3
  
-  IF attack.attacker_anim <> 1 AND attack.attacker_anim <> 7 THEN 'if it's not cast or standing cast
+  IF attack.attacker_anim <> atkrAnimCast AND attack.attacker_anim <> atkrAnimStandingCast THEN 'if it's not cast or standing cast
    anim_setframe who, frameATTACKB
   
    hx = gam.hero(who).hand_pos(1).x
@@ -1268,7 +1269,7 @@ SUB anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSpri
  
  END IF
  
- IF attack.attacker_anim = 3 THEN ' spin
+ IF attack.attacker_anim = atkrAnimSpinStrike THEN
   FOR ii as integer = 0 TO 2
    anim_setdir who, 1
    anim_wait 1
@@ -1277,7 +1278,7 @@ SUB anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSpri
   NEXT ii
  END IF
  
- IF attack.attacker_anim = 4 THEN ' Jump
+ IF attack.attacker_anim = atkrAnimJump THEN
   anim_setframe who, frameJUMP
   anim_relmove who, -40, 0, 7, 0
   anim_zmove who, 20, 10
@@ -1286,7 +1287,7 @@ SUB anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSpri
   anim_setframe who, frameSTAND
  END IF
  
- IF attack.attacker_anim = 5 THEN ' Land
+ IF attack.attacker_anim = atkrAnimLand THEN
   anim_setz who, 200
   anim_setframe who, frameLAND
   anim_appear who
@@ -1301,38 +1302,38 @@ END SUB
 
 SUB anim_enemy (byval who as integer, attack as AttackData, bslot() as BattleSprite, t() as integer)
 
- IF attack.attacker_anim < 2 THEN' twitch
+ SELECT CASE attack.attacker_anim
+ CASE atkrAnimStrike, atkrAnimCast  ' twitch
   anim_setz who, 2
   anim_wait 1
   anim_setz who, 0
- END IF
- IF attack.attacker_anim = 3 THEN' spin
+ CASE atkrAnimSpinStrike
   FOR ii as integer = 0 TO 2
    anim_setdir who, 1
    anim_wait 1
    anim_setdir who, 0
    anim_wait 1
   NEXT ii
- END IF
- IF attack.attacker_anim = 4 THEN' jump
+ CASE atkrAnimJump
   anim_absmove who, bslot(who).x + 50, bslot(who).y, 7, 7
   anim_zmove who, 10, 20
   anim_waitforall
   anim_disappear who
- END IF
- IF attack.attacker_anim = 5 THEN' drop
+ CASE atkrAnimLand
   anim_setz who, 200
   anim_appear who
   anim_setpos who, bslot(t(0)).x, bslot(t(0)).y, 0
   anim_zmove who, -10, 20
   anim_waitforall
- END IF
+ CASE atkrAnimDashIn, atkrAnimNull, atkrAnimStandingCast, atkrAnimTeleport
+  ' nothing
+ END SELECT
 END SUB
 
 SUB anim_retreat (byval who as integer, attack as AttackData, bslot() as BattleSprite)
 
  IF is_enemy(who) THEN
-  IF attack.attacker_anim = 2 OR attack.attacker_anim = 5 THEN
+  IF attack.attacker_anim = atkrAnimDashIn OR attack.attacker_anim = atkrAnimLand THEN
    anim_setz who, 0
    anim_absmove who, bslot(who).x, bslot(who).y, 6, 6
    anim_waitforall
@@ -1340,23 +1341,22 @@ SUB anim_retreat (byval who as integer, attack as AttackData, bslot() as BattleS
  END IF
 
  IF is_hero(who) THEN
-  IF attack.attacker_anim < 2 THEN ' strike, cast
+  SELECT CASE attack.attacker_anim
+  CASE atkrAnimStrike, atkrAnimCast
    anim_walktoggle who
    anim_setmove who, 5, 0, 4, 0
    anim_waitforall
    anim_setframe who, frameSTAND
-  END IF
-  IF attack.attacker_anim = 2 OR attack.attacker_anim = 5 THEN ' dash, land
+  CASE atkrAnimDashIn, atkrAnimLand
    anim_setframe who, frameSTAND
    anim_walktoggle who
    anim_setz who, 0
    anim_absmove who, bslot(who).x, bslot(who).y, 6, 6
    anim_waitforall
    anim_setframe who, frameSTAND
-  END IF
-  IF attack.attacker_anim = 7 THEN
+  CASE atkrAnimStandingCast
    anim_setframe who, frameSTAND
-  END IF
+  END SELECT
  END IF
 END SUB
 
