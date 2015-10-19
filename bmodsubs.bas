@@ -1219,42 +1219,34 @@ SUB anim_advance (byval who as integer, attack as AttackData, bslot() as BattleS
  END SELECT
 END SUB
 
+'Generate attacker animation when hero attacks
 SUB anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSprite, t() as integer)
- DIM hx as integer = 0
- DIM hy as integer = 0
- DIM wx as integer = 0
- DIM wy as integer = 0
- DIM dx as integer = 0
- DIM dy as integer = 0
- 
- IF attack.attacker_anim < atkrAnimSpinStrike OR (attack.attacker_anim > atkrAnimNull AND attack.attacker_anim < 9) THEN ' strike, cast, dash, standing cast, teleport
-  anim_setframe who, frameSTAND
-  anim_wait 3 'wait 3 ticks
-  
-  IF attack.attacker_anim <> atkrAnimCast AND attack.attacker_anim <> atkrAnimStandingCast THEN 'if it's not cast or standing cast
+
+ SELECT CASE attack.attacker_anim
+  CASE atkrAnimCast, atkrAnimStandingCast
+   anim_setframe who, frameSTAND
+   anim_wait 3
+   anim_setframe who, frameCAST
+   anim_wait 3
+
+  CASE atkrAnimStrike, atkrAnimDashIn, atkrAnimTeleport
+   anim_setframe who, frameSTAND
+   anim_wait 3 'wait 3 ticks
    anim_setframe who, frameATTACKA
   
-   hx = gam.hero(who).hand_pos(0).x
-   hy = gam.hero(who).hand_pos(0).y
-   wx = bslot(24).hand(0).x
-   wy = bslot(24).hand(0).y
-   dx = hx - wx
-   dy = hy - wy
+   DIM as integer hx = gam.hero(who).hand_pos(0).x
+   DIM as integer hy = gam.hero(who).hand_pos(0).y
+   DIM as integer wx = bslot(24).hand(0).x
+   DIM as integer wy = bslot(24).hand(0).y
+   DIM as integer dx = hx - wx
+   DIM as integer dy = hy - wy
   
    anim_align2 24, who, 0, 0, dx, 16
    anim_setz 24, 16 - dy
   
    anim_setframe 24, frameSTAND
    anim_appear 24
-  END IF
- 
-  IF attack.attacker_anim = atkrAnimCast OR attack.attacker_anim = atkrAnimStandingCast THEN
-   anim_setframe who, frameCAST
-  END IF
- 
-  anim_wait 3
- 
-  IF attack.attacker_anim <> atkrAnimCast AND attack.attacker_anim <> atkrAnimStandingCast THEN 'if it's not cast or standing cast
+   anim_wait 3
    anim_setframe who, frameATTACKB
   
    hx = gam.hero(who).hand_pos(1).x
@@ -1266,43 +1258,41 @@ SUB anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSpri
   
    anim_align2 24, who, 0, 0, dx, 16
    anim_setz 24, 16 - dy
-  
    anim_setframe 24, frameSTEP
-  END IF
- 
- END IF
- 
- IF attack.attacker_anim = atkrAnimSpinStrike THEN
-  FOR ii as integer = 0 TO 2
-   anim_setdir who, 1
-   anim_wait 1
-   anim_setdir who, 0
-   anim_wait 1
-  NEXT ii
- END IF
- 
- IF attack.attacker_anim = atkrAnimJump THEN
-  anim_setframe who, frameJUMP
-  anim_relmove who, -40, 0, 7, 0
-  anim_zmove who, 20, 10
-  anim_waitforall
-  anim_disappear who
-  anim_setframe who, frameSTAND
- END IF
- 
- IF attack.attacker_anim = atkrAnimLand THEN
-  anim_setz who, 200
-  anim_setframe who, frameLAND
-  anim_appear who
-  anim_setcenter who, t(0), 0, 0
-  anim_align who, t(0), dirDown, 0
-  anim_zmove who, -10, 20
-  anim_waitforall
-  anim_setframe who, frameHURT
- END IF
 
+  CASE atkrAnimSpinStrike
+   FOR ii as integer = 0 TO 2
+    anim_setdir who, 1
+    anim_wait 1
+    anim_setdir who, 0
+    anim_wait 1
+   NEXT ii
+
+  CASE atkrAnimJump
+   anim_setframe who, frameJUMP
+   anim_relmove who, -40, 0, 7, 0
+   anim_zmove who, 20, 10
+   anim_waitforall
+   anim_disappear who
+   anim_setframe who, frameSTAND
+
+  CASE atkrAnimLand
+   anim_setz who, 200
+   anim_setframe who, frameLAND
+   anim_appear who
+   anim_setcenter who, t(0), 0, 0
+   anim_align who, t(0), dirDown, 0
+   anim_zmove who, -10, 20
+   anim_waitforall
+   anim_setframe who, frameHURT
+
+  CASE atkrAnimNull
+   'Nothing
+
+ END SELECT
 END SUB
 
+'Generate attacker animation when an enemy attacks
 SUB anim_enemy (byval who as integer, attack as AttackData, bslot() as BattleSprite, t() as integer)
 
  SELECT CASE attack.attacker_anim
