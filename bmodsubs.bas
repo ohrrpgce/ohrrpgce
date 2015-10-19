@@ -979,30 +979,32 @@ FUNCTION allowed_to_gain_levels(byval heroslot as integer) as integer
 END FUNCTION
 
 SUB giveheroexperience (byval who as integer, byval exper as integer)
- 'reset levels gained
- gam.hero(who).lev_gain = 0
- IF allowed_to_gain_levels(who) THEN
-  gam.hero(who).exp_cur += exper
-  'levelups
-  WHILE gam.hero(who).exp_cur >= gam.hero(who).exp_next
-   gam.hero(who).exp_cur -= gam.hero(who).exp_next
-   gam.hero(who).lev += 1 'current level
-   gam.hero(who).lev_gain += 1 'levelup counter
-   gam.hero(who).exp_next = exptolevel(gam.hero(who).lev + 1)
-   IF gam.hero(who).lev >= current_max_level THEN
-    'You can't gain experience once you've hit the level cap
-    gam.hero(who).exp_cur = 0
-    EXIT WHILE
-   END IF
-  WEND
- END IF
+ WITH gam.hero(who)
+  'reset levels gained
+  .lev_gain = 0
+  IF allowed_to_gain_levels(who) THEN
+   .exp_cur += exper
+   'levelups
+   WHILE .exp_cur >= .exp_next
+    .exp_cur -= .exp_next
+    .lev += 1 'current level
+    .lev_gain += 1 'levelup counter
+    .exp_next = exptolevel(.lev + 1)
+    IF .lev >= current_max_level THEN
+     'You can't gain experience once you've hit the level cap
+     .exp_cur = 0
+     EXIT WHILE
+    END IF
+   WEND
+  END IF
+ END WITH
 END SUB
 
 SUB setheroexperience (byval who as integer, byval amount as integer, byval allowforget as integer)
  'unlike giveheroexperience, this can cause delevelling
  DIM orig_lev as integer = gam.hero(who).lev
  DIM total as integer = 0
- DIM lostlevels as integer = NO
+ DIM lostlevels as bool = NO
  
  FOR i as integer = 0 TO gam.hero(who).lev - 1
   total += exptolevel(i + 1)
@@ -1061,7 +1063,6 @@ SUB import_battle_hero_stats (bslot() as BattleSprite)
 END SUB
 
 SUB get_valid_targs(tmask() as integer, byval who as integer, byref atk as AttackData, bslot() as BattleSprite)
-
  DIM i as integer
 
  FOR i = 0 TO 11
@@ -1189,8 +1190,10 @@ END SUB
 
 SUB anim_advance (byval who as integer, attack as AttackData, bslot() as BattleSprite, t() as integer)
  DIM d as integer
- d = 1 ' Hero faces left
- IF is_enemy(who) THEN d = -1 ' Enemy faces right
+ ' Enemy faces right, hero faces left
+ IF is_enemy(who) THEN d = -1 ELSE d = 1
+
+ DIM target as BattleSprite ptr = @bslot(t(0))
 
  SELECT CASE attack.attacker_anim
  CASE atkrAnimStrike, atkrAnimCast, atkrAnimSpinStrike, atkrAnimJump
@@ -1202,16 +1205,16 @@ SUB anim_advance (byval who as integer, attack as AttackData, bslot() as BattleS
 
  CASE atkrAnimDashIn 
   DIM yt as integer
-  yt = (bslot(t(0)).h - bslot(who).h) + 2
+  yt = target->h - bslot(who).h + 2
   anim_walktoggle who
-  anim_absmove who, bslot(t(0)).x + bslot(t(0)).w * d, bslot(t(0)).y + yt, 6, 6
+  anim_absmove who, target->x + target->w * d, target->y + yt, 6, 6
   anim_waitforall
  
  CASE atkrAnimTeleport
-  anim_setpos who, bslot(t(0)).x + bslot(t(0)).w * d, bslot(t(0)).y + (bslot(t(0)).h - (bslot(who).h)), 0
+  anim_setpos who, target->x + target->w * d, target->y + target->h - bslot(who).h, 0
 
  CASE atkrAnimLand, atkrAnimNull, atkrAnimStandingCast
-  ' do nothing
+  ' Do nothing
 
  END SELECT
 END SUB

@@ -2813,7 +2813,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  '----NULL ANIMATION
  IF attack.attack_anim = atkAnimNull THEN
   anim_advance bat.acting, attack, bslot(), t()
-  if attack.sound_effect > 0  then anim_sound(attack.sound_effect - 1)
+  IF attack.sound_effect > 0 THEN anim_sound(attack.sound_effect - 1)
   FOR j as integer = 1 TO numhits
    IF is_hero(bat.acting) THEN anim_hero bat.acting, attack, bslot(), t()
    IF is_enemy(bat.acting) THEN anim_enemy bat.acting, attack, bslot(), t()
@@ -2831,8 +2831,11 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  '----NORMAL, DROP, SPREAD-RING, and SCATTER
  IF attack.attack_anim = atkAnimNormal OR attack.attack_anim = atkAnimDrop OR attack.attack_anim = atkAnimScatter OR (attack.attack_anim = atkAnimRing AND tcount > 1) THEN
  FOR i = 0 TO tcount - 1
+  'Position attack animation aligned with bottom-left of target (?!) and up 2 pixels...
   yt = (bslot(t(i)).h - 50) + 2
-  xt = 0: IF t(i) = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> atkrAnimStandingCast THEN xt = -20
+  xt = 0
+  '...except for a hero-targetting-self case
+  IF t(i) = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> atkrAnimStandingCast THEN xt = -20
   anim_setpos 12 + i, bslot(t(i)).x + xt, bslot(t(i)).y + yt, atkimgdirection
   IF attack.attack_anim = atkAnimDrop THEN
    anim_setz 12 + i, 180
@@ -2857,7 +2860,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
      anim_absmove 12 + i, randint(270), randint(150), 6, 6
     END IF
    NEXT i
-   if attack.sound_effect > 0  then anim_sound(attack.sound_effect - 1)
+   IF attack.sound_effect > 0 THEN anim_sound(attack.sound_effect - 1)
    anim_wait 2
    IF attack.attack_anim = atkAnimDrop THEN
     anim_wait 3
@@ -2999,7 +3002,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
      anim_zmove 12 + i, -6, 30
     END IF
    NEXT i
-   if attack.sound_effect > 0  then anim_sound(attack.sound_effect - 1)
+   IF attack.sound_effect > 0 THEN anim_sound(attack.sound_effect - 1)
    anim_wait 8
    anim_disappear 24
    anim_setframe bat.acting, frameSTAND
@@ -3043,7 +3046,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
     yt = (bslot(t(i)).h - 50) + 2
     anim_absmove 12 + i, bslot(t(i)).x + xt, bslot(t(i)).y + yt, 8, 8
    NEXT i
-   if attack.sound_effect > 0  then anim_sound(attack.sound_effect - 1)
+   IF attack.sound_effect > 0 THEN anim_sound(attack.sound_effect - 1)
    anim_wait 4
    anim_disappear 24
    anim_setframe bat.acting, frameSTAND
@@ -3103,7 +3106,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
     anim_appear 12 + i
     anim_absmove 12 + i, bslot(t(0)).x + xt, bslot(t(0)).y + yt, 4, 4
    NEXT i
-   if attack.sound_effect > 0  then anim_sound(attack.sound_effect - 1)
+   IF attack.sound_effect > 0 THEN anim_sound(attack.sound_effect - 1)
    anim_wait 8
    anim_disappear 24
    anim_setframe bat.acting, frameSTAND
@@ -3149,7 +3152,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    NEXT i
    IF is_hero(bat.acting) THEN anim_hero bat.acting, attack, bslot(), t()
    IF is_enemy(bat.acting) THEN anim_enemy bat.acting, attack, bslot(), t()
-   if attack.sound_effect > 0  then anim_sound(attack.sound_effect - 1)
+   IF attack.sound_effect > 0 THEN anim_sound(attack.sound_effect - 1)
    FOR i = 0 TO 11
     anim_appear 12 + i
     anim_setmove 12 + i, pushback_x, 0, 16, 0
