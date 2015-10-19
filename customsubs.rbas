@@ -3374,12 +3374,12 @@ SUB update_attack_editor_for_chain (byval mode as integer, byref caption1 as str
  SELECT CASE mode
   CASE 0 '--no special condition
    caption1 = ""
-   max1 = 32000
-   min1 = -32000
+   max1 = 32767
+   min1 = -32767
    menutype1 = 18'skipper
    caption2 = ""
-   max2 = 32000
-   min2 = -32000
+   max2 = 32767
+   min2 = -32767
    menutype2 = 18'skipper
   CASE 1 '--tagcheck
    caption1 = "  if Tag:"
@@ -3402,13 +3402,13 @@ SUB update_attack_editor_for_chain (byval mode as integer, byref caption1 as str
    SELECT CASE mode
     CASE 2,6,10
      caption2 = "  is >"
-     max2 = 32000
-     min2 = -32000
+     max2 = 32767
+     min2 = -32767
      menutype2 = 0
     CASE 3,7,11
      caption2 = "  is <"
-     max2 = 32000
-     min2 = -32000
+     max2 = 32767
+     min2 = -32767
      menutype2 = 0
     CASE 4,8,12
      caption2 = "  is >"
