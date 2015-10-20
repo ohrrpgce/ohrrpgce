@@ -1745,11 +1745,16 @@ DO
    END IF
 
    'Draw zonemenu
-   DIM xpos as integer = 320 - 13*8  'Where to put the menu
-   IF (st.x * 20) - st.mapx > xpos AND st.tiny = NO THEN xpos = 8
+   DIM pixel_width as integer = vpages(dpage)->w \ 3
+   ' Where to put the menu
+   DIM xpos as integer
+   xpos = vpages(dpage)->w - pixel_width
+   IF (st.x * 20) - st.mapx > xpos AND st.tiny = NO THEN
+    xpos = 8
+   END IF
    DIM zmenuopts as MenuOptions
    zmenuopts.edged = YES
-   zmenuopts.wide = 13 * 8
+   zmenuopts.wide = pixel_width
    standardmenu cast(BasicMenuItem vector, zonemenu), zonemenustate, xpos, 40, dpage, zmenuopts
 
    IF zonemenustate.pt > -1 THEN
@@ -1765,8 +1770,8 @@ DO
 
  '--Message
  IF st.message_ticks > 0 THEN
-  centerbox 160, 11, LEN(st.message) * 8 + 20, 15, 1, dpage
-  edgeprint st.message, 160 - LEN(st.message) * 4, 6, uilook(uiText), dpage, YES
+  centerbox vpages(dpage)->w \ 2, 11, LEN(st.message) * 8 + 20, 15, 1, dpage
+  edgeprint st.message, vpages(dpage)->w \ 2 - LEN(st.message) * 4, 6, uilook(uiText), dpage, YES
  END IF
 
  SWAP vpage, dpage
