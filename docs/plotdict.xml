@@ -683,7 +683,7 @@ wait for NPC (2) # wait until he&apos;s done</example>
 		<command id="waitforcamera">
 			<canon>wait for camera</canon>
 			<shortname>wait for camera</shortname>
-			<description>Wait for the camera to stop panning after a <ref>pancamera</ref> or <ref>focuscamera</ref> command.</description>
+			<description>Wait for the camera to stop panning after a <ref>pancamera</ref>, <ref>focuscamera</ref> or <ref>pixelfocuscamera</ref> command.</description>
 			<example>pan camera (left,10) # show the villain 10 tiles off screen
 wait for camera # wait until he&apos;s on screen</example>
 		</command>
@@ -1408,7 +1408,12 @@ end</example>
 		<command id="focuscamera">
 			<canon>focus camera (x,y,speed)</canon>
 			<shortname>focus camera</shortname>
-			<description>This command causes the camera to focus itself on the specified X,Y coordinates of the map. These coordinates are in units of tiles. The third argument, the speed, tells how fast the camera will pan. If you do not specify a speed, the camera will pan 2 pixels per tick. This command is normally used with <ref>waitforcamera</ref>. To revert the camera to normal, use <ref>camerafollowshero</ref>.</description>
+			<description>This command causes the camera to focus itself on the specified X,Y tile coordinates of the map. These coordinates are in units of tiles. The third argument, the speed, tells how fast the camera will pan. If you do not specify a speed, the camera will pan 2 pixels per tick. This command is normally used with <ref>waitforcamera</ref>. To revert the camera to normal, use <ref>camerafollowshero</ref>.</description>
+		</command>
+		<command id="pixelfocuscamera">
+			<canon>pixel focus camera (x,y,speed)</canon>
+			<shortname>pixel focus camera</shortname>
+			<description>This command causes the camera to focus itself on the specified X,Y pixel coordinates of the map. These coordinates are in units of pixels. The third argument, the speed, tells how fast the camera will pan. If you do not specify a speed, the camera will pan 2 pixels per tick. This command is normally used with <ref>waitforcamera</ref>. To revert the camera to normal, use <ref>camerafollowshero</ref>.</description>
 		</command>
 		<command id="putcamera">
 			<canon>put camera (x,y)</canon>

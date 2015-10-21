@@ -1775,6 +1775,9 @@
 		<a href="#about-pickhero">pick hero</a><br>
 		
 	
+		<a href="#about-pixelfocuscamera">pixel focus camera (x,y,speed)</a><br>
+		
+	
 		
 		<a href="#about-putsprite">place sprite</a><br>
 	
@@ -3808,7 +3811,7 @@ wait for NPC (2) # wait until he's done</pre>
 <a name="about-waitforcamera"></a>
 		<h4>wait for camera</h4>
 <p>
-			Wait for the camera to stop panning after a <a href="#about-pancamera" class="ref">pan camera</a> or <a href="#about-focuscamera" class="ref">focus camera</a> command.
+			Wait for the camera to stop panning after a <a href="#about-pancamera" class="ref">pan camera</a>, <a href="#about-focuscamera" class="ref">focus camera</a> or <a href="#about-pixelfocuscamera" class="ref">pixel focus camera</a> command.
 			
 			<pre>pan camera (left,10) # show the villain 10 tiles off screen
 wait for camera # wait until he's on screen</pre>
@@ -5064,7 +5067,17 @@ end</pre>
 <a name="about-focuscamera"></a>
 		<h4>focus camera (x,y,speed)</h4>
 <p>
-			This command causes the camera to focus itself on the specified X,Y coordinates of the map. These coordinates are in units of tiles. The third argument, the speed, tells how fast the camera will pan. If you do not specify a speed, the camera will pan 2 pixels per tick. This command is normally used with <a href="#about-waitforcamera" class="ref">wait for camera</a>. To revert the camera to normal, use <a href="#about-camerafollowshero" class="ref">camera follows hero</a>.
+			This command causes the camera to focus itself on the specified X,Y tile coordinates of the map. These coordinates are in units of tiles. The third argument, the speed, tells how fast the camera will pan. If you do not specify a speed, the camera will pan 2 pixels per tick. This command is normally used with <a href="#about-waitforcamera" class="ref">wait for camera</a>. To revert the camera to normal, use <a href="#about-camerafollowshero" class="ref">camera follows hero</a>.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-pixelfocuscamera"></a>
+		<h4>pixel focus camera (x,y,speed)</h4>
+<p>
+			This command causes the camera to focus itself on the specified X,Y pixel coordinates of the map. These coordinates are in units of pixels. The third argument, the speed, tells how fast the camera will pan. If you do not specify a speed, the camera will pan 2 pixels per tick. This command is normally used with <a href="#about-waitforcamera" class="ref">wait for camera</a>. To revert the camera to normal, use <a href="#about-camerafollowshero" class="ref">camera follows hero</a>.
 			
 			
 			
@@ -15466,7 +15479,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 751 commands and 75 constants in this file, of which 57 are only references to other entries.</p>
+<p>Stats: There are 752 commands and 75 constants in this file, of which 57 are only references to other entries.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

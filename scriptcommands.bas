@@ -394,7 +394,7 @@ SUB process_wait_conditions()
        IF npc(i).id > 0 ANDALSO (npc(i).xgo <> 0 OR npc(i).ygo <> 0) THEN unpause = NO: EXIT FOR
       NEXT i
      END IF
-     IF gen(genCameraMode) = pancam OR gen(genCameraMode) = focuscam THEN unpause = NO
+     IF gen(genCameraMode) = pancam ORELSE gen(genCameraMode) = focuscam THEN unpause = NO
      IF unpause THEN
       script_stop_waiting()
      END IF
@@ -452,7 +452,7 @@ SUB process_wait_conditions()
       script_stop_waiting()
      END IF
     CASE 42'--wait for camera
-     IF gen(genCameraMode) <> pancam AND gen(genCameraMode) <> focuscam THEN script_stop_waiting()
+     IF gen(genCameraMode) <> pancam ANDALSO gen(genCameraMode) <> focuscam THEN script_stop_waiting()
     CASE 59'--wait for text box
      IF txt.showing = NO OR readbit(gen(), genSuspendBits, suspendboxadvance) = 1 THEN
       script_stop_waiting()
@@ -1244,8 +1244,8 @@ SUB sfunctions(byval cmdid as integer)
   gen(genCameraArg3) = large(retvals(2), 1)
  CASE 41'--focus camera
   gen(genCameraMode) = focuscam
-  gen(genCameraArg1) = (retvals(0) * 20) - 150
-  gen(genCameraArg2) = (retvals(1) * 20) - 90
+  gen(genCameraArg1) = (retvals(0) * 20) - (get_resolution_w() - 20) / 2
+  gen(genCameraArg2) = (retvals(1) * 20) - (get_resolution_h() - 20) / 2
   gen(genCameraArg3) = ABS(retvals(2))
   gen(genCameraArg4) = ABS(retvals(2))
   limitcamera gen(genCameraArg1), gen(genCameraArg2)
@@ -4134,6 +4134,13 @@ SUB sfunctions(byval cmdid as integer)
   unhidemousecursor
  CASE 602 '--hide mouse cursor
   hidemousecursor
+ CASE 603'--pixel focus camera
+  gen(genCameraMode) = focuscam
+  gen(genCameraArg1) = retvals(0) - get_resolution_w() / 2
+  gen(genCameraArg2) = retvals(1) - get_resolution_h() / 2
+  gen(genCameraArg3) = ABS(retvals(2))
+  gen(genCameraArg4) = ABS(retvals(2))
+  limitcamera gen(genCameraArg1), gen(genCameraArg2)
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
