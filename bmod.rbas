@@ -2686,10 +2686,15 @@ FUNCTION attack_placement_over_target(attack as AttackData, targslot as integer,
   xt = bslot(targslot).w \ 2 - attackw \ 2
   yt = bslot(targslot).h \ 2 - attackh \ 2
  END IF
- ' The following case appears to be a simple fix for the fact that bslot() contains the *initial* positions
+ ' The following case is a simple fix for the fact that bslot() contains the *initial* positions
  ' of everyone at the start of the attack, not the actual position at this point of the animation.
- ' Heroes move forward for common attacker animations (see anim_advance), this crudely works around that much of the time.
- IF targslot = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> atkrAnimStandingCast THEN xt -= 20
+ IF targslot = bat.acting AND is_hero(bat.acting) THEN
+  SELECT CASE attack.attacker_anim
+   ' Heroes move forward 20 pixels for these attacker animations (see anim_advance)
+   CASE atkrAnimStrike, atkrAnimCast, atkrAnimSpinStrike, atkrAnimJump
+    xt -= 20
+  END SELECt
+ END IF
  xt += bslot(targslot).x
  yt += bslot(targslot).y
  RETURN TYPE<XYPair>(xt, yt)

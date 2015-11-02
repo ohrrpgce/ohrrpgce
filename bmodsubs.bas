@@ -1188,6 +1188,7 @@ SUB get_valid_targs(tmask() as integer, byval who as integer, byref atk as Attac
 
 END SUB
 
+' Note: attack_placement_over_target has a special case for the walk-forward-20-pixels behaviour
 SUB anim_advance (byval who as integer, attack as AttackData, bslot() as BattleSprite, t() as integer)
  DIM d as integer
  ' Enemy faces right, hero faces left
@@ -1204,12 +1205,16 @@ SUB anim_advance (byval who as integer, attack as AttackData, bslot() as BattleS
    anim_waitforall
   END IF
 
- CASE atkrAnimDashIn 
+ CASE atkrAnimDashIn
+  ' Don't backstab yourself.
+  IF t(0) = who THEN EXIT SUB
   anim_walktoggle who
   anim_absmove who, target->x + target->w * d, target->y + target->h - bslot(who).h + 2, 6, 6
   anim_waitforall
  
  CASE atkrAnimTeleport
+  ' Don't backstab yourself.
+  IF t(0) = who THEN EXIT SUB
   anim_setpos who, target->x + target->w * d, target->y + target->h - bslot(who).h, 0
 
  CASE atkrAnimLand, atkrAnimNull, atkrAnimStandingCast
