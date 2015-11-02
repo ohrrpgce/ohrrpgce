@@ -2849,6 +2849,9 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    IF is_hero(bat.acting) THEN anim_hero bat.acting, attack, bslot(), t()
    IF is_enemy(bat.acting) THEN anim_enemy bat.acting, attack, bslot(), t()
    FOR i = 0 TO tcount - 1
+    yt = (bslot(t(i)).h - 50) + 2
+    xt = 0
+    IF t(i) = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> atkrAnimStandingCast THEN xt = -20
     anim_appear 12 + i
     IF attack.attack_anim = atkAnimRing THEN
      anim_absmove 12 + i, bslot(t(i)).x + xt - bslot(t(i)).w, bslot(t(i)).y + yt, 3, 3
@@ -2869,14 +2872,23 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    anim_disappear 24
    IF attack.attack_anim = atkAnimRing THEN
     FOR i = 0 TO tcount - 1
+     yt = (bslot(t(i)).h - 50) + 2
+     xt = 0
+     IF t(i) = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> atkrAnimStandingCast THEN xt = -20
      anim_absmove 12 + i, bslot(t(i)).x + xt, bslot(t(i)).y + yt + bslot(t(i)).w, 3, 3
     NEXT i
     anim_waitforall
     FOR i = 0 TO tcount - 1
+     yt = (bslot(t(i)).h - 50) + 2
+     xt = 0
+     IF t(i) = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> atkrAnimStandingCast THEN xt = -20
      anim_absmove 12 + i, bslot(t(i)).x + xt + bslot(t(i)).w, bslot(t(i)).y + yt, 3, 3
     NEXT i
     anim_waitforall
     FOR i = 0 TO tcount - 1
+     yt = (bslot(t(i)).h - 50) + 2
+     xt = 0
+     IF t(i) = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> atkrAnimStandingCast THEN xt = -20
      anim_absmove 12 + i, bslot(t(i)).x + xt, bslot(t(i)).y + yt - bslot(t(i)).w, 3, 3
     NEXT i
     anim_waitforall
