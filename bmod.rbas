@@ -2700,6 +2700,19 @@ FUNCTION attack_placement_over_target(attack as AttackData, targslot as integer,
  RETURN TYPE<XYPair>(xt, yt)
 END FUNCTION
 
+' Calculate where a projectile will start relative to the attacker (bat.acting):
+' Center of attack aligned to center of left of right edge of attacker sprite.
+FUNCTION projectile_start_position(attack as AttackData, attacker as integer, bat as BattleState, bslot() as BattleSprite) as XYPair
+ DIM ret as XYPair
+ ret = attack_placement_over_target(attack, attacker, bat, bslot())
+ IF is_hero(attacker) THEN
+  ret.x -= bslot(attacker).w \ 2
+ ELSE
+  ret.x += bslot(attacker).w \ 2
+ END IF
+ RETURN ret
+END FUNCTION
+
 SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, t() as integer)
  DIM i as integer
 
@@ -2937,21 +2950,19 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
 
  '----SEQUENTIAL PROJECTILE
  IF attack.attack_anim = atkAnimSequentialProjectile THEN
-  DIM startoffset as integer
   'attacker steps forward
   anim_advance bat.acting, attack, bslot(), t()
   'repeat the following for each attack
   FOR j as integer = 1 TO numhits
-   'attacker animates
+   ' Attacker animates
    IF is_hero(bat.acting) THEN anim_hero bat.acting, attack, bslot(), t()
    IF is_enemy(bat.acting) THEN anim_enemy bat.acting, attack, bslot(), t()
-   'calculate where the projectile will start relative to the attacker
-   startoffset = 50
-   IF is_hero(bat.acting) THEN startoffset = -50
-   'set the projectile position
-   anim_setpos 12, bslot(bat.acting).x + startoffset, bslot(bat.acting).y, atkimgdirection
+   ' Set the projectile position
+   DIM projectile_start as XYPair
+   projectile_start = projectile_start_position(attack, bat.acting, bat, bslot())
+   anim_setpos 12, projectile_start.x, projectile_start.y, atkimgdirection
    anim_appear 12
-   'play the sound effect
+   ' Play the sound effect
    IF attack.sound_effect > 0 THEN anim_sound(attack.sound_effect - 1)
    'repeat the following for each target...
    FOR i = 0 TO tcount - 1
@@ -2990,15 +3001,14 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  
  '----PROJECTILE, REVERSE PROJECTILE and METEOR
  IF attack.attack_anim = atkAnimProjectile OR attack.attack_anim = atkAnimReverseProjectile OR attack.attack_anim = atkAnimMeteor THEN
-  DIM projectile_start_x_offset as integer
-  projectile_start_x_offset = 50
-  IF is_hero(bat.acting) THEN projectile_start_x_offset = -50
+  DIM projectile_start as XYPair
+  projectile_start = projectile_start_position(attack, bat.acting, bat, bslot())
   anim_advance bat.acting, attack, bslot(), t()
   FOR j as integer = 1 TO numhits
    FOR i = 0 TO tcount - 1
     targetpos = attack_placement_over_target(attack, t(i), bat, bslot())
     IF attack.attack_anim = atkAnimProjectile THEN
-     anim_setpos 12 + i, bslot(bat.acting).x + projectile_start_x_offset, bslot(bat.acting).y, atkimgdirection
+     anim_setpos 12 + i, projectile_start.x, projectile_start.y, atkimgdirection
     END IF
     IF attack.attack_anim = atkAnimReverseProjectile THEN
      anim_setpos 12 + i, targetpos.x, targetpos.y, atkimgdirection
@@ -3022,7 +3032,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
      anim_absmove 12 + i, targetpos.x, targetpos.y, 6, 6
     END IF
     IF attack.attack_anim = atkAnimReverseProjectile THEN
-     anim_absmove 12 + i, bslot(bat.acting).x + projectile_start_x_offset, bslot(bat.acting).y, 6, 6
+     anim_absmove 12 + i, projectile_start.x, projectile_start.y, 6, 6
     END IF
     IF attack.attack_anim = atkAnimMeteor THEN
      anim_zmove 12 + i, -6, 30
