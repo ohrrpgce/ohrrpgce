@@ -1198,16 +1198,15 @@ SUB anim_advance (byval who as integer, attack as AttackData, bslot() as BattleS
  SELECT CASE attack.attacker_anim
  CASE atkrAnimStrike, atkrAnimCast, atkrAnimSpinStrike, atkrAnimJump
   IF is_hero(who) THEN
+   ' Walk forward 20 pixels
    anim_walktoggle who
    anim_setmove who, -5, 0, 4, 0
    anim_waitforall
   END IF
 
  CASE atkrAnimDashIn 
-  DIM yt as integer
-  yt = target->h - bslot(who).h + 2
   anim_walktoggle who
-  anim_absmove who, target->x + target->w * d, target->y + yt, 6, 6
+  anim_absmove who, target->x + target->w * d, target->y + target->h - bslot(who).h + 2, 6, 6
   anim_waitforall
  
  CASE atkrAnimTeleport
@@ -1323,6 +1322,7 @@ SUB anim_enemy (byval who as integer, attack as AttackData, bslot() as BattleSpr
  END SELECT
 END SUB
 
+' Undoes anim_advance
 SUB anim_retreat (byval who as integer, attack as AttackData, bslot() as BattleSprite)
 
  IF is_enemy(who) THEN
@@ -1336,6 +1336,7 @@ SUB anim_retreat (byval who as integer, attack as AttackData, bslot() as BattleS
  IF is_hero(who) THEN
   SELECT CASE attack.attacker_anim
   CASE atkrAnimStrike, atkrAnimCast
+   ' Walk back 20 pixels
    anim_walktoggle who
    anim_setmove who, 5, 0, 4, 0
    anim_waitforall

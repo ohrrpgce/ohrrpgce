@@ -247,8 +247,9 @@ CONST fixRemoveDamageMP = 21     'Removed the obsolete Damage MP attack bit
 CONST fixDefaultMaxLevel = 22    'Set max level to 99 (not to be confused with level cap)
 CONST fixUNUSED23 = 23           'Don't use this bit for anything. It was wasted in a plan that changed
 CONST fixWipeGEN = 24            'Zero out gen(199) to gen(499)
+CONST fixSetOldAttackPosBit = 25 'Turn on "Old attack positioning at bottom-left of target" backcompat bit
 
-CONST sizefixbits = 24 ' *** Update this when adding fix bits ***
+CONST sizefixbits = 25 ' *** Update this when adding fix bits ***
 
 '---Sizes (replaceable with variables when suitable)
 CONST max_npc_defs = 500 'max number of NPC IDs definable in Custom

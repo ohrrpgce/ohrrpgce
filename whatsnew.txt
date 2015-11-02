@@ -70,6 +70,9 @@ WHAT IS NEW?
     * Hero positions in battle can be customized. [James]
     * Starting hero ID can be customized, and you can also set a
       'starting' textbox to display on a new game. [Ralph]
+    * Added "Old attack positioning at bottom-left of target" back-
+      compat bitset, which if you turn off places attack sprites at
+      the center of the target instead. [Ralph]
 
   * Changes
     * Hidden menu items no longer affect the width of a menu [Ralph]

@@ -1850,7 +1850,8 @@ SUB gendata ()
    IF state.pt = 4 THEN startingdatamenu
    IF state.pt = 5 THEN edit_savegame_options
    IF state.pt = 6 THEN
-    DIM bitname(35) as string
+    ' General bitsets
+    DIM bitname(47) as string
     bitname(1) = "Enable Caterpillar Party"
     bitname(2) = "Don't Restore HP on Levelup"
     bitname(3) = "Don't Restore MP on Levelup"
@@ -1876,7 +1877,8 @@ SUB gendata ()
     edit_global_bitsets bitname(), "general_game_bitsets"
    END IF
    IF state.pt = 7 THEN
-    DIM bitname(35) as string
+    ' Back-compat bitsets
+    DIM bitname(47) as string
     bitname(9) = "Simulate Old Levelup Bug"
     bitname(16) = "Simulate Pushable NPC obstruction bug"
     bitname(24) = "Enable better scancodes for scripts"
@@ -1886,6 +1888,7 @@ SUB gendata ()
     bitname(32) = "Don't limit maximum tags to 999"
     bitname(33) = "Simulate Bug #430"
     bitname(34) = "showtextbox happens immediately"
+    bitname(36) = "Old attack positioning at bottom-left of target"
     edit_global_bitsets bitname(), "general_game_backcompat_bitsets"
    END IF
    IF state.pt = 8 THEN battleoptionsmenu

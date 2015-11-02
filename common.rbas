@@ -3789,6 +3789,12 @@ IF getfixbit(fixUNUSED23) = 1 THEN
  gen(192) = 0
 END IF
 
+IF getfixbit(fixSetOldAttackPosBit) = 0 THEN
+ upgrade_message "Enabling 'Old attack positioning at bottom-left of target' bit"
+ setfixbit(fixSetOldAttackPosBit, 1)
+ setbit(gen(), genBits2, 20, 1)  ' "Old attack positioning at bottom-left of target"
+END IF
+
 IF getfixbit(fixOldElementalFailBit) = 0 THEN
  upgrade_message "Enabling 'Simulate old fail vs. element resist bit' bitset"
  setfixbit(fixOldElementalFailBit, 1)

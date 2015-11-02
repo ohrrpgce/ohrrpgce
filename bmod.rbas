@@ -1998,8 +1998,9 @@ SUB anim_appear(byval who as integer)
  pushw 5: pushw who
 END SUB
 
-SUB anim_setmove(byval who as integer, byval xm as integer, byval ym as integer, byval xstep as integer, byval ystep as integer)
- pushw 2: pushw who: pushw xm: pushw ym: pushw xstep: pushw ystep
+' For ABS(xmove_ticks) ticks, move xstep pixels in the direction SGN(xmove_ticks), and ditto for ymove_ticks/ystep.
+SUB anim_setmove(who as integer, xmove_ticks as integer, ymove_ticks as integer, xstep as integer, ystep as integer)
+ pushw 2: pushw who: pushw xmove_ticks: pushw ymove_ticks: pushw xstep: pushw ystep
 END SUB
 
 SUB anim_absmove(byval who as integer, byval tox as integer, byval toy as integer, byval xspeed as integer, byval yspeed as integer)
@@ -2670,6 +2671,30 @@ SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
  END IF
 END SUB
 
+'Calculate the absolute position at which an attack should be drawn at on top of
+'a certain target. This position might instead be used as a waypoint for projectiles.
+'Called from within generate_atkscript.
+FUNCTION attack_placement_over_target(attack as AttackData, targslot as integer, bat as BattleState, bslot() as BattleSprite) as XYPair
+ DIM as integer attackw = 50, attackh = 50
+ DIM as integer xt, yt
+ IF readbit(gen(), genBits2, 20) THEN  ' "Old attack positioning at bottom-left of target"
+  ' Position attack animation aligned with bottom-left of target (?!) and down 2 pixels
+  xt = 0
+  yt = (bslot(targslot).h - attackh) + 2
+ ELSE
+  ' Align center of attack and target
+  xt = bslot(targslot).w \ 2 - attackw \ 2
+  yt = bslot(targslot).h \ 2 - attackh \ 2
+ END IF
+ ' The following case appears to be a simple fix for the fact that bslot() contains the *initial* positions
+ ' of everyone at the start of the attack, not the actual position at this point of the animation.
+ ' Heroes move forward for common attacker animations (see anim_advance), this crudely works around that much of the time.
+ IF targslot = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> atkrAnimStandingCast THEN xt -= 20
+ xt += bslot(targslot).x
+ yt += bslot(targslot).y
+ RETURN TYPE<XYPair>(xt, yt)
+END FUNCTION
+
 SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, t() as integer)
  DIM i as integer
 
@@ -2807,8 +2832,9 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  DIM atkimgdirection as integer
  atkimgdirection = pdir
  IF attack.unreversable_picture = YES THEN atkimgdirection = 0
- 
- DIM as integer xt, yt
+
+ ' Absolute position to place/target an attack at
+ DIM as XYPair targetpos
 
  '----NULL ANIMATION
  IF attack.attack_anim = atkAnimNull THEN
@@ -2831,17 +2857,13 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  '----NORMAL, DROP, SPREAD-RING, and SCATTER
  IF attack.attack_anim = atkAnimNormal OR attack.attack_anim = atkAnimDrop OR attack.attack_anim = atkAnimScatter OR (attack.attack_anim = atkAnimRing AND tcount > 1) THEN
   FOR i = 0 TO tcount - 1
-   'Position attack animation aligned with bottom-left of target (?!) and up 2 pixels...
-   yt = (bslot(t(i)).h - 50) + 2
-   xt = 0
-   '...except for a hero-targetting-self case
-   IF t(i) = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> atkrAnimStandingCast THEN xt = -20
-   anim_setpos 12 + i, bslot(t(i)).x + xt, bslot(t(i)).y + yt, atkimgdirection
+   targetpos = attack_placement_over_target(attack, t(i), bat, bslot())
+   anim_setpos 12 + i, targetpos.x, targetpos.y, atkimgdirection
    IF attack.attack_anim = atkAnimDrop THEN
     anim_setz 12 + i, 180
    END IF
    IF attack.attack_anim = atkAnimRing THEN
-    anim_setpos 12 + i, bslot(t(i)).x + xt, bslot(t(i)).y + yt - bslot(t(i)).w, atkimgdirection
+    anim_setpos 12 + i, targetpos.x, targetpos.y - bslot(t(i)).w, atkimgdirection
    END IF
   NEXT i
   anim_advance bat.acting, attack, bslot(), t()
@@ -2849,12 +2871,10 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    IF is_hero(bat.acting) THEN anim_hero bat.acting, attack, bslot(), t()
    IF is_enemy(bat.acting) THEN anim_enemy bat.acting, attack, bslot(), t()
    FOR i = 0 TO tcount - 1
-    yt = (bslot(t(i)).h - 50) + 2
-    xt = 0
-    IF t(i) = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> atkrAnimStandingCast THEN xt = -20
+    targetpos = attack_placement_over_target(attack, t(i), bat, bslot())
     anim_appear 12 + i
     IF attack.attack_anim = atkAnimRing THEN
-     anim_absmove 12 + i, bslot(t(i)).x + xt - bslot(t(i)).w, bslot(t(i)).y + yt, 3, 3
+     anim_absmove 12 + i, targetpos.x - bslot(t(i)).w, targetpos.y, 3, 3
     END IF
     IF attack.attack_anim = atkAnimDrop THEN
      anim_zmove 12 + i, -10, 20
@@ -2871,25 +2891,20 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    anim_setframe bat.acting, frameSTAND
    anim_disappear 24
    IF attack.attack_anim = atkAnimRing THEN
+    ' The attack sprites follow a diamond path around their targets
     FOR i = 0 TO tcount - 1
-     yt = (bslot(t(i)).h - 50) + 2
-     xt = 0
-     IF t(i) = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> atkrAnimStandingCast THEN xt = -20
-     anim_absmove 12 + i, bslot(t(i)).x + xt, bslot(t(i)).y + yt + bslot(t(i)).w, 3, 3
+     targetpos = attack_placement_over_target(attack, t(i), bat, bslot())
+     anim_absmove 12 + i, targetpos.x, targetpos.y + bslot(t(i)).w, 3, 3
     NEXT i
     anim_waitforall
     FOR i = 0 TO tcount - 1
-     yt = (bslot(t(i)).h - 50) + 2
-     xt = 0
-     IF t(i) = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> atkrAnimStandingCast THEN xt = -20
-     anim_absmove 12 + i, bslot(t(i)).x + xt + bslot(t(i)).w, bslot(t(i)).y + yt, 3, 3
+     targetpos = attack_placement_over_target(attack, t(i), bat, bslot())
+     anim_absmove 12 + i, targetpos.x + bslot(t(i)).w, targetpos.y, 3, 3
     NEXT i
     anim_waitforall
     FOR i = 0 TO tcount - 1
-     yt = (bslot(t(i)).h - 50) + 2
-     xt = 0
-     IF t(i) = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> atkrAnimStandingCast THEN xt = -20
-     anim_absmove 12 + i, bslot(t(i)).x + xt, bslot(t(i)).y + yt - bslot(t(i)).w, 3, 3
+     targetpos = attack_placement_over_target(attack, t(i), bat, bslot())
+     anim_absmove 12 + i, targetpos.x, targetpos.y - bslot(t(i)).w, 3, 3
     NEXT i
     anim_waitforall
    END IF
@@ -2936,11 +2951,9 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    'repeat the following for each target...
    FOR i = 0 TO tcount - 1
     'find the target's position
-    yt = (bslot(t(i)).h - 50) + 2
-    xt = 0
-    IF t(i) = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> atkrAnimStandingCast THEN xt = -20
+    targetpos = attack_placement_over_target(attack, t(i), bat, bslot())
     'make the projectile move to the target
-    anim_absmove 12, bslot(t(i)).x + xt, bslot(t(i)).y + yt, 5, 5
+    anim_absmove 12, targetpos.x, targetpos.y, 5, 5
     anim_waitforall
     'inflict damage
     anim_inflict t(i), tcount
@@ -2978,14 +2991,12 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
   anim_advance bat.acting, attack, bslot(), t()
   FOR j as integer = 1 TO numhits
    FOR i = 0 TO tcount - 1
-    yt = (bslot(t(i)).h - 50) + 2
-    xt = 0
-    IF t(i) = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> atkrAnimStandingCast THEN xt = -20
+    targetpos = attack_placement_over_target(attack, t(i), bat, bslot())
     IF attack.attack_anim = atkAnimProjectile THEN
      anim_setpos 12 + i, bslot(bat.acting).x + projectile_start_x_offset, bslot(bat.acting).y, atkimgdirection
     END IF
     IF attack.attack_anim = atkAnimReverseProjectile THEN
-     anim_setpos 12 + i, bslot(t(i)).x + xt, bslot(t(i)).y + yt, atkimgdirection
+     anim_setpos 12 + i, targetpos.x, targetpos.y, atkimgdirection
     END IF
     IF attack.attack_anim = atkAnimMeteor THEN
      IF is_hero(bat.acting) THEN
@@ -3001,11 +3012,9 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    IF is_enemy(bat.acting) THEN anim_enemy bat.acting, attack, bslot(), t()
    FOR i = 0 TO tcount - 1
     anim_appear 12 + i
-    yt = (bslot(t(i)).h - 50) + 2
-    xt = 0
-    IF t(i) = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> atkrAnimStandingCast THEN xt = -20
+    targetpos = attack_placement_over_target(attack, t(i), bat, bslot())
     IF attack.attack_anim = atkAnimProjectile OR attack.attack_anim = atkAnimMeteor THEN
-     anim_absmove 12 + i, bslot(t(i)).x + xt, bslot(t(i)).y + yt, 6, 6
+     anim_absmove 12 + i, targetpos.x, targetpos.y, 6, 6
     END IF
     IF attack.attack_anim = atkAnimReverseProjectile THEN
      anim_absmove 12 + i, bslot(bat.acting).x + projectile_start_x_offset, bslot(bat.acting).y, 6, 6
@@ -3039,42 +3048,52 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  END IF
 
  '----DRIVEBY
+ ' Assuming the hero is attacking, this creates attacks off the right side of the
+ ' screen, sends them to intercept the targets all at the same time, and then moves them
+ ' to the same x. So the projectiles all move at different speeds during each half.
  IF attack.attack_anim = atkAnimDriveby THEN
   anim_advance bat.acting, attack, bslot(), t()
   FOR j as integer = 1 TO numhits
+   ' Create attack sprites
    FOR i = 0 TO tcount - 1
-    yt = (bslot(t(i)).h - 50) + 2
+    targetpos = attack_placement_over_target(attack, t(i), bat, bslot())
     IF is_hero(bat.acting) THEN
-     anim_setpos 12 + i, 320, bslot(t(i)).y + yt, atkimgdirection
+     anim_setpos 12 + i, 320, targetpos.y, atkimgdirection
     END IF
     IF is_enemy(bat.acting) THEN
-     anim_setpos 12 + i, -50, bslot(t(i)).y + yt, atkimgdirection
+     anim_setpos 12 + i, -50, targetpos.y, atkimgdirection
     END IF
    NEXT i
    IF is_hero(bat.acting) THEN anim_hero bat.acting, attack, bslot(), t()
    IF is_enemy(bat.acting) THEN anim_enemy bat.acting, attack, bslot(), t()
+
+   ' Intercept targets
    FOR i = 0 TO tcount - 1
     anim_appear 12 + i
-    yt = (bslot(t(i)).h - 50) + 2
-    anim_absmove 12 + i, bslot(t(i)).x + xt, bslot(t(i)).y + yt, 8, 8
+    targetpos = attack_placement_over_target(attack, t(i), bat, bslot())
+    anim_absmove 12 + i, targetpos.x, targetpos.y, 8, 8
    NEXT i
    IF attack.sound_effect > 0 THEN anim_sound(attack.sound_effect - 1)
    anim_wait 4
    anim_disappear 24
    anim_setframe bat.acting, frameSTAND
    anim_waitforall
+
+   ' Drive off side of screen
    FOR i = 0 TO tcount - 1
     anim_inflict t(i), tcount
     anim_flinchstart t(i), bslot(), attack
-    yt = (bslot(t(i)).h - 50) + 2
+    targetpos = attack_placement_over_target(attack, t(i), bat, bslot())
     IF is_hero(bat.acting) THEN
-     anim_absmove 12 + i, -50, bslot(t(i)).y + yt, 5, 7
+     anim_absmove 12 + i, -50, targetpos.y, 5, 7
     END IF
     IF is_enemy(bat.acting) THEN
-     anim_absmove 12 + i, 320, bslot(t(i)).y + yt, 5, 7
+     anim_absmove 12 + i, 320, targetpos.y, 5, 7
     END IF
    NEXT i
    anim_waitforall
+
+   ' Destroy attacks
    FOR i = 0 TO tcount - 1
     anim_disappear 12 + i
     anim_flinchdone t(i), bslot(), attack
@@ -3095,30 +3114,22 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
   DIM target as integer = t(0)
   anim_advance bat.acting, attack, bslot(), t()
   FOR j as integer = 1 TO numhits
-   yt = (bslot(target).h - 50) + 2
-   xt = 0
-   IF target = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> atkrAnimStandingCast THEN xt = -20
+   targetpos = attack_placement_over_target(attack, target, bat, bslot())
    ' Create 8 attacks in a circle
-   DIM ringpos as XYPair
-   ringpos.x = bslot(target).x + xt
-   ringpos.y = bslot(target).y + yt
-   anim_setpos 12 + 0, ringpos.x + 0, ringpos.y - 50, atkimgdirection
-   anim_setpos 12 + 1, ringpos.x + 30, ringpos.y - 30, atkimgdirection
-   anim_setpos 12 + 2, ringpos.x + 50, ringpos.y + 0, atkimgdirection
-   anim_setpos 12 + 3, ringpos.x + 30, ringpos.y + 30, atkimgdirection
-   anim_setpos 12 + 4, ringpos.x - 0, ringpos.y + 50, atkimgdirection
-   anim_setpos 12 + 5, ringpos.x - 30, ringpos.y + 30, atkimgdirection
-   anim_setpos 12 + 6, ringpos.x - 50, ringpos.y - 0, atkimgdirection
-   anim_setpos 12 + 7, ringpos.x - 30, ringpos.y - 30, atkimgdirection
+   anim_setpos 12 + 0, targetpos.x + 0, targetpos.y - 50, atkimgdirection
+   anim_setpos 12 + 1, targetpos.x + 30, targetpos.y - 30, atkimgdirection
+   anim_setpos 12 + 2, targetpos.x + 50, targetpos.y + 0, atkimgdirection
+   anim_setpos 12 + 3, targetpos.x + 30, targetpos.y + 30, atkimgdirection
+   anim_setpos 12 + 4, targetpos.x - 0, targetpos.y + 50, atkimgdirection
+   anim_setpos 12 + 5, targetpos.x - 30, targetpos.y + 30, atkimgdirection
+   anim_setpos 12 + 6, targetpos.x - 50, targetpos.y - 0, atkimgdirection
+   anim_setpos 12 + 7, targetpos.x - 30, targetpos.y - 30, atkimgdirection
    IF is_hero(bat.acting) THEN anim_hero bat.acting, attack, bslot(), t()
    IF is_enemy(bat.acting) THEN anim_enemy bat.acting, attack, bslot(), t()
-   yt = (bslot(target).h - 50) + 2
-   xt = 0
-   IF target = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> atkrAnimStandingCast THEN xt = -20
    ' Move attacks into the target
    FOR aslot as integer = 0 TO 7
     anim_appear 12 + aslot
-    anim_absmove 12 + aslot, bslot(target).x + xt, bslot(target).y + yt, 4, 4
+    anim_absmove 12 + aslot, targetpos.x, targetpos.y, 4, 4
    NEXT aslot
    IF attack.sound_effect > 0 THEN anim_sound(attack.sound_effect - 1)
    anim_wait 8
@@ -3154,14 +3165,15 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
   DIM pushback_x as integer
   pushback_x = 24
   IF is_hero(bat.acting) THEN pushback_x = -24
-  yt = bslot(t(0)).y + (bslot(t(0)).h - 50) + 2
+  ' Only use targetpos.y, and then only if there's just one target.
+  targetpos = attack_placement_over_target(attack, t(0), bat, bslot())
   anim_advance bat.acting, attack, bslot(), t()
   FOR j as integer = 1 TO numhits
    FOR i = 0 TO 11
     IF tcount > 1 OR attack.targ_set = 1 THEN
      anim_setpos 12 + i, wave_start_x, i * 15, atkimgdirection
     ELSE
-     anim_setpos 12 + i, wave_start_x, yt, atkimgdirection
+     anim_setpos 12 + i, wave_start_x, targetpos.y, atkimgdirection
     END IF
    NEXT i
    IF is_hero(bat.acting) THEN anim_hero bat.acting, attack, bslot(), t()
