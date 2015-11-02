@@ -2830,24 +2830,24 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
 
  '----NORMAL, DROP, SPREAD-RING, and SCATTER
  IF attack.attack_anim = atkAnimNormal OR attack.attack_anim = atkAnimDrop OR attack.attack_anim = atkAnimScatter OR (attack.attack_anim = atkAnimRing AND tcount > 1) THEN
- FOR i = 0 TO tcount - 1
-  'Position attack animation aligned with bottom-left of target (?!) and up 2 pixels...
-  yt = (bslot(t(i)).h - 50) + 2
-  xt = 0
-  '...except for a hero-targetting-self case
-  IF t(i) = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> atkrAnimStandingCast THEN xt = -20
-  anim_setpos 12 + i, bslot(t(i)).x + xt, bslot(t(i)).y + yt, atkimgdirection
-  IF attack.attack_anim = atkAnimDrop THEN
-   anim_setz 12 + i, 180
-  END IF
-  IF attack.attack_anim = atkAnimRing THEN
-   anim_setpos 12 + i, bslot(t(i)).x + xt, bslot(t(i)).y + yt - bslot(t(i)).w, atkimgdirection
-  END IF
- NEXT i
- anim_advance bat.acting, attack, bslot(), t()
- FOR j as integer = 1 TO numhits
-  IF is_hero(bat.acting) THEN anim_hero bat.acting, attack, bslot(), t()
-  IF is_enemy(bat.acting) THEN anim_enemy bat.acting, attack, bslot(), t()
+  FOR i = 0 TO tcount - 1
+   'Position attack animation aligned with bottom-left of target (?!) and up 2 pixels...
+   yt = (bslot(t(i)).h - 50) + 2
+   xt = 0
+   '...except for a hero-targetting-self case
+   IF t(i) = bat.acting AND is_hero(bat.acting) AND attack.attacker_anim <> atkrAnimStandingCast THEN xt = -20
+   anim_setpos 12 + i, bslot(t(i)).x + xt, bslot(t(i)).y + yt, atkimgdirection
+   IF attack.attack_anim = atkAnimDrop THEN
+    anim_setz 12 + i, 180
+   END IF
+   IF attack.attack_anim = atkAnimRing THEN
+    anim_setpos 12 + i, bslot(t(i)).x + xt, bslot(t(i)).y + yt - bslot(t(i)).w, atkimgdirection
+   END IF
+  NEXT i
+  anim_advance bat.acting, attack, bslot(), t()
+  FOR j as integer = 1 TO numhits
+   IF is_hero(bat.acting) THEN anim_hero bat.acting, attack, bslot(), t()
+   IF is_enemy(bat.acting) THEN anim_enemy bat.acting, attack, bslot(), t()
    FOR i = 0 TO tcount - 1
     anim_appear 12 + i
     IF attack.attack_anim = atkAnimRing THEN
