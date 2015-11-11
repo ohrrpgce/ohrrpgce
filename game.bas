@@ -97,7 +97,9 @@ v_new modified_lumps
 DIM force_prefsdir_save as bool = NO
 
 orig_dir = CURDIR()
-processcommandline
+REDIM cmdline_args() as string
+' This can modify log_dir
+processcommandline cmdline_args(), @gamecustom_setoption, orig_dir & SLASH & "ohrrpgce_arguments.txt"
 
 '---get temp dir---
 set_homedir
@@ -369,7 +371,7 @@ ELSE  'NOT running_as_slave
  '---ALSO CHECKS FOR GAME.EXE RENAMING
 
  'DEBUG debug "searching commandline for game"
- FOR i as integer = 1 TO UBOUND(cmdline_args)
+ FOR i as integer = 0 TO UBOUND(cmdline_args)
   DIM arg as string = cmdline_args(i)
   arg = absolute_path(arg)
  

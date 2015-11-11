@@ -163,7 +163,8 @@ IF NOT isdir(tmpdir) THEN
  IF makedir(tmpdir) <> 0 THEN fatalerror "Unable to create temp directory " & tmpdir
 END IF
 
-processcommandline
+REDIM cmdline_args() as string
+processcommandline cmdline_args(), @gamecustom_setoption, orig_dir & SLASH & "ohrrpgce_arguments.txt"
 
 load_default_master_palette master()
 DefaultUIColors uilook(), boxlook()
@@ -182,7 +183,7 @@ textcolor uilook(uiText), 0
 workingdir = tmpdir & "working.tmp"
 IF makeworkingdir() = NO THEN cleanup_and_terminate
 
-FOR i as integer = 1 TO UBOUND(cmdline_args)
+FOR i as integer = 0 TO UBOUND(cmdline_args)
  DIM arg as string
  arg = absolute_with_orig_path(cmdline_args(i))
  DIM extn as string = LCASE(justextension(arg))

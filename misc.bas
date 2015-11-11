@@ -17,10 +17,6 @@
 #include "yetmore2.bi"
 #endif
 
-extern "C"
-DECLARE FUNCTION backends_setoption(opt as string, arg as string) as integer
-end extern
-
 dim nulzstr as zstring ptr  '(see misc.bi)
 
 'An option was given on commandline to set zoom (overrides the games' scale setting)
@@ -45,35 +41,7 @@ SUB getbrowserfont(font() as integer)
 	next
 END SUB
 
-function commandline_flag(opt as string) as integer
-'returns true if opt is a flag (prefixed with -,--,/) and removes the prefix
-	dim temp as string
-	temp = left(opt, 1)
-	'/ should not be a flag under unix
-#ifdef __UNIX__
-	if temp = "-" then
-#else
-	if temp = "-" or temp = "/" then
-#endif
-		temp = mid(opt, 2, 1)
-		if temp = "-" then  '--
-			opt = mid(opt, 3)
-		else
-			opt = mid(opt, 2)
-		end if
-		return YES
-	end if
-	return NO
-end function
-
-sub record_option(opt as zstring ptr, arg as zstring ptr)
-	dim value as integer = str2int(*arg, -1)
-	if *opt = "zoom" or *opt = "z" or *opt = "width" or *opt = "w" then
-		overrode_default_zoom = YES
-	end if
-end sub
-
-function usage_setoption(opt as string, arg as string) as integer
+function global_setoption(opt as string, arg as string) as integer
 	dim help as string = ""
 	if opt = "v" or opt = "version" then
 		help = help & long_version & build_info & LINE_END
@@ -95,8 +63,8 @@ function usage_setoption(opt as string, arg as string) as integer
 		help = help & "-runfast            Run as quickly as possible (no FPS throttling)" & LINE_END
 		help = help & "-autotest           Run quickly and write screenshots on _checkpoints" & LINE_END
 		help = help & "-errlvl level       Override script error suppression level (" & serrBound & " default, " & serrSuspicious & " hide warnings, " & serrBadOp & " hide all but corruption/bugs)" & LINE_END
-                'Undocumented:
-                'help = help & "-slave channel     Used when spawned from Custom" & LINE_END
+                'Hidden options:
+                'help = help & "-slave channel     IPC channel to use to receive messages from Custom" & LINE_END
                 'help = help & "-debugkeys         Turn on debug keys" & LINE_END
 #ENDIF
 		help = help & "-recordinput file   Record keyboard input to a file" & LINE_END
@@ -134,69 +102,28 @@ function usage_setoption(opt as string, arg as string) as integer
 	return 0
 end function
 
-'Read commandline arguments from two sources
-private sub get_commandline_args(cmdargs() as string)
-	dim filename as string
-	filename = orig_dir & SLASH & "ohrrpgce_arguments.txt"
-	if isfile(filename) then
-		debuginfo "Reading additional commandline arguments from " & filename 
-		lines_from_file cmdargs(), filename
+' Custom and Game share this function for processing commandline flags:
+' poll various modules that accept options.
+function gamecustom_setoption(opt as string, arg as string) as integer
+	dim argsused as integer = 0
+
+	' Check for commandline options that we want to do something about but without consuming.
+	'dim value as integer = str2int(arg, -1)
+	if opt = "zoom" or opt = "z" or opt = "width" or opt = "w" then
+		overrode_default_zoom = YES
 	end if
 
-	dim i as integer = 1
-	while command(i) <> ""
-		str_array_append(cmdargs(), command(i))
-		i += 1
-	wend
-end sub
+	' Delegate
+	argsused = backends_setoption(opt, arg)  'this must be first, it loads the backend if needed
+	if argsused = 0 then argsused = gfx_setoption(cstring(opt), cstring(arg))
+	if argsused = 0 then argsused = global_setoption(opt, arg)
+	if argsused = 0 then argsused = common_setoption(opt, arg)  'common.rbas
+	#ifdef IS_GAME
+		if argsused = 0 then argsused = game_setoption(opt, arg)
+	#endif
 
-sub processcommandline()
-'passes commandline arguments around, puts any that aren't recognised in cmdline_args
-	dim cnt as integer = 0
-	dim argsused as integer
-	dim opt as string
-	dim arg as string
-	redim cmdargs(-1 to -1) as string
-
-	get_commandline_args cmdargs()
-
-	while cnt <= ubound(cmdargs)
-		argsused = 0
-
-		opt = cmdargs(cnt)
-		if commandline_flag(opt) then
-
-			if cnt + 1 <= ubound(cmdargs) then
-				arg = cmdargs(cnt + 1)
-				if commandline_flag(arg) then arg = ""
-			else
-				arg = ""
-			end if
-
-                        record_option(opt, arg)
-
-			argsused = backends_setoption(opt, arg)  'this must be first, it loads the backend if needed
-			if argsused = 0 then argsused = gfx_setoption(cstring(opt), cstring(arg))
-			if argsused = 0 then argsused = usage_setoption(opt, arg)
-			if argsused = 0 then argsused = common_setoption(opt, arg)
-			#ifdef IS_GAME
-				if argsused = 0 then argsused = game_setoption(opt, arg)
-			#endif
-
-			'debuginfo "commandline option = '" & opt & "' arg = '" & arg & "' used = " & argsused
-		end if
-
-		if argsused = 0 then
-			'everything else falls through and is stored for Game/Custom to catch
-			'(we could prehaps move their handling into functions as well)
-			'note index 0 not used (FB arrays... so inconvenient)
-			str_array_append(cmdline_args(), cmdargs(cnt))
-			argsused = 1
-			'debuginfo "commandline arg " & ubound(cmdline_args) & ": stored " & cmdargs(cnt)
-		end if
-		cnt += argsused
-	wend
-end sub
+	return argsused
+end function
 
 sub display_help_string(help as string)
 	dim k as string

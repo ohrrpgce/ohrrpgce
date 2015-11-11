@@ -2133,6 +2133,91 @@ SUB set_tmpdir ()
  tmpdir = tmp
 END SUB
 
+
+'----------------------------------------------------------------------
+'                       Commandline processing
+
+
+'Returns true if opt is a flag (prefixed with -,--,/) and removes the prefix
+function commandline_flag(opt as string) as bool
+	dim temp as string
+	temp = left(opt, 1)
+	'/ should not be a flag under unix
+#ifdef __UNIX__
+	if temp = "-" then
+#else
+	if temp = "-" or temp = "/" then
+#endif
+		temp = mid(opt, 2, 1)
+		if temp = "-" then  '--
+			opt = mid(opt, 3)
+		else
+			opt = mid(opt, 2)
+		end if
+		return YES
+	end if
+	return NO
+end function
+
+'Read commandline arguments from actual commandline and from args_file
+private sub get_commandline_args(cmdargs() as string, args_file as string = "")
+	if len(args_file) andalso isfile(args_file) then
+		debuginfo "Reading additional commandline arguments from " & args_file 
+		lines_from_file cmdargs(), args_file
+	end if
+
+	dim i as integer = 1
+	while command(i) <> ""
+		str_array_append(cmdargs(), command(i))
+		i += 1
+	wend
+end sub
+
+' Processes all commandline switches by calling opt_handler function,
+' and put any arguments that aren't recognised in nonoption_args() (must be a dynamic array).
+' args_file optionally provides additional arguments.
+sub processcommandline(nonoption_args() as string, opt_handler as FnSetOption, args_file as string = "")
+	dim cnt as integer = 0
+	dim opt as string
+	dim arg as string
+	redim cmdargs(-1 to -1) as string
+	redim nonoption_args(-1 to -1) as string
+
+	get_commandline_args cmdargs(), args_file
+
+	while cnt <= ubound(cmdargs)
+		dim argsused as integer = 0
+
+		opt = cmdargs(cnt)
+		if commandline_flag(opt) then
+			if cnt + 1 <= ubound(cmdargs) then
+				arg = cmdargs(cnt + 1)
+				if commandline_flag(arg) then arg = ""
+			else
+				arg = ""
+			end if
+
+			argsused = opt_handler(opt, arg)
+
+			'debuginfo "commandline option = '" & opt & "' arg = '" & arg & "' used = " & argsused
+		end if
+
+		if argsused = 0 then
+			'Everything else falls through and is stored for the program to catch
+			'(we could prehaps move their handling into functions as well)
+			str_array_append(nonoption_args(), cmdargs(cnt))
+			argsused = 1
+			'debuginfo "commandline arg " & (ubound(nonoption_args) - 1) & ": stored " & cmdargs(cnt)
+		end if
+		cnt += argsused
+	wend
+end sub
+
+
+'----------------------------------------------------------------------
+'                        ini file read/write
+
+
 SUB write_ini_value (ini_filename as string, key as string, value as integer)
  REDIM ini(0) as string
  lines_from_file ini(), ini_filename

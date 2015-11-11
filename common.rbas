@@ -58,9 +58,6 @@ DIM game_unique_id as string
 REDIM sprite_sizes(-1 TO sprTypeLast) as SpriteSize
 setup_sprite_sizes
 
-'holds commandline args not recognised by the backends or anything else
-REDIM cmdline_args(0) as string
-
 'holds the directory to dump logfiles into
 DIM log_dir as string
 

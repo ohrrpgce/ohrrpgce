@@ -465,9 +465,19 @@ declare sub split(in as string, ret() as string, sep as string = chr(10))
 declare sub split_line_positions(original_text as string, lines() as string, line_starts() as integer, sep as string = chr(10))
 
 
+'----------------------------------------------------------------------
+'                       Commandline processing
+
+
+' A function to handle commandline options, e.g. gfx_setoption
+type FnSetOption as function(opt as string, arg as string) as integer
+
+declare function commandline_flag(opt as string) as bool
+declare sub processcommandline(cmdline_args() as string, opt_handler as FnSetOption, args_file as string = "")
+
 
 '----------------------------------------------------------------------
-'                          ini file read/write
+'                        ini file read/write
 
 declare function read_ini_int overload (ini() as string, key as string, byval default as integer=0) as integer
 declare function read_ini_int overload (ini_filename as string, key as string, byval default as integer=0) as integer
@@ -475,6 +485,7 @@ declare sub write_ini_value overload (ini() as string, key as string, value as i
 declare sub write_ini_value overload (ini_filename as string, key as string, value as integer)
 declare function ini_key_match(key as string, s as string) as bool
 declare function ini_value_int (s as string, byval default as integer=0) as integer
+
 
 '----------------------------------------------------------------------
 '                              Other

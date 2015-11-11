@@ -165,6 +165,12 @@ extern Io_mouserect as sub (byval xmin as integer, byval xmax as integer, byval 
 extern Io_readjoysane as function (byval as integer, byref as integer, byref as integer, byref as integer) as integer
 
 
+' functions in backends.bas
+
+extern "C"
+declare function backends_setoption(opt as string, arg as string) as integer
+end extern
+
 ' functions in allmodex.bas
 
 'Call on window or application close request event. Maybe ought to guarantee backend won't be reentered

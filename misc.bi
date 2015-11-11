@@ -43,8 +43,9 @@ DECLARE SUB display_help_string (help as string)
 DECLARE SUB getdefaultfont (font() as integer)
 DECLARE SUB getbrowserfont (font() as integer)
 
+DECLARE FUNCTION gamecustom_setoption(opt as string, arg as string) as integer
+
 DECLARE SUB crashexplain ()
-declare sub processcommandline()
 DECLARE FUNCTION ReadShort overload (byval fh as integer, byval p as long=-1) as short
 DECLARE FUNCTION ReadShort overload (filename as string, byval p as integer) as short
 DECLARE Sub WriteShort overload (byval fh as integer, byval p as long, byval v as integer)
