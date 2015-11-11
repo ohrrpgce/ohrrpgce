@@ -2516,15 +2516,93 @@ end</example>
 		<command id="alternpc">
 			<canon>alter NPC (who,NPCstat,value)</canon>
 			<shortname>alter NPC</shortname>
-			<description>Changes the stats of an NPC type. Constants for this command have been included in PLOTSCR.HSD. Alter NPC can be used for many purposes.<lb/>
-<ul><li>Alter NPC (who,NPCstat:picture,picture number)</li><li>Alter NPC (who,NPCstat:palette,palette number)</li><li>Alter NPC (who,NPCstat:move type,move type code)<lb/>Available move types<ul><li>NPCmovetype:standstill</li><li>NPCmovetype:wander</li><li>NPCmovetype:pace</li><li>NPCmovetype:rightturns</li><li>NPCmovetype:leftturns</li><li>NPCmovetype:randomturns</li><li>NPCmovetype:chaseyou</li><li>NPCmovetype:avoidyou</li><li>NPCmovetype:walkinplace</li></ul></li><li>Alter NPC (who,NPCstat:move speed,speed)</li><li>Alter NPC (who,NPCstat:display text,text box number)</li><li>Alter NPC (who,NPCstat:when activated,when activated code)<lb/>Available when activated codes<ul><li>NPCwhenactivated:changedirection</li><li>NPCwhenactivated:faceplayer</li><li>NPCwhenactivated:donotfaceplayer</li></ul></li><li>Alter NPC (who,NPCstat:give item,item number + 1) ... Note that the item number is offset + 1. A zero means no item.</li><li>Alter NPC (who,NPCstat:pushability,pushability code)<lb/>Available pushability codes<ul><li>NPCpush:off</li><li>NPCpush:full</li><li>NPCpush:horizontal</li><li>NPCpush:vertical</li><li>NPCpush:uponly</li><li>NPCpush:rightonly</li><li>NPCpush:downonly</li><li>NPCpush:leftonly</li></ul></li><li>Alter NPC (who,NPCstat:activation,activation code)<lb/>Available activation codes<ul><li>NPCactivation:use</li><li>NPCactivation:touch</li><li>NPCactivation:stepon</li></ul></li><li>Alter NPC (who,NPCstat:script,script ID)</li><li>Alter NPC (who,NPCstat:script argument,number)</li><li>Alter NPC (who,NPCstat:vehicle,vehicle ID+1)</li><li>Alter NPC (who,NPCstat:default movement zone,zone ID)</li><li>Alter NPC (who,NPCstat:default avoidance zone,zone ID)</li></ul>Normally you would only give an NPC ID number to alter NPC, but if you want to use an <ref>npcreference</ref> it will still work. Just remember that alter NPC changes every copy of the NPC on the map, not just the specific one you referenced.<lb/>A good way to make use of Alter NPC is to wrap it in your own script. For example:
-		<example># Example AlterNPC wrapper for changing NPC appearance
-
-plotscript,change NPC,who=0,picture=0,palette=0,begin
-  Alter NPC(who,NPCstat:picture,picture)
-  Alter NPC(who,NPCstat:palette,palette)
+			<description>
+				Changes the stats of an NPC type.
+				Alter NPC can be used for many purposes.
+				The following constants for this command are available:
+				<lb/>
+				<ul>
+					<li>Alter NPC (who,NPCstat:picture,picture number)</li>
+					<li>
+						Alter NPC (who,NPCstat:palette,palette number)
+						<lb/>
+						Set the palette number to -1 to use the default palette.
+					</li>
+					<li>
+						Alter NPC (who,NPCstat:move type,move type code)
+						<lb/>
+						Available move types:
+						<ul>
+							<li>NPCmovetype:standstill</li>
+							<li>NPCmovetype:wander</li>
+							<li>NPCmovetype:pace</li>
+							<li>NPCmovetype:rightturns</li>
+							<li>NPCmovetype:leftturns</li>
+							<li>NPCmovetype:randomturns</li>
+							<li>NPCmovetype:chaseyou</li>
+							<li>NPCmovetype:avoidyou</li>
+							<li>NPCmovetype:walkinplace</li>
+						</ul>
+					</li>
+					<li>Alter NPC (who,NPCstat:move speed,speed)</li>
+					<li>Alter NPC (who,NPCstat:display text,text box number)</li>
+					<li>
+						Alter NPC (who,NPCstat:when activated,when activated code)
+						<lb/>
+						Available whenactivated codes:
+						<ul>
+							<li>NPCwhenactivated:changedirection</li>
+							<li>NPCwhenactivated:faceplayer</li>
+							<li>NPCwhenactivated:donotfaceplayer</li>
+						</ul>
+					</li>
+					<li>
+						Alter NPC (who,NPCstat:give item,item number + 1)
+						... Note that the item number is offset + 1. A zero means no item.
+					</li>
+					<li>
+						Alter NPC (who,NPCstat:pushability,pushability code)
+						<lb/>
+						Available pushability codes:
+						<ul>
+							<li>NPCpush:off</li>
+							<li>NPCpush:full</li>
+							<li>NPCpush:horizontal</li>
+							<li>NPCpush:vertical</li>
+							<li>NPCpush:uponly</li>
+							<li>NPCpush:rightonly</li>
+							<li>NPCpush:downonly</li>
+							<li>NPCpush:leftonly</li>
+						</ul>
+					</li>
+					<li>
+						Alter NPC (who,NPCstat:activation,activation code)
+						<lb/>
+						Available activation codes:
+						<ul>
+							<li>NPCactivation:use</li>
+							<li>NPCactivation:touch</li>
+							<li>NPCactivation:stepon</li>
+						</ul>
+					</li>
+					<li>Alter NPC (who,NPCstat:script,script ID)</li>
+					<li>Alter NPC (who,NPCstat:script argument,number)</li>
+					<li>Alter NPC (who,NPCstat:vehicle,vehicle ID+1)</li>
+					<li>Alter NPC (who,NPCstat:default movement zone,zone ID)</li>
+					<li>Alter NPC (who,NPCstat:default avoidance zone,zone ID)</li>
+				</ul>
+				Normally you would only give an NPC ID number to alter NPC,
+				but if you want to use an <ref>npcreference</ref> it will still work.
+				Just remember that alter NPC changes every copy of the NPC on the map,
+				not just the specific one you referenced.
+				<lb/>
+				A good way to make use of Alter NPC is to wrap it in your own script. For example:
+				<example># Example alterNPC wrapper for changing NPC appearance
+# Palette -1 means the default palette.
+plotscript, change NPC, who, picture, palette = -1, begin
+  alter NPC(who, NPCstat:picture, picture)
+  alter NPC(who, NPCstat:palette, palette)
 end</example>
-				<note>If you want to change an NPC's palette back to the default, you can use <p>Alter NPC(who, NPCstat:palette, -1)</p></note>
 			</description>
 			<seealso>
 				<ref>setnpcusable</ref>
@@ -2663,7 +2741,18 @@ end</example>
 		<command id="getenemyappearance">
 			<canon>get enemy appearance (enemyid, appearance)</canon>
 			<shortname>get enemy appearance</shortname>
-			<description>Returns data on the appearance of a enemy. Enemyid is the enemy number that you want to return the appearance of, appearance is either picture, palette, or size. You can use the following constants for appearance: <ul><li>enemy:picture</li><li>enemy:palette</li><li>enemy:picturesize</li></ul> <lb/>You can compare the values returned from enemy:picturesize with the constants enemysize:small, enemysize:medium and enemysize:large</description>
+			<description>
+				Returns data on the appearance of a enemy.
+				Enemyid is the enemy number that you want to return the appearance of, appearance is either picture, palette, or size.
+				You can use the following constants for appearance:
+				<ul>
+					<li>enemy:picture</li>
+					<li>enemy:palette</li>
+					<li>enemy:picturesize</li>
+				</ul>
+				<lb/>
+				You can compare the values returned from enemy:picturesize with the constants enemysize:small, enemysize:medium and enemysize:large.
+			</description>
 			<seealso>
 				<ref>setenemyappearance</ref>
 			</seealso>
@@ -2671,7 +2760,16 @@ end</example>
 		<command id="setenemyappearance">
 			<canon>set enemy appearance (enemyid, appearance,value)</canon>
 			<shortname>set enemy appearance</shortname>
-			<description>Lets you change an enemy's appearance.  Enemyid is the number of the enemy's appearance that you want to change, appearance is one of the constants given in <ref>getenemyappearance</ref>. Value can is the new number that you want to assign, constants enemysize:small, enemysize:medium, or enemysize:large when changing picture size, or palette number when changing palette.<note>Enemy appearance changes are temporary. They are not saved in the save game.</note></description>
+			<description>
+				Lets you change an enemy's appearance.
+				Enemyid is the number of the enemy's appearance that you want to change,
+				appearance is one of the constants given in <ref>getenemyappearance</ref>.
+				Value can is the new number that you want to assign, constants enemysize:small,
+				enemysize:medium, or enemysize:large when changing picture size, or palette number when changing palette.
+				<note>
+					Enemy appearance changes are temporary. They are not saved in the save game.
+				</note>
+			</description>
 			<seealso>
 				<ref>getenemyappearance</ref>
 			</seealso>
@@ -2679,7 +2777,24 @@ end</example>
 		<command id="readenemydata">
 			<canon>read enemy data (enemyid, data)</canon>
 			<shortname>read enemy data</shortname>
-			<description>Returns the enemy's reward values. Enemyid is the number of enemy, data is a predefined constant defining the data you want returned. Use the following constants:<ul><li>enemy:gold</li><li>enemy:experience</li><li>enemy:item</li><li>enemy:itempercent</li><li>enemy:rareitem</li><li>enemy:rareitempercent</li><li>stealability</li><li>stealableitem</li><li>stealableitemchance</li><li>stealablerareitem</li><li>stealablerareitemchance</li></ul></description>
+			<description>
+				Returns the enemy's reward values.
+				Enemyid is the number of enemy, data is a predefined constant defining the data you want returned.
+				Use the following constants:
+				<ul>
+					<li>enemy:gold</li>
+					<li>enemy:experience</li>
+					<li>enemy:item</li>
+					<li>enemy:itempercent</li>
+					<li>enemy:rareitem</li>
+					<li>enemy:rareitempercent</li>
+					<li>stealability</li>
+					<li>stealableitem</li>
+					<li>stealableitemchance</li>
+					<li>stealablerareitem</li>
+					<li>stealablerareitemchance</li>
+				</ul>
+			</description>
 			<seealso>
 				<ref>writeenemydata</ref>
 			</seealso>
@@ -2852,141 +2967,170 @@ end
 		<command id="keyispressed">
 			<canon>key is pressed (scancode)</canon>
 			<shortname>key is pressed</shortname>
-			<description>Returns <ref>true</ref> if the keyboard or joystick key with the specified scancode is being pressed (either held down or pressed since last tick), or <ref>false</ref> if it is not. The argument is a scancode, NOT the <ref>upkey</ref>, <ref>downkey</ref>, etc used with <ref>waitforkey</ref>.<lb/>
-
-<note>Since Zenzizenzic, keyboard support has been improved: some keys (such as key:down and key:numpad 2) which were previously the same scancode are now distinct (read scancode.hsi for the complete list). However for backwards compatibility, the old behaviour is emulated (so you won't be able to tell the two keys apart even if recompile and use the new, distinct scancodes) unless you turn on the &quot;Enable better scancodes for scripts&quot; Preference Bitset in the General Game Settings menu.</note>
-<note>You can't rely on the behaviour of the caps-, scroll- and num-lock keys. They might report on/off state instead of pressed/not pressed, depending on the graphics backend, operating system, and engine version.</note>
-<note>You can NOT wait for the player to press a key by continually polling <p>key is pressed</p> unless you stick a <ref>wait</ref> in your <ref>while</ref> loop. That's because <p>key is pressed</p> does not return real time data, but the state of the keyboard at the beginning of the current game tick.</note>
-			    Keyboard scan codes:
-<ul>
-<li>key:Esc</li>
-<li>key:F1</li>
-<li>key:F2</li>
-<li>key:F3</li>
-<li>...</li>
-<li>key:F15</li>
-</ul><ul>
-<li>key:Num Lock</li>
-<li>key:Scroll Lock</li>
-<li>key:Caps Lock</li>
-</ul><ul>
-<li>key:Print Screen</li>
-<li>key:Pause</li>
-</ul><ul>
-<li>key:1</li>
-<li>key:Exclamation</li>
-<li>key:2</li>
-<li>key:At Sign</li>
-<li>key:3</li>
-<li>key:Hash</li>
-<li>key:4</li>
-<li>key:Dollar Sign</li>
-<li>key:5</li>
-<li>key:6</li>
-<li>key:Circumflex</li>
-<li>key:7</li>
-<li>key:Ampersand</li>
-<li>key:8</li>
-<li>key:Asterisk</li>
-<li>key:9</li>
-<li>key:Left Parenthesis</li>
-<li>key:0</li>
-<li>key:Right Parenthesis</li>
-<li>key:Minus</li>
-<li>key:Underscore</li>
-<li>key:Equals</li>
-<li>key:Plus</li>
-<li>key:Backspace</li>
-</ul><ul>
-<li>key:A</li>
-<li>key:B</li>
-<li>key:C</li>
-<li>...</li>
-<li>key:Z</li>
-</ul><ul>
-<li>key:Left Bracket     # [</li>
-<li>key:Left Brace       # {</li>
-<li>key:Right Bracket    # ]</li>
-<li>key:Right Brace      # }</li>
-<li>key:Semicolon        # ;</li>
-<li>key:Colon            # :</li>
-<li>key:Quote            # '</li>
-<li>key:Doublequote      # &quot;</li>
-<li>key:Apostrophe       # &apos;</li>
-<li>key:Backquote        # `</li>
-<li>key:Tilde            # ~</li>
-<li>key:Backslash        # \</li>
-<li>key:Pipe             # |</li>
-<li>key:Comma            # ,</li>
-<li>key:Left Caret       # &lt;</li>
-<li>key:Period           # .</li>
-<li>key:Right Caret      # ></li>
-<li>key:Slash            # /</li>
-<li>key:Question Mark    # ?</li>
-<li>key:Enter</li>
-<li>key:Space</li>
-<li>key:Tab</li>
-</ul><ul>
-<li>key:Home</li>
-<li>key:End</li>
-<li>key:Page Up</li>
-<li>key:Page Down</li>
-<li>key:Insert</li>
-<li>key:Delete</li>
-</ul><ul>
-<li>key:Up</li>
-<li>key:Left</li>
-<li>key:Right</li>
-<li>key:Down</li>
-</ul><ul>
-<li>key:Left Win Logo  # equal to key:Left Command</li>
-<li>key:Right Win Logo # equal to key:Right Command</li>
-<li>key:Context</li>
-<li>key:Left Command   # Macintosh, equal to key:Left Win Logo</li>
-<li>key:Right Command  # Macintosh, equal to key:Right Win Logo</li>
-</ul><ul>
-<li>key:Alt            # either Alt key pressed</li>
-<li>key:Left Alt</li>
-<li>key:Right Alt</li>
-<li>key:Filtered Alt   # either Alt key pressed, unless a key combinations like Alt+Tab is pressed, however key presses are delayed until key release.</li>
-<li>key:Ctrl           # either Ctrl key pressed</li>
-<li>key:Left Ctrl</li>
-<li>key:Right Ctrl</li>
-<li>key:Shift          # either Shift key pressed</li>
-<li>key:Left Shift</li>
-<li>key:Right Shift</li>
-</ul><ul>
-<li>key:Numpad 0</li>
-<li>key:Numpad 1</li>
-<li>key:Numpad 2</li>
-<li>key:Numpad 3</li>
-<li>key:Numpad 4</li>
-<li>key:Numpad 5</li>
-<li>key:Numpad 6</li>
-<li>key:Numpad 7</li>
-<li>key:Numpad 8</li>
-<li>key:Numpad 9</li>
-<li>key:Numpad Period</li>
-<li>key:Numpad Asterisk</li>
-<li>key:Numpad Slash</li>
-<li>key:Numpad Plus</li>
-<li>key:Numpad Minus</li>
-<li>key:Numpad Enter</li>
-</ul>
-          Joystick scan codes (for the first joystick only):
-<ul>
-<li>joy:button 1</li>
-<li>joy:button 2</li>
-<li>joy:button 3</li>
-<li>...</li>
-<li>joy:button 16</li>
-<li>joy:x left</li>
-<li>joy:x right</li>
-<li>joy:y up</li>
-<li>joy:y down</li>
-</ul>
-<note>Previously it was necessary to <p>include, scancode.hsi</p> to use the <p>key:</p> constants, but no longer.</note>
-</description>
+			<description>
+				Returns <ref>true</ref> if the keyboard or joystick key with the specified scancode is being pressed
+				(either held down or pressed since last tick), or <ref>false</ref> if it is not.
+				The argument is a scancode, NOT the <ref>upkey</ref>, <ref>downkey</ref>, etc used with <ref>waitforkey</ref>.
+				<lb/>
+				<note>
+					Since Zenzizenzic, keyboard support has been improved: some keys (such as key:down and key:numpad 2)
+					which were previously the same scancode are now distinct (read scancode.hsi for the complete list).
+					However for backwards compatibility, the old behaviour is emulated
+					(so you won't be able to tell the two keys apart even if recompile and use the new, distinct scancodes)
+					unless you turn on the &quot;Enable better scancodes for scripts&quot;
+					Preference Bitset in the General Game Settings menu.
+				</note>
+				<note>
+					You can't rely on the behaviour of the caps-, scroll- and num-lock keys.
+					They might report on/off state instead of pressed/not pressed,
+					depending on the graphics backend, operating system, and engine version.
+				</note>
+				<note>
+					You can NOT wait for the player to press a key by continually polling <p>key is pressed</p>
+					unless you stick a <ref>wait</ref> in your <ref>while</ref> loop.
+					That's because <p>key is pressed</p> does not return real time data,
+					but the state of the keyboard at the beginning of the current game tick.
+				</note>
+				Keyboard scan codes:
+				<ul>
+					<li>key:Esc</li>
+					<li>key:F1</li>
+					<li>key:F2</li>
+					<li>key:F3</li>
+					<li>...</li>
+					<li>key:F15</li>
+				</ul>
+				<ul>
+					<li>key:Num Lock</li>
+					<li>key:Scroll Lock</li>
+					<li>key:Caps Lock</li>
+				</ul>
+				<ul>
+					<li>key:Print Screen</li>
+					<li>key:Pause</li>
+				</ul>
+				<ul>
+					<li>key:1</li>
+					<li>key:Exclamation</li>
+					<li>key:2</li>
+					<li>key:At Sign</li>
+					<li>key:3</li>
+					<li>key:Hash</li>
+					<li>key:4</li>
+					<li>key:Dollar Sign</li>
+					<li>key:5</li>
+					<li>key:6</li>
+					<li>key:Circumflex</li>
+					<li>key:7</li>
+					<li>key:Ampersand</li>
+					<li>key:8</li>
+					<li>key:Asterisk</li>
+					<li>key:9</li>
+					<li>key:Left Parenthesis</li>
+					<li>key:0</li>
+					<li>key:Right Parenthesis</li>
+					<li>key:Minus</li>
+					<li>key:Underscore</li>
+					<li>key:Equals</li>
+					<li>key:Plus</li>
+					<li>key:Backspace</li>
+				</ul>
+				<ul>
+					<li>key:A</li>
+					<li>key:B</li>
+					<li>key:C</li>
+					<li>...</li>
+					<li>key:Z</li>
+				</ul>
+				<ul>
+					<li>key:Left Bracket     # [</li>
+					<li>key:Left Brace       # {</li>
+					<li>key:Right Bracket    # ]</li>
+					<li>key:Right Brace      # }</li>
+					<li>key:Semicolon        # ;</li>
+					<li>key:Colon            # :</li>
+					<li>key:Quote            # '</li>
+					<li>key:Doublequote      # &quot;</li>
+					<li>key:Apostrophe       # &apos;</li>
+					<li>key:Backquote        # `</li>
+					<li>key:Tilde            # ~</li>
+					<li>key:Backslash        # \</li>
+					<li>key:Pipe             # |</li>
+					<li>key:Comma            # ,</li>
+					<li>key:Left Caret       # &lt;</li>
+					<li>key:Period           # .</li>
+					<li>key:Right Caret      # ></li>
+					<li>key:Slash            # /</li>
+					<li>key:Question Mark    # ?</li>
+					<li>key:Enter</li>
+					<li>key:Space</li>
+					<li>key:Tab</li>
+				</ul>
+				<ul>
+					<li>key:Home</li>
+					<li>key:End</li>
+					<li>key:Page Up</li>
+					<li>key:Page Down</li>
+					<li>key:Insert</li>
+					<li>key:Delete</li>
+				</ul>
+				<ul>
+					<li>key:Up</li>
+					<li>key:Left</li>
+					<li>key:Right</li>
+					<li>key:Down</li>
+				</ul>
+				<ul>
+					<li>key:Left Win Logo  # equal to key:Left Command</li>
+					<li>key:Right Win Logo # equal to key:Right Command</li>
+					<li>key:Context</li>
+					<li>key:Left Command   # Macintosh, equal to key:Left Win Logo</li>
+					<li>key:Right Command  # Macintosh, equal to key:Right Win Logo</li>
+				</ul>
+				<ul>
+					<li>key:Alt            # either Alt key pressed</li>
+					<li>key:Left Alt</li>
+					<li>key:Right Alt</li>
+					<li>key:Filtered Alt   # either Alt key pressed, unless a key combinations like Alt+Tab is pressed, however key presses are delayed until key release.</li>
+					<li>key:Ctrl           # either Ctrl key pressed</li>
+					<li>key:Left Ctrl</li>
+					<li>key:Right Ctrl</li>
+					<li>key:Shift          # either Shift key pressed</li>
+					<li>key:Left Shift</li>
+					<li>key:Right Shift</li>
+				</ul>
+				<ul>
+					<li>key:Numpad 0</li>
+					<li>key:Numpad 1</li>
+					<li>key:Numpad 2</li>
+					<li>key:Numpad 3</li>
+					<li>key:Numpad 4</li>
+					<li>key:Numpad 5</li>
+					<li>key:Numpad 6</li>
+					<li>key:Numpad 7</li>
+					<li>key:Numpad 8</li>
+					<li>key:Numpad 9</li>
+					<li>key:Numpad Period</li>
+					<li>key:Numpad Asterisk</li>
+					<li>key:Numpad Slash</li>
+					<li>key:Numpad Plus</li>
+					<li>key:Numpad Minus</li>
+					<li>key:Numpad Enter</li>
+				</ul>
+				Joystick scan codes (for the first joystick only):
+				<ul>
+					<li>joy:button 1</li>
+					<li>joy:button 2</li>
+					<li>joy:button 3</li>
+					<li>...</li>
+					<li>joy:button 16</li>
+					<li>joy:x left</li>
+					<li>joy:x right</li>
+					<li>joy:y up</li>
+					<li>joy:y down</li>
+				</ul>
+				<note>Previously it was necessary to <p>include, scancode.hsi</p> to use the <p>key:</p> constants, but no longer.</note>
+			</description>
 			<seealso>
 				<ref>keyval</ref>
 			</seealso>
@@ -3666,12 +3810,40 @@ end</example>
 		<command id="getmenubit">
 			<canon>get menu bit(menu handle, bit)</canon>
 			<shortname>get menu bit</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>topmenu</ref>), and bit number <p>bit</p>, returns <ref>true</ref> if the bitset is ON, and <ref>false</ref> if the bitset is OFF. For the <p>bit</p> bit number you should use one of the constants: <ul><li>menubit:translucent box</li> <li>menubit:never show scrollbar</li> <li>menubit:allow gameplay</li> <li>menubit:suspend player even if gameplay allowed</li> <li>menubit:no box</li> <li>menubit:no close</li> <li>menubit:no controls</li> <li>menubit:prevent main menu</li></ul></description>
+			<description>
+				Given a <p>menu handle</p> (for example, the one returned by <ref>topmenu</ref>),
+				and bit number <p>bit</p>, returns <ref>true</ref> if the bitset is ON, and <ref>false</ref> if the bitset is OFF.
+				For the <p>bit</p> bit number you should use one of the constants:
+				<ul>
+					<li>menubit:translucent box</li>
+					<li>menubit:never show scrollbar</li>
+					<li>menubit:allow gameplay</li>
+					<li>menubit:suspend player even if gameplay allowed</li>
+					<li>menubit:no box</li>
+					<li>menubit:no close</li>
+					<li>menubit:no controls</li>
+					<li>menubit:prevent main menu</li>
+				</ul>
+			</description>
 		</command>
 		<command id="setmenubit">
 			<canon>set menu bit(menu handle, bit, value)</canon>
 			<shortname>set menu bit</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>topmenu</ref>), and bit number <p>bit</p>, sets the bitset is ON or OFF depending on <p>value</p>. For the <p>bit</p> bit number you should use one of the constants: <ul><li>menubit:translucent box</li> <li>menubit:never show scrollbar</li> <li>menubit:allow gameplay</li> <li>menubit:suspend player even if gameplay allowed</li> <li>menubit:no box</li> <li>menubit:no close</li> <li>menubit:no controls</li> <li>menubit:prevent main menu</li></ul></description>
+			<description>
+				Given a <p>menu handle</p> (for example, the one returned by <ref>topmenu</ref>),
+				and bit number <p>bit</p>, sets the bitset is ON or OFF depending on <p>value</p>.
+				For the <p>bit</p> bit number you should use one of the constants:
+				<ul>
+					<li>menubit:translucent box</li>
+					<li>menubit:never show scrollbar</li>
+					<li>menubit:allow gameplay</li>
+					<li>menubit:suspend player even if gameplay allowed</li>
+					<li>menubit:no box</li>
+					<li>menubit:no close</li>
+					<li>menubit:no controls</li>
+					<li>menubit:prevent main menu</li>
+				</ul>
+			</description>
 		</command>
 		<command id="parentmenu">
 			<canon>parent menu(menu item handle)</canon>
@@ -5518,7 +5690,22 @@ set horiz align(sl, edge:right)
 		<command id="getspritetype">
 			<canon>get sprite type (handle)</canon>
 			<shortname>get sprite type</shortname>
-			<description>Gets the type of sprite slice <p>handle</p>, or returns -1 if the slice is not a sprite. You can compare the result with the following constants:<ul><li>spritetype:hero</li><li>spritetype:small enemy</li><li>spritetype:medium enemy</li><li>spritetype:large enemy</li><li>spritetype:walkabout</li><li>spritetype:weapon</li><li>spritetype:attack</li><li>spritetype:border</li><li>spritetype:portrait</li></ul></description>
+			<description>
+				Gets the type of sprite slice <p>handle</p>, or returns -1 if the slice is not a sprite.
+				You can compare the result with the following constants:
+				<ul>
+					<li>spritetype:hero</li>
+					<li>spritetype:small enemy</li>
+					<li>spritetype:medium enemy</li>
+					<li>spritetype:large enemy</li>
+					<li>spritetype:walkabout</li>
+					<li>spritetype:weapon</li>
+					<li>spritetype:attack</li>
+					<li>spritetype:border</li>
+					<li>spritetype:portrait</li>
+					<li>spritetype:backdrop</li>
+				</ul>
+			</description>
 			<seealso>
 				<ref>getspritesetnumber</ref>
 				<ref>getspritepalette</ref>
@@ -6471,7 +6658,40 @@ write pass block(15,3,pass)
 		<command id="savemapstate">
 			<canon>save map state (whichdata, customid)</canon>
 			<shortname>save map state</shortname>
-			<description>Saves the state of the current map to a temporary file which will be loaded (unless the map is set to ignore that particular data) when you reenter the current map, in the same way as a map set to save (remember) NPC or tile data: the saved state will be used instead of the map data in the RPG file. Both arguments are optional and are only for advanced uses.<lb/> Map state is not saved in saved games, and the temporary files will be deleted when you load or start a new a game!<lb/><p>whichdata</p> is an <ref>or</ref>'d combination of the following constants, which specify exactly what you want to save:<lb/><ul><li>mapstate:all = mapstate:mapsettings, or, mapstate:npcs, or, mapstate:tiles</li><li>mapstate:npcs = mapstate:npclocations, or, mapstate:npcdefinitions</li><li>mapstate:tiles = mapstate:tilemap, or, mapstate:passmap, or, mapstate:zonemap</li><li>mapstate:mapsettings</li><li>mapstate:npclocations</li><li>mapstate:npcdefinitions</li><li>mapstate:tilemap</li><li>mapstate:passmap</li><li>mapstate:zonemap</li></ul>The default is mapstate:all. <lb/>If <p>customid</p> is passed, it is used to save the state in a separate state file with an id number of <p>customid</p> which can only be loaded with <ref>loadmapstate</ref>. There are 32 available slots for use: 0 - 31.<lb/>Note that mapstate:mapsettings (also saved by mapstate:all) is special in that if you save it, it will always be loaded when the map is loaded regardless of settings. It saves all the settings found in the General Map Settings menu like the ambient music, footoffset, map trigger scripts, and so forth, and also the tileset for each layer.</description>
+			<description>
+				Saves the state of the current map to a temporary file which will be loaded
+				(unless the map is set to ignore that particular data)
+				when you reenter the current map, in the same way as a map set to save (remember) NPC or tile data:
+				the saved state will be used instead of the map data in the RPG file.
+				Both arguments are optional and are only for advanced uses.
+				<lb/>
+				Map state is not saved in saved games, and the temporary files will be deleted when you load or start a new a game!
+				<lb/>
+				<p>whichdata</p> is an <ref>or</ref>'d combination of the following constants,
+				which specify exactly what you want to save:
+				<lb/>
+				<ul>
+					<li>mapstate:all = mapstate:mapsettings, or, mapstate:npcs, or, mapstate:tiles</li>
+					<li>mapstate:npcs = mapstate:npclocations, or, mapstate:npcdefinitions</li>
+					<li>mapstate:tiles = mapstate:tilemap, or, mapstate:passmap, or, mapstate:zonemap</li>
+					<li>mapstate:mapsettings</li>
+					<li>mapstate:npclocations</li>
+					<li>mapstate:npcdefinitions</li>
+					<li>mapstate:tilemap</li>
+					<li>mapstate:passmap</li>
+					<li>mapstate:zonemap</li>
+				</ul>
+				The default is mapstate:all.
+				<lb/>
+				If <p>customid</p> is passed, it is used to save the state in a separate state file with an id
+				number of <p>customid</p> which can only be loaded with <ref>loadmapstate</ref>.
+				There are 32 available slots for use: 0 - 31.
+				<lb/>
+				Note that mapstate:mapsettings (also saved by mapstate:all) is special in that if you save it,
+				it will always be loaded when the map is loaded regardless of settings.
+				It saves all the settings found in the General Map Settings menu like the ambient music,
+				footoffset, map trigger scripts, and so forth, and also the tileset for each layer.
+			</description>
 			<example>plotscript, generic menu screen, begin
   variable (remember map, remember x, remember y)
   remember map := current map
@@ -6524,10 +6744,48 @@ end</example>
 		<command id="settimer">
 			<canon>set timer (id, count, speed, trigger, string, flags)</canon>
 			<shortname>set timer</shortname>
-			<description>Changes the settings for a given timer, and starts it. <p>id</p> is the number of a timer -- by default, there are 16 timers, numbered 0 to 15, but you can change the number of available timers with <ref>allocatetimers</ref>. All other parameters are optional, or you can pass <ref>timer:default</ref> as any of them. This will leave the parameter unchanged (from the last time you set it or from the default initial value), it will NOT cause that timer setting to be reset to the default initial value. <p>Count</p> is the length of the timer. While it's running, the count will go down by one every <p>speed</p> game ticks (frames). I.e., if you set speed to 18, it will count down once every 18 ticks, close to one second. Use a speed of 1 to count down in ticks. Changing the timer's <p>count</p> (as opposed to passing <p>timer:default</p> as the second argument) will cause the timer to restart from the new value.<lb/>
-<p>trigger</p> is what happens when the timer runs out. You can use the constant <ref>timer:gameover</ref> to indicate that the game should end (the gameover script is not called), or specify a plotscript (in the form "@my script") to have that run. A plotscript will get passed the id of the timer that triggered it as its first argument, if it has one. If the timer runs out during a battle then the effect happens after the battle ends.<lb/>
-You can bind a timer to a string using the <p>string</p> parameter to create a countdown that shows up on screen. Pass it the id of a string, and that string will be updated every time the timer counts down. You are responsible for displaying and positioning the string.<lb/>
-A timer also has a few other options in the form of <p>flags</p>. You can pass any combination of these flags (by <ref>or</ref>ing them together; see the example): <ul><li><ref>timerflag:battle</ref> to have it count down during battles (including in menus which pause the battle, except the Pause screen itself)</li><li><ref>timerflag:menu</ref> to have it count down even while the player is in a menu which pauses the game (e.g. the status menu)</li><li><ref>timerflag:critical</ref> to have the timer end a battle or exit a menu if it runs out during it</li></ul><lb/><note>Timers start counting down not from the current game 'tick', but from next one. So if you want to trigger something next tick (eg. run a script every frame) you need to pass <p>count</p> as 0 and <p>speed</p> as 1. A timer count set to 1 would counter-intuitively trigger in 2 ticks time.</note><note>Timer settings are not saved in game saves.</note></description>
+			<description>
+				Changes the settings for a given timer, and starts it.
+				<p>id</p> is the number of a timer -- by default, there are 16 timers, numbered 0 to 15
+				but you can change the number of available timers with <ref>allocatetimers</ref>.
+				All other parameters are optional, or you can pass <ref>timer:default</ref> as any of them.
+				This will leave the parameter unchanged (from the last time you set it or from the default initial value),
+				it will NOT cause that timer setting to be reset to the default initial value.
+				<p>Count</p> is the length of the timer.
+				While it's running, the count will go down by one every <p>speed</p> game ticks (frames).
+				I.e., if you set speed to 18, it will count down once every 18 ticks, close to one second.
+				Use a speed of 1 to count down in ticks.
+				Changing the timer's <p>count</p> (as opposed to passing <p>timer:default</p> as the second argument)
+				will cause the timer to restart from the new value.
+				<lb/>
+				<p>trigger</p> is what happens when the timer runs out.
+				You can use the constant <ref>timer:gameover</ref> to indicate that the game should end (the gameover script is not called),
+				or specify a plotscript (in the form "@my script") to have that run.
+				A plotscript will get passed the id of the timer that triggered it as its first argument, if it has one.
+				If the timer runs out during a battle then the effect happens after the battle ends.
+				<lb/>
+				You can bind a timer to a string using the <p>string</p> parameter to create a countdown that shows up on screen.
+				Pass it the id of a string, and that string will be updated every time the timer counts down.
+				You are responsible for displaying and positioning the string.
+				<lb/>
+				A timer also has a few other options in the form of <p>flags</p>.
+				You can pass any combination of these flags (by <ref>or</ref>ing them together; see the example):
+				<ul>
+					<li><ref>timerflag:battle</ref> to have it count down during battles (including in menus which pause the battle, except the Pause screen itself)</li>
+					<li><ref>timerflag:menu</ref> to have it count down even while the player is in a menu which pauses the game (e.g. the status menu)</li>
+					<li><ref>timerflag:critical</ref> to have the timer end a battle or exit a menu if it runs out during it</li>
+				</ul>
+				<lb/>
+				<note>
+					Timers start counting down not from the current game 'tick', but from next one.
+					So if you want to trigger something next tick (eg. run a script every frame)
+					you need to pass <p>count</p> as 0 and <p>speed</p> as 1.
+					A timer count set to 1 would counter-intuitively trigger in 2 ticks time.
+				</note>
+				<note>
+					Timer settings are not saved in game saves.
+				</note>
+			</description>
 			<example># This starts a 300 second (5 minute) timer that counts down once every 18 ticks (approximately one second).
 # If it runs out during battle, the battle won't end but a game-over will happen afterwards.
 set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: menu))</example>
