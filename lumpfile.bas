@@ -14,6 +14,8 @@
 #include "lumpfilewrapper.bi"
 
 
+'Local functions
+declare function unlumpfile_internal (lumpfile as string, fmask as string, path as string, showerrors as bool = YES, verbose as bool = NO) as string
 declare function matchmask(match as string, mask as string) as integer
 
 declare sub Lump_destruct(byref this as Lump)
@@ -921,20 +923,36 @@ end sub
 
 ' Unlump certain lumps, defined by fmask, to directory path
 sub unlumpfile (lumpfile as string, fmask as string, path as string, showerrors as bool = YES, verbose as bool = NO)
+	dim errmsg as string
+	'Note: unlumpfile_internal can show errors if it can't write a lump. If so, the
+	'user can choose to skip over the lump, and unlumpfile_internal doesn't return an error!
+	errmsg = unlumpfile_internal(lumpfile, fmask, path, showerrors, verbose)
+	if len(errmsg) then
+		errmsg = lumpfile + " appears to be corrupt: " + errmsg
+		debug errmsg
+		if showerrors then
+			errmsg += !"\nIt might be possible to ignore this error, or to fix this file by running the 'unlump' tool with the --recover argument." _
+			           " Otherwise, email the developers for help. See http://rpg.hamsterrepublic.com/ohrrpgce/UNLUMP"
+			showerror errmsg
+		end if
+	end if
+end sub
+
+' Unlump certain lumps, defined by fmask, to directory path.
+' Returns a string containing error message, which is empty on success.
+function unlumpfile_internal (lumpfile as string, fmask as string, path as string, showerrors as bool = YES, verbose as bool = NO) as string
 	dim lf as integer
 	dim dat as ubyte
 	dim size as integer
 	dim maxsize as integer
 	dim namelen as integer  'not including nul
 	dim nowildcards as integer = 0
+	dim errmsg as string  'return value
 
-	if NOT fileisreadable(lumpfile) then
-		debug "unlumpfile: " + lumpfile + " is not readable"
-		if showerrors then showerror lumpfile + " is not readable"
-		exit sub
-	end if
 	lf = freefile
-	open lumpfile for binary access read as #lf
+	if open(lumpfile for binary access read as #lf) <> 0 then
+		return "Can't open file"
+	end if
 	maxsize = LOF(lf)
 
 	if len(path) > 0 and right(path, 1) <> SLASH then path = path & SLASH
@@ -958,24 +976,21 @@ sub unlumpfile (lumpfile as string, fmask as string, path as string, showerrors 
 			namelen += 1
 		wend
 		if namelen = 0 or namelen > 50 then
-			debug "unlumpfile: corrupt lumped file " + lumpfile + ": lump length not in range 1--50: '" & lname & "' @ " & seek(lf)
-			if showerrors then showerror "File " + lumpfile + " seems to be corrupt"
+			errmsg = "lump length not in range 1--50: '" & lname & "' @ " & seek(lf)
 			exit while
 		end if
 		original_lname = lname
 		lname = lcase(lname)
 
 		if lname <> exclusive(lname, "abcdefghijklmnopqrstuvwxyz0123456789_-~. ") then
-			debug "corrupt lump file " + lumpfile + " : unallowable lump name '" + lname + "'"
-			if showerrors then showerror "File " + lumpfile + " seems to be corrupt"
+			errmsg = "unallowable lump name '" + lname + "'"
 			exit while
 		end if
 
 		if not eof(lf) then
 			size = read_lump_size(lf)
 			if size > maxsize then
-				debug lumpfile + ": corrupt lump size " & size & " exceeds source size " & maxsize
-				if showerrors then showerror "File " + lumpfile + " seems to be corrupt (possibly cut short)"
+				errmsg = "bad lump size " & size & " exceeds source size " & maxsize & " (maybe the file is cut short)"
 				exit while
 			end if
 
@@ -1009,7 +1024,8 @@ sub unlumpfile (lumpfile as string, fmask as string, path as string, showerrors 
 	wend
 
 	close #lf
-end sub
+	return errmsg
+end function
 
 sub copylump(package as string, lump as string, dest as string, byval ignoremissing as integer = NO)
 	if len(dest) and right(dest, 1) <> SLASH then dest = dest + SLASH
