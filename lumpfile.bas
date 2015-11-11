@@ -1044,19 +1044,21 @@ sub copylump(package as string, lump as string, dest as string, byval ignoremiss
 	end if
 end sub
 
-function islumpfile (lumpfile as string, fmask as string) as integer
+'Return whether any lumps in a lumped file exist which match fmask.
+function islumpfile (lumpfile as string, fmask as string) as bool
 	dim lf as integer
 	dim dat as ubyte
 	dim size as integer
 	dim maxsize as integer
 	dim lname as string
 	dim namelen as integer  'not including nul
+	dim ret as bool = NO
 
-	islumpfile = 0
-
-	if NOT fileisreadable(lumpfile) then exit function
 	lf = freefile
-	open lumpfile for binary access read as #lf
+	if open(lumpfile for binary access read as #lf) <> 0 then
+		debug "islumpfile: Can't open " + lumpfile
+		return NO
+	end if
 	maxsize = LOF(lf)
 
 	get #lf, , dat	'read first byte
@@ -1090,8 +1092,8 @@ function islumpfile (lumpfile as string, fmask as string) as integer
 
 			'do we want this file?
 			if matchmask(lname, lcase(fmask)) then
-				islumpfile = -1
-				exit function
+				ret = YES
+				exit while
 			else
 				'skip to next name
 				seek #lf, seek(lf) + size
@@ -1104,6 +1106,7 @@ function islumpfile (lumpfile as string, fmask as string) as integer
 	wend
 
 	close #lf
+	return ret
 end function
 
 sub lumpfiles (filelist() as string, lumpfile as string, path as string)

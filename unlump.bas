@@ -76,7 +76,7 @@ IF numargs < 1 OR numargs > 2 THEN showusage
 DIM lumped as string = cmdline_args(0)
 
 'check whether it is an RPG file (assume all RPG files contain BROWSE.TXT)
-DIM isrpg as integer = islumpfile(lumped, "browse.txt")
+DIM isrpg as bool = islumpfile(lumped, "browse.txt")
 
 IF numargs >= 2 THEN
  dest = cmdline_args(1)

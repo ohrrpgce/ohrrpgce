@@ -159,7 +159,7 @@ declare sub recover_lumped_file(lumpfile as string, destpath as string = "")
 declare sub unlump(lump as string, ulpath as string, showerrors as bool = YES, verbose as bool = NO)
 declare sub unlumpfile(lump as string, fmask as string, path as string, showerrors as bool = YES, verbose as bool = NO)
 declare sub copylump(package as string, lump as string, dest as string, byval ignoremissing as integer = NO)
-declare function islumpfile (lump as string, fmask as string) as integer
+declare function islumpfile (lump as string, fmask as string) as bool
 declare sub fixlumporder (filelist() as string)
 
 
