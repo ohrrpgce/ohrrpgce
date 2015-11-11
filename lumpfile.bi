@@ -156,8 +156,8 @@ declare function indexunlumpeddir (whichdir as string) as LumpIndex ptr
 declare function indexlumpfile (lumpfile as string, byval keepopen as integer = YES) as LumpIndex ptr
 declare sub lumpfiles (filelist() as string, lump as string, path as string)
 declare sub recover_lumped_file(lumpfile as string, destpath as string = "")
-declare sub unlump(lump as string, ulpath as string, byval showerrors as bool = YES)
-declare sub unlumpfile(lump as string, fmask as string, path as string, byval showerrors as bool = YES)
+declare sub unlump(lump as string, ulpath as string, showerrors as bool = YES, verbose as bool = NO)
+declare sub unlumpfile(lump as string, fmask as string, path as string, showerrors as bool = YES, verbose as bool = NO)
 declare sub copylump(package as string, lump as string, dest as string, byval ignoremissing as integer = NO)
 declare function islumpfile (lump as string, fmask as string) as integer
 declare sub fixlumporder (filelist() as string)

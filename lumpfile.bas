@@ -1,6 +1,12 @@
 'OHRRPGCE COMMON - Lumped file format routines
 '(C) Copyright 1997-2005 James Paige and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
+'
+' This module contains a whole lot of code implementing Lump, FileLump etc.
+' fake classes (FB did not support OO at the time) that is not used anywhere,
+' and should not be used for anything without an overhaul.
+' It might be useful in future, but the alternative would be to use FB file
+' handles with special OPEN calls.
 
 #include "config.bi"
 #include "common.bi"
@@ -32,7 +38,7 @@ LMPVTAB(LT_FILE,   FileLump_,    QLMP(destruct),       QLMP(open), QLMP(close), 
 
 '----------------------------------------------------------------------
 '                          LumpIndex class
-
+' (Not used)
 
 sub construct_LumpIndex(byref this as LumpIndex)
 	'Could call constructor too, but zeroed memory doesn't need it
@@ -170,6 +176,7 @@ end sub
 
 '----------------------------------------------------------------------
 '                           Lump base class
+' (Not used)
 
 
 'Not intended to be called on a Lump ptr, instead is used as default destructor of subclasses
@@ -392,6 +399,7 @@ end function
 
 '----------------------------------------------------------------------
 '                           FileLump class
+' (Not used)
 
 
 'A constructor of temporary file lumps.
@@ -516,6 +524,7 @@ end function
 
 '----------------------------------------------------------------------
 '                           LumpedLump class
+' (Not used)
 
 'Not intended to be called on a Lump ptr, instead is used as default destructor of subclasses
 'FIXME: broken, destructor not called!
@@ -643,6 +652,7 @@ end function
 
 '----------------------------------------------------------------------
 '                         Lump FileWrapper
+' (Not used)
 
 extern "C"
 
@@ -736,6 +746,67 @@ function extract_lump(lf as integer, srcfile as string, destfile as string, size
 	end if
 end function
 
+'Have a look at a list of lumps and PRINT any that appear to be missing.
+'This is just a diagnostic tool, called from recover_lumped_file.
+'TODO: Doesn't handle archinym, slicetree_#_#.reld, songs, or maps 100+
+sub check_expected_lumps(lumps as string vector)
+	dim archinym as string = "ohrrpgce"  ' TODO: fix this
+	dim lastmap as integer = 0
+
+	dim fixed_lumps(...) as string => { _
+		"archinym.lmp", "attack.bin", "binsize.bin", "browse.txt", _
+		"defpass.bin", "fixbits.bin", "lookup1.bin", "sfxdata.bin", "songdata.bin", _
+		"palettes.bin", "plotscr.lst", "menuitem.bin", "menus.bin", "uicolors.bin", _
+		"slicelookup.txt", "distrib.reld", "heroes.reld", "heroform.reld" _
+	}
+	' HSP lumps: "commands.bin", "scripts.txt", "scripts.bin"
+	dim extensions(...) as string => { _
+		"gen", "dox", "dt0", "dt1", "dt6", "efs", "for", "fnt", "hsp", "itm", "map", "mas", "mn", "mxs", _
+		"pal", "say", "sho", "sng", "stf", "stt", "tap", "til", "tmn", "veh" _
+	}
+	dim map_extensions(...) as string => {"t", "p", "e", "d", "l", "n", "z"}
+
+	' First lets determine how many maps there appear to be
+	for i as integer = 0 to v_len(lumps) - 1
+		dim ext as string = justextension(lumps[i])
+		dim mapnum as integer = str2int(mid(ext, 2), -1)
+		if mapnum > -1 then
+			for extnum as integer = 0 to ubound(map_extensions)
+				if mid(ext, 1, 1) = map_extensions(extnum) then
+					lastmap = large(lastmap, mapnum)
+				end if
+			next
+		end if
+	next
+	print "lastmap = " & lastmap
+
+	' Create the list of expected lumps
+	dim expected_lumps as string vector
+	array_to_vector(expected_lumps, fixed_lumps())
+	for i as integer = 0 to ubound(extensions)
+		v_append expected_lumps, archinym & "." & extensions(i)
+	next
+	for mapnum as integer = 0 to small(lastmap, 99)
+		for ext as integer = 0 to ubound(map_extensions)
+			v_append expected_lumps, archinym & "." & map_extensions(ext) & right("0" & mapnum, 2)
+		next
+	next
+	for i as integer = 0 to sprTypeLastPT
+		v_append expected_lumps, archinym & ".pt" & i
+		v_append expected_lumps, "defpal" & i & ".bin"
+	next
+
+	' Scan lumps
+	for i as integer = 0 to v_len(lumps) - 1
+		v_remove expected_lumps, lumps[i]
+	next
+	for i as integer = 0 to v_len(expected_lumps) - 1
+		print "Didn't see " & expected_lumps[i]
+	next
+
+	v_free expected_lumps
+end sub
+
 'Try to unlump a damaged lumped file
 'Bit of a mess, and not full featured (many types of corruption might require modifying this code)
 sub recover_lumped_file(lumpfile as string, destpath as string = "")
@@ -744,14 +815,6 @@ sub recover_lumped_file(lumpfile as string, destpath as string = "")
 	dim namelen as integer  'not including nul
 	' Exclude space because it occurs in a lot of false positives
 	dim filename_chars as zstring ptr = @"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-~."
-	/'
-	dim lumplike(...) as string => {
-		"ohrrpgce.", "archinym.lmp", "attack.bin", "binsize.bin", "browse.txt", "defpal#.bin", "commands.bin", _
-		"defpass.bin", "fixbits.bin", "scripts.bin", "scripts.txt", "lookup1.bin", "sfxdata.bin", "songdata.bin", _
-		"palettes.bin", "plotscr.lst", "menuitem.bin", "menus.bin", "uicolors.bin", "slicetree_#_#.reld", _
-		"slicelookup.txt", "distrib.reld", "heroes.reld", archinym + "." _
-	}
-	'/
 
 	dim lf as integer
 	lf = freefile
@@ -759,6 +822,9 @@ sub recover_lumped_file(lumpfile as string, destpath as string = "")
 		debug "recover_lumped_file: Could not open file " + lumpfile
 		exit sub
 	end if
+
+	dim lumps as string vector
+	v_new lumps
 
 	lname = ""
 	dim maxsize as integer = lof(lf)
@@ -782,7 +848,7 @@ sub recover_lumped_file(lumpfile as string, destpath as string = "")
 		if dat = 0 then
 			'May be NUL byte at end of lump name
 			if len(lname) <= 3 then
-				' Not likely to be a lump name, ignore
+				' Not likely to be a lump name, ignore (excludes HS header in .HSP)
 				lname = ""
 			else
 				dim size as integer = read_lump_size(lf)
@@ -804,6 +870,7 @@ sub recover_lumped_file(lumpfile as string, destpath as string = "")
 						seek lf, fpos
 					end if
 					debug "possible lump '" & lname & "' length " & size & " @ " & fpos
+					v_append lumps, lcase(lname)
 					prev_lump_name = lname
 					lname = ""
 
@@ -837,18 +904,27 @@ sub recover_lumped_file(lumpfile as string, destpath as string = "")
 		extract_lump(lf, lumpfile, destpath + lcase(prev_lump_name), fpos - prev_lump_data, NO)
 		seek lf, fpos
 	end if
+
+	dim skipped as integer = maxsize - (prev_lump_data + prev_lump_size)
+	if skipped then
+		debug "   ...skipping " & skipped & " unclaimed bytes at end of file"
+	end if
+
+	check_expected_lumps lumps
+	v_free lumps
 end sub
 
-sub unlump (lumpfile as string, ulpath as string, byval showerrors as bool = YES)
-	unlumpfile(lumpfile, "", ulpath, showerrors)
+' Unlump all lumps
+sub unlump (lumpfile as string, ulpath as string, showerrors as bool = YES, verbose as bool = NO)
+	unlumpfile(lumpfile, "", ulpath, showerrors, verbose)
 end sub
 
-sub unlumpfile (lumpfile as string, fmask as string, path as string, byval showerrors as bool = YES)
+' Unlump certain lumps, defined by fmask, to directory path
+sub unlumpfile (lumpfile as string, fmask as string, path as string, showerrors as bool = YES, verbose as bool = NO)
 	dim lf as integer
 	dim dat as ubyte
 	dim size as integer
 	dim maxsize as integer
-	dim lname as string
 	dim namelen as integer  'not including nul
 	dim nowildcards as integer = 0
 
@@ -872,8 +948,9 @@ sub unlumpfile (lumpfile as string, fmask as string, path as string, byval showe
 
 	get #lf, , dat	'read first byte
 	while not eof(lf)
-		'get lump name
-		lname = ""
+		' Get lump name
+		dim as string lname, original_lname
+
 		namelen = 0
 		while not eof(lf) and dat <> 0 and namelen < 64
 			lname = lname + chr(dat)
@@ -885,7 +962,7 @@ sub unlumpfile (lumpfile as string, fmask as string, path as string, byval showe
 			if showerrors then showerror "File " + lumpfile + " seems to be corrupt"
 			exit while
 		end if
-		'debug "lump name '" + lname + "' at " & seek(lf)
+		original_lname = lname
 		lname = lcase(lname)
 
 		if lname <> exclusive(lname, "abcdefghijklmnopqrstuvwxyz0123456789_-~. ") then
@@ -902,7 +979,9 @@ sub unlumpfile (lumpfile as string, fmask as string, path as string, byval showe
 				exit while
 			end if
 
-			'debug "lump size " & size
+			if verbose then
+				print "lump '" + original_lname + !"'\t at " & seek(lf) & !"\t len " & size
+			end if
 
 			dim skiplump as bool = YES
 
