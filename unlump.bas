@@ -21,46 +21,66 @@ cleanup_function = @fatalcleanup
 DIM SHARED createddir as integer = 0
 DIM SHARED dest as string
 DIM SHARED olddir as string
+DIM SHARED verbose as bool = NO
+DIM SHARED recover as bool = NO
 
 DIM cur as integer = 0
 
 olddir = curdir
 
-IF COMMAND = "" THEN
- PRINT "O.H.R.RPG.C.E. game unlumping utility"
- PRINT ""
- PRINT "syntax:"
- PRINT "unlump [--recover] filename.rpg directory"
+
+'------------------------------------------------------------------------------
+' Process command line
+
+SUB showusage ()
+ PRINT "O.H.R.RPG.C.E. unlumping utility"
  PRINT ""
  PRINT "A utility to extract the contents of an RPG file or other lumped"
  PRINT "file to a directory so that advanced users can hack the delicious"
  PRINT "morsels inside."
  PRINT "If a password is required, you will be prompted to enter it."
- PRINT "Specify --recover for experimental extraction of damaged lumped files."
  PRINT ""
- PRINT "Windows users can drag-and-drop their RPG file onto this program"
- PRINT "to unlump it."
+ PRINT "syntax:"
+ PRINT "  unlump [-v] [--recover] filename.rpg [directory]"
+ PRINT ""
+ PRINT "  -v:        Print verbose messages"
+ PRINT "  --recover: Try to extract damaged lumped files (experimental)"
+ PRINT ""
+ PRINT "You can drag-and-drop a file onto this program to unlump it."
+ PRINT "The output directory defaults to 'filename.rpgdir' or 'filename.unlmp'."
  PRINT ""
  PRINT "[Press a Key]"
  DIM dummy as string = readkey()
  fatalerror ""
-END IF
+END SUB
 
-DIM recover as bool = NO
-DIM nextarg as integer = 1
+FUNCTION unlump_setoption(opt as string, arg as string) as integer
+ IF opt = "v" THEN
+  verbose = YES
+  RETURN 1
+ ELSEIF opt = "help" or opt = "?" or opt = "h" THEN
+  showusage
+ ELSEIF opt = "recover" THEN
+  recover = YES
+  RETURN 1
+ END IF
+END FUNCTION
 
-IF LCASE(COMMAND(nextarg)) = "--recover" THEN
- recover = YES
- nextarg += 1
-END IF
 
-DIM lumped as string = COMMAND(nextarg)
-dest = COMMAND(nextarg + 1)
+DIM cmdline_args() as string
+processcommandline cmdline_args(), @unlump_setoption
+
+DIM numargs as integer = UBOUND(cmdline_args) + 1
+IF numargs < 1 OR numargs > 2 THEN showusage
+
+DIM lumped as string = cmdline_args(0)
 
 'check whether it is an RPG file (assume all RPG files contain BROWSE.TXT)
 DIM isrpg as integer = islumpfile(lumped, "browse.txt")
 
-IF dest = "" THEN
+IF numargs >= 2 THEN
+ dest = cmdline_args(1)
+ELSE
  IF LEN(rightafter(lumped, ".")) = LEN(lumped) - 1 THEN fatalerror "please specify an output directory"
  IF isrpg THEN
   dest = trimextension(lumped) + ".rpgdir"
@@ -68,6 +88,10 @@ IF dest = "" THEN
   dest = trimextension(lumped) + ".unlmp"
  END IF
 END IF
+
+
+'------------------------------------------------------------------------------
+' Setup
 
 IF NOT isfile(lumped) THEN fatalerror "lump file `" + lumped + "' was not found"
 
@@ -91,6 +115,7 @@ createddir = -1
 IF NOT isdir(dest) THEN fatalerror "unable to create destination directory `" + dest + "'"
 
 IF recover THEN
+ ' We skip checking the password, but who cares?
  recover_lumped_file lumped, dest + SLASH
  SYSTEM
 END IF
@@ -153,12 +178,16 @@ IF checkpassword("") = 0 THEN
 END IF
 
 IF passokay THEN
- unlump lumped, dest + SLASH
+ unlump lumped, dest + SLASH, YES, verbose
 END IF
 
 CHDIR olddir
 PRINT "Done."
 SYSTEM
+
+
+'------------------------------------------------------------------------------
+
 
 FUNCTION editstr (stri as string, key as string, byref cur as integer, byref max as integer, byref number as integer) as string
 
