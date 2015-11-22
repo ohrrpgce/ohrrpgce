@@ -949,28 +949,60 @@ FUNCTION game_setoption(opt as string, arg as string) as integer
  RETURN 0
 END FUNCTION
 
-SUB apply_game_window_settings ()
- set_safe_zone_margin read_ini_int(prefsdir & SLASH & "gameconfig.ini", "gfx.margin", default_margin_for_game())
+'Decide on the scale factor given a target maximum fraction of the screen size
+FUNCTION automatic_scale_factor (screen_fraction as double) as integer
+ DIM scale as integer = 2
+ DIM as integer screenwidth, screenheight
+ get_screen_size screenwidth, screenheight
 
- IF gen(genResolutionX) <> 320 OR gen(genResolutionY) <> 200 THEN
-  IF gfxbackend <> "sdl" ANDALSO gfxbackend <> "sd" THEN
-   'FIXME: checking for "sd" is a quick and lazy workaround for the fact that
-   'the gfx_sdl backend gets the last letter of its name chopped off when running on Android
+ debuginfo "automatic_scale_factor(" & screen_fraction & "), screen size: " & screenwidth & "*" & screenheight
+
+ IF screenwidth > 0 AND screenheight > 0 THEN
+  scale = small((screen_fraction * screenwidth) / gen(genResolutionX), (screen_fraction * screenheight) / gen(genResolutionY))
+  IF scale < 1 THEN scale = 1
+
+  'Reduce the scale until it fits on the monitor
+  'Kludge: Allow a little extra margin in the height to allow space for titlebar and taskbar.
+  '(Note: under Windows os_get_screen_size already excludes taskbar but not titlebar)
+  WHILE scale * gen(genResolutionX) > screenwidth OR scale * gen(genResolutionY) > screenheight - 20
+   IF scale = 1 THEN EXIT WHILE
+   scale -= 1
+  WEND
+ END IF
+
+ RETURN scale
+END FUNCTION
+
+'Set the game resolution and size of the window.
+'This can be called when live-previewing when resolution settings change
+SUB apply_game_window_settings ()
+ 'This can happen while live-previewing, or maybe messing around with writegeneral
+ IF gen(genResolutionX) < 10 OR gen(genResolutionY) < 10 THEN EXIT SUB
+
+ IF gen(genResolutionX) <> get_resolution_w() OR gen(genResolutionY) <> get_resolution_h() THEN
+  'get_resolution_w/h will be 320x200 if the backend doesn't support anything else
+  IF gfx_supports_variable_resolution() = NO THEN
    notification "This game requires use of the gfx_sdl backend; other graphics backends do not support customisable resolution. The game will probably be unplayable!"
   ELSE
    set_resolution(gen(genResolutionX), gen(genResolutionY))
    gfx_recenter_window_hint()
+   'Calling this is only needed when live-previewing
+   UpdateScreenSlice()
   END IF
  END IF
 
  IF overrode_default_zoom = NO THEN
-  IF gen(genDefaultScale) > 0  THEN
-   set_scale_factor gen(genDefaultScale)
+  'Didn't specify scaling on cmdline, so figure out what scale to use.
+  'TODO: screen_size_percent == 100 should be treated specially by maximising the window
+  'and adding black bars, once any backends support that.
+  DIM scale as integer
+  IF running_as_slave THEN
+   scale = automatic_scale_factor(0.1 * gen(genLivePreviewWindowSize))
   ELSE
-   'Default to 2
+   scale = automatic_scale_factor(0.1 * gen(genWindowSize))
   END IF
+  set_scale_factor scale
  END IF
-
 END SUB
 
 SUB set_speedcontrol ()

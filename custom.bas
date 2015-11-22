@@ -1272,8 +1272,16 @@ SUB secret_menu ()
  setkeys
 END SUB
 
+FUNCTION window_size_description(scale as integer) as string
+ IF scale >= 10 THEN
+  RETURN "maximize"
+ ELSE
+  RETURN "~" & (10 * scale) & "% screen width"
+ END IF
+END FUNCTION
+
 SUB resolution_menu ()
- DIM menu(...) as string = {"Width=", "Height=", "Default scale="}
+ DIM menu(4) as string
  DIM st as MenuState
  st.size = 24
  st.last = UBOUND(menu)
@@ -1284,23 +1292,29 @@ SUB resolution_menu ()
  DO
   setwait 55
   setkeys
-  IF usemenu(st) ORELSE keyval(scEsc) > 1 THEN
+  DIM quit as bool = (keyval(scEsc) > 1 OR (enter_space_click(st) AND st.pt = 0))
+  IF usemenu(st) ORELSE quit THEN
+   ' Reinforce limits, because we temporarily allow 0 while typing for convenience
    gen(genResolutionX) = large(10, gen(genResolutionX))
    gen(genResolutionY) = large(10, gen(genResolutionY))
   END IF
-  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF quit THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "window_settings"
   SELECT CASE st.pt
-   CASE 0: intgrabber(gen(genResolutionX), 0, 640)  'Arbitrary limits
-   CASE 1: intgrabber(gen(genResolutionY), 0, 480)
-   CASE 2: intgrabber(gen(genDefaultScale), 0, 4)
+   CASE 1: st.need_update OR= intgrabber(gen(genWindowSize), 1, 10)
+   CASE 2: st.need_update OR= intgrabber(gen(genLivePreviewWindowSize), 1, 10)
+   CASE 3: st.need_update OR= intgrabber(gen(genResolutionX), 0, 1280)  'Arbitrary limits
+   CASE 4: st.need_update OR= intgrabber(gen(genResolutionY), 0, 960)
   END SELECT
-  menu(0) = "Width: " & gen(genResolutionX)
-  menu(1) = "Height:" & gen(genResolutionY)
-  IF gen(genDefaultScale) = 0 THEN
-   menu(2) = "Scale: default"
-  ELSE
-   menu(2) = "Scale: " & gen(genDefaultScale)
+  IF st.need_update THEN
+   xbsave game + ".gen", gen(), 1000
+   st.need_update = NO
   END IF
+  menu(0) = "Previous Menu"
+  menu(1) = "Default window size: " & window_size_description(gen(genWindowSize))
+  menu(2) = "Test-Game window size: " & window_size_description(gen(genLivePreviewWindowSize))
+  menu(3) = "Display Width: " & gen(genResolutionX) & " pixels"
+  menu(4) = "Display Height:" & gen(genResolutionY) & " pixels"
   clearpage vpage
   standardmenu menu(), st, 0, 0, vpage
   setvispage vpage

@@ -351,19 +351,6 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
   RETURN gfx_sdl_set_screen_mode()
 END FUNCTION
 
-'Not used on any platforms at the moment, but could be useful on several
-SUB select_zoom_automatically(byval w as integer, byval h as integer)
-  ' DIM info as SDL_VideoInfo ptr
-  ' info = SDL_GetVideoInfo()
-  ' IF info = NULL THEN
-  '   debug "SDL_GetVideoInfo failed: " & *SDL_GetError()
-  '   EXIT SUB
-  ' END IF
-  zoom = small(w \ framesize.w, h \ framesize.h)
-  zoom = large(zoom, 1)
-  debuginfo "gfx_sdl: selected zoom = " & zoom
-END SUB
-
 FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
   last_used_bitdepth = bitdepth
   DIM flags as Uint32 = 0
@@ -418,6 +405,7 @@ FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
       .w = framesize.w * zoom
       .h = framesize.h * zoom
     END WITH
+    debuginfo "setvideomode zoom=" & zoom & " w*h = " & dest_rect.w &"*"& dest_rect.h
     screensurface = SDL_SetVideoMode(dest_rect.w, dest_rect.h, bitdepth, flags)
     IF screensurface = NULL THEN
       'This crude hack won't work for everyone if the SDL error messages are internationalised...
@@ -667,7 +655,8 @@ FUNCTION gfx_sdl_get_resize(byref ret as XYPair) as integer
 END FUNCTION
 
 SUB gfx_sdl_recenter_window_hint()
-  'Takes effect at the next SDL_SetVideoMode call, and it then removed
+  'Takes effect at the next SDL_SetVideoMode call, and it's then removed
+  debuginfo "recenter_window_hint()"
   putenv("SDL_VIDEO_CENTERED=1")
   '(Note this is overridden by SDL_VIDEO_WINDOW_POS)
 END SUB

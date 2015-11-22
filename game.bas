@@ -568,6 +568,7 @@ queue_fade_in
 
 'Recreate/resize/reposition the window as needed
 apply_game_window_settings
+set_safe_zone_margin read_ini_int(prefsdir & SLASH & "gameconfig.ini", "gfx.margin", default_margin_for_game())
 
 setfont current_font()
 loadglobalstrings

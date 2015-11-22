@@ -165,11 +165,13 @@ CONST genStealSuccessSFX = 199  'Sound effect numbers for steal attacks in addit
 CONST genStealFailSFX = 200     ' "
 CONST genStealNoItemSFX = 201   ' "
 CONST genRegenChar = 202        ' Regen status icon character
-CONST genDefaultScale = 203     ' Graphics zoom factor, 0 = default
+CONST genDefaultScale = 203     ' Unused.
 CONST genDebugMode = 204        ' 0=Release mode, 1=Debug mode. Author choice for script error display. This is the one that should be edited by the game author
 CONST genCurrentDebugMode = 205 ' 0=Release mode, 1=Debug mode. Current choice for script error display. This is the one that should be checked in-game
 CONST genStartHero = 206        ' ID of initial hero
 CONST genStartTextbox = 207     ' ID of initial textbox, or 0 = none
+CONST genWindowSize = 208       ' Window size about X% of screen, in multiples of 10%. 10 means maximize
+CONST genLivePreviewWindowSize = 209 ' Test-Game window size about X% of screen, in multiples of 10%. 10 means maximize
 'Everything else up to 499 unused.
 'When adding more data to gen() consider whether it should be saved in .rsav.
 'Also, gen() is reloaded by resetgame() when starting a new/loaded game,

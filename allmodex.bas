@@ -551,6 +551,8 @@ end sub
 'Set the size that a pixel appears on the screen.
 'Supported by all backends except gfx_alleg.
 sub set_scale_factor (scale as integer)
+	'gfx_sdl and gfx_fb, which use blit.c scaling, are limited to 1x-16x
+	scale = bound(scale, 1, 16)
 	debuginfo "Setting graphics scaling to x" & scale
 	if gfxbackend = "directx" then
 		'Doesn't support "zoom"
