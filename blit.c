@@ -271,13 +271,16 @@ void smoothzoomblit_8_to_8bit(uint8_t *srcbuffer, uint8_t *destbuffer, int w, in
 	}
 
 	if (smooth == 1 && zoom >= 2) {
+		int fy = 1;
 		int pstep;
-		if (zoom == 2 || zoom > 4)
-			pstep = 2;
-		else
+		if (zoom == 3) {
 			pstep = 1;
+		} else {
+			pstep = zoom;
+			fy = zoom - 1;
+		}
 		uint8_t *sptr1, *sptr2, *sptr3;
-		for (int fy = 1; fy <= high - 2; fy += pstep) {
+		for (; fy <= high - 2; fy += pstep) {
 			sptr1 = destbuffer + pitch * (fy - 1) + 1;  //(1,0)
 			sptr2 = sptr1 + pitch; //(1,1)
 			sptr3 = sptr2 + pitch; //(1,2)
@@ -295,7 +298,6 @@ void smoothzoomblit_8_to_8bit(uint8_t *srcbuffer, uint8_t *destbuffer, int w, in
 					if (sptr1[-1] == sptr3[1])
 						sptr2[0] = sptr1[-1];
 				
-				//pset(fx,fy),p0
 				sptr1 += 1;
 				sptr2 += 1;
 				sptr3 += 1;
