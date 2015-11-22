@@ -22,7 +22,7 @@ struct PipeState;
 typedef struct PipeState PipeState;
 typedef PipeState *IPCChannel;
 #define NULL_CHANNEL NULL
-typedef int ProcessHandle;  //dummy type
+typedef FILE *ProcessHandle;
 
 #endif
 

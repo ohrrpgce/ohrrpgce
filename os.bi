@@ -60,7 +60,7 @@ declare function open_document (filename as string) as string
 
 #else
 
-type ProcessHandle as integer  'dummy type
+type ProcessHandle as any ptr  'actually FILE*
 type IPCChannel as any ptr   'actually FILE*
 #define NULL_CHANNEL NULL
 

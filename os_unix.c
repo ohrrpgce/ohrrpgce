@@ -637,18 +637,16 @@ ProcessHandle open_process (FBSTRING *program, FBSTRING *args) {
 	// Early versions of the NDK don't have popen
 	return 0;
 #else
-	ProcessHandle ret = -1;  //default success: nonzero
-
 	char *program_escaped = escape_filenamec(program->data);
 	char *buf = malloc(strlen(program_escaped) + strlen(args->data) + 2);
 	sprintf(buf, "%s %s", program_escaped, args->data);
 
 	errno = 0;
-	FILE *res = popen(buf, "r");  //No intention to read or write
+	ProcessHandle ret;  // aka FILE*
+	ret = popen(buf, "r");  //No intention to read or write
 	int err = errno;  //errno from popen is not reliable
-	if (!res) {
+	if (!ret) {
 		debug(errError, "popen(%s, %s) failed: %s", program->data, args->data, strerror(err));
-		ret = 0;
 	}
 
 	free(program_escaped);
@@ -685,6 +683,8 @@ void kill_process (ProcessHandle process) {
 
 //Cleans up resources associated with a ProcessHandle
 void cleanup_process (ProcessHandle *processp) {
-	//Unimplemented and not yet used
-	*processp = 0;
+	if (*processp) {
+		fclose(*processp);
+		*processp = 0;
+	}
 }
