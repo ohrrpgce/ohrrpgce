@@ -1218,7 +1218,7 @@ SUB update_heroes(byval force_step_check as integer=NO)
  'If the leader finished a step, check triggers
  IF (herow(0).xgo MOD 20 = 0) AND (herow(0).ygo MOD 20 = 0) AND (didgo(0) = YES OR force_step_check = YES) THEN
 
-  'Trigger NPCs
+  'Trigger step-on NPCs
   IF readbit(gen(), genSuspendBits, suspendobstruction) = 0 THEN
    '--check for step-on NPCS
    FOR i as integer = 0 TO UBOUND(npc)
@@ -1803,6 +1803,7 @@ SUB dotimer(byval timercontext as integer)
             end if
 
             if .trigger >= 0 then  'a plotscript
+              ' NOTE: this doesn't run until the next tick (a design flaw)
               trigger_script .trigger, NO, "timer", "", scrqBackcompat()
               trigger_script_arg 0, i, "id"
             end if
@@ -3398,8 +3399,8 @@ SUB cleanup_other_temp_files ()
     threshhold = 3
    END IF
 #IFDEF __FB_ANDROID__
-'--Android only permits one running copy of a process, so it is always safe to clean up all tmpdirs
-threshhold = -1
+   '--Android only permits one running copy of a process, so it is always safe to clean up all tmpdirs
+   threshhold = -1
 #ENDIF
    IF age > threshhold THEN
     center_edgeboxstyle 160, 65, 25 * 8, 16, 0, vpage, NO, YES

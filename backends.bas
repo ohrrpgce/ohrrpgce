@@ -529,6 +529,8 @@ function load_backend(which as GFxBackendStuff ptr) as bool
 		gfx_setdebugfunc(@debugc)
 	end if
 
+	'FIXME: in the Android port, gfxbackend takes the value "sd"!!
+
 	currentgfxbackend = which
 	gfxbackendinfo = "gfx_" + which->name
 	gfxbackend = which->name

@@ -1158,7 +1158,7 @@ SUB hero_formation_editor ()
   ' Draw screen
 
   IF eform.background_frames > 1 AND eform.background_ticks > 0 THEN
-   bgwait = (bgwait + 1) MOD eform.background_ticks
+   bgwait = (bgwait + 1) MOD eform.background_ticks   'FIXME: off-by-one bug here
    IF bgwait = 0 THEN
     bgctr = loopvar(bgctr, 0, eform.background_frames - 1, 1)
     DIM sl as Slice ptr = LookupSlice(SL_FORMEDITOR_BACKDROP, rootslice)

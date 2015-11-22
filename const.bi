@@ -349,6 +349,11 @@ CONST passVehB = 32
 CONST passHarm = 64
 CONST passOverhead = 128
 
+'NPC activation types
+CONST npcUse = 0
+CONST npcTouch = 1
+CONST npcStepOn = 2
+
 '--- Constants for carray() 
 CONST ccUp = 0
 CONST ccDown = 1

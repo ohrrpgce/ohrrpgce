@@ -2689,7 +2689,7 @@ FUNCTION spriteedit_import16_cut_frames(byref ss as SpriteEditState, impsprite a
    NEXT
 
    'edgeprint "Offsets between spriteset frames:", 0, texty, uilook(uiText), dpage, YES, YES
-   edgeprint "Select spriteset layout and press ENTER", 0, texty, uilook(uiText), dpage, YES, YES
+   edgeprint "Define spriteset layout and press ENTER", 0, texty, uilook(uiText), dpage, YES, YES
    standardmenu menu(), st, 0, texty + 10, dpage, menuopts
    
    SWAP vpage, dpage

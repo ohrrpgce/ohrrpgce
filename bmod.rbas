@@ -662,7 +662,6 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
     END WITH
     IF gold > 2000000000 THEN gold = 2000000000
     IF gold < 0 THEN gold = 0
- 
   END IF
  
   '--if the attack consumes items, we want to consume those too

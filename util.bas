@@ -1238,7 +1238,9 @@ END SUB
 
 SUB touchfile (filename as string)
   dim as integer fh = FREEFILE
-  OPEN filename FOR BINARY as #fh
+  IF OPEN(filename FOR BINARY as #fh) THEN
+    debug "touchfile(): could not open " + filename
+  END IF
   CLOSE #fh
 END SUB
 

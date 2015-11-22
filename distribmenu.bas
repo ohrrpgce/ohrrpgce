@@ -1619,10 +1619,10 @@ SUB distribute_game_as_linux_tarball ()
   IF confirmed_copy(gameplayer, dest_gameplayer) = NO THEN visible_debug "Couldn't copy " & gameplayer & " to " & dest_gameplayer : EXIT DO
 #IFDEF __UNIX__
   'Mac and Linux fix the permissions
- DIM cmd as string
- cmd = "chmod +x " & escape_filename(dest_gameplayer)
- debuginfo cmd
- SHELL cmd
+  DIM cmd as string
+  cmd = "chmod +x " & escape_filename(dest_gameplayer)
+  debuginfo cmd
+  SHELL cmd
 #ENDIF
   IF confirmed_copy(trimfilename(gameplayer) & SLASH & "LICENSE-binary.txt", tarballdir & SLASH & "LICENSE-binary.txt") = NO THEN EXIT DO
 
