@@ -1143,6 +1143,38 @@ SUB receive_file_updates ()
  entered = NO
 END SUB
 
+'Live-previewing: Try to update stuff after .gen is written to by Custom
+'This is very probably far less complete than it could be
+SUB reload_gen()
+ REDIM newgen(499) as integer
+ xbload game + ".gen", newgen(), "reload lumps: .gen unreadable"
+ IF gam.current_master_palette = gen(genMasterPal) _
+     AND newgen(genMasterPal) <> gen(genMasterPal) THEN
+  gam.current_master_palette = newgen(genMasterPal)
+  loadpalette master(), gam.current_master_palette
+  setpal master()
+  LoadUIColors uilook(), boxlook(), gam.current_master_palette
+ END IF
+
+ DIM should_reset_window as bool = NO
+
+ FOR j as integer = 0 TO UBOUND(gen)
+  SELECT CASE j
+   CASE 44 TO 54, genTextboxBackdrop, genJoy  '44-54, 58, 60
+    'Ignore.
+   CASE genResolutionX, genResolutionY, genWindowSize, genLivePreviewWindowSize
+    IF gen(j) <> newgen(j) THEN should_reset_window = YES
+    gen(j) = newgen(j)
+   CASE ELSE
+    gen(j) = newgen(j)
+  END SELECT
+ NEXT
+ 'FIXME: does anything else need to be reloaded when gen() changes?
+ 'Number of elements maybe?
+
+ IF should_reset_window THEN apply_game_window_settings
+END SUB
+
 SUB reload_MAP_lump()
  WITH lump_reloading
 
@@ -1348,24 +1380,7 @@ SUB try_reload_lumps_anywhere ()
    handled = YES
 
   ELSEIF extn = "gen" THEN                                                '.GEN
-   REDIM newgen(499) as integer
-   xbload game + ".gen", newgen(), "reload lumps: .gen unreadable"
-   IF gam.current_master_palette = gen(genMasterPal) _
-       AND newgen(genMasterPal) <> gen(genMasterPal) THEN
-    gam.current_master_palette = newgen(genMasterPal)
-    loadpalette master(), gam.current_master_palette
-    setpal master()
-    LoadUIColors uilook(), boxlook(), gam.current_master_palette
-   END IF
-   FOR j as integer = 0 TO UBOUND(gen)
-    SELECT CASE j
-     CASE 44 TO 54, genTextboxBackdrop, genJoy  '58, 60
-     CASE ELSE
-      gen(j) = newgen(j)
-    END SELECT
-   NEXT
-   'FIXME: does anything else need to be reloaded when gen() changes?
-   'Number of elements maybe?
+   reload_gen()
    handled = YES
 
   ELSEIF modified_lumps[i] = "binsize.bin" THEN                           'BINSIZE.BIN
