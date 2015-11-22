@@ -50,8 +50,10 @@ TYPE HeroWalkabout
   ygo as integer
   wtog as integer
   speed as integer
-  curzones as integer vector
+  curzones as integer vector = 0
   'x, y, z, dir are in catx(), caty(), catz(), catd() instead *grumble*
+
+  Declare Destructor()  'Free curzones
 END TYPE
 
 TYPE ScriptLoggingState
