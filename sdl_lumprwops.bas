@@ -47,11 +47,15 @@ end function
 type FnRWopsClose as function cdecl(byval as SDL_RWops ptr) as integer
 
 'vectors of all the safe RWops that are not yet closed, and the corresponding close functions.
-'They won't be closed, but no matter.
 dim shared live_RWops as any ptr vector
 dim shared live_RWops_closefuncs as any ptr vector
 v_new live_RWops
 v_new live_RWops_closefuncs
+
+sub sdl_lumprwops_destructor () destructor
+	v_free live_RWops
+	v_free live_RWops_closefuncs
+end sub
 
 'The intent of this function is remove the RWops from live_RWops when it is closed:
 'actually calling SDL_RWclose twice is definitely an error
