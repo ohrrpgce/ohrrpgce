@@ -140,6 +140,9 @@ Sub DefaultChildDraw(Byval s as Slice Ptr, byval page as integer)
 End sub
 
 Sub SetupGameSlices
+ 'Note that the map root and walkabout layers are containers, while
+ 'inconsistently everything else except for the root slice is a special slice.
+
  SliceTable.Root = NewSliceOfType(slRoot, NULL, SL_ROOT)
  
  SliceTable.MapRoot = NewSliceOfType(slContainer, SliceTable.Root, SL_MAPROOT)
@@ -1519,6 +1522,15 @@ Sub DisposeMapSlice(byval sl as slice ptr)
 end sub
 
 Sub DrawMapSlice(byval sl as slice ptr, byval p as integer)
+ ' MapSlices are sadly exceptions to the slice system. Their size is ignored.
+ ' Instead, they are drawn to cover the whole current clipping region.
+ ' Their position corresponds to the camera offset.
+ ' Map layer 0 acts as if its size is actually infinitely large, including extending
+ ' up/left of 0. The map edge tile is drawn outside the map if the map is set to 'Crop',
+ ' despite it appearing as 'N/A' in the map editor.
+ ' Higher map layers are actually drawn to match their nominal size, unless the map
+ ' is set to 'Wrap', in which case they fill the whole clipping region.
+
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
  

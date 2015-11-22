@@ -1002,7 +1002,9 @@ SUB displayall()
  ' second update_walkabout_slices call.
  update_walkabout_slices()
 
- 'Map layers edge handling
+ ' Beware that map slices behave in unique ways; see comments in DrawMapSlice.
+ ' 
+ ' Map layers edge handling.
  SELECT CASE gmap(5)
   CASE 1 'Wrap
    setoutside -1
@@ -1018,6 +1020,7 @@ SUB displayall()
   ChangeMapSlice SliceTable.MapLayer(0), , , , 1   'draw non-overhead only
   SliceTable.ObsoleteOverhead->Visible = YES
  END IF
+
  update_backdrop_slice
 
  DrawSlice(SliceTable.Root, dpage)
