@@ -5715,7 +5715,7 @@ set horiz align(sl, edge:right)
 		<command id="setspritesetnumber">
 			<canon>set sprite set number (handle, record)</canon>
 			<shortname>set sprite set number</shortname>
-			<description>Changes the record number of the spriteset of a slice sprite <p>handle</p>.</description>
+			<description>Changes the record number of the spriteset of a sprite slice <p>handle</p>.</description>
 			<seealso>
 				<ref>getspritesetnumber</ref>
 				<ref>setspritepalette</ref>
@@ -5725,7 +5725,7 @@ set horiz align(sl, edge:right)
 		<command id="getspritesetnumber">
 			<canon>get sprite set number (handle)</canon>
 			<shortname>get sprite set number</shortname>
-			<description>Gets the record number of the spriteset of a slice sprite <p>handle</p>.</description>
+			<description>Gets the record number of the spriteset of a sprite slice <p>handle</p>.</description>
 			<seealso>
 				<ref>getspritetype</ref>
 				<ref>getspritepalette</ref>
@@ -5735,7 +5735,10 @@ set horiz align(sl, edge:right)
 		<command id="setspritepalette">
 			<canon>set sprite palette (handle, num)</canon>
 			<shortname>set sprite palette</shortname>
-			<description>Changes the palette of sprite <p>handle</p> to be <p>num</p>. If <p>num</p> is -1 or omitted, the default palette for that sprite is loaded.</description>
+			<description>
+				Changes the palette of sprite slice <p>handle</p> to be <p>num</p>.
+				If <p>num</p> is -1 or omitted, the default palette for that sprite is loaded.
+			</description>
 			<seealso>
 				<ref>getspritepalette</ref>
 			</seealso>
@@ -5743,7 +5746,7 @@ set horiz align(sl, edge:right)
 		<command id="getspritepalette">
 			<canon>get sprite palette (handle)</canon>
 			<shortname>get sprite palette</shortname>
-			<description>Returns the palette of sprite <p>handle</p>.</description>
+			<description>Returns the palette of sprite slice <p>handle</p>.</description>
 			<seealso>
 				<ref>getspritetype</ref>
 				<ref>getspritesetnumber</ref>
@@ -5753,7 +5756,11 @@ set horiz align(sl, edge:right)
 		<command id="getspritedefaultpal">
 			<canon>get sprite default pal (handle)</canon>
 			<shortname>get sprite default pal</shortname>
-			<description>Returns default palette of sprite <p>handle</p>. You don't need to use this when you want to set a sprite to its default palette, because a palette number of -1 will have that effect. This command is for finding out the real palette number of the palette that would be used if the sprite is set to -1</description>
+			<description>
+				Returns the default palette of sprite slice <p>handle</p>.
+				You don't need to use this when you want to set a sprite to its default palette, because setting the palette number to -1 will have that effect.
+				This command is for finding out the real palette number that would be used if the palette is set to -1.
+			</description>
 			<seealso>
 				<ref>getspritepalette</ref>
 				<ref>setspritepalette</ref>
@@ -5762,7 +5769,7 @@ set horiz align(sl, edge:right)
 		<command id="setspriteframe">
 			<canon>set sprite frame (handle, num)</canon>
 			<shortname>set sprite frame</shortname>
-			<description>Changes the frame of sprite <p>handle</p> to be <p>num</p>. If <p>num</p> is less than 0, or greater than or equal to the number of frames, nothing will change.</description>
+			<description>Changes the frame of sprite slice <p>handle</p> to be <p>num</p>.</description>
 			<seealso>
 				<ref>getspriteframe</ref>
 			</seealso>
@@ -5770,7 +5777,7 @@ set horiz align(sl, edge:right)
 		<command id="getspriteframe">
 			<canon>get sprite frame (handle)</canon>
 			<shortname>get sprite frame</shortname>
-			<description>Returns the current frame number of sprite <p>handle</p>.</description>
+			<description>Returns the current frame number of sprite slice <p>handle</p>.</description>
 			<seealso>
 				<ref>getspritetype</ref>
 				<ref>getspritepalette</ref>
@@ -5780,12 +5787,15 @@ set horiz align(sl, edge:right)
 		<command id="spriteframecount">
 			<canon>sprite frame count (handle)</canon>
 			<shortname>sprite frame count</shortname>
-			<description>Returns the total number of available frames for a given sprite <p>handle</p>.</description>
+			<description>
+				Returns the total number of available frames for a given sprite slice <p>handle</p>.
+				For example a backdrop has just one frame, an attack sprite has three.
+			</description>
 		</command>
 		<command id="horizflipsprite">
 			<canon>horiz flip sprite (handle, flip)</canon>
 			<shortname>horiz flip sprite</shortname>
-			<description>Flips a sprite <p>handle</p> horizontally. You can also unflip a previously flipped sprite using <p>horiz flip sprite(handle, false)</p></description>
+			<description>Flips a sprite slice <p>handle</p> horizontally. You can also unflip a previously flipped sprite using <p>horiz flip sprite(handle, false)</p></description>
 			<seealso>
 				<ref>vertflipsprite</ref>
 				<ref>spriteishorizflipped</ref>
@@ -5794,7 +5804,7 @@ set horiz align(sl, edge:right)
 		<command id="vertflipsprite">
 			<canon>vert flip sprite (handle, flip)</canon>
 			<shortname>vert flip sprite</shortname>
-			<description>Flips a sprite <p>handle</p> vertically. You can also unflip a previously flipped sprite using <p>vert flip sprite(handle, false)</p></description>
+			<description>Flips a sprite slice <p>handle</p> vertically. You can also unflip a previously flipped sprite using <p>vert flip sprite(handle, false)</p></description>
 			<seealso>
 				<ref>horizflipsprite</ref>
 				<ref>spriteisvertflipped</ref>
@@ -5803,7 +5813,7 @@ set horiz align(sl, edge:right)
 		<command id="spriteishorizflipped">
 			<canon>sprite is horiz flipped (handle)</canon>
 			<shortname>sprite is horiz flipped</shortname>
-			<description>Returns true if a sprite <p>handle</p> is flipped horizontally, or false if it is not.</description>
+			<description>Returns true if a sprite slice <p>handle</p> is flipped horizontally, or false if it is not.</description>
 			<seealso>
 				<ref>horizflipsprite</ref>
 				<ref>spriteisvertflipped</ref>
@@ -5812,7 +5822,7 @@ set horiz align(sl, edge:right)
 		<command id="spriteisvertflipped">
 			<canon>sprite is vert flipped (handle)</canon>
 			<shortname>sprite is vert flipped</shortname>
-			<description>Returns true if a sprite <p>handle</p> is flipped vertically, or false if it is not.</description>
+			<description>Returns true if a sprite slice <p>handle</p> is flipped vertically, or false if it is not.</description>
 			<seealso>
 				<ref>vertflipsprite</ref>
 				<ref>spriteishorizflipped</ref>
