@@ -196,7 +196,7 @@ bool multismoothblit(int bitdepth1, int bitdepth2, void *srcbuffer, void *destbu
 	else if (zoom == 12) { zoom0 = 2; zoom1 = 3; zoom2 = 2; }
 	else if (zoom == 16) { zoom0 = 2; zoom1 = 2; zoom2 = 4; finalsmooth = 0; }
 	else {
-		*smooth = 0;
+		// Still attempt to smooth zooms like 5x, 7x, but the effect is very slight
 		return false;
 	}
 	int zoom01 = zoom0 * zoom1;
