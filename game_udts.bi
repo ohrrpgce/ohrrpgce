@@ -85,6 +85,7 @@ TYPE VirtualGamePadState
   script_hide_virtual_gamepad as bool
   script_show_virtual_gamepad as bool
   script_wants_keys as integer = 0
+  being_shown as bool
 END TYPE
 
 TYPE GameState

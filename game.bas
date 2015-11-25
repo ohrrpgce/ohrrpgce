@@ -3428,9 +3428,15 @@ END SUB
 SUB update_virtual_gamepad_display()
  'Based on global state, of the current game, decide whether or not the virual gamepad should be displaying
  IF calc_virtual_gamepad_state() THEN
-  show_virtual_gamepad()
+  IF NOT gam.pad.being_shown THEN
+   show_virtual_gamepad()
+   gam.pad.being_shown = YES
+  END IF
  ELSE
-  hide_virtual_gamepad()
+  IF gam.pad.being_shown THEN
+   hide_virtual_gamepad()
+   gam.pad.being_shown = NO
+  END IF
  END IF
 END SUB
 
