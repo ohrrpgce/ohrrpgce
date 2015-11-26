@@ -341,16 +341,17 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
    'Not equippable
    buyst.hero_box->Visible = NO
   END IF
-  '--show stock
-  DIM thing_parent as NodePtr = NodeParent(thing)
-  IF thing_parent THEN
-   DIM thing_slot as integer = GetInteger(thing_parent)
-   IF gam.stock(buyst.shop_id, thing_slot) > 1 THEN
-    append_menu_item buyst.info, gam.stock(buyst.shop_id, thing_slot) - 1 & " " & readglobalstring(97, "in stock", 20)
-   END IF
-  END IF
-  
  END IF
+
+ '--show stock
+ DIM thing_parent as NodePtr = NodeParent(thing)
+ IF thing_parent THEN
+  DIM thing_slot as integer = GetInteger(thing_parent)
+  IF gam.stock(buyst.shop_id, thing_slot) > 1 THEN
+   append_menu_item buyst.info, gam.stock(buyst.shop_id, thing_slot) - 1 & " " & readglobalstring(97, "in stock", 20)
+  END IF
+ END IF
+ 
  IF buy THEN
   DIM price as integer = buy."price".default(0).integer
   DIM price_str as string = ""
@@ -429,19 +430,20 @@ FUNCTION buystuff_can_show(byval slot as NodePtr, buyst as ShopBuyState) as bool
  ELSEIF slot."item".exists THEN
   thing = slot."item".ptr
   buy = thing."buy".ptr
-  DIM slotnum as integer = GetInteger(slot)
-  'Load stock data if unloaded.
-  IF gam.stock(buyst.shop_id, slotnum) = 0 THEN
-   IF thing."stock".exists THEN
-    gam.stock(buyst.shop_id, slotnum) = thing."stock".integer + 1
-   END IF
-  END IF
-  IF gam.stock(buyst.shop_id, slotnum) = 1 THEN
-   'This item is out of stock
-   RETURN NO
-  END IF
  ELSE
   debug "buystuff_can_show: no hero or item node"
+  RETURN NO
+ END IF
+
+ DIM slotnum as integer = GetInteger(slot)
+ 'Load stock data if unloaded.
+ IF gam.stock(buyst.shop_id, slotnum) = 0 THEN
+  IF thing."stock".exists THEN
+   gam.stock(buyst.shop_id, slotnum) = thing."stock".integer + 1
+  END IF
+ END IF
+ IF gam.stock(buyst.shop_id, slotnum) = 1 THEN
+  'This item is out of stock
   RETURN NO
  END IF
 
