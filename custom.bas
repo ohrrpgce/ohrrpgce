@@ -43,10 +43,7 @@ DECLARE SUB maptile ()
 DECLARE SUB compile_andor_import_scripts (f as string, quickimport as bool = NO)
 DECLARE SUB reimport_previous_scripts ()
 
-'Local function declarations
-DECLARE FUNCTION newRPGfile (templatefile as string, newrpg as string) as integer
-DECLARE FUNCTION makeworkingdir () as integer
-DECLARE FUNCTION handle_dirty_workingdir () as integer
+'''' Local function and type declarations
 
 ' Stores information about a previous or ongoing Custom editing session
 TYPE SessionInfo
@@ -59,6 +56,9 @@ TYPE SessionInfo
  last_lump_mtime as double         'mtime of the most recently modified lump
 END TYPE
 
+DECLARE FUNCTION newRPGfile (templatefile as string, newrpg as string) as bool
+DECLARE FUNCTION makeworkingdir () as bool
+DECLARE FUNCTION handle_dirty_workingdir () as bool
 DECLARE SUB write_session_info ()
 DECLARE FUNCTION get_previous_session_info () as SessionInfo
 DECLARE SUB secret_menu ()
@@ -693,6 +693,12 @@ SUB cleanupfiles ()
  IF nocleanup = NO THEN killdir workingdir
 END SUB
 
+
+'==========================================================================================
+'                                          Shops
+'==========================================================================================
+
+
 SUB shopdata ()
  DIM shopbuf(20) as integer
 
@@ -1116,9 +1122,15 @@ SUB shop_save_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufb
  storeset game & ".stf", shop_id * 50 + stuf.thing, 0
 END SUB
 
-FUNCTION newRPGfile (templatefile as string, newrpg as string) as integer
- newRPGfile = 0 ' default return value 0 means failure
- IF newrpg = "" THEN EXIT FUNCTION
+
+'==========================================================================================
+'                    Creating/cleaning working.tmp and creating games
+'==========================================================================================
+
+
+' Returns true for success
+FUNCTION newRPGfile (templatefile as string, newrpg as string) as bool
+ IF newrpg = "" THEN RETURN NO
  textcolor uilook(uiSelectedDisabled), 0
  printstr "Please Wait...", 0, 40, vpage
  printstr "Creating RPG File", 0, 50, vpage
@@ -1128,7 +1140,7 @@ FUNCTION newRPGfile (templatefile as string, newrpg as string) as integer
   printstr "Press Enter to quit", 0, 70, vpage
   setvispage vpage
   waitforanykey
-  EXIT FUNCTION
+  RETURN NO
  END IF
  writeablecopyfile templatefile, newrpg
  printstr "Unlumping", 0, 60, vpage
@@ -1144,7 +1156,7 @@ FUNCTION newRPGfile (templatefile as string, newrpg as string) as integer
  setvispage vpage 'refresh
  '--re-lump files as NEW rpg file
  dolumpfiles newrpg
- newRPGfile = -1 'return true for success
+ RETURN YES
 END FUNCTION
 
 ' Argument is a timeserial
@@ -1212,8 +1224,8 @@ FUNCTION get_previous_session_info () as SessionInfo
  RETURN ret
 END FUNCTION
 
-'Try to delete everything in workingdir
-FUNCTION empty_workingdir () as integer
+'Try to delete everything in workingdir. Returns true if succeeded.
+FUNCTION empty_workingdir () as bool
  'Delete session_info first, because it indicates game data you might want to recover
  safekill workingdir + SLASH + "session_info.txt.tmp"
  touchfile workingdir + SLASH + "__danger.tmp"
@@ -1231,7 +1243,7 @@ FUNCTION empty_workingdir () as integer
 END FUNCTION
 
 'Returns true on success, false if want to cleanup_and_terminate
-FUNCTION makeworkingdir () as integer
+FUNCTION makeworkingdir () as bool
  IF NOT isdir(workingdir) THEN
   makedir workingdir
   RETURN YES
@@ -1315,8 +1327,33 @@ FUNCTION handle_dirty_workingdir () as integer
  LOOP
 END FUNCTION
 
+
+'==========================================================================================
+'                               Secret/testing/debug menus
+'==========================================================================================
+
+
 SUB secret_menu ()
- DIM menu(...) as string = {"Reload Editor", "Editor Editor", "Conditions and More Tests", "Transformed Quads", "Sprite editor with arbitrary sizes", "Text tests", "Font tests", "Stat Growth Chart", "Resolution Menu", "Edit Status Screen", "Edit Status Screen Stat Plank", "Edit Item Screen", "Edit Item Screen Item Plank", "Edit Spell Screen", "Edit Spell Screen Spell List Plank", "Edit Spell Screen Spell Plank", "RGFX tests", "Edit Virtual Keyboard Screen"}
+ DIM menu(...) as string = { _
+     "Reload Editor", _
+     "Editor Editor", _
+     "Conditions and More Tests", _
+     "Transformed Quads", _
+     "Sprite editor with arbitrary sizes", _
+     "Text tests", _
+     "Font tests", _
+     "Stat Growth Chart", _
+     "Resolution Menu", _
+     "Edit Status Screen", _
+     "Edit Status Screen Stat Plank", _
+     "Edit Item Screen", _
+     "Edit Item Screen Item Plank", _
+     "Edit Spell Screen", _
+     "Edit Spell Screen Spell List Plank", _
+     "Edit Spell Screen Spell Plank", _
+     "RGFX tests", _
+     "Edit Virtual Keyboard Screen" _
+ }
  DIM st as MenuState
  st.size = 24
  st.last = UBOUND(menu)
