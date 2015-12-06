@@ -993,6 +993,8 @@ sub setkeyrepeat (byval repeat_wait as integer = 500, byval repeat_rate as integ
 	keyrepeatrate = repeat_rate
 end sub
 
+' Get text input by assuming a US keyboard layout and reading scancodes rather than using the io backend.
+' Also supports alt- combinations for the high 128 characters
 function get_ascii_inputtext () as string
 	dim shift as integer = 0
 	dim ret as string
@@ -1021,6 +1023,7 @@ function get_ascii_inputtext () as string
 	return ret
 end function
 
+' Sets the inputtext module-global variable.
 private sub update_inputtext ()
 	if disable_native_text_input then
 		inputtext = get_ascii_inputtext()
@@ -1047,9 +1050,19 @@ private sub update_inputtext ()
 		exit sub
 	end if
 
+
+	dim as integer icons_low, icons_high
+	if get_font_type(current_font()) = ftypeLatin1 then
+		icons_low = 127
+		icons_high = 160
+	else
+		icons_low = 127
+		icons_high = 255
+	end if
+
 	if io_textinput then
 		'if len(w_in) then print #fh, "input :" & w_in
-		'convert to ascii
+		' Now we need to convert from unicode to the game's character set (7-bit ascii or Latin-1)
 		inputtext = ""
 		DIM force_shift as bool = NO
 		for i as integer = 0 to len(w_in) - 1
@@ -1072,7 +1085,9 @@ private sub update_inputtext ()
 				end select
 				'debug "unicode char " & w_in[i]
 				inputtext += "?"
-			elseif (w_in[i] < 32) or (w_in[i] >= &h7F and w_in[i] <= &hA0) then
+			elseif w_in[i] >= icons_low and w_in[i] <= icons_high then
+				inputtext += "?"
+			elseif w_in[i] < 32 then
 				'Control character. What a waste of 8-bit code-space!
 				'Note that we ignore newlines... because we've always done it that way
 			else
