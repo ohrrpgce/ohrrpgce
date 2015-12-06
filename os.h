@@ -55,6 +55,7 @@ ProcessHandle open_console_process (FBSTRING *program, FBSTRING *args);
 int process_running (ProcessHandle process, int *exitcode);
 void kill_process (ProcessHandle process);
 void cleanup_process (ProcessHandle *processp);
+int get_process_id();
 
 void os_get_screen_size(int *wide, int *high);
 

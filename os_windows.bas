@@ -597,6 +597,11 @@ sub cleanup_process (byval process as ProcessHandle ptr)
 	*process = NULL
 end sub
 
+function get_process_id () as integer
+	return GetCurrentProcessId()
+end function
+
+
 /'
 'Opens a file (or URL) with default handler.
 'If successful returns "", otherwise returns an error message.

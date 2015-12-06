@@ -688,3 +688,7 @@ void cleanup_process (ProcessHandle *processp) {
 		*processp = 0;
 	}
 }
+
+int get_process_id () {
+	return getpid();
+}
