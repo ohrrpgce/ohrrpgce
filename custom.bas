@@ -4,6 +4,8 @@
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
 #include "config.bi"
+#include "datetime.bi"  'for date serials
+#include "string.bi"  'for date serials
 #include "ver.txt"
 #include "udts.bi"
 #include "const.bi"
@@ -45,6 +47,20 @@ DECLARE SUB reimport_previous_scripts ()
 DECLARE FUNCTION newRPGfile (templatefile as string, newrpg as string) as integer
 DECLARE FUNCTION makeworkingdir () as integer
 DECLARE FUNCTION handle_dirty_workingdir () as integer
+
+' Stores information about a previous or ongoing Custom editing session
+TYPE SessionInfo
+ info_file_exists as bool          'session_info.txt.tmp exists
+ sourcerpg as string               'May be blank
+ 'The following are represented as native FB DateSerials, not Unix mtimes. 0.0 means N/A
+ sourcerpg_old_mtime as double     'mtime of the sourcerpg before it was opened
+ sourcerpg_current_mtime as double 'mtime of the sourcerpg right now
+ session_start_time as double      'When the game was unlumped (or otherwise, Custom was launched)
+ last_lump_mtime as double         'mtime of the most recently modified lump
+END TYPE
+
+DECLARE SUB write_session_info ()
+DECLARE FUNCTION get_previous_session_info () as SessionInfo
 DECLARE SUB secret_menu ()
 DECLARE SUB condition_test_menu ()
 DECLARE SUB quad_transforms_menu ()
@@ -182,6 +198,7 @@ textcolor uilook(uiText), 0
 'Cleanups up working.tmp if existing; requires graphics up and running
 workingdir = tmpdir & "working.tmp"
 IF makeworkingdir() = NO THEN cleanup_and_terminate NO
+write_session_info
 
 FOR i as integer = 0 TO UBOUND(cmdline_args)
  DIM arg as string
@@ -258,6 +275,7 @@ ELSE
  unlump sourcerpg, workingdir + SLASH
 END IF
 safekill workingdir + SLASH + "__danger.tmp"
+write_session_info
 
 'Perform additional checks for future rpg files or corruption
 rpg_sanity_checks
@@ -1129,8 +1147,76 @@ FUNCTION newRPGfile (templatefile as string, newrpg as string) as integer
  newRPGfile = -1 'return true for success
 END FUNCTION
 
+' Argument is a timeserial
+FUNCTION format_date(timeser as double) as string
+ RETURN FORMAT(timeser, "yyyy mmm dd ddd hh:mm:ss")
+END FUNCTION
+
+' Write workingdir/session_info.txt.tmp
+SUB write_session_info ()
+ DIM text(8) as string
+ text(0) = version
+ text(1) = COMMAND(0)  'exe path
+ text(2) = "# Custom pid:"
+ text(3) = STR(get_process_id())
+ text(4) = "# Game path:"
+ 'sourcerpg may be blank if we're not yet editing a game
+ IF LEN(sourcerpg) THEN
+  text(5) = absolute_path(sourcerpg)
+  text(6) = "# Last modified time of game:"
+  DIM modified as double = FILEDATETIME(sourcerpg)
+  text(7) = format_date(modified)
+  text(8) = STR(modified)
+ END IF
+ lines_to_file text(), workingdir + SLASH + "session_info.txt.tmp"
+END SUB
+
+' Collect data about a previous (or ongoing) editing session from a dirty working.tmp
+FUNCTION get_previous_session_info () as SessionInfo
+ DIM ret as SessionInfo
+ DIM sessionfile as string
+ sessionfile = workingdir + SLASH + "session_info.txt.tmp"
+ IF isfile(sessionfile) THEN
+  ret.info_file_exists = YES
+  DIM text() as string
+  lines_from_file text(), sessionfile
+  IF UBOUND(text) >= 5 ANDALSO LEN(text(5)) > 0 THEN
+   ret.session_start_time = FILEDATETIME(sessionfile)
+   ret.sourcerpg = text(5)
+   IF isfile(ret.sourcerpg) THEN
+    ret.sourcerpg_current_mtime = FILEDATETIME(ret.sourcerpg)
+    IF UBOUND(text) >= 8 THEN ret.sourcerpg_old_mtime = VAL(text(8))
+   END IF
+  END IF
+ ELSE
+  'We don't know anything, except that we could work out session_start_time by looking at working.tmp mtimes.
+ END IF
+
+ ' When was a lump last modified?
+ ret.last_lump_mtime = 0
+ DIM filelist() as string
+ findfiles workingdir, ALLFILES, fileTypeFile, NO, filelist()
+ FOR i as integer = 0 TO UBOUND(filelist)
+  IF RIGHT(filelist(i), 4) <> ".tmp" THEN
+   ret.last_lump_mtime = large(ret.last_lump_mtime, FILEDATETIME(workingdir + SLASH + filelist(i)))
+  END IF
+ NEXT
+
+ debuginfo "prev_session.info_file_exists = " & ret.info_file_exists
+ debuginfo "prev_session.sourcerpg = " & ret.sourcerpg
+ debuginfo "prev_session.sourcerpg_old_mtime = " & format_date(ret.sourcerpg_old_mtime)
+ debuginfo "prev_session.sourcerpg_current_mtime = " & format_date(ret.sourcerpg_current_mtime)
+ debuginfo "prev_session.session_start_time = " & format_date(ret.session_start_time)
+ debuginfo "prev_session.last_lump_mtime = " & format_date(ret.last_lump_mtime)
+
+ RETURN ret
+END FUNCTION
+
 'Try to delete everything in workingdir
 FUNCTION empty_workingdir () as integer
+ 'Delete session_info first, because it indicates game data you might want to recover
+ safekill workingdir + SLASH + "session_info.txt.tmp"
+ touchfile workingdir + SLASH + "__danger.tmp"
  DIM filelist() as string
  findfiles workingdir, ALLFILES, fileTypeFile, NO, filelist()
  FOR i as integer = 0 TO UBOUND(filelist)
