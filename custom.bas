@@ -66,7 +66,7 @@ DECLARE SUB shop_load (byref shopst as ShopEditState, shopbuf() as integer)
 DECLARE SUB shop_add_new (shopst as ShopEditState)
 
 DECLARE SUB cleanupfiles ()
-DECLARE SUB cleanup_and_terminate ()
+DECLARE SUB cleanup_and_terminate (show_quit_msg as bool = YES)
 DECLARE SUB import_scripts_and_terminate (scriptfile as string)
 DECLARE SUB prompt_for_password()
 DECLARE SUB prompt_for_save_and_quit()
@@ -181,7 +181,7 @@ textcolor uilook(uiText), 0
 
 'Cleanups up working.tmp if existing; requires graphics up and running
 workingdir = tmpdir & "working.tmp"
-IF makeworkingdir() = NO THEN cleanup_and_terminate
+IF makeworkingdir() = NO THEN cleanup_and_terminate NO
 
 FOR i as integer = 0 TO UBOUND(cmdline_args)
  DIM arg as string
@@ -634,13 +634,10 @@ SUB import_scripts_and_terminate (scriptfile as string)
  compile_andor_import_scripts absolute_with_orig_path(scriptfile)
  xbsave game & ".gen", gen(), 1000
  save_current_game
- cleanupfiles
- end_debug
- restoremode
- SYSTEM
+ cleanup_and_terminate NO
 END SUB
 
-SUB cleanup_and_terminate ()
+SUB cleanup_and_terminate (show_quit_msg as bool = YES)
  IF slave_channel <> NULL_CHANNEL THEN
   channel_write_line(slave_channel, "Q ")
   #IFDEF __FB_WIN32__
@@ -662,7 +659,7 @@ SUB cleanup_and_terminate ()
  palette16_empty_cache
  cleanup_global_reload_doc
  clear_binsize_cache
- IF keyval(-1) = 0 THEN
+ IF show_quit_msg ANDALSO keyval(-1) = 0 THEN
   clearpage vpage
   ' Don't let Spoonweaver's cat near your power cord!
   pop_warning "Don't forget to keep backup copies of your work! You never know when an unknown bug or a cat-induced hard-drive crash or a little brother might delete your files!", YES
@@ -671,7 +668,6 @@ SUB cleanup_and_terminate ()
  end_debug
  restoremode
  SYSTEM
-
 END SUB
 
 SUB cleanupfiles ()
