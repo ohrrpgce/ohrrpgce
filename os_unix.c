@@ -639,8 +639,11 @@ ProcessHandle open_process (FBSTRING *program, FBSTRING *args) {
 	return 0;
 #else
 	char *program_escaped = escape_filenamec(program->data);
-	char *buf = malloc(strlen(program_escaped) + strlen(args->data) + 2);
-	sprintf(buf, "%s %s", program_escaped, args->data);
+	char *argstr = args->data;
+	if (!argstr)
+		argstr = "";
+	char *buf = malloc(strlen(program_escaped) + strlen(argstr) + 2);
+	sprintf(buf, "%s %s", program_escaped, argstr);
 
 	errno = 0;
 	ProcessHandle ret;  // aka FILE*
