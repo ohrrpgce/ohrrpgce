@@ -684,7 +684,7 @@ void kill_process (ProcessHandle process) {
 //Cleans up resources associated with a ProcessHandle
 void cleanup_process (ProcessHandle *processp) {
 	if (*processp) {
-		fclose(*processp);
+		pclose(*processp);
 		*processp = 0;
 	}
 }
