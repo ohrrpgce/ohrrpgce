@@ -377,7 +377,7 @@ END SUB
 SUB visible_debug (msg as string)
  debug msg
  notification msg + !"\nPress any key..."
-' pop_warning msg
+ 'pop_warning msg
 END SUB
 
 FUNCTION confirmed_copy (srcfile as string, destfile as string) as integer
@@ -593,15 +593,15 @@ SUB centerfuz (byval x as integer, byval y as integer, byval w as integer, byval
 END SUB
 
 FUNCTION read32bitstring (array() as integer, byval offset as integer) as string
-DIM as string result = SPACE(array(offset))
-memcpy(STRPTR(result), @array(offset + 1), array(offset))
-return result
+ DIM as string result = SPACE(array(offset))
+ memcpy(STRPTR(result), @array(offset + 1), array(offset))
+ return result
 END FUNCTION
 
 FUNCTION read32bitstring (stringptr as integer ptr) as string
-DIM as string result = SPACE(stringptr[0])
-memcpy(STRPTR(result), @stringptr[1], stringptr[0])
-return result
+ DIM as string result = SPACE(stringptr[0])
+ memcpy(STRPTR(result), @stringptr[1], stringptr[0])
+ return result
 END FUNCTION
 
 FUNCTION readbadgenericname (byval index as integer, filename as string, byval recsize as integer, byval offset as integer, byval size as integer, byval skip as integer = 0) as string
@@ -1134,33 +1134,33 @@ FUNCTION peek8bit (array16() as integer, byval index as integer) as integer
 END FUNCTION
 
 SUB loadpalette(pal() as RGBcolor, byval palnum as integer)
-IF palnum < 0 THEN
- debug "loadpalette: invalid palnum " & palnum
- palnum = 0
-END IF
-IF NOT isfile(workingdir + SLASH + "palettes.bin") THEN
- '.MAS fallback, palnum ignored because it doesn't matter
- DIM oldpalbuf(767) as integer
- xbload game + ".mas", oldpalbuf(), "master palette missing from " + sourcerpg
- convertpalette oldpalbuf(), pal()
-ELSE
- DIM as SHORT headsize, recsize
- DIM palbuf(767) as UBYTE
+ IF palnum < 0 THEN
+  debug "loadpalette: invalid palnum " & palnum
+  palnum = 0
+ END IF
+ IF NOT isfile(workingdir + SLASH + "palettes.bin") THEN
+  '.MAS fallback, palnum ignored because it doesn't matter
+  DIM oldpalbuf(767) as integer
+  xbload game + ".mas", oldpalbuf(), "master palette missing from " + sourcerpg
+  convertpalette oldpalbuf(), pal()
+ ELSE
+  DIM as SHORT headsize, recsize
+  DIM palbuf(767) as UBYTE
 
- DIM fh as integer = FREEFILE
- OPEN workingdir + SLASH + "palettes.bin" FOR BINARY as #fh
- GET #fh, , headsize
- GET #fh, , recsize
- GET #fh, recsize * palnum + headsize + 1, palbuf()
- CLOSE #fh
- FOR i as integer = 0 TO 255
-  pal(i).r = palbuf(i * 3)
-  pal(i).g = palbuf(i * 3 + 1)
-  pal(i).b = palbuf(i * 3 + 2)
- NEXT
-END IF
-'Uncomment the line below if you want the palette in text format for updating load_default_master_palette
-'dump_master_palette_as_hex pal()
+  DIM fh as integer = FREEFILE
+  OPEN workingdir + SLASH + "palettes.bin" FOR BINARY as #fh
+  GET #fh, , headsize
+  GET #fh, , recsize
+  GET #fh, recsize * palnum + headsize + 1, palbuf()
+  CLOSE #fh
+  FOR i as integer = 0 TO 255
+   pal(i).r = palbuf(i * 3)
+   pal(i).g = palbuf(i * 3 + 1)
+   pal(i).b = palbuf(i * 3 + 2)
+  NEXT
+ END IF
+ 'Uncomment the line below if you want the palette in text format for updating load_default_master_palette
+ 'dump_master_palette_as_hex pal()
 END SUB
 
 SUB savepalette(pal() as RGBcolor, byval palnum as integer)
@@ -1187,36 +1187,36 @@ SUB savepalette(pal() as RGBcolor, byval palnum as integer)
 END SUB
 
 SUB convertpalette(oldpal() as integer, newpal() as RGBcolor)
-'takes a old QB style palette (as 768 ints), translates it to
-'8 bits per component and writes it to the provided RGBcolor array
-DIM r as integer
-DIM g as integer
-DIM b as integer
+ 'takes a old QB style palette (as 768 ints), translates it to
+ '8 bits per component and writes it to the provided RGBcolor array
+ DIM r as integer
+ DIM g as integer
+ DIM b as integer
 
-FOR i as integer = 0 TO 255
- r = oldpal(i * 3)
- g = oldpal(i * 3 + 1)
- b = oldpal(i * 3 + 2)
- 'newpal(i).r = r shl 2 or r shr 4
- 'newpal(i).g = g shl 2 or g shr 4
- 'newpal(i).b = b shl 2 or b shr 4
- newpal(i).r = iif(r, r shl 2 + 3, 0)   'Mapping as Neo suggested
- newpal(i).g = iif(g, g shl 2 + 3, 0)
- newpal(i).b = iif(b, b shl 2 + 3, 0)
-NEXT
+ FOR i as integer = 0 TO 255
+  r = oldpal(i * 3)
+  g = oldpal(i * 3 + 1)
+  b = oldpal(i * 3 + 2)
+  'newpal(i).r = r shl 2 or r shr 4
+  'newpal(i).g = g shl 2 or g shr 4
+  'newpal(i).b = b shl 2 or b shr 4
+  newpal(i).r = iif(r, r shl 2 + 3, 0)   'Mapping as Neo suggested
+  newpal(i).g = iif(g, g shl 2 + 3, 0)
+  newpal(i).b = iif(b, b shl 2 + 3, 0)
+ NEXT
 END SUB
 
 SUB unconvertpalette()
-'Takes the default new format palette and saves it in the old QB style palette
-'format. This is only here to help out old graphics tools
-DIM newpal(255) as RGBcolor, oldpal(767) as integer
-loadpalette newpal(), gen(genMasterPal)
-FOR i as integer = 0 TO 255
- oldpal(i * 3) = newpal(i).r \ 4
- oldpal(i * 3 + 1) = newpal(i).g \ 4
- oldpal(i * 3 + 2) = newpal(i).b \ 4
-NEXT
-xbsave game + ".mas", oldpal(), 1536
+ 'Takes the default new format palette and saves it in the old QB style palette
+ 'format. This is only here to help out old graphics tools
+ DIM newpal(255) as RGBcolor, oldpal(767) as integer
+ loadpalette newpal(), gen(genMasterPal)
+ FOR i as integer = 0 TO 255
+  oldpal(i * 3) = newpal(i).r \ 4
+  oldpal(i * 3 + 1) = newpal(i).g \ 4
+  oldpal(i * 3 + 2) = newpal(i).b \ 4
+ NEXT
+ xbsave game + ".mas", oldpal(), 1536
 END SUB
 
 FUNCTION getmapname (byval m as integer) as string
@@ -2446,90 +2446,90 @@ FUNCTION find_oggenc () as string
 END FUNCTION
 
 FUNCTION find_support_dir () as string
-'Returns an empty string if the support dir is not found (which should never happen!)
-'Returns the full path if it is found
-IF isdir(exepath & SLASH & "support") THEN RETURN exepath & SLASH & "support"
-#IFDEF __UNIX__
-'--There is no support directory Linux package manager installation
-DIM d as string = environ("HOME") & SLASH & ".ohrrpgce" & SLASH "support"
-IF NOT isdir(d) THEN makedir d
-IF isdir(d) THEN return d
-#ENDIF
-RETURN "" ' not found. booo! :(
+ 'Returns an empty string if the support dir is not found (which should never happen!)
+ 'Returns the full path if it is found
+ IF isdir(exepath & SLASH & "support") THEN RETURN exepath & SLASH & "support"
+ #IFDEF __UNIX__
+  '--There is no support directory Linux package manager installation
+  DIM d as string = environ("HOME") & SLASH & ".ohrrpgce" & SLASH "support"
+  IF NOT isdir(d) THEN makedir d
+  IF isdir(d) THEN return d
+ #ENDIF
+ RETURN "" ' not found. booo! :(
 END FUNCTION
 
 FUNCTION find_helper_app (appname as string, try_install as integer=NO) as string
-'Returns an empty string if the app is not found, or the full path if it is found
+ 'Returns an empty string if the app is not found, or the full path if it is found
 
-'try_install currently only works on Windows, and not for all possible apps
+ 'try_install currently only works on Windows, and not for all possible apps
 
-'Look in the same folder as CUSTOM/GAME
-IF isfile(exepath & SLASH & appname & DOTEXE) THEN RETURN exepath & SLASH & appname & DOTEXE
+ 'Look in the same folder as CUSTOM/GAME
+ IF isfile(exepath & SLASH & appname & DOTEXE) THEN RETURN exepath & SLASH & appname & DOTEXE
 
-#IFDEF __FB_DARWIN__
-IF isfile(exepath & "/support/" & appname) THEN RETURN exepath & "/support/" & appname
-#ENDIF
-#IFDEF __UNIX__
-'Use the standard util "which" to search the path
-DIM where as string
-run_and_get_output("which " & appname, where)
-'where is empty on failure
-RETURN TRIM(where)
-#ENDIF
-#IFDEF __FB_WIN32__
-RETURN find_windows_helper_app(appname, try_install)
-#ENDIF
+ #IFDEF __FB_DARWIN__
+  IF isfile(exepath & "/support/" & appname) THEN RETURN exepath & "/support/" & appname
+ #ENDIF
+ #IFDEF __UNIX__
+  'Use the standard util "which" to search the path
+  DIM where as string
+  run_and_get_output("which " & appname, where)
+  'where is empty on failure
+  RETURN TRIM(where)
+ #ENDIF
+ #IFDEF __FB_WIN32__
+  RETURN find_windows_helper_app(appname, try_install)
+ #ENDIF
 END FUNCTION
 
 FUNCTION find_windows_helper_app (appname as string, try_install as integer=NO) as string
-'Returns an empty string if the app is not found, or the full path if it is found
+ 'Returns an empty string if the app is not found, or the full path if it is found
 
-'Gets the windows version of the helper app, even when run on Linux or Mac (for utils to be run via wine)
+ 'Gets the windows version of the helper app, even when run on Linux or Mac (for utils to be run via wine)
 
-'For windows, look in the support subdirectory
-DIM support as string = find_support_dir()
-IF appname = "zip" THEN
- 'A little special magic to make that if we are looking for zip.exe we find version 3.0 and not 2.3
- IF NOT isfile(support & SLASH & appname & "-version-3.0.txt") THEN
-  safekill support & SLASH & "zip.exe"
-  DIM fh as integer = FREEFILE
-  OPEN support & SLASH & appname & "-version-3.0.txt" FOR OUTPUT AS #fh
-  PRINT #fh, "This file is just here to let the OHRRPGCE know that we have already upgraded zip.exe from version 2.3 to 3.0"
-  CLOSE #fh
- END IF
-END IF
-IF isfile(support & SLASH & appname & ".exe") THEN RETURN support & SLASH & appname & ".exe"
-IF try_install THEN
- DIM choice as integer
- choice = twochoice(appname & ".exe was not found. Would you like to automatically download it from HamsterRepublic.com?", , , , , "download_win_support_util")
- IF choice = 0 THEN
-  DIM extenstion as string = "zip"
-  IF appname = "unzip" THEN extenstion = "exe"
-  download_file "http://HamsterRepublic.com/ohrrpgce/support/" & appname & "." & extenstion, support
-  IF NOT isfile(support & SLASH & appname & "." & extenstion) THEN
-   visible_debug "Unable to download " & appname & "." & extenstion
-   RETURN ""
+ 'For windows, look in the support subdirectory
+ DIM support as string = find_support_dir()
+ IF appname = "zip" THEN
+  'A little special magic to make that if we are looking for zip.exe we find version 3.0 and not 2.3
+  IF NOT isfile(support & SLASH & appname & "-version-3.0.txt") THEN
+   safekill support & SLASH & "zip.exe"
+   DIM fh as integer = FREEFILE
+   OPEN support & SLASH & appname & "-version-3.0.txt" FOR OUTPUT AS #fh
+   PRINT #fh, "This file is just here to let the OHRRPGCE know that we have already upgraded zip.exe from version 2.3 to 3.0"
+   CLOSE #fh
   END IF
-  IF appname <> "unzip" THEN
-   DIM unzip as string = find_helper_app("unzip")
-   IF unzip = "" THEN
-    visible_debug "Can't find unzip tool"
+ END IF
+ IF isfile(support & SLASH & appname & ".exe") THEN RETURN support & SLASH & appname & ".exe"
+ IF try_install THEN
+  DIM choice as integer
+  choice = twochoice(appname & ".exe was not found. Would you like to automatically download it from HamsterRepublic.com?", , , , , "download_win_support_util")
+  IF choice = 0 THEN
+   DIM extenstion as string = "zip"
+   IF appname = "unzip" THEN extenstion = "exe"
+   download_file "http://HamsterRepublic.com/ohrrpgce/support/" & appname & "." & extenstion, support
+   IF NOT isfile(support & SLASH & appname & "." & extenstion) THEN
+    visible_debug "Unable to download " & appname & "." & extenstion
     RETURN ""
    END IF
-   ' -q quiet -o overwrite -C case-insenstive -L make lowercase -j junk directories
-   DIM arglist as string
-   arglist =  " -qoCLj " & escape_filename(support & SLASH & appname & ".zip") & " -d " & escape_filename(support)
-   DIM spawn_ret as string
-   spawn_ret = spawn_and_wait(unzip, arglist)
-   IF NOT isfile(support & SLASH & appname & ".exe") THEN
-    visible_debug "Unable to unzip " & appname & ".exe from " & appname & ".zip"
-    RETURN ""
+   IF appname <> "unzip" THEN
+    DIM unzip as string = find_helper_app("unzip")
+    IF unzip = "" THEN
+     visible_debug "Can't find unzip tool"
+     RETURN ""
+    END IF
+    ' -q quiet -o overwrite -C case-insenstive -L make lowercase -j junk directories
+    DIM arglist as string
+    arglist =  " -qoCLj " & escape_filename(support & SLASH & appname & ".zip") & " -d " & escape_filename(support)
+    DIM spawn_ret as string
+    spawn_ret = spawn_and_wait(unzip, arglist)
+    IF NOT isfile(support & SLASH & appname & ".exe") THEN
+     visible_debug "Unable to unzip " & appname & ".exe from " & appname & ".zip"
+     RETURN ""
+    END IF
    END IF
+   RETURN support & SLASH & appname & ".exe"
   END IF
-  RETURN support & SLASH & appname & ".exe"
  END IF
-END IF
-RETURN ""
+ RETURN ""
 END FUNCTION
 
 FUNCTION download_file (url as string, destdir as string, forcefilename as string="") as integer
@@ -2811,97 +2811,97 @@ SUB cycletile (tanim_state() as TileAnimState, tastuf() as integer)
 END SUB
 
 FUNCTION finddatafile(filename as string) as string
-'Current dir
-IF isfile(filename) THEN RETURN filename
-'platform-specific relative data files path (Mac OS X bundles)
-IF isfile(data_dir & SLASH & filename) THEN RETURN data_dir & SLASH & filename
-'same folder as executable
-IF isfile(exepath & SLASH & filename) THEN RETURN exepath & SLASH & filename
-#IFDEF __UNIX__
-'~/.ohrrpgce/
-IF isfile(tmpdir & filename) THEN RETURN tmpdir & filename
-#IFDEF DATAFILES
-IF isfile(DATAFILES & SLASH & filename) THEN RETURN DATAFILES & SLASH & filename
-#ENDIF
-#ENDIF
-RETURN ""
+ 'Current dir
+ IF isfile(filename) THEN RETURN filename
+ 'platform-specific relative data files path (Mac OS X bundles)
+ IF isfile(data_dir & SLASH & filename) THEN RETURN data_dir & SLASH & filename
+ 'same folder as executable
+ IF isfile(exepath & SLASH & filename) THEN RETURN exepath & SLASH & filename
+ #IFDEF __UNIX__
+  '~/.ohrrpgce/
+  IF isfile(tmpdir & filename) THEN RETURN tmpdir & filename
+  #IFDEF DATAFILES
+   IF isfile(DATAFILES & SLASH & filename) THEN RETURN DATAFILES & SLASH & filename
+  #ENDIF
+ #ENDIF
+ RETURN ""
 END FUNCTION
 
 FUNCTION finddatadir(dirname as string) as string
-'Current dir
-IF isdir(dirname) THEN RETURN dirname
-'platform-specific relative data files path (Mac OS X bundles)
-IF isdir(data_dir & SLASH & dirname) THEN RETURN data_dir & SLASH & dirname
-'same folder as executable
-IF isdir(exepath & SLASH & dirname) THEN RETURN exepath & SLASH & dirname
-#IFDEF __UNIX__
-'~/.ohrrpgce/
-IF isdir(tmpdir & dirname) THEN RETURN tmpdir & dirname
-#IFDEF DATAFILES
-IF isdir(DATAFILES & SLASH & dirname) THEN RETURN DATAFILES & SLASH & dirname
-#ENDIF
-#ENDIF
-RETURN ""
+ 'Current dir
+ IF isdir(dirname) THEN RETURN dirname
+ 'platform-specific relative data files path (Mac OS X bundles)
+ IF isdir(data_dir & SLASH & dirname) THEN RETURN data_dir & SLASH & dirname
+ 'same folder as executable
+ IF isdir(exepath & SLASH & dirname) THEN RETURN exepath & SLASH & dirname
+ #IFDEF __UNIX__
+  '~/.ohrrpgce/
+  IF isdir(tmpdir & dirname) THEN RETURN tmpdir & dirname
+  #IFDEF DATAFILES
+   IF isdir(DATAFILES & SLASH & dirname) THEN RETURN DATAFILES & SLASH & dirname
+  #ENDIF
+ #ENDIF
+ RETURN ""
 END FUNCTION
 
 SUB updaterecordlength (lumpf as string, byval bindex as integer, byval headersize as integer = 0, byval repeating as integer = NO)
-'If the length of records in this lump has changed (increased) according to binsize.bin, stretch it, padding records with zeroes.
-'Note: does not create a lump if it doesn't exist.
-'Pass 'repeating' as true when more than one lump with this bindex exists.
-''headersize' is the number of bytes before the first record.
+ 'If the length of records in this lump has changed (increased) according to binsize.bin, stretch it, padding records with zeroes.
+ 'Note: does not create a lump if it doesn't exist.
+ 'Pass 'repeating' as true when more than one lump with this bindex exists.
+ ''headersize' is the number of bytes before the first record.
 
-IF getbinsize(bindex) < curbinsize(bindex) THEN
+ IF getbinsize(bindex) < curbinsize(bindex) THEN
 
- DIM oldsize as integer = getbinsize(bindex)
- DIM newsize as integer = curbinsize(bindex)
+  DIM oldsize as integer = getbinsize(bindex)
+  DIM newsize as integer = curbinsize(bindex)
 
- upgrade_message trimpath(lumpf) & " record size = " & newsize
+  upgrade_message trimpath(lumpf) & " record size = " & newsize
 
- 'Only bother to do this for records of nonzero size (this implies the file doesn't exist, right?)
- IF oldsize > 0 ANDALSO isfile(lumpf) THEN
+  'Only bother to do this for records of nonzero size (this implies the file doesn't exist, right?)
+  IF oldsize > 0 ANDALSO isfile(lumpf) THEN
 
-  DIM tempf as string = lumpf & ".resize.tmp"
+   DIM tempf as string = lumpf & ".resize.tmp"
 
-  'This tends to break (it's a C/unix system call), hence all the paranoia
-  IF local_file_move(lumpf, tempf) THEN
-   fatalerror "Impossible to upgrade game: Could not move " & lumpf
+   'This tends to break (it's a C/unix system call), hence all the paranoia
+   IF local_file_move(lumpf, tempf) THEN
+    fatalerror "Impossible to upgrade game: Could not move " & lumpf
+   END IF
+
+   DIM inputf as integer = FREEFILE
+   OPEN tempf FOR BINARY as inputf
+   DIM outputf as integer = FREEFILE
+   OPEN lumpf FOR BINARY as outputf
+
+   'Round up record count. Due to various bugs a record might be short. Will be zero-extended.
+   '(Note that if a partial record is not extended here, then fix_record_count will do so)
+   DIM total_bytes as integer = LOF(inputf) - headersize
+   DIM records as integer = total_bytes \ oldsize
+   IF total_bytes MOD oldsize THEN
+    debuginfo "updaterecordslength: last record of " & trimpath(lumpf) & " is " & (total_bytes MOD oldsize) & " bytes, expected " & oldsize & ". Extending."
+    records += 1
+   END IF
+
+   IF headersize > 0 THEN
+    DIM headerbuf(headersize - 1) as BYTE
+    GET #inputf, , headerbuf()
+    PUT #outputf, , headerbuf()
+   END IF
+
+   DIM buf(newsize \ 2 - 1) as integer
+   FOR i as integer = 0 TO records - 1
+    loadrecord buf(), inputf, oldsize \ 2
+    storerecord buf(), outputf, newsize \ 2
+   NEXT
+
+   CLOSE inputf
+   CLOSE outputf
+   KILL tempf
   END IF
 
-  DIM inputf as integer = FREEFILE
-  OPEN tempf FOR BINARY as inputf
-  DIM outputf as integer = FREEFILE
-  OPEN lumpf FOR BINARY as outputf
+  'If we are repeating, we need to keep the old binsize intact
+  IF repeating = NO THEN setbinsize bindex, newsize
 
-  'Round up record count. Due to various bugs a record might be short. Will be zero-extended.
-  '(Note that if a partial record is not extended here, then fix_record_count will do so)
-  DIM total_bytes as integer = LOF(inputf) - headersize
-  DIM records as integer = total_bytes \ oldsize
-  IF total_bytes MOD oldsize THEN
-   debuginfo "updaterecordslength: last record of " & trimpath(lumpf) & " is " & (total_bytes MOD oldsize) & " bytes, expected " & oldsize & ". Extending."
-   records += 1
-  END IF
-
-  IF headersize > 0 THEN
-   DIM headerbuf(headersize - 1) as BYTE
-   GET #inputf, , headerbuf()
-   PUT #outputf, , headerbuf()
-  END IF
-
-  DIM buf(newsize \ 2 - 1) as integer
-  FOR i as integer = 0 TO records - 1
-   loadrecord buf(), inputf, oldsize \ 2
-   storerecord buf(), outputf, newsize \ 2
-  NEXT
-
-  CLOSE inputf
-  CLOSE outputf
-  KILL tempf
  END IF
-
- 'If we are repeating, we need to keep the old binsize intact
- IF repeating = NO THEN setbinsize bindex, newsize
-
-END IF
 END SUB
 
 'Clamp a value to within a range with warning
