@@ -630,7 +630,8 @@ int channel_input_line(PipeState **channelp, FBSTRING *output) {
 //==========================================================================================
 
 
-//Partial implementation. Doesn't return a useful process handle
+//Partial implementation. The returned process handle can't be used for much
+//aside from passing to cleaup_process (which you should do).
 //program is an unescaped path. Any paths in the arguments should be escaped
 ProcessHandle open_process (FBSTRING *program, FBSTRING *args) {
 #ifdef __ANDROID__
@@ -651,6 +652,62 @@ ProcessHandle open_process (FBSTRING *program, FBSTRING *args) {
 
 	free(program_escaped);
 	free(buf);
+	return ret;
+#endif
+}
+
+// Run a program and pass back its output in the 'output' string.
+// The process name and args should be escaped if needed (with escape_filename).
+// Returns -1 if there's an error running or fetching the output. Otherwise returns the exit code of the program.
+// Anything written to stderr by the program goes to our stderr.
+// Not used: functionally identical to run_process_and_get_output in util.bas, with no
+// apparent advantages to this version, which can't pipe multiple pograms,
+// and there is no Windows implementation of this function.
+int run_process_and_get_output(FBSTRING *program, FBSTRING *args, FBSTRING *output) {
+#ifdef __ANDROID__
+	// Early versions of the NDK don't have popen
+	return -1;
+#else
+
+	// Clear output
+	if (!fb_StrAssign(output, -1, "", 0, 0))
+		return -1;
+	int outlen = 0;
+
+	FILE *proc = open_process(program, args);
+	if (!proc)
+		return -1;
+
+	// Read everything out of the pipe
+	int ret = 0;
+	do {
+		char buf[4096];
+		int bytes = fread(buf, 1, 4096, proc);
+
+		if (ferror(proc)) {
+			debug(errError, "run_process_and_get_output(%s,%s): fread error: %s", program->data, args->data, strerror(errno));
+			ret = -1;
+			break;
+		}
+		
+		if (!fb_hStrRealloc(output, outlen + bytes, 1)) {  // set length, preserving existing
+			ret = -1;
+			break;
+		}
+		memcpy(output->data + outlen, buf, bytes);
+		outlen += bytes;
+	} while (!feof(proc));
+
+	int exitcode = pclose(proc);
+	if (exitcode == -1) {
+		debug(errError, "run_process_and_get_output(%s,%s): pclose error: %s", program->data, args->data, strerror(errno));
+		ret = -1;
+	}
+	if (ret == 0) {  // no error encountered
+		// I saw reports that the exit status may sometimes actually be from sh instead of the program.
+		// bash may return 128+errno
+		ret = WEXITSTATUS(exitcode);
+	}
 	return ret;
 #endif
 }

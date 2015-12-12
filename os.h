@@ -51,6 +51,8 @@ int channel_input_line(IPCChannel *channel, FBSTRING *output);
 
 ProcessHandle open_process (FBSTRING *program, FBSTRING *args);
 ProcessHandle open_piped_process (FBSTRING *program, FBSTRING *args, IPCChannel *iopipe);
+// run_process_and_get_output is Unix only
+int run_process_and_get_output(FBSTRING *program, FBSTRING *args, FBSTRING *output);
 ProcessHandle open_console_process (FBSTRING *program, FBSTRING *args);
 int process_running (ProcessHandle process, int *exitcode);
 void kill_process (ProcessHandle process);

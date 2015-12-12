@@ -1239,8 +1239,9 @@ FUNCTION safe_shell (cmd as string) as integer
 END FUNCTION
 
 'Like SHELL, but passes back the result (stdout) in the 'outdata' string.
-'The return value is -1 on an error, otherwise the exit code from the shell.
+'The return value is -1 on an error running or capturing the output, otherwise the exit code from the shell.
 'Anything written to stderr ends up on our stderr.
+'(There is a second implementation of this as run_process_and_get_output in os_unix.c)
 FUNCTION run_and_get_output(cmd as string, outdata as string) as integer
   DIM ret as integer
   DIM tempfile as string
