@@ -542,23 +542,17 @@ LOOP
 END SUB
 
 FUNCTION get_hspeak_version(hspeak_path as string) as string
- DIM tempf as string = tmpdir & "hspeak_ver.txt"
  'Note this will momentarily pop up a console window on Windows, unpleasant.
  'Could get around this by using open_piped_process
- safe_shell escape_filename(hspeak_path) & " -k > " & escape_filename(tempf)
- DIM fh as integer = FREEFILE
- IF OPEN(tempf FOR INPUT AS fh) THEN
-  debug "get_hspeak_version: Couldn't run " & hspeak_path
+
+ DIM blurb as string
+ IF run_and_get_output(escape_filename(hspeak_path) & " -k", blurb) <> 0 THEN
   RETURN ""
  END IF
- DIM line1 as string
- INPUT #fh, line1
- CLOSE fh
- safekill tempf
- 'debug "line1: " & line1
- DIM hsversion as string = MID(line1, INSTR(line1, " v") + 2, 3)
+
+ DIM hsversion as string = MID(blurb, INSTR(blurb, " v") + 2, 3)
  IF LEN(hsversion) <> 3 ORELSE isdigit(hsversion[0]) = NO THEN
-  debug "Couldn't get HSpeak version from head line: " & line1
+  debug !"Couldn't get HSpeak version from blurb:\n" & blurb
   RETURN ""
  END IF
  RETURN hsversion

@@ -2470,21 +2470,11 @@ IF isfile(exepath & SLASH & appname & DOTEXE) THEN RETURN exepath & SLASH & appn
 IF isfile(exepath & "/support/" & appname) THEN RETURN exepath & "/support/" & appname
 #ENDIF
 #IFDEF __UNIX__
-'--Find helper app on Unix
-DIM as integer fh
-DIM as string tempfile
-DIM as string s
-tempfile = tmpdir & "find_helper_app." & randint(10000) & ".tmp"
 'Use the standard util "which" to search the path
-SHELL "which " & appname & " > " & tempfile
-IF NOT isfile(tempfile) THEN debug "find_helper_app(" & appname & ") failed" : RETURN ""
-fh = FREEFILE
-OPEN tempfile FOR INPUT as #fh
-LINE INPUT #fh, s
-CLOSE #fh
-KILL tempfile
-s = TRIM(s)
-RETURN s
+DIM where as string
+run_and_get_output("which " & appname, where)
+'where is empty on failure
+RETURN TRIM(where)
 #ENDIF
 #IFDEF __FB_WIN32__
 RETURN find_windows_helper_app(appname, try_install)
