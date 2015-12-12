@@ -1225,16 +1225,36 @@ FUNCTION escape_filenamec CDECL (byval filename as zstring ptr) as zstring ptr
 END FUNCTION
 
 'This is a replacement for SHELL. It needs to be used on Windows if the executable was escaped (so contains quotes)
-SUB safe_shell (cmd as string)
+'Returns the exit code, or -1 if it couldn't be run.
+FUNCTION safe_shell (cmd as string) as integer
 #IFDEF __FB_WIN32__
   'SHELL wraps system() which calls cmd.exe (or command.com on older OSes)
   'cmd.exe will remove the first and last quotes from the string and leave the rest.
   'Therefore, there need to be two quotes at the beginning of the string!
-  SHELL """" & cmd & """"
+  RETURN SHELL("""" & cmd & """")
 #ELSE
-  SHELL cmd
+  ' (SHELL returns wrong exit code in FB 0.23 and earlier)
+  RETURN SHELL(cmd)
 #ENDIF
-END SUB
+END FUNCTION
+
+'Like SHELL, but passes back the result (stdout) in the 'outdata' string.
+'The return value is -1 on an error, otherwise the exit code from the shell.
+'Anything written to stderr ends up on our stderr.
+FUNCTION run_and_get_output(cmd as string, outdata as string) as integer
+  DIM ret as integer
+  DIM tempfile as string
+  tempfile = tmpdir & "temp_outdata." & randint(1000000) & ".tmp"
+  ret = safe_shell(cmd & " > " & tempfile)
+  IF ret = -1 ORELSE NOT isfile(tempfile) THEN
+    debug "Failed to run " & cmd
+    outdata = ""
+    RETURN -1
+  END IF
+  outdata = string_from_file(tempfile)
+  KILL tempfile
+  RETURN ret
+END FUNCTION
 
 SUB touchfile (filename as string)
   dim as integer fh = FREEFILE

@@ -312,7 +312,6 @@ declare function parentdir (pathname as string, byval upamount as integer = 1) a
 declare function anycase (filename as string) as string
 declare function escape_filename (filename as string) as string
 declare function escape_filenamec cdecl alias "escape_filenamec" (byval filename as zstring ptr) as zstring ptr
-declare sub safe_shell (cmd as string)
 declare sub touchfile (filename as string)
 declare sub extendfile (byval fh as integer, byval length as integer)
 declare sub findfiles (directory as string, namemask as string = "", byval filetype as integer = fileTypeFile, byval findhidden as integer = 0, filelist() as string)
@@ -349,6 +348,13 @@ declare function fget alias "fb_FileGet" ( byval fnum as long, byval pos as long
 declare function fput alias "fb_FilePut" ( byval fnum as long, byval pos as long = 0, byval src as any ptr, byval bytes as size_t ) as long
 #ENDIF
 declare function fgetiob alias "fb_FileGetIOB" ( byval fnum as long, byval pos as long = 0, byval dst as any ptr, byval bytes as size_t, byval bytesread as size_t ptr ) as long
+
+
+'----------------------------------------------------------------------
+'                              Shell
+
+declare function safe_shell (cmd as string) as integer
+declare function run_and_get_output(cmd as string, output as string) as integer
 
 
 '----------------------------------------------------------------------
