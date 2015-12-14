@@ -402,6 +402,7 @@ SUB gamestate_slices_from_reload(byval node as Reload.NodePtr)
     END IF
     DeleteSlice @.ScriptSprite
     .ScriptSprite = NewSliceOfType(slSpecial, .Root)
+    InsertSliceBefore .textbox, .ScriptSprite
     .ScriptSprite->Fill = YES
     RefreshSliceScreenPos(.ScriptSprite)
 
