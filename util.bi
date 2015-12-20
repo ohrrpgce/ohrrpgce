@@ -150,6 +150,8 @@ END TYPE
 
 declare function str_array_findcasei (array() as string, value as string) as integer
 declare function int_array_find (array() as integer, byval value as integer) as integer
+declare sub array_shuffle_to_end overload(array() as integer, which as integer)
+declare sub array_shuffle_to_end overload(array() as string, which as integer)
 
 'These act on *dynamically typed* destination arrays only! Static arrays will segfault!
 declare sub str_array_append (array() as string, s as string)

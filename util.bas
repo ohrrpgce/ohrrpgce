@@ -715,6 +715,22 @@ FUNCTION int_array_find (array() as integer, byval value as integer) as integer
  RETURN -1
 END FUNCTION
 
+'Preserves order of everything except element at position 'which'. OK to give invalid 'which'
+SUB array_shuffle_to_end(array() as string, which as integer)
+ IF which < LBOUND(array) THEN EXIT SUB
+ FOR idx as integer = which TO UBOUND(array) - 1
+  SWAP array(idx), array(idx + 1)
+ NEXT
+END SUB
+
+'Preserves order of everything except element at position 'which'. OK to give invalid 'which'
+SUB array_shuffle_to_end(array() as integer, which as integer)
+ IF which < LBOUND(array) THEN EXIT SUB
+ FOR idx as integer = which TO UBOUND(array) - 1
+  SWAP array(idx), array(idx + 1)
+ NEXT
+END SUB
+
 'Resize a dynamic int array, removing all occurrences of k
 SUB int_array_remove (array() as integer, byval k as integer)
  DIM i as integer = LBOUND(array)
