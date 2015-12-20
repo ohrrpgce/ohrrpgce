@@ -173,7 +173,7 @@ DECLARE SUB visible_debug (s as string)
 DECLARE SUB showerror (msg as string, byval isfatal as integer = NO)
 DECLARE SUB fatalerror (msg as string)
 DECLARE SUB pop_warning(s as string, byval autoquit as integer = NO)
-DECLARE FUNCTION multichoice(capt as string, choices() as string, byval defaultval as integer=0, byval escval as integer=-1, helpkey as string="") as integer
+DECLARE FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=0, escval as integer=-1, helpkey as string="", centerlines as bool=YES) as integer
 DECLARE FUNCTION twochoice(capt as string, strA as string="Yes", strB as string="No", byval defaultval as integer=0, byval escval as integer=-1, helpkey as string="") as integer
 DECLARE FUNCTION yesno(capt as string, byval defaultval as integer=YES, byval escval as integer=NO) as integer
 DECLARE FUNCTION confirmed_copy (srcfile as string, destfile as string) as integer

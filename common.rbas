@@ -2177,15 +2177,21 @@ SUB import_string_from_file(s as string)
  
 END SUB
 
-FUNCTION multichoice(capt as string, choices() as string, byval defaultval as integer=0, byval escval as integer=-1, helpkey as string="") as integer
+'Show a message box and a multichoice menu below it, return option number.
+'Preserves the contents of the screen.
+'centerlines: whether to center-justify everything, otherwise left-justified.
+FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=0, escval as integer=-1, helpkey as string="", centerlines as bool=YES) as integer
  DIM state as MenuState
  DIM menu as MenuDef
  ClearMenuData menu
  DIM result as integer
  DIM captlines() as string
- DIM wide as integer
+ DIM maxwidth as integer  'max possible line length, in characters
+ DIM wide as integer  'actually line length, in characters
 
- split(wordwrap(capt, 37), captlines())
+ 'TODO: convert to text slices. This is ugly and still can't handle window resizing
+ maxwidth = (vpages(vpage)->w - 24) \ 8
+ split(wordwrap(capt, maxwidth), captlines())
  FOR i as integer = 0 TO UBOUND(captlines)
   wide = large(wide, LEN(captlines(i)))
  NEXT
@@ -2230,13 +2236,21 @@ FUNCTION multichoice(capt as string, choices() as string, byval defaultval as in
   usemenu state
 
   copypage holdscreen, vpage
-  centerbox 160, 70, 16 + wide * 8, 16 + 10 * UBOUND(captlines), 2, vpage
+  DIM boxy as integer  'Y of box center
+  boxy = vpages(vpage)->h \ 2 - 30
+  centerbox vpages(vpage)->w \ 2, boxy, 16 + wide * 8, 16 + 10 * UBOUND(captlines), 2, vpage
   FOR i as integer = 0 TO UBOUND(captlines)
-   edgeprint captlines(i), xstring(captlines(i), 160), 65 - 5 * UBOUND(captlines) + i * 10, uilook(uiMenuItem), vpage
+   DIM linex as integer
+   IF centerlines THEN
+    linex = xstring(captlines(i), vpages(vpage)->w \ 2)
+   ELSE
+    linex = (vpages(vpage)->w - wide * 8) \ 2
+   END IF
+   edgeprint captlines(i), linex, boxy - 5 * (UBOUND(captlines) + 1) + i * 10, uilook(uiMenuItem), vpage
   NEXT
   draw_menu menu, state, vpage
   IF LEN(helpkey) > 0 THEN
-   edgeprint "F1 Help", 0, 190, uilook(uiMenuItem), vpage
+   edgeprint "F1 Help", 0, vpages(vpage)->h - 10, uilook(uiMenuItem), vpage
   END IF
   setvispage vpage
   dowait
