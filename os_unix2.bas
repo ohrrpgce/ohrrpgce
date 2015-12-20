@@ -18,9 +18,10 @@ function get_process_path (pid as integer) as string
 	' and "-o comm" is just the first 15 characters of the command name after stripping the path.
 	' It appears to be impossible to get the non-truncated command name and path without also getting
 	' the args and other post-processing to process stuff like "kdeinit4: ksysguard [kdeinit]"
-	' Therefore better to use the linux-specific procfs.
-	'run_and_get_output("ps -p " & pid & " -o comm=", cmdname)
-	run_and_get_output("readlink /proc/" & pid & "/exe", cmdname)
+	' The alternative, reading /proc/$pid/exe (linux-specific) changes if the exe is moved or deleted,
+        ' which makes it unreliable for checking if the same pid and exe pair are still running.
+	run_and_get_output("ps -p " & pid & " -o comm=", cmdname)
+	'run_and_get_output("readlink /proc/" & pid & "/exe", cmdname)
 #else
 	' On OSX (BSD) "-o comm" returns the name the command was called with (which may or may not include a path),
 	' "-o command" adds the arguments, and "-o cmd" does not work.
