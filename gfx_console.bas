@@ -20,19 +20,30 @@ extern "C"
 
 declare function putenv (byval as zstring ptr) as integer
 
+'WINDOW was renamed in FB 1.01
+#ifndef WINDOW_
+ #define WINDOW_ WINDOW
+#endif
+
 'Wrapper functions in curses_wrap.c (really, this backend should be written in C)
-declare function get_stdscr() as WINDOW ptr
-declare sub set_ESCDELAY(byval val as integer)
-#undef stdscr
-#define stdscr get_stdscr()
+declare function get_stdscr() as WINDOW_ ptr
+#ifndef set_ESCDELAY
+ declare sub set_ESCDELAY(byval val as integer)
+#endif
+' #undef stdscr
+' #define stdscr get_stdscr()
 
 end extern
 
-'Bit of a blooper in curses.bi
-#ifdef __FB_WIN32__
- #define CURSES_ERR PDC_ERR
+#ifdef ERR_
+ #define CURSES_ERR ERR_
 #else
- #define CURSES_ERR NCURSES_ERR
+'Bit of a blooper in older versions of curses.bi
+ #ifdef __FB_WIN32__
+  #define CURSES_ERR PDC_ERR
+ #else
+  #define CURSES_ERR NCURSES_ERR
+ #endif
 #endif
 
 type KeyMapPair
@@ -268,7 +279,9 @@ sub gfx_console_printchar (byval ch as integer, byval x as integer, byval y as i
 		' end if
 		'col = 1
 		attron(master_color_to_attr(col))
-		mvaddch(y\8, x\8, ch)
+		'mvaddch is broken in recent FB...
+		move(y\8, x\8)
+		addch(ch)
 		'attroff(COLOR_PAIR(col))
 		attrset(0)
 	end if
