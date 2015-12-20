@@ -496,6 +496,8 @@ DECLARE Sub SliceLoadFromFile(byval sl as Slice Ptr, filename as string, load_ha
 
 EXTERN as SliceTable_ SliceTable
 
+EXTERN NumDrawnSlices as integer
+
 End Extern
 
 

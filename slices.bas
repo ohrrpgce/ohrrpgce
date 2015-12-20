@@ -50,6 +50,9 @@ Dim SliceTable as SliceTable_
 
 ReDim Shared SliceDebug(50) as Slice Ptr
 
+'Number of non-trivial drawn slices (Container, Special, Root and invisible excluded)
+DIM NumDrawnSlices as integer
+
 'add other slice tables here
 
 'ScreenSlice is used by other slices with ->Attach = slScreen
@@ -76,12 +79,16 @@ EXTERN "C"
 
 '==General slice code==========================================================
 
-'stub functions:
-Sub DrawNullSlice(byval s as slice ptr, byval p as integer) : end sub
+'Stub functions.
+'These Null functions are used by Container, Root, and Special slices.
+Sub DrawNullSlice(byval s as slice ptr, byval p as integer)
+ NumDrawnSlices -= 1
+End sub
 Sub DisposeNullSlice(byval s as slice ptr) : end sub
 Sub CloneNullSlice(byval s as slice ptr, byval cl as slice ptr) : end sub
 Sub SaveNullSlice(byval s as slice ptr, byval node as Reload.Nodeptr) : end sub
 Sub LoadNullSlice(Byval s as slice ptr, byval node as Reload.Nodeptr) : end sub
+
 Sub DefaultChildRefresh(Byval par as Slice ptr, Byval ch as Slice ptr)
  if ch = 0 then debug "DefaultChildRefresh null ptr": exit sub
  with *ch
@@ -394,7 +401,7 @@ FUNCTION NewSliceOfType (byval t as SliceTypes, byval parent as Slice Ptr=0, byv
  RETURN newsl
 END FUNCTION
 
-'Creates a new Slice object, and optionally, adds it to the heirarchy somewhere
+'Creates a new Slice of type Root, Special, or Container (defaults to Special) and optionally, adds it to the heirarchy somewhere
 Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
  dim ret as Slice Ptr
  ret = new Slice
@@ -2733,6 +2740,7 @@ Sub DrawSlice(byval s as slice ptr, byval page as integer)
   attach = GetSliceDrawAttachParent(s)
   if attach then attach->ChildRefresh(attach, s)
   if s->Draw then
+   NumDrawnSlices += 1
    'translate screenX/Y by the position difference between page (due to it
    'potentially being a view on the screen) and the screen.
    s->ScreenX += GlobalCoordOffset.X
@@ -2773,6 +2781,7 @@ Sub DrawSliceAt(byval s as slice ptr, byval x as integer, byval y as integer, by
   DefaultChildRefresh(dummyparent, s)
 
   if s->Draw then
+   NumDrawnSlices += 1
    s->Draw(s, page)
   end if
   AutoSortChildren(s)

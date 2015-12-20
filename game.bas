@@ -1024,7 +1024,11 @@ SUB displayall()
 
  update_backdrop_slice
 
+ NumDrawnSlices = 0
+ DIM drawtime as double = TIMER
  DrawSlice(SliceTable.Root, dpage)
+ drawtime = TIMER - drawtime
+ 'debuginfo "Drew " & NumDrawnSlices & " slices in " & CINT(drawtime * 1e6) & "us; " & CINT(drawtime * 1e9 / NumDrawnSlices) & "ns/slice average"
 
  'The order in which we update and draw things is a little strange; I'm just preserving what it was
  animatetilesets tilesets()
