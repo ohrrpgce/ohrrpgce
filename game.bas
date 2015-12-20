@@ -131,6 +131,7 @@ DIM SHARED harmtileflash as integer = NO
 DIM gam as GameState
 DIM txt as TextBoxState
 REDIM gen(499) as integer
+REDIM gmap(0) as integer  'sized later
 DIM gen_reld_doc as DocPtr
 DIM persist_reld_doc as DocPtr
 REDIM tag(1000) as integer '16000 bitsets
@@ -533,7 +534,7 @@ debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo & "  " & s
 debuginfo "Playing game " & sourcerpg & " (" & getdisplayname(" ") & ") " & DATE & " " & TIME
 IF running_as_slave THEN debuginfo "Spawned from Custom (" & custom_version & ")"
 
-REDIM gmap(dimbinsize(binMAP)) as integer 'this must be declared here, after the binsize file exists!
+REDIM gmap(dimbinsize(binMAP)) 'this must be sized here, after the binsize file exists!
 
 '--set game
 game = workingdir + SLASH + archinym

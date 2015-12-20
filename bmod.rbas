@@ -97,6 +97,7 @@ CONST ANIM_SKIP_SENTINEL = &hDEEFDEEF
 'these are the battle global variables
 DIM bstackstart as integer
 REDIM learnmask(245) as integer '6 shorts of bits per hero
+REDIM atkq(15) as AttackQueue
 
 FUNCTION battle (byval form as integer) as bool
  DIM result as bool  'Return value: whether victorious
@@ -108,7 +109,6 @@ FUNCTION battle (byval form as integer) as bool
  DIM attack as AttackData
  DIM st(3) as HeroDef
  DIM bat as BattleState
- REDIM atkq(15) as AttackQueue
  clear_attack_queue()
  DIM bslot(24) as BattleSprite
  DIM show_info_mode as integer = 0
