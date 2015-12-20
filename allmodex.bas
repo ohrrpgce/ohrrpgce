@@ -1410,6 +1410,12 @@ sub setkeys (byval enable_inputtext as bool = NO)
 	end if
 #endif
 
+	' Crash the program! For testing
+	if keybd(scPageup) > 0 and keybd(scPagedown) > 0 and keybd(scF4) > 1 then
+		dim invalid as integer ptr
+		*invalid = 0
+	end if
+
 	'Taking a screenshot with gfx_directx is very slow, so avoid timing that
 	debug_if_slow(starttime, 0.005, replay.active)
 
