@@ -20,7 +20,7 @@
    #define TIMER_START(a)  GetThreadTimes(GetCurrentThread, NULL, NULL, NULL, @atimer_s)
    #define TIMER_STOP(a)  GetThreadTimes(GetCurrentThread, NULL, NULL, NULL, @atimer_e): a += (atimer_e.dwLowDateTime - atimer_s.dwLowDateTime) * 0.0000001
   #else
-   #print GetThreadTimes not available
+   #print GetThreadTimes not available; don't define ACCURATETIMER
   #endif
  #else
   'assume anything else is a unix

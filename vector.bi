@@ -11,6 +11,7 @@
 #IFNDEF VECTOR_BI
 #DEFINE VECTOR_BI
 
+#include "config.bi"
 
 'For each type from which you want to be able to form vectors from, add a 
 'DECLARE_VECTOR_OF_TYPE line somewhere (probably a header, make it this one

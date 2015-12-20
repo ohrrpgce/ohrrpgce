@@ -15,8 +15,10 @@
 #include "allegro.bi"
 
 
-'this should be in allegro.bi but isn't
+'this should be in allegro.bi but isn't (for old FB anyway)
+#ifndef MIDI_AUTODETECT
 #define MIDI_AUTODETECT -1
+#endif
 
 extern allegro_initialised as bool
 

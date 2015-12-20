@@ -346,7 +346,7 @@ bail:
  	return 0
 end function
 
-function CreateMIDIEventList(midifile as string, division as short ptr) as MIDI_EVENT ptr
+function CreateMIDIEventList(filename as string, division as short ptr) as MIDI_EVENT ptr
  	dim as FILE ptr fp
  	dim as MIDIFile ptr mididata
  	dim as MIDI_EVENT ptr eventList
@@ -359,7 +359,7 @@ function CreateMIDIEventList(midifile as string, division as short ptr) as MIDI_
  	end if
 
 ' 	/* Open the file */
- 	fp = fopen(midifile, "rb")
+	fp = fopen(filename, "rb")
  	if fp <> 0 then
 
 ' 		/* Read in the data */

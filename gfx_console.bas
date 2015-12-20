@@ -14,8 +14,6 @@
 #include "curses.bi"
 #include once "crt.bi"
 
-#undef abort
-#undef strlen
 #undef raw
 
 extern "C"

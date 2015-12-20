@@ -4,42 +4,21 @@
 '' part of OHRRPGCE - see elsewhere for license details
 ''
 
-'#include "crt.bi"
-
-'glup
 #include "config.bi"
-#undef opaque
 
 #IFDEF __FB_WIN32__
-	#undef getcommandline
-	#include once "windows.bi"
-	#undef copyfile
-	#undef createevent
-	#include "externs.bi"
-	#include once "win/msacm.bi"
-	#include once "win/mmsystem.bi"
+	#define WIN_INCLUDEALL
+	include_windows_bi()
+	' #include once "win/mmsystem.bi"
+	' #include once "win/mmreg.bi"   'Doesn't exist and not needed in old FB
+	' #include once "win/msacm.bi"
 #ELSE
-	'???
+	'No MIDI support
 #ENDIF
 
-'#ENDIF
-'Undefine some winapi definitions
-#undef rectangle
-#undef paintat
-#undef max
-#undef setmouse
-#undef regtype
-#undef isfile
-#undef min
-#undef opaque
-#undef transparent
-#undef ellipse
 #include once "allmodex.bi"
-
 #include once "common.bi"
-
 #include once "const.bi"
-
 #include once "util.bi"
 
 

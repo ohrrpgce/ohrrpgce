@@ -4,29 +4,18 @@
 '' part of OHRRPGCE - see elsewhere for license details
 ''
 
-'#include "crt.bi"
-
-'glup
 #include "config.bi"
 
 #IFDEF __FB_WIN32__
-	#undef getcommandline
-	#undef copyfile
-	#include once "windows.bi"
-	#undef copyfile
-	#undef createevent
-	#include "externs.bi"
-	#include once "win/msacm.bi"
-	#include once "win/mmsystem.bi"
+	#define WIN_INCLUDEALL
+	include_windows_bi()
+	' #include once "win/mmsystem.bi"
+	' #include once "win/mmreg.bi"   'Doesn't exist and not needed in old FB
+	' #include once "win/msacm.bi"
 #ELSE
 	#error "music_native2 is Windows-only. Try music_native instead"
 	#error
 #ENDIF
-
-'Undefine some winapi definitions
-#undef rectangle
-#undef opaque
-#undef ellipse
 
 #include "allmodex.bi"
 #include "common.bi"
@@ -41,14 +30,13 @@
 #include "music.bi"
 
 
-
-#undef MIDIEVENT 'fb's MIDIEVENT is wrong
+'FB's MIDIEVENT is wrong (in older versions of FB anyway)
+#undef MIDIEVENT
 type MIDIEVENT
 	dwDeltaTime as integer
 	dwReserved as integer
 	dwEvent as integer
 end type
-
 
 
 
@@ -95,13 +83,17 @@ dim shared current_size as integer, buffer_size as integer
 dim shared skip_ticks as integer
 dim shared buffer_thread as any ptr = NULL
 
-declare function DebugWndProc (byval hwnd as HWND, byval uMsg as uinteger, byval wParam as WPARAM, byval lParam as LPARAM) as integer
+Declare function DebugWndProc(byval hwnd as HWND, byval uMsg as uinteger, byval wParam as WPARAM, byval lParam as LPARAM) as LRESULT
 Declare sub DebugWindowThread(byval useless as any ptr)
 
 #include once "fbgfx.bi"
 
 'this should probably be in an include...
 
+'WARNING: libfbgfx internals. This is almost certainly broken for versions of FB more recent than
+'the ancient version Mike copied this from!!
+'TODO: I think there's a correct way to get the window handle, though...
+#include "externs.bi"
 Extern FB_Win32 Alias "fb_win32" As WIN32DRIVER
 
 Function ProgInstance() As HINSTANCE
@@ -150,7 +142,7 @@ sub killDebugWindow
 end sub
 
 sub DebugWindowThread(byval useless as any ptr)
-	dim i as integer, msg as MSG
+	dim i as integer, msg as MSG_
 
 	DebugWnd = CreateWindowEx(0, "WndMusDbg", "Debug", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, 0, 200, 200, 0, 0, ProgInstance, 0)
 
@@ -199,7 +191,7 @@ function DebugWndProc(byval hwnd as HWND, byval uMsg as uinteger, byval wParam a
 		dim dc as HDC, o as string, ps as PAINTSTRUCT
 		dc = BeginPaint(hwnd, @ps)
 
-		SetBkMode(dc, TRANSPARENT)
+		SetBkMode(dc, TRANSPARENT_)
 
 		if music_song then
 			'draw the buffer size
@@ -651,7 +643,12 @@ function streamPosition as integer
 
 		erro = midiStreamPosition(device, @t, len(t))
 
-		return t.ticks
+		'Definition of MMTIME changed in FB 1.04
+		#ifdef mmtime_tag
+			return t.u.ticks
+		#else
+			return t.ticks
+		#endif
 	end if
 end function
 

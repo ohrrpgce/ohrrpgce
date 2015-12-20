@@ -91,38 +91,98 @@ CONST build_info as string = "" _GSTR _ESTR _GENSTR _SSTR _PSTR _BSTR
  #ENDIF
 #ENDIF
 
+' We put a few declarations in a namespace so that they aren't lost after including
+' windows.bi and #undefing. If more include_windows_bi() problems occur we can get
+' around them by moving more stuff into this namespace.
+NAMESPACE OHR
+
+#IFNDEF NULL
+#DEFINE NULL 0
+#ENDIF
+
+' TODO: FB 1.04+ has a boolean type, which we ignore for now
+TYPE bool as integer
+
+' Temporary, until we can declare bool as an int32
+TYPE bool32 as long
+
+'Even though long and integer are the same size on 32 bit platforms,
+'fbc considers them different types and throws warnings!
+#IFDEF __FB_64BIT__
+  #IFNDEF int32
+    TYPE int32 as long
+  #ENDIF
+  #IFNDEF uint32
+    TYPE uint32 as ulong
+  #ENDIF
+#ELSE
+  #IFNDEF int32
+    TYPE int32 as integer
+  #ENDIF
+  #IFNDEF uint32
+    TYPE uint32 as uinteger
+  #ENDIF
+#ENDIF
+
+'---For some crazy reason TRUE and FALSE don't work well as const even though they are not reserved
+CONST YES = -1
+CONST NO = 0
+
+END NAMESPACE
+
+USING OHR
+
 EXTERN wantpollingthread as integer
 EXTERN as string gfxbackend, musicbackend
 EXTERN as string gfxbackendinfo, musicbackendinfo, systeminfo
-
-#undef getkey
 
 'included only for $inclib?
 #include once "crt.bi"
 #include once "crt/limits.bi"
 #undef rand
-#undef abort
 #undef bound
 
-'it was too awful (collision-wise) to include all of windows.bi
+
 #macro include_windows_bi()
-'# include "windows.bi"
 # ifndef windows_bi_included
 #  define windows_bi_included
 #  undef point
+#  undef copyfile
+#  undef iswindow
+#  undef rectangle
+#  undef ellipse
 #  define _X86_
-#  include "win/windef.bi"
-#  include "win/winbase.bi"
+#  include once "windows.bi"
+' Almost everywhere, the following two headers are enough
+' #  include once "win/windef.bi"
+' #  include once "win/winbase.bi"
+' ' The following two .bi's are in order to undef iswindow so can include SDL.bi, which includes windows.bi
+' #  include once "win/wingdi.bi"
+' #  include once "win/winuser.bi"
 #  undef max
 #  undef min
-#  undef getcommandline
+#  undef default_palette
+#  undef sound_playing
 #  undef copyfile
 #  undef istag
 #  undef ignore
+#  undef iswindow
+#  undef rectangle
+#  undef ellipse
+#  undef color_menu
+   'Needed in music_native2.bas
+   type MSG_ as MSG
+   const TRANSPARENT_ = TRANSPARENT
+#  undef msg
+#  undef this
+#  undef font
+#  undef opaque
+#  undef transparent
+#  undef bool
 # endif
 #endmacro
 
-'GOSUB hack
+'''''''''''GOSUB hack
 
 #if __FB_GCC__ = 0
 'use nearly-as-fast assembly version (one extra jump)
@@ -161,9 +221,6 @@ extern gosubptr as integer
 #define retrace longjmp(@gosubbuf(gosubptr-1),1)
 
 #endif  'choose GOSUB workaround
-
-'#DEFINE CLEAROBJ(OBJ) memset(@(OBJ),0,LEN(OBJ))
-'#DEFINE COPYOBJ(TO,FROM) memcpy(@(TO),@(FROM),LEN(FROM))
 
 #ifdef __UNIX__
 #define SLASH "/"

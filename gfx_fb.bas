@@ -15,14 +15,8 @@
 'Use the FB namespace for the types and constants from fbgfx
 USING FB
 
-#include once "crt.bi"
-#undef abort
-#undef strlen
-
 'a public rtlib function that they seem to have forgotten to expose to FB programs?
 declare function fb_KeyHit alias "fb_KeyHit" () as integer
-'OK, now this one is in manual, but it's not exposed either! WTH
-declare function fb_Getkey alias "fb_Getkey" () as integer
 
 extern "C"
 
@@ -358,8 +352,8 @@ sub process_events()
 	'inkey does not seem to be threadsafe (bug 790)
 	'if inkey = chr(255) + "k" then post_terminate_signal
 	while fb_keyhit
-		dim a as integer = fb_getkey
-		'there are two different fb_getkey values that cause fb_GfxInkey to return "\255k"
+		dim a as integer = getkey
+		'there are two different getkey values that cause fb_GfxInkey to return "\255k"
 		if a = &h100 or a = &h6bff then post_terminate_signal
 	wend
 	if multikey(SC_ALT) andalso multikey(SC_F4) then post_terminate_signal

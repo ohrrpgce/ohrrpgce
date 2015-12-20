@@ -10,19 +10,10 @@
 #include "config.bi"
 #include "util.bi"
 
-
 #if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)
-#if defined(RELOADINTERNAL)
-        '#include "windows.bi"'
-        'Reduce namespace pollution (this macro is from config.bi)
-        include_windows_bi()
-#elseif __FB_DEBUG__
+#if defined(RELOADINTERNAL) or __FB_DEBUG__
         type HANDLE as any ptr
 #endif
-#endif
-
-#ifndef null
-#define null 0
 #endif
 
 Namespace Reload
