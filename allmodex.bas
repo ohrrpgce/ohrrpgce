@@ -54,8 +54,6 @@ declare sub snapshot_check
 
 declare function calcblock(tmap as TileMap, byval x as integer, byval y as integer, byval overheadmode as integer, pmapptr as TileMap ptr) as integer
 
-declare sub font_unload(byval font as Font ptr)
-
 declare sub pollingthread(byval as any ptr)
 declare sub update_inputtext ()
 
@@ -79,7 +77,7 @@ dim vpagesp as Frame ptr ptr  'points to vpages(0) for debugging: fbc outputs ty
  dim disable_native_text_input as bool = NO
 #ENDIF
 
-redim fonts(3) as Font
+redim fonts(3) as Font ptr
 
 'Toggles 0-1 every time dowait is called
 dim global_tog as integer
@@ -3316,15 +3314,15 @@ private function layout_line_fragment(z as string, byval endchar as integer, byv
 							'Font
 							'Let's preserve the position offset when changing fonts. That way, plain text in
 							'the middle of edgetext is also offset +1,+1, so that it lines up visually with it
-							'.x += fonts(intarg).offset.x - .thefont->offset.x
-							'.y += fonts(intarg).offset.y - .thefont->offset.y
+							'.x += fonts(intarg)->offset.x - .thefont->offset.x
+							'.y += fonts(intarg)->offset.y - .thefont->offset.y
 							if intarg >= -1 andalso intarg <= ubound(fonts) then
 								if intarg = -1 then
 									'UPDATE_STATE(outbuf, thefont, .initial_font)
 									.thefont = .initial_font
-								elseif fonts(intarg).initialised then
-									'UPDATE_STATE(outbuf, thefont, @fonts(intarg))
-									.thefont = @fonts(intarg)
+								elseif fonts(intarg)->initialised then
+									'UPDATE_STATE(outbuf, thefont, fonts(intarg))
+									.thefont = fonts(intarg)
 								else
 									goto badtexttag
 								end if
@@ -3500,9 +3498,9 @@ sub draw_line_fragment(byval dest as Frame ptr, byref state as PrintStrState, by
 					if arg = -1 then
 						'UPDATE_STATE(outbuf, thefont, .initial_font)
 						.thefont = .initial_font
-					elseif fonts(arg).initialised then
-						'UPDATE_STATE(outbuf, thefont, @fonts(arg))
-						.thefont = @fonts(arg)
+					elseif fonts(arg)->initialised then
+						'UPDATE_STATE(outbuf, thefont, fonts(arg))
+						.thefont = fonts(arg)
 					else
 						'This should be impossible, because layout_line_fragment has already checked this
 						debugc errPromptBug, "draw_line_fragment: font not initialised!"
@@ -3718,7 +3716,7 @@ sub text_layout_dimensions (byval retsize as StringSize ptr, z as string, byval 
 	dim state as PrintStrState
 	with state
 		'.localpal/?gcolor/initial_?gcolor/transparency non-initialised
-		.thefont = @fonts(fontnum)
+		.thefont = fonts(fontnum)
 		.initial_font = .thefont
 		.charnum = 0
 		.x = .thefont->offset.x
@@ -3774,7 +3772,7 @@ sub find_point_in_text (byval retsize as StringCharPos ptr, byval seekx as integ
 	dim state as PrintStrState
 	with state
 		'.localpal/?gcolor/initial_?gcolor/transparency non-initialised
-		.thefont = @fonts(fontnum)
+		.thefont = fonts(fontnum)
 		.initial_font = .thefont
 		.charnum = 0
 		.x = xpos + .thefont->offset.x
@@ -3805,7 +3803,7 @@ sub find_point_in_text (byval retsize as StringCharPos ptr, byval seekx as integ
 				elseif parsed_line[ch] = tcmdFont then
 					READ_CMD(parsed_line, ch, arg)
 					.thefont = cast(Font ptr, arg)
-					'.thefont = @fonts(arg)
+					'.thefont = fonts(arg)
 				elseif parsed_line[ch] = tcmdPalette then
 					READ_CMD(parsed_line, ch, arg)
 				else
@@ -3857,7 +3855,7 @@ end sub
 'A flexible printstr for enduser code without weird font, pal arguments
 sub printstr (byval dest as Frame ptr, s as string, byval x as integer, byval y as integer, byval wide as integer = 999999, byval fontnum as integer, byval withtags as bool = YES, byval withnewlines as bool = YES)
 	dim state as PrintStrState
-	state.thefont = @fonts(fontnum)
+	state.thefont = fonts(fontnum)
 	if textbg <> 0 then state.not_transparent = YES
 	state.bgcolor = textbg
 	state.fgcolor = textfg
@@ -3868,7 +3866,7 @@ end sub
 'the old printstr -- no autowrapping
 sub printstr (s as string, byval x as integer, byval y as integer, byval p as integer, byval withtags as bool = NO)
 	dim state as PrintStrState
-	state.thefont = @fonts(0)
+	state.thefont = fonts(0)
 	if textbg <> 0 then state.not_transparent = YES
 	state.bgcolor = textbg
 	state.fgcolor = textfg
@@ -3883,7 +3881,7 @@ sub edgeprint (s as string, byval x as integer, byval y as integer, byval c as i
 	textbg = 0
 
 	dim state as PrintStrState
-	state.thefont = @fonts(1)
+	state.thefont = fonts(1)
 	state.fgcolor = c
 
 	render_text (vpages(p), state, s, , x, y, , , withtags, withnewlines)
@@ -3908,28 +3906,26 @@ end function
 '==========================================================================================
 
 
-'This sub doesn't actually delete the Font object
-sub font_unload (byval font as Font ptr)
-	if font = null then exit sub
+'This deletes a Font object pointed to by a pointer. It's OK to call on a ptr to a NULL ptr
+sub font_unload (fontpp as Font ptr ptr)
+	if fontpp = null then showerror "font_unload: passed NULL" : exit sub
+	dim fontp as font ptr = *fontpp
+	if fontp = null then exit sub
 
 	for i as integer = 0 to 1
-		if font->layers(i) then
-			font->layers(i)->refcount -= 1
-			if font->layers(i)->refcount <= 0 then
-				frame_unload @font->layers(i)->spr
-				deallocate(font->layers(i))
+		if fontp->layers(i) then
+			fontp->layers(i)->refcount -= 1
+			if fontp->layers(i)->refcount <= 0 then
+				frame_unload @fontp->layers(i)->spr
+				deallocate(fontp->layers(i))
 			end if
-			font->layers(i) = NULL
+			fontp->layers(i) = NULL
 		end if
 	next
 
-	Palette16_unload @font->pal
-	memset(font, 0, sizeof(Font))
-	font->pal_id = -1
-	font->outline_col = -1
-	'font->cols = 0
-	'font->offset.x = 0
-	'font->offset.y = 0
+	Palette16_unload @fontp->pal
+	deallocate fontp
+	*fontpp = NULL
 end sub
 
 'Doesn't create a Frame
@@ -3950,26 +3946,22 @@ private function fontlayer_duplicate (byval srclayer as FontLayer ptr) as FontLa
 end function
 
 'Create a version of a font with an outline around each character (in a new palette colour)
-sub font_create_edged (byval newfont as Font ptr, byval basefont as Font ptr)
-	if newfont = null then exit sub
-
+function font_create_edged (basefont as Font ptr) as Font ptr
 	if basefont = null then
-		debug "createedgefont wasn't passed a font!"
-		exit sub
+		debugc errPromptBug, "font_create_edged wasn't passed a font!"
+		return null
 	end if
 	if basefont->layers(1) = null then
-		debug "createedgefont was passed a blank font!"
-		exit sub
+		debugc errPromptBug, "font_create_edged was passed a blank font!"
+		return null
 	end if
 
-	'We support newfont == basefont by writing to a temporary Font to begin with
-	dim font as Font ptr = callocate(sizeof(Font))
-	'font_unload font
+	dim newfont as Font ptr = callocate(sizeof(Font))
 
-	font->layers(0) = fontlayer_new()
+	newfont->layers(0) = fontlayer_new()
 	'Share layer 1
-	font->layers(1) = basefont->layers(1)
-	font->layers(1)->refcount += 1
+	newfont->layers(1) = basefont->layers(1)
+	newfont->layers(1)->refcount += 1
 
 	dim size as integer
 	'since you can only WITH one thing at a time
@@ -3979,9 +3971,9 @@ sub font_create_edged (byval newfont as Font ptr, byval basefont as Font ptr)
 	dim as integer ch
 
 	for ch = 0 to 255
-		font->w(ch) = basefont->w(ch)
+		newfont->w(ch) = basefont->w(ch)
 
-		with font->layers(0)->chdata(ch)
+		with newfont->layers(0)->chdata(ch)
 			.offset = size
 			.offx = bchr->offx - 1
 			.offy = bchr->offy - 1
@@ -3993,34 +3985,34 @@ sub font_create_edged (byval newfont as Font ptr, byval basefont as Font ptr)
 	next
 
 	'This is a hack; create a size*1 size frame, which we use as a buffer for pixel data
-	font->layers(0)->spr = frame_new(size, 1, , YES)
+	newfont->layers(0)->spr = frame_new(size, 1, , YES)
 
-	font->h = basefont->h  '+ 2
-	font->offset = basefont->offset
-	font->cols = basefont->cols + 1
-	font->outline_col = font->cols
-	font->initialised = YES
+	newfont->h = basefont->h  '+ 2
+	newfont->offset = basefont->offset
+	newfont->cols = basefont->cols + 1
+	newfont->outline_col = newfont->cols
+	newfont->initialised = YES
 
 	'Stuff currently hardcoded to keep edged font working as before
-	font->offset.x = 1
-	font->offset.y = 1
-	'font->h += 2
+	newfont->offset.x = 1
+	newfont->offset.y = 1
+	'newfont->h += 2
 
 	'dim as ubyte ptr maskp = basefont->layers(0)->spr->mask
 	dim as ubyte ptr sptr
-	dim as ubyte ptr srcptr = font->layers(1)->spr->image
+	dim as ubyte ptr srcptr = newfont->layers(1)->spr->image
 	dim as integer x, y
 
 	for ch = 0 to 255
-		with font->layers(0)->chdata(ch)
-			sptr = font->layers(0)->spr->image + .offset + .w + 1
+		with newfont->layers(0)->chdata(ch)
+			sptr = newfont->layers(0)->spr->image + .offset + .w + 1
 			for y = 1 to .h - 2
 				for x = 1 to .w - 2
 					if *srcptr then
-						sptr[-.w + 0] = font->outline_col
-						sptr[  0 - 1] = font->outline_col
-						sptr[  0 + 1] = font->outline_col
-						sptr[ .w + 0] = font->outline_col
+						sptr[-.w + 0] = newfont->outline_col
+						sptr[  0 - 1] = newfont->outline_col
+						sptr[  0 + 1] = newfont->outline_col
+						sptr[ .w + 0] = newfont->outline_col
 					end if
 					'if *sptr = 0 then *maskp = 0 else *maskp = &hff
 					sptr += 1
@@ -4032,82 +4024,73 @@ sub font_create_edged (byval newfont as Font ptr, byval basefont as Font ptr)
 		end with
 	next
 
-	font_unload newfont
-	memcpy(newfont, font, sizeof(Font))
-	deallocate(font)
-end sub
+	return newfont
+end function
 
 'Create a version of a font with a drop shadow (in a new palette colour)
-sub font_create_shadowed (byval newfont as Font ptr, byval basefont as Font ptr, byval xdrop as integer = 1, byval ydrop as integer = 1)
-	if newfont = null then exit sub
-
+function font_create_shadowed (basefont as Font ptr, xdrop as integer = 1, ydrop as integer = 1) as Font ptr
 	if basefont = null then
 		debug "createshadowfont wasn't passed a font!"
-		exit sub
+		return null
 	end if
 	if basefont->layers(1) = null then
 		debug "createshadowfont was passed a blank font!"
-		exit sub
+		return null
 	end if
 
-	'We support newfont == basefont by writing to a temporary Font to begin with
-	dim font as Font ptr = callocate(sizeof(Font))
-	'font_unload font
+	dim newfont as Font ptr = callocate(sizeof(Font))
 
-	memcpy(font, basefont, sizeof(Font))
+	memcpy(newfont, basefont, sizeof(Font))
 
 	'Copy layer 1 from the old font to layer 0 of the new
-	font->layers(0) = fontlayer_duplicate(basefont->layers(1))
+	newfont->layers(0) = fontlayer_duplicate(basefont->layers(1))
 
 	'Share layer 1 with the base font
-	font->layers(1)->refcount += 1
+	newfont->layers(1)->refcount += 1
 
-	font->cols += 1
-	font->outline_col = font->cols
-	font->initialised = YES
+	newfont->cols += 1
+	newfont->outline_col = newfont->cols
+	newfont->initialised = YES
 
 	for ch as integer = 0 to 255
-		with font->layers(0)->chdata(ch)
+		with newfont->layers(0)->chdata(ch)
 			.offx += xdrop
 			.offy += ydrop
 		end with
 	next
 
-	with *font->layers(0)->spr
+	with *newfont->layers(0)->spr
 		for i as integer = 0 to .w * .h - 1
 			if .image[i] then
-				.image[i] = font->outline_col
+				.image[i] = newfont->outline_col
 			end if
 		next
 	end with
 
-	font_unload newfont
-	memcpy(newfont, font, sizeof(Font))
-	deallocate(font)
-end sub
+	return newfont
+end function
 
-sub font_loadold1bit (byval font as Font ptr, byval fontdata as ubyte ptr)
-	if font = null then exit sub
-	font_unload font
+function font_loadold1bit (fontdata as ubyte ptr) as Font ptr
+	dim newfont as Font ptr = callocate(sizeof(Font))
 
-	font->layers(1) = fontlayer_new()
-	font->layers(1)->spr = frame_new(8, 256 * 8)
-	font->h = 10  'I would have said 9, but this is what was used in text slices
-	font->offset.x = 0
-	font->offset.y = 0
-	font->cols = 1
-	font->initialised = YES
+	newfont->layers(1) = fontlayer_new()
+	newfont->layers(1)->spr = frame_new(8, 256 * 8)
+	newfont->h = 10  'I would have said 9, but this is what was used in text slices
+	newfont->offset.x = 0
+	newfont->offset.y = 0
+	newfont->cols = 1
+	newfont->initialised = YES
 
-	'dim as ubyte ptr maskp = font->layers(1)->spr->mask
-	dim as ubyte ptr sptr = font->layers(1)->spr->image
+	'dim as ubyte ptr maskp = newfont->layers(1)->spr->mask
+	dim as ubyte ptr sptr = newfont->layers(1)->spr->image
 
 	dim as integer ch, x, y
 	dim as integer fi 'font index
 	dim as integer fstep
 
 	for ch = 0 to 255
-		font->w(ch) = 8
-		with font->layers(1)->chdata(ch)
+		newfont->w(ch) = 8
+		with newfont->layers(1)->chdata(ch)
 			.w = 8
 			.h = 8
 			.offset = 64 * ch
@@ -4140,34 +4123,33 @@ sub font_loadold1bit (byval font as Font ptr, byval fontdata as ubyte ptr)
 		sptr += 8 * 8 - 8
 		'maskp += 8 * 8 - 8
 	next
-end sub
+
+	return newfont
+end function
 
 'Load each character from an individual BMP in a directory, falling back to some other
 'font for missing BMPs
-'This sub is for testing purposes only, and will be removed unless this shows some use:
+'This function is for testing purposes only, and will be removed unless this shows some use:
 'uses hardcoded values
-sub font_loadbmps (byval newfont as Font ptr, directory as string, byval fallback as Font ptr = null)
-	if newfont = null then exit sub
-	'We support fallback == font by writing to a temporary Font to begin with
-	dim font as Font ptr = callocate(sizeof(Font))
-	'font_unload font
+function font_loadbmps (directory as string, fallback as Font ptr = null) as Font ptr
+	dim newfont as Font ptr = callocate(sizeof(Font))
 
-	font->layers(0) = null
-	font->layers(1) = fontlayer_new()
+	newfont->layers(0) = null
+	newfont->layers(1) = fontlayer_new()
 	'Hacky: start by allocating 4096 pixels, expand as needed
-	font->layers(1)->spr = frame_new(1, 4096)
-	font->cols = 1  'hardcoded
-	font->initialised = YES
+	newfont->layers(1)->spr = frame_new(1, 4096)
+	newfont->cols = 1  'hardcoded
+	newfont->initialised = YES
 
 	dim maxheight as integer
 	if fallback then
 		maxheight = fallback->h
-		font->offset.x = fallback->offset.x
-		font->offset.y = fallback->offset.y
-		font->cols = fallback->cols
+		newfont->offset.x = fallback->offset.x
+		newfont->offset.y = fallback->offset.y
+		newfont->cols = fallback->cols
 	end if
 
-	dim as ubyte ptr image = font->layers(1)->spr->image
+	dim as ubyte ptr image = newfont->layers(1)->spr->image
 	dim as ubyte ptr sptr
 	dim as integer size = 0
 	dim as integer i
@@ -4177,7 +4159,7 @@ sub font_loadbmps (byval newfont as Font ptr, directory as string, byval fallbac
 	bchr = @fallback->layers(1)->chdata(0)
 
 	for i = 0 to 255
-		with font->layers(1)->chdata(i)
+		with newfont->layers(1)->chdata(i)
 			f = finddatafile(directory & SLASH & i & ".bmp")
 			if isfile(f) then
 				'FIXME: awful stuff
@@ -4189,7 +4171,7 @@ sub font_loadbmps (byval newfont as Font ptr, directory as string, byval fallbac
 				.w = tempfr->w
 				.h = tempfr->h
 				if .h > maxheight then maxheight = .h
-				font->w(i) = .w
+				newfont->w(i) = .w
 				size += .w * .h
 				image = reallocate(image, size)
 				sptr = image + .offset
@@ -4197,11 +4179,9 @@ sub font_loadbmps (byval newfont as Font ptr, directory as string, byval fallbac
 				frame_unload @tempfr
 			else
 				if fallback = null ORELSE fallback->layers(1) = null then
-					debug "font_loadbmps: fallback font not provided"
-					font_unload font
-					deallocate(font)
-					'font_unload newfont
-					exit sub
+					debug "font_loadbmps: " & i & ".bmp missing and fallback font not provided"
+					font_unload @newfont
+					return null
 				end if
 
 				.offset = size
@@ -4209,7 +4189,7 @@ sub font_loadbmps (byval newfont as Font ptr, directory as string, byval fallbac
 				.offy = bchr->offy
 				.w = bchr->w
 				.h = bchr->h
-				font->w(i) = .w
+				newfont->w(i) = .w
 				size += .w * .h
 				image = reallocate(image, size)
 				memcpy(image + .offset, fallback->layers(1)->spr->image + bchr->offset, .w * .h)
@@ -4219,78 +4199,78 @@ sub font_loadbmps (byval newfont as Font ptr, directory as string, byval fallbac
 		bchr += 1
 	next
 
-	font->layers(1)->spr->image = image
-	font->h = maxheight
+	newfont->layers(1)->spr->image = image
+	newfont->h = maxheight
 
-	font_unload newfont
-	memcpy(newfont, font, sizeof(Font))
-	deallocate(font)
-end sub
+	return newfont
+end function
 
 'Load a font from a BMP which contains all 256 characters in a 16x16 grid (all characters the same size)
-sub font_loadbmp_16x16 (byval font as Font ptr, filename as string)
-	if font = null then exit sub
-
+function font_loadbmp_16x16 (filename as string) as Font ptr
 	dim bmp as Frame ptr
 	bmp = frame_import_bmp_raw(filename)
 
 	if bmp = NULL then
 		debug "font_loadbmp_16x16: couldn't load " & filename
-		exit sub
+		return null
 	end if
 
-	if bmp->w MOD 16 OR bmp->h MOD 16 then
+	if bmp->w MOD 16 ORELSE bmp->h MOD 16 then
 		debug "font_loadbmp_16x16: " & filename & ": bad dimensions " & bmp->w & "*" & bmp->h
-		exit sub
+		frame_unload @bmp
+		return null
 	end if
 
-	font_unload font
+	dim newfont as Font ptr = callocate(sizeof(Font))
 
 	dim as integer charw, charh
 	charw = bmp->w \ 16
 	charh = bmp->h \ 16
-	font->h = charh
-	font->offset.x = 0
-	font->offset.y = 0
-	font->initialised = YES
-	font->layers(0) = null
-	font->layers(1) = fontlayer_new()
+	newfont->h = charh
+	newfont->offset.x = 0
+	newfont->offset.y = 0
+	newfont->initialised = YES
+	newfont->layers(0) = null
+	newfont->layers(1) = fontlayer_new()
 
 	'"Linearise" the characters. In future this will be unnecessary
-	font->layers(1)->spr = frame_new(charw, charh * 256)
+	newfont->layers(1)->spr = frame_new(charw, charh * 256)
 
 	dim as integer size = 0
 
 	for i as integer = 0 to 255
-		with font->layers(1)->chdata(i)
+		with newfont->layers(1)->chdata(i)
 			.offset = size
 			.offx = 0
 			.offy = 0
 			.w = charw
 			.h = charh
-			font->w(i) = .w
+			newfont->w(i) = .w
 			size += .w * .h
 			dim tempview as Frame ptr
 			tempview = frame_new_view(bmp, charw * (i MOD 16), charh * (i \ 16), charw, charh)
-			'setclip , charh * i, , charh * (i + 1) - 1, font->layers(1)->spr
-			frame_draw tempview, , 0, charh * i, 1, NO, font->layers(1)->spr
+			'setclip , charh * i, , charh * (i + 1) - 1, newfont->layers(1)->spr
+			frame_draw tempview, , 0, charh * i, 1, NO, newfont->layers(1)->spr
 			frame_unload @tempview
 		end with
 	next
 
 	'Find number of used colours
-	font->cols = 0
+	newfont->cols = 0
 	dim as ubyte ptr image = bmp->image
 	for i as integer = 0 to bmp->pitch * bmp->h - 1
-		if image[i] > font->cols then font->cols = image[i]
+		if image[i] > newfont->cols then newfont->cols = image[i]
 	next
 
 	frame_unload @bmp
-end sub
+	return newfont
+end function
 
 sub setfont (f() as integer)
-	font_loadold1bit(@fonts(0), cast(ubyte ptr, @f(0)))
-	font_create_edged(@fonts(1), @fonts(0))
+	font_unload @fonts(0)
+	font_unload @fonts(1)
+	fonts(0) = font_loadold1bit(cast(ubyte ptr, @f(0)))
+	fonts(1) = font_create_edged(fonts(0))
 end sub
 
 'NOTE: the following two functions are for the old style fonts, they will

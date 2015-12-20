@@ -117,10 +117,11 @@ DECLARE FUNCTION bgcol_text (text as string, byval colour as integer) as string
 DECLARE SUB setfont (f() as integer)
 DECLARE FUNCTION get_font_type (font() as integer) as fontTypeEnum
 DECLARE SUB set_font_type (font() as integer, ty as fontTypeEnum)
-DECLARE SUB font_create_edged (byval font as Font ptr, byval basefont as Font ptr)
-DECLARE SUB font_create_shadowed (byval font as Font ptr, byval basefont as Font ptr, byval xdrop as integer = 1, byval ydrop as integer = 1)
-DECLARE SUB font_loadbmps (byval font as Font ptr, directory as string, byval fallback as Font ptr = null)
-DECLARE SUB font_loadbmp_16x16 (byval font as Font ptr, filename as string)
+DECLARE SUB font_unload (fontpp as Font ptr ptr)
+DECLARE FUNCTION font_create_edged (basefont as Font ptr) as Font ptr
+DECLARE FUNCTION font_create_shadowed (basefont as Font ptr, xdrop as integer = 1, ydrop as integer = 1) as Font ptr
+DECLARE FUNCTION font_loadbmps (directory as string, fallback as Font ptr = null) as Font ptr
+DECLARE FUNCTION font_loadbmp_16x16 (filename as string) as Font ptr
 
 DECLARE SUB storeset (fil as string, byval i as integer, byval l as integer)
 DECLARE SUB loadset (fil as string, byval i as integer, byval l as integer)
@@ -260,7 +261,7 @@ extern vpages() as Frame ptr
 extern vpagesp as Frame ptr ptr
 extern key2text(3,53) as string*1
 extern disable_native_text_input as integer
-extern fonts() as Font
+extern fonts() as Font ptr
 extern global_tog as integer
 
 #ENDIF

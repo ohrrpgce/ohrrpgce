@@ -1860,27 +1860,34 @@ SUB font_test_menu
   setkeys
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(sc1) > 1 THEN
-   font_loadbmps @fonts(st.pt), "fonttests/testfont", @fonts(st.pt)
+   DIM newfont as Font ptr = font_loadbmps("fonttests/testfont", fonts(st.pt))
+   font_unload @fonts(st.pt)
+   fonts(st.pt) = newfont
   END IF
   IF keyval(sc2) > 1 THEN
    DIM filen as string
    filen = browse(10, "", "*.bmp", tmpdir, 0, "")
    IF LEN(filen) THEN
-    font_loadbmp_16x16 @fonts(st.pt), filen
+    font_unload @fonts(st.pt)
+    fonts(st.pt) = font_loadbmp_16x16(filen)
    END IF
   END IF
   IF keyval(sc3) > 1 THEN
    DIM choice as integer
    choice = multichoice("Create an edged font from which font?", menu())
    IF choice > -1 THEN
-    font_create_edged @fonts(st.pt), @fonts(choice)
+    DIM newfont as Font ptr = font_create_edged(fonts(choice))
+    font_unload @fonts(st.pt)
+    fonts(st.pt) = newfont
    END IF
   END IF
   IF keyval(sc4) > 1 THEN
    DIM choice as integer
    choice = multichoice("Create a drop-shadow font from which font?", menu())
    IF choice > -1 THEN
-    font_create_shadowed @fonts(st.pt), @fonts(choice), 2, 2
+    DIM newfont as Font ptr = font_create_shadowed(fonts(choice), 2, 2)
+    font_unload @fonts(st.pt)
+    fonts(st.pt) = newfont
    END IF
   END IF
 
@@ -1897,7 +1904,7 @@ SUB font_test_menu
    FOR j as integer = i * 16 TO i * 16 + 15
     row &= CHR(j)
    NEXT
-   printstr vpages(vpage), row, 145, 0 + i * fonts(st.pt).h, , st.pt, YES, NO  'without newlines
+   printstr vpages(vpage), row, 145, 0 + i * fonts(st.pt)->h, , st.pt, YES, NO  'without newlines
   NEXT
 
   setvispage vpage
