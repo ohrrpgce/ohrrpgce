@@ -65,6 +65,7 @@ DECLARE SUB setup_workingdir ()
 DECLARE SUB check_for_crashed_workingdirs ()
 DECLARE FUNCTION empty_workingdir (workdir as string) as bool
 DECLARE FUNCTION handle_dirty_workingdir (sessinfo as SessionInfo) as bool
+DECLARE FUNCTION check_ok_to_open (filename as string) as bool
 DECLARE SUB write_session_info ()
 DECLARE FUNCTION get_previous_session_info (workdir as string) as SessionInfo
 
@@ -204,6 +205,7 @@ textcolor uilook(uiText), 0
 'Cleanups/recovers any working.tmp for any crashed copies of Custom; requires graphics up and running
 check_for_crashed_workingdirs
 
+'This also calls write_session_info
 setup_workingdir
 
 FOR i as integer = 0 TO UBOUND(cmdline_args)
@@ -234,6 +236,11 @@ IF game = "" THEN
 END IF
 
 IF NOT is_absolute_path(sourcerpg) THEN sourcerpg = absolute_path(sourcerpg)
+
+IF check_ok_to_open(sourcerpg) = NO THEN
+ cleanup_and_terminate NO
+END IF
+
 write_session_info
 
 DIM dir_to_change_into as string = trimfilename(sourcerpg)
@@ -1221,7 +1228,9 @@ FUNCTION get_previous_session_info (workdir as string) as SessionInfo
   exe = text(1)
   ' It's possible that this copy of Custom crashed and another copy was run with the same pid,
   ' but it's incredibly unlikely
-  ret.running = (LEN(exe) ANDALSO get_process_path(ret.pid) = exe)
+  DIM pid_current_exe as string = get_process_path(ret.pid)
+  debuginfo "pid_current_exe = " & pid_current_exe
+  ret.running = (LEN(exe) ANDALSO pid_current_exe = exe)
  ELSE
   'We don't know anything, except that we could work out session_start_time by looking at working.tmp mtimes.
  END IF
@@ -1289,6 +1298,28 @@ SUB setup_workingdir ()
  workingdir_needs_cleanup = YES
  write_session_info
 END SUB
+
+' Check whether any other copy of Custom is already editing sourcerpg
+FUNCTION check_ok_to_open (filename as string) as bool
+ debuginfo "check_ok_to_open..."
+ DIM olddirs() as string
+ findfiles tmpdir, "working*.tmp", fileTypeDirectory, NO, olddirs()
+
+ FOR idx as integer = 0 TO UBOUND(olddirs)
+  DIM sessinfo as SessionInfo = get_previous_session_info(tmpdir & olddirs(idx))
+
+  IF sessinfo.sourcerpg = filename THEN
+   IF NOT sessinfo.running THEN
+    notification "Found a copy of Custom which was editing this game, but crashed. Run Custom again to do a cleanup or recovery."
+   ELSE
+    notification "Another copy of " CUSTOMEXE " is already editing " & sourcerpg & !".\nYou can't open the same game twice at once! " _
+                 "(Make a copy first if you really want to.)"
+   END IF
+   RETURN NO
+  END IF
+ NEXT
+ RETURN YES
+END FUNCTION
 
 SUB check_for_crashed_workingdirs ()
 
