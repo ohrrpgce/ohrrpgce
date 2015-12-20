@@ -86,7 +86,6 @@ DECLARE SUB shop_save (byref shopst as ShopEditState, shopbuf() as integer)
 DECLARE SUB shop_load (byref shopst as ShopEditState, shopbuf() as integer)
 DECLARE SUB shop_add_new (shopst as ShopEditState)
 
-DECLARE SUB cleanupfiles ()
 DECLARE SUB cleanup_and_terminate (show_quit_msg as bool = YES)
 DECLARE SUB import_scripts_and_terminate (scriptfile as string)
 DECLARE SUB prompt_for_password()
@@ -129,7 +128,7 @@ DIM running_as_slave as integer = NO  'This is just for the benefit of gfx_sdl
 'Local variables (declaring these up here is often necessary due to gosubs)
 DIM scriptfile as string
 DIM archinym as string
-DIM SHARED nocleanup as integer = NO
+DIM SHARED workingdir_needs_cleanup as bool = NO
 DIM rpg_browse_default as string = ""
 
 '--Startup
@@ -203,6 +202,7 @@ textcolor uilook(uiText), 0
 'Cleanups up working.tmp if existing; requires graphics up and running
 workingdir = tmpdir & "working.tmp"
 IF makeworkingdir() = NO THEN cleanup_and_terminate NO
+workingdir_needs_cleanup = YES
 write_session_info
 
 FOR i as integer = 0 TO UBOUND(cmdline_args)
@@ -687,15 +687,13 @@ SUB cleanup_and_terminate (show_quit_msg as bool = YES)
   ' Don't let Spoonweaver's cat near your power cord!
   pop_warning "Don't forget to keep backup copies of your work! You never know when an unknown bug or a cat-induced hard-drive crash or a little brother might delete your files!", YES
  END IF
- cleanupfiles
+ IF workingdir_needs_cleanup THEN
+  empty_workingdir
+  killdir workingdir
+ END IF
  end_debug
  restoremode
  SYSTEM
-END SUB
-
-SUB cleanupfiles ()
- 'WARNING: nocleanup is module-shared
- IF nocleanup = NO THEN killdir workingdir
 END SUB
 
 
@@ -1243,15 +1241,15 @@ END FUNCTION
 
 'Try to delete everything in workingdir. Returns true if succeeded.
 FUNCTION empty_workingdir () as bool
- 'Delete session_info first, because it indicates game data you might want to recover
- safekill workingdir + SLASH + "session_info.txt.tmp"
  touchfile workingdir + SLASH + "__danger.tmp"
  DIM filelist() as string
  findfiles workingdir, ALLFILES, fileTypeFile, NO, filelist()
+ ' Delete these metadata files last
+ array_shuffle_to_end filelist(), str_array_findcasei(filelist(), "__danger.tmp")
+ array_shuffle_to_end filelist(), str_array_findcasei(filelist(), "session_info.txt.tmp")
  FOR i as integer = 0 TO UBOUND(filelist)
   DIM fname as string = workingdir + SLASH + filelist(i)
-  safekill fname
-  IF isfile(fname) THEN
+  IF NOT safekill(fname) THEN
    notification "Could not clean up " & workingdir & !"\nYou may have to manually delete its contents."
    RETURN NO
   END IF
@@ -1317,7 +1315,6 @@ FUNCTION handle_dirty_workingdir (sessinfo as SessionInfo) as bool
                      "Erase temporary files (crashed)", _
                      0, 0)
   IF choice = 0 THEN
-   nocleanup = YES
    RETURN NO
   ELSE
    RETURN empty_workingdir()
@@ -1374,7 +1371,7 @@ FUNCTION handle_dirty_workingdir (sessinfo as SessionInfo) as bool
     RETURN empty_workingdir()  'continue
    END IF
    IF state.pt = 2 THEN RETURN empty_workingdir()  'continue
-   IF state.pt = 0 THEN nocleanup = YES : RETURN NO  'quit
+   IF state.pt = 0 THEN RETURN NO  'quit
   END IF
 
   clearpage dpage
