@@ -73,6 +73,8 @@ WHAT IS NEW?
     * Added "Old attack positioning at bottom-left of target" back-
       compat bitset, which if you turn off places attack sprites at
       the center of the target instead. [Ralph]
+    * You can now run multiple copies of Custom at once (but can't
+      open the same .rpg more than once). [Ralph]
 
   * Changes
     * Hidden menu items no longer affect the width of a menu [Ralph]

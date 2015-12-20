@@ -61,8 +61,9 @@ TYPE SessionInfo
 END TYPE
 
 DECLARE FUNCTION newRPGfile (templatefile as string, newrpg as string) as bool
-DECLARE FUNCTION makeworkingdir () as bool
-DECLARE FUNCTION empty_workingdir () as bool
+DECLARE SUB setup_workingdir ()
+DECLARE SUB check_for_crashed_workingdirs ()
+DECLARE FUNCTION empty_workingdir (workdir as string) as bool
 DECLARE FUNCTION handle_dirty_workingdir (sessinfo as SessionInfo) as bool
 DECLARE SUB write_session_info ()
 DECLARE FUNCTION get_previous_session_info (workdir as string) as SessionInfo
@@ -200,11 +201,10 @@ setpal master()
 setfont current_font()
 textcolor uilook(uiText), 0
 
-'Cleanups up working.tmp if existing; requires graphics up and running
-workingdir = tmpdir & "working.tmp"
-IF makeworkingdir() = NO THEN cleanup_and_terminate NO
-workingdir_needs_cleanup = YES
-write_session_info
+'Cleanups/recovers any working.tmp for any crashed copies of Custom; requires graphics up and running
+check_for_crashed_workingdirs
+
+setup_workingdir
 
 FOR i as integer = 0 TO UBOUND(cmdline_args)
  DIM arg as string
@@ -692,8 +692,7 @@ SUB cleanup_and_terminate (show_quit_msg as bool = YES)
   pop_warning "Don't forget to keep backup copies of your work! You never know when an unknown bug or a cat-induced hard-drive crash or a little brother might delete your files!", YES
  END IF
  IF workingdir_needs_cleanup THEN
-  empty_workingdir
-  killdir workingdir
+  empty_workingdir workingdir
  END IF
  end_debug
  restoremode
@@ -1198,6 +1197,7 @@ END SUB
 ' Collect data about a previous (or ongoing) editing session from a dirty working.tmp
 FUNCTION get_previous_session_info (workdir as string) as SessionInfo
  DIM ret as SessionInfo
+ DIM exe as string
  DIM sessionfile as string
  sessionfile = workdir + SLASH + "session_info.txt.tmp"
  ret.workingdir = workdir
@@ -1218,7 +1218,7 @@ FUNCTION get_previous_session_info (workdir as string) as SessionInfo
    END IF
   END IF
   ret.pid = VAL(text(3))
-  DIM exe as string = text(1)
+  exe = text(1)
   ' It's possible that this copy of Custom crashed and another copy was run with the same pid,
   ' but it's incredibly unlikely
   ret.running = (LEN(exe) ANDALSO get_process_path(ret.pid) = exe)
@@ -1240,7 +1240,7 @@ FUNCTION get_previous_session_info (workdir as string) as SessionInfo
 
  debuginfo "prev_session.workingdir = " & ret.workingdir
  debuginfo "prev_session.info_file_exists = " & ret.info_file_exists
- debuginfo "prev_session.pid = " & ret.pid
+ debuginfo "prev_session.pid = " & ret.pid & " (exe = " & exe & ")"
  debuginfo "prev_session.running = " & ret.running
  debuginfo "prev_session.partial_rpg = " & ret.partial_rpg
  debuginfo "prev_session.sourcerpg = " & ret.sourcerpg
@@ -1252,49 +1252,71 @@ FUNCTION get_previous_session_info (workdir as string) as SessionInfo
  RETURN ret
 END FUNCTION
 
-'Try to delete everything in workingdir. Returns true if succeeded.
-FUNCTION empty_workingdir () as bool
- touchfile workingdir + SLASH + "__danger.tmp"
+' Try to delete everything in the given directory in a race-condition-safe order. Returns true if succeeded.
+' (This is overkill now, I guess)
+FUNCTION empty_workingdir (workdir as string) as bool
+ touchfile workdir + SLASH + "__danger.tmp"
  DIM filelist() as string
- findfiles workingdir, ALLFILES, fileTypeFile, NO, filelist()
+ findfiles workdir, ALLFILES, fileTypeFile, NO, filelist()
  ' Delete these metadata files last
  array_shuffle_to_end filelist(), str_array_findcasei(filelist(), "__danger.tmp")
  array_shuffle_to_end filelist(), str_array_findcasei(filelist(), "session_info.txt.tmp")
  FOR i as integer = 0 TO UBOUND(filelist)
-  DIM fname as string = workingdir + SLASH + filelist(i)
+  DIM fname as string = workdir + SLASH + filelist(i)
   IF NOT safekill(fname) THEN
-   notification "Could not clean up " & workingdir & !"\nYou may have to manually delete its contents."
+   'notification "Could not clean up " & workdir & !"\nYou may have to manually delete its contents."
    RETURN NO
   END IF
  NEXT
+ killdir workdir
  RETURN YES
 END FUNCTION
 
-'Returns true on success, false if want to cleanup_and_terminate
-FUNCTION makeworkingdir () as bool
- IF NOT isdir(workingdir) THEN
-  makedir workingdir
-  RETURN YES
- ELSE
-  DIM sessinfo as SessionInfo = get_previous_session_info(workingdir)
+' Selects an unused workingdir path and creates it
+SUB setup_workingdir ()
+ ' This can't pick "working.tmp", so old versions of Custom won't see and clobber it.
+ DIM idx as integer = 0
+ DO
+  workingdir = tmpdir & "working" & idx & ".tmp"
+  IF NOT isdir(workingdir) THEN EXIT DO
+  idx += 1
+ LOOP
+
+ debuginfo "Working in " & workingdir
+ IF makedir(workingdir) <> 0 THEN
+  fatalerror "Couldn't create " & workingdir & !"\nCheck c_debug.txt"
+ END IF
+ workingdir_needs_cleanup = YES
+ write_session_info
+END SUB
+
+SUB check_for_crashed_workingdirs ()
+
+ 'This also finds working.tmp, which belongs to old versions
+ DIM olddirs() as string
+ findfiles tmpdir, "working*.tmp", fileTypeDirectory, NO, olddirs()
+
+ FOR idx as integer = 0 TO UBOUND(olddirs)
+  DIM sessinfo as SessionInfo = get_previous_session_info(tmpdir & olddirs(idx))
 
   IF sessinfo.info_file_exists THEN
    IF sessinfo.running THEN
-    pop_warning "Another copy of " + CUSTOMEXE + " is already running in the background (pid = " & sessinfo.pid & "). " _
-                "You can only run one copy at once."
-    RETURN NO
+    ' Not crashed, so ignore
+    CONTINUE FOR
    END IF
    debuginfo "Found workingtmp for crashed Custom"
 
    IF sessinfo.partial_rpg THEN
     debuginfo "...crashed while unlumping/deleting temp files, silent cleanup"
     ' In either case, safe to delete files.
-    RETURN empty_workingdir()
+    empty_workingdir(sessinfo.workingdir)
+    CONTINUE FOR
    END IF
 
    IF LEN(sessinfo.sourcerpg) = 0 THEN
     debuginfo "...crashed before opening a game, silent cleanup"
-    RETURN empty_workingdir()
+    empty_workingdir(sessinfo.workingdir)
+    CONTINUE FOR
    END IF
 
   END IF
@@ -1302,20 +1324,21 @@ FUNCTION makeworkingdir () as bool
   ' Does this look like a game, or should we just delete it?
   IF NOT sessinfo.partial_rpg THEN
    DIM filelist() as string
-   findfiles workingdir, ALLFILES, fileTypeFile, NO, filelist()
+   findfiles sessinfo.workingdir, ALLFILES, fileTypeFile, NO, filelist()
 
    IF UBOUND(filelist) <= 5 THEN
     'Just some stray files that refused to delete last time,
     'or possibly an old copy of Custom running but no game opened yet no way to handle that
     debuginfo (UBOUND(filelist) + 1) & " files in working.tmp, silent cleanup"
-    RETURN empty_workingdir()
+    empty_workingdir(sessinfo.workingdir)
+    CONTINUE FOR
    END IF
   END IF
 
   'Auto-handling failed, ask user what to do
-  RETURN handle_dirty_workingdir(sessinfo)
- END IF
-END FUNCTION
+  handle_dirty_workingdir(sessinfo)
+ NEXT
+END SUB
 
 ' When recovering an rpg from working.tmp, pick an unused destination filename.
 FUNCTION pick_recovered_rpg_filename(old_sourcerpg as string) as string
@@ -1353,7 +1376,7 @@ FUNCTION recover_workingdir (sessinfo as SessionInfo) as bool
  printstr "LUMPING DATA: please wait...", 0, 190, vpage
  setvispage vpage
  '--re-lump recovered files as RPG file
- write_rpg_or_rpgdir workingdir, destfile
+ write_rpg_or_rpgdir sessinfo.workingdir, destfile
  clearpage vpage
 
  DIM msg as string
@@ -1364,14 +1387,14 @@ FUNCTION recover_workingdir (sessinfo as SessionInfo) as bool
  basic_textbox msg, uilook(uiText), vpage
  setvispage vpage
  waitforanykey
- RETURN empty_workingdir()
+ RETURN empty_workingdir(sessinfo.workingdir)
 END FUNCTION
 
 'Called when a partial or complete copy of a game exists
-'Returns true on success, false if want to cleanup_and_terminate
+'Returns true if cleaned away, false if not cleaned up
 FUNCTION handle_dirty_workingdir (sessinfo as SessionInfo) as bool
 
- IF isfile(workingdir + SLASH + "__danger.tmp") THEN
+ IF isfile(sessinfo.workingdir + SLASH + "__danger.tmp") THEN
   ' Don't provide option to recover, as this looks like garbage.
   ' If we've reached this point, then already checked whether it's a modern Custom
   ' However, maybe another copy of custom is busy unlumping a big game, so ask before deleting.
@@ -1380,13 +1403,13 @@ FUNCTION handle_dirty_workingdir (sessinfo as SessionInfo) as bool
                      "It looks like an old version of " + CUSTOMEXE + " was in the process of " _
                      "either unlumping a game or deleting its temporary files. " _
                      "It might have crashed, or still be running. What do you want to do?", _
-                     "Do nothing and quit (still running)", _
+                     "Ignore", _
                      "Erase temporary files (crashed)", _
                      0, 0)
   IF choice = 0 THEN
    RETURN NO
   ELSE
-   RETURN empty_workingdir()
+   RETURN empty_workingdir(sessinfo.workingdir)
   END IF
  END IF
 
@@ -1433,9 +1456,9 @@ FUNCTION handle_dirty_workingdir (sessinfo as SessionInfo) as bool
  DIM choice as integer
  choice = multichoice(msg, cleanup_menu(), 0, 0, helpfile, NO)  'Left justified
 
- IF choice = 0 THEN RETURN NO  'quit
+ IF choice = 0 THEN RETURN NO
  IF choice = 1 THEN RETURN recover_workingdir(sessinfo)
- IF choice = 2 THEN RETURN empty_workingdir()  'erase
+ IF choice = 2 THEN RETURN empty_workingdir(sessinfo.workingdir)  'erase
 END FUNCTION
 
 

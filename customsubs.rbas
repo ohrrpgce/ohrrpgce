@@ -4360,6 +4360,7 @@ SUB write_rpg_or_rpgdir (lumpsdir as string, filetolump as string)
  '--build the list of files to lump. We don't need hidden files
  DIM filelist() as string
  findfiles lumpsdir, ALLFILES, fileTypeFile, NO, filelist()
+ 'Removes .tmp files
  fixlumporder filelist()
  IF isdir(filetolump) THEN
   '---copy changed files back to source rpgdir---
