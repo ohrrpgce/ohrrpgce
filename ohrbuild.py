@@ -6,10 +6,10 @@ import fnmatch
 import sys
 import itertools
 
-def get_run_command(cmd):
-    """Runs a shell commands and returns stdout as a string"""
+def get_command_output(cmd, args = ""):
+    """Runs a shell command and returns stdout as a string"""
     import subprocess
-    proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen('"' + cmd + '" ' + args, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     errtext = proc.stderr.read()
     if len(errtext) > 0:
         raise Exception("subprocess.Popen(%s) returned stderr:\n%s" % (cmd, errtext))

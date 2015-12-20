@@ -10,7 +10,7 @@ import shutil
 import shlex
 import itertools
 import re
-from ohrbuild import basfile_scan, verprint, android_source_actions, get_run_command
+from ohrbuild import basfile_scan, verprint, android_source_actions, get_command_output
 
 FBFLAGS = ['-mt']
 if 'FBFLAGS' in os.environ:
@@ -272,7 +272,7 @@ fbc_path = os.path.dirname(os.path.realpath(fbc_binary))
 # Newer versions of fbc (1.0+) print e.g. "FreeBASIC Compiler - Version $VER ($DATECODE), built for linux-x86 (32bit)"
 # older versions printed "FreeBASIC Compiler - Version $VER ($DATECODE) for linux"
 # older still printed "FreeBASIC Compiler - Version $VER ($DATECODE) for linux (target:linux)"
-fbcinfo = get_run_command(fbc_binary + " -version")
+fbcinfo = get_command_output(fbc_binary, "-version")
 fbcversion = re.findall("Version ([0-9.]*)", fbcinfo)[0]
 # Convert e.g. 1.04.1 into 1041
 fbcversion = int(fbcversion.replace('.', ''))
@@ -294,7 +294,7 @@ if linkgcc:
     elif android:
         if not CC or not CXX or not AS:
             raise Exception("You need to set CC, CXX, AS environmental variables correctly to crosscompile to Android")
-        target = get_run_command(CC + " -dumpmachine")
+        target = get_command_output(CC, "-dumpmachine")
         if target != 'arm-linux-androideabi':
             raise Exception("This GCC doesn't target arm-linux-androideabi. You need to set CC, CXX, AS environmental variables correctly to crosscompile to Android")
         target += '-freebasic'
