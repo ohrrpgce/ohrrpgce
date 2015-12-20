@@ -54,9 +54,9 @@ TYPE SessionInfo
  running as bool                   'That process is still running
  sourcerpg as string               'May be blank
  'The following are represented as native FB DateSerials, not Unix mtimes. 0.0 means N/A
- sourcerpg_old_mtime as double     'mtime of the sourcerpg before it was opened
- sourcerpg_current_mtime as double 'mtime of the sourcerpg right now
- session_start_time as double      'When the game was unlumped (or otherwise, Custom was launched)
+ sourcerpg_old_mtime as double     'mtime of the sourcerpg when was opened/last saved by that copy of Custom
+ sourcerpg_current_mtime as double 'mtime of the sourcerpg right now, as seen by us
+ session_start_time as double      'When the game was last unlumped/saved (or if none, when Custom was launched)
  last_lump_mtime as double         'mtime of the most recently modified lump
 END TYPE
 
@@ -66,6 +66,7 @@ DECLARE FUNCTION empty_workingdir () as bool
 DECLARE FUNCTION handle_dirty_workingdir (sessinfo as SessionInfo) as bool
 DECLARE SUB write_session_info ()
 DECLARE FUNCTION get_previous_session_info (workdir as string) as SessionInfo
+
 DECLARE SUB secret_menu ()
 DECLARE SUB condition_test_menu ()
 DECLARE SUB quad_transforms_menu ()
@@ -306,6 +307,9 @@ load_lookup1_bin lookup1_bin_cache()
 IF scriptfile <> "" THEN import_scripts_and_terminate scriptfile
 
 setupmusic
+
+'Reset start of session to after upgrades (to see which lumps are edited)
+write_session_info
 
 'From here on, preserve working.tmp if something goes wrong
 cleanup_on_error = NO
@@ -1164,7 +1168,7 @@ END FUNCTION
 
 ' Argument is a timeserial
 FUNCTION format_date(timeser as double) as string
- RETURN FORMAT(timeser, "yyyy mmm dd ddd hh:mm:ss")
+ RETURN FORMAT(timeser, "yyyy mmm dd hh:mm:ss")
 END FUNCTION
 
 ' Write workingdir/session_info.txt.tmp
@@ -1274,8 +1278,13 @@ FUNCTION makeworkingdir () as bool
    debuginfo "Found workingtmp for crashed Custom"
 
    IF sessinfo.partial_rpg THEN
-    debuginfo "...crashed while unlumping/deleting temp files"
+    debuginfo "...crashed while unlumping/deleting temp files, silent cleanup"
     ' In either case, safe to delete files.
+    RETURN empty_workingdir()
+   END IF
+
+   IF LEN(sessinfo.sourcerpg) = 0 THEN
+    debuginfo "...crashed before opening a game, silent cleanup"
     RETURN empty_workingdir()
    END IF
 
@@ -1289,6 +1298,7 @@ FUNCTION makeworkingdir () as bool
    IF UBOUND(filelist) <= 5 THEN
     'Just some stray files that refused to delete last time,
     'or possibly an old copy of Custom running but no game opened yet no way to handle that
+    debuginfo (UBOUND(filelist) + 1) & " files in working.tmp, silent cleanup"
     RETURN empty_workingdir()
    END IF
   END IF
@@ -1296,6 +1306,56 @@ FUNCTION makeworkingdir () as bool
   'Auto-handling failed, ask user what to do
   RETURN handle_dirty_workingdir(sessinfo)
  END IF
+END FUNCTION
+
+' When recovering an rpg from working.tmp, pick an unused destination filename.
+FUNCTION pick_recovered_rpg_filename(old_sourcerpg as string) as string
+ DIM destdir as string
+ DIM destfile_basename as string
+ destfile_basename = "crash-recovered"
+ IF LEN(old_sourcerpg) THEN
+  ' Put next to original file
+  destdir = trimfilename(old_sourcerpg) & SLASH
+  IF NOT diriswriteable(destdir) THEN destdir = ""
+  destfile_basename = trimpath(trimextension(old_sourcerpg)) & " crash-recovered "
+ END IF
+ IF NOT diriswriteable(destdir) THEN destdir = homedir & SLASH
+
+ DIM index as integer = 0
+ DO
+  DIM destfile as string = destdir & destfile_basename & index & ".rpg"
+  IF NOT isfile(destfile) THEN RETURN destfile
+  index += 1
+ LOOP
+END FUNCTION
+
+'Returns true if we can continue, false to cleanup_and_terminate
+FUNCTION recover_workingdir (sessinfo as SessionInfo) as bool
+ DIM origname as string
+ IF LEN(sessinfo.sourcerpg) THEN
+  origname = trimpath(sessinfo.sourcerpg)
+ ELSE
+  origname = "gamename.rpg"
+ END IF
+ DIM destfile as string
+ destfile = pick_recovered_rpg_filename(sessinfo.sourcerpg)
+
+ printstr "Saving as " + destfile, 0, 180, vpage
+ printstr "LUMPING DATA: please wait...", 0, 190, vpage
+ setvispage vpage
+ '--re-lump recovered files as RPG file
+ dolumpfiles destfile
+ clearpage vpage
+
+ DIM msg as string
+ msg = "The recovered game has been saved as " & destfile & !"\n" _
+       "You can rename it to " & origname & ", but ALWAYS keep the previous copy " _
+       !"as a backup because some data in the recovered file might be corrupt!\n" _
+       "If you have questions, ask ohrrpgce-crash@HamsterRepublic.com"
+ basic_textbox msg, uilook(uiText), vpage
+ setvispage vpage
+ waitforanykey
+ RETURN empty_workingdir()
 END FUNCTION
 
 'Called when a partial or complete copy of a game exists
@@ -1322,9 +1382,35 @@ FUNCTION handle_dirty_workingdir (sessinfo as SessionInfo) as bool
  END IF
 
  DIM msg as string
+ DIM helpfile as string
  IF sessinfo.info_file_exists THEN
-  ' We already checked not still running
-  msg = CUSTOMEXE + " crashed last time you ran it, but its temporary unlumped copy of the game still exists."
+  ' We already checked Custom isn't still running
+
+  msg = CUSTOMEXE " crashed while editing " & sessinfo.sourcerpg & ", but a temp copy of the edited game still exists." LINE_END
+
+  IF sessinfo.sourcerpg_current_mtime < sessinfo.session_start_time THEN
+   ' It's a bit confusing to tell the user 4 last-mod times, so skip this one.
+   msg &= "Modified " & format_date(sessinfo.sourcerpg_old_mtime) & LINE_END
+  END IF
+
+  ' The }'s get replaced with either | or a space.
+  msg &=  "}|" LINE_END _
+          "}+>Loaded or last saved by Custom " LINE_END _
+          "}  at:        " & format_date(sessinfo.session_start_time) & LINE_END _
+          "}  Last edit: " & format_date(sessinfo.last_lump_mtime) & LINE_END
+
+  IF sessinfo.sourcerpg_current_mtime > sessinfo.session_start_time THEN
+   msg &= "|" LINE_END _
+          "+-> WARNING: " & trimpath(sessinfo.sourcerpg) & " modified since it was loaded or saved!" _
+          " Modified " & format_date(sessinfo.sourcerpg_current_mtime) ' & LINE_END
+
+   replacestr(msg, LINE_END "}", LINE_END "|")
+   helpfile = "recover_unlumped_rpg_outdated"
+  ELSE
+   replacestr(msg, LINE_END "}", LINE_END " ")
+   helpfile = "recover_unlumped_rpg"
+  END IF
+
  ELSE
   msg = !"An unknown game was found unlumped.\n" _
         "It appears that an old version of " + CUSTOMEXE + " is either already running, " _
@@ -1333,55 +1419,14 @@ FUNCTION handle_dirty_workingdir (sessinfo as SessionInfo) as bool
 
  DIM cleanup_menu(2) as string
  cleanup_menu(0) = "DO NOTHING"
- cleanup_menu(1) = "RECOVER IT"
- cleanup_menu(2) = "ERASE IT"
+ cleanup_menu(1) = "RECOVER temp files as a .rpg"
+ cleanup_menu(2) = "ERASE temp files"
+ DIM choice as integer
+ choice = multichoice(msg, cleanup_menu(), 0, 0, helpfile, NO)  'Left justified
 
- DIM state as MenuState
- state.size = 8
- state.last = UBOUND(cleanup_menu)
-
- DIM index as integer = 0
- DIM destfile as string
- DO
-  destfile = "recovered" & index & ".bak"
-  IF NOT isfile(destfile) THEN EXIT DO
-  index += 1
- LOOP
-
- setkeys
- DO
-  setwait 55
-  setkeys
-  usemenu state
-  IF enter_space_click(state) THEN
-   IF state.pt = 1 THEN
-    printstr "Saving as " + destfile, 0, 180, vpage
-    printstr "LUMPING DATA: please wait...", 0, 190, vpage
-    setvispage vpage
-    '--re-lump recovered files as RPG file
-    dolumpfiles destfile
-    clearpage vpage
-    basic_textbox "The recovered data has been saved to " + destfile + !"\nIf " + CUSTOMEXE + " crashed last time you " _
-                  "ran it and you lost work, you may be able to recover it. Make a backup " _
-                  "copy of your RPG and then rename " + destfile + !" to gamename.rpg\n" _
-                  "If you have questions, ask ohrrpgce-crash@HamsterRepublic.com", _
-                  uilook(uiText), vpage
-    setvispage vpage
-    waitforanykey
-    RETURN empty_workingdir()  'continue
-   END IF
-   IF state.pt = 2 THEN RETURN empty_workingdir()  'continue
-   IF state.pt = 0 THEN RETURN NO  'quit
-  END IF
-
-  clearpage dpage
-  basic_textbox msg, uilook(uiText), dpage
-  standardmenu cleanup_menu(), state, 16, 150, dpage
-
-  SWAP vpage, dpage
-  setvispage vpage
-  dowait
- LOOP
+ IF choice = 0 THEN RETURN NO  'quit
+ IF choice = 1 THEN RETURN recover_workingdir(sessinfo)
+ IF choice = 2 THEN RETURN empty_workingdir()  'erase
 END FUNCTION
 
 

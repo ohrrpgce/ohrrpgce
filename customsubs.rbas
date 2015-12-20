@@ -18,6 +18,9 @@
 
 #include "customsubs.bi"
 
+'Functions defined elsewhere
+DECLARE SUB write_session_info ()
+
 'Subs and functions only used here
 DECLARE SUB import_textboxes_warn (byref warn as string, s as string)
 DECLARE SUB seekscript (byref temp as integer, byval seekdir as integer, byval triggertype as integer)
@@ -4299,6 +4302,7 @@ SUB save_current_game (byval genDebugMode_override as integer=-1)
  rpg_sanity_checks
  '--lump data to SAVE rpg file
  dolumpfiles sourcerpg
+ write_session_info  'Update sourcerpg mtime and reset editing start time
  automatic_backup sourcerpg
 END SUB
 
