@@ -46,7 +46,7 @@ End Type
 #define SIG_ID(a,b,c,d) (asc(a) shl 24 + asc(b) shl 16 + asc(c) shl 8 + asc(d) shl 0)
 
 DECLARE Function GetVLQ(Byval track as MidiTrack ptr,ByRef p as integer) as integer
-DECLARE Function CreateEvent(t as UInteger, e as UByte, a as UByte, b as UByte) as MIDI_EVENT ptr
+DECLARE Function CreateMidiEvent(t as UInteger, e as UByte, a as UByte, b as UByte) as MIDI_EVENT ptr
 DECLARE Function MidiTracktoStream(track as Miditrack ptr) as MIDI_EVENT ptr
 DECLARE function readmidifile(mididata as midifile ptr, fp as FILE ptr) as integer
 DECLARE function CreateMIDIEventList(midifile as string, division as short ptr) as MIDI_EVENT ptr
@@ -72,7 +72,8 @@ end function
 
 ' /* Create a single MIDI_EVENT */
 
-Function CreateEvent(t as UInteger, e as UByte, a as UByte, b as UByte) as MIDI_EVENT ptr
+'(Originally called CreateEvent, which clashes with winapi)
+Function CreateMidiEvent(t as UInteger, e as UByte, a as UByte, b as UByte) as MIDI_EVENT ptr
 	dim newEvent as MIDI_EVENT ptr
 
 	newEvent = CAllocate(len(MIDI_EVENT))
@@ -102,7 +103,7 @@ Function MidiTracktoStream(track as Miditrack ptr) as MIDI_EVENT ptr
 
 
 	Dim as MIDI_EVENT ptr head, currentEvent
-	head = CreateEvent(0,0,0,0)
+	head = CreateMidiEvent(0,0,0,0)
 	currentEvent = head
 
 
@@ -145,7 +146,7 @@ Function MidiTracktoStream(track as Miditrack ptr) as MIDI_EVENT ptr
 '
 ' 			/* Create an event and attach the extra data, if any */
 
-			currentEvent->next = CreateEvent(atime, event, t, 0)
+			currentEvent->next = CreateMidiEvent(atime, event, t, 0)
  			currentEvent = currentEvent->next
 
  			if currentEvent = 0 then
@@ -177,7 +178,7 @@ Function MidiTracktoStream(track as Miditrack ptr) as MIDI_EVENT ptr
 			if (laststatus >= &H8 AND laststatus <= &HB) OR laststatus = &HE then
 				b = track->data[currentpos] AND &H7F
 				currentPos += 1
-				currentEvent->next = CreateEvent(atime, (laststatus shl 4) + lastchan, a, b)
+				currentEvent->next = CreateMidiEvent(atime, (laststatus shl 4) + lastchan, a, b)
 				currentEvent = currentEvent->next
 				if currentEvent = 0 then
 					FreeMidiEventList(head)
@@ -188,7 +189,7 @@ Function MidiTracktoStream(track as Miditrack ptr) as MIDI_EVENT ptr
 
 			if (laststatus >= &HC AND laststatus <= &HD) then
 				a = a AND &H7F
-				currentEvent->next = CreateEvent(atime, (laststatus shl 4) + lastchan, a, &HFF)
+				currentEvent->next = CreateMidiEvent(atime, (laststatus shl 4) + lastchan, a, &HFF)
 				currentEvent = currentEvent->next
 				if currentEvent = 0 then
 					FreeMidiEventList(head)
@@ -219,7 +220,7 @@ end function
 function MiditoStream(midiData as midifile ptr) as MIDI_EVENT ptr
 	dim as MIDI_EVENT ptr ptr track
 	dim as MIDI_EVENT ptr head, currentEvent
-	head = CreateEvent(0,0,0,0)
+	head = CreateMidiEvent(0,0,0,0)
 	currentEvent = head
 	dim trackID as integer
 

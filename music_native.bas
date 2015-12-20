@@ -136,7 +136,7 @@ Sub AddJumpToEnd(head as MIDI_EVENT ptr)
 		end if
 	loop
 
-	curevent->next = CreateEvent(&H0,0,0,0)
+	curevent->next = CreateMidiEvent(&H0,0,0,0)
 	if curevent->next = 0 then exit sub
 
 	curevent = curevent->next
