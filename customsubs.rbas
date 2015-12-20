@@ -4301,7 +4301,7 @@ SUB save_current_game (byval genDebugMode_override as integer=-1)
  '--verify various stuff
  rpg_sanity_checks
  '--lump data to SAVE rpg file
- dolumpfiles sourcerpg
+ write_rpg_or_rpgdir workingdir, sourcerpg
  write_session_info  'Update sourcerpg mtime and reset editing start time
  automatic_backup sourcerpg
 END SUB
@@ -4355,10 +4355,11 @@ SUB automatic_backup (rpgfile as string)
  v_free old 
 END SUB
 
-SUB dolumpfiles (filetolump as string)
+' Save all lumps in lumpsdir, except for *.tmp, as a lumped file or .rpgdir directory.
+SUB write_rpg_or_rpgdir (lumpsdir as string, filetolump as string)
  '--build the list of files to lump. We don't need hidden files
  DIM filelist() as string
- findfiles workingdir, ALLFILES, fileTypeFile, NO, filelist()
+ findfiles lumpsdir, ALLFILES, fileTypeFile, NO, filelist()
  fixlumporder filelist()
  IF isdir(filetolump) THEN
   '---copy changed files back to source rpgdir---
@@ -4368,7 +4369,7 @@ SUB dolumpfiles (filetolump as string)
   END IF
   FOR i as integer = 0 TO UBOUND(filelist)
    safekill filetolump + SLASH + filelist(i)
-   copyfile workingdir + SLASH + filelist(i), filetolump + SLASH + filelist(i)
+   copyfile lumpsdir + SLASH + filelist(i), filetolump + SLASH + filelist(i)
    'FIXME: move file instead? (warning: can't move from different mounted filesystem)
   NEXT
  ELSE
@@ -4376,7 +4377,7 @@ SUB dolumpfiles (filetolump as string)
   IF NOT fileiswriteable(filetolump) THEN
    move_unwriteable_rpg filetolump
   END IF
-  lumpfiles filelist(), filetolump, workingdir + SLASH
+  lumpfiles filelist(), filetolump, lumpsdir + SLASH
  END IF
 END SUB
 

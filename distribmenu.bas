@@ -542,7 +542,7 @@ FUNCTION copy_or_relump (src_rpg_or_rpgdir as string, dest_rpg as string) as int
  IF extension = "rpgdir" THEN
   basic_textbox "LUMPING DATA: please wait...", uilook(uiText), vpage
   setvispage vpage
-  dolumpfiles dest_rpg
+  write_rpg_or_rpgdir src_rpg_or_rpgdir, dest_rpg
   clearpage vpage
   IF NOT isfile(dest_rpg) THEN
    visible_debug "ERROR: failed relumping " & src_rpg_or_rpgdir

@@ -591,7 +591,7 @@ SUB prompt_for_save_and_quit()
   printstr "Saving as " & lumpfile, 0, 0, 0
   printstr "LUMPING DATA: please wait...", 0, 10, 0
   setvispage 0
-  dolumpfiles lumpfile
+  write_rpg_or_rpgdir workingdir, lumpfile
   cleanup_and_terminate
   EXIT SUB
  END IF 
@@ -1162,7 +1162,7 @@ FUNCTION newRPGfile (templatefile as string, newrpg as string) as bool
  printstr "Finalumping", 0, 80, vpage
  setvispage vpage 'refresh
  '--re-lump files as NEW rpg file
- dolumpfiles newrpg
+ write_rpg_or_rpgdir workingdir, newrpg
  RETURN YES
 END FUNCTION
 
@@ -1353,7 +1353,7 @@ FUNCTION recover_workingdir (sessinfo as SessionInfo) as bool
  printstr "LUMPING DATA: please wait...", 0, 190, vpage
  setvispage vpage
  '--re-lump recovered files as RPG file
- dolumpfiles destfile
+ write_rpg_or_rpgdir workingdir, destfile
  clearpage vpage
 
  DIM msg as string
