@@ -417,11 +417,11 @@ for k in music:
 
 if win32:
     base_modules += ['os_windows.bas', 'os_windows2.c']
-    libraries += ['fbgfx']
+    libraries += ['fbgfx', 'psapi']
     libpaths += ['win32']
     commonenv['FBFLAGS'] += ['-s','gui']
 elif mac:
-    base_modules += ['os_unix.c']
+    base_modules += ['os_unix.c', 'os_unix2.bas']
     common_modules += ['os_unix_wm.c']
     libraries += ['Cocoa']  # For CoreServices
     if 'sdl' in gfx:
@@ -432,10 +432,10 @@ elif mac:
         else:
             commonenv['CFLAGS'] += ["-I", "/Library/Frameworks/SDL.framework/Headers", "-I", FRAMEWORKS_PATH + "/SDL.framework/Headers"]
 elif android:
-    base_modules += ['os_unix.c']
+    base_modules += ['os_unix.c', 'os_unix2.bas']
     common_modules += ['os_unix_wm.c']
 elif unix:
-    base_modules += ['os_unix.c']
+    base_modules += ['os_unix.c', 'os_unix2.bas']
     common_modules += ['os_unix_wm.c']
     if gfx != ['console']:
         # All graphical gfx backends need the X11 libs

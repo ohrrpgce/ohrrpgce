@@ -3,6 +3,7 @@
 
 #include "config.bi"
 include_windows_bi()
+#include once "win/psapi.bi"
 '#include "win/shellapi.bi"
 '#include "win/objbase.bi"
 #include "os.bi"
@@ -599,6 +600,27 @@ end sub
 
 function get_process_id () as integer
 	return GetCurrentProcessId()
+end function
+
+'Returns full path to a process given its PID in device form, e.g.
+'\Device\HarddiskVolume1\OHRRPGCE\custom.exe
+'or "" if it doesn't exist or we don't have permission.
+function get_process_path (pid as integer) as string
+	dim proc as HANDLE
+	proc = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, pid)
+	if proc = NULL then
+		dim errcode as integer = GetLastError()
+		debug "get_process_path: open err " & errcode & " " & get_windows_error(errcode)
+		return ""
+	end if
+	dim ret as zstring * 256
+	'QueryFullProcessImageName, which returns a normal filename instead of device form, is Win Vista+.
+	if GetProcessImageFileNameA(proc, ret, 256) = 0 then
+		dim errcode as integer = GetLastError()
+		debug "get_process_path: query err " & errcode & " " & get_windows_error(errcode)
+	end if
+	CloseHandle(proc)
+	return ret
 end function
 
 
