@@ -5,7 +5,14 @@
 'Used by music_sdl, but could be used with other SDL libraries
 
 #include "config.bi"
+
+#ifdef __FB_WIN32__
+	'In FB >= 1.04 SDL.bi includes windows.bi; we have to include it first to do the necessary conflict prevention
+	include_windows_bi()
+#endif
+
 #include "SDL/SDL.bi"
+
 #include "lumpfile.bi"
 #include "lumpfilewrapper.bi"
 #include "vector.bi"

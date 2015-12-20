@@ -9,7 +9,17 @@
 #include "common.bi"
 #include "file.bi"
 'warning: due to a FB bug, overloaded functions must be declared before SDL.bi is included
-#undef uint32
+
+#ifdef __FB_WIN32__
+	'In FB >= 1.04 SDL.bi includes windows.bi; we have to include it first to do the necessary conflict prevention
+	include_windows_bi()
+#endif
+
+#ifdef __UNIX__
+	'In FB >= 1.04 SDL.bi includes Xlib.bi; fix a conflict
+	#undef font
+#endif
+
 #include "SDL\SDL.bi"
 #include "SDL\SDL_mixer.bi"
 
@@ -22,18 +32,22 @@ extern "C"
 
 declare function SDL_RWFromLump(byval lump as Lump ptr) as SDL_RWops ptr
 
-'FB's SDL_mixer header is ancient
-declare function Mix_LoadMUS_RW (byval rw as SDL_RWops ptr) as Mix_Music ptr
-
-'The following are only available in SDL_mixer > 1.2.8 which is the version shipped with
+'The decoder enum functions are only available in SDL_mixer > 1.2.8 which is the version shipped with
 'Debian and Ubuntu Linux. We distribute our own copy of SDL_mixer for Windows and Mac,
 'so we don't have to worry there.
 #ifndef __FB_LINUX__
-#define ENUMERATE_DECODERS
-declare function Mix_GetNumMusicDecoders () as Sint32
-declare function Mix_GetNumChunkDecoders () as Sint32
-declare function Mix_GetMusicDecoder (byval index as Sint32) as zstring ptr
-declare function Mix_GetChunkDecoder (byval index as Sint32) as zstring ptr
+	#define ENUMERATE_DECODERS
+#endif
+
+' Older FB have out of date SDL headers
+#if __FB_VERSION__ < "1.04"
+	declare function Mix_LoadMUS_RW (byval rw as SDL_RWops ptr) as Mix_Music ptr
+	#ifdef ENUMERATE_DECODERS
+		declare function Mix_GetNumMusicDecoders () as Sint32
+		declare function Mix_GetNumChunkDecoders () as Sint32
+		declare function Mix_GetMusicDecoder (byval index as Sint32) as zstring ptr
+		declare function Mix_GetChunkDecoder (byval index as Sint32) as zstring ptr
+	#endif
 #endif
 
 end extern
@@ -73,7 +87,7 @@ sub quit_sdl_audio()
 end sub
 
 function music_get_info() as string
-	dim ver as SDL_version ptr
+	dim ver as const SDL_version ptr
 	dim ret as string = "music_sdl"
 
 	if gfxbackend <> "sdl" then

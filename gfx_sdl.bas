@@ -11,16 +11,21 @@
 #include "common.bi"
 #include "scancodes.bi"
 '#define NEED_SDL_GETENV
-#undef uint32
-#include "SDL\SDL.bi"
-/'
-#ifdef __FB_WIN32__
-'to load the window from resource file
-include_windows_bi()
-#endif
-'/
 
-''' FB SDL headers are pretty out of date, even in FB 1.0
+#ifdef __FB_WIN32__
+	'In FB >= 1.04 SDL.bi includes windows.bi; we have to include it first to do the necessary conflict prevention
+	include_windows_bi()
+#endif
+
+#ifdef __UNIX__
+	'In FB >= 1.04 SDL.bi includes Xlib.bi; fix a conflict
+	#undef font
+#endif
+
+#include "SDL\SDL.bi"
+
+''' FB SDL headers were pretty out of date until FB 1.04, when they were replaced with completely new versions
+#if __FB_VERSION__ < "1.04"
 #undef SDL_VideoInfo
 type SDL_VideoInfo
 	hw_available:1 as Uint32
@@ -41,7 +46,7 @@ type SDL_VideoInfo
 	current_w as Sint32  ' Value: The current video mode width
 	current_h as Sint32  ' Value: The current video mode height
 end type
-
+#endif
 
 
 
@@ -110,8 +115,8 @@ DIM SHARED windowedmode as bool = YES
 DIM SHARED screen_width as integer = 0
 DIM SHARED screen_height as integer = 0
 DIM SHARED resizable as integer = NO
-DIM SHARED resizerequested as integer = NO
-DIM SHARED resizerequest as XYPair
+DIM SHARED resize_requested as integer = NO
+DIM SHARED resize_request as XYPair
 DIM SHARED waiting_for_resize as bool = NO
 DIM SHARED remember_windowtitle as STRING
 DIM SHARED rememmvis as integer = 1
@@ -306,7 +311,7 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
   putenv("SDL_VIDEO_ALLOW_SCREENSAVER=1")
 #endif
 
-  DIM ver as SDL_version ptr = SDL_Linked_Version()
+  DIM ver as const SDL_version ptr = SDL_Linked_Version()
   *info_buffer = MID("SDL " & ver->major & "." & ver->minor & "." & ver->patch, 1, info_buffer_size)
   IF SDL_WasInit(0) = 0 THEN
     IF SDL_Init(SDL_INIT_VIDEO OR SDL_INIT_JOYSTICK) THEN
@@ -321,7 +326,7 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
 
     'Get resolution of the screen, must be done before opening a window,
     'as after that this gives the size of the window instead.
-    DIM videoinfo as SDL_VideoInfo ptr = SDL_GetVideoInfo()
+    DIM videoinfo as const SDL_VideoInfo ptr = SDL_GetVideoInfo()
     IF videoinfo = NULL THEN
       debug "SDL_GetVideoInfo failed: " & *SDL_GetError()
     ELSE
@@ -646,9 +651,9 @@ FUNCTION gfx_sdl_set_resizable(byval enable as bool, min_width as integer, min_h
 END FUNCTION
 
 FUNCTION gfx_sdl_get_resize(byref ret as XYPair) as integer
-  IF resizerequested THEN
-    ret = resizerequest
-    resizerequested = NO
+  IF resize_requested THEN
+    ret = resize_request
+    resize_requested = NO
     RETURN YES
   END IF
   RETURN NO
@@ -829,7 +834,7 @@ SUB gfx_sdl_process_events()
 
   WHILE SDL_PeepEvents(@evnt, 1, SDL_GETEVENT, SDL_ALLEVENTS)
     SELECT CASE evnt.type
-      CASE SDL_EXIT
+      CASE SDL_QUIT_
         post_terminate_signal
       CASE SDL_KEYDOWN
         keycombos_logic(evnt)
@@ -851,7 +856,8 @@ SUB gfx_sdl_process_events()
       CASE SDL_MOUSEBUTTONDOWN
         'note SDL_GetMouseState is still used, while SDL_GetKeyState isn't
         mouseclicks OR= SDL_BUTTON(evnt.button.button)
-#IF __FB_VERSION__ < "0.91"
+'Warning: I don't know which one FB versions between 0.91 and 1.04 need
+#IF __FB_VERSION__ < "0.91" OR __FB_VERSION__ >= "1.04"
       CASE SDL_ACTIVEEVENT
 #ELSE
       CASE SDL_ACTIVEEVENT_
@@ -889,9 +895,9 @@ SUB gfx_sdl_process_events()
         END IF
         IF resizable THEN
           waiting_for_resize = YES  'This is more of a sanity check
-          resizerequested = YES
-          resizerequest.w = evnt.resize.w / zoom
-          resizerequest.h = evnt.resize.h / zoom
+          resize_requested = YES
+          resize_request.w = evnt.resize.w / zoom
+          resize_request.h = evnt.resize.h / zoom
           'Nothing happens until the engine calls gfx_get_resize,
           'changes its internal window size (windowsize) as a result,
           'and starts pushing Frames with the new size to gfx_showpage.
