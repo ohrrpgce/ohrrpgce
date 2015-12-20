@@ -1514,7 +1514,8 @@ FUNCTION makedir (directory as string) as integer
   RETURN 0
 END FUNCTION
 
-SUB safekill (filename as string)
+'True on success or didn't exist, false if couldn't delete
+FUNCTION safekill (filename as string) as bool
   DIM exists as bool = isfile(filename)
 #ifdef DEBUG_FILE_IO
   debuginfo "safekill(" & filename & ") exists = " & exists
@@ -1528,9 +1529,11 @@ SUB safekill (filename as string)
     'NOTE: on Windows, even if deletion fails because the file is open, the file will be marked
     'to be deleted once everyone closes it. Also, it will no longer be possible to open it.
     'On Unix, you can unlink a file even when someone else has it open.
+    RETURN NO
    END IF
   END IF
-END SUB
+  RETURN YES
+END FUNCTION
 
 'FIXME/NOTE: On Unix this can not move between different filesystems, so only use between "nearby" locations!
 'NOTE: An alternative function is os_shell_move 

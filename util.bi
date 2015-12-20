@@ -320,7 +320,7 @@ declare sub copyfiles (src as string, dest as string, byval copyhidden as intege
 declare function copydirectory (src as string, dest as string, byval copyhidden as integer = -1) as string
 declare sub killdir (directory as string, recurse as integer=0)
 declare function makedir (directory as string) as integer
-declare sub safekill (f as string)
+declare function safekill (filename as string) as bool
 declare function local_file_move(frompath as string, topath as string) as integer
 declare function fileisreadable(f as string) as integer
 declare function fileiswriteable(f as string) as integer
