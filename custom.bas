@@ -1172,20 +1172,25 @@ FUNCTION format_date(timeser as double) as string
 END FUNCTION
 
 ' Write workingdir/session_info.txt.tmp
+' Note: we assume that whenever this is called (and sourcerpg is set) that we are
+' loading or saving the game.
 SUB write_session_info ()
- DIM text(8) as string
+ DIM text(11) as string
  text(0) = version
  text(1) = get_process_path(get_process_id())  'May not match COMMAND(0)
  text(2) = "# Custom pid:"
  text(3) = STR(get_process_id())
- text(4) = "# Game path:"
+ text(4) = "# Editing start (load/save) time:"
+ text(5) = format_date(NOW)
+ text(6) = STR(NOW)
+ text(7) = "# Game path:"
  'sourcerpg may be blank if we're not yet editing a game
  IF LEN(sourcerpg) THEN
-  text(5) = absolute_path(sourcerpg)
-  text(6) = "# Last modified time of game:"
+  text(8) = absolute_path(sourcerpg)
+  text(9) = "# Last modified time of game:"
   DIM modified as double = FILEDATETIME(sourcerpg)
-  text(7) = format_date(modified)
-  text(8) = STR(modified)
+  text(10) = format_date(modified)
+  text(11) = STR(modified)
  END IF
  lines_to_file text(), workingdir + SLASH + "session_info.txt.tmp"
 END SUB
@@ -1200,12 +1205,16 @@ FUNCTION get_previous_session_info (workdir as string) as SessionInfo
   ret.info_file_exists = YES
   DIM text() as string
   lines_from_file text(), sessionfile
-  IF UBOUND(text) >= 5 ANDALSO LEN(text(5)) > 0 THEN
-   ret.session_start_time = FILEDATETIME(sessionfile)
-   ret.sourcerpg = text(5)
+  'The metadata file's mtime should be nearly the same, but in future maybe we will want to write it
+  'without saving the game.
+  'ret.session_start_time = FILEDATETIME(sessionfile)
+  ret.session_start_time = VAL(text(6))
+
+  IF UBOUND(text) >= 8 ANDALSO LEN(text(8)) > 0 THEN
+   ret.sourcerpg = text(8)
    IF isfile(ret.sourcerpg) THEN
     ret.sourcerpg_current_mtime = FILEDATETIME(ret.sourcerpg)
-    IF UBOUND(text) >= 8 THEN ret.sourcerpg_old_mtime = VAL(text(8))
+    IF UBOUND(text) >= 11 THEN ret.sourcerpg_old_mtime = VAL(text(11))
    END IF
   END IF
   ret.pid = VAL(text(3))
