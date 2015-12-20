@@ -47,7 +47,11 @@ DECLARE SUB reimport_previous_scripts ()
 
 ' Stores information about a previous or ongoing Custom editing session
 TYPE SessionInfo
- info_file_exists as bool          'session_info.txt.tmp exists
+ workingdir as string              'The directory containing this session's files
+ partial_rpg as bool               '__danger.tmp exists: is unlumping or deleting lumps
+ info_file_exists as bool          'session_info.txt.tmp exists. If not, everything in this UDT below this point is unknown.
+ pid as integer                    'Process ID or 0
+ running as bool                   'That process is still running
  sourcerpg as string               'May be blank
  'The following are represented as native FB DateSerials, not Unix mtimes. 0.0 means N/A
  sourcerpg_old_mtime as double     'mtime of the sourcerpg before it was opened
@@ -58,9 +62,10 @@ END TYPE
 
 DECLARE FUNCTION newRPGfile (templatefile as string, newrpg as string) as bool
 DECLARE FUNCTION makeworkingdir () as bool
-DECLARE FUNCTION handle_dirty_workingdir () as bool
+DECLARE FUNCTION empty_workingdir () as bool
+DECLARE FUNCTION handle_dirty_workingdir (sessinfo as SessionInfo) as bool
 DECLARE SUB write_session_info ()
-DECLARE FUNCTION get_previous_session_info () as SessionInfo
+DECLARE FUNCTION get_previous_session_info (workdir as string) as SessionInfo
 DECLARE SUB secret_menu ()
 DECLARE SUB condition_test_menu ()
 DECLARE SUB quad_transforms_menu ()
@@ -228,6 +233,7 @@ IF game = "" THEN
 END IF
 
 IF NOT is_absolute_path(sourcerpg) THEN sourcerpg = absolute_path(sourcerpg)
+write_session_info
 
 DIM dir_to_change_into as string = trimfilename(sourcerpg)
 
@@ -275,7 +281,6 @@ ELSE
  unlump sourcerpg, workingdir + SLASH
 END IF
 safekill workingdir + SLASH + "__danger.tmp"
-write_session_info
 
 'Perform additional checks for future rpg files or corruption
 rpg_sanity_checks
@@ -1168,7 +1173,7 @@ END FUNCTION
 SUB write_session_info ()
  DIM text(8) as string
  text(0) = version
- text(1) = COMMAND(0)  'exe path
+ text(1) = get_process_path(get_process_id())  'May not match COMMAND(0)
  text(2) = "# Custom pid:"
  text(3) = STR(get_process_id())
  text(4) = "# Game path:"
@@ -1184,10 +1189,11 @@ SUB write_session_info ()
 END SUB
 
 ' Collect data about a previous (or ongoing) editing session from a dirty working.tmp
-FUNCTION get_previous_session_info () as SessionInfo
+FUNCTION get_previous_session_info (workdir as string) as SessionInfo
  DIM ret as SessionInfo
  DIM sessionfile as string
- sessionfile = workingdir + SLASH + "session_info.txt.tmp"
+ sessionfile = workdir + SLASH + "session_info.txt.tmp"
+ ret.workingdir = workdir
  IF isfile(sessionfile) THEN
   ret.info_file_exists = YES
   DIM text() as string
@@ -1200,6 +1206,11 @@ FUNCTION get_previous_session_info () as SessionInfo
     IF UBOUND(text) >= 8 THEN ret.sourcerpg_old_mtime = VAL(text(8))
    END IF
   END IF
+  ret.pid = VAL(text(3))
+  DIM exe as string = text(1)
+  ' It's possible that this copy of Custom crashed and another copy was run with the same pid,
+  ' but it's incredibly unlikely
+  ret.running = (LEN(exe) ANDALSO get_process_path(ret.pid) = exe)
  ELSE
   'We don't know anything, except that we could work out session_start_time by looking at working.tmp mtimes.
  END IF
@@ -1207,14 +1218,20 @@ FUNCTION get_previous_session_info () as SessionInfo
  ' When was a lump last modified?
  ret.last_lump_mtime = 0
  DIM filelist() as string
- findfiles workingdir, ALLFILES, fileTypeFile, NO, filelist()
+ findfiles workdir, ALLFILES, fileTypeFile, NO, filelist()
  FOR i as integer = 0 TO UBOUND(filelist)
   IF RIGHT(filelist(i), 4) <> ".tmp" THEN
-   ret.last_lump_mtime = large(ret.last_lump_mtime, FILEDATETIME(workingdir + SLASH + filelist(i)))
+   ret.last_lump_mtime = large(ret.last_lump_mtime, FILEDATETIME(workdir + SLASH + filelist(i)))
   END IF
  NEXT
 
+ ret.partial_rpg = isfile(workdir + SLASH + "__danger.tmp")
+
+ debuginfo "prev_session.workingdir = " & ret.workingdir
  debuginfo "prev_session.info_file_exists = " & ret.info_file_exists
+ debuginfo "prev_session.pid = " & ret.pid
+ debuginfo "prev_session.running = " & ret.running
+ debuginfo "prev_session.partial_rpg = " & ret.partial_rpg
  debuginfo "prev_session.sourcerpg = " & ret.sourcerpg
  debuginfo "prev_session.sourcerpg_old_mtime = " & format_date(ret.sourcerpg_old_mtime)
  debuginfo "prev_session.sourcerpg_current_mtime = " & format_date(ret.sourcerpg_current_mtime)
@@ -1248,21 +1265,75 @@ FUNCTION makeworkingdir () as bool
   makedir workingdir
   RETURN YES
  ELSE
-  'Does this look like a game, or should we just delete it?
-  DIM filelist() as string
-  findfiles workingdir, ALLFILES, fileTypeFile, NO, filelist()
-  IF UBOUND(filelist) <= 5 THEN
-   'Just some stray files that refused to delete last time
-   RETURN empty_workingdir
+  DIM sessinfo as SessionInfo = get_previous_session_info(workingdir)
+
+  IF sessinfo.info_file_exists THEN
+   IF sessinfo.running THEN
+    pop_warning "Another copy of " + CUSTOMEXE + " is already running in the background (pid = " & sessinfo.pid & "). " _
+                "You can only run one copy at once."
+    RETURN NO
+   END IF
+   debuginfo "Found workingtmp for crashed Custom"
+
+   IF sessinfo.partial_rpg THEN
+    debuginfo "...crashed while unlumping/deleting temp files"
+    ' In either case, safe to delete files.
+    RETURN empty_workingdir()
+   END IF
+
   END IF
 
-  'Recover from an old crash
-  RETURN handle_dirty_workingdir
+  ' Does this look like a game, or should we just delete it?
+  IF NOT sessinfo.partial_rpg THEN
+   DIM filelist() as string
+   findfiles workingdir, ALLFILES, fileTypeFile, NO, filelist()
+
+   IF UBOUND(filelist) <= 5 THEN
+    'Just some stray files that refused to delete last time,
+    'or possibly an old copy of Custom running but no game opened yet no way to handle that
+    RETURN empty_workingdir()
+   END IF
+  END IF
+
+  'Auto-handling failed, ask user what to do
+  RETURN handle_dirty_workingdir(sessinfo)
  END IF
 END FUNCTION
 
+'Called when a partial or complete copy of a game exists
 'Returns true on success, false if want to cleanup_and_terminate
-FUNCTION handle_dirty_workingdir () as integer
+FUNCTION handle_dirty_workingdir (sessinfo as SessionInfo) as bool
+
+ IF isfile(workingdir + SLASH + "__danger.tmp") THEN
+  ' Don't provide option to recover, as this looks like garbage.
+  ' If we've reached this point, then already checked whether it's a modern Custom
+  ' However, maybe another copy of custom is busy unlumping a big game, so ask before deleting.
+  DIM choice as integer
+  choice = twochoice("Found a partial temporary copy of a game.\n" _
+                     "It looks like an old version of " + CUSTOMEXE + " was in the process of " _
+                     "either unlumping a game or deleting its temporary files. " _
+                     "It might have crashed, or still be running. What do you want to do?", _
+                     "Do nothing and quit (still running)", _
+                     "Erase temporary files (crashed)", _
+                     0, 0)
+  IF choice = 0 THEN
+   nocleanup = YES
+   RETURN NO
+  ELSE
+   RETURN empty_workingdir()
+  END IF
+ END IF
+
+ DIM msg as string
+ IF sessinfo.info_file_exists THEN
+  ' We already checked not still running
+  msg = CUSTOMEXE + " crashed last time you ran it, but its temporary unlumped copy of the game still exists."
+ ELSE
+  msg = !"An unknown game was found unlumped.\n" _
+        "It appears that an old version of " + CUSTOMEXE + " is either already running, " _
+        "or it has crashed."
+ END IF
+
  DIM cleanup_menu(2) as string
  cleanup_menu(0) = "DO NOTHING"
  cleanup_menu(1) = "RECOVER IT"
@@ -1287,38 +1358,27 @@ FUNCTION handle_dirty_workingdir () as integer
   usemenu state
   IF enter_space_click(state) THEN
    IF state.pt = 1 THEN
-    IF isfile(workingdir + SLASH + "__danger.tmp") THEN
-     textcolor uilook(uiSelectedItem), uilook(uiHighlight) 'FIXME: new uilook for warning text colors?
-     printstr "Data is corrupt, not safe to relump", 0, 100, vpage
-     setvispage vpage
-     waitforanykey
-    ELSE '---END UNSAFE
-     printstr "Saving as " + destfile, 0, 180, vpage
-     printstr "LUMPING DATA: please wait...", 0, 190, vpage
-     setvispage vpage
-     '--re-lump recovered files as BAK file
-     dolumpfiles destfile
-     clearpage vpage
-     basic_textbox "The recovered data has been saved. If " + CUSTOMEXE + " crashed last time you " _
-                   "ran it and you lost work, you may be able to recover it. Make a backup " _
-                   "copy of your RPG and then rename " + destfile + !" to gamename.rpg\n" _
-                   "If you have questions, ask ohrrpgce-crash@HamsterRepublic.com", _
-                   uilook(uiText), vpage
-     setvispage vpage
-     waitforanykey
-     empty_workingdir
-     RETURN YES  'continue
-    END IF '---END RELUMP
+    printstr "Saving as " + destfile, 0, 180, vpage
+    printstr "LUMPING DATA: please wait...", 0, 190, vpage
+    setvispage vpage
+    '--re-lump recovered files as RPG file
+    dolumpfiles destfile
+    clearpage vpage
+    basic_textbox "The recovered data has been saved to " + destfile + !"\nIf " + CUSTOMEXE + " crashed last time you " _
+                  "ran it and you lost work, you may be able to recover it. Make a backup " _
+                  "copy of your RPG and then rename " + destfile + !" to gamename.rpg\n" _
+                  "If you have questions, ask ohrrpgce-crash@HamsterRepublic.com", _
+                  uilook(uiText), vpage
+    setvispage vpage
+    waitforanykey
+    RETURN empty_workingdir()  'continue
    END IF
-   IF state.pt = 2 THEN empty_workingdir : RETURN YES  'continue
+   IF state.pt = 2 THEN RETURN empty_workingdir()  'continue
    IF state.pt = 0 THEN nocleanup = YES : RETURN NO  'quit
   END IF
 
   clearpage dpage
-  basic_textbox !"A game was found unlumped.\n" _
-                 "This may mean that " + CUSTOMEXE + " crashed last time you used it, or it may mean " _
-                 "that another copy of " + CUSTOMEXE + " is already running in the background.", _
-                 uilook(uiText), dpage
+  basic_textbox msg, uilook(uiText), dpage
   standardmenu cleanup_menu(), state, 16, 150, dpage
 
   SWAP vpage, dpage
