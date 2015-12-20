@@ -261,14 +261,32 @@ if CXX:
     env['ENV']['CXX'] = CXX
     env.Replace (CXX = CXX)
 
+# Find fbc and get fbcinfo fbcversion
+fbc_binary = fbc
+if not os.path.isfile (fbc_binary):
+    fbc_binary = env.WhereIs (fbc)
+if not fbc_binary:
+    raise Exception("FreeBasic compiler is not installed!")
+fbc_path = os.path.dirname(os.path.realpath(fbc_binary))
+#print "fbc = " + fbc_path
+# Newer versions of fbc (1.0+) print e.g. "FreeBASIC Compiler - Version $VER ($DATECODE), built for linux-x86 (32bit)"
+# older versions printed "FreeBASIC Compiler - Version $VER ($DATECODE) for linux"
+# older still printed "FreeBASIC Compiler - Version $VER ($DATECODE) for linux (target:linux)"
+fbcinfo = get_run_command(fbc_binary + " -version")
+fbcversion = re.findall("Version ([0-9.]*)", fbcinfo)[0]
+# Convert e.g. 1.04.1 into 1041
+fbcversion = int(fbcversion.replace('.', ''))
+#print "fbc version", fbcversion
+
+# FB 0.91 added a multithreaded version of libfbgfx
+if fbcversion >= 910:
+    libfbgfx = 'fbgfxmt'
+else:
+    libfbgfx = 'fbgfx'
+
 if linkgcc:
-    fbc_binary = fbc
-    if not os.path.isfile (fbc_binary):
-        fbc_binary = env.WhereIs (fbc)
-    if not fbc_binary:
-        raise Exception("FreeBasic compiler is not installed!")
-    fbc_path = os.path.dirname(os.path.realpath(fbc_binary))
-    #print "fbc = " + fbc_path
+    # Link using g++ instead of fbc; this makes it easy to link correct C++ libraries, but harder to link FB
+
     # target should be the OS code, with the arch?
     # Looks like the code below doesn't care, as long as it finds the right directory
     if win32:
@@ -281,11 +299,6 @@ if linkgcc:
             raise Exception("This GCC doesn't target arm-linux-androideabi. You need to set CC, CXX, AS environmental variables correctly to crosscompile to Android")
         target += '-freebasic'
     else:
-        # Newer versions of fbc (1.0+) print e.g. "Version $VER ($DATECODE), built for linux-x86 (32bit)"
-        # older versions printed "Version $VER ($DATECODE) for linux"
-        # older still printed "Version $VER ($DATECODE) for linux (target:linux)"
-        # In all cases seems to be
-        fbcinfo = get_run_command(fbc_binary + " -version")
         target = re.findall("target:([a-z]*)", fbcinfo)
         if len(target) == 0:
             # Omit the arch
@@ -294,6 +307,7 @@ if linkgcc:
                 raise Exception("Couldn't determine fbc target")
                 # Or just default to the current platform
         target = target[0]
+    print "Using fbc", fbc_binary, " version:", fbcversion, " target:", target, " arch:", arch
 
     fblibpaths = [[fbc_path, 'lib'],
                   [fbc_path, '..', 'lib'],
@@ -381,7 +395,7 @@ libpaths = []
 
 ### gfx and music backend dependencies
 
-gfx_map = {'fb': {'shared_modules': 'gfx_fb.bas', 'libraries': 'fbgfx fbmt'},
+gfx_map = {'fb': {'shared_modules': 'gfx_fb.bas', 'libraries': libfbgfx},
            'alleg' : {'shared_modules': 'gfx_alleg.bas', 'libraries': 'alleg'},
            'sdl' : {'shared_modules': 'gfx_sdl.bas', 'libraries': 'SDL'},
            'console' : {'shared_modules': 'gfx_console.bas', 'common_modules': 'curses_wrap.c'}, # probably also need to link pdcurses on windows, untested
@@ -417,7 +431,7 @@ for k in music:
 
 if win32:
     base_modules += ['os_windows.bas', 'os_windows2.c']
-    libraries += ['fbgfx', 'psapi']
+    libraries += [libfbgfx, 'psapi']
     libpaths += ['win32']
     commonenv['FBFLAGS'] += ['-s','gui']
 elif mac:
