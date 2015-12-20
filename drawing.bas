@@ -2600,6 +2600,8 @@ FUNCTION spriteedit_import16_cut_frames(byref ss as SpriteEditState, impsprite a
 
  'unlock_resolution 320, 200   'Minimum window size
 
+ DIM flattened_set as Frame ptr
+
  WITH sprite_sizes(ss.fileset)
   DIM frames_per_dir as integer = .frames \ .directions
 
@@ -2697,8 +2699,7 @@ FUNCTION spriteedit_import16_cut_frames(byref ss as SpriteEditState, impsprite a
    dowait
   LOOP
 
-  ' Cut out the frames and place in a new one DIM flattened_set as Frame ptr
-  DIM flattened_set as Frame ptr
+  ' Cut out the frames and place in a new one
   flattened_set = frame_new(ss.wide, ss.high)
   frame_clear flattened_set, bgcol
 

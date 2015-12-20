@@ -319,6 +319,7 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
  
  'If not 'no damage'
  IF attack.damage_math <> 4 THEN
+  DIM target_is_register as bool = NO
  
   'init
   WITH target
@@ -332,7 +333,6 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
    IF attack.obsolete_damage_mp THEN
     IF targstat = statHP THEN targstat = statMP
    END IF
-   DIM target_is_register as bool = NO
    IF targstat > statLast AND targstat <= statLastRegister THEN target_is_register = YES
   END WITH
  
