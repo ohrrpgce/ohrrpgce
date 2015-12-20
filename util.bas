@@ -585,7 +585,7 @@ Function wordwrap(z as string, byval wid as integer, sep as string = chr(10)) as
  
  dim as integer i, j
  do
-  'Need to add a separator? Look up to one character past end of line
+  'Need to add a separator? See if there's one already. Look up to one character past end of line
   for i = 1 to small(wid + 1, len(in))
    if mid(in, i, 1) = sep then
     ret &= left(in, i - 1) & sep
@@ -600,8 +600,9 @@ Function wordwrap(z as string, byval wid as integer, sep as string = chr(10)) as
    in = ""
    exit do
   end if
-  
-  for j = i - 1 to 1 step -1
+
+  'Look for the last space in the second half of the line (ugly to wrap near the beginning of the line)
+  for j = i - 1 to wid \ 2 step -1
    if mid(in, j, 1) = " " then
     'bingo! (separator overwrites the space)
     ret &= left(in, j - 1) & sep
@@ -609,10 +610,10 @@ Function wordwrap(z as string, byval wid as integer, sep as string = chr(10)) as
     continue do
    end if
   next
-  if j = 0 then 'words too long, we need to cut it off
-   ret &= left(in, wid) & sep
-   in = mid(in, wid + 1)
-  end if
+
+  'No space found; the last word's too long, we need to cut it off
+  ret &= left(in, wid) & sep
+  in = mid(in, wid + 1)
  loop while in <> ""
 
  return ret
