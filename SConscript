@@ -13,6 +13,9 @@ import re
 from ohrbuild import basfile_scan, verprint, android_source_actions, get_command_output
 
 FBFLAGS = ['-mt']
+verbose = int (ARGUMENTS.get ('v', False))
+if verbose:
+    FBFLAGS += ['-v']
 if 'FBFLAGS' in os.environ:
     FBFLAGS += shlex.split (os.environ['FBFLAGS'])
 #CC and CXX are probably not needed anymore
@@ -268,7 +271,6 @@ if not os.path.isfile (fbc_binary):
 if not fbc_binary:
     raise Exception("FreeBasic compiler is not installed!")
 fbc_path = os.path.dirname(os.path.realpath(fbc_binary))
-#print "fbc = " + fbc_path
 # Newer versions of fbc (1.0+) print e.g. "FreeBASIC Compiler - Version $VER ($DATECODE), built for linux-x86 (32bit)"
 # older versions printed "FreeBASIC Compiler - Version $VER ($DATECODE) for linux"
 # older still printed "FreeBASIC Compiler - Version $VER ($DATECODE) for linux (target:linux)"
@@ -276,7 +278,8 @@ fbcinfo = get_command_output(fbc_binary, "-version")
 fbcversion = re.findall("Version ([0-9.]*)", fbcinfo)[0]
 # Convert e.g. 1.04.1 into 1041
 fbcversion = int(fbcversion.replace('.', ''))
-#print "fbc version", fbcversion
+if verbose:
+    print "Using fbc", fbc_binary, " version:", fbcversion, " arch:", arch
 
 # FB 0.91 added a multithreaded version of libfbgfx
 if fbcversion >= 910:
@@ -307,7 +310,8 @@ if linkgcc:
                 raise Exception("Couldn't determine fbc target")
                 # Or just default to the current platform
         target = target[0]
-    print "Using fbc", fbc_binary, " version:", fbcversion, " target:", target, " arch:", arch
+    if verbose:
+        print "linkgcc: target =", target
 
     fblibpaths = [[fbc_path, 'lib'],
                   [fbc_path, '..', 'lib'],
@@ -336,6 +340,8 @@ if linkgcc:
     # Passing this -L option straight to the linker is necessary, otherwise gcc gives it
     # priority over the default library paths, which on Windows means using FB's old mingw libraries
     env['CXXLINKFLAGS'] += ['-Wl,-L' + libpath, os.path.join(libpath, 'fbrt0.o'), '-lfbmt']
+    if verbose:
+        env['CXXLINKFLAGS'] += ['-v']
     if GCC_strip:
         # Strip debug info but leave in the function (and unwanted global) symbols.
         env['CXXLINKFLAGS'] += ['-Wl,-S']
@@ -714,6 +720,7 @@ Options:
   macsdk=version      Target a previous version of Mac OS X, eg. 10.4
                       You will need the relevant SDK installed, and need to use a
                       copy of FB built against that SDK.
+  v=1                 Be verbose.
 
 Experimental options:
   gengcc=1            Compile using GCC emitter.
