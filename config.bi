@@ -163,17 +163,21 @@ TYPE fb_uinteger as uinteger
 ' after an 'unclean' include.
 
 #MACRO use_native_integer()
-# UNDEF integer
-# UNDEF uinteger
-  TYPE integer as fb_integer
-  TYPE uinteger as fb_uinteger
+# IFDEF __FB_64BIT__
+#  UNDEF integer
+#  UNDEF uinteger
+   TYPE integer as fb_integer
+   TYPE uinteger as fb_uinteger
+# ENDIF
 #ENDMACRO
 
 #MACRO use_32bit_integer()
-# UNDEF integer
-# UNDEF uinteger
-  TYPE integer as int32
-  TYPE uinteger as uint32
+# IFDEF __FB_64BIT__
+#  UNDEF integer
+#  UNDEF uinteger
+   TYPE integer as int32
+   TYPE uinteger as uint32
+# ENDIF
 #ENDMACRO
 
 'included only for $inclib?
