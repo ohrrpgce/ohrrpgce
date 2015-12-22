@@ -18,10 +18,6 @@ if verbose:
     FBFLAGS += ['-v']
 if 'FBFLAGS' in os.environ:
     FBFLAGS += shlex.split (os.environ['FBFLAGS'])
-#CC and CXX are probably not needed anymore
-CC = os.environ.get ('CC')
-CXX = os.environ.get ('CXX')
-AS = os.environ.get ('AS')
 fbc = ARGUMENTS.get ('fbc','fbc')
 fbc = os.path.expanduser (fbc)  # expand ~
 # Use gnu99 dialect instead of c99. c99 causes GCC to define __STRICT_ANSI__
@@ -140,6 +136,7 @@ if int (ARGUMENTS.get ('gengcc', 0)):
         FBFLAGS += ["-gen", "gcc", "-Wc", "-m32"]
 
 # Backend selection.
+# Defaults:
 if mac:
     gfx = 'sdl'
 elif android:
@@ -154,6 +151,12 @@ gfx = [g.lower () for g in gfx]
 music = ARGUMENTS.get ('music', os.environ.get ('OHRMUSIC','sdl'))
 music = [music.lower ()]
 
+
+################ Create base environment
+
+#CXXLINKFLAGS are used when linking with g++
+#FBLINKFLAGS are used when linking with fbc
+
 env = Environment (FBFLAGS = FBFLAGS,
                    FBLINKFLAGS = [],
                    CFLAGS = CFLAGS,
@@ -164,15 +167,29 @@ env = Environment (FBFLAGS = FBFLAGS,
                    **envextra)
 
 # Shocked that scons doesn't provide $HOME
-# $DISPLAY is need for both gfx_sdl and gfx_fb
-for var in 'PATH', 'DISPLAY', 'HOME', 'EUDIR':
+# $DISPLAY is need for both gfx_sdl and gfx_fb (when running tests)
+for var in 'PATH', 'DISPLAY', 'HOME', 'EUDIR', 'AS', 'CC', 'CXX':
     if var in os.environ:
         env['ENV'][var] = os.environ[var]
+
+#CC and CXX are probably not needed anymore
+AS = os.environ.get ('AS')
+CC = os.environ.get ('CC')
+CXX = os.environ.get ('CXX')
+if CC:
+    env['ENV']['GCC'] = CC  # fbc only checks GCC variable, not CC
+    env.Replace (CC = CC)
+if CXX:
+    env.Replace (CXX = CXX)
+
+
+################ OS-specific environment stuff
 
 if win32:
     env['FBLINKFLAGS'] += ['-p', 'win32']
     env['CXXLINKFLAGS'] += ['-L', 'win32']
 
+    # Create environment for compiling gfx_directx.dll
     w32_env = Environment ()
     w32_env['ENV']['PATH'] = os.environ['PATH']
     if "Include" in os.environ:
@@ -204,6 +221,8 @@ if android:
     # liblog for __android_log_print/write
     env['FBLINKFLAGS'] += ['-l', 'log']
     env['CXXLINKFLAGS'] += ['-llog']
+
+################ Define Builders and Scanners for FreeBASIC and ReloadBasic
 
 def prefix_targets(target, source, env):
     target = [File(env['VAR_PREFIX'] + str(a)) for a in target]
@@ -252,19 +271,9 @@ env.Append (BUILDERS = {'BASEXE':basexe, 'BASO':baso, 'BASMAINO':basmaino, 'VARI
                         'RB':rbasic_builder, 'RC':rc_builder, 'ASM':basasm},
             SCANNERS = bas_scanner)
 
-if AS:
-    env['ENV']['AS'] = AS
 
-if CC:
-    env['ENV']['CC'] = CC
-    env['ENV']['GCC'] = CC  # fbc only checks GCC variable, not CC
-    env.Replace (CC = CC)
+################ Find fbc and get fbcinfo fbcversion
 
-if CXX:
-    env['ENV']['CXX'] = CXX
-    env.Replace (CXX = CXX)
-
-# Find fbc and get fbcinfo fbcversion
 fbc_binary = fbc
 if not os.path.isfile (fbc_binary):
     fbc_binary = env.WhereIs (fbc)
@@ -286,6 +295,9 @@ if fbcversion >= 910:
     libfbgfx = 'fbgfxmt'
 else:
     libfbgfx = 'fbgfx'
+
+
+################ A bunch of stuff for linking
 
 if linkgcc:
     # Link using g++ instead of fbc; this makes it easy to link correct C++ libraries, but harder to link FB
@@ -435,6 +447,9 @@ for k in music:
     for k2, v2 in music_map[k].items ():
         globals()[k2] += v2.split (' ')
 
+
+################ OS-specific modules and libraries
+
 if win32:
     base_modules += ['os_windows.bas', 'os_windows2.c']
     libraries += [libfbgfx, 'psapi']
@@ -454,7 +469,7 @@ elif mac:
 elif android:
     base_modules += ['os_unix.c', 'os_unix2.bas']
     common_modules += ['os_unix_wm.c']
-elif unix:
+elif unix:  # Linux & BSD
     base_modules += ['os_unix.c', 'os_unix2.bas']
     common_modules += ['os_unix_wm.c']
     if gfx != ['console']:
@@ -462,8 +477,6 @@ elif unix:
         libraries += 'X11 Xext Xpm Xrandr Xrender'.split (' ')
     commonenv['FBFLAGS'] += ['-d', 'DATAFILES=\'"/usr/share/games/ohrrpgce"\'']
 
-#CXXLINKFLAGS are used when linking with g++
-#FBLINKFLAGS are used when linking with fbc
 
 for lib in libraries:
     if mac and lib in ('SDL', 'SDL_mixer', 'Cocoa'):
@@ -478,16 +491,31 @@ commonenv['CXXLINKFLAGS'] += ['-L' + path for path in libpaths]
 commonenv['FBLINKFLAGS'] += Flatten ([['-p', v] for v in libpaths])
 
 
-# first, make sure the version is saved.
+################ Generate build & version info files, before anything else.
 
-# always do verprinting, before anything else.
 builddir = Dir('.').abspath + os.path.sep
 rootdir = Dir('#').abspath + os.path.sep
 verprint (gfx, music, 'svn', 'git', fbc, builddir, rootdir)
 
 
-base_modules += ['util.bas', 'blit.c', 'base64.c', 'unicode.c', 'array.c', 'miscc.c', 'vector.bas']
+################ Modules
 
+# The following are linked into all executables, except miditest.
+base_modules +=   ['util.bas',
+                   'blit.c',
+                   'base64.c',
+                   'unicode.c',
+                   'array.c',
+                   'miscc.c',
+                   'vector.bas']
+
+# Modules shared by the reload utilities, additional to base_modules
+reload_modules =  ['reload.bas',
+                   'reloadext.bas',
+                   'lumpfile.bas']
+
+# The following are built twice, for Game and Custom, so may use #ifdef to change behaviour
+# (.bas files only) 
 shared_modules += ['allmodex',
                    'backends',
                    'lumpfile',
@@ -503,6 +531,7 @@ shared_modules += ['allmodex',
                    'sliceedit',
                    'slices']
 
+# (.bas files only) 
 edit_modules = ['custom',
                 'customsubs.rbas',
                 'drawing',
@@ -516,6 +545,7 @@ edit_modules = ['custom',
                 'editrunner',
                 'distribmenu']
 
+# (.bas files only) 
 game_modules = ['game',
                 'bmod.rbas',
                 'bmodsubs',
@@ -530,7 +560,11 @@ game_modules = ['game',
                 'purchase.rbas',
                 'plankmenu.bas']
 
-common_modules += ['filelayer.cpp', 'rasterizer.cpp', 'matrixMath.cpp', 'gfx_newRenderPlan.cpp']
+# The following are built only once and linked into Game and Custom
+common_modules += ['filelayer.cpp',
+                   'rasterizer.cpp',
+                   'matrixMath.cpp',
+                   'gfx_newRenderPlan.cpp']
 
 if linkgcc:
     if win32:
@@ -541,7 +575,7 @@ else:
 
 # Note that base_objects are not built in commonenv!
 base_objects = Flatten([env.Object(a) for a in base_modules])  # concatenate NodeLists
-common_objects = base_objects + sum ([commonenv.Object(a) for a in common_modules], [])
+common_objects = base_objects + Flatten ([commonenv.Object(a) for a in common_modules])
 # Plus unique module included by utilities but not Game or Custom
 base_objects.extend (env.Object ('common_base.bas'))
 
@@ -565,18 +599,14 @@ for item in shared_modules:
     editsrc.extend (editenv.VARIANT_BASO (item))
 
 # For reload utilities
-reload_objects = base_objects + sum ([env.BASO (item) for item in ['reload', 'reloadext', 'lumpfile']], [])
+reload_objects = base_objects + Flatten ([env.Object(a) for a in reload_modules])
 
+# For utiltest
 base_objects_without_util = [a for a in base_objects if str(a) != 'util.o']
 
 
 ################ Executable definitions
-# Executables are explicitly placed in rootdir, otherwise they go in build/
-
-gamename = 'ohrrpgce-game'
-editname = 'ohrrpgce-custom'
-gameflags = list (gameenv['FBFLAGS']) #+ ['-v']
-editflags = list (editenv['FBFLAGS']) #+ ['-v']
+# Executables are explicitly placed in rootdir, otherwise they would go in build/
 
 if win32:
     gamename = 'game'
@@ -588,15 +618,17 @@ if win32:
     else:
         gamesrc += ['gicon.rc']
         editsrc += ['cicon.rc']
-
+else:
+    gamename = 'ohrrpgce-game'
+    editname = 'ohrrpgce-custom'
 
 def env_exe(name, **kwargs):
     ret = env.BASEXE (rootdir + name, **kwargs)
     Alias (name, ret)
     return ret
 
-GAME = gameenv.BASEXE   (rootdir + gamename, source = gamesrc, FBFLAGS = gameflags)
-CUSTOM = editenv.BASEXE (rootdir + editname, source = editsrc, FBFLAGS = editflags)
+GAME = gameenv.BASEXE   (rootdir + gamename, source = gamesrc)
+CUSTOM = editenv.BASEXE (rootdir + editname, source = editsrc)
 GAME = GAME[0]  # first element of NodeList is the executable
 CUSTOM = CUSTOM[0]
 env_exe ('bam2mid')
@@ -705,7 +737,7 @@ Options:
   debug=0|1|2|3       Debug level:
                                   -exx |  debug info  | optimisation
                                  ------+--------------+--------------
-                       debug=0:    no  | symbols only |    yes
+                       debug=0:    no  | symbols only |    yes   <--Releases
                        debug=1:    no  |     yes      |    yes
                        debug=2:    yes |     yes      |    yes   <--Default
                        debug=3:    yes |     yes      |    no
@@ -728,6 +760,15 @@ Experimental options:
   android=1           Compile for android. Commandline programs only.
   android-source=1    Used as part of the Android build process for Game/Custom.
   glibc=1             Enable memory_usage function
+
+The following environmental variables are also important:
+  FBFLAGS             Pass more flags to fbc
+  fbc                 Override FB compiler
+  AS, CC, CXX         Override assembler/compiler. Should be set when crosscompiling
+  OHRGFX, OHRMUSIC    Specify default gfx, music backends
+  DXSDK_DIR, Lib,
+     Include          For compiling gfx_directx.dll
+  EUDIR               Needed by Euphoria? (when compiling hspeak)
 
 Targets:
   """ + gamename + """ (or game)
