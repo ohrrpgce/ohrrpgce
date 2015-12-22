@@ -34,7 +34,11 @@ unix = False
 mac = False
 android = False
 android_source = False
-arch = 'x86'
+arch = ARGUMENTS.get ('arch', 'x86')
+if arch == '32':
+    arch = 'x86'
+if arch in ('x64', '64'):
+    arch = 'x86_64'
 exe_suffix = ''
 if platform.system () == 'Windows':
     win32 = True
@@ -62,7 +66,7 @@ if android:
     arch = 'armeabi'
 
 if int (ARGUMENTS.get ('asm', False)):
-    FBFLAGS += ["-r", "-g"]
+    FBFLAGS += ["-R", "-g"]
 
 if int (ARGUMENTS.get ('glibc', False)):
     # No need to bother automatically checking for glibc
@@ -73,7 +77,7 @@ debug = 2  # Default to happy medium
 if 'debug' in ARGUMENTS:
     debug = int (ARGUMENTS['debug'])
 optimisations = (debug < 3)    # compile with C/C++/FB optimisations?
-FB_exx = (debug >= 2)     # compile with -exx?
+FB_exx = (debug in (2,3))     # compile with -exx?
 FB_g = (debug >= 1)       # compile with -g?
 # Note: fbc includes symbols (but not debug info) in .o files even without -g,
 # but strips everything if -g not passed during linking; with linkgcc we need to strip.
@@ -102,12 +106,16 @@ if optimisations:
     FBFLAGS += ["-O", "2"]
 if int (ARGUMENTS.get ('gengcc', 0)):
     # Due to FB bug #661, need to pass -m32 to gcc manually (although recent versions of FB do pass it?)
+    if '64' in arch:
+        archflag = '-m64'
+    else:
+        archflag = '-m32'
     if profile or debug >= 1:
         # -O2 plus profiling crashes for me due to mandatory frame pointers being omitted.
         # Also keep frame pointers unless explicit debug=0
-        FBFLAGS += ["-gen", "gcc", "-Wc", "-m32,-fno-omit-frame-pointer"]
+        FBFLAGS += ["-gen", "gcc", "-Wc", archflag + ",-fno-omit-frame-pointer"]
     else:
-        FBFLAGS += ["-gen", "gcc", "-Wc", "-m32"]
+        FBFLAGS += ["-gen", "gcc", "-Wc", archflag]
 
 # Backend selection.
 # Defaults:
@@ -182,10 +190,12 @@ basmaino = Builder (action = '$FBC -c $SOURCE -o $TARGET -m ${SOURCE.filebase} $
                     suffix = '.o', src_suffix = '.bas', single_source = True,
                     source_factory = translate_rb)
 basexe = Builder (action = '$FBC $FBFLAGS -x $TARGET $SOURCES $FBLINKFLAGS',
-                  suffix = exe_suffix, src_suffix = '.bas')
+                  suffix = exe_suffix, src_suffix = '.bas', source_factory = translate_rb)
 
+# Not used; use asm=1
 basasm = Builder (action = '$FBC -c $SOURCE -o $TARGET $FBFLAGS -r -g',
-                suffix = '.asm', src_suffix = '.bas', single_source = True)
+                suffix = '.asm', src_suffix = '.bas', single_source = True,
+                emitter = prefix_targets, source_factory = translate_rb)
 
 # Surely there's a simpler way to do this
 def depend_on_reloadbasic_py(target, source, env):
@@ -769,13 +779,14 @@ Options:
                        debug=1:    no  |     yes      |    yes
                        debug=2:    yes |     yes      |    yes   <--Default
                        debug=3:    yes |     yes      |    no
+                       debug=4:    no  |     yes      |    no
                       -exx builds have array, pointer and file error checking
-                      (they abort immediately on errors!), and are slow.
+                      (they abort immediately on errors!), are slow, and
+                      produce huge numbers of phony compile warnings if gengcc=1.
   valgrind=1          Recommended when using valgrind (also turns off -exx).
   profile=1           Profiling build for gprof.
   scriptprofile=1     Script profiling build: track time in interpreter.
-  asm=1               Produce .asm or .c files instead of compiling
-                      (Still tries to assemble and link, ignore those errors)
+  asm=1               Produce .asm or .c files in build/ while compiling.
   fbc=PATH            Point to a different version of fbc.
   macsdk=version      Target a previous version of Mac OS X, eg. 10.4
                       You will need the relevant SDK installed, and need to use a
@@ -788,6 +799,7 @@ Experimental options:
   android=1           Compile for android. Commandline programs only.
   android-source=1    Used as part of the Android build process for Game/Custom.
   glibc=1             Enable memory_usage function
+  arch=64             Create a x86_64 build (options: x86/32, x86_64/64)
 
 The following environmental variables are also important:
   FBFLAGS             Pass more flags to fbc
