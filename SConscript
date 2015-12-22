@@ -104,18 +104,9 @@ if optimisations:
     CXXFLAGS.append ('-O3')
     # FB optimisation flag currently does pretty much nothing unless using -gen gcc
     FBFLAGS += ["-O", "2"]
-if int (ARGUMENTS.get ('gengcc', 0)):
-    # Due to FB bug #661, need to pass -m32 to gcc manually (although recent versions of FB do pass it?)
-    if '64' in arch:
-        archflag = '-m64'
-    else:
-        archflag = '-m32'
-    if profile or debug >= 1:
-        # -O2 plus profiling crashes for me due to mandatory frame pointers being omitted.
-        # Also keep frame pointers unless explicit debug=0
-        FBFLAGS += ["-gen", "gcc", "-Wc", archflag + ",-fno-omit-frame-pointer"]
-    else:
-        FBFLAGS += ["-gen", "gcc", "-Wc", archflag]
+gengcc = int (ARGUMENTS.get ('gengcc', 0))
+if gengcc:
+    FBFLAGS += ["-gen", "gcc"]
 
 # Backend selection.
 # Defaults:
@@ -270,6 +261,7 @@ if mac:
 ################ Arch-specific stuff
 
 if arch == 'armeabi':
+    gengcc = True
     env['FBFLAGS'] += ["-gen", "gcc", "-arch", "arm", "-R"]
     #env['CFLAGS'] += -L$(SYSROOT)/usr/lib
     # CC, CXX, AS must be set in environment to point to cross compiler
@@ -287,6 +279,7 @@ elif arch == 'x86':
         env['CXXFLAGS'].append ('-mno-sse')
     #env['FBFLAGS'] += ["-arch", "686"]
 elif arch == 'x86_64':
+    gengcc = True
     env['CFLAGS'].append ('-m64')
     env['CXXFLAGS'].append ('-m64')
     # This also causes FB to default to -gen gcc, as -gen gas not supported
@@ -294,6 +287,19 @@ elif arch == 'x86_64':
     env['FBFLAGS'] += ['-arch', 'x86_64']
 else:
     raise Exception('Unknown architecture %s' % arch)
+
+if gengcc:
+    # NOTE: You can only pass -Wc (which passes flags on to gcc) once to fbc; the last -Wc overrides others!
+    gcc_flags = []
+    if FB_exx:
+        # -exx results in a lot of labelled goto use, which confuses gcc
+        gcc_flags.append ('-Wno-maybe-uninitialized')
+    if profile or debug >= 1:
+        # -O2 plus profiling crashes for me due to mandatory frame pointers being omitted.
+        # Also keep frame pointers unless explicit debug=0
+        gcc_flags.append ('-fno-omit-frame-pointer')
+    if len(gcc_flags):
+        env['FBFLAGS'] += ["-Wc", ','.join (gcc_flags)]
 
 
 ################ A bunch of stuff for linking
@@ -781,8 +787,7 @@ Options:
                        debug=3:    yes |     yes      |    no
                        debug=4:    no  |     yes      |    no
                       -exx builds have array, pointer and file error checking
-                      (they abort immediately on errors!), are slow, and
-                      produce huge numbers of phony compile warnings if gengcc=1.
+                      (they abort immediately on errors!), and are slow.
   valgrind=1          Recommended when using valgrind (also turns off -exx).
   profile=1           Profiling build for gprof.
   scriptprofile=1     Script profiling build: track time in interpreter.
