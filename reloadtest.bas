@@ -452,6 +452,11 @@ startTest(loadFromXML)
 
 	doc2 = LoadDocument("unittest.rld", optNoDelay)
 	if doc2 = null then fail
+	
+	' dim fh as integer = freefile
+	' open cons for output as fh
+	' serializeXML(doc2, fh)
+	' close fh
 endTest
 
 startTest(compareWithXML)

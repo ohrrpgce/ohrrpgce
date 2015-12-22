@@ -19,7 +19,7 @@ dim shared reloadns as xmlNsPtr
 
 dim as string infile, outfile
 
-LIBXML_TEST_VERSION( )
+xmlCheckVersion(LIBXML_VERSION)
 
 infile = command(1)
 outfile = command(2)
@@ -173,27 +173,28 @@ function chug(node as xmlNodeptr, dc as DocPtr, encoded as encoding_t) as NodePt
 	select case node->type
 		case XML_ELEMENT_NODE, XML_ATTRIBUTE_NODE 'this is container: either a '<tag>' or an 'attribute="..."'
 			dim child_enc as encoding_t = encNone
+			dim nodename as zstring ptr = cast(zstring ptr, node->name)
 
 			'create the RELOAD node
 			if node->type = XML_ATTRIBUTE_NODE then
 				'this is an attribute: <foo bar="1" />
 				'Except, RELOAD doesn't do attributes. So, we reserve @ for those
-				this = CreateNode(dc, "@" & *node->name)
+				this = CreateNode(dc, "@" & *nodename)
 			else
-				if node->ns = reloadns andalso *node->name = "_" then  'work around RELOAD supporting no-name nodes
+				if node->ns = reloadns andalso *nodename = "_" then  'work around RELOAD supporting no-name nodes
 					this = CreateNode(dc, "")
-				elseif node->ns = reloadns andalso *node->name = "ws" then  'work around clobbering of whitespace
+				elseif node->ns = reloadns andalso *nodename = "ws" then  'work around clobbering of whitespace
 					this = CreateNode(dc, "$")  'this node will be squashed later
 					child_enc = encWS
 				else
-					this = CreateNode(dc, *node->name)
+					this = CreateNode(dc, *nodename)
 				end if
 
 				'take a look at the attributes
 				dim cur_attr as xmlAttrPtr = node->properties
 				do while cur_attr <> null
 					dim ch as nodeptr
-					if *cur_attr->name = "encoding" andalso cur_attr->ns = reloadns then
+					if *cast(zstring ptr, cur_attr->name) = "encoding" andalso cur_attr->ns = reloadns then
 						'How terribly bothersome. Get the (TEXT) value of this attribute
 						ch = chug(cur_attr->children, dc, encNone)
 						if GetString(ch) = "base64" then
@@ -234,19 +235,20 @@ function chug(node as xmlNodeptr, dc as DocPtr, encoded as encoding_t) as NodePt
 		case XML_TEXT_NODE 'this is any text data - aka, the content of "<foo>...</foo>"
 			'if the text node is blank, we don't care about it unless we're inside <ws></ws>
 			if xmlIsBlankNode(node) = 0 orelse encoded = encWS then
+				dim content as zstring ptr = node->content
 				if encoded = encBase64 then
 				'create a node with a special name
 					this = CreateNode(dc, "$")  'to be squashed
 					'Trim whitespace, which the decode library doesn't like
-					SetContent_base64(this, trim(*node->content, any !" \t\n\r"))
+					SetContent_base64(this, trim(*content, any !" \t\n\r"))
 				elseif encoded = encWS then
 					'Preserve whitespace and string status
 					this = CreateNode(dc, "$$")  'to be squashed
-					SetContent_utf8_garbage(this, *node->content)
+					SetContent_utf8_garbage(this, *content)
 				elseif encoded = encNone then
 					'and, set the content to the value of this node, less any padding of spaces, tabs or new lines
 					this = CreateNode(dc, "$")  'to be squashed
-					SetContent_utf8_garbage(this, trim(*node->content, any !" \t\n\r"))
+					SetContent_utf8_garbage(this, trim(*content, any !" \t\n\r"))
 				end if
 			end if
 		case XML_PI_NODE 'we don't support these.
