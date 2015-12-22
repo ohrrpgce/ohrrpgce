@@ -969,6 +969,25 @@ FUNCTION normalize_path(filename as string) as string
   RETURN ret
 END FUNCTION
 
+#IFDEF __FB_MAIN__
+#DEFINE testnorm(path, expected) testEqual(normalize_path(path), expected)
+
+startTest(normalizepath)
+  #IFDEF __FB_WIN32__
+    testnorm("a/b/cat//",  "a\b\cat\\")
+    testnorm("/cat/",      "\cat\")
+    testnorm("\cat\",      "\cat\")
+    testnorm("c:/",        "c:\")
+  #ELSE
+    testnorm("a/b/cat//",  "a/b/cat//")
+    testnorm("/cat/",      "/cat/")
+    testnorm("\cat\",      "\cat\")
+    testnorm("c:/",        "c:/")
+  #ENDIF
+  testnorm("",          "")
+endTest
+#ENDIF
+
 FUNCTION trim_trailing_slashes(filename as string) as string
   DIM retend as integer = LEN(filename)
   WHILE retend > 0
@@ -1008,6 +1027,7 @@ startTest(trimpath)
 endTest
 #ENDIF
 
+'FIXME: this function is terribly misnamed; rename it or change semantics
 FUNCTION trimfilename (filename as string) as string
   'Trim the last component of a path (which may be a directory rather than file!)
   'Return path without trailing slash. See testcases.
@@ -1015,7 +1035,8 @@ FUNCTION trimfilename (filename as string) as string
   DIM ret as string = trim_trailing_slashes(normalize_path(filename))
   ret = MID(ret, 1, large(0, INSTRREV(ret, SLASH) - 1))
   IF is_absolute_path(filename) AND is_absolute_path(ret) = NO THEN
-    RETURN get_path_root(filename)
+    'Whoops, we deleted the / or \ corresponding to the root
+    RETURN normalize_path(get_path_root(filename))
   END IF
   return ret
 END FUNCTION
