@@ -371,7 +371,8 @@ class NodeSpec(object):
 
             else:
                 # It's an attribute
-                if element.lower() not in attributes:
+                element = element.lower()
+                if element not in attributes:
                     raise LanguageError("Invalid nodespec attribute '" + element + "'", node) 
                 last_attribute = element
                 self.attributes.append(element)
@@ -380,6 +381,9 @@ class NodeSpec(object):
                         raise LanguageError("Found nodespec with more than one type attribute", node)
                     self.type = element
                 else:
+                    # 'warn', 'required', etc., but possibly also 'default', in which
+                    # case the next element should be the default expression.
+                    # If not, .default == True will indicate the omission.
                     setattr(self, element, True)
 
         if force_type:
