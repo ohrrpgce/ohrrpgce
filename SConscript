@@ -161,13 +161,6 @@ if CXX:
     env.Replace (CXX = CXX)
 
 
-################ OS-specific environment stuff
-
-if android:
-    # liblog for __android_log_print/write
-    env['FBLINKFLAGS'] += ['-l', 'log']
-    env['CXXLINKFLAGS'] += ['-llog']
-
 ################ Define Builders and Scanners for FreeBASIC and ReloadBasic
 
 def prefix_targets(target, source, env):
@@ -356,8 +349,6 @@ if linkgcc:
     if win32:
         # win32\ld_opt_hack.txt contains --stack option which can't be passed using -Wl
         env['CXXLINKFLAGS'] += ['-static-libgcc', '-static-libstdc++', '-Wl,@win32\ld_opt_hack.txt']
-        # winmm needed for MIDI, used by music backends but also by miditest, so I'll include it here rather than in commonenv
-        env['CXXLINKFLAGS'] += ['-lwinmm']
     else:
         if 'fb' in gfx:
             # Program icon required by fbgfx, but we only provide it on Windows,
@@ -396,22 +387,41 @@ if linkgcc:
 
     env['BUILDERS']['BASEXE'] = basexe_gcc
 
+if not linkgcc:
+    # At the moment we don't link C++ into any utilities, so this is actually only needed in commonenv
+    env['FBLINKFLAGS'] += ['-l','stdc++'] #, '-l','gcc_s', '-l','gcc_eh']
+
+
+################ Program-specific stuff starts here
+
+# We have five environments:
+# env             : Used for utilities
+# +-> commonenv   : Not used directly, but common configuration shared by gameenv and editenv
+#     +-> gameenv : For Game
+#     +-> editenv : For Custom
+# w32_env         : For gfx_directx (completely separate; uses Visual C++)
 
 # Make a base environment for Game and Custom (other utilities use env)
 commonenv = env.Clone ()
 
-base_modules = []   # modules (any language) shared by all utilities (except bam2mid)
+# Added to env and commonenv
+base_modules = []   # modules (any language) shared by all executables (except bam2mid)
+base_libraries = []  # libraries shared by all utilities (except bam2mid)
+
+# Added to gameenv and editenv
 shared_modules = []  # FB/RB modules shared by, but with separate builds, for Game and Custom
-common_modules = []  # other modules (in any language) shared by Game and Custom
 
-libraries = []
-libpaths = []
+# Added to commonenv
+common_modules = []  # other modules (in any language) shared by Game and Custom; only built once
+common_libraries = []
+common_libpaths = []
 
-### gfx and music backend dependencies
 
-gfx_map = {'fb': {'shared_modules': 'gfx_fb.bas', 'libraries': libfbgfx},
-           'alleg' : {'shared_modules': 'gfx_alleg.bas', 'libraries': 'alleg'},
-           'sdl' : {'shared_modules': 'gfx_sdl.bas', 'libraries': 'SDL'},
+################ gfx and music backend modules and libraries
+
+gfx_map = {'fb': {'shared_modules': 'gfx_fb.bas', 'common_libraries': libfbgfx},
+           'alleg' : {'shared_modules': 'gfx_alleg.bas', 'common_libraries': 'alleg'},
+           'sdl' : {'shared_modules': 'gfx_sdl.bas', 'common_libraries': 'SDL'},
            'console' : {'shared_modules': 'gfx_console.bas', 'common_modules': 'curses_wrap.c'}, # probably also need to link pdcurses on windows, untested
            'directx' : {}, # nothing needed
            'sdlpp': {}     # nothing needed
@@ -420,17 +430,17 @@ gfx_map = {'fb': {'shared_modules': 'gfx_fb.bas', 'libraries': libfbgfx},
 music_map = {'native':
                  {'shared_modules': 'music_native.bas music_audiere.bas',
                   'common_modules': os.path.join ('audwrap','audwrap.cpp'),
-                  'libraries': 'audiere', 'libpaths': '.'},
+                  'common_libraries': 'audiere', 'common_libpaths': '.'},
              'native2':
                  {'shared_modules': 'music_native2.bas music_audiere.bas',
                   'common_modules': os.path.join ('audwrap','audwrap.cpp'),
-                  'libraries': 'audiere', 'libpaths': '.'},
+                  'common_libraries': 'audiere', 'common_libpaths': '.'},
              'sdl':
                  {'shared_modules': 'music_sdl.bas sdl_lumprwops.bas',
-                  'libraries': 'SDL SDL_mixer'},
+                  'common_libraries': 'SDL SDL_mixer'},
              'allegro':
                  {'shared_modules': 'music_allegro.bas',
-                  'libraries': 'alleg'},
+                  'common_libraries': 'alleg'},
              'silence':
                  {'shared_modules': 'music_silence.bas'}
             }
@@ -448,13 +458,15 @@ for k in music:
 
 if win32:
     base_modules += ['os_windows.bas', 'os_windows2.c']
-    libraries += [libfbgfx, 'psapi']
-    libpaths += ['win32']
+    # winmm needed for MIDI, used by music backends but also by miditest
+    base_libraries += ['winmm']
+    common_libraries += [libfbgfx, 'psapi']
     commonenv['FBFLAGS'] += ['-s','gui']
+    commonenv['CXXLINKFLAGS'] += ['-lgdi32', '-Wl,--subsystem,windows']
 elif mac:
     base_modules += ['os_unix.c', 'os_unix2.bas']
     common_modules += ['os_unix_wm.c']
-    libraries += ['Cocoa']  # For CoreServices
+    common_libraries += ['Cocoa']  # For CoreServices
     if 'sdl' in gfx:
         common_modules += ['mac/SDLmain.m']
         commonenv['FBFLAGS'] += ['-entry', 'SDL_main']
@@ -463,6 +475,8 @@ elif mac:
         else:
             commonenv['CFLAGS'] += ["-I", "/Library/Frameworks/SDL.framework/Headers", "-I", FRAMEWORKS_PATH + "/SDL.framework/Headers"]
 elif android:
+    # liblog for __android_log_print/write
+    base_libraries += ['log']
     base_modules += ['os_unix.c', 'os_unix2.bas']
     common_modules += ['os_unix_wm.c']
 elif unix:  # Linux & BSD
@@ -470,11 +484,17 @@ elif unix:  # Linux & BSD
     common_modules += ['os_unix_wm.c']
     if gfx != ['console']:
         # All graphical gfx backends need the X11 libs
-        libraries += 'X11 Xext Xpm Xrandr Xrender'.split (' ')
+        common_libraries += 'X11 Xext Xpm Xrandr Xrender'.split (' ')
     commonenv['FBFLAGS'] += ['-d', 'DATAFILES=\'"/usr/share/games/ohrrpgce"\'']
 
 
-for lib in libraries:
+################ Add the libraries to env and commonenv
+
+for lib in base_libraries:
+    env['CXXLINKFLAGS'] += ['-l' + lib]
+    env['FBLINKFLAGS'] += ['-l', lib]
+
+for lib in base_libraries + common_libraries:
     if mac and lib in ('SDL', 'SDL_mixer', 'Cocoa'):
         # Use frameworks rather than normal unix libraries
         commonenv['CXXLINKFLAGS'] += ['-framework', lib]
@@ -483,9 +503,13 @@ for lib in libraries:
         commonenv['CXXLINKFLAGS'] += ['-l' + lib]
         commonenv['FBLINKFLAGS'] += ['-l', lib]
 
-commonenv['CXXLINKFLAGS'] += ['-L' + path for path in libpaths]
-commonenv['FBLINKFLAGS'] += Flatten ([['-p', v] for v in libpaths])
+if win32:
+    env['FBLINKFLAGS'] += ['-p', 'win32']
+    env['CXXLINKFLAGS'] += ['-L', 'win32']
+    common_libpaths += ['win32']
 
+commonenv['CXXLINKFLAGS'] += ['-L' + path for path in common_libpaths]
+commonenv['FBLINKFLAGS'] += Flatten ([['-p', v] for v in common_libpaths])
 
 
 ################ Modules
@@ -556,12 +580,6 @@ common_modules += ['filelayer.cpp',
                    'matrixMath.cpp',
                    'gfx_newRenderPlan.cpp']
 
-if linkgcc:
-    if win32:
-        commonenv['CXXLINKFLAGS'] += ['-lgdi32', '-Wl,--subsystem,windows']
-
-else:
-    commonenv['FBLINKFLAGS'] += ['-l','stdc++'] #, '-l','gcc_s', '-l','gcc_eh']
 
 ################ Generate build & version info files before compiling any modules
 
