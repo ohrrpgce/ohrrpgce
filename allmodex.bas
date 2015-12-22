@@ -4111,11 +4111,7 @@ function font_loadold1bit (fontdata as ubyte ptr) as Font ptr
 				'maskp += 8
 			next
 			fi = fi + fstep
-#IFDEF __FB_64BIT__
-			fstep = iif(fstep = 1, 7, 1) 'uneven steps due to 2->8 byte thunk
-#ELSE
 			fstep = iif(fstep = 1, 3, 1) 'uneven steps due to 2->4 byte thunk
-#ENDIF
 			sptr += 1 - 8 * 8
 			'maskp += 1 - 8 * 8
 		next
