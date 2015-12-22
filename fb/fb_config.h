@@ -57,6 +57,8 @@
 	#endif
 #elif defined __ppc64__
 	#define HOST_64BIT
+#elif defined __aarch64__
+	#define HOST_64BIT
 #endif
 
 #ifdef HOST_MINGW

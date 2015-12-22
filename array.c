@@ -54,6 +54,7 @@ static short alloc_header() {
 		}
 	}
 	debug(errFatal, "header_table is full: 65536 arrays are allocated. Compile without -DVALGRIND_ARRAYS");
+	abort();
 }
 
 static void free_header(short id) {

@@ -1,5 +1,7 @@
 /*
- *  This is a stripped down version of FB's src/rtlib/fb.h
+ *  This is a stripped down version of FB 1.04's src/rtlib/fb.h
+ *  with some other files merged in and some changes: mainly,
+ *  addition of FnDevOpenHook. All other headers are also from FB 1.04.
  *
  *  libfb - FreeBASIC's runtime library
  *	Copyright (C) 2004-2010 The FreeBASIC development team.
@@ -38,165 +40,79 @@
 extern "C" {
 #endif
 
+#define ENABLE_MT
+
 /* Must be included before any system headers due to certain #defines */
 #include "fb_config.h"
 
 
-    /* =================================================================
-     * RTLIB configuration
-     * ================================================================= */
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdint.h>
 
-    /** Defines the ASCII code that indicates a two-byte key code.
-     *
-     * A two-byte key code will be returned by GET on SCRN: or INKEY$.
-     */
-#define FB_EXT_CHAR           ((char)255)
 
-    /** Maximum number of temporary string descriptors.
-     */
-#define FB_STR_TMPDESCRIPTORS 256
-
-    /** Maximum number of array dimensions.
-     */
-#define FB_MAXDIMENSIONS      8
-
-    /** Maximum number of temporary array descriptors.
-     */
-#define FB_ARRAY_TMPDESCRIPTORS (FB_STR_TMPDESCRIPTORS / 4)
-
-    /** The padding width (for PRINT ,).
-     */
-#define FB_TAB_WIDTH          14
-
-    /** Screen width returned by default when native console function failed.
-     *
-     * This is required when an applications output is redirected.
-     */
-#define FB_SCRN_DEFAULT_WIDTH  80
-
-    /** Screen height returned by default when native console function failed.
-     *
-     * This is required when an applications output is redirected.
-     */
-#define FB_SCRN_DEFAULT_HEIGHT 25
-
-    /** Number of reserved file handles.
-     *
-     * Index        Usage:
-     * 0            SCRN:
-     * 1            LPT1:
-     */
-#define FB_RESERVED_FILES     2
-
-    /** Maximum number of file handles.
-     */
-#define FB_MAX_FILES          (FB_RESERVED_FILES + 255)
-
-    /** File buffer size (for buffered read ?).
-     */
-#define FB_FILE_BUFSIZE       8192
-
-    /** Max length to allocated for a temporary buffer on stack
-     */
-#define FB_LOCALBUFF_MAXLEN	  32768
-
-    /* =================================================================
-     * RTLIB default values
-     * ================================================================= */
-
-    /** BASIC's TRUE value.
-     */
-#define FB_TRUE -1
-
-    /** BASIC's FALSE value.
-     */
+#define FB_TRUE (-1)
 #define FB_FALSE 0
 
-    /** FALSE value for pre C99.
-     */
 #ifndef FALSE
-#define FALSE    0
+#define FALSE 0
 #endif
-
-    /** TRUE value for pre C99.
-     */
 #ifndef TRUE
-#define TRUE    1
+#define TRUE 1
 #endif
-
-    /** NULL value for pre C99.
-     */
 #ifndef NULL
-#define NULL     0
+#define NULL 0
 #endif
 
-#ifndef FB_LOCK
-    /** Acquire a global semaphore (recursive mutex).
-     */
-# define FB_LOCK()
-#endif
-#ifndef FB_UNLOCK
-    /** Release a global semaphore (recursive mutex).
-     */
-# define FB_UNLOCK()
+/* Defines the ASCII code that indicates a two-byte key code.
+   A two-byte key code will be returned by GET on SCRN: or INKEY$. */
+#define FB_EXT_CHAR           ((char)255)
+
+/* Maximum number of temporary string descriptors. */
+#define FB_STR_TMPDESCRIPTORS 256
+
+/* Maximum number of array dimensions. */
+#define FB_MAXDIMENSIONS      8
+
+/* Maximum number of temporary array descriptors. */
+#define FB_ARRAY_TMPDESCRIPTORS (FB_STR_TMPDESCRIPTORS / 4)
+
+/* The padding width (for PRINT ,). */
+#define FB_TAB_WIDTH          14
+
+#if FB_TAB_WIDTH == 8
+#define FB_NATIVE_TAB 1
 #endif
 
-#ifndef FB_TLSENTRY
-    /** Define a TLS (Thread local storage) slot.
-     */
-# define FB_TLSENTRY uintptr_t
+/* Screen width/height returned by default when native console function failed.
+   This is required when an applications output is redirected. */
+#define FB_SCRN_DEFAULT_WIDTH  80
+#define FB_SCRN_DEFAULT_HEIGHT 25
+
+/* Default colors for console color() function */
+#define FB_COLOR_FG_DEFAULT   0x1
+#define FB_COLOR_BG_DEFAULT   0x2
+
+/* Number of reserved file handles. 0: SCRN, 1: LPT1 */
+#define FB_RESERVED_FILES     2
+
+/* Maximum number of file handles. */
+#define FB_MAX_FILES          (FB_RESERVED_FILES + 255)
+
+/* File buffer size (for buffered read?). */
+#define FB_FILE_BUFSIZE       8192
+
+/* Max length to allocated for a temporary buffer on stack */
+#define FB_LOCALBUFF_MAXLEN   32768
+
+#ifndef HOST_WIN32
+	/* Maximum path length for Non-Win32 targets. For Win32 targets, this
+	   value will be set automatically by windows.h. */
+	#define MAX_PATH    1024
 #endif
 
-#ifndef FB_TLSALLOC
-# define FB_TLSALLOC(key) key = NULL
-#endif
-
-#ifndef FB_TLSFREE
-# define FB_TLSFREE(key) key = NULL
-#endif
-
-#ifndef FB_TLSSET
-    /** Set the value of a TLS (Thread local storage) slot.
-     */
-# define FB_TLSSET(key,value) key = (FB_TLSENTRY)value
-#endif
-#ifndef FB_TLSGET
-    /** Get the value from a TLS (Thread local storage) slot.
-     */
-# define FB_TLSGET(key) key
-#endif
-
-#ifndef FB_THREADID
-# define FB_THREADID int
-#endif
-
-#ifndef FB_BINARY_NEWLINE
-    /** The "NEW LINE" string required for printer I/O
-     *
-     * The printer always requires both CR and LF.
-     */
-#define FB_BINARY_NEWLINE "\r\n"
-#define FB_BINARY_NEWLINE_WSTR _LC("\r\n")
-#endif
-
-#ifndef FB_NEWLINE
-    /** The "NEW LINE" character used for all I/O.
-     *
-     * This is LF here because FB relies on the C RTL which only knows
-     * LF as line-end character.
-     */
-#define FB_NEWLINE "\n"
-#define FB_NEWLINE_WSTR _LC("\n")
-#endif
-
-#ifndef FB_LL_FMTMOD
-    /** LONG LONG format modifier.
-     *
-     * This is the default "long long" format modifier for use with the
-     * *printf functions.
-     */
-#define FB_LL_FMTMOD "ll"
-#endif
+/* Convert char to int without sign-extension. */
+#define FB_CHAR_TO_INT(ch)  ((int) ((unsigned) (unsigned char) (ch)))
 
 
 /* The following has been added to replace dependance on fb_unix.h, fb_win32.h etc (bad idea?) */
@@ -204,7 +120,6 @@ extern "C" {
 #if defined HOST_WIN32
 
 	#include <io.h>
-	#include <stdio.h>
 
 	// Copied from rtlib/win32/fb_win32.h
 
@@ -227,9 +142,9 @@ extern "C" {
 
 #elif defined HOST_UNIX
 
-	#include <sys/types.h>
-
 	// Copied from rtlib/unix/fb_unix.h
+
+	#include <unistd.h>
 
 	#define FBCALL
 
@@ -244,42 +159,69 @@ extern "C" {
 #endif
 
 
-#define FB_WCHAR char
+FBCALL void fb_Lock( void );
+FBCALL void fb_Unlock( void );
+FBCALL void fb_StrLock( void );
+FBCALL void fb_StrUnlock( void );
+FBCALL void fb_GraphicsLock  ( void );
+FBCALL void fb_GraphicsUnlock( void );
+#define FB_LOCK()      fb_Lock()
+#define FB_UNLOCK()    fb_Unlock()
+#define FB_STRLOCK()   fb_StrLock()
+#define FB_STRUNLOCK() fb_StrUnlock()
+#define FB_GRAPHICS_LOCK()   fb_GraphicsLock()
+#define FB_GRAPHICS_UNLOCK() fb_GraphicsUnlock()
 
+
+#define FB_WCHAR char
+typedef uint32_t UTF_32;
+typedef uint16_t UTF_16;
+typedef uint8_t  UTF_8;
+
+
+/* internal lists */
+typedef struct _FB_LISTELEM {
+    struct _FB_LISTELEM    *prev;
+    struct _FB_LISTELEM    *next;
+} FB_LISTELEM;
+
+typedef struct _FB_LIST {
+    int                cnt;      /* Number of used elements */
+    FB_LISTELEM        *head;    /* First used element */
+    FB_LISTELEM        *tail;    /* Last used element */
+    FB_LISTELEM        *fhead;   /* First free element */
+} FB_LIST;
+
+
+#include "fb_array.h"
 #include "fb_string.h"
 #include "fb_file.h"
 #include "fb_device.h"
 
+typedef FBCALL int (*FnDevOpenHook)( FBSTRING *filename,
+                                     unsigned open_mode,
+                                     unsigned access_mode,
+                                     unsigned lock_mode,
+                                     int rec_len,
+                                     FnFileOpen *pfnFileOpen );
+
 typedef struct FB_RTLIB_CTX_ {
-	int 			argc;
-	char 			**argv;
-	FBSTRING 		null_desc;
-	char 			*error_msg;
+	int             argc;
+	char          **argv;
+	FBSTRING        null_desc;
+	char           *errmsg;
+  /* The following only exists in FB 0.23 and earlier! */
 	FnDevOpenHook	pfnDevOpenHook;
   /* And some other stuff... but not going to include all other headers
-	FB_HOOKSTB		hooks;
-	FB_TLSENTRY 	tls_ctxtb[FB_TLSKEYS];
-	FB_FILE 		fileTB[FB_MAX_FILES];
-	int				do_file_reset;
-	int				lang;
+	FB_HOOKSTB      hooks;
+	FB_FILE         fileTB[FB_MAX_FILES];
+	int             do_file_reset;
+	int             lang;
+	void          (*exit_gfxlib2)(void);
   */
 } FB_RTLIB_CTX;
 
 extern FB_RTLIB_CTX __fb_ctx;
-
-
-// This is a single-dimensional array. Dynamic arrays may have up to 8 dimensions,
-// and simply have more dim*_* members on the end.
-typedef struct _FBARRAY {
-    int *data[1];
-    int *ptr[1];
-    int size;
-    int elen;
-    int dims;
-    int dim1_elemns;
-    int dim1_lbound;
-    int dim1_ubound;
-} FBARRAY;
 
 
 #ifdef __cplusplus
